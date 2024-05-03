@@ -44,7 +44,7 @@ typedef enum {
     ERR_INJECT_EXTRA_INPUT,
     ERR_INJECT_EXTRA_OUTPUT_AT_END,
     ERR_INJECT_EXTRA_INPUT_AT_END,
-    /* erros issued from the .data file */
+    /* errors issued from the .data file */
     ERR_IN_SETUP,
     ERR_IN_SET_USER,
     ERR_IN_SET_PEER,
@@ -59,9 +59,11 @@ typedef enum {
     PAKE_ROUND_TWO
 } pake_round_t;
 
+#if defined(PSA_WANT_ALG_JPAKE)
 /* The only two JPAKE user/peer identifiers supported for the time being. */
 static const uint8_t jpake_server_id[] = { 's', 'e', 'r', 'v', 'e', 'r' };
 static const uint8_t jpake_client_id[] = { 'c', 'l', 'i', 'e', 'n', 't' };
+#endif
 
 /*
  * Inject an error on the specified buffer ONLY it this is the correct stage.
@@ -145,7 +147,7 @@ static void ecjpake_do_round(psa_algorithm_t alg, unsigned int primitive,
             /* Server first round Output */
             PSA_ASSERT(psa_pake_output(server, PSA_PAKE_STEP_KEY_SHARE,
                                        buffer0 + buffer0_off,
-                                       512 - buffer0_off, &s_g1_len));
+                                       buffer_length - buffer0_off, &s_g1_len));
             TEST_EQUAL(s_g1_len, expected_size_key_share);
             DO_ROUND_CONDITIONAL_INJECT(
                 ERR_INJECT_ROUND1_SERVER_KEY_SHARE_PART1,
@@ -154,7 +156,7 @@ static void ecjpake_do_round(psa_algorithm_t alg, unsigned int primitive,
 
             PSA_ASSERT(psa_pake_output(server, PSA_PAKE_STEP_ZK_PUBLIC,
                                        buffer0 + buffer0_off,
-                                       512 - buffer0_off, &s_x1_pk_len));
+                                       buffer_length - buffer0_off, &s_x1_pk_len));
             TEST_EQUAL(s_x1_pk_len, expected_size_zk_public);
             DO_ROUND_CONDITIONAL_INJECT(
                 ERR_INJECT_ROUND1_SERVER_ZK_PUBLIC_PART1,
@@ -163,7 +165,7 @@ static void ecjpake_do_round(psa_algorithm_t alg, unsigned int primitive,
 
             PSA_ASSERT(psa_pake_output(server, PSA_PAKE_STEP_ZK_PROOF,
                                        buffer0 + buffer0_off,
-                                       512 - buffer0_off, &s_x1_pr_len));
+                                       buffer_length - buffer0_off, &s_x1_pr_len));
             TEST_LE_U(s_x1_pr_len, max_expected_size_zk_proof);
             DO_ROUND_CONDITIONAL_INJECT(
                 ERR_INJECT_ROUND1_SERVER_ZK_PROOF_PART1,
@@ -172,7 +174,7 @@ static void ecjpake_do_round(psa_algorithm_t alg, unsigned int primitive,
 
             PSA_ASSERT(psa_pake_output(server, PSA_PAKE_STEP_KEY_SHARE,
                                        buffer0 + buffer0_off,
-                                       512 - buffer0_off, &s_g2_len));
+                                       buffer_length - buffer0_off, &s_g2_len));
             TEST_EQUAL(s_g2_len, expected_size_key_share);
             DO_ROUND_CONDITIONAL_INJECT(
                 ERR_INJECT_ROUND1_SERVER_KEY_SHARE_PART2,
@@ -181,7 +183,7 @@ static void ecjpake_do_round(psa_algorithm_t alg, unsigned int primitive,
 
             PSA_ASSERT(psa_pake_output(server, PSA_PAKE_STEP_ZK_PUBLIC,
                                        buffer0 + buffer0_off,
-                                       512 - buffer0_off, &s_x2_pk_len));
+                                       buffer_length - buffer0_off, &s_x2_pk_len));
             TEST_EQUAL(s_x2_pk_len, expected_size_zk_public);
             DO_ROUND_CONDITIONAL_INJECT(
                 ERR_INJECT_ROUND1_SERVER_ZK_PUBLIC_PART2,
@@ -190,7 +192,7 @@ static void ecjpake_do_round(psa_algorithm_t alg, unsigned int primitive,
 
             PSA_ASSERT(psa_pake_output(server, PSA_PAKE_STEP_ZK_PROOF,
                                        buffer0 + buffer0_off,
-                                       512 - buffer0_off, &s_x2_pr_len));
+                                       buffer_length - buffer0_off, &s_x2_pr_len));
             TEST_LE_U(s_x2_pr_len, max_expected_size_zk_proof);
             DO_ROUND_CONDITIONAL_INJECT(
                 ERR_INJECT_ROUND1_SERVER_ZK_PROOF_PART2,
@@ -201,7 +203,7 @@ static void ecjpake_do_round(psa_algorithm_t alg, unsigned int primitive,
             DO_ROUND_CONDITIONAL_CHECK_FAILURE(
                 ERR_INJECT_EXTRA_OUTPUT,
                 psa_pake_output(server, PSA_PAKE_STEP_KEY_SHARE,
-                                buffer0 + s_g2_off, 512 - s_g2_off, &extra_output_len));
+                                buffer0 + s_g2_off, buffer_length - s_g2_off, &extra_output_len));
             (void) extra_output_len;
             /*
              * When injecting errors in inputs, the implementation is
@@ -258,7 +260,7 @@ static void ecjpake_do_round(psa_algorithm_t alg, unsigned int primitive,
             /* Client first round Output */
             PSA_ASSERT(psa_pake_output(client, PSA_PAKE_STEP_KEY_SHARE,
                                        buffer1 + buffer1_off,
-                                       512 - buffer1_off, &c_g1_len));
+                                       buffer_length - buffer1_off, &c_g1_len));
             TEST_EQUAL(c_g1_len, expected_size_key_share);
             DO_ROUND_CONDITIONAL_INJECT(
                 ERR_INJECT_ROUND1_CLIENT_KEY_SHARE_PART1,
@@ -267,7 +269,7 @@ static void ecjpake_do_round(psa_algorithm_t alg, unsigned int primitive,
 
             PSA_ASSERT(psa_pake_output(client, PSA_PAKE_STEP_ZK_PUBLIC,
                                        buffer1 + buffer1_off,
-                                       512 - buffer1_off, &c_x1_pk_len));
+                                       buffer_length - buffer1_off, &c_x1_pk_len));
             TEST_EQUAL(c_x1_pk_len, expected_size_zk_public);
             DO_ROUND_CONDITIONAL_INJECT(
                 ERR_INJECT_ROUND1_CLIENT_ZK_PUBLIC_PART1,
@@ -276,7 +278,7 @@ static void ecjpake_do_round(psa_algorithm_t alg, unsigned int primitive,
 
             PSA_ASSERT(psa_pake_output(client, PSA_PAKE_STEP_ZK_PROOF,
                                        buffer1 + buffer1_off,
-                                       512 - buffer1_off, &c_x1_pr_len));
+                                       buffer_length - buffer1_off, &c_x1_pr_len));
             TEST_LE_U(c_x1_pr_len, max_expected_size_zk_proof);
             DO_ROUND_CONDITIONAL_INJECT(
                 ERR_INJECT_ROUND1_CLIENT_ZK_PROOF_PART1,
@@ -285,7 +287,7 @@ static void ecjpake_do_round(psa_algorithm_t alg, unsigned int primitive,
 
             PSA_ASSERT(psa_pake_output(client, PSA_PAKE_STEP_KEY_SHARE,
                                        buffer1 + buffer1_off,
-                                       512 - buffer1_off, &c_g2_len));
+                                       buffer_length - buffer1_off, &c_g2_len));
             TEST_EQUAL(c_g2_len, expected_size_key_share);
             DO_ROUND_CONDITIONAL_INJECT(
                 ERR_INJECT_ROUND1_CLIENT_KEY_SHARE_PART2,
@@ -294,7 +296,7 @@ static void ecjpake_do_round(psa_algorithm_t alg, unsigned int primitive,
 
             PSA_ASSERT(psa_pake_output(client, PSA_PAKE_STEP_ZK_PUBLIC,
                                        buffer1 + buffer1_off,
-                                       512 - buffer1_off, &c_x2_pk_len));
+                                       buffer_length - buffer1_off, &c_x2_pk_len));
             TEST_EQUAL(c_x2_pk_len, expected_size_zk_public);
             DO_ROUND_CONDITIONAL_INJECT(
                 ERR_INJECT_ROUND1_CLIENT_ZK_PUBLIC_PART2,
@@ -303,7 +305,7 @@ static void ecjpake_do_round(psa_algorithm_t alg, unsigned int primitive,
 
             PSA_ASSERT(psa_pake_output(client, PSA_PAKE_STEP_ZK_PROOF,
                                        buffer1 + buffer1_off,
-                                       512 - buffer1_off, &c_x2_pr_len));
+                                       buffer_length - buffer1_off, &c_x2_pr_len));
             TEST_LE_U(c_x2_pr_len, max_expected_size_zk_proof);
             DO_ROUND_CONDITIONAL_INJECT(
                 ERR_INJECT_ROUND1_CLIENT_ZK_PROOF_PART2,
@@ -389,7 +391,7 @@ static void ecjpake_do_round(psa_algorithm_t alg, unsigned int primitive,
 
             PSA_ASSERT(psa_pake_output(server, PSA_PAKE_STEP_KEY_SHARE,
                                        buffer0 + buffer0_off,
-                                       512 - buffer0_off, &s_a_len));
+                                       buffer_length - buffer0_off, &s_a_len));
             TEST_EQUAL(s_a_len, expected_size_key_share);
             DO_ROUND_CONDITIONAL_INJECT(
                 ERR_INJECT_ROUND2_SERVER_KEY_SHARE,
@@ -398,7 +400,7 @@ static void ecjpake_do_round(psa_algorithm_t alg, unsigned int primitive,
 
             PSA_ASSERT(psa_pake_output(server, PSA_PAKE_STEP_ZK_PUBLIC,
                                        buffer0 + buffer0_off,
-                                       512 - buffer0_off, &s_x2s_pk_len));
+                                       buffer_length - buffer0_off, &s_x2s_pk_len));
             TEST_EQUAL(s_x2s_pk_len, expected_size_zk_public);
             DO_ROUND_CONDITIONAL_INJECT(
                 ERR_INJECT_ROUND2_SERVER_ZK_PUBLIC,
@@ -407,7 +409,7 @@ static void ecjpake_do_round(psa_algorithm_t alg, unsigned int primitive,
 
             PSA_ASSERT(psa_pake_output(server, PSA_PAKE_STEP_ZK_PROOF,
                                        buffer0 + buffer0_off,
-                                       512 - buffer0_off, &s_x2s_pr_len));
+                                       buffer_length - buffer0_off, &s_x2s_pr_len));
             TEST_LE_U(s_x2s_pr_len, max_expected_size_zk_proof);
             DO_ROUND_CONDITIONAL_INJECT(
                 ERR_INJECT_ROUND2_SERVER_ZK_PROOF,
@@ -443,7 +445,7 @@ static void ecjpake_do_round(psa_algorithm_t alg, unsigned int primitive,
 
             PSA_ASSERT(psa_pake_output(client, PSA_PAKE_STEP_KEY_SHARE,
                                        buffer1 + buffer1_off,
-                                       512 - buffer1_off, &c_a_len));
+                                       buffer_length - buffer1_off, &c_a_len));
             TEST_EQUAL(c_a_len, expected_size_key_share);
             DO_ROUND_CONDITIONAL_INJECT(
                 ERR_INJECT_ROUND2_CLIENT_KEY_SHARE,
@@ -452,7 +454,7 @@ static void ecjpake_do_round(psa_algorithm_t alg, unsigned int primitive,
 
             PSA_ASSERT(psa_pake_output(client, PSA_PAKE_STEP_ZK_PUBLIC,
                                        buffer1 + buffer1_off,
-                                       512 - buffer1_off, &c_x2s_pk_len));
+                                       buffer_length - buffer1_off, &c_x2s_pk_len));
             TEST_EQUAL(c_x2s_pk_len, expected_size_zk_public);
             DO_ROUND_CONDITIONAL_INJECT(
                 ERR_INJECT_ROUND2_CLIENT_ZK_PUBLIC,
@@ -461,7 +463,7 @@ static void ecjpake_do_round(psa_algorithm_t alg, unsigned int primitive,
 
             PSA_ASSERT(psa_pake_output(client, PSA_PAKE_STEP_ZK_PROOF,
                                        buffer1 + buffer1_off,
-                                       512 - buffer1_off, &c_x2s_pr_len));
+                                       buffer_length - buffer1_off, &c_x2s_pr_len));
             TEST_LE_U(c_x2s_pr_len, max_expected_size_zk_proof);
             DO_ROUND_CONDITIONAL_INJECT(
                 ERR_INJECT_ROUND2_CLIENT_ZK_PROOF,
@@ -473,7 +475,7 @@ static void ecjpake_do_round(psa_algorithm_t alg, unsigned int primitive,
                 DO_ROUND_CONDITIONAL_CHECK_FAILURE(
                     ERR_INJECT_EXTRA_OUTPUT_AT_END,
                     psa_pake_output(client, PSA_PAKE_STEP_KEY_SHARE,
-                                    buffer1 + c_a_off, 512 - c_a_off,
+                                    buffer1 + c_a_off, buffer_length - c_a_off,
                                     &extra_output_at_end_len));
                 (void) extra_output_at_end_len;
             }

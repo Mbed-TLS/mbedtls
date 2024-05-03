@@ -14,21 +14,17 @@
 
 #include <psa/crypto.h>
 
+#if defined(MBEDTLS_PK_C)
+#include <mbedtls/pk.h>
+#endif
+
 /** \def KNOWN_SUPPORTED_HASH_ALG
  *
  * A hash algorithm that is known to be supported.
  *
  * This is used in some smoke tests.
  */
-#if defined(PSA_WANT_ALG_MD5)
-#define KNOWN_SUPPORTED_HASH_ALG PSA_ALG_MD5
-/* PSA_WANT_ALG_RIPEMD160 omitted. This is necessary for the sake of
- * exercise_signature_key() because Mbed TLS doesn't support RIPEMD160
- * in RSA PKCS#1v1.5 signatures. A RIPEMD160-only configuration would be
- * implausible anyway. */
-#elif defined(PSA_WANT_ALG_SHA_1)
-#define KNOWN_SUPPORTED_HASH_ALG PSA_ALG_SHA_1
-#elif defined(PSA_WANT_ALG_SHA_256)
+#if defined(PSA_WANT_ALG_SHA_256)
 #define KNOWN_SUPPORTED_HASH_ALG PSA_ALG_SHA_256
 #elif defined(PSA_WANT_ALG_SHA_384)
 #define KNOWN_SUPPORTED_HASH_ALG PSA_ALG_SHA_384
@@ -36,6 +32,14 @@
 #define KNOWN_SUPPORTED_HASH_ALG PSA_ALG_SHA_512
 #elif defined(PSA_WANT_ALG_SHA3_256)
 #define KNOWN_SUPPORTED_HASH_ALG PSA_ALG_SHA3_256
+#elif defined(PSA_WANT_ALG_SHA_1)
+#define KNOWN_SUPPORTED_HASH_ALG PSA_ALG_SHA_1
+#elif defined(PSA_WANT_ALG_MD5)
+#define KNOWN_SUPPORTED_HASH_ALG PSA_ALG_MD5
+/* PSA_WANT_ALG_RIPEMD160 omitted. This is necessary for the sake of
+ * exercise_signature_key() because Mbed TLS doesn't support RIPEMD160
+ * in RSA PKCS#1v1.5 signatures. A RIPEMD160-only configuration would be
+ * implausible anyway. */
 #else
 #undef KNOWN_SUPPORTED_HASH_ALG
 #endif
@@ -46,12 +50,13 @@
  *
  * For simplicity's sake, stick to block ciphers with 16-byte blocks.
  */
-#if defined(MBEDTLS_AES_C)
+#if defined(PSA_WANT_KEY_TYPE_AES)
 #define KNOWN_SUPPORTED_BLOCK_CIPHER PSA_KEY_TYPE_AES
-#elif defined(MBEDTLS_ARIA_C)
+#elif defined(PSA_WANT_KEY_TYPE_ARIA)
 #define KNOWN_SUPPORTED_BLOCK_CIPHER PSA_KEY_TYPE_ARIA
-#elif defined(MBEDTLS_CAMELLIA_C)
+#elif defined(PSA_WANT_KEY_TYPE_CAMELLIA)
 #define KNOWN_SUPPORTED_BLOCK_CIPHER PSA_KEY_TYPE_CAMELLIA
+#else
 #undef KNOWN_SUPPORTED_BLOCK_CIPHER
 #endif
 
@@ -81,13 +86,13 @@
  *
  * This is used in some smoke tests.
  */
-#if defined(KNOWN_SUPPORTED_BLOCK_CIPHER) && defined(MBEDTLS_CIPHER_MODE_CTR)
+#if defined(KNOWN_SUPPORTED_BLOCK_CIPHER) && defined(PSA_WANT_ALG_CTR)
 #define KNOWN_SUPPORTED_BLOCK_CIPHER_ALG PSA_ALG_CTR
-#elif defined(KNOWN_SUPPORTED_BLOCK_CIPHER) && defined(MBEDTLS_CIPHER_MODE_CBC)
+#elif defined(KNOWN_SUPPORTED_BLOCK_CIPHER) && defined(PSA_WANT_ALG_CBC_NO_PADDING)
 #define KNOWN_SUPPORTED_BLOCK_CIPHER_ALG PSA_ALG_CBC_NO_PADDING
-#elif defined(KNOWN_SUPPORTED_BLOCK_CIPHER) && defined(MBEDTLS_CIPHER_MODE_CFB)
+#elif defined(KNOWN_SUPPORTED_BLOCK_CIPHER) && defined(PSA_WANT_ALG_CFB)
 #define KNOWN_SUPPORTED_BLOCK_CIPHER_ALG PSA_ALG_CFB
-#elif defined(KNOWN_SUPPORTED_BLOCK_CIPHER) && defined(MBEDTLS_CIPHER_MODE_OFB)
+#elif defined(KNOWN_SUPPORTED_BLOCK_CIPHER) && defined(PSA_WANT_ALG_OFB)
 #define KNOWN_SUPPORTED_BLOCK_CIPHER_ALG PSA_ALG_OFB
 #else
 #undef KNOWN_SUPPORTED_BLOCK_CIPHER_ALG
@@ -118,6 +123,9 @@
  * \param input2            The first input to pass.
  * \param input2_length     The length of \p input2 in bytes.
  * \param capacity          The capacity to set.
+ * \param key_destroyable   If set to 1, a failure due to the key not existing
+ *                          or the key being destroyed mid-operation will only
+ *                          be reported if the error code is unexpected.
  *
  * \return                  \c 1 on success, \c 0 on failure.
  */
@@ -127,7 +135,7 @@ int mbedtls_test_psa_setup_key_derivation_wrap(
     psa_algorithm_t alg,
     const unsigned char *input1, size_t input1_length,
     const unsigned char *input2, size_t input2_length,
-    size_t capacity);
+    size_t capacity, int key_destroyable);
 
 /** Perform a key agreement using the given key pair against its public key
  * using psa_raw_key_agreement().
@@ -138,12 +146,15 @@ int mbedtls_test_psa_setup_key_derivation_wrap(
  *
  * \param alg               A key agreement algorithm compatible with \p key.
  * \param key               A key that allows key agreement with \p alg.
+ * \param key_destroyable   If set to 1, a failure due to the key not existing
+ *                          or the key being destroyed mid-operation will only
+ *                          be reported if the error code is unexpected.
  *
  * \return                  \c 1 on success, \c 0 on failure.
  */
 psa_status_t mbedtls_test_psa_raw_key_agreement_with_self(
     psa_algorithm_t alg,
-    mbedtls_svc_key_id_t key);
+    mbedtls_svc_key_id_t key, int key_destroyable);
 
 /** Perform a key agreement using the given key pair against its public key
  * using psa_key_derivation_raw_key().
@@ -157,12 +168,15 @@ psa_status_t mbedtls_test_psa_raw_key_agreement_with_self(
  *                          \p key.
  * \param key               A key pair object that is suitable for a key
  *                          agreement with \p operation.
+ * \param key_destroyable   If set to 1, a failure due to the key not existing
+ *                          or the key being destroyed mid-operation will only
+ *                          be reported if the error code is unexpected.
  *
  * \return                  \c 1 on success, \c 0 on failure.
  */
 psa_status_t mbedtls_test_psa_key_agreement_with_self(
     psa_key_derivation_operation_t *operation,
-    mbedtls_svc_key_id_t key);
+    mbedtls_svc_key_id_t key, int key_destroyable);
 
 /** Perform sanity checks on the given key representation.
  *
@@ -204,20 +218,69 @@ int mbedtls_test_psa_exported_key_sanity_check(
  * ```
  * if( ! exercise_key( ... ) ) goto exit;
  * ```
+ * To use this function for multi-threaded tests where the key
+ * may be destroyed at any point: call this function with key_destroyable set
+ * to 1, while another thread calls psa_destroy_key on the same key;
+ * this will test whether destroying the key in use leads to any corruption.
  *
- * \param key       The key to exercise. It should be capable of performing
- *                  \p alg.
- * \param usage     The usage flags to assume.
- * \param alg       The algorithm to exercise.
+ * There cannot be a set of concurrent calls:
+ * `mbedtls_test_psa_exercise_key(ki,...)` such that each ki is a unique
+ * persistent key not loaded into any key slot, and i is greater than the
+ * number of free key slots.
+ * This is because such scenarios can lead to unsupported
+ * `PSA_ERROR_INSUFFICIENT_MEMORY` return codes.
+ *
+ *
+ * \param key               The key to exercise. It should be capable of performing
+ *                          \p alg.
+ * \param usage             The usage flags to assume.
+ * \param alg               The algorithm to exercise.
+ * \param key_destroyable   If set to 1, a failure due to the key not existing
+ *                          or the key being destroyed mid-operation will only
+ *                          be reported if the error code is unexpected.
  *
  * \retval 0 The key failed the smoke tests.
  * \retval 1 The key passed the smoke tests.
  */
 int mbedtls_test_psa_exercise_key(mbedtls_svc_key_id_t key,
                                   psa_key_usage_t usage,
-                                  psa_algorithm_t alg);
+                                  psa_algorithm_t alg,
+                                  int key_destroyable);
 
 psa_key_usage_t mbedtls_test_psa_usage_to_exercise(psa_key_type_t type,
                                                    psa_algorithm_t alg);
+
+/** Whether the specified algorithm can be exercised.
+ *
+ * \note This function is solely based on the algorithm and does not
+ *       consider potential issues with the compatibility of a key.
+ *       The idea is that you already have a key, so you know that the
+ *       key type is supported, and you want to exercise the key but
+ *       only if the algorithm given in its policy is enabled in the
+ *       compile-time configuration.
+ *
+ * \note This function currently only supports signature algorithms
+ *       (including wildcards).
+ *       TODO: a more general mechanism, which should be automatically
+ *       generated and possibly available as a library function?
+ */
+int mbedtls_test_can_exercise_psa_algorithm(psa_algorithm_t alg);
+
+#if defined(MBEDTLS_PK_C)
+/** PK-PSA key consistency test.
+ *
+ * This function tests that the pk context and the PSA key are
+ * consistent. At a minimum:
+ *
+ * - The two objects must contain keys of the same type,
+ *   or a key pair and a public key of the matching type.
+ * - The two objects must have the same public key.
+ *
+ * \retval 0 The key failed the consistency tests.
+ * \retval 1 The key passed the consistency tests.
+ */
+int mbedtls_test_key_consistency_psa_pk(mbedtls_svc_key_id_t psa_key,
+                                        const mbedtls_pk_context *pk);
+#endif /* MBEDTLS_PK_C */
 
 #endif /* PSA_EXERCISE_KEY_H */

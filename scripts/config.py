@@ -180,6 +180,7 @@ EXCLUDE_FROM_FULL = frozenset([
     #pylint: disable=line-too-long
     'MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH', # interacts with CTR_DRBG_128_BIT_KEY
     'MBEDTLS_AES_USE_HARDWARE_ONLY', # hardware dependency
+    'MBEDTLS_BLOCK_CIPHER_NO_DECRYPT', # incompatible with ECB in PSA, CBC/XTS/NIST_KW/DES
     'MBEDTLS_CTR_DRBG_USE_128_BIT_KEY', # interacts with ENTROPY_FORCE_SHA256
     'MBEDTLS_DEPRECATED_REMOVED', # conflicts with deprecated options
     'MBEDTLS_DEPRECATED_WARNING', # conflicts with deprecated options
@@ -197,6 +198,7 @@ EXCLUDE_FROM_FULL = frozenset([
     'MBEDTLS_NO_UDBL_DIVISION', # influences anything that uses bignum
     'MBEDTLS_PSA_P256M_DRIVER_ENABLED', # influences SECP256R1 KeyGen/ECDH/ECDSA
     'MBEDTLS_PLATFORM_NO_STD_FUNCTIONS', # removes a feature
+    'MBEDTLS_PSA_ASSUME_EXCLUSIVE_BUFFERS', # removes a feature
     'MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG', # behavior change + build dependency
     'MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER', # incompatible with USE_PSA_CRYPTO
     'MBEDTLS_PSA_CRYPTO_SPM', # platform dependency (PSA SPM)
@@ -206,7 +208,6 @@ EXCLUDE_FROM_FULL = frozenset([
     'MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_ONLY', # interacts with *_USE_ARMV8_A_CRYPTO_IF_PRESENT
     'MBEDTLS_SHA512_USE_A64_CRYPTO_ONLY', # interacts with *_USE_A64_CRYPTO_IF_PRESENT
     'MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT', # setting *_USE_ARMV8_A_CRYPTO is sufficient
-    'MBEDTLS_SSL_RECORD_SIZE_LIMIT', # in development, currently breaks other tests
     'MBEDTLS_TEST_CONSTANT_FLOW_MEMSAN', # build dependency (clang+memsan)
     'MBEDTLS_TEST_CONSTANT_FLOW_VALGRIND', # build dependency (valgrind headers)
     'MBEDTLS_X509_REMOVE_INFO', # removes a feature

@@ -122,7 +122,8 @@ int main(void)
 #define DFL_SNI                 NULL
 #define DFL_ALPN_STRING         NULL
 #define DFL_GROUPS              NULL
-#define DFL_MAX_EARLY_DATA_SIZE 0
+#define DFL_EARLY_DATA          -1
+#define DFL_MAX_EARLY_DATA_SIZE ((uint32_t) -1)
 #define DFL_SIG_ALGS            NULL
 #define DFL_DHM_FILE            NULL
 #define DFL_TRANSPORT           MBEDTLS_SSL_TRANSPORT_STREAM
@@ -281,18 +282,11 @@ int main(void)
 #endif /* MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK */
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS) && defined(MBEDTLS_SSL_TICKET_C)
-#if defined(MBEDTLS_CIPHER_C)
 #define USAGE_TICKETS                                       \
     "    tickets=%%d          default: 1 (enabled)\n"       \
     "    ticket_rotate=%%d    default: 0 (disabled)\n"      \
     "    ticket_timeout=%%d   default: 86400 (one day)\n"   \
     "    ticket_aead=%%s      default: \"AES-256-GCM\"\n"
-#else /* MBEDTLS_CIPHER_C */
-#define USAGE_TICKETS                                       \
-    "    tickets=%%d          default: 1 (enabled)\n"       \
-    "    ticket_rotate=%%d    default: 0 (disabled)\n"      \
-    "    ticket_timeout=%%d   default: 86400 (one day)\n"
-#endif /* MBEDTLS_CIPHER_C */
 #else /* MBEDTLS_SSL_SESSION_TICKETS && MBEDTLS_SSL_TICKET_C */
 #define USAGE_TICKETS ""
 #endif /* MBEDTLS_SSL_SESSION_TICKETS && MBEDTLS_SSL_TICKET_C */
@@ -436,9 +430,10 @@ int main(void)
 
 #if defined(MBEDTLS_SSL_EARLY_DATA)
 #define USAGE_EARLY_DATA \
-    "    max_early_data_size=%%d default: -1 (disabled)\n"             \
-    "                            options: -1 (disabled), "           \
-    "                                     >= 0 (enabled, max amount of early data )\n"
+    "    early_data=%%d      default: library default\n" \
+    "                        options: 0 (disabled), 1 (enabled)\n" \
+    "    max_early_data_size=%%d default: library default\n" \
+    "                            options: max amount of early data\n"
 #else
 #define USAGE_EARLY_DATA ""
 #endif /* MBEDTLS_SSL_EARLY_DATA */
@@ -563,6 +558,7 @@ int main(void)
     USAGE_GROUPS                                            \
     USAGE_SIG_ALGS                                          \
     USAGE_KEY_OPAQUE_ALGS                                   \
+    USAGE_EARLY_DATA                                        \
     "\n"
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
@@ -700,7 +696,10 @@ struct options {
     const char *cid_val_renego; /* the CID to use for incoming messages
                                  * after renegotiation                      */
     int reproducible;           /* make communication reproducible          */
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+    int early_data;               /* early data enablement flag             */
     uint32_t max_early_data_size; /* max amount of early data               */
+#endif
     int query_config_mode;      /* whether to read config                   */
     int use_srtp;               /* Support SRTP                             */
     int force_srtp_profile;     /* SRTP protection profile to use or all    */
@@ -1427,21 +1426,28 @@ int dummy_ticket_parse(void *p_ticket, mbedtls_ssl_session *session,
         case 2:
             return MBEDTLS_ERR_SSL_SESSION_TICKET_EXPIRED;
         case 3:
-            session->start = mbedtls_time(NULL) + 10;
+            /* Creation time in the future. */
+            session->ticket_creation_time = mbedtls_ms_time() + 1000;
             break;
         case 4:
-            session->start = mbedtls_time(NULL) - 10 - 7 * 24 * 3600;
+            /* Ticket has reached the end of lifetime. */
+            session->ticket_creation_time = mbedtls_ms_time() -
+                                            (7 * 24 * 3600 * 1000 + 1000);
             break;
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
         case 5:
-            session->start = mbedtls_time(NULL) - 10;
+            /* Ticket is valid, but client age is below the lower bound of the tolerance window. */
+            session->ticket_age_add += MBEDTLS_SSL_TLS1_3_TICKET_AGE_TOLERANCE + 4 * 1000;
+            /* Make sure the execution time does not affect the result */
+            session->ticket_creation_time = mbedtls_ms_time();
             break;
+
         case 6:
-            session->start = mbedtls_time(NULL);
-#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
-            session->ticket_age_add -= 1000;
-#endif
+            /* Ticket is valid, but client age is beyond the upper bound of the tolerance window. */
+            session->ticket_age_add -= MBEDTLS_SSL_TLS1_3_TICKET_AGE_TOLERANCE + 4 * 1000;
+            /* Make sure the execution time does not affect the result */
+            session->ticket_creation_time = mbedtls_ms_time();
             break;
-#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
         case 7:
             session->ticket_flags = MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_NONE;
             break;
@@ -1462,6 +1468,42 @@ int dummy_ticket_parse(void *p_ticket, mbedtls_ssl_session *session,
     return ret;
 }
 #endif /* MBEDTLS_SSL_SESSION_TICKETS && MBEDTLS_HAVE_TIME */
+
+int parse_cipher(char *buf)
+{
+    if (strcmp(buf, "AES-128-CCM")) {
+        return MBEDTLS_CIPHER_AES_128_CCM;
+    } else if (strcmp(buf, "AES-128-GCM")) {
+        return MBEDTLS_CIPHER_AES_128_GCM;
+    } else if (strcmp(buf, "AES-192-CCM")) {
+        return MBEDTLS_CIPHER_AES_192_CCM;
+    } else if (strcmp(buf, "AES-192-GCM")) {
+        return MBEDTLS_CIPHER_AES_192_GCM;
+    } else if (strcmp(buf, "AES-256-CCM")) {
+        return MBEDTLS_CIPHER_AES_256_CCM;
+    } else if (strcmp(buf, "ARIA-128-CCM")) {
+        return MBEDTLS_CIPHER_ARIA_128_CCM;
+    } else if (strcmp(buf, "ARIA-128-GCM")) {
+        return MBEDTLS_CIPHER_ARIA_128_GCM;
+    } else if (strcmp(buf, "ARIA-192-CCM")) {
+        return MBEDTLS_CIPHER_ARIA_192_CCM;
+    } else if (strcmp(buf, "ARIA-192-GCM")) {
+        return MBEDTLS_CIPHER_ARIA_192_GCM;
+    } else if (strcmp(buf, "ARIA-256-CCM")) {
+        return MBEDTLS_CIPHER_ARIA_256_CCM;
+    } else if (strcmp(buf, "ARIA-256-GCM")) {
+        return MBEDTLS_CIPHER_ARIA_256_GCM;
+    } else if (strcmp(buf, "CAMELLIA-128-CCM")) {
+        return MBEDTLS_CIPHER_CAMELLIA_128_CCM;
+    } else if (strcmp(buf, "CAMELLIA-192-CCM")) {
+        return MBEDTLS_CIPHER_CAMELLIA_192_CCM;
+    } else if (strcmp(buf, "CAMELLIA-256-CCM")) {
+        return MBEDTLS_CIPHER_CAMELLIA_256_CCM;
+    } else if (strcmp(buf, "CHACHA20-POLY1305")) {
+        return MBEDTLS_CIPHER_CHACHA20_POLY1305;
+    }
+    return MBEDTLS_CIPHER_NONE;
+}
 
 int main(int argc, char *argv[])
 {
@@ -1572,9 +1614,6 @@ int main(int argc, char *argv[])
     };
 #endif /* MBEDTLS_SSL_DTLS_SRTP */
 
-#if defined(MBEDTLS_SSL_EARLY_DATA)
-    int tls13_early_data_enabled = MBEDTLS_SSL_EARLY_DATA_DISABLED;
-#endif
 #if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
     mbedtls_memory_buffer_alloc_init(alloc_buf, sizeof(alloc_buf));
 #if defined(MBEDTLS_MEMORY_DEBUG)
@@ -1709,7 +1748,10 @@ int main(int argc, char *argv[])
     opt.sni                 = DFL_SNI;
     opt.alpn_string         = DFL_ALPN_STRING;
     opt.groups              = DFL_GROUPS;
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+    opt.early_data          = DFL_EARLY_DATA;
     opt.max_early_data_size = DFL_MAX_EARLY_DATA_SIZE;
+#endif
     opt.sig_algs            = DFL_SIG_ALGS;
     opt.dhm_file            = DFL_DHM_FILE;
     opt.transport           = DFL_TRANSPORT;
@@ -1942,14 +1984,18 @@ usage:
         }
 #endif
 #if defined(MBEDTLS_SSL_EARLY_DATA)
-        else if (strcmp(p, "max_early_data_size") == 0) {
-            long long value = atoll(q);
-            tls13_early_data_enabled =
-                value >= 0 ? MBEDTLS_SSL_EARLY_DATA_ENABLED :
-                MBEDTLS_SSL_EARLY_DATA_DISABLED;
-            if (tls13_early_data_enabled) {
-                opt.max_early_data_size = atoi(q);
+        else if (strcmp(p, "early_data") == 0) {
+            switch (atoi(q)) {
+                case 0:
+                    opt.early_data = MBEDTLS_SSL_EARLY_DATA_DISABLED;
+                    break;
+                case 1:
+                    opt.early_data = MBEDTLS_SSL_EARLY_DATA_ENABLED;
+                    break;
+                default: goto usage;
             }
+        } else if (strcmp(p, "max_early_data_size") == 0) {
+            opt.max_early_data_size = (uint32_t) atoll(q);
         }
 #endif /* MBEDTLS_SSL_EARLY_DATA */
         else if (strcmp(p, "renegotiation") == 0) {
@@ -2143,18 +2189,13 @@ usage:
             if (opt.ticket_timeout < 0) {
                 goto usage;
             }
-        }
-#if defined(MBEDTLS_CIPHER_C)
-        else if (strcmp(p, "ticket_aead") == 0) {
-            const mbedtls_cipher_info_t *ci = mbedtls_cipher_info_from_string(q);
+        } else if (strcmp(p, "ticket_aead") == 0) {
+            opt.ticket_aead = parse_cipher(q);
 
-            if (ci == NULL) {
+            if (opt.ticket_aead == MBEDTLS_CIPHER_NONE) {
                 goto usage;
             }
-            opt.ticket_aead = mbedtls_cipher_info_get_type(ci);
-        }
-#endif
-        else if (strcmp(p, "cache_max") == 0) {
+        } else if (strcmp(p, "cache_max") == 0) {
             opt.cache_max = atoi(q);
             if (opt.cache_max < 0) {
                 goto usage;
@@ -2675,12 +2716,10 @@ usage:
                                      &psa_alg, &psa_alg2,
                                      &psa_usage,
                                      mbedtls_pk_get_type(&pkey)) == 0) {
-            ret = mbedtls_pk_wrap_as_opaque(&pkey, &key_slot,
-                                            psa_alg, psa_usage, psa_alg2);
-
+            ret = pk_wrap_as_opaque(&pkey, psa_alg, psa_alg2, psa_usage, &key_slot);
             if (ret != 0) {
                 mbedtls_printf(" failed\n  !  "
-                               "mbedtls_pk_wrap_as_opaque returned -0x%x\n\n",
+                               "pk_wrap_as_opaque returned -0x%x\n\n",
                                (unsigned int)  -ret);
                 goto exit;
             }
@@ -2694,12 +2733,10 @@ usage:
                                      &psa_alg, &psa_alg2,
                                      &psa_usage,
                                      mbedtls_pk_get_type(&pkey2)) == 0) {
-            ret = mbedtls_pk_wrap_as_opaque(&pkey2, &key_slot2,
-                                            psa_alg, psa_usage, psa_alg2);
-
+            ret = pk_wrap_as_opaque(&pkey2, psa_alg, psa_alg2, psa_usage, &key_slot2);
             if (ret != 0) {
                 mbedtls_printf(" failed\n  !  "
-                               "mbedtls_pk_wrap_as_opaque returned -0x%x\n\n",
+                               "mbedtls_pk_get_psa_attributes returned -0x%x\n\n",
                                (unsigned int)  -ret);
                 goto exit;
             }
@@ -2776,9 +2813,11 @@ usage:
     }
 
 #if defined(MBEDTLS_SSL_EARLY_DATA)
-    mbedtls_ssl_tls13_conf_early_data(&conf, tls13_early_data_enabled);
-    if (tls13_early_data_enabled == MBEDTLS_SSL_EARLY_DATA_ENABLED) {
-        mbedtls_ssl_tls13_conf_max_early_data_size(
+    if (opt.early_data != DFL_EARLY_DATA) {
+        mbedtls_ssl_conf_early_data(&conf, opt.early_data);
+    }
+    if (opt.max_early_data_size != DFL_MAX_EARLY_DATA_SIZE) {
+        mbedtls_ssl_conf_max_early_data_size(
             &conf, opt.max_early_data_size);
     }
 #endif /* MBEDTLS_SSL_EARLY_DATA */
@@ -3418,6 +3457,19 @@ handshake:
     fflush(stdout);
 
     while ((ret = mbedtls_ssl_handshake(&ssl)) != 0) {
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+        if (ret == MBEDTLS_ERR_SSL_RECEIVED_EARLY_DATA) {
+            memset(buf, 0, opt.buffer_size);
+            ret = mbedtls_ssl_read_early_data(&ssl, buf, opt.buffer_size);
+            if (ret > 0) {
+                buf[ret] = '\0';
+                mbedtls_printf(" %d early data bytes read\n\n%s\n",
+                               ret, (char *) buf);
+            }
+            continue;
+        }
+#endif /* MBEDTLS_SSL_EARLY_DATA */
+
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
         if (ret == MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS &&
             ssl_async_keys.inject_error == SSL_ASYNC_INJECT_ERROR_CANCEL) {
@@ -3489,7 +3541,7 @@ handshake:
         mbedtls_printf("    [ Record expansion is unknown ]\n");
     }
 
-#if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
+#if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH) || defined(MBEDTLS_SSL_RECORD_SIZE_LIMIT)
     mbedtls_printf("    [ Maximum incoming record payload length is %u ]\n",
                    (unsigned int) mbedtls_ssl_get_max_in_record_payload(&ssl));
     mbedtls_printf("    [ Maximum outgoing record payload length is %u ]\n",

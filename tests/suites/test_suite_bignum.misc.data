@@ -82,6 +82,9 @@ mpi_read_write_string:16:"":2:"0":4:0:0
 Test mpi_write_string #10 (Negative hex with odd number of digits)
 mpi_read_write_string:16:"-1":16:"":3:0:MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL
 
+Provide NULL buffer with 0 length
+mpi_zero_length_buffer_is_null
+
 Base test mbedtls_mpi_read_binary #1
 mpi_read_binary:"0941379d00fed1491fe15df284dfde4a142f68aa8d412023195cee66883e6290ffe703f4ea5963bf212713cee46b107c09182b5edcd955adac418bf4918e2889af48e1099d513830cec85c26ac1e158b52620e33ba8692f893efbb2f958b4424":"0941379D00FED1491FE15DF284DFDE4A142F68AA8D412023195CEE66883E6290FFE703F4EA5963BF212713CEE46B107C09182B5EDCD955ADAC418BF4918E2889AF48E1099D513830CEC85C26AC1E158B52620E33BA8692F893EFBB2F958B4424"
 
@@ -1359,6 +1362,9 @@ mpi_exp_mod:"04":"00":"09":"1":0
 Test mbedtls_mpi_exp_mod: 10 ^ 0 (1 limb) mod 9
 mpi_exp_mod:"0a":"00":"09":"1":0
 
+Test mbedtls_mpi_exp_mod: -3 ^ 3 mod 27
+mpi_exp_mod:"-3":"3":"1b":"1b":0
+
 Test mbedtls_mpi_exp_mod: MAX_SIZE exponent
 mpi_exp_mod_size:2:MBEDTLS_MPI_MAX_SIZE:10:"":0
 
@@ -1387,6 +1393,14 @@ mpi_exp_mod:"-2540be400":"2540be400":"1869f":"1":0
 Test mbedtls_mpi_exp_mod (Negative base) [#2]
 depends_on:MPI_MAX_BITS_LARGER_THAN_792
 mpi_exp_mod:"-9f13012cd92aa72fb86ac8879d2fde4f7fd661aaae43a00971f081cc60ca277059d5c37e89652e2af2585d281d66ef6a9d38a117e9608e9e7574cd142dc55278838a2161dd56db9470d4c1da2d5df15a908ee2eb886aaa890f23be16de59386663a12f1afbb325431a3e835e3fd89b98b96a6f77382f458ef9a37e1f84a03045c8676ab55291a94c2228ea15448ee96b626b998":"40a54d1b9e86789f06d9607fb158672d64867665c73ee9abb545fc7a785634b354c7bae5b962ce8040cf45f2c1f3d3659b2ee5ede17534c8fc2ec85c815e8df1fe7048d12c90ee31b88a68a081f17f0d8ce5f4030521e9400083bcea73a429031d4ca7949c2000d597088e0c39a6014d8bf962b73bb2e8083bd0390a4e00b9b3":"eeaf0ab9adb38dd69c33f80afa8fc5e86072618775ff3c0b9ea2314c9c256576d674df7496ea81d3383b4813d692c6e0e0d5d8e250b98be48e495c1d6089dad15dc7d7b46154d6b6ce8ef4ad69b15d4982559b297bcf1885c529f566660e57ec68edbc3c05726cc02fd4cbf4976eaa9afd5138fe8376435b9fc61d2fc0eb06e3":"21acc7199e1b90f9b4844ffe12c19f00ec548c5d32b21c647d48b6015d8eb9ec9db05b4f3d44db4227a2b5659c1a7cceb9d5fa8fa60376047953ce7397d90aaeb7465e14e820734f84aa52ad0fc66701bcbb991d57715806a11531268e1e83dd48288c72b424a6287e9ce4e5cc4db0dd67614aecc23b0124a5776d36e5c89483":0
+
+Test mbedtls_mpi_exp_mod (N.n=3, RR.n=1 on 32 bit)
+depends_on:MBEDTLS_HAVE_INT32
+mpi_exp_mod_min_RR:"10":"2":"10000000100000001":"100":0
+
+Test mbedtls_mpi_exp_mod (N.n=3, RR.n=1 on 64 bit)
+depends_on:MBEDTLS_HAVE_INT64
+mpi_exp_mod_min_RR:"10":"2":"100000000000000010000000000000001":"100":0
 
 Base test GCD #1
 mpi_gcd:"2b5":"261":"15"

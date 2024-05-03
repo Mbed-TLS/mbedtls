@@ -1,4 +1,4 @@
-PROJECT_NAME           = "Mbed TLS v3.5.0"
+PROJECT_NAME           = "Mbed TLS v3.6.0"
 OUTPUT_DIRECTORY       = ../apidoc/
 FULL_PATH_NAMES        = NO
 OPTIMIZE_OUTPUT_FOR_C  = YES
@@ -6,7 +6,7 @@ EXTRACT_ALL            = YES
 EXTRACT_PRIVATE        = YES
 EXTRACT_STATIC         = YES
 CASE_SENSE_NAMES       = NO
-INPUT                  = ../include input
+INPUT                  = ../include input ../tests/include/alt-dummy
 FILE_PATTERNS          = *.h
 RECURSIVE              = YES
 EXCLUDE_SYMLINKS       = YES

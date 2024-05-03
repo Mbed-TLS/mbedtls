@@ -16,7 +16,7 @@
 
 #include "psa/crypto.h"
 
-#if defined(MBEDTLS_PSA_CRYPTO_C)
+#if defined(MBEDTLS_PSA_CRYPTO_CLIENT)
 
 /*************************************************************************
  * FFDH
@@ -50,6 +50,10 @@ typedef struct {
 
 #if defined(MBEDTLS_MD_LIGHT)
 extern const mbedtls_error_pair_t psa_to_md_errors[4];
+#endif
+
+#if defined(MBEDTLS_BLOCK_CIPHER_SOME_PSA)
+extern const mbedtls_error_pair_t psa_to_cipher_errors[4];
 #endif
 
 #if defined(MBEDTLS_LMS_C)
@@ -92,5 +96,5 @@ int psa_pk_status_to_mbedtls(psa_status_t status);
                           sizeof(error_list)/sizeof(error_list[0]),   \
                           fallback_f)
 
-#endif /* MBEDTLS_PSA_CRYPTO_C */
+#endif /* MBEDTLS_PSA_CRYPTO_CLIENT */
 #endif /* MBEDTLS_PSA_UTIL_INTERNAL_H */

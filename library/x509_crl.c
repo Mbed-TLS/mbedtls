@@ -20,6 +20,7 @@
 #if defined(MBEDTLS_X509_CRL_PARSE_C)
 
 #include "mbedtls/x509_crl.h"
+#include "x509_internal.h"
 #include "mbedtls/error.h"
 #include "mbedtls/oid.h"
 #include "mbedtls/platform_util.h"
@@ -367,7 +368,7 @@ int mbedtls_x509_crl_parse_der(mbedtls_x509_crl *chain,
     }
 
     end = p + len;
-    crl->tbs.len = end - crl->tbs.p;
+    crl->tbs.len = (size_t) (end - crl->tbs.p);
 
     /*
      * Version  ::=  INTEGER  OPTIONAL {  v1(0), v2(1)  }
@@ -411,7 +412,7 @@ int mbedtls_x509_crl_parse_der(mbedtls_x509_crl *chain,
         return ret;
     }
 
-    crl->issuer_raw.len = p - crl->issuer_raw.p;
+    crl->issuer_raw.len = (size_t) (p - crl->issuer_raw.p);
 
     /*
      * thisUpdate          Time

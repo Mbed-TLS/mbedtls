@@ -5,8 +5,6 @@
  *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
-#define MBEDTLS_ALLOW_PRIVATE_ACCESS
-
 #include "mbedtls/build_info.h"
 
 #include "mbedtls/entropy.h"
@@ -79,6 +77,7 @@ static int calloc_self_test(int verbose)
         if (verbose) {
             mbedtls_printf("  CALLOC(0,1): passed (same non-null)\n");
         }
+        empty2 = NULL;
     } else {
         if (verbose) {
             mbedtls_printf("  CALLOC(0,1): passed (distinct non-null)\n");
@@ -103,6 +102,7 @@ static int calloc_self_test(int verbose)
         if (verbose) {
             mbedtls_printf("  CALLOC(1,0): passed (same non-null)\n");
         }
+        empty2 = NULL;
     } else {
         if (verbose) {
             mbedtls_printf("  CALLOC(1,0): passed (distinct non-null)\n");
@@ -119,6 +119,7 @@ static int calloc_self_test(int verbose)
             mbedtls_printf("  CALLOC(1): failed (same buffer twice)\n");
         }
         ++failures;
+        buffer2 = NULL;
     } else {
         if (verbose) {
             mbedtls_printf("  CALLOC(1): passed\n");

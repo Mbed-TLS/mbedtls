@@ -22,6 +22,7 @@
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
 
 #include "mbedtls/x509_crt.h"
+#include "x509_internal.h"
 #include "mbedtls/error.h"
 #include "mbedtls/oid.h"
 #include "mbedtls/platform_util.h"
@@ -35,7 +36,7 @@
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 #include "psa/crypto.h"
 #include "psa_util_internal.h"
-#include "md_psa.h"
+#include "mbedtls/psa_util.h"
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 #include "pk_internal.h"
 
@@ -222,7 +223,7 @@ static int x509_profile_check_key(const mbedtls_x509_crt_profile *profile,
     if (pk_alg == MBEDTLS_PK_ECDSA ||
         pk_alg == MBEDTLS_PK_ECKEY ||
         pk_alg == MBEDTLS_PK_ECKEY_DH) {
-        const mbedtls_ecp_group_id gid = mbedtls_pk_get_group_id(pk);
+        const mbedtls_ecp_group_id gid = mbedtls_pk_get_ec_group_id(pk);
 
         if (gid == MBEDTLS_ECP_DP_NONE) {
             return -1;
@@ -1108,7 +1109,7 @@ static int x509_crt_parse_der_core(mbedtls_x509_crt *crt,
     }
 
     end = crt_end = p + len;
-    crt->raw.len = crt_end - buf;
+    crt->raw.len = (size_t) (crt_end - buf);
     if (make_copy != 0) {
         /* Create and populate a new buffer for the raw field. */
         crt->raw.p = p = mbedtls_calloc(1, crt->raw.len);
@@ -1138,7 +1139,7 @@ static int x509_crt_parse_der_core(mbedtls_x509_crt *crt,
     }
 
     end = p + len;
-    crt->tbs.len = end - crt->tbs.p;
+    crt->tbs.len = (size_t) (end - crt->tbs.p);
 
     /*
      * Version  ::=  INTEGER  {  v1(0), v2(1), v3(2)  }
@@ -1185,7 +1186,7 @@ static int x509_crt_parse_der_core(mbedtls_x509_crt *crt,
         return ret;
     }
 
-    crt->issuer_raw.len = p - crt->issuer_raw.p;
+    crt->issuer_raw.len = (size_t) (p - crt->issuer_raw.p);
 
     /*
      * Validity ::= SEQUENCE {
@@ -1215,7 +1216,7 @@ static int x509_crt_parse_der_core(mbedtls_x509_crt *crt,
         return ret;
     }
 
-    crt->subject_raw.len = p - crt->subject_raw.p;
+    crt->subject_raw.len = (size_t) (p - crt->subject_raw.p);
 
     /*
      * SubjectPublicKeyInfo
@@ -1225,7 +1226,7 @@ static int x509_crt_parse_der_core(mbedtls_x509_crt *crt,
         mbedtls_x509_crt_free(crt);
         return ret;
     }
-    crt->pk_raw.len = p - crt->pk_raw.p;
+    crt->pk_raw.len = (size_t) (p - crt->pk_raw.p);
 
     /*
      *  issuerUniqueID  [1]  IMPLICIT UniqueIdentifier OPTIONAL,
@@ -3288,5 +3289,13 @@ void mbedtls_x509_crt_restart_free(mbedtls_x509_crt_restart_ctx *ctx)
     mbedtls_x509_crt_restart_init(ctx);
 }
 #endif /* MBEDTLS_ECDSA_C && MBEDTLS_ECP_RESTARTABLE */
+
+int mbedtls_x509_crt_get_ca_istrue(const mbedtls_x509_crt *crt)
+{
+    if ((crt->ext_types & MBEDTLS_X509_EXT_BASIC_CONSTRAINTS) != 0) {
+        return crt->MBEDTLS_PRIVATE(ca_istrue);
+    }
+    return MBEDTLS_ERR_X509_INVALID_EXTENSIONS;
+}
 
 #endif /* MBEDTLS_X509_CRT_PARSE_C */

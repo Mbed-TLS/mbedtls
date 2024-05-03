@@ -109,4 +109,13 @@
 #define MBEDTLS_PK_ECP_PRV_DER_MAX_BYTES   0
 
 #endif /* MBEDTLS_PK_HAVE_ECC_KEYS */
+
+/* Define the maximum available public key DER length based on the supported
+ * key types (EC and/or RSA). */
+#if (MBEDTLS_PK_RSA_PUB_DER_MAX_BYTES > MBEDTLS_PK_ECP_PUB_DER_MAX_BYTES)
+#define MBEDTLS_PK_WRITE_PUBKEY_MAX_SIZE    MBEDTLS_PK_RSA_PUB_DER_MAX_BYTES
+#else
+#define MBEDTLS_PK_WRITE_PUBKEY_MAX_SIZE    MBEDTLS_PK_ECP_PUB_DER_MAX_BYTES
+#endif
+
 #endif /* MBEDTLS_PK_WRITE_H */

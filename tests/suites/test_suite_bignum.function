@@ -24,7 +24,7 @@ static int sign_is_valid(const mbedtls_mpi *X)
      * we sometimes test the robustness of library functions when given
      * a negative zero input. If a test case has a negative zero as input,
      * we don't mind if the function has a negative zero output. */
-    if (!mbedtls_test_case_uses_negative_0 &&
+    if (!mbedtls_test_get_case_uses_negative_0() &&
         mbedtls_mpi_bitlen(X) == 0 && X->s != 1) {
         return 0;
     }
@@ -137,6 +137,26 @@ void mpi_read_write_string(int radix_X, char *input_X, int radix_A,
             TEST_ASSERT(str[len] == '!');
         }
     }
+
+exit:
+    mbedtls_mpi_free(&X);
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void mpi_zero_length_buffer_is_null()
+{
+    mbedtls_mpi X;
+    size_t olen;
+
+    mbedtls_mpi_init(&X);
+
+    /* Simply test that the following functions do not crash when a NULL buffer
+     * pointer and 0 length is passed. We don't care much about the return value. */
+    TEST_EQUAL(mbedtls_mpi_read_binary(&X, NULL, 0), 0);
+    TEST_EQUAL(mbedtls_mpi_read_binary_le(&X, NULL, 0), 0);
+    TEST_EQUAL(mbedtls_mpi_write_string(&X, 16, NULL, 0, &olen), MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL);
+    TEST_EQUAL(mbedtls_mpi_write_binary(&X, NULL, 0), 0);
 
 exit:
     mbedtls_mpi_free(&X);
@@ -942,6 +962,45 @@ void mpi_mod_int(char *input_X, mbedtls_mpi_sint y,
 
 exit:
     mbedtls_mpi_free(&X);
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void mpi_exp_mod_min_RR(char *input_A, char *input_E,
+                        char *input_N, char *input_X,
+                        int exp_result)
+{
+    mbedtls_mpi A, E, N, RR, Z, X;
+    int res;
+    mbedtls_mpi_init(&A); mbedtls_mpi_init(&E); mbedtls_mpi_init(&N);
+    mbedtls_mpi_init(&RR); mbedtls_mpi_init(&Z); mbedtls_mpi_init(&X);
+
+    TEST_EQUAL(mbedtls_test_read_mpi(&A, input_A), 0);
+    TEST_EQUAL(mbedtls_test_read_mpi(&E, input_E), 0);
+    TEST_EQUAL(mbedtls_test_read_mpi(&N, input_N), 0);
+    TEST_EQUAL(mbedtls_test_read_mpi(&X, input_X), 0);
+
+    TEST_EQUAL(mbedtls_mpi_core_get_mont_r2_unsafe(&RR, &N), 0);
+    TEST_EQUAL(mbedtls_mpi_shrink(&RR, 0), 0);
+    /* The objective of this test is to check that exp_mod defends
+     * against a smaller RR. */
+    TEST_LE_U(RR.n, N.n - 1);
+
+    res = mbedtls_mpi_exp_mod(&Z, &A, &E, &N, &RR);
+    /* We know that exp_mod internally needs RR to be as large as N.
+     * Validate that it is the case now, otherwise there was probably
+     * a buffer overread. */
+    TEST_EQUAL(RR.n, N.n);
+
+    TEST_EQUAL(res, exp_result);
+    if (res == 0) {
+        TEST_EQUAL(sign_is_valid(&Z), 1);
+        TEST_EQUAL(mbedtls_mpi_cmp_mpi(&Z, &X), 0);
+    }
+
+exit:
+    mbedtls_mpi_free(&A); mbedtls_mpi_free(&E); mbedtls_mpi_free(&N);
+    mbedtls_mpi_free(&RR); mbedtls_mpi_free(&Z); mbedtls_mpi_free(&X);
 }
 /* END_CASE */
 

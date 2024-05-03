@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 
 # Generate main file, individual apps and solution files for
-# MS Visual Studio 2013
+# MS Visual Studio 2017
 #
 # Must be run from Mbed TLS root or scripts directory.
 # Takes no argument.
@@ -13,12 +13,12 @@ use warnings;
 use strict;
 use Digest::MD5 'md5_hex';
 
-my $vsx_dir = "visualc/VS2013";
+my $vsx_dir = "visualc/VS2017";
 my $vsx_ext = "vcxproj";
-my $vsx_app_tpl_file = "scripts/data_files/vs2013-app-template.$vsx_ext";
-my $vsx_main_tpl_file = "scripts/data_files/vs2013-main-template.$vsx_ext";
+my $vsx_app_tpl_file = "scripts/data_files/vs2017-app-template.$vsx_ext";
+my $vsx_main_tpl_file = "scripts/data_files/vs2017-main-template.$vsx_ext";
 my $vsx_main_file = "$vsx_dir/mbedTLS.$vsx_ext";
-my $vsx_sln_tpl_file = "scripts/data_files/vs2013-sln-template.sln";
+my $vsx_sln_tpl_file = "scripts/data_files/vs2017-sln-template.sln";
 my $vsx_sln_file = "$vsx_dir/mbedTLS.sln";
 
 my $programs_dir = 'programs';
@@ -144,6 +144,7 @@ sub gen_app {
     my $guid = gen_app_guid( $path );
     $path =~ s!/!\\!g;
     (my $appname = $path) =~ s/.*\\//;
+    my $is_test_app = ($path =~ m/^test\\/);
 
     my $srcs = "<ClCompile Include=\"..\\..\\programs\\$path.c\" \/>";
     if( $appname eq "ssl_client2" or $appname eq "ssl_server2" or
@@ -158,7 +159,9 @@ sub gen_app {
     $content =~ s/<SOURCES>/$srcs/g;
     $content =~ s/<APPNAME>/$appname/g;
     $content =~ s/<GUID>/$guid/g;
-    $content =~ s/INCLUDE_DIRECTORIES\n/$include_directories/g;
+    $content =~ s/INCLUDE_DIRECTORIES\n/($is_test_app ?
+                                         $library_include_directories :
+                                         $include_directories)/ge;
 
     content_to_file( $content, "$dir/$appname.$ext" );
 }

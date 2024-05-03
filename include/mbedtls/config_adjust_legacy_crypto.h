@@ -22,6 +22,36 @@
 #ifndef MBEDTLS_CONFIG_ADJUST_LEGACY_CRYPTO_H
 #define MBEDTLS_CONFIG_ADJUST_LEGACY_CRYPTO_H
 
+/* Ideally, we'd set those as defaults in mbedtls_config.h, but
+ * putting an #ifdef _WIN32 in mbedtls_config.h would confuse config.py.
+ *
+ * So, adjust it here.
+ * Not related to crypto, but this is the bottom of the stack. */
+#if defined(__MINGW32__) || (defined(_MSC_VER) && _MSC_VER <= 1900)
+#if !defined(MBEDTLS_PLATFORM_SNPRINTF_ALT) && \
+    !defined(MBEDTLS_PLATFORM_SNPRINTF_MACRO)
+#define MBEDTLS_PLATFORM_SNPRINTF_ALT
+#endif
+#if !defined(MBEDTLS_PLATFORM_VSNPRINTF_ALT) && \
+    !defined(MBEDTLS_PLATFORM_VSNPRINTF_MACRO)
+#define MBEDTLS_PLATFORM_VSNPRINTF_ALT
+#endif
+#endif /* _MINGW32__ || (_MSC_VER && (_MSC_VER <= 1900)) */
+
+/* Auto-enable CIPHER_C when any of the unauthenticated ciphers is builtin
+ * in PSA. */
+#if defined(MBEDTLS_PSA_CRYPTO_C) && \
+    (defined(MBEDTLS_PSA_BUILTIN_ALG_STREAM_CIPHER) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_CTR) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_CFB) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_OFB) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_ECB_NO_PADDING) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_CBC_NO_PADDING) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_CBC_PKCS7) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_CCM_STAR_NO_TAG))
+#define MBEDTLS_CIPHER_C
+#endif
+
 /* Auto-enable MBEDTLS_MD_LIGHT based on MBEDTLS_MD_C.
  * This allows checking for MD_LIGHT rather than MD_LIGHT || MD_C.
  */
@@ -158,6 +188,88 @@
 
 #endif /* MBEDTLS_MD_LIGHT */
 
+/* BLOCK_CIPHER module can dispatch to PSA when:
+ * - PSA is enabled and drivers have been initialized
+ * - desired key type is supported on the PSA side
+ * If the above conditions are not met, but the legacy support is enabled, then
+ * BLOCK_CIPHER will dynamically fallback to it.
+ *
+ * In case BLOCK_CIPHER is defined (see below) the following symbols/helpers
+ * can be used to define its capabilities:
+ * - MBEDTLS_BLOCK_CIPHER_SOME_PSA: there is at least 1 key type between AES,
+ *   ARIA and Camellia which is supported through a driver;
+ * - MBEDTLS_BLOCK_CIPHER_xxx_VIA_PSA: xxx key type is supported through a
+ *   driver;
+ * - MBEDTLS_BLOCK_CIPHER_xxx_VIA_LEGACY: xxx key type is supported through
+ *   a legacy module (i.e. MBEDTLS_xxx_C)
+ */
+#if defined(MBEDTLS_PSA_CRYPTO_C)
+#if defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_AES)
+#define MBEDTLS_BLOCK_CIPHER_AES_VIA_PSA
+#define MBEDTLS_BLOCK_CIPHER_SOME_PSA
+#endif
+#if defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ARIA)
+#define MBEDTLS_BLOCK_CIPHER_ARIA_VIA_PSA
+#define MBEDTLS_BLOCK_CIPHER_SOME_PSA
+#endif
+#if defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_CAMELLIA)
+#define MBEDTLS_BLOCK_CIPHER_CAMELLIA_VIA_PSA
+#define MBEDTLS_BLOCK_CIPHER_SOME_PSA
+#endif
+#endif /* MBEDTLS_PSA_CRYPTO_C */
+
+#if defined(MBEDTLS_AES_C)
+#define MBEDTLS_BLOCK_CIPHER_AES_VIA_LEGACY
+#endif
+#if defined(MBEDTLS_ARIA_C)
+#define MBEDTLS_BLOCK_CIPHER_ARIA_VIA_LEGACY
+#endif
+#if defined(MBEDTLS_CAMELLIA_C)
+#define MBEDTLS_BLOCK_CIPHER_CAMELLIA_VIA_LEGACY
+#endif
+
+/* Helpers to state that BLOCK_CIPHER module supports AES, ARIA and/or Camellia
+ * block ciphers via either PSA or legacy. */
+#if defined(MBEDTLS_BLOCK_CIPHER_AES_VIA_PSA) || \
+    defined(MBEDTLS_BLOCK_CIPHER_AES_VIA_LEGACY)
+#define MBEDTLS_BLOCK_CIPHER_CAN_AES
+#endif
+#if defined(MBEDTLS_BLOCK_CIPHER_ARIA_VIA_PSA) || \
+    defined(MBEDTLS_BLOCK_CIPHER_ARIA_VIA_LEGACY)
+#define MBEDTLS_BLOCK_CIPHER_CAN_ARIA
+#endif
+#if defined(MBEDTLS_BLOCK_CIPHER_CAMELLIA_VIA_PSA) || \
+    defined(MBEDTLS_BLOCK_CIPHER_CAMELLIA_VIA_LEGACY)
+#define MBEDTLS_BLOCK_CIPHER_CAN_CAMELLIA
+#endif
+
+/* GCM_C and CCM_C can either depend on (in order of preference) BLOCK_CIPHER_C
+ * or CIPHER_C. The former is auto-enabled when:
+ * - CIPHER_C is not defined, which is also the legacy solution;
+ * - BLOCK_CIPHER_SOME_PSA because in this case BLOCK_CIPHER can take advantage
+ *   of the driver's acceleration.
+ */
+#if (defined(MBEDTLS_GCM_C) || defined(MBEDTLS_CCM_C)) && \
+    (!defined(MBEDTLS_CIPHER_C) || defined(MBEDTLS_BLOCK_CIPHER_SOME_PSA))
+#define MBEDTLS_BLOCK_CIPHER_C
+#endif
+
+/* Helpers for GCM/CCM capabilities */
+#if (defined(MBEDTLS_CIPHER_C) && defined(MBEDTLS_AES_C)) || \
+    (defined(MBEDTLS_BLOCK_CIPHER_C) && defined(MBEDTLS_BLOCK_CIPHER_CAN_AES))
+#define MBEDTLS_CCM_GCM_CAN_AES
+#endif
+
+#if (defined(MBEDTLS_CIPHER_C) && defined(MBEDTLS_ARIA_C)) || \
+    (defined(MBEDTLS_BLOCK_CIPHER_C) && defined(MBEDTLS_BLOCK_CIPHER_CAN_ARIA))
+#define MBEDTLS_CCM_GCM_CAN_ARIA
+#endif
+
+#if (defined(MBEDTLS_CIPHER_C) && defined(MBEDTLS_CAMELLIA_C)) || \
+    (defined(MBEDTLS_BLOCK_CIPHER_C) && defined(MBEDTLS_BLOCK_CIPHER_CAN_CAMELLIA))
+#define MBEDTLS_CCM_GCM_CAN_CAMELLIA
+#endif
+
 /* MBEDTLS_ECP_LIGHT is auto-enabled by the following symbols:
  * - MBEDTLS_ECP_C because now it consists of MBEDTLS_ECP_LIGHT plus functions
  *   for curve arithmetic. As a consequence if MBEDTLS_ECP_C is required for
@@ -179,6 +291,14 @@
     defined(MBEDTLS_PK_PARSE_EC_COMPRESSED) || \
     defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR_DERIVE)
 #define MBEDTLS_ECP_LIGHT
+#endif
+
+/* Backward compatibility: after #8740 the RSA module offers functions to parse
+ * and write RSA private/public keys without relying on the PK one. Of course
+ * this needs ASN1 support to do so, so we enable it here. */
+#if defined(MBEDTLS_RSA_C)
+#define MBEDTLS_ASN1_PARSE_C
+#define MBEDTLS_ASN1_WRITE_C
 #endif
 
 /* MBEDTLS_PK_PARSE_EC_COMPRESSED is introduced in Mbed TLS version 3.5, while
@@ -227,15 +347,6 @@
 #if defined(MBEDTLS_PSA_CRYPTO_C)
 #define MBEDTLS_PSA_CRYPTO_CLIENT
 #endif /* MBEDTLS_PSA_CRYPTO_C */
-
-/* The PK wrappers need pk_write functions to format RSA key objects
- * when they are dispatching to the PSA API. This happens under USE_PSA_CRYPTO,
- * and also even without USE_PSA_CRYPTO for mbedtls_pk_sign_ext(). */
-#if defined(MBEDTLS_PSA_CRYPTO_C) && defined(MBEDTLS_RSA_C)
-#define MBEDTLS_PK_C
-#define MBEDTLS_PK_WRITE_C
-#define MBEDTLS_PK_PARSE_C
-#endif
 
 /* Helpers to state that each key is supported either on the builtin or PSA side. */
 #if defined(MBEDTLS_ECP_DP_SECP521R1_ENABLED) || defined(PSA_WANT_ECC_SECP_R1_521)
@@ -302,6 +413,33 @@
 #endif
 #if defined(MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY) && !defined(MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_ONLY)
 #define MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_ONLY
+#endif
+
+/* psa_util file features some ECDSA conversion functions, to convert between
+ * legacy's ASN.1 DER format and PSA's raw one. */
+#if defined(MBEDTLS_ECDSA_C) || (defined(MBEDTLS_PSA_CRYPTO_C) && \
+    (defined(PSA_WANT_ALG_ECDSA) || defined(PSA_WANT_ALG_DETERMINISTIC_ECDSA)))
+#define MBEDTLS_PSA_UTIL_HAVE_ECDSA
+#endif
+
+/* Some internal helpers to determine which keys are availble. */
+#if (!defined(MBEDTLS_USE_PSA_CRYPTO) && defined(MBEDTLS_AES_C)) || \
+    (defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_KEY_TYPE_AES))
+#define MBEDTLS_SSL_HAVE_AES
+#endif
+#if (!defined(MBEDTLS_USE_PSA_CRYPTO) && defined(MBEDTLS_ARIA_C)) || \
+    (defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_KEY_TYPE_ARIA))
+#define MBEDTLS_SSL_HAVE_ARIA
+#endif
+#if (!defined(MBEDTLS_USE_PSA_CRYPTO) && defined(MBEDTLS_CAMELLIA_C)) || \
+    (defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_KEY_TYPE_CAMELLIA))
+#define MBEDTLS_SSL_HAVE_CAMELLIA
+#endif
+
+/* Some internal helpers to determine which operation modes are availble. */
+#if (!defined(MBEDTLS_USE_PSA_CRYPTO) && defined(MBEDTLS_CIPHER_MODE_CBC)) || \
+    (defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_ALG_CBC_NO_PADDING))
+#define MBEDTLS_SSL_HAVE_CBC
 #endif
 
 #if (!defined(MBEDTLS_USE_PSA_CRYPTO) && defined(MBEDTLS_GCM_C)) || \

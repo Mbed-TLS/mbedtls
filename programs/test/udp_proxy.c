@@ -11,7 +11,6 @@
  * example of good general usage.
  */
 
-#define MBEDTLS_ALLOW_PRIVATE_ACCESS
 
 #include "mbedtls/build_info.h"
 

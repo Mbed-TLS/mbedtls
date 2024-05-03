@@ -9,7 +9,7 @@
 
 #if defined(MBEDTLS_X509_CREATE_C)
 
-#include "mbedtls/x509.h"
+#include "x509_internal.h"
 #include "mbedtls/asn1write.h"
 #include "mbedtls/error.h"
 #include "mbedtls/oid.h"
@@ -169,7 +169,7 @@ static int parse_attribute_value_string(const char *s,
             return MBEDTLS_ERR_X509_INVALID_NAME;
         }
     }
-    *data_len = d - data;
+    *data_len = (size_t) (d - data);
     return 0;
 }
 
@@ -297,8 +297,8 @@ int mbedtls_x509_string_to_names(mbedtls_asn1_named_data **head, const char *nam
 
     while (c <= end) {
         if (in_attr_type && *c == '=') {
-            if ((attr_descr = x509_attr_descr_from_name(s, c - s)) == NULL) {
-                if ((mbedtls_oid_from_numeric_string(&oid, s, c - s)) != 0) {
+            if ((attr_descr = x509_attr_descr_from_name(s, (size_t) (c - s))) == NULL) {
+                if ((mbedtls_oid_from_numeric_string(&oid, s, (size_t) (c - s))) != 0) {
                     return MBEDTLS_ERR_X509_INVALID_NAME;
                 } else {
                     numericoid = 1;
@@ -322,7 +322,7 @@ int mbedtls_x509_string_to_names(mbedtls_asn1_named_data **head, const char *nam
                 /* We know that c >= s (loop invariant) and c != s (in this
                  * else branch), hence c - s - 1 >= 0. */
                 parse_ret = parse_attribute_value_hex_der_encoded(
-                    s + 1, c - s - 1,
+                    s + 1, (size_t) (c - s) - 1,
                     data, sizeof(data), &data_len, &tag);
                 if (parse_ret != 0) {
                     mbedtls_free(oid.p);
@@ -381,6 +381,10 @@ int mbedtls_x509_set_extension(mbedtls_asn1_named_data **head, const char *oid, 
                                int critical, const unsigned char *val, size_t val_len)
 {
     mbedtls_asn1_named_data *cur;
+
+    if (val_len > (SIZE_MAX  - 1)) {
+        return MBEDTLS_ERR_X509_BAD_INPUT_DATA;
+    }
 
     if ((cur = mbedtls_asn1_store_named_data(head, oid, oid_len,
                                              NULL, val_len + 1)) == NULL) {

@@ -16,6 +16,23 @@ import re
 import subprocess
 import sys
 
+class ScriptOutputError(ValueError):
+    """A kind of ValueError that indicates we found
+    the script doesn't list test cases in an expected
+    pattern.
+    """
+
+    @property
+    def script_name(self):
+        return super().args[0]
+
+    @property
+    def idx(self):
+        return super().args[1]
+
+    @property
+    def line(self):
+        return super().args[2]
 
 class Results:
     """Store file and line information about errors or warnings in test suites."""
@@ -86,19 +103,27 @@ state may override this method.
                                            data_file_name, line_number, line)
                 in_paragraph = True
 
-    def collect_from_script(self, file_name):
+    def collect_from_script(self, script_name):
         """Collect the test cases in a script by calling its listing test cases
 option"""
         descriptions = self.new_per_file_state() # pylint: disable=assignment-from-none
-        listed = subprocess.check_output(['sh', file_name, '--list-test-cases'])
+        listed = subprocess.check_output(['sh', script_name, '--list-test-cases'])
         # Assume test file is responsible for printing identical format of
         # test case description between --list-test-cases and its OUTCOME.CSV
         #
         # idx indicates the number of test case since there is no line number
         # in the script for each test case.
-        for idx, description in enumerate(listed.splitlines()):
+        for idx, line in enumerate(listed.splitlines()):
+            # We are expecting the script to list the test cases in
+            # `<suite_name>;<description>` pattern.
+            script_outputs = line.split(b';', 1)
+            if len(script_outputs) == 2:
+                suite_name, description = script_outputs
+            else:
+                raise ScriptOutputError(script_name, idx, line.decode("utf-8"))
+
             self.process_test_case(descriptions,
-                                   file_name,
+                                   suite_name.decode('utf-8'),
                                    idx,
                                    description.rstrip())
 
@@ -124,8 +149,7 @@ option"""
 
             for sh_file in ['ssl-opt.sh', 'compat.sh']:
                 sh_file = os.path.join(directory, sh_file)
-                if os.path.exists(sh_file):
-                    self.collect_from_script(sh_file)
+                self.collect_from_script(sh_file)
 
 class TestDescriptions(TestDescriptionExplorer):
     """Collect the available test cases."""
@@ -202,7 +226,12 @@ def main():
         return
     results = Results(options)
     checker = DescriptionChecker(results)
-    checker.walk_all()
+    try:
+        checker.walk_all()
+    except ScriptOutputError as e:
+        results.error(e.script_name, e.idx,
+                      '"{}" should be listed as "<suite_name>;<description>"',
+                      e.line)
     if (results.warnings or results.errors) and not options.quiet:
         sys.stderr.write('{}: {} errors, {} warnings\n'
                          .format(sys.argv[0], results.errors, results.warnings))

@@ -1,5 +1,3 @@
-#define MBEDTLS_ALLOW_PRIVATE_ACCESS
-
 #include <string.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -137,7 +135,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size)
     ret = mbedtls_ssl_handshake(&ssl);
 
     if (ret == MBEDTLS_ERR_SSL_HELLO_VERIFY_REQUIRED) {
-        biomemfuzz.Offset = ssl.next_record_offset;
+        biomemfuzz.Offset = ssl.MBEDTLS_PRIVATE(next_record_offset);
         mbedtls_ssl_session_reset(&ssl);
         mbedtls_ssl_set_bio(&ssl, &biomemfuzz, dummy_send, fuzz_recv, fuzz_recv_timeout);
         if (mbedtls_ssl_set_client_transport_id(&ssl, client_ip, sizeof(client_ip)) != 0) {

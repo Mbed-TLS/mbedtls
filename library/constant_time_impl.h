@@ -31,7 +31,7 @@
  * Disable -Wredundant-decls so that gcc does not warn about this. This is re-enabled
  * at the bottom of this file.
  */
-#ifdef __GNUC__
+#if defined(MBEDTLS_COMPILER_IS_GCC) && (__GNUC__ > 4)
     #pragma GCC diagnostic push
     #pragma GCC diagnostic ignored "-Wredundant-decls"
 #endif
@@ -120,10 +120,12 @@ static inline mbedtls_ct_uint_t mbedtls_ct_compiler_opaque(mbedtls_ct_uint_t x)
  * On Thumb 2 and Arm, both compilers are happy with the "s" suffix,
  * although we don't actually care about setting the flags.
  *
- * For gcc, restore divided syntax afterwards - otherwise old versions of gcc
- * seem to apply unified syntax globally, which breaks other asm code.
+ * For old versions of gcc (see #8516 for details), restore divided
+ * syntax afterwards - otherwise old versions of gcc seem to apply
+ * unified syntax globally, which breaks other asm code.
  */
-#if !defined(__clang__)
+#if defined(MBEDTLS_COMPILER_IS_GCC) && defined(__thumb__) && !defined(__thumb2__) && \
+    (__GNUC__ < 11) && !defined(__ARM_ARCH_2__)
 #define RESTORE_ASM_SYNTAX  ".syntax divided                      \n\t"
 #else
 #define RESTORE_ASM_SYNTAX
@@ -546,7 +548,7 @@ static inline mbedtls_ct_condition_t mbedtls_ct_bool_not(mbedtls_ct_condition_t 
     return (mbedtls_ct_condition_t) (~x);
 }
 
-#ifdef __GNUC__
+#if defined(MBEDTLS_COMPILER_IS_GCC) && (__GNUC__ > 4)
 /* Restore warnings for -Wredundant-decls on gcc */
     #pragma GCC diagnostic pop
 #endif

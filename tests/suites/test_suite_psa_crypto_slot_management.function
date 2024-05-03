@@ -142,7 +142,6 @@ void transient_slot_lifecycle(int owner_id_arg,
 
 #if defined(MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER)
     {
-        psa_key_handle_t handle;
         mbedtls_svc_key_id_t key_with_invalid_owner =
             mbedtls_svc_key_id_make(owner_id + 1,
                                     MBEDTLS_SVC_KEY_ID_GET_KEY_ID(key));
@@ -150,8 +149,8 @@ void transient_slot_lifecycle(int owner_id_arg,
         TEST_ASSERT(mbedtls_key_owner_id_equal(
                         owner_id,
                         MBEDTLS_SVC_KEY_ID_GET_OWNER_ID(key)));
-        TEST_EQUAL(psa_open_key(key_with_invalid_owner, &handle),
-                   PSA_ERROR_DOES_NOT_EXIST);
+        TEST_EQUAL(psa_get_key_attributes(key_with_invalid_owner, &attributes),
+                   PSA_ERROR_INVALID_HANDLE);
     }
 #endif
 
@@ -459,7 +458,7 @@ void create_fail(int lifetime_arg, int id_arg,
          * PSA key attributes APIs thus accessing to the attributes
          * directly.
          */
-        attributes.core.id = id;
+        attributes.id = id;
     } else {
         psa_set_key_id(&attributes, id);
     }
@@ -747,19 +746,12 @@ void invalid_handle(int handle_construction,
              * MBEDTLS_SVC_KEY_ID_GET_KEY_ID( valid_handle ) is a volatile
              * key identifier as the imported key is a volatile key. Volatile
              * key identifiers are in the range from PSA_KEY_ID_VOLATILE_MIN
-             * to PSA_KEY_ID_VOLATILE_MAX included. Thus pick a key identifier
-             * in the range from PSA_KEY_ID_VOLATILE_MIN to
-             * PSA_KEY_ID_VOLATILE_MAX different from
-             * MBEDTLS_SVC_KEY_ID_GET_KEY_ID( valid_handle ) to build an
-             * unopened and thus invalid identifier.
+             * to PSA_KEY_ID_VOLATILE_MAX included. It is very unlikely that
+             * all IDs are used up to the last one, so pick
+             * PSA_KEY_ID_VOLATILE_MAX to build an unopened and thus invalid
+             * identifier.
              */
-
-            if (MBEDTLS_SVC_KEY_ID_GET_KEY_ID(valid_handle) ==
-                PSA_KEY_ID_VOLATILE_MIN) {
-                key_id = PSA_KEY_ID_VOLATILE_MIN + 1;
-            } else {
-                key_id = MBEDTLS_SVC_KEY_ID_GET_KEY_ID(valid_handle) - 1;
-            }
+            key_id = PSA_KEY_ID_VOLATILE_MAX;
 
             invalid_handle =
                 mbedtls_svc_key_id_make(0, key_id);
@@ -939,11 +931,16 @@ void non_reusable_key_slots_integrity_in_case_of_key_slot_starvation()
     mbedtls_svc_key_id_t persistent_key2 = MBEDTLS_SVC_KEY_ID_INIT;
     mbedtls_svc_key_id_t returned_key_id = MBEDTLS_SVC_KEY_ID_INIT;
     mbedtls_svc_key_id_t *keys = NULL;
+    mbedtls_psa_stats_t psa_key_slots_stats;
+    size_t available_key_slots = 0;
 
     TEST_ASSERT(MBEDTLS_PSA_KEY_SLOT_COUNT >= 1);
 
-    TEST_CALLOC(keys, MBEDTLS_PSA_KEY_SLOT_COUNT);
     PSA_ASSERT(psa_crypto_init());
+    mbedtls_psa_get_stats(&psa_key_slots_stats);
+    available_key_slots = psa_key_slots_stats.empty_slots;
+
+    TEST_CALLOC(keys, available_key_slots);
 
     psa_set_key_usage_flags(&attributes,
                             PSA_KEY_USAGE_EXPORT | PSA_KEY_USAGE_COPY);
@@ -962,10 +959,10 @@ void non_reusable_key_slots_integrity_in_case_of_key_slot_starvation()
     TEST_ASSERT(mbedtls_svc_key_id_equal(returned_key_id, persistent_key));
 
     /*
-     * Create MBEDTLS_PSA_KEY_SLOT_COUNT volatile keys
+     * Create the maximum available number of volatile keys
      */
     psa_set_key_lifetime(&attributes, PSA_KEY_LIFETIME_VOLATILE);
-    for (i = 0; i < MBEDTLS_PSA_KEY_SLOT_COUNT; i++) {
+    for (i = 0; i < available_key_slots; i++) {
         PSA_ASSERT(psa_import_key(&attributes,
                                   (uint8_t *) &i, sizeof(i),
                                   &keys[i]));
@@ -984,18 +981,18 @@ void non_reusable_key_slots_integrity_in_case_of_key_slot_starvation()
      * Check we can export the volatile key created last and that it has the
      * expected value. Then, destroy it.
      */
-    PSA_ASSERT(psa_export_key(keys[MBEDTLS_PSA_KEY_SLOT_COUNT - 1],
+    PSA_ASSERT(psa_export_key(keys[available_key_slots - 1],
                               exported, sizeof(exported),
                               &exported_length));
-    i = MBEDTLS_PSA_KEY_SLOT_COUNT - 1;
+    i = available_key_slots - 1;
     TEST_MEMORY_COMPARE(exported, exported_length, (uint8_t *) &i, sizeof(i));
-    PSA_ASSERT(psa_destroy_key(keys[MBEDTLS_PSA_KEY_SLOT_COUNT - 1]));
+    PSA_ASSERT(psa_destroy_key(keys[available_key_slots - 1]));
 
     /*
      * Check that we can now access the persistent key again.
      */
     PSA_ASSERT(psa_get_key_attributes(persistent_key, &attributes));
-    TEST_ASSERT(mbedtls_svc_key_id_equal(attributes.core.id,
+    TEST_ASSERT(mbedtls_svc_key_id_equal(attributes.id,
                                          persistent_key));
 
     /*
@@ -1012,7 +1009,7 @@ void non_reusable_key_slots_integrity_in_case_of_key_slot_starvation()
      * Check we can export the remaining volatile keys and that they have the
      * expected values.
      */
-    for (i = 0; i < (MBEDTLS_PSA_KEY_SLOT_COUNT - 1); i++) {
+    for (i = 0; i < (available_key_slots - 1); i++) {
         PSA_ASSERT(psa_export_key(keys[i],
                                   exported, sizeof(exported),
                                   &exported_length));

@@ -33,10 +33,10 @@ static psa_status_t psa_aead_setup(
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     mbedtls_cipher_id_t cipher_id;
     mbedtls_cipher_mode_t mode;
-    size_t key_bits = attributes->core.bits;
+    size_t key_bits = attributes->bits;
     (void) key_buffer_size;
 
-    status = mbedtls_cipher_values_from_psa(alg, attributes->core.type,
+    status = mbedtls_cipher_values_from_psa(alg, attributes->type,
                                             &key_bits, &mode, &cipher_id);
     if (status != PSA_SUCCESS) {
         return status;
@@ -49,7 +49,7 @@ static psa_status_t psa_aead_setup(
             /* CCM allows the following tag lengths: 4, 6, 8, 10, 12, 14, 16.
              * The call to mbedtls_ccm_encrypt_and_tag or
              * mbedtls_ccm_auth_decrypt will validate the tag length. */
-            if (PSA_BLOCK_CIPHER_BLOCK_LENGTH(attributes->core.type) != 16) {
+            if (PSA_BLOCK_CIPHER_BLOCK_LENGTH(attributes->type) != 16) {
                 return PSA_ERROR_INVALID_ARGUMENT;
             }
 
@@ -69,7 +69,7 @@ static psa_status_t psa_aead_setup(
             /* GCM allows the following tag lengths: 4, 8, 12, 13, 14, 15, 16.
              * The call to mbedtls_gcm_crypt_and_tag or
              * mbedtls_gcm_auth_decrypt will validate the tag length. */
-            if (PSA_BLOCK_CIPHER_BLOCK_LENGTH(attributes->core.type) != 16) {
+            if (PSA_BLOCK_CIPHER_BLOCK_LENGTH(attributes->type) != 16) {
                 return PSA_ERROR_INVALID_ARGUMENT;
             }
 

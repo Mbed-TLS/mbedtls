@@ -48,10 +48,10 @@ static int dhm_read_bignum(mbedtls_mpi *X,
         return MBEDTLS_ERR_DHM_BAD_INPUT_DATA;
     }
 
-    n = ((*p)[0] << 8) | (*p)[1];
+    n = MBEDTLS_GET_UINT16_BE(*p, 0);
     (*p) += 2;
 
-    if ((int) (end - *p) < n) {
+    if ((size_t) (end - *p) < (size_t) n) {
         return MBEDTLS_ERR_DHM_BAD_INPUT_DATA;
     }
 
@@ -257,7 +257,7 @@ int mbedtls_dhm_make_params(mbedtls_dhm_context *ctx, int x_size,
     DHM_MPI_EXPORT(&ctx->G, n2);
     DHM_MPI_EXPORT(&ctx->GX, n3);
 
-    *olen = p - output;
+    *olen = (size_t) (p - output);
 
 cleanup:
     if (ret != 0 && ret > -128) {

@@ -44,7 +44,7 @@
 #     * GNUTLS_{CLI,SERV} = 3.4.10
 #     * GNUTLS_NEXT_{CLI,SERV} = 3.7.2
 #     * OPENSSL = 1.0.2g (without Debian/Ubuntu patches)
-#     * OPENSSL_NEXT = 1.1.1a
+#     * OPENSSL_NEXT = 3.1.2
 # See the invocation of check_tools below for details.
 #
 # This script must be invoked from the toplevel directory of a git
@@ -74,6 +74,7 @@
 #      * component_check_XXX: quick tests that aren't worth parallelizing.
 #      * component_build_XXX: build things but don't run them.
 #      * component_test_XXX: build and test.
+#      * component_release_XXX: tests that the CI should skip during PR testing.
 #  * support_XXX: if support_XXX exists and returns false then
 #    component_XXX is not run by default.
 #  * post_XXX: things to do after running the tests.
@@ -163,6 +164,9 @@ pre_initialize_variables () {
     # basic-build-test.sh as well.
     RELEASE_SEED=1
 
+    # Specify character collation for regular expressions and sorting with C locale
+    export LC_COLLATE=C
+
     : ${MBEDTLS_TEST_OUTCOME_FILE=}
     : ${MBEDTLS_TEST_PLATFORM="$(uname -s | tr -c \\n0-9A-Za-z _)-$(uname -m | tr -c \\n0-9A-Za-z _)"}
     export MBEDTLS_TEST_OUTCOME_FILE
@@ -186,6 +190,14 @@ pre_initialize_variables () {
     if [ -z "${MAKEFLAGS+set}" ]; then
         export MAKEFLAGS="-j$(all_sh_nproc)"
     fi
+    # if CC is not set, use clang by default (if present) to improve build times
+    if [ -z "${CC+set}" ] && (type clang > /dev/null 2>&1); then
+        export CC="clang"
+    fi
+
+    if [ -n "${OPENSSL_3+set}" ]; then
+        export OPENSSL_NEXT="$OPENSSL_3"
+    fi
 
     # Include more verbose output for failing tests run by CMake or make
     export CTEST_OUTPUT_ON_FAILURE=1
@@ -193,6 +205,8 @@ pre_initialize_variables () {
     # CFLAGS and LDFLAGS for Asan builds that don't use CMake
     # default to -O2, use -Ox _after_ this if you want another level
     ASAN_CFLAGS='-O2 -Werror -fsanitize=address,undefined -fno-sanitize-recover=all'
+    # Normally, tests should use this compiler for ASAN testing
+    ASAN_CC=clang
 
     # Platform tests have an allocation that returns null
     export ASAN_OPTIONS="allocator_may_return_null=1"
@@ -202,15 +216,19 @@ pre_initialize_variables () {
     # defined in this script whose name starts with "component_".
     ALL_COMPONENTS=$(compgen -A function component_ | sed 's/component_//')
 
-    # Exclude components that are not supported on this platform.
-    SUPPORTED_COMPONENTS=
-    for component in $ALL_COMPONENTS; do
-        case $(type "support_$component" 2>&1) in
-            *' function'*)
-                if ! support_$component; then continue; fi;;
-        esac
-        SUPPORTED_COMPONENTS="$SUPPORTED_COMPONENTS $component"
-    done
+    # Delay determining SUPPORTED_COMPONENTS until the command line options have a chance to override
+    # the commands set by the environment
+}
+
+setup_quiet_wrappers()
+{
+    # Pick up "quiet" wrappers for make and cmake, which don't output very much
+    # unless there is an error. This reduces logging overhead in the CI.
+    #
+    # Note that the cmake wrapper breaks unless we use an absolute path here.
+    if [[ -e ${PWD}/tests/scripts/quiet ]]; then
+        export PATH=${PWD}/tests/scripts/quiet:$PATH
+    fi
 }
 
 # Test whether the component $1 is included in the command line patterns.
@@ -397,13 +415,12 @@ armc6_build_test()
     FLAGS="$1"
 
     msg "build: ARM Compiler 6 ($FLAGS)"
+    make clean
     ARM_TOOL_VARIANT="ult" CC="$ARMC6_CC" AR="$ARMC6_AR" CFLAGS="$FLAGS" \
                     WARNING_CFLAGS='-Werror -xc -std=c99' make lib
 
     msg "size: ARM Compiler 6 ($FLAGS)"
     "$ARMC6_FROMELF" -z library/*.o
-
-    make clean
 }
 
 err_msg()
@@ -421,22 +438,11 @@ check_tools()
     done
 }
 
-pre_parse_command_line_for_dirs () {
-    # Make an early pass through the options given, so we can set directories
-    # for Arm compilers, before SUPPORTED_COMPONENTS is determined.
-    while [ $# -gt 0 ]; do
-        case "$1" in
-            --armc5-bin-dir) shift; ARMC5_BIN_DIR="$1";;
-            --armc6-bin-dir) shift; ARMC6_BIN_DIR="$1";;
-        esac
-        shift
-    done
-}
-
 pre_parse_command_line () {
     COMMAND_LINE_COMPONENTS=
     all_except=0
     error_test=0
+    list_components=0
     restore_first=0
     no_armcc=
 
@@ -449,8 +455,8 @@ pre_parse_command_line () {
             --arm-none-eabi-gcc-prefix) shift; ARM_NONE_EABI_GCC_PREFIX="$1";;
             --arm-linux-gnueabi-gcc-prefix) shift; ARM_LINUX_GNUEABI_GCC_PREFIX="$1";;
             --armcc) no_armcc=;;
-            --armc5-bin-dir) shift; ;; # assignment to ARMC5_BIN_DIR done in pre_parse_command_line_for_dirs
-            --armc6-bin-dir) shift; ;; # assignment to ARMC6_BIN_DIR done in pre_parse_command_line_for_dirs
+            --armc5-bin-dir) shift; ARMC5_BIN_DIR="$1";;
+            --armc6-bin-dir) shift; ARMC6_BIN_DIR="$1";;
             --clang-earliest) shift; CLANG_EARLIEST="$1";;
             --clang-latest) shift; CLANG_LATEST="$1";;
             --error-test) error_test=$((error_test + 1));;
@@ -465,7 +471,7 @@ pre_parse_command_line () {
             --help|-h) usage; exit;;
             --keep-going|-k) KEEP_GOING=1;;
             --list-all-components) printf '%s\n' $ALL_COMPONENTS; exit;;
-            --list-components) printf '%s\n' $SUPPORTED_COMPONENTS; exit;;
+            --list-components) list_components=1;;
             --memory|-m) MEMORY=1;;
             --no-append-outcome) append_outcome=0;;
             --no-armcc) no_armcc=1;;
@@ -491,6 +497,21 @@ pre_parse_command_line () {
         esac
         shift
     done
+
+    # Exclude components that are not supported on this platform.
+    SUPPORTED_COMPONENTS=
+    for component in $ALL_COMPONENTS; do
+        case $(type "support_$component" 2>&1) in
+            *' function'*)
+                if ! support_$component; then continue; fi;;
+        esac
+        SUPPORTED_COMPONENTS="$SUPPORTED_COMPONENTS $component"
+    done
+
+    if [ $list_components -eq 1 ]; then
+        printf '%s\n' $SUPPORTED_COMPONENTS
+        exit
+    fi
 
     # With no list of components, run everything.
     if [ -z "$COMMAND_LINE_COMPONENTS" ] && [ $restore_first -eq 0 ]; then
@@ -622,6 +643,7 @@ pre_setup_keep_going () {
         case "$1" in
             "msg "*) false;;
             "cd "*) false;;
+            "diff "*) true;;
             *make*[\ /]tests*) false;; # make tests, make CFLAGS=-I../tests, ...
             *test*) true;; # make test, tests/stuff, env V=v tests/stuff, ...
             *make*check*) true;;
@@ -744,7 +766,7 @@ pre_check_tools () {
         # Require OpenSSL and GnuTLS if running any tests (as opposed to
         # only doing builds). Not all tests run OpenSSL and GnuTLS, but this
         # is a good enough approximation in practice.
-        *" test_"*)
+        *" test_"* | *" release_test_"*)
             # To avoid setting OpenSSL and GnuTLS for each call to compat.sh
             # and ssl-opt.sh, we just export the variables they require.
             export OPENSSL="$OPENSSL"
@@ -814,6 +836,14 @@ pre_generate_files() {
     fi
 }
 
+clang_version() {
+    if command -v clang > /dev/null ; then
+        clang --version|grep version|sed -E 's#.*version ([0-9]+).*#\1#'
+    else
+        echo 0  # report version 0 for "no clang"
+    fi
+}
+
 ################################################################
 #### Helpers for components using libtestdriver1
 ################################################################
@@ -874,7 +904,50 @@ helper_libtestdriver1_adjust_config() {
     # Dynamic secure element support is a deprecated feature and needs to be disabled here.
     # This is done to have the same form of psa_key_attributes_s for libdriver and library.
     scripts/config.py unset MBEDTLS_PSA_CRYPTO_SE_C
+
+    # If threading is enabled on the normal build, then we need to enable it in the drivers as well,
+    # otherwise we will end up running multithreaded tests without mutexes to protect them.
+    if scripts/config.py get MBEDTLS_THREADING_C; then
+        scripts/config.py -f "$CONFIG_TEST_DRIVER_H" set MBEDTLS_THREADING_C
+    fi
+
+    if scripts/config.py get MBEDTLS_THREADING_PTHREAD; then
+        scripts/config.py -f "$CONFIG_TEST_DRIVER_H" set MBEDTLS_THREADING_PTHREAD
+    fi
 }
+
+# Build the drivers library libtestdriver1.a (with ASan).
+#
+# Parameters:
+# 1. a space-separated list of things to accelerate;
+# 2. optional: a space-separate list of things to also support.
+# Here "things" are PSA_WANT_ symbols but with PSA_WANT_ removed.
+helper_libtestdriver1_make_drivers() {
+    loc_accel_flags=$( echo "$1 ${2-}" | sed 's/[^ ]* */-DLIBTESTDRIVER1_MBEDTLS_PSA_ACCEL_&/g' )
+    make CC=$ASAN_CC -C tests libtestdriver1.a CFLAGS=" $ASAN_CFLAGS $loc_accel_flags" LDFLAGS="$ASAN_CFLAGS"
+}
+
+# Build the main libraries, programs and tests,
+# linking to the drivers library (with ASan).
+#
+# Parameters:
+# 1. a space-separated list of things to accelerate;
+# *. remaining arguments if any are passed directly to make
+#    (examples: lib, -C tests test_suite_xxx, etc.)
+# Here "things" are PSA_WANT_ symbols but with PSA_WANT_ removed.
+helper_libtestdriver1_make_main() {
+    loc_accel_list=$1
+    shift
+
+    # we need flags both with and without the LIBTESTDRIVER1_ prefix
+    loc_accel_flags=$( echo "$loc_accel_list" | sed 's/[^ ]* */-DLIBTESTDRIVER1_MBEDTLS_PSA_ACCEL_&/g' )
+    loc_accel_flags="$loc_accel_flags $( echo "$loc_accel_list" | sed 's/[^ ]* */-DMBEDTLS_PSA_ACCEL_&/g' )"
+    make CC=$ASAN_CC CFLAGS="$ASAN_CFLAGS -I../tests/include -I../tests -I../../tests -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_TEST_LIBTESTDRIVER1 $loc_accel_flags" LDFLAGS="-ltestdriver1 $ASAN_CFLAGS" "$@"
+}
+
+################################################################
+#### Configuration helpers
+################################################################
 
 # When called with no parameter this function disables all builtin curves.
 # The function optionally accepts 1 parameter: a space-separated list of the
@@ -900,6 +973,18 @@ helper_get_psa_curve_list () {
     echo "$loc_list"
 }
 
+# Helper returning the list of supported DH groups from CRYPTO_CONFIG_H,
+# without the "PSA_WANT_" prefix. This becomes handy for accelerating DH groups
+# in the following helpers.
+helper_get_psa_dh_group_list () {
+    loc_list=""
+    for item in $(sed -n 's/^#define PSA_WANT_\(DH_RFC7919_[0-9]*\).*/\1/p' <"$CRYPTO_CONFIG_H"); do
+        loc_list="$loc_list $item"
+    done
+
+    echo "$loc_list"
+}
+
 # Get the list of uncommented PSA_WANT_KEY_TYPE_xxx_ from CRYPTO_CONFIG_H. This
 # is useful to easily get a list of key type symbols to accelerate.
 # The function accepts a single argument which is the key type: ECC, DH, RSA.
@@ -915,35 +1000,6 @@ helper_get_psa_key_type_list() {
     done
 
     echo "$loc_list"
-}
-
-# Build the drivers library libtestdriver1.a (with ASan).
-#
-# Parameters:
-# 1. a space-separated list of things to accelerate;
-# 2. optional: a space-separate list of things to also support.
-# Here "things" are PSA_WANT_ symbols but with PSA_WANT_ removed.
-helper_libtestdriver1_make_drivers() {
-    loc_accel_flags=$( echo "$1 ${2-}" | sed 's/[^ ]* */-DLIBTESTDRIVER1_MBEDTLS_PSA_ACCEL_&/g' )
-    make -C tests libtestdriver1.a CFLAGS=" $ASAN_CFLAGS $loc_accel_flags" LDFLAGS="$ASAN_CFLAGS"
-}
-
-# Build the main libraries, programs and tests,
-# linking to the drivers library (with ASan).
-#
-# Parameters:
-# 1. a space-separated list of things to accelerate;
-# *. remaining arguments if any are passed directly to make
-#    (examples: lib, -C tests test_suite_xxx, etc.)
-# Here "things" are PSA_WANT_ symbols but with PSA_WANT_ removed.
-helper_libtestdriver1_make_main() {
-    loc_accel_list=$1
-    shift
-
-    # we need flags both with and without the LIBTESTDRIVER1_ prefix
-    loc_accel_flags=$( echo "$loc_accel_list" | sed 's/[^ ]* */-DLIBTESTDRIVER1_MBEDTLS_PSA_ACCEL_&/g' )
-    loc_accel_flags="$loc_accel_flags $( echo "$loc_accel_list" | sed 's/[^ ]* */-DMBEDTLS_PSA_ACCEL_&/g' )"
-    make CFLAGS="$ASAN_CFLAGS -I../tests/include -I../tests -I../../tests -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_TEST_LIBTESTDRIVER1 $loc_accel_flags" LDFLAGS="-ltestdriver1 $ASAN_CFLAGS" "$@"
 }
 
 ################################################################
@@ -1024,6 +1080,61 @@ component_check_test_cases () {
     unset opt
 }
 
+component_check_test_dependencies () {
+    msg "Check: test case dependencies: legacy vs PSA" # < 1s
+    # The purpose of this component is to catch unjustified dependencies on
+    # legacy feature macros (MBEDTLS_xxx) in PSA tests. Generally speaking,
+    # PSA test should use PSA feature macros (PSA_WANT_xxx, more rarely
+    # MBEDTLS_PSA_xxx).
+    #
+    # Most of the time, use of legacy MBEDTLS_xxx macros are mistakes, which
+    # this component is meant to catch. However a few of them are justified,
+    # mostly by the absence of a PSA equivalent, so this component includes a
+    # list of expected exceptions.
+
+    found="check-test-deps-found-$$"
+    expected="check-test-deps-expected-$$"
+
+    # Find legacy dependencies in PSA tests
+    grep 'depends_on' \
+        tests/suites/test_suite_psa*.data tests/suites/test_suite_psa*.function |
+        grep -Eo '!?MBEDTLS_[^: ]*' |
+        grep -v -e MBEDTLS_PSA_ -e MBEDTLS_TEST_ |
+        sort -u > $found
+
+    # Expected ones with justification - keep in sorted order by ASCII table!
+    rm -f $expected
+    # No PSA equivalent - WANT_KEY_TYPE_AES means all sizes
+    echo "!MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH" >> $expected
+    # No PSA equivalent - used to skip decryption tests in PSA-ECB, CBC/XTS/NIST_KW/DES
+    echo "!MBEDTLS_BLOCK_CIPHER_NO_DECRYPT" >> $expected
+    # MBEDTLS_ASN1_WRITE_C is used by import_rsa_made_up() in test_suite_psa_crypto
+    # in order to build a fake RSA key of the wanted size based on
+    # PSA_VENDOR_RSA_MAX_KEY_BITS. The legacy module is only used by
+    # the test code and that's probably the most convenient way of achieving
+    # the test's goal.
+    echo "MBEDTLS_ASN1_WRITE_C" >> $expected
+    # No PSA equivalent - we should probably have one in the future.
+    echo "MBEDTLS_ECP_RESTARTABLE" >> $expected
+    # No PSA equivalent - needed by some init tests
+    echo "MBEDTLS_ENTROPY_NV_SEED" >> $expected
+    # No PSA equivalent - required to run threaded tests.
+    echo "MBEDTLS_THREADING_PTHREAD" >> $expected
+
+    # Compare reality with expectation.
+    # We want an exact match, to ensure the above list remains up-to-date.
+    #
+    # The output should be empty. When it's not:
+    # - Each '+' line is a macro that was found but not expected. You want to
+    # find where that macro occurs, and either replace it with PSA macros, or
+    # add it to the exceptions list above with a justification.
+    # - Each '-' line is a macro that was expected but not found; it means the
+    # exceptions list above should be updated by removing that macro.
+    diff -U0 $expected $found
+
+    rm $found $expected
+}
+
 component_check_doxygen_warnings () {
     msg "Check: doxygen warnings (builds the documentation)" # ~ 3s
     tests/scripts/doxygen.sh
@@ -1064,6 +1175,9 @@ component_test_default_cmake_gcc_asan () {
 
     msg "test: selftest (ASan build)" # ~ 10s
     programs/test/selftest
+
+    msg "test: metatests (GCC, ASan build)"
+    tests/scripts/run-metatests.sh any asan poison
 
     msg "test: ssl-opt.sh (ASan build)" # ~ 1 min
     tests/ssl-opt.sh
@@ -1106,14 +1220,19 @@ component_test_full_cmake_gcc_asan () {
     msg "test: main suites (inc. selftests) (full config, ASan build)"
     make test
 
-    msg "test: selftest (ASan build)" # ~ 10s
+    msg "test: selftest (full config, ASan build)" # ~ 10s
     programs/test/selftest
 
     msg "test: ssl-opt.sh (full config, ASan build)"
     tests/ssl-opt.sh
 
-    msg "test: compat.sh (full config, ASan build)"
-    tests/compat.sh
+    # Note: the next two invocations cover all compat.sh test cases.
+    # We should use the same here and in basic-build-test.sh.
+    msg "test: compat.sh: default version (full config, ASan build)"
+    tests/compat.sh -e 'ARIA\|CHACHA'
+
+    msg "test: compat.sh: next: ARIA, Chacha (full config, ASan build)"
+    env OPENSSL="$OPENSSL_NEXT" tests/compat.sh -e '^$' -f 'ARIA\|CHACHA'
 
     msg "test: context-info.sh (full config, ASan build)" # ~ 15 sec
     tests/context-info.sh
@@ -1127,19 +1246,24 @@ component_test_full_cmake_gcc_asan_new_bignum () {
     CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
     make
 
-    msg "test: main suites (inc. selftests) (full config, ASan build)"
+    msg "test: main suites (inc. selftests) (full config, new bignum, ASan)"
     make test
 
-    msg "test: selftest (ASan build)" # ~ 10s
+    msg "test: selftest (full config, new bignum, ASan)" # ~ 10s
     programs/test/selftest
 
-    msg "test: ssl-opt.sh (full config, ASan build)"
+    msg "test: ssl-opt.sh (full config, new bignum, ASan)"
     tests/ssl-opt.sh
 
-    msg "test: compat.sh (full config, ASan build)"
-    tests/compat.sh
+    # Note: the next two invocations cover all compat.sh test cases.
+    # We should use the same here and in basic-build-test.sh.
+    msg "test: compat.sh: default version (full config, new bignum, ASan)"
+    tests/compat.sh -e 'ARIA\|CHACHA'
 
-    msg "test: context-info.sh (full config, ASan build)" # ~ 15 sec
+    msg "test: compat.sh: next: ARIA, Chacha (full config, new bignum, ASan)"
+    env OPENSSL="$OPENSSL_NEXT" tests/compat.sh -e '^$' -f 'ARIA\|CHACHA'
+
+    msg "test: context-info.sh (full config, new bignum, ASan)" # ~ 15 sec
     tests/context-info.sh
 }
 
@@ -1151,6 +1275,17 @@ component_test_psa_crypto_key_id_encodes_owner () {
     make
 
     msg "test: full config - USE_PSA_CRYPTO + PSA_CRYPTO_KEY_ID_ENCODES_OWNER, cmake, gcc, ASan"
+    make test
+}
+
+component_test_psa_assume_exclusive_buffers () {
+    msg "build: full config + MBEDTLS_PSA_ASSUME_EXCLUSIVE_BUFFERS, cmake, gcc, ASan"
+    scripts/config.py full
+    scripts/config.py set MBEDTLS_PSA_ASSUME_EXCLUSIVE_BUFFERS
+    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    make
+
+    msg "test: full config + MBEDTLS_PSA_ASSUME_EXCLUSIVE_BUFFERS, cmake, gcc, ASan"
     make test
 }
 
@@ -1179,25 +1314,76 @@ component_build_psa_crypto_spm () {
     check_renamed_symbols tests/include/spe/crypto_spe.h library/libmbedcrypto.a
 }
 
-component_test_psa_crypto_client () {
-    msg "build: default config - PSA_CRYPTO_C + PSA_CRYPTO_CLIENT, make"
+# Get a list of library-wise undefined symbols and ensure that they only
+# belong to psa_xxx() functions and not to mbedtls_yyy() ones.
+# This function is a common helper used by both:
+# - component_test_default_psa_crypto_client_without_crypto_provider
+# - component_build_full_psa_crypto_client_without_crypto_provider.
+common_check_mbedtls_missing_symbols() {
+    nm library/libmbedcrypto.a | grep ' [TRrDC] ' | grep -Eo '(mbedtls_|psa_).*' | sort -u > sym_def.txt
+    nm library/libmbedcrypto.a | grep ' U ' | grep -Eo '(mbedtls_|psa_).*' | sort -u > sym_undef.txt
+    comm sym_def.txt sym_undef.txt -13 > linking_errors.txt
+    not grep mbedtls_ linking_errors.txt
+
+    rm sym_def.txt sym_undef.txt linking_errors.txt
+}
+
+component_test_default_psa_crypto_client_without_crypto_provider () {
+    msg "build: default config - PSA_CRYPTO_C + PSA_CRYPTO_CLIENT"
+
     scripts/config.py unset MBEDTLS_PSA_CRYPTO_C
     scripts/config.py unset MBEDTLS_PSA_CRYPTO_STORAGE_C
+    scripts/config.py unset MBEDTLS_PSA_ITS_FILE_C
+    scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1_3
     scripts/config.py set MBEDTLS_PSA_CRYPTO_CLIENT
     scripts/config.py unset MBEDTLS_LMS_C
-    scripts/config.py unset MBEDTLS_LMS_PRIVATE
+
     make
 
-    msg "test: default config - PSA_CRYPTO_C + PSA_CRYPTO_CLIENT, make"
+    msg "check missing symbols: default config - PSA_CRYPTO_C + PSA_CRYPTO_CLIENT"
+    common_check_mbedtls_missing_symbols
+
+    msg "test: default config - PSA_CRYPTO_C + PSA_CRYPTO_CLIENT"
     make test
 }
 
-component_test_psa_crypto_rsa_no_genprime() {
-    msg "build: default config minus MBEDTLS_GENPRIME"
+component_build_full_psa_crypto_client_without_crypto_provider () {
+    msg "build: full config - PSA_CRYPTO_C"
+
+    # Use full config which includes USE_PSA and CRYPTO_CLIENT.
+    scripts/config.py full
+
+    scripts/config.py unset MBEDTLS_PSA_CRYPTO_C
+    scripts/config.py unset MBEDTLS_PSA_CRYPTO_STORAGE_C
+    # Dynamic secure element support is a deprecated feature and it is not
+    # available when CRYPTO_C and PSA_CRYPTO_STORAGE_C are disabled.
+    scripts/config.py unset MBEDTLS_PSA_CRYPTO_SE_C
+
+    # Since there is no crypto provider in this build it is not possible to
+    # build all the test executables and progrems due to missing PSA functions
+    # at link time. Therefore we will just build libraries and we'll check
+    # that symbols of interest are there.
+    make lib
+
+    msg "check missing symbols: full config - PSA_CRYPTO_C"
+
+    common_check_mbedtls_missing_symbols
+
+    # Ensure that desired functions are included into the build (extend the
+    # following list as required).
+    grep mbedtls_pk_get_psa_attributes library/libmbedcrypto.a
+    grep mbedtls_pk_import_into_psa library/libmbedcrypto.a
+    grep mbedtls_pk_copy_from_psa library/libmbedcrypto.a
+}
+
+component_test_no_rsa_key_pair_generation() {
+    msg "build: default config minus PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_GENERATE"
+    scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
     scripts/config.py unset MBEDTLS_GENPRIME
+    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_GENERATE
     make
 
-    msg "test: default config minus MBEDTLS_GENPRIME"
+    msg "test: default config minus PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_GENERATE"
     make test
 }
 
@@ -1212,14 +1398,14 @@ component_test_ref_configs () {
     # whether they're on or off. So, disable cmake's (over-sensitive here)
     # dependency resolution for generated files and just rely on them being
     # present (thanks to pre_generate_files) by turning GEN_FILES off.
-    CC=gcc cmake -D GEN_FILES=Off -D CMAKE_BUILD_TYPE:String=Asan .
+    CC=$ASAN_CC cmake -D GEN_FILES=Off -D CMAKE_BUILD_TYPE:String=Asan .
     tests/scripts/test-ref-configs.pl
 }
 
 component_test_no_renegotiation () {
     msg "build: Default + !MBEDTLS_SSL_RENEGOTIATION (ASan build)" # ~ 6 min
     scripts/config.py unset MBEDTLS_SSL_RENEGOTIATION
-    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    CC=$ASAN_CC cmake -D CMAKE_BUILD_TYPE:String=Asan .
     make
 
     msg "test: !MBEDTLS_SSL_RENEGOTIATION - main suites (inc. selftests) (ASan build)" # ~ 50s
@@ -1235,7 +1421,7 @@ component_test_no_pem_no_fs () {
     scripts/config.py unset MBEDTLS_FS_IO
     scripts/config.py unset MBEDTLS_PSA_ITS_FILE_C # requires a filesystem
     scripts/config.py unset MBEDTLS_PSA_CRYPTO_STORAGE_C # requires PSA ITS
-    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    CC=$ASAN_CC cmake -D CMAKE_BUILD_TYPE:String=Asan .
     make
 
     msg "test: !MBEDTLS_PEM_PARSE_C !MBEDTLS_FS_IO - main suites (inc. selftests) (ASan build)" # ~ 50s
@@ -1248,7 +1434,7 @@ component_test_no_pem_no_fs () {
 component_test_rsa_no_crt () {
     msg "build: Default + RSA_NO_CRT (ASan build)" # ~ 6 min
     scripts/config.py set MBEDTLS_RSA_NO_CRT
-    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    CC=$ASAN_CC cmake -D CMAKE_BUILD_TYPE:String=Asan .
     make
 
     msg "test: RSA_NO_CRT - main suites (inc. selftests) (ASan build)" # ~ 50s
@@ -1271,7 +1457,7 @@ component_test_no_ctr_drbg_classic () {
     scripts/config.py unset MBEDTLS_USE_PSA_CRYPTO
     scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1_3
 
-    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    CC=$ASAN_CC cmake -D CMAKE_BUILD_TYPE:String=Asan .
     make
 
     msg "test: Full minus CTR_DRBG, classic crypto - main suites"
@@ -1293,7 +1479,7 @@ component_test_no_ctr_drbg_use_psa () {
     scripts/config.py unset MBEDTLS_CTR_DRBG_C
     scripts/config.py set MBEDTLS_USE_PSA_CRYPTO
 
-    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    CC=$ASAN_CC cmake -D CMAKE_BUILD_TYPE:String=Asan .
     make
 
     msg "test: Full minus CTR_DRBG, USE_PSA_CRYPTO - main suites"
@@ -1317,7 +1503,7 @@ component_test_no_hmac_drbg_classic () {
     scripts/config.py unset MBEDTLS_USE_PSA_CRYPTO
     scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1_3
 
-    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    CC=$ASAN_CC cmake -D CMAKE_BUILD_TYPE:String=Asan .
     make
 
     msg "test: Full minus HMAC_DRBG, classic crypto - main suites"
@@ -1344,7 +1530,7 @@ component_test_no_hmac_drbg_use_psa () {
     scripts/config.py unset MBEDTLS_ECDSA_DETERMINISTIC # requires HMAC_DRBG
     scripts/config.py set MBEDTLS_USE_PSA_CRYPTO
 
-    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    CC=$ASAN_CC cmake -D CMAKE_BUILD_TYPE:String=Asan .
     make
 
     msg "test: Full minus HMAC_DRBG, USE_PSA_CRYPTO - main suites"
@@ -1379,7 +1565,7 @@ component_test_psa_external_rng_no_drbg_classic () {
     # When MBEDTLS_USE_PSA_CRYPTO is disabled and there is no DRBG,
     # the SSL test programs don't have an RNG and can't work. Explicitly
     # make them use the PSA RNG with -DMBEDTLS_TEST_USE_PSA_CRYPTO_RNG.
-    make CFLAGS="$ASAN_CFLAGS -O2 -DMBEDTLS_TEST_USE_PSA_CRYPTO_RNG" LDFLAGS="$ASAN_CFLAGS"
+    make CC=$ASAN_CC CFLAGS="$ASAN_CFLAGS -DMBEDTLS_TEST_USE_PSA_CRYPTO_RNG" LDFLAGS="$ASAN_CFLAGS"
 
     msg "test: PSA_CRYPTO_EXTERNAL_RNG minus *_DRBG, classic crypto - main suites"
     make test
@@ -1398,7 +1584,7 @@ component_test_psa_external_rng_no_drbg_use_psa () {
     scripts/config.py unset MBEDTLS_CTR_DRBG_C
     scripts/config.py unset MBEDTLS_HMAC_DRBG_C
     scripts/config.py unset MBEDTLS_ECDSA_DETERMINISTIC # requires HMAC_DRBG
-    make CFLAGS="$ASAN_CFLAGS -O2" LDFLAGS="$ASAN_CFLAGS"
+    make CC=$ASAN_CC CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS"
 
     msg "test: PSA_CRYPTO_EXTERNAL_RNG minus *_DRBG, PSA crypto - main suites"
     make test
@@ -1413,7 +1599,7 @@ component_test_psa_external_rng_use_psa_crypto () {
     scripts/config.py set MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG
     scripts/config.py set MBEDTLS_USE_PSA_CRYPTO
     scripts/config.py unset MBEDTLS_CTR_DRBG_C
-    make CFLAGS="$ASAN_CFLAGS -O2" LDFLAGS="$ASAN_CFLAGS"
+    make CC=$ASAN_CC CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS"
 
     msg "test: full + PSA_CRYPTO_EXTERNAL_RNG + USE_PSA_CRYPTO minus CTR_DRBG"
     make test
@@ -1431,7 +1617,7 @@ component_test_psa_inject_entropy () {
     scripts/config.py unset MBEDTLS_PLATFORM_NV_SEED_ALT
     scripts/config.py unset MBEDTLS_PLATFORM_STD_NV_SEED_READ
     scripts/config.py unset MBEDTLS_PLATFORM_STD_NV_SEED_WRITE
-    make CFLAGS="$ASAN_CFLAGS '-DMBEDTLS_USER_CONFIG_FILE=\"../tests/configs/user-config-for-test.h\"'" LDFLAGS="$ASAN_CFLAGS"
+    make CC=$ASAN_CC CFLAGS="$ASAN_CFLAGS '-DMBEDTLS_USER_CONFIG_FILE=\"../tests/configs/user-config-for-test.h\"'" LDFLAGS="$ASAN_CFLAGS"
 
     msg "test: full + MBEDTLS_PSA_INJECT_ENTROPY"
     make test
@@ -1445,6 +1631,23 @@ component_test_sw_inet_pton () {
     make CFLAGS="-DMBEDTLS_TEST_SW_INET_PTON"
 
     msg "test: default plus MBEDTLS_TEST_SW_INET_PTON"
+    make test
+}
+
+component_full_no_pkparse_pkwrite() {
+    msg "build: full without pkparse and pkwrite"
+
+    scripts/config.py crypto_full
+    scripts/config.py unset MBEDTLS_PK_PARSE_C
+    scripts/config.py unset MBEDTLS_PK_WRITE_C
+
+    make CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS"
+
+    # Ensure that PK_[PARSE|WRITE]_C were not re-enabled accidentally (additive config).
+    not grep mbedtls_pk_parse_key library/pkparse.o
+    not grep mbedtls_pk_write_key_der library/pkwrite.o
+
+    msg "test: full without pkparse and pkwrite"
     make test
 }
 
@@ -1465,7 +1668,7 @@ component_test_crypto_full_md_light_only () {
 
     # Note: MD-light is auto-enabled in build_info.h by modules that need it,
     # which we haven't disabled, so no need to explicitly enable it.
-    make CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS"
+    make CC=$ASAN_CC CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS"
 
     # Make sure we don't have the HMAC functions, but the hashing functions
     not grep mbedtls_md_hmac library/md.o
@@ -1475,7 +1678,7 @@ component_test_crypto_full_md_light_only () {
     make test
 }
 
-component_test_full_no_cipher () {
+component_test_full_no_cipher_no_psa_crypto () {
     msg "build: full no CIPHER no PSA_CRYPTO_C"
     scripts/config.py full
     scripts/config.py unset MBEDTLS_CIPHER_C
@@ -1483,13 +1686,10 @@ component_test_full_no_cipher () {
     # (currently ignored anyway because we completely disable PSA)
     scripts/config.py unset MBEDTLS_PSA_CRYPTO_CONFIG
     # Disable features that depend on CIPHER_C
-    scripts/config.py unset MBEDTLS_CCM_C
     scripts/config.py unset MBEDTLS_CMAC_C
-    scripts/config.py unset MBEDTLS_GCM_C
     scripts/config.py unset MBEDTLS_NIST_KW_C
-    scripts/config.py unset MBEDTLS_PKCS12_C
-    scripts/config.py unset MBEDTLS_PKCS5_C
     scripts/config.py unset MBEDTLS_PSA_CRYPTO_C
+    scripts/config.py unset MBEDTLS_PSA_CRYPTO_CLIENT
     scripts/config.py unset MBEDTLS_SSL_TLS_C
     scripts/config.py unset MBEDTLS_SSL_TICKET_C
     # Disable features that depend on PSA_CRYPTO_C
@@ -1498,15 +1698,14 @@ component_test_full_no_cipher () {
     scripts/config.py unset MBEDTLS_USE_PSA_CRYPTO
     scripts/config.py unset MBEDTLS_LMS_C
     scripts/config.py unset MBEDTLS_LMS_PRIVATE
-    make
 
     msg "test: full no CIPHER no PSA_CRYPTO_C"
     make test
 }
 
 # This is a common configurator and test function that is used in:
-# - component_test_full_no_cipher_with_crypto
-# - component_test_full_no_cipher_with_crypto_config
+# - component_test_full_no_cipher_with_psa_crypto
+# - component_test_full_no_cipher_with_psa_crypto_config
 # It accepts 2 input parameters:
 # - $1: boolean value which basically reflects status of MBEDTLS_PSA_CRYPTO_CONFIG
 # - $2: a text string which describes the test component
@@ -1524,9 +1723,7 @@ common_test_full_no_cipher_with_psa_crypto () {
         # on CIPHER_C so we disable them.
         # This does not hold for KEY_TYPE_CHACHA20 and ALG_CHACHA20_POLY1305
         # so we keep them enabled.
-        scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CCM
         scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CCM_STAR_NO_TAG
-        scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_GCM
         scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CMAC
         scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CBC_NO_PADDING
         scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CBC_PKCS7
@@ -1535,30 +1732,17 @@ common_test_full_no_cipher_with_psa_crypto () {
         scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_ECB_NO_PADDING
         scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_OFB
         scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_STREAM_CIPHER
-        scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_KEY_TYPE_AES
         scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_KEY_TYPE_DES
-        scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_KEY_TYPE_CAMELLIA
-        scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_KEY_TYPE_ARIA
     else
         # Don't pull in cipher via PSA mechanisms
         scripts/config.py unset MBEDTLS_PSA_CRYPTO_CONFIG
         # Disable cipher modes/keys that make PSA depend on CIPHER_C.
         # Keep CHACHA20 and CHACHAPOLY enabled since they do not depend on CIPHER_C.
         scripts/config.py unset-all MBEDTLS_CIPHER_MODE
-        scripts/config.py unset MBEDTLS_AES_C
-        scripts/config.py unset MBEDTLS_DES_C
-        scripts/config.py unset MBEDTLS_ARIA_C
-        scripts/config.py unset MBEDTLS_CAMELLIA_C
-        # Dependencies on AES_C
-        scripts/config.py unset MBEDTLS_CTR_DRBG_C
     fi
     # The following modules directly depends on CIPHER_C
-    scripts/config.py unset MBEDTLS_CCM_C
     scripts/config.py unset MBEDTLS_CMAC_C
-    scripts/config.py unset MBEDTLS_GCM_C
     scripts/config.py unset MBEDTLS_NIST_KW_C
-    scripts/config.py unset MBEDTLS_PKCS12_C
-    scripts/config.py unset MBEDTLS_PKCS5_C
 
     make
 
@@ -1569,12 +1753,65 @@ common_test_full_no_cipher_with_psa_crypto () {
     make test
 }
 
-component_test_full_no_cipher_with_crypto() {
+component_test_full_no_cipher_with_psa_crypto() {
     common_test_full_no_cipher_with_psa_crypto 0 "full no CIPHER no CRYPTO_CONFIG"
 }
 
-component_test_full_no_cipher_with_crypto_config() {
+component_test_full_no_cipher_with_psa_crypto_config() {
     common_test_full_no_cipher_with_psa_crypto 1 "full no CIPHER"
+}
+
+component_test_full_no_ccm() {
+    msg "build: full no PSA_WANT_ALG_CCM"
+
+    # Full config enables:
+    # - USE_PSA_CRYPTO so that TLS code dispatches cipher/AEAD to PSA
+    # - CRYPTO_CONFIG so that PSA_WANT config symbols are evaluated
+    scripts/config.py full
+
+    # Disable PSA_WANT_ALG_CCM so that CCM is not supported in PSA. CCM_C is still
+    # enabled, but not used from TLS since USE_PSA is set.
+    # This is helpful to ensure that TLS tests below have proper dependencies.
+    #
+    # Note: also PSA_WANT_ALG_CCM_STAR_NO_TAG is enabled, but it does not cause
+    # PSA_WANT_ALG_CCM to be re-enabled.
+    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CCM
+
+    make
+
+    msg "test: full no PSA_WANT_ALG_CCM"
+    make test
+}
+
+component_test_full_no_ccm_star_no_tag() {
+    msg "build: full no PSA_WANT_ALG_CCM_STAR_NO_TAG"
+
+    # Full config enables CRYPTO_CONFIG so that PSA_WANT config symbols are evaluated
+    scripts/config.py full
+
+    # Disable CCM_STAR_NO_TAG, which is the target of this test, as well as all
+    # other components that enable MBEDTLS_PSA_BUILTIN_CIPHER internal symbol.
+    # This basically disables all unauthenticated ciphers on the PSA side, while
+    # keeping AEADs enabled.
+    #
+    # Note: PSA_WANT_ALG_CCM is enabled, but it does not cause
+    # PSA_WANT_ALG_CCM_STAR_NO_TAG to be re-enabled.
+    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CCM_STAR_NO_TAG
+    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_STREAM_CIPHER
+    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CTR
+    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CFB
+    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_OFB
+    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_ECB_NO_PADDING
+    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CBC_NO_PADDING
+    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CBC_PKCS7
+
+    make
+
+    # Ensure MBEDTLS_PSA_BUILTIN_CIPHER was not enabled
+    not grep mbedtls_psa_cipher library/psa_crypto_cipher.o
+
+    msg "test: full no PSA_WANT_ALG_CCM_STAR_NO_TAG"
+    make test
 }
 
 component_test_full_no_bignum () {
@@ -1638,6 +1875,8 @@ component_test_tls1_2_default_stream_cipher_only () {
     scripts/config.py unset MBEDTLS_GCM_C
     scripts/config.py unset MBEDTLS_CCM_C
     scripts/config.py unset MBEDTLS_CHACHAPOLY_C
+    #Disable TLS 1.3 (as no AEAD)
+    scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1_3
     # Disable CBC-legacy (controlled by MBEDTLS_CIPHER_MODE_CBC plus at least one block cipher (AES, ARIA, Camellia, DES))
     scripts/config.py unset MBEDTLS_CIPHER_MODE_CBC
     # Disable CBC-EtM (controlled by the same as CBC-legacy plus MBEDTLS_SSL_ENCRYPT_THEN_MAC)
@@ -1664,6 +1903,8 @@ component_test_tls1_2_default_stream_cipher_only_use_psa () {
     scripts/config.py unset MBEDTLS_GCM_C
     scripts/config.py unset MBEDTLS_CCM_C
     scripts/config.py unset MBEDTLS_CHACHAPOLY_C
+    #Disable TLS 1.3 (as no AEAD)
+    scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1_3
     # Disable CBC-legacy (controlled by MBEDTLS_CIPHER_MODE_CBC plus at least one block cipher (AES, ARIA, Camellia, DES))
     scripts/config.py unset MBEDTLS_CIPHER_MODE_CBC
     # Disable CBC-EtM (controlled by the same as CBC-legacy plus MBEDTLS_SSL_ENCRYPT_THEN_MAC)
@@ -1689,6 +1930,8 @@ component_test_tls1_2_default_cbc_legacy_cipher_only () {
     scripts/config.py unset MBEDTLS_GCM_C
     scripts/config.py unset MBEDTLS_CCM_C
     scripts/config.py unset MBEDTLS_CHACHAPOLY_C
+    #Disable TLS 1.3 (as no AEAD)
+    scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1_3
     # Enable CBC-legacy (controlled by MBEDTLS_CIPHER_MODE_CBC plus at least one block cipher (AES, ARIA, Camellia, DES))
     scripts/config.py set MBEDTLS_CIPHER_MODE_CBC
     # Disable CBC-EtM (controlled by the same as CBC-legacy plus MBEDTLS_SSL_ENCRYPT_THEN_MAC)
@@ -1716,6 +1959,8 @@ component_test_tls1_2_deafult_cbc_legacy_cipher_only_use_psa () {
     scripts/config.py unset MBEDTLS_GCM_C
     scripts/config.py unset MBEDTLS_CCM_C
     scripts/config.py unset MBEDTLS_CHACHAPOLY_C
+    #Disable TLS 1.3 (as no AEAD)
+    scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1_3
     # Enable CBC-legacy (controlled by MBEDTLS_CIPHER_MODE_CBC plus at least one block cipher (AES, ARIA, Camellia, DES))
     scripts/config.py set MBEDTLS_CIPHER_MODE_CBC
     # Disable CBC-EtM (controlled by the same as CBC-legacy plus MBEDTLS_SSL_ENCRYPT_THEN_MAC)
@@ -1742,6 +1987,8 @@ component_test_tls1_2_default_cbc_legacy_cbc_etm_cipher_only () {
     scripts/config.py unset MBEDTLS_GCM_C
     scripts/config.py unset MBEDTLS_CCM_C
     scripts/config.py unset MBEDTLS_CHACHAPOLY_C
+    #Disable TLS 1.3 (as no AEAD)
+    scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1_3
     # Enable CBC-legacy (controlled by MBEDTLS_CIPHER_MODE_CBC plus at least one block cipher (AES, ARIA, Camellia, DES))
     scripts/config.py set MBEDTLS_CIPHER_MODE_CBC
     # Enable CBC-EtM (controlled by the same as CBC-legacy plus MBEDTLS_SSL_ENCRYPT_THEN_MAC)
@@ -1769,6 +2016,8 @@ component_test_tls1_2_default_cbc_legacy_cbc_etm_cipher_only_use_psa () {
     scripts/config.py unset MBEDTLS_GCM_C
     scripts/config.py unset MBEDTLS_CCM_C
     scripts/config.py unset MBEDTLS_CHACHAPOLY_C
+    #Disable TLS 1.3 (as no AEAD)
+    scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1_3
     # Enable CBC-legacy (controlled by MBEDTLS_CIPHER_MODE_CBC plus at least one block cipher (AES, ARIA, Camellia, DES))
     scripts/config.py set MBEDTLS_CIPHER_MODE_CBC
     # Enable CBC-EtM (controlled by the same as CBC-legacy plus MBEDTLS_SSL_ENCRYPT_THEN_MAC)
@@ -1830,6 +2079,9 @@ component_test_everest () {
     msg "test: Everest ECDH context - main suites (inc. selftests) (ASan build)" # ~ 50s
     make test
 
+    msg "test: metatests (clang, ASan)"
+    tests/scripts/run-metatests.sh any asan poison
+
     msg "test: Everest ECDH context - ECDH-related part of ssl-opt.sh (ASan build)" # ~ 5s
     tests/ssl-opt.sh -f ECDH
 
@@ -1849,7 +2101,7 @@ component_test_everest_curve25519_only () {
     scripts/config.py unset-all "MBEDTLS_ECP_DP_[0-9A-Z_a-z]*_ENABLED"
     scripts/config.py set MBEDTLS_ECP_DP_CURVE25519_ENABLED
 
-    make CFLAGS="$ASAN_CFLAGS -O2" LDFLAGS="$ASAN_CFLAGS"
+    make CC=$ASAN_CC CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS"
 
     msg "test: Everest ECDH context, only Curve25519" # ~ 50s
     make test
@@ -1859,7 +2111,7 @@ component_test_small_ssl_out_content_len () {
     msg "build: small SSL_OUT_CONTENT_LEN (ASan build)"
     scripts/config.py set MBEDTLS_SSL_IN_CONTENT_LEN 16384
     scripts/config.py set MBEDTLS_SSL_OUT_CONTENT_LEN 4096
-    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    CC=$ASAN_CC cmake -D CMAKE_BUILD_TYPE:String=Asan .
     make
 
     msg "test: small SSL_OUT_CONTENT_LEN - ssl-opt.sh MFL and large packet tests"
@@ -1870,7 +2122,7 @@ component_test_small_ssl_in_content_len () {
     msg "build: small SSL_IN_CONTENT_LEN (ASan build)"
     scripts/config.py set MBEDTLS_SSL_IN_CONTENT_LEN 4096
     scripts/config.py set MBEDTLS_SSL_OUT_CONTENT_LEN 16384
-    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    CC=$ASAN_CC cmake -D CMAKE_BUILD_TYPE:String=Asan .
     make
 
     msg "test: small SSL_IN_CONTENT_LEN - ssl-opt.sh MFL tests"
@@ -1880,7 +2132,7 @@ component_test_small_ssl_in_content_len () {
 component_test_small_ssl_dtls_max_buffering () {
     msg "build: small MBEDTLS_SSL_DTLS_MAX_BUFFERING #0"
     scripts/config.py set MBEDTLS_SSL_DTLS_MAX_BUFFERING 1000
-    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    CC=$ASAN_CC cmake -D CMAKE_BUILD_TYPE:String=Asan .
     make
 
     msg "test: small MBEDTLS_SSL_DTLS_MAX_BUFFERING #0 - ssl-opt.sh specific reordering test"
@@ -1890,7 +2142,7 @@ component_test_small_ssl_dtls_max_buffering () {
 component_test_small_mbedtls_ssl_dtls_max_buffering () {
     msg "build: small MBEDTLS_SSL_DTLS_MAX_BUFFERING #1"
     scripts/config.py set MBEDTLS_SSL_DTLS_MAX_BUFFERING 190
-    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    CC=$ASAN_CC cmake -D CMAKE_BUILD_TYPE:String=Asan .
     make
 
     msg "test: small MBEDTLS_SSL_DTLS_MAX_BUFFERING #1 - ssl-opt.sh specific reordering test"
@@ -1918,6 +2170,9 @@ component_test_full_cmake_clang () {
     msg "test: cpp_dummy_build (full config, clang)" # ~ 1s
     programs/test/cpp_dummy_build
 
+    msg "test: metatests (clang)"
+    tests/scripts/run-metatests.sh any pthread
+
     msg "program demos (full config, clang)" # ~10s
     tests/scripts/run_demos.py
 
@@ -1926,12 +2181,6 @@ component_test_full_cmake_clang () {
 
     msg "test: ssl-opt.sh default, ECJPAKE, SSL async (full config)" # ~ 1s
     tests/ssl-opt.sh -f 'Default\|ECJPAKE\|SSL async private'
-
-    msg "test: compat.sh NULL (full config)" # ~ 2 min
-    tests/compat.sh -e '^$' -f 'NULL'
-
-    msg "test: compat.sh ARIA + ChachaPoly"
-    env OPENSSL="$OPENSSL_NEXT" tests/compat.sh -e '^$' -f 'ARIA\|CHACHA'
 }
 
 skip_suites_without_constant_flow () {
@@ -1992,7 +2241,7 @@ component_test_memsan_constant_flow_psa () {
     make test
 }
 
-component_test_valgrind_constant_flow () {
+component_release_test_valgrind_constant_flow () {
     # This tests both (1) everything that valgrind's memcheck usually checks
     # (heap buffer overflows, use of uninitialized memory, use-after-free,
     # etc.) and (2) branches or memory access depending on secret values,
@@ -2026,7 +2275,7 @@ component_test_valgrind_constant_flow () {
     make memcheck
 }
 
-component_test_valgrind_constant_flow_psa () {
+component_release_test_valgrind_constant_flow_psa () {
     # This tests both (1) everything that valgrind's memcheck usually checks
     # (heap buffer overflows, use of uninitialized memory, use-after-free,
     # etc.) and (2) branches or memory access depending on secret values,
@@ -2049,12 +2298,30 @@ component_test_valgrind_constant_flow_psa () {
     make memcheck
 }
 
+component_test_tsan () {
+    msg "build: TSan (clang)"
+    scripts/config.py full
+    scripts/config.py set MBEDTLS_THREADING_C
+    scripts/config.py set MBEDTLS_THREADING_PTHREAD
+    # Self-tests do not currently use multiple threads.
+    scripts/config.py unset MBEDTLS_SELF_TEST
+
+    # The deprecated MBEDTLS_PSA_CRYPTO_SE_C interface is not thread safe.
+    scripts/config.py unset MBEDTLS_PSA_CRYPTO_SE_C
+
+    CC=clang cmake -D CMAKE_BUILD_TYPE:String=TSan .
+    make
+
+    msg "test: main suites (TSan)"
+    make test
+}
+
 component_test_default_no_deprecated () {
     # Test that removing the deprecated features from the default
     # configuration leaves something consistent.
     msg "build: make, default + MBEDTLS_DEPRECATED_REMOVED" # ~ 30s
     scripts/config.py set MBEDTLS_DEPRECATED_REMOVED
-    make CC=gcc CFLAGS='-O -Werror -Wall -Wextra'
+    make CFLAGS='-O -Werror -Wall -Wextra'
 
     msg "test: make, default + MBEDTLS_DEPRECATED_REMOVED" # ~ 5s
     make test
@@ -2063,7 +2330,7 @@ component_test_default_no_deprecated () {
 component_test_full_no_deprecated () {
     msg "build: make, full_no_deprecated config" # ~ 30s
     scripts/config.py full_no_deprecated
-    make CC=gcc CFLAGS='-O -Werror -Wall -Wextra'
+    make CFLAGS='-O -Werror -Wall -Wextra'
 
     msg "test: make, full_no_deprecated config" # ~ 5s
     make test
@@ -2080,7 +2347,7 @@ component_test_full_no_deprecated_deprecated_warning () {
     scripts/config.py full_no_deprecated
     scripts/config.py unset MBEDTLS_DEPRECATED_REMOVED
     scripts/config.py set MBEDTLS_DEPRECATED_WARNING
-    make CC=gcc CFLAGS='-O -Werror -Wall -Wextra'
+    make CFLAGS='-O -Werror -Wall -Wextra'
 
     msg "test: make, full_no_deprecated config, MBEDTLS_DEPRECATED_WARNING" # ~ 5s
     make test
@@ -2093,6 +2360,8 @@ component_test_full_deprecated_warning () {
     scripts/config.py full
     scripts/config.py set MBEDTLS_DEPRECATED_WARNING
     # Expect warnings from '#warning' directives in check_config.h.
+    # Note that gcc is required to allow the use of -Wno-error=cpp, which allows us to
+    # display #warning messages without them being treated as errors.
     make CC=gcc CFLAGS='-O -Werror -Wall -Wextra -Wno-error=cpp' lib programs
 
     msg "build: make tests, full config + MBEDTLS_DEPRECATED_WARNING, expect warnings" # ~ 30s
@@ -2254,6 +2523,26 @@ component_test_depends_py_pkalgs_psa () {
     tests/scripts/depends.py pkalgs
 }
 
+component_test_psa_crypto_config_ffdh_2048_only () {
+    msg "build: full config - only DH 2048"
+
+    scripts/config.py full
+
+    # Disable all DH groups other than 2048.
+    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_DH_RFC7919_3072
+    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_DH_RFC7919_4096
+    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_DH_RFC7919_6144
+    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_DH_RFC7919_8192
+
+    make CFLAGS="$ASAN_CFLAGS -Werror" LDFLAGS="$ASAN_CFLAGS"
+
+    msg "test: full config - only DH 2048"
+    make test
+
+    msg "ssl-opt: full config - only DH 2048"
+    tests/ssl-opt.sh -f "ffdh"
+}
+
 component_build_no_pk_rsa_alt_support () {
     msg "build: !MBEDTLS_PK_RSA_ALT_SUPPORT" # ~30s
 
@@ -2263,7 +2552,7 @@ component_build_no_pk_rsa_alt_support () {
     scripts/config.py set MBEDTLS_X509_CRT_WRITE_C
 
     # Only compile - this is primarily to test for compile issues
-    make CC=gcc CFLAGS='-Werror -Wall -Wextra -I../tests/include/alt-dummy'
+    make CFLAGS='-Werror -Wall -Wextra -I../tests/include/alt-dummy'
 }
 
 component_build_module_alt () {
@@ -2296,7 +2585,7 @@ component_build_module_alt () {
 
     # We can only compile, not link, since we don't have any implementations
     # suitable for testing with the dummy alt headers.
-    make CC=gcc CFLAGS='-Werror -Wall -Wextra -I../tests/include/alt-dummy' lib
+    make CFLAGS='-Werror -Wall -Wextra -I../tests/include/alt-dummy' lib
 }
 
 component_build_dhm_alt () {
@@ -2307,14 +2596,15 @@ component_build_dhm_alt () {
     scripts/config.py unset MBEDTLS_DEBUG_C
     # We can only compile, not link, since we don't have any implementations
     # suitable for testing with the dummy alt headers.
-    make CC=gcc CFLAGS='-Werror -Wall -Wextra -I../tests/include/alt-dummy' lib
+    make CFLAGS='-Werror -Wall -Wextra -I../tests/include/alt-dummy' lib
 }
 
-component_test_no_use_psa_crypto_full_cmake_asan() {
-    # full minus MBEDTLS_USE_PSA_CRYPTO: run the same set of tests as basic-build-test.sh
-    msg "build: cmake, full config minus MBEDTLS_USE_PSA_CRYPTO, ASan"
+component_test_no_psa_crypto_full_cmake_asan() {
+    # full minus MBEDTLS_PSA_CRYPTO_C: run the same set of tests as basic-build-test.sh
+    msg "build: cmake, full config minus PSA crypto, ASan"
     scripts/config.py full
     scripts/config.py unset MBEDTLS_PSA_CRYPTO_C
+    scripts/config.py unset MBEDTLS_PSA_CRYPTO_CLIENT
     scripts/config.py unset MBEDTLS_USE_PSA_CRYPTO
     scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1_3
     scripts/config.py unset MBEDTLS_PSA_ITS_FILE_C
@@ -2322,25 +2612,24 @@ component_test_no_use_psa_crypto_full_cmake_asan() {
     scripts/config.py unset MBEDTLS_PSA_CRYPTO_STORAGE_C
     scripts/config.py unset MBEDTLS_LMS_C
     scripts/config.py unset MBEDTLS_LMS_PRIVATE
-    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    CC=$ASAN_CC cmake -D CMAKE_BUILD_TYPE:String=Asan .
     make
 
-    msg "test: main suites (full minus MBEDTLS_USE_PSA_CRYPTO)"
+    msg "test: main suites (full minus PSA crypto)"
     make test
 
     # Note: ssl-opt.sh has some test cases that depend on
     # MBEDTLS_ECP_RESTARTABLE && !MBEDTLS_USE_PSA_CRYPTO
     # This is the only component where those tests are not skipped.
-    msg "test: ssl-opt.sh (full minus MBEDTLS_USE_PSA_CRYPTO)"
+    msg "test: ssl-opt.sh (full minus PSA crypto)"
     tests/ssl-opt.sh
 
-    msg "test: compat.sh default (full minus MBEDTLS_USE_PSA_CRYPTO)"
-    tests/compat.sh
+    # Note: the next two invocations cover all compat.sh test cases.
+    # We should use the same here and in basic-build-test.sh.
+    msg "test: compat.sh: default version (full minus PSA crypto)"
+    tests/compat.sh -e 'ARIA\|CHACHA'
 
-    msg "test: compat.sh NULL (full minus MBEDTLS_USE_PSA_CRYPTO)"
-    tests/compat.sh -f 'NULL'
-
-    msg "test: compat.sh ARIA + ChachaPoly (full minus MBEDTLS_USE_PSA_CRYPTO)"
+    msg "test: compat.sh: next: ARIA, Chacha (full minus PSA crypto)"
     env OPENSSL="$OPENSSL_NEXT" tests/compat.sh -e '^$' -f 'ARIA\|CHACHA'
 }
 
@@ -2357,7 +2646,6 @@ component_test_psa_crypto_config_accel_ecdsa () {
 
     # Start from default config (no USE_PSA) + TLS 1.3
     helper_libtestdriver1_adjust_config "default"
-    scripts/config.py set MBEDTLS_SSL_PROTO_TLS1_3
 
     # Disable the module that's accelerated
     scripts/config.py unset MBEDTLS_ECDSA_C
@@ -2398,7 +2686,7 @@ component_test_psa_crypto_config_accel_ecdh () {
     # Configure
     # ---------
 
-    # Start from default config (no TLS 1.3, no USE_PSA)
+    # Start from default config (no USE_PSA)
     helper_libtestdriver1_adjust_config "default"
 
     # Disable the module that's accelerated
@@ -2433,7 +2721,8 @@ component_test_psa_crypto_config_accel_ffdh () {
 
     # Algorithms and key types to accelerate
     loc_accel_list="ALG_FFDH \
-                    $(helper_get_psa_key_type_list "DH")"
+                    $(helper_get_psa_key_type_list "DH") \
+                    $(helper_get_psa_dh_group_list)"
 
     # Configure
     # ---------
@@ -2632,12 +2921,6 @@ common_test_psa_crypto_config_accel_ecc_some_curves () {
     scripts/config.py unset MBEDTLS_PK_C
     scripts/config.py unset MBEDTLS_PK_PARSE_C
     scripts/config.py unset MBEDTLS_PK_WRITE_C
-    # We need to disable RSA too or PK will be re-enabled.
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset-all "PSA_WANT_KEY_TYPE_RSA_[0-9A-Z_a-z]*"
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset-all "PSA_WANT_ALG_RSA_[0-9A-Z_a-z]*"
-    scripts/config.py unset MBEDTLS_RSA_C
-    scripts/config.py unset MBEDTLS_PKCS1_V15
-    scripts/config.py unset MBEDTLS_PKCS1_V21
 
     # Disable modules that are accelerated - some will be re-enabled
     scripts/config.py unset MBEDTLS_ECDSA_C
@@ -2965,6 +3248,7 @@ config_psa_crypto_config_accel_ecc_ffdh_no_bignum() {
         # PSA sides, and also disable the key exchanges that depend on DHM.
         scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_FFDH
         scripts/config.py -f "$CRYPTO_CONFIG_H" unset-all "PSA_WANT_KEY_TYPE_DH_[0-9A-Z_a-z]*"
+        scripts/config.py -f "$CRYPTO_CONFIG_H" unset-all "PSA_WANT_DH_RFC7919_[0-9]*"
         scripts/config.py unset MBEDTLS_DHM_C
         scripts/config.py unset MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED
         scripts/config.py unset MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED
@@ -3019,7 +3303,8 @@ common_test_psa_crypto_config_accel_ecc_ffdh_no_bignum () {
     if [ "$test_target" = "ECC_DH" ]; then
         loc_accel_list="$loc_accel_list \
                         ALG_FFDH \
-                        $(helper_get_psa_key_type_list "DH")"
+                        $(helper_get_psa_key_type_list "DH") \
+                        $(helper_get_psa_dh_group_list)"
     fi
 
     # Configure
@@ -3118,49 +3403,21 @@ component_test_psa_crypto_config_reference_ecc_ffdh_no_bignum () {
 # - component_test_tfm_config()
 common_tfm_config () {
     # Enable TF-M config
-    cp configs/tfm_mbedcrypto_config_profile_medium.h "$CONFIG_H"
-    cp configs/crypto_config_profile_medium.h "$CRYPTO_CONFIG_H"
+    cp configs/config-tfm.h "$CONFIG_H"
+    echo "#undef MBEDTLS_PSA_CRYPTO_CONFIG_FILE" >> "$CONFIG_H"
+    cp configs/ext/crypto_config_profile_medium.h "$CRYPTO_CONFIG_H"
 
-    # Adjust for the fact that we're building outside the TF-M environment.
-    #
-    # TF-M has separation, our build doesn't
-    scripts/config.py unset MBEDTLS_PSA_CRYPTO_SPM
-    scripts/config.py unset MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER
-    # TF-M provdes its own (dummy) implemenation, from their tree
-    scripts/config.py unset MBEDTLS_AES_DECRYPT_ALT
-    scripts/config.py unset MBEDTLS_AES_SETKEY_DEC_ALT
-    # We have an OS that provides entropy, use it
-    scripts/config.py unset MBEDTLS_NO_PLATFORM_ENTROPY
-
-    # Other config adjustments to make the tests pass.
-    # Those should probably be adopted upstream.
+    # Other config adjustment to make the tests pass.
+    # This should probably be adopted upstream.
     #
     # - USE_PSA_CRYPTO for PK_HAVE_ECC_KEYS
     echo "#define MBEDTLS_USE_PSA_CRYPTO" >> "$CONFIG_H"
-    # pkparse.c and pkwrite.c fail to link without this
-    echo "#define MBEDTLS_OID_C" >> "$CONFIG_H"
-    # - ASN1_[PARSE/WRITE]_C found by check_config.h for pkparse/pkwrite
-    echo "#define MBEDTLS_ASN1_PARSE_C" >> "$CONFIG_H"
-    echo "#define MBEDTLS_ASN1_WRITE_C" >> "$CONFIG_H"
-    # - MD_C for HKDF_C
-    echo "#define MBEDTLS_MD_C" >> "$CONFIG_H"
 
-    # Config adjustments for better test coverage in our environment.
-    # These are not needed just to build and pass tests.
+    # Config adjustment for better test coverage in our environment.
+    # This is not needed just to build and pass tests.
     #
     # Enable filesystem I/O for the benefit of PK parse/write tests.
     echo "#define MBEDTLS_FS_IO" >> "$CONFIG_H"
-    # Disable this for maximal ASan efficiency
-    scripts/config.py unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
-
-    # Config adjustments for features that are not supported
-    # when using only drivers / by p256-m
-    #
-    # Disable all the features that auto-enable ECP_LIGHT (see build_info.h)
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_DERIVE
-    # Disable deterministic ECDSA as p256-m only does randomized
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_DETERMINISTIC_ECDSA
-
 }
 
 # Keep this in sync with component_test_tfm_config() as they are both meant
@@ -3170,8 +3427,8 @@ component_test_tfm_config_p256m_driver_accel_ec () {
 
     common_tfm_config
 
-    # Build crypto library specifying we want to use P256M code for EC operations
-    make CFLAGS="$ASAN_CFLAGS -DMBEDTLS_PSA_P256M_DRIVER_ENABLED -I../tests/include/spe" LDFLAGS="$ASAN_CFLAGS"
+    # Build crypto library
+    make CC=$ASAN_CC CFLAGS="$ASAN_CFLAGS -I../tests/include/spe" LDFLAGS="$ASAN_CFLAGS"
 
     # Make sure any built-in EC alg was not re-enabled by accident (additive config)
     not grep mbedtls_ecdsa_ library/ecdsa.o
@@ -3182,6 +3439,12 @@ component_test_tfm_config_p256m_driver_accel_ec () {
     not grep mbedtls_rsa_ library/rsa.o
     not grep mbedtls_dhm_ library/dhm.o
     not grep mbedtls_mpi_ library/bignum.o
+    # Check that p256m was built
+    grep -q p256_ecdsa_ library/libmbedcrypto.a
+
+    # In "config-tfm.h" we disabled CIPHER_C tweaking TF-M's configuration
+    # files, so we want to ensure that it has not be re-enabled accidentally.
+    not grep mbedtls_cipher library/cipher.o
 
     # Run the tests
     msg "test: TF-M config + p256m driver + accel ECDH(E)/ECDSA"
@@ -3194,8 +3457,19 @@ component_test_tfm_config_p256m_driver_accel_ec () {
 component_test_tfm_config() {
     common_tfm_config
 
+    # Disable P256M driver, which is on by default, so that analyze_outcomes
+    # can compare this test with test_tfm_config_p256m_driver_accel_ec
+    echo "#undef MBEDTLS_PSA_P256M_DRIVER_ENABLED" >> "$CONFIG_H"
+
     msg "build: TF-M config"
     make CFLAGS='-Werror -Wall -Wextra -I../tests/include/spe' tests
+
+    # Check that p256m was not built
+    not grep p256_ecdsa_ library/libmbedcrypto.a
+
+    # In "config-tfm.h" we disabled CIPHER_C tweaking TF-M's configuration
+    # files, so we want to ensure that it has not be re-enabled accidentally.
+    not grep mbedtls_cipher library/cipher.o
 
     msg "test: TF-M config"
     make test
@@ -3257,7 +3531,7 @@ build_and_test_psa_want_key_pair_partial() {
     # crypto_config.h so we just disable the one we don't want.
     scripts/config.py -f "$CRYPTO_CONFIG_H" unset "$disabled_psa_want"
 
-    make CC=gcc CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS"
+    make CC=$ASAN_CC CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS"
 
     msg "test: full - MBEDTLS_USE_PSA_CRYPTO - ${disabled_psa_want}"
     make test
@@ -3271,77 +3545,75 @@ component_test_psa_ecc_key_pair_no_generate() {
     build_and_test_psa_want_key_pair_partial "ECC" "GENERATE"
 }
 
-component_test_psa_crypto_config_accel_rsa_signature () {
-    msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated RSA signature"
+config_psa_crypto_accel_rsa () {
+    driver_only=$1
 
-    loc_accel_list="ALG_RSA_PKCS1V15_SIGN ALG_RSA_PSS KEY_TYPE_RSA_KEY_PAIR KEY_TYPE_RSA_PUBLIC_KEY"
+    # Start from crypto_full config (no X.509, no TLS)
+    helper_libtestdriver1_adjust_config "crypto_full"
+
+    if [ "$driver_only" -eq 1 ]; then
+        # Remove RSA support and its dependencies
+        scripts/config.py unset MBEDTLS_RSA_C
+        scripts/config.py unset MBEDTLS_PKCS1_V15
+        scripts/config.py unset MBEDTLS_PKCS1_V21
+
+        # We need PEM parsing in the test library as well to support the import
+        # of PEM encoded RSA keys.
+        scripts/config.py -f "$CONFIG_TEST_DRIVER_H" set MBEDTLS_PEM_PARSE_C
+        scripts/config.py -f "$CONFIG_TEST_DRIVER_H" set MBEDTLS_BASE64_C
+    fi
+}
+
+component_test_psa_crypto_config_accel_rsa_crypto () {
+    msg "build: crypto_full with accelerated RSA"
+
+    loc_accel_list="ALG_RSA_OAEP ALG_RSA_PSS \
+                    ALG_RSA_PKCS1V15_CRYPT ALG_RSA_PKCS1V15_SIGN \
+                    KEY_TYPE_RSA_PUBLIC_KEY \
+                    KEY_TYPE_RSA_KEY_PAIR_BASIC \
+                    KEY_TYPE_RSA_KEY_PAIR_GENERATE \
+                    KEY_TYPE_RSA_KEY_PAIR_IMPORT \
+                    KEY_TYPE_RSA_KEY_PAIR_EXPORT"
 
     # Configure
     # ---------
 
-    # Start from default config (no TLS 1.3, no USE_PSA)
-    helper_libtestdriver1_adjust_config "default"
-
-    # It seems it is not possible to remove only the support for RSA signature
-    # in the library. Thus we have to remove all RSA support (signature and
-    # encryption/decryption). AS there is no driver support for asymmetric
-    # encryption/decryption so far remove RSA encryption/decryption from the
-    # application algorithm list.
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_RSA_OAEP
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_RSA_PKCS1V15_CRYPT
-
-    # Remove RSA support and its dependencies
-    scripts/config.py unset MBEDTLS_RSA_C
-    scripts/config.py unset MBEDTLS_PKCS1_V15
-    scripts/config.py unset MBEDTLS_PKCS1_V21
-    scripts/config.py unset MBEDTLS_X509_RSASSA_PSS_SUPPORT
-    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED
-    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED
-    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED
-    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED
-    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_RSA_ENABLED
-
-    # Make sure both the library and the test library support the SHA hash
-    # algorithms and only those ones (SHA256 is included by default). That way:
-    # - the test library can compute the RSA signatures even in the case of a
-    #   composite RSA signature algorithm based on a SHA hash (no other hash
-    #   used in the unit tests).
-    # - the dependency of RSA signature tests on PSA_WANT_ALG_SHA_xyz is
-    #   fulfilled as the hash SHA algorithm is supported by the library, and
-    #   thus the tests are run, not skipped.
-    # - when testing a signature key with an algorithm wildcard built from
-    #   PSA_ALG_ANY_HASH as algorithm to test with the key, the chosen hash
-    #   algorithm based on the hashes supported by the library is also
-    #   supported by the test library.
-    # Disable unwanted hashes here, we'll enable hashes we want in loc_extra_list.
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_MD5
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_RIPEMD160_C
-    scripts/config.py unset MBEDTLS_MD5_C
-    scripts/config.py unset MBEDTLS_RIPEMD160_C
-
-    # We need PEM parsing in the test library as well to support the import
-    # of PEM encoded RSA keys.
-    scripts/config.py -f "$CONFIG_TEST_DRIVER_H" set MBEDTLS_PEM_PARSE_C
-    scripts/config.py -f "$CONFIG_TEST_DRIVER_H" set MBEDTLS_BASE64_C
+    config_psa_crypto_accel_rsa 1
 
     # Build
     # -----
 
-    # These hashes are needed for some RSA-PSS signature tests.
+    # These hashes are needed for unit tests.
     loc_extra_list="ALG_SHA_1 ALG_SHA_224 ALG_SHA_256 ALG_SHA_384 ALG_SHA_512 \
-                    ALG_SHA3_224 ALG_SHA3_256 ALG_SHA3_384 ALG_SHA3_512"
+                    ALG_SHA3_224 ALG_SHA3_256 ALG_SHA3_384 ALG_SHA3_512 ALG_MD5"
     helper_libtestdriver1_make_drivers "$loc_accel_list" "$loc_extra_list"
 
     helper_libtestdriver1_make_main "$loc_accel_list"
 
     # Make sure this was not re-enabled by accident (additive config)
-    not grep mbedtls_rsa_rsassa_pkcs1_v15_sign library/rsa.o
-    not grep mbedtls_rsa_rsassa_pss_sign_ext library/rsa.o
+    not grep mbedtls_rsa library/rsa.o
 
     # Run the tests
     # -------------
 
-    msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated RSA signature"
+    msg "test: crypto_full with accelerated RSA"
+    make test
+}
+
+component_test_psa_crypto_config_reference_rsa_crypto () {
+    msg "build: crypto_full with non-accelerated RSA"
+
+    # Configure
+    # ---------
+    config_psa_crypto_accel_rsa 0
+
+    # Build
+    # -----
+    make
+
+    # Run the tests
+    # -------------
+    msg "test: crypto_full with non-accelerated RSA"
     make test
 }
 
@@ -3407,7 +3679,7 @@ component_test_psa_crypto_config_accel_hash () {
     # Configure
     # ---------
 
-    # Start from default config (no TLS 1.3, no USE_PSA)
+    # Start from default config (no USE_PSA)
     helper_libtestdriver1_adjust_config "default"
 
     # Disable the things that are being accelerated
@@ -3439,26 +3711,6 @@ component_test_psa_crypto_config_accel_hash () {
     # -------------
 
     msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated hash"
-    make test
-}
-
-component_test_psa_crypto_config_accel_hash_keep_builtins () {
-    msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated+builtin hash"
-    # This component ensures that all the test cases for
-    # md_psa_dynamic_dispatch with legacy+driver in test_suite_md are run.
-
-    loc_accel_list="ALG_MD5 ALG_RIPEMD160 ALG_SHA_1 \
-                    ALG_SHA_224 ALG_SHA_256 ALG_SHA_384 ALG_SHA_512 \
-                    ALG_SHA3_224 ALG_SHA3_256 ALG_SHA3_384 ALG_SHA3_512"
-
-    # Start from default config (no TLS 1.3, no USE_PSA)
-    helper_libtestdriver1_adjust_config "default"
-
-    helper_libtestdriver1_make_drivers "$loc_accel_list"
-
-    helper_libtestdriver1_make_main "$loc_accel_list"
-
-    msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated+builtin hash"
     make test
 }
 
@@ -3548,12 +3800,88 @@ component_test_psa_crypto_config_reference_hash_use_psa() {
     tests/ssl-opt.sh
 }
 
-component_test_psa_crypto_config_accel_cipher () {
-    msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated cipher"
+# Auxiliary function to build config for hashes with and without drivers
+config_psa_crypto_hmac_use_psa () {
+    driver_only="$1"
+    # start with config full for maximum coverage (also enables USE_PSA)
+    helper_libtestdriver1_adjust_config "full"
 
+    if [ "$driver_only" -eq 1 ]; then
+        # Disable MD_C in order to disable the builtin support for HMAC. MD_LIGHT
+        # is still enabled though (for ENTROPY_C among others).
+        scripts/config.py unset MBEDTLS_MD_C
+        # Disable also the builtin hashes since they are supported by the driver
+        # and MD module is able to perform PSA dispathing.
+        scripts/config.py unset-all MBEDTLS_SHA
+        scripts/config.py unset MBEDTLS_MD5_C
+        scripts/config.py unset MBEDTLS_RIPEMD160_C
+    fi
+
+    # Direct dependencies of MD_C. We disable them also in the reference
+    # component to work with the same set of features.
+    scripts/config.py unset MBEDTLS_PKCS7_C
+    scripts/config.py unset MBEDTLS_PKCS5_C
+    scripts/config.py unset MBEDTLS_HMAC_DRBG_C
+    scripts/config.py unset MBEDTLS_HKDF_C
+    # Dependencies of HMAC_DRBG
+    scripts/config.py unset MBEDTLS_ECDSA_DETERMINISTIC
+    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_DETERMINISTIC_ECDSA
+}
+
+component_test_psa_crypto_config_accel_hmac() {
+    msg "test: full with accelerated hmac"
+
+    loc_accel_list="ALG_HMAC KEY_TYPE_HMAC \
+                    ALG_MD5 ALG_RIPEMD160 ALG_SHA_1 \
+                    ALG_SHA_224 ALG_SHA_256 ALG_SHA_384 ALG_SHA_512 \
+                    ALG_SHA3_224 ALG_SHA3_256 ALG_SHA3_384 ALG_SHA3_512"
+
+    # Configure
+    # ---------
+
+    config_psa_crypto_hmac_use_psa 1
+
+    # Build
+    # -----
+
+    helper_libtestdriver1_make_drivers "$loc_accel_list"
+
+    helper_libtestdriver1_make_main "$loc_accel_list"
+
+    # Ensure that built-in support for HMAC is disabled.
+    not grep mbedtls_md_hmac library/md.o
+
+    # Run the tests
+    # -------------
+
+    msg "test: full with accelerated hmac"
+    make test
+}
+
+component_test_psa_crypto_config_reference_hmac() {
+    msg "test: full without accelerated hmac"
+
+    config_psa_crypto_hmac_use_psa 0
+
+    make
+
+    msg "test: full without accelerated hmac"
+    make test
+}
+
+component_test_psa_crypto_config_accel_des () {
+    msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated DES"
+
+    # Albeit this components aims at accelerating DES which should only support
+    # CBC and ECB modes, we need to accelerate more than that otherwise DES_C
+    # would automatically be re-enabled by "config_adjust_legacy_from_psa.c"
     loc_accel_list="ALG_ECB_NO_PADDING ALG_CBC_NO_PADDING ALG_CBC_PKCS7 \
                     ALG_CTR ALG_CFB ALG_OFB ALG_XTS ALG_CMAC \
                     KEY_TYPE_DES"
+
+    # Note: we cannot accelerate all ciphers' key types otherwise we would also
+    # have to either disable CCM/GCM or accelerate them, but that's out of scope
+    # of this component. This limitation will be addressed by #8598.
 
     # Configure
     # ---------
@@ -3584,7 +3912,7 @@ component_test_psa_crypto_config_accel_cipher () {
     # Run the tests
     # -------------
 
-    msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated cipher"
+    msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated DES"
     make test
 }
 
@@ -3604,6 +3932,9 @@ component_test_psa_crypto_config_accel_aead () {
     scripts/config.py unset MBEDTLS_GCM_C
     scripts/config.py unset MBEDTLS_CCM_C
     scripts/config.py unset MBEDTLS_CHACHAPOLY_C
+
+    # Disable CCM_STAR_NO_TAG because this re-enables CCM_C.
+    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CCM_STAR_NO_TAG
 
     # Build
     # -----
@@ -3625,36 +3956,32 @@ component_test_psa_crypto_config_accel_aead () {
 }
 
 # This is a common configuration function used in:
-# - component_test_psa_crypto_config_accel_cipher_aead
-# - component_test_psa_crypto_config_reference_cipher_aead
-common_psa_crypto_config_accel_cipher_aead() {
+# - component_test_psa_crypto_config_accel_cipher_aead_cmac
+# - component_test_psa_crypto_config_reference_cipher_aead_cmac
+common_psa_crypto_config_accel_cipher_aead_cmac() {
     # Start from the full config
     helper_libtestdriver1_adjust_config "full"
 
-    # For time being, we don't support SSL module.
-    scripts/config.py unset MBEDTLS_SSL_TLS_C
-
-    scripts/config.py unset MBEDTLS_CTR_DRBG_C
     scripts/config.py unset MBEDTLS_NIST_KW_C
 }
 
 # The 2 following test components, i.e.
-# - component_test_psa_crypto_config_accel_cipher_aead
-# - component_test_psa_crypto_config_reference_cipher_aead
+# - component_test_psa_crypto_config_accel_cipher_aead_cmac
+# - component_test_psa_crypto_config_reference_cipher_aead_cmac
 # are meant to be used together in analyze_outcomes.py script in order to test
 # driver's coverage for ciphers and AEADs.
-component_test_psa_crypto_config_accel_cipher_aead () {
-    msg "test: crypto config with accelerated cipher and AEAD"
+component_test_psa_crypto_config_accel_cipher_aead_cmac () {
+    msg "build: full config with accelerated cipher inc. AEAD and CMAC"
 
     loc_accel_list="ALG_ECB_NO_PADDING ALG_CBC_NO_PADDING ALG_CBC_PKCS7 ALG_CTR ALG_CFB \
-                    ALG_OFB ALG_XTS ALG_STREAM_CIPHER \
+                    ALG_OFB ALG_XTS ALG_STREAM_CIPHER ALG_CCM_STAR_NO_TAG \
                     ALG_GCM ALG_CCM ALG_CHACHA20_POLY1305 ALG_CMAC \
                     KEY_TYPE_DES KEY_TYPE_AES KEY_TYPE_ARIA KEY_TYPE_CHACHA20 KEY_TYPE_CAMELLIA"
 
     # Configure
     # ---------
 
-    common_psa_crypto_config_accel_cipher_aead
+    common_psa_crypto_config_accel_cipher_aead_cmac
 
     # Disable the things that are being accelerated
     scripts/config.py unset MBEDTLS_CIPHER_MODE_CBC
@@ -3673,6 +4000,10 @@ component_test_psa_crypto_config_accel_cipher_aead () {
     scripts/config.py unset MBEDTLS_CHACHA20_C
     scripts/config.py unset MBEDTLS_CAMELLIA_C
 
+    # Disable CIPHER_C entirely as all ciphers/AEADs are accelerated and PSA
+    # does not depend on it.
+    scripts/config.py unset MBEDTLS_CIPHER_C
+
     # Build
     # -----
 
@@ -3681,6 +4012,7 @@ component_test_psa_crypto_config_accel_cipher_aead () {
     helper_libtestdriver1_make_main "$loc_accel_list"
 
     # Make sure this was not re-enabled by accident (additive config)
+    not grep mbedtls_cipher library/cipher.o
     not grep mbedtls_des library/des.o
     not grep mbedtls_aes library/aes.o
     not grep mbedtls_aria library/aria.o
@@ -3693,14 +4025,109 @@ component_test_psa_crypto_config_accel_cipher_aead () {
     # Run the tests
     # -------------
 
-    msg "test: crypto config with accelerated cipher and AEAD"
+    msg "test: full config with accelerated cipher inc. AEAD and CMAC"
+    make test
+
+    msg "ssl-opt: full config with accelerated cipher inc. AEAD and CMAC"
+    tests/ssl-opt.sh
+
+    msg "compat.sh: full config with accelerated cipher inc. AEAD and CMAC"
+    tests/compat.sh -V NO -p mbedTLS
+}
+
+component_test_psa_crypto_config_reference_cipher_aead_cmac () {
+    msg "build: full config with non-accelerated cipher inc. AEAD and CMAC"
+    common_psa_crypto_config_accel_cipher_aead_cmac
+
+    make
+
+    msg "test: full config with non-accelerated cipher inc. AEAD and CMAC"
+    make test
+
+    msg "ssl-opt: full config with non-accelerated cipher inc. AEAD and CMAC"
+    tests/ssl-opt.sh
+
+    msg "compat.sh: full config with non-accelerated cipher inc. AEAD and CMAC"
+    tests/compat.sh -V NO -p mbedTLS
+}
+
+common_block_cipher_dispatch() {
+    TEST_WITH_DRIVER="$1"
+
+    # Start from the full config
+    helper_libtestdriver1_adjust_config "full"
+
+    if [ "$TEST_WITH_DRIVER" -eq 1 ]; then
+        # Disable key types that are accelerated (there is no legacy equivalent
+        # symbol for ECB)
+        scripts/config.py unset MBEDTLS_AES_C
+        scripts/config.py unset MBEDTLS_ARIA_C
+        scripts/config.py unset MBEDTLS_CAMELLIA_C
+    fi
+
+    # Disable cipher's modes that, when not accelerated, cause
+    # legacy key types to be re-enabled in "config_adjust_legacy_from_psa.h".
+    # Keep this also in the reference component in order to skip the same tests
+    # that were skipped in the accelerated one.
+    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CTR
+    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CFB
+    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_OFB
+    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CBC_NO_PADDING
+    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CBC_PKCS7
+    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CMAC
+    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CCM_STAR_NO_TAG
+
+    # Disable direct dependency on AES_C
+    scripts/config.py unset MBEDTLS_NIST_KW_C
+
+    # Prevent the cipher module from using deprecated PSA path. The reason is
+    # that otherwise there will be tests relying on "aes_info" (defined in
+    # "cipher_wrap.c") whose functions are not available when AES_C is
+    # not defined. ARIA and Camellia are not a problem in this case because
+    # the PSA path is not tested for these key types.
+    scripts/config.py set MBEDTLS_DEPRECATED_REMOVED
+}
+
+component_test_full_block_cipher_psa_dispatch () {
+    msg "build: full + PSA dispatch in block_cipher"
+
+    loc_accel_list="ALG_ECB_NO_PADDING \
+                    KEY_TYPE_AES KEY_TYPE_ARIA KEY_TYPE_CAMELLIA"
+
+    # Configure
+    # ---------
+
+    common_block_cipher_dispatch 1
+
+    # Build
+    # -----
+
+    helper_libtestdriver1_make_drivers "$loc_accel_list"
+
+    helper_libtestdriver1_make_main "$loc_accel_list"
+
+    # Make sure disabled components were not re-enabled by accident (additive
+    # config)
+    not grep mbedtls_aes_ library/aes.o
+    not grep mbedtls_aria_ library/aria.o
+    not grep mbedtls_camellia_ library/camellia.o
+
+    # Run the tests
+    # -------------
+
+    msg "test: full + PSA dispatch in block_cipher"
     make test
 }
 
-component_test_psa_crypto_config_reference_cipher_aead () {
-    common_psa_crypto_config_accel_cipher_aead
+# This is the reference component of component_test_full_block_cipher_psa_dispatch
+component_test_full_block_cipher_legacy_dispatch () {
+    msg "build: full + legacy dispatch in block_cipher"
 
-    msg "test: crypto config with non-accelerated cipher and AEAD"
+    common_block_cipher_dispatch 0
+
+    make
+
+    msg "test: full + legacy dispatch in block_cipher"
     make test
 }
 
@@ -3709,7 +4136,7 @@ component_test_aead_chachapoly_disabled() {
     scripts/config.py full
     scripts/config.py unset MBEDTLS_CHACHAPOLY_C
     scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CHACHA20_POLY1305
-    make CC=gcc CFLAGS="$ASAN_CFLAGS -O2" LDFLAGS="$ASAN_CFLAGS"
+    make CC=$ASAN_CC CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS"
 
     msg "test: full minus CHACHAPOLY"
     make test
@@ -3722,7 +4149,7 @@ component_test_aead_only_ccm() {
     scripts/config.py unset MBEDTLS_GCM_C
     scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CHACHA20_POLY1305
     scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_GCM
-    make CC=gcc CFLAGS="$ASAN_CFLAGS -O2" LDFLAGS="$ASAN_CFLAGS"
+    make CC=$ASAN_CC CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS"
 
     msg "test: full minus CHACHAPOLY and GCM"
     make test
@@ -3734,280 +4161,31 @@ component_test_ccm_aes_sha256() {
     cp "$CONFIG_TEST_DRIVER_H" "$CONFIG_H"
     cp configs/crypto-config-ccm-aes-sha256.h "$CRYPTO_CONFIG_H"
 
-    make CC=gcc
+    make
 
     msg "test: CCM + AES + SHA256 configuration"
     make test
 }
 
-# This should be renamed to test and updated once the accelerator ECDH code is in place and ready to test.
-component_build_psa_accel_alg_ecdh() {
-    msg "build: full - MBEDTLS_USE_PSA_CRYPTO + PSA_WANT_ALG_ECDH without MBEDTLS_ECDH_C"
-    scripts/config.py full
-    scripts/config.py unset MBEDTLS_USE_PSA_CRYPTO
-    scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1_3
-    scripts/config.py unset MBEDTLS_ECDH_C
-    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED
-    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED
-    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
-    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED
-    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
-    # Need to define the correct symbol and include the test driver header path in order to build with the test driver
-    make CC=gcc CFLAGS="$ASAN_CFLAGS -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_PSA_ACCEL_ALG_ECDH -I../tests/include -O2" LDFLAGS="$ASAN_CFLAGS"
-}
-
-# This should be renamed to test and updated once the accelerator HMAC code is in place and ready to test.
-component_build_psa_accel_alg_hmac() {
-    msg "build: full - MBEDTLS_USE_PSA_CRYPTO + PSA_WANT_ALG_HMAC"
-    scripts/config.py full
-    scripts/config.py unset MBEDTLS_USE_PSA_CRYPTO
-    scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1_3
-    # Need to define the correct symbol and include the test driver header path in order to build with the test driver
-    make CC=gcc CFLAGS="$ASAN_CFLAGS -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_PSA_ACCEL_ALG_HMAC -I../tests/include -O2" LDFLAGS="$ASAN_CFLAGS"
-}
-
-# This should be renamed to test and updated once the accelerator HKDF code is in place and ready to test.
-component_build_psa_accel_alg_hkdf() {
-    msg "build: full - MBEDTLS_USE_PSA_CRYPTO + PSA_WANT_ALG_HKDF without MBEDTLS_HKDF_C"
-    scripts/config.py full
-    scripts/config.py unset MBEDTLS_USE_PSA_CRYPTO
-    scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1_3
-    scripts/config.py unset MBEDTLS_HKDF_C
-    # Make sure to unset TLS1_3 since it requires HKDF_C and will not build properly without it.
-    scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1_3
-    # Need to define the correct symbol and include the test driver header path in order to build with the test driver
-    make CC=gcc CFLAGS="$ASAN_CFLAGS -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_PSA_ACCEL_ALG_HKDF -I../tests/include -O2" LDFLAGS="$ASAN_CFLAGS"
-}
-
-# This should be renamed to test and updated once the accelerator MD5 code is in place and ready to test.
-component_build_psa_accel_alg_md5() {
-    msg "build: full - MBEDTLS_USE_PSA_CRYPTO + PSA_WANT_ALG_MD5 - other hashes"
-    scripts/config.py full
-    scripts/config.py unset MBEDTLS_USE_PSA_CRYPTO
-    scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1_3
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_RIPEMD160
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_SHA_1
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_SHA_224
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_SHA_256
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_SHA_384
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_SHA_512
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_TLS12_ECJPAKE_TO_PMS
-    scripts/config.py unset MBEDTLS_LMS_C
-    scripts/config.py unset MBEDTLS_LMS_PRIVATE
-    # Need to define the correct symbol and include the test driver header path in order to build with the test driver
-    make CC=gcc CFLAGS="$ASAN_CFLAGS -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_PSA_ACCEL_ALG_MD5 -I../tests/include -O2" LDFLAGS="$ASAN_CFLAGS"
-}
-
-# This should be renamed to test and updated once the accelerator RIPEMD160 code is in place and ready to test.
-component_build_psa_accel_alg_ripemd160() {
-    msg "build: full - MBEDTLS_USE_PSA_CRYPTO + PSA_WANT_ALG_RIPEMD160 - other hashes"
-    scripts/config.py full
-    scripts/config.py unset MBEDTLS_USE_PSA_CRYPTO
-    scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1_3
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_MD5
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_SHA_1
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_SHA_224
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_SHA_256
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_SHA_384
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_SHA_512
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_TLS12_ECJPAKE_TO_PMS
-    scripts/config.py unset MBEDTLS_LMS_C
-    scripts/config.py unset MBEDTLS_LMS_PRIVATE
-    # Need to define the correct symbol and include the test driver header path in order to build with the test driver
-    make CC=gcc CFLAGS="$ASAN_CFLAGS -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_PSA_ACCEL_ALG_RIPEMD160 -I../tests/include -O2" LDFLAGS="$ASAN_CFLAGS"
-}
-
-# This should be renamed to test and updated once the accelerator SHA1 code is in place and ready to test.
-component_build_psa_accel_alg_sha1() {
-    msg "build: full - MBEDTLS_USE_PSA_CRYPTO + PSA_WANT_ALG_SHA_1 - other hashes"
-    scripts/config.py full
-    scripts/config.py unset MBEDTLS_USE_PSA_CRYPTO
-    scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1_3
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_MD5
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_RIPEMD160
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_SHA_224
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_SHA_256
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_SHA_384
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_SHA_512
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_TLS12_ECJPAKE_TO_PMS
-    scripts/config.py unset MBEDTLS_LMS_C
-    scripts/config.py unset MBEDTLS_LMS_PRIVATE
-    # Need to define the correct symbol and include the test driver header path in order to build with the test driver
-    make CC=gcc CFLAGS="$ASAN_CFLAGS -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_PSA_ACCEL_ALG_SHA_1 -I../tests/include -O2" LDFLAGS="$ASAN_CFLAGS"
-}
-
-# This should be renamed to test and updated once the accelerator SHA224 code is in place and ready to test.
-component_build_psa_accel_alg_sha224() {
-    msg "build: full - MBEDTLS_USE_PSA_CRYPTO + PSA_WANT_ALG_SHA_224 - other hashes"
-    scripts/config.py full
-    scripts/config.py unset MBEDTLS_USE_PSA_CRYPTO
-    scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1_3
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_MD5
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_RIPEMD160
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_SHA_1
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_SHA_384
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_SHA_512
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_TLS12_ECJPAKE_TO_PMS
-    # Need to define the correct symbol and include the test driver header path in order to build with the test driver
-    make CC=gcc CFLAGS="$ASAN_CFLAGS -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_PSA_ACCEL_ALG_SHA_224 -I../tests/include -O2" LDFLAGS="$ASAN_CFLAGS"
-}
-
-# This should be renamed to test and updated once the accelerator SHA256 code is in place and ready to test.
-component_build_psa_accel_alg_sha256() {
-    msg "build: full - MBEDTLS_USE_PSA_CRYPTO + PSA_WANT_ALG_SHA_256 - other hashes"
-    scripts/config.py full
-    scripts/config.py unset MBEDTLS_USE_PSA_CRYPTO
-    scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1_3
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_MD5
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_RIPEMD160
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_SHA_1
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_SHA_224
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_SHA_384
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_SHA_512
-    # Need to define the correct symbol and include the test driver header path in order to build with the test driver
-    make CC=gcc CFLAGS="$ASAN_CFLAGS -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_PSA_ACCEL_ALG_SHA_256 -I../tests/include -O2" LDFLAGS="$ASAN_CFLAGS"
-}
-
-# This should be renamed to test and updated once the accelerator SHA384 code is in place and ready to test.
-component_build_psa_accel_alg_sha384() {
-    msg "build: full - MBEDTLS_USE_PSA_CRYPTO + PSA_WANT_ALG_SHA_384 - other hashes"
-    scripts/config.py full
-    scripts/config.py unset MBEDTLS_USE_PSA_CRYPTO
-    scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1_3
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_MD5
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_RIPEMD160
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_SHA_1
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_SHA_224
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_SHA_256
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_TLS12_ECJPAKE_TO_PMS
-    scripts/config.py unset MBEDTLS_LMS_C
-    scripts/config.py unset MBEDTLS_LMS_PRIVATE
-    # Need to define the correct symbol and include the test driver header path in order to build with the test driver
-    make CC=gcc CFLAGS="$ASAN_CFLAGS -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_PSA_ACCEL_ALG_SHA_384 -I../tests/include -O2" LDFLAGS="$ASAN_CFLAGS"
-}
-
-# This should be renamed to test and updated once the accelerator SHA512 code is in place and ready to test.
-component_build_psa_accel_alg_sha512() {
-    msg "build: full - MBEDTLS_USE_PSA_CRYPTO + PSA_WANT_ALG_SHA_512 - other hashes"
-    scripts/config.py full
-    scripts/config.py unset MBEDTLS_USE_PSA_CRYPTO
-    scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1_3
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_MD5
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_RIPEMD160
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_SHA_1
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_SHA_224
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_SHA_256
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_SHA_384
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_TLS12_ECJPAKE_TO_PMS
-    scripts/config.py unset MBEDTLS_LMS_C
-    scripts/config.py unset MBEDTLS_LMS_PRIVATE
-    # Need to define the correct symbol and include the test driver header path in order to build with the test driver
-    make CC=gcc CFLAGS="$ASAN_CFLAGS -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_PSA_ACCEL_ALG_SHA_512 -I../tests/include -O2" LDFLAGS="$ASAN_CFLAGS"
-}
-
-# This should be renamed to test and updated once the accelerator RSA code is in place and ready to test.
-component_build_psa_accel_alg_rsa_pkcs1v15_crypt() {
-    msg "build: full - MBEDTLS_USE_PSA_CRYPTO + PSA_WANT_ALG_RSA_PKCS1V15_CRYPT + PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY"
-    scripts/config.py full
-    scripts/config.py unset MBEDTLS_USE_PSA_CRYPTO
-    scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1_3
-    scripts/config.py -f "$CRYPTO_CONFIG_H" set PSA_WANT_ALG_RSA_PKCS1V15_CRYPT 1
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_RSA_PKCS1V15_SIGN
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_RSA_OAEP
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_RSA_PSS
-    # Need to define the correct symbol and include the test driver header path in order to build with the test driver
-    make CC=gcc CFLAGS="$ASAN_CFLAGS -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_PSA_ACCEL_ALG_RSA_PKCS1V15_CRYPT -I../tests/include -O2" LDFLAGS="$ASAN_CFLAGS"
-}
-
-# This should be renamed to test and updated once the accelerator RSA code is in place and ready to test.
-component_build_psa_accel_alg_rsa_pkcs1v15_sign() {
-    msg "build: full - MBEDTLS_USE_PSA_CRYPTO + PSA_WANT_ALG_RSA_PKCS1V15_SIGN + PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY"
-    scripts/config.py full
-    scripts/config.py unset MBEDTLS_USE_PSA_CRYPTO
-    scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1_3
-    scripts/config.py -f "$CRYPTO_CONFIG_H" set PSA_WANT_ALG_RSA_PKCS1V15_SIGN 1
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_RSA_PKCS1V15_CRYPT
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_RSA_OAEP
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_RSA_PSS
-    # Need to define the correct symbol and include the test driver header path in order to build with the test driver
-    make CC=gcc CFLAGS="$ASAN_CFLAGS -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_PSA_ACCEL_ALG_RSA_PKCS1V15_SIGN -I../tests/include -O2" LDFLAGS="$ASAN_CFLAGS"
-}
-
-# This should be renamed to test and updated once the accelerator RSA code is in place and ready to test.
-component_build_psa_accel_alg_rsa_oaep() {
-    msg "build: full - MBEDTLS_USE_PSA_CRYPTO + PSA_WANT_ALG_RSA_OAEP + PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY"
-    scripts/config.py full
-    scripts/config.py unset MBEDTLS_USE_PSA_CRYPTO
-    scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1_3
-    scripts/config.py -f "$CRYPTO_CONFIG_H" set PSA_WANT_ALG_RSA_OAEP 1
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_RSA_PKCS1V15_CRYPT
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_RSA_PKCS1V15_SIGN
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_RSA_PSS
-    # Need to define the correct symbol and include the test driver header path in order to build with the test driver
-    make CC=gcc CFLAGS="$ASAN_CFLAGS -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_PSA_ACCEL_ALG_RSA_OAEP -I../tests/include -O2" LDFLAGS="$ASAN_CFLAGS"
-}
-
-# This should be renamed to test and updated once the accelerator RSA code is in place and ready to test.
-component_build_psa_accel_alg_rsa_pss() {
-    msg "build: full - MBEDTLS_USE_PSA_CRYPTO + PSA_WANT_ALG_RSA_PSS + PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY"
-    scripts/config.py full
-    scripts/config.py unset MBEDTLS_USE_PSA_CRYPTO
-    scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1_3
-    scripts/config.py -f "$CRYPTO_CONFIG_H" set PSA_WANT_ALG_RSA_PSS 1
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_RSA_PKCS1V15_CRYPT
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_RSA_PKCS1V15_SIGN
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_RSA_OAEP
-    # Need to define the correct symbol and include the test driver header path in order to build with the test driver
-    make CC=gcc CFLAGS="$ASAN_CFLAGS -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_PSA_ACCEL_ALG_RSA_PSS -I../tests/include -O2" LDFLAGS="$ASAN_CFLAGS"
-}
-
-# This should be renamed to test and updated once the accelerator RSA code is in place and ready to test.
-component_build_psa_accel_key_type_rsa_key_pair() {
-    msg "build: full - MBEDTLS_USE_PSA_CRYPTO + PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_xxx + PSA_WANT_ALG_RSA_PSS"
-    scripts/config.py full
-    scripts/config.py unset MBEDTLS_USE_PSA_CRYPTO
-    scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1_3
-    scripts/config.py -f "$CRYPTO_CONFIG_H" set PSA_WANT_ALG_RSA_PSS 1
-    scripts/config.py -f "$CRYPTO_CONFIG_H" set PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC 1
-    scripts/config.py -f "$CRYPTO_CONFIG_H" set PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_IMPORT 1
-    scripts/config.py -f "$CRYPTO_CONFIG_H" set PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_EXPORT 1
-    scripts/config.py -f "$CRYPTO_CONFIG_H" set PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_GENERATE 1
-    # Need to define the correct symbol and include the test driver header path in order to build with the test driver
-    make CC=gcc CFLAGS="$ASAN_CFLAGS -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_PSA_ACCEL_KEY_TYPE_RSA_KEY_PAIR -I../tests/include -O2" LDFLAGS="$ASAN_CFLAGS"
-}
-
-# This should be renamed to test and updated once the accelerator RSA code is in place and ready to test.
-component_build_psa_accel_key_type_rsa_public_key() {
-    msg "build: full - MBEDTLS_USE_PSA_CRYPTO + PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY + PSA_WANT_ALG_RSA_PSS"
-    scripts/config.py full
-    scripts/config.py unset MBEDTLS_USE_PSA_CRYPTO
-    scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1_3
-    scripts/config.py -f "$CRYPTO_CONFIG_H" set PSA_WANT_ALG_RSA_PSS 1
-    scripts/config.py -f "$CRYPTO_CONFIG_H" set PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY 1
-    # Need to define the correct symbol and include the test driver header path in order to build with the test driver
-    make CC=gcc CFLAGS="$ASAN_CFLAGS -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_PSA_ACCEL_KEY_TYPE_RSA_PUBLIC_KEY -I../tests/include -O2" LDFLAGS="$ASAN_CFLAGS"
-}
-
-
 support_build_tfm_armcc () {
-    armc6_cc="$ARMC6_BIN_DIR/armclang"
-    (check_tools "$armc6_cc" > /dev/null 2>&1)
+    support_build_armcc
 }
 
 component_build_tfm_armcc() {
     # test the TF-M configuration can build cleanly with various warning flags enabled
-    cp configs/tfm_mbedcrypto_config_profile_medium.h "$CONFIG_H"
-    cp configs/crypto_config_profile_medium.h "$CRYPTO_CONFIG_H"
+    cp configs/config-tfm.h "$CONFIG_H"
 
     msg "build: TF-M config, armclang armv7-m thumb2"
-    make clean
     armc6_build_test "--target=arm-arm-none-eabi -march=armv7-m -mthumb -Os -std=c99 -Werror -Wall -Wextra -Wwrite-strings -Wpointer-arith -Wimplicit-fallthrough -Wshadow -Wvla -Wformat=2 -Wno-format-nonliteral -Wshadow -Wasm-operand-widths -Wunused -I../tests/include/spe"
 }
 
 component_build_tfm() {
-    # test the TF-M configuration can build cleanly with various warning flags enabled
-    cp configs/tfm_mbedcrypto_config_profile_medium.h "$CONFIG_H"
-    cp configs/crypto_config_profile_medium.h "$CRYPTO_CONFIG_H"
+    # Check that the TF-M configuration can build cleanly with various
+    # warning flags enabled. We don't build or run tests, since the
+    # TF-M configuration needs a TF-M platform. A tweaked version of
+    # the configuration that works on mainstream platforms is in
+    # configs/config-tfm.h, tested via test-ref-configs.pl.
+    cp configs/config-tfm.h "$CONFIG_H"
 
     msg "build: TF-M config, clang, armv7-m thumb2"
     make lib CC="clang" CFLAGS="--target=arm-linux-gnueabihf -march=armv7-m -mthumb -Os -std=c99 -Werror -Wall -Wextra -Wwrite-strings -Wpointer-arith -Wimplicit-fallthrough -Wshadow -Wvla -Wformat=2 -Wno-format-nonliteral -Wshadow -Wasm-operand-widths -Wunused -I../tests/include/spe"
@@ -4111,8 +4289,26 @@ component_build_aes_variations() {
     # aes.o has many #if defined(...) guards that intersect in complex ways.
     # Test that all the combinations build cleanly.
 
+    MBEDTLS_ROOT_DIR="$PWD"
     msg "build: aes.o for all combinations of relevant config options"
 
+    build_test_config_combos library/aes.o validate_aes_config_variations \
+        "MBEDTLS_AES_SETKEY_ENC_ALT" "MBEDTLS_AES_DECRYPT_ALT" \
+        "MBEDTLS_AES_ROM_TABLES" "MBEDTLS_AES_ENCRYPT_ALT" "MBEDTLS_AES_SETKEY_DEC_ALT" \
+        "MBEDTLS_AES_FEWER_TABLES" "MBEDTLS_PADLOCK_C" "MBEDTLS_AES_USE_HARDWARE_ONLY" \
+        "MBEDTLS_AESNI_C" "MBEDTLS_AESCE_C" "MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH"
+
+    cd "$MBEDTLS_ROOT_DIR"
+    msg "build: aes.o for all combinations of relevant config options + BLOCK_CIPHER_NO_DECRYPT"
+
+    # MBEDTLS_BLOCK_CIPHER_NO_DECRYPT is incompatible with ECB in PSA, CBC/XTS/NIST_KW/DES,
+    # manually set or unset those configurations to check
+    # MBEDTLS_BLOCK_CIPHER_NO_DECRYPT with various combinations in aes.o.
+    scripts/config.py set MBEDTLS_BLOCK_CIPHER_NO_DECRYPT
+    scripts/config.py unset MBEDTLS_CIPHER_MODE_CBC
+    scripts/config.py unset MBEDTLS_CIPHER_MODE_XTS
+    scripts/config.py unset MBEDTLS_DES_C
+    scripts/config.py unset MBEDTLS_NIST_KW_C
     build_test_config_combos library/aes.o validate_aes_config_variations \
         "MBEDTLS_AES_SETKEY_ENC_ALT" "MBEDTLS_AES_DECRYPT_ALT" \
         "MBEDTLS_AES_ROM_TABLES" "MBEDTLS_AES_ENCRYPT_ALT" "MBEDTLS_AES_SETKEY_DEC_ALT" \
@@ -4180,7 +4376,7 @@ component_test_memory_buffer_allocator_backtrace () {
     scripts/config.py set MBEDTLS_PLATFORM_MEMORY
     scripts/config.py set MBEDTLS_MEMORY_BACKTRACE
     scripts/config.py set MBEDTLS_MEMORY_DEBUG
-    CC=gcc cmake -DCMAKE_BUILD_TYPE:String=Release .
+    cmake -DCMAKE_BUILD_TYPE:String=Release .
     make
 
     msg "test: MBEDTLS_MEMORY_BUFFER_ALLOC_C and MBEDTLS_MEMORY_BACKTRACE"
@@ -4191,7 +4387,7 @@ component_test_memory_buffer_allocator () {
     msg "build: default config with memory buffer allocator"
     scripts/config.py set MBEDTLS_MEMORY_BUFFER_ALLOC_C
     scripts/config.py set MBEDTLS_PLATFORM_MEMORY
-    CC=gcc cmake -DCMAKE_BUILD_TYPE:String=Release .
+    cmake -DCMAKE_BUILD_TYPE:String=Release .
     make
 
     msg "test: MBEDTLS_MEMORY_BUFFER_ALLOC_C"
@@ -4206,7 +4402,7 @@ component_test_no_max_fragment_length () {
     # Run max fragment length tests with MFL disabled
     msg "build: default config except MFL extension (ASan build)" # ~ 30s
     scripts/config.py unset MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
-    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    CC=$ASAN_CC cmake -D CMAKE_BUILD_TYPE:String=Asan .
     make
 
     msg "test: ssl-opt.sh, MFL-related tests"
@@ -4216,7 +4412,8 @@ component_test_no_max_fragment_length () {
 component_test_asan_remove_peer_certificate () {
     msg "build: default config with MBEDTLS_SSL_KEEP_PEER_CERTIFICATE disabled (ASan build)"
     scripts/config.py unset MBEDTLS_SSL_KEEP_PEER_CERTIFICATE
-    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1_3
+    CC=$ASAN_CC cmake -D CMAKE_BUILD_TYPE:String=Asan .
     make
 
     msg "test: !MBEDTLS_SSL_KEEP_PEER_CERTIFICATE"
@@ -4237,7 +4434,7 @@ component_test_no_max_fragment_length_small_ssl_out_content_len () {
     scripts/config.py unset MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
     scripts/config.py set MBEDTLS_SSL_IN_CONTENT_LEN 16384
     scripts/config.py set MBEDTLS_SSL_OUT_CONTENT_LEN 4096
-    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    CC=$ASAN_CC cmake -D CMAKE_BUILD_TYPE:String=Asan .
     make
 
     msg "test: MFL tests (disabled MFL extension case) & large packet tests"
@@ -4250,7 +4447,7 @@ component_test_no_max_fragment_length_small_ssl_out_content_len () {
 component_test_variable_ssl_in_out_buffer_len () {
     msg "build: MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH enabled (ASan build)"
     scripts/config.py set MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH
-    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    CC=$ASAN_CC cmake -D CMAKE_BUILD_TYPE:String=Asan .
     make
 
     msg "test: MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH enabled"
@@ -4267,7 +4464,7 @@ component_test_dtls_cid_legacy () {
     msg "build: MBEDTLS_SSL_DTLS_CONNECTION_ID (legacy) enabled (ASan build)"
     scripts/config.py set MBEDTLS_SSL_DTLS_CONNECTION_ID_COMPAT 1
 
-    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    CC=$ASAN_CC cmake -D CMAKE_BUILD_TYPE:String=Asan .
     make
 
     msg "test: MBEDTLS_SSL_DTLS_CONNECTION_ID (legacy)"
@@ -4287,7 +4484,7 @@ component_test_ssl_alloc_buffer_and_mfl () {
     scripts/config.py set MBEDTLS_MEMORY_DEBUG
     scripts/config.py set MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
     scripts/config.py set MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH
-    CC=gcc cmake -DCMAKE_BUILD_TYPE:String=Release .
+    cmake -DCMAKE_BUILD_TYPE:String=Release .
     make
 
     msg "test: MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH, MBEDTLS_MEMORY_BUFFER_ALLOC_C, MBEDTLS_MEMORY_DEBUG and MBEDTLS_SSL_MAX_FRAGMENT_LENGTH"
@@ -4314,7 +4511,7 @@ component_test_when_no_ciphersuites_have_mac () {
 component_test_no_date_time () {
     msg "build: default config without MBEDTLS_HAVE_TIME_DATE"
     scripts/config.py unset MBEDTLS_HAVE_TIME_DATE
-    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Check .
+    cmake -D CMAKE_BUILD_TYPE:String=Check .
     make
 
     msg "test: !MBEDTLS_HAVE_TIME_DATE - main suites"
@@ -4326,7 +4523,7 @@ component_test_platform_calloc_macro () {
     scripts/config.py set MBEDTLS_PLATFORM_MEMORY
     scripts/config.py set MBEDTLS_PLATFORM_CALLOC_MACRO calloc
     scripts/config.py set MBEDTLS_PLATFORM_FREE_MACRO   free
-    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    CC=$ASAN_CC cmake -D CMAKE_BUILD_TYPE:String=Asan .
     make
 
     msg "test: MBEDTLS_PLATFORM_{CALLOC/FREE}_MACRO enabled (ASan build)"
@@ -4336,7 +4533,7 @@ component_test_platform_calloc_macro () {
 component_test_malloc_0_null () {
     msg "build: malloc(0) returns NULL (ASan+UBSan build)"
     scripts/config.py full
-    make CC=gcc CFLAGS="'-DMBEDTLS_USER_CONFIG_FILE=\"$PWD/tests/configs/user-config-malloc-0-null.h\"' $ASAN_CFLAGS -O" LDFLAGS="$ASAN_CFLAGS"
+    make CC=$ASAN_CC CFLAGS="'-DMBEDTLS_USER_CONFIG_FILE=\"$PWD/tests/configs/user-config-malloc-0-null.h\"' $ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS"
 
     msg "test: malloc(0) returns NULL (ASan+UBSan build)"
     make test
@@ -4420,8 +4617,28 @@ component_test_aesni () { # ~ 60s
     not grep -q "AES note: built-in implementation." ./programs/test/selftest
 }
 
+component_test_sha3_variations() {
+    msg "sha3 loop unroll variations"
+
+    # define minimal config sufficient to test SHA3
+    cat > include/mbedtls/mbedtls_config.h << END
+        #define MBEDTLS_SELF_TEST
+        #define MBEDTLS_SHA3_C
+END
+
+    msg "all loops unrolled"
+    make clean
+    make -C tests test_suite_shax CFLAGS="-DMBEDTLS_SHA3_THETA_UNROLL=1 -DMBEDTLS_SHA3_PI_UNROLL=1 -DMBEDTLS_SHA3_CHI_UNROLL=1 -DMBEDTLS_SHA3_RHO_UNROLL=1"
+    ./tests/test_suite_shax
+
+    msg "all loops rolled up"
+    make clean
+    make -C tests test_suite_shax CFLAGS="-DMBEDTLS_SHA3_THETA_UNROLL=0 -DMBEDTLS_SHA3_PI_UNROLL=0 -DMBEDTLS_SHA3_CHI_UNROLL=0 -DMBEDTLS_SHA3_RHO_UNROLL=0"
+    ./tests/test_suite_shax
+}
+
 support_test_aesni_m32() {
-    support_test_m32_o0 && (lscpu | grep -qw aes)
+    support_test_m32_no_asm && (lscpu | grep -qw aes)
 }
 
 component_test_aesni_m32 () { # ~ 60s
@@ -4461,14 +4678,8 @@ component_test_aesni_m32 () { # ~ 60s
 }
 
 support_test_aesni_m32_clang() {
-    support_test_aesni_m32 && if command -v clang > /dev/null ; then
-        # clang >= 4 is required to build with target attributes
-        clang_ver="$(clang --version|grep version|sed -E 's#.*version ([0-9]+).*#\1#')"
-        [[ "${clang_ver}" -ge 4 ]]
-    else
-        # clang not available
-        false
-    fi
+    # clang >= 4 is required to build with target attributes
+    support_test_aesni_m32 && [[ $(clang_version) -ge 4 ]]
 }
 
 component_test_aesni_m32_clang() {
@@ -4518,16 +4729,65 @@ component_build_aes_aesce_armcc () {
     armc6_build_test "-O1 --target=aarch64-arm-none-eabi -march=armv8-a+crypto"
 }
 
-support_build_sha_armce() {
-    if command -v clang > /dev/null ; then
-        # clang >= 4 is required to build with SHA extensions
-        clang_ver="$(clang --version|grep version|sed -E 's#.*version ([0-9]+).*#\1#')"
+support_build_aes_armce() {
+    # clang >= 11 is required to build with AES extensions
+    [[ $(clang_version) -ge 11 ]]
+}
 
-        [[ "${clang_ver}" -ge 4 ]]
-    else
-        # clang not available
-        false
-    fi
+component_build_aes_armce () {
+    # Test variations of AES with Armv8 crypto extensions
+    scripts/config.py set MBEDTLS_AESCE_C
+    scripts/config.py set MBEDTLS_AES_USE_HARDWARE_ONLY
+
+    msg "MBEDTLS_AES_USE_HARDWARE_ONLY, clang, aarch64"
+    make -B library/aesce.o CC=clang CFLAGS="--target=aarch64-linux-gnu -march=armv8-a+crypto"
+
+    msg "MBEDTLS_AES_USE_HARDWARE_ONLY, clang, arm"
+    make -B library/aesce.o CC=clang CFLAGS="--target=arm-linux-gnueabihf -mcpu=cortex-a72+crypto -marm"
+
+    msg "MBEDTLS_AES_USE_HARDWARE_ONLY, clang, thumb"
+    make -B library/aesce.o CC=clang CFLAGS="--target=arm-linux-gnueabihf -mcpu=cortex-a32+crypto -mthumb"
+
+    scripts/config.py unset MBEDTLS_AES_USE_HARDWARE_ONLY
+
+    msg "no MBEDTLS_AES_USE_HARDWARE_ONLY, clang, aarch64"
+    make -B library/aesce.o CC=clang CFLAGS="--target=aarch64-linux-gnu -march=armv8-a+crypto"
+
+    msg "no MBEDTLS_AES_USE_HARDWARE_ONLY, clang, arm"
+    make -B library/aesce.o CC=clang CFLAGS="--target=arm-linux-gnueabihf -mcpu=cortex-a72+crypto -marm"
+
+    msg "no MBEDTLS_AES_USE_HARDWARE_ONLY, clang, thumb"
+    make -B library/aesce.o CC=clang CFLAGS="--target=arm-linux-gnueabihf -mcpu=cortex-a32+crypto -mthumb"
+
+    # test for presence of AES instructions
+    scripts/config.py set MBEDTLS_AES_USE_HARDWARE_ONLY
+    msg "clang, test A32 crypto instructions built"
+    make -B library/aesce.o CC=clang CFLAGS="--target=arm-linux-gnueabihf -mcpu=cortex-a72+crypto -marm -S"
+    grep -E 'aes[0-9a-z]+.[0-9]\s*[qv]' library/aesce.o
+    msg "clang, test T32 crypto instructions built"
+    make -B library/aesce.o CC=clang CFLAGS="--target=arm-linux-gnueabihf -mcpu=cortex-a32+crypto -mthumb -S"
+    grep -E 'aes[0-9a-z]+.[0-9]\s*[qv]' library/aesce.o
+    msg "clang, test aarch64 crypto instructions built"
+    make -B library/aesce.o CC=clang CFLAGS="--target=aarch64-linux-gnu -march=armv8-a -S"
+    grep -E 'aes[a-z]+\s*[qv]' library/aesce.o
+
+    # test for absence of AES instructions
+    scripts/config.py unset MBEDTLS_AES_USE_HARDWARE_ONLY
+    scripts/config.py unset MBEDTLS_AESCE_C
+    msg "clang, test A32 crypto instructions not built"
+    make -B library/aesce.o CC=clang CFLAGS="--target=arm-linux-gnueabihf -mcpu=cortex-a72+crypto -marm -S"
+    not grep -E 'aes[0-9a-z]+.[0-9]\s*[qv]' library/aesce.o
+    msg "clang, test T32 crypto instructions not built"
+    make -B library/aesce.o CC=clang CFLAGS="--target=arm-linux-gnueabihf -mcpu=cortex-a32+crypto -mthumb -S"
+    not grep -E 'aes[0-9a-z]+.[0-9]\s*[qv]' library/aesce.o
+    msg "clang, test aarch64 crypto instructions not built"
+    make -B library/aesce.o CC=clang CFLAGS="--target=aarch64-linux-gnu -march=armv8-a -S"
+    not grep -E 'aes[a-z]+\s*[qv]' library/aesce.o
+}
+
+support_build_sha_armce() {
+    # clang >= 4 is required to build with SHA extensions
+    [[ $(clang_version) -ge 4 ]]
 }
 
 component_build_sha_armce () {
@@ -4603,7 +4863,7 @@ component_build_aes_via_padlock () {
     scripts/config.py unset MBEDTLS_AESNI_C
     scripts/config.py set MBEDTLS_PADLOCK_C
     scripts/config.py unset MBEDTLS_AES_USE_HARDWARE_ONLY
-    make CC=gcc CFLAGS="$ASAN_CFLAGS -m32 -O2" LDFLAGS="-m32 $ASAN_CFLAGS"
+    make CC=gcc CFLAGS="$ASAN_CFLAGS -m32" LDFLAGS="-m32 $ASAN_CFLAGS"
     grep -q mbedtls_padlock_has_support ./programs/test/selftest
 
 }
@@ -4623,7 +4883,7 @@ component_test_aes_only_128_bit_keys () {
     scripts/config.py set MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH
     scripts/config.py unset MBEDTLS_PADLOCK_C
 
-    make CC=gcc CFLAGS='-Werror -Wall -Wextra'
+    make CFLAGS='-O2 -Werror -Wall -Wextra'
 
     msg "test: default config + AES_ONLY_128_BIT_KEY_LENGTH"
     make test
@@ -4648,7 +4908,7 @@ component_test_aes_only_128_bit_keys_have_builtins () {
     scripts/config.py unset MBEDTLS_AESNI_C
     scripts/config.py unset MBEDTLS_AESCE_C
 
-    make CC=gcc CFLAGS='-Werror -Wall -Wextra'
+    make CFLAGS='-O2 -Werror -Wall -Wextra'
 
     msg "test: default config + AES_ONLY_128_BIT_KEY_LENGTH - AESNI_C - AESCE_C"
     make test
@@ -4657,10 +4917,23 @@ component_test_aes_only_128_bit_keys_have_builtins () {
     programs/test/selftest
 }
 
+component_test_gcm_largetable () {
+    msg "build: default config + GCM_LARGE_TABLE - AESNI_C - AESCE_C"
+    scripts/config.py set MBEDTLS_GCM_LARGE_TABLE
+    scripts/config.py unset MBEDTLS_PADLOCK_C
+    scripts/config.py unset MBEDTLS_AESNI_C
+    scripts/config.py unset MBEDTLS_AESCE_C
+
+    make CFLAGS='-O2 -Werror -Wall -Wextra'
+
+    msg "test: default config - GCM_LARGE_TABLE - AESNI_C - AESCE_C"
+    make test
+}
+
 component_test_aes_fewer_tables () {
     msg "build: default config with AES_FEWER_TABLES enabled"
     scripts/config.py set MBEDTLS_AES_FEWER_TABLES
-    make CC=gcc CFLAGS='-Werror -Wall -Wextra'
+    make CFLAGS='-O2 -Werror -Wall -Wextra'
 
     msg "test: AES_FEWER_TABLES"
     make test
@@ -4669,7 +4942,7 @@ component_test_aes_fewer_tables () {
 component_test_aes_rom_tables () {
     msg "build: default config with AES_ROM_TABLES enabled"
     scripts/config.py set MBEDTLS_AES_ROM_TABLES
-    make CC=gcc CFLAGS='-Werror -Wall -Wextra'
+    make CFLAGS='-O2 -Werror -Wall -Wextra'
 
     msg "test: AES_ROM_TABLES"
     make test
@@ -4679,10 +4952,166 @@ component_test_aes_fewer_tables_and_rom_tables () {
     msg "build: default config with AES_ROM_TABLES and AES_FEWER_TABLES enabled"
     scripts/config.py set MBEDTLS_AES_FEWER_TABLES
     scripts/config.py set MBEDTLS_AES_ROM_TABLES
-    make CC=gcc CFLAGS='-Werror -Wall -Wextra'
+    make CFLAGS='-O2 -Werror -Wall -Wextra'
 
     msg "test: AES_FEWER_TABLES + AES_ROM_TABLES"
     make test
+}
+
+# helper for common_block_cipher_no_decrypt() which:
+# - enable/disable the list of config options passed from -s/-u respectively.
+# - build
+# - test for tests_suite_xxx
+# - selftest
+#
+# Usage: helper_block_cipher_no_decrypt_build_test
+#        [-s set_opts] [-u unset_opts] [-c cflags] [-l ldflags] [option [...]]
+# Options:  -s set_opts     the list of config options to enable
+#           -u unset_opts   the list of config options to disable
+#           -c cflags       the list of options passed to CFLAGS
+#           -l ldflags      the list of options passed to LDFLAGS
+helper_block_cipher_no_decrypt_build_test () {
+    while [ $# -gt 0 ]; do
+        case "$1" in
+            -s)
+                shift; local set_opts="$1";;
+            -u)
+                shift; local unset_opts="$1";;
+            -c)
+                shift; local cflags="-Werror -Wall -Wextra $1";;
+            -l)
+                shift; local ldflags="$1";;
+        esac
+        shift
+    done
+    set_opts="${set_opts:-}"
+    unset_opts="${unset_opts:-}"
+    cflags="${cflags:-}"
+    ldflags="${ldflags:-}"
+
+    [ -n "$set_opts" ] && echo "Enabling: $set_opts" && scripts/config.py set-all $set_opts
+    [ -n "$unset_opts" ] && echo "Disabling: $unset_opts" && scripts/config.py unset-all $unset_opts
+
+    msg "build: default config + BLOCK_CIPHER_NO_DECRYPT${set_opts:+ + $set_opts}${unset_opts:+ - $unset_opts} with $cflags${ldflags:+, $ldflags}"
+    make clean
+    make CFLAGS="-O2 $cflags" LDFLAGS="$ldflags"
+
+    # Make sure we don't have mbedtls_xxx_setkey_dec in AES/ARIA/CAMELLIA
+    not grep mbedtls_aes_setkey_dec library/aes.o
+    not grep mbedtls_aria_setkey_dec library/aria.o
+    not grep mbedtls_camellia_setkey_dec library/camellia.o
+    # Make sure we don't have mbedtls_internal_aes_decrypt in AES
+    not grep mbedtls_internal_aes_decrypt library/aes.o
+    # Make sure we don't have mbedtls_aesni_inverse_key in AESNI
+    not grep mbedtls_aesni_inverse_key library/aesni.o
+
+    msg "test: default config + BLOCK_CIPHER_NO_DECRYPT${set_opts:+ + $set_opts}${unset_opts:+ - $unset_opts} with $cflags${ldflags:+, $ldflags}"
+    make test
+
+    msg "selftest: default config + BLOCK_CIPHER_NO_DECRYPT${set_opts:+ + $set_opts}${unset_opts:+ - $unset_opts} with $cflags${ldflags:+, $ldflags}"
+    programs/test/selftest
+}
+
+# This is a common configuration function used in:
+# - component_test_block_cipher_no_decrypt_aesni_legacy()
+# - component_test_block_cipher_no_decrypt_aesni_use_psa()
+# in order to test BLOCK_CIPHER_NO_DECRYPT with AESNI intrinsics,
+# AESNI assembly and AES C implementation on x86_64 and with AESNI intrinsics
+# on x86.
+common_block_cipher_no_decrypt () {
+    # test AESNI intrinsics
+    helper_block_cipher_no_decrypt_build_test \
+        -s "MBEDTLS_AESNI_C" \
+        -c "-mpclmul -msse2 -maes"
+
+    # test AESNI assembly
+    helper_block_cipher_no_decrypt_build_test \
+        -s "MBEDTLS_AESNI_C" \
+        -c "-mno-pclmul -mno-sse2 -mno-aes"
+
+    # test AES C implementation
+    helper_block_cipher_no_decrypt_build_test \
+        -u "MBEDTLS_AESNI_C"
+
+    # test AESNI intrinsics for i386 target
+    helper_block_cipher_no_decrypt_build_test \
+        -s "MBEDTLS_AESNI_C" \
+        -c "-m32 -mpclmul -msse2 -maes" \
+        -l "-m32"
+}
+
+# This is a configuration function used in component_test_block_cipher_no_decrypt_xxx:
+# usage: 0: no PSA crypto configuration
+#        1: use PSA crypto configuration
+config_block_cipher_no_decrypt () {
+    use_psa=$1
+
+    scripts/config.py set MBEDTLS_BLOCK_CIPHER_NO_DECRYPT
+    scripts/config.py unset MBEDTLS_CIPHER_MODE_CBC
+    scripts/config.py unset MBEDTLS_CIPHER_MODE_XTS
+    scripts/config.py unset MBEDTLS_DES_C
+    scripts/config.py unset MBEDTLS_NIST_KW_C
+
+    if [ "$use_psa" -eq 1 ]; then
+        # Enable support for cryptographic mechanisms through the PSA API.
+        # Note: XTS, KW are not yet supported via the PSA API in Mbed TLS.
+        scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
+        scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CBC_NO_PADDING
+        scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CBC_PKCS7
+        scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_ECB_NO_PADDING
+        scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_KEY_TYPE_DES
+    fi
+}
+
+component_test_block_cipher_no_decrypt_aesni () {
+    # This consistently causes an llvm crash on clang 3.8, so use gcc
+    export CC=gcc
+    config_block_cipher_no_decrypt 0
+    common_block_cipher_no_decrypt
+}
+
+component_test_block_cipher_no_decrypt_aesni_use_psa () {
+    # This consistently causes an llvm crash on clang 3.8, so use gcc
+    export CC=gcc
+    config_block_cipher_no_decrypt 1
+    common_block_cipher_no_decrypt
+}
+
+support_test_block_cipher_no_decrypt_aesce_armcc () {
+    support_build_armcc
+}
+
+component_test_block_cipher_no_decrypt_aesce_armcc () {
+    scripts/config.py baremetal
+
+    # armc[56] don't support SHA-512 intrinsics
+    scripts/config.py unset MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT
+
+    # Stop armclang warning about feature detection for A64_CRYPTO.
+    # With this enabled, the library does build correctly under armclang,
+    # but in baremetal builds (as tested here), feature detection is
+    # unavailable, and the user is notified via a #warning. So enabling
+    # this feature would prevent us from building with -Werror on
+    # armclang. Tracked in #7198.
+    scripts/config.py unset MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT
+    scripts/config.py set MBEDTLS_HAVE_ASM
+
+    config_block_cipher_no_decrypt 1
+
+    # test AESCE baremetal build
+    scripts/config.py set MBEDTLS_AESCE_C
+    msg "build: default config + BLOCK_CIPHER_NO_DECRYPT with AESCE"
+    armc6_build_test "-O1 --target=aarch64-arm-none-eabi -march=armv8-a+crypto -Werror -Wall -Wextra"
+
+    # Make sure we don't have mbedtls_xxx_setkey_dec in AES/ARIA/CAMELLIA
+    not grep mbedtls_aes_setkey_dec library/aes.o
+    not grep mbedtls_aria_setkey_dec library/aria.o
+    not grep mbedtls_camellia_setkey_dec library/camellia.o
+    # Make sure we don't have mbedtls_internal_aes_decrypt in AES
+    not grep mbedtls_internal_aes_decrypt library/aes.o
+    # Make sure we don't have mbedtls_aesce_inverse_key and aesce_decrypt_block in AESCE
+    not grep mbedtls_aesce_inverse_key library/aesce.o
+    not grep aesce_decrypt_block library/aesce.o
 }
 
 component_test_ctr_drbg_aes_256_sha_256 () {
@@ -4690,7 +5119,7 @@ component_test_ctr_drbg_aes_256_sha_256 () {
     scripts/config.py full
     scripts/config.py unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
     scripts/config.py set MBEDTLS_ENTROPY_FORCE_SHA256
-    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    CC=$ASAN_CC cmake -D CMAKE_BUILD_TYPE:String=Asan .
     make
 
     msg "test: full + MBEDTLS_ENTROPY_FORCE_SHA256 (ASan build)"
@@ -4702,7 +5131,7 @@ component_test_ctr_drbg_aes_128_sha_512 () {
     scripts/config.py full
     scripts/config.py unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
     scripts/config.py set MBEDTLS_CTR_DRBG_USE_128_BIT_KEY
-    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    CC=$ASAN_CC cmake -D CMAKE_BUILD_TYPE:String=Asan .
     make
 
     msg "test: full + MBEDTLS_CTR_DRBG_USE_128_BIT_KEY (ASan build)"
@@ -4715,7 +5144,7 @@ component_test_ctr_drbg_aes_128_sha_256 () {
     scripts/config.py unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
     scripts/config.py set MBEDTLS_CTR_DRBG_USE_128_BIT_KEY
     scripts/config.py set MBEDTLS_ENTROPY_FORCE_SHA256
-    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    CC=$ASAN_CC cmake -D CMAKE_BUILD_TYPE:String=Asan .
     make
 
     msg "test: full + MBEDTLS_CTR_DRBG_USE_128_BIT_KEY + MBEDTLS_ENTROPY_FORCE_SHA256 (ASan build)"
@@ -4739,7 +5168,7 @@ component_test_psa_crypto_drivers () {
     loc_cflags="${loc_cflags} '-DMBEDTLS_USER_CONFIG_FILE=\"../tests/configs/user-config-for-test.h\"'"
     loc_cflags="${loc_cflags} -I../tests/include -O2"
 
-    make CC=gcc CFLAGS="${loc_cflags}" LDFLAGS="$ASAN_CFLAGS"
+    make CC=$ASAN_CC CFLAGS="${loc_cflags}" LDFLAGS="$ASAN_CFLAGS"
 
     msg "test: full + test drivers dispatching to builtins"
     make test
@@ -4878,18 +5307,23 @@ component_build_psa_alt_headers () {
     programs/test/query_included_headers | not grep -x PSA_CRYPTO_STRUCT_H
 }
 
-component_test_m32_o0 () {
-    # Build without optimization, so as to use portable C code (in a 32-bit
+component_test_m32_no_asm () {
+    # Build without assembly, so as to use portable C code (in a 32-bit
     # build) and not the i386-specific inline assembly.
-    msg "build: i386, make, gcc -O0 (ASan build)" # ~ 30s
+    #
+    # Note that we require gcc, because clang Asan builds fail to link for
+    # this target (cannot find libclang_rt.lsan-i386.a - this is a known clang issue).
+    msg "build: i386, make, gcc, no asm (ASan build)" # ~ 30s
     scripts/config.py full
+    scripts/config.py unset MBEDTLS_HAVE_ASM
+    scripts/config.py unset MBEDTLS_PADLOCK_C
     scripts/config.py unset MBEDTLS_AESNI_C # AESNI for 32-bit is tested in test_aesni_m32
-    make CC=gcc CFLAGS="$ASAN_CFLAGS -m32 -O0" LDFLAGS="-m32 $ASAN_CFLAGS"
+    make CC=gcc CFLAGS="$ASAN_CFLAGS -m32" LDFLAGS="-m32 $ASAN_CFLAGS"
 
-    msg "test: i386, make, gcc -O0 (ASan build)"
+    msg "test: i386, make, gcc, no asm (ASan build)"
     make test
 }
-support_test_m32_o0 () {
+support_test_m32_no_asm () {
     case $(uname -m) in
         amd64|x86_64) true;;
         *) false;;
@@ -4902,7 +5336,7 @@ component_test_m32_o2 () {
     msg "build: i386, make, gcc -O2 (ASan build)" # ~ 30s
     scripts/config.py full
     scripts/config.py unset MBEDTLS_AESNI_C # AESNI for 32-bit is tested in test_aesni_m32
-    make CC=gcc CFLAGS="$ASAN_CFLAGS -m32 -O2" LDFLAGS="-m32 $ASAN_CFLAGS"
+    make CC=gcc CFLAGS="$ASAN_CFLAGS -m32" LDFLAGS="-m32 $ASAN_CFLAGS"
 
     msg "test: i386, make, gcc -O2 (ASan build)"
     make test
@@ -4911,14 +5345,14 @@ component_test_m32_o2 () {
     tests/ssl-opt.sh
 }
 support_test_m32_o2 () {
-    support_test_m32_o0 "$@"
+    support_test_m32_no_asm "$@"
 }
 
 component_test_m32_everest () {
     msg "build: i386, Everest ECDH context (ASan build)" # ~ 6 min
     scripts/config.py set MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED
     scripts/config.py unset MBEDTLS_AESNI_C # AESNI for 32-bit is tested in test_aesni_m32
-    make CC=gcc CFLAGS="$ASAN_CFLAGS -m32 -O2" LDFLAGS="-m32 $ASAN_CFLAGS"
+    make CC=gcc CFLAGS="$ASAN_CFLAGS -m32" LDFLAGS="-m32 $ASAN_CFLAGS"
 
     msg "test: i386, Everest ECDH context - main suites (inc. selftests) (ASan build)" # ~ 50s
     make test
@@ -4931,13 +5365,13 @@ component_test_m32_everest () {
     tests/compat.sh -f ECDH -V NO -e 'ARIA\|CAMELLIA\|CHACHA'
 }
 support_test_m32_everest () {
-    support_test_m32_o0 "$@"
+    support_test_m32_no_asm "$@"
 }
 
 component_test_mx32 () {
     msg "build: 64-bit ILP32, make, gcc" # ~ 30s
     scripts/config.py full
-    make CC=gcc CFLAGS='-Werror -Wall -Wextra -mx32' LDFLAGS='-mx32'
+    make CC=gcc CFLAGS='-O2 -Werror -Wall -Wextra -mx32' LDFLAGS='-mx32'
 
     msg "test: 64-bit ILP32, make, gcc"
     make test
@@ -4952,7 +5386,7 @@ support_test_mx32 () {
 component_test_min_mpi_window_size () {
     msg "build: Default + MBEDTLS_MPI_WINDOW_SIZE=1 (ASan build)" # ~ 10s
     scripts/config.py set MBEDTLS_MPI_WINDOW_SIZE 1
-    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    CC=$ASAN_CC cmake -D CMAKE_BUILD_TYPE:String=Asan .
     make
 
     msg "test: MBEDTLS_MPI_WINDOW_SIZE=1 - main suites (inc. selftests) (ASan build)" # ~ 10s
@@ -4965,7 +5399,7 @@ component_test_have_int32 () {
     scripts/config.py unset MBEDTLS_AESNI_C
     scripts/config.py unset MBEDTLS_PADLOCK_C
     scripts/config.py unset MBEDTLS_AESCE_C
-    make CC=gcc CFLAGS='-Werror -Wall -Wextra -DMBEDTLS_HAVE_INT32'
+    make CC=gcc CFLAGS='-O2 -Werror -Wall -Wextra -DMBEDTLS_HAVE_INT32'
 
     msg "test: gcc, force 32-bit bignum limbs"
     make test
@@ -4977,7 +5411,7 @@ component_test_have_int64 () {
     scripts/config.py unset MBEDTLS_AESNI_C
     scripts/config.py unset MBEDTLS_PADLOCK_C
     scripts/config.py unset MBEDTLS_AESCE_C
-    make CC=gcc CFLAGS='-Werror -Wall -Wextra -DMBEDTLS_HAVE_INT64'
+    make CC=gcc CFLAGS='-O2 -Werror -Wall -Wextra -DMBEDTLS_HAVE_INT64'
 
     msg "test: gcc, force 64-bit bignum limbs"
     make test
@@ -5139,6 +5573,9 @@ component_build_armcc () {
     # armc[56] don't support SHA-512 intrinsics
     scripts/config.py unset MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT
 
+    # older versions of armcc/armclang don't support AESCE_C on 32-bit Arm
+    scripts/config.py unset MBEDTLS_AESCE_C
+
     # Stop armclang warning about feature detection for A64_CRYPTO.
     # With this enabled, the library does build correctly under armclang,
     # but in baremetal builds (as tested here), feature detection is
@@ -5153,8 +5590,6 @@ component_build_armcc () {
 
     msg "size: ARM Compiler 5"
     "$ARMC5_FROMELF" -z library/*.o
-
-    make clean
 
     # Compile mostly with -O1 since some Arm inline assembly is disabled for -O0.
 
@@ -5173,14 +5608,18 @@ component_build_armcc () {
     # ARM Compiler 6 - Target ARMv8-M
     armc6_build_test "-O1 --target=arm-arm-none-eabi -march=armv8-m.main"
 
-    # ARM Compiler 6 - Target ARMv8.2-A - AArch64
-    armc6_build_test "-O1 --target=aarch64-arm-none-eabi -march=armv8.2-a+crypto"
-
     # ARM Compiler 6 - Target Cortex-M0 - no optimisation
     armc6_build_test "-O0 --target=arm-arm-none-eabi -mcpu=cortex-m0"
 
     # ARM Compiler 6 - Target Cortex-M0
     armc6_build_test "-Os --target=arm-arm-none-eabi -mcpu=cortex-m0"
+
+    # ARM Compiler 6 - Target ARMv8.2-A - AArch64
+    #
+    # Re-enable MBEDTLS_AESCE_C as this should be supported by the version of armclang
+    # that we have in our CI
+    scripts/config.py set MBEDTLS_AESCE_C
+    armc6_build_test "-O1 --target=aarch64-arm-none-eabi -march=armv8.2-a+crypto"
 }
 
 support_build_armcc () {
@@ -5189,9 +5628,26 @@ support_build_armcc () {
     (check_tools "$armc5_cc" "$armc6_cc" > /dev/null 2>&1)
 }
 
+component_test_tls12_only () {
+    msg "build: default config without MBEDTLS_SSL_PROTO_TLS1_3, cmake, gcc, ASan"
+    scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1_3
+    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    make
+
+    msg "test: main suites (inc. selftests) (ASan build)"
+    make test
+
+    msg "test: ssl-opt.sh (ASan build)"
+    tests/ssl-opt.sh
+
+    msg "test: compat.sh (ASan build)"
+    tests/compat.sh
+}
+
 component_test_tls13_only () {
-    msg "build: default config with MBEDTLS_SSL_PROTO_TLS1_3, without MBEDTLS_SSL_PROTO_TLS1_2"
+    msg "build: default config without MBEDTLS_SSL_PROTO_TLS1_2"
     scripts/config.py set MBEDTLS_SSL_EARLY_DATA
+    scripts/config.py set MBEDTLS_SSL_RECORD_SIZE_LIMIT
     make CFLAGS="'-DMBEDTLS_USER_CONFIG_FILE=\"../tests/configs/tls13-only.h\"'"
 
     msg "test: TLS 1.3 only, all key exchange modes enabled"
@@ -5326,47 +5782,41 @@ component_test_tls13_only_ephemeral_all () {
     tests/ssl-opt.sh
 }
 
-component_test_tls13 () {
-    msg "build: default config with MBEDTLS_SSL_PROTO_TLS1_3 enabled, without padding"
-    scripts/config.py set MBEDTLS_SSL_PROTO_TLS1_3
-    scripts/config.py set MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+component_test_tls13_no_padding () {
+    msg "build: default config plus early data minus padding"
     scripts/config.py set MBEDTLS_SSL_CID_TLS1_3_PADDING_GRANULARITY 1
     scripts/config.py set MBEDTLS_SSL_EARLY_DATA
-    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    CC=$ASAN_CC cmake -D CMAKE_BUILD_TYPE:String=Asan .
     make
-    msg "test: default config with MBEDTLS_SSL_PROTO_TLS1_3 enabled, without padding"
+    msg "test: default config plus early data minus padding"
     make test
-    msg "ssl-opt.sh (TLS 1.3)"
+    msg "ssl-opt.sh (TLS 1.3 no padding)"
     tests/ssl-opt.sh
 }
 
 component_test_tls13_no_compatibility_mode () {
-    msg "build: default config with MBEDTLS_SSL_PROTO_TLS1_3 enabled, without padding"
-    scripts/config.py set   MBEDTLS_SSL_PROTO_TLS1_3
+    msg "build: default config plus early data minus middlebox compatibility mode"
     scripts/config.py unset MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
-    scripts/config.py set   MBEDTLS_SSL_CID_TLS1_3_PADDING_GRANULARITY 1
     scripts/config.py set   MBEDTLS_SSL_EARLY_DATA
-    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    CC=$ASAN_CC cmake -D CMAKE_BUILD_TYPE:String=Asan .
     make
-    msg "test: default config with MBEDTLS_SSL_PROTO_TLS1_3 enabled, without padding"
+    msg "test: default config plus early data minus middlebox compatibility mode"
     make test
     msg "ssl-opt.sh (TLS 1.3 no compatibility mode)"
     tests/ssl-opt.sh
 }
 
-component_test_tls13_only_record_size_limit () {
-    msg "build: TLS 1.3 only from default, record size limit extension enabled"
-    scripts/config.py set MBEDTLS_SSL_RECORD_SIZE_LIMIT
-    make CFLAGS="'-DMBEDTLS_USER_CONFIG_FILE=\"../tests/configs/tls13-only.h\"'"
-
-    msg "test_suite_ssl: TLS 1.3 only, record size limit extension enabled"
-    cd tests; ./test_suite_ssl; cd ..
-
-    msg "ssl-opt.sh: (TLS 1.3 only, record size limit extension tests only)"
-    # Both the server and the client will currently abort the handshake when they encounter the
-    # record size limit extension. There is no way to prevent gnutls-cli from sending the extension
-    # which makes all G_NEXT_CLI + P_SRV tests fail. Thus, run only the tests for the this extension.
-    tests/ssl-opt.sh -f "Record Size Limit"
+component_test_full_minus_session_tickets() {
+    msg "build: full config without session tickets"
+    scripts/config.py full
+    scripts/config.py unset MBEDTLS_SSL_SESSION_TICKETS
+    scripts/config.py unset MBEDTLS_SSL_EARLY_DATA
+    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    make
+    msg "test: full config without session tickets"
+    make test
+    msg "ssl-opt.sh (full config without session tickets)"
+    tests/ssl-opt.sh
 }
 
 component_build_mingw () {
@@ -5403,6 +5853,9 @@ component_test_memsan () {
     msg "test: main suites (MSan)" # ~ 10s
     make test
 
+    msg "test: metatests (MSan)"
+    tests/scripts/run-metatests.sh any msan
+
     msg "program demos (MSan)" # ~20s
     tests/scripts/run_demos.py
 
@@ -5417,7 +5870,7 @@ component_test_memsan () {
     fi
 }
 
-component_test_valgrind () {
+component_release_test_valgrind () {
     msg "build: Release (clang)"
     # default config, in particular without MBEDTLS_USE_PSA_CRYPTO
     CC=clang cmake -D CMAKE_BUILD_TYPE:String=Release .
@@ -5445,7 +5898,7 @@ component_test_valgrind () {
     fi
 }
 
-component_test_valgrind_psa () {
+component_release_test_valgrind_psa () {
     msg "build: Release, full (clang)"
     # full config, in particular with MBEDTLS_USE_PSA_CRYPTO
     scripts/config.py full
@@ -5631,7 +6084,7 @@ component_build_zeroize_checks () {
     scripts/config.py full
 
     # Only compile - we're looking for sizeof-pointer-memaccess warnings
-    make CC=gcc CFLAGS="'-DMBEDTLS_USER_CONFIG_FILE=\"../tests/configs/user-config-zeroize-memset.h\"' -DMBEDTLS_TEST_DEFINES_ZEROIZE -Werror -Wsizeof-pointer-memaccess"
+    make CFLAGS="'-DMBEDTLS_USER_CONFIG_FILE=\"../tests/configs/user-config-zeroize-memset.h\"' -DMBEDTLS_TEST_DEFINES_ZEROIZE -Werror -Wsizeof-pointer-memaccess"
 }
 
 
@@ -5664,11 +6117,12 @@ component_test_zeroize () {
 }
 
 component_test_psa_compliance () {
+    # The arch tests build with gcc, so require use of gcc here to link properly
     msg "build: make, default config (out-of-box), libmbedcrypto.a only"
-    make -C library libmbedcrypto.a
+    CC=gcc make -C library libmbedcrypto.a
 
     msg "unit test: test_psa_compliance.py"
-    ./tests/scripts/test_psa_compliance.py
+    CC=gcc ./tests/scripts/test_psa_compliance.py
 }
 
 support_test_psa_compliance () {
@@ -5802,10 +6256,10 @@ run_component () {
 
 # Preliminary setup
 pre_check_environment
-pre_parse_command_line_for_dirs "$@"
 pre_initialize_variables
 pre_parse_command_line "$@"
 
+setup_quiet_wrappers
 pre_check_git
 pre_restore_files
 pre_back_up

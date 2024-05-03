@@ -23,6 +23,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include "mbedtls/platform.h"
+#if defined(MBEDTLS_THREADING_C)
+#include "mbedtls/threading.h"
+#endif
 
 typedef struct {
     psa_key_slot_t key_slots[MBEDTLS_PSA_KEY_SLOT_COUNT];
@@ -30,6 +33,23 @@ typedef struct {
 } psa_global_data_t;
 
 static psa_global_data_t global_data;
+
+static uint8_t psa_get_key_slots_initialized(void)
+{
+    uint8_t initialized;
+
+#if defined(MBEDTLS_THREADING_C)
+    mbedtls_mutex_lock(&mbedtls_threading_psa_globaldata_mutex);
+#endif /* defined(MBEDTLS_THREADING_C) */
+
+    initialized = global_data.key_slots_initialized;
+
+#if defined(MBEDTLS_THREADING_C)
+    mbedtls_mutex_unlock(&mbedtls_threading_psa_globaldata_mutex);
+#endif /* defined(MBEDTLS_THREADING_C) */
+
+    return initialized;
+}
 
 int psa_is_valid_key_id(mbedtls_svc_key_id_t key, int vendor_ok)
 {
@@ -67,6 +87,9 @@ int psa_is_valid_key_id(mbedtls_svc_key_id_t key, int vendor_ok)
  * On success, the function locks the key slot. It is the responsibility of
  * the caller to unlock the key slot when it does not access it anymore.
  *
+ * If multi-threading is enabled, the caller must hold the
+ * global key slot mutex.
+ *
  * \param key           Key identifier to query.
  * \param[out] p_slot   On success, `*p_slot` contains a pointer to the
  *                      key slot containing the description of the key
@@ -91,16 +114,14 @@ static psa_status_t psa_get_and_lock_key_slot_in_memory(
     if (psa_key_id_is_volatile(key_id)) {
         slot = &global_data.key_slots[key_id - PSA_KEY_ID_VOLATILE_MIN];
 
-        /*
-         * Check if both the PSA key identifier key_id and the owner
-         * identifier of key match those of the key slot.
-         *
-         * Note that, if the key slot is not occupied, its PSA key identifier
-         * is equal to zero. This is an invalid value for a PSA key identifier
-         * and thus cannot be equal to the valid PSA key identifier key_id.
-         */
-        status = mbedtls_svc_key_id_equal(key, slot->attr.id) ?
-                 PSA_SUCCESS : PSA_ERROR_DOES_NOT_EXIST;
+        /* Check if both the PSA key identifier key_id and the owner
+         * identifier of key match those of the key slot. */
+        if ((slot->state == PSA_SLOT_FULL) &&
+            (mbedtls_svc_key_id_equal(key, slot->attr.id))) {
+            status = PSA_SUCCESS;
+        } else {
+            status = PSA_ERROR_DOES_NOT_EXIST;
+        }
     } else {
         if (!psa_is_valid_key_id(key, 1)) {
             return PSA_ERROR_INVALID_HANDLE;
@@ -108,7 +129,9 @@ static psa_status_t psa_get_and_lock_key_slot_in_memory(
 
         for (slot_idx = 0; slot_idx < MBEDTLS_PSA_KEY_SLOT_COUNT; slot_idx++) {
             slot = &global_data.key_slots[slot_idx];
-            if (mbedtls_svc_key_id_equal(key, slot->attr.id)) {
+            /* Only consider slots which are in a full state. */
+            if ((slot->state == PSA_SLOT_FULL) &&
+                (mbedtls_svc_key_id_equal(key, slot->attr.id))) {
                 break;
             }
         }
@@ -117,7 +140,7 @@ static psa_status_t psa_get_and_lock_key_slot_in_memory(
     }
 
     if (status == PSA_SUCCESS) {
-        status = psa_lock_key_slot(slot);
+        status = psa_register_read(slot);
         if (status == PSA_SUCCESS) {
             *p_slot = slot;
         }
@@ -130,7 +153,9 @@ psa_status_t psa_initialize_key_slots(void)
 {
     /* Nothing to do: program startup and psa_wipe_all_key_slots() both
      * guarantee that the key slots are initialized to all-zero, which
-     * means that all the key slots are in a valid, empty state. */
+     * means that all the key slots are in a valid, empty state. The global
+     * data mutex is already held when calling this function, so no need to
+     * lock it here, to set the flag. */
     global_data.key_slots_initialized = 1;
     return PSA_SUCCESS;
 }
@@ -141,36 +166,39 @@ void psa_wipe_all_key_slots(void)
 
     for (slot_idx = 0; slot_idx < MBEDTLS_PSA_KEY_SLOT_COUNT; slot_idx++) {
         psa_key_slot_t *slot = &global_data.key_slots[slot_idx];
-        slot->lock_count = 1;
+        slot->registered_readers = 1;
+        slot->state = PSA_SLOT_PENDING_DELETION;
         (void) psa_wipe_key_slot(slot);
     }
+    /* The global data mutex is already held when calling this function. */
     global_data.key_slots_initialized = 0;
 }
 
-psa_status_t psa_get_empty_key_slot(psa_key_id_t *volatile_key_id,
-                                    psa_key_slot_t **p_slot)
+psa_status_t psa_reserve_free_key_slot(psa_key_id_t *volatile_key_id,
+                                       psa_key_slot_t **p_slot)
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     size_t slot_idx;
-    psa_key_slot_t *selected_slot, *unlocked_persistent_key_slot;
+    psa_key_slot_t *selected_slot, *unused_persistent_key_slot;
 
-    if (!global_data.key_slots_initialized) {
+    if (!psa_get_key_slots_initialized()) {
         status = PSA_ERROR_BAD_STATE;
         goto error;
     }
 
-    selected_slot = unlocked_persistent_key_slot = NULL;
+    selected_slot = unused_persistent_key_slot = NULL;
     for (slot_idx = 0; slot_idx < MBEDTLS_PSA_KEY_SLOT_COUNT; slot_idx++) {
         psa_key_slot_t *slot = &global_data.key_slots[slot_idx];
-        if (!psa_is_key_slot_occupied(slot)) {
+        if (slot->state == PSA_SLOT_EMPTY) {
             selected_slot = slot;
             break;
         }
 
-        if ((unlocked_persistent_key_slot == NULL) &&
-            (!PSA_KEY_LIFETIME_IS_VOLATILE(slot->attr.lifetime)) &&
-            (!psa_is_key_slot_locked(slot))) {
-            unlocked_persistent_key_slot = slot;
+        if ((unused_persistent_key_slot == NULL) &&
+            (slot->state == PSA_SLOT_FULL) &&
+            (!psa_key_slot_has_readers(slot)) &&
+            (!PSA_KEY_LIFETIME_IS_VOLATILE(slot->attr.lifetime))) {
+            unused_persistent_key_slot = slot;
         }
     }
 
@@ -182,14 +210,18 @@ psa_status_t psa_get_empty_key_slot(psa_key_id_t *volatile_key_id,
      * storage.
      */
     if ((selected_slot == NULL) &&
-        (unlocked_persistent_key_slot != NULL)) {
-        selected_slot = unlocked_persistent_key_slot;
-        selected_slot->lock_count = 1;
-        psa_wipe_key_slot(selected_slot);
+        (unused_persistent_key_slot != NULL)) {
+        selected_slot = unused_persistent_key_slot;
+        psa_register_read(selected_slot);
+        status = psa_wipe_key_slot(selected_slot);
+        if (status != PSA_SUCCESS) {
+            goto error;
+        }
     }
 
     if (selected_slot != NULL) {
-        status = psa_lock_key_slot(selected_slot);
+        status = psa_key_slot_state_transition(selected_slot, PSA_SLOT_EMPTY,
+                                               PSA_SLOT_FILLING);
         if (status != PSA_SUCCESS) {
             goto error;
         }
@@ -242,6 +274,9 @@ static psa_status_t psa_load_persistent_key_into_slot(psa_key_slot_t *slot)
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
 
     status = psa_copy_key_material_into_slot(slot, key_data, key_data_length);
+    if (status != PSA_SUCCESS) {
+        goto exit;
+    }
 
 exit:
     psa_free_persistent_key_data(key_data, key_data_length);
@@ -314,8 +349,7 @@ static psa_status_t psa_load_builtin_key_into_slot(psa_key_slot_t *slot)
 
     /* Copy actual key length and core attributes into the slot on success */
     slot->key.bytes = key_buffer_length;
-    slot->attr = attributes.core;
-
+    slot->attr = attributes;
 exit:
     if (status != PSA_SUCCESS) {
         psa_remove_key_data_from_memory(slot);
@@ -330,16 +364,31 @@ psa_status_t psa_get_and_lock_key_slot(mbedtls_svc_key_id_t key,
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
     *p_slot = NULL;
-    if (!global_data.key_slots_initialized) {
+    if (!psa_get_key_slots_initialized()) {
         return PSA_ERROR_BAD_STATE;
     }
 
+#if defined(MBEDTLS_THREADING_C)
+    /* We need to set status as success, otherwise CORRUPTION_DETECTED
+     * would be returned if the lock fails. */
+    status = PSA_SUCCESS;
+    /* If the key is persistent and not loaded, we cannot unlock the mutex
+     * between checking if the key is loaded and setting the slot as FULL,
+     * as otherwise another thread may load and then destroy the key
+     * in the meantime. */
+    PSA_THREADING_CHK_RET(mbedtls_mutex_lock(
+                              &mbedtls_threading_key_slot_mutex));
+#endif
     /*
      * On success, the pointer to the slot is passed directly to the caller
      * thus no need to unlock the key slot here.
      */
     status = psa_get_and_lock_key_slot_in_memory(key, p_slot);
     if (status != PSA_ERROR_DOES_NOT_EXIST) {
+#if defined(MBEDTLS_THREADING_C)
+        PSA_THREADING_CHK_RET(mbedtls_mutex_unlock(
+                                  &mbedtls_threading_key_slot_mutex));
+#endif
         return status;
     }
 
@@ -348,8 +397,12 @@ psa_status_t psa_get_and_lock_key_slot(mbedtls_svc_key_id_t key,
     defined(MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS)
     psa_key_id_t volatile_key_id;
 
-    status = psa_get_empty_key_slot(&volatile_key_id, p_slot);
+    status = psa_reserve_free_key_slot(&volatile_key_id, p_slot);
     if (status != PSA_SUCCESS) {
+#if defined(MBEDTLS_THREADING_C)
+        PSA_THREADING_CHK_RET(mbedtls_mutex_unlock(
+                                  &mbedtls_threading_key_slot_mutex));
+#endif
         return status;
     }
 
@@ -370,41 +423,85 @@ psa_status_t psa_get_and_lock_key_slot(mbedtls_svc_key_id_t key,
 
     if (status != PSA_SUCCESS) {
         psa_wipe_key_slot(*p_slot);
+
+        /* If the key does not exist, we need to return
+         * PSA_ERROR_INVALID_HANDLE. */
         if (status == PSA_ERROR_DOES_NOT_EXIST) {
             status = PSA_ERROR_INVALID_HANDLE;
         }
     } else {
         /* Add implicit usage flags. */
         psa_extend_key_usage_flags(&(*p_slot)->attr.policy.usage);
+
+        psa_key_slot_state_transition((*p_slot), PSA_SLOT_FILLING,
+                                      PSA_SLOT_FULL);
+        status = psa_register_read(*p_slot);
     }
 
-    return status;
 #else /* MBEDTLS_PSA_CRYPTO_STORAGE_C || MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS */
-    return PSA_ERROR_INVALID_HANDLE;
+    status = PSA_ERROR_INVALID_HANDLE;
 #endif /* MBEDTLS_PSA_CRYPTO_STORAGE_C || MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS */
+
+    if (status != PSA_SUCCESS) {
+        *p_slot = NULL;
+    }
+#if defined(MBEDTLS_THREADING_C)
+    PSA_THREADING_CHK_RET(mbedtls_mutex_unlock(
+                              &mbedtls_threading_key_slot_mutex));
+#endif
+    return status;
 }
 
-psa_status_t psa_unlock_key_slot(psa_key_slot_t *slot)
+psa_status_t psa_unregister_read(psa_key_slot_t *slot)
 {
     if (slot == NULL) {
         return PSA_SUCCESS;
     }
+    if ((slot->state != PSA_SLOT_FULL) &&
+        (slot->state != PSA_SLOT_PENDING_DELETION)) {
+        return PSA_ERROR_CORRUPTION_DETECTED;
+    }
 
-    if (slot->lock_count > 0) {
-        slot->lock_count--;
+    /* If we are the last reader and the slot is marked for deletion,
+     * we must wipe the slot here. */
+    if ((slot->state == PSA_SLOT_PENDING_DELETION) &&
+        (slot->registered_readers == 1)) {
+        return psa_wipe_key_slot(slot);
+    }
+
+    if (psa_key_slot_has_readers(slot)) {
+        slot->registered_readers--;
         return PSA_SUCCESS;
     }
 
     /*
      * As the return error code may not be handled in case of multiple errors,
-     * do our best to report if the lock counter is equal to zero. Assert with
-     * MBEDTLS_TEST_HOOK_TEST_ASSERT that the lock counter is strictly greater
-     * than zero: if the MBEDTLS_TEST_HOOKS configuration option is enabled and
+     * do our best to report if there are no registered readers. Assert with
+     * MBEDTLS_TEST_HOOK_TEST_ASSERT that there are registered readers:
+     * if the MBEDTLS_TEST_HOOKS configuration option is enabled and
      * the function is called as part of the execution of a test suite, the
      * execution of the test suite is stopped in error if the assertion fails.
      */
-    MBEDTLS_TEST_HOOK_TEST_ASSERT(slot->lock_count > 0);
+    MBEDTLS_TEST_HOOK_TEST_ASSERT(psa_key_slot_has_readers(slot));
     return PSA_ERROR_CORRUPTION_DETECTED;
+}
+
+psa_status_t psa_unregister_read_under_mutex(psa_key_slot_t *slot)
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+#if defined(MBEDTLS_THREADING_C)
+    /* We need to set status as success, otherwise CORRUPTION_DETECTED
+     * would be returned if the lock fails. */
+    status = PSA_SUCCESS;
+    PSA_THREADING_CHK_RET(mbedtls_mutex_lock(
+                              &mbedtls_threading_key_slot_mutex));
+#endif
+    status = psa_unregister_read(slot);
+#if defined(MBEDTLS_THREADING_C)
+    PSA_THREADING_CHK_RET(mbedtls_mutex_unlock(
+                              &mbedtls_threading_key_slot_mutex));
+#endif
+    return status;
 }
 
 psa_status_t psa_validate_key_location(psa_key_lifetime_t lifetime,
@@ -470,7 +567,7 @@ psa_status_t psa_open_key(mbedtls_svc_key_id_t key, psa_key_handle_t *handle)
 
     *handle = key;
 
-    return psa_unlock_key_slot(slot);
+    return psa_unregister_read_under_mutex(slot);
 
 #else /* MBEDTLS_PSA_CRYPTO_STORAGE_C || MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS */
     (void) key;
@@ -481,44 +578,78 @@ psa_status_t psa_open_key(mbedtls_svc_key_id_t key, psa_key_handle_t *handle)
 
 psa_status_t psa_close_key(psa_key_handle_t handle)
 {
-    psa_status_t status;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_key_slot_t *slot;
 
     if (psa_key_handle_is_null(handle)) {
         return PSA_SUCCESS;
     }
 
+#if defined(MBEDTLS_THREADING_C)
+    /* We need to set status as success, otherwise CORRUPTION_DETECTED
+     * would be returned if the lock fails. */
+    status = PSA_SUCCESS;
+    PSA_THREADING_CHK_RET(mbedtls_mutex_lock(
+                              &mbedtls_threading_key_slot_mutex));
+#endif
     status = psa_get_and_lock_key_slot_in_memory(handle, &slot);
     if (status != PSA_SUCCESS) {
         if (status == PSA_ERROR_DOES_NOT_EXIST) {
             status = PSA_ERROR_INVALID_HANDLE;
         }
-
+#if defined(MBEDTLS_THREADING_C)
+        PSA_THREADING_CHK_RET(mbedtls_mutex_unlock(
+                                  &mbedtls_threading_key_slot_mutex));
+#endif
         return status;
     }
-    if (slot->lock_count <= 1) {
-        return psa_wipe_key_slot(slot);
+
+    if (slot->registered_readers == 1) {
+        status = psa_wipe_key_slot(slot);
     } else {
-        return psa_unlock_key_slot(slot);
+        status = psa_unregister_read(slot);
     }
+#if defined(MBEDTLS_THREADING_C)
+    PSA_THREADING_CHK_RET(mbedtls_mutex_unlock(
+                              &mbedtls_threading_key_slot_mutex));
+#endif
+
+    return status;
 }
 
 psa_status_t psa_purge_key(mbedtls_svc_key_id_t key)
 {
-    psa_status_t status;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_key_slot_t *slot;
 
+#if defined(MBEDTLS_THREADING_C)
+    /* We need to set status as success, otherwise CORRUPTION_DETECTED
+     * would be returned if the lock fails. */
+    status = PSA_SUCCESS;
+    PSA_THREADING_CHK_RET(mbedtls_mutex_lock(
+                              &mbedtls_threading_key_slot_mutex));
+#endif
     status = psa_get_and_lock_key_slot_in_memory(key, &slot);
     if (status != PSA_SUCCESS) {
+#if defined(MBEDTLS_THREADING_C)
+        PSA_THREADING_CHK_RET(mbedtls_mutex_unlock(
+                                  &mbedtls_threading_key_slot_mutex));
+#endif
         return status;
     }
 
     if ((!PSA_KEY_LIFETIME_IS_VOLATILE(slot->attr.lifetime)) &&
-        (slot->lock_count <= 1)) {
-        return psa_wipe_key_slot(slot);
+        (slot->registered_readers == 1)) {
+        status = psa_wipe_key_slot(slot);
     } else {
-        return psa_unlock_key_slot(slot);
+        status = psa_unregister_read(slot);
     }
+#if defined(MBEDTLS_THREADING_C)
+    PSA_THREADING_CHK_RET(mbedtls_mutex_unlock(
+                              &mbedtls_threading_key_slot_mutex));
+#endif
+
+    return status;
 }
 
 void mbedtls_psa_get_stats(mbedtls_psa_stats_t *stats)
@@ -529,10 +660,10 @@ void mbedtls_psa_get_stats(mbedtls_psa_stats_t *stats)
 
     for (slot_idx = 0; slot_idx < MBEDTLS_PSA_KEY_SLOT_COUNT; slot_idx++) {
         const psa_key_slot_t *slot = &global_data.key_slots[slot_idx];
-        if (psa_is_key_slot_locked(slot)) {
+        if (psa_key_slot_has_readers(slot)) {
             ++stats->locked_slots;
         }
-        if (!psa_is_key_slot_occupied(slot)) {
+        if (slot->state == PSA_SLOT_EMPTY) {
             ++stats->empty_slots;
             continue;
         }

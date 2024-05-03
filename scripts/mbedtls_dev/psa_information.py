@@ -6,7 +6,8 @@
 #
 
 import re
-from typing import Dict, FrozenSet, List, Optional
+from collections import OrderedDict
+from typing import FrozenSet, List, Optional
 
 from . import macro_collector
 
@@ -81,27 +82,36 @@ def automatic_dependencies(*expressions: str) -> List[str]:
     """
     used = set()
     for expr in expressions:
-        used.update(re.findall(r'PSA_(?:ALG|ECC_FAMILY|KEY_TYPE)_\w+', expr))
+        used.update(re.findall(r'PSA_(?:ALG|ECC_FAMILY|DH_FAMILY|KEY_TYPE)_\w+', expr))
     used.difference_update(SYMBOLS_WITHOUT_DEPENDENCY)
     return sorted(psa_want_symbol(name) for name in used)
 
 # Define set of regular expressions and dependencies to optionally append
-# extra dependencies for test case.
-AES_128BIT_ONLY_DEP_REGEX = r'AES\s(192|256)'
-AES_128BIT_ONLY_DEP = ["!MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH"]
+# extra dependencies for test case based on key description.
 
-DEPENDENCY_FROM_KEY = {
-    AES_128BIT_ONLY_DEP_REGEX: AES_128BIT_ONLY_DEP
-}#type: Dict[str, List[str]]
-def generate_key_dependencies(description: str) -> List[str]:
-    """Return additional dependencies based on pairs of REGEX and dependencies.
+# Skip AES test cases which require 192- or 256-bit key
+# if MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH defined
+AES_128BIT_ONLY_DEP_REGEX = re.compile(r'AES\s(192|256)')
+AES_128BIT_ONLY_DEP = ['!MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH']
+# Skip AES/ARIA/CAMELLIA test cases which require decrypt operation in ECB mode
+# if MBEDTLS_BLOCK_CIPHER_NO_DECRYPT enabled.
+ECB_NO_PADDING_DEP_REGEX = re.compile(r'(AES|ARIA|CAMELLIA).*ECB_NO_PADDING')
+ECB_NO_PADDING_DEP = ['!MBEDTLS_BLOCK_CIPHER_NO_DECRYPT']
+
+DEPENDENCY_FROM_DESCRIPTION = OrderedDict()
+DEPENDENCY_FROM_DESCRIPTION[AES_128BIT_ONLY_DEP_REGEX] = AES_128BIT_ONLY_DEP
+DEPENDENCY_FROM_DESCRIPTION[ECB_NO_PADDING_DEP_REGEX] = ECB_NO_PADDING_DEP
+def generate_deps_from_description(
+        description: str
+    ) -> List[str]:
+    """Return additional dependencies based on test case description and REGEX.
     """
-    deps = []
-    for regex, dep in DEPENDENCY_FROM_KEY.items():
+    dep_list = []
+    for regex, deps in DEPENDENCY_FROM_DESCRIPTION.items():
         if re.search(regex, description):
-            deps += dep
+            dep_list += deps
 
-    return deps
+    return dep_list
 
 # A temporary hack: at the time of writing, not all dependency symbols
 # are implemented yet. Skip test cases for which the dependency symbols are

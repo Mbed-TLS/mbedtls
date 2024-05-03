@@ -40,5 +40,7 @@
 //#define MBEDTLS_MD_C
 //#define MBEDTLS_PEM_PARSE_C
 //#define MBEDTLS_BASE64_C
+//#define MBEDTLS_THREADING_C
+//#define MBEDTLS_THREADING_PTHREAD
 
 #endif /* MBEDTLS_CONFIG_H */

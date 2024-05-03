@@ -103,11 +103,7 @@ echo
 echo '################ compat.sh ################'
 {
     echo '#### compat.sh: Default versions'
-    sh compat.sh
-    echo
-
-    echo '#### compat.sh: null cipher'
-    sh compat.sh -e '^$' -f 'NULL'
+    sh compat.sh -e 'ARIA\|CHACHA'
     echo
 
     echo '#### compat.sh: next (ARIA, ChaCha)'

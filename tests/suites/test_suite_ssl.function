@@ -12,6 +12,57 @@
 
 #define SSL_MESSAGE_QUEUE_INIT      { NULL, 0, 0, 0 }
 
+/* Mnemonics for the early data test scenarios */
+#define TEST_EARLY_DATA_ACCEPTED 0
+#define TEST_EARLY_DATA_NO_INDICATION_SENT 1
+#define TEST_EARLY_DATA_SERVER_REJECTS 2
+#define TEST_EARLY_DATA_HRR 3
+#define TEST_EARLY_DATA_SAME_ALPN 4
+#define TEST_EARLY_DATA_DIFF_ALPN 5
+#define TEST_EARLY_DATA_NO_INITIAL_ALPN 6
+#define TEST_EARLY_DATA_NO_LATER_ALPN 7
+
+#if (!defined(MBEDTLS_SSL_PROTO_TLS1_2)) && \
+    defined(MBEDTLS_SSL_EARLY_DATA) && defined(MBEDTLS_SSL_CLI_C) && \
+    defined(MBEDTLS_SSL_SRV_C) && defined(MBEDTLS_DEBUG_C) && \
+    defined(MBEDTLS_TEST_AT_LEAST_ONE_TLS1_3_CIPHERSUITE) && \
+    defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED) && \
+    defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED) && \
+    defined(MBEDTLS_MD_CAN_SHA256) && \
+    defined(MBEDTLS_ECP_HAVE_SECP256R1) && defined(MBEDTLS_ECP_HAVE_SECP384R1) && \
+    defined(MBEDTLS_PK_CAN_ECDSA_VERIFY) && defined(MBEDTLS_SSL_SESSION_TICKETS)
+/*
+ * Test function to write early data for negative tests where
+ * mbedtls_ssl_write_early_data() cannot be used.
+ */
+static int write_early_data(mbedtls_ssl_context *ssl,
+                            unsigned char *buf, size_t len)
+{
+    int ret = mbedtls_ssl_get_max_out_record_payload(ssl);
+
+    TEST_ASSERT(ret > 0);
+    TEST_LE_U(len, (size_t) ret);
+
+    ret = mbedtls_ssl_flush_output(ssl);
+    TEST_EQUAL(ret, 0);
+    TEST_EQUAL(ssl->out_left, 0);
+
+    ssl->out_msglen = len;
+    ssl->out_msgtype = MBEDTLS_SSL_MSG_APPLICATION_DATA;
+    if (len > 0) {
+        memcpy(ssl->out_msg, buf, len);
+    }
+
+    ret = mbedtls_ssl_write_record(ssl, 1);
+    TEST_EQUAL(ret, 0);
+
+    ret = len;
+
+exit:
+    return ret;
+}
+#endif
+
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -1125,6 +1176,8 @@ void ssl_dtls_replay(data_t *prevs, data_t *new, int ret)
                                             MBEDTLS_SSL_IS_CLIENT,
                                             MBEDTLS_SSL_TRANSPORT_DATAGRAM,
                                             MBEDTLS_SSL_PRESET_DEFAULT) == 0);
+    mbedtls_ssl_conf_rng(&conf, mbedtls_test_random, NULL);
+
     TEST_ASSERT(mbedtls_ssl_setup(&ssl, &conf) == 0);
 
     /* Read previous record numbers */
@@ -1145,21 +1198,21 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED */
-void ssl_set_hostname_twice(char *hostname0, char *hostname1)
+void ssl_set_hostname_twice(char *input_hostname0, char *input_hostname1)
 {
-    const char *hostname;
+    const char *output_hostname;
     mbedtls_ssl_context ssl;
 
     mbedtls_ssl_init(&ssl);
     USE_PSA_INIT();
 
-    TEST_ASSERT(mbedtls_ssl_set_hostname(&ssl, hostname0) == 0);
-    hostname = mbedtls_ssl_get_hostname(&ssl);
-    TEST_ASSERT(strcmp(hostname0, hostname) == 0);
+    TEST_ASSERT(mbedtls_ssl_set_hostname(&ssl, input_hostname0) == 0);
+    output_hostname = mbedtls_ssl_get_hostname(&ssl);
+    TEST_ASSERT(strcmp(input_hostname0, output_hostname) == 0);
 
-    TEST_ASSERT(mbedtls_ssl_set_hostname(&ssl, hostname1) == 0);
-    hostname = mbedtls_ssl_get_hostname(&ssl);
-    TEST_ASSERT(strcmp(hostname1, hostname) == 0);
+    TEST_ASSERT(mbedtls_ssl_set_hostname(&ssl, input_hostname1) == 0);
+    output_hostname = mbedtls_ssl_get_hostname(&ssl);
+    TEST_ASSERT(strcmp(input_hostname1, output_hostname) == 0);
 
 exit:
     mbedtls_ssl_free(&ssl);
@@ -1941,18 +1994,22 @@ void ssl_serialize_session_save_load(int ticket_len, char *crt_file,
     USE_PSA_INIT();
 
     /* Prepare a dummy session to work on */
-    ((void) endpoint_type);
     ((void) tls_version);
+    ((void) ticket_len);
+    ((void) crt_file);
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
     if (tls_version == MBEDTLS_SSL_VERSION_TLS1_3) {
         TEST_ASSERT(mbedtls_test_ssl_tls13_populate_session(
                         &original, 0, endpoint_type) == 0);
-    } else
-#endif
-    {
-        TEST_ASSERT(mbedtls_test_ssl_tls12_populate_session(
-                        &original, ticket_len, crt_file) == 0);
     }
+#endif
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
+    if (tls_version == MBEDTLS_SSL_VERSION_TLS1_2) {
+        TEST_ASSERT(mbedtls_test_ssl_tls12_populate_session(
+                        &original, ticket_len, endpoint_type, crt_file) == 0);
+    }
+#endif
 
     /* Serialize it */
     TEST_ASSERT(mbedtls_ssl_session_save(&original, NULL, 0, &len)
@@ -1968,9 +2025,16 @@ void ssl_serialize_session_save_load(int ticket_len, char *crt_file,
      * Make sure both session structures are identical
      */
 #if defined(MBEDTLS_HAVE_TIME)
-    TEST_ASSERT(original.start == restored.start);
+    if (tls_version == MBEDTLS_SSL_VERSION_TLS1_2) {
+        TEST_ASSERT(original.start == restored.start);
+    }
+#if defined(MBEDTLS_SSL_SESSION_TICKETS) && defined(MBEDTLS_SSL_SRV_C)
+    TEST_ASSERT(original.ticket_creation_time == restored.ticket_creation_time);
 #endif
+#endif /* MBEDTLS_HAVE_TIME */
+
     TEST_ASSERT(original.tls_version == restored.tls_version);
+    TEST_ASSERT(original.endpoint == restored.endpoint);
     TEST_ASSERT(original.ciphersuite == restored.ciphersuite);
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
     if (tls_version == MBEDTLS_SSL_VERSION_TLS1_2) {
@@ -2029,8 +2093,7 @@ void ssl_serialize_session_save_load(int ticket_len, char *crt_file,
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
     if (tls_version == MBEDTLS_SSL_VERSION_TLS1_3) {
-        TEST_ASSERT(original.endpoint == restored.endpoint);
-        TEST_ASSERT(original.ciphersuite == restored.ciphersuite);
+#if defined(MBEDTLS_SSL_SESSION_TICKETS)
         TEST_ASSERT(original.ticket_age_add == restored.ticket_age_add);
         TEST_ASSERT(original.ticket_flags == restored.ticket_flags);
         TEST_ASSERT(original.resumption_key_len == restored.resumption_key_len);
@@ -2041,15 +2104,26 @@ void ssl_serialize_session_save_load(int ticket_len, char *crt_file,
                                restored.resumption_key,
                                original.resumption_key_len) == 0);
         }
-#if defined(MBEDTLS_HAVE_TIME) && defined(MBEDTLS_SSL_SRV_C)
+#endif /* MBEDTLS_SSL_SESSION_TICKETS */
+
+#if defined(MBEDTLS_SSL_SRV_C)
         if (endpoint_type == MBEDTLS_SSL_IS_SERVER) {
-            TEST_ASSERT(original.start == restored.start);
-        }
+#if defined(MBEDTLS_SSL_SESSION_TICKETS)
+#if defined(MBEDTLS_SSL_EARLY_DATA) && defined(MBEDTLS_SSL_ALPN)
+            TEST_ASSERT(original.ticket_alpn != NULL);
+            TEST_ASSERT(restored.ticket_alpn != NULL);
+            TEST_MEMORY_COMPARE(original.ticket_alpn, strlen(original.ticket_alpn),
+                                restored.ticket_alpn, strlen(restored.ticket_alpn));
 #endif
-#if defined(MBEDTLS_SSL_SESSION_TICKETS) && defined(MBEDTLS_SSL_CLI_C)
+#endif /* MBEDTLS_SSL_SESSION_TICKETS */
+        }
+#endif /* MBEDTLS_SSL_SRV_C */
+
+#if defined(MBEDTLS_SSL_CLI_C)
         if (endpoint_type == MBEDTLS_SSL_IS_CLIENT) {
+#if defined(MBEDTLS_SSL_SESSION_TICKETS)
 #if defined(MBEDTLS_HAVE_TIME)
-            TEST_ASSERT(original.ticket_received == restored.ticket_received);
+            TEST_ASSERT(original.ticket_reception_time == restored.ticket_reception_time);
 #endif
             TEST_ASSERT(original.ticket_lifetime == restored.ticket_lifetime);
             TEST_ASSERT(original.ticket_len == restored.ticket_len);
@@ -2060,11 +2134,26 @@ void ssl_serialize_session_save_load(int ticket_len, char *crt_file,
                                    restored.ticket,
                                    original.ticket_len) == 0);
             }
-
-        }
+#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
+            TEST_ASSERT(original.hostname != NULL);
+            TEST_ASSERT(restored.hostname != NULL);
+            TEST_MEMORY_COMPARE(original.hostname, strlen(original.hostname),
+                                restored.hostname, strlen(restored.hostname));
 #endif
+#endif /* MBEDTLS_SSL_SESSION_TICKETS */
+        }
+#endif /* MBEDTLS_SSL_CLI_C */
     }
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
+
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+    TEST_ASSERT(
+        original.max_early_data_size == restored.max_early_data_size);
+#endif
+
+#if defined(MBEDTLS_SSL_RECORD_SIZE_LIMIT)
+    TEST_ASSERT(original.record_size_limit == restored.record_size_limit);
+#endif
 
 exit:
     mbedtls_ssl_session_free(&original);
@@ -2089,17 +2178,27 @@ void ssl_serialize_session_load_save(int ticket_len, char *crt_file,
     USE_PSA_INIT();
 
     /* Prepare a dummy session to work on */
-    ((void) endpoint_type);
-    ((void) tls_version);
+    ((void) ticket_len);
+    ((void) crt_file);
+
+    switch (tls_version) {
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
-    if (tls_version == MBEDTLS_SSL_VERSION_TLS1_3) {
-        TEST_ASSERT(mbedtls_test_ssl_tls13_populate_session(
-                        &session, 0, endpoint_type) == 0);
-    } else
+        case MBEDTLS_SSL_VERSION_TLS1_3:
+            TEST_ASSERT(mbedtls_test_ssl_tls13_populate_session(
+                            &session, 0, endpoint_type) == 0);
+            break;
 #endif
-    {
-        TEST_ASSERT(mbedtls_test_ssl_tls12_populate_session(
-                        &session, ticket_len, crt_file) == 0);
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
+        case MBEDTLS_SSL_VERSION_TLS1_2:
+            TEST_ASSERT(mbedtls_test_ssl_tls12_populate_session(
+                            &session, ticket_len, endpoint_type, crt_file) == 0);
+            break;
+#endif
+        default:
+            /* should never happen */
+            TEST_ASSERT(0);
+            break;
     }
 
     /* Get desired buffer size for serializing */
@@ -2152,18 +2251,28 @@ void ssl_serialize_session_save_buf_size(int ticket_len, char *crt_file,
     USE_PSA_INIT();
 
     /* Prepare dummy session and get serialized size */
-    ((void) endpoint_type);
-    ((void) tls_version);
+    ((void) ticket_len);
+    ((void) crt_file);
+
+    switch (tls_version) {
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
-    if (tls_version == MBEDTLS_SSL_VERSION_TLS1_3) {
-        TEST_ASSERT(mbedtls_test_ssl_tls13_populate_session(
-                        &session, 0, endpoint_type) == 0);
-    } else
+        case MBEDTLS_SSL_VERSION_TLS1_3:
+            TEST_ASSERT(mbedtls_test_ssl_tls13_populate_session(
+                            &session, 0, endpoint_type) == 0);
+            break;
 #endif
-    {
-        TEST_ASSERT(mbedtls_test_ssl_tls12_populate_session(
-                        &session, ticket_len, crt_file) == 0);
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
+        case MBEDTLS_SSL_VERSION_TLS1_2:
+            TEST_ASSERT(mbedtls_test_ssl_tls12_populate_session(
+                            &session, ticket_len, endpoint_type, crt_file) == 0);
+            break;
+#endif
+        default:
+            /* should never happen */
+            TEST_ASSERT(0);
+            break;
     }
+
     TEST_ASSERT(mbedtls_ssl_session_save(&session, NULL, 0, &good_len)
                 == MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL);
 
@@ -2201,18 +2310,30 @@ void ssl_serialize_session_load_buf_size(int ticket_len, char *crt_file,
     USE_PSA_INIT();
 
     /* Prepare serialized session data */
-    ((void) endpoint_type);
-    ((void) tls_version);
+    ((void) ticket_len);
+    ((void) crt_file);
+
+    switch (tls_version) {
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
-    if (tls_version == MBEDTLS_SSL_VERSION_TLS1_3) {
-        TEST_ASSERT(mbedtls_test_ssl_tls13_populate_session(
-                        &session, 0, endpoint_type) == 0);
-    } else
+        case MBEDTLS_SSL_VERSION_TLS1_3:
+            TEST_ASSERT(mbedtls_test_ssl_tls13_populate_session(
+                            &session, 0, endpoint_type) == 0);
+            break;
 #endif
-    {
-        TEST_ASSERT(mbedtls_test_ssl_tls12_populate_session(
-                        &session, ticket_len, crt_file) == 0);
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
+        case MBEDTLS_SSL_VERSION_TLS1_2:
+            TEST_ASSERT(mbedtls_test_ssl_tls12_populate_session(
+                            &session, ticket_len, endpoint_type, crt_file) == 0);
+            break;
+#endif
+
+        default:
+            /* should never happen */
+            TEST_ASSERT(0);
+            break;
     }
+
     TEST_ASSERT(mbedtls_ssl_session_save(&session, NULL, 0, &good_len)
                 == MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL);
     TEST_CALLOC(good_buf, good_len);
@@ -2260,17 +2381,26 @@ void ssl_session_serialize_version_check(int corrupt_major,
 
     mbedtls_ssl_session_init(&session);
     USE_PSA_INIT();
-    ((void) endpoint_type);
-    ((void) tls_version);
-#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
-    if (tls_version == MBEDTLS_SSL_VERSION_TLS1_3) {
-        TEST_ASSERT(mbedtls_test_ssl_tls13_populate_session(
-                        &session, 0, endpoint_type) == 0);
-    } else
-#endif
-    TEST_ASSERT(mbedtls_test_ssl_tls12_populate_session(
-                    &session, 0, NULL) == 0);
 
+    switch (tls_version) {
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
+        case MBEDTLS_SSL_VERSION_TLS1_3:
+            TEST_ASSERT(mbedtls_test_ssl_tls13_populate_session(
+                            &session, 0, endpoint_type) == 0);
+            break;
+#endif
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
+        case MBEDTLS_SSL_VERSION_TLS1_2:
+            TEST_ASSERT(mbedtls_test_ssl_tls12_populate_session(
+                            &session, 0, endpoint_type, NULL) == 0);
+
+            break;
+#endif
+        default:
+            /* should never happen */
+            TEST_ASSERT(0);
+            break;
+    }
 
     /* Infer length of serialized session. */
     TEST_ASSERT(mbedtls_ssl_session_save(&session,
@@ -2291,7 +2421,7 @@ void ssl_session_serialize_version_check(int corrupt_major,
      * corrupt them bit-by-bit. */
     for (cur_byte = 0; cur_byte < sizeof(should_corrupt_byte); cur_byte++) {
         int cur_bit;
-        unsigned char * const byte = &serialized_session[cur_byte];
+        unsigned char *const byte = &serialized_session[cur_byte];
 
         if (should_corrupt_byte[cur_byte] == 0) {
             continue;
@@ -2317,6 +2447,54 @@ exit:
 }
 /* END_CASE */
 
+/* BEGIN_CASE */
+void ssl_session_id_accessors_check(int tls_version)
+{
+    mbedtls_ssl_session session;
+    int ciphersuite_id;
+    const mbedtls_ssl_ciphersuite_t *ciphersuite_info;
+
+    mbedtls_ssl_session_init(&session);
+    USE_PSA_INIT();
+
+    switch (tls_version) {
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
+        case MBEDTLS_SSL_VERSION_TLS1_3:
+            ciphersuite_id = MBEDTLS_TLS1_3_AES_128_GCM_SHA256;
+            TEST_ASSERT(mbedtls_test_ssl_tls13_populate_session(
+                            &session, 0, MBEDTLS_SSL_IS_SERVER) == 0);
+            break;
+#endif
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
+        case MBEDTLS_SSL_VERSION_TLS1_2:
+            ciphersuite_id = MBEDTLS_TLS_PSK_WITH_AES_128_GCM_SHA256;
+            TEST_ASSERT(mbedtls_test_ssl_tls12_populate_session(
+                            &session, 0, MBEDTLS_SSL_IS_SERVER, NULL) == 0);
+
+            break;
+#endif
+        default:
+            /* should never happen */
+            TEST_ASSERT(0);
+            break;
+    }
+    TEST_ASSERT(*mbedtls_ssl_session_get_id(&session) == session.id);
+    TEST_ASSERT(mbedtls_ssl_session_get_id_len(&session) == session.id_len);
+    /* mbedtls_test_ssl_tls1x_populate_session sets a mock suite-id of 0xabcd */
+    TEST_ASSERT(mbedtls_ssl_session_get_ciphersuite_id(&session) == 0xabcd);
+
+    /* Test setting a reference id for tls1.3 and tls1.2 */
+    ciphersuite_info = mbedtls_ssl_ciphersuite_from_id(ciphersuite_id);
+    if (ciphersuite_info != NULL) {
+        TEST_ASSERT(mbedtls_ssl_ciphersuite_get_id(ciphersuite_info) == ciphersuite_id);
+    }
+
+exit:
+    mbedtls_ssl_session_free(&session);
+    USE_PSA_DONE();
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:MBEDTLS_RSA_C:MBEDTLS_ECP_HAVE_SECP384R1:!MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_PKCS1_V15:MBEDTLS_MD_CAN_SHA256 */
 void mbedtls_endpoint_sanity(int endpoint_type)
 {
@@ -2330,7 +2508,7 @@ void mbedtls_endpoint_sanity(int endpoint_type)
     MD_OR_USE_PSA_INIT();
 
     ret = mbedtls_test_ssl_endpoint_init(NULL, endpoint_type, &options,
-                                         NULL, NULL, NULL, NULL);
+                                         NULL, NULL, NULL);
     TEST_ASSERT(MBEDTLS_ERR_SSL_BAD_INPUT_DATA == ret);
 
     ret = mbedtls_test_ssl_endpoint_certificate_init(NULL, options.pk_alg,
@@ -2338,7 +2516,7 @@ void mbedtls_endpoint_sanity(int endpoint_type)
     TEST_ASSERT(MBEDTLS_ERR_SSL_BAD_INPUT_DATA == ret);
 
     ret = mbedtls_test_ssl_endpoint_init(&ep, endpoint_type, &options,
-                                         NULL, NULL, NULL, NULL);
+                                         NULL, NULL, NULL);
     TEST_ASSERT(ret == 0);
 
 exit:
@@ -2382,14 +2560,14 @@ void move_handshake_to_state(int endpoint_type, int tls_version, int state, int 
     mbedtls_platform_zeroize(&second_ep, sizeof(second_ep));
 
     ret = mbedtls_test_ssl_endpoint_init(&base_ep, endpoint_type, &options,
-                                         NULL, NULL, NULL, NULL);
+                                         NULL, NULL, NULL);
     TEST_ASSERT(ret == 0);
 
     ret = mbedtls_test_ssl_endpoint_init(
         &second_ep,
         (endpoint_type == MBEDTLS_SSL_IS_SERVER) ?
         MBEDTLS_SSL_IS_CLIENT : MBEDTLS_SSL_IS_SERVER,
-        &options, NULL, NULL, NULL, NULL);
+        &options, NULL, NULL, NULL);
 
     TEST_ASSERT(ret == 0);
 
@@ -2583,7 +2761,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:!MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_PKCS1_V15:MBEDTLS_RSA_C:MBEDTLS_AES_C:MBEDTLS_ECP_HAVE_SECP384R1:MBEDTLS_DEBUG_C:MBEDTLS_SSL_MAX_FRAGMENT_LENGTH:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_MD_CAN_SHA256:MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED */
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:!MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_PKCS1_V15:MBEDTLS_RSA_C:MBEDTLS_SSL_HAVE_AES:MBEDTLS_ECP_HAVE_SECP384R1:MBEDTLS_DEBUG_C:MBEDTLS_SSL_MAX_FRAGMENT_LENGTH:MBEDTLS_SSL_HAVE_CBC:MBEDTLS_MD_CAN_SHA256:MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED */
 void handshake_fragmentation(int mfl,
                              int expected_srv_hs_fragmentation,
                              int expected_cli_hs_fragmentation)
@@ -2817,6 +2995,7 @@ void conf_version(int endpoint, int transport,
     mbedtls_ssl_conf_transport(&conf, transport);
     mbedtls_ssl_conf_min_tls_version(&conf, min_tls_version);
     mbedtls_ssl_conf_max_tls_version(&conf, max_tls_version);
+    mbedtls_ssl_conf_rng(&conf, mbedtls_test_random, NULL);
 
     TEST_ASSERT(mbedtls_ssl_setup(&ssl, &conf) == expected_ssl_setup_result);
     TEST_EQUAL(mbedtls_ssl_conf_get_endpoint(
@@ -2858,6 +3037,8 @@ void conf_curve()
     mbedtls_ssl_init(&ssl);
     MD_OR_USE_PSA_INIT();
 
+    mbedtls_ssl_conf_rng(&conf, mbedtls_test_random, NULL);
+
     TEST_ASSERT(mbedtls_ssl_setup(&ssl, &conf) == 0);
 
     TEST_ASSERT(ssl.handshake != NULL && ssl.handshake->group_list != NULL);
@@ -2889,6 +3070,7 @@ void conf_group()
     mbedtls_ssl_config conf;
     mbedtls_ssl_config_init(&conf);
 
+    mbedtls_ssl_conf_rng(&conf, mbedtls_test_random, NULL);
     mbedtls_ssl_conf_max_tls_version(&conf, MBEDTLS_SSL_VERSION_TLS1_2);
     mbedtls_ssl_conf_min_tls_version(&conf, MBEDTLS_SSL_VERSION_TLS1_2);
 
@@ -2942,11 +3124,10 @@ void force_bad_session_id_len()
 
     TEST_ASSERT(mbedtls_test_ssl_endpoint_init(&client, MBEDTLS_SSL_IS_CLIENT,
                                                &options, NULL, NULL,
-                                               NULL, NULL) == 0);
+                                               NULL) == 0);
 
     TEST_ASSERT(mbedtls_test_ssl_endpoint_init(&server, MBEDTLS_SSL_IS_SERVER,
-                                               &options, NULL, NULL, NULL,
-                                               NULL) == 0);
+                                               &options, NULL, NULL, NULL) == 0);
 
     mbedtls_debug_set_threshold(1);
     mbedtls_ssl_conf_dbg(&server.conf, options.srv_log_fun,
@@ -2998,6 +3179,7 @@ void cookie_parsing(data_t *cookie, int exp_ret)
                                            MBEDTLS_SSL_TRANSPORT_DATAGRAM,
                                            MBEDTLS_SSL_PRESET_DEFAULT),
                0);
+    mbedtls_ssl_conf_rng(&conf, mbedtls_test_random, NULL);
 
     TEST_EQUAL(mbedtls_ssl_setup(&ssl, &conf), 0);
     TEST_EQUAL(mbedtls_ssl_check_dtls_clihlo_cookie(&ssl, ssl.cli_id,
@@ -3052,6 +3234,7 @@ void cid_sanity()
                                             MBEDTLS_SSL_TRANSPORT_STREAM,
                                             MBEDTLS_SSL_PRESET_DEFAULT)
                 == 0);
+    mbedtls_ssl_conf_rng(&conf, mbedtls_test_random, NULL);
 
     TEST_ASSERT(mbedtls_ssl_setup(&ssl, &conf) == 0);
 
@@ -3121,8 +3304,9 @@ void raw_key_agreement_fail(int bad_server_ecdhe_key)
     mbedtls_test_ssl_endpoint client, server;
     mbedtls_psa_stats_t stats;
     size_t free_slots_before = -1;
-    mbedtls_test_handshake_test_options options;
-    mbedtls_test_init_handshake_options(&options);
+    mbedtls_test_handshake_test_options client_options, server_options;
+    mbedtls_test_init_handshake_options(&client_options);
+    mbedtls_test_init_handshake_options(&server_options);
 
     uint16_t iana_tls_group_list[] = { MBEDTLS_SSL_IANA_TLS_GROUP_SECP256R1,
                                        MBEDTLS_SSL_IANA_TLS_GROUP_NONE };
@@ -3130,21 +3314,22 @@ void raw_key_agreement_fail(int bad_server_ecdhe_key)
     mbedtls_platform_zeroize(&client, sizeof(client));
     mbedtls_platform_zeroize(&server, sizeof(server));
 
-    options.pk_alg = MBEDTLS_PK_ECDSA;
-    options.server_min_version = MBEDTLS_SSL_VERSION_TLS1_2;
-    options.server_max_version = MBEDTLS_SSL_VERSION_TLS1_2;
-
     /* Client side, force SECP256R1 to make one key bitflip fail
      * the raw key agreement. Flipping the first byte makes the
      * required 0x04 identifier invalid. */
+    client_options.pk_alg = MBEDTLS_PK_ECDSA;
+    client_options.group_list = iana_tls_group_list;
     TEST_EQUAL(mbedtls_test_ssl_endpoint_init(&client, MBEDTLS_SSL_IS_CLIENT,
-                                              &options, NULL, NULL,
-                                              NULL, iana_tls_group_list), 0);
+                                              &client_options, NULL, NULL,
+                                              NULL), 0);
 
     /* Server side */
+    server_options.pk_alg = MBEDTLS_PK_ECDSA;
+    server_options.server_min_version = MBEDTLS_SSL_VERSION_TLS1_2;
+    server_options.server_max_version = MBEDTLS_SSL_VERSION_TLS1_2;
     TEST_EQUAL(mbedtls_test_ssl_endpoint_init(&server, MBEDTLS_SSL_IS_SERVER,
-                                              &options, NULL, NULL,
-                                              NULL, NULL), 0);
+                                              &server_options, NULL, NULL,
+                                              NULL), 0);
 
     TEST_EQUAL(mbedtls_test_mock_socket_connect(&(client.socket),
                                                 &(server.socket),
@@ -3180,7 +3365,8 @@ void raw_key_agreement_fail(int bad_server_ecdhe_key)
 exit:
     mbedtls_test_ssl_endpoint_free(&client, NULL);
     mbedtls_test_ssl_endpoint_free(&server, NULL);
-    mbedtls_test_free_handshake_options(&options);
+    mbedtls_test_free_handshake_options(&client_options);
+    mbedtls_test_free_handshake_options(&server_options);
 
     MD_OR_USE_PSA_DONE();
 }
@@ -3209,15 +3395,13 @@ void tls13_server_certificate_msg_invalid_vector_len()
 
     client_options.pk_alg = MBEDTLS_PK_ECDSA;
     ret = mbedtls_test_ssl_endpoint_init(&client_ep, MBEDTLS_SSL_IS_CLIENT,
-                                         &client_options, NULL, NULL, NULL,
-                                         NULL);
+                                         &client_options, NULL, NULL, NULL);
     TEST_EQUAL(ret, 0);
 
     mbedtls_test_init_handshake_options(&server_options);
     server_options.pk_alg = MBEDTLS_PK_ECDSA;
     ret = mbedtls_test_ssl_endpoint_init(&server_ep, MBEDTLS_SSL_IS_SERVER,
-                                         &server_options, NULL, NULL, NULL,
-                                         NULL);
+                                         &server_options, NULL, NULL, NULL);
     TEST_EQUAL(ret, 0);
 
     ret = mbedtls_test_mock_socket_connect(&(client_ep.socket),
@@ -3309,6 +3493,7 @@ void ssl_ecjpake_set_password(int use_opaque_arg)
                                            MBEDTLS_SSL_IS_CLIENT,
                                            MBEDTLS_SSL_TRANSPORT_STREAM,
                                            MBEDTLS_SSL_PRESET_DEFAULT), 0);
+    mbedtls_ssl_conf_rng(&conf, mbedtls_test_random, NULL);
 
     TEST_EQUAL(mbedtls_ssl_setup(&ssl, &conf), 0);
 
@@ -3438,5 +3623,1415 @@ void elliptic_curve_get_properties()
     goto exit;
 exit:
     MD_OR_USE_PSA_DONE();
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_SSL_CLI_C:MBEDTLS_SSL_SRV_C:MBEDTLS_TEST_AT_LEAST_ONE_TLS1_3_CIPHERSUITE:MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED:MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED:MBEDTLS_MD_CAN_SHA256:MBEDTLS_ECP_HAVE_SECP256R1:MBEDTLS_ECP_HAVE_SECP384R1:MBEDTLS_PK_CAN_ECDSA_VERIFY:MBEDTLS_SSL_SESSION_TICKETS */
+void tls13_resume_session_with_ticket()
+{
+    int ret = -1;
+    mbedtls_test_ssl_endpoint client_ep, server_ep;
+    mbedtls_test_handshake_test_options client_options;
+    mbedtls_test_handshake_test_options server_options;
+    mbedtls_ssl_session saved_session;
+
+    mbedtls_platform_zeroize(&client_ep, sizeof(client_ep));
+    mbedtls_platform_zeroize(&server_ep, sizeof(server_ep));
+    mbedtls_test_init_handshake_options(&client_options);
+    mbedtls_test_init_handshake_options(&server_options);
+    mbedtls_ssl_session_init(&saved_session);
+
+    PSA_INIT();
+
+    /*
+     * Run first handshake to get a ticket from the server.
+     */
+    client_options.pk_alg = MBEDTLS_PK_ECDSA;
+    server_options.pk_alg = MBEDTLS_PK_ECDSA;
+
+    ret = mbedtls_test_get_tls13_ticket(&client_options, &server_options,
+                                        &saved_session);
+    TEST_EQUAL(ret, 0);
+
+    /*
+     * Prepare for handshake with the ticket.
+     */
+    ret = mbedtls_test_ssl_endpoint_init(&client_ep, MBEDTLS_SSL_IS_CLIENT,
+                                         &client_options, NULL, NULL, NULL);
+    TEST_EQUAL(ret, 0);
+
+    ret = mbedtls_test_ssl_endpoint_init(&server_ep, MBEDTLS_SSL_IS_SERVER,
+                                         &server_options, NULL, NULL, NULL);
+    TEST_EQUAL(ret, 0);
+
+    mbedtls_ssl_conf_session_tickets_cb(&server_ep.conf,
+                                        mbedtls_test_ticket_write,
+                                        mbedtls_test_ticket_parse,
+                                        NULL);
+    TEST_EQUAL(ret, 0);
+
+    ret = mbedtls_test_mock_socket_connect(&(client_ep.socket),
+                                           &(server_ep.socket), 1024);
+    TEST_EQUAL(ret, 0);
+
+    ret = mbedtls_ssl_set_session(&(client_ep.ssl), &saved_session);
+    TEST_EQUAL(ret, 0);
+
+    /*
+     * Handshake with ticket.
+     *
+     * Run the handshake up to MBEDTLS_SSL_HANDSHAKE_WRAPUP and not
+     * MBEDTLS_SSL_HANDSHAKE_OVER to preserve handshake data for the checks
+     * below.
+     */
+    TEST_EQUAL(mbedtls_test_move_handshake_to_state(
+                   &(server_ep.ssl), &(client_ep.ssl),
+                   MBEDTLS_SSL_HANDSHAKE_WRAPUP), 0);
+
+    TEST_EQUAL(server_ep.ssl.handshake->resume, 1);
+    TEST_EQUAL(server_ep.ssl.handshake->new_session_tickets_count, 1);
+    TEST_EQUAL(server_ep.ssl.handshake->key_exchange_mode,
+               MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL);
+
+exit:
+    mbedtls_test_ssl_endpoint_free(&client_ep, NULL);
+    mbedtls_test_ssl_endpoint_free(&server_ep, NULL);
+    mbedtls_test_free_handshake_options(&client_options);
+    mbedtls_test_free_handshake_options(&server_options);
+    mbedtls_ssl_session_free(&saved_session);
+    PSA_DONE();
+}
+/* END_CASE */
+
+/*
+ * The !MBEDTLS_SSL_PROTO_TLS1_2 dependency of tls13_read_early_data() below is
+ * a temporary workaround to not run the test in Windows-2013 where there is
+ * an issue with mbedtls_vsnprintf().
+ */
+/* BEGIN_CASE depends_on:!MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_SSL_EARLY_DATA:MBEDTLS_SSL_CLI_C:MBEDTLS_SSL_SRV_C:MBEDTLS_DEBUG_C:MBEDTLS_TEST_AT_LEAST_ONE_TLS1_3_CIPHERSUITE:MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED:MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED:MBEDTLS_MD_CAN_SHA256:MBEDTLS_ECP_HAVE_SECP256R1:MBEDTLS_ECP_HAVE_SECP384R1:MBEDTLS_PK_CAN_ECDSA_VERIFY:MBEDTLS_SSL_SESSION_TICKETS */
+void tls13_read_early_data(int scenario)
+{
+    int ret = -1;
+    unsigned char buf[64];
+    const char *early_data = "This is early data.";
+    size_t early_data_len = strlen(early_data);
+    mbedtls_test_ssl_endpoint client_ep, server_ep;
+    mbedtls_test_handshake_test_options client_options;
+    mbedtls_test_handshake_test_options server_options;
+    mbedtls_ssl_session saved_session;
+    mbedtls_test_ssl_log_pattern server_pattern = { NULL, 0 };
+    uint16_t group_list[3] = {
+        MBEDTLS_SSL_IANA_TLS_GROUP_SECP256R1,
+        MBEDTLS_SSL_IANA_TLS_GROUP_SECP384R1,
+        MBEDTLS_SSL_IANA_TLS_GROUP_NONE
+    };
+
+    mbedtls_platform_zeroize(&client_ep, sizeof(client_ep));
+    mbedtls_platform_zeroize(&server_ep, sizeof(server_ep));
+    mbedtls_test_init_handshake_options(&client_options);
+    mbedtls_test_init_handshake_options(&server_options);
+    mbedtls_ssl_session_init(&saved_session);
+
+    PSA_INIT();
+
+    /*
+     * Run first handshake to get a ticket from the server.
+     */
+
+    client_options.pk_alg = MBEDTLS_PK_ECDSA;
+    client_options.group_list = group_list;
+    client_options.early_data = MBEDTLS_SSL_EARLY_DATA_ENABLED;
+    server_options.pk_alg = MBEDTLS_PK_ECDSA;
+    server_options.group_list = group_list;
+    server_options.early_data = MBEDTLS_SSL_EARLY_DATA_ENABLED;
+
+#if defined(MBEDTLS_SSL_ALPN)
+    switch (scenario) {
+        case TEST_EARLY_DATA_SAME_ALPN:
+        case TEST_EARLY_DATA_DIFF_ALPN:
+        case TEST_EARLY_DATA_NO_LATER_ALPN:
+            client_options.alpn_list[0] = "ALPNExample";
+            client_options.alpn_list[1] = NULL;
+            server_options.alpn_list[0] = "ALPNExample";
+            server_options.alpn_list[1] = NULL;
+            break;
+    }
+#endif
+
+    ret = mbedtls_test_get_tls13_ticket(&client_options, &server_options,
+                                        &saved_session);
+    TEST_EQUAL(ret, 0);
+
+    /*
+     * Prepare for handshake with the ticket.
+     */
+    switch (scenario) {
+        case TEST_EARLY_DATA_ACCEPTED:
+            break;
+
+        case TEST_EARLY_DATA_NO_INDICATION_SENT:
+            client_options.early_data = MBEDTLS_SSL_EARLY_DATA_DISABLED;
+            break;
+
+        case TEST_EARLY_DATA_SERVER_REJECTS:
+            mbedtls_debug_set_threshold(3);
+            server_pattern.pattern =
+                "EarlyData: deprotect and discard app data records.";
+            server_options.early_data = MBEDTLS_SSL_EARLY_DATA_DISABLED;
+            break;
+
+        case TEST_EARLY_DATA_HRR:
+            mbedtls_debug_set_threshold(3);
+            server_pattern.pattern =
+                "EarlyData: Ignore application message before 2nd ClientHello";
+            server_options.group_list = group_list + 1;
+            break;
+#if defined(MBEDTLS_SSL_ALPN)
+        case TEST_EARLY_DATA_SAME_ALPN:
+            client_options.alpn_list[0] = "ALPNExample";
+            client_options.alpn_list[1] = NULL;
+            server_options.alpn_list[0] = "ALPNExample";
+            server_options.alpn_list[1] = NULL;
+            break;
+        case TEST_EARLY_DATA_DIFF_ALPN:
+        case TEST_EARLY_DATA_NO_INITIAL_ALPN:
+            client_options.alpn_list[0] = "ALPNExample2";
+            client_options.alpn_list[1] = NULL;
+            server_options.alpn_list[0] = "ALPNExample2";
+            server_options.alpn_list[1] = NULL;
+            mbedtls_debug_set_threshold(3);
+            server_pattern.pattern =
+                "EarlyData: rejected, the selected ALPN is different "
+                "from the one associated with the pre-shared key.";
+            break;
+        case TEST_EARLY_DATA_NO_LATER_ALPN:
+            client_options.alpn_list[0] = NULL;
+            server_options.alpn_list[0] = NULL;
+            mbedtls_debug_set_threshold(3);
+            server_pattern.pattern =
+                "EarlyData: rejected, the selected ALPN is different "
+                "from the one associated with the pre-shared key.";
+            break;
+#endif
+
+        default:
+            TEST_FAIL("Unknown scenario.");
+    }
+
+    ret = mbedtls_test_ssl_endpoint_init(&client_ep, MBEDTLS_SSL_IS_CLIENT,
+                                         &client_options, NULL, NULL, NULL);
+    TEST_EQUAL(ret, 0);
+
+    server_options.srv_log_fun = mbedtls_test_ssl_log_analyzer;
+    server_options.srv_log_obj = &server_pattern;
+    ret = mbedtls_test_ssl_endpoint_init(&server_ep, MBEDTLS_SSL_IS_SERVER,
+                                         &server_options, NULL, NULL, NULL);
+    TEST_EQUAL(ret, 0);
+
+    mbedtls_ssl_conf_session_tickets_cb(&server_ep.conf,
+                                        mbedtls_test_ticket_write,
+                                        mbedtls_test_ticket_parse,
+                                        NULL);
+
+    ret = mbedtls_test_mock_socket_connect(&(client_ep.socket),
+                                           &(server_ep.socket), 1024);
+    TEST_EQUAL(ret, 0);
+
+    ret = mbedtls_ssl_set_session(&(client_ep.ssl), &saved_session);
+    TEST_EQUAL(ret, 0);
+
+    /*
+     * Handshake with ticket and send early data.
+     */
+    TEST_EQUAL(mbedtls_test_move_handshake_to_state(
+                   &(client_ep.ssl), &(server_ep.ssl),
+                   MBEDTLS_SSL_SERVER_HELLO), 0);
+
+    ret = mbedtls_ssl_write_early_data(&(client_ep.ssl),
+                                       (unsigned char *) early_data,
+                                       early_data_len);
+
+    if (client_ep.ssl.early_data_state !=
+        MBEDTLS_SSL_EARLY_DATA_STATE_NO_IND_SENT) {
+        TEST_EQUAL(ret, early_data_len);
+    } else {
+        TEST_EQUAL(ret, MBEDTLS_ERR_SSL_CANNOT_WRITE_EARLY_DATA);
+    }
+
+    ret = mbedtls_test_move_handshake_to_state(
+        &(server_ep.ssl), &(client_ep.ssl),
+        MBEDTLS_SSL_HANDSHAKE_WRAPUP);
+
+    switch (scenario) {
+        case TEST_EARLY_DATA_ACCEPTED:
+#if defined(MBEDTLS_SSL_ALPN)
+        case TEST_EARLY_DATA_SAME_ALPN:
+#endif
+            TEST_EQUAL(ret, MBEDTLS_ERR_SSL_RECEIVED_EARLY_DATA);
+            TEST_EQUAL(server_ep.ssl.handshake->early_data_accepted, 1);
+            TEST_EQUAL(mbedtls_ssl_read_early_data(&(server_ep.ssl),
+                                                   buf, sizeof(buf)), early_data_len);
+            TEST_MEMORY_COMPARE(buf, early_data_len, early_data, early_data_len);
+            break;
+
+        case TEST_EARLY_DATA_NO_INDICATION_SENT:
+            TEST_EQUAL(ret, 0);
+            TEST_EQUAL(server_ep.ssl.handshake->early_data_accepted, 0);
+            break;
+
+        case TEST_EARLY_DATA_SERVER_REJECTS: /* Intentional fallthrough */
+        case TEST_EARLY_DATA_HRR:
+#if defined(MBEDTLS_SSL_ALPN)
+        case TEST_EARLY_DATA_DIFF_ALPN:
+        case TEST_EARLY_DATA_NO_INITIAL_ALPN:
+        case TEST_EARLY_DATA_NO_LATER_ALPN:
+#endif
+            TEST_EQUAL(ret, 0);
+            TEST_EQUAL(server_ep.ssl.handshake->early_data_accepted, 0);
+            TEST_EQUAL(server_pattern.counter, 1);
+            break;
+
+        default:
+            TEST_FAIL("Unknown scenario.");
+    }
+
+    TEST_EQUAL(mbedtls_test_move_handshake_to_state(
+                   &(server_ep.ssl), &(client_ep.ssl),
+                   MBEDTLS_SSL_HANDSHAKE_OVER), 0);
+
+exit:
+    mbedtls_test_ssl_endpoint_free(&client_ep, NULL);
+    mbedtls_test_ssl_endpoint_free(&server_ep, NULL);
+    mbedtls_test_free_handshake_options(&client_options);
+    mbedtls_test_free_handshake_options(&server_options);
+    mbedtls_ssl_session_free(&saved_session);
+    mbedtls_debug_set_threshold(0);
+    PSA_DONE();
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_EARLY_DATA:MBEDTLS_SSL_CLI_C:MBEDTLS_SSL_SRV_C:MBEDTLS_TEST_AT_LEAST_ONE_TLS1_3_CIPHERSUITE:MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED:MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED:MBEDTLS_MD_CAN_SHA256:MBEDTLS_ECP_HAVE_SECP256R1:MBEDTLS_ECP_HAVE_SECP384R1:MBEDTLS_PK_CAN_ECDSA_VERIFY:MBEDTLS_SSL_SESSION_TICKETS */
+void tls13_cli_early_data_state(int scenario)
+{
+    int ret = -1;
+    mbedtls_test_ssl_endpoint client_ep, server_ep;
+    mbedtls_test_handshake_test_options client_options;
+    mbedtls_test_handshake_test_options server_options;
+    mbedtls_ssl_session saved_session;
+    uint16_t group_list[3] = {
+        MBEDTLS_SSL_IANA_TLS_GROUP_SECP256R1,
+        MBEDTLS_SSL_IANA_TLS_GROUP_SECP384R1,
+        MBEDTLS_SSL_IANA_TLS_GROUP_NONE
+    };
+    uint8_t client_random[MBEDTLS_CLIENT_HELLO_RANDOM_LEN];
+
+    mbedtls_platform_zeroize(&client_ep, sizeof(client_ep));
+    mbedtls_platform_zeroize(&server_ep, sizeof(server_ep));
+    mbedtls_test_init_handshake_options(&client_options);
+    mbedtls_test_init_handshake_options(&server_options);
+    mbedtls_ssl_session_init(&saved_session);
+
+    PSA_INIT();
+
+    /*
+     * Run first handshake to get a ticket from the server.
+     */
+    client_options.pk_alg = MBEDTLS_PK_ECDSA;
+    client_options.early_data = MBEDTLS_SSL_EARLY_DATA_ENABLED;
+    server_options.pk_alg = MBEDTLS_PK_ECDSA;
+    server_options.early_data = MBEDTLS_SSL_EARLY_DATA_ENABLED;
+    if (scenario == TEST_EARLY_DATA_HRR) {
+        client_options.group_list = group_list;
+        server_options.group_list = group_list;
+    }
+
+    ret = mbedtls_test_get_tls13_ticket(&client_options, &server_options,
+                                        &saved_session);
+    TEST_EQUAL(ret, 0);
+
+    /*
+     * Prepare for handshake with the ticket.
+     */
+    switch (scenario) {
+        case TEST_EARLY_DATA_ACCEPTED:
+            break;
+
+        case TEST_EARLY_DATA_NO_INDICATION_SENT:
+            client_options.early_data = MBEDTLS_SSL_EARLY_DATA_DISABLED;
+            break;
+
+        case TEST_EARLY_DATA_SERVER_REJECTS:
+            server_options.early_data = MBEDTLS_SSL_EARLY_DATA_DISABLED;
+            break;
+
+        case TEST_EARLY_DATA_HRR:
+            server_options.group_list = group_list + 1;
+            break;
+
+        default:
+            TEST_FAIL("Unknown scenario.");
+    }
+
+    ret = mbedtls_test_ssl_endpoint_init(&client_ep, MBEDTLS_SSL_IS_CLIENT,
+                                         &client_options, NULL, NULL, NULL);
+    TEST_EQUAL(ret, 0);
+
+    ret = mbedtls_test_ssl_endpoint_init(&server_ep, MBEDTLS_SSL_IS_SERVER,
+                                         &server_options, NULL, NULL, NULL);
+    TEST_EQUAL(ret, 0);
+
+    mbedtls_ssl_conf_session_tickets_cb(&server_ep.conf,
+                                        mbedtls_test_ticket_write,
+                                        mbedtls_test_ticket_parse,
+                                        NULL);
+
+    ret = mbedtls_test_mock_socket_connect(&(client_ep.socket),
+                                           &(server_ep.socket), 1024);
+    TEST_EQUAL(ret, 0);
+
+    ret = mbedtls_ssl_set_session(&(client_ep.ssl), &saved_session);
+    TEST_EQUAL(ret, 0);
+
+    /*
+     * Go through the handshake sequence, state by state, checking the early
+     * data status each time.
+     */
+    do {
+        int state = client_ep.ssl.state;
+
+        /* Progress the handshake from at least one state */
+        while (client_ep.ssl.state == state) {
+            ret = mbedtls_ssl_handshake_step(&(client_ep.ssl));
+            TEST_ASSERT((ret == 0) ||
+                        (ret == MBEDTLS_ERR_SSL_WANT_READ) ||
+                        (ret == MBEDTLS_ERR_SSL_WANT_WRITE));
+            if (client_ep.ssl.state != state) {
+                break;
+            }
+            ret = mbedtls_ssl_handshake_step(&(server_ep.ssl));
+            TEST_ASSERT((ret == 0) ||
+                        (ret == MBEDTLS_ERR_SSL_WANT_READ) ||
+                        (ret == MBEDTLS_ERR_SSL_WANT_WRITE));
+        }
+
+        if (client_ep.ssl.state != MBEDTLS_SSL_HANDSHAKE_OVER) {
+            TEST_EQUAL(mbedtls_ssl_get_early_data_status(&(client_ep.ssl)),
+                       MBEDTLS_ERR_SSL_BAD_INPUT_DATA);
+        }
+
+        switch (client_ep.ssl.state) {
+            case MBEDTLS_SSL_CLIENT_HELLO:
+                switch (scenario) {
+                    case TEST_EARLY_DATA_ACCEPTED: /* Intentional fallthrough */
+                    case TEST_EARLY_DATA_NO_INDICATION_SENT: /* Intentional fallthrough */
+                    case TEST_EARLY_DATA_SERVER_REJECTS:
+                        TEST_EQUAL(client_ep.ssl.early_data_state,
+                                   MBEDTLS_SSL_EARLY_DATA_STATE_IDLE);
+                        break;
+
+                    case TEST_EARLY_DATA_HRR:
+                        if (!client_ep.ssl.handshake->hello_retry_request_flag) {
+                            TEST_EQUAL(client_ep.ssl.early_data_state,
+                                       MBEDTLS_SSL_EARLY_DATA_STATE_IDLE);
+                        } else {
+                            TEST_EQUAL(client_ep.ssl.early_data_state,
+                                       MBEDTLS_SSL_EARLY_DATA_STATE_REJECTED);
+                        }
+                        break;
+
+                    default:
+                        TEST_FAIL("Unknown scenario.");
+                }
+                break;
+
+            case MBEDTLS_SSL_SERVER_HELLO:
+                switch (scenario) {
+                    case TEST_EARLY_DATA_ACCEPTED: /* Intentional fallthrough */
+                    case TEST_EARLY_DATA_SERVER_REJECTS:
+                        TEST_EQUAL(client_ep.ssl.early_data_state,
+                                   MBEDTLS_SSL_EARLY_DATA_STATE_CAN_WRITE);
+                        break;
+
+                    case TEST_EARLY_DATA_NO_INDICATION_SENT:
+                        TEST_EQUAL(client_ep.ssl.early_data_state,
+                                   MBEDTLS_SSL_EARLY_DATA_STATE_NO_IND_SENT);
+                        break;
+
+                    case TEST_EARLY_DATA_HRR:
+                        if (!client_ep.ssl.handshake->hello_retry_request_flag) {
+                            TEST_EQUAL(client_ep.ssl.early_data_state,
+                                       MBEDTLS_SSL_EARLY_DATA_STATE_CAN_WRITE);
+                            memcpy(client_random,
+                                   client_ep.ssl.handshake->randbytes,
+                                   MBEDTLS_CLIENT_HELLO_RANDOM_LEN);
+                        } else {
+                            TEST_EQUAL(client_ep.ssl.early_data_state,
+                                       MBEDTLS_SSL_EARLY_DATA_STATE_REJECTED);
+                            TEST_MEMORY_COMPARE(client_random,
+                                                MBEDTLS_CLIENT_HELLO_RANDOM_LEN,
+                                                client_ep.ssl.handshake->randbytes,
+                                                MBEDTLS_CLIENT_HELLO_RANDOM_LEN);
+                        }
+                        break;
+
+                    default:
+                        TEST_FAIL("Unknown scenario.");
+                }
+                break;
+
+            case MBEDTLS_SSL_ENCRYPTED_EXTENSIONS:
+                switch (scenario) {
+                    case TEST_EARLY_DATA_ACCEPTED: /* Intentional fallthrough */
+                    case TEST_EARLY_DATA_SERVER_REJECTS:
+                        TEST_EQUAL(client_ep.ssl.early_data_state,
+                                   MBEDTLS_SSL_EARLY_DATA_STATE_CAN_WRITE);
+                        break;
+
+                    case TEST_EARLY_DATA_NO_INDICATION_SENT:
+                        TEST_EQUAL(client_ep.ssl.early_data_state,
+                                   MBEDTLS_SSL_EARLY_DATA_STATE_NO_IND_SENT);
+                        break;
+
+                    case TEST_EARLY_DATA_HRR:
+                        TEST_EQUAL(client_ep.ssl.early_data_state,
+                                   MBEDTLS_SSL_EARLY_DATA_STATE_REJECTED);
+                        break;
+
+                    default:
+                        TEST_FAIL("Unknown scenario.");
+                }
+                break;
+
+            case MBEDTLS_SSL_SERVER_FINISHED:
+                switch (scenario) {
+                    case TEST_EARLY_DATA_ACCEPTED:
+                        TEST_EQUAL(client_ep.ssl.early_data_state,
+                                   MBEDTLS_SSL_EARLY_DATA_STATE_ACCEPTED);
+                        break;
+
+                    case TEST_EARLY_DATA_NO_INDICATION_SENT:
+                        TEST_EQUAL(client_ep.ssl.early_data_state,
+                                   MBEDTLS_SSL_EARLY_DATA_STATE_NO_IND_SENT);
+                        break;
+
+                    case TEST_EARLY_DATA_SERVER_REJECTS: /* Intentional fallthrough */
+                    case TEST_EARLY_DATA_HRR:
+                        TEST_EQUAL(client_ep.ssl.early_data_state,
+                                   MBEDTLS_SSL_EARLY_DATA_STATE_REJECTED);
+                        break;
+
+                    default:
+                        TEST_FAIL("Unknown scenario.");
+                }
+                break;
+
+            case MBEDTLS_SSL_END_OF_EARLY_DATA:
+                TEST_EQUAL(scenario, TEST_EARLY_DATA_ACCEPTED);
+                TEST_EQUAL(client_ep.ssl.early_data_state,
+                           MBEDTLS_SSL_EARLY_DATA_STATE_SERVER_FINISHED_RECEIVED);
+                break;
+
+            case MBEDTLS_SSL_CLIENT_CERTIFICATE:
+                switch (scenario) {
+                    case TEST_EARLY_DATA_ACCEPTED:
+                        TEST_EQUAL(client_ep.ssl.early_data_state,
+                                   MBEDTLS_SSL_EARLY_DATA_STATE_SERVER_FINISHED_RECEIVED);
+                        break;
+
+                    case TEST_EARLY_DATA_NO_INDICATION_SENT:
+                        TEST_EQUAL(client_ep.ssl.early_data_state,
+                                   MBEDTLS_SSL_EARLY_DATA_STATE_NO_IND_SENT);
+                        break;
+
+                    case TEST_EARLY_DATA_SERVER_REJECTS: /* Intentional fallthrough */
+                    case TEST_EARLY_DATA_HRR:
+                        TEST_EQUAL(client_ep.ssl.early_data_state,
+                                   MBEDTLS_SSL_EARLY_DATA_STATE_REJECTED);
+                        break;
+
+                    default:
+                        TEST_FAIL("Unknown scenario.");
+                }
+                break;
+
+            case MBEDTLS_SSL_CLIENT_FINISHED:
+                switch (scenario) {
+                    case TEST_EARLY_DATA_ACCEPTED:
+                        TEST_EQUAL(client_ep.ssl.early_data_state,
+                                   MBEDTLS_SSL_EARLY_DATA_STATE_SERVER_FINISHED_RECEIVED);
+                        break;
+
+                    case TEST_EARLY_DATA_NO_INDICATION_SENT:
+                        TEST_EQUAL(client_ep.ssl.early_data_state,
+                                   MBEDTLS_SSL_EARLY_DATA_STATE_NO_IND_SENT);
+                        break;
+
+                    case TEST_EARLY_DATA_SERVER_REJECTS: /* Intentional fallthrough */
+                    case TEST_EARLY_DATA_HRR:
+                        TEST_EQUAL(client_ep.ssl.early_data_state,
+                                   MBEDTLS_SSL_EARLY_DATA_STATE_REJECTED);
+                        break;
+
+                    default:
+                        TEST_FAIL("Unknown scenario.");
+                }
+                break;
+
+#if defined(MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE)
+            case MBEDTLS_SSL_CLIENT_CCS_AFTER_CLIENT_HELLO:
+                switch (scenario) {
+                    case TEST_EARLY_DATA_ACCEPTED: /* Intentional fallthrough */
+                    case TEST_EARLY_DATA_SERVER_REJECTS: /* Intentional fallthrough */
+                    case TEST_EARLY_DATA_HRR:
+                        TEST_EQUAL(client_ep.ssl.early_data_state,
+                                   MBEDTLS_SSL_EARLY_DATA_STATE_IND_SENT);
+                        break;
+
+                    default:
+                        TEST_FAIL("Unexpected or unknown scenario.");
+                }
+                break;
+
+            case MBEDTLS_SSL_CLIENT_CCS_BEFORE_2ND_CLIENT_HELLO:
+                TEST_ASSERT(scenario == TEST_EARLY_DATA_HRR);
+                TEST_EQUAL(client_ep.ssl.early_data_state,
+                           MBEDTLS_SSL_EARLY_DATA_STATE_REJECTED);
+                break;
+
+            case MBEDTLS_SSL_CLIENT_CCS_AFTER_SERVER_FINISHED:
+                switch (scenario) {
+                    case TEST_EARLY_DATA_NO_INDICATION_SENT:
+                        TEST_EQUAL(client_ep.ssl.early_data_state,
+                                   MBEDTLS_SSL_EARLY_DATA_STATE_NO_IND_SENT);
+                        break;
+
+                    case TEST_EARLY_DATA_SERVER_REJECTS: /* Intentional fallthrough */
+                    case TEST_EARLY_DATA_HRR:
+                        TEST_EQUAL(client_ep.ssl.early_data_state,
+                                   MBEDTLS_SSL_EARLY_DATA_STATE_REJECTED);
+                        break;
+
+                    default:
+                        TEST_FAIL("Unexpected or unknown scenario.");
+                }
+                break;
+#endif /* MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE */
+
+            case MBEDTLS_SSL_FLUSH_BUFFERS: /* Intentional fallthrough */
+            case MBEDTLS_SSL_HANDSHAKE_WRAPUP: /* Intentional fallthrough */
+            case MBEDTLS_SSL_HANDSHAKE_OVER:
+                switch (scenario) {
+                    case TEST_EARLY_DATA_ACCEPTED:
+                        TEST_EQUAL(client_ep.ssl.early_data_state,
+                                   MBEDTLS_SSL_EARLY_DATA_STATE_SERVER_FINISHED_RECEIVED);
+                        break;
+
+                    case TEST_EARLY_DATA_NO_INDICATION_SENT:
+                        TEST_EQUAL(client_ep.ssl.early_data_state,
+                                   MBEDTLS_SSL_EARLY_DATA_STATE_NO_IND_SENT);
+                        break;
+
+                    case TEST_EARLY_DATA_SERVER_REJECTS: /* Intentional fallthrough */
+                    case TEST_EARLY_DATA_HRR:
+                        TEST_EQUAL(client_ep.ssl.early_data_state,
+                                   MBEDTLS_SSL_EARLY_DATA_STATE_REJECTED);
+                        break;
+
+                    default:
+                        TEST_FAIL("Unknown scenario.");
+                }
+                break;
+
+            default:
+                TEST_FAIL("Unexpected state.");
+        }
+    } while (client_ep.ssl.state != MBEDTLS_SSL_HANDSHAKE_OVER);
+
+    ret = mbedtls_ssl_get_early_data_status(&(client_ep.ssl));
+    switch (scenario) {
+        case TEST_EARLY_DATA_ACCEPTED:
+            TEST_EQUAL(ret, MBEDTLS_SSL_EARLY_DATA_STATUS_ACCEPTED);
+            break;
+
+        case TEST_EARLY_DATA_NO_INDICATION_SENT:
+            TEST_EQUAL(ret, MBEDTLS_SSL_EARLY_DATA_STATUS_NOT_INDICATED);
+            break;
+
+        case TEST_EARLY_DATA_SERVER_REJECTS: /* Intentional fallthrough */
+        case TEST_EARLY_DATA_HRR:
+            TEST_EQUAL(ret, MBEDTLS_SSL_EARLY_DATA_STATUS_REJECTED);
+            break;
+
+        default:
+            TEST_FAIL("Unknown scenario.");
+    }
+
+    ret = mbedtls_ssl_get_early_data_status(&(server_ep.ssl));
+    TEST_EQUAL(ret, MBEDTLS_ERR_SSL_BAD_INPUT_DATA);
+
+#if defined(MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE)
+    TEST_EQUAL(client_ep.ssl.handshake->ccs_sent, 1);
+#endif
+
+exit:
+    mbedtls_test_ssl_endpoint_free(&client_ep, NULL);
+    mbedtls_test_ssl_endpoint_free(&server_ep, NULL);
+    mbedtls_test_free_handshake_options(&client_options);
+    mbedtls_test_free_handshake_options(&server_options);
+    mbedtls_ssl_session_free(&saved_session);
+    PSA_DONE();
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_EARLY_DATA:MBEDTLS_SSL_CLI_C:MBEDTLS_SSL_SRV_C:MBEDTLS_TEST_AT_LEAST_ONE_TLS1_3_CIPHERSUITE:MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED:MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED:MBEDTLS_MD_CAN_SHA256:MBEDTLS_ECP_HAVE_SECP256R1:MBEDTLS_ECP_HAVE_SECP384R1:MBEDTLS_PK_CAN_ECDSA_VERIFY:MBEDTLS_SSL_SESSION_TICKETS */
+void tls13_write_early_data(int scenario)
+{
+    int ret = -1;
+    mbedtls_test_ssl_endpoint client_ep, server_ep;
+    mbedtls_test_handshake_test_options client_options;
+    mbedtls_test_handshake_test_options server_options;
+    mbedtls_ssl_session saved_session;
+    uint16_t group_list[3] = {
+        MBEDTLS_SSL_IANA_TLS_GROUP_SECP256R1,
+        MBEDTLS_SSL_IANA_TLS_GROUP_SECP384R1,
+        MBEDTLS_SSL_IANA_TLS_GROUP_NONE
+    };
+    int beyond_first_hello = 0;
+
+    mbedtls_platform_zeroize(&client_ep, sizeof(client_ep));
+    mbedtls_platform_zeroize(&server_ep, sizeof(server_ep));
+    mbedtls_test_init_handshake_options(&client_options);
+    mbedtls_test_init_handshake_options(&server_options);
+    mbedtls_ssl_session_init(&saved_session);
+
+    PSA_INIT();
+
+    /*
+     * Run first handshake to get a ticket from the server.
+     */
+    client_options.pk_alg = MBEDTLS_PK_ECDSA;
+    client_options.early_data = MBEDTLS_SSL_EARLY_DATA_ENABLED;
+    server_options.pk_alg = MBEDTLS_PK_ECDSA;
+    server_options.early_data = MBEDTLS_SSL_EARLY_DATA_ENABLED;
+    if (scenario == TEST_EARLY_DATA_HRR) {
+        client_options.group_list = group_list;
+        server_options.group_list = group_list;
+    }
+
+    ret = mbedtls_test_get_tls13_ticket(&client_options, &server_options,
+                                        &saved_session);
+    TEST_EQUAL(ret, 0);
+
+    /*
+     * Prepare for handshake with the ticket.
+     */
+    switch (scenario) {
+        case TEST_EARLY_DATA_ACCEPTED:
+            break;
+
+        case TEST_EARLY_DATA_NO_INDICATION_SENT:
+            client_options.early_data = MBEDTLS_SSL_EARLY_DATA_DISABLED;
+            break;
+
+        case TEST_EARLY_DATA_SERVER_REJECTS:
+            server_options.early_data = MBEDTLS_SSL_EARLY_DATA_DISABLED;
+            break;
+
+        case TEST_EARLY_DATA_HRR:
+            /*
+             * Remove server support for the group negotiated in
+             * mbedtls_test_get_tls13_ticket() forcing a HelloRetryRequest.
+             */
+            server_options.group_list = group_list + 1;
+            break;
+
+        default:
+            TEST_FAIL("Unknown scenario.");
+    }
+
+    ret = mbedtls_test_ssl_endpoint_init(&client_ep, MBEDTLS_SSL_IS_CLIENT,
+                                         &client_options, NULL, NULL, NULL);
+    TEST_EQUAL(ret, 0);
+
+    ret = mbedtls_test_ssl_endpoint_init(&server_ep, MBEDTLS_SSL_IS_SERVER,
+                                         &server_options, NULL, NULL, NULL);
+    TEST_EQUAL(ret, 0);
+
+    mbedtls_ssl_conf_session_tickets_cb(&server_ep.conf,
+                                        mbedtls_test_ticket_write,
+                                        mbedtls_test_ticket_parse,
+                                        NULL);
+
+    ret = mbedtls_test_mock_socket_connect(&(client_ep.socket),
+                                           &(server_ep.socket), 1024);
+    TEST_EQUAL(ret, 0);
+
+    ret = mbedtls_ssl_set_session(&(client_ep.ssl), &saved_session);
+    TEST_EQUAL(ret, 0);
+
+    /*
+     * Run handshakes going one state further in the handshake sequence at each
+     * loop up to the point where we reach the MBEDTLS_SSL_HANDSHAKE_OVER
+     * state. For each reached handshake state, check the result of the call
+     * to mbedtls_ssl_write_early_data(), make sure we can complete the
+     * handshake successfully and then reset the connection to restart the
+     * handshake from scratch.
+     */
+    do {
+        int client_state = client_ep.ssl.state;
+        int previous_client_state;
+        const char *early_data_string = "This is early data.";
+        const unsigned char *early_data = (const unsigned char *) early_data_string;
+        size_t early_data_len = strlen(early_data_string);
+        int write_early_data_ret, read_early_data_ret;
+        unsigned char read_buf[64];
+
+        write_early_data_ret = mbedtls_ssl_write_early_data(&(client_ep.ssl),
+                                                            early_data,
+                                                            early_data_len);
+
+        if (scenario == TEST_EARLY_DATA_NO_INDICATION_SENT) {
+            TEST_EQUAL(write_early_data_ret, MBEDTLS_ERR_SSL_CANNOT_WRITE_EARLY_DATA);
+            TEST_EQUAL(client_ep.ssl.state, client_state);
+            goto complete_handshake;
+        }
+
+        switch (client_state) {
+            case MBEDTLS_SSL_HELLO_REQUEST: /* Intentional fallthrough */
+            case MBEDTLS_SSL_CLIENT_HELLO:
+                switch (scenario) {
+                    case TEST_EARLY_DATA_ACCEPTED: /* Intentional fallthrough */
+                    case TEST_EARLY_DATA_SERVER_REJECTS:
+                        TEST_EQUAL(write_early_data_ret, early_data_len);
+                        TEST_EQUAL(client_ep.ssl.state, MBEDTLS_SSL_SERVER_HELLO);
+                        break;
+
+                    case TEST_EARLY_DATA_HRR:
+                        if (!client_ep.ssl.handshake->hello_retry_request_flag) {
+                            TEST_EQUAL(write_early_data_ret, early_data_len);
+                            TEST_EQUAL(client_ep.ssl.state, MBEDTLS_SSL_SERVER_HELLO);
+                        } else {
+                            beyond_first_hello = 1;
+                            TEST_EQUAL(write_early_data_ret,
+                                       MBEDTLS_ERR_SSL_CANNOT_WRITE_EARLY_DATA);
+                            TEST_EQUAL(client_ep.ssl.state, MBEDTLS_SSL_CLIENT_HELLO);
+                        }
+                        break;
+
+                    default:
+                        TEST_FAIL("Unknown scenario.");
+                }
+                break;
+
+            case MBEDTLS_SSL_SERVER_HELLO:
+                switch (scenario) {
+                    case TEST_EARLY_DATA_ACCEPTED: /* Intentional fallthrough */
+                    case TEST_EARLY_DATA_SERVER_REJECTS:
+                        TEST_EQUAL(write_early_data_ret, early_data_len);
+                        TEST_EQUAL(client_ep.ssl.state, MBEDTLS_SSL_SERVER_HELLO);
+                        break;
+
+                    case TEST_EARLY_DATA_HRR:
+                        if (!client_ep.ssl.handshake->hello_retry_request_flag) {
+                            TEST_EQUAL(write_early_data_ret, early_data_len);
+                            TEST_EQUAL(client_ep.ssl.state, MBEDTLS_SSL_SERVER_HELLO);
+                        } else {
+                            TEST_EQUAL(write_early_data_ret,
+                                       MBEDTLS_ERR_SSL_CANNOT_WRITE_EARLY_DATA);
+                            TEST_EQUAL(client_ep.ssl.state, MBEDTLS_SSL_SERVER_HELLO);
+                        }
+                        break;
+
+                    default:
+                        TEST_FAIL("Unknown scenario.");
+                }
+                break;
+
+            case MBEDTLS_SSL_ENCRYPTED_EXTENSIONS:
+                switch (scenario) {
+                    case TEST_EARLY_DATA_ACCEPTED: /* Intentional fallthrough */
+                    case TEST_EARLY_DATA_SERVER_REJECTS:
+                        TEST_EQUAL(write_early_data_ret, early_data_len);
+                        TEST_EQUAL(client_ep.ssl.state, MBEDTLS_SSL_ENCRYPTED_EXTENSIONS);
+                        break;
+
+                    case TEST_EARLY_DATA_HRR:
+                        TEST_EQUAL(write_early_data_ret, MBEDTLS_ERR_SSL_CANNOT_WRITE_EARLY_DATA);
+                        TEST_EQUAL(client_ep.ssl.state, MBEDTLS_SSL_ENCRYPTED_EXTENSIONS);
+                        break;
+
+                    default:
+                        TEST_FAIL("Unknown scenario.");
+                }
+                break;
+
+            case MBEDTLS_SSL_SERVER_FINISHED:
+                switch (scenario) {
+                    case TEST_EARLY_DATA_ACCEPTED:
+                        TEST_EQUAL(write_early_data_ret, early_data_len);
+                        TEST_EQUAL(client_ep.ssl.state, MBEDTLS_SSL_SERVER_FINISHED);
+                        break;
+
+                    case TEST_EARLY_DATA_SERVER_REJECTS:
+                        TEST_EQUAL(write_early_data_ret, MBEDTLS_ERR_SSL_CANNOT_WRITE_EARLY_DATA);
+                        TEST_EQUAL(client_ep.ssl.state, MBEDTLS_SSL_SERVER_FINISHED);
+                        break;
+
+                    case TEST_EARLY_DATA_HRR:
+                        TEST_EQUAL(write_early_data_ret, MBEDTLS_ERR_SSL_CANNOT_WRITE_EARLY_DATA);
+                        TEST_EQUAL(client_ep.ssl.state, MBEDTLS_SSL_SERVER_FINISHED);
+                        break;
+
+                    default:
+                        TEST_FAIL("Unknown scenario.");
+                }
+                break;
+
+            case MBEDTLS_SSL_END_OF_EARLY_DATA:
+                TEST_EQUAL(scenario, TEST_EARLY_DATA_ACCEPTED);
+                TEST_EQUAL(write_early_data_ret, MBEDTLS_ERR_SSL_CANNOT_WRITE_EARLY_DATA);
+                TEST_EQUAL(client_ep.ssl.state, MBEDTLS_SSL_END_OF_EARLY_DATA);
+                break;
+
+#if defined(MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE)
+            case MBEDTLS_SSL_CLIENT_CCS_AFTER_CLIENT_HELLO:
+                switch (scenario) {
+                    case TEST_EARLY_DATA_ACCEPTED: /* Intentional fallthrough */
+                    case TEST_EARLY_DATA_SERVER_REJECTS: /* Intentional fallthrough */
+                    case TEST_EARLY_DATA_HRR:
+                        TEST_EQUAL(write_early_data_ret, early_data_len);
+                        TEST_EQUAL(client_ep.ssl.state, MBEDTLS_SSL_SERVER_HELLO);
+                        break;
+                    default:
+                        TEST_FAIL("Unknown scenario.");
+                }
+                break;
+
+            case MBEDTLS_SSL_CLIENT_CCS_BEFORE_2ND_CLIENT_HELLO:
+                TEST_EQUAL(scenario, TEST_EARLY_DATA_HRR);
+                TEST_EQUAL(write_early_data_ret, MBEDTLS_ERR_SSL_CANNOT_WRITE_EARLY_DATA);
+                TEST_EQUAL(client_ep.ssl.state, MBEDTLS_SSL_CLIENT_CCS_BEFORE_2ND_CLIENT_HELLO);
+                break;
+
+            case MBEDTLS_SSL_CLIENT_CCS_AFTER_SERVER_FINISHED:
+                switch (scenario) {
+                    case TEST_EARLY_DATA_SERVER_REJECTS: /* Intentional fallthrough */
+                    case TEST_EARLY_DATA_HRR:
+                        TEST_EQUAL(write_early_data_ret,
+                                   MBEDTLS_ERR_SSL_CANNOT_WRITE_EARLY_DATA);
+                        TEST_EQUAL(client_ep.ssl.state,
+                                   MBEDTLS_SSL_CLIENT_CCS_AFTER_SERVER_FINISHED);
+                        break;
+                    default:
+                        TEST_FAIL("Unexpected or unknown scenario.");
+                }
+                break;
+#endif /* MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE */
+
+            case MBEDTLS_SSL_CLIENT_CERTIFICATE: /* Intentional fallthrough */
+            case MBEDTLS_SSL_CLIENT_FINISHED: /* Intentional fallthrough */
+            case MBEDTLS_SSL_FLUSH_BUFFERS: /* Intentional fallthrough */
+            case MBEDTLS_SSL_HANDSHAKE_WRAPUP: /* Intentional fallthrough */
+            case MBEDTLS_SSL_HANDSHAKE_OVER:
+                switch (scenario) {
+                    case TEST_EARLY_DATA_ACCEPTED: /* Intentional fallthrough */
+                    case TEST_EARLY_DATA_SERVER_REJECTS: /* Intentional fallthrough */
+                    case TEST_EARLY_DATA_HRR:
+                        TEST_EQUAL(write_early_data_ret, MBEDTLS_ERR_SSL_CANNOT_WRITE_EARLY_DATA);
+                        TEST_EQUAL(client_ep.ssl.state, client_state);
+                        break;
+                    default:
+                        TEST_FAIL("Unknown scenario.");
+                }
+                break;
+
+            default:
+                TEST_FAIL("Unexpected state.");
+        }
+
+complete_handshake:
+        do {
+            ret = mbedtls_test_move_handshake_to_state(
+                &(server_ep.ssl), &(client_ep.ssl),
+                MBEDTLS_SSL_HANDSHAKE_OVER);
+
+            if (ret == MBEDTLS_ERR_SSL_RECEIVED_EARLY_DATA) {
+                read_early_data_ret = mbedtls_ssl_read_early_data(
+                    &(server_ep.ssl), read_buf, sizeof(read_buf));
+
+                TEST_EQUAL(read_early_data_ret, early_data_len);
+            }
+        } while (ret == MBEDTLS_ERR_SSL_RECEIVED_EARLY_DATA);
+
+        TEST_EQUAL(ret, 0);
+        TEST_EQUAL(mbedtls_test_move_handshake_to_state(
+                       &(client_ep.ssl), &(server_ep.ssl),
+                       MBEDTLS_SSL_HANDSHAKE_OVER), 0);
+
+        mbedtls_test_mock_socket_close(&(client_ep.socket));
+        mbedtls_test_mock_socket_close(&(server_ep.socket));
+
+        ret = mbedtls_ssl_session_reset(&(client_ep.ssl));
+        TEST_EQUAL(ret, 0);
+
+        ret = mbedtls_ssl_set_session(&(client_ep.ssl), &saved_session);
+        TEST_EQUAL(ret, 0);
+
+        ret = mbedtls_ssl_session_reset(&(server_ep.ssl));
+        TEST_EQUAL(ret, 0);
+
+        ret = mbedtls_test_mock_socket_connect(&(client_ep.socket),
+                                               &(server_ep.socket), 1024);
+        TEST_EQUAL(ret, 0);
+
+        previous_client_state = client_state;
+        if (previous_client_state == MBEDTLS_SSL_HANDSHAKE_OVER) {
+            break;
+        }
+
+        /* In case of HRR scenario, once we have been through it, move over
+         * the first ClientHello and ServerHello otherwise we just keep playing
+         * this first part of the handshake with HRR.
+         */
+        if ((scenario == TEST_EARLY_DATA_HRR) && (beyond_first_hello)) {
+            TEST_ASSERT(mbedtls_test_move_handshake_to_state(
+                            &(client_ep.ssl), &(server_ep.ssl),
+                            MBEDTLS_SSL_SERVER_HELLO) == 0);
+            TEST_ASSERT(mbedtls_test_move_handshake_to_state(
+                            &(client_ep.ssl), &(server_ep.ssl),
+                            MBEDTLS_SSL_CLIENT_HELLO) == 0);
+        }
+
+        TEST_EQUAL(mbedtls_test_move_handshake_to_state(
+                       &(client_ep.ssl), &(server_ep.ssl),
+                       previous_client_state), 0);
+
+        /* Progress the handshake from at least one state */
+        while (client_ep.ssl.state == previous_client_state) {
+            ret = mbedtls_ssl_handshake_step(&(client_ep.ssl));
+            TEST_ASSERT((ret == 0) ||
+                        (ret == MBEDTLS_ERR_SSL_WANT_READ) ||
+                        (ret == MBEDTLS_ERR_SSL_WANT_WRITE));
+            if (client_ep.ssl.state != previous_client_state) {
+                break;
+            }
+            ret = mbedtls_ssl_handshake_step(&(server_ep.ssl));
+            TEST_ASSERT((ret == 0) ||
+                        (ret == MBEDTLS_ERR_SSL_WANT_READ) ||
+                        (ret == MBEDTLS_ERR_SSL_WANT_WRITE));
+        }
+    } while (1);
+
+exit:
+    mbedtls_test_ssl_endpoint_free(&client_ep, NULL);
+    mbedtls_test_ssl_endpoint_free(&server_ep, NULL);
+    mbedtls_test_free_handshake_options(&client_options);
+    mbedtls_test_free_handshake_options(&server_options);
+    mbedtls_ssl_session_free(&saved_session);
+    PSA_DONE();
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_EARLY_DATA:MBEDTLS_SSL_CLI_C:MBEDTLS_SSL_SRV_C:MBEDTLS_DEBUG_C:MBEDTLS_TEST_AT_LEAST_ONE_TLS1_3_CIPHERSUITE:MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED:MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED:MBEDTLS_MD_CAN_SHA256:MBEDTLS_ECP_HAVE_SECP256R1:MBEDTLS_ECP_HAVE_SECP384R1:MBEDTLS_PK_CAN_ECDSA_VERIFY:MBEDTLS_SSL_SESSION_TICKETS */
+void tls13_cli_max_early_data_size(int max_early_data_size_arg)
+{
+    int ret = -1;
+    mbedtls_test_ssl_endpoint client_ep, server_ep;
+    mbedtls_test_handshake_test_options client_options;
+    mbedtls_test_handshake_test_options server_options;
+    mbedtls_ssl_session saved_session;
+    unsigned char *buf = NULL;
+    uint32_t buf_size = 64;
+    uint32_t max_early_data_size;
+    uint32_t written_early_data_size = 0;
+    uint32_t read_early_data_size = 0;
+
+    mbedtls_platform_zeroize(&client_ep, sizeof(client_ep));
+    mbedtls_platform_zeroize(&server_ep, sizeof(server_ep));
+    mbedtls_test_init_handshake_options(&client_options);
+    mbedtls_test_init_handshake_options(&server_options);
+    mbedtls_ssl_session_init(&saved_session);
+
+    PSA_INIT();
+    TEST_CALLOC(buf, buf_size);
+
+    /*
+     * Run first handshake to get a ticket from the server.
+     */
+
+    client_options.pk_alg = MBEDTLS_PK_ECDSA;
+    client_options.early_data = MBEDTLS_SSL_EARLY_DATA_ENABLED;
+    server_options.pk_alg = MBEDTLS_PK_ECDSA;
+    server_options.early_data = MBEDTLS_SSL_EARLY_DATA_ENABLED;
+    server_options.max_early_data_size = max_early_data_size_arg;
+
+    ret = mbedtls_test_get_tls13_ticket(&client_options, &server_options,
+                                        &saved_session);
+    TEST_EQUAL(ret, 0);
+
+    /*
+     * Prepare for handshake with the ticket.
+     */
+    ret = mbedtls_test_ssl_endpoint_init(&client_ep, MBEDTLS_SSL_IS_CLIENT,
+                                         &client_options, NULL, NULL, NULL);
+    TEST_EQUAL(ret, 0);
+
+    ret = mbedtls_test_ssl_endpoint_init(&server_ep, MBEDTLS_SSL_IS_SERVER,
+                                         &server_options, NULL, NULL, NULL);
+    TEST_EQUAL(ret, 0);
+
+    mbedtls_ssl_conf_session_tickets_cb(&server_ep.conf,
+                                        mbedtls_test_ticket_write,
+                                        mbedtls_test_ticket_parse,
+                                        NULL);
+
+    max_early_data_size = saved_session.max_early_data_size;
+    /*
+     * (max_early_data_size + 1024) for the size of the socket buffers for the
+     * server one to be able to contain the maximum number of early data bytes
+     * plus the first flight of client messages. Needed because we cannot
+     * initiate the handshake on server side before doing all the calls to
+     * mbedtls_ssl_write_early_data() we want to test. See below for more
+     * information.
+     */
+    ret = mbedtls_test_mock_socket_connect(&(client_ep.socket),
+                                           &(server_ep.socket),
+                                           max_early_data_size + 1024);
+    TEST_EQUAL(ret, 0);
+
+    /* If our server is configured with max_early_data_size equal to zero, it
+     * does not set the MBEDTLS_SSL_TLS1_3_TICKET_ALLOW_EARLY_DATA flag for
+     * the tickets it creates. To be able to test early data with a ticket
+     * allowing early data in its flags but with max_early_data_size equal to
+     * zero (case supported by our client) tweak the ticket flags here.
+     */
+    if (max_early_data_size == 0) {
+        saved_session.ticket_flags |= MBEDTLS_SSL_TLS1_3_TICKET_ALLOW_EARLY_DATA;
+    }
+
+    ret = mbedtls_ssl_set_session(&(client_ep.ssl), &saved_session);
+    TEST_EQUAL(ret, 0);
+
+    while (written_early_data_size < max_early_data_size) {
+        uint32_t remaining = max_early_data_size - written_early_data_size;
+
+        for (size_t i = 0; i < buf_size; i++) {
+            buf[i] = (unsigned char) (written_early_data_size + i);
+        }
+
+        ret = mbedtls_ssl_write_early_data(&(client_ep.ssl),
+                                           buf,
+                                           buf_size);
+
+        if (buf_size <= remaining) {
+            TEST_EQUAL(ret, buf_size);
+        } else {
+            TEST_EQUAL(ret, remaining);
+        }
+        written_early_data_size += buf_size;
+    }
+    TEST_EQUAL(client_ep.ssl.total_early_data_size, max_early_data_size);
+
+    ret = mbedtls_ssl_write_early_data(&(client_ep.ssl), buf, 1);
+    TEST_EQUAL(ret, MBEDTLS_ERR_SSL_CANNOT_WRITE_EARLY_DATA);
+    TEST_EQUAL(client_ep.ssl.total_early_data_size, max_early_data_size);
+    TEST_EQUAL(client_ep.ssl.early_data_state,
+               MBEDTLS_SSL_EARLY_DATA_STATE_CAN_WRITE);
+
+    /*
+     * Now, check data on server side. It is not done in the previous loop as
+     * in the first call to mbedtls_ssl_handshake(), the server ends up sending
+     * its Finished message and then in the following call to
+     * mbedtls_ssl_write_early_data() we go past the early data writing window
+     * and we cannot test multiple calls to the API is this writing window.
+     */
+    while (read_early_data_size < max_early_data_size) {
+        ret = mbedtls_ssl_handshake(&(server_ep.ssl));
+        TEST_EQUAL(ret, MBEDTLS_ERR_SSL_RECEIVED_EARLY_DATA);
+
+        ret = mbedtls_ssl_read_early_data(&(server_ep.ssl),
+                                          buf,
+                                          buf_size);
+        TEST_ASSERT(ret > 0);
+
+        for (size_t i = 0; i < (size_t) ret; i++) {
+            TEST_EQUAL(buf[i], (unsigned char) (read_early_data_size + i));
+        }
+
+        read_early_data_size += ret;
+    }
+    TEST_EQUAL(read_early_data_size, max_early_data_size);
+
+    ret = mbedtls_ssl_handshake(&(server_ep.ssl));
+    TEST_EQUAL(ret, MBEDTLS_ERR_SSL_WANT_READ);
+
+    TEST_ASSERT(mbedtls_test_move_handshake_to_state(
+                    &(client_ep.ssl), &(server_ep.ssl), MBEDTLS_SSL_HANDSHAKE_OVER)
+                ==  0);
+
+exit:
+    mbedtls_test_ssl_endpoint_free(&client_ep, NULL);
+    mbedtls_test_ssl_endpoint_free(&server_ep, NULL);
+    mbedtls_test_free_handshake_options(&client_options);
+    mbedtls_test_free_handshake_options(&server_options);
+    mbedtls_ssl_session_free(&saved_session);
+    mbedtls_free(buf);
+    PSA_DONE();
+}
+/* END_CASE */
+
+/*
+ * The !MBEDTLS_SSL_PROTO_TLS1_2 dependency of tls13_early_data() below is
+ * a temporary workaround to not run the test in Windows-2013 where there is
+ * an issue with mbedtls_vsnprintf().
+ */
+/* BEGIN_CASE depends_on:!MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_SSL_EARLY_DATA:MBEDTLS_SSL_CLI_C:MBEDTLS_SSL_SRV_C:MBEDTLS_DEBUG_C:MBEDTLS_TEST_AT_LEAST_ONE_TLS1_3_CIPHERSUITE:MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED:MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED:MBEDTLS_MD_CAN_SHA256:MBEDTLS_ECP_HAVE_SECP256R1:MBEDTLS_ECP_HAVE_SECP384R1:MBEDTLS_PK_CAN_ECDSA_VERIFY:MBEDTLS_SSL_SESSION_TICKETS */
+void tls13_srv_max_early_data_size(int scenario, int max_early_data_size_arg, int write_size_arg)
+{
+    int ret = -1;
+    mbedtls_test_ssl_endpoint client_ep, server_ep;
+    mbedtls_test_handshake_test_options client_options;
+    mbedtls_test_handshake_test_options server_options;
+    mbedtls_ssl_session saved_session;
+    mbedtls_test_ssl_log_pattern server_pattern = { NULL, 0 };
+    uint16_t group_list[3] = {
+        MBEDTLS_SSL_IANA_TLS_GROUP_SECP256R1,
+        MBEDTLS_SSL_IANA_TLS_GROUP_SECP384R1,
+        MBEDTLS_SSL_IANA_TLS_GROUP_NONE
+    };
+    char pattern[128];
+    unsigned char *buf_write = NULL;
+    uint32_t write_size = (uint32_t) write_size_arg;
+    unsigned char *buf_read = NULL;
+    uint32_t read_size;
+    uint32_t expanded_early_data_chunk_size = 0;
+    uint32_t written_early_data_size = 0;
+    uint32_t max_early_data_size;
+
+    mbedtls_platform_zeroize(&client_ep, sizeof(client_ep));
+    mbedtls_platform_zeroize(&server_ep, sizeof(server_ep));
+    mbedtls_test_init_handshake_options(&client_options);
+    mbedtls_test_init_handshake_options(&server_options);
+    mbedtls_ssl_session_init(&saved_session);
+    PSA_INIT();
+
+    TEST_CALLOC(buf_write, write_size);
+
+    /*
+     * Allocate a smaller buffer for early data reading to exercise the reading
+     * of data in one record in multiple calls.
+     */
+    read_size = (write_size / 2) + 1;
+    TEST_CALLOC(buf_read, read_size);
+
+    /*
+     * Run first handshake to get a ticket from the server.
+     */
+
+    client_options.pk_alg = MBEDTLS_PK_ECDSA;
+    client_options.group_list = group_list;
+    client_options.early_data = MBEDTLS_SSL_EARLY_DATA_ENABLED;
+    server_options.pk_alg = MBEDTLS_PK_ECDSA;
+    server_options.group_list = group_list;
+    server_options.early_data = MBEDTLS_SSL_EARLY_DATA_ENABLED;
+    server_options.max_early_data_size = max_early_data_size_arg;
+
+    ret = mbedtls_test_get_tls13_ticket(&client_options, &server_options,
+                                        &saved_session);
+    TEST_EQUAL(ret, 0);
+
+    /*
+     * Prepare for handshake with the ticket.
+     */
+    server_options.srv_log_fun = mbedtls_test_ssl_log_analyzer;
+    server_options.srv_log_obj = &server_pattern;
+    server_pattern.pattern = pattern;
+
+    switch (scenario) {
+        case TEST_EARLY_DATA_ACCEPTED:
+            break;
+
+        case TEST_EARLY_DATA_SERVER_REJECTS:
+            server_options.early_data = MBEDTLS_SSL_EARLY_DATA_DISABLED;
+            ret = mbedtls_snprintf(pattern, sizeof(pattern),
+                                   "EarlyData: deprotect and discard app data records.");
+            TEST_ASSERT(ret < (int) sizeof(pattern));
+            mbedtls_debug_set_threshold(3);
+            break;
+
+        case TEST_EARLY_DATA_HRR:
+            /*
+             * Remove server support for the group negotiated in
+             * mbedtls_test_get_tls13_ticket() forcing an HelloRetryRequest.
+             */
+            server_options.group_list = group_list + 1;
+            ret = mbedtls_snprintf(
+                pattern, sizeof(pattern),
+                "EarlyData: Ignore application message before 2nd ClientHello");
+            TEST_ASSERT(ret < (int) sizeof(pattern));
+            mbedtls_debug_set_threshold(3);
+            break;
+
+        default:
+            TEST_FAIL("Unknown scenario.");
+    }
+
+    ret = mbedtls_test_ssl_endpoint_init(&client_ep, MBEDTLS_SSL_IS_CLIENT,
+                                         &client_options, NULL, NULL, NULL);
+    TEST_EQUAL(ret, 0);
+
+    ret = mbedtls_test_ssl_endpoint_init(&server_ep, MBEDTLS_SSL_IS_SERVER,
+                                         &server_options, NULL, NULL, NULL);
+    TEST_EQUAL(ret, 0);
+
+    mbedtls_ssl_conf_session_tickets_cb(&server_ep.conf,
+                                        mbedtls_test_ticket_write,
+                                        mbedtls_test_ticket_parse,
+                                        NULL);
+
+    ret = mbedtls_test_mock_socket_connect(&(client_ep.socket),
+                                           &(server_ep.socket), 1024);
+    TEST_EQUAL(ret, 0);
+
+    max_early_data_size = saved_session.max_early_data_size;
+
+    ret = mbedtls_ssl_set_session(&(client_ep.ssl), &saved_session);
+    TEST_EQUAL(ret, 0);
+
+    /*
+     * Start an handshake based on the ticket up to the point where early data
+     * can be sent from client side. Then send in a loop as much early data as
+     * possible without going over the maximum permitted size for the ticket.
+     * Finally, do a last writting to go past that maximum permitted size and
+     * check that we detect it.
+     */
+    TEST_EQUAL(mbedtls_test_move_handshake_to_state(
+                   &(client_ep.ssl), &(server_ep.ssl),
+                   MBEDTLS_SSL_SERVER_HELLO), 0);
+
+    TEST_ASSERT(client_ep.ssl.early_data_state !=
+                MBEDTLS_SSL_EARLY_DATA_STATE_NO_IND_SENT);
+
+    ret = mbedtls_ssl_handshake(&(server_ep.ssl));
+    TEST_EQUAL(ret, MBEDTLS_ERR_SSL_WANT_READ);
+
+    /*
+     * Write and if possible read as much as possible chunks of write_size
+     * bytes data without getting over the max_early_data_size limit.
+     */
+    do {
+        uint32_t read_early_data_size = 0;
+
+        /*
+         * The contents of the early data are not very important, write a
+         * pattern that varies byte-by-byte and is different for every chunk of
+         * early data.
+         */
+        if ((written_early_data_size + write_size) > max_early_data_size) {
+            break;
+        }
+
+        /*
+         * If the server rejected early data, base the determination of when
+         * to stop the loop on the expanded size (padding and encryption
+         * expansion) of early data on server side and the number of early data
+         * received so far by the server (multiple of the expanded size).
+         */
+        if ((expanded_early_data_chunk_size != 0) &&
+            ((server_ep.ssl.total_early_data_size +
+              expanded_early_data_chunk_size) > max_early_data_size)) {
+            break;
+        }
+
+        for (size_t i = 0; i < write_size; i++) {
+            buf_write[i] = (unsigned char) (written_early_data_size + i);
+        }
+
+        ret = write_early_data(&(client_ep.ssl), buf_write, write_size);
+        TEST_EQUAL(ret, write_size);
+        written_early_data_size += write_size;
+
+        switch (scenario) {
+            case TEST_EARLY_DATA_ACCEPTED:
+                while (read_early_data_size < write_size) {
+                    ret = mbedtls_ssl_handshake(&(server_ep.ssl));
+                    TEST_EQUAL(ret, MBEDTLS_ERR_SSL_RECEIVED_EARLY_DATA);
+
+                    ret = mbedtls_ssl_read_early_data(&(server_ep.ssl),
+                                                      buf_read, read_size);
+                    TEST_ASSERT(ret > 0);
+
+                    TEST_MEMORY_COMPARE(buf_read, ret,
+                                        buf_write + read_early_data_size, ret);
+                    read_early_data_size += ret;
+
+                    TEST_EQUAL(server_ep.ssl.total_early_data_size,
+                               written_early_data_size);
+                }
+                break;
+
+            case TEST_EARLY_DATA_SERVER_REJECTS: /* Intentional fallthrough */
+            case TEST_EARLY_DATA_HRR:
+                ret = mbedtls_ssl_handshake(&(server_ep.ssl));
+                /*
+                 * In this write loop we try to always stay below the
+                 * max_early_data_size limit but if max_early_data_size is very
+                 * small we may exceed the max_early_data_size limit on the
+                 * first write. In TEST_EARLY_DATA_SERVER_REJECTS/
+                 * TEST_EARLY_DATA_HRR scenario, this is for sure the case if
+                 * max_early_data_size is smaller than the smallest possible
+                 * inner content/protected record. Take into account this
+                 * possibility here but only for max_early_data_size values
+                 * that are close to write_size. Below, '1' is for the inner
+                 * type byte and '16' is to take into account some AEAD
+                 * expansion (tag, ...).
+                 */
+                if (ret == MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE) {
+                    if (scenario == TEST_EARLY_DATA_SERVER_REJECTS) {
+                        TEST_LE_U(max_early_data_size,
+                                  write_size + 1 +
+                                  MBEDTLS_SSL_CID_TLS1_3_PADDING_GRANULARITY);
+                    } else {
+                        TEST_LE_U(max_early_data_size,
+                                  write_size + 1 + 16 +
+                                  MBEDTLS_SSL_CID_TLS1_3_PADDING_GRANULARITY);
+                    }
+                    goto exit;
+                }
+
+                TEST_ASSERT(ret == MBEDTLS_ERR_SSL_WANT_READ);
+
+                TEST_EQUAL(server_pattern.counter, 1);
+                server_pattern.counter = 0;
+                if (expanded_early_data_chunk_size == 0) {
+                    expanded_early_data_chunk_size = server_ep.ssl.total_early_data_size;
+                }
+                break;
+        }
+        TEST_LE_U(server_ep.ssl.total_early_data_size, max_early_data_size);
+    } while (1);
+
+    mbedtls_debug_set_threshold(3);
+    ret = write_early_data(&(client_ep.ssl), buf_write, write_size);
+    TEST_EQUAL(ret, write_size);
+
+    ret = mbedtls_snprintf(pattern, sizeof(pattern),
+                           "EarlyData: Too much early data received");
+    TEST_ASSERT(ret < (int) sizeof(pattern));
+
+    ret = mbedtls_ssl_handshake(&(server_ep.ssl));
+    TEST_EQUAL(ret, MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE);
+    TEST_EQUAL(server_pattern.counter, 1);
+
+exit:
+    mbedtls_test_ssl_endpoint_free(&client_ep, NULL);
+    mbedtls_test_ssl_endpoint_free(&server_ep, NULL);
+    mbedtls_test_free_handshake_options(&client_options);
+    mbedtls_test_free_handshake_options(&server_options);
+    mbedtls_ssl_session_free(&saved_session);
+    mbedtls_free(buf_write);
+    mbedtls_free(buf_read);
+    mbedtls_debug_set_threshold(0);
+    PSA_DONE();
 }
 /* END_CASE */

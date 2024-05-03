@@ -59,7 +59,7 @@ static inline void psa_set_key_enrollment_algorithm(
     psa_key_attributes_t *attributes,
     psa_algorithm_t alg2)
 {
-    attributes->MBEDTLS_PRIVATE(core).MBEDTLS_PRIVATE(policy).MBEDTLS_PRIVATE(alg2) = alg2;
+    attributes->MBEDTLS_PRIVATE(policy).MBEDTLS_PRIVATE(alg2) = alg2;
 }
 
 /** Retrieve the enrollment algorithm policy from key attributes.
@@ -71,7 +71,7 @@ static inline void psa_set_key_enrollment_algorithm(
 static inline psa_algorithm_t psa_get_key_enrollment_algorithm(
     const psa_key_attributes_t *attributes)
 {
-    return attributes->MBEDTLS_PRIVATE(core).MBEDTLS_PRIVATE(policy).MBEDTLS_PRIVATE(alg2);
+    return attributes->MBEDTLS_PRIVATE(policy).MBEDTLS_PRIVATE(alg2);
 }
 
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
@@ -129,7 +129,7 @@ static inline void psa_set_key_slot_number(
     psa_key_attributes_t *attributes,
     psa_key_slot_number_t slot_number)
 {
-    attributes->MBEDTLS_PRIVATE(core).MBEDTLS_PRIVATE(flags) |= MBEDTLS_PSA_KA_FLAG_HAS_SLOT_NUMBER;
+    attributes->MBEDTLS_PRIVATE(has_slot_number) = 1;
     attributes->MBEDTLS_PRIVATE(slot_number) = slot_number;
 }
 
@@ -142,8 +142,7 @@ static inline void psa_set_key_slot_number(
 static inline void psa_clear_key_slot_number(
     psa_key_attributes_t *attributes)
 {
-    attributes->MBEDTLS_PRIVATE(core).MBEDTLS_PRIVATE(flags) &=
-        ~MBEDTLS_PSA_KA_FLAG_HAS_SLOT_NUMBER;
+    attributes->MBEDTLS_PRIVATE(has_slot_number) = 0;
 }
 
 /** Register a key that is already present in a secure element.
@@ -198,6 +197,8 @@ psa_status_t mbedtls_psa_register_se_key(
  *
  * This function clears all data associated with the PSA layer,
  * including the whole key store.
+ * This function is not thread safe, it wipes every key slot regardless of
+ * state and reader count. It should only be called when no slot is in use.
  *
  * This is an Mbed TLS extension.
  */
@@ -407,203 +408,13 @@ psa_status_t mbedtls_psa_inject_entropy(const uint8_t *seed,
  * @{
  */
 
-/** Custom Diffie-Hellman group.
- *
- * For keys of type #PSA_KEY_TYPE_DH_PUBLIC_KEY(#PSA_DH_FAMILY_CUSTOM) or
- * #PSA_KEY_TYPE_DH_KEY_PAIR(#PSA_DH_FAMILY_CUSTOM), the group data comes
- * from domain parameters set by psa_set_key_domain_parameters().
- */
-#define PSA_DH_FAMILY_CUSTOM             ((psa_dh_family_t) 0x7e)
-
 /** PAKE operation stages. */
 #define PSA_PAKE_OPERATION_STAGE_SETUP 0
 #define PSA_PAKE_OPERATION_STAGE_COLLECT_INPUTS 1
 #define PSA_PAKE_OPERATION_STAGE_COMPUTATION 2
 
-/**
- * \brief Set domain parameters for a key.
- *
- * Some key types require additional domain parameters in addition to
- * the key type identifier and the key size. Use this function instead
- * of psa_set_key_type() when you need to specify domain parameters.
- *
- * The format for the required domain parameters varies based on the key type.
- *
- * - For RSA keys (#PSA_KEY_TYPE_RSA_PUBLIC_KEY or #PSA_KEY_TYPE_RSA_KEY_PAIR),
- *   the domain parameter data consists of the public exponent,
- *   represented as a big-endian integer with no leading zeros.
- *   This information is used when generating an RSA key pair.
- *   When importing a key, the public exponent is read from the imported
- *   key data and the exponent recorded in the attribute structure is ignored.
- *   As an exception, the public exponent 65537 is represented by an empty
- *   byte string.
- * - For DSA keys (#PSA_KEY_TYPE_DSA_PUBLIC_KEY or #PSA_KEY_TYPE_DSA_KEY_PAIR),
- *   the `Dss-Params` format as defined by RFC 3279 &sect;2.3.2.
- *   ```
- *   Dss-Params ::= SEQUENCE  {
- *      p       INTEGER,
- *      q       INTEGER,
- *      g       INTEGER
- *   }
- *   ```
- * - For Diffie-Hellman key exchange keys
- *   (#PSA_KEY_TYPE_DH_PUBLIC_KEY(#PSA_DH_FAMILY_CUSTOM) or
- *   #PSA_KEY_TYPE_DH_KEY_PAIR(#PSA_DH_FAMILY_CUSTOM)), the
- *   `DomainParameters` format as defined by RFC 3279 &sect;2.3.3.
- *   ```
- *   DomainParameters ::= SEQUENCE {
- *      p               INTEGER,                    -- odd prime, p=jq +1
- *      g               INTEGER,                    -- generator, g
- *      q               INTEGER,                    -- factor of p-1
- *      j               INTEGER OPTIONAL,           -- subgroup factor
- *      validationParams ValidationParams OPTIONAL
- *   }
- *   ValidationParams ::= SEQUENCE {
- *      seed            BIT STRING,
- *      pgenCounter     INTEGER
- *   }
- *   ```
- *
- * \note This function may allocate memory or other resources.
- *       Once you have called this function on an attribute structure,
- *       you must call psa_reset_key_attributes() to free these resources.
- *
- * \note This is an experimental extension to the interface. It may change
- *       in future versions of the library.
- *
- * \param[in,out] attributes    Attribute structure where the specified domain
- *                              parameters will be stored.
- *                              If this function fails, the content of
- *                              \p attributes is not modified.
- * \param type                  Key type (a \c PSA_KEY_TYPE_XXX value).
- * \param[in] data              Buffer containing the key domain parameters.
- *                              The content of this buffer is interpreted
- *                              according to \p type as described above.
- * \param data_length           Size of the \p data buffer in bytes.
- *
- * \retval #PSA_SUCCESS \emptydescription
- * \retval #PSA_ERROR_INVALID_ARGUMENT \emptydescription
- * \retval #PSA_ERROR_NOT_SUPPORTED \emptydescription
- * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
- */
-psa_status_t psa_set_key_domain_parameters(psa_key_attributes_t *attributes,
-                                           psa_key_type_t type,
-                                           const uint8_t *data,
-                                           size_t data_length);
-
-/**
- * \brief Get domain parameters for a key.
- *
- * Get the domain parameters for a key with this function, if any. The format
- * of the domain parameters written to \p data is specified in the
- * documentation for psa_set_key_domain_parameters().
- *
- * \note This is an experimental extension to the interface. It may change
- *       in future versions of the library.
- *
- * \param[in] attributes        The key attribute structure to query.
- * \param[out] data             On success, the key domain parameters.
- * \param data_size             Size of the \p data buffer in bytes.
- *                              The buffer is guaranteed to be large
- *                              enough if its size in bytes is at least
- *                              the value given by
- *                              PSA_KEY_DOMAIN_PARAMETERS_SIZE().
- * \param[out] data_length      On success, the number of bytes
- *                              that make up the key domain parameters data.
- *
- * \retval #PSA_SUCCESS \emptydescription
- * \retval #PSA_ERROR_BUFFER_TOO_SMALL \emptydescription
- */
-psa_status_t psa_get_key_domain_parameters(
-    const psa_key_attributes_t *attributes,
-    uint8_t *data,
-    size_t data_size,
-    size_t *data_length);
-
-/** Safe output buffer size for psa_get_key_domain_parameters().
- *
- * This macro returns a compile-time constant if its arguments are
- * compile-time constants.
- *
- * \warning This function may call its arguments multiple times or
- *          zero times, so you should not pass arguments that contain
- *          side effects.
- *
- * \note This is an experimental extension to the interface. It may change
- *       in future versions of the library.
- *
- * \param key_type  A supported key type.
- * \param key_bits  The size of the key in bits.
- *
- * \return If the parameters are valid and supported, return
- *         a buffer size in bytes that guarantees that
- *         psa_get_key_domain_parameters() will not fail with
- *         #PSA_ERROR_BUFFER_TOO_SMALL.
- *         If the parameters are a valid combination that is not supported
- *         by the implementation, this macro shall return either a
- *         sensible size or 0.
- *         If the parameters are not valid, the
- *         return value is unspecified.
- */
-#define PSA_KEY_DOMAIN_PARAMETERS_SIZE(key_type, key_bits)              \
-    (PSA_KEY_TYPE_IS_RSA(key_type) ? sizeof(int) :                      \
-     PSA_KEY_TYPE_IS_DH(key_type) ? PSA_DH_KEY_DOMAIN_PARAMETERS_SIZE(key_bits) : \
-     PSA_KEY_TYPE_IS_DSA(key_type) ? PSA_DSA_KEY_DOMAIN_PARAMETERS_SIZE(key_bits) : \
-     0)
-#define PSA_DH_KEY_DOMAIN_PARAMETERS_SIZE(key_bits)     \
-    (4 + (PSA_BITS_TO_BYTES(key_bits) + 5) * 3 /*without optional parts*/)
-#define PSA_DSA_KEY_DOMAIN_PARAMETERS_SIZE(key_bits)    \
-    (4 + (PSA_BITS_TO_BYTES(key_bits) + 5) * 2 /*p, g*/ + 34 /*q*/)
-
 /**@}*/
 
-/** \defgroup psa_tls_helpers TLS helper functions
- * @{
- */
-#if defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
-#include <mbedtls/ecp.h>
-
-/** Convert an ECC curve identifier from the Mbed TLS encoding to PSA.
- *
- * \note This function is provided solely for the convenience of
- *       Mbed TLS and may be removed at any time without notice.
- *
- * \param grpid         An Mbed TLS elliptic curve identifier
- *                      (`MBEDTLS_ECP_DP_xxx`).
- * \param[out] bits     On success, the bit size of the curve.
- *
- * \return              The corresponding PSA elliptic curve identifier
- *                      (`PSA_ECC_FAMILY_xxx`).
- * \return              \c 0 on failure (\p grpid is not recognized).
- */
-psa_ecc_family_t mbedtls_ecc_group_to_psa(mbedtls_ecp_group_id grpid,
-                                          size_t *bits);
-
-/** Convert an ECC curve identifier from the PSA encoding to Mbed TLS.
- *
- * \note This function is provided solely for the convenience of
- *       Mbed TLS and may be removed at any time without notice.
- *
- * \param curve         A PSA elliptic curve identifier
- *                      (`PSA_ECC_FAMILY_xxx`).
- * \param bits          The bit-length of a private key on \p curve.
- * \param bits_is_sloppy If true, \p bits may be the bit-length rounded up
- *                      to the nearest multiple of 8. This allows the caller
- *                      to infer the exact curve from the length of a key
- *                      which is supplied as a byte string.
- *
- * \return              The corresponding Mbed TLS elliptic curve identifier
- *                      (`MBEDTLS_ECP_DP_xxx`).
- * \return              #MBEDTLS_ECP_DP_NONE if \c curve is not recognized.
- * \return              #MBEDTLS_ECP_DP_NONE if \p bits is not
- *                      correct for \p curve.
- */
-mbedtls_ecp_group_id mbedtls_ecc_group_of_psa(psa_ecc_family_t curve,
-                                              size_t bits,
-                                              int bits_is_sloppy);
-#endif /* PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY */
-
-/**@}*/
 
 /** \defgroup psa_external_rng External random generator
  * @{
@@ -1889,8 +1700,12 @@ psa_status_t psa_pake_abort(psa_pake_operation_t *operation);
 /** Returns a suitable initializer for a PAKE operation object of type
  * psa_pake_operation_t.
  */
+#if defined(MBEDTLS_PSA_CRYPTO_CLIENT) && !defined(MBEDTLS_PSA_CRYPTO_C)
+#define PSA_PAKE_OPERATION_INIT { 0 }
+#else
 #define PSA_PAKE_OPERATION_INIT { 0, PSA_ALG_NONE, 0, PSA_PAKE_OPERATION_STAGE_SETUP, \
                                   { 0 }, { { 0 } } }
+#endif
 
 struct psa_pake_cipher_suite_s {
     psa_algorithm_t algorithm;
@@ -2018,6 +1833,9 @@ struct psa_jpake_computation_stage_s {
                                            ((round) == PSA_JPAKE_FIRST ? 2 : 1))
 
 struct psa_pake_operation_s {
+#if defined(MBEDTLS_PSA_CRYPTO_CLIENT) && !defined(MBEDTLS_PSA_CRYPTO_C)
+    mbedtls_psa_client_handle_t handle;
+#else
     /** Unique ID indicating which driver got assigned to do the
      * operation. Since driver contexts are driver-specific, swapping
      * drivers halfway through the operation is not supported.
@@ -2043,6 +1861,7 @@ struct psa_pake_operation_s {
         psa_driver_pake_context_t MBEDTLS_PRIVATE(ctx);
         psa_crypto_driver_pake_inputs_t MBEDTLS_PRIVATE(inputs);
     } MBEDTLS_PRIVATE(data);
+#endif
 };
 
 static inline struct psa_pake_cipher_suite_s psa_pake_cipher_suite_init(void)

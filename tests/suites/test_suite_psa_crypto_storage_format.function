@@ -82,77 +82,6 @@ static int is_accelerated_rsa(psa_algorithm_t alg)
     (void) alg;
     return 0;
 }
-
-/* Whether the algorithm is implemented as a builtin, i.e. not accelerated,
- * and calls mbedtls_md() functions that require the hash algorithm to
- * also be built-in. */
-static int is_builtin_calling_md(psa_algorithm_t alg)
-{
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PSS)
-    if (PSA_ALG_IS_RSA_PSS(alg))
-#if defined(MBEDTLS_MD_C)
-    { return 1; }
-#else
-    { return 0; }
-#endif
-#endif
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_OAEP)
-    if (PSA_ALG_IS_RSA_OAEP(alg))
-#if defined(MBEDTLS_MD_C)
-    { return 1; }
-#else
-    { return 0; }
-#endif
-#endif
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA)
-    if (PSA_ALG_IS_DETERMINISTIC_ECDSA(alg)) {
-        return 1;
-    }
-#endif
-    (void) alg;
-    return 0;
-}
-
-static int has_builtin_hash(psa_algorithm_t alg)
-{
-#if !defined(MBEDTLS_MD5_C)
-    if (alg == PSA_ALG_MD5) {
-        return 0;
-    }
-#endif
-#if !defined(MBEDTLS_RIPEMD160_C)
-    if (alg == PSA_ALG_RIPEMD160) {
-        return 0;
-    }
-#endif
-#if !defined(MBEDTLS_SHA1_C)
-    if (alg == PSA_ALG_SHA_1) {
-        return 0;
-    }
-#endif
-#if !defined(MBEDTLS_SHA224_C)
-    if (alg == PSA_ALG_SHA_224) {
-        return 0;
-    }
-#endif
-#if !defined(MBEDTLS_SHA256_C)
-    if (alg == PSA_ALG_SHA_256) {
-        return 0;
-    }
-#endif
-#if !defined(MBEDTLS_SHA384_C)
-    if (alg == PSA_ALG_SHA_384) {
-        return 0;
-    }
-#endif
-#if !defined(MBEDTLS_SHA512_C)
-    if (alg == PSA_ALG_SHA_512) {
-        return 0;
-    }
-#endif
-    (void) alg;
-    return 1;
-}
 #endif
 
 /* Mbed TLS doesn't support certain combinations of key type and algorithm
@@ -193,22 +122,9 @@ static int can_exercise(const psa_key_attributes_t *attributes)
         return 0;
     }
 #endif
+
     if (is_accelerated_rsa(alg) &&
         (hash_alg == PSA_ALG_RIPEMD160 || hash_alg == PSA_ALG_SHA_384)) {
-        return 0;
-    }
-#if defined(MBEDTLS_PSA_ACCEL_ALG_RSA_OAEP)
-    if (PSA_ALG_IS_RSA_OAEP(alg) &&
-        (hash_alg == PSA_ALG_RIPEMD160 || hash_alg == PSA_ALG_SHA_384)) {
-        return 0;
-    }
-#endif
-
-    /* The built-in implementation of asymmetric algorithms that use a
-     * hash internally only dispatch to the internal md module, not to
-     * PSA. Until this is supported, don't try to actually perform
-     * operations when the operation is built-in and the hash isn't.  */
-    if (is_builtin_calling_md(alg) && !has_builtin_hash(hash_alg)) {
         return 0;
     }
 #endif /* MBEDTLS_TEST_LIBTESTDRIVER1 */
@@ -271,7 +187,7 @@ static int test_read_key(const psa_key_attributes_t *expected_attributes,
         TEST_ASSERT(mbedtls_test_psa_exercise_key(
                         key_id,
                         psa_get_key_usage_flags(expected_attributes),
-                        psa_get_key_algorithm(expected_attributes)));
+                        psa_get_key_algorithm(expected_attributes), 0));
     }
 
 

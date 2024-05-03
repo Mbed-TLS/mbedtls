@@ -6,9 +6,102 @@
 #include "mbedtls/psa_util.h"
 #include "pk_internal.h"
 
+#if defined(MBEDTLS_PSA_CRYPTO_C)
+#include "test/psa_exercise_key.h"
+#endif
+
 #if defined(MBEDTLS_PKCS12_C) || defined(MBEDTLS_PKCS5_C)
 #define HAVE_mbedtls_pk_parse_key_pkcs8_encrypted_der
 #endif
+
+#if defined(MBEDTLS_PSA_CRYPTO_C) && defined(MBEDTLS_FS_IO)
+static int test_psa_bridge(const mbedtls_pk_context *ctx,
+                           psa_key_usage_t usage_flag)
+{
+    switch (usage_flag) {
+        case PSA_KEY_USAGE_SIGN_HASH:
+            mbedtls_test_set_step(0);
+            break;
+        case PSA_KEY_USAGE_SIGN_MESSAGE:
+            mbedtls_test_set_step(1);
+            break;
+        case PSA_KEY_USAGE_DECRYPT:
+            mbedtls_test_set_step(2);
+            break;
+        case PSA_KEY_USAGE_DERIVE:
+            mbedtls_test_set_step(3);
+            break;
+        case PSA_KEY_USAGE_VERIFY_HASH:
+            mbedtls_test_set_step(4);
+            break;
+        case PSA_KEY_USAGE_VERIFY_MESSAGE:
+            mbedtls_test_set_step(5);
+            break;
+        case PSA_KEY_USAGE_ENCRYPT:
+            mbedtls_test_set_step(6);
+            break;
+    }
+
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    mbedtls_svc_key_id_t psa_key = MBEDTLS_SVC_KEY_ID_INIT;
+    int ok = 0;
+
+    TEST_EQUAL(mbedtls_pk_get_psa_attributes(ctx, usage_flag, &attributes), 0);
+    int ret = mbedtls_pk_import_into_psa(ctx, &attributes, &psa_key);
+    if (mbedtls_pk_get_type(ctx) == MBEDTLS_PK_RSA &&
+        mbedtls_pk_get_bitlen(ctx) % 8 != 0 &&
+        ret == MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE) {
+        /* There is a historical limitation with support for RSA keys in PSA:
+         * only byte-aligned sizes are supported.
+         * https://github.com/Mbed-TLS/mbedtls/issues/9048
+         * For now, for such keys, treat not-supported from PSA as a success.
+         */
+        ok = 1;
+        goto exit;
+    }
+    TEST_EQUAL(ret, 0);
+    if (!mbedtls_test_key_consistency_psa_pk(psa_key, ctx)) {
+        goto exit;
+    }
+
+    psa_algorithm_t exercise_usage = psa_get_key_usage_flags(&attributes);
+    psa_algorithm_t exercise_alg = psa_get_key_algorithm(&attributes);
+    if (mbedtls_test_can_exercise_psa_algorithm(exercise_alg)) {
+        TEST_ASSERT(mbedtls_test_psa_exercise_key(psa_key,
+                                                  exercise_usage,
+                                                  exercise_alg, 0));
+    }
+
+    mbedtls_test_set_step((unsigned long) -1);
+    ok = 1;
+
+exit:
+    psa_destroy_key(psa_key);
+    psa_reset_key_attributes(&attributes);
+    return ok;
+}
+
+#if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
+/* Whether a pk key can do ECDSA. Opaque keys are not supported since this
+ * test suite does not create opaque keys. */
+static int pk_can_ecdsa(const mbedtls_pk_context *ctx)
+{
+    /* Check whether we have an EC key. Unfortunately this also accepts
+     * keys on Montgomery curves, which can only do ECDH, so we'll have
+     * to dig further. */
+    if (!mbedtls_pk_can_do(ctx, MBEDTLS_PK_ECDSA)) {
+        return 0;
+    }
+#if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
+    return ctx->ec_family != PSA_ECC_FAMILY_MONTGOMERY;
+#elif defined(MBEDTLS_ECDSA_C)
+    return mbedtls_ecdsa_can_do(mbedtls_pk_ec_ro(*ctx)->grp.id);
+#else
+    return 0;
+#endif
+}
+#endif /* MBEDTLS_PK_HAVE_ECC_KEYS */
+#endif /* MBEDTLS_PSA_CRYPTO_C &&  && MBEDTLS_FS_IO */
 
 /* END_HEADER */
 
@@ -34,18 +127,32 @@ void pk_parse_keyfile_rsa(char *key_file, char *password, int result)
     res = mbedtls_pk_parse_keyfile(&ctx, key_file, pwd,
                                    mbedtls_test_rnd_std_rand, NULL);
 
-    TEST_ASSERT(res == result);
+    TEST_EQUAL(res, result);
 
     if (res == 0) {
         mbedtls_rsa_context *rsa;
         TEST_ASSERT(mbedtls_pk_can_do(&ctx, MBEDTLS_PK_RSA));
         rsa = mbedtls_pk_rsa(ctx);
-        TEST_ASSERT(mbedtls_rsa_check_privkey(rsa) == 0);
+        TEST_EQUAL(mbedtls_rsa_check_privkey(rsa), 0);
+
+        size_t bitlen = mbedtls_rsa_get_bitlen(rsa);
+        TEST_EQUAL(mbedtls_pk_get_bitlen(&ctx), bitlen);
+        TEST_EQUAL(mbedtls_pk_get_len(&ctx), (bitlen + 7) / 8);
+
+#if defined(MBEDTLS_PSA_CRYPTO_C)
+        PSA_INIT();
+        TEST_ASSERT(test_psa_bridge(&ctx, PSA_KEY_USAGE_SIGN_HASH));
+        TEST_ASSERT(test_psa_bridge(&ctx, PSA_KEY_USAGE_SIGN_MESSAGE));
+        TEST_ASSERT(test_psa_bridge(&ctx, PSA_KEY_USAGE_DECRYPT));
+        TEST_ASSERT(test_psa_bridge(&ctx, PSA_KEY_USAGE_VERIFY_HASH));
+        TEST_ASSERT(test_psa_bridge(&ctx, PSA_KEY_USAGE_VERIFY_MESSAGE));
+        TEST_ASSERT(test_psa_bridge(&ctx, PSA_KEY_USAGE_ENCRYPT));
+#endif
     }
 
 exit:
     mbedtls_pk_free(&ctx);
-    MD_PSA_DONE();
+    PSA_DONE();
 }
 
 /* END_CASE */
@@ -61,18 +168,29 @@ void pk_parse_public_keyfile_rsa(char *key_file, int result)
 
     res = mbedtls_pk_parse_public_keyfile(&ctx, key_file);
 
-    TEST_ASSERT(res == result);
+    TEST_EQUAL(res, result);
 
     if (res == 0) {
         mbedtls_rsa_context *rsa;
         TEST_ASSERT(mbedtls_pk_can_do(&ctx, MBEDTLS_PK_RSA));
         rsa = mbedtls_pk_rsa(ctx);
-        TEST_ASSERT(mbedtls_rsa_check_pubkey(rsa) == 0);
+        TEST_EQUAL(mbedtls_rsa_check_pubkey(rsa), 0);
+
+        size_t bitlen = mbedtls_rsa_get_bitlen(rsa);
+        TEST_EQUAL(mbedtls_pk_get_bitlen(&ctx), bitlen);
+        TEST_EQUAL(mbedtls_pk_get_len(&ctx), (bitlen + 7) / 8);
+
+#if defined(MBEDTLS_PSA_CRYPTO_C)
+        PSA_INIT();
+        TEST_ASSERT(test_psa_bridge(&ctx, PSA_KEY_USAGE_VERIFY_HASH));
+        TEST_ASSERT(test_psa_bridge(&ctx, PSA_KEY_USAGE_VERIFY_MESSAGE));
+        TEST_ASSERT(test_psa_bridge(&ctx, PSA_KEY_USAGE_ENCRYPT));
+#endif
     }
 
 exit:
     mbedtls_pk_free(&ctx);
-    MD_PSA_DONE();
+    PSA_DONE();
 }
 /* END_CASE */
 
@@ -83,11 +201,11 @@ void pk_parse_public_keyfile_ec(char *key_file, int result)
     int res;
 
     mbedtls_pk_init(&ctx);
-    USE_PSA_INIT();
+    MD_OR_USE_PSA_INIT();
 
     res = mbedtls_pk_parse_public_keyfile(&ctx, key_file);
 
-    TEST_ASSERT(res == result);
+    TEST_EQUAL(res, result);
 
     if (res == 0) {
         TEST_ASSERT(mbedtls_pk_can_do(&ctx, MBEDTLS_PK_ECKEY));
@@ -98,13 +216,21 @@ void pk_parse_public_keyfile_ec(char *key_file, int result)
 #else
         const mbedtls_ecp_keypair *eckey;
         eckey = mbedtls_pk_ec_ro(ctx);
-        TEST_ASSERT(mbedtls_ecp_check_pubkey(&eckey->grp, &eckey->Q) == 0);
+        TEST_EQUAL(mbedtls_ecp_check_pubkey(&eckey->grp, &eckey->Q), 0);
+#endif
+
+#if defined(MBEDTLS_PSA_CRYPTO_C)
+        PSA_INIT();
+        if (pk_can_ecdsa(&ctx)) {
+            TEST_ASSERT(test_psa_bridge(&ctx, PSA_KEY_USAGE_VERIFY_HASH));
+            TEST_ASSERT(test_psa_bridge(&ctx, PSA_KEY_USAGE_VERIFY_MESSAGE));
+        }
 #endif
     }
 
 exit:
     mbedtls_pk_free(&ctx);
-    USE_PSA_DONE();
+    PSA_DONE();
 }
 /* END_CASE */
 
@@ -115,26 +241,37 @@ void pk_parse_keyfile_ec(char *key_file, char *password, int result)
     int res;
 
     mbedtls_pk_init(&ctx);
-    USE_PSA_INIT();
+    MD_OR_USE_PSA_INIT();
 
     res = mbedtls_pk_parse_keyfile(&ctx, key_file, password,
                                    mbedtls_test_rnd_std_rand, NULL);
 
-    TEST_ASSERT(res == result);
+    TEST_EQUAL(res, result);
 
     if (res == 0) {
         TEST_ASSERT(mbedtls_pk_can_do(&ctx, MBEDTLS_PK_ECKEY));
-#if defined(MBEDTLS_ECP_C)
-        const mbedtls_ecp_keypair *eckey = mbedtls_pk_ec_ro(ctx);
-        TEST_ASSERT(mbedtls_ecp_check_privkey(&eckey->grp, &eckey->d) == 0);
-#else
+#if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
         /* PSA keys are already checked on import so nothing to do here. */
+#else
+        const mbedtls_ecp_keypair *eckey = mbedtls_pk_ec_ro(ctx);
+        TEST_EQUAL(mbedtls_ecp_check_privkey(&eckey->grp, &eckey->d), 0);
+#endif
+
+#if defined(MBEDTLS_PSA_CRYPTO_C)
+        PSA_INIT();
+        TEST_ASSERT(test_psa_bridge(&ctx, PSA_KEY_USAGE_DERIVE));
+        if (pk_can_ecdsa(&ctx)) {
+            TEST_ASSERT(test_psa_bridge(&ctx, PSA_KEY_USAGE_SIGN_HASH));
+            TEST_ASSERT(test_psa_bridge(&ctx, PSA_KEY_USAGE_SIGN_MESSAGE));
+            TEST_ASSERT(test_psa_bridge(&ctx, PSA_KEY_USAGE_VERIFY_HASH));
+            TEST_ASSERT(test_psa_bridge(&ctx, PSA_KEY_USAGE_VERIFY_MESSAGE));
+        }
 #endif
     }
 
 exit:
     mbedtls_pk_free(&ctx);
-    USE_PSA_DONE();
+    PSA_DONE();
 }
 /* END_CASE */
 

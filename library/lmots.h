@@ -44,29 +44,6 @@ extern "C" {
 extern int (*mbedtls_lmots_sign_private_key_invalidated_hook)(unsigned char *);
 #endif /* defined(MBEDTLS_TEST_HOOKS) */
 
-/**
- * \brief                    This function converts an unsigned int into a
- *                           network-byte-order (big endian) string.
- *
- * \param val                The unsigned integer value
- * \param len                The length of the string.
- * \param bytes              The string to output into.
- */
-void mbedtls_lms_unsigned_int_to_network_bytes(unsigned int val, size_t len,
-                                               unsigned char *bytes);
-
-/**
- * \brief                    This function converts a network-byte-order
- *                           (big endian) string into an unsigned integer.
- *
- * \param len                The length of the string.
- * \param bytes              The string.
- *
- * \return                   The corresponding LMS error code.
- */
-unsigned int mbedtls_lms_network_bytes_to_unsigned_int(size_t len,
-                                                       const unsigned char *bytes);
-
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
 /**
  * \brief                    This function converts a \ref psa_status_t to a

@@ -1,9 +1,24 @@
 /**
- * This file is intended to be used to build PSA test driver libraries. It is
- * intended to be appended by the test build system to the crypto_config.h file
- * of the Mbed TLS library the test library will be linked to. It mirrors the
- * PSA_ACCEL_* macros defining the cryptographic operations the test library
- * supports.
+ * This file is intended to be used to build PSA external test driver
+ * libraries (libtestdriver1).
+ *
+ * It is intended to be appended by the test build system to the
+ * crypto_config.h file of the Mbed TLS library the test library will be
+ * linked to (see `tests/Makefile` libtestdriver1 target). This is done in
+ * order to insert it at the right time: after the main configuration
+ * (PSA_WANT) but before the logic that determines what built-ins to enable
+ * based on PSA_WANT and MBEDTLS_PSA_ACCEL macros.
+ *
+ * It reverses the PSA_ACCEL_* macros defining the cryptographic operations
+ * that will be accelerated in the main library:
+ * - When something is accelerated in the main library, we need it supported
+ *   in libtestdriver1, so we disable the accel macro in order to the built-in
+ *   to be enabled.
+ * - When something is NOT accelerated in the main library, we don't need it
+ *   in libtestdriver1, so we enable its accel macro in order to the built-in
+ *   to be disabled, to keep libtestdriver1 minimal. (We can't adjust the
+ *   PSA_WANT macros as they need to be the same between libtestdriver1 and
+ *   the main library, since they determine the ABI between the two.)
  */
 
 #include "psa/crypto_legacy.h"
@@ -189,6 +204,46 @@
 #undef MBEDTLS_PSA_ACCEL_ALG_ECDH
 #else
 #define MBEDTLS_PSA_ACCEL_ALG_ECDH 1
+#endif
+#endif
+
+#if defined(PSA_WANT_DH_RFC7919_2048)
+#if defined(MBEDTLS_PSA_ACCEL_DH_RFC7919_2048)
+#undef MBEDTLS_PSA_ACCEL_DH_RFC7919_2048
+#else
+#define MBEDTLS_PSA_ACCEL_DH_RFC7919_2048
+#endif
+#endif
+
+#if defined(PSA_WANT_DH_RFC7919_3072)
+#if defined(MBEDTLS_PSA_ACCEL_DH_RFC7919_3072)
+#undef MBEDTLS_PSA_ACCEL_DH_RFC7919_3072
+#else
+#define MBEDTLS_PSA_ACCEL_DH_RFC7919_3072
+#endif
+#endif
+
+#if defined(PSA_WANT_DH_RFC7919_4096)
+#if defined(MBEDTLS_PSA_ACCEL_DH_RFC7919_4096)
+#undef MBEDTLS_PSA_ACCEL_DH_RFC7919_4096
+#else
+#define MBEDTLS_PSA_ACCEL_DH_RFC7919_4096
+#endif
+#endif
+
+#if defined(PSA_WANT_DH_RFC7919_6144)
+#if defined(MBEDTLS_PSA_ACCEL_DH_RFC7919_6144)
+#undef MBEDTLS_PSA_ACCEL_DH_RFC7919_6144
+#else
+#define MBEDTLS_PSA_ACCEL_DH_RFC7919_6144
+#endif
+#endif
+
+#if defined(PSA_WANT_DH_RFC7919_8192)
+#if defined(MBEDTLS_PSA_ACCEL_DH_RFC7919_8192)
+#undef MBEDTLS_PSA_ACCEL_DH_RFC7919_8192
+#else
+#define MBEDTLS_PSA_ACCEL_DH_RFC7919_8192
 #endif
 #endif
 
@@ -521,17 +576,114 @@
 #endif
 #endif
 
-#define MBEDTLS_PSA_ACCEL_ALG_CBC_MAC 1
-#define MBEDTLS_PSA_ACCEL_ALG_CCM 1
+#if defined(PSA_WANT_ALG_GCM)
+#if defined(MBEDTLS_PSA_ACCEL_ALG_GCM)
+#undef MBEDTLS_PSA_ACCEL_ALG_GCM
+#else
 #define MBEDTLS_PSA_ACCEL_ALG_GCM 1
-#define MBEDTLS_PSA_ACCEL_ALG_HKDF 1
-#define MBEDTLS_PSA_ACCEL_ALG_HKDF_EXTRACT 1
-#define MBEDTLS_PSA_ACCEL_ALG_HKDF_EXPAND 1
-#define MBEDTLS_PSA_ACCEL_ALG_HMAC 1
-#define MBEDTLS_PSA_ACCEL_ALG_RSA_OAEP 1
-#define MBEDTLS_PSA_ACCEL_ALG_RSA_PKCS1V15_CRYPT 1
+#endif
+#endif
 
+#if defined(PSA_WANT_ALG_CCM)
+#if defined(MBEDTLS_PSA_ACCEL_ALG_CCM)
+#undef MBEDTLS_PSA_ACCEL_ALG_CCM
+#else
+#define MBEDTLS_PSA_ACCEL_ALG_CCM 1
+#endif
+#endif
+
+#if defined(PSA_WANT_ALG_CCM_STAR_NO_TAG)
+#if defined(MBEDTLS_PSA_ACCEL_ALG_CCM_STAR_NO_TAG)
+#undef MBEDTLS_PSA_ACCEL_ALG_CCM_STAR_NO_TAG
+#else
+#define MBEDTLS_PSA_ACCEL_ALG_CCM_STAR_NO_TAG 1
+#endif
+#endif
+
+#if defined(PSA_WANT_ALG_CBC_MAC)
+#if defined(MBEDTLS_PSA_ACCEL_ALG_CBC_MAC)
+#undef MBEDTLS_PSA_ACCEL_ALG_CBC_MAC
+#else
+#define MBEDTLS_PSA_ACCEL_ALG_CBC_MAC 1
+#endif
+#endif
+
+#if defined(PSA_WANT_ALG_HMAC)
+#if defined(MBEDTLS_PSA_ACCEL_ALG_HMAC)
+#undef MBEDTLS_PSA_ACCEL_ALG_HMAC
+#else
+#define MBEDTLS_PSA_ACCEL_ALG_HMAC 1
+#endif
+#endif
+
+#if defined(PSA_WANT_ALG_HKDF)
+#if defined(MBEDTLS_PSA_ACCEL_ALG_HKDF)
+#undef MBEDTLS_PSA_ACCEL_ALG_HKDF
+#else
+#define MBEDTLS_PSA_ACCEL_ALG_HKDF 1
+#endif
+#endif
+
+#if defined(PSA_WANT_ALG_HKDF_EXTRACT)
+#if defined(MBEDTLS_PSA_ACCEL_ALG_HKDF_EXTRACT)
+#undef MBEDTLS_PSA_ACCEL_ALG_HKDF_EXTRACT
+#else
+#define MBEDTLS_PSA_ACCEL_ALG_HKDF_EXTRACT 1
+#endif
+#endif
+
+#if defined(PSA_WANT_ALG_HKDF_EXPAND)
+#if defined(MBEDTLS_PSA_ACCEL_ALG_HKDF_EXPAND)
+#undef MBEDTLS_PSA_ACCEL_ALG_HKDF_EXPAND
+#else
+#define MBEDTLS_PSA_ACCEL_ALG_HKDF_EXPAND 1
+#endif
+#endif
+
+#if defined(PSA_WANT_ALG_RSA_OAEP)
+#if defined(MBEDTLS_PSA_ACCEL_ALG_RSA_OAEP)
+#undef MBEDTLS_PSA_ACCEL_ALG_RSA_OAEP
+#else
+#define MBEDTLS_PSA_ACCEL_ALG_RSA_OAEP 1
+#endif
+#endif
+
+#if defined(PSA_WANT_ALG_RSA_PKCS1V15_CRYPT)
+#if defined(MBEDTLS_PSA_ACCEL_ALG_RSA_PKCS1V15_CRYPT)
+#undef MBEDTLS_PSA_ACCEL_ALG_RSA_PKCS1V15_CRYPT
+#else
+#define MBEDTLS_PSA_ACCEL_ALG_RSA_PKCS1V15_CRYPT 1
+#endif
+#endif
+
+#if defined(PSA_WANT_KEY_TYPE_DERIVE)
+#if defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_DERIVE)
+#undef MBEDTLS_PSA_ACCEL_KEY_TYPE_DERIVE
+#else
 #define MBEDTLS_PSA_ACCEL_KEY_TYPE_DERIVE 1
+#endif
+#endif
+
+#if defined(PSA_WANT_KEY_TYPE_HMAC)
+#if defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_HMAC)
+#undef MBEDTLS_PSA_ACCEL_KEY_TYPE_HMAC
+#else
 #define MBEDTLS_PSA_ACCEL_KEY_TYPE_HMAC 1
+#endif
+#endif
+
+#if defined(PSA_WANT_KEY_TYPE_DES)
+#if defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_DES)
+#undef MBEDTLS_PSA_ACCEL_KEY_TYPE_DES
+#else
 #define MBEDTLS_PSA_ACCEL_KEY_TYPE_DES 1
+#endif
+#endif
+
+#if defined(PSA_WANT_KEY_TYPE_RAW_DATA)
+#if defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_RAW_DATA)
+#undef MBEDTLS_PSA_ACCEL_KEY_TYPE_RAW_DATA
+#else
 #define MBEDTLS_PSA_ACCEL_KEY_TYPE_RAW_DATA 1
+#endif
+#endif

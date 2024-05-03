@@ -12,12 +12,12 @@
 #include <string.h>
 
 #include "mbedtls/error.h"
-#include "mbedtls/debug.h"
+#include "debug_internal.h"
 #include "mbedtls/oid.h"
 #include "mbedtls/platform.h"
 #include "mbedtls/constant_time.h"
 #include "psa/crypto.h"
-#include "md_psa.h"
+#include "mbedtls/psa_util.h"
 
 #include "ssl_misc.h"
 #include "ssl_tls13_invasive.h"
@@ -193,10 +193,12 @@ static void ssl_tls13_create_verify_structure(const unsigned char *transcript_ha
     idx = 64;
 
     if (from == MBEDTLS_SSL_IS_CLIENT) {
-        memcpy(verify_buffer + idx, MBEDTLS_SSL_TLS1_3_LBL_WITH_LEN(client_cv));
+        memcpy(verify_buffer + idx, mbedtls_ssl_tls13_labels.client_cv,
+               MBEDTLS_SSL_TLS1_3_LBL_LEN(client_cv));
         idx += MBEDTLS_SSL_TLS1_3_LBL_LEN(client_cv);
     } else { /* from == MBEDTLS_SSL_IS_SERVER */
-        memcpy(verify_buffer + idx, MBEDTLS_SSL_TLS1_3_LBL_WITH_LEN(server_cv));
+        memcpy(verify_buffer + idx, mbedtls_ssl_tls13_labels.server_cv,
+               MBEDTLS_SSL_TLS1_3_LBL_LEN(server_cv));
         idx += MBEDTLS_SSL_TLS1_3_LBL_LEN(server_cv);
     }
 
@@ -1379,6 +1381,12 @@ int mbedtls_ssl_tls13_write_change_cipher_spec(mbedtls_ssl_context *ssl)
 
     MBEDTLS_SSL_DEBUG_MSG(2, ("=> write change cipher spec"));
 
+    /* Only one CCS to send. */
+    if (ssl->handshake->ccs_sent) {
+        ret = 0;
+        goto cleanup;
+    }
+
     /* Write CCS message */
     MBEDTLS_SSL_PROC_CHK(ssl_tls13_write_change_cipher_spec_body(
                              ssl, ssl->out_msg,
@@ -1389,6 +1397,8 @@ int mbedtls_ssl_tls13_write_change_cipher_spec(mbedtls_ssl_context *ssl)
 
     /* Dispatch message */
     MBEDTLS_SSL_PROC_CHK(mbedtls_ssl_write_record(ssl, 0));
+
+    ssl->handshake->ccs_sent = 1;
 
 cleanup:
 
@@ -1402,7 +1412,7 @@ cleanup:
  *
  * struct {
  *   select ( Handshake.msg_type ) {
- *     ...
+ *     case new_session_ticket:   uint32 max_early_data_size;
  *     case client_hello:         Empty;
  *     case encrypted_extensions: Empty;
  *   };
@@ -1410,25 +1420,90 @@ cleanup:
  */
 #if defined(MBEDTLS_SSL_EARLY_DATA)
 int mbedtls_ssl_tls13_write_early_data_ext(mbedtls_ssl_context *ssl,
+                                           int in_new_session_ticket,
                                            unsigned char *buf,
                                            const unsigned char *end,
                                            size_t *out_len)
 {
     unsigned char *p = buf;
-    *out_len = 0;
-    ((void) ssl);
 
-    MBEDTLS_SSL_CHK_BUF_PTR(p, end, 4);
+#if defined(MBEDTLS_SSL_SRV_C)
+    const size_t needed = in_new_session_ticket ? 8 : 4;
+#else
+    const size_t needed = 4;
+    ((void) in_new_session_ticket);
+#endif
+
+    *out_len = 0;
+
+    MBEDTLS_SSL_CHK_BUF_PTR(p, end, needed);
 
     MBEDTLS_PUT_UINT16_BE(MBEDTLS_TLS_EXT_EARLY_DATA, p, 0);
-    MBEDTLS_PUT_UINT16_BE(0, p, 2);
+    MBEDTLS_PUT_UINT16_BE(needed - 4, p, 2);
 
-    *out_len = 4;
+#if defined(MBEDTLS_SSL_SRV_C)
+    if (in_new_session_ticket) {
+        MBEDTLS_PUT_UINT32_BE(ssl->conf->max_early_data_size, p, 4);
+        MBEDTLS_SSL_DEBUG_MSG(
+            4, ("Sent max_early_data_size=%u",
+                (unsigned int) ssl->conf->max_early_data_size));
+    }
+#endif
+
+    *out_len = needed;
 
     mbedtls_ssl_tls13_set_hs_sent_ext_mask(ssl, MBEDTLS_TLS_EXT_EARLY_DATA);
 
     return 0;
 }
+
+#if defined(MBEDTLS_SSL_SRV_C)
+int mbedtls_ssl_tls13_check_early_data_len(mbedtls_ssl_context *ssl,
+                                           size_t early_data_len)
+{
+    /*
+     * This function should be called only while an handshake is in progress
+     * and thus a session under negotiation. Add a sanity check to detect a
+     * misuse.
+     */
+    if (ssl->session_negotiate == NULL) {
+        return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+    }
+
+    /* RFC 8446 section 4.6.1
+     *
+     * A server receiving more than max_early_data_size bytes of 0-RTT data
+     * SHOULD terminate the connection with an "unexpected_message" alert.
+     * Note that if it is still possible to send early_data_len bytes of early
+     * data, it means that early_data_len is smaller than max_early_data_size
+     * (type uint32_t) and can fit in an uint32_t. We use this further
+     * down.
+     */
+    if (early_data_len >
+        (ssl->session_negotiate->max_early_data_size -
+         ssl->total_early_data_size)) {
+
+        MBEDTLS_SSL_DEBUG_MSG(
+            2, ("EarlyData: Too much early data received, %u + %" MBEDTLS_PRINTF_SIZET " > %u",
+                ssl->total_early_data_size, early_data_len,
+                ssl->session_negotiate->max_early_data_size));
+
+        MBEDTLS_SSL_PEND_FATAL_ALERT(
+            MBEDTLS_SSL_ALERT_MSG_UNEXPECTED_MESSAGE,
+            MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE);
+        return MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE;
+    }
+
+    /*
+     * early_data_len has been checked to be less than max_early_data_size
+     * that is uint32_t. Its cast to an uint32_t below is thus safe. We need
+     * the cast to appease some compilers.
+     */
+    ssl->total_early_data_size += (uint32_t) early_data_len;
+
+    return 0;
+}
+#endif /* MBEDTLS_SSL_SRV_C */
 #endif /* MBEDTLS_SSL_EARLY_DATA */
 
 /* Reset SSL context and update hash for handling HRR.
@@ -1522,26 +1597,36 @@ static psa_status_t  mbedtls_ssl_get_psa_ffdh_info_from_tls_id(
     uint16_t tls_id, size_t *bits, psa_key_type_t *key_type)
 {
     switch (tls_id) {
+#if defined(PSA_WANT_DH_RFC7919_2048)
         case MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE2048:
             *bits = 2048;
             *key_type = PSA_KEY_TYPE_DH_KEY_PAIR(PSA_DH_FAMILY_RFC7919);
             return PSA_SUCCESS;
+#endif /* PSA_WANT_DH_RFC7919_2048 */
+#if defined(PSA_WANT_DH_RFC7919_3072)
         case MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE3072:
             *bits = 3072;
             *key_type =  PSA_KEY_TYPE_DH_KEY_PAIR(PSA_DH_FAMILY_RFC7919);
             return PSA_SUCCESS;
+#endif /* PSA_WANT_DH_RFC7919_3072 */
+#if defined(PSA_WANT_DH_RFC7919_4096)
         case MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE4096:
             *bits = 4096;
             *key_type =  PSA_KEY_TYPE_DH_KEY_PAIR(PSA_DH_FAMILY_RFC7919);
             return PSA_SUCCESS;
+#endif /* PSA_WANT_DH_RFC7919_4096 */
+#if defined(PSA_WANT_DH_RFC7919_6144)
         case MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE6144:
             *bits = 6144;
             *key_type =  PSA_KEY_TYPE_DH_KEY_PAIR(PSA_DH_FAMILY_RFC7919);
             return PSA_SUCCESS;
+#endif /* PSA_WANT_DH_RFC7919_6144 */
+#if defined(PSA_WANT_DH_RFC7919_8192)
         case MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE8192:
             *bits = 8192;
             *key_type =  PSA_KEY_TYPE_DH_KEY_PAIR(PSA_DH_FAMILY_RFC7919);
             return PSA_SUCCESS;
+#endif /* PSA_WANT_DH_RFC7919_8192 */
         default:
             return PSA_ERROR_NOT_SUPPORTED;
     }
@@ -1681,6 +1766,7 @@ int mbedtls_ssl_tls13_check_received_extension(
 }
 
 #if defined(MBEDTLS_SSL_RECORD_SIZE_LIMIT)
+
 /* RFC 8449, section 4:
  *
  * The ExtensionData of the "record_size_limit" extension is
@@ -1714,27 +1800,56 @@ int mbedtls_ssl_tls13_parse_record_size_limit_ext(mbedtls_ssl_context *ssl,
 
     MBEDTLS_SSL_DEBUG_MSG(2, ("RecordSizeLimit: %u Bytes", record_size_limit));
 
-    /* RFC 8449, section 4
+    /* RFC 8449, section 4:
      *
      * Endpoints MUST NOT send a "record_size_limit" extension with a value
      * smaller than 64.  An endpoint MUST treat receipt of a smaller value
      * as a fatal error and generate an "illegal_parameter" alert.
      */
     if (record_size_limit < MBEDTLS_SSL_RECORD_SIZE_LIMIT_MIN) {
+        MBEDTLS_SSL_DEBUG_MSG(1, ("Invalid record size limit : %u Bytes",
+                                  record_size_limit));
         MBEDTLS_SSL_PEND_FATAL_ALERT(
             MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER,
             MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER);
         return MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER;
     }
 
-    MBEDTLS_SSL_DEBUG_MSG(
-        2, ("record_size_limit extension is still in development. Aborting handshake."));
+    ssl->session_negotiate->record_size_limit = record_size_limit;
 
-    MBEDTLS_SSL_PEND_FATAL_ALERT(
-        MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_EXT,
-        MBEDTLS_ERR_SSL_UNSUPPORTED_EXTENSION);
-    return MBEDTLS_ERR_SSL_UNSUPPORTED_EXTENSION;
+    return 0;
 }
+
+MBEDTLS_CHECK_RETURN_CRITICAL
+int mbedtls_ssl_tls13_write_record_size_limit_ext(mbedtls_ssl_context *ssl,
+                                                  unsigned char *buf,
+                                                  const unsigned char *end,
+                                                  size_t *out_len)
+{
+    unsigned char *p = buf;
+    *out_len = 0;
+
+    MBEDTLS_STATIC_ASSERT(MBEDTLS_SSL_IN_CONTENT_LEN >= MBEDTLS_SSL_RECORD_SIZE_LIMIT_MIN,
+                          "MBEDTLS_SSL_IN_CONTENT_LEN is less than the "
+                          "minimum record size limit");
+
+    MBEDTLS_SSL_CHK_BUF_PTR(p, end, 6);
+
+    MBEDTLS_PUT_UINT16_BE(MBEDTLS_TLS_EXT_RECORD_SIZE_LIMIT, p, 0);
+    MBEDTLS_PUT_UINT16_BE(MBEDTLS_SSL_RECORD_SIZE_LIMIT_EXTENSION_DATA_LENGTH,
+                          p, 2);
+    MBEDTLS_PUT_UINT16_BE(MBEDTLS_SSL_IN_CONTENT_LEN, p, 4);
+
+    *out_len = 6;
+
+    MBEDTLS_SSL_DEBUG_MSG(2, ("Sent RecordSizeLimit: %d Bytes",
+                              MBEDTLS_SSL_IN_CONTENT_LEN));
+
+    mbedtls_ssl_tls13_set_hs_sent_ext_mask(ssl, MBEDTLS_TLS_EXT_RECORD_SIZE_LIMIT);
+
+    return 0;
+}
+
 #endif /* MBEDTLS_SSL_RECORD_SIZE_LIMIT */
 
 #endif /* MBEDTLS_SSL_TLS_C && MBEDTLS_SSL_PROTO_TLS1_3 */

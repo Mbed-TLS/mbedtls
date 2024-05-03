@@ -12,8 +12,35 @@ import traceback
 import re
 import subprocess
 import os
+import typing
 
 import check_test_cases
+
+
+# `ComponentOutcomes` is a named tuple which is defined as:
+# ComponentOutcomes(
+#     successes = {
+#         "<suite_case>",
+#         ...
+#     },
+#     failures = {
+#         "<suite_case>",
+#         ...
+#     }
+# )
+# suite_case = "<suite>;<case>"
+ComponentOutcomes = typing.NamedTuple('ComponentOutcomes',
+                                      [('successes', typing.Set[str]),
+                                       ('failures', typing.Set[str])])
+
+# `Outcomes` is a representation of the outcomes file,
+# which defined as:
+# Outcomes = {
+#     "<component>": ComponentOutcomes,
+#     ...
+# }
+Outcomes = typing.Dict[str, ComponentOutcomes]
+
 
 class Results:
     """Process analysis results."""
@@ -40,35 +67,12 @@ class Results:
     def _print_line(fmt, *args, **kwargs):
         sys.stderr.write((fmt + '\n').format(*args, **kwargs))
 
-class TestCaseOutcomes:
-    """The outcomes of one test case across many configurations."""
-    # pylint: disable=too-few-public-methods
-
-    def __init__(self):
-        # Collect a list of witnesses of the test case succeeding or failing.
-        # Currently we don't do anything with witnesses except count them.
-        # The format of a witness is determined by the read_outcome_file
-        # function; it's the platform and configuration joined by ';'.
-        self.successes = []
-        self.failures = []
-
-    def hits(self):
-        """Return the number of times a test case has been run.
-
-        This includes passes and failures, but not skips.
-        """
-        return len(self.successes) + len(self.failures)
-
-def execute_reference_driver_tests(results: Results, ref_component, driver_component, \
-                                   outcome_file):
+def execute_reference_driver_tests(results: Results, ref_component: str, driver_component: str, \
+                                   outcome_file: str) -> None:
     """Run the tests specified in ref_component and driver_component. Results
     are stored in the output_file and they will be used for the following
     coverage analysis"""
-    # If the outcome file already exists, we assume that the user wants to
-    # perform the comparison analysis again without repeating the tests.
-    if os.path.exists(outcome_file):
-        results.info("Outcome file ({}) already exists. Tests will be skipped.", outcome_file)
-        return
+    results.new_section("Test {} and {}", ref_component, driver_component)
 
     shell_command = "tests/scripts/all.sh --outcome-file " + outcome_file + \
                     " " + ref_component + " " + driver_component
@@ -78,24 +82,28 @@ def execute_reference_driver_tests(results: Results, ref_component, driver_compo
     if ret_val != 0:
         results.error("failed to run reference/driver components")
 
-def analyze_coverage(results, outcomes, allow_list, full_coverage):
+def analyze_coverage(results: Results, outcomes: Outcomes,
+                     allow_list: typing.List[str], full_coverage: bool) -> None:
     """Check that all available test cases are executed at least once."""
     available = check_test_cases.collect_available_test_cases()
-    for key in available:
-        hits = outcomes[key].hits() if key in outcomes else 0
-        if hits == 0 and key not in allow_list:
+    for suite_case in available:
+        hit = any(suite_case in comp_outcomes.successes or
+                  suite_case in comp_outcomes.failures
+                  for comp_outcomes in outcomes.values())
+
+        if not hit and suite_case not in allow_list:
             if full_coverage:
-                results.error('Test case not executed: {}', key)
+                results.error('Test case not executed: {}', suite_case)
             else:
-                results.warning('Test case not executed: {}', key)
-        elif hits != 0 and key in allow_list:
+                results.warning('Test case not executed: {}', suite_case)
+        elif hit and suite_case in allow_list:
             # Test Case should be removed from the allow list.
             if full_coverage:
-                results.error('Allow listed test case was executed: {}', key)
+                results.error('Allow listed test case was executed: {}', suite_case)
             else:
-                results.warning('Allow listed test case was executed: {}', key)
+                results.warning('Allow listed test case was executed: {}', suite_case)
 
-def name_matches_pattern(name, str_or_re):
+def name_matches_pattern(name: str, str_or_re) -> bool:
     """Check if name matches a pattern, that may be a string or regex.
     - If the pattern is a string, name must be equal to match.
     - If the pattern is a regex, name must fully match.
@@ -103,24 +111,34 @@ def name_matches_pattern(name, str_or_re):
     # The CI's python is too old for re.Pattern
     #if isinstance(str_or_re, re.Pattern):
     if not isinstance(str_or_re, str):
-        return str_or_re.fullmatch(name)
+        return str_or_re.fullmatch(name) is not None
     else:
         return str_or_re == name
 
-def analyze_driver_vs_reference(results: Results, outcomes,
-                                component_ref, component_driver,
-                                ignored_suites, ignored_tests=None):
-    """Check that all tests executed in the reference component are also
-    executed in the corresponding driver component.
+def analyze_driver_vs_reference(results: Results, outcomes: Outcomes,
+                                component_ref: str, component_driver: str,
+                                ignored_suites: typing.List[str], ignored_tests=None) -> None:
+    """Check that all tests passing in the reference component are also
+    passing in the corresponding driver component.
     Skip:
     - full test suites provided in ignored_suites list
     - only some specific test inside a test suite, for which the corresponding
       output string is provided
     """
-    seen_reference_passing = False
-    for key in outcomes:
-        # key is like "test_suite_foo.bar;Description of test case"
-        (full_test_suite, test_string) = key.split(';')
+    ref_outcomes = outcomes.get("component_" + component_ref)
+    driver_outcomes = outcomes.get("component_" + component_driver)
+
+    if ref_outcomes is None or driver_outcomes is None:
+        results.error("required components are missing: bad outcome file?")
+        return
+
+    if not ref_outcomes.successes:
+        results.error("no passing test in reference component: bad outcome file?")
+        return
+
+    for suite_case in ref_outcomes.successes:
+        # suite_case is like "test_suite_foo.bar;Description of test case"
+        (full_test_suite, test_string) = suite_case.split(';')
         test_suite = full_test_suite.split('.')[0] # retrieve main part of test suite name
 
         # Immediately skip fully-ignored test suites
@@ -132,70 +150,51 @@ def analyze_driver_vs_reference(results: Results, outcomes,
         # but issue an error if they're not (means we have a bad entry).
         ignored = False
         if full_test_suite in ignored_tests:
-            for str_or_re in ignored_tests[test_suite]:
+            for str_or_re in ignored_tests[full_test_suite]:
                 if name_matches_pattern(test_string, str_or_re):
                     ignored = True
 
-        # Search for tests that run in reference component and not in driver component
-        driver_test_passed = False
-        reference_test_passed = False
-        for entry in outcomes[key].successes:
-            if component_driver in entry:
-                driver_test_passed = True
-            if component_ref in entry:
-                reference_test_passed = True
-                seen_reference_passing = True
-        if reference_test_passed and not driver_test_passed and not ignored:
-            results.error("PASS -> SKIP/FAIL: {}", key)
-        if ignored and driver_test_passed:
-            results.error("uselessly ignored: {}", key)
+        if not ignored and not suite_case in driver_outcomes.successes:
+            results.error("PASS -> SKIP/FAIL: {}", suite_case)
+        if ignored and suite_case in driver_outcomes.successes:
+            results.error("uselessly ignored: {}", suite_case)
 
-    if not seen_reference_passing:
-        results.error("no passing test in reference component: bad outcome file?")
-
-def analyze_outcomes(results: Results, outcomes, args):
+def analyze_outcomes(results: Results, outcomes: Outcomes, args) -> None:
     """Run all analyses on the given outcome collection."""
     analyze_coverage(results, outcomes, args['allow_list'],
                      args['full_coverage'])
 
-def read_outcome_file(outcome_file):
+def read_outcome_file(outcome_file: str) -> Outcomes:
     """Parse an outcome file and return an outcome collection.
-
-An outcome collection is a dictionary mapping keys to TestCaseOutcomes objects.
-The keys are the test suite name and the test case description, separated
-by a semicolon.
-"""
+    """
     outcomes = {}
     with open(outcome_file, 'r', encoding='utf-8') as input_file:
         for line in input_file:
-            (platform, config, suite, case, result, _cause) = line.split(';')
-            key = ';'.join([suite, case])
-            setup = ';'.join([platform, config])
-            if key not in outcomes:
-                outcomes[key] = TestCaseOutcomes()
+            (_platform, component, suite, case, result, _cause) = line.split(';')
+            # Note that `component` is not unique. If a test case passes on Linux
+            # and fails on FreeBSD, it'll end up in both the successes set and
+            # the failures set.
+            suite_case = ';'.join([suite, case])
+            if component not in outcomes:
+                outcomes[component] = ComponentOutcomes(set(), set())
             if result == 'PASS':
-                outcomes[key].successes.append(setup)
+                outcomes[component].successes.add(suite_case)
             elif result == 'FAIL':
-                outcomes[key].failures.append(setup)
+                outcomes[component].failures.add(suite_case)
+
     return outcomes
 
-def do_analyze_coverage(results: Results, outcome_file, args):
+def do_analyze_coverage(results: Results, outcomes: Outcomes, args) -> None:
     """Perform coverage analysis."""
     results.new_section("Analyze coverage")
-    outcomes = read_outcome_file(outcome_file)
     analyze_outcomes(results, outcomes, args)
 
-def do_analyze_driver_vs_reference(results: Results, outcome_file, args):
+def do_analyze_driver_vs_reference(results: Results, outcomes: Outcomes, args) -> None:
     """Perform driver vs reference analyze."""
     results.new_section("Analyze driver {} vs reference {}",
                         args['component_driver'], args['component_ref'])
 
-    execute_reference_driver_tests(results, args['component_ref'], \
-                                   args['component_driver'], outcome_file)
-
     ignored_suites = ['test_suite_' + x for x in args['ignored_suites']]
-
-    outcomes = read_outcome_file(outcome_file)
 
     analyze_driver_vs_reference(results, outcomes,
                                 args['component_ref'], args['component_driver'],
@@ -232,19 +231,63 @@ KNOWN_TASKS = {
                 'psa_crypto_low_hash.generated', # testing the builtins
             ],
             'ignored_tests': {
+                'test_suite_platform': [
+                    # Incompatible with sanitizers (e.g. ASan). If the driver
+                    # component uses a sanitizer but the reference component
+                    # doesn't, we have a PASS vs SKIP mismatch.
+                    'Check mbedtls_calloc overallocation',
+                ],
             }
         }
     },
-    'analyze_driver_vs_reference_cipher_aead': {
+    'analyze_driver_vs_reference_hmac': {
         'test_function': do_analyze_driver_vs_reference,
         'args': {
-            'component_ref': 'test_psa_crypto_config_reference_cipher_aead',
-            'component_driver': 'test_psa_crypto_config_accel_cipher_aead',
+            'component_ref': 'test_psa_crypto_config_reference_hmac',
+            'component_driver': 'test_psa_crypto_config_accel_hmac',
+            'ignored_suites': [
+                # These suites require legacy hash support, which is disabled
+                # in the accelerated component.
+                'shax', 'mdx',
+                # This suite tests builtins directly, but these are missing
+                # in the accelerated case.
+                'psa_crypto_low_hash.generated',
+            ],
+            'ignored_tests': {
+                'test_suite_md': [
+                    # Builtin HMAC is not supported in the accelerate component.
+                    re.compile('.*HMAC.*'),
+                    # Following tests make use of functions which are not available
+                    # when MD_C is disabled, as it happens in the accelerated
+                    # test component.
+                    re.compile('generic .* Hash file .*'),
+                    'MD list',
+                ],
+                'test_suite_md.psa': [
+                    # "legacy only" tests require hash algorithms to be NOT
+                    # accelerated, but this of course false for the accelerated
+                    # test component.
+                    re.compile('PSA dispatch .* legacy only'),
+                ],
+                'test_suite_platform': [
+                    # Incompatible with sanitizers (e.g. ASan). If the driver
+                    # component uses a sanitizer but the reference component
+                    # doesn't, we have a PASS vs SKIP mismatch.
+                    'Check mbedtls_calloc overallocation',
+                ],
+            }
+        }
+    },
+    'analyze_driver_vs_reference_cipher_aead_cmac': {
+        'test_function': do_analyze_driver_vs_reference,
+        'args': {
+            'component_ref': 'test_psa_crypto_config_reference_cipher_aead_cmac',
+            'component_driver': 'test_psa_crypto_config_accel_cipher_aead_cmac',
             # Modules replaced by drivers.
             'ignored_suites': [
                 # low-level (block/stream) cipher modules
                 'aes', 'aria', 'camellia', 'des', 'chacha20',
-                # AEAD modes
+                # AEAD modes and CMAC
                 'ccm', 'chachapoly', 'cmac', 'gcm',
                 # The Cipher abstraction layer
                 'cipher',
@@ -254,6 +297,12 @@ KNOWN_TASKS = {
                 # The rest of PEM (write, unencrypted read) works though.
                 'test_suite_pem': [
                     re.compile(r'PEM read .*(AES|DES|\bencrypt).*'),
+                ],
+                'test_suite_platform': [
+                    # Incompatible with sanitizers (e.g. ASan). If the driver
+                    # component uses a sanitizer but the reference component
+                    # doesn't, we have a PASS vs SKIP mismatch.
+                    'Check mbedtls_calloc overallocation',
                 ],
                 # Following tests depend on AES_C/DES_C but are not about
                 # them really, just need to know some error code is there.
@@ -282,7 +331,7 @@ KNOWN_TASKS = {
                 'test_suite_pkparse': [
                     'Key ASN1 (Encrypted key PKCS12, trailing garbage data)',
                     'Key ASN1 (Encrypted key PKCS5, trailing garbage data)',
-                    re.compile(r'Parse RSA Key .*\(PKCS#8 encrypted .*\)'),
+                    re.compile(r'Parse (RSA|EC) Key .*\(.* ([Ee]ncrypted|password).*\)'),
                 ],
             }
         }
@@ -297,6 +346,12 @@ KNOWN_TASKS = {
                 'ecdsa', 'ecdh', 'ecjpake',
             ],
             'ignored_tests': {
+                'test_suite_platform': [
+                    # Incompatible with sanitizers (e.g. ASan). If the driver
+                    # component uses a sanitizer but the reference component
+                    # doesn't, we have a PASS vs SKIP mismatch.
+                    'Check mbedtls_calloc overallocation',
+                ],
                 # This test wants a legacy function that takes f_rng, p_rng
                 # arguments, and uses legacy ECDSA for that. The test is
                 # really about the wrapper around the PSA RNG, not ECDSA.
@@ -308,6 +363,7 @@ KNOWN_TASKS = {
                 # is required.
                 'test_suite_ecp': [
                     re.compile(r'ECP check public-private .*'),
+                    re.compile(r'ECP calculate public: .*'),
                     re.compile(r'ECP gen keypair .*'),
                     re.compile(r'ECP point muladd .*'),
                     re.compile(r'ECP point multiplication .*'),
@@ -330,6 +386,12 @@ KNOWN_TASKS = {
                 'ecp', 'ecdsa', 'ecdh', 'ecjpake',
             ],
             'ignored_tests': {
+                'test_suite_platform': [
+                    # Incompatible with sanitizers (e.g. ASan). If the driver
+                    # component uses a sanitizer but the reference component
+                    # doesn't, we have a PASS vs SKIP mismatch.
+                    'Check mbedtls_calloc overallocation',
+                ],
                 # See ecp_light_only
                 'test_suite_random': [
                     'PSA classic wrapper: ECDSA signature (SECP256R1)',
@@ -363,6 +425,12 @@ KNOWN_TASKS = {
                 'bignum.generated', 'bignum.misc',
             ],
             'ignored_tests': {
+                'test_suite_platform': [
+                    # Incompatible with sanitizers (e.g. ASan). If the driver
+                    # component uses a sanitizer but the reference component
+                    # doesn't, we have a PASS vs SKIP mismatch.
+                    'Check mbedtls_calloc overallocation',
+                ],
                 # See ecp_light_only
                 'test_suite_random': [
                     'PSA classic wrapper: ECDSA signature (SECP256R1)',
@@ -400,6 +468,12 @@ KNOWN_TASKS = {
                 'bignum.generated', 'bignum.misc',
             ],
             'ignored_tests': {
+                'test_suite_platform': [
+                    # Incompatible with sanitizers (e.g. ASan). If the driver
+                    # component uses a sanitizer but the reference component
+                    # doesn't, we have a PASS vs SKIP mismatch.
+                    'Check mbedtls_calloc overallocation',
+                ],
                 # See ecp_light_only
                 'test_suite_random': [
                     'PSA classic wrapper: ECDSA signature (SECP256R1)',
@@ -431,7 +505,14 @@ KNOWN_TASKS = {
             'component_ref': 'test_psa_crypto_config_reference_ffdh',
             'component_driver': 'test_psa_crypto_config_accel_ffdh',
             'ignored_suites': ['dhm'],
-            'ignored_tests': {}
+            'ignored_tests': {
+                'test_suite_platform': [
+                    # Incompatible with sanitizers (e.g. ASan). If the driver
+                    # component uses a sanitizer but the reference component
+                    # doesn't, we have a PASS vs SKIP mismatch.
+                    'Check mbedtls_calloc overallocation',
+                ],
+            }
         }
     },
     'analyze_driver_vs_reference_tfm_config': {
@@ -441,20 +522,121 @@ KNOWN_TASKS = {
             'component_driver': 'test_tfm_config_p256m_driver_accel_ec',
             'ignored_suites': [
                 # Modules replaced by drivers
+                'asn1parse', 'asn1write',
                 'ecp', 'ecdsa', 'ecdh', 'ecjpake',
                 'bignum_core', 'bignum_random', 'bignum_mod', 'bignum_mod_raw',
                 'bignum.generated', 'bignum.misc',
             ],
             'ignored_tests': {
+                'test_suite_platform': [
+                    # Incompatible with sanitizers (e.g. ASan). If the driver
+                    # component uses a sanitizer but the reference component
+                    # doesn't, we have a PASS vs SKIP mismatch.
+                    'Check mbedtls_calloc overallocation',
+                ],
                 # See ecp_light_only
                 'test_suite_random': [
                     'PSA classic wrapper: ECDSA signature (SECP256R1)',
                 ],
-                'test_suite_asn1parse': [
-                    'INTEGER too large for mpi',
+            }
+        }
+    },
+    'analyze_driver_vs_reference_rsa': {
+        'test_function': do_analyze_driver_vs_reference,
+        'args': {
+            'component_ref': 'test_psa_crypto_config_reference_rsa_crypto',
+            'component_driver': 'test_psa_crypto_config_accel_rsa_crypto',
+            'ignored_suites': [
+                # Modules replaced by drivers.
+                'rsa', 'pkcs1_v15', 'pkcs1_v21',
+                # We temporarily don't care about PK stuff.
+                'pk', 'pkwrite', 'pkparse'
+            ],
+            'ignored_tests': {
+                'test_suite_platform': [
+                    # Incompatible with sanitizers (e.g. ASan). If the driver
+                    # component uses a sanitizer but the reference component
+                    # doesn't, we have a PASS vs SKIP mismatch.
+                    'Check mbedtls_calloc overallocation',
                 ],
-                'test_suite_asn1write': [
-                    re.compile(r'ASN.1 Write mpi.*'),
+                # Following tests depend on RSA_C but are not about
+                # them really, just need to know some error code is there.
+                'test_suite_error': [
+                    'Low and high error',
+                    'Single high error'
+                ],
+                # Constant time operations only used for PKCS1_V15
+                'test_suite_constant_time': [
+                    re.compile(r'mbedtls_ct_zeroize_if .*'),
+                    re.compile(r'mbedtls_ct_memmove_left .*')
+                ],
+                'test_suite_psa_crypto': [
+                    # We don't support generate_key_ext entry points
+                    # in drivers yet.
+                    re.compile(r'PSA generate key ext: RSA, e=.*'),
+                ],
+            }
+        }
+    },
+    'analyze_block_cipher_dispatch': {
+        'test_function': do_analyze_driver_vs_reference,
+        'args': {
+            'component_ref': 'test_full_block_cipher_legacy_dispatch',
+            'component_driver': 'test_full_block_cipher_psa_dispatch',
+            'ignored_suites': [
+                # Skipped in the accelerated component
+                'aes', 'aria', 'camellia',
+                # These require AES_C, ARIA_C or CAMELLIA_C to be enabled in
+                # order for the cipher module (actually cipher_wrapper) to work
+                # properly. However these symbols are disabled in the accelerated
+                # component so we ignore them.
+                'cipher.ccm', 'cipher.gcm', 'cipher.aes', 'cipher.aria',
+                'cipher.camellia',
+            ],
+            'ignored_tests': {
+                'test_suite_cmac': [
+                    # Following tests require AES_C/ARIA_C/CAMELLIA_C to be enabled,
+                    # but these are not available in the accelerated component.
+                    'CMAC null arguments',
+                    re.compile('CMAC.* (AES|ARIA|Camellia).*'),
+                ],
+                'test_suite_cipher.padding': [
+                    # Following tests require AES_C/CAMELLIA_C to be enabled,
+                    # but these are not available in the accelerated component.
+                    re.compile('Set( non-existent)? padding with (AES|CAMELLIA).*'),
+                ],
+                'test_suite_pkcs5': [
+                    # The AES part of PKCS#5 PBES2 is not yet supported.
+                    # The rest of PKCS#5 (PBKDF2) works, though.
+                    re.compile(r'PBES2 .* AES-.*')
+                ],
+                'test_suite_pkparse': [
+                    # PEM (called by pkparse) requires AES_C in order to decrypt
+                    # the key, but this is not available in the accelerated
+                    # component.
+                    re.compile('Parse RSA Key.*(password|AES-).*'),
+                ],
+                'test_suite_pem': [
+                    # Following tests require AES_C, but this is diabled in the
+                    # accelerated component.
+                    re.compile('PEM read .*AES.*'),
+                    'PEM read (unknown encryption algorithm)',
+                ],
+                'test_suite_error': [
+                    # Following tests depend on AES_C but are not about them
+                    # really, just need to know some error code is there.
+                    'Single low error',
+                    'Low and high error',
+                ],
+                'test_suite_version': [
+                    # Similar to test_suite_error above.
+                    'Check for MBEDTLS_AES_C when already present',
+                ],
+                'test_suite_platform': [
+                    # Incompatible with sanitizers (e.g. ASan). If the driver
+                    # component uses a sanitizer but the reference component
+                    # doesn't, we have a PASS vs SKIP mismatch.
+                    'Check mbedtls_calloc overallocation',
                 ],
             }
         }
@@ -498,10 +680,31 @@ def main():
 
         KNOWN_TASKS['analyze_coverage']['args']['full_coverage'] = options.full_coverage
 
+        # If the outcome file exists, parse it once and share the result
+        # among tasks to improve performance.
+        # Otherwise, it will be generated by execute_reference_driver_tests.
+        if not os.path.exists(options.outcomes):
+            if len(tasks_list) > 1:
+                sys.stderr.write("mutiple tasks found, please provide a valid outcomes file.\n")
+                sys.exit(2)
+
+            task_name = tasks_list[0]
+            task = KNOWN_TASKS[task_name]
+            if task['test_function'] != do_analyze_driver_vs_reference: # pylint: disable=comparison-with-callable
+                sys.stderr.write("please provide valid outcomes file for {}.\n".format(task_name))
+                sys.exit(2)
+
+            execute_reference_driver_tests(main_results,
+                                           task['args']['component_ref'],
+                                           task['args']['component_driver'],
+                                           options.outcomes)
+
+        outcomes = read_outcome_file(options.outcomes)
+
         for task in tasks_list:
             test_function = KNOWN_TASKS[task]['test_function']
             test_args = KNOWN_TASKS[task]['args']
-            test_function(main_results, options.outcomes, test_args)
+            test_function(main_results, outcomes, test_args)
 
         main_results.info("Overall results: {} warnings and {} errors",
                           main_results.warning_count, main_results.error_count)

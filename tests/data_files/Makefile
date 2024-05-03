@@ -206,10 +206,8 @@ test-ca2.ku-%.crt: test-ca2.ku-%.crt.openssl.v3_ext $(test_ca_key_file_ec) test-
 	$(OPENSSL) x509 -req -in test-ca2.req.sha256 -extfile $< \
 		-signkey $(test_ca_key_file_ec) -days 3653 -out $@
 
-all_final += test-ca2.ku-crl.crt \
-			 test-ca2.ku-crt.crt \
-			 test-ca2.ku-crt_crl.crt \
-			 test-ca2.ku-ds.crt
+all_final += test-ca2.ku-crl.crt test-ca2.ku-crt.crt test-ca2.ku-crt_crl.crt \
+	     test-ca2.ku-ds.crt
 
 test-ca2-future.crt: $(test_ca_key_file_ec) test-ca2.req.sha256
 	$(MBEDTLS_CERT_WRITE) is_ca=1 serial=13926223505202072808 request_file=test-ca2.req.sha256 selfsign=1 \
@@ -580,10 +578,6 @@ server9-with-ca.crt: server9.crt $(test_ca_crt)
 	cat $^ > $@
 all_final += server9-with-ca.crt
 
-# FIXME: This file needs special sequence. It should be update manually
-server9-bad-saltlen.crt: server9.csr $(test_ca_crt) $(test_ca_key_file_rsa)
-	false
-
 server9-bad-mgfhash.crt: server9.csr $(test_ca_crt) $(test_ca_key_file_rsa)
 	$(OPENSSL) x509 -req -extfile $(cli_crt_extensions_file) -extensions cli-rsa \
 		-passin "pass:$(test_ca_pwd_rsa)" -CA $(test_ca_crt) -CAkey $(test_ca_key_file_rsa) \
@@ -592,6 +586,16 @@ server9-bad-mgfhash.crt: server9.csr $(test_ca_crt) $(test_ca_key_file_rsa)
 		-sigopt rsa_mgf1_md:sha224 -sha256 \
 		-in $< -out $@
 all_final += server9-bad-mgfhash.crt
+
+server9-bad-saltlen.crt: server9.csr $(test_ca_crt) $(test_ca_key_file_rsa) \
+			 opensslcnf/server9.crt.v3_ext \
+			 ../scripts/generate_server9_bad_saltlen.py
+	../scripts/generate_server9_bad_saltlen.py --ca-name test-ca \
+		--ca-password $(test_ca_pwd_rsa) --csr server9.csr \
+		--openssl-extfile opensslcnf/server9.crt.v3_ext \
+		--anounce_saltlen 0xde --actual_saltlen 0x20 \
+		--output $@
+all_final += server9-bad-saltlen.crt
 
 # server10*
 
@@ -702,17 +706,43 @@ keys_rsa_basic_pwd = testkey
 ### Password used for PKCS8-encoded encrypted RSA keys
 keys_rsa_pkcs8_pwd = PolarSSLTest
 
-### Basic 1024-, 2048- and 4096-bit unencrypted RSA keys from which
+### Basic unencrypted RSA keys from which
 ### all other encrypted RSA keys are derived.
+keys_rsa_base =
+### TODO: the commands require OpenSSL 1.x to work as desired. With
+### OpenSSL 3.x, they produce pkcs8 files.
+rsa_pkcs1_768_clear.pem:
+	$(OPENSSL) genrsa -out $@ 768
+keys_rsa_base += rsa_pkcs1_768_clear.pem
+rsa_pkcs1_769_clear.pem:
+	$(OPENSSL) genrsa -out $@ 769
+keys_rsa_base += rsa_pkcs1_769_clear.pem
+rsa_pkcs1_770_clear.pem:
+	$(OPENSSL) genrsa -out $@ 770
+keys_rsa_base += rsa_pkcs1_770_clear.pem
+rsa_pkcs1_776_clear.pem:
+	$(OPENSSL) genrsa -out $@ 776
+keys_rsa_base += rsa_pkcs1_776_clear.pem
+rsa_pkcs1_784_clear.pem:
+	$(OPENSSL) genrsa -out $@ 784
+keys_rsa_base += rsa_pkcs1_784_clear.pem
 rsa_pkcs1_1024_clear.pem:
 	$(OPENSSL) genrsa -out $@ 1024
-all_final += rsa_pkcs1_1024_clear.pem
+keys_rsa_base += rsa_pkcs1_1024_clear.pem
 rsa_pkcs1_2048_clear.pem:
 	$(OPENSSL) genrsa -out $@ 2048
-all_final += rsa_pkcs1_2048_clear.pem
+keys_rsa_base += rsa_pkcs1_2048_clear.pem
 rsa_pkcs1_4096_clear.pem:
 	$(OPENSSL) genrsa -out $@ 4096
-all_final += rsa_pkcs1_4096_clear.pem
+keys_rsa_base += rsa_pkcs1_4096_clear.pem
+
+all_final += $(keys_rsa_base)
+
+### PKCS1-encoded, plaintext RSA keys in derived forms
+
+rsa_pkcs1_%.der: rsa_pkcs1_%.pem
+	$(OPENSSL) pkey -inform PEM -in $< -outform DER -out $@
+all_final += $(keys_rsa_base:.pem=.der)
 
 ###
 ### PKCS1-encoded, encrypted RSA keys
@@ -1048,6 +1078,30 @@ rsa_pkcs8_pbes2_pbkdf2_2048_3des_sha384.pem: rsa_pkcs1_2048_clear.pem
 all_final += rsa_pkcs8_pbes2_pbkdf2_2048_3des_sha384.pem
 keys_rsa_enc_pkcs8_v2_2048_3des_sha384: rsa_pkcs8_pbes2_pbkdf2_2048_3des_sha384.der rsa_pkcs8_pbes2_pbkdf2_2048_3des_sha384.pem
 
+rsa_pkcs8_pbes2_pbkdf2_2048_aes128cbc_sha384.der: rsa_pkcs1_2048_clear.pem
+	$(OPENSSL) pkcs8  -topk8 -v2 aes-128-cbc -v2prf hmacWithSHA384 -inform PEM -in $< -outform DER -out $@ -passout "pass:$(keys_rsa_pkcs8_pwd)"
+all_final += rsa_pkcs8_pbes2_pbkdf2_2048_aes128cbc_sha384.der
+rsa_pkcs8_pbes2_pbkdf2_2048_aes128cbc_sha384.pem: rsa_pkcs1_2048_clear.pem
+	$(OPENSSL) pkcs8  -topk8 -v2 aes-128-cbc -v2prf hmacWithSHA384 -inform PEM -in $< -outform PEM -out $@ -passout "pass:$(keys_rsa_pkcs8_pwd)"
+all_final += rsa_pkcs8_pbes2_pbkdf2_2048_aes128cbc_sha384.pem
+keys_rsa_enc_pkcs8_v2_2048_aes128cbc_sha384: rsa_pkcs8_pbes2_pbkdf2_2048_aes128cbc_sha384.der rsa_pkcs8_pbes2_pbkdf2_2048_aes128cbc_sha384.pem
+
+rsa_pkcs8_pbes2_pbkdf2_2048_aes192cbc_sha384.der: rsa_pkcs1_2048_clear.pem
+	$(OPENSSL) pkcs8  -topk8 -v2 aes-192-cbc -v2prf hmacWithSHA384 -inform PEM -in $< -outform DER -out $@ -passout "pass:$(keys_rsa_pkcs8_pwd)"
+all_final += rsa_pkcs8_pbes2_pbkdf2_2048_aes192cbc_sha384.der
+rsa_pkcs8_pbes2_pbkdf2_2048_aes192cbc_sha384.pem: rsa_pkcs1_2048_clear.pem
+	$(OPENSSL) pkcs8  -topk8 -v2 aes-192-cbc -v2prf hmacWithSHA384 -inform PEM -in $< -outform PEM -out $@ -passout "pass:$(keys_rsa_pkcs8_pwd)"
+all_final += rsa_pkcs8_pbes2_pbkdf2_2048_aes192cbc_sha384.pem
+keys_rsa_enc_pkcs8_v2_2048_aes192cbc_sha384: rsa_pkcs8_pbes2_pbkdf2_2048_aes192cbc_sha384.der rsa_pkcs8_pbes2_pbkdf2_2048_aes192cbc_sha384.pem
+
+rsa_pkcs8_pbes2_pbkdf2_2048_aes256cbc_sha384.der: rsa_pkcs1_2048_clear.pem
+	$(OPENSSL) pkcs8  -topk8 -v2 aes-256-cbc -v2prf hmacWithSHA384 -inform PEM -in $< -outform DER -out $@ -passout "pass:$(keys_rsa_pkcs8_pwd)"
+all_final += rsa_pkcs8_pbes2_pbkdf2_2048_aes256cbc_sha384.der
+rsa_pkcs8_pbes2_pbkdf2_2048_aes256cbc_sha384.pem: rsa_pkcs1_2048_clear.pem
+	$(OPENSSL) pkcs8  -topk8 -v2 aes-256-cbc -v2prf hmacWithSHA384 -inform PEM -in $< -outform PEM -out $@ -passout "pass:$(keys_rsa_pkcs8_pwd)"
+all_final += rsa_pkcs8_pbes2_pbkdf2_2048_aes256cbc_sha384.pem
+keys_rsa_enc_pkcs8_v2_2048_aes256cbc_sha384: rsa_pkcs8_pbes2_pbkdf2_2048_aes256cbc_sha384.der rsa_pkcs8_pbes2_pbkdf2_2048_aes256cbc_sha384.pem
+
 rsa_pkcs8_pbes2_pbkdf2_2048_des_sha384.der: rsa_pkcs1_2048_clear.pem
 	$(OPENSSL) pkcs8 -topk8 -v2 des -v2prf hmacWithSHA384 -inform PEM -in $< -outform DER -out $@ -passout "pass:$(keys_rsa_pkcs8_pwd)"
 all_final += rsa_pkcs8_pbes2_pbkdf2_2048_des_sha384.der
@@ -1142,8 +1196,8 @@ keys_rsa_enc_pkcs8_v2_4096_sha512: keys_rsa_enc_pkcs8_v2_4096_3des_sha512 keys_r
 ### Rules to generate all RSA keys from a particular class
 ###
 
-### Generate basic unencrypted RSA keys
-keys_rsa_unenc: rsa_pkcs1_1024_clear.pem rsa_pkcs1_2048_clear.pem rsa_pkcs1_4096_clear.pem
+### Generate cleartext RSA keys in derived formats
+keys_rsa_cleartext: $(keys_rsa_base) $(keys_rsa_base:.pem=.der)
 
 ### Generate PKCS1-encoded encrypted RSA keys
 keys_rsa_enc_basic: keys_rsa_enc_basic_1024 keys_rsa_enc_basic_2048 keys_rsa_enc_basic_4096
@@ -1155,7 +1209,8 @@ keys_rsa_enc_pkcs8_v1: keys_rsa_enc_pkcs8_v1_1024 keys_rsa_enc_pkcs8_v1_2048 key
 keys_rsa_enc_pkcs8_v2: keys_rsa_enc_pkcs8_v2_1024 keys_rsa_enc_pkcs8_v2_2048 keys_rsa_enc_pkcs8_v2_4096 keys_rsa_enc_pkcs8_v2_1024_sha224 keys_rsa_enc_pkcs8_v2_2048_sha224 keys_rsa_enc_pkcs8_v2_4096_sha224 keys_rsa_enc_pkcs8_v2_1024_sha256 keys_rsa_enc_pkcs8_v2_2048_sha256 keys_rsa_enc_pkcs8_v2_4096_sha256 keys_rsa_enc_pkcs8_v2_1024_sha384 keys_rsa_enc_pkcs8_v2_2048_sha384 keys_rsa_enc_pkcs8_v2_4096_sha384 keys_rsa_enc_pkcs8_v2_1024_sha512 keys_rsa_enc_pkcs8_v2_2048_sha512 keys_rsa_enc_pkcs8_v2_4096_sha512
 
 ### Generate all RSA keys
-keys_rsa_all: keys_rsa_unenc keys_rsa_enc_basic keys_rsa_enc_pkcs8_v1 keys_rsa_enc_pkcs8_v2
+keys_rsa_all: keys_rsa_base keys_rsa_cleartext
+keys_rsa_all: keys_rsa_enc_basic keys_rsa_enc_pkcs8_v1 keys_rsa_enc_pkcs8_v2
 
 ################################################################
 #### Generate various EC keys
@@ -1545,9 +1600,9 @@ server6-ss-child.csr : server6.key
 all_intermediate += server6-ss-child.csr
 server6-ss-child.crt: server6-ss-child.csr server5-selfsigned.crt server5.key server6-ss-child.crt.openssl.v3_ext
 	$(OPENSSL) x509 -req -CA server5-selfsigned.crt -CAkey server5.key \
-				-extfile server6-ss-child.crt.openssl.v3_ext \
-				-set_serial 0x53a2cb5822399474a7ec79ec \
-				-days 3650 -sha256 -in $< -out $@
+		-extfile server6-ss-child.crt.openssl.v3_ext \
+		-set_serial 0x53a2cb5822399474a7ec79ec \
+		-days 3650 -sha256 -in $< -out $@
 all_final += server6-ss-child.crt
 
 
@@ -1714,9 +1769,9 @@ crl.pem: $(test_ca_crt) $(test_ca_key_file_rsa) $(test_ca_config_file)
 	$(OPENSSL) ca -gencrl -batch -cert $(test_ca_crt) -keyfile $(test_ca_key_file_rsa) -key $(test_ca_pwd_rsa) -config $(test_ca_server1_config_file) -md sha1 -crldays 3653 -out $@
 
 crl-futureRevocationDate.pem: $(test_ca_crt) $(test_ca_key_file_rsa) \
-							  $(test_ca_config_file) 				\
-							  test-ca.server1.future-crl.db  \
-							  test-ca.server1.future-crl.opensslconf
+			      $(test_ca_config_file) \
+			      test-ca.server1.future-crl.db \
+			      test-ca.server1.future-crl.opensslconf
 	$(FAKETIME) -f '+10y' $(OPENSSL) ca -gencrl \
 		-config test-ca.server1.future-crl.opensslconf -crldays 365 \
 		-passin "pass:$(test_ca_pwd_rsa)" -out $@
@@ -1737,6 +1792,22 @@ server2-sha256.crt: server2.req.sha256
 	$(MBEDTLS_CERT_WRITE) request_file=server2.req.sha256 serial=2 issuer_crt=$(test_ca_crt) issuer_key=$(test_ca_key_file_rsa) issuer_pwd=$(test_ca_pwd_rsa) not_before=20190210144406 not_after=20290210144406 md=SHA256 version=3 output_file=$@
 all_final += server2-sha256.crt
 
+server2-sha256.ku-ka.crt: SERVER2_CRT_SERIAL=22
+server2-sha256.ku-ka.crt: SERVER2_KEY_USAGE=key_agreement
+server2-sha256.ku-ke.crt: SERVER2_CRT_SERIAL=23
+server2-sha256.ku-ke.crt: SERVER2_KEY_USAGE=key_encipherment
+server2-sha256.ku-ds.crt: SERVER2_CRT_SERIAL=24
+server2-sha256.ku-ds.crt: SERVER2_KEY_USAGE=digital_signature
+server2-sha256.ku-ds_ke.crt: SERVER2_CRT_SERIAL=28
+server2-sha256.ku-ds_ke.crt: SERVER2_KEY_USAGE=digital_signature,key_encipherment
+server2-sha256.ku-%.crt: server2.req.sha256
+	$(MBEDTLS_CERT_WRITE) request_file=server2.req.sha256 serial=$(SERVER2_CRT_SERIAL) \
+		issuer_crt=$(test_ca_crt) issuer_key=$(test_ca_key_file_rsa) issuer_pwd=$(test_ca_pwd_rsa) \
+		key_usage="$(SERVER2_KEY_USAGE)" \
+		not_before=20190210144406 not_after=20290210144406 md=SHA256 version=3 output_file=$@
+all_final += server2-sha256.ku-ka.crt server2-sha256.ku-ke.crt server2-sha256.ku-ds.crt server2-sha256.ku-ds_ke.crt
+
+all_final += server2.ku-ka.crt server2.ku-ke.crt server2.ku-ds.crt server2.ku-ds_ke.crt
 server2.ku-ka.crt: SERVER2_CRT_SERIAL=42
 server2.ku-ka.crt: SERVER2_KEY_USAGE=key_agreement
 server2.ku-ke.crt: SERVER2_CRT_SERIAL=43
@@ -2133,7 +2204,7 @@ all: $(all_intermediate) $(all_final)
 
 .PHONY: default all_final all
 .PHONY: keys_rsa_all
-.PHONY: keys_rsa_unenc keys_rsa_enc_basic
+.PHONY: keys_rsa_enc_basic
 .PHONY: keys_rsa_enc_pkcs8_v1 keys_rsa_enc_pkcs8_v2
 .PHONY: keys_rsa_enc_basic_1024 keys_rsa_enc_basic_2048 keys_rsa_enc_basic_4096
 .PHONY: keys_rsa_enc_pkcs8_v1_1024 keys_rsa_enc_pkcs8_v2_1024

@@ -34,9 +34,15 @@ cmake_policy(SET CMP0011 NEW)
 cmake_policy(SET CMP0012 NEW)
 
 if(TEST_CPP)
-    project("Mbed TLS" LANGUAGES C CXX)
+    project("Mbed TLS"
+        LANGUAGES C CXX
+        VERSION 3.6.0
+    )
 else()
-    project("Mbed TLS" LANGUAGES C)
+    project("Mbed TLS"
+        LANGUAGES C
+        VERSION 3.6.0
+    )
 endif()
 
 include(GNUInstallDirs)
@@ -114,10 +120,15 @@ if(MBEDTLS_PYTHON_EXECUTABLE)
 
 endif()
 
+# We now potentially need to link all executables against PThreads, if available
+set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
+set(THREADS_PREFER_PTHREAD_FLAG TRUE)
+find_package(Threads)
+
 # If this is the root project add longer list of available CMAKE_BUILD_TYPE values
 if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
     set(CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE}
-        CACHE STRING "Choose the type of build: None Debug Release Coverage ASan ASanDbg MemSan MemSanDbg Check CheckFull"
+        CACHE STRING "Choose the type of build: None Debug Release Coverage ASan ASanDbg MemSan MemSanDbg Check CheckFull TSan TSanDbg"
         FORCE)
 endif()
 
@@ -212,6 +223,8 @@ if(CMAKE_COMPILER_IS_GNU)
     set(CMAKE_C_FLAGS_COVERAGE    "-O0 -g3 --coverage")
     set(CMAKE_C_FLAGS_ASAN        "-fsanitize=address -fno-common -fsanitize=undefined -fno-sanitize-recover=all -O3")
     set(CMAKE_C_FLAGS_ASANDBG     "-fsanitize=address -fno-common -fsanitize=undefined -fno-sanitize-recover=all -O1 -g3 -fno-omit-frame-pointer -fno-optimize-sibling-calls")
+    set(CMAKE_C_FLAGS_TSAN        "-fsanitize=thread -O3")
+    set(CMAKE_C_FLAGS_TSANDBG     "-fsanitize=thread -O1 -g3 -fno-omit-frame-pointer -fno-optimize-sibling-calls")
     set(CMAKE_C_FLAGS_CHECK       "-Os")
     set(CMAKE_C_FLAGS_CHECKFULL   "${CMAKE_C_FLAGS_CHECK} -Wcast-qual")
 endif(CMAKE_COMPILER_IS_GNU)
@@ -225,6 +238,8 @@ if(CMAKE_COMPILER_IS_CLANG)
     set(CMAKE_C_FLAGS_ASANDBG     "-fsanitize=address -fno-common -fsanitize=undefined -fno-sanitize-recover=all -O1 -g3 -fno-omit-frame-pointer -fno-optimize-sibling-calls")
     set(CMAKE_C_FLAGS_MEMSAN      "-fsanitize=memory -O3")
     set(CMAKE_C_FLAGS_MEMSANDBG   "-fsanitize=memory -O1 -g3 -fno-omit-frame-pointer -fno-optimize-sibling-calls -fsanitize-memory-track-origins=2")
+    set(CMAKE_C_FLAGS_TSAN        "-fsanitize=thread -O3")
+    set(CMAKE_C_FLAGS_TSANDBG     "-fsanitize=thread -O1 -g3 -fno-omit-frame-pointer -fno-optimize-sibling-calls")
     set(CMAKE_C_FLAGS_CHECK       "-Os")
 endif(CMAKE_COMPILER_IS_CLANG)
 
@@ -268,11 +283,18 @@ if(LIB_INSTALL_DIR)
     set(CMAKE_INSTALL_LIBDIR "${LIB_INSTALL_DIR}")
 endif()
 
+if (NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/framework/CMakeLists.txt")
+    message(FATAL_ERROR "${CMAKE_CURRENT_SOURCE_DIR}/framework/CMakeLists.txt not found. Run `git submodule update --init` from the source tree to fetch the submodule contents.")
+endif()
+add_subdirectory(framework)
+
 add_subdirectory(include)
 
 add_subdirectory(3rdparty)
 
 add_subdirectory(library)
+
+add_subdirectory(pkgconfig)
 
 #
 # The C files in tests/src directory contain test code shared among test suites
@@ -297,6 +319,8 @@ if(ENABLE_TESTING OR ENABLE_PROGRAMS)
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tests/include
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/library)
+    # Request C11, needed for memory poisoning tests
+    set_target_properties(mbedtls_test PROPERTIES C_STANDARD 11)
 
     file(GLOB MBEDTLS_TEST_HELPER_FILES
          ${CMAKE_CURRENT_SOURCE_DIR}/tests/src/test_helpers/*.c)
@@ -377,7 +401,7 @@ if(NOT DISABLE_PACKAGE_CONFIG_AND_INSTALL)
     write_basic_package_version_file(
         "cmake/MbedTLSConfigVersion.cmake"
             COMPATIBILITY SameMajorVersion
-            VERSION 3.5.0)
+            VERSION 3.6.0)
 
     install(
         FILES "${CMAKE_CURRENT_BINARY_DIR}/cmake/MbedTLSConfig.cmake"

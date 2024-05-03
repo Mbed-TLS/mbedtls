@@ -16,7 +16,7 @@
 #include "psa_crypto_random_impl.h"
 #include "psa_crypto_rsa.h"
 #include "psa_crypto_hash.h"
-#include "md_psa.h"
+#include "mbedtls/psa_util.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -24,8 +24,7 @@
 
 #include <mbedtls/rsa.h>
 #include <mbedtls/error.h>
-#include <mbedtls/pk.h>
-#include "pk_wrap.h"
+#include "rsa_internal.h"
 
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PKCS1V15_CRYPT) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_OAEP) || \
@@ -62,50 +61,38 @@ psa_status_t mbedtls_psa_rsa_load_representation(
     mbedtls_rsa_context **p_rsa)
 {
     psa_status_t status;
-    mbedtls_pk_context ctx;
     size_t bits;
-    mbedtls_pk_init(&ctx);
+
+    *p_rsa = mbedtls_calloc(1, sizeof(mbedtls_rsa_context));
+    if (*p_rsa == NULL) {
+        return PSA_ERROR_INSUFFICIENT_MEMORY;
+    }
+    mbedtls_rsa_init(*p_rsa);
 
     /* Parse the data. */
     if (PSA_KEY_TYPE_IS_KEY_PAIR(type)) {
-        status = mbedtls_to_psa_error(
-            mbedtls_pk_parse_key(&ctx, data, data_length, NULL, 0,
-                                 mbedtls_psa_get_random, MBEDTLS_PSA_RANDOM_STATE));
+        status = mbedtls_to_psa_error(mbedtls_rsa_parse_key(*p_rsa, data, data_length));
     } else {
-        status = mbedtls_to_psa_error(
-            mbedtls_pk_parse_public_key(&ctx, data, data_length));
+        status = mbedtls_to_psa_error(mbedtls_rsa_parse_pubkey(*p_rsa, data, data_length));
     }
     if (status != PSA_SUCCESS) {
-        goto exit;
-    }
-
-    /* We have something that the pkparse module recognizes. If it is a
-     * valid RSA key, store it. */
-    if (mbedtls_pk_get_type(&ctx) != MBEDTLS_PK_RSA) {
-        status = PSA_ERROR_INVALID_ARGUMENT;
         goto exit;
     }
 
     /* The size of an RSA key doesn't have to be a multiple of 8. Mbed TLS
      * supports non-byte-aligned key sizes, but not well. For example,
      * mbedtls_rsa_get_len() returns the key size in bytes, not in bits. */
-    bits = PSA_BYTES_TO_BITS(mbedtls_rsa_get_len(mbedtls_pk_rsa(ctx)));
+    bits = PSA_BYTES_TO_BITS(mbedtls_rsa_get_len(*p_rsa));
     if (bits > PSA_VENDOR_RSA_MAX_KEY_BITS) {
         status = PSA_ERROR_NOT_SUPPORTED;
         goto exit;
     }
-    status = psa_check_rsa_key_byte_aligned(mbedtls_pk_rsa(ctx));
+    status = psa_check_rsa_key_byte_aligned(*p_rsa);
     if (status != PSA_SUCCESS) {
         goto exit;
     }
 
-    /* Copy out the pointer to the RSA context, and reset the PK context
-     * such that pk_free doesn't free the RSA context we just grabbed. */
-    *p_rsa = mbedtls_pk_rsa(ctx);
-    ctx.pk_info = NULL;
-
 exit:
-    mbedtls_pk_free(&ctx);
     return status;
 }
 #endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PKCS1V15_CRYPT) ||
@@ -129,7 +116,7 @@ psa_status_t mbedtls_psa_rsa_import_key(
     mbedtls_rsa_context *rsa = NULL;
 
     /* Parse input */
-    status = mbedtls_psa_rsa_load_representation(attributes->core.type,
+    status = mbedtls_psa_rsa_load_representation(attributes->type,
                                                  data,
                                                  data_length,
                                                  &rsa);
@@ -143,7 +130,7 @@ psa_status_t mbedtls_psa_rsa_import_key(
      * representation in the key slot. Export representation in case of RSA is
      * the smallest representation that's allowed as input, so a straight-up
      * allocation of the same size as the input buffer will be large enough. */
-    status = mbedtls_psa_rsa_export_key(attributes->core.type,
+    status = mbedtls_psa_rsa_export_key(attributes->type,
                                         rsa,
                                         key_buffer,
                                         key_buffer_size,
@@ -168,20 +155,15 @@ psa_status_t mbedtls_psa_rsa_export_key(psa_key_type_t type,
                                         size_t *data_length)
 {
     int ret;
-    mbedtls_pk_context pk;
-    uint8_t *pos = data + data_size;
-
-    mbedtls_pk_init(&pk);
-    pk.pk_info = &mbedtls_rsa_info;
-    pk.pk_ctx = rsa;
+    uint8_t *end = data + data_size;
 
     /* PSA Crypto API defines the format of an RSA key as a DER-encoded
      * representation of the non-encrypted PKCS#1 RSAPrivateKey for a
      * private key and of the RFC3279 RSAPublicKey for a public key. */
     if (PSA_KEY_TYPE_IS_KEY_PAIR(type)) {
-        ret = mbedtls_pk_write_key_der(&pk, data, data_size);
+        ret = mbedtls_rsa_write_key(rsa, data, &end);
     } else {
-        ret = mbedtls_pk_write_pubkey(&pos, data, &pk);
+        ret = mbedtls_rsa_write_pubkey(rsa, data, &end);
     }
 
     if (ret < 0) {
@@ -214,7 +196,7 @@ psa_status_t mbedtls_psa_rsa_export_public_key(
     mbedtls_rsa_context *rsa = NULL;
 
     status = mbedtls_psa_rsa_load_representation(
-        attributes->core.type, key_buffer, key_buffer_size, &rsa);
+        attributes->type, key_buffer, key_buffer_size, &rsa);
     if (status != PSA_SUCCESS) {
         return status;
     }
@@ -234,26 +216,21 @@ psa_status_t mbedtls_psa_rsa_export_public_key(
         * defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_PUBLIC_KEY) */
 
 #if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR_GENERATE)
-static psa_status_t psa_rsa_read_exponent(const uint8_t *domain_parameters,
-                                          size_t domain_parameters_size,
+static psa_status_t psa_rsa_read_exponent(const uint8_t *e_bytes,
+                                          size_t e_length,
                                           int *exponent)
 {
     size_t i;
     uint32_t acc = 0;
 
-    if (domain_parameters_size == 0) {
-        *exponent = 65537;
-        return PSA_SUCCESS;
-    }
-
     /* Mbed TLS encodes the public exponent as an int. For simplicity, only
      * support values that fit in a 32-bit integer, which is larger than
      * int on just about every platform anyway. */
-    if (domain_parameters_size > sizeof(acc)) {
+    if (e_length > sizeof(acc)) {
         return PSA_ERROR_NOT_SUPPORTED;
     }
-    for (i = 0; i < domain_parameters_size; i++) {
-        acc = (acc << 8) | domain_parameters[i];
+    for (i = 0; i < e_length; i++) {
+        acc = (acc << 8) | e_bytes[i];
     }
     if (acc > INT_MAX) {
         return PSA_ERROR_NOT_SUPPORTED;
@@ -264,31 +241,33 @@ static psa_status_t psa_rsa_read_exponent(const uint8_t *domain_parameters,
 
 psa_status_t mbedtls_psa_rsa_generate_key(
     const psa_key_attributes_t *attributes,
+    const psa_key_production_parameters_t *params, size_t params_data_length,
     uint8_t *key_buffer, size_t key_buffer_size, size_t *key_buffer_length)
 {
     psa_status_t status;
     mbedtls_rsa_context rsa;
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    int exponent;
+    int exponent = 65537;
 
-    status = psa_rsa_read_exponent(attributes->domain_parameters,
-                                   attributes->domain_parameters_size,
-                                   &exponent);
-    if (status != PSA_SUCCESS) {
-        return status;
+    if (params_data_length != 0) {
+        status = psa_rsa_read_exponent(params->data, params_data_length,
+                                       &exponent);
+        if (status != PSA_SUCCESS) {
+            return status;
+        }
     }
 
     mbedtls_rsa_init(&rsa);
     ret = mbedtls_rsa_gen_key(&rsa,
                               mbedtls_psa_get_random,
                               MBEDTLS_PSA_RANDOM_STATE,
-                              (unsigned int) attributes->core.bits,
+                              (unsigned int) attributes->bits,
                               exponent);
     if (ret != 0) {
         return mbedtls_to_psa_error(ret);
     }
 
-    status = mbedtls_psa_rsa_export_key(attributes->core.type,
+    status = mbedtls_psa_rsa_export_key(attributes->type,
                                         &rsa, key_buffer, key_buffer_size,
                                         key_buffer_length);
     mbedtls_rsa_free(&rsa);
@@ -346,7 +325,7 @@ psa_status_t mbedtls_psa_rsa_sign_hash(
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_md_type_t md_alg;
 
-    status = mbedtls_psa_rsa_load_representation(attributes->core.type,
+    status = mbedtls_psa_rsa_load_representation(attributes->type,
                                                  key_buffer,
                                                  key_buffer_size,
                                                  &rsa);
@@ -445,7 +424,7 @@ psa_status_t mbedtls_psa_rsa_verify_hash(
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_md_type_t md_alg;
 
-    status = mbedtls_psa_rsa_load_representation(attributes->core.type,
+    status = mbedtls_psa_rsa_load_representation(attributes->type,
                                                  key_buffer,
                                                  key_buffer_size,
                                                  &rsa);
@@ -557,11 +536,11 @@ psa_status_t mbedtls_psa_asymmetric_encrypt(const psa_key_attributes_t *attribut
     (void) output_size;
     (void) output_length;
 
-    if (PSA_KEY_TYPE_IS_RSA(attributes->core.type)) {
+    if (PSA_KEY_TYPE_IS_RSA(attributes->type)) {
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PKCS1V15_CRYPT) || \
         defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_OAEP)
         mbedtls_rsa_context *rsa = NULL;
-        status = mbedtls_psa_rsa_load_representation(attributes->core.type,
+        status = mbedtls_psa_rsa_load_representation(attributes->type,
                                                      key_buffer,
                                                      key_buffer_size,
                                                      &rsa);
@@ -653,11 +632,11 @@ psa_status_t mbedtls_psa_asymmetric_decrypt(const psa_key_attributes_t *attribut
 
     *output_length = 0;
 
-    if (attributes->core.type == PSA_KEY_TYPE_RSA_KEY_PAIR) {
+    if (attributes->type == PSA_KEY_TYPE_RSA_KEY_PAIR) {
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PKCS1V15_CRYPT) || \
         defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_OAEP)
         mbedtls_rsa_context *rsa = NULL;
-        status = mbedtls_psa_rsa_load_representation(attributes->core.type,
+        status = mbedtls_psa_rsa_load_representation(attributes->type,
                                                      key_buffer,
                                                      key_buffer_size,
                                                      &rsa);

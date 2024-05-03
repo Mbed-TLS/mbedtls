@@ -119,6 +119,7 @@ void mbedtls_aesni_gcm_mult(unsigned char c[16],
                             const unsigned char a[16],
                             const unsigned char b[16]);
 
+#if !defined(MBEDTLS_BLOCK_CIPHER_NO_DECRYPT)
 /**
  * \brief           Internal round key inversion. This function computes
  *                  decryption round keys from the encryption round keys.
@@ -133,6 +134,7 @@ void mbedtls_aesni_gcm_mult(unsigned char c[16],
 void mbedtls_aesni_inverse_key(unsigned char *invkey,
                                const unsigned char *fwdkey,
                                int nr);
+#endif /* !MBEDTLS_BLOCK_CIPHER_NO_DECRYPT */
 
 /**
  * \brief           Internal key expansion for encryption
@@ -155,6 +157,6 @@ int mbedtls_aesni_setkey_enc(unsigned char *rk,
 #endif
 
 #endif /* MBEDTLS_AESNI_HAVE_CODE */
-#endif  /* MBEDTLS_AESNI_C */
+#endif  /* MBEDTLS_AESNI_C && (MBEDTLS_ARCH_IS_X64 || MBEDTLS_ARCH_IS_X86) */
 
 #endif /* MBEDTLS_AESNI_H */

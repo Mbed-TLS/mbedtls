@@ -25,7 +25,7 @@
  * Major, Minor, Patchlevel
  */
 #define MBEDTLS_VERSION_MAJOR  3
-#define MBEDTLS_VERSION_MINOR  5
+#define MBEDTLS_VERSION_MINOR  6
 #define MBEDTLS_VERSION_PATCH  0
 
 /**
@@ -33,9 +33,9 @@
  *    MMNNPP00
  *    Major version | Minor version | Patch version
  */
-#define MBEDTLS_VERSION_NUMBER         0x03050000
-#define MBEDTLS_VERSION_STRING         "3.5.0"
-#define MBEDTLS_VERSION_STRING_FULL    "Mbed TLS 3.5.0"
+#define MBEDTLS_VERSION_NUMBER         0x03060000
+#define MBEDTLS_VERSION_STRING         "3.6.0"
+#define MBEDTLS_VERSION_STRING_FULL    "Mbed TLS 3.6.0"
 
 /* Macros for build-time platform detection */
 
@@ -62,6 +62,11 @@
 #define MBEDTLS_ARCH_IS_X86
 #endif
 
+#if !defined(MBEDTLS_PLATFORM_IS_WINDOWS_ON_ARM64) && \
+    (defined(_M_ARM64) || defined(_M_ARM64EC))
+#define MBEDTLS_PLATFORM_IS_WINDOWS_ON_ARM64
+#endif
+
 /* This is defined if the architecture is Armv8-A, or higher */
 #if !defined(MBEDTLS_ARCH_IS_ARMV8_A)
 #if defined(__ARM_ARCH) && defined(__ARM_ARCH_PROFILE)
@@ -76,6 +81,14 @@
 /* MSVC ARM64 is at least Armv8.0-A */
 #define MBEDTLS_ARCH_IS_ARMV8_A
 #endif
+#endif
+
+#if defined(__GNUC__) && !defined(__ARMCC_VERSION) && !defined(__clang__) \
+    && !defined(__llvm__) && !defined(__INTEL_COMPILER)
+/* Defined if the compiler really is gcc and not clang, etc */
+#define MBEDTLS_COMPILER_IS_GCC
+#define MBEDTLS_GCC_VERSION \
+    (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)
 #endif
 
 #if defined(_MSC_VER) && !defined(_CRT_SECURE_NO_DEPRECATE)
@@ -145,7 +158,8 @@
  *   (e.g. MBEDTLS_MD_LIGHT)
  */
 #if defined(MBEDTLS_PSA_CRYPTO_CONFIG) /* PSA_WANT_xxx influences MBEDTLS_xxx */ || \
-    defined(MBEDTLS_PSA_CRYPTO_C) /* MBEDTLS_xxx influences PSA_WANT_xxx */
+    defined(MBEDTLS_PSA_CRYPTO_C) /* MBEDTLS_xxx influences PSA_WANT_xxx */ || \
+    defined(MBEDTLS_PSA_CRYPTO_CLIENT) /* The same as the previous, but with separation only */
 #include "mbedtls/config_psa.h"
 #endif
 

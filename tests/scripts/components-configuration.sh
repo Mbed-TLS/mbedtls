@@ -4078,3 +4078,85 @@ component_test_aesni_m32 () { # ~ 60s
     not grep -q "AES note: using VIA Padlock" ./programs/test/selftest
     not grep -q mbedtls_aesni_has_support ./programs/test/selftest
 }
+
+component_test_min_mpi_window_size () {
+    msg "build: Default + MBEDTLS_MPI_WINDOW_SIZE=1 (ASan build)" # ~ 10s
+    scripts/config.py set MBEDTLS_MPI_WINDOW_SIZE 1
+    CC=$ASAN_CC cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    make
+
+    msg "test: MBEDTLS_MPI_WINDOW_SIZE=1 - main suites (inc. selftests) (ASan build)" # ~ 10s
+    make test
+}
+
+component_test_have_int32 () {
+    msg "build: gcc, force 32-bit bignum limbs"
+    scripts/config.py unset MBEDTLS_HAVE_ASM
+    scripts/config.py unset MBEDTLS_AESNI_C
+    scripts/config.py unset MBEDTLS_PADLOCK_C
+    scripts/config.py unset MBEDTLS_AESCE_C
+    make CC=gcc CFLAGS='-O2 -Werror -Wall -Wextra -DMBEDTLS_HAVE_INT32'
+
+    msg "test: gcc, force 32-bit bignum limbs"
+    make test
+}
+
+component_test_have_int64 () {
+    msg "build: gcc, force 64-bit bignum limbs"
+    scripts/config.py unset MBEDTLS_HAVE_ASM
+    scripts/config.py unset MBEDTLS_AESNI_C
+    scripts/config.py unset MBEDTLS_PADLOCK_C
+    scripts/config.py unset MBEDTLS_AESCE_C
+    make CC=gcc CFLAGS='-O2 -Werror -Wall -Wextra -DMBEDTLS_HAVE_INT64'
+
+    msg "test: gcc, force 64-bit bignum limbs"
+    make test
+}
+
+component_test_have_int32_cmake_new_bignum () {
+    msg "build: gcc, force 32-bit bignum limbs, new bignum interface, test hooks (ASan build)"
+    scripts/config.py unset MBEDTLS_HAVE_ASM
+    scripts/config.py unset MBEDTLS_AESNI_C
+    scripts/config.py unset MBEDTLS_PADLOCK_C
+    scripts/config.py unset MBEDTLS_AESCE_C
+    scripts/config.py set MBEDTLS_TEST_HOOKS
+    scripts/config.py set MBEDTLS_ECP_WITH_MPI_UINT
+    make CC=gcc CFLAGS="$ASAN_CFLAGS -Werror -Wall -Wextra -DMBEDTLS_HAVE_INT32" LDFLAGS="$ASAN_CFLAGS"
+
+    msg "test: gcc, force 32-bit bignum limbs, new bignum interface, test hooks (ASan build)"
+    make test
+}
+
+component_test_no_udbl_division () {
+    msg "build: MBEDTLS_NO_UDBL_DIVISION native" # ~ 10s
+    scripts/config.py full
+    scripts/config.py set MBEDTLS_NO_UDBL_DIVISION
+    make CFLAGS='-Werror -O1'
+
+    msg "test: MBEDTLS_NO_UDBL_DIVISION native" # ~ 10s
+    make test
+}
+
+component_test_no_64bit_multiplication () {
+    msg "build: MBEDTLS_NO_64BIT_MULTIPLICATION native" # ~ 10s
+    scripts/config.py full
+    scripts/config.py set MBEDTLS_NO_64BIT_MULTIPLICATION
+    make CFLAGS='-Werror -O1'
+
+    msg "test: MBEDTLS_NO_64BIT_MULTIPLICATION native" # ~ 10s
+    make test
+}
+
+component_test_no_strings () {
+    msg "build: no strings" # ~10s
+    scripts/config.py full
+    # Disable options that activate a large amount of string constants.
+    scripts/config.py unset MBEDTLS_DEBUG_C
+    scripts/config.py unset MBEDTLS_ERROR_C
+    scripts/config.py set MBEDTLS_ERROR_STRERROR_DUMMY
+    scripts/config.py unset MBEDTLS_VERSION_FEATURES
+    make CFLAGS='-Werror -Os'
+
+    msg "test: no strings" # ~ 10s
+    make test
+}

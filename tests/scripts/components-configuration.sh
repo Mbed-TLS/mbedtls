@@ -4039,27 +4039,6 @@ END
     ./tests/test_suite_shax
 }
 
-skip_suites_without_constant_flow () {
-    # Skip the test suites that don't have any constant-flow annotations.
-    # This will need to be adjusted if we ever start declaring things as
-    # secret from macros or functions inside tests/include or tests/src.
-    SKIP_TEST_SUITES=$(
-        git -C tests/suites grep -L TEST_CF_ 'test_suite_*.function' |
-            sed 's/test_suite_//; s/\.function$//' |
-            tr '\n' ,)
-    export SKIP_TEST_SUITES
-}
-
-skip_all_except_given_suite () {
-    # Skip all but the given test suite
-    SKIP_TEST_SUITES=$(
-        ls -1 tests/suites/test_suite_*.function |
-        grep -v $1.function |
-         sed 's/tests.suites.test_suite_//; s/\.function$//' |
-        tr '\n' ,)
-    export SKIP_TEST_SUITES
-}
-
 support_test_aesni_m32() {
     support_test_m32_no_asm && (lscpu | grep -qw aes)
 }

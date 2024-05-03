@@ -9,6 +9,27 @@
 #### Sanitzer Testing
 ################################################################
 
+skip_suites_without_constant_flow () {
+    # Skip the test suites that don't have any constant-flow annotations.
+    # This will need to be adjusted if we ever start declaring things as
+    # secret from macros or functions inside tests/include or tests/src.
+    SKIP_TEST_SUITES=$(
+        git -C tests/suites grep -L TEST_CF_ 'test_suite_*.function' |
+            sed 's/test_suite_//; s/\.function$//' |
+            tr '\n' ,)
+    export SKIP_TEST_SUITES
+}
+
+skip_all_except_given_suite () {
+    # Skip all but the given test suite
+    SKIP_TEST_SUITES=$(
+        ls -1 tests/suites/test_suite_*.function |
+        grep -v $1.function |
+         sed 's/tests.suites.test_suite_//; s/\.function$//' |
+        tr '\n' ,)
+    export SKIP_TEST_SUITES
+}
+
 component_test_memsan_constant_flow () {
     # This tests both (1) accesses to undefined memory, and (2) branches or
     # memory access depending on secret values. To distinguish between those:

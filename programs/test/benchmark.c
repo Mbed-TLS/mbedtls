@@ -115,7 +115,7 @@ static unsigned long mbedtls_timing_hardclock(void);
     "aes_cbc, aes_cfb128, aes_cfb8, aes_gcm, aes_ccm, aes_xts, chachapoly\n" \
     "aes_cmac, des3_cmac, poly1305\n"                                        \
     "ctr_drbg, hmac_drbg\n"                                                  \
-    "rsa, dhm, ecdsa, ecdh.\n"
+    "rsa, dhm, ecdsa, ecdh, lms.\n"
 
 #if defined(MBEDTLS_ERROR_C)
 #define PRINT_ERROR                                                     \
@@ -1268,31 +1268,40 @@ int main(int argc, char *argv[])
     if (todo.lms) {
         mbedtls_lms_public_t pub_ctx;
         mbedtls_lms_private_t priv_ctx;
-        unsigned char sig[MBEDTLS_LMS_SIG_LEN(MBEDTLS_LMS_SHA256_M32_H10, MBEDTLS_LMOTS_SHA256_N32_W8)];
+        unsigned char sig[MBEDTLS_LMS_SIG_LEN(MBEDTLS_LMS_SHA256_M32_H10,
+                                              MBEDTLS_LMOTS_SHA256_N32_W8)];
 
         mbedtls_snprintf(title, sizeof(title), "LMS");
 
         mbedtls_lms_public_init(&pub_ctx);
         mbedtls_lms_private_init(&priv_ctx);
 
-        mbedtls_lms_generate_private_key(&priv_ctx, MBEDTLS_LMS_SHA256_M32_H10,
-                                                    MBEDTLS_LMOTS_SHA256_N32_W8,
-                                                    myrand, NULL,
-                                                    buf, BUFSIZE);
+        if (mbedtls_lms_generate_private_key(&priv_ctx, MBEDTLS_LMS_SHA256_M32_H10,
+                                             MBEDTLS_LMOTS_SHA256_N32_W8,
+                                             myrand, NULL,
+                                             buf, BUFSIZE) != 0) {
+            mbedtls_exit(1);
+        }
 
-        mbedtls_lms_calculate_public_key(&pub_ctx, &priv_ctx);
+        if (mbedtls_lms_calculate_public_key(&pub_ctx, &priv_ctx)) {
+            mbedtls_exit(1);
+        }
 
+        /* *INDENT-OFF* */
         TIME_PUBLIC(title, "sign",
-            ret = mbedtls_lms_sign(&priv_ctx, myrand, NULL, buf, BUFSIZE, sig, sizeof(sig), NULL);
-            if (ret == MBEDTLS_ERR_LMS_OUT_OF_PRIVATE_KEYS) {
-                ret = 0;
-                break;
-            }
-        );
+                    ret =
+                        mbedtls_lms_sign(&priv_ctx, myrand, NULL, buf, BUFSIZE, sig, sizeof(sig),
+                                         NULL);
+                    if (ret == MBEDTLS_ERR_LMS_OUT_OF_PRIVATE_KEYS) {
+                        ret = 0;
+                        break;
+                    }
+                    );
+        /* *INDENT-ON* */
 
         TIME_PUBLIC(title, "verify",
-            ret = mbedtls_lms_verify(&pub_ctx, buf, BUFSIZE, sig, sizeof(sig));
-        );
+                    ret = mbedtls_lms_verify(&pub_ctx, buf, BUFSIZE, sig, sizeof(sig));
+                    );
 
         mbedtls_lms_public_free(&pub_ctx);
         mbedtls_lms_private_free(&priv_ctx);

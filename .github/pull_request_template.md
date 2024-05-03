@@ -6,7 +6,7 @@ Please write a few sentences describing the overall goals of the pull request's 
 
 ## PR checklist
 
-Please remove add/remove strikethrough ~~ as appropriate, and add any relevant link/s to the end of the line.
+Please add/remove strikethrough ~~ as appropriate, and add any relevant link/s to the end of the line.
 
 - [ ] **changelog** provided, ~~not required~~, ~~covered~~ . Link --> #XYZ
 - [ ] **dev PR** provided, ~~not required~~ Link --> #XYZ

@@ -14,7 +14,7 @@ import re
 import os
 import textwrap
 import argparse
-from mbedtls_dev import build_tree
+from mbedtls_framework import build_tree
 
 
 def remove_c_comments(string):

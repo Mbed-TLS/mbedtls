@@ -101,7 +101,7 @@ from types import SimpleNamespace
 
 import xml.etree.ElementTree as ET
 
-from mbedtls_dev import build_tree
+from mbedtls_framework import build_tree
 
 
 class AbiChecker:

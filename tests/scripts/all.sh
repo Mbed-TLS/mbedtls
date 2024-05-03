@@ -75,7 +75,7 @@
 #
 # The all.sh script has been split up into two main sections.
 # all.sh contains the framework that is required for executing the
-# components, and component.sh contains the components themselves.
+# components, and components-*.sh contains the components themselves.
 #
 # In this context, a component is a callable bash function that
 # contains a series of commands. These commands are executed in

@@ -11,11 +11,11 @@ as in generate_bignum_tests.py.
 import sys
 
 import scripts_path # pylint: disable=unused-import
-from mbedtls_dev import test_data_generation
+from mbedtls_framework import test_data_generation
 # Import modules containing additional test classes
 # Test function classes in these modules will be registered by
 # the framework
-from mbedtls_dev import ecp # pylint: disable=unused-import
+from mbedtls_framework import ecp # pylint: disable=unused-import
 
 if __name__ == '__main__':
     # Use the section of the docstring relevant to the CLI as description

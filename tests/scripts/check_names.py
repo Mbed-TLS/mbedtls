@@ -45,7 +45,7 @@ import subprocess
 import logging
 
 import scripts_path # pylint: disable=unused-import
-from mbedtls_dev import build_tree
+from mbedtls_framework import build_tree
 
 
 # Naming patterns to check against. These are defined outside the NameCheck

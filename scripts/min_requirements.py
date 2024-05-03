@@ -14,7 +14,7 @@ import tempfile
 import typing
 
 from typing import List, Optional
-from mbedtls_dev import typing_util
+from mbedtls_framework import typing_util
 
 def pylint_doesn_t_notice_that_certain_types_are_used_in_annotations(
         _list: List[typing.Any],

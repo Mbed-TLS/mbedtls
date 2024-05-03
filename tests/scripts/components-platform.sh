@@ -93,31 +93,3 @@ component_build_zeroize_checks () {
     # Only compile - we're looking for sizeof-pointer-memaccess warnings
     make CFLAGS="'-DMBEDTLS_USER_CONFIG_FILE=\"../tests/configs/user-config-zeroize-memset.h\"' -DMBEDTLS_TEST_DEFINES_ZEROIZE -Werror -Wsizeof-pointer-memaccess"
 }
-
-component_test_zeroize () {
-    # Test that the function mbedtls_platform_zeroize() is not optimized away by
-    # different combinations of compilers and optimization flags by using an
-    # auxiliary GDB script. Unfortunately, GDB does not return error values to the
-    # system in all cases that the script fails, so we must manually search the
-    # output to check whether the pass string is present and no failure strings
-    # were printed.
-
-    # Don't try to disable ASLR. We don't care about ASLR here. We do care
-    # about a spurious message if Gdb tries and fails, so suppress that.
-    gdb_disable_aslr=
-    if [ -z "$(gdb -batch -nw -ex 'set disable-randomization off' 2>&1)" ]; then
-        gdb_disable_aslr='set disable-randomization off'
-    fi
-
-    for optimization_flag in -O2 -O3 -Ofast -Os; do
-        for compiler in clang gcc; do
-            msg "test: $compiler $optimization_flag, mbedtls_platform_zeroize()"
-            make programs CC="$compiler" DEBUG=1 CFLAGS="$optimization_flag"
-            gdb -ex "$gdb_disable_aslr" -x tests/scripts/test_zeroize.gdb -nw -batch -nx 2>&1 | tee test_zeroize.log
-            grep "The buffer was correctly zeroized" test_zeroize.log
-            not grep -i "error" test_zeroize.log
-            rm -f test_zeroize.log
-            make clean
-        done
-    done
-}

@@ -6,7 +6,6 @@
 """Module generating EC and RSA keys to be used in test_suite_pk instead of
 generating the required key at run time. This helps speeding up testing."""
 
-import os
 from typing import Iterator
 import re
 import argparse
@@ -90,8 +89,8 @@ def get_look_up_table_entry(key_type: str, group_id_or_keybits: str,
     yield "      {0}, sizeof({0}),\n".format(priv_array_name)
     yield "      {0}, sizeof({0}) }},".format(pub_array_name)
 
-#pylint: disable=too-many-locals
 def main() -> None:
+    #pylint: disable=too-many-locals
     default_output_path = guess_project_root() + "/tests/src/test_keys.h"
 
     argparser = argparse.ArgumentParser()
@@ -99,7 +98,7 @@ def main() -> None:
     args = argparser.parse_args()
 
     output_file = args.output
-    output_file = open(output_file, 'at')
+    output_file = open(output_file, 'wt')
     output_file.write(
         "/*********************************************************************************\n" +
         " * This file was automatically generated from tests/scripts/generate_test_keys.py.\n" +

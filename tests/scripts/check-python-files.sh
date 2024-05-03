@@ -62,7 +62,7 @@ $PYTHON -m pylint framework/scripts/mbedtls_framework/*.py scripts/*.py tests/sc
 
 echo
 echo 'Running mypy ...'
-$PYTHON -m mypy scripts/*.py tests/scripts/*.py ||
+$PYTHON -m mypy framework/scripts/mbedtls_framework/*.py scripts/*.py tests/scripts/*.py ||
   ret=1
 
 exit $ret

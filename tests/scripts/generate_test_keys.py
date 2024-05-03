@@ -112,6 +112,7 @@ def main() -> None:
     # (key type, key bits) pair. We know that ASYMMETRIC_KEY_DATA
     # contains also the public counterpart.
     priv_keys = [key for key in ASYMMETRIC_KEY_DATA if '_KEY_PAIR' in key]
+    priv_keys = sorted(priv_keys)
 
     for priv_key in priv_keys:
         key_type = get_key_type(priv_key)

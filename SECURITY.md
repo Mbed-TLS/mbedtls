@@ -1,4 +1,7 @@
-## Reporting Vulnerabilities
+
+
+
+# Reporting Vulnerabilities
 
 If you think you have found an Mbed TLS security vulnerability, then please
 send an email to the security team at

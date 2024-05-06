@@ -1,4 +1,4 @@
-MBEDTLS_TEST_PATH = .
+MBEDTLS_TEST_PATH = ../framework
 include ../scripts/common.make
 
 # Set this to -v to see the details of failing test cases
@@ -112,24 +112,24 @@ all: $(BINARIES)
 
 mbedtls_test: $(MBEDTLS_TEST_OBJS)
 
-TEST_OBJS_DEPS = $(wildcard include/test/*.h include/test/*/*.h)
+TEST_OBJS_DEPS = $(wildcard ../framework/include/test/*.h ../framework/include/test/*/*.h)
 ifdef RECORD_PSA_STATUS_COVERAGE_LOG
 # Explicitly depend on this header because on a clean copy of the source tree,
 # it doesn't exist yet and must be generated as part of the build, and
 # therefore the wildcard enumeration above doesn't include it.
-TEST_OBJS_DEPS += include/test/instrument_record_status.h
+TEST_OBJS_DEPS += ../framework/include/test/instrument_record_status.h
 endif
 
-# Rule to compile common test C files in src folder
-src/%.o : src/%.c $(TEST_OBJS_DEPS)
+# Rule to compile common test C files in ../framework/src folder
+../framework/src/%.o : ../framework/src/%.c $(TEST_OBJS_DEPS)
 	echo "  CC    $<"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) -o $@ -c $<
 
-src/drivers/%.o : src/drivers/%.c
+../framework/src/drivers/%.o : ../framework/src/drivers/%.c
 	echo "  CC    $<"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) -o $@ -c $<
 
-src/test_helpers/%.o : src/test_helpers/%.c
+../framework/src/test_helpers/%.o : ../framework/src/test_helpers/%.c
 	echo "  CC    $<"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) -o $@ -c $<
 
@@ -169,20 +169,20 @@ $(BINARIES): %$(EXEXT): %.c $(MBEDLIBS) $(TEST_OBJS_DEPS) $(MBEDTLS_TEST_OBJS)
 clean:
 ifndef WINDOWS
 	rm -rf $(BINARIES) *.c *.datax
-	rm -f src/*.o src/drivers/*.o src/test_helpers/*.o src/libmbed*
-	rm -f include/test/instrument_record_status.h
-	rm -f include/alt-extra/*/*_alt.h
+	rm -f ../framework/src/*.o ../framework/src/drivers/*.o ../framework/src/test_helpers/*.o ../framework/src/libmbed*
+	rm -f ../framework/include/test/instrument_record_status.h
+	rm -f ../framework/include/alt-extra/*/*_alt.h
 	rm -rf libtestdriver1
 	rm -f ../library/libtestdriver1.a
 else
 	if exist *.c del /Q /F *.c
 	if exist *.exe del /Q /F *.exe
 	if exist *.datax del /Q /F *.datax
-	if exist src/*.o del /Q /F src/*.o
-	if exist src/drivers/*.o del /Q /F src/drivers/*.o
-	if exist src/test_helpers/*.o del /Q /F src/test_helpers/*.o
-	if exist src/libmbed* del /Q /F src/libmed*
-	if exist include/test/instrument_record_status.h del /Q /F include/test/instrument_record_status.h
+	if exist ../framework/src/*.o del /Q /F ../framework/src/*.o
+	if exist ../framework/src/drivers/*.o del /Q /F ../framework/src/drivers/*.o
+	if exist ../framework/src/test_helpers/*.o del /Q /F ../framework/src/test_helpers/*.o
+	if exist ../framework/src/libmbed* del /Q /F ../framework/src/libmed*
+	if exist ../framework/include/test/instrument_record_status.h del /Q /F ../framework/include/test/instrument_record_status.h
 endif
 
 # Test suites caught by SKIP_TEST_SUITES are built but not executed.
@@ -192,7 +192,7 @@ check: $(BINARIES)
 test: check
 
 # Generate variants of some headers for testing
-include/alt-extra/%_alt.h: ../include/%.h
+../framework/include/alt-extra/%_alt.h: ../include/%.h
 	perl -p -e 's/^(# *(define|ifndef) +\w+_)H\b/$${1}ALT_H/' $< >$@
 
 # Generate test library
@@ -220,16 +220,16 @@ libtestdriver1.a:
 	touch ./libtestdriver1/3rdparty/Makefile.inc
 
 	# Set the test driver base (minimal) configuration.
-	cp ./include/test/drivers/config_test_driver.h ./libtestdriver1/include/mbedtls/mbedtls_config.h
+	cp ../framework/include/test/drivers/config_test_driver.h ./libtestdriver1/include/mbedtls/mbedtls_config.h
 
 	# Set the PSA cryptography configuration for the test library.
 	# It is set from the copied include/psa/crypto_config.h of the Mbed TLS
         # library the test library is intended to be linked with extended by
-        # ./include/test/drivers/crypto_config_test_driver_extension.h to
+        # ../framework/include/test/drivers/crypto_config_test_driver_extension.h to
         # mirror the PSA_ACCEL_* macros.
 	mv ./libtestdriver1/include/psa/crypto_config.h ./libtestdriver1/include/psa/crypto_config.h.bak
 	head -n -1 ./libtestdriver1/include/psa/crypto_config.h.bak > ./libtestdriver1/include/psa/crypto_config.h
-	cat ./include/test/drivers/crypto_config_test_driver_extension.h >> ./libtestdriver1/include/psa/crypto_config.h
+	cat ../framework/include/test/drivers/crypto_config_test_driver_extension.h >> ./libtestdriver1/include/psa/crypto_config.h
 	echo "#endif /* PSA_CRYPTO_CONFIG_H */" >> ./libtestdriver1/include/psa/crypto_config.h
 
 	# Prefix MBEDTLS_* PSA_* symbols with LIBTESTDRIVER1_ as well as
@@ -242,7 +242,7 @@ libtestdriver1.a:
 	cp ./libtestdriver1/library/libmbedcrypto.a ../library/libtestdriver1.a
 
 ifdef RECORD_PSA_STATUS_COVERAGE_LOG
-include/test/instrument_record_status.h: ../include/psa/crypto.h Makefile
+../framework/include/test/instrument_record_status.h: ../include/psa/crypto.h Makefile
 	echo "  Gen  $@"
 	sed <../include/psa/crypto.h >$@ -n 's/^psa_status_t \([A-Za-z0-9_]*\)(.*/#define \1(...) RECORD_STATUS("\1", \1(__VA_ARGS__))/p'
 endif

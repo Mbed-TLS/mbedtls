@@ -1,4 +1,4 @@
-MBEDTLS_TEST_PATH = ../tests
+MBEDTLS_TEST_PATH = ../framework
 include ../scripts/common.make
 
 ifeq ($(shell uname -s),Linux)

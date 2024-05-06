@@ -148,4 +148,4 @@ fi
 # Generated files that are present in the repository even in the development
 # branch. (This is intended to be temporary, until the generator scripts are
 # fully reviewed and the build scripts support a generated header file.)
-check tests/scripts/generate_psa_wrappers.py tests/include/test/psa_test_wrappers.h tests/src/psa_test_wrappers.c
+check tests/scripts/generate_psa_wrappers.py framework/include/test/psa_test_wrappers.h framework/src/psa_test_wrappers.c

@@ -92,7 +92,7 @@ def get_look_up_table_entry(key_type: str, group_id_or_keybits: str,
 
 def write_output_file(output_file_name: str, arrays: List[str], look_up_table: List[str]):
     with open(output_file_name, 'wt') as output:
-        output.write("""
+        output.write("""\
 /*********************************************************************************
  * This file was automatically generated from tests/scripts/generate_test_keys.py.
  * Please do not edit it manually.
@@ -112,6 +112,8 @@ struct predefined_key_element {{
 struct predefined_key_element predefined_keys[] = {{
 {}
 }};
+
+/* End of generated file */
 """.format("\n".join(look_up_table)))
 
 

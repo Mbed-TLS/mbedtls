@@ -72,7 +72,8 @@ def generate(values=[], output=None):
     """
     template_loader = jinja2.FileSystemLoader(DATA_FILES_PATH)
     template_env = jinja2.Environment(
-        loader=template_loader, lstrip_blocks=True, trim_blocks=True)
+        loader=template_loader, lstrip_blocks=True, trim_blocks=True,
+        keep_trailing_newline=True)
 
     def read_as_c_array(filename):
         with open(filename, 'rb') as f:

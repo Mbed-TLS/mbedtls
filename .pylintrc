@@ -44,6 +44,9 @@ max-attributes=15
 max-module-lines=2000
 
 [MESSAGES CONTROL]
+# * consider-using-f-string: A suggestion to use a feature that's new in
+#   Python 3.6. Many of our scripts are older and this is only a minor
+#   stylistic improvement so there's no urgent need to refactor our code.
 # * locally-disabled, locally-enabled: If we disable or enable a message
 #   locally, it's by design. There's no need to clutter the Pylint output
 #   with this information.
@@ -64,7 +67,7 @@ max-module-lines=2000
 #        return value2
 # * unnecessary-pass: If we take the trouble of adding a line with "pass",
 #   it's because we think the code is clearer that way.
-disable=locally-disabled,locally-enabled,logging-format-interpolation,no-else-return,unnecessary-pass
+disable=consider-using-f-string,locally-disabled,locally-enabled,logging-format-interpolation,no-else-return,unnecessary-pass
 
 [REPORTS]
 # Don't diplay statistics. Just the facts.

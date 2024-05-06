@@ -433,7 +433,8 @@ def parse_suite_dependencies(funcs_f):
                 dependencies = parse_dependencies(match.group('dependencies'))
             except GeneratorInputError as error:
                 raise GeneratorInputError(
-                    str(error) + " - %s:%d" % (funcs_f.name, funcs_f.line_no))
+                    str(error) +
+                    " - %s:%d" % (funcs_f.name, funcs_f.line_no)) from error
         if re.search(END_DEP_REGEX, line):
             break
     else:
@@ -708,7 +709,7 @@ def parse_functions(funcs_f):
             except GeneratorInputError as error:
                 raise GeneratorInputError(
                     "%s:%d: %s" % (funcs_f.name, funcs_f.line_no,
-                                   str(error)))
+                                   str(error))) from error
             func_name, args, func_code, func_dispatch =\
                 parse_function_code(funcs_f, dependencies, suite_dependencies)
             suite_functions += func_code
@@ -795,7 +796,7 @@ def parse_test_data(data_f):
                 except GeneratorInputError as error:
                     raise GeneratorInputError(
                         str(error) + " - %s:%d" %
-                        (data_f.name, data_f.line_no))
+                        (data_f.name, data_f.line_no)) from error
             else:
                 # Read test vectors
                 parts = escaped_split(line, ':')

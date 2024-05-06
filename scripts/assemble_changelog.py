@@ -206,7 +206,7 @@ class ChangeLog:
             categories = self.format.split_categories(text)
         except CategoryParseError as e:
             raise InputFormatError(filename, line_offset + e.line_offset,
-                                   e.error_message)
+                                   e.error_message) from e
         for category in categories:
             if not allow_unknown_category and \
                category.name not in self.categories:

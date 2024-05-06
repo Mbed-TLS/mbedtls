@@ -44,7 +44,8 @@ class read_file_lines:
         self.generator = None #type: Optional[Iterable[Tuple[int, str]]]
         self.binary = binary
     def __enter__(self) -> 'read_file_lines':
-        self.file = open(self.filename, 'rb' if self.binary else 'r')
+        self.file = (open(self.filename, 'rb') if self.binary else
+                     open(self.filename, 'r', encoding='utf-8'))
         self.generator = enumerate(self.file)
         return self
     def __iter__(self) -> Iterator[str]:

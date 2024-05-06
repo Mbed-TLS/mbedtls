@@ -45,7 +45,7 @@ class Requirements:
         * Comments (``#`` at the beginning of the line or after whitespace).
         * ``-r FILENAME`` to include another file.
         """
-        for line in open(filename):
+        for line in open(filename, 'r', encoding='utf-8'):
             line = line.strip()
             line = re.sub(r'(\A|\s+)#.*', r'', line)
             if not line:
@@ -81,7 +81,7 @@ class Requirements:
             # Windows, the subprocess can't open the file because this process
             # has an exclusive lock on it.
             req_file_name = os.path.join(temp_dir, 'requirements.txt')
-            with open(req_file_name, 'w') as req_file:
+            with open(req_file_name, 'w', encoding='utf-8') as req_file:
                 self.write(req_file)
             subprocess.check_call([sys.executable, '-m', 'pip'] +
                                   pip_general_options +

@@ -70,7 +70,7 @@ def generate(values=[], output=None, **kwargs):
                 data = f.read(12)
 
     def read_lines(filename):
-        with open(filename) as f:
+        with open(filename, encoding='utf-8') as f:
             try:
                 for line in f:
                     yield line.strip()
@@ -87,7 +87,7 @@ def generate(values=[], output=None, **kwargs):
 
     template = template_env.get_template('test_certs.h.jinja2')
 
-    with open(output, 'w') as f:
+    with open(output, 'w', encoding='utf-8') as f:
         f.write(template.render(macros=values))
 
 

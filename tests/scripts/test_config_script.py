@@ -119,7 +119,7 @@ def run_one(options, args, stem_prefix='', input_file=None):
                                      cwd=options.output_directory,
                                      stdin=subprocess.DEVNULL,
                                      stdout=out, stderr=err)
-    with open(status_filename, 'w') as status_file:
+    with open(status_filename, 'w', encoding='ascii') as status_file:
         status_file.write('{}\n'.format(status))
     return stem + "+", data_filename
 

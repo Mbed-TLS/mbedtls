@@ -120,7 +120,7 @@ def generate_deps_from_description(
 # failure.
 def read_implemented_dependencies(filename: str) -> FrozenSet[str]:
     return frozenset(symbol
-                     for line in open(filename)
+                     for line in open(filename, encoding='utf-8')
                      for symbol in re.findall(r'\bPSA_WANT_\w+\b', line))
 _implemented_dependencies = None #type: Optional[FrozenSet[str]] #pylint: disable=invalid-name
 def hack_dependencies_not_implemented(dependencies: List[str]) -> None:

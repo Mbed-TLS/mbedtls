@@ -526,7 +526,7 @@ class CodeSizeGeneratorWithSize(CodeSizeGenerator):
         """
         mod = ""
         size_record = {}
-        with open(fname, 'r') as csv_file:
+        with open(fname, 'r', encoding='utf-8') as csv_file:
             for line in csv_file:
                 data = line.strip().split()
                 # check if we find the beginning of a module
@@ -803,7 +803,7 @@ class CodeSizeComparison:
 
             self.logger.debug("Generating code size csv for {}."
                               .format(size_dist_info.git_rev))
-            output = open(output_file, "w")
+            output = open(output_file, "w", encoding="utf-8")
             self.code_size_generator.write_record(
                 size_dist_info.git_rev, code_size_text, output)
 
@@ -830,7 +830,7 @@ class CodeSizeComparison:
                         self.new_size_dist_info.get_info_indication(),
                         self.size_common_info.get_info_indication(),
                         'md' if self.result_options.with_markdown else 'csv'))
-            output = open(output_file, "w")
+            output = open(output_file, "w", encoding="utf-8")
 
         self.logger.debug("Generating comparison results between {} and {}."
                           .format(self.old_size_dist_info.git_rev,

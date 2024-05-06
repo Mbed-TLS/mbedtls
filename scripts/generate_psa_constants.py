@@ -319,7 +319,7 @@ def generate_psa_constants(header_file_names, output_file_name):
         with open(header_file_name, 'rb') as header_file:
             collector.read_file(header_file)
     temp_file_name = output_file_name + '.tmp'
-    with open(temp_file_name, 'w') as output_file:
+    with open(temp_file_name, 'w', encoding='utf-8') as output_file:
         collector.write_file(output_file)
     os.replace(temp_file_name, output_file_name)
 

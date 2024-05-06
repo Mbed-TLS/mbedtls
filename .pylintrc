@@ -27,7 +27,7 @@ module-rgx=(([a-z_][a-z0-9_]*)|([A-Z][a-zA-Z0-9]+)|[a-z][-0-9a-z]+)$
 
 # Some functions don't need docstrings.
 # [missing-docstring]
-no-docstring-rgx=(run_)?main$
+no-docstring-rgx=(run_)?main$|__init__$
 
 # We're ok with short local or global variable names.
 # [invalid-name]

@@ -803,12 +803,30 @@ class CodeSizeComparison:
 
             self.logger.debug("Generating code size csv for {}."
                               .format(size_dist_info.git_rev))
-            output = open(output_file, "w", encoding="utf-8")
-            self.code_size_generator.write_record(
-                size_dist_info.git_rev, code_size_text, output)
+            with open(output_file, "w", encoding="utf-8") as output:
+                self.code_size_generator.write_record(
+                    size_dist_info.git_rev, code_size_text, output)
+
+    def output_code_size_comparison(self, output: typing_util.Writable) -> None:
+        """Generate results of code size changes between two Git revisions,
+        old and new.
+
+        Measured code size result of these two Git revisions must be available.
+        """
+        if self.result_options.with_markdown or self.result_options.stdout:
+            print("Measure code size between {} and {} by `{}`."
+                  .format(self.old_size_dist_info.get_info_indication(),
+                          self.new_size_dist_info.get_info_indication(),
+                          self.size_common_info.get_info_indication()),
+                  file=output)
+        self.code_size_generator.write_comparison(
+            self.old_size_dist_info.git_rev,
+            self.new_size_dist_info.git_rev,
+            output, self.result_options.with_markdown,
+            self.result_options.show_all)
 
     def gen_code_size_comparison(self) -> None:
-        """Generate results of code size changes between two Git revisions,
+        """Save results of code size changes between two Git revisions,
         old and new.
 
         - Measured code size result of these two Git revisions must be available.
@@ -821,7 +839,7 @@ class CodeSizeComparison:
                          .format(self.old_size_dist_info.git_rev,
                                  self.new_size_dist_info.git_rev))
         if self.result_options.stdout:
-            output = sys.stdout
+            self.output_code_size_comparison(sys.stdout)
         else:
             output_file = os.path.join(
                 self.comp_dir,
@@ -830,22 +848,12 @@ class CodeSizeComparison:
                         self.new_size_dist_info.get_info_indication(),
                         self.size_common_info.get_info_indication(),
                         'md' if self.result_options.with_markdown else 'csv'))
-            output = open(output_file, "w", encoding="utf-8")
+            with open(output_file, "w", encoding="utf-8") as output:
+                self.output_code_size_comparison(output)
 
         self.logger.debug("Generating comparison results between {} and {}."
                           .format(self.old_size_dist_info.git_rev,
                                   self.new_size_dist_info.git_rev))
-        if self.result_options.with_markdown or self.result_options.stdout:
-            print("Measure code size between {} and {} by `{}`."
-                  .format(self.old_size_dist_info.get_info_indication(),
-                          self.new_size_dist_info.get_info_indication(),
-                          self.size_common_info.get_info_indication()),
-                  file=output)
-        self.code_size_generator.write_comparison(
-            self.old_size_dist_info.git_rev,
-            self.new_size_dist_info.git_rev,
-            output, self.result_options.with_markdown,
-            self.result_options.show_all)
 
     def get_comparision_results(self) -> None:
         """Compare size of library/*.o between self.old_size_dist_info and

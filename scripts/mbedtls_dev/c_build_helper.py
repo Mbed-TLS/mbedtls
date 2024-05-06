@@ -92,11 +92,11 @@ def compile_c_file(c_filename, exe_filename, include_dirs):
         cc = os.getenv('CC', 'cc')
     cmd = [cc]
 
-    proc = subprocess.Popen(cmd,
-                            stdout=subprocess.DEVNULL,
-                            stderr=subprocess.PIPE,
-                            universal_newlines=True)
-    cc_is_msvc = 'Microsoft (R) C/C++' in proc.communicate()[1]
+    with subprocess.Popen(cmd,
+                          stdout=subprocess.DEVNULL,
+                          stderr=subprocess.PIPE,
+                          universal_newlines=True) as proc:
+        cc_is_msvc = 'Microsoft (R) C/C++' in proc.communicate()[1]
 
     cmd += ['-I' + dir for dir in include_dirs]
     if cc_is_msvc:

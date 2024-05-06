@@ -268,7 +268,8 @@ def process_file(file_name):
     Replace the existing file. The previous version is renamed to *.bak.
     Don't modify the file if the content was unchanged.
     """
-    old_content = open(file_name, encoding='utf-8').read()
+    with open(file_name, encoding='utf-8') as input_:
+        old_content = input_.read()
     if file_name.endswith('.data'):
         new_content = process_data_file(file_name, old_content)
     else:

@@ -227,7 +227,7 @@ class FileWrapper:
         :param file_name: File path to open.
         """
         # private mix-in file object
-        self._f = open(file_name, 'rb')
+        self._f = open(file_name, 'rb') #pylint: disable=consider-using-with
         self._line_no = 0
 
     def __iter__(self):

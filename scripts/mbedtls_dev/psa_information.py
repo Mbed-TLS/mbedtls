@@ -138,7 +138,7 @@ def tweak_key_pair_dependency(dep: str, usage: str):
     This helper function add the proper suffix to PSA_WANT_KEY_TYPE_xxx_KEY_PAIR
     symbols according to the required usage.
     """
-    ret_list = list()
+    ret_list = []
     if dep.endswith('KEY_PAIR'):
         if usage == "BASIC":
             # BASIC automatically includes IMPORT and EXPORT for test purposes (see

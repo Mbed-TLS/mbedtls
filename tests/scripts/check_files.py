@@ -86,7 +86,7 @@ class FileIssueTracker:
 
     def record_issue(self, filepath, line_number):
         """Record that an issue was found at the specified location."""
-        if filepath not in self.files_with_issues.keys():
+        if filepath not in self.files_with_issues:
             self.files_with_issues[filepath] = []
         self.files_with_issues[filepath].append(line_number)
 

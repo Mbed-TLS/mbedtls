@@ -372,7 +372,7 @@ def generate_ssl_debug_helpers(output_directory, mbedtls_root):
               encoding='utf-8') as f:
         source_code = remove_c_comments(f.read())
 
-    definitions = dict()
+    definitions = {}
     for start, instance in preprocess_c_source_code(source_code,
                                                     EnumDefinition,
                                                     SignatureAlgorithmDefinition,

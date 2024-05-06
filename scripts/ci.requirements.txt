@@ -10,13 +10,10 @@ pylint == 2.13.9
 # mypy 0.971 is the last version that supports Python 3.6.
 mypy >= 0.971
 
-# At the time of writing, only needed for tests/scripts/audit-validity-dates.py.
-# It needs >=35.0.0 for correct operation, and that requires Python >=3.6,
-# but our CI has Python 3.5. So let pip install the newest version that's
-# compatible with the running Python: this way we get something good enough
-# for mypy and pylint under Python 3.5, and we also get something good enough
-# to run audit-validity-dates.py on Python >=3.6.
-cryptography # >= 35.0.0
+# tests/scripts/audit-validity-dates.py needs cryptography >= 35.0.0.
+# To reduce future version churn, require the last version that supports
+# Python 3.6.
+cryptography >= 40.0.2
 types-cryptography
 
 # For building `tests/data_files/server9-bad-saltlen.crt` and check python

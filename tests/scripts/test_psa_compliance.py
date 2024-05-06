@@ -46,7 +46,6 @@ def main(library_build_dir: str):
                            'lib' + crypto_name + '.a')
 
     if not os.path.exists(crypto_lib_filename):
-        #pylint: disable=bad-continuation
         subprocess.check_call([
             'cmake', '.',
                      '-GUnix Makefiles',
@@ -76,7 +75,6 @@ def main(library_build_dir: str):
         extra_includes = (';{}/drivers/builtin/include'.format(root_dir)
                           if in_tf_psa_crypto_repo else '')
 
-        #pylint: disable=bad-continuation
         subprocess.check_call([
             'cmake', '..',
                      '-GUnix Makefiles',

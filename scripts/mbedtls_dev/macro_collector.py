@@ -13,7 +13,7 @@ from typing import Dict, IO, Iterable, Iterator, List, Optional, Pattern, Set, T
 class ReadFileLineException(Exception):
     def __init__(self, filename: str, line_number: Union[int, str]) -> None:
         message = 'in {} at {}'.format(filename, line_number)
-        super(ReadFileLineException, self).__init__(message)
+        super().__init__(message)
         self.filename = filename
         self.line_number = line_number
 

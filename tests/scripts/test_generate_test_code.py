@@ -281,7 +281,7 @@ class StringIOWrapper(StringIO):
         :param data:
         :param line_no:
         """
-        super(StringIOWrapper, self).__init__(data)
+        super().__init__(data)
         self.line_no = line_no
         self.name = file_name
 
@@ -293,8 +293,7 @@ class StringIOWrapper(StringIO):
 
         :return: Line read from file.
         """
-        parent = super(StringIOWrapper, self)
-        line = parent.__next__()
+        line = super().__next__()
         return line
 
     def readline(self, _length=0):
@@ -304,7 +303,7 @@ class StringIOWrapper(StringIO):
         :param length:
         :return:
         """
-        line = super(StringIOWrapper, self).readline()
+        line = super().readline()
         if line is not None:
             self.line_no += 1
         return line

@@ -108,7 +108,7 @@ int main(void)
 #define DFL_SRTP_MKI            ""
 #define DFL_KEY_OPAQUE_ALG      "none"
 
-#define GET_REQUEST "GET %s HTTP/1.0\r\nExtra-header: "
+#define GET_REQUEST "GET %s HTTP/1.0\r\nHost: %s\r\nExtra-header: "
 #define GET_REQUEST_END "\r\n\r\n"
 
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
@@ -724,7 +724,7 @@ static int build_http_request(unsigned char *buf, size_t buf_size, size_t *reque
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t len, tail_len, request_size;
 
-    ret = mbedtls_snprintf((char *) buf, buf_size, GET_REQUEST, opt.request_page);
+    ret = mbedtls_snprintf((char *) buf, buf_size, GET_REQUEST, opt.request_page, opt.server_name);
     if (ret < 0) {
         return ret;
     }

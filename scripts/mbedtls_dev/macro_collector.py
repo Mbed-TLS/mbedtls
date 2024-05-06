@@ -7,7 +7,7 @@
 
 import itertools
 import re
-from typing import Dict, IO, Iterable, Iterator, List, Optional, Pattern, Set, Tuple, Union
+from typing import Dict, IO, Iterable, Iterator, List, Optional, Set, Tuple, Union
 
 
 class ReadFileLineException(Exception):
@@ -37,15 +37,13 @@ class read_file_lines:
     except that if process(line) raises an exception, then the read_file_lines
     snippet annotates the exception with the file name and line number.
     """
-    def __init__(self, filename: str, binary: bool = False) -> None:
+    def __init__(self, filename: str) -> None:
         self.filename = filename
         self.file = None #type: Optional[IO[str]]
         self.line_number = 'entry' #type: Union[int, str]
         self.generator = None #type: Optional[Iterable[Tuple[int, str]]]
-        self.binary = binary
     def __enter__(self) -> 'read_file_lines':
-        self.file = (open(self.filename, 'rb') if self.binary else
-                     open(self.filename, 'r', encoding='utf-8'))
+        self.file = open(self.filename, 'r', encoding='utf-8')
         self.generator = enumerate(self.file)
         return self
     def __iter__(self) -> Iterator[str]:
@@ -481,12 +479,10 @@ enumerate
         if m.group(3):
             self.argspecs[name] = self._argument_split(m.group(3))
 
-    _nonascii_re = re.compile(rb'[^\x00-\x7f]+') #type: Pattern
     def parse_header(self, filename: str) -> None:
         """Parse a C header file, looking for "#define PSA_xxx"."""
-        with read_file_lines(filename, binary=True) as lines:
+        with read_file_lines(filename) as lines:
             for line in lines:
-                line = re.sub(self._nonascii_re, rb'', line).decode('ascii')
                 self.parse_header_line(line)
 
     _macro_identifier_re = re.compile(r'[A-Z]\w+')

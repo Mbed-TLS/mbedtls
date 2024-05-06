@@ -248,7 +248,7 @@ extern "C" {{
         terminator = ';\n' if header else '\n'
         if function.arguments:
             out.write(declaration_start + '(\n')
-            for num in range(len(function.arguments)):
+            for num in range(len(function.arguments)): #pylint: disable=consider-using-enumerate
                 arg_def = self._wrapper_declaration_argument(
                     function.name,
                     num, wrapper.argument_names[num], function.arguments[num])

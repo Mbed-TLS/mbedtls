@@ -278,14 +278,14 @@ class CodeParser():
         # Remove identifier macros like mbedtls_printf or mbedtls_calloc
         identifiers_justname = [x.name for x in identifiers]
         actual_macros = {"public": [], "internal": []}
-        for scope in actual_macros:
+        for scope in actual_macros: #pylint: disable=consider-using-dict-items
             for macro in all_macros[scope]:
                 if macro.name not in identifiers_justname:
                     actual_macros[scope].append(macro)
 
         self.log.debug("Found:")
         # Aligns the counts on the assumption that none exceeds 4 digits
-        for scope in actual_macros:
+        for scope in actual_macros: #pylint: disable=consider-using-dict-items
             self.log.debug("  {:4} Total {} Macros"
                            .format(len(all_macros[scope]), scope))
             self.log.debug("  {:4} {} Non-identifier Macros"

@@ -6,7 +6,7 @@
 """Module generating EC and RSA keys to be used in test_suite_pk instead of
 generating the required key at run time. This helps speeding up testing."""
 
-from typing import Iterator, List
+from typing import Iterator, List, Tuple
 import re
 import argparse
 import scripts_path # pylint: disable=unused-import
@@ -90,7 +90,7 @@ def get_look_up_table_entry(key_type: str, group_id_or_keybits: str,
     yield "      {0}, sizeof({0}) }},".format(pub_array_name)
 
 
-def write_output_file(output_file_name: str, arrays: List[str], look_up_table: List[str]):
+def write_output_file(output_file_name: str, arrays: str, look_up_table: str):
     with open(output_file_name, 'wt') as output:
         output.write("""\
 /*********************************************************************************
@@ -98,7 +98,7 @@ def write_output_file(output_file_name: str, arrays: List[str], look_up_table: L
  * Please do not edit it manually.
  *********************************************************************************/
 """)
-        output.write(''.join(arrays))
+        output.write(arrays)
         output.write("""
 struct predefined_key_element {{
     int group_id;  // EC group ID; 0 for RSA keys
@@ -114,18 +114,15 @@ struct predefined_key_element predefined_keys[] = {{
 }};
 
 /* End of generated file */
-""".format("\n".join(look_up_table)))
+""".format(look_up_table))
 
-
-def main() -> None:
-    default_output_path = guess_project_root() + "/tests/src/test_keys.h"
-
-    argparser = argparse.ArgumentParser()
-    argparser.add_argument("--output", help="Output file", default=default_output_path)
-    args = argparser.parse_args()
-
-    output_file = args.output
-
+def collect_keys() -> Tuple[str, str]:
+    """"
+    This function reads key data from ASYMMETRIC_KEY_DATA and, only for the
+    keys supported in legacy ECP/RSA modules, it returns 2 strings:
+    - the 1st contains C arrays declaration of these keys and
+    - the 2nd contains the final look-up table for all these arrays.
+    """
     arrays = []
     look_up_table = []
 
@@ -168,6 +165,19 @@ def main() -> None:
                 group_id_or_keybits = str(bits)
             look_up_table.append(''.join(get_look_up_table_entry(key_type, group_id_or_keybits,
                                                                  array_name_priv, array_name_pub)))
+
+    return ''.join(arrays), '\n'.join(look_up_table)
+
+def main() -> None:
+    default_output_path = guess_project_root() + "/tests/src/test_keys.h"
+
+    argparser = argparse.ArgumentParser()
+    argparser.add_argument("--output", help="Output file", default=default_output_path)
+    args = argparser.parse_args()
+
+    output_file = args.output
+
+    arrays, look_up_table = collect_keys()
 
     write_output_file(output_file, arrays, look_up_table)
 

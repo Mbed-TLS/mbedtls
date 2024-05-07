@@ -39,7 +39,7 @@ ifeq ($(GENERATED_PSA_DATA_FILES),FAILED)
 $(error "$(PYTHON) scripts/generate_psa_tests.py --list" failed)
 endif
 GENERATED_FILES := $(GENERATED_PSA_DATA_FILES) $(GENERATED_ECP_DATA_FILES) $(GENERATED_BIGNUM_DATA_FILES)
-generated_files: $(GENERATED_FILES)
+generated_files: $(GENERATED_FILES) src/test_keys.h src/test_certs.h
 
 # generate_bignum_tests.py and generate_psa_tests.py spend more time analyzing
 # inputs than generating outputs. Its inputs are the same no matter which files
@@ -112,6 +112,13 @@ all: $(BINARIES)
 
 mbedtls_test: $(MBEDTLS_TEST_OBJS)
 
+src/test_certs.h: scripts/generate_test_cert_macros.py \
+				  $($(PYTHON) scripts/generate_test_cert_macros.py --list-dependencies)
+	$(PYTHON) scripts/generate_test_cert_macros.py --output $@
+
+src/test_keys.h: scripts/generate_test_keys.py
+	$(PYTHON) scripts/generate_test_keys.py --output $@
+
 TEST_OBJS_DEPS = $(wildcard include/test/*.h include/test/*/*.h)
 ifdef RECORD_PSA_STATUS_COVERAGE_LOG
 # Explicitly depend on this header because on a clean copy of the source tree,
@@ -119,6 +126,7 @@ ifdef RECORD_PSA_STATUS_COVERAGE_LOG
 # therefore the wildcard enumeration above doesn't include it.
 TEST_OBJS_DEPS += include/test/instrument_record_status.h
 endif
+TEST_OBJS_DEPS += src/test_certs.h src/test_keys.h
 
 # Rule to compile common test C files in src folder
 src/%.o : src/%.c $(TEST_OBJS_DEPS)
@@ -169,7 +177,8 @@ $(BINARIES): %$(EXEXT): %.c $(MBEDLIBS) $(TEST_OBJS_DEPS) $(MBEDTLS_TEST_OBJS)
 clean:
 ifndef WINDOWS
 	rm -rf $(BINARIES) *.c *.datax
-	rm -f src/*.o src/drivers/*.o src/test_helpers/*.o src/libmbed*
+	rm -f src/*.o src/drivers/*.o src/test_helpers/*.o src/libmbed* src/test_keys.h src/test_certs.h
+	rm -f src/test_keys.h src/test_certs.h
 	rm -f include/test/instrument_record_status.h
 	rm -f include/alt-extra/*/*_alt.h
 	rm -rf libtestdriver1
@@ -180,6 +189,8 @@ else
 	if exist *.datax del /Q /F *.datax
 	if exist src/*.o del /Q /F src/*.o
 	if exist src/drivers/*.o del /Q /F src/drivers/*.o
+	if exist src/test_keys.h del /Q /F src/test_keys.h
+	if exist src/test_certs.h del /Q /F src/test_cers.h
 	if exist src/test_helpers/*.o del /Q /F src/test_helpers/*.o
 	if exist src/libmbed* del /Q /F src/libmed*
 	if exist include/test/instrument_record_status.h del /Q /F include/test/instrument_record_status.h

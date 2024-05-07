@@ -6,13 +6,13 @@
 """Module generating EC and RSA keys to be used in test_suite_pk instead of
 generating the required key at run time. This helps speeding up testing."""
 
-import os
-from typing import Iterator
+from typing import Iterator, List, Tuple
 import re
+import argparse
 import scripts_path # pylint: disable=unused-import
 from mbedtls_dev.asymmetric_key_data import ASYMMETRIC_KEY_DATA
+from mbedtls_dev.build_tree import guess_project_root
 
-OUTPUT_HEADER_FILE = os.path.dirname(os.path.abspath(__file__)) + "/../src/test_keys.h"
 BYTES_PER_LINE = 16
 
 def c_byte_array_literal_content(array_name: str, key_data: bytes) -> Iterator[str]:
@@ -89,25 +89,48 @@ def get_look_up_table_entry(key_type: str, group_id_or_keybits: str,
     yield "      {0}, sizeof({0}),\n".format(priv_array_name)
     yield "      {0}, sizeof({0}) }},".format(pub_array_name)
 
-def main() -> None:
-    # Remove output file if already existing.
-    if os.path.exists(OUTPUT_HEADER_FILE):
-        os.remove(OUTPUT_HEADER_FILE)
 
-    output_file = open(OUTPUT_HEADER_FILE, 'at')
-    output_file.write(
-        "/*********************************************************************************\n" +
-        " * This file was automatically generated from tests/scripts/generate_test_keys.py.\n" +
-        " * Please do not edit it manually.\n" +
-        " *********************************************************************************/\n"
-    )
+def write_output_file(output_file_name: str, arrays: str, look_up_table: str):
+    with open(output_file_name, 'wt') as output:
+        output.write("""\
+/*********************************************************************************
+ * This file was automatically generated from tests/scripts/generate_test_keys.py.
+ * Please do not edit it manually.
+ *********************************************************************************/
+""")
+        output.write(arrays)
+        output.write("""
+struct predefined_key_element {{
+    int group_id;  // EC group ID; 0 for RSA keys
+    int keybits;  // bits size of RSA key; 0 for EC keys
+    const unsigned char *priv_key;
+    size_t priv_key_len;
+    const unsigned char *pub_key;
+    size_t pub_key_len;
+}};
 
+struct predefined_key_element predefined_keys[] = {{
+{}
+}};
+
+/* End of generated file */
+""".format(look_up_table))
+
+def collect_keys() -> Tuple[str, str]:
+    """"
+    This function reads key data from ASYMMETRIC_KEY_DATA and, only for the
+    keys supported in legacy ECP/RSA modules, it returns 2 strings:
+    - the 1st contains C arrays declaration of these keys and
+    - the 2nd contains the final look-up table for all these arrays.
+    """
+    arrays = []
     look_up_table = []
 
     # Get a list of private keys only in order to get a single item for every
     # (key type, key bits) pair. We know that ASYMMETRIC_KEY_DATA
     # contains also the public counterpart.
     priv_keys = [key for key in ASYMMETRIC_KEY_DATA if '_KEY_PAIR' in key]
+    priv_keys = sorted(priv_keys)
 
     for priv_key in priv_keys:
         key_type = get_key_type(priv_key)
@@ -134,7 +157,7 @@ def main() -> None:
             c_array_priv = convert_der_to_c(array_name_priv, ASYMMETRIC_KEY_DATA[priv_key][bits])
             c_array_pub = convert_der_to_c(array_name_pub, ASYMMETRIC_KEY_DATA[pub_key][bits])
             # Write the C array to the output file
-            output_file.write(''.join(["\n", c_array_priv, "\n", c_array_pub, "\n"]))
+            arrays.append(''.join(["\n", c_array_priv, "\n", c_array_pub, "\n"]))
             # Update the lookup table
             if key_type == "ec":
                 group_id_or_keybits = "MBEDTLS_ECP_DP_" + curve.upper()
@@ -142,21 +165,21 @@ def main() -> None:
                 group_id_or_keybits = str(bits)
             look_up_table.append(''.join(get_look_up_table_entry(key_type, group_id_or_keybits,
                                                                  array_name_priv, array_name_pub)))
-    # Write the lookup table: the struct containing pointers to all the arrays we created above.
-    output_file.write("""
-struct predefined_key_element {
-    int group_id;  // EC group ID; 0 for RSA keys
-    int keybits;  // bits size of RSA key; 0 for EC keys
-    const unsigned char *priv_key;
-    size_t priv_key_len;
-    const unsigned char *pub_key;
-    size_t pub_key_len;
-};
 
-struct predefined_key_element predefined_keys[] = {
-""")
-    output_file.write("\n".join(look_up_table))
-    output_file.write("\n};\n")
+    return ''.join(arrays), '\n'.join(look_up_table)
+
+def main() -> None:
+    default_output_path = guess_project_root() + "/tests/src/test_keys.h"
+
+    argparser = argparse.ArgumentParser()
+    argparser.add_argument("--output", help="Output file", default=default_output_path)
+    args = argparser.parse_args()
+
+    output_file = args.output
+
+    arrays, look_up_table = collect_keys()
+
+    write_output_file(output_file, arrays, look_up_table)
 
 if __name__ == '__main__':
     main()

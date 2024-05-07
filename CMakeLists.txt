@@ -315,6 +315,9 @@ if(ENABLE_TESTING OR ENABLE_PROGRAMS)
          ${CMAKE_CURRENT_SOURCE_DIR}/tests/src/*.c
          ${CMAKE_CURRENT_SOURCE_DIR}/tests/src/drivers/*.c)
     add_library(mbedtls_test OBJECT ${MBEDTLS_TEST_FILES})
+    if(GEN_FILES)
+        add_dependencies(mbedtls_test test_keys_header test_certs_header)
+    endif()
     target_include_directories(mbedtls_test
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tests/include
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include

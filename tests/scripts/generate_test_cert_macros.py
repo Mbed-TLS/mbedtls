@@ -13,54 +13,67 @@ import os
 import sys
 import argparse
 import jinja2
+import scripts_path # pylint: disable=unused-import
+from mbedtls_dev.build_tree import guess_project_root
 
-class MacroDefineAction(argparse.Action):
-    #pylint: disable=signature-differs, too-few-public-methods
-    def __call__(self, parser, namespace, values, option_string):
-        if not hasattr(namespace, 'values'):
-            setattr(namespace, 'values', [])
-        macro_name, filename = values
-        if self.dest in ('string', 'binary') and not os.path.exists(filename):
-            raise argparse.ArgumentError(
-                None, '`{}`: Input file does not exist.'.format(filename))
-        namespace.values.append((self.dest, macro_name, filename))
+TEST_DIR = os.path.join(guess_project_root(), 'tests')
+DATA_FILES_PATH = os.path.join(TEST_DIR, 'data_files')
 
-
-def macro_define_type(value):
-    ret = value.split('=', 1)
-    if len(ret) != 2:
-        raise argparse.ArgumentTypeError(
-            '`{}` is not MACRO=value format'.format(value))
-    return ret
-
-
-def build_argparser(parser):
-    parser.description = __doc__
-    parser.add_argument('--string', type=macro_define_type, action=MacroDefineAction,
-                        metavar='MACRO_NAME=path/to/file', help='PEM to C string. ')
-    parser.add_argument('--binary', type=macro_define_type, action=MacroDefineAction,
-                        metavar='MACRO_NAME=path/to/file',
-                        help='DER to C arrary.')
-    parser.add_argument('--password', type=macro_define_type, action=MacroDefineAction,
-                        metavar='MACRO_NAME=password', help='Password to C string.')
-    parser.add_argument('--output', type=str, required=True)
-
+INPUT_ARGS = [
+    ("string", "TEST_CA_CRT_EC_PEM", DATA_FILES_PATH + "/test-ca2.crt"),
+    ("binary", "TEST_CA_CRT_EC_DER", DATA_FILES_PATH + "/test-ca2.crt.der"),
+    ("string", "TEST_CA_KEY_EC_PEM", DATA_FILES_PATH + "/test-ca2.key.enc"),
+    ("password", "TEST_CA_PWD_EC_PEM", "PolarSSLTest"),
+    ("binary", "TEST_CA_KEY_EC_DER", DATA_FILES_PATH + "/test-ca2.key.der"),
+    ("string", "TEST_CA_CRT_RSA_SHA256_PEM", DATA_FILES_PATH + "/test-ca-sha256.crt"),
+    ("binary", "TEST_CA_CRT_RSA_SHA256_DER", DATA_FILES_PATH + "/test-ca-sha256.crt.der"),
+    ("string", "TEST_CA_CRT_RSA_SHA1_PEM", DATA_FILES_PATH + "/test-ca-sha1.crt"),
+    ("binary", "TEST_CA_CRT_RSA_SHA1_DER", DATA_FILES_PATH + "/test-ca-sha1.crt.der"),
+    ("string", "TEST_CA_KEY_RSA_PEM", DATA_FILES_PATH + "/test-ca.key"),
+    ("password", "TEST_CA_PWD_RSA_PEM", "PolarSSLTest"),
+    ("binary", "TEST_CA_KEY_RSA_DER", DATA_FILES_PATH + "/test-ca.key.der"),
+    ("string", "TEST_SRV_CRT_EC_PEM", DATA_FILES_PATH + "/server5.crt"),
+    ("binary", "TEST_SRV_CRT_EC_DER", DATA_FILES_PATH + "/server5.crt.der"),
+    ("string", "TEST_SRV_KEY_EC_PEM", DATA_FILES_PATH + "/server5.key"),
+    ("binary", "TEST_SRV_KEY_EC_DER", DATA_FILES_PATH + "/server5.key.der"),
+    ("string", "TEST_SRV_CRT_RSA_SHA256_PEM", DATA_FILES_PATH + "/server2-sha256.crt"),
+    ("binary", "TEST_SRV_CRT_RSA_SHA256_DER", DATA_FILES_PATH + "/server2-sha256.crt.der"),
+    ("string", "TEST_SRV_CRT_RSA_SHA1_PEM", DATA_FILES_PATH + "/server2.crt"),
+    ("binary", "TEST_SRV_CRT_RSA_SHA1_DER", DATA_FILES_PATH + "/server2.crt.der"),
+    ("string", "TEST_SRV_KEY_RSA_PEM", DATA_FILES_PATH + "/server2.key"),
+    ("binary", "TEST_SRV_KEY_RSA_DER", DATA_FILES_PATH + "/server2.key.der"),
+    ("string", "TEST_CLI_CRT_EC_PEM", DATA_FILES_PATH + "/cli2.crt"),
+    ("binary", "TEST_CLI_CRT_EC_DER", DATA_FILES_PATH + "/cli2.crt.der"),
+    ("string", "TEST_CLI_KEY_EC_PEM", DATA_FILES_PATH + "/cli2.key"),
+    ("binary", "TEST_CLI_KEY_EC_DER", DATA_FILES_PATH + "/cli2.key.der"),
+    ("string", "TEST_CLI_CRT_RSA_PEM", DATA_FILES_PATH + "/cli-rsa-sha256.crt"),
+    ("binary", "TEST_CLI_CRT_RSA_DER", DATA_FILES_PATH + "/cli-rsa-sha256.crt.der"),
+    ("string", "TEST_CLI_KEY_RSA_PEM", DATA_FILES_PATH + "/cli-rsa.key"),
+    ("binary", "TEST_CLI_KEY_RSA_DER", DATA_FILES_PATH + "/cli-rsa.key.der"),
+]
 
 def main():
     parser = argparse.ArgumentParser()
-    build_argparser(parser)
+    default_output_path = os.path.join(TEST_DIR, 'src', 'test_certs.h')
+    parser.add_argument('--output', type=str, default=default_output_path)
+    parser.add_argument('--list-dependencies', action='store_true')
     args = parser.parse_args()
-    return generate(**vars(args))
+
+    if args.list_dependencies:
+        files_list = [arg[2] for arg in INPUT_ARGS]
+        print(" ".join(files_list))
+        return
+
+    generate(INPUT_ARGS, output=args.output)
 
 #pylint: disable=dangerous-default-value, unused-argument
-def generate(values=[], output=None, **kwargs):
+def generate(values=[], output=None):
     """Generate C header file.
     """
-    this_dir = os.path.dirname(os.path.abspath(__file__))
-    template_loader = jinja2.FileSystemLoader(
-        searchpath=os.path.join(this_dir, '..', 'data_files'))
+    template_loader = jinja2.FileSystemLoader(DATA_FILES_PATH)
     template_env = jinja2.Environment(
-        loader=template_loader, lstrip_blocks=True, trim_blocks=True)
+        loader=template_loader, lstrip_blocks=True, trim_blocks=True,
+        keep_trailing_newline=True)
 
     def read_as_c_array(filename):
         with open(filename, 'rb') as f:

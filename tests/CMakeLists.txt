@@ -76,6 +76,34 @@ endforeach()
 if(GEN_FILES)
     add_custom_command(
         OUTPUT
+            ${CMAKE_CURRENT_SOURCE_DIR}/src/test_keys.h
+        WORKING_DIRECTORY
+            ${CMAKE_CURRENT_SOURCE_DIR}
+        COMMAND
+            "${MBEDTLS_PYTHON_EXECUTABLE}"
+            "${CMAKE_CURRENT_SOURCE_DIR}/scripts/generate_test_keys.py"
+            "--output"
+            "${CMAKE_CURRENT_SOURCE_DIR}/src/test_keys.h"
+        DEPENDS
+            ${CMAKE_CURRENT_SOURCE_DIR}/scripts/generate_test_keys.py
+    )
+    add_custom_target(test_keys_header DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/src/test_keys.h)
+    add_custom_command(
+        OUTPUT
+            ${CMAKE_CURRENT_SOURCE_DIR}/src/test_certs.h
+        WORKING_DIRECTORY
+            ${CMAKE_CURRENT_SOURCE_DIR}
+        COMMAND
+            "${MBEDTLS_PYTHON_EXECUTABLE}"
+            "${CMAKE_CURRENT_SOURCE_DIR}/scripts/generate_test_cert_macros.py"
+            "--output"
+            "${CMAKE_CURRENT_SOURCE_DIR}/src/test_certs.h"
+        DEPENDS
+            ${CMAKE_CURRENT_SOURCE_DIR}/scripts/generate_test_cert_macros.py
+    )
+    add_custom_target(test_certs_header DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/src/test_certs.h)
+    add_custom_command(
+        OUTPUT
             ${bignum_generated_data_files}
         WORKING_DIRECTORY
             ${CMAKE_CURRENT_SOURCE_DIR}/..

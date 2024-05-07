@@ -10,21 +10,21 @@ valid_parameters_pkwrite:"308204a20201000282010100a9021f3d406ad555538bfd36ee8265
 
 PK utils: RSA 1024-bit
 depends_on:MBEDTLS_RSA_C
-pk_utils:MBEDTLS_PK_RSA:RSA_KEY_SIZE:RSA_KEY_SIZE:(RSA_KEY_SIZE + 7) / 8:"RSA"
+pk_utils:MBEDTLS_PK_RSA:1024:1024:(1024 + 7) / 8:"RSA"
 
 # In the following 3 test cases we test a few different sizes that are not a
 # multiple of 8 and for which we have test data.
 PK utils: RSA 1026-bits
 depends_on:MBEDTLS_RSA_C
-pk_utils:MBEDTLS_PK_RSA:RSA_KEY_SIZE + 2:RSA_KEY_SIZE + 2:(RSA_KEY_SIZE + 2 + 7) / 8:"RSA"
+pk_utils:MBEDTLS_PK_RSA:1026:1026:(1026 + 7) / 8:"RSA"
 
 PK utils: RSA 1028-bits
 depends_on:MBEDTLS_RSA_C
-pk_utils:MBEDTLS_PK_RSA:RSA_KEY_SIZE + 4:RSA_KEY_SIZE + 4:(RSA_KEY_SIZE + 4 + 7) / 8:"RSA"
+pk_utils:MBEDTLS_PK_RSA:1028:1028:(1028 + 7) / 8:"RSA"
 
 PK utils: RSA 1030-bits
 depends_on:MBEDTLS_RSA_C
-pk_utils:MBEDTLS_PK_RSA:RSA_KEY_SIZE + 6:RSA_KEY_SIZE + 6:(RSA_KEY_SIZE + 6 + 7) / 8:"RSA"
+pk_utils:MBEDTLS_PK_RSA:1030:1030:(1030 + 7) / 8:"RSA"
 
 PK utils: ECKEY SECP192R1
 depends_on:MBEDTLS_PK_HAVE_ECC_KEYS:MBEDTLS_ECP_HAVE_SECP192R1

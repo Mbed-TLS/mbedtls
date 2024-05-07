@@ -132,7 +132,6 @@ check tests/scripts/generate_bignum_tests.py $(tests/scripts/generate_bignum_tes
 check tests/scripts/generate_ecp_tests.py $(tests/scripts/generate_ecp_tests.py --list)
 check tests/scripts/generate_psa_tests.py $(tests/scripts/generate_psa_tests.py --list)
 check tests/scripts/generate_test_keys.py tests/src/test_keys.h
-check tests/scripts/generate_test_cert_macros.py tests/src/test_certs.h
 check scripts/generate_driver_wrappers.py $library_dir/psa_crypto_driver_wrappers.h $library_dir/psa_crypto_driver_wrappers_no_static.c
 
 # Additional checks for Mbed TLS only
@@ -141,6 +140,7 @@ if in_mbedtls_repo; then
     check scripts/generate_query_config.pl programs/test/query_config.c
     check scripts/generate_features.pl library/version_features.c
     check scripts/generate_ssl_debug_helpers.py library/ssl_debug_helpers_generated.c
+    check tests/scripts/generate_test_cert_macros.py tests/src/test_certs.h
     # generate_visualc_files enumerates source files (library/*.c). It doesn't
     # care about their content, but the files must exist. So it must run after
     # the step that creates or updates these files.

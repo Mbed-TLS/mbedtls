@@ -945,6 +945,39 @@ helper_libtestdriver1_make_main() {
     make CC=$ASAN_CC CFLAGS="$ASAN_CFLAGS -I../tests/include -I../tests -I../../tests -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_TEST_LIBTESTDRIVER1 $loc_accel_flags" LDFLAGS="-ltestdriver1 $ASAN_CFLAGS" "$@"
 }
 
+# $1: target which can be "client" or "server"
+helper_crypto_client_build() {
+    TARGET=$1
+    TARGET_LIB=libpsa$TARGET
+
+    cp $CONFIG_H $CONFIG_H.bak
+
+    if [ "$TARGET" == "client" ]; then
+        scripts/config.py full
+        scripts/config.py unset MBEDTLS_PSA_CRYPTO_C
+        scripts/config.py unset MBEDTLS_PSA_CRYPTO_STORAGE_C
+        # Dynamic secure element support is a deprecated feature and it is not
+        # available when CRYPTO_C and PSA_CRYPTO_STORAGE_C are disabled.
+        scripts/config.py unset MBEDTLS_PSA_CRYPTO_SE_C
+        # Disable potentially problematic features
+        scripts/config.py unset MBEDTLS_X509_RSASSA_PSS_SUPPORT
+        scripts/config.py unset MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED
+        scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED
+        scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED
+        scripts/config.py unset MBEDTLS_ECP_RESTARTABLE
+    else
+        scripts/config.py crypto_full
+        scripts/config.py unset MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS
+        scripts/config.py set MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER
+        scripts/config.py set MBEDTLS_PSA_CRYPTO_SPM
+    fi
+
+    make -C tests CC="$ASAN_CC" CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS" $TARGET_LIB
+
+    rm $CONFIG_H
+    mv $CONFIG_H.bak $CONFIG_H
+}
+
 ################################################################
 #### Configuration helpers
 ################################################################
@@ -6166,6 +6199,16 @@ component_check_test_helpers () {
 }
 
 component_test_psasim() {
+    msg "build library for client"
+
+    helper_crypto_client_build client
+
+    msg "build library for server"
+
+    scripts/config.py crypto
+
+    helper_crypto_client_build server
+
     msg "build psasim"
     make -C tests/psa-client-server/psasim
 

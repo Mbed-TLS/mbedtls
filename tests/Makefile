@@ -173,6 +173,7 @@ ifndef WINDOWS
 	rm -f include/test/instrument_record_status.h
 	rm -f include/alt-extra/*/*_alt.h
 	rm -rf libtestdriver1
+	rm -rf libpsaclient libpsaserver
 	rm -f ../library/libtestdriver1.a
 else
 	if exist *.c del /Q /F *.c
@@ -246,3 +247,17 @@ include/test/instrument_record_status.h: ../include/psa/crypto.h Makefile
 	echo "  Gen  $@"
 	sed <../include/psa/crypto.h >$@ -n 's/^psa_status_t \([A-Za-z0-9_]*\)(.*/#define \1(...) RECORD_STATUS("\1", \1(__VA_ARGS__))/p'
 endif
+
+libpsaclient libpsaserver:
+	# Clone the library and include folder for client and server builds.
+	rm -Rf ./$@
+	mkdir ./$@
+	cp -Rf ../library ./$@
+	cp -Rf ../include ./$@
+	cp -Rf ../scripts ./$@
+	mkdir ./$@/3rdparty
+	touch ./$@/3rdparty/Makefile.inc
+	cp ./psa-client-server/psasim/include/crypto_spe.h ./$@/include/psa/
+
+	# Build the libraries.
+	$(MAKE) -C ./$@/library CFLAGS="$(CFLAGS)" LDFLAGS="$(LDFLAGS)" libmbedcrypto.a libmbedx509.a libmbedtls.a

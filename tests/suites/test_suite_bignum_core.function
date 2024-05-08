@@ -1317,3 +1317,33 @@ exit:
     mbedtls_free(X);
 }
 /* END_CASE */
+
+/* BEGIN_CASE */
+void mpi_core_check_sub_ct(char *input_A, char *input_B, int exp_ret)
+{
+    mbedtls_mpi_uint *A = NULL;
+    mbedtls_mpi_uint *B = NULL;
+    mbedtls_mpi_uint *X = NULL;
+    size_t A_limbs, B_limbs;
+    int ret;
+
+    TEST_EQUAL(0, mbedtls_test_read_mpi_core(&A, &A_limbs, input_A));
+    TEST_EQUAL(0, mbedtls_test_read_mpi_core(&B, &B_limbs, input_B));
+
+    TEST_EQUAL(A_limbs, B_limbs);
+
+    size_t limbs = A_limbs;
+    TEST_CALLOC(X, limbs);
+
+    TEST_CF_SECRET(A, A_limbs * sizeof(mbedtls_mpi_uint));
+    TEST_CF_SECRET(B, B_limbs * sizeof(mbedtls_mpi_uint));
+
+    ret = mbedtls_mpi_core_sub(X, A, B, limbs);
+    TEST_EQUAL(ret, exp_ret);
+
+exit:
+    mbedtls_free(A);
+    mbedtls_free(B);
+    mbedtls_free(X);
+}
+/* END_CASE */

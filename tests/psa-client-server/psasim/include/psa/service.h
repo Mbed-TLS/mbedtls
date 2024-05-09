@@ -17,6 +17,8 @@ extern "C" {
 
 #include "psa/common.h"
 
+#include "psa/crypto.h"
+
 /********************** PSA Secure Partition Macros and Types ****************/
 
 /* PSA wait timeouts */

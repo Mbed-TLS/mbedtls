@@ -11,7 +11,10 @@
 
 set -e
 
+cd "$(dirname "$0")"
+
 function clean_run() {
+    rm -f psa_notify_*
     pkill psa_partition || true
     pkill psa_client || true
     ipcs | grep q | awk '{ printf " -q " $$2 }' | xargs ipcrm > /dev/null 2>&1 || true
@@ -21,7 +24,7 @@ function clean_run() {
 # event as signal that the server is ready so that we can start client(s).
 function wait_for_server_startup() {
     while [ ! -f ./psa_notify_* ]; do
-    sleep 0.1
+        sleep 0.1
     done
 }
 

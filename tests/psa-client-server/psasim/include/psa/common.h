@@ -27,7 +27,6 @@
 
 #define NON_SECURE (1 << 30)
 
-typedef int32_t psa_status_t;
 typedef int32_t psa_handle_t;
 
 #define PSA_MAX_IOVEC (4u)

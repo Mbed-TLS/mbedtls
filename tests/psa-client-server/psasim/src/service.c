@@ -18,7 +18,7 @@
 
 #include "psa/service.h"
 #include "psasim/init.h"
-#include "psa/error.h"
+#include "psa/error_ext.h"
 #include "psa/common.h"
 #include "psa/util.h"
 

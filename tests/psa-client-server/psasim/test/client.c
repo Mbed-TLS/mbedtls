@@ -8,11 +8,15 @@
 #include <stdio.h>
 #include <unistd.h>
 
+/* Includes from psasim */
 #include <psa/client.h>
 #include <psa/util.h>
 #include "psa_manifest/sid.h"
+#include "psa_functions_codes.h"
 
+/* Includes from mbedtls */
 #include "mbedtls/version.h"
+#include "psa/crypto.h"
 
 #define CLIENT_PRINT(fmt, ...) \
     PRINT("Client: " fmt, ##__VA_ARGS__)
@@ -20,8 +24,9 @@
 int main()
 {
     char mbedtls_version[18];
-    const char *text = "FOOBARCOOL!!";
-    char output[100] = { 0 };
+    // psa_invec invecs[1];
+    // psa_outvec outvecs[1];
+    psa_status_t status;
 
     mbedtls_version_get_string_full(mbedtls_version);
     CLIENT_PRINT("%s", mbedtls_version);
@@ -34,23 +39,16 @@ int main()
     if (h < 0) {
         CLIENT_PRINT("Couldn't connect %d", h);
         return 1;
-    } else {
-        int type = 2;
-        CLIENT_PRINT("psa_call() w/o invec returned: %d", psa_call(h, type, NULL, 0, NULL, 0));
-        psa_invec invecs[1];
-        psa_outvec outvecs[1];
-        invecs[0].base = text;
-        invecs[0].len = sizeof(text);
-        outvecs[0].base = output;
-        outvecs[0].len = sizeof(output);
-
-        CLIENT_PRINT("invec len: %lu", invecs[0].len);
-        CLIENT_PRINT("psa_call() w/ invec returned: %d", psa_call(h, type, invecs, 1, outvecs, 1));
-        CLIENT_PRINT("Received payload len: %ld", outvecs[0].len);
-        CLIENT_PRINT("Received payload content: %s", output);
-        CLIENT_PRINT("Closing handle");
-        psa_close(h);
     }
 
+    status = psa_call(h, PSA_CRYPTO_INIT, NULL, 0, NULL, 0);
+    CLIENT_PRINT("PSA_CRYPTO_INIT returned: %d", status);
+
+    CLIENT_PRINT("Closing handle");
+    psa_close(h);
+
+    if (status != PSA_SUCCESS) {
+        return 1;
+    }
     return 0;
 }

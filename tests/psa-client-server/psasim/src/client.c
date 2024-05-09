@@ -19,7 +19,7 @@
 
 #include "psa/client.h"
 #include "psa/common.h"
-#include "psa/error.h"
+#include "psa/error_ext.h"
 #include "psa/util.h"
 
 typedef struct internal_handle {

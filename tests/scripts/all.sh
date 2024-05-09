@@ -6213,7 +6213,7 @@ component_test_psasim() {
     make -C tests/psa-client-server/psasim CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS"
 
     msg "test psasim"
-    make -C tests/psa-client-server/psasim run
+    tests/psa-client-server/psasim/test/run_test.sh
 
     msg "clean psasim"
     make -C tests/psa-client-server/psasim clean

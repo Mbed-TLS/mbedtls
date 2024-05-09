@@ -1,4 +1,6 @@
-INCLUDE = -I../include/
+# Here I'm picking also libpsaclient/include because I just need it for the
+# psa/crypto.h include. libpsaserver would have worked the same.
+INCLUDE = -I../include/ -I../../../libpsaclient/include
 PSA_LIB = libpsaff.a
 
 PSA_LIB_OBJS = client.o service.o

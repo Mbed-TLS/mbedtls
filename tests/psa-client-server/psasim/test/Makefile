@@ -1,5 +1,16 @@
-INCLUDE := -I../include/ -I./psa_manifest
-LIB := -L../src -lpsaff
+LIBPSASIM_PATH := ..
+LIBPSACLIENT_PATH := ../../../libpsaclient
+LIBPSASERVER_PATH := ../../../libpsaserver
+
+LIBPSASIM := -L$(LIBPSASIM_PATH)/src -lpsaff
+LIBPSACLIENT := -L$(LIBPSACLIENT_PATH)/library -lmbedcrypto -lmbedx509 -lmbedtls
+LIBPSASERVER := -L$(LIBPSASERVER_PATH)/library -lmbedcrypto
+
+LIBPSASIM_H := -I$(LIBPSASIM_PATH)/include
+LIBPSACLIENT_H := -I$(LIBPSACLIENT_PATH)/include
+LIBPSASERVER_H := -I$(LIBPSASERVER_PATH)/include
+
+COMMON_INCLUDE := $(LIBPSASIM_H) -I./psa_manifest
 
 TEST_BIN = 	psa_client \
 			psa_partition
@@ -15,10 +26,10 @@ PARTITION_SERVER_BOOTSTRAP = psa_ff_bootstrap_TEST_PARTITION.c
 all: $(TEST_BIN)
 
 psa_client: client.c $(GENERATED_H_FILES)
-	$(CC) $(INCLUDE) $(CFLAGS) $< $(LIB) -o $@
+	$(CC) $(COMMON_INCLUDE) $(LIBPSACLIENT_H) $(CFLAGS) $< $(LIBPSASIM) $(LIBPSACLIENT) -o $@
 
 psa_partition: $(PARTITION_SERVER_BOOTSTRAP) $(GENERATED_H_FILES)
-	$(CC) $(INCLUDE) $(CFLAGS) $< $(LIB) -o $@
+	$(CC) $(COMMON_INCLUDE) $(LIBPSASERVER_H) $(CFLAGS) $< $(LIBPSASIM) $(LIBPSASERVER) -o $@
 
 $(PARTITION_SERVER_BOOTSTRAP) $(GENERATED_H_FILES): manifest.json server.c
 	../tools/psa_autogen.py $<

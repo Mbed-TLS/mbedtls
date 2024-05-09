@@ -13,6 +13,8 @@
 #include "psa/util.h"
 #include "psa_manifest/manifest.h"
 
+#include "mbedtls/version.h"
+
 #define SERVER_PRINT(fmt, ...) \
     PRINT("Server: " fmt, ##__VA_ARGS__)
 
@@ -43,6 +45,10 @@ int psa_sha256_main(int argc, char *argv[])
     char foo[BUF_SIZE] = { 0 };
     const int magic_num = 66;
     int client_disconnected = 0;
+    char mbedtls_version[18];
+
+    mbedtls_version_get_string_full(mbedtls_version);
+    SERVER_PRINT("%s", mbedtls_version);
 
     parse_input_args(argc, argv);
     SERVER_PRINT("Starting");

@@ -6210,7 +6210,7 @@ component_test_psasim() {
     helper_crypto_client_build server
 
     msg "build psasim"
-    make -C tests/psa-client-server/psasim
+    make -C tests/psa-client-server/psasim CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS"
 
     msg "test psasim"
     make -C tests/psa-client-server/psasim run

@@ -27,8 +27,8 @@ function wait_for_server_startup() {
 
 clean_run
 
-./psa_partition -k &
+./psa_partition -k > psa_partition.log 2>&1 &
 SERV_PID=$!
 wait_for_server_startup
-./psa_client
+./psa_client > psa_client.log 2>&1
 wait $SERV_PID

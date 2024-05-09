@@ -1,4 +1,4 @@
-CFLAGS ?= -Wall -Werror -std=c99 -D_XOPEN_SOURCE=1 -D_POSIX_C_SOURCE=200809L
+CFLAGS += -Wall -Werror -std=c99 -D_XOPEN_SOURCE=1 -D_POSIX_C_SOURCE=200809L
 
 ifeq ($(DEBUG),1)
 	CFLAGS += -DDEBUG -O0 -g
@@ -9,10 +9,10 @@ endif
 all: lib test
 
 lib:
-	$(MAKE) -C src CFLAGS="$(CFLAGS)"
+	$(MAKE) -C src CFLAGS="$(CFLAGS)" LDFLAGS="$(LDFLAGS)"
 
 test: lib
-	$(MAKE) -C test CFLAGS="$(CFLAGS)"
+	$(MAKE) -C test CFLAGS="$(CFLAGS)" LDFLAGS="$(LDFLAGS)"
 
 clean:
 	rm -f $(PSA_LIB) $(PSA_LIB_OBJS)

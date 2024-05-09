@@ -5,19 +5,27 @@
  *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
+#include <stdio.h>
+#include <unistd.h>
+
 #include <psa/client.h>
 #include <psa/util.h>
 #include "psa_manifest/sid.h"
-#include <stdio.h>
-#include <unistd.h>
+
+#include "mbedtls/version.h"
 
 #define CLIENT_PRINT(fmt, ...) \
     PRINT("Client: " fmt, ##__VA_ARGS__)
 
 int main()
 {
+    char mbedtls_version[18];
     const char *text = "FOOBARCOOL!!";
     char output[100] = { 0 };
+
+    mbedtls_version_get_string_full(mbedtls_version);
+    CLIENT_PRINT("%s", mbedtls_version);
+
     CLIENT_PRINT("My PID: %d", getpid());
 
     CLIENT_PRINT("PSA version: %u", psa_version(PSA_SID_SHA256_SID));

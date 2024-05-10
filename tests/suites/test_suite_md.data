@@ -9,7 +9,7 @@ MD NULL/uninitialised arguments
 md_null_args:
 
 Information on MD5
-depends_on:MBEDTLS_MD_CAN_MD5
+depends_on:PSA_WANT_ALG_MD5
 md_info:MBEDTLS_MD_MD5:"MD5":16
 
 Information on RIPEMD160
@@ -53,31 +53,31 @@ depends_on:PSA_WANT_ALG_SHA3_512
 md_info:MBEDTLS_MD_SHA3_512:"SHA3-512":64
 
 generic mbedtls_md5 Test vector RFC1321 #1
-depends_on:MBEDTLS_MD_CAN_MD5
+depends_on:PSA_WANT_ALG_MD5
 md_text:MBEDTLS_MD_MD5:"":"d41d8cd98f00b204e9800998ecf8427e"
 
 generic mbedtls_md5 Test vector RFC1321 #2
-depends_on:MBEDTLS_MD_CAN_MD5
+depends_on:PSA_WANT_ALG_MD5
 md_text:MBEDTLS_MD_MD5:"a":"0cc175b9c0f1b6a831c399e269772661"
 
 generic mbedtls_md5 Test vector RFC1321 #3
-depends_on:MBEDTLS_MD_CAN_MD5
+depends_on:PSA_WANT_ALG_MD5
 md_text:MBEDTLS_MD_MD5:"abc":"900150983cd24fb0d6963f7d28e17f72"
 
 generic mbedtls_md5 Test vector RFC1321 #4
-depends_on:MBEDTLS_MD_CAN_MD5
+depends_on:PSA_WANT_ALG_MD5
 md_text:MBEDTLS_MD_MD5:"message digest":"f96b697d7cb7938d525a2f31aaf161d0"
 
 generic mbedtls_md5 Test vector RFC1321 #5
-depends_on:MBEDTLS_MD_CAN_MD5
+depends_on:PSA_WANT_ALG_MD5
 md_text:MBEDTLS_MD_MD5:"abcdefghijklmnopqrstuvwxyz":"c3fcd3d76192e4007dfb496cca67e13b"
 
 generic mbedtls_md5 Test vector RFC1321 #6
-depends_on:MBEDTLS_MD_CAN_MD5
+depends_on:PSA_WANT_ALG_MD5
 md_text:MBEDTLS_MD_MD5:"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789":"d174ab98d277d9f5a5611c2c9f419d9f"
 
 generic mbedtls_md5 Test vector RFC1321 #7
-depends_on:MBEDTLS_MD_CAN_MD5
+depends_on:PSA_WANT_ALG_MD5
 md_text:MBEDTLS_MD_MD5:"12345678901234567890123456789012345678901234567890123456789012345678901234567890":"57edf4a22be3c955ac49da2e2107b67a"
 
 generic mbedtls_ripemd160 Test vector from paper #1
@@ -129,47 +129,47 @@ depends_on:PSA_WANT_ALG_SHA3_512
 md_hex:MBEDTLS_MD_SHA3_512:"e5":"150240baf95fb36f8ccb87a19a41767e7aed95125075a2b2dbba6e565e1ce8575f2b042b62e29a04e9440314a821c6224182964d8b557b16a492b3806f4c39c1"
 
 generic HMAC-MD5 Hash File OpenSSL test #1
-depends_on:MBEDTLS_MD_CAN_MD5
+depends_on:PSA_WANT_ALG_MD5
 mbedtls_md_hmac:MBEDTLS_MD_MD5:16:"61616161616161616161616161616161":"b91ce5ac77d33c234e61002ed6":"42552882f00bd4633ea81135a184b284"
 
 generic HMAC-MD5 Hash File OpenSSL test #2
-depends_on:MBEDTLS_MD_CAN_MD5
+depends_on:PSA_WANT_ALG_MD5
 mbedtls_md_hmac:MBEDTLS_MD_MD5:16:"61616161616161616161616161616161":"270fcf11f27c27448457d7049a7edb084a3e554e0b2acf5806982213f0ad516402e4c869c4ff2171e18e3489baa3125d2c3056ebb616296f9b6aa97ef68eeabcdc0b6dde47775004096a241efcf0a90d19b34e898cc7340cdc940f8bdd46e23e352f34bca131d4d67a7c2ddb8d0d68b67f06152a128168e1c341c37e0a66c5018999b7059bcc300beed2c19dd1152d2fe062853293b8f3c8b5":"a16a842891786d01fe50ba7731db7464"
 
 generic HMAC-MD5 Hash File OpenSSL test #3
-depends_on:MBEDTLS_MD_CAN_MD5
+depends_on:PSA_WANT_ALG_MD5
 mbedtls_md_hmac:MBEDTLS_MD_MD5:16:"61616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161":"b91ce5ac77d33c234e61002ed6":"e97f623936f98a7f741c4bd0612fecc2"
 
 HMAC-MD5 Bouncy Castle test #1
-depends_on:MBEDTLS_MD_CAN_MD5
+depends_on:PSA_WANT_ALG_MD5
 mbedtls_md_hmac:MBEDTLS_MD_MD5:16:"0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b":"4869205468657265":"5ccec34ea9656392457fa1ac27f08fbc"
 
 generic HMAC-MD5 Test Vector RFC2202 #1
-depends_on:MBEDTLS_MD_CAN_MD5
+depends_on:PSA_WANT_ALG_MD5
 mbedtls_md_hmac:MBEDTLS_MD_MD5:16:"0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b":"4869205468657265":"9294727a3638bb1c13f48ef8158bfc9d"
 
 generic HMAC-MD5 Test Vector RFC2202 #2
-depends_on:MBEDTLS_MD_CAN_MD5
+depends_on:PSA_WANT_ALG_MD5
 mbedtls_md_hmac:MBEDTLS_MD_MD5:16:"4a656665":"7768617420646f2079612077616e7420666f72206e6f7468696e673f":"750c783e6ab0b503eaa86e310a5db738"
 
 generic HMAC-MD5 Test Vector RFC2202 #3
-depends_on:MBEDTLS_MD_CAN_MD5
+depends_on:PSA_WANT_ALG_MD5
 mbedtls_md_hmac:MBEDTLS_MD_MD5:16:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa":"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd":"56be34521d144c88dbb8c733f0e8b3f6"
 
 generic HMAC-MD5 Test Vector RFC2202 #4
-depends_on:MBEDTLS_MD_CAN_MD5
+depends_on:PSA_WANT_ALG_MD5
 mbedtls_md_hmac:MBEDTLS_MD_MD5:16:"0102030405060708090a0b0c0d0e0f10111213141516171819":"cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd":"697eaf0aca3a3aea3a75164746ffaa79"
 
 generic HMAC-MD5 Test Vector RFC2202 #5
-depends_on:MBEDTLS_MD_CAN_MD5
+depends_on:PSA_WANT_ALG_MD5
 mbedtls_md_hmac:MBEDTLS_MD_MD5:12:"0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c":"546573742057697468205472756e636174696f6e":"56461ef2342edc00f9bab995"
 
 generic HMAC-MD5 Test Vector RFC2202 #6
-depends_on:MBEDTLS_MD_CAN_MD5
+depends_on:PSA_WANT_ALG_MD5
 mbedtls_md_hmac:MBEDTLS_MD_MD5:16:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa":"54657374205573696e67204c6172676572205468616e20426c6f636b2d53697a65204b6579202d2048617368204b6579204669727374":"6b1ab7fe4bd7bf8f0b62e6ce61b9d0cd"
 
 generic HMAC-MD5 Test Vector RFC2202 #7
-depends_on:MBEDTLS_MD_CAN_MD5
+depends_on:PSA_WANT_ALG_MD5
 mbedtls_md_hmac:MBEDTLS_MD_MD5:16:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa":"54657374205573696e67204c6172676572205468616e20426c6f636b2d53697a65204b657920616e64204c6172676572205468616e204f6e6520426c6f636b2d53697a652044617461":"6f630fad67cda0ee1fb1f562db3aa53e"
 
 generic HMAC-RIPEMD160 Test vector RFC 2286 #1
@@ -201,31 +201,31 @@ depends_on:PSA_WANT_ALG_RIPEMD160
 mbedtls_md_hmac:MBEDTLS_MD_RIPEMD160:20:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa":"54657374205573696e67204c6172676572205468616e20426c6f636b2d53697a65204b657920616e64204c6172676572205468616e204f6e6520426c6f636b2d53697a652044617461":"69ea60798d71616cce5fd0871e23754cd75d5a0a"
 
 generic multi step mbedtls_md5 Test vector RFC1321 #1
-depends_on:MBEDTLS_MD_CAN_MD5
+depends_on:PSA_WANT_ALG_MD5
 md_text_multi:MBEDTLS_MD_MD5:"":"d41d8cd98f00b204e9800998ecf8427e"
 
 generic multi step mbedtls_md5 Test vector RFC1321 #2
-depends_on:MBEDTLS_MD_CAN_MD5
+depends_on:PSA_WANT_ALG_MD5
 md_text_multi:MBEDTLS_MD_MD5:"a":"0cc175b9c0f1b6a831c399e269772661"
 
 generic multi step mbedtls_md5 Test vector RFC1321 #3
-depends_on:MBEDTLS_MD_CAN_MD5
+depends_on:PSA_WANT_ALG_MD5
 md_text_multi:MBEDTLS_MD_MD5:"abc":"900150983cd24fb0d6963f7d28e17f72"
 
 generic multi step mbedtls_md5 Test vector RFC1321 #4
-depends_on:MBEDTLS_MD_CAN_MD5
+depends_on:PSA_WANT_ALG_MD5
 md_text_multi:MBEDTLS_MD_MD5:"message digest":"f96b697d7cb7938d525a2f31aaf161d0"
 
 generic multi step mbedtls_md5 Test vector RFC1321 #5
-depends_on:MBEDTLS_MD_CAN_MD5
+depends_on:PSA_WANT_ALG_MD5
 md_text_multi:MBEDTLS_MD_MD5:"abcdefghijklmnopqrstuvwxyz":"c3fcd3d76192e4007dfb496cca67e13b"
 
 generic multi step mbedtls_md5 Test vector RFC1321 #6
-depends_on:MBEDTLS_MD_CAN_MD5
+depends_on:PSA_WANT_ALG_MD5
 md_text_multi:MBEDTLS_MD_MD5:"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789":"d174ab98d277d9f5a5611c2c9f419d9f"
 
 generic multi step mbedtls_md5 Test vector RFC1321 #7
-depends_on:MBEDTLS_MD_CAN_MD5
+depends_on:PSA_WANT_ALG_MD5
 md_text_multi:MBEDTLS_MD_MD5:"12345678901234567890123456789012345678901234567890123456789012345678901234567890":"57edf4a22be3c955ac49da2e2107b67a"
 
 generic multi step mbedtls_ripemd160 Test vector from paper #1
@@ -277,43 +277,43 @@ depends_on:PSA_WANT_ALG_SHA3_512
 md_hex_multi:MBEDTLS_MD_SHA3_512:"71a986d2f662":"def6aac2b08c98d56a0501a8cb93f5b47d6322daf99e03255457c303326395f765576930f8571d89c01e727cc79c2d4497f85c45691b554e20da810c2bc865ef"
 
 generic multi step HMAC-MD5 Hash File OpenSSL test #1
-depends_on:MBEDTLS_MD_CAN_MD5
+depends_on:PSA_WANT_ALG_MD5
 md_hmac_multi:MBEDTLS_MD_MD5:16:"61616161616161616161616161616161":"b91ce5ac77d33c234e61002ed6":"42552882f00bd4633ea81135a184b284"
 
 generic multi step HMAC-MD5 Hash File OpenSSL test #2
-depends_on:MBEDTLS_MD_CAN_MD5
+depends_on:PSA_WANT_ALG_MD5
 md_hmac_multi:MBEDTLS_MD_MD5:16:"61616161616161616161616161616161":"270fcf11f27c27448457d7049a7edb084a3e554e0b2acf5806982213f0ad516402e4c869c4ff2171e18e3489baa3125d2c3056ebb616296f9b6aa97ef68eeabcdc0b6dde47775004096a241efcf0a90d19b34e898cc7340cdc940f8bdd46e23e352f34bca131d4d67a7c2ddb8d0d68b67f06152a128168e1c341c37e0a66c5018999b7059bcc300beed2c19dd1152d2fe062853293b8f3c8b5":"a16a842891786d01fe50ba7731db7464"
 
 generic multi step HMAC-MD5 Hash File OpenSSL test #3
-depends_on:MBEDTLS_MD_CAN_MD5
+depends_on:PSA_WANT_ALG_MD5
 md_hmac_multi:MBEDTLS_MD_MD5:16:"61616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161":"b91ce5ac77d33c234e61002ed6":"e97f623936f98a7f741c4bd0612fecc2"
 
 generic multi step HMAC-MD5 Test Vector RFC2202 #1
-depends_on:MBEDTLS_MD_CAN_MD5
+depends_on:PSA_WANT_ALG_MD5
 md_hmac_multi:MBEDTLS_MD_MD5:16:"0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b":"4869205468657265":"9294727a3638bb1c13f48ef8158bfc9d"
 
 generic multi step HMAC-MD5 Test Vector RFC2202 #2
-depends_on:MBEDTLS_MD_CAN_MD5
+depends_on:PSA_WANT_ALG_MD5
 md_hmac_multi:MBEDTLS_MD_MD5:16:"4a656665":"7768617420646f2079612077616e7420666f72206e6f7468696e673f":"750c783e6ab0b503eaa86e310a5db738"
 
 generic multi step HMAC-MD5 Test Vector RFC2202 #3
-depends_on:MBEDTLS_MD_CAN_MD5
+depends_on:PSA_WANT_ALG_MD5
 md_hmac_multi:MBEDTLS_MD_MD5:16:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa":"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd":"56be34521d144c88dbb8c733f0e8b3f6"
 
 generic multi step HMAC-MD5 Test Vector RFC2202 #4
-depends_on:MBEDTLS_MD_CAN_MD5
+depends_on:PSA_WANT_ALG_MD5
 md_hmac_multi:MBEDTLS_MD_MD5:16:"0102030405060708090a0b0c0d0e0f10111213141516171819":"cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd":"697eaf0aca3a3aea3a75164746ffaa79"
 
 generic multi step HMAC-MD5 Test Vector RFC2202 #5
-depends_on:MBEDTLS_MD_CAN_MD5
+depends_on:PSA_WANT_ALG_MD5
 md_hmac_multi:MBEDTLS_MD_MD5:12:"0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c":"546573742057697468205472756e636174696f6e":"56461ef2342edc00f9bab995"
 
 generic multi step HMAC-MD5 Test Vector RFC2202 #6
-depends_on:MBEDTLS_MD_CAN_MD5
+depends_on:PSA_WANT_ALG_MD5
 md_hmac_multi:MBEDTLS_MD_MD5:16:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa":"54657374205573696e67204c6172676572205468616e20426c6f636b2d53697a65204b6579202d2048617368204b6579204669727374":"6b1ab7fe4bd7bf8f0b62e6ce61b9d0cd"
 
 generic multi step HMAC-MD5 Test Vector RFC2202 #7
-depends_on:MBEDTLS_MD_CAN_MD5
+depends_on:PSA_WANT_ALG_MD5
 md_hmac_multi:MBEDTLS_MD_MD5:16:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa":"54657374205573696e67204c6172676572205468616e20426c6f636b2d53697a65204b657920616e64204c6172676572205468616e204f6e6520426c6f636b2d53697a652044617461":"6f630fad67cda0ee1fb1f562db3aa53e"
 
 generic multi step HMAC-RIPEMD160 Test vector RFC 2286 #1
@@ -345,19 +345,19 @@ depends_on:PSA_WANT_ALG_RIPEMD160
 md_hmac_multi:MBEDTLS_MD_RIPEMD160:20:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa":"54657374205573696e67204c6172676572205468616e20426c6f636b2d53697a65204b657920616e64204c6172676572205468616e204f6e6520426c6f636b2d53697a652044617461":"69ea60798d71616cce5fd0871e23754cd75d5a0a"
 
 generic MD5 Hash file #1
-depends_on:MBEDTLS_MD_CAN_MD5
+depends_on:PSA_WANT_ALG_MD5
 mbedtls_md_file:MBEDTLS_MD_MD5:"../framework/data_files/hash_file_1":"52bcdc983c9ed64fc148a759b3c7a415"
 
 generic MD5 Hash file #2
-depends_on:MBEDTLS_MD_CAN_MD5
+depends_on:PSA_WANT_ALG_MD5
 mbedtls_md_file:MBEDTLS_MD_MD5:"../framework/data_files/hash_file_2":"d17d466f15891df10542207ae78277f0"
 
 generic MD5 Hash file #3
-depends_on:MBEDTLS_MD_CAN_MD5
+depends_on:PSA_WANT_ALG_MD5
 mbedtls_md_file:MBEDTLS_MD_MD5:"../framework/data_files/hash_file_3":"d945bcc6200ea95d061a2a818167d920"
 
 generic MD5 Hash file #4
-depends_on:MBEDTLS_MD_CAN_MD5
+depends_on:PSA_WANT_ALG_MD5
 mbedtls_md_file:MBEDTLS_MD_MD5:"../framework/data_files/hash_file_4":"d41d8cd98f00b204e9800998ecf8427e"
 
 generic RIPEMD160 Hash file #0 (from paper)

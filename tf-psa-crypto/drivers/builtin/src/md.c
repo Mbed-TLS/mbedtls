@@ -70,7 +70,7 @@
 #define MD_INFO(type, out_size, block_size) type, out_size,
 #endif
 
-#if defined(MBEDTLS_MD_CAN_MD5)
+#if defined(PSA_WANT_ALG_MD5)
 static const mbedtls_md_info_t mbedtls_md5_info = {
     MD_INFO(MBEDTLS_MD_MD5, 16, 64)
 };
@@ -139,7 +139,7 @@ static const mbedtls_md_info_t mbedtls_sha3_512_info = {
 const mbedtls_md_info_t *mbedtls_md_info_from_type(mbedtls_md_type_t md_type)
 {
     switch (md_type) {
-#if defined(MBEDTLS_MD_CAN_MD5)
+#if defined(PSA_WANT_ALG_MD5)
         case MBEDTLS_MD_MD5:
             return &mbedtls_md5_info;
 #endif
@@ -804,7 +804,7 @@ static const int supported_digests[] = {
     MBEDTLS_MD_RIPEMD160,
 #endif
 
-#if defined(MBEDTLS_MD_CAN_MD5)
+#if defined(PSA_WANT_ALG_MD5)
     MBEDTLS_MD_MD5,
 #endif
 
@@ -838,7 +838,7 @@ typedef struct {
 } md_name_entry;
 
 static const md_name_entry md_names[] = {
-#if defined(MBEDTLS_MD_CAN_MD5)
+#if defined(PSA_WANT_ALG_MD5)
     { "MD5", MBEDTLS_MD_MD5 },
 #endif
 #if defined(PSA_WANT_ALG_RIPEMD160)

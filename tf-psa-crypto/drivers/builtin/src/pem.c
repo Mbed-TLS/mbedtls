@@ -26,11 +26,11 @@
 #include "psa/crypto.h"
 #endif
 
-#if defined(MBEDTLS_MD_CAN_MD5) &&  \
+#if defined(PSA_WANT_ALG_MD5) &&  \
     defined(MBEDTLS_CIPHER_MODE_CBC) &&                             \
     (defined(MBEDTLS_DES_C) || defined(MBEDTLS_AES_C))
 #define PEM_RFC1421
-#endif /* MBEDTLS_MD_CAN_MD5 &&
+#endif /* PSA_WANT_ALG_MD5 &&
           MBEDTLS_CIPHER_MODE_CBC &&
           ( MBEDTLS_AES_C || MBEDTLS_DES_C ) */
 

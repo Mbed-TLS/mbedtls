@@ -22,7 +22,7 @@
 #include "psa_util_internal.h"
 #endif
 
-#if defined(MBEDTLS_MD_CAN_MD5)
+#if defined(PSA_WANT_ALG_MD5)
 #include "mbedtls/md5.h"
 #endif
 
@@ -2517,7 +2517,7 @@ static inline int mbedtls_ssl_tls12_sig_alg_is_supported(
     unsigned char sig = MBEDTLS_BYTE_0(sig_alg);
 
     switch (hash) {
-#if defined(MBEDTLS_MD_CAN_MD5)
+#if defined(PSA_WANT_ALG_MD5)
         case MBEDTLS_SSL_HASH_MD5:
             break;
 #endif

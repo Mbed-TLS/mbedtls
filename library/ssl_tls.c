@@ -6132,7 +6132,7 @@ mbedtls_pk_type_t mbedtls_ssl_pk_alg_from_sig(unsigned char sig)
 mbedtls_md_type_t mbedtls_ssl_md_alg_from_hash(unsigned char hash)
 {
     switch (hash) {
-#if defined(MBEDTLS_MD_CAN_MD5)
+#if defined(PSA_WANT_ALG_MD5)
         case MBEDTLS_SSL_HASH_MD5:
             return MBEDTLS_MD_MD5;
 #endif
@@ -6167,7 +6167,7 @@ mbedtls_md_type_t mbedtls_ssl_md_alg_from_hash(unsigned char hash)
 unsigned char mbedtls_ssl_hash_from_md_alg(int md)
 {
     switch (md) {
-#if defined(MBEDTLS_MD_CAN_MD5)
+#if defined(PSA_WANT_ALG_MD5)
         case MBEDTLS_MD_MD5:
             return MBEDTLS_SSL_HASH_MD5;
 #endif

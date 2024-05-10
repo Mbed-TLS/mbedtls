@@ -379,12 +379,12 @@ typedef struct {
 static const oid_sig_alg_t oid_sig_alg[] =
 {
 #if defined(MBEDTLS_RSA_C)
-#if defined(MBEDTLS_MD_CAN_MD5)
+#if defined(PSA_WANT_ALG_MD5)
     {
         OID_DESCRIPTOR(MBEDTLS_OID_PKCS1_MD5,        "md5WithRSAEncryption",     "RSA with MD5"),
         MBEDTLS_MD_MD5,      MBEDTLS_PK_RSA,
     },
-#endif /* MBEDTLS_MD_CAN_MD5 */
+#endif /* PSA_WANT_ALG_MD5 */
 #if defined(MBEDTLS_MD_CAN_SHA1)
     {
         OID_DESCRIPTOR(MBEDTLS_OID_PKCS1_SHA1,       "sha-1WithRSAEncryption",   "RSA with SHA1"),
@@ -719,7 +719,7 @@ typedef struct {
 
 static const oid_md_alg_t oid_md_alg[] =
 {
-#if defined(MBEDTLS_MD_CAN_MD5)
+#if defined(PSA_WANT_ALG_MD5)
     {
         OID_DESCRIPTOR(MBEDTLS_OID_DIGEST_ALG_MD5,       "id-md5",       "MD5"),
         MBEDTLS_MD_MD5,

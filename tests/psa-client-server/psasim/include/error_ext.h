@@ -10,7 +10,7 @@
 
 #include <stdint.h>
 
-#include "psa/common.h"
+#include "common.h"
 
 #define PSA_ERROR_PROGRAMMER_ERROR      ((psa_status_t) -129)
 #define PSA_ERROR_CONNECTION_REFUSED    ((psa_status_t) -130)

@@ -6,7 +6,7 @@
  */
 
 #include <stdint.h>
-#include <psa/service.h>
+#include <service.h>
 void raise_signal(psa_signal_t signal);
 void __init_psasim(const char **array,
                    int size,

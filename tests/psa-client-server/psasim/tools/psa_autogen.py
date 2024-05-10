@@ -15,6 +15,9 @@ if len(sys.argv) != 2:
 
 FILENAME = str(sys.argv[1])
 
+SCRIPT_PATH = os.path.dirname(__file__)
+GENERATED_H_PATH = os.path.join(SCRIPT_PATH, "..", "include", "psa_manifest")
+GENERATED_C_PATH = os.path.join(SCRIPT_PATH, "..", "src")
 
 with open(str(FILENAME), "r") as read_file:
     data = json.load(read_file)
@@ -32,14 +35,14 @@ with open(str(FILENAME), "r") as read_file:
             irqs = []
 
         try:
-            os.mkdir("psa_manifest")
+            os.mkdir(GENERATED_H_PATH)
             print("Generating psa_manifest directory")
         except OSError:
             print ("PSA manifest directory already exists")
 
-        man  = open(str("psa_manifest/" + FILENAME + ".h"), "w")
-        pids = open("psa_manifest/pid.h", "a")
-        sids = open("psa_manifest/sid.h", "a")
+        man  = open(os.path.join(GENERATED_H_PATH, FILENAME + ".h"), "w")
+        pids = open(os.path.join(GENERATED_H_PATH, "pid.h"), "a")
+        sids = open(os.path.join(GENERATED_H_PATH, "sid.h"), "a")
 
         if len(services) > 28:
            print ("Unsupported number of services")
@@ -116,23 +119,20 @@ with open(str(FILENAME), "r") as read_file:
         man.close()
 
         symbols = []
-        # Go through all the files in the current directory and look for the entrypoint
 
-        for root, directories, filenames in os.walk('.'):
+        # Go through source files and look for the entrypoint
+        for root, directories, filenames in os.walk(GENERATED_C_PATH):
             for filename in filenames:
-
                 if "psa_ff_bootstrap" in filename or filename == "psa_manifest":
                     continue
-
                 try:
                     fullpath = os.path.join(root,filename)
                     with open(fullpath, encoding='utf-8') as currentFile:
                         text = currentFile.read()
                         if str(entry_point + "(") in text:
-                            symbols.append(fullpath)
+                            symbols.append(filename)
                 except IOError:
                     print("Couldn't open " + filename)
-
                 except UnicodeDecodeError:
                     pass
 
@@ -144,8 +144,9 @@ with open(str(FILENAME), "r") as read_file:
             print("Duplicate entrypoint symbol detected: " + str(symbols))
             sys.exit(2)
         else:
-            bs = open(str("psa_ff_bootstrap_" + str(partition_name) + ".c"), "w")
-            bs.write("#include <psasim/init.h>\n")
+            bs = open(os.path.join(GENERATED_C_PATH, "psa_ff_bootstrap_" + partition_name + ".c"),
+                      "w")
+            bs.write("#include <init.h>\n")
             bs.write("#include \"" + symbols[0] + "\"\n")
             bs.write("#include <signal.h>\n\n")
             bs.write(qcode)

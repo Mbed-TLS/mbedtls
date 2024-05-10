@@ -9,9 +9,9 @@
 #include <stdio.h>
 
 /* Includes from psasim */
-#include "psa/service.h"
-#include "psa/error_ext.h"
-#include "psa/util.h"
+#include "service.h"
+#include "error_ext.h"
+#include "util.h"
 #include "psa_manifest/manifest.h"
 #include "psa_functions_codes.h"
 

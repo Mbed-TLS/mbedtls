@@ -17,7 +17,7 @@ extern "C" {
 
 #include "psa/crypto.h"
 
-#include "psa/error_ext.h"
+#include "error_ext.h"
 /*********************** PSA Client Macros and Types *************************/
 
 #define PSA_FRAMEWORK_VERSION  (0x0100)

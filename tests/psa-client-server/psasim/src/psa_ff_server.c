@@ -16,11 +16,11 @@
 #include <time.h>
 #include <assert.h>
 
-#include "psa/service.h"
-#include "psasim/init.h"
-#include "psa/error_ext.h"
-#include "psa/common.h"
-#include "psa/util.h"
+#include "service.h"
+#include "init.h"
+#include "error_ext.h"
+#include "common.h"
+#include "util.h"
 
 #define MAX_CLIENTS 128
 #define MAX_MESSAGES 32
@@ -34,7 +34,7 @@ struct connection {
 };
 
 /* Note that this implementation is functional and not secure. */
-extern int __psa_ff_client_security_state;
+int __psa_ff_client_security_state = NON_SECURE;
 
 static psa_msg_t messages[MAX_MESSAGES]; /* Message slots */
 static uint8_t pending_message[MAX_MESSAGES] = { 0 }; /* Booleans indicating active message slots */

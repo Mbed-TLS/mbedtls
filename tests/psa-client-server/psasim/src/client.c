@@ -33,8 +33,8 @@ int main()
 
     CLIENT_PRINT("My PID: %d", getpid());
 
-    CLIENT_PRINT("PSA version: %u", psa_version(PSA_SID_SHA256_SID));
-    psa_handle_t h = psa_connect(PSA_SID_SHA256_SID, 1);
+    CLIENT_PRINT("PSA version: %u", psa_version(PSA_SID_CRYPTO_SID));
+    psa_handle_t h = psa_connect(PSA_SID_CRYPTO_SID, 1);
 
     if (h < 0) {
         CLIENT_PRINT("Couldn't connect %d", h);

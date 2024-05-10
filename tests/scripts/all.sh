@@ -6077,6 +6077,14 @@ support_build_cmake_custom_config_file () {
     support_test_cmake_out_of_source
 }
 
+component_build_cmake_programs_no_testing () {
+    msg "build: cmake with -DENABLE_PROGRAMS=ON and -DENABLE_TESTING=OFF"
+    cmake -DENABLE_PROGRAMS=ON -DENABLE_TESTING=OFF .
+    make
+}
+support_build_cmake_programs_no_testing () {
+    support_test_cmake_out_of_source
+}
 
 component_build_zeroize_checks () {
     msg "build: check for obviously wrong calls to mbedtls_platform_zeroize()"

@@ -1,5 +1,5 @@
 Constant-flow HMAC: MD5
-depends_on:MBEDTLS_MD_CAN_MD5
+depends_on:PSA_WANT_ALG_MD5
 ssl_cf_hmac:MBEDTLS_MD_MD5
 
 Constant-flow HMAC: SHA1

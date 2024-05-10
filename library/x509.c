@@ -129,7 +129,7 @@ int mbedtls_x509_get_alg(unsigned char **p, const unsigned char *end,
 static inline const char *md_type_to_string(mbedtls_md_type_t md_alg)
 {
     switch (md_alg) {
-#if defined(MBEDTLS_MD_CAN_MD5)
+#if defined(PSA_WANT_ALG_MD5)
         case MBEDTLS_MD_MD5:
             return "MD5";
 #endif

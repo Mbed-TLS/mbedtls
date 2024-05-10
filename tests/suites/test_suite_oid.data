@@ -59,7 +59,7 @@ OID get x509 extension - wrong oid - id-ce
 oid_get_x509_extension:"551D":0
 
 OID hash id - id-md5
-depends_on:MBEDTLS_MD_CAN_MD5
+depends_on:PSA_WANT_ALG_MD5
 oid_get_md_alg_id:"2A864886f70d0205":MBEDTLS_MD_MD5
 
 OID hash id - id-sha1

@@ -6165,6 +6165,16 @@ component_check_test_helpers () {
     python3 -m unittest tests/scripts/translate_ciphers.py 2>&1
 }
 
+component_test_psasim() {
+    msg "build psasim"
+    make -C tests/psa-client-server/psasim
+
+    msg "test psasim"
+    make -C tests/psa-client-server/psasim run
+
+    msg "clean psasim"
+    make -C tests/psa-client-server/psasim clean
+}
 
 ################################################################
 #### Termination

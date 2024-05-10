@@ -992,7 +992,7 @@ source "$test_script_dir/components-build-system.sh"
 source "$test_script_dir/components-configuration.sh"
 source "$test_script_dir/components-basic-checks.sh"
 source "$test_script_dir/components-sanitizers.sh"
-source "$test_script_dir/components-complicance.sh"
+source "$test_script_dir/components-compliance.sh"
 
 ################################################################
 #### Termination

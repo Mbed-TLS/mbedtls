@@ -21,7 +21,7 @@ import sys
 import typing
 from enum import Enum
 
-import framework_path # pylint: disable=unused-import
+import framework_scripts_path # pylint: disable=unused-import
 from mbedtls_framework import build_tree
 from mbedtls_framework import logging_util
 from mbedtls_framework import typing_util

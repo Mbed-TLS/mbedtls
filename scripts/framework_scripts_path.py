@@ -2,7 +2,7 @@
 
 Usage:
 
-    import framework_path # pylint: disable=unused-import
+    import framework_scripts_path # pylint: disable=unused-import
 """
 
 # Copyright The Mbed TLS Contributors

@@ -1,7 +1,7 @@
 CFLAGS += -Wall -Werror -std=c99 -D_XOPEN_SOURCE=1 -D_POSIX_C_SOURCE=200809L
 
 ifeq ($(DEBUG),1)
-	CFLAGS += -DDEBUG
+CFLAGS += -DDEBUG -O0 -g
 endif
 
 LIBPSACLIENT := -Llibpsaclient/ -lmbedcrypto -lmbedx509 -lmbedtls

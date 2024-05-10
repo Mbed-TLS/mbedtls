@@ -948,6 +948,7 @@ helper_libtestdriver1_make_main() {
 # $1: target which can be "client" or "server"
 helper_crypto_client_build() {
     TARGET=$1
+    shift
     TARGET_LIB=libpsa$TARGET
 
     cp $CONFIG_H $CONFIG_H.bak
@@ -977,7 +978,7 @@ helper_crypto_client_build() {
         scripts/config.py unset MBEDTLS_PLATFORM_NV_SEED_ALT
     fi
 
-    make -C tests/psa-client-server/psasim/ CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS" $TARGET_LIB
+    make -C tests/psa-client-server/psasim/ CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS" $TARGET_LIB $@
 
     rm $CONFIG_H
     mv $CONFIG_H.bak $CONFIG_H

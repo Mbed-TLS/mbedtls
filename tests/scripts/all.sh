@@ -969,7 +969,7 @@ helper_crypto_client_build() {
         scripts/config.py crypto_full
         scripts/config.py unset MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS
         scripts/config.py set MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER
-        scripts/config.py set MBEDTLS_PSA_CRYPTO_SPM
+        # scripts/config.py set MBEDTLS_PSA_CRYPTO_SPM
         # Disable NV_SEED as the MBEDTLS_PLATFORM_STD_NV_SEED_FILE is not in
         # right path for mbedtls_platform_std_nv_seed_read(). Just rely on
         # mbedtls_platform_entropy_poll() as entropy source().
@@ -977,7 +977,7 @@ helper_crypto_client_build() {
         scripts/config.py unset MBEDTLS_PLATFORM_NV_SEED_ALT
     fi
 
-    make -C tests CC="$ASAN_CC" CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS" $TARGET_LIB
+    make -C tests/psa-client-server/psasim/ CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS" $TARGET_LIB
 
     rm $CONFIG_H
     mv $CONFIG_H.bak $CONFIG_H

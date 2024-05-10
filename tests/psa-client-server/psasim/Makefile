@@ -4,16 +4,11 @@ ifeq ($(DEBUG),1)
 	CFLAGS += -DDEBUG
 endif
 
-LIBPSACLIENT_PATH := ../../libpsaclient
-LIBPSASERVER_PATH := ../../libpsaserver
+LIBPSACLIENT := -Llibpsaclient/ -lmbedcrypto -lmbedx509 -lmbedtls
+LIBPSASERVER := -Llibpsaserver/ -lmbedcrypto
 
-LIBPSACLIENT := -L$(LIBPSACLIENT_PATH)/library -lmbedcrypto -lmbedx509 -lmbedtls
-LIBPSASERVER := -L$(LIBPSASERVER_PATH)/library -lmbedcrypto
-
-LIBPSACLIENT_H := -I$(LIBPSACLIENT_PATH)/include
-LIBPSASERVER_H := -I$(LIBPSASERVER_PATH)/include
-
-COMMON_INCLUDE := -I./include
+MBEDTLS_ROOT_PATH = ../../..
+COMMON_INCLUDE := -I./include -I$(MBEDTLS_ROOT_PATH)/include
 
 TEST_BIN = 	test/psa_client \
 			test/psa_partition
@@ -30,22 +25,34 @@ PARTITION_SERVER_BOOTSTRAP = src/psa_ff_bootstrap_TEST_PARTITION.c
 PSA_SERVER_SRC = $(PARTITION_SERVER_BOOTSTRAP) \
 				 src/psa_ff_server.c
 
-.PHONY: all clean
+.PHONY: all clean libpsaclient libpsaserver
 
 all: $(TEST_BIN)
 
 test/psa_client: $(PSA_CLIENT_SRC) $(GENERATED_H_FILES)
-	$(CC) $(COMMON_INCLUDE) $(LIBPSACLIENT_H) $(CFLAGS) $(PSA_CLIENT_SRC) $(LIBPSACLIENT) $(LDFLAGS) -o $@
+	$(CC) $(COMMON_INCLUDE) $(CFLAGS) $(PSA_CLIENT_SRC) $(LIBPSACLIENT) $(LDFLAGS) -o $@
 
 test/psa_partition: $(PSA_SERVER_SRC) $(GENERATED_H_FILES)
-	$(CC) $(COMMON_INCLUDE) $(LIBPSASERVER_H) $(CFLAGS) $(PSA_SERVER_SRC) $(LIBPSASERVER) $(LDFLAGS) -o $@
+	$(CC) $(COMMON_INCLUDE) $(CFLAGS) $(PSA_SERVER_SRC) $(LIBPSASERVER) $(LDFLAGS) -o $@
 
 $(PARTITION_SERVER_BOOTSTRAP) $(GENERATED_H_FILES): src/manifest.json src/server.c
 	tools/psa_autogen.py src/manifest.json
 
+# Build MbedTLS libraries (crypto, x509 and tls) and copy them locally to
+# build client/server applications.
+#
+# Note: these rules assume that mbedtls_config.h is already configured by all.sh.
+# If not using all.sh then the user must do it manually.
+libpsaclient libpsaserver:
+	$(MAKE) -C $(MBEDTLS_ROOT_PATH)/library CFLAGS="$(CFLAGS)" LDFLAGS="$(LDFLAGS)" libmbedcrypto.a libmbedx509.a libmbedtls.a
+	mkdir -p $@
+	cp $(MBEDTLS_ROOT_PATH)/library/libmbed*.a $@/
+	$(MAKE) -C $(MBEDTLS_ROOT_PATH) clean
+
 clean:
 	rm -f $(TEST_BIN)
 	rm -f $(PARTITION_SERVER_BOOTSTRAP)
+	rm -rf libpsaclient libpsaserver
 	rm -rf include/psa_manifest
 	rm -f test/psa_service_* test/psa_notify_*
 

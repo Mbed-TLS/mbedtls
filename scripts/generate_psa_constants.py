@@ -17,7 +17,7 @@ file is written:
 import os
 import sys
 
-import framework_path # pylint: disable=unused-import
+import framework_scripts_path # pylint: disable=unused-import
 from mbedtls_framework import build_tree
 from mbedtls_framework import macro_collector
 

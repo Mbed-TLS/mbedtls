@@ -316,6 +316,34 @@ if(ENABLE_TESTING OR ENABLE_PROGRAMS)
          ${CMAKE_CURRENT_SOURCE_DIR}/tests/src/drivers/*.c)
     add_library(mbedtls_test OBJECT ${MBEDTLS_TEST_FILES})
     if(GEN_FILES)
+        add_custom_command(
+            OUTPUT
+                ${CMAKE_CURRENT_SOURCE_DIR}/tests/src/test_keys.h
+            WORKING_DIRECTORY
+                ${CMAKE_CURRENT_SOURCE_DIR}/tests
+            COMMAND
+                "${MBEDTLS_PYTHON_EXECUTABLE}"
+                "${CMAKE_CURRENT_SOURCE_DIR}/tests/scripts/generate_test_keys.py"
+                "--output"
+                "${CMAKE_CURRENT_SOURCE_DIR}/tests/src/test_keys.h"
+            DEPENDS
+                ${CMAKE_CURRENT_SOURCE_DIR}/tests/scripts/generate_test_keys.py
+        )
+        add_custom_target(test_keys_header DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/tests/src/test_keys.h)
+        add_custom_command(
+            OUTPUT
+                ${CMAKE_CURRENT_SOURCE_DIR}/tests/src/test_certs.h
+            WORKING_DIRECTORY
+                ${CMAKE_CURRENT_SOURCE_DIR}/tests
+            COMMAND
+                "${MBEDTLS_PYTHON_EXECUTABLE}"
+                "${CMAKE_CURRENT_SOURCE_DIR}/tests/scripts/generate_test_cert_macros.py"
+                "--output"
+                "${CMAKE_CURRENT_SOURCE_DIR}/tests/src/test_certs.h"
+            DEPENDS
+                ${CMAKE_CURRENT_SOURCE_DIR}/tests/scripts/generate_test_cert_macros.py
+        )
+        add_custom_target(test_certs_header DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/tests/src/test_certs.h)
         add_dependencies(mbedtls_test test_keys_header test_certs_header)
     endif()
     target_include_directories(mbedtls_test

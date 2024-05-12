@@ -3,6 +3,8 @@
 @rem Requirements:
 @rem * Perl must be on the PATH ("perl" command).
 @rem * Python 3.8 or above must be on the PATH ("python" command).
+@rem * Either a C compiler called "cc" must be on the PATH, or
+@rem   the "CC" environment variable must point to a C compiler.
 
 @rem @@@@ library\** @@@@
 @rem psa_crypto_driver_wrappers.h needs to be generated prior to

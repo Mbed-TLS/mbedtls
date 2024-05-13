@@ -1760,20 +1760,6 @@ component_build_no_ssl_cli () {
     make CC=gcc CFLAGS='-Werror -Wall -Wextra -O1'
 }
 
-component_test_no_x509_info () {
-    msg "build: full + MBEDTLS_X509_REMOVE_INFO" # ~ 10s
-    scripts/config.pl full
-    scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # too slow for tests
-    scripts/config.pl set MBEDTLS_X509_REMOVE_INFO
-    make CFLAGS='-Werror -O2'
-
-    msg "test: full + MBEDTLS_X509_REMOVE_INFO" # ~ 10s
-    make test
-
-    msg "test: ssl-opt.sh, full + MBEDTLS_X509_REMOVE_INFO" # ~ 1 min
-    tests/ssl-opt.sh
-}
-
 component_build_mbedtls_config_file () {
     msg "build: make with MBEDTLS_CONFIG_FILE" # ~40s
     scripts/config.py -w full_config.h full

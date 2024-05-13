@@ -10207,7 +10207,7 @@ run_test    "DTLS client auth: none, client has no cert" \
 
 run_test    "DTLS wrong PSK: badmac alert" \
             "$P_SRV dtls=1 psk=73776f726466697368 force_ciphersuite=TLS-PSK-WITH-AES-128-GCM-SHA256" \
-            "$P_CLI dtls=1 psk=abc124" \
+            "$P_CLI dtls=1 psk=73776f726466697374" \
             1 \
             -s "SSL - Verification of the message MAC failed" \
             -c "SSL - A fatal alert message was received from our peer"
@@ -14123,8 +14123,8 @@ requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: no HRR in case of PSK key exchange mode" \
-            "$P_SRV nbio=2 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk groups=none" \
-            "$P_CLI nbio=2 debug_level=3 psk=010203 psk_identity=0a0b0c tls13_kex_modes=all" \
+            "$P_SRV nbio=2 psk=73776f726466697368 psk_identity=0a0b0c tls13_kex_modes=psk groups=none" \
+            "$P_CLI nbio=2 debug_level=3 psk=73776f726466697368 psk_identity=0a0b0c tls13_kex_modes=all" \
             0 \
             -C "received HelloRetryRequest message" \
             -c "Selected key exchange mode: psk$" \

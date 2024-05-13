@@ -8470,7 +8470,7 @@ run_test    "DTLS client auth: none, client has no cert" \
 
 run_test    "DTLS wrong PSK: badmac alert" \
             "$P_SRV dtls=1 psk=73776f726466697368 force_ciphersuite=TLS-PSK-WITH-AES-128-GCM-SHA256" \
-            "$P_CLI dtls=1 psk=abc124" \
+            "$P_CLI dtls=1 psk=73776f726466697374" \
             1 \
             -s "SSL - Verification of the message MAC failed" \
             -c "SSL - A fatal alert message was received from our peer"

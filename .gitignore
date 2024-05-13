@@ -67,3 +67,6 @@ massif-*
 compile_commands.json
 # clangd index files
 /.cache/clangd/index/
+
+# VScode folder to store local debug files and configurations
+.vscode

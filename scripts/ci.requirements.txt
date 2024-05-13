@@ -13,7 +13,10 @@ mypy >= 0.971
 # tests/scripts/audit-validity-dates.py needs cryptography >= 35.0.0.
 # To reduce future version churn, require the last version that supports
 # Python 3.6.
-cryptography >= 40.0.2
+# Only require cryptography on systems where pre-built wheels are
+# available (at least for x86_64), because building locally requires
+# a Rust compiler and we want to avoid that dependency.
+cryptography >= 40.0.2; platform_system == "Linux" or platform_system == "Windows" or platform_system == "Darwin"
 types-cryptography
 
 # For building `tests/data_files/server9-bad-saltlen.crt` and check python

@@ -2732,7 +2732,6 @@ run_test    "Context-specific CRT verification callback" \
 
 # Tests for SHA-1 support
 requires_hash_alg SHA_1
-requires_config_enabled MBEDTLS_RSA_C
 run_test    "SHA-1 forbidden by default in server certificate" \
             "$P_SRV key_file=data_files/server2.key crt_file=data_files/server2.crt" \
             "$P_CLI debug_level=2 force_version=tls12 allow_sha1=0" \

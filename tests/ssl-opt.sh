@@ -1963,7 +1963,6 @@ run_test    "CertificateRequest with empty CA list, TLS 1.0 (GnuTLS server)" \
 # Tests for SHA-1 support
 
 requires_config_enabled MBEDTLS_SHA1_C
-requires_config_enabled MBEDTLS_RSA_C
 run_test    "SHA-1 forbidden by default in server certificate" \
             "$P_SRV key_file=data_files/server2.key crt_file=data_files/server2.crt" \
             "$P_CLI debug_level=2 allow_sha1=0" \

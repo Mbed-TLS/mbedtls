@@ -6676,6 +6676,7 @@ run_test    "ClientHello without extensions: RSA" \
             -S "Ciphersuite is .*-EC.*" \
             -s "dumping 'client hello extensions' (0 bytes)"
 
+requires_config_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED
 requires_gnutls
 run_test    "ClientHello without extensions: PSK" \
             "$P_SRV debug_level=3 psk=73776f726466697368" \

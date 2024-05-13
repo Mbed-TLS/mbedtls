@@ -7837,7 +7837,7 @@ run_test    "keyUsage cli 1.3: KeyAgreement, ECDSA: fail" \
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "keyUsage cli-auth: RSA, DigitalSignature: OK" \
             "$P_SRV debug_level=1 auth_mode=optional" \
-            "$O_CLI -key data_files/server2.key \
+            "$O_CLI -tls1_2 -key data_files/server2.key \
              -cert data_files/server2.ku-ds.crt" \
             0 \
             -s "Verifying peer X.509 certificate... ok" \
@@ -7847,7 +7847,7 @@ run_test    "keyUsage cli-auth: RSA, DigitalSignature: OK" \
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "keyUsage cli-auth: RSA, KeyEncipherment: fail (soft)" \
             "$P_SRV debug_level=1 auth_mode=optional" \
-            "$O_CLI -key data_files/server2.key \
+            "$O_CLI -tls1_2 -key data_files/server2.key \
              -cert data_files/server2.ku-ke.crt" \
             0 \
             -s "bad certificate (usage extensions)" \
@@ -7856,7 +7856,7 @@ run_test    "keyUsage cli-auth: RSA, KeyEncipherment: fail (soft)" \
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "keyUsage cli-auth: RSA, KeyEncipherment: fail (hard)" \
             "$P_SRV debug_level=1 force_version=tls12 auth_mode=required" \
-            "$O_CLI -key data_files/server2.key \
+            "$O_CLI -tls1_2 -key data_files/server2.key \
              -cert data_files/server2.ku-ke.crt" \
             1 \
             -s "bad certificate (usage extensions)" \
@@ -7865,7 +7865,7 @@ run_test    "keyUsage cli-auth: RSA, KeyEncipherment: fail (hard)" \
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "keyUsage cli-auth: ECDSA, DigitalSignature: OK" \
             "$P_SRV debug_level=1 auth_mode=optional" \
-            "$O_CLI -key data_files/server5.key \
+            "$O_CLI -tls1_2 -key data_files/server5.key \
              -cert data_files/server5.ku-ds.crt" \
             0 \
             -s "Verifying peer X.509 certificate... ok" \
@@ -7875,7 +7875,7 @@ run_test    "keyUsage cli-auth: ECDSA, DigitalSignature: OK" \
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "keyUsage cli-auth: ECDSA, KeyAgreement: fail (soft)" \
             "$P_SRV debug_level=1 auth_mode=optional" \
-            "$O_CLI -key data_files/server5.key \
+            "$O_CLI -tls1_2 -key data_files/server5.key \
              -cert data_files/server5.ku-ka.crt" \
             0 \
             -s "bad certificate (usage extensions)" \
@@ -8052,7 +8052,7 @@ run_test    "extKeyUsage cli 1.3: codeSign -> fail" \
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "extKeyUsage cli-auth: clientAuth -> OK" \
             "$P_SRV debug_level=1 auth_mode=optional" \
-            "$O_CLI -key data_files/server5.key \
+            "$O_CLI -tls1_2 -key data_files/server5.key \
              -cert data_files/server5.eku-cli.crt" \
             0 \
             -S "bad certificate (usage extensions)" \
@@ -8061,7 +8061,7 @@ run_test    "extKeyUsage cli-auth: clientAuth -> OK" \
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "extKeyUsage cli-auth: serverAuth,clientAuth -> OK" \
             "$P_SRV debug_level=1 auth_mode=optional" \
-            "$O_CLI -key data_files/server5.key \
+            "$O_CLI -tls1_2 -key data_files/server5.key \
              -cert data_files/server5.eku-srv_cli.crt" \
             0 \
             -S "bad certificate (usage extensions)" \
@@ -8070,7 +8070,7 @@ run_test    "extKeyUsage cli-auth: serverAuth,clientAuth -> OK" \
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "extKeyUsage cli-auth: codeSign,anyEKU -> OK" \
             "$P_SRV debug_level=1 auth_mode=optional" \
-            "$O_CLI -key data_files/server5.key \
+            "$O_CLI -tls1_2 -key data_files/server5.key \
              -cert data_files/server5.eku-cs_any.crt" \
             0 \
             -S "bad certificate (usage extensions)" \
@@ -8079,7 +8079,7 @@ run_test    "extKeyUsage cli-auth: codeSign,anyEKU -> OK" \
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "extKeyUsage cli-auth: codeSign -> fail (soft)" \
             "$P_SRV debug_level=1 auth_mode=optional" \
-            "$O_CLI -key data_files/server5.key \
+            "$O_CLI -tls1_2 -key data_files/server5.key \
              -cert data_files/server5.eku-cs.crt" \
             0 \
             -s "bad certificate (usage extensions)" \
@@ -8087,8 +8087,8 @@ run_test    "extKeyUsage cli-auth: codeSign -> fail (soft)" \
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "extKeyUsage cli-auth: codeSign -> fail (hard)" \
-            "$P_SRV debug_level=1 force_version=tls12 auth_mode=required" \
-            "$O_CLI -key data_files/server5.key \
+            "$P_SRV debug_level=1 auth_mode=required" \
+            "$O_CLI -tls1_2 -key data_files/server5.key \
              -cert data_files/server5.eku-cs.crt" \
             1 \
             -s "bad certificate (usage extensions)" \

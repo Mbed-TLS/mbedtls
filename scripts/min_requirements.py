@@ -119,6 +119,9 @@ def main() -> None:
     reqs = Requirements()
     for filename in options.files:
         reqs.add_file(filename)
+    sys.stdout.write('Python {} = {}\n'.format(sys.version, sys.executable))
+    sys.stdout.flush() # flush internal output before subprocess output
+    subprocess.check_call([sys.executable, '-m', 'pip', '--version'])
     reqs.write(sys.stdout)
     if not options.no_act:
         reqs.install(pip_general_options=options.pip_general_options,

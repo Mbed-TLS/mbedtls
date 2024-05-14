@@ -9,6 +9,40 @@
 #### Configuration Testing - TLS
 ################################################################
 
+component_build_no_ssl_srv () {
+    msg "build: full config except SSL server, make, gcc" # ~ 30s
+    scripts/config.py full
+    scripts/config.py unset MBEDTLS_SSL_SRV_C
+    make CC=gcc CFLAGS='-Werror -Wall -Wextra -O1'
+}
+
+component_build_no_ssl_cli () {
+    msg "build: full config except SSL client, make, gcc" # ~ 30s
+    scripts/config.py full
+    scripts/config.py unset MBEDTLS_SSL_CLI_C
+    make CC=gcc CFLAGS='-Werror -Wall -Wextra -O1'
+}
+
+component_test_asan_remove_peer_certificate () {
+    msg "build: default config with MBEDTLS_SSL_KEEP_PEER_CERTIFICATE disabled (ASan build)"
+    scripts/config.py unset MBEDTLS_SSL_KEEP_PEER_CERTIFICATE
+    scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1_3
+    CC=$ASAN_CC cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    make
+
+    msg "test: !MBEDTLS_SSL_KEEP_PEER_CERTIFICATE"
+    make test
+
+    msg "test: ssl-opt.sh, !MBEDTLS_SSL_KEEP_PEER_CERTIFICATE"
+    tests/ssl-opt.sh
+
+    msg "test: compat.sh, !MBEDTLS_SSL_KEEP_PEER_CERTIFICATE"
+    tests/compat.sh
+
+    msg "test: context-info.sh, !MBEDTLS_SSL_KEEP_PEER_CERTIFICATE"
+    tests/context-info.sh
+}
+
 component_test_no_renegotiation () {
     msg "build: Default + !MBEDTLS_SSL_RENEGOTIATION (ASan build)" # ~ 6 min
     scripts/config.py unset MBEDTLS_SSL_RENEGOTIATION

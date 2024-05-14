@@ -310,20 +310,6 @@ component_test_no_psa_crypto_full_cmake_asan() {
     env OPENSSL="$OPENSSL_NEXT" tests/compat.sh -e '^$' -f 'ARIA\|CHACHA'
 }
 
-component_build_no_ssl_srv () {
-    msg "build: full config except SSL server, make, gcc" # ~ 30s
-    scripts/config.py full
-    scripts/config.py unset MBEDTLS_SSL_SRV_C
-    make CC=gcc CFLAGS='-Werror -Wall -Wextra -O1'
-}
-
-component_build_no_ssl_cli () {
-    msg "build: full config except SSL client, make, gcc" # ~ 30s
-    scripts/config.py full
-    scripts/config.py unset MBEDTLS_SSL_CLI_C
-    make CC=gcc CFLAGS='-Werror -Wall -Wextra -O1'
-}
-
 component_build_mbedtls_config_file () {
     msg "build: make with MBEDTLS_CONFIG_FILE" # ~40s
     scripts/config.py -w full_config.h full
@@ -351,24 +337,4 @@ component_test_min_mpi_window_size () {
 
     msg "test: MBEDTLS_MPI_WINDOW_SIZE=1 - main suites (inc. selftests) (ASan build)" # ~ 10s
     make test
-}
-
-component_test_asan_remove_peer_certificate () {
-    msg "build: default config with MBEDTLS_SSL_KEEP_PEER_CERTIFICATE disabled (ASan build)"
-    scripts/config.py unset MBEDTLS_SSL_KEEP_PEER_CERTIFICATE
-    scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1_3
-    CC=$ASAN_CC cmake -D CMAKE_BUILD_TYPE:String=Asan .
-    make
-
-    msg "test: !MBEDTLS_SSL_KEEP_PEER_CERTIFICATE"
-    make test
-
-    msg "test: ssl-opt.sh, !MBEDTLS_SSL_KEEP_PEER_CERTIFICATE"
-    tests/ssl-opt.sh
-
-    msg "test: compat.sh, !MBEDTLS_SSL_KEEP_PEER_CERTIFICATE"
-    tests/compat.sh
-
-    msg "test: context-info.sh, !MBEDTLS_SSL_KEEP_PEER_CERTIFICATE"
-    tests/context-info.sh
 }

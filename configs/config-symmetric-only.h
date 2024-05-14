@@ -10,7 +10,9 @@
 
 #define MBEDTLS_PSA_CRYPTO_CONFIG_FILE "../configs/crypto-config-symmetric-only.h"
 
+#define MBEDTLS_PSA_CRYPTO_C
 #define MBEDTLS_PSA_CRYPTO_CONFIG
+#define MBEDTLS_USE_PSA_CRYPTO
 
 /* System support */
 //#define MBEDTLS_HAVE_ASM
@@ -22,7 +24,6 @@
 #define MBEDTLS_FS_IO
 #define MBEDTLS_ENTROPY_NV_SEED
 #define MBEDTLS_SELF_TEST
-#define MBEDTLS_USE_PSA_CRYPTO
 #define MBEDTLS_VERSION_FEATURES
 
 /* Mbed TLS modules */
@@ -42,7 +43,6 @@
 #define MBEDTLS_PKCS5_C
 #define MBEDTLS_PKCS12_C
 #define MBEDTLS_PLATFORM_C
-#define MBEDTLS_PSA_CRYPTO_C
 #define MBEDTLS_PSA_CRYPTO_SE_C
 #define MBEDTLS_PSA_CRYPTO_STORAGE_C
 #define MBEDTLS_PSA_ITS_FILE_C

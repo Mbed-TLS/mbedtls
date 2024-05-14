@@ -23,7 +23,9 @@
 
 #define MBEDTLS_PSA_CRYPTO_CONFIG_FILE "../configs/crypto-config-thread.h"
 
+#define MBEDTLS_PSA_CRYPTO_C
 #define MBEDTLS_PSA_CRYPTO_CONFIG
+#define MBEDTLS_USE_PSA_CRYPTO
 
 /* System support */
 #define MBEDTLS_HAVE_ASM
@@ -66,8 +68,3 @@
 
 /* Save ROM and a few bytes of RAM by specifying our own ciphersuite list */
 #define MBEDTLS_SSL_CIPHERSUITES MBEDTLS_TLS_ECJPAKE_WITH_AES_128_CCM_8
-
-/* These defines are present so that the config modifying scripts can enable
- * them during tests/scripts/test-ref-configs.pl */
-//#define MBEDTLS_USE_PSA_CRYPTO
-//#define MBEDTLS_PSA_CRYPTO_C

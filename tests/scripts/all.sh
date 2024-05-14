@@ -1868,7 +1868,7 @@ component_test_full_no_bignum () {
     make test
 }
 
-component_test_tls1_2_default_stream_cipher_only_use_psa () {
+component_test_tls1_2_default_stream_cipher_only () {
     msg "build: default with only stream cipher use psa"
 
     scripts/config.py set MBEDTLS_USE_PSA_CRYPTO
@@ -1905,7 +1905,7 @@ component_test_tls1_2_default_stream_cipher_only_use_psa () {
     # Not running ssl-opt.sh because most tests require a non-NULL ciphersuite.
 }
 
-component_test_tls1_2_deafult_cbc_legacy_cipher_only_use_psa () {
+component_test_tls1_2_deafult_cbc_legacy_cipher_only () {
     msg "build: default with only CBC-legacy cipher use psa"
 
     scripts/config.py set MBEDTLS_USE_PSA_CRYPTO
@@ -1943,7 +1943,7 @@ component_test_tls1_2_deafult_cbc_legacy_cipher_only_use_psa () {
     tests/ssl-opt.sh -f "TLS 1.2"
 }
 
-component_test_tls1_2_default_cbc_legacy_cbc_etm_cipher_only_use_psa () {
+component_test_tls1_2_default_cbc_legacy_cbc_etm_cipher_only () {
     msg "build: default with only CBC-legacy and CBC-EtM ciphers use psa"
 
     scripts/config.py set MBEDTLS_USE_PSA_CRYPTO

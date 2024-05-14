@@ -33,6 +33,7 @@
 #define PSA_WANT_ALG_SHA_384                     1
 #define PSA_WANT_ALG_SHA_512                     1
 #define PSA_WANT_ECC_SECP_R1_256                 1
+#define PSA_WANT_ECC_SECP_R1_384                 1
 #define PSA_WANT_ALG_TLS12_PRF                   1
 
 #define PSA_WANT_KEY_TYPE_AES                    1

@@ -17,11 +17,11 @@ use strict;
 
 my %configs = (
     'config-ccm-psk-tls1_2.h' => {
-        'compat' => '-m tls12 -f \'^TLS-PSK-WITH-AES-...-CCM-8\'',
+        'compat' => '-m tls12 -f \'^TLS_PSK_WITH_AES_..._CCM_8\'',
         'test_again_with_use_psa' => 1
     },
     'config-ccm-psk-dtls1_2.h' => {
-        'compat' => '-m dtls12 -f \'^TLS-PSK-WITH-AES-...-CCM-8\'',
+        'compat' => '-m dtls12 -f \'^TLS_PSK_WITH_AES_..._CCM_8\'',
         'opt' => ' ',
         'opt_needs_debug' => 1,
         'test_again_with_use_psa' => 1
@@ -29,7 +29,7 @@ my %configs = (
     'config-no-entropy.h' => {
     },
     'config-suite-b.h' => {
-        'compat' => "-m tls12 -f 'ECDHE-ECDSA.*AES.*GCM' -p mbedTLS",
+        'compat' => "-m tls12 -f 'ECDHE_ECDSA.*AES.*GCM' -p mbedTLS",
         'test_again_with_use_psa' => 1,
         'opt' => ' ',
         'opt_needs_debug' => 1,

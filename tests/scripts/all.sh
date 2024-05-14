@@ -951,8 +951,6 @@ helper_crypto_client_build() {
     shift
     TARGET_LIB=libpsa$TARGET
 
-    cp $CONFIG_H $CONFIG_H.bak
-
     if [ "$TARGET" == "client" ]; then
         scripts/config.py full
         scripts/config.py unset MBEDTLS_PSA_CRYPTO_C
@@ -978,10 +976,12 @@ helper_crypto_client_build() {
         scripts/config.py unset MBEDTLS_PLATFORM_NV_SEED_ALT
     fi
 
-    make -C tests/psa-client-server/psasim/ CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS" $TARGET_LIB $@
+    make -C tests/psa-client-server/psasim/ CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS" $TARGET_LIB "$@"
 
-    rm $CONFIG_H
-    mv $CONFIG_H.bak $CONFIG_H
+    # cleanup() will restore some backed-up files which include $CONFIG_H and
+    # $CRYPTO_CONFIG_H. Built libraries were already copied to psasim at this
+    # point.
+    cleanup
 }
 
 ################################################################

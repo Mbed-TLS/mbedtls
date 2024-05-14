@@ -29,10 +29,13 @@ PSA_SERVER_SRC = $(PARTITION_SERVER_BOOTSTRAP) \
 
 all: $(TEST_BIN)
 
+test/seedfile:
+	dd if=/dev/urandom of=./test/seedfile bs=64 count=1
+
 test/psa_client: $(PSA_CLIENT_SRC) $(GENERATED_H_FILES)
 	$(CC) $(COMMON_INCLUDE) $(CFLAGS) $(PSA_CLIENT_SRC) $(LIBPSACLIENT) $(LDFLAGS) -o $@
 
-test/psa_partition: $(PSA_SERVER_SRC) $(GENERATED_H_FILES)
+test/psa_partition: $(PSA_SERVER_SRC) $(GENERATED_H_FILES) test/seedfile
 	$(CC) $(COMMON_INCLUDE) $(CFLAGS) $(PSA_SERVER_SRC) $(LIBPSASERVER) $(LDFLAGS) -o $@
 
 $(PARTITION_SERVER_BOOTSTRAP) $(GENERATED_H_FILES): src/manifest.json src/server.c
@@ -56,4 +59,5 @@ clean:
 	rm -rf include/psa_manifest
 	rm -f test/psa_service_* test/psa_notify_*
 	rm -r test/*.log
+	rm test/seedfile
 

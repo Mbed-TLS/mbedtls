@@ -328,13 +328,3 @@ component_build_mbedtls_config_file () {
 
     rm -f user_config.h full_config.h
 }
-
-component_test_min_mpi_window_size () {
-    msg "build: Default + MBEDTLS_MPI_WINDOW_SIZE=1 (ASan build)" # ~ 10s
-    scripts/config.py set MBEDTLS_MPI_WINDOW_SIZE 1
-    CC=$ASAN_CC cmake -D CMAKE_BUILD_TYPE:String=Asan .
-    make
-
-    msg "test: MBEDTLS_MPI_WINDOW_SIZE=1 - main suites (inc. selftests) (ASan build)" # ~ 10s
-    make test
-}

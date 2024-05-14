@@ -2857,3 +2857,13 @@ component_test_ccm_aes_sha256() {
     msg "test: CCM + AES + SHA256 configuration"
     make test
 }
+
+component_test_min_mpi_window_size () {
+    msg "build: Default + MBEDTLS_MPI_WINDOW_SIZE=1 (ASan build)" # ~ 10s
+    scripts/config.py set MBEDTLS_MPI_WINDOW_SIZE 1
+    CC=$ASAN_CC cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    make
+
+    msg "test: MBEDTLS_MPI_WINDOW_SIZE=1 - main suites (inc. selftests) (ASan build)" # ~ 10s
+    make test
+}

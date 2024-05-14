@@ -67,7 +67,6 @@ static int handle_is_valid(psa_handle_t handle)
 
 static int get_queue_info(char *path, int *cqid, int *sqid)
 {
-
     key_t server_queue_key;
     int rx_qid, server_qid;
 
@@ -97,7 +96,6 @@ static int get_queue_info(char *path, int *cqid, int *sqid)
 static psa_status_t process_response(int rx_qid, vectors_t *vecs, int type,
                                      int *internal_server_qid)
 {
-
     struct message response, request;
     psa_status_t ret = PSA_ERROR_CONNECTION_REFUSED;
     size_t invec_seek[4] = { 0 };
@@ -111,13 +109,13 @@ static psa_status_t process_response(int rx_qid, vectors_t *vecs, int type,
         invec = 0;
         outvec = 0;
 
-        // read response from server
+        /* read response from server */
         if (msgrcv(rx_qid, &response, sizeof(struct message_text), 0, 0) == -1) {
             ERROR("   msgrcv failed");
             return ret;
         }
 
-        // process return message from server
+        /* process return message from server */
         switch (response.message_type) {
             case PSA_REPLY:
                 memcpy(&ret, response.message_text.buf, sizeof(psa_status_t));
@@ -209,66 +207,64 @@ static psa_status_t process_response(int rx_qid, vectors_t *vecs, int type,
 static psa_status_t send(int rx_qid, int server_qid, int *internal_server_qid,
                          int32_t type, uint32_t minor_version, vectors_t *vecs)
 {
-    {
-        psa_status_t ret = PSA_ERROR_CONNECTION_REFUSED;
-        size_t request_msg_size = (sizeof(int) + sizeof(long)); /* msg type plus queue id */
-        struct message request;
-        request.message_type = 1; /* TODO: change this */
-        request.message_text.psa_type = type;
-        vector_sizes_t vec_sizes;
+    psa_status_t ret = PSA_ERROR_CONNECTION_REFUSED;
+    size_t request_msg_size = (sizeof(int) + sizeof(long)); /* msg type plus queue id */
+    struct message request;
+    request.message_type = 1; /* TODO: change this */
+    request.message_text.psa_type = type;
+    vector_sizes_t vec_sizes;
 
-        /* If the client is non-secure then set the NS bit */
-        if (__psa_ff_client_security_state != 0) {
-            request.message_type |= NON_SECURE;
-        }
-
-        assert(request.message_type >= 0);
-
-        INFO("SEND: Sending message of type %ld with psa_type %d", request.message_type, type);
-        INFO("     internal_server_qid = %i", *internal_server_qid);
-
-        request.message_text.qid = rx_qid;
-
-        if (type == PSA_IPC_CONNECT) {
-            memcpy(request.message_text.buf, &minor_version, sizeof(minor_version));
-            request_msg_size = request_msg_size + sizeof(minor_version);
-            INFO("   Request msg size is %lu", request_msg_size);
-        } else {
-            assert(internal_server_qid > 0);
-        }
-
-        if (vecs != NULL && type >= PSA_IPC_CALL) {
-
-            memset(&vec_sizes, 0, sizeof(vec_sizes));
-
-            /* Copy invec sizes */
-            for (size_t i = 0; i < (vecs->in_len); i++) {
-                vec_sizes.invec_sizes[i] = vecs->in_vec[i].len;
-                INFO("   Client sending vector %lu: %lu", i, vec_sizes.invec_sizes[i]);
-            }
-
-            /* Copy outvec sizes */
-            for (size_t i = 0; i < (vecs->out_len); i++) {
-                vec_sizes.outvec_sizes[i] = vecs->out_vec[i].len;
-
-                /* Reset to 0 since we need to eventually fill in with bytes written */
-                vecs->out_vec[i].len = 0;
-            }
-
-            memcpy(request.message_text.buf, &vec_sizes, sizeof(vec_sizes));
-            request_msg_size = request_msg_size + sizeof(vec_sizes);
-        }
-
-        INFO("   Sending and then waiting");
-
-        // send message to server
-        if (msgsnd(server_qid, &request, request_msg_size, 0) == -1) {
-            ERROR("   msgsnd failed");
-            return ret;
-        }
-
-        return process_response(rx_qid, vecs, type, internal_server_qid);
+    /* If the client is non-secure then set the NS bit */
+    if (__psa_ff_client_security_state != 0) {
+        request.message_type |= NON_SECURE;
     }
+
+    assert(request.message_type >= 0);
+
+    INFO("SEND: Sending message of type %ld with psa_type %d", request.message_type, type);
+    INFO("     internal_server_qid = %i", *internal_server_qid);
+
+    request.message_text.qid = rx_qid;
+
+    if (type == PSA_IPC_CONNECT) {
+        memcpy(request.message_text.buf, &minor_version, sizeof(minor_version));
+        request_msg_size = request_msg_size + sizeof(minor_version);
+        INFO("   Request msg size is %lu", request_msg_size);
+    } else {
+        assert(internal_server_qid > 0);
+    }
+
+    if (vecs != NULL && type >= PSA_IPC_CALL) {
+
+        memset(&vec_sizes, 0, sizeof(vec_sizes));
+
+        /* Copy invec sizes */
+        for (size_t i = 0; i < (vecs->in_len); i++) {
+            vec_sizes.invec_sizes[i] = vecs->in_vec[i].len;
+            INFO("   Client sending vector %lu: %lu", i, vec_sizes.invec_sizes[i]);
+        }
+
+        /* Copy outvec sizes */
+        for (size_t i = 0; i < (vecs->out_len); i++) {
+            vec_sizes.outvec_sizes[i] = vecs->out_vec[i].len;
+
+            /* Reset to 0 since we need to eventually fill in with bytes written */
+            vecs->out_vec[i].len = 0;
+        }
+
+        memcpy(request.message_text.buf, &vec_sizes, sizeof(vec_sizes));
+        request_msg_size = request_msg_size + sizeof(vec_sizes);
+    }
+
+    INFO("   Sending and then waiting");
+
+    /* send message to server */
+    if (msgsnd(server_qid, &request, request_msg_size, 0) == -1) {
+        ERROR("   msgsnd failed");
+        return ret;
+    }
+
+    return process_response(rx_qid, vecs, type, internal_server_qid);
 }
 
 
@@ -279,7 +275,6 @@ uint32_t psa_framework_version(void)
 
 psa_handle_t psa_connect(uint32_t sid, uint32_t minor_version)
 {
-
     int idx;
     psa_status_t ret;
     char pathname[PATHNAMESIZE] = { 0 };
@@ -355,7 +350,6 @@ psa_status_t psa_call(psa_handle_t handle,
                       psa_outvec *out_vec,
                       size_t out_len)
 {
-
     handle_is_valid(handle);
 
     if ((in_len + out_len) > PSA_MAX_IOVEC) {

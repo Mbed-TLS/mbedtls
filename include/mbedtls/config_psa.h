@@ -22,6 +22,8 @@
 
 #include "psa/crypto_adjust_config_synonyms.h"
 
+#include "psa/crypto_adjust_config_dependencies.h"
+
 #include "mbedtls/config_adjust_psa_superset_legacy.h"
 
 #if defined(MBEDTLS_PSA_CRYPTO_CONFIG)

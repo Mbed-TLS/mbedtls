@@ -18,7 +18,6 @@
  *
  * Possible improvements:
  * - if 128-bit security is enough, disable secp384r1 and SHA-512
- * - use embedded certs in DER format and disable PEM_PARSE_C and BASE64_C
  *
  * To be used in conjunction with configs/config-suite-b.h. */
 
@@ -28,7 +27,6 @@
 #define PSA_WANT_ALG_ECDH                        1
 #define PSA_WANT_ALG_ECDSA                       1
 #define PSA_WANT_ALG_GCM                         1
-#define PSA_WANT_ALG_HMAC                        1
 #define PSA_WANT_ALG_SHA_256                     1
 #define PSA_WANT_ALG_SHA_384                     1
 #define PSA_WANT_ALG_SHA_512                     1
@@ -40,5 +38,4 @@
 #define PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_BASIC     1
 #define PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_IMPORT    1
 #define PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_GENERATE  1
-#define PSA_WANT_KEY_TYPE_HMAC                   1
 #endif /* PSA_CRYPTO_CONFIG_H */

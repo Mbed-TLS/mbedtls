@@ -1818,7 +1818,7 @@ void pk_psa_sign(int psa_type, int bits, int rsa_padding)
     int ret;
 #endif /* MBEDTLS_RSA_C || MBEDTLS_PK_WRITE_C */
 #if defined(MBEDTLS_PK_CAN_ECDSA_SIGN)
-    mbedtls_ecp_group_id ecp_grp_id;
+    mbedtls_ecp_group_id ecp_grp_id = MBEDTLS_ECP_DP_NONE;
 #endif /* MBEDTLS_PK_CAN_ECDSA_SIGN */
 
     /*

@@ -58,6 +58,5 @@ clean:
 	rm -rf libpsaclient libpsaserver
 	rm -rf include/psa_manifest
 	rm -f test/psa_service_* test/psa_notify_*
-	rm -r test/*.log
-	rm test/seedfile
-
+	rm -f test/*.log
+	rm -f test/seedfile

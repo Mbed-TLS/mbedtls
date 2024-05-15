@@ -18,31 +18,25 @@ use strict;
 my %configs = (
     'config-ccm-psk-tls1_2.h' => {
         'compat' => '-m tls12 -f \'^TLS_PSK_WITH_AES_..._CCM_8\'',
-        'test_again_with_use_psa' => 1
     },
     'config-ccm-psk-dtls1_2.h' => {
         'compat' => '-m dtls12 -f \'^TLS_PSK_WITH_AES_..._CCM_8\'',
         'opt' => ' ',
         'opt_needs_debug' => 1,
-        'test_again_with_use_psa' => 1
     },
     'config-no-entropy.h' => {
     },
     'config-suite-b.h' => {
         'compat' => "-m tls12 -f 'ECDHE_ECDSA.*AES.*GCM' -p mbedTLS",
-        'test_again_with_use_psa' => 1,
         'opt' => ' ',
         'opt_needs_debug' => 1,
     },
     'config-symmetric-only.h' => {
-        'test_again_with_use_psa' => 0, # Uses PSA by default, no need to test it twice
     },
     'config-tfm.h' => {
-        'test_again_with_use_psa' => 0, # Uses PSA by default, no need to test it twice
     },
     'config-thread.h' => {
         'opt' => '-f ECJPAKE.*nolog',
-        'test_again_with_use_psa' => 1,
     },
 );
 
@@ -148,7 +142,17 @@ sub perform_test {
 }
 
 foreach my $conf ( @configs_to_test ) {
-    my $test_with_psa = $configs{$conf}{'test_again_with_use_psa'};
+    my $test_with_psa = 0;
+
+    open(CONFIG_FILE, "<", "configs/$conf") or die "Opening config file '$conf': $!";
+    while (my $line = <CONFIG_FILE>) {
+        if ($line =~ /^\/\/#define MBEDTLS_USE_PSA_CRYPTO/) {
+            $test_with_psa = 1;
+            last;
+        }
+    }
+    close(CONFIG_FILE);
+
     if ( $test_with_psa )
     {
         perform_test( $conf, $configs{$conf}, $test_with_psa );

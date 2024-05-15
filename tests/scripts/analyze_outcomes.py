@@ -468,6 +468,12 @@ KNOWN_TASKS = {
                 'bignum.generated', 'bignum.misc',
             ],
             'ignored_tests': {
+                'ssl-opt': [
+                    # DHE support in TLS 1.2 requires built-in MBEDTLS_DHM_C
+                    # (because it needs custom groups, which PSA does not
+                    # provide), even with MBEDTLS_USE_PSA_CRYPTO.
+                    re.compile(r'PSK callback:.*\bdhe-psk\b.*'),
+                ],
                 'test_suite_platform': [
                     # Incompatible with sanitizers (e.g. ASan). If the driver
                     # component uses a sanitizer but the reference component

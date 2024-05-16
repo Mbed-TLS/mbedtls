@@ -24,6 +24,14 @@
 #ifndef MBEDTLS_CONFIG_ADJUST_SSL_H
 #define MBEDTLS_CONFIG_ADJUST_SSL_H
 
+#if !defined(MBEDTLS_CONFIG_FILES_READ)
+#error "Do not include mbedtls/config_adjust_*.h manually! This can lead to problems, " \
+    "up to and including runtime errors such as buffer overflows. " \
+    "If you're trying to fix a complaint from check_config.h, just remove " \
+    "it from your configuration file: since Mbed TLS 3.0, it is included " \
+    "automatically at the right time."
+#endif /* */
+
 /* The following blocks make it easier to disable all of TLS,
  * or of TLS 1.2 or 1.3 or DTLS, without having to manually disable all
  * key exchanges, options and extensions related to them. */

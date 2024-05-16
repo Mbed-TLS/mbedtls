@@ -19,6 +19,13 @@
 #define MBEDTLS_CHECK_CONFIG_H
 
 /* *INDENT-OFF* */
+
+#if !defined(MBEDTLS_CONFIG_IS_FINALIZED)
+#warning "Do not include mbedtls/check_config.h manually! " \
+         "This may cause spurious errors. " \
+         "It is included automatically at the right point since Mbed TLS 3.0."
+#endif /* !MBEDTLS_CONFIG_IS_FINALIZED */
+
 /*
  * We assume CHAR_BIT is 8 in many places. In practice, this is true on our
  * target platforms, so not an issue, but let's just be extra sure.

@@ -18,6 +18,14 @@
 #ifndef PSA_CRYPTO_ADJUST_CONFIG_DEPENDENCIES_H
 #define PSA_CRYPTO_ADJUST_CONFIG_DEPENDENCIES_H
 
+#if !defined(MBEDTLS_CONFIG_FILES_READ)
+#error "Do not include psa/crypto_adjust_*.h manually! This can lead to problems, " \
+    "up to and including runtime errors such as buffer overflows. " \
+    "If you're trying to fix a complaint from check_config.h, just remove " \
+    "it from your configuration file: since Mbed TLS 3.0, it is included " \
+    "automatically at the right time."
+#endif /* */
+
 #if (defined(PSA_WANT_ALG_TLS12_PRF) && \
     !defined(MBEDTLS_PSA_ACCEL_ALG_TLS12_PRF)) || \
     (defined(PSA_WANT_ALG_TLS12_PSK_TO_MS) && \

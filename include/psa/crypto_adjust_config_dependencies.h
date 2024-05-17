@@ -2,9 +2,13 @@
  * \file psa/crypto_adjust_config_dependencies.h
  * \brief Adjust PSA configuration by resolving some dependencies.
  *
+ * This is an internal header. Do not include it directly.
+ *
  * See docs/proposed/psa-conditional-inclusion-c.md.
- * If a cryptographic mechanism A depends on a cryptographic mechanism B and
- * A is enabled then enable B.
+ * If the Mbed TLS implementation of a cryptographic mechanism A depends on a
+ * cryptographic mechanism B then if the cryptographic mechanism A is enabled
+ * and not accelerated enable B. Note that if A is enabled and accelerated, it
+ * is not necessary to enable B for A support.
  */
 /*
  *  Copyright The Mbed TLS Contributors

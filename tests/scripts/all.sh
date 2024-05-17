@@ -1921,11 +1921,7 @@ component_test_tls1_2_default_cbc_legacy_cipher_only () {
     #Disable TLS 1.3 (as no AEAD)
     scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1_3
     # Enable CBC-legacy (controlled by MBEDTLS_CIPHER_MODE_CBC plus at least one block cipher (AES, ARIA, Camellia, DES))
-    # Note: The set below is to be removed for 4.0
-    scripts/config.py set MBEDTLS_CIPHER_MODE_CBC
-    # Note: When implemented, PSA_WANT_ALG_CBC_MAC will also need to be set here to fully enable CBC
     scripts/config.py -f $CRYPTO_CONFIG_H set PSA_WANT_ALG_CBC_NO_PADDING
-    scripts/config.py -f $CRYPTO_CONFIG_H set PSA_WANT_ALG_CBC_PKCS7
     # Disable CBC-EtM (controlled by the same as CBC-legacy plus MBEDTLS_SSL_ENCRYPT_THEN_MAC)
     scripts/config.py unset MBEDTLS_SSL_ENCRYPT_THEN_MAC
     # Disable stream (currently that's just the NULL pseudo-cipher (controlled by MBEDTLS_CIPHER_NULL_CIPHER))
@@ -1959,11 +1955,7 @@ component_test_tls1_2_default_cbc_legacy_cbc_etm_cipher_only () {
     #Disable TLS 1.3 (as no AEAD)
     scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1_3
     # Enable CBC-legacy (controlled by MBEDTLS_CIPHER_MODE_CBC plus at least one block cipher (AES, ARIA, Camellia, DES))
-    # Note: The set below is to be removed for 4.0
-    scripts/config.py set MBEDTLS_CIPHER_MODE_CBC
-    # Note: When implemented, PSA_WANT_ALG_CBC_MAC will also need to be set here to fully enable CBC
     scripts/config.py -f $CRYPTO_CONFIG_H set PSA_WANT_ALG_CBC_NO_PADDING
-    scripts/config.py -f $CRYPTO_CONFIG_H set PSA_WANT_ALG_CBC_PKCS7
     # Enable CBC-EtM (controlled by the same as CBC-legacy plus MBEDTLS_SSL_ENCRYPT_THEN_MAC)
     scripts/config.py set MBEDTLS_SSL_ENCRYPT_THEN_MAC
     # Disable stream (currently that's just the NULL pseudo-cipher (controlled by MBEDTLS_CIPHER_NULL_CIPHER))

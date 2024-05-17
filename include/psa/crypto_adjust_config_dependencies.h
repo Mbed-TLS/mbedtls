@@ -14,12 +14,18 @@
 #ifndef PSA_CRYPTO_ADJUST_CONFIG_DEPENDENCIES_H
 #define PSA_CRYPTO_ADJUST_CONFIG_DEPENDENCIES_H
 
-#if defined(PSA_WANT_ALG_TLS12_PRF) || \
-    defined(PSA_WANT_ALG_TLS12_PSK_TO_MS) || \
-    defined(PSA_WANT_ALG_HKDF) || \
-    defined(PSA_WANT_ALG_HKDF_EXTRACT) || \
-    defined(PSA_WANT_ALG_HKDF_EXPAND) || \
-    defined(PSA_WANT_ALG_PBKDF2_HMAC)
+#if (defined(PSA_WANT_ALG_TLS12_PRF) && \
+    !defined(MBEDTLS_PSA_ACCEL_ALG_TLS12_PRF)) || \
+    (defined(PSA_WANT_ALG_TLS12_PSK_TO_MS) && \
+    !defined(MBEDTLS_PSA_ACCEL_ALG_TLS12_PSK_TO_MS)) || \
+    (defined(PSA_WANT_ALG_HKDF) && \
+    !defined(MBEDTLS_PSA_ACCEL_ALG_HKDF)) || \
+    (defined(PSA_WANT_ALG_HKDF_EXTRACT) && \
+    !defined(MBEDTLS_PSA_ACCEL_ALG_HKDF_EXTRACT)) || \
+    (defined(PSA_WANT_ALG_HKDF_EXPAND) && \
+    !defined(MBEDTLS_PSA_ACCEL_ALG_HKDF_EXPAND)) || \
+    (defined(PSA_WANT_ALG_PBKDF2_HMAC) && \
+    !defined(MBEDTLS_PSA_ACCEL_ALG_PBKDF2_HMAC))
 #define PSA_WANT_ALG_HMAC 1
 #define PSA_WANT_KEY_TYPE_HMAC 1
 #endif

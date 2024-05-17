@@ -142,16 +142,9 @@ sub perform_test {
 }
 
 foreach my $conf ( @configs_to_test ) {
-    my $test_with_psa = 0;
-
-    open(CONFIG_FILE, "<", "configs/$conf") or die "Opening config file '$conf': $!";
-    while (my $line = <CONFIG_FILE>) {
-        if ($line =~ /^\/\/#define MBEDTLS_USE_PSA_CRYPTO/) {
-            $test_with_psa = 1;
-            last;
-        }
-    }
-    close(CONFIG_FILE);
+    system("grep '//#define MBEDTLS_USE_PSA_CRYPTO' configs/$conf > /dev/null");
+    die "grep ... configs/$conf: $!" if $? != 0 && $? != 0x100;
+    my $test_with_psa = $? == 0;
 
     if ( $test_with_psa )
     {

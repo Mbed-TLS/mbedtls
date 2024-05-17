@@ -141,6 +141,7 @@ LIST_TESTS=0
 RUN_TEST_NUMBER=''
 RUN_TEST_SUITE=''
 
+MIN_TESTS=1
 PRESERVE_LOGS=0
 
 # Pick a "unique" server port in the range 10000-19999, and a proxy
@@ -159,6 +160,7 @@ print_usage() {
     printf "  -s|--show-numbers\tShow test numbers in front of test names\n"
     printf "  -p|--preserve-logs\tPreserve logs of successful tests as well\n"
     printf "     --list-test-cases\tList all potential test cases (No Execution)\n"
+    printf "     --min      \tMinimum number of non-skipped tests (default 1)\n"
     printf "     --outcome-file\tFile where test outcomes are written\n"
     printf "                \t(default: \$MBEDTLS_TEST_OUTCOME_FILE, none if empty)\n"
     printf "     --port     \tTCP/UDP port (default: randomish 1xxxx)\n"
@@ -191,6 +193,9 @@ get_options() {
                 ;;
             -p|--preserve-logs)
                 PRESERVE_LOGS=1
+                ;;
+            --min)
+                shift; MIN_TESTS=$1
                 ;;
             --outcome-file)
                 shift; MBEDTLS_TEST_OUTCOME_FILE=$1
@@ -14152,6 +14157,15 @@ if [ "$LIST_TESTS" -eq 0 ]; then
     PASSES=$(( $TESTS - $FAILS ))
     echo " ($PASSES / $TESTS tests ($SKIPS skipped))"
 
+    if [ $((TESTS - SKIPS)) -lt $MIN_TESTS ]; then
+        cat <<EOF
+Error: Expected to run at least $MIN_TESTS, but only ran $((TESTS - SKIPS)).
+Maybe a bad filter ('$FILTER') or a bad configuration?
+EOF
+        if [ $FAILS -eq 0 ]; then
+            FAILS=1
+        fi
+    fi
 fi
 
 if [ $FAILS -gt 255 ]; then

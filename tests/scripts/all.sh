@@ -1875,6 +1875,7 @@ component_test_tls1_2_default_stream_cipher_only () {
     scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
     # Disable AEAD (controlled by the presence of one of GCM_C, CCM_C, CHACHAPOLY_C)
     scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CCM
+    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CCM_STAR_NO_TAG
     scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_GCM
     scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CHACHA20_POLY1305
     # Note: The three unsets below are to be removed for Mbed TLS 4.0
@@ -1912,6 +1913,7 @@ component_test_tls1_2_default_cbc_legacy_cipher_only () {
     scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
     # Disable AEAD (controlled by the presence of one of GCM_C, CCM_C, CHACHAPOLY_C)
     scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CCM
+    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CCM_STAR_NO_TAG
     scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_GCM
     scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CHACHA20_POLY1305
     # Note: The three unsets below are to be removed for Mbed TLS 4.0
@@ -1946,6 +1948,7 @@ component_test_tls1_2_default_cbc_legacy_cbc_etm_cipher_only () {
     scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
     # Disable AEAD (controlled by the presence of one of GCM_C, CCM_C, CHACHAPOLY_C)
     scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CCM
+    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CCM_STAR_NO_TAG
     scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_GCM
     scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CHACHA20_POLY1305
     # Note: The three unsets below are to be removed for Mbed TLS 4.0

@@ -8,11 +8,11 @@ Please write a few sentences describing the overall goals of the pull request's 
 
 Please add/remove strikethrough ~~ as appropriate, and add any relevant link/s to the end of the line.
 
-- [ ] **changelog** provided, ~~not required~~, ~~covered~~ . Link --> #XYZ
-- [ ] **dev PR** provided, ~~not required~~ Link --> #XYZ
-- [ ] **3.6 PR** provided, ~~not required~~ Link --> #XYZ
-- [ ] **2.28** PR provided, ~~not required~~ Link --> #XYZ
-- **tests**  provided, ~~not required~~, ~~covered~~ Link --> #XYZ
+- [ ] **changelog** provided, ~not required because:~
+- [ ] **dev PR** provided #, ~not required because:~
+- [ ] **3.6 PR** provided #, ~not required because:~
+- [ ] **2.28 PR** provided #, ~not required because:~
+- **tests**  provided,  ~covered~ #, ~not required because:~
 
 
 

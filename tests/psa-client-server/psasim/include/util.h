@@ -5,7 +5,7 @@
  *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
-#include "psa/service.h"
+#include "service.h"
 
 #define PRINT(fmt, ...) \
     fprintf(stdout, fmt "\n", ##__VA_ARGS__)

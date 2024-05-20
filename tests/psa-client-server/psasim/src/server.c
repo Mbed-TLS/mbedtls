@@ -8,10 +8,16 @@
 #include <unistd.h>
 #include <stdio.h>
 
-#include "psa/service.h"
-#include "psa/error.h"
-#include "psa/util.h"
+/* Includes from psasim */
+#include "service.h"
+#include "error_ext.h"
+#include "util.h"
 #include "psa_manifest/manifest.h"
+#include "psa_functions_codes.h"
+
+/* Includes from mbedtls */
+#include "mbedtls/version.h"
+#include "psa/crypto.h"
 
 #define SERVER_PRINT(fmt, ...) \
     PRINT("Server: " fmt, ##__VA_ARGS__)
@@ -36,13 +42,16 @@ void parse_input_args(int argc, char *argv[])
     }
 }
 
-int psa_sha256_main(int argc, char *argv[])
+int psa_server_main(int argc, char *argv[])
 {
     psa_status_t ret = PSA_ERROR_PROGRAMMER_ERROR;
     psa_msg_t msg = { -1 };
-    char foo[BUF_SIZE] = { 0 };
     const int magic_num = 66;
     int client_disconnected = 0;
+    char mbedtls_version[18];
+
+    mbedtls_version_get_string_full(mbedtls_version);
+    SERVER_PRINT("%s", mbedtls_version);
 
     parse_input_args(argc, argv);
     SERVER_PRINT("Starting");
@@ -54,10 +63,9 @@ int psa_sha256_main(int argc, char *argv[])
             SERVER_PRINT("Signals: 0x%08x", signals);
         }
 
-        if (signals & PSA_SHA256_SIGNAL) {
-            if (PSA_SUCCESS == psa_get(PSA_SHA256_SIGNAL, &msg)) {
-                SERVER_PRINT("My handle is %d", msg.handle);
-                SERVER_PRINT("My rhandle is %p", (int *) msg.rhandle);
+        if (signals & PSA_CRYPTO_SIGNAL) {
+            if (PSA_SUCCESS == psa_get(PSA_CRYPTO_SIGNAL, &msg)) {
+                SERVER_PRINT("handle: %d - rhandle: %p", msg.handle, (int *) msg.rhandle);
                 switch (msg.type) {
                     case PSA_IPC_CONNECT:
                         SERVER_PRINT("Got a connection message");
@@ -69,34 +77,23 @@ int psa_sha256_main(int argc, char *argv[])
                         ret = PSA_SUCCESS;
                         client_disconnected = 1;
                         break;
-
                     default:
                         SERVER_PRINT("Got an IPC call of type %d", msg.type);
-                        ret = 42;
-                        size_t size = msg.in_size[0];
-
-                        if ((size > 0) && (size <= sizeof(foo))) {
-                            psa_read(msg.handle, 0, foo, 6);
-                            foo[(BUF_SIZE-1)] = '\0';
-                            SERVER_PRINT("Reading payload: %s", foo);
-                            psa_read(msg.handle, 0, foo+6, 6);
-                            foo[(BUF_SIZE-1)] = '\0';
-                            SERVER_PRINT("Reading payload: %s", foo);
+                        switch (msg.type) {
+                            case PSA_CRYPTO_INIT:
+                                ret = psa_crypto_init();
+                                break;
+                            default:
+                                SERVER_PRINT("Unknown PSA function code");
+                                break;
                         }
-
-                        size = msg.out_size[0];
-                        if ((size > 0)) {
-                            SERVER_PRINT("Writing response");
-                            psa_write(msg.handle, 0, "RESP", 4);
-                            psa_write(msg.handle, 0, "ONSE", 4);
-                        }
+                        SERVER_PRINT("Internal function call returned %d", ret);
 
                         if (msg.client_id > 0) {
                             psa_notify(msg.client_id);
                         } else {
                             SERVER_PRINT("Client is non-secure, so won't notify");
                         }
-
                 }
 
                 psa_reply(msg.handle, ret);

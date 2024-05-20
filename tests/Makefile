@@ -182,6 +182,7 @@ ifndef WINDOWS
 	rm -f include/test/instrument_record_status.h
 	rm -f include/alt-extra/*/*_alt.h
 	rm -rf libtestdriver1
+	rm -rf libpsaclient libpsaserver
 	rm -f ../library/libtestdriver1.a
 else
 	if exist *.c del /Q /F *.c

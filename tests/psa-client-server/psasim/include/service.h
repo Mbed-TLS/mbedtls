@@ -15,7 +15,9 @@ extern "C" {
 #include <stdint.h>
 #include <stddef.h>
 
-#include "psa/common.h"
+#include "common.h"
+
+#include "psa/crypto.h"
 
 /********************** PSA Secure Partition Macros and Types ****************/
 

@@ -18,11 +18,15 @@ needs to be changed to use new APIs. For a more detailed account of what's
 implemented, see `docs/use-psa-crypto.md`, where new APIs are about (G2), and
 internal changes implement (G1).
 
-As of early 2023, work towards G5 is in progress: Mbed TLS 3.3 and 3.4 saw
-some improvements in this area, and more will be coming in future releases.
+As of Mbed TLS 3.6 (early 2024, work towards G5 is well advanced: it is now
+possible to have hashes/HMAC, ciphers/AEAD, and ECC provided only by drivers,
+with some limitations. See `docs/driver-only-builds.md` for details.
+The main gap is RSA in PK, X.509 and TLS; it should be resolved by 4.0 work.
 
 Generally speaking, the numbering above doesn't mean that each goal requires
-the preceding ones to be completed.
+the preceding ones to be completed. (As an example, much progress towards G5
+was made in 3.x, while G4 will be mostly 4.0 and probably not fully complete
+until 5.0.)
 
 
 Compile-time options
@@ -219,7 +223,12 @@ Strategies currently (early 2022) used with each abstraction layer:
 
 - PK (for G1): silently call PSA
 - PK (for G2): opt-in use of PSA (new key type)
-- Cipher (G1): replace calls at each call site
+- PK (for G5): store keys in PSA-friendly format when `ECP_C` is disabled and
+  `USE_PSA` is enabled
+- Cipher (G1, TLS): replace calls at each call site
+- Cipher (G5): create a new internal abstraction layer for (non-DES) block
+  ciphers that silently calls PSA when a driver is available, see
+  `md-cipher-dispatch.md`.
 - MD (G1, X.509 and TLS): replace calls at each call site (depending on
   `USE_PSA_CRYPTO`)
 - MD (G5): silently call PSA when a driver is available, see

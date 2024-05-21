@@ -770,8 +770,20 @@ void mpi_core_mla(char *input_A, char *input_B, char *input_S,
     memcpy(a, A.p, A.n * sizeof(mbedtls_mpi_uint));
     memcpy(x, X->p, X->n * sizeof(mbedtls_mpi_uint));
 
+#if !defined(MBEDTLS_TEST_CONSTANT_FLOW_MEMSAN)
+    TEST_CF_SECRET(a, bytes);
+    TEST_CF_SECRET(B.p, B.n * sizeof(mbedtls_mpi_uint));
+    TEST_CF_SECRET(S.p, sizeof(mbedtls_mpi_uint));
+#endif
+
     /* 1a) A += B * s => we should get the correct carry */
     TEST_EQUAL(mbedtls_mpi_core_mla(a, limbs, B.p, B.n, *S.p), *cy->p);
+
+#if !defined(MBEDTLS_TEST_CONSTANT_FLOW_MEMSAN)
+    TEST_CF_PUBLIC(a, bytes);
+    TEST_CF_PUBLIC(B.p, B.n * sizeof(mbedtls_mpi_uint));
+    TEST_CF_PUBLIC(S.p, sizeof(mbedtls_mpi_uint));
+#endif
 
     /* 1b) A += B * s => we should get the correct result */
     TEST_MEMORY_COMPARE(a, bytes, x, bytes);
@@ -779,7 +791,15 @@ void mpi_core_mla(char *input_A, char *input_B, char *input_S,
     if (A.n == B.n && memcmp(A.p, B.p, bytes) == 0) {
         /* Check when A and B are aliased */
         memcpy(a, A.p, A.n * sizeof(mbedtls_mpi_uint));
+#if !defined(MBEDTLS_TEST_CONSTANT_FLOW_MEMSAN)
+        TEST_CF_SECRET(a, bytes);
+        TEST_CF_SECRET(S.p, sizeof(mbedtls_mpi_uint));
+#endif
         TEST_EQUAL(mbedtls_mpi_core_mla(a, limbs, a, limbs, *S.p), *cy->p);
+#if !defined(MBEDTLS_TEST_CONSTANT_FLOW_MEMSAN)
+        TEST_CF_PUBLIC(a, bytes);
+        TEST_CF_PUBLIC(S.p, sizeof(mbedtls_mpi_uint));
+#endif
         TEST_MEMORY_COMPARE(a, bytes, x, bytes);
     }
 

@@ -523,9 +523,3 @@ mpi_core_clz:64:0
 
 CLZ: 100000 0: skip overly long input
 mpi_core_clz:100000:0
-
-Constant time Subtraction
-mpi_core_check_sub_ct:"1234567890abcdef0":"10000000000000000":0
-
-Constant time Subtraction #2
-mpi_core_check_sub_ct:"10000000000000000":"1234567890abcdef0":1

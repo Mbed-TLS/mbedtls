@@ -90,10 +90,12 @@ def analyze_coverage(results: Results, outcomes: Outcomes,
     # checkout.
     cp = subprocess.run(['make', 'generated_files'],
                         cwd='tests',
-                        stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                        stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                        check=False)
     if cp.returncode != 0:
         sys.stderr.write(cp.stdout.decode('utf-8'))
-        results.error("Failed \"make generated_files\" in tests. Coverage analysis may be incorrect.")
+        results.error("Failed \"make generated_files\" in tests. "
+                      "Coverage analysis may be incorrect.")
     available = check_test_cases.collect_available_test_cases()
     for suite_case in available:
         hit = any(suite_case in comp_outcomes.successes or

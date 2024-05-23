@@ -281,6 +281,14 @@ static psa_status_t psa_mac_setup(mbedtls_psa_mac_operation_t *operation,
         return PSA_ERROR_BAD_STATE;
     }
 
+    /* Save the truncation for the MAC algorithm so that we can get the expected
+     * output mac length when the psa_mac_finish_internal() function gets
+     * called.
+     */
+    operation->truncation_length = PSA_MAC_LENGTH(psa_get_key_type(attributes),
+                                                  psa_get_key_bits(attributes),
+                                                  alg);
+
     status = mac_init(operation, alg);
     if (status != PSA_SUCCESS) {
         return status;
@@ -371,23 +379,30 @@ psa_status_t mbedtls_psa_mac_update(
 
 static psa_status_t psa_mac_finish_internal(
     mbedtls_psa_mac_operation_t *operation,
-    uint8_t *mac, size_t mac_size)
+    uint8_t *mac, size_t mac_size, size_t *mac_length)
 {
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    size_t actual_mac_length = operation->truncation_length;
+
+    if (mac_size < actual_mac_length) {
+        return PSA_ERROR_BUFFER_TOO_SMALL;
+    }
+
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_CMAC)
     if (PSA_ALG_FULL_LENGTH_MAC(operation->alg) == PSA_ALG_CMAC) {
         uint8_t tmp[PSA_BLOCK_CIPHER_BLOCK_MAX_SIZE];
         int ret = mbedtls_cipher_cmac_finish(&operation->ctx.cmac, tmp);
         if (ret == 0) {
-            memcpy(mac, tmp, mac_size);
+            memcpy(mac, tmp, actual_mac_length);
         }
         mbedtls_platform_zeroize(tmp, sizeof(tmp));
-        return mbedtls_to_psa_error(ret);
+        status = mbedtls_to_psa_error(ret);
     } else
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_CMAC */
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_HMAC)
     if (PSA_ALG_IS_HMAC(operation->alg)) {
-        return psa_hmac_finish_internal(&operation->ctx.hmac,
-                                        mac, mac_size);
+        status = psa_hmac_finish_internal(&operation->ctx.hmac,
+                                          mac, actual_mac_length);
     } else
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_HMAC */
     {
@@ -398,6 +413,10 @@ static psa_status_t psa_mac_finish_internal(
         (void) mac_size;
         return PSA_ERROR_BAD_STATE;
     }
+    if (status == PSA_SUCCESS) {
+        *mac_length = actual_mac_length;
+    }
+    return status;
 }
 
 psa_status_t mbedtls_psa_mac_sign_finish(
@@ -412,10 +431,7 @@ psa_status_t mbedtls_psa_mac_sign_finish(
         return PSA_ERROR_BAD_STATE;
     }
 
-    status = psa_mac_finish_internal(operation, mac, mac_size);
-    if (status == PSA_SUCCESS) {
-        *mac_length = mac_size;
-    }
+    status = psa_mac_finish_internal(operation, mac, mac_size, mac_length);
 
     return status;
 }
@@ -427,6 +443,7 @@ psa_status_t mbedtls_psa_mac_verify_finish(
 {
     uint8_t actual_mac[PSA_MAC_MAX_SIZE];
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    size_t actual_mac_length = 0;
 
     if (operation->alg == 0) {
         return PSA_ERROR_BAD_STATE;
@@ -437,7 +454,8 @@ psa_status_t mbedtls_psa_mac_verify_finish(
         return PSA_ERROR_INVALID_ARGUMENT;
     }
 
-    status = psa_mac_finish_internal(operation, actual_mac, mac_length);
+    status = psa_mac_finish_internal(operation, actual_mac, mac_length,
+                                     &actual_mac_length);
     if (status != PSA_SUCCESS) {
         goto cleanup;
     }
@@ -480,10 +498,7 @@ psa_status_t mbedtls_psa_mac_compute(
         }
     }
 
-    status = psa_mac_finish_internal(&operation, mac, mac_size);
-    if (status == PSA_SUCCESS) {
-        *mac_length = mac_size;
-    }
+    status = psa_mac_finish_internal(&operation, mac, mac_size, mac_length);
 
 exit:
     mbedtls_psa_mac_abort(&operation);

@@ -1,0 +1,162 @@
+/* BEGIN_HEADER */
+/*
+ * Test suite for the PSA hash built-in driver
+ *
+ * This test suite exercises some aspects of the built-in PSA driver for
+ * mac algorithms (psa_crypto_mac.c). This code is mostly tested via
+ * the application interface (above the PSA API layer) and via tests of
+ * individual mac modules. The goal of this test suite is to ensure that
+ * the driver dispatch layer behaves correctly even when not invoked via
+ * the API layer, but directly from another driver.
+ *
+ * This test suite is currently incomplete. It focuses on non-regression
+ * tests for past bugs or near misses.
+ */
+
+#include <psa_crypto_mac.h>
+
+/* END_HEADER */
+
+/* BEGIN_DEPENDENCIES
+ * depends_on:MBEDTLS_PSA_BUILTIN_MAC
+ * END_DEPENDENCIES
+ */
+
+/* BEGIN_CASE */
+void mac_valid_one_shot(int alg_arg, data_t *key_buffer, data_t *input,
+                        data_t *expected)
+{
+    psa_key_attributes_t *attributes = NULL;
+    psa_algorithm_t alg = alg_arg;
+    uint8_t *output = NULL;
+    size_t output_size = expected->len;
+    size_t length = SIZE_MAX;
+
+    /* Nominal case */
+    ASSERT_ALLOC(output, output_size);
+    TEST_EQUAL(mbedtls_psa_mac_compute(attributes, key_buffer->x,
+                                       key_buffer->len, alg, input->x,
+                                       input->len, output, output_size,
+                                       &length),
+               PSA_SUCCESS);
+    ASSERT_COMPARE(expected->x, expected->len, output, length);
+    mbedtls_free(output);
+    output = NULL;
+
+    /* Larger output buffer */
+    output_size = expected->len + 1;
+    ASSERT_ALLOC(output, output_size);
+    TEST_EQUAL(mbedtls_psa_mac_compute(attributes, key_buffer->x,
+                                       key_buffer->len, alg, input->x,
+                                       input->len, output, output_size,
+                                       &length),
+               PSA_SUCCESS);
+    ASSERT_COMPARE(expected->x, expected->len, output, length);
+    mbedtls_free(output);
+    output = NULL;
+
+exit:
+    mbedtls_free(output);
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void mac_valid_multipart(int alg_arg, data_t *key_buffer, data_t *input1,
+                         data_t *expected1, data_t *input2, data_t *expected2)
+{
+    psa_key_attributes_t *attributes = NULL;
+    psa_algorithm_t alg = alg_arg;
+    uint8_t *output = NULL;
+    size_t output_size = expected1->len;
+    size_t length = SIZE_MAX;
+    mbedtls_psa_mac_operation_t operation0; // original
+    memset(&operation0, 0, sizeof(operation0));
+
+    /* Nominal case with two update calls */
+    ASSERT_ALLOC(output, output_size);
+    TEST_EQUAL(mbedtls_psa_mac_sign_setup(&operation0, attributes,
+                                          key_buffer->x, key_buffer->len, alg),
+               PSA_SUCCESS);
+    TEST_EQUAL(mbedtls_psa_mac_update(&operation0, input1->x, input1->len),
+               PSA_SUCCESS);
+    TEST_EQUAL(mbedtls_psa_mac_update(&operation0, input2->x, input2->len),
+               PSA_SUCCESS);
+    TEST_EQUAL(mbedtls_psa_mac_sign_finish(&operation0, output, output_size,
+                                           &length),
+               PSA_SUCCESS);
+    ASSERT_COMPARE(expected2->x, expected2->len, output, length);
+    mbedtls_free(output);
+    output = NULL;
+
+    /* Larger output buffer */
+    mbedtls_psa_mac_abort(&operation0);
+    output_size = expected2->len + 1;
+    memset(&operation0, 0, sizeof(operation0));
+    ASSERT_ALLOC(output, output_size);
+    TEST_EQUAL(mbedtls_psa_mac_sign_setup(&operation0, attributes,
+                                          key_buffer->x, key_buffer->len, alg),
+               PSA_SUCCESS);
+    TEST_EQUAL(mbedtls_psa_mac_update(&operation0, input1->x, input1->len),
+               PSA_SUCCESS);
+    TEST_EQUAL(mbedtls_psa_mac_update(&operation0, input2->x, input2->len),
+               PSA_SUCCESS);
+    TEST_EQUAL(mbedtls_psa_mac_sign_finish(&operation0, output, output_size,
+                                           &length),
+               PSA_SUCCESS);
+    ASSERT_COMPARE(expected2->x, expected2->len, output, length);
+    mbedtls_free(output);
+    output = NULL;
+
+exit:
+    mbedtls_free(output);
+    mbedtls_psa_mac_abort(&operation0);
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void mac_empty(int alg_arg, data_t *key_buffer, data_t *expected)
+{
+    psa_key_attributes_t *attributes = NULL;
+    psa_algorithm_t alg = alg_arg;
+    uint8_t *output = NULL;
+    size_t output_size = expected->len;
+    size_t length = SIZE_MAX;
+    mbedtls_psa_mac_operation_t operation;
+    memset(&operation, 0, sizeof(operation));
+
+    ASSERT_ALLOC(output, output_size);
+
+    /* One-shot */
+    TEST_EQUAL(mbedtls_psa_mac_compute(attributes, key_buffer->x,
+                                       key_buffer->len, alg, NULL, 0, output,
+                                       output_size, &length), PSA_SUCCESS);
+    ASSERT_COMPARE(expected->x, expected->len, output, length);
+
+    /* Multipart, no update */
+    memset(output, 0, output_size);
+    TEST_EQUAL(mbedtls_psa_mac_sign_setup(&operation, attributes, key_buffer->x,
+                                          key_buffer->len, alg),
+               PSA_SUCCESS);
+    TEST_EQUAL(mbedtls_psa_mac_sign_finish(&operation, output, output_size,
+                                           &length),
+               PSA_SUCCESS);
+    ASSERT_COMPARE(expected->x, expected->len, output, length);
+
+    /* Multipart, one update */
+    mbedtls_psa_mac_abort(&operation);
+    memset(output, 0, output_size);
+    memset(&operation, 0, sizeof(operation));
+    TEST_EQUAL(mbedtls_psa_mac_sign_setup(&operation, attributes, key_buffer->x,
+                                          key_buffer->len, alg),
+               PSA_SUCCESS);
+    TEST_EQUAL(mbedtls_psa_mac_update(&operation, NULL, 0), PSA_SUCCESS);
+    TEST_EQUAL(mbedtls_psa_mac_sign_finish(&operation,
+                                           output, output_size, &length),
+               PSA_SUCCESS);
+    ASSERT_COMPARE(expected->x, expected->len, output, length);
+
+exit:
+    mbedtls_free(output);
+    mbedtls_psa_mac_abort(&operation);
+}
+/* END_CASE */

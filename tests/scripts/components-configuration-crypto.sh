@@ -1697,6 +1697,7 @@ config_psa_crypto_accel_rsa () {
     driver_only=$1
 
     # Start from crypto_full config (no X.509, no TLS)
+    # Note: PK excluded in analyze_outcomes.py.
     helper_libtestdriver1_adjust_config "crypto_full"
 
     if [ "$driver_only" -eq 1 ]; then

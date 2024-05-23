@@ -544,6 +544,9 @@ class Algorithm:
 
         If public is true, only return public-key operations, not private-key operations.
         """
+        # Dear Pylint, using `in` here makes the code less readable than aligning
+        # the equality checks.
+        #pylint: disable=consider-using-in
         if self.category == AlgorithmCategory.HASH:
             flags = []
         elif self.category == AlgorithmCategory.MAC:

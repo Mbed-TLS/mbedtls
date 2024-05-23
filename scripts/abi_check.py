@@ -294,7 +294,7 @@ class AbiChecker:
         at_paragraph_start = True
         description = None
         full_path = os.path.join(directory, filename)
-        with open(full_path) as fd:
+        with open(full_path, 'r', encoding='utf-8') as fd:
             for line_number, line in enumerate(fd, 1):
                 line = line.strip()
                 if not line:

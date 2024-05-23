@@ -192,7 +192,8 @@ class PSALoggingWrapperGenerator(PSAWrapperGenerator, c_wrapper_generator.Loggin
         super().__init__()
         self.set_stream(stream)
 
-    _PRINTF_TYPE_CAST = c_wrapper_generator.Logging._PRINTF_TYPE_CAST.copy()
+    _PRINTF_TYPE_CAST = c_wrapper_generator.Logging._PRINTF_TYPE_CAST.copy() \
+         #pylint: disable=protected-access # it's ok, it's a parent class
     _PRINTF_TYPE_CAST.update({
         'mbedtls_svc_key_id_t': 'unsigned',
         'psa_algorithm_t': 'unsigned',

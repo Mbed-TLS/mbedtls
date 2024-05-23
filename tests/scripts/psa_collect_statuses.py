@@ -37,7 +37,7 @@ class Statuses:
         Read logs produced by running Mbed TLS test suites built with
         -DRECORD_PSA_STATUS_COVERAGE_LOG.
         """
-        with open(log_file_name) as log:
+        with open(log_file_name, encoding='utf-8') as log:
             for line in log:
                 value, function, tail = line.split(':', 2)
                 if function not in self.functions:
@@ -81,7 +81,7 @@ def collect_status_logs(options):
             subprocess.check_call(['make', 'clean'],
                                   cwd='tests',
                                   stdout=sys.stderr)
-        with open(os.devnull, 'w') as devnull:
+        with open(os.devnull, 'wb') as devnull:
             make_q_ret = subprocess.call(['make', '-q', 'lib', 'tests'],
                                          stdout=devnull, stderr=devnull)
         if make_q_ret != 0:

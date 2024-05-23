@@ -45,18 +45,19 @@ class Requirements:
         * Comments (``#`` at the beginning of the line or after whitespace).
         * ``-r FILENAME`` to include another file.
         """
-        for line in open(filename):
-            line = line.strip()
-            line = re.sub(r'(\A|\s+)#.*', r'', line)
-            if not line:
-                continue
-            m = re.match(r'-r\s+', line)
-            if m:
-                nested_file = os.path.join(os.path.dirname(filename),
-                                           line[m.end(0):])
-                self.add_file(nested_file)
-                continue
-            self.requirements.append(self.adjust_requirement(line))
+        with open(filename, 'r', encoding='utf-8') as input_:
+            for line in input_:
+                line = line.strip()
+                line = re.sub(r'(\A|\s+)#.*', r'', line)
+                if not line:
+                    continue
+                m = re.match(r'-r\s+', line)
+                if m:
+                    nested_file = os.path.join(os.path.dirname(filename),
+                                               line[m.end(0):])
+                    self.add_file(nested_file)
+                    continue
+                self.requirements.append(self.adjust_requirement(line))
 
     def write(self, out: typing_util.Writable) -> None:
         """List the gathered requirements."""
@@ -81,7 +82,7 @@ class Requirements:
             # Windows, the subprocess can't open the file because this process
             # has an exclusive lock on it.
             req_file_name = os.path.join(temp_dir, 'requirements.txt')
-            with open(req_file_name, 'w') as req_file:
+            with open(req_file_name, 'w', encoding='utf-8') as req_file:
                 self.write(req_file)
             subprocess.check_call([sys.executable, '-m', 'pip'] +
                                   pip_general_options +
@@ -118,6 +119,9 @@ def main() -> None:
     reqs = Requirements()
     for filename in options.files:
         reqs.add_file(filename)
+    sys.stdout.write('Python {} = {}\n'.format(sys.version, sys.executable))
+    sys.stdout.flush() # flush internal output before subprocess output
+    subprocess.check_call([sys.executable, '-m', 'pip', '--version'])
     reqs.write(sys.stdout)
     if not options.no_act:
         reqs.install(pip_general_options=options.pip_general_options,

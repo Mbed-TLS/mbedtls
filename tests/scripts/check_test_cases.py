@@ -24,14 +24,17 @@ class ScriptOutputError(ValueError):
 
     @property
     def script_name(self):
+        #pylint: disable=unsubscriptable-object # false positive
         return super().args[0]
 
     @property
     def idx(self):
+        #pylint: disable=unsubscriptable-object # false positive
         return super().args[1]
 
     @property
     def line(self):
+        #pylint: disable=unsubscriptable-object # false positive
         return super().args[2]
 
 class Results:

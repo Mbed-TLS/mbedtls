@@ -227,7 +227,7 @@ class FileWrapper:
         :param file_name: File path to open.
         """
         # private mix-in file object
-        self._f = open(file_name, 'rb')
+        self._f = open(file_name, 'rb') #pylint: disable=consider-using-with
         self._line_no = 0
 
     def __iter__(self):
@@ -433,7 +433,8 @@ def parse_suite_dependencies(funcs_f):
                 dependencies = parse_dependencies(match.group('dependencies'))
             except GeneratorInputError as error:
                 raise GeneratorInputError(
-                    str(error) + " - %s:%d" % (funcs_f.name, funcs_f.line_no))
+                    str(error) +
+                    " - %s:%d" % (funcs_f.name, funcs_f.line_no)) from error
         if re.search(END_DEP_REGEX, line):
             break
     else:
@@ -708,7 +709,7 @@ def parse_functions(funcs_f):
             except GeneratorInputError as error:
                 raise GeneratorInputError(
                     "%s:%d: %s" % (funcs_f.name, funcs_f.line_no,
-                                   str(error)))
+                                   str(error))) from error
             func_name, args, func_code, func_dispatch =\
                 parse_function_code(funcs_f, dependencies, suite_dependencies)
             suite_functions += func_code
@@ -795,7 +796,7 @@ def parse_test_data(data_f):
                 except GeneratorInputError as error:
                     raise GeneratorInputError(
                         str(error) + " - %s:%d" %
-                        (data_f.name, data_f.line_no))
+                        (data_f.name, data_f.line_no)) from error
             else:
                 # Read test vectors
                 parts = escaped_split(line, ':')
@@ -1072,8 +1073,8 @@ def read_code_from_input_files(platform_file, helpers_file,
     :return:
     """
     # Read helpers
-    with open(helpers_file, 'r') as help_f, open(platform_file, 'r') as \
-            platform_f:
+    with open(helpers_file, 'r', encoding='utf-8') as help_f, \
+         open(platform_file, 'r', encoding='utf-8') as platform_f:
         snippets['test_common_helper_file'] = helpers_file
         snippets['test_common_helpers'] = help_f.read()
         snippets['test_platform_file'] = platform_file
@@ -1103,7 +1104,8 @@ def write_test_source_file(template_file, c_file, snippets):
     invalid = "(?P<invalid>__MBEDTLS_TEST_TEMPLATE__)"
     placeholder_pattern = re.compile("|".join([escaped, named, braced, invalid]))
 
-    with open(template_file, 'r') as template_f, open(c_file, 'w') as c_f:
+    with open(template_file, 'r', encoding='utf-8') as template_f, \
+         open(c_file, 'w', encoding='utf-8') as c_f:
         for line_no, line in enumerate(template_f.readlines(), 1):
             # Update line number. +1 as #line directive sets next line number
             snippets['line_no'] = line_no + 1
@@ -1146,7 +1148,7 @@ def generate_intermediate_data_file(data_file, out_data_file,
     :return:
     """
     with FileWrapper(data_file) as data_f, \
-            open(out_data_file, 'w') as out_data_f:
+            open(out_data_file, 'w', encoding='utf-8') as out_data_f:
         dep_check_code, expression_code = gen_from_test_data(
             data_f, out_data_f, func_info, suite_dependencies)
         snippets['dep_check_code'] = dep_check_code

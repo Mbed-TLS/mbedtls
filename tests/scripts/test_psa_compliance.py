@@ -46,7 +46,6 @@ def main(library_build_dir: str):
                            'lib' + crypto_name + '.a')
 
     if not os.path.exists(crypto_lib_filename):
-        #pylint: disable=bad-continuation
         subprocess.check_call([
             'cmake', '.',
                      '-GUnix Makefiles',
@@ -76,7 +75,6 @@ def main(library_build_dir: str):
         extra_includes = (';{}/drivers/builtin/include'.format(root_dir)
                           if in_tf_psa_crypto_repo else '')
 
-        #pylint: disable=bad-continuation
         subprocess.check_call([
             'cmake', '..',
                      '-GUnix Makefiles',
@@ -89,6 +87,10 @@ def main(library_build_dir: str):
         ])
         subprocess.check_call(['cmake', '--build', '.'])
 
+        # Unchecked process call. That's ok: we only care about the output,
+        # not about the exit status. It's ok to potentially leak resources
+        # if this code raises an exception because we're in main().
+        #pylint: disable-next=consider-using-with
         proc = subprocess.Popen(['./psa-arch-tests-crypto'],
                                 bufsize=1, stdout=subprocess.PIPE, universal_newlines=True)
 

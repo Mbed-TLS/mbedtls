@@ -120,7 +120,7 @@ def generate_deps_from_description(
 # failure.
 def read_implemented_dependencies(filename: str) -> FrozenSet[str]:
     return frozenset(symbol
-                     for line in open(filename)
+                     for line in open(filename, encoding='utf-8')
                      for symbol in re.findall(r'\bPSA_WANT_\w+\b', line))
 _implemented_dependencies = None #type: Optional[FrozenSet[str]] #pylint: disable=invalid-name
 def hack_dependencies_not_implemented(dependencies: List[str]) -> None:
@@ -138,7 +138,7 @@ def tweak_key_pair_dependency(dep: str, usage: str):
     This helper function add the proper suffix to PSA_WANT_KEY_TYPE_xxx_KEY_PAIR
     symbols according to the required usage.
     """
-    ret_list = list()
+    ret_list = []
     if dep.endswith('KEY_PAIR'):
         if usage == "BASIC":
             # BASIC automatically includes IMPORT and EXPORT for test purposes (see

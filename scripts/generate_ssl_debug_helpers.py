@@ -368,10 +368,11 @@ def generate_ssl_debug_helpers(output_directory, mbedtls_root):
     """
     mbedtls_root = os.path.abspath(
         mbedtls_root or build_tree.guess_mbedtls_root())
-    with open(os.path.join(mbedtls_root, 'include/mbedtls/ssl.h')) as f:
+    with open(os.path.join(mbedtls_root, 'include/mbedtls/ssl.h'),
+              encoding='utf-8') as f:
         source_code = remove_c_comments(f.read())
 
-    definitions = dict()
+    definitions = {}
     for start, instance in preprocess_c_source_code(source_code,
                                                     EnumDefinition,
                                                     SignatureAlgorithmDefinition,
@@ -389,7 +390,8 @@ def generate_ssl_debug_helpers(output_directory, mbedtls_root):
         sys.stdout.write(OUTPUT_C_TEMPLATE.format(
             functions='\n'.join(function_definitions)))
     else:
-        with open(os.path.join(output_directory, 'ssl_debug_helpers_generated.c'), 'w') as f:
+        with open(os.path.join(output_directory, 'ssl_debug_helpers_generated.c'),
+                  'w', encoding='utf-8') as f:
             f.write(OUTPUT_C_TEMPLATE.format(
                 functions='\n'.join(function_definitions)))
 

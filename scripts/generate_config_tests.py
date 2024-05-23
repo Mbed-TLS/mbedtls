@@ -40,6 +40,63 @@ def single_option_case(setting: config.Setting, when_on: bool,
     return tc
 
 
+PSA_WANT_KEY_TYPE_KEY_PAIR_RE = \
+    re.compile(r'(?P<prefix>PSA_WANT_KEY_TYPE_(?P<type>\w+)_KEY_PAIR_)(?P<operation>\w+)\Z')
+
+# If foo is an option that is only meaningful when bar is enabled, set
+# SUPER_SETTINGS[foo]=bar. More generally, bar can be a colon-separated
+# list of options, meaning that all the options must be enabled. Each option
+# can be prefixed with '!' to negate it. This is the same syntax as a
+# depends_on directive in test data.
+# See also `find_super_option`.
+SUPER_SETTINGS = {
+    'MBEDTLS_AESCE_C': 'MBEDTLS_AES_C',
+    'MBEDTLS_AESNI_C': 'MBEDTLS_AES_C',
+    'MBEDTLS_ERROR_STRERROR_DUMMY': '!MBEDTLS_ERROR_C',
+    'MBEDTLS_GENPRIME': 'MBEDTLS_RSA_C',
+    'MBEDTLS_NO_DEFAULT_ENTROPY_SOURCES': 'MBEDTLS_ENTROPY_C',
+    'MBEDTLS_NO_PLATFORM_ENTROPY': 'MBEDTLS_ENTROPY_C',
+    'MBEDTLS_PKCS1_V15': 'MBEDTLS_RSA_C',
+    'MBEDTLS_PKCS1_V21': 'MBEDTLS_RSA_C',
+    'MBEDTLS_PSA_CRYPTO_CLIENT': 'MBEDTLS_PSA_CRYPTO_C',
+    'MBEDTLS_PSA_INJECT_ENTROPY': 'MBEDTLS_PSA_CRYPTO_C',
+    'MBEDTLS_PSA_ASSUME_EXCLUSIVE_BUFFERS': 'MBEDTLS_PSA_CRYPTO_C',
+}
+
+def find_super_option(cfg: config.Config,
+                      setting: config.Setting) -> Optional[str]:
+    """If setting is only meaningful when some option is enabled, return that option.
+
+    The return value can be a colon-separated list of options, if the setting
+    is only meaningful when all of these options are enabled. Options can be
+    negated by prefixing them with '!'. This is the same syntax as a
+    depends_on directive in test data.
+    """
+    #pylint: disable=too-many-return-statements
+    name = setting.name
+    if name in SUPER_SETTINGS:
+        return SUPER_SETTINGS[name]
+    if name.startswith('MBEDTLS_') and not name.endswith('_C'):
+        if name.startswith('MBEDTLS_CIPHER_PADDING_'):
+            return 'MBEDTLS_CIPHER_C:MBEDTLS_CIPHER_MODE_CBC'
+        if name.startswith('MBEDTLS_PK_PARSE_EC_'):
+            return 'MBEDTLS_PK_C:MBEDTLS_PK_HAVE_ECC_KEYS'
+        if name.startswith('MBEDTLS_SSL_TLS1_3_') or \
+           name == 'MBEDTLS_SSL_EARLY_DATA':
+            return 'MBEDTLS_SSL_CLI_C:MBEDTLS_SSL_SRV_C:MBEDTLS_SSL_PROTO_TLS1_3'
+        if name.startswith('MBEDTLS_SSL_DTLS_'):
+            return 'MBEDTLS_SSL_CLI_C:MBEDTLS_SSL_SRV_C:MBEDTLS_SSL_PROTO_DTLS'
+        if name.startswith('MBEDTLS_SSL_'):
+            return 'MBEDTLS_SSL_CLI_C:MBEDTLS_SSL_SRV_C'
+        for m in re.finditer(r'_', name):
+            super_name = name[:m.start()] + '_C'
+            if cfg.known(super_name):
+                return super_name
+    m = re.match(PSA_WANT_KEY_TYPE_KEY_PAIR_RE, name)
+    if m and m.group('operation') != 'BASIC':
+        return m.group('prefix') + 'BASIC'
+    return None
+
 def conditions_for_option(cfg: config.Config,
                           setting: config.Setting
                           ) -> Iterator[Tuple[List[str], str]]:
@@ -62,6 +119,10 @@ def conditions_for_option(cfg: config.Config,
     name = setting.name
     if name.endswith('_ALT') and not config.is_seamless_alt(name):
         # We don't test alt implementations, except (most) platform alts
+        return
+    super_setting = find_super_option(cfg, setting)
+    if super_setting:
+        yield [super_setting], ''
         return
     yield [], ''
 

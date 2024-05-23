@@ -88,11 +88,11 @@ def find_super_option(cfg: config.Config,
             return 'MBEDTLS_SSL_CLI_C:MBEDTLS_SSL_SRV_C:MBEDTLS_SSL_PROTO_DTLS'
         if name.startswith('MBEDTLS_SSL_'):
             return 'MBEDTLS_SSL_CLI_C:MBEDTLS_SSL_SRV_C'
-        for m in re.finditer(r'_', name):
-            super_name = name[:m.start()] + '_C'
+        for pos in re.finditer(r'_', name):
+            super_name = name[:pos.start()] + '_C'
             if cfg.known(super_name):
                 return super_name
-    m = re.match(PSA_WANT_KEY_TYPE_KEY_PAIR_RE, name)
+    m = PSA_WANT_KEY_TYPE_KEY_PAIR_RE.match(name)
     if m and m.group('operation') != 'BASIC':
         return m.group('prefix') + 'BASIC'
     return None

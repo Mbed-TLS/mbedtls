@@ -396,6 +396,7 @@ class ConfigFile(Config):
                                 self.default_path)
         super().__init__()
         self.filename = filename
+        self.inclusion_guard = None
         self.current_section = 'header'
         with open(filename, 'r', encoding='utf-8') as file:
             self.templates = [self._parse_line(line) for line in file]
@@ -413,9 +414,11 @@ class ConfigFile(Config):
                            r'(?P<arguments>(?:\((?:\w|\s|,)*\))?)' +
                            r'(?P<separator>\s*)' +
                            r'(?P<value>.*)')
+    _ifndef_line_regexp = r'#ifndef (?P<inclusion_guard>\w+)'
     _section_line_regexp = (r'\s*/?\*+\s*[\\@]name\s+SECTION:\s*' +
                             r'(?P<section>.*)[ */]*')
     _config_line_regexp = re.compile(r'|'.join([_define_line_regexp,
+                                                _ifndef_line_regexp,
                                                 _section_line_regexp]))
     def _parse_line(self, line):
         """Parse a line in mbedtls_config.h and return the corresponding template."""
@@ -426,10 +429,16 @@ class ConfigFile(Config):
         elif m.group('section'):
             self.current_section = m.group('section')
             return line
+        elif m.group('inclusion_guard') and self.inclusion_guard is None:
+            self.inclusion_guard = m.group('inclusion_guard')
+            return line
         else:
             active = not m.group('commented_out')
             name = m.group('name')
             value = m.group('value')
+            if name == self.inclusion_guard and value == '':
+                # The file double-inclusion guard is not an option.
+                return line
             template = (name,
                         m.group('indentation'),
                         m.group('define') + name +

@@ -408,8 +408,6 @@ Note that the relationship between legacy (i.e. `MBEDTLS_xxx_C`) and PSA
 
 ### Partial acceleration for CCM/GCM
 
-[This section depends on #8598 so it might be updated while that PR progresses.]
-
 In case legacy CCM/GCM algorithms are enabled, it is still possible to benefit
 from PSA acceleration of the underlying block cipher by enabling support for
 ECB mode (`PSA_WANT_ALG_ECB_NO_PADDING` + `MBEDTLS_PSA_ACCEL_ALG_ECB_NO_PADDING`)

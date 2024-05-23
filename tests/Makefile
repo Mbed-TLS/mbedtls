@@ -26,6 +26,15 @@ $(error "$(PYTHON) ../framework/scripts/generate_bignum_tests.py --list" failed)
 endif
 GENERATED_DATA_FILES += $(GENERATED_BIGNUM_DATA_FILES)
 
+GENERATED_CONFIG_DATA_FILES := $(patsubst tests/%,%,$(shell \
+	$(PYTHON) ../framework/scripts/generate_config_tests.py --list || \
+	echo FAILED \
+))
+ifeq ($(GENERATED_CONFIG_DATA_FILES),FAILED)
+$(error "$(PYTHON) ../framework/scripts/generate_config_tests.py --list" failed)
+endif
+GENERATED_DATA_FILES += $(GENERATED_CONFIG_DATA_FILES)
+
 GENERATED_ECP_DATA_FILES := $(patsubst tests/%,%,$(shell \
 	$(PYTHON) ../framework/scripts/generate_ecp_tests.py --list || \
 	echo FAILED \
@@ -68,6 +77,22 @@ generated_bignum_test_data:
 	echo "  Gen   $(GENERATED_BIGNUM_DATA_FILES)"
 	$(PYTHON) ../framework/scripts/generate_bignum_tests.py
 .SECONDARY: generated_bignum_test_data
+
+# We deliberately omit the configuration files (mbedtls_config.h,
+# crypto_config.h) from the depenency list because during development
+# and on the CI, we often edit those in a way that doesn't change the
+# output, to comment out certain options, or even to remove certain
+# lines which do affect the output negatively (it will miss the
+# corresponding test cases).
+$(GENERATED_CONFIG_DATA_FILES): $(gen_file_dep) generated_config_test_data
+generated_config_test_data: ../framework/scripts/generate_config_tests.py
+generated_config_test_data: ../scripts/config.py
+generated_config_test_data: ../framework/scripts/mbedtls_framework/test_case.py
+generated_config_test_data: ../framework/scripts/mbedtls_framework/test_data_generation.py
+generated_config_test_data:
+	echo "  Gen   $(GENERATED_CONFIG_DATA_FILES)"
+	$(PYTHON) ../framework/scripts/generate_config_tests.py
+.SECONDARY: generated_config_test_data
 
 $(GENERATED_ECP_DATA_FILES): $(gen_file_dep) generated_ecp_test_data
 generated_ecp_test_data: ../framework/scripts/generate_ecp_tests.py

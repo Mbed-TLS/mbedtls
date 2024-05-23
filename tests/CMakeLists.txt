@@ -33,6 +33,18 @@ string(REGEX REPLACE "[^;]*/" ""
 execute_process(
     COMMAND
         ${MBEDTLS_PYTHON_EXECUTABLE}
+        ${CMAKE_CURRENT_SOURCE_DIR}/../framework/scripts/generate_config_tests.py
+        --list-for-cmake
+    WORKING_DIRECTORY
+        ${CMAKE_CURRENT_SOURCE_DIR}/..
+    OUTPUT_VARIABLE
+        base_config_generated_data_files)
+string(REGEX REPLACE "[^;]*/" ""
+       base_config_generated_data_files "${base_config_generated_data_files}")
+
+execute_process(
+    COMMAND
+        ${MBEDTLS_PYTHON_EXECUTABLE}
         ${CMAKE_CURRENT_SOURCE_DIR}/../framework/scripts/generate_ecp_tests.py
         --list-for-cmake
     WORKING_DIRECTORY
@@ -61,10 +73,14 @@ set(base_generated_data_files
 string(REGEX REPLACE "([^;]+)" "suites/\\1"
        all_generated_data_files "${base_generated_data_files}")
 set(bignum_generated_data_files "")
+set(config_generated_data_files "")
 set(ecp_generated_data_files "")
 set(psa_generated_data_files "")
 foreach(file ${base_bignum_generated_data_files})
     list(APPEND bignum_generated_data_files ${CMAKE_CURRENT_BINARY_DIR}/suites/${file})
+endforeach()
+foreach(file ${base_config_generated_data_files})
+    list(APPEND config_generated_data_files ${CMAKE_CURRENT_BINARY_DIR}/suites/${file})
 endforeach()
 foreach(file ${base_ecp_generated_data_files})
     list(APPEND ecp_generated_data_files ${CMAKE_CURRENT_BINARY_DIR}/suites/${file})
@@ -91,6 +107,21 @@ if(GEN_FILES)
             ${CMAKE_CURRENT_SOURCE_DIR}/../framework/scripts/mbedtls_framework/bignum_mod.py
             ${CMAKE_CURRENT_SOURCE_DIR}/../framework/scripts/mbedtls_framework/test_case.py
             ${CMAKE_CURRENT_SOURCE_DIR}/../framework/scripts/mbedtls_framework/test_data_generation.py
+    )
+    add_custom_command(
+        OUTPUT
+            ${config_generated_data_files}
+        WORKING_DIRECTORY
+            ${CMAKE_CURRENT_SOURCE_DIR}/..
+        COMMAND
+            ${MBEDTLS_PYTHON_EXECUTABLE}
+            ${CMAKE_CURRENT_SOURCE_DIR}/../framework/scripts/generate_config_tests.py
+            --directory ${CMAKE_CURRENT_BINARY_DIR}/suites
+        DEPENDS
+            ${CMAKE_CURRENT_SOURCE_DIR}/../framework/scripts/generate_config_tests.py
+            # Do not declare the configuration files as dependencies: they
+            # change too often in ways that don't affect the result
+            # ((un)commenting some options).
     )
     add_custom_command(
         OUTPUT

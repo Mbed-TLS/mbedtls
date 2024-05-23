@@ -1764,6 +1764,7 @@ common_test_full_no_cipher_with_psa_crypto () {
         scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CTR
         scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_ECB_NO_PADDING
         scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_OFB
+        scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_PBKDF2_AES_CMAC_PRF_128
         scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_STREAM_CIPHER
         scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_KEY_TYPE_DES
     else
@@ -4109,6 +4110,7 @@ common_block_cipher_dispatch() {
     scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CBC_PKCS7
     scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CMAC
     scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CCM_STAR_NO_TAG
+    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_PBKDF2_AES_CMAC_PRF_128
 
     # Disable direct dependency on AES_C
     scripts/config.py unset MBEDTLS_NIST_KW_C
@@ -5309,9 +5311,11 @@ component_build_psa_config_file () {
     make clean
 
     msg "build: make with MBEDTLS_PSA_CRYPTO_CONFIG_FILE + MBEDTLS_PSA_CRYPTO_USER_CONFIG_FILE" # ~40s
-    # In the user config, disable one feature, which will reflect on the
-    # mbedtls configuration so we can query it with query_compile_time_config.
+    # In the user config, disable one feature and its dependencies, which will
+    # reflect on the mbedtls configuration so we can query it with
+    # query_compile_time_config.
     echo '#undef PSA_WANT_ALG_CMAC' >psa_user_config.h
+    echo '#undef PSA_WANT_ALG_PBKDF2_AES_CMAC_PRF_128' >> psa_user_config.h
     scripts/config.py unset MBEDTLS_CMAC_C
     make CFLAGS="-I '$PWD' -DMBEDTLS_PSA_CRYPTO_CONFIG_FILE='\"psa_test_config.h\"' -DMBEDTLS_PSA_CRYPTO_USER_CONFIG_FILE='\"psa_user_config.h\"'"
     not programs/test/query_compile_time_config MBEDTLS_CMAC_C

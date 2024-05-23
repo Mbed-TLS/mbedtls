@@ -129,6 +129,7 @@ check()
 # These checks are common to Mbed TLS and TF-PSA-Crypto
 check scripts/generate_psa_constants.py programs/psa/psa_constant_names_generated.c
 check framework/scripts/generate_bignum_tests.py $(framework/scripts/generate_bignum_tests.py --list)
+check framework/scripts/generate_config_tests.py $(framework/scripts/generate_config_tests.py --list)
 check framework/scripts/generate_ecp_tests.py $(framework/scripts/generate_ecp_tests.py --list)
 check framework/scripts/generate_psa_tests.py $(framework/scripts/generate_psa_tests.py --list)
 check framework/scripts/generate_test_keys.py tests/src/test_keys.h

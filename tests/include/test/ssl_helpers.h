@@ -40,7 +40,7 @@
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
 #if defined(MBEDTLS_SSL_HAVE_AES)
 #if defined(MBEDTLS_SSL_HAVE_GCM)
-#if defined(MBEDTLS_MD_CAN_SHA384)
+#if defined(PSA_WANT_ALG_SHA_384)
 #define MBEDTLS_TEST_HAS_TLS1_3_AES_256_GCM_SHA384
 #endif
 #if defined(MBEDTLS_MD_CAN_SHA256)

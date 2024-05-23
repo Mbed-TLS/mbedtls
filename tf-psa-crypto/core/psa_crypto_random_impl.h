@@ -32,7 +32,7 @@ typedef mbedtls_psa_external_random_context_t mbedtls_psa_random_context_t;
 #elif defined(MBEDTLS_HMAC_DRBG_C)
 
 #include "mbedtls/hmac_drbg.h"
-#if defined(MBEDTLS_MD_CAN_SHA512) && defined(MBEDTLS_MD_CAN_SHA256)
+#if defined(MBEDTLS_MD_CAN_SHA512) && defined(PSA_WANT_ALG_SHA_256)
 #include <limits.h>
 #if SIZE_MAX > 0xffffffff
 /* Looks like a 64-bit system, so prefer SHA-512. */
@@ -43,7 +43,7 @@ typedef mbedtls_psa_external_random_context_t mbedtls_psa_random_context_t;
 #endif
 #elif defined(MBEDTLS_MD_CAN_SHA512)
 #define MBEDTLS_PSA_HMAC_DRBG_MD_TYPE MBEDTLS_MD_SHA512
-#elif defined(MBEDTLS_MD_CAN_SHA256)
+#elif defined(PSA_WANT_ALG_SHA_256)
 #define MBEDTLS_PSA_HMAC_DRBG_MD_TYPE MBEDTLS_MD_SHA256
 #else
 #error "No hash algorithm available for HMAC_DBRG."

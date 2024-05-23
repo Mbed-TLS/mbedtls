@@ -1689,7 +1689,7 @@ component_full_no_pkparse_pkwrite() {
 component_test_crypto_full_md_light_only () {
     msg "build: crypto_full with only the light subset of MD"
     scripts/config.py crypto_full
-    scripts/config.py unset MBEDTLS_PSA_CRYPTO_CONFIG
+
     # Disable MD
     scripts/config.py unset MBEDTLS_MD_C
     # Disable direct dependencies of MD_C
@@ -1698,6 +1698,7 @@ component_test_crypto_full_md_light_only () {
     scripts/config.py unset MBEDTLS_PKCS7_C
     # Disable indirect dependencies of MD_C
     scripts/config.py unset MBEDTLS_ECDSA_DETERMINISTIC # needs HMAC_DRBG
+    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_DETERMINISTIC_ECDSA
     # Disable things that would auto-enable MD_C
     scripts/config.py unset MBEDTLS_PKCS5_C
 

@@ -1714,69 +1714,28 @@ component_test_crypto_full_md_light_only () {
     make test
 }
 
-component_test_full_no_cipher_no_psa_crypto () {
-    msg "build: full no CIPHER no PSA_CRYPTO_C"
-    scripts/config.py full
-    scripts/config.py unset MBEDTLS_CIPHER_C
-    # Don't pull in cipher via PSA mechanisms
-    # (currently ignored anyway because we completely disable PSA)
-    scripts/config.py unset MBEDTLS_PSA_CRYPTO_CONFIG
-    # Disable features that depend on CIPHER_C
-    scripts/config.py unset MBEDTLS_CMAC_C
-    scripts/config.py unset MBEDTLS_NIST_KW_C
-    scripts/config.py unset MBEDTLS_PSA_CRYPTO_C
-    scripts/config.py unset MBEDTLS_PSA_CRYPTO_CLIENT
-    scripts/config.py unset MBEDTLS_SSL_TLS_C
-    scripts/config.py unset MBEDTLS_SSL_TICKET_C
-    # Disable features that depend on PSA_CRYPTO_C
-    scripts/config.py unset MBEDTLS_PSA_CRYPTO_SE_C
-    scripts/config.py unset MBEDTLS_PSA_CRYPTO_STORAGE_C
-    scripts/config.py unset MBEDTLS_USE_PSA_CRYPTO
-    scripts/config.py unset MBEDTLS_LMS_C
-    scripts/config.py unset MBEDTLS_LMS_PRIVATE
-
-    msg "test: full no CIPHER no PSA_CRYPTO_C"
-    make test
-}
-
-# This is a common configurator and test function that is used in:
-# - component_test_full_no_cipher_with_psa_crypto
-# - component_test_full_no_cipher_with_psa_crypto_config
-# It accepts 2 input parameters:
-# - $1: boolean value which basically reflects status of MBEDTLS_PSA_CRYPTO_CONFIG
-# - $2: a text string which describes the test component
-common_test_full_no_cipher_with_psa_crypto () {
-    USE_CRYPTO_CONFIG="$1"
-    COMPONENT_DESCRIPTION="$2"
-
-    msg "build: $COMPONENT_DESCRIPTION"
+component_test_full_no_cipher () {
+    msg "build: full no CIPHER"
 
     scripts/config.py full
     scripts/config.py unset MBEDTLS_CIPHER_C
 
-    if [ "$USE_CRYPTO_CONFIG" -eq 1 ]; then
-        # The built-in implementation of the following algs/key-types depends
-        # on CIPHER_C so we disable them.
-        # This does not hold for KEY_TYPE_CHACHA20 and ALG_CHACHA20_POLY1305
-        # so we keep them enabled.
-        scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CCM_STAR_NO_TAG
-        scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CMAC
-        scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CBC_NO_PADDING
-        scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CBC_PKCS7
-        scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CFB
-        scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CTR
-        scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_ECB_NO_PADDING
-        scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_OFB
-        scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_PBKDF2_AES_CMAC_PRF_128
-        scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_STREAM_CIPHER
-        scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_KEY_TYPE_DES
-    else
-        # Don't pull in cipher via PSA mechanisms
-        scripts/config.py unset MBEDTLS_PSA_CRYPTO_CONFIG
-        # Disable cipher modes/keys that make PSA depend on CIPHER_C.
-        # Keep CHACHA20 and CHACHAPOLY enabled since they do not depend on CIPHER_C.
-        scripts/config.py unset-all MBEDTLS_CIPHER_MODE
-    fi
+    # The built-in implementation of the following algs/key-types depends
+    # on CIPHER_C so we disable them.
+    # This does not hold for KEY_TYPE_CHACHA20 and ALG_CHACHA20_POLY1305
+    # so we keep them enabled.
+    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CCM_STAR_NO_TAG
+    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CMAC
+    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CBC_NO_PADDING
+    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CBC_PKCS7
+    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CFB
+    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CTR
+    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_ECB_NO_PADDING
+    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_OFB
+    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_PBKDF2_AES_CMAC_PRF_128
+    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_STREAM_CIPHER
+    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_KEY_TYPE_DES
+
     # The following modules directly depends on CIPHER_C
     scripts/config.py unset MBEDTLS_CMAC_C
     scripts/config.py unset MBEDTLS_NIST_KW_C
@@ -1786,16 +1745,8 @@ common_test_full_no_cipher_with_psa_crypto () {
     # Ensure that CIPHER_C was not re-enabled
     not grep mbedtls_cipher_init library/cipher.o
 
-    msg "test: $COMPONENT_DESCRIPTION"
+    msg "test: full no CIPHER"
     make test
-}
-
-component_test_full_no_cipher_with_psa_crypto() {
-    common_test_full_no_cipher_with_psa_crypto 0 "full no CIPHER no CRYPTO_CONFIG"
-}
-
-component_test_full_no_cipher_with_psa_crypto_config() {
-    common_test_full_no_cipher_with_psa_crypto 1 "full no CIPHER"
 }
 
 component_test_full_no_ccm() {

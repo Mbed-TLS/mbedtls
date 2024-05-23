@@ -113,7 +113,7 @@ int rng_seed(rng_context_t *rng, int reproducible, const char *pers)
                                     (const unsigned char *) pers,
                                     strlen(pers));
 #elif defined(MBEDTLS_HMAC_DRBG_C)
-#if defined(MBEDTLS_MD_CAN_SHA256)
+#if defined(PSA_WANT_ALG_SHA_256)
     const mbedtls_md_type_t md_type = MBEDTLS_MD_SHA256;
 #elif defined(MBEDTLS_MD_CAN_SHA512)
     const mbedtls_md_type_t md_type = MBEDTLS_MD_SHA512;

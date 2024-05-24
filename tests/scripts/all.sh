@@ -4377,9 +4377,16 @@ component_test_ssl_alloc_buffer_and_mfl () {
 
 component_test_when_no_ciphersuites_have_mac () {
     msg "build: when no ciphersuites have MAC"
+    scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
+    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CBC_NO_PADDING
+    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CBC_PKCS7
+    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CMAC
+    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_PBKDF2_AES_CMAC_PRF_128
+
     scripts/config.py unset MBEDTLS_CIPHER_NULL_CIPHER
     scripts/config.py unset MBEDTLS_CIPHER_MODE_CBC
     scripts/config.py unset MBEDTLS_CMAC_C
+
     make
 
     msg "test: !MBEDTLS_SSL_SOME_SUITES_USE_MAC"

@@ -888,7 +888,7 @@ static int mbedtls_sha256_common_self_test(int verbose, int is224)
     sha_test_sum_t *sha_test_sum = sha224_test_sum;
 #endif
 
-    buf = mbedtls_calloc(1024, sizeof(unsigned char));
+    buf = mbedtls_calloc(1024, sizeof(*buf));
     if (NULL == buf) {
         if (verbose != 0) {
             mbedtls_printf("Buffer allocation failed\n");

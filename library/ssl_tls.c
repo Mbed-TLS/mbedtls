@@ -1069,16 +1069,16 @@ static int ssl_handshake_init(mbedtls_ssl_context *ssl)
      * Now allocate missing structures.
      */
     if (ssl->transform_negotiate == NULL) {
-        ssl->transform_negotiate = mbedtls_calloc(1, sizeof(mbedtls_ssl_transform));
+        ssl->transform_negotiate = mbedtls_calloc(1, sizeof(*ssl->transform_negotiate));
     }
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
     if (ssl->session_negotiate == NULL) {
-        ssl->session_negotiate = mbedtls_calloc(1, sizeof(mbedtls_ssl_session));
+        ssl->session_negotiate = mbedtls_calloc(1, sizeof(*ssl->session_negotiate));
     }
 
     if (ssl->handshake == NULL) {
-        ssl->handshake = mbedtls_calloc(1, sizeof(mbedtls_ssl_handshake_params));
+        ssl->handshake = mbedtls_calloc(1, sizeof(*ssl->handshake));
     }
 #if defined(MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH)
     /* If the buffers are too small - reallocate */
@@ -1171,7 +1171,7 @@ static int ssl_handshake_init(mbedtls_ssl_context *ssl)
         }
 
         /* Leave room for zero termination */
-        uint16_t *group_list = mbedtls_calloc(length + 1, sizeof(uint16_t));
+        uint16_t *group_list = mbedtls_calloc(length + 1, sizeof(*group_list));
         if (group_list == NULL) {
             return MBEDTLS_ERR_SSL_ALLOC_FAILED;
         }
@@ -1234,7 +1234,7 @@ static int ssl_handshake_init(mbedtls_ssl_context *ssl)
         }
 
         ssl->handshake->sig_algs = mbedtls_calloc(1, sig_algs_len +
-                                                  sizeof(uint16_t));
+                                                  sizeof(*ssl->handshake->sig_algs));
         if (ssl->handshake->sig_algs == NULL) {
             return MBEDTLS_ERR_SSL_ALLOC_FAILED;
         }
@@ -1857,7 +1857,7 @@ static int ssl_append_key_cert(mbedtls_ssl_key_cert **head,
         return 0;
     }
 
-    new_cert = mbedtls_calloc(1, sizeof(mbedtls_ssl_key_cert));
+    new_cert = mbedtls_calloc(1, sizeof(*new_cert));
     if (new_cert == NULL) {
         return MBEDTLS_ERR_SSL_ALLOC_FAILED;
     }
@@ -3628,7 +3628,7 @@ static int ssl_tls12_session_load(mbedtls_ssl_session *session,
             return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
         }
 
-        session->peer_cert = mbedtls_calloc(1, sizeof(mbedtls_x509_crt));
+        session->peer_cert = mbedtls_calloc(1, sizeof(*session->peer_cert));
 
         if (session->peer_cert == NULL) {
             return MBEDTLS_ERR_SSL_ALLOC_FAILED;
@@ -8232,7 +8232,7 @@ int mbedtls_ssl_parse_certificate(mbedtls_ssl_context *ssl)
      * reuse a session but it failed, and allocate a new one. */
     ssl_clear_peer_cert(ssl->session_negotiate);
 
-    chain = mbedtls_calloc(1, sizeof(mbedtls_x509_crt));
+    chain = mbedtls_calloc(1, sizeof(*chain));
     if (chain == NULL) {
         MBEDTLS_SSL_DEBUG_MSG(1, ("alloc(%" MBEDTLS_PRINTF_SIZET " bytes) failed",
                                   sizeof(mbedtls_x509_crt)));

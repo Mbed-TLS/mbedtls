@@ -528,7 +528,7 @@ int mbedtls_x509_get_name(unsigned char **p, const unsigned char *end,
             /* Mark this item as being no the only one in a set */
             cur->next_merged = 1;
 
-            cur->next = mbedtls_calloc(1, sizeof(mbedtls_x509_name));
+            cur->next = mbedtls_calloc(1, sizeof(*cur->next));
 
             if (cur->next == NULL) {
                 ret = MBEDTLS_ERR_X509_ALLOC_FAILED;
@@ -545,7 +545,7 @@ int mbedtls_x509_get_name(unsigned char **p, const unsigned char *end,
             return 0;
         }
 
-        cur->next = mbedtls_calloc(1, sizeof(mbedtls_x509_name));
+        cur->next = mbedtls_calloc(1, sizeof(*cur->next));
 
         if (cur->next == NULL) {
             ret = MBEDTLS_ERR_X509_ALLOC_FAILED;
@@ -733,7 +733,7 @@ int mbedtls_x509_get_sig_alg(const mbedtls_x509_buf *sig_oid, const mbedtls_x509
     if (*pk_alg == MBEDTLS_PK_RSASSA_PSS) {
         mbedtls_pk_rsassa_pss_options *pss_opts;
 
-        pss_opts = mbedtls_calloc(1, sizeof(mbedtls_pk_rsassa_pss_options));
+        pss_opts = mbedtls_calloc(1, sizeof(*pss_opts));
         if (pss_opts == NULL) {
             return MBEDTLS_ERR_X509_ALLOC_FAILED;
         }
@@ -1261,7 +1261,7 @@ int mbedtls_x509_get_subject_alt_name_ext(unsigned char **p,
                 return MBEDTLS_ERR_X509_INVALID_EXTENSIONS;
             }
 
-            cur->next = mbedtls_calloc(1, sizeof(mbedtls_asn1_sequence));
+            cur->next = mbedtls_calloc(1, sizeof(*cur->next));
 
             if (cur->next == NULL) {
                 return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS,

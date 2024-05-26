@@ -264,7 +264,7 @@ static int x509_get_entries(unsigned char **p,
         }
 
         if (*p < end) {
-            cur_entry->next = mbedtls_calloc(1, sizeof(mbedtls_x509_crl_entry));
+            cur_entry->next = mbedtls_calloc(1, sizeof(*cur_entry->next));
 
             if (cur_entry->next == NULL) {
                 return MBEDTLS_ERR_X509_ALLOC_FAILED;
@@ -296,9 +296,9 @@ int mbedtls_x509_crl_parse_der(mbedtls_x509_crl *chain,
         return MBEDTLS_ERR_X509_BAD_INPUT_DATA;
     }
 
-    memset(&sig_params1, 0, sizeof(mbedtls_x509_buf));
-    memset(&sig_params2, 0, sizeof(mbedtls_x509_buf));
-    memset(&sig_oid2, 0, sizeof(mbedtls_x509_buf));
+    memset(&sig_params1, 0, sizeof(sig_params1));
+    memset(&sig_params2, 0, sizeof(sig_params2));
+    memset(&sig_oid2, 0, sizeof(sig_oid2));
 
     /*
      * Add new CRL on the end of the chain if needed.
@@ -308,7 +308,7 @@ int mbedtls_x509_crl_parse_der(mbedtls_x509_crl *chain,
     }
 
     if (crl->version != 0 && crl->next == NULL) {
-        crl->next = mbedtls_calloc(1, sizeof(mbedtls_x509_crl));
+        crl->next = mbedtls_calloc(1, sizeof(*crl->next));
 
         if (crl->next == NULL) {
             mbedtls_x509_crl_free(crl);

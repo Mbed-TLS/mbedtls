@@ -214,7 +214,7 @@ int mbedtls_test_ssl_buffer_get(mbedtls_test_ssl_buffer *buf,
 int mbedtls_test_ssl_message_queue_setup(
     mbedtls_test_ssl_message_queue *queue, size_t capacity)
 {
-    queue->messages = mbedtls_calloc(capacity, sizeof(size_t));
+    queue->messages = mbedtls_calloc(capacity, sizeof(*queue->messages));
     if (NULL == queue->messages) {
         return MBEDTLS_ERR_SSL_ALLOC_FAILED;
     }
@@ -343,7 +343,7 @@ int mbedtls_test_mock_socket_connect(mbedtls_test_mock_socket *peer1,
 {
     int ret = -1;
 
-    peer1->output = mbedtls_calloc(1, sizeof(mbedtls_test_ssl_buffer));
+    peer1->output = mbedtls_calloc(1, sizeof(*peer1->output));
     if (peer1->output == NULL) {
         ret = MBEDTLS_ERR_SSL_ALLOC_FAILED;
         goto exit;
@@ -353,7 +353,7 @@ int mbedtls_test_mock_socket_connect(mbedtls_test_mock_socket *peer1,
         goto exit;
     }
 
-    peer2->output = mbedtls_calloc(1, sizeof(mbedtls_test_ssl_buffer));
+    peer2->output = mbedtls_calloc(1, sizeof(*peer2->output));
     if (peer2->output == NULL) {
         ret = MBEDTLS_ERR_SSL_ALLOC_FAILED;
         goto exit;

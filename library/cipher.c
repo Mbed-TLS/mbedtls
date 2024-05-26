@@ -285,9 +285,9 @@ int mbedtls_cipher_setup_psa(mbedtls_cipher_context_t *ctx,
         return MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE;
     }
 
-    memset(ctx, 0, sizeof(mbedtls_cipher_context_t));
+    memset(ctx, 0, sizeof(*ctx));
 
-    cipher_psa = mbedtls_calloc(1, sizeof(mbedtls_cipher_context_psa));
+    cipher_psa = mbedtls_calloc(1, sizeof(*cipher_psa));
     if (cipher_psa == NULL) {
         return MBEDTLS_ERR_CIPHER_ALLOC_FAILED;
     }

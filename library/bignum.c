@@ -214,7 +214,7 @@ int mbedtls_mpi_grow(mbedtls_mpi *X, size_t nblimbs)
     }
 
     if (X->n < nblimbs) {
-        if ((p = (mbedtls_mpi_uint *) mbedtls_calloc(nblimbs, ciL)) == NULL) {
+        if ((p = mbedtls_calloc(nblimbs, ciL)) == NULL) {
             return MBEDTLS_ERR_MPI_ALLOC_FAILED;
         }
 
@@ -262,7 +262,7 @@ int mbedtls_mpi_shrink(mbedtls_mpi *X, size_t nblimbs)
         i = nblimbs;
     }
 
-    if ((p = (mbedtls_mpi_uint *) mbedtls_calloc(i, ciL)) == NULL) {
+    if ((p = mbedtls_calloc(i, ciL)) == NULL) {
         return MBEDTLS_ERR_MPI_ALLOC_FAILED;
     }
 
@@ -1641,7 +1641,7 @@ int mbedtls_mpi_exp_mod(mbedtls_mpi *X, const mbedtls_mpi *A,
      * Allocate working memory for mbedtls_mpi_core_exp_mod()
      */
     size_t T_limbs = mbedtls_mpi_core_exp_mod_working_limbs(N->n, E->n);
-    mbedtls_mpi_uint *T = (mbedtls_mpi_uint *) mbedtls_calloc(T_limbs, sizeof(mbedtls_mpi_uint));
+    mbedtls_mpi_uint *T = mbedtls_calloc(T_limbs, sizeof(mbedtls_mpi_uint));
     if (T == NULL) {
         return MBEDTLS_ERR_MPI_ALLOC_FAILED;
     }

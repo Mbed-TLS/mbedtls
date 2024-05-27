@@ -638,7 +638,7 @@ void __init_psasim(const char **array,
         if (strncmp(array[i], "", 1) != 0) {
             INFO("Setting up %s", array[i]);
             memset(queue_path, 0, sizeof(queue_path));
-            sprintf(queue_path, "%s%s", TMP_FILE_BASE_PATH, array[i]);
+            snprintf(queue_path, sizeof(queue_path), "%s%s", TMP_FILE_BASE_PATH, array[i]);
 
             /* Create file if doesn't exist */
             fp = fopen(queue_path, "ab+");

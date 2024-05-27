@@ -8,6 +8,7 @@
 #include <sys/types.h>
 #include <sys/ipc.h>
 #include <sys/msg.h>
+#include <stddef.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -426,7 +427,7 @@ size_t psa_read(psa_handle_t msg_handle, uint32_t invec_idx,
         assert(idx >= 0);
 
         len = msgrcv(connections[idx].client_to_server_q, &msg, sizeof(struct message_text), 0, 0);
-        len = (len - sizeof(msg.message_text.qid));
+        len = (len - offsetof(struct message_text, buf));
 
         if (len < 0) {
             FATAL("Internal error: failed to dispatch read request to the client");

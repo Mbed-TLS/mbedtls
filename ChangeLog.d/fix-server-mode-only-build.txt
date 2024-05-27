@@ -1,0 +1,3 @@
+Bugfix
+   * Fix server mode only build when MBEDTLS_SSL_SRV_C is enabled but
+     MBEDTLS_SSL_CLI_C is disabled. Reported by M-Bab on GitHub in #9186.

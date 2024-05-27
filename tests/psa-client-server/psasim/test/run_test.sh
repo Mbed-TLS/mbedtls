@@ -17,7 +17,7 @@ function clean_run() {
     rm -f psa_notify_*
     pkill psa_partition || true
     pkill psa_client || true
-    ipcs | grep q | awk '{ printf " -q " $$2 }' | xargs ipcrm > /dev/null 2>&1 || true
+    ipcs | grep q | awk '{ printf " -q " $2 }' | xargs ipcrm > /dev/null 2>&1 || true
 }
 
 # The server creates some local files when it starts up so we can wait for this

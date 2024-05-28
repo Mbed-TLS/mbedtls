@@ -19,8 +19,12 @@
 #include "mbedtls/version.h"
 #include "psa/crypto.h"
 
+#ifdef DEBUG
 #define SERVER_PRINT(fmt, ...) \
     PRINT("Server: " fmt, ##__VA_ARGS__)
+#else
+#define SERVER_PRINT(...)
+#endif
 
 #define BUF_SIZE 25
 

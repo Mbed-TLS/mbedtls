@@ -173,6 +173,7 @@ endif()
 # With this line, only 4 sub-makefiles include the above command, that reduces
 # the risk of a race.
 add_custom_target(test_suite_bignum_generated_data DEPENDS ${bignum_generated_data_files})
+add_custom_target(test_suite_config_generated_data DEPENDS ${config_generated_data_files})
 add_custom_target(test_suite_ecp_generated_data DEPENDS ${ecp_generated_data_files})
 add_custom_target(test_suite_psa_generated_data DEPENDS ${psa_generated_data_files})
 # If SKIP_TEST_SUITES is not defined with -D, get it from the environment.
@@ -230,6 +231,10 @@ function(add_test_suite suite_name)
         set(data_file
             ${CMAKE_CURRENT_BINARY_DIR}/suites/test_suite_${data_name}.data)
         set(dependency test_suite_bignum_generated_data)
+    elseif(";${config_generated_data_names};" MATCHES ";${data_name};")
+        set(data_file
+            ${CMAKE_CURRENT_BINARY_DIR}/suites/test_suite_${data_name}.data)
+        set(dependency test_suite_bignum_generated_data)
     elseif(";${ecp_generated_data_names};" MATCHES ";${data_name};")
         set(data_file
             ${CMAKE_CURRENT_BINARY_DIR}/suites/test_suite_${data_name}.data)
@@ -241,7 +246,11 @@ function(add_test_suite suite_name)
     else()
         set(data_file
             ${CMAKE_CURRENT_SOURCE_DIR}/suites/test_suite_${data_name}.data)
-        set(dependency test_suite_bignum_generated_data test_suite_ecp_generated_data test_suite_psa_generated_data)
+        set(dependency
+            test_suite_bignum_generated_data
+            test_suite_config_generated_data
+            test_suite_ecp_generated_data
+            test_suite_psa_generated_data)
     endif()
 
     add_custom_command(

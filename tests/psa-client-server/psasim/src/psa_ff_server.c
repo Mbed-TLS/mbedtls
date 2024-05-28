@@ -455,7 +455,6 @@ size_t psa_read(psa_handle_t msg_handle, uint32_t invec_idx,
 void psa_write(psa_handle_t msg_handle, uint32_t outvec_idx,
                const void *buffer, size_t num_bytes)
 {
-
     size_t sofar = 0;
     struct message msg = { 0 };
     int idx;
@@ -499,7 +498,6 @@ void psa_write(psa_handle_t msg_handle, uint32_t outvec_idx,
 
 size_t psa_skip(psa_handle_t msg_handle, uint32_t invec_idx, size_t num_bytes)
 {
-
     is_valid_msg_handle(msg_handle);
     is_call_msg(msg_handle);
 
@@ -512,7 +510,6 @@ size_t psa_skip(psa_handle_t msg_handle, uint32_t invec_idx, size_t num_bytes)
 
 static void destroy_temporary_queue(int myqid)
 {
-
     if (msgctl(myqid, IPC_RMID, NULL) != 0) {
         INFO("ERROR: Failed to delete msg queue %d", myqid);
     }
@@ -614,7 +611,6 @@ void __init_psasim(const char **array,
                    const uint32_t versions[32],
                    const int strict_policy_array[32])
 {
-
     static uint8_t library_initialised = 0;
     key_t key;
     int qid;

@@ -2,7 +2,7 @@
 
 Usage:
 
-    import scripts_path # pylint: disable=unused-import
+    import framework_scripts_path # pylint: disable=unused-import
 """
 
 # Copyright The Mbed TLS Contributors
@@ -13,8 +13,5 @@ import os
 import sys
 
 sys.path.append(os.path.join(os.path.dirname(__file__),
-                             os.path.pardir, os.path.pardir,
-                             'scripts'))
-sys.path.append(os.path.join(os.path.dirname(__file__),
-                             os.path.pardir, os.path.pardir,
+                             os.path.pardir,
                              'framework', 'scripts'))

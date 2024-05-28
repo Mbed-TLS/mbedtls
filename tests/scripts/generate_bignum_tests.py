@@ -48,12 +48,12 @@ from abc import ABCMeta
 from typing import List
 
 import scripts_path # pylint: disable=unused-import
-from mbedtls_dev import test_data_generation
-from mbedtls_dev import bignum_common
+from mbedtls_framework import test_data_generation
+from mbedtls_framework import bignum_common
 # Import modules containing additional test classes
 # Test function classes in these modules will be registered by
 # the framework
-from mbedtls_dev import bignum_core, bignum_mod_raw, bignum_mod # pylint: disable=unused-import
+from mbedtls_framework import bignum_core, bignum_mod_raw, bignum_mod # pylint: disable=unused-import
 
 class BignumTarget(test_data_generation.BaseTarget):
     #pylint: disable=too-few-public-methods

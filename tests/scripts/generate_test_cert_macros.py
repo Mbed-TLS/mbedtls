@@ -14,7 +14,7 @@ import sys
 import argparse
 import jinja2
 import scripts_path # pylint: disable=unused-import
-from mbedtls_dev.build_tree import guess_project_root
+from mbedtls_framework.build_tree import guess_project_root
 
 TEST_DIR = os.path.join(guess_project_root(), 'tests')
 DATA_FILES_PATH = os.path.join(TEST_DIR, 'data_files')

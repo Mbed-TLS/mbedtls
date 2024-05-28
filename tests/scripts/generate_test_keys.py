@@ -10,8 +10,8 @@ from typing import Iterator, List, Tuple
 import re
 import argparse
 import scripts_path # pylint: disable=unused-import
-from mbedtls_dev.asymmetric_key_data import ASYMMETRIC_KEY_DATA
-from mbedtls_dev.build_tree import guess_project_root
+from mbedtls_framework.asymmetric_key_data import ASYMMETRIC_KEY_DATA
+from mbedtls_framework.build_tree import guess_project_root
 
 BYTES_PER_LINE = 16
 

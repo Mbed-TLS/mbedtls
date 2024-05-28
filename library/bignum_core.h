@@ -377,7 +377,7 @@ mbedtls_mpi_uint mbedtls_mpi_core_add_if(mbedtls_mpi_uint *X,
  * either otherwise.
  *
  * This function operates in constant time with respect to the values
- * of \p X and \p A and \p B.
+ * of \p A and \p B.
  *
  * \param[out] X    The result of the subtraction.
  * \param[in] A     Little-endian presentation of left operand.

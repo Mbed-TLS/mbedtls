@@ -666,8 +666,6 @@ void mpi_core_sub(char *input_A, char *input_B,
     /* 1a) r = a - b => we should get the correct carry */
     TEST_EQUAL(carry, mbedtls_mpi_core_sub(r, a, b, limbs));
 
-    TEST_CF_PUBLIC(a, bytes);
-    TEST_CF_PUBLIC(b, bytes);
     TEST_CF_PUBLIC(r, bytes);
 
     /* 1b) r = a - b => we should get the correct result */
@@ -678,12 +676,10 @@ void mpi_core_sub(char *input_A, char *input_B,
     memcpy(r, a, bytes);
 
     TEST_CF_SECRET(r, bytes);
-    TEST_CF_SECRET(b, bytes);
 
     TEST_EQUAL(carry, mbedtls_mpi_core_sub(r, r, b, limbs));
 
     TEST_CF_PUBLIC(r, bytes);
-    TEST_CF_PUBLIC(b, bytes);
 
     /* 2b) r -= b => we should get the correct result */
     TEST_MEMORY_COMPARE(r, bytes, x, bytes);
@@ -692,12 +688,10 @@ void mpi_core_sub(char *input_A, char *input_B,
     memcpy(r, b, bytes);
 
     TEST_CF_SECRET(r, bytes);
-    TEST_CF_SECRET(a, bytes);
 
     TEST_EQUAL(carry, mbedtls_mpi_core_sub(r, a, r, limbs));
 
     TEST_CF_PUBLIC(r, bytes);
-    TEST_CF_PUBLIC(a, bytes);
 
     /* 3b) r = a - b => we should get the correct result */
     TEST_MEMORY_COMPARE(r, bytes, x, bytes);

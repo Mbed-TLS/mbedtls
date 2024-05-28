@@ -81,6 +81,14 @@ def find_super_option(cfg: config.Config,
             return 'MBEDTLS_CIPHER_C:MBEDTLS_CIPHER_MODE_CBC'
         if name.startswith('MBEDTLS_PK_PARSE_EC_'):
             return 'MBEDTLS_PK_C:MBEDTLS_PK_HAVE_ECC_KEYS'
+        # For TLS options, insist on having them once off and once on in
+        # a configuration where both client support and server support are
+        # enabled. The options are also meaningful when only one side is
+        # enabled, but there isn't much point in having separate records
+        # for client-side and server-side, so we keep things simple.
+        # Requiring both sides to be enabled also means we know we'll run
+        # tests that only run Mbed TLS against itself, which only run in
+        # configurations with both sides enabled.
         if name.startswith('MBEDTLS_SSL_TLS1_3_') or \
            name == 'MBEDTLS_SSL_EARLY_DATA':
             return 'MBEDTLS_SSL_CLI_C:MBEDTLS_SSL_SRV_C:MBEDTLS_SSL_PROTO_TLS1_3'

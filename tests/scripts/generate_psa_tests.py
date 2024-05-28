@@ -14,13 +14,13 @@ import sys
 from typing import Callable, Dict, FrozenSet, Iterable, Iterator, List, Optional
 
 import scripts_path # pylint: disable=unused-import
-from mbedtls_dev import crypto_data_tests
-from mbedtls_dev import crypto_knowledge
-from mbedtls_dev import macro_collector #pylint: disable=unused-import
-from mbedtls_dev import psa_information
-from mbedtls_dev import psa_storage
-from mbedtls_dev import test_case
-from mbedtls_dev import test_data_generation
+from mbedtls_framework import crypto_data_tests
+from mbedtls_framework import crypto_knowledge
+from mbedtls_framework import macro_collector #pylint: disable=unused-import
+from mbedtls_framework import psa_information
+from mbedtls_framework import psa_storage
+from mbedtls_framework import test_case
+from mbedtls_framework import test_data_generation
 
 
 

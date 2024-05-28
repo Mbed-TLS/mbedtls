@@ -479,9 +479,9 @@ void psa_write(psa_handle_t msg_handle, uint32_t outvec_idx,
             sending = MAX_FRAGMENT_SIZE - (sizeof(size_t) * 2);
         }
 
-        INFO("Server: sending %lu bytes to client", sending);
+        INFO("Server: sending %lu bytes to client, sofar = %lu", sending, (long)sofar);
 
-        send_msg(msg_handle, WRITE_REQUEST, outvec_idx, sending, buffer, sending);
+        send_msg(msg_handle, WRITE_REQUEST, outvec_idx, sending, buffer + sofar, sending);
 
         idx = find_connection(message_client[msg_handle]);
         assert(idx >= 0);
@@ -490,7 +490,7 @@ void psa_write(psa_handle_t msg_handle, uint32_t outvec_idx,
         if (len < 1) {
             FATAL("Client didn't give me a full response");
         }
-        sofar = sofar + len;
+        sofar = sofar + sending;
     }
 
     /* Update the seek count */

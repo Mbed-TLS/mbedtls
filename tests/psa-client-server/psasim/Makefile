@@ -1,4 +1,4 @@
-MAIN ?= client.c
+MAIN ?= src/client.c
 
 CFLAGS += -Wall -Werror -std=c99 -D_XOPEN_SOURCE=1 -D_POSIX_C_SOURCE=200809L
 
@@ -20,7 +20,7 @@ GENERATED_H_FILES =	include/psa_manifest/manifest.h \
 					include/psa_manifest/sid.h
 
 PSA_CLIENT_SRC = src/psa_ff_client.c \
-		 src/$(MAIN) \
+		 $(MAIN) \
 		 src/psa_sim_crypto_client.c \
 		 src/psa_sim_serialise.c
 

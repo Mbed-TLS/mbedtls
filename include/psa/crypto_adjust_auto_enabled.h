@@ -20,7 +20,7 @@
     "up to and including runtime errors such as buffer overflows. " \
     "If you're trying to fix a complaint from check_config.h, just remove " \
     "it from your configuration file: since Mbed TLS 3.0, it is included " \
-    "automatically at the right time."
+    "automatically at the right point."
 #endif /* */
 
 #define PSA_WANT_KEY_TYPE_DERIVE 1

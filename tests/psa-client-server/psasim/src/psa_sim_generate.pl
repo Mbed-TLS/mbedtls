@@ -484,6 +484,8 @@ sub output_server_wrapper
     my $ret_name = $f->{return}->{name};
     my $ret_default = $f->{return}->{default};
 
+    my @buffers = ();           # We need to free() these on exit
+
     print $fh <<EOF;
 
 // Returns 1 for success, 0 for failure
@@ -509,6 +511,7 @@ EOF
     uint8_t *$n1 = NULL;
     size_t $n2;
 EOF
+            push(@buffers, $n1);        # Add to the list to be free()d at end
         } else {
             $argname =~ s/^\*//;        # Remove any leading *
             print $fh <<EOF;
@@ -672,15 +675,19 @@ EOF
         }
     }
 
+    my $free_buffers = join("", map { "    free($_);\n" } @buffers);
+    $free_buffers = "\n" . $free_buffers if length($free_buffers);
+
     print $fh <<EOF;
 
     *out_params = result;
     *out_params_len = result_size;
-
+$free_buffers
     return 1;   // success
 
 fail:
     free(result);
+$free_buffers
     return 0;       // This shouldn't happen!
 }
 EOF

@@ -57,6 +57,7 @@ int psa_crypto_init_wrapper(
 
 fail:
     free(result);
+
     return 0;       // This shouldn't happen!
 }
 
@@ -125,6 +126,7 @@ int psa_hash_abort_wrapper(
 
 fail:
     free(result);
+
     return 0;       // This shouldn't happen!
 }
 
@@ -200,6 +202,7 @@ int psa_hash_clone_wrapper(
 
 fail:
     free(result);
+
     return 0;       // This shouldn't happen!
 }
 
@@ -274,10 +277,17 @@ int psa_hash_compare_wrapper(
     *out_params = result;
     *out_params_len = result_size;
 
+    free(input);
+    free(hash);
+
     return 1;   // success
 
 fail:
     free(result);
+
+    free(input);
+    free(hash);
+
     return 0;       // This shouldn't happen!
 }
 
@@ -371,10 +381,17 @@ int psa_hash_compute_wrapper(
     *out_params = result;
     *out_params_len = result_size;
 
+    free(input);
+    free(hash);
+
     return 1;   // success
 
 fail:
     free(result);
+
+    free(input);
+    free(hash);
+
     return 0;       // This shouldn't happen!
 }
 
@@ -466,10 +483,15 @@ int psa_hash_finish_wrapper(
     *out_params = result;
     *out_params_len = result_size;
 
+    free(hash);
+
     return 1;   // success
 
 fail:
     free(result);
+
+    free(hash);
+
     return 0;       // This shouldn't happen!
 }
 
@@ -545,6 +567,7 @@ int psa_hash_setup_wrapper(
 
 fail:
     free(result);
+
     return 0;       // This shouldn't happen!
 }
 
@@ -617,10 +640,15 @@ int psa_hash_update_wrapper(
     *out_params = result;
     *out_params_len = result_size;
 
+    free(input);
+
     return 1;   // success
 
 fail:
     free(result);
+
+    free(input);
+
     return 0;       // This shouldn't happen!
 }
 
@@ -693,10 +721,15 @@ int psa_hash_verify_wrapper(
     *out_params = result;
     *out_params_len = result_size;
 
+    free(hash);
+
     return 1;   // success
 
 fail:
     free(result);
+
+    free(hash);
+
     return 0;       // This shouldn't happen!
 }
 

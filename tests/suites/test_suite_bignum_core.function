@@ -919,21 +919,36 @@ void mpi_core_montmul(int limbs_AN4, int limbs_B4,
     size_t working_limbs = mbedtls_mpi_core_montmul_working_limbs(limbs_AN);
     TEST_EQUAL(working_limbs, limbs_AN * 2 + 1);
     TEST_EQUAL(0, mbedtls_mpi_grow(&T, working_limbs));
-
+#if !defined(MBEDTLS_TEST_CONSTANT_FLOW_MEMSAN)
+    TEST_CF_SECRET(N.p, N.n * sizeof(mbedtls_mpi_uint));
+#endif
     /* Calculate the Montgomery constant (this is unit tested separately) */
     mbedtls_mpi_uint mm = mbedtls_mpi_core_montmul_init(N.p);
 
     TEST_EQUAL(0, mbedtls_mpi_grow(&R, limbs_AN));     /* ensure it's got the right number of limbs */
 
+#if !defined(MBEDTLS_TEST_CONSTANT_FLOW_MEMSAN)
+    TEST_CF_SECRET(A.p, A.n * sizeof(mbedtls_mpi_uint));
+    TEST_CF_SECRET(B.p, B.n * sizeof(mbedtls_mpi_uint));
+#endif
     mbedtls_mpi_core_montmul(R.p, A.p, B.p, B.n, N.p, N.n, mm, T.p);
+#if !defined(MBEDTLS_TEST_CONSTANT_FLOW_MEMSAN)
+    TEST_CF_PUBLIC(R.p, R.n * sizeof(mbedtls_mpi_uint));
+    TEST_CF_PUBLIC(N.p, N.n * sizeof(mbedtls_mpi_uint));
+#endif
     size_t bytes = N.n * sizeof(mbedtls_mpi_uint);
     TEST_MEMORY_COMPARE(R.p, bytes, X->p, bytes);
 
     /* The output (R, above) may be aliased to A - use R to save the value of A */
 
     memcpy(R.p, A.p, bytes);
-
+#if !defined(MBEDTLS_TEST_CONSTANT_FLOW_MEMSAN)
+    TEST_CF_SECRET(N.p, N.n * sizeof(mbedtls_mpi_uint));
+#endif
     mbedtls_mpi_core_montmul(A.p, A.p, B.p, B.n, N.p, N.n, mm, T.p);
+#if !defined(MBEDTLS_TEST_CONSTANT_FLOW_MEMSAN)
+    TEST_CF_PUBLIC(A.p, A.n * sizeof(mbedtls_mpi_uint));
+#endif
     TEST_MEMORY_COMPARE(A.p, bytes, X->p, bytes);
 
     memcpy(A.p, R.p, bytes);    /* restore A */
@@ -941,27 +956,46 @@ void mpi_core_montmul(int limbs_AN4, int limbs_B4,
     /* The output may be aliased to N - use R to save the value of N */
 
     memcpy(R.p, N.p, bytes);
-
+#if !defined(MBEDTLS_TEST_CONSTANT_FLOW_MEMSAN)
+    TEST_CF_SECRET(A.p, A.n * sizeof(mbedtls_mpi_uint));
+#endif
     mbedtls_mpi_core_montmul(N.p, A.p, B.p, B.n, N.p, N.n, mm, T.p);
+#if !defined(MBEDTLS_TEST_CONSTANT_FLOW_MEMSAN)
+    TEST_CF_PUBLIC(N.p, N.n * sizeof(mbedtls_mpi_uint));
+#endif
     TEST_MEMORY_COMPARE(N.p, bytes, X->p, bytes);
 
     memcpy(N.p, R.p, bytes);
-
+#if !defined(MBEDTLS_TEST_CONSTANT_FLOW_MEMSAN)
+    TEST_CF_PUBLIC(A.p, A.n * sizeof(mbedtls_mpi_uint));
+    TEST_CF_PUBLIC(B.p, B.n * sizeof(mbedtls_mpi_uint));
+#endif
     if (limbs_AN == limbs_B) {
         /* Test when A aliased to B (requires A == B on input values) */
         if (memcmp(A.p, B.p, bytes) == 0) {
             /* Test with A aliased to B and output, since this is permitted -
              * don't bother with yet another test with only A and B aliased */
-
+#if !defined(MBEDTLS_TEST_CONSTANT_FLOW_MEMSAN)
+            TEST_CF_SECRET(A.p, A.n * sizeof(mbedtls_mpi_uint));
+            TEST_CF_SECRET(B.p, B.n * sizeof(mbedtls_mpi_uint));
+#endif
             mbedtls_mpi_core_montmul(B.p, B.p, B.p, B.n, N.p, N.n, mm, T.p);
+#if !defined(MBEDTLS_TEST_CONSTANT_FLOW_MEMSAN)
+            TEST_CF_PUBLIC(B.p, B.n * sizeof(mbedtls_mpi_uint));
+#endif
             TEST_MEMORY_COMPARE(B.p, bytes, X->p, bytes);
 
             memcpy(B.p, A.p, bytes);    /* restore B from equal value A */
         }
 
         /* The output may be aliased to B - last test, so we don't save B */
-
+#if !defined(MBEDTLS_TEST_CONSTANT_FLOW_MEMSAN)
+        TEST_CF_SECRET(B.p, B.n * sizeof(mbedtls_mpi_uint));
+#endif
         mbedtls_mpi_core_montmul(B.p, A.p, B.p, B.n, N.p, N.n, mm, T.p);
+#if !defined(MBEDTLS_TEST_CONSTANT_FLOW_MEMSAN)
+        TEST_CF_PUBLIC(B.p, B.n * sizeof(mbedtls_mpi_uint));
+#endif
         TEST_MEMORY_COMPARE(B.p, bytes, X->p, bytes);
     }
 

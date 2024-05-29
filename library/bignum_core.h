@@ -462,6 +462,10 @@ mbedtls_mpi_uint mbedtls_mpi_core_montmul_init(const mbedtls_mpi_uint *N);
  * \p A and \p B may alias each other, if \p AN_limbs == \p B_limbs. They may
  * not alias \p N (since they must be in canonical form, they cannot == \p N).
  *
+ * This function operates in constant time with respect
+ * to the values of \p A, \p B and \p N.
+ *
+ *
  * \param[out]    X         The destination MPI, as a little-endian array of
  *                          length \p AN_limbs.
  *                          On successful completion, X contains the result of

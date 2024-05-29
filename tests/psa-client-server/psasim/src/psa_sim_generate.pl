@@ -1128,3 +1128,269 @@ psa_status_t psa_hash_compute(psa_algorithm_t alg,
                               uint8_t *hash,
                               size_t hash_size,
                               size_t *hash_length);
+
+/* XXX We put this next one in place to check we ignore static functions
+ *     when we eventually read all this from a real header file
+ */
+
+/** Return an initial value for a hash operation object.
+ */
+static psa_hash_operation_t psa_hash_operation_init(void);
+
+/* XXX Back to normal function declarations */
+
+/** Set up a multipart hash operation.
+ *
+ * The sequence of operations to calculate a hash (message digest)
+ * is as follows:
+ * -# Allocate an operation object which will be passed to all the functions
+ *    listed here.
+ * -# Initialize the operation object with one of the methods described in the
+ *    documentation for #psa_hash_operation_t, e.g. #PSA_HASH_OPERATION_INIT.
+ * -# Call psa_hash_setup() to specify the algorithm.
+ * -# Call psa_hash_update() zero, one or more times, passing a fragment
+ *    of the message each time. The hash that is calculated is the hash
+ *    of the concatenation of these messages in order.
+ * -# To calculate the hash, call psa_hash_finish().
+ *    To compare the hash with an expected value, call psa_hash_verify().
+ *
+ * If an error occurs at any step after a call to psa_hash_setup(), the
+ * operation will need to be reset by a call to psa_hash_abort(). The
+ * application may call psa_hash_abort() at any time after the operation
+ * has been initialized.
+ *
+ * After a successful call to psa_hash_setup(), the application must
+ * eventually terminate the operation. The following events terminate an
+ * operation:
+ * - A successful call to psa_hash_finish() or psa_hash_verify().
+ * - A call to psa_hash_abort().
+ *
+ * \param[in,out] operation The operation object to set up. It must have
+ *                          been initialized as per the documentation for
+ *                          #psa_hash_operation_t and not yet in use.
+ * \param alg               The hash algorithm to compute (\c PSA_ALG_XXX value
+ *                          such that #PSA_ALG_IS_HASH(\p alg) is true).
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ *         \p alg is not a supported hash algorithm.
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         \p alg is not a hash algorithm.
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE \emptydescription
+ * \retval #PSA_ERROR_HARDWARE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The operation state is not valid (it must be inactive), or
+ *         the library has not been previously initialized by psa_crypto_init().
+ *         It is implementation-dependent whether a failure to initialize
+ *         results in this error code.
+ */
+psa_status_t psa_hash_setup(psa_hash_operation_t *operation,
+                            psa_algorithm_t alg);
+
+/** Add a message fragment to a multipart hash operation.
+ *
+ * The application must call psa_hash_setup() before calling this function.
+ *
+ * If this function returns an error status, the operation enters an error
+ * state and must be aborted by calling psa_hash_abort().
+ *
+ * \param[in,out] operation Active hash operation.
+ * \param[in] input         Buffer containing the message fragment to hash.
+ * \param input_length      Size of the \p input buffer in bytes.
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE \emptydescription
+ * \retval #PSA_ERROR_HARDWARE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The operation state is not valid (it must be active), or
+ *         the library has not been previously initialized by psa_crypto_init().
+ *         It is implementation-dependent whether a failure to initialize
+ *         results in this error code.
+ */
+psa_status_t psa_hash_update(psa_hash_operation_t *operation,
+                             const uint8_t *input,
+                             size_t input_length);
+
+/** Finish the calculation of the hash of a message.
+ *
+ * The application must call psa_hash_setup() before calling this function.
+ * This function calculates the hash of the message formed by concatenating
+ * the inputs passed to preceding calls to psa_hash_update().
+ *
+ * When this function returns successfully, the operation becomes inactive.
+ * If this function returns an error status, the operation enters an error
+ * state and must be aborted by calling psa_hash_abort().
+ *
+ * \warning Applications should not call this function if they expect
+ *          a specific value for the hash. Call psa_hash_verify() instead.
+ *          Beware that comparing integrity or authenticity data such as
+ *          hash values with a function such as \c memcmp is risky
+ *          because the time taken by the comparison may leak information
+ *          about the hashed data which could allow an attacker to guess
+ *          a valid hash and thereby bypass security controls.
+ *
+ * \param[in,out] operation     Active hash operation.
+ * \param[out] hash             Buffer where the hash is to be written.
+ * \param hash_size             Size of the \p hash buffer in bytes.
+ * \param[out] hash_length      On success, the number of bytes
+ *                              that make up the hash value. This is always
+ *                              #PSA_HASH_LENGTH(\c alg) where \c alg is the
+ *                              hash algorithm that is calculated.
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ * \retval #PSA_ERROR_BUFFER_TOO_SMALL
+ *         The size of the \p hash buffer is too small. You can determine a
+ *         sufficient buffer size by calling #PSA_HASH_LENGTH(\c alg)
+ *         where \c alg is the hash algorithm that is calculated.
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE \emptydescription
+ * \retval #PSA_ERROR_HARDWARE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The operation state is not valid (it must be active), or
+ *         the library has not been previously initialized by psa_crypto_init().
+ *         It is implementation-dependent whether a failure to initialize
+ *         results in this error code.
+ */
+psa_status_t psa_hash_finish(psa_hash_operation_t *operation,
+                             uint8_t *hash,
+                             size_t hash_size,
+                             size_t *hash_length);
+
+/** Finish the calculation of the hash of a message and compare it with
+ * an expected value.
+ *
+ * The application must call psa_hash_setup() before calling this function.
+ * This function calculates the hash of the message formed by concatenating
+ * the inputs passed to preceding calls to psa_hash_update(). It then
+ * compares the calculated hash with the expected hash passed as a
+ * parameter to this function.
+ *
+ * When this function returns successfully, the operation becomes inactive.
+ * If this function returns an error status, the operation enters an error
+ * state and must be aborted by calling psa_hash_abort().
+ *
+ * \note Implementations shall make the best effort to ensure that the
+ * comparison between the actual hash and the expected hash is performed
+ * in constant time.
+ *
+ * \param[in,out] operation     Active hash operation.
+ * \param[in] hash              Buffer containing the expected hash value.
+ * \param hash_length           Size of the \p hash buffer in bytes.
+ *
+ * \retval #PSA_SUCCESS
+ *         The expected hash is identical to the actual hash of the message.
+ * \retval #PSA_ERROR_INVALID_SIGNATURE
+ *         The hash of the message was calculated successfully, but it
+ *         differs from the expected hash.
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE \emptydescription
+ * \retval #PSA_ERROR_HARDWARE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The operation state is not valid (it must be active), or
+ *         the library has not been previously initialized by psa_crypto_init().
+ *         It is implementation-dependent whether a failure to initialize
+ *         results in this error code.
+ */
+psa_status_t psa_hash_verify(psa_hash_operation_t *operation,
+                             const uint8_t *hash,
+                             size_t hash_length);
+
+/** Abort a hash operation.
+ *
+ * Aborting an operation frees all associated resources except for the
+ * \p operation structure itself. Once aborted, the operation object
+ * can be reused for another operation by calling
+ * psa_hash_setup() again.
+ *
+ * You may call this function any time after the operation object has
+ * been initialized by one of the methods described in #psa_hash_operation_t.
+ *
+ * In particular, calling psa_hash_abort() after the operation has been
+ * terminated by a call to psa_hash_abort(), psa_hash_finish() or
+ * psa_hash_verify() is safe and has no effect.
+ *
+ * \param[in,out] operation     Initialized hash operation.
+ *
+ * \retval #PSA_SUCCESS \emptydescription
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE \emptydescription
+ * \retval #PSA_ERROR_HARDWARE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The library has not been previously initialized by psa_crypto_init().
+ *         It is implementation-dependent whether a failure to initialize
+ *         results in this error code.
+ */
+psa_status_t psa_hash_abort(psa_hash_operation_t *operation);
+
+/** Clone a hash operation.
+ *
+ * This function copies the state of an ongoing hash operation to
+ * a new operation object. In other words, this function is equivalent
+ * to calling psa_hash_setup() on \p target_operation with the same
+ * algorithm that \p source_operation was set up for, then
+ * psa_hash_update() on \p target_operation with the same input that
+ * that was passed to \p source_operation. After this function returns, the
+ * two objects are independent, i.e. subsequent calls involving one of
+ * the objects do not affect the other object.
+ *
+ * \param[in] source_operation      The active hash operation to clone.
+ * \param[in,out] target_operation  The operation object to set up.
+ *                                  It must be initialized but not active.
+ *
+ * \retval #PSA_SUCCESS \emptydescription
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE \emptydescription
+ * \retval #PSA_ERROR_HARDWARE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The \p source_operation state is not valid (it must be active), or
+ *         the \p target_operation state is not valid (it must be inactive), or
+ *         the library has not been previously initialized by psa_crypto_init().
+ *         It is implementation-dependent whether a failure to initialize
+ *         results in this error code.
+ */
+psa_status_t psa_hash_clone(const psa_hash_operation_t *source_operation,
+                            psa_hash_operation_t *target_operation);
+
+/** Calculate the hash (digest) of a message and compare it with a
+ * reference value.
+ *
+ * \param alg               The hash algorithm to compute (\c PSA_ALG_XXX value
+ *                          such that #PSA_ALG_IS_HASH(\p alg) is true).
+ * \param[in] input         Buffer containing the message to hash.
+ * \param input_length      Size of the \p input buffer in bytes.
+ * \param[out] hash         Buffer containing the expected hash value.
+ * \param hash_length       Size of the \p hash buffer in bytes.
+ *
+ * \retval #PSA_SUCCESS
+ *         The expected hash is identical to the actual hash of the input.
+ * \retval #PSA_ERROR_INVALID_SIGNATURE
+ *         The hash of the message was calculated successfully, but it
+ *         differs from the expected hash.
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ *         \p alg is not supported or is not a hash algorithm.
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         \p input_length or \p hash_length do not match the hash size for \p alg
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE \emptydescription
+ * \retval #PSA_ERROR_HARDWARE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The library has not been previously initialized by psa_crypto_init().
+ *         It is implementation-dependent whether a failure to initialize
+ *         results in this error code.
+ */
+psa_status_t psa_hash_compare(psa_algorithm_t alg,
+                              const uint8_t *input,
+                              size_t input_length,
+                              const uint8_t *hash,
+                              size_t hash_length);

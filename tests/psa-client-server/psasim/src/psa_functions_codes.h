@@ -12,7 +12,14 @@ enum {
     /* Start here to avoid overlap with PSA_IPC_CONNECT, PSA_IPC_DISCONNECT
      * and VERSION_REQUEST */
     PSA_CRYPTO_INIT = 100,
+    PSA_HASH_ABORT,
+    PSA_HASH_CLONE,
+    PSA_HASH_COMPARE,
     PSA_HASH_COMPUTE,
+    PSA_HASH_FINISH,
+    PSA_HASH_SETUP,
+    PSA_HASH_UPDATE,
+    PSA_HASH_VERIFY,
 };
 
 #endif /*  _PSA_FUNCTIONS_CODES_H_ */

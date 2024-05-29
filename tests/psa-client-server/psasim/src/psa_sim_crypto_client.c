@@ -121,6 +121,208 @@ void mbedtls_psa_crypto_free(void)
 }
 
 
+psa_status_t psa_hash_abort(
+    psa_hash_operation_t *operation
+    )
+{
+    uint8_t *params = NULL;
+    uint8_t *result = NULL;
+    size_t result_length;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
+    size_t needed = psasim_serialise_begin_needs() +
+                    psasim_serialise_psa_hash_operation_t_needs(*operation);
+
+    params = malloc(needed);
+    if (params == NULL) {
+        status = PSA_ERROR_INSUFFICIENT_MEMORY;
+        goto fail;
+    }
+
+    uint8_t *pos = params;
+    size_t remaining = needed;
+    int ok;
+    ok = psasim_serialise_begin(&pos, &remaining);
+    if (!ok) {
+        goto fail;
+    }
+    ok = psasim_serialise_psa_hash_operation_t(&pos, &remaining, *operation);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psa_crypto_call(PSA_HASH_ABORT,
+                         params, (size_t) (pos - params), &result, &result_length);
+    if (!ok) {
+        printf("XXX server call failed\n");
+        goto fail;
+    }
+
+    uint8_t *rpos = result;
+    size_t rremain = result_length;
+
+    ok = psasim_deserialise_begin(&rpos, &rremain);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_psa_hash_operation_t(&rpos, &rremain, operation);
+    if (!ok) {
+        goto fail;
+    }
+
+fail:
+    free(params);
+    free(result);
+
+    return status;
+}
+
+
+psa_status_t psa_hash_clone(
+    const psa_hash_operation_t *source_operation,
+    psa_hash_operation_t *target_operation
+    )
+{
+    uint8_t *params = NULL;
+    uint8_t *result = NULL;
+    size_t result_length;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
+    size_t needed = psasim_serialise_begin_needs() +
+                    psasim_serialise_psa_hash_operation_t_needs(*source_operation) +
+                    psasim_serialise_psa_hash_operation_t_needs(*target_operation);
+
+    params = malloc(needed);
+    if (params == NULL) {
+        status = PSA_ERROR_INSUFFICIENT_MEMORY;
+        goto fail;
+    }
+
+    uint8_t *pos = params;
+    size_t remaining = needed;
+    int ok;
+    ok = psasim_serialise_begin(&pos, &remaining);
+    if (!ok) {
+        goto fail;
+    }
+    ok = psasim_serialise_psa_hash_operation_t(&pos, &remaining, *source_operation);
+    if (!ok) {
+        goto fail;
+    }
+    ok = psasim_serialise_psa_hash_operation_t(&pos, &remaining, *target_operation);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psa_crypto_call(PSA_HASH_CLONE,
+                         params, (size_t) (pos - params), &result, &result_length);
+    if (!ok) {
+        printf("XXX server call failed\n");
+        goto fail;
+    }
+
+    uint8_t *rpos = result;
+    size_t rremain = result_length;
+
+    ok = psasim_deserialise_begin(&rpos, &rremain);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_psa_hash_operation_t(&rpos, &rremain, target_operation);
+    if (!ok) {
+        goto fail;
+    }
+
+fail:
+    free(params);
+    free(result);
+
+    return status;
+}
+
+
+psa_status_t psa_hash_compare(
+    psa_algorithm_t alg,
+    const uint8_t *input, size_t  input_length,
+    const uint8_t *hash, size_t  hash_length
+    )
+{
+    uint8_t *params = NULL;
+    uint8_t *result = NULL;
+    size_t result_length;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
+    size_t needed = psasim_serialise_begin_needs() +
+                    psasim_serialise_psa_algorithm_t_needs(alg) +
+                    psasim_serialise_buffer_needs(input, input_length) +
+                    psasim_serialise_buffer_needs(hash, hash_length);
+
+    params = malloc(needed);
+    if (params == NULL) {
+        status = PSA_ERROR_INSUFFICIENT_MEMORY;
+        goto fail;
+    }
+
+    uint8_t *pos = params;
+    size_t remaining = needed;
+    int ok;
+    ok = psasim_serialise_begin(&pos, &remaining);
+    if (!ok) {
+        goto fail;
+    }
+    ok = psasim_serialise_psa_algorithm_t(&pos, &remaining, alg);
+    if (!ok) {
+        goto fail;
+    }
+    ok = psasim_serialise_buffer(&pos, &remaining, input, input_length);
+    if (!ok) {
+        goto fail;
+    }
+    ok = psasim_serialise_buffer(&pos, &remaining, hash, hash_length);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psa_crypto_call(PSA_HASH_COMPARE,
+                         params, (size_t) (pos - params), &result, &result_length);
+    if (!ok) {
+        printf("XXX server call failed\n");
+        goto fail;
+    }
+
+    uint8_t *rpos = result;
+    size_t rremain = result_length;
+
+    ok = psasim_deserialise_begin(&rpos, &rremain);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    if (!ok) {
+        goto fail;
+    }
+
+fail:
+    free(params);
+    free(result);
+
+    return status;
+}
+
+
 psa_status_t psa_hash_compute(
     psa_algorithm_t alg,
     const uint8_t *input, size_t  input_length,
@@ -195,6 +397,298 @@ psa_status_t psa_hash_compute(
     }
 
     ok = psasim_deserialise_size_t(&rpos, &rremain, hash_length);
+    if (!ok) {
+        goto fail;
+    }
+
+fail:
+    free(params);
+    free(result);
+
+    return status;
+}
+
+
+psa_status_t psa_hash_finish(
+    psa_hash_operation_t *operation,
+    uint8_t *hash, size_t  hash_size,
+    size_t *hash_length
+    )
+{
+    uint8_t *params = NULL;
+    uint8_t *result = NULL;
+    size_t result_length;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
+    size_t needed = psasim_serialise_begin_needs() +
+                    psasim_serialise_psa_hash_operation_t_needs(*operation) +
+                    psasim_serialise_buffer_needs(hash, hash_size) +
+                    psasim_serialise_size_t_needs(*hash_length);
+
+    params = malloc(needed);
+    if (params == NULL) {
+        status = PSA_ERROR_INSUFFICIENT_MEMORY;
+        goto fail;
+    }
+
+    uint8_t *pos = params;
+    size_t remaining = needed;
+    int ok;
+    ok = psasim_serialise_begin(&pos, &remaining);
+    if (!ok) {
+        goto fail;
+    }
+    ok = psasim_serialise_psa_hash_operation_t(&pos, &remaining, *operation);
+    if (!ok) {
+        goto fail;
+    }
+    ok = psasim_serialise_buffer(&pos, &remaining, hash, hash_size);
+    if (!ok) {
+        goto fail;
+    }
+    ok = psasim_serialise_size_t(&pos, &remaining, *hash_length);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psa_crypto_call(PSA_HASH_FINISH,
+                         params, (size_t) (pos - params), &result, &result_length);
+    if (!ok) {
+        printf("XXX server call failed\n");
+        goto fail;
+    }
+
+    uint8_t *rpos = result;
+    size_t rremain = result_length;
+
+    ok = psasim_deserialise_begin(&rpos, &rremain);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_psa_hash_operation_t(&rpos, &rremain, operation);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_return_buffer(&rpos, &rremain, hash, hash_size);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_size_t(&rpos, &rremain, hash_length);
+    if (!ok) {
+        goto fail;
+    }
+
+fail:
+    free(params);
+    free(result);
+
+    return status;
+}
+
+
+psa_status_t psa_hash_setup(
+    psa_hash_operation_t *operation,
+    psa_algorithm_t alg
+    )
+{
+    uint8_t *params = NULL;
+    uint8_t *result = NULL;
+    size_t result_length;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
+    size_t needed = psasim_serialise_begin_needs() +
+                    psasim_serialise_psa_hash_operation_t_needs(*operation) +
+                    psasim_serialise_psa_algorithm_t_needs(alg);
+
+    params = malloc(needed);
+    if (params == NULL) {
+        status = PSA_ERROR_INSUFFICIENT_MEMORY;
+        goto fail;
+    }
+
+    uint8_t *pos = params;
+    size_t remaining = needed;
+    int ok;
+    ok = psasim_serialise_begin(&pos, &remaining);
+    if (!ok) {
+        goto fail;
+    }
+    ok = psasim_serialise_psa_hash_operation_t(&pos, &remaining, *operation);
+    if (!ok) {
+        goto fail;
+    }
+    ok = psasim_serialise_psa_algorithm_t(&pos, &remaining, alg);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psa_crypto_call(PSA_HASH_SETUP,
+                         params, (size_t) (pos - params), &result, &result_length);
+    if (!ok) {
+        printf("XXX server call failed\n");
+        goto fail;
+    }
+
+    uint8_t *rpos = result;
+    size_t rremain = result_length;
+
+    ok = psasim_deserialise_begin(&rpos, &rremain);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_psa_hash_operation_t(&rpos, &rremain, operation);
+    if (!ok) {
+        goto fail;
+    }
+
+fail:
+    free(params);
+    free(result);
+
+    return status;
+}
+
+
+psa_status_t psa_hash_update(
+    psa_hash_operation_t *operation,
+    const uint8_t *input, size_t  input_length
+    )
+{
+    uint8_t *params = NULL;
+    uint8_t *result = NULL;
+    size_t result_length;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
+    size_t needed = psasim_serialise_begin_needs() +
+                    psasim_serialise_psa_hash_operation_t_needs(*operation) +
+                    psasim_serialise_buffer_needs(input, input_length);
+
+    params = malloc(needed);
+    if (params == NULL) {
+        status = PSA_ERROR_INSUFFICIENT_MEMORY;
+        goto fail;
+    }
+
+    uint8_t *pos = params;
+    size_t remaining = needed;
+    int ok;
+    ok = psasim_serialise_begin(&pos, &remaining);
+    if (!ok) {
+        goto fail;
+    }
+    ok = psasim_serialise_psa_hash_operation_t(&pos, &remaining, *operation);
+    if (!ok) {
+        goto fail;
+    }
+    ok = psasim_serialise_buffer(&pos, &remaining, input, input_length);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psa_crypto_call(PSA_HASH_UPDATE,
+                         params, (size_t) (pos - params), &result, &result_length);
+    if (!ok) {
+        printf("XXX server call failed\n");
+        goto fail;
+    }
+
+    uint8_t *rpos = result;
+    size_t rremain = result_length;
+
+    ok = psasim_deserialise_begin(&rpos, &rremain);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_psa_hash_operation_t(&rpos, &rremain, operation);
+    if (!ok) {
+        goto fail;
+    }
+
+fail:
+    free(params);
+    free(result);
+
+    return status;
+}
+
+
+psa_status_t psa_hash_verify(
+    psa_hash_operation_t *operation,
+    const uint8_t *hash, size_t  hash_length
+    )
+{
+    uint8_t *params = NULL;
+    uint8_t *result = NULL;
+    size_t result_length;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
+    size_t needed = psasim_serialise_begin_needs() +
+                    psasim_serialise_psa_hash_operation_t_needs(*operation) +
+                    psasim_serialise_buffer_needs(hash, hash_length);
+
+    params = malloc(needed);
+    if (params == NULL) {
+        status = PSA_ERROR_INSUFFICIENT_MEMORY;
+        goto fail;
+    }
+
+    uint8_t *pos = params;
+    size_t remaining = needed;
+    int ok;
+    ok = psasim_serialise_begin(&pos, &remaining);
+    if (!ok) {
+        goto fail;
+    }
+    ok = psasim_serialise_psa_hash_operation_t(&pos, &remaining, *operation);
+    if (!ok) {
+        goto fail;
+    }
+    ok = psasim_serialise_buffer(&pos, &remaining, hash, hash_length);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psa_crypto_call(PSA_HASH_VERIFY,
+                         params, (size_t) (pos - params), &result, &result_length);
+    if (!ok) {
+        printf("XXX server call failed\n");
+        goto fail;
+    }
+
+    uint8_t *rpos = result;
+    size_t rremain = result_length;
+
+    ok = psasim_deserialise_begin(&rpos, &rremain);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_psa_hash_operation_t(&rpos, &rremain, operation);
     if (!ok) {
         goto fail;
     }

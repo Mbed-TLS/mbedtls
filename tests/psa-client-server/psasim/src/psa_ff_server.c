@@ -8,6 +8,7 @@
 #include <sys/types.h>
 #include <sys/ipc.h>
 #include <sys/msg.h>
+#include <stddef.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -426,7 +427,7 @@ size_t psa_read(psa_handle_t msg_handle, uint32_t invec_idx,
         assert(idx >= 0);
 
         len = msgrcv(connections[idx].client_to_server_q, &msg, sizeof(struct message_text), 0, 0);
-        len = (len - sizeof(msg.message_text.qid));
+        len = (len - offsetof(struct message_text, buf));
 
         if (len < 0) {
             FATAL("Internal error: failed to dispatch read request to the client");
@@ -454,7 +455,6 @@ size_t psa_read(psa_handle_t msg_handle, uint32_t invec_idx,
 void psa_write(psa_handle_t msg_handle, uint32_t outvec_idx,
                const void *buffer, size_t num_bytes)
 {
-
     size_t sofar = 0;
     struct message msg = { 0 };
     int idx;
@@ -478,9 +478,9 @@ void psa_write(psa_handle_t msg_handle, uint32_t outvec_idx,
             sending = MAX_FRAGMENT_SIZE - (sizeof(size_t) * 2);
         }
 
-        INFO("Server: sending %lu bytes to client", sending);
+        INFO("Server: sending %lu bytes to client, sofar = %lu", sending, (long) sofar);
 
-        send_msg(msg_handle, WRITE_REQUEST, outvec_idx, sending, buffer, sending);
+        send_msg(msg_handle, WRITE_REQUEST, outvec_idx, sending, buffer + sofar, sending);
 
         idx = find_connection(message_client[msg_handle]);
         assert(idx >= 0);
@@ -489,7 +489,7 @@ void psa_write(psa_handle_t msg_handle, uint32_t outvec_idx,
         if (len < 1) {
             FATAL("Client didn't give me a full response");
         }
-        sofar = sofar + len;
+        sofar = sofar + sending;
     }
 
     /* Update the seek count */
@@ -498,7 +498,6 @@ void psa_write(psa_handle_t msg_handle, uint32_t outvec_idx,
 
 size_t psa_skip(psa_handle_t msg_handle, uint32_t invec_idx, size_t num_bytes)
 {
-
     is_valid_msg_handle(msg_handle);
     is_call_msg(msg_handle);
 
@@ -511,7 +510,6 @@ size_t psa_skip(psa_handle_t msg_handle, uint32_t invec_idx, size_t num_bytes)
 
 static void destroy_temporary_queue(int myqid)
 {
-
     if (msgctl(myqid, IPC_RMID, NULL) != 0) {
         INFO("ERROR: Failed to delete msg queue %d", myqid);
     }
@@ -613,7 +611,6 @@ void __init_psasim(const char **array,
                    const uint32_t versions[32],
                    const int strict_policy_array[32])
 {
-
     static uint8_t library_initialised = 0;
     key_t key;
     int qid;
@@ -638,7 +635,7 @@ void __init_psasim(const char **array,
         if (strncmp(array[i], "", 1) != 0) {
             INFO("Setting up %s", array[i]);
             memset(queue_path, 0, sizeof(queue_path));
-            sprintf(queue_path, "%s%s", TMP_FILE_BASE_PATH, array[i]);
+            snprintf(queue_path, sizeof(queue_path), "%s%s", TMP_FILE_BASE_PATH, array[i]);
 
             /* Create file if doesn't exist */
             fp = fopen(queue_path, "ab+");

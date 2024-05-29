@@ -478,7 +478,7 @@ void psa_write(psa_handle_t msg_handle, uint32_t outvec_idx,
             sending = MAX_FRAGMENT_SIZE - (sizeof(size_t) * 2);
         }
 
-        INFO("Server: sending %lu bytes to client, sofar = %lu", sending, (long)sofar);
+        INFO("Server: sending %lu bytes to client, sofar = %lu", sending, (long) sofar);
 
         send_msg(msg_handle, WRITE_REQUEST, outvec_idx, sending, buffer + sofar, sending);
 

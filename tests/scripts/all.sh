@@ -6228,6 +6228,15 @@ component_test_psasim() {
     msg "test psasim"
     tests/psa-client-server/psasim/test/run_test.sh
 
+    msg "build psasim to test psa_hash_compute"
+    # Delete the executable to ensure we build using the right MAIN
+    rm tests/psa-client-server/psasim/test/psa_client
+    # API under test: psa_hash_compute()
+    make -C tests/psa-client-server/psasim CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS" MAIN="aut_psa_hash_compute.c"
+
+    msg "test psasim running psa_hash_compute"
+    tests/psa-client-server/psasim/test/run_test.sh
+
     msg "clean psasim"
     make -C tests/psa-client-server/psasim clean
 }

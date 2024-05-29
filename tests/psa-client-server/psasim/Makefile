@@ -1,3 +1,5 @@
+MAIN ?= client.c
+
 CFLAGS += -Wall -Werror -std=c99 -D_XOPEN_SOURCE=1 -D_POSIX_C_SOURCE=200809L
 
 ifeq ($(DEBUG),1)
@@ -18,12 +20,16 @@ GENERATED_H_FILES =	include/psa_manifest/manifest.h \
 					include/psa_manifest/sid.h
 
 PSA_CLIENT_SRC = src/psa_ff_client.c \
-				 src/client.c
+		 src/$(MAIN) \
+		 src/psa_sim_crypto_client.c \
+		 src/psa_sim_serialise.c
 
 PARTITION_SERVER_BOOTSTRAP = src/psa_ff_bootstrap_TEST_PARTITION.c
 
 PSA_SERVER_SRC = $(PARTITION_SERVER_BOOTSTRAP) \
-				 src/psa_ff_server.c
+				 src/psa_ff_server.c \
+				 src/psa_sim_crypto_server.c \
+				 src/psa_sim_serialise.c
 
 .PHONY: all clean libpsaclient libpsaserver
 

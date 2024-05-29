@@ -53,6 +53,7 @@ int psa_server_main(int argc, char *argv[])
     const int magic_num = 66;
     int client_disconnected = 0;
     char mbedtls_version[18];
+    extern psa_status_t psa_crypto_call(psa_msg_t msg);
 
     mbedtls_version_get_string_full(mbedtls_version);
     SERVER_PRINT("%s", mbedtls_version);
@@ -83,14 +84,7 @@ int psa_server_main(int argc, char *argv[])
                         break;
                     default:
                         SERVER_PRINT("Got an IPC call of type %d", msg.type);
-                        switch (msg.type) {
-                            case PSA_CRYPTO_INIT:
-                                ret = psa_crypto_init();
-                                break;
-                            default:
-                                SERVER_PRINT("Unknown PSA function code");
-                                break;
-                        }
+                        ret = psa_crypto_call(msg);
                         SERVER_PRINT("Internal function call returned %d", ret);
 
                         if (msg.client_id > 0) {

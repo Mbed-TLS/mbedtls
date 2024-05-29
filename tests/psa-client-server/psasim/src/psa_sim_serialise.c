@@ -319,3 +319,33 @@ int psasim_deserialise_return_buffer(uint8_t **pos,
 
     return 1;
 }
+
+size_t psasim_serialise_psa_status_t_needs(psa_status_t value)
+{
+    return psasim_serialise_int_needs(value);
+}
+
+int psasim_serialise_psa_status_t(uint8_t **pos, size_t *remaining, psa_status_t value)
+{
+    return psasim_serialise_int(pos, remaining, value);
+}
+
+int psasim_deserialise_psa_status_t(uint8_t **pos, size_t *remaining, psa_status_t *value)
+{
+    return psasim_deserialise_int(pos, remaining, value);
+}
+
+size_t psasim_serialise_psa_algorithm_t_needs(psa_algorithm_t value)
+{
+    return psasim_serialise_unsigned_int_needs(value);
+}
+
+int psasim_serialise_psa_algorithm_t(uint8_t **pos, size_t *remaining, psa_algorithm_t value)
+{
+    return psasim_serialise_unsigned_int(pos, remaining, value);
+}
+
+int psasim_deserialise_psa_algorithm_t(uint8_t **pos, size_t *remaining, psa_algorithm_t *value)
+{
+    return psasim_deserialise_unsigned_int(pos, remaining, value);
+}

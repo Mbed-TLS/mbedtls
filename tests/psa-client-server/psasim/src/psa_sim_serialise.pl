@@ -32,12 +32,13 @@ die($usage) unless $which eq "c" || $which eq "h";
 # deserialisation functions written manually (like those for the "buffer" type
 # are).
 #
-my @types = qw(unsigned-int int size_t buffer);
+my @types = qw(unsigned-int int size_t buffer psa_status_t psa_algorithm_t);
 grep(s/-/ /g, @types);
 
 # IS-A: Some data types are typedef'd; we serialise them as the other type
 my %isa = (
-    # e.g. "psa_status_t" => "int", but nothing for now
+    "psa_status_t" => "int",
+    "psa_algorithm_t" => "unsigned int",
 );
 
 if ($which eq "h") {

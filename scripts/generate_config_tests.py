@@ -44,12 +44,12 @@ PSA_WANT_KEY_TYPE_KEY_PAIR_RE = \
     re.compile(r'(?P<prefix>PSA_WANT_KEY_TYPE_(?P<type>\w+)_KEY_PAIR_)(?P<operation>\w+)\Z')
 
 # If foo is a setting that is only meaningful when bar is enabled, set
-# SUPER_SETTINGS[foo]=bar. More generally, bar can be a colon-separated
+# SIMPLE_DEPENDENCIES[foo]=bar. More generally, bar can be a colon-separated
 # list of settings, meaning that all the settings must be enabled. Each setting
-# can be prefixed with '!' to negate it. This is the same syntax as a
+# in bar can be prefixed with '!' to negate it. This is the same syntax as a
 # depends_on directive in test data.
-# See also `find_super_setting`.
-SUPER_SETTINGS = {
+# See also `dependencies_of_settting`.
+SIMPLE_DEPENDENCIES = {
     'MBEDTLS_AESCE_C': 'MBEDTLS_AES_C',
     'MBEDTLS_AESNI_C': 'MBEDTLS_AES_C',
     'MBEDTLS_ERROR_STRERROR_DUMMY': '!MBEDTLS_ERROR_C',
@@ -63,19 +63,25 @@ SUPER_SETTINGS = {
     'MBEDTLS_PSA_ASSUME_EXCLUSIVE_BUFFERS': 'MBEDTLS_PSA_CRYPTO_C',
 }
 
-def find_super_setting(cfg: config.Config,
-                       setting: config.Setting) -> Optional[str]:
-    """If setting is only meaningful when some setting is enabled, return that setting.
+def dependencies_of_setting(cfg: config.Config,
+                            setting: config.Setting) -> Optional[str]:
+    """Return dependencies without which a setting is not meaningful.
+
+    The dependencies of a setting express when a setting can be enabled and
+    is relevant. For example, if ``check_config.h`` errors out when
+    ``defined(FOO) && !defined(BAR)``, then ``BAR`` is a dependency of ``FOO``.
+    If ``FOO`` has no effect when ``CORGE`` is disabled, then ``CORGE``
+    is a dependency of ``FOO``.
 
     The return value can be a colon-separated list of settings, if the setting
-    is only meaningful when all of these settings are enabled. Settings can be
-    negated by prefixing them with '!'. This is the same syntax as a
+    is only meaningful when all of these settings are enabled. Each setting can
+    be negated by prefixing them with '!'. This is the same syntax as a
     depends_on directive in test data.
     """
     #pylint: disable=too-many-return-statements
     name = setting.name
-    if name in SUPER_SETTINGS:
-        return SUPER_SETTINGS[name]
+    if name in SIMPLE_DEPENDENCIES:
+        return SIMPLE_DEPENDENCIES[name]
     if name.startswith('MBEDTLS_') and not name.endswith('_C'):
         if name.startswith('MBEDTLS_CIPHER_PADDING_'):
             return 'MBEDTLS_CIPHER_C:MBEDTLS_CIPHER_MODE_CBC'
@@ -128,9 +134,9 @@ def conditions_for_setting(cfg: config.Config,
     if name.endswith('_ALT') and not config.is_seamless_alt(name):
         # We don't test alt implementations, except (most) platform alts
         return
-    super_setting = find_super_setting(cfg, setting)
-    if super_setting:
-        yield [super_setting], ''
+    dependencies = dependencies_of_setting(cfg, setting)
+    if dependencies:
+        yield [dependencies], ''
         return
     yield [], ''
 

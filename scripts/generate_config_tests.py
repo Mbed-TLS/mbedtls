@@ -15,9 +15,9 @@ from mbedtls_framework import test_case
 from mbedtls_framework import test_data_generation
 
 
-def single_option_case(setting: config.Setting, when_on: bool,
-                       dependencies: List[str],
-                       note: Optional[str]) -> test_case.TestCase:
+def single_setting_case(setting: config.Setting, when_on: bool,
+                        dependencies: List[str],
+                        note: Optional[str]) -> test_case.TestCase:
     """Construct a test case for a boolean setting.
 
     This test case passes if the setting and its dependencies are enabled,
@@ -27,7 +27,7 @@ def single_option_case(setting: config.Setting, when_on: bool,
     * when_on: True to test with the setting enabled, or False to test
       with the setting disabled.
     * dependencies: extra dependencies for the test case.
-    * note: a note to add after the option name in the test description.
+    * note: a note to add after the setting name in the test description.
       This is generally a summary of dependencies, and is generally empty
       if the given setting is only tested once.
     """
@@ -43,12 +43,12 @@ def single_option_case(setting: config.Setting, when_on: bool,
 PSA_WANT_KEY_TYPE_KEY_PAIR_RE = \
     re.compile(r'(?P<prefix>PSA_WANT_KEY_TYPE_(?P<type>\w+)_KEY_PAIR_)(?P<operation>\w+)\Z')
 
-# If foo is an option that is only meaningful when bar is enabled, set
+# If foo is a setting that is only meaningful when bar is enabled, set
 # SUPER_SETTINGS[foo]=bar. More generally, bar can be a colon-separated
-# list of options, meaning that all the options must be enabled. Each option
+# list of settings, meaning that all the settings must be enabled. Each setting
 # can be prefixed with '!' to negate it. This is the same syntax as a
 # depends_on directive in test data.
-# See also `find_super_option`.
+# See also `find_super_setting`.
 SUPER_SETTINGS = {
     'MBEDTLS_AESCE_C': 'MBEDTLS_AES_C',
     'MBEDTLS_AESNI_C': 'MBEDTLS_AES_C',
@@ -63,12 +63,12 @@ SUPER_SETTINGS = {
     'MBEDTLS_PSA_ASSUME_EXCLUSIVE_BUFFERS': 'MBEDTLS_PSA_CRYPTO_C',
 }
 
-def find_super_option(cfg: config.Config,
-                      setting: config.Setting) -> Optional[str]:
-    """If setting is only meaningful when some option is enabled, return that option.
+def find_super_setting(cfg: config.Config,
+                       setting: config.Setting) -> Optional[str]:
+    """If setting is only meaningful when some setting is enabled, return that setting.
 
-    The return value can be a colon-separated list of options, if the setting
-    is only meaningful when all of these options are enabled. Options can be
+    The return value can be a colon-separated list of settings, if the setting
+    is only meaningful when all of these settings are enabled. Settings can be
     negated by prefixing them with '!'. This is the same syntax as a
     depends_on directive in test data.
     """
@@ -81,9 +81,9 @@ def find_super_option(cfg: config.Config,
             return 'MBEDTLS_CIPHER_C:MBEDTLS_CIPHER_MODE_CBC'
         if name.startswith('MBEDTLS_PK_PARSE_EC_'):
             return 'MBEDTLS_PK_C:MBEDTLS_PK_HAVE_ECC_KEYS'
-        # For TLS options, insist on having them once off and once on in
+        # For TLS settings, insist on having them once off and once on in
         # a configuration where both client support and server support are
-        # enabled. The options are also meaningful when only one side is
+        # enabled. The settings are also meaningful when only one side is
         # enabled, but there isn't much point in having separate records
         # for client-side and server-side, so we keep things simple.
         # Requiring both sides to be enabled also means we know we'll run
@@ -105,12 +105,12 @@ def find_super_option(cfg: config.Config,
         return m.group('prefix') + 'BASIC'
     return None
 
-def conditions_for_option(cfg: config.Config,
-                          setting: config.Setting
-                          ) -> Iterator[Tuple[List[str], str]]:
+def conditions_for_setting(cfg: config.Config,
+                           setting: config.Setting
+                           ) -> Iterator[Tuple[List[str], str]]:
     """Enumerate the conditions under which to test the given setting.
 
-    * cfg: all configuration options.
+    * cfg: all configuration settings.
     * setting: the setting to be tested.
 
     Generate a stream of conditions, i.e. extra dependencies to test with
@@ -118,47 +118,47 @@ def conditions_for_option(cfg: config.Config,
     typical cases:
 
     * By default, generate a one-element stream with no extra dependencies.
-    * If the setting is ignored unless some other option is enabled, generate
-      a one-element stream with that other option as an extra dependency.
-    * If the setting is known to interact with some other option, generate
-      a stream with one element where this option is on and one where it's off.
+    * If the setting is ignored unless some other setting is enabled, generate
+      a one-element stream with that other setting as an extra dependency.
+    * If the setting is known to interact with some other setting, generate
+      a stream with one element where this setting is on and one where it's off.
     * To skip the setting altogether, generate an empty stream.
     """
     name = setting.name
     if name.endswith('_ALT') and not config.is_seamless_alt(name):
         # We don't test alt implementations, except (most) platform alts
         return
-    super_setting = find_super_option(cfg, setting)
+    super_setting = find_super_setting(cfg, setting)
     if super_setting:
         yield [super_setting], ''
         return
     yield [], ''
 
 
-def enumerate_boolean_option_cases(cfg: config.Config
+def enumerate_boolean_setting_cases(cfg: config.Config
                                    ) -> Iterable[test_case.TestCase]:
-    """Emit test cases for all boolean options."""
+    """Emit test cases for all boolean settings."""
     for name in sorted(cfg.settings.keys()):
         setting = cfg.settings[name]
         if not name.startswith('PSA_WANT_') and setting.value:
             continue # non-boolean setting
         for when_on in True, False:
-            for deps, note in conditions_for_option(cfg, setting):
-                yield single_option_case(setting, when_on, deps, note)
+            for deps, note in conditions_for_setting(cfg, setting):
+                yield single_setting_case(setting, when_on, deps, note)
 
 
 
 class ConfigTestGenerator(test_data_generation.TestGenerator):
     """Generate test cases for configuration reporting."""
 
-    def __init__(self, options):
+    def __init__(self, settings):
         self.mbedtls_config = config.ConfigFile()
         self.targets['test_suite_config.mbedtls_boolean'] = \
-            lambda: enumerate_boolean_option_cases(self.mbedtls_config)
+            lambda: enumerate_boolean_setting_cases(self.mbedtls_config)
         self.psa_config = config.ConfigFile('include/psa/crypto_config.h')
         self.targets['test_suite_config.psa_boolean'] = \
-            lambda: enumerate_boolean_option_cases(self.psa_config)
-        super().__init__(options)
+            lambda: enumerate_boolean_setting_cases(self.psa_config)
+        super().__init__(settings)
 
 
 if __name__ == '__main__':

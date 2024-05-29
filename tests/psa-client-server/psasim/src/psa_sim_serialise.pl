@@ -32,7 +32,10 @@ die($usage) unless $which eq "c" || $which eq "h";
 # deserialisation functions written manually (like those for the "buffer" type
 # are).
 #
-my @types = qw(unsigned-int int size_t buffer psa_status_t psa_algorithm_t);
+my @types = qw(unsigned-int int size_t
+               buffer
+               psa_status_t psa_algorithm_t
+               psa_hash_operation_t);
 grep(s/-/ /g, @types);
 
 # IS-A: Some data types are typedef'd; we serialise them as the other type
@@ -110,7 +113,7 @@ sub declare_serialise
     my $type_d = $type;
     $type_d =~ s/ /_/g;
 
-    return <<EOF;
+    return align_declaration(<<EOF);
 
 /** Serialise $an `$type` into a buffer.
  *
@@ -122,7 +125,9 @@ sub declare_serialise
  *
  * \\return                   \\c 1 on success ("okay"), \\c 0 on error.
  */
-int psasim_serialise_$type_d(uint8_t **pos, size_t *remaining, $type value);
+int psasim_serialise_$type_d(uint8_t **pos,
+                             size_t *remaining,
+                             $type value);
 EOF
 }
 
@@ -134,7 +139,7 @@ sub declare_deserialise
     my $type_d = $type;
     $type_d =~ s/ /_/g;
 
-    return <<EOF;
+    return align_declaration(<<EOF);
 
 /** Deserialise $an `$type` from a buffer.
  *
@@ -147,7 +152,9 @@ sub declare_deserialise
  *
  * \\return                   \\c 1 on success ("okay"), \\c 0 on error.
  */
-int psasim_deserialise_$type_d(uint8_t **pos, size_t *remaining, $type *value);
+int psasim_deserialise_$type_d(uint8_t **pos,
+                               size_t *remaining,
+                               $type *value);
 EOF
 }
 
@@ -363,9 +370,11 @@ sub define_serialise
     my $type_d = $type;
     $type_d =~ s/ /_/g;
 
-    return <<EOF;
+    return align_signature(<<EOF);
 
-int psasim_serialise_$type_d(uint8_t **pos, size_t *remaining, $type value)
+int psasim_serialise_$type_d(uint8_t **pos,
+                             size_t *remaining,
+                             $type value)
 {
     if (*remaining < sizeof(value)) {
         return 0;
@@ -389,9 +398,11 @@ sub define_serialise_isa
     my $isa_d = $isa;
     $isa_d =~ s/ /_/g;
 
-    return <<EOF;
+    return align_signature(<<EOF);
 
-int psasim_serialise_$type_d(uint8_t **pos, size_t *remaining, $type value)
+int psasim_serialise_$type_d(uint8_t **pos,
+                             size_t *remaining,
+                             $type value)
 {
     return psasim_serialise_$isa_d(pos, remaining, value);
 }
@@ -405,9 +416,11 @@ sub define_deserialise
     my $type_d = $type;
     $type_d =~ s/ /_/g;
 
-    return <<EOF;
+    return align_signature(<<EOF);
 
-int psasim_deserialise_$type_d(uint8_t **pos, size_t *remaining, $type *value)
+int psasim_deserialise_$type_d(uint8_t **pos,
+                               size_t *remaining,
+                               $type *value)
 {
     if (*remaining < sizeof(*value)) {
         return 0;
@@ -433,9 +446,11 @@ sub define_deserialise_isa
     my $isa_d = $isa;
     $isa_d =~ s/ /_/g;
 
-    return <<EOF;
+    return align_signature(<<EOF);
 
-int psasim_deserialise_$type_d(uint8_t **pos, size_t *remaining, $type *value)
+int psasim_deserialise_$type_d(uint8_t **pos,
+                              size_t *remaining,
+                              $type *value)
 {
     return psasim_deserialise_$isa_d(pos, remaining, value);
 }
@@ -680,4 +695,50 @@ int psasim_deserialise_begin(uint8_t **pos, size_t *remaining)
     return 1;
 }
 EOF
+}
+
+# Horrible way to align first, second and third lines of function signature to
+# appease uncrustify (these are the 2nd-4th lines of code, indices 1, 2 and 3)
+#
+sub align_signature
+{
+    my ($code) = @_;
+
+    my @code = split(/\n/, $code);
+
+    # Find where the ( is
+    my $idx = index($code[1], "(");
+    die("can't find (") if $idx < 0;
+
+    my $indent = " " x ($idx + 1);
+    $code[2] =~ s/^\s+/$indent/;
+    $code[3] =~ s/^\s+/$indent/;
+
+    return join("\n", @code) . "\n";
+}
+
+# Horrible way to align the function declaration to appease uncrustify
+#
+sub align_declaration
+{
+    my ($code) = @_;
+
+    my @code = split(/\n/, $code);
+
+    # Find out which lines we need to massage
+    my $i;
+    for ($i = 0; $i <= $#code; $i++) {
+        last if $code[$i] =~ /^int psasim_/;
+    }
+    die("can't find int psasim_") if $i > $#code;
+
+    # Find where the ( is
+    my $idx = index($code[$i], "(");
+    die("can't find (") if $idx < 0;
+
+    my $indent = " " x ($idx + 1);
+    $code[$i + 1] =~ s/^\s+/$indent/;
+    $code[$i + 2] =~ s/^\s+/$indent/;
+
+    return join("\n", @code) . "\n";
 }

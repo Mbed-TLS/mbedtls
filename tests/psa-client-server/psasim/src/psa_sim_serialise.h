@@ -113,7 +113,9 @@ size_t psasim_serialise_unsigned_int_needs(unsigned int value);
  *
  * \return                   \c 1 on success ("okay"), \c 0 on error.
  */
-int psasim_serialise_unsigned_int(uint8_t **pos, size_t *remaining, unsigned int value);
+int psasim_serialise_unsigned_int(uint8_t **pos,
+                                  size_t *remaining,
+                                  unsigned int value);
 
 /** Deserialise an `unsigned int` from a buffer.
  *
@@ -126,7 +128,9 @@ int psasim_serialise_unsigned_int(uint8_t **pos, size_t *remaining, unsigned int
  *
  * \return                   \c 1 on success ("okay"), \c 0 on error.
  */
-int psasim_deserialise_unsigned_int(uint8_t **pos, size_t *remaining, unsigned int *value);
+int psasim_deserialise_unsigned_int(uint8_t **pos,
+                                    size_t *remaining,
+                                    unsigned int *value);
 
 /** Return how much buffer space is needed by \c psasim_serialise_int()
  *  to serialise an `int`.
@@ -151,7 +155,9 @@ size_t psasim_serialise_int_needs(int value);
  *
  * \return                   \c 1 on success ("okay"), \c 0 on error.
  */
-int psasim_serialise_int(uint8_t **pos, size_t *remaining, int value);
+int psasim_serialise_int(uint8_t **pos,
+                         size_t *remaining,
+                         int value);
 
 /** Deserialise an `int` from a buffer.
  *
@@ -164,7 +170,9 @@ int psasim_serialise_int(uint8_t **pos, size_t *remaining, int value);
  *
  * \return                   \c 1 on success ("okay"), \c 0 on error.
  */
-int psasim_deserialise_int(uint8_t **pos, size_t *remaining, int *value);
+int psasim_deserialise_int(uint8_t **pos,
+                           size_t *remaining,
+                           int *value);
 
 /** Return how much buffer space is needed by \c psasim_serialise_size_t()
  *  to serialise a `size_t`.
@@ -189,7 +197,9 @@ size_t psasim_serialise_size_t_needs(size_t value);
  *
  * \return                   \c 1 on success ("okay"), \c 0 on error.
  */
-int psasim_serialise_size_t(uint8_t **pos, size_t *remaining, size_t value);
+int psasim_serialise_size_t(uint8_t **pos,
+                            size_t *remaining,
+                            size_t value);
 
 /** Deserialise a `size_t` from a buffer.
  *
@@ -202,7 +212,9 @@ int psasim_serialise_size_t(uint8_t **pos, size_t *remaining, size_t value);
  *
  * \return                   \c 1 on success ("okay"), \c 0 on error.
  */
-int psasim_deserialise_size_t(uint8_t **pos, size_t *remaining, size_t *value);
+int psasim_deserialise_size_t(uint8_t **pos,
+                              size_t *remaining,
+                              size_t *value);
 
 /** Return how much space is needed by \c psasim_serialise_buffer()
  *  to serialise a buffer: a (`uint8_t *`, `size_t`) pair.
@@ -294,7 +306,9 @@ size_t psasim_serialise_psa_status_t_needs(psa_status_t value);
  *
  * \return                   \c 1 on success ("okay"), \c 0 on error.
  */
-int psasim_serialise_psa_status_t(uint8_t **pos, size_t *remaining, psa_status_t value);
+int psasim_serialise_psa_status_t(uint8_t **pos,
+                                  size_t *remaining,
+                                  psa_status_t value);
 
 /** Deserialise a `psa_status_t` from a buffer.
  *
@@ -307,7 +321,9 @@ int psasim_serialise_psa_status_t(uint8_t **pos, size_t *remaining, psa_status_t
  *
  * \return                   \c 1 on success ("okay"), \c 0 on error.
  */
-int psasim_deserialise_psa_status_t(uint8_t **pos, size_t *remaining, psa_status_t *value);
+int psasim_deserialise_psa_status_t(uint8_t **pos,
+                                    size_t *remaining,
+                                    psa_status_t *value);
 
 /** Return how much buffer space is needed by \c psasim_serialise_psa_algorithm_t()
  *  to serialise a `psa_algorithm_t`.
@@ -332,7 +348,9 @@ size_t psasim_serialise_psa_algorithm_t_needs(psa_algorithm_t value);
  *
  * \return                   \c 1 on success ("okay"), \c 0 on error.
  */
-int psasim_serialise_psa_algorithm_t(uint8_t **pos, size_t *remaining, psa_algorithm_t value);
+int psasim_serialise_psa_algorithm_t(uint8_t **pos,
+                                     size_t *remaining,
+                                     psa_algorithm_t value);
 
 /** Deserialise a `psa_algorithm_t` from a buffer.
  *
@@ -345,4 +363,48 @@ int psasim_serialise_psa_algorithm_t(uint8_t **pos, size_t *remaining, psa_algor
  *
  * \return                   \c 1 on success ("okay"), \c 0 on error.
  */
-int psasim_deserialise_psa_algorithm_t(uint8_t **pos, size_t *remaining, psa_algorithm_t *value);
+int psasim_deserialise_psa_algorithm_t(uint8_t **pos,
+                                       size_t *remaining,
+                                       psa_algorithm_t *value);
+
+/** Return how much buffer space is needed by \c psasim_serialise_psa_hash_operation_t()
+ *  to serialise a `psa_hash_operation_t`.
+ *
+ * \param value              The value that will be serialised into the buffer
+ *                           (needed in case some serialisations are value-
+ *                           dependent).
+ *
+ * \return                   The number of bytes needed in the buffer by
+ *                           \c psasim_serialise_psa_hash_operation_t() to serialise
+ *                           the given value.
+ */
+size_t psasim_serialise_psa_hash_operation_t_needs(psa_hash_operation_t value);
+
+/** Serialise a `psa_hash_operation_t` into a buffer.
+ *
+ * \param pos[in,out]        Pointer to a `uint8_t *` holding current position
+ *                           in the buffer.
+ * \param remaining[in,out]  Pointer to a `size_t` holding number of bytes
+ *                           remaining in the buffer.
+ * \param value              The value to serialise into the buffer.
+ *
+ * \return                   \c 1 on success ("okay"), \c 0 on error.
+ */
+int psasim_serialise_psa_hash_operation_t(uint8_t **pos,
+                                          size_t *remaining,
+                                          psa_hash_operation_t value);
+
+/** Deserialise a `psa_hash_operation_t` from a buffer.
+ *
+ * \param pos[in,out]        Pointer to a `uint8_t *` holding current position
+ *                           in the buffer.
+ * \param remaining[in,out]  Pointer to a `size_t` holding number of bytes
+ *                           remaining in the buffer.
+ * \param value              Pointer to a `psa_hash_operation_t` to receive the value
+ *                           deserialised from the buffer.
+ *
+ * \return                   \c 1 on success ("okay"), \c 0 on error.
+ */
+int psasim_deserialise_psa_hash_operation_t(uint8_t **pos,
+                                            size_t *remaining,
+                                            psa_hash_operation_t *value);

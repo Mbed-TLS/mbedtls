@@ -130,7 +130,9 @@ size_t psasim_serialise_unsigned_int_needs(unsigned int value)
     return sizeof(value);
 }
 
-int psasim_serialise_unsigned_int(uint8_t **pos, size_t *remaining, unsigned int value)
+int psasim_serialise_unsigned_int(uint8_t **pos,
+                                  size_t *remaining,
+                                  unsigned int value)
 {
     if (*remaining < sizeof(value)) {
         return 0;
@@ -142,7 +144,9 @@ int psasim_serialise_unsigned_int(uint8_t **pos, size_t *remaining, unsigned int
     return 1;
 }
 
-int psasim_deserialise_unsigned_int(uint8_t **pos, size_t *remaining, unsigned int *value)
+int psasim_deserialise_unsigned_int(uint8_t **pos,
+                                    size_t *remaining,
+                                    unsigned int *value)
 {
     if (*remaining < sizeof(*value)) {
         return 0;
@@ -161,7 +165,9 @@ size_t psasim_serialise_int_needs(int value)
     return sizeof(value);
 }
 
-int psasim_serialise_int(uint8_t **pos, size_t *remaining, int value)
+int psasim_serialise_int(uint8_t **pos,
+                         size_t *remaining,
+                         int value)
 {
     if (*remaining < sizeof(value)) {
         return 0;
@@ -173,7 +179,9 @@ int psasim_serialise_int(uint8_t **pos, size_t *remaining, int value)
     return 1;
 }
 
-int psasim_deserialise_int(uint8_t **pos, size_t *remaining, int *value)
+int psasim_deserialise_int(uint8_t **pos,
+                           size_t *remaining,
+                           int *value)
 {
     if (*remaining < sizeof(*value)) {
         return 0;
@@ -192,7 +200,9 @@ size_t psasim_serialise_size_t_needs(size_t value)
     return sizeof(value);
 }
 
-int psasim_serialise_size_t(uint8_t **pos, size_t *remaining, size_t value)
+int psasim_serialise_size_t(uint8_t **pos,
+                            size_t *remaining,
+                            size_t value)
 {
     if (*remaining < sizeof(value)) {
         return 0;
@@ -204,7 +214,9 @@ int psasim_serialise_size_t(uint8_t **pos, size_t *remaining, size_t value)
     return 1;
 }
 
-int psasim_deserialise_size_t(uint8_t **pos, size_t *remaining, size_t *value)
+int psasim_deserialise_size_t(uint8_t **pos,
+                              size_t *remaining,
+                              size_t *value)
 {
     if (*remaining < sizeof(*value)) {
         return 0;
@@ -325,12 +337,16 @@ size_t psasim_serialise_psa_status_t_needs(psa_status_t value)
     return psasim_serialise_int_needs(value);
 }
 
-int psasim_serialise_psa_status_t(uint8_t **pos, size_t *remaining, psa_status_t value)
+int psasim_serialise_psa_status_t(uint8_t **pos,
+                                  size_t *remaining,
+                                  psa_status_t value)
 {
     return psasim_serialise_int(pos, remaining, value);
 }
 
-int psasim_deserialise_psa_status_t(uint8_t **pos, size_t *remaining, psa_status_t *value)
+int psasim_deserialise_psa_status_t(uint8_t **pos,
+                                    size_t *remaining,
+                                    psa_status_t *value)
 {
     return psasim_deserialise_int(pos, remaining, value);
 }
@@ -340,12 +356,51 @@ size_t psasim_serialise_psa_algorithm_t_needs(psa_algorithm_t value)
     return psasim_serialise_unsigned_int_needs(value);
 }
 
-int psasim_serialise_psa_algorithm_t(uint8_t **pos, size_t *remaining, psa_algorithm_t value)
+int psasim_serialise_psa_algorithm_t(uint8_t **pos,
+                                     size_t *remaining,
+                                     psa_algorithm_t value)
 {
     return psasim_serialise_unsigned_int(pos, remaining, value);
 }
 
-int psasim_deserialise_psa_algorithm_t(uint8_t **pos, size_t *remaining, psa_algorithm_t *value)
+int psasim_deserialise_psa_algorithm_t(uint8_t **pos,
+                                       size_t *remaining,
+                                       psa_algorithm_t *value)
 {
     return psasim_deserialise_unsigned_int(pos, remaining, value);
+}
+
+size_t psasim_serialise_psa_hash_operation_t_needs(psa_hash_operation_t value)
+{
+    return sizeof(value);
+}
+
+int psasim_serialise_psa_hash_operation_t(uint8_t **pos,
+                                          size_t *remaining,
+                                          psa_hash_operation_t value)
+{
+    if (*remaining < sizeof(value)) {
+        return 0;
+    }
+
+    memcpy(*pos, &value, sizeof(value));
+    *pos += sizeof(value);
+
+    return 1;
+}
+
+int psasim_deserialise_psa_hash_operation_t(uint8_t **pos,
+                                            size_t *remaining,
+                                            psa_hash_operation_t *value)
+{
+    if (*remaining < sizeof(*value)) {
+        return 0;
+    }
+
+    memcpy(value, *pos, sizeof(*value));
+
+    *pos += sizeof(*value);
+    *remaining -= sizeof(*value);
+
+    return 1;
 }

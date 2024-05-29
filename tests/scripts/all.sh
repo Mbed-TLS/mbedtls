@@ -886,6 +886,13 @@ component_test_default_out_of_box () {
     tests/scripts/run_demos.py
 }
 
+component_build_without_check_config () {
+    msg "build: full without check_config.h"
+    scripts/config.py full
+    sed -i '/#include.*check_config\.h/ s!^!//!' "$CONFIG_H"
+    make
+}
+
 component_test_default_cmake_gcc_asan () {
     msg "build: cmake, gcc, ASan" # ~ 1 min 50s
     CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .

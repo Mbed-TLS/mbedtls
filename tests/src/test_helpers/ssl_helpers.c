@@ -10,6 +10,8 @@
 
 #include <test/ssl_helpers.h>
 
+#include <limits.h>
+
 #if defined(MBEDTLS_SSL_TLS_C)
 
 void mbedtls_test_ssl_log_analyzer(void *ctx, int level,

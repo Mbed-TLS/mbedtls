@@ -101,8 +101,12 @@
 #define inline __inline
 #endif
 
-#undef MBEDTLS_CONFIG_FILES_READ
-#undef MBEDTLS_CONFIG_IS_FINALIZED
+#if defined(MBEDTLS_CONFIG_FILES_READ)
+#error "Something went wrong: MBEDTLS_CONFIG_FILES_READ defined before reading the config files!"
+#endif
+#if defined(MBEDTLS_CONFIG_IS_FINALIZED)
+#error "Something went wrong: MBEDTLS_CONFIG_IS_FINALIZED defined before reading the config files!"
+#endif
 
 /* X.509, TLS and non-PSA crypto configuration */
 #if !defined(MBEDTLS_CONFIG_FILE)

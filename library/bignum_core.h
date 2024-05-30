@@ -621,6 +621,9 @@ size_t mbedtls_mpi_core_exp_mod_working_limbs(size_t AN_limbs, size_t E_limbs);
  * \p X may be aliased to \p A, but not to \p RR or \p E, even if \p E_limbs ==
  * \p AN_limbs.
  *
+ * This function operates in constant time with respect
+ * to the values of \p A, \p N and \p E.
+ *
  * \param[out] X     The destination MPI, as a little endian array of length
  *                   \p AN_limbs.
  * \param[in] A      The base MPI, as a little endian array of length \p AN_limbs.

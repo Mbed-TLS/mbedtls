@@ -2,6 +2,8 @@
  * \file mbedtls/config_adjust_legacy_from_psa.h
  * \brief Adjust PSA configuration: activate legacy implementations
  *
+ * This is an internal header. Do not include it directly.
+ *
  * When MBEDTLS_PSA_CRYPTO_CONFIG is enabled, activate legacy implementations
  * of cryptographic mechanisms as needed to fulfill the needs of the PSA
  * configuration. Generally speaking, we activate a legacy mechanism if
@@ -15,6 +17,14 @@
 
 #ifndef MBEDTLS_CONFIG_ADJUST_LEGACY_FROM_PSA_H
 #define MBEDTLS_CONFIG_ADJUST_LEGACY_FROM_PSA_H
+
+#if !defined(MBEDTLS_CONFIG_FILES_READ)
+#error "Do not include mbedtls/config_adjust_*.h manually! This can lead to problems, " \
+    "up to and including runtime errors such as buffer overflows. " \
+    "If you're trying to fix a complaint from check_config.h, just remove " \
+    "it from your configuration file: since Mbed TLS 3.0, it is included " \
+    "automatically at the right point."
+#endif /* */
 
 /* Define appropriate ACCEL macros for the p256-m driver.
  * In the future, those should be generated from the drivers JSON description.

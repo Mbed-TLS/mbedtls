@@ -42,7 +42,7 @@ void ssl_decrypt_null(int hash_id)
     mbedtls_ssl_init(&ssl);
     uint8_t *buf = NULL;
 
-    MD_OR_USE_PSA_INIT();
+    TLS_PSA_INIT();
 
     TEST_EQUAL(mbedtls_test_ssl_build_transforms(&transform_in, &transform_out,
                                                  cipher_type, hash_id, 0, 0,
@@ -116,7 +116,7 @@ exit:
     mbedtls_free(rec_good.buf);
     mbedtls_ssl_free(&ssl);
     mbedtls_free(buf);
-    MD_OR_USE_PSA_DONE();
+    TLS_PSA_DONE();
 }
 /* END_CASE */
 
@@ -154,7 +154,7 @@ void ssl_decrypt_non_etm_cbc(int cipher_type, int hash_id, int trunc_hmac,
     mbedtls_ssl_init(&ssl);
     mbedtls_ssl_transform_init(&t0);
     mbedtls_ssl_transform_init(&t1);
-    MD_OR_USE_PSA_INIT();
+    TLS_PSA_INIT();
 
     /* Set up transforms with dummy keys */
     ret = mbedtls_test_ssl_build_transforms(&t0, &t1, cipher_type, hash_id,
@@ -307,6 +307,6 @@ exit:
     mbedtls_ssl_transform_free(&t1);
     mbedtls_free(buf);
     mbedtls_free(buf_save);
-    MD_OR_USE_PSA_DONE();
+    TLS_PSA_DONE();
 }
 /* END_CASE */

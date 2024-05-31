@@ -22,6 +22,32 @@ int mbedtls_test_random(void *p_rng, unsigned char *output, size_t output_len)
     return 0;
 }
 
+int mbedtls_test_ssl_needs_psa_for_handshake(const mbedtls_ssl_context *ssl)
+{
+#if defined(MBEDTLS_MD_SOME_PSA) || defined(MBEDTLS_USE_PSA_CRYPTO)
+    /* PSA must have been initialized before setup */
+    (void) ssl;
+    return 0;
+
+#elif defined(MBEDTLS_SSL_PROTO_TLS1_3)
+    /* Bug in Mbed TLS 3.6.0! The documentation of MBEDTLS_SSL_PROTO_TLS1_3
+     * says that you must call psa_crypto_init(). However this is a
+     * backward incompatibility with previous versions, where this
+     * compile-time option was disabled by default. So if the user has not
+     * done anything with the handshake that couldn't be done in the
+     * default configuration of Mbed TLS <= 3.5.x, we should return 0 here
+     * and the TLS connection should work without having called
+     * psa_crypto_init. */
+    (void) ssl;
+    return 1;
+
+#else
+    /* No need for PSA */
+    (void) ssl;
+    return 0;
+#endif
+}
+
 void mbedtls_test_ssl_log_analyzer(void *ctx, int level,
                                    const char *file, int line,
                                    const char *str)
@@ -2040,7 +2066,7 @@ void mbedtls_test_ssl_perform_handshake(
 #endif
     int expected_handshake_result = options->expected_handshake_result;
 
-    MD_OR_USE_PSA_INIT();
+    TLS_PSA_INIT();
     mbedtls_platform_zeroize(&client, sizeof(client));
     mbedtls_platform_zeroize(&server, sizeof(server));
     mbedtls_test_ssl_message_queue server_queue, client_queue;
@@ -2158,6 +2184,9 @@ void mbedtls_test_ssl_perform_handshake(
     if (options->expected_negotiated_version == MBEDTLS_SSL_VERSION_UNKNOWN) {
         expected_handshake_result = MBEDTLS_ERR_SSL_BAD_PROTOCOL_VERSION;
     }
+
+    TLS_PSA_MAYBE_INIT(&client.ssl);
+    TLS_PSA_MAYBE_INIT(&server.ssl);
 
     TEST_ASSERT(mbedtls_test_move_handshake_to_state(&(client.ssl),
                                                      &(server.ssl),
@@ -2371,7 +2400,7 @@ exit:
         mbedtls_free(context_buf);
     }
 #endif
-    MD_OR_USE_PSA_DONE();
+    TLS_PSA_DONE();
 }
 #endif /* MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED */
 

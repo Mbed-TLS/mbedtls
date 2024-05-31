@@ -37,6 +37,86 @@
                                                            psa_generic_status_to_mbedtls)
 #endif
 
+/** \def TLS_PSA_INIT
+ *
+ * Call this macro before mbedtls_ssl_setup().
+ *
+ * This macro initializes the PSA subsystem as needed:
+ * - if #MBEDTLS_USE_PSA_CRYPTO is enabled;
+ * - if MD uses a driver.
+ *
+ * Notably, this macro does not initialize the PSA subsystem just because
+ * #MBEDTLS_SSL_PROTO_TLS1_3 is enabled. This is for backward compatibility
+ * with Mbed TLS <= 3.5.x, where TLS 1.3 support was disabled by default.
+ * Applications that did not call psa_crypto_init() and that worked in
+ * Mbed TLS 3.5 must keep working in Mbed TLS 3.6.
+ *
+ * If the initialization fails, mark the test case as failed and jump to the
+ * \p exit label.
+ */
+/** \def TLS_PSA_MAYBE_INIT
+ *
+ * \param[in] ssl   A configured SSL context (after calling mbedtls_ssl_setup()).
+ *
+ * Call this macro before mbedtls_ssl_handshake() or
+ * mbedtls_ssl_handshake_step().
+ *
+ * You must call #TLS_PSA_INIT before #TLS_PSA_MAYBE_INIT.
+ *
+ * This macro initializes the PSA subsystem if needed before starting a TLS
+ * handshake. Per the Mbed TLS 3.6 documentation, this is needed if TLS 1.3
+ * is enabled. For backward compatibility with Mbed TLS < 3.6, which did not
+ * support TLS 1.3 by default, this is not needed if the user has not taken
+ * any affirmative step to enable TLS 1.3.
+ *
+ * This macro does nothing if the PSA subsystem is needed independently of
+ * the TLS runtime configuration, for example due to #MBEDTLS_USE_PSA_CRYPTO.
+ *
+ * If the initialization fails, mark the test case as failed and jump to the
+ * \p exit label.
+ */
+/** \def TLS_PSA_DONE
+ *
+ * Call this macro at the end of a test case if you called #TLS_PSA_INIT.
+ *
+ * This is like #PSA_DONE except it does nothing under the same conditions as
+ * #TLS_PSA_INIT.
+ */
+#if defined(MBEDTLS_MD_SOME_PSA) || defined(MBEDTLS_USE_PSA_CRYPTO)
+#define TLS_PSA_INIT() PSA_INIT()
+#define TLS_PSA_MAYBE_INIT(ssl) ((void) (ssl))
+#define TLS_PSA_DONE() PSA_DONE()
+#elif defined(MBEDTLS_SSL_PROTO_TLS1_3)
+#define TLS_PSA_INIT() ((void) 0)
+#define TLS_PSA_MAYBE_INIT(ssl)                                \
+    do {                                                       \
+        if (mbedtls_test_ssl_needs_psa_for_handshake(ssl)) {   \
+            PSA_INIT();                                        \
+        }                                                      \
+    } while (0)
+#define TLS_PSA_DONE() PSA_DONE()
+#else
+#define TLS_PSA_INIT() ((void) 0)
+#define TLS_PSA_MAYBE_INIT(ssl) ((void) (ssl))
+#define TLS_PSA_DONE() ((void) 0)
+#endif
+
+/** Whether the TLS subsystem needs PSA for this specific handshake.
+ *
+ * This function returns 1 if there is a specific need for PSA for the
+ * given handshake. It may return 0 if PSA is always needed due to the
+ * compile-time configuration.
+ *
+ * \param[in] ssl   A configured SSL context (after calling mbedtls_ssl_setup()).
+ *
+ * \return          1 if you need to call psa_crypto_init() before starting
+ *                  the handshake.
+ *                  0 if either the handhsake works without PSA, or the
+ *                  compile-time configuration of the library requires
+ *                  calling psa_crypto_init() before mbedtls_ssl_setup().
+ */
+int mbedtls_test_ssl_needs_psa_for_handshake(const mbedtls_ssl_context *ssl);
+
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
 #if defined(MBEDTLS_SSL_HAVE_AES)
 #if defined(MBEDTLS_SSL_HAVE_GCM)

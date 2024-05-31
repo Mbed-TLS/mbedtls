@@ -6228,6 +6228,30 @@ component_test_psasim() {
     msg "test psasim"
     tests/psa-client-server/psasim/test/run_test.sh
 
+    msg "build psasim to test psa_hash_compute"
+    # Delete the executable to ensure we build using the right MAIN
+    rm tests/psa-client-server/psasim/test/psa_client
+    # API under test: psa_hash_compute()
+    make -C tests/psa-client-server/psasim CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS" MAIN="src/aut_psa_hash_compute.c"
+
+    msg "test psasim running psa_hash_compute"
+    tests/psa-client-server/psasim/test/run_test.sh
+
+    # Next APIs under test: psa_hash_*(). Just use the PSA hash example.
+    aut_psa_hash="../../../programs/psa/psa_hash.c"
+    if [ -f "tests/psa-client-server/psasim/$aut_psa_hash" ]; then
+
+        msg "build psasim to test all psa_hash_* APIs"
+        # Delete the executable to ensure we build using the right MAIN
+        rm tests/psa-client-server/psasim/test/psa_client
+        make -C tests/psa-client-server/psasim CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS" MAIN="$aut_psa_hash"
+
+        msg "test psasim running psa_hash sample"
+        tests/psa-client-server/psasim/test/run_test.sh
+    else
+        echo $aut_psa_hash NOT FOUND, so not running that test
+    fi
+
     msg "clean psasim"
     make -C tests/psa-client-server/psasim clean
 }

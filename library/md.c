@@ -130,7 +130,7 @@ static const mbedtls_md_info_t mbedtls_sha3_384_info = {
 };
 #endif
 
-#if defined(MBEDTLS_MD_CAN_SHA3_512)
+#if defined(PSA_WANT_ALG_SHA3_512)
 static const mbedtls_md_info_t mbedtls_sha3_512_info = {
     MD_INFO(MBEDTLS_MD_SHA3_512, 64, 72)
 };
@@ -179,7 +179,7 @@ const mbedtls_md_info_t *mbedtls_md_info_from_type(mbedtls_md_type_t md_type)
         case MBEDTLS_MD_SHA3_384:
             return &mbedtls_sha3_384_info;
 #endif
-#if defined(MBEDTLS_MD_CAN_SHA3_512)
+#if defined(PSA_WANT_ALG_SHA3_512)
         case MBEDTLS_MD_SHA3_512:
             return &mbedtls_sha3_512_info;
 #endif
@@ -820,7 +820,7 @@ static const int supported_digests[] = {
     MBEDTLS_MD_SHA3_384,
 #endif
 
-#if defined(MBEDTLS_MD_CAN_SHA3_512)
+#if defined(PSA_WANT_ALG_SHA3_512)
     MBEDTLS_MD_SHA3_512,
 #endif
 
@@ -869,7 +869,7 @@ static const md_name_entry md_names[] = {
 #if defined(MBEDTLS_MD_CAN_SHA3_384)
     { "SHA3-384", MBEDTLS_MD_SHA3_384 },
 #endif
-#if defined(MBEDTLS_MD_CAN_SHA3_512)
+#if defined(PSA_WANT_ALG_SHA3_512)
     { "SHA3-512", MBEDTLS_MD_SHA3_512 },
 #endif
     { NULL, MBEDTLS_MD_NONE },

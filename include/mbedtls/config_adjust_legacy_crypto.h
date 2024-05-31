@@ -2,6 +2,8 @@
  * \file mbedtls/config_adjust_legacy_crypto.h
  * \brief Adjust legacy configuration configuration
  *
+ * This is an internal header. Do not include it directly.
+ *
  * Automatically enable certain dependencies. Generally, MBEDLTS_xxx
  * configurations need to be explicitly enabled by the user: enabling
  * MBEDTLS_xxx_A but not MBEDTLS_xxx_B when A requires B results in a
@@ -21,6 +23,14 @@
 
 #ifndef MBEDTLS_CONFIG_ADJUST_LEGACY_CRYPTO_H
 #define MBEDTLS_CONFIG_ADJUST_LEGACY_CRYPTO_H
+
+#if !defined(MBEDTLS_CONFIG_FILES_READ)
+#error "Do not include mbedtls/config_adjust_*.h manually! This can lead to problems, " \
+    "up to and including runtime errors such as buffer overflows. " \
+    "If you're trying to fix a complaint from check_config.h, just remove " \
+    "it from your configuration file: since Mbed TLS 3.0, it is included " \
+    "automatically at the right point."
+#endif /* */
 
 /* Ideally, we'd set those as defaults in mbedtls_config.h, but
  * putting an #ifdef _WIN32 in mbedtls_config.h would confuse config.py.

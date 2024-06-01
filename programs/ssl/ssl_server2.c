@@ -756,7 +756,7 @@ struct _sni_entry {
     sni_entry *next;
 };
 
-void sni_free(sni_entry *head)
+static void sni_free(sni_entry *head)
 {
     sni_entry *cur = head, *next;
 
@@ -786,7 +786,7 @@ void sni_free(sni_entry *head)
  *
  * Modifies the input string! This is not production quality!
  */
-sni_entry *sni_parse(char *sni_string)
+static sni_entry *sni_parse(char *sni_string)
 {
     sni_entry *cur = NULL, *new = NULL;
     char *p = sni_string;
@@ -878,7 +878,7 @@ error:
 /*
  * SNI callback.
  */
-int sni_callback(void *p_info, mbedtls_ssl_context *ssl,
+static int sni_callback(void *p_info, mbedtls_ssl_context *ssl,
                  const unsigned char *name, size_t name_len)
 {
     const sni_entry *cur = (const sni_entry *) p_info;
@@ -909,7 +909,7 @@ int sni_callback(void *p_info, mbedtls_ssl_context *ssl,
 /*
  * server certificate selection callback.
  */
-int cert_callback(mbedtls_ssl_context *ssl)
+static int cert_callback(mbedtls_ssl_context *ssl)
 {
     const sni_entry *cur = (sni_entry *) mbedtls_ssl_get_user_data_p(ssl);
     if (cur != NULL) {
@@ -954,7 +954,7 @@ struct _psk_entry {
 /*
  * Free a list of psk_entry's
  */
-int psk_free(psk_entry *head)
+static int psk_free(psk_entry *head)
 {
     psk_entry *next;
 
@@ -985,7 +985,7 @@ int psk_free(psk_entry *head)
  *
  * Modifies the input string! This is not production quality!
  */
-psk_entry *psk_parse(char *psk_string)
+static psk_entry *psk_parse(char *psk_string)
 {
     psk_entry *cur = NULL, *new = NULL;
     char *p = psk_string;
@@ -1027,7 +1027,7 @@ error:
 /*
  * PSK callback
  */
-int psk_callback(void *p_info, mbedtls_ssl_context *ssl,
+static int psk_callback(void *p_info, mbedtls_ssl_context *ssl,
                  const unsigned char *name, size_t name_len)
 {
     psk_entry *cur = (psk_entry *) p_info;
@@ -1055,7 +1055,7 @@ static mbedtls_net_context listen_fd, client_fd;
 /* Interruption handler to ensure clean exit (for valgrind testing) */
 #if !defined(_WIN32)
 static int received_sigterm = 0;
-void term_handler(int sig)
+static void term_handler(int sig)
 {
     ((void) sig);
     received_sigterm = 1;
@@ -1105,7 +1105,7 @@ typedef struct {
     void *p_rng;
 } ssl_async_key_context_t;
 
-int ssl_async_set_key(ssl_async_key_context_t *ctx,
+static int ssl_async_set_key(ssl_async_key_context_t *ctx,
                       mbedtls_x509_crt *cert,
                       mbedtls_pk_context *pk,
                       int pk_take_ownership,
@@ -1332,7 +1332,7 @@ static psa_status_t psa_setup_psk_key_slot(mbedtls_svc_key_id_t *slot,
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
-int report_cid_usage(mbedtls_ssl_context *ssl,
+static int report_cid_usage(mbedtls_ssl_context *ssl,
                      const char *additional_description)
 {
     int ret;
@@ -1383,7 +1383,7 @@ static inline void put_unaligned_uint32(void *p, uint32_t x)
 }
 
 /* Functions for session ticket tests */
-int dummy_ticket_write(void *p_ticket, const mbedtls_ssl_session *session,
+static int dummy_ticket_write(void *p_ticket, const mbedtls_ssl_session *session,
                        unsigned char *start, const unsigned char *end,
                        size_t *tlen, uint32_t *ticket_lifetime)
 {
@@ -1410,7 +1410,7 @@ int dummy_ticket_write(void *p_ticket, const mbedtls_ssl_session *session,
     return 0;
 }
 
-int dummy_ticket_parse(void *p_ticket, mbedtls_ssl_session *session,
+static int dummy_ticket_parse(void *p_ticket, mbedtls_ssl_session *session,
                        unsigned char *buf, size_t len)
 {
     int ret;
@@ -1469,7 +1469,7 @@ int dummy_ticket_parse(void *p_ticket, mbedtls_ssl_session *session,
 }
 #endif /* MBEDTLS_SSL_SESSION_TICKETS && MBEDTLS_HAVE_TIME */
 
-int parse_cipher(char *buf)
+static int parse_cipher(char *buf)
 {
     if (strcmp(buf, "AES-128-CCM")) {
         return MBEDTLS_CIPHER_AES_128_CCM;

@@ -82,7 +82,7 @@ const unsigned char key_bytes[32] = { 0 };
  * This function demonstrates computation of the HMAC of two messages using
  * the multipart API.
  */
-psa_status_t hmac_demo(void)
+static psa_status_t hmac_demo(void)
 {
     psa_status_t status;
     const psa_algorithm_t alg = PSA_ALG_HMAC(PSA_ALG_SHA_256);

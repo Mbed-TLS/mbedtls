@@ -48,7 +48,7 @@ struct options {
 } opt;
 
 
-int read_certificates(const char *const *filenames)
+static int read_certificates(const char *const *filenames)
 {
     mbedtls_x509_crt cas;
     int ret = 0;

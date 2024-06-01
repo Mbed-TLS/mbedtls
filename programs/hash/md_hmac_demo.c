@@ -79,7 +79,7 @@ const unsigned char key_bytes[32] = { 0 };
  * This function demonstrates computation of the HMAC of two messages using
  * the multipart API.
  */
-int hmac_demo(void)
+static int hmac_demo(void)
 {
     int ret;
     const mbedtls_md_type_t alg = MBEDTLS_MD_SHA256;

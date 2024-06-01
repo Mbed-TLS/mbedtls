@@ -23,7 +23,7 @@
 
 #define BUFFER_LEN 1024
 
-void usage(void)
+static void usage(void)
 {
     mbedtls_printf("Zeroize is a simple program to assist with testing\n");
     mbedtls_printf("the mbedtls_platform_zeroize() function by using the\n");

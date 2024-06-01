@@ -107,7 +107,7 @@ struct options {
     mbedtls_md_type_t md_alg;         /* Hash algorithm used for signature.   */
 } opt;
 
-int write_certificate_request(mbedtls_x509write_csr *req, const char *output_file,
+static int write_certificate_request(mbedtls_x509write_csr *req, const char *output_file,
                               int (*f_rng)(void *, unsigned char *, size_t),
                               void *p_rng)
 {

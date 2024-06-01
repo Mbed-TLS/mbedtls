@@ -45,7 +45,7 @@ struct options {
     const char *output_file;    /* where to store the output              */
 } opt;
 
-int convert_pem_to_der(const unsigned char *input, size_t ilen,
+static int convert_pem_to_der(const unsigned char *input, size_t ilen,
                        unsigned char *output, size_t *olen)
 {
     int ret;

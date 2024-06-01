@@ -192,7 +192,7 @@ typedef enum {
     TYPE_STATUS,
 } signed_value_type;
 
-int process_signed(signed_value_type type, long min, long max, char **argp)
+static int process_signed(signed_value_type type, long min, long max, char **argp)
 {
     for (; *argp != NULL; argp++) {
         char buffer[200];
@@ -231,7 +231,7 @@ typedef enum {
     TYPE_KEY_USAGE,
 } unsigned_value_type;
 
-int process_unsigned(unsigned_value_type type, unsigned long max, char **argp)
+static int process_unsigned(unsigned_value_type type, unsigned long max, char **argp)
 {
     for (; *argp != NULL; argp++) {
         char buffer[200];

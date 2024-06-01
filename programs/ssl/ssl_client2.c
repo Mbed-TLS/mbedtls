@@ -597,7 +597,7 @@ static int my_verify(void *data, mbedtls_x509_crt *crt,
 #endif /* MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED */
 
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
-int report_cid_usage(mbedtls_ssl_context *ssl,
+static int report_cid_usage(mbedtls_ssl_context *ssl,
                      const char *additional_description)
 {
     int ret;

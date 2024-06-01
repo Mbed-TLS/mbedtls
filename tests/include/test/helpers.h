@@ -381,6 +381,9 @@ unsigned char *mbedtls_test_unhexify_alloc(const char *ibuf, size_t *olen);
 int mbedtls_test_hexcmp(uint8_t *a, uint8_t *b,
                         uint32_t a_len, uint32_t b_len);
 
+/* Print the contents of a buffer in hex */
+void mbedtls_test_print_buf(const char *title, unsigned char *buf, size_t len);
+
 #if defined(MBEDTLS_PSA_CRYPTO_C) && defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG)
 #include "test/fake_external_rng_for_test.h"
 #endif

@@ -462,7 +462,7 @@ int main(void)
 /*
  * global options
  */
-struct options {
+static struct options {
     const char *server_name;    /* hostname of the server (client only)     */
     const char *server_addr;    /* address of the server (client only)      */
     const char *server_port;    /* port on which the ssl service runs       */

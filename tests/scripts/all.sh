@@ -6201,14 +6201,21 @@ component_check_python_files () {
 }
 
 component_check_test_helpers () {
-    msg "unit test: generate_test_code.py"
-    # unittest writes out mundane stuff like number or tests run on stderr.
-    # Our convention is to reserve stderr for actual errors, and write
-    # harmless info on stdout so it can be suppress with --quiet.
-    ./tests/scripts/test_generate_test_code.py 2>&1
+    # Automatically detect Python "import unittest".
+    for py in $(git grep -l -w '^import unittest' '**.py'); do
+        msg "unit test: $py"
+        # unittest writes out mundane stuff like number or tests run on stderr.
+        # Our convention is to reserve stderr for actual errors, and write
+        # harmless info on stdout so it can be suppress with --quiet.
+        # So we run unittest with stderr redirected to stdout.
+        PYTHONPATH=$(dirname -- "$py"):$PYTHONPATH python3 -m unittest "$py" 2>&1
+    done
 
-    msg "unit test: translate_ciphers.py"
-    python3 -m unittest tests/scripts/translate_ciphers.py 2>&1
+    # Manually run on helpers that have other test methods.
+    msg "unit test: generate_test_code.py"
+    # Redirect stderr because of unittest as above.
+    # This is not detected above because it uses "from unittest import ...".
+    ./tests/scripts/test_generate_test_code.py 2>&1
 }
 
 component_test_psasim() {

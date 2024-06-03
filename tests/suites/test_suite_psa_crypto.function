@@ -39,28 +39,6 @@
 #define ASSERT_OPERATION_IS_ACTIVE(operation) TEST_ASSERT(operation.id != 0)
 #define ASSERT_OPERATION_IS_INACTIVE(operation) TEST_ASSERT(operation.id == 0)
 
-#if defined(PSA_WANT_ALG_JPAKE)
-int ecjpake_operation_setup(psa_pake_operation_t *operation,
-                            psa_pake_cipher_suite_t *cipher_suite,
-                            psa_pake_role_t role,
-                            mbedtls_svc_key_id_t key,
-                            size_t key_available)
-{
-    PSA_ASSERT(psa_pake_abort(operation));
-
-    PSA_ASSERT(psa_pake_setup(operation, cipher_suite));
-
-    PSA_ASSERT(psa_pake_set_role(operation, role));
-
-    if (key_available) {
-        PSA_ASSERT(psa_pake_set_password_key(operation, key));
-    }
-    return 0;
-exit:
-    return 1;
-}
-#endif
-
 /** An invalid export length that will never be set by psa_export_key(). */
 static const size_t INVALID_EXPORT_LENGTH = ~0U;
 

@@ -96,6 +96,7 @@ exit:
 }
 
 static const int thread_random_reps = 10;
+void *thread_random_function(void *ctx); /* only used conditionally in ctr_drbg_threads */
 void *thread_random_function(void *ctx)
 {
     unsigned char out[16];

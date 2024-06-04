@@ -599,7 +599,7 @@ exit:
  * If this changes, the storage format version must change.
  * See psa_get_se_driver_its_file_uid() in psa_crypto_se.c.
  */
-psa_storage_uid_t file_uid_for_location(psa_key_location_t location)
+static psa_storage_uid_t file_uid_for_location(psa_key_location_t location)
 {
     if (location > PSA_MAX_SE_LOCATION) {
         return 0;

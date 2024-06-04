@@ -171,7 +171,7 @@ void mbedtls_ct_if(char *c_str, char *t_str, char *f_str)
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_PKCS1_V15:MBEDTLS_RSA_C:!MBEDTLS_RSA_ALT */
+/* BEGIN_CASE depends_on:MBEDTLS_PKCS1_V15:MBEDTLS_RSA_C */
 void mbedtls_ct_zeroize_if(char *c_str, int len)
 {
     uint8_t *buf = NULL;
@@ -431,7 +431,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_PKCS1_V15:MBEDTLS_RSA_C:!MBEDTLS_RSA_ALT */
+/* BEGIN_CASE depends_on:MBEDTLS_PKCS1_V15:MBEDTLS_RSA_C */
 void mbedtls_ct_memmove_left(int len, int offset)
 {
     size_t l = (size_t) len;

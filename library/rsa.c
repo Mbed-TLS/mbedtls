@@ -155,7 +155,7 @@ int mbedtls_rsa_parse_key(mbedtls_rsa_context *rsa, const unsigned char *key, si
         goto cleanup;
     }
 
-#if !defined(MBEDTLS_RSA_NO_CRT) && !defined(MBEDTLS_RSA_ALT)
+#if !defined(MBEDTLS_RSA_NO_CRT)
     /*
      * The RSA CRT parameters DP, DQ and QP are nominally redundant, in
      * that they can be easily recomputed from D, P and Q. However by
@@ -411,7 +411,7 @@ end_of_export:
     return (int) len;
 }
 
-#if defined(MBEDTLS_PKCS1_V15) && defined(MBEDTLS_RSA_C) && !defined(MBEDTLS_RSA_ALT)
+#if defined(MBEDTLS_PKCS1_V15) && defined(MBEDTLS_RSA_C)
 
 /** This function performs the unpadding part of a PKCS#1 v1.5 decryption
  *  operation (EME-PKCS1-v1_5 decoding).
@@ -564,9 +564,7 @@ static int mbedtls_ct_rsaes_pkcs1_v15_unpadding(unsigned char *input,
     return ret;
 }
 
-#endif /* MBEDTLS_PKCS1_V15 && MBEDTLS_RSA_C && ! MBEDTLS_RSA_ALT */
-
-#if !defined(MBEDTLS_RSA_ALT)
+#endif /* MBEDTLS_PKCS1_V15 && MBEDTLS_RSA_C */
 
 int mbedtls_rsa_import(mbedtls_rsa_context *ctx,
                        const mbedtls_mpi *N,
@@ -2840,8 +2838,6 @@ void mbedtls_rsa_free(mbedtls_rsa_context *ctx)
     }
 #endif
 }
-
-#endif /* !MBEDTLS_RSA_ALT */
 
 #if defined(MBEDTLS_SELF_TEST)
 

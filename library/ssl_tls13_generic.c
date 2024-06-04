@@ -1485,11 +1485,10 @@ int mbedtls_ssl_tls13_check_early_data_len(mbedtls_ssl_context *ssl,
 
         MBEDTLS_SSL_DEBUG_MSG(
             2, ("EarlyData: Too much early data received, "
-                "%" MBEDTLS_PRINTF_SIZET " + %" MBEDTLS_PRINTF_SIZET
-                " > %" MBEDTLS_PRINTF_SIZET,
-                (size_t) ssl->total_early_data_size,
+                "%lu + %" MBEDTLS_PRINTF_SIZET " > %lu",
+                (unsigned long) ssl->total_early_data_size,
                 early_data_len,
-                (size_t) ssl->session_negotiate->max_early_data_size));
+                (unsigned long) ssl->session_negotiate->max_early_data_size));
 
         MBEDTLS_SSL_PEND_FATAL_ALERT(
             MBEDTLS_SSL_ALERT_MSG_UNEXPECTED_MESSAGE,

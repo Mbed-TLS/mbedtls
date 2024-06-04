@@ -71,9 +71,9 @@ static const uint8_t jpake_client_id[] = { 'c', 'l', 'i', 'e', 'n', 't' };
  * we're corrupting.
  */
 #define DO_ROUND_CONDITIONAL_INJECT(this_stage, buf) \
-    if (this_stage == err_stage)                  \
-    {                                               \
-        *(buf + 7) ^= 1;                           \
+    if (this_stage == err_stage)                     \
+    {                                                \
+        *(buf + 7) ^= 1;                             \
     }
 
 #define DO_ROUND_CONDITIONAL_CHECK_FAILURE(this_stage, function) \
@@ -84,20 +84,20 @@ static const uint8_t jpake_client_id[] = { 'c', 'l', 'i', 'e', 'n', 't' };
     }
 
 #define DO_ROUND_UPDATE_OFFSETS(main_buf_offset, step_offset, step_size) \
-    {                                       \
-        step_offset = main_buf_offset;      \
-        main_buf_offset += step_size;        \
+    {                                                                    \
+        step_offset = main_buf_offset;                                   \
+        main_buf_offset += step_size;                                    \
     }
 
-#define DO_ROUND_CHECK_FAILURE()                                  \
-    if (err_stage != ERR_NONE && status != PSA_SUCCESS)            \
+#define DO_ROUND_CHECK_FAILURE()                                    \
+    if (err_stage != ERR_NONE && status != PSA_SUCCESS)             \
     {                                                               \
-        TEST_EQUAL(status, expected_error_arg);                   \
+        TEST_EQUAL(status, expected_error_arg);                     \
         break;                                                      \
     }                                                               \
     else                                                            \
     {                                                               \
-        TEST_EQUAL(status, PSA_SUCCESS);                          \
+        TEST_EQUAL(status, PSA_SUCCESS);                            \
     }
 
 #if defined(PSA_WANT_ALG_JPAKE)
@@ -550,15 +550,15 @@ exit:
  *     - terminated with failure otherwise (either no error was expected at this
  *       stage or a different error code was expected)
  */
-#define SETUP_ALWAYS_CHECK_STEP(test_function, this_check_err_stage)      \
+#define SETUP_ALWAYS_CHECK_STEP(test_function, this_check_err_stage)        \
     status = test_function;                                                 \
-    if (err_stage != this_check_err_stage)                                 \
+    if (err_stage != this_check_err_stage)                                  \
     {                                                                       \
-        PSA_ASSERT(status);                                               \
+        PSA_ASSERT(status);                                                 \
     }                                                                       \
     else                                                                    \
     {                                                                       \
-        TEST_EQUAL(status, expected_error);                               \
+        TEST_EQUAL(status, expected_error);                                 \
         goto exit;                                                          \
     }
 
@@ -572,10 +572,10 @@ exit:
  * The test succeeds if the returned error is exactly the expected one,
  * otherwise it fails.
  */
-#define SETUP_CONDITIONAL_CHECK_STEP(test_function, this_check_err_stage) \
-    if (err_stage == this_check_err_stage)                                 \
+#define SETUP_CONDITIONAL_CHECK_STEP(test_function, this_check_err_stage)   \
+    if (err_stage == this_check_err_stage)                                  \
     {                                                                       \
-        TEST_EQUAL(test_function, expected_error);                        \
+        TEST_EQUAL(test_function, expected_error);                          \
         goto exit;                                                          \
     }
 /* END_HEADER */

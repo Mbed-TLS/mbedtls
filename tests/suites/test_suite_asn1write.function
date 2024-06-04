@@ -27,7 +27,7 @@ exit:
 }
 
 static int generic_write_finish_step(generic_write_data_t *data,
-                              const data_t *expected, int ret)
+                                     const data_t *expected, int ret)
 {
     int ok = 0;
 

@@ -80,17 +80,17 @@
  * Unconditionally mask flag into the ambient variable
  * classification_flags_tested.
  */
-#define TEST_CLASSIFICATION_MACRO(cond, flag, alg, flags)     \
+#define TEST_CLASSIFICATION_MACRO(cond, flag, alg, flags)       \
     do                                                          \
     {                                                           \
-        if (cond)                                              \
+        if (cond)                                               \
         {                                                       \
-            if ((flags) & (flag))                          \
-            TEST_ASSERT(PSA_##flag(alg));               \
+            if ((flags) & (flag))                               \
+            TEST_ASSERT(PSA_##flag(alg));                       \
             else                                                \
-            TEST_ASSERT(!PSA_##flag(alg));             \
+            TEST_ASSERT(!PSA_##flag(alg));                      \
         }                                                       \
-        classification_flags_tested |= (flag);                \
+        classification_flags_tested |= (flag);                  \
     }                                                           \
     while (0)
 
@@ -193,8 +193,8 @@ exit:;
 }
 
 static void mac_algorithm_core(psa_algorithm_t alg, int classification_flags,
-                        psa_key_type_t key_type, size_t key_bits,
-                        size_t length)
+                               psa_key_type_t key_type, size_t key_bits,
+                               size_t length)
 {
     /* Algorithm classification */
     TEST_ASSERT(!PSA_ALG_IS_HASH(alg));
@@ -219,8 +219,8 @@ exit:;
 }
 
 static void aead_algorithm_core(psa_algorithm_t alg, int classification_flags,
-                         psa_key_type_t key_type, size_t key_bits,
-                         size_t tag_length)
+                                psa_key_type_t key_type, size_t key_bits,
+                                size_t tag_length)
 {
     /* Algorithm classification */
     TEST_ASSERT(!PSA_ALG_IS_HASH(alg));

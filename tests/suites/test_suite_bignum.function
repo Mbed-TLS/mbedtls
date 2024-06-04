@@ -45,8 +45,8 @@ typedef struct mbedtls_test_mpi_random {
  * the format that mbedtls_mpi_read_string understands and is chunk_len long.
  */
 static int mbedtls_test_mpi_miller_rabin_determinizer(void *state,
-                                               unsigned char *buf,
-                                               size_t len)
+                                                      unsigned char *buf,
+                                                      size_t len)
 {
     mbedtls_test_mpi_random *random = (mbedtls_test_mpi_random *) state;
 

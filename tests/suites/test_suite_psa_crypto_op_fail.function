@@ -27,11 +27,11 @@ static int test_equal_status(const char *test,
  * run, it would be better to clarify the expectations and reconcile the
  * library and the test case generator.
  */
-#define TEST_STATUS(expr1, expr2)                                     \
-    do {                                                                \
+#define TEST_STATUS(expr1, expr2)                                         \
+    do {                                                                  \
         if (!test_equal_status( #expr1 " == " #expr2, __LINE__, __FILE__, \
-                                expr1, expr2))                       \
-        goto exit;                                                  \
+                                expr1, expr2))                            \
+        goto exit;                                                        \
     } while (0)
 
 /* END_HEADER */

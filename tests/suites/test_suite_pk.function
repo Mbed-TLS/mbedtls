@@ -243,7 +243,7 @@ psa_status_t pk_psa_import_key(const unsigned char *key_data, size_t key_len,
 /** Setup the provided PK context.
  *
  * Predefined keys used for the setup are taken from "test/src/test_keys.h"
- * which is automatically generated using "tests/scripts/generate_test_keys.py".
+ * which is automatically generated using "framework/scripts/generate_test_keys.py".
  *
  * \param pk               The PK object to fill. It must  have been initialized
  *                         (mbedtls_pk_init()), but not setup (mbedtls_pk_setup()).

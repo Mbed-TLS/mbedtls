@@ -39,8 +39,6 @@
 #include "aesce.h"
 #endif
 
-#if !defined(MBEDTLS_GCM_ALT)
-
 /* Used to select the acceleration mechanism */
 #define MBEDTLS_GCM_ACC_SMALLTABLE  0
 #define MBEDTLS_GCM_ACC_LARGETABLE  1
@@ -780,8 +778,6 @@ void mbedtls_gcm_free(mbedtls_gcm_context *ctx)
     mbedtls_platform_zeroize(ctx, sizeof(mbedtls_gcm_context));
 }
 
-#endif /* !MBEDTLS_GCM_ALT */
-
 #if defined(MBEDTLS_SELF_TEST) && defined(MBEDTLS_CCM_GCM_CAN_AES)
 /*
  * AES-GCM test vectors from:
@@ -1024,9 +1020,6 @@ int mbedtls_gcm_self_test(int verbose)
     size_t olen;
 
     if (verbose != 0) {
-#if defined(MBEDTLS_GCM_ALT)
-        mbedtls_printf("  GCM note: alternative implementation.\n");
-#else /* MBEDTLS_GCM_ALT */
 #if defined(MBEDTLS_AESNI_HAVE_CODE)
         if (mbedtls_aesni_has_support(MBEDTLS_AESNI_CLMUL)) {
             mbedtls_printf("  GCM note: using AESNI.\n");
@@ -1040,7 +1033,6 @@ int mbedtls_gcm_self_test(int verbose)
 #endif
 
         mbedtls_printf("  GCM note: built-in implementation.\n");
-#endif /* MBEDTLS_GCM_ALT */
     }
 
     static const int loop_limit =
@@ -1080,14 +1072,6 @@ int mbedtls_gcm_self_test(int verbose)
                                             add_len_test_data[i],
                                             pt_test_data[pt_index_test_data[i]],
                                             buf, 16, tag_buf);
-#if defined(MBEDTLS_GCM_ALT)
-            /* Allow alternative implementations to only support 12-byte nonces. */
-            if (ret == MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED &&
-                iv_len_test_data[i] != 12) {
-                mbedtls_printf("skipped\n");
-                break;
-            }
-#endif /* defined(MBEDTLS_GCM_ALT) */
             if (ret != 0) {
                 goto exit;
             }

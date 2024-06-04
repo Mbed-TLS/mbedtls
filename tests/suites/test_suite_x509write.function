@@ -12,16 +12,16 @@
 
 #if defined(MBEDTLS_RSA_C)
 static int mbedtls_rsa_decrypt_func(void *ctx, size_t *olen,
-                             const unsigned char *input, unsigned char *output,
-                             size_t output_max_len)
+                                    const unsigned char *input, unsigned char *output,
+                                    size_t output_max_len)
 {
     return mbedtls_rsa_pkcs1_decrypt((mbedtls_rsa_context *) ctx, NULL, NULL,
                                      olen, input, output, output_max_len);
 }
 static int mbedtls_rsa_sign_func(void *ctx,
-                          int (*f_rng)(void *, unsigned char *, size_t), void *p_rng,
-                          mbedtls_md_type_t md_alg, unsigned int hashlen,
-                          const unsigned char *hash, unsigned char *sig)
+                                 int (*f_rng)(void *, unsigned char *, size_t), void *p_rng,
+                                 mbedtls_md_type_t md_alg, unsigned int hashlen,
+                                 const unsigned char *hash, unsigned char *sig)
 {
     return mbedtls_rsa_pkcs1_sign((mbedtls_rsa_context *) ctx, f_rng, p_rng,
                                   md_alg, hashlen, hash, sig);

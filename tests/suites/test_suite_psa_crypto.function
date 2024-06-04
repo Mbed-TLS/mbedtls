@@ -154,11 +154,11 @@ static int construct_fake_rsa_key(unsigned char *buffer,
 #endif /* MBEDTLS_ASN1_WRITE_C */
 
 static int exercise_mac_setup(psa_key_type_t key_type,
-                       const unsigned char *key_bytes,
-                       size_t key_length,
-                       psa_algorithm_t alg,
-                       psa_mac_operation_t *operation,
-                       psa_status_t *status)
+                              const unsigned char *key_bytes,
+                              size_t key_length,
+                              psa_algorithm_t alg,
+                              psa_mac_operation_t *operation,
+                              psa_status_t *status)
 {
     mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
@@ -186,11 +186,11 @@ exit:
 }
 
 static int exercise_cipher_setup(psa_key_type_t key_type,
-                          const unsigned char *key_bytes,
-                          size_t key_length,
-                          psa_algorithm_t alg,
-                          psa_cipher_operation_t *operation,
-                          psa_status_t *status)
+                                 const unsigned char *key_bytes,
+                                 size_t key_length,
+                                 psa_algorithm_t alg,
+                                 psa_cipher_operation_t *operation,
+                                 psa_status_t *status)
 {
     mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
@@ -263,14 +263,14 @@ exit:
 /* Assert that a key isn't reported as having a slot number. */
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
 #define ASSERT_NO_SLOT_NUMBER(attributes)                             \
-    do                                                                  \
-    {                                                                   \
-        psa_key_slot_number_t ASSERT_NO_SLOT_NUMBER_slot_number;        \
-        TEST_EQUAL(psa_get_key_slot_number(                            \
-                       attributes,                                     \
+    do                                                                \
+    {                                                                 \
+        psa_key_slot_number_t ASSERT_NO_SLOT_NUMBER_slot_number;      \
+        TEST_EQUAL(psa_get_key_slot_number(                           \
+                       attributes,                                    \
                        &ASSERT_NO_SLOT_NUMBER_slot_number),           \
                    PSA_ERROR_INVALID_ARGUMENT);                       \
-    }                                                                   \
+    }                                                                 \
     while (0)
 #else /* MBEDTLS_PSA_CRYPTO_SE_C */
 #define ASSERT_NO_SLOT_NUMBER(attributes)     \

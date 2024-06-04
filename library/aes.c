@@ -65,8 +65,6 @@
 #define MBEDTLS_AES_NEED_REVERSE_TABLES
 #endif
 
-#if !defined(MBEDTLS_AES_ALT)
-
 #if defined(MBEDTLS_VIA_PADLOCK_HAVE_CODE)
 static int aes_padlock_ace = -1;
 #endif
@@ -1481,8 +1479,6 @@ exit:
 }
 #endif /* MBEDTLS_CIPHER_MODE_CTR */
 
-#endif /* !MBEDTLS_AES_ALT */
-
 #if defined(MBEDTLS_SELF_TEST)
 /*
  * AES test vectors from:
@@ -1845,9 +1841,6 @@ int mbedtls_aes_self_test(int verbose)
     mbedtls_aes_init(&ctx);
 
     if (verbose != 0) {
-#if defined(MBEDTLS_AES_ALT)
-        mbedtls_printf("  AES note: alternative implementation.\n");
-#else /* MBEDTLS_AES_ALT */
 #if defined(MBEDTLS_AESNI_HAVE_CODE)
 #if MBEDTLS_AESNI_HAVE_CODE == 1
         mbedtls_printf("  AES note: AESNI code present (assembly implementation).\n");
@@ -1875,7 +1868,6 @@ int mbedtls_aes_self_test(int verbose)
             mbedtls_printf("  AES note: built-in implementation.\n");
 #endif
         }
-#endif /* MBEDTLS_AES_ALT */
     }
 
     /*
@@ -1918,8 +1910,8 @@ int mbedtls_aes_self_test(int verbose)
 
             /*
              * AES-192 is an optional feature that may be unavailable when
-             * there is an alternative underlying implementation i.e. when
-             * MBEDTLS_AES_ALT is defined.
+             * there is an alternative underlying implementation such as a
+             * PSA driver.
              */
             if (ret == MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED && keybits == 192) {
                 mbedtls_printf("skipped\n");
@@ -1982,8 +1974,8 @@ int mbedtls_aes_self_test(int verbose)
 
             /*
              * AES-192 is an optional feature that may be unavailable when
-             * there is an alternative underlying implementation i.e. when
-             * MBEDTLS_AES_ALT is defined.
+             * there is an alternative underlying implementation such as a
+             * PSA driver.
              */
             if (ret == MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED && keybits == 192) {
                 mbedtls_printf("skipped\n");
@@ -2049,8 +2041,8 @@ int mbedtls_aes_self_test(int verbose)
             ret = mbedtls_aes_setkey_enc(&ctx, key, keybits);
             /*
              * AES-192 is an optional feature that may be unavailable when
-             * there is an alternative underlying implementation i.e. when
-             * MBEDTLS_AES_ALT is defined.
+             * there is an alternative underlying implementation such as a
+             * PSA driver.
              */
             if (ret == MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED && keybits == 192) {
                 mbedtls_printf("skipped\n");
@@ -2113,8 +2105,8 @@ int mbedtls_aes_self_test(int verbose)
             ret = mbedtls_aes_setkey_enc(&ctx, key, keybits);
             /*
              * AES-192 is an optional feature that may be unavailable when
-             * there is an alternative underlying implementation i.e. when
-             * MBEDTLS_AES_ALT is defined.
+             * there is an alternative underlying implementation such as a
+             * PSA driver.
              */
             if (ret == MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED && keybits == 192) {
                 mbedtls_printf("skipped\n");

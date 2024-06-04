@@ -1054,8 +1054,8 @@ int mbedtls_gcm_self_test(int verbose)
                                      key_len);
             /*
              * AES-192 is an optional feature that may be unavailable when
-             * there is an alternative underlying implementation i.e. when
-             * MBEDTLS_AES_ALT is defined.
+             * there is an alternative underlying implementation such as a
+             * PSA driver.
              */
             if (ret == MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED && key_len == 192) {
                 mbedtls_printf("skipped\n");

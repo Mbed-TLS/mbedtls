@@ -221,7 +221,7 @@ exit:
 }
 
 #if defined(MBEDTLS_PSA_CRYPTO_C)
-psa_status_t pk_psa_import_key(const unsigned char *key_data, size_t key_len,
+static psa_status_t pk_psa_import_key(const unsigned char *key_data, size_t key_len,
                                psa_key_type_t type, psa_key_usage_t usage,
                                psa_algorithm_t alg, mbedtls_svc_key_id_t *key)
 {
@@ -320,7 +320,7 @@ exit:
  *                              for volatile keys.
  * \param[out] key              Identifier of the "generated" (actually imported) PSA key.
  */
-psa_status_t pk_psa_setup(psa_key_type_t type, size_t bits,
+static psa_status_t pk_psa_setup(psa_key_type_t type, size_t bits,
                           psa_key_usage_t usage, psa_algorithm_t alg,
                           psa_algorithm_t enrollment_alg,
                           mbedtls_svc_key_id_t persistent_key_id,
@@ -468,7 +468,7 @@ exit:
 #endif /* MBEDTLS_PSA_CRYPTO_C */
 
 #if defined(MBEDTLS_RSA_C)
-int mbedtls_rsa_decrypt_func(void *ctx, size_t *olen,
+static int mbedtls_rsa_decrypt_func(void *ctx, size_t *olen,
                              const unsigned char *input, unsigned char *output,
                              size_t output_max_len)
 {
@@ -476,7 +476,7 @@ int mbedtls_rsa_decrypt_func(void *ctx, size_t *olen,
                                      mbedtls_test_rnd_std_rand, NULL,
                                      olen, input, output, output_max_len);
 }
-int mbedtls_rsa_sign_func(void *ctx,
+static int mbedtls_rsa_sign_func(void *ctx,
                           int (*f_rng)(void *, unsigned char *, size_t), void *p_rng,
                           mbedtls_md_type_t md_alg, unsigned int hashlen,
                           const unsigned char *hash, unsigned char *sig)
@@ -487,7 +487,7 @@ int mbedtls_rsa_sign_func(void *ctx,
                                   mbedtls_test_rnd_std_rand, NULL,
                                   md_alg, hashlen, hash, sig);
 }
-size_t mbedtls_rsa_key_len_func(void *ctx)
+static size_t mbedtls_rsa_key_len_func(void *ctx)
 {
     return ((const mbedtls_rsa_context *) ctx)->len;
 }
@@ -618,7 +618,7 @@ exit:
 
 /* Create a copy of a PSA key with same usage and algorithm policy and destroy
  * the original one. */
-mbedtls_svc_key_id_t psa_copy_and_destroy(mbedtls_svc_key_id_t orig_key_id)
+static mbedtls_svc_key_id_t psa_copy_and_destroy(mbedtls_svc_key_id_t orig_key_id)
 {
     psa_key_attributes_t orig_attr = PSA_KEY_ATTRIBUTES_INIT;
     psa_key_attributes_t new_attr = PSA_KEY_ATTRIBUTES_INIT;

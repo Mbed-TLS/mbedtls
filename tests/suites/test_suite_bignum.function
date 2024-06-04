@@ -44,7 +44,7 @@ typedef struct mbedtls_test_mpi_random {
  * test) are stored in the data member of the state structure. Each number is in
  * the format that mbedtls_mpi_read_string understands and is chunk_len long.
  */
-int mbedtls_test_mpi_miller_rabin_determinizer(void *state,
+static int mbedtls_test_mpi_miller_rabin_determinizer(void *state,
                                                unsigned char *buf,
                                                size_t len)
 {

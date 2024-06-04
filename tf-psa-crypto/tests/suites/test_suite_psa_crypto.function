@@ -153,7 +153,7 @@ static int construct_fake_rsa_key(unsigned char *buffer,
 }
 #endif /* MBEDTLS_ASN1_WRITE_C */
 
-int exercise_mac_setup(psa_key_type_t key_type,
+static int exercise_mac_setup(psa_key_type_t key_type,
                        const unsigned char *key_bytes,
                        size_t key_length,
                        psa_algorithm_t alg,
@@ -185,7 +185,7 @@ exit:
     return 0;
 }
 
-int exercise_cipher_setup(psa_key_type_t key_type,
+static int exercise_cipher_setup(psa_key_type_t key_type,
                           const unsigned char *key_bytes,
                           size_t key_length,
                           psa_algorithm_t alg,
@@ -1308,7 +1308,7 @@ same_key_context;
 /* Attempt to import the key in ctx. This handles any valid error codes
  * and reports an error for any invalid codes. This function also insures
  * that once imported by some thread, all threads can use the key. */
-void *thread_import_key(void *ctx)
+static void *thread_import_key(void *ctx)
 {
     mbedtls_svc_key_id_t returned_key_id;
     same_key_context *skc = (struct same_key_context *) ctx;
@@ -1382,7 +1382,7 @@ exit:
     return NULL;
 }
 
-void *thread_use_and_destroy_key(void *ctx)
+static void *thread_use_and_destroy_key(void *ctx)
 {
     same_key_context *skc = (struct same_key_context *) ctx;
 
@@ -1422,7 +1422,7 @@ typedef struct generate_key_context {
     int reps;
 }
 generate_key_context;
-void *thread_generate_key(void *ctx)
+static void *thread_generate_key(void *ctx)
 {
     mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
     psa_key_attributes_t got_attributes = PSA_KEY_ATTRIBUTES_INIT;

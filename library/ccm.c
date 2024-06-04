@@ -38,9 +38,6 @@
 #endif /* MBEDTLS_SELF_TEST && MBEDTLS_AES_C */
 #endif /* MBEDTLS_PLATFORM_C */
 
-#if !defined(MBEDTLS_CCM_ALT)
-
-
 /*
  * Initialize context
  */
@@ -626,7 +623,6 @@ int mbedtls_ccm_auth_decrypt(mbedtls_ccm_context *ctx, size_t length,
                             iv, iv_len, add, add_len,
                             input, output, tag, tag_len);
 }
-#endif /* !MBEDTLS_CCM_ALT */
 
 #if defined(MBEDTLS_SELF_TEST) && defined(MBEDTLS_CCM_GCM_CAN_AES)
 /*

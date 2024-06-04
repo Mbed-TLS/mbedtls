@@ -55,14 +55,14 @@ elif [ "$1" = "--can-mypy" ]; then
 fi
 
 echo 'Running pylint ...'
-$PYTHON -m pylint framework/scripts/mbedtls_framework/*.py scripts/*.py tests/scripts/*.py || {
+$PYTHON -m pylint framework/scripts/*.py framework/scripts/mbedtls_framework/*.py scripts/*.py tests/scripts/*.py || {
     echo >&2 "pylint reported errors"
     ret=1
 }
 
 echo
 echo 'Running mypy ...'
-$PYTHON -m mypy framework/scripts/mbedtls_framework/*.py scripts/*.py tests/scripts/*.py ||
+$PYTHON -m mypy framework/scripts/*.py framework/scripts/mbedtls_framework/*.py scripts/*.py tests/scripts/*.py ||
   ret=1
 
 exit $ret

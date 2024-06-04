@@ -222,8 +222,8 @@ exit:
 
 #if defined(MBEDTLS_PSA_CRYPTO_CLIENT)
 static psa_status_t pk_psa_import_key(const unsigned char *key_data, size_t key_len,
-                               psa_key_type_t type, psa_key_usage_t usage,
-                               psa_algorithm_t alg, mbedtls_svc_key_id_t *key)
+                                      psa_key_type_t type, psa_key_usage_t usage,
+                                      psa_algorithm_t alg, mbedtls_svc_key_id_t *key)
 {
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_status_t status;
@@ -321,10 +321,10 @@ exit:
  * \param[out] key              Identifier of the "generated" (actually imported) PSA key.
  */
 static psa_status_t pk_psa_setup(psa_key_type_t type, size_t bits,
-                          psa_key_usage_t usage, psa_algorithm_t alg,
-                          psa_algorithm_t enrollment_alg,
-                          mbedtls_svc_key_id_t persistent_key_id,
-                          mbedtls_svc_key_id_t *key)
+                                 psa_key_usage_t usage, psa_algorithm_t alg,
+                                 psa_algorithm_t enrollment_alg,
+                                 mbedtls_svc_key_id_t persistent_key_id,
+                                 mbedtls_svc_key_id_t *key)
 {
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_status_t status = PSA_ERROR_GENERIC_ERROR;
@@ -469,17 +469,17 @@ exit:
 
 #if defined(MBEDTLS_RSA_C)
 static int mbedtls_rsa_decrypt_func(void *ctx, size_t *olen,
-                             const unsigned char *input, unsigned char *output,
-                             size_t output_max_len)
+                                    const unsigned char *input, unsigned char *output,
+                                    size_t output_max_len)
 {
     return mbedtls_rsa_pkcs1_decrypt((mbedtls_rsa_context *) ctx,
                                      mbedtls_test_rnd_std_rand, NULL,
                                      olen, input, output, output_max_len);
 }
 static int mbedtls_rsa_sign_func(void *ctx,
-                          int (*f_rng)(void *, unsigned char *, size_t), void *p_rng,
-                          mbedtls_md_type_t md_alg, unsigned int hashlen,
-                          const unsigned char *hash, unsigned char *sig)
+                                 int (*f_rng)(void *, unsigned char *, size_t), void *p_rng,
+                                 mbedtls_md_type_t md_alg, unsigned int hashlen,
+                                 const unsigned char *hash, unsigned char *sig)
 {
     ((void) f_rng);
     ((void) p_rng);

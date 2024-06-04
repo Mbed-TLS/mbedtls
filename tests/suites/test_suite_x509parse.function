@@ -91,7 +91,7 @@ static int ca_callback_fail(void *data, mbedtls_x509_crt const *child, mbedtls_x
 }
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
 static int ca_callback(void *data, mbedtls_x509_crt const *child,
-                mbedtls_x509_crt **candidates)
+                       mbedtls_x509_crt **candidates)
 {
     int ret = 0;
     mbedtls_x509_crt *ca = (mbedtls_x509_crt *) data;
@@ -227,7 +227,7 @@ static int verify_print(void *data, mbedtls_x509_crt *crt, int certificate_depth
 }
 
 static int verify_parse_san(mbedtls_x509_subject_alternative_name *san,
-                     char **buf, size_t *size)
+                            char **buf, size_t *size)
 {
     int ret;
     size_t i;
@@ -318,7 +318,7 @@ static int verify_parse_san(mbedtls_x509_subject_alternative_name *san,
 }
 
 static int parse_crt_ext_cb(void *p_ctx, mbedtls_x509_crt const *crt, mbedtls_x509_buf const *oid,
-                     int critical, const unsigned char *cp, const unsigned char *end)
+                            int critical, const unsigned char *cp, const unsigned char *end)
 {
     (void) crt;
     (void) critical;
@@ -418,7 +418,7 @@ static int parse_crt_ext_cb(void *p_ctx, mbedtls_x509_crt const *crt, mbedtls_x5
 
 #if defined(MBEDTLS_X509_CSR_PARSE_C)
 static int parse_csr_ext_accept_cb(void *p_ctx, mbedtls_x509_csr const *csr, mbedtls_x509_buf const *oid,
-                            int critical, const unsigned char *cp, const unsigned char *end)
+                                   int critical, const unsigned char *cp, const unsigned char *end)
 {
     (void) p_ctx;
     (void) csr;
@@ -431,7 +431,7 @@ static int parse_csr_ext_accept_cb(void *p_ctx, mbedtls_x509_csr const *csr, mbe
 }
 
 static int parse_csr_ext_reject_cb(void *p_ctx, mbedtls_x509_csr const *csr, mbedtls_x509_buf const *oid,
-                            int critical, const unsigned char *cp, const unsigned char *end)
+                                   int critical, const unsigned char *cp, const unsigned char *end)
 {
     (void) p_ctx;
     (void) csr;

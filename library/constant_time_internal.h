@@ -433,7 +433,7 @@ static inline int mbedtls_ct_error_if_else_0(mbedtls_ct_condition_t condition, i
  * Block memory operations
  */
 
-#if defined(MBEDTLS_PKCS1_V15) && defined(MBEDTLS_RSA_C) && !defined(MBEDTLS_RSA_ALT)
+#if defined(MBEDTLS_PKCS1_V15) && defined(MBEDTLS_RSA_C)
 
 /** Conditionally set a block of memory to zero.
  *
@@ -466,7 +466,7 @@ void mbedtls_ct_memmove_left(void *start,
                              size_t total,
                              size_t offset);
 
-#endif /* defined(MBEDTLS_PKCS1_V15) && defined(MBEDTLS_RSA_C) && !defined(MBEDTLS_RSA_ALT) */
+#endif /* defined(MBEDTLS_PKCS1_V15) && defined(MBEDTLS_RSA_C) */
 
 /** Conditional memcpy.
  *

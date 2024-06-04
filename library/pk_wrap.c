@@ -470,11 +470,6 @@ static void rsa_free_wrap(void *ctx)
 
 static void rsa_debug(mbedtls_pk_context *pk, mbedtls_pk_debug_item *items)
 {
-#if defined(MBEDTLS_RSA_ALT)
-    /* Not supported */
-    (void) pk;
-    (void) items;
-#else
     mbedtls_rsa_context *rsa = (mbedtls_rsa_context *) pk->pk_ctx;
 
     items->type = MBEDTLS_PK_DEBUG_MPI;
@@ -486,7 +481,6 @@ static void rsa_debug(mbedtls_pk_context *pk, mbedtls_pk_debug_item *items)
     items->type = MBEDTLS_PK_DEBUG_MPI;
     items->name = "rsa.E";
     items->value = &(rsa->E);
-#endif
 }
 
 const mbedtls_pk_info_t mbedtls_rsa_info = {

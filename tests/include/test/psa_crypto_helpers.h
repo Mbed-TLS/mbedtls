@@ -251,8 +251,7 @@ uint64_t mbedtls_test_parse_binary_string(data_t *bin_string);
  *  \param key_type  Key type
  *  \param key_bits  Key length in number of bits.
  */
-#if defined(MBEDTLS_AES_ALT) || \
-    defined(MBEDTLS_AES_SETKEY_ENC_ALT) || \
+#if defined(MBEDTLS_AES_SETKEY_ENC_ALT) || \
     defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_AES)
 #define MBEDTLS_TEST_HAVE_ALT_AES 1
 #else

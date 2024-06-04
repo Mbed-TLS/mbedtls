@@ -376,6 +376,9 @@ mbedtls_mpi_uint mbedtls_mpi_core_add_if(mbedtls_mpi_uint *X,
  * \p X may be aliased to \p A or \p B, or even both, but may not overlap
  * either otherwise.
  *
+ * This function operates in constant time with respect to the values
+ * of \p A and \p B.
+ *
  * \param[out] X    The result of the subtraction.
  * \param[in] A     Little-endian presentation of left operand.
  * \param[in] B     Little-endian presentation of right operand.

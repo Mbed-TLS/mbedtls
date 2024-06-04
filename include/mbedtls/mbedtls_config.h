@@ -386,7 +386,6 @@
 //#define MBEDTLS_DES_ALT
 //#define MBEDTLS_DHM_ALT
 //#define MBEDTLS_ECJPAKE_ALT
-//#define MBEDTLS_GCM_ALT
 //#define MBEDTLS_NIST_KW_ALT
 //#define MBEDTLS_MD5_ALT
 //#define MBEDTLS_POLY1305_ALT

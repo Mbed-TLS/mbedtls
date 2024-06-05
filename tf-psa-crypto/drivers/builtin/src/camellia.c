@@ -22,8 +22,6 @@
 
 #include "mbedtls/platform.h"
 
-#if !defined(MBEDTLS_CAMELLIA_ALT)
-
 static const unsigned char SIGMA_CHARS[6][8] =
 {
     { 0xa0, 0x9e, 0x66, 0x7f, 0x3b, 0xcc, 0x90, 0x8b },
@@ -657,7 +655,6 @@ int mbedtls_camellia_crypt_ctr(mbedtls_camellia_context *ctx,
     return 0;
 }
 #endif /* MBEDTLS_CIPHER_MODE_CTR */
-#endif /* !MBEDTLS_CAMELLIA_ALT */
 
 #if defined(MBEDTLS_SELF_TEST)
 

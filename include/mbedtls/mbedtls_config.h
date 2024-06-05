@@ -351,7 +351,6 @@
 //#define MBEDTLS_TIMING_ALT
 
 //#define MBEDTLS_CMAC_ALT
-//#define MBEDTLS_DES_ALT
 //#define MBEDTLS_NIST_KW_ALT
 //#define MBEDTLS_MD5_ALT
 //#define MBEDTLS_RIPEMD160_ALT

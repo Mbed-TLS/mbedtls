@@ -23,8 +23,6 @@
 
 #include "mbedtls/platform.h"
 
-#if !defined(MBEDTLS_RIPEMD160_ALT)
-
 void mbedtls_ripemd160_init(mbedtls_ripemd160_context *ctx)
 {
     memset(ctx, 0, sizeof(mbedtls_ripemd160_context));
@@ -364,8 +362,6 @@ exit:
     mbedtls_ripemd160_free(ctx);
     return ret;
 }
-
-#endif /* ! MBEDTLS_RIPEMD160_ALT */
 
 /*
  * output = RIPEMD-160( input buffer )

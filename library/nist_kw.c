@@ -30,8 +30,6 @@
 
 #include "mbedtls/platform.h"
 
-#if !defined(MBEDTLS_NIST_KW_ALT)
-
 #define KW_SEMIBLOCK_LENGTH    8
 #define MIN_SEMIBLOCKS_COUNT   3
 
@@ -444,8 +442,6 @@ cleanup:
 
     return ret;
 }
-
-#endif /* !MBEDTLS_NIST_KW_ALT */
 
 #if defined(MBEDTLS_SELF_TEST) && defined(MBEDTLS_AES_C)
 

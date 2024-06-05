@@ -352,8 +352,6 @@
  */
 //#define MBEDTLS_TIMING_ALT
 
-//#define MBEDTLS_NIST_KW_ALT
-
 /*
  * When replacing the elliptic curve module, please consider, that it is
  * implemented with two .c files:

@@ -205,8 +205,6 @@ static int mbedtls_a64_crypto_sha512_determine_support(void)
 
 #endif  /* MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT */
 
-#if !defined(MBEDTLS_SHA512_ALT)
-
 #define SHA512_BLOCK_SIZE 128
 
 #if defined(MBEDTLS_SHA512_SMALLER)
@@ -878,8 +876,6 @@ exit:
     mbedtls_sha512_free(ctx);
     return ret;
 }
-
-#endif /* !MBEDTLS_SHA512_ALT */
 
 /*
  * output = SHA-512( input buffer )

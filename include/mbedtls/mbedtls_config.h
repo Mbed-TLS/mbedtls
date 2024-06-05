@@ -352,7 +352,6 @@
 
 //#define MBEDTLS_CMAC_ALT
 //#define MBEDTLS_MD5_ALT
-//#define MBEDTLS_RIPEMD160_ALT
 //#define MBEDTLS_SHA256_ALT
 //#define MBEDTLS_SHA512_ALT
 

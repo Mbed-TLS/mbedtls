@@ -2451,19 +2451,7 @@ component_build_module_alt () {
     # Enable all MBEDTLS_XXX_ALT for whole modules. Do not enable
     # MBEDTLS_XXX_YYY_ALT which are for single functions.
     scripts/config.py set-all 'MBEDTLS_([A-Z0-9]*|NIST_KW)_ALT'
-    scripts/config.py unset MBEDTLS_DHM_ALT #incompatible with MBEDTLS_DEBUG_C
 
-    # We can only compile, not link, since we don't have any implementations
-    # suitable for testing with the dummy alt headers.
-    make CFLAGS='-Werror -Wall -Wextra -I../tests/include/alt-dummy' lib
-}
-
-component_build_dhm_alt () {
-    msg "build: MBEDTLS_DHM_ALT" # ~30s
-    scripts/config.py full
-    scripts/config.py set MBEDTLS_DHM_ALT
-    # debug.c currently references mbedtls_dhm_context fields directly.
-    scripts/config.py unset MBEDTLS_DEBUG_C
     # We can only compile, not link, since we don't have any implementations
     # suitable for testing with the dummy alt headers.
     make CFLAGS='-Werror -Wall -Wextra -I../tests/include/alt-dummy' lib

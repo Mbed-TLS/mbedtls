@@ -18,8 +18,6 @@
 
 #include "mbedtls/platform.h"
 
-#if !defined(MBEDTLS_POLY1305_ALT)
-
 #define POLY1305_BLOCK_SIZE_BYTES (16U)
 
 /*
@@ -372,8 +370,6 @@ cleanup:
     mbedtls_poly1305_free(&ctx);
     return ret;
 }
-
-#endif /* MBEDTLS_POLY1305_ALT */
 
 #if defined(MBEDTLS_SELF_TEST)
 

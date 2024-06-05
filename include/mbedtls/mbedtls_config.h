@@ -352,7 +352,6 @@
  */
 //#define MBEDTLS_TIMING_ALT
 
-//#define MBEDTLS_CHACHA20_ALT
 //#define MBEDTLS_CMAC_ALT
 //#define MBEDTLS_ECJPAKE_ALT
 //#define MBEDTLS_NIST_KW_ALT

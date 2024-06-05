@@ -750,8 +750,8 @@
 #if !defined(MBEDTLS_SHA256_C)
 #error "MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_* defined without MBEDTLS_SHA256_C"
 #endif
-#if defined(MBEDTLS_SHA256_ALT) || defined(MBEDTLS_SHA256_PROCESS_ALT)
-#error "MBEDTLS_SHA256_*ALT can't be used with MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_*"
+#if defined(MBEDTLS_SHA256_PROCESS_ALT)
+#error "MBEDTLS_SHA256_PROCESS_ALT can't be used with MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_*"
 #endif
 
 #endif

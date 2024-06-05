@@ -216,8 +216,6 @@ static int mbedtls_a64_crypto_sha256_determine_support(void)
 
 #endif  /* MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_IF_PRESENT */
 
-#if !defined(MBEDTLS_SHA256_ALT)
-
 #define SHA256_BLOCK_SIZE 64
 
 void mbedtls_sha256_init(mbedtls_sha256_context *ctx)
@@ -762,8 +760,6 @@ exit:
     mbedtls_sha256_free(ctx);
     return ret;
 }
-
-#endif /* !MBEDTLS_SHA256_ALT */
 
 /*
  * output = SHA-256( input buffer )

@@ -19,8 +19,6 @@
 
 #include "mbedtls/platform.h"
 
-#if !defined(MBEDTLS_CHACHAPOLY_ALT)
-
 #define CHACHAPOLY_STATE_INIT       (0)
 #define CHACHAPOLY_STATE_AAD        (1)
 #define CHACHAPOLY_STATE_CIPHERTEXT (2)   /* Encrypting or decrypting */
@@ -317,8 +315,6 @@ int mbedtls_chachapoly_auth_decrypt(mbedtls_chachapoly_context *ctx,
 
     return 0;
 }
-
-#endif /* MBEDTLS_CHACHAPOLY_ALT */
 
 #if defined(MBEDTLS_SELF_TEST)
 

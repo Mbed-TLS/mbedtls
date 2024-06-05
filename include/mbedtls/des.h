@@ -34,10 +34,6 @@
 extern "C" {
 #endif
 
-#if !defined(MBEDTLS_DES_ALT)
-// Regular implementation
-//
-
 /**
  * \brief          DES context structure
  *
@@ -62,9 +58,6 @@ typedef struct mbedtls_des3_context {
 }
 mbedtls_des3_context;
 
-#else  /* MBEDTLS_DES_ALT */
-#include "des_alt.h"
-#endif /* MBEDTLS_DES_ALT */
 
 /**
  * \brief          Initialize DES context

@@ -24,10 +24,6 @@
 extern "C" {
 #endif
 
-#if !defined(MBEDTLS_MD5_ALT)
-// Regular implementation
-//
-
 /**
  * \brief          MD5 context structure
  *
@@ -42,10 +38,6 @@ typedef struct mbedtls_md5_context {
     unsigned char MBEDTLS_PRIVATE(buffer)[64];   /*!< data block being processed */
 }
 mbedtls_md5_context;
-
-#else  /* MBEDTLS_MD5_ALT */
-#include "md5_alt.h"
-#endif /* MBEDTLS_MD5_ALT */
 
 /**
  * \brief          Initialize MD5 context

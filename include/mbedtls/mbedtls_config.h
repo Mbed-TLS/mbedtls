@@ -350,7 +350,6 @@
  */
 //#define MBEDTLS_TIMING_ALT
 
-//#define MBEDTLS_MD5_ALT
 //#define MBEDTLS_SHA512_ALT
 
 /**

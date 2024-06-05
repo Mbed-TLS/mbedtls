@@ -31,10 +31,6 @@
 extern "C" {
 #endif
 
-#if !defined(MBEDTLS_CAMELLIA_ALT)
-// Regular implementation
-//
-
 /**
  * \brief          CAMELLIA context structure
  */
@@ -43,10 +39,6 @@ typedef struct mbedtls_camellia_context {
     uint32_t MBEDTLS_PRIVATE(rk)[68];            /*!<  CAMELLIA round keys    */
 }
 mbedtls_camellia_context;
-
-#else  /* MBEDTLS_CAMELLIA_ALT */
-#include "camellia_alt.h"
-#endif /* MBEDTLS_CAMELLIA_ALT */
 
 /**
  * \brief          Initialize a CAMELLIA context.

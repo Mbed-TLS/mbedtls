@@ -354,7 +354,6 @@
 
 //#define MBEDTLS_ECJPAKE_ALT
 //#define MBEDTLS_NIST_KW_ALT
-//#define MBEDTLS_MD5_ALT
 //#define MBEDTLS_SHA512_ALT
 
 /*

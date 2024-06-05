@@ -38,8 +38,6 @@
 
 #include <string.h>
 
-#if !defined(MBEDTLS_CMAC_ALT) || defined(MBEDTLS_SELF_TEST)
-
 /*
  * Multiplication by u in the Galois field of GF(2^n)
  *
@@ -125,9 +123,6 @@ exit:
 
     return ret;
 }
-#endif /* !defined(MBEDTLS_CMAC_ALT) || defined(MBEDTLS_SELF_TEST) */
-
-#if !defined(MBEDTLS_CMAC_ALT)
 
 /*
  * Create padded last block from (partial) last block.
@@ -426,8 +421,6 @@ exit:
     return ret;
 }
 #endif /* MBEDTLS_AES_C */
-
-#endif /* !MBEDTLS_CMAC_ALT */
 
 #if defined(MBEDTLS_SELF_TEST)
 /*

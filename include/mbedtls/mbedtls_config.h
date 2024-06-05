@@ -352,7 +352,6 @@
  */
 //#define MBEDTLS_TIMING_ALT
 
-//#define MBEDTLS_CMAC_ALT
 //#define MBEDTLS_ECJPAKE_ALT
 //#define MBEDTLS_NIST_KW_ALT
 //#define MBEDTLS_MD5_ALT
@@ -2567,10 +2566,10 @@
  * Enable the CMAC (Cipher-based Message Authentication Code) mode for block
  * ciphers.
  *
- * \note When #MBEDTLS_CMAC_ALT is active, meaning that the underlying
- *       implementation of the CMAC algorithm is provided by an alternate
- *       implementation, that alternate implementation may opt to not support
- *       AES-192 or 3DES as underlying block ciphers for the CMAC operation.
+ * \note When the underlying implementation of the CMAC algorithm is provided
+ *       by an alternate implementation, that alternate implementation may opt
+ *       to not support AES-192 or 3DES as underlying block ciphers for the CMAC
+ *       operation.
  *
  * Module:  library/cmac.c
  *

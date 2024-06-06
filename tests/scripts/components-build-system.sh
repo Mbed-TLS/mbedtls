@@ -11,7 +11,7 @@
 
 component_test_make_shared () {
     msg "build/test: make shared" # ~ 40s
-    make SHARED=1 all check
+    make SHARED=1 TEST_CPP=1 all check
     ldd programs/util/strerror | grep libmbedcrypto
     programs/test/dlopen_demo.sh
 }
@@ -65,7 +65,7 @@ component_test_cmake_out_of_source () {
     mkdir "$OUT_OF_SOURCE_DIR"
     cd "$OUT_OF_SOURCE_DIR"
     # Note: Explicitly generate files as these are turned off in releases
-    cmake -D CMAKE_BUILD_TYPE:String=Check -D GEN_FILES=ON "$MBEDTLS_ROOT_DIR"
+    cmake -D CMAKE_BUILD_TYPE:String=Check -D GEN_FILES=ON _D TEST_CPP=1 "$MBEDTLS_ROOT_DIR"
     make
 
     msg "test: cmake 'out-of-source' build"

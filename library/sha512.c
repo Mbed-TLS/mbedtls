@@ -289,8 +289,6 @@ int mbedtls_sha512_starts(mbedtls_sha512_context *ctx, int is384)
     return 0;
 }
 
-#if !defined(MBEDTLS_SHA512_PROCESS_ALT)
-
 /*
  * Round constants
  */
@@ -337,7 +335,6 @@ static const uint64_t K[80] =
     UL64(0x4CC5D4BECB3E42B6),  UL64(0x597F299CFC657E2A),
     UL64(0x5FCB6FAB3AD6FAEC),  UL64(0x6C44198C4A475817)
 };
-#endif
 
 #if defined(MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT) || \
     defined(MBEDTLS_SHA512_USE_A64_CRYPTO_ONLY)
@@ -587,7 +584,7 @@ int mbedtls_internal_sha512_process_a64_crypto(mbedtls_sha512_context *ctx,
 #endif
 
 
-#if !defined(MBEDTLS_SHA512_PROCESS_ALT) && !defined(MBEDTLS_SHA512_USE_A64_CRYPTO_ONLY)
+#if !defined(MBEDTLS_SHA512_USE_A64_CRYPTO_ONLY)
 
 #if defined(MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT)
 /*
@@ -688,7 +685,7 @@ int mbedtls_internal_sha512_process_c(mbedtls_sha512_context *ctx,
     return 0;
 }
 
-#endif /* !MBEDTLS_SHA512_PROCESS_ALT && !MBEDTLS_SHA512_USE_A64_CRYPTO_ONLY */
+#endif /* !MBEDTLS_SHA512_USE_A64_CRYPTO_ONLY */
 
 
 #if !defined(MBEDTLS_SHA512_USE_A64_CRYPTO_ONLY)

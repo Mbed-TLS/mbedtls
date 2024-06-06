@@ -32,6 +32,7 @@ static int sign_is_valid(const mbedtls_mpi *X)
     return 1;
 }
 
+#if defined(MBEDTLS_GENPRIME)
 typedef struct mbedtls_test_mpi_random {
     data_t *data;
     size_t  pos;
@@ -73,6 +74,7 @@ static int mbedtls_test_mpi_miller_rabin_determinizer(void *state,
 
     return 0;
 }
+#endif /* MBEDTLS_GENPRIME */
 
 /* Random generator that is told how many bytes to return. */
 static int f_rng_bytes_left(void *state, unsigned char *buf, size_t len)

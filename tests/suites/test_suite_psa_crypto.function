@@ -1316,6 +1316,7 @@ exit:
 
 #if defined(MBEDTLS_THREADING_PTHREAD)
 
+#if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
 typedef struct same_key_context {
     data_t *data;
     mbedtls_svc_key_id_t key;
@@ -1434,6 +1435,7 @@ static void *thread_use_and_destroy_key(void *ctx)
 exit:
     return NULL;
 }
+#endif /* MBEDTLS_PSA_CRYPTO_STORAGE_C */
 
 typedef struct generate_key_context {
     psa_key_type_t type;

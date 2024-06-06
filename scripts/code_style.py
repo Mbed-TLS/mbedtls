@@ -75,8 +75,25 @@ def get_src_files(since: Optional[str]) -> List[str]:
     output = subprocess.check_output(["git", "ls-files"] + file_patterns,
                                      universal_newlines=True)
     src_files = output.split()
+
+    # When this script is called from a git hook, some environment variables
+    # are set by default which force all git commands to use the main repository
+    # (i.e. prevent us from performing commands on the framework repo).
+    # Create an environment without these variables for running commands on the
+    # framework repo.
+    framework_env = os.environ.copy()
+    # Get a list of environment vars that git sets
+    git_env_vars = subprocess.check_output(["git", "rev-parse", "--local-env-vars"],
+                                           universal_newlines=True)
+    git_env_vars = git_env_vars.split()
+    # Remove the vars from the environment
+    for var in git_env_vars:
+        framework_env.pop(var, None)
+
     output = subprocess.check_output(["git", "-C", "framework", "ls-files"]
-                                     + file_patterns, universal_newlines=True)
+                                     + file_patterns,
+                                     universal_newlines=True,
+                                     env=framework_env)
     framework_src_files = output.split()
 
     if since:
@@ -89,7 +106,8 @@ def get_src_files(since: Optional[str]) -> List[str]:
         # ... the framework submodule
         cmd = ["git", "-C", "framework", "log", since + "..HEAD",
                "--name-only", "--pretty=", "--"] + framework_src_files
-        output = subprocess.check_output(cmd, universal_newlines=True)
+        output = subprocess.check_output(cmd, universal_newlines=True,
+                                         env=framework_env)
         committed_changed_files += ["framework/" + s for s in output.split()]
 
         # and also get all files with uncommitted changes in ...
@@ -100,7 +118,8 @@ def get_src_files(since: Optional[str]) -> List[str]:
         # ... the framework submodule
         cmd = ["git", "-C", "framework", "diff", "--name-only", "--"] + \
               framework_src_files
-        output = subprocess.check_output(cmd, universal_newlines=True)
+        output = subprocess.check_output(cmd, universal_newlines=True,
+                                         env=framework_env)
         uncommitted_changed_files += ["framework/" + s for s in output.split()]
 
         src_files = committed_changed_files + uncommitted_changed_files

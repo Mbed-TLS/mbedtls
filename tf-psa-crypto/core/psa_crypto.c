@@ -6412,27 +6412,28 @@ exit:
     return status;
 }
 
-static const psa_key_production_parameters_t default_production_parameters =
+static const psa_custom_key_parameters_t default_custom_production =
     PSA_KEY_PRODUCTION_PARAMETERS_INIT;
 
 int psa_key_production_parameters_are_default(
-    const psa_key_production_parameters_t *params,
-    size_t params_data_length)
+    const psa_custom_key_parameters_t *custom,
+    size_t custom_data_length)
 {
-    if (params->flags != 0) {
+    if (custom->flags != 0) {
         return 0;
     }
-    if (params_data_length != 0) {
+    if (custom_data_length != 0) {
         return 0;
     }
     return 1;
 }
 
-psa_status_t psa_key_derivation_output_key_ext(
+psa_status_t psa_key_derivation_output_key_custom(
     const psa_key_attributes_t *attributes,
     psa_key_derivation_operation_t *operation,
-    const psa_key_production_parameters_t *params,
-    size_t params_data_length,
+    const psa_custom_key_parameters_t *custom,
+    const uint8_t *custom_data,
+    size_t custom_data_length,
     mbedtls_svc_key_id_t *key)
 {
     psa_status_t status;
@@ -6447,7 +6448,8 @@ psa_status_t psa_key_derivation_output_key_ext(
         return PSA_ERROR_INVALID_ARGUMENT;
     }
 
-    if (!psa_key_production_parameters_are_default(params, params_data_length)) {
+    (void) custom_data;         /* We only accept 0-length data */
+    if (!psa_key_production_parameters_are_default(custom, custom_data_length)) {
         return PSA_ERROR_INVALID_ARGUMENT;
     }
 
@@ -6482,14 +6484,29 @@ psa_status_t psa_key_derivation_output_key_ext(
     return status;
 }
 
+psa_status_t psa_key_derivation_output_key_ext(
+    const psa_key_attributes_t *attributes,
+    psa_key_derivation_operation_t *operation,
+    const psa_key_production_parameters_t *params,
+    size_t params_data_length,
+    mbedtls_svc_key_id_t *key)
+{
+    return psa_key_derivation_output_key_custom(
+        attributes, operation,
+        (const psa_custom_key_parameters_t *) params,
+        params->data, params_data_length,
+        key);
+}
+
 psa_status_t psa_key_derivation_output_key(
     const psa_key_attributes_t *attributes,
     psa_key_derivation_operation_t *operation,
     mbedtls_svc_key_id_t *key)
 {
-    return psa_key_derivation_output_key_ext(attributes, operation,
-                                             &default_production_parameters, 0,
-                                             key);
+    return psa_key_derivation_output_key_custom(attributes, operation,
+                                                &default_custom_production,
+                                                NULL, 0,
+                                                key);
 }
 
 
@@ -7863,15 +7880,18 @@ static psa_status_t psa_validate_key_type_and_size_for_key_generation(
 
 psa_status_t psa_generate_key_internal(
     const psa_key_attributes_t *attributes,
-    const psa_key_production_parameters_t *params, size_t params_data_length,
+    const psa_custom_key_parameters_t *custom,
+    const uint8_t *custom_data,
+    size_t custom_data_length,
     uint8_t *key_buffer, size_t key_buffer_size, size_t *key_buffer_length)
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_key_type_t type = attributes->type;
 
     /* Only used for RSA */
-    (void) params;
-    (void) params_data_length;
+    (void) custom;
+    (void) custom_data;
+    (void) custom_data_length;
 
     if (key_type_is_raw_bytes(type)) {
         status = psa_generate_random_internal(key_buffer, key_buffer_size);
@@ -7889,7 +7909,7 @@ psa_status_t psa_generate_key_internal(
 #if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR_GENERATE)
     if (type == PSA_KEY_TYPE_RSA_KEY_PAIR) {
         return mbedtls_psa_rsa_generate_key(attributes,
-                                            params, params_data_length,
+                                            custom_data, custom_data_length,
                                             key_buffer,
                                             key_buffer_size,
                                             key_buffer_length);
@@ -7921,10 +7941,11 @@ psa_status_t psa_generate_key_internal(
     return PSA_SUCCESS;
 }
 
-psa_status_t psa_generate_key_ext(const psa_key_attributes_t *attributes,
-                                  const psa_key_production_parameters_t *params,
-                                  size_t params_data_length,
-                                  mbedtls_svc_key_id_t *key)
+psa_status_t psa_generate_key_custom(const psa_key_attributes_t *attributes,
+                                     const psa_custom_key_parameters_t *custom,
+                                     const uint8_t *custom_data,
+                                     size_t custom_data_length,
+                                     mbedtls_svc_key_id_t *key)
 {
     psa_status_t status;
     psa_key_slot_t *slot = NULL;
@@ -7946,12 +7967,12 @@ psa_status_t psa_generate_key_ext(const psa_key_attributes_t *attributes,
 
 #if defined(PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_GENERATE)
     if (attributes->type == PSA_KEY_TYPE_RSA_KEY_PAIR) {
-        if (params->flags != 0) {
+        if (custom->flags != 0) {
             return PSA_ERROR_INVALID_ARGUMENT;
         }
     } else
 #endif
-    if (!psa_key_production_parameters_are_default(params, params_data_length)) {
+    if (!psa_key_production_parameters_are_default(custom, custom_data_length)) {
         return PSA_ERROR_INVALID_ARGUMENT;
     }
 
@@ -7992,7 +8013,8 @@ psa_status_t psa_generate_key_ext(const psa_key_attributes_t *attributes,
     }
 
     status = psa_driver_wrapper_generate_key(attributes,
-                                             params, params_data_length,
+                                             custom,
+                                             custom_data, custom_data_length,
                                              slot->key.data, slot->key.bytes,
                                              &slot->key.bytes);
     if (status != PSA_SUCCESS) {
@@ -8010,12 +8032,25 @@ exit:
     return status;
 }
 
+psa_status_t psa_generate_key_ext(const psa_key_attributes_t *attributes,
+                                  const psa_key_production_parameters_t *params,
+                                  size_t params_data_length,
+                                  mbedtls_svc_key_id_t *key)
+{
+    return psa_generate_key_custom(
+        attributes,
+        (const psa_custom_key_parameters_t *) params,
+        params->data, params_data_length,
+        key);
+}
+
 psa_status_t psa_generate_key(const psa_key_attributes_t *attributes,
                               mbedtls_svc_key_id_t *key)
 {
-    return psa_generate_key_ext(attributes,
-                                &default_production_parameters, 0,
-                                key);
+    return psa_generate_key_custom(attributes,
+                                   &default_custom_production,
+                                   NULL, 0,
+                                   key);
 }
 
 /****************************************************************/

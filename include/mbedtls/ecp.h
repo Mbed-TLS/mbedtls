@@ -162,15 +162,6 @@ typedef struct mbedtls_ecp_point {
 }
 mbedtls_ecp_point;
 
-#if !defined(MBEDTLS_ECP_ALT)
-/*
- * default Mbed TLS elliptic curve arithmetic implementation
- *
- * (in case MBEDTLS_ECP_ALT is defined then the developer has to provide an
- * alternative implementation for the whole module and it will replace this
- * one.)
- */
-
 /**
  * \brief           The ECP group structure.
  *
@@ -308,10 +299,6 @@ mbedtls_ecp_group;
 #endif /* MBEDTLS_ECP_FIXED_POINT_OPTIM */
 
 /** \} name SECTION: Module settings */
-
-#else  /* MBEDTLS_ECP_ALT */
-#include "ecp_alt.h"
-#endif /* MBEDTLS_ECP_ALT */
 
 /**
  * The maximum size of the groups, that is, of \c N and \c P.

@@ -189,9 +189,7 @@
       defined(MBEDTLS_ECDH_GEN_PUBLIC_ALT)     || \
       defined(MBEDTLS_ECDSA_SIGN_ALT)          || \
       defined(MBEDTLS_ECDSA_VERIFY_ALT)        || \
-      defined(MBEDTLS_ECDSA_GENKEY_ALT)        || \
-      defined(MBEDTLS_ECP_INTERNAL_ALT)        || \
-      defined(MBEDTLS_ECP_ALT) )
+      defined(MBEDTLS_ECDSA_GENKEY_ALT) )
 #error "MBEDTLS_ECP_RESTARTABLE defined, but it cannot coexist with an alternative ECP implementation"
 #endif
 
@@ -267,42 +265,6 @@
 
 #if defined(MBEDTLS_CHACHAPOLY_C) && !defined(MBEDTLS_POLY1305_C)
 #error "MBEDTLS_CHACHAPOLY_C defined, but not all prerequisites"
-#endif
-
-#if defined(MBEDTLS_ECP_RANDOMIZE_JAC_ALT) && !defined(MBEDTLS_ECP_INTERNAL_ALT)
-#error "MBEDTLS_ECP_RANDOMIZE_JAC_ALT defined, but not all prerequisites"
-#endif
-
-#if defined(MBEDTLS_ECP_ADD_MIXED_ALT) && !defined(MBEDTLS_ECP_INTERNAL_ALT)
-#error "MBEDTLS_ECP_ADD_MIXED_ALT defined, but not all prerequisites"
-#endif
-
-#if defined(MBEDTLS_ECP_DOUBLE_JAC_ALT) && !defined(MBEDTLS_ECP_INTERNAL_ALT)
-#error "MBEDTLS_ECP_DOUBLE_JAC_ALT defined, but not all prerequisites"
-#endif
-
-#if defined(MBEDTLS_ECP_NORMALIZE_JAC_MANY_ALT) && !defined(MBEDTLS_ECP_INTERNAL_ALT)
-#error "MBEDTLS_ECP_NORMALIZE_JAC_MANY_ALT defined, but not all prerequisites"
-#endif
-
-#if defined(MBEDTLS_ECP_NORMALIZE_JAC_ALT) && !defined(MBEDTLS_ECP_INTERNAL_ALT)
-#error "MBEDTLS_ECP_NORMALIZE_JAC_ALT defined, but not all prerequisites"
-#endif
-
-#if defined(MBEDTLS_ECP_DOUBLE_ADD_MXZ_ALT) && !defined(MBEDTLS_ECP_INTERNAL_ALT)
-#error "MBEDTLS_ECP_DOUBLE_ADD_MXZ_ALT defined, but not all prerequisites"
-#endif
-
-#if defined(MBEDTLS_ECP_RANDOMIZE_MXZ_ALT) && !defined(MBEDTLS_ECP_INTERNAL_ALT)
-#error "MBEDTLS_ECP_RANDOMIZE_MXZ_ALT defined, but not all prerequisites"
-#endif
-
-#if defined(MBEDTLS_ECP_NORMALIZE_MXZ_ALT) && !defined(MBEDTLS_ECP_INTERNAL_ALT)
-#error "MBEDTLS_ECP_NORMALIZE_MXZ_ALT defined, but not all prerequisites"
-#endif
-
-#if defined(MBEDTLS_ECP_NO_FALLBACK) && !defined(MBEDTLS_ECP_INTERNAL_ALT)
-#error "MBEDTLS_ECP_NO_FALLBACK defined, but no alternative implementation enabled"
 #endif
 
 #if defined(MBEDTLS_HKDF_C) && !defined(MBEDTLS_MD_C)

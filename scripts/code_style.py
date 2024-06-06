@@ -85,9 +85,8 @@ def get_src_files(since: Optional[str]) -> List[str]:
     # Get a list of environment vars that git sets
     git_env_vars = subprocess.check_output(["git", "rev-parse", "--local-env-vars"],
                                            universal_newlines=True)
-    git_env_vars = git_env_vars.split()
     # Remove the vars from the environment
-    for var in git_env_vars:
+    for var in git_env_vars.split():
         framework_env.pop(var, None)
 
     output = subprocess.check_output(["git", "-C", "framework", "ls-files"]

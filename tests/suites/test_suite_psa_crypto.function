@@ -9592,6 +9592,77 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
+void derive_key_custom(int alg_arg,
+                       data_t *key_data,
+                       data_t *input1,
+                       data_t *input2,
+                       int key_type_arg, int bits_arg,
+                       int flags_arg,
+                       data_t *custom_data,
+                       psa_status_t expected_status,
+                       data_t *expected_export)
+{
+    mbedtls_svc_key_id_t base_key = MBEDTLS_SVC_KEY_ID_INIT;
+    mbedtls_svc_key_id_t derived_key = MBEDTLS_SVC_KEY_ID_INIT;
+    const psa_algorithm_t alg = alg_arg;
+    const psa_key_type_t key_type = key_type_arg;
+    const size_t bits = bits_arg;
+    psa_custom_key_parameters_t custom = PSA_CUSTOM_KEY_PARAMETERS_INIT;
+    custom.flags = flags_arg;
+    psa_key_derivation_operation_t operation = PSA_KEY_DERIVATION_OPERATION_INIT;
+    const size_t export_buffer_size =
+        PSA_EXPORT_KEY_OUTPUT_SIZE(key_type, bits);
+    uint8_t *export_buffer = NULL;
+    psa_key_attributes_t base_attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_key_attributes_t derived_attributes = PSA_KEY_ATTRIBUTES_INIT;
+    size_t export_length;
+
+    TEST_CALLOC(export_buffer, export_buffer_size);
+    PSA_ASSERT(psa_crypto_init());
+
+    psa_set_key_usage_flags(&base_attributes, PSA_KEY_USAGE_DERIVE);
+    psa_set_key_algorithm(&base_attributes, alg);
+    psa_set_key_type(&base_attributes, PSA_KEY_TYPE_DERIVE);
+    PSA_ASSERT(psa_import_key(&base_attributes, key_data->x, key_data->len,
+                              &base_key));
+
+    if (mbedtls_test_psa_setup_key_derivation_wrap(
+            &operation, base_key, alg,
+            input1->x, input1->len,
+            input2->x, input2->len,
+            PSA_KEY_DERIVATION_UNLIMITED_CAPACITY, 0) == 0) {
+        goto exit;
+    }
+
+    psa_set_key_usage_flags(&derived_attributes, PSA_KEY_USAGE_EXPORT);
+    psa_set_key_algorithm(&derived_attributes, 0);
+    psa_set_key_type(&derived_attributes, key_type);
+    psa_set_key_bits(&derived_attributes, bits);
+
+    TEST_EQUAL(psa_key_derivation_output_key_custom(
+                   &derived_attributes, &operation,
+                   &custom, custom_data->x, custom_data->len,
+                   &derived_key),
+               expected_status);
+
+    if (expected_status == PSA_SUCCESS) {
+        PSA_ASSERT(psa_export_key(derived_key,
+                                  export_buffer, export_buffer_size,
+                                  &export_length));
+        TEST_MEMORY_COMPARE(export_buffer, export_length,
+                            expected_export->x, expected_export->len);
+    }
+
+exit:
+    mbedtls_free(export_buffer);
+    psa_key_derivation_abort(&operation);
+    psa_destroy_key(base_key);
+    psa_destroy_key(derived_key);
+    PSA_DONE();
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
 void derive_key_ext(int alg_arg,
                     data_t *key_data,
                     data_t *input1,
@@ -10147,6 +10218,71 @@ exit:
      */
     psa_reset_key_attributes(&got_attributes);
 
+    psa_destroy_key(key);
+    PSA_DONE();
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void generate_key_custom(int type_arg,
+                         int bits_arg,
+                         int usage_arg,
+                         int alg_arg,
+                         int flags_arg,
+                         data_t *custom_data,
+                         int expected_status_arg)
+{
+    mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
+    psa_key_type_t type = type_arg;
+    psa_key_usage_t usage = usage_arg;
+    size_t bits = bits_arg;
+    psa_algorithm_t alg = alg_arg;
+    psa_status_t expected_status = expected_status_arg;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_custom_key_parameters_t custom = PSA_CUSTOM_KEY_PARAMETERS_INIT;
+    custom.flags = flags_arg;
+    psa_key_attributes_t got_attributes = PSA_KEY_ATTRIBUTES_INIT;
+
+    PSA_ASSERT(psa_crypto_init());
+
+    psa_set_key_usage_flags(&attributes, usage);
+    psa_set_key_algorithm(&attributes, alg);
+    psa_set_key_type(&attributes, type);
+    psa_set_key_bits(&attributes, bits);
+
+    /* Generate a key */
+    psa_status_t status =
+        psa_generate_key_custom(&attributes,
+                                &custom, custom_data->x, custom_data->len,
+                                &key);
+
+    TEST_EQUAL(status, expected_status);
+    if (expected_status != PSA_SUCCESS) {
+        goto exit;
+    }
+
+    /* Test the key information */
+    PSA_ASSERT(psa_get_key_attributes(key, &got_attributes));
+    TEST_EQUAL(psa_get_key_type(&got_attributes), type);
+    TEST_EQUAL(psa_get_key_bits(&got_attributes), bits);
+
+#if defined(PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_GENERATE)
+    if (type == PSA_KEY_TYPE_RSA_KEY_PAIR) {
+        TEST_ASSERT(rsa_test_e(key, bits, custom_data));
+    }
+#endif
+
+    /* Do something with the key according to its type and permitted usage. */
+    if (!mbedtls_test_psa_exercise_key(key, usage, alg, 0)) {
+        goto exit;
+    }
+
+exit:
+    /*
+     * Key attributes may have been returned by psa_get_key_attributes()
+     * thus reset them as required.
+     */
+    psa_reset_key_attributes(&got_attributes);
     psa_destroy_key(key);
     PSA_DONE();
 }

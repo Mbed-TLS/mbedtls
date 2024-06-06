@@ -60,6 +60,9 @@ const mbedtls_x509_crt_profile profile_sha512 =
     1024,
 };
 
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
+
+#if defined(MBEDTLS_FS_IO)
 static int verify_none(void *data, mbedtls_x509_crt *crt, int certificate_depth, uint32_t *flags)
 {
     ((void) data);
@@ -80,7 +83,8 @@ static int verify_all(void *data, mbedtls_x509_crt *crt, int certificate_depth, 
     return 0;
 }
 
-#if defined(MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK)
+#if defined(MBEDTLS_X509_CRL_PARSE_C) && \
+    defined(MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK)
 static int ca_callback_fail(void *data, mbedtls_x509_crt const *child, mbedtls_x509_crt **candidates)
 {
     ((void) data);
@@ -89,7 +93,7 @@ static int ca_callback_fail(void *data, mbedtls_x509_crt const *child, mbedtls_x
 
     return -1;
 }
-#if defined(MBEDTLS_X509_CRT_PARSE_C)
+
 static int ca_callback(void *data, mbedtls_x509_crt const *child,
                        mbedtls_x509_crt **candidates)
 {
@@ -138,8 +142,7 @@ exit:
     *candidates = first;
     return ret;
 }
-#endif /* MBEDTLS_X509_CRT_PARSE_C */
-#endif /* MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK */
+#endif /* MBEDTLS_X509_CRL_PARSE_C && MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK */
 
 static int verify_fatal(void *data, mbedtls_x509_crt *crt, int certificate_depth, uint32_t *flags)
 {
@@ -186,7 +189,6 @@ done:
     return ret;
 }
 
-#if defined(MBEDTLS_X509_CRT_PARSE_C)
 typedef struct {
     char buf[512];
     char *p;
@@ -316,6 +318,7 @@ static int verify_parse_san(mbedtls_x509_subject_alternative_name *san,
 
     return 0;
 }
+#endif /* MBEDTLS_FS_IO */
 
 static int parse_crt_ext_cb(void *p_ctx, mbedtls_x509_crt const *crt, mbedtls_x509_buf const *oid,
                             int critical, const unsigned char *cp, const unsigned char *end)
@@ -416,7 +419,8 @@ static int parse_crt_ext_cb(void *p_ctx, mbedtls_x509_crt const *crt, mbedtls_x5
 }
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
-#if defined(MBEDTLS_X509_CSR_PARSE_C)
+#if defined(MBEDTLS_X509_CSR_PARSE_C) && \
+    !defined(MBEDTLS_X509_REMOVE_INFO)
 static int parse_csr_ext_accept_cb(void *p_ctx, mbedtls_x509_csr const *csr, mbedtls_x509_buf const *oid,
                                    int critical, const unsigned char *cp, const unsigned char *end)
 {
@@ -443,7 +447,7 @@ static int parse_csr_ext_reject_cb(void *p_ctx, mbedtls_x509_csr const *csr, mbe
     return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS,
                              MBEDTLS_ERR_ASN1_UNEXPECTED_TAG);
 }
-#endif /* MBEDTLS_X509_CSR_PARSE_C */
+#endif /* MBEDTLS_X509_CSR_PARSE_C && !MBEDTLS_X509_REMOVE_INFO */
 /* END_HEADER */
 
 /* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C */

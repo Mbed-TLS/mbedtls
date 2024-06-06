@@ -3842,13 +3842,11 @@ psa_status_t psa_key_derivation_output_key_custom(
 /** Derive a key from an ongoing key derivation operation with custom
  *  production parameters.
  *
- * See the description of psa_key_derivation_out_key() for the operation of
- * this function with the default production parameters.
- * Mbed TLS currently does not currently support any non-default production
- * parameters.
- *
- * \note This function is experimental and may change in future minor
- *       versions of Mbed TLS.
+ * \note
+ * This is a deprecated variant of psa_key_derivation_output_key_custom().
+ * It is equivalent except that the associated variable-length data
+ * is passed in `params->data` instead of a separate parameter.
+ * This function will be removed in a future version of Mbed TLS.
  *
  * \param[in] attributes    The attributes for the new key.
  *                          If the key type to be created is
@@ -4265,15 +4263,11 @@ psa_status_t psa_generate_key_custom(const psa_key_attributes_t *attributes,
 /**
  * \brief Generate a key or key pair using custom production parameters.
  *
- * See the description of psa_generate_key() for the operation of this
- * function with the default production parameters. In addition, this function
- * supports the following production customizations, described in more detail
- * in the documentation of ::psa_key_production_parameters_t:
- *
- * - RSA keys: generation with a custom public exponent.
- *
- * \note This function is experimental and may change in future minor
- *       versions of Mbed TLS.
+ * \note
+ * This is a deprecated variant of psa_key_derivation_output_key_custom().
+ * It is equivalent except that the associated variable-length data
+ * is passed in `params->data` instead of a separate parameter.
+ * This function will be removed in a future version of Mbed TLS.
  *
  * \param[in] attributes    The attributes for the new key.
  * \param[in] params        Customization parameters for the key generation.

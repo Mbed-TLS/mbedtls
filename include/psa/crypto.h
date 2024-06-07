@@ -3839,6 +3839,12 @@ psa_status_t psa_key_derivation_output_key_custom(
     size_t custom_data_length,
     mbedtls_svc_key_id_t *key);
 
+#ifndef __cplusplus
+/* Omitted when compiling in C++, because one of the parameters is a
+ * pointer to a struct with a flexible array member, and that is not
+ * standard C++.
+ * https://github.com/Mbed-TLS/mbedtls/issues/9020
+ */
 /** Derive a key from an ongoing key derivation operation with custom
  *  production parameters.
  *
@@ -3913,6 +3919,7 @@ psa_status_t psa_key_derivation_output_key_ext(
     const psa_key_production_parameters_t *params,
     size_t params_data_length,
     mbedtls_svc_key_id_t *key);
+#endif /* !__cplusplus */
 
 /** Compare output data from a key derivation operation to an expected value.
  *
@@ -4260,6 +4267,12 @@ psa_status_t psa_generate_key_custom(const psa_key_attributes_t *attributes,
                                      size_t custom_data_length,
                                      mbedtls_svc_key_id_t *key);
 
+#ifndef __cplusplus
+/* Omitted when compiling in C++, because one of the parameters is a
+ * pointer to a struct with a flexible array member, and that is not
+ * standard C++.
+ * https://github.com/Mbed-TLS/mbedtls/issues/9020
+ */
 /**
  * \brief Generate a key or key pair using custom production parameters.
  *
@@ -4309,6 +4322,7 @@ psa_status_t psa_generate_key_ext(const psa_key_attributes_t *attributes,
                                   const psa_key_production_parameters_t *params,
                                   size_t params_data_length,
                                   mbedtls_svc_key_id_t *key);
+#endif /* !__cplusplus */
 
 /**@}*/
 

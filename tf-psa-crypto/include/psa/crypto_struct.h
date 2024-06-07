@@ -237,6 +237,12 @@ struct psa_custom_key_parameters_s {
  */
 #define PSA_CUSTOM_KEY_PARAMETERS_INIT { 0 }
 
+#ifndef __cplusplus
+/* Omitted when compiling in C++, because one of the parameters is a
+ * pointer to a struct with a flexible array member, and that is not
+ * standard C++.
+ * https://github.com/Mbed-TLS/mbedtls/issues/9020
+ */
 /* This is a deprecated variant of `struct psa_custom_key_parameters_s`.
  * It has exactly the same layout, plus an extra field which is a flexible
  * array members. Thus a `const struct psa_key_production_parameters_s*`
@@ -257,6 +263,7 @@ struct psa_key_production_parameters_s {
  * respectively.
  */
 #define PSA_KEY_PRODUCTION_PARAMETERS_INIT { 0 }
+#endif /* !__cplusplus */
 
 struct psa_key_policy_s {
     psa_key_usage_t MBEDTLS_PRIVATE(usage);

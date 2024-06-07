@@ -58,16 +58,17 @@ MBEDTLS_STATIC_ASSERT(PSA_KEY_ID_VOLATILE_MAX < MBEDTLS_PSA_KEY_ID_BUILTIN_MIN |
 
 
 
+#define PERSISTENT_KEY_CACHE_COUNT MBEDTLS_PSA_KEY_SLOT_COUNT
+#define KEY_SLICE_COUNT 1u
+#define KEY_SLOT_CACHE_SLICE_INDEX 0
+
+
 typedef struct {
     psa_key_slot_t key_slots[MBEDTLS_PSA_KEY_SLOT_COUNT];
     uint8_t key_slots_initialized;
 } psa_global_data_t;
 
 static psa_global_data_t global_data;
-
-MBEDTLS_STATIC_ASSERT(ARRAY_LENGTH(global_data.key_slots) <=
-                      PSA_KEY_ID_VOLATILE_MAX - PSA_KEY_ID_VOLATILE_MIN + 1,
-                      "The key slot array is larger than the volatile key ID range");
 
 static uint8_t psa_get_key_slots_initialized(void)
 {
@@ -85,6 +86,73 @@ static uint8_t psa_get_key_slots_initialized(void)
 
     return initialized;
 }
+
+
+
+/** The length of the given slice in the key slot table.
+ *
+ * \param slice_idx     The slice number. It must satisfy
+ *                      0 <= slice_idx < KEY_SLICE_COUNT.
+ *
+ * \return              The number of elements in the given slice.
+ */
+static inline size_t key_slice_length(size_t slice_idx);
+
+/** Get a pointer to the slot where the given volatile key is located.
+ *
+ * \param key_id        The key identifier. It must be a valid volatile key
+ *                      identifier.
+ * \return              A pointer to the only slot that the given key
+ *                      can be in. Note that the slot may be empty or
+ *                      contain a different key.
+ */
+static inline psa_key_slot_t *get_volatile_key_slot(psa_key_id_t key_id);
+
+/** Get a pointer to an entry in the persistent key cache.
+ *
+ * \param slot_idx      The index in the table. It must satisfy
+ *                      0 <= slot_idx < PERSISTENT_KEY_CACHE_COUNT.
+ * \return              A pointer to the slot containing the given
+ *                      persistent key cache entry.
+ */
+static inline psa_key_slot_t *get_persistent_key_slot(size_t slot_idx);
+
+/** Get a pointer to a slot given by slice and index.
+ *
+ * \param slice_idx     The slice number. It must satisfy
+ *                      0 <= slice_idx < KEY_SLICE_COUNT.
+ * \param slot_idx      An index in the given slice. It must satisfy
+ *                      0 <= slot_idx < key_slice_length(slice_idx).
+ *
+ * \return              A pointer to the given slot.
+ */
+static inline psa_key_slot_t *get_key_slot(size_t slice_idx, size_t slot_idx);
+
+static inline size_t key_slice_length(size_t slice_idx)
+{
+    (void) slice_idx;
+    return ARRAY_LENGTH(global_data.key_slots);
+}
+
+static inline psa_key_slot_t *get_volatile_key_slot(psa_key_id_t key_id)
+{
+    MBEDTLS_STATIC_ASSERT(ARRAY_LENGTH(global_data.key_slots) <=
+                          PSA_KEY_ID_VOLATILE_MAX - PSA_KEY_ID_VOLATILE_MIN + 1,
+                          "The key slot array is larger than the volatile key ID range");
+    return &global_data.key_slots[key_id - PSA_KEY_ID_VOLATILE_MIN];
+}
+
+static inline psa_key_slot_t *get_persistent_key_slot(size_t slot_idx)
+{
+    return &global_data.key_slots[slot_idx];
+}
+
+static inline psa_key_slot_t *get_key_slot(size_t slice_idx, size_t slot_idx)
+{
+    (void) slice_idx;
+    return &global_data.key_slots[slot_idx];
+}
+
 
 int psa_is_valid_key_id(mbedtls_svc_key_id_t key, int vendor_ok)
 {
@@ -147,7 +215,7 @@ static psa_status_t psa_get_and_lock_key_slot_in_memory(
     psa_key_slot_t *slot = NULL;
 
     if (psa_key_id_is_volatile(key_id)) {
-        slot = &global_data.key_slots[key_id - PSA_KEY_ID_VOLATILE_MIN];
+        slot = get_volatile_key_slot(key_id);
 
         /* Check if both the PSA key identifier key_id and the owner
          * identifier of key match those of the key slot. */
@@ -162,8 +230,8 @@ static psa_status_t psa_get_and_lock_key_slot_in_memory(
             return PSA_ERROR_INVALID_HANDLE;
         }
 
-        for (slot_idx = 0; slot_idx < MBEDTLS_PSA_KEY_SLOT_COUNT; slot_idx++) {
-            slot = &global_data.key_slots[slot_idx];
+        for (slot_idx = 0; slot_idx < PERSISTENT_KEY_CACHE_COUNT; slot_idx++) {
+            slot = get_persistent_key_slot(slot_idx);
             /* Only consider slots which are in a full state. */
             if ((slot->state == PSA_SLOT_FULL) &&
                 (mbedtls_svc_key_id_equal(key, slot->attr.id))) {
@@ -197,13 +265,13 @@ psa_status_t psa_initialize_key_slots(void)
 
 void psa_wipe_all_key_slots(void)
 {
-    size_t slot_idx;
-
-    for (slot_idx = 0; slot_idx < MBEDTLS_PSA_KEY_SLOT_COUNT; slot_idx++) {
-        psa_key_slot_t *slot = &global_data.key_slots[slot_idx];
-        slot->registered_readers = 1;
-        slot->state = PSA_SLOT_PENDING_DELETION;
-        (void) psa_wipe_key_slot(slot);
+    for (size_t slice_idx = 0; slice_idx < KEY_SLICE_COUNT; slice_idx++) {
+        for (size_t slot_idx = 0; slot_idx < key_slice_length(slice_idx); slot_idx++) {
+            psa_key_slot_t *slot = get_key_slot(slice_idx, slot_idx);
+            slot->registered_readers = 1;
+            slot->state = PSA_SLOT_PENDING_DELETION;
+            (void) psa_wipe_key_slot(slot);
+        }
     }
     /* The global data mutex is already held when calling this function. */
     global_data.key_slots_initialized = 0;
@@ -222,8 +290,8 @@ psa_status_t psa_reserve_free_key_slot(psa_key_id_t *volatile_key_id,
     }
 
     selected_slot = unused_persistent_key_slot = NULL;
-    for (slot_idx = 0; slot_idx < MBEDTLS_PSA_KEY_SLOT_COUNT; slot_idx++) {
-        psa_key_slot_t *slot = &global_data.key_slots[slot_idx];
+    for (slot_idx = 0; slot_idx < PERSISTENT_KEY_CACHE_COUNT; slot_idx++) {
+        psa_key_slot_t *slot = get_key_slot(KEY_SLOT_CACHE_SLICE_INDEX, slot_idx);
         if (slot->state == PSA_SLOT_EMPTY) {
             selected_slot = slot;
             break;
@@ -689,34 +757,34 @@ psa_status_t psa_purge_key(mbedtls_svc_key_id_t key)
 
 void mbedtls_psa_get_stats(mbedtls_psa_stats_t *stats)
 {
-    size_t slot_idx;
-
     memset(stats, 0, sizeof(*stats));
 
-    for (slot_idx = 0; slot_idx < MBEDTLS_PSA_KEY_SLOT_COUNT; slot_idx++) {
-        const psa_key_slot_t *slot = &global_data.key_slots[slot_idx];
-        if (psa_key_slot_has_readers(slot)) {
-            ++stats->locked_slots;
-        }
-        if (slot->state == PSA_SLOT_EMPTY) {
-            ++stats->empty_slots;
-            continue;
-        }
-        if (PSA_KEY_LIFETIME_IS_VOLATILE(slot->attr.lifetime)) {
-            ++stats->volatile_slots;
-        } else {
-            psa_key_id_t id = MBEDTLS_SVC_KEY_ID_GET_KEY_ID(slot->attr.id);
-            ++stats->persistent_slots;
-            if (id > stats->max_open_internal_key_id) {
-                stats->max_open_internal_key_id = id;
+    for (size_t slice_idx = 0; slice_idx < KEY_SLICE_COUNT; slice_idx++) {
+        for (size_t slot_idx = 0; slot_idx < key_slice_length(slice_idx); slot_idx++) {
+            const psa_key_slot_t *slot = get_key_slot(slice_idx, slot_idx);
+            if (psa_key_slot_has_readers(slot)) {
+                ++stats->locked_slots;
             }
-        }
-        if (PSA_KEY_LIFETIME_GET_LOCATION(slot->attr.lifetime) !=
-            PSA_KEY_LOCATION_LOCAL_STORAGE) {
-            psa_key_id_t id = MBEDTLS_SVC_KEY_ID_GET_KEY_ID(slot->attr.id);
-            ++stats->external_slots;
-            if (id > stats->max_open_external_key_id) {
-                stats->max_open_external_key_id = id;
+            if (slot->state == PSA_SLOT_EMPTY) {
+                ++stats->empty_slots;
+                continue;
+            }
+            if (PSA_KEY_LIFETIME_IS_VOLATILE(slot->attr.lifetime)) {
+                ++stats->volatile_slots;
+            } else {
+                psa_key_id_t id = MBEDTLS_SVC_KEY_ID_GET_KEY_ID(slot->attr.id);
+                ++stats->persistent_slots;
+                if (id > stats->max_open_internal_key_id) {
+                    stats->max_open_internal_key_id = id;
+                }
+            }
+            if (PSA_KEY_LIFETIME_GET_LOCATION(slot->attr.lifetime) !=
+                PSA_KEY_LOCATION_LOCAL_STORAGE) {
+                psa_key_id_t id = MBEDTLS_SVC_KEY_ID_GET_KEY_ID(slot->attr.id);
+                ++stats->external_slots;
+                if (id > stats->max_open_external_key_id) {
+                    stats->max_open_external_key_id = id;
+                }
             }
         }
     }

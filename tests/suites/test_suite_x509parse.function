@@ -85,7 +85,8 @@ static int verify_all(void *data, mbedtls_x509_crt *crt, int certificate_depth, 
 
 #if defined(MBEDTLS_X509_CRL_PARSE_C) && \
     defined(MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK)
-static int ca_callback_fail(void *data, mbedtls_x509_crt const *child, mbedtls_x509_crt **candidates)
+static int ca_callback_fail(void *data, mbedtls_x509_crt const *child,
+                            mbedtls_x509_crt **candidates)
 {
     ((void) data);
     ((void) child);
@@ -421,8 +422,12 @@ static int parse_crt_ext_cb(void *p_ctx, mbedtls_x509_crt const *crt, mbedtls_x5
 
 #if defined(MBEDTLS_X509_CSR_PARSE_C) && \
     !defined(MBEDTLS_X509_REMOVE_INFO)
-static int parse_csr_ext_accept_cb(void *p_ctx, mbedtls_x509_csr const *csr, mbedtls_x509_buf const *oid,
-                                   int critical, const unsigned char *cp, const unsigned char *end)
+static int parse_csr_ext_accept_cb(void *p_ctx,
+                                   mbedtls_x509_csr const *csr,
+                                   mbedtls_x509_buf const *oid,
+                                   int critical,
+                                   const unsigned char *cp,
+                                   const unsigned char *end)
 {
     (void) p_ctx;
     (void) csr;
@@ -434,8 +439,12 @@ static int parse_csr_ext_accept_cb(void *p_ctx, mbedtls_x509_csr const *csr, mbe
     return 0;
 }
 
-static int parse_csr_ext_reject_cb(void *p_ctx, mbedtls_x509_csr const *csr, mbedtls_x509_buf const *oid,
-                                   int critical, const unsigned char *cp, const unsigned char *end)
+static int parse_csr_ext_reject_cb(void *p_ctx,
+                                   mbedtls_x509_csr const *csr,
+                                   mbedtls_x509_buf const *oid,
+                                   int critical,
+                                   const unsigned char *cp,
+                                   const unsigned char *end)
 {
     (void) p_ctx;
     (void) csr;

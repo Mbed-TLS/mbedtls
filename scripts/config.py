@@ -32,7 +32,7 @@ class Setting:
       present in mbedtls_config.h but commented out.
     * section: the name of the section that contains this symbol.
     """
-    # pylint: disable=too-few-public-methods
+    # pylint: disable=too-few-public-methods, too-many-arguments
     def __init__(self, active, name, value='', section=None, configfile=None):
         self.active = active
         self.name = name
@@ -57,6 +57,7 @@ class Config:
       name to become set.
     """
 
+    # pylint: disable=unused-argument
     def __init__(self, **kw):
         self.settings = {}
 
@@ -399,8 +400,8 @@ class ConfigFile(metaclass=ABCMeta):
                     filename = candidate
                     break
             else:
-                raise Exception(name + ' configuration file not found',
-                                default_path)
+                raise ValueError(f'{name} configuration file not found: '
+                                 f'{filename if filename else default_path}')
 
         self.filename = filename
         self.templates = []
@@ -565,8 +566,8 @@ class MbedtlsConfig(Config):
         super().__init__()
         self.mbedtls_config = MbedtlsConfigFile(mbedtls_config)
         self.settings.update({name: Setting(active, name, value, section, self.mbedtls_config)
-                                for (active, name, value, section)
-                                in self.mbedtls_config.parse_file()})
+                              for (active, name, value, section)
+                              in self.mbedtls_config.parse_file()})
 
     def set(self, name, value=None):
         if name not in self.settings:
@@ -594,14 +595,14 @@ class CryptoConfig(Config):
         super().__init__()
         self.crypto_config = CryptoConfigFile(crypto_config)
         self.settings.update({name: Setting(active, name, value, section, self.crypto_config)
-                                for (active, name, value, section)
-                                in self.crypto_config.parse_file()})
+                              for (active, name, value, section)
+                              in self.crypto_config.parse_file()})
 
     def set(self, name, value=None):
         if name in UNSUPPORTED_FEATURE:
-            raise ValueError('Feature is unsupported: \'{}\''.format(name))
+            raise ValueError(f'Feature is unsupported: \'{name}\'')
         if name in UNSTABLE_FEATURE:
-            raise ValueError('Feature is unstable: \'{}\''.format(name))
+            raise ValueError(f'Feature is unstable: \'{name}\'')
 
         if name not in self.settings:
             self.crypto_config.templates.append((name, '', '#define ' + name + ' ' + '1'))
@@ -637,6 +638,7 @@ class MultiConfig(MbedtlsConfig, CryptoConfig):
     def set(self, name, value=None):
         super(self._get_related_config(name), self).set(name, value)
 
+    # pylint: disable=arguments-renamed
     def write(self, mbedtls_file=None, crypto_file=None):
         """Write the whole configuration to the file it was read from.
 
@@ -650,6 +652,7 @@ class MultiConfig(MbedtlsConfig, CryptoConfig):
         return self.settings[name].configfile
 
 if __name__ == '__main__':
+    #pylint: disable=too-many-statements
     def main():
         """Command line mbedtls_config.h manipulation tool."""
         parser = argparse.ArgumentParser(description="""

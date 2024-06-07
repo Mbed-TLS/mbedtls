@@ -58,7 +58,7 @@ class Config:
     """
 
     # pylint: disable=unused-argument
-    def __init__(self, **kw):
+    def __init__(self):
         self.settings = {}
 
     def __contains__(self, name):
@@ -561,17 +561,18 @@ class MbedtlsConfig(Config):
     See the documentation of the `Config` class for methods to query
     and modify the configuration.
     """
-    def __init__(self, mbedtls_config=None, **kw):
+    def __init__(self, filename=None):
         """Read the Mbed TLS configuration file."""
         super().__init__()
-        self.mbedtls_config = MbedtlsConfigFile(mbedtls_config)
-        self.settings.update({name: Setting(active, name, value, section, self.mbedtls_config)
+        self.configfile = MbedtlsConfigFile(filename)
+        self.settings.update({name: Setting(active, name, value, section)
                               for (active, name, value, section)
-                              in self.mbedtls_config.parse_file()})
+                              in self.configfile.parse_file()})
 
     def set(self, name, value=None):
         if name not in self.settings:
-            self.mbedtls_config.templates.append((name, '', '#define ' + name + ' '))
+            self.configfile.templates.append((name, '', '#define ' + name + ' '))
+
         super().set(name, value)
 
     def write(self, filename=None):
@@ -579,10 +580,10 @@ class MbedtlsConfig(Config):
 
         If filename is specified, write to this file instead.
         """
-        self.mbedtls_config.write(self.settings, filename)
+        self.configfile.write(self.settings, filename)
 
-    def filename(self, name):
-        return self.mbedtls_config.filename
+    def filename(self):
+        return self.configfile.filename
 
 class CryptoConfig(Config):
     """Representation of the PSA crypto configuration.
@@ -590,13 +591,13 @@ class CryptoConfig(Config):
     See the documentation of the `Config` class for methods to query
     and modify the configuration.
     """
-    def __init__(self, crypto_config=None, **kw):
+    def __init__(self, filename=None):
         """Read the PSA crypto configuration file."""
         super().__init__()
-        self.crypto_config = CryptoConfigFile(crypto_config)
-        self.settings.update({name: Setting(active, name, value, section, self.crypto_config)
+        self.configfile = CryptoConfigFile(filename)
+        self.settings.update({name: Setting(active, name, value, section)
                               for (active, name, value, section)
-                              in self.crypto_config.parse_file()})
+                              in self.configfile.parse_file()})
 
     def set(self, name, value=None):
         if name in UNSUPPORTED_FEATURE:
@@ -605,7 +606,8 @@ class CryptoConfig(Config):
             raise ValueError(f'Feature is unstable: \'{name}\'')
 
         if name not in self.settings:
-            self.crypto_config.templates.append((name, '', '#define ' + name + ' ' + '1'))
+            self.configfile.templates.append((name, '', '#define ' + name + ' '))
+
         super().set(name, value)
 
     def write(self, filename=None):
@@ -613,43 +615,65 @@ class CryptoConfig(Config):
 
         If filename is specified, write to this file instead.
         """
-        self.crypto_config.write(self.settings, filename)
+        self.configfile.write(self.settings, filename)
 
-    def filename(self, name):
-        return self.crypto_config.filename
+    def filename(self):
+        return self.configfile.filename
 
-class MultiConfig(MbedtlsConfig, CryptoConfig):
+class MultiConfig(Config):
     """Representation of MbedTLS and PSA crypto configuration
 
     See the documentation of the `Config` class for methods to query
     and modify the configuration.
     """
 
-    def __init__(self, mbedtls_config, crypto_config):
-        super().__init__(mbedtls_config=mbedtls_config, crypto_config=crypto_config)
+    def __init__(self, mbedtls_filename=None, crypto__filename=None):
+        super().__init__()
+        self.mbedtls_configfile = MbedtlsConfigFile(mbedtls_filename)
+        self.crypto_configfile = CryptoConfigFile(crypto__filename)
+        self.settings.update({name: Setting(active, name, value, section, configfile)
+                              for configfile in [self.mbedtls_configfile, self.crypto_configfile]
+                              for (active, name, value, section) in configfile.parse_file()})
 
     _crypto_regexp = re.compile(r'$PSA_.*')
-    def _get_related_config(self, name):
-        if re.match(self._crypto_regexp, name):
-            return CryptoConfig
+    def _get_configfile(self, name):
+        """Find a config type for a setting name
+        """
+        if name in self.settings:
+            return self.settings[name].configfile
+        elif re.match(self._crypto_regexp, name):
+            return self.crypto_configfile
         else:
-            return MbedtlsConfig
+            return self.mbedtls_configfile
 
     def set(self, name, value=None):
-        super(self._get_related_config(name), self).set(name, value)
+        configfile = self._get_configfile(name)
 
-    # pylint: disable=arguments-renamed
+        if configfile == self.crypto_configfile:
+            if name in UNSUPPORTED_FEATURE:
+                raise ValueError(f'Feature is unsupported: \'{name}\'')
+            if name in UNSTABLE_FEATURE:
+                raise ValueError(f'Feature is unstable: \'{name}\'')
+
+        if name not in self.settings:
+            configfile.templates.append((name, '', '#define ' + name + ' '))
+
+        super().set(name, value)
+
     def write(self, mbedtls_file=None, crypto_file=None):
         """Write the whole configuration to the file it was read from.
 
         If mbedtls_file or crypto_file is specified, write the specific configuration
         to the corresponding file instead.
         """
-        self.mbedtls_config.write(self.settings, mbedtls_file)
-        self.crypto_config.write(self.settings, crypto_file)
+        self.mbedtls_configfile.write(self.settings, mbedtls_file)
+        self.crypto_configfile.write(self.settings, crypto_file)
 
-    def filename(self, name):
-        return self.settings[name].configfile
+    def filename(self, name=None):
+        if not name:
+            return [config.filename for config in [self.mbedtls_configfile, self.crypto_configfile]]
+
+        return self._get_configfile(name).filename
 
 if __name__ == '__main__':
     #pylint: disable=too-many-statements

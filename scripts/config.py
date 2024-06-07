@@ -389,7 +389,10 @@ def no_platform_adapter(adapter):
     return continuation
 
 class ConfigFile(metaclass=ABCMeta):
+    """Representation of a configuration file."""
+
     def __init__(self, default_path, filename=None, name=''):
+        """Check if the config file exists."""
         if filename is None:
             for candidate in default_path:
                 if os.path.lexists(candidate):
@@ -418,7 +421,9 @@ class ConfigFile(metaclass=ABCMeta):
                                                 _ifndef_line_regexp,
                                                 _section_line_regexp]))
     def _parse_line(self, line):
-        """Parse a line in the config file and return the corresponding template."""
+        """Parse a line in the config file, save the templates representing the lines
+           and return the corresponding setting element.
+        """
         line = line.rstrip('\r\n')
         m = re.match(self._config_line_regexp, line)
         if m is None:
@@ -449,6 +454,7 @@ class ConfigFile(metaclass=ABCMeta):
             return (active, name, value, self.current_section)
 
     def parse_file(self):
+        """Parse the whole file and return the settings."""
         with open(self.filename, 'r', encoding='utf-8') as file:
             for line in file:
                 setting = self._parse_line(line)
@@ -481,6 +487,8 @@ class ConfigFile(metaclass=ABCMeta):
             self.write_to_stream(settings, output)
 
 class MbedtlsConfigFile(ConfigFile):
+    """Representation of an MbedTLS configuration file."""
+
     _path_in_tree = 'include/mbedtls/mbedtls_config.h'
     default_path = [_path_in_tree,
                     os.path.join(os.path.dirname(__file__),
@@ -517,6 +525,8 @@ class MbedtlsConfigFile(ConfigFile):
                         value]).rstrip()
 
 class CryptoConfigFile(ConfigFile):
+    """Representation of an Crypto configuration file."""
+
     _path_in_tree = 'tf-psa-crypto/include/psa/crypto_config.h'
     default_path = [_path_in_tree,
                     os.path.join(os.path.dirname(__file__),
@@ -545,7 +555,7 @@ class CryptoConfigFile(ConfigFile):
                         value]).rstrip()
 
 class MbedtlsConfig(Config):
-    """Representation of the Mbed TLS configuration read for a file.
+    """Representation of the Mbed TLS configuration.
 
     See the documentation of the `Config` class for methods to query
     and modify the configuration.
@@ -564,13 +574,17 @@ class MbedtlsConfig(Config):
         super().set(name, value)
 
     def write(self, filename=None):
+        """Write the whole configuration to the file it was read from.
+
+        If filename is specified, write to this file instead.
+        """
         self.mbedtls_config.write(self.settings, filename)
 
     def filename(self, name):
         return self.mbedtls_config.filename
 
 class CryptoConfig(Config):
-    """Representation of the PSA crypto configuration read for a file.
+    """Representation of the PSA crypto configuration.
 
     See the documentation of the `Config` class for methods to query
     and modify the configuration.
@@ -594,12 +608,21 @@ class CryptoConfig(Config):
         super().set(name, value)
 
     def write(self, filename=None):
+        """Write the whole configuration to the file it was read from.
+
+        If filename is specified, write to this file instead.
+        """
         self.crypto_config.write(self.settings, filename)
 
     def filename(self, name):
         return self.crypto_config.filename
 
 class MultiConfig(MbedtlsConfig, CryptoConfig):
+    """Representation of MbedTLS and PSA crypto configuration
+
+    See the documentation of the `Config` class for methods to query
+    and modify the configuration.
+    """
 
     def __init__(self, mbedtls_config, crypto_config):
         super().__init__(mbedtls_config=mbedtls_config, crypto_config=crypto_config)
@@ -615,6 +638,11 @@ class MultiConfig(MbedtlsConfig, CryptoConfig):
         super(self._get_related_config(name), self).set(name, value)
 
     def write(self, mbedtls_file=None, crypto_file=None):
+        """Write the whole configuration to the file it was read from.
+
+        If mbedtls_file or crypto_file is specified, write the specific configuration
+        to the corresponding file instead.
+        """
         self.mbedtls_config.write(self.settings, mbedtls_file)
         self.crypto_config.write(self.settings, crypto_file)
 

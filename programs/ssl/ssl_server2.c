@@ -1376,7 +1376,8 @@ static int report_cid_usage(mbedtls_ssl_context *ssl,
 }
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 
-#if defined(MBEDTLS_SSL_SESSION_TICKETS) && defined(MBEDTLS_HAVE_TIME)
+#if defined(MBEDTLS_SSL_SESSION_TICKETS) && defined(MBEDTLS_SSL_TICKET_C) && \
+    defined(MBEDTLS_HAVE_TIME)
 static inline void put_unaligned_uint32(void *p, uint32_t x)
 {
     memcpy(p, &x, sizeof(x));
@@ -1467,7 +1468,7 @@ static int dummy_ticket_parse(void *p_ticket, mbedtls_ssl_session *session,
 
     return ret;
 }
-#endif /* MBEDTLS_SSL_SESSION_TICKETS && MBEDTLS_HAVE_TIME */
+#endif /* MBEDTLS_SSL_SESSION_TICKETS && MBEDTLS_SSL_TICKET_C && MBEDTLS_HAVE_TIME */
 
 static int parse_cipher(char *buf)
 {

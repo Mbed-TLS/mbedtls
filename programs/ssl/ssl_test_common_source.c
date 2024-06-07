@@ -352,6 +352,7 @@ static int x509_crt_verify_info(char *buf, size_t size, const char *prefix,
 }
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
+#if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
 static void mbedtls_print_supported_sig_algs(void)
 {
     mbedtls_printf("supported signature algorithms:\n");
@@ -373,3 +374,4 @@ static void mbedtls_print_supported_sig_algs(void)
     mbedtls_printf("ecdsa_sha1\n");
     mbedtls_printf("\n");
 }
+#endif /* MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED */

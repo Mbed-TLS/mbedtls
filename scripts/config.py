@@ -589,11 +589,15 @@ class CryptoConfig(Config):
                               for (active, name, value, section)
                               in self.configfile.parse_file()})
 
-    def set(self, name, value=None):
+    def set(self, name, value='1'):
         if name in UNSUPPORTED_FEATURE:
             raise ValueError(f'Feature is unsupported: \'{name}\'')
         if name in UNSTABLE_FEATURE:
             raise ValueError(f'Feature is unstable: \'{name}\'')
+
+        # The default value in the crypto config is '1'
+        if not value:
+            value = '1'
 
         if name not in self.settings:
             self.configfile.templates.append((name, '', '#define ' + name + ' '))
@@ -644,6 +648,10 @@ class MultiConfig(Config):
                 raise ValueError(f'Feature is unsupported: \'{name}\'')
             if name in UNSTABLE_FEATURE:
                 raise ValueError(f'Feature is unstable: \'{name}\'')
+
+            # The default value in the crypto config is '1'
+            if not value:
+                value = '1'
 
         if name not in self.settings:
             configfile.templates.append((name, '', '#define ' + name + ' '))

@@ -971,11 +971,6 @@ helper_crypto_client_build() {
     fi
 
     make -C tests/psa-client-server/psasim/ CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS" $TARGET_LIB "$@"
-
-    # cleanup() will restore some backed-up files which include $CONFIG_H and
-    # $CRYPTO_CONFIG_H. Built libraries were already copied to psasim at this
-    # point.
-    cleanup
 }
 
 ################################################################
@@ -6212,18 +6207,23 @@ component_check_test_helpers () {
 }
 
 component_test_psasim() {
-    msg "build library for client"
-
-    helper_crypto_client_build client
-
     msg "build library for server"
-
     scripts/config.py crypto
-
     helper_crypto_client_build server
 
-    msg "build psasim"
-    make -C tests/psa-client-server/psasim CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS"
+    msg "build server"
+    make -C tests/psa-client-server/psasim CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS" test/psa_partition
+
+    # cleanup() will restore some backed-up files which include $CONFIG_H and
+    # $CRYPTO_CONFIG_H. Built libraries were already copied to psasim at this
+    # point.
+    cleanup
+
+    msg "build library for client"
+    helper_crypto_client_build client
+
+    msg "build psasim to test psa_client"
+    make -C tests/psa-client-server/psasim CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS" test/psa_client
 
     msg "test psasim"
     tests/psa-client-server/psasim/test/run_test.sh
@@ -6233,17 +6233,17 @@ component_test_psasim() {
     # Delete the executable to ensure we build using the right MAIN
     rm tests/psa-client-server/psasim/test/psa_client
     # API under test: psa_hash_compute()
-    make -C tests/psa-client-server/psasim CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS" MAIN="src/aut_psa_hash_compute.c"
+    make -C tests/psa-client-server/psasim CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS" MAIN="src/aut_psa_hash_compute.c" test/psa_client
 
     msg "test psasim running psa_hash_compute"
     tests/psa-client-server/psasim/test/run_test.sh
 
 
-    # Next APIs under test: psa_hash_*(). Just use the PSA hash example.
+    # Next APIs under test: psa_hash_*(). Use our copy of the PSA hash example.
     msg "build psasim to test all psa_hash_* APIs"
     # Delete the executable to ensure we build using the right MAIN
     rm tests/psa-client-server/psasim/test/psa_client
-    make -C tests/psa-client-server/psasim CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS" MAIN="src/aut_psa_hash.c"
+    make -C tests/psa-client-server/psasim CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS" MAIN="src/aut_psa_hash.c" test/psa_client
 
     msg "test psasim running psa_hash sample"
     tests/psa-client-server/psasim/test/run_test.sh

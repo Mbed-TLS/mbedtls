@@ -294,6 +294,8 @@ add_subdirectory(3rdparty)
 
 add_subdirectory(library)
 
+add_subdirectory(tf-psa-crypto)
+
 add_subdirectory(pkgconfig)
 
 #

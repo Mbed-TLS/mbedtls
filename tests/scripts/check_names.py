@@ -238,6 +238,7 @@ class CodeParser():
         all_macros["public"] = self.parse_macros([
             "include/mbedtls/*.h",
             "include/psa/*.h",
+            "tf-psa-crypto/include/psa/*.h",
             "3rdparty/everest/include/everest/everest.h",
             "3rdparty/everest/include/everest/x25519.h"
         ])
@@ -251,6 +252,7 @@ class CodeParser():
         enum_consts = self.parse_enum_consts([
             "include/mbedtls/*.h",
             "include/psa/*.h",
+            "tf-psa-crypto/include/psa/*.h",
             "library/*.h",
             "library/*.c",
             "3rdparty/everest/include/everest/everest.h",
@@ -259,6 +261,7 @@ class CodeParser():
         identifiers, excluded_identifiers = self.parse_identifiers([
             "include/mbedtls/*.h",
             "include/psa/*.h",
+            "tf-psa-crypto/include/psa/*.h",
             "library/*.h",
             "3rdparty/everest/include/everest/everest.h",
             "3rdparty/everest/include/everest/x25519.h"
@@ -266,6 +269,7 @@ class CodeParser():
         mbed_psa_words = self.parse_mbed_psa_words([
             "include/mbedtls/*.h",
             "include/psa/*.h",
+            "tf-psa-crypto/include/psa/*.h",
             "library/*.h",
             "3rdparty/everest/include/everest/everest.h",
             "3rdparty/everest/include/everest/x25519.h",

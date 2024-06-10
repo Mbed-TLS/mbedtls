@@ -17,8 +17,10 @@
  *
  *  The first #MBEDTLS_PSA_KEY_SLOT_COUNT identifiers of the implementation
  *  range of key identifiers are reserved for volatile key identifiers.
- *  A volatile key identifier is equal to #PSA_KEY_ID_VOLATILE_MIN plus the
- *  index of the key slot containing the volatile key definition.
+ *
+ *  If \c id is a a volatile key identifier, #PSA_KEY_ID_VOLATILE_MIN - \c id
+ *  indicates the key slot containing the volatile key definition. See
+ *  psa_crypto_slot_management.c for details.
  */
 
 /** The minimum value for a volatile key identifier.
@@ -27,8 +29,12 @@
 
 /** The maximum value for a volatile key identifier.
  */
+#if defined(MBEDTLS_PSA_KEY_STORE_DYNAMIC)
+#define PSA_KEY_ID_VOLATILE_MAX (MBEDTLS_PSA_KEY_ID_BUILTIN_MIN - 1)
+#else /* MBEDTLS_PSA_KEY_STORE_DYNAMIC */
 #define PSA_KEY_ID_VOLATILE_MAX                                 \
     (PSA_KEY_ID_VOLATILE_MIN + MBEDTLS_PSA_KEY_SLOT_COUNT - 1)
+#endif /* MBEDTLS_PSA_KEY_STORE_DYNAMIC */
 
 /** Test whether a key identifier is a volatile key identifier.
  *
@@ -113,13 +119,20 @@ void psa_wipe_all_key_slots(void);
  * If multi-threading is enabled, the caller must hold the
  * global key slot mutex.
  *
- * \param[out] volatile_key_id   On success, volatile key identifier
- *                               associated to the returned slot.
+ * \param[out] volatile_key_id   If null, reserve a cache slot for
+ *                               a persistent or built-in key.
+ *                               If non-null, allocate a slot for
+ *                               a volatile key.
+ *                               If non-null, on success, the volatile key
+ *                               identifier corresponding with the
+ *                               returned slot.
  * \param[out] p_slot            On success, a pointer to the slot.
  *
  * \retval #PSA_SUCCESS \emptydescription
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
  *         There were no free key slots.
+ *         When #MBEDTLS_PSA_KEY_STORE_DYNAMIC is enabled, there was not
+ *         enough memory to allocate more slots.
  * \retval #PSA_ERROR_BAD_STATE \emptydescription
  * \retval #PSA_ERROR_CORRUPTION_DETECTED
  *         This function attempted to operate on a key slot which was in an
@@ -127,6 +140,29 @@ void psa_wipe_all_key_slots(void);
  */
 psa_status_t psa_reserve_free_key_slot(psa_key_id_t *volatile_key_id,
                                        psa_key_slot_t **p_slot);
+
+#if defined(MBEDTLS_PSA_KEY_STORE_DYNAMIC)
+/** Return a key slot to the free list.
+ *
+ * Call this function when a slot obtained from psa_reserve_free_key_slot()
+ * is no longer in use.
+ *
+ * If multi-threading is enabled, the caller must hold the
+ * global key slot mutex.
+ *
+ * \param slice_idx             The slice containing the slot.
+ *                              This is `slot->slice_index` when the slot
+ *                              is obtained from psa_reserve_free_key_slot().
+ * \param slot                  The key slot.
+ *
+ * \retval #PSA_SUCCESS \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED
+ *         This function attempted to operate on a key slot which was in an
+ *         unexpected state.
+ */
+psa_status_t psa_free_key_slot(size_t slice_idx,
+                               psa_key_slot_t *slot);
+#endif /* MBEDTLS_PSA_KEY_STORE_DYNAMIC */
 
 /** Change the state of a key slot.
  *

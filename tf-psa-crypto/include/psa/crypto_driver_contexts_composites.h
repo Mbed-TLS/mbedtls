@@ -31,7 +31,7 @@
  * declared during the autogeneration process. */
 
 #if defined(MBEDTLS_TEST_LIBTESTDRIVER1)
-#include <libtestdriver1/include/psa/crypto.h>
+#include <libtestdriver1/tf-psa-crypto/include/psa/crypto.h>
 #endif
 
 #if defined(PSA_CRYPTO_DRIVER_TEST)

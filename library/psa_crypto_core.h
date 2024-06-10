@@ -59,6 +59,8 @@ typedef enum {
  * and metadata for one key.
  */
 typedef struct {
+    /* This field is accessed in a lot of places. Putting it first
+     * reduces the code size. */
     psa_key_attributes_t attr;
 
     /*
@@ -81,32 +83,38 @@ typedef struct {
      * PSA_SLOT_FULL. */
     psa_key_slot_state_t state;
 
-    /*
-     * Number of functions registered as reading the material in the key slot.
-     *
-     * Library functions must not write directly to registered_readers
-     *
-     * A function must call psa_register_read(slot) before reading the current
-     * contents of the slot for an operation.
-     * They then must call psa_unregister_read(slot) once they have finished
-     * reading the current contents of the slot. If the key slot mutex is not
-     * held (when mutexes are enabled), this call must be done via a call to
-     * psa_unregister_read_under_mutex(slot).
-     * A function must call psa_key_slot_has_readers(slot) to check if
-     * the slot is in use for reading.
-     *
-     * This counter is used to prevent resetting the key slot while the library
-     * may access it. For example, such control is needed in the following
-     * scenarios:
-     * . In case of key slot starvation, all key slots contain the description
-     *   of a key, and the library asks for the description of a persistent
-     *   key not present in the key slots, the key slots currently accessed by
-     *   the library cannot be reclaimed to free a key slot to load the
-     *   persistent key.
-     * . In case of a multi-threaded application where one thread asks to close
-     *   or purge or destroy a key while it is in use by the library through
-     *   another thread. */
-    size_t registered_readers;
+    union {
+        struct {
+            /*
+             * Number of functions registered as reading the material in the key slot.
+             *
+             * Library functions must not write directly to registered_readers
+             *
+             * A function must call psa_register_read(slot) before reading
+             * the current contents of the slot for an operation.
+             * They then must call psa_unregister_read(slot) once they have
+             * finished reading the current contents of the slot. If the key
+             * slot mutex is not held (when mutexes are enabled), this call
+             * must be done via a call to
+             * psa_unregister_read_under_mutex(slot).
+             * A function must call psa_key_slot_has_readers(slot) to check if
+             * the slot is in use for reading.
+             *
+             * This counter is used to prevent resetting the key slot while
+             * the library may access it. For example, such control is needed
+             * in the following scenarios:
+             * . In case of key slot starvation, all key slots contain the
+             *   description of a key, and the library asks for the
+             *   description of a persistent key not present in the
+             *   key slots, the key slots currently accessed by the
+             *   library cannot be reclaimed to free a key slot to load
+             *   the persistent key.
+             * . In case of a multi-threaded application where one thread
+             *   asks to close or purge or destroy a key while it is in use
+             *   by the library through another thread. */
+            size_t registered_readers;
+        } occupied;
+    } var;
 
     /* Dynamically allocated key data buffer.
      * Format as specified in psa_export_key(). */
@@ -169,7 +177,7 @@ typedef struct {
  */
 static inline int psa_key_slot_has_readers(const psa_key_slot_t *slot)
 {
-    return slot->registered_readers > 0;
+    return slot->var.occupied.registered_readers > 0;
 }
 
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)

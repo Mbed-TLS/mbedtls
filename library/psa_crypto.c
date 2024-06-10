@@ -1210,15 +1210,15 @@ psa_status_t psa_wipe_key_slot(psa_key_slot_t *slot)
         case PSA_SLOT_PENDING_DELETION:
             /* In this state psa_wipe_key_slot() must only be called if the
              * caller is the last reader. */
-            if (slot->registered_readers != 1) {
-                MBEDTLS_TEST_HOOK_TEST_ASSERT(slot->registered_readers == 1);
+            if (slot->var.occupied.registered_readers != 1) {
+                MBEDTLS_TEST_HOOK_TEST_ASSERT(slot->var.occupied.registered_readers == 1);
                 status = PSA_ERROR_CORRUPTION_DETECTED;
             }
             break;
         case PSA_SLOT_FILLING:
             /* In this state registered_readers must be 0. */
-            if (slot->registered_readers != 0) {
-                MBEDTLS_TEST_HOOK_TEST_ASSERT(slot->registered_readers == 0);
+            if (slot->var.occupied.registered_readers != 0) {
+                MBEDTLS_TEST_HOOK_TEST_ASSERT(slot->var.occupied.registered_readers == 0);
                 status = PSA_ERROR_CORRUPTION_DETECTED;
             }
             break;

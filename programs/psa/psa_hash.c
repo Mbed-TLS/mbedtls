@@ -30,11 +30,12 @@
  * If you switch to a different algorithm you will need to update
  * the hash data in the EXAMPLE_HASH_VALUE macro below. */
 
-#if !defined(MBEDTLS_PSA_CRYPTO_C) || !defined(PSA_WANT_ALG_SHA_256)
+#if !defined(MBEDTLS_PSA_CRYPTO_CLIENT) && \
+    (!defined(MBEDTLS_PSA_CRYPTO_C) || !defined(PSA_WANT_ALG_SHA_256))
 int main(void)
 {
     mbedtls_printf("MBEDTLS_PSA_CRYPTO_C and PSA_WANT_ALG_SHA_256"
-                   "not defined.\r\n");
+                   "not defined, and not MBEDTLS_PSA_CRYPTO_CLIENT.\r\n");
     return EXIT_SUCCESS;
 }
 #else

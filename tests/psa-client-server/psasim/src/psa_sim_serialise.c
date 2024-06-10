@@ -13,6 +13,44 @@
 #include <stdlib.h>
 #include <string.h>
 
+/* Basic idea:
+ *
+ * All arguments to a function will be serialised into a single buffer to
+ * be sent to the server with the PSA crypto function to be called.
+ *
+ * All returned data (the function's return value and any values returned
+ * via `out` parameters) will similarly be serialised into a buffer to be
+ * sent back to the client from the server.
+ *
+ * For each data type foo (e.g. int, size_t, psa_algorithm_t, but also "buffer"
+ * where "buffer" is a (uint8_t *, size_t) pair, we have a pair of functions,
+ * psasim_serialise_foo() and psasim_deserialise_foo().
+ *
+ * We also have psasim_serialise_foo_needs() functions, which return a
+ * size_t giving the number of bytes that serialising that instance of that
+ * type will need. This allows callers to size buffers for serialisation.
+ *
+ * Each serialised buffer starts with a version byte, bytes that indicate
+ * the size of basic C types, and four bytes that indicate the endianness
+ * (to avoid incompatibilities if we ever run this over a network - we are
+ * not aiming for universality, just for correctness and simplicity).
+ *
+ * Most types are serialised as a fixed-size (per type) octet string, with
+ * no type indication. This is acceptable as (a) this is for the test PSA crypto
+ * simulator only, not production, and (b) these functions are called by
+ * code that itself is written by script.
+ *
+ * We also want to keep serialised data reasonably compact as communication
+ * between client and server goes in messages of less than 200 bytes each.
+ *
+ * Many serialisation functions can be created by a script; an exemplar Perl
+ * script is included. It is not hooked into the build and so must be run
+ * manually, but is expected to be replaced by a Python script in due course.
+ * Types that can have their functions created by script include plain old C
+ * data types (e.g. int), types typedef'd to those, and even structures that
+ * don't contain pointers.
+ */
+
 /* include/psa/crypto_platform.h:typedef uint32_t mbedtls_psa_client_handle_t;
  * but we don't get it on server builds, so redefine it here with a unique type name
  */
@@ -57,44 +95,6 @@ static ssize_t find_hash_slot_by_handle(psasim_client_handle_t handle)
 
     return -1;  /* all in use */
 }
-
-/* Basic idea:
- *
- * All arguments to a function will be serialised into a single buffer to
- * be sent to the server with the PSA crypto function to be called.
- *
- * All returned data (the function's return value and any values returned
- * via `out` parameters) will similarly be serialised into a buffer to be
- * sent back to the client from the server.
- *
- * For each data type foo (e.g. int, size_t, psa_algorithm_t, but also "buffer"
- * where "buffer" is a (uint8_t *, size_t) pair, we have a pair of functions,
- * psasim_serialise_foo() and psasim_deserialise_foo().
- *
- * We also have psasim_serialise_foo_needs() functions, which return a
- * size_t giving the number of bytes that serialising that instance of that
- * type will need. This allows callers to size buffers for serialisation.
- *
- * Each serialised buffer starts with a version byte, bytes that indicate
- * the size of basic C types, and four bytes that indicate the endianness
- * (to avoid incompatibilities if we ever run this over a network - we are
- * not aiming for universality, just for correctness and simplicity).
- *
- * Most types are serialised as a fixed-size (per type) octet string, with
- * no type indication. This is acceptable as (a) this is for the test PSA crypto
- * simulator only, not production, and (b) these functions are called by
- * code that itself is written by script.
- *
- * We also want to keep serialised data reasonably compact as communication
- * between client and server goes in messages of less than 200 bytes each.
- *
- * Many serialisation functions can be created by a script; an exemplar Perl
- * script is included. It is not hooked into the build and so must be run
- * manually, but is expected to be replaced by a Python script in due course.
- * Types that can have their functions created by script include plain old C
- * data types (e.g. int), types typedef'd to those, and even structures that
- * don't contain pointers.
- */
 
 size_t psasim_serialise_begin_needs(void)
 {

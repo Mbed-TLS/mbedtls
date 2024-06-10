@@ -55,9 +55,15 @@ if ($which eq "h") {
         if ($type eq "buffer") {
             print declare_buffer_functions();
         } else {
-            print declare_needs($type);
-            print declare_serialise($type);
-            print declare_deserialise($type);
+            print declare_needs($type, "");
+            print declare_serialise($type, "");
+            print declare_deserialise($type, "");
+
+            if ($type =~ /^psa_\w+_operation_t$/) {
+                print declare_needs($type, "server_");
+                print declare_serialise($type, "server_");
+                print declare_deserialise($type, "server_");
+            }
         }
     }
 
@@ -85,15 +91,17 @@ if ($which eq "h") {
 
 sub declare_needs
 {
-    my ($type) = @_;
+    my ($type, $server) = @_;
 
     my $an = ($type =~ /^[ui]/) ? "an" : "a";
     my $type_d = $type;
     $type_d =~ s/ /_/g;
 
+    my $ptr = (length($server)) ? "*" : "";
+
     return <<EOF;
 
-/** Return how much buffer space is needed by \\c psasim_serialise_$type_d()
+/** Return how much buffer space is needed by \\c psasim_${server}serialise_$type_d()
  *  to serialise $an `$type`.
  *
  * \\param value              The value that will be serialised into the buffer
@@ -104,21 +112,25 @@ sub declare_needs
  *                           \\c psasim_serialise_$type_d() to serialise
  *                           the given value.
  */
-size_t psasim_serialise_${type_d}_needs($type value);
+size_t psasim_${server}serialise_${type_d}_needs($type ${ptr}value);
 EOF
 }
 
 sub declare_serialise
 {
-    my ($type) = @_;
+    my ($type, $server) = @_;
 
     my $an = ($type =~ /^[ui]/) ? "an" : "a";
     my $type_d = $type;
     $type_d =~ s/ /_/g;
 
+    my $server_side = (length($server)) ? " on the server side" : "";
+
+    my $ptr = (length($server)) ? "*" : "";
+
     return align_declaration(<<EOF);
 
-/** Serialise $an `$type` into a buffer.
+/** Serialise $an `$type` into a buffer${server_side}.
  *
  * \\param pos[in,out]        Pointer to a `uint8_t *` holding current position
  *                           in the buffer.
@@ -128,23 +140,27 @@ sub declare_serialise
  *
  * \\return                   \\c 1 on success ("okay"), \\c 0 on error.
  */
-int psasim_serialise_$type_d(uint8_t **pos,
+int psasim_${server}serialise_$type_d(uint8_t **pos,
                              size_t *remaining,
-                             $type value);
+                             $type ${ptr}value);
 EOF
 }
 
 sub declare_deserialise
 {
-    my ($type) = @_;
+    my ($type, $server) = @_;
 
     my $an = ($type =~ /^[ui]/) ? "an" : "a";
     my $type_d = $type;
     $type_d =~ s/ /_/g;
 
+    my $server_side = (length($server)) ? " on the server side" : "";
+
+    my $ptr = (length($server)) ? "*" : "";
+
     return align_declaration(<<EOF);
 
-/** Deserialise $an `$type` from a buffer.
+/** Deserialise $an `$type` from a buffer${server_side}.
  *
  * \\param pos[in,out]        Pointer to a `uint8_t *` holding current position
  *                           in the buffer.
@@ -155,9 +171,9 @@ sub declare_deserialise
  *
  * \\return                   \\c 1 on success ("okay"), \\c 0 on error.
  */
-int psasim_deserialise_$type_d(uint8_t **pos,
+int psasim_${server}deserialise_$type_d(uint8_t **pos,
                                size_t *remaining,
-                               $type *value);
+                               $type ${ptr}*value);
 EOF
 }
 

@@ -72,7 +72,7 @@ int psa_hash_abort_wrapper(
     uint8_t **out_params, size_t *out_params_len)
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
-    psa_hash_operation_t operation;
+    psa_hash_operation_t *operation;
 
     uint8_t *pos = in_params;
     size_t remaining = in_params_len;
@@ -84,7 +84,7 @@ int psa_hash_abort_wrapper(
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_hash_operation_t(&pos, &remaining, &operation);
+    ok = psasim_server_deserialise_psa_hash_operation_t(&pos, &remaining, &operation);
     if (!ok) {
         goto fail;
     }
@@ -92,14 +92,14 @@ int psa_hash_abort_wrapper(
     // Now we call the actual target function
 
     status = psa_hash_abort(
-        &operation
+        operation
         );
 
     // NOTE: Should really check there is no overflow as we go along.
     size_t result_size =
         psasim_serialise_begin_needs() +
         psasim_serialise_psa_status_t_needs(status) +
-        psasim_serialise_psa_hash_operation_t_needs(operation);
+        psasim_server_serialise_psa_hash_operation_t_needs(operation);
 
     result = malloc(result_size);
     if (result == NULL) {
@@ -119,7 +119,7 @@ int psa_hash_abort_wrapper(
         goto fail;
     }
 
-    ok = psasim_serialise_psa_hash_operation_t(&rpos, &rremain, operation);
+    ok = psasim_server_serialise_psa_hash_operation_t(&rpos, &rremain, operation);
     if (!ok) {
         goto fail;
     }
@@ -141,8 +141,8 @@ int psa_hash_clone_wrapper(
     uint8_t **out_params, size_t *out_params_len)
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
-    psa_hash_operation_t source_operation;
-    psa_hash_operation_t target_operation;
+    psa_hash_operation_t *source_operation;
+    psa_hash_operation_t *target_operation;
 
     uint8_t *pos = in_params;
     size_t remaining = in_params_len;
@@ -154,12 +154,12 @@ int psa_hash_clone_wrapper(
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_hash_operation_t(&pos, &remaining, &source_operation);
+    ok = psasim_server_deserialise_psa_hash_operation_t(&pos, &remaining, &source_operation);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_hash_operation_t(&pos, &remaining, &target_operation);
+    ok = psasim_server_deserialise_psa_hash_operation_t(&pos, &remaining, &target_operation);
     if (!ok) {
         goto fail;
     }
@@ -167,15 +167,15 @@ int psa_hash_clone_wrapper(
     // Now we call the actual target function
 
     status = psa_hash_clone(
-        &source_operation,
-        &target_operation
+        source_operation,
+        target_operation
         );
 
     // NOTE: Should really check there is no overflow as we go along.
     size_t result_size =
         psasim_serialise_begin_needs() +
         psasim_serialise_psa_status_t_needs(status) +
-        psasim_serialise_psa_hash_operation_t_needs(target_operation);
+        psasim_server_serialise_psa_hash_operation_t_needs(target_operation);
 
     result = malloc(result_size);
     if (result == NULL) {
@@ -195,7 +195,7 @@ int psa_hash_clone_wrapper(
         goto fail;
     }
 
-    ok = psasim_serialise_psa_hash_operation_t(&rpos, &rremain, target_operation);
+    ok = psasim_server_serialise_psa_hash_operation_t(&rpos, &rremain, target_operation);
     if (!ok) {
         goto fail;
     }
@@ -406,7 +406,7 @@ int psa_hash_finish_wrapper(
     uint8_t **out_params, size_t *out_params_len)
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
-    psa_hash_operation_t operation;
+    psa_hash_operation_t *operation;
     uint8_t *hash = NULL;
     size_t hash_size;
     size_t hash_length;
@@ -421,7 +421,7 @@ int psa_hash_finish_wrapper(
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_hash_operation_t(&pos, &remaining, &operation);
+    ok = psasim_server_deserialise_psa_hash_operation_t(&pos, &remaining, &operation);
     if (!ok) {
         goto fail;
     }
@@ -439,7 +439,7 @@ int psa_hash_finish_wrapper(
     // Now we call the actual target function
 
     status = psa_hash_finish(
-        &operation,
+        operation,
         hash, hash_size,
         &hash_length
         );
@@ -448,7 +448,7 @@ int psa_hash_finish_wrapper(
     size_t result_size =
         psasim_serialise_begin_needs() +
         psasim_serialise_psa_status_t_needs(status) +
-        psasim_serialise_psa_hash_operation_t_needs(operation) +
+        psasim_server_serialise_psa_hash_operation_t_needs(operation) +
         psasim_serialise_buffer_needs(hash, hash_size) +
         psasim_serialise_size_t_needs(hash_length);
 
@@ -470,7 +470,7 @@ int psa_hash_finish_wrapper(
         goto fail;
     }
 
-    ok = psasim_serialise_psa_hash_operation_t(&rpos, &rremain, operation);
+    ok = psasim_server_serialise_psa_hash_operation_t(&rpos, &rremain, operation);
     if (!ok) {
         goto fail;
     }
@@ -506,7 +506,7 @@ int psa_hash_setup_wrapper(
     uint8_t **out_params, size_t *out_params_len)
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
-    psa_hash_operation_t operation;
+    psa_hash_operation_t *operation;
     psa_algorithm_t alg;
 
     uint8_t *pos = in_params;
@@ -519,7 +519,7 @@ int psa_hash_setup_wrapper(
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_hash_operation_t(&pos, &remaining, &operation);
+    ok = psasim_server_deserialise_psa_hash_operation_t(&pos, &remaining, &operation);
     if (!ok) {
         goto fail;
     }
@@ -532,7 +532,7 @@ int psa_hash_setup_wrapper(
     // Now we call the actual target function
 
     status = psa_hash_setup(
-        &operation,
+        operation,
         alg
         );
 
@@ -540,7 +540,7 @@ int psa_hash_setup_wrapper(
     size_t result_size =
         psasim_serialise_begin_needs() +
         psasim_serialise_psa_status_t_needs(status) +
-        psasim_serialise_psa_hash_operation_t_needs(operation);
+        psasim_server_serialise_psa_hash_operation_t_needs(operation);
 
     result = malloc(result_size);
     if (result == NULL) {
@@ -560,7 +560,7 @@ int psa_hash_setup_wrapper(
         goto fail;
     }
 
-    ok = psasim_serialise_psa_hash_operation_t(&rpos, &rremain, operation);
+    ok = psasim_server_serialise_psa_hash_operation_t(&rpos, &rremain, operation);
     if (!ok) {
         goto fail;
     }
@@ -582,7 +582,7 @@ int psa_hash_update_wrapper(
     uint8_t **out_params, size_t *out_params_len)
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
-    psa_hash_operation_t operation;
+    psa_hash_operation_t *operation;
     uint8_t *input = NULL;
     size_t input_length;
 
@@ -596,7 +596,7 @@ int psa_hash_update_wrapper(
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_hash_operation_t(&pos, &remaining, &operation);
+    ok = psasim_server_deserialise_psa_hash_operation_t(&pos, &remaining, &operation);
     if (!ok) {
         goto fail;
     }
@@ -609,7 +609,7 @@ int psa_hash_update_wrapper(
     // Now we call the actual target function
 
     status = psa_hash_update(
-        &operation,
+        operation,
         input, input_length
         );
 
@@ -617,7 +617,7 @@ int psa_hash_update_wrapper(
     size_t result_size =
         psasim_serialise_begin_needs() +
         psasim_serialise_psa_status_t_needs(status) +
-        psasim_serialise_psa_hash_operation_t_needs(operation);
+        psasim_server_serialise_psa_hash_operation_t_needs(operation);
 
     result = malloc(result_size);
     if (result == NULL) {
@@ -637,7 +637,7 @@ int psa_hash_update_wrapper(
         goto fail;
     }
 
-    ok = psasim_serialise_psa_hash_operation_t(&rpos, &rremain, operation);
+    ok = psasim_server_serialise_psa_hash_operation_t(&rpos, &rremain, operation);
     if (!ok) {
         goto fail;
     }
@@ -663,7 +663,7 @@ int psa_hash_verify_wrapper(
     uint8_t **out_params, size_t *out_params_len)
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
-    psa_hash_operation_t operation;
+    psa_hash_operation_t *operation;
     uint8_t *hash = NULL;
     size_t hash_length;
 
@@ -677,7 +677,7 @@ int psa_hash_verify_wrapper(
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_hash_operation_t(&pos, &remaining, &operation);
+    ok = psasim_server_deserialise_psa_hash_operation_t(&pos, &remaining, &operation);
     if (!ok) {
         goto fail;
     }
@@ -690,7 +690,7 @@ int psa_hash_verify_wrapper(
     // Now we call the actual target function
 
     status = psa_hash_verify(
-        &operation,
+        operation,
         hash, hash_length
         );
 
@@ -698,7 +698,7 @@ int psa_hash_verify_wrapper(
     size_t result_size =
         psasim_serialise_begin_needs() +
         psasim_serialise_psa_status_t_needs(status) +
-        psasim_serialise_psa_hash_operation_t_needs(operation);
+        psasim_server_serialise_psa_hash_operation_t_needs(operation);
 
     result = malloc(result_size);
     if (result == NULL) {
@@ -718,7 +718,7 @@ int psa_hash_verify_wrapper(
         goto fail;
     }
 
-    ok = psasim_serialise_psa_hash_operation_t(&rpos, &rremain, operation);
+    ok = psasim_server_serialise_psa_hash_operation_t(&rpos, &rremain, operation);
     if (!ok) {
         goto fail;
     }

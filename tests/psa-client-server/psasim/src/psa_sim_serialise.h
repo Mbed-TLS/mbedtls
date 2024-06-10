@@ -408,3 +408,13 @@ int psasim_serialise_psa_hash_operation_t(uint8_t **pos,
 int psasim_deserialise_psa_hash_operation_t(uint8_t **pos,
                                             size_t *remaining,
                                             psa_hash_operation_t *value);
+
+size_t psasim_server_serialise_psa_hash_operation_t_needs(psa_hash_operation_t *operation);
+
+int psasim_server_serialise_psa_hash_operation_t(uint8_t **pos,
+                                                 size_t *remaining,
+                                                 psa_hash_operation_t *operation);
+
+int psasim_server_deserialise_psa_hash_operation_t(uint8_t **pos,
+                                                   size_t *remaining,
+                                                   psa_hash_operation_t **operation);

@@ -13,6 +13,51 @@
 #include <stdlib.h>
 #include <string.h>
 
+/* include/psa/crypto_platform.h:typedef uint32_t mbedtls_psa_client_handle_t;
+ * but we don't get it on server builds, so redefine it here with a unique type name
+ */
+typedef uint32_t psasim_client_handle_t;
+
+typedef struct psasim_operation_s {
+    psasim_client_handle_t handle;
+} psasim_operation_t;
+
+#define MAX_LIVE_HANDLES_PER_CLASS   100        /* this many slots */
+
+static psa_hash_operation_t hash_operations[MAX_LIVE_HANDLES_PER_CLASS];
+static psasim_client_handle_t hash_operation_handles[MAX_LIVE_HANDLES_PER_CLASS];
+static psasim_client_handle_t next_hash_operation_handle = 1;
+
+/* Get a free slot */
+static ssize_t allocate_hash_operation_slot(void)
+{
+    psasim_client_handle_t handle = next_hash_operation_handle++;
+    if (next_hash_operation_handle == 0) {      /* wrapped around */
+        fprintf(stderr, "MAX HASH HANDLES REACHED\n");
+        exit(1);
+    }
+
+    for (ssize_t i = 0; i < MAX_LIVE_HANDLES_PER_CLASS; i++) {
+        if (hash_operation_handles[i] == 0) {
+            hash_operation_handles[i] = handle;
+            return i;
+        }
+    }
+
+    return -1;  /* all in use */
+}
+
+static ssize_t find_hash_slot_by_handle(psasim_client_handle_t handle)
+{
+    for (ssize_t i = 0; i < MAX_LIVE_HANDLES_PER_CLASS; i++) {
+        if (hash_operation_handles[i] == handle) {
+            return i;
+        }
+    }
+
+    return -1;  /* all in use */
+}
+
 /* Basic idea:
  *
  * All arguments to a function will be serialised into a single buffer to
@@ -401,6 +446,68 @@ int psasim_deserialise_psa_hash_operation_t(uint8_t **pos,
 
     *pos += sizeof(*value);
     *remaining -= sizeof(*value);
+
+    return 1;
+}
+
+/* On the server side, we have a certain number of slots. One array holds the
+ * psa_XXX_operation_t values by slot, the other holds the client-side handles
+ * for the slots.
+ */
+size_t psasim_server_serialise_psa_hash_operation_t_needs(psa_hash_operation_t *operation)
+{
+    (void) operation;
+
+    /* We will actually return a handle */
+    return sizeof(psasim_operation_t);
+}
+
+int psasim_server_serialise_psa_hash_operation_t(uint8_t **pos,
+                                                 size_t *remaining,
+                                                 psa_hash_operation_t *operation)
+{
+    psasim_operation_t client_operation;
+
+    if (*remaining < sizeof(client_operation)) {
+        return 0;
+    }
+
+    ssize_t slot = operation - hash_operations;
+
+    client_operation.handle = hash_operation_handles[slot];
+
+    memcpy(*pos, &client_operation, sizeof(client_operation));
+    *pos += sizeof(client_operation);
+
+    return 1;
+}
+
+int psasim_server_deserialise_psa_hash_operation_t(uint8_t **pos,
+                                                   size_t *remaining,
+                                                   psa_hash_operation_t **operation)
+{
+    psasim_operation_t client_operation;
+
+    if (*remaining < sizeof(psasim_operation_t)) {
+        return 0;
+    }
+
+    memcpy(&client_operation, *pos, sizeof(psasim_operation_t));
+    *pos += sizeof(psasim_operation_t);
+    *remaining -= sizeof(psasim_operation_t);
+
+    ssize_t slot;
+    if (client_operation.handle == 0) {         /* We need a new handle */
+        slot = allocate_hash_operation_slot();
+    } else {
+        slot = find_hash_slot_by_handle(client_operation.handle);
+    }
+
+    if (slot < 0) {
+        return 0;
+    }
+
+    *operation = &hash_operations[slot];
 
     return 1;
 }

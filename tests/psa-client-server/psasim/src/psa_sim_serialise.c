@@ -85,6 +85,7 @@ static ssize_t allocate_hash_operation_slot(void)
     return -1;  /* all in use */
 }
 
+/* Find the slot given the handle */
 static ssize_t find_hash_slot_by_handle(psasim_client_handle_t handle)
 {
     for (ssize_t i = 0; i < MAX_LIVE_HANDLES_PER_CLASS; i++) {
@@ -450,10 +451,6 @@ int psasim_deserialise_psa_hash_operation_t(uint8_t **pos,
     return 1;
 }
 
-/* On the server side, we have a certain number of slots. One array holds the
- * psa_XXX_operation_t values by slot, the other holds the client-side handles
- * for the slots.
- */
 size_t psasim_server_serialise_psa_hash_operation_t_needs(psa_hash_operation_t *operation)
 {
     (void) operation;

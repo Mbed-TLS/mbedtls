@@ -522,8 +522,9 @@ EOF
             push(@buffers, $n1);        # Add to the list to be free()d at end
         } else {
             $argname =~ s/^\*//;        # Remove any leading *
+            my $pointer = ($argtype =~ /^psa_\w+_operation_t/) ? "*" : "";
             print $fh <<EOF;
-    $argtype $argname;
+    $argtype $pointer$argname;
 EOF
         }
     }
@@ -574,9 +575,10 @@ EOF
 EOF
         } else {
             $argname =~ s/^\*//;        # Remove any leading *
+            my $server_specific = ($argtype =~ /^psa_\w+_operation_t/) ? "server_" : "";
             print $fh <<EOF;
 
-    ok = psasim_deserialise_${argtype}(&pos, &remaining, &$argname);
+    ok = psasim_${server_specific}deserialise_${argtype}(&pos, &remaining, &$argname);
     if (!ok) {
         goto fail;
     }
@@ -588,7 +590,7 @@ EOF
 
     // Now we call the actual target function
 EOF
-    output_call($fh, $f, $name);
+    output_call($fh, $f, $name, 1);
 
     my @outputs = grep($_->{is_output}, @$args);
 
@@ -616,9 +618,10 @@ EOF
         my $sep = ($i == $#outputs) ? ";" : " +";
         $argtype =~ s/^const //;
         $argname =~ s/^\*//;        # Remove any leading *
+        my $server_specific = ($argtype =~ /^psa_\w+_operation_t/) ? "server_" : "";
 
         print $fh <<EOF;
-        psasim_serialise_${argtype}_needs($argname)$sep
+        psasim_${server_specific}serialise_${argtype}_needs($argname)$sep
 EOF
     }
 
@@ -673,9 +676,11 @@ EOF
                 die("$0: $argname: HOW TO OUTPUT?\n");
             }
 
+            my $server_specific = ($argtype =~ /^psa_\w+_operation_t/) ? "server_" : "";
+
             print $fh <<EOF;
 
-    ok = psasim_serialise_${argtype}(&rpos, &rremain, $argname);
+    ok = psasim_${server_specific}serialise_${argtype}(&rpos, &rremain, $argname);
     if (!ok) {
         goto fail;
     }
@@ -881,7 +886,7 @@ sub output_definition_begin
 
 sub output_call
 {
-    my ($fh, $f, $name) = @_;
+    my ($fh, $f, $name, $is_server) = @_;
 
     my $ret_name = $f->{return}->{name};
     my $args = $f->{args};
@@ -900,6 +905,9 @@ sub output_call
             print $fh "        $n1, $n2";
         } else {
             $argname =~ s/^\*/\&/;      # Replace leading * with &
+            if ($is_server && $argtype =~ /^psa_\w+_operation_t/) {
+                $argname =~ s/^\&//;    # Actually, for psa_XXX_operation_t, don't do this on the server side
+            }
             print $fh "        $argname";
         }
         my $sep = ($i == $#$args) ? "\n        );" : ",";

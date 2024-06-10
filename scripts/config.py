@@ -418,6 +418,7 @@ class ConfigFile(metaclass=ABCMeta):
         self.templates = []
         self.current_section = None
         self.inclusion_guard = None
+        self.modified = False
 
     _define_line_regexp = (r'(?P<indentation>\s*)' +
                            r'(?P<commented_out>(//\s*)?)' +
@@ -495,6 +496,11 @@ class ConfigFile(metaclass=ABCMeta):
         """
         if filename is None:
             filename = self.filename
+
+        # Not modified so no need to write to the file
+        if not self.modified and filename == self.filename:
+            return
+
         with open(filename, 'w', encoding='utf-8') as output:
             self.write_to_stream(settings, output)
 
@@ -661,6 +667,10 @@ class MultiConfig(Config):
         else:
             return self.mbedtls_configfile
 
+    def __setitem__(self, name, value):
+        super().__setitem__(name, value)
+        self.settings[name].configfile.modified = True
+
     def set(self, name, value=None):
         configfile = self._get_configfile(name)
 
@@ -674,10 +684,54 @@ class MultiConfig(Config):
             if not value:
                 value = '1'
 
-        if name not in self.settings:
+        if name in self.settings:
+            setting = self.settings[name]
+            if not setting.active or (value is not None and setting.value != value):
+                configfile.modified = True
+        else:
             configfile.templates.append((name, '', '#define ' + name + ' '))
+            configfile.modified = True
 
         super().set(name, value)
+
+    def unset(self, name):
+        if name in self.settings and self.settings[name].active:
+            self.settings[name].configfile.modified = True
+
+        super().unset(name)
+
+    def adapt(self, adapter):
+        # Determine if the config files will be modified
+        unmodified = {config for config in [self.mbedtls_configfile, self.crypto_configfile]
+                      if not config.modified}
+        if unmodified:
+            for setting in self.settings.values():
+                if not setting.configfile.modified and \
+                   setting.active != adapter(setting.name, setting.active, setting.section):
+                    setting.configfile.modified = True
+                    unmodified.remove(setting.configfile)
+                    if not unmodified:
+                        break
+
+        super().adapt(adapter)
+
+    def change_matching(self, regexs, enable):
+        # Determine if the config files will be modified
+        if regexs:
+            regex = re.compile('|'.join(regexs))
+            unmodified = {config for config in [self.mbedtls_configfile, self.crypto_configfile]
+                          if not config.modified}
+            if unmodified:
+                for setting in self.settings.values():
+                    if not setting.configfile.modified and \
+                       setting.active != enable and \
+                       regex.search(setting.name):
+                        setting.configfile.modified = True
+                        unmodified.remove(setting.configfile)
+                        if not unmodified:
+                            break
+
+        super().change_matching(regexs, enable)
 
     def write(self, mbedtls_file=None, crypto_file=None):
         """Write the whole configuration to the file it was read from.

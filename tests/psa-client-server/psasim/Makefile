@@ -10,7 +10,7 @@ LIBPSACLIENT := -Llibpsaclient/ -lmbedcrypto -lmbedx509 -lmbedtls
 LIBPSASERVER := -Llibpsaserver/ -lmbedcrypto
 
 MBEDTLS_ROOT_PATH = ../../..
-COMMON_INCLUDE := -I./include -I$(MBEDTLS_ROOT_PATH)/include
+COMMON_INCLUDE := -I./include -I$(MBEDTLS_ROOT_PATH)/include -I$(MBEDTLS_ROOT_PATH)/tf-psa-crypto/include
 
 TEST_BIN = 	test/psa_client \
 			test/psa_partition

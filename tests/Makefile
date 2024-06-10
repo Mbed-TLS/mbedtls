@@ -84,9 +84,9 @@ generated_psa_test_data: ../framework/scripts/mbedtls_framework/test_data_genera
 ## file all the time when switching between configurations, don't declare
 ## crypto_config.h as a dependency. Remove this file from your working tree
 ## if you've just added or removed an option in crypto_config.h.
-#generated_psa_test_data: ../include/psa/crypto_config.h
-generated_psa_test_data: ../include/psa/crypto_values.h
-generated_psa_test_data: ../include/psa/crypto_extra.h
+#generated_psa_test_data: ../tf-psa-crypto/include/psa/crypto_config.h
+generated_psa_test_data: ../tf-psa-crypto/include/psa/crypto_values.h
+generated_psa_test_data: ../tf-psa-crypto/include/psa/crypto_extra.h
 generated_psa_test_data: suites/test_suite_psa_crypto_metadata.data
 generated_psa_test_data:
 	echo "  Gen   $(GENERATED_PSA_DATA_FILES) ..."
@@ -206,6 +206,8 @@ test: check
 # Generate variants of some headers for testing
 include/alt-extra/%_alt.h: ../include/%.h
 	perl -p -e 's/^(# *(define|ifndef) +\w+_)H\b/$${1}ALT_H/' $< >$@
+include/alt-extra/%_alt.h: ../tf-psa-crypto/include/%.h
+	perl -p -e 's/^(# *(define|ifndef) +\w+_)H\b/$${1}ALT_H/' $< >$@
 
 # Generate test library
 
@@ -254,7 +256,7 @@ libtestdriver1.a:
 	cp ./libtestdriver1/library/libmbedcrypto.a ../library/libtestdriver1.a
 
 ifdef RECORD_PSA_STATUS_COVERAGE_LOG
-include/test/instrument_record_status.h: ../include/psa/crypto.h Makefile
+include/test/instrument_record_status.h: ../tf-psa-crypto/include/psa/crypto.h Makefile
 	echo "  Gen  $@"
-	sed <../include/psa/crypto.h >$@ -n 's/^psa_status_t \([A-Za-z0-9_]*\)(.*/#define \1(...) RECORD_STATUS("\1", \1(__VA_ARGS__))/p'
+	sed <../tf-psa-crypto/include/psa/crypto.h >$@ -n 's/^psa_status_t \([A-Za-z0-9_]*\)(.*/#define \1(...) RECORD_STATUS("\1", \1(__VA_ARGS__))/p'
 endif

@@ -26,7 +26,7 @@ use strict;
 my ($mbedtls_config_file, $psa_crypto_config_file, $query_config_format_file, $query_config_file);
 
 my $default_mbedtls_config_file = "./include/mbedtls/mbedtls_config.h";
-my $default_psa_crypto_config_file = "./include/psa/crypto_config.h";
+my $default_psa_crypto_config_file = "./tf-psa-crypto/include/psa/crypto_config.h";
 my $default_query_config_format_file = "./scripts/data_files/query_config.fmt";
 my $default_query_config_file = "./programs/test/query_config.c";
 

@@ -23,7 +23,7 @@ my $vsx_sln_file = "$vsx_dir/mbedTLS.sln";
 
 my $programs_dir = 'programs';
 my $mbedtls_header_dir = 'include/mbedtls';
-my $psa_header_dir = 'include/psa';
+my $psa_header_dir = 'tf-psa-crypto/include/psa';
 my $source_dir = 'library';
 my $test_source_dir = 'tests/src';
 my $test_header_dir = 'tests/include/test';
@@ -44,6 +44,7 @@ my @thirdparty_source_dirs = qw(
 # one directory: the compiler will use the first match.
 my @include_directories = qw(
     include
+    tf-psa-crypto/include
     3rdparty/everest/include/
     3rdparty/everest/include/everest
     3rdparty/everest/include/everest/vs2013

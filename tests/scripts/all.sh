@@ -133,10 +133,11 @@ pre_check_environment () {
 pre_initialize_variables () {
     if in_mbedtls_repo; then
         CONFIG_H='include/mbedtls/mbedtls_config.h'
+        CRYPTO_CONFIG_H='tf-psa-crypto/include/psa/crypto_config.h'
     else
         CONFIG_H='drivers/builtin/include/mbedtls/mbedtls_config.h'
+        CRYPTO_CONFIG_H='include/psa/crypto_config.h'
     fi
-    CRYPTO_CONFIG_H='include/psa/crypto_config.h'
     CONFIG_TEST_DRIVER_H='tests/include/test/drivers/config_test_driver.h'
 
     # Files that are clobbered by some jobs will be backed up. Use a different
@@ -3227,7 +3228,7 @@ config_psa_crypto_config_accel_ecc_ffdh_no_bignum() {
     if [ "$test_target" = "ECC" ]; then
         # When testing ECC only, we disable FFDH support, both from builtin and
         # PSA sides, and also disable the key exchanges that depend on DHM.
-        scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_FFDH
+        scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_FFDH
         scripts/config.py -f "$CRYPTO_CONFIG_H" unset-all "PSA_WANT_KEY_TYPE_DH_[0-9A-Z_a-z]*"
         scripts/config.py -f "$CRYPTO_CONFIG_H" unset-all "PSA_WANT_DH_RFC7919_[0-9]*"
         scripts/config.py unset MBEDTLS_DHM_C

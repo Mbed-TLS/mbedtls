@@ -26,6 +26,10 @@
 
 static psa_handle_t handle = -1;
 
+#if defined(MBEDTLS_PSA_CRYPTO_C)
+#error "Error: MBEDTLS_PSA_CRYPTO_C must be disabled on client build"
+#endif
+
 int psa_crypto_call(int function,
                     uint8_t *in_params, size_t in_params_len,
                     uint8_t **out_params, size_t *out_params_len)

@@ -268,6 +268,10 @@ sub server_implementations_header
 #include "psa_sim_serialise.h"
 
 #include "service.h"
+
+#if !defined(MBEDTLS_PSA_CRYPTO_C)
+#error "Error: MBEDTLS_PSA_CRYPTO_C must be enabled on server build"
+#endif
 EOF
 }
 
@@ -301,6 +305,10 @@ sub client_calls_header
     PRINT("Client: " fmt, ##__VA_ARGS__)
 
 static psa_handle_t handle = -1;
+
+#if defined(MBEDTLS_PSA_CRYPTO_C)
+#error "Error: MBEDTLS_PSA_CRYPTO_C must be disabled on client build"
+#endif
 EOF
 
     $code .= debug_functions() if $debug;

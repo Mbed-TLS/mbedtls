@@ -17,6 +17,10 @@
 
 #include "service.h"
 
+#if !defined(MBEDTLS_PSA_CRYPTO_C)
+#error "Error: MBEDTLS_PSA_CRYPTO_C must be enabled on server build"
+#endif
+
 // Returns 1 for success, 0 for failure
 int psa_crypto_init_wrapper(
     uint8_t *in_params, size_t in_params_len,

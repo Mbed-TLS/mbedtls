@@ -424,16 +424,24 @@ void psa_wipe_all_key_slots(void)
 #endif  /* MBEDTLS_PSA_KEY_STORE_DYNAMIC */
         for (size_t slot_idx = 0; slot_idx < key_slice_length(slice_idx); slot_idx++) {
             psa_key_slot_t *slot = get_key_slot(slice_idx, slot_idx);
+#if defined(MBEDTLS_PSA_KEY_STORE_DYNAMIC)
+            /* When MBEDTLS_PSA_KEY_STORE_DYNAMIC is disabled, calling
+             * psa_wipe_key_slot() on an unused slot is useless, but it
+             * happens to work (because we flip the state to PENDING_DELETION).
+             *
+             * When MBEDTLS_PSA_KEY_STORE_DYNAMIC is enabled,
+             * psa_wipe_key_slot() needs to have a valid slice_index
+             * field, but that value might not be correct in a
+             * free slot, so we must not call it.
+             *
+             * Bypass the call to psa_wipe_key_slot() if the slot is empty,
+             * but only if MBEDTLS_PSA_KEY_STORE_DYNAMIC is enabled, to save
+             * a few bytes of code size otherwise.
+             */
             if (slot->state == PSA_SLOT_EMPTY) {
-                /* Don't call psa_wipe_key_slot() on an already-empty slot.
-                 * It rejects that case anyway, though we bypass it by setting
-                 * the slot state to PENDING_DELETION.
-                 * Also, when MBEDTLS_PSA_KEY_STORE_DYNAMIC is enabled,
-                 * psa_wipe_key_slot() needs to have a valid slice_index
-                 * field, but that value might not be correct in a
-                 * free slot. */
                 continue;
             }
+#endif
             slot->var.occupied.registered_readers = 1;
             slot->state = PSA_SLOT_PENDING_DELETION;
             (void) psa_wipe_key_slot(slot);
@@ -560,12 +568,11 @@ psa_status_t psa_reserve_free_key_slot(psa_key_id_t *volatile_key_id,
         goto error;
     }
 
-    if (volatile_key_id != NULL) {
-        *volatile_key_id = 0;
 #if defined(MBEDTLS_PSA_KEY_STORE_DYNAMIC)
+    if (volatile_key_id != NULL) {
         return psa_allocate_volatile_key_slot(volatile_key_id, p_slot);
-#endif /* MBEDTLS_PSA_KEY_STORE_DYNAMIC */
     }
+#endif /* MBEDTLS_PSA_KEY_STORE_DYNAMIC */
 
     /* With a dynamic key store, allocate an entry in the cache slice,
      * applicable only to non-volatile keys that get cached in RAM.

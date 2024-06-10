@@ -172,21 +172,27 @@ def realfull_adapter(_name, active, section):
         return active
     return True
 
-UNSUPPORTED_FEATURE = frozenset([
+PSA_UNSUPPORTED_FEATURE = frozenset([
     'PSA_WANT_ALG_CBC_MAC',
     'PSA_WANT_ALG_XTS',
     'PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_DERIVE',
     'PSA_WANT_KEY_TYPE_DH_KEY_PAIR_DERIVE'
 ])
 
-DEPRECATED_FEATURE = frozenset([
+PSA_DEPRECATED_FEATURE = frozenset([
     'PSA_WANT_KEY_TYPE_ECC_KEY_PAIR',
     'PSA_WANT_KEY_TYPE_RSA_KEY_PAIR'
 ])
 
-UNSTABLE_FEATURE = frozenset([
+PSA_UNSTABLE_FEATURE = frozenset([
     'PSA_WANT_ECC_SECP_K1_224'
 ])
+
+EXCLUDE_FROM_CRYPTO = frozenset(
+    PSA_UNSUPPORTED_FEATURE |
+    PSA_DEPRECATED_FEATURE |
+    PSA_UNSTABLE_FEATURE
+)
 
 # The goal of the full configuration is to have everything that can be tested
 # together. This includes deprecated or insecure options. It excludes:
@@ -230,6 +236,9 @@ EXCLUDE_FROM_FULL = frozenset([
     'MBEDTLS_TEST_CONSTANT_FLOW_MEMSAN', # build dependency (clang+memsan)
     'MBEDTLS_TEST_CONSTANT_FLOW_VALGRIND', # build dependency (valgrind headers)
     'MBEDTLS_X509_REMOVE_INFO', # removes a feature
+    *PSA_UNSUPPORTED_FEATURE,
+    *PSA_DEPRECATED_FEATURE,
+    *PSA_UNSTABLE_FEATURE
 ])
 
 def is_seamless_alt(name):
@@ -256,8 +265,7 @@ def is_seamless_alt(name):
 
 def include_in_full(name):
     """Rules for symbols in the "full" configuration."""
-    if name in (EXCLUDE_FROM_FULL | UNSUPPORTED_FEATURE |
-                DEPRECATED_FEATURE | UNSTABLE_FEATURE):
+    if name in EXCLUDE_FROM_FULL:
         return False
     if name.endswith('_ALT'):
         return is_seamless_alt(name)
@@ -337,6 +345,8 @@ def include_in_crypto(name):
             'MBEDTLS_PKCS7_C', # part of libmbedx509
     ]:
         return False
+    if name in EXCLUDE_FROM_CRYPTO:
+        return False
     return True
 
 def crypto_adapter(adapter):
@@ -355,6 +365,7 @@ def crypto_adapter(adapter):
 
 DEPRECATED = frozenset([
     'MBEDTLS_PSA_CRYPTO_SE_C',
+    *PSA_DEPRECATED_FEATURE
 ])
 def no_deprecated_adapter(adapter):
     """Modify an adapter to disable deprecated symbols.
@@ -600,9 +611,9 @@ class CryptoConfig(Config):
                               in self.configfile.parse_file()})
 
     def set(self, name, value='1'):
-        if name in UNSUPPORTED_FEATURE:
+        if name in PSA_UNSUPPORTED_FEATURE:
             raise ValueError(f'Feature is unsupported: \'{name}\'')
-        if name in UNSTABLE_FEATURE:
+        if name in PSA_UNSTABLE_FEATURE:
             raise ValueError(f'Feature is unstable: \'{name}\'')
 
         # The default value in the crypto config is '1'
@@ -654,9 +665,9 @@ class MultiConfig(Config):
         configfile = self._get_configfile(name)
 
         if configfile == self.crypto_configfile:
-            if name in UNSUPPORTED_FEATURE:
+            if name in PSA_UNSUPPORTED_FEATURE:
                 raise ValueError(f'Feature is unsupported: \'{name}\'')
-            if name in UNSTABLE_FEATURE:
+            if name in PSA_UNSTABLE_FEATURE:
                 raise ValueError(f'Feature is unstable: \'{name}\'')
 
             # The default value in the crypto config is '1'

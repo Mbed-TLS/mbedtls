@@ -80,10 +80,38 @@ typedef struct {
      * slots that are in a suitable state for the function.
      * For example, psa_get_and_lock_key_slot_in_memory, which finds a slot
      * containing a given key ID, will only check slots whose state variable is
-     * PSA_SLOT_FULL. */
+     * PSA_SLOT_FULL.
+     */
     psa_key_slot_state_t state;
 
+#if defined(MBEDTLS_PSA_KEY_STORE_DYNAMIC)
+    /* The index of the slice containing this slot.
+     * This field must be filled if the slot contains a key
+     * (including keys being created or destroyed), and can be either
+     * filled or 0 when the slot is free. */
+    uint8_t slice_index;
+#endif /* MBEDTLS_PSA_KEY_STORE_DYNAMIC */
+
     union {
+        struct {
+            /* The index of the next slot in the free list for this
+             * slice, relative * to the next array element.
+             *
+             * That is, 0 means the next slot, 1 means the next slot
+             * but one, etc. -1 would mean the slot itself. -2 means
+             * the previous slot, etc.
+             *
+             * If this is beyond the array length, the free list ends with the
+             * current element.
+             *
+             * The reason for this strange encoding is that 0 means the next
+             * element. This way, when we allocate a slice and initialize it
+             * to all-zero, the slice is ready for use, with a free list that
+             * consists of all the slots in order.
+             */
+            int32_t next_free_relative_to_next;
+        } free;
+
         struct {
             /*
              * Number of functions registered as reading the material in the key slot.

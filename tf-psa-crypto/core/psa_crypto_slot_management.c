@@ -268,7 +268,7 @@ void psa_wipe_all_key_slots(void)
     for (size_t slice_idx = 0; slice_idx < KEY_SLICE_COUNT; slice_idx++) {
         for (size_t slot_idx = 0; slot_idx < key_slice_length(slice_idx); slot_idx++) {
             psa_key_slot_t *slot = get_key_slot(slice_idx, slot_idx);
-            slot->registered_readers = 1;
+            slot->var.occupied.registered_readers = 1;
             slot->state = PSA_SLOT_PENDING_DELETION;
             (void) psa_wipe_key_slot(slot);
         }
@@ -568,12 +568,12 @@ psa_status_t psa_unregister_read(psa_key_slot_t *slot)
     /* If we are the last reader and the slot is marked for deletion,
      * we must wipe the slot here. */
     if ((slot->state == PSA_SLOT_PENDING_DELETION) &&
-        (slot->registered_readers == 1)) {
+        (slot->var.occupied.registered_readers == 1)) {
         return psa_wipe_key_slot(slot);
     }
 
     if (psa_key_slot_has_readers(slot)) {
-        slot->registered_readers--;
+        slot->var.occupied.registered_readers--;
         return PSA_SUCCESS;
     }
 
@@ -707,7 +707,7 @@ psa_status_t psa_close_key(psa_key_handle_t handle)
         return status;
     }
 
-    if (slot->registered_readers == 1) {
+    if (slot->var.occupied.registered_readers == 1) {
         status = psa_wipe_key_slot(slot);
     } else {
         status = psa_unregister_read(slot);
@@ -742,7 +742,7 @@ psa_status_t psa_purge_key(mbedtls_svc_key_id_t key)
     }
 
     if ((!PSA_KEY_LIFETIME_IS_VOLATILE(slot->attr.lifetime)) &&
-        (slot->registered_readers == 1)) {
+        (slot->var.occupied.registered_readers == 1)) {
         status = psa_wipe_key_slot(slot);
     } else {
         status = psa_unregister_read(slot);

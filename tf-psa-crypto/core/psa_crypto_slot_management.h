@@ -174,10 +174,10 @@ static inline psa_status_t psa_key_slot_state_transition(
 static inline psa_status_t psa_register_read(psa_key_slot_t *slot)
 {
     if ((slot->state != PSA_SLOT_FULL) ||
-        (slot->registered_readers >= SIZE_MAX)) {
+        (slot->var.occupied.registered_readers >= SIZE_MAX)) {
         return PSA_ERROR_CORRUPTION_DETECTED;
     }
-    slot->registered_readers++;
+    slot->var.occupied.registered_readers++;
 
     return PSA_SUCCESS;
 }

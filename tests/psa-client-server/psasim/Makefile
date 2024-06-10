@@ -24,6 +24,8 @@ PSA_CLIENT_SRC = src/psa_ff_client.c \
 		 src/psa_sim_crypto_client.c \
 		 src/psa_sim_serialise.c
 
+PSA_CLIENT_DEFS = -Isrc -DMBEDTLS_USER_CONFIG_FILE='"psa_sim_client_config_adjust.h"'
+
 PARTITION_SERVER_BOOTSTRAP = src/psa_ff_bootstrap_TEST_PARTITION.c
 
 PSA_SERVER_SRC = $(PARTITION_SERVER_BOOTSTRAP) \
@@ -39,7 +41,7 @@ test/seedfile:
 	dd if=/dev/urandom of=./test/seedfile bs=64 count=1
 
 test/psa_client: $(PSA_CLIENT_SRC) $(GENERATED_H_FILES)
-	$(CC) $(COMMON_INCLUDE) $(CFLAGS) $(PSA_CLIENT_SRC) $(LIBPSACLIENT) $(LDFLAGS) -o $@
+	$(CC) $(COMMON_INCLUDE) $(CFLAGS) $(PSA_CLIENT_DEFS) $(PSA_CLIENT_SRC) $(LIBPSACLIENT) $(LDFLAGS) -o $@
 
 test/psa_partition: $(PSA_SERVER_SRC) $(GENERATED_H_FILES) test/seedfile
 	$(CC) $(COMMON_INCLUDE) $(CFLAGS) $(PSA_SERVER_SRC) $(LIBPSASERVER) $(LDFLAGS) -o $@

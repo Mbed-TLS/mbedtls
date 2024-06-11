@@ -19,7 +19,7 @@ fi
 THIS_SCRIPT_NAME=$(basename "$0")
 PROG_PATH="../programs/ssl/ssl_context_info"
 OUT_FILE="ssl_context_info.log"
-IN_DIR="data_files/base64"
+IN_DIR="../framework/data_files/base64"
 
 USE_VALGRIND=0
 

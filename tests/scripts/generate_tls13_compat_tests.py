@@ -20,17 +20,17 @@ from collections import namedtuple
 Certificate = namedtuple("Certificate", ['cafile', 'certfile', 'keyfile'])
 # define the certificate parameters for signature algorithms
 CERTIFICATES = {
-    'ecdsa_secp256r1_sha256': Certificate('data_files/test-ca2.crt',
-                                          'data_files/ecdsa_secp256r1.crt',
-                                          'data_files/ecdsa_secp256r1.key'),
-    'ecdsa_secp384r1_sha384': Certificate('data_files/test-ca2.crt',
-                                          'data_files/ecdsa_secp384r1.crt',
-                                          'data_files/ecdsa_secp384r1.key'),
-    'ecdsa_secp521r1_sha512': Certificate('data_files/test-ca2.crt',
-                                          'data_files/ecdsa_secp521r1.crt',
-                                          'data_files/ecdsa_secp521r1.key'),
-    'rsa_pss_rsae_sha256': Certificate('data_files/test-ca_cat12.crt',
-                                       'data_files/server2-sha256.crt', 'data_files/server2.key'
+    'ecdsa_secp256r1_sha256': Certificate('../framework/data_files/test-ca2.crt',
+                                          '../framework/data_files/ecdsa_secp256r1.crt',
+                                          '../framework/data_files/ecdsa_secp256r1.key'),
+    'ecdsa_secp384r1_sha384': Certificate('../framework/data_files/test-ca2.crt',
+                                          '../framework/data_files/ecdsa_secp384r1.crt',
+                                          '../framework/data_files/ecdsa_secp384r1.key'),
+    'ecdsa_secp521r1_sha512': Certificate('../framework/data_files/test-ca2.crt',
+                                          '../framework/data_files/ecdsa_secp521r1.crt',
+                                          '../framework/data_files/ecdsa_secp521r1.key'),
+    'rsa_pss_rsae_sha256': Certificate('../framework/data_files/test-ca_cat12.crt',
+                                       '../framework/data_files/server2-sha256.crt', '../framework/data_files/server2.key'
                                        )
 }
 

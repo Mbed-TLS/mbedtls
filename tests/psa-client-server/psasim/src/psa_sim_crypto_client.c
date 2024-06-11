@@ -158,7 +158,7 @@ psa_status_t psa_hash_abort(
     ok = psa_crypto_call(PSA_HASH_ABORT,
                          params, (size_t) (pos - params), &result, &result_length);
     if (!ok) {
-        printf("XXX server call failed\n");
+        printf("PSA_HASH_ABORT server call failed\n");
         goto fail;
     }
 
@@ -227,7 +227,7 @@ psa_status_t psa_hash_clone(
     ok = psa_crypto_call(PSA_HASH_CLONE,
                          params, (size_t) (pos - params), &result, &result_length);
     if (!ok) {
-        printf("XXX server call failed\n");
+        printf("PSA_HASH_CLONE server call failed\n");
         goto fail;
     }
 
@@ -302,7 +302,7 @@ psa_status_t psa_hash_compare(
     ok = psa_crypto_call(PSA_HASH_COMPARE,
                          params, (size_t) (pos - params), &result, &result_length);
     if (!ok) {
-        printf("XXX server call failed\n");
+        printf("PSA_HASH_COMPARE server call failed\n");
         goto fail;
     }
 
@@ -378,7 +378,7 @@ psa_status_t psa_hash_compute(
     ok = psa_crypto_call(PSA_HASH_COMPUTE,
                          params, (size_t) (pos - params), &result, &result_length);
     if (!ok) {
-        printf("XXX server call failed\n");
+        printf("PSA_HASH_COMPUTE server call failed\n");
         goto fail;
     }
 
@@ -458,7 +458,7 @@ psa_status_t psa_hash_finish(
     ok = psa_crypto_call(PSA_HASH_FINISH,
                          params, (size_t) (pos - params), &result, &result_length);
     if (!ok) {
-        printf("XXX server call failed\n");
+        printf("PSA_HASH_FINISH server call failed\n");
         goto fail;
     }
 
@@ -537,7 +537,7 @@ psa_status_t psa_hash_setup(
     ok = psa_crypto_call(PSA_HASH_SETUP,
                          params, (size_t) (pos - params), &result, &result_length);
     if (!ok) {
-        printf("XXX server call failed\n");
+        printf("PSA_HASH_SETUP server call failed\n");
         goto fail;
     }
 
@@ -606,7 +606,7 @@ psa_status_t psa_hash_update(
     ok = psa_crypto_call(PSA_HASH_UPDATE,
                          params, (size_t) (pos - params), &result, &result_length);
     if (!ok) {
-        printf("XXX server call failed\n");
+        printf("PSA_HASH_UPDATE server call failed\n");
         goto fail;
     }
 
@@ -675,7 +675,7 @@ psa_status_t psa_hash_verify(
     ok = psa_crypto_call(PSA_HASH_VERIFY,
                          params, (size_t) (pos - params), &result, &result_length);
     if (!ok) {
-        printf("XXX server call failed\n");
+        printf("PSA_HASH_VERIFY server call failed\n");
         goto fail;
     }
 

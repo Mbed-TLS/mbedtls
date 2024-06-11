@@ -803,7 +803,7 @@ EOF
     ok = psa_crypto_call($enum,
                          params, (size_t) (pos - params), &result, &result_length);
     if (!ok) {
-        printf("XXX server call failed\\n");
+        printf("$enum server call failed\\n");
         goto fail;
     }
 EOF

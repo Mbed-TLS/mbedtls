@@ -2960,15 +2960,15 @@ ssl_serialize_session_save_load:1023:"":0:MBEDTLS_SSL_VERSION_TLS1_2
 
 Session serialization, save-load: no ticket, cert
 depends_on:MBEDTLS_X509_USE_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_CAN_ECDSA_SOME:MBEDTLS_ECP_HAVE_SECP256R1:MBEDTLS_MD_CAN_SHA256:MBEDTLS_FS_IO:MBEDTLS_SSL_PROTO_TLS1_2
-ssl_serialize_session_save_load:0:"data_files/server5.crt":0:MBEDTLS_SSL_VERSION_TLS1_2
+ssl_serialize_session_save_load:0:"../framework/data_files/server5.crt":0:MBEDTLS_SSL_VERSION_TLS1_2
 
 Session serialization, save-load: small ticket, cert
 depends_on:MBEDTLS_SSL_SESSION_TICKETS:MBEDTLS_SSL_CLI_C:MBEDTLS_X509_USE_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_CAN_ECDSA_SOME:MBEDTLS_ECP_HAVE_SECP256R1:MBEDTLS_MD_CAN_SHA256:MBEDTLS_FS_IO:MBEDTLS_SSL_PROTO_TLS1_2
-ssl_serialize_session_save_load:42:"data_files/server5.crt":0:MBEDTLS_SSL_VERSION_TLS1_2
+ssl_serialize_session_save_load:42:"../framework/data_files/server5.crt":0:MBEDTLS_SSL_VERSION_TLS1_2
 
 Session serialization, save-load: large ticket, cert
 depends_on:MBEDTLS_SSL_SESSION_TICKETS:MBEDTLS_SSL_CLI_C:MBEDTLS_X509_USE_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_CAN_ECDSA_SOME:MBEDTLS_ECP_HAVE_SECP256R1:MBEDTLS_MD_CAN_SHA256:MBEDTLS_FS_IO:MBEDTLS_SSL_PROTO_TLS1_2
-ssl_serialize_session_save_load:1023:"data_files/server5.crt":0:MBEDTLS_SSL_VERSION_TLS1_2
+ssl_serialize_session_save_load:1023:"../framework/data_files/server5.crt":0:MBEDTLS_SSL_VERSION_TLS1_2
 
 TLS 1.3: CLI: Session serialization, save-load: no ticket
 depends_on:MBEDTLS_SSL_SESSION_TICKETS:MBEDTLS_SSL_CLI_C:MBEDTLS_SSL_PROTO_TLS1_3
@@ -3000,15 +3000,15 @@ ssl_serialize_session_load_save:1023:"":0:MBEDTLS_SSL_VERSION_TLS1_2
 
 Session serialization, load-save: no ticket, cert
 depends_on:MBEDTLS_X509_USE_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_CAN_ECDSA_SOME:MBEDTLS_ECP_HAVE_SECP256R1:MBEDTLS_MD_CAN_SHA256:MBEDTLS_FS_IO:MBEDTLS_SSL_PROTO_TLS1_2
-ssl_serialize_session_load_save:0:"data_files/server5.crt":0:MBEDTLS_SSL_VERSION_TLS1_2
+ssl_serialize_session_load_save:0:"../framework/data_files/server5.crt":0:MBEDTLS_SSL_VERSION_TLS1_2
 
 Session serialization, load-save: small ticket, cert
 depends_on:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_SSL_SESSION_TICKETS:MBEDTLS_SSL_CLI_C:MBEDTLS_X509_USE_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_CAN_ECDSA_SOME:MBEDTLS_ECP_HAVE_SECP256R1:MBEDTLS_MD_CAN_SHA256:MBEDTLS_FS_IO
-ssl_serialize_session_load_save:42:"data_files/server5.crt":0:MBEDTLS_SSL_VERSION_TLS1_2
+ssl_serialize_session_load_save:42:"../framework/data_files/server5.crt":0:MBEDTLS_SSL_VERSION_TLS1_2
 
 Session serialization, load-save: large ticket, cert
 depends_on:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_SSL_SESSION_TICKETS:MBEDTLS_SSL_CLI_C:MBEDTLS_X509_USE_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_CAN_ECDSA_SOME:MBEDTLS_ECP_HAVE_SECP256R1:MBEDTLS_MD_CAN_SHA256:MBEDTLS_FS_IO
-ssl_serialize_session_load_save:1023:"data_files/server5.crt":0:MBEDTLS_SSL_VERSION_TLS1_2
+ssl_serialize_session_load_save:1023:"../framework/data_files/server5.crt":0:MBEDTLS_SSL_VERSION_TLS1_2
 
 TLS 1.3: CLI: Session serialization, load-save: no ticket
 depends_on:MBEDTLS_SSL_SESSION_TICKETS:MBEDTLS_SSL_CLI_C:MBEDTLS_SSL_PROTO_TLS1_3
@@ -3040,15 +3040,15 @@ ssl_serialize_session_save_buf_size:1023:"":0:MBEDTLS_SSL_VERSION_TLS1_2
 
 Session serialization, save buffer size: no ticket, cert
 depends_on:MBEDTLS_X509_USE_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_CAN_ECDSA_SOME:MBEDTLS_ECP_HAVE_SECP256R1:MBEDTLS_MD_CAN_SHA256:MBEDTLS_FS_IO:MBEDTLS_SSL_PROTO_TLS1_2
-ssl_serialize_session_save_buf_size:0:"data_files/server5.crt":0:MBEDTLS_SSL_VERSION_TLS1_2
+ssl_serialize_session_save_buf_size:0:"../framework/data_files/server5.crt":0:MBEDTLS_SSL_VERSION_TLS1_2
 
 Session serialization, save buffer size: small ticket, cert
 depends_on:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_SSL_SESSION_TICKETS:MBEDTLS_SSL_CLI_C:MBEDTLS_X509_USE_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_CAN_ECDSA_SOME:MBEDTLS_ECP_HAVE_SECP256R1:MBEDTLS_MD_CAN_SHA256:MBEDTLS_FS_IO
-ssl_serialize_session_save_buf_size:42:"data_files/server5.crt":0:MBEDTLS_SSL_VERSION_TLS1_2
+ssl_serialize_session_save_buf_size:42:"../framework/data_files/server5.crt":0:MBEDTLS_SSL_VERSION_TLS1_2
 
 Session serialization, save buffer size: large ticket, cert
 depends_on:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_SSL_SESSION_TICKETS:MBEDTLS_SSL_CLI_C:MBEDTLS_X509_USE_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_CAN_ECDSA_SOME:MBEDTLS_ECP_HAVE_SECP256R1:MBEDTLS_MD_CAN_SHA256:MBEDTLS_FS_IO
-ssl_serialize_session_save_buf_size:1023:"data_files/server5.crt":0:MBEDTLS_SSL_VERSION_TLS1_2
+ssl_serialize_session_save_buf_size:1023:"../framework/data_files/server5.crt":0:MBEDTLS_SSL_VERSION_TLS1_2
 
 TLS 1.3: CLI: Session serialization, save buffer size: no ticket
 depends_on:MBEDTLS_SSL_SESSION_TICKETS:MBEDTLS_SSL_CLI_C:MBEDTLS_SSL_PROTO_TLS1_3
@@ -3080,15 +3080,15 @@ ssl_serialize_session_load_buf_size:1023:"":0:MBEDTLS_SSL_VERSION_TLS1_2
 
 Session serialization, load buffer size: no ticket, cert
 depends_on:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_X509_USE_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_CAN_ECDSA_SOME:MBEDTLS_ECP_HAVE_SECP256R1:MBEDTLS_MD_CAN_SHA256:MBEDTLS_FS_IO
-ssl_serialize_session_load_buf_size:0:"data_files/server5.crt":0:MBEDTLS_SSL_VERSION_TLS1_2
+ssl_serialize_session_load_buf_size:0:"../framework/data_files/server5.crt":0:MBEDTLS_SSL_VERSION_TLS1_2
 
 Session serialization, load buffer size: small ticket, cert
 depends_on:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_SSL_SESSION_TICKETS:MBEDTLS_SSL_CLI_C:MBEDTLS_X509_USE_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_CAN_ECDSA_SOME:MBEDTLS_ECP_HAVE_SECP256R1:MBEDTLS_MD_CAN_SHA256:MBEDTLS_FS_IO
-ssl_serialize_session_load_buf_size:42:"data_files/server5.crt":0:MBEDTLS_SSL_VERSION_TLS1_2
+ssl_serialize_session_load_buf_size:42:"../framework/data_files/server5.crt":0:MBEDTLS_SSL_VERSION_TLS1_2
 
 Session serialization, load buffer size: large ticket, cert
 depends_on:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_SSL_SESSION_TICKETS:MBEDTLS_SSL_CLI_C:MBEDTLS_X509_USE_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_CAN_ECDSA_SOME:MBEDTLS_ECP_HAVE_SECP256R1:MBEDTLS_MD_CAN_SHA256:MBEDTLS_FS_IO
-ssl_serialize_session_load_buf_size:1023:"data_files/server5.crt":0:MBEDTLS_SSL_VERSION_TLS1_2
+ssl_serialize_session_load_buf_size:1023:"../framework/data_files/server5.crt":0:MBEDTLS_SSL_VERSION_TLS1_2
 
 TLS 1.3: CLI: Session serialization, load buffer size: no ticket
 depends_on:MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_SSL_SESSION_TICKETS:MBEDTLS_SSL_CLI_C

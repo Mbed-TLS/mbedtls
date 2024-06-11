@@ -664,8 +664,8 @@ static unsigned char held[2048] = { 0 };
 #define HOLD_MAX 2
 
 static int handle_message(const char *way,
-                   mbedtls_net_context *dst,
-                   mbedtls_net_context *src)
+                          mbedtls_net_context *dst,
+                          mbedtls_net_context *src)
 {
     int ret;
     packet cur;

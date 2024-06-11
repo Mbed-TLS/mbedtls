@@ -248,7 +248,7 @@ static void print_b64(const uint8_t *b, size_t len)
  * /p prefix    prefix for the new lines
  */
 static void print_hex(const uint8_t *b, size_t len,
-               const size_t in_line, const char *prefix)
+                      const size_t in_line, const char *prefix)
 {
     size_t i = 0;
     const uint8_t *end = b + len;
@@ -510,7 +510,7 @@ static void print_deserialized_ssl_cert(const uint8_t *ssl, uint32_t len)
  * /p session_cfg_flag  session configuration flags
  */
 static void print_deserialized_ssl_session(const uint8_t *ssl, uint32_t len,
-                                    int session_cfg_flag)
+                                           int session_cfg_flag)
 {
     const struct mbedtls_ssl_ciphersuite_t *ciphersuite_info;
     int ciphersuite_id;

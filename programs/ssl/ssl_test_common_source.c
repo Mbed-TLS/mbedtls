@@ -13,12 +13,12 @@
  */
 
 static void eap_tls_key_derivation(void *p_expkey,
-                            mbedtls_ssl_key_export_type secret_type,
-                            const unsigned char *secret,
-                            size_t secret_len,
-                            const unsigned char client_random[32],
-                            const unsigned char server_random[32],
-                            mbedtls_tls_prf_types tls_prf_type)
+                                   mbedtls_ssl_key_export_type secret_type,
+                                   const unsigned char *secret,
+                                   size_t secret_len,
+                                   const unsigned char client_random[32],
+                                   const unsigned char server_random[32],
+                                   mbedtls_tls_prf_types tls_prf_type)
 {
     eap_tls_keys *keys = (eap_tls_keys *) p_expkey;
 
@@ -37,12 +37,12 @@ static void eap_tls_key_derivation(void *p_expkey,
 }
 
 static void nss_keylog_export(void *p_expkey,
-                       mbedtls_ssl_key_export_type secret_type,
-                       const unsigned char *secret,
-                       size_t secret_len,
-                       const unsigned char client_random[32],
-                       const unsigned char server_random[32],
-                       mbedtls_tls_prf_types tls_prf_type)
+                              mbedtls_ssl_key_export_type secret_type,
+                              const unsigned char *secret,
+                              size_t secret_len,
+                              const unsigned char client_random[32],
+                              const unsigned char server_random[32],
+                              mbedtls_tls_prf_types tls_prf_type)
 {
     char nss_keylog_line[200];
     size_t const client_random_len = 32;
@@ -107,12 +107,12 @@ exit:
 
 #if defined(MBEDTLS_SSL_DTLS_SRTP)
 static void dtls_srtp_key_derivation(void *p_expkey,
-                              mbedtls_ssl_key_export_type secret_type,
-                              const unsigned char *secret,
-                              size_t secret_len,
-                              const unsigned char client_random[32],
-                              const unsigned char server_random[32],
-                              mbedtls_tls_prf_types tls_prf_type)
+                                     mbedtls_ssl_key_export_type secret_type,
+                                     const unsigned char *secret,
+                                     size_t secret_len,
+                                     const unsigned char client_random[32],
+                                     const unsigned char server_random[32],
+                                     mbedtls_tls_prf_types tls_prf_type)
 {
     dtls_srtp_keys *keys = (dtls_srtp_keys *) p_expkey;
 
@@ -132,7 +132,7 @@ static void dtls_srtp_key_derivation(void *p_expkey,
 #endif /* MBEDTLS_SSL_DTLS_SRTP */
 
 static int ssl_check_record(mbedtls_ssl_context const *ssl,
-                     unsigned char const *buf, size_t len)
+                            unsigned char const *buf, size_t len)
 {
     int my_ret = 0, ret_cr1, ret_cr2;
     unsigned char *tmp_buf;
@@ -224,7 +224,7 @@ static int recv_cb(void *ctx, unsigned char *buf, size_t len)
 }
 
 static int recv_timeout_cb(void *ctx, unsigned char *buf, size_t len,
-                    uint32_t timeout)
+                           uint32_t timeout)
 {
     io_ctx_t *io_ctx = (io_ctx_t *) ctx;
     int ret;
@@ -320,7 +320,7 @@ uint16_t ssl_sig_algs_for_test[] = {
  *  for more info.
  */
 static int x509_crt_verify_info(char *buf, size_t size, const char *prefix,
-                         uint32_t flags)
+                                uint32_t flags)
 {
 #if !defined(MBEDTLS_X509_REMOVE_INFO)
     return mbedtls_x509_crt_verify_info(buf, size, prefix, flags);

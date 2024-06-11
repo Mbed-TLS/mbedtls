@@ -879,7 +879,7 @@ error:
  * SNI callback.
  */
 static int sni_callback(void *p_info, mbedtls_ssl_context *ssl,
-                 const unsigned char *name, size_t name_len)
+                        const unsigned char *name, size_t name_len)
 {
     const sni_entry *cur = (const sni_entry *) p_info;
 
@@ -1028,7 +1028,7 @@ error:
  * PSK callback
  */
 static int psk_callback(void *p_info, mbedtls_ssl_context *ssl,
-                 const unsigned char *name, size_t name_len)
+                        const unsigned char *name, size_t name_len)
 {
     psk_entry *cur = (psk_entry *) p_info;
 
@@ -1106,10 +1106,10 @@ typedef struct {
 } ssl_async_key_context_t;
 
 static int ssl_async_set_key(ssl_async_key_context_t *ctx,
-                      mbedtls_x509_crt *cert,
-                      mbedtls_pk_context *pk,
-                      int pk_take_ownership,
-                      unsigned delay)
+                             mbedtls_x509_crt *cert,
+                             mbedtls_pk_context *pk,
+                             int pk_take_ownership,
+                             unsigned delay)
 {
     if (ctx->slots_used >= sizeof(ctx->slots) / sizeof(*ctx->slots)) {
         return -1;
@@ -1333,7 +1333,7 @@ static psa_status_t psa_setup_psk_key_slot(mbedtls_svc_key_id_t *slot,
 
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
 static int report_cid_usage(mbedtls_ssl_context *ssl,
-                     const char *additional_description)
+                            const char *additional_description)
 {
     int ret;
     unsigned char peer_cid[MBEDTLS_SSL_CID_OUT_LEN_MAX];
@@ -1384,8 +1384,8 @@ static inline void put_unaligned_uint32(void *p, uint32_t x)
 
 /* Functions for session ticket tests */
 static int dummy_ticket_write(void *p_ticket, const mbedtls_ssl_session *session,
-                       unsigned char *start, const unsigned char *end,
-                       size_t *tlen, uint32_t *ticket_lifetime)
+                              unsigned char *start, const unsigned char *end,
+                              size_t *tlen, uint32_t *ticket_lifetime)
 {
     int ret;
     unsigned char *p = start;
@@ -1411,7 +1411,7 @@ static int dummy_ticket_write(void *p_ticket, const mbedtls_ssl_session *session
 }
 
 static int dummy_ticket_parse(void *p_ticket, mbedtls_ssl_session *session,
-                       unsigned char *buf, size_t len)
+                              unsigned char *buf, size_t len)
 {
     int ret;
     ((void) p_ticket);

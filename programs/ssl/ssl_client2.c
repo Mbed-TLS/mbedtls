@@ -598,7 +598,7 @@ static int my_verify(void *data, mbedtls_x509_crt *crt,
 
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
 static int report_cid_usage(mbedtls_ssl_context *ssl,
-                     const char *additional_description)
+                            const char *additional_description)
 {
     int ret;
     unsigned char peer_cid[MBEDTLS_SSL_CID_OUT_LEN_MAX];

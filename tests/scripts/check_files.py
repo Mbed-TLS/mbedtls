@@ -107,12 +107,12 @@ BINARY_FILE_PATH_RE_LIST = [
     r'docs/.*\.pdf\Z',
     r'docs/.*\.png\Z',
     r'programs/fuzz/corpuses/[^.]+\Z',
-    r'tests/data_files/[^.]+\Z',
-    r'tests/data_files/.*\.(crt|csr|db|der|key|pubkey)\Z',
-    r'tests/data_files/.*\.req\.[^/]+\Z',
-    r'tests/data_files/.*malformed[^/]+\Z',
-    r'tests/data_files/format_pkcs12\.fmt\Z',
-    r'tests/data_files/.*\.bin\Z',
+    r'framework/data_files/[^.]+\Z',
+    r'framework/data_files/.*\.(crt|csr|db|der|key|pubkey)\Z',
+    r'framework/data_files/.*\.req\.[^/]+\Z',
+    r'framework/data_files/.*malformed[^/]+\Z',
+    r'framework/data_files/format_pkcs12\.fmt\Z',
+    r'framework/data_files/.*\.bin\Z',
 ]
 BINARY_FILE_PATH_RE = re.compile('|'.join(BINARY_FILE_PATH_RE_LIST))
 

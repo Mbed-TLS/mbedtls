@@ -964,10 +964,14 @@ helper_crypto_client_build() {
         scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED
         scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED
         scripts/config.py unset MBEDTLS_ECP_RESTARTABLE
+        scripts/config.py unset MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER
     else
         scripts/config.py crypto_full
         scripts/config.py unset MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS
-        scripts/config.py set MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER
+        # We need to match the client with MBEDTLS_PSA_CRYPTO_SE_C
+        scripts/config.py unset MBEDTLS_PSA_CRYPTO_SE_C
+        # Also ensure MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER not set (to match client)
+        scripts/config.py unset MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER
     fi
 
     make -C tests/psa-client-server/psasim/ CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS" $TARGET_LIB "$@"
@@ -6223,6 +6227,7 @@ component_test_psasim() {
     helper_crypto_client_build client
 
     msg "build psasim to test psa_client"
+    rm -f tests/psa-client-server/psasim/test/psa_client        # In case left behind
     make -C tests/psa-client-server/psasim CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS" test/psa_client
 
     msg "test psasim"
@@ -6248,6 +6253,18 @@ component_test_psasim() {
     msg "test psasim running psa_hash sample"
     tests/psa-client-server/psasim/test/run_test.sh
 
+
+    # Next APIs under test: psa_aead_*(). Use our copy of the PSA aead example.
+    msg "build psasim to test all psa_aead_* APIs"
+    # Delete the executable to ensure we build using the right MAIN
+    rm tests/psa-client-server/psasim/test/psa_client
+    make -C tests/psa-client-server/psasim CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS" MAIN="src/aut_psa_aead_demo.c" test/psa_client
+
+    msg "test psasim running psa_aead_demo sample"
+    tests/psa-client-server/psasim/test/run_test.sh aes128-gcm
+    tests/psa-client-server/psasim/test/run_test.sh aes256-gcm
+    tests/psa-client-server/psasim/test/run_test.sh aes128-gcm_8
+    tests/psa-client-server/psasim/test/run_test.sh chachapoly
 
     msg "clean psasim"
     make -C tests/psa-client-server/psasim clean

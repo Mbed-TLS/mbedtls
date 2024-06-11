@@ -1425,3 +1425,939 @@ psa_status_t psa_hash_compare(psa_algorithm_t alg,
                               size_t input_length,
                               const uint8_t *hash,
                               size_t hash_length);
+
+/** Process an authenticated encryption operation.
+ *
+ * \param key                     Identifier of the key to use for the
+ *                                operation. It must allow the usage
+ *                                #PSA_KEY_USAGE_ENCRYPT.
+ * \param alg                     The AEAD algorithm to compute
+ *                                (\c PSA_ALG_XXX value such that
+ *                                #PSA_ALG_IS_AEAD(\p alg) is true).
+ * \param[in] nonce               Nonce or IV to use.
+ * \param nonce_length            Size of the \p nonce buffer in bytes.
+ * \param[in] additional_data     Additional data that will be authenticated
+ *                                but not encrypted.
+ * \param additional_data_length  Size of \p additional_data in bytes.
+ * \param[in] plaintext           Data that will be authenticated and
+ *                                encrypted.
+ * \param plaintext_length        Size of \p plaintext in bytes.
+ * \param[out] ciphertext         Output buffer for the authenticated and
+ *                                encrypted data. The additional data is not
+ *                                part of this output. For algorithms where the
+ *                                encrypted data and the authentication tag
+ *                                are defined as separate outputs, the
+ *                                authentication tag is appended to the
+ *                                encrypted data.
+ * \param ciphertext_size         Size of the \p ciphertext buffer in bytes.
+ *                                This must be appropriate for the selected
+ *                                algorithm and key:
+ *                                - A sufficient output size is
+ *                                  #PSA_AEAD_ENCRYPT_OUTPUT_SIZE(\c key_type,
+ *                                  \p alg, \p plaintext_length) where
+ *                                  \c key_type is the type of \p key.
+ *                                - #PSA_AEAD_ENCRYPT_OUTPUT_MAX_SIZE(\p
+ *                                  plaintext_length) evaluates to the maximum
+ *                                  ciphertext size of any supported AEAD
+ *                                  encryption.
+ * \param[out] ciphertext_length  On success, the size of the output
+ *                                in the \p ciphertext buffer.
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ * \retval #PSA_ERROR_INVALID_HANDLE \emptydescription
+ * \retval #PSA_ERROR_NOT_PERMITTED \emptydescription
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         \p key is not compatible with \p alg.
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ *         \p alg is not supported or is not an AEAD algorithm.
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
+ * \retval #PSA_ERROR_BUFFER_TOO_SMALL
+ *         \p ciphertext_size is too small.
+ *         #PSA_AEAD_ENCRYPT_OUTPUT_SIZE(\c key_type, \p alg,
+ *         \p plaintext_length) or
+ *         #PSA_AEAD_ENCRYPT_OUTPUT_MAX_SIZE(\p plaintext_length) can be used to
+ *         determine the required buffer size.
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE \emptydescription
+ * \retval #PSA_ERROR_HARDWARE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
+ * \retval #PSA_ERROR_STORAGE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The library has not been previously initialized by psa_crypto_init().
+ *         It is implementation-dependent whether a failure to initialize
+ *         results in this error code.
+ */
+psa_status_t psa_aead_encrypt(mbedtls_svc_key_id_t key,
+                              psa_algorithm_t alg,
+                              const uint8_t *nonce,
+                              size_t nonce_length,
+                              const uint8_t *additional_data,
+                              size_t additional_data_length,
+                              const uint8_t *plaintext,
+                              size_t plaintext_length,
+                              uint8_t *ciphertext,
+                              size_t ciphertext_size,
+                              size_t *ciphertext_length);
+
+/** Process an authenticated decryption operation.
+ *
+ * \param key                     Identifier of the key to use for the
+ *                                operation. It must allow the usage
+ *                                #PSA_KEY_USAGE_DECRYPT.
+ * \param alg                     The AEAD algorithm to compute
+ *                                (\c PSA_ALG_XXX value such that
+ *                                #PSA_ALG_IS_AEAD(\p alg) is true).
+ * \param[in] nonce               Nonce or IV to use.
+ * \param nonce_length            Size of the \p nonce buffer in bytes.
+ * \param[in] additional_data     Additional data that has been authenticated
+ *                                but not encrypted.
+ * \param additional_data_length  Size of \p additional_data in bytes.
+ * \param[in] ciphertext          Data that has been authenticated and
+ *                                encrypted. For algorithms where the
+ *                                encrypted data and the authentication tag
+ *                                are defined as separate inputs, the buffer
+ *                                must contain the encrypted data followed
+ *                                by the authentication tag.
+ * \param ciphertext_length       Size of \p ciphertext in bytes.
+ * \param[out] plaintext          Output buffer for the decrypted data.
+ * \param plaintext_size          Size of the \p plaintext buffer in bytes.
+ *                                This must be appropriate for the selected
+ *                                algorithm and key:
+ *                                - A sufficient output size is
+ *                                  #PSA_AEAD_DECRYPT_OUTPUT_SIZE(\c key_type,
+ *                                  \p alg, \p ciphertext_length) where
+ *                                  \c key_type is the type of \p key.
+ *                                - #PSA_AEAD_DECRYPT_OUTPUT_MAX_SIZE(\p
+ *                                  ciphertext_length) evaluates to the maximum
+ *                                  plaintext size of any supported AEAD
+ *                                  decryption.
+ * \param[out] plaintext_length   On success, the size of the output
+ *                                in the \p plaintext buffer.
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ * \retval #PSA_ERROR_INVALID_HANDLE \emptydescription
+ * \retval #PSA_ERROR_INVALID_SIGNATURE
+ *         The ciphertext is not authentic.
+ * \retval #PSA_ERROR_NOT_PERMITTED \emptydescription
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         \p key is not compatible with \p alg.
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ *         \p alg is not supported or is not an AEAD algorithm.
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
+ * \retval #PSA_ERROR_BUFFER_TOO_SMALL
+ *         \p plaintext_size is too small.
+ *         #PSA_AEAD_DECRYPT_OUTPUT_SIZE(\c key_type, \p alg,
+ *         \p ciphertext_length) or
+ *         #PSA_AEAD_DECRYPT_OUTPUT_MAX_SIZE(\p ciphertext_length) can be used
+ *         to determine the required buffer size.
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE \emptydescription
+ * \retval #PSA_ERROR_HARDWARE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
+ * \retval #PSA_ERROR_STORAGE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The library has not been previously initialized by psa_crypto_init().
+ *         It is implementation-dependent whether a failure to initialize
+ *         results in this error code.
+ */
+psa_status_t psa_aead_decrypt(mbedtls_svc_key_id_t key,
+                              psa_algorithm_t alg,
+                              const uint8_t *nonce,
+                              size_t nonce_length,
+                              const uint8_t *additional_data,
+                              size_t additional_data_length,
+                              const uint8_t *ciphertext,
+                              size_t ciphertext_length,
+                              uint8_t *plaintext,
+                              size_t plaintext_size,
+                              size_t *plaintext_length);
+
+/** The type of the state data structure for multipart AEAD operations.
+ *
+ * Before calling any function on an AEAD operation object, the application
+ * must initialize it by any of the following means:
+ * - Set the structure to all-bits-zero, for example:
+ *   \code
+ *   psa_aead_operation_t operation;
+ *   memset(&operation, 0, sizeof(operation));
+ *   \endcode
+ * - Initialize the structure to logical zero values, for example:
+ *   \code
+ *   psa_aead_operation_t operation = {0};
+ *   \endcode
+ * - Initialize the structure to the initializer #PSA_AEAD_OPERATION_INIT,
+ *   for example:
+ *   \code
+ *   psa_aead_operation_t operation = PSA_AEAD_OPERATION_INIT;
+ *   \endcode
+ * - Assign the result of the function psa_aead_operation_init()
+ *   to the structure, for example:
+ *   \code
+ *   psa_aead_operation_t operation;
+ *   operation = psa_aead_operation_init();
+ *   \endcode
+ *
+ * This is an implementation-defined \c struct. Applications should not
+ * make any assumptions about the content of this structure.
+ * Implementation details can change in future versions without notice. */
+typedef struct psa_aead_operation_s psa_aead_operation_t;
+
+/** \def PSA_AEAD_OPERATION_INIT
+ *
+ * This macro returns a suitable initializer for an AEAD operation object of
+ * type #psa_aead_operation_t.
+ */
+
+/** Return an initial value for an AEAD operation object.
+ */
+static psa_aead_operation_t psa_aead_operation_init(void);
+
+/** Set the key for a multipart authenticated encryption operation.
+ *
+ * The sequence of operations to encrypt a message with authentication
+ * is as follows:
+ * -# Allocate an operation object which will be passed to all the functions
+ *    listed here.
+ * -# Initialize the operation object with one of the methods described in the
+ *    documentation for #psa_aead_operation_t, e.g.
+ *    #PSA_AEAD_OPERATION_INIT.
+ * -# Call psa_aead_encrypt_setup() to specify the algorithm and key.
+ * -# If needed, call psa_aead_set_lengths() to specify the length of the
+ *    inputs to the subsequent calls to psa_aead_update_ad() and
+ *    psa_aead_update(). See the documentation of psa_aead_set_lengths()
+ *    for details.
+ * -# Call either psa_aead_generate_nonce() or psa_aead_set_nonce() to
+ *    generate or set the nonce. You should use
+ *    psa_aead_generate_nonce() unless the protocol you are implementing
+ *    requires a specific nonce value.
+ * -# Call psa_aead_update_ad() zero, one or more times, passing a fragment
+ *    of the non-encrypted additional authenticated data each time.
+ * -# Call psa_aead_update() zero, one or more times, passing a fragment
+ *    of the message to encrypt each time.
+ * -# Call psa_aead_finish().
+ *
+ * If an error occurs at any step after a call to psa_aead_encrypt_setup(),
+ * the operation will need to be reset by a call to psa_aead_abort(). The
+ * application may call psa_aead_abort() at any time after the operation
+ * has been initialized.
+ *
+ * After a successful call to psa_aead_encrypt_setup(), the application must
+ * eventually terminate the operation. The following events terminate an
+ * operation:
+ * - A successful call to psa_aead_finish().
+ * - A call to psa_aead_abort().
+ *
+ * \param[in,out] operation     The operation object to set up. It must have
+ *                              been initialized as per the documentation for
+ *                              #psa_aead_operation_t and not yet in use.
+ * \param key                   Identifier of the key to use for the operation.
+ *                              It must remain valid until the operation
+ *                              terminates. It must allow the usage
+ *                              #PSA_KEY_USAGE_ENCRYPT.
+ * \param alg                   The AEAD algorithm to compute
+ *                              (\c PSA_ALG_XXX value such that
+ *                              #PSA_ALG_IS_AEAD(\p alg) is true).
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The operation state is not valid (it must be inactive), or
+ *         the library has not been previously initialized by psa_crypto_init().
+ * \retval #PSA_ERROR_INVALID_HANDLE \emptydescription
+ * \retval #PSA_ERROR_NOT_PERMITTED \emptydescription
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         \p key is not compatible with \p alg.
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ *         \p alg is not supported or is not an AEAD algorithm.
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE \emptydescription
+ * \retval #PSA_ERROR_HARDWARE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
+ * \retval #PSA_ERROR_STORAGE_FAILURE
+ *         The library has not been previously initialized by psa_crypto_init().
+ *         It is implementation-dependent whether a failure to initialize
+ *         results in this error code.
+ */
+psa_status_t psa_aead_encrypt_setup(psa_aead_operation_t *operation,
+                                    mbedtls_svc_key_id_t key,
+                                    psa_algorithm_t alg);
+
+/** Set the key for a multipart authenticated decryption operation.
+ *
+ * The sequence of operations to decrypt a message with authentication
+ * is as follows:
+ * -# Allocate an operation object which will be passed to all the functions
+ *    listed here.
+ * -# Initialize the operation object with one of the methods described in the
+ *    documentation for #psa_aead_operation_t, e.g.
+ *    #PSA_AEAD_OPERATION_INIT.
+ * -# Call psa_aead_decrypt_setup() to specify the algorithm and key.
+ * -# If needed, call psa_aead_set_lengths() to specify the length of the
+ *    inputs to the subsequent calls to psa_aead_update_ad() and
+ *    psa_aead_update(). See the documentation of psa_aead_set_lengths()
+ *    for details.
+ * -# Call psa_aead_set_nonce() with the nonce for the decryption.
+ * -# Call psa_aead_update_ad() zero, one or more times, passing a fragment
+ *    of the non-encrypted additional authenticated data each time.
+ * -# Call psa_aead_update() zero, one or more times, passing a fragment
+ *    of the ciphertext to decrypt each time.
+ * -# Call psa_aead_verify().
+ *
+ * If an error occurs at any step after a call to psa_aead_decrypt_setup(),
+ * the operation will need to be reset by a call to psa_aead_abort(). The
+ * application may call psa_aead_abort() at any time after the operation
+ * has been initialized.
+ *
+ * After a successful call to psa_aead_decrypt_setup(), the application must
+ * eventually terminate the operation. The following events terminate an
+ * operation:
+ * - A successful call to psa_aead_verify().
+ * - A call to psa_aead_abort().
+ *
+ * \param[in,out] operation     The operation object to set up. It must have
+ *                              been initialized as per the documentation for
+ *                              #psa_aead_operation_t and not yet in use.
+ * \param key                   Identifier of the key to use for the operation.
+ *                              It must remain valid until the operation
+ *                              terminates. It must allow the usage
+ *                              #PSA_KEY_USAGE_DECRYPT.
+ * \param alg                   The AEAD algorithm to compute
+ *                              (\c PSA_ALG_XXX value such that
+ *                              #PSA_ALG_IS_AEAD(\p alg) is true).
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ * \retval #PSA_ERROR_INVALID_HANDLE \emptydescription
+ * \retval #PSA_ERROR_NOT_PERMITTED \emptydescription
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         \p key is not compatible with \p alg.
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ *         \p alg is not supported or is not an AEAD algorithm.
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE \emptydescription
+ * \retval #PSA_ERROR_HARDWARE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
+ * \retval #PSA_ERROR_STORAGE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The operation state is not valid (it must be inactive), or the
+ *         library has not been previously initialized by psa_crypto_init().
+ *         It is implementation-dependent whether a failure to initialize
+ *         results in this error code.
+ */
+psa_status_t psa_aead_decrypt_setup(psa_aead_operation_t *operation,
+                                    mbedtls_svc_key_id_t key,
+                                    psa_algorithm_t alg);
+
+/** Generate a random nonce for an authenticated encryption operation.
+ *
+ * This function generates a random nonce for the authenticated encryption
+ * operation with an appropriate size for the chosen algorithm, key type
+ * and key size.
+ *
+ * The application must call psa_aead_encrypt_setup() before
+ * calling this function.
+ *
+ * If this function returns an error status, the operation enters an error
+ * state and must be aborted by calling psa_aead_abort().
+ *
+ * \param[in,out] operation     Active AEAD operation.
+ * \param[out] nonce            Buffer where the generated nonce is to be
+ *                              written.
+ * \param nonce_size            Size of the \p nonce buffer in bytes.
+ * \param[out] nonce_length     On success, the number of bytes of the
+ *                              generated nonce.
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ * \retval #PSA_ERROR_BUFFER_TOO_SMALL
+ *         The size of the \p nonce buffer is too small.
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE \emptydescription
+ * \retval #PSA_ERROR_HARDWARE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
+ * \retval #PSA_ERROR_STORAGE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The operation state is not valid (it must be an active aead encrypt
+ *         operation, with no nonce set), or the library has not been
+ *         previously initialized by psa_crypto_init().
+ *         It is implementation-dependent whether a failure to initialize
+ *         results in this error code.
+ */
+psa_status_t psa_aead_generate_nonce(psa_aead_operation_t *operation,
+                                     uint8_t *nonce,
+                                     size_t nonce_size,
+                                     size_t *nonce_length);
+
+/** Set the nonce for an authenticated encryption or decryption operation.
+ *
+ * This function sets the nonce for the authenticated
+ * encryption or decryption operation.
+ *
+ * The application must call psa_aead_encrypt_setup() or
+ * psa_aead_decrypt_setup() before calling this function.
+ *
+ * If this function returns an error status, the operation enters an error
+ * state and must be aborted by calling psa_aead_abort().
+ *
+ * \note When encrypting, applications should use psa_aead_generate_nonce()
+ * instead of this function, unless implementing a protocol that requires
+ * a non-random IV.
+ *
+ * \param[in,out] operation     Active AEAD operation.
+ * \param[in] nonce             Buffer containing the nonce to use.
+ * \param nonce_length          Size of the nonce in bytes.
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         The size of \p nonce is not acceptable for the chosen algorithm.
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE \emptydescription
+ * \retval #PSA_ERROR_HARDWARE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
+ * \retval #PSA_ERROR_STORAGE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The operation state is not valid (it must be active, with no nonce
+ *         set), or the library has not been previously initialized
+ *         by psa_crypto_init().
+ *         It is implementation-dependent whether a failure to initialize
+ *         results in this error code.
+ */
+psa_status_t psa_aead_set_nonce(psa_aead_operation_t *operation,
+                                const uint8_t *nonce,
+                                size_t nonce_length);
+
+/** Declare the lengths of the message and additional data for AEAD.
+ *
+ * The application must call this function before calling
+ * psa_aead_update_ad() or psa_aead_update() if the algorithm for
+ * the operation requires it. If the algorithm does not require it,
+ * calling this function is optional, but if this function is called
+ * then the implementation must enforce the lengths.
+ *
+ * You may call this function before or after setting the nonce with
+ * psa_aead_set_nonce() or psa_aead_generate_nonce().
+ *
+ * - For #PSA_ALG_CCM, calling this function is required.
+ * - For the other AEAD algorithms defined in this specification, calling
+ *   this function is not required.
+ * - For vendor-defined algorithm, refer to the vendor documentation.
+ *
+ * If this function returns an error status, the operation enters an error
+ * state and must be aborted by calling psa_aead_abort().
+ *
+ * \param[in,out] operation     Active AEAD operation.
+ * \param ad_length             Size of the non-encrypted additional
+ *                              authenticated data in bytes.
+ * \param plaintext_length      Size of the plaintext to encrypt in bytes.
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         At least one of the lengths is not acceptable for the chosen
+ *         algorithm.
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE \emptydescription
+ * \retval #PSA_ERROR_HARDWARE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The operation state is not valid (it must be active, and
+ *         psa_aead_update_ad() and psa_aead_update() must not have been
+ *         called yet), or the library has not been previously initialized
+ *         by psa_crypto_init().
+ *         It is implementation-dependent whether a failure to initialize
+ *         results in this error code.
+ */
+psa_status_t psa_aead_set_lengths(psa_aead_operation_t *operation,
+                                  size_t ad_length,
+                                  size_t plaintext_length);
+
+/** Pass additional data to an active AEAD operation.
+ *
+ * Additional data is authenticated, but not encrypted.
+ *
+ * You may call this function multiple times to pass successive fragments
+ * of the additional data. You may not call this function after passing
+ * data to encrypt or decrypt with psa_aead_update().
+ *
+ * Before calling this function, you must:
+ * 1. Call either psa_aead_encrypt_setup() or psa_aead_decrypt_setup().
+ * 2. Set the nonce with psa_aead_generate_nonce() or psa_aead_set_nonce().
+ *
+ * If this function returns an error status, the operation enters an error
+ * state and must be aborted by calling psa_aead_abort().
+ *
+ * \warning When decrypting, until psa_aead_verify() has returned #PSA_SUCCESS,
+ *          there is no guarantee that the input is valid. Therefore, until
+ *          you have called psa_aead_verify() and it has returned #PSA_SUCCESS,
+ *          treat the input as untrusted and prepare to undo any action that
+ *          depends on the input if psa_aead_verify() returns an error status.
+ *
+ * \param[in,out] operation     Active AEAD operation.
+ * \param[in] input             Buffer containing the fragment of
+ *                              additional data.
+ * \param input_length          Size of the \p input buffer in bytes.
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         The total input length overflows the additional data length that
+ *         was previously specified with psa_aead_set_lengths().
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE \emptydescription
+ * \retval #PSA_ERROR_HARDWARE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
+ * \retval #PSA_ERROR_STORAGE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The operation state is not valid (it must be active, have a nonce
+ *         set, have lengths set if required by the algorithm, and
+ *         psa_aead_update() must not have been called yet), or the library
+ *         has not been previously initialized by psa_crypto_init().
+ *         It is implementation-dependent whether a failure to initialize
+ *         results in this error code.
+ */
+psa_status_t psa_aead_update_ad(psa_aead_operation_t *operation,
+                                const uint8_t *input,
+                                size_t input_length);
+
+/** Encrypt or decrypt a message fragment in an active AEAD operation.
+ *
+ * Before calling this function, you must:
+ * 1. Call either psa_aead_encrypt_setup() or psa_aead_decrypt_setup().
+ *    The choice of setup function determines whether this function
+ *    encrypts or decrypts its input.
+ * 2. Set the nonce with psa_aead_generate_nonce() or psa_aead_set_nonce().
+ * 3. Call psa_aead_update_ad() to pass all the additional data.
+ *
+ * If this function returns an error status, the operation enters an error
+ * state and must be aborted by calling psa_aead_abort().
+ *
+ * \warning When decrypting, until psa_aead_verify() has returned #PSA_SUCCESS,
+ *          there is no guarantee that the input is valid. Therefore, until
+ *          you have called psa_aead_verify() and it has returned #PSA_SUCCESS:
+ *          - Do not use the output in any way other than storing it in a
+ *            confidential location. If you take any action that depends
+ *            on the tentative decrypted data, this action will need to be
+ *            undone if the input turns out not to be valid. Furthermore,
+ *            if an adversary can observe that this action took place
+ *            (for example through timing), they may be able to use this
+ *            fact as an oracle to decrypt any message encrypted with the
+ *            same key.
+ *          - In particular, do not copy the output anywhere but to a
+ *            memory or storage space that you have exclusive access to.
+ *
+ * This function does not require the input to be aligned to any
+ * particular block boundary. If the implementation can only process
+ * a whole block at a time, it must consume all the input provided, but
+ * it may delay the end of the corresponding output until a subsequent
+ * call to psa_aead_update(), psa_aead_finish() or psa_aead_verify()
+ * provides sufficient input. The amount of data that can be delayed
+ * in this way is bounded by #PSA_AEAD_UPDATE_OUTPUT_SIZE.
+ *
+ * \param[in,out] operation     Active AEAD operation.
+ * \param[in] input             Buffer containing the message fragment to
+ *                              encrypt or decrypt.
+ * \param input_length          Size of the \p input buffer in bytes.
+ * \param[out] output           Buffer where the output is to be written.
+ * \param output_size           Size of the \p output buffer in bytes.
+ *                              This must be appropriate for the selected
+ *                                algorithm and key:
+ *                                - A sufficient output size is
+ *                                  #PSA_AEAD_UPDATE_OUTPUT_SIZE(\c key_type,
+ *                                  \c alg, \p input_length) where
+ *                                  \c key_type is the type of key and \c alg is
+ *                                  the algorithm that were used to set up the
+ *                                  operation.
+ *                                - #PSA_AEAD_UPDATE_OUTPUT_MAX_SIZE(\p
+ *                                  input_length) evaluates to the maximum
+ *                                  output size of any supported AEAD
+ *                                  algorithm.
+ * \param[out] output_length    On success, the number of bytes
+ *                              that make up the returned output.
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ * \retval #PSA_ERROR_BUFFER_TOO_SMALL
+ *         The size of the \p output buffer is too small.
+ *         #PSA_AEAD_UPDATE_OUTPUT_SIZE(\c key_type, \c alg, \p input_length) or
+ *         #PSA_AEAD_UPDATE_OUTPUT_MAX_SIZE(\p input_length) can be used to
+ *         determine the required buffer size.
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         The total length of input to psa_aead_update_ad() so far is
+ *         less than the additional data length that was previously
+ *         specified with psa_aead_set_lengths(), or
+ *         the total input length overflows the plaintext length that
+ *         was previously specified with psa_aead_set_lengths().
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE \emptydescription
+ * \retval #PSA_ERROR_HARDWARE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
+ * \retval #PSA_ERROR_STORAGE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The operation state is not valid (it must be active, have a nonce
+ *         set, and have lengths set if required by the algorithm), or the
+ *         library has not been previously initialized by psa_crypto_init().
+ *         It is implementation-dependent whether a failure to initialize
+ *         results in this error code.
+ */
+psa_status_t psa_aead_update(psa_aead_operation_t *operation,
+                             const uint8_t *input,
+                             size_t input_length,
+                             uint8_t *output,
+                             size_t output_size,
+                             size_t *output_length);
+
+/** Finish encrypting a message in an AEAD operation.
+ *
+ * The operation must have been set up with psa_aead_encrypt_setup().
+ *
+ * This function finishes the authentication of the additional data
+ * formed by concatenating the inputs passed to preceding calls to
+ * psa_aead_update_ad() with the plaintext formed by concatenating the
+ * inputs passed to preceding calls to psa_aead_update().
+ *
+ * This function has two output buffers:
+ * - \p ciphertext contains trailing ciphertext that was buffered from
+ *   preceding calls to psa_aead_update().
+ * - \p tag contains the authentication tag.
+ *
+ * When this function returns successfully, the operation becomes inactive.
+ * If this function returns an error status, the operation enters an error
+ * state and must be aborted by calling psa_aead_abort().
+ *
+ * \param[in,out] operation     Active AEAD operation.
+ * \param[out] ciphertext       Buffer where the last part of the ciphertext
+ *                              is to be written.
+ * \param ciphertext_size       Size of the \p ciphertext buffer in bytes.
+ *                              This must be appropriate for the selected
+ *                              algorithm and key:
+ *                              - A sufficient output size is
+ *                                #PSA_AEAD_FINISH_OUTPUT_SIZE(\c key_type,
+ *                                \c alg) where \c key_type is the type of key
+ *                                and \c alg is the algorithm that were used to
+ *                                set up the operation.
+ *                              - #PSA_AEAD_FINISH_OUTPUT_MAX_SIZE evaluates to
+ *                                the maximum output size of any supported AEAD
+ *                                algorithm.
+ * \param[out] ciphertext_length On success, the number of bytes of
+ *                              returned ciphertext.
+ * \param[out] tag              Buffer where the authentication tag is
+ *                              to be written.
+ * \param tag_size              Size of the \p tag buffer in bytes.
+ *                              This must be appropriate for the selected
+ *                              algorithm and key:
+ *                              - The exact tag size is #PSA_AEAD_TAG_LENGTH(\c
+ *                                key_type, \c key_bits, \c alg) where
+ *                                \c key_type and \c key_bits are the type and
+ *                                bit-size of the key, and \c alg is the
+ *                                algorithm that were used in the call to
+ *                                psa_aead_encrypt_setup().
+ *                              - #PSA_AEAD_TAG_MAX_SIZE evaluates to the
+ *                                maximum tag size of any supported AEAD
+ *                                algorithm.
+ * \param[out] tag_length       On success, the number of bytes
+ *                              that make up the returned tag.
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ * \retval #PSA_ERROR_BUFFER_TOO_SMALL
+ *         The size of the \p ciphertext or \p tag buffer is too small.
+ *         #PSA_AEAD_FINISH_OUTPUT_SIZE(\c key_type, \c alg) or
+ *         #PSA_AEAD_FINISH_OUTPUT_MAX_SIZE can be used to determine the
+ *         required \p ciphertext buffer size. #PSA_AEAD_TAG_LENGTH(\c key_type,
+ *         \c key_bits, \c alg) or #PSA_AEAD_TAG_MAX_SIZE can be used to
+ *         determine the required \p tag buffer size.
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         The total length of input to psa_aead_update_ad() so far is
+ *         less than the additional data length that was previously
+ *         specified with psa_aead_set_lengths(), or
+ *         the total length of input to psa_aead_update() so far is
+ *         less than the plaintext length that was previously
+ *         specified with psa_aead_set_lengths().
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE \emptydescription
+ * \retval #PSA_ERROR_HARDWARE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
+ * \retval #PSA_ERROR_STORAGE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The operation state is not valid (it must be an active encryption
+ *         operation with a nonce set), or the library has not been previously
+ *         initialized by psa_crypto_init().
+ *         It is implementation-dependent whether a failure to initialize
+ *         results in this error code.
+ */
+psa_status_t psa_aead_finish(psa_aead_operation_t *operation,
+                             uint8_t *ciphertext,
+                             size_t ciphertext_size,
+                             size_t *ciphertext_length,
+                             uint8_t *tag,
+                             size_t tag_size,
+                             size_t *tag_length);
+
+/** Finish authenticating and decrypting a message in an AEAD operation.
+ *
+ * The operation must have been set up with psa_aead_decrypt_setup().
+ *
+ * This function finishes the authenticated decryption of the message
+ * components:
+ *
+ * -  The additional data consisting of the concatenation of the inputs
+ *    passed to preceding calls to psa_aead_update_ad().
+ * -  The ciphertext consisting of the concatenation of the inputs passed to
+ *    preceding calls to psa_aead_update().
+ * -  The tag passed to this function call.
+ *
+ * If the authentication tag is correct, this function outputs any remaining
+ * plaintext and reports success. If the authentication tag is not correct,
+ * this function returns #PSA_ERROR_INVALID_SIGNATURE.
+ *
+ * When this function returns successfully, the operation becomes inactive.
+ * If this function returns an error status, the operation enters an error
+ * state and must be aborted by calling psa_aead_abort().
+ *
+ * \note Implementations shall make the best effort to ensure that the
+ * comparison between the actual tag and the expected tag is performed
+ * in constant time.
+ *
+ * \param[in,out] operation     Active AEAD operation.
+ * \param[out] plaintext        Buffer where the last part of the plaintext
+ *                              is to be written. This is the remaining data
+ *                              from previous calls to psa_aead_update()
+ *                              that could not be processed until the end
+ *                              of the input.
+ * \param plaintext_size        Size of the \p plaintext buffer in bytes.
+ *                              This must be appropriate for the selected algorithm and key:
+ *                              - A sufficient output size is
+ *                                #PSA_AEAD_VERIFY_OUTPUT_SIZE(\c key_type,
+ *                                \c alg) where \c key_type is the type of key
+ *                                and \c alg is the algorithm that were used to
+ *                                set up the operation.
+ *                              - #PSA_AEAD_VERIFY_OUTPUT_MAX_SIZE evaluates to
+ *                                the maximum output size of any supported AEAD
+ *                                algorithm.
+ * \param[out] plaintext_length On success, the number of bytes of
+ *                              returned plaintext.
+ * \param[in] tag               Buffer containing the authentication tag.
+ * \param tag_length            Size of the \p tag buffer in bytes.
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ * \retval #PSA_ERROR_INVALID_SIGNATURE
+ *         The calculations were successful, but the authentication tag is
+ *         not correct.
+ * \retval #PSA_ERROR_BUFFER_TOO_SMALL
+ *         The size of the \p plaintext buffer is too small.
+ *         #PSA_AEAD_VERIFY_OUTPUT_SIZE(\c key_type, \c alg) or
+ *         #PSA_AEAD_VERIFY_OUTPUT_MAX_SIZE can be used to determine the
+ *         required buffer size.
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         The total length of input to psa_aead_update_ad() so far is
+ *         less than the additional data length that was previously
+ *         specified with psa_aead_set_lengths(), or
+ *         the total length of input to psa_aead_update() so far is
+ *         less than the plaintext length that was previously
+ *         specified with psa_aead_set_lengths().
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE \emptydescription
+ * \retval #PSA_ERROR_HARDWARE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
+ * \retval #PSA_ERROR_STORAGE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The operation state is not valid (it must be an active decryption
+ *         operation with a nonce set), or the library has not been previously
+ *         initialized by psa_crypto_init().
+ *         It is implementation-dependent whether a failure to initialize
+ *         results in this error code.
+ */
+psa_status_t psa_aead_verify(psa_aead_operation_t *operation,
+                             uint8_t *plaintext,
+                             size_t plaintext_size,
+                             size_t *plaintext_length,
+                             const uint8_t *tag,
+                             size_t tag_length);
+
+/** Abort an AEAD operation.
+ *
+ * Aborting an operation frees all associated resources except for the
+ * \p operation structure itself. Once aborted, the operation object
+ * can be reused for another operation by calling
+ * psa_aead_encrypt_setup() or psa_aead_decrypt_setup() again.
+ *
+ * You may call this function any time after the operation object has
+ * been initialized as described in #psa_aead_operation_t.
+ *
+ * In particular, calling psa_aead_abort() after the operation has been
+ * terminated by a call to psa_aead_abort(), psa_aead_finish() or
+ * psa_aead_verify() is safe and has no effect.
+ *
+ * \param[in,out] operation     Initialized AEAD operation.
+ *
+ * \retval #PSA_SUCCESS \emptydescription
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE \emptydescription
+ * \retval #PSA_ERROR_HARDWARE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The library has not been previously initialized by psa_crypto_init().
+ *         It is implementation-dependent whether a failure to initialize
+ *         results in this error code.
+ */
+psa_status_t psa_aead_abort(psa_aead_operation_t *operation);
+
+/**
+ * \brief Import a key in binary format.
+ *
+ * This function supports any output from psa_export_key(). Refer to the
+ * documentation of psa_export_public_key() for the format of public keys
+ * and to the documentation of psa_export_key() for the format for
+ * other key types.
+ *
+ * The key data determines the key size. The attributes may optionally
+ * specify a key size; in this case it must match the size determined
+ * from the key data. A key size of 0 in \p attributes indicates that
+ * the key size is solely determined by the key data.
+ *
+ * Implementations must reject an attempt to import a key of size 0.
+ *
+ * This specification supports a single format for each key type.
+ * Implementations may support other formats as long as the standard
+ * format is supported. Implementations that support other formats
+ * should ensure that the formats are clearly unambiguous so as to
+ * minimize the risk that an invalid input is accidentally interpreted
+ * according to a different format.
+ *
+ * \param[in] attributes    The attributes for the new key.
+ *                          The key size is always determined from the
+ *                          \p data buffer.
+ *                          If the key size in \p attributes is nonzero,
+ *                          it must be equal to the size from \p data.
+ * \param[out] key          On success, an identifier to the newly created key.
+ *                          For persistent keys, this is the key identifier
+ *                          defined in \p attributes.
+ *                          \c 0 on failure.
+ * \param[in] data    Buffer containing the key data. The content of this
+ *                    buffer is interpreted according to the type declared
+ *                    in \p attributes.
+ *                    All implementations must support at least the format
+ *                    described in the documentation
+ *                    of psa_export_key() or psa_export_public_key() for
+ *                    the chosen type. Implementations may allow other
+ *                    formats, but should be conservative: implementations
+ *                    should err on the side of rejecting content if it
+ *                    may be erroneous (e.g. wrong type or truncated data).
+ * \param data_length Size of the \p data buffer in bytes.
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ *         If the key is persistent, the key material and the key's metadata
+ *         have been saved to persistent storage.
+ * \retval #PSA_ERROR_ALREADY_EXISTS
+ *         This is an attempt to create a persistent key, and there is
+ *         already a persistent key with the given identifier.
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ *         The key type or key size is not supported, either by the
+ *         implementation in general or in this particular persistent location.
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         The key attributes, as a whole, are invalid, or
+ *         the key data is not correctly formatted, or
+ *         the size in \p attributes is nonzero and does not match the size
+ *         of the key data.
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
+ * \retval #PSA_ERROR_INSUFFICIENT_STORAGE \emptydescription
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE \emptydescription
+ * \retval #PSA_ERROR_DATA_CORRUPT \emptydescription
+ * \retval #PSA_ERROR_DATA_INVALID \emptydescription
+ * \retval #PSA_ERROR_STORAGE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_HARDWARE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The library has not been previously initialized by psa_crypto_init().
+ *         It is implementation-dependent whether a failure to initialize
+ *         results in this error code.
+ */
+psa_status_t psa_import_key(const psa_key_attributes_t *attributes,
+                            const uint8_t *data,
+                            size_t data_length,
+                            mbedtls_svc_key_id_t *key);
+
+/** Retrieve the attributes of a key.
+ *
+ * This function first resets the attribute structure as with
+ * psa_reset_key_attributes(). It then copies the attributes of
+ * the given key into the given attribute structure.
+ *
+ * \note This function may allocate memory or other resources.
+ *       Once you have called this function on an attribute structure,
+ *       you must call psa_reset_key_attributes() to free these resources.
+ *
+ * \param[in] key               Identifier of the key to query.
+ * \param[in,out] attributes    On success, the attributes of the key.
+ *                              On failure, equivalent to a
+ *                              freshly-initialized structure.
+ *
+ * \retval #PSA_SUCCESS \emptydescription
+ * \retval #PSA_ERROR_INVALID_HANDLE \emptydescription
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
+ * \retval #PSA_ERROR_STORAGE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_DATA_CORRUPT \emptydescription
+ * \retval #PSA_ERROR_DATA_INVALID \emptydescription
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The library has not been previously initialized by psa_crypto_init().
+ *         It is implementation-dependent whether a failure to initialize
+ *         results in this error code.
+ */
+psa_status_t psa_get_key_attributes(mbedtls_svc_key_id_t key,
+                                    psa_key_attributes_t *attributes);
+
+/**
+ * \brief Destroy a key.
+ *
+ * This function destroys a key from both volatile
+ * memory and, if applicable, non-volatile storage. Implementations shall
+ * make a best effort to ensure that the key material cannot be recovered.
+ *
+ * This function also erases any metadata such as policies and frees
+ * resources associated with the key.
+ *
+ * If a key is currently in use in a multipart operation, then destroying the
+ * key will cause the multipart operation to fail.
+ *
+ * \warning    We can only guarantee that the the key material will
+ *             eventually be wiped from memory. With threading enabled
+ *             and during concurrent execution, copies of the key material may
+ *             still exist until all threads have finished using the key.
+ *
+ * \param key  Identifier of the key to erase. If this is \c 0, do nothing and
+ *             return #PSA_SUCCESS.
+ *
+ * \retval #PSA_SUCCESS
+ *         \p key was a valid identifier and the key material that it
+ *         referred to has been erased. Alternatively, \p key is \c 0.
+ * \retval #PSA_ERROR_NOT_PERMITTED
+ *         The key cannot be erased because it is
+ *         read-only, either due to a policy or due to physical restrictions.
+ * \retval #PSA_ERROR_INVALID_HANDLE
+ *         \p key is not a valid identifier nor \c 0.
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE
+ *         There was a failure in communication with the cryptoprocessor.
+ *         The key material may still be present in the cryptoprocessor.
+ * \retval #PSA_ERROR_DATA_INVALID
+ *         This error is typically a result of either storage corruption on a
+ *         cleartext storage backend, or an attempt to read data that was
+ *         written by an incompatible version of the library.
+ * \retval #PSA_ERROR_STORAGE_FAILURE
+ *         The storage is corrupted. Implementations shall make a best effort
+ *         to erase key material even in this stage, however applications
+ *         should be aware that it may be impossible to guarantee that the
+ *         key material is not recoverable in such cases.
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED
+ *         An unexpected condition which is not a storage corruption or
+ *         a communication failure occurred. The cryptoprocessor may have
+ *         been compromised.
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The library has not been previously initialized by psa_crypto_init().
+ *         It is implementation-dependent whether a failure to initialize
+ *         results in this error code.
+ */
+psa_status_t psa_destroy_key(mbedtls_svc_key_id_t key);

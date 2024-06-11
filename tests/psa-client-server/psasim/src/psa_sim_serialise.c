@@ -97,6 +97,41 @@ static ssize_t find_hash_slot_by_handle(psasim_client_handle_t handle)
     return -1;  /* all in use */
 }
 
+static psa_aead_operation_t aead_operations[MAX_LIVE_HANDLES_PER_CLASS];
+static psasim_client_handle_t aead_operation_handles[MAX_LIVE_HANDLES_PER_CLASS];
+static psasim_client_handle_t next_aead_operation_handle = 1;
+
+/* Get a free slot */
+static ssize_t allocate_aead_operation_slot(void)
+{
+    psasim_client_handle_t handle = next_aead_operation_handle++;
+    if (next_aead_operation_handle == 0) {      /* wrapped around */
+        fprintf(stderr, "MAX HASH HANDLES REACHED\n");
+        exit(1);
+    }
+
+    for (ssize_t i = 0; i < MAX_LIVE_HANDLES_PER_CLASS; i++) {
+        if (aead_operation_handles[i] == 0) {
+            aead_operation_handles[i] = handle;
+            return i;
+        }
+    }
+
+    return -1;  /* all in use */
+}
+
+/* Find the slot given the handle */
+static ssize_t find_aead_slot_by_handle(psasim_client_handle_t handle)
+{
+    for (ssize_t i = 0; i < MAX_LIVE_HANDLES_PER_CLASS; i++) {
+        if (aead_operation_handles[i] == handle) {
+            return i;
+        }
+    }
+
+    return -1;  /* all in use */
+}
+
 size_t psasim_serialise_begin_needs(void)
 {
     /* The serialisation buffer will
@@ -505,6 +540,169 @@ int psasim_server_deserialise_psa_hash_operation_t(uint8_t **pos,
     }
 
     *operation = &hash_operations[slot];
+
+    return 1;
+}
+
+size_t psasim_serialise_psa_aead_operation_t_needs(psa_aead_operation_t value)
+{
+    return sizeof(value);
+}
+
+int psasim_serialise_psa_aead_operation_t(uint8_t **pos,
+                                          size_t *remaining,
+                                          psa_aead_operation_t value)
+{
+    if (*remaining < sizeof(value)) {
+        return 0;
+    }
+
+    memcpy(*pos, &value, sizeof(value));
+    *pos += sizeof(value);
+
+    return 1;
+}
+
+int psasim_deserialise_psa_aead_operation_t(uint8_t **pos,
+                                            size_t *remaining,
+                                            psa_aead_operation_t *value)
+{
+    if (*remaining < sizeof(*value)) {
+        return 0;
+    }
+
+    memcpy(value, *pos, sizeof(*value));
+
+    *pos += sizeof(*value);
+    *remaining -= sizeof(*value);
+
+    return 1;
+}
+
+size_t psasim_server_serialise_psa_aead_operation_t_needs(psa_aead_operation_t *operation)
+{
+    (void) operation;
+
+    /* We will actually return a handle */
+    return sizeof(psasim_operation_t);
+}
+
+int psasim_server_serialise_psa_aead_operation_t(uint8_t **pos,
+                                                 size_t *remaining,
+                                                 psa_aead_operation_t *operation)
+{
+    psasim_operation_t client_operation;
+
+    if (*remaining < sizeof(client_operation)) {
+        return 0;
+    }
+
+    ssize_t slot = operation - aead_operations;
+
+    client_operation.handle = aead_operation_handles[slot];
+
+    memcpy(*pos, &client_operation, sizeof(client_operation));
+    *pos += sizeof(client_operation);
+
+    return 1;
+}
+
+int psasim_server_deserialise_psa_aead_operation_t(uint8_t **pos,
+                                                   size_t *remaining,
+                                                   psa_aead_operation_t **operation)
+{
+    psasim_operation_t client_operation;
+
+    if (*remaining < sizeof(psasim_operation_t)) {
+        return 0;
+    }
+
+    memcpy(&client_operation, *pos, sizeof(psasim_operation_t));
+    *pos += sizeof(psasim_operation_t);
+    *remaining -= sizeof(psasim_operation_t);
+
+    ssize_t slot;
+    if (client_operation.handle == 0) {         /* We need a new handle */
+        slot = allocate_aead_operation_slot();
+    } else {
+        slot = find_aead_slot_by_handle(client_operation.handle);
+    }
+
+    if (slot < 0) {
+        return 0;
+    }
+
+    *operation = &aead_operations[slot];
+
+    return 1;
+}
+
+size_t psasim_serialise_psa_key_attributes_t_needs(psa_key_attributes_t value)
+{
+    return sizeof(value);
+}
+
+int psasim_serialise_psa_key_attributes_t(uint8_t **pos,
+                                          size_t *remaining,
+                                          psa_key_attributes_t value)
+{
+    if (*remaining < sizeof(value)) {
+        return 0;
+    }
+
+    memcpy(*pos, &value, sizeof(value));
+    *pos += sizeof(value);
+
+    return 1;
+}
+
+int psasim_deserialise_psa_key_attributes_t(uint8_t **pos,
+                                            size_t *remaining,
+                                            psa_key_attributes_t *value)
+{
+    if (*remaining < sizeof(*value)) {
+        return 0;
+    }
+
+    memcpy(value, *pos, sizeof(*value));
+
+    *pos += sizeof(*value);
+    *remaining -= sizeof(*value);
+
+    return 1;
+}
+
+size_t psasim_serialise_mbedtls_svc_key_id_t_needs(mbedtls_svc_key_id_t value)
+{
+    return sizeof(value);
+}
+
+int psasim_serialise_mbedtls_svc_key_id_t(uint8_t **pos,
+                                          size_t *remaining,
+                                          mbedtls_svc_key_id_t value)
+{
+    if (*remaining < sizeof(value)) {
+        return 0;
+    }
+
+    memcpy(*pos, &value, sizeof(value));
+    *pos += sizeof(value);
+
+    return 1;
+}
+
+int psasim_deserialise_mbedtls_svc_key_id_t(uint8_t **pos,
+                                            size_t *remaining,
+                                            mbedtls_svc_key_id_t *value)
+{
+    if (*remaining < sizeof(*value)) {
+        return 0;
+    }
+
+    memcpy(value, *pos, sizeof(*value));
+
+    *pos += sizeof(*value);
+    *remaining -= sizeof(*value);
 
     return 1;
 }

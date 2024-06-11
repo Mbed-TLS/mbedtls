@@ -38,7 +38,11 @@ die($usage) unless $which eq "c" || $which eq "h";
 my @types = qw(unsigned-int int size_t
                buffer
                psa_status_t psa_algorithm_t
-               psa_hash_operation_t);
+               psa_hash_operation_t
+               psa_aead_operation_t
+               psa_key_attributes_t
+               mbedtls_svc_key_id_t);
+
 grep(s/-/ /g, @types);
 
 # IS-A: Some data types are typedef'd; we serialise them as the other type

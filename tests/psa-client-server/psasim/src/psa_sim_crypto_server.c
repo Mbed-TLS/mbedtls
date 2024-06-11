@@ -71,6 +71,1336 @@ fail:
 }
 
 // Returns 1 for success, 0 for failure
+int psa_aead_abort_wrapper(
+    uint8_t *in_params, size_t in_params_len,
+    uint8_t **out_params, size_t *out_params_len)
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_aead_operation_t *operation;
+
+    uint8_t *pos = in_params;
+    size_t remaining = in_params_len;
+    uint8_t *result = NULL;
+    int ok;
+
+    ok = psasim_deserialise_begin(&pos, &remaining);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_server_deserialise_psa_aead_operation_t(&pos, &remaining, &operation);
+    if (!ok) {
+        goto fail;
+    }
+
+    // Now we call the actual target function
+
+    status = psa_aead_abort(
+        operation
+        );
+
+    // NOTE: Should really check there is no overflow as we go along.
+    size_t result_size =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_psa_status_t_needs(status) +
+        psasim_server_serialise_psa_aead_operation_t_needs(operation);
+
+    result = malloc(result_size);
+    if (result == NULL) {
+        goto fail;
+    }
+
+    uint8_t *rpos = result;
+    size_t rremain = result_size;
+
+    ok = psasim_serialise_begin(&rpos, &rremain);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_serialise_psa_status_t(&rpos, &rremain, status);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_server_serialise_psa_aead_operation_t(&rpos, &rremain, operation);
+    if (!ok) {
+        goto fail;
+    }
+
+    *out_params = result;
+    *out_params_len = result_size;
+
+    return 1;   // success
+
+fail:
+    free(result);
+
+    return 0;       // This shouldn't happen!
+}
+
+// Returns 1 for success, 0 for failure
+int psa_aead_decrypt_wrapper(
+    uint8_t *in_params, size_t in_params_len,
+    uint8_t **out_params, size_t *out_params_len)
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    mbedtls_svc_key_id_t key;
+    psa_algorithm_t alg;
+    uint8_t *nonce = NULL;
+    size_t nonce_length;
+    uint8_t *additional_data = NULL;
+    size_t additional_data_length;
+    uint8_t *ciphertext = NULL;
+    size_t ciphertext_length;
+    uint8_t *plaintext = NULL;
+    size_t plaintext_size;
+    size_t plaintext_length;
+
+    uint8_t *pos = in_params;
+    size_t remaining = in_params_len;
+    uint8_t *result = NULL;
+    int ok;
+
+    ok = psasim_deserialise_begin(&pos, &remaining);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_mbedtls_svc_key_id_t(&pos, &remaining, &key);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_psa_algorithm_t(&pos, &remaining, &alg);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_buffer(&pos, &remaining, &nonce, &nonce_length);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_buffer(&pos, &remaining, &additional_data, &additional_data_length);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_buffer(&pos, &remaining, &ciphertext, &ciphertext_length);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_buffer(&pos, &remaining, &plaintext, &plaintext_size);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_size_t(&pos, &remaining, &plaintext_length);
+    if (!ok) {
+        goto fail;
+    }
+
+    // Now we call the actual target function
+
+    status = psa_aead_decrypt(
+        key,
+        alg,
+        nonce, nonce_length,
+        additional_data, additional_data_length,
+        ciphertext, ciphertext_length,
+        plaintext, plaintext_size,
+        &plaintext_length
+        );
+
+    // NOTE: Should really check there is no overflow as we go along.
+    size_t result_size =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_psa_status_t_needs(status) +
+        psasim_serialise_buffer_needs(plaintext, plaintext_size) +
+        psasim_serialise_size_t_needs(plaintext_length);
+
+    result = malloc(result_size);
+    if (result == NULL) {
+        goto fail;
+    }
+
+    uint8_t *rpos = result;
+    size_t rremain = result_size;
+
+    ok = psasim_serialise_begin(&rpos, &rremain);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_serialise_psa_status_t(&rpos, &rremain, status);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_serialise_buffer(&rpos, &rremain, plaintext, plaintext_size);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_serialise_size_t(&rpos, &rremain, plaintext_length);
+    if (!ok) {
+        goto fail;
+    }
+
+    *out_params = result;
+    *out_params_len = result_size;
+
+    free(nonce);
+    free(additional_data);
+    free(ciphertext);
+    free(plaintext);
+
+    return 1;   // success
+
+fail:
+    free(result);
+
+    free(nonce);
+    free(additional_data);
+    free(ciphertext);
+    free(plaintext);
+
+    return 0;       // This shouldn't happen!
+}
+
+// Returns 1 for success, 0 for failure
+int psa_aead_decrypt_setup_wrapper(
+    uint8_t *in_params, size_t in_params_len,
+    uint8_t **out_params, size_t *out_params_len)
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_aead_operation_t *operation;
+    mbedtls_svc_key_id_t key;
+    psa_algorithm_t alg;
+
+    uint8_t *pos = in_params;
+    size_t remaining = in_params_len;
+    uint8_t *result = NULL;
+    int ok;
+
+    ok = psasim_deserialise_begin(&pos, &remaining);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_server_deserialise_psa_aead_operation_t(&pos, &remaining, &operation);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_mbedtls_svc_key_id_t(&pos, &remaining, &key);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_psa_algorithm_t(&pos, &remaining, &alg);
+    if (!ok) {
+        goto fail;
+    }
+
+    // Now we call the actual target function
+
+    status = psa_aead_decrypt_setup(
+        operation,
+        key,
+        alg
+        );
+
+    // NOTE: Should really check there is no overflow as we go along.
+    size_t result_size =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_psa_status_t_needs(status) +
+        psasim_server_serialise_psa_aead_operation_t_needs(operation);
+
+    result = malloc(result_size);
+    if (result == NULL) {
+        goto fail;
+    }
+
+    uint8_t *rpos = result;
+    size_t rremain = result_size;
+
+    ok = psasim_serialise_begin(&rpos, &rremain);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_serialise_psa_status_t(&rpos, &rremain, status);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_server_serialise_psa_aead_operation_t(&rpos, &rremain, operation);
+    if (!ok) {
+        goto fail;
+    }
+
+    *out_params = result;
+    *out_params_len = result_size;
+
+    return 1;   // success
+
+fail:
+    free(result);
+
+    return 0;       // This shouldn't happen!
+}
+
+// Returns 1 for success, 0 for failure
+int psa_aead_encrypt_wrapper(
+    uint8_t *in_params, size_t in_params_len,
+    uint8_t **out_params, size_t *out_params_len)
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    mbedtls_svc_key_id_t key;
+    psa_algorithm_t alg;
+    uint8_t *nonce = NULL;
+    size_t nonce_length;
+    uint8_t *additional_data = NULL;
+    size_t additional_data_length;
+    uint8_t *plaintext = NULL;
+    size_t plaintext_length;
+    uint8_t *ciphertext = NULL;
+    size_t ciphertext_size;
+    size_t ciphertext_length;
+
+    uint8_t *pos = in_params;
+    size_t remaining = in_params_len;
+    uint8_t *result = NULL;
+    int ok;
+
+    ok = psasim_deserialise_begin(&pos, &remaining);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_mbedtls_svc_key_id_t(&pos, &remaining, &key);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_psa_algorithm_t(&pos, &remaining, &alg);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_buffer(&pos, &remaining, &nonce, &nonce_length);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_buffer(&pos, &remaining, &additional_data, &additional_data_length);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_buffer(&pos, &remaining, &plaintext, &plaintext_length);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_buffer(&pos, &remaining, &ciphertext, &ciphertext_size);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_size_t(&pos, &remaining, &ciphertext_length);
+    if (!ok) {
+        goto fail;
+    }
+
+    // Now we call the actual target function
+
+    status = psa_aead_encrypt(
+        key,
+        alg,
+        nonce, nonce_length,
+        additional_data, additional_data_length,
+        plaintext, plaintext_length,
+        ciphertext, ciphertext_size,
+        &ciphertext_length
+        );
+
+    // NOTE: Should really check there is no overflow as we go along.
+    size_t result_size =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_psa_status_t_needs(status) +
+        psasim_serialise_buffer_needs(ciphertext, ciphertext_size) +
+        psasim_serialise_size_t_needs(ciphertext_length);
+
+    result = malloc(result_size);
+    if (result == NULL) {
+        goto fail;
+    }
+
+    uint8_t *rpos = result;
+    size_t rremain = result_size;
+
+    ok = psasim_serialise_begin(&rpos, &rremain);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_serialise_psa_status_t(&rpos, &rremain, status);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_serialise_buffer(&rpos, &rremain, ciphertext, ciphertext_size);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_serialise_size_t(&rpos, &rremain, ciphertext_length);
+    if (!ok) {
+        goto fail;
+    }
+
+    *out_params = result;
+    *out_params_len = result_size;
+
+    free(nonce);
+    free(additional_data);
+    free(plaintext);
+    free(ciphertext);
+
+    return 1;   // success
+
+fail:
+    free(result);
+
+    free(nonce);
+    free(additional_data);
+    free(plaintext);
+    free(ciphertext);
+
+    return 0;       // This shouldn't happen!
+}
+
+// Returns 1 for success, 0 for failure
+int psa_aead_encrypt_setup_wrapper(
+    uint8_t *in_params, size_t in_params_len,
+    uint8_t **out_params, size_t *out_params_len)
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_aead_operation_t *operation;
+    mbedtls_svc_key_id_t key;
+    psa_algorithm_t alg;
+
+    uint8_t *pos = in_params;
+    size_t remaining = in_params_len;
+    uint8_t *result = NULL;
+    int ok;
+
+    ok = psasim_deserialise_begin(&pos, &remaining);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_server_deserialise_psa_aead_operation_t(&pos, &remaining, &operation);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_mbedtls_svc_key_id_t(&pos, &remaining, &key);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_psa_algorithm_t(&pos, &remaining, &alg);
+    if (!ok) {
+        goto fail;
+    }
+
+    // Now we call the actual target function
+
+    status = psa_aead_encrypt_setup(
+        operation,
+        key,
+        alg
+        );
+
+    // NOTE: Should really check there is no overflow as we go along.
+    size_t result_size =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_psa_status_t_needs(status) +
+        psasim_server_serialise_psa_aead_operation_t_needs(operation);
+
+    result = malloc(result_size);
+    if (result == NULL) {
+        goto fail;
+    }
+
+    uint8_t *rpos = result;
+    size_t rremain = result_size;
+
+    ok = psasim_serialise_begin(&rpos, &rremain);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_serialise_psa_status_t(&rpos, &rremain, status);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_server_serialise_psa_aead_operation_t(&rpos, &rremain, operation);
+    if (!ok) {
+        goto fail;
+    }
+
+    *out_params = result;
+    *out_params_len = result_size;
+
+    return 1;   // success
+
+fail:
+    free(result);
+
+    return 0;       // This shouldn't happen!
+}
+
+// Returns 1 for success, 0 for failure
+int psa_aead_finish_wrapper(
+    uint8_t *in_params, size_t in_params_len,
+    uint8_t **out_params, size_t *out_params_len)
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_aead_operation_t *operation;
+    uint8_t *ciphertext = NULL;
+    size_t ciphertext_size;
+    size_t ciphertext_length;
+    uint8_t *tag = NULL;
+    size_t tag_size;
+    size_t tag_length;
+
+    uint8_t *pos = in_params;
+    size_t remaining = in_params_len;
+    uint8_t *result = NULL;
+    int ok;
+
+    ok = psasim_deserialise_begin(&pos, &remaining);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_server_deserialise_psa_aead_operation_t(&pos, &remaining, &operation);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_buffer(&pos, &remaining, &ciphertext, &ciphertext_size);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_size_t(&pos, &remaining, &ciphertext_length);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_buffer(&pos, &remaining, &tag, &tag_size);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_size_t(&pos, &remaining, &tag_length);
+    if (!ok) {
+        goto fail;
+    }
+
+    // Now we call the actual target function
+
+    status = psa_aead_finish(
+        operation,
+        ciphertext, ciphertext_size,
+        &ciphertext_length,
+        tag, tag_size,
+        &tag_length
+        );
+
+    // NOTE: Should really check there is no overflow as we go along.
+    size_t result_size =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_psa_status_t_needs(status) +
+        psasim_server_serialise_psa_aead_operation_t_needs(operation) +
+        psasim_serialise_buffer_needs(ciphertext, ciphertext_size) +
+        psasim_serialise_size_t_needs(ciphertext_length) +
+        psasim_serialise_buffer_needs(tag, tag_size) +
+        psasim_serialise_size_t_needs(tag_length);
+
+    result = malloc(result_size);
+    if (result == NULL) {
+        goto fail;
+    }
+
+    uint8_t *rpos = result;
+    size_t rremain = result_size;
+
+    ok = psasim_serialise_begin(&rpos, &rremain);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_serialise_psa_status_t(&rpos, &rremain, status);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_server_serialise_psa_aead_operation_t(&rpos, &rremain, operation);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_serialise_buffer(&rpos, &rremain, ciphertext, ciphertext_size);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_serialise_size_t(&rpos, &rremain, ciphertext_length);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_serialise_buffer(&rpos, &rremain, tag, tag_size);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_serialise_size_t(&rpos, &rremain, tag_length);
+    if (!ok) {
+        goto fail;
+    }
+
+    *out_params = result;
+    *out_params_len = result_size;
+
+    free(ciphertext);
+    free(tag);
+
+    return 1;   // success
+
+fail:
+    free(result);
+
+    free(ciphertext);
+    free(tag);
+
+    return 0;       // This shouldn't happen!
+}
+
+// Returns 1 for success, 0 for failure
+int psa_aead_generate_nonce_wrapper(
+    uint8_t *in_params, size_t in_params_len,
+    uint8_t **out_params, size_t *out_params_len)
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_aead_operation_t *operation;
+    uint8_t *nonce = NULL;
+    size_t nonce_size;
+    size_t nonce_length;
+
+    uint8_t *pos = in_params;
+    size_t remaining = in_params_len;
+    uint8_t *result = NULL;
+    int ok;
+
+    ok = psasim_deserialise_begin(&pos, &remaining);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_server_deserialise_psa_aead_operation_t(&pos, &remaining, &operation);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_buffer(&pos, &remaining, &nonce, &nonce_size);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_size_t(&pos, &remaining, &nonce_length);
+    if (!ok) {
+        goto fail;
+    }
+
+    // Now we call the actual target function
+
+    status = psa_aead_generate_nonce(
+        operation,
+        nonce, nonce_size,
+        &nonce_length
+        );
+
+    // NOTE: Should really check there is no overflow as we go along.
+    size_t result_size =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_psa_status_t_needs(status) +
+        psasim_server_serialise_psa_aead_operation_t_needs(operation) +
+        psasim_serialise_buffer_needs(nonce, nonce_size) +
+        psasim_serialise_size_t_needs(nonce_length);
+
+    result = malloc(result_size);
+    if (result == NULL) {
+        goto fail;
+    }
+
+    uint8_t *rpos = result;
+    size_t rremain = result_size;
+
+    ok = psasim_serialise_begin(&rpos, &rremain);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_serialise_psa_status_t(&rpos, &rremain, status);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_server_serialise_psa_aead_operation_t(&rpos, &rremain, operation);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_serialise_buffer(&rpos, &rremain, nonce, nonce_size);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_serialise_size_t(&rpos, &rremain, nonce_length);
+    if (!ok) {
+        goto fail;
+    }
+
+    *out_params = result;
+    *out_params_len = result_size;
+
+    free(nonce);
+
+    return 1;   // success
+
+fail:
+    free(result);
+
+    free(nonce);
+
+    return 0;       // This shouldn't happen!
+}
+
+// Returns 1 for success, 0 for failure
+int psa_aead_set_lengths_wrapper(
+    uint8_t *in_params, size_t in_params_len,
+    uint8_t **out_params, size_t *out_params_len)
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_aead_operation_t *operation;
+    size_t ad_length;
+    size_t plaintext_length;
+
+    uint8_t *pos = in_params;
+    size_t remaining = in_params_len;
+    uint8_t *result = NULL;
+    int ok;
+
+    ok = psasim_deserialise_begin(&pos, &remaining);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_server_deserialise_psa_aead_operation_t(&pos, &remaining, &operation);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_size_t(&pos, &remaining, &ad_length);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_size_t(&pos, &remaining, &plaintext_length);
+    if (!ok) {
+        goto fail;
+    }
+
+    // Now we call the actual target function
+
+    status = psa_aead_set_lengths(
+        operation,
+        ad_length,
+        plaintext_length
+        );
+
+    // NOTE: Should really check there is no overflow as we go along.
+    size_t result_size =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_psa_status_t_needs(status) +
+        psasim_server_serialise_psa_aead_operation_t_needs(operation);
+
+    result = malloc(result_size);
+    if (result == NULL) {
+        goto fail;
+    }
+
+    uint8_t *rpos = result;
+    size_t rremain = result_size;
+
+    ok = psasim_serialise_begin(&rpos, &rremain);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_serialise_psa_status_t(&rpos, &rremain, status);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_server_serialise_psa_aead_operation_t(&rpos, &rremain, operation);
+    if (!ok) {
+        goto fail;
+    }
+
+    *out_params = result;
+    *out_params_len = result_size;
+
+    return 1;   // success
+
+fail:
+    free(result);
+
+    return 0;       // This shouldn't happen!
+}
+
+// Returns 1 for success, 0 for failure
+int psa_aead_set_nonce_wrapper(
+    uint8_t *in_params, size_t in_params_len,
+    uint8_t **out_params, size_t *out_params_len)
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_aead_operation_t *operation;
+    uint8_t *nonce = NULL;
+    size_t nonce_length;
+
+    uint8_t *pos = in_params;
+    size_t remaining = in_params_len;
+    uint8_t *result = NULL;
+    int ok;
+
+    ok = psasim_deserialise_begin(&pos, &remaining);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_server_deserialise_psa_aead_operation_t(&pos, &remaining, &operation);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_buffer(&pos, &remaining, &nonce, &nonce_length);
+    if (!ok) {
+        goto fail;
+    }
+
+    // Now we call the actual target function
+
+    status = psa_aead_set_nonce(
+        operation,
+        nonce, nonce_length
+        );
+
+    // NOTE: Should really check there is no overflow as we go along.
+    size_t result_size =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_psa_status_t_needs(status) +
+        psasim_server_serialise_psa_aead_operation_t_needs(operation);
+
+    result = malloc(result_size);
+    if (result == NULL) {
+        goto fail;
+    }
+
+    uint8_t *rpos = result;
+    size_t rremain = result_size;
+
+    ok = psasim_serialise_begin(&rpos, &rremain);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_serialise_psa_status_t(&rpos, &rremain, status);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_server_serialise_psa_aead_operation_t(&rpos, &rremain, operation);
+    if (!ok) {
+        goto fail;
+    }
+
+    *out_params = result;
+    *out_params_len = result_size;
+
+    free(nonce);
+
+    return 1;   // success
+
+fail:
+    free(result);
+
+    free(nonce);
+
+    return 0;       // This shouldn't happen!
+}
+
+// Returns 1 for success, 0 for failure
+int psa_aead_update_wrapper(
+    uint8_t *in_params, size_t in_params_len,
+    uint8_t **out_params, size_t *out_params_len)
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_aead_operation_t *operation;
+    uint8_t *input = NULL;
+    size_t input_length;
+    uint8_t *output = NULL;
+    size_t output_size;
+    size_t output_length;
+
+    uint8_t *pos = in_params;
+    size_t remaining = in_params_len;
+    uint8_t *result = NULL;
+    int ok;
+
+    ok = psasim_deserialise_begin(&pos, &remaining);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_server_deserialise_psa_aead_operation_t(&pos, &remaining, &operation);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_buffer(&pos, &remaining, &input, &input_length);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_buffer(&pos, &remaining, &output, &output_size);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_size_t(&pos, &remaining, &output_length);
+    if (!ok) {
+        goto fail;
+    }
+
+    // Now we call the actual target function
+
+    status = psa_aead_update(
+        operation,
+        input, input_length,
+        output, output_size,
+        &output_length
+        );
+
+    // NOTE: Should really check there is no overflow as we go along.
+    size_t result_size =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_psa_status_t_needs(status) +
+        psasim_server_serialise_psa_aead_operation_t_needs(operation) +
+        psasim_serialise_buffer_needs(output, output_size) +
+        psasim_serialise_size_t_needs(output_length);
+
+    result = malloc(result_size);
+    if (result == NULL) {
+        goto fail;
+    }
+
+    uint8_t *rpos = result;
+    size_t rremain = result_size;
+
+    ok = psasim_serialise_begin(&rpos, &rremain);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_serialise_psa_status_t(&rpos, &rremain, status);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_server_serialise_psa_aead_operation_t(&rpos, &rremain, operation);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_serialise_buffer(&rpos, &rremain, output, output_size);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_serialise_size_t(&rpos, &rremain, output_length);
+    if (!ok) {
+        goto fail;
+    }
+
+    *out_params = result;
+    *out_params_len = result_size;
+
+    free(input);
+    free(output);
+
+    return 1;   // success
+
+fail:
+    free(result);
+
+    free(input);
+    free(output);
+
+    return 0;       // This shouldn't happen!
+}
+
+// Returns 1 for success, 0 for failure
+int psa_aead_update_ad_wrapper(
+    uint8_t *in_params, size_t in_params_len,
+    uint8_t **out_params, size_t *out_params_len)
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_aead_operation_t *operation;
+    uint8_t *input = NULL;
+    size_t input_length;
+
+    uint8_t *pos = in_params;
+    size_t remaining = in_params_len;
+    uint8_t *result = NULL;
+    int ok;
+
+    ok = psasim_deserialise_begin(&pos, &remaining);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_server_deserialise_psa_aead_operation_t(&pos, &remaining, &operation);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_buffer(&pos, &remaining, &input, &input_length);
+    if (!ok) {
+        goto fail;
+    }
+
+    // Now we call the actual target function
+
+    status = psa_aead_update_ad(
+        operation,
+        input, input_length
+        );
+
+    // NOTE: Should really check there is no overflow as we go along.
+    size_t result_size =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_psa_status_t_needs(status) +
+        psasim_server_serialise_psa_aead_operation_t_needs(operation);
+
+    result = malloc(result_size);
+    if (result == NULL) {
+        goto fail;
+    }
+
+    uint8_t *rpos = result;
+    size_t rremain = result_size;
+
+    ok = psasim_serialise_begin(&rpos, &rremain);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_serialise_psa_status_t(&rpos, &rremain, status);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_server_serialise_psa_aead_operation_t(&rpos, &rremain, operation);
+    if (!ok) {
+        goto fail;
+    }
+
+    *out_params = result;
+    *out_params_len = result_size;
+
+    free(input);
+
+    return 1;   // success
+
+fail:
+    free(result);
+
+    free(input);
+
+    return 0;       // This shouldn't happen!
+}
+
+// Returns 1 for success, 0 for failure
+int psa_aead_verify_wrapper(
+    uint8_t *in_params, size_t in_params_len,
+    uint8_t **out_params, size_t *out_params_len)
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_aead_operation_t *operation;
+    uint8_t *plaintext = NULL;
+    size_t plaintext_size;
+    size_t plaintext_length;
+    uint8_t *tag = NULL;
+    size_t tag_length;
+
+    uint8_t *pos = in_params;
+    size_t remaining = in_params_len;
+    uint8_t *result = NULL;
+    int ok;
+
+    ok = psasim_deserialise_begin(&pos, &remaining);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_server_deserialise_psa_aead_operation_t(&pos, &remaining, &operation);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_buffer(&pos, &remaining, &plaintext, &plaintext_size);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_size_t(&pos, &remaining, &plaintext_length);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_buffer(&pos, &remaining, &tag, &tag_length);
+    if (!ok) {
+        goto fail;
+    }
+
+    // Now we call the actual target function
+
+    status = psa_aead_verify(
+        operation,
+        plaintext, plaintext_size,
+        &plaintext_length,
+        tag, tag_length
+        );
+
+    // NOTE: Should really check there is no overflow as we go along.
+    size_t result_size =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_psa_status_t_needs(status) +
+        psasim_server_serialise_psa_aead_operation_t_needs(operation) +
+        psasim_serialise_buffer_needs(plaintext, plaintext_size) +
+        psasim_serialise_size_t_needs(plaintext_length);
+
+    result = malloc(result_size);
+    if (result == NULL) {
+        goto fail;
+    }
+
+    uint8_t *rpos = result;
+    size_t rremain = result_size;
+
+    ok = psasim_serialise_begin(&rpos, &rremain);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_serialise_psa_status_t(&rpos, &rremain, status);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_server_serialise_psa_aead_operation_t(&rpos, &rremain, operation);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_serialise_buffer(&rpos, &rremain, plaintext, plaintext_size);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_serialise_size_t(&rpos, &rremain, plaintext_length);
+    if (!ok) {
+        goto fail;
+    }
+
+    *out_params = result;
+    *out_params_len = result_size;
+
+    free(plaintext);
+    free(tag);
+
+    return 1;   // success
+
+fail:
+    free(result);
+
+    free(plaintext);
+    free(tag);
+
+    return 0;       // This shouldn't happen!
+}
+
+// Returns 1 for success, 0 for failure
+int psa_destroy_key_wrapper(
+    uint8_t *in_params, size_t in_params_len,
+    uint8_t **out_params, size_t *out_params_len)
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    mbedtls_svc_key_id_t key;
+
+    uint8_t *pos = in_params;
+    size_t remaining = in_params_len;
+    uint8_t *result = NULL;
+    int ok;
+
+    ok = psasim_deserialise_begin(&pos, &remaining);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_mbedtls_svc_key_id_t(&pos, &remaining, &key);
+    if (!ok) {
+        goto fail;
+    }
+
+    // Now we call the actual target function
+
+    status = psa_destroy_key(
+        key
+        );
+
+    // NOTE: Should really check there is no overflow as we go along.
+    size_t result_size =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_psa_status_t_needs(status);
+
+    result = malloc(result_size);
+    if (result == NULL) {
+        goto fail;
+    }
+
+    uint8_t *rpos = result;
+    size_t rremain = result_size;
+
+    ok = psasim_serialise_begin(&rpos, &rremain);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_serialise_psa_status_t(&rpos, &rremain, status);
+    if (!ok) {
+        goto fail;
+    }
+
+    *out_params = result;
+    *out_params_len = result_size;
+
+    return 1;   // success
+
+fail:
+    free(result);
+
+    return 0;       // This shouldn't happen!
+}
+
+// Returns 1 for success, 0 for failure
+int psa_get_key_attributes_wrapper(
+    uint8_t *in_params, size_t in_params_len,
+    uint8_t **out_params, size_t *out_params_len)
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    mbedtls_svc_key_id_t key;
+    psa_key_attributes_t attributes;
+
+    uint8_t *pos = in_params;
+    size_t remaining = in_params_len;
+    uint8_t *result = NULL;
+    int ok;
+
+    ok = psasim_deserialise_begin(&pos, &remaining);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_mbedtls_svc_key_id_t(&pos, &remaining, &key);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_psa_key_attributes_t(&pos, &remaining, &attributes);
+    if (!ok) {
+        goto fail;
+    }
+
+    // Now we call the actual target function
+
+    status = psa_get_key_attributes(
+        key,
+        &attributes
+        );
+
+    // NOTE: Should really check there is no overflow as we go along.
+    size_t result_size =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_psa_status_t_needs(status) +
+        psasim_serialise_psa_key_attributes_t_needs(attributes);
+
+    result = malloc(result_size);
+    if (result == NULL) {
+        goto fail;
+    }
+
+    uint8_t *rpos = result;
+    size_t rremain = result_size;
+
+    ok = psasim_serialise_begin(&rpos, &rremain);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_serialise_psa_status_t(&rpos, &rremain, status);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_serialise_psa_key_attributes_t(&rpos, &rremain, attributes);
+    if (!ok) {
+        goto fail;
+    }
+
+    *out_params = result;
+    *out_params_len = result_size;
+
+    return 1;   // success
+
+fail:
+    free(result);
+
+    return 0;       // This shouldn't happen!
+}
+
+// Returns 1 for success, 0 for failure
 int psa_hash_abort_wrapper(
     uint8_t *in_params, size_t in_params_len,
     uint8_t **out_params, size_t *out_params_len)
@@ -742,6 +2072,94 @@ fail:
     return 0;       // This shouldn't happen!
 }
 
+// Returns 1 for success, 0 for failure
+int psa_import_key_wrapper(
+    uint8_t *in_params, size_t in_params_len,
+    uint8_t **out_params, size_t *out_params_len)
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_key_attributes_t attributes;
+    uint8_t *data = NULL;
+    size_t data_length;
+    mbedtls_svc_key_id_t key;
+
+    uint8_t *pos = in_params;
+    size_t remaining = in_params_len;
+    uint8_t *result = NULL;
+    int ok;
+
+    ok = psasim_deserialise_begin(&pos, &remaining);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_psa_key_attributes_t(&pos, &remaining, &attributes);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_buffer(&pos, &remaining, &data, &data_length);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_mbedtls_svc_key_id_t(&pos, &remaining, &key);
+    if (!ok) {
+        goto fail;
+    }
+
+    // Now we call the actual target function
+
+    status = psa_import_key(
+        &attributes,
+        data, data_length,
+        &key
+        );
+
+    // NOTE: Should really check there is no overflow as we go along.
+    size_t result_size =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_psa_status_t_needs(status) +
+        psasim_serialise_mbedtls_svc_key_id_t_needs(key);
+
+    result = malloc(result_size);
+    if (result == NULL) {
+        goto fail;
+    }
+
+    uint8_t *rpos = result;
+    size_t rremain = result_size;
+
+    ok = psasim_serialise_begin(&rpos, &rremain);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_serialise_psa_status_t(&rpos, &rremain, status);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_serialise_mbedtls_svc_key_id_t(&rpos, &rremain, key);
+    if (!ok) {
+        goto fail;
+    }
+
+    *out_params = result;
+    *out_params_len = result_size;
+
+    free(data);
+
+    return 1;   // success
+
+fail:
+    free(result);
+
+    free(data);
+
+    return 0;       // This shouldn't happen!
+}
+
 psa_status_t psa_crypto_call(psa_msg_t msg)
 {
     int ok = 0;
@@ -782,6 +2200,62 @@ psa_status_t psa_crypto_call(psa_msg_t msg)
             ok = psa_crypto_init_wrapper(in_params, in_params_len,
                                          &out_params, &out_params_len);
             break;
+        case PSA_AEAD_ABORT:
+            ok = psa_aead_abort_wrapper(in_params, in_params_len,
+                                        &out_params, &out_params_len);
+            break;
+        case PSA_AEAD_DECRYPT:
+            ok = psa_aead_decrypt_wrapper(in_params, in_params_len,
+                                          &out_params, &out_params_len);
+            break;
+        case PSA_AEAD_DECRYPT_SETUP:
+            ok = psa_aead_decrypt_setup_wrapper(in_params, in_params_len,
+                                                &out_params, &out_params_len);
+            break;
+        case PSA_AEAD_ENCRYPT:
+            ok = psa_aead_encrypt_wrapper(in_params, in_params_len,
+                                          &out_params, &out_params_len);
+            break;
+        case PSA_AEAD_ENCRYPT_SETUP:
+            ok = psa_aead_encrypt_setup_wrapper(in_params, in_params_len,
+                                                &out_params, &out_params_len);
+            break;
+        case PSA_AEAD_FINISH:
+            ok = psa_aead_finish_wrapper(in_params, in_params_len,
+                                         &out_params, &out_params_len);
+            break;
+        case PSA_AEAD_GENERATE_NONCE:
+            ok = psa_aead_generate_nonce_wrapper(in_params, in_params_len,
+                                                 &out_params, &out_params_len);
+            break;
+        case PSA_AEAD_SET_LENGTHS:
+            ok = psa_aead_set_lengths_wrapper(in_params, in_params_len,
+                                              &out_params, &out_params_len);
+            break;
+        case PSA_AEAD_SET_NONCE:
+            ok = psa_aead_set_nonce_wrapper(in_params, in_params_len,
+                                            &out_params, &out_params_len);
+            break;
+        case PSA_AEAD_UPDATE:
+            ok = psa_aead_update_wrapper(in_params, in_params_len,
+                                         &out_params, &out_params_len);
+            break;
+        case PSA_AEAD_UPDATE_AD:
+            ok = psa_aead_update_ad_wrapper(in_params, in_params_len,
+                                            &out_params, &out_params_len);
+            break;
+        case PSA_AEAD_VERIFY:
+            ok = psa_aead_verify_wrapper(in_params, in_params_len,
+                                         &out_params, &out_params_len);
+            break;
+        case PSA_DESTROY_KEY:
+            ok = psa_destroy_key_wrapper(in_params, in_params_len,
+                                         &out_params, &out_params_len);
+            break;
+        case PSA_GET_KEY_ATTRIBUTES:
+            ok = psa_get_key_attributes_wrapper(in_params, in_params_len,
+                                                &out_params, &out_params_len);
+            break;
         case PSA_HASH_ABORT:
             ok = psa_hash_abort_wrapper(in_params, in_params_len,
                                         &out_params, &out_params_len);
@@ -813,6 +2287,10 @@ psa_status_t psa_crypto_call(psa_msg_t msg)
         case PSA_HASH_VERIFY:
             ok = psa_hash_verify_wrapper(in_params, in_params_len,
                                          &out_params, &out_params_len);
+            break;
+        case PSA_IMPORT_KEY:
+            ok = psa_import_key_wrapper(in_params, in_params_len,
+                                        &out_params, &out_params_len);
             break;
     }
 

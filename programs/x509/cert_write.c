@@ -205,8 +205,8 @@ struct options {
 } opt;
 
 static int write_certificate(mbedtls_x509write_cert *crt, const char *output_file,
-                      int (*f_rng)(void *, unsigned char *, size_t),
-                      void *p_rng)
+                             int (*f_rng)(void *, unsigned char *, size_t),
+                             void *p_rng)
 {
     int ret;
     FILE *f;
@@ -250,7 +250,7 @@ static int write_certificate(mbedtls_x509write_cert *crt, const char *output_fil
 }
 
 static int parse_serial_decimal_format(unsigned char *obuf, size_t obufmax,
-                                const char *ibuf, size_t *len)
+                                       const char *ibuf, size_t *len)
 {
     unsigned long long int dec;
     unsigned int remaining_bytes = sizeof(dec);

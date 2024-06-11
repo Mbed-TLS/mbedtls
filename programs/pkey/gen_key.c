@@ -40,7 +40,7 @@ int main(void)
 #define DEV_RANDOM_THRESHOLD        32
 
 static int dev_random_entropy_poll(void *data, unsigned char *output,
-                            size_t len, size_t *olen)
+                                   size_t len, size_t *olen)
 {
     FILE *file;
     size_t ret, left = len;

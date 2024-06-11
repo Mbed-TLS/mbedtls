@@ -46,7 +46,7 @@ struct options {
 } opt;
 
 static int convert_pem_to_der(const unsigned char *input, size_t ilen,
-                       unsigned char *output, size_t *olen)
+                              unsigned char *output, size_t *olen)
 {
     int ret;
     const unsigned char *s1, *s2, *end = input + ilen;

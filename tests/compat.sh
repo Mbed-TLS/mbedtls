@@ -98,6 +98,7 @@ FILTER=""
 EXCLUDE='NULL\|DES\|RC4\|ARCFOUR\|ARIA\|CHACHA20-POLY1305'
 VERBOSE=""
 MEMCHECK=0
+MIN_TESTS=1
 PRESERVE_LOGS=0
 PEERS="OpenSSL$PEER_GNUTLS mbedTLS"
 
@@ -118,6 +119,7 @@ print_usage() {
     printf "  -M|--memcheck\tCheck memory leaks and errors.\n"
     printf "  -v|--verbose\tSet verbose output.\n"
     printf "     --list-test-cases\tList all potential test cases (No Execution)\n"
+    printf "     --min      \tMinimum number of non-skipped tests (default 1)\n"
     printf "     --outcome-file\tFile where test outcomes are written\n"
     printf "                   \t(default: \$MBEDTLS_TEST_OUTCOME_FILE, none if empty)\n"
     printf "     --preserve-logs\tPreserve logs of successful tests as well\n"
@@ -212,6 +214,9 @@ get_options() {
             --list-test-cases)
                 list_test_cases
                 exit $?
+                ;;
+            --min)
+                shift; MIN_TESTS=$1
                 ;;
             --outcome-file)
                 shift; MBEDTLS_TEST_OUTCOME_FILE=$1
@@ -1018,7 +1023,7 @@ setup_arguments()
     M_SERVER_ARGS="server_port=$PORT server_addr=0.0.0.0 force_version=$MODE arc4=1"
     O_SERVER_ARGS="-accept $PORT -cipher ALL,COMPLEMENTOFALL -$O_MODE"
     G_SERVER_ARGS="-p $PORT --http $G_MODE"
-    G_SERVER_PRIO="NORMAL:${G_PRIO_CCM}+ARCFOUR-128:+NULL:+MD5:+PSK:+DHE-PSK:+ECDHE-PSK:+SHA256:+SHA384:+RSA-PSK:-VERS-TLS-ALL:$G_PRIO_MODE"
+    G_SERVER_PRIO="NORMAL:${G_PRIO_CCM}+ARCFOUR-128:+3DES-CBC:+NULL:+MD5:+PSK:+DHE-PSK:+ECDHE-PSK:+SHA256:+SHA384:+RSA-PSK:-VERS-TLS-ALL:$G_PRIO_MODE"
 
     # The default prime for `openssl s_server` depends on the version:
     # * OpenSSL <= 1.0.2a: 512-bit
@@ -1626,6 +1631,16 @@ fi
 
 PASSED=$(( $TESTS - $FAILED ))
 echo " ($PASSED / $TESTS tests ($SKIPPED skipped$MEMREPORT))"
+
+if [ $((TESTS - SKIPPED)) -lt $MIN_TESTS ]; then
+    cat <<EOF
+Error: Expected to run at least $MIN_TESTS, but only ran $((TESTS - SKIPPED)).
+Maybe a bad filter ('$FILTER' excluding '$EXCLUDE') or a bad configuration?
+EOF
+    if [ $FAILED -eq 0 ]; then
+        FAILED=1
+    fi
+fi
 
 FAILED=$(( $FAILED + $SRVMEM ))
 if [ $FAILED -gt 255 ]; then

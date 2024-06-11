@@ -33,5 +33,5 @@ clean_run
 ./psa_partition -k &
 SERV_PID=$!
 wait_for_server_startup
-./psa_client
+./psa_client "$@"
 wait $SERV_PID

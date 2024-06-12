@@ -44,7 +44,9 @@
 #endif /* defined(__clang__) &&  (__clang_major__ >= 4) */
 
 /* Ensure that SIG_SETMASK is defined when -std=c99 is used. */
+#if !defined(_GNU_SOURCE)
 #define _GNU_SOURCE
+#endif
 
 #include "common.h"
 

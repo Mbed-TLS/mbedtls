@@ -1,0 +1,9 @@
+Changes
+   * Warn if mbedtls/check_config.h is included manually, as this can
+     lead to spurious errors. Error if a *adjust*.h header is included
+     manually, as this can lead to silently inconsistent configurations,
+     potentially resulting in buffer overflows.
+     When migrating from Mbed TLS 2.x, if you had a custom config.h that
+     included check_config.h, remove this inclusion from the Mbed TLS 3.x
+     configuration file (renamed to mbedtls_config.h). This change was made
+     in Mbed TLS 3.0, but was not announced in a changelog entry at the time.

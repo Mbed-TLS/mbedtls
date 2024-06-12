@@ -4005,7 +4005,11 @@ static int ssl_prepare_record_content(mbedtls_ssl_context *ssl,
                  MBEDTLS_SSL_EARLY_DATA_TRY_TO_DEPROTECT_AND_DISCARD)) {
                 MBEDTLS_SSL_DEBUG_MSG(
                     3, ("EarlyData: deprotect and discard app data records."));
-                /* TODO: Add max_early_data_size check here, see issue 6347 */
+
+                ret = mbedtls_ssl_tls13_check_early_data_len(ssl, rec->data_len);
+                if (ret != 0) {
+                    return ret;
+                }
                 ret = MBEDTLS_ERR_SSL_CONTINUE_PROCESSING;
             }
 #endif /* MBEDTLS_SSL_EARLY_DATA && MBEDTLS_SSL_SRV_C */
@@ -4129,9 +4133,15 @@ static int ssl_prepare_record_content(mbedtls_ssl_context *ssl,
      */
     if (ssl->discard_early_data_record == MBEDTLS_SSL_EARLY_DATA_DISCARD) {
         if (rec->type == MBEDTLS_SSL_MSG_APPLICATION_DATA) {
+
+            ret = mbedtls_ssl_tls13_check_early_data_len(ssl, rec->data_len);
+            if (ret != 0) {
+                return ret;
+            }
+
             MBEDTLS_SSL_DEBUG_MSG(
                 3, ("EarlyData: Ignore application message before 2nd ClientHello"));
-            /* TODO: Add max_early_data_size check here, see issue 6347 */
+
             return MBEDTLS_ERR_SSL_CONTINUE_PROCESSING;
         } else if (rec->type == MBEDTLS_SSL_MSG_HANDSHAKE) {
             ssl->discard_early_data_record = MBEDTLS_SSL_EARLY_DATA_NO_DISCARD;
@@ -5560,9 +5570,9 @@ static int ssl_check_ctr_renegotiate(mbedtls_ssl_context *ssl)
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
 
-#if defined(MBEDTLS_SSL_SESSION_TICKETS) && defined(MBEDTLS_SSL_CLI_C)
+#if defined(MBEDTLS_SSL_CLI_C)
 MBEDTLS_CHECK_RETURN_CRITICAL
-static int ssl_tls13_check_new_session_ticket(mbedtls_ssl_context *ssl)
+static int ssl_tls13_is_new_session_ticket(mbedtls_ssl_context *ssl)
 {
 
     if ((ssl->in_hslen == mbedtls_ssl_hs_hdr_len(ssl)) ||
@@ -5570,15 +5580,9 @@ static int ssl_tls13_check_new_session_ticket(mbedtls_ssl_context *ssl)
         return 0;
     }
 
-    ssl->keep_current_message = 1;
-
-    MBEDTLS_SSL_DEBUG_MSG(3, ("NewSessionTicket received"));
-    mbedtls_ssl_handshake_set_state(ssl,
-                                    MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET);
-
-    return MBEDTLS_ERR_SSL_WANT_READ;
+    return 1;
 }
-#endif /* MBEDTLS_SSL_SESSION_TICKETS && MBEDTLS_SSL_CLI_C */
+#endif /* MBEDTLS_SSL_CLI_C */
 
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_tls13_handle_hs_message_post_handshake(mbedtls_ssl_context *ssl)
@@ -5586,14 +5590,23 @@ static int ssl_tls13_handle_hs_message_post_handshake(mbedtls_ssl_context *ssl)
 
     MBEDTLS_SSL_DEBUG_MSG(3, ("received post-handshake message"));
 
-#if defined(MBEDTLS_SSL_SESSION_TICKETS) && defined(MBEDTLS_SSL_CLI_C)
+#if defined(MBEDTLS_SSL_CLI_C)
     if (ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT) {
-        int ret = ssl_tls13_check_new_session_ticket(ssl);
-        if (ret != 0) {
-            return ret;
+        if (ssl_tls13_is_new_session_ticket(ssl)) {
+#if defined(MBEDTLS_SSL_SESSION_TICKETS)
+            MBEDTLS_SSL_DEBUG_MSG(3, ("NewSessionTicket received"));
+            ssl->keep_current_message = 1;
+
+            mbedtls_ssl_handshake_set_state(ssl,
+                                            MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET);
+            return MBEDTLS_ERR_SSL_WANT_READ;
+#else
+            MBEDTLS_SSL_DEBUG_MSG(3, ("Ignore NewSessionTicket, not supported."));
+            return 0;
+#endif
         }
     }
-#endif /* MBEDTLS_SSL_SESSION_TICKETS && MBEDTLS_SSL_CLI_C */
+#endif /* MBEDTLS_SSL_CLI_C */
 
     /* Fail in all other cases. */
     return MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE;
@@ -6064,7 +6077,7 @@ int mbedtls_ssl_write_early_data(mbedtls_ssl_context *ssl,
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     const struct mbedtls_ssl_config *conf;
-    int written_data_len = 0;
+    uint32_t remaining;
 
     MBEDTLS_SSL_DEBUG_MSG(2, ("=> write early_data"));
 
@@ -6087,21 +6100,21 @@ int mbedtls_ssl_write_early_data(mbedtls_ssl_context *ssl,
     }
 
     /*
-     * If we are at the beginning of the handshake, the early data status being
-     * equal to MBEDTLS_SSL_EARLY_DATA_STATUS_UNKNOWN or
-     * MBEDTLS_SSL_EARLY_DATA_STATUS_SENT advance the handshake just
+     * If we are at the beginning of the handshake, the early data state being
+     * equal to MBEDTLS_SSL_EARLY_DATA_STATE_IDLE or
+     * MBEDTLS_SSL_EARLY_DATA_STATE_IND_SENT advance the handshake just
      * enough to be able to send early data if possible. That way, we can
      * guarantee that when starting the handshake with this function we will
-     * send at least one record of early data. Note that when the status is
-     * MBEDTLS_SSL_EARLY_DATA_STATUS_SENT and not yet
-     * MBEDTLS_SSL_EARLY_DATA_STATUS_CAN_WRITE, we cannot send early data yet
+     * send at least one record of early data. Note that when the state is
+     * MBEDTLS_SSL_EARLY_DATA_STATE_IND_SENT and not yet
+     * MBEDTLS_SSL_EARLY_DATA_STATE_CAN_WRITE, we cannot send early data
      * as the early data outbound transform has not been set as we may have to
      * first send a dummy CCS in clear.
      */
-    if ((ssl->early_data_status == MBEDTLS_SSL_EARLY_DATA_STATUS_UNKNOWN) ||
-        (ssl->early_data_status == MBEDTLS_SSL_EARLY_DATA_STATUS_SENT)) {
-        while ((ssl->early_data_status == MBEDTLS_SSL_EARLY_DATA_STATUS_UNKNOWN) ||
-               (ssl->early_data_status == MBEDTLS_SSL_EARLY_DATA_STATUS_SENT)) {
+    if ((ssl->early_data_state == MBEDTLS_SSL_EARLY_DATA_STATE_IDLE) ||
+        (ssl->early_data_state == MBEDTLS_SSL_EARLY_DATA_STATE_IND_SENT)) {
+        while ((ssl->early_data_state == MBEDTLS_SSL_EARLY_DATA_STATE_IDLE) ||
+               (ssl->early_data_state == MBEDTLS_SSL_EARLY_DATA_STATE_IND_SENT)) {
             ret = mbedtls_ssl_handshake_step(ssl);
             if (ret != 0) {
                 MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_handshake_step", ret);
@@ -6114,15 +6127,24 @@ int mbedtls_ssl_write_early_data(mbedtls_ssl_context *ssl,
                 return ret;
             }
         }
+        remaining = ssl->session_negotiate->max_early_data_size;
     } else {
         /*
-         * If we are past the point where we can send early data, return
-         * immediatly. Otherwise, progress the handshake as much as possible to
-         * not delay it too much. If we reach a point where we can still send
-         * early data, then we will send some.
+         * If we are past the point where we can send early data or we have
+         * already reached the maximum early data size, return immediatly.
+         * Otherwise, progress the handshake as much as possible to not delay
+         * it too much. If we reach a point where we can still send early data,
+         * then we will send some.
          */
-        if ((ssl->early_data_status != MBEDTLS_SSL_EARLY_DATA_STATUS_CAN_WRITE) &&
-            (ssl->early_data_status != MBEDTLS_SSL_EARLY_DATA_STATUS_ACCEPTED)) {
+        if ((ssl->early_data_state != MBEDTLS_SSL_EARLY_DATA_STATE_CAN_WRITE) &&
+            (ssl->early_data_state != MBEDTLS_SSL_EARLY_DATA_STATE_ACCEPTED)) {
+            return MBEDTLS_ERR_SSL_CANNOT_WRITE_EARLY_DATA;
+        }
+
+        remaining = ssl->session_negotiate->max_early_data_size -
+                    ssl->total_early_data_size;
+
+        if (remaining == 0) {
             return MBEDTLS_ERR_SSL_CANNOT_WRITE_EARLY_DATA;
         }
 
@@ -6133,16 +6155,24 @@ int mbedtls_ssl_write_early_data(mbedtls_ssl_context *ssl,
         }
     }
 
-    if ((ssl->early_data_status != MBEDTLS_SSL_EARLY_DATA_STATUS_CAN_WRITE) &&
-        (ssl->early_data_status != MBEDTLS_SSL_EARLY_DATA_STATUS_ACCEPTED)) {
+    if (((ssl->early_data_state != MBEDTLS_SSL_EARLY_DATA_STATE_CAN_WRITE) &&
+         (ssl->early_data_state != MBEDTLS_SSL_EARLY_DATA_STATE_ACCEPTED))
+        || (remaining == 0)) {
         return MBEDTLS_ERR_SSL_CANNOT_WRITE_EARLY_DATA;
     }
 
-    written_data_len = ssl_write_real(ssl, buf, len);
+    if (len > remaining) {
+        len = remaining;
+    }
 
-    MBEDTLS_SSL_DEBUG_MSG(2, ("<= write early_data, len=%d", written_data_len));
+    ret = ssl_write_real(ssl, buf, len);
+    if (ret >= 0) {
+        ssl->total_early_data_size += ret;
+    }
 
-    return written_data_len;
+    MBEDTLS_SSL_DEBUG_MSG(2, ("<= write early_data, ret=%d", ret));
+
+    return ret;
 }
 #endif /* MBEDTLS_SSL_EARLY_DATA && MBEDTLS_SSL_CLI_C */
 

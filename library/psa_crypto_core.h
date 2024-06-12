@@ -59,7 +59,7 @@ typedef enum {
  * and metadata for one key.
  */
 typedef struct {
-    psa_core_key_attributes_t attr;
+    psa_key_attributes_t attr;
 
     /*
      * The current state of the key slot, as described in
@@ -159,11 +159,6 @@ typedef struct {
     } while (0);
 #endif
 
-/* A mask of key attribute flags used only internally.
- * Currently there aren't any. */
-#define PSA_KA_MASK_INTERNAL_ONLY (     \
-        0)
-
 /** Test whether a key slot has any registered readers.
  * If multi-threading is enabled, the caller must hold the
  * global key slot mutex.
@@ -175,56 +170,6 @@ typedef struct {
 static inline int psa_key_slot_has_readers(const psa_key_slot_t *slot)
 {
     return slot->registered_readers > 0;
-}
-
-/** Retrieve flags from psa_key_slot_t::attr::core::flags.
- *
- * \param[in] slot      The key slot to query.
- * \param mask          The mask of bits to extract.
- *
- * \return The key attribute flags in the given slot,
- *         bitwise-anded with \p mask.
- */
-static inline uint16_t psa_key_slot_get_flags(const psa_key_slot_t *slot,
-                                              uint16_t mask)
-{
-    return slot->attr.flags & mask;
-}
-
-/** Set flags in psa_key_slot_t::attr::core::flags.
- *
- * \param[in,out] slot  The key slot to modify.
- * \param mask          The mask of bits to modify.
- * \param value         The new value of the selected bits.
- */
-static inline void psa_key_slot_set_flags(psa_key_slot_t *slot,
-                                          uint16_t mask,
-                                          uint16_t value)
-{
-    slot->attr.flags = ((~mask & slot->attr.flags) |
-                        (mask & value));
-}
-
-/** Turn on flags in psa_key_slot_t::attr::core::flags.
- *
- * \param[in,out] slot  The key slot to modify.
- * \param mask          The mask of bits to set.
- */
-static inline void psa_key_slot_set_bits_in_flags(psa_key_slot_t *slot,
-                                                  uint16_t mask)
-{
-    slot->attr.flags |= mask;
-}
-
-/** Turn off flags in psa_key_slot_t::attr::core::flags.
- *
- * \param[in,out] slot  The key slot to modify.
- * \param mask          The mask of bits to clear.
- */
-static inline void psa_key_slot_clear_bits(psa_key_slot_t *slot,
-                                           uint16_t mask)
-{
-    slot->attr.flags &= ~mask;
 }
 
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
@@ -938,5 +883,75 @@ psa_status_t mbedtls_psa_verify_hash_complete(
  */
 psa_status_t mbedtls_psa_verify_hash_abort(
     mbedtls_psa_verify_hash_interruptible_operation_t *operation);
+
+typedef struct psa_crypto_local_input_s {
+    uint8_t *buffer;
+    size_t length;
+} psa_crypto_local_input_t;
+
+#define PSA_CRYPTO_LOCAL_INPUT_INIT ((psa_crypto_local_input_t) { NULL, 0 })
+
+/** Allocate a local copy of an input buffer and copy the contents into it.
+ *
+ * \param[in] input             Pointer to input buffer.
+ * \param[in] input_len         Length of the input buffer.
+ * \param[out] local_input      Pointer to a psa_crypto_local_input_t struct
+ *                              containing a local input copy.
+ * \return                      #PSA_SUCCESS, if the buffer was successfully
+ *                              copied.
+ * \return                      #PSA_ERROR_INSUFFICIENT_MEMORY, if a copy of
+ *                              the buffer cannot be allocated.
+ */
+psa_status_t psa_crypto_local_input_alloc(const uint8_t *input, size_t input_len,
+                                          psa_crypto_local_input_t *local_input);
+
+/** Free a local copy of an input buffer.
+ *
+ * \param[in] local_input       Pointer to a psa_crypto_local_input_t struct
+ *                              populated by a previous call to
+ *                              psa_crypto_local_input_alloc().
+ */
+void psa_crypto_local_input_free(psa_crypto_local_input_t *local_input);
+
+typedef struct psa_crypto_local_output_s {
+    uint8_t *original;
+    uint8_t *buffer;
+    size_t length;
+} psa_crypto_local_output_t;
+
+#define PSA_CRYPTO_LOCAL_OUTPUT_INIT ((psa_crypto_local_output_t) { NULL, NULL, 0 })
+
+/** Allocate a local copy of an output buffer.
+ *
+ * \note                        This does not copy any data from the original
+ *                              output buffer but only allocates a buffer
+ *                              whose contents will be copied back to the
+ *                              original in a future call to
+ *                              psa_crypto_local_output_free().
+ *
+ * \param[in] output            Pointer to output buffer.
+ * \param[in] output_len        Length of the output buffer.
+ * \param[out] local_output     Pointer to a psa_crypto_local_output_t struct to
+ *                              populate with the local output copy.
+ * \return                      #PSA_SUCCESS, if the buffer was successfully
+ *                              copied.
+ * \return                      #PSA_ERROR_INSUFFICIENT_MEMORY, if a copy of
+ *                              the buffer cannot be allocated.
+ */
+psa_status_t psa_crypto_local_output_alloc(uint8_t *output, size_t output_len,
+                                           psa_crypto_local_output_t *local_output);
+
+/** Copy from a local copy of an output buffer back to the original, then
+ *  free the local copy.
+ *
+ * \param[in] local_output      Pointer to a psa_crypto_local_output_t struct
+ *                              populated by a previous call to
+ *                              psa_crypto_local_output_alloc().
+ * \return                      #PSA_SUCCESS, if the local output was
+ *                              successfully copied back to the original.
+ * \return                      #PSA_ERROR_CORRUPTION_DETECTED, if the output
+ *                              could not be copied back to the original.
+ */
+psa_status_t psa_crypto_local_output_free(psa_crypto_local_output_t *local_output);
 
 #endif /* PSA_CRYPTO_CORE_H */

@@ -1,19 +1,7 @@
 #!/usr/bin/env python3
 #
 # Copyright The Mbed TLS Contributors
-# SPDX-License-Identifier: Apache-2.0
-#
-# Licensed under the Apache License, Version 2.0 (the "License"); you may
-# not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
-# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+# SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
 
 """Audit validity date of X509 crt/crl/csr.
 
@@ -41,8 +29,8 @@ from cryptography import x509
 from generate_test_code import FileWrapper
 
 import scripts_path # pylint: disable=unused-import
-from mbedtls_dev import build_tree
-from mbedtls_dev import logging_util
+from mbedtls_framework import build_tree
+from mbedtls_framework import logging_util
 
 def check_cryptography_version():
     match = re.match(r'^[0-9]+', cryptography.__version__)
@@ -276,7 +264,7 @@ class Auditor:
 
     @staticmethod
     def find_test_dir():
-        """Get the relative path for the MbedTLS test directory."""
+        """Get the relative path for the Mbed TLS test directory."""
         return os.path.relpath(build_tree.guess_mbedtls_root() + '/tests')
 
 

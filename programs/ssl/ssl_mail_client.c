@@ -2,19 +2,7 @@
  *  SSL client for SMTP servers
  *
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
 /* Enable definition of gethostname() even when compiling with -std=c99. Must
@@ -739,7 +727,11 @@ usage:
     mbedtls_printf("  > Write MAIL FROM to server:");
     fflush(stdout);
 
-    len = sprintf((char *) buf, "MAIL FROM:<%s>\r\n", opt.mail_from);
+    len = mbedtls_snprintf((char *) buf, sizeof(buf), "MAIL FROM:<%s>\r\n", opt.mail_from);
+    if (len < 0 || (size_t) len >= sizeof(buf)) {
+        mbedtls_printf(" failed\n  ! mbedtls_snprintf encountered error or truncated output\n\n");
+        goto exit;
+    }
     ret = write_ssl_and_get_response(&ssl, buf, len);
     if (ret < 200 || ret > 299) {
         mbedtls_printf(" failed\n  ! server responded with %d\n\n", ret);
@@ -751,7 +743,11 @@ usage:
     mbedtls_printf("  > Write RCPT TO to server:");
     fflush(stdout);
 
-    len = sprintf((char *) buf, "RCPT TO:<%s>\r\n", opt.mail_to);
+    len = mbedtls_snprintf((char *) buf, sizeof(buf), "RCPT TO:<%s>\r\n", opt.mail_to);
+    if (len < 0 || (size_t) len >= sizeof(buf)) {
+        mbedtls_printf(" failed\n  ! mbedtls_snprintf encountered error or truncated output\n\n");
+        goto exit;
+    }
     ret = write_ssl_and_get_response(&ssl, buf, len);
     if (ret < 200 || ret > 299) {
         mbedtls_printf(" failed\n  ! server responded with %d\n\n", ret);
@@ -775,11 +771,16 @@ usage:
     mbedtls_printf("  > Write content to server:");
     fflush(stdout);
 
-    len = sprintf((char *) buf, "From: %s\r\nSubject: Mbed TLS Test mail\r\n\r\n"
-                                "This is a simple test mail from the "
-                                "Mbed TLS mail client example.\r\n"
-                                "\r\n"
-                                "Enjoy!", opt.mail_from);
+    len = mbedtls_snprintf((char *) buf, sizeof(buf),
+                           "From: %s\r\nSubject: Mbed TLS Test mail\r\n\r\n"
+                           "This is a simple test mail from the "
+                           "Mbed TLS mail client example.\r\n"
+                           "\r\n"
+                           "Enjoy!", opt.mail_from);
+    if (len < 0 || (size_t) len >= sizeof(buf)) {
+        mbedtls_printf(" failed\n  ! mbedtls_snprintf encountered error or truncated output\n\n");
+        goto exit;
+    }
     ret = write_ssl_data(&ssl, buf, len);
 
     len = sprintf((char *) buf, "\r\n.\r\n");

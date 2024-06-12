@@ -5,19 +5,7 @@
 
 /*
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
 #ifndef SSL_HELPERS_H
@@ -50,21 +38,21 @@
 #endif
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
-#if defined(MBEDTLS_AES_C)
-#if defined(MBEDTLS_GCM_C)
+#if defined(MBEDTLS_SSL_HAVE_AES)
+#if defined(MBEDTLS_SSL_HAVE_GCM)
 #if defined(MBEDTLS_MD_CAN_SHA384)
 #define MBEDTLS_TEST_HAS_TLS1_3_AES_256_GCM_SHA384
 #endif
 #if defined(MBEDTLS_MD_CAN_SHA256)
 #define MBEDTLS_TEST_HAS_TLS1_3_AES_128_GCM_SHA256
 #endif
-#endif /* MBEDTLS_GCM_C */
-#if defined(MBEDTLS_CCM_C) && defined(MBEDTLS_MD_CAN_SHA256)
+#endif /* MBEDTLS_SSL_HAVE_GCM */
+#if defined(MBEDTLS_SSL_HAVE_CCM) && defined(MBEDTLS_MD_CAN_SHA256)
 #define MBEDTLS_TEST_HAS_TLS1_3_AES_128_CCM_SHA256
 #define MBEDTLS_TEST_HAS_TLS1_3_AES_128_CCM_8_SHA256
 #endif
-#endif /* MBEDTLS_AES_C */
-#if defined(MBEDTLS_CHACHAPOLY_C) && defined(MBEDTLS_MD_CAN_SHA256)
+#endif /* MBEDTLS_SSL_HAVE_AES */
+#if defined(MBEDTLS_SSL_HAVE_CHACHAPOLY) && defined(MBEDTLS_MD_CAN_SHA256)
 #define MBEDTLS_TEST_HAS_TLS1_3_CHACHA20_POLY1305_SHA256
 #endif
 
@@ -90,6 +78,10 @@ enum {
 #undef MBEDTLS_SSL_TLS1_3_LABEL
 };
 
+#if defined(MBEDTLS_SSL_ALPN)
+#define MBEDTLS_TEST_MAX_ALPN_LIST_SIZE 10
+#endif
+
 typedef struct mbedtls_test_ssl_log_pattern {
     const char *pattern;
     size_t counter;
@@ -97,6 +89,7 @@ typedef struct mbedtls_test_ssl_log_pattern {
 
 typedef struct mbedtls_test_handshake_test_options {
     const char *cipher;
+    uint16_t *group_list;
     mbedtls_ssl_protocol_version client_min_version;
     mbedtls_ssl_protocol_version client_max_version;
     mbedtls_ssl_protocol_version server_min_version;
@@ -124,8 +117,13 @@ typedef struct mbedtls_test_handshake_test_options {
     void (*srv_log_fun)(void *, int, const char *, int, const char *);
     void (*cli_log_fun)(void *, int, const char *, int, const char *);
     int resize_buffers;
+    int early_data;
+    int max_early_data_size;
 #if defined(MBEDTLS_SSL_CACHE_C)
     mbedtls_ssl_cache_context *cache;
+#endif
+#if defined(MBEDTLS_SSL_ALPN)
+    const char *alpn_list[MBEDTLS_TEST_MAX_ALPN_LIST_SIZE];
 #endif
 } mbedtls_test_handshake_test_options;
 
@@ -204,6 +202,13 @@ typedef struct mbedtls_test_ssl_endpoint {
 } mbedtls_test_ssl_endpoint;
 
 #endif /* MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED */
+
+/*
+ * Random number generator aimed for TLS unitary tests. Its main purpose is to
+ * simplify the set-up of a random number generator for TLS
+ * unitary tests: no need to set up a good entropy source for example.
+ */
+int mbedtls_test_random(void *p_rng, unsigned char *output, size_t output_len);
 
 /*
  * This function can be passed to mbedtls to receive output logs from it. In
@@ -452,8 +457,7 @@ int mbedtls_test_ssl_endpoint_init(
     mbedtls_test_handshake_test_options *options,
     mbedtls_test_message_socket_context *dtls_context,
     mbedtls_test_ssl_message_queue *input_queue,
-    mbedtls_test_ssl_message_queue *output_queue,
-    uint16_t *group_list);
+    mbedtls_test_ssl_message_queue *output_queue);
 
 /*
  * Deinitializes endpoint represented by \p ep.
@@ -497,7 +501,7 @@ int mbedtls_test_move_handshake_to_state(mbedtls_ssl_context *ssl,
 #endif
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2) && \
-    defined(MBEDTLS_CIPHER_MODE_CBC) && defined(MBEDTLS_AES_C)
+    defined(MBEDTLS_SSL_HAVE_CBC) && defined(MBEDTLS_SSL_HAVE_AES)
 int mbedtls_test_psa_cipher_encrypt_helper(mbedtls_ssl_transform *transform,
                                            const unsigned char *iv,
                                            size_t iv_len,
@@ -505,8 +509,8 @@ int mbedtls_test_psa_cipher_encrypt_helper(mbedtls_ssl_transform *transform,
                                            size_t ilen,
                                            unsigned char *output,
                                            size_t *olen);
-#endif /* MBEDTLS_SSL_PROTO_TLS1_2 && MBEDTLS_CIPHER_MODE_CBC &&
-          MBEDTLS_AES_C */
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 && MBEDTLS_SSL_HAVE_CBC &&
+          MBEDTLS_SSL_HAVE_AES */
 
 int mbedtls_test_ssl_build_transforms(mbedtls_ssl_transform *t_in,
                                       mbedtls_ssl_transform *t_out,
@@ -516,12 +520,34 @@ int mbedtls_test_ssl_build_transforms(mbedtls_ssl_transform *t_in,
                                       size_t cid0_len,
                                       size_t cid1_len);
 
+#if defined(MBEDTLS_SSL_SOME_SUITES_USE_MAC)
+/**
+ * \param[in,out] record        The record to prepare.
+ *                              It must contain the data to MAC at offset
+ *                              `record->data_offset`, of length
+ *                              `record->data_length`.
+ *                              On success, write the MAC immediately
+ *                              after the data and increment
+ *                              `record->data_length` accordingly.
+ * \param[in,out] transform_out The out transform, typically prepared by
+ *                              mbedtls_test_ssl_build_transforms().
+ *                              Its HMAC context may be used. Other than that
+ *                              it is treated as an input parameter.
+ *
+ * \return                      0 on success, an `MBEDTLS_ERR_xxx` error code
+ *                              or -1 on error.
+ */
+int mbedtls_test_ssl_prepare_record_mac(mbedtls_record *record,
+                                        mbedtls_ssl_transform *transform_out);
+#endif /* MBEDTLS_SSL_SOME_SUITES_USE_MAC */
+
 /*
  * Populate a session structure for serialization tests.
  * Choose dummy values, mostly non-0 to distinguish from the init default.
  */
 int mbedtls_test_ssl_tls12_populate_session(mbedtls_ssl_session *session,
                                             int ticket_len,
+                                            int endpoint_type,
                                             const char *crt_file);
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
@@ -579,6 +605,25 @@ int mbedtls_test_tweak_tls13_certificate_msg_vector_len(
     unsigned char *buf, unsigned char **end, int tweak,
     int *expected_result, mbedtls_ssl_chk_buf_ptr_args *args);
 #endif /* MBEDTLS_TEST_HOOKS */
+
+#if defined(MBEDTLS_SSL_SESSION_TICKETS)
+int mbedtls_test_ticket_write(
+    void *p_ticket, const mbedtls_ssl_session *session,
+    unsigned char *start, const unsigned char *end,
+    size_t *tlen, uint32_t *ticket_lifetime);
+
+int mbedtls_test_ticket_parse(void *p_ticket, mbedtls_ssl_session *session,
+                              unsigned char *buf, size_t len);
+#endif /* MBEDTLS_SSL_SESSION_TICKETS */
+
+#if defined(MBEDTLS_SSL_CLI_C) && defined(MBEDTLS_SSL_SRV_C) && \
+    defined(MBEDTLS_SSL_PROTO_TLS1_3) && defined(MBEDTLS_SSL_SESSION_TICKETS) && \
+    defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
+int mbedtls_test_get_tls13_ticket(
+    mbedtls_test_handshake_test_options *client_options,
+    mbedtls_test_handshake_test_options *server_options,
+    mbedtls_ssl_session *session);
+#endif
 
 #define ECJPAKE_TEST_PWD        "bla"
 

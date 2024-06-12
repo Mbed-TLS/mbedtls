@@ -62,19 +62,7 @@
 
 /*
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
 #ifndef MBEDTLS_BIGNUM_CORE_H
@@ -674,11 +662,11 @@ mbedtls_mpi_uint mbedtls_mpi_core_sub_int(mbedtls_mpi_uint *X,
  * \param[in] A   The MPI to test.
  * \param limbs   Number of limbs in \p A.
  *
- * \return        0 if `A == 0`
- *                non-0 (may be any value) if `A != 0`.
+ * \return        MBEDTLS_CT_FALSE if `A == 0`
+ *                MBEDTLS_CT_TRUE  if `A != 0`.
  */
-mbedtls_mpi_uint mbedtls_mpi_core_check_zero_ct(const mbedtls_mpi_uint *A,
-                                                size_t limbs);
+mbedtls_ct_condition_t mbedtls_mpi_core_check_zero_ct(const mbedtls_mpi_uint *A,
+                                                      size_t limbs);
 
 /**
  * \brief          Returns the number of limbs of working memory required for

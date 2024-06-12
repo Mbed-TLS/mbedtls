@@ -1,19 +1,7 @@
 #!/usr/bin/env python3
 
 # Copyright The Mbed TLS Contributors
-# SPDX-License-Identifier: Apache-2.0
-#
-# Licensed under the Apache License, Version 2.0 (the "License"); you may
-# not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
-# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+# SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
 
 """
 This script checks the current state of the source code for minor issues,
@@ -22,10 +10,11 @@ trailing whitespace, and presence of UTF-8 BOM.
 Note: requires python 3, must be run from Mbed TLS root.
 """
 
-import os
 import argparse
-import logging
 import codecs
+import inspect
+import logging
+import os
 import re
 import subprocess
 import sys
@@ -35,7 +24,7 @@ except ImportError:
     pass
 
 import scripts_path # pylint: disable=unused-import
-from mbedtls_dev import build_tree
+from mbedtls_framework import build_tree
 
 
 class FileIssueTracker:
@@ -116,6 +105,7 @@ class FileIssueTracker:
 
 BINARY_FILE_PATH_RE_LIST = [
     r'docs/.*\.pdf\Z',
+    r'docs/.*\.png\Z',
     r'programs/fuzz/corpuses/[^.]+\Z',
     r'tests/data_files/[^.]+\Z',
     r'tests/data_files/.*\.(crt|csr|db|der|key|pubkey)\Z',
@@ -162,24 +152,6 @@ def is_windows_file(filepath):
     return ext in ('.bat', '.dsp', '.dsw', '.sln', '.vcxproj')
 
 
-class PermissionIssueTracker(FileIssueTracker):
-    """Track files with bad permissions.
-
-    Files that are not executable scripts must not be executable."""
-
-    heading = "Incorrect permissions:"
-
-    # .py files can be either full scripts or modules, so they may or may
-    # not be executable.
-    suffix_exemptions = frozenset({".py"})
-
-    def check_file_for_issue(self, filepath):
-        is_executable = os.access(filepath, os.X_OK)
-        should_be_executable = filepath.endswith((".sh", ".pl"))
-        if is_executable != should_be_executable:
-            self.files_with_issues[filepath] = None
-
-
 class ShebangIssueTracker(FileIssueTracker):
     """Track files with a bad, missing or extraneous shebang line.
 
@@ -200,6 +172,8 @@ class ShebangIssueTracker(FileIssueTracker):
         b'python3': 'py',
         b'sh': 'sh',
     }
+
+    path_exemptions = re.compile(r'tests/scripts/quiet/.*')
 
     def is_valid_shebang(self, first_line, filepath):
         m = re.match(self._shebang_re, first_line)
@@ -346,8 +320,10 @@ class TabIssueTracker(LineIssueTracker):
 
     heading = "Tabs present:"
     suffix_exemptions = frozenset([
+        ".make",
         ".pem", # some openssl dumps have tabs
         ".sln",
+        "/.gitmodules",
         "/Makefile",
         "/Makefile.inc",
         "/generate_visualc_files.pl",
@@ -375,6 +351,102 @@ class MergeArtifactIssueTracker(LineIssueTracker):
         return False
 
 
+def this_location():
+    frame = inspect.currentframe()
+    assert frame is not None
+    info = inspect.getframeinfo(frame)
+    return os.path.basename(info.filename), info.lineno
+THIS_FILE_BASE_NAME, LINE_NUMBER_BEFORE_LICENSE_ISSUE_TRACKER = this_location()
+
+class LicenseIssueTracker(LineIssueTracker):
+    """Check copyright statements and license indications.
+
+    This class only checks that statements are correct if present. It does
+    not enforce the presence of statements in each file.
+    """
+
+    heading = "License issue:"
+
+    LICENSE_EXEMPTION_RE_LIST = [
+        # Third-party code, other than whitelisted third-party modules,
+        # may be under a different license.
+        r'3rdparty/(?!(p256-m)/.*)',
+        # Documentation explaining the license may have accidental
+        # false positives.
+        r'(ChangeLog|LICENSE|framework\/LICENSE|[-0-9A-Z_a-z]+\.md)\Z',
+        # Files imported from TF-M, and not used except in test builds,
+        # may be under a different license.
+        r'configs/ext/crypto_config_profile_medium\.h\Z',
+        r'configs/ext/tfm_mbedcrypto_config_profile_medium\.h\Z',
+        r'configs/ext/README\.md\Z',
+        # Third-party file.
+        r'dco\.txt\Z',
+        r'framework\/dco\.txt\Z',
+    ]
+    path_exemptions = re.compile('|'.join(BINARY_FILE_PATH_RE_LIST +
+                                          LICENSE_EXEMPTION_RE_LIST))
+
+    COPYRIGHT_HOLDER = rb'The Mbed TLS Contributors'
+    # Catch "Copyright foo", "Copyright (C) foo", "Copyright © foo", etc.
+    COPYRIGHT_RE = re.compile(rb'.*\bcopyright\s+((?:\w|\s|[()]|[^ -~])*\w)', re.I)
+
+    SPDX_HEADER_KEY = b'SPDX-License-Identifier'
+    LICENSE_IDENTIFIER = b'Apache-2.0 OR GPL-2.0-or-later'
+    SPDX_RE = re.compile(br'.*?(' +
+                         re.escape(SPDX_HEADER_KEY) +
+                         br')(:\s*(.*?)\W*\Z|.*)', re.I)
+
+    LICENSE_MENTION_RE = re.compile(rb'.*(?:' + rb'|'.join([
+        rb'Apache License',
+        rb'General Public License',
+    ]) + rb')', re.I)
+
+    def __init__(self):
+        super().__init__()
+        # Record what problem was caused. We can't easily report it due to
+        # the structure of the script. To be fixed after
+        # https://github.com/Mbed-TLS/mbedtls/pull/2506
+        self.problem = None
+
+    def issue_with_line(self, line, filepath, line_number):
+        #pylint: disable=too-many-return-statements
+
+        # Use endswith() rather than the more correct os.path.basename()
+        # because experimentally, it makes a significant difference to
+        # the running time.
+        if filepath.endswith(THIS_FILE_BASE_NAME) and \
+           line_number > LINE_NUMBER_BEFORE_LICENSE_ISSUE_TRACKER:
+            # Avoid false positives from the code in this class.
+            # Also skip the rest of this file, which is highly unlikely to
+            # contain any problematic statements since we put those near the
+            # top of files.
+            return False
+
+        m = self.COPYRIGHT_RE.match(line)
+        if m and m.group(1) != self.COPYRIGHT_HOLDER:
+            self.problem = 'Invalid copyright line'
+            return True
+
+        m = self.SPDX_RE.match(line)
+        if m:
+            if m.group(1) != self.SPDX_HEADER_KEY:
+                self.problem = 'Misspelled ' + self.SPDX_HEADER_KEY.decode()
+                return True
+            if not m.group(3):
+                self.problem = 'Improperly formatted SPDX license identifier'
+                return True
+            if m.group(3) != self.LICENSE_IDENTIFIER:
+                self.problem = 'Wrong SPDX license identifier'
+                return True
+
+        m = self.LICENSE_MENTION_RE.match(line)
+        if m:
+            self.problem = 'Suspicious license mention'
+            return True
+
+        return False
+
+
 class IntegrityChecker:
     """Sanity-check files under the current directory."""
 
@@ -386,7 +458,6 @@ class IntegrityChecker:
         self.logger = None
         self.setup_logger(log_file)
         self.issues_to_check = [
-            PermissionIssueTracker(),
             ShebangIssueTracker(),
             EndOfFileNewlineIssueTracker(),
             Utf8BomIssueTracker(),
@@ -396,9 +467,11 @@ class IntegrityChecker:
             TrailingWhitespaceIssueTracker(),
             TabIssueTracker(),
             MergeArtifactIssueTracker(),
+            LicenseIssueTracker(),
         ]
 
     def setup_logger(self, log_file, level=logging.INFO):
+        """Log to log_file if provided, or to stderr if None."""
         self.logger = logging.getLogger()
         self.logger.setLevel(level)
         if log_file:
@@ -410,9 +483,27 @@ class IntegrityChecker:
 
     @staticmethod
     def collect_files():
+        """Return the list of files to check.
+
+        These are the regular files commited into Git.
+        """
+        bytes_output = subprocess.check_output(['git', '-C', 'framework',
+                                                'ls-files', '-z'])
+        bytes_framework_filepaths = bytes_output.split(b'\0')[:-1]
+        bytes_framework_filepaths = ["framework/".encode() + filepath
+                                     for filepath in bytes_framework_filepaths]
+
         bytes_output = subprocess.check_output(['git', 'ls-files', '-z'])
-        bytes_filepaths = bytes_output.split(b'\0')[:-1]
+        bytes_filepaths = bytes_output.split(b'\0')[:-1] + \
+                          bytes_framework_filepaths
         ascii_filepaths = map(lambda fp: fp.decode('ascii'), bytes_filepaths)
+
+        # Filter out directories. Normally Git doesn't list directories
+        # (it only knows about the files inside them), but there is
+        # at least one case where 'git ls-files' includes a directory:
+        # submodules. Just skip submodules (and any other directories).
+        ascii_filepaths = [fp for fp in ascii_filepaths
+                           if os.path.isfile(fp)]
         # Prepend './' to files in the top-level directory so that
         # something like `'/Makefile' in fp` matches in the top-level
         # directory as well as in subdirectories.
@@ -420,12 +511,17 @@ class IntegrityChecker:
                 for fp in ascii_filepaths]
 
     def check_files(self):
+        """Check all files for all issues."""
         for issue_to_check in self.issues_to_check:
             for filepath in self.collect_files():
                 if issue_to_check.should_check_file(filepath):
                     issue_to_check.check_file_for_issue(filepath)
 
     def output_issues(self):
+        """Log the issues found and their locations.
+
+        Return 1 if there were issues, 0 otherwise.
+        """
         integrity_return_code = 0
         for issue_to_check in self.issues_to_check:
             if issue_to_check.files_with_issues:

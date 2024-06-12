@@ -1,4 +1,0 @@
-Bugfix
-   * Fix a build error in some configurations with MBEDTLS_PSA_CRYPTO_CONFIG
-     enabled, where some low-level modules required by requested PSA crypto
-     features were not getting automatically enabled. Fixes #7420.

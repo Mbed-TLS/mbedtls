@@ -3,19 +3,7 @@
  */
 /*
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
 #include "common.h"
@@ -247,7 +235,7 @@ typedef struct {
 
 void psa_format_key_data_for_storage(const uint8_t *data,
                                      const size_t data_length,
-                                     const psa_core_key_attributes_t *attr,
+                                     const psa_key_attributes_t *attr,
                                      uint8_t *storage_data)
 {
     psa_persistent_key_storage_format *storage_format =
@@ -279,7 +267,7 @@ psa_status_t psa_parse_key_data_from_storage(const uint8_t *storage_data,
                                              size_t storage_data_length,
                                              uint8_t **key_data,
                                              size_t *key_data_length,
-                                             psa_core_key_attributes_t *attr)
+                                             psa_key_attributes_t *attr)
 {
     psa_status_t status;
     const psa_persistent_key_storage_format *storage_format =
@@ -326,7 +314,7 @@ psa_status_t psa_parse_key_data_from_storage(const uint8_t *storage_data,
     return PSA_SUCCESS;
 }
 
-psa_status_t psa_save_persistent_key(const psa_core_key_attributes_t *attr,
+psa_status_t psa_save_persistent_key(const psa_key_attributes_t *attr,
                                      const uint8_t *data,
                                      const size_t data_length)
 {
@@ -364,7 +352,7 @@ void psa_free_persistent_key_data(uint8_t *key_data, size_t key_data_length)
     mbedtls_zeroize_and_free(key_data, key_data_length);
 }
 
-psa_status_t psa_load_persistent_key(psa_core_key_attributes_t *attr,
+psa_status_t psa_load_persistent_key(psa_key_attributes_t *attr,
                                      uint8_t **data,
                                      size_t *data_length)
 {

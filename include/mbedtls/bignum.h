@@ -5,19 +5,7 @@
  */
 /*
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 #ifndef MBEDTLS_BIGNUM_H
 #define MBEDTLS_BIGNUM_H
@@ -63,15 +51,15 @@
 
 #if !defined(MBEDTLS_MPI_WINDOW_SIZE)
 /*
- * Maximum window size used for modular exponentiation. Default: 2
+ * Maximum window size used for modular exponentiation. Default: 3
  * Minimum value: 1. Maximum value: 6.
  *
  * Result is an array of ( 2 ** MBEDTLS_MPI_WINDOW_SIZE ) MPIs used
- * for the sliding window calculation. (So 64 by default)
+ * for the sliding window calculation. (So 8 by default)
  *
  * Reduction in size, reduces speed.
  */
-#define MBEDTLS_MPI_WINDOW_SIZE                           2        /**< Maximum window size used. */
+#define MBEDTLS_MPI_WINDOW_SIZE                           3        /**< Maximum window size used. */
 #endif /* !MBEDTLS_MPI_WINDOW_SIZE */
 
 #if !defined(MBEDTLS_MPI_MAX_SIZE)

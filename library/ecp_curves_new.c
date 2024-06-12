@@ -2,19 +2,7 @@
  *  Elliptic curves over GF(p): curve-specific data and functions
  *
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
 #include "common.h"
@@ -39,12 +27,6 @@
 #include <string.h>
 
 #if !defined(MBEDTLS_ECP_ALT)
-
-/* Parameter validation macros based on platform_util.h */
-#define ECP_VALIDATE_RET(cond)    \
-    MBEDTLS_INTERNAL_VALIDATE_RET(cond, MBEDTLS_ERR_ECP_BAD_INPUT_DATA)
-#define ECP_VALIDATE(cond)        \
-    MBEDTLS_INTERNAL_VALIDATE(cond)
 
 #define ECP_MPI_INIT(_p, _n) { .p = (mbedtls_mpi_uint *) (_p), .s = 1, .n = (_n) }
 
@@ -4776,7 +4758,6 @@ cleanup:
  */
 int mbedtls_ecp_group_load(mbedtls_ecp_group *grp, mbedtls_ecp_group_id id)
 {
-    ECP_VALIDATE_RET(grp != NULL);
     mbedtls_ecp_group_free(grp);
 
     mbedtls_ecp_group_init(grp);

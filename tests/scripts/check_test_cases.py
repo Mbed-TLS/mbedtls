@@ -7,19 +7,7 @@ independently of the checks.
 """
 
 # Copyright The Mbed TLS Contributors
-# SPDX-License-Identifier: Apache-2.0
-#
-# Licensed under the Apache License, Version 2.0 (the "License"); you may
-# not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
-# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+# SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
 
 import argparse
 import glob
@@ -27,6 +15,24 @@ import os
 import re
 import subprocess
 import sys
+
+class ScriptOutputError(ValueError):
+    """A kind of ValueError that indicates we found
+    the script doesn't list test cases in an expected
+    pattern.
+    """
+
+    @property
+    def script_name(self):
+        return super().args[0]
+
+    @property
+    def idx(self):
+        return super().args[1]
+
+    @property
+    def line(self):
+        return super().args[2]
 
 class Results:
     """Store file and line information about errors or warnings in test suites."""
@@ -97,33 +103,29 @@ state may override this method.
                                            data_file_name, line_number, line)
                 in_paragraph = True
 
-    def walk_ssl_opt_sh(self, file_name):
-        """Iterate over the test cases in ssl-opt.sh or a file with a similar format."""
+    def collect_from_script(self, script_name):
+        """Collect the test cases in a script by calling its listing test cases
+option"""
         descriptions = self.new_per_file_state() # pylint: disable=assignment-from-none
-        with open(file_name, 'rb') as file_contents:
-            for line_number, line in enumerate(file_contents, 1):
-                # Assume that all run_test calls have the same simple form
-                # with the test description entirely on the same line as the
-                # function name.
-                m = re.match(br'\s*run_test\s+"((?:[^\\"]|\\.)*)"', line)
-                if not m:
-                    continue
-                description = m.group(1)
-                self.process_test_case(descriptions,
-                                       file_name, line_number, description)
-
-    def walk_compat_sh(self, file_name):
-        """Iterate over the test cases compat.sh with a similar format."""
-        descriptions = self.new_per_file_state() # pylint: disable=assignment-from-none
-        compat_cmd = ['sh', file_name, '--list-test-case']
-        compat_output = subprocess.check_output(compat_cmd)
-        # Assume compat.sh is responsible for printing identical format of
-        # test case description between --list-test-case and its OUTCOME.CSV
-        description = compat_output.strip().split(b'\n')
+        listed = subprocess.check_output(['sh', script_name, '--list-test-cases'])
+        # Assume test file is responsible for printing identical format of
+        # test case description between --list-test-cases and its OUTCOME.CSV
+        #
         # idx indicates the number of test case since there is no line number
-        # in `compat.sh` for each test case.
-        for idx, descrip in enumerate(description):
-            self.process_test_case(descriptions, file_name, idx, descrip)
+        # in the script for each test case.
+        for idx, line in enumerate(listed.splitlines()):
+            # We are expecting the script to list the test cases in
+            # `<suite_name>;<description>` pattern.
+            script_outputs = line.split(b';', 1)
+            if len(script_outputs) == 2:
+                suite_name, description = script_outputs
+            else:
+                raise ScriptOutputError(script_name, idx, line.decode("utf-8"))
+
+            self.process_test_case(descriptions,
+                                   suite_name.decode('utf-8'),
+                                   idx,
+                                   description.rstrip())
 
     @staticmethod
     def collect_test_directories():
@@ -144,15 +146,10 @@ state may override this method.
             for data_file_name in glob.glob(os.path.join(directory, 'suites',
                                                          '*.data')):
                 self.walk_test_suite(data_file_name)
-            ssl_opt_sh = os.path.join(directory, 'ssl-opt.sh')
-            if os.path.exists(ssl_opt_sh):
-                self.walk_ssl_opt_sh(ssl_opt_sh)
-            for ssl_opt_file_name in glob.glob(os.path.join(directory, 'opt-testcases',
-                                                            '*.sh')):
-                self.walk_ssl_opt_sh(ssl_opt_file_name)
-            compat_sh = os.path.join(directory, 'compat.sh')
-            if os.path.exists(compat_sh):
-                self.walk_compat_sh(compat_sh)
+
+            for sh_file in ['ssl-opt.sh', 'compat.sh']:
+                sh_file = os.path.join(directory, sh_file)
+                self.collect_from_script(sh_file)
 
 class TestDescriptions(TestDescriptionExplorer):
     """Collect the available test cases."""
@@ -229,7 +226,12 @@ def main():
         return
     results = Results(options)
     checker = DescriptionChecker(results)
-    checker.walk_all()
+    try:
+        checker.walk_all()
+    except ScriptOutputError as e:
+        results.error(e.script_name, e.idx,
+                      '"{}" should be listed as "<suite_name>;<description>"',
+                      e.line)
     if (results.warnings or results.errors) and not options.quiet:
         sys.stderr.write('{}: {} errors, {} warnings\n'
                          .format(sys.argv[0], results.errors, results.warnings))

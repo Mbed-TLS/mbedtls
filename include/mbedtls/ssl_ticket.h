@@ -5,19 +5,7 @@
  */
 /*
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 #ifndef MBEDTLS_SSL_TICKET_H
 #define MBEDTLS_SSL_TICKET_H
@@ -62,6 +50,10 @@ typedef struct mbedtls_ssl_ticket_key {
 #if defined(MBEDTLS_HAVE_TIME)
     mbedtls_time_t MBEDTLS_PRIVATE(generation_time); /*!< key generation timestamp (seconds) */
 #endif
+    /*! Lifetime of the key in seconds. This is also the lifetime of the
+     *  tickets created under that key.
+     */
+    uint32_t MBEDTLS_PRIVATE(lifetime);
 #if !defined(MBEDTLS_USE_PSA_CRYPTO)
     mbedtls_cipher_context_t MBEDTLS_PRIVATE(ctx);   /*!< context for auth enc/decryption    */
 #else
@@ -116,9 +108,15 @@ void mbedtls_ssl_ticket_init(mbedtls_ssl_ticket_context *ctx);
  *                  least as strong as the strongest ciphersuite
  *                  supported. Usually that means a 256-bit key.
  *
- * \note            The lifetime of the keys is twice the lifetime of tickets.
- *                  It is recommended to pick a reasonable lifetime so as not
+ * \note            It is recommended to pick a reasonable lifetime so as not
  *                  to negate the benefits of forward secrecy.
+ *
+ * \note            The TLS 1.3 specification states that ticket lifetime must
+ *                  be smaller than seven days. If ticket lifetime has been
+ *                  set to a value greater than seven days in this module then
+ *                  if the TLS 1.3 is configured to send tickets after the
+ *                  handshake it will fail the connection when trying to send
+ *                  the first ticket.
  *
  * \return          0 if successful,
  *                  or a specific MBEDTLS_ERR_XXX error code
@@ -153,9 +151,15 @@ int mbedtls_ssl_ticket_setup(mbedtls_ssl_ticket_context *ctx,
  * \note            \c klength must be sufficient for use by cipher specified
  *                  to \c mbedtls_ssl_ticket_setup
  *
- * \note            The lifetime of the keys is twice the lifetime of tickets.
- *                  It is recommended to pick a reasonable lifetime so as not
+ * \note            It is recommended to pick a reasonable lifetime so as not
  *                  to negate the benefits of forward secrecy.
+ *
+ * \note            The TLS 1.3 specification states that ticket lifetime must
+ *                  be smaller than seven days. If ticket lifetime has been
+ *                  set to a value greater than seven days in this module then
+ *                  if the TLS 1.3 is configured to send tickets after the
+ *                  handshake it will fail the connection when trying to send
+ *                  the first ticket.
  *
  * \return          0 if successful,
  *                  or a specific MBEDTLS_ERR_XXX error code

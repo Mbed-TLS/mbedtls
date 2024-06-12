@@ -8,19 +8,7 @@
  */
 /*
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
 #ifndef MBEDTLS_BUILD_INFO_H
@@ -37,17 +25,17 @@
  * Major, Minor, Patchlevel
  */
 #define MBEDTLS_VERSION_MAJOR  3
-#define MBEDTLS_VERSION_MINOR  4
-#define MBEDTLS_VERSION_PATCH  1
+#define MBEDTLS_VERSION_MINOR  6
+#define MBEDTLS_VERSION_PATCH  0
 
 /**
  * The single version number has the following structure:
  *    MMNNPP00
  *    Major version | Minor version | Patch version
  */
-#define MBEDTLS_VERSION_NUMBER         0x03040100
-#define MBEDTLS_VERSION_STRING         "3.4.1"
-#define MBEDTLS_VERSION_STRING_FULL    "Mbed TLS 3.4.1"
+#define MBEDTLS_VERSION_NUMBER         0x03060000
+#define MBEDTLS_VERSION_STRING         "3.6.0"
+#define MBEDTLS_VERSION_STRING_FULL    "Mbed TLS 3.6.0"
 
 /* Macros for build-time platform detection */
 
@@ -74,6 +62,35 @@
 #define MBEDTLS_ARCH_IS_X86
 #endif
 
+#if !defined(MBEDTLS_PLATFORM_IS_WINDOWS_ON_ARM64) && \
+    (defined(_M_ARM64) || defined(_M_ARM64EC))
+#define MBEDTLS_PLATFORM_IS_WINDOWS_ON_ARM64
+#endif
+
+/* This is defined if the architecture is Armv8-A, or higher */
+#if !defined(MBEDTLS_ARCH_IS_ARMV8_A)
+#if defined(__ARM_ARCH) && defined(__ARM_ARCH_PROFILE)
+#if (__ARM_ARCH >= 8) && (__ARM_ARCH_PROFILE == 'A')
+/* GCC, clang, armclang and IAR */
+#define MBEDTLS_ARCH_IS_ARMV8_A
+#endif
+#elif defined(__ARM_ARCH_8A)
+/* Alternative defined by clang */
+#define MBEDTLS_ARCH_IS_ARMV8_A
+#elif defined(_M_ARM64) || defined(_M_ARM64EC)
+/* MSVC ARM64 is at least Armv8.0-A */
+#define MBEDTLS_ARCH_IS_ARMV8_A
+#endif
+#endif
+
+#if defined(__GNUC__) && !defined(__ARMCC_VERSION) && !defined(__clang__) \
+    && !defined(__llvm__) && !defined(__INTEL_COMPILER)
+/* Defined if the compiler really is gcc and not clang, etc */
+#define MBEDTLS_COMPILER_IS_GCC
+#define MBEDTLS_GCC_VERSION \
+    (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)
+#endif
+
 #if defined(_MSC_VER) && !defined(_CRT_SECURE_NO_DEPRECATE)
 #define _CRT_SECURE_NO_DEPRECATE 1
 #endif
@@ -82,6 +99,13 @@
 #if (defined(__ARMCC_VERSION) || defined(_MSC_VER)) && \
     !defined(inline) && !defined(__cplusplus)
 #define inline __inline
+#endif
+
+#if defined(MBEDTLS_CONFIG_FILES_READ)
+#error "Something went wrong: MBEDTLS_CONFIG_FILES_READ defined before reading the config files!"
+#endif
+#if defined(MBEDTLS_CONFIG_IS_FINALIZED)
+#error "Something went wrong: MBEDTLS_CONFIG_IS_FINALIZED defined before reading the config files!"
 #endif
 
 /* X.509, TLS and non-PSA crypto configuration */
@@ -118,6 +142,12 @@
 #endif
 #endif /* defined(MBEDTLS_PSA_CRYPTO_CONFIG) */
 
+/* Indicate that all configuration files have been read.
+ * It is now time to adjust the configuration (follow through on dependencies,
+ * make PSA and legacy crypto consistent, etc.).
+ */
+#define MBEDTLS_CONFIG_FILES_READ
+
 /* Auto-enable MBEDTLS_CTR_DRBG_USE_128_BIT_KEY if
  * MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH and MBEDTLS_CTR_DRBG_C defined
  * to ensure a 128-bit key size in CTR_DRBG.
@@ -141,7 +171,8 @@
  *   (e.g. MBEDTLS_MD_LIGHT)
  */
 #if defined(MBEDTLS_PSA_CRYPTO_CONFIG) /* PSA_WANT_xxx influences MBEDTLS_xxx */ || \
-    defined(MBEDTLS_PSA_CRYPTO_C) /* MBEDTLS_xxx influences PSA_WANT_xxx */
+    defined(MBEDTLS_PSA_CRYPTO_C) /* MBEDTLS_xxx influences PSA_WANT_xxx */ || \
+    defined(MBEDTLS_PSA_CRYPTO_CLIENT) /* The same as the previous, but with separation only */
 #include "mbedtls/config_psa.h"
 #endif
 
@@ -151,8 +182,13 @@
 
 #include "mbedtls/config_adjust_ssl.h"
 
-/* Make sure all configuration symbols are set before including check_config.h,
- * even the ones that are calculated programmatically. */
+/* Indicate that all configuration symbols are set,
+ * even the ones that are calculated programmatically.
+ * It is now safe to query the configuration (to check it, to size buffers,
+ * etc.).
+ */
+#define MBEDTLS_CONFIG_IS_FINALIZED
+
 #include "mbedtls/check_config.h"
 
 #endif /* MBEDTLS_BUILD_INFO_H */

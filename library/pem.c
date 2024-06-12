@@ -2,19 +2,7 @@
  *  Privacy Enhanced Mail (PEM) decoding
  *
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
 #include "common.h"
@@ -252,6 +240,29 @@ exit:
 }
 #endif /* MBEDTLS_AES_C */
 
+#if defined(MBEDTLS_DES_C) || defined(MBEDTLS_AES_C)
+static int pem_check_pkcs_padding(unsigned char *input, size_t input_len, size_t *data_len)
+{
+    /* input_len > 0 is guaranteed by mbedtls_pem_read_buffer(). */
+    size_t pad_len = input[input_len - 1];
+    size_t i;
+
+    if (pad_len > input_len) {
+        return MBEDTLS_ERR_PEM_PASSWORD_MISMATCH;
+    }
+
+    *data_len = input_len - pad_len;
+
+    for (i = *data_len; i < input_len; i++) {
+        if (input[i] != pad_len) {
+            return MBEDTLS_ERR_PEM_PASSWORD_MISMATCH;
+        }
+    }
+
+    return 0;
+}
+#endif /* MBEDTLS_DES_C || MBEDTLS_AES_C */
+
 #endif /* PEM_RFC1421 */
 
 int mbedtls_pem_read_buffer(mbedtls_pem_context *ctx, const char *header, const char *footer,
@@ -310,7 +321,7 @@ int mbedtls_pem_read_buffer(mbedtls_pem_context *ctx, const char *header, const 
     if (*end == '\n') {
         end++;
     }
-    *use_len = end - data;
+    *use_len = (size_t) (end - data);
 
     enc = 0;
 
@@ -395,17 +406,21 @@ int mbedtls_pem_read_buffer(mbedtls_pem_context *ctx, const char *header, const 
         return MBEDTLS_ERR_PEM_INVALID_DATA;
     }
 
-    ret = mbedtls_base64_decode(NULL, 0, &len, s1, s2 - s1);
+    ret = mbedtls_base64_decode(NULL, 0, &len, s1, (size_t) (s2 - s1));
 
     if (ret == MBEDTLS_ERR_BASE64_INVALID_CHARACTER) {
         return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PEM_INVALID_DATA, ret);
+    }
+
+    if (len == 0) {
+        return MBEDTLS_ERR_PEM_BAD_INPUT_DATA;
     }
 
     if ((buf = mbedtls_calloc(1, len)) == NULL) {
         return MBEDTLS_ERR_PEM_ALLOC_FAILED;
     }
 
-    if ((ret = mbedtls_base64_decode(buf, len, &len, s1, s2 - s1)) != 0) {
+    if ((ret = mbedtls_base64_decode(buf, len, &len, s1, (size_t) (s2 - s1))) != 0) {
         mbedtls_zeroize_and_free(buf, len);
         return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PEM_INVALID_DATA, ret);
     }
@@ -438,20 +453,20 @@ int mbedtls_pem_read_buffer(mbedtls_pem_context *ctx, const char *header, const 
 #endif /* MBEDTLS_AES_C */
 
         if (ret != 0) {
-            mbedtls_free(buf);
+            mbedtls_zeroize_and_free(buf, len);
             return ret;
         }
 
-        /*
-         * The result will be ASN.1 starting with a SEQUENCE tag, with 1 to 3
-         * length bytes (allow 4 to be sure) in all known use cases.
-         *
-         * Use that as a heuristic to try to detect password mismatches.
-         */
-        if (len <= 2 || buf[0] != 0x30 || buf[1] > 0x83) {
+        /* Check PKCS padding and update data length based on padding info.
+         * This can be used to detect invalid padding data and password
+         * mismatches. */
+        size_t unpadded_len;
+        ret = pem_check_pkcs_padding(buf, len, &unpadded_len);
+        if (ret != 0) {
             mbedtls_zeroize_and_free(buf, len);
-            return MBEDTLS_ERR_PEM_PASSWORD_MISMATCH;
+            return ret;
         }
+        len = unpadded_len;
 #else
         mbedtls_zeroize_and_free(buf, len);
         return MBEDTLS_ERR_PEM_FEATURE_UNAVAILABLE;
@@ -520,7 +535,7 @@ int mbedtls_pem_write_buffer(const char *header, const char *footer,
     p += strlen(footer);
 
     *p++ = '\0';
-    *olen = p - buf;
+    *olen = (size_t) (p - buf);
 
     /* Clean any remaining data previously written to the buffer */
     memset(buf + *olen, 0, buf_len - *olen);

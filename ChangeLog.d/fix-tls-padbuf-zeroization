@@ -1,4 +1,0 @@
-Security
-   * Fix a case where potentially sensitive information held in memory would not
-     be completely zeroized during TLS 1.2 handshake, in both server and client
-     configurations.

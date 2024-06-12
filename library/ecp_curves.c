@@ -2,19 +2,7 @@
  *  Elliptic curves over GF(p): curve-specific data and functions
  *
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
 #include "common.h"
@@ -34,12 +22,6 @@
 #include <string.h>
 
 #if !defined(MBEDTLS_ECP_ALT)
-
-/* Parameter validation macros based on platform_util.h */
-#define ECP_VALIDATE_RET(cond)    \
-    MBEDTLS_INTERNAL_VALIDATE_RET(cond, MBEDTLS_ERR_ECP_BAD_INPUT_DATA)
-#define ECP_VALIDATE(cond)        \
-    MBEDTLS_INTERNAL_VALIDATE(cond)
 
 #define ECP_MPI_INIT(_p, _n) { .p = (mbedtls_mpi_uint *) (_p), .s = 1, .n = (_n) }
 
@@ -64,7 +46,7 @@
     defined(MBEDTLS_ECP_DP_SECP256K1_ENABLED)
 /* For these curves, we build the group parameters dynamically. */
 #define ECP_LOAD_GROUP
-static mbedtls_mpi_uint mpi_one[] = { 1 };
+static const mbedtls_mpi_uint mpi_one[] = { 1 };
 #endif
 
 /*
@@ -4523,7 +4505,7 @@ static inline void ecp_mpi_set1(mbedtls_mpi *X)
 {
     X->s = 1;
     X->n = 1;
-    X->p = mpi_one;
+    X->p = (mbedtls_mpi_uint *) mpi_one; /* X->p will not be modified so the cast is safe */
 }
 
 /*
@@ -4734,7 +4716,6 @@ cleanup:
  */
 int mbedtls_ecp_group_load(mbedtls_ecp_group *grp, mbedtls_ecp_group_id id)
 {
-    ECP_VALIDATE_RET(grp != NULL);
     mbedtls_ecp_group_free(grp);
 
     mbedtls_ecp_group_init(grp);
@@ -5330,7 +5311,7 @@ cleanup:
  */
 #define P_KOBLITZ_MAX   (256 / 8 / sizeof(mbedtls_mpi_uint))      // Max limbs in P
 #define P_KOBLITZ_R     (8 / sizeof(mbedtls_mpi_uint))            // Limbs in R
-static inline int ecp_mod_koblitz(mbedtls_mpi *N, mbedtls_mpi_uint *Rp, size_t p_limbs,
+static inline int ecp_mod_koblitz(mbedtls_mpi *N, const mbedtls_mpi_uint *Rp, size_t p_limbs,
                                   size_t adjust, size_t shift, mbedtls_mpi_uint mask)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
@@ -5344,7 +5325,7 @@ static inline int ecp_mod_koblitz(mbedtls_mpi *N, mbedtls_mpi_uint *Rp, size_t p
 
     /* Init R */
     R.s = 1;
-    R.p = Rp;
+    R.p = (mbedtls_mpi_uint *) Rp; /* R.p will not be modified so the cast is safe */
     R.n = P_KOBLITZ_R;
 
     /* Common setup for M */
@@ -5415,7 +5396,7 @@ cleanup:
  */
 static int ecp_mod_p192k1(mbedtls_mpi *N)
 {
-    static mbedtls_mpi_uint Rp[] = {
+    static const mbedtls_mpi_uint Rp[] = {
         MBEDTLS_BYTES_TO_T_UINT_8(0xC9, 0x11, 0x00, 0x00, 0x01, 0x00, 0x00,
                                   0x00)
     };
@@ -5432,7 +5413,7 @@ static int ecp_mod_p192k1(mbedtls_mpi *N)
  */
 static int ecp_mod_p224k1(mbedtls_mpi *N)
 {
-    static mbedtls_mpi_uint Rp[] = {
+    static const mbedtls_mpi_uint Rp[] = {
         MBEDTLS_BYTES_TO_T_UINT_8(0x93, 0x1A, 0x00, 0x00, 0x01, 0x00, 0x00,
                                   0x00)
     };
@@ -5454,7 +5435,7 @@ static int ecp_mod_p224k1(mbedtls_mpi *N)
  */
 static int ecp_mod_p256k1(mbedtls_mpi *N)
 {
-    static mbedtls_mpi_uint Rp[] = {
+    static const mbedtls_mpi_uint Rp[] = {
         MBEDTLS_BYTES_TO_T_UINT_8(0xD1, 0x03, 0x00, 0x00, 0x01, 0x00, 0x00,
                                   0x00)
     };

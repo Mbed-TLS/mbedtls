@@ -43,19 +43,7 @@
  */
 /*
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
 #ifndef PSA_CRYPTO_STRUCT_H
@@ -66,15 +54,23 @@
 extern "C" {
 #endif
 
-/* Include the Mbed TLS configuration file, the way Mbed TLS does it
- * in each of its header files. */
-#include "mbedtls/build_info.h"
+/*
+ * Include the build-time configuration information header. Here, we do not
+ * include `"mbedtls/build_info.h"` directly but `"psa/build_info.h"`, which
+ * is basically just an alias to it. This is to ease the maintenance of the
+ * TF-PSA-Crypto repository which has a different build system and
+ * configuration.
+ */
+#include "psa/build_info.h"
 
 /* Include the context definition for the compiled-in drivers for the primitive
  * algorithms. */
 #include "psa/crypto_driver_contexts_primitives.h"
 
 struct psa_hash_operation_s {
+#if defined(MBEDTLS_PSA_CRYPTO_CLIENT) && !defined(MBEDTLS_PSA_CRYPTO_C)
+    mbedtls_psa_client_handle_t handle;
+#else
     /** Unique ID indicating which driver got assigned to do the
      * operation. Since driver contexts are driver-specific, swapping
      * drivers halfway through the operation is not supported.
@@ -83,9 +79,13 @@ struct psa_hash_operation_s {
      * any driver (i.e. the driver context is not active, in use). */
     unsigned int MBEDTLS_PRIVATE(id);
     psa_driver_hash_context_t MBEDTLS_PRIVATE(ctx);
+#endif
 };
-
+#if defined(MBEDTLS_PSA_CRYPTO_CLIENT) && !defined(MBEDTLS_PSA_CRYPTO_C)
+#define PSA_HASH_OPERATION_INIT { 0 }
+#else
 #define PSA_HASH_OPERATION_INIT { 0, { 0 } }
+#endif
 static inline struct psa_hash_operation_s psa_hash_operation_init(void)
 {
     const struct psa_hash_operation_s v = PSA_HASH_OPERATION_INIT;
@@ -93,6 +93,9 @@ static inline struct psa_hash_operation_s psa_hash_operation_init(void)
 }
 
 struct psa_cipher_operation_s {
+#if defined(MBEDTLS_PSA_CRYPTO_CLIENT) && !defined(MBEDTLS_PSA_CRYPTO_C)
+    mbedtls_psa_client_handle_t handle;
+#else
     /** Unique ID indicating which driver got assigned to do the
      * operation. Since driver contexts are driver-specific, swapping
      * drivers halfway through the operation is not supported.
@@ -107,9 +110,14 @@ struct psa_cipher_operation_s {
     uint8_t MBEDTLS_PRIVATE(default_iv_length);
 
     psa_driver_cipher_context_t MBEDTLS_PRIVATE(ctx);
+#endif
 };
 
+#if defined(MBEDTLS_PSA_CRYPTO_CLIENT) && !defined(MBEDTLS_PSA_CRYPTO_C)
+#define PSA_CIPHER_OPERATION_INIT { 0 }
+#else
 #define PSA_CIPHER_OPERATION_INIT { 0, 0, 0, 0, { 0 } }
+#endif
 static inline struct psa_cipher_operation_s psa_cipher_operation_init(void)
 {
     const struct psa_cipher_operation_s v = PSA_CIPHER_OPERATION_INIT;
@@ -121,6 +129,9 @@ static inline struct psa_cipher_operation_s psa_cipher_operation_init(void)
 #include "psa/crypto_driver_contexts_composites.h"
 
 struct psa_mac_operation_s {
+#if defined(MBEDTLS_PSA_CRYPTO_CLIENT) && !defined(MBEDTLS_PSA_CRYPTO_C)
+    mbedtls_psa_client_handle_t handle;
+#else
     /** Unique ID indicating which driver got assigned to do the
      * operation. Since driver contexts are driver-specific, swapping
      * drivers halfway through the operation is not supported.
@@ -131,9 +142,14 @@ struct psa_mac_operation_s {
     uint8_t MBEDTLS_PRIVATE(mac_size);
     unsigned int MBEDTLS_PRIVATE(is_sign) : 1;
     psa_driver_mac_context_t MBEDTLS_PRIVATE(ctx);
+#endif
 };
 
+#if defined(MBEDTLS_PSA_CRYPTO_CLIENT) && !defined(MBEDTLS_PSA_CRYPTO_C)
+#define PSA_MAC_OPERATION_INIT { 0 }
+#else
 #define PSA_MAC_OPERATION_INIT { 0, 0, 0, { 0 } }
+#endif
 static inline struct psa_mac_operation_s psa_mac_operation_init(void)
 {
     const struct psa_mac_operation_s v = PSA_MAC_OPERATION_INIT;
@@ -141,7 +157,9 @@ static inline struct psa_mac_operation_s psa_mac_operation_init(void)
 }
 
 struct psa_aead_operation_s {
-
+#if defined(MBEDTLS_PSA_CRYPTO_CLIENT) && !defined(MBEDTLS_PSA_CRYPTO_C)
+    mbedtls_psa_client_handle_t handle;
+#else
     /** Unique ID indicating which driver got assigned to do the
      * operation. Since driver contexts are driver-specific, swapping
      * drivers halfway through the operation is not supported.
@@ -163,9 +181,14 @@ struct psa_aead_operation_s {
     unsigned int MBEDTLS_PRIVATE(is_encrypt) : 1;
 
     psa_driver_aead_context_t MBEDTLS_PRIVATE(ctx);
+#endif
 };
 
+#if defined(MBEDTLS_PSA_CRYPTO_CLIENT) && !defined(MBEDTLS_PSA_CRYPTO_C)
+#define PSA_AEAD_OPERATION_INIT { 0 }
+#else
 #define PSA_AEAD_OPERATION_INIT { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0 } }
+#endif
 static inline struct psa_aead_operation_s psa_aead_operation_init(void)
 {
     const struct psa_aead_operation_s v = PSA_AEAD_OPERATION_INIT;
@@ -177,20 +200,44 @@ static inline struct psa_aead_operation_s psa_aead_operation_init(void)
 #include "psa/crypto_driver_contexts_key_derivation.h"
 
 struct psa_key_derivation_s {
+#if defined(MBEDTLS_PSA_CRYPTO_CLIENT) && !defined(MBEDTLS_PSA_CRYPTO_C)
+    mbedtls_psa_client_handle_t handle;
+#else
     psa_algorithm_t MBEDTLS_PRIVATE(alg);
     unsigned int MBEDTLS_PRIVATE(can_output_key) : 1;
     size_t MBEDTLS_PRIVATE(capacity);
     psa_driver_key_derivation_context_t MBEDTLS_PRIVATE(ctx);
+#endif
 };
 
+#if defined(MBEDTLS_PSA_CRYPTO_CLIENT) && !defined(MBEDTLS_PSA_CRYPTO_C)
+#define PSA_KEY_DERIVATION_OPERATION_INIT { 0 }
+#else
 /* This only zeroes out the first byte in the union, the rest is unspecified. */
 #define PSA_KEY_DERIVATION_OPERATION_INIT { 0, 0, 0, { 0 } }
+#endif
 static inline struct psa_key_derivation_s psa_key_derivation_operation_init(
     void)
 {
     const struct psa_key_derivation_s v = PSA_KEY_DERIVATION_OPERATION_INIT;
     return v;
 }
+
+struct psa_key_production_parameters_s {
+    /* Future versions may add other fields in this structure. */
+    uint32_t flags;
+    uint8_t data[];
+};
+
+/** The default production parameters for key generation or key derivation.
+ *
+ * Calling psa_generate_key_ext() or psa_key_derivation_output_key_ext()
+ * with `params=PSA_KEY_PRODUCTION_PARAMETERS_INIT` and
+ * `params_data_length == 0` is equivalent to
+ * calling psa_generate_key() or psa_key_derivation_output_key()
+ * respectively.
+ */
+#define PSA_KEY_PRODUCTION_PARAMETERS_INIT { 0 }
 
 struct psa_key_policy_s {
     psa_key_usage_t MBEDTLS_PRIVATE(usage);
@@ -219,57 +266,39 @@ typedef uint16_t psa_key_bits_t;
  * conditionals. */
 #define PSA_MAX_KEY_BITS 0xfff8
 
-/** A mask of flags that can be stored in key attributes.
- *
- * This type is also used internally to store flags in slots. Internal
- * flags are defined in library/psa_crypto_core.h. Internal flags may have
- * the same value as external flags if they are properly handled during
- * key creation and in psa_get_key_attributes.
- */
-typedef uint16_t psa_key_attributes_flag_t;
-
-#define MBEDTLS_PSA_KA_FLAG_HAS_SLOT_NUMBER     \
-    ((psa_key_attributes_flag_t) 0x0001)
-
-/* A mask of key attribute flags used externally only.
- * Only meant for internal checks inside the library. */
-#define MBEDTLS_PSA_KA_MASK_EXTERNAL_ONLY (      \
-        MBEDTLS_PSA_KA_FLAG_HAS_SLOT_NUMBER |    \
-        0)
-
-/* A mask of key attribute flags used both internally and externally.
- * Currently there aren't any. */
-#define MBEDTLS_PSA_KA_MASK_DUAL_USE (          \
-        0)
-
-typedef struct {
+struct psa_key_attributes_s {
+#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
+    psa_key_slot_number_t MBEDTLS_PRIVATE(slot_number);
+    int MBEDTLS_PRIVATE(has_slot_number);
+#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
     psa_key_type_t MBEDTLS_PRIVATE(type);
     psa_key_bits_t MBEDTLS_PRIVATE(bits);
     psa_key_lifetime_t MBEDTLS_PRIVATE(lifetime);
-    mbedtls_svc_key_id_t MBEDTLS_PRIVATE(id);
     psa_key_policy_t MBEDTLS_PRIVATE(policy);
-    psa_key_attributes_flag_t MBEDTLS_PRIVATE(flags);
-} psa_core_key_attributes_t;
-
-#define PSA_CORE_KEY_ATTRIBUTES_INIT { PSA_KEY_TYPE_NONE, 0,            \
-                                       PSA_KEY_LIFETIME_VOLATILE,       \
-                                       MBEDTLS_SVC_KEY_ID_INIT,         \
-                                       PSA_KEY_POLICY_INIT, 0 }
-
-struct psa_key_attributes_s {
-    psa_core_key_attributes_t MBEDTLS_PRIVATE(core);
-#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
-    psa_key_slot_number_t MBEDTLS_PRIVATE(slot_number);
-#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
-    void *MBEDTLS_PRIVATE(domain_parameters);
-    size_t MBEDTLS_PRIVATE(domain_parameters_size);
+    /* This type has a different layout in the client view wrt the
+     * service view of the key id, i.e. in service view usually is
+     * expected to have MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER defined
+     * thus adding an owner field to the standard psa_key_id_t. For
+     * implementations with client/service separation, this means the
+     * object will be marshalled through a transport channel and
+     * interpreted differently at each side of the transport. Placing
+     * it at the end of structures allows to interpret the structure
+     * at the client without reorganizing the memory layout of the
+     * struct
+     */
+    mbedtls_svc_key_id_t MBEDTLS_PRIVATE(id);
 };
 
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
-#define PSA_KEY_ATTRIBUTES_INIT { PSA_CORE_KEY_ATTRIBUTES_INIT, 0, NULL, 0 }
+#define PSA_KEY_ATTRIBUTES_MAYBE_SLOT_NUMBER 0, 0,
 #else
-#define PSA_KEY_ATTRIBUTES_INIT { PSA_CORE_KEY_ATTRIBUTES_INIT, NULL, 0 }
+#define PSA_KEY_ATTRIBUTES_MAYBE_SLOT_NUMBER
 #endif
+#define PSA_KEY_ATTRIBUTES_INIT { PSA_KEY_ATTRIBUTES_MAYBE_SLOT_NUMBER \
+                                      PSA_KEY_TYPE_NONE, 0,            \
+                                      PSA_KEY_LIFETIME_VOLATILE,       \
+                                      PSA_KEY_POLICY_INIT,             \
+                                      MBEDTLS_SVC_KEY_ID_INIT }
 
 static inline struct psa_key_attributes_s psa_key_attributes_init(void)
 {
@@ -280,12 +309,12 @@ static inline struct psa_key_attributes_s psa_key_attributes_init(void)
 static inline void psa_set_key_id(psa_key_attributes_t *attributes,
                                   mbedtls_svc_key_id_t key)
 {
-    psa_key_lifetime_t lifetime = attributes->MBEDTLS_PRIVATE(core).MBEDTLS_PRIVATE(lifetime);
+    psa_key_lifetime_t lifetime = attributes->MBEDTLS_PRIVATE(lifetime);
 
-    attributes->MBEDTLS_PRIVATE(core).MBEDTLS_PRIVATE(id) = key;
+    attributes->MBEDTLS_PRIVATE(id) = key;
 
     if (PSA_KEY_LIFETIME_IS_VOLATILE(lifetime)) {
-        attributes->MBEDTLS_PRIVATE(core).MBEDTLS_PRIVATE(lifetime) =
+        attributes->MBEDTLS_PRIVATE(lifetime) =
             PSA_KEY_LIFETIME_FROM_PERSISTENCE_AND_LOCATION(
                 PSA_KEY_LIFETIME_PERSISTENT,
                 PSA_KEY_LIFETIME_GET_LOCATION(lifetime));
@@ -295,26 +324,26 @@ static inline void psa_set_key_id(psa_key_attributes_t *attributes,
 static inline mbedtls_svc_key_id_t psa_get_key_id(
     const psa_key_attributes_t *attributes)
 {
-    return attributes->MBEDTLS_PRIVATE(core).MBEDTLS_PRIVATE(id);
+    return attributes->MBEDTLS_PRIVATE(id);
 }
 
 #ifdef MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER
 static inline void mbedtls_set_key_owner_id(psa_key_attributes_t *attributes,
                                             mbedtls_key_owner_id_t owner)
 {
-    attributes->MBEDTLS_PRIVATE(core).MBEDTLS_PRIVATE(id).MBEDTLS_PRIVATE(owner) = owner;
+    attributes->MBEDTLS_PRIVATE(id).MBEDTLS_PRIVATE(owner) = owner;
 }
 #endif
 
 static inline void psa_set_key_lifetime(psa_key_attributes_t *attributes,
                                         psa_key_lifetime_t lifetime)
 {
-    attributes->MBEDTLS_PRIVATE(core).MBEDTLS_PRIVATE(lifetime) = lifetime;
+    attributes->MBEDTLS_PRIVATE(lifetime) = lifetime;
     if (PSA_KEY_LIFETIME_IS_VOLATILE(lifetime)) {
 #ifdef MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER
-        attributes->MBEDTLS_PRIVATE(core).MBEDTLS_PRIVATE(id).MBEDTLS_PRIVATE(key_id) = 0;
+        attributes->MBEDTLS_PRIVATE(id).MBEDTLS_PRIVATE(key_id) = 0;
 #else
-        attributes->MBEDTLS_PRIVATE(core).MBEDTLS_PRIVATE(id) = 0;
+        attributes->MBEDTLS_PRIVATE(id) = 0;
 #endif
     }
 }
@@ -322,7 +351,7 @@ static inline void psa_set_key_lifetime(psa_key_attributes_t *attributes,
 static inline psa_key_lifetime_t psa_get_key_lifetime(
     const psa_key_attributes_t *attributes)
 {
-    return attributes->MBEDTLS_PRIVATE(core).MBEDTLS_PRIVATE(lifetime);
+    return attributes->MBEDTLS_PRIVATE(lifetime);
 }
 
 static inline void psa_extend_key_usage_flags(psa_key_usage_t *usage_flags)
@@ -340,75 +369,62 @@ static inline void psa_set_key_usage_flags(psa_key_attributes_t *attributes,
                                            psa_key_usage_t usage_flags)
 {
     psa_extend_key_usage_flags(&usage_flags);
-    attributes->MBEDTLS_PRIVATE(core).MBEDTLS_PRIVATE(policy).MBEDTLS_PRIVATE(usage) = usage_flags;
+    attributes->MBEDTLS_PRIVATE(policy).MBEDTLS_PRIVATE(usage) = usage_flags;
 }
 
 static inline psa_key_usage_t psa_get_key_usage_flags(
     const psa_key_attributes_t *attributes)
 {
-    return attributes->MBEDTLS_PRIVATE(core).MBEDTLS_PRIVATE(policy).MBEDTLS_PRIVATE(usage);
+    return attributes->MBEDTLS_PRIVATE(policy).MBEDTLS_PRIVATE(usage);
 }
 
 static inline void psa_set_key_algorithm(psa_key_attributes_t *attributes,
                                          psa_algorithm_t alg)
 {
-    attributes->MBEDTLS_PRIVATE(core).MBEDTLS_PRIVATE(policy).MBEDTLS_PRIVATE(alg) = alg;
+    attributes->MBEDTLS_PRIVATE(policy).MBEDTLS_PRIVATE(alg) = alg;
 }
 
 static inline psa_algorithm_t psa_get_key_algorithm(
     const psa_key_attributes_t *attributes)
 {
-    return attributes->MBEDTLS_PRIVATE(core).MBEDTLS_PRIVATE(policy).MBEDTLS_PRIVATE(alg);
+    return attributes->MBEDTLS_PRIVATE(policy).MBEDTLS_PRIVATE(alg);
 }
-
-/* This function is declared in crypto_extra.h, which comes after this
- * header file, but we need the function here, so repeat the declaration. */
-psa_status_t psa_set_key_domain_parameters(psa_key_attributes_t *attributes,
-                                           psa_key_type_t type,
-                                           const uint8_t *data,
-                                           size_t data_length);
 
 static inline void psa_set_key_type(psa_key_attributes_t *attributes,
                                     psa_key_type_t type)
 {
-    if (attributes->MBEDTLS_PRIVATE(domain_parameters) == NULL) {
-        /* Common case: quick path */
-        attributes->MBEDTLS_PRIVATE(core).MBEDTLS_PRIVATE(type) = type;
-    } else {
-        /* Call the bigger function to free the old domain parameters.
-         * Ignore any errors which may arise due to type requiring
-         * non-default domain parameters, since this function can't
-         * report errors. */
-        (void) psa_set_key_domain_parameters(attributes, type, NULL, 0);
-    }
+    attributes->MBEDTLS_PRIVATE(type) = type;
 }
 
 static inline psa_key_type_t psa_get_key_type(
     const psa_key_attributes_t *attributes)
 {
-    return attributes->MBEDTLS_PRIVATE(core).MBEDTLS_PRIVATE(type);
+    return attributes->MBEDTLS_PRIVATE(type);
 }
 
 static inline void psa_set_key_bits(psa_key_attributes_t *attributes,
                                     size_t bits)
 {
     if (bits > PSA_MAX_KEY_BITS) {
-        attributes->MBEDTLS_PRIVATE(core).MBEDTLS_PRIVATE(bits) = PSA_KEY_BITS_TOO_LARGE;
+        attributes->MBEDTLS_PRIVATE(bits) = PSA_KEY_BITS_TOO_LARGE;
     } else {
-        attributes->MBEDTLS_PRIVATE(core).MBEDTLS_PRIVATE(bits) = (psa_key_bits_t) bits;
+        attributes->MBEDTLS_PRIVATE(bits) = (psa_key_bits_t) bits;
     }
 }
 
 static inline size_t psa_get_key_bits(
     const psa_key_attributes_t *attributes)
 {
-    return attributes->MBEDTLS_PRIVATE(core).MBEDTLS_PRIVATE(bits);
+    return attributes->MBEDTLS_PRIVATE(bits);
 }
 
 /**
  * \brief The context for PSA interruptible hash signing.
  */
 struct psa_sign_hash_interruptible_operation_s {
+#if defined(MBEDTLS_PSA_CRYPTO_CLIENT) && !defined(MBEDTLS_PSA_CRYPTO_C)
+    mbedtls_psa_client_handle_t handle;
+#else
     /** Unique ID indicating which driver got assigned to do the
      * operation. Since driver contexts are driver-specific, swapping
      * drivers halfway through the operation is not supported.
@@ -422,9 +438,14 @@ struct psa_sign_hash_interruptible_operation_s {
     unsigned int MBEDTLS_PRIVATE(error_occurred) : 1;
 
     uint32_t MBEDTLS_PRIVATE(num_ops);
+#endif
 };
 
+#if defined(MBEDTLS_PSA_CRYPTO_CLIENT) && !defined(MBEDTLS_PSA_CRYPTO_C)
+#define PSA_SIGN_HASH_INTERRUPTIBLE_OPERATION_INIT { 0 }
+#else
 #define PSA_SIGN_HASH_INTERRUPTIBLE_OPERATION_INIT { 0, { 0 }, 0, 0 }
+#endif
 
 static inline struct psa_sign_hash_interruptible_operation_s
 psa_sign_hash_interruptible_operation_init(void)
@@ -439,6 +460,9 @@ psa_sign_hash_interruptible_operation_init(void)
  * \brief The context for PSA interruptible hash verification.
  */
 struct psa_verify_hash_interruptible_operation_s {
+#if defined(MBEDTLS_PSA_CRYPTO_CLIENT) && !defined(MBEDTLS_PSA_CRYPTO_C)
+    mbedtls_psa_client_handle_t handle;
+#else
     /** Unique ID indicating which driver got assigned to do the
      * operation. Since driver contexts are driver-specific, swapping
      * drivers halfway through the operation is not supported.
@@ -452,9 +476,14 @@ struct psa_verify_hash_interruptible_operation_s {
     unsigned int MBEDTLS_PRIVATE(error_occurred) : 1;
 
     uint32_t MBEDTLS_PRIVATE(num_ops);
+#endif
 };
 
+#if defined(MBEDTLS_PSA_CRYPTO_CLIENT) && !defined(MBEDTLS_PSA_CRYPTO_C)
+#define PSA_VERIFY_HASH_INTERRUPTIBLE_OPERATION_INIT { 0 }
+#else
 #define PSA_VERIFY_HASH_INTERRUPTIBLE_OPERATION_INIT { 0, { 0 }, 0, 0 }
+#endif
 
 static inline struct psa_verify_hash_interruptible_operation_s
 psa_verify_hash_interruptible_operation_init(void)

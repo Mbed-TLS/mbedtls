@@ -6,7 +6,7 @@
 #include "mbedtls/gcm.h"
 #endif
 
-#if defined(MBEDTLS_CIPHER_MODE_AEAD) || defined(MBEDTLS_NIST_KW_C)
+#if defined(MBEDTLS_CIPHER_HAVE_SOME_AEAD_VIA_LEGACY_OR_USE_PSA) || defined(MBEDTLS_NIST_KW_C)
 #define MBEDTLS_CIPHER_AUTH_CRYPT
 #endif
 
@@ -63,6 +63,9 @@ static int check_cipher_info(mbedtls_cipher_type_t type,
                     key_bitlen == 192 ||
                     key_bitlen == 256);
     }
+    TEST_LE_U(key_bitlen, MBEDTLS_MAX_KEY_LENGTH * 8);
+    TEST_LE_U(block_size, MBEDTLS_MAX_BLOCK_LENGTH);
+    TEST_LE_U(iv_size, MBEDTLS_MAX_IV_LENGTH);
 
     if (strstr(info->name, "-ECB") != NULL) {
         TEST_ASSERT(iv_size == 0);
@@ -82,7 +85,7 @@ exit:
     return 0;
 }
 
-#if defined(MBEDTLS_CIPHER_AUTH_CRYPT)
+#if defined(MBEDTLS_CIPHER_MODE_AEAD)
 /* Helper for resetting key/direction
  *
  * The documentation doesn't explicitly say whether calling
@@ -170,14 +173,18 @@ void cipher_invalid_param_unconditional()
     unsigned char valid_buffer[] = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07 };
     int valid_size = sizeof(valid_buffer);
     int valid_bitlen = valid_size * 8;
-    const mbedtls_cipher_info_t *valid_info = mbedtls_cipher_info_from_type(
-        *(mbedtls_cipher_list()));
+    const int *cipher_list = mbedtls_cipher_list();
+    const mbedtls_cipher_info_t *valid_info;
     size_t size_t_var;
 
     (void) valid_mode; /* In some configurations this is unused */
 
     mbedtls_cipher_init(&valid_ctx);
     mbedtls_cipher_init(&invalid_ctx);
+
+    /* Ensure that there is at least 1 supported cipher, otherwise exit gracefully */
+    TEST_ASSUME(*cipher_list != 0);
+    valid_info = mbedtls_cipher_info_from_type(*cipher_list);
 
     TEST_ASSERT(mbedtls_cipher_setup(&valid_ctx, valid_info) == 0);
 
@@ -598,6 +605,13 @@ void dec_empty_buf(int cipher,
 
     TEST_ASSERT(0 == mbedtls_cipher_reset(&ctx_dec));
 
+#if defined(MBEDTLS_CIPHER_MODE_WITH_PADDING) && defined(MBEDTLS_CIPHER_PADDING_PKCS7)
+    if (ctx_dec.cipher_info->mode == MBEDTLS_MODE_CBC) {
+        TEST_ASSERT(0 == mbedtls_cipher_set_padding_mode(&ctx_dec,
+                                                         MBEDTLS_PADDING_PKCS7));
+    }
+#endif
+
 #if defined(MBEDTLS_GCM_C) || defined(MBEDTLS_CHACHAPOLY_C)
     int expected = (cipher_info->mode == MBEDTLS_MODE_GCM ||
                     cipher_info->type == MBEDTLS_CIPHER_CHACHA20_POLY1305) ?
@@ -832,7 +846,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_CIPHER_AUTH_CRYPT */
+/* BEGIN_CASE depends_on:MBEDTLS_CIPHER_MODE_AEAD */
 void auth_crypt_tv(int cipher_id, data_t *key, data_t *iv,
                    data_t *ad, data_t *cipher, data_t *tag,
                    char *result, data_t *clear, int use_psa)
@@ -1193,5 +1207,48 @@ void iv_len_validity(int cipher_id, char *cipher_string,
 exit:
     mbedtls_cipher_free(&ctx_dec);
     mbedtls_cipher_free(&ctx_enc);
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_CIPHER_MODE_WITH_PADDING */
+void check_set_padding(int cipher_id)
+{
+    mbedtls_cipher_context_t ctx;
+    unsigned char *key = NULL;
+    unsigned char iv[16] = { 0 };
+    unsigned char input[16] = { 0 };
+    unsigned char output[32] = { 0 };
+    size_t outlen = 0;
+    const mbedtls_cipher_info_t *cipher_info;
+    size_t keylen = 0;
+
+    mbedtls_cipher_init(&ctx);
+
+    cipher_info = mbedtls_cipher_info_from_type(cipher_id);
+
+    if (cipher_info->mode != MBEDTLS_MODE_CBC) {
+        TEST_FAIL("Cipher mode must be CBC");
+    }
+
+    keylen = mbedtls_cipher_info_get_key_bitlen(cipher_info);
+    TEST_CALLOC(key, keylen/8);
+    memset(key, 0, keylen/8);
+
+    TEST_EQUAL(0, mbedtls_cipher_setup(&ctx, cipher_info));
+
+    TEST_EQUAL(0, mbedtls_cipher_setkey(&ctx, key, keylen,
+                                        MBEDTLS_ENCRYPT));
+
+    TEST_EQUAL(MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA,
+               mbedtls_cipher_crypt(&ctx, iv, sizeof(iv), input,
+                                    sizeof(input), output, &outlen));
+
+    TEST_EQUAL(0, mbedtls_cipher_set_padding_mode(&ctx, MBEDTLS_PADDING_NONE));
+    TEST_EQUAL(0, mbedtls_cipher_crypt(&ctx, iv, sizeof(iv), input,
+                                       sizeof(input), output, &outlen));
+
+exit:
+    mbedtls_cipher_free(&ctx);
+    mbedtls_free(key);
 }
 /* END_CASE */

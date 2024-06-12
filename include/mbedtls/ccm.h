@@ -29,19 +29,7 @@
  */
 /*
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
 #ifndef MBEDTLS_CCM_H
@@ -51,6 +39,10 @@
 #include "mbedtls/build_info.h"
 
 #include "mbedtls/cipher.h"
+
+#if defined(MBEDTLS_BLOCK_CIPHER_C)
+#include "mbedtls/block_cipher.h"
+#endif
 
 #define MBEDTLS_CCM_DECRYPT       0
 #define MBEDTLS_CCM_ENCRYPT       1
@@ -77,8 +69,6 @@ extern "C" {
 typedef struct mbedtls_ccm_context {
     unsigned char MBEDTLS_PRIVATE(y)[16];    /*!< The Y working buffer */
     unsigned char MBEDTLS_PRIVATE(ctr)[16];  /*!< The counter buffer */
-    int MBEDTLS_PRIVATE(state);              /*!< Working value holding context's
-                                                  state. Used for chunked data input */
     size_t MBEDTLS_PRIVATE(plaintext_len);   /*!< Total plaintext length */
     size_t MBEDTLS_PRIVATE(add_len);         /*!< Total authentication data length */
     size_t MBEDTLS_PRIVATE(tag_len);         /*!< Total tag length */
@@ -94,7 +84,13 @@ typedef struct mbedtls_ccm_context {
                                               #MBEDTLS_CCM_DECRYPT or
                                               #MBEDTLS_CCM_STAR_ENCRYPT or
                                               #MBEDTLS_CCM_STAR_DECRYPT. */
+#if defined(MBEDTLS_BLOCK_CIPHER_C)
+    mbedtls_block_cipher_context_t MBEDTLS_PRIVATE(block_cipher_ctx);    /*!< The cipher context used. */
+#else
     mbedtls_cipher_context_t MBEDTLS_PRIVATE(cipher_ctx);    /*!< The cipher context used. */
+#endif
+    int MBEDTLS_PRIVATE(state);              /*!< Working value holding context's
+                                                  state. Used for chunked data input */
 }
 mbedtls_ccm_context;
 
@@ -513,7 +509,7 @@ int mbedtls_ccm_update(mbedtls_ccm_context *ctx,
 int mbedtls_ccm_finish(mbedtls_ccm_context *ctx,
                        unsigned char *tag, size_t tag_len);
 
-#if defined(MBEDTLS_SELF_TEST) && defined(MBEDTLS_AES_C)
+#if defined(MBEDTLS_SELF_TEST) && defined(MBEDTLS_CCM_GCM_CAN_AES)
 /**
  * \brief          The CCM checkup routine.
  *

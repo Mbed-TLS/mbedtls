@@ -47,12 +47,16 @@ The Make and CMake build systems create three libraries: libmbedcrypto, libmbedx
 You need the following tools to build the library with the provided makefiles:
 
 * GNU Make 3.82 or a build tool that CMake supports.
-* A C99 toolchain (compiler, linker, archiver). We actively test with GCC 5.4, Clang 3.8, IAR 8 and Visual Studio 2013. More recent versions should work. Slightly older versions may work.
+* A C99 toolchain (compiler, linker, archiver). We actively test with GCC 5.4, Clang 3.8, Arm Compiler 6, IAR 8 and Visual Studio 2017. More recent versions should work. Slightly older versions may work.
 * Python 3.8 to generate the test code. Python is also needed to integrate PSA drivers and to build the development branch (see next section).
 * Perl to run the tests, and to generate some source files in the development branch.
 * CMake 3.10.2 or later (if using CMake).
-* Microsoft Visual Studio 2013 or later (if using Visual Studio).
+* Microsoft Visual Studio 2017 or later (if using Visual Studio).
 * Doxygen 1.8.11 or later (if building the documentation; slightly older versions should work).
+
+### Git usage
+
+The `development` branch and the `mbedtls-3.6` long-term support branch of Mbed TLS use a [Git submodule](https://git-scm.com/book/en/v2/Git-Tools-Submodules#_cloning_submodules) ([framework](https://github.com/Mbed-TLS/mbedtls-framework)). This is not needed to merely compile the library at a release tag. This is not needed to consume a release archive (zip or tar).
 
 ### Generated source files in the development branch
 
@@ -221,7 +225,7 @@ subproject.
 
 ### Microsoft Visual Studio
 
-The build files for Microsoft Visual Studio are generated for Visual Studio 2013.
+The build files for Microsoft Visual Studio are generated for Visual Studio 2017.
 
 The solution file `mbedTLS.sln` contains all the basic projects needed to build the library and all the programs. The files in tests are not generated and compiled, as these need Python and perl environments as well. However, the selftest program in `programs/test/` is still available.
 
@@ -246,7 +250,7 @@ For machines with a Unix shell and OpenSSL (and optionally GnuTLS) installed, ad
 -   `tests/scripts/depends.py` test builds in configurations with a single curve, key exchange, hash, cipher, or pkalg on.
 -   `tests/scripts/all.sh` runs a combination of the above tests, plus some more, with various build options (such as ASan, full `mbedtls_config.h`, etc).
 
-Instead of manually installing the required versions of all tools required for testing, it is possible to use the Docker images from our CI systems, as explained in [our testing infrastructure repository](https://github.com/Mbed-TLS/mbedtls-test/blob/master/README.md#quick-start).
+Instead of manually installing the required versions of all tools required for testing, it is possible to use the Docker images from our CI systems, as explained in [our testing infrastructure repository](https://github.com/Mbed-TLS/mbedtls-test/blob/main/README.md#quick-start).
 
 Porting Mbed TLS
 ----------------
@@ -307,14 +311,14 @@ When using drivers, you will generally want to enable two compilation options (s
 License
 -------
 
-Unless specifically indicated otherwise in a file, Mbed TLS files are provided under the [Apache-2.0](https://spdx.org/licenses/Apache-2.0.html) license. See the [LICENSE](LICENSE) file for the full text of this license, and [the 'License and Copyright' section in the contributing guidelines](CONTRIBUTING.md#License-and-Copyright) for more information.
+Unless specifically indicated otherwise in a file, Mbed TLS files are provided under a dual [Apache-2.0](https://spdx.org/licenses/Apache-2.0.html) OR [GPL-2.0-or-later](https://spdx.org/licenses/GPL-2.0-or-later.html) license. See the [LICENSE](LICENSE) file for the full text of these licenses, and [the 'License and Copyright' section in the contributing guidelines](CONTRIBUTING.md#License-and-Copyright) for more information.
 
 ### Third-party code included in Mbed TLS
 
-This project contains code from other projects. This code is located within the `3rdparty/` directory. The original license text is included within project subdirectories, and in source files. The projects are listed below:
+This project contains code from other projects. This code is located within the `3rdparty/` directory. The original license text is included within project subdirectories, where it differs from the normal Mbed TLS license, and/or in source files. The projects are listed below:
 
 * `3rdparty/everest/`: Files stem from [Project Everest](https://project-everest.github.io/) and are distributed under the Apache 2.0 license.
-* `3rdparty/p256-m/p256-m/`: Files have been taken from the [p256-m](https://github.com/mpg/p256-m) repository. The code in the original repository is distributed under the Apache 2.0 license. It is also used by Mbed TLS under the Apache 2.0 license. We do not plan to regularly update these files, so they may not contain fixes and improvements present in the upstream project.
+* `3rdparty/p256-m/p256-m/`: Files have been taken from the [p256-m](https://github.com/mpg/p256-m) repository. The code in the original repository is distributed under the Apache 2.0 license. It is distributed in Mbed TLS under a dual Apache-2.0 OR GPL-2.0-or-later license with permission from the author.
 
 Contributing
 ------------

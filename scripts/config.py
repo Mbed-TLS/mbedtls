@@ -13,19 +13,8 @@ Basic usage, to read the Mbed TLS configuration:
 # in parts that are not backported to 2.28.
 
 ## Copyright The Mbed TLS Contributors
-## SPDX-License-Identifier: Apache-2.0
+## SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
 ##
-## Licensed under the Apache License, Version 2.0 (the "License"); you may
-## not use this file except in compliance with the License.
-## You may obtain a copy of the License at
-##
-## http://www.apache.org/licenses/LICENSE-2.0
-##
-## Unless required by applicable law or agreed to in writing, software
-## distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
-## WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-## See the License for the specific language governing permissions and
-## limitations under the License.
 
 import os
 import re
@@ -191,6 +180,7 @@ EXCLUDE_FROM_FULL = frozenset([
     #pylint: disable=line-too-long
     'MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH', # interacts with CTR_DRBG_128_BIT_KEY
     'MBEDTLS_AES_USE_HARDWARE_ONLY', # hardware dependency
+    'MBEDTLS_BLOCK_CIPHER_NO_DECRYPT', # incompatible with ECB in PSA, CBC/XTS/NIST_KW/DES
     'MBEDTLS_CTR_DRBG_USE_128_BIT_KEY', # interacts with ENTROPY_FORCE_SHA256
     'MBEDTLS_DEPRECATED_REMOVED', # conflicts with deprecated options
     'MBEDTLS_DEPRECATED_WARNING', # conflicts with deprecated options
@@ -206,17 +196,18 @@ EXCLUDE_FROM_FULL = frozenset([
     'MBEDTLS_NO_DEFAULT_ENTROPY_SOURCES', # removes a feature
     'MBEDTLS_NO_PLATFORM_ENTROPY', # removes a feature
     'MBEDTLS_NO_UDBL_DIVISION', # influences anything that uses bignum
-    'MBEDTLS_P256M_EXAMPLE_DRIVER_ENABLED', # influences SECP256R1 KeyGen/ECDH/ECDSA
+    'MBEDTLS_PSA_P256M_DRIVER_ENABLED', # influences SECP256R1 KeyGen/ECDH/ECDSA
     'MBEDTLS_PLATFORM_NO_STD_FUNCTIONS', # removes a feature
-    'MBEDTLS_PSA_CRYPTO_CONFIG', # toggles old/new style PSA config
+    'MBEDTLS_PSA_ASSUME_EXCLUSIVE_BUFFERS', # removes a feature
     'MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG', # behavior change + build dependency
     'MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER', # incompatible with USE_PSA_CRYPTO
     'MBEDTLS_PSA_CRYPTO_SPM', # platform dependency (PSA SPM)
     'MBEDTLS_PSA_INJECT_ENTROPY', # conflicts with platform entropy sources
     'MBEDTLS_RSA_NO_CRT', # influences the use of RSA in X.509 and TLS
     'MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY', # interacts with *_USE_A64_CRYPTO_IF_PRESENT
+    'MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_ONLY', # interacts with *_USE_ARMV8_A_CRYPTO_IF_PRESENT
     'MBEDTLS_SHA512_USE_A64_CRYPTO_ONLY', # interacts with *_USE_A64_CRYPTO_IF_PRESENT
-    'MBEDTLS_SSL_RECORD_SIZE_LIMIT', # in development, currently breaks other tests
+    'MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT', # setting *_USE_ARMV8_A_CRYPTO is sufficient
     'MBEDTLS_TEST_CONSTANT_FLOW_MEMSAN', # build dependency (clang+memsan)
     'MBEDTLS_TEST_CONSTANT_FLOW_VALGRIND', # build dependency (valgrind headers)
     'MBEDTLS_X509_REMOVE_INFO', # removes a feature
@@ -279,6 +270,9 @@ EXCLUDE_FROM_BAREMETAL = frozenset([
     'MBEDTLS_THREADING_C', # requires a threading interface
     'MBEDTLS_THREADING_PTHREAD', # requires pthread
     'MBEDTLS_TIMING_C', # requires a clock
+    'MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT', # requires an OS for runtime-detection
+    'MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_IF_PRESENT', # requires an OS for runtime-detection
+    'MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT', # requires an OS for runtime-detection
 ])
 
 def keep_in_baremetal(name):
@@ -353,6 +347,22 @@ def no_deprecated_adapter(adapter):
         if name == 'MBEDTLS_DEPRECATED_REMOVED':
             return True
         if name in DEPRECATED:
+            return False
+        if adapter is None:
+            return active
+        return adapter(name, active, section)
+    return continuation
+
+def no_platform_adapter(adapter):
+    """Modify an adapter to disable platform symbols.
+
+    ``no_platform_adapter(adapter)(name, active, section)`` is like
+    ``adapter(name, active, section)``, but unsets all platform symbols other
+    ``than MBEDTLS_PLATFORM_C.
+    """
+    def continuation(name, active, section):
+        # Allow MBEDTLS_PLATFORM_C but remove all other platform symbols.
+        if name.startswith('MBEDTLS_PLATFORM_') and name != 'MBEDTLS_PLATFORM_C':
             return False
         if adapter is None:
             return active
@@ -540,6 +550,10 @@ if __name__ == '__main__':
         add_adapter('full_no_deprecated', no_deprecated_adapter(full_adapter),
                     """Uncomment most non-deprecated features.
                     Like "full", but without deprecated features.
+                    """)
+        add_adapter('full_no_platform', no_platform_adapter(full_adapter),
+                    """Uncomment most non-platform features.
+                    Like "full", but without platform features.
                     """)
         add_adapter('realfull', realfull_adapter,
                     """Uncomment all boolean #defines.

@@ -1,3 +1,0 @@
-Bugfix
-   * Fix some cases where mbedtls_mpi_mod_exp, RSA key construction or ECDSA
-     signature can silently return an incorrect result in low memory conditions.

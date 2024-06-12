@@ -1,5 +1,5 @@
 /* BEGIN_HEADER */
-#include "mbedtls/pk.h"
+#include "pk_internal.h"
 #include "mbedtls/pem.h"
 #include "mbedtls/oid.h"
 #include "psa/crypto_sizes.h"
@@ -68,17 +68,16 @@ static int pk_write_any_key(mbedtls_pk_context *pk, unsigned char **p,
 static void pk_write_check_common(char *key_file, int is_public_key, int is_der)
 {
     mbedtls_pk_context key;
+    mbedtls_pk_init(&key);
     unsigned char *buf = NULL;
     unsigned char *check_buf = NULL;
     unsigned char *start_buf;
     size_t buf_len, check_buf_len;
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     mbedtls_svc_key_id_t opaque_id = MBEDTLS_SVC_KEY_ID_INIT;
+    psa_key_attributes_t key_attr = PSA_KEY_ATTRIBUTES_INIT;
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
-    USE_PSA_INIT();
-
-    mbedtls_pk_init(&key);
     USE_PSA_INIT();
 
     /* Note: if mbedtls_pk_load_file() successfully reads the file, then
@@ -119,10 +118,13 @@ static void pk_write_check_common(char *key_file, int is_public_key, int is_der)
     /* Verify that pk_write works also for opaque private keys */
     if (!is_public_key) {
         memset(buf, 0, check_buf_len);
-        TEST_EQUAL(mbedtls_pk_wrap_as_opaque(&key, &opaque_id,
-                                             PSA_ALG_NONE,
-                                             PSA_KEY_USAGE_EXPORT,
-                                             PSA_ALG_NONE), 0);
+        /* Turn the key PK context into an opaque one.
+         * Note: set some practical usage for the key to make get_psa_attributes() happy. */
+        TEST_EQUAL(mbedtls_pk_get_psa_attributes(&key, PSA_KEY_USAGE_SIGN_MESSAGE, &key_attr), 0);
+        TEST_EQUAL(mbedtls_pk_import_into_psa(&key, &key_attr, &opaque_id), 0);
+        mbedtls_pk_free(&key);
+        mbedtls_pk_init(&key);
+        TEST_EQUAL(mbedtls_pk_setup_opaque(&key, opaque_id), 0);
         start_buf = buf;
         buf_len = check_buf_len;
         TEST_EQUAL(pk_write_any_key(&key, &start_buf, &buf_len, is_public_key,
@@ -174,6 +176,7 @@ void pk_write_public_from_private(char *priv_key_file, char *pub_key_file)
     size_t pub_key_len = 0;
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     mbedtls_svc_key_id_t opaque_key_id = MBEDTLS_SVC_KEY_ID_INIT;
+    psa_key_attributes_t key_attr = PSA_KEY_ATTRIBUTES_INIT;
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
     mbedtls_pk_init(&priv_key);
@@ -196,9 +199,12 @@ void pk_write_public_from_private(char *priv_key_file, char *pub_key_file)
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     mbedtls_platform_zeroize(derived_key_raw, derived_key_len);
 
-    TEST_EQUAL(mbedtls_pk_wrap_as_opaque(&priv_key, &opaque_key_id,
-                                         PSA_ALG_NONE, PSA_KEY_USAGE_EXPORT,
-                                         PSA_ALG_NONE), 0);
+    /* Turn the priv_key PK context into an opaque one. */
+    TEST_EQUAL(mbedtls_pk_get_psa_attributes(&priv_key, PSA_KEY_USAGE_SIGN_HASH, &key_attr), 0);
+    TEST_EQUAL(mbedtls_pk_import_into_psa(&priv_key, &key_attr, &opaque_key_id), 0);
+    mbedtls_pk_free(&priv_key);
+    mbedtls_pk_init(&priv_key);
+    TEST_EQUAL(mbedtls_pk_setup_opaque(&priv_key, opaque_key_id), 0);
 
     TEST_EQUAL(mbedtls_pk_write_pubkey_der(&priv_key, derived_key_raw,
                                            derived_key_len), pub_key_len);

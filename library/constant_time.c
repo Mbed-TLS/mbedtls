@@ -2,19 +2,7 @@
  *  Constant-time functions
  *
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
 /*
@@ -22,6 +10,7 @@
  * might be translated to branches by some compilers on some platforms.
  */
 
+#include <stdint.h>
 #include <limits.h>
 
 #include "common.h"
@@ -31,19 +20,6 @@
 #include "mbedtls/platform_util.h"
 
 #include <string.h>
-
-#if defined(MBEDTLS_USE_PSA_CRYPTO) && defined(MBEDTLS_SSL_SOME_SUITES_USE_MAC)
-#include "psa/crypto.h"
-/* Define a local translating function to save code size by not using too many
- * arguments in each translating place. */
-static int local_err_translation(psa_status_t status)
-{
-    return psa_status_to_mbedtls(status, psa_to_ssl_errors,
-                                 ARRAY_LENGTH(psa_to_ssl_errors),
-                                 psa_generic_status_to_mbedtls);
-}
-#define PSA_TO_MBEDTLS_ERR(status) local_err_translation(status)
-#endif
 
 #if !defined(MBEDTLS_CT_ASM)
 /*
@@ -120,8 +96,55 @@ int mbedtls_ct_memcmp(const void *a,
         diff |= x ^ y;
     }
 
+
+#if (INT_MAX < INT32_MAX)
+    /* We don't support int smaller than 32-bits, but if someone tried to build
+     * with this configuration, there is a risk that, for differing data, the
+     * only bits set in diff are in the top 16-bits, and would be lost by a
+     * simple cast from uint32 to int.
+     * This would have significant security implications, so protect against it. */
+#error "mbedtls_ct_memcmp() requires minimum 32-bit ints"
+#else
+    /* The bit-twiddling ensures that when we cast uint32_t to int, we are casting
+     * a value that is in the range 0..INT_MAX - a value larger than this would
+     * result in implementation defined behaviour.
+     *
+     * This ensures that the value returned by the function is non-zero iff
+     * diff is non-zero.
+     */
+    return (int) ((diff & 0xffff) | (diff >> 16));
+#endif
+}
+
+#if defined(MBEDTLS_NIST_KW_C)
+
+int mbedtls_ct_memcmp_partial(const void *a,
+                              const void *b,
+                              size_t n,
+                              size_t skip_head,
+                              size_t skip_tail)
+{
+    unsigned int diff = 0;
+
+    volatile const unsigned char *A = (volatile const unsigned char *) a;
+    volatile const unsigned char *B = (volatile const unsigned char *) b;
+
+    size_t valid_end = n - skip_tail;
+
+    for (size_t i = 0; i < n; i++) {
+        unsigned char x = A[i], y = B[i];
+        unsigned int d = x ^ y;
+        mbedtls_ct_condition_t valid = mbedtls_ct_bool_and(mbedtls_ct_uint_ge(i, skip_head),
+                                                           mbedtls_ct_uint_lt(i, valid_end));
+        diff |= mbedtls_ct_uint_if_else_0(valid, d);
+    }
+
+    /* Since we go byte-by-byte, the only bits set will be in the bottom 8 bits, so the
+     * cast from uint to int is safe. */
     return (int) diff;
 }
+
+#endif
 
 #if defined(MBEDTLS_PKCS1_V15) && defined(MBEDTLS_RSA_C) && !defined(MBEDTLS_RSA_ALT)
 

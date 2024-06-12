@@ -1,4 +1,0 @@
-Bugfix
-   * Fix crypt_and_hash decryption fail when used with a stream cipher
-     mode of operation due to the input not being multiple of block size.
-     Resolves #7417.

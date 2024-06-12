@@ -5,19 +5,7 @@
  */
 /*
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 #ifndef MBEDTLS_PEM_H
 #define MBEDTLS_PEM_H
@@ -85,11 +73,11 @@ void mbedtls_pem_init(mbedtls_pem_context *ctx);
  * \param data      source data to look in (must be nul-terminated)
  * \param pwd       password for decryption (can be NULL)
  * \param pwdlen    length of password
- * \param use_len   destination for total length used (set after header is
- *                  correctly read, so unless you get
+ * \param use_len   destination for total length used from data buffer. It is
+ *                  set after header is correctly read, so unless you get
  *                  MBEDTLS_ERR_PEM_BAD_INPUT_DATA or
  *                  MBEDTLS_ERR_PEM_NO_HEADER_FOOTER_PRESENT, use_len is
- *                  the length to skip)
+ *                  the length to skip.
  *
  * \note            Attempts to check password correctness by verifying if
  *                  the decrypted text starts with an ASN.1 sequence of

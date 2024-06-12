@@ -2,28 +2,28 @@
  *  Key writing application
  *
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
 #include "mbedtls/build_info.h"
 
 #include "mbedtls/platform.h"
 
-#if defined(MBEDTLS_PK_PARSE_C) && defined(MBEDTLS_PK_WRITE_C) && \
-    defined(MBEDTLS_FS_IO) && \
-    defined(MBEDTLS_ENTROPY_C) && defined(MBEDTLS_CTR_DRBG_C)
+#if !defined(MBEDTLS_PK_PARSE_C) || \
+    !defined(MBEDTLS_PK_WRITE_C) || \
+    !defined(MBEDTLS_FS_IO)      || \
+    !defined(MBEDTLS_ENTROPY_C)  || \
+    !defined(MBEDTLS_CTR_DRBG_C) || \
+    !defined(MBEDTLS_BIGNUM_C)
+int main(void)
+{
+    mbedtls_printf("MBEDTLS_PK_PARSE_C and/or MBEDTLS_PK_WRITE_C and/or "
+                   "MBEDTLS_ENTROPY_C and/or MBEDTLS_CTR_DRBG_C and/or "
+                   "MBEDTLS_FS_IO and/or MBEDTLS_BIGNUM_C not defined.\n");
+    mbedtls_exit(0);
+}
+#else
+
 #include "mbedtls/error.h"
 #include "mbedtls/pk.h"
 #include "mbedtls/error.h"
@@ -33,7 +33,6 @@
 
 #include <stdio.h>
 #include <string.h>
-#endif
 
 #if defined(MBEDTLS_PEM_WRITE_C)
 #define USAGE_OUT \
@@ -77,20 +76,6 @@
     "    output_mode=private|public default: none\n"    \
     USAGE_OUT                                           \
     "\n"
-
-#if !defined(MBEDTLS_PK_PARSE_C) || \
-    !defined(MBEDTLS_PK_WRITE_C) || \
-    !defined(MBEDTLS_FS_IO)      || \
-    !defined(MBEDTLS_ENTROPY_C)  || \
-    !defined(MBEDTLS_CTR_DRBG_C)
-int main(void)
-{
-    mbedtls_printf("MBEDTLS_PK_PARSE_C and/or MBEDTLS_PK_WRITE_C and/or "
-                   "MBEDTLS_ENTROPY_C and/or MBEDTLS_CTR_DRBG_C and/or "
-                   "MBEDTLS_FS_IO not defined.\n");
-    mbedtls_exit(0);
-}
-#else
 
 
 /*
@@ -187,6 +172,71 @@ static int write_private_key(mbedtls_pk_context *key, const char *output_file)
 
     return 0;
 }
+
+#if defined(MBEDTLS_ECP_C)
+static int show_ecp_key(const mbedtls_ecp_keypair *ecp, int has_private)
+{
+    int ret = 0;
+
+    const mbedtls_ecp_curve_info *curve_info =
+        mbedtls_ecp_curve_info_from_grp_id(
+            mbedtls_ecp_keypair_get_group_id(ecp));
+    mbedtls_printf("curve: %s\n", curve_info->name);
+
+    mbedtls_ecp_group grp;
+    mbedtls_ecp_group_init(&grp);
+    mbedtls_mpi D;
+    mbedtls_mpi_init(&D);
+    mbedtls_ecp_point pt;
+    mbedtls_ecp_point_init(&pt);
+    mbedtls_mpi X, Y;
+    mbedtls_mpi_init(&X); mbedtls_mpi_init(&Y);
+
+    MBEDTLS_MPI_CHK(mbedtls_ecp_export(ecp, &grp,
+                                       (has_private ? &D : NULL),
+                                       &pt));
+
+    unsigned char point_bin[MBEDTLS_ECP_MAX_PT_LEN];
+    size_t len = 0;
+    MBEDTLS_MPI_CHK(mbedtls_ecp_point_write_binary(
+                        &grp, &pt, MBEDTLS_ECP_PF_UNCOMPRESSED,
+                        &len, point_bin, sizeof(point_bin)));
+    switch (mbedtls_ecp_get_type(&grp)) {
+        case MBEDTLS_ECP_TYPE_SHORT_WEIERSTRASS:
+            if ((len & 1) == 0 || point_bin[0] != 0x04) {
+                /* Point in an unxepected format. This shouldn't happen. */
+                ret = -1;
+                goto cleanup;
+            }
+            MBEDTLS_MPI_CHK(
+                mbedtls_mpi_read_binary(&X, point_bin + 1, len / 2));
+            MBEDTLS_MPI_CHK(
+                mbedtls_mpi_read_binary(&Y, point_bin + 1 + len / 2, len / 2));
+            mbedtls_mpi_write_file("X_Q:   ", &X, 16, NULL);
+            mbedtls_mpi_write_file("Y_Q:   ", &Y, 16, NULL);
+            break;
+        case MBEDTLS_ECP_TYPE_MONTGOMERY:
+            MBEDTLS_MPI_CHK(mbedtls_mpi_read_binary(&X, point_bin, len));
+            mbedtls_mpi_write_file("X_Q:   ", &X, 16, NULL);
+            break;
+        default:
+            mbedtls_printf(
+                "This program does not yet support listing coordinates for this curve type.\n");
+            break;
+    }
+
+    if (has_private) {
+        mbedtls_mpi_write_file("D:     ", &D, 16, NULL);
+    }
+
+cleanup:
+    mbedtls_ecp_group_free(&grp);
+    mbedtls_mpi_free(&D);
+    mbedtls_ecp_point_free(&pt);
+    mbedtls_mpi_free(&X); mbedtls_mpi_free(&Y);
+    return ret;
+}
+#endif
 
 int main(int argc, char *argv[])
 {
@@ -350,11 +400,10 @@ usage:
 #endif
 #if defined(MBEDTLS_ECP_C)
         if (mbedtls_pk_get_type(&key) == MBEDTLS_PK_ECKEY) {
-            mbedtls_ecp_keypair *ecp = mbedtls_pk_ec(key);
-            mbedtls_mpi_write_file("Q(X): ", &ecp->MBEDTLS_PRIVATE(Q).MBEDTLS_PRIVATE(X), 16, NULL);
-            mbedtls_mpi_write_file("Q(Y): ", &ecp->MBEDTLS_PRIVATE(Q).MBEDTLS_PRIVATE(Y), 16, NULL);
-            mbedtls_mpi_write_file("Q(Z): ", &ecp->MBEDTLS_PRIVATE(Q).MBEDTLS_PRIVATE(Z), 16, NULL);
-            mbedtls_mpi_write_file("D   : ", &ecp->MBEDTLS_PRIVATE(d), 16, NULL);
+            if (show_ecp_key(mbedtls_pk_ec(key), 1) != 0) {
+                mbedtls_printf(" failed\n  ! could not export ECC parameters\n\n");
+                goto exit;
+            }
         } else
 #endif
         mbedtls_printf("key type not supported yet\n");
@@ -396,10 +445,10 @@ usage:
 #endif
 #if defined(MBEDTLS_ECP_C)
         if (mbedtls_pk_get_type(&key) == MBEDTLS_PK_ECKEY) {
-            mbedtls_ecp_keypair *ecp = mbedtls_pk_ec(key);
-            mbedtls_mpi_write_file("Q(X): ", &ecp->MBEDTLS_PRIVATE(Q).MBEDTLS_PRIVATE(X), 16, NULL);
-            mbedtls_mpi_write_file("Q(Y): ", &ecp->MBEDTLS_PRIVATE(Q).MBEDTLS_PRIVATE(Y), 16, NULL);
-            mbedtls_mpi_write_file("Q(Z): ", &ecp->MBEDTLS_PRIVATE(Q).MBEDTLS_PRIVATE(Z), 16, NULL);
+            if (show_ecp_key(mbedtls_pk_ec(key), 0) != 0) {
+                mbedtls_printf(" failed\n  ! could not export ECC parameters\n\n");
+                goto exit;
+            }
         } else
 #endif
         mbedtls_printf("key type not supported yet\n");
@@ -443,5 +492,4 @@ exit:
 
     mbedtls_exit(exit_code);
 }
-#endif /* MBEDTLS_PK_PARSE_C && MBEDTLS_PK_WRITE_C && MBEDTLS_FS_IO &&
-          MBEDTLS_ENTROPY_C && MBEDTLS_CTR_DRBG_C */
+#endif /* program viability conditions */

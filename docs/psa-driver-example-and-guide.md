@@ -74,7 +74,7 @@ Include any header files required by the driver in `psa_crypto_driver_wrappers.h
 
 
 **4. For each operation being accelerated, locate the function in the driver dispatch layer that corresponds to the entry point of that operation.** \
-The file `psa_crypto_driver_wrappers.c.jinja` contains the driver wrapper functions. For the entry points that have driver wrapper auto-generation implemented, the functions have been replaced with `jinja` templating logic. While the file has a `.jinja` extension, the driver wrapper functions for the remaining entry points are simple C functions. The names of these functions are of the form `psa_driver_wrapper` followed by the entry point name. So, for example, the function `psa_driver_wrapper_sign_hash()` corresponds to the `sign_hash` entry point.
+The file `psa_crypto_driver_wrappers.h.jinja` and `psa_crypto_driver_wrappers_no_static.c.jinja` contains the driver wrapper functions. For the entry points that have driver wrapper auto-generation implemented, the functions have been replaced with `jinja` templating logic. While the file has a `.jinja` extension, the driver wrapper functions for the remaining entry points are simple C functions. The names of these functions are of the form `psa_driver_wrapper` followed by the entry point name. So, for example, the function `psa_driver_wrapper_sign_hash()` corresponds to the `sign_hash` entry point.
 
 **5. If a driver entry point function has been provided then ensure it has the same signature as the driver wrapper function.** \
 If one has not been provided then write one. Its name should begin with the driver prefix, followed by transparent/opaque (depending on driver type), and end with the entry point name. It should have the same signature as the driver wrapper function. The purpose of the entry point function is to take arguments in PSA format for the implemented operation and return outputs/status codes in PSA format. \
@@ -138,25 +138,30 @@ This guide assumes you are building Mbed TLS from source alongside your project.
 
 ### Example: Manually integrating a software accelerator alongside Mbed TLS
 
-[p256-m](https://github.com/mpg/p256-m) is a minimalistic implementation of ECDH and ECDSA on the NIST P-256 curve, specifically optimized for use in constrained 32-bit environments. As such, it serves as a software accelerator. This section demonstrates the integration of `p256-m` as a transparent driver alongside Mbed TLS, serving as a guide for implementation.
-The code for p256-m can be found in `3rdparty/p256-m/p256m`. In this demonstration, p256-m is built from source alongside Mbed TLS.
+[p256-m](https://github.com/mpg/p256-m) is a minimalistic implementation of ECDH and ECDSA on the NIST P-256 curve, specifically optimized for use in constrained 32-bit environments. It started out as an independent project and has been integrated in Mbed TLS as a PSA transparent driver. The source code of p256-m and the driver entry points is located in the Mbed TLS source tree under `3rdparty/p256-m`. In this section, we will look at how this integration was done.
 
-The driver prefix for p256-m is `P256`/`p256`. The driver macro is `MBEDTLS_P256M_EXAMPLE_DRIVER_ENABLED`. To build with and use p256-m, set the macro using `config.py`, then build as usual using make/cmake. From the root of the `mbedtls/` directory, run:
+The Mbed TLS build system includes the instructions needed to build p256-m. To build with and use p256-m, set the macro `MBEDTLS_PSA_P256M_DRIVER_ENABLED` using `config.py`, then build as usual using make/cmake. From the root of the `mbedtls/` directory, run:
 
-    python3 scripts/config.py set MBEDTLS_P256M_EXAMPLE_DRIVER_ENABLED
+    python3 scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
+    python3 scripts/config.py set MBEDTLS_PSA_P256M_DRIVER_ENABLED
     make
 
-p256-m implements four entry points: `generate_key`, `key_agreement`, `sign_hash`, `verify_hash`. The `sign/verify_hash` entry points are used instead of `sign/verify_message` as messages must be hashed prior to any operation, and p256-m does not implement this. The driver entry point functions can be found in `p256m_driver_entrypoints.[hc]`. These functions act as an interface between Mbed TLS and p256-m; converting between PSA and p256-m argument formats and performing sanity checks. If the driver's status codes differ from PSA's, it is recommended to implement a status code translation function. The function `p256_to_psa_error()` converts error codes returned by p256-m into PSA error codes.
+(You need extra steps if you want to disable the built-in implementation of ECC algorithms, which includes more features than p256-m. Refer to the documentation of `MBEDTLS_PSA_P256M_DRIVER_ENABLED` and [`driver-only-builds.md`](driver-only-builds.md) for more information.)
 
-The driver wrapper functions in `psa_crypto_driver_wrappers.c.jinja` for all four entry points have also been modified. The code block below shows the additions made to `psa_driver_wrapper_sign_hash()`. In adherence to the defined process, all code related to the driver call is placed within a check for `MBEDTLS_P256M_EXAMPLE_DRIVER_ENABLED`. p256-m only supports non-deterministic ECDSA using keys based on NIST P256; these constraints are enforced through checks (see the `if` statement). Checks that involve accessing key attributes, (e.g. checking key type or bits) **must** be performed in the driver wrapper. This is because this information is marked private and may not be accessed outside the library. Other checks can be performed here or in the entry point function. The status returned by the driver is propagated up the call hierarchy **unless** the driver does not support the operation (i.e. return `PSA_ERROR_NOT_SUPPORTED`). In that case the next available driver/built-in implementation is called.
+The driver prefix for p256-m is `P256`/`p256`.
+The p256-m driver implements the following entry points: `"import_key"`, `"export_public_key"`, `"generate_key"`, `"key_agreement"`, `"sign_hash"`, `"verify_hash"`.
+There are no entry points for `"sign_message"` and `"verify_message"`, which are not necessary for a sign-and-hash algorithm. The core still implements these functions by doing the hashes and then calling the sign/verify-hash entry points.
+The driver entry point functions can be found in `p256m_driver_entrypoints.[hc]`. These functions act as an interface between Mbed TLS and p256-m; converting between PSA and p256-m argument formats and performing sanity checks. If the driver's status codes differ from PSA's, it is recommended to implement a status code translation function. The function `p256_to_psa_error()` converts error codes returned by p256-m into PSA error codes.
+
+The driver wrapper functions in `psa_crypto_driver_wrappers.h.jinja` for all four entry points have also been modified. The code block below shows the additions made to `psa_driver_wrapper_sign_hash()`. In adherence to the defined process, all code related to the driver call is placed within a check for `MBEDTLS_PSA_P256M_DRIVER_ENABLED`. p256-m only supports non-deterministic ECDSA using keys based on NIST P256; these constraints are enforced through checks (see the `if` statement). Checks that involve accessing key attributes, (e.g. checking key type or bits) **must** be performed in the driver wrapper. This is because this information is marked private and may not be accessed outside the library. Other checks can be performed here or in the entry point function. The status returned by the driver is propagated up the call hierarchy **unless** the driver does not support the operation (i.e. return `PSA_ERROR_NOT_SUPPORTED`). In that case the next available driver/built-in implementation is called.
 
 ```
-#if defined (MBEDTLS_P256M_EXAMPLE_DRIVER_ENABLED)
-            if( PSA_KEY_TYPE_IS_ECC( attributes->core.type ) &&
+#if defined (MBEDTLS_PSA_P256M_DRIVER_ENABLED)
+            if( PSA_KEY_TYPE_IS_ECC( psa_get_key_type(attributes) ) &&
                 PSA_ALG_IS_ECDSA(alg) &&
                 !PSA_ALG_ECDSA_IS_DETERMINISTIC( alg ) &&
-                PSA_KEY_TYPE_ECC_GET_FAMILY(attributes->core.type) == PSA_ECC_FAMILY_SECP_R1 &&
-                attributes->core.bits == 256 )
+                PSA_KEY_TYPE_ECC_GET_FAMILY(psa_get_key_type(attributes)) == PSA_ECC_FAMILY_SECP_R1 &&
+                psa_get_key_bits(attributes) == 256 )
             {
                 status = p256_transparent_sign_hash( attributes,
                                                      key_buffer,
@@ -170,6 +175,6 @@ The driver wrapper functions in `psa_crypto_driver_wrappers.c.jinja` for all fou
                 if( status != PSA_ERROR_NOT_SUPPORTED )
                 return( status );
             }
-#endif /* MBEDTLS_P256M_EXAMPLE_DRIVER_ENABLED */
+#endif /* MBEDTLS_PSA_P256M_DRIVER_ENABLED */
 ```
-Following this, p256-m is now ready to use alongside Mbed TLS as a software accelerator. If `MBEDTLS_P256M_EXAMPLE_DRIVER_ENABLED` is set in the config, p256-m's implementations of key generation, ECDH, and ECDSA will be used where applicable.
+Following this, p256-m is now ready to use alongside Mbed TLS as a software accelerator. If `MBEDTLS_PSA_P256M_DRIVER_ENABLED` is set in the config, p256-m's implementations of key generation, ECDH, and ECDSA will be used where applicable.

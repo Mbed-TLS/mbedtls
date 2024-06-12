@@ -1,3 +1,0 @@
-Features
-   * Add support for reading and writing X25519 and X448
-     public and private keys in RFC 8410 format using the existing PK APIs.

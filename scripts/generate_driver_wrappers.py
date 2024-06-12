@@ -1,24 +1,13 @@
 #!/usr/bin/env python3
-"""Generate library/psa_crypto_driver_wrappers.c
+"""Generate library/psa_crypto_driver_wrappers.h
+            library/psa_crypto_driver_wrappers_no_static.c
 
    This module is invoked by the build scripts to auto generate the
-   psa_crypto_driver_wrappers.c based on template files in
-   script/data_files/driver_templates/.
+   psa_crypto_driver_wrappers.h and psa_crypto_driver_wrappers_no_static
+   based on template files in script/data_files/driver_templates/.
 """
 # Copyright The Mbed TLS Contributors
-# SPDX-License-Identifier: Apache-2.0
-#
-# Licensed under the Apache License, Version 2.0 (the "License"); you may
-# not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
-# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+# SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
 
 import sys
 import os
@@ -28,7 +17,9 @@ from traceback import format_tb
 import argparse
 import jsonschema
 import jinja2
-from mbedtls_dev import build_tree
+
+import framework_scripts_path # pylint: disable=unused-import
+from mbedtls_framework import build_tree
 
 JSONSchema = NewType('JSONSchema', object)
 # The Driver is an Object, but practically it's indexable and can called a dictionary to
@@ -59,19 +50,19 @@ def render(template_path: str, driver_jsoncontext: list) -> str:
 
     return template.render(drivers=driver_jsoncontext)
 
-
 def generate_driver_wrapper_file(template_dir: str,
                                  output_dir: str,
+                                 template_file_name: str,
                                  driver_jsoncontext: list) -> None:
     """
     Generate the file psa_crypto_driver_wrapper.c.
     """
     driver_wrapper_template_filename = \
-        os.path.join(template_dir, "psa_crypto_driver_wrappers.c.jinja")
+        os.path.join(template_dir, template_file_name)
 
     result = render(driver_wrapper_template_filename, driver_jsoncontext)
 
-    with open(file=os.path.join(output_dir, "psa_crypto_driver_wrappers.c"),
+    with open(file=os.path.join(output_dir, os.path.splitext(template_file_name)[0]),
               mode='w',
               encoding='UTF-8') as out_file:
         out_file.write(result)
@@ -119,17 +110,17 @@ def load_driver(schemas: Dict[str, Any], driver_file: str) -> Any:
         return json_data
 
 
-def load_schemas(mbedtls_root: str) -> Dict[str, Any]:
+def load_schemas(project_root: str) -> Dict[str, Any]:
     """
     Load schemas map
     """
     schema_file_paths = {
-        'transparent': os.path.join(mbedtls_root,
+        'transparent': os.path.join(project_root,
                                     'scripts',
                                     'data_files',
                                     'driver_jsons',
                                     'driver_transparent_schema.json'),
-        'opaque': os.path.join(mbedtls_root,
+        'opaque': os.path.join(project_root,
                                'scripts',
                                'data_files',
                                'driver_jsons',
@@ -142,13 +133,13 @@ def load_schemas(mbedtls_root: str) -> Dict[str, Any]:
     return driver_schema
 
 
-def read_driver_descriptions(mbedtls_root: str,
+def read_driver_descriptions(project_root: str,
                              json_directory: str,
                              jsondriver_list: str) -> list:
     """
     Merge driver JSON files into a single ordered JSON after validation.
     """
-    driver_schema = load_schemas(mbedtls_root)
+    driver_schema = load_schemas(project_root)
 
     with open(file=os.path.join(json_directory, jsondriver_list),
               mode='r',
@@ -167,15 +158,18 @@ def trace_exception(e: Exception, file=sys.stderr) -> None:
     ), file)
 
 
+TEMPLATE_FILENAMES = ["psa_crypto_driver_wrappers.h.jinja",
+                      "psa_crypto_driver_wrappers_no_static.c.jinja"]
+
 def main() -> int:
     """
     Main with command line arguments.
     """
-    def_arg_mbedtls_root = build_tree.guess_mbedtls_root()
+    def_arg_project_root = build_tree.guess_project_root()
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--mbedtls-root', default=def_arg_mbedtls_root,
-                        help='root directory of mbedtls source code')
+    parser.add_argument('--project-root', default=def_arg_project_root,
+                        help='root directory of repo source code')
     parser.add_argument('--template-dir',
                         help='directory holding the driver templates')
     parser.add_argument('--json-dir',
@@ -184,30 +178,35 @@ def main() -> int:
                         help='output file\'s location')
     args = parser.parse_args()
 
-    mbedtls_root = os.path.abspath(args.mbedtls_root)
+    project_root = os.path.abspath(args.project_root)
+
+    crypto_core_directory = build_tree.crypto_core_directory(project_root)
 
     output_directory = args.output_directory if args.output_directory is not None else \
-        os.path.join(mbedtls_root, 'library')
+        crypto_core_directory
+
     template_directory = args.template_dir if args.template_dir is not None else \
-        os.path.join(mbedtls_root,
+        os.path.join(project_root,
                      'scripts',
                      'data_files',
                      'driver_templates')
     json_directory = args.json_dir if args.json_dir is not None else \
-        os.path.join(mbedtls_root,
+        os.path.join(project_root,
                      'scripts',
                      'data_files',
                      'driver_jsons')
 
     try:
         # Read and validate list of driver jsons from driverlist.json
-        merged_driver_json = read_driver_descriptions(mbedtls_root,
+        merged_driver_json = read_driver_descriptions(project_root,
                                                       json_directory,
                                                       'driverlist.json')
     except DriverReaderException as e:
         trace_exception(e)
         return 1
-    generate_driver_wrapper_file(template_directory, output_directory, merged_driver_json)
+    for template_filename in TEMPLATE_FILENAMES:
+        generate_driver_wrapper_file(template_directory, output_directory,
+                                     template_filename, merged_driver_json)
     return 0
 
 

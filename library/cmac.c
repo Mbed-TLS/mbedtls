@@ -4,19 +4,7 @@
  * \brief NIST SP800-38B compliant CMAC implementation for AES and 3DES
  *
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
 /*
@@ -46,6 +34,7 @@
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
 #include "mbedtls/platform.h"
+#include "constant_time_internal.h"
 
 #include <string.h>
 
@@ -68,39 +57,33 @@ static int cmac_multiply_by_u(unsigned char *output,
                               size_t blocksize)
 {
     const unsigned char R_128 = 0x87;
-    const unsigned char R_64 = 0x1B;
-    unsigned char R_n, mask;
-    unsigned char overflow = 0x00;
+    unsigned char R_n;
+    uint32_t overflow = 0x00;
     int i;
 
     if (blocksize == MBEDTLS_AES_BLOCK_SIZE) {
         R_n = R_128;
-    } else if (blocksize == MBEDTLS_DES3_BLOCK_SIZE) {
+    }
+#if defined(MBEDTLS_DES_C)
+    else if (blocksize == MBEDTLS_DES3_BLOCK_SIZE) {
+        const unsigned char R_64 = 0x1B;
         R_n = R_64;
-    } else {
+    }
+#endif
+    else {
         return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
     }
 
-    for (i = (int) blocksize - 1; i >= 0; i--) {
-        output[i] = input[i] << 1 | overflow;
-        overflow = input[i] >> 7;
+    for (i = (int) blocksize - 4; i >= 0; i -= 4) {
+        uint32_t i32 = MBEDTLS_GET_UINT32_BE(&input[i], 0);
+        uint32_t new_overflow = i32 >> 31;
+        i32 = (i32 << 1) | overflow;
+        MBEDTLS_PUT_UINT32_BE(i32, &output[i], 0);
+        overflow = new_overflow;
     }
 
-    /* mask = ( input[0] >> 7 ) ? 0xff : 0x00
-     * using bit operations to avoid branches */
-
-    /* MSVC has a warning about unary minus on unsigned, but this is
-     * well-defined and precisely what we want to do here */
-#if defined(_MSC_VER)
-#pragma warning( push )
-#pragma warning( disable : 4146 )
-#endif
-    mask = -(input[0] >> 7);
-#if defined(_MSC_VER)
-#pragma warning( pop )
-#endif
-
-    output[blocksize - 1] ^= R_n & mask;
+    R_n = (unsigned char) mbedtls_ct_uint_if_else_0(mbedtls_ct_bool(input[0] >> 7), R_n);
+    output[blocksize - 1] ^= R_n;
 
     return 0;
 }
@@ -114,7 +97,7 @@ static int cmac_generate_subkeys(mbedtls_cipher_context_t *ctx,
                                  unsigned char *K1, unsigned char *K2)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    unsigned char L[MBEDTLS_CIPHER_BLKSIZE_MAX];
+    unsigned char L[MBEDTLS_CMAC_MAX_BLOCK_SIZE];
     size_t olen, block_size;
 
     mbedtls_platform_zeroize(L, sizeof(L));
@@ -152,7 +135,7 @@ exit:
  * We can't use the padding option from the cipher layer, as it only works for
  * CBC and we use ECB mode, and anyway we need to XOR K1 or K2 in addition.
  */
-static void cmac_pad(unsigned char padded_block[MBEDTLS_CIPHER_BLKSIZE_MAX],
+static void cmac_pad(unsigned char padded_block[MBEDTLS_CMAC_MAX_BLOCK_SIZE],
                      size_t padded_block_len,
                      const unsigned char *last_block,
                      size_t last_block_len)
@@ -229,6 +212,10 @@ int mbedtls_cipher_cmac_update(mbedtls_cipher_context_t *ctx,
     block_size = mbedtls_cipher_info_get_block_size(ctx->cipher_info);
     state = ctx->cmac_ctx->state;
 
+    /* Without the MBEDTLS_ASSUME below, gcc -O3 will generate a warning of the form
+     * error: writing 16 bytes into a region of size 0 [-Werror=stringop-overflow=] */
+    MBEDTLS_ASSUME(block_size <= MBEDTLS_CMAC_MAX_BLOCK_SIZE);
+
     /* Is there data still to process from the last call, that's greater in
      * size than a block? */
     if (cmac_ctx->unprocessed_len > 0 &&
@@ -283,9 +270,9 @@ int mbedtls_cipher_cmac_finish(mbedtls_cipher_context_t *ctx,
 {
     mbedtls_cmac_context_t *cmac_ctx;
     unsigned char *state, *last_block;
-    unsigned char K1[MBEDTLS_CIPHER_BLKSIZE_MAX];
-    unsigned char K2[MBEDTLS_CIPHER_BLKSIZE_MAX];
-    unsigned char M_last[MBEDTLS_CIPHER_BLKSIZE_MAX];
+    unsigned char K1[MBEDTLS_CMAC_MAX_BLOCK_SIZE];
+    unsigned char K2[MBEDTLS_CMAC_MAX_BLOCK_SIZE];
+    unsigned char M_last[MBEDTLS_CMAC_MAX_BLOCK_SIZE];
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t olen, block_size;
 
@@ -296,6 +283,7 @@ int mbedtls_cipher_cmac_finish(mbedtls_cipher_context_t *ctx,
 
     cmac_ctx = ctx->cmac_ctx;
     block_size = mbedtls_cipher_info_get_block_size(ctx->cipher_info);
+    MBEDTLS_ASSUME(block_size <= MBEDTLS_CMAC_MAX_BLOCK_SIZE); // silence GCC warning
     state = cmac_ctx->state;
 
     mbedtls_platform_zeroize(K1, sizeof(K1));
@@ -332,7 +320,7 @@ exit:
     mbedtls_platform_zeroize(cmac_ctx->unprocessed_block,
                              sizeof(cmac_ctx->unprocessed_block));
 
-    mbedtls_platform_zeroize(state, MBEDTLS_CIPHER_BLKSIZE_MAX);
+    mbedtls_platform_zeroize(state, MBEDTLS_CMAC_MAX_BLOCK_SIZE);
     return ret;
 }
 
@@ -750,8 +738,8 @@ static int cmac_test_subkeys(int verbose,
     int i, ret = 0;
     mbedtls_cipher_context_t ctx;
     const mbedtls_cipher_info_t *cipher_info;
-    unsigned char K1[MBEDTLS_CIPHER_BLKSIZE_MAX];
-    unsigned char K2[MBEDTLS_CIPHER_BLKSIZE_MAX];
+    unsigned char K1[MBEDTLS_CMAC_MAX_BLOCK_SIZE];
+    unsigned char K2[MBEDTLS_CMAC_MAX_BLOCK_SIZE];
 
     cipher_info = mbedtls_cipher_info_from_type(cipher_type);
     if (cipher_info == NULL) {
@@ -845,7 +833,7 @@ static int cmac_test_wth_cipher(int verbose,
 {
     const mbedtls_cipher_info_t *cipher_info;
     int i, ret = 0;
-    unsigned char output[MBEDTLS_CIPHER_BLKSIZE_MAX];
+    unsigned char output[MBEDTLS_CMAC_MAX_BLOCK_SIZE];
 
     cipher_info = mbedtls_cipher_info_from_type(cipher_type);
     if (cipher_info == NULL) {

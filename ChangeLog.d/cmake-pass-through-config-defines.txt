@@ -1,3 +1,0 @@
-Features
-   * Allow MBEDTLS_CONFIG_FILE and MBEDTLS_USER_CONFIG_FILE to be set by
-     setting the CMake variable of the same name at configuration time.

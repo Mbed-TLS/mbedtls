@@ -1,2 +1,0 @@
-Bugfix
-   * Fix log level for the got supported group message. Fixes #6765

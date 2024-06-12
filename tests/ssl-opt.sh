@@ -3,19 +3,7 @@
 # ssl-opt.sh
 #
 # Copyright The Mbed TLS Contributors
-# SPDX-License-Identifier: Apache-2.0
-#
-# Licensed under the Apache License, Version 2.0 (the "License"); you may
-# not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
-# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+# SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
 #
 # Purpose
 #
@@ -72,6 +60,7 @@ guess_config_name() {
 : ${MBEDTLS_TEST_OUTCOME_FILE=}
 : ${MBEDTLS_TEST_CONFIGURATION:="$(guess_config_name)"}
 : ${MBEDTLS_TEST_PLATFORM:="$(uname -s | tr -c \\n0-9A-Za-z _)-$(uname -m | tr -c \\n0-9A-Za-z _)"}
+: ${EARLY_DATA_INPUT:=data_files/tls13_early_data.txt}
 
 O_SRV="$OPENSSL s_server -www -cert data_files/server5.crt -key data_files/server5.key"
 O_CLI="echo 'GET / HTTP/1.0' | $OPENSSL s_client"
@@ -81,12 +70,30 @@ TCP_CLIENT="$PERL scripts/tcp_client.pl"
 
 # alternative versions of OpenSSL and GnuTLS (no default path)
 
-if [ -n "${OPENSSL_LEGACY:-}" ]; then
-    O_LEGACY_SRV="$OPENSSL_LEGACY s_server -www -cert data_files/server5.crt -key data_files/server5.key"
-    O_LEGACY_CLI="echo 'GET / HTTP/1.0' | $OPENSSL_LEGACY s_client"
-else
-    O_LEGACY_SRV=false
-    O_LEGACY_CLI=false
+# If $OPENSSL is at least 1.1.1, use it as OPENSSL_NEXT as well.
+if [ -z "${OPENSSL_NEXT:-}" ]; then
+    case $($OPENSSL version) in
+        OpenSSL\ 1.1.[1-9]*) OPENSSL_NEXT=$OPENSSL;;
+        OpenSSL\ [3-9]*) OPENSSL_NEXT=$OPENSSL;;
+    esac
+fi
+
+# If $GNUTLS_CLI is at least 3.7, use it as GNUTLS_NEXT_CLI as well.
+if [ -z "${GNUTLS_NEXT_CLI:-}" ]; then
+    case $($GNUTLS_CLI --version) in
+        gnutls-cli\ 3.[1-9][0-9]*) GNUTLS_NEXT_CLI=$GNUTLS_CLI;;
+        gnutls-cli\ 3.[7-9].*) GNUTLS_NEXT_CLI=$GNUTLS_CLI;;
+        gnutls-cli\ [4-9]*) GNUTLS_NEXT_CLI=$GNUTLS_CLI;;
+    esac
+fi
+
+# If $GNUTLS_SERV is at least 3.7, use it as GNUTLS_NEXT_SERV as well.
+if [ -z "${GNUTLS_NEXT_SERV:-}" ]; then
+    case $($GNUTLS_SERV --version) in
+        gnutls-cli\ 3.[1-9][0-9]*) GNUTLS_NEXT_SERV=$GNUTLS_SERV;;
+        gnutls-cli\ 3.[7-9].*) GNUTLS_NEXT_SERV=$GNUTLS_SERV;;
+        gnutls-cli\ [4-9]*) GNUTLS_NEXT_SERV=$GNUTLS_SERV;;
+    esac
 fi
 
 if [ -n "${OPENSSL_NEXT:-}" ]; then
@@ -130,8 +137,11 @@ FILTER='.*'
 EXCLUDE='^$'
 
 SHOW_TEST_NUMBER=0
+LIST_TESTS=0
 RUN_TEST_NUMBER=''
+RUN_TEST_SUITE=''
 
+MIN_TESTS=1
 PRESERVE_LOGS=0
 
 # Pick a "unique" server port in the range 10000-19999, and a proxy
@@ -149,11 +159,15 @@ print_usage() {
     printf "  -n|--number\tExecute only numbered test (comma-separated, e.g. '245,256')\n"
     printf "  -s|--show-numbers\tShow test numbers in front of test names\n"
     printf "  -p|--preserve-logs\tPreserve logs of successful tests as well\n"
+    printf "     --list-test-cases\tList all potential test cases (No Execution)\n"
+    printf "     --min      \tMinimum number of non-skipped tests (default 1)\n"
     printf "     --outcome-file\tFile where test outcomes are written\n"
     printf "                \t(default: \$MBEDTLS_TEST_OUTCOME_FILE, none if empty)\n"
     printf "     --port     \tTCP/UDP port (default: randomish 1xxxx)\n"
     printf "     --proxy-port\tTCP/UDP proxy port (default: randomish 2xxxx)\n"
     printf "     --seed     \tInteger seed value to use for this test run\n"
+    printf "     --test-suite\tOnly matching test suites are executed\n"
+    printf "                 \t(comma-separated, e.g. 'ssl-opt,tls13-compat')\n\n"
 }
 
 get_options() {
@@ -174,8 +188,14 @@ get_options() {
             -s|--show-numbers)
                 SHOW_TEST_NUMBER=1
                 ;;
+            -l|--list-test-cases)
+                LIST_TESTS=1
+                ;;
             -p|--preserve-logs)
                 PRESERVE_LOGS=1
+                ;;
+            --min)
+                shift; MIN_TESTS=$1
                 ;;
             --outcome-file)
                 shift; MBEDTLS_TEST_OUTCOME_FILE=$1
@@ -188,6 +208,9 @@ get_options() {
                 ;;
             --seed)
                 shift; SEED="$1"
+                ;;
+            --test-suite)
+                shift; RUN_TEST_SUITE="$1"
                 ;;
             -h|--help)
                 print_usage
@@ -203,11 +226,18 @@ get_options() {
     done
 }
 
+get_options "$@"
+
 # Read boolean configuration options from mbedtls_config.h for easy and quick
 # testing. Skip non-boolean options (with something other than spaces
 # and a comment after "#define SYMBOL"). The variable contains a
 # space-separated list of symbols.
-CONFIGS_ENABLED=" $(echo `$P_QUERY -l` )"
+if [ "$LIST_TESTS" -eq 0 ];then
+    CONFIGS_ENABLED=" $(echo `$P_QUERY -l` )"
+else
+    P_QUERY=":"
+    CONFIGS_ENABLED=""
+fi
 # Skip next test; use this macro to skip tests which are legitimate
 # in theory and expected to be re-introduced at some point, but
 # aren't expected to succeed at the moment due to problems outside
@@ -241,28 +271,28 @@ requires_config_disabled() {
 }
 
 requires_all_configs_enabled() {
-    if ! $P_QUERY -all $*
+    if ! $P_QUERY -all $* 2>&1 > /dev/null
     then
         SKIP_NEXT="YES"
     fi
 }
 
 requires_all_configs_disabled() {
-    if $P_QUERY -any $*
+    if $P_QUERY -any $* 2>&1 > /dev/null
     then
         SKIP_NEXT="YES"
     fi
 }
 
 requires_any_configs_enabled() {
-    if ! $P_QUERY -any $*
+    if ! $P_QUERY -any $* 2>&1 > /dev/null
     then
         SKIP_NEXT="YES"
     fi
 }
 
 requires_any_configs_disabled() {
-    if $P_QUERY -all $*
+    if $P_QUERY -all $* 2>&1 > /dev/null
     then
         SKIP_NEXT="YES"
     fi
@@ -303,7 +333,12 @@ get_config_value_or_default() {
     #
     # Note that if the configuration is not defined or is defined to nothing,
     # the output of this function will be an empty string.
-    ${P_SRV} "query_config=${1}"
+    if [ "$LIST_TESTS" -eq 0 ];then
+        ${P_SRV} "query_config=${1}"
+    else
+        echo "1"
+    fi
+
 }
 
 requires_config_value_at_least() {
@@ -354,14 +389,51 @@ requires_protocol_version() {
 
 # Space-separated list of ciphersuites supported by this build of
 # Mbed TLS.
-P_CIPHERSUITES=" $($P_CLI --help 2>/dev/null |
-                   grep 'TLS-\|TLS1-3' |
-                   tr -s ' \n' ' ')"
+P_CIPHERSUITES=""
+if [ "$LIST_TESTS" -eq 0 ]; then
+    P_CIPHERSUITES=" $($P_CLI help_ciphersuites 2>/dev/null |
+                       grep 'TLS-\|TLS1-3' |
+                       tr -s ' \n' ' ')"
+
+    if [ -z "${P_CIPHERSUITES# }" ]; then
+        echo >&2 "$0: fatal error: no cipher suites found!"
+        exit 125
+    fi
+fi
+
 requires_ciphersuite_enabled() {
     case $P_CIPHERSUITES in
         *" $1 "*) :;;
         *) SKIP_NEXT="YES";;
     esac
+}
+
+requires_cipher_enabled() {
+    KEY_TYPE=$1
+    MODE=${2:-}
+    if is_config_enabled MBEDTLS_USE_PSA_CRYPTO; then
+        case "$KEY_TYPE" in
+            CHACHA20)
+                requires_config_enabled PSA_WANT_ALG_CHACHA20_POLY1305
+                requires_config_enabled PSA_WANT_KEY_TYPE_CHACHA20
+                ;;
+            *)
+                requires_config_enabled PSA_WANT_ALG_${MODE}
+                requires_config_enabled PSA_WANT_KEY_TYPE_${KEY_TYPE}
+                ;;
+        esac
+    else
+        case "$KEY_TYPE" in
+            CHACHA20)
+                requires_config_enabled MBEDTLS_CHACHA20_C
+                requires_config_enabled MBEDTLS_CHACHAPOLY_C
+                ;;
+            *)
+                requires_config_enabled MBEDTLS_${MODE}_C
+                requires_config_enabled MBEDTLS_${KEY_TYPE}_C
+                ;;
+        esac
+    fi
 }
 
 # Automatically detect required features based on command line parameters.
@@ -402,9 +474,9 @@ detect_required_features() {
     esac
 
     case "$CMD_LINE" in
-        *server5*|\
-        *server7*|\
-        *dir-maxpath*)
+        */server5*|\
+        */server7*|\
+        */dir-maxpath*)
             if [ "$TLS_VERSION" = "TLS13" ]; then
                 # In case of TLS13 the support for ECDSA is enough
                 requires_pk_alg "ECDSA"
@@ -436,9 +508,15 @@ detect_required_features() {
     esac
 
     case "$CMD_LINE" in
-        *server2*|\
-        *server7*)
-            # server2 and server7 certificates use RSA encryption
+        */server1*|\
+        */server2*|\
+        */server7*)
+            # Certificates with an RSA key. The algorithm requirement is
+            # some subset of {PKCS#1v1.5 encryption, PKCS#1v1.5 signature,
+            # PSS signature}. We can't easily tell which subset works, and
+            # we aren't currently running ssl-opt.sh in configurations
+            # where partial RSA support is a problem, so generically, we
+            # just require RSA and it works out for our tests so far.
             requires_config_enabled "MBEDTLS_RSA_C"
     esac
 
@@ -453,9 +531,10 @@ requires_certificate_authentication () {
 
 adapt_cmd_for_psk () {
     case "$2" in
-        *openssl*) s='-psk abc123 -nocert';;
-        *gnutls-*) s='--pskkey=abc123';;
-        *) s='psk=abc123';;
+        *openssl*s_server*) s='-psk 73776f726466697368 -nocert';;
+        *openssl*) s='-psk 73776f726466697368';;
+        *gnutls-*) s='--pskusername=Client_identity --pskkey=73776f726466697368';;
+        *) s='psk=73776f726466697368';;
     esac
     eval $1='"$2 $s"'
     unset s
@@ -644,20 +723,6 @@ requires_gnutls_next() {
     fi
 }
 
-# skip next test if OpenSSL-legacy isn't available
-requires_openssl_legacy() {
-    if [ -z "${OPENSSL_LEGACY_AVAILABLE:-}" ]; then
-        if which "${OPENSSL_LEGACY:-}" >/dev/null 2>&1; then
-            OPENSSL_LEGACY_AVAILABLE="YES"
-        else
-            OPENSSL_LEGACY_AVAILABLE="NO"
-        fi
-    fi
-    if [ "$OPENSSL_LEGACY_AVAILABLE" = "NO" ]; then
-        SKIP_NEXT="YES"
-    fi
-}
-
 requires_openssl_next() {
     if [ -z "${OPENSSL_NEXT_AVAILABLE:-}" ]; then
         if which "${OPENSSL_NEXT:-}" >/dev/null 2>&1; then
@@ -828,19 +893,20 @@ requires_not_i686() {
     fi
 }
 
-# Calculate the input & output maximum content lengths set in the config
 MAX_CONTENT_LEN=16384
 MAX_IN_LEN=$( get_config_value_or_default "MBEDTLS_SSL_IN_CONTENT_LEN" )
 MAX_OUT_LEN=$( get_config_value_or_default "MBEDTLS_SSL_OUT_CONTENT_LEN" )
+if [ "$LIST_TESTS" -eq 0 ];then
+    # Calculate the input & output maximum content lengths set in the config
 
-# Calculate the maximum content length that fits both
-if [ "$MAX_IN_LEN" -lt "$MAX_CONTENT_LEN" ]; then
-    MAX_CONTENT_LEN="$MAX_IN_LEN"
+    # Calculate the maximum content length that fits both
+    if [ "$MAX_IN_LEN" -lt "$MAX_CONTENT_LEN" ]; then
+        MAX_CONTENT_LEN="$MAX_IN_LEN"
+    fi
+    if [ "$MAX_OUT_LEN" -lt "$MAX_CONTENT_LEN" ]; then
+        MAX_CONTENT_LEN="$MAX_OUT_LEN"
+    fi
 fi
-if [ "$MAX_OUT_LEN" -lt "$MAX_CONTENT_LEN" ]; then
-    MAX_CONTENT_LEN="$MAX_OUT_LEN"
-fi
-
 # skip the next test if the SSL output buffer is less than 16KB
 requires_full_size_output_buffer() {
     if [ "$MAX_OUT_LEN" -ne 16384 ]; then
@@ -882,6 +948,7 @@ print_name() {
     fi
 
     LINE="$LINE$1"
+
     printf "%s " "$LINE"
     LEN=$(( 72 - `echo "$LINE" | wc -c` ))
     for i in `seq 1 $LEN`; do printf '.'; done
@@ -1527,7 +1594,7 @@ do_run_test_once() {
 # $1 and $2 contain the server and client command lines, respectively.
 #
 # Note: this function only provides some guess about TLS version by simply
-#       looking at the server/client command lines. Even thought this works
+#       looking at the server/client command lines. Even though this works
 #       for the sake of tests' filtering (especially in conjunction with the
 #       detect_required_features() function), it does NOT guarantee that the
 #       result is accurate. It does not check other conditions, such as:
@@ -1599,6 +1666,18 @@ run_test() {
         return
     fi
 
+    if [ "$LIST_TESTS" -gt 0 ]; then
+        printf "%s\n" "${TEST_SUITE_NAME:-ssl-opt};$NAME"
+        return
+    fi
+
+    # Use ssl-opt as default test suite name. Also see record_outcome function
+    if is_excluded_test_suite "${TEST_SUITE_NAME:-ssl-opt}"; then
+        # Do not skip next test and skip current test.
+        SKIP_NEXT="NO"
+        return
+    fi
+
     print_name "$NAME"
 
     # Do we only run numbered tests?
@@ -1635,13 +1714,18 @@ run_test() {
         requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
     fi
 
-    # If the client or server requires certain features that can be detected
-    # from their command-line arguments, check that they're enabled.
-    TLS_VERSION=$(get_tls_version "$SRV_CMD" "$CLI_CMD")
-
-    # Check if we are trying to use an external tool wich does not support ECDH
+    # Check if we are trying to use an external tool which does not support ECDH
     EXT_WO_ECDH=$(use_ext_tool_without_ecdh_support "$SRV_CMD" "$CLI_CMD")
 
+    # Guess the TLS version which is going to be used
+    if [ "$EXT_WO_ECDH" = "no" ]; then
+        TLS_VERSION=$(get_tls_version "$SRV_CMD" "$CLI_CMD")
+    else
+        TLS_VERSION="TLS12"
+    fi
+
+    # If the client or server requires certain features that can be detected
+    # from their command-line arguments, check whether they're enabled.
     detect_required_features "$SRV_CMD" "server" "$TLS_VERSION" "$EXT_WO_ECDH" "$@"
     detect_required_features "$CLI_CMD" "client" "$TLS_VERSION" "$EXT_WO_ECDH" "$@"
 
@@ -1791,8 +1875,6 @@ cleanup() {
 # MAIN
 #
 
-get_options "$@"
-
 # Make the outcome file path relative to the original directory, not
 # to .../tests
 case "$MBEDTLS_TEST_OUTCOME_FILE" in
@@ -1843,114 +1925,127 @@ else
     }
 fi
 
-# sanity checks, avoid an avalanche of errors
-P_SRV_BIN="${P_SRV%%[  ]*}"
-P_CLI_BIN="${P_CLI%%[  ]*}"
-P_PXY_BIN="${P_PXY%%[  ]*}"
-if [ ! -x "$P_SRV_BIN" ]; then
-    echo "Command '$P_SRV_BIN' is not an executable file"
-    exit 1
-fi
-if [ ! -x "$P_CLI_BIN" ]; then
-    echo "Command '$P_CLI_BIN' is not an executable file"
-    exit 1
-fi
-if [ ! -x "$P_PXY_BIN" ]; then
-    echo "Command '$P_PXY_BIN' is not an executable file"
-    exit 1
-fi
-if [ "$MEMCHECK" -gt 0 ]; then
-    if which valgrind >/dev/null 2>&1; then :; else
-        echo "Memcheck not possible. Valgrind not found"
+# Filter tests according to TEST_SUITE_NAME
+is_excluded_test_suite () {
+    if [ -n "$RUN_TEST_SUITE" ]
+    then
+        case ",$RUN_TEST_SUITE," in
+            *",$1,"*) false;;
+            *) true;;
+        esac
+    else
+        false
+    fi
+
+}
+
+
+if [ "$LIST_TESTS" -eq 0 ];then
+
+    # sanity checks, avoid an avalanche of errors
+    P_SRV_BIN="${P_SRV%%[  ]*}"
+    P_CLI_BIN="${P_CLI%%[  ]*}"
+    P_PXY_BIN="${P_PXY%%[  ]*}"
+    if [ ! -x "$P_SRV_BIN" ]; then
+        echo "Command '$P_SRV_BIN' is not an executable file"
         exit 1
     fi
+    if [ ! -x "$P_CLI_BIN" ]; then
+        echo "Command '$P_CLI_BIN' is not an executable file"
+        exit 1
+    fi
+    if [ ! -x "$P_PXY_BIN" ]; then
+        echo "Command '$P_PXY_BIN' is not an executable file"
+        exit 1
+    fi
+    if [ "$MEMCHECK" -gt 0 ]; then
+        if which valgrind >/dev/null 2>&1; then :; else
+            echo "Memcheck not possible. Valgrind not found"
+            exit 1
+        fi
+    fi
+    if which $OPENSSL >/dev/null 2>&1; then :; else
+        echo "Command '$OPENSSL' not found"
+        exit 1
+    fi
+
+    # used by watchdog
+    MAIN_PID="$$"
+
+    # We use somewhat arbitrary delays for tests:
+    # - how long do we wait for the server to start (when lsof not available)?
+    # - how long do we allow for the client to finish?
+    #   (not to check performance, just to avoid waiting indefinitely)
+    # Things are slower with valgrind, so give extra time here.
+    #
+    # Note: without lsof, there is a trade-off between the running time of this
+    # script and the risk of spurious errors because we didn't wait long enough.
+    # The watchdog delay on the other hand doesn't affect normal running time of
+    # the script, only the case where a client or server gets stuck.
+    if [ "$MEMCHECK" -gt 0 ]; then
+        START_DELAY=6
+        DOG_DELAY=60
+    else
+        START_DELAY=2
+        DOG_DELAY=20
+    fi
+
+    # some particular tests need more time:
+    # - for the client, we multiply the usual watchdog limit by a factor
+    # - for the server, we sleep for a number of seconds after the client exits
+    # see client_need_more_time() and server_needs_more_time()
+    CLI_DELAY_FACTOR=1
+    SRV_DELAY_SECONDS=0
+
+    # fix commands to use this port, force IPv4 while at it
+    # +SRV_PORT will be replaced by either $SRV_PORT or $PXY_PORT later
+    # Note: Using 'localhost' rather than 127.0.0.1 here is unwise, as on many
+    # machines that will resolve to ::1, and we don't want ipv6 here.
+    P_SRV="$P_SRV server_addr=127.0.0.1 server_port=$SRV_PORT"
+    P_CLI="$P_CLI server_addr=127.0.0.1 server_port=+SRV_PORT"
+    P_PXY="$P_PXY server_addr=127.0.0.1 server_port=$SRV_PORT listen_addr=127.0.0.1 listen_port=$PXY_PORT ${SEED:+"seed=$SEED"}"
+    O_SRV="$O_SRV -accept $SRV_PORT"
+    O_CLI="$O_CLI -connect 127.0.0.1:+SRV_PORT"
+    G_SRV="$G_SRV -p $SRV_PORT"
+    G_CLI="$G_CLI -p +SRV_PORT"
+
+    # Newer versions of OpenSSL have a syntax to enable all "ciphers", even
+    # low-security ones. This covers not just cipher suites but also protocol
+    # versions. It is necessary, for example, to use (D)TLS 1.0/1.1 on
+    # OpenSSL 1.1.1f from Ubuntu 20.04. The syntax was only introduced in
+    # OpenSSL 1.1.0 (21e0c1d23afff48601eb93135defddae51f7e2e3) and I can't find
+    # a way to discover it from -help, so check the openssl version.
+    case $($OPENSSL version) in
+        "OpenSSL 0"*|"OpenSSL 1.0"*) :;;
+        *)
+            O_CLI="$O_CLI -cipher ALL@SECLEVEL=0"
+            O_SRV="$O_SRV -cipher ALL@SECLEVEL=0"
+            ;;
+    esac
+
+    if [ -n "${OPENSSL_NEXT:-}" ]; then
+        O_NEXT_SRV="$O_NEXT_SRV -accept $SRV_PORT"
+        O_NEXT_SRV_NO_CERT="$O_NEXT_SRV_NO_CERT -accept $SRV_PORT"
+        O_NEXT_SRV_EARLY_DATA="$O_NEXT_SRV_EARLY_DATA -accept $SRV_PORT"
+        O_NEXT_CLI="$O_NEXT_CLI -connect 127.0.0.1:+SRV_PORT"
+        O_NEXT_CLI_NO_CERT="$O_NEXT_CLI_NO_CERT -connect 127.0.0.1:+SRV_PORT"
+    fi
+
+    if [ -n "${GNUTLS_NEXT_SERV:-}" ]; then
+        G_NEXT_SRV="$G_NEXT_SRV -p $SRV_PORT"
+        G_NEXT_SRV_NO_CERT="$G_NEXT_SRV_NO_CERT -p $SRV_PORT"
+    fi
+
+    if [ -n "${GNUTLS_NEXT_CLI:-}" ]; then
+        G_NEXT_CLI="$G_NEXT_CLI -p +SRV_PORT"
+        G_NEXT_CLI_NO_CERT="$G_NEXT_CLI_NO_CERT -p +SRV_PORT localhost"
+    fi
+
+    # Allow SHA-1, because many of our test certificates use it
+    P_SRV="$P_SRV allow_sha1=1"
+    P_CLI="$P_CLI allow_sha1=1"
+
 fi
-if which $OPENSSL >/dev/null 2>&1; then :; else
-    echo "Command '$OPENSSL' not found"
-    exit 1
-fi
-
-# used by watchdog
-MAIN_PID="$$"
-
-# We use somewhat arbitrary delays for tests:
-# - how long do we wait for the server to start (when lsof not available)?
-# - how long do we allow for the client to finish?
-#   (not to check performance, just to avoid waiting indefinitely)
-# Things are slower with valgrind, so give extra time here.
-#
-# Note: without lsof, there is a trade-off between the running time of this
-# script and the risk of spurious errors because we didn't wait long enough.
-# The watchdog delay on the other hand doesn't affect normal running time of
-# the script, only the case where a client or server gets stuck.
-if [ "$MEMCHECK" -gt 0 ]; then
-    START_DELAY=6
-    DOG_DELAY=60
-else
-    START_DELAY=2
-    DOG_DELAY=20
-fi
-
-# some particular tests need more time:
-# - for the client, we multiply the usual watchdog limit by a factor
-# - for the server, we sleep for a number of seconds after the client exits
-# see client_need_more_time() and server_needs_more_time()
-CLI_DELAY_FACTOR=1
-SRV_DELAY_SECONDS=0
-
-# fix commands to use this port, force IPv4 while at it
-# +SRV_PORT will be replaced by either $SRV_PORT or $PXY_PORT later
-# Note: Using 'localhost' rather than 127.0.0.1 here is unwise, as on many
-# machines that will resolve to ::1, and we don't want ipv6 here.
-P_SRV="$P_SRV server_addr=127.0.0.1 server_port=$SRV_PORT"
-P_CLI="$P_CLI server_addr=127.0.0.1 server_port=+SRV_PORT"
-P_PXY="$P_PXY server_addr=127.0.0.1 server_port=$SRV_PORT listen_addr=127.0.0.1 listen_port=$PXY_PORT ${SEED:+"seed=$SEED"}"
-O_SRV="$O_SRV -accept $SRV_PORT"
-O_CLI="$O_CLI -connect 127.0.0.1:+SRV_PORT"
-G_SRV="$G_SRV -p $SRV_PORT"
-G_CLI="$G_CLI -p +SRV_PORT"
-
-if [ -n "${OPENSSL_LEGACY:-}" ]; then
-    O_LEGACY_SRV="$O_LEGACY_SRV -accept $SRV_PORT -dhparam data_files/dhparams.pem"
-    O_LEGACY_CLI="$O_LEGACY_CLI -connect 127.0.0.1:+SRV_PORT"
-fi
-
-# Newer versions of OpenSSL have a syntax to enable all "ciphers", even
-# low-security ones. This covers not just cipher suites but also protocol
-# versions. It is necessary, for example, to use (D)TLS 1.0/1.1 on
-# OpenSSL 1.1.1f from Ubuntu 20.04. The syntax was only introduced in
-# OpenSSL 1.1.0 (21e0c1d23afff48601eb93135defddae51f7e2e3) and I can't find
-# a way to discover it from -help, so check the openssl version.
-case $($OPENSSL version) in
-    "OpenSSL 0"*|"OpenSSL 1.0"*) :;;
-    *)
-        O_CLI="$O_CLI -cipher ALL@SECLEVEL=0"
-        O_SRV="$O_SRV -cipher ALL@SECLEVEL=0"
-        ;;
-esac
-
-if [ -n "${OPENSSL_NEXT:-}" ]; then
-    O_NEXT_SRV="$O_NEXT_SRV -accept $SRV_PORT"
-    O_NEXT_SRV_NO_CERT="$O_NEXT_SRV_NO_CERT -accept $SRV_PORT"
-    O_NEXT_SRV_EARLY_DATA="$O_NEXT_SRV_EARLY_DATA -accept $SRV_PORT"
-    O_NEXT_CLI="$O_NEXT_CLI -connect 127.0.0.1:+SRV_PORT"
-    O_NEXT_CLI_NO_CERT="$O_NEXT_CLI_NO_CERT -connect 127.0.0.1:+SRV_PORT"
-fi
-
-if [ -n "${GNUTLS_NEXT_SERV:-}" ]; then
-    G_NEXT_SRV="$G_NEXT_SRV -p $SRV_PORT"
-    G_NEXT_SRV_NO_CERT="$G_NEXT_SRV_NO_CERT -p $SRV_PORT"
-fi
-
-if [ -n "${GNUTLS_NEXT_CLI:-}" ]; then
-    G_NEXT_CLI="$G_NEXT_CLI -p +SRV_PORT"
-    G_NEXT_CLI_NO_CERT="$G_NEXT_CLI_NO_CERT -p +SRV_PORT localhost"
-fi
-
-# Allow SHA-1, because many of our test certificates use it
-P_SRV="$P_SRV allow_sha1=1"
-P_CLI="$P_CLI allow_sha1=1"
-
 # Also pick a unique name for intermediate files
 SRV_OUT="srv_out.$$"
 CLI_OUT="cli_out.$$"
@@ -1968,7 +2063,8 @@ trap cleanup INT TERM HUP
 # - the expected parameters are selected
 requires_ciphersuite_enabled TLS-ECDHE-RSA-WITH-CHACHA20-POLY1305-SHA256
 requires_hash_alg SHA_512 # "signature_algorithm ext: 6"
-requires_config_enabled MBEDTLS_ECP_DP_CURVE25519_ENABLED
+requires_any_configs_enabled "MBEDTLS_ECP_DP_CURVE25519_ENABLED \
+                              PSA_WANT_ECC_MONTGOMERY_255"
 run_test    "Default, TLS 1.2" \
             "$P_SRV debug_level=3" \
             "$P_CLI force_version=tls12" \
@@ -1988,64 +2084,6 @@ run_test    "Default, DTLS" \
             0 \
             -s "Protocol is DTLSv1.2" \
             -s "Ciphersuite is TLS-ECDHE-RSA-WITH-CHACHA20-POLY1305-SHA256"
-
-# GnuTLS can be setup to send a ClientHello containing a supported versions
-# extension proposing TLS 1.2 (preferred) and then TLS 1.3. In that case,
-# a TLS 1.3 and TLS 1.2 capable server is supposed to negotiate TLS 1.2 and
-# to indicate in the ServerHello that it downgrades from TLS 1.3. The GnuTLS
-# client then detects the downgrade indication and aborts the handshake even
-# if TLS 1.2 was its preferred version. Keeping the test even if the
-# handshake fails eventually as it exercices parts of the Mbed TLS
-# implementation that are otherwise not exercised.
-requires_gnutls_tls1_3
-requires_config_enabled MBEDTLS_DEBUG_C
-requires_config_enabled MBEDTLS_SSL_SRV_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
-run_test    "Server selecting TLS 1.2 over TLS 1.3" \
-            "$P_SRV crt_file=data_files/server5.crt key_file=data_files/server5.key" \
-            "$G_NEXT_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.2:+VERS-TLS1.3" \
-            1 \
-            -c "Detected downgrade to TLS 1.2 from TLS 1.3"
-
-requires_gnutls_tls1_3
-requires_config_enabled MBEDTLS_DEBUG_C
-requires_config_enabled MBEDTLS_SSL_SRV_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_config_disabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
-run_test    "Server selecting TLS 1.2" \
-            "$P_SRV crt_file=data_files/server5.crt key_file=data_files/server5.key" \
-            "$G_NEXT_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.2:+VERS-TLS1.3" \
-            0 \
-            -s "Protocol is TLSv1.2" \
-            -c "HTTP/1.0 200 OK"
-
-requires_gnutls_tls1_3
-requires_config_enabled MBEDTLS_DEBUG_C
-requires_config_enabled MBEDTLS_SSL_SRV_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-run_test    "Server selecting TLS 1.3, over TLS 1.2 if supported" \
-            "$P_SRV crt_file=data_files/server5.crt key_file=data_files/server5.key" \
-            "$G_NEXT_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+VERS-TLS1.2:%DISABLE_TLS13_COMPAT_MODE" \
-            0 \
-            -s "Protocol is TLSv1.3" \
-            -c "HTTP/1.0 200 OK"
-
-requires_gnutls_tls1_3
-requires_config_enabled MBEDTLS_DEBUG_C
-requires_config_enabled MBEDTLS_SSL_SRV_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
-run_test    "Server selecting TLS 1.3, over TLS 1.2 if supported - compat mode enabled" \
-            "$P_SRV crt_file=data_files/server5.crt key_file=data_files/server5.key" \
-            "$G_NEXT_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+VERS-TLS1.2" \
-            0 \
-            -s "Protocol is TLSv1.3" \
-            -c "HTTP/1.0 200 OK"
 
 requires_key_exchange_with_cert_in_tls12_or_tls13_enabled
 run_test    "TLS client auth: required" \
@@ -2069,6 +2107,11 @@ run_test    "key size: TLS-ECDHE-ECDSA-WITH-AES-128-CCM-8" \
             -c "Key size is 128"
 
 requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
+requires_config_enabled MBEDTLS_MD_CAN_MD5
+# server5.key.enc is in PEM format and AES-256-CBC crypted. Unfortunately PEM
+# module does not support PSA dispatching so we need builtin support.
+requires_config_enabled MBEDTLS_CIPHER_MODE_CBC
+requires_config_enabled MBEDTLS_AES_C
 requires_hash_alg SHA_256
 run_test    "TLS: password protected client key" \
             "$P_SRV force_version=tls12 auth_mode=required" \
@@ -2076,6 +2119,11 @@ run_test    "TLS: password protected client key" \
             0
 
 requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
+requires_config_enabled MBEDTLS_MD_CAN_MD5
+# server5.key.enc is in PEM format and AES-256-CBC crypted. Unfortunately PEM
+# module does not support PSA dispatching so we need builtin support.
+requires_config_enabled MBEDTLS_CIPHER_MODE_CBC
+requires_config_enabled MBEDTLS_AES_C
 requires_hash_alg SHA_256
 run_test    "TLS: password protected server key" \
             "$P_SRV crt_file=data_files/server5.crt key_file=data_files/server5.key.enc key_pwd=PolarSSLTest" \
@@ -2084,6 +2132,11 @@ run_test    "TLS: password protected server key" \
 
 requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
 requires_config_enabled MBEDTLS_RSA_C
+requires_config_enabled MBEDTLS_MD_CAN_MD5
+# server5.key.enc is in PEM format and AES-256-CBC crypted. Unfortunately PEM
+# module does not support PSA dispatching so we need builtin support.
+requires_config_enabled MBEDTLS_CIPHER_MODE_CBC
+requires_config_enabled MBEDTLS_AES_C
 requires_hash_alg SHA_256
 run_test    "TLS: password protected server key, two certificates" \
             "$P_SRV force_version=tls12\
@@ -2268,7 +2321,6 @@ run_test    "Opaque key for server authentication: invalid alg: ecdh with RSA ke
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
 requires_hash_alg SHA_256
-requires_config_enabled MBEDTLS_CCM_C
 run_test    "Opaque key for server authentication: invalid alg: ECDHE-ECDSA with ecdh" \
             "$P_SRV key_opaque=1 crt_file=data_files/server5.crt \
              key_file=data_files/server5.key key_opaque_algs=ecdh,none \
@@ -2322,7 +2374,6 @@ run_test    "Opaque keys for server authentication: EC keys with different algs,
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
 requires_hash_alg SHA_384
-requires_config_enabled MBEDTLS_CCM_C
 requires_config_disabled MBEDTLS_X509_REMOVE_INFO
 run_test    "Opaque keys for server authentication: EC + RSA, force ECDHE-ECDSA" \
             "$P_SRV key_opaque=1 crt_file=data_files/server5.crt \
@@ -2436,9 +2487,9 @@ requires_config_enabled MBEDTLS_RSA_C
 requires_hash_alg SHA_256
 run_test    "Opaque key for server authentication: RSA-PSK" \
             "$P_SRV debug_level=1 key_opaque=1 key_opaque_algs=rsa-decrypt,none \
-             psk=abc123 psk_identity=foo" \
+             psk=73776f726466697368 psk_identity=foo" \
             "$P_CLI force_version=tls12 force_ciphersuite=TLS-RSA-PSK-WITH-AES-128-CBC-SHA256 \
-             psk=abc123 psk_identity=foo" \
+             psk=73776f726466697368 psk_identity=foo" \
             0 \
             -c "Verifying peer X.509 certificate... ok" \
             -c "Ciphersuite is TLS-RSA-PSK-" \
@@ -2502,7 +2553,6 @@ requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
 requires_config_enabled MBEDTLS_RSA_C
 requires_hash_alg SHA_384
-requires_config_enabled MBEDTLS_GCM_C
 requires_config_disabled MBEDTLS_X509_REMOVE_INFO
 run_test    "Opaque keys for server authentication: EC + RSA, force DHE-RSA" \
             "$P_SRV auth_mode=required key_opaque=1 crt_file=data_files/server5.crt \
@@ -2593,32 +2643,32 @@ run_test_psa TLS-ECDHE-ECDSA-WITH-AES-128-CBC-SHA
 run_test_psa TLS-ECDHE-ECDSA-WITH-AES-128-CBC-SHA256
 run_test_psa TLS-ECDHE-ECDSA-WITH-AES-256-CBC-SHA384
 
-requires_config_enabled MBEDTLS_ECP_DP_SECP521R1_ENABLED
+requires_config_enabled PSA_WANT_ECC_SECP_R1_521
 run_test_psa_force_curve "secp521r1"
-requires_config_enabled MBEDTLS_ECP_DP_BP512R1_ENABLED
+requires_config_enabled PSA_WANT_ECC_BRAINPOOL_P_R1_512
 run_test_psa_force_curve "brainpoolP512r1"
-requires_config_enabled MBEDTLS_ECP_DP_SECP384R1_ENABLED
+requires_config_enabled PSA_WANT_ECC_SECP_R1_384
 run_test_psa_force_curve "secp384r1"
-requires_config_enabled MBEDTLS_ECP_DP_BP384R1_ENABLED
+requires_config_enabled PSA_WANT_ECC_BRAINPOOL_P_R1_384
 run_test_psa_force_curve "brainpoolP384r1"
-requires_config_enabled MBEDTLS_ECP_DP_SECP256R1_ENABLED
+requires_config_enabled PSA_WANT_ECC_SECP_R1_256
 run_test_psa_force_curve "secp256r1"
-requires_config_enabled MBEDTLS_ECP_DP_SECP256K1_ENABLED
+requires_config_enabled PSA_WANT_ECC_SECP_K1_256
 run_test_psa_force_curve "secp256k1"
-requires_config_enabled MBEDTLS_ECP_DP_BP256R1_ENABLED
+requires_config_enabled PSA_WANT_ECC_BRAINPOOL_P_R1_256
 run_test_psa_force_curve "brainpoolP256r1"
-requires_config_enabled MBEDTLS_ECP_DP_SECP224R1_ENABLED
+requires_config_enabled PSA_WANT_ECC_SECP_R1_224
 run_test_psa_force_curve "secp224r1"
 ## SECP224K1 is buggy via the PSA API
 ## (https://github.com/Mbed-TLS/mbedtls/issues/3541),
 ## so it is disabled in PSA even when it's enabled in Mbed TLS.
 ## The proper dependency would be on PSA_WANT_ECC_SECP_K1_224 but
 ## dependencies on PSA symbols in ssl-opt.sh are not implemented yet.
-#requires_config_enabled MBEDTLS_ECP_DP_SECP224K1_ENABLED
+#requires_config_enabled PSA_WANT_ECC_SECP_K1_224
 #run_test_psa_force_curve "secp224k1"
-requires_config_enabled MBEDTLS_ECP_DP_SECP192R1_ENABLED
+requires_config_enabled PSA_WANT_ECC_SECP_R1_192
 run_test_psa_force_curve "secp192r1"
-requires_config_enabled MBEDTLS_ECP_DP_SECP192K1_ENABLED
+requires_config_enabled PSA_WANT_ECC_SECP_K1_192
 run_test_psa_force_curve "secp192k1"
 
 # Test current time in ServerHello
@@ -2639,7 +2689,8 @@ run_test    "Unique IV in GCM" \
             -U "IV used"
 
 # Test for correctness of sent single supported algorithm
-requires_config_enabled MBEDTLS_ECP_DP_SECP256R1_ENABLED
+requires_any_configs_enabled "MBEDTLS_ECP_DP_SECP256R1_ENABLED \
+                              PSA_WANT_ECC_SECP_R1_256"
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
@@ -2654,7 +2705,8 @@ run_test    "Single supported algorithm sending: mbedtls client" \
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_SSL_SRV_C
-requires_config_enabled MBEDTLS_ECP_DP_SECP256R1_ENABLED
+requires_any_configs_enabled "MBEDTLS_ECP_DP_SECP256R1_ENABLED \
+                              PSA_WANT_ECC_SECP_R1_256"
 requires_hash_alg SHA_256
 run_test    "Single supported algorithm sending: openssl client" \
             "$P_SRV sig_algs=ecdsa_secp256r1_sha256 auth_mode=required" \
@@ -2684,12 +2736,14 @@ run_test    "Context-specific CRT verification callback" \
             -C "error"
 
 # Tests for SHA-1 support
+requires_hash_alg SHA_1
 run_test    "SHA-1 forbidden by default in server certificate" \
             "$P_SRV key_file=data_files/server2.key crt_file=data_files/server2.crt" \
             "$P_CLI debug_level=2 force_version=tls12 allow_sha1=0" \
             1 \
             -c "The certificate is signed with an unacceptable hash"
 
+requires_hash_alg SHA_1
 run_test    "SHA-1 explicitly allowed in server certificate" \
             "$P_SRV key_file=data_files/server2.key crt_file=data_files/server2.crt" \
             "$P_CLI force_version=tls12 allow_sha1=1" \
@@ -2700,17 +2754,23 @@ run_test    "SHA-256 allowed by default in server certificate" \
             "$P_CLI force_version=tls12 allow_sha1=0" \
             0
 
+requires_hash_alg SHA_1
+requires_config_enabled MBEDTLS_RSA_C
 run_test    "SHA-1 forbidden by default in client certificate" \
             "$P_SRV force_version=tls12 auth_mode=required allow_sha1=0" \
             "$P_CLI key_file=data_files/cli-rsa.key crt_file=data_files/cli-rsa-sha1.crt" \
             1 \
             -s "The certificate is signed with an unacceptable hash"
 
+requires_hash_alg SHA_1
+requires_config_enabled MBEDTLS_RSA_C
 run_test    "SHA-1 explicitly allowed in client certificate" \
             "$P_SRV force_version=tls12 auth_mode=required allow_sha1=1" \
             "$P_CLI key_file=data_files/cli-rsa.key crt_file=data_files/cli-rsa-sha1.crt" \
             0
 
+requires_config_enabled MBEDTLS_RSA_C
+requires_hash_alg SHA_256
 run_test    "SHA-256 allowed by default in client certificate" \
             "$P_SRV force_version=tls12 auth_mode=required allow_sha1=0" \
             "$P_CLI key_file=data_files/cli-rsa.key crt_file=data_files/cli-rsa-sha256.crt" \
@@ -3717,6 +3777,7 @@ run_test    "CBC Record splitting: TLS 1.2, no splitting" \
 
 # Tests for Session Tickets
 
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Session resume using tickets: basic" \
             "$P_SRV debug_level=3 tickets=1" \
             "$P_CLI force_version=tls12 debug_level=3 tickets=1 reconnect=1" \
@@ -3731,6 +3792,7 @@ run_test    "Session resume using tickets: basic" \
             -s "a session has been resumed" \
             -c "a session has been resumed"
 
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Session resume using tickets: manual rotation" \
             "$P_SRV debug_level=3 tickets=1 ticket_rotate=1" \
             "$P_CLI force_version=tls12 debug_level=3 tickets=1 reconnect=1" \
@@ -3745,6 +3807,7 @@ run_test    "Session resume using tickets: manual rotation" \
             -s "a session has been resumed" \
             -c "a session has been resumed"
 
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Session resume using tickets: cache disabled" \
             "$P_SRV debug_level=3 tickets=1 cache_max=0" \
             "$P_CLI force_version=tls12 debug_level=3 tickets=1 reconnect=1" \
@@ -3759,6 +3822,7 @@ run_test    "Session resume using tickets: cache disabled" \
             -s "a session has been resumed" \
             -c "a session has been resumed"
 
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Session resume using tickets: timeout" \
             "$P_SRV debug_level=3 tickets=1 cache_max=0 ticket_timeout=1" \
             "$P_CLI force_version=tls12 debug_level=3 tickets=1 reconnect=1 reco_delay=2000" \
@@ -3773,6 +3837,7 @@ run_test    "Session resume using tickets: timeout" \
             -S "a session has been resumed" \
             -C "a session has been resumed"
 
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Session resume using tickets: session copy" \
             "$P_SRV debug_level=3 tickets=1 cache_max=0" \
             "$P_CLI force_version=tls12 debug_level=3 tickets=1 reconnect=1 reco_mode=0" \
@@ -3788,6 +3853,7 @@ run_test    "Session resume using tickets: session copy" \
             -c "a session has been resumed"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Session resume using tickets: openssl server" \
             "$O_SRV -tls1_2" \
             "$P_CLI debug_level=3 tickets=1 reconnect=1" \
@@ -3798,8 +3864,9 @@ run_test    "Session resume using tickets: openssl server" \
             -c "a session has been resumed"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Session resume using tickets: openssl client" \
-            "$P_SRV debug_level=3 tickets=1" \
+            "$P_SRV force_version=tls12 debug_level=3 tickets=1" \
             "( $O_CLI -sess_out $SESSION; \
                $O_CLI -sess_in $SESSION; \
                rm -f $SESSION )" \
@@ -3810,6 +3877,8 @@ run_test    "Session resume using tickets: openssl client" \
             -s "session successfully restored from ticket" \
             -s "a session has been resumed"
 
+requires_cipher_enabled "AES" "GCM"
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Session resume using tickets: AES-128-GCM" \
             "$P_SRV debug_level=3 tickets=1 ticket_aead=AES-128-GCM" \
             "$P_CLI force_version=tls12 debug_level=3 tickets=1 reconnect=1" \
@@ -3824,6 +3893,8 @@ run_test    "Session resume using tickets: AES-128-GCM" \
             -s "a session has been resumed" \
             -c "a session has been resumed"
 
+requires_cipher_enabled "AES" "GCM"
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Session resume using tickets: AES-192-GCM" \
             "$P_SRV debug_level=3 tickets=1 ticket_aead=AES-192-GCM" \
             "$P_CLI force_version=tls12 debug_level=3 tickets=1 reconnect=1" \
@@ -3838,6 +3909,8 @@ run_test    "Session resume using tickets: AES-192-GCM" \
             -s "a session has been resumed" \
             -c "a session has been resumed"
 
+requires_cipher_enabled "AES" "CCM"
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Session resume using tickets: AES-128-CCM" \
             "$P_SRV debug_level=3 tickets=1 ticket_aead=AES-128-CCM" \
             "$P_CLI force_version=tls12 debug_level=3 tickets=1 reconnect=1" \
@@ -3852,6 +3925,8 @@ run_test    "Session resume using tickets: AES-128-CCM" \
             -s "a session has been resumed" \
             -c "a session has been resumed"
 
+requires_cipher_enabled "AES" "CCM"
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Session resume using tickets: AES-192-CCM" \
             "$P_SRV debug_level=3 tickets=1 ticket_aead=AES-192-CCM" \
             "$P_CLI force_version=tls12 debug_level=3 tickets=1 reconnect=1" \
@@ -3866,6 +3941,8 @@ run_test    "Session resume using tickets: AES-192-CCM" \
             -s "a session has been resumed" \
             -c "a session has been resumed"
 
+requires_cipher_enabled "AES" "CCM"
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Session resume using tickets: AES-256-CCM" \
             "$P_SRV debug_level=3 tickets=1 ticket_aead=AES-256-CCM" \
             "$P_CLI force_version=tls12 debug_level=3 tickets=1 reconnect=1" \
@@ -3880,6 +3957,8 @@ run_test    "Session resume using tickets: AES-256-CCM" \
             -s "a session has been resumed" \
             -c "a session has been resumed"
 
+requires_cipher_enabled "CAMELLIA" "CCM"
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Session resume using tickets: CAMELLIA-128-CCM" \
             "$P_SRV debug_level=3 tickets=1 ticket_aead=CAMELLIA-128-CCM" \
             "$P_CLI force_version=tls12 debug_level=3 tickets=1 reconnect=1" \
@@ -3894,6 +3973,8 @@ run_test    "Session resume using tickets: CAMELLIA-128-CCM" \
             -s "a session has been resumed" \
             -c "a session has been resumed"
 
+requires_cipher_enabled "CAMELLIA" "CCM"
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Session resume using tickets: CAMELLIA-192-CCM" \
             "$P_SRV debug_level=3 tickets=1 ticket_aead=CAMELLIA-192-CCM" \
             "$P_CLI force_version=tls12 debug_level=3 tickets=1 reconnect=1" \
@@ -3908,6 +3989,8 @@ run_test    "Session resume using tickets: CAMELLIA-192-CCM" \
             -s "a session has been resumed" \
             -c "a session has been resumed"
 
+requires_cipher_enabled "CAMELLIA" "CCM"
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Session resume using tickets: CAMELLIA-256-CCM" \
             "$P_SRV debug_level=3 tickets=1 ticket_aead=CAMELLIA-256-CCM" \
             "$P_CLI force_version=tls12 debug_level=3 tickets=1 reconnect=1" \
@@ -3922,6 +4005,8 @@ run_test    "Session resume using tickets: CAMELLIA-256-CCM" \
             -s "a session has been resumed" \
             -c "a session has been resumed"
 
+requires_cipher_enabled "ARIA" "GCM"
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Session resume using tickets: ARIA-128-GCM" \
             "$P_SRV debug_level=3 tickets=1 ticket_aead=ARIA-128-GCM" \
             "$P_CLI force_version=tls12 debug_level=3 tickets=1 reconnect=1" \
@@ -3936,6 +4021,8 @@ run_test    "Session resume using tickets: ARIA-128-GCM" \
             -s "a session has been resumed" \
             -c "a session has been resumed"
 
+requires_cipher_enabled "ARIA" "GCM"
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Session resume using tickets: ARIA-192-GCM" \
             "$P_SRV debug_level=3 tickets=1 ticket_aead=ARIA-192-GCM" \
             "$P_CLI force_version=tls12 debug_level=3 tickets=1 reconnect=1" \
@@ -3950,6 +4037,8 @@ run_test    "Session resume using tickets: ARIA-192-GCM" \
             -s "a session has been resumed" \
             -c "a session has been resumed"
 
+requires_cipher_enabled "ARIA" "GCM"
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Session resume using tickets: ARIA-256-GCM" \
             "$P_SRV debug_level=3 tickets=1 ticket_aead=ARIA-256-GCM" \
             "$P_CLI force_version=tls12 debug_level=3 tickets=1 reconnect=1" \
@@ -3964,6 +4053,8 @@ run_test    "Session resume using tickets: ARIA-256-GCM" \
             -s "a session has been resumed" \
             -c "a session has been resumed"
 
+requires_cipher_enabled "ARIA" "CCM"
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Session resume using tickets: ARIA-128-CCM" \
             "$P_SRV debug_level=3 tickets=1 ticket_aead=ARIA-128-CCM" \
             "$P_CLI force_version=tls12 debug_level=3 tickets=1 reconnect=1" \
@@ -3978,6 +4069,8 @@ run_test    "Session resume using tickets: ARIA-128-CCM" \
             -s "a session has been resumed" \
             -c "a session has been resumed"
 
+requires_cipher_enabled "ARIA" "CCM"
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Session resume using tickets: ARIA-192-CCM" \
             "$P_SRV debug_level=3 tickets=1 ticket_aead=ARIA-192-CCM" \
             "$P_CLI force_version=tls12 debug_level=3 tickets=1 reconnect=1" \
@@ -3992,6 +4085,8 @@ run_test    "Session resume using tickets: ARIA-192-CCM" \
             -s "a session has been resumed" \
             -c "a session has been resumed"
 
+requires_cipher_enabled "ARIA" "CCM"
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Session resume using tickets: ARIA-256-CCM" \
             "$P_SRV debug_level=3 tickets=1 ticket_aead=ARIA-256-CCM" \
             "$P_CLI force_version=tls12 debug_level=3 tickets=1 reconnect=1" \
@@ -4006,6 +4101,8 @@ run_test    "Session resume using tickets: ARIA-256-CCM" \
             -s "a session has been resumed" \
             -c "a session has been resumed"
 
+requires_cipher_enabled "CHACHA20"
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Session resume using tickets: CHACHA20-POLY1305" \
             "$P_SRV debug_level=3 tickets=1 ticket_aead=CHACHA20-POLY1305" \
             "$P_CLI force_version=tls12 debug_level=3 tickets=1 reconnect=1" \
@@ -4023,6 +4120,7 @@ run_test    "Session resume using tickets: CHACHA20-POLY1305" \
 # Tests for Session Tickets with DTLS
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Session resume using tickets, DTLS: basic" \
             "$P_SRV debug_level=3 dtls=1 tickets=1" \
             "$P_CLI debug_level=3 dtls=1 tickets=1 reconnect=1 skip_close_notify=1" \
@@ -4038,6 +4136,7 @@ run_test    "Session resume using tickets, DTLS: basic" \
             -c "a session has been resumed"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Session resume using tickets, DTLS: cache disabled" \
             "$P_SRV debug_level=3 dtls=1 tickets=1 cache_max=0" \
             "$P_CLI debug_level=3 dtls=1 tickets=1 reconnect=1 skip_close_notify=1" \
@@ -4053,6 +4152,7 @@ run_test    "Session resume using tickets, DTLS: cache disabled" \
             -c "a session has been resumed"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Session resume using tickets, DTLS: timeout" \
             "$P_SRV debug_level=3 dtls=1 tickets=1 cache_max=0 ticket_timeout=1" \
             "$P_CLI debug_level=3 dtls=1 tickets=1 reconnect=1 skip_close_notify=1 reco_delay=2000" \
@@ -4068,6 +4168,7 @@ run_test    "Session resume using tickets, DTLS: timeout" \
             -C "a session has been resumed"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Session resume using tickets, DTLS: session copy" \
             "$P_SRV debug_level=3 dtls=1 tickets=1 cache_max=0" \
             "$P_CLI debug_level=3 dtls=1 tickets=1 reconnect=1 skip_close_notify=1 reco_mode=0" \
@@ -4083,6 +4184,7 @@ run_test    "Session resume using tickets, DTLS: session copy" \
             -c "a session has been resumed"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Session resume using tickets, DTLS: openssl server" \
             "$O_SRV -dtls" \
             "$P_CLI dtls=1 debug_level=3 tickets=1 reconnect=1" \
@@ -4096,6 +4198,7 @@ run_test    "Session resume using tickets, DTLS: openssl server" \
 # probability with OpenSSL 1.0.2g on the CI, see #5012.
 requires_openssl_next
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Session resume using tickets, DTLS: openssl client" \
             "$P_SRV dtls=1 debug_level=3 tickets=1" \
             "( $O_NEXT_CLI -dtls -sess_out $SESSION; \
@@ -4111,6 +4214,7 @@ run_test    "Session resume using tickets, DTLS: openssl client" \
 # Tests for Session Resume based on session-ID and cache
 
 requires_config_enabled MBEDTLS_SSL_CACHE_C
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Session resume using cache: tickets enabled on client" \
             "$P_SRV debug_level=3 tickets=0" \
             "$P_CLI force_version=tls12 debug_level=3 tickets=1 reconnect=1" \
@@ -4126,6 +4230,7 @@ run_test    "Session resume using cache: tickets enabled on client" \
             -c "a session has been resumed"
 
 requires_config_enabled MBEDTLS_SSL_CACHE_C
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Session resume using cache: tickets enabled on server" \
             "$P_SRV debug_level=3 tickets=1" \
             "$P_CLI force_version=tls12 debug_level=3 tickets=0 reconnect=1" \
@@ -4217,6 +4322,7 @@ run_test    "Session resume using cache: session copy" \
             -c "a session has been resumed"
 
 requires_config_enabled MBEDTLS_SSL_CACHE_C
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Session resume using cache: openssl client" \
             "$P_SRV force_version=tls12 debug_level=3 tickets=0" \
             "( $O_CLI -sess_out $SESSION; \
@@ -4266,6 +4372,7 @@ run_test    "Session resume and connection ID" \
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_SSL_CACHE_C
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Session resume using cache, DTLS: tickets enabled on client" \
             "$P_SRV dtls=1 debug_level=3 tickets=0" \
             "$P_CLI dtls=1 debug_level=3 tickets=1 reconnect=1 skip_close_notify=1" \
@@ -4282,6 +4389,7 @@ run_test    "Session resume using cache, DTLS: tickets enabled on client" \
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_SSL_CACHE_C
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Session resume using cache, DTLS: tickets enabled on server" \
             "$P_SRV dtls=1 debug_level=3 tickets=1" \
             "$P_CLI dtls=1 debug_level=3 tickets=0 reconnect=1 skip_close_notify=1" \
@@ -4367,6 +4475,7 @@ run_test    "Session resume using cache, DTLS: session copy" \
 requires_openssl_next
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_SSL_CACHE_C
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Session resume using cache, DTLS: openssl client" \
             "$P_SRV dtls=1 debug_level=3 tickets=0" \
             "( $O_NEXT_CLI -dtls -sess_out $SESSION; \
@@ -4394,7 +4503,7 @@ run_test    "Session resume using cache, DTLS: openssl server" \
 requires_config_enabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Max fragment length: enabled, default" \
-            "$P_SRV debug_level=3" \
+            "$P_SRV debug_level=3 force_version=tls12" \
             "$P_CLI debug_level=3" \
             0 \
             -c "Maximum incoming record payload length is $MAX_CONTENT_LEN" \
@@ -4409,7 +4518,7 @@ run_test    "Max fragment length: enabled, default" \
 requires_config_enabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Max fragment length: enabled, default, larger message" \
-            "$P_SRV debug_level=3" \
+            "$P_SRV debug_level=3 force_version=tls12" \
             "$P_CLI debug_level=3 request_size=$(( $MAX_CONTENT_LEN + 1))" \
             0 \
             -c "Maximum incoming record payload length is $MAX_CONTENT_LEN" \
@@ -4447,7 +4556,7 @@ run_test    "Max fragment length, DTLS: enabled, default, larger message" \
 requires_config_disabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Max fragment length: disabled, larger message" \
-            "$P_SRV debug_level=3" \
+            "$P_SRV debug_level=3 force_version=tls12" \
             "$P_CLI debug_level=3 request_size=$(( $MAX_CONTENT_LEN + 1))" \
             0 \
             -C "Maximum incoming record payload length is 16384" \
@@ -4461,7 +4570,7 @@ run_test    "Max fragment length: disabled, larger message" \
 requires_config_disabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Max fragment length, DTLS: disabled, larger message" \
-            "$P_SRV debug_level=3 dtls=1" \
+            "$P_SRV debug_level=3 dtls=1 force_version=tls12" \
             "$P_CLI debug_level=3 dtls=1 request_size=$(( $MAX_CONTENT_LEN + 1))" \
             1 \
             -C "Maximum incoming record payload length is 16384" \
@@ -4749,37 +4858,372 @@ run_test    "Max fragment length: DTLS client, larger message" \
 
 requires_gnutls_tls1_3
 requires_gnutls_record_size_limit
+requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_RECORD_SIZE_LIMIT
-run_test    "Record Size Limit: TLS 1.3: Server-side parsing, debug output and fatal alert" \
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+run_test    "Record Size Limit: TLS 1.3: Server-side parsing and debug output" \
             "$P_SRV debug_level=3 force_version=tls13" \
             "$G_NEXT_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3 -V -d 4" \
-            1 \
-            -c "Preparing extension (Record Size Limit/28) for 'client hello'" \
-            -c "Sending extension Record Size Limit/28 (2 bytes)" \
-            -s "ClientHello: record_size_limit(28) extension received."\
-            -s "found record_size_limit extension" \
+            0 \
             -s "RecordSizeLimit: 16385 Bytes" \
-            -c "Received alert \[110]: An unsupported extension was sent"
+            -s "ClientHello: record_size_limit(28) extension exists." \
+            -s "Maximum outgoing record payload length is 16383" \
+            -s "bytes written in 1 fragments"
 
 requires_gnutls_tls1_3
 requires_gnutls_record_size_limit
-requires_gnutls_next_disable_tls13_compat
+requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_CLI_C MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_RECORD_SIZE_LIMIT
-run_test    "Record Size Limit: TLS 1.3: Client-side parsing, debug output and fatal alert" \
-            "$G_NEXT_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL:%DISABLE_TLS13_COMPAT_MODE --disable-client-cert -d 4" \
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+run_test    "Record Size Limit: TLS 1.3: Client-side parsing and debug output" \
+            "$G_NEXT_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL --disable-client-cert -d 4" \
             "$P_CLI debug_level=4 force_version=tls13" \
             0 \
-            -s "Preparing extension (Record Size Limit/28) for 'encrypted extensions'"
-# The P_CLI can not yet send the Record Size Limit extension. Thus, the G_NEXT_SRV does not send
-# a response in its EncryptedExtensions record.
-#            -s "Parsing extension 'Record Size Limit/28 (2 bytes)" \
-#            -s "Sending extension Record Size Limit/28 (2 bytes)" \
-#            -c "EncryptedExtensions: record_size_limit(28) extension received."\
-#            -c "found record_size_limit extension" \
-#            -c "RecordSizeLimit: 16385 Bytes" \
-#            -s "Received alert \[110]: An unsupported extension was sent"
+            -c "Sent RecordSizeLimit: 16384 Bytes"                                      \
+            -c "ClientHello: record_size_limit(28) extension exists."                   \
+            -c "EncryptedExtensions: record_size_limit(28) extension received."         \
+            -c "RecordSizeLimit: 16385 Bytes"                                           \
+
+# In the following tests, --recordsize is the value used by the G_NEXT_CLI (3.7.2) to configure the
+# maximum record size using gnutls_record_set_max_size()
+# (https://gnutls.org/reference/gnutls-gnutls.html#gnutls-record-set-max-size).
+# There is currently a lower limit of 512, caused by gnutls_record_set_max_size()
+# not respecting the "%ALLOW_SMALL_RECORDS" priority string and not using the
+# more recent function gnutls_record_set_max_recv_size()
+# (https://gnutls.org/reference/gnutls-gnutls.html#gnutls-record-set-max-recv-size).
+# There is currently an upper limit of 4096, caused by the cli arg parser:
+# https://gitlab.com/gnutls/gnutls/-/blob/3.7.2/src/cli-args.def#L395.
+# Thus, these tests are currently limited to the value range 512-4096.
+# Also, the value sent in the extension will be one larger than the value
+# set at the command line:
+# https://gitlab.com/gnutls/gnutls/-/blob/3.7.2/lib/ext/record_size_limit.c#L142
+
+# Currently test certificates being used do not fit in 513 record size limit
+# so for 513 record size limit tests we use preshared key to avoid sending
+# the certificate.
+
+requires_gnutls_tls1_3
+requires_gnutls_record_size_limit
+requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_RECORD_SIZE_LIMIT
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
+run_test    "Record Size Limit: TLS 1.3: Server complies with record size limit (513), 1 fragment" \
+            "$P_SRV debug_level=3 force_version=tls13 tls13_kex_modes=psk \
+                    psk_list=Client_identity,6162636465666768696a6b6c6d6e6f70 \
+                    response_size=256" \
+            "$G_NEXT_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+PSK --recordsize 512 \
+                    --pskusername Client_identity --pskkey=6162636465666768696a6b6c6d6e6f70" \
+            0 \
+            -s "RecordSizeLimit: 513 Bytes" \
+            -s "ClientHello: record_size_limit(28) extension exists." \
+            -s "Sent RecordSizeLimit: 16384 Bytes" \
+            -s "EncryptedExtensions: record_size_limit(28) extension exists." \
+            -s "Maximum outgoing record payload length is 511" \
+            -s "256 bytes written in 1 fragments"
+
+requires_gnutls_tls1_3
+requires_gnutls_record_size_limit
+requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_RECORD_SIZE_LIMIT
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
+run_test    "Record Size Limit: TLS 1.3: Server complies with record size limit (513), 2 fragments" \
+            "$P_SRV debug_level=3 force_version=tls13 tls13_kex_modes=psk \
+                    psk_list=Client_identity,6162636465666768696a6b6c6d6e6f70 \
+                    response_size=768" \
+            "$G_NEXT_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+PSK --recordsize 512 \
+                         --pskusername Client_identity --pskkey=6162636465666768696a6b6c6d6e6f70" \
+            0 \
+            -s "RecordSizeLimit: 513 Bytes" \
+            -s "ClientHello: record_size_limit(28) extension exists." \
+            -s "Sent RecordSizeLimit: 16384 Bytes" \
+            -s "EncryptedExtensions: record_size_limit(28) extension exists." \
+            -s "Maximum outgoing record payload length is 511" \
+            -s "768 bytes written in 2 fragments"
+
+requires_gnutls_tls1_3
+requires_gnutls_record_size_limit
+requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_RECORD_SIZE_LIMIT
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
+run_test    "Record Size Limit: TLS 1.3: Server complies with record size limit (513), 3 fragments" \
+            "$P_SRV debug_level=3 force_version=tls13 tls13_kex_modes=psk \
+                    psk_list=Client_identity,6162636465666768696a6b6c6d6e6f70 \
+                    response_size=1280" \
+            "$G_NEXT_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+PSK --recordsize 512 \
+                         --pskusername Client_identity --pskkey=6162636465666768696a6b6c6d6e6f70" \
+            0 \
+            -s "RecordSizeLimit: 513 Bytes" \
+            -s "ClientHello: record_size_limit(28) extension exists." \
+            -s "Sent RecordSizeLimit: 16384 Bytes" \
+            -s "EncryptedExtensions: record_size_limit(28) extension exists." \
+            -s "Maximum outgoing record payload length is 511" \
+            -s "1280 bytes written in 3 fragments"
+
+requires_gnutls_tls1_3
+requires_gnutls_record_size_limit
+requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_RECORD_SIZE_LIMIT
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+run_test    "Record Size Limit: TLS 1.3: Server complies with record size limit (1024), 1 fragment" \
+            "$P_SRV debug_level=3 force_version=tls13 response_size=512" \
+            "$G_NEXT_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3 -V -d 4 --recordsize 1023" \
+            0 \
+            -s "RecordSizeLimit: 1024 Bytes" \
+            -s "ClientHello: record_size_limit(28) extension exists." \
+            -s "Sent RecordSizeLimit: 16384 Bytes" \
+            -s "EncryptedExtensions: record_size_limit(28) extension exists." \
+            -s "Maximum outgoing record payload length is 1023" \
+            -s "512 bytes written in 1 fragments"
+
+requires_gnutls_tls1_3
+requires_gnutls_record_size_limit
+requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_RECORD_SIZE_LIMIT
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+run_test    "Record Size Limit: TLS 1.3: Server complies with record size limit (1024), 2 fragments" \
+            "$P_SRV debug_level=3 force_version=tls13 response_size=1536" \
+            "$G_NEXT_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3 -V -d 4 --recordsize 1023" \
+            0 \
+            -s "RecordSizeLimit: 1024 Bytes" \
+            -s "ClientHello: record_size_limit(28) extension exists." \
+            -s "Sent RecordSizeLimit: 16384 Bytes" \
+            -s "EncryptedExtensions: record_size_limit(28) extension exists." \
+            -s "Maximum outgoing record payload length is 1023" \
+            -s "1536 bytes written in 2 fragments"
+
+requires_gnutls_tls1_3
+requires_gnutls_record_size_limit
+requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_RECORD_SIZE_LIMIT
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+run_test    "Record Size Limit: TLS 1.3: Server complies with record size limit (1024), 3 fragments" \
+            "$P_SRV debug_level=3 force_version=tls13 response_size=2560" \
+            "$G_NEXT_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3 -V -d 4 --recordsize 1023" \
+            0 \
+            -s "RecordSizeLimit: 1024 Bytes" \
+            -s "ClientHello: record_size_limit(28) extension exists." \
+            -s "Sent RecordSizeLimit: 16384 Bytes" \
+            -s "EncryptedExtensions: record_size_limit(28) extension exists." \
+            -s "Maximum outgoing record payload length is 1023" \
+            -s "2560 bytes written in 3 fragments"
+
+requires_gnutls_tls1_3
+requires_gnutls_record_size_limit
+requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_RECORD_SIZE_LIMIT
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+run_test    "Record Size Limit: TLS 1.3: Server complies with record size limit (4096), 1 fragment" \
+            "$P_SRV debug_level=3 force_version=tls13 response_size=2048" \
+            "$G_NEXT_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3 -V -d 4 --recordsize 4095" \
+            0 \
+            -s "RecordSizeLimit: 4096 Bytes" \
+            -s "ClientHello: record_size_limit(28) extension exists." \
+            -s "Sent RecordSizeLimit: 16384 Bytes" \
+            -s "EncryptedExtensions: record_size_limit(28) extension exists." \
+            -s "Maximum outgoing record payload length is 4095" \
+            -s "2048 bytes written in 1 fragments"
+
+requires_gnutls_tls1_3
+requires_gnutls_record_size_limit
+requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_RECORD_SIZE_LIMIT
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+run_test    "Record Size Limit: TLS 1.3: Server complies with record size limit (4096), 2 fragments" \
+            "$P_SRV debug_level=3 force_version=tls13 response_size=6144" \
+            "$G_NEXT_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3 -V -d 4 --recordsize 4095" \
+            0 \
+            -s "RecordSizeLimit: 4096 Bytes" \
+            -s "ClientHello: record_size_limit(28) extension exists." \
+            -s "Sent RecordSizeLimit: 16384 Bytes" \
+            -s "EncryptedExtensions: record_size_limit(28) extension exists." \
+            -s "Maximum outgoing record payload length is 4095" \
+            -s "6144 bytes written in 2 fragments"
+
+requires_gnutls_tls1_3
+requires_gnutls_record_size_limit
+requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_RECORD_SIZE_LIMIT
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+run_test    "Record Size Limit: TLS 1.3: Server complies with record size limit (4096), 3 fragments" \
+            "$P_SRV debug_level=3 force_version=tls13 response_size=10240" \
+            "$G_NEXT_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3 -V -d 4 --recordsize 4095" \
+            0 \
+            -s "RecordSizeLimit: 4096 Bytes" \
+            -s "ClientHello: record_size_limit(28) extension exists." \
+            -s "Sent RecordSizeLimit: 16384 Bytes" \
+            -s "EncryptedExtensions: record_size_limit(28) extension exists." \
+            -s "Maximum outgoing record payload length is 4095" \
+            -s "10240 bytes written in 3 fragments"
+
+requires_gnutls_tls1_3
+requires_gnutls_record_size_limit
+requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_CLI_C MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_RECORD_SIZE_LIMIT
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+run_test    "Record Size Limit: TLS 1.3: Client complies with record size limit (513), 1 fragment" \
+            "$G_NEXT_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL -d 4 --disable-client-cert --recordsize 512" \
+            "$P_CLI debug_level=4 force_version=tls13 request_size=256" \
+            0 \
+            -c "Sent RecordSizeLimit: 16384 Bytes" \
+            -c "ClientHello: record_size_limit(28) extension exists." \
+            -c "RecordSizeLimit: 513 Bytes" \
+            -c "EncryptedExtensions: record_size_limit(28) extension exists." \
+            -c "Maximum outgoing record payload length is 511" \
+            -c "256 bytes written in 1 fragments"
+
+requires_gnutls_tls1_3
+requires_gnutls_record_size_limit
+requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_CLI_C MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_RECORD_SIZE_LIMIT
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+run_test    "Record Size Limit: TLS 1.3: Client complies with record size limit (513), 2 fragments" \
+            "$G_NEXT_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL -d 4 --disable-client-cert --recordsize 512" \
+            "$P_CLI debug_level=4 force_version=tls13 request_size=768" \
+            0 \
+            -c "Sent RecordSizeLimit: 16384 Bytes" \
+            -c "ClientHello: record_size_limit(28) extension exists." \
+            -c "RecordSizeLimit: 513 Bytes" \
+            -c "EncryptedExtensions: record_size_limit(28) extension exists." \
+            -c "Maximum outgoing record payload length is 511" \
+            -c "768 bytes written in 2 fragments"
+
+requires_gnutls_tls1_3
+requires_gnutls_record_size_limit
+requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_CLI_C MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_RECORD_SIZE_LIMIT
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+run_test    "Record Size Limit: TLS 1.3: Client complies with record size limit (513), 3 fragments" \
+            "$G_NEXT_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL -d 4 --disable-client-cert --recordsize 512" \
+            "$P_CLI debug_level=4 force_version=tls13 request_size=1280" \
+            0 \
+            -c "Sent RecordSizeLimit: 16384 Bytes" \
+            -c "ClientHello: record_size_limit(28) extension exists." \
+            -c "RecordSizeLimit: 513 Bytes" \
+            -c "EncryptedExtensions: record_size_limit(28) extension exists." \
+            -c "Maximum outgoing record payload length is 511" \
+            -c "1280 bytes written in 3 fragments"
+
+requires_gnutls_tls1_3
+requires_gnutls_record_size_limit
+requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_CLI_C MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_RECORD_SIZE_LIMIT
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+run_test    "Record Size Limit: TLS 1.3: Client complies with record size limit (1024), 1 fragment" \
+            "$G_NEXT_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL -d 4 --recordsize 1023" \
+            "$P_CLI debug_level=4 force_version=tls13 request_size=512" \
+            0 \
+            -c "Sent RecordSizeLimit: 16384 Bytes" \
+            -c "ClientHello: record_size_limit(28) extension exists." \
+            -c "RecordSizeLimit: 1024 Bytes" \
+            -c "EncryptedExtensions: record_size_limit(28) extension exists." \
+            -c "Maximum outgoing record payload length is 1023" \
+            -c "512 bytes written in 1 fragments"
+
+requires_gnutls_tls1_3
+requires_gnutls_record_size_limit
+requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_CLI_C MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_RECORD_SIZE_LIMIT
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+run_test    "Record Size Limit: TLS 1.3: Client complies with record size limit (1024), 2 fragments" \
+            "$G_NEXT_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL -d 4 --recordsize 1023" \
+            "$P_CLI debug_level=4 force_version=tls13 request_size=1536" \
+            0 \
+            -c "Sent RecordSizeLimit: 16384 Bytes" \
+            -c "ClientHello: record_size_limit(28) extension exists." \
+            -c "RecordSizeLimit: 1024 Bytes" \
+            -c "EncryptedExtensions: record_size_limit(28) extension exists." \
+            -c "Maximum outgoing record payload length is 1023" \
+            -c "1536 bytes written in 2 fragments"
+
+requires_gnutls_tls1_3
+requires_gnutls_record_size_limit
+requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_CLI_C MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_RECORD_SIZE_LIMIT
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+run_test    "Record Size Limit: TLS 1.3: Client complies with record size limit (1024), 3 fragments" \
+            "$G_NEXT_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL -d 4 --recordsize 1023" \
+            "$P_CLI debug_level=4 force_version=tls13 request_size=2560" \
+            0 \
+            -c "Sent RecordSizeLimit: 16384 Bytes" \
+            -c "ClientHello: record_size_limit(28) extension exists." \
+            -c "RecordSizeLimit: 1024 Bytes" \
+            -c "EncryptedExtensions: record_size_limit(28) extension exists." \
+            -c "Maximum outgoing record payload length is 1023" \
+            -c "2560 bytes written in 3 fragments"
+
+requires_gnutls_tls1_3
+requires_gnutls_record_size_limit
+requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_CLI_C MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_RECORD_SIZE_LIMIT
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+run_test    "Record Size Limit: TLS 1.3: Client complies with record size limit (4096), 1 fragment" \
+            "$G_NEXT_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL -d 4 --recordsize 4095" \
+            "$P_CLI debug_level=4 force_version=tls13 request_size=2048" \
+            0 \
+            -c "Sent RecordSizeLimit: 16384 Bytes" \
+            -c "ClientHello: record_size_limit(28) extension exists." \
+            -c "RecordSizeLimit: 4096 Bytes" \
+            -c "EncryptedExtensions: record_size_limit(28) extension exists." \
+            -c "Maximum outgoing record payload length is 4095" \
+            -c "2048 bytes written in 1 fragments"
+
+requires_gnutls_tls1_3
+requires_gnutls_record_size_limit
+requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_CLI_C MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_RECORD_SIZE_LIMIT
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+run_test    "Record Size Limit: TLS 1.3: Client complies with record size limit (4096), 2 fragments" \
+            "$G_NEXT_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL -d 4 --recordsize 4095" \
+            "$P_CLI debug_level=4 force_version=tls13 request_size=6144" \
+            0 \
+            -c "Sent RecordSizeLimit: 16384 Bytes" \
+            -c "ClientHello: record_size_limit(28) extension exists." \
+            -c "RecordSizeLimit: 4096 Bytes" \
+            -c "EncryptedExtensions: record_size_limit(28) extension exists." \
+            -c "Maximum outgoing record payload length is 4095" \
+            -c "6144 bytes written in 2 fragments"
+
+requires_gnutls_tls1_3
+requires_gnutls_record_size_limit
+requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_CLI_C MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_RECORD_SIZE_LIMIT
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+run_test    "Record Size Limit: TLS 1.3: Client complies with record size limit (4096), 3 fragments" \
+            "$G_NEXT_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL -d 4 --recordsize 4095" \
+            "$P_CLI debug_level=4 force_version=tls13 request_size=10240" \
+            0 \
+            -c "Sent RecordSizeLimit: 16384 Bytes" \
+            -c "ClientHello: record_size_limit(28) extension exists." \
+            -c "RecordSizeLimit: 4096 Bytes" \
+            -c "EncryptedExtensions: record_size_limit(28) extension exists." \
+            -c "Maximum outgoing record payload length is 4095" \
+            -c "10240 bytes written in 3 fragments"
+
+# TODO: For time being, we send fixed value of RecordSizeLimit defined by
+# MBEDTLS_SSL_IN_CONTENT_LEN. Once we support variable buffer length of
+# RecordSizeLimit, we need to modify value of RecordSizeLimit in below test.
+requires_config_value_equals "MBEDTLS_SSL_IN_CONTENT_LEN" 16384
+requires_all_configs_enabled MBEDTLS_SSL_CLI_C MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_RECORD_SIZE_LIMIT
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+run_test    "Record Size Limit: TLS 1.3 m->m: both peer comply with record size limit (default)" \
+            "$P_SRV debug_level=4 force_version=tls13" \
+            "$P_CLI debug_level=4" \
+            0 \
+            -c "Sent RecordSizeLimit: $MAX_IN_LEN Bytes"         \
+            -c "RecordSizeLimit: $MAX_IN_LEN Bytes"              \
+            -s "RecordSizeLimit: $MAX_IN_LEN Bytes"              \
+            -s "Sent RecordSizeLimit: $MAX_IN_LEN Bytes"         \
+            -s "Maximum outgoing record payload length is 16383" \
+            -s "Maximum incoming record payload length is 16384"
+
+# End of Record size limit tests
 
 # Tests for renegotiation
+
+# G_NEXT_SRV is used in renegotiation tests becuase of the increased
+# extensions limit since we exceed the limit in G_SRV when we send
+# TLS 1.3 extensions in the initial handshake.
 
 # Renegotiation SCSV always added, regardless of SSL_RENEGOTIATION
 run_test    "Renegotiation: none, for reference" \
@@ -5111,7 +5555,7 @@ requires_gnutls
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Renegotiation: gnutls server strict, client-initiated" \
-            "$G_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.2:%SAFE_RENEGOTIATION" \
+            "$G_NEXT_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.2:%SAFE_RENEGOTIATION" \
             "$P_CLI debug_level=3 exchanges=1 renegotiation=1 renegotiate=1" \
             0 \
             -c "client hello, adding renegotiation extension" \
@@ -5125,7 +5569,7 @@ requires_gnutls
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Renegotiation: gnutls server unsafe, client-initiated default" \
-            "$G_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.2:%DISABLE_SAFE_RENEGOTIATION" \
+            "$G_NEXT_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.2:%DISABLE_SAFE_RENEGOTIATION" \
             "$P_CLI debug_level=3 exchanges=1 renegotiation=1 renegotiate=1" \
             1 \
             -c "client hello, adding renegotiation extension" \
@@ -5139,7 +5583,7 @@ requires_gnutls
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Renegotiation: gnutls server unsafe, client-inititated no legacy" \
-            "$G_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.2:%DISABLE_SAFE_RENEGOTIATION" \
+            "$G_NEXT_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.2:%DISABLE_SAFE_RENEGOTIATION" \
             "$P_CLI debug_level=3 exchanges=1 renegotiation=1 renegotiate=1 \
              allow_legacy=0" \
             1 \
@@ -5154,7 +5598,7 @@ requires_gnutls
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Renegotiation: gnutls server unsafe, client-inititated legacy" \
-            "$G_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.2:%DISABLE_SAFE_RENEGOTIATION" \
+            "$G_NEXT_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.2:%DISABLE_SAFE_RENEGOTIATION" \
             "$P_CLI debug_level=3 exchanges=1 renegotiation=1 renegotiate=1 \
              allow_legacy=1" \
             0 \
@@ -5215,7 +5659,7 @@ requires_gnutls
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Renegotiation: DTLS, gnutls server, client-initiated" \
-            "$G_SRV -u --mtu 4096" \
+            "$G_NEXT_SRV -u --mtu 4096" \
             "$P_CLI debug_level=3 dtls=1 exchanges=1 renegotiation=1 renegotiate=1" \
             0 \
             -c "client hello, adding renegotiation extension" \
@@ -5228,9 +5672,10 @@ run_test    "Renegotiation: DTLS, gnutls server, client-initiated" \
 # Test for the "secure renegotiation" extension only (no actual renegotiation)
 
 requires_gnutls
+requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Renego ext: gnutls server strict, client default" \
-            "$G_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.2:%SAFE_RENEGOTIATION" \
+            "$G_NEXT_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.2:%SAFE_RENEGOTIATION" \
             "$P_CLI debug_level=3" \
             0 \
             -c "found renegotiation extension" \
@@ -5238,9 +5683,10 @@ run_test    "Renego ext: gnutls server strict, client default" \
             -c "HTTP/1.0 200 [Oo][Kk]"
 
 requires_gnutls
+requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Renego ext: gnutls server unsafe, client default" \
-            "$G_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.2:%DISABLE_SAFE_RENEGOTIATION" \
+            "$G_NEXT_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.2:%DISABLE_SAFE_RENEGOTIATION" \
             "$P_CLI debug_level=3" \
             0 \
             -C "found renegotiation extension" \
@@ -5248,9 +5694,10 @@ run_test    "Renego ext: gnutls server unsafe, client default" \
             -c "HTTP/1.0 200 [Oo][Kk]"
 
 requires_gnutls
+requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Renego ext: gnutls server unsafe, client break legacy" \
-            "$G_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.2:%DISABLE_SAFE_RENEGOTIATION" \
+            "$G_NEXT_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.2:%DISABLE_SAFE_RENEGOTIATION" \
             "$P_CLI debug_level=3 allow_legacy=-1" \
             1 \
             -C "found renegotiation extension" \
@@ -5258,28 +5705,31 @@ run_test    "Renego ext: gnutls server unsafe, client break legacy" \
             -C "HTTP/1.0 200 [Oo][Kk]"
 
 requires_gnutls
+requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Renego ext: gnutls client strict, server default" \
             "$P_SRV debug_level=3" \
-            "$G_CLI --priority=NORMAL:%SAFE_RENEGOTIATION localhost" \
+            "$G_CLI --priority=NORMAL:-VERS-ALL:+VERS-TLS1.2:%SAFE_RENEGOTIATION localhost" \
             0 \
             -s "received TLS_EMPTY_RENEGOTIATION_INFO\|found renegotiation extension" \
             -s "server hello, secure renegotiation extension"
 
 requires_gnutls
+requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Renego ext: gnutls client unsafe, server default" \
             "$P_SRV debug_level=3" \
-            "$G_CLI --priority=NORMAL:%DISABLE_SAFE_RENEGOTIATION localhost" \
+            "$G_CLI --priority=NORMAL:-VERS-ALL:+VERS-TLS1.2:%DISABLE_SAFE_RENEGOTIATION localhost" \
             0 \
             -S "received TLS_EMPTY_RENEGOTIATION_INFO\|found renegotiation extension" \
             -S "server hello, secure renegotiation extension"
 
 requires_gnutls
+requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Renego ext: gnutls client unsafe, server break legacy" \
             "$P_SRV debug_level=3 allow_legacy=-1" \
-            "$G_CLI --priority=NORMAL:%DISABLE_SAFE_RENEGOTIATION localhost" \
+            "$G_CLI --priority=NORMAL:-VERS-ALL:+VERS-TLS1.2:%DISABLE_SAFE_RENEGOTIATION localhost" \
             1 \
             -S "received TLS_EMPTY_RENEGOTIATION_INFO\|found renegotiation extension" \
             -S "server hello, secure renegotiation extension"
@@ -6292,6 +6742,7 @@ run_test    "Non-blocking I/O: client auth" \
             -c "Read from server: .* bytes read"
 
 requires_key_exchange_with_cert_in_tls12_or_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Non-blocking I/O: ticket" \
             "$P_SRV nbio=2 tickets=1 auth_mode=none" \
             "$P_CLI nbio=2 tickets=1" \
@@ -6301,6 +6752,7 @@ run_test    "Non-blocking I/O: ticket" \
             -c "Read from server: .* bytes read"
 
 requires_key_exchange_with_cert_in_tls12_or_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Non-blocking I/O: ticket + client auth" \
             "$P_SRV nbio=2 tickets=1 auth_mode=required" \
             "$P_CLI nbio=2 tickets=1" \
@@ -6310,6 +6762,7 @@ run_test    "Non-blocking I/O: ticket + client auth" \
             -c "Read from server: .* bytes read"
 
 requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Non-blocking I/O: TLS 1.2 + ticket + client auth + resume" \
             "$P_SRV nbio=2 tickets=1 auth_mode=required" \
             "$P_CLI force_version=tls12 nbio=2 tickets=1 reconnect=1" \
@@ -6321,6 +6774,7 @@ run_test    "Non-blocking I/O: TLS 1.2 + ticket + client auth + resume" \
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Non-blocking I/O: TLS 1.3 + ticket + client auth + resume" \
             "$P_SRV nbio=2 tickets=1 auth_mode=required" \
             "$P_CLI nbio=2 tickets=1 reconnect=1" \
@@ -6330,6 +6784,7 @@ run_test    "Non-blocking I/O: TLS 1.3 + ticket + client auth + resume" \
             -c "Read from server: .* bytes read"
 
 requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Non-blocking I/O: TLS 1.2 + ticket + resume" \
             "$P_SRV nbio=2 tickets=1 auth_mode=none" \
             "$P_CLI force_version=tls12 nbio=2 tickets=1 reconnect=1" \
@@ -6341,6 +6796,7 @@ run_test    "Non-blocking I/O: TLS 1.2 + ticket + resume" \
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Non-blocking I/O: TLS 1.3 + ticket + resume" \
             "$P_SRV nbio=2 tickets=1 auth_mode=none" \
             "$P_CLI nbio=2 tickets=1 reconnect=1" \
@@ -6379,6 +6835,7 @@ run_test    "Event-driven I/O: client auth" \
             -c "Read from server: .* bytes read"
 
 requires_key_exchange_with_cert_in_tls12_or_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Event-driven I/O: ticket" \
             "$P_SRV event=1 tickets=1 auth_mode=none" \
             "$P_CLI event=1 tickets=1" \
@@ -6388,6 +6845,7 @@ run_test    "Event-driven I/O: ticket" \
             -c "Read from server: .* bytes read"
 
 requires_key_exchange_with_cert_in_tls12_or_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Event-driven I/O: ticket + client auth" \
             "$P_SRV event=1 tickets=1 auth_mode=required" \
             "$P_CLI event=1 tickets=1" \
@@ -6397,6 +6855,7 @@ run_test    "Event-driven I/O: ticket + client auth" \
             -c "Read from server: .* bytes read"
 
 requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Event-driven I/O: TLS 1.2 + ticket + client auth + resume" \
             "$P_SRV event=1 tickets=1 auth_mode=required" \
             "$P_CLI force_version=tls12 event=1 tickets=1 reconnect=1" \
@@ -6408,6 +6867,7 @@ run_test    "Event-driven I/O: TLS 1.2 + ticket + client auth + resume" \
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Event-driven I/O: TLS 1.3 + ticket + client auth + resume" \
             "$P_SRV event=1 tickets=1 auth_mode=required" \
             "$P_CLI event=1 tickets=1 reconnect=1" \
@@ -6417,6 +6877,7 @@ run_test    "Event-driven I/O: TLS 1.3 + ticket + client auth + resume" \
             -c "Read from server: .* bytes read"
 
 requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Event-driven I/O: TLS 1.2 + ticket + resume" \
             "$P_SRV event=1 tickets=1 auth_mode=none" \
             "$P_CLI force_version=tls12 event=1 tickets=1 reconnect=1" \
@@ -6428,6 +6889,7 @@ run_test    "Event-driven I/O: TLS 1.2 + ticket + resume" \
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Event-driven I/O: TLS 1.3 + ticket + resume" \
             "$P_SRV event=1 tickets=1 auth_mode=none" \
             "$P_CLI event=1 tickets=1 reconnect=1" \
@@ -6460,6 +6922,7 @@ run_test    "Event-driven I/O, DTLS: client auth" \
             -c "Read from server: .* bytes read"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Event-driven I/O, DTLS: ticket" \
             "$P_SRV dtls=1 event=1 tickets=1 auth_mode=none" \
             "$P_CLI dtls=1 event=1 tickets=1" \
@@ -6467,6 +6930,7 @@ run_test    "Event-driven I/O, DTLS: ticket" \
             -c "Read from server: .* bytes read"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Event-driven I/O, DTLS: ticket + client auth" \
             "$P_SRV dtls=1 event=1 tickets=1 auth_mode=required" \
             "$P_CLI dtls=1 event=1 tickets=1" \
@@ -6474,6 +6938,7 @@ run_test    "Event-driven I/O, DTLS: ticket + client auth" \
             -c "Read from server: .* bytes read"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Event-driven I/O, DTLS: ticket + client auth + resume" \
             "$P_SRV dtls=1 event=1 tickets=1 auth_mode=required" \
             "$P_CLI dtls=1 event=1 tickets=1 reconnect=1 skip_close_notify=1" \
@@ -6481,6 +6946,7 @@ run_test    "Event-driven I/O, DTLS: ticket + client auth + resume" \
             -c "Read from server: .* bytes read"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Event-driven I/O, DTLS: ticket + resume" \
             "$P_SRV dtls=1 event=1 tickets=1 auth_mode=none" \
             "$P_CLI dtls=1 event=1 tickets=1 reconnect=1 skip_close_notify=1" \
@@ -6507,39 +6973,470 @@ run_test    "Event-driven I/O, DTLS: session-id resume, UDP packing" \
             0 \
             -c "Read from server: .* bytes read"
 
-# Tests for version negotiation
+# Tests for version negotiation. Some information to ease the understanding
+# of the version negotiation test titles below:
+# . 1.2/1.3 means that only TLS 1.2/TLS 1.3 is enabled.
+# . 1.2+1.3 means that both TLS 1.2 and TLS 1.3 are enabled.
+# . 1.2+(1.3)/(1.2)+1.3 means that TLS 1.2/1.3 is enabled and that
+#   TLS 1.3/1.2 may be enabled or not.
+# . max=1.2 means that both TLS 1.2 and TLS 1.3 are enabled at build time but
+#   TLS 1.3 is disabled at runtime (maximum negotiable version is TLS 1.2).
+# . min=1.3 means that both TLS 1.2 and TLS 1.3 are enabled at build time but
+#   TLS 1.2 is disabled at runtime (minimum negotiable version is TLS 1.3).
 
-run_test    "Version check: all -> 1.2" \
+# Tests for version negotiation, MbedTLS client and server
+
+requires_all_configs_enabled MBEDTLS_SSL_CLI_C MBEDTLS_SSL_SRV_C
+requires_config_disabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
+run_test    "Version nego m->m: cli 1.2, srv 1.2 -> 1.2" \
             "$P_SRV" \
-            "$P_CLI force_version=tls12" \
+            "$P_CLI" \
             0 \
             -S "mbedtls_ssl_handshake returned" \
             -C "mbedtls_ssl_handshake returned" \
             -s "Protocol is TLSv1.2" \
             -c "Protocol is TLSv1.2"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-run_test    "Not supported version check: cli TLS 1.0" \
+requires_all_configs_enabled MBEDTLS_SSL_CLI_C MBEDTLS_SSL_SRV_C \
+                             MBEDTLS_SSL_PROTO_TLS1_2 MBEDTLS_SSL_PROTO_TLS1_3
+requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
+run_test    "Version nego m->m: cli max=1.2, srv max=1.2 -> 1.2" \
+            "$P_SRV max_version=tls12" \
+            "$P_CLI max_version=tls12" \
+            0 \
+            -S "mbedtls_ssl_handshake returned" \
+            -C "mbedtls_ssl_handshake returned" \
+            -s "Protocol is TLSv1.2" \
+            -c "Protocol is TLSv1.2"
+
+requires_all_configs_enabled MBEDTLS_SSL_CLI_C MBEDTLS_SSL_SRV_C \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_disabled MBEDTLS_SSL_PROTO_TLS1_2
+run_test    "Version nego m->m: cli 1.3, srv 1.3 -> 1.3" \
+            "$P_SRV" \
+            "$P_CLI" \
+            0 \
+            -S "mbedtls_ssl_handshake returned" \
+            -C "mbedtls_ssl_handshake returned" \
+            -s "Protocol is TLSv1.3" \
+            -c "Protocol is TLSv1.3"
+
+requires_all_configs_enabled MBEDTLS_SSL_CLI_C MBEDTLS_SSL_SRV_C \
+                             MBEDTLS_SSL_PROTO_TLS1_2 MBEDTLS_SSL_PROTO_TLS1_3 \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+run_test    "Version nego m->m: cli min=1.3, srv min=1.3 -> 1.3" \
+            "$P_SRV min_version=tls13" \
+            "$P_CLI min_version=tls13" \
+            0 \
+            -S "mbedtls_ssl_handshake returned" \
+            -C "mbedtls_ssl_handshake returned" \
+            -s "Protocol is TLSv1.3" \
+            -c "Protocol is TLSv1.3"
+
+requires_all_configs_enabled MBEDTLS_SSL_CLI_C MBEDTLS_SSL_SRV_C \
+                             MBEDTLS_SSL_PROTO_TLS1_2 MBEDTLS_SSL_PROTO_TLS1_3 \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+run_test    "Version nego m->m: cli 1.2+1.3, srv 1.2+1.3 -> 1.3" \
+            "$P_SRV" \
+            "$P_CLI" \
+            0 \
+            -S "mbedtls_ssl_handshake returned" \
+            -C "mbedtls_ssl_handshake returned" \
+            -s "Protocol is TLSv1.3" \
+            -c "Protocol is TLSv1.3"
+
+requires_all_configs_enabled MBEDTLS_SSL_CLI_C MBEDTLS_SSL_SRV_C \
+                             MBEDTLS_SSL_PROTO_TLS1_2 MBEDTLS_SSL_PROTO_TLS1_3 \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+run_test    "Version nego m->m: cli 1.2+1.3, srv min=1.3 -> 1.3" \
+            "$P_SRV min_version=tls13" \
+            "$P_CLI" \
+            0 \
+            -S "mbedtls_ssl_handshake returned" \
+            -C "mbedtls_ssl_handshake returned" \
+            -s "Protocol is TLSv1.3" \
+            -c "Protocol is TLSv1.3"
+
+requires_all_configs_enabled MBEDTLS_SSL_CLI_C MBEDTLS_SSL_SRV_C \
+                             MBEDTLS_SSL_PROTO_TLS1_2 MBEDTLS_SSL_PROTO_TLS1_3
+requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
+run_test    "Version nego m->m: cli 1.2+1.3, srv max=1.2 -> 1.2" \
+            "$P_SRV max_version=tls12" \
+            "$P_CLI" \
+            0 \
+            -S "mbedtls_ssl_handshake returned" \
+            -C "mbedtls_ssl_handshake returned" \
+            -s "Protocol is TLSv1.2" \
+            -c "Protocol is TLSv1.2"
+
+requires_all_configs_enabled MBEDTLS_SSL_CLI_C MBEDTLS_SSL_SRV_C \
+                             MBEDTLS_SSL_PROTO_TLS1_2 MBEDTLS_SSL_PROTO_TLS1_3
+requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
+run_test    "Version nego m->m: cli max=1.2, srv 1.2+1.3 -> 1.2" \
+            "$P_SRV" \
+            "$P_CLI max_version=tls12" \
+            0 \
+            -S "mbedtls_ssl_handshake returned" \
+            -C "mbedtls_ssl_handshake returned" \
+            -s "Protocol is TLSv1.2" \
+            -c "Protocol is TLSv1.2"
+
+requires_all_configs_enabled MBEDTLS_SSL_CLI_C MBEDTLS_SSL_SRV_C \
+                             MBEDTLS_SSL_PROTO_TLS1_2 MBEDTLS_SSL_PROTO_TLS1_3 \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+run_test    "Version nego m->m: cli min=1.3, srv 1.2+1.3 -> 1.3" \
+            "$P_SRV" \
+            "$P_CLI min_version=tls13" \
+            0 \
+            -S "mbedtls_ssl_handshake returned" \
+            -C "mbedtls_ssl_handshake returned" \
+            -s "Protocol is TLSv1.3" \
+            -c "Protocol is TLSv1.3"
+
+requires_all_configs_enabled MBEDTLS_SSL_CLI_C MBEDTLS_SSL_SRV_C \
+                             MBEDTLS_SSL_PROTO_TLS1_2 MBEDTLS_SSL_PROTO_TLS1_3
+run_test    "Not supported version m->m: cli max=1.2, srv min=1.3" \
+            "$P_SRV min_version=tls13" \
+            "$P_CLI max_version=tls12" \
+            1 \
+            -s "Handshake protocol not within min/max boundaries" \
+            -S "Protocol is TLSv1.2" \
+            -C "Protocol is TLSv1.2" \
+            -S "Protocol is TLSv1.3" \
+            -C "Protocol is TLSv1.3"
+
+requires_all_configs_enabled MBEDTLS_SSL_CLI_C MBEDTLS_SSL_SRV_C \
+                             MBEDTLS_SSL_PROTO_TLS1_2 MBEDTLS_SSL_PROTO_TLS1_3
+run_test    "Not supported version m->m: cli min=1.3, srv max=1.2" \
+            "$P_SRV max_version=tls12" \
+            "$P_CLI min_version=tls13" \
+            1 \
+            -s "The handshake negotiation failed" \
+            -S "Protocol is TLSv1.2" \
+            -C "Protocol is TLSv1.2" \
+            -S "Protocol is TLSv1.3" \
+            -C "Protocol is TLSv1.3"
+
+# Tests of version negotiation on server side against GnuTLS client
+
+requires_all_configs_enabled MBEDTLS_SSL_SRV_C MBEDTLS_SSL_PROTO_TLS1_2
+requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
+run_test    "Server version nego G->m: cli 1.2, srv 1.2+(1.3) -> 1.2" \
+            "$P_SRV" \
+            "$G_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.2" \
+            0 \
+            -S "mbedtls_ssl_handshake returned" \
+            -s "Protocol is TLSv1.2"
+
+requires_all_configs_enabled MBEDTLS_SSL_SRV_C \
+                             MBEDTLS_SSL_PROTO_TLS1_2 MBEDTLS_SSL_PROTO_TLS1_3
+requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
+run_test    "Server version nego G->m: cli 1.2, srv max=1.2 -> 1.2" \
+            "$P_SRV max_version=tls12" \
+            "$G_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.2" \
+            0 \
+            -S "mbedtls_ssl_handshake returned" \
+            -s "Protocol is TLSv1.2"
+
+requires_all_configs_enabled MBEDTLS_SSL_SRV_C MBEDTLS_SSL_PROTO_TLS1_3 \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
+                             MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+run_test    "Server version nego G->m: cli 1.3, srv (1.2)+1.3 -> 1.3" \
+            "$P_SRV" \
+            "$G_NEXT_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3" \
+            0 \
+            -S "mbedtls_ssl_handshake returned" \
+            -s "Protocol is TLSv1.3"
+
+requires_all_configs_enabled MBEDTLS_SSL_SRV_C \
+                             MBEDTLS_SSL_PROTO_TLS1_2 MBEDTLS_SSL_PROTO_TLS1_3 \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
+                             MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+run_test    "Server version nego G->m: cli 1.3, srv min=1.3 -> 1.3" \
+            "$P_SRV min_version=tls13" \
+            "$G_NEXT_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3" \
+            0 \
+            -S "mbedtls_ssl_handshake returned" \
+            -s "Protocol is TLSv1.3"
+
+requires_all_configs_enabled MBEDTLS_SSL_SRV_C MBEDTLS_SSL_PROTO_TLS1_3 \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
+                             MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+run_test    "Server version nego G->m: cli 1.2+1.3, srv (1.2)+1.3 -> 1.3" \
+            "$P_SRV" \
+            "$G_NEXT_CLI localhost --priority=NORMAL" \
+            0 \
+            -S "mbedtls_ssl_handshake returned" \
+            -s "Protocol is TLSv1.3"
+
+requires_gnutls_next_disable_tls13_compat
+requires_all_configs_enabled MBEDTLS_SSL_SRV_C MBEDTLS_SSL_PROTO_TLS1_3 \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+run_test    "Server version nego G->m (no compat): cli 1.2+1.3, srv (1.2)+1.3 -> 1.3" \
+            "$P_SRV" \
+            "$G_NEXT_CLI localhost --priority=NORMAL:%DISABLE_TLS13_COMPAT_MODE" \
+            0 \
+            -S "mbedtls_ssl_handshake returned" \
+            -s "Protocol is TLSv1.3"
+
+# GnuTLS can be setup to send a ClientHello containing a supported versions
+# extension proposing TLS 1.2 (preferred) and then TLS 1.3. In that case,
+# a TLS 1.3 and TLS 1.2 capable server is supposed to negotiate TLS 1.2 and
+# to indicate in the ServerHello that it downgrades from TLS 1.3. The GnuTLS
+# client then detects the downgrade indication and aborts the handshake even
+# if TLS 1.2 was its preferred version. Keeping the test even if the
+# handshake fails eventually as it exercices parts of the Mbed TLS
+# implementation that are otherwise not exercised.
+requires_all_configs_enabled MBEDTLS_SSL_SRV_C \
+                             MBEDTLS_SSL_PROTO_TLS1_2 MBEDTLS_SSL_PROTO_TLS1_3 \
+                             MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+run_test    "Server version nego G->m: cli 1.2+1.3 (1.2 preferred!), srv 1.2+1.3 -> 1.2" \
+            "$P_SRV" \
+            "$G_NEXT_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.2:+VERS-TLS1.3" \
+            1 \
+            -c "Detected downgrade to TLS 1.2 from TLS 1.3"
+
+requires_all_configs_enabled MBEDTLS_SSL_SRV_C \
+                             MBEDTLS_SSL_PROTO_TLS1_2 MBEDTLS_SSL_PROTO_TLS1_3 \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
+                             MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+run_test    "Server version nego G->m: cli 1.2+1.3, srv min=1.3 -> 1.3" \
+            "$P_SRV min_version=tls13" \
+            "$G_NEXT_CLI localhost --priority=NORMAL" \
+            0 \
+            -S "mbedtls_ssl_handshake returned" \
+            -s "Protocol is TLSv1.3"
+
+requires_config_enabled MBEDTLS_SSL_SRV_C
+requires_config_disabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
+run_test    "Server version nego G->m: cli 1.2+1.3, srv 1.2 -> 1.2" \
+            "$P_SRV" \
+            "$G_NEXT_CLI localhost --priority=NORMAL" \
+            0 \
+            -S "mbedtls_ssl_handshake returned" \
+            -s "Protocol is TLSv1.2"
+
+requires_all_configs_enabled MBEDTLS_SSL_SRV_C \
+                             MBEDTLS_SSL_PROTO_TLS1_2 MBEDTLS_SSL_PROTO_TLS1_3
+requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
+run_test    "Server version nego G->m: cli 1.2+1.3, max=1.2 -> 1.2" \
+            "$P_SRV max_version=tls12" \
+            "$G_NEXT_CLI localhost --priority=NORMAL" \
+            0 \
+            -S "mbedtls_ssl_handshake returned" \
+            -s "Protocol is TLSv1.2"
+
+requires_config_enabled MBEDTLS_SSL_SRV_C
+run_test    "Not supported version G->m: cli 1.0, (1.2)+(1.3)" \
             "$P_SRV" \
             "$G_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.0" \
             1 \
             -s "Handshake protocol not within min/max boundaries" \
-            -c "Error in protocol version" \
-            -S "Protocol is TLSv1.0" \
-            -C "Handshake was completed"
+            -S "Protocol is TLSv1.0"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-run_test    "Not supported version check: cli TLS 1.1" \
+requires_config_enabled MBEDTLS_SSL_SRV_C
+run_test    "Not supported version G->m: cli 1.1, (1.2)+(1.3)" \
             "$P_SRV" \
             "$G_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.1" \
             1 \
             -s "Handshake protocol not within min/max boundaries" \
-            -c "Error in protocol version" \
-            -S "Protocol is TLSv1.1" \
-            -C "Handshake was completed"
+            -S "Protocol is TLSv1.1"
+
+requires_config_enabled MBEDTLS_SSL_SRV_C
+requires_config_disabled MBEDTLS_SSL_PROTO_TLS1_2
+run_test    "Not supported version G->m: cli 1.2, srv 1.3" \
+            "$P_SRV" \
+            "$G_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.2" \
+            1 \
+            -s "Handshake protocol not within min/max boundaries" \
+            -S "Protocol is TLSv1.2"
+
+requires_config_enabled MBEDTLS_SSL_SRV_C
+requires_config_disabled MBEDTLS_SSL_PROTO_TLS1_3
+run_test    "Not supported version G->m: cli 1.3, srv 1.2" \
+            "$P_SRV" \
+            "$G_NEXT_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3" \
+            1 \
+            -S "Handshake protocol not within min/max boundaries" \
+            -s "The handshake negotiation failed" \
+            -S "Protocol is TLSv1.3"
+
+requires_all_configs_enabled MBEDTLS_SSL_SRV_C \
+                             MBEDTLS_SSL_PROTO_TLS1_2 MBEDTLS_SSL_PROTO_TLS1_3
+run_test    "Not supported version G->m: cli 1.2, srv min=1.3" \
+            "$P_SRV min_version=tls13" \
+            "$G_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.2" \
+            1 \
+            -s "Handshake protocol not within min/max boundaries" \
+            -S "Protocol is TLSv1.2"
+
+requires_all_configs_enabled MBEDTLS_SSL_SRV_C \
+                             MBEDTLS_SSL_PROTO_TLS1_2 MBEDTLS_SSL_PROTO_TLS1_3
+run_test    "Not supported version G->m: cli 1.3, srv max=1.2" \
+            "$P_SRV max_version=tls12" \
+            "$G_NEXT_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3" \
+            1 \
+            -S "Handshake protocol not within min/max boundaries" \
+            -s "The handshake negotiation failed" \
+            -S "Protocol is TLSv1.3"
+
+# Tests of version negotiation on server side against OpenSSL client
+
+requires_all_configs_enabled MBEDTLS_SSL_SRV_C MBEDTLS_SSL_PROTO_TLS1_2
+requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
+run_test    "Server version nego O->m: cli 1.2, srv 1.2+(1.3) -> 1.2" \
+            "$P_SRV" \
+            "$O_NEXT_CLI -tls1_2" \
+            0 \
+            -S "mbedtls_ssl_handshake returned" \
+            -s "Protocol is TLSv1.2"
+
+requires_all_configs_enabled MBEDTLS_SSL_SRV_C \
+                             MBEDTLS_SSL_PROTO_TLS1_2 MBEDTLS_SSL_PROTO_TLS1_3
+requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
+run_test    "Server version nego O->m: cli 1.2, srv max=1.2 -> 1.2" \
+            "$P_SRV max_version=tls12" \
+            "$O_NEXT_CLI -tls1_2" \
+            0 \
+            -S "mbedtls_ssl_handshake returned" \
+            -s "Protocol is TLSv1.2"
+
+requires_openssl_tls1_3_with_compatible_ephemeral
+requires_all_configs_enabled MBEDTLS_SSL_SRV_C MBEDTLS_SSL_PROTO_TLS1_3 \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
+                             MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+run_test    "Server version nego O->m: cli 1.3, srv (1.2)+1.3 -> 1.3" \
+            "$P_SRV" \
+            "$O_NEXT_CLI -tls1_3" \
+            0 \
+            -S "mbedtls_ssl_handshake returned" \
+            -s "Protocol is TLSv1.3"
+
+requires_openssl_tls1_3_with_compatible_ephemeral
+requires_all_configs_enabled MBEDTLS_SSL_SRV_C \
+                             MBEDTLS_SSL_PROTO_TLS1_2 MBEDTLS_SSL_PROTO_TLS1_3 \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
+                             MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+run_test    "Server version nego O->m: cli 1.3, srv min=1.3 -> 1.3" \
+            "$P_SRV min_version=tls13" \
+            "$O_NEXT_CLI -tls1_3" \
+            0 \
+            -S "mbedtls_ssl_handshake returned" \
+            -s "Protocol is TLSv1.3"
+
+requires_openssl_tls1_3_with_compatible_ephemeral
+requires_all_configs_enabled MBEDTLS_SSL_SRV_C MBEDTLS_SSL_PROTO_TLS1_3 \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
+                             MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+run_test    "Server version nego O->m: cli 1.2+1.3, srv (1.2)+1.3 -> 1.3" \
+            "$P_SRV" \
+            "$O_NEXT_CLI" \
+            0 \
+            -S "mbedtls_ssl_handshake returned" \
+            -s "Protocol is TLSv1.3"
+
+requires_openssl_tls1_3_with_compatible_ephemeral
+requires_all_configs_enabled MBEDTLS_SSL_SRV_C MBEDTLS_SSL_PROTO_TLS1_3 \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+run_test    "Server version nego O->m (no compat): cli 1.2+1.3, srv (1.2)+1.3 -> 1.3" \
+            "$P_SRV" \
+            "$O_NEXT_CLI -no_middlebox" \
+            0 \
+            -S "mbedtls_ssl_handshake returned" \
+            -s "Protocol is TLSv1.3"
+
+requires_openssl_tls1_3_with_compatible_ephemeral
+requires_all_configs_enabled MBEDTLS_SSL_SRV_C \
+                             MBEDTLS_SSL_PROTO_TLS1_2 MBEDTLS_SSL_PROTO_TLS1_3 \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
+                             MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+run_test    "Server version nego O->m: cli 1.2+1.3, srv min=1.3 -> 1.3" \
+            "$P_SRV min_version=tls13" \
+            "$O_NEXT_CLI" \
+            0 \
+            -S "mbedtls_ssl_handshake returned" \
+            -s "Protocol is TLSv1.3"
+
+requires_config_enabled MBEDTLS_SSL_SRV_C
+requires_config_disabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
+run_test    "Server version nego O->m: cli 1.2+1.3, srv 1.2 -> 1.2" \
+            "$P_SRV" \
+            "$O_NEXT_CLI" \
+            0 \
+            -S "mbedtls_ssl_handshake returned" \
+            -s "Protocol is TLSv1.2"
+
+requires_all_configs_enabled MBEDTLS_SSL_SRV_C \
+                             MBEDTLS_SSL_PROTO_TLS1_2 MBEDTLS_SSL_PROTO_TLS1_3
+requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
+run_test    "Server version nego O->m: cli 1.2+1.3, srv max=1.2 -> 1.2" \
+            "$P_SRV max_version=tls12" \
+            "$O_NEXT_CLI" \
+            0 \
+            -S "mbedtls_ssl_handshake returned" \
+            -s "Protocol is TLSv1.2"
+
+requires_config_enabled MBEDTLS_SSL_SRV_C
+run_test    "Not supported version O->m: cli 1.0, srv (1.2)+(1.3)" \
+            "$P_SRV" \
+            "$O_CLI -tls1" \
+            1 \
+            -s "Handshake protocol not within min/max boundaries" \
+            -S "Protocol is TLSv1.0"
+
+requires_config_enabled MBEDTLS_SSL_SRV_C
+run_test    "Not supported version O->m: cli 1.1, srv (1.2)+(1.3)" \
+            "$P_SRV" \
+            "$O_CLI -tls1_1" \
+            1 \
+            -s "Handshake protocol not within min/max boundaries" \
+            -S "Protocol is TLSv1.1"
+
+requires_config_enabled MBEDTLS_SSL_SRV_C
+requires_config_disabled MBEDTLS_SSL_PROTO_TLS1_2
+run_test    "Not supported version O->m: cli 1.2, srv 1.3" \
+            "$P_SRV" \
+            "$O_NEXT_CLI -tls1_2" \
+            1 \
+            -s "Handshake protocol not within min/max boundaries" \
+            -S "Protocol is TLSv1.2"
+
+requires_config_enabled MBEDTLS_SSL_SRV_C
+requires_config_disabled MBEDTLS_SSL_PROTO_TLS1_3
+run_test    "Not supported version O->m: cli 1.3, srv 1.2" \
+            "$P_SRV" \
+            "$O_NEXT_CLI -tls1_3" \
+            1 \
+            -S "Handshake protocol not within min/max boundaries" \
+            -s "The handshake negotiation failed" \
+            -S "Protocol is TLSv1.3"
+
+requires_all_configs_enabled MBEDTLS_SSL_SRV_C \
+                             MBEDTLS_SSL_PROTO_TLS1_2 MBEDTLS_SSL_PROTO_TLS1_3
+run_test    "Not supported version O->m: cli 1.2, srv min=1.3" \
+            "$P_SRV min_version=tls13" \
+            "$O_NEXT_CLI -tls1_2" \
+            1 \
+            -s "Handshake protocol not within min/max boundaries" \
+            -S "Protocol is TLSv1.2"
+
+requires_all_configs_enabled MBEDTLS_SSL_SRV_C \
+                             MBEDTLS_SSL_PROTO_TLS1_2 MBEDTLS_SSL_PROTO_TLS1_3
+run_test    "Not supported version O->m: cli 1.3, srv max=1.2" \
+            "$P_SRV max_version=tls12" \
+            "$O_NEXT_CLI -tls1_3" \
+            1 \
+            -S "Handshake protocol not within min/max boundaries" \
+            -s "The handshake negotiation failed" \
+            -S "Protocol is TLSv1.3"
+
+# Tests of version negotiation on client side against GnuTLS and OpenSSL server
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-run_test    "Not supported version check: srv max TLS 1.0" \
+run_test    "Not supported version: srv max TLS 1.0" \
             "$G_SRV --priority=NORMAL:-VERS-TLS-ALL:+VERS-TLS1.0" \
             "$P_CLI" \
             1 \
@@ -6549,7 +7446,7 @@ run_test    "Not supported version check: srv max TLS 1.0" \
             -C "Protocol is TLSv1.0"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-run_test    "Not supported version check: srv max TLS 1.1" \
+run_test    "Not supported version: srv max TLS 1.1" \
             "$G_SRV --priority=NORMAL:-VERS-TLS-ALL:+VERS-TLS1.1" \
             "$P_CLI" \
             1 \
@@ -6557,6 +7454,88 @@ run_test    "Not supported version check: srv max TLS 1.1" \
             -c "Handshake protocol not within min/max boundaries" \
             -S "Version: TLS1.1" \
             -C "Protocol is TLSv1.1"
+
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+skip_handshake_stage_check
+requires_gnutls_tls1_3
+run_test    "TLS 1.3: Not supported version:gnutls: srv max TLS 1.0" \
+            "$G_NEXT_SRV --priority=NORMAL:-VERS-TLS-ALL:+VERS-TLS1.0 -d 4" \
+            "$P_CLI debug_level=4" \
+            1 \
+            -s "Client's version: 3.3" \
+            -S "Version: TLS1.0" \
+            -C "Protocol is TLSv1.0"
+
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+skip_handshake_stage_check
+requires_gnutls_tls1_3
+run_test    "TLS 1.3: Not supported version:gnutls: srv max TLS 1.1" \
+            "$G_NEXT_SRV --priority=NORMAL:-VERS-TLS-ALL:+VERS-TLS1.1 -d 4" \
+            "$P_CLI debug_level=4" \
+            1 \
+            -s "Client's version: 3.3" \
+            -S "Version: TLS1.1" \
+            -C "Protocol is TLSv1.1"
+
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+skip_handshake_stage_check
+requires_gnutls_tls1_3
+run_test    "TLS 1.3: Not supported version:gnutls: srv max TLS 1.2" \
+            "$G_NEXT_SRV --priority=NORMAL:-VERS-TLS-ALL:+VERS-TLS1.2 -d 4" \
+            "$P_CLI force_version=tls13 debug_level=4" \
+            1 \
+            -s "Client's version: 3.3" \
+            -c "is a fatal alert message (msg 40)" \
+            -S "Version: TLS1.2" \
+            -C "Protocol is TLSv1.2"
+
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+skip_handshake_stage_check
+requires_openssl_next
+run_test    "TLS 1.3: Not supported version:openssl: srv max TLS 1.0" \
+            "$O_NEXT_SRV -msg -tls1" \
+            "$P_CLI debug_level=4" \
+            1 \
+            -s "fatal protocol_version" \
+            -c "is a fatal alert message (msg 70)" \
+            -S "Version: TLS1.0" \
+            -C "Protocol  : TLSv1.0"
+
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+skip_handshake_stage_check
+requires_openssl_next
+run_test    "TLS 1.3: Not supported version:openssl: srv max TLS 1.1" \
+            "$O_NEXT_SRV -msg -tls1_1" \
+            "$P_CLI debug_level=4" \
+            1 \
+            -s "fatal protocol_version" \
+            -c "is a fatal alert message (msg 70)" \
+            -S "Version: TLS1.1" \
+            -C "Protocol  : TLSv1.1"
+
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+skip_handshake_stage_check
+requires_openssl_next
+run_test    "TLS 1.3: Not supported version:openssl: srv max TLS 1.2" \
+            "$O_NEXT_SRV -msg -tls1_2" \
+            "$P_CLI force_version=tls13 debug_level=4" \
+            1 \
+            -s "fatal protocol_version" \
+            -c "is a fatal alert message (msg 70)" \
+            -S "Version: TLS1.2" \
+            -C "Protocol  : TLSv1.2"
 
 # Tests for ALPN extension
 
@@ -6789,7 +7768,7 @@ requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "keyUsage cli 1.3: DigitalSignature+KeyEncipherment, RSA: OK" \
             "$O_NEXT_SRV_NO_CERT -tls1_3 -num_tickets=0 -key data_files/server2.key \
-             -cert data_files/server2.ku-ds_ke.crt" \
+             -cert data_files/server2-sha256.ku-ds_ke.crt" \
             "$P_CLI debug_level=3" \
             0 \
             -C "bad certificate (usage extensions)" \
@@ -6801,7 +7780,7 @@ requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "keyUsage cli 1.3: KeyEncipherment, RSA: fail" \
             "$O_NEXT_SRV_NO_CERT -tls1_3 -num_tickets=0 -key data_files/server2.key \
-             -cert data_files/server2.ku-ke.crt" \
+             -cert data_files/server2-sha256.ku-ke.crt" \
             "$P_CLI debug_level=1" \
             1 \
             -c "bad certificate (usage extensions)" \
@@ -6813,7 +7792,7 @@ requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "keyUsage cli 1.3: KeyAgreement, RSA: fail" \
             "$O_NEXT_SRV_NO_CERT -tls1_3 -num_tickets=0 -key data_files/server2.key \
-             -cert data_files/server2.ku-ka.crt" \
+             -cert data_files/server2-sha256.ku-ka.crt" \
             "$P_CLI debug_level=1" \
             1 \
             -c "bad certificate (usage extensions)" \
@@ -6862,7 +7841,7 @@ run_test    "keyUsage cli 1.3: KeyAgreement, ECDSA: fail" \
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "keyUsage cli-auth: RSA, DigitalSignature: OK" \
             "$P_SRV debug_level=1 auth_mode=optional" \
-            "$O_CLI -key data_files/server2.key \
+            "$O_CLI -tls1_2 -key data_files/server2.key \
              -cert data_files/server2.ku-ds.crt" \
             0 \
             -s "Verifying peer X.509 certificate... ok" \
@@ -6872,7 +7851,7 @@ run_test    "keyUsage cli-auth: RSA, DigitalSignature: OK" \
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "keyUsage cli-auth: RSA, KeyEncipherment: fail (soft)" \
             "$P_SRV debug_level=1 auth_mode=optional" \
-            "$O_CLI -key data_files/server2.key \
+            "$O_CLI -tls1_2 -key data_files/server2.key \
              -cert data_files/server2.ku-ke.crt" \
             0 \
             -s "bad certificate (usage extensions)" \
@@ -6880,8 +7859,8 @@ run_test    "keyUsage cli-auth: RSA, KeyEncipherment: fail (soft)" \
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "keyUsage cli-auth: RSA, KeyEncipherment: fail (hard)" \
-            "$P_SRV debug_level=1 auth_mode=required" \
-            "$O_CLI -key data_files/server2.key \
+            "$P_SRV debug_level=1 force_version=tls12 auth_mode=required" \
+            "$O_CLI -tls1_2 -key data_files/server2.key \
              -cert data_files/server2.ku-ke.crt" \
             1 \
             -s "bad certificate (usage extensions)" \
@@ -6890,7 +7869,7 @@ run_test    "keyUsage cli-auth: RSA, KeyEncipherment: fail (hard)" \
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "keyUsage cli-auth: ECDSA, DigitalSignature: OK" \
             "$P_SRV debug_level=1 auth_mode=optional" \
-            "$O_CLI -key data_files/server5.key \
+            "$O_CLI -tls1_2 -key data_files/server5.key \
              -cert data_files/server5.ku-ds.crt" \
             0 \
             -s "Verifying peer X.509 certificate... ok" \
@@ -6900,7 +7879,7 @@ run_test    "keyUsage cli-auth: ECDSA, DigitalSignature: OK" \
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "keyUsage cli-auth: ECDSA, KeyAgreement: fail (soft)" \
             "$P_SRV debug_level=1 auth_mode=optional" \
-            "$O_CLI -key data_files/server5.key \
+            "$O_CLI -tls1_2 -key data_files/server5.key \
              -cert data_files/server5.ku-ka.crt" \
             0 \
             -s "bad certificate (usage extensions)" \
@@ -6912,7 +7891,7 @@ requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
 run_test    "keyUsage cli-auth 1.3: RSA, DigitalSignature: OK" \
             "$P_SRV debug_level=1 force_version=tls13 auth_mode=optional" \
             "$O_NEXT_CLI_NO_CERT -key data_files/server2.key \
-             -cert data_files/server2.ku-ds.crt" \
+             -cert data_files/server2-sha256.ku-ds.crt" \
             0 \
             -s "Verifying peer X.509 certificate... ok" \
             -S "bad certificate (usage extensions)" \
@@ -6924,7 +7903,7 @@ requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
 run_test    "keyUsage cli-auth 1.3: RSA, KeyEncipherment: fail (soft)" \
             "$P_SRV debug_level=1 force_version=tls13 auth_mode=optional" \
             "$O_NEXT_CLI_NO_CERT -key data_files/server2.key \
-             -cert data_files/server2.ku-ke.crt" \
+             -cert data_files/server2-sha256.ku-ke.crt" \
             0 \
             -s "bad certificate (usage extensions)" \
             -S "Processing of the Certificate handshake message failed"
@@ -7077,7 +8056,7 @@ run_test    "extKeyUsage cli 1.3: codeSign -> fail" \
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "extKeyUsage cli-auth: clientAuth -> OK" \
             "$P_SRV debug_level=1 auth_mode=optional" \
-            "$O_CLI -key data_files/server5.key \
+            "$O_CLI -tls1_2 -key data_files/server5.key \
              -cert data_files/server5.eku-cli.crt" \
             0 \
             -S "bad certificate (usage extensions)" \
@@ -7086,7 +8065,7 @@ run_test    "extKeyUsage cli-auth: clientAuth -> OK" \
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "extKeyUsage cli-auth: serverAuth,clientAuth -> OK" \
             "$P_SRV debug_level=1 auth_mode=optional" \
-            "$O_CLI -key data_files/server5.key \
+            "$O_CLI -tls1_2 -key data_files/server5.key \
              -cert data_files/server5.eku-srv_cli.crt" \
             0 \
             -S "bad certificate (usage extensions)" \
@@ -7095,7 +8074,7 @@ run_test    "extKeyUsage cli-auth: serverAuth,clientAuth -> OK" \
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "extKeyUsage cli-auth: codeSign,anyEKU -> OK" \
             "$P_SRV debug_level=1 auth_mode=optional" \
-            "$O_CLI -key data_files/server5.key \
+            "$O_CLI -tls1_2 -key data_files/server5.key \
              -cert data_files/server5.eku-cs_any.crt" \
             0 \
             -S "bad certificate (usage extensions)" \
@@ -7104,7 +8083,7 @@ run_test    "extKeyUsage cli-auth: codeSign,anyEKU -> OK" \
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "extKeyUsage cli-auth: codeSign -> fail (soft)" \
             "$P_SRV debug_level=1 auth_mode=optional" \
-            "$O_CLI -key data_files/server5.key \
+            "$O_CLI -tls1_2 -key data_files/server5.key \
              -cert data_files/server5.eku-cs.crt" \
             0 \
             -s "bad certificate (usage extensions)" \
@@ -7113,7 +8092,7 @@ run_test    "extKeyUsage cli-auth: codeSign -> fail (soft)" \
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "extKeyUsage cli-auth: codeSign -> fail (hard)" \
             "$P_SRV debug_level=1 auth_mode=required" \
-            "$O_CLI -key data_files/server5.key \
+            "$O_CLI -tls1_2 -key data_files/server5.key \
              -cert data_files/server5.eku-cs.crt" \
             1 \
             -s "bad certificate (usage extensions)" \
@@ -7256,9 +8235,9 @@ run_test    "DHM size: server default, client 2049, rejected" \
 # Tests for PSK callback
 
 run_test    "PSK callback: psk, no callback" \
-            "$P_SRV psk=abc123 psk_identity=foo" \
+            "$P_SRV psk=73776f726466697368 psk_identity=foo" \
             "$P_CLI force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA \
-            psk_identity=foo psk=abc123" \
+            psk_identity=foo psk=73776f726466697368" \
             0 \
             -S "SSL - The handshake negotiation failed" \
             -S "SSL - Unknown identity received" \
@@ -7266,9 +8245,9 @@ run_test    "PSK callback: psk, no callback" \
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 run_test    "PSK callback: opaque psk on client, no callback" \
-            "$P_SRV extended_ms=0 debug_level=1 psk=abc123 psk_identity=foo" \
+            "$P_SRV extended_ms=0 debug_level=1 psk=73776f726466697368 psk_identity=foo" \
             "$P_CLI extended_ms=0 debug_level=1 min_version=tls12 force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA \
-            psk_identity=foo psk=abc123 psk_opaque=1" \
+            psk_identity=foo psk=73776f726466697368 psk_opaque=1" \
             0 \
             -C "session hash for extended master secret"\
             -S "session hash for extended master secret"\
@@ -7278,9 +8257,9 @@ run_test    "PSK callback: opaque psk on client, no callback" \
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 run_test    "PSK callback: opaque psk on client, no callback, SHA-384" \
-            "$P_SRV extended_ms=0 debug_level=1 psk=abc123 psk_identity=foo" \
+            "$P_SRV extended_ms=0 debug_level=1 psk=73776f726466697368 psk_identity=foo" \
             "$P_CLI extended_ms=0 debug_level=1 min_version=tls12 force_ciphersuite=TLS-PSK-WITH-AES-256-CBC-SHA384 \
-            psk_identity=foo psk=abc123 psk_opaque=1" \
+            psk_identity=foo psk=73776f726466697368 psk_opaque=1" \
             0 \
             -C "session hash for extended master secret"\
             -S "session hash for extended master secret"\
@@ -7290,9 +8269,9 @@ run_test    "PSK callback: opaque psk on client, no callback, SHA-384" \
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 run_test    "PSK callback: opaque psk on client, no callback, EMS" \
-            "$P_SRV extended_ms=1 debug_level=3 psk=abc123 psk_identity=foo" \
+            "$P_SRV extended_ms=1 debug_level=3 psk=73776f726466697368 psk_identity=foo" \
             "$P_CLI extended_ms=1 debug_level=3 min_version=tls12 force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA \
-            psk_identity=foo psk=abc123 psk_opaque=1" \
+            psk_identity=foo psk=73776f726466697368 psk_opaque=1" \
             0 \
             -c "session hash for extended master secret"\
             -s "session hash for extended master secret"\
@@ -7302,9 +8281,9 @@ run_test    "PSK callback: opaque psk on client, no callback, EMS" \
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 run_test    "PSK callback: opaque psk on client, no callback, SHA-384, EMS" \
-            "$P_SRV extended_ms=1 debug_level=3 psk=abc123 psk_identity=foo" \
+            "$P_SRV extended_ms=1 debug_level=3 psk=73776f726466697368 psk_identity=foo" \
             "$P_CLI extended_ms=1 debug_level=3 min_version=tls12 force_ciphersuite=TLS-PSK-WITH-AES-256-CBC-SHA384 \
-            psk_identity=foo psk=abc123 psk_opaque=1" \
+            psk_identity=foo psk=73776f726466697368 psk_opaque=1" \
             0 \
             -c "session hash for extended master secret"\
             -s "session hash for extended master secret"\
@@ -7314,9 +8293,9 @@ run_test    "PSK callback: opaque psk on client, no callback, SHA-384, EMS" \
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 run_test    "PSK callback: opaque rsa-psk on client, no callback" \
-            "$P_SRV extended_ms=0 debug_level=1 psk=abc123 psk_identity=foo" \
+            "$P_SRV extended_ms=0 debug_level=1 psk=73776f726466697368 psk_identity=foo" \
             "$P_CLI extended_ms=0 debug_level=1 min_version=tls12 force_ciphersuite=TLS-RSA-PSK-WITH-AES-128-CBC-SHA256 \
-            psk_identity=foo psk=abc123 psk_opaque=1" \
+            psk_identity=foo psk=73776f726466697368 psk_opaque=1" \
             0 \
             -C "session hash for extended master secret"\
             -S "session hash for extended master secret"\
@@ -7326,9 +8305,9 @@ run_test    "PSK callback: opaque rsa-psk on client, no callback" \
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 run_test    "PSK callback: opaque rsa-psk on client, no callback, SHA-384" \
-            "$P_SRV extended_ms=0 debug_level=1 psk=abc123 psk_identity=foo" \
+            "$P_SRV extended_ms=0 debug_level=1 psk=73776f726466697368 psk_identity=foo" \
             "$P_CLI extended_ms=0 debug_level=1 min_version=tls12 force_ciphersuite=TLS-RSA-PSK-WITH-AES-256-CBC-SHA384 \
-            psk_identity=foo psk=abc123 psk_opaque=1" \
+            psk_identity=foo psk=73776f726466697368 psk_opaque=1" \
             0 \
             -C "session hash for extended master secret"\
             -S "session hash for extended master secret"\
@@ -7338,9 +8317,9 @@ run_test    "PSK callback: opaque rsa-psk on client, no callback, SHA-384" \
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 run_test    "PSK callback: opaque rsa-psk on client, no callback, EMS" \
-            "$P_SRV extended_ms=1 debug_level=3 psk=abc123 psk_identity=foo" \
+            "$P_SRV extended_ms=1 debug_level=3 psk=73776f726466697368 psk_identity=foo" \
             "$P_CLI extended_ms=1 debug_level=3 min_version=tls12 force_ciphersuite=TLS-RSA-PSK-WITH-AES-128-CBC-SHA \
-            psk_identity=foo psk=abc123 psk_opaque=1" \
+            psk_identity=foo psk=73776f726466697368 psk_opaque=1" \
             0 \
             -c "session hash for extended master secret"\
             -s "session hash for extended master secret"\
@@ -7350,9 +8329,9 @@ run_test    "PSK callback: opaque rsa-psk on client, no callback, EMS" \
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 run_test    "PSK callback: opaque rsa-psk on client, no callback, SHA-384, EMS" \
-            "$P_SRV extended_ms=1 debug_level=3 psk=abc123 psk_identity=foo" \
+            "$P_SRV extended_ms=1 debug_level=3 psk=73776f726466697368 psk_identity=foo" \
             "$P_CLI extended_ms=1 debug_level=3 min_version=tls12 force_ciphersuite=TLS-RSA-PSK-WITH-AES-256-CBC-SHA384 \
-            psk_identity=foo psk=abc123 psk_opaque=1" \
+            psk_identity=foo psk=73776f726466697368 psk_opaque=1" \
             0 \
             -c "session hash for extended master secret"\
             -s "session hash for extended master secret"\
@@ -7362,9 +8341,9 @@ run_test    "PSK callback: opaque rsa-psk on client, no callback, SHA-384, EMS" 
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 run_test    "PSK callback: opaque ecdhe-psk on client, no callback" \
-            "$P_SRV extended_ms=0 debug_level=1 psk=abc123 psk_identity=foo" \
+            "$P_SRV extended_ms=0 debug_level=1 psk=73776f726466697368 psk_identity=foo" \
             "$P_CLI extended_ms=0 debug_level=1 min_version=tls12 force_ciphersuite=TLS-ECDHE-PSK-WITH-AES-128-CBC-SHA256 \
-            psk_identity=foo psk=abc123 psk_opaque=1" \
+            psk_identity=foo psk=73776f726466697368 psk_opaque=1" \
             0 \
             -C "session hash for extended master secret"\
             -S "session hash for extended master secret"\
@@ -7374,9 +8353,9 @@ run_test    "PSK callback: opaque ecdhe-psk on client, no callback" \
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 run_test    "PSK callback: opaque ecdhe-psk on client, no callback, SHA-384" \
-            "$P_SRV extended_ms=0 debug_level=1 psk=abc123 psk_identity=foo" \
+            "$P_SRV extended_ms=0 debug_level=1 psk=73776f726466697368 psk_identity=foo" \
             "$P_CLI extended_ms=0 debug_level=1 min_version=tls12 force_ciphersuite=TLS-ECDHE-PSK-WITH-AES-256-CBC-SHA384 \
-            psk_identity=foo psk=abc123 psk_opaque=1" \
+            psk_identity=foo psk=73776f726466697368 psk_opaque=1" \
             0 \
             -C "session hash for extended master secret"\
             -S "session hash for extended master secret"\
@@ -7386,9 +8365,9 @@ run_test    "PSK callback: opaque ecdhe-psk on client, no callback, SHA-384" \
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 run_test    "PSK callback: opaque ecdhe-psk on client, no callback, EMS" \
-            "$P_SRV extended_ms=1 debug_level=3 psk=abc123 psk_identity=foo" \
+            "$P_SRV extended_ms=1 debug_level=3 psk=73776f726466697368 psk_identity=foo" \
             "$P_CLI extended_ms=1 debug_level=3 min_version=tls12 force_ciphersuite=TLS-ECDHE-PSK-WITH-AES-128-CBC-SHA \
-            psk_identity=foo psk=abc123 psk_opaque=1" \
+            psk_identity=foo psk=73776f726466697368 psk_opaque=1" \
             0 \
             -c "session hash for extended master secret"\
             -s "session hash for extended master secret"\
@@ -7398,9 +8377,9 @@ run_test    "PSK callback: opaque ecdhe-psk on client, no callback, EMS" \
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 run_test    "PSK callback: opaque ecdhe-psk on client, no callback, SHA-384, EMS" \
-            "$P_SRV extended_ms=1 debug_level=3 psk=abc123 psk_identity=foo" \
+            "$P_SRV extended_ms=1 debug_level=3 psk=73776f726466697368 psk_identity=foo" \
             "$P_CLI extended_ms=1 debug_level=3 min_version=tls12 force_ciphersuite=TLS-ECDHE-PSK-WITH-AES-256-CBC-SHA384 \
-            psk_identity=foo psk=abc123 psk_opaque=1" \
+            psk_identity=foo psk=73776f726466697368 psk_opaque=1" \
             0 \
             -c "session hash for extended master secret"\
             -s "session hash for extended master secret"\
@@ -7410,9 +8389,9 @@ run_test    "PSK callback: opaque ecdhe-psk on client, no callback, SHA-384, EMS
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 run_test    "PSK callback: opaque dhe-psk on client, no callback" \
-            "$P_SRV extended_ms=0 debug_level=1 psk=abc123 psk_identity=foo" \
+            "$P_SRV extended_ms=0 debug_level=1 psk=73776f726466697368 psk_identity=foo" \
             "$P_CLI extended_ms=0 debug_level=1 min_version=tls12 force_ciphersuite=TLS-DHE-PSK-WITH-AES-128-CBC-SHA256 \
-            psk_identity=foo psk=abc123 psk_opaque=1" \
+            psk_identity=foo psk=73776f726466697368 psk_opaque=1" \
             0 \
             -C "session hash for extended master secret"\
             -S "session hash for extended master secret"\
@@ -7422,9 +8401,9 @@ run_test    "PSK callback: opaque dhe-psk on client, no callback" \
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 run_test    "PSK callback: opaque dhe-psk on client, no callback, SHA-384" \
-            "$P_SRV extended_ms=0 debug_level=1 psk=abc123 psk_identity=foo" \
+            "$P_SRV extended_ms=0 debug_level=1 psk=73776f726466697368 psk_identity=foo" \
             "$P_CLI extended_ms=0 debug_level=1 min_version=tls12 force_ciphersuite=TLS-DHE-PSK-WITH-AES-256-CBC-SHA384 \
-            psk_identity=foo psk=abc123 psk_opaque=1" \
+            psk_identity=foo psk=73776f726466697368 psk_opaque=1" \
             0 \
             -C "session hash for extended master secret"\
             -S "session hash for extended master secret"\
@@ -7434,9 +8413,9 @@ run_test    "PSK callback: opaque dhe-psk on client, no callback, SHA-384" \
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 run_test    "PSK callback: opaque dhe-psk on client, no callback, EMS" \
-            "$P_SRV extended_ms=1 debug_level=3 psk=abc123 psk_identity=foo" \
+            "$P_SRV extended_ms=1 debug_level=3 psk=73776f726466697368 psk_identity=foo" \
             "$P_CLI extended_ms=1 debug_level=3 min_version=tls12 force_ciphersuite=TLS-DHE-PSK-WITH-AES-128-CBC-SHA \
-            psk_identity=foo psk=abc123 psk_opaque=1" \
+            psk_identity=foo psk=73776f726466697368 psk_opaque=1" \
             0 \
             -c "session hash for extended master secret"\
             -s "session hash for extended master secret"\
@@ -7446,9 +8425,9 @@ run_test    "PSK callback: opaque dhe-psk on client, no callback, EMS" \
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 run_test    "PSK callback: opaque dhe-psk on client, no callback, SHA-384, EMS" \
-            "$P_SRV extended_ms=1 debug_level=3 psk=abc123 psk_identity=foo" \
+            "$P_SRV extended_ms=1 debug_level=3 psk=73776f726466697368 psk_identity=foo" \
             "$P_CLI extended_ms=1 debug_level=3 min_version=tls12 force_ciphersuite=TLS-DHE-PSK-WITH-AES-256-CBC-SHA384 \
-            psk_identity=foo psk=abc123 psk_opaque=1" \
+            psk_identity=foo psk=73776f726466697368 psk_opaque=1" \
             0 \
             -c "session hash for extended master secret"\
             -s "session hash for extended master secret"\
@@ -7458,9 +8437,9 @@ run_test    "PSK callback: opaque dhe-psk on client, no callback, SHA-384, EMS" 
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 run_test    "PSK callback: raw psk on client, static opaque on server, no callback" \
-            "$P_SRV extended_ms=0 debug_level=1 psk=abc123 psk_identity=foo psk_opaque=1 min_version=tls12 force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA" \
+            "$P_SRV extended_ms=0 debug_level=1 psk=73776f726466697368 psk_identity=foo psk_opaque=1 min_version=tls12 force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA" \
             "$P_CLI extended_ms=0 debug_level=1 min_version=tls12 force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA \
-            psk_identity=foo psk=abc123" \
+            psk_identity=foo psk=73776f726466697368" \
             0 \
             -C "session hash for extended master secret"\
             -S "session hash for extended master secret"\
@@ -7470,9 +8449,9 @@ run_test    "PSK callback: raw psk on client, static opaque on server, no callba
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 run_test    "PSK callback: raw psk on client, static opaque on server, no callback, SHA-384" \
-            "$P_SRV extended_ms=0 debug_level=1 psk=abc123 psk_identity=foo psk_opaque=1 min_version=tls12 force_ciphersuite=TLS-PSK-WITH-AES-256-CBC-SHA384" \
+            "$P_SRV extended_ms=0 debug_level=1 psk=73776f726466697368 psk_identity=foo psk_opaque=1 min_version=tls12 force_ciphersuite=TLS-PSK-WITH-AES-256-CBC-SHA384" \
             "$P_CLI extended_ms=0 debug_level=1 min_version=tls12 force_ciphersuite=TLS-PSK-WITH-AES-256-CBC-SHA384 \
-            psk_identity=foo psk=abc123" \
+            psk_identity=foo psk=73776f726466697368" \
             0 \
             -C "session hash for extended master secret"\
             -S "session hash for extended master secret"\
@@ -7482,10 +8461,10 @@ run_test    "PSK callback: raw psk on client, static opaque on server, no callba
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 run_test    "PSK callback: raw psk on client, static opaque on server, no callback, EMS" \
-            "$P_SRV debug_level=3 psk=abc123 psk_identity=foo psk_opaque=1 min_version=tls12 \
+            "$P_SRV debug_level=3 psk=73776f726466697368 psk_identity=foo psk_opaque=1 min_version=tls12 \
             force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA extended_ms=1" \
             "$P_CLI debug_level=3 min_version=tls12 force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA \
-            psk_identity=foo psk=abc123 extended_ms=1" \
+            psk_identity=foo psk=73776f726466697368 extended_ms=1" \
             0 \
             -c "session hash for extended master secret"\
             -s "session hash for extended master secret"\
@@ -7495,10 +8474,10 @@ run_test    "PSK callback: raw psk on client, static opaque on server, no callba
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 run_test    "PSK callback: raw psk on client, static opaque on server, no callback, EMS, SHA384" \
-            "$P_SRV debug_level=3 psk=abc123 psk_identity=foo psk_opaque=1 min_version=tls12 \
+            "$P_SRV debug_level=3 psk=73776f726466697368 psk_identity=foo psk_opaque=1 min_version=tls12 \
             force_ciphersuite=TLS-PSK-WITH-AES-256-CBC-SHA384 extended_ms=1" \
             "$P_CLI debug_level=3 min_version=tls12 force_ciphersuite=TLS-PSK-WITH-AES-256-CBC-SHA384 \
-            psk_identity=foo psk=abc123 extended_ms=1" \
+            psk_identity=foo psk=73776f726466697368 extended_ms=1" \
             0 \
             -c "session hash for extended master secret"\
             -s "session hash for extended master secret"\
@@ -7508,9 +8487,9 @@ run_test    "PSK callback: raw psk on client, static opaque on server, no callba
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 run_test    "PSK callback: raw rsa-psk on client, static opaque on server, no callback" \
-            "$P_SRV extended_ms=0 debug_level=5 psk=abc123 psk_identity=foo psk_opaque=1 min_version=tls12 force_ciphersuite=TLS-RSA-PSK-WITH-AES-128-CBC-SHA" \
+            "$P_SRV extended_ms=0 debug_level=5 psk=73776f726466697368 psk_identity=foo psk_opaque=1 min_version=tls12 force_ciphersuite=TLS-RSA-PSK-WITH-AES-128-CBC-SHA" \
             "$P_CLI extended_ms=0 debug_level=5 min_version=tls12 force_ciphersuite=TLS-RSA-PSK-WITH-AES-128-CBC-SHA \
-            psk_identity=foo psk=abc123" \
+            psk_identity=foo psk=73776f726466697368" \
             0 \
             -C "session hash for extended master secret"\
             -S "session hash for extended master secret"\
@@ -7520,9 +8499,9 @@ run_test    "PSK callback: raw rsa-psk on client, static opaque on server, no ca
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 run_test    "PSK callback: raw rsa-psk on client, static opaque on server, no callback, SHA-384" \
-            "$P_SRV extended_ms=0 debug_level=1 psk=abc123 psk_identity=foo psk_opaque=1 min_version=tls12 force_ciphersuite=TLS-RSA-PSK-WITH-AES-256-CBC-SHA384" \
+            "$P_SRV extended_ms=0 debug_level=1 psk=73776f726466697368 psk_identity=foo psk_opaque=1 min_version=tls12 force_ciphersuite=TLS-RSA-PSK-WITH-AES-256-CBC-SHA384" \
             "$P_CLI extended_ms=0 debug_level=1 min_version=tls12 force_ciphersuite=TLS-RSA-PSK-WITH-AES-256-CBC-SHA384 \
-            psk_identity=foo psk=abc123" \
+            psk_identity=foo psk=73776f726466697368" \
             0 \
             -C "session hash for extended master secret"\
             -S "session hash for extended master secret"\
@@ -7532,10 +8511,10 @@ run_test    "PSK callback: raw rsa-psk on client, static opaque on server, no ca
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 run_test    "PSK callback: raw rsa-psk on client, static opaque on server, no callback, EMS" \
-            "$P_SRV debug_level=3 psk=abc123 psk_identity=foo psk_opaque=1 min_version=tls12 \
+            "$P_SRV debug_level=3 psk=73776f726466697368 psk_identity=foo psk_opaque=1 min_version=tls12 \
             force_ciphersuite=TLS-RSA-PSK-WITH-AES-128-CBC-SHA extended_ms=1" \
             "$P_CLI debug_level=3 min_version=tls12 force_ciphersuite=TLS-RSA-PSK-WITH-AES-128-CBC-SHA \
-            psk_identity=foo psk=abc123 extended_ms=1" \
+            psk_identity=foo psk=73776f726466697368 extended_ms=1" \
             0 \
             -c "session hash for extended master secret"\
             -s "session hash for extended master secret"\
@@ -7545,10 +8524,10 @@ run_test    "PSK callback: raw rsa-psk on client, static opaque on server, no ca
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 run_test    "PSK callback: raw rsa-psk on client, static opaque on server, no callback, EMS, SHA384" \
-            "$P_SRV debug_level=3 psk=abc123 psk_identity=foo psk_opaque=1 min_version=tls12 \
+            "$P_SRV debug_level=3 psk=73776f726466697368 psk_identity=foo psk_opaque=1 min_version=tls12 \
             force_ciphersuite=TLS-RSA-PSK-WITH-AES-256-CBC-SHA384 extended_ms=1" \
             "$P_CLI debug_level=3 min_version=tls12 force_ciphersuite=TLS-RSA-PSK-WITH-AES-256-CBC-SHA384 \
-            psk_identity=foo psk=abc123 extended_ms=1" \
+            psk_identity=foo psk=73776f726466697368 extended_ms=1" \
             0 \
             -c "session hash for extended master secret"\
             -s "session hash for extended master secret"\
@@ -7558,9 +8537,9 @@ run_test    "PSK callback: raw rsa-psk on client, static opaque on server, no ca
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 run_test    "PSK callback: raw ecdhe-psk on client, static opaque on server, no callback" \
-            "$P_SRV extended_ms=0 debug_level=5 psk=abc123 psk_identity=foo psk_opaque=1 min_version=tls12 force_ciphersuite=TLS-ECDHE-PSK-WITH-AES-128-CBC-SHA" \
+            "$P_SRV extended_ms=0 debug_level=5 psk=73776f726466697368 psk_identity=foo psk_opaque=1 min_version=tls12 force_ciphersuite=TLS-ECDHE-PSK-WITH-AES-128-CBC-SHA" \
             "$P_CLI extended_ms=0 debug_level=5 min_version=tls12 force_ciphersuite=TLS-ECDHE-PSK-WITH-AES-128-CBC-SHA \
-            psk_identity=foo psk=abc123" \
+            psk_identity=foo psk=73776f726466697368" \
             0 \
             -C "session hash for extended master secret"\
             -S "session hash for extended master secret"\
@@ -7570,9 +8549,9 @@ run_test    "PSK callback: raw ecdhe-psk on client, static opaque on server, no 
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 run_test    "PSK callback: raw ecdhe-psk on client, static opaque on server, no callback, SHA-384" \
-            "$P_SRV extended_ms=0 debug_level=1 psk=abc123 psk_identity=foo psk_opaque=1 min_version=tls12 force_ciphersuite=TLS-ECDHE-PSK-WITH-AES-256-CBC-SHA384" \
+            "$P_SRV extended_ms=0 debug_level=1 psk=73776f726466697368 psk_identity=foo psk_opaque=1 min_version=tls12 force_ciphersuite=TLS-ECDHE-PSK-WITH-AES-256-CBC-SHA384" \
             "$P_CLI extended_ms=0 debug_level=1 min_version=tls12 force_ciphersuite=TLS-ECDHE-PSK-WITH-AES-256-CBC-SHA384 \
-            psk_identity=foo psk=abc123" \
+            psk_identity=foo psk=73776f726466697368" \
             0 \
             -C "session hash for extended master secret"\
             -S "session hash for extended master secret"\
@@ -7582,10 +8561,10 @@ run_test    "PSK callback: raw ecdhe-psk on client, static opaque on server, no 
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 run_test    "PSK callback: raw ecdhe-psk on client, static opaque on server, no callback, EMS" \
-            "$P_SRV debug_level=3 psk=abc123 psk_identity=foo psk_opaque=1 min_version=tls12 \
+            "$P_SRV debug_level=3 psk=73776f726466697368 psk_identity=foo psk_opaque=1 min_version=tls12 \
             force_ciphersuite=TLS-ECDHE-PSK-WITH-AES-128-CBC-SHA extended_ms=1" \
             "$P_CLI debug_level=3 min_version=tls12 force_ciphersuite=TLS-ECDHE-PSK-WITH-AES-128-CBC-SHA \
-            psk_identity=foo psk=abc123 extended_ms=1" \
+            psk_identity=foo psk=73776f726466697368 extended_ms=1" \
             0 \
             -c "session hash for extended master secret"\
             -s "session hash for extended master secret"\
@@ -7595,10 +8574,10 @@ run_test    "PSK callback: raw ecdhe-psk on client, static opaque on server, no 
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 run_test    "PSK callback: raw ecdhe-psk on client, static opaque on server, no callback, EMS, SHA384" \
-            "$P_SRV debug_level=3 psk=abc123 psk_identity=foo psk_opaque=1 min_version=tls12 \
+            "$P_SRV debug_level=3 psk=73776f726466697368 psk_identity=foo psk_opaque=1 min_version=tls12 \
             force_ciphersuite=TLS-ECDHE-PSK-WITH-AES-256-CBC-SHA384 extended_ms=1" \
             "$P_CLI debug_level=3 min_version=tls12 force_ciphersuite=TLS-ECDHE-PSK-WITH-AES-256-CBC-SHA384 \
-            psk_identity=foo psk=abc123 extended_ms=1" \
+            psk_identity=foo psk=73776f726466697368 extended_ms=1" \
             0 \
             -c "session hash for extended master secret"\
             -s "session hash for extended master secret"\
@@ -7608,9 +8587,9 @@ run_test    "PSK callback: raw ecdhe-psk on client, static opaque on server, no 
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 run_test    "PSK callback: raw dhe-psk on client, static opaque on server, no callback" \
-            "$P_SRV extended_ms=0 debug_level=5 psk=abc123 psk_identity=foo psk_opaque=1 min_version=tls12 force_ciphersuite=TLS-DHE-PSK-WITH-AES-128-CBC-SHA" \
+            "$P_SRV extended_ms=0 debug_level=5 psk=73776f726466697368 psk_identity=foo psk_opaque=1 min_version=tls12 force_ciphersuite=TLS-DHE-PSK-WITH-AES-128-CBC-SHA" \
             "$P_CLI extended_ms=0 debug_level=5 min_version=tls12 force_ciphersuite=TLS-DHE-PSK-WITH-AES-128-CBC-SHA \
-            psk_identity=foo psk=abc123" \
+            psk_identity=foo psk=73776f726466697368" \
             0 \
             -C "session hash for extended master secret"\
             -S "session hash for extended master secret"\
@@ -7620,9 +8599,9 @@ run_test    "PSK callback: raw dhe-psk on client, static opaque on server, no ca
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 run_test    "PSK callback: raw dhe-psk on client, static opaque on server, no callback, SHA-384" \
-            "$P_SRV extended_ms=0 debug_level=1 psk=abc123 psk_identity=foo psk_opaque=1 min_version=tls12 force_ciphersuite=TLS-DHE-PSK-WITH-AES-256-CBC-SHA384" \
+            "$P_SRV extended_ms=0 debug_level=1 psk=73776f726466697368 psk_identity=foo psk_opaque=1 min_version=tls12 force_ciphersuite=TLS-DHE-PSK-WITH-AES-256-CBC-SHA384" \
             "$P_CLI extended_ms=0 debug_level=1 min_version=tls12 force_ciphersuite=TLS-DHE-PSK-WITH-AES-256-CBC-SHA384 \
-            psk_identity=foo psk=abc123" \
+            psk_identity=foo psk=73776f726466697368" \
             0 \
             -C "session hash for extended master secret"\
             -S "session hash for extended master secret"\
@@ -7632,10 +8611,10 @@ run_test    "PSK callback: raw dhe-psk on client, static opaque on server, no ca
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 run_test    "PSK callback: raw dhe-psk on client, static opaque on server, no callback, EMS" \
-            "$P_SRV debug_level=3 psk=abc123 psk_identity=foo psk_opaque=1 min_version=tls12 \
+            "$P_SRV debug_level=3 psk=73776f726466697368 psk_identity=foo psk_opaque=1 min_version=tls12 \
             force_ciphersuite=TLS-DHE-PSK-WITH-AES-128-CBC-SHA extended_ms=1" \
             "$P_CLI debug_level=3 min_version=tls12 force_ciphersuite=TLS-DHE-PSK-WITH-AES-128-CBC-SHA \
-            psk_identity=foo psk=abc123 extended_ms=1" \
+            psk_identity=foo psk=73776f726466697368 extended_ms=1" \
             0 \
             -c "session hash for extended master secret"\
             -s "session hash for extended master secret"\
@@ -7645,10 +8624,10 @@ run_test    "PSK callback: raw dhe-psk on client, static opaque on server, no ca
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 run_test    "PSK callback: raw dhe-psk on client, static opaque on server, no callback, EMS, SHA384" \
-            "$P_SRV debug_level=3 psk=abc123 psk_identity=foo psk_opaque=1 min_version=tls12 \
+            "$P_SRV debug_level=3 psk=73776f726466697368 psk_identity=foo psk_opaque=1 min_version=tls12 \
             force_ciphersuite=TLS-DHE-PSK-WITH-AES-256-CBC-SHA384 extended_ms=1" \
             "$P_CLI debug_level=3 min_version=tls12 force_ciphersuite=TLS-DHE-PSK-WITH-AES-256-CBC-SHA384 \
-            psk_identity=foo psk=abc123 extended_ms=1" \
+            psk_identity=foo psk=73776f726466697368 extended_ms=1" \
             0 \
             -c "session hash for extended master secret"\
             -s "session hash for extended master secret"\
@@ -7858,7 +8837,7 @@ run_test    "PSK callback: raw dhe-psk on client, no static DHE-PSK on server, o
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 run_test    "PSK callback: raw psk on client, mismatching static raw PSK on server, opaque PSK from callback" \
-            "$P_SRV extended_ms=0 psk_identity=foo psk=abc123 debug_level=3 psk_list=abc,dead,def,beef psk_list_opaque=1 min_version=tls12 force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA" \
+            "$P_SRV extended_ms=0 psk_identity=foo psk=73776f726466697368 debug_level=3 psk_list=abc,dead,def,beef psk_list_opaque=1 min_version=tls12 force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA" \
             "$P_CLI extended_ms=0 debug_level=3 min_version=tls12 force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA \
             psk_identity=def psk=beef" \
             0 \
@@ -7870,7 +8849,7 @@ run_test    "PSK callback: raw psk on client, mismatching static raw PSK on serv
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 run_test    "PSK callback: raw psk on client, mismatching static opaque PSK on server, opaque PSK from callback" \
-            "$P_SRV extended_ms=0 psk_opaque=1 psk_identity=foo psk=abc123 debug_level=3 psk_list=abc,dead,def,beef psk_list_opaque=1 min_version=tls12 force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA" \
+            "$P_SRV extended_ms=0 psk_opaque=1 psk_identity=foo psk=73776f726466697368 debug_level=3 psk_list=abc,dead,def,beef psk_list_opaque=1 min_version=tls12 force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA" \
             "$P_CLI extended_ms=0 debug_level=3 min_version=tls12 force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA \
             psk_identity=def psk=beef" \
             0 \
@@ -7882,7 +8861,7 @@ run_test    "PSK callback: raw psk on client, mismatching static opaque PSK on s
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 run_test    "PSK callback: raw psk on client, mismatching static opaque PSK on server, raw PSK from callback" \
-            "$P_SRV extended_ms=0 psk_opaque=1 psk_identity=foo psk=abc123 debug_level=3 psk_list=abc,dead,def,beef min_version=tls12 force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA" \
+            "$P_SRV extended_ms=0 psk_opaque=1 psk_identity=foo psk=73776f726466697368 debug_level=3 psk_list=abc,dead,def,beef min_version=tls12 force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA" \
             "$P_CLI extended_ms=0 debug_level=3 min_version=tls12 force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA \
             psk_identity=def psk=beef" \
             0 \
@@ -7894,7 +8873,7 @@ run_test    "PSK callback: raw psk on client, mismatching static opaque PSK on s
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 run_test    "PSK callback: raw psk on client, id-matching but wrong raw PSK on server, opaque PSK from callback" \
-            "$P_SRV extended_ms=0 psk_opaque=1 psk_identity=def psk=abc123 debug_level=3 psk_list=abc,dead,def,beef min_version=tls12 force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA" \
+            "$P_SRV extended_ms=0 psk_opaque=1 psk_identity=def psk=73776f726466697368 debug_level=3 psk_list=abc,dead,def,beef min_version=tls12 force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA" \
             "$P_CLI extended_ms=0 debug_level=3 min_version=tls12 force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA \
             psk_identity=def psk=beef" \
             0 \
@@ -7906,7 +8885,7 @@ run_test    "PSK callback: raw psk on client, id-matching but wrong raw PSK on s
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 run_test    "PSK callback: raw psk on client, matching opaque PSK on server, wrong opaque PSK from callback" \
-            "$P_SRV extended_ms=0 psk_opaque=1 psk_identity=def psk=beef debug_level=3 psk_list=abc,dead,def,abc123 min_version=tls12 force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA" \
+            "$P_SRV extended_ms=0 psk_opaque=1 psk_identity=def psk=beef debug_level=3 psk_list=abc,dead,def,73776f726466697368 min_version=tls12 force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA" \
             "$P_CLI extended_ms=0 debug_level=3 min_version=tls12 force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA \
             psk_identity=def psk=beef" \
             1 \
@@ -7915,16 +8894,16 @@ run_test    "PSK callback: raw psk on client, matching opaque PSK on server, wro
 run_test    "PSK callback: no psk, no callback" \
             "$P_SRV" \
             "$P_CLI force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA \
-            psk_identity=foo psk=abc123" \
+            psk_identity=foo psk=73776f726466697368" \
             1 \
             -s "SSL - The handshake negotiation failed" \
             -S "SSL - Unknown identity received" \
             -S "SSL - Verification of the message MAC failed"
 
 run_test    "PSK callback: callback overrides other settings" \
-            "$P_SRV psk=abc123 psk_identity=foo psk_list=abc,dead,def,beef" \
+            "$P_SRV psk=73776f726466697368 psk_identity=foo psk_list=abc,dead,def,beef" \
             "$P_CLI force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA \
-            psk_identity=foo psk=abc123" \
+            psk_identity=foo psk=73776f726466697368" \
             1 \
             -S "SSL - The handshake negotiation failed" \
             -s "SSL - Unknown identity received" \
@@ -8142,11 +9121,25 @@ run_test    "ECJPAKE: working, DTLS, nolog" \
 
 # Test for ClientHello without extensions
 
+# Without extensions, ECC is impossible (no curve negotiation).
+requires_config_enabled MBEDTLS_RSA_C
 requires_gnutls
-run_test    "ClientHello without extensions" \
+run_test    "ClientHello without extensions: RSA" \
             "$P_SRV force_version=tls12 debug_level=3" \
             "$G_CLI --priority=NORMAL:%NO_EXTENSIONS:%DISABLE_SAFE_RENEGOTIATION localhost" \
             0 \
+            -s "Ciphersuite is .*-RSA-WITH-.*" \
+            -S "Ciphersuite is .*-EC.*" \
+            -s "dumping 'client hello extensions' (0 bytes)"
+
+requires_config_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED
+requires_gnutls
+run_test    "ClientHello without extensions: PSK" \
+            "$P_SRV force_version=tls12 debug_level=3 psk=73776f726466697368" \
+            "$G_CLI --priority=NORMAL:+PSK:-RSA:-DHE-RSA:%NO_EXTENSIONS:%DISABLE_SAFE_RENEGOTIATION --pskusername=Client_identity --pskkey=73776f726466697368 localhost" \
+            0 \
+            -s "Ciphersuite is .*-PSK-.*" \
+            -S "Ciphersuite is .*-EC.*" \
             -s "dumping 'client hello extensions' (0 bytes)"
 
 # Tests for mbedtls_ssl_get_bytes_avail()
@@ -8176,7 +9169,7 @@ run_test    "mbedtls_ssl_get_bytes_avail: extra data (*2)" \
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "mbedtls_ssl_get_bytes_avail: extra data (max)" \
-            "$P_SRV buffer_size=100" \
+            "$P_SRV buffer_size=100 force_version=tls12" \
             "$P_CLI request_size=$MAX_CONTENT_LEN" \
             0 \
             -s "Read from client: $MAX_CONTENT_LEN bytes read (100 + $((MAX_CONTENT_LEN - 100)))"
@@ -8365,20 +9358,20 @@ run_test    "Large client packet TLS 1.2 AEAD shorter tag" \
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "Large client packet TLS 1.3 AEAD" \
             "$P_SRV" \
-            "$P_CLI request_size=16384 \
+            "$P_CLI request_size=16383 \
              force_ciphersuite=TLS1-3-AES-128-CCM-SHA256" \
             0 \
-            -c "16384 bytes written in $(fragments_for_write 16384) fragments" \
-            -s "Read from client: $MAX_CONTENT_LEN bytes read"
+            -c "16383 bytes written in $(fragments_for_write 16383) fragments" \
+            -s "Read from client: 16383 bytes read"
 
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "Large client packet TLS 1.3 AEAD shorter tag" \
             "$P_SRV" \
-            "$P_CLI request_size=16384 \
+            "$P_CLI request_size=16383 \
              force_ciphersuite=TLS1-3-AES-128-CCM-8-SHA256" \
             0 \
-            -c "16384 bytes written in $(fragments_for_write 16384) fragments" \
-            -s "Read from client: $MAX_CONTENT_LEN bytes read"
+            -c "16383 bytes written in $(fragments_for_write 16383) fragments" \
+            -s "Read from client: 16383 bytes read"
 
 # The tests below fail when the server's OUT_CONTENT_LEN is less than 16384.
 run_test    "Large server packet TLS 1.2 BlockCipher" \
@@ -8421,17 +9414,17 @@ run_test    "Large server packet TLS 1.2 AEAD shorter tag" \
 
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "Large server packet TLS 1.3 AEAD" \
-            "$P_SRV response_size=16384" \
+            "$P_SRV response_size=16383" \
             "$P_CLI force_ciphersuite=TLS1-3-AES-128-CCM-SHA256" \
             0 \
-            -c "Read from server: 16384 bytes read"
+            -c "Read from server: 16383 bytes read"
 
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "Large server packet TLS 1.3 AEAD shorter tag" \
-            "$P_SRV response_size=16384" \
+            "$P_SRV response_size=16383" \
             "$P_CLI force_ciphersuite=TLS1-3-AES-128-CCM-8-SHA256" \
             0 \
-            -c "Read from server: 16384 bytes read"
+            -c "Read from server: 16383 bytes read"
 
 # Tests for restartable ECC
 
@@ -8756,9 +9749,9 @@ run_test    "SSL async private: decrypt, delay=1" \
 
 requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
 run_test    "SSL async private: decrypt RSA-PSK, delay=0" \
-            "$P_SRV psk=abc123 \
+            "$P_SRV psk=73776f726466697368 \
              async_operations=d async_private_delay1=0 async_private_delay2=0" \
-            "$P_CLI psk=abc123 \
+            "$P_CLI psk=73776f726466697368 \
              force_ciphersuite=TLS-RSA-PSK-WITH-AES-128-CBC-SHA256" \
             0 \
             -s "Async decrypt callback: using key slot " \
@@ -8766,9 +9759,9 @@ run_test    "SSL async private: decrypt RSA-PSK, delay=0" \
 
 requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
 run_test    "SSL async private: decrypt RSA-PSK, delay=1" \
-            "$P_SRV psk=abc123 \
+            "$P_SRV psk=73776f726466697368 \
              async_operations=d async_private_delay1=1 async_private_delay2=1" \
-            "$P_CLI psk=abc123 \
+            "$P_CLI psk=73776f726466697368 \
              force_ciphersuite=TLS-RSA-PSK-WITH-AES-128-CBC-SHA256" \
             0 \
             -s "Async decrypt callback: using key slot " \
@@ -9034,8 +10027,6 @@ run_test    "SSL async private: renegotiation: server-initiated, decrypt" \
 
 # Tests for ECC extensions (rfc 4492)
 
-requires_config_enabled MBEDTLS_AES_C
-requires_config_enabled MBEDTLS_CIPHER_MODE_CBC
 requires_hash_alg SHA_256
 requires_config_enabled MBEDTLS_KEY_EXCHANGE_RSA_ENABLED
 run_test    "Force a non ECC ciphersuite in the client side" \
@@ -9047,8 +10038,6 @@ run_test    "Force a non ECC ciphersuite in the client side" \
             -S "found supported elliptic curves extension" \
             -S "found supported point formats extension"
 
-requires_config_enabled MBEDTLS_AES_C
-requires_config_enabled MBEDTLS_CIPHER_MODE_CBC
 requires_hash_alg SHA_256
 requires_config_enabled MBEDTLS_KEY_EXCHANGE_RSA_ENABLED
 run_test    "Force a non ECC ciphersuite in the server side" \
@@ -9058,8 +10047,6 @@ run_test    "Force a non ECC ciphersuite in the server side" \
             -C "found supported_point_formats extension" \
             -S "server hello, supported_point_formats extension"
 
-requires_config_enabled MBEDTLS_AES_C
-requires_config_enabled MBEDTLS_CIPHER_MODE_CBC
 requires_hash_alg SHA_256
 run_test    "Force an ECC ciphersuite in the client side" \
             "$P_SRV debug_level=3" \
@@ -9070,8 +10057,6 @@ run_test    "Force an ECC ciphersuite in the client side" \
             -s "found supported elliptic curves extension" \
             -s "found supported point formats extension"
 
-requires_config_enabled MBEDTLS_AES_C
-requires_config_enabled MBEDTLS_CIPHER_MODE_CBC
 requires_hash_alg SHA_256
 run_test    "Force an ECC ciphersuite in the server side" \
             "$P_SRV debug_level=3 force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-CBC-SHA256" \
@@ -9226,8 +10211,8 @@ run_test    "DTLS client auth: none, client has no cert" \
             -s "! Certificate verification was skipped"
 
 run_test    "DTLS wrong PSK: badmac alert" \
-            "$P_SRV dtls=1 psk=abc123 force_ciphersuite=TLS-PSK-WITH-AES-128-GCM-SHA256" \
-            "$P_CLI dtls=1 psk=abc124" \
+            "$P_SRV dtls=1 psk=73776f726466697368 force_ciphersuite=TLS-PSK-WITH-AES-128-GCM-SHA256" \
+            "$P_CLI dtls=1 psk=73776f726466697374" \
             1 \
             -s "SSL - Verification of the message MAC failed" \
             -c "SSL - A fatal alert message was received from our peer"
@@ -9596,8 +10581,6 @@ run_test    "DTLS fragmenting: both (MTU=1024)" \
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 requires_hash_alg SHA_256
-requires_config_enabled MBEDTLS_AES_C
-requires_config_enabled MBEDTLS_GCM_C
 requires_max_content_len 2048
 run_test    "DTLS fragmenting: both (MTU=512)" \
             -p "$P_PXY mtu=512" \
@@ -9626,8 +10609,6 @@ run_test    "DTLS fragmenting: both (MTU=512)" \
 not_with_valgrind
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
-requires_config_enabled MBEDTLS_AES_C
-requires_config_enabled MBEDTLS_GCM_C
 requires_max_content_len 2048
 run_test    "DTLS fragmenting: proxy MTU: auto-reduction (not valgrind)" \
             -p "$P_PXY mtu=508" \
@@ -9649,8 +10630,6 @@ run_test    "DTLS fragmenting: proxy MTU: auto-reduction (not valgrind)" \
 only_with_valgrind
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
-requires_config_enabled MBEDTLS_AES_C
-requires_config_enabled MBEDTLS_GCM_C
 requires_max_content_len 2048
 run_test    "DTLS fragmenting: proxy MTU: auto-reduction (with valgrind)" \
             -p "$P_PXY mtu=508" \
@@ -9701,8 +10680,6 @@ run_test    "DTLS fragmenting: proxy MTU, simple handshake (MTU=1024)" \
 not_with_valgrind # spurious autoreduction due to timeout
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
-requires_config_enabled MBEDTLS_AES_C
-requires_config_enabled MBEDTLS_GCM_C
 requires_max_content_len 2048
 run_test    "DTLS fragmenting: proxy MTU, simple handshake (MTU=512)" \
             -p "$P_PXY mtu=512" \
@@ -9750,8 +10727,6 @@ run_test    "DTLS fragmenting: proxy MTU, simple handshake, nbio (MTU=1024)" \
 not_with_valgrind # spurious autoreduction due to timeout
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
-requires_config_enabled MBEDTLS_AES_C
-requires_config_enabled MBEDTLS_GCM_C
 requires_max_content_len 2048
 run_test    "DTLS fragmenting: proxy MTU, simple handshake, nbio (MTU=512)" \
             -p "$P_PXY mtu=512" \
@@ -9785,8 +10760,6 @@ run_test    "DTLS fragmenting: proxy MTU, simple handshake, nbio (MTU=512)" \
 not_with_valgrind # spurious autoreduction due to timeout
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
-requires_config_enabled MBEDTLS_AES_C
-requires_config_enabled MBEDTLS_GCM_C
 requires_max_content_len 2048
 run_test    "DTLS fragmenting: proxy MTU, resumed handshake" \
             -p "$P_PXY mtu=1450" \
@@ -9814,7 +10787,6 @@ requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 requires_hash_alg SHA_256
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
-requires_config_enabled MBEDTLS_CHACHAPOLY_C
 requires_max_content_len 2048
 run_test    "DTLS fragmenting: proxy MTU, ChachaPoly renego" \
             -p "$P_PXY mtu=512" \
@@ -9828,7 +10800,7 @@ run_test    "DTLS fragmenting: proxy MTU, ChachaPoly renego" \
              crt_file=data_files/server8_int-ca2.crt \
              key_file=data_files/server8.key \
              exchanges=2 renegotiation=1 renegotiate=1 \
-             force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-GCM-SHA256 \
+             force_ciphersuite=TLS-ECDHE-ECDSA-WITH-CHACHA20-POLY1305-SHA256 \
              hs_timeout=10000-60000 \
              mtu=512" \
             0 \
@@ -9844,8 +10816,6 @@ requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 requires_hash_alg SHA_256
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
-requires_config_enabled MBEDTLS_AES_C
-requires_config_enabled MBEDTLS_GCM_C
 requires_max_content_len 2048
 run_test    "DTLS fragmenting: proxy MTU, AES-GCM renego" \
             -p "$P_PXY mtu=512" \
@@ -9875,8 +10845,6 @@ requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 requires_hash_alg SHA_256
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
-requires_config_enabled MBEDTLS_AES_C
-requires_config_enabled MBEDTLS_CCM_C
 requires_max_content_len 2048
 run_test    "DTLS fragmenting: proxy MTU, AES-CCM renego" \
             -p "$P_PXY mtu=1024" \
@@ -9906,8 +10874,6 @@ requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 requires_hash_alg SHA_256
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
-requires_config_enabled MBEDTLS_AES_C
-requires_config_enabled MBEDTLS_CIPHER_MODE_CBC
 requires_config_enabled MBEDTLS_SSL_ENCRYPT_THEN_MAC
 requires_max_content_len 2048
 run_test    "DTLS fragmenting: proxy MTU, AES-CBC EtM renego" \
@@ -9938,8 +10904,6 @@ requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 requires_hash_alg SHA_256
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
-requires_config_enabled MBEDTLS_AES_C
-requires_config_enabled MBEDTLS_CIPHER_MODE_CBC
 requires_max_content_len 2048
 run_test    "DTLS fragmenting: proxy MTU, AES-CBC non-EtM renego" \
             -p "$P_PXY mtu=1024" \
@@ -9965,8 +10929,6 @@ run_test    "DTLS fragmenting: proxy MTU, AES-CBC non-EtM renego" \
 # Forcing ciphersuite for this test to fit the MTU of 512 with full config.
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
-requires_config_enabled MBEDTLS_AES_C
-requires_config_enabled MBEDTLS_GCM_C
 client_needs_more_time 2
 requires_max_content_len 2048
 run_test    "DTLS fragmenting: proxy MTU + 3d" \
@@ -9988,8 +10950,6 @@ run_test    "DTLS fragmenting: proxy MTU + 3d" \
 # Forcing ciphersuite for this test to fit the MTU of 512 with full config.
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
-requires_config_enabled MBEDTLS_AES_C
-requires_config_enabled MBEDTLS_GCM_C
 client_needs_more_time 2
 requires_max_content_len 2048
 run_test    "DTLS fragmenting: proxy MTU + 3d, nbio" \
@@ -10953,6 +11913,7 @@ run_test    "DTLS reordering: Buffer out-of-order handshake message on server" \
 
 requires_certificate_authentication
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "DTLS reordering: Buffer out-of-order CCS message on client"\
             -p "$P_PXY delay_srv=NewSessionTicket" \
             "$P_SRV dgram_packing=0 cookies=0 dtls=1 debug_level=2 \
@@ -11019,8 +11980,8 @@ requires_config_value_at_least "MBEDTLS_SSL_DTLS_MAX_BUFFERING" 190
 requires_config_value_at_most "MBEDTLS_SSL_DTLS_MAX_BUFFERING" 230
 run_test    "DTLS reordering: Buffer encrypted Finished message, drop for fragmented NewSessionTicket" \
             -p "$P_PXY delay_srv=NewSessionTicket delay_srv=NewSessionTicket delay_ccs=1" \
-            "$P_SRV mtu=140 response_size=90 dgram_packing=0 psk=abc123 psk_identity=foo cookies=0 dtls=1 debug_level=2" \
-            "$P_CLI dgram_packing=0 dtls=1 debug_level=2 force_ciphersuite=TLS-PSK-WITH-AES-128-CCM-8 psk=abc123 psk_identity=foo" \
+            "$P_SRV mtu=140 response_size=90 dgram_packing=0 psk=73776f726466697368 psk_identity=foo cookies=0 dtls=1 debug_level=2" \
+            "$P_CLI dgram_packing=0 dtls=1 debug_level=2 force_ciphersuite=TLS-PSK-WITH-AES-128-CCM-8 psk=73776f726466697368 psk_identity=foo" \
             0 \
             -s "Buffer record from epoch 1" \
             -s "Found buffered record from current epoch - load" \
@@ -11034,8 +11995,8 @@ client_needs_more_time 2
 run_test    "DTLS proxy: 3d (drop, delay, duplicate), \"short\" PSK handshake" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \
             "$P_SRV dtls=1 dgram_packing=0 hs_timeout=500-10000 tickets=0 auth_mode=none \
-             psk=abc123" \
-            "$P_CLI dtls=1 dgram_packing=0 hs_timeout=500-10000 tickets=0 psk=abc123 \
+             psk=73776f726466697368" \
+            "$P_CLI dtls=1 dgram_packing=0 hs_timeout=500-10000 tickets=0 psk=73776f726466697368 \
              force_ciphersuite=TLS-PSK-WITH-AES-128-CCM-8" \
             0 \
             -s "Extra-header:" \
@@ -11073,6 +12034,7 @@ run_test    "DTLS proxy: 3d, FS, client auth" \
 
 client_needs_more_time 2
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "DTLS proxy: 3d, FS, ticket" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \
             "$P_SRV dtls=1 dgram_packing=0 hs_timeout=500-10000 tickets=1 auth_mode=none" \
@@ -11083,6 +12045,7 @@ run_test    "DTLS proxy: 3d, FS, ticket" \
 
 client_needs_more_time 2
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "DTLS proxy: 3d, max handshake (FS, ticket + client auth)" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \
             "$P_SRV dtls=1 dgram_packing=0 hs_timeout=500-10000 tickets=1 auth_mode=required" \
@@ -11093,6 +12056,7 @@ run_test    "DTLS proxy: 3d, max handshake (FS, ticket + client auth)" \
 
 client_needs_more_time 2
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "DTLS proxy: 3d, max handshake, nbio" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \
             "$P_SRV dtls=1 dgram_packing=0 hs_timeout=500-10000 nbio=2 tickets=1 \
@@ -11107,8 +12071,8 @@ requires_config_enabled MBEDTLS_SSL_CACHE_C
 run_test    "DTLS proxy: 3d, min handshake, resumption" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \
             "$P_SRV dtls=1 dgram_packing=0 hs_timeout=500-10000 tickets=0 auth_mode=none \
-             psk=abc123 debug_level=3" \
-            "$P_CLI dtls=1 dgram_packing=0 hs_timeout=500-10000 tickets=0 psk=abc123 \
+             psk=73776f726466697368 debug_level=3" \
+            "$P_CLI dtls=1 dgram_packing=0 hs_timeout=500-10000 tickets=0 psk=73776f726466697368 \
              debug_level=3 reconnect=1 skip_close_notify=1 read_timeout=1000 max_resend=10 \
              force_ciphersuite=TLS-PSK-WITH-AES-128-CCM-8" \
             0 \
@@ -11122,8 +12086,8 @@ requires_config_enabled MBEDTLS_SSL_CACHE_C
 run_test    "DTLS proxy: 3d, min handshake, resumption, nbio" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \
             "$P_SRV dtls=1 dgram_packing=0 hs_timeout=500-10000 tickets=0 auth_mode=none \
-             psk=abc123 debug_level=3 nbio=2" \
-            "$P_CLI dtls=1 dgram_packing=0 hs_timeout=500-10000 tickets=0 psk=abc123 \
+             psk=73776f726466697368 debug_level=3 nbio=2" \
+            "$P_CLI dtls=1 dgram_packing=0 hs_timeout=500-10000 tickets=0 psk=73776f726466697368 \
              debug_level=3 reconnect=1 skip_close_notify=1 read_timeout=1000 max_resend=10 \
              force_ciphersuite=TLS-PSK-WITH-AES-128-CCM-8 nbio=2" \
             0 \
@@ -11137,8 +12101,8 @@ requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "DTLS proxy: 3d, min handshake, client-initiated renego" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \
             "$P_SRV dtls=1 dgram_packing=0 hs_timeout=500-10000 tickets=0 auth_mode=none \
-             psk=abc123 renegotiation=1 debug_level=2" \
-            "$P_CLI dtls=1 dgram_packing=0 hs_timeout=500-10000 tickets=0 psk=abc123 \
+             psk=73776f726466697368 renegotiation=1 debug_level=2" \
+            "$P_CLI dtls=1 dgram_packing=0 hs_timeout=500-10000 tickets=0 psk=73776f726466697368 \
              renegotiate=1 debug_level=2 \
              force_ciphersuite=TLS-PSK-WITH-AES-128-CCM-8" \
             0 \
@@ -11152,8 +12116,8 @@ requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "DTLS proxy: 3d, min handshake, client-initiated renego, nbio" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \
             "$P_SRV dtls=1 dgram_packing=0 hs_timeout=500-10000 tickets=0 auth_mode=none \
-             psk=abc123 renegotiation=1 debug_level=2" \
-            "$P_CLI dtls=1 dgram_packing=0 hs_timeout=500-10000 tickets=0 psk=abc123 \
+             psk=73776f726466697368 renegotiation=1 debug_level=2" \
+            "$P_CLI dtls=1 dgram_packing=0 hs_timeout=500-10000 tickets=0 psk=73776f726466697368 \
              renegotiate=1 debug_level=2 \
              force_ciphersuite=TLS-PSK-WITH-AES-128-CCM-8" \
             0 \
@@ -11167,9 +12131,9 @@ requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "DTLS proxy: 3d, min handshake, server-initiated renego" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \
             "$P_SRV dtls=1 dgram_packing=0 hs_timeout=500-10000 tickets=0 auth_mode=none \
-             psk=abc123 renegotiate=1 renegotiation=1 exchanges=4 \
+             psk=73776f726466697368 renegotiate=1 renegotiation=1 exchanges=4 \
              debug_level=2" \
-            "$P_CLI dtls=1 dgram_packing=0 hs_timeout=500-10000 tickets=0 psk=abc123 \
+            "$P_CLI dtls=1 dgram_packing=0 hs_timeout=500-10000 tickets=0 psk=73776f726466697368 \
              renegotiation=1 exchanges=4 debug_level=2 \
              force_ciphersuite=TLS-PSK-WITH-AES-128-CCM-8" \
             0 \
@@ -11183,9 +12147,9 @@ requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "DTLS proxy: 3d, min handshake, server-initiated renego, nbio" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \
             "$P_SRV dtls=1 dgram_packing=0 hs_timeout=500-10000 tickets=0 auth_mode=none \
-             psk=abc123 renegotiate=1 renegotiation=1 exchanges=4 \
+             psk=73776f726466697368 renegotiate=1 renegotiation=1 exchanges=4 \
              debug_level=2 nbio=2" \
-            "$P_CLI dtls=1 dgram_packing=0 hs_timeout=500-10000 tickets=0 psk=abc123 \
+            "$P_CLI dtls=1 dgram_packing=0 hs_timeout=500-10000 tickets=0 psk=73776f726466697368 \
              renegotiation=1 exchanges=4 debug_level=2 nbio=2 \
              force_ciphersuite=TLS-PSK-WITH-AES-128-CCM-8" \
             0 \
@@ -11300,8 +12264,8 @@ run_test    "TLS 1.3: Test gnutls tls1_3 feature" \
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_ciphersuite_enabled TLS1-3-CHACHA20-POLY1305-SHA256
-requires_config_enabled MBEDTLS_ECP_DP_CURVE25519_ENABLED
-requires_config_enabled MBEDTLS_ECP_DP_SECP256R1_ENABLED
+requires_any_configs_enabled "PSA_WANT_ECC_MONTGOMERY_255"
+requires_any_configs_enabled "PSA_WANT_ECC_SECP_R1_256"
 run_test    "TLS 1.3: Default" \
             "$P_SRV allow_sha1=0 debug_level=3 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13" \
             "$P_CLI allow_sha1=0" \
@@ -11310,6 +12274,30 @@ run_test    "TLS 1.3: Default" \
             -s "Ciphersuite is TLS1-3-CHACHA20-POLY1305-SHA256" \
             -s "ECDH/FFDH group: " \
             -s "selected signature algorithm ecdsa_secp256r1_sha256"
+
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
+run_test    "Establish TLS 1.2 then TLS 1.3 session" \
+            "$P_SRV" \
+            "( $P_CLI force_version=tls12; \
+               $P_CLI force_version=tls13 )" \
+            0 \
+            -s "Protocol is TLSv1.2" \
+            -s "Protocol is TLSv1.3" \
+
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
+run_test    "Establish TLS 1.3 then TLS 1.2 session" \
+            "$P_SRV" \
+            "( $P_CLI force_version=tls13; \
+               $P_CLI force_version=tls12 )" \
+            0 \
+            -s "Protocol is TLSv1.3" \
+            -s "Protocol is TLSv1.2" \
 
 requires_openssl_tls1_3_with_compatible_ephemeral
 requires_config_enabled MBEDTLS_DEBUG_C
@@ -11476,88 +12464,6 @@ run_test    "TLS 1.3: server alpn - gnutls" \
             -s "Protocol is TLSv1.3" \
             -s "HTTP/1.0 200 OK" \
             -s "Application Layer Protocol is h2"
-
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_config_enabled MBEDTLS_DEBUG_C
-requires_config_enabled MBEDTLS_SSL_CLI_C
-skip_handshake_stage_check
-requires_gnutls_tls1_3
-run_test    "TLS 1.3: Not supported version check:gnutls: srv max TLS 1.0" \
-            "$G_NEXT_SRV --priority=NORMAL:-VERS-TLS-ALL:+VERS-TLS1.0 -d 4" \
-            "$P_CLI debug_level=4" \
-            1 \
-            -s "Client's version: 3.3" \
-            -S "Version: TLS1.0" \
-            -C "Protocol is TLSv1.0"
-
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_config_enabled MBEDTLS_DEBUG_C
-requires_config_enabled MBEDTLS_SSL_CLI_C
-skip_handshake_stage_check
-requires_gnutls_tls1_3
-run_test    "TLS 1.3: Not supported version check:gnutls: srv max TLS 1.1" \
-            "$G_NEXT_SRV --priority=NORMAL:-VERS-TLS-ALL:+VERS-TLS1.1 -d 4" \
-            "$P_CLI debug_level=4" \
-            1 \
-            -s "Client's version: 3.3" \
-            -S "Version: TLS1.1" \
-            -C "Protocol is TLSv1.1"
-
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_config_enabled MBEDTLS_DEBUG_C
-requires_config_enabled MBEDTLS_SSL_CLI_C
-skip_handshake_stage_check
-requires_gnutls_tls1_3
-run_test    "TLS 1.3: Not supported version check:gnutls: srv max TLS 1.2" \
-            "$G_NEXT_SRV --priority=NORMAL:-VERS-TLS-ALL:+VERS-TLS1.2 -d 4" \
-            "$P_CLI force_version=tls13 debug_level=4" \
-            1 \
-            -s "Client's version: 3.3" \
-            -c "is a fatal alert message (msg 40)" \
-            -S "Version: TLS1.2" \
-            -C "Protocol is TLSv1.2"
-
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_config_enabled MBEDTLS_DEBUG_C
-requires_config_enabled MBEDTLS_SSL_CLI_C
-skip_handshake_stage_check
-requires_openssl_next
-run_test    "TLS 1.3: Not supported version check:openssl: srv max TLS 1.0" \
-            "$O_NEXT_SRV -msg -tls1" \
-            "$P_CLI debug_level=4" \
-            1 \
-            -s "fatal protocol_version" \
-            -c "is a fatal alert message (msg 70)" \
-            -S "Version: TLS1.0" \
-            -C "Protocol  : TLSv1.0"
-
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_config_enabled MBEDTLS_DEBUG_C
-requires_config_enabled MBEDTLS_SSL_CLI_C
-skip_handshake_stage_check
-requires_openssl_next
-run_test    "TLS 1.3: Not supported version check:openssl: srv max TLS 1.1" \
-            "$O_NEXT_SRV -msg -tls1_1" \
-            "$P_CLI debug_level=4" \
-            1 \
-            -s "fatal protocol_version" \
-            -c "is a fatal alert message (msg 70)" \
-            -S "Version: TLS1.1" \
-            -C "Protocol  : TLSv1.1"
-
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_config_enabled MBEDTLS_DEBUG_C
-requires_config_enabled MBEDTLS_SSL_CLI_C
-skip_handshake_stage_check
-requires_openssl_next
-run_test    "TLS 1.3: Not supported version check:openssl: srv max TLS 1.2" \
-            "$O_NEXT_SRV -msg -tls1_2" \
-            "$P_CLI force_version=tls13 debug_level=4" \
-            1 \
-            -s "fatal protocol_version" \
-            -c "is a fatal alert message (msg 70)" \
-            -S "Version: TLS1.2" \
-            -C "Protocol  : TLSv1.2"
 
 requires_openssl_tls1_3_with_compatible_ephemeral
 requires_config_enabled MBEDTLS_DEBUG_C
@@ -13010,125 +13916,6 @@ run_test    "TLS 1.3: Check client no signature algorithm, m->m" \
             -c "no suitable signature algorithm"
 
 requires_openssl_tls1_3_with_compatible_ephemeral
-requires_config_enabled MBEDTLS_DEBUG_C
-requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
-run_test    "TLS 1.3: NewSessionTicket: Basic check, m->O" \
-            "$O_NEXT_SRV -msg -tls1_3 -no_resume_ephemeral -no_cache --num_tickets 4" \
-            "$P_CLI debug_level=1 reco_mode=1 reconnect=1" \
-            0 \
-            -c "Protocol is TLSv1.3" \
-            -c "got new session ticket." \
-            -c "Saving session for reuse... ok" \
-            -c "Reconnecting with saved session" \
-            -c "HTTP/1.0 200 ok"
-
-requires_gnutls_tls1_3
-requires_config_enabled MBEDTLS_DEBUG_C
-requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
-run_test    "TLS 1.3: NewSessionTicket: Basic check, m->G" \
-            "$G_NEXT_SRV -d 10 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3 --disable-client-cert" \
-            "$P_CLI debug_level=1 reco_mode=1 reconnect=1" \
-            0 \
-            -c "Protocol is TLSv1.3" \
-            -c "got new session ticket." \
-            -c "Saving session for reuse... ok" \
-            -c "Reconnecting with saved session" \
-            -c "HTTP/1.0 200 OK" \
-            -s "This is a resumed session"
-
-requires_openssl_tls1_3_with_compatible_ephemeral
-requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
-requires_config_enabled MBEDTLS_SSL_SRV_C
-requires_config_enabled MBEDTLS_DEBUG_C
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
-# https://github.com/openssl/openssl/issues/10714
-# Until now, OpenSSL client does not support reconnect.
-skip_next_test
-run_test    "TLS 1.3: NewSessionTicket: Basic check, O->m" \
-            "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key tickets=4" \
-            "$O_NEXT_CLI -msg -debug -tls1_3 -reconnect" \
-            0 \
-            -s "=> write NewSessionTicket msg" \
-            -s "server state: MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET" \
-            -s "server state: MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET_FLUSH"
-
-requires_gnutls_tls1_3
-requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
-requires_config_enabled MBEDTLS_SSL_SRV_C
-requires_config_enabled MBEDTLS_DEBUG_C
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
-run_test    "TLS 1.3: NewSessionTicket: Basic check, G->m" \
-            "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key tickets=4" \
-            "$G_NEXT_CLI localhost -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3 -V -r" \
-            0 \
-            -c "Connecting again- trying to resume previous session" \
-            -c "NEW SESSION TICKET (4) was received" \
-            -s "=> write NewSessionTicket msg" \
-            -s "server state: MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET" \
-            -s "server state: MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET_FLUSH" \
-            -s "key exchange mode: ephemeral" \
-            -s "key exchange mode: psk_ephemeral" \
-            -s "found pre_shared_key extension"
-
-requires_gnutls_tls1_3
-requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
-requires_config_enabled MBEDTLS_SSL_SRV_C
-requires_config_enabled MBEDTLS_DEBUG_C
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
-# Test the session resumption when the cipher suite for the original session is
-# TLS1-3-AES-256-GCM-SHA384. In that case, the PSK is 384 bits long and not
-# 256 bits long as with all the other TLS 1.3 cipher suites.
-requires_ciphersuite_enabled TLS1-3-AES-256-GCM-SHA384
-run_test    "TLS 1.3: NewSessionTicket: Basic check with AES-256-GCM only, G->m" \
-            "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 tickets=4" \
-            "$G_NEXT_CLI localhost -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:-CIPHER-ALL:+AES-256-GCM -V -r" \
-            0 \
-            -c "Connecting again- trying to resume previous session" \
-            -c "NEW SESSION TICKET (4) was received" \
-            -s "Ciphersuite is TLS1-3-AES-256-GCM-SHA384" \
-            -s "=> write NewSessionTicket msg" \
-            -s "server state: MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET" \
-            -s "server state: MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET_FLUSH" \
-            -s "key exchange mode: ephemeral" \
-            -s "key exchange mode: psk_ephemeral" \
-            -s "found pre_shared_key extension"
-
-requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
-requires_config_enabled MBEDTLS_SSL_SRV_C
-requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_DEBUG_C
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
-run_test    "TLS 1.3: NewSessionTicket: Basic check, m->m" \
-            "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key tickets=4" \
-            "$P_CLI debug_level=4 reco_mode=1 reconnect=1" \
-            0 \
-            -c "Protocol is TLSv1.3" \
-            -c "got new session ticket ( 3 )" \
-            -c "Saving session for reuse... ok" \
-            -c "Reconnecting with saved session" \
-            -c "HTTP/1.0 200 OK"    \
-            -s "=> write NewSessionTicket msg" \
-            -s "server state: MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET" \
-            -s "server state: MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET_FLUSH" \
-            -s "key exchange mode: ephemeral" \
-            -s "key exchange mode: psk_ephemeral" \
-            -s "found pre_shared_key extension"
-
-requires_openssl_tls1_3_with_compatible_ephemeral
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
@@ -13159,57 +13946,13 @@ run_test    "TLS 1.2: Check rsa_pss_rsae compatibility issue, m->G" \
             -c "Protocol is TLSv1.2" \
             -c "HTTP/1.0 200 [Oo][Kk]"
 
-requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
-requires_config_enabled MBEDTLS_SSL_SRV_C
-requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_DEBUG_C
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
-run_test    "TLS 1.3: NewSessionTicket: servername check, m->m" \
-            "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key tickets=4 \
-            sni=localhost,data_files/server2.crt,data_files/server2.key,-,-,-,polarssl.example,data_files/server1-nospace.crt,data_files/server1.key,-,-,-" \
-            "$P_CLI debug_level=4 server_name=localhost reco_mode=1 reconnect=1" \
-            0 \
-            -c "Protocol is TLSv1.3" \
-            -c "got new session ticket." \
-            -c "Saving session for reuse... ok" \
-            -c "Reconnecting with saved session" \
-            -c "HTTP/1.0 200 OK"    \
-            -s "=> write NewSessionTicket msg" \
-            -s "server state: MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET" \
-            -s "server state: MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET_FLUSH" \
-            -s "key exchange mode: ephemeral" \
-            -s "key exchange mode: psk_ephemeral" \
-            -s "found pre_shared_key extension"
-
-requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
-requires_config_enabled MBEDTLS_SSL_SRV_C
-requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_DEBUG_C
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
-run_test    "TLS 1.3: NewSessionTicket: servername negative check, m->m" \
-            "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key tickets=4 \
-            sni=localhost,data_files/server2.crt,data_files/server2.key,-,-,-,polarssl.example,data_files/server1-nospace.crt,data_files/server1.key,-,-,-" \
-            "$P_CLI debug_level=4 server_name=localhost reco_server_name=remote reco_mode=1 reconnect=1" \
-            1 \
-            -c "Protocol is TLSv1.3" \
-            -c "got new session ticket." \
-            -c "Saving session for reuse... ok" \
-            -c "Reconnecting with saved session" \
-            -c "Hostname mismatch the session ticket, disable session resumption."    \
-            -s "=> write NewSessionTicket msg" \
-            -s "server state: MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET" \
-            -s "server state: MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET_FLUSH"
-
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_config_enabled PSA_WANT_ALG_FFDH
+requires_config_enabled PSA_WANT_DH_RFC7919_3072
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
@@ -13234,6 +13977,7 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_config_enabled PSA_WANT_ALG_FFDH
+requires_config_enabled PSA_WANT_DH_RFC7919_3072
 run_test "TLS 1.3 m->G: AES_128_GCM_SHA256,ffdhe3072,rsa_pss_rsae_sha256" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/server2-sha256.crt --x509keyfile data_files/server2.key --priority=NONE:+AES-128-GCM:+SHA256:+AEAD:+SIGN-RSA-PSS-RSAE-SHA256:+GROUP-FFDHE3072:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI ca_file=data_files/test-ca_cat12.crt debug_level=4 force_ciphersuite=TLS1-3-AES-128-GCM-SHA256 sig_algs=rsa_pss_rsae_sha256 groups=ffdhe3072" \
@@ -13252,6 +13996,7 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_config_enabled PSA_WANT_ALG_FFDH
+requires_config_enabled PSA_WANT_DH_RFC7919_4096
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
@@ -13276,6 +14021,7 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_config_enabled PSA_WANT_ALG_FFDH
+requires_config_enabled PSA_WANT_DH_RFC7919_4096
 run_test "TLS 1.3 m->G: AES_128_GCM_SHA256,ffdhe4096,rsa_pss_rsae_sha256" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/server2-sha256.crt --x509keyfile data_files/server2.key --priority=NONE:+AES-128-GCM:+SHA256:+AEAD:+SIGN-RSA-PSS-RSAE-SHA256:+GROUP-FFDHE4096:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI ca_file=data_files/test-ca_cat12.crt debug_level=4 force_ciphersuite=TLS1-3-AES-128-GCM-SHA256 sig_algs=rsa_pss_rsae_sha256 groups=ffdhe4096" \
@@ -13294,6 +14040,7 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_config_enabled PSA_WANT_ALG_FFDH
+requires_config_enabled PSA_WANT_DH_RFC7919_6144
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
@@ -13317,6 +14064,7 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_config_enabled PSA_WANT_ALG_FFDH
+requires_config_enabled PSA_WANT_DH_RFC7919_6144
 run_test "TLS 1.3 m->G: AES_128_GCM_SHA256,ffdhe6144,rsa_pss_rsae_sha256" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/server2-sha256.crt --x509keyfile data_files/server2.key --priority=NONE:+AES-128-GCM:+SHA256:+AEAD:+SIGN-RSA-PSS-RSAE-SHA256:+GROUP-FFDHE6144:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI ca_file=data_files/test-ca_cat12.crt debug_level=4 force_ciphersuite=TLS1-3-AES-128-GCM-SHA256 sig_algs=rsa_pss_rsae_sha256 groups=ffdhe6144" \
@@ -13335,6 +14083,7 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_config_enabled PSA_WANT_ALG_FFDH
+requires_config_enabled PSA_WANT_DH_RFC7919_8192
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
@@ -13359,6 +14108,7 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_config_enabled PSA_WANT_ALG_FFDH
+requires_config_enabled PSA_WANT_DH_RFC7919_8192
 client_needs_more_time 4
 run_test "TLS 1.3 m->G: AES_128_GCM_SHA256,ffdhe8192,rsa_pss_rsae_sha256" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/server2-sha256.crt --x509keyfile data_files/server2.key --priority=NONE:+AES-128-GCM:+SHA256:+AEAD:+SIGN-RSA-PSS-RSAE-SHA256:+GROUP-FFDHE8192:+VERS-TLS1.3:%NO_TICKETS" \
@@ -13378,8 +14128,8 @@ requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: no HRR in case of PSK key exchange mode" \
-            "$P_SRV nbio=2 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk groups=none" \
-            "$P_CLI nbio=2 debug_level=3 psk=010203 psk_identity=0a0b0c tls13_kex_modes=all" \
+            "$P_SRV nbio=2 psk=73776f726466697368 psk_identity=0a0b0c tls13_kex_modes=psk groups=none" \
+            "$P_CLI nbio=2 debug_level=3 psk=73776f726466697368 psk_identity=0a0b0c tls13_kex_modes=all" \
             0 \
             -C "received HelloRetryRequest message" \
             -c "Selected key exchange mode: psk$" \
@@ -13393,17 +14143,30 @@ requires_config_enabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
 requires_max_content_len 16384
 run_tests_memory_after_hanshake
 
-# Final report
+if [ "$LIST_TESTS" -eq 0 ]; then
 
-echo "------------------------------------------------------------------------"
+    # Final report
 
-if [ $FAILS = 0 ]; then
-    printf "PASSED"
-else
-    printf "FAILED"
+    echo "------------------------------------------------------------------------"
+
+    if [ $FAILS = 0 ]; then
+        printf "PASSED"
+    else
+        printf "FAILED"
+    fi
+    PASSES=$(( $TESTS - $FAILS ))
+    echo " ($PASSES / $TESTS tests ($SKIPS skipped))"
+
+    if [ $((TESTS - SKIPS)) -lt $MIN_TESTS ]; then
+        cat <<EOF
+Error: Expected to run at least $MIN_TESTS, but only ran $((TESTS - SKIPS)).
+Maybe a bad filter ('$FILTER') or a bad configuration?
+EOF
+        if [ $FAILS -eq 0 ]; then
+            FAILS=1
+        fi
+    fi
 fi
-PASSES=$(( $TESTS - $FAILS ))
-echo " ($PASSES / $TESTS tests ($SKIPS skipped))"
 
 if [ $FAILS -gt 255 ]; then
     # Clamp at 255 as caller gets exit code & 0xFF

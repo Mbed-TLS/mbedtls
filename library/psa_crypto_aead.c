@@ -3,19 +3,7 @@
  */
 /*
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
 #include "common.h"
@@ -43,19 +31,15 @@ static psa_status_t psa_aead_setup(
     psa_algorithm_t alg)
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
-    size_t key_bits;
-    const mbedtls_cipher_info_t *cipher_info;
     mbedtls_cipher_id_t cipher_id;
-
+    mbedtls_cipher_mode_t mode;
+    size_t key_bits = attributes->bits;
     (void) key_buffer_size;
 
-    key_bits = attributes->core.bits;
-
-    cipher_info = mbedtls_cipher_info_from_psa(alg,
-                                               attributes->core.type, key_bits,
-                                               &cipher_id);
-    if (cipher_info == NULL) {
-        return PSA_ERROR_NOT_SUPPORTED;
+    status = mbedtls_cipher_values_from_psa(alg, attributes->type,
+                                            &key_bits, &mode, &cipher_id);
+    if (status != PSA_SUCCESS) {
+        return status;
     }
 
     switch (PSA_ALG_AEAD_WITH_SHORTENED_TAG(alg, 0)) {
@@ -65,7 +49,7 @@ static psa_status_t psa_aead_setup(
             /* CCM allows the following tag lengths: 4, 6, 8, 10, 12, 14, 16.
              * The call to mbedtls_ccm_encrypt_and_tag or
              * mbedtls_ccm_auth_decrypt will validate the tag length. */
-            if (PSA_BLOCK_CIPHER_BLOCK_LENGTH(attributes->core.type) != 16) {
+            if (PSA_BLOCK_CIPHER_BLOCK_LENGTH(attributes->type) != 16) {
                 return PSA_ERROR_INVALID_ARGUMENT;
             }
 
@@ -85,7 +69,7 @@ static psa_status_t psa_aead_setup(
             /* GCM allows the following tag lengths: 4, 8, 12, 13, 14, 15, 16.
              * The call to mbedtls_gcm_crypt_and_tag or
              * mbedtls_gcm_auth_decrypt will validate the tag length. */
-            if (PSA_BLOCK_CIPHER_BLOCK_LENGTH(attributes->core.type) != 16) {
+            if (PSA_BLOCK_CIPHER_BLOCK_LENGTH(attributes->type) != 16) {
                 return PSA_ERROR_INVALID_ARGUMENT;
             }
 

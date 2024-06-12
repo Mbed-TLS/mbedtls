@@ -3,29 +3,18 @@
  */
 /*
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
 #include "mbedtls/platform.h"
 #include "p256-m_driver_entrypoints.h"
 #include "p256-m/p256-m.h"
 #include "psa/crypto.h"
-#include "psa_crypto_driver_wrappers.h"
 #include <stddef.h>
+#include <string.h>
+#include "psa_crypto_driver_wrappers_no_static.h"
 
-#if defined(MBEDTLS_P256M_EXAMPLE_DRIVER_ENABLED)
+#if defined(MBEDTLS_PSA_P256M_DRIVER_ENABLED)
 
 /* INFORMATION ON PSA KEY EXPORT FORMATS:
  *
@@ -37,10 +26,20 @@
  *                       total of 65 bytes.
  *
  * p256-m's internal format for private keys matches PSA. Its format for public
- * keys is only 64 bytes; the same as PSA but without the leading byte (0x04).
+ * keys is only 64 bytes: the same as PSA but without the leading byte (0x04).
  * Hence, when passing public keys from PSA to p256-m, the leading byte is
  * removed.
+ *
+ * Shared secret and signature have the same format between PSA and p256-m.
  */
+#define PSA_PUBKEY_SIZE         65
+#define PSA_PUBKEY_HEADER_BYTE  0x04
+#define P256_PUBKEY_SIZE        64
+#define PRIVKEY_SIZE            32
+#define SHARED_SECRET_SIZE      32
+#define SIGNATURE_SIZE          64
+
+#define CURVE_BITS              256
 
 /* Convert between p256-m and PSA error codes */
 static psa_status_t p256_to_psa_error(int ret)
@@ -59,6 +58,83 @@ static psa_status_t p256_to_psa_error(int ret)
     }
 }
 
+psa_status_t p256_transparent_import_key(const psa_key_attributes_t *attributes,
+                             const uint8_t *data,
+                             size_t data_length,
+                             uint8_t *key_buffer,
+                             size_t key_buffer_size,
+                             size_t *key_buffer_length,
+                             size_t *bits)
+{
+    /* Check the key size */
+    if (*bits != 0 && *bits != CURVE_BITS) {
+        return PSA_ERROR_NOT_SUPPORTED;
+    }
+
+    /* Validate the key (and its type and size) */
+    psa_key_type_t type = psa_get_key_type(attributes);
+    if (type == PSA_KEY_TYPE_ECC_PUBLIC_KEY(PSA_ECC_FAMILY_SECP_R1)) {
+        if (data_length != PSA_PUBKEY_SIZE) {
+            return *bits == 0 ? PSA_ERROR_NOT_SUPPORTED : PSA_ERROR_INVALID_ARGUMENT;
+        }
+        /* See INFORMATION ON PSA KEY EXPORT FORMATS near top of file */
+        if (p256_validate_pubkey(data + 1) != P256_SUCCESS) {
+            return PSA_ERROR_INVALID_ARGUMENT;
+        }
+    } else if (type == PSA_KEY_TYPE_ECC_KEY_PAIR(PSA_ECC_FAMILY_SECP_R1)) {
+        if (data_length != PRIVKEY_SIZE) {
+            return *bits == 0 ? PSA_ERROR_NOT_SUPPORTED : PSA_ERROR_INVALID_ARGUMENT;
+        }
+        if (p256_validate_privkey(data) != P256_SUCCESS) {
+            return PSA_ERROR_INVALID_ARGUMENT;
+        }
+    } else {
+        return PSA_ERROR_NOT_SUPPORTED;
+    }
+    *bits = CURVE_BITS;
+
+    /* We only support the export format for input, so just copy. */
+    if (key_buffer_size < data_length) {
+        return PSA_ERROR_BUFFER_TOO_SMALL;
+    }
+    memcpy(key_buffer, data, data_length);
+    *key_buffer_length = data_length;
+
+    return PSA_SUCCESS;
+}
+
+psa_status_t p256_transparent_export_public_key(const psa_key_attributes_t *attributes,
+                                    const uint8_t *key_buffer,
+                                    size_t key_buffer_size,
+                                    uint8_t *data,
+                                    size_t data_size,
+                                    size_t *data_length)
+{
+    /* Is this the right curve? */
+    size_t bits = psa_get_key_bits(attributes);
+    psa_key_type_t type = psa_get_key_type(attributes);
+    if (bits != CURVE_BITS || type != PSA_KEY_TYPE_ECC_KEY_PAIR(PSA_ECC_FAMILY_SECP_R1)) {
+        return PSA_ERROR_NOT_SUPPORTED;
+    }
+
+    /* Validate sizes, as p256-m expects fixed-size buffers */
+    if (key_buffer_size != PRIVKEY_SIZE) {
+        return PSA_ERROR_INVALID_ARGUMENT;
+    }
+    if (data_size < PSA_PUBKEY_SIZE) {
+        return PSA_ERROR_BUFFER_TOO_SMALL;
+    }
+
+    /* See INFORMATION ON PSA KEY EXPORT FORMATS near top of file */
+    data[0] = PSA_PUBKEY_HEADER_BYTE;
+    int ret = p256_public_from_private(data + 1, key_buffer);
+    if (ret == P256_SUCCESS) {
+        *data_length = PSA_PUBKEY_SIZE;
+    }
+
+    return p256_to_psa_error(ret);
+}
+
 psa_status_t p256_transparent_generate_key(
     const psa_key_attributes_t *attributes,
     uint8_t *key_buffer,
@@ -69,13 +145,9 @@ psa_status_t p256_transparent_generate_key(
      * of driver entry-points. (void) used to avoid compiler warning. */
     (void) attributes;
 
-    psa_status_t status = PSA_ERROR_NOT_SUPPORTED;
-
-    /*
-     *  p256-m generates a 32 byte private key, and expects to write to a buffer
-     *   that is of that size. */
-    if (key_buffer_size != 32) {
-        return status;
+    /* Validate sizes, as p256-m expects fixed-size buffers */
+    if (key_buffer_size != PRIVKEY_SIZE) {
+        return PSA_ERROR_BUFFER_TOO_SMALL;
     }
 
     /*
@@ -83,15 +155,14 @@ psa_status_t p256_transparent_generate_key(
      *  keys. Allocate a buffer to which the public key will be written. The
      *  private key will be written to key_buffer, which is passed to this
      *  function as an argument. */
-    uint8_t public_key_buffer[64];
+    uint8_t public_key_buffer[P256_PUBKEY_SIZE];
 
-    status = p256_to_psa_error(
-        p256_gen_keypair(key_buffer, public_key_buffer));
-    if (status == PSA_SUCCESS) {
-        *key_buffer_length = 32;
+    int ret = p256_gen_keypair(key_buffer, public_key_buffer);
+    if (ret == P256_SUCCESS) {
+        *key_buffer_length = PRIVKEY_SIZE;
     }
 
-    return status;
+    return p256_to_psa_error(ret);
 }
 
 psa_status_t p256_transparent_key_agreement(
@@ -111,25 +182,22 @@ psa_status_t p256_transparent_key_agreement(
     (void) attributes;
     (void) alg;
 
-    /*
-     *  Check that private key = 32 bytes, peer public key = 65 bytes,
-     *  and that the shared secret buffer is big enough. */
-    psa_status_t status = PSA_ERROR_NOT_SUPPORTED;
-    if (key_buffer_size != 32 || shared_secret_size < 32 ||
-        peer_key_length != 65) {
-        return status;
+    /* Validate sizes, as p256-m expects fixed-size buffers */
+    if (key_buffer_size != PRIVKEY_SIZE || peer_key_length != PSA_PUBKEY_SIZE) {
+        return PSA_ERROR_INVALID_ARGUMENT;
+    }
+    if (shared_secret_size < SHARED_SECRET_SIZE) {
+        return PSA_ERROR_BUFFER_TOO_SMALL;
     }
 
-    /* We add 1 to peer_key pointer to omit the leading byte of the public key
-     * representation (0x04). See information about PSA key formats at the top
-     * of the file. */
-    status = p256_to_psa_error(
-        p256_ecdh_shared_secret(shared_secret, key_buffer, peer_key+1));
-    if (status == PSA_SUCCESS) {
-        *shared_secret_length = 32;
+    /* See INFORMATION ON PSA KEY EXPORT FORMATS near top of file */
+    const uint8_t *peer_key_p256m = peer_key + 1;
+    int ret = p256_ecdh_shared_secret(shared_secret, key_buffer, peer_key_p256m);
+    if (ret == P256_SUCCESS) {
+        *shared_secret_length = SHARED_SECRET_SIZE;
     }
 
-    return status;
+    return p256_to_psa_error(ret);
 }
 
 psa_status_t p256_transparent_sign_hash(
@@ -149,21 +217,23 @@ psa_status_t p256_transparent_sign_hash(
     (void) attributes;
     (void) alg;
 
-    psa_status_t status = PSA_ERROR_NOT_SUPPORTED;
-    if (key_buffer_size != 32 || signature_size != 64) {
-        return status;
+    /* Validate sizes, as p256-m expects fixed-size buffers */
+    if (key_buffer_size != PRIVKEY_SIZE) {
+        return PSA_ERROR_INVALID_ARGUMENT;
+    }
+    if (signature_size < SIGNATURE_SIZE) {
+        return PSA_ERROR_BUFFER_TOO_SMALL;
     }
 
-    status = p256_to_psa_error(
-        p256_ecdsa_sign(signature, key_buffer, hash, hash_length));
-    if (status == PSA_SUCCESS) {
-        *signature_length = 64;
+    int ret = p256_ecdsa_sign(signature, key_buffer, hash, hash_length);
+    if (ret == P256_SUCCESS) {
+        *signature_length = SIGNATURE_SIZE;
     }
 
-    return status;
+    return p256_to_psa_error(ret);
 }
 
-/*  This function expects the key buffer to contain a 65 byte public key,
+/*  This function expects the key buffer to contain a PSA public key,
  *  as exported by psa_export_public_key() */
 static psa_status_t p256_verify_hash_with_public_key(
     const uint8_t *key_buffer,
@@ -173,19 +243,19 @@ static psa_status_t p256_verify_hash_with_public_key(
     const uint8_t *signature,
     size_t signature_length)
 {
-    psa_status_t status = PSA_ERROR_NOT_SUPPORTED;
-    if (key_buffer_size != 65 || signature_length != 64 || *key_buffer != 0x04) {
-        return status;
+    /* Validate sizes, as p256-m expects fixed-size buffers */
+    if (key_buffer_size != PSA_PUBKEY_SIZE || *key_buffer != PSA_PUBKEY_HEADER_BYTE) {
+        return PSA_ERROR_INVALID_ARGUMENT;
+    }
+    if (signature_length != SIGNATURE_SIZE) {
+        return PSA_ERROR_INVALID_SIGNATURE;
     }
 
-    /* We add 1 to public_key_buffer pointer to omit the leading byte of the
-     * public key representation (0x04). See information about PSA key formats
-     * at the top of the file. */
-    const uint8_t *public_key_buffer = key_buffer + 1;
-    status = p256_to_psa_error(
-        p256_ecdsa_verify(signature, public_key_buffer, hash, hash_length));
+    /* See INFORMATION ON PSA KEY EXPORT FORMATS near top of file */
+    const uint8_t *public_key_p256m = key_buffer + 1;
+    int ret = p256_ecdsa_verify(signature, public_key_p256m, hash, hash_length);
 
-    return status;
+    return p256_to_psa_error(ret);
 }
 
 psa_status_t p256_transparent_verify_hash(
@@ -203,10 +273,10 @@ psa_status_t p256_transparent_verify_hash(
     (void) alg;
 
     psa_status_t status;
-    uint8_t public_key_buffer[65];
-    size_t public_key_buffer_size = 65;
+    uint8_t public_key_buffer[PSA_PUBKEY_SIZE];
+    size_t public_key_buffer_size = PSA_PUBKEY_SIZE;
 
-    size_t public_key_length = 65;
+    size_t public_key_length = PSA_PUBKEY_SIZE;
     /* As p256-m doesn't require dynamic allocation, we want to avoid it in
      * the entrypoint functions as well. psa_driver_wrapper_export_public_key()
      * requires size_t*, so we use a pointer to a stack variable. */
@@ -239,4 +309,4 @@ exit:
     return status;
 }
 
-#endif /* MBEDTLS_P256M_EXAMPLE_DRIVER_ENABLED */
+#endif /* MBEDTLS_PSA_P256M_DRIVER_ENABLED */

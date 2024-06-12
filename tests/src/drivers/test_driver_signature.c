@@ -4,19 +4,7 @@
  * only deterministic ECDSA on curves secp256r1, secp384r1 and secp521r1.
  */
 /*  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
 #include <test/helpers.h>
@@ -33,7 +21,6 @@
 #include "test/drivers/signature.h"
 #include "test/drivers/hash.h"
 
-#include "mbedtls/md.h"
 #include "mbedtls/ecdsa.h"
 
 #include "test/random.h"
@@ -62,7 +49,7 @@ psa_status_t sign_hash(
     size_t signature_size,
     size_t *signature_length)
 {
-    if (attributes->core.type == PSA_KEY_TYPE_RSA_KEY_PAIR) {
+    if (attributes->type == PSA_KEY_TYPE_RSA_KEY_PAIR) {
         if (PSA_ALG_IS_RSA_PKCS1V15_SIGN(alg) ||
             PSA_ALG_IS_RSA_PSS(alg)) {
 #if defined(MBEDTLS_TEST_LIBTESTDRIVER1) && \
@@ -84,7 +71,7 @@ psa_status_t sign_hash(
         } else {
             return PSA_ERROR_INVALID_ARGUMENT;
         }
-    } else if (PSA_KEY_TYPE_IS_ECC(attributes->core.type)) {
+    } else if (PSA_KEY_TYPE_IS_ECC(attributes->type)) {
         if (PSA_ALG_IS_ECDSA(alg)) {
 #if defined(MBEDTLS_TEST_LIBTESTDRIVER1) && \
             (defined(LIBTESTDRIVER1_MBEDTLS_PSA_BUILTIN_ALG_ECDSA) || \
@@ -129,7 +116,7 @@ psa_status_t verify_hash(
     const uint8_t *signature,
     size_t signature_length)
 {
-    if (PSA_KEY_TYPE_IS_RSA(attributes->core.type)) {
+    if (PSA_KEY_TYPE_IS_RSA(attributes->type)) {
         if (PSA_ALG_IS_RSA_PKCS1V15_SIGN(alg) ||
             PSA_ALG_IS_RSA_PSS(alg)) {
 #if defined(MBEDTLS_TEST_LIBTESTDRIVER1) && \
@@ -151,7 +138,7 @@ psa_status_t verify_hash(
         } else {
             return PSA_ERROR_INVALID_ARGUMENT;
         }
-    } else if (PSA_KEY_TYPE_IS_ECC(attributes->core.type)) {
+    } else if (PSA_KEY_TYPE_IS_ECC(attributes->type)) {
         if (PSA_ALG_IS_ECDSA(alg)) {
 #if defined(MBEDTLS_TEST_LIBTESTDRIVER1) && \
             (defined(LIBTESTDRIVER1_MBEDTLS_PSA_BUILTIN_ALG_ECDSA) || \

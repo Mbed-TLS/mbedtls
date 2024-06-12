@@ -3,19 +3,7 @@
  * Currently only supports generating and verifying ECC keys.
  */
 /*  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
 #include <test/helpers.h>
@@ -171,7 +159,7 @@ static psa_status_t mbedtls_test_opaque_wrap_key(
  * The argument key_buffer_length is filled with the unwrapped(clear)
  * key_size on success.
  * */
-static psa_status_t mbedtls_test_opaque_unwrap_key(
+psa_status_t mbedtls_test_opaque_unwrap_key(
     const uint8_t *wrapped_key,
     size_t wrapped_key_length,
     uint8_t *key_buffer,
@@ -205,6 +193,7 @@ psa_status_t mbedtls_test_transparent_generate_key(
     uint8_t *key, size_t key_size, size_t *key_length)
 {
     ++mbedtls_test_driver_key_management_hooks.hits;
+    ++mbedtls_test_driver_key_management_hooks.hits_generate_key;
 
     if (mbedtls_test_driver_key_management_hooks.forced_status != PSA_SUCCESS) {
         return mbedtls_test_driver_key_management_hooks.forced_status;
@@ -237,10 +226,13 @@ psa_status_t mbedtls_test_transparent_generate_key(
         defined(LIBTESTDRIVER1_MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR_GENERATE)
         return libtestdriver1_mbedtls_psa_rsa_generate_key(
             (const libtestdriver1_psa_key_attributes_t *) attributes,
+            NULL, 0, /* We don't support custom e in the test driver yet */
             key, key_size, key_length);
 #elif defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR_GENERATE)
         return mbedtls_psa_rsa_generate_key(
-            attributes, key, key_size, key_length);
+            attributes,
+            NULL, 0, /* We don't support custom e in the test driver yet */
+            key, key_size, key_length);
 #endif
     } else if (PSA_KEY_TYPE_IS_DH(psa_get_key_type(attributes))
                && PSA_KEY_TYPE_IS_KEY_PAIR(psa_get_key_type(attributes))) {
@@ -541,6 +533,7 @@ psa_status_t mbedtls_test_transparent_export_public_key(
     uint8_t *data, size_t data_size, size_t *data_length)
 {
     ++mbedtls_test_driver_key_management_hooks.hits;
+    ++mbedtls_test_driver_key_management_hooks.hits_export_public_key;
 
     if (mbedtls_test_driver_key_management_hooks.forced_status != PSA_SUCCESS) {
         return mbedtls_test_driver_key_management_hooks.forced_status;

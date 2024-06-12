@@ -17,8 +17,6 @@
 #include "psa_crypto_slot_management.h"
 #include "psa_crypto_storage.h"
 
-#include "mbedtls/md.h"
-
 #define PSA_KEY_STORAGE_MAGIC_HEADER "PSA\0KEY"
 #define PSA_KEY_STORAGE_MAGIC_HEADER_LENGTH (sizeof(PSA_KEY_STORAGE_MAGIC_HEADER))
 
@@ -63,7 +61,7 @@ void format_storage_data_check(data_t *key_data,
 
     TEST_CALLOC(file_data, file_data_length);
     psa_format_key_data_for_storage(key_data->x, key_data->len,
-                                    &attributes.core,
+                                    &attributes,
                                     file_data);
 
     TEST_MEMORY_COMPARE(expected_file_data->x, expected_file_data->len,
@@ -92,7 +90,7 @@ void parse_storage_data_check(data_t *file_data,
 
     status = psa_parse_key_data_from_storage(file_data->x, file_data->len,
                                              &key_data, &key_data_length,
-                                             &attributes.core);
+                                             &attributes);
 
     TEST_EQUAL(status, expected_status);
     if (status != PSA_SUCCESS) {

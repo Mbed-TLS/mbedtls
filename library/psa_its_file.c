@@ -3,19 +3,7 @@
  */
 /*
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
 #include "common.h"
@@ -110,14 +98,9 @@ static psa_status_t psa_its_read_file(psa_storage_uid_t uid,
         return PSA_ERROR_DATA_CORRUPT;
     }
 
-    p_info->size = (header.size[0] |
-                    header.size[1] << 8 |
-                    header.size[2] << 16 |
-                    header.size[3] << 24);
-    p_info->flags = (header.flags[0] |
-                     header.flags[1] << 8 |
-                     header.flags[2] << 16 |
-                     header.flags[3] << 24);
+    p_info->size  = MBEDTLS_GET_UINT32_LE(header.size, 0);
+    p_info->flags = MBEDTLS_GET_UINT32_LE(header.flags, 0);
+
     return PSA_SUCCESS;
 }
 

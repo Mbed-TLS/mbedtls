@@ -3,24 +3,18 @@
  */
 /*
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
 #include "common.h"
 
 #if defined(MBEDTLS_PSA_CRYPTO_C)
+
+/* This header is only needed because it defines
+ * MBEDTLS_DHM_RFC7919_FFDHEXXXX_[P|G]_BIN symbols that are used in
+ * mbedtls_psa_ffdh_set_prime_generator(). Apart from that, this module
+ * only uses bignum functions for arithmetic. */
+#include <mbedtls/dhm.h>
 
 #include <psa/crypto.h>
 #include "psa_crypto_core.h"
@@ -47,58 +41,78 @@ static psa_status_t mbedtls_psa_ffdh_set_prime_generator(size_t key_size,
         return PSA_ERROR_INVALID_ARGUMENT;
     }
 
+#if defined(MBEDTLS_PSA_BUILTIN_DH_RFC7919_2048)
     static const unsigned char dhm_P_2048[] =
         MBEDTLS_DHM_RFC7919_FFDHE2048_P_BIN;
-    static const unsigned char dhm_P_3072[] =
-        MBEDTLS_DHM_RFC7919_FFDHE3072_P_BIN;
-    static const unsigned char dhm_P_4096[] =
-        MBEDTLS_DHM_RFC7919_FFDHE4096_P_BIN;
-    static const unsigned char dhm_P_6144[] =
-        MBEDTLS_DHM_RFC7919_FFDHE6144_P_BIN;
-    static const unsigned char dhm_P_8192[] =
-        MBEDTLS_DHM_RFC7919_FFDHE8192_P_BIN;
     static const unsigned char dhm_G_2048[] =
         MBEDTLS_DHM_RFC7919_FFDHE2048_G_BIN;
+#endif /* MBEDTLS_PSA_BUILTIN_DH_RFC7919_2048 */
+#if defined(MBEDTLS_PSA_BUILTIN_DH_RFC7919_3072)
+    static const unsigned char dhm_P_3072[] =
+        MBEDTLS_DHM_RFC7919_FFDHE3072_P_BIN;
     static const unsigned char dhm_G_3072[] =
         MBEDTLS_DHM_RFC7919_FFDHE3072_G_BIN;
+#endif /* MBEDTLS_PSA_BUILTIN_DH_RFC7919_3072 */
+#if defined(MBEDTLS_PSA_BUILTIN_DH_RFC7919_4096)
+    static const unsigned char dhm_P_4096[] =
+        MBEDTLS_DHM_RFC7919_FFDHE4096_P_BIN;
     static const unsigned char dhm_G_4096[] =
         MBEDTLS_DHM_RFC7919_FFDHE4096_G_BIN;
+#endif /* MBEDTLS_PSA_BUILTIN_DH_RFC7919_4096 */
+#if defined(MBEDTLS_PSA_BUILTIN_DH_RFC7919_6144)
+    static const unsigned char dhm_P_6144[] =
+        MBEDTLS_DHM_RFC7919_FFDHE6144_P_BIN;
     static const unsigned char dhm_G_6144[] =
         MBEDTLS_DHM_RFC7919_FFDHE6144_G_BIN;
+#endif /* MBEDTLS_PSA_BUILTIN_DH_RFC7919_6144 */
+#if defined(MBEDTLS_PSA_BUILTIN_DH_RFC7919_8192)
+    static const unsigned char dhm_P_8192[] =
+        MBEDTLS_DHM_RFC7919_FFDHE8192_P_BIN;
     static const unsigned char dhm_G_8192[] =
         MBEDTLS_DHM_RFC7919_FFDHE8192_G_BIN;
+#endif /* MBEDTLS_PSA_BUILTIN_DH_RFC7919_8192 */
 
     switch (key_size) {
+#if defined(MBEDTLS_PSA_BUILTIN_DH_RFC7919_2048)
         case sizeof(dhm_P_2048):
             dhm_P = dhm_P_2048;
             dhm_G = dhm_G_2048;
             dhm_size_P = sizeof(dhm_P_2048);
             dhm_size_G = sizeof(dhm_G_2048);
             break;
+#endif /* MBEDTLS_PSA_BUILTIN_DH_RFC7919_2048 */
+#if defined(MBEDTLS_PSA_BUILTIN_DH_RFC7919_3072)
         case sizeof(dhm_P_3072):
             dhm_P = dhm_P_3072;
             dhm_G = dhm_G_3072;
             dhm_size_P = sizeof(dhm_P_3072);
             dhm_size_G = sizeof(dhm_G_3072);
             break;
+#endif /* MBEDTLS_PSA_BUILTIN_DH_RFC7919_3072 */
+#if defined(MBEDTLS_PSA_BUILTIN_DH_RFC7919_4096)
         case sizeof(dhm_P_4096):
             dhm_P = dhm_P_4096;
             dhm_G = dhm_G_4096;
             dhm_size_P = sizeof(dhm_P_4096);
             dhm_size_G = sizeof(dhm_G_4096);
             break;
+#endif /* MBEDTLS_PSA_BUILTIN_DH_RFC7919_4096 */
+#if defined(MBEDTLS_PSA_BUILTIN_DH_RFC7919_6144)
         case sizeof(dhm_P_6144):
             dhm_P = dhm_P_6144;
             dhm_G = dhm_G_6144;
             dhm_size_P = sizeof(dhm_P_6144);
             dhm_size_G = sizeof(dhm_G_6144);
             break;
+#endif /* MBEDTLS_PSA_BUILTIN_DH_RFC7919_6144 */
+#if defined(MBEDTLS_PSA_BUILTIN_DH_RFC7919_8192)
         case sizeof(dhm_P_8192):
             dhm_P = dhm_P_8192;
             dhm_G = dhm_G_8192;
             dhm_size_P = sizeof(dhm_P_8192);
             dhm_size_G = sizeof(dhm_G_8192);
             break;
+#endif /* MBEDTLS_PSA_BUILTIN_DH_RFC7919_8192 */
         default:
             return PSA_ERROR_INVALID_ARGUMENT;
     }
@@ -137,7 +151,7 @@ psa_status_t mbedtls_psa_ffdh_export_public_key(
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     mbedtls_mpi GX, G, X, P;
-    psa_key_type_t type = attributes->core.type;
+    psa_key_type_t type = attributes->type;
 
     if (PSA_KEY_TYPE_IS_PUBLIC_KEY(type)) {
         if (key_buffer_size > data_size) {
@@ -153,7 +167,7 @@ psa_status_t mbedtls_psa_ffdh_export_public_key(
     mbedtls_mpi_init(&GX); mbedtls_mpi_init(&G);
     mbedtls_mpi_init(&X); mbedtls_mpi_init(&P);
 
-    size_t key_len = PSA_BITS_TO_BYTES(attributes->core.bits);
+    size_t key_len = PSA_BITS_TO_BYTES(attributes->bits);
 
     status = mbedtls_psa_ffdh_set_prime_generator(key_len, &P, &G);
 
@@ -269,7 +283,7 @@ psa_status_t mbedtls_psa_ffdh_key_agreement(
     mbedtls_mpi_init(&K);
 
     status = mbedtls_psa_ffdh_set_prime_generator(
-        PSA_BITS_TO_BYTES(attributes->core.bits), &P, &G);
+        PSA_BITS_TO_BYTES(attributes->bits), &P, &G);
 
     if (status != PSA_SUCCESS) {
         goto cleanup;

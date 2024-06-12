@@ -21,19 +21,7 @@
  */
 /*
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
 #ifndef PSA_CRYPTO_VALUES_H
@@ -291,6 +279,11 @@
  * to read from a resource. */
 #define PSA_ERROR_INSUFFICIENT_DATA     ((psa_status_t)-143)
 
+/** This can be returned if a function can no longer operate correctly.
+ * For example, if an essential initialization operation failed or
+ * a mutex operation failed. */
+#define PSA_ERROR_SERVICE_FAILURE       ((psa_status_t)-144)
+
 /** The key identifier is not valid. See also :ref:\`key-handles\`.
  */
 #define PSA_ERROR_INVALID_HANDLE        ((psa_status_t)-136)
@@ -420,7 +413,7 @@
     ((type) | PSA_KEY_TYPE_CATEGORY_FLAG_PAIR)
 /** The public key type corresponding to a key pair type.
  *
- * You may also pass a key pair type as \p type, it will be left unchanged.
+ * You may also pass a public key type as \p type, it will be left unchanged.
  *
  * \param type      A public key type or key pair type.
  *
@@ -606,19 +599,23 @@
  * They are defined in _Standards for Efficient Cryptography_,
  * _SEC 2: Recommended Elliptic Curve Domain Parameters_.
  * https://www.secg.org/sec2-v2.pdf
+ *
+ * \note For secp224k1, the bit-size is 225 (size of a private value).
+ *
+ * \note Mbed TLS only supports secp192k1 and secp256k1.
  */
 #define PSA_ECC_FAMILY_SECP_K1           ((psa_ecc_family_t) 0x17)
 
 /** SEC random curves over prime fields.
  *
  * This family comprises the following curves:
- * secp192k1, secp224r1, secp256r1, secp384r1, secp521r1.
+ * secp192r1, secp224r1, secp256r1, secp384r1, secp521r1.
  * They are defined in _Standards for Efficient Cryptography_,
  * _SEC 2: Recommended Elliptic Curve Domain Parameters_.
  * https://www.secg.org/sec2-v2.pdf
  */
 #define PSA_ECC_FAMILY_SECP_R1           ((psa_ecc_family_t) 0x12)
-/* SECP160R2 (SEC2 v1, obsolete) */
+/* SECP160R2 (SEC2 v1, obsolete, not supported in Mbed TLS) */
 #define PSA_ECC_FAMILY_SECP_R2           ((psa_ecc_family_t) 0x1b)
 
 /** SEC Koblitz curves over binary fields.
@@ -628,6 +625,8 @@
  * They are defined in _Standards for Efficient Cryptography_,
  * _SEC 2: Recommended Elliptic Curve Domain Parameters_.
  * https://www.secg.org/sec2-v2.pdf
+ *
+ * \note Mbed TLS does not support any curve in this family.
  */
 #define PSA_ECC_FAMILY_SECT_K1           ((psa_ecc_family_t) 0x27)
 
@@ -638,6 +637,8 @@
  * They are defined in _Standards for Efficient Cryptography_,
  * _SEC 2: Recommended Elliptic Curve Domain Parameters_.
  * https://www.secg.org/sec2-v2.pdf
+ *
+ * \note Mbed TLS does not support any curve in this family.
  */
 #define PSA_ECC_FAMILY_SECT_R1           ((psa_ecc_family_t) 0x22)
 
@@ -648,6 +649,8 @@
  * It is defined in _Standards for Efficient Cryptography_,
  * _SEC 2: Recommended Elliptic Curve Domain Parameters_.
  * https://www.secg.org/sec2-v2.pdf
+ *
+ * \note Mbed TLS does not support any curve in this family.
  */
 #define PSA_ECC_FAMILY_SECT_R2           ((psa_ecc_family_t) 0x2b)
 
@@ -657,6 +660,9 @@
  * brainpoolP160r1, brainpoolP192r1, brainpoolP224r1, brainpoolP256r1,
  * brainpoolP320r1, brainpoolP384r1, brainpoolP512r1.
  * It is defined in RFC 5639.
+ *
+ * \note Mbed TLS only supports the 256-bit, 384-bit and 512-bit curves
+ *       in this family.
  */
 #define PSA_ECC_FAMILY_BRAINPOOL_P_R1    ((psa_ecc_family_t) 0x30)
 
@@ -685,6 +691,8 @@
  * - 448-bit: Edwards448, the twisted Edwards curve birationally equivalent
  *   to Curve448.
  *   Hamburg, _Ed448-Goldilocks, a new elliptic curve_, NIST ECC Workshop, 2015.
+ *
+ * \note Mbed TLS does not support Edwards curves yet.
  */
 #define PSA_ECC_FAMILY_TWISTED_EDWARDS   ((psa_ecc_family_t) 0x42)
 
@@ -1748,6 +1756,13 @@
      0)
 
 /** RSA PKCS#1 v1.5 encryption.
+ *
+ * \warning     Calling psa_asymmetric_decrypt() with this algorithm as a
+ *              parameter is considered an inherently dangerous function
+ *              (CWE-242). Unless it is used in a side channel free and safe
+ *              way (eg. implementing the TLS protocol as per 7.4.7.1 of
+ *              RFC 5246), the calling code is vulnerable.
+ *
  */
 #define PSA_ALG_RSA_PKCS1V15_CRYPT              ((psa_algorithm_t) 0x07000200)
 

@@ -2,19 +2,7 @@
  *  Example ECDSA program
  *
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
 #include "mbedtls/build_info.h"
@@ -72,8 +60,8 @@ static void dump_pubkey(const char *title, mbedtls_ecdsa_context *key)
     unsigned char buf[300];
     size_t len;
 
-    if (mbedtls_ecp_point_write_binary(&key->MBEDTLS_PRIVATE(grp), &key->MBEDTLS_PRIVATE(Q),
-                                       MBEDTLS_ECP_PF_UNCOMPRESSED, &len, buf, sizeof(buf)) != 0) {
+    if (mbedtls_ecp_write_public_key(key, MBEDTLS_ECP_PF_UNCOMPRESSED,
+                                     &len, buf, sizeof(buf)) != 0) {
         mbedtls_printf("internal error\n");
         return;
     }
@@ -91,6 +79,8 @@ int main(int argc, char *argv[])
     int ret = 1;
     int exit_code = MBEDTLS_EXIT_FAILURE;
     mbedtls_ecdsa_context ctx_sign, ctx_verify;
+    mbedtls_ecp_point Q;
+    mbedtls_ecp_point_init(&Q);
     mbedtls_entropy_context entropy;
     mbedtls_ctr_drbg_context ctr_drbg;
     unsigned char message[100];
@@ -140,7 +130,10 @@ int main(int argc, char *argv[])
         goto exit;
     }
 
-    mbedtls_printf(" ok (key size: %d bits)\n", (int) ctx_sign.MBEDTLS_PRIVATE(grp).pbits);
+    mbedtls_ecp_group_id grp_id = mbedtls_ecp_keypair_get_group_id(&ctx_sign);
+    const mbedtls_ecp_curve_info *curve_info =
+        mbedtls_ecp_curve_info_from_grp_id(grp_id);
+    mbedtls_printf(" ok (key size: %d bits)\n", (int) curve_info->bit_size);
 
     dump_pubkey("  + Public key: ", &ctx_sign);
 
@@ -186,16 +179,13 @@ int main(int argc, char *argv[])
     mbedtls_printf("  . Preparing verification context...");
     fflush(stdout);
 
-    if ((ret =
-             mbedtls_ecp_group_copy(&ctx_verify.MBEDTLS_PRIVATE(grp),
-                                    &ctx_sign.MBEDTLS_PRIVATE(grp))) != 0) {
-        mbedtls_printf(" failed\n  ! mbedtls_ecp_group_copy returned %d\n", ret);
+    if ((ret = mbedtls_ecp_export(&ctx_sign, NULL, NULL, &Q)) != 0) {
+        mbedtls_printf(" failed\n  ! mbedtls_ecp_export returned %d\n", ret);
         goto exit;
     }
 
-    if ((ret =
-             mbedtls_ecp_copy(&ctx_verify.MBEDTLS_PRIVATE(Q), &ctx_sign.MBEDTLS_PRIVATE(Q))) != 0) {
-        mbedtls_printf(" failed\n  ! mbedtls_ecp_copy returned %d\n", ret);
+    if ((ret = mbedtls_ecp_set_public_key(grp_id, &ctx_verify, &Q)) != 0) {
+        mbedtls_printf(" failed\n  ! mbedtls_ecp_set_public_key returned %d\n", ret);
         goto exit;
     }
 
@@ -220,6 +210,7 @@ exit:
 
     mbedtls_ecdsa_free(&ctx_verify);
     mbedtls_ecdsa_free(&ctx_sign);
+    mbedtls_ecp_point_free(&Q);
     mbedtls_ctr_drbg_free(&ctr_drbg);
     mbedtls_entropy_free(&entropy);
 

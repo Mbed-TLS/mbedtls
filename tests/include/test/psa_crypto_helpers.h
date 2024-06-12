@@ -3,19 +3,7 @@
  */
 /*
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
 #ifndef PSA_CRYPTO_HELPERS_H
@@ -26,10 +14,6 @@
 #if defined(MBEDTLS_PSA_CRYPTO_C)
 #include "test/psa_helpers.h"
 #include <psa/crypto.h>
-#endif
-
-#if defined(MBEDTLS_MD_LIGHT)
-#include "mbedtls/md.h"
 #endif
 
 #if defined(MBEDTLS_PSA_CRYPTO_C)
@@ -241,7 +225,9 @@ int mbedtls_test_inject_entropy_seed_write(unsigned char *buf, size_t len);
 int mbedtls_test_inject_entropy_restore(void);
 #endif /* MBEDTLS_PSA_INJECT_ENTROPY */
 
-
+/** Parse binary string and convert it to a long integer
+ */
+uint64_t mbedtls_test_parse_binary_string(data_t *bin_string);
 
 /** Skip a test case if the given key is a 192 bits AES key and the AES
  *  implementation is at least partially provided by an accelerator or
@@ -380,6 +366,30 @@ int mbedtls_test_inject_entropy_restore(void);
 #define MD_PSA_DONE() ((void) 0)
 #endif /* MBEDTLS_MD_SOME_PSA */
 
+/** \def BLOCK_CIPHER_PSA_INIT
+ *
+ * Call this macro to initialize the PSA subsystem if BLOCK_CIPHER uses a driver,
+ * and do nothing otherwise.
+ *
+ * If the initialization fails, mark the test case as failed and jump to the
+ * \p exit label.
+ */
+/** \def BLOCK_CIPHER_PSA_DONE
+ *
+ * Call this macro at the end of a test case if you called #BLOCK_CIPHER_PSA_INIT.
+ *
+ * This is like #PSA_DONE except it does nothing under the same conditions as
+ * #BLOCK_CIPHER_PSA_INIT.
+ */
+#if defined(MBEDTLS_BLOCK_CIPHER_SOME_PSA)
+#define BLOCK_CIPHER_PSA_INIT()   PSA_INIT()
+#define BLOCK_CIPHER_PSA_DONE()   PSA_DONE()
+#else /* MBEDTLS_MD_SOME_PSA */
+#define BLOCK_CIPHER_PSA_INIT() ((void) 0)
+#define BLOCK_CIPHER_PSA_DONE() ((void) 0)
+#endif /* MBEDTLS_MD_SOME_PSA */
+
+
 /** \def MD_OR_USE_PSA_INIT
  *
  * Call this macro to initialize the PSA subsystem if MD uses a driver,
@@ -404,5 +414,28 @@ int mbedtls_test_inject_entropy_restore(void);
 #define MD_OR_USE_PSA_INIT() ((void) 0)
 #define MD_OR_USE_PSA_DONE() ((void) 0)
 #endif
+
+/** \def AES_PSA_INIT
+ *
+ * Call this macro to initialize the PSA subsystem if AES_C is not defined,
+ * so that CTR_DRBG uses PSA implementation to get AES-ECB.
+ *
+ * If the initialization fails, mark the test case as failed and jump to the
+ * \p exit label.
+ */
+/** \def AES_PSA_DONE
+ *
+ * Call this macro at the end of a test case if you called #AES_PSA_INIT.
+ *
+ * This is like #PSA_DONE except it does nothing under the same conditions as
+ * #AES_PSA_INIT.
+ */
+#if defined(MBEDTLS_AES_C)
+#define AES_PSA_INIT() ((void) 0)
+#define AES_PSA_DONE() ((void) 0)
+#else /* MBEDTLS_AES_C */
+#define AES_PSA_INIT()   PSA_INIT()
+#define AES_PSA_DONE()   PSA_DONE()
+#endif /* MBEDTLS_AES_C */
 
 #endif /* PSA_CRYPTO_HELPERS_H */

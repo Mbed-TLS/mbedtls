@@ -3,7 +3,7 @@
  *
  * Copyright The Mbed TLS Contributors
  * Author: Manuel Pégourié-Gonnard.
- * SPDX-License-Identifier: Apache-2.0
+ * SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
 #include "p256-m.h"
@@ -13,7 +13,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#if defined (MBEDTLS_P256M_EXAMPLE_DRIVER_ENABLED)
+#if defined (MBEDTLS_PSA_P256M_DRIVER_ENABLED)
 
 /*
  * Zeroize memory - this should not be optimized away
@@ -1464,6 +1464,51 @@ int p256_ecdsa_verify(const uint8_t sig[64], const uint8_t pub[64],
         return P256_SUCCESS;
 
     return P256_INVALID_SIGNATURE;
+}
+
+/**********************************************************************
+ *
+ * Key management utilities
+ *
+ **********************************************************************/
+
+int p256_validate_pubkey(const uint8_t pub[64])
+{
+    uint32_t x[8], y[8];
+    int ret = point_from_bytes(x, y, pub);
+
+    return ret == 0 ? P256_SUCCESS : P256_INVALID_PUBKEY;
+}
+
+int p256_validate_privkey(const uint8_t priv[32])
+{
+    uint32_t s[8];
+    int ret = scalar_from_bytes(s, priv);
+    zeroize(s, sizeof(s));
+
+    return ret == 0 ? P256_SUCCESS : P256_INVALID_PRIVKEY;
+}
+
+int p256_public_from_private(uint8_t pub[64], const uint8_t priv[32])
+{
+    int ret;
+    uint32_t s[8];
+
+    ret = scalar_from_bytes(s, priv);
+    if (ret != 0)
+        return P256_INVALID_PRIVKEY;
+
+    /* compute and ouput the associated public key */
+    uint32_t x[8], y[8];
+    scalar_mult(x, y, p256_gx, p256_gy, s);
+
+    /* the associated public key is not a secret, the scalar was */
+    CT_UNPOISON(x, 32);
+    CT_UNPOISON(y, 32);
+    zeroize(s, sizeof(s));
+
+    point_to_bytes(pub, x, y);
+    return P256_SUCCESS;
 }
 
 #endif

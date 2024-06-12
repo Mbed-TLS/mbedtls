@@ -2,6 +2,8 @@
  * \file mbedtls/config_adjust_ssl.h
  * \brief Adjust TLS configuration
  *
+ * This is an internal header. Do not include it directly.
+ *
  * Automatically enable certain dependencies. Generally, MBEDLTS_xxx
  * configurations need to be explicitly enabled by the user: enabling
  * MBEDTLS_xxx_A but not MBEDTLS_xxx_B when A requires B results in a
@@ -16,23 +18,19 @@
  */
 /*
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
 #ifndef MBEDTLS_CONFIG_ADJUST_SSL_H
 #define MBEDTLS_CONFIG_ADJUST_SSL_H
+
+#if !defined(MBEDTLS_CONFIG_FILES_READ)
+#error "Do not include mbedtls/config_adjust_*.h manually! This can lead to problems, " \
+    "up to and including runtime errors such as buffer overflows. " \
+    "If you're trying to fix a complaint from check_config.h, just remove " \
+    "it from your configuration file: since Mbed TLS 3.0, it is included " \
+    "automatically at the right point."
+#endif /* */
 
 /* The following blocks make it easier to disable all of TLS,
  * or of TLS 1.2 or 1.3 or DTLS, without having to manually disable all
@@ -44,6 +42,10 @@
 #undef MBEDTLS_SSL_PROTO_TLS1_3
 #undef MBEDTLS_SSL_PROTO_TLS1_2
 #undef MBEDTLS_SSL_PROTO_DTLS
+#endif
+
+#if !(defined(MBEDTLS_SSL_SRV_C) && defined(MBEDTLS_SSL_SESSION_TICKETS))
+#undef MBEDTLS_SSL_TICKET_C
 #endif
 
 #if !defined(MBEDTLS_SSL_PROTO_DTLS)
@@ -77,6 +79,7 @@
 #undef MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 #undef MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 #undef MBEDTLS_SSL_EARLY_DATA
+#undef MBEDTLS_SSL_RECORD_SIZE_LIMIT
 #endif
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2) && \

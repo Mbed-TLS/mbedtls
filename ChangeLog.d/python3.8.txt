@@ -1,2 +1,0 @@
-Requirement changes
-   * Officially require Python 3.8 now that earlier versions are out of support.

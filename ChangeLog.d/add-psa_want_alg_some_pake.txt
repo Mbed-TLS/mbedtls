@@ -1,3 +1,0 @@
-Features
-   * Don't include the PSA dispatch functions for PAKEs (psa_pake_setup() etc)
-     if no PAKE algorithms are requested

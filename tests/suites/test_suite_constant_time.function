@@ -77,8 +77,8 @@ void mbedtls_ct_bool_xxx(char *x_str, char *y_str)
     expected = x1 <= y1 ? MBEDTLS_CT_TRUE : MBEDTLS_CT_FALSE;
     TEST_EQUAL(mbedtls_ct_uint_le(x, y), expected);
 
-    expected = (!!x1) ^ (!!y1) ? MBEDTLS_CT_TRUE : MBEDTLS_CT_FALSE;
-    TEST_EQUAL(mbedtls_ct_bool_xor(mbedtls_ct_bool(x), mbedtls_ct_bool(y)), expected);
+    expected = (!!x1) != (!!y1) ? MBEDTLS_CT_TRUE : MBEDTLS_CT_FALSE;
+    TEST_EQUAL(mbedtls_ct_bool_ne(mbedtls_ct_bool(x), mbedtls_ct_bool(y)), expected);
 
     expected = (!!x1) && (!!y1) ? MBEDTLS_CT_TRUE : MBEDTLS_CT_FALSE;
     TEST_EQUAL(mbedtls_ct_bool_and(mbedtls_ct_bool(x), mbedtls_ct_bool(y)), expected);
@@ -115,6 +115,27 @@ void mbedtls_ct_uchar_in_range_if(int li, int hi, int ti)
 /* END_CASE */
 
 /* BEGIN_CASE */
+void mbedtls_ct_error_if(int cond, int t, int f)
+{
+    mbedtls_ct_condition_t c = mbedtls_ct_bool(cond);
+
+    int expected = c ? t : f;
+    int expected0 = c ? t : 0;
+
+    TEST_CF_SECRET(&c, sizeof(c));
+    TEST_CF_SECRET(&t, sizeof(t));
+    TEST_CF_SECRET(&f, sizeof(f));
+
+    TEST_EQUAL(mbedtls_ct_error_if(c, t, f), expected);
+    TEST_EQUAL(mbedtls_ct_error_if_else_0(c, t), expected0);
+
+    TEST_CF_PUBLIC(&c, sizeof(c));
+    TEST_CF_PUBLIC(&t, sizeof(t));
+    TEST_CF_PUBLIC(&f, sizeof(f));
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
 void mbedtls_ct_if(char *c_str, char *t_str, char *f_str)
 {
     mbedtls_ct_condition_t c = mbedtls_ct_bool(strtoull(c_str, NULL, 16));
@@ -131,12 +152,15 @@ void mbedtls_ct_if(char *c_str, char *t_str, char *f_str)
     TEST_EQUAL(mbedtls_ct_if(c, t, f), expected);
     TEST_EQUAL(mbedtls_ct_size_if(c, t, f), (size_t) expected);
     TEST_EQUAL(mbedtls_ct_uint_if(c, t, f), (unsigned) expected);
+    TEST_EQUAL(mbedtls_ct_bool_if(c, mbedtls_ct_bool(t), mbedtls_ct_bool(f)),
+               mbedtls_ct_bool(expected));
 #if defined(MBEDTLS_BIGNUM_C)
     TEST_EQUAL(mbedtls_ct_mpi_uint_if(c, t, f), (mbedtls_mpi_uint) expected);
 #endif
 
     TEST_EQUAL(mbedtls_ct_uint_if_else_0(c, t), (unsigned) expected0);
     TEST_EQUAL(mbedtls_ct_size_if_else_0(c, (size_t) t), (size_t) expected0);
+    TEST_EQUAL(mbedtls_ct_bool_if_else_0(c, mbedtls_ct_bool(t)), mbedtls_ct_bool(expected0));
 #if defined(MBEDTLS_BIGNUM_C)
     TEST_EQUAL(mbedtls_ct_mpi_uint_if_else_0(c, t), (mbedtls_mpi_uint) expected0);
 #endif
@@ -169,6 +193,49 @@ void mbedtls_ct_zeroize_if(char *c_str, int len)
     }
 exit:
     mbedtls_free(buf);
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void mbedtls_ct_memcmp_single_bit_diff()
+{
+    uint8_t *a = NULL, *b = NULL;
+    size_t size = 32;
+    TEST_CALLOC(a, size);
+    TEST_CALLOC(b, size);
+
+    TEST_CF_SECRET(a, size);
+    TEST_CF_SECRET(b, size);
+    int result = mbedtls_ct_memcmp(a, b, size);
+    TEST_CF_PUBLIC(a, size);
+    TEST_CF_PUBLIC(b, size);
+    TEST_CF_PUBLIC(&result, sizeof(result));
+
+    TEST_EQUAL(result, 0);
+
+    for (size_t offset = 0; offset < size; offset++) {
+        for (size_t bit_offset = 0; bit_offset < 8; bit_offset++) {
+            /* Set a single bit to be different at given offset, to test that we
+               detect single-bit differences */
+            a[offset] = 1 << bit_offset;
+
+            TEST_CF_SECRET(a, size);
+            TEST_CF_SECRET(b, size);
+            result = mbedtls_ct_memcmp(a, b, size);
+            TEST_CF_PUBLIC(a, size);
+            TEST_CF_PUBLIC(b, size);
+            TEST_CF_PUBLIC(&result, sizeof(result));
+
+            TEST_ASSERT(result != 0);
+
+            a[offset] = 0;
+        }
+    }
+
+
+exit:
+    mbedtls_free(a);
+    mbedtls_free(b);
 }
 /* END_CASE */
 
@@ -210,6 +277,55 @@ void mbedtls_ct_memcmp(int same, int size, int offset)
         TEST_ASSERT(reference != 0);
         TEST_ASSERT(actual != 0);
     }
+exit:
+    mbedtls_free(a);
+    mbedtls_free(b);
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_NIST_KW_C */
+
+/**
+ * Generate two arrays of the given size, and test mbedtls_ct_memcmp_partial
+ * over them. The arrays will be identical, except that one byte may be specified
+ * to be different.
+ *
+ * \p diff      Index of byte that differs (if out of range, the arrays will match).
+ * \p size      Size of arrays to compare
+ * \p skip_head Leading bytes to skip, as per mbedtls_ct_memcmp_partial
+ * \p skip_tail Trailing bytes to skip, as per mbedtls_ct_memcmp_partial
+ */
+void mbedtls_ct_memcmp_partial(int diff, int size, int skip_head, int skip_tail)
+{
+    uint8_t *a = NULL, *b = NULL;
+
+    TEST_CALLOC_NONNULL(a, size);
+    TEST_CALLOC_NONNULL(b, size);
+
+    TEST_ASSERT((skip_head + skip_tail) <= size);
+
+    /* Construct data that matches, except for specified byte (if in range). */
+    for (int i = 0; i < size; i++) {
+        a[i] = i & 0xff;
+        b[i] = a[i];
+        if (i == diff) {
+            // modify the specified byte
+            b[i] ^= 1;
+        }
+    }
+
+    int reference = memcmp(a + skip_head, b + skip_head, size - skip_head - skip_tail);
+
+    TEST_CF_SECRET(a, size);
+    TEST_CF_SECRET(b, size);
+
+    int actual = mbedtls_ct_memcmp_partial(a, b, size, skip_head, skip_tail);
+
+    TEST_CF_PUBLIC(a, size);
+    TEST_CF_PUBLIC(b, size);
+    TEST_CF_PUBLIC(&actual, sizeof(actual));
+
+    TEST_EQUAL(!!reference, !!actual);
 exit:
     mbedtls_free(a);
     mbedtls_free(b);

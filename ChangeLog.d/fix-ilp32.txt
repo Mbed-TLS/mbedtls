@@ -1,4 +1,0 @@
-Bugfix
-   * Fix a compilation failure in the constant_time module when
-     building for arm64_32 (e.g., for watchos). Reported by Paulo
-     Coutinho in #7787.

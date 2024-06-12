@@ -1,6 +1,0 @@
-Features
-   * It is now possible to generate certificates with SubjectAltNames.
-     Currently supported subtypes: DnsName, UniformResourceIdentifier,
-     IP address, OtherName, and DirectoryName, as defined in RFC 5280.
-     See mbedtls_x509write_crt_set_subject_alternative_name for
-     more information.

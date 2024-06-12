@@ -359,19 +359,19 @@ void mock_import(int mock_alloc_return_value,
 
     if (mock_alloc_return_value == PSA_SUCCESS) {
         TEST_ASSERT(mbedtls_svc_key_id_equal(
-                        mock_import_data.attributes.core.id, id));
+                        mock_import_data.attributes.id, id));
     } else {
         TEST_ASSERT(MBEDTLS_SVC_KEY_ID_GET_KEY_ID(
-                        mock_import_data.attributes.core.id) == 0);
+                        mock_import_data.attributes.id) == 0);
         TEST_ASSERT(MBEDTLS_SVC_KEY_ID_GET_OWNER_ID(
-                        mock_import_data.attributes.core.id) == 0);
+                        mock_import_data.attributes.id) == 0);
     }
 
-    TEST_ASSERT(mock_import_data.attributes.core.lifetime ==
+    TEST_ASSERT(mock_import_data.attributes.lifetime ==
                 (mock_alloc_return_value == PSA_SUCCESS ? lifetime : 0));
-    TEST_ASSERT(mock_import_data.attributes.core.policy.usage ==
+    TEST_ASSERT(mock_import_data.attributes.policy.usage ==
                 (mock_alloc_return_value == PSA_SUCCESS ? PSA_KEY_USAGE_EXPORT : 0));
-    TEST_ASSERT(mock_import_data.attributes.core.type ==
+    TEST_ASSERT(mock_import_data.attributes.type ==
                 (mock_alloc_return_value == PSA_SUCCESS ? PSA_KEY_TYPE_RAW_DATA : 0));
 
     if (expected_result == PSA_SUCCESS) {
@@ -474,19 +474,19 @@ void mock_generate(int mock_alloc_return_value,
 
     if (mock_alloc_return_value == PSA_SUCCESS) {
         TEST_ASSERT(mbedtls_svc_key_id_equal(
-                        mock_generate_data.attributes.core.id, id));
+                        mock_generate_data.attributes.id, id));
     } else {
         TEST_ASSERT(MBEDTLS_SVC_KEY_ID_GET_KEY_ID(
-                        mock_generate_data.attributes.core.id) == 0);
+                        mock_generate_data.attributes.id) == 0);
         TEST_ASSERT(MBEDTLS_SVC_KEY_ID_GET_OWNER_ID(
-                        mock_generate_data.attributes.core.id) == 0);
+                        mock_generate_data.attributes.id) == 0);
     }
 
-    TEST_ASSERT(mock_generate_data.attributes.core.lifetime ==
+    TEST_ASSERT(mock_generate_data.attributes.lifetime ==
                 (mock_alloc_return_value == PSA_SUCCESS ? lifetime : 0));
-    TEST_ASSERT(mock_generate_data.attributes.core.policy.usage ==
+    TEST_ASSERT(mock_generate_data.attributes.policy.usage ==
                 (mock_alloc_return_value == PSA_SUCCESS ? PSA_KEY_USAGE_EXPORT : 0));
-    TEST_ASSERT(mock_generate_data.attributes.core.type ==
+    TEST_ASSERT(mock_generate_data.attributes.type ==
                 (mock_alloc_return_value == PSA_SUCCESS ? PSA_KEY_TYPE_RAW_DATA : 0));
 
     if (expected_result == PSA_SUCCESS) {

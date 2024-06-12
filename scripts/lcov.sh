@@ -26,47 +26,54 @@ EOF
 }
 
 # Copyright The Mbed TLS Contributors
-# SPDX-License-Identifier: Apache-2.0
-#
-# Licensed under the Apache License, Version 2.0 (the "License"); you may
-# not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
-# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+# SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
 
 set -eu
+
+# Repository detection
+in_mbedtls_build_dir () {
+    test -d library
+}
 
 # Collect stats and build a HTML report.
 lcov_library_report () {
     rm -rf Coverage
     mkdir Coverage Coverage/tmp
-    lcov --capture --initial --directory library -o Coverage/tmp/files.info
-    lcov --rc lcov_branch_coverage=1 --capture --directory library -o Coverage/tmp/tests.info
-    lcov --rc lcov_branch_coverage=1 --add-tracefile Coverage/tmp/files.info --add-tracefile Coverage/tmp/tests.info -o Coverage/tmp/all.info
-    lcov --rc lcov_branch_coverage=1 --remove Coverage/tmp/all.info -o Coverage/tmp/final.info '*.h'
-    gendesc tests/Descriptions.txt -o Coverage/tmp/descriptions
-    genhtml --title "Mbed TLS" --description-file Coverage/tmp/descriptions --keep-descriptions --legend --branch-coverage -o Coverage Coverage/tmp/final.info
-    rm -f Coverage/tmp/*.info Coverage/tmp/descriptions
+    # Pass absolute paths as lcov output files. This works around a bug
+    # whereby lcov tries to create the output file in the root directory
+    # if it has emitted a warning. A fix was released in lcov 1.13 in 2016.
+    # Ubuntu 16.04 is affected, 18.04 and above are not.
+    # https://github.com/linux-test-project/lcov/commit/632c25a0d1f5e4d2f4fd5b28ce7c8b86d388c91f
+    COVTMP=$PWD/Coverage/tmp
+    lcov --capture --initial --directory $library_dir -o "$COVTMP/files.info"
+    lcov --rc lcov_branch_coverage=1 --capture --directory $library_dir -o "$COVTMP/tests.info"
+    lcov --rc lcov_branch_coverage=1 --add-tracefile "$COVTMP/files.info" --add-tracefile "$COVTMP/tests.info" -o "$COVTMP/all.info"
+    lcov --rc lcov_branch_coverage=1 --remove "$COVTMP/all.info" -o "$COVTMP/final.info" '*.h'
+    gendesc tests/Descriptions.txt -o "$COVTMP/descriptions"
+    genhtml --title "$title" --description-file "$COVTMP/descriptions" --keep-descriptions --legend --branch-coverage -o Coverage "$COVTMP/final.info"
+    rm -f "$COVTMP/"*.info "$COVTMP/descriptions"
     echo "Coverage report in: Coverage/index.html"
 }
 
 # Reset the traces to 0.
 lcov_reset_traces () {
     # Location with plain make
-    rm -f library/*.gcda
+    rm -f $library_dir/*.gcda
     # Location with CMake
-    rm -f library/CMakeFiles/*.dir/*.gcda
+    rm -f $library_dir/CMakeFiles/*.dir/*.gcda
 }
 
 if [ $# -gt 0 ] && [ "$1" = "--help" ]; then
     help
     exit
+fi
+
+if in_mbedtls_build_dir; then
+    library_dir='library'
+    title='Mbed TLS'
+else
+    library_dir='core'
+    title='TF-PSA-Crypto'
 fi
 
 main=lcov_library_report

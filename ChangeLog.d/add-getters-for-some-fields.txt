@@ -1,7 +1,0 @@
-Features
-   * Add getter (mbedtls_ssl_cache_get_timeout()) to access
-     `mbedtls_ssl_cache_context.timeout`.
-   * Add getter (mbedtls_ssl_get_hostname()) to access
-     `mbedtls_ssl_context.hostname`.
-   * Add getter (mbedtls_ssl_conf_get_endpoint()) to access
-     `mbedtls_ssl_config.endpoint`.

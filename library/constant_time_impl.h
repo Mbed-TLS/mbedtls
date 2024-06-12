@@ -2,19 +2,7 @@
  *  Constant-time functions
  *
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
 #ifndef MBEDTLS_CONSTANT_TIME_IMPL_H
@@ -43,7 +31,7 @@
  * Disable -Wredundant-decls so that gcc does not warn about this. This is re-enabled
  * at the bottom of this file.
  */
-#ifdef __GNUC__
+#if defined(MBEDTLS_COMPILER_IS_GCC) && (__GNUC__ > 4)
     #pragma GCC diagnostic push
     #pragma GCC diagnostic ignored "-Wredundant-decls"
 #endif
@@ -132,10 +120,12 @@ static inline mbedtls_ct_uint_t mbedtls_ct_compiler_opaque(mbedtls_ct_uint_t x)
  * On Thumb 2 and Arm, both compilers are happy with the "s" suffix,
  * although we don't actually care about setting the flags.
  *
- * For gcc, restore divided syntax afterwards - otherwise old versions of gcc
- * seem to apply unified syntax globally, which breaks other asm code.
+ * For old versions of gcc (see #8516 for details), restore divided
+ * syntax afterwards - otherwise old versions of gcc seem to apply
+ * unified syntax globally, which breaks other asm code.
  */
-#if !defined(__clang__)
+#if defined(MBEDTLS_COMPILER_IS_GCC) && defined(__thumb__) && !defined(__thumb2__) && \
+    (__GNUC__ < 11) && !defined(__ARM_ARCH_2__)
 #define RESTORE_ASM_SYNTAX  ".syntax divided                      \n\t"
 #else
 #define RESTORE_ASM_SYNTAX
@@ -429,7 +419,6 @@ static inline unsigned char mbedtls_ct_uchar_in_range_if(unsigned char low,
     return (unsigned char) (~(low_mask | high_mask)) & to;
 }
 
-
 /* ============================================================================
  * Everything below here is trivial wrapper functions
  */
@@ -446,6 +435,14 @@ static inline unsigned mbedtls_ct_uint_if(mbedtls_ct_condition_t condition,
                                           unsigned if0)
 {
     return (unsigned) mbedtls_ct_if(condition, (mbedtls_ct_uint_t) if1, (mbedtls_ct_uint_t) if0);
+}
+
+static inline mbedtls_ct_condition_t mbedtls_ct_bool_if(mbedtls_ct_condition_t condition,
+                                                        mbedtls_ct_condition_t if1,
+                                                        mbedtls_ct_condition_t if0)
+{
+    return (mbedtls_ct_condition_t) mbedtls_ct_if(condition, (mbedtls_ct_uint_t) if1,
+                                                  (mbedtls_ct_uint_t) if0);
 }
 
 #if defined(MBEDTLS_BIGNUM_C)
@@ -471,6 +468,12 @@ static inline unsigned mbedtls_ct_uint_if_else_0(mbedtls_ct_condition_t conditio
     return (unsigned) (condition & if1);
 }
 
+static inline mbedtls_ct_condition_t mbedtls_ct_bool_if_else_0(mbedtls_ct_condition_t condition,
+                                                               mbedtls_ct_condition_t if1)
+{
+    return (mbedtls_ct_condition_t) (condition & if1);
+}
+
 #if defined(MBEDTLS_BIGNUM_C)
 
 static inline mbedtls_mpi_uint mbedtls_ct_mpi_uint_if_else_0(mbedtls_ct_condition_t condition,
@@ -480,6 +483,23 @@ static inline mbedtls_mpi_uint mbedtls_ct_mpi_uint_if_else_0(mbedtls_ct_conditio
 }
 
 #endif /* MBEDTLS_BIGNUM_C */
+
+static inline int mbedtls_ct_error_if(mbedtls_ct_condition_t condition, int if1, int if0)
+{
+    /* Coverting int -> uint -> int here is safe, because we require if1 and if0 to be
+     * in the range -32767..0, and we require 32-bit int and uint types.
+     *
+     * This means that (0 <= -if0 < INT_MAX), so negating if0 is safe, and similarly for
+     * converting back to int.
+     */
+    return -((int) mbedtls_ct_if(condition, (mbedtls_ct_uint_t) (-if1),
+                                 (mbedtls_ct_uint_t) (-if0)));
+}
+
+static inline int mbedtls_ct_error_if_else_0(mbedtls_ct_condition_t condition, int if1)
+{
+    return -((int) (condition & (-if1)));
+}
 
 static inline mbedtls_ct_condition_t mbedtls_ct_uint_eq(mbedtls_ct_uint_t x,
                                                         mbedtls_ct_uint_t y)
@@ -505,8 +525,8 @@ static inline mbedtls_ct_condition_t mbedtls_ct_uint_le(mbedtls_ct_uint_t x,
     return ~mbedtls_ct_uint_gt(x, y);
 }
 
-static inline mbedtls_ct_condition_t mbedtls_ct_bool_xor(mbedtls_ct_condition_t x,
-                                                         mbedtls_ct_condition_t y)
+static inline mbedtls_ct_condition_t mbedtls_ct_bool_ne(mbedtls_ct_condition_t x,
+                                                        mbedtls_ct_condition_t y)
 {
     return (mbedtls_ct_condition_t) (x ^ y);
 }
@@ -528,7 +548,7 @@ static inline mbedtls_ct_condition_t mbedtls_ct_bool_not(mbedtls_ct_condition_t 
     return (mbedtls_ct_condition_t) (~x);
 }
 
-#ifdef __GNUC__
+#if defined(MBEDTLS_COMPILER_IS_GCC) && (__GNUC__ > 4)
 /* Restore warnings for -Wredundant-decls on gcc */
     #pragma GCC diagnostic pop
 #endif

@@ -1,3 +1,0 @@
-Bugfix
-   * Don't try to include MBEDTLS_PSA_CRYPTO_USER_CONFIG_FILE when
-     MBEDTLS_PSA_CRYPTO_CONFIG is disabled.

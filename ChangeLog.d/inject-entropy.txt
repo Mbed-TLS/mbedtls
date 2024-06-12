@@ -1,2 +1,0 @@
-Bugfix
-   * Fix the build with MBEDTLS_PSA_INJECT_ENTROPY. Fixes #7516.

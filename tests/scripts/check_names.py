@@ -1,19 +1,7 @@
 #!/usr/bin/env python3
 #
 # Copyright The Mbed TLS Contributors
-# SPDX-License-Identifier: Apache-2.0
-#
-# Licensed under the Apache License, Version 2.0 (the "License"); you may
-# not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
-# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+# SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
 
 """
 This script confirms that the naming of all symbols and identifiers in Mbed TLS
@@ -57,7 +45,7 @@ import subprocess
 import logging
 
 import scripts_path # pylint: disable=unused-import
-from mbedtls_dev import build_tree
+from mbedtls_framework import build_tree
 
 
 # Naming patterns to check against. These are defined outside the NameCheck
@@ -284,7 +272,7 @@ class CodeParser():
             "library/*.c",
             "3rdparty/everest/library/everest.c",
             "3rdparty/everest/library/x25519.c"
-        ], ["library/psa_crypto_driver_wrappers.c"])
+        ], ["library/psa_crypto_driver_wrappers.h"])
         symbols = self.parse_symbols()
 
         # Remove identifier macros like mbedtls_printf or mbedtls_calloc
@@ -941,7 +929,7 @@ def main():
             "This script confirms that the naming of all symbols and identifiers "
             "in Mbed TLS are consistent with the house style and are also "
             "self-consistent.\n\n"
-            "Expected to be run from the MbedTLS root directory.")
+            "Expected to be run from the Mbed TLS root directory.")
     )
     parser.add_argument(
         "-v", "--verbose",

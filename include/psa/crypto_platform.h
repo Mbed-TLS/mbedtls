@@ -15,19 +15,7 @@
  */
 /*
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
 #ifndef PSA_CRYPTO_PLATFORM_H
@@ -35,10 +23,10 @@
 #include "mbedtls/private_access.h"
 
 /*
- * Include the build-time configuration information file. Here, we do not
+ * Include the build-time configuration information header. Here, we do not
  * include `"mbedtls/build_info.h"` directly but `"psa/build_info.h"`, which
  * is basically just an alias to it. This is to ease the maintenance of the
- * PSA cryptography repository which has a different build system and
+ * TF-PSA-Crypto repository which has a different build system and
  * configuration.
  */
 #include "psa/build_info.h"
@@ -83,7 +71,7 @@ static inline int mbedtls_key_owner_id_equal(mbedtls_key_owner_id_t id1,
  */
 #if defined(MBEDTLS_PSA_CRYPTO_SPM)
 #define PSA_CRYPTO_SECURE 1
-#include "../tests/include/spe/crypto_spe.h"
+#include "crypto_spe.h"
 #endif // MBEDTLS_PSA_CRYPTO_SPM
 
 #if defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG)
@@ -100,5 +88,15 @@ typedef struct {
     uintptr_t MBEDTLS_PRIVATE(opaque)[2];
 } mbedtls_psa_external_random_context_t;
 #endif /* MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
+
+#if defined(MBEDTLS_PSA_CRYPTO_CLIENT) && !defined(MBEDTLS_PSA_CRYPTO_C)
+/** The type of the client handle used in context structures
+ *
+ * When a client view of the multipart context structures is required,
+ * this handle is used to keep a mapping with the service side of the
+ * context which contains the actual data.
+ */
+typedef uint32_t mbedtls_psa_client_handle_t;
+#endif
 
 #endif /* PSA_CRYPTO_PLATFORM_H */

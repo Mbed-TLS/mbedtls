@@ -3,19 +3,7 @@
 # compat.sh
 #
 # Copyright The Mbed TLS Contributors
-# SPDX-License-Identifier: Apache-2.0
-#
-# Licensed under the Apache License, Version 2.0 (the "License"); you may
-# not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
-# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+# SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
 #
 # Purpose
 #
@@ -108,6 +96,8 @@ FILTER=""
 EXCLUDE='NULL\|ARIA\|CHACHA20_POLY1305'
 VERBOSE=""
 MEMCHECK=0
+MIN_TESTS=1
+PRESERVE_LOGS=0
 PEERS="OpenSSL$PEER_GNUTLS mbedTLS"
 
 # hidden option: skip DTLS with OpenSSL
@@ -126,37 +116,45 @@ print_usage() {
     printf "            \tAlso available: GnuTLS (needs v3.2.15 or higher)\n"
     printf "  -M|--memcheck\tCheck memory leaks and errors.\n"
     printf "  -v|--verbose\tSet verbose output.\n"
-    printf "     --list-test-case\tList all potential test cases (No Execution)\n"
+    printf "     --list-test-cases\tList all potential test cases (No Execution)\n"
+    printf "     --min      \tMinimum number of non-skipped tests (default 1)\n"
     printf "     --outcome-file\tFile where test outcomes are written\n"
     printf "                   \t(default: \$MBEDTLS_TEST_OUTCOME_FILE, none if empty)\n"
+    printf "     --preserve-logs\tPreserve logs of successful tests as well\n"
 }
 
 # print_test_case <CLIENT> <SERVER> <STANDARD_CIPHER_SUITE>
 print_test_case() {
     for i in $3; do
         uniform_title $1 $2 $i
-        echo $TITLE
+        echo "compat;$TITLE"
     done
 }
 
-# list_test_case lists all potential test cases in compat.sh without execution
-list_test_case() {
-    reset_ciphersuites
+# list_test_cases lists all potential test cases in compat.sh without execution
+list_test_cases() {
     for TYPE in $TYPES; do
+        reset_ciphersuites
         add_common_ciphersuites
         add_openssl_ciphersuites
         add_gnutls_ciphersuites
         add_mbedtls_ciphersuites
-    done
 
-    for VERIFY in $VERIFIES; do
-        VERIF=$(echo $VERIFY | tr '[:upper:]' '[:lower:]')
-        for MODE in $MODES; do
-            print_test_case m O "$O_CIPHERS"
-            print_test_case O m "$O_CIPHERS"
-            print_test_case m G "$G_CIPHERS"
-            print_test_case G m "$G_CIPHERS"
-            print_test_case m m "$M_CIPHERS"
+        # PSK cipher suites do not allow client certificate verification.
+        SUB_VERIFIES=$VERIFIES
+        if [ "$TYPE" = "PSK" ]; then
+            SUB_VERIFIES="NO"
+        fi
+
+        for VERIFY in $SUB_VERIFIES; do
+            VERIF=$(echo $VERIFY | tr '[:upper:]' '[:lower:]')
+            for MODE in $MODES; do
+                print_test_case m O "$O_CIPHERS"
+                print_test_case O m "$O_CIPHERS"
+                print_test_case m G "$G_CIPHERS"
+                print_test_case G m "$G_CIPHERS"
+                print_test_case m m "$M_CIPHERS"
+            done
         done
     done
 }
@@ -189,13 +187,19 @@ get_options() {
                 MEMCHECK=1
                 ;;
             # Please check scripts/check_test_cases.py correspondingly
-            # if you have to modify option, --list-test-case
-            --list-test-case)
-                list_test_case
+            # if you have to modify option, --list-test-cases
+            --list-test-cases)
+                list_test_cases
                 exit $?
+                ;;
+            --min)
+                shift; MIN_TESTS=$1
                 ;;
             --outcome-file)
                 shift; MBEDTLS_TEST_OUTCOME_FILE=$1
+                ;;
+            --preserve-logs)
+                PRESERVE_LOGS=1
                 ;;
             -h|--help)
                 print_usage
@@ -270,12 +274,6 @@ filter_ciphersuites()
 
         # Ciphersuite for GnuTLS
         G_CIPHERS=$( filter "$G_CIPHERS" )
-    fi
-
-    # For GnuTLS client -> Mbed TLS server,
-    # we need to force IPv4 by connecting to 127.0.0.1 but then auth fails
-    if is_dtls "$MODE" && [ "X$VERIFY" = "XYES" ]; then
-        G_CIPHERS=""
     fi
 }
 
@@ -595,7 +593,18 @@ add_mbedtls_ciphersuites()
 # o_check_ciphersuite STANDARD_CIPHER_SUITE
 o_check_ciphersuite()
 {
-    if [ "${O_SUPPORT_ECDH}" = "NO" ]; then
+    # skip DTLS when lack of support was declared
+    if test "$OSSL_NO_DTLS" -gt 0 && is_dtls "$MODE"; then
+        SKIP_NEXT_="YES"
+    fi
+
+    # skip DTLS 1.2 is support was not detected
+    if [ "$O_SUPPORT_DTLS12" = "NO" -a "$MODE" = "dtls12" ]; then
+        SKIP_NEXT="YES"
+    fi
+
+    # skip static ECDH when OpenSSL doesn't support it
+    if [ "${O_SUPPORT_STATIC_ECDH}" = "NO" ]; then
         case "$1" in
             *ECDH_*) SKIP_NEXT="YES"
         esac
@@ -629,7 +638,7 @@ setup_arguments()
     fi
 
     M_SERVER_ARGS="server_port=$PORT server_addr=0.0.0.0 force_version=$MODE"
-    O_SERVER_ARGS="-accept $PORT -cipher NULL,ALL -$O_MODE"
+    O_SERVER_ARGS="-accept $PORT -cipher ALL,COMPLEMENTOFALL -$O_MODE"
     G_SERVER_ARGS="-p $PORT --http $G_MODE"
     G_SERVER_PRIO="NORMAL:${G_PRIO_CCM}+NULL:+MD5:+PSK:+DHE-PSK:+ECDHE-PSK:+SHA256:+SHA384:+RSA-PSK:-VERS-TLS-ALL:$G_PRIO_MODE"
 
@@ -672,9 +681,24 @@ setup_arguments()
     esac
 
     case $($OPENSSL ciphers ALL) in
-        *ECDH-ECDSA*|*ECDH-RSA*) O_SUPPORT_ECDH="YES";;
-        *) O_SUPPORT_ECDH="NO";;
+        *ECDH-ECDSA*|*ECDH-RSA*) O_SUPPORT_STATIC_ECDH="YES";;
+        *) O_SUPPORT_STATIC_ECDH="NO";;
     esac
+
+    case $($OPENSSL ciphers ALL) in
+        *DES-CBC-*) O_SUPPORT_SINGLE_DES="YES";;
+        *) O_SUPPORT_SINGLE_DES="NO";;
+    esac
+
+    # OpenSSL <1.0.2 doesn't support DTLS 1.2. Check if OpenSSL
+    # supports -dtls1_2 from the s_server help. (The s_client
+    # help isn't accurate as of 1.0.2g: it supports DTLS 1.2
+    # but doesn't list it. But the s_server help seems to be
+    # accurate.)
+    O_SUPPORT_DTLS12="NO"
+    if $OPENSSL s_server -help 2>&1 | grep -q "^ *-dtls1_2 "; then
+        O_SUPPORT_DTLS12="YES"
+    fi
 
     if [ "X$VERIFY" = "XYES" ];
     then
@@ -864,7 +888,7 @@ wait_client_done() {
 }
 
 # uniform_title <CLIENT> <SERVER> <STANDARD_CIPHER_SUITE>
-# $TITLE is considered as test case description for both --list-test-case and
+# $TITLE is considered as test case description for both --list-test-cases and
 # MBEDTLS_TEST_OUTCOME_FILE. This function aims to control the format of
 # each test case description.
 uniform_title() {
@@ -887,12 +911,16 @@ record_outcome() {
     fi
 }
 
+save_logs() {
+    cp $SRV_OUT c-srv-${TESTS}.log
+    cp $CLI_OUT c-cli-${TESTS}.log
+}
+
 # display additional information if test case fails
 report_fail() {
     FAIL_PROMPT="outputs saved to c-srv-${TESTS}.log, c-cli-${TESTS}.log"
     record_outcome "FAIL" "$FAIL_PROMPT"
-    cp $SRV_OUT c-srv-${TESTS}.log
-    cp $CLI_OUT c-cli-${TESTS}.log
+    save_logs
     echo "  ! $FAIL_PROMPT"
 
     if [ "${LOG_FAILURE_ON_STDOUT:-0}" != 0 ]; then
@@ -942,13 +970,7 @@ run_client() {
             ;;
 
         [Gg]nu*)
-            # need to force IPv4 with UDP, but keep localhost for auth
-            if is_dtls "$MODE"; then
-                G_HOST="127.0.0.1"
-            else
-                G_HOST="localhost"
-            fi
-            CLIENT_CMD="$GNUTLS_CLI $G_CLIENT_ARGS --priority $G_PRIO_MODE:$3 $G_HOST"
+            CLIENT_CMD="$GNUTLS_CLI $G_CLIENT_ARGS --priority $G_PRIO_MODE:$3 localhost"
             log "$CLIENT_CMD"
             echo "$CLIENT_CMD" > $CLI_OUT
             printf 'GET HTTP/1.0\r\n\r\n' | $CLIENT_CMD >> $CLI_OUT 2>&1 &
@@ -1010,6 +1032,9 @@ run_client() {
     case $RESULT in
         "0")
             record_outcome "PASS"
+            if [ "$PRESERVE_LOGS" -gt 0 ]; then
+                save_logs
+            fi
             ;;
         "1")
             record_outcome "SKIP"
@@ -1115,19 +1140,6 @@ for MODE in $MODES; do
 
                 [Oo]pen*)
 
-                    if test "$OSSL_NO_DTLS" -gt 0 && is_dtls "$MODE"; then
-                        continue;
-                    fi
-
-                    # OpenSSL <1.0.2 doesn't support DTLS 1.2. Check if OpenSSL
-                    # supports $O_MODE from the s_server help. (The s_client
-                    # help isn't accurate as of 1.0.2g: it supports DTLS 1.2
-                    # but doesn't list it. But the s_server help seems to be
-                    # accurate.)
-                    if ! $OPENSSL s_server -help 2>&1 | grep -q "^ *-$O_MODE "; then
-                        continue;
-                    fi
-
                     reset_ciphersuites
                     add_common_ciphersuites
                     add_openssl_ciphersuites
@@ -1230,6 +1242,16 @@ fi
 
 PASSED=$(( $TESTS - $FAILED ))
 echo " ($PASSED / $TESTS tests ($SKIPPED skipped$MEMREPORT))"
+
+if [ $((TESTS - SKIPPED)) -lt $MIN_TESTS ]; then
+    cat <<EOF
+Error: Expected to run at least $MIN_TESTS, but only ran $((TESTS - SKIPPED)).
+Maybe a bad filter ('$FILTER' excluding '$EXCLUDE') or a bad configuration?
+EOF
+    if [ $FAILED -eq 0 ]; then
+        FAILED=1
+    fi
+fi
 
 FAILED=$(( $FAILED + $SRVMEM ))
 if [ $FAILED -gt 255 ]; then

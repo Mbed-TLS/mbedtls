@@ -14,6 +14,6 @@ markupsafe < 2.1
 Jinja2 >= 2.10.1; python_version <  '3.10'
 Jinja2 >= 2.10.3; python_version >= '3.10'
 # Jinja2 >=2.10, <3.0 needs a separate package for type annotations
-types-Jinja2
+types-Jinja2 >= 2.11.9
 jsonschema >= 3.2.0
-types-jsonschema
+types-jsonschema >= 3.2.0

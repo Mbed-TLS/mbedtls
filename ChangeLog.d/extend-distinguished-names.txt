@@ -1,3 +1,0 @@
-Features
-   * Accept arbitrary AttributeType and AttributeValue in certificate
-     Distinguished Names using RFC 4514 syntax.

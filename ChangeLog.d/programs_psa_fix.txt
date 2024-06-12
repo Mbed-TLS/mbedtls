@@ -1,3 +1,0 @@
-Bugfix
-   * Fix missing PSA initialization in sample programs when
-     MBEDTLS_USE_PSA_CRYPTO is enabled.

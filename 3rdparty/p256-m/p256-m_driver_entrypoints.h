@@ -3,31 +3,79 @@
  */
 /*
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
 #ifndef P256M_DRIVER_ENTRYPOINTS_H
 #define P256M_DRIVER_ENTRYPOINTS_H
 
-#if defined(MBEDTLS_P256M_EXAMPLE_DRIVER_ENABLED)
+#if defined(MBEDTLS_PSA_P256M_DRIVER_ENABLED)
 #ifndef PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT
 #define PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT
 #endif /* PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
-#endif /* MBEDTLS_P256M_EXAMPLE_DRIVER_ENABLED */
+#endif /* MBEDTLS_PSA_P256M_DRIVER_ENABLED */
 
 #include "psa/crypto_types.h"
+
+/** Import SECP256R1 key.
+ *
+ * \param[in]  attributes           The attributes of the key to use for the
+ *                                  operation.
+ * \param[in]  data                 The raw key material. For private keys
+ *                                  this must be a big-endian integer of 32
+ *                                  bytes; for public key this must be an
+ *                                  uncompressed ECPoint (65 bytes).
+ * \param[in]  data_length          The size of the raw key material.
+ * \param[out] key_buffer           The buffer to contain the key data in
+ *                                  output format upon successful return.
+ * \param[in]  key_buffer_size      Size of the \p key_buffer buffer in bytes.
+ * \param[out] key_buffer_length    The length of the data written in \p
+ *                                  key_buffer in bytes.
+ * \param[out] bits                 The bitsize of the key.
+ *
+ * \retval  #PSA_SUCCESS
+ *          Success. Keypair generated and stored in buffer.
+ * \retval  #PSA_ERROR_NOT_SUPPORTED
+ *          The input is not supported by this driver (not SECP256R1).
+ * \retval  #PSA_ERROR_INVALID_ARGUMENT
+ *          The input is invalid.
+ * \retval  #PSA_ERROR_BUFFER_TOO_SMALL
+ *          \p key_buffer_size is too small.
+ */
+psa_status_t p256_transparent_import_key(const psa_key_attributes_t *attributes,
+                             const uint8_t *data,
+                             size_t data_length,
+                             uint8_t *key_buffer,
+                             size_t key_buffer_size,
+                             size_t *key_buffer_length,
+                             size_t *bits);
+
+/** Export SECP256R1 public key, from the private key.
+ *
+ * \param[in]  attributes           The attributes of the key to use for the
+ *                                  operation.
+ * \param[in]  key_buffer           The private key in the export format.
+ * \param[in]  key_buffer_size      The size of the private key in bytes.
+ * \param[out] data                 The buffer to contain the public key in
+ *                                  the export format upon successful return.
+ * \param[in]  data_size            The size of the \p data buffer in bytes.
+ * \param[out] data_length          The length written to \p data in bytes.
+ *
+ * \retval  #PSA_SUCCESS
+ *          Success. Keypair generated and stored in buffer.
+ * \retval  #PSA_ERROR_NOT_SUPPORTED
+ *          The input is not supported by this driver (not SECP256R1).
+ * \retval  #PSA_ERROR_INVALID_ARGUMENT
+ *          The input is invalid.
+ * \retval  #PSA_ERROR_BUFFER_TOO_SMALL
+ *          \p key_buffer_size is too small.
+ */
+psa_status_t p256_transparent_export_public_key(const psa_key_attributes_t *attributes,
+                                    const uint8_t *key_buffer,
+                                    size_t key_buffer_size,
+                                    uint8_t *data,
+                                    size_t data_size,
+                                    size_t *data_length);
 
 /** Generate SECP256R1 ECC Key Pair.
  *  Interface function which calls the p256-m key generation function and
@@ -44,9 +92,10 @@
  *
  * \retval  #PSA_SUCCESS
  *          Success. Keypair generated and stored in buffer.
- * \retval #PSA_ERROR_NOT_SUPPORTED
- * \retval #PSA_ERROR_GENERIC_ERROR
- * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ * \retval  #PSA_ERROR_BUFFER_TOO_SMALL
+ *          \p key_buffer_size is too small.
+ * \retval  #PSA_ERROR_GENERIC_ERROR
+ *          The internal RNG failed.
  */
 psa_status_t p256_transparent_generate_key(
     const psa_key_attributes_t *attributes,
@@ -72,9 +121,12 @@ psa_status_t p256_transparent_generate_key(
  *                                  bytes.
  * \param[out] shared_secret_length On success, the number of bytes that
  *                                  make up the returned shared secret.
- * \retval #PSA_SUCCESS
- *         Success. Shared secret successfully calculated.
- * \retval #PSA_ERROR_NOT_SUPPORTED
+ * \retval  #PSA_SUCCESS
+ *          Success. Shared secret successfully calculated.
+ * \retval  #PSA_ERROR_INVALID_ARGUMENT
+ *          The input is invalid.
+ * \retval  #PSA_ERROR_BUFFER_TOO_SMALL
+ *          \p shared_secret_size is too small.
  */
 psa_status_t p256_transparent_key_agreement(
     const psa_key_attributes_t *attributes,
@@ -103,10 +155,14 @@ psa_status_t p256_transparent_key_agreement(
  * \param[out] signature_length     On success, the number of bytes
  *                                  that make up the returned signature value.
  *
- * \retval #PSA_SUCCESS
+ * \retval  #PSA_SUCCESS
  *          Success. Hash was signed successfully.
- *         respectively of the key.
- * \retval #PSA_ERROR_NOT_SUPPORTED
+ * \retval  #PSA_ERROR_INVALID_ARGUMENT
+ *          The input is invalid.
+ * \retval  #PSA_ERROR_BUFFER_TOO_SMALL
+ *          \p signature_size is too small.
+ * \retval  #PSA_ERROR_GENERIC_ERROR
+ *          The internal RNG failed.
  */
 psa_status_t p256_transparent_sign_hash(
     const psa_key_attributes_t *attributes,
@@ -142,12 +198,13 @@ psa_status_t p256_transparent_sign_hash(
  * \param[in]  signature        Buffer containing the signature to verify.
  * \param[in]  signature_length Size of the \p signature buffer in bytes.
  *
- * \retval #PSA_SUCCESS
- *         The signature is valid.
- * \retval #PSA_ERROR_INVALID_SIGNATURE
- *         The calculation was performed successfully, but the passed
- *         signature is not a valid signature.
- * \retval #PSA_ERROR_NOT_SUPPORTED
+ * \retval  #PSA_SUCCESS
+ *          The signature is valid.
+ * \retval  #PSA_ERROR_INVALID_SIGNATURE
+ *          The calculation was performed successfully, but the passed
+ *          signature is not a valid signature.
+ * \retval  #PSA_ERROR_INVALID_ARGUMENT
+ *          The input is invalid.
  */
 psa_status_t p256_transparent_verify_hash(
     const psa_key_attributes_t *attributes,

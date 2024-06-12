@@ -1,4 +1,3 @@
-set(THREADS_USE_PTHREADS_WIN32 true)
 find_package(Threads)
 
 set(libs
@@ -39,7 +38,7 @@ foreach(exe IN LISTS executables)
     endif()
     add_executable(${exe} ${exe}.c $<TARGET_OBJECTS:mbedtls_test>
         ${extra_sources})
-    target_link_libraries(${exe} ${libs})
+    target_link_libraries(${exe} ${libs} ${CMAKE_THREAD_LIBS_INIT})
     target_include_directories(${exe} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../tests/include)
     if(exe STREQUAL "ssl_client2" OR exe STREQUAL "ssl_server2")
         if(GEN_FILES)

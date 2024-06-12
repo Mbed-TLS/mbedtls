@@ -1,8 +1,0 @@
-Bugfix
-   * Fix an issue when parsing an otherName subject alternative name into a
-     mbedtls_x509_san_other_name struct. The type-id of the otherName was not
-     copied to the struct. This meant that the struct had incomplete
-     information about the otherName SAN and contained uninitialized memory.
-   * Fix the detection of HardwareModuleName otherName SANs. These were being
-     detected by comparing the wrong field and the check was erroneously
-     inverted.

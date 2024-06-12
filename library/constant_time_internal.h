@@ -2,19 +2,7 @@
  *  Constant-time functions
  *
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
 #ifndef MBEDTLS_CONSTANT_TIME_INTERNAL_H
@@ -194,11 +182,11 @@ static inline mbedtls_ct_condition_t mbedtls_ct_uint_ge(mbedtls_ct_uint_t x,
 static inline mbedtls_ct_condition_t mbedtls_ct_uint_le(mbedtls_ct_uint_t x,
                                                         mbedtls_ct_uint_t y);
 
-/** Boolean "xor" operation.
+/** Boolean not-equals operation.
  *
  * Functionally equivalent to:
  *
- * \p x ^ \p y
+ * \p x != \p y
  *
  * \param x     The first value to analyze.
  * \param y     The second value to analyze.
@@ -206,11 +194,11 @@ static inline mbedtls_ct_condition_t mbedtls_ct_uint_le(mbedtls_ct_uint_t x,
  * \note        This is more efficient than mbedtls_ct_uint_ne if both arguments are
  *              mbedtls_ct_condition_t.
  *
- * \return      MBEDTLS_CT_TRUE if \p x ^ \p y,
+ * \return      MBEDTLS_CT_TRUE if \p x != \p y,
  *              otherwise MBEDTLS_CT_FALSE.
  */
-static inline mbedtls_ct_condition_t mbedtls_ct_bool_xor(mbedtls_ct_condition_t x,
-                                                         mbedtls_ct_condition_t y);
+static inline mbedtls_ct_condition_t mbedtls_ct_bool_ne(mbedtls_ct_condition_t x,
+                                                        mbedtls_ct_condition_t y);
 
 /** Boolean "and" operation.
  *
@@ -291,6 +279,22 @@ static inline unsigned mbedtls_ct_uint_if(mbedtls_ct_condition_t condition,
                                           unsigned if1,
                                           unsigned if0);
 
+/** Choose between two mbedtls_ct_condition_t values.
+ *
+ * Functionally equivalent to:
+ *
+ * condition ? if1 : if0.
+ *
+ * \param condition     Condition to test.
+ * \param if1           Value to use if \p condition == MBEDTLS_CT_TRUE.
+ * \param if0           Value to use if \p condition == MBEDTLS_CT_FALSE.
+ *
+ * \return  \c if1 if \p condition == MBEDTLS_CT_TRUE, otherwise \c if0.
+ */
+static inline mbedtls_ct_condition_t mbedtls_ct_bool_if(mbedtls_ct_condition_t condition,
+                                                        mbedtls_ct_condition_t if1,
+                                                        mbedtls_ct_condition_t if0);
+
 #if defined(MBEDTLS_BIGNUM_C)
 
 /** Choose between two mbedtls_mpi_uint values.
@@ -326,6 +330,23 @@ static inline mbedtls_mpi_uint mbedtls_ct_mpi_uint_if(mbedtls_ct_condition_t con
  * \return  \c if1 if \p condition == MBEDTLS_CT_TRUE, otherwise 0.
  */
 static inline unsigned mbedtls_ct_uint_if_else_0(mbedtls_ct_condition_t condition, unsigned if1);
+
+/** Choose between an mbedtls_ct_condition_t and 0.
+ *
+ * Functionally equivalent to:
+ *
+ * condition ? if1 : 0.
+ *
+ * Functionally equivalent to mbedtls_ct_bool_if(condition, if1, 0) but
+ * results in smaller code size.
+ *
+ * \param condition     Condition to test.
+ * \param if1           Value to use if \p condition == MBEDTLS_CT_TRUE.
+ *
+ * \return  \c if1 if \p condition == MBEDTLS_CT_TRUE, otherwise 0.
+ */
+static inline mbedtls_ct_condition_t mbedtls_ct_bool_if_else_0(mbedtls_ct_condition_t condition,
+                                                               mbedtls_ct_condition_t if1);
 
 /** Choose between a size_t value and 0.
  *
@@ -378,6 +399,35 @@ static inline unsigned char mbedtls_ct_uchar_in_range_if(unsigned char low,
                                                          unsigned char c,
                                                          unsigned char t);
 
+/** Choose between two error values. The values must be in the range [-32767..0].
+ *
+ * Functionally equivalent to:
+ *
+ * condition ? if1 : if0.
+ *
+ * \param condition     Condition to test.
+ * \param if1           Value to use if \p condition == MBEDTLS_CT_TRUE.
+ * \param if0           Value to use if \p condition == MBEDTLS_CT_FALSE.
+ *
+ * \return  \c if1 if \p condition == MBEDTLS_CT_TRUE, otherwise \c if0.
+ */
+static inline int mbedtls_ct_error_if(mbedtls_ct_condition_t condition, int if1, int if0);
+
+/** Choose between an error value and 0. The error value must be in the range [-32767..0].
+ *
+ * Functionally equivalent to:
+ *
+ * condition ? if1 : 0.
+ *
+ * Functionally equivalent to mbedtls_ct_error_if(condition, if1, 0) but
+ * results in smaller code size.
+ *
+ * \param condition     Condition to test.
+ * \param if1           Value to use if \p condition == MBEDTLS_CT_TRUE.
+ *
+ * \return  \c if1 if \p condition == MBEDTLS_CT_TRUE, otherwise 0.
+ */
+static inline int mbedtls_ct_error_if_else_0(mbedtls_ct_condition_t condition, int if1);
 
 /* ============================================================================
  * Block memory operations
@@ -491,6 +541,37 @@ void mbedtls_ct_memcpy_offset(unsigned char *dest,
                          const void *b,
                          size_t n);
  */
+
+#if defined(MBEDTLS_NIST_KW_C)
+
+/** Constant-time buffer comparison without branches.
+ *
+ * Similar to mbedtls_ct_memcmp, except that the result only depends on part of
+ * the input data - differences in the head or tail are ignored. Functionally equivalent to:
+ *
+ * memcmp(a + skip_head, b + skip_head, size - skip_head - skip_tail)
+ *
+ * Time taken depends on \p n, but not on \p skip_head or \p skip_tail .
+ *
+ * Behaviour is undefined if ( \p skip_head + \p skip_tail) > \p n.
+ *
+ * \param a         Secret. Pointer to the first buffer, containing at least \p n bytes. May not be NULL.
+ * \param b         Secret. Pointer to the second buffer, containing at least \p n bytes. May not be NULL.
+ * \param n         The number of bytes to examine (total size of the buffers).
+ * \param skip_head Secret. The number of bytes to treat as non-significant at the start of the buffer.
+ *                  These bytes will still be read.
+ * \param skip_tail Secret. The number of bytes to treat as non-significant at the end of the buffer.
+ *                  These bytes will still be read.
+ *
+ * \return          Zero if the contents of the two buffers are the same, otherwise non-zero.
+ */
+int mbedtls_ct_memcmp_partial(const void *a,
+                              const void *b,
+                              size_t n,
+                              size_t skip_head,
+                              size_t skip_tail);
+
+#endif
 
 /* Include the implementation of static inline functions above. */
 #include "constant_time_impl.h"

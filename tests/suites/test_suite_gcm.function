@@ -153,6 +153,21 @@ exit:
     mbedtls_free(output);
 }
 
+static void gcm_reset_ctx(mbedtls_gcm_context *ctx, const uint8_t *key,
+                          size_t key_bits, const uint8_t *iv, size_t iv_len,
+                          int starts_ret)
+{
+    int mode = MBEDTLS_GCM_ENCRYPT;
+    mbedtls_cipher_id_t valid_cipher = MBEDTLS_CIPHER_ID_AES;
+
+    mbedtls_gcm_init(ctx);
+    TEST_EQUAL(mbedtls_gcm_setkey(ctx, valid_cipher, key, key_bits), 0);
+    TEST_EQUAL(starts_ret, mbedtls_gcm_starts(ctx, mode, iv, iv_len));
+exit:
+    /* empty */
+    return;
+}
+
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -171,6 +186,7 @@ void gcm_bad_parameters(int cipher_id, int direction,
     mbedtls_gcm_context ctx;
     size_t tag_len = tag_len_bits / 8;
 
+    BLOCK_CIPHER_PSA_INIT();
     mbedtls_gcm_init(&ctx);
 
     memset(output, 0x00, sizeof(output));
@@ -183,6 +199,7 @@ void gcm_bad_parameters(int cipher_id, int direction,
 
 exit:
     mbedtls_gcm_free(&ctx);
+    BLOCK_CIPHER_PSA_DONE();
 }
 /* END_CASE */
 
@@ -200,6 +217,7 @@ void gcm_encrypt_and_tag(int cipher_id, data_t *key_str,
     size_t n1;
     size_t n1_add;
 
+    BLOCK_CIPHER_PSA_INIT();
     mbedtls_gcm_init(&ctx);
 
     memset(output, 0x00, 128);
@@ -230,6 +248,7 @@ void gcm_encrypt_and_tag(int cipher_id, data_t *key_str,
 
 exit:
     mbedtls_gcm_free(&ctx);
+    BLOCK_CIPHER_PSA_DONE();
 }
 /* END_CASE */
 
@@ -247,6 +266,7 @@ void gcm_decrypt_and_verify(int cipher_id, data_t *key_str,
     size_t n1;
     size_t n1_add;
 
+    BLOCK_CIPHER_PSA_INIT();
     mbedtls_gcm_init(&ctx);
 
     memset(output, 0x00, 128);
@@ -287,6 +307,7 @@ void gcm_decrypt_and_verify(int cipher_id, data_t *key_str,
 
 exit:
     mbedtls_gcm_free(&ctx);
+    BLOCK_CIPHER_PSA_DONE();
 }
 /* END_CASE */
 
@@ -300,6 +321,7 @@ void gcm_decrypt_and_verify_empty_cipher(int cipher_id,
 {
     mbedtls_gcm_context ctx;
 
+    BLOCK_CIPHER_PSA_INIT();
     mbedtls_gcm_init(&ctx);
 
     TEST_ASSERT(mbedtls_gcm_setkey(&ctx, cipher_id, key_str->x, key_str->len * 8) == 0);
@@ -308,6 +330,7 @@ void gcm_decrypt_and_verify_empty_cipher(int cipher_id,
                                cipher_update_calls);
 
     mbedtls_gcm_free(&ctx);
+    BLOCK_CIPHER_PSA_DONE();
 }
 /* END_CASE */
 
@@ -322,6 +345,7 @@ void gcm_decrypt_and_verify_empty_ad(int cipher_id,
 {
     mbedtls_gcm_context ctx;
 
+    BLOCK_CIPHER_PSA_INIT();
     mbedtls_gcm_init(&ctx);
 
     TEST_ASSERT(mbedtls_gcm_setkey(&ctx, cipher_id, key_str->x, key_str->len * 8) == 0);
@@ -330,6 +354,7 @@ void gcm_decrypt_and_verify_empty_ad(int cipher_id,
                                ad_update_calls);
 
     mbedtls_gcm_free(&ctx);
+    BLOCK_CIPHER_PSA_DONE();
 }
 /* END_CASE */
 
@@ -341,6 +366,7 @@ void gcm_decrypt_and_verify_no_ad_no_cipher(int cipher_id,
 {
     mbedtls_gcm_context ctx;
 
+    BLOCK_CIPHER_PSA_INIT();
     mbedtls_gcm_init(&ctx);
 
     TEST_ASSERT(mbedtls_gcm_setkey(&ctx, cipher_id, key_str->x, key_str->len * 8) == 0);
@@ -348,6 +374,7 @@ void gcm_decrypt_and_verify_no_ad_no_cipher(int cipher_id,
                           iv_str, tag_str);
 
     mbedtls_gcm_free(&ctx);
+    BLOCK_CIPHER_PSA_DONE();
 }
 /* END_CASE */
 
@@ -361,6 +388,7 @@ void gcm_encrypt_and_tag_empty_cipher(int cipher_id,
 {
     mbedtls_gcm_context ctx;
 
+    BLOCK_CIPHER_PSA_INIT();
     mbedtls_gcm_init(&ctx);
 
     TEST_ASSERT(mbedtls_gcm_setkey(&ctx, cipher_id, key_str->x, key_str->len * 8) == 0);
@@ -370,6 +398,7 @@ void gcm_encrypt_and_tag_empty_cipher(int cipher_id,
 
 exit:
     mbedtls_gcm_free(&ctx);
+    BLOCK_CIPHER_PSA_DONE();
 }
 /* END_CASE */
 
@@ -384,6 +413,7 @@ void gcm_encrypt_and_tag_empty_ad(int cipher_id,
 {
     mbedtls_gcm_context ctx;
 
+    BLOCK_CIPHER_PSA_INIT();
     mbedtls_gcm_init(&ctx);
 
     TEST_ASSERT(mbedtls_gcm_setkey(&ctx, cipher_id, key_str->x, key_str->len * 8) == 0);
@@ -393,6 +423,7 @@ void gcm_encrypt_and_tag_empty_ad(int cipher_id,
 
 exit:
     mbedtls_gcm_free(&ctx);
+    BLOCK_CIPHER_PSA_DONE();
 }
 /* END_CASE */
 
@@ -404,6 +435,7 @@ void gcm_encrypt_and_verify_no_ad_no_cipher(int cipher_id,
 {
     mbedtls_gcm_context ctx;
 
+    BLOCK_CIPHER_PSA_INIT();
     mbedtls_gcm_init(&ctx);
 
     TEST_ASSERT(mbedtls_gcm_setkey(&ctx, cipher_id, key_str->x, key_str->len * 8) == 0);
@@ -411,6 +443,7 @@ void gcm_encrypt_and_verify_no_ad_no_cipher(int cipher_id,
                           iv_str, tag_str);
 
     mbedtls_gcm_free(&ctx);
+    BLOCK_CIPHER_PSA_DONE();
 }
 /* END_CASE */
 
@@ -444,6 +477,7 @@ void gcm_update_output_buffer_too_small(int cipher_id, int mode,
     size_t olen = 0;
     size_t output_len = input->len - 1;
 
+    BLOCK_CIPHER_PSA_INIT();
     mbedtls_gcm_init(&ctx);
     TEST_EQUAL(mbedtls_gcm_setkey(&ctx, cipher_id, key_str->x, key_str->len * 8), 0);
     TEST_EQUAL(0, mbedtls_gcm_starts(&ctx, mode, iv->x, iv->len));
@@ -455,12 +489,127 @@ void gcm_update_output_buffer_too_small(int cipher_id, int mode,
 exit:
     mbedtls_free(output);
     mbedtls_gcm_free(&ctx);
+    BLOCK_CIPHER_PSA_DONE();
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_SELF_TEST:MBEDTLS_AES_C */
+/* BEGIN_CASE */
+/* NISP SP 800-38D, Section 5.2.1.1 requires that bit length of IV should
+ * satisfy 1 <= bit_len(IV) <= 2^64 - 1. */
+void gcm_invalid_iv_len(void)
+{
+    mbedtls_gcm_context ctx;
+    mbedtls_gcm_init(&ctx);
+    uint8_t b16[16] = { 0 };
+
+    BLOCK_CIPHER_PSA_INIT();
+
+    // Invalid IV length 0
+    gcm_reset_ctx(&ctx, b16, sizeof(b16) * 8, b16, 0, MBEDTLS_ERR_GCM_BAD_INPUT);
+    mbedtls_gcm_free(&ctx);
+
+    // Only testable on platforms where sizeof(size_t) >= 8.
+#if SIZE_MAX >= UINT64_MAX
+    // Invalid IV length 2^61
+    gcm_reset_ctx(&ctx, b16, sizeof(b16) * 8, b16, 1ULL << 61, MBEDTLS_ERR_GCM_BAD_INPUT);
+    mbedtls_gcm_free(&ctx);
+#endif
+
+    goto exit; /* To suppress error that exit is defined but not used */
+exit:
+    mbedtls_gcm_free(&ctx);
+    BLOCK_CIPHER_PSA_DONE();
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void gcm_add_len_too_long(void)
+{
+    // Only testable on platforms where sizeof(size_t) >= 8.
+#if SIZE_MAX >= UINT64_MAX
+    mbedtls_gcm_context ctx;
+    mbedtls_gcm_init(&ctx);
+    uint8_t b16[16] = { 0 };
+    BLOCK_CIPHER_PSA_INIT();
+
+    /* NISP SP 800-38D, Section 5.2.1.1 requires that bit length of AD should
+     * be <= 2^64 - 1, ie < 2^64. This is the minimum invalid length in bytes. */
+    uint64_t len_max = 1ULL << 61;
+
+    gcm_reset_ctx(&ctx, b16, sizeof(b16) * 8, b16, sizeof(b16), 0);
+    // Feed AD that just exceeds the length limit
+    TEST_EQUAL(mbedtls_gcm_update_ad(&ctx, b16, len_max),
+               MBEDTLS_ERR_GCM_BAD_INPUT);
+    mbedtls_gcm_free(&ctx);
+
+    gcm_reset_ctx(&ctx, b16, sizeof(b16) * 8, b16, sizeof(b16), 0);
+    // Feed AD that just exceeds the length limit in two calls
+    TEST_EQUAL(mbedtls_gcm_update_ad(&ctx, b16, 1), 0);
+    TEST_EQUAL(mbedtls_gcm_update_ad(&ctx, b16, len_max - 1),
+               MBEDTLS_ERR_GCM_BAD_INPUT);
+    mbedtls_gcm_free(&ctx);
+
+    gcm_reset_ctx(&ctx, b16, sizeof(b16) * 8, b16, sizeof(b16), 0);
+    // Test if potential total AD length overflow is handled properly
+    TEST_EQUAL(mbedtls_gcm_update_ad(&ctx, b16, 1), 0);
+    TEST_EQUAL(mbedtls_gcm_update_ad(&ctx, b16, UINT64_MAX), MBEDTLS_ERR_GCM_BAD_INPUT);
+
+exit:
+    mbedtls_gcm_free(&ctx);
+    BLOCK_CIPHER_PSA_DONE();
+#endif
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void gcm_input_len_too_long(void)
+{
+    // Only testable on platforms where sizeof(size_t) >= 8
+#if SIZE_MAX >= UINT64_MAX
+    mbedtls_gcm_context ctx;
+    uint8_t b16[16] = { 0 };
+    uint8_t out[1];
+    size_t out_len;
+    mbedtls_gcm_init(&ctx);
+    BLOCK_CIPHER_PSA_INIT();
+
+    /* NISP SP 800-38D, Section 5.2.1.1 requires that bit length of input should
+     * be <= 2^39 - 256. This is the maximum valid length in bytes. */
+    uint64_t len_max = (1ULL << 36) - 32;
+
+    gcm_reset_ctx(&ctx, b16, sizeof(b16) * 8, b16, sizeof(b16), 0);
+    // Feed input that just exceeds the length limit
+    TEST_EQUAL(mbedtls_gcm_update(&ctx, b16, len_max + 1, out, len_max + 1,
+                                  &out_len),
+               MBEDTLS_ERR_GCM_BAD_INPUT);
+    mbedtls_gcm_free(&ctx);
+
+    gcm_reset_ctx(&ctx, b16, sizeof(b16) * 8, b16, sizeof(b16), 0);
+    // Feed input that just exceeds the length limit in two calls
+    TEST_EQUAL(mbedtls_gcm_update(&ctx, b16, 1, out, 1, &out_len), 0);
+    TEST_EQUAL(mbedtls_gcm_update(&ctx, b16, len_max, out, len_max, &out_len),
+               MBEDTLS_ERR_GCM_BAD_INPUT);
+    mbedtls_gcm_free(&ctx);
+
+    gcm_reset_ctx(&ctx, b16, sizeof(b16) * 8, b16, sizeof(b16), 0);
+    // Test if potential total input length overflow is handled properly
+    TEST_EQUAL(mbedtls_gcm_update(&ctx, b16, 1, out, 1, &out_len), 0);
+    TEST_EQUAL(mbedtls_gcm_update(&ctx, b16, UINT64_MAX, out, UINT64_MAX,
+                                  &out_len),
+               MBEDTLS_ERR_GCM_BAD_INPUT);
+
+exit:
+    mbedtls_gcm_free(&ctx);
+    BLOCK_CIPHER_PSA_DONE();
+#endif
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_SELF_TEST:MBEDTLS_CCM_GCM_CAN_AES */
 void gcm_selftest()
 {
+    BLOCK_CIPHER_PSA_INIT();
     TEST_ASSERT(mbedtls_gcm_self_test(1) == 0);
+    BLOCK_CIPHER_PSA_DONE();
 }
 /* END_CASE */

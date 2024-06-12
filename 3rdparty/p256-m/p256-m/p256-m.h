@@ -3,7 +3,7 @@
  *
  * Copyright The Mbed TLS Contributors
  * Author: Manuel Pégourié-Gonnard.
- * SPDX-License-Identifier: Apache-2.0
+ * SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 #ifndef P256_M_H
 #define P256_M_H
@@ -88,6 +88,45 @@ int p256_ecdsa_sign(uint8_t sig[64], const uint8_t priv[32],
  */
 int p256_ecdsa_verify(const uint8_t sig[64], const uint8_t pub[64],
                       const uint8_t *hash, size_t hlen);
+
+/*
+ * Public key validation
+ *
+ * Note: you never need to call this function, as all other functions always
+ * validate their input; however it's availabe if you want to validate the key
+ * without performing an operation.
+ *
+ * [in] pub: the public key, as two big-endian integers
+ *
+ * return:  P256_SUCCESS if the key is valid
+ *          P256_INVALID_PUBKEY if pub is invalid
+ */
+int p256_validate_pubkey(const uint8_t pub[64]);
+
+/*
+ * Private key validation
+ *
+ * Note: you never need to call this function, as all other functions always
+ * validate their input; however it's availabe if you want to validate the key
+ * without performing an operation.
+ *
+ * [in] priv: the private key, as a big-endian integer
+ *
+ * return:  P256_SUCCESS if the key is valid
+ *          P256_INVALID_PRIVKEY if priv is invalid
+ */
+int p256_validate_privkey(const uint8_t priv[32]);
+
+/*
+ * Compute public key from private key
+ *
+ * [out] pub: the associated public key, as two big-endian integers
+ * [in] priv: the private key, as a big-endian integer
+ *
+ * return:  P256_SUCCESS on success
+ *          P256_INVALID_PRIVKEY if priv is invalid
+ */
+int p256_public_from_private(uint8_t pub[64], const uint8_t priv[32]);
 
 #ifdef __cplusplus
 }

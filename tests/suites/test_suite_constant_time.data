@@ -91,6 +91,9 @@ mbedtls_ct_memcmp:-1:17:2
 mbedtls_ct_memcmp len 17 offset 3
 mbedtls_ct_memcmp:-1:17:3
 
+mbedtls_ct_memcmp_single_bit_diff
+mbedtls_ct_memcmp_single_bit_diff:
+
 mbedtls_ct_memcpy_if len 1 offset 0
 mbedtls_ct_memcpy_if:1:1:0
 
@@ -643,6 +646,102 @@ mbedtls_ct_if:"0xffffffffffffffff":"0xffffffffffffffff":"0x7fffffffffffffff"
 mbedtls_ct_if 0xffffffffffffffff 0xffffffffffffffff 0xffffffffffffffff
 mbedtls_ct_if:"0xffffffffffffffff":"0xffffffffffffffff":"0xffffffffffffffff"
 
+mbedtls_ct_error_if 0 0 0
+mbedtls_ct_error_if:0:0:0
+
+mbedtls_ct_error_if 0 0 -1
+mbedtls_ct_error_if:0:0:-1
+
+mbedtls_ct_error_if 0 0 -32766
+mbedtls_ct_error_if:0:0:-32766
+
+mbedtls_ct_error_if 0 0 -32767
+mbedtls_ct_error_if:0:0:-32767
+
+mbedtls_ct_error_if 0 -1 0
+mbedtls_ct_error_if:0:-1:0
+
+mbedtls_ct_error_if 0 -1 -1
+mbedtls_ct_error_if:0:-1:-1
+
+mbedtls_ct_error_if 0 -1 -32766
+mbedtls_ct_error_if:0:-1:-32766
+
+mbedtls_ct_error_if 0 -1 -32767
+mbedtls_ct_error_if:0:-1:-32767
+
+mbedtls_ct_error_if 0 -32766 0
+mbedtls_ct_error_if:0:-32766:0
+
+mbedtls_ct_error_if 0 -32766 -1
+mbedtls_ct_error_if:0:-32766:-1
+
+mbedtls_ct_error_if 0 -32766 -32766
+mbedtls_ct_error_if:0:-32766:-32766
+
+mbedtls_ct_error_if 0 -32766 -32767
+mbedtls_ct_error_if:0:-32766:-32767
+
+mbedtls_ct_error_if 0 -32767 0
+mbedtls_ct_error_if:0:-32767:0
+
+mbedtls_ct_error_if 0 -32767 -1
+mbedtls_ct_error_if:0:-32767:-1
+
+mbedtls_ct_error_if 0 -32767 -32766
+mbedtls_ct_error_if:0:-32767:-32766
+
+mbedtls_ct_error_if 0 -32767 -32767
+mbedtls_ct_error_if:0:-32767:-32767
+
+mbedtls_ct_error_if 1 0 0
+mbedtls_ct_error_if:1:0:0
+
+mbedtls_ct_error_if 1 0 -1
+mbedtls_ct_error_if:1:0:-1
+
+mbedtls_ct_error_if 1 0 -32766
+mbedtls_ct_error_if:1:0:-32766
+
+mbedtls_ct_error_if 1 0 -32767
+mbedtls_ct_error_if:1:0:-32767
+
+mbedtls_ct_error_if 1 -1 0
+mbedtls_ct_error_if:1:-1:0
+
+mbedtls_ct_error_if 1 -1 -1
+mbedtls_ct_error_if:1:-1:-1
+
+mbedtls_ct_error_if 1 -1 -32766
+mbedtls_ct_error_if:1:-1:-32766
+
+mbedtls_ct_error_if 1 -1 -32767
+mbedtls_ct_error_if:1:-1:-32767
+
+mbedtls_ct_error_if 1 -32766 0
+mbedtls_ct_error_if:1:-32766:0
+
+mbedtls_ct_error_if 1 -32766 -1
+mbedtls_ct_error_if:1:-32766:-1
+
+mbedtls_ct_error_if 1 -32766 -32766
+mbedtls_ct_error_if:1:-32766:-32766
+
+mbedtls_ct_error_if 1 -32766 -32767
+mbedtls_ct_error_if:1:-32766:-32767
+
+mbedtls_ct_error_if 1 -32767 0
+mbedtls_ct_error_if:1:-32767:0
+
+mbedtls_ct_error_if 1 -32767 -1
+mbedtls_ct_error_if:1:-32767:-1
+
+mbedtls_ct_error_if 1 -32767 -32766
+mbedtls_ct_error_if:1:-32767:-32766
+
+mbedtls_ct_error_if 1 -32767 -32767
+mbedtls_ct_error_if:1:-32767:-32767
+
 mbedtls_ct_zeroize_if 0x0 0
 mbedtls_ct_zeroize_if:"0x0":0
 
@@ -699,3 +798,69 @@ mbedtls_ct_memmove_left:16:15
 
 mbedtls_ct_memmove_left 16 16
 mbedtls_ct_memmove_left:16:16
+
+mbedtls_ct_memcmp_partial -1 0 0 0
+mbedtls_ct_memcmp_partial:-1:0:0:0
+
+mbedtls_ct_memcmp_partial 0 1 0 0
+mbedtls_ct_memcmp_partial:0:1:0:0
+
+mbedtls_ct_memcmp_partial 0 1 1 0
+mbedtls_ct_memcmp_partial:0:1:1:0
+
+mbedtls_ct_memcmp_partial 0 1 0 1
+mbedtls_ct_memcmp_partial:0:1:0:1
+
+mbedtls_ct_memcmp_partial -1 1 0 0
+mbedtls_ct_memcmp_partial:-1:1:0:0
+
+mbedtls_ct_memcmp_partial 0 2 0 1
+mbedtls_ct_memcmp_partial:0:2:0:1
+
+mbedtls_ct_memcmp_partial 0 2 1 0
+mbedtls_ct_memcmp_partial:0:2:1:0
+
+mbedtls_ct_memcmp_partial 0 16 4 4
+mbedtls_ct_memcmp_partial:0:16:4:4
+
+mbedtls_ct_memcmp_partial 2 16 4 4
+mbedtls_ct_memcmp_partial:2:16:4:4
+
+mbedtls_ct_memcmp_partial 3 16 4 4
+mbedtls_ct_memcmp_partial:3:16:4:4
+
+mbedtls_ct_memcmp_partial 4 16 4 4
+mbedtls_ct_memcmp_partial:4:16:4:4
+
+mbedtls_ct_memcmp_partial 7 16 4 4
+mbedtls_ct_memcmp_partial:7:16:4:4
+
+mbedtls_ct_memcmp_partial 11 16 4 4
+mbedtls_ct_memcmp_partial:11:16:4:4
+
+mbedtls_ct_memcmp_partial 12 16 4 4
+mbedtls_ct_memcmp_partial:12:16:4:4
+
+mbedtls_ct_memcmp_partial 15 16 4 4
+mbedtls_ct_memcmp_partial:15:16:4:4
+
+mbedtls_ct_memcmp_partial 15 16 4 0
+mbedtls_ct_memcmp_partial:15:16:4:0
+
+mbedtls_ct_memcmp_partial 15 16 0 4
+mbedtls_ct_memcmp_partial:15:16:0:4
+
+mbedtls_ct_memcmp_partial 0 16 0 0
+mbedtls_ct_memcmp_partial:0:16:0:0
+
+mbedtls_ct_memcmp_partial 15 16 0 0
+mbedtls_ct_memcmp_partial:15:16:0:0
+
+mbedtls_ct_memcmp_partial -1 16 0 0
+mbedtls_ct_memcmp_partial:-1:16:0:0
+
+mbedtls_ct_memcmp_partial -1 16 12 4
+mbedtls_ct_memcmp_partial:-1:16:12:4
+
+mbedtls_ct_memcmp_partial -1 16 8 8
+mbedtls_ct_memcmp_partial:-1:16:8:8

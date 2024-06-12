@@ -1,4 +1,0 @@
-Bugfix
-   * Fix x509 certificate generation to conform to RFC 5480 / RFC 5758 when
-     using ECC key. The certificate was rejected by some crypto frameworks.
-     Fixes #2924.

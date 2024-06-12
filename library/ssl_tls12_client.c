@@ -2,19 +2,7 @@
  *  TLS client-side functions
  *
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
 #include "common.h"
@@ -26,7 +14,7 @@
 #include "mbedtls/ssl.h"
 #include "ssl_client.h"
 #include "ssl_misc.h"
-#include "mbedtls/debug.h"
+#include "debug_internal.h"
 #include "mbedtls/error.h"
 #include "mbedtls/constant_time.h"
 
@@ -100,7 +88,7 @@ static int ssl_write_renegotiation_ext(mbedtls_ssl_context *ssl,
 #endif /* MBEDTLS_SSL_RENEGOTIATION */
 
 #if defined(MBEDTLS_KEY_EXCHANGE_SOME_ECDH_OR_ECDHE_1_2_ENABLED) || \
-    defined(MBEDTLS_ECDSA_C) || \
+    defined(MBEDTLS_KEY_EXCHANGE_ECDSA_CERT_REQ_ALLOWED_ENABLED) || \
     defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
 
 MBEDTLS_CHECK_RETURN_CRITICAL
@@ -132,7 +120,8 @@ static int ssl_write_supported_point_formats_ext(mbedtls_ssl_context *ssl,
     return 0;
 }
 #endif /* MBEDTLS_KEY_EXCHANGE_SOME_ECDH_OR_ECDHE_1_2_ENABLED ||
-          MBEDTLS_ECDSA_C || MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED */
+          MBEDTLS_KEY_EXCHANGE_ECDSA_CERT_REQ_ALLOWED_ENABLED ||
+          MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED */
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
 MBEDTLS_CHECK_RETURN_CRITICAL
@@ -549,7 +538,7 @@ int mbedtls_ssl_tls12_write_client_hello_exts(mbedtls_ssl_context *ssl,
 #endif
 
 #if defined(MBEDTLS_KEY_EXCHANGE_SOME_ECDH_OR_ECDHE_1_2_ENABLED) || \
-    defined(MBEDTLS_ECDSA_C) || \
+    defined(MBEDTLS_KEY_EXCHANGE_ECDSA_CERT_REQ_ALLOWED_ENABLED) || \
     defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
     if (uses_ec) {
         if ((ret = ssl_write_supported_point_formats_ext(ssl, p, end,
@@ -618,7 +607,7 @@ int mbedtls_ssl_tls12_write_client_hello_exts(mbedtls_ssl_context *ssl,
     p += ext_len;
 #endif
 
-    *out_len = p - buf;
+    *out_len = (size_t) (p - buf);
 
     return 0;
 }
@@ -818,7 +807,7 @@ static int ssl_parse_session_ticket_ext(mbedtls_ssl_context *ssl,
 #endif /* MBEDTLS_SSL_SESSION_TICKETS */
 
 #if defined(MBEDTLS_KEY_EXCHANGE_SOME_ECDH_OR_ECDHE_1_2_ENABLED) || \
-    defined(MBEDTLS_ECDSA_C) || \
+    defined(MBEDTLS_KEY_EXCHANGE_ECDSA_CERT_REQ_ALLOWED_ENABLED) || \
     defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_parse_supported_point_formats_ext(mbedtls_ssl_context *ssl,
@@ -863,7 +852,8 @@ static int ssl_parse_supported_point_formats_ext(mbedtls_ssl_context *ssl,
     return MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE;
 }
 #endif /* MBEDTLS_KEY_EXCHANGE_SOME_ECDH_OR_ECDHE_1_2_ENABLED ||
-          MBEDTLS_ECDSA_C || MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED */
+          MBEDTLS_KEY_EXCHANGE_ECDSA_CERT_REQ_ALLOWED_ENABLED ||
+          MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED */
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
 MBEDTLS_CHECK_RETURN_CRITICAL
@@ -951,7 +941,7 @@ static int ssl_parse_alpn_ext(mbedtls_ssl_context *ssl,
         return MBEDTLS_ERR_SSL_DECODE_ERROR;
     }
 
-    list_len = (buf[0] << 8) | buf[1];
+    list_len = MBEDTLS_GET_UINT16_BE(buf, 0);
     if (list_len != len - 2) {
         mbedtls_ssl_send_alert_message(ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
                                        MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR);
@@ -1278,6 +1268,7 @@ static int ssl_parse_server_hello(mbedtls_ssl_context *ssl)
     ssl->tls_version = (mbedtls_ssl_protocol_version) mbedtls_ssl_read_version(buf,
                                                                                ssl->conf->transport);
     ssl->session_negotiate->tls_version = ssl->tls_version;
+    ssl->session_negotiate->endpoint = ssl->conf->endpoint;
 
     if (ssl->tls_version < ssl->conf->min_tls_version ||
         ssl->tls_version > ssl->conf->max_tls_version) {
@@ -1314,8 +1305,7 @@ static int ssl_parse_server_hello(mbedtls_ssl_context *ssl)
     }
 
     if (ssl->in_hslen > mbedtls_ssl_hs_hdr_len(ssl) + 39 + n) {
-        ext_len = ((buf[38 + n] <<  8)
-                   | (buf[39 + n]));
+        ext_len = MBEDTLS_GET_UINT16_BE(buf, 38 + n);
 
         if ((ext_len > 0 && ext_len < 4) ||
             ssl->in_hslen != mbedtls_ssl_hs_hdr_len(ssl) + 40 + n + ext_len) {
@@ -1336,7 +1326,7 @@ static int ssl_parse_server_hello(mbedtls_ssl_context *ssl)
     }
 
     /* ciphersuite (used later) */
-    i = (buf[35 + n] << 8) | buf[36 + n];
+    i = (int) MBEDTLS_GET_UINT16_BE(buf, n + 35);
 
     /*
      * Read and check compression
@@ -1457,10 +1447,8 @@ static int ssl_parse_server_hello(mbedtls_ssl_context *ssl)
                            ext_len));
 
     while (ext_len) {
-        unsigned int ext_id   = ((ext[0] <<  8)
-                                 | (ext[1]));
-        unsigned int ext_size = ((ext[2] <<  8)
-                                 | (ext[3]));
+        unsigned int ext_id   = MBEDTLS_GET_UINT16_BE(ext, 0);
+        unsigned int ext_size = MBEDTLS_GET_UINT16_BE(ext, 2);
 
         if (ext_size + 4 > ext_len) {
             MBEDTLS_SSL_DEBUG_MSG(1, ("bad server hello message"));
@@ -1548,7 +1536,8 @@ static int ssl_parse_server_hello(mbedtls_ssl_context *ssl)
 #endif /* MBEDTLS_SSL_SESSION_TICKETS */
 
 #if defined(MBEDTLS_KEY_EXCHANGE_SOME_ECDH_OR_ECDHE_1_2_ENABLED) || \
-                defined(MBEDTLS_ECDSA_C) || defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
+                defined(MBEDTLS_KEY_EXCHANGE_ECDSA_CERT_REQ_ALLOWED_ENABLED) || \
+                defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
             case MBEDTLS_TLS_EXT_SUPPORTED_POINT_FORMATS:
                 MBEDTLS_SSL_DEBUG_MSG(3,
                                       ("found supported_point_formats extension"));
@@ -1559,7 +1548,8 @@ static int ssl_parse_server_hello(mbedtls_ssl_context *ssl)
                 }
 
                 break;
-#endif /* MBEDTLS_KEY_EXCHANGE_SOME_ECDH_OR_ECDHE_1_2_ENABLED || MBEDTLS_ECDSA_C ||
+#endif /* MBEDTLS_KEY_EXCHANGE_SOME_ECDH_OR_ECDHE_1_2_ENABLED ||
+          MBEDTLS_KEY_EXCHANGE_ECDSA_CERT_REQ_ALLOWED_ENABLED ||
           MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED */
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
@@ -1723,7 +1713,7 @@ static int ssl_parse_server_ecdh_params(mbedtls_ssl_context *ssl,
                                         unsigned char *end)
 {
     uint16_t tls_id;
-    uint8_t ecpoint_len;
+    size_t ecpoint_len;
     mbedtls_ssl_handshake_params *handshake = ssl->handshake;
     psa_key_type_t key_type = PSA_KEY_TYPE_NONE;
     size_t ec_bits = 0;
@@ -1749,9 +1739,8 @@ static int ssl_parse_server_ecdh_params(mbedtls_ssl_context *ssl,
     }
 
     /* Next two bytes are the namedcurve value */
-    tls_id = *(*p)++;
-    tls_id <<= 8;
-    tls_id |= *(*p)++;
+    tls_id = MBEDTLS_GET_UINT16_BE(*p, 0);
+    *p += 2;
 
     /* Check it's a curve we offered */
     if (mbedtls_ssl_check_curve_tls_id(ssl, tls_id) != 0) {
@@ -1775,7 +1764,7 @@ static int ssl_parse_server_ecdh_params(mbedtls_ssl_context *ssl,
         return MBEDTLS_ERR_SSL_DECODE_ERROR;
     }
 
-    if (ecpoint_len > PSA_KEY_EXPORT_ECC_PUBLIC_KEY_MAX_SIZE(PSA_VENDOR_ECC_MAX_CURVE_BITS)) {
+    if (ecpoint_len > sizeof(handshake->xxdh_psa_peerkey)) {
         return MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE;
     }
 
@@ -1891,7 +1880,7 @@ static int ssl_parse_server_psk_hint(mbedtls_ssl_context *ssl,
                               ("bad server key exchange message (psk_identity_hint length)"));
         return MBEDTLS_ERR_SSL_DECODE_ERROR;
     }
-    len = (*p)[0] << 8 | (*p)[1];
+    len = MBEDTLS_GET_UINT16_BE(*p, 0);
     *p += 2;
 
     if (end - (*p) < len) {
@@ -2017,14 +2006,14 @@ static int ssl_get_ecdh_params_from_cert(mbedtls_ssl_context *ssl)
         return MBEDTLS_ERR_SSL_PK_TYPE_MISMATCH;
     }
 
-#if defined(MBEDTLS_ECP_C)
+#if !defined(MBEDTLS_PK_USE_PSA_EC_DATA)
     const mbedtls_ecp_keypair *peer_key = mbedtls_pk_ec_ro(*peer_pk);
-#endif /* MBEDTLS_ECP_C */
+#endif /* !defined(MBEDTLS_PK_USE_PSA_EC_DATA) */
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     uint16_t tls_id = 0;
     psa_key_type_t key_type = PSA_KEY_TYPE_NONE;
-    mbedtls_ecp_group_id grp_id = mbedtls_pk_get_group_id(peer_pk);
+    mbedtls_ecp_group_id grp_id = mbedtls_pk_get_ec_group_id(peer_pk);
 
     if (mbedtls_ssl_check_curve(ssl, grp_id) != 0) {
         MBEDTLS_SSL_DEBUG_MSG(1, ("bad server certificate (ECDH curve)"));
@@ -2055,7 +2044,7 @@ static int ssl_get_ecdh_params_from_cert(mbedtls_ssl_context *ssl)
     ret = mbedtls_ecp_point_write_binary(&peer_key->grp, &peer_key->Q,
                                          MBEDTLS_ECP_PF_UNCOMPRESSED, &olen,
                                          ssl->handshake->xxdh_psa_peerkey,
-                                         MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH);
+                                         sizeof(ssl->handshake->xxdh_psa_peerkey));
 
     if (ret != 0) {
         MBEDTLS_SSL_DEBUG_RET(1, ("mbedtls_ecp_point_write_binary"), ret);
@@ -2182,7 +2171,7 @@ start_processing:
 #endif
     p   = ssl->in_msg + mbedtls_ssl_hs_hdr_len(ssl);
     end = ssl->in_msg + ssl->in_hslen;
-    MBEDTLS_SSL_DEBUG_BUF(3,   "server key exchange", p, end - p);
+    MBEDTLS_SSL_DEBUG_BUF(3,   "server key exchange", p, (size_t) (end - p));
 
 #if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
     if (ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_PSK ||
@@ -2307,7 +2296,7 @@ start_processing:
         mbedtls_md_type_t md_alg = MBEDTLS_MD_NONE;
         mbedtls_pk_type_t pk_alg = MBEDTLS_PK_NONE;
         unsigned char *params = ssl->in_msg + mbedtls_ssl_hs_hdr_len(ssl);
-        size_t params_len = p - params;
+        size_t params_len = (size_t) (p - params);
         void *rs_ctx = NULL;
         uint16_t sig_alg;
 
@@ -2365,7 +2354,7 @@ start_processing:
                 MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR);
             return MBEDTLS_ERR_SSL_DECODE_ERROR;
         }
-        sig_len = (p[0] << 8) | p[1];
+        sig_len = MBEDTLS_GET_UINT16_BE(p, 0);
         p += 2;
 
         if (p != end - sig_len) {
@@ -2593,8 +2582,7 @@ static int ssl_parse_certificate_request(mbedtls_ssl_context *ssl)
     }
 
     /* supported_signature_algorithms */
-    sig_alg_len = ((buf[mbedtls_ssl_hs_hdr_len(ssl) + 1 + n] <<  8)
-                   | (buf[mbedtls_ssl_hs_hdr_len(ssl) + 2 + n]));
+    sig_alg_len = MBEDTLS_GET_UINT16_BE(buf, mbedtls_ssl_hs_hdr_len(ssl) + 1 + n);
 
     /*
      * The furthest access in buf is in the loop few lines below:
@@ -2629,8 +2617,7 @@ static int ssl_parse_certificate_request(mbedtls_ssl_context *ssl)
     n += 2 + sig_alg_len;
 
     /* certificate_authorities */
-    dn_len = ((buf[mbedtls_ssl_hs_hdr_len(ssl) + 1 + n] <<  8)
-              | (buf[mbedtls_ssl_hs_hdr_len(ssl) + 2 + n]));
+    dn_len = MBEDTLS_GET_UINT16_BE(buf, mbedtls_ssl_hs_hdr_len(ssl) + 1 + n);
 
     n += dn_len;
     if (ssl->in_hslen != mbedtls_ssl_hs_hdr_len(ssl) + 3 + n) {
@@ -3260,9 +3247,9 @@ static int ssl_write_certificate_verify(mbedtls_ssl_context *ssl)
     size_t hashlen;
     void *rs_ctx = NULL;
 #if defined(MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH)
-    size_t out_buf_len = ssl->out_buf_len - (ssl->out_msg - ssl->out_buf);
+    size_t out_buf_len = ssl->out_buf_len - (size_t) (ssl->out_msg - ssl->out_buf);
 #else
-    size_t out_buf_len = MBEDTLS_SSL_OUT_BUFFER_LEN - (ssl->out_msg - ssl->out_buf);
+    size_t out_buf_len = MBEDTLS_SSL_OUT_BUFFER_LEN - (size_t) (ssl->out_msg - ssl->out_buf);
 #endif
 
     MBEDTLS_SSL_DEBUG_MSG(2, ("=> write certificate verify"));
@@ -3429,10 +3416,9 @@ static int ssl_parse_new_session_ticket(mbedtls_ssl_context *ssl)
 
     msg = ssl->in_msg + mbedtls_ssl_hs_hdr_len(ssl);
 
-    lifetime = (((uint32_t) msg[0]) << 24) | (msg[1] << 16) |
-               (msg[2] << 8) | (msg[3]);
+    lifetime = MBEDTLS_GET_UINT32_BE(msg, 0);
 
-    ticket_len = (msg[4] << 8) | (msg[5]);
+    ticket_len = MBEDTLS_GET_UINT16_BE(msg, 4);
 
     if (ticket_len + 6 + mbedtls_ssl_hs_hdr_len(ssl) != ssl->in_hslen) {
         MBEDTLS_SSL_DEBUG_MSG(1, ("bad new session ticket message"));

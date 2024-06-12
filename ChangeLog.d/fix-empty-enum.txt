@@ -1,3 +1,0 @@
-Bugfix
-   * Fix compile failure due to empty enum in cipher_wrap.c, when building
-     with a very minimal configuration. Fixes #7625.

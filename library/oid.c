@@ -4,19 +4,7 @@
  * \brief Object Identifier (OID) database
  *
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
 #include "common.h"
@@ -554,72 +542,72 @@ typedef struct {
 
 static const oid_ecp_grp_t oid_ecp_grp[] =
 {
-#if defined(MBEDTLS_ECP_DP_SECP192R1_ENABLED)
+#if defined(MBEDTLS_ECP_HAVE_SECP192R1)
     {
         OID_DESCRIPTOR(MBEDTLS_OID_EC_GRP_SECP192R1, "secp192r1",    "secp192r1"),
         MBEDTLS_ECP_DP_SECP192R1,
     },
-#endif /* MBEDTLS_ECP_DP_SECP192R1_ENABLED */
-#if defined(MBEDTLS_ECP_DP_SECP224R1_ENABLED)
+#endif /* MBEDTLS_ECP_HAVE_SECP192R1 */
+#if defined(MBEDTLS_ECP_HAVE_SECP224R1)
     {
         OID_DESCRIPTOR(MBEDTLS_OID_EC_GRP_SECP224R1, "secp224r1",    "secp224r1"),
         MBEDTLS_ECP_DP_SECP224R1,
     },
-#endif /* MBEDTLS_ECP_DP_SECP224R1_ENABLED */
-#if defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED)
+#endif /* MBEDTLS_ECP_HAVE_SECP224R1 */
+#if defined(MBEDTLS_ECP_HAVE_SECP256R1)
     {
         OID_DESCRIPTOR(MBEDTLS_OID_EC_GRP_SECP256R1, "secp256r1",    "secp256r1"),
         MBEDTLS_ECP_DP_SECP256R1,
     },
-#endif /* MBEDTLS_ECP_DP_SECP256R1_ENABLED */
-#if defined(MBEDTLS_ECP_DP_SECP384R1_ENABLED)
+#endif /* MBEDTLS_ECP_HAVE_SECP256R1 */
+#if defined(MBEDTLS_ECP_HAVE_SECP384R1)
     {
         OID_DESCRIPTOR(MBEDTLS_OID_EC_GRP_SECP384R1, "secp384r1",    "secp384r1"),
         MBEDTLS_ECP_DP_SECP384R1,
     },
-#endif /* MBEDTLS_ECP_DP_SECP384R1_ENABLED */
-#if defined(MBEDTLS_ECP_DP_SECP521R1_ENABLED)
+#endif /* MBEDTLS_ECP_HAVE_SECP384R1 */
+#if defined(MBEDTLS_ECP_HAVE_SECP521R1)
     {
         OID_DESCRIPTOR(MBEDTLS_OID_EC_GRP_SECP521R1, "secp521r1",    "secp521r1"),
         MBEDTLS_ECP_DP_SECP521R1,
     },
-#endif /* MBEDTLS_ECP_DP_SECP521R1_ENABLED */
-#if defined(MBEDTLS_ECP_DP_SECP192K1_ENABLED)
+#endif /* MBEDTLS_ECP_HAVE_SECP521R1 */
+#if defined(MBEDTLS_ECP_HAVE_SECP192K1)
     {
         OID_DESCRIPTOR(MBEDTLS_OID_EC_GRP_SECP192K1, "secp192k1",    "secp192k1"),
         MBEDTLS_ECP_DP_SECP192K1,
     },
-#endif /* MBEDTLS_ECP_DP_SECP192K1_ENABLED */
-#if defined(MBEDTLS_ECP_DP_SECP224K1_ENABLED)
+#endif /* MBEDTLS_ECP_HAVE_SECP192K1 */
+#if defined(MBEDTLS_ECP_HAVE_SECP224K1)
     {
         OID_DESCRIPTOR(MBEDTLS_OID_EC_GRP_SECP224K1, "secp224k1",    "secp224k1"),
         MBEDTLS_ECP_DP_SECP224K1,
     },
-#endif /* MBEDTLS_ECP_DP_SECP224K1_ENABLED */
-#if defined(MBEDTLS_ECP_DP_SECP256K1_ENABLED)
+#endif /* MBEDTLS_ECP_HAVE_SECP224K1 */
+#if defined(MBEDTLS_ECP_HAVE_SECP256K1)
     {
         OID_DESCRIPTOR(MBEDTLS_OID_EC_GRP_SECP256K1, "secp256k1",    "secp256k1"),
         MBEDTLS_ECP_DP_SECP256K1,
     },
-#endif /* MBEDTLS_ECP_DP_SECP256K1_ENABLED */
-#if defined(MBEDTLS_ECP_DP_BP256R1_ENABLED)
+#endif /* MBEDTLS_ECP_HAVE_SECP256K1 */
+#if defined(MBEDTLS_ECP_HAVE_BP256R1)
     {
         OID_DESCRIPTOR(MBEDTLS_OID_EC_GRP_BP256R1,   "brainpoolP256r1", "brainpool256r1"),
         MBEDTLS_ECP_DP_BP256R1,
     },
-#endif /* MBEDTLS_ECP_DP_BP256R1_ENABLED */
-#if defined(MBEDTLS_ECP_DP_BP384R1_ENABLED)
+#endif /* MBEDTLS_ECP_HAVE_BP256R1 */
+#if defined(MBEDTLS_ECP_HAVE_BP384R1)
     {
         OID_DESCRIPTOR(MBEDTLS_OID_EC_GRP_BP384R1,   "brainpoolP384r1", "brainpool384r1"),
         MBEDTLS_ECP_DP_BP384R1,
     },
-#endif /* MBEDTLS_ECP_DP_BP384R1_ENABLED */
-#if defined(MBEDTLS_ECP_DP_BP512R1_ENABLED)
+#endif /* MBEDTLS_ECP_HAVE_BP384R1 */
+#if defined(MBEDTLS_ECP_HAVE_BP512R1)
     {
         OID_DESCRIPTOR(MBEDTLS_OID_EC_GRP_BP512R1,   "brainpoolP512r1", "brainpool512r1"),
         MBEDTLS_ECP_DP_BP512R1,
     },
-#endif /* MBEDTLS_ECP_DP_BP512R1_ENABLED */
+#endif /* MBEDTLS_ECP_HAVE_BP512R1 */
     {
         NULL_OID_DESCRIPTOR,
         MBEDTLS_ECP_DP_NONE,
@@ -645,18 +633,18 @@ typedef struct {
 
 static const oid_ecp_grp_algid_t oid_ecp_grp_algid[] =
 {
-#if defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED)
+#if defined(MBEDTLS_ECP_HAVE_CURVE25519)
     {
         OID_DESCRIPTOR(MBEDTLS_OID_X25519,               "X25519",       "X25519"),
         MBEDTLS_ECP_DP_CURVE25519,
     },
-#endif /* MBEDTLS_ECP_DP_CURVE25519_ENABLED */
-#if defined(MBEDTLS_ECP_DP_CURVE448_ENABLED)
+#endif /* MBEDTLS_ECP_HAVE_CURVE25519 */
+#if defined(MBEDTLS_ECP_HAVE_CURVE448)
     {
         OID_DESCRIPTOR(MBEDTLS_OID_X448,                 "X448",         "X448"),
         MBEDTLS_ECP_DP_CURVE448,
     },
-#endif /* MBEDTLS_ECP_DP_CURVE448_ENABLED */
+#endif /* MBEDTLS_ECP_HAVE_CURVE448 */
     {
         NULL_OID_DESCRIPTOR,
         MBEDTLS_ECP_DP_NONE,
@@ -694,6 +682,18 @@ static const oid_cipher_alg_t oid_cipher_alg[] =
     {
         OID_DESCRIPTOR(MBEDTLS_OID_DES_EDE3_CBC,         "des-ede3-cbc", "DES-EDE3-CBC"),
         MBEDTLS_CIPHER_DES_EDE3_CBC,
+    },
+    {
+        OID_DESCRIPTOR(MBEDTLS_OID_AES_128_CBC,          "aes128-cbc", "AES128-CBC"),
+        MBEDTLS_CIPHER_AES_128_CBC,
+    },
+    {
+        OID_DESCRIPTOR(MBEDTLS_OID_AES_192_CBC,          "aes192-cbc", "AES192-CBC"),
+        MBEDTLS_CIPHER_AES_192_CBC,
+    },
+    {
+        OID_DESCRIPTOR(MBEDTLS_OID_AES_256_CBC,          "aes256-cbc", "AES256-CBC"),
+        MBEDTLS_CIPHER_AES_256_CBC,
     },
     {
         NULL_OID_DESCRIPTOR,
@@ -878,7 +878,7 @@ static const oid_md_hmac_t oid_md_hmac[] =
 FN_OID_TYPED_FROM_ASN1(oid_md_hmac_t, md_hmac, oid_md_hmac)
 FN_OID_GET_ATTR1(mbedtls_oid_get_md_hmac, oid_md_hmac_t, md_hmac, mbedtls_md_type_t, md_hmac)
 
-#if defined(MBEDTLS_PKCS12_C)
+#if defined(MBEDTLS_PKCS12_C) && defined(MBEDTLS_CIPHER_C)
 /*
  * For PKCS#12 PBEs
  */
@@ -916,7 +916,7 @@ FN_OID_GET_ATTR2(mbedtls_oid_get_pkcs12_pbe_alg,
                  md_alg,
                  mbedtls_cipher_type_t,
                  cipher_alg)
-#endif /* MBEDTLS_PKCS12_C */
+#endif /* MBEDTLS_PKCS12_C && MBEDTLS_CIPHER_C */
 
 /* Return the x.y.z.... style numeric string for the given OID */
 int mbedtls_oid_get_numeric_string(char *buf, size_t size,
@@ -1141,7 +1141,7 @@ int mbedtls_oid_from_numeric_string(mbedtls_asn1_buf *oid,
         }
     }
 
-    encoded_len = out_ptr - oid->p;
+    encoded_len = (size_t) (out_ptr - oid->p);
     resized_mem = mbedtls_calloc(encoded_len, 1);
     if (resized_mem == NULL) {
         ret = MBEDTLS_ERR_ASN1_ALLOC_FAILED;

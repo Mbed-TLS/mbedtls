@@ -1,5 +1,0 @@
-Bugfix
-   * Add missing md.h includes to some of the external programs from
-     the programs directory. Without this, even though the configuration
-     was sufficient for a particular program to work, it would only print
-     a message that one of the required defines is missing.

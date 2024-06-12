@@ -5,19 +5,7 @@
  */
 /*
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
 #ifndef MBEDTLS_PSA_UTIL_H
@@ -26,44 +14,31 @@
 
 #include "mbedtls/build_info.h"
 
-#if defined(MBEDTLS_PSA_CRYPTO_C)
+#include "psa/crypto.h"
 
-/* Expose whatever RNG the PSA subsystem uses to applications using the
- * mbedtls_xxx API. The declarations and definitions here need to be
- * consistent with the implementation in library/psa_crypto_random_impl.h.
- * See that file for implementation documentation. */
+/* ASN1 defines used in the ECDSA conversion functions.
+ * Note: intentionally not adding MBEDTLS_ASN1_[PARSE|WRITE]_C guards here
+ * otherwise error codes would be unknown in test_suite_psa_crypto_util.data.*/
+#include <mbedtls/asn1write.h>
 
-
-/* The type of a `f_rng` random generator function that many library functions
- * take.
- *
- * This type name is not part of the Mbed TLS stable API. It may be renamed
- * or moved without warning.
- */
-typedef int mbedtls_f_rng_t(void *p_rng, unsigned char *output, size_t output_size);
-
-#if defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG)
+#if defined(MBEDTLS_PSA_CRYPTO_CLIENT)
 
 /** The random generator function for the PSA subsystem.
  *
  * This function is suitable as the `f_rng` random generator function
- * parameter of many `mbedtls_xxx` functions. Use #MBEDTLS_PSA_RANDOM_STATE
- * to obtain the \p p_rng parameter.
+ * parameter of many `mbedtls_xxx` functions.
  *
  * The implementation of this function depends on the configuration of the
  * library.
- *
- * \note Depending on the configuration, this may be a function or
- *       a pointer to a function.
  *
  * \note This function may only be used if the PSA crypto subsystem is active.
  *       This means that you must call psa_crypto_init() before any call to
  *       this function, and you must not call this function after calling
  *       mbedtls_psa_crypto_free().
  *
- * \param p_rng         The random generator context. This must be
- *                      #MBEDTLS_PSA_RANDOM_STATE. No other state is
- *                      supported.
+ * \param p_rng         This parameter is only kept for backward compatibility
+ *                      reasons with legacy `f_rng` functions and it's ignored.
+ *                      Set to #MBEDTLS_PSA_RANDOM_STATE or NULL.
  * \param output        The buffer to fill. It must have room for
  *                      \c output_size bytes.
  * \param output_size   The number of bytes to write to \p output.
@@ -85,32 +60,129 @@ int mbedtls_psa_get_random(void *p_rng,
 
 /** The random generator state for the PSA subsystem.
  *
- * This macro expands to an expression which is suitable as the `p_rng`
- * random generator state parameter of many `mbedtls_xxx` functions.
- * It must be used in combination with the random generator function
- * mbedtls_psa_get_random().
- *
- * The implementation of this macro depends on the configuration of the
- * library. Do not make any assumption on its nature.
+ * This macro always expands to NULL because the `p_rng` parameter is unused
+ * in mbedtls_psa_get_random(), but it's kept for interface's backward
+ * compatibility.
  */
-#define MBEDTLS_PSA_RANDOM_STATE NULL
+#define MBEDTLS_PSA_RANDOM_STATE    NULL
 
-#else /* !defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG) */
+/** \defgroup psa_tls_helpers TLS helper functions
+ * @{
+ */
+#if defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
+#include <mbedtls/ecp.h>
 
-#if defined(MBEDTLS_CTR_DRBG_C)
-#include "mbedtls/ctr_drbg.h"
-typedef mbedtls_ctr_drbg_context mbedtls_psa_drbg_context_t;
-static mbedtls_f_rng_t *const mbedtls_psa_get_random = mbedtls_ctr_drbg_random;
-#elif defined(MBEDTLS_HMAC_DRBG_C)
-#include "mbedtls/hmac_drbg.h"
-typedef mbedtls_hmac_drbg_context mbedtls_psa_drbg_context_t;
-static mbedtls_f_rng_t *const mbedtls_psa_get_random = mbedtls_hmac_drbg_random;
-#endif
-extern mbedtls_psa_drbg_context_t *const mbedtls_psa_random_state;
+/** Convert an ECC curve identifier from the Mbed TLS encoding to PSA.
+ *
+ * \param grpid         An Mbed TLS elliptic curve identifier
+ *                      (`MBEDTLS_ECP_DP_xxx`).
+ * \param[out] bits     On success the bit size of the curve; 0 on failure.
+ *
+ * \return              If the curve is supported in the PSA API, this function
+ *                      returns the proper PSA curve identifier
+ *                      (`PSA_ECC_FAMILY_xxx`). This holds even if the curve is
+ *                      not supported by the ECP module.
+ * \return              \c 0 if the curve is not supported in the PSA API.
+ */
+psa_ecc_family_t mbedtls_ecc_group_to_psa(mbedtls_ecp_group_id grpid,
+                                          size_t *bits);
 
-#define MBEDTLS_PSA_RANDOM_STATE mbedtls_psa_random_state
+/** Convert an ECC curve identifier from the PSA encoding to Mbed TLS.
+ *
+ * \param family        A PSA elliptic curve family identifier
+ *                      (`PSA_ECC_FAMILY_xxx`).
+ * \param bits          The bit-length of a private key on \p curve.
+ *
+ * \return              If the curve is supported in the PSA API, this function
+ *                      returns the corresponding Mbed TLS elliptic curve
+ *                      identifier (`MBEDTLS_ECP_DP_xxx`).
+ * \return              #MBEDTLS_ECP_DP_NONE if the combination of \c curve
+ *                      and \p bits is not supported.
+ */
+mbedtls_ecp_group_id mbedtls_ecc_group_from_psa(psa_ecc_family_t family,
+                                                size_t bits);
+#endif /* PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY */
 
-#endif /* !defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG) */
+/**
+ * \brief           This function returns the PSA algorithm identifier
+ *                  associated with the given digest type.
+ *
+ * \param md_type   The type of digest to search for. Must not be NONE.
+ *
+ * \warning         If \p md_type is \c MBEDTLS_MD_NONE, this function will
+ *                  not return \c PSA_ALG_NONE, but an invalid algorithm.
+ *
+ * \warning         This function does not check if the algorithm is
+ *                  supported, it always returns the corresponding identifier.
+ *
+ * \return          The PSA algorithm identifier associated with \p md_type,
+ *                  regardless of whether it is supported or not.
+ */
+static inline psa_algorithm_t mbedtls_md_psa_alg_from_type(mbedtls_md_type_t md_type)
+{
+    return PSA_ALG_CATEGORY_HASH | (psa_algorithm_t) md_type;
+}
 
-#endif /* MBEDTLS_PSA_CRYPTO_C */
+/**
+ * \brief           This function returns the given digest type
+ *                  associated with the PSA algorithm identifier.
+ *
+ * \param psa_alg   The PSA algorithm identifier to search for.
+ *
+ * \warning         This function does not check if the algorithm is
+ *                  supported, it always returns the corresponding identifier.
+ *
+ * \return          The MD type associated with \p psa_alg,
+ *                  regardless of whether it is supported or not.
+ */
+static inline mbedtls_md_type_t mbedtls_md_type_from_psa_alg(psa_algorithm_t psa_alg)
+{
+    return (mbedtls_md_type_t) (psa_alg & PSA_ALG_HASH_MASK);
+}
+#endif /* MBEDTLS_PSA_CRYPTO_CLIENT */
+
+#if defined(MBEDTLS_PSA_UTIL_HAVE_ECDSA)
+
+/** Convert an ECDSA signature from raw format to DER ASN.1 format.
+ *
+ * \param       bits        Size of each coordinate in bits.
+ * \param       raw         Buffer that contains the signature in raw format.
+ * \param       raw_len     Length of \p raw in bytes. This must be
+ *                          PSA_BITS_TO_BYTES(bits) bytes.
+ * \param[out]  der         Buffer that will be filled with the converted DER
+ *                          output. It can overlap with raw buffer.
+ * \param       der_size    Size of \p der in bytes. It is enough if \p der_size
+ *                          is at least the size of the actual output. (The size
+ *                          of the output can vary depending on the presence of
+ *                          leading zeros in the data.) You can use
+ *                          #MBEDTLS_ECDSA_MAX_SIG_LEN(\p bits) to determine a
+ *                          size that is large enough for all signatures for a
+ *                          given value of \p bits.
+ * \param[out]  der_len     On success it contains the amount of valid data
+ *                          (in bytes) written to \p der. It's undefined
+ *                          in case of failure.
+ */
+int mbedtls_ecdsa_raw_to_der(size_t bits, const unsigned char *raw, size_t raw_len,
+                             unsigned char *der, size_t der_size, size_t *der_len);
+
+/** Convert an ECDSA signature from DER ASN.1 format to raw format.
+ *
+ * \param       bits        Size of each coordinate in bits.
+ * \param       der         Buffer that contains the signature in DER format.
+ * \param       der_len     Size of \p der in bytes.
+ * \param[out]  raw         Buffer that will be filled with the converted raw
+ *                          signature. It can overlap with der buffer.
+ * \param       raw_size    Size of \p raw in bytes. Must be at least
+ *                          2 * PSA_BITS_TO_BYTES(bits) bytes.
+ * \param[out]  raw_len     On success it is updated with the amount of valid
+ *                          data (in bytes) written to \p raw. It's undefined
+ *                          in case of failure.
+ */
+int mbedtls_ecdsa_der_to_raw(size_t bits, const unsigned char *der, size_t der_len,
+                             unsigned char *raw, size_t raw_size, size_t *raw_len);
+
+#endif /* MBEDTLS_PSA_UTIL_HAVE_ECDSA */
+
+/**@}*/
+
 #endif /* MBEDTLS_PSA_UTIL_H */

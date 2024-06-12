@@ -2,19 +2,7 @@
  *  Common code for SSL test programs
  *
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
 #ifndef MBEDTLS_PROGRAMS_SSL_SSL_TEST_LIB_H
@@ -247,6 +235,31 @@ int key_opaque_set_alg_usage(const char *alg1, const char *alg2,
                              psa_algorithm_t *psa_alg2,
                              psa_key_usage_t *usage,
                              mbedtls_pk_type_t key_type);
+
+#if defined(MBEDTLS_PK_C)
+/** Turn a non-opaque PK context into an opaque one with folowing steps:
+ * - extract the key data and attributes from the PK context.
+ * - import the key material into PSA.
+ * - free the provided PK context and re-initilize it as an opaque PK context
+ *   wrapping the PSA key imported in the above step.
+ *
+ * \param[in/out] pk    On input the non-opaque PK context which contains the
+ *                      key to be wrapped. On output the re-initialized PK
+ *                      context which represents the opaque version of the one
+ *                      provided as input.
+ * \param[in] psa_alg   The primary algorithm that will be associated to the
+ *                      PSA key.
+ * \param[in] psa_alg2  The enrollment algorithm that will be associated to the
+ *                      PSA key.
+ * \param[in] psa_usage The PSA key usage policy.
+ * \param[out] key_id   The PSA key identifier of the imported key.
+ *
+ * \return              \c 0 on sucess.
+ * \return              \c -1 on failure.
+ */
+int pk_wrap_as_opaque(mbedtls_pk_context *pk, psa_algorithm_t psa_alg, psa_algorithm_t psa_alg2,
+                      psa_key_usage_t psa_usage, mbedtls_svc_key_id_t *key_id);
+#endif /* MBEDTLS_PK_C */
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO) && defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG)

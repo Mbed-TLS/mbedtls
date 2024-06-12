@@ -1,7 +1,0 @@
-Bugfix
-   * Fix clang and armclang compilation error when targeting certain Arm
-     M-class CPUs (Cortex-M0, Cortex-M0+, Cortex-M1, Cortex-M23,
-     SecurCore SC000). Fixes #1077.
-Changes
-   * Enable Arm / Thumb bignum assembly for most Arm platforms when
-     compiling with gcc, clang or armclang and -O0.

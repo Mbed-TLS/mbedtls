@@ -5,19 +5,7 @@
  */
 /*
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
 #ifndef PSA_CRYPTO_STORAGE_H
@@ -105,7 +93,7 @@ int psa_is_key_present_in_storage(const mbedtls_svc_key_id_t key);
  * \retval #PSA_ERROR_DATA_INVALID \emptydescription
  * \retval #PSA_ERROR_DATA_CORRUPT \emptydescription
  */
-psa_status_t psa_save_persistent_key(const psa_core_key_attributes_t *attr,
+psa_status_t psa_save_persistent_key(const psa_key_attributes_t *attr,
                                      const uint8_t *data,
                                      const size_t data_length);
 
@@ -135,7 +123,7 @@ psa_status_t psa_save_persistent_key(const psa_core_key_attributes_t *attr,
  * \retval #PSA_ERROR_DATA_CORRUPT \emptydescription
  * \retval #PSA_ERROR_DOES_NOT_EXIST \emptydescription
  */
-psa_status_t psa_load_persistent_key(psa_core_key_attributes_t *attr,
+psa_status_t psa_load_persistent_key(psa_key_attributes_t *attr,
                                      uint8_t **data,
                                      size_t *data_length);
 
@@ -175,7 +163,7 @@ void psa_free_persistent_key_data(uint8_t *key_data, size_t key_data_length);
  */
 void psa_format_key_data_for_storage(const uint8_t *data,
                                      const size_t data_length,
-                                     const psa_core_key_attributes_t *attr,
+                                     const psa_key_attributes_t *attr,
                                      uint8_t *storage_data);
 
 /**
@@ -198,7 +186,7 @@ psa_status_t psa_parse_key_data_from_storage(const uint8_t *storage_data,
                                              size_t storage_data_length,
                                              uint8_t **key_data,
                                              size_t *key_data_length,
-                                             psa_core_key_attributes_t *attr);
+                                             psa_key_attributes_t *attr);
 
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
 /** This symbol is defined if transaction support is required. */
@@ -243,8 +231,9 @@ typedef uint16_t psa_crypto_transaction_type_t;
  * This type is designed to be serialized by writing the memory representation
  * and reading it back on the same device.
  *
- * \note The transaction mechanism is designed for a single active transaction
- *       at a time. The transaction object is #psa_crypto_transaction.
+ * \note The transaction mechanism is not thread-safe. There can only be one
+ *       single active transaction at a time.
+ *       The transaction object is #psa_crypto_transaction.
  *
  * \note If an API call starts a transaction, it must complete this transaction
  *       before returning to the application.

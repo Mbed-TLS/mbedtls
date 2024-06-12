@@ -5,19 +5,7 @@
  */
 /*
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
 #ifndef MBEDTLS_SSL_DEBUG_HELPERS_H
@@ -32,6 +20,11 @@
 
 
 const char *mbedtls_ssl_states_str(mbedtls_ssl_states in);
+
+#if defined(MBEDTLS_SSL_EARLY_DATA) && defined(MBEDTLS_SSL_CLI_C)
+const char *mbedtls_ssl_early_data_status_str(mbedtls_ssl_early_data_status in);
+const char *mbedtls_ssl_early_data_state_str(mbedtls_ssl_early_data_state in);
+#endif
 
 const char *mbedtls_ssl_protocol_version_str(mbedtls_ssl_protocol_version in);
 

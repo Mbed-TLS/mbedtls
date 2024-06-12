@@ -5,19 +5,7 @@
  */
 /*
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 #ifndef MBEDTLS_ASN1_WRITE_H
 #define MBEDTLS_ASN1_WRITE_H
@@ -48,7 +36,8 @@
 extern "C" {
 #endif
 
-#if defined(MBEDTLS_ASN1_WRITE_C) || defined(MBEDTLS_X509_USE_C)
+#if defined(MBEDTLS_ASN1_WRITE_C) || defined(MBEDTLS_X509_USE_C) || \
+    defined(MBEDTLS_PSA_UTIL_HAVE_ECDSA)
 /**
  * \brief           Write a length field in ASN.1 format.
  *
@@ -77,7 +66,7 @@ int mbedtls_asn1_write_len(unsigned char **p, const unsigned char *start,
  */
 int mbedtls_asn1_write_tag(unsigned char **p, const unsigned char *start,
                            unsigned char tag);
-#endif /* MBEDTLS_ASN1_WRITE_C || MBEDTLS_X509_USE_C */
+#endif /* MBEDTLS_ASN1_WRITE_C || MBEDTLS_X509_USE_C || MBEDTLS_PSA_UTIL_HAVE_ECDSA*/
 
 #if defined(MBEDTLS_ASN1_WRITE_C)
 /**

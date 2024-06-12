@@ -135,3 +135,12 @@ Guide](docs/architecture/alternative-implementations.md) for more information.
 - Use cryptographic mechanisms that are not based on block ciphers. In
   particular, for authenticated encryption, use ChaCha20/Poly1305 instead of
   block cipher modes. For random generation, use HMAC\_DRBG instead of CTR\_DRBG.
+
+#### Everest
+
+The HACL* implementation of X25519 taken from the Everest project only protects
+against remote timing attacks. (See their [Security
+Policy](https://github.com/hacl-star/hacl-star/blob/main/SECURITY.md).)
+
+The Everest variant is only used when `MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED`
+configuration option is defined. This option is off by default.

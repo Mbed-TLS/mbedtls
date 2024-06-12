@@ -1,3 +1,0 @@
-Features
-    * Add SHA-3 family hash functions.
-

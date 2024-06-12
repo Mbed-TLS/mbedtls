@@ -662,11 +662,11 @@ mbedtls_mpi_uint mbedtls_mpi_core_sub_int(mbedtls_mpi_uint *X,
  * \param[in] A   The MPI to test.
  * \param limbs   Number of limbs in \p A.
  *
- * \return        0 if `A == 0`
- *                non-0 (may be any value) if `A != 0`.
+ * \return        MBEDTLS_CT_FALSE if `A == 0`
+ *                MBEDTLS_CT_TRUE  if `A != 0`.
  */
-mbedtls_mpi_uint mbedtls_mpi_core_check_zero_ct(const mbedtls_mpi_uint *A,
-                                                size_t limbs);
+mbedtls_ct_condition_t mbedtls_mpi_core_check_zero_ct(const mbedtls_mpi_uint *A,
+                                                      size_t limbs);
 
 /**
  * \brief          Returns the number of limbs of working memory required for

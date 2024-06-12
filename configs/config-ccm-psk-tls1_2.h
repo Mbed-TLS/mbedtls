@@ -22,19 +22,20 @@
  * See README.txt for usage instructions.
  */
 
+#define MBEDTLS_PSA_CRYPTO_CONFIG_FILE "../configs/crypto-config-ccm-psk-tls1_2.h"
+
+#define MBEDTLS_PSA_CRYPTO_C
+#define MBEDTLS_PSA_CRYPTO_CONFIG
+#define MBEDTLS_USE_PSA_CRYPTO
+
 /* System support */
 //#define MBEDTLS_HAVE_TIME /* Optionally used in Hello messages */
 /* Other MBEDTLS_HAVE_XXX flags irrelevant for this configuration */
 
 /* Mbed TLS modules */
-#define MBEDTLS_AES_C
-#define MBEDTLS_CCM_C
-#define MBEDTLS_CIPHER_C
 #define MBEDTLS_CTR_DRBG_C
 #define MBEDTLS_ENTROPY_C
-#define MBEDTLS_MD_C
 #define MBEDTLS_NET_C
-#define MBEDTLS_SHA256_C
 #define MBEDTLS_SSL_CLI_C
 #define MBEDTLS_SSL_SRV_C
 #define MBEDTLS_SSL_TLS_C
@@ -71,11 +72,6 @@
  * Minimum is 2 for the entropy test suite.
  */
 #define MBEDTLS_ENTROPY_MAX_SOURCES 2
-
-/* These defines are present so that the config modifying scripts can enable
- * them during tests/scripts/test-ref-configs.pl */
-//#define MBEDTLS_USE_PSA_CRYPTO
-//#define MBEDTLS_PSA_CRYPTO_C
 
 /* Error messages and TLS debugging traces
  * (huge code size increase, needed for tests/ssl-opt.sh) */

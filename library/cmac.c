@@ -34,6 +34,7 @@
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
 #include "mbedtls/platform.h"
+#include "constant_time_internal.h"
 
 #include <string.h>
 
@@ -56,39 +57,33 @@ static int cmac_multiply_by_u(unsigned char *output,
                               size_t blocksize)
 {
     const unsigned char R_128 = 0x87;
-    const unsigned char R_64 = 0x1B;
-    unsigned char R_n, mask;
-    unsigned char overflow = 0x00;
+    unsigned char R_n;
+    uint32_t overflow = 0x00;
     int i;
 
     if (blocksize == MBEDTLS_AES_BLOCK_SIZE) {
         R_n = R_128;
-    } else if (blocksize == MBEDTLS_DES3_BLOCK_SIZE) {
+    }
+#if defined(MBEDTLS_DES_C)
+    else if (blocksize == MBEDTLS_DES3_BLOCK_SIZE) {
+        const unsigned char R_64 = 0x1B;
         R_n = R_64;
-    } else {
+    }
+#endif
+    else {
         return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
     }
 
-    for (i = (int) blocksize - 1; i >= 0; i--) {
-        output[i] = input[i] << 1 | overflow;
-        overflow = input[i] >> 7;
+    for (i = (int) blocksize - 4; i >= 0; i -= 4) {
+        uint32_t i32 = MBEDTLS_GET_UINT32_BE(&input[i], 0);
+        uint32_t new_overflow = i32 >> 31;
+        i32 = (i32 << 1) | overflow;
+        MBEDTLS_PUT_UINT32_BE(i32, &output[i], 0);
+        overflow = new_overflow;
     }
 
-    /* mask = ( input[0] >> 7 ) ? 0xff : 0x00
-     * using bit operations to avoid branches */
-
-    /* MSVC has a warning about unary minus on unsigned, but this is
-     * well-defined and precisely what we want to do here */
-#if defined(_MSC_VER)
-#pragma warning( push )
-#pragma warning( disable : 4146 )
-#endif
-    mask = -(input[0] >> 7);
-#if defined(_MSC_VER)
-#pragma warning( pop )
-#endif
-
-    output[blocksize - 1] ^= R_n & mask;
+    R_n = (unsigned char) mbedtls_ct_uint_if_else_0(mbedtls_ct_bool(input[0] >> 7), R_n);
+    output[blocksize - 1] ^= R_n;
 
     return 0;
 }
@@ -217,6 +212,10 @@ int mbedtls_cipher_cmac_update(mbedtls_cipher_context_t *ctx,
     block_size = mbedtls_cipher_info_get_block_size(ctx->cipher_info);
     state = ctx->cmac_ctx->state;
 
+    /* Without the MBEDTLS_ASSUME below, gcc -O3 will generate a warning of the form
+     * error: writing 16 bytes into a region of size 0 [-Werror=stringop-overflow=] */
+    MBEDTLS_ASSUME(block_size <= MBEDTLS_CMAC_MAX_BLOCK_SIZE);
+
     /* Is there data still to process from the last call, that's greater in
      * size than a block? */
     if (cmac_ctx->unprocessed_len > 0 &&
@@ -284,6 +283,7 @@ int mbedtls_cipher_cmac_finish(mbedtls_cipher_context_t *ctx,
 
     cmac_ctx = ctx->cmac_ctx;
     block_size = mbedtls_cipher_info_get_block_size(ctx->cipher_info);
+    MBEDTLS_ASSUME(block_size <= MBEDTLS_CMAC_MAX_BLOCK_SIZE); // silence GCC warning
     state = cmac_ctx->state;
 
     mbedtls_platform_zeroize(K1, sizeof(K1));

@@ -469,7 +469,7 @@ typedef uint16_t psa_key_derivation_step_t;
  *     - \c flags: must be 0.
  *     - \c data: the public exponent, in little-endian order.
  *       This must be an odd integer and must not be 1.
- *       Implementations must support 65535, should support 3 and may
+ *       Implementations must support 65537, should support 3 and may
  *       support other values.
  *       When not using a driver, Mbed TLS supports values up to \c INT_MAX.
  *       If this is empty or if the custom production parameters are omitted

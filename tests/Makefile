@@ -18,28 +18,28 @@ endif
 
 .PHONY: generated_files
 GENERATED_BIGNUM_DATA_FILES := $(patsubst tests/%,%,$(shell \
-	$(PYTHON) scripts/generate_bignum_tests.py --list || \
+	$(PYTHON) ../framework/scripts/generate_bignum_tests.py --list || \
 	echo FAILED \
 ))
 ifeq ($(GENERATED_BIGNUM_DATA_FILES),FAILED)
-$(error "$(PYTHON) scripts/generate_bignum_tests.py --list" failed)
+$(error "$(PYTHON) ../framework/scripts/generate_bignum_tests.py --list" failed)
 endif
 GENERATED_ECP_DATA_FILES := $(patsubst tests/%,%,$(shell \
-	$(PYTHON) scripts/generate_ecp_tests.py --list || \
+	$(PYTHON) ../framework/scripts/generate_ecp_tests.py --list || \
 	echo FAILED \
 ))
 ifeq ($(GENERATED_ECP_DATA_FILES),FAILED)
-$(error "$(PYTHON) scripts/generate_ecp_tests.py --list" failed)
+$(error "$(PYTHON) ../framework/scripts/generate_ecp_tests.py --list" failed)
 endif
 GENERATED_PSA_DATA_FILES := $(patsubst tests/%,%,$(shell \
-	$(PYTHON) scripts/generate_psa_tests.py --list || \
+	$(PYTHON) ../framework/scripts/generate_psa_tests.py --list || \
 	echo FAILED \
 ))
 ifeq ($(GENERATED_PSA_DATA_FILES),FAILED)
-$(error "$(PYTHON) scripts/generate_psa_tests.py --list" failed)
+$(error "$(PYTHON) ../framework/scripts/generate_psa_tests.py --list" failed)
 endif
 GENERATED_FILES := $(GENERATED_PSA_DATA_FILES) $(GENERATED_ECP_DATA_FILES) $(GENERATED_BIGNUM_DATA_FILES)
-generated_files: $(GENERATED_FILES)
+generated_files: $(GENERATED_FILES) src/test_keys.h src/test_certs.h
 
 # generate_bignum_tests.py and generate_psa_tests.py spend more time analyzing
 # inputs than generating outputs. Its inputs are the same no matter which files
@@ -49,36 +49,36 @@ generated_files: $(GENERATED_FILES)
 # a separate instance of the recipe for each output file.
 .SECONDARY: generated_bignum_test_data generated_ecp_test_data generated_psa_test_data
 $(GENERATED_BIGNUM_DATA_FILES): $(gen_file_dep) generated_bignum_test_data
-generated_bignum_test_data: scripts/generate_bignum_tests.py
-generated_bignum_test_data: ../scripts/mbedtls_dev/bignum_common.py
-generated_bignum_test_data: ../scripts/mbedtls_dev/bignum_core.py
-generated_bignum_test_data: ../scripts/mbedtls_dev/bignum_mod_raw.py
-generated_bignum_test_data: ../scripts/mbedtls_dev/bignum_mod.py
-generated_bignum_test_data: ../scripts/mbedtls_dev/test_case.py
-generated_bignum_test_data: ../scripts/mbedtls_dev/test_data_generation.py
+generated_bignum_test_data: ../framework/scripts/generate_bignum_tests.py
+generated_bignum_test_data: ../framework/scripts/mbedtls_framework/bignum_common.py
+generated_bignum_test_data: ../framework/scripts/mbedtls_framework/bignum_core.py
+generated_bignum_test_data: ../framework/scripts/mbedtls_framework/bignum_mod_raw.py
+generated_bignum_test_data: ../framework/scripts/mbedtls_framework/bignum_mod.py
+generated_bignum_test_data: ../framework/scripts/mbedtls_framework/test_case.py
+generated_bignum_test_data: ../framework/scripts/mbedtls_framework/test_data_generation.py
 generated_bignum_test_data:
 	echo "  Gen   $(GENERATED_BIGNUM_DATA_FILES)"
-	$(PYTHON) scripts/generate_bignum_tests.py
+	$(PYTHON) ../framework/scripts/generate_bignum_tests.py
 
 $(GENERATED_ECP_DATA_FILES): $(gen_file_dep) generated_ecp_test_data
-generated_ecp_test_data: scripts/generate_ecp_tests.py
-generated_ecp_test_data: ../scripts/mbedtls_dev/bignum_common.py
-generated_ecp_test_data: ../scripts/mbedtls_dev/ecp.py
-generated_ecp_test_data: ../scripts/mbedtls_dev/test_case.py
-generated_ecp_test_data: ../scripts/mbedtls_dev/test_data_generation.py
+generated_ecp_test_data: ../framework/scripts/generate_ecp_tests.py
+generated_ecp_test_data: ../framework/scripts/mbedtls_framework/bignum_common.py
+generated_ecp_test_data: ../framework/scripts/mbedtls_framework/ecp.py
+generated_ecp_test_data: ../framework/scripts/mbedtls_framework/test_case.py
+generated_ecp_test_data: ../framework/scripts/mbedtls_framework/test_data_generation.py
 generated_ecp_test_data:
 	echo "  Gen   $(GENERATED_ECP_DATA_FILES)"
-	$(PYTHON) scripts/generate_ecp_tests.py
+	$(PYTHON) ../framework/scripts/generate_ecp_tests.py
 
 $(GENERATED_PSA_DATA_FILES): $(gen_file_dep) generated_psa_test_data
-generated_psa_test_data: scripts/generate_psa_tests.py
-generated_psa_test_data: ../scripts/mbedtls_dev/crypto_data_tests.py
-generated_psa_test_data: ../scripts/mbedtls_dev/crypto_knowledge.py
-generated_psa_test_data: ../scripts/mbedtls_dev/macro_collector.py
-generated_psa_test_data: ../scripts/mbedtls_dev/psa_information.py
-generated_psa_test_data: ../scripts/mbedtls_dev/psa_storage.py
-generated_psa_test_data: ../scripts/mbedtls_dev/test_case.py
-generated_psa_test_data: ../scripts/mbedtls_dev/test_data_generation.py
+generated_psa_test_data: ../framework/scripts/generate_psa_tests.py
+generated_psa_test_data: ../framework/scripts/mbedtls_framework/crypto_data_tests.py
+generated_psa_test_data: ../framework/scripts/mbedtls_framework/crypto_knowledge.py
+generated_psa_test_data: ../framework/scripts/mbedtls_framework/macro_collector.py
+generated_psa_test_data: ../framework/scripts/mbedtls_framework/psa_information.py
+generated_psa_test_data: ../framework/scripts/mbedtls_framework/psa_storage.py
+generated_psa_test_data: ../framework/scripts/mbedtls_framework/test_case.py
+generated_psa_test_data: ../framework/scripts/mbedtls_framework/test_data_generation.py
 ## The generated file only depends on the options that are present in
 ## crypto_config.h, not on which options are set. To avoid regenerating this
 ## file all the time when switching between configurations, don't declare
@@ -90,7 +90,7 @@ generated_psa_test_data: ../include/psa/crypto_extra.h
 generated_psa_test_data: suites/test_suite_psa_crypto_metadata.data
 generated_psa_test_data:
 	echo "  Gen   $(GENERATED_PSA_DATA_FILES) ..."
-	$(PYTHON) scripts/generate_psa_tests.py
+	$(PYTHON) ../framework/scripts/generate_psa_tests.py
 
 # A test application is built for each suites/test_suite_*.data file.
 # Application name is same as .data file's base name and can be
@@ -112,6 +112,13 @@ all: $(BINARIES)
 
 mbedtls_test: $(MBEDTLS_TEST_OBJS)
 
+src/test_certs.h: ../framework/scripts/generate_test_cert_macros.py \
+				  $($(PYTHON) ../framework/scripts/generate_test_cert_macros.py --list-dependencies)
+	$(PYTHON) ../framework/scripts/generate_test_cert_macros.py --output $@
+
+src/test_keys.h: ../framework/scripts/generate_test_keys.py
+	$(PYTHON) ../framework/scripts/generate_test_keys.py --output $@
+
 TEST_OBJS_DEPS = $(wildcard include/test/*.h include/test/*/*.h)
 ifdef RECORD_PSA_STATUS_COVERAGE_LOG
 # Explicitly depend on this header because on a clean copy of the source tree,
@@ -119,6 +126,7 @@ ifdef RECORD_PSA_STATUS_COVERAGE_LOG
 # therefore the wildcard enumeration above doesn't include it.
 TEST_OBJS_DEPS += include/test/instrument_record_status.h
 endif
+TEST_OBJS_DEPS += src/test_certs.h src/test_keys.h
 
 # Rule to compile common test C files in src folder
 src/%.o : src/%.c $(TEST_OBJS_DEPS)
@@ -151,9 +159,9 @@ c: $(C_FILES)
 # dot in .c file's base name.
 #
 .SECONDEXPANSION:
-%.c: suites/$$(firstword $$(subst ., ,$$*)).function suites/%.data scripts/generate_test_code.py suites/helpers.function suites/main_test.function suites/host_test.function
+%.c: suites/$$(firstword $$(subst ., ,$$*)).function suites/%.data ../framework/scripts/generate_test_code.py suites/helpers.function suites/main_test.function suites/host_test.function
 	echo "  Gen   $@"
-	$(PYTHON) scripts/generate_test_code.py -f suites/$(firstword $(subst ., ,$*)).function \
+	$(PYTHON) ../framework/scripts/generate_test_code.py -f suites/$(firstword $(subst ., ,$*)).function \
 		-d suites/$*.data \
 		-t suites/main_test.function \
 		-p suites/host_test.function \
@@ -169,10 +177,12 @@ $(BINARIES): %$(EXEXT): %.c $(MBEDLIBS) $(TEST_OBJS_DEPS) $(MBEDTLS_TEST_OBJS)
 clean:
 ifndef WINDOWS
 	rm -rf $(BINARIES) *.c *.datax
-	rm -f src/*.o src/drivers/*.o src/test_helpers/*.o src/libmbed*
+	rm -f src/*.o src/drivers/*.o src/test_helpers/*.o src/libmbed* src/test_keys.h src/test_certs.h
+	rm -f src/test_keys.h src/test_certs.h
 	rm -f include/test/instrument_record_status.h
 	rm -f include/alt-extra/*/*_alt.h
 	rm -rf libtestdriver1
+	rm -rf libpsaclient libpsaserver
 	rm -f ../library/libtestdriver1.a
 else
 	if exist *.c del /Q /F *.c
@@ -180,6 +190,8 @@ else
 	if exist *.datax del /Q /F *.datax
 	if exist src/*.o del /Q /F src/*.o
 	if exist src/drivers/*.o del /Q /F src/drivers/*.o
+	if exist src/test_keys.h del /Q /F src/test_keys.h
+	if exist src/test_certs.h del /Q /F src/test_cers.h
 	if exist src/test_helpers/*.o del /Q /F src/test_helpers/*.o
 	if exist src/libmbed* del /Q /F src/libmed*
 	if exist include/test/instrument_record_status.h del /Q /F include/test/instrument_record_status.h
@@ -208,6 +220,7 @@ define libtestdriver1_rewrite :=
 	s/\b(?=mbedtls_|psa_)/libtestdriver1_/g;
 endef
 
+libtestdriver1.a: export MBEDTLS_PATH := $(patsubst ../..//%,/%,../../$(MBEDTLS_PATH))
 libtestdriver1.a:
 	# Copy the library and fake a 3rdparty Makefile include.
 	rm -Rf ./libtestdriver1

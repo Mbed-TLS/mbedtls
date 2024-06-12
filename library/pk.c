@@ -35,6 +35,10 @@
 #include <limits.h>
 #include <stdint.h>
 
+#define PSA_EXPORT_KEY_PAIR_OR_PUBLIC_MAX_SIZE \
+    (PSA_EXPORT_KEY_PAIR_MAX_SIZE > PSA_EXPORT_PUBLIC_KEY_MAX_SIZE) ? \
+    PSA_EXPORT_KEY_PAIR_MAX_SIZE : PSA_EXPORT_PUBLIC_KEY_MAX_SIZE
+
 /*
  * Initialise a mbedtls_pk_context
  */
@@ -320,14 +324,14 @@ int mbedtls_pk_can_do_ext(const mbedtls_pk_context *ctx, psa_algorithm_t alg,
     }
 
     psa_algorithm_t key_alg = psa_get_key_algorithm(&attributes);
-    /* Key's enrollment is available only when MBEDTLS_PSA_CRYPTO_CLIENT is
-     * defined, i.e. when the Mbed TLS implementation of PSA Crypto is being used.
+    /* Key's enrollment is available only when an Mbed TLS implementation of PSA
+     * Crypto is being used, i.e. when MBEDTLS_PSA_CRYPTO_C is defined.
      * Even though we don't officially support using other implementations of PSA
-     * Crypto with TLS and X.509 (yet), we're still trying to simplify the life of
-     * people who would like to try it before it's officially supported. */
-#if defined(MBEDTLS_PSA_CRYPTO_CLIENT)
+     * Crypto with TLS and X.509 (yet), we try to keep vendor's customizations
+     * separated. */
+#if defined(MBEDTLS_PSA_CRYPTO_C)
     psa_algorithm_t key_alg2 = psa_get_key_enrollment_algorithm(&attributes);
-#endif /* MBEDTLS_PSA_CRYPTO_CLIENT */
+#endif /* MBEDTLS_PSA_CRYPTO_C */
     key_usage = psa_get_key_usage_flags(&attributes);
     psa_reset_key_attributes(&attributes);
 
@@ -345,11 +349,11 @@ int mbedtls_pk_can_do_ext(const mbedtls_pk_context *ctx, psa_algorithm_t alg,
     if (alg == key_alg) {
         return 1;
     }
-#if defined(MBEDTLS_PSA_CRYPTO_CLIENT)
+#if defined(MBEDTLS_PSA_CRYPTO_C)
     if (alg == key_alg2) {
         return 1;
     }
-#endif /* MBEDTLS_PSA_CRYPTO_CLIENT */
+#endif /* MBEDTLS_PSA_CRYPTO_C */
 
     /*
      * If key_alg [or key_alg2] is a hash-and-sign with a wildcard for the hash,
@@ -357,26 +361,25 @@ int mbedtls_pk_can_do_ext(const mbedtls_pk_context *ctx, psa_algorithm_t alg,
      * then alg is compliant with this key alg
      */
     if (PSA_ALG_IS_SIGN_HASH(alg)) {
-
         if (PSA_ALG_IS_SIGN_HASH(key_alg) &&
             PSA_ALG_SIGN_GET_HASH(key_alg) == PSA_ALG_ANY_HASH &&
             (alg & ~PSA_ALG_HASH_MASK) == (key_alg & ~PSA_ALG_HASH_MASK)) {
             return 1;
         }
-#if defined(MBEDTLS_PSA_CRYPTO_CLIENT)
+#if defined(MBEDTLS_PSA_CRYPTO_C)
         if (PSA_ALG_IS_SIGN_HASH(key_alg2) &&
             PSA_ALG_SIGN_GET_HASH(key_alg2) == PSA_ALG_ANY_HASH &&
             (alg & ~PSA_ALG_HASH_MASK) == (key_alg2 & ~PSA_ALG_HASH_MASK)) {
             return 1;
         }
-#endif /* MBEDTLS_PSA_CRYPTO_CLIENT */
+#endif /* MBEDTLS_PSA_CRYPTO_C */
     }
 
     return 0;
 }
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
-#if defined(MBEDTLS_PSA_CRYPTO_C)
+#if defined(MBEDTLS_PSA_CRYPTO_CLIENT)
 #if defined(MBEDTLS_RSA_C)
 static psa_algorithm_t psa_algorithm_for_rsa(const mbedtls_rsa_context *rsa,
                                              int want_crypt)
@@ -573,7 +576,14 @@ int mbedtls_pk_get_psa_attributes(const mbedtls_pk_context *pk,
     }
 
     psa_set_key_usage_flags(attributes, more_usage);
+    /* Key's enrollment is available only when an Mbed TLS implementation of PSA
+     * Crypto is being used, i.e. when MBEDTLS_PSA_CRYPTO_C is defined.
+     * Even though we don't officially support using other implementations of PSA
+     * Crypto with TLS and X.509 (yet), we try to keep vendor's customizations
+     * separated. */
+#if defined(MBEDTLS_PSA_CRYPTO_C)
     psa_set_key_enrollment_algorithm(attributes, PSA_ALG_NONE);
+#endif
 
     return 0;
 }
@@ -675,10 +685,7 @@ static int import_pair_into_psa(const mbedtls_pk_context *pk,
 #if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
             psa_ecc_family_t from_family = pk->ec_family;
 #else /* MBEDTLS_PK_USE_PSA_EC_DATA */
-            /* We're only reading the key, but mbedtls_ecp_write_key()
-             * is missing a const annotation on its key parameter, so
-             * we need the non-const accessor here. */
-            mbedtls_ecp_keypair *ec = mbedtls_pk_ec_rw(*pk);
+            const mbedtls_ecp_keypair *ec = mbedtls_pk_ec_ro(*pk);
             size_t from_bits = 0;
             psa_ecc_family_t from_family = mbedtls_ecc_group_to_psa(ec->grp.id,
                                                                     &from_bits);
@@ -704,12 +711,9 @@ static int import_pair_into_psa(const mbedtls_pk_context *pk,
                 return MBEDTLS_ERR_PK_TYPE_MISMATCH;
             }
             unsigned char key_buffer[PSA_BITS_TO_BYTES(PSA_VENDOR_ECC_MAX_CURVE_BITS)];
-            /* Make sure to pass the exact key length to
-             * mbedtls_ecp_write_key(), because it writes Montgomery keys
-             * at the start of the buffer but Weierstrass keys at the
-             * end of the buffer. */
-            size_t key_length = PSA_BITS_TO_BYTES(ec->grp.nbits);
-            int ret = mbedtls_ecp_write_key(ec, key_buffer, key_length);
+            size_t key_length = 0;
+            int ret = mbedtls_ecp_write_key_ext(ec, &key_length,
+                                                key_buffer, sizeof(key_buffer));
             if (ret < 0) {
                 return ret;
             }
@@ -856,7 +860,136 @@ int mbedtls_pk_import_into_psa(const mbedtls_pk_context *pk,
         return import_pair_into_psa(pk, attributes, key_id);
     }
 }
-#endif /* MBEDTLS_PSA_CRYPTO_C */
+
+static int copy_from_psa(mbedtls_svc_key_id_t key_id,
+                         mbedtls_pk_context *pk,
+                         int public_only)
+{
+    psa_status_t status;
+    psa_key_attributes_t key_attr = PSA_KEY_ATTRIBUTES_INIT;
+    psa_key_type_t key_type;
+    size_t key_bits;
+    /* Use a buffer size large enough to contain either a key pair or public key. */
+    unsigned char exp_key[PSA_EXPORT_KEY_PAIR_OR_PUBLIC_MAX_SIZE];
+    size_t exp_key_len;
+    int ret = MBEDTLS_ERR_PK_BAD_INPUT_DATA;
+
+    if (pk == NULL) {
+        return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
+    }
+
+    status = psa_get_key_attributes(key_id, &key_attr);
+    if (status != PSA_SUCCESS) {
+        return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
+    }
+
+    if (public_only) {
+        status = psa_export_public_key(key_id, exp_key, sizeof(exp_key), &exp_key_len);
+    } else {
+        status = psa_export_key(key_id, exp_key, sizeof(exp_key), &exp_key_len);
+    }
+    if (status != PSA_SUCCESS) {
+        ret = PSA_PK_TO_MBEDTLS_ERR(status);
+        goto exit;
+    }
+
+    key_type = psa_get_key_type(&key_attr);
+    if (public_only) {
+        key_type = PSA_KEY_TYPE_PUBLIC_KEY_OF_KEY_PAIR(key_type);
+    }
+    key_bits = psa_get_key_bits(&key_attr);
+
+#if defined(MBEDTLS_RSA_C)
+    if ((key_type == PSA_KEY_TYPE_RSA_KEY_PAIR) ||
+        (key_type == PSA_KEY_TYPE_RSA_PUBLIC_KEY)) {
+
+        ret = mbedtls_pk_setup(pk, mbedtls_pk_info_from_type(MBEDTLS_PK_RSA));
+        if (ret != 0) {
+            goto exit;
+        }
+
+        if (key_type == PSA_KEY_TYPE_RSA_KEY_PAIR) {
+            ret = mbedtls_rsa_parse_key(mbedtls_pk_rsa(*pk), exp_key, exp_key_len);
+        } else {
+            ret = mbedtls_rsa_parse_pubkey(mbedtls_pk_rsa(*pk), exp_key, exp_key_len);
+        }
+        if (ret != 0) {
+            goto exit;
+        }
+
+        psa_algorithm_t alg_type = psa_get_key_algorithm(&key_attr);
+        mbedtls_md_type_t md_type = MBEDTLS_MD_NONE;
+        if (PSA_ALG_GET_HASH(alg_type) != PSA_ALG_ANY_HASH) {
+            md_type = mbedtls_md_type_from_psa_alg(alg_type);
+        }
+
+        if (PSA_ALG_IS_RSA_OAEP(alg_type) || PSA_ALG_IS_RSA_PSS(alg_type)) {
+            ret = mbedtls_rsa_set_padding(mbedtls_pk_rsa(*pk), MBEDTLS_RSA_PKCS_V21, md_type);
+        } else if (PSA_ALG_IS_RSA_PKCS1V15_SIGN(alg_type) ||
+                   alg_type == PSA_ALG_RSA_PKCS1V15_CRYPT) {
+            ret = mbedtls_rsa_set_padding(mbedtls_pk_rsa(*pk), MBEDTLS_RSA_PKCS_V15, md_type);
+        }
+        if (ret != 0) {
+            goto exit;
+        }
+    } else
+#endif /* MBEDTLS_RSA_C */
+#if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
+    if (PSA_KEY_TYPE_IS_ECC_KEY_PAIR(key_type) ||
+        PSA_KEY_TYPE_IS_ECC_PUBLIC_KEY(key_type)) {
+        mbedtls_ecp_group_id grp_id;
+
+        ret = mbedtls_pk_setup(pk, mbedtls_pk_info_from_type(MBEDTLS_PK_ECKEY));
+        if (ret != 0) {
+            goto exit;
+        }
+
+        grp_id = mbedtls_ecc_group_from_psa(PSA_KEY_TYPE_ECC_GET_FAMILY(key_type), key_bits);
+        ret = mbedtls_pk_ecc_set_group(pk, grp_id);
+        if (ret != 0) {
+            goto exit;
+        }
+
+        if (PSA_KEY_TYPE_IS_ECC_KEY_PAIR(key_type)) {
+            ret = mbedtls_pk_ecc_set_key(pk, exp_key, exp_key_len);
+            if (ret != 0) {
+                goto exit;
+            }
+            ret = mbedtls_pk_ecc_set_pubkey_from_prv(pk, exp_key, exp_key_len,
+                                                     mbedtls_psa_get_random,
+                                                     MBEDTLS_PSA_RANDOM_STATE);
+        } else {
+            ret = mbedtls_pk_ecc_set_pubkey(pk, exp_key, exp_key_len);
+        }
+        if (ret != 0) {
+            goto exit;
+        }
+    } else
+#endif /* MBEDTLS_PK_HAVE_ECC_KEYS */
+    {
+        (void) key_bits;
+        return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
+    }
+
+exit:
+    psa_reset_key_attributes(&key_attr);
+    mbedtls_platform_zeroize(exp_key, sizeof(exp_key));
+
+    return ret;
+}
+
+int mbedtls_pk_copy_from_psa(mbedtls_svc_key_id_t key_id,
+                             mbedtls_pk_context *pk)
+{
+    return copy_from_psa(key_id, pk, 0);
+}
+
+int mbedtls_pk_copy_public_from_psa(mbedtls_svc_key_id_t key_id,
+                                    mbedtls_pk_context *pk)
+{
+    return copy_from_psa(key_id, pk, 1);
+}
+#endif /* MBEDTLS_PSA_CRYPTO_CLIENT */
 
 /*
  * Helper for mbedtls_pk_sign and mbedtls_pk_verify
@@ -993,6 +1126,12 @@ int mbedtls_pk_verify_ext(mbedtls_pk_type_t type, const void *options,
         return mbedtls_pk_verify(ctx, md_alg, hash, hash_len, sig, sig_len);
     }
 
+    /* Ensure the PK context is of the right type otherwise mbedtls_pk_rsa()
+     * below would return a NULL pointer. */
+    if (mbedtls_pk_get_type(ctx) != MBEDTLS_PK_RSA) {
+        return MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE;
+    }
+
 #if defined(MBEDTLS_RSA_C) && defined(MBEDTLS_PKCS1_V21)
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     const mbedtls_pk_rsassa_pss_options *pss_opts;
@@ -1023,7 +1162,7 @@ int mbedtls_pk_verify_ext(mbedtls_pk_type_t type, const void *options,
         psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
         psa_algorithm_t psa_sig_alg = PSA_ALG_RSA_PSS_ANY_SALT(psa_md_alg);
         p = buf + sizeof(buf);
-        key_len = mbedtls_pk_write_pubkey(&p, buf, ctx);
+        key_len = mbedtls_rsa_write_pubkey(mbedtls_pk_rsa(*ctx), buf, &p);
 
         if (key_len < 0) {
             return key_len;
@@ -1190,9 +1329,17 @@ int mbedtls_pk_sign_ext(mbedtls_pk_type_t pk_type,
     if (mbedtls_pk_get_type(ctx) == MBEDTLS_PK_OPAQUE) {
         psa_status_t status;
 
+        /* PSA_ALG_RSA_PSS() behaves the same as PSA_ALG_RSA_PSS_ANY_SALT() when
+         * performing a signature, but they are encoded differently. Instead of
+         * extracting the proper one from the wrapped key policy, just try both. */
         status = psa_sign_hash(ctx->priv_id, PSA_ALG_RSA_PSS(psa_md_alg),
                                hash, hash_len,
                                sig, sig_size, sig_len);
+        if (status == PSA_ERROR_NOT_PERMITTED) {
+            status = psa_sign_hash(ctx->priv_id, PSA_ALG_RSA_PSS_ANY_SALT(psa_md_alg),
+                                   hash, hash_len,
+                                   sig, sig_size, sig_len);
+        }
         return PSA_PK_RSA_TO_MBEDTLS_ERR(status);
     }
 
@@ -1357,124 +1504,4 @@ mbedtls_pk_type_t mbedtls_pk_get_type(const mbedtls_pk_context *ctx)
     return ctx->pk_info->type;
 }
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-/*
- * Load the key to a PSA key slot,
- * then turn the PK context into a wrapper for that key slot.
- *
- * Currently only works for EC & RSA private keys.
- */
-int mbedtls_pk_wrap_as_opaque(mbedtls_pk_context *pk,
-                              mbedtls_svc_key_id_t *key,
-                              psa_algorithm_t alg,
-                              psa_key_usage_t usage,
-                              psa_algorithm_t alg2)
-{
-#if !defined(MBEDTLS_PK_HAVE_ECC_KEYS) && !defined(MBEDTLS_RSA_C)
-    ((void) pk);
-    ((void) key);
-    ((void) alg);
-    ((void) usage);
-    ((void) alg2);
-#else /* !MBEDTLS_PK_HAVE_ECC_KEYS && !MBEDTLS_RSA_C */
-#if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
-    if (mbedtls_pk_get_type(pk) == MBEDTLS_PK_ECKEY) {
-        size_t d_len;
-        psa_ecc_family_t curve_id;
-        psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-        psa_key_type_t key_type;
-        size_t bits;
-        psa_status_t status;
-
-        /* export the private key material in the format PSA wants */
-#if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
-        unsigned char d[MBEDTLS_PSA_MAX_EC_KEY_PAIR_LENGTH];
-        status = psa_export_key(pk->priv_id, d, sizeof(d), &d_len);
-        if (status != PSA_SUCCESS) {
-            return psa_pk_status_to_mbedtls(status);
-        }
-
-        curve_id = pk->ec_family;
-        bits = pk->ec_bits;
-#else /* MBEDTLS_PK_USE_PSA_EC_DATA */
-        unsigned char d[MBEDTLS_ECP_MAX_BYTES];
-        mbedtls_ecp_keypair *ec = mbedtls_pk_ec_rw(*pk);
-        int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-
-        d_len = PSA_BITS_TO_BYTES(ec->grp.nbits);
-        if ((ret = mbedtls_ecp_write_key(ec, d, d_len)) != 0) {
-            return ret;
-        }
-
-        curve_id = mbedtls_ecc_group_to_psa(ec->grp.id, &bits);
-#endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
-        key_type = PSA_KEY_TYPE_ECC_KEY_PAIR(curve_id);
-
-        /* prepare the key attributes */
-        psa_set_key_type(&attributes, key_type);
-        psa_set_key_bits(&attributes, bits);
-        psa_set_key_usage_flags(&attributes, usage);
-        psa_set_key_algorithm(&attributes, alg);
-        if (alg2 != PSA_ALG_NONE) {
-            psa_set_key_enrollment_algorithm(&attributes, alg2);
-        }
-
-        /* import private key into PSA */
-        status = psa_import_key(&attributes, d, d_len, key);
-        mbedtls_platform_zeroize(d, sizeof(d));
-        if (status != PSA_SUCCESS) {
-            return PSA_PK_TO_MBEDTLS_ERR(status);
-        }
-
-        /* make PK context wrap the key slot */
-        mbedtls_pk_free(pk);
-        mbedtls_pk_init(pk);
-
-        return mbedtls_pk_setup_opaque(pk, *key);
-    } else
-#endif /* MBEDTLS_PK_HAVE_ECC_KEYS */
-#if defined(MBEDTLS_RSA_C)
-    if (mbedtls_pk_get_type(pk) == MBEDTLS_PK_RSA) {
-        unsigned char buf[MBEDTLS_PK_RSA_PRV_DER_MAX_BYTES];
-        psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-        int key_len;
-        psa_status_t status;
-
-        /* export the private key material in the format PSA wants */
-        key_len = mbedtls_pk_write_key_der(pk, buf, sizeof(buf));
-        if (key_len <= 0) {
-            return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
-        }
-
-        /* prepare the key attributes */
-        psa_set_key_type(&attributes, PSA_KEY_TYPE_RSA_KEY_PAIR);
-        psa_set_key_bits(&attributes, mbedtls_pk_get_bitlen(pk));
-        psa_set_key_usage_flags(&attributes, usage);
-        psa_set_key_algorithm(&attributes, alg);
-        if (alg2 != PSA_ALG_NONE) {
-            psa_set_key_enrollment_algorithm(&attributes, alg2);
-        }
-
-        /* import private key into PSA */
-        status = psa_import_key(&attributes,
-                                buf + sizeof(buf) - key_len,
-                                key_len, key);
-
-        mbedtls_platform_zeroize(buf, sizeof(buf));
-
-        if (status != PSA_SUCCESS) {
-            return PSA_PK_TO_MBEDTLS_ERR(status);
-        }
-
-        /* make PK context wrap the key slot */
-        mbedtls_pk_free(pk);
-        mbedtls_pk_init(pk);
-
-        return mbedtls_pk_setup_opaque(pk, *key);
-    } else
-#endif /* MBEDTLS_RSA_C */
-#endif /* !MBEDTLS_PK_HAVE_ECC_KEYS && !MBEDTLS_RSA_C */
-    return MBEDTLS_ERR_PK_TYPE_MISMATCH;
-}
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
 #endif /* MBEDTLS_PK_C */

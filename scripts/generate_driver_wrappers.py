@@ -17,7 +17,9 @@ from traceback import format_tb
 import argparse
 import jsonschema
 import jinja2
-from mbedtls_dev import build_tree
+
+import framework_scripts_path # pylint: disable=unused-import
+from mbedtls_framework import build_tree
 
 JSONSchema = NewType('JSONSchema', object)
 # The Driver is an Object, but practically it's indexable and can called a dictionary to

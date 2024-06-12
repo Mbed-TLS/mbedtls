@@ -78,6 +78,10 @@ enum {
 #undef MBEDTLS_SSL_TLS1_3_LABEL
 };
 
+#if defined(MBEDTLS_SSL_ALPN)
+#define MBEDTLS_TEST_MAX_ALPN_LIST_SIZE 10
+#endif
+
 typedef struct mbedtls_test_ssl_log_pattern {
     const char *pattern;
     size_t counter;
@@ -114,8 +118,12 @@ typedef struct mbedtls_test_handshake_test_options {
     void (*cli_log_fun)(void *, int, const char *, int, const char *);
     int resize_buffers;
     int early_data;
+    int max_early_data_size;
 #if defined(MBEDTLS_SSL_CACHE_C)
     mbedtls_ssl_cache_context *cache;
+#endif
+#if defined(MBEDTLS_SSL_ALPN)
+    const char *alpn_list[MBEDTLS_TEST_MAX_ALPN_LIST_SIZE];
 #endif
 } mbedtls_test_handshake_test_options;
 
@@ -194,6 +202,13 @@ typedef struct mbedtls_test_ssl_endpoint {
 } mbedtls_test_ssl_endpoint;
 
 #endif /* MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED */
+
+/*
+ * Random number generator aimed for TLS unitary tests. Its main purpose is to
+ * simplify the set-up of a random number generator for TLS
+ * unitary tests: no need to set up a good entropy source for example.
+ */
+int mbedtls_test_random(void *p_rng, unsigned char *output, size_t output_len);
 
 /*
  * This function can be passed to mbedtls to receive output logs from it. In

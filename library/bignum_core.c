@@ -490,7 +490,7 @@ mbedtls_mpi_uint mbedtls_mpi_core_mla(mbedtls_mpi_uint *d, size_t d_len,
 
     while (excess_len--) {
         *d += c;
-        c = (*d < c);
+        c = mbedtls_ct_mpi_uint_if(mbedtls_ct_uint_lt(*d, c), 1, 0);
         d++;
     }
 

@@ -400,6 +400,9 @@ mbedtls_mpi_uint mbedtls_mpi_core_sub(mbedtls_mpi_uint *X,
  *
  * This function operates modulo `2^(biL*X_limbs)`.
  *
+ * This function operates in constant time with respect to the values
+ * of \p X and \p A and \p b.
+ *
  * \param[in,out] X  The pointer to the (little-endian) array
  *                   representing the bignum to accumulate onto.
  * \param X_limbs    The number of limbs of \p X. This must be

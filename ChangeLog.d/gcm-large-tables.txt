@@ -1,4 +1,0 @@
-Features
-    * Add support for 8-bit GCM tables for Shoup's algorithm to speedup GCM
-      operations when hardware accelerated AES is not present. Improves
-      performance by around 30% on 64-bit Intel; 125% on Armv7-M.

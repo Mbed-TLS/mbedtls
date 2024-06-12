@@ -85,6 +85,17 @@ def execute_reference_driver_tests(results: Results, ref_component: str, driver_
 def analyze_coverage(results: Results, outcomes: Outcomes,
                      allow_list: typing.List[str], full_coverage: bool) -> None:
     """Check that all available test cases are executed at least once."""
+    # Make sure that the generated data files are present (and up-to-date).
+    # This allows analyze_outcomes.py to run correctly on a fresh Git
+    # checkout.
+    cp = subprocess.run(['make', 'generated_files'],
+                        cwd='tests',
+                        stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                        check=False)
+    if cp.returncode != 0:
+        sys.stderr.write(cp.stdout.decode('utf-8'))
+        results.error("Failed \"make generated_files\" in tests. "
+                      "Coverage analysis may be incorrect.")
     available = check_test_cases.collect_available_test_cases()
     for suite_case in available:
         hit = any(suite_case in comp_outcomes.successes or
@@ -468,6 +479,12 @@ KNOWN_TASKS = {
                 'bignum.generated', 'bignum.misc',
             ],
             'ignored_tests': {
+                'ssl-opt': [
+                    # DHE support in TLS 1.2 requires built-in MBEDTLS_DHM_C
+                    # (because it needs custom groups, which PSA does not
+                    # provide), even with MBEDTLS_USE_PSA_CRYPTO.
+                    re.compile(r'PSK callback:.*\bdhe-psk\b.*'),
+                ],
                 'test_suite_platform': [
                     # Incompatible with sanitizers (e.g. ASan). If the driver
                     # component uses a sanitizer but the reference component

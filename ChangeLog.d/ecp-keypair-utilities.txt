@@ -1,5 +1,0 @@
-Features
-   * Add utility functions to manipulate mbedtls_ecp_keypair objects, filling
-     gaps made by making its fields private: mbedtls_ecp_set_public_key(),
-     mbedtls_ecp_write_public_key(), mbedtls_ecp_keypair_calc_public(),
-     mbedtls_ecp_keypair_get_group_id(). Fixes #5017, #5441, #8367, #8652.

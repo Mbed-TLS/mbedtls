@@ -144,6 +144,15 @@ static void ecdh_init_internal(mbedtls_ecdh_context_mbed *ctx)
 #endif
 }
 
+mbedtls_ecp_group_id mbedtls_ecdh_get_grp_id(mbedtls_ecdh_context *ctx)
+{
+#if defined(MBEDTLS_ECDH_LEGACY_CONTEXT)
+    return ctx->MBEDTLS_PRIVATE(grp).id;
+#else
+    return ctx->MBEDTLS_PRIVATE(grp_id);
+#endif
+}
+
 /*
  * Initialize context
  */

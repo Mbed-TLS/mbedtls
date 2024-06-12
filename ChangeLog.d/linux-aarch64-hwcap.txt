@@ -1,4 +1,0 @@
-Bugfix
-   * On Linux on ARMv8, fix a build error with SHA-256 and SHA-512
-     acceleration detection when the libc headers do not define the
-     corresponding constant. Reported by valord577.

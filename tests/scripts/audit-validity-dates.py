@@ -29,8 +29,8 @@ from cryptography import x509
 from generate_test_code import FileWrapper
 
 import scripts_path # pylint: disable=unused-import
-from mbedtls_dev import build_tree
-from mbedtls_dev import logging_util
+from mbedtls_framework import build_tree
+from mbedtls_framework import logging_util
 
 def check_cryptography_version():
     match = re.match(r'^[0-9]+', cryptography.__version__)

@@ -2231,7 +2231,7 @@ static int rsa_rsassa_pss_sign(mbedtls_rsa_context *ctx,
     if (ctx->padding != MBEDTLS_RSA_PKCS_V21) {
         return MBEDTLS_ERR_RSA_BAD_INPUT_DATA;
     }
-    if (ctx->hash_id == MBEDTLS_MD_NONE) {
+    if ((ctx->hash_id == MBEDTLS_MD_NONE) && (md_alg == MBEDTLS_MD_NONE)) {
         return MBEDTLS_ERR_RSA_BAD_INPUT_DATA;
     }
     return rsa_rsassa_pss_sign_no_mode_check(ctx, f_rng, p_rng, md_alg, hashlen, hash, saltlen,

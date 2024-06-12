@@ -1083,6 +1083,21 @@ exit:
 }
 /* END_CASE */
 
+/* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C:MBEDTLS_FS_IO */
+void mbedtls_x509_get_ca_istrue(char *crt_file, int result)
+{
+    mbedtls_x509_crt   crt;
+    mbedtls_x509_crt_init(&crt);
+    USE_PSA_INIT();
+
+    TEST_EQUAL(mbedtls_x509_crt_parse_file(&crt, crt_file), 0);
+    TEST_EQUAL(mbedtls_x509_crt_get_ca_istrue(&crt), result);
+exit:
+    mbedtls_x509_crt_free(&crt);
+    USE_PSA_DONE();
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C */
 void x509parse_crt(data_t *buf, char *result_str, int result)
 {

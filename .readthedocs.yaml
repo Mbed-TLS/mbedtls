@@ -5,6 +5,11 @@
 # Required
 version: 2
 
+# Include the framework submodule in the build
+submodules:
+  include:
+  - framework
+
 # Set the version of Python and other tools you might need
 build:
   os: ubuntu-20.04

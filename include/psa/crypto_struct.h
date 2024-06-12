@@ -266,35 +266,15 @@ typedef uint16_t psa_key_bits_t;
  * conditionals. */
 #define PSA_MAX_KEY_BITS 0xfff8
 
-/** A mask of flags that can be stored in key attributes.
- *
- * This type is also used internally to store flags in slots. Internal
- * flags are defined in library/psa_crypto_core.h. Internal flags may have
- * the same value as external flags if they are properly handled during
- * key creation and in psa_get_key_attributes.
- */
-typedef uint16_t psa_key_attributes_flag_t;
-
-#define MBEDTLS_PSA_KA_FLAG_HAS_SLOT_NUMBER     \
-    ((psa_key_attributes_flag_t) 0x0001)
-
-/* A mask of key attribute flags used externally only.
- * Only meant for internal checks inside the library. */
-#define MBEDTLS_PSA_KA_MASK_EXTERNAL_ONLY (      \
-        MBEDTLS_PSA_KA_FLAG_HAS_SLOT_NUMBER |    \
-        0)
-
-/* A mask of key attribute flags used both internally and externally.
- * Currently there aren't any. */
-#define MBEDTLS_PSA_KA_MASK_DUAL_USE (          \
-        0)
-
-typedef struct {
+struct psa_key_attributes_s {
+#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
+    psa_key_slot_number_t MBEDTLS_PRIVATE(slot_number);
+    int MBEDTLS_PRIVATE(has_slot_number);
+#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
     psa_key_type_t MBEDTLS_PRIVATE(type);
     psa_key_bits_t MBEDTLS_PRIVATE(bits);
     psa_key_lifetime_t MBEDTLS_PRIVATE(lifetime);
     psa_key_policy_t MBEDTLS_PRIVATE(policy);
-    psa_key_attributes_flag_t MBEDTLS_PRIVATE(flags);
     /* This type has a different layout in the client view wrt the
      * service view of the key id, i.e. in service view usually is
      * expected to have MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER defined
@@ -307,31 +287,18 @@ typedef struct {
      * struct
      */
     mbedtls_svc_key_id_t MBEDTLS_PRIVATE(id);
-} psa_core_key_attributes_t;
-
-#define PSA_CORE_KEY_ATTRIBUTES_INIT { PSA_KEY_TYPE_NONE, 0,            \
-                                       PSA_KEY_LIFETIME_VOLATILE,       \
-                                       PSA_KEY_POLICY_INIT, 0,          \
-                                       MBEDTLS_SVC_KEY_ID_INIT }
-
-struct psa_key_attributes_s {
-#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
-    psa_key_slot_number_t MBEDTLS_PRIVATE(slot_number);
-#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
-    /* With client/service separation, struct psa_key_attributes_s is
-     * marshalled through a transport channel between the client and
-     * service side implementation of the PSA Crypto APIs, thus having
-     * the mbedtls_svc_key_id_t id as the last field of this structure
-     * allows for a more efficient marshalling/unmarshalling of parameters
-     */
-    psa_core_key_attributes_t MBEDTLS_PRIVATE(core);
 };
 
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
-#define PSA_KEY_ATTRIBUTES_INIT { 0, PSA_CORE_KEY_ATTRIBUTES_INIT }
+#define PSA_KEY_ATTRIBUTES_MAYBE_SLOT_NUMBER 0, 0,
 #else
-#define PSA_KEY_ATTRIBUTES_INIT { PSA_CORE_KEY_ATTRIBUTES_INIT }
+#define PSA_KEY_ATTRIBUTES_MAYBE_SLOT_NUMBER
 #endif
+#define PSA_KEY_ATTRIBUTES_INIT { PSA_KEY_ATTRIBUTES_MAYBE_SLOT_NUMBER \
+                                      PSA_KEY_TYPE_NONE, 0,            \
+                                      PSA_KEY_LIFETIME_VOLATILE,       \
+                                      PSA_KEY_POLICY_INIT,             \
+                                      MBEDTLS_SVC_KEY_ID_INIT }
 
 static inline struct psa_key_attributes_s psa_key_attributes_init(void)
 {
@@ -342,12 +309,12 @@ static inline struct psa_key_attributes_s psa_key_attributes_init(void)
 static inline void psa_set_key_id(psa_key_attributes_t *attributes,
                                   mbedtls_svc_key_id_t key)
 {
-    psa_key_lifetime_t lifetime = attributes->MBEDTLS_PRIVATE(core).MBEDTLS_PRIVATE(lifetime);
+    psa_key_lifetime_t lifetime = attributes->MBEDTLS_PRIVATE(lifetime);
 
-    attributes->MBEDTLS_PRIVATE(core).MBEDTLS_PRIVATE(id) = key;
+    attributes->MBEDTLS_PRIVATE(id) = key;
 
     if (PSA_KEY_LIFETIME_IS_VOLATILE(lifetime)) {
-        attributes->MBEDTLS_PRIVATE(core).MBEDTLS_PRIVATE(lifetime) =
+        attributes->MBEDTLS_PRIVATE(lifetime) =
             PSA_KEY_LIFETIME_FROM_PERSISTENCE_AND_LOCATION(
                 PSA_KEY_LIFETIME_PERSISTENT,
                 PSA_KEY_LIFETIME_GET_LOCATION(lifetime));
@@ -357,26 +324,26 @@ static inline void psa_set_key_id(psa_key_attributes_t *attributes,
 static inline mbedtls_svc_key_id_t psa_get_key_id(
     const psa_key_attributes_t *attributes)
 {
-    return attributes->MBEDTLS_PRIVATE(core).MBEDTLS_PRIVATE(id);
+    return attributes->MBEDTLS_PRIVATE(id);
 }
 
 #ifdef MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER
 static inline void mbedtls_set_key_owner_id(psa_key_attributes_t *attributes,
                                             mbedtls_key_owner_id_t owner)
 {
-    attributes->MBEDTLS_PRIVATE(core).MBEDTLS_PRIVATE(id).MBEDTLS_PRIVATE(owner) = owner;
+    attributes->MBEDTLS_PRIVATE(id).MBEDTLS_PRIVATE(owner) = owner;
 }
 #endif
 
 static inline void psa_set_key_lifetime(psa_key_attributes_t *attributes,
                                         psa_key_lifetime_t lifetime)
 {
-    attributes->MBEDTLS_PRIVATE(core).MBEDTLS_PRIVATE(lifetime) = lifetime;
+    attributes->MBEDTLS_PRIVATE(lifetime) = lifetime;
     if (PSA_KEY_LIFETIME_IS_VOLATILE(lifetime)) {
 #ifdef MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER
-        attributes->MBEDTLS_PRIVATE(core).MBEDTLS_PRIVATE(id).MBEDTLS_PRIVATE(key_id) = 0;
+        attributes->MBEDTLS_PRIVATE(id).MBEDTLS_PRIVATE(key_id) = 0;
 #else
-        attributes->MBEDTLS_PRIVATE(core).MBEDTLS_PRIVATE(id) = 0;
+        attributes->MBEDTLS_PRIVATE(id) = 0;
 #endif
     }
 }
@@ -384,7 +351,7 @@ static inline void psa_set_key_lifetime(psa_key_attributes_t *attributes,
 static inline psa_key_lifetime_t psa_get_key_lifetime(
     const psa_key_attributes_t *attributes)
 {
-    return attributes->MBEDTLS_PRIVATE(core).MBEDTLS_PRIVATE(lifetime);
+    return attributes->MBEDTLS_PRIVATE(lifetime);
 }
 
 static inline void psa_extend_key_usage_flags(psa_key_usage_t *usage_flags)
@@ -402,53 +369,53 @@ static inline void psa_set_key_usage_flags(psa_key_attributes_t *attributes,
                                            psa_key_usage_t usage_flags)
 {
     psa_extend_key_usage_flags(&usage_flags);
-    attributes->MBEDTLS_PRIVATE(core).MBEDTLS_PRIVATE(policy).MBEDTLS_PRIVATE(usage) = usage_flags;
+    attributes->MBEDTLS_PRIVATE(policy).MBEDTLS_PRIVATE(usage) = usage_flags;
 }
 
 static inline psa_key_usage_t psa_get_key_usage_flags(
     const psa_key_attributes_t *attributes)
 {
-    return attributes->MBEDTLS_PRIVATE(core).MBEDTLS_PRIVATE(policy).MBEDTLS_PRIVATE(usage);
+    return attributes->MBEDTLS_PRIVATE(policy).MBEDTLS_PRIVATE(usage);
 }
 
 static inline void psa_set_key_algorithm(psa_key_attributes_t *attributes,
                                          psa_algorithm_t alg)
 {
-    attributes->MBEDTLS_PRIVATE(core).MBEDTLS_PRIVATE(policy).MBEDTLS_PRIVATE(alg) = alg;
+    attributes->MBEDTLS_PRIVATE(policy).MBEDTLS_PRIVATE(alg) = alg;
 }
 
 static inline psa_algorithm_t psa_get_key_algorithm(
     const psa_key_attributes_t *attributes)
 {
-    return attributes->MBEDTLS_PRIVATE(core).MBEDTLS_PRIVATE(policy).MBEDTLS_PRIVATE(alg);
+    return attributes->MBEDTLS_PRIVATE(policy).MBEDTLS_PRIVATE(alg);
 }
 
 static inline void psa_set_key_type(psa_key_attributes_t *attributes,
                                     psa_key_type_t type)
 {
-    attributes->MBEDTLS_PRIVATE(core).MBEDTLS_PRIVATE(type) = type;
+    attributes->MBEDTLS_PRIVATE(type) = type;
 }
 
 static inline psa_key_type_t psa_get_key_type(
     const psa_key_attributes_t *attributes)
 {
-    return attributes->MBEDTLS_PRIVATE(core).MBEDTLS_PRIVATE(type);
+    return attributes->MBEDTLS_PRIVATE(type);
 }
 
 static inline void psa_set_key_bits(psa_key_attributes_t *attributes,
                                     size_t bits)
 {
     if (bits > PSA_MAX_KEY_BITS) {
-        attributes->MBEDTLS_PRIVATE(core).MBEDTLS_PRIVATE(bits) = PSA_KEY_BITS_TOO_LARGE;
+        attributes->MBEDTLS_PRIVATE(bits) = PSA_KEY_BITS_TOO_LARGE;
     } else {
-        attributes->MBEDTLS_PRIVATE(core).MBEDTLS_PRIVATE(bits) = (psa_key_bits_t) bits;
+        attributes->MBEDTLS_PRIVATE(bits) = (psa_key_bits_t) bits;
     }
 }
 
 static inline size_t psa_get_key_bits(
     const psa_key_attributes_t *attributes)
 {
-    return attributes->MBEDTLS_PRIVATE(core).MBEDTLS_PRIVATE(bits);
+    return attributes->MBEDTLS_PRIVATE(bits);
 }
 
 /**

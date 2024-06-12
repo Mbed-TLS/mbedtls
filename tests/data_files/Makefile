@@ -706,17 +706,43 @@ keys_rsa_basic_pwd = testkey
 ### Password used for PKCS8-encoded encrypted RSA keys
 keys_rsa_pkcs8_pwd = PolarSSLTest
 
-### Basic 1024-, 2048- and 4096-bit unencrypted RSA keys from which
+### Basic unencrypted RSA keys from which
 ### all other encrypted RSA keys are derived.
+keys_rsa_base =
+### TODO: the commands require OpenSSL 1.x to work as desired. With
+### OpenSSL 3.x, they produce pkcs8 files.
+rsa_pkcs1_768_clear.pem:
+	$(OPENSSL) genrsa -out $@ 768
+keys_rsa_base += rsa_pkcs1_768_clear.pem
+rsa_pkcs1_769_clear.pem:
+	$(OPENSSL) genrsa -out $@ 769
+keys_rsa_base += rsa_pkcs1_769_clear.pem
+rsa_pkcs1_770_clear.pem:
+	$(OPENSSL) genrsa -out $@ 770
+keys_rsa_base += rsa_pkcs1_770_clear.pem
+rsa_pkcs1_776_clear.pem:
+	$(OPENSSL) genrsa -out $@ 776
+keys_rsa_base += rsa_pkcs1_776_clear.pem
+rsa_pkcs1_784_clear.pem:
+	$(OPENSSL) genrsa -out $@ 784
+keys_rsa_base += rsa_pkcs1_784_clear.pem
 rsa_pkcs1_1024_clear.pem:
 	$(OPENSSL) genrsa -out $@ 1024
-all_final += rsa_pkcs1_1024_clear.pem
+keys_rsa_base += rsa_pkcs1_1024_clear.pem
 rsa_pkcs1_2048_clear.pem:
 	$(OPENSSL) genrsa -out $@ 2048
-all_final += rsa_pkcs1_2048_clear.pem
+keys_rsa_base += rsa_pkcs1_2048_clear.pem
 rsa_pkcs1_4096_clear.pem:
 	$(OPENSSL) genrsa -out $@ 4096
-all_final += rsa_pkcs1_4096_clear.pem
+keys_rsa_base += rsa_pkcs1_4096_clear.pem
+
+all_final += $(keys_rsa_base)
+
+### PKCS1-encoded, plaintext RSA keys in derived forms
+
+rsa_pkcs1_%.der: rsa_pkcs1_%.pem
+	$(OPENSSL) pkey -inform PEM -in $< -outform DER -out $@
+all_final += $(keys_rsa_base:.pem=.der)
 
 ###
 ### PKCS1-encoded, encrypted RSA keys
@@ -1170,8 +1196,8 @@ keys_rsa_enc_pkcs8_v2_4096_sha512: keys_rsa_enc_pkcs8_v2_4096_3des_sha512 keys_r
 ### Rules to generate all RSA keys from a particular class
 ###
 
-### Generate basic unencrypted RSA keys
-keys_rsa_unenc: rsa_pkcs1_1024_clear.pem rsa_pkcs1_2048_clear.pem rsa_pkcs1_4096_clear.pem
+### Generate cleartext RSA keys in derived formats
+keys_rsa_cleartext: $(keys_rsa_base) $(keys_rsa_base:.pem=.der)
 
 ### Generate PKCS1-encoded encrypted RSA keys
 keys_rsa_enc_basic: keys_rsa_enc_basic_1024 keys_rsa_enc_basic_2048 keys_rsa_enc_basic_4096
@@ -1183,7 +1209,8 @@ keys_rsa_enc_pkcs8_v1: keys_rsa_enc_pkcs8_v1_1024 keys_rsa_enc_pkcs8_v1_2048 key
 keys_rsa_enc_pkcs8_v2: keys_rsa_enc_pkcs8_v2_1024 keys_rsa_enc_pkcs8_v2_2048 keys_rsa_enc_pkcs8_v2_4096 keys_rsa_enc_pkcs8_v2_1024_sha224 keys_rsa_enc_pkcs8_v2_2048_sha224 keys_rsa_enc_pkcs8_v2_4096_sha224 keys_rsa_enc_pkcs8_v2_1024_sha256 keys_rsa_enc_pkcs8_v2_2048_sha256 keys_rsa_enc_pkcs8_v2_4096_sha256 keys_rsa_enc_pkcs8_v2_1024_sha384 keys_rsa_enc_pkcs8_v2_2048_sha384 keys_rsa_enc_pkcs8_v2_4096_sha384 keys_rsa_enc_pkcs8_v2_1024_sha512 keys_rsa_enc_pkcs8_v2_2048_sha512 keys_rsa_enc_pkcs8_v2_4096_sha512
 
 ### Generate all RSA keys
-keys_rsa_all: keys_rsa_unenc keys_rsa_enc_basic keys_rsa_enc_pkcs8_v1 keys_rsa_enc_pkcs8_v2
+keys_rsa_all: keys_rsa_base keys_rsa_cleartext
+keys_rsa_all: keys_rsa_enc_basic keys_rsa_enc_pkcs8_v1 keys_rsa_enc_pkcs8_v2
 
 ################################################################
 #### Generate various EC keys
@@ -1765,6 +1792,22 @@ server2-sha256.crt: server2.req.sha256
 	$(MBEDTLS_CERT_WRITE) request_file=server2.req.sha256 serial=2 issuer_crt=$(test_ca_crt) issuer_key=$(test_ca_key_file_rsa) issuer_pwd=$(test_ca_pwd_rsa) not_before=20190210144406 not_after=20290210144406 md=SHA256 version=3 output_file=$@
 all_final += server2-sha256.crt
 
+server2-sha256.ku-ka.crt: SERVER2_CRT_SERIAL=22
+server2-sha256.ku-ka.crt: SERVER2_KEY_USAGE=key_agreement
+server2-sha256.ku-ke.crt: SERVER2_CRT_SERIAL=23
+server2-sha256.ku-ke.crt: SERVER2_KEY_USAGE=key_encipherment
+server2-sha256.ku-ds.crt: SERVER2_CRT_SERIAL=24
+server2-sha256.ku-ds.crt: SERVER2_KEY_USAGE=digital_signature
+server2-sha256.ku-ds_ke.crt: SERVER2_CRT_SERIAL=28
+server2-sha256.ku-ds_ke.crt: SERVER2_KEY_USAGE=digital_signature,key_encipherment
+server2-sha256.ku-%.crt: server2.req.sha256
+	$(MBEDTLS_CERT_WRITE) request_file=server2.req.sha256 serial=$(SERVER2_CRT_SERIAL) \
+		issuer_crt=$(test_ca_crt) issuer_key=$(test_ca_key_file_rsa) issuer_pwd=$(test_ca_pwd_rsa) \
+		key_usage="$(SERVER2_KEY_USAGE)" \
+		not_before=20190210144406 not_after=20290210144406 md=SHA256 version=3 output_file=$@
+all_final += server2-sha256.ku-ka.crt server2-sha256.ku-ke.crt server2-sha256.ku-ds.crt server2-sha256.ku-ds_ke.crt
+
+all_final += server2.ku-ka.crt server2.ku-ke.crt server2.ku-ds.crt server2.ku-ds_ke.crt
 server2.ku-ka.crt: SERVER2_CRT_SERIAL=42
 server2.ku-ka.crt: SERVER2_KEY_USAGE=key_agreement
 server2.ku-ke.crt: SERVER2_CRT_SERIAL=43
@@ -2076,72 +2119,6 @@ server2-v1-chain.crt: server2-v1.crt server1-v1.crt
 	cat $^ > $@
 
 ################################################################
-#### Generate C format test certs header
-################################################################
-
-TEST_CERTS_H_INPUT_FILES=test-ca2.crt \
-					test-ca2.crt.der \
-					test-ca2.key.enc \
-					test-ca2.key.der \
-					test-ca-sha256.crt \
-					test-ca-sha256.crt.der \
-					test-ca-sha1.crt \
-					test-ca-sha1.crt.der \
-					test-ca.key \
-					test-ca.key.der \
-					server5.crt \
-					server5.crt.der \
-					server5.key \
-					server5.key.der \
-					server2-sha256.crt \
-					server2-sha256.crt.der \
-					server2.crt \
-					server2.crt.der \
-					server2.key \
-					server2.key.der \
-					cli2.crt \
-					cli2.crt.der \
-					cli2.key \
-					cli2.key.der \
-					cli-rsa-sha256.crt \
-					cli-rsa-sha256.crt.der \
-					cli-rsa.key \
-					cli-rsa.key.der
-../src/test_certs.h: ../scripts/generate_test_cert_macros.py \
-					 $(TEST_CERTS_H_INPUT_FILES)
-	../scripts/generate_test_cert_macros.py --output $@ \
-				--string TEST_CA_CRT_EC_PEM=test-ca2.crt \
-				--binary TEST_CA_CRT_EC_DER=test-ca2.crt.der \
-				--string TEST_CA_KEY_EC_PEM=test-ca2.key.enc \
-				--password TEST_CA_PWD_EC_PEM=PolarSSLTest \
-				--binary TEST_CA_KEY_EC_DER=test-ca2.key.der \
-				--string TEST_CA_CRT_RSA_SHA256_PEM=test-ca-sha256.crt \
-				--binary TEST_CA_CRT_RSA_SHA256_DER=test-ca-sha256.crt.der \
-				--string TEST_CA_CRT_RSA_SHA1_PEM=test-ca-sha1.crt \
-				--binary TEST_CA_CRT_RSA_SHA1_DER=test-ca-sha1.crt.der \
-				--string TEST_CA_KEY_RSA_PEM=test-ca.key \
-				--password TEST_CA_PWD_RSA_PEM=PolarSSLTest \
-				--binary TEST_CA_KEY_RSA_DER=test-ca.key.der \
-				--string TEST_SRV_CRT_EC_PEM=server5.crt \
-				--binary TEST_SRV_CRT_EC_DER=server5.crt.der \
-				--string TEST_SRV_KEY_EC_PEM=server5.key \
-				--binary TEST_SRV_KEY_EC_DER=server5.key.der \
-				--string TEST_SRV_CRT_RSA_SHA256_PEM=server2-sha256.crt \
-				--binary TEST_SRV_CRT_RSA_SHA256_DER=server2-sha256.crt.der \
-				--string TEST_SRV_CRT_RSA_SHA1_PEM=server2.crt \
-				--binary TEST_SRV_CRT_RSA_SHA1_DER=server2.crt.der \
-				--string TEST_SRV_KEY_RSA_PEM=server2.key \
-				--binary TEST_SRV_KEY_RSA_DER=server2.key.der \
-				--string TEST_CLI_CRT_EC_PEM=cli2.crt \
-				--binary TEST_CLI_CRT_EC_DER=cli2.crt.der \
-				--string TEST_CLI_KEY_EC_PEM=cli2.key \
-				--binary TEST_CLI_KEY_EC_DER=cli2.key.der \
-				--string TEST_CLI_CRT_RSA_PEM=cli-rsa-sha256.crt \
-				--binary TEST_CLI_CRT_RSA_DER=cli-rsa-sha256.crt.der \
-				--string TEST_CLI_KEY_RSA_PEM=cli-rsa.key \
-				--binary TEST_CLI_KEY_RSA_DER=cli-rsa.key.der
-
-################################################################
 #### Diffie-Hellman parameters
 ################################################################
 
@@ -2161,7 +2138,7 @@ all: $(all_intermediate) $(all_final)
 
 .PHONY: default all_final all
 .PHONY: keys_rsa_all
-.PHONY: keys_rsa_unenc keys_rsa_enc_basic
+.PHONY: keys_rsa_enc_basic
 .PHONY: keys_rsa_enc_pkcs8_v1 keys_rsa_enc_pkcs8_v2
 .PHONY: keys_rsa_enc_basic_1024 keys_rsa_enc_basic_2048 keys_rsa_enc_basic_4096
 .PHONY: keys_rsa_enc_pkcs8_v1_1024 keys_rsa_enc_pkcs8_v2_1024

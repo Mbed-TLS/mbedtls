@@ -1,2 +1,0 @@
-Features
-   * Added an example program showing how to hash with the PSA API.

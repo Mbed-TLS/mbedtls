@@ -2,6 +2,20 @@ DESTDIR=/usr/local
 PREFIX=mbedtls_
 PERL ?= perl
 
+ifneq (,$(filter-out lib library/%,$(or $(MAKECMDGOALS),all)))
+    ifeq (,$(wildcard framework/exported.make))
+        # Use the define keyword to get a multi-line message.
+        # GNU make appends ".  Stop.", so tweak the ending of our message accordingly.
+        define error_message
+$(MBEDTLS_PATH)/framework/exported.make not found.
+Run `git submodule update --init` to fetch the submodule contents.
+This is a fatal error
+        endef
+        $(error $(error_message))
+    endif
+    include framework/exported.make
+endif
+
 .SILENT:
 
 .PHONY: all no_test programs lib tests install uninstall clean test check lcov apidoc apidoc_clean
@@ -60,7 +74,7 @@ gen_file_dep = |
 endif
 
 .PHONY: visualc_files
-VISUALC_FILES = visualc/VS2013/mbedTLS.sln visualc/VS2013/mbedTLS.vcxproj
+VISUALC_FILES = visualc/VS2017/mbedTLS.sln visualc/VS2017/mbedTLS.vcxproj
 # TODO: $(app).vcxproj for each $(app) in programs/
 visualc_files: $(VISUALC_FILES)
 
@@ -69,9 +83,9 @@ visualc_files: $(VISUALC_FILES)
 # they just need to be present.
 $(VISUALC_FILES): | library/generated_files
 $(VISUALC_FILES): $(gen_file_dep) scripts/generate_visualc_files.pl
-$(VISUALC_FILES): $(gen_file_dep) scripts/data_files/vs2013-app-template.vcxproj
-$(VISUALC_FILES): $(gen_file_dep) scripts/data_files/vs2013-main-template.vcxproj
-$(VISUALC_FILES): $(gen_file_dep) scripts/data_files/vs2013-sln-template.sln
+$(VISUALC_FILES): $(gen_file_dep) scripts/data_files/vs2017-app-template.vcxproj
+$(VISUALC_FILES): $(gen_file_dep) scripts/data_files/vs2017-main-template.vcxproj
+$(VISUALC_FILES): $(gen_file_dep) scripts/data_files/vs2017-sln-template.sln
 # TODO: also the list of .c and .h source files, but not their content
 $(VISUALC_FILES):
 	echo "  Gen   $@ ..."
@@ -147,10 +161,10 @@ neat: clean_more_on_top
 	$(MAKE) -C programs neat
 	$(MAKE) -C tests neat
 ifndef WINDOWS
-	rm -f visualc/VS2013/*.vcxproj visualc/VS2013/mbedTLS.sln
+	rm -f visualc/VS2017/*.vcxproj visualc/VS2017/mbedTLS.sln
 else
-	if exist visualc\VS2013\*.vcxproj del /Q /F visualc\VS2013\*.vcxproj
-	if exist visualc\VS2013\mbedTLS.sln del /Q /F visualc\VS2013\mbedTLS.sln
+	if exist visualc\VS2017\*.vcxproj del /Q /F visualc\VS2017\*.vcxproj
+	if exist visualc\VS2017\mbedTLS.sln del /Q /F visualc\VS2017\mbedTLS.sln
 endif
 
 check: lib tests

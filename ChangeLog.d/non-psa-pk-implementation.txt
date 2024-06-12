@@ -1,3 +1,0 @@
-Changes
-   * mbedtls_pk_sign_ext() is now always available, not just when
-     PSA (MBEDTLS_PSA_CRYPTO_C) is enabled.

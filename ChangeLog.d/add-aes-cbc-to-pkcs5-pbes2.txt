@@ -1,3 +1,0 @@
-Features
-   * Add support for using AES-CBC 128, 192, and 256 bit schemes
-     with PKCS#5 PBES2. Keys encrypted this way can now be parsed by PK parse.

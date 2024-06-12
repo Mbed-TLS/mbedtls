@@ -51,15 +51,15 @@
 
 #if !defined(MBEDTLS_MPI_WINDOW_SIZE)
 /*
- * Maximum window size used for modular exponentiation. Default: 2
+ * Maximum window size used for modular exponentiation. Default: 3
  * Minimum value: 1. Maximum value: 6.
  *
  * Result is an array of ( 2 ** MBEDTLS_MPI_WINDOW_SIZE ) MPIs used
- * for the sliding window calculation. (So 64 by default)
+ * for the sliding window calculation. (So 8 by default)
  *
  * Reduction in size, reduces speed.
  */
-#define MBEDTLS_MPI_WINDOW_SIZE                           2        /**< Maximum window size used. */
+#define MBEDTLS_MPI_WINDOW_SIZE                           3        /**< Maximum window size used. */
 #endif /* !MBEDTLS_MPI_WINDOW_SIZE */
 
 #if !defined(MBEDTLS_MPI_MAX_SIZE)

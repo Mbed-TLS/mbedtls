@@ -16,7 +16,6 @@
 #include <psa/crypto.h>
 #endif
 
-
 #if defined(MBEDTLS_PSA_CRYPTO_C)
 /** Initialize the PSA Crypto subsystem. */
 #define PSA_INIT() PSA_ASSERT(psa_crypto_init())

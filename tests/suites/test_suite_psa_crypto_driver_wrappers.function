@@ -57,7 +57,7 @@ static void ecjpake_do_round(psa_algorithm_t alg, unsigned int primitive,
             /* Server first round Output */
             PSA_ASSERT(psa_pake_output(server, PSA_PAKE_STEP_KEY_SHARE,
                                        buffer0 + buffer0_off,
-                                       512 - buffer0_off, &s_g1_len));
+                                       buffer_length - buffer0_off, &s_g1_len));
             TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits.total,
                        pake_in_driver ? pake_expected_hit_count++ : pake_expected_hit_count);
             TEST_EQUAL(s_g1_len, expected_size_key_share);
@@ -65,7 +65,7 @@ static void ecjpake_do_round(psa_algorithm_t alg, unsigned int primitive,
             buffer0_off += s_g1_len;
             PSA_ASSERT(psa_pake_output(server, PSA_PAKE_STEP_ZK_PUBLIC,
                                        buffer0 + buffer0_off,
-                                       512 - buffer0_off, &s_x1_pk_len));
+                                       buffer_length - buffer0_off, &s_x1_pk_len));
             TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits.total,
                        pake_in_driver ? pake_expected_hit_count++ : pake_expected_hit_count);
             TEST_EQUAL(s_x1_pk_len, expected_size_zk_public);
@@ -73,7 +73,7 @@ static void ecjpake_do_round(psa_algorithm_t alg, unsigned int primitive,
             buffer0_off += s_x1_pk_len;
             PSA_ASSERT(psa_pake_output(server, PSA_PAKE_STEP_ZK_PROOF,
                                        buffer0 + buffer0_off,
-                                       512 - buffer0_off, &s_x1_pr_len));
+                                       buffer_length - buffer0_off, &s_x1_pr_len));
             TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits.total,
                        pake_in_driver ? pake_expected_hit_count++ : pake_expected_hit_count);
             TEST_LE_U(s_x1_pr_len, max_expected_size_zk_proof);
@@ -81,7 +81,7 @@ static void ecjpake_do_round(psa_algorithm_t alg, unsigned int primitive,
             buffer0_off += s_x1_pr_len;
             PSA_ASSERT(psa_pake_output(server, PSA_PAKE_STEP_KEY_SHARE,
                                        buffer0 + buffer0_off,
-                                       512 - buffer0_off, &s_g2_len));
+                                       buffer_length - buffer0_off, &s_g2_len));
             TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits.total,
                        pake_in_driver ? pake_expected_hit_count++ : pake_expected_hit_count);
             TEST_EQUAL(s_g2_len, expected_size_key_share);
@@ -89,7 +89,7 @@ static void ecjpake_do_round(psa_algorithm_t alg, unsigned int primitive,
             buffer0_off += s_g2_len;
             PSA_ASSERT(psa_pake_output(server, PSA_PAKE_STEP_ZK_PUBLIC,
                                        buffer0 + buffer0_off,
-                                       512 - buffer0_off, &s_x2_pk_len));
+                                       buffer_length - buffer0_off, &s_x2_pk_len));
             TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits.total,
                        pake_in_driver ? pake_expected_hit_count++ : pake_expected_hit_count);
             TEST_EQUAL(s_x2_pk_len, expected_size_zk_public);
@@ -97,7 +97,7 @@ static void ecjpake_do_round(psa_algorithm_t alg, unsigned int primitive,
             buffer0_off += s_x2_pk_len;
             PSA_ASSERT(psa_pake_output(server, PSA_PAKE_STEP_ZK_PROOF,
                                        buffer0 + buffer0_off,
-                                       512 - buffer0_off, &s_x2_pr_len));
+                                       buffer_length - buffer0_off, &s_x2_pr_len));
             TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits.total,
                        pake_in_driver ? pake_expected_hit_count++ : pake_expected_hit_count);
             TEST_LE_U(s_x2_pr_len, max_expected_size_zk_proof);
@@ -154,7 +154,7 @@ static void ecjpake_do_round(psa_algorithm_t alg, unsigned int primitive,
             /* Client first round Output */
             PSA_ASSERT(psa_pake_output(client, PSA_PAKE_STEP_KEY_SHARE,
                                        buffer1 + buffer1_off,
-                                       512 - buffer1_off, &c_g1_len));
+                                       buffer_length - buffer1_off, &c_g1_len));
             TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits.total,
                        pake_in_driver ? pake_expected_hit_count++ : pake_expected_hit_count);
             TEST_EQUAL(c_g1_len, expected_size_key_share);
@@ -162,7 +162,7 @@ static void ecjpake_do_round(psa_algorithm_t alg, unsigned int primitive,
             buffer1_off += c_g1_len;
             PSA_ASSERT(psa_pake_output(client, PSA_PAKE_STEP_ZK_PUBLIC,
                                        buffer1 + buffer1_off,
-                                       512 - buffer1_off, &c_x1_pk_len));
+                                       buffer_length - buffer1_off, &c_x1_pk_len));
             TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits.total,
                        pake_in_driver ? pake_expected_hit_count++ : pake_expected_hit_count);
             TEST_EQUAL(c_x1_pk_len, expected_size_zk_public);
@@ -170,7 +170,7 @@ static void ecjpake_do_round(psa_algorithm_t alg, unsigned int primitive,
             buffer1_off += c_x1_pk_len;
             PSA_ASSERT(psa_pake_output(client, PSA_PAKE_STEP_ZK_PROOF,
                                        buffer1 + buffer1_off,
-                                       512 - buffer1_off, &c_x1_pr_len));
+                                       buffer_length - buffer1_off, &c_x1_pr_len));
             TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits.total,
                        pake_in_driver ? pake_expected_hit_count++ : pake_expected_hit_count);
             TEST_LE_U(c_x1_pr_len, max_expected_size_zk_proof);
@@ -178,7 +178,7 @@ static void ecjpake_do_round(psa_algorithm_t alg, unsigned int primitive,
             buffer1_off += c_x1_pr_len;
             PSA_ASSERT(psa_pake_output(client, PSA_PAKE_STEP_KEY_SHARE,
                                        buffer1 + buffer1_off,
-                                       512 - buffer1_off, &c_g2_len));
+                                       buffer_length - buffer1_off, &c_g2_len));
             TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits.total,
                        pake_in_driver ? pake_expected_hit_count++ : pake_expected_hit_count);
             TEST_EQUAL(c_g2_len, expected_size_key_share);
@@ -186,7 +186,7 @@ static void ecjpake_do_round(psa_algorithm_t alg, unsigned int primitive,
             buffer1_off += c_g2_len;
             PSA_ASSERT(psa_pake_output(client, PSA_PAKE_STEP_ZK_PUBLIC,
                                        buffer1 + buffer1_off,
-                                       512 - buffer1_off, &c_x2_pk_len));
+                                       buffer_length - buffer1_off, &c_x2_pk_len));
             TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits.total,
                        pake_in_driver ? pake_expected_hit_count++ : pake_expected_hit_count);
             TEST_EQUAL(c_x2_pk_len, expected_size_zk_public);
@@ -194,7 +194,7 @@ static void ecjpake_do_round(psa_algorithm_t alg, unsigned int primitive,
             buffer1_off += c_x2_pk_len;
             PSA_ASSERT(psa_pake_output(client, PSA_PAKE_STEP_ZK_PROOF,
                                        buffer1 + buffer1_off,
-                                       512 - buffer1_off, &c_x2_pr_len));
+                                       buffer_length - buffer1_off, &c_x2_pr_len));
             TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits.total,
                        pake_in_driver ? pake_expected_hit_count++ : pake_expected_hit_count);
             TEST_LE_U(c_x2_pr_len, max_expected_size_zk_proof);
@@ -290,7 +290,7 @@ static void ecjpake_do_round(psa_algorithm_t alg, unsigned int primitive,
 
             PSA_ASSERT(psa_pake_output(server, PSA_PAKE_STEP_KEY_SHARE,
                                        buffer0 + buffer0_off,
-                                       512 - buffer0_off, &s_a_len));
+                                       buffer_length - buffer0_off, &s_a_len));
             TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits.total,
                        pake_in_driver ? pake_expected_hit_count++ : pake_expected_hit_count);
             TEST_EQUAL(s_a_len, expected_size_key_share);
@@ -298,7 +298,7 @@ static void ecjpake_do_round(psa_algorithm_t alg, unsigned int primitive,
             buffer0_off += s_a_len;
             PSA_ASSERT(psa_pake_output(server, PSA_PAKE_STEP_ZK_PUBLIC,
                                        buffer0 + buffer0_off,
-                                       512 - buffer0_off, &s_x2s_pk_len));
+                                       buffer_length - buffer0_off, &s_x2s_pk_len));
             TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits.total,
                        pake_in_driver ? pake_expected_hit_count++ : pake_expected_hit_count);
             TEST_EQUAL(s_x2s_pk_len, expected_size_zk_public);
@@ -306,7 +306,7 @@ static void ecjpake_do_round(psa_algorithm_t alg, unsigned int primitive,
             buffer0_off += s_x2s_pk_len;
             PSA_ASSERT(psa_pake_output(server, PSA_PAKE_STEP_ZK_PROOF,
                                        buffer0 + buffer0_off,
-                                       512 - buffer0_off, &s_x2s_pr_len));
+                                       buffer_length - buffer0_off, &s_x2s_pr_len));
             TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits.total,
                        pake_in_driver ? pake_expected_hit_count++ : pake_expected_hit_count);
             TEST_LE_U(s_x2s_pr_len, max_expected_size_zk_proof);
@@ -341,7 +341,7 @@ static void ecjpake_do_round(psa_algorithm_t alg, unsigned int primitive,
 
             PSA_ASSERT(psa_pake_output(client, PSA_PAKE_STEP_KEY_SHARE,
                                        buffer1 + buffer1_off,
-                                       512 - buffer1_off, &c_a_len));
+                                       buffer_length - buffer1_off, &c_a_len));
             TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits.total,
                        pake_in_driver ? pake_expected_hit_count++ : pake_expected_hit_count);
             TEST_EQUAL(c_a_len, expected_size_key_share);
@@ -349,7 +349,7 @@ static void ecjpake_do_round(psa_algorithm_t alg, unsigned int primitive,
             buffer1_off += c_a_len;
             PSA_ASSERT(psa_pake_output(client, PSA_PAKE_STEP_ZK_PUBLIC,
                                        buffer1 + buffer1_off,
-                                       512 - buffer1_off, &c_x2s_pk_len));
+                                       buffer_length - buffer1_off, &c_x2s_pk_len));
             TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits.total,
                        pake_in_driver ? pake_expected_hit_count++ : pake_expected_hit_count);
             TEST_EQUAL(c_x2s_pk_len, expected_size_zk_public);
@@ -357,7 +357,7 @@ static void ecjpake_do_round(psa_algorithm_t alg, unsigned int primitive,
             buffer1_off += c_x2s_pk_len;
             PSA_ASSERT(psa_pake_output(client, PSA_PAKE_STEP_ZK_PROOF,
                                        buffer1 + buffer1_off,
-                                       512 - buffer1_off, &c_x2s_pr_len));
+                                       buffer_length - buffer1_off, &c_x2s_pr_len));
             TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits.total,
                        pake_in_driver ? pake_expected_hit_count++ : pake_expected_hit_count);
             TEST_LE_U(c_x2s_pr_len, max_expected_size_zk_proof);
@@ -748,7 +748,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:PSA_WANT_ALG_ECDSA:PSA_WANT_ECC_SECP_R1_256:MBEDTLS_PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_GENERATE */
+/* BEGIN_CASE depends_on:PSA_WANT_ALG_ECDSA:PSA_WANT_ECC_SECP_R1_256:PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_GENERATE */
 void generate_ec_key(int force_status_arg,
                      data_t *fake_output,
                      int expected_status_arg)
@@ -782,13 +782,14 @@ void generate_ec_key(int force_status_arg,
                 fake_output->len;
     }
 
-    mbedtls_test_driver_key_management_hooks.hits = 0;
-    mbedtls_test_driver_key_management_hooks.forced_status = force_status;
-
     PSA_ASSERT(psa_crypto_init());
 
+    mbedtls_test_driver_key_management_hooks.hits = 0;
+    mbedtls_test_driver_key_management_hooks.hits_generate_key = 0;
+    mbedtls_test_driver_key_management_hooks.forced_status = force_status;
+
     actual_status = psa_generate_key(&attributes, &key);
-    TEST_EQUAL(mbedtls_test_driver_key_management_hooks.hits, 1);
+    TEST_EQUAL(mbedtls_test_driver_key_management_hooks.hits_generate_key, 1);
     TEST_EQUAL(actual_status, expected_status);
 
     if (actual_status == PSA_SUCCESS) {
@@ -1495,14 +1496,7 @@ void cipher_entry_points(int alg_arg, int key_type_arg,
         output, output_buffer_size, &function_output_length);
     TEST_EQUAL(mbedtls_test_driver_cipher_hooks.hits_encrypt, 1);
     TEST_EQUAL(status, PSA_ERROR_GENERIC_ERROR);
-    /*
-     * Check that the output buffer is still in the same state.
-     * This will fail if the output buffer is used by the core to pass the IV
-     * it generated to the driver (and is not restored).
-     */
-    for (size_t i = 0; i < output_buffer_size; i++) {
-        TEST_EQUAL(output[i], 0xa5);
-    }
+
     mbedtls_test_driver_cipher_hooks.hits = 0;
 
     /* Test setup call, encrypt */
@@ -1566,14 +1560,6 @@ void cipher_entry_points(int alg_arg, int key_type_arg,
     TEST_EQUAL(mbedtls_test_driver_cipher_hooks.hits_set_iv, 1);
     TEST_EQUAL(status, mbedtls_test_driver_cipher_hooks.forced_status_set_iv);
     mbedtls_test_driver_cipher_hooks.forced_status_set_iv = PSA_SUCCESS;
-    /*
-     * Check that the output buffer is still in the same state.
-     * This will fail if the output buffer is used by the core to pass the IV
-     * it generated to the driver (and is not restored).
-     */
-    for (size_t i = 0; i < 16; i++) {
-        TEST_EQUAL(output[i], 0xa5);
-    }
     /* Failure should prevent further operations from executing on the driver */
     mbedtls_test_driver_cipher_hooks.hits = 0;
     status = psa_cipher_update(&operation,

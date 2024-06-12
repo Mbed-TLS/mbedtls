@@ -1,2 +1,0 @@
-Bugfix
-   * Fix build failure in conda-forge.  Fixes #8422.

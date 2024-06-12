@@ -1,7 +1,0 @@
-Changes
-   * Extended PSA Crypto configurations options for FFDH by making it possible
-     to select only some of the parameters / groups, with the macros
-     PSA_WANT_DH_RFC7919_XXXX. You now need to defined the corresponding macro
-     for each size you want to support. Also, if you have an FFDH accelerator,
-     you'll need to define the appropriate MBEDTLS_PSA_ACCEL macros to signal
-     support for these domain parameters.

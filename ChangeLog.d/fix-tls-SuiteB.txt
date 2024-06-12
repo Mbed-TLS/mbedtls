@@ -1,3 +1,0 @@
-Bugfix
-   * Remove accidental introduction of RSA signature algorithms
-     in TLS Suite B Profile. Fixes #8221.

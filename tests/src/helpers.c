@@ -13,6 +13,9 @@
 #include <test/psa_crypto_helpers.h>
 #endif
 
+#if defined(MBEDTLS_TEST_HOOKS) && defined(MBEDTLS_PSA_CRYPTO_C)
+#include <test/psa_memory_poisoning_wrappers.h>
+#endif
 #if defined(MBEDTLS_THREADING_C)
 #include "mbedtls/threading.h"
 #endif
@@ -314,6 +317,12 @@ int mbedtls_test_platform_setup(void)
 {
     int ret = 0;
 
+#if defined(MBEDTLS_TEST_HOOKS) && defined(MBEDTLS_PSA_CRYPTO_C) \
+    && !defined(MBEDTLS_PSA_ASSUME_EXCLUSIVE_BUFFERS) \
+    && defined(MBEDTLS_TEST_MEMORY_CAN_POISON)
+    mbedtls_poison_test_hooks_setup();
+#endif
+
 #if defined(MBEDTLS_PSA_INJECT_ENTROPY)
     /* Make sure that injected entropy is present. Otherwise
      * psa_crypto_init() will fail. This is not necessary for test suites
@@ -338,6 +347,11 @@ int mbedtls_test_platform_setup(void)
 
 void mbedtls_test_platform_teardown(void)
 {
+#if defined(MBEDTLS_TEST_HOOKS) && defined(MBEDTLS_PSA_CRYPTO_C) \
+    && !defined(MBEDTLS_PSA_ASSUME_EXCLUSIVE_BUFFERS) \
+    &&  defined(MBEDTLS_TEST_MEMORY_CAN_POISON)
+    mbedtls_poison_test_hooks_teardown();
+#endif
 #ifdef MBEDTLS_THREADING_C
     mbedtls_mutex_free(&mbedtls_test_info_mutex);
 #endif /* MBEDTLS_THREADING_C */

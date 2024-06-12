@@ -1,4 +1,0 @@
-Bugfix
-   * Fix unsupported PSA asymmetric encryption and decryption
-     (psa_asymmetric_[en|de]crypt) with opaque keys.
-     Resolves #8461.

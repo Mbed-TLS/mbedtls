@@ -23,7 +23,7 @@ run_test    "TLS 1.3: G->m: all/psk, good" \
             -s "Found PSK_EPHEMERAL KEX MODE" \
             -s "Found PSK KEX MODE" \
             -s "Pre shared key found" \
-            -S "No matched PSK or ticket" \
+            -S "No usable PSK or ticket" \
             -s "key exchange mode: psk$"  \
             -S "key exchange mode: psk_ephemeral"  \
             -S "key exchange mode: ephemeral"
@@ -41,7 +41,7 @@ run_test    "TLS 1.3: G->m: all/psk, fail, key id mismatch" \
             -s "found pre_shared_key extension" \
             -s "Found PSK_EPHEMERAL KEX MODE" \
             -s "Found PSK KEX MODE" \
-            -s "No matched PSK or ticket" \
+            -s "No usable PSK or ticket" \
             -S "key exchange mode: psk$"  \
             -S "key exchange mode: psk_ephemeral"  \
             -S "key exchange mode: ephemeral"
@@ -78,7 +78,7 @@ run_test    "TLS 1.3: G->m: psk_or_ephemeral/psk, good" \
             -S "Found PSK_EPHEMERAL KEX MODE" \
             -s "Found PSK KEX MODE" \
             -s "Pre shared key found" \
-            -S "No matched PSK or ticket" \
+            -S "No usable PSK or ticket" \
             -s "key exchange mode: psk$"  \
             -S "key exchange mode: psk_ephemeral"  \
             -S "key exchange mode: ephemeral"
@@ -96,7 +96,7 @@ run_test    "TLS 1.3: G->m: psk_or_ephemeral/psk, fail, key id mismatch" \
             -s "found pre_shared_key extension" \
             -S "Found PSK_EPHEMERAL KEX MODE" \
             -s "Found PSK KEX MODE" \
-            -s "No matched PSK or ticket" \
+            -s "No usable PSK or ticket" \
             -S "key exchange mode: psk$"  \
             -S "key exchange mode: psk_ephemeral"  \
             -S "key exchange mode: ephemeral"
@@ -133,7 +133,7 @@ run_test    "TLS 1.3: G->m: ephemeral_all/psk_ephemeral, good" \
             -s "Found PSK_EPHEMERAL KEX MODE" \
             -S "Found PSK KEX MODE" \
             -s "Pre shared key found" \
-            -S "No matched PSK or ticket" \
+            -S "No usable PSK or ticket" \
             -S "key exchange mode: psk$"  \
             -s "key exchange mode: psk_ephemeral"  \
             -S "key exchange mode: ephemeral"
@@ -151,7 +151,7 @@ run_test    "TLS 1.3: G->m: ephemeral_all/psk_ephemeral, fail, key id mismatch" 
             -s "found pre_shared_key extension" \
             -s "Found PSK_EPHEMERAL KEX MODE" \
             -S "Found PSK KEX MODE" \
-            -s "No matched PSK or ticket" \
+            -s "No usable PSK or ticket" \
             -S "key exchange mode: psk$"  \
             -S "key exchange mode: psk_ephemeral"  \
             -S "key exchange mode: ephemeral"
@@ -188,7 +188,7 @@ run_test    "TLS 1.3: G->m: all/psk_ephemeral, good" \
             -s "Found PSK_EPHEMERAL KEX MODE" \
             -s "Found PSK KEX MODE" \
             -s "Pre shared key found" \
-            -S "No matched PSK or ticket" \
+            -S "No usable PSK or ticket" \
             -S "key exchange mode: psk$"  \
             -s "key exchange mode: psk_ephemeral"  \
             -S "key exchange mode: ephemeral"
@@ -206,7 +206,7 @@ run_test    "TLS 1.3: G->m: all/psk_ephemeral, fail, key id mismatch" \
             -s "found pre_shared_key extension" \
             -s "Found PSK_EPHEMERAL KEX MODE" \
             -s "Found PSK KEX MODE" \
-            -s "No matched PSK or ticket" \
+            -s "No usable PSK or ticket" \
             -S "key exchange mode: psk$"  \
             -S "key exchange mode: psk_ephemeral"  \
             -S "key exchange mode: ephemeral"
@@ -261,7 +261,7 @@ run_test    "TLS 1.3: G->m: ephemeral_all/psk_all, good" \
             -s "Found PSK_EPHEMERAL KEX MODE" \
             -S "Found PSK KEX MODE" \
             -s "Pre shared key found" \
-            -S "No matched PSK or ticket" \
+            -S "No usable PSK or ticket" \
             -S "key exchange mode: psk$"  \
             -s "key exchange mode: psk_ephemeral"  \
             -S "key exchange mode: ephemeral"
@@ -280,7 +280,7 @@ run_test    "TLS 1.3: G->m: ephemeral_all/psk_all, fail, key id mismatch" \
             -s "found pre_shared_key extension" \
             -s "Found PSK_EPHEMERAL KEX MODE" \
             -S "Found PSK KEX MODE" \
-            -s "No matched PSK or ticket" \
+            -s "No usable PSK or ticket" \
             -S "key exchange mode: psk$"  \
             -S "key exchange mode: psk_ephemeral"  \
             -S "key exchange mode: ephemeral"
@@ -319,7 +319,7 @@ run_test    "TLS 1.3: G->m: all/psk_all, good" \
             -s "Found PSK_EPHEMERAL KEX MODE" \
             -s "Found PSK KEX MODE" \
             -s "Pre shared key found" \
-            -S "No matched PSK or ticket" \
+            -S "No usable PSK or ticket" \
             -S "key exchange mode: psk$"  \
             -s "key exchange mode: psk_ephemeral"  \
             -S "key exchange mode: ephemeral"
@@ -338,7 +338,7 @@ run_test    "TLS 1.3: G->m: all/psk_all, fail, key id mismatch" \
             -s "found pre_shared_key extension" \
             -s "Found PSK_EPHEMERAL KEX MODE" \
             -s "Found PSK KEX MODE" \
-            -s "No matched PSK or ticket" \
+            -s "No usable PSK or ticket" \
             -S "key exchange mode: psk$"  \
             -S "key exchange mode: psk_ephemeral"  \
             -S "key exchange mode: ephemeral"
@@ -377,7 +377,7 @@ run_test    "TLS 1.3: G->m: psk_or_ephemeral/psk_all, good" \
             -S "Found PSK_EPHEMERAL KEX MODE" \
             -s "Found PSK KEX MODE" \
             -s "Pre shared key found" \
-            -S "No matched PSK or ticket" \
+            -S "No usable PSK or ticket" \
             -s "key exchange mode: psk$"  \
             -S "key exchange mode: psk_ephemeral"  \
             -S "key exchange mode: ephemeral"
@@ -396,7 +396,7 @@ run_test    "TLS 1.3: G->m: psk_or_ephemeral/psk_all, fail, key id mismatch" \
             -s "found pre_shared_key extension" \
             -S "Found PSK_EPHEMERAL KEX MODE" \
             -s "Found PSK KEX MODE" \
-            -s "No matched PSK or ticket" \
+            -s "No usable PSK or ticket" \
             -S "key exchange mode: psk$"  \
             -S "key exchange mode: psk_ephemeral"  \
             -S "key exchange mode: ephemeral"
@@ -435,7 +435,7 @@ run_test    "TLS 1.3: G->m: ephemeral_all/ephemeral_all, good" \
             -s "Found PSK_EPHEMERAL KEX MODE" \
             -S "Found PSK KEX MODE" \
             -s "Pre shared key found" \
-            -S "No matched PSK or ticket" \
+            -S "No usable PSK or ticket" \
             -S "key exchange mode: psk$"  \
             -s "key exchange mode: psk_ephemeral"  \
             -S "key exchange mode: ephemeral"
@@ -454,7 +454,7 @@ run_test    "TLS 1.3: G->m: ephemeral_all/ephemeral_all, good, key id mismatch, 
             -s "found pre_shared_key extension" \
             -s "Found PSK_EPHEMERAL KEX MODE" \
             -S "Found PSK KEX MODE" \
-            -s "No matched PSK or ticket" \
+            -s "No usable PSK or ticket" \
             -S "key exchange mode: psk$"  \
             -S "key exchange mode: psk_ephemeral"  \
             -s "key exchange mode: ephemeral"
@@ -493,7 +493,7 @@ run_test    "TLS 1.3: G->m: all/ephemeral_all, good" \
             -s "Found PSK_EPHEMERAL KEX MODE" \
             -s "Found PSK KEX MODE" \
             -s "Pre shared key found" \
-            -S "No matched PSK or ticket" \
+            -S "No usable PSK or ticket" \
             -S "key exchange mode: psk$"  \
             -s "key exchange mode: psk_ephemeral"  \
             -S "key exchange mode: ephemeral"
@@ -512,7 +512,7 @@ run_test    "TLS 1.3: G->m: all/ephemeral_all, good, key id mismatch, dhe." \
             -s "found pre_shared_key extension" \
             -s "Found PSK_EPHEMERAL KEX MODE" \
             -s "Found PSK KEX MODE" \
-            -s "No matched PSK or ticket" \
+            -s "No usable PSK or ticket" \
             -S "key exchange mode: psk$"  \
             -S "key exchange mode: psk_ephemeral"  \
             -s "key exchange mode: ephemeral"
@@ -550,8 +550,9 @@ run_test    "TLS 1.3: G->m: psk_or_ephemeral/ephemeral_all, good" \
             -s "found pre_shared_key extension" \
             -S "Found PSK_EPHEMERAL KEX MODE" \
             -s "Found PSK KEX MODE" \
+            -s "No suitable PSK key exchange mode" \
             -S "Pre shared key found" \
-            -S "No matched PSK or ticket" \
+            -s "No usable PSK or ticket" \
             -S "key exchange mode: psk$"  \
             -S "key exchange mode: psk_ephemeral"  \
             -s "key exchange mode: ephemeral"
@@ -572,7 +573,7 @@ run_test    "TLS 1.3: G->m: ephemeral_all/all, good" \
             -s "Found PSK_EPHEMERAL KEX MODE" \
             -S "Found PSK KEX MODE" \
             -s "Pre shared key found" \
-            -S "No matched PSK or ticket" \
+            -S "No usable PSK or ticket" \
             -S "key exchange mode: psk$"  \
             -s "key exchange mode: psk_ephemeral"  \
             -S "key exchange mode: ephemeral"
@@ -592,7 +593,7 @@ run_test    "TLS 1.3: G->m: ephemeral_all/all, good, key id mismatch, dhe." \
             -s "found pre_shared_key extension" \
             -s "Found PSK_EPHEMERAL KEX MODE" \
             -S "Found PSK KEX MODE" \
-            -s "No matched PSK or ticket" \
+            -s "No usable PSK or ticket" \
             -S "key exchange mode: psk$"  \
             -S "key exchange mode: psk_ephemeral"  \
             -s "key exchange mode: ephemeral"
@@ -633,7 +634,7 @@ run_test    "TLS 1.3: G->m: all/all, good" \
             -s "Found PSK_EPHEMERAL KEX MODE" \
             -s "Found PSK KEX MODE" \
             -s "Pre shared key found" \
-            -S "No matched PSK or ticket" \
+            -S "No usable PSK or ticket" \
             -S "key exchange mode: psk$"  \
             -s "key exchange mode: psk_ephemeral"  \
             -S "key exchange mode: ephemeral"
@@ -653,7 +654,7 @@ run_test    "TLS 1.3: G->m: all/all, good, key id mismatch, dhe." \
             -s "found pre_shared_key extension" \
             -s "Found PSK_EPHEMERAL KEX MODE" \
             -s "Found PSK KEX MODE" \
-            -s "No matched PSK or ticket" \
+            -s "No usable PSK or ticket" \
             -S "key exchange mode: psk$"  \
             -S "key exchange mode: psk_ephemeral"  \
             -s "key exchange mode: ephemeral"
@@ -694,7 +695,7 @@ run_test    "TLS 1.3: G->m: psk_or_ephemeral/all, good" \
             -S "Found PSK_EPHEMERAL KEX MODE" \
             -s "Found PSK KEX MODE" \
             -s "Pre shared key found" \
-            -S "No matched PSK or ticket" \
+            -S "No usable PSK or ticket" \
             -S "key exchange mode: psk$"  \
             -S "key exchange mode: psk_ephemeral"  \
             -s "key exchange mode: ephemeral"
@@ -733,8 +734,9 @@ run_test    "TLS 1.3: G->m: ephemeral_all/psk_or_ephemeral, good" \
             -s "found pre_shared_key extension" \
             -s "Found PSK_EPHEMERAL KEX MODE" \
             -S "Found PSK KEX MODE" \
+            -s "No suitable PSK key exchange mode" \
             -S "Pre shared key found" \
-            -S "No matched PSK or ticket" \
+            -s "No usable PSK or ticket" \
             -S "key exchange mode: psk$"  \
             -S "key exchange mode: psk_ephemeral"  \
             -s "key exchange mode: ephemeral"
@@ -754,7 +756,7 @@ run_test    "TLS 1.3: G->m: all/psk_or_ephemeral, good" \
             -s "Found PSK_EPHEMERAL KEX MODE" \
             -s "Found PSK KEX MODE" \
             -s "Pre shared key found" \
-            -S "No matched PSK or ticket" \
+            -S "No usable PSK or ticket" \
             -S "key exchange mode: psk$"  \
             -S "key exchange mode: psk_ephemeral"  \
             -s "key exchange mode: ephemeral"
@@ -793,7 +795,7 @@ run_test    "TLS 1.3: G->m: psk_or_ephemeral/psk_or_ephemeral, good" \
             -S "Found PSK_EPHEMERAL KEX MODE" \
             -s "Found PSK KEX MODE" \
             -s "Pre shared key found" \
-            -S "No matched PSK or ticket" \
+            -S "No usable PSK or ticket" \
             -S "key exchange mode: psk$"  \
             -S "key exchange mode: psk_ephemeral"  \
             -s "key exchange mode: ephemeral"
@@ -921,7 +923,7 @@ run_test    "TLS 1.3: O->m: all/psk, good" \
             -s "Found PSK_EPHEMERAL KEX MODE" \
             -s "Found PSK KEX MODE" \
             -s "Pre shared key found" \
-            -S "No matched PSK or ticket" \
+            -S "No usable PSK or ticket" \
             -s "key exchange mode: psk$"  \
             -S "key exchange mode: psk_ephemeral"  \
             -S "key exchange mode: ephemeral"
@@ -938,7 +940,7 @@ run_test    "TLS 1.3: O->m: all/psk, fail, key id mismatch" \
             -s "found pre_shared_key extension" \
             -s "Found PSK_EPHEMERAL KEX MODE" \
             -s "Found PSK KEX MODE" \
-            -s "No matched PSK or ticket" \
+            -s "No usable PSK or ticket" \
             -S "key exchange mode: psk$"  \
             -S "key exchange mode: psk_ephemeral"  \
             -S "key exchange mode: ephemeral"
@@ -973,7 +975,7 @@ run_test    "TLS 1.3: O->m: ephemeral_all/psk_ephemeral, good" \
             -s "Found PSK_EPHEMERAL KEX MODE" \
             -S "Found PSK KEX MODE" \
             -s "Pre shared key found" \
-            -S "No matched PSK or ticket" \
+            -S "No usable PSK or ticket" \
             -S "key exchange mode: psk$"  \
             -s "key exchange mode: psk_ephemeral"  \
             -S "key exchange mode: ephemeral"
@@ -990,7 +992,7 @@ run_test    "TLS 1.3: O->m: ephemeral_all/psk_ephemeral, fail, key id mismatch" 
             -s "found pre_shared_key extension" \
             -s "Found PSK_EPHEMERAL KEX MODE" \
             -S "Found PSK KEX MODE" \
-            -s "No matched PSK or ticket" \
+            -s "No usable PSK or ticket" \
             -S "key exchange mode: psk$"  \
             -S "key exchange mode: psk_ephemeral"  \
             -S "key exchange mode: ephemeral"
@@ -1025,7 +1027,7 @@ run_test    "TLS 1.3: O->m: all/psk_ephemeral, good" \
             -s "Found PSK_EPHEMERAL KEX MODE" \
             -s "Found PSK KEX MODE" \
             -s "Pre shared key found" \
-            -S "No matched PSK or ticket" \
+            -S "No usable PSK or ticket" \
             -S "key exchange mode: psk$"  \
             -s "key exchange mode: psk_ephemeral"  \
             -S "key exchange mode: ephemeral"
@@ -1042,7 +1044,7 @@ run_test    "TLS 1.3: O->m: all/psk_ephemeral, fail, key id mismatch" \
             -s "found pre_shared_key extension" \
             -s "Found PSK_EPHEMERAL KEX MODE" \
             -s "Found PSK KEX MODE" \
-            -s "No matched PSK or ticket" \
+            -s "No usable PSK or ticket" \
             -S "key exchange mode: psk$"  \
             -S "key exchange mode: psk_ephemeral"  \
             -S "key exchange mode: ephemeral"
@@ -1078,7 +1080,7 @@ run_test    "TLS 1.3: O->m: ephemeral_all/psk_all, good" \
             -s "Found PSK_EPHEMERAL KEX MODE" \
             -S "Found PSK KEX MODE" \
             -s "Pre shared key found" \
-            -S "No matched PSK or ticket" \
+            -S "No usable PSK or ticket" \
             -S "key exchange mode: psk$"  \
             -s "key exchange mode: psk_ephemeral"  \
             -S "key exchange mode: ephemeral"
@@ -1096,7 +1098,7 @@ run_test    "TLS 1.3: O->m: ephemeral_all/psk_all, fail, key id mismatch" \
             -s "found pre_shared_key extension" \
             -s "Found PSK_EPHEMERAL KEX MODE" \
             -S "Found PSK KEX MODE" \
-            -s "No matched PSK or ticket" \
+            -s "No usable PSK or ticket" \
             -S "key exchange mode: psk$"  \
             -S "key exchange mode: psk_ephemeral"  \
             -S "key exchange mode: ephemeral"
@@ -1133,7 +1135,7 @@ run_test    "TLS 1.3: O->m: all/psk_all, good" \
             -s "Found PSK_EPHEMERAL KEX MODE" \
             -s "Found PSK KEX MODE" \
             -s "Pre shared key found" \
-            -S "No matched PSK or ticket" \
+            -S "No usable PSK or ticket" \
             -S "key exchange mode: psk$"  \
             -s "key exchange mode: psk_ephemeral"  \
             -S "key exchange mode: ephemeral"
@@ -1151,7 +1153,7 @@ run_test    "TLS 1.3: O->m: all/psk_all, fail, key id mismatch" \
             -s "found pre_shared_key extension" \
             -s "Found PSK_EPHEMERAL KEX MODE" \
             -s "Found PSK KEX MODE" \
-            -s "No matched PSK or ticket" \
+            -s "No usable PSK or ticket" \
             -S "key exchange mode: psk$"  \
             -S "key exchange mode: psk_ephemeral"  \
             -S "key exchange mode: ephemeral"
@@ -1188,7 +1190,7 @@ run_test    "TLS 1.3: O->m: ephemeral_all/ephemeral_all, good" \
             -s "Found PSK_EPHEMERAL KEX MODE" \
             -S "Found PSK KEX MODE" \
             -s "Pre shared key found" \
-            -S "No matched PSK or ticket" \
+            -S "No usable PSK or ticket" \
             -S "key exchange mode: psk$"  \
             -s "key exchange mode: psk_ephemeral"  \
             -S "key exchange mode: ephemeral"
@@ -1206,7 +1208,7 @@ run_test    "TLS 1.3: O->m: ephemeral_all/ephemeral_all, good, key id mismatch, 
             -s "found pre_shared_key extension" \
             -s "Found PSK_EPHEMERAL KEX MODE" \
             -S "Found PSK KEX MODE" \
-            -s "No matched PSK or ticket" \
+            -s "No usable PSK or ticket" \
             -S "key exchange mode: psk$"  \
             -S "key exchange mode: psk_ephemeral"  \
             -s "key exchange mode: ephemeral"
@@ -1243,7 +1245,7 @@ run_test    "TLS 1.3: O->m: all/ephemeral_all, good" \
             -s "Found PSK_EPHEMERAL KEX MODE" \
             -s "Found PSK KEX MODE" \
             -s "Pre shared key found" \
-            -S "No matched PSK or ticket" \
+            -S "No usable PSK or ticket" \
             -S "key exchange mode: psk$"  \
             -s "key exchange mode: psk_ephemeral"  \
             -S "key exchange mode: ephemeral"
@@ -1261,7 +1263,7 @@ run_test    "TLS 1.3: O->m: all/ephemeral_all, good, key id mismatch, dhe." \
             -s "found pre_shared_key extension" \
             -s "Found PSK_EPHEMERAL KEX MODE" \
             -s "Found PSK KEX MODE" \
-            -s "No matched PSK or ticket" \
+            -s "No usable PSK or ticket" \
             -S "key exchange mode: psk$"  \
             -S "key exchange mode: psk_ephemeral"  \
             -s "key exchange mode: ephemeral"
@@ -1299,7 +1301,7 @@ run_test    "TLS 1.3: O->m: ephemeral_all/all, good" \
             -s "Found PSK_EPHEMERAL KEX MODE" \
             -S "Found PSK KEX MODE" \
             -s "Pre shared key found" \
-            -S "No matched PSK or ticket" \
+            -S "No usable PSK or ticket" \
             -S "key exchange mode: psk$"  \
             -s "key exchange mode: psk_ephemeral"  \
             -S "key exchange mode: ephemeral"
@@ -1318,7 +1320,7 @@ run_test    "TLS 1.3: O->m: ephemeral_all/all, good, key id mismatch, dhe." \
             -s "found pre_shared_key extension" \
             -s "Found PSK_EPHEMERAL KEX MODE" \
             -S "Found PSK KEX MODE" \
-            -s "No matched PSK or ticket" \
+            -s "No usable PSK or ticket" \
             -S "key exchange mode: psk$"  \
             -S "key exchange mode: psk_ephemeral"  \
             -s "key exchange mode: ephemeral"
@@ -1357,7 +1359,7 @@ run_test    "TLS 1.3: O->m: all/all, good" \
             -s "Found PSK_EPHEMERAL KEX MODE" \
             -s "Found PSK KEX MODE" \
             -s "Pre shared key found" \
-            -S "No matched PSK or ticket" \
+            -S "No usable PSK or ticket" \
             -S "key exchange mode: psk$"  \
             -s "key exchange mode: psk_ephemeral"  \
             -S "key exchange mode: ephemeral"
@@ -1376,7 +1378,7 @@ run_test    "TLS 1.3: O->m: all/all, good, key id mismatch, dhe." \
             -s "found pre_shared_key extension" \
             -s "Found PSK_EPHEMERAL KEX MODE" \
             -s "Found PSK KEX MODE" \
-            -s "No matched PSK or ticket" \
+            -s "No usable PSK or ticket" \
             -S "key exchange mode: psk$"  \
             -S "key exchange mode: psk_ephemeral"  \
             -s "key exchange mode: ephemeral"
@@ -1413,8 +1415,9 @@ run_test    "TLS 1.3: O->m: ephemeral_all/psk_or_ephemeral, good" \
             -s "found pre_shared_key extension" \
             -s "Found PSK_EPHEMERAL KEX MODE" \
             -S "Found PSK KEX MODE" \
+            -s "No suitable PSK key exchange mode" \
             -S "Pre shared key found" \
-            -S "No matched PSK or ticket" \
+            -s "No usable PSK or ticket" \
             -S "key exchange mode: psk$"  \
             -S "key exchange mode: psk_ephemeral"  \
             -s "key exchange mode: ephemeral"
@@ -1433,7 +1436,7 @@ run_test    "TLS 1.3: O->m: all/psk_or_ephemeral, good" \
             -s "Found PSK_EPHEMERAL KEX MODE" \
             -s "Found PSK KEX MODE" \
             -s "Pre shared key found" \
-            -S "No matched PSK or ticket" \
+            -S "No usable PSK or ticket" \
             -S "key exchange mode: psk$"  \
             -S "key exchange mode: psk_ephemeral"  \
             -s "key exchange mode: ephemeral"
@@ -1457,8 +1460,10 @@ run_test    "TLS 1.3: O->m: all/psk_or_ephemeral, fail, key material mismatch" \
             -S "key exchange mode: ephemeral"
 
 requires_openssl_tls1_3_with_compatible_ephemeral
-requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
-requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
+requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
+                             MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED \
+                             PSA_WANT_ALG_ECDH PSA_WANT_ECC_SECP_R1_256
 run_test    "TLS 1.3: O->m: psk_ephemeral group(secp256r1) check, good" \
             "$P_SRV tls13_kex_modes=psk_ephemeral debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
             "$O_NEXT_CLI -tls1_3 -msg  -allow_no_dhe_kex -groups P-256 \
@@ -1470,8 +1475,10 @@ run_test    "TLS 1.3: O->m: psk_ephemeral group(secp256r1) check, good" \
             -S "key exchange mode: ephemeral"
 
 requires_openssl_tls1_3_with_compatible_ephemeral
-requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
-requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
+requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
+                             MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED \
+                             PSA_WANT_ALG_ECDH PSA_WANT_ECC_SECP_R1_384
 run_test    "TLS 1.3: O->m: psk_ephemeral group(secp384r1) check, good" \
             "$P_SRV tls13_kex_modes=psk_ephemeral debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
             "$O_NEXT_CLI -tls1_3 -msg  -allow_no_dhe_kex -groups secp384r1 \
@@ -1483,8 +1490,10 @@ run_test    "TLS 1.3: O->m: psk_ephemeral group(secp384r1) check, good" \
             -S "key exchange mode: ephemeral"
 
 requires_openssl_tls1_3_with_compatible_ephemeral
-requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
-requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
+requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
+                             MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED \
+                             PSA_WANT_ALG_ECDH PSA_WANT_ECC_SECP_R1_521
 run_test    "TLS 1.3: O->m: psk_ephemeral group(secp521r1) check, good" \
             "$P_SRV tls13_kex_modes=psk_ephemeral debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
             "$O_NEXT_CLI -tls1_3 -msg  -allow_no_dhe_kex -groups secp521r1 \
@@ -1496,8 +1505,10 @@ run_test    "TLS 1.3: O->m: psk_ephemeral group(secp521r1) check, good" \
             -S "key exchange mode: ephemeral"
 
 requires_openssl_tls1_3_with_compatible_ephemeral
-requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
-requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
+requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
+                             MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED \
+                             PSA_WANT_ALG_ECDH PSA_WANT_ECC_MONTGOMERY_255
 run_test    "TLS 1.3: O->m: psk_ephemeral group(x25519) check, good" \
             "$P_SRV tls13_kex_modes=psk_ephemeral debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
             "$O_NEXT_CLI -tls1_3 -msg  -allow_no_dhe_kex -groups X25519 \
@@ -1509,8 +1520,10 @@ run_test    "TLS 1.3: O->m: psk_ephemeral group(x25519) check, good" \
             -S "key exchange mode: ephemeral"
 
 requires_openssl_tls1_3_with_compatible_ephemeral
-requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
-requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
+requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
+                             MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED \
+                             PSA_WANT_ALG_ECDH PSA_WANT_ECC_MONTGOMERY_448
 run_test    "TLS 1.3: O->m: psk_ephemeral group(x448) check, good" \
             "$P_SRV tls13_kex_modes=psk_ephemeral debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
             "$O_NEXT_CLI -tls1_3 -msg  -allow_no_dhe_kex -groups X448 \
@@ -1521,9 +1534,11 @@ run_test    "TLS 1.3: O->m: psk_ephemeral group(x448) check, good" \
             -s "key exchange mode: psk_ephemeral"  \
             -S "key exchange mode: ephemeral"
 
-requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_openssl_tls1_3_with_compatible_ephemeral
-requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
+requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
+                             MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED \
+                             PSA_WANT_ALG_ECDH PSA_WANT_ECC_SECP_R1_384
 run_test "TLS 1.3 O->m: psk_ephemeral group(secp256r1->secp384r1) check, good" \
          "$P_SRV tls13_kex_modes=psk_ephemeral debug_level=5 psk_list=Client_identity,6162636465666768696a6b6c6d6e6f70,abc,dead,def,beef groups=secp384r1" \
          "$O_NEXT_CLI_NO_CERT -tls1_3 -msg -allow_no_dhe_kex -psk_identity Client_identity -psk 6162636465666768696a6b6c6d6e6f70 -groups P-256:P-384" \
@@ -1534,12 +1549,13 @@ run_test "TLS 1.3 O->m: psk_ephemeral group(secp256r1->secp384r1) check, good" \
          -s "key exchange mode: psk_ephemeral" \
          -S "key exchange mode: ephemeral"
 
-requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
-requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
-requires_config_enabled PSA_WANT_ALG_ECDH
+requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
+                             MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED \
+                             PSA_WANT_ALG_ECDH PSA_WANT_ECC_SECP_R1_384
 run_test "TLS 1.3 G->m: psk_ephemeral group(secp256r1->secp384r1) check, good" \
          "$P_SRV tls13_kex_modes=psk_ephemeral debug_level=5 psk_list=Client_identity,6162636465666768696a6b6c6d6e6f70,abc,dead,def,beef groups=secp384r1" \
          "$G_NEXT_CLI_NO_CERT --debug=4 --single-key-share --priority NORMAL:-VERS-ALL:-KX-ALL:+ECDHE-PSK:+DHE-PSK:+PSK:+VERS-TLS1.3:-GROUP-ALL:+GROUP-SECP256R1:+GROUP-SECP384R1 --pskusername Client_identity --pskkey 6162636465666768696a6b6c6d6e6f70 localhost" \
@@ -1580,7 +1596,7 @@ run_test    "TLS 1.3: m->m: psk/psk, fail, key id mismatch" \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
             -c "client hello, adding psk_key_exchange_modes extension" \
             -c "client hello, adding PSK binder list" \
-            -s "No matched PSK or ticket"
+            -s "No usable PSK or ticket"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_SRV_C
@@ -1665,7 +1681,7 @@ run_test    "TLS 1.3: m->m: psk/psk_all, fail, key id mismatch" \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
             -c "client hello, adding psk_key_exchange_modes extension" \
             -c "client hello, adding PSK binder list" \
-            -s "No matched PSK or ticket" \
+            -s "No usable PSK or ticket" \
             -s "ClientHello message misses mandatory extensions."
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
@@ -1711,7 +1727,7 @@ run_test    "TLS 1.3: m->m: psk/all, fail, key id mismatch" \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
             -c "client hello, adding psk_key_exchange_modes extension" \
             -c "client hello, adding PSK binder list" \
-            -s "No matched PSK or ticket" \
+            -s "No usable PSK or ticket" \
             -s "ClientHello message misses mandatory extensions."
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
@@ -1769,7 +1785,7 @@ run_test    "TLS 1.3: m->m: psk_ephemeral/psk_ephemeral, fail, key id mismatch" 
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
             -c "client hello, adding psk_key_exchange_modes extension" \
             -c "client hello, adding PSK binder list" \
-            -s "No matched PSK or ticket" \
+            -s "No usable PSK or ticket" \
             -s "ClientHello message misses mandatory extensions."
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
@@ -1827,7 +1843,7 @@ run_test    "TLS 1.3: m->m: psk_ephemeral/ephemeral_all, fail, key id mismatch" 
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
             -c "client hello, adding psk_key_exchange_modes extension" \
             -c "client hello, adding PSK binder list" \
-            -s "No matched PSK or ticket"
+            -s "No usable PSK or ticket"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_SRV_C
@@ -1870,7 +1886,7 @@ run_test    "TLS 1.3: m->m: psk_ephemeral/psk_all, fail, key id mismatch" \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
             -c "client hello, adding psk_key_exchange_modes extension" \
             -c "client hello, adding PSK binder list" \
-            -s "No matched PSK or ticket" \
+            -s "No usable PSK or ticket" \
             -s "ClientHello message misses mandatory extensions."
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
@@ -1916,7 +1932,7 @@ run_test    "TLS 1.3: m->m: psk_ephemeral/all, fail, key id mismatch" \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
             -c "client hello, adding psk_key_exchange_modes extension" \
             -c "client hello, adding PSK binder list" \
-            -s "No matched PSK or ticket" \
+            -s "No usable PSK or ticket" \
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_SRV_C
@@ -2047,7 +2063,7 @@ run_test    "TLS 1.3: m->m: ephemeral_all/psk_ephemeral, fail, key id mismatch" 
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
             -c "client hello, adding psk_key_exchange_modes extension" \
             -c "client hello, adding PSK binder list" \
-            -s "No matched PSK or ticket"
+            -s "No usable PSK or ticket"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_SRV_C
@@ -2106,7 +2122,7 @@ run_test    "TLS 1.3: m->m: ephemeral_all/ephemeral_all,good,key id mismatch,fal
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
             -c "client hello, adding psk_key_exchange_modes extension" \
             -c "client hello, adding PSK binder list" \
-            -s "No matched PSK or ticket" \
+            -s "No usable PSK or ticket" \
             -s "key exchange mode: ephemeral"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
@@ -2152,7 +2168,7 @@ run_test    "TLS 1.3: m->m: ephemeral_all/psk_all, fail, key id mismatch" \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
             -c "client hello, adding psk_key_exchange_modes extension" \
             -c "client hello, adding PSK binder list" \
-            -s "No matched PSK or ticket" \
+            -s "No usable PSK or ticket" \
             -s "ClientHello message misses mandatory extensions."
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
@@ -2199,7 +2215,7 @@ run_test    "TLS 1.3: m->m: ephemeral_all/all, good, key id mismatch, fallback" 
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
             -c "client hello, adding psk_key_exchange_modes extension" \
             -c "client hello, adding PSK binder list" \
-            -s "No matched PSK or ticket" \
+            -s "No usable PSK or ticket" \
             -s "key exchange mode: ephemeral"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
@@ -2288,7 +2304,7 @@ run_test    "TLS 1.3: m->m: psk_all/psk_ephemeral, fail, key id mismatch" \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
             -c "client hello, adding psk_key_exchange_modes extension" \
             -c "client hello, adding PSK binder list" \
-            -s "No matched PSK or ticket" \
+            -s "No usable PSK or ticket" \
             -s "ClientHello message misses mandatory extensions."
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
@@ -2348,7 +2364,7 @@ run_test    "TLS 1.3: m->m: psk_all/ephemeral_all, fail, key id mismatch" \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
             -c "client hello, adding psk_key_exchange_modes extension" \
             -c "client hello, adding PSK binder list" \
-            -s "No matched PSK or ticket"
+            -s "No usable PSK or ticket"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_SRV_C
@@ -2392,7 +2408,7 @@ run_test    "TLS 1.3: m->m: psk_all/psk_all, fail, key id mismatch" \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
             -c "client hello, adding psk_key_exchange_modes extension" \
             -c "client hello, adding PSK binder list" \
-            -s "No matched PSK or ticket" \
+            -s "No usable PSK or ticket" \
             -s "ClientHello message misses mandatory extensions."
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
@@ -2438,7 +2454,7 @@ run_test    "TLS 1.3: m->m: psk_all/all, fail, key id mismatch" \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
             -c "client hello, adding psk_key_exchange_modes extension" \
             -c "client hello, adding PSK binder list" \
-            -s "No matched PSK or ticket"
+            -s "No usable PSK or ticket"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_SRV_C
@@ -2485,7 +2501,7 @@ run_test    "TLS 1.3: m->m: all/psk, fail, key id mismatch" \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
             -c "client hello, adding psk_key_exchange_modes extension" \
             -c "client hello, adding PSK binder list" \
-            -s "No matched PSK or ticket" \
+            -s "No usable PSK or ticket" \
             -s "ClientHello message misses mandatory extensions."
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
@@ -2532,7 +2548,7 @@ run_test    "TLS 1.3: m->m: all/psk_ephemeral, fail, key id mismatch" \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
             -c "client hello, adding psk_key_exchange_modes extension" \
             -c "client hello, adding PSK binder list" \
-            -s "No matched PSK or ticket" \
+            -s "No usable PSK or ticket" \
             -s "ClientHello message misses mandatory extensions."
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
@@ -2595,7 +2611,7 @@ run_test    "TLS 1.3: m->m: all/ephemeral_all, good, key id mismatch, fallback" 
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
             -c "client hello, adding psk_key_exchange_modes extension" \
             -c "client hello, adding PSK binder list" \
-            -s "No matched PSK or ticket" \
+            -s "No usable PSK or ticket" \
             -c "Selected key exchange mode: ephemeral" \
             -c "HTTP/1.0 200 OK"
 
@@ -2643,7 +2659,7 @@ run_test    "TLS 1.3: m->m: all/psk_all, fail, key id mismatch" \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
             -c "client hello, adding psk_key_exchange_modes extension" \
             -c "client hello, adding PSK binder list" \
-            -s "No matched PSK or ticket" \
+            -s "No usable PSK or ticket" \
             -s "ClientHello message misses mandatory extensions."
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
@@ -2690,7 +2706,7 @@ run_test    "TLS 1.3: m->m: all/all, good, key id mismatch, fallback" \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
             -c "client hello, adding psk_key_exchange_modes extension" \
             -c "client hello, adding PSK binder list" \
-            -s "No matched PSK or ticket" \
+            -s "No usable PSK or ticket" \
             -s "key exchange mode: ephemeral"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3

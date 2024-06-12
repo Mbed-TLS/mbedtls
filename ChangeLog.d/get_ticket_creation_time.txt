@@ -1,3 +1,0 @@
-Features
-   * Add getter (mbedtls_ssl_session_get_ticket_creation_time()) to access
-     `mbedtls_ssl_session.ticket_creation_time`.

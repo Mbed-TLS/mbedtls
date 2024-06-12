@@ -1,7 +1,0 @@
-Bugfix
-   * Fix mbedtls_pk_sign(), mbedtls_pk_verify(), mbedtls_pk_decrypt() and
-     mbedtls_pk_encrypt() on non-opaque RSA keys to honor the padding mode in
-     the RSA context. Before, if MBEDTLS_USE_PSA_CRYPTO was enabled, they always
-     used PKCS#1 v1.5 even when the RSA context was configured for PKCS#1 v2.1
-     (PSS/OAEP). Fixes #8824.
-

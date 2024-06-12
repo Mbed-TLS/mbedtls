@@ -527,6 +527,11 @@ psa_status_t psa_copy_key(mbedtls_svc_key_id_t source_key,
  * If a key is currently in use in a multipart operation, then destroying the
  * key will cause the multipart operation to fail.
  *
+ * \warning    We can only guarantee that the the key material will
+ *             eventually be wiped from memory. With threading enabled
+ *             and during concurrent execution, copies of the key material may
+ *             still exist until all threads have finished using the key.
+ *
  * \param key  Identifier of the key to erase. If this is \c 0, do nothing and
  *             return #PSA_SUCCESS.
  *
@@ -866,7 +871,7 @@ psa_status_t psa_hash_compute(psa_algorithm_t alg,
  *                          such that #PSA_ALG_IS_HASH(\p alg) is true).
  * \param[in] input         Buffer containing the message to hash.
  * \param input_length      Size of the \p input buffer in bytes.
- * \param[out] hash         Buffer containing the expected hash value.
+ * \param[in] hash          Buffer containing the expected hash value.
  * \param hash_length       Size of the \p hash buffer in bytes.
  *
  * \retval #PSA_SUCCESS
@@ -1219,7 +1224,7 @@ psa_status_t psa_mac_compute(mbedtls_svc_key_id_t key,
  *                          such that #PSA_ALG_IS_MAC(\p alg) is true).
  * \param[in] input         Buffer containing the input message.
  * \param input_length      Size of the \p input buffer in bytes.
- * \param[out] mac          Buffer containing the expected MAC value.
+ * \param[in] mac           Buffer containing the expected MAC value.
  * \param mac_length        Size of the \p mac buffer in bytes.
  *
  * \retval #PSA_SUCCESS
@@ -2905,7 +2910,7 @@ psa_status_t psa_sign_message(mbedtls_svc_key_id_t key,
  *                              \p key.
  * \param[in]  input            The message whose signature is to be verified.
  * \param[in]  input_length     Size of the \p input buffer in bytes.
- * \param[out] signature        Buffer containing the signature to verify.
+ * \param[in] signature         Buffer containing the signature to verify.
  * \param[in]  signature_length Size of the \p signature buffer in bytes.
  *
  * \retval #PSA_SUCCESS \emptydescription

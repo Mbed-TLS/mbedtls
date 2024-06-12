@@ -34,9 +34,15 @@ cmake_policy(SET CMP0011 NEW)
 cmake_policy(SET CMP0012 NEW)
 
 if(TEST_CPP)
-    project("Mbed TLS" LANGUAGES C CXX)
+    project("Mbed TLS"
+        LANGUAGES C CXX
+        VERSION 3.6.0
+    )
 else()
-    project("Mbed TLS" LANGUAGES C)
+    project("Mbed TLS"
+        LANGUAGES C
+        VERSION 3.6.0
+    )
 endif()
 
 include(GNUInstallDirs)
@@ -277,6 +283,11 @@ if(LIB_INSTALL_DIR)
     set(CMAKE_INSTALL_LIBDIR "${LIB_INSTALL_DIR}")
 endif()
 
+if (NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/framework/CMakeLists.txt")
+    message(FATAL_ERROR "${CMAKE_CURRENT_SOURCE_DIR}/framework/CMakeLists.txt not found. Run `git submodule update --init` from the source tree to fetch the submodule contents.")
+endif()
+add_subdirectory(framework)
+
 add_subdirectory(include)
 
 add_subdirectory(3rdparty)
@@ -304,10 +315,43 @@ if(ENABLE_TESTING OR ENABLE_PROGRAMS)
          ${CMAKE_CURRENT_SOURCE_DIR}/tests/src/*.c
          ${CMAKE_CURRENT_SOURCE_DIR}/tests/src/drivers/*.c)
     add_library(mbedtls_test OBJECT ${MBEDTLS_TEST_FILES})
+    if(GEN_FILES)
+        add_custom_command(
+            OUTPUT
+                ${CMAKE_CURRENT_SOURCE_DIR}/tests/src/test_keys.h
+            WORKING_DIRECTORY
+                ${CMAKE_CURRENT_SOURCE_DIR}/tests
+            COMMAND
+                "${MBEDTLS_PYTHON_EXECUTABLE}"
+                "${CMAKE_CURRENT_SOURCE_DIR}/framework/scripts/generate_test_keys.py"
+                "--output"
+                "${CMAKE_CURRENT_SOURCE_DIR}/tests/src/test_keys.h"
+            DEPENDS
+                ${CMAKE_CURRENT_SOURCE_DIR}/framework/scripts/generate_test_keys.py
+        )
+        add_custom_target(test_keys_header DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/tests/src/test_keys.h)
+        add_custom_command(
+            OUTPUT
+                ${CMAKE_CURRENT_SOURCE_DIR}/tests/src/test_certs.h
+            WORKING_DIRECTORY
+                ${CMAKE_CURRENT_SOURCE_DIR}/tests
+            COMMAND
+                "${MBEDTLS_PYTHON_EXECUTABLE}"
+                "${CMAKE_CURRENT_SOURCE_DIR}/framework/scripts/generate_test_cert_macros.py"
+                "--output"
+                "${CMAKE_CURRENT_SOURCE_DIR}/tests/src/test_certs.h"
+            DEPENDS
+                ${CMAKE_CURRENT_SOURCE_DIR}/framework/scripts/generate_test_cert_macros.py
+        )
+        add_custom_target(test_certs_header DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/tests/src/test_certs.h)
+        add_dependencies(mbedtls_test test_keys_header test_certs_header)
+    endif()
     target_include_directories(mbedtls_test
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tests/include
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/library)
+    # Request C11, needed for memory poisoning tests
+    set_target_properties(mbedtls_test PROPERTIES C_STANDARD 11)
 
     file(GLOB MBEDTLS_TEST_HELPER_FILES
          ${CMAKE_CURRENT_SOURCE_DIR}/tests/src/test_helpers/*.c)
@@ -388,7 +432,7 @@ if(NOT DISABLE_PACKAGE_CONFIG_AND_INSTALL)
     write_basic_package_version_file(
         "cmake/MbedTLSConfigVersion.cmake"
             COMPATIBILITY SameMajorVersion
-            VERSION 3.5.2)
+            VERSION 3.6.0)
 
     install(
         FILES "${CMAKE_CURRENT_BINARY_DIR}/cmake/MbedTLSConfig.cmake"

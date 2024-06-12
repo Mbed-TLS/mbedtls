@@ -117,7 +117,7 @@ depends_on:MBEDTLS_SSL_PROTO_TLS1_2
 move_handshake_to_state:MBEDTLS_SSL_IS_CLIENT:MBEDTLS_SSL_VERSION_TLS1_2:MBEDTLS_SSL_SERVER_HELLO:1
 
 TLS 1.2:Move client handshake to SERVER_CERTIFICATE
-depends_on:MBEDTLS_SSP_PROTO_TLS1_2:MBEDTLS_CAN_HANDLE_RSA_TEST_KEY
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_CAN_HANDLE_RSA_TEST_KEY
 move_handshake_to_state:MBEDTLS_SSL_IS_CLIENT:MBEDTLS_SSL_VERSION_TLS1_2:MBEDTLS_SSL_SERVER_CERTIFICATE:1
 
 TLS 1.2:Move client handshake to SERVER_KEY_EXCHANGE
@@ -930,36 +930,44 @@ depends_on:MBEDTLS_SSL_PROTO_TLS1_2
 ssl_session_serialize_version_check:0:0:0:1:0:MBEDTLS_SSL_VERSION_TLS1_2
 
 TLS 1.3: CLI: session serialization: Wrong major version
-depends_on:MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_SSL_CLI_C
+depends_on:MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_SSL_CLI_C:MBEDTLS_SSL_SESSION_TICKETS
 ssl_session_serialize_version_check:1:0:0:0:MBEDTLS_SSL_IS_CLIENT:MBEDTLS_SSL_VERSION_TLS1_3
 
 TLS 1.3: CLI: session serialization: Wrong minor version
-depends_on:MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_SSL_CLI_C
+depends_on:MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_SSL_CLI_C:MBEDTLS_SSL_SESSION_TICKETS
 ssl_session_serialize_version_check:0:1:0:0:MBEDTLS_SSL_IS_CLIENT:MBEDTLS_SSL_VERSION_TLS1_3
 
 TLS 1.3: CLI: session serialization: Wrong patch version
-depends_on:MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_SSL_CLI_C
+depends_on:MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_SSL_CLI_C:MBEDTLS_SSL_SESSION_TICKETS
 ssl_session_serialize_version_check:0:0:1:0:MBEDTLS_SSL_IS_CLIENT:MBEDTLS_SSL_VERSION_TLS1_3
 
 TLS 1.3: CLI: session serialization: Wrong config
-depends_on:MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_SSL_CLI_C
+depends_on:MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_SSL_CLI_C:MBEDTLS_SSL_SESSION_TICKETS
 ssl_session_serialize_version_check:0:0:0:1:MBEDTLS_SSL_IS_CLIENT:MBEDTLS_SSL_VERSION_TLS1_3
 
 TLS 1.3: SRV: session serialization: Wrong major version
-depends_on:MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_SSL_SRV_C
+depends_on:MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_SSL_SRV_C:MBEDTLS_SSL_SESSION_TICKETS
 ssl_session_serialize_version_check:1:0:0:0:MBEDTLS_SSL_IS_SERVER:MBEDTLS_SSL_VERSION_TLS1_3
 
 TLS 1.3: SRV: session serialization: Wrong minor version
-depends_on:MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_SSL_SRV_C
+depends_on:MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_SSL_SRV_C:MBEDTLS_SSL_SESSION_TICKETS
 ssl_session_serialize_version_check:0:1:0:0:MBEDTLS_SSL_IS_SERVER:MBEDTLS_SSL_VERSION_TLS1_3
 
 TLS 1.3: SRV: session serialization: Wrong patch version
-depends_on:MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_SSL_SRV_C
+depends_on:MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_SSL_SRV_C:MBEDTLS_SSL_SESSION_TICKETS
 ssl_session_serialize_version_check:0:0:1:0:MBEDTLS_SSL_IS_SERVER:MBEDTLS_SSL_VERSION_TLS1_3
 
 TLS 1.3: SRV: session serialization: Wrong config
-depends_on:MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_SSL_SRV_C
+depends_on:MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_SSL_SRV_C:MBEDTLS_SSL_SESSION_TICKETS
 ssl_session_serialize_version_check:0:0:0:1:MBEDTLS_SSL_IS_SERVER:MBEDTLS_SSL_VERSION_TLS1_3
+
+Test Session id & Ciphersuite accessors TLS 1.2
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2
+ssl_session_id_accessors_check:MBEDTLS_SSL_VERSION_TLS1_2
+
+Test Session id & Ciphersuite accessors TLS 1.3
+depends_on:MBEDTLS_SSL_PROTO_TLS1_3
+ssl_session_id_accessors_check:MBEDTLS_SSL_VERSION_TLS1_3
 
 Record crypt, AES-128-CBC, 1.2, SHA-384
 depends_on:MBEDTLS_SSL_HAVE_AES:MBEDTLS_SSL_HAVE_CBC:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_MD_CAN_SHA384
@@ -2963,7 +2971,7 @@ depends_on:MBEDTLS_SSL_SESSION_TICKETS:MBEDTLS_SSL_CLI_C:MBEDTLS_X509_USE_C:MBED
 ssl_serialize_session_save_load:1023:"data_files/server5.crt":0:MBEDTLS_SSL_VERSION_TLS1_2
 
 TLS 1.3: CLI: Session serialization, save-load: no ticket
-depends_on:MBEDTLS_SSL_PROTO_TLS1_3
+depends_on:MBEDTLS_SSL_SESSION_TICKETS:MBEDTLS_SSL_CLI_C:MBEDTLS_SSL_PROTO_TLS1_3
 ssl_serialize_session_save_load:0:"":MBEDTLS_SSL_IS_CLIENT:MBEDTLS_SSL_VERSION_TLS1_3
 
 TLS 1.3: CLI: Session serialization, save-load: small ticket
@@ -3083,7 +3091,7 @@ depends_on:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_SSL_SESSION_TICKETS:MBEDTLS_SSL_CLI_
 ssl_serialize_session_load_buf_size:1023:"data_files/server5.crt":0:MBEDTLS_SSL_VERSION_TLS1_2
 
 TLS 1.3: CLI: Session serialization, load buffer size: no ticket
-depends_on:MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_SSL_CLI_C
+depends_on:MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_SSL_SESSION_TICKETS:MBEDTLS_SSL_CLI_C
 ssl_serialize_session_load_buf_size:0:"":MBEDTLS_SSL_IS_CLIENT:MBEDTLS_SSL_VERSION_TLS1_3
 
 TLS 1.3: CLI: Session serialization, load buffer size: small ticket
@@ -3095,7 +3103,7 @@ depends_on:MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_SSL_SESSION_TICKETS:MBEDTLS_SSL_CLI_
 ssl_serialize_session_load_buf_size:1023:"":MBEDTLS_SSL_IS_CLIENT:MBEDTLS_SSL_VERSION_TLS1_3
 
 TLS 1.3: SRV: Session serialization, load buffer size
-depends_on:MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_SSL_SRV_C
+depends_on:MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_SSL_SESSION_TICKETS:MBEDTLS_SSL_SRV_C
 ssl_serialize_session_load_buf_size:0:"":MBEDTLS_SSL_IS_SERVER:MBEDTLS_SSL_VERSION_TLS1_3
 
 Test configuration of groups for DHE through mbedtls_ssl_conf_curves()
@@ -3286,17 +3294,33 @@ tls13_read_early_data:TEST_EARLY_DATA_SERVER_REJECTS
 TLS 1.3 read early data, discard after HRR
 tls13_read_early_data:TEST_EARLY_DATA_HRR
 
-TLS 1.3 cli, early data status, early data accepted
-tls13_cli_early_data_status:TEST_EARLY_DATA_ACCEPTED
+TLS 1.3 cli, early data, same ALPN
+depends_on:MBEDTLS_SSL_ALPN
+tls13_read_early_data:TEST_EARLY_DATA_SAME_ALPN
 
-TLS 1.3 cli, early data status, no early data indication
-tls13_cli_early_data_status:TEST_EARLY_DATA_NO_INDICATION_SENT
+TLS 1.3 cli, early data, different ALPN
+depends_on:MBEDTLS_SSL_ALPN
+tls13_read_early_data:TEST_EARLY_DATA_DIFF_ALPN
 
-TLS 1.3 cli, early data status, server rejects early data
-tls13_cli_early_data_status:TEST_EARLY_DATA_SERVER_REJECTS
+TLS 1.3 cli, early data, no initial ALPN
+depends_on:MBEDTLS_SSL_ALPN
+tls13_read_early_data:TEST_EARLY_DATA_NO_INITIAL_ALPN
 
-TLS 1.3 cli, early data status, hello retry request
-tls13_cli_early_data_status:TEST_EARLY_DATA_HRR
+TLS 1.3 cli, early data, no later ALPN
+depends_on:MBEDTLS_SSL_ALPN
+tls13_read_early_data:TEST_EARLY_DATA_NO_LATER_ALPN
+
+TLS 1.3 cli, early data state, early data accepted
+tls13_cli_early_data_state:TEST_EARLY_DATA_ACCEPTED
+
+TLS 1.3 cli, early data state, no early data indication
+tls13_cli_early_data_state:TEST_EARLY_DATA_NO_INDICATION_SENT
+
+TLS 1.3 cli, early data state, server rejects early data
+tls13_cli_early_data_state:TEST_EARLY_DATA_SERVER_REJECTS
+
+TLS 1.3 cli, early data state, hello retry request
+tls13_cli_early_data_state:TEST_EARLY_DATA_HRR
 
 TLS 1.3 write early data, early data accepted
 tls13_write_early_data:TEST_EARLY_DATA_ACCEPTED
@@ -3309,3 +3333,51 @@ tls13_write_early_data:TEST_EARLY_DATA_SERVER_REJECTS
 
 TLS 1.3 write early data, hello retry request
 tls13_write_early_data:TEST_EARLY_DATA_HRR
+
+TLS 1.3 cli, maximum early data size, default size
+tls13_cli_max_early_data_size:-1
+
+TLS 1.3 cli, maximum early data size, zero
+tls13_cli_max_early_data_size:0
+
+TLS 1.3 cli, maximum early data size, very small but not 0
+tls13_cli_max_early_data_size:3
+
+TLS 1.3 cli, maximum early data size, 93
+tls13_cli_max_early_data_size:93
+
+TLS 1.3 srv, max early data size, dflt, wsz=96
+tls13_srv_max_early_data_size:TEST_EARLY_DATA_ACCEPTED:-1:96
+
+TLS 1.3 srv, max early data size, dflt, wsz=128
+tls13_srv_max_early_data_size:TEST_EARLY_DATA_ACCEPTED:-1:128
+
+TLS 1.3 srv, max early data size, 3, wsz=2
+tls13_srv_max_early_data_size:TEST_EARLY_DATA_ACCEPTED:3:2
+
+TLS 1.3 srv, max early data size, 3, wsz=3
+tls13_srv_max_early_data_size:TEST_EARLY_DATA_ACCEPTED:3:3
+
+TLS 1.3 srv, max early data size, 98, wsz=23
+tls13_srv_max_early_data_size:TEST_EARLY_DATA_ACCEPTED:98:23
+
+TLS 1.3 srv, max early data size, 98, wsz=49
+tls13_srv_max_early_data_size:TEST_EARLY_DATA_ACCEPTED:98:49
+
+TLS 1.3 srv, max early data size, server rejects, dflt, wsz=128
+tls13_srv_max_early_data_size:TEST_EARLY_DATA_SERVER_REJECTS:-1:128
+
+TLS 1.3 srv, max early data size, server rejects, 3, wsz=3
+tls13_srv_max_early_data_size:TEST_EARLY_DATA_SERVER_REJECTS:3:3
+
+TLS 1.3 srv, max early data size, server rejects, 98, wsz=49
+tls13_srv_max_early_data_size:TEST_EARLY_DATA_SERVER_REJECTS:98:49
+
+TLS 1.3 srv, max early data size, HRR, dflt, wsz=128
+tls13_srv_max_early_data_size:TEST_EARLY_DATA_HRR:-1:128
+
+TLS 1.3 srv, max early data size, HRR, 3, wsz=3
+tls13_srv_max_early_data_size:TEST_EARLY_DATA_HRR:3:3
+
+TLS 1.3 srv, max early data size, HRR, 98, wsz=49
+tls13_srv_max_early_data_size:TEST_EARLY_DATA_HRR:97:0

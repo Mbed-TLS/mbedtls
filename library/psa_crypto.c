@@ -1622,11 +1622,11 @@ exit:
 }
 
 MBEDTLS_STATIC_ASSERT((MBEDTLS_PSA_KA_MASK_EXTERNAL_ONLY & MBEDTLS_PSA_KA_MASK_DUAL_USE) == 0,
-                      "One or more key attribute flag is listed as both external-only and dual-use")
+                      "One or more key attribute flag is listed as both external-only and dual-use");
 MBEDTLS_STATIC_ASSERT((PSA_KA_MASK_INTERNAL_ONLY & MBEDTLS_PSA_KA_MASK_DUAL_USE) == 0,
-                      "One or more key attribute flag is listed as both internal-only and dual-use")
+                      "One or more key attribute flag is listed as both internal-only and dual-use");
 MBEDTLS_STATIC_ASSERT((PSA_KA_MASK_INTERNAL_ONLY & MBEDTLS_PSA_KA_MASK_EXTERNAL_ONLY) == 0,
-                      "One or more key attribute flag is listed as both internal-only and external-only")
+                      "One or more key attribute flag is listed as both internal-only and external-only");
 
 /** Validate that a key policy is internally well-formed.
  *

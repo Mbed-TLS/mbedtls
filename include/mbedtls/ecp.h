@@ -126,7 +126,7 @@ typedef enum {
 /**
  * The number of supported curves, plus one for #MBEDTLS_ECP_DP_NONE.
  */
-#define MBEDTLS_ECP_DP_MAX     15
+#define MBEDTLS_ECP_DP_MAX     16
 
 /*
  * Curve types

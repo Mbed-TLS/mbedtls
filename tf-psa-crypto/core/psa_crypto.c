@@ -2149,6 +2149,14 @@ psa_status_t mbedtls_psa_register_se_key(
         return PSA_ERROR_NOT_SUPPORTED;
     }
 
+    /* Not usable with volatile keys, even with an appropriate location,
+     * due to the API design.
+     * https://github.com/Mbed-TLS/mbedtls/issues/9253
+     */
+    if (PSA_KEY_LIFETIME_IS_VOLATILE(psa_get_key_lifetime(attributes))) {
+        return PSA_ERROR_INVALID_ARGUMENT;
+    }
+
     status = psa_start_key_creation(PSA_KEY_CREATION_REGISTER, attributes,
                                     &slot, &driver);
     if (status != PSA_SUCCESS) {

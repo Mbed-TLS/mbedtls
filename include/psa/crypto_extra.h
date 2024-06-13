@@ -155,6 +155,14 @@ static inline void psa_clear_key_slot_number(
  * specified in \p attributes.
  *
  * \param[in] attributes        The attributes of the existing key.
+ *                              - The lifetime must be a persistent lifetime
+ *                                in a secure element. Volatile lifetimes are
+ *                                not currently supported.
+ *                              - The key identifier must be in the valid
+ *                                range for persistent keys.
+ *                              - The key type and size must be specified and
+ *                                must be consistent with the key material
+ *                                in the secure element.
  *
  * \retval #PSA_SUCCESS
  *         The key was successfully registered.

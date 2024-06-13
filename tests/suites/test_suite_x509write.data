@@ -15,7 +15,7 @@ depends_on:PSA_WANT_ALG_SHA_384:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
 x509_csr_check:"../framework/data_files/server1.key":"../framework/data_files/server1.req.sha384":MBEDTLS_MD_SHA384:0:0:0:0:0
 
 Certificate Request check Server1 SHA512
-depends_on:MBEDTLS_MD_CAN_SHA512:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
+depends_on:PSA_WANT_ALG_SHA_512:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
 x509_csr_check:"../framework/data_files/server1.key":"../framework/data_files/server1.req.sha512":MBEDTLS_MD_SHA512:0:0:0:0:0
 
 Certificate Request check Server1 MD5

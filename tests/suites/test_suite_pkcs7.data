@@ -23,7 +23,7 @@ depends_on:PSA_WANT_ALG_SHA_256:MBEDTLS_RSA_C
 pkcs7_parse:"../framework/data_files/pkcs7_data_signed_badcert.der":MBEDTLS_ERR_PKCS7_INVALID_CERT
 
 PKCS7 Signed Data Parse Fail with disabled alg #5.1
-depends_on:MBEDTLS_RSA_C:!MBEDTLS_MD_CAN_SHA512
+depends_on:MBEDTLS_RSA_C:!PSA_WANT_ALG_SHA_512
 pkcs7_parse:"../framework/data_files/pkcs7_data_cert_signed_sha512.der":MBEDTLS_ERR_PKCS7_INVALID_ALG
 
 PKCS7 Parse Fail with Inlined Content Info #5.2
@@ -91,7 +91,7 @@ depends_on:MBEDTLS_MD_CAN_SHA1:PSA_WANT_ALG_SHA_256
 pkcs7_verify:"../framework/data_files/pkcs7_data_cert_signed_sha1.der":"../framework/data_files/pkcs7-rsa-sha256-1.der":"../framework/data_files/pkcs7_data.bin":0:0
 
 PKCS7 Signed Data Verification Pass SHA512 #11
-depends_on:MBEDTLS_MD_CAN_SHA512:PSA_WANT_ALG_SHA_256
+depends_on:PSA_WANT_ALG_SHA_512:PSA_WANT_ALG_SHA_256
 pkcs7_verify:"../framework/data_files/pkcs7_data_cert_signed_sha512.der":"../framework/data_files/pkcs7-rsa-sha256-1.der":"../framework/data_files/pkcs7_data.bin":0:0
 
 PKCS7 Signed Data Verification Fail because of different certificate #12
@@ -135,7 +135,7 @@ depends_on:PSA_WANT_ALG_SHA_256
 pkcs7_verify:"../framework/data_files/pkcs7_data_multiple_signed.der":"../framework/data_files/pkcs7-rsa-sha256-1.crt ../framework/data_files/pkcs7-rsa-sha256-2.crt":"../framework/data_files/pkcs7_data.bin":MBEDTLS_MD_SHA256:0
 
 PKCS7 Signed Data Hash Verify Fail with multiple signers #18
-depends_on:PSA_WANT_ALG_SHA_256:MBEDTLS_MD_CAN_SHA512
+depends_on:PSA_WANT_ALG_SHA_256:PSA_WANT_ALG_SHA_512
 pkcs7_verify:"../framework/data_files/pkcs7_data_multiple_signed.der":"../framework/data_files/pkcs7-rsa-sha256-1.crt ../framework/data_files/pkcs7-rsa-sha256-2.crt":"../framework/data_files/pkcs7_data.bin":MBEDTLS_MD_SHA512:MBEDTLS_ERR_PKCS7_VERIFY_FAIL
 
 PKCS7 Signed Data Verify Pass Expired Cert #19 no TIME_DATE

@@ -292,7 +292,7 @@ static int send_cb(void *ctx, unsigned char const *buf, size_t len)
 #endif
 
 uint16_t ssl_sig_algs_for_test[] = {
-#if defined(MBEDTLS_MD_CAN_SHA512)
+#if defined(PSA_WANT_ALG_SHA_512)
     MBEDTLS_SSL_SIG_ALG(MBEDTLS_SSL_HASH_SHA512)
 #endif
 #if defined(PSA_WANT_ALG_SHA_384)

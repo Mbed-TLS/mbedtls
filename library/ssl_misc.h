@@ -34,7 +34,7 @@
 #include "mbedtls/sha256.h"
 #endif
 
-#if defined(MBEDTLS_MD_CAN_SHA512)
+#if defined(PSA_WANT_ALG_SHA_512)
 #include "mbedtls/sha512.h"
 #endif
 
@@ -2437,10 +2437,10 @@ static inline int mbedtls_ssl_tls13_sig_alg_is_supported(
         case MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA384:
             break;
 #endif /* PSA_WANT_ALG_SHA_384 */
-#if defined(MBEDTLS_MD_CAN_SHA512)
+#if defined(PSA_WANT_ALG_SHA_512)
         case MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA512:
             break;
-#endif /* MBEDTLS_MD_CAN_SHA512 */
+#endif /* PSA_WANT_ALG_SHA_512 */
 #endif /* MBEDTLS_PKCS1_V15 */
         default:
             return mbedtls_ssl_tls13_sig_alg_for_cert_verify_is_supported(
@@ -2495,12 +2495,12 @@ static inline int mbedtls_ssl_get_pk_type_and_md_alg_from_sig_alg(
             *pk_type = MBEDTLS_PK_RSASSA_PSS;
             break;
 #endif /* PSA_WANT_ALG_SHA_384 */
-#if defined(MBEDTLS_MD_CAN_SHA512)
+#if defined(PSA_WANT_ALG_SHA_512)
         case MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA512:
             *md_alg = MBEDTLS_MD_SHA512;
             *pk_type = MBEDTLS_PK_RSASSA_PSS;
             break;
-#endif /* MBEDTLS_MD_CAN_SHA512 */
+#endif /* PSA_WANT_ALG_SHA_512 */
 #endif /* MBEDTLS_PKCS1_V21 */
         default:
             return MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE;
@@ -2542,7 +2542,7 @@ static inline int mbedtls_ssl_tls12_sig_alg_is_supported(
             break;
 #endif
 
-#if defined(MBEDTLS_MD_CAN_SHA512)
+#if defined(PSA_WANT_ALG_SHA_512)
         case MBEDTLS_SSL_HASH_SHA512:
             break;
 #endif

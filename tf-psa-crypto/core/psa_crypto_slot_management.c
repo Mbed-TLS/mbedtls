@@ -116,7 +116,12 @@ MBEDTLS_STATIC_ASSERT(PSA_KEY_ID_VOLATILE_MAX < MBEDTLS_PSA_KEY_ID_BUILTIN_MIN |
 static psa_key_id_t volatile_key_id_of_index(size_t slice_idx,
                                              size_t slot_idx)
 {
-    return 0x40000000u | (slice_idx << KEY_ID_SLOT_INDEX_WIDTH) | slot_idx;
+    /* We assert above that the slice and slot indexes fit in separate
+     * bit-fields inside psa_key_id_t, which is a 32-bit type per the
+     * PSA Cryptography specification. */
+    return (psa_key_id_t) (0x40000000u |
+                           (slice_idx << KEY_ID_SLOT_INDEX_WIDTH) |
+                           slot_idx);
 }
 
 /* Calculate the slice containing the given volatile key.
@@ -529,7 +534,8 @@ static psa_status_t psa_allocate_volatile_key_slot(psa_key_id_t *key_id,
     }
 
     *p_slot = slot;
-    slot->slice_index = slice_idx;
+    /* We assert at compile time that the slice index fits in uint8_t. */
+    slot->slice_index = (uint8_t) slice_idx;
     return PSA_SUCCESS;
 }
 
@@ -566,7 +572,8 @@ psa_status_t psa_free_key_slot(size_t slice_idx,
         next_free = key_slice_length(slice_idx);
     }
     global_data.first_free_slot_index[slice_idx] = slot_idx;
-    slot->var.free.next_free_relative_to_next = next_free - slot_idx - 1;
+    slot->var.free.next_free_relative_to_next =
+        (int32_t) next_free - (int32_t) slot_idx - 1;
 
     return PSA_SUCCESS;
 }

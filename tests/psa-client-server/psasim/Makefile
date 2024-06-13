@@ -12,9 +12,6 @@ LIBPSASERVER := -Llibpsaserver/ -lmbedcrypto
 MBEDTLS_ROOT_PATH = ../../..
 COMMON_INCLUDE := -I./include -I$(MBEDTLS_ROOT_PATH)/include
 
-TEST_BIN = 	test/psa_client \
-			test/psa_partition
-
 GENERATED_H_FILES =	include/psa_manifest/manifest.h \
 					include/psa_manifest/pid.h \
 					include/psa_manifest/sid.h
@@ -33,7 +30,7 @@ PSA_SERVER_SRC = $(PARTITION_SERVER_BOOTSTRAP) \
 
 .PHONY: all clean libpsaclient libpsaserver
 
-all: $(TEST_BIN)
+all:
 
 test/seedfile:
 	dd if=/dev/urandom of=./test/seedfile bs=64 count=1
@@ -59,7 +56,7 @@ libpsaclient libpsaserver:
 	$(MAKE) -C $(MBEDTLS_ROOT_PATH) clean
 
 clean:
-	rm -f $(TEST_BIN)
+	rm -f test/psa_client test/psa_partition
 	rm -f $(PARTITION_SERVER_BOOTSTRAP)
 	rm -rf libpsaclient libpsaserver
 	rm -rf include/psa_manifest

@@ -38,7 +38,11 @@ die($usage) unless $which eq "c" || $which eq "h";
 my @types = qw(unsigned-int int size_t
                buffer
                psa_status_t psa_algorithm_t
-               psa_hash_operation_t);
+               psa_hash_operation_t
+               psa_aead_operation_t
+               psa_key_attributes_t
+               mbedtls_svc_key_id_t);
+
 grep(s/-/ /g, @types);
 
 # IS-A: Some data types are typedef'd; we serialise them as the other type
@@ -55,15 +59,31 @@ if ($which eq "h") {
         if ($type eq "buffer") {
             print declare_buffer_functions();
         } else {
-            print declare_needs($type);
-            print declare_serialise($type);
-            print declare_deserialise($type);
+            print declare_needs($type, "");
+            print declare_serialise($type, "");
+            print declare_deserialise($type, "");
+
+            if ($type =~ /^psa_\w+_operation_t$/) {
+                print declare_needs($type, "server_");
+                print declare_serialise($type, "server_");
+                print declare_deserialise($type, "server_");
+            }
         }
     }
 
 } elsif ($which eq "c") {
 
+    my $have_operation_types = (grep(/psa_\w+_operation_t/, @types)) ? 1 : 0;
+
     print c_header();
+    print c_define_types_for_operation_types() if $have_operation_types;
+
+    for my $type (@types) {
+        next unless $type =~ /^psa_(\w+)_operation_t$/;
+        print define_operation_type_data_and_functions($1);
+    }
+
+    print c_define_begins();
 
     for my $type (@types) {
         if ($type eq "buffer") {
@@ -76,6 +96,12 @@ if ($which eq "h") {
             print define_needs($type);
             print define_serialise($type);
             print define_deserialise($type);
+
+            if ($type =~ /^psa_\w+_operation_t$/) {
+                print define_server_needs($type);
+                print define_server_serialise($type);
+                print define_server_deserialise($type);
+            }
         }
     }
 
@@ -85,15 +111,17 @@ if ($which eq "h") {
 
 sub declare_needs
 {
-    my ($type) = @_;
+    my ($type, $server) = @_;
 
     my $an = ($type =~ /^[ui]/) ? "an" : "a";
     my $type_d = $type;
     $type_d =~ s/ /_/g;
 
+    my $ptr = (length($server)) ? "*" : "";
+
     return <<EOF;
 
-/** Return how much buffer space is needed by \\c psasim_serialise_$type_d()
+/** Return how much buffer space is needed by \\c psasim_${server}serialise_$type_d()
  *  to serialise $an `$type`.
  *
  * \\param value              The value that will be serialised into the buffer
@@ -104,21 +132,25 @@ sub declare_needs
  *                           \\c psasim_serialise_$type_d() to serialise
  *                           the given value.
  */
-size_t psasim_serialise_${type_d}_needs($type value);
+size_t psasim_${server}serialise_${type_d}_needs($type ${ptr}value);
 EOF
 }
 
 sub declare_serialise
 {
-    my ($type) = @_;
+    my ($type, $server) = @_;
 
     my $an = ($type =~ /^[ui]/) ? "an" : "a";
     my $type_d = $type;
     $type_d =~ s/ /_/g;
 
+    my $server_side = (length($server)) ? " on the server side" : "";
+
+    my $ptr = (length($server)) ? "*" : "";
+
     return align_declaration(<<EOF);
 
-/** Serialise $an `$type` into a buffer.
+/** Serialise $an `$type` into a buffer${server_side}.
  *
  * \\param pos[in,out]        Pointer to a `uint8_t *` holding current position
  *                           in the buffer.
@@ -128,23 +160,27 @@ sub declare_serialise
  *
  * \\return                   \\c 1 on success ("okay"), \\c 0 on error.
  */
-int psasim_serialise_$type_d(uint8_t **pos,
+int psasim_${server}serialise_$type_d(uint8_t **pos,
                              size_t *remaining,
-                             $type value);
+                             $type ${ptr}value);
 EOF
 }
 
 sub declare_deserialise
 {
-    my ($type) = @_;
+    my ($type, $server) = @_;
 
     my $an = ($type =~ /^[ui]/) ? "an" : "a";
     my $type_d = $type;
     $type_d =~ s/ /_/g;
 
+    my $server_side = (length($server)) ? " on the server side" : "";
+
+    my $ptr = (length($server)) ? "*" : "";
+
     return align_declaration(<<EOF);
 
-/** Deserialise $an `$type` from a buffer.
+/** Deserialise $an `$type` from a buffer${server_side}.
  *
  * \\param pos[in,out]        Pointer to a `uint8_t *` holding current position
  *                           in the buffer.
@@ -155,9 +191,9 @@ sub declare_deserialise
  *
  * \\return                   \\c 1 on success ("okay"), \\c 0 on error.
  */
-int psasim_deserialise_$type_d(uint8_t **pos,
+int psasim_${server}deserialise_$type_d(uint8_t **pos,
                                size_t *remaining,
-                               $type *value);
+                               $type ${ptr}*value);
 EOF
 }
 
@@ -347,6 +383,25 @@ size_t psasim_serialise_${type_d}_needs($type value)
 EOF
 }
 
+sub define_server_needs
+{
+    my ($type) = @_;
+
+    my $type_d = $type;
+    $type_d =~ s/ /_/g;
+
+    return <<EOF;
+
+size_t psasim_server_serialise_${type_d}_needs($type *operation)
+{
+    (void) operation;
+
+    /* We will actually return a handle */
+    return sizeof(psasim_operation_t);
+}
+EOF
+}
+
 sub define_needs_isa
 {
     my ($type, $isa) = @_;
@@ -385,6 +440,44 @@ int psasim_serialise_$type_d(uint8_t **pos,
 
     memcpy(*pos, &value, sizeof(value));
     *pos += sizeof(value);
+
+    return 1;
+}
+EOF
+}
+
+sub define_server_serialise
+{
+    my ($type) = @_;
+
+    my $t;
+    if ($type =~ /^psa_(\w+)_operation_t$/) {
+        $t = $1;
+    } else {
+        die("$0: define_server_serialise: $type: not supported\n");
+    }
+
+    my $type_d = $type;
+    $type_d =~ s/ /_/g;
+
+    return align_signature(<<EOF);
+
+int psasim_server_serialise_$type_d(uint8_t **pos,
+                             size_t *remaining,
+                             $type *operation)
+{
+    psasim_operation_t client_operation;
+
+    if (*remaining < sizeof(client_operation)) {
+        return 0;
+    }
+
+    ssize_t slot = operation - ${t}_operations;
+
+    client_operation.handle = ${t}_operation_handles[slot];
+
+    memcpy(*pos, &client_operation, sizeof(client_operation));
+    *pos += sizeof(client_operation);
 
     return 1;
 }
@@ -433,6 +526,54 @@ int psasim_deserialise_$type_d(uint8_t **pos,
 
     *pos += sizeof(*value);
     *remaining -= sizeof(*value);
+
+    return 1;
+}
+EOF
+}
+
+sub define_server_deserialise
+{
+    my ($type) = @_;
+
+    my $t;
+    if ($type =~ /^psa_(\w+)_operation_t$/) {
+        $t = $1;
+    } else {
+        die("$0: define_server_serialise: $type: not supported\n");
+    }
+
+    my $type_d = $type;
+    $type_d =~ s/ /_/g;
+
+    return align_signature(<<EOF);
+
+int psasim_server_deserialise_$type_d(uint8_t **pos,
+                               size_t *remaining,
+                               $type **operation)
+{
+    psasim_operation_t client_operation;
+
+    if (*remaining < sizeof(psasim_operation_t)) {
+        return 0;
+    }
+
+    memcpy(&client_operation, *pos, sizeof(psasim_operation_t));
+    *pos += sizeof(psasim_operation_t);
+    *remaining -= sizeof(psasim_operation_t);
+
+    ssize_t slot;
+    if (client_operation.handle == 0) {         /* We need a new handle */
+        slot = allocate_${t}_operation_slot();
+    } else {
+        slot = find_${t}_slot_by_handle(client_operation.handle);
+    }
+
+    if (slot < 0) {
+        return 0;
+    }
+
+    *operation = &${t}_operations[slot];
 
     return 1;
 }
@@ -623,6 +764,72 @@ sub c_header
  * data types (e.g. int), types typedef'd to those, and even structures that
  * don't contain pointers.
  */
+EOF
+}
+
+sub c_define_types_for_operation_types
+{
+    return <<'EOF';
+
+/* include/psa/crypto_platform.h:typedef uint32_t mbedtls_psa_client_handle_t;
+ * but we don't get it on server builds, so redefine it here with a unique type name
+ */
+typedef uint32_t psasim_client_handle_t;
+
+typedef struct psasim_operation_s {
+    psasim_client_handle_t handle;
+} psasim_operation_t;
+
+#define MAX_LIVE_HANDLES_PER_CLASS   100        /* this many slots */
+EOF
+}
+
+sub define_operation_type_data_and_functions
+{
+    my ($type) = @_;    # e.g. 'hash' rather than 'psa_hash_operation_t'
+
+    return <<EOF;
+
+static psa_${type}_operation_t ${type}_operations[MAX_LIVE_HANDLES_PER_CLASS];
+static psasim_client_handle_t ${type}_operation_handles[MAX_LIVE_HANDLES_PER_CLASS];
+static psasim_client_handle_t next_${type}_operation_handle = 1;
+
+/* Get a free slot */
+static ssize_t allocate_${type}_operation_slot(void)
+{
+    psasim_client_handle_t handle = next_${type}_operation_handle++;
+    if (next_${type}_operation_handle == 0) {      /* wrapped around */
+        fprintf(stderr, "MAX HASH HANDLES REACHED\\n");
+        exit(1);
+    }
+
+    for (ssize_t i = 0; i < MAX_LIVE_HANDLES_PER_CLASS; i++) {
+        if (${type}_operation_handles[i] == 0) {
+            ${type}_operation_handles[i] = handle;
+            return i;
+        }
+    }
+
+    return -1;  /* all in use */
+}
+
+/* Find the slot given the handle */
+static ssize_t find_${type}_slot_by_handle(psasim_client_handle_t handle)
+{
+    for (ssize_t i = 0; i < MAX_LIVE_HANDLES_PER_CLASS; i++) {
+        if (${type}_operation_handles[i] == handle) {
+            return i;
+        }
+    }
+
+    return -1;  /* all in use */
+}
+EOF
+}
+
+sub c_define_begins
+{
+    return <<'EOF';
 
 size_t psasim_serialise_begin_needs(void)
 {

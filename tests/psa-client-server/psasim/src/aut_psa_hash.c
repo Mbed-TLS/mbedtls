@@ -1,13 +1,11 @@
 /*
- *  API(s) under test: psa_hash_compute()
- *
- *  Taken from programs/psa/psa_hash.c, and calls to all hash APIs
- *  but psa_hash_compute() removed.
- *
  *  Example computing a SHA-256 hash using the PSA Crypto API
  *
  *  The example computes the SHA-256 hash of a test string using the
- *  one-shot API call psa_hash_compute().
+ *  one-shot API call psa_hash_compute() and the using multi-part
+ *  operation, which requires psa_hash_setup(), psa_hash_update() and
+ *  psa_hash_finish(). The multi-part operation is popular on embedded
+ *  devices where a rolling hash needs to be computed.
  *
  *
  *  Copyright The Mbed TLS Contributors
@@ -64,6 +62,8 @@ int main(void)
     psa_status_t status;
     uint8_t hash[PSA_HASH_LENGTH(HASH_ALG)];
     size_t hash_length;
+    psa_hash_operation_t hash_operation = PSA_HASH_OPERATION_INIT;
+    psa_hash_operation_t cloned_hash_operation = PSA_HASH_OPERATION_INIT;
 
     mbedtls_printf("PSA Crypto API: SHA-256 example\n\n");
 
@@ -71,6 +71,51 @@ int main(void)
     if (status != PSA_SUCCESS) {
         mbedtls_printf("psa_crypto_init failed\n");
         return EXIT_FAILURE;
+    }
+
+    /* Compute hash using multi-part operation */
+    status = psa_hash_setup(&hash_operation, HASH_ALG);
+    if (status == PSA_ERROR_NOT_SUPPORTED) {
+        mbedtls_printf("unknown hash algorithm supplied\n");
+        return EXIT_FAILURE;
+    } else if (status != PSA_SUCCESS) {
+        mbedtls_printf("psa_hash_setup failed\n");
+        return EXIT_FAILURE;
+    }
+
+    status = psa_hash_update(&hash_operation, sample_message, sample_message_length);
+    if (status != PSA_SUCCESS) {
+        mbedtls_printf("psa_hash_update failed\n");
+        goto cleanup;
+    }
+
+    status = psa_hash_clone(&hash_operation, &cloned_hash_operation);
+    if (status != PSA_SUCCESS) {
+        mbedtls_printf("PSA hash clone failed\n");
+        goto cleanup;
+    }
+
+    status = psa_hash_finish(&hash_operation, hash, sizeof(hash), &hash_length);
+    if (status != PSA_SUCCESS) {
+        mbedtls_printf("psa_hash_finish failed\n");
+        goto cleanup;
+    }
+
+    /* Check the result of the operation against the sample */
+    if (hash_length != expected_hash_len ||
+        (memcmp(hash, expected_hash, expected_hash_len) != 0)) {
+        mbedtls_printf("Multi-part hash operation gave the wrong result!\n\n");
+        goto cleanup;
+    }
+
+    status =
+        psa_hash_verify(&cloned_hash_operation, expected_hash,
+                        expected_hash_len);
+    if (status != PSA_SUCCESS) {
+        mbedtls_printf("psa_hash_verify failed\n");
+        goto cleanup;
+    } else {
+        mbedtls_printf("Multi-part hash operation successful!\n");
     }
 
     /* Clear local variables prior to one-shot hash demo */
@@ -108,6 +153,8 @@ int main(void)
     return EXIT_SUCCESS;
 
 cleanup:
+    psa_hash_abort(&hash_operation);
+    psa_hash_abort(&cloned_hash_operation);
     return EXIT_FAILURE;
 }
 #endif /* !MBEDTLS_PSA_CRYPTO_C || !PSA_WANT_ALG_SHA_256 */

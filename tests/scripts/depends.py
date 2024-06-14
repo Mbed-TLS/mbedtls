@@ -147,7 +147,6 @@ derived."""
     log_command(['config.py', 'full'])
     conf.adapt(config.full_adapter)
     set_config_option_value(conf, 'MBEDTLS_TEST_HOOKS', colors, False)
-    set_config_option_value(conf, 'MBEDTLS_PSA_CRYPTO_CONFIG', colors, False)
     if options.unset_use_psa:
         set_config_option_value(conf, 'MBEDTLS_USE_PSA_CRYPTO', colors, False)
 
@@ -514,7 +513,10 @@ def main():
                             choices=['always', 'auto', 'never'], default='auto')
         parser.add_argument('-c', '--config', metavar='FILE',
                             help='Configuration file to modify',
-                            default='include/mbedtls/mbedtls_config.h')
+                            default=config.MbedTLSConfigFile.default_path[0])
+        parser.add_argument('-r', '--crypto-config', metavar='FILE',
+                            help='Crypto configuration file to modify',
+                            default=config.CryptoConfigFile.default_path[0])
         parser.add_argument('-C', '--directory', metavar='DIR',
                             help='Change to this directory before anything else',
                             default='.')
@@ -541,7 +543,8 @@ def main():
                             default=True)
         options = parser.parse_args()
         os.chdir(options.directory)
-        conf = config.MbedTLSConfig(options.config)
+        conf = config.CombinedConfig(config.MbedTLSConfigFile(options.config),
+                                     config.CryptoConfigFile(options.crypto_config))
         domain_data = DomainData(options, conf)
 
         if options.tasks is True:

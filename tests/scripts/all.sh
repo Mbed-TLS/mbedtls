@@ -2434,7 +2434,7 @@ support_build_baremetal () {
 # depends.py family of tests
 component_test_depends_py_cipher_id () {
     msg "test/build: depends.py cipher_id (gcc)"
-    tests/scripts/depends.py cipher_id --unset-use-psa
+    tests/scripts/depends.py cipher_id
 }
 
 component_test_depends_py_cipher_chaining () {

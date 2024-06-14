@@ -53,7 +53,6 @@ set(src_crypto
     memory_buffer_alloc.c
     nist_kw.c
     oid.c
-    padlock.c
     pem.c
     pk.c
     pk_ecc.c

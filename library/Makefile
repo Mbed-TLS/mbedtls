@@ -145,7 +145,6 @@ OBJS_CRYPTO= \
 	     memory_buffer_alloc.o \
 	     nist_kw.o \
 	     oid.o \
-	     padlock.o \
 	     pem.o \
 	     pk.o \
 	     pk_ecc.o \

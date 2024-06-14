@@ -55,6 +55,12 @@ typedef enum {
     PSA_SLOT_PENDING_DELETION,
 } psa_key_slot_state_t;
 
+/* If the size of static key slots is not explicitly defined by the user, then
+ * set it to PSA_EXPORT_KEY_PAIR_OR_PUBLIC_MAX_SIZE. */
+#if !defined(MBEDTLS_PSA_STATIC_KEY_SLOT_BUFFER_SIZE)
+#define MBEDTLS_PSA_STATIC_KEY_SLOT_BUFFER_SIZE        (PSA_EXPORT_KEY_PAIR_OR_PUBLIC_MAX_SIZE)
+#endif /* !MBEDTLS_PSA_STATIC_KEY_SLOT_BUFFER_SIZE*/
+
 /** The data structure representing a key slot, containing key material
  * and metadata for one key.
  */
@@ -155,7 +161,12 @@ typedef struct {
     /* Dynamically allocated key data buffer.
      * Format as specified in psa_export_key(). */
     struct key_data {
+#if defined(MBEDTLS_PSA_STATIC_KEY_SLOTS)
+        int in_use;
+        uint8_t data[MBEDTLS_PSA_STATIC_KEY_SLOT_BUFFER_SIZE];
+#else /* MBEDTLS_PSA_STATIC_KEY_SLOTS */
         uint8_t *data;
+#endif /* MBEDTLS_PSA_STATIC_KEY_SLOTS */
         size_t bytes;
     } key;
 } psa_key_slot_t;

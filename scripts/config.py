@@ -110,6 +110,8 @@ EXCLUDE_FROM_FULL = frozenset([
     'MBEDTLS_TEST_CONSTANT_FLOW_MEMSAN', # build dependency (clang+memsan)
     'MBEDTLS_TEST_CONSTANT_FLOW_VALGRIND', # build dependency (valgrind headers)
     'MBEDTLS_X509_REMOVE_INFO', # removes a feature
+    'MBEDTLS_PSA_STATIC_KEY_SLOTS', # only relevant for embedded devices
+    'MBEDTLS_PSA_STATIC_KEY_SLOT_BUFFER_SIZE', # only relevant for embedded devices
     *PSA_UNSUPPORTED_FEATURE,
     *PSA_DEPRECATED_FEATURE,
     *PSA_UNSTABLE_FEATURE

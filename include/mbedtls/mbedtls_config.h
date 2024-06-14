@@ -3067,6 +3067,39 @@
 #define MBEDTLS_PSA_ITS_FILE_C
 
 /**
+ * \def MBEDTLS_PSA_STATIC_KEY_SLOTS
+ *
+ * Statically preallocate all key slot buffers to store volatile keys in PSA
+ * instead of allocating them dynamically when required. This helps reducing
+ * heap memory usage as well as heap management code's footprint in embedded
+ * devices.
+ *
+ * \note This feature comes with a (potentially) higher RAM usage since:
+ *       - All the key slots are allocated no matter if they are used of not.
+ *       - Each key slot's length is as large as the largest key type supported
+ *         in the build.
+ *
+ * Requires: MBEDTLS_PSA_CRYPTO_C
+ *
+ */
+//#define MBEDTLS_PSA_STATIC_KEY_SLOTS
+
+/**
+ * \def MBEDTLS_PSA_STATIC_KEY_SLOTS
+ *
+ * Optionally define the size (in bytes) of each static key slot. If not
+ * explicitly defined then it's automatically set to hold the maximum
+ * asymmetric PSA key enabled in the build (through PSA_WANT_xxx symbols).
+ * If required by the application this parameter can be set to higher values
+ * in order to store larger objects (ex: raw keys), but please note that this
+ * will increase RAM usage.
+ *
+ * Requires: MBEDTLS_PSA_STATIC_KEY_SLOTS
+ *
+ */
+//#define MBEDTLS_PSA_STATIC_KEY_SLOT_BUFFER_SIZE       256
+
+/**
  * \def MBEDTLS_RIPEMD160_C
  *
  * Enable the RIPEMD-160 hash algorithm.

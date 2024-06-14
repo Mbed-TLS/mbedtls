@@ -31,6 +31,7 @@ class TestCase:
         self.dependencies = [] #type: List[str]
         self.function = None #type: Optional[str]
         self.arguments = [] #type: List[str]
+        self.skip_reason = ''
 
     def add_comment(self, *lines: str) -> None:
         self.comments += lines
@@ -46,6 +47,23 @@ class TestCase:
 
     def set_arguments(self, arguments: List[str]) -> None:
         self.arguments = arguments
+
+    def skip_because(self, reason: str) -> None:
+        """Skip this test case.
+
+        It will be included in the output, but commented out.
+
+        This is intended for test cases that are obtained from a
+        systematic enumeration, but that have dependencies that cannot
+        be fulfilled. Since we don't want to have test cases that are
+        never executed, we arrange not to have actual test cases. But
+        we do include comments to make it easier to understand the output
+        of test case generation.
+
+        reason must be a non-empty string explaining to humans why this
+        test case is skipped.
+        """
+        self.skip_reason = reason
 
     def check_completeness(self) -> None:
         if self.description is None:
@@ -67,10 +85,16 @@ class TestCase:
         out.write('\n')
         for line in self.comments:
             out.write('# ' + line + '\n')
-        out.write(self.description + '\n')
+        prefix = ''
+        if self.skip_reason:
+            prefix = '## '
+            out.write('## # skipped because: ' + self.skip_reason + '\n')
+        out.write(prefix + self.description + '\n')
         if self.dependencies:
-            out.write('depends_on:' + ':'.join(self.dependencies) + '\n')
-        out.write(self.function + ':' + ':'.join(self.arguments) + '\n')
+            out.write(prefix + 'depends_on:' +
+                      ':'.join(self.dependencies) + '\n')
+        out.write(prefix + self.function + ':' +
+                  ':'.join(self.arguments) + '\n')
 
 def write_data_file(filename: str,
                     test_cases: Iterable[TestCase],

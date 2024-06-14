@@ -550,7 +550,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:PSA_WANT_KEY_TYPE_RSA_KEY_PAIR:PSA_WANT_ALG_ECDSA:PSA_WANT_ALG_SHA_256 */
 void mock_sign(int mock_sign_return_value, int expected_result)
 {
     psa_drv_se_t driver;
@@ -611,7 +611,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:PSA_WANT_ALG_ECDSA:PSA_WANT_ALG_SHA_256 */
 void mock_verify(int mock_verify_return_value, int expected_result)
 {
     psa_drv_se_t driver;

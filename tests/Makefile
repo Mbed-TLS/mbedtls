@@ -209,6 +209,8 @@ include/alt-extra/%_alt.h: ../include/%.h
 	perl -p -e 's/^(# *(define|ifndef) +\w+_)H\b/$${1}ALT_H/' $< >$@
 include/alt-extra/%_alt.h: ../tf-psa-crypto/include/%.h
 	perl -p -e 's/^(# *(define|ifndef) +\w+_)H\b/$${1}ALT_H/' $< >$@
+include/alt-extra/%_alt.h: ../tf-psa-crypto/drivers/builtin/include/%.h
+	perl -p -e 's/^(# *(define|ifndef) +\w+_)H\b/$${1}ALT_H/' $< >$@
 
 # Generate test library
 

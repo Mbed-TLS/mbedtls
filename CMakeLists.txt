@@ -356,6 +356,7 @@ if(ENABLE_TESTING OR ENABLE_PROGRAMS)
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tests/include
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tf-psa-crypto/include
+        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tf-psa-crypto/drivers/builtin/include
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/library)
     # Request C11, needed for memory poisoning tests
     set_target_properties(mbedtls_test PROPERTIES C_STANDARD 11)
@@ -367,6 +368,7 @@ if(ENABLE_TESTING OR ENABLE_PROGRAMS)
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tests/include
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tf-psa-crypto/include
+        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tf-psa-crypto/drivers/builtin/include
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/library
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/everest/include)
 

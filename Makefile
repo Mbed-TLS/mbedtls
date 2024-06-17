@@ -95,6 +95,7 @@ ifndef WINDOWS
 install: no_test
 	mkdir -p $(DESTDIR)/include/mbedtls
 	cp -rp include/mbedtls $(DESTDIR)/include
+	cp -rp tf-psa-crypto/drivers/builtin/include/mbedtls $(DESTDIR)/include
 	mkdir -p $(DESTDIR)/include/psa
 	cp -rp tf-psa-crypto/include/psa $(DESTDIR)/include
 

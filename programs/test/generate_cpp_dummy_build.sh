@@ -45,6 +45,13 @@ EOF
         esac
     done
 
+    for header in tf-psa-crypto/drivers/builtin/include/mbedtls/*.h; do
+        case ${header#tf-psa-crypto/drivers/builtin/include/} in
+            mbedtls/config_*.h) :;; # not meant for direct inclusion
+            *) echo "#include \"${header#tf-psa-crypto/drivers/builtin/include/}\"";;
+        esac
+    done
+
     for header in tf-psa-crypto/include/psa/*.h; do
         case ${header#tf-psa-crypto/include/} in
             psa/crypto_config.h) :;; # not meant for direct inclusion

@@ -2314,3 +2314,8 @@ psa_status_t psa_crypto_call(psa_msg_t msg)
 
     return ok ? PSA_SUCCESS : PSA_ERROR_GENERIC_ERROR;
 }
+
+void psa_crypto_close(void)
+{
+    psa_sim_serialize_reset();
+}

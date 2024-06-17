@@ -54,6 +54,8 @@
  * don't contain pointers.
  */
 
+void psa_sim_serialize_reset(void);
+
 /** Return how much buffer space is needed by \c psasim_serialise_begin().
  *
  * \return                   The number of bytes needed in the buffer for

@@ -706,3 +706,9 @@ int psasim_deserialise_mbedtls_svc_key_id_t(uint8_t **pos,
 
     return 1;
 }
+
+void psa_sim_serialize_reset(void)
+{
+    memset(hash_operation_handles, 0, sizeof(hash_operation_handles));
+    memset(hash_operations, 0, sizeof(hash_operations));
+}

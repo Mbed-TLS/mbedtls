@@ -293,17 +293,12 @@ uint64_t mbedtls_test_parse_binary_string(data_t *bin_string);
  *  \param  alg             The AEAD algorithm.
  *  \param  nonce_length    The nonce length in number of bytes.
  */
-#if defined(MBEDTLS_PSA_ACCEL_ALG_GCM)
-#define MBEDTLS_TEST_HAVE_ALT_GCM  1
-#else
-#define MBEDTLS_TEST_HAVE_ALT_GCM  0
-#endif
 
 #define MBEDTLS_TEST_PSA_SKIP_IF_ALT_GCM_NOT_12BYTES_NONCE(alg,           \
                                                            nonce_length) \
     do                                                                     \
     {                                                                      \
-        if ((MBEDTLS_TEST_HAVE_ALT_GCM) &&                               \
+        if ((MBEDTLS_PSA_ACCEL_ALG_GCM) &&                               \
             (PSA_ALG_AEAD_WITH_SHORTENED_TAG((alg), 0) ==            \
              PSA_ALG_AEAD_WITH_SHORTENED_TAG(PSA_ALG_GCM, 0)) &&       \
             ((nonce_length) != 12))                                   \

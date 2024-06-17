@@ -22,7 +22,7 @@
 #include "psa/crypto.h"
 
 #define CLIENT_PRINT(fmt, ...) \
-    PRINT("Client: " fmt, ##__VA_ARGS__)
+    INFO("Client: " fmt, ##__VA_ARGS__)
 
 static psa_handle_t handle = -1;
 

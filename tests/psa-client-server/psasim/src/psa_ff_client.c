@@ -199,7 +199,6 @@ static psa_status_t process_response(int rx_qid, vectors_t *vecs, int type,
             default:
                 FATAL("   ERROR: unknown internal message type: %ld",
                       response.message_type);
-                return ret;
         }
     }
 }
@@ -301,10 +300,10 @@ psa_handle_t psa_connect(uint32_t sid, uint32_t minor_version)
                 handles[idx].valid = 1;
                 return idx;
             } else {
-                INFO("Server didn't like you");
+                ERROR("Server didn't like you");
             }
         } else {
-            INFO("Couldn't contact RoT service. Does it exist?");
+            ERROR("Couldn't contact RoT service. Does it exist?");
 
             if (__psa_ff_client_security_state == 0) {
                 ERROR("Invalid SID");
@@ -339,7 +338,7 @@ uint32_t psa_version(uint32_t sid)
             }
         }
     }
-    INFO("psa_version failed: does the service exist?");
+    ERROR("psa_version failed: does the service exist?");
     return PSA_VERSION_NONE;
 }
 

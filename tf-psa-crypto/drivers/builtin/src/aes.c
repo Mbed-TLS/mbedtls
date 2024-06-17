@@ -1860,8 +1860,9 @@ int mbedtls_aes_self_test(int verbose)
 
             /*
              * AES-192 is an optional feature that may be unavailable when
-             * there is an alternative underlying implementation such as a
-             * PSA driver.
+             * there is an alternative underlying implementation i.e when
+             * MBEDTLS_AES_SETKEY_ENC_ALT or MBEDTLS_AES_SETKEY_DEC_ALT
+             * are defined.
              */
             if (ret == MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED && keybits == 192) {
                 mbedtls_printf("skipped\n");

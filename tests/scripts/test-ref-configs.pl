@@ -24,8 +24,6 @@ my %configs = (
         'opt' => ' ',
         'opt_needs_debug' => 1,
     },
-    'config-no-entropy.h' => {
-    },
     'config-suite-b.h' => {
         'compat' => "-m tls12 -f 'ECDHE_ECDSA.*AES.*GCM' -p mbedTLS",
         'opt' => ' ',

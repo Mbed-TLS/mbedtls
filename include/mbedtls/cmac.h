@@ -79,12 +79,6 @@ struct mbedtls_cmac_context_t {
  *                      To start a CMAC computation using the same key as a previous
  *                      CMAC computation, use mbedtls_cipher_cmac_finish().
  *
- * \note                When the CMAC implementation is supplied by an alternate
- *                      implementation (through a PSA driver), some ciphers
- *                      may not be supported by that implementation, and thus
- *                      return an error. Alternate implementations must support
- *                      AES-128 and AES-256, and may support AES-192 and 3DES.
- *
  * \param ctx           The cipher context used for the CMAC operation, initialized
  *                      as one of the following types: MBEDTLS_CIPHER_AES_128_ECB,
  *                      MBEDTLS_CIPHER_AES_192_ECB, MBEDTLS_CIPHER_AES_256_ECB,

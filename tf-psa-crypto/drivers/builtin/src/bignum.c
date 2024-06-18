@@ -1610,9 +1610,9 @@ int mbedtls_mpi_mod_int(mbedtls_mpi_uint *r, const mbedtls_mpi *A, mbedtls_mpi_s
     return 0;
 }
 
-int mbedtls_mpi_exp_mod(mbedtls_mpi *X, const mbedtls_mpi *A,
-                        const mbedtls_mpi *E, const mbedtls_mpi *N,
-                        mbedtls_mpi *prec_RR)
+int mbedtls_mpi_exp_mod_optionally_safe(mbedtls_mpi *X, const mbedtls_mpi *A,
+                                        const mbedtls_mpi *E, const mbedtls_mpi *N,
+                                        mbedtls_mpi *prec_RR, int E_public)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
@@ -1695,7 +1695,15 @@ int mbedtls_mpi_exp_mod(mbedtls_mpi *X, const mbedtls_mpi *A,
     {
         mbedtls_mpi_uint mm = mbedtls_mpi_core_montmul_init(N->p);
         mbedtls_mpi_core_to_mont_rep(X->p, X->p, N->p, N->n, mm, RR.p, T);
-        mbedtls_mpi_core_exp_mod(X->p, X->p, N->p, N->n, E->p, E->n, RR.p, T);
+        mbedtls_mpi_core_exp_mod_optionally_safe(X->p,
+                                                 X->p,
+                                                 N->p,
+                                                 N->n,
+                                                 E->p,
+                                                 E->n,
+                                                 RR.p,
+                                                 T,
+                                                 E_public);
         mbedtls_mpi_core_from_mont_rep(X->p, X->p, N->p, N->n, mm, T);
     }
 
@@ -1718,6 +1726,13 @@ cleanup:
     }
 
     return ret;
+}
+
+int mbedtls_mpi_exp_mod(mbedtls_mpi *X, const mbedtls_mpi *A,
+                        const mbedtls_mpi *E, const mbedtls_mpi *N,
+                        mbedtls_mpi *prec_RR)
+{
+    return mbedtls_mpi_exp_mod_optionally_safe(X, A, E, N, prec_RR, MBEDTLS_MPI_IS_SECRET);
 }
 
 /*

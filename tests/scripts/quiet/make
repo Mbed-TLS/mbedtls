@@ -17,3 +17,59 @@ NO_SILENCE=" --version | test "
 TOOL="make"
 
 . "$(dirname "$0")/quiet.sh"
+EXIT_STATUS=$?
+
+log_outcome () {
+    targets=
+    skip=
+    for arg in "$@"; do
+        if [ -n "$skip" ]; then
+            skip=
+            continue
+        fi
+        case $arg in
+            --assume-new|--assume-old|--directory|--file| \
+            --include-dir|--makefile|--new-file|--old-file|--what-if| \
+            -C|-I|-W|-f|-k|-o) # Option with separate argument
+                skip=1; continue;;
+            -*) continue;; # Option
+            *=*) continue;; # Variable assignment
+            *[!-+./0-9@A-Z_a-z]*) # Target with problematic character
+                targets="$targets ${arg%%[!-+./0-9@A-Z_a-z]*}...";;
+            *) # Normal target
+                targets="$targets $arg";;
+        esac
+    done
+    if [ -n "$targets" ]; then
+        targets=${targets# }
+    else
+        targets=all
+    fi
+
+    # We have a single pass/fail status. This is not accurate when there are
+    # multiple targets: it's possible that some passed and some failed.
+    # To figure out which targets passed when the overall result is a failure,
+    # we'd have to do some complex parsing of logs.
+    if [ $EXIT_STATUS -eq 0 ]; then
+        result=PASS
+    else
+        result=FAIL
+    fi
+    cause= # Identifying failure causes would be nice, but difficult
+
+    for target in $targets; do
+        if [ "$target" = "clean" ]; then
+            # Boring
+            continue
+        fi
+        echo >>"${MBEDTLS_TEST_OUTCOME_FILE}" \
+             "${MBEDTLS_TEST_PLATFORM};${MBEDTLS_TEST_CONFIGURATION};${TOOL};${target};${result};${cause}"
+    done
+}
+
+if [ -n "${MBEDTLS_TEST_OUTCOME_FILE}" ] &&
+   [ -n "${MBEDTLS_TEST_CONFIGURATION}" ]; then
+    log_outcome "$@"
+fi
+
+exit $EXIT_STATUS

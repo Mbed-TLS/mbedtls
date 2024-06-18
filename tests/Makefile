@@ -7,6 +7,7 @@ TEST_FLAGS ?= $(if $(filter-out 0 OFF Off off NO No no FALSE False false N n,$(C
 # Also include library headers, for the sake of invasive tests.
 LOCAL_CFLAGS += -I../library
 
+
 # Enable definition of various functions used throughout the testsuite
 # (gethostname, strdup, fileno...) even when compiling with -std=c99. Harmless
 # on non-POSIX platforms.
@@ -84,9 +85,9 @@ generated_psa_test_data: ../framework/scripts/mbedtls_framework/test_data_genera
 ## file all the time when switching between configurations, don't declare
 ## crypto_config.h as a dependency. Remove this file from your working tree
 ## if you've just added or removed an option in crypto_config.h.
-#generated_psa_test_data: ../include/psa/crypto_config.h
-generated_psa_test_data: ../include/psa/crypto_values.h
-generated_psa_test_data: ../include/psa/crypto_extra.h
+#generated_psa_test_data: ../tf-psa-crypto/include/psa/crypto_config.h
+generated_psa_test_data: ../tf-psa-crypto/include/psa/crypto_values.h
+generated_psa_test_data: ../tf-psa-crypto/include/psa/crypto_extra.h
 generated_psa_test_data: suites/test_suite_psa_crypto_metadata.data
 generated_psa_test_data:
 	echo "  Gen   $(GENERATED_PSA_DATA_FILES) ..."
@@ -206,6 +207,8 @@ test: check
 # Generate variants of some headers for testing
 include/alt-extra/%_alt.h: ../include/%.h
 	perl -p -e 's/^(# *(define|ifndef) +\w+_)H\b/$${1}ALT_H/' $< >$@
+include/alt-extra/%_alt.h: ../tf-psa-crypto/include/%.h
+	perl -p -e 's/^(# *(define|ifndef) +\w+_)H\b/$${1}ALT_H/' $< >$@
 
 # Generate test library
 
@@ -214,7 +217,8 @@ include/alt-extra/%_alt.h: ../include/%.h
 # library. Add a LIBTESTDRIVER1_/libtestdriver1_ to mbedtls_xxx and psa_xxx
 # symbols.
 define libtestdriver1_rewrite :=
-	s!^(\s*#\s*include\s*[\"<])(mbedtls|psa)/!$${1}libtestdriver1/include/$${2}/!; \
+	s!^(\s*#\s*include\s*[\"<])mbedtls/!$${1}libtestdriver1/include/mbedtls/!; \
+	s!^(\s*#\s*include\s*[\"<])psa/!$${1}libtestdriver1/tf-psa-crypto/include/psa/!; \
 	next if /^\s*#\s*include/; \
 	s/\b(?=MBEDTLS_|PSA_)/LIBTESTDRIVER1_/g; \
 	s/\b(?=mbedtls_|psa_)/libtestdriver1_/g;
@@ -227,6 +231,7 @@ libtestdriver1.a:
 	mkdir ./libtestdriver1
 	cp -Rf ../library ./libtestdriver1
 	cp -Rf ../include ./libtestdriver1
+	cp -Rf ../tf-psa-crypto ./libtestdriver1
 	cp -Rf ../scripts ./libtestdriver1
 	mkdir ./libtestdriver1/3rdparty
 	touch ./libtestdriver1/3rdparty/Makefile.inc
@@ -239,22 +244,23 @@ libtestdriver1.a:
         # library the test library is intended to be linked with extended by
         # ./include/test/drivers/crypto_config_test_driver_extension.h to
         # mirror the PSA_ACCEL_* macros.
-	mv ./libtestdriver1/include/psa/crypto_config.h ./libtestdriver1/include/psa/crypto_config.h.bak
-	head -n -1 ./libtestdriver1/include/psa/crypto_config.h.bak > ./libtestdriver1/include/psa/crypto_config.h
-	cat ./include/test/drivers/crypto_config_test_driver_extension.h >> ./libtestdriver1/include/psa/crypto_config.h
-	echo "#endif /* PSA_CRYPTO_CONFIG_H */" >> ./libtestdriver1/include/psa/crypto_config.h
+	mv ./libtestdriver1/tf-psa-crypto/include/psa/crypto_config.h ./libtestdriver1/tf-psa-crypto/include/psa/crypto_config.h.bak
+	head -n -1 ./libtestdriver1/tf-psa-crypto/include/psa/crypto_config.h.bak > ./libtestdriver1/tf-psa-crypto/include/psa/crypto_config.h
+	cat ./include/test/drivers/crypto_config_test_driver_extension.h >> ./libtestdriver1/tf-psa-crypto/include/psa/crypto_config.h
+	echo "#endif /* PSA_CRYPTO_CONFIG_H */" >> ./libtestdriver1/tf-psa-crypto/include/psa/crypto_config.h
 
 	# Prefix MBEDTLS_* PSA_* symbols with LIBTESTDRIVER1_ as well as
 	# mbedtls_* psa_* symbols with libtestdriver1_ to avoid symbol clash
 	# when this test driver library is linked with the Mbed TLS library.
 	perl -pi -e '$(libtestdriver1_rewrite)' ./libtestdriver1/library/*.[ch]
 	perl -pi -e '$(libtestdriver1_rewrite)' ./libtestdriver1/include/*/*.h
+	perl -pi -e '$(libtestdriver1_rewrite)' ./libtestdriver1/tf-psa-crypto/include/*/*.h
 
 	$(MAKE) -C ./libtestdriver1/library CFLAGS="-I../../ $(CFLAGS)" LDFLAGS="$(LDFLAGS)" libmbedcrypto.a
 	cp ./libtestdriver1/library/libmbedcrypto.a ../library/libtestdriver1.a
 
 ifdef RECORD_PSA_STATUS_COVERAGE_LOG
-include/test/instrument_record_status.h: ../include/psa/crypto.h Makefile
+include/test/instrument_record_status.h: ../tf-psa-crypto/include/psa/crypto.h Makefile
 	echo "  Gen  $@"
-	sed <../include/psa/crypto.h >$@ -n 's/^psa_status_t \([A-Za-z0-9_]*\)(.*/#define \1(...) RECORD_STATUS("\1", \1(__VA_ARGS__))/p'
+	sed <../tf-psa-crypto/include/psa/crypto.h >$@ -n 's/^psa_status_t \([A-Za-z0-9_]*\)(.*/#define \1(...) RECORD_STATUS("\1", \1(__VA_ARGS__))/p'
 endif

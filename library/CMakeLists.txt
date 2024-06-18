@@ -329,6 +329,7 @@ foreach(target IN LISTS target_libraries)
     # of /library (which currently means: under /3rdparty).
     target_include_directories(${target}
         PUBLIC $<BUILD_INTERFACE:${MBEDTLS_DIR}/include/>
+               $<BUILD_INTERFACE:${MBEDTLS_DIR}/tf-psa-crypto/include/>
                $<INSTALL_INTERFACE:include/>
         PRIVATE ${MBEDTLS_DIR}/library/
                 # Needed to include psa_crypto_driver_wrappers.h

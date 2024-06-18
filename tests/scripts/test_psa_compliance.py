@@ -74,7 +74,8 @@ def main(library_build_dir: str):
         os.chdir(build_dir)
 
         extra_includes = (';{}/drivers/builtin/include'.format(root_dir)
-                          if in_tf_psa_crypto_repo else '')
+                          if in_tf_psa_crypto_repo else
+                          ';{}/tf-psa-crypto/include'.format(root_dir))
 
         #pylint: disable=bad-continuation
         subprocess.check_call([

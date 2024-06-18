@@ -126,9 +126,9 @@ if(GEN_FILES)
             ${CMAKE_CURRENT_SOURCE_DIR}/../framework/scripts/mbedtls_framework/psa_storage.py
             ${CMAKE_CURRENT_SOURCE_DIR}/../framework/scripts/mbedtls_framework/test_case.py
             ${CMAKE_CURRENT_SOURCE_DIR}/../framework/scripts/mbedtls_framework/test_data_generation.py
-            ${CMAKE_CURRENT_SOURCE_DIR}/../include/psa/crypto_config.h
-            ${CMAKE_CURRENT_SOURCE_DIR}/../include/psa/crypto_values.h
-            ${CMAKE_CURRENT_SOURCE_DIR}/../include/psa/crypto_extra.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/../tf-psa-crypto/include/psa/crypto_config.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/../tf-psa-crypto/include/psa/crypto_values.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/../tf-psa-crypto/include/psa/crypto_extra.h
     )
 
 else()

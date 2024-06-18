@@ -161,7 +161,7 @@ TEST_SUITES = ['tests/suites/test_suite_psa_crypto_metadata.data']
 def main():
     parser = argparse.ArgumentParser(description=globals()['__doc__'])
     parser.add_argument('--include', '-I',
-                        action='append', default=['include'],
+                        action='append', default=['tf-psa-crypto/include', 'include'],
                         help='Directory for header files')
     parser.add_argument('--keep-c',
                         action='store_true', dest='keep_c', default=False,

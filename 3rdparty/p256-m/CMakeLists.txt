@@ -8,6 +8,7 @@ target_include_directories(${p256m_target}
   PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
          $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/p256-m>
          $<BUILD_INTERFACE:${MBEDTLS_DIR}/include>
+         $<BUILD_INTERFACE:${MBEDTLS_DIR}/tf-psa-crypto/include>
          $<INSTALL_INTERFACE:include>
   PRIVATE ${MBEDTLS_DIR}/library/)
 

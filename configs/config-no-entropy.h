@@ -17,9 +17,6 @@
  * See README.txt for usage instructions.
  */
 
-#define MBEDTLS_PSA_CRYPTO_CONFIG_FILE "../configs/crypto-config-no-entropy.h"
-#define MBEDTLS_PSA_CRYPTO_CONFIG
-
 /* System support */
 #define MBEDTLS_HAVE_ASM
 #define MBEDTLS_HAVE_TIME

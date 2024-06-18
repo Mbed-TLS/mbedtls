@@ -54,6 +54,10 @@
  * don't contain pointers.
  */
 
+/** Reset all operation slots.
+ *
+ * Should be called when all clients have disconnected.
+ */
 void psa_sim_serialize_reset(void);
 
 /** Return how much buffer space is needed by \c psasim_serialise_begin().

@@ -105,6 +105,7 @@ if ($which eq "h") {
         }
     }
 
+    print define_server_serialize_reset(@types);
 } else {
     die("internal error - shouldn't happen");
 }
@@ -328,6 +329,12 @@ sub h_header
  * data types (e.g. int), types typedef'd to those, and even structures that
  * don't contain pointers.
  */
+
+/** Reset all operation slots.
+ *
+ * Should be called when all clients have disconnected.
+ */
+void psa_sim_serialize_reset(void);
 
 /** Return how much buffer space is needed by \c psasim_serialise_begin().
  *
@@ -903,6 +910,33 @@ int psasim_deserialise_begin(uint8_t **pos, size_t *remaining)
     *remaining -= sizeof(endian);
 
     return 1;
+}
+EOF
+}
+
+# Return the code for psa_sim_serialize_reset()
+sub define_server_serialize_reset
+{
+    my @types = @_;
+
+    my $code = <<EOF;
+
+void psa_sim_serialize_reset(void)
+{
+EOF
+
+    for my $type (@types) {
+        next unless $type =~ /^psa_(\w+_operation)_t$/;
+
+        my $what = $1;  # e.g. "hash_operation"
+
+        $code .= <<EOF;
+    memset(${what}_handles, 0, sizeof(${what}_handles));
+    memset(${what}s, 0, sizeof(${what}s));
+EOF
+    }
+
+    $code .= <<EOF;
 }
 EOF
 }

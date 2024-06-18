@@ -711,4 +711,6 @@ void psa_sim_serialize_reset(void)
 {
     memset(hash_operation_handles, 0, sizeof(hash_operation_handles));
     memset(hash_operations, 0, sizeof(hash_operations));
+    memset(aead_operation_handles, 0, sizeof(aead_operation_handles));
+    memset(aead_operations, 0, sizeof(aead_operations));
 }

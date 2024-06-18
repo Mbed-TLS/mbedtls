@@ -758,14 +758,15 @@ static void exp_mod_precompute_window(const mbedtls_mpi_uint *A,
  * (The difference is that the body in our loop processes a single bit instead
  * of a full window.)
  */
-void mbedtls_mpi_core_exp_mod(mbedtls_mpi_uint *X,
-                              const mbedtls_mpi_uint *A,
-                              const mbedtls_mpi_uint *N,
-                              size_t AN_limbs,
-                              const mbedtls_mpi_uint *E,
-                              size_t E_limbs,
-                              const mbedtls_mpi_uint *RR,
-                              mbedtls_mpi_uint *T)
+void mbedtls_mpi_core_exp_mod_optionally_safe(mbedtls_mpi_uint *X,
+                                              const mbedtls_mpi_uint *A,
+                                              const mbedtls_mpi_uint *N,
+                                              size_t AN_limbs,
+                                              const mbedtls_mpi_uint *E,
+                                              size_t E_limbs,
+                                              const mbedtls_mpi_uint *RR,
+                                              mbedtls_mpi_uint *T,
+                                              int E_public)
 {
     const size_t wsize = exp_mod_get_window_size(E_limbs * biL);
     const size_t welem = ((size_t) 1) << wsize;
@@ -803,6 +804,14 @@ void mbedtls_mpi_core_exp_mod(mbedtls_mpi_uint *X,
      * (limb_index=0, E_bit_index=0). */
     size_t E_limb_index = E_limbs;
     size_t E_bit_index = 0;
+    if (E_public == MBEDTLS_MPI_IS_PUBLIC) {
+        size_t E_bits = mbedtls_mpi_core_bitlen(E, E_limbs);
+        if (E_bits != 0) {
+            E_limb_index = E_bits / biL;
+            E_bit_index = E_bits % biL;
+        }
+    }
+
     /* At any given time, window contains window_bits bits from E.
      * window_bits can go up to wsize. */
     size_t window_bits = 0;
@@ -828,10 +837,14 @@ void mbedtls_mpi_core_exp_mod(mbedtls_mpi_uint *X,
          * when we've finished processing the exponent. */
         if (window_bits == wsize ||
             (E_bit_index == 0 && E_limb_index == 0)) {
-            /* Select Wtable[window] without leaking window through
-             * memory access patterns. */
-            mbedtls_mpi_core_ct_uint_table_lookup(Wselect, Wtable,
-                                                  AN_limbs, welem, window);
+            if (E_public == MBEDTLS_MPI_IS_PUBLIC) {
+                memcpy(Wselect, Wtable + window * AN_limbs, AN_limbs * ciL);
+            } else {
+                /* Select Wtable[window] without leaking window through
+                 * memory access patterns. */
+                mbedtls_mpi_core_ct_uint_table_lookup(Wselect, Wtable,
+                                                      AN_limbs, welem, window);
+            }
             /* Multiply X by the selected element. */
             mbedtls_mpi_core_montmul(X, X, Wselect, AN_limbs, N, AN_limbs, mm,
                                      temp);
@@ -839,6 +852,24 @@ void mbedtls_mpi_core_exp_mod(mbedtls_mpi_uint *X,
             window_bits = 0;
         }
     } while (!(E_bit_index == 0 && E_limb_index == 0));
+}
+
+void mbedtls_mpi_core_exp_mod(mbedtls_mpi_uint *X,
+                              const mbedtls_mpi_uint *A,
+                              const mbedtls_mpi_uint *N, size_t AN_limbs,
+                              const mbedtls_mpi_uint *E, size_t E_limbs,
+                              const mbedtls_mpi_uint *RR,
+                              mbedtls_mpi_uint *T)
+{
+    mbedtls_mpi_core_exp_mod_optionally_safe(X,
+                                             A,
+                                             N,
+                                             AN_limbs,
+                                             E,
+                                             E_limbs,
+                                             RR,
+                                             T,
+                                             MBEDTLS_MPI_IS_SECRET);
 }
 
 mbedtls_mpi_uint mbedtls_mpi_core_sub_int(mbedtls_mpi_uint *X,

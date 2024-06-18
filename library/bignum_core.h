@@ -605,6 +605,44 @@ int mbedtls_mpi_core_random(mbedtls_mpi_uint *X,
 size_t mbedtls_mpi_core_exp_mod_working_limbs(size_t AN_limbs, size_t E_limbs);
 
 /**
+ * \brief            Perform a modular exponentiation with public or secret exponent:
+ *                   X = A^E mod N, where \p A is already in Montgomery form.
+ *
+ * \p X may be aliased to \p A, but not to \p RR or \p E, even if \p E_limbs ==
+ * \p AN_limbs.
+ *
+ * \param[out] X     The destination MPI, as a little endian array of length
+ *                   \p AN_limbs.
+ * \param[in] A      The base MPI, as a little endian array of length \p AN_limbs.
+ *                   Must be in Montgomery form.
+ * \param[in] N      The modulus, as a little endian array of length \p AN_limbs.
+ * \param AN_limbs   The number of limbs in \p X, \p A, \p N, \p RR.
+ * \param[in] E      The exponent, as a little endian array of length \p E_limbs.
+ * \param E_limbs    The number of limbs in \p E.
+ * \param[in] RR     The precomputed residue of 2^{2*biL} modulo N, as a little
+ *                   endian array of length \p AN_limbs.
+ * \param[in,out] T  Temporary storage of at least the number of limbs returned
+ *                   by `mbedtls_mpi_core_exp_mod_working_limbs()`.
+ *                   Its initial content is unused and its final content is
+ *                   indeterminate.
+ *                   It must not alias or otherwise overlap any of the other
+ *                   parameters.
+ *                   It is up to the caller to zeroize \p T when it is no
+ *                   longer needed, and before freeing it if it was dynamically
+ *                   allocated.
+ * \param[in] E_public Set to MBEDTLS_MPI_IS_PUBLIC to gain some performance
+ *                   when the value of E is public.
+ *                   Set to MBEDTLS_MPI_IS_SECRET when the value of E is secret.
+ */
+void mbedtls_mpi_core_exp_mod_optionally_safe(mbedtls_mpi_uint *X,
+                                              const mbedtls_mpi_uint *A,
+                                              const mbedtls_mpi_uint *N, size_t AN_limbs,
+                                              const mbedtls_mpi_uint *E, size_t E_limbs,
+                                              const mbedtls_mpi_uint *RR,
+                                              mbedtls_mpi_uint *T,
+                                              int E_public);
+
+/**
  * \brief            Perform a modular exponentiation with secret exponent:
  *                   X = A^E mod N, where \p A is already in Montgomery form.
  *

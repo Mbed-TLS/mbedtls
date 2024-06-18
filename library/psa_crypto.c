@@ -7459,6 +7459,84 @@ psa_status_t psa_key_derivation_input_key(
 }
 
 
+psa_status_t psa_key_derivation_verify_bytes(
+    psa_key_derivation_operation_t *operation,
+    const uint8_t *expected_output,
+    size_t output_length)
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    uint8_t *actual_output = mbedtls_calloc(output_length, 1);
+
+    status = psa_key_derivation_output_bytes(operation,
+                                             actual_output,
+                                             output_length);
+    if (status != PSA_SUCCESS) {
+        goto exit;
+    }
+
+    if (mbedtls_ct_memcmp(expected_output, actual_output, output_length) != 0) {
+        status = PSA_ERROR_INVALID_SIGNATURE;
+        goto exit;
+    }
+
+exit:
+    mbedtls_zeroize_and_free(actual_output, output_length);
+    if (status != PSA_SUCCESS && status != PSA_ERROR_INVALID_SIGNATURE &&
+        status != PSA_ERROR_INSUFFICIENT_DATA) {
+        psa_key_derivation_abort(operation);
+    }
+
+    return status;
+}
+
+psa_status_t psa_key_derivation_verify_key(
+    psa_key_derivation_operation_t *operation,
+    mbedtls_svc_key_id_t expected)
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_status_t unlock_status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_key_slot_t *slot;
+
+    status = psa_get_and_lock_key_slot_with_policy(expected, &slot,
+                                                   PSA_KEY_USAGE_VERIFY_DERIVATION,
+                                                   operation->alg);
+    if (status != PSA_SUCCESS) {
+        return status;
+    }
+
+    psa_key_attributes_t attributes = {
+        .core = slot->attr
+    };
+
+    size_t key_length = PSA_BITS_TO_BYTES(psa_get_key_bits(&attributes));
+    uint8_t *actual_key_data = mbedtls_calloc(key_length, 1);
+
+    if (psa_get_key_type(&attributes) != PSA_KEY_TYPE_PASSWORD_HASH) {
+        status = PSA_ERROR_INVALID_ARGUMENT;
+        goto exit;
+    }
+
+    status = psa_key_derivation_output_bytes(operation,
+                                             actual_key_data,
+                                             key_length);
+    if (status != PSA_SUCCESS) {
+        goto exit;
+    }
+
+    if (mbedtls_ct_memcmp(slot->key.data, actual_key_data, key_length) != 0) {
+        status = PSA_ERROR_INVALID_SIGNATURE;
+        goto exit;
+    }
+
+exit:
+    unlock_status = psa_unlock_key_slot(slot);
+    mbedtls_zeroize_and_free(actual_key_data, key_length);
+    if (status != PSA_SUCCESS && status != PSA_ERROR_INVALID_SIGNATURE &&
+        status != PSA_ERROR_INSUFFICIENT_DATA) {
+        psa_key_derivation_abort(operation);
+    }
+    return (status == PSA_SUCCESS) ? unlock_status : status;
+}
 
 /****************************************************************/
 /* Key agreement */

@@ -1711,10 +1711,13 @@ component_test_crypto_full_md_light_only () {
     make test
 }
 
-component_test_full_no_cipher_with_legacy () {
+component_test_full_no_cipher_no_psa_crypto () {
     msg "build: full no CIPHER no PSA_CRYPTO_C"
     scripts/config.py full
     scripts/config.py unset MBEDTLS_CIPHER_C
+    # Don't pull in cipher via PSA mechanisms
+    # (currently ignored anyway because we completely disable PSA)
+    scripts/config.py unset MBEDTLS_PSA_CRYPTO_CONFIG
     # Disable features that depend on CIPHER_C
     scripts/config.py unset MBEDTLS_CMAC_C
     scripts/config.py unset MBEDTLS_NIST_KW_C
@@ -1722,21 +1725,6 @@ component_test_full_no_cipher_with_legacy () {
     scripts/config.py unset MBEDTLS_PSA_CRYPTO_CLIENT
     scripts/config.py unset MBEDTLS_SSL_TLS_C
     scripts/config.py unset MBEDTLS_SSL_TICKET_C
-    # The built-in implementation of the following algs/key-types depends
-    # on CIPHER_C so we disable them.
-    # This does not hold for KEY_TYPE_CHACHA20 and ALG_CHACHA20_POLY1305
-    # so we keep them enabled.
-    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CCM_STAR_NO_TAG
-    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CMAC
-    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CBC_NO_PADDING
-    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CBC_PKCS7
-    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CFB
-    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CTR
-    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_ECB_NO_PADDING
-    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_OFB
-    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_PBKDF2_AES_CMAC_PRF_128
-    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_STREAM_CIPHER
-    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_KEY_TYPE_DESPSA_WANT_ALG_CMAC
     # Disable features that depend on PSA_CRYPTO_C
     scripts/config.py unset MBEDTLS_PSA_CRYPTO_SE_C
     scripts/config.py unset MBEDTLS_PSA_CRYPTO_STORAGE_C

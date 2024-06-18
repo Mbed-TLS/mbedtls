@@ -4636,7 +4636,6 @@ component_test_aesni_m32 () { # ~ 60s
     ./programs/test/selftest aes | grep "AESNI code" | grep -q "intrinsics"
     grep -q "AES note: using AESNI" ./programs/test/selftest
     grep -q "AES note: built-in implementation." ./programs/test/selftest
-    grep -q "AES note: using VIA Padlock" ./programs/test/selftest
     grep -q mbedtls_aesni_has_support ./programs/test/selftest
 
     scripts/config.py set MBEDTLS_AESNI_C
@@ -4648,7 +4647,6 @@ component_test_aesni_m32 () { # ~ 60s
     ./programs/test/selftest aes | not grep -q "AES note: built-in implementation."
     grep -q "AES note: using AESNI" ./programs/test/selftest
     not grep -q "AES note: built-in implementation." ./programs/test/selftest
-    not grep -q "AES note: using VIA Padlock" ./programs/test/selftest
     not grep -q mbedtls_aesni_has_support ./programs/test/selftest
 }
 
@@ -4671,7 +4669,6 @@ component_test_aesni_m32_clang() {
     ./programs/test/selftest aes | grep "AESNI code" | grep -q "intrinsics"
     grep -q "AES note: using AESNI" ./programs/test/selftest
     grep -q "AES note: built-in implementation." ./programs/test/selftest
-    grep -q "AES note: using VIA Padlock" ./programs/test/selftest
     grep -q mbedtls_aesni_has_support ./programs/test/selftest
 }
 

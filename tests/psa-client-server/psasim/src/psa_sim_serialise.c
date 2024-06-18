@@ -110,8 +110,7 @@ static ssize_t allocate_aead_operation_slot(void)
 {
     psasim_client_handle_t handle = next_aead_operation_handle++;
     if (next_aead_operation_handle == 0) {      /* wrapped around */
-        fprintf(stderr, "MAX HASH HANDLES REACHED\n");
-        exit(1);
+        FATAL("Aead operation handle wrapped");
     }
 
     for (ssize_t i = 0; i < MAX_LIVE_HANDLES_PER_CLASS; i++) {
@@ -120,6 +119,8 @@ static ssize_t allocate_aead_operation_slot(void)
             return i;
         }
     }
+
+    ERROR("All slots are currently used. Unable to allocate a new one.");
 
     return -1;  /* all in use */
 }
@@ -133,7 +134,9 @@ static ssize_t find_aead_slot_by_handle(psasim_client_handle_t handle)
         }
     }
 
-    return -1;  /* all in use */
+    ERROR("Unable to find slot by handle %u", handle);
+
+    return -1;  /* not found */
 }
 
 size_t psasim_serialise_begin_needs(void)
@@ -709,10 +712,4 @@ int psasim_deserialise_mbedtls_svc_key_id_t(uint8_t **pos,
     *remaining -= sizeof(*value);
 
     return 1;
-}
-
-void psa_sim_serialize_reset(void)
-{
-    memset(hash_operation_handles, 0, sizeof(hash_operation_handles));
-    memset(hash_operations, 0, sizeof(hash_operations));
 }

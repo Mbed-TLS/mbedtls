@@ -241,22 +241,13 @@ and subsequent commands are tests that cannot run if the build failed).'''
 # This file includes a copy because it changes rarely and it would be a pain
 # to extract automatically.
 REVERSE_DEPENDENCIES = {
-    'MBEDTLS_AES_C': ['MBEDTLS_CTR_DRBG_C',
-                      'MBEDTLS_NIST_KW_C',
-                      'PSA_WANT_KEY_TYPE_AES',
-                      'PSA_WANT_ALG_PBKDF2_AES_CMAC_PRF_128'],
-    'MBEDTLS_ARIA_C': ['PSA_WANT_KEY_TYPE_ARIA'],
-    'MBEDTLS_CAMELLIA_C': ['PSA_WANT_KEY_TYPE_CAMELLIA'],
-    'MBEDTLS_CCM_C': ['PSA_WANT_ALG_CCM',
-                      'PSA_WANT_ALG_CCM_STAR_NO_TAG'],
-    'MBEDTLS_CHACHA20_C': ['MBEDTLS_CHACHAPOLY_C',
-                           'PSA_WANT_KEY_TYPE_CHACHA20',
-                           'PSA_WANT_ALG_CHACHA20_POLY1305',
-                           'PSA_WANT_ALG_STREAM_CIPHER'],
-    'MBEDTLS_CMAC_C': ['PSA_WANT_ALG_CMAC',
-                       'PSA_WANT_ALG_PBKDF2_AES_CMAC_PRF_128'],
-    'MBEDTLS_DES_C': ['PSA_WANT_KEY_TYPE_DES'],
-    'MBEDTLS_GCM_C': ['PSA_WANT_ALG_GCM'],
+    'PSA_WANT_KEY_TYPE_AES': ['PSA_WANT_ALG_PBKDF2_AES_CMAC_PRF_128',
+                              'MBEDTLS_CTR_DRBG_C',
+                              'MBEDTLS_NIST_KW_C'],
+    'PSA_WANT_KEY_TYPE_CHACHA20': ['PSA_WANT_ALG_CHACHA20_POLY1305',
+                                   'PSA_WANT_ALG_STREAM_CIPHER'],
+    'PSA_WANT_ALG_CCM': ['PSA_WANT_ALG_CCM_STAR_NO_TAG'],
+    'PSA_WANT_ALG_CMAC': ['PSA_WANT_ALG_PBKDF2_AES_CMAC_PRF_128'],
 
     'MBEDTLS_CIPHER_MODE_CBC': ['PSA_WANT_ALG_CBC_PKCS7',
                                 'PSA_WANT_ALG_CBC_NO_PADDING'],
@@ -363,20 +354,20 @@ EXCLUSIVE_GROUPS = {
     'MBEDTLS_ECP_DP_CURVE25519_ENABLED': ['-MBEDTLS_ECDSA_C',
                                           '-MBEDTLS_ECDSA_DETERMINISTIC',
                                           '-MBEDTLS_ECJPAKE_C'],
-    'MBEDTLS_ARIA_C': ['-MBEDTLS_CMAC_C',
-                       '-MBEDTLS_CCM_C',
-                       '-MBEDTLS_GCM_C',
-                       '-MBEDTLS_SSL_TICKET_C',
-                       '-MBEDTLS_SSL_CONTEXT_SERIALIZATION'],
-    'MBEDTLS_CAMELLIA_C': ['-MBEDTLS_CMAC_C'],
-    'MBEDTLS_CHACHA20_C': ['-MBEDTLS_CMAC_C',
-                           '-MBEDTLS_CCM_C',
-                           '-MBEDTLS_GCM_C',
-                           '-PSA_WANT_ALG_ECB_NO_PADDING'],
-    'MBEDTLS_DES_C': ['-MBEDTLS_CCM_C',
-                      '-MBEDTLS_GCM_C',
-                      '-MBEDTLS_SSL_TICKET_C',
-                      '-MBEDTLS_SSL_CONTEXT_SERIALIZATION'],
+    'PSA_WANT_KEY_TYPE_ARIA': ['-PSA_WANT_ALG_CMAC',
+                               '-PSA_WANT_ALG_CCM',
+                               '-PSA_WANT_ALG_GCM',
+                               '-MBEDTLS_SSL_TICKET_C',
+                               '-MBEDTLS_SSL_CONTEXT_SERIALIZATION'],
+    'PSA_WANT_KEY_TYPE_CAMELLIA': ['-PSA_WANT_ALG_CMAC'],
+    'PSA_WANT_KEY_TYPE_CHACHA20': ['-PSA_WANT_ALG_CMAC',
+                                   '-PSA_WANT_ALG_CCM',
+                                   '-PSA_WANT_ALG_GCM',
+                                   '-PSA_WANT_ALG_ECB_NO_PADDING'],
+    'PSA_WANT_KEY_TYPE_DES': ['-PSA_WANT_ALG_CCM',
+                              '-PSA_WANT_ALG_GCM',
+                              '-MBEDTLS_SSL_TICKET_C',
+                              '-MBEDTLS_SSL_CONTEXT_SERIALIZATION'],
 }
 def handle_exclusive_groups(config_settings, symbol):
     """For every symbol tested in an exclusive group check if there are other
@@ -476,7 +467,7 @@ class CipherInfo: # pylint: disable=too-few-public-methods
             for line in fh:
                 m = re.match(r' *MBEDTLS_CIPHER_ID_(\w+),', line)
                 if m and m.group(1) not in ['NONE', 'NULL', '3DES']:
-                    self.base_symbols.add('MBEDTLS_' + m.group(1) + '_C')
+                    self.base_symbols.add('PSA_WANT_KEY_TYPE_' + m.group(1))
 
 class DomainData:
     """A container for domains and jobs, used to structurize testing."""
@@ -496,6 +487,7 @@ class DomainData:
         curve_symbols = self.config_symbols_matching(r'MBEDTLS_ECP_DP_\w+_ENABLED\Z')
         # Find key exchange enabling macros by name.
         key_exchange_symbols = self.config_symbols_matching(r'MBEDTLS_KEY_EXCHANGE_\w+_ENABLED\Z')
+
         # Find cipher IDs (block permutations and stream ciphers --- chaining
         # and padding modes are exercised separately) information by parsing
         # cipher.h, as the information is not readily available in mbedtls_config.h.

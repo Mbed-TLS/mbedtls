@@ -1,7 +1,11 @@
 /* BEGIN_HEADER */
 #include "common.h"
 
-void fill_arrays(unsigned char *a, unsigned char *b, unsigned char *r1, unsigned char *r2, size_t n)
+static void fill_arrays(unsigned char *a,
+                        unsigned char *b,
+                        unsigned char *r1,
+                        unsigned char *r2,
+                        size_t n)
 {
     for (size_t i = 0; i < n; i++) {
         a[i]  = (unsigned char) i * 3;

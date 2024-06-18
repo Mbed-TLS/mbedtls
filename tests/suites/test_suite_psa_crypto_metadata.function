@@ -80,17 +80,17 @@
  * Unconditionally mask flag into the ambient variable
  * classification_flags_tested.
  */
-#define TEST_CLASSIFICATION_MACRO(cond, flag, alg, flags)     \
+#define TEST_CLASSIFICATION_MACRO(cond, flag, alg, flags)       \
     do                                                          \
     {                                                           \
-        if (cond)                                              \
+        if (cond)                                               \
         {                                                       \
-            if ((flags) & (flag))                          \
-            TEST_ASSERT(PSA_##flag(alg));               \
+            if ((flags) & (flag))                               \
+            TEST_ASSERT(PSA_##flag(alg));                       \
             else                                                \
-            TEST_ASSERT(!PSA_##flag(alg));             \
+            TEST_ASSERT(!PSA_##flag(alg));                      \
         }                                                       \
-        classification_flags_tested |= (flag);                \
+        classification_flags_tested |= (flag);                  \
     }                                                           \
     while (0)
 
@@ -106,7 +106,7 @@
  * The expected parity is even so that 0 is considered a valid encoding.
  *
  * Return a nonzero value if value has even parity and 0 otherwise. */
-int has_even_parity(uint32_t value)
+static int has_even_parity(uint32_t value)
 {
     value ^= value >> 16;
     value ^= value >> 8;
@@ -116,7 +116,7 @@ int has_even_parity(uint32_t value)
 #define TEST_PARITY(value)                    \
     TEST_ASSERT(has_even_parity(value))
 
-void algorithm_classification(psa_algorithm_t alg, unsigned flags)
+static void algorithm_classification(psa_algorithm_t alg, unsigned flags)
 {
     unsigned classification_flags_tested = 0;
     TEST_CLASSIFICATION_MACRO(1, ALG_IS_VENDOR_DEFINED, alg, flags);
@@ -155,7 +155,7 @@ void algorithm_classification(psa_algorithm_t alg, unsigned flags)
 exit:;
 }
 
-void key_type_classification(psa_key_type_t type, unsigned flags)
+static void key_type_classification(psa_key_type_t type, unsigned flags)
 {
     unsigned classification_flags_tested = 0;
 
@@ -192,9 +192,9 @@ void key_type_classification(psa_key_type_t type, unsigned flags)
 exit:;
 }
 
-void mac_algorithm_core(psa_algorithm_t alg, int classification_flags,
-                        psa_key_type_t key_type, size_t key_bits,
-                        size_t length)
+static void mac_algorithm_core(psa_algorithm_t alg, int classification_flags,
+                               psa_key_type_t key_type, size_t key_bits,
+                               size_t length)
 {
     /* Algorithm classification */
     TEST_ASSERT(!PSA_ALG_IS_HASH(alg));
@@ -218,9 +218,9 @@ void mac_algorithm_core(psa_algorithm_t alg, int classification_flags,
 exit:;
 }
 
-void aead_algorithm_core(psa_algorithm_t alg, int classification_flags,
-                         psa_key_type_t key_type, size_t key_bits,
-                         size_t tag_length)
+static void aead_algorithm_core(psa_algorithm_t alg, int classification_flags,
+                                psa_key_type_t key_type, size_t key_bits,
+                                size_t tag_length)
 {
     /* Algorithm classification */
     TEST_ASSERT(!PSA_ALG_IS_HASH(alg));

@@ -12,7 +12,7 @@ typedef struct {
     size_t size;
 } generic_write_data_t;
 
-int generic_write_start_step(generic_write_data_t *data)
+static int generic_write_start_step(generic_write_data_t *data)
 {
     mbedtls_test_set_step(data->size);
     mbedtls_free(data->output);
@@ -26,8 +26,8 @@ exit:
     return 0;
 }
 
-int generic_write_finish_step(generic_write_data_t *data,
-                              const data_t *expected, int ret)
+static int generic_write_finish_step(generic_write_data_t *data,
+                                     const data_t *expected, int ret)
 {
     int ok = 0;
 

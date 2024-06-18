@@ -1623,11 +1623,11 @@ void ssl_tls13_derive_secret(int hash_alg,
 
     unsigned char const *lbl = NULL;
     size_t lbl_len;
-#define MBEDTLS_SSL_TLS1_3_LABEL(name, string)                       \
-    if (label_idx == (int) tls13_label_ ## name)                      \
+#define MBEDTLS_SSL_TLS1_3_LABEL(name, string)                         \
+    if (label_idx == (int) tls13_label_ ## name)                       \
     {                                                                  \
         lbl = mbedtls_ssl_tls13_labels.name;                           \
-        lbl_len = sizeof(mbedtls_ssl_tls13_labels.name);             \
+        lbl_len = sizeof(mbedtls_ssl_tls13_labels.name);               \
     }
     MBEDTLS_SSL_TLS1_3_LABEL_LIST
 #undef MBEDTLS_SSL_TLS1_3_LABEL
@@ -1667,7 +1667,7 @@ void ssl_tls13_derive_early_secrets(int hash_alg,
     /* Double-check that we've passed sane parameters. */
     psa_algorithm_t alg = (psa_algorithm_t) hash_alg;
     size_t const hash_len = PSA_HASH_LENGTH(alg);
-    TEST_ASSERT(PSA_ALG_IS_HASH(alg)             &&
+    TEST_ASSERT(PSA_ALG_IS_HASH(alg)               &&
                 secret->len == hash_len            &&
                 transcript->len == hash_len        &&
                 traffic_expected->len == hash_len  &&
@@ -1701,7 +1701,7 @@ void ssl_tls13_derive_handshake_secrets(int hash_alg,
     /* Double-check that we've passed sane parameters. */
     psa_algorithm_t alg = (psa_algorithm_t) hash_alg;
     size_t const hash_len = PSA_HASH_LENGTH(alg);
-    TEST_ASSERT(PSA_ALG_IS_HASH(alg)            &&
+    TEST_ASSERT(PSA_ALG_IS_HASH(alg)              &&
                 secret->len == hash_len           &&
                 transcript->len == hash_len       &&
                 client_expected->len == hash_len  &&
@@ -1736,7 +1736,7 @@ void ssl_tls13_derive_application_secrets(int hash_alg,
     /* Double-check that we've passed sane parameters. */
     psa_algorithm_t alg = (psa_algorithm_t) hash_alg;
     size_t const hash_len = PSA_HASH_LENGTH(alg);
-    TEST_ASSERT(PSA_ALG_IS_HASH(alg)            &&
+    TEST_ASSERT(PSA_ALG_IS_HASH(alg)              &&
                 secret->len == hash_len           &&
                 transcript->len == hash_len       &&
                 client_expected->len == hash_len  &&
@@ -1772,7 +1772,7 @@ void ssl_tls13_derive_resumption_secrets(int hash_alg,
     /* Double-check that we've passed sane parameters. */
     psa_algorithm_t alg = (psa_algorithm_t) hash_alg;
     size_t const hash_len = PSA_HASH_LENGTH(alg);
-    TEST_ASSERT(PSA_ALG_IS_HASH(alg)              &&
+    TEST_ASSERT(PSA_ALG_IS_HASH(alg)                &&
                 secret->len == hash_len             &&
                 transcript->len == hash_len         &&
                 resumption_expected->len == hash_len);
@@ -1803,7 +1803,7 @@ void ssl_tls13_create_psk_binder(int hash_alg,
     /* Double-check that we've passed sane parameters. */
     psa_algorithm_t alg = (psa_algorithm_t) hash_alg;
     size_t const hash_len = PSA_HASH_LENGTH(alg);
-    TEST_ASSERT(PSA_ALG_IS_HASH(alg)          &&
+    TEST_ASSERT(PSA_ALG_IS_HASH(alg)            &&
                 transcript->len == hash_len     &&
                 binder_expected->len == hash_len);
 

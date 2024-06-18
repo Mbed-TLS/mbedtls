@@ -35,6 +35,8 @@
 
 #include "mbedtls/cipher.h"
 
+#include <test/helpers.h>
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -77,16 +79,6 @@ const unsigned char msg2_part2[] = { 0x15, 0x16, 0x17 };
 /* Dummy key material - never do this in production!
  * 32-byte is enough to all the key size supported by this program. */
 const unsigned char key_bytes[32] = { 0x2a };
-
-/* Print the contents of a buffer in hex */
-void print_buf(const char *title, unsigned char *buf, size_t len)
-{
-    printf("%s:", title);
-    for (size_t i = 0; i < len; i++) {
-        printf(" %02x", buf[i]);
-    }
-    printf("\n");
-}
 
 /* Run an Mbed TLS function and bail out if it fails.
  * A string description of the error code can be recovered with:
@@ -198,7 +190,7 @@ static int aead_encrypt(mbedtls_cipher_context_t *ctx, size_t tag_len,
     p += tag_len;
 
     olen = p - out;
-    print_buf("out", out, olen);
+    mbedtls_test_print_buf("out", out, olen);
 
 exit:
     return ret;

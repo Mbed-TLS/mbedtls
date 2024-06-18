@@ -483,7 +483,7 @@ typedef struct {
 } packet;
 
 /* Print packet. Outgoing packets come with a reason (forward, dupl, etc.) */
-void print_packet(const packet *p, const char *why)
+static void print_packet(const packet *p, const char *why)
 {
 #if defined(MBEDTLS_TIMING_C)
     if (why == NULL) {
@@ -527,7 +527,7 @@ typedef enum {
 static inject_clihlo_state_t inject_clihlo_state;
 static packet initial_clihlo;
 
-int send_packet(const packet *p, const char *why)
+static int send_packet(const packet *p, const char *why)
 {
     int ret;
     mbedtls_net_context *dst = p->dst;
@@ -616,13 +616,13 @@ int send_packet(const packet *p, const char *why)
 static size_t prev_len;
 static packet prev[MAX_DELAYED_MSG];
 
-void clear_pending(void)
+static void clear_pending(void)
 {
     memset(&prev, 0, sizeof(prev));
     prev_len = 0;
 }
 
-void delay_packet(packet *delay)
+static void delay_packet(packet *delay)
 {
     if (prev_len == MAX_DELAYED_MSG) {
         return;
@@ -631,7 +631,7 @@ void delay_packet(packet *delay)
     memcpy(&prev[prev_len++], delay, sizeof(packet));
 }
 
-int send_delayed(void)
+static int send_delayed(void)
 {
     uint8_t offset;
     int ret;
@@ -663,9 +663,9 @@ int send_delayed(void)
 static unsigned char held[2048] = { 0 };
 #define HOLD_MAX 2
 
-int handle_message(const char *way,
-                   mbedtls_net_context *dst,
-                   mbedtls_net_context *src)
+static int handle_message(const char *way,
+                          mbedtls_net_context *dst,
+                          mbedtls_net_context *src)
 {
     int ret;
     packet cur;

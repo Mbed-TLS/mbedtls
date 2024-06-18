@@ -9,7 +9,7 @@ struct buffer_data {
     char *ptr;
 };
 
-void string_debug(void *data, int level, const char *file, int line, const char *str)
+static void string_debug(void *data, int level, const char *file, int line, const char *str)
 {
     struct buffer_data *buffer = (struct buffer_data *) data;
     char *p = buffer->ptr;

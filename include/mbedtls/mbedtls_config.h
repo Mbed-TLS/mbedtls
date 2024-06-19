@@ -1118,7 +1118,7 @@
  *           MBEDTLS_ECP_DP_SECP256R1_ENABLED
  *
  * \warning If SHA-256 is provided only by a PSA driver, you must call
- * psa_crypto_init() before the first hanshake (even if
+ * psa_crypto_init() before the first handshake (even if
  * MBEDTLS_USE_PSA_CRYPTO is disabled).
  *
  * This enables the following ciphersuites (if other requisites are
@@ -2625,7 +2625,7 @@
  * The CTR_DRBG generator uses AES-256 by default.
  * To use AES-128 instead, enable \c MBEDTLS_CTR_DRBG_USE_128_BIT_KEY above.
  *
- * AES support can either be achived through builtin (MBEDTLS_AES_C) or PSA.
+ * AES support can either be achieved through builtin (MBEDTLS_AES_C) or PSA.
  * Builtin is the default option when MBEDTLS_AES_C is defined otherwise PSA
  * is used.
  *

@@ -4,7 +4,7 @@
  *
  * This is an internal header. Do not include it directly.
  *
- * Automatically enable certain dependencies. Generally, MBEDLTS_xxx
+ * Automatically enable certain dependencies. Generally, MBEDTLS_xxx
  * configurations need to be explicitly enabled by the user: enabling
  * MBEDTLS_xxx_A but not MBEDTLS_xxx_B when A requires B results in a
  * compilation error. However, we do automatically enable certain options
@@ -433,7 +433,7 @@
 #define MBEDTLS_PSA_UTIL_HAVE_ECDSA
 #endif
 
-/* Some internal helpers to determine which keys are availble. */
+/* Some internal helpers to determine which keys are available. */
 #if (!defined(MBEDTLS_USE_PSA_CRYPTO) && defined(MBEDTLS_AES_C)) || \
     (defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_KEY_TYPE_AES))
 #define MBEDTLS_SSL_HAVE_AES
@@ -447,7 +447,7 @@
 #define MBEDTLS_SSL_HAVE_CAMELLIA
 #endif
 
-/* Some internal helpers to determine which operation modes are availble. */
+/* Some internal helpers to determine which operation modes are available. */
 #if (!defined(MBEDTLS_USE_PSA_CRYPTO) && defined(MBEDTLS_CIPHER_MODE_CBC)) || \
     (defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_ALG_CBC_NO_PADDING))
 #define MBEDTLS_SSL_HAVE_CBC

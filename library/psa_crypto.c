@@ -1622,11 +1622,11 @@ exit:
 }
 
 MBEDTLS_STATIC_ASSERT((MBEDTLS_PSA_KA_MASK_EXTERNAL_ONLY & MBEDTLS_PSA_KA_MASK_DUAL_USE) == 0,
-                      "One or more key attribute flag is listed as both external-only and dual-use")
+                      "One or more key attribute flag is listed as both external-only and dual-use");
 MBEDTLS_STATIC_ASSERT((PSA_KA_MASK_INTERNAL_ONLY & MBEDTLS_PSA_KA_MASK_DUAL_USE) == 0,
-                      "One or more key attribute flag is listed as both internal-only and dual-use")
+                      "One or more key attribute flag is listed as both internal-only and dual-use");
 MBEDTLS_STATIC_ASSERT((PSA_KA_MASK_INTERNAL_ONLY & MBEDTLS_PSA_KA_MASK_EXTERNAL_ONLY) == 0,
-                      "One or more key attribute flag is listed as both internal-only and external-only")
+                      "One or more key attribute flag is listed as both internal-only and external-only");
 
 /** Validate that a key policy is internally well-formed.
  *
@@ -2147,6 +2147,14 @@ psa_status_t mbedtls_psa_register_se_key(
     }
     if (psa_get_key_bits(attributes) == 0) {
         return PSA_ERROR_NOT_SUPPORTED;
+    }
+
+    /* Not usable with volatile keys, even with an appropriate location,
+     * due to the API design.
+     * https://github.com/Mbed-TLS/mbedtls/issues/9253
+     */
+    if (PSA_KEY_LIFETIME_IS_VOLATILE(psa_get_key_lifetime(attributes))) {
+        return PSA_ERROR_INVALID_ARGUMENT;
     }
 
     status = psa_start_key_creation(PSA_KEY_CREATION_REGISTER, attributes,

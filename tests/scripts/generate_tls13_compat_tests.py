@@ -30,8 +30,8 @@ CERTIFICATES = {
                                           '../framework/data_files/ecdsa_secp521r1.crt',
                                           '../framework/data_files/ecdsa_secp521r1.key'),
     'rsa_pss_rsae_sha256': Certificate('../framework/data_files/test-ca_cat12.crt',
-                                       '../framework/data_files/server2-sha256.crt', '../framework/data_files/server2.key'
-                                       )
+                                       '../framework/data_files/server2-sha256.crt',
+                                       '../framework/data_files/server2.key')
 }
 
 CIPHER_SUITE_IANA_VALUE = {

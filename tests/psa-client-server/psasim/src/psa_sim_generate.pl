@@ -244,6 +244,16 @@ EOF
 }
 EOF
 
+    # Finally, add psa_crypto_close()
+
+    print $fh <<EOF;
+
+void psa_crypto_close(void)
+{
+    psa_sim_serialize_reset();
+}
+EOF
+
     close($fh);
 }
 

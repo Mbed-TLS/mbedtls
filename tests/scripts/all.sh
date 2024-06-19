@@ -4766,10 +4766,10 @@ component_test_when_no_ciphersuites_have_mac () {
     scripts/config.py unset MBEDTLS_CMAC_C
     make
 
-    msg "test: !MBEDTLS_SSL_SOME_MODES_USE_MAC"
+    msg "test: !MBEDTLS_SSL_SOME_SUITES_USE_MAC"
     make test
 
-    msg "test ssl-opt.sh: !MBEDTLS_SSL_SOME_MODES_USE_MAC"
+    msg "test ssl-opt.sh: !MBEDTLS_SSL_SOME_SUITES_USE_MAC"
     tests/ssl-opt.sh -f 'Default\|EtM' -e 'without EtM'
 }
 

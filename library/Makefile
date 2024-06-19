@@ -337,6 +337,10 @@ libmbedcrypto.dll: $(OBJS_CRYPTO)
 	echo "  CC    $<"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) -o $@ -c $<
 
+.c.s:
+	echo "  CC    $<"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) -S -o $@ -c $<
+
 .PHONY: generated_files
 generated_files: $(GENERATED_FILES)
 

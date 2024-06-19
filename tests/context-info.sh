@@ -401,7 +401,7 @@ run_test "Empty file as input" \
          -u "Finished. No valid base64 code found"
 
 run_test "Not empty file without base64 code" \
-         "../../context-info.sh" \
+         "../../../tests/context-info.sh" \
          -n "Deserializing"
 
 run_test "Binary file instead of text file" \

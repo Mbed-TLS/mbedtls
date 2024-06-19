@@ -2990,11 +2990,17 @@ component_test_make_shared () {
 
 component_test_cmake_shared () {
     msg "build/test: cmake shared" # ~ 2min
+    root_dir="$(pwd)"
     cmake -DUSE_SHARED_MBEDTLS_LIBRARY=On .
     make
     ldd programs/util/strerror | grep libmbedcrypto
     make test
     programs/test/dlopen_demo.sh
+    if [[ "$OSTYPE" == linux* ]]; then
+        PKG_CONFIG_PATH="${root_dir}/pkgconfig" ${root_dir}/tests/scripts/pkgconfig.sh
+    else
+	printf "Detected non-linux system of \"$OSTYPE\", not running pkgconfig.sh tests\n"
+    fi
 }
 
 test_build_opt () {

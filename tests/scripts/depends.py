@@ -47,7 +47,6 @@ a full config without a couple of slowing down or unnecessary options
 import argparse
 import os
 import re
-import shutil
 import subprocess
 import sys
 import traceback
@@ -98,24 +97,6 @@ def log_command(cmd):
     """Print a trace of the specified command.
 cmd is a list of strings: a command name and its arguments."""
     log_line(' '.join(cmd), prefix='+')
-
-def backup_config(options):
-    """Back up the library configuration file (mbedtls_config.h).
-If the backup file already exists, it is presumed to be the desired backup,
-so don't make another backup."""
-    if os.path.exists(options.config_backup):
-        options.own_backup = False
-    else:
-        options.own_backup = True
-        shutil.copy(options.config, options.config_backup)
-
-def restore_config(options):
-    """Restore the library configuration file (mbedtls_config.h).
-Remove the backup file if it was saved earlier."""
-    if options.own_backup:
-        shutil.move(options.config_backup, options.config)
-    else:
-        shutil.copy(options.config_backup, options.config)
 
 def option_exists(conf, option):
     return option in conf.settings
@@ -463,15 +444,13 @@ def run_tests(options, domain_data, conf):
 domain_data should be a DomainData instance that describes the available
 domains and jobs.
 Run the jobs listed in options.tasks."""
-    if not hasattr(options, 'config_backup'):
-        options.config_backup = options.config + '.bak'
     colors = Colors(options)
     jobs = []
     failures = []
     successes = []
     for name in options.tasks:
         jobs += domain_data.get_jobs(name)
-    backup_config(options)
+    conf.backup()
     try:
         for job in jobs:
             success = run(options, job, conf, colors=colors)
@@ -482,13 +461,13 @@ Run the jobs listed in options.tasks."""
                     return False
             else:
                 successes.append(job.name)
-        restore_config(options)
+        conf.restore()
     except:
         # Restore the configuration, except in stop-on-error mode if there
         # was an error, where we leave the failing configuration up for
         # developer convenience.
         if options.keep_going:
-            restore_config(options)
+            conf.restore()
         raise
     if successes:
         log_line('{} passed'.format(' '.join(successes)), color=colors.bold_green)

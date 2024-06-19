@@ -2322,7 +2322,7 @@ component_test_psa_crypto_config_accel_des () {
     helper_libtestdriver1_make_main "$loc_accel_list"
 
     # Make sure this was not re-enabled by accident (additive config)
-    not grep mbedtls_des* library/des.o
+    not grep mbedtls_des library/des.o
 
     # Run the tests
     # -------------

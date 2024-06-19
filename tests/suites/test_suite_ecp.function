@@ -746,19 +746,19 @@ void ecp_tls_write_read_point(int id)
     TEST_ASSERT(vbuf == buf + olen);
 
     memset(buf, 0x00, sizeof(buf)); vbuf = buf;
-    TEST_ASSERT(mbedtls_ecp_set_zero(&pt) == 0);
+    TEST_ASSERT(mbedtls_ecp_set_zero_ext(&grp, &pt) == 0);
     TEST_ASSERT(mbedtls_ecp_tls_write_point(&grp, &pt,
                                             MBEDTLS_ECP_PF_COMPRESSED, &olen, buf, 256) == 0);
     TEST_ASSERT(mbedtls_ecp_tls_read_point(&grp, &pt, &vbuf, olen) == 0);
-    TEST_ASSERT(mbedtls_ecp_is_zero(&pt));
+    TEST_ASSERT(mbedtls_ecp_is_zero_ext(&grp, &pt));
     TEST_ASSERT(vbuf == buf + olen);
 
     memset(buf, 0x00, sizeof(buf)); vbuf = buf;
-    TEST_ASSERT(mbedtls_ecp_set_zero(&pt) == 0);
+    TEST_ASSERT(mbedtls_ecp_set_zero_ext(&grp, &pt) == 0);
     TEST_ASSERT(mbedtls_ecp_tls_write_point(&grp, &pt,
                                             MBEDTLS_ECP_PF_UNCOMPRESSED, &olen, buf, 256) == 0);
     TEST_ASSERT(mbedtls_ecp_tls_read_point(&grp, &pt, &vbuf, olen) == 0);
-    TEST_ASSERT(mbedtls_ecp_is_zero(&pt));
+    TEST_ASSERT(mbedtls_ecp_is_zero_ext(&grp, &pt));
     TEST_ASSERT(vbuf == buf + olen);
 
 exit:
@@ -1407,23 +1407,23 @@ void ecp_set_zero(int id, data_t *P_bin)
     mbedtls_ecp_point_init(&nonzero_pt);
 
     // Set zero and non-zero points for comparison
-    TEST_EQUAL(mbedtls_ecp_set_zero(&zero_pt), 0);
     TEST_EQUAL(mbedtls_ecp_group_load(&grp, id), 0);
+    TEST_EQUAL(mbedtls_ecp_set_zero_ext(&grp, &zero_pt), 0);
     TEST_EQUAL(mbedtls_ecp_point_read_binary(&grp, &nonzero_pt,
                                              P_bin->x, P_bin->len), 0);
-    TEST_EQUAL(mbedtls_ecp_is_zero(&zero_pt), 1);
-    TEST_EQUAL(mbedtls_ecp_is_zero(&nonzero_pt), 0);
+    TEST_EQUAL(mbedtls_ecp_is_zero_ext(&grp, &zero_pt), 1);
+    TEST_EQUAL(mbedtls_ecp_is_zero_ext(&grp, &nonzero_pt), 0);
 
     // Test initialized point
-    TEST_EQUAL(mbedtls_ecp_set_zero(&pt), 0);
-    TEST_EQUAL(mbedtls_ecp_is_zero(&pt), 1);
+    TEST_EQUAL(mbedtls_ecp_set_zero_ext(&grp, &pt), 0);
+    TEST_EQUAL(mbedtls_ecp_is_zero_ext(&grp, &pt), 1);
     TEST_EQUAL(mbedtls_ecp_point_cmp(&zero_pt, &pt), 0);
     TEST_EQUAL(mbedtls_ecp_point_cmp(&nonzero_pt, &zero_pt),
                MBEDTLS_ERR_ECP_BAD_INPUT_DATA);
 
     // Test zeroed point
-    TEST_EQUAL(mbedtls_ecp_set_zero(&pt), 0);
-    TEST_EQUAL(mbedtls_ecp_is_zero(&pt), 1);
+    TEST_EQUAL(mbedtls_ecp_set_zero_ext(&grp, &pt), 0);
+    TEST_EQUAL(mbedtls_ecp_is_zero_ext(&grp, &pt), 1);
     TEST_EQUAL(mbedtls_ecp_point_cmp(&zero_pt, &pt), 0);
     TEST_EQUAL(mbedtls_ecp_point_cmp(&nonzero_pt, &pt),
                MBEDTLS_ERR_ECP_BAD_INPUT_DATA);
@@ -1431,14 +1431,14 @@ void ecp_set_zero(int id, data_t *P_bin)
     // Set point to non-zero value
     TEST_EQUAL(mbedtls_ecp_point_read_binary(&grp, &pt,
                                              P_bin->x, P_bin->len), 0);
-    TEST_EQUAL(mbedtls_ecp_is_zero(&pt), 0);
+    TEST_EQUAL(mbedtls_ecp_is_zero_ext(&grp, &pt), 0);
     TEST_EQUAL(mbedtls_ecp_point_cmp(&zero_pt, &pt),
                MBEDTLS_ERR_ECP_BAD_INPUT_DATA);
     TEST_EQUAL(mbedtls_ecp_point_cmp(&nonzero_pt, &pt), 0);
 
     // Test non-zero point
-    TEST_EQUAL(mbedtls_ecp_set_zero(&pt), 0);
-    TEST_EQUAL(mbedtls_ecp_is_zero(&pt), 1);
+    TEST_EQUAL(mbedtls_ecp_set_zero_ext(&grp, &pt), 0);
+    TEST_EQUAL(mbedtls_ecp_is_zero_ext(&grp, &pt), 1);
     TEST_EQUAL(mbedtls_ecp_point_cmp(&zero_pt, &pt), 0);
     TEST_EQUAL(mbedtls_ecp_point_cmp(&nonzero_pt, &pt),
                MBEDTLS_ERR_ECP_BAD_INPUT_DATA);
@@ -1447,8 +1447,8 @@ void ecp_set_zero(int id, data_t *P_bin)
     TEST_EQUAL(mbedtls_ecp_point_read_binary(&grp, &pt,
                                              P_bin->x, P_bin->len), 0);
     mbedtls_ecp_point_free(&pt);
-    TEST_EQUAL(mbedtls_ecp_set_zero(&pt), 0);
-    TEST_EQUAL(mbedtls_ecp_is_zero(&pt), 1);
+    TEST_EQUAL(mbedtls_ecp_set_zero_ext(&grp, &pt), 0);
+    TEST_EQUAL(mbedtls_ecp_is_zero_ext(&grp, &pt), 1);
     TEST_EQUAL(mbedtls_ecp_point_cmp(&zero_pt, &pt), 0);
     TEST_EQUAL(mbedtls_ecp_point_cmp(&nonzero_pt, &pt),
                MBEDTLS_ERR_ECP_BAD_INPUT_DATA);

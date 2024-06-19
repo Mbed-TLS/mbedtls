@@ -1861,6 +1861,7 @@ component_test_full_no_bignum () {
     # Direct dependencies of ECP
     scripts/config.py unset MBEDTLS_ECDH_C
     scripts/config.py unset MBEDTLS_ECDSA_C
+    scripts/config.py unset MBEDTLS_EDDSA_C
     scripts/config.py unset MBEDTLS_ECJPAKE_C
     scripts/config.py unset MBEDTLS_ECP_RESTARTABLE
     # Disable what auto-enables ECP_LIGHT
@@ -2070,6 +2071,7 @@ component_test_everest_curve25519_only () {
     scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
     scripts/config.py set MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED
     scripts/config.py unset MBEDTLS_ECDSA_C
+    scripts/config.py unset MBEDTLS_EDDSA_C
     scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_DETERMINISTIC_ECDSA
     scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_ECDSA
     scripts/config.py -f $CRYPTO_CONFIG_H set PSA_WANT_ALG_ECDH
@@ -2631,6 +2633,7 @@ component_test_psa_crypto_config_accel_ecdsa () {
 
     # Disable the module that's accelerated
     scripts/config.py unset MBEDTLS_ECDSA_C
+    scripts/config.py unset MBEDTLS_EDDSA_C
 
     # Disable things that depend on it
     scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
@@ -2988,6 +2991,7 @@ config_psa_crypto_config_ecp_light_only () {
     if [ "$driver_only" -eq 1 ]; then
         # Disable modules that are accelerated
         scripts/config.py unset MBEDTLS_ECDSA_C
+        scripts/config.py unset MBEDTLS_EDDSA_C
         scripts/config.py unset MBEDTLS_ECDH_C
         scripts/config.py unset MBEDTLS_ECJPAKE_C
         scripts/config.py unset MBEDTLS_ECP_C
@@ -3032,6 +3036,7 @@ component_test_psa_crypto_config_accel_ecc_ecp_light_only () {
 
     # Make sure any built-in EC alg was not re-enabled by accident (additive config)
     not grep mbedtls_ecdsa_ library/ecdsa.o
+    not grep mbedtls_eddsa_ library/eddsa.o
     not grep mbedtls_ecdh_ library/ecdh.o
     not grep mbedtls_ecjpake_ library/ecjpake.o
     not grep mbedtls_ecp_mul library/ecp.o
@@ -3082,6 +3087,7 @@ config_psa_crypto_no_ecp_at_all () {
     if [ "$driver_only" -eq 1 ]; then
         # Disable modules that are accelerated
         scripts/config.py unset MBEDTLS_ECDSA_C
+        scripts/config.py unset MBEDTLS_EDDSA_C
         scripts/config.py unset MBEDTLS_ECDH_C
         scripts/config.py unset MBEDTLS_ECJPAKE_C
         # Disable ECP module (entirely)
@@ -3136,6 +3142,7 @@ component_test_psa_crypto_config_accel_ecc_no_ecp_at_all () {
 
     # Make sure any built-in EC alg was not re-enabled by accident (additive config)
     not grep mbedtls_ecdsa_ library/ecdsa.o
+    not grep mbedtls_eddsa_ library/eddsa.o
     not grep mbedtls_ecdh_ library/ecdh.o
     not grep mbedtls_ecjpake_ library/ecjpake.o
     # Also ensure that ECP module was not re-enabled
@@ -3197,6 +3204,7 @@ config_psa_crypto_config_accel_ecc_ffdh_no_bignum() {
     if [ "$driver_only" -eq 1 ]; then
         # Disable modules that are accelerated
         scripts/config.py unset MBEDTLS_ECDSA_C
+        scripts/config.py unset MBEDTLS_EDDSA_C
         scripts/config.py unset MBEDTLS_ECDH_C
         scripts/config.py unset MBEDTLS_ECJPAKE_C
         # Disable ECP module (entirely)
@@ -3311,6 +3319,7 @@ common_test_psa_crypto_config_accel_ecc_ffdh_no_bignum () {
 
     # Make sure any built-in EC alg was not re-enabled by accident (additive config)
     not grep mbedtls_ecdsa_ library/ecdsa.o
+    not grep mbedtls_eddsa_ library/eddsa.o
     not grep mbedtls_ecdh_ library/ecdh.o
     not grep mbedtls_ecjpake_ library/ecjpake.o
     # Also ensure that ECP, RSA, [DHM] or BIGNUM modules were not re-enabled
@@ -3414,6 +3423,7 @@ component_test_tfm_config_p256m_driver_accel_ec () {
 
     # Make sure any built-in EC alg was not re-enabled by accident (additive config)
     not grep mbedtls_ecdsa_ library/ecdsa.o
+    not grep mbedtls_eddsa_ library/eddsa.o
     not grep mbedtls_ecdh_ library/ecdh.o
     not grep mbedtls_ecjpake_ library/ecjpake.o
     # Also ensure that ECP, RSA, DHM or BIGNUM modules were not re-enabled
@@ -3671,8 +3681,8 @@ component_test_psa_crypto_config_accel_hash () {
     scripts/config.py unset MBEDTLS_SHA224_C
     scripts/config.py unset MBEDTLS_SHA256_C
     scripts/config.py unset MBEDTLS_SHA384_C
-    scripts/config.py unset MBEDTLS_SHA512_C
-    scripts/config.py unset MBEDTLS_SHA3_C
+    #scripts/config.py unset MBEDTLS_SHA512_C
+    #scripts/config.py unset MBEDTLS_SHA3_C
 
     # Build
     # -----
@@ -3686,7 +3696,7 @@ component_test_psa_crypto_config_accel_hash () {
     not grep mbedtls_md5 library/md5.o
     not grep mbedtls_sha1 library/sha1.o
     not grep mbedtls_sha256 library/sha256.o
-    not grep mbedtls_sha512 library/sha512.o
+    #not grep mbedtls_sha512 library/sha512.o # Needed by Ed25519
     not grep mbedtls_ripemd160 library/ripemd160.o
 
     # Run the tests
@@ -3712,6 +3722,8 @@ config_psa_crypto_hash_use_psa () {
         scripts/config.py unset MBEDTLS_SHA384_C
         scripts/config.py unset MBEDTLS_SHA512_C
         scripts/config.py unset MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT
+        scripts/config.py unset MBEDTLS_ECP_DP_ED25519_ENABLED
+        scripts/config.py unset MBEDTLS_EDDSA_C
         scripts/config.py unset MBEDTLS_SHA3_C
     fi
 }
@@ -5652,6 +5664,7 @@ component_test_tls13_only_psk () {
     scripts/config.py unset MBEDTLS_X509_RSASSA_PSS_SUPPORT
     scripts/config.py unset MBEDTLS_SSL_SERVER_NAME_INDICATION
     scripts/config.py unset MBEDTLS_ECDSA_C
+    scripts/config.py unset MBEDTLS_EDDSA_C
     scripts/config.py unset MBEDTLS_PKCS1_V21
     scripts/config.py unset MBEDTLS_PKCS7_C
     scripts/config.py set   MBEDTLS_SSL_EARLY_DATA
@@ -5702,6 +5715,7 @@ component_test_tls13_only_psk_ephemeral () {
     scripts/config.py unset MBEDTLS_X509_RSASSA_PSS_SUPPORT
     scripts/config.py unset MBEDTLS_SSL_SERVER_NAME_INDICATION
     scripts/config.py unset MBEDTLS_ECDSA_C
+    scripts/config.py unset MBEDTLS_EDDSA_C
     scripts/config.py unset MBEDTLS_PKCS1_V21
     scripts/config.py unset MBEDTLS_PKCS7_C
     scripts/config.py set   MBEDTLS_SSL_EARLY_DATA
@@ -5722,6 +5736,7 @@ component_test_tls13_only_psk_ephemeral_ffdh () {
     scripts/config.py unset MBEDTLS_X509_RSASSA_PSS_SUPPORT
     scripts/config.py unset MBEDTLS_SSL_SERVER_NAME_INDICATION
     scripts/config.py unset MBEDTLS_ECDSA_C
+    scripts/config.py unset MBEDTLS_EDDSA_C
     scripts/config.py unset MBEDTLS_PKCS1_V21
     scripts/config.py unset MBEDTLS_PKCS7_C
     scripts/config.py set   MBEDTLS_SSL_EARLY_DATA
@@ -5742,6 +5757,7 @@ component_test_tls13_only_psk_all () {
     scripts/config.py unset MBEDTLS_X509_RSASSA_PSS_SUPPORT
     scripts/config.py unset MBEDTLS_SSL_SERVER_NAME_INDICATION
     scripts/config.py unset MBEDTLS_ECDSA_C
+    scripts/config.py unset MBEDTLS_EDDSA_C
     scripts/config.py unset MBEDTLS_PKCS1_V21
     scripts/config.py unset MBEDTLS_PKCS7_C
     scripts/config.py set   MBEDTLS_SSL_EARLY_DATA

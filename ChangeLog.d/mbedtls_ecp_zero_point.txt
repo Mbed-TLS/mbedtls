@@ -1,0 +1,8 @@
+API changes
+   * New functions mbedtls_ecp_set_zero_ext() and mbedtls_ecp_is_zero_ext()
+     working on all ECP curves.
+
+New deprecations
+   * Deprecate mbedtls_ecp_set_zero() and mbedtls_ecp_is_zero() in favor of the
+     mbedtls_ecp_set_zero_ext() and mbedtls_ecp_is_zero_ext() functions which
+     work on all ECP curves.

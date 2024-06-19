@@ -1,0 +1,161 @@
+/* BEGIN_HEADER */
+#include "mbedtls/eddsa.h"
+#include "mbedtls/sha512.h"
+/* END_HEADER */
+
+/* BEGIN_DEPENDENCIES
+ * depends_on:MBEDTLS_EDDSA_C:MBEDTLS_SHA512_C
+ * END_DEPENDENCIES
+ */
+
+/* BEGIN_CASE */
+void eddsa_sign(int gid, int eddsa_type, data_t *key, data_t *message, data_t *ed_ctx, data_t *tv)
+{
+    mbedtls_ecp_keypair ctx;
+    mbedtls_mpi r, s;
+    mbedtls_test_rnd_pseudo_info rnd_info;
+    uint8_t *sign_buf = NULL, *data = message->x, *sha_buf = NULL;
+    size_t sign_buf_size = 0, data_size = message->len;
+    const size_t sha_buf_size = 64;
+
+    TEST_ASSERT((gid == MBEDTLS_ECP_DP_ED25519 && key->len == 32));     /* For Ed25519 */
+
+    TEST_ASSERT((gid == MBEDTLS_ECP_DP_ED25519 &&
+                 (eddsa_type == MBEDTLS_EDDSA_PURE || eddsa_type == MBEDTLS_EDDSA_CTX ||
+                  eddsa_type == MBEDTLS_EDDSA_PREHASH)));
+
+    if (gid == MBEDTLS_ECP_DP_ED25519 && eddsa_type == MBEDTLS_EDDSA_PURE) {
+        TEST_ASSERT(ed_ctx->len == 0);
+    }
+
+    sign_buf_size = key->len * 2;
+
+    ASSERT_ALLOC(sign_buf, sign_buf_size);
+
+    mbedtls_mpi_init(&r); mbedtls_mpi_init(&s);
+    memset(&rnd_info, 0x00, sizeof(mbedtls_test_rnd_pseudo_info));
+    mbedtls_ecp_keypair_init(&ctx);
+
+    TEST_ASSERT(mbedtls_ecp_read_key((mbedtls_ecp_group_id) gid, &ctx, key->x, key->len) == 0);
+
+    if (eddsa_type == MBEDTLS_EDDSA_PREHASH) {
+        ASSERT_ALLOC(sha_buf, sha_buf_size);
+
+        if (gid == MBEDTLS_ECP_DP_ED25519) {
+            TEST_ASSERT(mbedtls_sha512(message->x, message->len, sha_buf, 0) == 0);
+        }
+
+        data = sha_buf;
+        data_size = sha_buf_size;
+    }
+
+    TEST_ASSERT(mbedtls_eddsa_sign(&ctx.grp, &r, &s, &ctx.d, data, data_size, eddsa_type, ed_ctx->x,
+                                   ed_ctx->len, &mbedtls_test_rnd_pseudo_rand,
+                                   &rnd_info) == 0);
+    mbedtls_mpi_write_binary_le(&r, sign_buf, sign_buf_size);
+    mbedtls_mpi_write_binary_le(&s, sign_buf + key->len, sign_buf_size - key->len);
+
+    ASSERT_COMPARE(tv->x, tv->len, sign_buf, sign_buf_size);
+
+exit:
+    mbedtls_mpi_free(&r);
+    mbedtls_mpi_free(&s);
+    mbedtls_ecp_keypair_free(&ctx);
+    mbedtls_free(sign_buf);
+    mbedtls_free(sha_buf);
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void eddsa_point_edwards(int gid, data_t *key, data_t *tv)
+{
+    mbedtls_ecp_keypair ctx;
+    mbedtls_test_rnd_pseudo_info rnd_info;
+    uint8_t *buf = NULL;
+    size_t olen = 0, buf_size = 0;
+
+    TEST_ASSERT((gid == MBEDTLS_ECP_DP_ED25519 && key->len == 32));     /* For Ed25519 */
+
+    buf_size = key->len;
+
+    ASSERT_ALLOC(buf, buf_size);
+
+    mbedtls_ecp_keypair_init(&ctx);
+
+    memset(&rnd_info, 0x00, sizeof(mbedtls_test_rnd_pseudo_info));
+
+    TEST_ASSERT(mbedtls_ecp_read_key((mbedtls_ecp_group_id) gid, &ctx, key->x, key->len) == 0);
+
+    TEST_ASSERT(mbedtls_ecp_point_edwards(&ctx.grp, &ctx.Q, &ctx.d, &mbedtls_test_rnd_pseudo_rand,
+                                          &rnd_info) == 0);
+
+    TEST_ASSERT(mbedtls_ecp_point_write_binary(&ctx.grp, &ctx.Q, MBEDTLS_ECP_PF_COMPRESSED, &olen,
+                                               buf,
+                                               buf_size) == 0);
+
+    ASSERT_COMPARE(tv->x, tv->len, buf, buf_size);
+
+exit:
+    mbedtls_ecp_keypair_free(&ctx);
+    mbedtls_free(buf);
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void eddsa_verify(int gid,
+                  int eddsa_type,
+                  data_t *key,
+                  data_t *message,
+                  data_t *ed_ctx,
+                  data_t *signature)
+{
+    mbedtls_ecp_keypair ctx;
+    mbedtls_test_rnd_pseudo_info rnd_info;
+    mbedtls_mpi r, s;
+    unsigned char *data = message->x, *sha_buf = NULL;
+    size_t data_size = message->len, sha_buf_size = 64;
+
+    TEST_ASSERT((gid == MBEDTLS_ECP_DP_ED25519 && key->len == 32));     /* For Ed25519 */
+
+    TEST_ASSERT((gid == MBEDTLS_ECP_DP_ED25519 &&
+                 (eddsa_type == MBEDTLS_EDDSA_PURE || eddsa_type == MBEDTLS_EDDSA_CTX ||
+                  eddsa_type == MBEDTLS_EDDSA_PREHASH)));
+
+    if (gid == MBEDTLS_ECP_DP_ED25519 && eddsa_type == MBEDTLS_EDDSA_PURE) {
+        TEST_ASSERT(ed_ctx->len == 0);
+    }
+
+    mbedtls_mpi_init(&r); mbedtls_mpi_init(&s);
+    mbedtls_ecp_keypair_init(&ctx);
+
+    memset(&rnd_info, 0x00, sizeof(mbedtls_test_rnd_pseudo_info));
+
+    TEST_ASSERT(mbedtls_ecp_read_key((mbedtls_ecp_group_id) gid, &ctx, key->x, key->len) == 0);
+
+    TEST_ASSERT(mbedtls_mpi_read_binary_le(&r, signature->x, key->len) == 0);
+    TEST_ASSERT(mbedtls_mpi_read_binary_le(&s, signature->x + key->len, key->len) == 0);
+
+    TEST_ASSERT(mbedtls_ecp_point_edwards(&ctx.grp, &ctx.Q, &ctx.d, &mbedtls_test_rnd_pseudo_rand,
+                                          &rnd_info) == 0);
+
+    if (eddsa_type == MBEDTLS_EDDSA_PREHASH) {
+        ASSERT_ALLOC(sha_buf, sha_buf_size);
+
+        if (gid == MBEDTLS_ECP_DP_ED25519) {
+            TEST_ASSERT(mbedtls_sha512(message->x, message->len, sha_buf, 0) == 0);
+        }
+
+        data = sha_buf;
+        data_size = sha_buf_size;
+    }
+
+    TEST_ASSERT(mbedtls_eddsa_verify(&ctx.grp, data, data_size, &ctx.Q, &r, &s, eddsa_type,
+                                     ed_ctx->x, ed_ctx->len) == 0);
+
+exit:
+    mbedtls_mpi_free(&r);
+    mbedtls_mpi_free(&s);
+    mbedtls_ecp_keypair_free(&ctx);
+    mbedtls_free(sha_buf);
+}
+/* END_CASE */

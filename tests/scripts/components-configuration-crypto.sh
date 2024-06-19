@@ -2283,6 +2283,7 @@ component_build_aes_variations () {
     # Test that all the combinations build cleanly.
 
     MBEDTLS_ROOT_DIR="$PWD"
+    MBEDTLS_TEST_CONFIGURATION="$current_component/both_directions"
     msg "build: aes.o for all combinations of relevant config options"
 
     build_test_config_combos ${BUILTIN_SRC_PATH}/aes.o validate_aes_config_variations \
@@ -2291,6 +2292,8 @@ component_build_aes_variations () {
         "MBEDTLS_AESNI_C" "MBEDTLS_AESCE_C" "MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH"
 
     cd "$MBEDTLS_ROOT_DIR"
+
+    MBEDTLS_TEST_CONFIGURATION="$current_component/no_decrypt"
     msg "build: aes.o for all combinations of relevant config options + BLOCK_CIPHER_NO_DECRYPT"
 
     # MBEDTLS_BLOCK_CIPHER_NO_DECRYPT is incompatible with ECB in PSA, CBC/XTS/NIST_KW/DES,
@@ -2336,11 +2339,13 @@ END
         #define PSA_WANT_ALG_SHA3_512  1
 END
 
+    MBEDTLS_TEST_CONFIGURATION="$current_component/unrolled"
     msg "all loops unrolled"
     make clean
     make -C tests ../tf-psa-crypto/tests/test_suite_shax CFLAGS="-DMBEDTLS_SHA3_THETA_UNROLL=1 -DMBEDTLS_SHA3_PI_UNROLL=1 -DMBEDTLS_SHA3_CHI_UNROLL=1 -DMBEDTLS_SHA3_RHO_UNROLL=1"
     ./tf-psa-crypto/tests/test_suite_shax
 
+    MBEDTLS_TEST_CONFIGURATION="$current_component/rolled"
     msg "all loops rolled up"
     make clean
     make -C tests ../tf-psa-crypto/tests/test_suite_shax CFLAGS="-DMBEDTLS_SHA3_THETA_UNROLL=0 -DMBEDTLS_SHA3_PI_UNROLL=0 -DMBEDTLS_SHA3_CHI_UNROLL=0 -DMBEDTLS_SHA3_RHO_UNROLL=0"
@@ -2368,11 +2373,13 @@ component_build_aes_aesce_armcc () {
     scripts/config.py unset MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_IF_PRESENT
     scripts/config.py set MBEDTLS_HAVE_ASM
 
+    MBEDTLS_TEST_CONFIGURATION="$current_component/both"
     msg "AESCE, build with default configuration."
     scripts/config.py set MBEDTLS_AESCE_C
     scripts/config.py unset MBEDTLS_AES_USE_HARDWARE_ONLY
     helper_armc6_build_test "-O1 --target=aarch64-arm-none-eabi -march=armv8-a+crypto"
 
+    MBEDTLS_TEST_CONFIGURATION="$current_component/hardware"
     msg "AESCE, build AESCE only"
     scripts/config.py set MBEDTLS_AESCE_C
     scripts/config.py set MBEDTLS_AES_USE_HARDWARE_ONLY
@@ -2536,20 +2543,24 @@ component_test_block_cipher_no_decrypt_aesni () {
     config_block_cipher_no_decrypt
 
     # test AESNI intrinsics
+    MBEDTLS_TEST_CONFIGURATION="$current_component/AESNI/intrinsics"
     helper_block_cipher_no_decrypt_build_test \
         -s "MBEDTLS_AESNI_C" \
         -c "-mpclmul -msse2 -maes"
 
     # test AESNI assembly
+    MBEDTLS_TEST_CONFIGURATION="$current_component/AESNI/assembly"
     helper_block_cipher_no_decrypt_build_test \
         -s "MBEDTLS_AESNI_C" \
         -c "-mno-pclmul -mno-sse2 -mno-aes"
 
     # test AES C implementation
+    MBEDTLS_TEST_CONFIGURATION="$current_component/software"
     helper_block_cipher_no_decrypt_build_test \
         -u "MBEDTLS_AESNI_C"
 
     # test AESNI intrinsics for i386 target
+    MBEDTLS_TEST_CONFIGURATION="$current_component/AESNI/intrinsics/m32"
     helper_block_cipher_no_decrypt_build_test \
         -s "MBEDTLS_AESNI_C" \
         -c "-m32 -mpclmul -msse2 -maes" \
@@ -2671,6 +2682,7 @@ component_test_psa_crypto_drivers () {
 }
 
 component_build_psa_config_file () {
+    MBEDTLS_TEST_CONFIGURATION="$current_component/MBEDTLS_PSA_CRYPTO_CONFIG_FILE"
     msg "build: make with MBEDTLS_PSA_CRYPTO_CONFIG_FILE" # ~40s
     scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
     cp "$CRYPTO_CONFIG_H" psa_test_config.h
@@ -2680,6 +2692,7 @@ component_build_psa_config_file () {
     programs/test/query_compile_time_config MBEDTLS_CMAC_C
     make clean
 
+    MBEDTLS_TEST_CONFIGURATION="$current_component/MBEDTLS_PSA_CRYPTO_USER_CONFIG_FILE"
     msg "build: make with MBEDTLS_PSA_CRYPTO_CONFIG_FILE + MBEDTLS_PSA_CRYPTO_USER_CONFIG_FILE" # ~40s
     # In the user config, disable one feature and its dependencies, which will
     # reflect on the mbedtls configuration so we can query it with

@@ -25,6 +25,7 @@ test_build_opt () {
     info=$1 cc=$2; shift 2
     $cc --version
     for opt in "$@"; do
+          MBEDTLS_TEST_CONFIGURATION="$current_component$opt"
           msg "build/test: $cc $opt, $info" # ~ 30s
           make CC="$cc" CFLAGS="$opt -std=c99 -pedantic -Wall -Wextra -Werror"
           # We're confident enough in compilers to not run _all_ the tests,
@@ -82,6 +83,7 @@ support_test_gcc_earliest_opt () {
 }
 
 component_build_mingw () {
+    MBEDTLS_TEST_CONFIGURATION="$current_component/w64-mingw32/default/static"
     msg "build: Windows cross build - mingw64, make (Link Library)" # ~ 30s
     make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar CFLAGS='-Werror -Wall -Wextra -maes -msse2 -mpclmul' WINDOWS_BUILD=1 lib programs
 
@@ -89,11 +91,13 @@ component_build_mingw () {
     make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar CFLAGS='-Werror -maes -msse2 -mpclmul' WINDOWS_BUILD=1 tests
     make WINDOWS_BUILD=1 clean
 
+    MBEDTLS_TEST_CONFIGURATION="$current_component/w64-mingw32/default/shared"
     msg "build: Windows cross build - mingw64, make (DLL)" # ~ 30s
     make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar CFLAGS='-Werror -Wall -Wextra -maes -msse2 -mpclmul' WINDOWS_BUILD=1 SHARED=1 lib programs
     make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar CFLAGS='-Werror -Wall -Wextra -maes -msse2 -mpclmul' WINDOWS_BUILD=1 SHARED=1 tests
     make WINDOWS_BUILD=1 clean
 
+    MBEDTLS_TEST_CONFIGURATION="$current_component/w64-mingw32/no_AESNI/static"
     msg "build: Windows cross build - mingw64, make (Library only, default config without MBEDTLS_AESNI_C)" # ~ 30s
     ./scripts/config.py unset MBEDTLS_AESNI_C #
     make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar CFLAGS='-Werror -Wall -Wextra' WINDOWS_BUILD=1 lib
@@ -133,6 +137,7 @@ component_test_zeroize () {
 
     for optimization_flag in -O2 -O3 -Ofast -Os; do
         for compiler in clang gcc; do
+            MBEDTLS_TEST_CONFIGURATION="$current_component/$optimization_flag/$compiler"
             msg "test: $compiler $optimization_flag, mbedtls_platform_zeroize()"
             make programs CC="$compiler" DEBUG=1 CFLAGS="$optimization_flag"
             gdb -ex "$gdb_disable_aslr" -x tests/scripts/test_zeroize.gdb -nw -batch -nx 2>&1 | tee test_zeroize.log

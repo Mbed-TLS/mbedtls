@@ -237,9 +237,11 @@ component_build_tfm () {
     # configs/config-tfm.h, tested via test-ref-configs.pl.
     cp configs/config-tfm.h "$CONFIG_H"
 
+    MBEDTLS_TEST_CONFIGURATION="$current_component/thumb2/clang"
     msg "build: TF-M config, clang, armv7-m thumb2"
     make lib CC="clang" CFLAGS="--target=arm-linux-gnueabihf -march=armv7-m -mthumb -Os -std=c99 -Werror -Wall -Wextra -Wwrite-strings -Wpointer-arith -Wimplicit-fallthrough -Wshadow -Wvla -Wformat=2 -Wno-format-nonliteral -Wshadow -Wasm-operand-widths -Wunused -I../tests/include/spe"
 
+    MBEDTLS_TEST_CONFIGURATION="$current_component/native/gcc"
     msg "build: TF-M config, gcc native build"
     make clean
     make lib CC="gcc" CFLAGS="-Os -std=c99 -Werror -Wall -Wextra -Wwrite-strings -Wpointer-arith -Wshadow -Wvla -Wformat=2 -Wno-format-nonliteral -Wshadow -Wformat-signedness -Wlogical-op -I../tests/include/spe"
@@ -287,6 +289,7 @@ component_test_no_platform () {
 }
 
 component_build_mbedtls_config_file () {
+    MBEDTLS_TEST_CONFIGURATION="$current_component/MBEDTLS_PSA_CRYPTO_CONFIG_FILE"
     msg "build: make with MBEDTLS_CONFIG_FILE" # ~40s
     scripts/config.py -w full_config.h full
     echo '#error "MBEDTLS_CONFIG_FILE is not working"' >"$CONFIG_H"
@@ -295,6 +298,7 @@ component_build_mbedtls_config_file () {
     programs/test/query_compile_time_config MBEDTLS_NIST_KW_C
     make clean
 
+    MBEDTLS_TEST_CONFIGURATION="$current_component/MBEDTLS_USER_CONFIG_FILE"
     msg "build: make with MBEDTLS_CONFIG_FILE + MBEDTLS_USER_CONFIG_FILE"
     # In the user config, disable one feature (for simplicity, pick a feature
     # that nothing else depends on).

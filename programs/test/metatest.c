@@ -385,7 +385,7 @@ typedef struct {
     void (*entry_point)(const char *name);
 } metatest_t;
 
-/* The list of availble meta-tests. Remember to register new functions here!
+/* The list of available meta-tests. Remember to register new functions here!
  *
  * Note that we always compile all the functions, so that `metatest --list`
  * will always list all the available meta-tests.

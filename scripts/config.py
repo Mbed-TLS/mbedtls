@@ -18,6 +18,7 @@ Basic usage, to read the Mbed TLS configuration:
 
 import os
 import re
+import shutil
 
 from abc import ABCMeta, abstractmethod
 
@@ -419,6 +420,8 @@ class ConfigFile(metaclass=ABCMeta):
         self.templates = []
         self.current_section = None
         self.modified = False
+        self._backupname = None
+        self._own_backup = False
 
     _define_line_regexp = (r'(?P<indentation>\s*)' +
                            r'(?P<commented_out>(//\s*)?)' +
@@ -493,6 +496,35 @@ class ConfigFile(metaclass=ABCMeta):
 
         with open(filename, 'w', encoding='utf-8') as output:
             self.write_to_stream(settings, output)
+
+    def backup(self, suffix='.bak'):
+        """Back up the configuration file.
+           If the backup file already exists, it is presumed to be the desired backup,
+           so don't make another backup.
+        """
+        if self._backupname:
+            return
+
+        self._backupname = self.filename + suffix
+        if os.path.exists(self._backupname):
+            self._own_backup = False
+        else:
+            self._own_backup = True
+            shutil.copy(self.filename, self._backupname)
+
+    def restore(self):
+        """Restore the configuration file.
+           Remove the backup file if it was saved earlier.
+        """
+        if not self._backupname:
+            return
+
+        if self._own_backup:
+            shutil.move(self._backupname, self.filename)
+        else:
+            shutil.copy(self._backupname, self.filename)
+
+        self._backupname = None
 
 class MbedtlsConfigFile(ConfigFile):
     """Representation of an MbedTLS configuration file."""
@@ -592,6 +624,12 @@ class MbedtlsConfig(Config):
     def filename(self):
         return self.configfile.filename
 
+    def backup(self, **kwargs):
+        self.configfile.backup(**kwargs)
+
+    def restore(self):
+        self.configfile.restore()
+
 class CryptoConfig(Config):
     """Representation of the PSA crypto configuration.
 
@@ -630,6 +668,12 @@ class CryptoConfig(Config):
 
     def filename(self):
         return self.configfile.filename
+
+    def backup(self, **kwargs):
+        self.configfile.backup(**kwargs)
+
+    def restore(self):
+        self.configfile.restore()
 
 class MultiConfig(Config):
     """Representation of MbedTLS and PSA crypto configuration
@@ -737,6 +781,14 @@ class MultiConfig(Config):
             return [config.filename for config in [self.mbedtls_configfile, self.crypto_configfile]]
 
         return self._get_configfile(name).filename
+
+    def backup(self, **kwargs):
+        for file in [self.mbedtls_configfile, self.crypto_configfile]:
+            file.backup(**kwargs)
+
+    def restore(self):
+        for file in [self.mbedtls_configfile, self.crypto_configfile]:
+            file.restore()
 
 if __name__ == '__main__':
     #pylint: disable=too-many-statements

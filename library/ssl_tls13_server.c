@@ -1265,8 +1265,6 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
     mbedtls_ssl_handshake_params *handshake = ssl->handshake;
     int hrr_required = 0;
     int no_usable_share_for_key_agreement = 0;
-    unsigned char legacy_compression_methods_len;
-    unsigned char legacy_compression_methods;
 
 #if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_PSK_ENABLED)
     int got_psk = 0;
@@ -1364,19 +1362,17 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
     p += cipher_suites_len;
     cipher_suites_end = p;
 
-    legacy_compression_methods_len = *p;
-    legacy_compression_methods = *(p+1);
-
-    if (legacy_compression_methods_len != 1 || legacy_compression_methods != 0) {
-        return SSL_CLIENT_HELLO_TLS1_2;
-    }
+    /* Check if we have enough data to for legacy_compression_methods
+     * and a length byte.
+     */
+    MBEDTLS_SSL_CHK_BUF_READ_PTR(p, end, 1 + p[0]);
 
     /*
      * Search for the supported versions extension and parse it to determine
      * if the client supports TLS 1.3.
      */
     ret = mbedtls_ssl_tls13_is_supported_versions_ext_present_in_exts(
-        ssl, p + 2, end,
+        ssl, p + 1 + p[0], end,
         &supported_versions_data, &supported_versions_data_end);
     if (ret < 0) {
         MBEDTLS_SSL_DEBUG_RET(1,

@@ -1639,7 +1639,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on: !MBEDTLS_PSA_STATIC_KEY_SLOTS*/
 /* Construct and attempt to import a large unstructured key. */
 void import_large_key(int type_arg, int byte_size_arg,
                       int expected_status_arg)

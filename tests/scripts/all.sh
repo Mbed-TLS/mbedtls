@@ -1246,6 +1246,14 @@ component_test_default_cmake_gcc_asan_new_bignum () {
     tests/context-info.sh
 }
 
+component_test_crypto_with_static_key_slots() {
+    msg "build: crypto config + MBEDTLS_PSA_STATIC_KEY_SLOTS"
+    scripts/config.py crypto_full
+    scripts/config.py set MBEDTLS_PSA_STATIC_KEY_SLOTS
+
+    make test
+}
+
 component_test_full_cmake_gcc_asan () {
     msg "build: full config, cmake, gcc, ASan"
     scripts/config.py full

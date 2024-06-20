@@ -49,10 +49,10 @@
 #define MBEDTLS_CTR_DRBG_USE_PSA_CRYPTO
 #endif
 
-#if !defined(MBEDTLS_CTR_DRBG_USE_PSA_CRYPTO)
-#include "mbedtls/aes.h"
-#else
+#if defined(MBEDTLS_CTR_DRBG_USE_PSA_CRYPTO)
 #include "psa/crypto.h"
+#else
+#include "mbedtls/aes.h"
 #endif
 
 #include "entropy.h"
@@ -204,10 +204,10 @@ typedef struct mbedtls_ctr_drbg_context {
                                                   * This is the maximum number of requests
                                                   * that can be made between reseedings. */
 
-#if !defined(MBEDTLS_CTR_DRBG_USE_PSA_CRYPTO)
-    mbedtls_aes_context MBEDTLS_PRIVATE(aes_ctx);        /*!< The AES context. */
-#else
+#if defined(MBEDTLS_CTR_DRBG_USE_PSA_CRYPTO)
     mbedtls_ctr_drbg_psa_context MBEDTLS_PRIVATE(psa_ctx); /*!< The PSA context. */
+#else
+    mbedtls_aes_context MBEDTLS_PRIVATE(aes_ctx);        /*!< The AES context. */
 #endif
 
     /*

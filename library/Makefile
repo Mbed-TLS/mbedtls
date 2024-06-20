@@ -400,10 +400,11 @@ $(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto.o:$(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto_dr
 
 clean:
 ifndef WINDOWS
-	rm -f *.o libmbed*
-	rm -f $(OBJS_CRYPTO)
+	rm -f *.o *.s libmbed*
+	rm -f $(OBJS_CRYPTO) $(OBJS_CRYPTO:.o=.s)
 else
 	if exist *.o del /Q /F *.o
+	if exist *.s del /Q /F *.s
 	if exist libmbed* del /Q /F libmbed*
 	del /Q /F del_errors_out_if_the_file_list_is_empty_but_not_if_a_file_does_not_exist $(subst /,\,$(OBJS_CRYPTO))
 endif

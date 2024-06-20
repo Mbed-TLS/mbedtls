@@ -494,8 +494,9 @@ if __name__ == '__main__':
     def main():
         """Command line mbedtls_config.h manipulation tool."""
         parser = argparse.ArgumentParser(description="""
-        Mbed TLS configuration file manipulation tool.
-        """)
+                                        Mbed TLS configuration file manipulation tool.
+                                        """,
+                                        allow_abbrev=False)
         parser.add_argument('--file', '-f',
                             help="""File to read (and modify if requested).
                             Default: {}.

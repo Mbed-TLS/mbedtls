@@ -549,7 +549,8 @@ class AbiChecker:
 def run_main():
     try:
         parser = argparse.ArgumentParser(
-            description=__doc__
+            description=__doc__,
+            allow_abbrev=False
         )
         parser.add_argument(
             "-v", "--verbose", action="store_true",

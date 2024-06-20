@@ -100,7 +100,8 @@ def collect_status_logs(options):
     return data
 
 def main():
-    parser = argparse.ArgumentParser(description=globals()['__doc__'])
+    parser = argparse.ArgumentParser(description=globals()['__doc__'],
+                                     allow_abbrev=False)
     parser.add_argument('--clean-after',
                         action='store_true',
                         help='Run "make clean" after rebuilding')

@@ -434,12 +434,12 @@ uint64_t mbedtls_test_parse_binary_string(data_t *bin_string);
  * This is like #PSA_DONE except it does nothing under the same conditions as
  * #AES_PSA_INIT.
  */
-#if !defined(MBEDTLS_CTR_DRBG_USE_PSA_CRYPTO)
-#define AES_PSA_INIT() ((void) 0)
-#define AES_PSA_DONE() ((void) 0)
-#else /* MBEDTLS_CTR_DRBG_USE_PSA_CRYPTO */
+#if defined(MBEDTLS_CTR_DRBG_USE_PSA_CRYPTO)
 #define AES_PSA_INIT()   PSA_INIT()
 #define AES_PSA_DONE()   PSA_DONE()
+#else /* MBEDTLS_CTR_DRBG_USE_PSA_CRYPTO */
+#define AES_PSA_INIT() ((void) 0)
+#define AES_PSA_DONE() ((void) 0)
 #endif /* MBEDTLS_CTR_DRBG_USE_PSA_CRYPTO */
 
 #endif /* PSA_CRYPTO_HELPERS_H */

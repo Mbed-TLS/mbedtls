@@ -173,7 +173,7 @@ def main(target, names):
     print(format_ciphersuite_names(target, names))
 
 if __name__ == "__main__":
-    PARSER = argparse.ArgumentParser()
+    PARSER = argparse.ArgumentParser(allow_abbrev=False)
     PARSER.add_argument('target', metavar='TARGET', choices=['o', 'g', 'm'])
     PARSER.add_argument('names', metavar='NAMES', nargs='+')
     ARGS = PARSER.parse_args()

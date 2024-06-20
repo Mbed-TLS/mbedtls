@@ -135,6 +135,15 @@ endif()
 # Make MBEDTLS_CONFIG_FILE and MBEDTLS_USER_CONFIG_FILE into PATHs
 set(MBEDTLS_CONFIG_FILE "" CACHE FILEPATH "Mbed TLS config file (overrides default).")
 set(MBEDTLS_USER_CONFIG_FILE "" CACHE FILEPATH "Mbed TLS user config file (appended to default).")
+set(MBEDTLS_CONFIG_NAME "" CACHE STRING "Mbed TLS config name")
+
+if(MBEDTLS_CONFIG_NAME)
+    configure_file(include/mbedtls/mbedtls_config.h ${CMAKE_CURRENT_BINARY_DIR}/named_config.h)
+    if (NOT (${MBEDTLS_CONFIG_NAME} MATCHES "default"))
+        execute_process(COMMAND ${PYTHON} scripts/config.py -f ${CMAKE_CURRENT_BINARY_DIR}/named_config.h ${MBEDTLS_CONFIG_NAME})
+    endif()
+    set(MBEDTLS_CONFIG_FILE ${CMAKE_CURRENT_BINARY_DIR}/named_config.h)
+endif()
 
 # Create a symbolic link from ${base_name} in the binary directory
 # to the corresponding path in the source directory.

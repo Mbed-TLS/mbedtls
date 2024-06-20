@@ -13,6 +13,10 @@
 #include <psa_crypto_slot_management.h>
 #include <test/psa_crypto_helpers.h>
 
+#if defined(MBEDTLS_CTR_DRBG_C)
+#include <mbedtls/ctr_drbg.h>
+#endif
+
 #if defined(MBEDTLS_PSA_CRYPTO_C)
 
 #include <psa/crypto.h>
@@ -70,8 +74,9 @@ const char *mbedtls_test_helper_is_psa_leaking(void)
 
     mbedtls_psa_get_stats(&stats);
 
-#if defined(MBEDTLS_CTR_DRBG_C) && !defined(MBEDTLS_AES_C) && \
-    !defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG)
+#if !defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG) &&                        \
+    defined(MBEDTLS_CTR_DRBG_C) &&                                      \
+    defined(MBEDTLS_CTR_DRBG_USE_PSA_CRYPTO)
     /* When AES_C is not defined and PSA does not have an external RNG,
      * then CTR_DRBG uses PSA to perform AES-ECB. In this scenario 1 key
      * slot is used internally from PSA to hold the AES key and it should

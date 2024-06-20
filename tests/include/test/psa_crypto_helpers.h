@@ -16,6 +16,8 @@
 #include <psa/crypto.h>
 #endif
 
+#include <mbedtls/ctr_drbg.h>
+
 #if defined(MBEDTLS_PSA_CRYPTO_C)
 /** Initialize the PSA Crypto subsystem. */
 #define PSA_INIT() PSA_ASSERT(psa_crypto_init())
@@ -430,12 +432,12 @@ uint64_t mbedtls_test_parse_binary_string(data_t *bin_string);
  * This is like #PSA_DONE except it does nothing under the same conditions as
  * #AES_PSA_INIT.
  */
-#if defined(MBEDTLS_AES_C)
+#if !defined(MBEDTLS_CTR_DRBG_USE_PSA_CRYPTO)
 #define AES_PSA_INIT() ((void) 0)
 #define AES_PSA_DONE() ((void) 0)
-#else /* MBEDTLS_AES_C */
+#else /* MBEDTLS_CTR_DRBG_USE_PSA_CRYPTO */
 #define AES_PSA_INIT()   PSA_INIT()
 #define AES_PSA_DONE()   PSA_DONE()
-#endif /* MBEDTLS_AES_C */
+#endif /* MBEDTLS_CTR_DRBG_USE_PSA_CRYPTO */
 
 #endif /* PSA_CRYPTO_HELPERS_H */

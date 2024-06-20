@@ -58,10 +58,10 @@ log_outcome () {
     cause= # Identifying failure causes would be nice, but difficult
 
     for target in $targets; do
-        if [ "$target" = "clean" ]; then
-            # Boring
-            continue
-        fi
+        case "$target" in
+            "clean"|"neat") continue;; # Boring
+            cmTC_*) continue;; # Weirdness from CMake
+        esac
         echo >>"${MBEDTLS_TEST_OUTCOME_FILE}" \
              "${MBEDTLS_TEST_PLATFORM};${MBEDTLS_TEST_CONFIGURATION};${TOOL};${target};${result};${cause}"
     done

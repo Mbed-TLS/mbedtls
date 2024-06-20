@@ -138,6 +138,13 @@ static size_t slot_index_of_volatile_key_id(psa_key_id_t key_id)
  * indicate that the slice is full. */
 #define FREE_SLOT_INDEX_NONE ((size_t) -1)
 
+#if defined(MBEDTLS_TEST_HOOKS)
+size_t psa_key_slot_volatile_slice_count(void)
+{
+    return KEY_SLOT_VOLATILE_SLICE_COUNT;
+}
+#endif
+
 #else /* MBEDTLS_PSA_KEY_STORE_DYNAMIC */
 
 /* Static key store.
@@ -227,11 +234,20 @@ static inline psa_key_slot_t *get_key_slot(size_t slice_idx, size_t slot_idx);
 
 #if defined(MBEDTLS_PSA_KEY_STORE_DYNAMIC)
 
+#if defined(MBEDTLS_TEST_HOOKS)
+size_t (*mbedtls_test_hook_psa_volatile_key_slice_length)(size_t slice_idx) = NULL;
+#endif
+
 static inline size_t key_slice_length(size_t slice_idx)
 {
     if (slice_idx == KEY_SLOT_CACHE_SLICE_INDEX) {
         return PERSISTENT_KEY_CACHE_COUNT;
     } else {
+#if defined(MBEDTLS_TEST_HOOKS)
+        if (mbedtls_test_hook_psa_volatile_key_slice_length != NULL) {
+            return mbedtls_test_hook_psa_volatile_key_slice_length(slice_idx);
+        }
+#endif
         return KEY_SLOT_VOLATILE_SLICE_BASE_LENGTH << slice_idx;
     }
 }

@@ -100,6 +100,24 @@ psa_status_t psa_get_and_lock_key_slot(mbedtls_svc_key_id_t key,
  */
 psa_status_t psa_initialize_key_slots(void);
 
+#if defined(MBEDTLS_TEST_HOOKS) && defined(MBEDTLS_PSA_KEY_STORE_DYNAMIC)
+/* Allow test code to customize the key slice length. We use this in tests
+ * that exhaust the key store to reach a full key store in reasonable time
+ * and memory.
+ *
+ * The length of each slice must be between 1 and
+ * (1 << KEY_ID_SLOT_INDEX_WIDTH) inclusive.
+ *
+ * The length for a given slice index must not change while
+ * the key store is initialized.
+ */
+extern size_t (*mbedtls_test_hook_psa_volatile_key_slice_length)(
+    size_t slice_idx);
+
+/* The number of volatile key slices. */
+size_t psa_key_slot_volatile_slice_count(void);
+#endif
+
 /** Delete all data from key slots in memory.
  * This function is not thread safe, it wipes every key slot regardless of
  * state and reader count. It should only be called when no slot is in use.

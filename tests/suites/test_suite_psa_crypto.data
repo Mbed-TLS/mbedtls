@@ -7170,7 +7170,7 @@ derive_key:PSA_ALG_PBKDF2_AES_CMAC_PRF_128:"706173737764":"01":"73616c74":PSA_KE
 # and not expected to be raised any time soon) is less than the maximum
 # output from HKDF-SHA512 (255*64 = 16320 bytes).
 PSA key derivation: largest possible key
-depends_on:PSA_WANT_ALG_HKDF:PSA_WANT_ALG_SHA_512
+depends_on:PSA_WANT_ALG_HKDF:PSA_WANT_ALG_SHA_512:!MBEDTLS_PSA_STATIC_KEY_SLOTS
 derive_key:PSA_ALG_HKDF(PSA_ALG_SHA_512):"0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b":"000102030405060708090a0b0c":"f0f1f2f3f4f5f6f7f8f9":PSA_KEY_TYPE_RAW_DATA:PSA_MAX_KEY_BITS:PSA_SUCCESS:1
 
 PSA key derivation: key too large
@@ -7420,6 +7420,7 @@ PSA generate key: raw data, (2 * MBEDTLS_CTR_DRBG_MAX_REQUEST + 1) * 8 bits
 generate_key:PSA_KEY_TYPE_RAW_DATA:(2 * MBEDTLS_CTR_DRBG_MAX_REQUEST + 1) * 8:PSA_KEY_USAGE_EXPORT:0:PSA_SUCCESS:0
 
 PSA generate key: raw data, 65528 bits (large key, ok if it fits)
+depends_on:!MBEDTLS_PSA_STATIC_KEY_SLOTS
 generate_key:PSA_KEY_TYPE_RAW_DATA:65528:PSA_KEY_USAGE_EXPORT:0:PSA_SUCCESS:1
 
 PSA generate key: raw data, 65536 bits (not supported)
@@ -7663,7 +7664,7 @@ depends_on:MBEDTLS_THREADING_PTHREAD
 concurrently_generate_keys:PSA_KEY_TYPE_RAW_DATA:(2 * MBEDTLS_CTR_DRBG_MAX_REQUEST + 1) * 8:PSA_KEY_USAGE_EXPORT:0:PSA_SUCCESS:0:8:5
 
 PSA concurrent key generation: raw data, 65528 bits (large key, ok if it fits)
-depends_on:MBEDTLS_THREADING_PTHREAD
+depends_on:MBEDTLS_THREADING_PTHREAD:!MBEDTLS_PSA_STATIC_KEY_SLOTS
 concurrently_generate_keys:PSA_KEY_TYPE_RAW_DATA:65528:PSA_KEY_USAGE_EXPORT:0:PSA_SUCCESS:1:8:5
 
 PSA concurrent key generation: raw data, 65536 bits (not supported)
@@ -7874,4 +7875,3 @@ ecc_conversion_functions:MBEDTLS_ECP_DP_NONE:0:0
 
 ECP group ID <-> PSA family - Wrong values
 ecc_conversion_functions_fail
-

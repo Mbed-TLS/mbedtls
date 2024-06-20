@@ -154,7 +154,8 @@ def run_all(options):
 def main():
     """Command line entry point."""
     parser = argparse.ArgumentParser(description=__doc__,
-                                     formatter_class=argparse.RawDescriptionHelpFormatter)
+                                     formatter_class=argparse.RawDescriptionHelpFormatter,
+                                     allow_abbrev=False)
     parser.add_argument('-d', metavar='DIR',
                         dest='output_directory', required=True,
                         help="""Output directory.""")

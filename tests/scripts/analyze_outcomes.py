@@ -133,7 +133,8 @@ TASKS = {
 
 def main():
     try:
-        parser = argparse.ArgumentParser(description=__doc__)
+        parser = argparse.ArgumentParser(description=__doc__,
+                                         allow_abbrev=False)
         parser.add_argument('outcomes', metavar='OUTCOMES.CSV',
                             help='Outcome file to analyze')
         parser.add_argument('task', default='all', nargs='?',

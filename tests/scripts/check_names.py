@@ -918,7 +918,8 @@ def main():
             "This script confirms that the naming of all symbols and identifiers "
             "in Mbed TLS are consistent with the house style and are also "
             "self-consistent.\n\n"
-            "Expected to be run from the Mbed TLS root directory.")
+            "Expected to be run from the Mbed TLS root directory."),
+        allow_abbrev=False
     )
     parser.add_argument(
         "-v", "--verbose",

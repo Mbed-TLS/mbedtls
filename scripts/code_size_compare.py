@@ -857,7 +857,8 @@ class CodeSizeComparison:
         self.gen_code_size_comparison()
 
 def main():
-    parser = argparse.ArgumentParser(description=(__doc__))
+    parser = argparse.ArgumentParser(description=(__doc__),
+                                     allow_abbrev=False)
     group_required = parser.add_argument_group(
         'required arguments',
         'required arguments to parse for running ' + os.path.basename(__file__))

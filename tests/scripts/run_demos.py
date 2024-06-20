@@ -51,7 +51,8 @@ def run_all_demos(quiet=False):
     return run_demos(all_demos, quiet=quiet)
 
 def main():
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = argparse.ArgumentParser(description=__doc__,
+                                     allow_abbrev=False)
     parser.add_argument('--quiet', '-q',
                         action='store_true',
                         help="suppress the output of demos")

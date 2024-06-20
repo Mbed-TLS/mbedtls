@@ -385,7 +385,8 @@ def main():
     """
     Perform argument parsing.
     """
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = argparse.ArgumentParser(description=__doc__,
+                                     allow_abbrev=False)
 
     parser.add_argument('-a', '--all',
                         action='store_true',

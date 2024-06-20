@@ -6415,7 +6415,7 @@ exit:
 static const psa_custom_key_parameters_t default_custom_production =
     PSA_KEY_PRODUCTION_PARAMETERS_INIT;
 
-int psa_key_production_parameters_are_default(
+int psa_custom_key_parameters_are_default(
     const psa_custom_key_parameters_t *custom,
     size_t custom_data_length)
 {
@@ -6449,7 +6449,7 @@ psa_status_t psa_key_derivation_output_key_custom(
     }
 
     (void) custom_data;         /* We only accept 0-length data */
-    if (!psa_key_production_parameters_are_default(custom, custom_data_length)) {
+    if (!psa_custom_key_parameters_are_default(custom, custom_data_length)) {
         return PSA_ERROR_INVALID_ARGUMENT;
     }
 
@@ -7972,7 +7972,7 @@ psa_status_t psa_generate_key_custom(const psa_key_attributes_t *attributes,
         }
     } else
 #endif
-    if (!psa_key_production_parameters_are_default(custom, custom_data_length)) {
+    if (!psa_custom_key_parameters_are_default(custom, custom_data_length)) {
         return PSA_ERROR_INVALID_ARGUMENT;
     }
 

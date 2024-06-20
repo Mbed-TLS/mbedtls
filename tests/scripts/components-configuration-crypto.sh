@@ -31,6 +31,14 @@ component_test_psa_assume_exclusive_buffers () {
     make test
 }
 
+component_test_crypto_with_static_key_slots() {
+    msg "build: crypto full + MBEDTLS_PSA_STATIC_KEY_SLOTS"
+    scripts/config.py crypto_full
+    scripts/config.py set MBEDTLS_PSA_STATIC_KEY_SLOTS
+
+    make test
+}
+
 # check_renamed_symbols HEADER LIB
 # Check that if HEADER contains '#define MACRO ...' then MACRO is not a symbol
 # name in LIB.
@@ -2713,5 +2721,3 @@ component_test_min_mpi_window_size () {
     msg "test: MBEDTLS_MPI_WINDOW_SIZE=1 - main suites (inc. selftests) (ASan build)" # ~ 10s
     make test
 }
-
-

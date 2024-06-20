@@ -741,7 +741,7 @@ static inline psa_status_t psa_driver_wrapper_generate_key(
 
 #if defined(PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_GENERATE)
     int is_default_production =
-        psa_key_production_parameters_are_default(custom, custom_data_length);
+        psa_custom_key_parameters_are_default(custom, custom_data_length);
     if( location != PSA_KEY_LOCATION_LOCAL_STORAGE && !is_default_production )
     {
         /* We don't support passing custom production parameters

@@ -352,7 +352,7 @@ psa_status_t psa_export_public_key_internal(
  * \param custom_data_length    Size of the associated variable-length data
  *                              in bytes.
  */
-int psa_key_production_parameters_are_default(
+int psa_custom_key_parameters_are_default(
     const psa_custom_key_parameters_t *custom,
     size_t custom_data_length);
 

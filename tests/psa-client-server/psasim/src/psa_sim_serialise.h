@@ -264,6 +264,48 @@ int psasim_deserialise_uint16_t(uint8_t **pos,
                                 size_t *remaining,
                                 uint16_t *value);
 
+/** Return how much buffer space is needed by \c psasim_serialise_uint32_t()
+ *  to serialise an `uint32_t`.
+ *
+ * \param value              The value that will be serialised into the buffer
+ *                           (needed in case some serialisations are value-
+ *                           dependent).
+ *
+ * \return                   The number of bytes needed in the buffer by
+ *                           \c psasim_serialise_uint32_t() to serialise
+ *                           the given value.
+ */
+size_t psasim_serialise_uint32_t_needs(uint32_t value);
+
+/** Serialise an `uint32_t` into a buffer.
+ *
+ * \param pos[in,out]        Pointer to a `uint8_t *` holding current position
+ *                           in the buffer.
+ * \param remaining[in,out]  Pointer to a `size_t` holding number of bytes
+ *                           remaining in the buffer.
+ * \param value              The value to serialise into the buffer.
+ *
+ * \return                   \c 1 on success ("okay"), \c 0 on error.
+ */
+int psasim_serialise_uint32_t(uint8_t **pos,
+                              size_t *remaining,
+                              uint32_t value);
+
+/** Deserialise an `uint32_t` from a buffer.
+ *
+ * \param pos[in,out]        Pointer to a `uint8_t *` holding current position
+ *                           in the buffer.
+ * \param remaining[in,out]  Pointer to a `size_t` holding number of bytes
+ *                           remaining in the buffer.
+ * \param value              Pointer to an `uint32_t` to receive the value
+ *                           deserialised from the buffer.
+ *
+ * \return                   \c 1 on success ("okay"), \c 0 on error.
+ */
+int psasim_deserialise_uint32_t(uint8_t **pos,
+                                size_t *remaining,
+                                uint32_t *value);
+
 /** Return how much buffer space is needed by \c psasim_serialise_uint64_t()
  *  to serialise an `uint64_t`.
  *
@@ -1010,6 +1052,174 @@ int psasim_server_serialise_psa_key_derivation_operation_t(uint8_t **pos,
 int psasim_server_deserialise_psa_key_derivation_operation_t(uint8_t **pos,
                                                              size_t *remaining,
                                                              psa_key_derivation_operation_t **value);
+
+/** Return how much buffer space is needed by \c psasim_serialise_psa_sign_hash_interruptible_operation_t()
+ *  to serialise a `psa_sign_hash_interruptible_operation_t`.
+ *
+ * \param value              The value that will be serialised into the buffer
+ *                           (needed in case some serialisations are value-
+ *                           dependent).
+ *
+ * \return                   The number of bytes needed in the buffer by
+ *                           \c psasim_serialise_psa_sign_hash_interruptible_operation_t() to serialise
+ *                           the given value.
+ */
+size_t psasim_serialise_psa_sign_hash_interruptible_operation_t_needs(psa_sign_hash_interruptible_operation_t value);
+
+/** Serialise a `psa_sign_hash_interruptible_operation_t` into a buffer.
+ *
+ * \param pos[in,out]        Pointer to a `uint8_t *` holding current position
+ *                           in the buffer.
+ * \param remaining[in,out]  Pointer to a `size_t` holding number of bytes
+ *                           remaining in the buffer.
+ * \param value              The value to serialise into the buffer.
+ *
+ * \return                   \c 1 on success ("okay"), \c 0 on error.
+ */
+int psasim_serialise_psa_sign_hash_interruptible_operation_t(uint8_t **pos,
+                                                             size_t *remaining,
+                                                             psa_sign_hash_interruptible_operation_t value);
+
+/** Deserialise a `psa_sign_hash_interruptible_operation_t` from a buffer.
+ *
+ * \param pos[in,out]        Pointer to a `uint8_t *` holding current position
+ *                           in the buffer.
+ * \param remaining[in,out]  Pointer to a `size_t` holding number of bytes
+ *                           remaining in the buffer.
+ * \param value              Pointer to a `psa_sign_hash_interruptible_operation_t` to receive the value
+ *                           deserialised from the buffer.
+ *
+ * \return                   \c 1 on success ("okay"), \c 0 on error.
+ */
+int psasim_deserialise_psa_sign_hash_interruptible_operation_t(uint8_t **pos,
+                                                               size_t *remaining,
+                                                               psa_sign_hash_interruptible_operation_t *value);
+
+/** Return how much buffer space is needed by \c psasim_server_serialise_psa_sign_hash_interruptible_operation_t()
+ *  to serialise a `psa_sign_hash_interruptible_operation_t`.
+ *
+ * \param value              The value that will be serialised into the buffer
+ *                           (needed in case some serialisations are value-
+ *                           dependent).
+ *
+ * \return                   The number of bytes needed in the buffer by
+ *                           \c psasim_serialise_psa_sign_hash_interruptible_operation_t() to serialise
+ *                           the given value.
+ */
+size_t psasim_server_serialise_psa_sign_hash_interruptible_operation_t_needs(psa_sign_hash_interruptible_operation_t *value);
+
+/** Serialise a `psa_sign_hash_interruptible_operation_t` into a buffer on the server side.
+ *
+ * \param pos[in,out]        Pointer to a `uint8_t *` holding current position
+ *                           in the buffer.
+ * \param remaining[in,out]  Pointer to a `size_t` holding number of bytes
+ *                           remaining in the buffer.
+ * \param value              The value to serialise into the buffer.
+ *
+ * \return                   \c 1 on success ("okay"), \c 0 on error.
+ */
+int psasim_server_serialise_psa_sign_hash_interruptible_operation_t(uint8_t **pos,
+                                                                    size_t *remaining,
+                                                                    psa_sign_hash_interruptible_operation_t *value);
+
+/** Deserialise a `psa_sign_hash_interruptible_operation_t` from a buffer on the server side.
+ *
+ * \param pos[in,out]        Pointer to a `uint8_t *` holding current position
+ *                           in the buffer.
+ * \param remaining[in,out]  Pointer to a `size_t` holding number of bytes
+ *                           remaining in the buffer.
+ * \param value              Pointer to a `psa_sign_hash_interruptible_operation_t` to receive the value
+ *                           deserialised from the buffer.
+ *
+ * \return                   \c 1 on success ("okay"), \c 0 on error.
+ */
+int psasim_server_deserialise_psa_sign_hash_interruptible_operation_t(uint8_t **pos,
+                                                                      size_t *remaining,
+                                                                      psa_sign_hash_interruptible_operation_t **value);
+
+/** Return how much buffer space is needed by \c psasim_serialise_psa_verify_hash_interruptible_operation_t()
+ *  to serialise a `psa_verify_hash_interruptible_operation_t`.
+ *
+ * \param value              The value that will be serialised into the buffer
+ *                           (needed in case some serialisations are value-
+ *                           dependent).
+ *
+ * \return                   The number of bytes needed in the buffer by
+ *                           \c psasim_serialise_psa_verify_hash_interruptible_operation_t() to serialise
+ *                           the given value.
+ */
+size_t psasim_serialise_psa_verify_hash_interruptible_operation_t_needs(psa_verify_hash_interruptible_operation_t value);
+
+/** Serialise a `psa_verify_hash_interruptible_operation_t` into a buffer.
+ *
+ * \param pos[in,out]        Pointer to a `uint8_t *` holding current position
+ *                           in the buffer.
+ * \param remaining[in,out]  Pointer to a `size_t` holding number of bytes
+ *                           remaining in the buffer.
+ * \param value              The value to serialise into the buffer.
+ *
+ * \return                   \c 1 on success ("okay"), \c 0 on error.
+ */
+int psasim_serialise_psa_verify_hash_interruptible_operation_t(uint8_t **pos,
+                                                               size_t *remaining,
+                                                               psa_verify_hash_interruptible_operation_t value);
+
+/** Deserialise a `psa_verify_hash_interruptible_operation_t` from a buffer.
+ *
+ * \param pos[in,out]        Pointer to a `uint8_t *` holding current position
+ *                           in the buffer.
+ * \param remaining[in,out]  Pointer to a `size_t` holding number of bytes
+ *                           remaining in the buffer.
+ * \param value              Pointer to a `psa_verify_hash_interruptible_operation_t` to receive the value
+ *                           deserialised from the buffer.
+ *
+ * \return                   \c 1 on success ("okay"), \c 0 on error.
+ */
+int psasim_deserialise_psa_verify_hash_interruptible_operation_t(uint8_t **pos,
+                                                                 size_t *remaining,
+                                                                 psa_verify_hash_interruptible_operation_t *value);
+
+/** Return how much buffer space is needed by \c psasim_server_serialise_psa_verify_hash_interruptible_operation_t()
+ *  to serialise a `psa_verify_hash_interruptible_operation_t`.
+ *
+ * \param value              The value that will be serialised into the buffer
+ *                           (needed in case some serialisations are value-
+ *                           dependent).
+ *
+ * \return                   The number of bytes needed in the buffer by
+ *                           \c psasim_serialise_psa_verify_hash_interruptible_operation_t() to serialise
+ *                           the given value.
+ */
+size_t psasim_server_serialise_psa_verify_hash_interruptible_operation_t_needs(psa_verify_hash_interruptible_operation_t *value);
+
+/** Serialise a `psa_verify_hash_interruptible_operation_t` into a buffer on the server side.
+ *
+ * \param pos[in,out]        Pointer to a `uint8_t *` holding current position
+ *                           in the buffer.
+ * \param remaining[in,out]  Pointer to a `size_t` holding number of bytes
+ *                           remaining in the buffer.
+ * \param value              The value to serialise into the buffer.
+ *
+ * \return                   \c 1 on success ("okay"), \c 0 on error.
+ */
+int psasim_server_serialise_psa_verify_hash_interruptible_operation_t(uint8_t **pos,
+                                                                      size_t *remaining,
+                                                                      psa_verify_hash_interruptible_operation_t *value);
+
+/** Deserialise a `psa_verify_hash_interruptible_operation_t` from a buffer on the server side.
+ *
+ * \param pos[in,out]        Pointer to a `uint8_t *` holding current position
+ *                           in the buffer.
+ * \param remaining[in,out]  Pointer to a `size_t` holding number of bytes
+ *                           remaining in the buffer.
+ * \param value              Pointer to a `psa_verify_hash_interruptible_operation_t` to receive the value
+ *                           deserialised from the buffer.
+ *
+ * \return                   \c 1 on success ("okay"), \c 0 on error.
+ */
+int psasim_server_deserialise_psa_verify_hash_interruptible_operation_t(uint8_t **pos,
+                                                                        size_t *remaining,
+                                                                        psa_verify_hash_interruptible_operation_t **value);
 
 /** Return how much buffer space is needed by \c psasim_serialise_mbedtls_svc_key_id_t()
  *  to serialise a `mbedtls_svc_key_id_t`.

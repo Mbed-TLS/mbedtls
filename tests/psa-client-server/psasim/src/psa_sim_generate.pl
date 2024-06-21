@@ -4872,3 +4872,555 @@ psa_status_t psa_export_public_key(mbedtls_svc_key_id_t key,
                                    uint8_t *data,
                                    size_t data_size,
                                    size_t *data_length);
+
+/**
+ * \brief                       Set the maximum number of ops allowed to be
+ *                              executed by an interruptible function in a
+ *                              single call.
+ *
+ * \warning                     This is a beta API, and thus subject to change
+ *                              at any point. It is not bound by the usual
+ *                              interface stability promises.
+ *
+ * \note                        The time taken to execute a single op is
+ *                              implementation specific and depends on
+ *                              software, hardware, the algorithm, key type and
+ *                              curve chosen. Even within a single operation,
+ *                              successive ops can take differing amounts of
+ *                              time. The only guarantee is that lower values
+ *                              for \p max_ops means functions will block for a
+ *                              lesser maximum amount of time. The functions
+ *                              \c psa_sign_interruptible_get_num_ops() and
+ *                              \c psa_verify_interruptible_get_num_ops() are
+ *                              provided to help with tuning this value.
+ *
+ * \note                        This value defaults to
+ *                              #PSA_INTERRUPTIBLE_MAX_OPS_UNLIMITED, which
+ *                              means the whole operation will be done in one
+ *                              go, regardless of the number of ops required.
+ *
+ * \note                        If more ops are needed to complete a
+ *                              computation, #PSA_OPERATION_INCOMPLETE will be
+ *                              returned by the function performing the
+ *                              computation. It is then the caller's
+ *                              responsibility to either call again with the
+ *                              same operation context until it returns 0 or an
+ *                              error code; or to call the relevant abort
+ *                              function if the answer is no longer required.
+ *
+ * \note                        The interpretation of \p max_ops is also
+ *                              implementation defined. On a hard real time
+ *                              system, this can indicate a hard deadline, as a
+ *                              real-time system needs a guarantee of not
+ *                              spending more than X time, however care must be
+ *                              taken in such an implementation to avoid the
+ *                              situation whereby calls just return, not being
+ *                              able to do any actual work within the allotted
+ *                              time.  On a non-real-time system, the
+ *                              implementation can be more relaxed, but again
+ *                              whether this number should be interpreted as as
+ *                              hard or soft limit or even whether a less than
+ *                              or equals as regards to ops executed in a
+ *                              single call is implementation defined.
+ *
+ * \note                        For keys in local storage when no accelerator
+ *                              driver applies, please see also the
+ *                              documentation for \c mbedtls_ecp_set_max_ops(),
+ *                              which is the internal implementation in these
+ *                              cases.
+ *
+ * \warning                     With implementations that interpret this number
+ *                              as a hard limit, setting this number too small
+ *                              may result in an infinite loop, whereby each
+ *                              call results in immediate return with no ops
+ *                              done (as there is not enough time to execute
+ *                              any), and thus no result will ever be achieved.
+ *
+ * \note                        This only applies to functions whose
+ *                              documentation mentions they may return
+ *                              #PSA_OPERATION_INCOMPLETE.
+ *
+ * \param max_ops               The maximum number of ops to be executed in a
+ *                              single call. This can be a number from 0 to
+ *                              #PSA_INTERRUPTIBLE_MAX_OPS_UNLIMITED, where 0
+ *                              is the least amount of work done per call.
+ */
+void psa_interruptible_set_max_ops(uint32_t max_ops);
+
+/**
+ * \brief                       Get the maximum number of ops allowed to be
+ *                              executed by an interruptible function in a
+ *                              single call. This will return the last
+ *                              value set by
+ *                              \c psa_interruptible_set_max_ops() or
+ *                              #PSA_INTERRUPTIBLE_MAX_OPS_UNLIMITED if
+ *                              that function has never been called.
+ *
+ * \warning                     This is a beta API, and thus subject to change
+ *                              at any point. It is not bound by the usual
+ *                              interface stability promises.
+ *
+ * \return                      Maximum number of ops allowed to be
+ *                              executed by an interruptible function in a
+ *                              single call.
+ */
+uint32_t psa_interruptible_get_max_ops(void);
+
+/**
+ * \brief                       Get the number of ops that a hash signing
+ *                              operation has taken so far. If the operation
+ *                              has completed, then this will represent the
+ *                              number of ops required for the entire
+ *                              operation. After initialization or calling
+ *                              \c psa_sign_hash_interruptible_abort() on
+ *                              the operation, a value of 0 will be returned.
+ *
+ * \note                        This interface is guaranteed re-entrant and
+ *                              thus may be called from driver code.
+ *
+ * \warning                     This is a beta API, and thus subject to change
+ *                              at any point. It is not bound by the usual
+ *                              interface stability promises.
+ *
+ *                              This is a helper provided to help you tune the
+ *                              value passed to \c
+ *                              psa_interruptible_set_max_ops().
+ *
+ * \param operation             The \c psa_sign_hash_interruptible_operation_t
+ *                              to use. This must be initialized first.
+ *
+ * \return                      Number of ops that the operation has taken so
+ *                              far.
+ */
+uint32_t psa_sign_hash_get_num_ops(
+    const psa_sign_hash_interruptible_operation_t *operation);
+
+/**
+ * \brief                       Get the number of ops that a hash verification
+ *                              operation has taken so far. If the operation
+ *                              has completed, then this will represent the
+ *                              number of ops required for the entire
+ *                              operation. After initialization or calling \c
+ *                              psa_verify_hash_interruptible_abort() on the
+ *                              operation, a value of 0 will be returned.
+ *
+ * \warning                     This is a beta API, and thus subject to change
+ *                              at any point. It is not bound by the usual
+ *                              interface stability promises.
+ *
+ *                              This is a helper provided to help you tune the
+ *                              value passed to \c
+ *                              psa_interruptible_set_max_ops().
+ *
+ * \param operation             The \c
+ *                              psa_verify_hash_interruptible_operation_t to
+ *                              use. This must be initialized first.
+ *
+ * \return                      Number of ops that the operation has taken so
+ *                              far.
+ */
+uint32_t psa_verify_hash_get_num_ops(
+    const psa_verify_hash_interruptible_operation_t *operation);
+
+/**
+ * \brief                       Start signing a hash or short message with a
+ *                              private key, in an interruptible manner.
+ *
+ * \see                         \c psa_sign_hash_complete()
+ *
+ * \warning                     This is a beta API, and thus subject to change
+ *                              at any point. It is not bound by the usual
+ *                              interface stability promises.
+ *
+ * \note                        This function combined with \c
+ *                              psa_sign_hash_complete() is equivalent to
+ *                              \c psa_sign_hash() but
+ *                              \c psa_sign_hash_complete() can return early and
+ *                              resume according to the limit set with \c
+ *                              psa_interruptible_set_max_ops() to reduce the
+ *                              maximum time spent in a function call.
+ *
+ * \note                        Users should call \c psa_sign_hash_complete()
+ *                              repeatedly on the same context after a
+ *                              successful call to this function until \c
+ *                              psa_sign_hash_complete() either returns 0 or an
+ *                              error. \c psa_sign_hash_complete() will return
+ *                              #PSA_OPERATION_INCOMPLETE if there is more work
+ *                              to do. Alternatively users can call
+ *                              \c psa_sign_hash_abort() at any point if they no
+ *                              longer want the result.
+ *
+ * \note                        If this function returns an error status, the
+ *                              operation enters an error state and must be
+ *                              aborted by calling \c psa_sign_hash_abort().
+ *
+ * \param[in, out] operation    The \c psa_sign_hash_interruptible_operation_t
+ *                              to use. This must be initialized first.
+ *
+ * \param key                   Identifier of the key to use for the operation.
+ *                              It must be an asymmetric key pair. The key must
+ *                              allow the usage #PSA_KEY_USAGE_SIGN_HASH.
+ * \param alg                   A signature algorithm (\c PSA_ALG_XXX
+ *                              value such that #PSA_ALG_IS_SIGN_HASH(\p alg)
+ *                              is true), that is compatible with
+ *                              the type of \p key.
+ * \param[in] hash              The hash or message to sign.
+ * \param hash_length           Size of the \p hash buffer in bytes.
+ *
+ * \retval #PSA_SUCCESS
+ *         The operation started successfully - call \c psa_sign_hash_complete()
+ *         with the same context to complete the operation
+ *
+ * \retval #PSA_ERROR_INVALID_HANDLE \emptydescription
+ * \retval #PSA_ERROR_NOT_PERMITTED
+ *         The key does not have the #PSA_KEY_USAGE_SIGN_HASH flag, or it does
+ *         not permit the requested algorithm.
+ * \retval #PSA_ERROR_BAD_STATE
+ *         An operation has previously been started on this context, and is
+ *         still in progress.
+ * \retval #PSA_ERROR_NOT_SUPPORTED \emptydescription
+ * \retval #PSA_ERROR_INVALID_ARGUMENT \emptydescription
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE \emptydescription
+ * \retval #PSA_ERROR_HARDWARE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
+ * \retval #PSA_ERROR_STORAGE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_DATA_CORRUPT \emptydescription
+ * \retval #PSA_ERROR_DATA_INVALID \emptydescription
+ * \retval #PSA_ERROR_INSUFFICIENT_ENTROPY \emptydescription
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The library has not been previously initialized by psa_crypto_init().
+ *         It is implementation-dependent whether a failure to initialize
+ *         results in this error code.
+ */
+psa_status_t psa_sign_hash_start(
+    psa_sign_hash_interruptible_operation_t *operation,
+    mbedtls_svc_key_id_t key, psa_algorithm_t alg,
+    const uint8_t *hash, size_t hash_length);
+
+/**
+ * \brief                       Continue and eventually complete the action of
+ *                              signing a hash or short message with a private
+ *                              key, in an interruptible manner.
+ *
+ * \see                         \c psa_sign_hash_start()
+ *
+ * \warning                     This is a beta API, and thus subject to change
+ *                              at any point. It is not bound by the usual
+ *                              interface stability promises.
+ *
+ * \note                        This function combined with \c
+ *                              psa_sign_hash_start() is equivalent to
+ *                              \c psa_sign_hash() but this function can return
+ *                              early and resume according to the limit set with
+ *                              \c psa_interruptible_set_max_ops() to reduce the
+ *                              maximum time spent in a function call.
+ *
+ * \note                        Users should call this function on the same
+ *                              operation object repeatedly until it either
+ *                              returns 0 or an error. This function will return
+ *                              #PSA_OPERATION_INCOMPLETE if there is more work
+ *                              to do. Alternatively users can call
+ *                              \c psa_sign_hash_abort() at any point if they no
+ *                              longer want the result.
+ *
+ * \note                        When this function returns successfully, the
+ *                              operation becomes inactive. If this function
+ *                              returns an error status, the operation enters an
+ *                              error state and must be aborted by calling
+ *                              \c psa_sign_hash_abort().
+ *
+ * \param[in, out] operation    The \c psa_sign_hash_interruptible_operation_t
+ *                              to use. This must be initialized first, and have
+ *                              had \c psa_sign_hash_start() called with it
+ *                              first.
+ *
+ * \param[out] signature        Buffer where the signature is to be written.
+ * \param signature_size        Size of the \p signature buffer in bytes. This
+ *                              must be appropriate for the selected
+ *                              algorithm and key:
+ *                              - The required signature size is
+ *                                #PSA_SIGN_OUTPUT_SIZE(\c key_type, \c
+ *                                key_bits, \c alg) where \c key_type and \c
+ *                                key_bits are the type and bit-size
+ *                                respectively of key.
+ *                              - #PSA_SIGNATURE_MAX_SIZE evaluates to the
+ *                                maximum signature size of any supported
+ *                                signature algorithm.
+ * \param[out] signature_length On success, the number of bytes that make up
+ *                              the returned signature value.
+ *
+ * \retval #PSA_SUCCESS
+ *         Operation completed successfully
+ *
+ * \retval #PSA_OPERATION_INCOMPLETE
+ *         Operation was interrupted due to the setting of \c
+ *         psa_interruptible_set_max_ops(). There is still work to be done.
+ *         Call this function again with the same operation object.
+ *
+ * \retval #PSA_ERROR_BUFFER_TOO_SMALL
+ *         The size of the \p signature buffer is too small. You can
+ *         determine a sufficient buffer size by calling
+ *         #PSA_SIGN_OUTPUT_SIZE(\c key_type, \c key_bits, \c alg)
+ *         where \c key_type and \c key_bits are the type and bit-size
+ *         respectively of \c key.
+ *
+ * \retval #PSA_ERROR_BAD_STATE
+ *         An operation was not previously started on this context via
+ *         \c psa_sign_hash_start().
+ *
+ * \retval #PSA_ERROR_NOT_SUPPORTED \emptydescription
+ * \retval #PSA_ERROR_INVALID_ARGUMENT \emptydescription
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE \emptydescription
+ * \retval #PSA_ERROR_HARDWARE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
+ * \retval #PSA_ERROR_STORAGE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_DATA_CORRUPT \emptydescription
+ * \retval #PSA_ERROR_DATA_INVALID \emptydescription
+ * \retval #PSA_ERROR_INSUFFICIENT_ENTROPY \emptydescription
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The library has either not been previously initialized by
+ *         psa_crypto_init() or you did not previously call
+ *         psa_sign_hash_start() with this operation object. It is
+ *         implementation-dependent whether a failure to initialize results in
+ *         this error code.
+ */
+psa_status_t psa_sign_hash_complete(
+    psa_sign_hash_interruptible_operation_t *operation,
+    uint8_t *signature, size_t signature_size,
+    size_t *signature_length);
+
+/**
+ * \brief                       Abort a sign hash operation.
+ *
+ * \warning                     This is a beta API, and thus subject to change
+ *                              at any point. It is not bound by the usual
+ *                              interface stability promises.
+ *
+ * \note                        This function is the only function that clears
+ *                              the number of ops completed as part of the
+ *                              operation. Please ensure you copy this value via
+ *                              \c psa_sign_hash_get_num_ops() if required
+ *                              before calling.
+ *
+ * \note                        Aborting an operation frees all associated
+ *                              resources except for the \p operation structure
+ *                              itself. Once aborted, the operation object can
+ *                              be reused for another operation by calling \c
+ *                              psa_sign_hash_start() again.
+ *
+ * \note                        You may call this function any time after the
+ *                              operation object has been initialized. In
+ *                              particular, calling \c psa_sign_hash_abort()
+ *                              after the operation has already been terminated
+ *                              by a call to \c psa_sign_hash_abort() or
+ *                              psa_sign_hash_complete() is safe.
+ *
+ * \param[in,out] operation     Initialized sign hash operation.
+ *
+ * \retval #PSA_SUCCESS
+ *         The operation was aborted successfully.
+ *
+ * \retval #PSA_ERROR_NOT_SUPPORTED \emptydescription
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The library has not been previously initialized by psa_crypto_init().
+ *         It is implementation-dependent whether a failure to initialize
+ *         results in this error code.
+ */
+psa_status_t psa_sign_hash_abort(
+    psa_sign_hash_interruptible_operation_t *operation);
+
+/**
+ * \brief                       Start reading and verifying a hash or short
+ *                              message, in an interruptible manner.
+ *
+ * \see                         \c psa_verify_hash_complete()
+ *
+ * \warning                     This is a beta API, and thus subject to change
+ *                              at any point. It is not bound by the usual
+ *                              interface stability promises.
+ *
+ * \note                        This function combined with \c
+ *                              psa_verify_hash_complete() is equivalent to
+ *                              \c psa_verify_hash() but \c
+ *                              psa_verify_hash_complete() can return early and
+ *                              resume according to the limit set with \c
+ *                              psa_interruptible_set_max_ops() to reduce the
+ *                              maximum time spent in a function.
+ *
+ * \note                        Users should call \c psa_verify_hash_complete()
+ *                              repeatedly on the same operation object after a
+ *                              successful call to this function until \c
+ *                              psa_verify_hash_complete() either returns 0 or
+ *                              an error. \c psa_verify_hash_complete() will
+ *                              return #PSA_OPERATION_INCOMPLETE if there is
+ *                              more work to do. Alternatively users can call
+ *                              \c psa_verify_hash_abort() at any point if they
+ *                              no longer want the result.
+ *
+ * \note                        If this function returns an error status, the
+ *                              operation enters an error state and must be
+ *                              aborted by calling \c psa_verify_hash_abort().
+ *
+ * \param[in, out] operation    The \c psa_verify_hash_interruptible_operation_t
+ *                              to use. This must be initialized first.
+ *
+ * \param key                   Identifier of the key to use for the operation.
+ *                              The key must allow the usage
+ *                              #PSA_KEY_USAGE_VERIFY_HASH.
+ * \param alg                   A signature algorithm (\c PSA_ALG_XXX
+ *                              value such that #PSA_ALG_IS_SIGN_HASH(\p alg)
+ *                              is true), that is compatible with
+ *                              the type of \p key.
+ * \param[in] hash              The hash whose signature is to be verified.
+ * \param hash_length           Size of the \p hash buffer in bytes.
+ * \param[in] signature         Buffer containing the signature to verify.
+ * \param signature_length      Size of the \p signature buffer in bytes.
+ *
+ * \retval #PSA_SUCCESS
+ *         The operation started successfully - please call \c
+ *         psa_verify_hash_complete() with the same context to complete the
+ *         operation.
+ *
+ * \retval #PSA_ERROR_BAD_STATE
+ *         Another operation has already been started on this context, and is
+ *         still in progress.
+ *
+ * \retval #PSA_ERROR_NOT_PERMITTED
+ *         The key does not have the #PSA_KEY_USAGE_VERIFY_HASH flag, or it does
+ *         not permit the requested algorithm.
+ *
+ * \retval #PSA_ERROR_NOT_SUPPORTED \emptydescription
+ * \retval #PSA_ERROR_INVALID_ARGUMENT \emptydescription
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE \emptydescription
+ * \retval #PSA_ERROR_HARDWARE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
+ * \retval #PSA_ERROR_STORAGE_FAILURE \emptydescription
+ * \retval PSA_ERROR_DATA_CORRUPT \emptydescription
+ * \retval PSA_ERROR_DATA_INVALID \emptydescription
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The library has not been previously initialized by psa_crypto_init().
+ *         It is implementation-dependent whether a failure to initialize
+ *         results in this error code.
+ */
+psa_status_t psa_verify_hash_start(
+    psa_verify_hash_interruptible_operation_t *operation,
+    mbedtls_svc_key_id_t key, psa_algorithm_t alg,
+    const uint8_t *hash, size_t hash_length,
+    const uint8_t *signature, size_t signature_length);
+
+/**
+ * \brief                       Continue and eventually complete the action of
+ *                              reading and verifying a hash or short message
+ *                              signed with a private key, in an interruptible
+ *                              manner.
+ *
+ * \see                         \c psa_verify_hash_start()
+ *
+ * \warning                     This is a beta API, and thus subject to change
+ *                              at any point. It is not bound by the usual
+ *                              interface stability promises.
+ *
+ * \note                        This function combined with \c
+ *                              psa_verify_hash_start() is equivalent to
+ *                              \c psa_verify_hash() but this function can
+ *                              return early and resume according to the limit
+ *                              set with \c psa_interruptible_set_max_ops() to
+ *                              reduce the maximum time spent in a function
+ *                              call.
+ *
+ * \note                        Users should call this function on the same
+ *                              operation object repeatedly until it either
+ *                              returns 0 or an error. This function will return
+ *                              #PSA_OPERATION_INCOMPLETE if there is more work
+ *                              to do. Alternatively users can call
+ *                              \c psa_verify_hash_abort() at any point if they
+ *                              no longer want the result.
+ *
+ * \note                        When this function returns successfully, the
+ *                              operation becomes inactive. If this function
+ *                              returns an error status, the operation enters an
+ *                              error state and must be aborted by calling
+ *                              \c psa_verify_hash_abort().
+ *
+ * \param[in, out] operation    The \c psa_verify_hash_interruptible_operation_t
+ *                              to use. This must be initialized first, and have
+ *                              had \c psa_verify_hash_start() called with it
+ *                              first.
+ *
+ * \retval #PSA_SUCCESS
+ *         Operation completed successfully, and the passed signature is valid.
+ *
+ * \retval #PSA_OPERATION_INCOMPLETE
+ *         Operation was interrupted due to the setting of \c
+ *         psa_interruptible_set_max_ops(). There is still work to be done.
+ *         Call this function again with the same operation object.
+ *
+ * \retval #PSA_ERROR_INVALID_HANDLE \emptydescription
+ * \retval #PSA_ERROR_INVALID_SIGNATURE
+ *         The calculation was performed successfully, but the passed
+ *         signature is not a valid signature.
+ * \retval #PSA_ERROR_BAD_STATE
+ *         An operation was not previously started on this context via
+ *         \c psa_verify_hash_start().
+ * \retval #PSA_ERROR_NOT_SUPPORTED \emptydescription
+ * \retval #PSA_ERROR_INVALID_ARGUMENT \emptydescription
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE \emptydescription
+ * \retval #PSA_ERROR_HARDWARE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
+ * \retval #PSA_ERROR_STORAGE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_DATA_CORRUPT \emptydescription
+ * \retval #PSA_ERROR_DATA_INVALID \emptydescription
+ * \retval #PSA_ERROR_INSUFFICIENT_ENTROPY \emptydescription
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The library has either not been previously initialized by
+ *         psa_crypto_init() or you did not previously call
+ *         psa_verify_hash_start() on this object. It is
+ *         implementation-dependent whether a failure to initialize results in
+ *         this error code.
+ */
+psa_status_t psa_verify_hash_complete(
+    psa_verify_hash_interruptible_operation_t *operation);
+
+/**
+ * \brief                     Abort a verify hash operation.
+ *
+ * \warning                   This is a beta API, and thus subject to change at
+ *                            any point. It is not bound by the usual interface
+ *                            stability promises.
+ *
+ * \note                      This function is the only function that clears the
+ *                            number of ops completed as part of the operation.
+ *                            Please ensure you copy this value via
+ *                            \c psa_verify_hash_get_num_ops() if required
+ *                            before calling.
+ *
+ * \note                      Aborting an operation frees all associated
+ *                            resources except for the operation structure
+ *                            itself. Once aborted, the operation object can be
+ *                            reused for another operation by calling \c
+ *                            psa_verify_hash_start() again.
+ *
+ * \note                      You may call this function any time after the
+ *                            operation object has been initialized.
+ *                            In particular, calling \c psa_verify_hash_abort()
+ *                            after the operation has already been terminated by
+ *                            a call to \c psa_verify_hash_abort() or
+ *                            psa_verify_hash_complete() is safe.
+ *
+ * \param[in,out] operation   Initialized verify hash operation.
+ *
+ * \retval #PSA_SUCCESS
+ *         The operation was aborted successfully.
+ *
+ * \retval #PSA_ERROR_NOT_SUPPORTED \emptydescription
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The library has not been previously initialized by psa_crypto_init().
+ *         It is implementation-dependent whether a failure to initialize
+ *         results in this error code.
+ */
+psa_status_t psa_verify_hash_abort(
+    psa_verify_hash_interruptible_operation_t *operation);

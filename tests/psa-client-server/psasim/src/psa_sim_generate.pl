@@ -4646,3 +4646,194 @@ psa_status_t psa_asymmetric_decrypt(mbedtls_svc_key_id_t key,
                                     uint8_t *output,
                                     size_t output_size,
                                     size_t *output_length);
+
+/** Remove non-essential copies of key material from memory.
+ *
+ * If the key identifier designates a volatile key, this functions does not do
+ * anything and returns successfully.
+ *
+ * If the key identifier designates a persistent key, then this function will
+ * free all resources associated with the key in volatile memory. The key
+ * data in persistent storage is not affected and the key can still be used.
+ *
+ * \param key Identifier of the key to purge.
+ *
+ * \retval #PSA_SUCCESS
+ *         The key material will have been removed from memory if it is not
+ *         currently required.
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         \p key is not a valid key identifier.
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The library has not been previously initialized by psa_crypto_init().
+ *         It is implementation-dependent whether a failure to initialize
+ *         results in this error code.
+ */
+psa_status_t psa_purge_key(mbedtls_svc_key_id_t key);
+
+/**
+ * \brief Export a key in binary format.
+ *
+ * The output of this function can be passed to psa_import_key() to
+ * create an equivalent object.
+ *
+ * If the implementation of psa_import_key() supports other formats
+ * beyond the format specified here, the output from psa_export_key()
+ * must use the representation specified here, not the original
+ * representation.
+ *
+ * For standard key types, the output format is as follows:
+ *
+ * - For symmetric keys (including MAC keys), the format is the
+ *   raw bytes of the key.
+ * - For DES, the key data consists of 8 bytes. The parity bits must be
+ *   correct.
+ * - For Triple-DES, the format is the concatenation of the
+ *   two or three DES keys.
+ * - For RSA key pairs (#PSA_KEY_TYPE_RSA_KEY_PAIR), the format
+ *   is the non-encrypted DER encoding of the representation defined by
+ *   PKCS\#1 (RFC 8017) as `RSAPrivateKey`, version 0.
+ *   ```
+ *   RSAPrivateKey ::= SEQUENCE {
+ *       version             INTEGER,  -- must be 0
+ *       modulus             INTEGER,  -- n
+ *       publicExponent      INTEGER,  -- e
+ *       privateExponent     INTEGER,  -- d
+ *       prime1              INTEGER,  -- p
+ *       prime2              INTEGER,  -- q
+ *       exponent1           INTEGER,  -- d mod (p-1)
+ *       exponent2           INTEGER,  -- d mod (q-1)
+ *       coefficient         INTEGER,  -- (inverse of q) mod p
+ *   }
+ *   ```
+ * - For elliptic curve key pairs (key types for which
+ *   #PSA_KEY_TYPE_IS_ECC_KEY_PAIR is true), the format is
+ *   a representation of the private value as a `ceiling(m/8)`-byte string
+ *   where `m` is the bit size associated with the curve, i.e. the bit size
+ *   of the order of the curve's coordinate field. This byte string is
+ *   in little-endian order for Montgomery curves (curve types
+ *   `PSA_ECC_FAMILY_CURVEXXX`), and in big-endian order for Weierstrass
+ *   curves (curve types `PSA_ECC_FAMILY_SECTXXX`, `PSA_ECC_FAMILY_SECPXXX`
+ *   and `PSA_ECC_FAMILY_BRAINPOOL_PXXX`).
+ *   For Weierstrass curves, this is the content of the `privateKey` field of
+ *   the `ECPrivateKey` format defined by RFC 5915.  For Montgomery curves,
+ *   the format is defined by RFC 7748, and output is masked according to §5.
+ *   For twisted Edwards curves, the private key is as defined by RFC 8032
+ *   (a 32-byte string for Edwards25519, a 57-byte string for Edwards448).
+ * - For Diffie-Hellman key exchange key pairs (key types for which
+ *   #PSA_KEY_TYPE_IS_DH_KEY_PAIR is true), the
+ *   format is the representation of the private key `x` as a big-endian byte
+ *   string. The length of the byte string is the private key size in bytes
+ *   (leading zeroes are not stripped).
+ * - For public keys (key types for which #PSA_KEY_TYPE_IS_PUBLIC_KEY is
+ *   true), the format is the same as for psa_export_public_key().
+ *
+ * The policy on the key must have the usage flag #PSA_KEY_USAGE_EXPORT set.
+ *
+ * \param key               Identifier of the key to export. It must allow the
+ *                          usage #PSA_KEY_USAGE_EXPORT, unless it is a public
+ *                          key.
+ * \param[out] data         Buffer where the key data is to be written.
+ * \param data_size         Size of the \p data buffer in bytes.
+ * \param[out] data_length  On success, the number of bytes
+ *                          that make up the key data.
+ *
+ * \retval #PSA_SUCCESS \emptydescription
+ * \retval #PSA_ERROR_INVALID_HANDLE \emptydescription
+ * \retval #PSA_ERROR_NOT_PERMITTED
+ *         The key does not have the #PSA_KEY_USAGE_EXPORT flag.
+ * \retval #PSA_ERROR_NOT_SUPPORTED \emptydescription
+ * \retval #PSA_ERROR_BUFFER_TOO_SMALL
+ *         The size of the \p data buffer is too small. You can determine a
+ *         sufficient buffer size by calling
+ *         #PSA_EXPORT_KEY_OUTPUT_SIZE(\c type, \c bits)
+ *         where \c type is the key type
+ *         and \c bits is the key size in bits.
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE \emptydescription
+ * \retval #PSA_ERROR_HARDWARE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
+ * \retval #PSA_ERROR_STORAGE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The library has not been previously initialized by psa_crypto_init().
+ *         It is implementation-dependent whether a failure to initialize
+ *         results in this error code.
+ */
+psa_status_t psa_export_key(mbedtls_svc_key_id_t key,
+                            uint8_t *data,
+                            size_t data_size,
+                            size_t *data_length);
+
+/**
+ * \brief Export a public key or the public part of a key pair in binary format.
+ *
+ * The output of this function can be passed to psa_import_key() to
+ * create an object that is equivalent to the public key.
+ *
+ * This specification supports a single format for each key type.
+ * Implementations may support other formats as long as the standard
+ * format is supported. Implementations that support other formats
+ * should ensure that the formats are clearly unambiguous so as to
+ * minimize the risk that an invalid input is accidentally interpreted
+ * according to a different format.
+ *
+ * For standard key types, the output format is as follows:
+ * - For RSA public keys (#PSA_KEY_TYPE_RSA_PUBLIC_KEY), the DER encoding of
+ *   the representation defined by RFC 3279 &sect;2.3.1 as `RSAPublicKey`.
+ *   ```
+ *   RSAPublicKey ::= SEQUENCE {
+ *      modulus            INTEGER,    -- n
+ *      publicExponent     INTEGER  }  -- e
+ *   ```
+ * - For elliptic curve keys on a twisted Edwards curve (key types for which
+ *   #PSA_KEY_TYPE_IS_ECC_PUBLIC_KEY is true and #PSA_KEY_TYPE_ECC_GET_FAMILY
+ *   returns #PSA_ECC_FAMILY_TWISTED_EDWARDS), the public key is as defined
+ *   by RFC 8032
+ *   (a 32-byte string for Edwards25519, a 57-byte string for Edwards448).
+ * - For other elliptic curve public keys (key types for which
+ *   #PSA_KEY_TYPE_IS_ECC_PUBLIC_KEY is true), the format is the uncompressed
+ *   representation defined by SEC1 &sect;2.3.3 as the content of an ECPoint.
+ *   Let `m` be the bit size associated with the curve, i.e. the bit size of
+ *   `q` for a curve over `F_q`. The representation consists of:
+ *      - The byte 0x04;
+ *      - `x_P` as a `ceiling(m/8)`-byte string, big-endian;
+ *      - `y_P` as a `ceiling(m/8)`-byte string, big-endian.
+ * - For Diffie-Hellman key exchange public keys (key types for which
+ *   #PSA_KEY_TYPE_IS_DH_PUBLIC_KEY is true),
+ *   the format is the representation of the public key `y = g^x mod p` as a
+ *   big-endian byte string. The length of the byte string is the length of the
+ *   base prime `p` in bytes.
+ *
+ * Exporting a public key object or the public part of a key pair is
+ * always permitted, regardless of the key's usage flags.
+ *
+ * \param key               Identifier of the key to export.
+ * \param[out] data         Buffer where the key data is to be written.
+ * \param data_size         Size of the \p data buffer in bytes.
+ * \param[out] data_length  On success, the number of bytes
+ *                          that make up the key data.
+ *
+ * \retval #PSA_SUCCESS \emptydescription
+ * \retval #PSA_ERROR_INVALID_HANDLE \emptydescription
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         The key is neither a public key nor a key pair.
+ * \retval #PSA_ERROR_NOT_SUPPORTED \emptydescription
+ * \retval #PSA_ERROR_BUFFER_TOO_SMALL
+ *         The size of the \p data buffer is too small. You can determine a
+ *         sufficient buffer size by calling
+ *         #PSA_EXPORT_KEY_OUTPUT_SIZE(#PSA_KEY_TYPE_PUBLIC_KEY_OF_KEY_PAIR(\c type), \c bits)
+ *         where \c type is the key type
+ *         and \c bits is the key size in bits.
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE \emptydescription
+ * \retval #PSA_ERROR_HARDWARE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
+ * \retval #PSA_ERROR_STORAGE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The library has not been previously initialized by psa_crypto_init().
+ *         It is implementation-dependent whether a failure to initialize
+ *         results in this error code.
+ */
+psa_status_t psa_export_public_key(mbedtls_svc_key_id_t key,
+                                   uint8_t *data,
+                                   size_t data_size,
+                                   size_t *data_length);

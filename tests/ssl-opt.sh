@@ -2115,7 +2115,7 @@ requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
 # server5.key.enc is in PEM format and AES-256-CBC crypted. Unfortunately PEM
 # module does not support PSA dispatching so we need builtin support.
 requires_config_enabled MBEDTLS_CIPHER_MODE_CBC
-requires_config_enabled MBEDTLS_AES_C
+requires_cipher_enabled AES
 requires_hash_alg MD5
 requires_hash_alg SHA_256
 run_test    "TLS: password protected client key" \
@@ -2127,7 +2127,7 @@ requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
 # server5.key.enc is in PEM format and AES-256-CBC crypted. Unfortunately PEM
 # module does not support PSA dispatching so we need builtin support.
 requires_config_enabled MBEDTLS_CIPHER_MODE_CBC
-requires_config_enabled MBEDTLS_AES_C
+requires_cipher_enabled AES
 requires_hash_alg MD5
 requires_hash_alg SHA_256
 run_test    "TLS: password protected server key" \
@@ -2140,7 +2140,7 @@ requires_config_enabled MBEDTLS_RSA_C
 # server5.key.enc is in PEM format and AES-256-CBC crypted. Unfortunately PEM
 # module does not support PSA dispatching so we need builtin support.
 requires_config_enabled MBEDTLS_CIPHER_MODE_CBC
-requires_config_enabled MBEDTLS_AES_C
+requires_cipher_enabled AES
 requires_hash_alg MD5
 requires_hash_alg SHA_256
 run_test    "TLS: password protected server key, two certificates" \

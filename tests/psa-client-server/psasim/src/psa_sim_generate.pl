@@ -1047,6 +1047,11 @@ sub get_functions
                         #print("$arg: $name: might be a buffer?\n");
                         die("$arg: not a buffer 1!\n") if $i == $#args;
                         my $next = $args[$i + 1];
+                        if ($func eq "psa_key_derivation_verify_bytes" &&
+                            $arg eq "const uint8_t *expected_output" &&
+                            $next eq "size_t output_length") {
+                            $next = "size_t expected_output_length";    # doesn't follow naming convention, so override
+                        }
                         die("$arg: not a buffer 2!\n") if $next !~ /^size_t\s+(${name}_\w+)$/;
                         $i++;                   # We're using the next param here
                         my $nname = $1;

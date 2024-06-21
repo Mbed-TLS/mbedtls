@@ -5424,3 +5424,95 @@ psa_status_t psa_verify_hash_complete(
  */
 psa_status_t psa_verify_hash_abort(
     psa_verify_hash_interruptible_operation_t *operation);
+
+/** Make a copy of a key.
+ *
+ * Copy key material from one location to another.
+ *
+ * This function is primarily useful to copy a key from one location
+ * to another, since it populates a key using the material from
+ * another key which may have a different lifetime.
+ *
+ * This function may be used to share a key with a different party,
+ * subject to implementation-defined restrictions on key sharing.
+ *
+ * The policy on the source key must have the usage flag
+ * #PSA_KEY_USAGE_COPY set.
+ * This flag is sufficient to permit the copy if the key has the lifetime
+ * #PSA_KEY_LIFETIME_VOLATILE or #PSA_KEY_LIFETIME_PERSISTENT.
+ * Some secure elements do not provide a way to copy a key without
+ * making it extractable from the secure element. If a key is located
+ * in such a secure element, then the key must have both usage flags
+ * #PSA_KEY_USAGE_COPY and #PSA_KEY_USAGE_EXPORT in order to make
+ * a copy of the key outside the secure element.
+ *
+ * The resulting key may only be used in a way that conforms to
+ * both the policy of the original key and the policy specified in
+ * the \p attributes parameter:
+ * - The usage flags on the resulting key are the bitwise-and of the
+ *   usage flags on the source policy and the usage flags in \p attributes.
+ * - If both allow the same algorithm or wildcard-based
+ *   algorithm policy, the resulting key has the same algorithm policy.
+ * - If either of the policies allows an algorithm and the other policy
+ *   allows a wildcard-based algorithm policy that includes this algorithm,
+ *   the resulting key allows the same algorithm.
+ * - If the policies do not allow any algorithm in common, this function
+ *   fails with the status #PSA_ERROR_INVALID_ARGUMENT.
+ *
+ * The effect of this function on implementation-defined attributes is
+ * implementation-defined.
+ *
+ * \param source_key        The key to copy. It must allow the usage
+ *                          #PSA_KEY_USAGE_COPY. If a private or secret key is
+ *                          being copied outside of a secure element it must
+ *                          also allow #PSA_KEY_USAGE_EXPORT.
+ * \param[in] attributes    The attributes for the new key.
+ *                          They are used as follows:
+ *                          - The key type and size may be 0. If either is
+ *                            nonzero, it must match the corresponding
+ *                            attribute of the source key.
+ *                          - The key location (the lifetime and, for
+ *                            persistent keys, the key identifier) is
+ *                            used directly.
+ *                          - The policy constraints (usage flags and
+ *                            algorithm policy) are combined from
+ *                            the source key and \p attributes so that
+ *                            both sets of restrictions apply, as
+ *                            described in the documentation of this function.
+ * \param[out] target_key   On success, an identifier for the newly created
+ *                          key. For persistent keys, this is the key
+ *                          identifier defined in \p attributes.
+ *                          \c 0 on failure.
+ *
+ * \retval #PSA_SUCCESS \emptydescription
+ * \retval #PSA_ERROR_INVALID_HANDLE
+ *         \p source_key is invalid.
+ * \retval #PSA_ERROR_ALREADY_EXISTS
+ *         This is an attempt to create a persistent key, and there is
+ *         already a persistent key with the given identifier.
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         The lifetime or identifier in \p attributes are invalid, or
+ *         the policy constraints on the source and specified in
+ *         \p attributes are incompatible, or
+ *         \p attributes specifies a key type or key size
+ *         which does not match the attributes of the source key.
+ * \retval #PSA_ERROR_NOT_PERMITTED
+ *         The source key does not have the #PSA_KEY_USAGE_COPY usage flag, or
+ *         the source key is not exportable and its lifetime does not
+ *         allow copying it to the target's lifetime.
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
+ * \retval #PSA_ERROR_INSUFFICIENT_STORAGE \emptydescription
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE \emptydescription
+ * \retval #PSA_ERROR_HARDWARE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_DATA_INVALID \emptydescription
+ * \retval #PSA_ERROR_DATA_CORRUPT \emptydescription
+ * \retval #PSA_ERROR_STORAGE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The library has not been previously initialized by psa_crypto_init().
+ *         It is implementation-dependent whether a failure to initialize
+ *         results in this error code.
+ */
+psa_status_t psa_copy_key(mbedtls_svc_key_id_t source_key,
+                          const psa_key_attributes_t *attributes,
+                          mbedtls_svc_key_id_t *target_key);

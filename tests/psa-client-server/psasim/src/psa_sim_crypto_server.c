@@ -2352,6 +2352,89 @@ fail:
 }
 
 // Returns 1 for success, 0 for failure
+int psa_copy_key_wrapper(
+    uint8_t *in_params, size_t in_params_len,
+    uint8_t **out_params, size_t *out_params_len)
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    mbedtls_svc_key_id_t source_key;
+    psa_key_attributes_t attributes;
+    mbedtls_svc_key_id_t target_key;
+
+    uint8_t *pos = in_params;
+    size_t remaining = in_params_len;
+    uint8_t *result = NULL;
+    int ok;
+
+    ok = psasim_deserialise_begin(&pos, &remaining);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_mbedtls_svc_key_id_t(&pos, &remaining, &source_key);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_psa_key_attributes_t(&pos, &remaining, &attributes);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_mbedtls_svc_key_id_t(&pos, &remaining, &target_key);
+    if (!ok) {
+        goto fail;
+    }
+
+    // Now we call the actual target function
+
+    status = psa_copy_key(
+        source_key,
+        &attributes,
+        &target_key
+        );
+
+    // NOTE: Should really check there is no overflow as we go along.
+    size_t result_size =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_psa_status_t_needs(status) +
+        psasim_serialise_mbedtls_svc_key_id_t_needs(target_key);
+
+    result = malloc(result_size);
+    if (result == NULL) {
+        goto fail;
+    }
+
+    uint8_t *rpos = result;
+    size_t rremain = result_size;
+
+    ok = psasim_serialise_begin(&rpos, &rremain);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_serialise_psa_status_t(&rpos, &rremain, status);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_serialise_mbedtls_svc_key_id_t(&rpos, &rremain, target_key);
+    if (!ok) {
+        goto fail;
+    }
+
+    *out_params = result;
+    *out_params_len = result_size;
+
+    return 1;   // success
+
+fail:
+    free(result);
+
+    return 0;       // This shouldn't happen!
+}
+
+// Returns 1 for success, 0 for failure
 int psa_destroy_key_wrapper(
     uint8_t *in_params, size_t in_params_len,
     uint8_t **out_params, size_t *out_params_len)
@@ -6748,6 +6831,10 @@ psa_status_t psa_crypto_call(psa_msg_t msg)
         case PSA_CIPHER_UPDATE:
             ok = psa_cipher_update_wrapper(in_params, in_params_len,
                                            &out_params, &out_params_len);
+            break;
+        case PSA_COPY_KEY:
+            ok = psa_copy_key_wrapper(in_params, in_params_len,
+                                      &out_params, &out_params_len);
             break;
         case PSA_DESTROY_KEY:
             ok = psa_destroy_key_wrapper(in_params, in_params_len,

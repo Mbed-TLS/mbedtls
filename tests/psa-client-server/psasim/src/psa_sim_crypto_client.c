@@ -2056,6 +2056,81 @@ fail:
 }
 
 
+psa_status_t psa_copy_key(
+    mbedtls_svc_key_id_t source_key,
+    const psa_key_attributes_t *attributes,
+    mbedtls_svc_key_id_t *target_key
+    )
+{
+    uint8_t *ser_params = NULL;
+    uint8_t *ser_result = NULL;
+    size_t result_length;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
+    size_t needed = psasim_serialise_begin_needs() +
+                    psasim_serialise_mbedtls_svc_key_id_t_needs(source_key) +
+                    psasim_serialise_psa_key_attributes_t_needs(*attributes) +
+                    psasim_serialise_mbedtls_svc_key_id_t_needs(*target_key);
+
+    ser_params = malloc(needed);
+    if (ser_params == NULL) {
+        status = PSA_ERROR_INSUFFICIENT_MEMORY;
+        goto fail;
+    }
+
+    uint8_t *pos = ser_params;
+    size_t remaining = needed;
+    int ok;
+    ok = psasim_serialise_begin(&pos, &remaining);
+    if (!ok) {
+        goto fail;
+    }
+    ok = psasim_serialise_mbedtls_svc_key_id_t(&pos, &remaining, source_key);
+    if (!ok) {
+        goto fail;
+    }
+    ok = psasim_serialise_psa_key_attributes_t(&pos, &remaining, *attributes);
+    if (!ok) {
+        goto fail;
+    }
+    ok = psasim_serialise_mbedtls_svc_key_id_t(&pos, &remaining, *target_key);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psa_crypto_call(PSA_COPY_KEY,
+                         ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
+    if (!ok) {
+        printf("PSA_COPY_KEY server call failed\n");
+        goto fail;
+    }
+
+    uint8_t *rpos = ser_result;
+    size_t rremain = result_length;
+
+    ok = psasim_deserialise_begin(&rpos, &rremain);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_mbedtls_svc_key_id_t(&rpos, &rremain, target_key);
+    if (!ok) {
+        goto fail;
+    }
+
+fail:
+    free(ser_params);
+    free(ser_result);
+
+    return status;
+}
+
+
 psa_status_t psa_destroy_key(
     mbedtls_svc_key_id_t key
     )

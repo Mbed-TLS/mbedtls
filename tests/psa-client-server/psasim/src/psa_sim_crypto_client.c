@@ -4953,6 +4953,60 @@ fail:
 }
 
 
+void psa_reset_key_attributes(
+    psa_key_attributes_t *attributes
+    )
+{
+    uint8_t *ser_params = NULL;
+    uint8_t *ser_result = NULL;
+    size_t result_length;
+
+    size_t needed = psasim_serialise_begin_needs() +
+                    psasim_serialise_psa_key_attributes_t_needs(*attributes);
+
+    ser_params = malloc(needed);
+    if (ser_params == NULL) {
+        goto fail;
+    }
+
+    uint8_t *pos = ser_params;
+    size_t remaining = needed;
+    int ok;
+    ok = psasim_serialise_begin(&pos, &remaining);
+    if (!ok) {
+        goto fail;
+    }
+    ok = psasim_serialise_psa_key_attributes_t(&pos, &remaining, *attributes);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psa_crypto_call(PSA_RESET_KEY_ATTRIBUTES,
+                         ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
+    if (!ok) {
+        printf("PSA_RESET_KEY_ATTRIBUTES server call failed\n");
+        goto fail;
+    }
+
+    uint8_t *rpos = ser_result;
+    size_t rremain = result_length;
+
+    ok = psasim_deserialise_begin(&rpos, &rremain);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_psa_key_attributes_t(&rpos, &rremain, attributes);
+    if (!ok) {
+        goto fail;
+    }
+
+fail:
+    free(ser_params);
+    free(ser_result);
+}
+
+
 psa_status_t psa_sign_hash(
     mbedtls_svc_key_id_t key,
     psa_algorithm_t alg,

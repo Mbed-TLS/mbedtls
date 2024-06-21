@@ -5516,3 +5516,17 @@ psa_status_t psa_verify_hash_abort(
 psa_status_t psa_copy_key(mbedtls_svc_key_id_t source_key,
                           const psa_key_attributes_t *attributes,
                           mbedtls_svc_key_id_t *target_key);
+
+/** Reset a key attribute structure to a freshly initialized state.
+ *
+ * You must initialize the attribute structure as described in the
+ * documentation of the type #psa_key_attributes_t before calling this
+ * function. Once the structure has been initialized, you may call this
+ * function at any time.
+ *
+ * This function frees any auxiliary resources that the structure
+ * may contain.
+ *
+ * \param[in,out] attributes    The attribute structure to reset.
+ */
+void psa_reset_key_attributes(psa_key_attributes_t *attributes);

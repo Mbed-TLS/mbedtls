@@ -18,6 +18,16 @@ my $debug = 0;
 my %functions = get_functions();
 my @functions = sort keys %functions;
 
+# We don't want these functions (e.g. because they are not implemented, etc)
+my @skip_functions = qw(
+    psa_key_derivation_verify_bytes
+    psa_key_derivation_verify_key
+);
+
+# Remove @skip_functions from @functions
+my %skip_functions = map { $_ => 1 } @skip_functions;
+@functions = grep(!exists($skip_functions{$_}), @functions);
+
 # get_functions(), called above, returns a data structure for each function
 # that we need to create client and server stubs for. In this example Perl script,
 # the function declarations we want are in the data section (after __END__ at

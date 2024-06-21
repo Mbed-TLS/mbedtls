@@ -129,8 +129,8 @@ def name_matches_pattern(name: str, str_or_re) -> bool:
 def analyze_driver_vs_reference(results: Results, outcomes: Outcomes,
                                 component_ref: str, component_driver: str,
                                 ignored_suites: typing.List[str], ignored_tests=None) -> None:
-    """Check that all tests passing in the reference component are also
-    passing in the corresponding driver component.
+    """Check that all tests passing in the driver component are also
+    passing in the corresponding reference component.
     Skip:
     - full test suites provided in ignored_suites list
     - only some specific test inside a test suite, for which the corresponding

@@ -2398,3 +2398,407 @@ psa_status_t psa_destroy_key(mbedtls_svc_key_id_t key);
  */
 psa_status_t psa_generate_random(uint8_t *output,
                                  size_t output_size);
+
+/** Calculate the MAC (message authentication code) of a message.
+ *
+ * \note To verify the MAC of a message against an
+ *       expected value, use psa_mac_verify() instead.
+ *       Beware that comparing integrity or authenticity data such as
+ *       MAC values with a function such as \c memcmp is risky
+ *       because the time taken by the comparison may leak information
+ *       about the MAC value which could allow an attacker to guess
+ *       a valid MAC and thereby bypass security controls.
+ *
+ * \param key               Identifier of the key to use for the operation. It
+ *                          must allow the usage PSA_KEY_USAGE_SIGN_MESSAGE.
+ * \param alg               The MAC algorithm to compute (\c PSA_ALG_XXX value
+ *                          such that #PSA_ALG_IS_MAC(\p alg) is true).
+ * \param[in] input         Buffer containing the input message.
+ * \param input_length      Size of the \p input buffer in bytes.
+ * \param[out] mac          Buffer where the MAC value is to be written.
+ * \param mac_size          Size of the \p mac buffer in bytes.
+ * \param[out] mac_length   On success, the number of bytes
+ *                          that make up the MAC value.
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ * \retval #PSA_ERROR_INVALID_HANDLE \emptydescription
+ * \retval #PSA_ERROR_NOT_PERMITTED \emptydescription
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         \p key is not compatible with \p alg.
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ *         \p alg is not supported or is not a MAC algorithm.
+ * \retval #PSA_ERROR_BUFFER_TOO_SMALL
+ *         \p mac_size is too small
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE \emptydescription
+ * \retval #PSA_ERROR_HARDWARE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
+ * \retval #PSA_ERROR_STORAGE_FAILURE
+ *         The key could not be retrieved from storage.
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The library has not been previously initialized by psa_crypto_init().
+ *         It is implementation-dependent whether a failure to initialize
+ *         results in this error code.
+ */
+psa_status_t psa_mac_compute(mbedtls_svc_key_id_t key,
+                             psa_algorithm_t alg,
+                             const uint8_t *input,
+                             size_t input_length,
+                             uint8_t *mac,
+                             size_t mac_size,
+                             size_t *mac_length);
+
+/** Calculate the MAC of a message and compare it with a reference value.
+ *
+ * \param key               Identifier of the key to use for the operation. It
+ *                          must allow the usage PSA_KEY_USAGE_VERIFY_MESSAGE.
+ * \param alg               The MAC algorithm to compute (\c PSA_ALG_XXX value
+ *                          such that #PSA_ALG_IS_MAC(\p alg) is true).
+ * \param[in] input         Buffer containing the input message.
+ * \param input_length      Size of the \p input buffer in bytes.
+ * \param[in] mac           Buffer containing the expected MAC value.
+ * \param mac_length        Size of the \p mac buffer in bytes.
+ *
+ * \retval #PSA_SUCCESS
+ *         The expected MAC is identical to the actual MAC of the input.
+ * \retval #PSA_ERROR_INVALID_SIGNATURE
+ *         The MAC of the message was calculated successfully, but it
+ *         differs from the expected value.
+ * \retval #PSA_ERROR_INVALID_HANDLE \emptydescription
+ * \retval #PSA_ERROR_NOT_PERMITTED \emptydescription
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         \p key is not compatible with \p alg.
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ *         \p alg is not supported or is not a MAC algorithm.
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE \emptydescription
+ * \retval #PSA_ERROR_HARDWARE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
+ * \retval #PSA_ERROR_STORAGE_FAILURE
+ *         The key could not be retrieved from storage.
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The library has not been previously initialized by psa_crypto_init().
+ *         It is implementation-dependent whether a failure to initialize
+ *         results in this error code.
+ */
+psa_status_t psa_mac_verify(mbedtls_svc_key_id_t key,
+                            psa_algorithm_t alg,
+                            const uint8_t *input,
+                            size_t input_length,
+                            const uint8_t *mac,
+                            size_t mac_length);
+
+/** The type of the state data structure for multipart MAC operations.
+ *
+ * Before calling any function on a MAC operation object, the application must
+ * initialize it by any of the following means:
+ * - Set the structure to all-bits-zero, for example:
+ *   \code
+ *   psa_mac_operation_t operation;
+ *   memset(&operation, 0, sizeof(operation));
+ *   \endcode
+ * - Initialize the structure to logical zero values, for example:
+ *   \code
+ *   psa_mac_operation_t operation = {0};
+ *   \endcode
+ * - Initialize the structure to the initializer #PSA_MAC_OPERATION_INIT,
+ *   for example:
+ *   \code
+ *   psa_mac_operation_t operation = PSA_MAC_OPERATION_INIT;
+ *   \endcode
+ * - Assign the result of the function psa_mac_operation_init()
+ *   to the structure, for example:
+ *   \code
+ *   psa_mac_operation_t operation;
+ *   operation = psa_mac_operation_init();
+ *   \endcode
+ *
+ *
+ * This is an implementation-defined \c struct. Applications should not
+ * make any assumptions about the content of this structure.
+ * Implementation details can change in future versions without notice. */
+typedef struct psa_mac_operation_s psa_mac_operation_t;
+
+/** \def PSA_MAC_OPERATION_INIT
+ *
+ * This macro returns a suitable initializer for a MAC operation object of type
+ * #psa_mac_operation_t.
+ */
+
+/** Return an initial value for a MAC operation object.
+ */
+static psa_mac_operation_t psa_mac_operation_init(void);
+
+/** Set up a multipart MAC calculation operation.
+ *
+ * This function sets up the calculation of the MAC
+ * (message authentication code) of a byte string.
+ * To verify the MAC of a message against an
+ * expected value, use psa_mac_verify_setup() instead.
+ *
+ * The sequence of operations to calculate a MAC is as follows:
+ * -# Allocate an operation object which will be passed to all the functions
+ *    listed here.
+ * -# Initialize the operation object with one of the methods described in the
+ *    documentation for #psa_mac_operation_t, e.g. #PSA_MAC_OPERATION_INIT.
+ * -# Call psa_mac_sign_setup() to specify the algorithm and key.
+ * -# Call psa_mac_update() zero, one or more times, passing a fragment
+ *    of the message each time. The MAC that is calculated is the MAC
+ *    of the concatenation of these messages in order.
+ * -# At the end of the message, call psa_mac_sign_finish() to finish
+ *    calculating the MAC value and retrieve it.
+ *
+ * If an error occurs at any step after a call to psa_mac_sign_setup(), the
+ * operation will need to be reset by a call to psa_mac_abort(). The
+ * application may call psa_mac_abort() at any time after the operation
+ * has been initialized.
+ *
+ * After a successful call to psa_mac_sign_setup(), the application must
+ * eventually terminate the operation through one of the following methods:
+ * - A successful call to psa_mac_sign_finish().
+ * - A call to psa_mac_abort().
+ *
+ * \param[in,out] operation The operation object to set up. It must have
+ *                          been initialized as per the documentation for
+ *                          #psa_mac_operation_t and not yet in use.
+ * \param key               Identifier of the key to use for the operation. It
+ *                          must remain valid until the operation terminates.
+ *                          It must allow the usage PSA_KEY_USAGE_SIGN_MESSAGE.
+ * \param alg               The MAC algorithm to compute (\c PSA_ALG_XXX value
+ *                          such that #PSA_ALG_IS_MAC(\p alg) is true).
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ * \retval #PSA_ERROR_INVALID_HANDLE \emptydescription
+ * \retval #PSA_ERROR_NOT_PERMITTED \emptydescription
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         \p key is not compatible with \p alg.
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ *         \p alg is not supported or is not a MAC algorithm.
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE \emptydescription
+ * \retval #PSA_ERROR_HARDWARE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
+ * \retval #PSA_ERROR_STORAGE_FAILURE
+ *         The key could not be retrieved from storage.
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The operation state is not valid (it must be inactive), or
+ *         the library has not been previously initialized by psa_crypto_init().
+ *         It is implementation-dependent whether a failure to initialize
+ *         results in this error code.
+ */
+psa_status_t psa_mac_sign_setup(psa_mac_operation_t *operation,
+                                mbedtls_svc_key_id_t key,
+                                psa_algorithm_t alg);
+
+/** Set up a multipart MAC verification operation.
+ *
+ * This function sets up the verification of the MAC
+ * (message authentication code) of a byte string against an expected value.
+ *
+ * The sequence of operations to verify a MAC is as follows:
+ * -# Allocate an operation object which will be passed to all the functions
+ *    listed here.
+ * -# Initialize the operation object with one of the methods described in the
+ *    documentation for #psa_mac_operation_t, e.g. #PSA_MAC_OPERATION_INIT.
+ * -# Call psa_mac_verify_setup() to specify the algorithm and key.
+ * -# Call psa_mac_update() zero, one or more times, passing a fragment
+ *    of the message each time. The MAC that is calculated is the MAC
+ *    of the concatenation of these messages in order.
+ * -# At the end of the message, call psa_mac_verify_finish() to finish
+ *    calculating the actual MAC of the message and verify it against
+ *    the expected value.
+ *
+ * If an error occurs at any step after a call to psa_mac_verify_setup(), the
+ * operation will need to be reset by a call to psa_mac_abort(). The
+ * application may call psa_mac_abort() at any time after the operation
+ * has been initialized.
+ *
+ * After a successful call to psa_mac_verify_setup(), the application must
+ * eventually terminate the operation through one of the following methods:
+ * - A successful call to psa_mac_verify_finish().
+ * - A call to psa_mac_abort().
+ *
+ * \param[in,out] operation The operation object to set up. It must have
+ *                          been initialized as per the documentation for
+ *                          #psa_mac_operation_t and not yet in use.
+ * \param key               Identifier of the key to use for the operation. It
+ *                          must remain valid until the operation terminates.
+ *                          It must allow the usage
+ *                          PSA_KEY_USAGE_VERIFY_MESSAGE.
+ * \param alg               The MAC algorithm to compute (\c PSA_ALG_XXX value
+ *                          such that #PSA_ALG_IS_MAC(\p alg) is true).
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ * \retval #PSA_ERROR_INVALID_HANDLE \emptydescription
+ * \retval #PSA_ERROR_NOT_PERMITTED \emptydescription
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         \c key is not compatible with \c alg.
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ *         \c alg is not supported or is not a MAC algorithm.
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE \emptydescription
+ * \retval #PSA_ERROR_HARDWARE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
+ * \retval #PSA_ERROR_STORAGE_FAILURE
+ *         The key could not be retrieved from storage.
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The operation state is not valid (it must be inactive), or
+ *         the library has not been previously initialized by psa_crypto_init().
+ *         It is implementation-dependent whether a failure to initialize
+ *         results in this error code.
+ */
+psa_status_t psa_mac_verify_setup(psa_mac_operation_t *operation,
+                                  mbedtls_svc_key_id_t key,
+                                  psa_algorithm_t alg);
+
+/** Add a message fragment to a multipart MAC operation.
+ *
+ * The application must call psa_mac_sign_setup() or psa_mac_verify_setup()
+ * before calling this function.
+ *
+ * If this function returns an error status, the operation enters an error
+ * state and must be aborted by calling psa_mac_abort().
+ *
+ * \param[in,out] operation Active MAC operation.
+ * \param[in] input         Buffer containing the message fragment to add to
+ *                          the MAC calculation.
+ * \param input_length      Size of the \p input buffer in bytes.
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE \emptydescription
+ * \retval #PSA_ERROR_HARDWARE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
+ * \retval #PSA_ERROR_STORAGE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The operation state is not valid (it must be active), or
+ *         the library has not been previously initialized by psa_crypto_init().
+ *         It is implementation-dependent whether a failure to initialize
+ *         results in this error code.
+ */
+psa_status_t psa_mac_update(psa_mac_operation_t *operation,
+                            const uint8_t *input,
+                            size_t input_length);
+
+/** Finish the calculation of the MAC of a message.
+ *
+ * The application must call psa_mac_sign_setup() before calling this function.
+ * This function calculates the MAC of the message formed by concatenating
+ * the inputs passed to preceding calls to psa_mac_update().
+ *
+ * When this function returns successfully, the operation becomes inactive.
+ * If this function returns an error status, the operation enters an error
+ * state and must be aborted by calling psa_mac_abort().
+ *
+ * \warning Applications should not call this function if they expect
+ *          a specific value for the MAC. Call psa_mac_verify_finish() instead.
+ *          Beware that comparing integrity or authenticity data such as
+ *          MAC values with a function such as \c memcmp is risky
+ *          because the time taken by the comparison may leak information
+ *          about the MAC value which could allow an attacker to guess
+ *          a valid MAC and thereby bypass security controls.
+ *
+ * \param[in,out] operation Active MAC operation.
+ * \param[out] mac          Buffer where the MAC value is to be written.
+ * \param mac_size          Size of the \p mac buffer in bytes.
+ * \param[out] mac_length   On success, the number of bytes
+ *                          that make up the MAC value. This is always
+ *                          #PSA_MAC_LENGTH(\c key_type, \c key_bits, \c alg)
+ *                          where \c key_type and \c key_bits are the type and
+ *                          bit-size respectively of the key and \c alg is the
+ *                          MAC algorithm that is calculated.
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ * \retval #PSA_ERROR_BUFFER_TOO_SMALL
+ *         The size of the \p mac buffer is too small. You can determine a
+ *         sufficient buffer size by calling PSA_MAC_LENGTH().
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE \emptydescription
+ * \retval #PSA_ERROR_HARDWARE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
+ * \retval #PSA_ERROR_STORAGE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The operation state is not valid (it must be an active mac sign
+ *         operation), or the library has not been previously initialized
+ *         by psa_crypto_init().
+ *         It is implementation-dependent whether a failure to initialize
+ *         results in this error code.
+ */
+psa_status_t psa_mac_sign_finish(psa_mac_operation_t *operation,
+                                 uint8_t *mac,
+                                 size_t mac_size,
+                                 size_t *mac_length);
+
+/** Finish the calculation of the MAC of a message and compare it with
+ * an expected value.
+ *
+ * The application must call psa_mac_verify_setup() before calling this function.
+ * This function calculates the MAC of the message formed by concatenating
+ * the inputs passed to preceding calls to psa_mac_update(). It then
+ * compares the calculated MAC with the expected MAC passed as a
+ * parameter to this function.
+ *
+ * When this function returns successfully, the operation becomes inactive.
+ * If this function returns an error status, the operation enters an error
+ * state and must be aborted by calling psa_mac_abort().
+ *
+ * \note Implementations shall make the best effort to ensure that the
+ * comparison between the actual MAC and the expected MAC is performed
+ * in constant time.
+ *
+ * \param[in,out] operation Active MAC operation.
+ * \param[in] mac           Buffer containing the expected MAC value.
+ * \param mac_length        Size of the \p mac buffer in bytes.
+ *
+ * \retval #PSA_SUCCESS
+ *         The expected MAC is identical to the actual MAC of the message.
+ * \retval #PSA_ERROR_INVALID_SIGNATURE
+ *         The MAC of the message was calculated successfully, but it
+ *         differs from the expected MAC.
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE \emptydescription
+ * \retval #PSA_ERROR_HARDWARE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
+ * \retval #PSA_ERROR_STORAGE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The operation state is not valid (it must be an active mac verify
+ *         operation), or the library has not been previously initialized
+ *         by psa_crypto_init().
+ *         It is implementation-dependent whether a failure to initialize
+ *         results in this error code.
+ */
+psa_status_t psa_mac_verify_finish(psa_mac_operation_t *operation,
+                                   const uint8_t *mac,
+                                   size_t mac_length);
+
+/** Abort a MAC operation.
+ *
+ * Aborting an operation frees all associated resources except for the
+ * \p operation structure itself. Once aborted, the operation object
+ * can be reused for another operation by calling
+ * psa_mac_sign_setup() or psa_mac_verify_setup() again.
+ *
+ * You may call this function any time after the operation object has
+ * been initialized by one of the methods described in #psa_mac_operation_t.
+ *
+ * In particular, calling psa_mac_abort() after the operation has been
+ * terminated by a call to psa_mac_abort(), psa_mac_sign_finish() or
+ * psa_mac_verify_finish() is safe and has no effect.
+ *
+ * \param[in,out] operation Initialized MAC operation.
+ *
+ * \retval #PSA_SUCCESS \emptydescription
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE \emptydescription
+ * \retval #PSA_ERROR_HARDWARE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The library has not been previously initialized by psa_crypto_init().
+ *         It is implementation-dependent whether a failure to initialize
+ *         results in this error code.
+ */
+psa_status_t psa_mac_abort(psa_mac_operation_t *operation);

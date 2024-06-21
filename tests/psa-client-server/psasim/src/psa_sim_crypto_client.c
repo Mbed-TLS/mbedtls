@@ -1976,3 +1976,607 @@ fail:
 
     return status;
 }
+
+
+psa_status_t psa_mac_abort(
+    psa_mac_operation_t *operation
+    )
+{
+    uint8_t *params = NULL;
+    uint8_t *result = NULL;
+    size_t result_length;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
+    size_t needed = psasim_serialise_begin_needs() +
+                    psasim_serialise_psa_mac_operation_t_needs(*operation);
+
+    params = malloc(needed);
+    if (params == NULL) {
+        status = PSA_ERROR_INSUFFICIENT_MEMORY;
+        goto fail;
+    }
+
+    uint8_t *pos = params;
+    size_t remaining = needed;
+    int ok;
+    ok = psasim_serialise_begin(&pos, &remaining);
+    if (!ok) {
+        goto fail;
+    }
+    ok = psasim_serialise_psa_mac_operation_t(&pos, &remaining, *operation);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psa_crypto_call(PSA_MAC_ABORT,
+                         params, (size_t) (pos - params), &result, &result_length);
+    if (!ok) {
+        printf("PSA_MAC_ABORT server call failed\n");
+        goto fail;
+    }
+
+    uint8_t *rpos = result;
+    size_t rremain = result_length;
+
+    ok = psasim_deserialise_begin(&rpos, &rremain);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_psa_mac_operation_t(&rpos, &rremain, operation);
+    if (!ok) {
+        goto fail;
+    }
+
+fail:
+    free(params);
+    free(result);
+
+    return status;
+}
+
+
+psa_status_t psa_mac_compute(
+    mbedtls_svc_key_id_t key,
+    psa_algorithm_t alg,
+    const uint8_t *input, size_t  input_length,
+    uint8_t *mac, size_t  mac_size,
+    size_t *mac_length
+    )
+{
+    uint8_t *params = NULL;
+    uint8_t *result = NULL;
+    size_t result_length;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
+    size_t needed = psasim_serialise_begin_needs() +
+                    psasim_serialise_mbedtls_svc_key_id_t_needs(key) +
+                    psasim_serialise_psa_algorithm_t_needs(alg) +
+                    psasim_serialise_buffer_needs(input, input_length) +
+                    psasim_serialise_buffer_needs(mac, mac_size) +
+                    psasim_serialise_size_t_needs(*mac_length);
+
+    params = malloc(needed);
+    if (params == NULL) {
+        status = PSA_ERROR_INSUFFICIENT_MEMORY;
+        goto fail;
+    }
+
+    uint8_t *pos = params;
+    size_t remaining = needed;
+    int ok;
+    ok = psasim_serialise_begin(&pos, &remaining);
+    if (!ok) {
+        goto fail;
+    }
+    ok = psasim_serialise_mbedtls_svc_key_id_t(&pos, &remaining, key);
+    if (!ok) {
+        goto fail;
+    }
+    ok = psasim_serialise_psa_algorithm_t(&pos, &remaining, alg);
+    if (!ok) {
+        goto fail;
+    }
+    ok = psasim_serialise_buffer(&pos, &remaining, input, input_length);
+    if (!ok) {
+        goto fail;
+    }
+    ok = psasim_serialise_buffer(&pos, &remaining, mac, mac_size);
+    if (!ok) {
+        goto fail;
+    }
+    ok = psasim_serialise_size_t(&pos, &remaining, *mac_length);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psa_crypto_call(PSA_MAC_COMPUTE,
+                         params, (size_t) (pos - params), &result, &result_length);
+    if (!ok) {
+        printf("PSA_MAC_COMPUTE server call failed\n");
+        goto fail;
+    }
+
+    uint8_t *rpos = result;
+    size_t rremain = result_length;
+
+    ok = psasim_deserialise_begin(&rpos, &rremain);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_return_buffer(&rpos, &rremain, mac, mac_size);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_size_t(&rpos, &rremain, mac_length);
+    if (!ok) {
+        goto fail;
+    }
+
+fail:
+    free(params);
+    free(result);
+
+    return status;
+}
+
+
+psa_status_t psa_mac_sign_finish(
+    psa_mac_operation_t *operation,
+    uint8_t *mac, size_t  mac_size,
+    size_t *mac_length
+    )
+{
+    uint8_t *params = NULL;
+    uint8_t *result = NULL;
+    size_t result_length;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
+    size_t needed = psasim_serialise_begin_needs() +
+                    psasim_serialise_psa_mac_operation_t_needs(*operation) +
+                    psasim_serialise_buffer_needs(mac, mac_size) +
+                    psasim_serialise_size_t_needs(*mac_length);
+
+    params = malloc(needed);
+    if (params == NULL) {
+        status = PSA_ERROR_INSUFFICIENT_MEMORY;
+        goto fail;
+    }
+
+    uint8_t *pos = params;
+    size_t remaining = needed;
+    int ok;
+    ok = psasim_serialise_begin(&pos, &remaining);
+    if (!ok) {
+        goto fail;
+    }
+    ok = psasim_serialise_psa_mac_operation_t(&pos, &remaining, *operation);
+    if (!ok) {
+        goto fail;
+    }
+    ok = psasim_serialise_buffer(&pos, &remaining, mac, mac_size);
+    if (!ok) {
+        goto fail;
+    }
+    ok = psasim_serialise_size_t(&pos, &remaining, *mac_length);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psa_crypto_call(PSA_MAC_SIGN_FINISH,
+                         params, (size_t) (pos - params), &result, &result_length);
+    if (!ok) {
+        printf("PSA_MAC_SIGN_FINISH server call failed\n");
+        goto fail;
+    }
+
+    uint8_t *rpos = result;
+    size_t rremain = result_length;
+
+    ok = psasim_deserialise_begin(&rpos, &rremain);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_psa_mac_operation_t(&rpos, &rremain, operation);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_return_buffer(&rpos, &rremain, mac, mac_size);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_size_t(&rpos, &rremain, mac_length);
+    if (!ok) {
+        goto fail;
+    }
+
+fail:
+    free(params);
+    free(result);
+
+    return status;
+}
+
+
+psa_status_t psa_mac_sign_setup(
+    psa_mac_operation_t *operation,
+    mbedtls_svc_key_id_t key,
+    psa_algorithm_t alg
+    )
+{
+    uint8_t *params = NULL;
+    uint8_t *result = NULL;
+    size_t result_length;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
+    size_t needed = psasim_serialise_begin_needs() +
+                    psasim_serialise_psa_mac_operation_t_needs(*operation) +
+                    psasim_serialise_mbedtls_svc_key_id_t_needs(key) +
+                    psasim_serialise_psa_algorithm_t_needs(alg);
+
+    params = malloc(needed);
+    if (params == NULL) {
+        status = PSA_ERROR_INSUFFICIENT_MEMORY;
+        goto fail;
+    }
+
+    uint8_t *pos = params;
+    size_t remaining = needed;
+    int ok;
+    ok = psasim_serialise_begin(&pos, &remaining);
+    if (!ok) {
+        goto fail;
+    }
+    ok = psasim_serialise_psa_mac_operation_t(&pos, &remaining, *operation);
+    if (!ok) {
+        goto fail;
+    }
+    ok = psasim_serialise_mbedtls_svc_key_id_t(&pos, &remaining, key);
+    if (!ok) {
+        goto fail;
+    }
+    ok = psasim_serialise_psa_algorithm_t(&pos, &remaining, alg);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psa_crypto_call(PSA_MAC_SIGN_SETUP,
+                         params, (size_t) (pos - params), &result, &result_length);
+    if (!ok) {
+        printf("PSA_MAC_SIGN_SETUP server call failed\n");
+        goto fail;
+    }
+
+    uint8_t *rpos = result;
+    size_t rremain = result_length;
+
+    ok = psasim_deserialise_begin(&rpos, &rremain);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_psa_mac_operation_t(&rpos, &rremain, operation);
+    if (!ok) {
+        goto fail;
+    }
+
+fail:
+    free(params);
+    free(result);
+
+    return status;
+}
+
+
+psa_status_t psa_mac_update(
+    psa_mac_operation_t *operation,
+    const uint8_t *input, size_t  input_length
+    )
+{
+    uint8_t *params = NULL;
+    uint8_t *result = NULL;
+    size_t result_length;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
+    size_t needed = psasim_serialise_begin_needs() +
+                    psasim_serialise_psa_mac_operation_t_needs(*operation) +
+                    psasim_serialise_buffer_needs(input, input_length);
+
+    params = malloc(needed);
+    if (params == NULL) {
+        status = PSA_ERROR_INSUFFICIENT_MEMORY;
+        goto fail;
+    }
+
+    uint8_t *pos = params;
+    size_t remaining = needed;
+    int ok;
+    ok = psasim_serialise_begin(&pos, &remaining);
+    if (!ok) {
+        goto fail;
+    }
+    ok = psasim_serialise_psa_mac_operation_t(&pos, &remaining, *operation);
+    if (!ok) {
+        goto fail;
+    }
+    ok = psasim_serialise_buffer(&pos, &remaining, input, input_length);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psa_crypto_call(PSA_MAC_UPDATE,
+                         params, (size_t) (pos - params), &result, &result_length);
+    if (!ok) {
+        printf("PSA_MAC_UPDATE server call failed\n");
+        goto fail;
+    }
+
+    uint8_t *rpos = result;
+    size_t rremain = result_length;
+
+    ok = psasim_deserialise_begin(&rpos, &rremain);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_psa_mac_operation_t(&rpos, &rremain, operation);
+    if (!ok) {
+        goto fail;
+    }
+
+fail:
+    free(params);
+    free(result);
+
+    return status;
+}
+
+
+psa_status_t psa_mac_verify(
+    mbedtls_svc_key_id_t key,
+    psa_algorithm_t alg,
+    const uint8_t *input, size_t  input_length,
+    const uint8_t *mac, size_t  mac_length
+    )
+{
+    uint8_t *params = NULL;
+    uint8_t *result = NULL;
+    size_t result_length;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
+    size_t needed = psasim_serialise_begin_needs() +
+                    psasim_serialise_mbedtls_svc_key_id_t_needs(key) +
+                    psasim_serialise_psa_algorithm_t_needs(alg) +
+                    psasim_serialise_buffer_needs(input, input_length) +
+                    psasim_serialise_buffer_needs(mac, mac_length);
+
+    params = malloc(needed);
+    if (params == NULL) {
+        status = PSA_ERROR_INSUFFICIENT_MEMORY;
+        goto fail;
+    }
+
+    uint8_t *pos = params;
+    size_t remaining = needed;
+    int ok;
+    ok = psasim_serialise_begin(&pos, &remaining);
+    if (!ok) {
+        goto fail;
+    }
+    ok = psasim_serialise_mbedtls_svc_key_id_t(&pos, &remaining, key);
+    if (!ok) {
+        goto fail;
+    }
+    ok = psasim_serialise_psa_algorithm_t(&pos, &remaining, alg);
+    if (!ok) {
+        goto fail;
+    }
+    ok = psasim_serialise_buffer(&pos, &remaining, input, input_length);
+    if (!ok) {
+        goto fail;
+    }
+    ok = psasim_serialise_buffer(&pos, &remaining, mac, mac_length);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psa_crypto_call(PSA_MAC_VERIFY,
+                         params, (size_t) (pos - params), &result, &result_length);
+    if (!ok) {
+        printf("PSA_MAC_VERIFY server call failed\n");
+        goto fail;
+    }
+
+    uint8_t *rpos = result;
+    size_t rremain = result_length;
+
+    ok = psasim_deserialise_begin(&rpos, &rremain);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    if (!ok) {
+        goto fail;
+    }
+
+fail:
+    free(params);
+    free(result);
+
+    return status;
+}
+
+
+psa_status_t psa_mac_verify_finish(
+    psa_mac_operation_t *operation,
+    const uint8_t *mac, size_t  mac_length
+    )
+{
+    uint8_t *params = NULL;
+    uint8_t *result = NULL;
+    size_t result_length;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
+    size_t needed = psasim_serialise_begin_needs() +
+                    psasim_serialise_psa_mac_operation_t_needs(*operation) +
+                    psasim_serialise_buffer_needs(mac, mac_length);
+
+    params = malloc(needed);
+    if (params == NULL) {
+        status = PSA_ERROR_INSUFFICIENT_MEMORY;
+        goto fail;
+    }
+
+    uint8_t *pos = params;
+    size_t remaining = needed;
+    int ok;
+    ok = psasim_serialise_begin(&pos, &remaining);
+    if (!ok) {
+        goto fail;
+    }
+    ok = psasim_serialise_psa_mac_operation_t(&pos, &remaining, *operation);
+    if (!ok) {
+        goto fail;
+    }
+    ok = psasim_serialise_buffer(&pos, &remaining, mac, mac_length);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psa_crypto_call(PSA_MAC_VERIFY_FINISH,
+                         params, (size_t) (pos - params), &result, &result_length);
+    if (!ok) {
+        printf("PSA_MAC_VERIFY_FINISH server call failed\n");
+        goto fail;
+    }
+
+    uint8_t *rpos = result;
+    size_t rremain = result_length;
+
+    ok = psasim_deserialise_begin(&rpos, &rremain);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_psa_mac_operation_t(&rpos, &rremain, operation);
+    if (!ok) {
+        goto fail;
+    }
+
+fail:
+    free(params);
+    free(result);
+
+    return status;
+}
+
+
+psa_status_t psa_mac_verify_setup(
+    psa_mac_operation_t *operation,
+    mbedtls_svc_key_id_t key,
+    psa_algorithm_t alg
+    )
+{
+    uint8_t *params = NULL;
+    uint8_t *result = NULL;
+    size_t result_length;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
+    size_t needed = psasim_serialise_begin_needs() +
+                    psasim_serialise_psa_mac_operation_t_needs(*operation) +
+                    psasim_serialise_mbedtls_svc_key_id_t_needs(key) +
+                    psasim_serialise_psa_algorithm_t_needs(alg);
+
+    params = malloc(needed);
+    if (params == NULL) {
+        status = PSA_ERROR_INSUFFICIENT_MEMORY;
+        goto fail;
+    }
+
+    uint8_t *pos = params;
+    size_t remaining = needed;
+    int ok;
+    ok = psasim_serialise_begin(&pos, &remaining);
+    if (!ok) {
+        goto fail;
+    }
+    ok = psasim_serialise_psa_mac_operation_t(&pos, &remaining, *operation);
+    if (!ok) {
+        goto fail;
+    }
+    ok = psasim_serialise_mbedtls_svc_key_id_t(&pos, &remaining, key);
+    if (!ok) {
+        goto fail;
+    }
+    ok = psasim_serialise_psa_algorithm_t(&pos, &remaining, alg);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psa_crypto_call(PSA_MAC_VERIFY_SETUP,
+                         params, (size_t) (pos - params), &result, &result_length);
+    if (!ok) {
+        printf("PSA_MAC_VERIFY_SETUP server call failed\n");
+        goto fail;
+    }
+
+    uint8_t *rpos = result;
+    size_t rremain = result_length;
+
+    ok = psasim_deserialise_begin(&rpos, &rremain);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_psa_mac_operation_t(&rpos, &rremain, operation);
+    if (!ok) {
+        goto fail;
+    }
+
+fail:
+    free(params);
+    free(result);
+
+    return status;
+}

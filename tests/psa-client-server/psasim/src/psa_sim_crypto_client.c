@@ -1191,6 +1191,69 @@ fail:
 }
 
 
+psa_status_t psa_generate_random(
+    uint8_t *output, size_t  output_size
+    )
+{
+    uint8_t *params = NULL;
+    uint8_t *result = NULL;
+    size_t result_length;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
+    size_t needed = psasim_serialise_begin_needs() +
+                    psasim_serialise_buffer_needs(output, output_size);
+
+    params = malloc(needed);
+    if (params == NULL) {
+        status = PSA_ERROR_INSUFFICIENT_MEMORY;
+        goto fail;
+    }
+
+    uint8_t *pos = params;
+    size_t remaining = needed;
+    int ok;
+    ok = psasim_serialise_begin(&pos, &remaining);
+    if (!ok) {
+        goto fail;
+    }
+    ok = psasim_serialise_buffer(&pos, &remaining, output, output_size);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psa_crypto_call(PSA_GENERATE_RANDOM,
+                         params, (size_t) (pos - params), &result, &result_length);
+    if (!ok) {
+        printf("PSA_GENERATE_RANDOM server call failed\n");
+        goto fail;
+    }
+
+    uint8_t *rpos = result;
+    size_t rremain = result_length;
+
+    ok = psasim_deserialise_begin(&rpos, &rremain);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_return_buffer(&rpos, &rremain, output, output_size);
+    if (!ok) {
+        goto fail;
+    }
+
+fail:
+    free(params);
+    free(result);
+
+    return status;
+}
+
+
 psa_status_t psa_get_key_attributes(
     mbedtls_svc_key_id_t key,
     psa_key_attributes_t *attributes

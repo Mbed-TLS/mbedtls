@@ -1325,6 +1325,80 @@ fail:
 }
 
 // Returns 1 for success, 0 for failure
+int psa_generate_random_wrapper(
+    uint8_t *in_params, size_t in_params_len,
+    uint8_t **out_params, size_t *out_params_len)
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    uint8_t *output = NULL;
+    size_t output_size;
+
+    uint8_t *pos = in_params;
+    size_t remaining = in_params_len;
+    uint8_t *result = NULL;
+    int ok;
+
+    ok = psasim_deserialise_begin(&pos, &remaining);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_buffer(&pos, &remaining, &output, &output_size);
+    if (!ok) {
+        goto fail;
+    }
+
+    // Now we call the actual target function
+
+    status = psa_generate_random(
+        output, output_size
+        );
+
+    // NOTE: Should really check there is no overflow as we go along.
+    size_t result_size =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_psa_status_t_needs(status) +
+        psasim_serialise_buffer_needs(output, output_size);
+
+    result = malloc(result_size);
+    if (result == NULL) {
+        goto fail;
+    }
+
+    uint8_t *rpos = result;
+    size_t rremain = result_size;
+
+    ok = psasim_serialise_begin(&rpos, &rremain);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_serialise_psa_status_t(&rpos, &rremain, status);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_serialise_buffer(&rpos, &rremain, output, output_size);
+    if (!ok) {
+        goto fail;
+    }
+
+    *out_params = result;
+    *out_params_len = result_size;
+
+    free(output);
+
+    return 1;   // success
+
+fail:
+    free(result);
+
+    free(output);
+
+    return 0;       // This shouldn't happen!
+}
+
+// Returns 1 for success, 0 for failure
 int psa_get_key_attributes_wrapper(
     uint8_t *in_params, size_t in_params_len,
     uint8_t **out_params, size_t *out_params_len)
@@ -2251,6 +2325,10 @@ psa_status_t psa_crypto_call(psa_msg_t msg)
         case PSA_DESTROY_KEY:
             ok = psa_destroy_key_wrapper(in_params, in_params_len,
                                          &out_params, &out_params_len);
+            break;
+        case PSA_GENERATE_RANDOM:
+            ok = psa_generate_random_wrapper(in_params, in_params_len,
+                                             &out_params, &out_params_len);
             break;
         case PSA_GET_KEY_ATTRIBUTES:
             ok = psa_get_key_attributes_wrapper(in_params, in_params_len,

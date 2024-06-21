@@ -529,6 +529,9 @@ int ${name}_wrapper(
     uint8_t *in_params, size_t in_params_len,
     uint8_t **out_params, size_t *out_params_len)
 {
+EOF
+
+    print $fh <<EOF unless $ret_name eq "(void)";
     $ret_type $ret_name = $ret_default;
 EOF
     # Output the variables we will need when we call the target function
@@ -775,6 +778,8 @@ sub output_client
     uint8_t *ser_params = NULL;
     uint8_t *ser_result = NULL;
     size_t result_length;
+EOF
+    print $fh <<EOF unless $ret_type eq "void";
     $ret_type $ret_name = $ret_default;
 EOF
 
@@ -802,11 +807,27 @@ EOF
 EOF
     }
 
+    print $fh <<EOF if $#$args < 0;
+                    0;
+EOF
+
     print $fh <<EOF;
 
     ser_params = malloc(needed);
     if (ser_params == NULL) {
-        status = PSA_ERROR_INSUFFICIENT_MEMORY;
+EOF
+
+    if ($ret_type eq "psa_status_t") {
+        print $fh <<EOF if $;
+        $ret_name = PSA_ERROR_INSUFFICIENT_MEMORY;
+EOF
+    } elsif ($ret_type eq "uint32_t") {
+        print $fh <<EOF if $;
+        $ret_name = 0;
+EOF
+    }
+
+    print $fh <<EOF;
         goto fail;
     }
 
@@ -869,7 +890,7 @@ EOF
     }
 EOF
 
-    print $fh <<EOF;
+    print $fh <<EOF if $ret_type ne "void";
 
     ok = psasim_deserialise_$ret_type(&rpos, &rremain, &$ret_name);
     if (!ok) {
@@ -916,8 +937,14 @@ EOF
 fail:
     free(ser_params);
     free(ser_result);
+EOF
+
+    print $fh <<EOF if $ret_type ne "void";
 
     return $ret_name;
+EOF
+
+    print $fh <<EOF;
 }
 EOF
 }
@@ -943,7 +970,11 @@ sub output_call
     my $ret_name = $f->{return}->{name};
     my $args = $f->{args};
 
-    print $fh "\n    $ret_name = $name(\n";
+    if ($ret_name eq "(void)") {
+        print $fh "\n    $name(\n";
+    } else {
+        print $fh "\n    $ret_name = $name(\n";
+    }
 
     print $fh "        );\n" if $#$args < 0; # If no arguments, empty arg list
 
@@ -1025,7 +1056,7 @@ sub get_functions
     my %funcs = ();
     for (my $i = 0; $i <= $#src; $i++) {
         my $line = $src[$i];
-        if ($line =~ /^psa_status_t (psa_\w*)\(/) { # begin function definition
+        if ($line =~ /^(psa_status_t|uint32_t|void) (psa_\w*)\(/) { # begin function definition
             #print "have one $line\n";
             while ($line !~ /;/) {
                 $line .= $src[$i + 1];
@@ -1044,9 +1075,13 @@ sub get_functions
 
                 my $ret_name = "";
                 $ret_name = "status" if $ret_type eq "psa_status_t";
+                $ret_name = "value" if $ret_type eq "uint32_t";
+                $ret_name = "(void)" if $ret_type eq "void";
                 die("ret_name for $ret_type?") unless length($ret_name);
                 my $ret_default = "";
                 $ret_default = "PSA_ERROR_CORRUPTION_DETECTED" if $ret_type eq "psa_status_t";
+                $ret_default = "0" if $ret_type eq "uint32_t";
+                $ret_default = "(void)" if $ret_type eq "void";
                 die("ret_default for $ret_type?") unless length($ret_default);
 
                 #print "FUNC $func RET_NAME $ret_name RET_TYPE $ret_type ARGS (", join("; ", @args), ")\n";

@@ -4524,3 +4524,125 @@ psa_status_t psa_verify_hash(mbedtls_svc_key_id_t key,
                              size_t hash_length,
                              const uint8_t *signature,
                              size_t signature_length);
+
+/**
+ * \brief Encrypt a short message with a public key.
+ *
+ * \param key                   Identifier of the key to use for the operation.
+ *                              It must be a public key or an asymmetric key
+ *                              pair. It must allow the usage
+ *                              #PSA_KEY_USAGE_ENCRYPT.
+ * \param alg                   An asymmetric encryption algorithm that is
+ *                              compatible with the type of \p key.
+ * \param[in] input             The message to encrypt.
+ * \param input_length          Size of the \p input buffer in bytes.
+ * \param[in] salt              A salt or label, if supported by the
+ *                              encryption algorithm.
+ *                              If the algorithm does not support a
+ *                              salt, pass \c NULL.
+ *                              If the algorithm supports an optional
+ *                              salt and you do not want to pass a salt,
+ *                              pass \c NULL.
+ *
+ *                              - For #PSA_ALG_RSA_PKCS1V15_CRYPT, no salt is
+ *                                supported.
+ * \param salt_length           Size of the \p salt buffer in bytes.
+ *                              If \p salt is \c NULL, pass 0.
+ * \param[out] output           Buffer where the encrypted message is to
+ *                              be written.
+ * \param output_size           Size of the \p output buffer in bytes.
+ * \param[out] output_length    On success, the number of bytes
+ *                              that make up the returned output.
+ *
+ * \retval #PSA_SUCCESS \emptydescription
+ * \retval #PSA_ERROR_INVALID_HANDLE \emptydescription
+ * \retval #PSA_ERROR_NOT_PERMITTED \emptydescription
+ * \retval #PSA_ERROR_BUFFER_TOO_SMALL
+ *         The size of the \p output buffer is too small. You can
+ *         determine a sufficient buffer size by calling
+ *         #PSA_ASYMMETRIC_ENCRYPT_OUTPUT_SIZE(\c key_type, \c key_bits, \p alg)
+ *         where \c key_type and \c key_bits are the type and bit-size
+ *         respectively of \p key.
+ * \retval #PSA_ERROR_NOT_SUPPORTED \emptydescription
+ * \retval #PSA_ERROR_INVALID_ARGUMENT \emptydescription
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE \emptydescription
+ * \retval #PSA_ERROR_HARDWARE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
+ * \retval #PSA_ERROR_STORAGE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_INSUFFICIENT_ENTROPY \emptydescription
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The library has not been previously initialized by psa_crypto_init().
+ *         It is implementation-dependent whether a failure to initialize
+ *         results in this error code.
+ */
+psa_status_t psa_asymmetric_encrypt(mbedtls_svc_key_id_t key,
+                                    psa_algorithm_t alg,
+                                    const uint8_t *input,
+                                    size_t input_length,
+                                    const uint8_t *salt,
+                                    size_t salt_length,
+                                    uint8_t *output,
+                                    size_t output_size,
+                                    size_t *output_length);
+
+/**
+ * \brief Decrypt a short message with a private key.
+ *
+ * \param key                   Identifier of the key to use for the operation.
+ *                              It must be an asymmetric key pair. It must
+ *                              allow the usage #PSA_KEY_USAGE_DECRYPT.
+ * \param alg                   An asymmetric encryption algorithm that is
+ *                              compatible with the type of \p key.
+ * \param[in] input             The message to decrypt.
+ * \param input_length          Size of the \p input buffer in bytes.
+ * \param[in] salt              A salt or label, if supported by the
+ *                              encryption algorithm.
+ *                              If the algorithm does not support a
+ *                              salt, pass \c NULL.
+ *                              If the algorithm supports an optional
+ *                              salt and you do not want to pass a salt,
+ *                              pass \c NULL.
+ *
+ *                              - For #PSA_ALG_RSA_PKCS1V15_CRYPT, no salt is
+ *                                supported.
+ * \param salt_length           Size of the \p salt buffer in bytes.
+ *                              If \p salt is \c NULL, pass 0.
+ * \param[out] output           Buffer where the decrypted message is to
+ *                              be written.
+ * \param output_size           Size of the \c output buffer in bytes.
+ * \param[out] output_length    On success, the number of bytes
+ *                              that make up the returned output.
+ *
+ * \retval #PSA_SUCCESS \emptydescription
+ * \retval #PSA_ERROR_INVALID_HANDLE \emptydescription
+ * \retval #PSA_ERROR_NOT_PERMITTED \emptydescription
+ * \retval #PSA_ERROR_BUFFER_TOO_SMALL
+ *         The size of the \p output buffer is too small. You can
+ *         determine a sufficient buffer size by calling
+ *         #PSA_ASYMMETRIC_DECRYPT_OUTPUT_SIZE(\c key_type, \c key_bits, \p alg)
+ *         where \c key_type and \c key_bits are the type and bit-size
+ *         respectively of \p key.
+ * \retval #PSA_ERROR_NOT_SUPPORTED \emptydescription
+ * \retval #PSA_ERROR_INVALID_ARGUMENT \emptydescription
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE \emptydescription
+ * \retval #PSA_ERROR_HARDWARE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
+ * \retval #PSA_ERROR_STORAGE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_INSUFFICIENT_ENTROPY \emptydescription
+ * \retval #PSA_ERROR_INVALID_PADDING \emptydescription
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The library has not been previously initialized by psa_crypto_init().
+ *         It is implementation-dependent whether a failure to initialize
+ *         results in this error code.
+ */
+psa_status_t psa_asymmetric_decrypt(mbedtls_svc_key_id_t key,
+                                    psa_algorithm_t alg,
+                                    const uint8_t *input,
+                                    size_t input_length,
+                                    const uint8_t *salt,
+                                    size_t salt_length,
+                                    uint8_t *output,
+                                    size_t output_size,
+                                    size_t *output_length);

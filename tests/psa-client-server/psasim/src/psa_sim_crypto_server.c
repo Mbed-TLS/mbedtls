@@ -1262,6 +1262,248 @@ fail:
 }
 
 // Returns 1 for success, 0 for failure
+int psa_asymmetric_decrypt_wrapper(
+    uint8_t *in_params, size_t in_params_len,
+    uint8_t **out_params, size_t *out_params_len)
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    mbedtls_svc_key_id_t key;
+    psa_algorithm_t alg;
+    uint8_t *input = NULL;
+    size_t input_length;
+    uint8_t *salt = NULL;
+    size_t salt_length;
+    uint8_t *output = NULL;
+    size_t output_size;
+    size_t output_length;
+
+    uint8_t *pos = in_params;
+    size_t remaining = in_params_len;
+    uint8_t *result = NULL;
+    int ok;
+
+    ok = psasim_deserialise_begin(&pos, &remaining);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_mbedtls_svc_key_id_t(&pos, &remaining, &key);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_psa_algorithm_t(&pos, &remaining, &alg);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_buffer(&pos, &remaining, &input, &input_length);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_buffer(&pos, &remaining, &salt, &salt_length);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_buffer(&pos, &remaining, &output, &output_size);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_size_t(&pos, &remaining, &output_length);
+    if (!ok) {
+        goto fail;
+    }
+
+    // Now we call the actual target function
+
+    status = psa_asymmetric_decrypt(
+        key,
+        alg,
+        input, input_length,
+        salt, salt_length,
+        output, output_size,
+        &output_length
+        );
+
+    // NOTE: Should really check there is no overflow as we go along.
+    size_t result_size =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_psa_status_t_needs(status) +
+        psasim_serialise_buffer_needs(output, output_size) +
+        psasim_serialise_size_t_needs(output_length);
+
+    result = malloc(result_size);
+    if (result == NULL) {
+        goto fail;
+    }
+
+    uint8_t *rpos = result;
+    size_t rremain = result_size;
+
+    ok = psasim_serialise_begin(&rpos, &rremain);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_serialise_psa_status_t(&rpos, &rremain, status);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_serialise_buffer(&rpos, &rremain, output, output_size);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_serialise_size_t(&rpos, &rremain, output_length);
+    if (!ok) {
+        goto fail;
+    }
+
+    *out_params = result;
+    *out_params_len = result_size;
+
+    free(input);
+    free(salt);
+    free(output);
+
+    return 1;   // success
+
+fail:
+    free(result);
+
+    free(input);
+    free(salt);
+    free(output);
+
+    return 0;       // This shouldn't happen!
+}
+
+// Returns 1 for success, 0 for failure
+int psa_asymmetric_encrypt_wrapper(
+    uint8_t *in_params, size_t in_params_len,
+    uint8_t **out_params, size_t *out_params_len)
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    mbedtls_svc_key_id_t key;
+    psa_algorithm_t alg;
+    uint8_t *input = NULL;
+    size_t input_length;
+    uint8_t *salt = NULL;
+    size_t salt_length;
+    uint8_t *output = NULL;
+    size_t output_size;
+    size_t output_length;
+
+    uint8_t *pos = in_params;
+    size_t remaining = in_params_len;
+    uint8_t *result = NULL;
+    int ok;
+
+    ok = psasim_deserialise_begin(&pos, &remaining);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_mbedtls_svc_key_id_t(&pos, &remaining, &key);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_psa_algorithm_t(&pos, &remaining, &alg);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_buffer(&pos, &remaining, &input, &input_length);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_buffer(&pos, &remaining, &salt, &salt_length);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_buffer(&pos, &remaining, &output, &output_size);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_size_t(&pos, &remaining, &output_length);
+    if (!ok) {
+        goto fail;
+    }
+
+    // Now we call the actual target function
+
+    status = psa_asymmetric_encrypt(
+        key,
+        alg,
+        input, input_length,
+        salt, salt_length,
+        output, output_size,
+        &output_length
+        );
+
+    // NOTE: Should really check there is no overflow as we go along.
+    size_t result_size =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_psa_status_t_needs(status) +
+        psasim_serialise_buffer_needs(output, output_size) +
+        psasim_serialise_size_t_needs(output_length);
+
+    result = malloc(result_size);
+    if (result == NULL) {
+        goto fail;
+    }
+
+    uint8_t *rpos = result;
+    size_t rremain = result_size;
+
+    ok = psasim_serialise_begin(&rpos, &rremain);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_serialise_psa_status_t(&rpos, &rremain, status);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_serialise_buffer(&rpos, &rremain, output, output_size);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_serialise_size_t(&rpos, &rremain, output_length);
+    if (!ok) {
+        goto fail;
+    }
+
+    *out_params = result;
+    *out_params_len = result_size;
+
+    free(input);
+    free(salt);
+    free(output);
+
+    return 1;   // success
+
+fail:
+    free(result);
+
+    free(input);
+    free(salt);
+    free(output);
+
+    return 0;       // This shouldn't happen!
+}
+
+// Returns 1 for success, 0 for failure
 int psa_cipher_abort_wrapper(
     uint8_t *in_params, size_t in_params_len,
     uint8_t **out_params, size_t *out_params_len)
@@ -5473,6 +5715,14 @@ psa_status_t psa_crypto_call(psa_msg_t msg)
         case PSA_AEAD_VERIFY:
             ok = psa_aead_verify_wrapper(in_params, in_params_len,
                                          &out_params, &out_params_len);
+            break;
+        case PSA_ASYMMETRIC_DECRYPT:
+            ok = psa_asymmetric_decrypt_wrapper(in_params, in_params_len,
+                                                &out_params, &out_params_len);
+            break;
+        case PSA_ASYMMETRIC_ENCRYPT:
+            ok = psa_asymmetric_encrypt_wrapper(in_params, in_params_len,
+                                                &out_params, &out_params_len);
             break;
         case PSA_CIPHER_ABORT:
             ok = psa_cipher_abort_wrapper(in_params, in_params_len,

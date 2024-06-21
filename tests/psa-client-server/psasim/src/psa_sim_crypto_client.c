@@ -1133,6 +1133,202 @@ fail:
 }
 
 
+psa_status_t psa_asymmetric_decrypt(
+    mbedtls_svc_key_id_t key,
+    psa_algorithm_t alg,
+    const uint8_t *input, size_t  input_length,
+    const uint8_t *salt, size_t  salt_length,
+    uint8_t *output, size_t  output_size,
+    size_t *output_length
+    )
+{
+    uint8_t *ser_params = NULL;
+    uint8_t *ser_result = NULL;
+    size_t result_length;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
+    size_t needed = psasim_serialise_begin_needs() +
+                    psasim_serialise_mbedtls_svc_key_id_t_needs(key) +
+                    psasim_serialise_psa_algorithm_t_needs(alg) +
+                    psasim_serialise_buffer_needs(input, input_length) +
+                    psasim_serialise_buffer_needs(salt, salt_length) +
+                    psasim_serialise_buffer_needs(output, output_size) +
+                    psasim_serialise_size_t_needs(*output_length);
+
+    ser_params = malloc(needed);
+    if (ser_params == NULL) {
+        status = PSA_ERROR_INSUFFICIENT_MEMORY;
+        goto fail;
+    }
+
+    uint8_t *pos = ser_params;
+    size_t remaining = needed;
+    int ok;
+    ok = psasim_serialise_begin(&pos, &remaining);
+    if (!ok) {
+        goto fail;
+    }
+    ok = psasim_serialise_mbedtls_svc_key_id_t(&pos, &remaining, key);
+    if (!ok) {
+        goto fail;
+    }
+    ok = psasim_serialise_psa_algorithm_t(&pos, &remaining, alg);
+    if (!ok) {
+        goto fail;
+    }
+    ok = psasim_serialise_buffer(&pos, &remaining, input, input_length);
+    if (!ok) {
+        goto fail;
+    }
+    ok = psasim_serialise_buffer(&pos, &remaining, salt, salt_length);
+    if (!ok) {
+        goto fail;
+    }
+    ok = psasim_serialise_buffer(&pos, &remaining, output, output_size);
+    if (!ok) {
+        goto fail;
+    }
+    ok = psasim_serialise_size_t(&pos, &remaining, *output_length);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psa_crypto_call(PSA_ASYMMETRIC_DECRYPT,
+                         ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
+    if (!ok) {
+        printf("PSA_ASYMMETRIC_DECRYPT server call failed\n");
+        goto fail;
+    }
+
+    uint8_t *rpos = ser_result;
+    size_t rremain = result_length;
+
+    ok = psasim_deserialise_begin(&rpos, &rremain);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_return_buffer(&rpos, &rremain, output, output_size);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_size_t(&rpos, &rremain, output_length);
+    if (!ok) {
+        goto fail;
+    }
+
+fail:
+    free(ser_params);
+    free(ser_result);
+
+    return status;
+}
+
+
+psa_status_t psa_asymmetric_encrypt(
+    mbedtls_svc_key_id_t key,
+    psa_algorithm_t alg,
+    const uint8_t *input, size_t  input_length,
+    const uint8_t *salt, size_t  salt_length,
+    uint8_t *output, size_t  output_size,
+    size_t *output_length
+    )
+{
+    uint8_t *ser_params = NULL;
+    uint8_t *ser_result = NULL;
+    size_t result_length;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
+    size_t needed = psasim_serialise_begin_needs() +
+                    psasim_serialise_mbedtls_svc_key_id_t_needs(key) +
+                    psasim_serialise_psa_algorithm_t_needs(alg) +
+                    psasim_serialise_buffer_needs(input, input_length) +
+                    psasim_serialise_buffer_needs(salt, salt_length) +
+                    psasim_serialise_buffer_needs(output, output_size) +
+                    psasim_serialise_size_t_needs(*output_length);
+
+    ser_params = malloc(needed);
+    if (ser_params == NULL) {
+        status = PSA_ERROR_INSUFFICIENT_MEMORY;
+        goto fail;
+    }
+
+    uint8_t *pos = ser_params;
+    size_t remaining = needed;
+    int ok;
+    ok = psasim_serialise_begin(&pos, &remaining);
+    if (!ok) {
+        goto fail;
+    }
+    ok = psasim_serialise_mbedtls_svc_key_id_t(&pos, &remaining, key);
+    if (!ok) {
+        goto fail;
+    }
+    ok = psasim_serialise_psa_algorithm_t(&pos, &remaining, alg);
+    if (!ok) {
+        goto fail;
+    }
+    ok = psasim_serialise_buffer(&pos, &remaining, input, input_length);
+    if (!ok) {
+        goto fail;
+    }
+    ok = psasim_serialise_buffer(&pos, &remaining, salt, salt_length);
+    if (!ok) {
+        goto fail;
+    }
+    ok = psasim_serialise_buffer(&pos, &remaining, output, output_size);
+    if (!ok) {
+        goto fail;
+    }
+    ok = psasim_serialise_size_t(&pos, &remaining, *output_length);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psa_crypto_call(PSA_ASYMMETRIC_ENCRYPT,
+                         ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
+    if (!ok) {
+        printf("PSA_ASYMMETRIC_ENCRYPT server call failed\n");
+        goto fail;
+    }
+
+    uint8_t *rpos = ser_result;
+    size_t rremain = result_length;
+
+    ok = psasim_deserialise_begin(&rpos, &rremain);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_return_buffer(&rpos, &rremain, output, output_size);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_size_t(&rpos, &rremain, output_length);
+    if (!ok) {
+        goto fail;
+    }
+
+fail:
+    free(ser_params);
+    free(ser_result);
+
+    return status;
+}
+
+
 psa_status_t psa_cipher_abort(
     psa_cipher_operation_t *operation
     )

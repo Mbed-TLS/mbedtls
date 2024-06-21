@@ -531,7 +531,7 @@ int ${name}_wrapper(
 {
 EOF
 
-    print $fh <<EOF unless $ret_name eq "(void)";
+    print $fh <<EOF unless $ret_type eq "void";
     $ret_type $ret_name = $ret_default;
 EOF
     # Output the variables we will need when we call the target function
@@ -967,10 +967,11 @@ sub output_call
 {
     my ($fh, $f, $name, $is_server) = @_;
 
+    my $ret_type = $f->{return}->{type};
     my $ret_name = $f->{return}->{name};
     my $args = $f->{args};
 
-    if ($ret_name eq "(void)") {
+    if ($ret_type eq "void") {
         print $fh "\n    $name(\n";
     } else {
         print $fh "\n    $ret_name = $name(\n";

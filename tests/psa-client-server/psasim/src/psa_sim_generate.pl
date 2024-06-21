@@ -3321,3 +3321,880 @@ psa_status_t psa_cipher_finish(psa_cipher_operation_t *operation,
  *         results in this error code.
  */
 psa_status_t psa_cipher_abort(psa_cipher_operation_t *operation);
+
+/** \defgroup key_derivation Key derivation and pseudorandom generation
+ * @{
+ */
+
+/** The type of the state data structure for key derivation operations.
+ *
+ * Before calling any function on a key derivation operation object, the
+ * application must initialize it by any of the following means:
+ * - Set the structure to all-bits-zero, for example:
+ *   \code
+ *   psa_key_derivation_operation_t operation;
+ *   memset(&operation, 0, sizeof(operation));
+ *   \endcode
+ * - Initialize the structure to logical zero values, for example:
+ *   \code
+ *   psa_key_derivation_operation_t operation = {0};
+ *   \endcode
+ * - Initialize the structure to the initializer #PSA_KEY_DERIVATION_OPERATION_INIT,
+ *   for example:
+ *   \code
+ *   psa_key_derivation_operation_t operation = PSA_KEY_DERIVATION_OPERATION_INIT;
+ *   \endcode
+ * - Assign the result of the function psa_key_derivation_operation_init()
+ *   to the structure, for example:
+ *   \code
+ *   psa_key_derivation_operation_t operation;
+ *   operation = psa_key_derivation_operation_init();
+ *   \endcode
+ *
+ * This is an implementation-defined \c struct. Applications should not
+ * make any assumptions about the content of this structure.
+ * Implementation details can change in future versions without notice.
+ */
+typedef struct psa_key_derivation_s psa_key_derivation_operation_t;
+
+/** \def PSA_KEY_DERIVATION_OPERATION_INIT
+ *
+ * This macro returns a suitable initializer for a key derivation operation
+ * object of type #psa_key_derivation_operation_t.
+ */
+
+/** Return an initial value for a key derivation operation object.
+ */
+static psa_key_derivation_operation_t psa_key_derivation_operation_init(void);
+
+/** Set up a key derivation operation.
+ *
+ * A key derivation algorithm takes some inputs and uses them to generate
+ * a byte stream in a deterministic way.
+ * This byte stream can be used to produce keys and other
+ * cryptographic material.
+ *
+ * To derive a key:
+ * -# Start with an initialized object of type #psa_key_derivation_operation_t.
+ * -# Call psa_key_derivation_setup() to select the algorithm.
+ * -# Provide the inputs for the key derivation by calling
+ *    psa_key_derivation_input_bytes() or psa_key_derivation_input_key()
+ *    as appropriate. Which inputs are needed, in what order, and whether
+ *    they may be keys and if so of what type depends on the algorithm.
+ * -# Optionally set the operation's maximum capacity with
+ *    psa_key_derivation_set_capacity(). You may do this before, in the middle
+ *    of or after providing inputs. For some algorithms, this step is mandatory
+ *    because the output depends on the maximum capacity.
+ * -# To derive a key, call psa_key_derivation_output_key() or
+ *    psa_key_derivation_output_key_ext().
+ *    To derive a byte string for a different purpose, call
+ *    psa_key_derivation_output_bytes().
+ *    Successive calls to these functions use successive output bytes
+ *    calculated by the key derivation algorithm.
+ * -# Clean up the key derivation operation object with
+ *    psa_key_derivation_abort().
+ *
+ * If this function returns an error, the key derivation operation object is
+ * not changed.
+ *
+ * If an error occurs at any step after a call to psa_key_derivation_setup(),
+ * the operation will need to be reset by a call to psa_key_derivation_abort().
+ *
+ * Implementations must reject an attempt to derive a key of size 0.
+ *
+ * \param[in,out] operation       The key derivation operation object
+ *                                to set up. It must
+ *                                have been initialized but not set up yet.
+ * \param alg                     The key derivation algorithm to compute
+ *                                (\c PSA_ALG_XXX value such that
+ *                                #PSA_ALG_IS_KEY_DERIVATION(\p alg) is true).
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         \c alg is not a key derivation algorithm.
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ *         \c alg is not supported or is not a key derivation algorithm.
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE \emptydescription
+ * \retval #PSA_ERROR_HARDWARE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
+ * \retval #PSA_ERROR_STORAGE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The operation state is not valid (it must be inactive), or
+ *         the library has not been previously initialized by psa_crypto_init().
+ *         It is implementation-dependent whether a failure to initialize
+ *         results in this error code.
+ */
+psa_status_t psa_key_derivation_setup(
+    psa_key_derivation_operation_t *operation,
+    psa_algorithm_t alg);
+
+/** Retrieve the current capacity of a key derivation operation.
+ *
+ * The capacity of a key derivation is the maximum number of bytes that it can
+ * return. When you get *N* bytes of output from a key derivation operation,
+ * this reduces its capacity by *N*.
+ *
+ * \param[in] operation     The operation to query.
+ * \param[out] capacity     On success, the capacity of the operation.
+ *
+ * \retval #PSA_SUCCESS \emptydescription
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE \emptydescription
+ * \retval #PSA_ERROR_HARDWARE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The operation state is not valid (it must be active), or
+ *         the library has not been previously initialized by psa_crypto_init().
+ *         It is implementation-dependent whether a failure to initialize
+ *         results in this error code.
+ */
+psa_status_t psa_key_derivation_get_capacity(
+    const psa_key_derivation_operation_t *operation,
+    size_t *capacity);
+
+/** Set the maximum capacity of a key derivation operation.
+ *
+ * The capacity of a key derivation operation is the maximum number of bytes
+ * that the key derivation operation can return from this point onwards.
+ *
+ * \param[in,out] operation The key derivation operation object to modify.
+ * \param capacity          The new capacity of the operation.
+ *                          It must be less or equal to the operation's
+ *                          current capacity.
+ *
+ * \retval #PSA_SUCCESS \emptydescription
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         \p capacity is larger than the operation's current capacity.
+ *         In this case, the operation object remains valid and its capacity
+ *         remains unchanged.
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE \emptydescription
+ * \retval #PSA_ERROR_HARDWARE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The operation state is not valid (it must be active), or the
+ *         library has not been previously initialized by psa_crypto_init().
+ *         It is implementation-dependent whether a failure to initialize
+ *         results in this error code.
+ */
+psa_status_t psa_key_derivation_set_capacity(
+    psa_key_derivation_operation_t *operation,
+    size_t capacity);
+
+/** Use the maximum possible capacity for a key derivation operation.
+ *
+ * Use this value as the capacity argument when setting up a key derivation
+ * to indicate that the operation should have the maximum possible capacity.
+ * The value of the maximum possible capacity depends on the key derivation
+ * algorithm.
+ */
+#define PSA_KEY_DERIVATION_UNLIMITED_CAPACITY ((size_t) (-1))
+
+/** Provide an input for key derivation or key agreement.
+ *
+ * Which inputs are required and in what order depends on the algorithm.
+ * Refer to the documentation of each key derivation or key agreement
+ * algorithm for information.
+ *
+ * This function passes direct inputs, which is usually correct for
+ * non-secret inputs. To pass a secret input, which should be in a key
+ * object, call psa_key_derivation_input_key() instead of this function.
+ * Refer to the documentation of individual step types
+ * (`PSA_KEY_DERIVATION_INPUT_xxx` values of type ::psa_key_derivation_step_t)
+ * for more information.
+ *
+ * If this function returns an error status, the operation enters an error
+ * state and must be aborted by calling psa_key_derivation_abort().
+ *
+ * \param[in,out] operation       The key derivation operation object to use.
+ *                                It must have been set up with
+ *                                psa_key_derivation_setup() and must not
+ *                                have produced any output yet.
+ * \param step                    Which step the input data is for.
+ * \param[in] data                Input data to use.
+ * \param data_length             Size of the \p data buffer in bytes.
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         \c step is not compatible with the operation's algorithm, or
+ *         \c step does not allow direct inputs.
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE \emptydescription
+ * \retval #PSA_ERROR_HARDWARE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
+ * \retval #PSA_ERROR_STORAGE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The operation state is not valid for this input \p step, or
+ *         the library has not been previously initialized by psa_crypto_init().
+ *         It is implementation-dependent whether a failure to initialize
+ *         results in this error code.
+ */
+psa_status_t psa_key_derivation_input_bytes(
+    psa_key_derivation_operation_t *operation,
+    psa_key_derivation_step_t step,
+    const uint8_t *data,
+    size_t data_length);
+
+/** Provide a numeric input for key derivation or key agreement.
+ *
+ * Which inputs are required and in what order depends on the algorithm.
+ * However, when an algorithm requires a particular order, numeric inputs
+ * usually come first as they tend to be configuration parameters.
+ * Refer to the documentation of each key derivation or key agreement
+ * algorithm for information.
+ *
+ * This function is used for inputs which are fixed-size non-negative
+ * integers.
+ *
+ * If this function returns an error status, the operation enters an error
+ * state and must be aborted by calling psa_key_derivation_abort().
+ *
+ * \param[in,out] operation       The key derivation operation object to use.
+ *                                It must have been set up with
+ *                                psa_key_derivation_setup() and must not
+ *                                have produced any output yet.
+ * \param step                    Which step the input data is for.
+ * \param[in] value               The value of the numeric input.
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         \c step is not compatible with the operation's algorithm, or
+ *         \c step does not allow numeric inputs.
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE \emptydescription
+ * \retval #PSA_ERROR_HARDWARE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
+ * \retval #PSA_ERROR_STORAGE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The operation state is not valid for this input \p step, or
+ *         the library has not been previously initialized by psa_crypto_init().
+ *         It is implementation-dependent whether a failure to initialize
+ *         results in this error code.
+ */
+psa_status_t psa_key_derivation_input_integer(
+    psa_key_derivation_operation_t *operation,
+    psa_key_derivation_step_t step,
+    uint64_t value);
+
+/** Provide an input for key derivation in the form of a key.
+ *
+ * Which inputs are required and in what order depends on the algorithm.
+ * Refer to the documentation of each key derivation or key agreement
+ * algorithm for information.
+ *
+ * This function obtains input from a key object, which is usually correct for
+ * secret inputs or for non-secret personalization strings kept in the key
+ * store. To pass a non-secret parameter which is not in the key store,
+ * call psa_key_derivation_input_bytes() instead of this function.
+ * Refer to the documentation of individual step types
+ * (`PSA_KEY_DERIVATION_INPUT_xxx` values of type ::psa_key_derivation_step_t)
+ * for more information.
+ *
+ * If this function returns an error status, the operation enters an error
+ * state and must be aborted by calling psa_key_derivation_abort().
+ *
+ * \param[in,out] operation       The key derivation operation object to use.
+ *                                It must have been set up with
+ *                                psa_key_derivation_setup() and must not
+ *                                have produced any output yet.
+ * \param step                    Which step the input data is for.
+ * \param key                     Identifier of the key. It must have an
+ *                                appropriate type for step and must allow the
+ *                                usage #PSA_KEY_USAGE_DERIVE or
+ *                                #PSA_KEY_USAGE_VERIFY_DERIVATION (see note)
+ *                                and the algorithm used by the operation.
+ *
+ * \note Once all inputs steps are completed, the operations will allow:
+ * - psa_key_derivation_output_bytes() if each input was either a direct input
+ *   or  a key with #PSA_KEY_USAGE_DERIVE set;
+ * - psa_key_derivation_output_key() or psa_key_derivation_output_key_ext()
+ *   if the input for step
+ *   #PSA_KEY_DERIVATION_INPUT_SECRET or #PSA_KEY_DERIVATION_INPUT_PASSWORD
+ *   was from a key slot with #PSA_KEY_USAGE_DERIVE and each other input was
+ *   either a direct input or a key with #PSA_KEY_USAGE_DERIVE set;
+ * - psa_key_derivation_verify_bytes() if each input was either a direct input
+ *   or  a key with #PSA_KEY_USAGE_VERIFY_DERIVATION set;
+ * - psa_key_derivation_verify_key() under the same conditions as
+ *   psa_key_derivation_verify_bytes().
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ * \retval #PSA_ERROR_INVALID_HANDLE \emptydescription
+ * \retval #PSA_ERROR_NOT_PERMITTED
+ *         The key allows neither #PSA_KEY_USAGE_DERIVE nor
+ *         #PSA_KEY_USAGE_VERIFY_DERIVATION, or it doesn't allow this
+ *         algorithm.
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         \c step is not compatible with the operation's algorithm, or
+ *         \c step does not allow key inputs of the given type
+ *         or does not allow key inputs at all.
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE \emptydescription
+ * \retval #PSA_ERROR_HARDWARE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
+ * \retval #PSA_ERROR_STORAGE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The operation state is not valid for this input \p step, or
+ *         the library has not been previously initialized by psa_crypto_init().
+ *         It is implementation-dependent whether a failure to initialize
+ *         results in this error code.
+ */
+psa_status_t psa_key_derivation_input_key(
+    psa_key_derivation_operation_t *operation,
+    psa_key_derivation_step_t step,
+    mbedtls_svc_key_id_t key);
+
+/** Perform a key agreement and use the shared secret as input to a key
+ * derivation.
+ *
+ * A key agreement algorithm takes two inputs: a private key \p private_key
+ * a public key \p peer_key.
+ * The result of this function is passed as input to a key derivation.
+ * The output of this key derivation can be extracted by reading from the
+ * resulting operation to produce keys and other cryptographic material.
+ *
+ * If this function returns an error status, the operation enters an error
+ * state and must be aborted by calling psa_key_derivation_abort().
+ *
+ * \param[in,out] operation       The key derivation operation object to use.
+ *                                It must have been set up with
+ *                                psa_key_derivation_setup() with a
+ *                                key agreement and derivation algorithm
+ *                                \c alg (\c PSA_ALG_XXX value such that
+ *                                #PSA_ALG_IS_KEY_AGREEMENT(\c alg) is true
+ *                                and #PSA_ALG_IS_RAW_KEY_AGREEMENT(\c alg)
+ *                                is false).
+ *                                The operation must be ready for an
+ *                                input of the type given by \p step.
+ * \param step                    Which step the input data is for.
+ * \param private_key             Identifier of the private key to use. It must
+ *                                allow the usage #PSA_KEY_USAGE_DERIVE.
+ * \param[in] peer_key      Public key of the peer. The peer key must be in the
+ *                          same format that psa_import_key() accepts for the
+ *                          public key type corresponding to the type of
+ *                          private_key. That is, this function performs the
+ *                          equivalent of
+ *                          #psa_import_key(...,
+ *                          `peer_key`, `peer_key_length`) where
+ *                          with key attributes indicating the public key
+ *                          type corresponding to the type of `private_key`.
+ *                          For example, for EC keys, this means that peer_key
+ *                          is interpreted as a point on the curve that the
+ *                          private key is on. The standard formats for public
+ *                          keys are documented in the documentation of
+ *                          psa_export_public_key().
+ * \param peer_key_length         Size of \p peer_key in bytes.
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ * \retval #PSA_ERROR_INVALID_HANDLE \emptydescription
+ * \retval #PSA_ERROR_NOT_PERMITTED \emptydescription
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         \c private_key is not compatible with \c alg,
+ *         or \p peer_key is not valid for \c alg or not compatible with
+ *         \c private_key, or \c step does not allow an input resulting
+ *         from a key agreement.
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ *         \c alg is not supported or is not a key derivation algorithm.
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE \emptydescription
+ * \retval #PSA_ERROR_HARDWARE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
+ * \retval #PSA_ERROR_STORAGE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The operation state is not valid for this key agreement \p step,
+ *         or the library has not been previously initialized by psa_crypto_init().
+ *         It is implementation-dependent whether a failure to initialize
+ *         results in this error code.
+ */
+psa_status_t psa_key_derivation_key_agreement(
+    psa_key_derivation_operation_t *operation,
+    psa_key_derivation_step_t step,
+    mbedtls_svc_key_id_t private_key,
+    const uint8_t *peer_key,
+    size_t peer_key_length);
+
+/** Read some data from a key derivation operation.
+ *
+ * This function calculates output bytes from a key derivation algorithm and
+ * return those bytes.
+ * If you view the key derivation's output as a stream of bytes, this
+ * function destructively reads the requested number of bytes from the
+ * stream.
+ * The operation's capacity decreases by the number of bytes read.
+ *
+ * If this function returns an error status other than
+ * #PSA_ERROR_INSUFFICIENT_DATA, the operation enters an error
+ * state and must be aborted by calling psa_key_derivation_abort().
+ *
+ * \param[in,out] operation The key derivation operation object to read from.
+ * \param[out] output       Buffer where the output will be written.
+ * \param output_length     Number of bytes to output.
+ *
+ * \retval #PSA_SUCCESS \emptydescription
+ * \retval #PSA_ERROR_NOT_PERMITTED
+ *         One of the inputs was a key whose policy didn't allow
+ *         #PSA_KEY_USAGE_DERIVE.
+ * \retval #PSA_ERROR_INSUFFICIENT_DATA
+ *                          The operation's capacity was less than
+ *                          \p output_length bytes. Note that in this case,
+ *                          no output is written to the output buffer.
+ *                          The operation's capacity is set to 0, thus
+ *                          subsequent calls to this function will not
+ *                          succeed, even with a smaller output buffer.
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE \emptydescription
+ * \retval #PSA_ERROR_HARDWARE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
+ * \retval #PSA_ERROR_STORAGE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The operation state is not valid (it must be active and completed
+ *         all required input steps), or the library has not been previously
+ *         initialized by psa_crypto_init().
+ *         It is implementation-dependent whether a failure to initialize
+ *         results in this error code.
+ */
+psa_status_t psa_key_derivation_output_bytes(
+    psa_key_derivation_operation_t *operation,
+    uint8_t *output,
+    size_t output_length);
+
+/** Derive a key from an ongoing key derivation operation.
+ *
+ * This function calculates output bytes from a key derivation algorithm
+ * and uses those bytes to generate a key deterministically.
+ * The key's location, usage policy, type and size are taken from
+ * \p attributes.
+ *
+ * If you view the key derivation's output as a stream of bytes, this
+ * function destructively reads as many bytes as required from the
+ * stream.
+ * The operation's capacity decreases by the number of bytes read.
+ *
+ * If this function returns an error status other than
+ * #PSA_ERROR_INSUFFICIENT_DATA, the operation enters an error
+ * state and must be aborted by calling psa_key_derivation_abort().
+ *
+ * How much output is produced and consumed from the operation, and how
+ * the key is derived, depends on the key type and on the key size
+ * (denoted \c bits below):
+ *
+ * - For key types for which the key is an arbitrary sequence of bytes
+ *   of a given size, this function is functionally equivalent to
+ *   calling #psa_key_derivation_output_bytes
+ *   and passing the resulting output to #psa_import_key.
+ *   However, this function has a security benefit:
+ *   if the implementation provides an isolation boundary then
+ *   the key material is not exposed outside the isolation boundary.
+ *   As a consequence, for these key types, this function always consumes
+ *   exactly (\c bits / 8) bytes from the operation.
+ *   The following key types defined in this specification follow this scheme:
+ *
+ *     - #PSA_KEY_TYPE_AES;
+ *     - #PSA_KEY_TYPE_ARIA;
+ *     - #PSA_KEY_TYPE_CAMELLIA;
+ *     - #PSA_KEY_TYPE_DERIVE;
+ *     - #PSA_KEY_TYPE_HMAC;
+ *     - #PSA_KEY_TYPE_PASSWORD_HASH.
+ *
+ * - For ECC keys on a Montgomery elliptic curve
+ *   (#PSA_KEY_TYPE_ECC_KEY_PAIR(\c curve) where \c curve designates a
+ *   Montgomery curve), this function always draws a byte string whose
+ *   length is determined by the curve, and sets the mandatory bits
+ *   accordingly. That is:
+ *
+ *     - Curve25519 (#PSA_ECC_FAMILY_MONTGOMERY, 255 bits): draw a 32-byte
+ *       string and process it as specified in RFC 7748 &sect;5.
+ *     - Curve448 (#PSA_ECC_FAMILY_MONTGOMERY, 448 bits): draw a 56-byte
+ *       string and process it as specified in RFC 7748 &sect;5.
+ *
+ * - For key types for which the key is represented by a single sequence of
+ *   \c bits bits with constraints as to which bit sequences are acceptable,
+ *   this function draws a byte string of length (\c bits / 8) bytes rounded
+ *   up to the nearest whole number of bytes. If the resulting byte string
+ *   is acceptable, it becomes the key, otherwise the drawn bytes are discarded.
+ *   This process is repeated until an acceptable byte string is drawn.
+ *   The byte string drawn from the operation is interpreted as specified
+ *   for the output produced by psa_export_key().
+ *   The following key types defined in this specification follow this scheme:
+ *
+ *     - #PSA_KEY_TYPE_DES.
+ *       Force-set the parity bits, but discard forbidden weak keys.
+ *       For 2-key and 3-key triple-DES, the three keys are generated
+ *       successively (for example, for 3-key triple-DES,
+ *       if the first 8 bytes specify a weak key and the next 8 bytes do not,
+ *       discard the first 8 bytes, use the next 8 bytes as the first key,
+ *       and continue reading output from the operation to derive the other
+ *       two keys).
+ *     - Finite-field Diffie-Hellman keys (#PSA_KEY_TYPE_DH_KEY_PAIR(\c group)
+ *       where \c group designates any Diffie-Hellman group) and
+ *       ECC keys on a Weierstrass elliptic curve
+ *       (#PSA_KEY_TYPE_ECC_KEY_PAIR(\c curve) where \c curve designates a
+ *       Weierstrass curve).
+ *       For these key types, interpret the byte string as integer
+ *       in big-endian order. Discard it if it is not in the range
+ *       [0, *N* - 2] where *N* is the boundary of the private key domain
+ *       (the prime *p* for Diffie-Hellman, the subprime *q* for DSA,
+ *       or the order of the curve's base point for ECC).
+ *       Add 1 to the resulting integer and use this as the private key *x*.
+ *       This method allows compliance to NIST standards, specifically
+ *       the methods titled "key-pair generation by testing candidates"
+ *       in NIST SP 800-56A &sect;5.6.1.1.4 for Diffie-Hellman,
+ *       in FIPS 186-4 &sect;B.1.2 for DSA, and
+ *       in NIST SP 800-56A &sect;5.6.1.2.2 or
+ *       FIPS 186-4 &sect;B.4.2 for elliptic curve keys.
+ *
+ * - For other key types, including #PSA_KEY_TYPE_RSA_KEY_PAIR,
+ *   the way in which the operation output is consumed is
+ *   implementation-defined.
+ *
+ * In all cases, the data that is read is discarded from the operation.
+ * The operation's capacity is decreased by the number of bytes read.
+ *
+ * For algorithms that take an input step #PSA_KEY_DERIVATION_INPUT_SECRET,
+ * the input to that step must be provided with psa_key_derivation_input_key().
+ * Future versions of this specification may include additional restrictions
+ * on the derived key based on the attributes and strength of the secret key.
+ *
+ * \note This function is equivalent to calling
+ *       psa_key_derivation_output_key_ext()
+ *       with the production parameters #PSA_KEY_PRODUCTION_PARAMETERS_INIT
+ *       and `params_data_length == 0` (i.e. `params->data` is empty).
+ *
+ * \param[in] attributes    The attributes for the new key.
+ *                          If the key type to be created is
+ *                          #PSA_KEY_TYPE_PASSWORD_HASH then the algorithm in
+ *                          the policy must be the same as in the current
+ *                          operation.
+ * \param[in,out] operation The key derivation operation object to read from.
+ * \param[out] key          On success, an identifier for the newly created
+ *                          key. For persistent keys, this is the key
+ *                          identifier defined in \p attributes.
+ *                          \c 0 on failure.
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ *         If the key is persistent, the key material and the key's metadata
+ *         have been saved to persistent storage.
+ * \retval #PSA_ERROR_ALREADY_EXISTS
+ *         This is an attempt to create a persistent key, and there is
+ *         already a persistent key with the given identifier.
+ * \retval #PSA_ERROR_INSUFFICIENT_DATA
+ *         There was not enough data to create the desired key.
+ *         Note that in this case, no output is written to the output buffer.
+ *         The operation's capacity is set to 0, thus subsequent calls to
+ *         this function will not succeed, even with a smaller output buffer.
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ *         The key type or key size is not supported, either by the
+ *         implementation in general or in this particular location.
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         The provided key attributes are not valid for the operation.
+ * \retval #PSA_ERROR_NOT_PERMITTED
+ *         The #PSA_KEY_DERIVATION_INPUT_SECRET or
+ *         #PSA_KEY_DERIVATION_INPUT_PASSWORD input was not provided through a
+ *         key; or one of the inputs was a key whose policy didn't allow
+ *         #PSA_KEY_USAGE_DERIVE.
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
+ * \retval #PSA_ERROR_INSUFFICIENT_STORAGE \emptydescription
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE \emptydescription
+ * \retval #PSA_ERROR_HARDWARE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
+ * \retval #PSA_ERROR_DATA_INVALID \emptydescription
+ * \retval #PSA_ERROR_DATA_CORRUPT \emptydescription
+ * \retval #PSA_ERROR_STORAGE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The operation state is not valid (it must be active and completed
+ *         all required input steps), or the library has not been previously
+ *         initialized by psa_crypto_init().
+ *         It is implementation-dependent whether a failure to initialize
+ *         results in this error code.
+ */
+psa_status_t psa_key_derivation_output_key(
+    const psa_key_attributes_t *attributes,
+    psa_key_derivation_operation_t *operation,
+    mbedtls_svc_key_id_t *key);
+
+/** Derive a key from an ongoing key derivation operation with custom
+ *  production parameters.
+ *
+ * See the description of psa_key_derivation_out_key() for the operation of
+ * this function with the default production parameters.
+ * Mbed TLS currently does not currently support any non-default production
+ * parameters.
+ *
+ * \note This function is experimental and may change in future minor
+ *       versions of Mbed TLS.
+ *
+ * \param[in] attributes    The attributes for the new key.
+ *                          If the key type to be created is
+ *                          #PSA_KEY_TYPE_PASSWORD_HASH then the algorithm in
+ *                          the policy must be the same as in the current
+ *                          operation.
+ * \param[in,out] operation The key derivation operation object to read from.
+ * \param[in] params        Customization parameters for the key derivation.
+ *                          When this is #PSA_KEY_PRODUCTION_PARAMETERS_INIT
+ *                          with \p params_data_length = 0,
+ *                          this function is equivalent to
+ *                          psa_key_derivation_output_key().
+ *                          Mbed TLS currently only supports the default
+ *                          production parameters, i.e.
+ *                          #PSA_KEY_PRODUCTION_PARAMETERS_INIT,
+ *                          for all key types.
+ * \param params_data_length
+ *                          Length of `params->data` in bytes.
+ * \param[out] key          On success, an identifier for the newly created
+ *                          key. For persistent keys, this is the key
+ *                          identifier defined in \p attributes.
+ *                          \c 0 on failure.
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ *         If the key is persistent, the key material and the key's metadata
+ *         have been saved to persistent storage.
+ * \retval #PSA_ERROR_ALREADY_EXISTS
+ *         This is an attempt to create a persistent key, and there is
+ *         already a persistent key with the given identifier.
+ * \retval #PSA_ERROR_INSUFFICIENT_DATA
+ *         There was not enough data to create the desired key.
+ *         Note that in this case, no output is written to the output buffer.
+ *         The operation's capacity is set to 0, thus subsequent calls to
+ *         this function will not succeed, even with a smaller output buffer.
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ *         The key type or key size is not supported, either by the
+ *         implementation in general or in this particular location.
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         The provided key attributes are not valid for the operation.
+ * \retval #PSA_ERROR_NOT_PERMITTED
+ *         The #PSA_KEY_DERIVATION_INPUT_SECRET or
+ *         #PSA_KEY_DERIVATION_INPUT_PASSWORD input was not provided through a
+ *         key; or one of the inputs was a key whose policy didn't allow
+ *         #PSA_KEY_USAGE_DERIVE.
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
+ * \retval #PSA_ERROR_INSUFFICIENT_STORAGE \emptydescription
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE \emptydescription
+ * \retval #PSA_ERROR_HARDWARE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
+ * \retval #PSA_ERROR_DATA_INVALID \emptydescription
+ * \retval #PSA_ERROR_DATA_CORRUPT \emptydescription
+ * \retval #PSA_ERROR_STORAGE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The operation state is not valid (it must be active and completed
+ *         all required input steps), or the library has not been previously
+ *         initialized by psa_crypto_init().
+ *         It is implementation-dependent whether a failure to initialize
+ *         results in this error code.
+ */
+psa_status_t psa_key_derivation_output_key_ext(
+    const psa_key_attributes_t *attributes,
+    psa_key_derivation_operation_t *operation,
+    const psa_key_production_parameters_t *params,
+    size_t params_data_length,
+    mbedtls_svc_key_id_t *key);
+
+/** Compare output data from a key derivation operation to an expected value.
+ *
+ * This function calculates output bytes from a key derivation algorithm and
+ * compares those bytes to an expected value in constant time.
+ * If you view the key derivation's output as a stream of bytes, this
+ * function destructively reads the expected number of bytes from the
+ * stream before comparing them.
+ * The operation's capacity decreases by the number of bytes read.
+ *
+ * This is functionally equivalent to the following code:
+ * \code
+ * psa_key_derivation_output_bytes(operation, tmp, output_length);
+ * if (memcmp(output, tmp, output_length) != 0)
+ *     return PSA_ERROR_INVALID_SIGNATURE;
+ * \endcode
+ * except (1) it works even if the key's policy does not allow outputting the
+ * bytes, and (2) the comparison will be done in constant time.
+ *
+ * If this function returns an error status other than
+ * #PSA_ERROR_INSUFFICIENT_DATA or #PSA_ERROR_INVALID_SIGNATURE,
+ * the operation enters an error state and must be aborted by calling
+ * psa_key_derivation_abort().
+ *
+ * \param[in,out] operation The key derivation operation object to read from.
+ * \param[in] expected_output Buffer containing the expected derivation output.
+ * \param output_length     Length of the expected output; this is also the
+ *                          number of bytes that will be read.
+ *
+ * \retval #PSA_SUCCESS \emptydescription
+ * \retval #PSA_ERROR_INVALID_SIGNATURE
+ *         The output was read successfully, but it differs from the expected
+ *         output.
+ * \retval #PSA_ERROR_NOT_PERMITTED
+ *         One of the inputs was a key whose policy didn't allow
+ *         #PSA_KEY_USAGE_VERIFY_DERIVATION.
+ * \retval #PSA_ERROR_INSUFFICIENT_DATA
+ *                          The operation's capacity was less than
+ *                          \p output_length bytes. Note that in this case,
+ *                          the operation's capacity is set to 0, thus
+ *                          subsequent calls to this function will not
+ *                          succeed, even with a smaller expected output.
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE \emptydescription
+ * \retval #PSA_ERROR_HARDWARE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
+ * \retval #PSA_ERROR_STORAGE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The operation state is not valid (it must be active and completed
+ *         all required input steps), or the library has not been previously
+ *         initialized by psa_crypto_init().
+ *         It is implementation-dependent whether a failure to initialize
+ *         results in this error code.
+ */
+psa_status_t psa_key_derivation_verify_bytes(
+    psa_key_derivation_operation_t *operation,
+    const uint8_t *expected_output,
+    size_t output_length);
+
+/** Compare output data from a key derivation operation to an expected value
+ * stored in a key object.
+ *
+ * This function calculates output bytes from a key derivation algorithm and
+ * compares those bytes to an expected value, provided as key of type
+ * #PSA_KEY_TYPE_PASSWORD_HASH.
+ * If you view the key derivation's output as a stream of bytes, this
+ * function destructively reads the number of bytes corresponding to the
+ * length of the expected value from the stream before comparing them.
+ * The operation's capacity decreases by the number of bytes read.
+ *
+ * This is functionally equivalent to exporting the key and calling
+ * psa_key_derivation_verify_bytes() on the result, except that it
+ * works even if the key cannot be exported.
+ *
+ * If this function returns an error status other than
+ * #PSA_ERROR_INSUFFICIENT_DATA or #PSA_ERROR_INVALID_SIGNATURE,
+ * the operation enters an error state and must be aborted by calling
+ * psa_key_derivation_abort().
+ *
+ * \param[in,out] operation The key derivation operation object to read from.
+ * \param[in] expected      A key of type #PSA_KEY_TYPE_PASSWORD_HASH
+ *                          containing the expected output. Its policy must
+ *                          include the #PSA_KEY_USAGE_VERIFY_DERIVATION flag
+ *                          and the permitted algorithm must match the
+ *                          operation. The value of this key was likely
+ *                          computed by a previous call to
+ *                          psa_key_derivation_output_key() or
+ *                          psa_key_derivation_output_key_ext().
+ *
+ * \retval #PSA_SUCCESS \emptydescription
+ * \retval #PSA_ERROR_INVALID_SIGNATURE
+ *         The output was read successfully, but if differs from the expected
+ *         output.
+ * \retval #PSA_ERROR_INVALID_HANDLE
+ *         The key passed as the expected value does not exist.
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         The key passed as the expected value has an invalid type.
+ * \retval #PSA_ERROR_NOT_PERMITTED
+ *         The key passed as the expected value does not allow this usage or
+ *         this algorithm; or one of the inputs was a key whose policy didn't
+ *         allow #PSA_KEY_USAGE_VERIFY_DERIVATION.
+ * \retval #PSA_ERROR_INSUFFICIENT_DATA
+ *                          The operation's capacity was less than
+ *                          the length of the expected value. In this case,
+ *                          the operation's capacity is set to 0, thus
+ *                          subsequent calls to this function will not
+ *                          succeed, even with a smaller expected output.
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE \emptydescription
+ * \retval #PSA_ERROR_HARDWARE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
+ * \retval #PSA_ERROR_STORAGE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The operation state is not valid (it must be active and completed
+ *         all required input steps), or the library has not been previously
+ *         initialized by psa_crypto_init().
+ *         It is implementation-dependent whether a failure to initialize
+ *         results in this error code.
+ */
+psa_status_t psa_key_derivation_verify_key(
+    psa_key_derivation_operation_t *operation,
+    psa_key_id_t expected);
+
+/** Abort a key derivation operation.
+ *
+ * Aborting an operation frees all associated resources except for the \c
+ * operation structure itself. Once aborted, the operation object can be reused
+ * for another operation by calling psa_key_derivation_setup() again.
+ *
+ * This function may be called at any time after the operation
+ * object has been initialized as described in #psa_key_derivation_operation_t.
+ *
+ * In particular, it is valid to call psa_key_derivation_abort() twice, or to
+ * call psa_key_derivation_abort() on an operation that has not been set up.
+ *
+ * \param[in,out] operation    The operation to abort.
+ *
+ * \retval #PSA_SUCCESS \emptydescription
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE \emptydescription
+ * \retval #PSA_ERROR_HARDWARE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The library has not been previously initialized by psa_crypto_init().
+ *         It is implementation-dependent whether a failure to initialize
+ *         results in this error code.
+ */
+psa_status_t psa_key_derivation_abort(
+    psa_key_derivation_operation_t *operation);
+
+/** Perform a key agreement and return the raw shared secret.
+ *
+ * \warning The raw result of a key agreement algorithm such as finite-field
+ * Diffie-Hellman or elliptic curve Diffie-Hellman has biases and should
+ * not be used directly as key material. It should instead be passed as
+ * input to a key derivation algorithm. To chain a key agreement with
+ * a key derivation, use psa_key_derivation_key_agreement() and other
+ * functions from the key derivation interface.
+ *
+ * \param alg                     The key agreement algorithm to compute
+ *                                (\c PSA_ALG_XXX value such that
+ *                                #PSA_ALG_IS_RAW_KEY_AGREEMENT(\p alg)
+ *                                is true).
+ * \param private_key             Identifier of the private key to use. It must
+ *                                allow the usage #PSA_KEY_USAGE_DERIVE.
+ * \param[in] peer_key            Public key of the peer. It must be
+ *                                in the same format that psa_import_key()
+ *                                accepts. The standard formats for public
+ *                                keys are documented in the documentation
+ *                                of psa_export_public_key().
+ * \param peer_key_length         Size of \p peer_key in bytes.
+ * \param[out] output             Buffer where the decrypted message is to
+ *                                be written.
+ * \param output_size             Size of the \c output buffer in bytes.
+ * \param[out] output_length      On success, the number of bytes
+ *                                that make up the returned output.
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ * \retval #PSA_ERROR_INVALID_HANDLE \emptydescription
+ * \retval #PSA_ERROR_NOT_PERMITTED \emptydescription
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         \p alg is not a key agreement algorithm, or
+ *         \p private_key is not compatible with \p alg,
+ *         or \p peer_key is not valid for \p alg or not compatible with
+ *         \p private_key.
+ * \retval #PSA_ERROR_BUFFER_TOO_SMALL
+ *         \p output_size is too small
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ *         \p alg is not a supported key agreement algorithm.
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE \emptydescription
+ * \retval #PSA_ERROR_HARDWARE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
+ * \retval #PSA_ERROR_STORAGE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The library has not been previously initialized by psa_crypto_init().
+ *         It is implementation-dependent whether a failure to initialize
+ *         results in this error code.
+ */
+psa_status_t psa_raw_key_agreement(psa_algorithm_t alg,
+                                   mbedtls_svc_key_id_t private_key,
+                                   const uint8_t *peer_key,
+                                   size_t peer_key_length,
+                                   uint8_t *output,
+                                   size_t output_size,
+                                   size_t *output_length);

@@ -36,13 +36,16 @@ die($usage) unless $which eq "c" || $which eq "h";
 # are).
 #
 my @types = qw(unsigned-int int size_t
+               uint16_t uint64_t
                buffer
-               psa_status_t psa_algorithm_t
+               psa_key_production_parameters_t
+               psa_status_t psa_algorithm_t psa_key_derivation_step_t
                psa_hash_operation_t
                psa_aead_operation_t
                psa_key_attributes_t
                psa_mac_operation_t
                psa_cipher_operation_t
+               psa_key_derivation_operation_t
                mbedtls_svc_key_id_t);
 
 grep(s/-/ /g, @types);
@@ -51,6 +54,7 @@ grep(s/-/ /g, @types);
 my %isa = (
     "psa_status_t" => "int",
     "psa_algorithm_t" => "unsigned int",
+    "psa_key_derivation_step_t" => "uint16_t",
 );
 
 if ($which eq "h") {

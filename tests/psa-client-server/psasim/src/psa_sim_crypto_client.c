@@ -2705,6 +2705,822 @@ fail:
 }
 
 
+psa_status_t psa_key_derivation_abort(
+    psa_key_derivation_operation_t *operation
+    )
+{
+    uint8_t *ser_params = NULL;
+    uint8_t *ser_result = NULL;
+    size_t result_length;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
+    size_t needed = psasim_serialise_begin_needs() +
+                    psasim_serialise_psa_key_derivation_operation_t_needs(*operation);
+
+    ser_params = malloc(needed);
+    if (ser_params == NULL) {
+        status = PSA_ERROR_INSUFFICIENT_MEMORY;
+        goto fail;
+    }
+
+    uint8_t *pos = ser_params;
+    size_t remaining = needed;
+    int ok;
+    ok = psasim_serialise_begin(&pos, &remaining);
+    if (!ok) {
+        goto fail;
+    }
+    ok = psasim_serialise_psa_key_derivation_operation_t(&pos, &remaining, *operation);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psa_crypto_call(PSA_KEY_DERIVATION_ABORT,
+                         ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
+    if (!ok) {
+        printf("PSA_KEY_DERIVATION_ABORT server call failed\n");
+        goto fail;
+    }
+
+    uint8_t *rpos = ser_result;
+    size_t rremain = result_length;
+
+    ok = psasim_deserialise_begin(&rpos, &rremain);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_psa_key_derivation_operation_t(&rpos, &rremain, operation);
+    if (!ok) {
+        goto fail;
+    }
+
+fail:
+    free(ser_params);
+    free(ser_result);
+
+    return status;
+}
+
+
+psa_status_t psa_key_derivation_get_capacity(
+    const psa_key_derivation_operation_t *operation,
+    size_t *capacity
+    )
+{
+    uint8_t *ser_params = NULL;
+    uint8_t *ser_result = NULL;
+    size_t result_length;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
+    size_t needed = psasim_serialise_begin_needs() +
+                    psasim_serialise_psa_key_derivation_operation_t_needs(*operation) +
+                    psasim_serialise_size_t_needs(*capacity);
+
+    ser_params = malloc(needed);
+    if (ser_params == NULL) {
+        status = PSA_ERROR_INSUFFICIENT_MEMORY;
+        goto fail;
+    }
+
+    uint8_t *pos = ser_params;
+    size_t remaining = needed;
+    int ok;
+    ok = psasim_serialise_begin(&pos, &remaining);
+    if (!ok) {
+        goto fail;
+    }
+    ok = psasim_serialise_psa_key_derivation_operation_t(&pos, &remaining, *operation);
+    if (!ok) {
+        goto fail;
+    }
+    ok = psasim_serialise_size_t(&pos, &remaining, *capacity);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psa_crypto_call(PSA_KEY_DERIVATION_GET_CAPACITY,
+                         ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
+    if (!ok) {
+        printf("PSA_KEY_DERIVATION_GET_CAPACITY server call failed\n");
+        goto fail;
+    }
+
+    uint8_t *rpos = ser_result;
+    size_t rremain = result_length;
+
+    ok = psasim_deserialise_begin(&rpos, &rremain);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_size_t(&rpos, &rremain, capacity);
+    if (!ok) {
+        goto fail;
+    }
+
+fail:
+    free(ser_params);
+    free(ser_result);
+
+    return status;
+}
+
+
+psa_status_t psa_key_derivation_input_bytes(
+    psa_key_derivation_operation_t *operation,
+    psa_key_derivation_step_t step,
+    const uint8_t *data, size_t  data_length
+    )
+{
+    uint8_t *ser_params = NULL;
+    uint8_t *ser_result = NULL;
+    size_t result_length;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
+    size_t needed = psasim_serialise_begin_needs() +
+                    psasim_serialise_psa_key_derivation_operation_t_needs(*operation) +
+                    psasim_serialise_psa_key_derivation_step_t_needs(step) +
+                    psasim_serialise_buffer_needs(data, data_length);
+
+    ser_params = malloc(needed);
+    if (ser_params == NULL) {
+        status = PSA_ERROR_INSUFFICIENT_MEMORY;
+        goto fail;
+    }
+
+    uint8_t *pos = ser_params;
+    size_t remaining = needed;
+    int ok;
+    ok = psasim_serialise_begin(&pos, &remaining);
+    if (!ok) {
+        goto fail;
+    }
+    ok = psasim_serialise_psa_key_derivation_operation_t(&pos, &remaining, *operation);
+    if (!ok) {
+        goto fail;
+    }
+    ok = psasim_serialise_psa_key_derivation_step_t(&pos, &remaining, step);
+    if (!ok) {
+        goto fail;
+    }
+    ok = psasim_serialise_buffer(&pos, &remaining, data, data_length);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psa_crypto_call(PSA_KEY_DERIVATION_INPUT_BYTES,
+                         ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
+    if (!ok) {
+        printf("PSA_KEY_DERIVATION_INPUT_BYTES server call failed\n");
+        goto fail;
+    }
+
+    uint8_t *rpos = ser_result;
+    size_t rremain = result_length;
+
+    ok = psasim_deserialise_begin(&rpos, &rremain);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_psa_key_derivation_operation_t(&rpos, &rremain, operation);
+    if (!ok) {
+        goto fail;
+    }
+
+fail:
+    free(ser_params);
+    free(ser_result);
+
+    return status;
+}
+
+
+psa_status_t psa_key_derivation_input_integer(
+    psa_key_derivation_operation_t *operation,
+    psa_key_derivation_step_t step,
+    uint64_t value
+    )
+{
+    uint8_t *ser_params = NULL;
+    uint8_t *ser_result = NULL;
+    size_t result_length;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
+    size_t needed = psasim_serialise_begin_needs() +
+                    psasim_serialise_psa_key_derivation_operation_t_needs(*operation) +
+                    psasim_serialise_psa_key_derivation_step_t_needs(step) +
+                    psasim_serialise_uint64_t_needs(value);
+
+    ser_params = malloc(needed);
+    if (ser_params == NULL) {
+        status = PSA_ERROR_INSUFFICIENT_MEMORY;
+        goto fail;
+    }
+
+    uint8_t *pos = ser_params;
+    size_t remaining = needed;
+    int ok;
+    ok = psasim_serialise_begin(&pos, &remaining);
+    if (!ok) {
+        goto fail;
+    }
+    ok = psasim_serialise_psa_key_derivation_operation_t(&pos, &remaining, *operation);
+    if (!ok) {
+        goto fail;
+    }
+    ok = psasim_serialise_psa_key_derivation_step_t(&pos, &remaining, step);
+    if (!ok) {
+        goto fail;
+    }
+    ok = psasim_serialise_uint64_t(&pos, &remaining, value);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psa_crypto_call(PSA_KEY_DERIVATION_INPUT_INTEGER,
+                         ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
+    if (!ok) {
+        printf("PSA_KEY_DERIVATION_INPUT_INTEGER server call failed\n");
+        goto fail;
+    }
+
+    uint8_t *rpos = ser_result;
+    size_t rremain = result_length;
+
+    ok = psasim_deserialise_begin(&rpos, &rremain);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_psa_key_derivation_operation_t(&rpos, &rremain, operation);
+    if (!ok) {
+        goto fail;
+    }
+
+fail:
+    free(ser_params);
+    free(ser_result);
+
+    return status;
+}
+
+
+psa_status_t psa_key_derivation_input_key(
+    psa_key_derivation_operation_t *operation,
+    psa_key_derivation_step_t step,
+    mbedtls_svc_key_id_t key
+    )
+{
+    uint8_t *ser_params = NULL;
+    uint8_t *ser_result = NULL;
+    size_t result_length;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
+    size_t needed = psasim_serialise_begin_needs() +
+                    psasim_serialise_psa_key_derivation_operation_t_needs(*operation) +
+                    psasim_serialise_psa_key_derivation_step_t_needs(step) +
+                    psasim_serialise_mbedtls_svc_key_id_t_needs(key);
+
+    ser_params = malloc(needed);
+    if (ser_params == NULL) {
+        status = PSA_ERROR_INSUFFICIENT_MEMORY;
+        goto fail;
+    }
+
+    uint8_t *pos = ser_params;
+    size_t remaining = needed;
+    int ok;
+    ok = psasim_serialise_begin(&pos, &remaining);
+    if (!ok) {
+        goto fail;
+    }
+    ok = psasim_serialise_psa_key_derivation_operation_t(&pos, &remaining, *operation);
+    if (!ok) {
+        goto fail;
+    }
+    ok = psasim_serialise_psa_key_derivation_step_t(&pos, &remaining, step);
+    if (!ok) {
+        goto fail;
+    }
+    ok = psasim_serialise_mbedtls_svc_key_id_t(&pos, &remaining, key);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psa_crypto_call(PSA_KEY_DERIVATION_INPUT_KEY,
+                         ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
+    if (!ok) {
+        printf("PSA_KEY_DERIVATION_INPUT_KEY server call failed\n");
+        goto fail;
+    }
+
+    uint8_t *rpos = ser_result;
+    size_t rremain = result_length;
+
+    ok = psasim_deserialise_begin(&rpos, &rremain);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_psa_key_derivation_operation_t(&rpos, &rremain, operation);
+    if (!ok) {
+        goto fail;
+    }
+
+fail:
+    free(ser_params);
+    free(ser_result);
+
+    return status;
+}
+
+
+psa_status_t psa_key_derivation_key_agreement(
+    psa_key_derivation_operation_t *operation,
+    psa_key_derivation_step_t step,
+    mbedtls_svc_key_id_t private_key,
+    const uint8_t *peer_key, size_t  peer_key_length
+    )
+{
+    uint8_t *ser_params = NULL;
+    uint8_t *ser_result = NULL;
+    size_t result_length;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
+    size_t needed = psasim_serialise_begin_needs() +
+                    psasim_serialise_psa_key_derivation_operation_t_needs(*operation) +
+                    psasim_serialise_psa_key_derivation_step_t_needs(step) +
+                    psasim_serialise_mbedtls_svc_key_id_t_needs(private_key) +
+                    psasim_serialise_buffer_needs(peer_key, peer_key_length);
+
+    ser_params = malloc(needed);
+    if (ser_params == NULL) {
+        status = PSA_ERROR_INSUFFICIENT_MEMORY;
+        goto fail;
+    }
+
+    uint8_t *pos = ser_params;
+    size_t remaining = needed;
+    int ok;
+    ok = psasim_serialise_begin(&pos, &remaining);
+    if (!ok) {
+        goto fail;
+    }
+    ok = psasim_serialise_psa_key_derivation_operation_t(&pos, &remaining, *operation);
+    if (!ok) {
+        goto fail;
+    }
+    ok = psasim_serialise_psa_key_derivation_step_t(&pos, &remaining, step);
+    if (!ok) {
+        goto fail;
+    }
+    ok = psasim_serialise_mbedtls_svc_key_id_t(&pos, &remaining, private_key);
+    if (!ok) {
+        goto fail;
+    }
+    ok = psasim_serialise_buffer(&pos, &remaining, peer_key, peer_key_length);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psa_crypto_call(PSA_KEY_DERIVATION_KEY_AGREEMENT,
+                         ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
+    if (!ok) {
+        printf("PSA_KEY_DERIVATION_KEY_AGREEMENT server call failed\n");
+        goto fail;
+    }
+
+    uint8_t *rpos = ser_result;
+    size_t rremain = result_length;
+
+    ok = psasim_deserialise_begin(&rpos, &rremain);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_psa_key_derivation_operation_t(&rpos, &rremain, operation);
+    if (!ok) {
+        goto fail;
+    }
+
+fail:
+    free(ser_params);
+    free(ser_result);
+
+    return status;
+}
+
+
+psa_status_t psa_key_derivation_output_bytes(
+    psa_key_derivation_operation_t *operation,
+    uint8_t *output, size_t  output_length
+    )
+{
+    uint8_t *ser_params = NULL;
+    uint8_t *ser_result = NULL;
+    size_t result_length;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
+    size_t needed = psasim_serialise_begin_needs() +
+                    psasim_serialise_psa_key_derivation_operation_t_needs(*operation) +
+                    psasim_serialise_buffer_needs(output, output_length);
+
+    ser_params = malloc(needed);
+    if (ser_params == NULL) {
+        status = PSA_ERROR_INSUFFICIENT_MEMORY;
+        goto fail;
+    }
+
+    uint8_t *pos = ser_params;
+    size_t remaining = needed;
+    int ok;
+    ok = psasim_serialise_begin(&pos, &remaining);
+    if (!ok) {
+        goto fail;
+    }
+    ok = psasim_serialise_psa_key_derivation_operation_t(&pos, &remaining, *operation);
+    if (!ok) {
+        goto fail;
+    }
+    ok = psasim_serialise_buffer(&pos, &remaining, output, output_length);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psa_crypto_call(PSA_KEY_DERIVATION_OUTPUT_BYTES,
+                         ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
+    if (!ok) {
+        printf("PSA_KEY_DERIVATION_OUTPUT_BYTES server call failed\n");
+        goto fail;
+    }
+
+    uint8_t *rpos = ser_result;
+    size_t rremain = result_length;
+
+    ok = psasim_deserialise_begin(&rpos, &rremain);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_psa_key_derivation_operation_t(&rpos, &rremain, operation);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_return_buffer(&rpos, &rremain, output, output_length);
+    if (!ok) {
+        goto fail;
+    }
+
+fail:
+    free(ser_params);
+    free(ser_result);
+
+    return status;
+}
+
+
+psa_status_t psa_key_derivation_output_key(
+    const psa_key_attributes_t *attributes,
+    psa_key_derivation_operation_t *operation,
+    mbedtls_svc_key_id_t *key
+    )
+{
+    uint8_t *ser_params = NULL;
+    uint8_t *ser_result = NULL;
+    size_t result_length;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
+    size_t needed = psasim_serialise_begin_needs() +
+                    psasim_serialise_psa_key_attributes_t_needs(*attributes) +
+                    psasim_serialise_psa_key_derivation_operation_t_needs(*operation) +
+                    psasim_serialise_mbedtls_svc_key_id_t_needs(*key);
+
+    ser_params = malloc(needed);
+    if (ser_params == NULL) {
+        status = PSA_ERROR_INSUFFICIENT_MEMORY;
+        goto fail;
+    }
+
+    uint8_t *pos = ser_params;
+    size_t remaining = needed;
+    int ok;
+    ok = psasim_serialise_begin(&pos, &remaining);
+    if (!ok) {
+        goto fail;
+    }
+    ok = psasim_serialise_psa_key_attributes_t(&pos, &remaining, *attributes);
+    if (!ok) {
+        goto fail;
+    }
+    ok = psasim_serialise_psa_key_derivation_operation_t(&pos, &remaining, *operation);
+    if (!ok) {
+        goto fail;
+    }
+    ok = psasim_serialise_mbedtls_svc_key_id_t(&pos, &remaining, *key);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psa_crypto_call(PSA_KEY_DERIVATION_OUTPUT_KEY,
+                         ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
+    if (!ok) {
+        printf("PSA_KEY_DERIVATION_OUTPUT_KEY server call failed\n");
+        goto fail;
+    }
+
+    uint8_t *rpos = ser_result;
+    size_t rremain = result_length;
+
+    ok = psasim_deserialise_begin(&rpos, &rremain);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_psa_key_derivation_operation_t(&rpos, &rremain, operation);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_mbedtls_svc_key_id_t(&rpos, &rremain, key);
+    if (!ok) {
+        goto fail;
+    }
+
+fail:
+    free(ser_params);
+    free(ser_result);
+
+    return status;
+}
+
+
+psa_status_t psa_key_derivation_output_key_ext(
+    const psa_key_attributes_t *attributes,
+    psa_key_derivation_operation_t *operation,
+    const psa_key_production_parameters_t *params, size_t  params_data_length,
+    mbedtls_svc_key_id_t *key
+    )
+{
+    uint8_t *ser_params = NULL;
+    uint8_t *ser_result = NULL;
+    size_t result_length;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
+    size_t needed = psasim_serialise_begin_needs() +
+                    psasim_serialise_psa_key_attributes_t_needs(*attributes) +
+                    psasim_serialise_psa_key_derivation_operation_t_needs(*operation) +
+                    psasim_serialise_psa_key_production_parameters_t_needs(params, params_data_length) +
+                    psasim_serialise_mbedtls_svc_key_id_t_needs(*key);
+
+    ser_params = malloc(needed);
+    if (ser_params == NULL) {
+        status = PSA_ERROR_INSUFFICIENT_MEMORY;
+        goto fail;
+    }
+
+    uint8_t *pos = ser_params;
+    size_t remaining = needed;
+    int ok;
+    ok = psasim_serialise_begin(&pos, &remaining);
+    if (!ok) {
+        goto fail;
+    }
+    ok = psasim_serialise_psa_key_attributes_t(&pos, &remaining, *attributes);
+    if (!ok) {
+        goto fail;
+    }
+    ok = psasim_serialise_psa_key_derivation_operation_t(&pos, &remaining, *operation);
+    if (!ok) {
+        goto fail;
+    }
+    ok = psasim_serialise_psa_key_production_parameters_t(&pos, &remaining, params, params_data_length);
+    if (!ok) {
+        goto fail;
+    }
+    ok = psasim_serialise_mbedtls_svc_key_id_t(&pos, &remaining, *key);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psa_crypto_call(PSA_KEY_DERIVATION_OUTPUT_KEY_EXT,
+                         ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
+    if (!ok) {
+        printf("PSA_KEY_DERIVATION_OUTPUT_KEY_EXT server call failed\n");
+        goto fail;
+    }
+
+    uint8_t *rpos = ser_result;
+    size_t rremain = result_length;
+
+    ok = psasim_deserialise_begin(&rpos, &rremain);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_psa_key_derivation_operation_t(&rpos, &rremain, operation);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_mbedtls_svc_key_id_t(&rpos, &rremain, key);
+    if (!ok) {
+        goto fail;
+    }
+
+fail:
+    free(ser_params);
+    free(ser_result);
+
+    return status;
+}
+
+
+psa_status_t psa_key_derivation_set_capacity(
+    psa_key_derivation_operation_t *operation,
+    size_t capacity
+    )
+{
+    uint8_t *ser_params = NULL;
+    uint8_t *ser_result = NULL;
+    size_t result_length;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
+    size_t needed = psasim_serialise_begin_needs() +
+                    psasim_serialise_psa_key_derivation_operation_t_needs(*operation) +
+                    psasim_serialise_size_t_needs(capacity);
+
+    ser_params = malloc(needed);
+    if (ser_params == NULL) {
+        status = PSA_ERROR_INSUFFICIENT_MEMORY;
+        goto fail;
+    }
+
+    uint8_t *pos = ser_params;
+    size_t remaining = needed;
+    int ok;
+    ok = psasim_serialise_begin(&pos, &remaining);
+    if (!ok) {
+        goto fail;
+    }
+    ok = psasim_serialise_psa_key_derivation_operation_t(&pos, &remaining, *operation);
+    if (!ok) {
+        goto fail;
+    }
+    ok = psasim_serialise_size_t(&pos, &remaining, capacity);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psa_crypto_call(PSA_KEY_DERIVATION_SET_CAPACITY,
+                         ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
+    if (!ok) {
+        printf("PSA_KEY_DERIVATION_SET_CAPACITY server call failed\n");
+        goto fail;
+    }
+
+    uint8_t *rpos = ser_result;
+    size_t rremain = result_length;
+
+    ok = psasim_deserialise_begin(&rpos, &rremain);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_psa_key_derivation_operation_t(&rpos, &rremain, operation);
+    if (!ok) {
+        goto fail;
+    }
+
+fail:
+    free(ser_params);
+    free(ser_result);
+
+    return status;
+}
+
+
+psa_status_t psa_key_derivation_setup(
+    psa_key_derivation_operation_t *operation,
+    psa_algorithm_t alg
+    )
+{
+    uint8_t *ser_params = NULL;
+    uint8_t *ser_result = NULL;
+    size_t result_length;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
+    size_t needed = psasim_serialise_begin_needs() +
+                    psasim_serialise_psa_key_derivation_operation_t_needs(*operation) +
+                    psasim_serialise_psa_algorithm_t_needs(alg);
+
+    ser_params = malloc(needed);
+    if (ser_params == NULL) {
+        status = PSA_ERROR_INSUFFICIENT_MEMORY;
+        goto fail;
+    }
+
+    uint8_t *pos = ser_params;
+    size_t remaining = needed;
+    int ok;
+    ok = psasim_serialise_begin(&pos, &remaining);
+    if (!ok) {
+        goto fail;
+    }
+    ok = psasim_serialise_psa_key_derivation_operation_t(&pos, &remaining, *operation);
+    if (!ok) {
+        goto fail;
+    }
+    ok = psasim_serialise_psa_algorithm_t(&pos, &remaining, alg);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psa_crypto_call(PSA_KEY_DERIVATION_SETUP,
+                         ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
+    if (!ok) {
+        printf("PSA_KEY_DERIVATION_SETUP server call failed\n");
+        goto fail;
+    }
+
+    uint8_t *rpos = ser_result;
+    size_t rremain = result_length;
+
+    ok = psasim_deserialise_begin(&rpos, &rremain);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_psa_key_derivation_operation_t(&rpos, &rremain, operation);
+    if (!ok) {
+        goto fail;
+    }
+
+fail:
+    free(ser_params);
+    free(ser_result);
+
+    return status;
+}
+
+
 psa_status_t psa_mac_abort(
     psa_mac_operation_t *operation
     )
@@ -3297,6 +4113,98 @@ psa_status_t psa_mac_verify_setup(
     }
 
     ok = psasim_deserialise_psa_mac_operation_t(&rpos, &rremain, operation);
+    if (!ok) {
+        goto fail;
+    }
+
+fail:
+    free(ser_params);
+    free(ser_result);
+
+    return status;
+}
+
+
+psa_status_t psa_raw_key_agreement(
+    psa_algorithm_t alg,
+    mbedtls_svc_key_id_t private_key,
+    const uint8_t *peer_key, size_t  peer_key_length,
+    uint8_t *output, size_t  output_size,
+    size_t *output_length
+    )
+{
+    uint8_t *ser_params = NULL;
+    uint8_t *ser_result = NULL;
+    size_t result_length;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
+    size_t needed = psasim_serialise_begin_needs() +
+                    psasim_serialise_psa_algorithm_t_needs(alg) +
+                    psasim_serialise_mbedtls_svc_key_id_t_needs(private_key) +
+                    psasim_serialise_buffer_needs(peer_key, peer_key_length) +
+                    psasim_serialise_buffer_needs(output, output_size) +
+                    psasim_serialise_size_t_needs(*output_length);
+
+    ser_params = malloc(needed);
+    if (ser_params == NULL) {
+        status = PSA_ERROR_INSUFFICIENT_MEMORY;
+        goto fail;
+    }
+
+    uint8_t *pos = ser_params;
+    size_t remaining = needed;
+    int ok;
+    ok = psasim_serialise_begin(&pos, &remaining);
+    if (!ok) {
+        goto fail;
+    }
+    ok = psasim_serialise_psa_algorithm_t(&pos, &remaining, alg);
+    if (!ok) {
+        goto fail;
+    }
+    ok = psasim_serialise_mbedtls_svc_key_id_t(&pos, &remaining, private_key);
+    if (!ok) {
+        goto fail;
+    }
+    ok = psasim_serialise_buffer(&pos, &remaining, peer_key, peer_key_length);
+    if (!ok) {
+        goto fail;
+    }
+    ok = psasim_serialise_buffer(&pos, &remaining, output, output_size);
+    if (!ok) {
+        goto fail;
+    }
+    ok = psasim_serialise_size_t(&pos, &remaining, *output_length);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psa_crypto_call(PSA_RAW_KEY_AGREEMENT,
+                         ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
+    if (!ok) {
+        printf("PSA_RAW_KEY_AGREEMENT server call failed\n");
+        goto fail;
+    }
+
+    uint8_t *rpos = ser_result;
+    size_t rremain = result_length;
+
+    ok = psasim_deserialise_begin(&rpos, &rremain);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_return_buffer(&rpos, &rremain, output, output_size);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_size_t(&rpos, &rremain, output_length);
     if (!ok) {
         goto fail;
     }

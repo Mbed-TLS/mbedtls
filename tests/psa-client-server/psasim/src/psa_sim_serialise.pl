@@ -42,6 +42,7 @@ my @types = qw(unsigned-int int size_t
                psa_aead_operation_t
                psa_key_attributes_t
                psa_mac_operation_t
+               psa_cipher_operation_t
                mbedtls_svc_key_id_t);
 
 grep(s/-/ /g, @types);

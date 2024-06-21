@@ -177,6 +177,44 @@ static ssize_t find_mac_slot_by_handle(psasim_client_handle_t handle)
     return -1;  /* not found */
 }
 
+static psa_cipher_operation_t cipher_operations[MAX_LIVE_HANDLES_PER_CLASS];
+static psasim_client_handle_t cipher_operation_handles[MAX_LIVE_HANDLES_PER_CLASS];
+static psasim_client_handle_t next_cipher_operation_handle = 1;
+
+/* Get a free slot */
+static ssize_t allocate_cipher_operation_slot(void)
+{
+    psasim_client_handle_t handle = next_cipher_operation_handle++;
+    if (next_cipher_operation_handle == 0) {      /* wrapped around */
+        FATAL("Cipher operation handle wrapped");
+    }
+
+    for (ssize_t i = 0; i < MAX_LIVE_HANDLES_PER_CLASS; i++) {
+        if (cipher_operation_handles[i] == 0) {
+            cipher_operation_handles[i] = handle;
+            return i;
+        }
+    }
+
+    ERROR("All slots are currently used. Unable to allocate a new one.");
+
+    return -1;  /* all in use */
+}
+
+/* Find the slot given the handle */
+static ssize_t find_cipher_slot_by_handle(psasim_client_handle_t handle)
+{
+    for (ssize_t i = 0; i < MAX_LIVE_HANDLES_PER_CLASS; i++) {
+        if (cipher_operation_handles[i] == handle) {
+            return i;
+        }
+    }
+
+    ERROR("Unable to find slot by handle %u", handle);
+
+    return -1;  /* not found */
+}
+
 size_t psasim_serialise_begin_needs(void)
 {
     /* The serialisation buffer will
@@ -810,6 +848,99 @@ int psasim_server_deserialise_psa_mac_operation_t(uint8_t **pos,
     return 1;
 }
 
+size_t psasim_serialise_psa_cipher_operation_t_needs(psa_cipher_operation_t value)
+{
+    return sizeof(value);
+}
+
+int psasim_serialise_psa_cipher_operation_t(uint8_t **pos,
+                                            size_t *remaining,
+                                            psa_cipher_operation_t value)
+{
+    if (*remaining < sizeof(value)) {
+        return 0;
+    }
+
+    memcpy(*pos, &value, sizeof(value));
+    *pos += sizeof(value);
+
+    return 1;
+}
+
+int psasim_deserialise_psa_cipher_operation_t(uint8_t **pos,
+                                              size_t *remaining,
+                                              psa_cipher_operation_t *value)
+{
+    if (*remaining < sizeof(*value)) {
+        return 0;
+    }
+
+    memcpy(value, *pos, sizeof(*value));
+
+    *pos += sizeof(*value);
+    *remaining -= sizeof(*value);
+
+    return 1;
+}
+
+size_t psasim_server_serialise_psa_cipher_operation_t_needs(psa_cipher_operation_t *operation)
+{
+    (void) operation;
+
+    /* We will actually return a handle */
+    return sizeof(psasim_operation_t);
+}
+
+int psasim_server_serialise_psa_cipher_operation_t(uint8_t **pos,
+                                                   size_t *remaining,
+                                                   psa_cipher_operation_t *operation)
+{
+    psasim_operation_t client_operation;
+
+    if (*remaining < sizeof(client_operation)) {
+        return 0;
+    }
+
+    ssize_t slot = operation - cipher_operations;
+
+    client_operation.handle = cipher_operation_handles[slot];
+
+    memcpy(*pos, &client_operation, sizeof(client_operation));
+    *pos += sizeof(client_operation);
+
+    return 1;
+}
+
+int psasim_server_deserialise_psa_cipher_operation_t(uint8_t **pos,
+                                                     size_t *remaining,
+                                                     psa_cipher_operation_t **operation)
+{
+    psasim_operation_t client_operation;
+
+    if (*remaining < sizeof(psasim_operation_t)) {
+        return 0;
+    }
+
+    memcpy(&client_operation, *pos, sizeof(psasim_operation_t));
+    *pos += sizeof(psasim_operation_t);
+    *remaining -= sizeof(psasim_operation_t);
+
+    ssize_t slot;
+    if (client_operation.handle == 0) {         /* We need a new handle */
+        slot = allocate_cipher_operation_slot();
+    } else {
+        slot = find_cipher_slot_by_handle(client_operation.handle);
+    }
+
+    if (slot < 0) {
+        return 0;
+    }
+
+    *operation = &cipher_operations[slot];
+
+    return 1;
+}
+
 size_t psasim_serialise_mbedtls_svc_key_id_t_needs(mbedtls_svc_key_id_t value)
 {
     return sizeof(value);
@@ -853,4 +984,6 @@ void psa_sim_serialize_reset(void)
     memset(aead_operations, 0, sizeof(aead_operations));
     memset(mac_operation_handles, 0, sizeof(mac_operation_handles));
     memset(mac_operations, 0, sizeof(mac_operations));
+    memset(cipher_operation_handles, 0, sizeof(cipher_operation_handles));
+    memset(cipher_operations, 0, sizeof(cipher_operations));
 }

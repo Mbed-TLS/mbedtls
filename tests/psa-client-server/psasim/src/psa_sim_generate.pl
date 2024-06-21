@@ -2802,3 +2802,463 @@ psa_status_t psa_mac_verify_finish(psa_mac_operation_t *operation,
  *         results in this error code.
  */
 psa_status_t psa_mac_abort(psa_mac_operation_t *operation);
+
+/** Encrypt a message using a symmetric cipher.
+ *
+ * This function encrypts a message with a random IV (initialization
+ * vector). Use the multipart operation interface with a
+ * #psa_cipher_operation_t object to provide other forms of IV.
+ *
+ * \param key                   Identifier of the key to use for the operation.
+ *                              It must allow the usage #PSA_KEY_USAGE_ENCRYPT.
+ * \param alg                   The cipher algorithm to compute
+ *                              (\c PSA_ALG_XXX value such that
+ *                              #PSA_ALG_IS_CIPHER(\p alg) is true).
+ * \param[in] input             Buffer containing the message to encrypt.
+ * \param input_length          Size of the \p input buffer in bytes.
+ * \param[out] output           Buffer where the output is to be written.
+ *                              The output contains the IV followed by
+ *                              the ciphertext proper.
+ * \param output_size           Size of the \p output buffer in bytes.
+ * \param[out] output_length    On success, the number of bytes
+ *                              that make up the output.
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ * \retval #PSA_ERROR_INVALID_HANDLE \emptydescription
+ * \retval #PSA_ERROR_NOT_PERMITTED \emptydescription
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         \p key is not compatible with \p alg.
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ *         \p alg is not supported or is not a cipher algorithm.
+ * \retval #PSA_ERROR_BUFFER_TOO_SMALL \emptydescription
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE \emptydescription
+ * \retval #PSA_ERROR_HARDWARE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
+ * \retval #PSA_ERROR_STORAGE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The library has not been previously initialized by psa_crypto_init().
+ *         It is implementation-dependent whether a failure to initialize
+ *         results in this error code.
+ */
+psa_status_t psa_cipher_encrypt(mbedtls_svc_key_id_t key,
+                                psa_algorithm_t alg,
+                                const uint8_t *input,
+                                size_t input_length,
+                                uint8_t *output,
+                                size_t output_size,
+                                size_t *output_length);
+
+/** Decrypt a message using a symmetric cipher.
+ *
+ * This function decrypts a message encrypted with a symmetric cipher.
+ *
+ * \param key                   Identifier of the key to use for the operation.
+ *                              It must remain valid until the operation
+ *                              terminates. It must allow the usage
+ *                              #PSA_KEY_USAGE_DECRYPT.
+ * \param alg                   The cipher algorithm to compute
+ *                              (\c PSA_ALG_XXX value such that
+ *                              #PSA_ALG_IS_CIPHER(\p alg) is true).
+ * \param[in] input             Buffer containing the message to decrypt.
+ *                              This consists of the IV followed by the
+ *                              ciphertext proper.
+ * \param input_length          Size of the \p input buffer in bytes.
+ * \param[out] output           Buffer where the plaintext is to be written.
+ * \param output_size           Size of the \p output buffer in bytes.
+ * \param[out] output_length    On success, the number of bytes
+ *                              that make up the output.
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ * \retval #PSA_ERROR_INVALID_HANDLE \emptydescription
+ * \retval #PSA_ERROR_NOT_PERMITTED \emptydescription
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         \p key is not compatible with \p alg.
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ *         \p alg is not supported or is not a cipher algorithm.
+ * \retval #PSA_ERROR_BUFFER_TOO_SMALL \emptydescription
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE \emptydescription
+ * \retval #PSA_ERROR_HARDWARE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_STORAGE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The library has not been previously initialized by psa_crypto_init().
+ *         It is implementation-dependent whether a failure to initialize
+ *         results in this error code.
+ */
+psa_status_t psa_cipher_decrypt(mbedtls_svc_key_id_t key,
+                                psa_algorithm_t alg,
+                                const uint8_t *input,
+                                size_t input_length,
+                                uint8_t *output,
+                                size_t output_size,
+                                size_t *output_length);
+
+/** The type of the state data structure for multipart cipher operations.
+ *
+ * Before calling any function on a cipher operation object, the application
+ * must initialize it by any of the following means:
+ * - Set the structure to all-bits-zero, for example:
+ *   \code
+ *   psa_cipher_operation_t operation;
+ *   memset(&operation, 0, sizeof(operation));
+ *   \endcode
+ * - Initialize the structure to logical zero values, for example:
+ *   \code
+ *   psa_cipher_operation_t operation = {0};
+ *   \endcode
+ * - Initialize the structure to the initializer #PSA_CIPHER_OPERATION_INIT,
+ *   for example:
+ *   \code
+ *   psa_cipher_operation_t operation = PSA_CIPHER_OPERATION_INIT;
+ *   \endcode
+ * - Assign the result of the function psa_cipher_operation_init()
+ *   to the structure, for example:
+ *   \code
+ *   psa_cipher_operation_t operation;
+ *   operation = psa_cipher_operation_init();
+ *   \endcode
+ *
+ * This is an implementation-defined \c struct. Applications should not
+ * make any assumptions about the content of this structure.
+ * Implementation details can change in future versions without notice. */
+typedef struct psa_cipher_operation_s psa_cipher_operation_t;
+
+/** \def PSA_CIPHER_OPERATION_INIT
+ *
+ * This macro returns a suitable initializer for a cipher operation object of
+ * type #psa_cipher_operation_t.
+ */
+
+/** Return an initial value for a cipher operation object.
+ */
+static psa_cipher_operation_t psa_cipher_operation_init(void);
+
+/** Set the key for a multipart symmetric encryption operation.
+ *
+ * The sequence of operations to encrypt a message with a symmetric cipher
+ * is as follows:
+ * -# Allocate an operation object which will be passed to all the functions
+ *    listed here.
+ * -# Initialize the operation object with one of the methods described in the
+ *    documentation for #psa_cipher_operation_t, e.g.
+ *    #PSA_CIPHER_OPERATION_INIT.
+ * -# Call psa_cipher_encrypt_setup() to specify the algorithm and key.
+ * -# Call either psa_cipher_generate_iv() or psa_cipher_set_iv() to
+ *    generate or set the IV (initialization vector). You should use
+ *    psa_cipher_generate_iv() unless the protocol you are implementing
+ *    requires a specific IV value.
+ * -# Call psa_cipher_update() zero, one or more times, passing a fragment
+ *    of the message each time.
+ * -# Call psa_cipher_finish().
+ *
+ * If an error occurs at any step after a call to psa_cipher_encrypt_setup(),
+ * the operation will need to be reset by a call to psa_cipher_abort(). The
+ * application may call psa_cipher_abort() at any time after the operation
+ * has been initialized.
+ *
+ * After a successful call to psa_cipher_encrypt_setup(), the application must
+ * eventually terminate the operation. The following events terminate an
+ * operation:
+ * - A successful call to psa_cipher_finish().
+ * - A call to psa_cipher_abort().
+ *
+ * \param[in,out] operation     The operation object to set up. It must have
+ *                              been initialized as per the documentation for
+ *                              #psa_cipher_operation_t and not yet in use.
+ * \param key                   Identifier of the key to use for the operation.
+ *                              It must remain valid until the operation
+ *                              terminates. It must allow the usage
+ *                              #PSA_KEY_USAGE_ENCRYPT.
+ * \param alg                   The cipher algorithm to compute
+ *                              (\c PSA_ALG_XXX value such that
+ *                              #PSA_ALG_IS_CIPHER(\p alg) is true).
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ * \retval #PSA_ERROR_INVALID_HANDLE \emptydescription
+ * \retval #PSA_ERROR_NOT_PERMITTED \emptydescription
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         \p key is not compatible with \p alg.
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ *         \p alg is not supported or is not a cipher algorithm.
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE \emptydescription
+ * \retval #PSA_ERROR_HARDWARE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
+ * \retval #PSA_ERROR_STORAGE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The operation state is not valid (it must be inactive), or
+ *         the library has not been previously initialized by psa_crypto_init().
+ *         It is implementation-dependent whether a failure to initialize
+ *         results in this error code.
+ */
+psa_status_t psa_cipher_encrypt_setup(psa_cipher_operation_t *operation,
+                                      mbedtls_svc_key_id_t key,
+                                      psa_algorithm_t alg);
+
+/** Set the key for a multipart symmetric decryption operation.
+ *
+ * The sequence of operations to decrypt a message with a symmetric cipher
+ * is as follows:
+ * -# Allocate an operation object which will be passed to all the functions
+ *    listed here.
+ * -# Initialize the operation object with one of the methods described in the
+ *    documentation for #psa_cipher_operation_t, e.g.
+ *    #PSA_CIPHER_OPERATION_INIT.
+ * -# Call psa_cipher_decrypt_setup() to specify the algorithm and key.
+ * -# Call psa_cipher_set_iv() with the IV (initialization vector) for the
+ *    decryption. If the IV is prepended to the ciphertext, you can call
+ *    psa_cipher_update() on a buffer containing the IV followed by the
+ *    beginning of the message.
+ * -# Call psa_cipher_update() zero, one or more times, passing a fragment
+ *    of the message each time.
+ * -# Call psa_cipher_finish().
+ *
+ * If an error occurs at any step after a call to psa_cipher_decrypt_setup(),
+ * the operation will need to be reset by a call to psa_cipher_abort(). The
+ * application may call psa_cipher_abort() at any time after the operation
+ * has been initialized.
+ *
+ * After a successful call to psa_cipher_decrypt_setup(), the application must
+ * eventually terminate the operation. The following events terminate an
+ * operation:
+ * - A successful call to psa_cipher_finish().
+ * - A call to psa_cipher_abort().
+ *
+ * \param[in,out] operation     The operation object to set up. It must have
+ *                              been initialized as per the documentation for
+ *                              #psa_cipher_operation_t and not yet in use.
+ * \param key                   Identifier of the key to use for the operation.
+ *                              It must remain valid until the operation
+ *                              terminates. It must allow the usage
+ *                              #PSA_KEY_USAGE_DECRYPT.
+ * \param alg                   The cipher algorithm to compute
+ *                              (\c PSA_ALG_XXX value such that
+ *                              #PSA_ALG_IS_CIPHER(\p alg) is true).
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ * \retval #PSA_ERROR_INVALID_HANDLE \emptydescription
+ * \retval #PSA_ERROR_NOT_PERMITTED \emptydescription
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         \p key is not compatible with \p alg.
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ *         \p alg is not supported or is not a cipher algorithm.
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE \emptydescription
+ * \retval #PSA_ERROR_HARDWARE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
+ * \retval #PSA_ERROR_STORAGE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The operation state is not valid (it must be inactive), or
+ *         the library has not been previously initialized by psa_crypto_init().
+ *         It is implementation-dependent whether a failure to initialize
+ *         results in this error code.
+ */
+psa_status_t psa_cipher_decrypt_setup(psa_cipher_operation_t *operation,
+                                      mbedtls_svc_key_id_t key,
+                                      psa_algorithm_t alg);
+
+/** Generate an IV for a symmetric encryption operation.
+ *
+ * This function generates a random IV (initialization vector), nonce
+ * or initial counter value for the encryption operation as appropriate
+ * for the chosen algorithm, key type and key size.
+ *
+ * The application must call psa_cipher_encrypt_setup() before
+ * calling this function.
+ *
+ * If this function returns an error status, the operation enters an error
+ * state and must be aborted by calling psa_cipher_abort().
+ *
+ * \param[in,out] operation     Active cipher operation.
+ * \param[out] iv               Buffer where the generated IV is to be written.
+ * \param iv_size               Size of the \p iv buffer in bytes.
+ * \param[out] iv_length        On success, the number of bytes of the
+ *                              generated IV.
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ * \retval #PSA_ERROR_BUFFER_TOO_SMALL
+ *         The size of the \p iv buffer is too small.
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE \emptydescription
+ * \retval #PSA_ERROR_HARDWARE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
+ * \retval #PSA_ERROR_STORAGE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The operation state is not valid (it must be active, with no IV set),
+ *         or the library has not been previously initialized
+ *         by psa_crypto_init().
+ *         It is implementation-dependent whether a failure to initialize
+ *         results in this error code.
+ */
+psa_status_t psa_cipher_generate_iv(psa_cipher_operation_t *operation,
+                                    uint8_t *iv,
+                                    size_t iv_size,
+                                    size_t *iv_length);
+
+/** Set the IV for a symmetric encryption or decryption operation.
+ *
+ * This function sets the IV (initialization vector), nonce
+ * or initial counter value for the encryption or decryption operation.
+ *
+ * The application must call psa_cipher_encrypt_setup() before
+ * calling this function.
+ *
+ * If this function returns an error status, the operation enters an error
+ * state and must be aborted by calling psa_cipher_abort().
+ *
+ * \note When encrypting, applications should use psa_cipher_generate_iv()
+ * instead of this function, unless implementing a protocol that requires
+ * a non-random IV.
+ *
+ * \param[in,out] operation     Active cipher operation.
+ * \param[in] iv                Buffer containing the IV to use.
+ * \param iv_length             Size of the IV in bytes.
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         The size of \p iv is not acceptable for the chosen algorithm,
+ *         or the chosen algorithm does not use an IV.
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE \emptydescription
+ * \retval #PSA_ERROR_HARDWARE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
+ * \retval #PSA_ERROR_STORAGE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The operation state is not valid (it must be an active cipher
+ *         encrypt operation, with no IV set), or the library has not been
+ *         previously initialized by psa_crypto_init().
+ *         It is implementation-dependent whether a failure to initialize
+ *         results in this error code.
+ */
+psa_status_t psa_cipher_set_iv(psa_cipher_operation_t *operation,
+                               const uint8_t *iv,
+                               size_t iv_length);
+
+/** Encrypt or decrypt a message fragment in an active cipher operation.
+ *
+ * Before calling this function, you must:
+ * 1. Call either psa_cipher_encrypt_setup() or psa_cipher_decrypt_setup().
+ *    The choice of setup function determines whether this function
+ *    encrypts or decrypts its input.
+ * 2. If the algorithm requires an IV, call psa_cipher_generate_iv()
+ *    (recommended when encrypting) or psa_cipher_set_iv().
+ *
+ * If this function returns an error status, the operation enters an error
+ * state and must be aborted by calling psa_cipher_abort().
+ *
+ * \param[in,out] operation     Active cipher operation.
+ * \param[in] input             Buffer containing the message fragment to
+ *                              encrypt or decrypt.
+ * \param input_length          Size of the \p input buffer in bytes.
+ * \param[out] output           Buffer where the output is to be written.
+ * \param output_size           Size of the \p output buffer in bytes.
+ * \param[out] output_length    On success, the number of bytes
+ *                              that make up the returned output.
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ * \retval #PSA_ERROR_BUFFER_TOO_SMALL
+ *         The size of the \p output buffer is too small.
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE \emptydescription
+ * \retval #PSA_ERROR_HARDWARE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
+ * \retval #PSA_ERROR_STORAGE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The operation state is not valid (it must be active, with an IV set
+ *         if required for the algorithm), or the library has not been
+ *         previously initialized by psa_crypto_init().
+ *         It is implementation-dependent whether a failure to initialize
+ *         results in this error code.
+ */
+psa_status_t psa_cipher_update(psa_cipher_operation_t *operation,
+                               const uint8_t *input,
+                               size_t input_length,
+                               uint8_t *output,
+                               size_t output_size,
+                               size_t *output_length);
+
+/** Finish encrypting or decrypting a message in a cipher operation.
+ *
+ * The application must call psa_cipher_encrypt_setup() or
+ * psa_cipher_decrypt_setup() before calling this function. The choice
+ * of setup function determines whether this function encrypts or
+ * decrypts its input.
+ *
+ * This function finishes the encryption or decryption of the message
+ * formed by concatenating the inputs passed to preceding calls to
+ * psa_cipher_update().
+ *
+ * When this function returns successfully, the operation becomes inactive.
+ * If this function returns an error status, the operation enters an error
+ * state and must be aborted by calling psa_cipher_abort().
+ *
+ * \param[in,out] operation     Active cipher operation.
+ * \param[out] output           Buffer where the output is to be written.
+ * \param output_size           Size of the \p output buffer in bytes.
+ * \param[out] output_length    On success, the number of bytes
+ *                              that make up the returned output.
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         The total input size passed to this operation is not valid for
+ *         this particular algorithm. For example, the algorithm is a based
+ *         on block cipher and requires a whole number of blocks, but the
+ *         total input size is not a multiple of the block size.
+ * \retval #PSA_ERROR_INVALID_PADDING
+ *         This is a decryption operation for an algorithm that includes
+ *         padding, and the ciphertext does not contain valid padding.
+ * \retval #PSA_ERROR_BUFFER_TOO_SMALL
+ *         The size of the \p output buffer is too small.
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE \emptydescription
+ * \retval #PSA_ERROR_HARDWARE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
+ * \retval #PSA_ERROR_STORAGE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The operation state is not valid (it must be active, with an IV set
+ *         if required for the algorithm), or the library has not been
+ *         previously initialized by psa_crypto_init().
+ *         It is implementation-dependent whether a failure to initialize
+ *         results in this error code.
+ */
+psa_status_t psa_cipher_finish(psa_cipher_operation_t *operation,
+                               uint8_t *output,
+                               size_t output_size,
+                               size_t *output_length);
+
+/** Abort a cipher operation.
+ *
+ * Aborting an operation frees all associated resources except for the
+ * \p operation structure itself. Once aborted, the operation object
+ * can be reused for another operation by calling
+ * psa_cipher_encrypt_setup() or psa_cipher_decrypt_setup() again.
+ *
+ * You may call this function any time after the operation object has
+ * been initialized as described in #psa_cipher_operation_t.
+ *
+ * In particular, calling psa_cipher_abort() after the operation has been
+ * terminated by a call to psa_cipher_abort() or psa_cipher_finish()
+ * is safe and has no effect.
+ *
+ * \param[in,out] operation     Initialized cipher operation.
+ *
+ * \retval #PSA_SUCCESS \emptydescription
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE \emptydescription
+ * \retval #PSA_ERROR_HARDWARE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The library has not been previously initialized by psa_crypto_init().
+ *         It is implementation-dependent whether a failure to initialize
+ *         results in this error code.
+ */
+psa_status_t psa_cipher_abort(psa_cipher_operation_t *operation);

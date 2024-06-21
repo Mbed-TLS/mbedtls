@@ -1262,6 +1262,854 @@ fail:
 }
 
 // Returns 1 for success, 0 for failure
+int psa_cipher_abort_wrapper(
+    uint8_t *in_params, size_t in_params_len,
+    uint8_t **out_params, size_t *out_params_len)
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_cipher_operation_t *operation;
+
+    uint8_t *pos = in_params;
+    size_t remaining = in_params_len;
+    uint8_t *result = NULL;
+    int ok;
+
+    ok = psasim_deserialise_begin(&pos, &remaining);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_server_deserialise_psa_cipher_operation_t(&pos, &remaining, &operation);
+    if (!ok) {
+        goto fail;
+    }
+
+    // Now we call the actual target function
+
+    status = psa_cipher_abort(
+        operation
+        );
+
+    // NOTE: Should really check there is no overflow as we go along.
+    size_t result_size =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_psa_status_t_needs(status) +
+        psasim_server_serialise_psa_cipher_operation_t_needs(operation);
+
+    result = malloc(result_size);
+    if (result == NULL) {
+        goto fail;
+    }
+
+    uint8_t *rpos = result;
+    size_t rremain = result_size;
+
+    ok = psasim_serialise_begin(&rpos, &rremain);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_serialise_psa_status_t(&rpos, &rremain, status);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_server_serialise_psa_cipher_operation_t(&rpos, &rremain, operation);
+    if (!ok) {
+        goto fail;
+    }
+
+    *out_params = result;
+    *out_params_len = result_size;
+
+    return 1;   // success
+
+fail:
+    free(result);
+
+    return 0;       // This shouldn't happen!
+}
+
+// Returns 1 for success, 0 for failure
+int psa_cipher_decrypt_wrapper(
+    uint8_t *in_params, size_t in_params_len,
+    uint8_t **out_params, size_t *out_params_len)
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    mbedtls_svc_key_id_t key;
+    psa_algorithm_t alg;
+    uint8_t *input = NULL;
+    size_t input_length;
+    uint8_t *output = NULL;
+    size_t output_size;
+    size_t output_length;
+
+    uint8_t *pos = in_params;
+    size_t remaining = in_params_len;
+    uint8_t *result = NULL;
+    int ok;
+
+    ok = psasim_deserialise_begin(&pos, &remaining);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_mbedtls_svc_key_id_t(&pos, &remaining, &key);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_psa_algorithm_t(&pos, &remaining, &alg);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_buffer(&pos, &remaining, &input, &input_length);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_buffer(&pos, &remaining, &output, &output_size);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_size_t(&pos, &remaining, &output_length);
+    if (!ok) {
+        goto fail;
+    }
+
+    // Now we call the actual target function
+
+    status = psa_cipher_decrypt(
+        key,
+        alg,
+        input, input_length,
+        output, output_size,
+        &output_length
+        );
+
+    // NOTE: Should really check there is no overflow as we go along.
+    size_t result_size =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_psa_status_t_needs(status) +
+        psasim_serialise_buffer_needs(output, output_size) +
+        psasim_serialise_size_t_needs(output_length);
+
+    result = malloc(result_size);
+    if (result == NULL) {
+        goto fail;
+    }
+
+    uint8_t *rpos = result;
+    size_t rremain = result_size;
+
+    ok = psasim_serialise_begin(&rpos, &rremain);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_serialise_psa_status_t(&rpos, &rremain, status);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_serialise_buffer(&rpos, &rremain, output, output_size);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_serialise_size_t(&rpos, &rremain, output_length);
+    if (!ok) {
+        goto fail;
+    }
+
+    *out_params = result;
+    *out_params_len = result_size;
+
+    free(input);
+    free(output);
+
+    return 1;   // success
+
+fail:
+    free(result);
+
+    free(input);
+    free(output);
+
+    return 0;       // This shouldn't happen!
+}
+
+// Returns 1 for success, 0 for failure
+int psa_cipher_decrypt_setup_wrapper(
+    uint8_t *in_params, size_t in_params_len,
+    uint8_t **out_params, size_t *out_params_len)
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_cipher_operation_t *operation;
+    mbedtls_svc_key_id_t key;
+    psa_algorithm_t alg;
+
+    uint8_t *pos = in_params;
+    size_t remaining = in_params_len;
+    uint8_t *result = NULL;
+    int ok;
+
+    ok = psasim_deserialise_begin(&pos, &remaining);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_server_deserialise_psa_cipher_operation_t(&pos, &remaining, &operation);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_mbedtls_svc_key_id_t(&pos, &remaining, &key);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_psa_algorithm_t(&pos, &remaining, &alg);
+    if (!ok) {
+        goto fail;
+    }
+
+    // Now we call the actual target function
+
+    status = psa_cipher_decrypt_setup(
+        operation,
+        key,
+        alg
+        );
+
+    // NOTE: Should really check there is no overflow as we go along.
+    size_t result_size =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_psa_status_t_needs(status) +
+        psasim_server_serialise_psa_cipher_operation_t_needs(operation);
+
+    result = malloc(result_size);
+    if (result == NULL) {
+        goto fail;
+    }
+
+    uint8_t *rpos = result;
+    size_t rremain = result_size;
+
+    ok = psasim_serialise_begin(&rpos, &rremain);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_serialise_psa_status_t(&rpos, &rremain, status);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_server_serialise_psa_cipher_operation_t(&rpos, &rremain, operation);
+    if (!ok) {
+        goto fail;
+    }
+
+    *out_params = result;
+    *out_params_len = result_size;
+
+    return 1;   // success
+
+fail:
+    free(result);
+
+    return 0;       // This shouldn't happen!
+}
+
+// Returns 1 for success, 0 for failure
+int psa_cipher_encrypt_wrapper(
+    uint8_t *in_params, size_t in_params_len,
+    uint8_t **out_params, size_t *out_params_len)
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    mbedtls_svc_key_id_t key;
+    psa_algorithm_t alg;
+    uint8_t *input = NULL;
+    size_t input_length;
+    uint8_t *output = NULL;
+    size_t output_size;
+    size_t output_length;
+
+    uint8_t *pos = in_params;
+    size_t remaining = in_params_len;
+    uint8_t *result = NULL;
+    int ok;
+
+    ok = psasim_deserialise_begin(&pos, &remaining);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_mbedtls_svc_key_id_t(&pos, &remaining, &key);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_psa_algorithm_t(&pos, &remaining, &alg);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_buffer(&pos, &remaining, &input, &input_length);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_buffer(&pos, &remaining, &output, &output_size);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_size_t(&pos, &remaining, &output_length);
+    if (!ok) {
+        goto fail;
+    }
+
+    // Now we call the actual target function
+
+    status = psa_cipher_encrypt(
+        key,
+        alg,
+        input, input_length,
+        output, output_size,
+        &output_length
+        );
+
+    // NOTE: Should really check there is no overflow as we go along.
+    size_t result_size =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_psa_status_t_needs(status) +
+        psasim_serialise_buffer_needs(output, output_size) +
+        psasim_serialise_size_t_needs(output_length);
+
+    result = malloc(result_size);
+    if (result == NULL) {
+        goto fail;
+    }
+
+    uint8_t *rpos = result;
+    size_t rremain = result_size;
+
+    ok = psasim_serialise_begin(&rpos, &rremain);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_serialise_psa_status_t(&rpos, &rremain, status);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_serialise_buffer(&rpos, &rremain, output, output_size);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_serialise_size_t(&rpos, &rremain, output_length);
+    if (!ok) {
+        goto fail;
+    }
+
+    *out_params = result;
+    *out_params_len = result_size;
+
+    free(input);
+    free(output);
+
+    return 1;   // success
+
+fail:
+    free(result);
+
+    free(input);
+    free(output);
+
+    return 0;       // This shouldn't happen!
+}
+
+// Returns 1 for success, 0 for failure
+int psa_cipher_encrypt_setup_wrapper(
+    uint8_t *in_params, size_t in_params_len,
+    uint8_t **out_params, size_t *out_params_len)
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_cipher_operation_t *operation;
+    mbedtls_svc_key_id_t key;
+    psa_algorithm_t alg;
+
+    uint8_t *pos = in_params;
+    size_t remaining = in_params_len;
+    uint8_t *result = NULL;
+    int ok;
+
+    ok = psasim_deserialise_begin(&pos, &remaining);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_server_deserialise_psa_cipher_operation_t(&pos, &remaining, &operation);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_mbedtls_svc_key_id_t(&pos, &remaining, &key);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_psa_algorithm_t(&pos, &remaining, &alg);
+    if (!ok) {
+        goto fail;
+    }
+
+    // Now we call the actual target function
+
+    status = psa_cipher_encrypt_setup(
+        operation,
+        key,
+        alg
+        );
+
+    // NOTE: Should really check there is no overflow as we go along.
+    size_t result_size =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_psa_status_t_needs(status) +
+        psasim_server_serialise_psa_cipher_operation_t_needs(operation);
+
+    result = malloc(result_size);
+    if (result == NULL) {
+        goto fail;
+    }
+
+    uint8_t *rpos = result;
+    size_t rremain = result_size;
+
+    ok = psasim_serialise_begin(&rpos, &rremain);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_serialise_psa_status_t(&rpos, &rremain, status);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_server_serialise_psa_cipher_operation_t(&rpos, &rremain, operation);
+    if (!ok) {
+        goto fail;
+    }
+
+    *out_params = result;
+    *out_params_len = result_size;
+
+    return 1;   // success
+
+fail:
+    free(result);
+
+    return 0;       // This shouldn't happen!
+}
+
+// Returns 1 for success, 0 for failure
+int psa_cipher_finish_wrapper(
+    uint8_t *in_params, size_t in_params_len,
+    uint8_t **out_params, size_t *out_params_len)
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_cipher_operation_t *operation;
+    uint8_t *output = NULL;
+    size_t output_size;
+    size_t output_length;
+
+    uint8_t *pos = in_params;
+    size_t remaining = in_params_len;
+    uint8_t *result = NULL;
+    int ok;
+
+    ok = psasim_deserialise_begin(&pos, &remaining);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_server_deserialise_psa_cipher_operation_t(&pos, &remaining, &operation);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_buffer(&pos, &remaining, &output, &output_size);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_size_t(&pos, &remaining, &output_length);
+    if (!ok) {
+        goto fail;
+    }
+
+    // Now we call the actual target function
+
+    status = psa_cipher_finish(
+        operation,
+        output, output_size,
+        &output_length
+        );
+
+    // NOTE: Should really check there is no overflow as we go along.
+    size_t result_size =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_psa_status_t_needs(status) +
+        psasim_server_serialise_psa_cipher_operation_t_needs(operation) +
+        psasim_serialise_buffer_needs(output, output_size) +
+        psasim_serialise_size_t_needs(output_length);
+
+    result = malloc(result_size);
+    if (result == NULL) {
+        goto fail;
+    }
+
+    uint8_t *rpos = result;
+    size_t rremain = result_size;
+
+    ok = psasim_serialise_begin(&rpos, &rremain);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_serialise_psa_status_t(&rpos, &rremain, status);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_server_serialise_psa_cipher_operation_t(&rpos, &rremain, operation);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_serialise_buffer(&rpos, &rremain, output, output_size);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_serialise_size_t(&rpos, &rremain, output_length);
+    if (!ok) {
+        goto fail;
+    }
+
+    *out_params = result;
+    *out_params_len = result_size;
+
+    free(output);
+
+    return 1;   // success
+
+fail:
+    free(result);
+
+    free(output);
+
+    return 0;       // This shouldn't happen!
+}
+
+// Returns 1 for success, 0 for failure
+int psa_cipher_generate_iv_wrapper(
+    uint8_t *in_params, size_t in_params_len,
+    uint8_t **out_params, size_t *out_params_len)
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_cipher_operation_t *operation;
+    uint8_t *iv = NULL;
+    size_t iv_size;
+    size_t iv_length;
+
+    uint8_t *pos = in_params;
+    size_t remaining = in_params_len;
+    uint8_t *result = NULL;
+    int ok;
+
+    ok = psasim_deserialise_begin(&pos, &remaining);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_server_deserialise_psa_cipher_operation_t(&pos, &remaining, &operation);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_buffer(&pos, &remaining, &iv, &iv_size);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_size_t(&pos, &remaining, &iv_length);
+    if (!ok) {
+        goto fail;
+    }
+
+    // Now we call the actual target function
+
+    status = psa_cipher_generate_iv(
+        operation,
+        iv, iv_size,
+        &iv_length
+        );
+
+    // NOTE: Should really check there is no overflow as we go along.
+    size_t result_size =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_psa_status_t_needs(status) +
+        psasim_server_serialise_psa_cipher_operation_t_needs(operation) +
+        psasim_serialise_buffer_needs(iv, iv_size) +
+        psasim_serialise_size_t_needs(iv_length);
+
+    result = malloc(result_size);
+    if (result == NULL) {
+        goto fail;
+    }
+
+    uint8_t *rpos = result;
+    size_t rremain = result_size;
+
+    ok = psasim_serialise_begin(&rpos, &rremain);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_serialise_psa_status_t(&rpos, &rremain, status);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_server_serialise_psa_cipher_operation_t(&rpos, &rremain, operation);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_serialise_buffer(&rpos, &rremain, iv, iv_size);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_serialise_size_t(&rpos, &rremain, iv_length);
+    if (!ok) {
+        goto fail;
+    }
+
+    *out_params = result;
+    *out_params_len = result_size;
+
+    free(iv);
+
+    return 1;   // success
+
+fail:
+    free(result);
+
+    free(iv);
+
+    return 0;       // This shouldn't happen!
+}
+
+// Returns 1 for success, 0 for failure
+int psa_cipher_set_iv_wrapper(
+    uint8_t *in_params, size_t in_params_len,
+    uint8_t **out_params, size_t *out_params_len)
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_cipher_operation_t *operation;
+    uint8_t *iv = NULL;
+    size_t iv_length;
+
+    uint8_t *pos = in_params;
+    size_t remaining = in_params_len;
+    uint8_t *result = NULL;
+    int ok;
+
+    ok = psasim_deserialise_begin(&pos, &remaining);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_server_deserialise_psa_cipher_operation_t(&pos, &remaining, &operation);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_buffer(&pos, &remaining, &iv, &iv_length);
+    if (!ok) {
+        goto fail;
+    }
+
+    // Now we call the actual target function
+
+    status = psa_cipher_set_iv(
+        operation,
+        iv, iv_length
+        );
+
+    // NOTE: Should really check there is no overflow as we go along.
+    size_t result_size =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_psa_status_t_needs(status) +
+        psasim_server_serialise_psa_cipher_operation_t_needs(operation);
+
+    result = malloc(result_size);
+    if (result == NULL) {
+        goto fail;
+    }
+
+    uint8_t *rpos = result;
+    size_t rremain = result_size;
+
+    ok = psasim_serialise_begin(&rpos, &rremain);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_serialise_psa_status_t(&rpos, &rremain, status);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_server_serialise_psa_cipher_operation_t(&rpos, &rremain, operation);
+    if (!ok) {
+        goto fail;
+    }
+
+    *out_params = result;
+    *out_params_len = result_size;
+
+    free(iv);
+
+    return 1;   // success
+
+fail:
+    free(result);
+
+    free(iv);
+
+    return 0;       // This shouldn't happen!
+}
+
+// Returns 1 for success, 0 for failure
+int psa_cipher_update_wrapper(
+    uint8_t *in_params, size_t in_params_len,
+    uint8_t **out_params, size_t *out_params_len)
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_cipher_operation_t *operation;
+    uint8_t *input = NULL;
+    size_t input_length;
+    uint8_t *output = NULL;
+    size_t output_size;
+    size_t output_length;
+
+    uint8_t *pos = in_params;
+    size_t remaining = in_params_len;
+    uint8_t *result = NULL;
+    int ok;
+
+    ok = psasim_deserialise_begin(&pos, &remaining);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_server_deserialise_psa_cipher_operation_t(&pos, &remaining, &operation);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_buffer(&pos, &remaining, &input, &input_length);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_buffer(&pos, &remaining, &output, &output_size);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_size_t(&pos, &remaining, &output_length);
+    if (!ok) {
+        goto fail;
+    }
+
+    // Now we call the actual target function
+
+    status = psa_cipher_update(
+        operation,
+        input, input_length,
+        output, output_size,
+        &output_length
+        );
+
+    // NOTE: Should really check there is no overflow as we go along.
+    size_t result_size =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_psa_status_t_needs(status) +
+        psasim_server_serialise_psa_cipher_operation_t_needs(operation) +
+        psasim_serialise_buffer_needs(output, output_size) +
+        psasim_serialise_size_t_needs(output_length);
+
+    result = malloc(result_size);
+    if (result == NULL) {
+        goto fail;
+    }
+
+    uint8_t *rpos = result;
+    size_t rremain = result_size;
+
+    ok = psasim_serialise_begin(&rpos, &rremain);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_serialise_psa_status_t(&rpos, &rremain, status);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_server_serialise_psa_cipher_operation_t(&rpos, &rremain, operation);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_serialise_buffer(&rpos, &rremain, output, output_size);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_serialise_size_t(&rpos, &rremain, output_length);
+    if (!ok) {
+        goto fail;
+    }
+
+    *out_params = result;
+    *out_params_len = result_size;
+
+    free(input);
+    free(output);
+
+    return 1;   // success
+
+fail:
+    free(result);
+
+    free(input);
+    free(output);
+
+    return 0;       // This shouldn't happen!
+}
+
+// Returns 1 for success, 0 for failure
 int psa_destroy_key_wrapper(
     uint8_t *in_params, size_t in_params_len,
     uint8_t **out_params, size_t *out_params_len)
@@ -3021,6 +3869,42 @@ psa_status_t psa_crypto_call(psa_msg_t msg)
         case PSA_AEAD_VERIFY:
             ok = psa_aead_verify_wrapper(in_params, in_params_len,
                                          &out_params, &out_params_len);
+            break;
+        case PSA_CIPHER_ABORT:
+            ok = psa_cipher_abort_wrapper(in_params, in_params_len,
+                                          &out_params, &out_params_len);
+            break;
+        case PSA_CIPHER_DECRYPT:
+            ok = psa_cipher_decrypt_wrapper(in_params, in_params_len,
+                                            &out_params, &out_params_len);
+            break;
+        case PSA_CIPHER_DECRYPT_SETUP:
+            ok = psa_cipher_decrypt_setup_wrapper(in_params, in_params_len,
+                                                  &out_params, &out_params_len);
+            break;
+        case PSA_CIPHER_ENCRYPT:
+            ok = psa_cipher_encrypt_wrapper(in_params, in_params_len,
+                                            &out_params, &out_params_len);
+            break;
+        case PSA_CIPHER_ENCRYPT_SETUP:
+            ok = psa_cipher_encrypt_setup_wrapper(in_params, in_params_len,
+                                                  &out_params, &out_params_len);
+            break;
+        case PSA_CIPHER_FINISH:
+            ok = psa_cipher_finish_wrapper(in_params, in_params_len,
+                                           &out_params, &out_params_len);
+            break;
+        case PSA_CIPHER_GENERATE_IV:
+            ok = psa_cipher_generate_iv_wrapper(in_params, in_params_len,
+                                                &out_params, &out_params_len);
+            break;
+        case PSA_CIPHER_SET_IV:
+            ok = psa_cipher_set_iv_wrapper(in_params, in_params_len,
+                                           &out_params, &out_params_len);
+            break;
+        case PSA_CIPHER_UPDATE:
+            ok = psa_cipher_update_wrapper(in_params, in_params_len,
+                                           &out_params, &out_params_len);
             break;
         case PSA_DESTROY_KEY:
             ok = psa_destroy_key_wrapper(in_params, in_params_len,

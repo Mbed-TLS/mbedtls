@@ -748,8 +748,8 @@ sub output_client
 
     print $fh <<EOF;
 {
-    uint8_t *params = NULL;
-    uint8_t *result = NULL;
+    uint8_t *ser_params = NULL;
+    uint8_t *ser_result = NULL;
     size_t result_length;
     $ret_type $ret_name = $ret_default;
 EOF
@@ -780,13 +780,13 @@ EOF
 
     print $fh <<EOF;
 
-    params = malloc(needed);
-    if (params == NULL) {
+    ser_params = malloc(needed);
+    if (ser_params == NULL) {
         status = PSA_ERROR_INSUFFICIENT_MEMORY;
         goto fail;
     }
 
-    uint8_t *pos = params;
+    uint8_t *pos = ser_params;
     size_t remaining = needed;
     int ok;
     ok = psasim_serialise_begin(&pos, &remaining);
@@ -812,8 +812,8 @@ EOF
 
     print $fh <<EOF if $debug;
 
-    printf("client sending %d:\\n", (int)(pos - params));
-    dump_buffer(params, (size_t)(pos - params));
+    printf("client sending %d:\\n", (int)(pos - ser_params));
+    dump_buffer(ser_params, (size_t)(pos - ser_params));
 EOF
 
     my $enum = uc($name);
@@ -821,7 +821,7 @@ EOF
     print $fh <<EOF;
 
     ok = psa_crypto_call($enum,
-                         params, (size_t) (pos - params), &result, &result_length);
+                         ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
         printf("$enum server call failed\\n");
         goto fail;
@@ -831,12 +831,12 @@ EOF
     print $fh <<EOF if $debug;
 
     printf("client receiving %d:\\n", (int)result_length);
-    dump_buffer(result, result_length);
+    dump_buffer(ser_result, result_length);
 EOF
 
     print $fh <<EOF;
 
-    uint8_t *rpos = result;
+    uint8_t *rpos = ser_result;
     size_t rremain = result_length;
 
     ok = psasim_deserialise_begin(&rpos, &rremain);
@@ -890,8 +890,8 @@ EOF
     print $fh <<EOF;
 
 fail:
-    free(params);
-    free(result);
+    free(ser_params);
+    free(ser_result);
 
     return $ret_name;
 }

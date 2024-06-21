@@ -129,21 +129,21 @@ psa_status_t psa_aead_abort(
     psa_aead_operation_t *operation
     )
 {
-    uint8_t *params = NULL;
-    uint8_t *result = NULL;
+    uint8_t *ser_params = NULL;
+    uint8_t *ser_result = NULL;
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
     size_t needed = psasim_serialise_begin_needs() +
                     psasim_serialise_psa_aead_operation_t_needs(*operation);
 
-    params = malloc(needed);
-    if (params == NULL) {
+    ser_params = malloc(needed);
+    if (ser_params == NULL) {
         status = PSA_ERROR_INSUFFICIENT_MEMORY;
         goto fail;
     }
 
-    uint8_t *pos = params;
+    uint8_t *pos = ser_params;
     size_t remaining = needed;
     int ok;
     ok = psasim_serialise_begin(&pos, &remaining);
@@ -156,13 +156,13 @@ psa_status_t psa_aead_abort(
     }
 
     ok = psa_crypto_call(PSA_AEAD_ABORT,
-                         params, (size_t) (pos - params), &result, &result_length);
+                         ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
         printf("PSA_AEAD_ABORT server call failed\n");
         goto fail;
     }
 
-    uint8_t *rpos = result;
+    uint8_t *rpos = ser_result;
     size_t rremain = result_length;
 
     ok = psasim_deserialise_begin(&rpos, &rremain);
@@ -181,8 +181,8 @@ psa_status_t psa_aead_abort(
     }
 
 fail:
-    free(params);
-    free(result);
+    free(ser_params);
+    free(ser_result);
 
     return status;
 }
@@ -198,8 +198,8 @@ psa_status_t psa_aead_decrypt(
     size_t *plaintext_length
     )
 {
-    uint8_t *params = NULL;
-    uint8_t *result = NULL;
+    uint8_t *ser_params = NULL;
+    uint8_t *ser_result = NULL;
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
@@ -212,13 +212,13 @@ psa_status_t psa_aead_decrypt(
                     psasim_serialise_buffer_needs(plaintext, plaintext_size) +
                     psasim_serialise_size_t_needs(*plaintext_length);
 
-    params = malloc(needed);
-    if (params == NULL) {
+    ser_params = malloc(needed);
+    if (ser_params == NULL) {
         status = PSA_ERROR_INSUFFICIENT_MEMORY;
         goto fail;
     }
 
-    uint8_t *pos = params;
+    uint8_t *pos = ser_params;
     size_t remaining = needed;
     int ok;
     ok = psasim_serialise_begin(&pos, &remaining);
@@ -255,13 +255,13 @@ psa_status_t psa_aead_decrypt(
     }
 
     ok = psa_crypto_call(PSA_AEAD_DECRYPT,
-                         params, (size_t) (pos - params), &result, &result_length);
+                         ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
         printf("PSA_AEAD_DECRYPT server call failed\n");
         goto fail;
     }
 
-    uint8_t *rpos = result;
+    uint8_t *rpos = ser_result;
     size_t rremain = result_length;
 
     ok = psasim_deserialise_begin(&rpos, &rremain);
@@ -285,8 +285,8 @@ psa_status_t psa_aead_decrypt(
     }
 
 fail:
-    free(params);
-    free(result);
+    free(ser_params);
+    free(ser_result);
 
     return status;
 }
@@ -298,8 +298,8 @@ psa_status_t psa_aead_decrypt_setup(
     psa_algorithm_t alg
     )
 {
-    uint8_t *params = NULL;
-    uint8_t *result = NULL;
+    uint8_t *ser_params = NULL;
+    uint8_t *ser_result = NULL;
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
@@ -308,13 +308,13 @@ psa_status_t psa_aead_decrypt_setup(
                     psasim_serialise_mbedtls_svc_key_id_t_needs(key) +
                     psasim_serialise_psa_algorithm_t_needs(alg);
 
-    params = malloc(needed);
-    if (params == NULL) {
+    ser_params = malloc(needed);
+    if (ser_params == NULL) {
         status = PSA_ERROR_INSUFFICIENT_MEMORY;
         goto fail;
     }
 
-    uint8_t *pos = params;
+    uint8_t *pos = ser_params;
     size_t remaining = needed;
     int ok;
     ok = psasim_serialise_begin(&pos, &remaining);
@@ -335,13 +335,13 @@ psa_status_t psa_aead_decrypt_setup(
     }
 
     ok = psa_crypto_call(PSA_AEAD_DECRYPT_SETUP,
-                         params, (size_t) (pos - params), &result, &result_length);
+                         ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
         printf("PSA_AEAD_DECRYPT_SETUP server call failed\n");
         goto fail;
     }
 
-    uint8_t *rpos = result;
+    uint8_t *rpos = ser_result;
     size_t rremain = result_length;
 
     ok = psasim_deserialise_begin(&rpos, &rremain);
@@ -360,8 +360,8 @@ psa_status_t psa_aead_decrypt_setup(
     }
 
 fail:
-    free(params);
-    free(result);
+    free(ser_params);
+    free(ser_result);
 
     return status;
 }
@@ -377,8 +377,8 @@ psa_status_t psa_aead_encrypt(
     size_t *ciphertext_length
     )
 {
-    uint8_t *params = NULL;
-    uint8_t *result = NULL;
+    uint8_t *ser_params = NULL;
+    uint8_t *ser_result = NULL;
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
@@ -391,13 +391,13 @@ psa_status_t psa_aead_encrypt(
                     psasim_serialise_buffer_needs(ciphertext, ciphertext_size) +
                     psasim_serialise_size_t_needs(*ciphertext_length);
 
-    params = malloc(needed);
-    if (params == NULL) {
+    ser_params = malloc(needed);
+    if (ser_params == NULL) {
         status = PSA_ERROR_INSUFFICIENT_MEMORY;
         goto fail;
     }
 
-    uint8_t *pos = params;
+    uint8_t *pos = ser_params;
     size_t remaining = needed;
     int ok;
     ok = psasim_serialise_begin(&pos, &remaining);
@@ -434,13 +434,13 @@ psa_status_t psa_aead_encrypt(
     }
 
     ok = psa_crypto_call(PSA_AEAD_ENCRYPT,
-                         params, (size_t) (pos - params), &result, &result_length);
+                         ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
         printf("PSA_AEAD_ENCRYPT server call failed\n");
         goto fail;
     }
 
-    uint8_t *rpos = result;
+    uint8_t *rpos = ser_result;
     size_t rremain = result_length;
 
     ok = psasim_deserialise_begin(&rpos, &rremain);
@@ -464,8 +464,8 @@ psa_status_t psa_aead_encrypt(
     }
 
 fail:
-    free(params);
-    free(result);
+    free(ser_params);
+    free(ser_result);
 
     return status;
 }
@@ -477,8 +477,8 @@ psa_status_t psa_aead_encrypt_setup(
     psa_algorithm_t alg
     )
 {
-    uint8_t *params = NULL;
-    uint8_t *result = NULL;
+    uint8_t *ser_params = NULL;
+    uint8_t *ser_result = NULL;
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
@@ -487,13 +487,13 @@ psa_status_t psa_aead_encrypt_setup(
                     psasim_serialise_mbedtls_svc_key_id_t_needs(key) +
                     psasim_serialise_psa_algorithm_t_needs(alg);
 
-    params = malloc(needed);
-    if (params == NULL) {
+    ser_params = malloc(needed);
+    if (ser_params == NULL) {
         status = PSA_ERROR_INSUFFICIENT_MEMORY;
         goto fail;
     }
 
-    uint8_t *pos = params;
+    uint8_t *pos = ser_params;
     size_t remaining = needed;
     int ok;
     ok = psasim_serialise_begin(&pos, &remaining);
@@ -514,13 +514,13 @@ psa_status_t psa_aead_encrypt_setup(
     }
 
     ok = psa_crypto_call(PSA_AEAD_ENCRYPT_SETUP,
-                         params, (size_t) (pos - params), &result, &result_length);
+                         ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
         printf("PSA_AEAD_ENCRYPT_SETUP server call failed\n");
         goto fail;
     }
 
-    uint8_t *rpos = result;
+    uint8_t *rpos = ser_result;
     size_t rremain = result_length;
 
     ok = psasim_deserialise_begin(&rpos, &rremain);
@@ -539,8 +539,8 @@ psa_status_t psa_aead_encrypt_setup(
     }
 
 fail:
-    free(params);
-    free(result);
+    free(ser_params);
+    free(ser_result);
 
     return status;
 }
@@ -554,8 +554,8 @@ psa_status_t psa_aead_finish(
     size_t *tag_length
     )
 {
-    uint8_t *params = NULL;
-    uint8_t *result = NULL;
+    uint8_t *ser_params = NULL;
+    uint8_t *ser_result = NULL;
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
@@ -566,13 +566,13 @@ psa_status_t psa_aead_finish(
                     psasim_serialise_buffer_needs(tag, tag_size) +
                     psasim_serialise_size_t_needs(*tag_length);
 
-    params = malloc(needed);
-    if (params == NULL) {
+    ser_params = malloc(needed);
+    if (ser_params == NULL) {
         status = PSA_ERROR_INSUFFICIENT_MEMORY;
         goto fail;
     }
 
-    uint8_t *pos = params;
+    uint8_t *pos = ser_params;
     size_t remaining = needed;
     int ok;
     ok = psasim_serialise_begin(&pos, &remaining);
@@ -601,13 +601,13 @@ psa_status_t psa_aead_finish(
     }
 
     ok = psa_crypto_call(PSA_AEAD_FINISH,
-                         params, (size_t) (pos - params), &result, &result_length);
+                         ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
         printf("PSA_AEAD_FINISH server call failed\n");
         goto fail;
     }
 
-    uint8_t *rpos = result;
+    uint8_t *rpos = ser_result;
     size_t rremain = result_length;
 
     ok = psasim_deserialise_begin(&rpos, &rremain);
@@ -646,8 +646,8 @@ psa_status_t psa_aead_finish(
     }
 
 fail:
-    free(params);
-    free(result);
+    free(ser_params);
+    free(ser_result);
 
     return status;
 }
@@ -659,8 +659,8 @@ psa_status_t psa_aead_generate_nonce(
     size_t *nonce_length
     )
 {
-    uint8_t *params = NULL;
-    uint8_t *result = NULL;
+    uint8_t *ser_params = NULL;
+    uint8_t *ser_result = NULL;
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
@@ -669,13 +669,13 @@ psa_status_t psa_aead_generate_nonce(
                     psasim_serialise_buffer_needs(nonce, nonce_size) +
                     psasim_serialise_size_t_needs(*nonce_length);
 
-    params = malloc(needed);
-    if (params == NULL) {
+    ser_params = malloc(needed);
+    if (ser_params == NULL) {
         status = PSA_ERROR_INSUFFICIENT_MEMORY;
         goto fail;
     }
 
-    uint8_t *pos = params;
+    uint8_t *pos = ser_params;
     size_t remaining = needed;
     int ok;
     ok = psasim_serialise_begin(&pos, &remaining);
@@ -696,13 +696,13 @@ psa_status_t psa_aead_generate_nonce(
     }
 
     ok = psa_crypto_call(PSA_AEAD_GENERATE_NONCE,
-                         params, (size_t) (pos - params), &result, &result_length);
+                         ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
         printf("PSA_AEAD_GENERATE_NONCE server call failed\n");
         goto fail;
     }
 
-    uint8_t *rpos = result;
+    uint8_t *rpos = ser_result;
     size_t rremain = result_length;
 
     ok = psasim_deserialise_begin(&rpos, &rremain);
@@ -731,8 +731,8 @@ psa_status_t psa_aead_generate_nonce(
     }
 
 fail:
-    free(params);
-    free(result);
+    free(ser_params);
+    free(ser_result);
 
     return status;
 }
@@ -744,8 +744,8 @@ psa_status_t psa_aead_set_lengths(
     size_t plaintext_length
     )
 {
-    uint8_t *params = NULL;
-    uint8_t *result = NULL;
+    uint8_t *ser_params = NULL;
+    uint8_t *ser_result = NULL;
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
@@ -754,13 +754,13 @@ psa_status_t psa_aead_set_lengths(
                     psasim_serialise_size_t_needs(ad_length) +
                     psasim_serialise_size_t_needs(plaintext_length);
 
-    params = malloc(needed);
-    if (params == NULL) {
+    ser_params = malloc(needed);
+    if (ser_params == NULL) {
         status = PSA_ERROR_INSUFFICIENT_MEMORY;
         goto fail;
     }
 
-    uint8_t *pos = params;
+    uint8_t *pos = ser_params;
     size_t remaining = needed;
     int ok;
     ok = psasim_serialise_begin(&pos, &remaining);
@@ -781,13 +781,13 @@ psa_status_t psa_aead_set_lengths(
     }
 
     ok = psa_crypto_call(PSA_AEAD_SET_LENGTHS,
-                         params, (size_t) (pos - params), &result, &result_length);
+                         ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
         printf("PSA_AEAD_SET_LENGTHS server call failed\n");
         goto fail;
     }
 
-    uint8_t *rpos = result;
+    uint8_t *rpos = ser_result;
     size_t rremain = result_length;
 
     ok = psasim_deserialise_begin(&rpos, &rremain);
@@ -806,8 +806,8 @@ psa_status_t psa_aead_set_lengths(
     }
 
 fail:
-    free(params);
-    free(result);
+    free(ser_params);
+    free(ser_result);
 
     return status;
 }
@@ -818,8 +818,8 @@ psa_status_t psa_aead_set_nonce(
     const uint8_t *nonce, size_t  nonce_length
     )
 {
-    uint8_t *params = NULL;
-    uint8_t *result = NULL;
+    uint8_t *ser_params = NULL;
+    uint8_t *ser_result = NULL;
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
@@ -827,13 +827,13 @@ psa_status_t psa_aead_set_nonce(
                     psasim_serialise_psa_aead_operation_t_needs(*operation) +
                     psasim_serialise_buffer_needs(nonce, nonce_length);
 
-    params = malloc(needed);
-    if (params == NULL) {
+    ser_params = malloc(needed);
+    if (ser_params == NULL) {
         status = PSA_ERROR_INSUFFICIENT_MEMORY;
         goto fail;
     }
 
-    uint8_t *pos = params;
+    uint8_t *pos = ser_params;
     size_t remaining = needed;
     int ok;
     ok = psasim_serialise_begin(&pos, &remaining);
@@ -850,13 +850,13 @@ psa_status_t psa_aead_set_nonce(
     }
 
     ok = psa_crypto_call(PSA_AEAD_SET_NONCE,
-                         params, (size_t) (pos - params), &result, &result_length);
+                         ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
         printf("PSA_AEAD_SET_NONCE server call failed\n");
         goto fail;
     }
 
-    uint8_t *rpos = result;
+    uint8_t *rpos = ser_result;
     size_t rremain = result_length;
 
     ok = psasim_deserialise_begin(&rpos, &rremain);
@@ -875,8 +875,8 @@ psa_status_t psa_aead_set_nonce(
     }
 
 fail:
-    free(params);
-    free(result);
+    free(ser_params);
+    free(ser_result);
 
     return status;
 }
@@ -889,8 +889,8 @@ psa_status_t psa_aead_update(
     size_t *output_length
     )
 {
-    uint8_t *params = NULL;
-    uint8_t *result = NULL;
+    uint8_t *ser_params = NULL;
+    uint8_t *ser_result = NULL;
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
@@ -900,13 +900,13 @@ psa_status_t psa_aead_update(
                     psasim_serialise_buffer_needs(output, output_size) +
                     psasim_serialise_size_t_needs(*output_length);
 
-    params = malloc(needed);
-    if (params == NULL) {
+    ser_params = malloc(needed);
+    if (ser_params == NULL) {
         status = PSA_ERROR_INSUFFICIENT_MEMORY;
         goto fail;
     }
 
-    uint8_t *pos = params;
+    uint8_t *pos = ser_params;
     size_t remaining = needed;
     int ok;
     ok = psasim_serialise_begin(&pos, &remaining);
@@ -931,13 +931,13 @@ psa_status_t psa_aead_update(
     }
 
     ok = psa_crypto_call(PSA_AEAD_UPDATE,
-                         params, (size_t) (pos - params), &result, &result_length);
+                         ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
         printf("PSA_AEAD_UPDATE server call failed\n");
         goto fail;
     }
 
-    uint8_t *rpos = result;
+    uint8_t *rpos = ser_result;
     size_t rremain = result_length;
 
     ok = psasim_deserialise_begin(&rpos, &rremain);
@@ -966,8 +966,8 @@ psa_status_t psa_aead_update(
     }
 
 fail:
-    free(params);
-    free(result);
+    free(ser_params);
+    free(ser_result);
 
     return status;
 }
@@ -978,8 +978,8 @@ psa_status_t psa_aead_update_ad(
     const uint8_t *input, size_t  input_length
     )
 {
-    uint8_t *params = NULL;
-    uint8_t *result = NULL;
+    uint8_t *ser_params = NULL;
+    uint8_t *ser_result = NULL;
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
@@ -987,13 +987,13 @@ psa_status_t psa_aead_update_ad(
                     psasim_serialise_psa_aead_operation_t_needs(*operation) +
                     psasim_serialise_buffer_needs(input, input_length);
 
-    params = malloc(needed);
-    if (params == NULL) {
+    ser_params = malloc(needed);
+    if (ser_params == NULL) {
         status = PSA_ERROR_INSUFFICIENT_MEMORY;
         goto fail;
     }
 
-    uint8_t *pos = params;
+    uint8_t *pos = ser_params;
     size_t remaining = needed;
     int ok;
     ok = psasim_serialise_begin(&pos, &remaining);
@@ -1010,13 +1010,13 @@ psa_status_t psa_aead_update_ad(
     }
 
     ok = psa_crypto_call(PSA_AEAD_UPDATE_AD,
-                         params, (size_t) (pos - params), &result, &result_length);
+                         ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
         printf("PSA_AEAD_UPDATE_AD server call failed\n");
         goto fail;
     }
 
-    uint8_t *rpos = result;
+    uint8_t *rpos = ser_result;
     size_t rremain = result_length;
 
     ok = psasim_deserialise_begin(&rpos, &rremain);
@@ -1035,8 +1035,8 @@ psa_status_t psa_aead_update_ad(
     }
 
 fail:
-    free(params);
-    free(result);
+    free(ser_params);
+    free(ser_result);
 
     return status;
 }
@@ -1049,8 +1049,8 @@ psa_status_t psa_aead_verify(
     const uint8_t *tag, size_t  tag_length
     )
 {
-    uint8_t *params = NULL;
-    uint8_t *result = NULL;
+    uint8_t *ser_params = NULL;
+    uint8_t *ser_result = NULL;
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
@@ -1060,13 +1060,13 @@ psa_status_t psa_aead_verify(
                     psasim_serialise_size_t_needs(*plaintext_length) +
                     psasim_serialise_buffer_needs(tag, tag_length);
 
-    params = malloc(needed);
-    if (params == NULL) {
+    ser_params = malloc(needed);
+    if (ser_params == NULL) {
         status = PSA_ERROR_INSUFFICIENT_MEMORY;
         goto fail;
     }
 
-    uint8_t *pos = params;
+    uint8_t *pos = ser_params;
     size_t remaining = needed;
     int ok;
     ok = psasim_serialise_begin(&pos, &remaining);
@@ -1091,13 +1091,13 @@ psa_status_t psa_aead_verify(
     }
 
     ok = psa_crypto_call(PSA_AEAD_VERIFY,
-                         params, (size_t) (pos - params), &result, &result_length);
+                         ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
         printf("PSA_AEAD_VERIFY server call failed\n");
         goto fail;
     }
 
-    uint8_t *rpos = result;
+    uint8_t *rpos = ser_result;
     size_t rremain = result_length;
 
     ok = psasim_deserialise_begin(&rpos, &rremain);
@@ -1126,8 +1126,8 @@ psa_status_t psa_aead_verify(
     }
 
 fail:
-    free(params);
-    free(result);
+    free(ser_params);
+    free(ser_result);
 
     return status;
 }
@@ -1137,21 +1137,21 @@ psa_status_t psa_cipher_abort(
     psa_cipher_operation_t *operation
     )
 {
-    uint8_t *params = NULL;
-    uint8_t *result = NULL;
+    uint8_t *ser_params = NULL;
+    uint8_t *ser_result = NULL;
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
     size_t needed = psasim_serialise_begin_needs() +
                     psasim_serialise_psa_cipher_operation_t_needs(*operation);
 
-    params = malloc(needed);
-    if (params == NULL) {
+    ser_params = malloc(needed);
+    if (ser_params == NULL) {
         status = PSA_ERROR_INSUFFICIENT_MEMORY;
         goto fail;
     }
 
-    uint8_t *pos = params;
+    uint8_t *pos = ser_params;
     size_t remaining = needed;
     int ok;
     ok = psasim_serialise_begin(&pos, &remaining);
@@ -1164,13 +1164,13 @@ psa_status_t psa_cipher_abort(
     }
 
     ok = psa_crypto_call(PSA_CIPHER_ABORT,
-                         params, (size_t) (pos - params), &result, &result_length);
+                         ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
         printf("PSA_CIPHER_ABORT server call failed\n");
         goto fail;
     }
 
-    uint8_t *rpos = result;
+    uint8_t *rpos = ser_result;
     size_t rremain = result_length;
 
     ok = psasim_deserialise_begin(&rpos, &rremain);
@@ -1189,8 +1189,8 @@ psa_status_t psa_cipher_abort(
     }
 
 fail:
-    free(params);
-    free(result);
+    free(ser_params);
+    free(ser_result);
 
     return status;
 }
@@ -1204,8 +1204,8 @@ psa_status_t psa_cipher_decrypt(
     size_t *output_length
     )
 {
-    uint8_t *params = NULL;
-    uint8_t *result = NULL;
+    uint8_t *ser_params = NULL;
+    uint8_t *ser_result = NULL;
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
@@ -1216,13 +1216,13 @@ psa_status_t psa_cipher_decrypt(
                     psasim_serialise_buffer_needs(output, output_size) +
                     psasim_serialise_size_t_needs(*output_length);
 
-    params = malloc(needed);
-    if (params == NULL) {
+    ser_params = malloc(needed);
+    if (ser_params == NULL) {
         status = PSA_ERROR_INSUFFICIENT_MEMORY;
         goto fail;
     }
 
-    uint8_t *pos = params;
+    uint8_t *pos = ser_params;
     size_t remaining = needed;
     int ok;
     ok = psasim_serialise_begin(&pos, &remaining);
@@ -1251,13 +1251,13 @@ psa_status_t psa_cipher_decrypt(
     }
 
     ok = psa_crypto_call(PSA_CIPHER_DECRYPT,
-                         params, (size_t) (pos - params), &result, &result_length);
+                         ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
         printf("PSA_CIPHER_DECRYPT server call failed\n");
         goto fail;
     }
 
-    uint8_t *rpos = result;
+    uint8_t *rpos = ser_result;
     size_t rremain = result_length;
 
     ok = psasim_deserialise_begin(&rpos, &rremain);
@@ -1281,8 +1281,8 @@ psa_status_t psa_cipher_decrypt(
     }
 
 fail:
-    free(params);
-    free(result);
+    free(ser_params);
+    free(ser_result);
 
     return status;
 }
@@ -1294,8 +1294,8 @@ psa_status_t psa_cipher_decrypt_setup(
     psa_algorithm_t alg
     )
 {
-    uint8_t *params = NULL;
-    uint8_t *result = NULL;
+    uint8_t *ser_params = NULL;
+    uint8_t *ser_result = NULL;
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
@@ -1304,13 +1304,13 @@ psa_status_t psa_cipher_decrypt_setup(
                     psasim_serialise_mbedtls_svc_key_id_t_needs(key) +
                     psasim_serialise_psa_algorithm_t_needs(alg);
 
-    params = malloc(needed);
-    if (params == NULL) {
+    ser_params = malloc(needed);
+    if (ser_params == NULL) {
         status = PSA_ERROR_INSUFFICIENT_MEMORY;
         goto fail;
     }
 
-    uint8_t *pos = params;
+    uint8_t *pos = ser_params;
     size_t remaining = needed;
     int ok;
     ok = psasim_serialise_begin(&pos, &remaining);
@@ -1331,13 +1331,13 @@ psa_status_t psa_cipher_decrypt_setup(
     }
 
     ok = psa_crypto_call(PSA_CIPHER_DECRYPT_SETUP,
-                         params, (size_t) (pos - params), &result, &result_length);
+                         ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
         printf("PSA_CIPHER_DECRYPT_SETUP server call failed\n");
         goto fail;
     }
 
-    uint8_t *rpos = result;
+    uint8_t *rpos = ser_result;
     size_t rremain = result_length;
 
     ok = psasim_deserialise_begin(&rpos, &rremain);
@@ -1356,8 +1356,8 @@ psa_status_t psa_cipher_decrypt_setup(
     }
 
 fail:
-    free(params);
-    free(result);
+    free(ser_params);
+    free(ser_result);
 
     return status;
 }
@@ -1371,8 +1371,8 @@ psa_status_t psa_cipher_encrypt(
     size_t *output_length
     )
 {
-    uint8_t *params = NULL;
-    uint8_t *result = NULL;
+    uint8_t *ser_params = NULL;
+    uint8_t *ser_result = NULL;
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
@@ -1383,13 +1383,13 @@ psa_status_t psa_cipher_encrypt(
                     psasim_serialise_buffer_needs(output, output_size) +
                     psasim_serialise_size_t_needs(*output_length);
 
-    params = malloc(needed);
-    if (params == NULL) {
+    ser_params = malloc(needed);
+    if (ser_params == NULL) {
         status = PSA_ERROR_INSUFFICIENT_MEMORY;
         goto fail;
     }
 
-    uint8_t *pos = params;
+    uint8_t *pos = ser_params;
     size_t remaining = needed;
     int ok;
     ok = psasim_serialise_begin(&pos, &remaining);
@@ -1418,13 +1418,13 @@ psa_status_t psa_cipher_encrypt(
     }
 
     ok = psa_crypto_call(PSA_CIPHER_ENCRYPT,
-                         params, (size_t) (pos - params), &result, &result_length);
+                         ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
         printf("PSA_CIPHER_ENCRYPT server call failed\n");
         goto fail;
     }
 
-    uint8_t *rpos = result;
+    uint8_t *rpos = ser_result;
     size_t rremain = result_length;
 
     ok = psasim_deserialise_begin(&rpos, &rremain);
@@ -1448,8 +1448,8 @@ psa_status_t psa_cipher_encrypt(
     }
 
 fail:
-    free(params);
-    free(result);
+    free(ser_params);
+    free(ser_result);
 
     return status;
 }
@@ -1461,8 +1461,8 @@ psa_status_t psa_cipher_encrypt_setup(
     psa_algorithm_t alg
     )
 {
-    uint8_t *params = NULL;
-    uint8_t *result = NULL;
+    uint8_t *ser_params = NULL;
+    uint8_t *ser_result = NULL;
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
@@ -1471,13 +1471,13 @@ psa_status_t psa_cipher_encrypt_setup(
                     psasim_serialise_mbedtls_svc_key_id_t_needs(key) +
                     psasim_serialise_psa_algorithm_t_needs(alg);
 
-    params = malloc(needed);
-    if (params == NULL) {
+    ser_params = malloc(needed);
+    if (ser_params == NULL) {
         status = PSA_ERROR_INSUFFICIENT_MEMORY;
         goto fail;
     }
 
-    uint8_t *pos = params;
+    uint8_t *pos = ser_params;
     size_t remaining = needed;
     int ok;
     ok = psasim_serialise_begin(&pos, &remaining);
@@ -1498,13 +1498,13 @@ psa_status_t psa_cipher_encrypt_setup(
     }
 
     ok = psa_crypto_call(PSA_CIPHER_ENCRYPT_SETUP,
-                         params, (size_t) (pos - params), &result, &result_length);
+                         ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
         printf("PSA_CIPHER_ENCRYPT_SETUP server call failed\n");
         goto fail;
     }
 
-    uint8_t *rpos = result;
+    uint8_t *rpos = ser_result;
     size_t rremain = result_length;
 
     ok = psasim_deserialise_begin(&rpos, &rremain);
@@ -1523,8 +1523,8 @@ psa_status_t psa_cipher_encrypt_setup(
     }
 
 fail:
-    free(params);
-    free(result);
+    free(ser_params);
+    free(ser_result);
 
     return status;
 }
@@ -1536,8 +1536,8 @@ psa_status_t psa_cipher_finish(
     size_t *output_length
     )
 {
-    uint8_t *params = NULL;
-    uint8_t *result = NULL;
+    uint8_t *ser_params = NULL;
+    uint8_t *ser_result = NULL;
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
@@ -1546,13 +1546,13 @@ psa_status_t psa_cipher_finish(
                     psasim_serialise_buffer_needs(output, output_size) +
                     psasim_serialise_size_t_needs(*output_length);
 
-    params = malloc(needed);
-    if (params == NULL) {
+    ser_params = malloc(needed);
+    if (ser_params == NULL) {
         status = PSA_ERROR_INSUFFICIENT_MEMORY;
         goto fail;
     }
 
-    uint8_t *pos = params;
+    uint8_t *pos = ser_params;
     size_t remaining = needed;
     int ok;
     ok = psasim_serialise_begin(&pos, &remaining);
@@ -1573,13 +1573,13 @@ psa_status_t psa_cipher_finish(
     }
 
     ok = psa_crypto_call(PSA_CIPHER_FINISH,
-                         params, (size_t) (pos - params), &result, &result_length);
+                         ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
         printf("PSA_CIPHER_FINISH server call failed\n");
         goto fail;
     }
 
-    uint8_t *rpos = result;
+    uint8_t *rpos = ser_result;
     size_t rremain = result_length;
 
     ok = psasim_deserialise_begin(&rpos, &rremain);
@@ -1608,8 +1608,8 @@ psa_status_t psa_cipher_finish(
     }
 
 fail:
-    free(params);
-    free(result);
+    free(ser_params);
+    free(ser_result);
 
     return status;
 }
@@ -1621,8 +1621,8 @@ psa_status_t psa_cipher_generate_iv(
     size_t *iv_length
     )
 {
-    uint8_t *params = NULL;
-    uint8_t *result = NULL;
+    uint8_t *ser_params = NULL;
+    uint8_t *ser_result = NULL;
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
@@ -1631,13 +1631,13 @@ psa_status_t psa_cipher_generate_iv(
                     psasim_serialise_buffer_needs(iv, iv_size) +
                     psasim_serialise_size_t_needs(*iv_length);
 
-    params = malloc(needed);
-    if (params == NULL) {
+    ser_params = malloc(needed);
+    if (ser_params == NULL) {
         status = PSA_ERROR_INSUFFICIENT_MEMORY;
         goto fail;
     }
 
-    uint8_t *pos = params;
+    uint8_t *pos = ser_params;
     size_t remaining = needed;
     int ok;
     ok = psasim_serialise_begin(&pos, &remaining);
@@ -1658,13 +1658,13 @@ psa_status_t psa_cipher_generate_iv(
     }
 
     ok = psa_crypto_call(PSA_CIPHER_GENERATE_IV,
-                         params, (size_t) (pos - params), &result, &result_length);
+                         ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
         printf("PSA_CIPHER_GENERATE_IV server call failed\n");
         goto fail;
     }
 
-    uint8_t *rpos = result;
+    uint8_t *rpos = ser_result;
     size_t rremain = result_length;
 
     ok = psasim_deserialise_begin(&rpos, &rremain);
@@ -1693,8 +1693,8 @@ psa_status_t psa_cipher_generate_iv(
     }
 
 fail:
-    free(params);
-    free(result);
+    free(ser_params);
+    free(ser_result);
 
     return status;
 }
@@ -1705,8 +1705,8 @@ psa_status_t psa_cipher_set_iv(
     const uint8_t *iv, size_t  iv_length
     )
 {
-    uint8_t *params = NULL;
-    uint8_t *result = NULL;
+    uint8_t *ser_params = NULL;
+    uint8_t *ser_result = NULL;
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
@@ -1714,13 +1714,13 @@ psa_status_t psa_cipher_set_iv(
                     psasim_serialise_psa_cipher_operation_t_needs(*operation) +
                     psasim_serialise_buffer_needs(iv, iv_length);
 
-    params = malloc(needed);
-    if (params == NULL) {
+    ser_params = malloc(needed);
+    if (ser_params == NULL) {
         status = PSA_ERROR_INSUFFICIENT_MEMORY;
         goto fail;
     }
 
-    uint8_t *pos = params;
+    uint8_t *pos = ser_params;
     size_t remaining = needed;
     int ok;
     ok = psasim_serialise_begin(&pos, &remaining);
@@ -1737,13 +1737,13 @@ psa_status_t psa_cipher_set_iv(
     }
 
     ok = psa_crypto_call(PSA_CIPHER_SET_IV,
-                         params, (size_t) (pos - params), &result, &result_length);
+                         ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
         printf("PSA_CIPHER_SET_IV server call failed\n");
         goto fail;
     }
 
-    uint8_t *rpos = result;
+    uint8_t *rpos = ser_result;
     size_t rremain = result_length;
 
     ok = psasim_deserialise_begin(&rpos, &rremain);
@@ -1762,8 +1762,8 @@ psa_status_t psa_cipher_set_iv(
     }
 
 fail:
-    free(params);
-    free(result);
+    free(ser_params);
+    free(ser_result);
 
     return status;
 }
@@ -1776,8 +1776,8 @@ psa_status_t psa_cipher_update(
     size_t *output_length
     )
 {
-    uint8_t *params = NULL;
-    uint8_t *result = NULL;
+    uint8_t *ser_params = NULL;
+    uint8_t *ser_result = NULL;
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
@@ -1787,13 +1787,13 @@ psa_status_t psa_cipher_update(
                     psasim_serialise_buffer_needs(output, output_size) +
                     psasim_serialise_size_t_needs(*output_length);
 
-    params = malloc(needed);
-    if (params == NULL) {
+    ser_params = malloc(needed);
+    if (ser_params == NULL) {
         status = PSA_ERROR_INSUFFICIENT_MEMORY;
         goto fail;
     }
 
-    uint8_t *pos = params;
+    uint8_t *pos = ser_params;
     size_t remaining = needed;
     int ok;
     ok = psasim_serialise_begin(&pos, &remaining);
@@ -1818,13 +1818,13 @@ psa_status_t psa_cipher_update(
     }
 
     ok = psa_crypto_call(PSA_CIPHER_UPDATE,
-                         params, (size_t) (pos - params), &result, &result_length);
+                         ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
         printf("PSA_CIPHER_UPDATE server call failed\n");
         goto fail;
     }
 
-    uint8_t *rpos = result;
+    uint8_t *rpos = ser_result;
     size_t rremain = result_length;
 
     ok = psasim_deserialise_begin(&rpos, &rremain);
@@ -1853,8 +1853,8 @@ psa_status_t psa_cipher_update(
     }
 
 fail:
-    free(params);
-    free(result);
+    free(ser_params);
+    free(ser_result);
 
     return status;
 }
@@ -1864,21 +1864,21 @@ psa_status_t psa_destroy_key(
     mbedtls_svc_key_id_t key
     )
 {
-    uint8_t *params = NULL;
-    uint8_t *result = NULL;
+    uint8_t *ser_params = NULL;
+    uint8_t *ser_result = NULL;
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
     size_t needed = psasim_serialise_begin_needs() +
                     psasim_serialise_mbedtls_svc_key_id_t_needs(key);
 
-    params = malloc(needed);
-    if (params == NULL) {
+    ser_params = malloc(needed);
+    if (ser_params == NULL) {
         status = PSA_ERROR_INSUFFICIENT_MEMORY;
         goto fail;
     }
 
-    uint8_t *pos = params;
+    uint8_t *pos = ser_params;
     size_t remaining = needed;
     int ok;
     ok = psasim_serialise_begin(&pos, &remaining);
@@ -1891,13 +1891,13 @@ psa_status_t psa_destroy_key(
     }
 
     ok = psa_crypto_call(PSA_DESTROY_KEY,
-                         params, (size_t) (pos - params), &result, &result_length);
+                         ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
         printf("PSA_DESTROY_KEY server call failed\n");
         goto fail;
     }
 
-    uint8_t *rpos = result;
+    uint8_t *rpos = ser_result;
     size_t rremain = result_length;
 
     ok = psasim_deserialise_begin(&rpos, &rremain);
@@ -1911,8 +1911,8 @@ psa_status_t psa_destroy_key(
     }
 
 fail:
-    free(params);
-    free(result);
+    free(ser_params);
+    free(ser_result);
 
     return status;
 }
@@ -1922,21 +1922,21 @@ psa_status_t psa_generate_random(
     uint8_t *output, size_t  output_size
     )
 {
-    uint8_t *params = NULL;
-    uint8_t *result = NULL;
+    uint8_t *ser_params = NULL;
+    uint8_t *ser_result = NULL;
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
     size_t needed = psasim_serialise_begin_needs() +
                     psasim_serialise_buffer_needs(output, output_size);
 
-    params = malloc(needed);
-    if (params == NULL) {
+    ser_params = malloc(needed);
+    if (ser_params == NULL) {
         status = PSA_ERROR_INSUFFICIENT_MEMORY;
         goto fail;
     }
 
-    uint8_t *pos = params;
+    uint8_t *pos = ser_params;
     size_t remaining = needed;
     int ok;
     ok = psasim_serialise_begin(&pos, &remaining);
@@ -1949,13 +1949,13 @@ psa_status_t psa_generate_random(
     }
 
     ok = psa_crypto_call(PSA_GENERATE_RANDOM,
-                         params, (size_t) (pos - params), &result, &result_length);
+                         ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
         printf("PSA_GENERATE_RANDOM server call failed\n");
         goto fail;
     }
 
-    uint8_t *rpos = result;
+    uint8_t *rpos = ser_result;
     size_t rremain = result_length;
 
     ok = psasim_deserialise_begin(&rpos, &rremain);
@@ -1974,8 +1974,8 @@ psa_status_t psa_generate_random(
     }
 
 fail:
-    free(params);
-    free(result);
+    free(ser_params);
+    free(ser_result);
 
     return status;
 }
@@ -1986,8 +1986,8 @@ psa_status_t psa_get_key_attributes(
     psa_key_attributes_t *attributes
     )
 {
-    uint8_t *params = NULL;
-    uint8_t *result = NULL;
+    uint8_t *ser_params = NULL;
+    uint8_t *ser_result = NULL;
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
@@ -1995,13 +1995,13 @@ psa_status_t psa_get_key_attributes(
                     psasim_serialise_mbedtls_svc_key_id_t_needs(key) +
                     psasim_serialise_psa_key_attributes_t_needs(*attributes);
 
-    params = malloc(needed);
-    if (params == NULL) {
+    ser_params = malloc(needed);
+    if (ser_params == NULL) {
         status = PSA_ERROR_INSUFFICIENT_MEMORY;
         goto fail;
     }
 
-    uint8_t *pos = params;
+    uint8_t *pos = ser_params;
     size_t remaining = needed;
     int ok;
     ok = psasim_serialise_begin(&pos, &remaining);
@@ -2018,13 +2018,13 @@ psa_status_t psa_get_key_attributes(
     }
 
     ok = psa_crypto_call(PSA_GET_KEY_ATTRIBUTES,
-                         params, (size_t) (pos - params), &result, &result_length);
+                         ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
         printf("PSA_GET_KEY_ATTRIBUTES server call failed\n");
         goto fail;
     }
 
-    uint8_t *rpos = result;
+    uint8_t *rpos = ser_result;
     size_t rremain = result_length;
 
     ok = psasim_deserialise_begin(&rpos, &rremain);
@@ -2043,8 +2043,8 @@ psa_status_t psa_get_key_attributes(
     }
 
 fail:
-    free(params);
-    free(result);
+    free(ser_params);
+    free(ser_result);
 
     return status;
 }
@@ -2054,21 +2054,21 @@ psa_status_t psa_hash_abort(
     psa_hash_operation_t *operation
     )
 {
-    uint8_t *params = NULL;
-    uint8_t *result = NULL;
+    uint8_t *ser_params = NULL;
+    uint8_t *ser_result = NULL;
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
     size_t needed = psasim_serialise_begin_needs() +
                     psasim_serialise_psa_hash_operation_t_needs(*operation);
 
-    params = malloc(needed);
-    if (params == NULL) {
+    ser_params = malloc(needed);
+    if (ser_params == NULL) {
         status = PSA_ERROR_INSUFFICIENT_MEMORY;
         goto fail;
     }
 
-    uint8_t *pos = params;
+    uint8_t *pos = ser_params;
     size_t remaining = needed;
     int ok;
     ok = psasim_serialise_begin(&pos, &remaining);
@@ -2081,13 +2081,13 @@ psa_status_t psa_hash_abort(
     }
 
     ok = psa_crypto_call(PSA_HASH_ABORT,
-                         params, (size_t) (pos - params), &result, &result_length);
+                         ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
         printf("PSA_HASH_ABORT server call failed\n");
         goto fail;
     }
 
-    uint8_t *rpos = result;
+    uint8_t *rpos = ser_result;
     size_t rremain = result_length;
 
     ok = psasim_deserialise_begin(&rpos, &rremain);
@@ -2106,8 +2106,8 @@ psa_status_t psa_hash_abort(
     }
 
 fail:
-    free(params);
-    free(result);
+    free(ser_params);
+    free(ser_result);
 
     return status;
 }
@@ -2118,8 +2118,8 @@ psa_status_t psa_hash_clone(
     psa_hash_operation_t *target_operation
     )
 {
-    uint8_t *params = NULL;
-    uint8_t *result = NULL;
+    uint8_t *ser_params = NULL;
+    uint8_t *ser_result = NULL;
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
@@ -2127,13 +2127,13 @@ psa_status_t psa_hash_clone(
                     psasim_serialise_psa_hash_operation_t_needs(*source_operation) +
                     psasim_serialise_psa_hash_operation_t_needs(*target_operation);
 
-    params = malloc(needed);
-    if (params == NULL) {
+    ser_params = malloc(needed);
+    if (ser_params == NULL) {
         status = PSA_ERROR_INSUFFICIENT_MEMORY;
         goto fail;
     }
 
-    uint8_t *pos = params;
+    uint8_t *pos = ser_params;
     size_t remaining = needed;
     int ok;
     ok = psasim_serialise_begin(&pos, &remaining);
@@ -2150,13 +2150,13 @@ psa_status_t psa_hash_clone(
     }
 
     ok = psa_crypto_call(PSA_HASH_CLONE,
-                         params, (size_t) (pos - params), &result, &result_length);
+                         ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
         printf("PSA_HASH_CLONE server call failed\n");
         goto fail;
     }
 
-    uint8_t *rpos = result;
+    uint8_t *rpos = ser_result;
     size_t rremain = result_length;
 
     ok = psasim_deserialise_begin(&rpos, &rremain);
@@ -2175,8 +2175,8 @@ psa_status_t psa_hash_clone(
     }
 
 fail:
-    free(params);
-    free(result);
+    free(ser_params);
+    free(ser_result);
 
     return status;
 }
@@ -2188,8 +2188,8 @@ psa_status_t psa_hash_compare(
     const uint8_t *hash, size_t  hash_length
     )
 {
-    uint8_t *params = NULL;
-    uint8_t *result = NULL;
+    uint8_t *ser_params = NULL;
+    uint8_t *ser_result = NULL;
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
@@ -2198,13 +2198,13 @@ psa_status_t psa_hash_compare(
                     psasim_serialise_buffer_needs(input, input_length) +
                     psasim_serialise_buffer_needs(hash, hash_length);
 
-    params = malloc(needed);
-    if (params == NULL) {
+    ser_params = malloc(needed);
+    if (ser_params == NULL) {
         status = PSA_ERROR_INSUFFICIENT_MEMORY;
         goto fail;
     }
 
-    uint8_t *pos = params;
+    uint8_t *pos = ser_params;
     size_t remaining = needed;
     int ok;
     ok = psasim_serialise_begin(&pos, &remaining);
@@ -2225,13 +2225,13 @@ psa_status_t psa_hash_compare(
     }
 
     ok = psa_crypto_call(PSA_HASH_COMPARE,
-                         params, (size_t) (pos - params), &result, &result_length);
+                         ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
         printf("PSA_HASH_COMPARE server call failed\n");
         goto fail;
     }
 
-    uint8_t *rpos = result;
+    uint8_t *rpos = ser_result;
     size_t rremain = result_length;
 
     ok = psasim_deserialise_begin(&rpos, &rremain);
@@ -2245,8 +2245,8 @@ psa_status_t psa_hash_compare(
     }
 
 fail:
-    free(params);
-    free(result);
+    free(ser_params);
+    free(ser_result);
 
     return status;
 }
@@ -2259,8 +2259,8 @@ psa_status_t psa_hash_compute(
     size_t *hash_length
     )
 {
-    uint8_t *params = NULL;
-    uint8_t *result = NULL;
+    uint8_t *ser_params = NULL;
+    uint8_t *ser_result = NULL;
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
@@ -2270,13 +2270,13 @@ psa_status_t psa_hash_compute(
                     psasim_serialise_buffer_needs(hash, hash_size) +
                     psasim_serialise_size_t_needs(*hash_length);
 
-    params = malloc(needed);
-    if (params == NULL) {
+    ser_params = malloc(needed);
+    if (ser_params == NULL) {
         status = PSA_ERROR_INSUFFICIENT_MEMORY;
         goto fail;
     }
 
-    uint8_t *pos = params;
+    uint8_t *pos = ser_params;
     size_t remaining = needed;
     int ok;
     ok = psasim_serialise_begin(&pos, &remaining);
@@ -2301,13 +2301,13 @@ psa_status_t psa_hash_compute(
     }
 
     ok = psa_crypto_call(PSA_HASH_COMPUTE,
-                         params, (size_t) (pos - params), &result, &result_length);
+                         ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
         printf("PSA_HASH_COMPUTE server call failed\n");
         goto fail;
     }
 
-    uint8_t *rpos = result;
+    uint8_t *rpos = ser_result;
     size_t rremain = result_length;
 
     ok = psasim_deserialise_begin(&rpos, &rremain);
@@ -2331,8 +2331,8 @@ psa_status_t psa_hash_compute(
     }
 
 fail:
-    free(params);
-    free(result);
+    free(ser_params);
+    free(ser_result);
 
     return status;
 }
@@ -2344,8 +2344,8 @@ psa_status_t psa_hash_finish(
     size_t *hash_length
     )
 {
-    uint8_t *params = NULL;
-    uint8_t *result = NULL;
+    uint8_t *ser_params = NULL;
+    uint8_t *ser_result = NULL;
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
@@ -2354,13 +2354,13 @@ psa_status_t psa_hash_finish(
                     psasim_serialise_buffer_needs(hash, hash_size) +
                     psasim_serialise_size_t_needs(*hash_length);
 
-    params = malloc(needed);
-    if (params == NULL) {
+    ser_params = malloc(needed);
+    if (ser_params == NULL) {
         status = PSA_ERROR_INSUFFICIENT_MEMORY;
         goto fail;
     }
 
-    uint8_t *pos = params;
+    uint8_t *pos = ser_params;
     size_t remaining = needed;
     int ok;
     ok = psasim_serialise_begin(&pos, &remaining);
@@ -2381,13 +2381,13 @@ psa_status_t psa_hash_finish(
     }
 
     ok = psa_crypto_call(PSA_HASH_FINISH,
-                         params, (size_t) (pos - params), &result, &result_length);
+                         ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
         printf("PSA_HASH_FINISH server call failed\n");
         goto fail;
     }
 
-    uint8_t *rpos = result;
+    uint8_t *rpos = ser_result;
     size_t rremain = result_length;
 
     ok = psasim_deserialise_begin(&rpos, &rremain);
@@ -2416,8 +2416,8 @@ psa_status_t psa_hash_finish(
     }
 
 fail:
-    free(params);
-    free(result);
+    free(ser_params);
+    free(ser_result);
 
     return status;
 }
@@ -2428,8 +2428,8 @@ psa_status_t psa_hash_setup(
     psa_algorithm_t alg
     )
 {
-    uint8_t *params = NULL;
-    uint8_t *result = NULL;
+    uint8_t *ser_params = NULL;
+    uint8_t *ser_result = NULL;
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
@@ -2437,13 +2437,13 @@ psa_status_t psa_hash_setup(
                     psasim_serialise_psa_hash_operation_t_needs(*operation) +
                     psasim_serialise_psa_algorithm_t_needs(alg);
 
-    params = malloc(needed);
-    if (params == NULL) {
+    ser_params = malloc(needed);
+    if (ser_params == NULL) {
         status = PSA_ERROR_INSUFFICIENT_MEMORY;
         goto fail;
     }
 
-    uint8_t *pos = params;
+    uint8_t *pos = ser_params;
     size_t remaining = needed;
     int ok;
     ok = psasim_serialise_begin(&pos, &remaining);
@@ -2460,13 +2460,13 @@ psa_status_t psa_hash_setup(
     }
 
     ok = psa_crypto_call(PSA_HASH_SETUP,
-                         params, (size_t) (pos - params), &result, &result_length);
+                         ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
         printf("PSA_HASH_SETUP server call failed\n");
         goto fail;
     }
 
-    uint8_t *rpos = result;
+    uint8_t *rpos = ser_result;
     size_t rremain = result_length;
 
     ok = psasim_deserialise_begin(&rpos, &rremain);
@@ -2485,8 +2485,8 @@ psa_status_t psa_hash_setup(
     }
 
 fail:
-    free(params);
-    free(result);
+    free(ser_params);
+    free(ser_result);
 
     return status;
 }
@@ -2497,8 +2497,8 @@ psa_status_t psa_hash_update(
     const uint8_t *input, size_t  input_length
     )
 {
-    uint8_t *params = NULL;
-    uint8_t *result = NULL;
+    uint8_t *ser_params = NULL;
+    uint8_t *ser_result = NULL;
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
@@ -2506,13 +2506,13 @@ psa_status_t psa_hash_update(
                     psasim_serialise_psa_hash_operation_t_needs(*operation) +
                     psasim_serialise_buffer_needs(input, input_length);
 
-    params = malloc(needed);
-    if (params == NULL) {
+    ser_params = malloc(needed);
+    if (ser_params == NULL) {
         status = PSA_ERROR_INSUFFICIENT_MEMORY;
         goto fail;
     }
 
-    uint8_t *pos = params;
+    uint8_t *pos = ser_params;
     size_t remaining = needed;
     int ok;
     ok = psasim_serialise_begin(&pos, &remaining);
@@ -2529,13 +2529,13 @@ psa_status_t psa_hash_update(
     }
 
     ok = psa_crypto_call(PSA_HASH_UPDATE,
-                         params, (size_t) (pos - params), &result, &result_length);
+                         ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
         printf("PSA_HASH_UPDATE server call failed\n");
         goto fail;
     }
 
-    uint8_t *rpos = result;
+    uint8_t *rpos = ser_result;
     size_t rremain = result_length;
 
     ok = psasim_deserialise_begin(&rpos, &rremain);
@@ -2554,8 +2554,8 @@ psa_status_t psa_hash_update(
     }
 
 fail:
-    free(params);
-    free(result);
+    free(ser_params);
+    free(ser_result);
 
     return status;
 }
@@ -2566,8 +2566,8 @@ psa_status_t psa_hash_verify(
     const uint8_t *hash, size_t  hash_length
     )
 {
-    uint8_t *params = NULL;
-    uint8_t *result = NULL;
+    uint8_t *ser_params = NULL;
+    uint8_t *ser_result = NULL;
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
@@ -2575,13 +2575,13 @@ psa_status_t psa_hash_verify(
                     psasim_serialise_psa_hash_operation_t_needs(*operation) +
                     psasim_serialise_buffer_needs(hash, hash_length);
 
-    params = malloc(needed);
-    if (params == NULL) {
+    ser_params = malloc(needed);
+    if (ser_params == NULL) {
         status = PSA_ERROR_INSUFFICIENT_MEMORY;
         goto fail;
     }
 
-    uint8_t *pos = params;
+    uint8_t *pos = ser_params;
     size_t remaining = needed;
     int ok;
     ok = psasim_serialise_begin(&pos, &remaining);
@@ -2598,13 +2598,13 @@ psa_status_t psa_hash_verify(
     }
 
     ok = psa_crypto_call(PSA_HASH_VERIFY,
-                         params, (size_t) (pos - params), &result, &result_length);
+                         ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
         printf("PSA_HASH_VERIFY server call failed\n");
         goto fail;
     }
 
-    uint8_t *rpos = result;
+    uint8_t *rpos = ser_result;
     size_t rremain = result_length;
 
     ok = psasim_deserialise_begin(&rpos, &rremain);
@@ -2623,8 +2623,8 @@ psa_status_t psa_hash_verify(
     }
 
 fail:
-    free(params);
-    free(result);
+    free(ser_params);
+    free(ser_result);
 
     return status;
 }
@@ -2636,8 +2636,8 @@ psa_status_t psa_import_key(
     mbedtls_svc_key_id_t *key
     )
 {
-    uint8_t *params = NULL;
-    uint8_t *result = NULL;
+    uint8_t *ser_params = NULL;
+    uint8_t *ser_result = NULL;
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
@@ -2646,13 +2646,13 @@ psa_status_t psa_import_key(
                     psasim_serialise_buffer_needs(data, data_length) +
                     psasim_serialise_mbedtls_svc_key_id_t_needs(*key);
 
-    params = malloc(needed);
-    if (params == NULL) {
+    ser_params = malloc(needed);
+    if (ser_params == NULL) {
         status = PSA_ERROR_INSUFFICIENT_MEMORY;
         goto fail;
     }
 
-    uint8_t *pos = params;
+    uint8_t *pos = ser_params;
     size_t remaining = needed;
     int ok;
     ok = psasim_serialise_begin(&pos, &remaining);
@@ -2673,13 +2673,13 @@ psa_status_t psa_import_key(
     }
 
     ok = psa_crypto_call(PSA_IMPORT_KEY,
-                         params, (size_t) (pos - params), &result, &result_length);
+                         ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
         printf("PSA_IMPORT_KEY server call failed\n");
         goto fail;
     }
 
-    uint8_t *rpos = result;
+    uint8_t *rpos = ser_result;
     size_t rremain = result_length;
 
     ok = psasim_deserialise_begin(&rpos, &rremain);
@@ -2698,8 +2698,8 @@ psa_status_t psa_import_key(
     }
 
 fail:
-    free(params);
-    free(result);
+    free(ser_params);
+    free(ser_result);
 
     return status;
 }
@@ -2709,21 +2709,21 @@ psa_status_t psa_mac_abort(
     psa_mac_operation_t *operation
     )
 {
-    uint8_t *params = NULL;
-    uint8_t *result = NULL;
+    uint8_t *ser_params = NULL;
+    uint8_t *ser_result = NULL;
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
     size_t needed = psasim_serialise_begin_needs() +
                     psasim_serialise_psa_mac_operation_t_needs(*operation);
 
-    params = malloc(needed);
-    if (params == NULL) {
+    ser_params = malloc(needed);
+    if (ser_params == NULL) {
         status = PSA_ERROR_INSUFFICIENT_MEMORY;
         goto fail;
     }
 
-    uint8_t *pos = params;
+    uint8_t *pos = ser_params;
     size_t remaining = needed;
     int ok;
     ok = psasim_serialise_begin(&pos, &remaining);
@@ -2736,13 +2736,13 @@ psa_status_t psa_mac_abort(
     }
 
     ok = psa_crypto_call(PSA_MAC_ABORT,
-                         params, (size_t) (pos - params), &result, &result_length);
+                         ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
         printf("PSA_MAC_ABORT server call failed\n");
         goto fail;
     }
 
-    uint8_t *rpos = result;
+    uint8_t *rpos = ser_result;
     size_t rremain = result_length;
 
     ok = psasim_deserialise_begin(&rpos, &rremain);
@@ -2761,8 +2761,8 @@ psa_status_t psa_mac_abort(
     }
 
 fail:
-    free(params);
-    free(result);
+    free(ser_params);
+    free(ser_result);
 
     return status;
 }
@@ -2776,8 +2776,8 @@ psa_status_t psa_mac_compute(
     size_t *mac_length
     )
 {
-    uint8_t *params = NULL;
-    uint8_t *result = NULL;
+    uint8_t *ser_params = NULL;
+    uint8_t *ser_result = NULL;
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
@@ -2788,13 +2788,13 @@ psa_status_t psa_mac_compute(
                     psasim_serialise_buffer_needs(mac, mac_size) +
                     psasim_serialise_size_t_needs(*mac_length);
 
-    params = malloc(needed);
-    if (params == NULL) {
+    ser_params = malloc(needed);
+    if (ser_params == NULL) {
         status = PSA_ERROR_INSUFFICIENT_MEMORY;
         goto fail;
     }
 
-    uint8_t *pos = params;
+    uint8_t *pos = ser_params;
     size_t remaining = needed;
     int ok;
     ok = psasim_serialise_begin(&pos, &remaining);
@@ -2823,13 +2823,13 @@ psa_status_t psa_mac_compute(
     }
 
     ok = psa_crypto_call(PSA_MAC_COMPUTE,
-                         params, (size_t) (pos - params), &result, &result_length);
+                         ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
         printf("PSA_MAC_COMPUTE server call failed\n");
         goto fail;
     }
 
-    uint8_t *rpos = result;
+    uint8_t *rpos = ser_result;
     size_t rremain = result_length;
 
     ok = psasim_deserialise_begin(&rpos, &rremain);
@@ -2853,8 +2853,8 @@ psa_status_t psa_mac_compute(
     }
 
 fail:
-    free(params);
-    free(result);
+    free(ser_params);
+    free(ser_result);
 
     return status;
 }
@@ -2866,8 +2866,8 @@ psa_status_t psa_mac_sign_finish(
     size_t *mac_length
     )
 {
-    uint8_t *params = NULL;
-    uint8_t *result = NULL;
+    uint8_t *ser_params = NULL;
+    uint8_t *ser_result = NULL;
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
@@ -2876,13 +2876,13 @@ psa_status_t psa_mac_sign_finish(
                     psasim_serialise_buffer_needs(mac, mac_size) +
                     psasim_serialise_size_t_needs(*mac_length);
 
-    params = malloc(needed);
-    if (params == NULL) {
+    ser_params = malloc(needed);
+    if (ser_params == NULL) {
         status = PSA_ERROR_INSUFFICIENT_MEMORY;
         goto fail;
     }
 
-    uint8_t *pos = params;
+    uint8_t *pos = ser_params;
     size_t remaining = needed;
     int ok;
     ok = psasim_serialise_begin(&pos, &remaining);
@@ -2903,13 +2903,13 @@ psa_status_t psa_mac_sign_finish(
     }
 
     ok = psa_crypto_call(PSA_MAC_SIGN_FINISH,
-                         params, (size_t) (pos - params), &result, &result_length);
+                         ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
         printf("PSA_MAC_SIGN_FINISH server call failed\n");
         goto fail;
     }
 
-    uint8_t *rpos = result;
+    uint8_t *rpos = ser_result;
     size_t rremain = result_length;
 
     ok = psasim_deserialise_begin(&rpos, &rremain);
@@ -2938,8 +2938,8 @@ psa_status_t psa_mac_sign_finish(
     }
 
 fail:
-    free(params);
-    free(result);
+    free(ser_params);
+    free(ser_result);
 
     return status;
 }
@@ -2951,8 +2951,8 @@ psa_status_t psa_mac_sign_setup(
     psa_algorithm_t alg
     )
 {
-    uint8_t *params = NULL;
-    uint8_t *result = NULL;
+    uint8_t *ser_params = NULL;
+    uint8_t *ser_result = NULL;
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
@@ -2961,13 +2961,13 @@ psa_status_t psa_mac_sign_setup(
                     psasim_serialise_mbedtls_svc_key_id_t_needs(key) +
                     psasim_serialise_psa_algorithm_t_needs(alg);
 
-    params = malloc(needed);
-    if (params == NULL) {
+    ser_params = malloc(needed);
+    if (ser_params == NULL) {
         status = PSA_ERROR_INSUFFICIENT_MEMORY;
         goto fail;
     }
 
-    uint8_t *pos = params;
+    uint8_t *pos = ser_params;
     size_t remaining = needed;
     int ok;
     ok = psasim_serialise_begin(&pos, &remaining);
@@ -2988,13 +2988,13 @@ psa_status_t psa_mac_sign_setup(
     }
 
     ok = psa_crypto_call(PSA_MAC_SIGN_SETUP,
-                         params, (size_t) (pos - params), &result, &result_length);
+                         ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
         printf("PSA_MAC_SIGN_SETUP server call failed\n");
         goto fail;
     }
 
-    uint8_t *rpos = result;
+    uint8_t *rpos = ser_result;
     size_t rremain = result_length;
 
     ok = psasim_deserialise_begin(&rpos, &rremain);
@@ -3013,8 +3013,8 @@ psa_status_t psa_mac_sign_setup(
     }
 
 fail:
-    free(params);
-    free(result);
+    free(ser_params);
+    free(ser_result);
 
     return status;
 }
@@ -3025,8 +3025,8 @@ psa_status_t psa_mac_update(
     const uint8_t *input, size_t  input_length
     )
 {
-    uint8_t *params = NULL;
-    uint8_t *result = NULL;
+    uint8_t *ser_params = NULL;
+    uint8_t *ser_result = NULL;
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
@@ -3034,13 +3034,13 @@ psa_status_t psa_mac_update(
                     psasim_serialise_psa_mac_operation_t_needs(*operation) +
                     psasim_serialise_buffer_needs(input, input_length);
 
-    params = malloc(needed);
-    if (params == NULL) {
+    ser_params = malloc(needed);
+    if (ser_params == NULL) {
         status = PSA_ERROR_INSUFFICIENT_MEMORY;
         goto fail;
     }
 
-    uint8_t *pos = params;
+    uint8_t *pos = ser_params;
     size_t remaining = needed;
     int ok;
     ok = psasim_serialise_begin(&pos, &remaining);
@@ -3057,13 +3057,13 @@ psa_status_t psa_mac_update(
     }
 
     ok = psa_crypto_call(PSA_MAC_UPDATE,
-                         params, (size_t) (pos - params), &result, &result_length);
+                         ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
         printf("PSA_MAC_UPDATE server call failed\n");
         goto fail;
     }
 
-    uint8_t *rpos = result;
+    uint8_t *rpos = ser_result;
     size_t rremain = result_length;
 
     ok = psasim_deserialise_begin(&rpos, &rremain);
@@ -3082,8 +3082,8 @@ psa_status_t psa_mac_update(
     }
 
 fail:
-    free(params);
-    free(result);
+    free(ser_params);
+    free(ser_result);
 
     return status;
 }
@@ -3096,8 +3096,8 @@ psa_status_t psa_mac_verify(
     const uint8_t *mac, size_t  mac_length
     )
 {
-    uint8_t *params = NULL;
-    uint8_t *result = NULL;
+    uint8_t *ser_params = NULL;
+    uint8_t *ser_result = NULL;
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
@@ -3107,13 +3107,13 @@ psa_status_t psa_mac_verify(
                     psasim_serialise_buffer_needs(input, input_length) +
                     psasim_serialise_buffer_needs(mac, mac_length);
 
-    params = malloc(needed);
-    if (params == NULL) {
+    ser_params = malloc(needed);
+    if (ser_params == NULL) {
         status = PSA_ERROR_INSUFFICIENT_MEMORY;
         goto fail;
     }
 
-    uint8_t *pos = params;
+    uint8_t *pos = ser_params;
     size_t remaining = needed;
     int ok;
     ok = psasim_serialise_begin(&pos, &remaining);
@@ -3138,13 +3138,13 @@ psa_status_t psa_mac_verify(
     }
 
     ok = psa_crypto_call(PSA_MAC_VERIFY,
-                         params, (size_t) (pos - params), &result, &result_length);
+                         ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
         printf("PSA_MAC_VERIFY server call failed\n");
         goto fail;
     }
 
-    uint8_t *rpos = result;
+    uint8_t *rpos = ser_result;
     size_t rremain = result_length;
 
     ok = psasim_deserialise_begin(&rpos, &rremain);
@@ -3158,8 +3158,8 @@ psa_status_t psa_mac_verify(
     }
 
 fail:
-    free(params);
-    free(result);
+    free(ser_params);
+    free(ser_result);
 
     return status;
 }
@@ -3170,8 +3170,8 @@ psa_status_t psa_mac_verify_finish(
     const uint8_t *mac, size_t  mac_length
     )
 {
-    uint8_t *params = NULL;
-    uint8_t *result = NULL;
+    uint8_t *ser_params = NULL;
+    uint8_t *ser_result = NULL;
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
@@ -3179,13 +3179,13 @@ psa_status_t psa_mac_verify_finish(
                     psasim_serialise_psa_mac_operation_t_needs(*operation) +
                     psasim_serialise_buffer_needs(mac, mac_length);
 
-    params = malloc(needed);
-    if (params == NULL) {
+    ser_params = malloc(needed);
+    if (ser_params == NULL) {
         status = PSA_ERROR_INSUFFICIENT_MEMORY;
         goto fail;
     }
 
-    uint8_t *pos = params;
+    uint8_t *pos = ser_params;
     size_t remaining = needed;
     int ok;
     ok = psasim_serialise_begin(&pos, &remaining);
@@ -3202,13 +3202,13 @@ psa_status_t psa_mac_verify_finish(
     }
 
     ok = psa_crypto_call(PSA_MAC_VERIFY_FINISH,
-                         params, (size_t) (pos - params), &result, &result_length);
+                         ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
         printf("PSA_MAC_VERIFY_FINISH server call failed\n");
         goto fail;
     }
 
-    uint8_t *rpos = result;
+    uint8_t *rpos = ser_result;
     size_t rremain = result_length;
 
     ok = psasim_deserialise_begin(&rpos, &rremain);
@@ -3227,8 +3227,8 @@ psa_status_t psa_mac_verify_finish(
     }
 
 fail:
-    free(params);
-    free(result);
+    free(ser_params);
+    free(ser_result);
 
     return status;
 }
@@ -3240,8 +3240,8 @@ psa_status_t psa_mac_verify_setup(
     psa_algorithm_t alg
     )
 {
-    uint8_t *params = NULL;
-    uint8_t *result = NULL;
+    uint8_t *ser_params = NULL;
+    uint8_t *ser_result = NULL;
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
@@ -3250,13 +3250,13 @@ psa_status_t psa_mac_verify_setup(
                     psasim_serialise_mbedtls_svc_key_id_t_needs(key) +
                     psasim_serialise_psa_algorithm_t_needs(alg);
 
-    params = malloc(needed);
-    if (params == NULL) {
+    ser_params = malloc(needed);
+    if (ser_params == NULL) {
         status = PSA_ERROR_INSUFFICIENT_MEMORY;
         goto fail;
     }
 
-    uint8_t *pos = params;
+    uint8_t *pos = ser_params;
     size_t remaining = needed;
     int ok;
     ok = psasim_serialise_begin(&pos, &remaining);
@@ -3277,13 +3277,13 @@ psa_status_t psa_mac_verify_setup(
     }
 
     ok = psa_crypto_call(PSA_MAC_VERIFY_SETUP,
-                         params, (size_t) (pos - params), &result, &result_length);
+                         ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
         printf("PSA_MAC_VERIFY_SETUP server call failed\n");
         goto fail;
     }
 
-    uint8_t *rpos = result;
+    uint8_t *rpos = ser_result;
     size_t rremain = result_length;
 
     ok = psasim_deserialise_begin(&rpos, &rremain);
@@ -3302,8 +3302,8 @@ psa_status_t psa_mac_verify_setup(
     }
 
 fail:
-    free(params);
-    free(result);
+    free(ser_params);
+    free(ser_result);
 
     return status;
 }

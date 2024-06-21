@@ -4980,6 +4980,412 @@ fail:
     return 0;       // This shouldn't happen!
 }
 
+// Returns 1 for success, 0 for failure
+int psa_sign_hash_wrapper(
+    uint8_t *in_params, size_t in_params_len,
+    uint8_t **out_params, size_t *out_params_len)
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    mbedtls_svc_key_id_t key;
+    psa_algorithm_t alg;
+    uint8_t *hash = NULL;
+    size_t hash_length;
+    uint8_t *signature = NULL;
+    size_t signature_size;
+    size_t signature_length;
+
+    uint8_t *pos = in_params;
+    size_t remaining = in_params_len;
+    uint8_t *result = NULL;
+    int ok;
+
+    ok = psasim_deserialise_begin(&pos, &remaining);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_mbedtls_svc_key_id_t(&pos, &remaining, &key);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_psa_algorithm_t(&pos, &remaining, &alg);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_buffer(&pos, &remaining, &hash, &hash_length);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_buffer(&pos, &remaining, &signature, &signature_size);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_size_t(&pos, &remaining, &signature_length);
+    if (!ok) {
+        goto fail;
+    }
+
+    // Now we call the actual target function
+
+    status = psa_sign_hash(
+        key,
+        alg,
+        hash, hash_length,
+        signature, signature_size,
+        &signature_length
+        );
+
+    // NOTE: Should really check there is no overflow as we go along.
+    size_t result_size =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_psa_status_t_needs(status) +
+        psasim_serialise_buffer_needs(signature, signature_size) +
+        psasim_serialise_size_t_needs(signature_length);
+
+    result = malloc(result_size);
+    if (result == NULL) {
+        goto fail;
+    }
+
+    uint8_t *rpos = result;
+    size_t rremain = result_size;
+
+    ok = psasim_serialise_begin(&rpos, &rremain);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_serialise_psa_status_t(&rpos, &rremain, status);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_serialise_buffer(&rpos, &rremain, signature, signature_size);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_serialise_size_t(&rpos, &rremain, signature_length);
+    if (!ok) {
+        goto fail;
+    }
+
+    *out_params = result;
+    *out_params_len = result_size;
+
+    free(hash);
+    free(signature);
+
+    return 1;   // success
+
+fail:
+    free(result);
+
+    free(hash);
+    free(signature);
+
+    return 0;       // This shouldn't happen!
+}
+
+// Returns 1 for success, 0 for failure
+int psa_sign_message_wrapper(
+    uint8_t *in_params, size_t in_params_len,
+    uint8_t **out_params, size_t *out_params_len)
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    mbedtls_svc_key_id_t key;
+    psa_algorithm_t alg;
+    uint8_t *input = NULL;
+    size_t input_length;
+    uint8_t *signature = NULL;
+    size_t signature_size;
+    size_t signature_length;
+
+    uint8_t *pos = in_params;
+    size_t remaining = in_params_len;
+    uint8_t *result = NULL;
+    int ok;
+
+    ok = psasim_deserialise_begin(&pos, &remaining);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_mbedtls_svc_key_id_t(&pos, &remaining, &key);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_psa_algorithm_t(&pos, &remaining, &alg);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_buffer(&pos, &remaining, &input, &input_length);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_buffer(&pos, &remaining, &signature, &signature_size);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_size_t(&pos, &remaining, &signature_length);
+    if (!ok) {
+        goto fail;
+    }
+
+    // Now we call the actual target function
+
+    status = psa_sign_message(
+        key,
+        alg,
+        input, input_length,
+        signature, signature_size,
+        &signature_length
+        );
+
+    // NOTE: Should really check there is no overflow as we go along.
+    size_t result_size =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_psa_status_t_needs(status) +
+        psasim_serialise_buffer_needs(signature, signature_size) +
+        psasim_serialise_size_t_needs(signature_length);
+
+    result = malloc(result_size);
+    if (result == NULL) {
+        goto fail;
+    }
+
+    uint8_t *rpos = result;
+    size_t rremain = result_size;
+
+    ok = psasim_serialise_begin(&rpos, &rremain);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_serialise_psa_status_t(&rpos, &rremain, status);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_serialise_buffer(&rpos, &rremain, signature, signature_size);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_serialise_size_t(&rpos, &rremain, signature_length);
+    if (!ok) {
+        goto fail;
+    }
+
+    *out_params = result;
+    *out_params_len = result_size;
+
+    free(input);
+    free(signature);
+
+    return 1;   // success
+
+fail:
+    free(result);
+
+    free(input);
+    free(signature);
+
+    return 0;       // This shouldn't happen!
+}
+
+// Returns 1 for success, 0 for failure
+int psa_verify_hash_wrapper(
+    uint8_t *in_params, size_t in_params_len,
+    uint8_t **out_params, size_t *out_params_len)
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    mbedtls_svc_key_id_t key;
+    psa_algorithm_t alg;
+    uint8_t *hash = NULL;
+    size_t hash_length;
+    uint8_t *signature = NULL;
+    size_t signature_length;
+
+    uint8_t *pos = in_params;
+    size_t remaining = in_params_len;
+    uint8_t *result = NULL;
+    int ok;
+
+    ok = psasim_deserialise_begin(&pos, &remaining);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_mbedtls_svc_key_id_t(&pos, &remaining, &key);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_psa_algorithm_t(&pos, &remaining, &alg);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_buffer(&pos, &remaining, &hash, &hash_length);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_buffer(&pos, &remaining, &signature, &signature_length);
+    if (!ok) {
+        goto fail;
+    }
+
+    // Now we call the actual target function
+
+    status = psa_verify_hash(
+        key,
+        alg,
+        hash, hash_length,
+        signature, signature_length
+        );
+
+    // NOTE: Should really check there is no overflow as we go along.
+    size_t result_size =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_psa_status_t_needs(status);
+
+    result = malloc(result_size);
+    if (result == NULL) {
+        goto fail;
+    }
+
+    uint8_t *rpos = result;
+    size_t rremain = result_size;
+
+    ok = psasim_serialise_begin(&rpos, &rremain);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_serialise_psa_status_t(&rpos, &rremain, status);
+    if (!ok) {
+        goto fail;
+    }
+
+    *out_params = result;
+    *out_params_len = result_size;
+
+    free(hash);
+    free(signature);
+
+    return 1;   // success
+
+fail:
+    free(result);
+
+    free(hash);
+    free(signature);
+
+    return 0;       // This shouldn't happen!
+}
+
+// Returns 1 for success, 0 for failure
+int psa_verify_message_wrapper(
+    uint8_t *in_params, size_t in_params_len,
+    uint8_t **out_params, size_t *out_params_len)
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    mbedtls_svc_key_id_t key;
+    psa_algorithm_t alg;
+    uint8_t *input = NULL;
+    size_t input_length;
+    uint8_t *signature = NULL;
+    size_t signature_length;
+
+    uint8_t *pos = in_params;
+    size_t remaining = in_params_len;
+    uint8_t *result = NULL;
+    int ok;
+
+    ok = psasim_deserialise_begin(&pos, &remaining);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_mbedtls_svc_key_id_t(&pos, &remaining, &key);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_psa_algorithm_t(&pos, &remaining, &alg);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_buffer(&pos, &remaining, &input, &input_length);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_buffer(&pos, &remaining, &signature, &signature_length);
+    if (!ok) {
+        goto fail;
+    }
+
+    // Now we call the actual target function
+
+    status = psa_verify_message(
+        key,
+        alg,
+        input, input_length,
+        signature, signature_length
+        );
+
+    // NOTE: Should really check there is no overflow as we go along.
+    size_t result_size =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_psa_status_t_needs(status);
+
+    result = malloc(result_size);
+    if (result == NULL) {
+        goto fail;
+    }
+
+    uint8_t *rpos = result;
+    size_t rremain = result_size;
+
+    ok = psasim_serialise_begin(&rpos, &rremain);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_serialise_psa_status_t(&rpos, &rremain, status);
+    if (!ok) {
+        goto fail;
+    }
+
+    *out_params = result;
+    *out_params_len = result_size;
+
+    free(input);
+    free(signature);
+
+    return 1;   // success
+
+fail:
+    free(result);
+
+    free(input);
+    free(signature);
+
+    return 0;       // This shouldn't happen!
+}
+
 psa_status_t psa_crypto_call(psa_msg_t msg)
 {
     int ok = 0;
@@ -5239,6 +5645,22 @@ psa_status_t psa_crypto_call(psa_msg_t msg)
         case PSA_RAW_KEY_AGREEMENT:
             ok = psa_raw_key_agreement_wrapper(in_params, in_params_len,
                                                &out_params, &out_params_len);
+            break;
+        case PSA_SIGN_HASH:
+            ok = psa_sign_hash_wrapper(in_params, in_params_len,
+                                       &out_params, &out_params_len);
+            break;
+        case PSA_SIGN_MESSAGE:
+            ok = psa_sign_message_wrapper(in_params, in_params_len,
+                                          &out_params, &out_params_len);
+            break;
+        case PSA_VERIFY_HASH:
+            ok = psa_verify_hash_wrapper(in_params, in_params_len,
+                                         &out_params, &out_params_len);
+            break;
+        case PSA_VERIFY_MESSAGE:
+            ok = psa_verify_message_wrapper(in_params, in_params_len,
+                                            &out_params, &out_params_len);
             break;
     }
 

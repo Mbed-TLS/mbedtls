@@ -6080,47 +6080,16 @@ component_test_psasim() {
     msg "build library for client"
     helper_crypto_client_build client
 
-    msg "build psasim to test psa_client"
-    rm -f tests/psa-client-server/psasim/test/psa_client        # In case left behind
-    make -C tests/psa-client-server/psasim CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS" test/psa_client
+    msg "build basic psasim client"
+    make -C tests/psa-client-server/psasim CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS" test/psa_client_base
+    msg "test basic psasim client"
+    tests/psa-client-server/psasim/test/run_test.sh psa_client_base
 
-    msg "test psasim"
-    tests/psa-client-server/psasim/test/run_test.sh
+    msg "build full psasim client"
+    make -C tests/psa-client-server/psasim CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS" test/psa_client_full
+    msg "test full psasim client"
+    tests/psa-client-server/psasim/test/run_test.sh psa_client_full
 
-
-    msg "build psasim to test psa_hash_compute"
-    # Delete the executable to ensure we build using the right MAIN
-    rm tests/psa-client-server/psasim/test/psa_client
-    # API under test: psa_hash_compute()
-    make -C tests/psa-client-server/psasim CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS" MAIN="src/aut_psa_hash_compute.c" test/psa_client
-
-    msg "test psasim running psa_hash_compute"
-    tests/psa-client-server/psasim/test/run_test.sh
-
-
-    # Next APIs under test: psa_hash_*(). Use our copy of the PSA hash example.
-    msg "build psasim to test all psa_hash_* APIs"
-    # Delete the executable to ensure we build using the right MAIN
-    rm tests/psa-client-server/psasim/test/psa_client
-    make -C tests/psa-client-server/psasim CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS" MAIN="src/aut_psa_hash.c" test/psa_client
-
-    msg "test psasim running psa_hash sample"
-    tests/psa-client-server/psasim/test/run_test.sh
-
-
-    # Next APIs under test: psa_aead_*(). Use our copy of the PSA aead example.
-    msg "build psasim to test all psa_aead_* APIs"
-    # Delete the executable to ensure we build using the right MAIN
-    rm tests/psa-client-server/psasim/test/psa_client
-    make -C tests/psa-client-server/psasim CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS" MAIN="src/aut_psa_aead_demo.c" test/psa_client
-
-    msg "test psasim running psa_aead_demo sample"
-    tests/psa-client-server/psasim/test/run_test.sh aes128-gcm
-    tests/psa-client-server/psasim/test/run_test.sh aes256-gcm
-    tests/psa-client-server/psasim/test/run_test.sh aes128-gcm_8
-    tests/psa-client-server/psasim/test/run_test.sh chachapoly
-
-    msg "clean psasim"
     make -C tests/psa-client-server/psasim clean
 }
 

@@ -13,6 +13,9 @@ set -e
 
 cd "$(dirname "$0")"
 
+CLIENT_BIN=$1
+shift
+
 function clean_run() {
     rm -f psa_notify_*
     pkill psa_partition || true
@@ -30,8 +33,9 @@ function wait_for_server_startup() {
 
 clean_run
 
-./psa_partition -k &
-SERV_PID=$!
+./psa_partition &
 wait_for_server_startup
-./psa_client "$@"
-wait $SERV_PID
+./$CLIENT_BIN "$@"
+
+# Kill server once client exited
+pkill psa_partition

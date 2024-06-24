@@ -46,7 +46,7 @@
     !defined(MBEDTLS_AES_C) || !defined(MBEDTLS_GCM_C) || \
     !defined(MBEDTLS_CHACHAPOLY_C) || \
     defined(MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER))
-int main(void)
+int psa_aead_main(void)
 {
     printf("MBEDTLS_PSA_CRYPTO_CLIENT or "
            "MBEDTLS_PSA_CRYPTO_C and/or "
@@ -257,21 +257,15 @@ exit:
 /*
  * Main function
  */
-int main(int argc, char **argv)
+int psa_aead_main(char *cipher_name)
 {
     psa_status_t status = PSA_SUCCESS;
-
-    /* Check usage */
-    if (argc != 2) {
-        puts(usage);
-        return EXIT_FAILURE;
-    }
 
     /* Initialize the PSA crypto library. */
     PSA_CHECK(psa_crypto_init());
 
     /* Run the demo */
-    PSA_CHECK(aead_demo(argv[1]));
+    PSA_CHECK(aead_demo(cipher_name));
 
     /* Deinitialize the PSA crypto library. */
     mbedtls_psa_crypto_free();

@@ -521,10 +521,10 @@ pre_parse_command_line () {
         all_except=1
     fi
 
-    # --no-armcc is a legacy option. The modern way is --except '*_armcc*'.
+    # --no-armcc is a legacy option. The modern way is --except '*_armc*'.
     # Ignore it if components are listed explicitly on the command line.
     if [ -n "$no_armcc" ] && [ $all_except -eq 1 ]; then
-        COMMAND_LINE_COMPONENTS="$COMMAND_LINE_COMPONENTS *_armcc*"
+        COMMAND_LINE_COMPONENTS="$COMMAND_LINE_COMPONENTS *_armc*"
     fi
 
     # Error out if an explicitly requested component doesn't exist.
@@ -803,15 +803,25 @@ pre_check_tools () {
     esac
 
     case " $RUN_COMPONENTS " in
-        *_armcc*)
+        *_armc5*)
             ARMC5_CC="$ARMC5_BIN_DIR/armcc"
             ARMC5_AR="$ARMC5_BIN_DIR/armar"
             ARMC5_FROMELF="$ARMC5_BIN_DIR/fromelf"
+            set "$@" ARMC5_CC="$ARMC5_CC" RUN_ARMC5=1
+            check_tools "$ARMC5_CC" "$ARMC5_AR" "$ARMC5_FROMELF";;
+        *)
+            set "$@" RUN_ARMC5=0;;
+    esac
+
+    case " $RUN_COMPONENTS " in
+        *_armc6*)
             ARMC6_CC="$ARMC6_BIN_DIR/armclang"
             ARMC6_AR="$ARMC6_BIN_DIR/armar"
             ARMC6_FROMELF="$ARMC6_BIN_DIR/fromelf"
-            check_tools "$ARMC5_CC" "$ARMC5_AR" "$ARMC5_FROMELF" \
-                        "$ARMC6_CC" "$ARMC6_AR" "$ARMC6_FROMELF";;
+            set "$@" ARMC6_CC="$ARMC6_CC" RUN_ARMC6=1
+            check_tools "$ARMC6_CC" "$ARMC6_AR" "$ARMC6_FROMELF";;
+        *)
+            set "$@" RUN_ARMC6=0;;
     esac
 
     # past this point, no call to check_tool, only printing output
@@ -820,11 +830,6 @@ pre_check_tools () {
     fi
 
     msg "info: output_env.sh"
-    case $RUN_COMPONENTS in
-        *_armcc*)
-            set "$@" ARMC5_CC="$ARMC5_CC" ARMC6_CC="$ARMC6_CC" RUN_ARMCC=1;;
-        *) set "$@" RUN_ARMCC=0;;
-    esac
     "$@" scripts/output_env.sh
 }
 
@@ -4048,11 +4053,11 @@ component_test_ccm_aes_sha256() {
     make test
 }
 
-support_build_tfm_armcc () {
-    support_build_armcc
+support_build_tfm_armc6 () {
+    support_build_armc6
 }
 
-component_build_tfm_armcc() {
+component_build_tfm_armc6() {
     # test the TF-M configuration can build cleanly with various warning flags enabled
     cp configs/config-tfm.h "$CONFIG_H"
 
@@ -4589,8 +4594,12 @@ component_test_aesni_m32_clang() {
     grep -q mbedtls_aesni_has_support ./programs/test/selftest
 }
 
+support_build_aes_aesce_armc6 () {
+    support_build_armc6
+}
+
 # For timebeing, no aarch64 gcc available in CI and no arm64 CI node.
-component_build_aes_aesce_armcc () {
+component_build_aes_aesce_armc6 () {
     msg "Build: AESCE test on arm64 platform without plain C."
     scripts/config.py baremetal
 
@@ -4760,10 +4769,6 @@ support_build_aes_via_padlock_only () {
     ( [ "$MBEDTLS_TEST_PLATFORM" == "Linux-x86_64" ] || \
         [ "$MBEDTLS_TEST_PLATFORM" == "Linux-amd64" ] ) && \
     [ "`dpkg --print-foreign-architectures`" == "i386" ]
-}
-
-support_build_aes_aesce_armcc () {
-    support_build_armcc
 }
 
 component_test_aes_only_128_bit_keys () {
@@ -4965,11 +4970,11 @@ component_test_block_cipher_no_decrypt_aesni_use_psa () {
     common_block_cipher_no_decrypt
 }
 
-support_test_block_cipher_no_decrypt_aesce_armcc () {
-    support_build_armcc
+support_test_block_cipher_no_decrypt_aesce_armc6 () {
+    support_build_armc6
 }
 
-component_test_block_cipher_no_decrypt_aesce_armcc () {
+component_test_block_cipher_no_decrypt_aesce_armc6 () {
     scripts/config.py baremetal
 
     # armc[56] don't support SHA-512 intrinsics
@@ -5457,13 +5462,27 @@ component_build_arm_clang_thumb () {
     make CC="clang" CFLAGS='-std=c99 -Werror -Os --target=arm-linux-gnueabihf -mcpu=arm1136j-s -mthumb' lib
 }
 
-component_build_armcc () {
+component_build_armc5 () {
     msg "build: ARM Compiler 5"
+    scripts/config.py baremetal
+    # armc5 doesn't support SHA-512 intrinsics
+    scripts/config.py unset MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT
+
+    scripts/config.py set MBEDTLS_HAVE_ASM
+
+    make CC="$ARMC5_CC" AR="$ARMC5_AR" WARNING_CFLAGS='--strict --c99' lib
+
+    msg "size: ARM Compiler 5"
+    "$ARMC5_FROMELF" -z library/*.o
+}
+
+component_build_armc6 () {
+    msg "build: baremetal - MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT - MBEDTLS_AESCE_C - MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_IF_PRESENT"
     scripts/config.py baremetal
     # armc[56] don't support SHA-512 intrinsics
     scripts/config.py unset MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT
 
-    # older versions of armcc/armclang don't support AESCE_C on 32-bit Arm
+    # Older versions of armclang don't support AESCE_C on 32-bit Arm
     scripts/config.py unset MBEDTLS_AESCE_C
 
     # Stop armclang warning about feature detection for A64_CRYPTO.
@@ -5475,11 +5494,6 @@ component_build_armcc () {
     scripts/config.py unset MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_IF_PRESENT
 
     scripts/config.py set MBEDTLS_HAVE_ASM
-
-    make CC="$ARMC5_CC" AR="$ARMC5_AR" WARNING_CFLAGS='--strict --c99' lib
-
-    msg "size: ARM Compiler 5"
-    "$ARMC5_FROMELF" -z library/*.o
 
     # Compile mostly with -O1 since some Arm inline assembly is disabled for -O0.
 
@@ -5512,10 +5526,14 @@ component_build_armcc () {
     armc6_build_test "-O1 --target=aarch64-arm-none-eabi -march=armv8.2-a+crypto"
 }
 
-support_build_armcc () {
+support_build_armc5 () {
     armc5_cc="$ARMC5_BIN_DIR/armcc"
+    (check_tools "$armc5_cc" > /dev/null 2>&1)
+}
+
+support_build_armc6 () {
     armc6_cc="$ARMC6_BIN_DIR/armclang"
-    (check_tools "$armc5_cc" "$armc6_cc" > /dev/null 2>&1)
+    (check_tools "$armc6_cc" > /dev/null 2>&1)
 }
 
 component_test_tls12_only () {

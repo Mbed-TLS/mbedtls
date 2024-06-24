@@ -45,7 +45,6 @@ typedef enum {
     MBEDTLS_ECJPAKE_NONE,               /**< Undefined                      */
 } mbedtls_ecjpake_role;
 
-#if !defined(MBEDTLS_ECJPAKE_ALT)
 /**
  * EC J-PAKE context structure.
  *
@@ -74,10 +73,6 @@ typedef struct mbedtls_ecjpake_context {
 
     mbedtls_mpi MBEDTLS_PRIVATE(s);                      /**< Pre-shared secret (passphrase) */
 } mbedtls_ecjpake_context;
-
-#else  /* MBEDTLS_ECJPAKE_ALT */
-#include "ecjpake_alt.h"
-#endif /* MBEDTLS_ECJPAKE_ALT */
 
 /**
  * \brief           Initialize an ECJPAKE context.

@@ -248,9 +248,7 @@ uint64_t mbedtls_test_parse_binary_string(data_t *bin_string);
  *  \param key_type  Key type
  *  \param key_bits  Key length in number of bits.
  */
-#if defined(MBEDTLS_AES_ALT) || \
-    defined(MBEDTLS_AES_SETKEY_ENC_ALT) || \
-    defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_AES)
+#if defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_AES)
 #define MBEDTLS_TEST_HAVE_ALT_AES 1
 #else
 #define MBEDTLS_TEST_HAVE_ALT_AES 0
@@ -291,8 +289,7 @@ uint64_t mbedtls_test_parse_binary_string(data_t *bin_string);
  *  \param  alg             The AEAD algorithm.
  *  \param  nonce_length    The nonce length in number of bytes.
  */
-#if defined(MBEDTLS_GCM_ALT) || \
-    defined(MBEDTLS_PSA_ACCEL_ALG_GCM)
+#if defined(MBEDTLS_PSA_ACCEL_ALG_GCM)
 #define MBEDTLS_TEST_HAVE_ALT_GCM  1
 #else
 #define MBEDTLS_TEST_HAVE_ALT_GCM  0

@@ -26,10 +26,6 @@
 extern "C" {
 #endif
 
-#if !defined(MBEDTLS_SHA256_ALT)
-// Regular implementation
-//
-
 /**
  * \brief          The SHA-256 context structure.
  *
@@ -47,10 +43,6 @@ typedef struct mbedtls_sha256_context {
 #endif
 }
 mbedtls_sha256_context;
-
-#else  /* MBEDTLS_SHA256_ALT */
-#include "sha256_alt.h"
-#endif /* MBEDTLS_SHA256_ALT */
 
 /**
  * \brief          This function initializes a SHA-256 context.

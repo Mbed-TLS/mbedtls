@@ -34,10 +34,6 @@
 extern "C" {
 #endif
 
-#if !defined(MBEDTLS_DES_ALT)
-// Regular implementation
-//
-
 /**
  * \brief          DES context structure
  *
@@ -62,9 +58,6 @@ typedef struct mbedtls_des3_context {
 }
 mbedtls_des3_context;
 
-#else  /* MBEDTLS_DES_ALT */
-#include "des_alt.h"
-#endif /* MBEDTLS_DES_ALT */
 
 /**
  * \brief          Initialize DES context
@@ -350,21 +343,6 @@ int mbedtls_des3_crypt_cbc(mbedtls_des3_context *ctx,
                            const unsigned char *input,
                            unsigned char *output);
 #endif /* MBEDTLS_CIPHER_MODE_CBC */
-
-/**
- * \brief          Internal function for key expansion.
- *                 (Only exposed to allow overriding it,
- *                 see MBEDTLS_DES_SETKEY_ALT)
- *
- * \param SK       Round keys
- * \param key      Base key
- *
- * \warning        DES/3DES are considered weak ciphers and their use constitutes a
- *                 security risk. We recommend considering stronger ciphers
- *                 instead.
- */
-void mbedtls_des_setkey(uint32_t SK[32],
-                        const unsigned char key[MBEDTLS_DES_KEY_SIZE]);
 
 #if defined(MBEDTLS_SELF_TEST)
 

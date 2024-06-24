@@ -2461,19 +2461,7 @@ component_build_module_alt () {
     # Enable all MBEDTLS_XXX_ALT for whole modules. Do not enable
     # MBEDTLS_XXX_YYY_ALT which are for single functions.
     scripts/config.py set-all 'MBEDTLS_([A-Z0-9]*|NIST_KW)_ALT'
-    scripts/config.py unset MBEDTLS_DHM_ALT #incompatible with MBEDTLS_DEBUG_C
 
-    # We can only compile, not link, since we don't have any implementations
-    # suitable for testing with the dummy alt headers.
-    make CFLAGS='-Werror -Wall -Wextra -I../tests/include/alt-dummy' lib
-}
-
-component_build_dhm_alt () {
-    msg "build: MBEDTLS_DHM_ALT" # ~30s
-    scripts/config.py full
-    scripts/config.py set MBEDTLS_DHM_ALT
-    # debug.c currently references mbedtls_dhm_context fields directly.
-    scripts/config.py unset MBEDTLS_DEBUG_C
     # We can only compile, not link, since we don't have any implementations
     # suitable for testing with the dummy alt headers.
     make CFLAGS='-Werror -Wall -Wextra -I../tests/include/alt-dummy' lib
@@ -4174,10 +4162,9 @@ component_build_aes_variations() {
     msg "build: aes.o for all combinations of relevant config options"
 
     build_test_config_combos library/aes.o validate_aes_config_variations \
-        "MBEDTLS_AES_SETKEY_ENC_ALT" "MBEDTLS_AES_DECRYPT_ALT" \
-        "MBEDTLS_AES_ROM_TABLES" "MBEDTLS_AES_ENCRYPT_ALT" "MBEDTLS_AES_SETKEY_DEC_ALT" \
-        "MBEDTLS_AES_FEWER_TABLES" "MBEDTLS_PADLOCK_C" "MBEDTLS_AES_USE_HARDWARE_ONLY" \
-        "MBEDTLS_AESNI_C" "MBEDTLS_AESCE_C" "MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH"
+        "MBEDTLS_AES_ROM_TABLES" "MBEDTLS_AES_FEWER_TABLES" "MBEDTLS_PADLOCK_C" \
+        "MBEDTLS_AES_USE_HARDWARE_ONLY" "MBEDTLS_AESNI_C" "MBEDTLS_AESCE_C" \
+        "MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH"
 
     cd "$MBEDTLS_ROOT_DIR"
     msg "build: aes.o for all combinations of relevant config options + BLOCK_CIPHER_NO_DECRYPT"
@@ -4191,10 +4178,9 @@ component_build_aes_variations() {
     scripts/config.py unset MBEDTLS_DES_C
     scripts/config.py unset MBEDTLS_NIST_KW_C
     build_test_config_combos library/aes.o validate_aes_config_variations \
-        "MBEDTLS_AES_SETKEY_ENC_ALT" "MBEDTLS_AES_DECRYPT_ALT" \
-        "MBEDTLS_AES_ROM_TABLES" "MBEDTLS_AES_ENCRYPT_ALT" "MBEDTLS_AES_SETKEY_DEC_ALT" \
-        "MBEDTLS_AES_FEWER_TABLES" "MBEDTLS_PADLOCK_C" "MBEDTLS_AES_USE_HARDWARE_ONLY" \
-        "MBEDTLS_AESNI_C" "MBEDTLS_AESCE_C" "MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH"
+        "MBEDTLS_AES_ROM_TABLES" "MBEDTLS_AES_FEWER_TABLES" "MBEDTLS_PADLOCK_C" \
+        "MBEDTLS_AES_USE_HARDWARE_ONLY" "MBEDTLS_AESNI_C" "MBEDTLS_AESCE_C" \
+        "MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH"
 }
 
 component_test_no_platform () {

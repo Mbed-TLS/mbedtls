@@ -53,10 +53,6 @@
 extern "C" {
 #endif
 
-#if !defined(MBEDTLS_AES_ALT)
-// Regular implementation
-//
-
 /**
  * \brief The AES context-type definition.
  */
@@ -91,10 +87,6 @@ typedef struct mbedtls_aes_xts_context {
                                                    computation. */
 } mbedtls_aes_xts_context;
 #endif /* MBEDTLS_CIPHER_MODE_XTS */
-
-#else  /* MBEDTLS_AES_ALT */
-#include "aes_alt.h"
-#endif /* MBEDTLS_AES_ALT */
 
 /**
  * \brief          This function initializes the specified AES context.
@@ -577,40 +569,6 @@ int mbedtls_aes_crypt_ctr(mbedtls_aes_context *ctx,
                           const unsigned char *input,
                           unsigned char *output);
 #endif /* MBEDTLS_CIPHER_MODE_CTR */
-
-/**
- * \brief           Internal AES block encryption function. This is only
- *                  exposed to allow overriding it using
- *                  \c MBEDTLS_AES_ENCRYPT_ALT.
- *
- * \param ctx       The AES context to use for encryption.
- * \param input     The plaintext block.
- * \param output    The output (ciphertext) block.
- *
- * \return          \c 0 on success.
- */
-MBEDTLS_CHECK_RETURN_TYPICAL
-int mbedtls_internal_aes_encrypt(mbedtls_aes_context *ctx,
-                                 const unsigned char input[16],
-                                 unsigned char output[16]);
-
-#if !defined(MBEDTLS_BLOCK_CIPHER_NO_DECRYPT)
-/**
- * \brief           Internal AES block decryption function. This is only
- *                  exposed to allow overriding it using see
- *                  \c MBEDTLS_AES_DECRYPT_ALT.
- *
- * \param ctx       The AES context to use for decryption.
- * \param input     The ciphertext block.
- * \param output    The output (plaintext) block.
- *
- * \return          \c 0 on success.
- */
-MBEDTLS_CHECK_RETURN_TYPICAL
-int mbedtls_internal_aes_decrypt(mbedtls_aes_context *ctx,
-                                 const unsigned char input[16],
-                                 unsigned char output[16]);
-#endif /* !MBEDTLS_BLOCK_CIPHER_NO_DECRYPT */
 
 #if defined(MBEDTLS_SELF_TEST)
 /**

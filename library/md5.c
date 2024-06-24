@@ -22,8 +22,6 @@
 
 #include "mbedtls/platform.h"
 
-#if !defined(MBEDTLS_MD5_ALT)
-
 void mbedtls_md5_init(mbedtls_md5_context *ctx)
 {
     memset(ctx, 0, sizeof(mbedtls_md5_context));
@@ -60,7 +58,6 @@ int mbedtls_md5_starts(mbedtls_md5_context *ctx)
     return 0;
 }
 
-#if !defined(MBEDTLS_MD5_PROCESS_ALT)
 int mbedtls_internal_md5_process(mbedtls_md5_context *ctx,
                                  const unsigned char data[64])
 {
@@ -195,8 +192,6 @@ int mbedtls_internal_md5_process(mbedtls_md5_context *ctx,
     return 0;
 }
 
-#endif /* !MBEDTLS_MD5_PROCESS_ALT */
-
 /*
  * MD5 process buffer
  */
@@ -308,8 +303,6 @@ exit:
     mbedtls_md5_free(ctx);
     return ret;
 }
-
-#endif /* !MBEDTLS_MD5_ALT */
 
 /*
  * output = MD5( input buffer )

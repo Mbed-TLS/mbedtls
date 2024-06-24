@@ -146,7 +146,7 @@ int mbedtls_ct_memcmp_partial(const void *a,
 
 #endif
 
-#if defined(MBEDTLS_PKCS1_V15) && defined(MBEDTLS_RSA_C) && !defined(MBEDTLS_RSA_ALT)
+#if defined(MBEDTLS_PKCS1_V15) && defined(MBEDTLS_RSA_C)
 
 void mbedtls_ct_memmove_left(void *start, size_t total, size_t offset)
 {
@@ -165,7 +165,7 @@ void mbedtls_ct_memmove_left(void *start, size_t total, size_t offset)
     }
 }
 
-#endif /* MBEDTLS_PKCS1_V15 && MBEDTLS_RSA_C && ! MBEDTLS_RSA_ALT */
+#endif /* MBEDTLS_PKCS1_V15 && MBEDTLS_RSA_C */
 
 void mbedtls_ct_memcpy_if(mbedtls_ct_condition_t condition,
                           unsigned char *dest,
@@ -227,7 +227,7 @@ void mbedtls_ct_memcpy_offset(unsigned char *dest,
     }
 }
 
-#if defined(MBEDTLS_PKCS1_V15) && defined(MBEDTLS_RSA_C) && !defined(MBEDTLS_RSA_ALT)
+#if defined(MBEDTLS_PKCS1_V15) && defined(MBEDTLS_RSA_C)
 
 void mbedtls_ct_zeroize_if(mbedtls_ct_condition_t condition, void *buf, size_t len)
 {
@@ -245,4 +245,4 @@ void mbedtls_ct_zeroize_if(mbedtls_ct_condition_t condition, void *buf, size_t l
     }
 }
 
-#endif /* defined(MBEDTLS_PKCS1_V15) && defined(MBEDTLS_RSA_C) && !defined(MBEDTLS_RSA_ALT) */
+#endif /* defined(MBEDTLS_PKCS1_V15) && defined(MBEDTLS_RSA_C) */

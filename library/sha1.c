@@ -22,8 +22,6 @@
 
 #include "mbedtls/platform.h"
 
-#if !defined(MBEDTLS_SHA1_ALT)
-
 void mbedtls_sha1_init(mbedtls_sha1_context *ctx)
 {
     memset(ctx, 0, sizeof(mbedtls_sha1_context));
@@ -61,7 +59,6 @@ int mbedtls_sha1_starts(mbedtls_sha1_context *ctx)
     return 0;
 }
 
-#if !defined(MBEDTLS_SHA1_PROCESS_ALT)
 int mbedtls_internal_sha1_process(mbedtls_sha1_context *ctx,
                                   const unsigned char data[64])
 {
@@ -230,8 +227,6 @@ int mbedtls_internal_sha1_process(mbedtls_sha1_context *ctx,
     return 0;
 }
 
-#endif /* !MBEDTLS_SHA1_PROCESS_ALT */
-
 /*
  * SHA-1 process buffer
  */
@@ -345,8 +340,6 @@ exit:
     mbedtls_sha1_free(ctx);
     return ret;
 }
-
-#endif /* !MBEDTLS_SHA1_ALT */
 
 /*
  * output = SHA-1( input buffer )

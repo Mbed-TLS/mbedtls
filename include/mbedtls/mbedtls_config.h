@@ -353,182 +353,6 @@
 //#define MBEDTLS_TIMING_ALT
 
 /**
- * \def MBEDTLS_AES_ALT
- *
- * MBEDTLS__MODULE_NAME__ALT: Uncomment a macro to let Mbed TLS use your
- * alternate core implementation of a symmetric crypto, an arithmetic or hash
- * module (e.g. platform specific assembly optimized implementations). Keep
- * in mind that the function prototypes should remain the same.
- *
- * This replaces the whole module. If you only want to replace one of the
- * functions, use one of the MBEDTLS__FUNCTION_NAME__ALT flags.
- *
- * Example: In case you uncomment MBEDTLS_AES_ALT, Mbed TLS will no longer
- * provide the "struct mbedtls_aes_context" definition and omit the base
- * function declarations and implementations. "aes_alt.h" will be included from
- * "aes.h" to include the new function definitions.
- *
- * Uncomment a macro to enable alternate implementation of the corresponding
- * module.
- *
- * \warning   MD5, DES and SHA-1 are considered weak and their
- *            use constitutes a security risk. If possible, we recommend
- *            avoiding dependencies on them, and considering stronger message
- *            digests and ciphers instead.
- *
- */
-//#define MBEDTLS_AES_ALT
-//#define MBEDTLS_ARIA_ALT
-//#define MBEDTLS_CAMELLIA_ALT
-//#define MBEDTLS_CCM_ALT
-//#define MBEDTLS_CHACHA20_ALT
-//#define MBEDTLS_CHACHAPOLY_ALT
-//#define MBEDTLS_CMAC_ALT
-//#define MBEDTLS_DES_ALT
-//#define MBEDTLS_DHM_ALT
-//#define MBEDTLS_ECJPAKE_ALT
-//#define MBEDTLS_GCM_ALT
-//#define MBEDTLS_NIST_KW_ALT
-//#define MBEDTLS_MD5_ALT
-//#define MBEDTLS_POLY1305_ALT
-//#define MBEDTLS_RIPEMD160_ALT
-//#define MBEDTLS_RSA_ALT
-//#define MBEDTLS_SHA1_ALT
-//#define MBEDTLS_SHA256_ALT
-//#define MBEDTLS_SHA512_ALT
-
-/*
- * When replacing the elliptic curve module, please consider, that it is
- * implemented with two .c files:
- *      - ecp.c
- *      - ecp_curves.c
- * You can replace them very much like all the other MBEDTLS__MODULE_NAME__ALT
- * macros as described above. The only difference is that you have to make sure
- * that you provide functionality for both .c files.
- */
-//#define MBEDTLS_ECP_ALT
-
-/**
- * \def MBEDTLS_SHA256_PROCESS_ALT
- *
- * MBEDTLS__FUNCTION_NAME__ALT: Uncomment a macro to let Mbed TLS use you
- * alternate core implementation of symmetric crypto or hash function. Keep in
- * mind that function prototypes should remain the same.
- *
- * This replaces only one function. The header file from Mbed TLS is still
- * used, in contrast to the MBEDTLS__MODULE_NAME__ALT flags.
- *
- * Example: In case you uncomment MBEDTLS_SHA256_PROCESS_ALT, Mbed TLS will
- * no longer provide the mbedtls_sha1_process() function, but it will still provide
- * the other function (using your mbedtls_sha1_process() function) and the definition
- * of mbedtls_sha1_context, so your implementation of mbedtls_sha1_process must be compatible
- * with this definition.
- *
- * \note If you use the AES_xxx_ALT macros, then it is recommended to also set
- *       MBEDTLS_AES_ROM_TABLES in order to help the linker garbage-collect the AES
- *       tables.
- *
- * Uncomment a macro to enable alternate implementation of the corresponding
- * function.
- *
- * \warning   MD5, DES and SHA-1 are considered weak and their use
- *            constitutes a security risk. If possible, we recommend avoiding
- *            dependencies on them, and considering stronger message digests
- *            and ciphers instead.
- *
- * \warning   If both MBEDTLS_ECDSA_SIGN_ALT and MBEDTLS_ECDSA_DETERMINISTIC are
- *            enabled, then the deterministic ECDH signature functions pass the
- *            the static HMAC-DRBG as RNG to mbedtls_ecdsa_sign(). Therefore
- *            alternative implementations should use the RNG only for generating
- *            the ephemeral key and nothing else. If this is not possible, then
- *            MBEDTLS_ECDSA_DETERMINISTIC should be disabled and an alternative
- *            implementation should be provided for mbedtls_ecdsa_sign_det_ext().
- *
- */
-//#define MBEDTLS_MD5_PROCESS_ALT
-//#define MBEDTLS_RIPEMD160_PROCESS_ALT
-//#define MBEDTLS_SHA1_PROCESS_ALT
-//#define MBEDTLS_SHA256_PROCESS_ALT
-//#define MBEDTLS_SHA512_PROCESS_ALT
-//#define MBEDTLS_DES_SETKEY_ALT
-//#define MBEDTLS_DES_CRYPT_ECB_ALT
-//#define MBEDTLS_DES3_CRYPT_ECB_ALT
-//#define MBEDTLS_AES_SETKEY_ENC_ALT
-//#define MBEDTLS_AES_SETKEY_DEC_ALT
-//#define MBEDTLS_AES_ENCRYPT_ALT
-//#define MBEDTLS_AES_DECRYPT_ALT
-//#define MBEDTLS_ECDH_GEN_PUBLIC_ALT
-//#define MBEDTLS_ECDH_COMPUTE_SHARED_ALT
-//#define MBEDTLS_ECDSA_VERIFY_ALT
-//#define MBEDTLS_ECDSA_SIGN_ALT
-//#define MBEDTLS_ECDSA_GENKEY_ALT
-
-/**
- * \def MBEDTLS_ECP_INTERNAL_ALT
- *
- * Expose a part of the internal interface of the Elliptic Curve Point module.
- *
- * MBEDTLS_ECP__FUNCTION_NAME__ALT: Uncomment a macro to let Mbed TLS use your
- * alternative core implementation of elliptic curve arithmetic. Keep in mind
- * that function prototypes should remain the same.
- *
- * This partially replaces one function. The header file from Mbed TLS is still
- * used, in contrast to the MBEDTLS_ECP_ALT flag. The original implementation
- * is still present and it is used for group structures not supported by the
- * alternative.
- *
- * The original implementation can in addition be removed by setting the
- * MBEDTLS_ECP_NO_FALLBACK option, in which case any function for which the
- * corresponding MBEDTLS_ECP__FUNCTION_NAME__ALT macro is defined will not be
- * able to fallback to curves not supported by the alternative implementation.
- *
- * Any of these options become available by defining MBEDTLS_ECP_INTERNAL_ALT
- * and implementing the following functions:
- *      unsigned char mbedtls_internal_ecp_grp_capable(
- *          const mbedtls_ecp_group *grp )
- *      int  mbedtls_internal_ecp_init( const mbedtls_ecp_group *grp )
- *      void mbedtls_internal_ecp_free( const mbedtls_ecp_group *grp )
- * The mbedtls_internal_ecp_grp_capable function should return 1 if the
- * replacement functions implement arithmetic for the given group and 0
- * otherwise.
- * The functions mbedtls_internal_ecp_init and mbedtls_internal_ecp_free are
- * called before and after each point operation and provide an opportunity to
- * implement optimized set up and tear down instructions.
- *
- * Example: In case you set MBEDTLS_ECP_INTERNAL_ALT and
- * MBEDTLS_ECP_DOUBLE_JAC_ALT, Mbed TLS will still provide the ecp_double_jac()
- * function, but will use your mbedtls_internal_ecp_double_jac() if the group
- * for the operation is supported by your implementation (i.e. your
- * mbedtls_internal_ecp_grp_capable() function returns 1 for this group). If the
- * group is not supported by your implementation, then the original Mbed TLS
- * implementation of ecp_double_jac() is used instead, unless this fallback
- * behaviour is disabled by setting MBEDTLS_ECP_NO_FALLBACK (in which case
- * ecp_double_jac() will return MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE).
- *
- * The function prototypes and the definition of mbedtls_ecp_group and
- * mbedtls_ecp_point will not change based on MBEDTLS_ECP_INTERNAL_ALT, so your
- * implementation of mbedtls_internal_ecp__function_name__ must be compatible
- * with their definitions.
- *
- * Uncomment a macro to enable alternate implementation of the corresponding
- * function.
- */
-/* Required for all the functions in this section */
-//#define MBEDTLS_ECP_INTERNAL_ALT
-/* Turn off software fallback for curves not supported in hardware */
-//#define MBEDTLS_ECP_NO_FALLBACK
-/* Support for Weierstrass curves with Jacobi representation */
-//#define MBEDTLS_ECP_RANDOMIZE_JAC_ALT
-//#define MBEDTLS_ECP_ADD_MIXED_ALT
-//#define MBEDTLS_ECP_DOUBLE_JAC_ALT
-//#define MBEDTLS_ECP_NORMALIZE_JAC_MANY_ALT
-//#define MBEDTLS_ECP_NORMALIZE_JAC_ALT
-/* Support for curves with Montgomery arithmetic */
-//#define MBEDTLS_ECP_DOUBLE_ADD_MXZ_ALT
-//#define MBEDTLS_ECP_RANDOMIZE_MXZ_ALT
-//#define MBEDTLS_ECP_NORMALIZE_MXZ_ALT
-
-/**
  * \def MBEDTLS_ENTROPY_HARDWARE_ALT
  *
  * Uncomment this macro to let Mbed TLS use your own implementation of a
@@ -830,7 +654,7 @@
  *
  * \note  This option only works with the default software implementation of
  *        elliptic curve functionality. It is incompatible with
- *        MBEDTLS_ECP_ALT, MBEDTLS_ECDH_XXX_ALT, MBEDTLS_ECDSA_XXX_ALT.
+ *        MBEDTLS_ECDH_XXX_ALT, MBEDTLS_ECDSA_XXX_ALT.
  *
  * Requires: MBEDTLS_ECP_C
  *
@@ -2606,10 +2430,10 @@
  * Enable the CMAC (Cipher-based Message Authentication Code) mode for block
  * ciphers.
  *
- * \note When #MBEDTLS_CMAC_ALT is active, meaning that the underlying
- *       implementation of the CMAC algorithm is provided by an alternate
- *       implementation, that alternate implementation may opt to not support
- *       AES-192 or 3DES as underlying block ciphers for the CMAC operation.
+ * \note When the underlying implementation of the CMAC algorithm is provided
+ *       by an alternate implementation, that alternate implementation may opt
+ *       to not support AES-192 or 3DES as underlying block ciphers for the CMAC
+ *       operation.
  *
  * Module:  library/cmac.c
  *

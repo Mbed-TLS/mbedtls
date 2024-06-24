@@ -23,8 +23,6 @@
 
 #include "mbedtls/platform.h"
 
-#if !defined(MBEDTLS_DES_ALT)
-
 /*
  * Expanded DES S-boxes
  */
@@ -772,8 +770,6 @@ exit:
     return ret;
 }
 #endif /* MBEDTLS_CIPHER_MODE_CBC */
-
-#endif /* !MBEDTLS_DES_ALT */
 
 #if defined(MBEDTLS_SELF_TEST)
 /*

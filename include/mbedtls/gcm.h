@@ -44,8 +44,6 @@
 extern "C" {
 #endif
 
-#if !defined(MBEDTLS_GCM_ALT)
-
 #if defined(MBEDTLS_GCM_LARGE_TABLE)
 #define MBEDTLS_GCM_HTABLE_SIZE 256
 #else
@@ -73,10 +71,6 @@ typedef struct mbedtls_gcm_context {
     unsigned char MBEDTLS_PRIVATE(acceleration);             /*!< The acceleration to use. */
 }
 mbedtls_gcm_context;
-
-#else  /* !MBEDTLS_GCM_ALT */
-#include "gcm_alt.h"
-#endif /* !MBEDTLS_GCM_ALT */
 
 /**
  * \brief           This function initializes the specified GCM context,

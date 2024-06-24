@@ -400,7 +400,7 @@ def main():
     """
     Command line entry
     """
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(allow_abbrev=False)
     parser.add_argument('--mbedtls-root', nargs='?', default=None,
                         help='root directory of mbedtls source code')
     parser.add_argument('output_directory', nargs='?',

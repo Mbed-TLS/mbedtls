@@ -499,7 +499,8 @@ def set_defaults(options):
 
 def main():
     """Command line entry point."""
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = argparse.ArgumentParser(description=__doc__,
+                                     allow_abbrev=False)
     parser.add_argument('--dir', '-d', metavar='DIR',
                         default='ChangeLog.d',
                         help='Directory to read entries from'

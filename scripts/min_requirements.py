@@ -94,7 +94,8 @@ DEFAULT_REQUIREMENTS_FILE = 'ci.requirements.txt'
 
 def main() -> None:
     """Command line entry point."""
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = argparse.ArgumentParser(description=__doc__,
+                                     allow_abbrev=False)
     parser.add_argument('--no-act', '-n',
                         action='store_true',
                         help="Don't act, just print what will be done")

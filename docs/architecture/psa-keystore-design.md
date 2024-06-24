@@ -184,13 +184,6 @@ The persistent key cache is a fixed-size array of `MBEDTLS_PSA_KEY_SLOT_COUNT` s
 
 `psa_get_and_lock_key_slot()` automatically loads persistent and built-in keys if the specified key identifier is in the corresponding range. To that effect, it traverses the key cache to see if a key with the given identifier is already loaded. If not, it loads the key. This cache walk takes time that is proportional to the cache size.
 
-#### Slot readers
-
-At any given time, a slot can have registered readers. The `registered_readers` fields contains the number of readers. The following are readers:
-
-* A thread that is currently reading metadata or data from the slot (see [“Concurrency”](#concurrency)).
-* A persistent key that has been opened with `psa_open_key()`, until the corresponding handle is closed with `psa_close_key()`.
-
 #### Cache eviction
 
 A key slot must be allocated in the cache slice:
@@ -199,6 +192,6 @@ A key slot must be allocated in the cache slice:
 * to create a persistent key;
 * to load a persistent or built-in key.
 
-If the cache slice is full, the code will try to evict an entry. Only slots that do not have readers can be evicted (see [“Slot readers”](#slot-readers)). In the static key store, slots containing volatile keys cannot be evicted.
+If the cache slice is full, the code will try to evict an entry. Only slots that do not have readers can be evicted (see [“Concurrency”](#concurrency)). In the static key store, slots containing volatile keys cannot be evicted.
 
 As of Mbed TLS 3.6.1, there is no tracking of a key's usage frequency or age. The slot eviction code picks the first evictable slot it finds in its traversal order. We have not reasoned about or experimented with different strategies.

@@ -25,6 +25,7 @@ int psa_aead_main(char *cipher_name);
 int psa_random_main(void);
 int psa_mac_main(void);
 int psa_key_agreement_main(void);
+int psa_sign_verify_main(void);
 
 #define TEST_MODULE(main_func) \
     do {    \
@@ -55,6 +56,7 @@ int main()
 
     TEST_MODULE(psa_mac_main());
     TEST_MODULE(psa_key_agreement_main());
+    TEST_MODULE(psa_sign_verify_main());
 
 exit:
     return (ret != 0) ? 1 : 0;

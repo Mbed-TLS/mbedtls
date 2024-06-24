@@ -44,6 +44,22 @@
         goto cleanup;        \
     } while (0)
 
+/* Constants to identify whether a value is public or secret.
+ *
+ * Parameters should be named X_public where X is the name of the
+ * corresponding input parameter.
+ *
+ * Implementation should always check using
+ *  if (X_public == MBEDTLS_MPI_IS_PUBLIC) {
+ *      // unsafe path
+ *  } else {
+ *      // safe path
+ *  }
+ * not the other way round, in order to prevent misuse. (This is, if a value
+ * other than the two below is passed, default to the safe path.) */
+#define MBEDTLS_MPI_IS_PUBLIC  0x2a2a
+#define MBEDTLS_MPI_IS_SECRET  0
+
 /*
  * Maximum size MPIs are allowed to grow to in number of limbs.
  */
@@ -880,7 +896,38 @@ int mbedtls_mpi_mod_int(mbedtls_mpi_uint *r, const mbedtls_mpi *A,
                         mbedtls_mpi_sint b);
 
 /**
- * \brief          Perform a sliding-window exponentiation: X = A^E mod N
+ * \brief          Perform a modular exponentiation: X = A^E mod N
+ *
+ * \param X        The destination MPI. This must point to an initialized MPI.
+ *                 This must not alias E or N.
+ * \param A        The base of the exponentiation.
+ *                 This must point to an initialized MPI.
+ * \param E        The exponent MPI. This must point to an initialized MPI.
+ * \param N        The base for the modular reduction. This must point to an
+ *                 initialized MPI.
+ * \param prec_RR  A helper MPI depending solely on \p N which can be used to
+ *                 speed-up multiple modular exponentiations for the same value
+ *                 of \p N. This may be \c NULL. If it is not \c NULL, it must
+ *                 point to an initialized MPI. If it hasn't been used after
+ *                 the call to mbedtls_mpi_init(), this function will compute
+ *                 the helper value and store it in \p prec_RR for reuse on
+ *                 subsequent calls to this function. Otherwise, the function
+ *                 will assume that \p prec_RR holds the helper value set by a
+ *                 previous call to mbedtls_mpi_exp_mod(), and reuse it.
+ *
+ * \return         \c 0 if successful.
+ * \return         #MBEDTLS_ERR_MPI_ALLOC_FAILED if a memory allocation failed.
+ * \return         #MBEDTLS_ERR_MPI_BAD_INPUT_DATA if \c N is negative or
+ *                 even, or if \c E is negative.
+ * \return         Another negative error code on different kinds of failures.
+ *
+ */
+int mbedtls_mpi_exp_mod_optionally_safe(mbedtls_mpi *X, const mbedtls_mpi *A,
+                                        const mbedtls_mpi *E, const mbedtls_mpi *N,
+                                        mbedtls_mpi *prec_RR, int E_public);
+
+/**
+ * \brief          Perform a modular exponentiation: X = A^E mod N
  *
  * \param X        The destination MPI. This must point to an initialized MPI.
  *                 This must not alias E or N.

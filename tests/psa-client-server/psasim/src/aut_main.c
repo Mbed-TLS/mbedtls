@@ -24,6 +24,7 @@ int psa_hash_main(void);
 int psa_aead_encrypt_main(char *cipher_name);
 int psa_aead_encrypt_decrypt_main(void);
 int psa_cipher_encrypt_decrypt_main(void);
+int psa_asymmetric_encrypt_decrypt_main(void);
 int psa_random_main(void);
 int psa_mac_main(void);
 int psa_key_agreement_main(void);
@@ -56,6 +57,7 @@ int main()
     TEST_MODULE(psa_aead_encrypt_main("chachapoly"));
     TEST_MODULE(psa_aead_encrypt_decrypt_main());
     TEST_MODULE(psa_cipher_encrypt_decrypt_main());
+    TEST_MODULE(psa_asymmetric_encrypt_decrypt_main());
 
     TEST_MODULE(psa_random_main());
 

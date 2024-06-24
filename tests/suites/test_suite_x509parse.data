@@ -459,6 +459,18 @@ X509 Get Distinguished Name #8
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_MD_CAN_SHA1
 mbedtls_x509_dn_gets:"data_files/server1.asciichars.crt":"subject":"C=NL, O=\\E6\\9E\\81\\E5\\9C\\B0SSL, CN=PolarSSL Server 1"
 
+X509 Get Distinguished Name PrintableString
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_MD_CAN_SHA1
+mbedtls_x509_dn_gets:"data_files/server1.printablestring.crt":"subject":"C=NL, O=PolarSSL, CN=PolarSSL Server 1"
+
+X509 Get Distinguished Name IA5String
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_MD_CAN_SHA1
+mbedtls_x509_dn_gets:"data_files/server1.ia5string.crt":"subject":"C=NL, O=PolarSSL, CN=PolarSSL Server 1"
+
+X509 Get Distinguished Name T61String
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_MD_CAN_SHA1
+mbedtls_x509_dn_gets:"data_files/server1.t61string.crt":"subject":"C=NL, O=PolarSSL, CN=PolarSSL Server 1"
+
 X509 Get Modified DN #1
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_MD_CAN_SHA1
 mbedtls_x509_dn_gets_subject_replace:"data_files/server1.crt":"Modified":"C=NL, O=Modified, CN=PolarSSL Server 1":0

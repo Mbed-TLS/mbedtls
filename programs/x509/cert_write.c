@@ -62,6 +62,7 @@ int main(void)
 #define DFL_ISSUER_PWD          ""
 #define DFL_OUTPUT_FILENAME     "cert.crt"
 #define DFL_SUBJECT_NAME        "CN=Cert,O=mbed TLS,C=UK"
+#define DFL_SUBJECT_STR_TYPE    NULL
 #define DFL_ISSUER_NAME         "CN=CA,O=mbed TLS,C=UK"
 #define DFL_NOT_BEFORE          "20010101000000"
 #define DFL_NOT_AFTER           "20301231235959"
@@ -89,6 +90,16 @@ int main(void)
     "    subject_key=%%s          default: subject.key\n"   \
     "    subject_pwd=%%s          default: (empty)\n"       \
     "    subject_name=%%s         default: CN=Cert,O=mbed TLS,C=UK\n"   \
+    "    subject_str_type=%%s    String type to use for the subject name strings\n" \
+    "                             Possible values:\n" \
+    "                              BMPString\n" \
+    "                              UTF8String\n" \
+    "                              T61String\n" \
+    "                              IA5String\n" \
+    "                              UniversalString\n" \
+    "                              PrintableString\n" \
+    "                            Note: This option is only useful for generating\n" \
+    "                            test certificates for Mbed TLS.\n" \
     "\n"                                                \
     "    issuer_crt=%%s           default: (empty)\n"       \
     "                            If issuer_crt is specified, issuer_name is\n"  \
@@ -184,6 +195,8 @@ struct options {
     const char *issuer_pwd;     /* password for the issuer key file     */
     const char *output_file;    /* where to store the constructed CRT   */
     const char *subject_name;   /* subject name for certificate         */
+    const char *subject_str_type; /* String type tag for subject name
+                                  * (used to generate test certificates) */
     mbedtls_x509_san_list *san_list; /* subjectAltName for certificate  */
     const char *issuer_name;    /* issuer name for certificate          */
     const char *not_before;     /* validity period not before           */
@@ -395,6 +408,8 @@ usage:
             opt.output_file = q;
         } else if (strcmp(p, "subject_name") == 0) {
             opt.subject_name = q;
+        } else if (strcmp(p, "subject_str_type") == 0) {
+            opt.subject_str_type = q;
         } else if (strcmp(p, "issuer_name") == 0) {
             opt.issuer_name = q;
         } else if (strcmp(p, "not_before") == 0) {
@@ -830,6 +845,31 @@ usage:
         mbedtls_printf(" failed\n  !  mbedtls_x509write_crt_set_subject_name "
                        "returned -0x%04x - %s\n\n", (unsigned int) -ret, buf);
         goto exit;
+    }
+
+    /* Used only for generating test certificates: manually set each string
+     * RDN pair in the subject name to the requested string type. */
+    if (opt.subject_str_type != NULL) {
+        int str_tag_type;
+        if (strcmp(opt.subject_str_type, "BMPString") == 0) {
+            str_tag_type = MBEDTLS_ASN1_BMP_STRING;
+        } else if (strcmp(opt.subject_str_type, "UTF8String") == 0) {
+            str_tag_type = MBEDTLS_ASN1_UTF8_STRING;
+        } else if (strcmp(opt.subject_str_type, "T61String") == 0) {
+            str_tag_type = MBEDTLS_ASN1_T61_STRING;
+        } else if (strcmp(opt.subject_str_type, "IA5String") == 0) {
+            str_tag_type = MBEDTLS_ASN1_IA5_STRING;
+        } else if (strcmp(opt.subject_str_type, "UniversalString") == 0) {
+            str_tag_type = MBEDTLS_ASN1_UNIVERSAL_STRING;
+        } else if (strcmp(opt.subject_str_type, "PrintableString") == 0) {
+            str_tag_type = MBEDTLS_ASN1_PRINTABLE_STRING;
+        }
+
+        for (mbedtls_x509_name *name = crt.MBEDTLS_PRIVATE(subject); name != NULL; name = name->next) {
+            if (MBEDTLS_ASN1_IS_STRING_TAG(name->val.tag)) {
+                name->val.tag = str_tag_type;
+            }
+        }
     }
 
     if ((ret = mbedtls_x509write_crt_set_issuer_name(&crt, opt.issuer_name)) != 0) {

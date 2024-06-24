@@ -22,6 +22,7 @@
 int psa_hash_compute_main(void);
 int psa_hash_main(void);
 int psa_aead_main(char *cipher_name);
+int psa_random_main(void);
 
 #define TEST_MODULE(main_func) \
     do {    \
@@ -47,6 +48,8 @@ int main()
     TEST_MODULE(psa_aead_main("aes256-gcm"));
     TEST_MODULE(psa_aead_main("aes128-gcm_8"));
     TEST_MODULE(psa_aead_main("chachapoly"));
+
+    TEST_MODULE(psa_random_main());
 
 exit:
     return (ret != 0) ? 1 : 0;

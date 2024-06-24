@@ -27,6 +27,7 @@ int psa_random_main(void);
 int psa_mac_main(void);
 int psa_key_agreement_main(void);
 int psa_sign_verify_main(void);
+int psa_hkdf_main(void);
 
 #define TEST_MODULE(main_func) \
     do {    \
@@ -59,6 +60,7 @@ int main()
     TEST_MODULE(psa_key_agreement_main());
     TEST_MODULE(psa_sign_verify_main());
     TEST_MODULE(psa_aead_encrypt_decrypt_main());
+    TEST_MODULE(psa_hkdf_main());
 
 exit:
     return (ret != 0) ? 1 : 0;

@@ -21,7 +21,8 @@
 
 int psa_hash_compute_main(void);
 int psa_hash_main(void);
-int psa_aead_main(char *cipher_name);
+int psa_aead_encrypt_main(char *cipher_name);
+int psa_aead_encrypt_decrypt_main(void);
 int psa_random_main(void);
 int psa_mac_main(void);
 int psa_key_agreement_main(void);
@@ -47,16 +48,17 @@ int main()
     TEST_MODULE(psa_hash_compute_main());
     TEST_MODULE(psa_hash_main());
 
-    TEST_MODULE(psa_aead_main("aes128-gcm"));
-    TEST_MODULE(psa_aead_main("aes256-gcm"));
-    TEST_MODULE(psa_aead_main("aes128-gcm_8"));
-    TEST_MODULE(psa_aead_main("chachapoly"));
+    TEST_MODULE(psa_aead_encrypt_main("aes128-gcm"));
+    TEST_MODULE(psa_aead_encrypt_main("aes256-gcm"));
+    TEST_MODULE(psa_aead_encrypt_main("aes128-gcm_8"));
+    TEST_MODULE(psa_aead_encrypt_main("chachapoly"));
 
     TEST_MODULE(psa_random_main());
 
     TEST_MODULE(psa_mac_main());
     TEST_MODULE(psa_key_agreement_main());
     TEST_MODULE(psa_sign_verify_main());
+    TEST_MODULE(psa_aead_encrypt_decrypt_main());
 
 exit:
     return (ret != 0) ? 1 : 0;

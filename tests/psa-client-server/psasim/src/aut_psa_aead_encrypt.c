@@ -1,37 +1,8 @@
-/**
- * PSA API multi-part AEAD demonstration.
- *
- * This program AEAD-encrypts a message, using the algorithm and key size
- * specified on the command line, using the multi-part API.
- *
- * It comes with a companion program cipher/cipher_aead_demo.c, which does the
- * same operations with the legacy Cipher API. The goal is that comparing the
- * two programs will help people migrating to the PSA Crypto API.
- *
- * When used with multi-part AEAD operations, the `mbedtls_cipher_context`
- * serves a triple purpose (1) hold the key, (2) store the algorithm when no
- * operation is active, and (3) save progress information for the current
- * operation. With PSA those roles are held by disinct objects: (1) a
- * psa_key_id_t to hold the key, a (2) psa_algorithm_t to represent the
- * algorithm, and (3) a psa_operation_t for multi-part progress.
- *
- * On the other hand, with PSA, the algorithms encodes the desired tag length;
- * with Cipher the desired tag length needs to be tracked separately.
- *
- * This program and its companion cipher/cipher_aead_demo.c illustrate this by
- * doing the same sequence of multi-part AEAD computation with both APIs;
- * looking at the two side by side should make the differences and
- * similarities clear.
- */
-
 /*
  *  Copyright The Mbed TLS Contributors
  *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
-/* First include Mbed TLS headers to get the Mbed TLS configuration and
- * platform definitions that we'll use in this program. Also include
- * standard C headers for functions we'll use here. */
 #include "mbedtls/build_info.h"
 
 #include "psa/crypto.h"
@@ -39,25 +10,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-
-/* If the build options we need are not enabled, compile a placeholder. */
-#if !defined(MBEDTLS_PSA_CRYPTO_CLIENT) && \
-    (!defined(MBEDTLS_PSA_CRYPTO_C) || \
-    !defined(MBEDTLS_AES_C) || !defined(MBEDTLS_GCM_C) || \
-    !defined(MBEDTLS_CHACHAPOLY_C) || \
-    defined(MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER))
-int psa_aead_main(void)
-{
-    printf("MBEDTLS_PSA_CRYPTO_CLIENT or "
-           "MBEDTLS_PSA_CRYPTO_C and/or "
-           "MBEDTLS_AES_C and/or MBEDTLS_GCM_C and/or "
-           "MBEDTLS_CHACHAPOLY_C not defined, and/or "
-           "MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER defined\r\n");
-    return 0;
-}
-#else
-
-/* The real program starts here. */
 
 const char usage[] =
     "Usage: aead_demo [aes128-gcm|aes256-gcm|aes128-gcm_8|chachapoly]";
@@ -257,7 +209,7 @@ exit:
 /*
  * Main function
  */
-int psa_aead_main(char *cipher_name)
+int psa_aead_encrypt_main(char *cipher_name)
 {
     psa_status_t status = PSA_SUCCESS;
 
@@ -273,5 +225,3 @@ int psa_aead_main(char *cipher_name)
 exit:
     return status == PSA_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
 }
-
-#endif

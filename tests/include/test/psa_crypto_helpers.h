@@ -407,7 +407,7 @@ uint64_t mbedtls_test_parse_binary_string(data_t *bin_string);
  * #MD_OR_USE_PSA_INIT.
  */
 #if defined(MBEDTLS_MD_SOME_PSA) || \
-    defined(MBEDTLS_USE_PSA_CRYPTO) || defined(MBEDTLS_SSL_PROTO_TLS1_3)
+    defined(MBEDTLS_USE_PSA_CRYPTO)
 #define MD_OR_USE_PSA_INIT()   PSA_INIT()
 #define MD_OR_USE_PSA_DONE()   PSA_DONE()
 #else

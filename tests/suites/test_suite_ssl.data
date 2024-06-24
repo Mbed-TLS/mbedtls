@@ -1,3 +1,9 @@
+Default protocol: full handshake (client)
+move_handshake_to_state:MBEDTLS_SSL_IS_CLIENT:-1:MBEDTLS_SSL_HANDSHAKE_OVER:1
+
+Default protocol: full handshake (server)
+move_handshake_to_state:MBEDTLS_SSL_IS_SERVER:-1:MBEDTLS_SSL_HANDSHAKE_OVER:1
+
 Attempt to register multiple PSKs
 test_multiple_psks:
 

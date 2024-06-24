@@ -6040,6 +6040,10 @@ int mbedtls_ssl_config_defaults(mbedtls_ssl_config *conf,
  */
 void mbedtls_ssl_config_free(mbedtls_ssl_config *conf)
 {
+    if (conf == NULL) {
+        return;
+    }
+
 #if defined(MBEDTLS_DHM_C)
     mbedtls_mpi_free(&conf->dhm_P);
     mbedtls_mpi_free(&conf->dhm_G);

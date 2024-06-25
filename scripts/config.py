@@ -150,6 +150,18 @@ class Config:
             if regex.search(setting.name):
                 setting.active = enable
 
+    def get_matching(self, regexs, only_enabled):
+        """Get all symbols matching one of the regexs."""
+        if not regexs:
+            return None
+        match_list = []
+        regex = re.compile('|'.join(regexs))
+        for setting in self.settings.values():
+            if regex.search(setting.name):
+                if (not only_enabled) or (only_enabled and setting.active):
+                    match_list.append(setting.name)
+        return match_list
+
 def is_full_section(section):
     """Is this section affected by "config.py full" and friends?"""
     return section.endswith('support') or section.endswith('modules')
@@ -534,6 +546,16 @@ if __name__ == '__main__':
                                                  whose name contains a match for
                                                  REGEX.""")
         parser_unset_all.add_argument('regexs', metavar='REGEX', nargs='*')
+        parser_get_all = subparsers.add_parser('get-all',
+                                                 help="""Get all #define
+                                                 whose name contains a match for
+                                                 REGEX.""")
+        parser_get_all.add_argument('regexs', metavar='REGEX', nargs='*')
+        parser_get_all_enabled = subparsers.add_parser('get-all-enabled',
+                                                 help="""Get all enabled #define
+                                                 whose name contains a match for
+                                                 REGEX.""")
+        parser_get_all_enabled.add_argument('regexs', metavar='REGEX', nargs='*')
 
         def add_adapter(name, function, description):
             subparser = subparsers.add_parser(name, help=description)
@@ -593,6 +615,14 @@ if __name__ == '__main__':
             config.unset(args.symbol)
         elif args.command == 'unset-all':
             config.change_matching(args.regexs, False)
+        elif args.command == 'get-all':
+            match_list = config.get_matching(args.regexs, False)
+            if match_list is not None:
+                sys.stdout.write("\n".join(match_list))
+        elif args.command == 'get-all-enabled':
+            match_list = config.get_matching(args.regexs, True)
+            if match_list is not None:
+                sys.stdout.write("\n".join(match_list))
         else:
             config.adapt(args.adapter)
         config.write(args.write)

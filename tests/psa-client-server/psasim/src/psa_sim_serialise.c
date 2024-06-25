@@ -63,8 +63,10 @@ typedef struct psasim_operation_s {
 
 #define MAX_LIVE_HANDLES_PER_CLASS   100        /* this many slots */
 
-static psa_hash_operation_t hash_operations[MAX_LIVE_HANDLES_PER_CLASS];
-static psasim_client_handle_t hash_operation_handles[MAX_LIVE_HANDLES_PER_CLASS];
+static psa_hash_operation_t hash_operations[
+    MAX_LIVE_HANDLES_PER_CLASS];
+static psasim_client_handle_t hash_operation_handles[
+    MAX_LIVE_HANDLES_PER_CLASS];
 static psasim_client_handle_t next_hash_operation_handle = 1;
 
 /* Get a free slot */
@@ -101,8 +103,10 @@ static ssize_t find_hash_slot_by_handle(psasim_client_handle_t handle)
     return -1;  /* not found */
 }
 
-static psa_aead_operation_t aead_operations[MAX_LIVE_HANDLES_PER_CLASS];
-static psasim_client_handle_t aead_operation_handles[MAX_LIVE_HANDLES_PER_CLASS];
+static psa_aead_operation_t aead_operations[
+    MAX_LIVE_HANDLES_PER_CLASS];
+static psasim_client_handle_t aead_operation_handles[
+    MAX_LIVE_HANDLES_PER_CLASS];
 static psasim_client_handle_t next_aead_operation_handle = 1;
 
 /* Get a free slot */
@@ -139,8 +143,10 @@ static ssize_t find_aead_slot_by_handle(psasim_client_handle_t handle)
     return -1;  /* not found */
 }
 
-static psa_mac_operation_t mac_operations[MAX_LIVE_HANDLES_PER_CLASS];
-static psasim_client_handle_t mac_operation_handles[MAX_LIVE_HANDLES_PER_CLASS];
+static psa_mac_operation_t mac_operations[
+    MAX_LIVE_HANDLES_PER_CLASS];
+static psasim_client_handle_t mac_operation_handles[
+    MAX_LIVE_HANDLES_PER_CLASS];
 static psasim_client_handle_t next_mac_operation_handle = 1;
 
 /* Get a free slot */
@@ -177,8 +183,10 @@ static ssize_t find_mac_slot_by_handle(psasim_client_handle_t handle)
     return -1;  /* not found */
 }
 
-static psa_cipher_operation_t cipher_operations[MAX_LIVE_HANDLES_PER_CLASS];
-static psasim_client_handle_t cipher_operation_handles[MAX_LIVE_HANDLES_PER_CLASS];
+static psa_cipher_operation_t cipher_operations[
+    MAX_LIVE_HANDLES_PER_CLASS];
+static psasim_client_handle_t cipher_operation_handles[
+    MAX_LIVE_HANDLES_PER_CLASS];
 static psasim_client_handle_t next_cipher_operation_handle = 1;
 
 /* Get a free slot */
@@ -215,8 +223,10 @@ static ssize_t find_cipher_slot_by_handle(psasim_client_handle_t handle)
     return -1;  /* not found */
 }
 
-static psa_key_derivation_operation_t key_derivation_operations[MAX_LIVE_HANDLES_PER_CLASS];
-static psasim_client_handle_t key_derivation_operation_handles[MAX_LIVE_HANDLES_PER_CLASS];
+static psa_key_derivation_operation_t key_derivation_operations[
+    MAX_LIVE_HANDLES_PER_CLASS];
+static psasim_client_handle_t key_derivation_operation_handles[
+    MAX_LIVE_HANDLES_PER_CLASS];
 static psasim_client_handle_t next_key_derivation_operation_handle = 1;
 
 /* Get a free slot */
@@ -253,8 +263,10 @@ static ssize_t find_key_derivation_slot_by_handle(psasim_client_handle_t handle)
     return -1;  /* not found */
 }
 
-static psa_sign_hash_interruptible_operation_t sign_hash_interruptible_operations[MAX_LIVE_HANDLES_PER_CLASS];
-static psasim_client_handle_t sign_hash_interruptible_operation_handles[MAX_LIVE_HANDLES_PER_CLASS];
+static psa_sign_hash_interruptible_operation_t sign_hash_interruptible_operations[
+    MAX_LIVE_HANDLES_PER_CLASS];
+static psasim_client_handle_t sign_hash_interruptible_operation_handles[
+    MAX_LIVE_HANDLES_PER_CLASS];
 static psasim_client_handle_t next_sign_hash_interruptible_operation_handle = 1;
 
 /* Get a free slot */
@@ -291,8 +303,10 @@ static ssize_t find_sign_hash_interruptible_slot_by_handle(psasim_client_handle_
     return -1;  /* not found */
 }
 
-static psa_verify_hash_interruptible_operation_t verify_hash_interruptible_operations[MAX_LIVE_HANDLES_PER_CLASS];
-static psasim_client_handle_t verify_hash_interruptible_operation_handles[MAX_LIVE_HANDLES_PER_CLASS];
+static psa_verify_hash_interruptible_operation_t verify_hash_interruptible_operations[
+    MAX_LIVE_HANDLES_PER_CLASS];
+static psasim_client_handle_t verify_hash_interruptible_operation_handles[
+    MAX_LIVE_HANDLES_PER_CLASS];
 static psasim_client_handle_t next_verify_hash_interruptible_operation_handle = 1;
 
 /* Get a free slot */
@@ -403,7 +417,8 @@ int psasim_deserialise_begin(uint8_t **pos, size_t *remaining)
     return 1;
 }
 
-size_t psasim_serialise_unsigned_int_needs(unsigned int value)
+size_t psasim_serialise_unsigned_int_needs(
+    unsigned int value)
 {
     return sizeof(value);
 }
@@ -438,7 +453,8 @@ int psasim_deserialise_unsigned_int(uint8_t **pos,
     return 1;
 }
 
-size_t psasim_serialise_int_needs(int value)
+size_t psasim_serialise_int_needs(
+    int value)
 {
     return sizeof(value);
 }
@@ -473,7 +489,8 @@ int psasim_deserialise_int(uint8_t **pos,
     return 1;
 }
 
-size_t psasim_serialise_size_t_needs(size_t value)
+size_t psasim_serialise_size_t_needs(
+    size_t value)
 {
     return sizeof(value);
 }
@@ -508,7 +525,8 @@ int psasim_deserialise_size_t(uint8_t **pos,
     return 1;
 }
 
-size_t psasim_serialise_uint16_t_needs(uint16_t value)
+size_t psasim_serialise_uint16_t_needs(
+    uint16_t value)
 {
     return sizeof(value);
 }
@@ -543,7 +561,8 @@ int psasim_deserialise_uint16_t(uint8_t **pos,
     return 1;
 }
 
-size_t psasim_serialise_uint32_t_needs(uint32_t value)
+size_t psasim_serialise_uint32_t_needs(
+    uint32_t value)
 {
     return sizeof(value);
 }
@@ -578,7 +597,8 @@ int psasim_deserialise_uint32_t(uint8_t **pos,
     return 1;
 }
 
-size_t psasim_serialise_uint64_t_needs(uint64_t value)
+size_t psasim_serialise_uint64_t_needs(
+    uint64_t value)
 {
     return sizeof(value);
 }
@@ -784,7 +804,7 @@ int psasim_deserialise_psa_key_production_parameters_t(uint8_t **pos,
     }
     memcpy(data_length, *pos, sizeof(*data_length));
 
-    if ((size_t)len != (sizeof(data_length) + sizeof(**params) + *data_length)) {
+    if ((size_t) len != (sizeof(data_length) + sizeof(**params) + *data_length)) {
         return 0;       /* wrong length */
     }
 
@@ -809,7 +829,8 @@ int psasim_deserialise_psa_key_production_parameters_t(uint8_t **pos,
     return 1;
 }
 
-size_t psasim_serialise_psa_status_t_needs(psa_status_t value)
+size_t psasim_serialise_psa_status_t_needs(
+    psa_status_t value)
 {
     return psasim_serialise_int_needs(value);
 }
@@ -828,7 +849,8 @@ int psasim_deserialise_psa_status_t(uint8_t **pos,
     return psasim_deserialise_int(pos, remaining, value);
 }
 
-size_t psasim_serialise_psa_algorithm_t_needs(psa_algorithm_t value)
+size_t psasim_serialise_psa_algorithm_t_needs(
+    psa_algorithm_t value)
 {
     return psasim_serialise_unsigned_int_needs(value);
 }
@@ -847,7 +869,8 @@ int psasim_deserialise_psa_algorithm_t(uint8_t **pos,
     return psasim_deserialise_unsigned_int(pos, remaining, value);
 }
 
-size_t psasim_serialise_psa_key_derivation_step_t_needs(psa_key_derivation_step_t value)
+size_t psasim_serialise_psa_key_derivation_step_t_needs(
+    psa_key_derivation_step_t value)
 {
     return psasim_serialise_uint16_t_needs(value);
 }
@@ -866,7 +889,8 @@ int psasim_deserialise_psa_key_derivation_step_t(uint8_t **pos,
     return psasim_deserialise_uint16_t(pos, remaining, value);
 }
 
-size_t psasim_serialise_psa_hash_operation_t_needs(psa_hash_operation_t value)
+size_t psasim_serialise_psa_hash_operation_t_needs(
+    psa_hash_operation_t value)
 {
     return sizeof(value);
 }
@@ -901,7 +925,8 @@ int psasim_deserialise_psa_hash_operation_t(uint8_t **pos,
     return 1;
 }
 
-size_t psasim_server_serialise_psa_hash_operation_t_needs(psa_hash_operation_t *operation)
+size_t psasim_server_serialise_psa_hash_operation_t_needs(
+    psa_hash_operation_t *operation)
 {
     (void) operation;
 
@@ -959,7 +984,8 @@ int psasim_server_deserialise_psa_hash_operation_t(uint8_t **pos,
     return 1;
 }
 
-size_t psasim_serialise_psa_aead_operation_t_needs(psa_aead_operation_t value)
+size_t psasim_serialise_psa_aead_operation_t_needs(
+    psa_aead_operation_t value)
 {
     return sizeof(value);
 }
@@ -994,7 +1020,8 @@ int psasim_deserialise_psa_aead_operation_t(uint8_t **pos,
     return 1;
 }
 
-size_t psasim_server_serialise_psa_aead_operation_t_needs(psa_aead_operation_t *operation)
+size_t psasim_server_serialise_psa_aead_operation_t_needs(
+    psa_aead_operation_t *operation)
 {
     (void) operation;
 
@@ -1052,7 +1079,8 @@ int psasim_server_deserialise_psa_aead_operation_t(uint8_t **pos,
     return 1;
 }
 
-size_t psasim_serialise_psa_key_attributes_t_needs(psa_key_attributes_t value)
+size_t psasim_serialise_psa_key_attributes_t_needs(
+    psa_key_attributes_t value)
 {
     return sizeof(value);
 }
@@ -1087,7 +1115,8 @@ int psasim_deserialise_psa_key_attributes_t(uint8_t **pos,
     return 1;
 }
 
-size_t psasim_serialise_psa_mac_operation_t_needs(psa_mac_operation_t value)
+size_t psasim_serialise_psa_mac_operation_t_needs(
+    psa_mac_operation_t value)
 {
     return sizeof(value);
 }
@@ -1122,7 +1151,8 @@ int psasim_deserialise_psa_mac_operation_t(uint8_t **pos,
     return 1;
 }
 
-size_t psasim_server_serialise_psa_mac_operation_t_needs(psa_mac_operation_t *operation)
+size_t psasim_server_serialise_psa_mac_operation_t_needs(
+    psa_mac_operation_t *operation)
 {
     (void) operation;
 
@@ -1180,7 +1210,8 @@ int psasim_server_deserialise_psa_mac_operation_t(uint8_t **pos,
     return 1;
 }
 
-size_t psasim_serialise_psa_cipher_operation_t_needs(psa_cipher_operation_t value)
+size_t psasim_serialise_psa_cipher_operation_t_needs(
+    psa_cipher_operation_t value)
 {
     return sizeof(value);
 }
@@ -1215,7 +1246,8 @@ int psasim_deserialise_psa_cipher_operation_t(uint8_t **pos,
     return 1;
 }
 
-size_t psasim_server_serialise_psa_cipher_operation_t_needs(psa_cipher_operation_t *operation)
+size_t psasim_server_serialise_psa_cipher_operation_t_needs(
+    psa_cipher_operation_t *operation)
 {
     (void) operation;
 
@@ -1273,7 +1305,8 @@ int psasim_server_deserialise_psa_cipher_operation_t(uint8_t **pos,
     return 1;
 }
 
-size_t psasim_serialise_psa_key_derivation_operation_t_needs(psa_key_derivation_operation_t value)
+size_t psasim_serialise_psa_key_derivation_operation_t_needs(
+    psa_key_derivation_operation_t value)
 {
     return sizeof(value);
 }
@@ -1308,7 +1341,8 @@ int psasim_deserialise_psa_key_derivation_operation_t(uint8_t **pos,
     return 1;
 }
 
-size_t psasim_server_serialise_psa_key_derivation_operation_t_needs(psa_key_derivation_operation_t *operation)
+size_t psasim_server_serialise_psa_key_derivation_operation_t_needs(
+    psa_key_derivation_operation_t *operation)
 {
     (void) operation;
 
@@ -1366,7 +1400,8 @@ int psasim_server_deserialise_psa_key_derivation_operation_t(uint8_t **pos,
     return 1;
 }
 
-size_t psasim_serialise_psa_sign_hash_interruptible_operation_t_needs(psa_sign_hash_interruptible_operation_t value)
+size_t psasim_serialise_psa_sign_hash_interruptible_operation_t_needs(
+    psa_sign_hash_interruptible_operation_t value)
 {
     return sizeof(value);
 }
@@ -1401,7 +1436,8 @@ int psasim_deserialise_psa_sign_hash_interruptible_operation_t(uint8_t **pos,
     return 1;
 }
 
-size_t psasim_server_serialise_psa_sign_hash_interruptible_operation_t_needs(psa_sign_hash_interruptible_operation_t *operation)
+size_t psasim_server_serialise_psa_sign_hash_interruptible_operation_t_needs(
+    psa_sign_hash_interruptible_operation_t *operation)
 {
     (void) operation;
 
@@ -1459,7 +1495,8 @@ int psasim_server_deserialise_psa_sign_hash_interruptible_operation_t(uint8_t **
     return 1;
 }
 
-size_t psasim_serialise_psa_verify_hash_interruptible_operation_t_needs(psa_verify_hash_interruptible_operation_t value)
+size_t psasim_serialise_psa_verify_hash_interruptible_operation_t_needs(
+    psa_verify_hash_interruptible_operation_t value)
 {
     return sizeof(value);
 }
@@ -1494,7 +1531,8 @@ int psasim_deserialise_psa_verify_hash_interruptible_operation_t(uint8_t **pos,
     return 1;
 }
 
-size_t psasim_server_serialise_psa_verify_hash_interruptible_operation_t_needs(psa_verify_hash_interruptible_operation_t *operation)
+size_t psasim_server_serialise_psa_verify_hash_interruptible_operation_t_needs(
+    psa_verify_hash_interruptible_operation_t *operation)
 {
     (void) operation;
 
@@ -1552,7 +1590,8 @@ int psasim_server_deserialise_psa_verify_hash_interruptible_operation_t(uint8_t 
     return 1;
 }
 
-size_t psasim_serialise_mbedtls_svc_key_id_t_needs(mbedtls_svc_key_id_t value)
+size_t psasim_serialise_mbedtls_svc_key_id_t_needs(
+    mbedtls_svc_key_id_t value)
 {
     return sizeof(value);
 }
@@ -1589,18 +1628,32 @@ int psasim_deserialise_mbedtls_svc_key_id_t(uint8_t **pos,
 
 void psa_sim_serialize_reset(void)
 {
-    memset(hash_operation_handles, 0, sizeof(hash_operation_handles));
-    memset(hash_operations, 0, sizeof(hash_operations));
-    memset(aead_operation_handles, 0, sizeof(aead_operation_handles));
-    memset(aead_operations, 0, sizeof(aead_operations));
-    memset(mac_operation_handles, 0, sizeof(mac_operation_handles));
-    memset(mac_operations, 0, sizeof(mac_operations));
-    memset(cipher_operation_handles, 0, sizeof(cipher_operation_handles));
-    memset(cipher_operations, 0, sizeof(cipher_operations));
-    memset(key_derivation_operation_handles, 0, sizeof(key_derivation_operation_handles));
-    memset(key_derivation_operations, 0, sizeof(key_derivation_operations));
-    memset(sign_hash_interruptible_operation_handles, 0, sizeof(sign_hash_interruptible_operation_handles));
-    memset(sign_hash_interruptible_operations, 0, sizeof(sign_hash_interruptible_operations));
-    memset(verify_hash_interruptible_operation_handles, 0, sizeof(verify_hash_interruptible_operation_handles));
-    memset(verify_hash_interruptible_operations, 0, sizeof(verify_hash_interruptible_operations));
+    memset(hash_operation_handles, 0,
+           sizeof(hash_operation_handles));
+    memset(hash_operations, 0,
+           sizeof(hash_operations));
+    memset(aead_operation_handles, 0,
+           sizeof(aead_operation_handles));
+    memset(aead_operations, 0,
+           sizeof(aead_operations));
+    memset(mac_operation_handles, 0,
+           sizeof(mac_operation_handles));
+    memset(mac_operations, 0,
+           sizeof(mac_operations));
+    memset(cipher_operation_handles, 0,
+           sizeof(cipher_operation_handles));
+    memset(cipher_operations, 0,
+           sizeof(cipher_operations));
+    memset(key_derivation_operation_handles, 0,
+           sizeof(key_derivation_operation_handles));
+    memset(key_derivation_operations, 0,
+           sizeof(key_derivation_operations));
+    memset(sign_hash_interruptible_operation_handles, 0,
+           sizeof(sign_hash_interruptible_operation_handles));
+    memset(sign_hash_interruptible_operations, 0,
+           sizeof(sign_hash_interruptible_operations));
+    memset(verify_hash_interruptible_operation_handles, 0,
+           sizeof(verify_hash_interruptible_operation_handles));
+    memset(verify_hash_interruptible_operations, 0,
+           sizeof(verify_hash_interruptible_operations));
 }

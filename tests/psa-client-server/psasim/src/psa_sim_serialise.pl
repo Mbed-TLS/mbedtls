@@ -145,7 +145,8 @@ sub declare_needs
  *                           \\c psasim_serialise_$type_d() to serialise
  *                           the given value.
  */
-size_t psasim_${server}serialise_${type_d}_needs($type ${ptr}value);
+size_t psasim_${server}serialise_${type_d}_needs(
+    $type ${ptr}value);
 EOF
 }
 
@@ -451,7 +452,8 @@ sub define_needs
 
     return <<EOF;
 
-size_t psasim_serialise_${type_d}_needs($type value)
+size_t psasim_serialise_${type_d}_needs(
+    $type value)
 {
     return sizeof(value);
 }
@@ -467,7 +469,8 @@ sub define_server_needs
 
     return <<EOF;
 
-size_t psasim_server_serialise_${type_d}_needs($type *operation)
+size_t psasim_server_serialise_${type_d}_needs(
+    $type *operation)
 {
     (void) operation;
 
@@ -489,7 +492,8 @@ sub define_needs_isa
 
     return <<EOF;
 
-size_t psasim_serialise_${type_d}_needs($type value)
+size_t psasim_serialise_${type_d}_needs(
+    $type value)
 {
     return psasim_serialise_${isa_d}_needs(value);
 }
@@ -857,7 +861,7 @@ int psasim_deserialise_psa_key_production_parameters_t(uint8_t **pos,
     }
     memcpy(data_length, *pos, sizeof(*data_length));
 
-    if ((size_t)len != (sizeof(data_length) + sizeof(**params) + *data_length)) {
+    if ((size_t) len != (sizeof(data_length) + sizeof(**params) + *data_length)) {
         return 0;       /* wrong length */
     }
 
@@ -968,8 +972,10 @@ sub define_operation_type_data_and_functions
 
     return <<EOF;
 
-static psa_${type}_operation_t ${type}_operations[MAX_LIVE_HANDLES_PER_CLASS];
-static psasim_client_handle_t ${type}_operation_handles[MAX_LIVE_HANDLES_PER_CLASS];
+static psa_${type}_operation_t ${type}_operations[
+    MAX_LIVE_HANDLES_PER_CLASS];
+static psasim_client_handle_t ${type}_operation_handles[
+    MAX_LIVE_HANDLES_PER_CLASS];
 static psasim_client_handle_t next_${type}_operation_handle = 1;
 
 /* Get a free slot */
@@ -1105,8 +1111,10 @@ EOF
         my $what = $1;  # e.g. "hash_operation"
 
         $code .= <<EOF;
-    memset(${what}_handles, 0, sizeof(${what}_handles));
-    memset(${what}s, 0, sizeof(${what}s));
+    memset(${what}_handles, 0,
+           sizeof(${what}_handles));
+    memset(${what}s, 0,
+           sizeof(${what}s));
 EOF
     }
 

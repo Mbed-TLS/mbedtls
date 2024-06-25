@@ -606,7 +606,9 @@ EOF
             my ($n1, $n2) = split(/,\s*/, $argname);
             print $fh <<EOF;
 
-    ok = psasim_deserialise_${argtype}(&pos, &remaining, &$n1, &$n2);
+    ok = psasim_deserialise_${argtype}(
+        &pos, &remaining,
+        &$n1, &$n2);
     if (!ok) {
         goto fail;
     }
@@ -615,7 +617,9 @@ EOF
             my ($n1, $n2) = split(/,\s*/, $argname);
             print $fh <<EOF;
 
-    ok = psasim_deserialise_${argtype}(&pos, &remaining, &$n1, &$n2);
+    ok = psasim_deserialise_${argtype}(
+        &pos, &remaining,
+        &$n1, &$n2);
     if (!ok) {
         goto fail;
     }
@@ -625,7 +629,9 @@ EOF
             my $server_specific = ($argtype =~ /^psa_\w+_operation_t/) ? "server_" : "";
             print $fh <<EOF;
 
-    ok = psasim_${server_specific}deserialise_${argtype}(&pos, &remaining, &$argname);
+    ok = psasim_${server_specific}deserialise_${argtype}(
+        &pos, &remaining,
+        &$argname);
     if (!ok) {
         goto fail;
     }
@@ -641,7 +647,7 @@ EOF
 
     my @outputs = grep($_->{is_output}, @$args);
 
-    my $sep1 = ($ret_type eq "void") ? ";" : " +";
+    my $sep1 = (($ret_type eq "void") and ($#outputs < 0)) ? ";" : " +";
 
     print $fh <<EOF;
 
@@ -691,7 +697,9 @@ EOF
     if ($ret_type ne "void") {
         print $fh <<EOF;
 
-    ok = psasim_serialise_${ret_type}(&rpos, &rremain, $ret_name);
+    ok = psasim_serialise_${ret_type}(
+        &rpos, &rremain,
+        $ret_name);
     if (!ok) {
         goto fail;
     }
@@ -711,7 +719,9 @@ EOF
         if ($argtype eq "buffer") {
             print $fh <<EOF;
 
-    ok = psasim_serialise_buffer(&rpos, &rremain, $argname);
+    ok = psasim_serialise_buffer(
+        &rpos, &rremain,
+        $argname);
     if (!ok) {
         goto fail;
     }
@@ -719,7 +729,9 @@ EOF
         } elsif ($argtype eq "psa_key_production_parameters_t") {
             print $fh <<EOF;
 
-    ok = psasim_serialise_psa_key_production_parameters_t(&rpos, &rremain, $argname);
+    ok = psasim_serialise_psa_key_production_parameters_t(
+        &rpos, &rremain,
+        $argname);
     if (!ok) {
         goto fail;
     }
@@ -735,7 +747,9 @@ EOF
 
             print $fh <<EOF;
 
-    ok = psasim_${server_specific}serialise_${argtype}(&rpos, &rremain, $argname);
+    ok = psasim_${server_specific}serialise_${argtype}(
+        &rpos, &rremain,
+        $argname);
     if (!ok) {
         goto fail;
     }
@@ -790,7 +804,8 @@ EOF
 
     print $fh <<EOF;
 
-    size_t needed = psasim_serialise_begin_needs() +
+    size_t needed =
+        psasim_serialise_begin_needs() +
 EOF
 
     my $args = $f->{args};
@@ -803,12 +818,12 @@ EOF
         $argtype =~ s/^const //;
 
         print $fh <<EOF;
-                    psasim_serialise_${argtype}_needs($argname)$sep
+        psasim_serialise_${argtype}_needs($argname)$sep
 EOF
     }
 
     print $fh <<EOF if $#$args < 0;
-                    0;
+        0;
 EOF
 
     print $fh <<EOF;
@@ -848,7 +863,9 @@ EOF
         $argtype =~ s/^const //;
 
         print $fh <<EOF;
-    ok = psasim_serialise_${argtype}(&pos, &remaining, $argname);
+    ok = psasim_serialise_${argtype}(
+        &pos, &remaining,
+        $argname);
     if (!ok) {
         goto fail;
     }
@@ -892,7 +909,9 @@ EOF
 
     print $fh <<EOF if $ret_type ne "void";
 
-    ok = psasim_deserialise_$ret_type(&rpos, &rremain, &$ret_name);
+    ok = psasim_deserialise_$ret_type(
+        &rpos, &rremain,
+        &$ret_name);
     if (!ok) {
         goto fail;
     }
@@ -911,7 +930,9 @@ EOF
         if ($argtype eq "buffer") {
             print $fh <<EOF;
 
-    ok = psasim_deserialise_return_buffer(&rpos, &rremain, $argname);
+    ok = psasim_deserialise_return_buffer(
+        &rpos, &rremain,
+        $argname);
     if (!ok) {
         goto fail;
     }
@@ -925,7 +946,9 @@ EOF
 
             print $fh <<EOF;
 
-    ok = psasim_deserialise_${argtype}(&rpos, &rremain, $argname);
+    ok = psasim_deserialise_${argtype}(
+        &rpos, &rremain,
+        $argname);
     if (!ok) {
         goto fail;
     }
@@ -1013,7 +1036,7 @@ sub output_signature
 
     print $fh "\n$ret_type $name(\n";
 
-    print $fh "    void\n)\n" if $#$args < 0;   # No arguments
+    print $fh "    void\n    )\n" if $#$args < 0;   # No arguments
 
     for my $i (0 .. $#$args) {
         my $arg = $args->[$i];

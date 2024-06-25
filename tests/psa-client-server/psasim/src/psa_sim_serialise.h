@@ -107,7 +107,8 @@ int psasim_deserialise_begin(uint8_t **pos, size_t *remaining);
  *                           \c psasim_serialise_unsigned_int() to serialise
  *                           the given value.
  */
-size_t psasim_serialise_unsigned_int_needs(unsigned int value);
+size_t psasim_serialise_unsigned_int_needs(
+    unsigned int value);
 
 /** Serialise an `unsigned int` into a buffer.
  *
@@ -149,7 +150,8 @@ int psasim_deserialise_unsigned_int(uint8_t **pos,
  *                           \c psasim_serialise_int() to serialise
  *                           the given value.
  */
-size_t psasim_serialise_int_needs(int value);
+size_t psasim_serialise_int_needs(
+    int value);
 
 /** Serialise an `int` into a buffer.
  *
@@ -191,7 +193,8 @@ int psasim_deserialise_int(uint8_t **pos,
  *                           \c psasim_serialise_size_t() to serialise
  *                           the given value.
  */
-size_t psasim_serialise_size_t_needs(size_t value);
+size_t psasim_serialise_size_t_needs(
+    size_t value);
 
 /** Serialise a `size_t` into a buffer.
  *
@@ -233,7 +236,8 @@ int psasim_deserialise_size_t(uint8_t **pos,
  *                           \c psasim_serialise_uint16_t() to serialise
  *                           the given value.
  */
-size_t psasim_serialise_uint16_t_needs(uint16_t value);
+size_t psasim_serialise_uint16_t_needs(
+    uint16_t value);
 
 /** Serialise an `uint16_t` into a buffer.
  *
@@ -275,7 +279,8 @@ int psasim_deserialise_uint16_t(uint8_t **pos,
  *                           \c psasim_serialise_uint32_t() to serialise
  *                           the given value.
  */
-size_t psasim_serialise_uint32_t_needs(uint32_t value);
+size_t psasim_serialise_uint32_t_needs(
+    uint32_t value);
 
 /** Serialise an `uint32_t` into a buffer.
  *
@@ -317,7 +322,8 @@ int psasim_deserialise_uint32_t(uint8_t **pos,
  *                           \c psasim_serialise_uint64_t() to serialise
  *                           the given value.
  */
-size_t psasim_serialise_uint64_t_needs(uint64_t value);
+size_t psasim_serialise_uint64_t_needs(
+    uint64_t value);
 
 /** Serialise an `uint64_t` into a buffer.
  *
@@ -476,7 +482,8 @@ int psasim_deserialise_psa_key_production_parameters_t(uint8_t **pos, size_t *re
  *                           \c psasim_serialise_psa_status_t() to serialise
  *                           the given value.
  */
-size_t psasim_serialise_psa_status_t_needs(psa_status_t value);
+size_t psasim_serialise_psa_status_t_needs(
+    psa_status_t value);
 
 /** Serialise a `psa_status_t` into a buffer.
  *
@@ -518,7 +525,8 @@ int psasim_deserialise_psa_status_t(uint8_t **pos,
  *                           \c psasim_serialise_psa_algorithm_t() to serialise
  *                           the given value.
  */
-size_t psasim_serialise_psa_algorithm_t_needs(psa_algorithm_t value);
+size_t psasim_serialise_psa_algorithm_t_needs(
+    psa_algorithm_t value);
 
 /** Serialise a `psa_algorithm_t` into a buffer.
  *
@@ -560,7 +568,8 @@ int psasim_deserialise_psa_algorithm_t(uint8_t **pos,
  *                           \c psasim_serialise_psa_key_derivation_step_t() to serialise
  *                           the given value.
  */
-size_t psasim_serialise_psa_key_derivation_step_t_needs(psa_key_derivation_step_t value);
+size_t psasim_serialise_psa_key_derivation_step_t_needs(
+    psa_key_derivation_step_t value);
 
 /** Serialise a `psa_key_derivation_step_t` into a buffer.
  *
@@ -602,7 +611,8 @@ int psasim_deserialise_psa_key_derivation_step_t(uint8_t **pos,
  *                           \c psasim_serialise_psa_hash_operation_t() to serialise
  *                           the given value.
  */
-size_t psasim_serialise_psa_hash_operation_t_needs(psa_hash_operation_t value);
+size_t psasim_serialise_psa_hash_operation_t_needs(
+    psa_hash_operation_t value);
 
 /** Serialise a `psa_hash_operation_t` into a buffer.
  *
@@ -644,7 +654,8 @@ int psasim_deserialise_psa_hash_operation_t(uint8_t **pos,
  *                           \c psasim_serialise_psa_hash_operation_t() to serialise
  *                           the given value.
  */
-size_t psasim_server_serialise_psa_hash_operation_t_needs(psa_hash_operation_t *value);
+size_t psasim_server_serialise_psa_hash_operation_t_needs(
+    psa_hash_operation_t *value);
 
 /** Serialise a `psa_hash_operation_t` into a buffer on the server side.
  *
@@ -686,7 +697,8 @@ int psasim_server_deserialise_psa_hash_operation_t(uint8_t **pos,
  *                           \c psasim_serialise_psa_aead_operation_t() to serialise
  *                           the given value.
  */
-size_t psasim_serialise_psa_aead_operation_t_needs(psa_aead_operation_t value);
+size_t psasim_serialise_psa_aead_operation_t_needs(
+    psa_aead_operation_t value);
 
 /** Serialise a `psa_aead_operation_t` into a buffer.
  *
@@ -728,7 +740,8 @@ int psasim_deserialise_psa_aead_operation_t(uint8_t **pos,
  *                           \c psasim_serialise_psa_aead_operation_t() to serialise
  *                           the given value.
  */
-size_t psasim_server_serialise_psa_aead_operation_t_needs(psa_aead_operation_t *value);
+size_t psasim_server_serialise_psa_aead_operation_t_needs(
+    psa_aead_operation_t *value);
 
 /** Serialise a `psa_aead_operation_t` into a buffer on the server side.
  *
@@ -770,7 +783,8 @@ int psasim_server_deserialise_psa_aead_operation_t(uint8_t **pos,
  *                           \c psasim_serialise_psa_key_attributes_t() to serialise
  *                           the given value.
  */
-size_t psasim_serialise_psa_key_attributes_t_needs(psa_key_attributes_t value);
+size_t psasim_serialise_psa_key_attributes_t_needs(
+    psa_key_attributes_t value);
 
 /** Serialise a `psa_key_attributes_t` into a buffer.
  *
@@ -812,7 +826,8 @@ int psasim_deserialise_psa_key_attributes_t(uint8_t **pos,
  *                           \c psasim_serialise_psa_mac_operation_t() to serialise
  *                           the given value.
  */
-size_t psasim_serialise_psa_mac_operation_t_needs(psa_mac_operation_t value);
+size_t psasim_serialise_psa_mac_operation_t_needs(
+    psa_mac_operation_t value);
 
 /** Serialise a `psa_mac_operation_t` into a buffer.
  *
@@ -854,7 +869,8 @@ int psasim_deserialise_psa_mac_operation_t(uint8_t **pos,
  *                           \c psasim_serialise_psa_mac_operation_t() to serialise
  *                           the given value.
  */
-size_t psasim_server_serialise_psa_mac_operation_t_needs(psa_mac_operation_t *value);
+size_t psasim_server_serialise_psa_mac_operation_t_needs(
+    psa_mac_operation_t *value);
 
 /** Serialise a `psa_mac_operation_t` into a buffer on the server side.
  *
@@ -896,7 +912,8 @@ int psasim_server_deserialise_psa_mac_operation_t(uint8_t **pos,
  *                           \c psasim_serialise_psa_cipher_operation_t() to serialise
  *                           the given value.
  */
-size_t psasim_serialise_psa_cipher_operation_t_needs(psa_cipher_operation_t value);
+size_t psasim_serialise_psa_cipher_operation_t_needs(
+    psa_cipher_operation_t value);
 
 /** Serialise a `psa_cipher_operation_t` into a buffer.
  *
@@ -938,7 +955,8 @@ int psasim_deserialise_psa_cipher_operation_t(uint8_t **pos,
  *                           \c psasim_serialise_psa_cipher_operation_t() to serialise
  *                           the given value.
  */
-size_t psasim_server_serialise_psa_cipher_operation_t_needs(psa_cipher_operation_t *value);
+size_t psasim_server_serialise_psa_cipher_operation_t_needs(
+    psa_cipher_operation_t *value);
 
 /** Serialise a `psa_cipher_operation_t` into a buffer on the server side.
  *
@@ -980,7 +998,8 @@ int psasim_server_deserialise_psa_cipher_operation_t(uint8_t **pos,
  *                           \c psasim_serialise_psa_key_derivation_operation_t() to serialise
  *                           the given value.
  */
-size_t psasim_serialise_psa_key_derivation_operation_t_needs(psa_key_derivation_operation_t value);
+size_t psasim_serialise_psa_key_derivation_operation_t_needs(
+    psa_key_derivation_operation_t value);
 
 /** Serialise a `psa_key_derivation_operation_t` into a buffer.
  *
@@ -1022,7 +1041,8 @@ int psasim_deserialise_psa_key_derivation_operation_t(uint8_t **pos,
  *                           \c psasim_serialise_psa_key_derivation_operation_t() to serialise
  *                           the given value.
  */
-size_t psasim_server_serialise_psa_key_derivation_operation_t_needs(psa_key_derivation_operation_t *value);
+size_t psasim_server_serialise_psa_key_derivation_operation_t_needs(
+    psa_key_derivation_operation_t *value);
 
 /** Serialise a `psa_key_derivation_operation_t` into a buffer on the server side.
  *
@@ -1064,7 +1084,8 @@ int psasim_server_deserialise_psa_key_derivation_operation_t(uint8_t **pos,
  *                           \c psasim_serialise_psa_sign_hash_interruptible_operation_t() to serialise
  *                           the given value.
  */
-size_t psasim_serialise_psa_sign_hash_interruptible_operation_t_needs(psa_sign_hash_interruptible_operation_t value);
+size_t psasim_serialise_psa_sign_hash_interruptible_operation_t_needs(
+    psa_sign_hash_interruptible_operation_t value);
 
 /** Serialise a `psa_sign_hash_interruptible_operation_t` into a buffer.
  *
@@ -1106,7 +1127,8 @@ int psasim_deserialise_psa_sign_hash_interruptible_operation_t(uint8_t **pos,
  *                           \c psasim_serialise_psa_sign_hash_interruptible_operation_t() to serialise
  *                           the given value.
  */
-size_t psasim_server_serialise_psa_sign_hash_interruptible_operation_t_needs(psa_sign_hash_interruptible_operation_t *value);
+size_t psasim_server_serialise_psa_sign_hash_interruptible_operation_t_needs(
+    psa_sign_hash_interruptible_operation_t *value);
 
 /** Serialise a `psa_sign_hash_interruptible_operation_t` into a buffer on the server side.
  *
@@ -1148,7 +1170,8 @@ int psasim_server_deserialise_psa_sign_hash_interruptible_operation_t(uint8_t **
  *                           \c psasim_serialise_psa_verify_hash_interruptible_operation_t() to serialise
  *                           the given value.
  */
-size_t psasim_serialise_psa_verify_hash_interruptible_operation_t_needs(psa_verify_hash_interruptible_operation_t value);
+size_t psasim_serialise_psa_verify_hash_interruptible_operation_t_needs(
+    psa_verify_hash_interruptible_operation_t value);
 
 /** Serialise a `psa_verify_hash_interruptible_operation_t` into a buffer.
  *
@@ -1190,7 +1213,8 @@ int psasim_deserialise_psa_verify_hash_interruptible_operation_t(uint8_t **pos,
  *                           \c psasim_serialise_psa_verify_hash_interruptible_operation_t() to serialise
  *                           the given value.
  */
-size_t psasim_server_serialise_psa_verify_hash_interruptible_operation_t_needs(psa_verify_hash_interruptible_operation_t *value);
+size_t psasim_server_serialise_psa_verify_hash_interruptible_operation_t_needs(
+    psa_verify_hash_interruptible_operation_t *value);
 
 /** Serialise a `psa_verify_hash_interruptible_operation_t` into a buffer on the server side.
  *
@@ -1232,7 +1256,8 @@ int psasim_server_deserialise_psa_verify_hash_interruptible_operation_t(uint8_t 
  *                           \c psasim_serialise_mbedtls_svc_key_id_t() to serialise
  *                           the given value.
  */
-size_t psasim_serialise_mbedtls_svc_key_id_t_needs(mbedtls_svc_key_id_t value);
+size_t psasim_serialise_mbedtls_svc_key_id_t_needs(
+    mbedtls_svc_key_id_t value);
 
 /** Serialise a `mbedtls_svc_key_id_t` into a buffer.
  *

@@ -134,8 +134,9 @@ psa_status_t psa_aead_abort(
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    size_t needed = psasim_serialise_begin_needs() +
-                    psasim_serialise_psa_aead_operation_t_needs(*operation);
+    size_t needed =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_psa_aead_operation_t_needs(*operation);
 
     ser_params = malloc(needed);
     if (ser_params == NULL) {
@@ -150,7 +151,9 @@ psa_status_t psa_aead_abort(
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_psa_aead_operation_t(&pos, &remaining, *operation);
+    ok = psasim_serialise_psa_aead_operation_t(
+        &pos, &remaining,
+        *operation);
     if (!ok) {
         goto fail;
     }
@@ -170,12 +173,16 @@ psa_status_t psa_aead_abort(
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    ok = psasim_deserialise_psa_status_t(
+        &rpos, &rremain,
+        &status);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_aead_operation_t(&rpos, &rremain, operation);
+    ok = psasim_deserialise_psa_aead_operation_t(
+        &rpos, &rremain,
+        operation);
     if (!ok) {
         goto fail;
     }
@@ -203,14 +210,15 @@ psa_status_t psa_aead_decrypt(
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    size_t needed = psasim_serialise_begin_needs() +
-                    psasim_serialise_mbedtls_svc_key_id_t_needs(key) +
-                    psasim_serialise_psa_algorithm_t_needs(alg) +
-                    psasim_serialise_buffer_needs(nonce, nonce_length) +
-                    psasim_serialise_buffer_needs(additional_data, additional_data_length) +
-                    psasim_serialise_buffer_needs(ciphertext, ciphertext_length) +
-                    psasim_serialise_buffer_needs(plaintext, plaintext_size) +
-                    psasim_serialise_size_t_needs(*plaintext_length);
+    size_t needed =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_mbedtls_svc_key_id_t_needs(key) +
+        psasim_serialise_psa_algorithm_t_needs(alg) +
+        psasim_serialise_buffer_needs(nonce, nonce_length) +
+        psasim_serialise_buffer_needs(additional_data, additional_data_length) +
+        psasim_serialise_buffer_needs(ciphertext, ciphertext_length) +
+        psasim_serialise_buffer_needs(plaintext, plaintext_size) +
+        psasim_serialise_size_t_needs(*plaintext_length);
 
     ser_params = malloc(needed);
     if (ser_params == NULL) {
@@ -225,31 +233,45 @@ psa_status_t psa_aead_decrypt(
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_mbedtls_svc_key_id_t(&pos, &remaining, key);
+    ok = psasim_serialise_mbedtls_svc_key_id_t(
+        &pos, &remaining,
+        key);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_psa_algorithm_t(&pos, &remaining, alg);
+    ok = psasim_serialise_psa_algorithm_t(
+        &pos, &remaining,
+        alg);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_buffer(&pos, &remaining, nonce, nonce_length);
+    ok = psasim_serialise_buffer(
+        &pos, &remaining,
+        nonce, nonce_length);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_buffer(&pos, &remaining, additional_data, additional_data_length);
+    ok = psasim_serialise_buffer(
+        &pos, &remaining,
+        additional_data, additional_data_length);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_buffer(&pos, &remaining, ciphertext, ciphertext_length);
+    ok = psasim_serialise_buffer(
+        &pos, &remaining,
+        ciphertext, ciphertext_length);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_buffer(&pos, &remaining, plaintext, plaintext_size);
+    ok = psasim_serialise_buffer(
+        &pos, &remaining,
+        plaintext, plaintext_size);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_size_t(&pos, &remaining, *plaintext_length);
+    ok = psasim_serialise_size_t(
+        &pos, &remaining,
+        *plaintext_length);
     if (!ok) {
         goto fail;
     }
@@ -269,17 +291,23 @@ psa_status_t psa_aead_decrypt(
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    ok = psasim_deserialise_psa_status_t(
+        &rpos, &rremain,
+        &status);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_return_buffer(&rpos, &rremain, plaintext, plaintext_size);
+    ok = psasim_deserialise_return_buffer(
+        &rpos, &rremain,
+        plaintext, plaintext_size);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_size_t(&rpos, &rremain, plaintext_length);
+    ok = psasim_deserialise_size_t(
+        &rpos, &rremain,
+        plaintext_length);
     if (!ok) {
         goto fail;
     }
@@ -303,10 +331,11 @@ psa_status_t psa_aead_decrypt_setup(
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    size_t needed = psasim_serialise_begin_needs() +
-                    psasim_serialise_psa_aead_operation_t_needs(*operation) +
-                    psasim_serialise_mbedtls_svc_key_id_t_needs(key) +
-                    psasim_serialise_psa_algorithm_t_needs(alg);
+    size_t needed =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_psa_aead_operation_t_needs(*operation) +
+        psasim_serialise_mbedtls_svc_key_id_t_needs(key) +
+        psasim_serialise_psa_algorithm_t_needs(alg);
 
     ser_params = malloc(needed);
     if (ser_params == NULL) {
@@ -321,15 +350,21 @@ psa_status_t psa_aead_decrypt_setup(
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_psa_aead_operation_t(&pos, &remaining, *operation);
+    ok = psasim_serialise_psa_aead_operation_t(
+        &pos, &remaining,
+        *operation);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_mbedtls_svc_key_id_t(&pos, &remaining, key);
+    ok = psasim_serialise_mbedtls_svc_key_id_t(
+        &pos, &remaining,
+        key);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_psa_algorithm_t(&pos, &remaining, alg);
+    ok = psasim_serialise_psa_algorithm_t(
+        &pos, &remaining,
+        alg);
     if (!ok) {
         goto fail;
     }
@@ -349,12 +384,16 @@ psa_status_t psa_aead_decrypt_setup(
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    ok = psasim_deserialise_psa_status_t(
+        &rpos, &rremain,
+        &status);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_aead_operation_t(&rpos, &rremain, operation);
+    ok = psasim_deserialise_psa_aead_operation_t(
+        &rpos, &rremain,
+        operation);
     if (!ok) {
         goto fail;
     }
@@ -382,14 +421,15 @@ psa_status_t psa_aead_encrypt(
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    size_t needed = psasim_serialise_begin_needs() +
-                    psasim_serialise_mbedtls_svc_key_id_t_needs(key) +
-                    psasim_serialise_psa_algorithm_t_needs(alg) +
-                    psasim_serialise_buffer_needs(nonce, nonce_length) +
-                    psasim_serialise_buffer_needs(additional_data, additional_data_length) +
-                    psasim_serialise_buffer_needs(plaintext, plaintext_length) +
-                    psasim_serialise_buffer_needs(ciphertext, ciphertext_size) +
-                    psasim_serialise_size_t_needs(*ciphertext_length);
+    size_t needed =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_mbedtls_svc_key_id_t_needs(key) +
+        psasim_serialise_psa_algorithm_t_needs(alg) +
+        psasim_serialise_buffer_needs(nonce, nonce_length) +
+        psasim_serialise_buffer_needs(additional_data, additional_data_length) +
+        psasim_serialise_buffer_needs(plaintext, plaintext_length) +
+        psasim_serialise_buffer_needs(ciphertext, ciphertext_size) +
+        psasim_serialise_size_t_needs(*ciphertext_length);
 
     ser_params = malloc(needed);
     if (ser_params == NULL) {
@@ -404,31 +444,45 @@ psa_status_t psa_aead_encrypt(
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_mbedtls_svc_key_id_t(&pos, &remaining, key);
+    ok = psasim_serialise_mbedtls_svc_key_id_t(
+        &pos, &remaining,
+        key);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_psa_algorithm_t(&pos, &remaining, alg);
+    ok = psasim_serialise_psa_algorithm_t(
+        &pos, &remaining,
+        alg);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_buffer(&pos, &remaining, nonce, nonce_length);
+    ok = psasim_serialise_buffer(
+        &pos, &remaining,
+        nonce, nonce_length);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_buffer(&pos, &remaining, additional_data, additional_data_length);
+    ok = psasim_serialise_buffer(
+        &pos, &remaining,
+        additional_data, additional_data_length);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_buffer(&pos, &remaining, plaintext, plaintext_length);
+    ok = psasim_serialise_buffer(
+        &pos, &remaining,
+        plaintext, plaintext_length);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_buffer(&pos, &remaining, ciphertext, ciphertext_size);
+    ok = psasim_serialise_buffer(
+        &pos, &remaining,
+        ciphertext, ciphertext_size);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_size_t(&pos, &remaining, *ciphertext_length);
+    ok = psasim_serialise_size_t(
+        &pos, &remaining,
+        *ciphertext_length);
     if (!ok) {
         goto fail;
     }
@@ -448,17 +502,23 @@ psa_status_t psa_aead_encrypt(
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    ok = psasim_deserialise_psa_status_t(
+        &rpos, &rremain,
+        &status);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_return_buffer(&rpos, &rremain, ciphertext, ciphertext_size);
+    ok = psasim_deserialise_return_buffer(
+        &rpos, &rremain,
+        ciphertext, ciphertext_size);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_size_t(&rpos, &rremain, ciphertext_length);
+    ok = psasim_deserialise_size_t(
+        &rpos, &rremain,
+        ciphertext_length);
     if (!ok) {
         goto fail;
     }
@@ -482,10 +542,11 @@ psa_status_t psa_aead_encrypt_setup(
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    size_t needed = psasim_serialise_begin_needs() +
-                    psasim_serialise_psa_aead_operation_t_needs(*operation) +
-                    psasim_serialise_mbedtls_svc_key_id_t_needs(key) +
-                    psasim_serialise_psa_algorithm_t_needs(alg);
+    size_t needed =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_psa_aead_operation_t_needs(*operation) +
+        psasim_serialise_mbedtls_svc_key_id_t_needs(key) +
+        psasim_serialise_psa_algorithm_t_needs(alg);
 
     ser_params = malloc(needed);
     if (ser_params == NULL) {
@@ -500,15 +561,21 @@ psa_status_t psa_aead_encrypt_setup(
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_psa_aead_operation_t(&pos, &remaining, *operation);
+    ok = psasim_serialise_psa_aead_operation_t(
+        &pos, &remaining,
+        *operation);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_mbedtls_svc_key_id_t(&pos, &remaining, key);
+    ok = psasim_serialise_mbedtls_svc_key_id_t(
+        &pos, &remaining,
+        key);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_psa_algorithm_t(&pos, &remaining, alg);
+    ok = psasim_serialise_psa_algorithm_t(
+        &pos, &remaining,
+        alg);
     if (!ok) {
         goto fail;
     }
@@ -528,12 +595,16 @@ psa_status_t psa_aead_encrypt_setup(
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    ok = psasim_deserialise_psa_status_t(
+        &rpos, &rremain,
+        &status);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_aead_operation_t(&rpos, &rremain, operation);
+    ok = psasim_deserialise_psa_aead_operation_t(
+        &rpos, &rremain,
+        operation);
     if (!ok) {
         goto fail;
     }
@@ -559,12 +630,13 @@ psa_status_t psa_aead_finish(
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    size_t needed = psasim_serialise_begin_needs() +
-                    psasim_serialise_psa_aead_operation_t_needs(*operation) +
-                    psasim_serialise_buffer_needs(ciphertext, ciphertext_size) +
-                    psasim_serialise_size_t_needs(*ciphertext_length) +
-                    psasim_serialise_buffer_needs(tag, tag_size) +
-                    psasim_serialise_size_t_needs(*tag_length);
+    size_t needed =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_psa_aead_operation_t_needs(*operation) +
+        psasim_serialise_buffer_needs(ciphertext, ciphertext_size) +
+        psasim_serialise_size_t_needs(*ciphertext_length) +
+        psasim_serialise_buffer_needs(tag, tag_size) +
+        psasim_serialise_size_t_needs(*tag_length);
 
     ser_params = malloc(needed);
     if (ser_params == NULL) {
@@ -579,23 +651,33 @@ psa_status_t psa_aead_finish(
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_psa_aead_operation_t(&pos, &remaining, *operation);
+    ok = psasim_serialise_psa_aead_operation_t(
+        &pos, &remaining,
+        *operation);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_buffer(&pos, &remaining, ciphertext, ciphertext_size);
+    ok = psasim_serialise_buffer(
+        &pos, &remaining,
+        ciphertext, ciphertext_size);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_size_t(&pos, &remaining, *ciphertext_length);
+    ok = psasim_serialise_size_t(
+        &pos, &remaining,
+        *ciphertext_length);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_buffer(&pos, &remaining, tag, tag_size);
+    ok = psasim_serialise_buffer(
+        &pos, &remaining,
+        tag, tag_size);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_size_t(&pos, &remaining, *tag_length);
+    ok = psasim_serialise_size_t(
+        &pos, &remaining,
+        *tag_length);
     if (!ok) {
         goto fail;
     }
@@ -615,32 +697,44 @@ psa_status_t psa_aead_finish(
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    ok = psasim_deserialise_psa_status_t(
+        &rpos, &rremain,
+        &status);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_aead_operation_t(&rpos, &rremain, operation);
+    ok = psasim_deserialise_psa_aead_operation_t(
+        &rpos, &rremain,
+        operation);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_return_buffer(&rpos, &rremain, ciphertext, ciphertext_size);
+    ok = psasim_deserialise_return_buffer(
+        &rpos, &rremain,
+        ciphertext, ciphertext_size);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_size_t(&rpos, &rremain, ciphertext_length);
+    ok = psasim_deserialise_size_t(
+        &rpos, &rremain,
+        ciphertext_length);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_return_buffer(&rpos, &rremain, tag, tag_size);
+    ok = psasim_deserialise_return_buffer(
+        &rpos, &rremain,
+        tag, tag_size);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_size_t(&rpos, &rremain, tag_length);
+    ok = psasim_deserialise_size_t(
+        &rpos, &rremain,
+        tag_length);
     if (!ok) {
         goto fail;
     }
@@ -664,10 +758,11 @@ psa_status_t psa_aead_generate_nonce(
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    size_t needed = psasim_serialise_begin_needs() +
-                    psasim_serialise_psa_aead_operation_t_needs(*operation) +
-                    psasim_serialise_buffer_needs(nonce, nonce_size) +
-                    psasim_serialise_size_t_needs(*nonce_length);
+    size_t needed =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_psa_aead_operation_t_needs(*operation) +
+        psasim_serialise_buffer_needs(nonce, nonce_size) +
+        psasim_serialise_size_t_needs(*nonce_length);
 
     ser_params = malloc(needed);
     if (ser_params == NULL) {
@@ -682,15 +777,21 @@ psa_status_t psa_aead_generate_nonce(
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_psa_aead_operation_t(&pos, &remaining, *operation);
+    ok = psasim_serialise_psa_aead_operation_t(
+        &pos, &remaining,
+        *operation);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_buffer(&pos, &remaining, nonce, nonce_size);
+    ok = psasim_serialise_buffer(
+        &pos, &remaining,
+        nonce, nonce_size);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_size_t(&pos, &remaining, *nonce_length);
+    ok = psasim_serialise_size_t(
+        &pos, &remaining,
+        *nonce_length);
     if (!ok) {
         goto fail;
     }
@@ -710,22 +811,30 @@ psa_status_t psa_aead_generate_nonce(
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    ok = psasim_deserialise_psa_status_t(
+        &rpos, &rremain,
+        &status);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_aead_operation_t(&rpos, &rremain, operation);
+    ok = psasim_deserialise_psa_aead_operation_t(
+        &rpos, &rremain,
+        operation);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_return_buffer(&rpos, &rremain, nonce, nonce_size);
+    ok = psasim_deserialise_return_buffer(
+        &rpos, &rremain,
+        nonce, nonce_size);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_size_t(&rpos, &rremain, nonce_length);
+    ok = psasim_deserialise_size_t(
+        &rpos, &rremain,
+        nonce_length);
     if (!ok) {
         goto fail;
     }
@@ -749,10 +858,11 @@ psa_status_t psa_aead_set_lengths(
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    size_t needed = psasim_serialise_begin_needs() +
-                    psasim_serialise_psa_aead_operation_t_needs(*operation) +
-                    psasim_serialise_size_t_needs(ad_length) +
-                    psasim_serialise_size_t_needs(plaintext_length);
+    size_t needed =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_psa_aead_operation_t_needs(*operation) +
+        psasim_serialise_size_t_needs(ad_length) +
+        psasim_serialise_size_t_needs(plaintext_length);
 
     ser_params = malloc(needed);
     if (ser_params == NULL) {
@@ -767,15 +877,21 @@ psa_status_t psa_aead_set_lengths(
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_psa_aead_operation_t(&pos, &remaining, *operation);
+    ok = psasim_serialise_psa_aead_operation_t(
+        &pos, &remaining,
+        *operation);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_size_t(&pos, &remaining, ad_length);
+    ok = psasim_serialise_size_t(
+        &pos, &remaining,
+        ad_length);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_size_t(&pos, &remaining, plaintext_length);
+    ok = psasim_serialise_size_t(
+        &pos, &remaining,
+        plaintext_length);
     if (!ok) {
         goto fail;
     }
@@ -795,12 +911,16 @@ psa_status_t psa_aead_set_lengths(
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    ok = psasim_deserialise_psa_status_t(
+        &rpos, &rremain,
+        &status);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_aead_operation_t(&rpos, &rremain, operation);
+    ok = psasim_deserialise_psa_aead_operation_t(
+        &rpos, &rremain,
+        operation);
     if (!ok) {
         goto fail;
     }
@@ -823,9 +943,10 @@ psa_status_t psa_aead_set_nonce(
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    size_t needed = psasim_serialise_begin_needs() +
-                    psasim_serialise_psa_aead_operation_t_needs(*operation) +
-                    psasim_serialise_buffer_needs(nonce, nonce_length);
+    size_t needed =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_psa_aead_operation_t_needs(*operation) +
+        psasim_serialise_buffer_needs(nonce, nonce_length);
 
     ser_params = malloc(needed);
     if (ser_params == NULL) {
@@ -840,11 +961,15 @@ psa_status_t psa_aead_set_nonce(
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_psa_aead_operation_t(&pos, &remaining, *operation);
+    ok = psasim_serialise_psa_aead_operation_t(
+        &pos, &remaining,
+        *operation);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_buffer(&pos, &remaining, nonce, nonce_length);
+    ok = psasim_serialise_buffer(
+        &pos, &remaining,
+        nonce, nonce_length);
     if (!ok) {
         goto fail;
     }
@@ -864,12 +989,16 @@ psa_status_t psa_aead_set_nonce(
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    ok = psasim_deserialise_psa_status_t(
+        &rpos, &rremain,
+        &status);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_aead_operation_t(&rpos, &rremain, operation);
+    ok = psasim_deserialise_psa_aead_operation_t(
+        &rpos, &rremain,
+        operation);
     if (!ok) {
         goto fail;
     }
@@ -894,11 +1023,12 @@ psa_status_t psa_aead_update(
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    size_t needed = psasim_serialise_begin_needs() +
-                    psasim_serialise_psa_aead_operation_t_needs(*operation) +
-                    psasim_serialise_buffer_needs(input, input_length) +
-                    psasim_serialise_buffer_needs(output, output_size) +
-                    psasim_serialise_size_t_needs(*output_length);
+    size_t needed =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_psa_aead_operation_t_needs(*operation) +
+        psasim_serialise_buffer_needs(input, input_length) +
+        psasim_serialise_buffer_needs(output, output_size) +
+        psasim_serialise_size_t_needs(*output_length);
 
     ser_params = malloc(needed);
     if (ser_params == NULL) {
@@ -913,19 +1043,27 @@ psa_status_t psa_aead_update(
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_psa_aead_operation_t(&pos, &remaining, *operation);
+    ok = psasim_serialise_psa_aead_operation_t(
+        &pos, &remaining,
+        *operation);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_buffer(&pos, &remaining, input, input_length);
+    ok = psasim_serialise_buffer(
+        &pos, &remaining,
+        input, input_length);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_buffer(&pos, &remaining, output, output_size);
+    ok = psasim_serialise_buffer(
+        &pos, &remaining,
+        output, output_size);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_size_t(&pos, &remaining, *output_length);
+    ok = psasim_serialise_size_t(
+        &pos, &remaining,
+        *output_length);
     if (!ok) {
         goto fail;
     }
@@ -945,22 +1083,30 @@ psa_status_t psa_aead_update(
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    ok = psasim_deserialise_psa_status_t(
+        &rpos, &rremain,
+        &status);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_aead_operation_t(&rpos, &rremain, operation);
+    ok = psasim_deserialise_psa_aead_operation_t(
+        &rpos, &rremain,
+        operation);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_return_buffer(&rpos, &rremain, output, output_size);
+    ok = psasim_deserialise_return_buffer(
+        &rpos, &rremain,
+        output, output_size);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_size_t(&rpos, &rremain, output_length);
+    ok = psasim_deserialise_size_t(
+        &rpos, &rremain,
+        output_length);
     if (!ok) {
         goto fail;
     }
@@ -983,9 +1129,10 @@ psa_status_t psa_aead_update_ad(
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    size_t needed = psasim_serialise_begin_needs() +
-                    psasim_serialise_psa_aead_operation_t_needs(*operation) +
-                    psasim_serialise_buffer_needs(input, input_length);
+    size_t needed =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_psa_aead_operation_t_needs(*operation) +
+        psasim_serialise_buffer_needs(input, input_length);
 
     ser_params = malloc(needed);
     if (ser_params == NULL) {
@@ -1000,11 +1147,15 @@ psa_status_t psa_aead_update_ad(
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_psa_aead_operation_t(&pos, &remaining, *operation);
+    ok = psasim_serialise_psa_aead_operation_t(
+        &pos, &remaining,
+        *operation);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_buffer(&pos, &remaining, input, input_length);
+    ok = psasim_serialise_buffer(
+        &pos, &remaining,
+        input, input_length);
     if (!ok) {
         goto fail;
     }
@@ -1024,12 +1175,16 @@ psa_status_t psa_aead_update_ad(
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    ok = psasim_deserialise_psa_status_t(
+        &rpos, &rremain,
+        &status);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_aead_operation_t(&rpos, &rremain, operation);
+    ok = psasim_deserialise_psa_aead_operation_t(
+        &rpos, &rremain,
+        operation);
     if (!ok) {
         goto fail;
     }
@@ -1054,11 +1209,12 @@ psa_status_t psa_aead_verify(
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    size_t needed = psasim_serialise_begin_needs() +
-                    psasim_serialise_psa_aead_operation_t_needs(*operation) +
-                    psasim_serialise_buffer_needs(plaintext, plaintext_size) +
-                    psasim_serialise_size_t_needs(*plaintext_length) +
-                    psasim_serialise_buffer_needs(tag, tag_length);
+    size_t needed =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_psa_aead_operation_t_needs(*operation) +
+        psasim_serialise_buffer_needs(plaintext, plaintext_size) +
+        psasim_serialise_size_t_needs(*plaintext_length) +
+        psasim_serialise_buffer_needs(tag, tag_length);
 
     ser_params = malloc(needed);
     if (ser_params == NULL) {
@@ -1073,19 +1229,27 @@ psa_status_t psa_aead_verify(
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_psa_aead_operation_t(&pos, &remaining, *operation);
+    ok = psasim_serialise_psa_aead_operation_t(
+        &pos, &remaining,
+        *operation);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_buffer(&pos, &remaining, plaintext, plaintext_size);
+    ok = psasim_serialise_buffer(
+        &pos, &remaining,
+        plaintext, plaintext_size);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_size_t(&pos, &remaining, *plaintext_length);
+    ok = psasim_serialise_size_t(
+        &pos, &remaining,
+        *plaintext_length);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_buffer(&pos, &remaining, tag, tag_length);
+    ok = psasim_serialise_buffer(
+        &pos, &remaining,
+        tag, tag_length);
     if (!ok) {
         goto fail;
     }
@@ -1105,22 +1269,30 @@ psa_status_t psa_aead_verify(
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    ok = psasim_deserialise_psa_status_t(
+        &rpos, &rremain,
+        &status);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_aead_operation_t(&rpos, &rremain, operation);
+    ok = psasim_deserialise_psa_aead_operation_t(
+        &rpos, &rremain,
+        operation);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_return_buffer(&rpos, &rremain, plaintext, plaintext_size);
+    ok = psasim_deserialise_return_buffer(
+        &rpos, &rremain,
+        plaintext, plaintext_size);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_size_t(&rpos, &rremain, plaintext_length);
+    ok = psasim_deserialise_size_t(
+        &rpos, &rremain,
+        plaintext_length);
     if (!ok) {
         goto fail;
     }
@@ -1147,13 +1319,14 @@ psa_status_t psa_asymmetric_decrypt(
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    size_t needed = psasim_serialise_begin_needs() +
-                    psasim_serialise_mbedtls_svc_key_id_t_needs(key) +
-                    psasim_serialise_psa_algorithm_t_needs(alg) +
-                    psasim_serialise_buffer_needs(input, input_length) +
-                    psasim_serialise_buffer_needs(salt, salt_length) +
-                    psasim_serialise_buffer_needs(output, output_size) +
-                    psasim_serialise_size_t_needs(*output_length);
+    size_t needed =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_mbedtls_svc_key_id_t_needs(key) +
+        psasim_serialise_psa_algorithm_t_needs(alg) +
+        psasim_serialise_buffer_needs(input, input_length) +
+        psasim_serialise_buffer_needs(salt, salt_length) +
+        psasim_serialise_buffer_needs(output, output_size) +
+        psasim_serialise_size_t_needs(*output_length);
 
     ser_params = malloc(needed);
     if (ser_params == NULL) {
@@ -1168,27 +1341,39 @@ psa_status_t psa_asymmetric_decrypt(
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_mbedtls_svc_key_id_t(&pos, &remaining, key);
+    ok = psasim_serialise_mbedtls_svc_key_id_t(
+        &pos, &remaining,
+        key);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_psa_algorithm_t(&pos, &remaining, alg);
+    ok = psasim_serialise_psa_algorithm_t(
+        &pos, &remaining,
+        alg);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_buffer(&pos, &remaining, input, input_length);
+    ok = psasim_serialise_buffer(
+        &pos, &remaining,
+        input, input_length);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_buffer(&pos, &remaining, salt, salt_length);
+    ok = psasim_serialise_buffer(
+        &pos, &remaining,
+        salt, salt_length);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_buffer(&pos, &remaining, output, output_size);
+    ok = psasim_serialise_buffer(
+        &pos, &remaining,
+        output, output_size);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_size_t(&pos, &remaining, *output_length);
+    ok = psasim_serialise_size_t(
+        &pos, &remaining,
+        *output_length);
     if (!ok) {
         goto fail;
     }
@@ -1208,17 +1393,23 @@ psa_status_t psa_asymmetric_decrypt(
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    ok = psasim_deserialise_psa_status_t(
+        &rpos, &rremain,
+        &status);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_return_buffer(&rpos, &rremain, output, output_size);
+    ok = psasim_deserialise_return_buffer(
+        &rpos, &rremain,
+        output, output_size);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_size_t(&rpos, &rremain, output_length);
+    ok = psasim_deserialise_size_t(
+        &rpos, &rremain,
+        output_length);
     if (!ok) {
         goto fail;
     }
@@ -1245,13 +1436,14 @@ psa_status_t psa_asymmetric_encrypt(
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    size_t needed = psasim_serialise_begin_needs() +
-                    psasim_serialise_mbedtls_svc_key_id_t_needs(key) +
-                    psasim_serialise_psa_algorithm_t_needs(alg) +
-                    psasim_serialise_buffer_needs(input, input_length) +
-                    psasim_serialise_buffer_needs(salt, salt_length) +
-                    psasim_serialise_buffer_needs(output, output_size) +
-                    psasim_serialise_size_t_needs(*output_length);
+    size_t needed =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_mbedtls_svc_key_id_t_needs(key) +
+        psasim_serialise_psa_algorithm_t_needs(alg) +
+        psasim_serialise_buffer_needs(input, input_length) +
+        psasim_serialise_buffer_needs(salt, salt_length) +
+        psasim_serialise_buffer_needs(output, output_size) +
+        psasim_serialise_size_t_needs(*output_length);
 
     ser_params = malloc(needed);
     if (ser_params == NULL) {
@@ -1266,27 +1458,39 @@ psa_status_t psa_asymmetric_encrypt(
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_mbedtls_svc_key_id_t(&pos, &remaining, key);
+    ok = psasim_serialise_mbedtls_svc_key_id_t(
+        &pos, &remaining,
+        key);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_psa_algorithm_t(&pos, &remaining, alg);
+    ok = psasim_serialise_psa_algorithm_t(
+        &pos, &remaining,
+        alg);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_buffer(&pos, &remaining, input, input_length);
+    ok = psasim_serialise_buffer(
+        &pos, &remaining,
+        input, input_length);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_buffer(&pos, &remaining, salt, salt_length);
+    ok = psasim_serialise_buffer(
+        &pos, &remaining,
+        salt, salt_length);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_buffer(&pos, &remaining, output, output_size);
+    ok = psasim_serialise_buffer(
+        &pos, &remaining,
+        output, output_size);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_size_t(&pos, &remaining, *output_length);
+    ok = psasim_serialise_size_t(
+        &pos, &remaining,
+        *output_length);
     if (!ok) {
         goto fail;
     }
@@ -1306,17 +1510,23 @@ psa_status_t psa_asymmetric_encrypt(
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    ok = psasim_deserialise_psa_status_t(
+        &rpos, &rremain,
+        &status);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_return_buffer(&rpos, &rremain, output, output_size);
+    ok = psasim_deserialise_return_buffer(
+        &rpos, &rremain,
+        output, output_size);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_size_t(&rpos, &rremain, output_length);
+    ok = psasim_deserialise_size_t(
+        &rpos, &rremain,
+        output_length);
     if (!ok) {
         goto fail;
     }
@@ -1338,8 +1548,9 @@ psa_status_t psa_cipher_abort(
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    size_t needed = psasim_serialise_begin_needs() +
-                    psasim_serialise_psa_cipher_operation_t_needs(*operation);
+    size_t needed =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_psa_cipher_operation_t_needs(*operation);
 
     ser_params = malloc(needed);
     if (ser_params == NULL) {
@@ -1354,7 +1565,9 @@ psa_status_t psa_cipher_abort(
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_psa_cipher_operation_t(&pos, &remaining, *operation);
+    ok = psasim_serialise_psa_cipher_operation_t(
+        &pos, &remaining,
+        *operation);
     if (!ok) {
         goto fail;
     }
@@ -1374,12 +1587,16 @@ psa_status_t psa_cipher_abort(
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    ok = psasim_deserialise_psa_status_t(
+        &rpos, &rremain,
+        &status);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_cipher_operation_t(&rpos, &rremain, operation);
+    ok = psasim_deserialise_psa_cipher_operation_t(
+        &rpos, &rremain,
+        operation);
     if (!ok) {
         goto fail;
     }
@@ -1405,12 +1622,13 @@ psa_status_t psa_cipher_decrypt(
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    size_t needed = psasim_serialise_begin_needs() +
-                    psasim_serialise_mbedtls_svc_key_id_t_needs(key) +
-                    psasim_serialise_psa_algorithm_t_needs(alg) +
-                    psasim_serialise_buffer_needs(input, input_length) +
-                    psasim_serialise_buffer_needs(output, output_size) +
-                    psasim_serialise_size_t_needs(*output_length);
+    size_t needed =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_mbedtls_svc_key_id_t_needs(key) +
+        psasim_serialise_psa_algorithm_t_needs(alg) +
+        psasim_serialise_buffer_needs(input, input_length) +
+        psasim_serialise_buffer_needs(output, output_size) +
+        psasim_serialise_size_t_needs(*output_length);
 
     ser_params = malloc(needed);
     if (ser_params == NULL) {
@@ -1425,23 +1643,33 @@ psa_status_t psa_cipher_decrypt(
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_mbedtls_svc_key_id_t(&pos, &remaining, key);
+    ok = psasim_serialise_mbedtls_svc_key_id_t(
+        &pos, &remaining,
+        key);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_psa_algorithm_t(&pos, &remaining, alg);
+    ok = psasim_serialise_psa_algorithm_t(
+        &pos, &remaining,
+        alg);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_buffer(&pos, &remaining, input, input_length);
+    ok = psasim_serialise_buffer(
+        &pos, &remaining,
+        input, input_length);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_buffer(&pos, &remaining, output, output_size);
+    ok = psasim_serialise_buffer(
+        &pos, &remaining,
+        output, output_size);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_size_t(&pos, &remaining, *output_length);
+    ok = psasim_serialise_size_t(
+        &pos, &remaining,
+        *output_length);
     if (!ok) {
         goto fail;
     }
@@ -1461,17 +1689,23 @@ psa_status_t psa_cipher_decrypt(
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    ok = psasim_deserialise_psa_status_t(
+        &rpos, &rremain,
+        &status);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_return_buffer(&rpos, &rremain, output, output_size);
+    ok = psasim_deserialise_return_buffer(
+        &rpos, &rremain,
+        output, output_size);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_size_t(&rpos, &rremain, output_length);
+    ok = psasim_deserialise_size_t(
+        &rpos, &rremain,
+        output_length);
     if (!ok) {
         goto fail;
     }
@@ -1495,10 +1729,11 @@ psa_status_t psa_cipher_decrypt_setup(
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    size_t needed = psasim_serialise_begin_needs() +
-                    psasim_serialise_psa_cipher_operation_t_needs(*operation) +
-                    psasim_serialise_mbedtls_svc_key_id_t_needs(key) +
-                    psasim_serialise_psa_algorithm_t_needs(alg);
+    size_t needed =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_psa_cipher_operation_t_needs(*operation) +
+        psasim_serialise_mbedtls_svc_key_id_t_needs(key) +
+        psasim_serialise_psa_algorithm_t_needs(alg);
 
     ser_params = malloc(needed);
     if (ser_params == NULL) {
@@ -1513,15 +1748,21 @@ psa_status_t psa_cipher_decrypt_setup(
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_psa_cipher_operation_t(&pos, &remaining, *operation);
+    ok = psasim_serialise_psa_cipher_operation_t(
+        &pos, &remaining,
+        *operation);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_mbedtls_svc_key_id_t(&pos, &remaining, key);
+    ok = psasim_serialise_mbedtls_svc_key_id_t(
+        &pos, &remaining,
+        key);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_psa_algorithm_t(&pos, &remaining, alg);
+    ok = psasim_serialise_psa_algorithm_t(
+        &pos, &remaining,
+        alg);
     if (!ok) {
         goto fail;
     }
@@ -1541,12 +1782,16 @@ psa_status_t psa_cipher_decrypt_setup(
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    ok = psasim_deserialise_psa_status_t(
+        &rpos, &rremain,
+        &status);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_cipher_operation_t(&rpos, &rremain, operation);
+    ok = psasim_deserialise_psa_cipher_operation_t(
+        &rpos, &rremain,
+        operation);
     if (!ok) {
         goto fail;
     }
@@ -1572,12 +1817,13 @@ psa_status_t psa_cipher_encrypt(
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    size_t needed = psasim_serialise_begin_needs() +
-                    psasim_serialise_mbedtls_svc_key_id_t_needs(key) +
-                    psasim_serialise_psa_algorithm_t_needs(alg) +
-                    psasim_serialise_buffer_needs(input, input_length) +
-                    psasim_serialise_buffer_needs(output, output_size) +
-                    psasim_serialise_size_t_needs(*output_length);
+    size_t needed =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_mbedtls_svc_key_id_t_needs(key) +
+        psasim_serialise_psa_algorithm_t_needs(alg) +
+        psasim_serialise_buffer_needs(input, input_length) +
+        psasim_serialise_buffer_needs(output, output_size) +
+        psasim_serialise_size_t_needs(*output_length);
 
     ser_params = malloc(needed);
     if (ser_params == NULL) {
@@ -1592,23 +1838,33 @@ psa_status_t psa_cipher_encrypt(
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_mbedtls_svc_key_id_t(&pos, &remaining, key);
+    ok = psasim_serialise_mbedtls_svc_key_id_t(
+        &pos, &remaining,
+        key);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_psa_algorithm_t(&pos, &remaining, alg);
+    ok = psasim_serialise_psa_algorithm_t(
+        &pos, &remaining,
+        alg);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_buffer(&pos, &remaining, input, input_length);
+    ok = psasim_serialise_buffer(
+        &pos, &remaining,
+        input, input_length);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_buffer(&pos, &remaining, output, output_size);
+    ok = psasim_serialise_buffer(
+        &pos, &remaining,
+        output, output_size);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_size_t(&pos, &remaining, *output_length);
+    ok = psasim_serialise_size_t(
+        &pos, &remaining,
+        *output_length);
     if (!ok) {
         goto fail;
     }
@@ -1628,17 +1884,23 @@ psa_status_t psa_cipher_encrypt(
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    ok = psasim_deserialise_psa_status_t(
+        &rpos, &rremain,
+        &status);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_return_buffer(&rpos, &rremain, output, output_size);
+    ok = psasim_deserialise_return_buffer(
+        &rpos, &rremain,
+        output, output_size);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_size_t(&rpos, &rremain, output_length);
+    ok = psasim_deserialise_size_t(
+        &rpos, &rremain,
+        output_length);
     if (!ok) {
         goto fail;
     }
@@ -1662,10 +1924,11 @@ psa_status_t psa_cipher_encrypt_setup(
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    size_t needed = psasim_serialise_begin_needs() +
-                    psasim_serialise_psa_cipher_operation_t_needs(*operation) +
-                    psasim_serialise_mbedtls_svc_key_id_t_needs(key) +
-                    psasim_serialise_psa_algorithm_t_needs(alg);
+    size_t needed =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_psa_cipher_operation_t_needs(*operation) +
+        psasim_serialise_mbedtls_svc_key_id_t_needs(key) +
+        psasim_serialise_psa_algorithm_t_needs(alg);
 
     ser_params = malloc(needed);
     if (ser_params == NULL) {
@@ -1680,15 +1943,21 @@ psa_status_t psa_cipher_encrypt_setup(
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_psa_cipher_operation_t(&pos, &remaining, *operation);
+    ok = psasim_serialise_psa_cipher_operation_t(
+        &pos, &remaining,
+        *operation);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_mbedtls_svc_key_id_t(&pos, &remaining, key);
+    ok = psasim_serialise_mbedtls_svc_key_id_t(
+        &pos, &remaining,
+        key);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_psa_algorithm_t(&pos, &remaining, alg);
+    ok = psasim_serialise_psa_algorithm_t(
+        &pos, &remaining,
+        alg);
     if (!ok) {
         goto fail;
     }
@@ -1708,12 +1977,16 @@ psa_status_t psa_cipher_encrypt_setup(
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    ok = psasim_deserialise_psa_status_t(
+        &rpos, &rremain,
+        &status);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_cipher_operation_t(&rpos, &rremain, operation);
+    ok = psasim_deserialise_psa_cipher_operation_t(
+        &rpos, &rremain,
+        operation);
     if (!ok) {
         goto fail;
     }
@@ -1737,10 +2010,11 @@ psa_status_t psa_cipher_finish(
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    size_t needed = psasim_serialise_begin_needs() +
-                    psasim_serialise_psa_cipher_operation_t_needs(*operation) +
-                    psasim_serialise_buffer_needs(output, output_size) +
-                    psasim_serialise_size_t_needs(*output_length);
+    size_t needed =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_psa_cipher_operation_t_needs(*operation) +
+        psasim_serialise_buffer_needs(output, output_size) +
+        psasim_serialise_size_t_needs(*output_length);
 
     ser_params = malloc(needed);
     if (ser_params == NULL) {
@@ -1755,15 +2029,21 @@ psa_status_t psa_cipher_finish(
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_psa_cipher_operation_t(&pos, &remaining, *operation);
+    ok = psasim_serialise_psa_cipher_operation_t(
+        &pos, &remaining,
+        *operation);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_buffer(&pos, &remaining, output, output_size);
+    ok = psasim_serialise_buffer(
+        &pos, &remaining,
+        output, output_size);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_size_t(&pos, &remaining, *output_length);
+    ok = psasim_serialise_size_t(
+        &pos, &remaining,
+        *output_length);
     if (!ok) {
         goto fail;
     }
@@ -1783,22 +2063,30 @@ psa_status_t psa_cipher_finish(
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    ok = psasim_deserialise_psa_status_t(
+        &rpos, &rremain,
+        &status);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_cipher_operation_t(&rpos, &rremain, operation);
+    ok = psasim_deserialise_psa_cipher_operation_t(
+        &rpos, &rremain,
+        operation);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_return_buffer(&rpos, &rremain, output, output_size);
+    ok = psasim_deserialise_return_buffer(
+        &rpos, &rremain,
+        output, output_size);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_size_t(&rpos, &rremain, output_length);
+    ok = psasim_deserialise_size_t(
+        &rpos, &rremain,
+        output_length);
     if (!ok) {
         goto fail;
     }
@@ -1822,10 +2110,11 @@ psa_status_t psa_cipher_generate_iv(
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    size_t needed = psasim_serialise_begin_needs() +
-                    psasim_serialise_psa_cipher_operation_t_needs(*operation) +
-                    psasim_serialise_buffer_needs(iv, iv_size) +
-                    psasim_serialise_size_t_needs(*iv_length);
+    size_t needed =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_psa_cipher_operation_t_needs(*operation) +
+        psasim_serialise_buffer_needs(iv, iv_size) +
+        psasim_serialise_size_t_needs(*iv_length);
 
     ser_params = malloc(needed);
     if (ser_params == NULL) {
@@ -1840,15 +2129,21 @@ psa_status_t psa_cipher_generate_iv(
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_psa_cipher_operation_t(&pos, &remaining, *operation);
+    ok = psasim_serialise_psa_cipher_operation_t(
+        &pos, &remaining,
+        *operation);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_buffer(&pos, &remaining, iv, iv_size);
+    ok = psasim_serialise_buffer(
+        &pos, &remaining,
+        iv, iv_size);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_size_t(&pos, &remaining, *iv_length);
+    ok = psasim_serialise_size_t(
+        &pos, &remaining,
+        *iv_length);
     if (!ok) {
         goto fail;
     }
@@ -1868,22 +2163,30 @@ psa_status_t psa_cipher_generate_iv(
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    ok = psasim_deserialise_psa_status_t(
+        &rpos, &rremain,
+        &status);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_cipher_operation_t(&rpos, &rremain, operation);
+    ok = psasim_deserialise_psa_cipher_operation_t(
+        &rpos, &rremain,
+        operation);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_return_buffer(&rpos, &rremain, iv, iv_size);
+    ok = psasim_deserialise_return_buffer(
+        &rpos, &rremain,
+        iv, iv_size);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_size_t(&rpos, &rremain, iv_length);
+    ok = psasim_deserialise_size_t(
+        &rpos, &rremain,
+        iv_length);
     if (!ok) {
         goto fail;
     }
@@ -1906,9 +2209,10 @@ psa_status_t psa_cipher_set_iv(
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    size_t needed = psasim_serialise_begin_needs() +
-                    psasim_serialise_psa_cipher_operation_t_needs(*operation) +
-                    psasim_serialise_buffer_needs(iv, iv_length);
+    size_t needed =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_psa_cipher_operation_t_needs(*operation) +
+        psasim_serialise_buffer_needs(iv, iv_length);
 
     ser_params = malloc(needed);
     if (ser_params == NULL) {
@@ -1923,11 +2227,15 @@ psa_status_t psa_cipher_set_iv(
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_psa_cipher_operation_t(&pos, &remaining, *operation);
+    ok = psasim_serialise_psa_cipher_operation_t(
+        &pos, &remaining,
+        *operation);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_buffer(&pos, &remaining, iv, iv_length);
+    ok = psasim_serialise_buffer(
+        &pos, &remaining,
+        iv, iv_length);
     if (!ok) {
         goto fail;
     }
@@ -1947,12 +2255,16 @@ psa_status_t psa_cipher_set_iv(
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    ok = psasim_deserialise_psa_status_t(
+        &rpos, &rremain,
+        &status);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_cipher_operation_t(&rpos, &rremain, operation);
+    ok = psasim_deserialise_psa_cipher_operation_t(
+        &rpos, &rremain,
+        operation);
     if (!ok) {
         goto fail;
     }
@@ -1977,11 +2289,12 @@ psa_status_t psa_cipher_update(
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    size_t needed = psasim_serialise_begin_needs() +
-                    psasim_serialise_psa_cipher_operation_t_needs(*operation) +
-                    psasim_serialise_buffer_needs(input, input_length) +
-                    psasim_serialise_buffer_needs(output, output_size) +
-                    psasim_serialise_size_t_needs(*output_length);
+    size_t needed =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_psa_cipher_operation_t_needs(*operation) +
+        psasim_serialise_buffer_needs(input, input_length) +
+        psasim_serialise_buffer_needs(output, output_size) +
+        psasim_serialise_size_t_needs(*output_length);
 
     ser_params = malloc(needed);
     if (ser_params == NULL) {
@@ -1996,19 +2309,27 @@ psa_status_t psa_cipher_update(
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_psa_cipher_operation_t(&pos, &remaining, *operation);
+    ok = psasim_serialise_psa_cipher_operation_t(
+        &pos, &remaining,
+        *operation);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_buffer(&pos, &remaining, input, input_length);
+    ok = psasim_serialise_buffer(
+        &pos, &remaining,
+        input, input_length);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_buffer(&pos, &remaining, output, output_size);
+    ok = psasim_serialise_buffer(
+        &pos, &remaining,
+        output, output_size);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_size_t(&pos, &remaining, *output_length);
+    ok = psasim_serialise_size_t(
+        &pos, &remaining,
+        *output_length);
     if (!ok) {
         goto fail;
     }
@@ -2028,22 +2349,30 @@ psa_status_t psa_cipher_update(
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    ok = psasim_deserialise_psa_status_t(
+        &rpos, &rremain,
+        &status);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_cipher_operation_t(&rpos, &rremain, operation);
+    ok = psasim_deserialise_psa_cipher_operation_t(
+        &rpos, &rremain,
+        operation);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_return_buffer(&rpos, &rremain, output, output_size);
+    ok = psasim_deserialise_return_buffer(
+        &rpos, &rremain,
+        output, output_size);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_size_t(&rpos, &rremain, output_length);
+    ok = psasim_deserialise_size_t(
+        &rpos, &rremain,
+        output_length);
     if (!ok) {
         goto fail;
     }
@@ -2067,10 +2396,11 @@ psa_status_t psa_copy_key(
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    size_t needed = psasim_serialise_begin_needs() +
-                    psasim_serialise_mbedtls_svc_key_id_t_needs(source_key) +
-                    psasim_serialise_psa_key_attributes_t_needs(*attributes) +
-                    psasim_serialise_mbedtls_svc_key_id_t_needs(*target_key);
+    size_t needed =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_mbedtls_svc_key_id_t_needs(source_key) +
+        psasim_serialise_psa_key_attributes_t_needs(*attributes) +
+        psasim_serialise_mbedtls_svc_key_id_t_needs(*target_key);
 
     ser_params = malloc(needed);
     if (ser_params == NULL) {
@@ -2085,15 +2415,21 @@ psa_status_t psa_copy_key(
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_mbedtls_svc_key_id_t(&pos, &remaining, source_key);
+    ok = psasim_serialise_mbedtls_svc_key_id_t(
+        &pos, &remaining,
+        source_key);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_psa_key_attributes_t(&pos, &remaining, *attributes);
+    ok = psasim_serialise_psa_key_attributes_t(
+        &pos, &remaining,
+        *attributes);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_mbedtls_svc_key_id_t(&pos, &remaining, *target_key);
+    ok = psasim_serialise_mbedtls_svc_key_id_t(
+        &pos, &remaining,
+        *target_key);
     if (!ok) {
         goto fail;
     }
@@ -2113,12 +2449,16 @@ psa_status_t psa_copy_key(
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    ok = psasim_deserialise_psa_status_t(
+        &rpos, &rremain,
+        &status);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_mbedtls_svc_key_id_t(&rpos, &rremain, target_key);
+    ok = psasim_deserialise_mbedtls_svc_key_id_t(
+        &rpos, &rremain,
+        target_key);
     if (!ok) {
         goto fail;
     }
@@ -2140,8 +2480,9 @@ psa_status_t psa_destroy_key(
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    size_t needed = psasim_serialise_begin_needs() +
-                    psasim_serialise_mbedtls_svc_key_id_t_needs(key);
+    size_t needed =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_mbedtls_svc_key_id_t_needs(key);
 
     ser_params = malloc(needed);
     if (ser_params == NULL) {
@@ -2156,7 +2497,9 @@ psa_status_t psa_destroy_key(
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_mbedtls_svc_key_id_t(&pos, &remaining, key);
+    ok = psasim_serialise_mbedtls_svc_key_id_t(
+        &pos, &remaining,
+        key);
     if (!ok) {
         goto fail;
     }
@@ -2176,7 +2519,9 @@ psa_status_t psa_destroy_key(
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    ok = psasim_deserialise_psa_status_t(
+        &rpos, &rremain,
+        &status);
     if (!ok) {
         goto fail;
     }
@@ -2200,10 +2545,11 @@ psa_status_t psa_export_key(
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    size_t needed = psasim_serialise_begin_needs() +
-                    psasim_serialise_mbedtls_svc_key_id_t_needs(key) +
-                    psasim_serialise_buffer_needs(data, data_size) +
-                    psasim_serialise_size_t_needs(*data_length);
+    size_t needed =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_mbedtls_svc_key_id_t_needs(key) +
+        psasim_serialise_buffer_needs(data, data_size) +
+        psasim_serialise_size_t_needs(*data_length);
 
     ser_params = malloc(needed);
     if (ser_params == NULL) {
@@ -2218,15 +2564,21 @@ psa_status_t psa_export_key(
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_mbedtls_svc_key_id_t(&pos, &remaining, key);
+    ok = psasim_serialise_mbedtls_svc_key_id_t(
+        &pos, &remaining,
+        key);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_buffer(&pos, &remaining, data, data_size);
+    ok = psasim_serialise_buffer(
+        &pos, &remaining,
+        data, data_size);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_size_t(&pos, &remaining, *data_length);
+    ok = psasim_serialise_size_t(
+        &pos, &remaining,
+        *data_length);
     if (!ok) {
         goto fail;
     }
@@ -2246,17 +2598,23 @@ psa_status_t psa_export_key(
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    ok = psasim_deserialise_psa_status_t(
+        &rpos, &rremain,
+        &status);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_return_buffer(&rpos, &rremain, data, data_size);
+    ok = psasim_deserialise_return_buffer(
+        &rpos, &rremain,
+        data, data_size);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_size_t(&rpos, &rremain, data_length);
+    ok = psasim_deserialise_size_t(
+        &rpos, &rremain,
+        data_length);
     if (!ok) {
         goto fail;
     }
@@ -2280,10 +2638,11 @@ psa_status_t psa_export_public_key(
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    size_t needed = psasim_serialise_begin_needs() +
-                    psasim_serialise_mbedtls_svc_key_id_t_needs(key) +
-                    psasim_serialise_buffer_needs(data, data_size) +
-                    psasim_serialise_size_t_needs(*data_length);
+    size_t needed =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_mbedtls_svc_key_id_t_needs(key) +
+        psasim_serialise_buffer_needs(data, data_size) +
+        psasim_serialise_size_t_needs(*data_length);
 
     ser_params = malloc(needed);
     if (ser_params == NULL) {
@@ -2298,15 +2657,21 @@ psa_status_t psa_export_public_key(
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_mbedtls_svc_key_id_t(&pos, &remaining, key);
+    ok = psasim_serialise_mbedtls_svc_key_id_t(
+        &pos, &remaining,
+        key);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_buffer(&pos, &remaining, data, data_size);
+    ok = psasim_serialise_buffer(
+        &pos, &remaining,
+        data, data_size);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_size_t(&pos, &remaining, *data_length);
+    ok = psasim_serialise_size_t(
+        &pos, &remaining,
+        *data_length);
     if (!ok) {
         goto fail;
     }
@@ -2326,17 +2691,23 @@ psa_status_t psa_export_public_key(
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    ok = psasim_deserialise_psa_status_t(
+        &rpos, &rremain,
+        &status);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_return_buffer(&rpos, &rremain, data, data_size);
+    ok = psasim_deserialise_return_buffer(
+        &rpos, &rremain,
+        data, data_size);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_size_t(&rpos, &rremain, data_length);
+    ok = psasim_deserialise_size_t(
+        &rpos, &rremain,
+        data_length);
     if (!ok) {
         goto fail;
     }
@@ -2359,9 +2730,10 @@ psa_status_t psa_generate_key(
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    size_t needed = psasim_serialise_begin_needs() +
-                    psasim_serialise_psa_key_attributes_t_needs(*attributes) +
-                    psasim_serialise_mbedtls_svc_key_id_t_needs(*key);
+    size_t needed =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_psa_key_attributes_t_needs(*attributes) +
+        psasim_serialise_mbedtls_svc_key_id_t_needs(*key);
 
     ser_params = malloc(needed);
     if (ser_params == NULL) {
@@ -2376,11 +2748,15 @@ psa_status_t psa_generate_key(
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_psa_key_attributes_t(&pos, &remaining, *attributes);
+    ok = psasim_serialise_psa_key_attributes_t(
+        &pos, &remaining,
+        *attributes);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_mbedtls_svc_key_id_t(&pos, &remaining, *key);
+    ok = psasim_serialise_mbedtls_svc_key_id_t(
+        &pos, &remaining,
+        *key);
     if (!ok) {
         goto fail;
     }
@@ -2400,12 +2776,16 @@ psa_status_t psa_generate_key(
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    ok = psasim_deserialise_psa_status_t(
+        &rpos, &rremain,
+        &status);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_mbedtls_svc_key_id_t(&rpos, &rremain, key);
+    ok = psasim_deserialise_mbedtls_svc_key_id_t(
+        &rpos, &rremain,
+        key);
     if (!ok) {
         goto fail;
     }
@@ -2429,10 +2809,11 @@ psa_status_t psa_generate_key_ext(
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    size_t needed = psasim_serialise_begin_needs() +
-                    psasim_serialise_psa_key_attributes_t_needs(*attributes) +
-                    psasim_serialise_psa_key_production_parameters_t_needs(params, params_data_length) +
-                    psasim_serialise_mbedtls_svc_key_id_t_needs(*key);
+    size_t needed =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_psa_key_attributes_t_needs(*attributes) +
+        psasim_serialise_psa_key_production_parameters_t_needs(params, params_data_length) +
+        psasim_serialise_mbedtls_svc_key_id_t_needs(*key);
 
     ser_params = malloc(needed);
     if (ser_params == NULL) {
@@ -2447,15 +2828,21 @@ psa_status_t psa_generate_key_ext(
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_psa_key_attributes_t(&pos, &remaining, *attributes);
+    ok = psasim_serialise_psa_key_attributes_t(
+        &pos, &remaining,
+        *attributes);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_psa_key_production_parameters_t(&pos, &remaining, params, params_data_length);
+    ok = psasim_serialise_psa_key_production_parameters_t(
+        &pos, &remaining,
+        params, params_data_length);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_mbedtls_svc_key_id_t(&pos, &remaining, *key);
+    ok = psasim_serialise_mbedtls_svc_key_id_t(
+        &pos, &remaining,
+        *key);
     if (!ok) {
         goto fail;
     }
@@ -2475,12 +2862,16 @@ psa_status_t psa_generate_key_ext(
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    ok = psasim_deserialise_psa_status_t(
+        &rpos, &rremain,
+        &status);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_mbedtls_svc_key_id_t(&rpos, &rremain, key);
+    ok = psasim_deserialise_mbedtls_svc_key_id_t(
+        &rpos, &rremain,
+        key);
     if (!ok) {
         goto fail;
     }
@@ -2502,8 +2893,9 @@ psa_status_t psa_generate_random(
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    size_t needed = psasim_serialise_begin_needs() +
-                    psasim_serialise_buffer_needs(output, output_size);
+    size_t needed =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_buffer_needs(output, output_size);
 
     ser_params = malloc(needed);
     if (ser_params == NULL) {
@@ -2518,7 +2910,9 @@ psa_status_t psa_generate_random(
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_buffer(&pos, &remaining, output, output_size);
+    ok = psasim_serialise_buffer(
+        &pos, &remaining,
+        output, output_size);
     if (!ok) {
         goto fail;
     }
@@ -2538,12 +2932,16 @@ psa_status_t psa_generate_random(
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    ok = psasim_deserialise_psa_status_t(
+        &rpos, &rremain,
+        &status);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_return_buffer(&rpos, &rremain, output, output_size);
+    ok = psasim_deserialise_return_buffer(
+        &rpos, &rremain,
+        output, output_size);
     if (!ok) {
         goto fail;
     }
@@ -2566,9 +2964,10 @@ psa_status_t psa_get_key_attributes(
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    size_t needed = psasim_serialise_begin_needs() +
-                    psasim_serialise_mbedtls_svc_key_id_t_needs(key) +
-                    psasim_serialise_psa_key_attributes_t_needs(*attributes);
+    size_t needed =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_mbedtls_svc_key_id_t_needs(key) +
+        psasim_serialise_psa_key_attributes_t_needs(*attributes);
 
     ser_params = malloc(needed);
     if (ser_params == NULL) {
@@ -2583,11 +2982,15 @@ psa_status_t psa_get_key_attributes(
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_mbedtls_svc_key_id_t(&pos, &remaining, key);
+    ok = psasim_serialise_mbedtls_svc_key_id_t(
+        &pos, &remaining,
+        key);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_psa_key_attributes_t(&pos, &remaining, *attributes);
+    ok = psasim_serialise_psa_key_attributes_t(
+        &pos, &remaining,
+        *attributes);
     if (!ok) {
         goto fail;
     }
@@ -2607,12 +3010,16 @@ psa_status_t psa_get_key_attributes(
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    ok = psasim_deserialise_psa_status_t(
+        &rpos, &rremain,
+        &status);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_key_attributes_t(&rpos, &rremain, attributes);
+    ok = psasim_deserialise_psa_key_attributes_t(
+        &rpos, &rremain,
+        attributes);
     if (!ok) {
         goto fail;
     }
@@ -2634,8 +3041,9 @@ psa_status_t psa_hash_abort(
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    size_t needed = psasim_serialise_begin_needs() +
-                    psasim_serialise_psa_hash_operation_t_needs(*operation);
+    size_t needed =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_psa_hash_operation_t_needs(*operation);
 
     ser_params = malloc(needed);
     if (ser_params == NULL) {
@@ -2650,7 +3058,9 @@ psa_status_t psa_hash_abort(
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_psa_hash_operation_t(&pos, &remaining, *operation);
+    ok = psasim_serialise_psa_hash_operation_t(
+        &pos, &remaining,
+        *operation);
     if (!ok) {
         goto fail;
     }
@@ -2670,12 +3080,16 @@ psa_status_t psa_hash_abort(
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    ok = psasim_deserialise_psa_status_t(
+        &rpos, &rremain,
+        &status);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_hash_operation_t(&rpos, &rremain, operation);
+    ok = psasim_deserialise_psa_hash_operation_t(
+        &rpos, &rremain,
+        operation);
     if (!ok) {
         goto fail;
     }
@@ -2698,9 +3112,10 @@ psa_status_t psa_hash_clone(
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    size_t needed = psasim_serialise_begin_needs() +
-                    psasim_serialise_psa_hash_operation_t_needs(*source_operation) +
-                    psasim_serialise_psa_hash_operation_t_needs(*target_operation);
+    size_t needed =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_psa_hash_operation_t_needs(*source_operation) +
+        psasim_serialise_psa_hash_operation_t_needs(*target_operation);
 
     ser_params = malloc(needed);
     if (ser_params == NULL) {
@@ -2715,11 +3130,15 @@ psa_status_t psa_hash_clone(
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_psa_hash_operation_t(&pos, &remaining, *source_operation);
+    ok = psasim_serialise_psa_hash_operation_t(
+        &pos, &remaining,
+        *source_operation);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_psa_hash_operation_t(&pos, &remaining, *target_operation);
+    ok = psasim_serialise_psa_hash_operation_t(
+        &pos, &remaining,
+        *target_operation);
     if (!ok) {
         goto fail;
     }
@@ -2739,12 +3158,16 @@ psa_status_t psa_hash_clone(
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    ok = psasim_deserialise_psa_status_t(
+        &rpos, &rremain,
+        &status);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_hash_operation_t(&rpos, &rremain, target_operation);
+    ok = psasim_deserialise_psa_hash_operation_t(
+        &rpos, &rremain,
+        target_operation);
     if (!ok) {
         goto fail;
     }
@@ -2768,10 +3191,11 @@ psa_status_t psa_hash_compare(
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    size_t needed = psasim_serialise_begin_needs() +
-                    psasim_serialise_psa_algorithm_t_needs(alg) +
-                    psasim_serialise_buffer_needs(input, input_length) +
-                    psasim_serialise_buffer_needs(hash, hash_length);
+    size_t needed =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_psa_algorithm_t_needs(alg) +
+        psasim_serialise_buffer_needs(input, input_length) +
+        psasim_serialise_buffer_needs(hash, hash_length);
 
     ser_params = malloc(needed);
     if (ser_params == NULL) {
@@ -2786,15 +3210,21 @@ psa_status_t psa_hash_compare(
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_psa_algorithm_t(&pos, &remaining, alg);
+    ok = psasim_serialise_psa_algorithm_t(
+        &pos, &remaining,
+        alg);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_buffer(&pos, &remaining, input, input_length);
+    ok = psasim_serialise_buffer(
+        &pos, &remaining,
+        input, input_length);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_buffer(&pos, &remaining, hash, hash_length);
+    ok = psasim_serialise_buffer(
+        &pos, &remaining,
+        hash, hash_length);
     if (!ok) {
         goto fail;
     }
@@ -2814,7 +3244,9 @@ psa_status_t psa_hash_compare(
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    ok = psasim_deserialise_psa_status_t(
+        &rpos, &rremain,
+        &status);
     if (!ok) {
         goto fail;
     }
@@ -2839,11 +3271,12 @@ psa_status_t psa_hash_compute(
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    size_t needed = psasim_serialise_begin_needs() +
-                    psasim_serialise_psa_algorithm_t_needs(alg) +
-                    psasim_serialise_buffer_needs(input, input_length) +
-                    psasim_serialise_buffer_needs(hash, hash_size) +
-                    psasim_serialise_size_t_needs(*hash_length);
+    size_t needed =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_psa_algorithm_t_needs(alg) +
+        psasim_serialise_buffer_needs(input, input_length) +
+        psasim_serialise_buffer_needs(hash, hash_size) +
+        psasim_serialise_size_t_needs(*hash_length);
 
     ser_params = malloc(needed);
     if (ser_params == NULL) {
@@ -2858,19 +3291,27 @@ psa_status_t psa_hash_compute(
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_psa_algorithm_t(&pos, &remaining, alg);
+    ok = psasim_serialise_psa_algorithm_t(
+        &pos, &remaining,
+        alg);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_buffer(&pos, &remaining, input, input_length);
+    ok = psasim_serialise_buffer(
+        &pos, &remaining,
+        input, input_length);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_buffer(&pos, &remaining, hash, hash_size);
+    ok = psasim_serialise_buffer(
+        &pos, &remaining,
+        hash, hash_size);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_size_t(&pos, &remaining, *hash_length);
+    ok = psasim_serialise_size_t(
+        &pos, &remaining,
+        *hash_length);
     if (!ok) {
         goto fail;
     }
@@ -2890,17 +3331,23 @@ psa_status_t psa_hash_compute(
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    ok = psasim_deserialise_psa_status_t(
+        &rpos, &rremain,
+        &status);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_return_buffer(&rpos, &rremain, hash, hash_size);
+    ok = psasim_deserialise_return_buffer(
+        &rpos, &rremain,
+        hash, hash_size);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_size_t(&rpos, &rremain, hash_length);
+    ok = psasim_deserialise_size_t(
+        &rpos, &rremain,
+        hash_length);
     if (!ok) {
         goto fail;
     }
@@ -2924,10 +3371,11 @@ psa_status_t psa_hash_finish(
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    size_t needed = psasim_serialise_begin_needs() +
-                    psasim_serialise_psa_hash_operation_t_needs(*operation) +
-                    psasim_serialise_buffer_needs(hash, hash_size) +
-                    psasim_serialise_size_t_needs(*hash_length);
+    size_t needed =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_psa_hash_operation_t_needs(*operation) +
+        psasim_serialise_buffer_needs(hash, hash_size) +
+        psasim_serialise_size_t_needs(*hash_length);
 
     ser_params = malloc(needed);
     if (ser_params == NULL) {
@@ -2942,15 +3390,21 @@ psa_status_t psa_hash_finish(
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_psa_hash_operation_t(&pos, &remaining, *operation);
+    ok = psasim_serialise_psa_hash_operation_t(
+        &pos, &remaining,
+        *operation);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_buffer(&pos, &remaining, hash, hash_size);
+    ok = psasim_serialise_buffer(
+        &pos, &remaining,
+        hash, hash_size);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_size_t(&pos, &remaining, *hash_length);
+    ok = psasim_serialise_size_t(
+        &pos, &remaining,
+        *hash_length);
     if (!ok) {
         goto fail;
     }
@@ -2970,22 +3424,30 @@ psa_status_t psa_hash_finish(
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    ok = psasim_deserialise_psa_status_t(
+        &rpos, &rremain,
+        &status);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_hash_operation_t(&rpos, &rremain, operation);
+    ok = psasim_deserialise_psa_hash_operation_t(
+        &rpos, &rremain,
+        operation);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_return_buffer(&rpos, &rremain, hash, hash_size);
+    ok = psasim_deserialise_return_buffer(
+        &rpos, &rremain,
+        hash, hash_size);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_size_t(&rpos, &rremain, hash_length);
+    ok = psasim_deserialise_size_t(
+        &rpos, &rremain,
+        hash_length);
     if (!ok) {
         goto fail;
     }
@@ -3008,9 +3470,10 @@ psa_status_t psa_hash_setup(
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    size_t needed = psasim_serialise_begin_needs() +
-                    psasim_serialise_psa_hash_operation_t_needs(*operation) +
-                    psasim_serialise_psa_algorithm_t_needs(alg);
+    size_t needed =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_psa_hash_operation_t_needs(*operation) +
+        psasim_serialise_psa_algorithm_t_needs(alg);
 
     ser_params = malloc(needed);
     if (ser_params == NULL) {
@@ -3025,11 +3488,15 @@ psa_status_t psa_hash_setup(
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_psa_hash_operation_t(&pos, &remaining, *operation);
+    ok = psasim_serialise_psa_hash_operation_t(
+        &pos, &remaining,
+        *operation);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_psa_algorithm_t(&pos, &remaining, alg);
+    ok = psasim_serialise_psa_algorithm_t(
+        &pos, &remaining,
+        alg);
     if (!ok) {
         goto fail;
     }
@@ -3049,12 +3516,16 @@ psa_status_t psa_hash_setup(
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    ok = psasim_deserialise_psa_status_t(
+        &rpos, &rremain,
+        &status);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_hash_operation_t(&rpos, &rremain, operation);
+    ok = psasim_deserialise_psa_hash_operation_t(
+        &rpos, &rremain,
+        operation);
     if (!ok) {
         goto fail;
     }
@@ -3077,9 +3548,10 @@ psa_status_t psa_hash_update(
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    size_t needed = psasim_serialise_begin_needs() +
-                    psasim_serialise_psa_hash_operation_t_needs(*operation) +
-                    psasim_serialise_buffer_needs(input, input_length);
+    size_t needed =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_psa_hash_operation_t_needs(*operation) +
+        psasim_serialise_buffer_needs(input, input_length);
 
     ser_params = malloc(needed);
     if (ser_params == NULL) {
@@ -3094,11 +3566,15 @@ psa_status_t psa_hash_update(
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_psa_hash_operation_t(&pos, &remaining, *operation);
+    ok = psasim_serialise_psa_hash_operation_t(
+        &pos, &remaining,
+        *operation);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_buffer(&pos, &remaining, input, input_length);
+    ok = psasim_serialise_buffer(
+        &pos, &remaining,
+        input, input_length);
     if (!ok) {
         goto fail;
     }
@@ -3118,12 +3594,16 @@ psa_status_t psa_hash_update(
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    ok = psasim_deserialise_psa_status_t(
+        &rpos, &rremain,
+        &status);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_hash_operation_t(&rpos, &rremain, operation);
+    ok = psasim_deserialise_psa_hash_operation_t(
+        &rpos, &rremain,
+        operation);
     if (!ok) {
         goto fail;
     }
@@ -3146,9 +3626,10 @@ psa_status_t psa_hash_verify(
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    size_t needed = psasim_serialise_begin_needs() +
-                    psasim_serialise_psa_hash_operation_t_needs(*operation) +
-                    psasim_serialise_buffer_needs(hash, hash_length);
+    size_t needed =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_psa_hash_operation_t_needs(*operation) +
+        psasim_serialise_buffer_needs(hash, hash_length);
 
     ser_params = malloc(needed);
     if (ser_params == NULL) {
@@ -3163,11 +3644,15 @@ psa_status_t psa_hash_verify(
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_psa_hash_operation_t(&pos, &remaining, *operation);
+    ok = psasim_serialise_psa_hash_operation_t(
+        &pos, &remaining,
+        *operation);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_buffer(&pos, &remaining, hash, hash_length);
+    ok = psasim_serialise_buffer(
+        &pos, &remaining,
+        hash, hash_length);
     if (!ok) {
         goto fail;
     }
@@ -3187,12 +3672,16 @@ psa_status_t psa_hash_verify(
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    ok = psasim_deserialise_psa_status_t(
+        &rpos, &rremain,
+        &status);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_hash_operation_t(&rpos, &rremain, operation);
+    ok = psasim_deserialise_psa_hash_operation_t(
+        &rpos, &rremain,
+        operation);
     if (!ok) {
         goto fail;
     }
@@ -3216,10 +3705,11 @@ psa_status_t psa_import_key(
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    size_t needed = psasim_serialise_begin_needs() +
-                    psasim_serialise_psa_key_attributes_t_needs(*attributes) +
-                    psasim_serialise_buffer_needs(data, data_length) +
-                    psasim_serialise_mbedtls_svc_key_id_t_needs(*key);
+    size_t needed =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_psa_key_attributes_t_needs(*attributes) +
+        psasim_serialise_buffer_needs(data, data_length) +
+        psasim_serialise_mbedtls_svc_key_id_t_needs(*key);
 
     ser_params = malloc(needed);
     if (ser_params == NULL) {
@@ -3234,15 +3724,21 @@ psa_status_t psa_import_key(
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_psa_key_attributes_t(&pos, &remaining, *attributes);
+    ok = psasim_serialise_psa_key_attributes_t(
+        &pos, &remaining,
+        *attributes);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_buffer(&pos, &remaining, data, data_length);
+    ok = psasim_serialise_buffer(
+        &pos, &remaining,
+        data, data_length);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_mbedtls_svc_key_id_t(&pos, &remaining, *key);
+    ok = psasim_serialise_mbedtls_svc_key_id_t(
+        &pos, &remaining,
+        *key);
     if (!ok) {
         goto fail;
     }
@@ -3262,12 +3758,16 @@ psa_status_t psa_import_key(
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    ok = psasim_deserialise_psa_status_t(
+        &rpos, &rremain,
+        &status);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_mbedtls_svc_key_id_t(&rpos, &rremain, key);
+    ok = psasim_deserialise_mbedtls_svc_key_id_t(
+        &rpos, &rremain,
+        key);
     if (!ok) {
         goto fail;
     }
@@ -3282,15 +3782,16 @@ fail:
 
 uint32_t psa_interruptible_get_max_ops(
     void
-)
+    )
 {
     uint8_t *ser_params = NULL;
     uint8_t *ser_result = NULL;
     size_t result_length;
     uint32_t value = 0;
 
-    size_t needed = psasim_serialise_begin_needs() +
-                    0;
+    size_t needed =
+        psasim_serialise_begin_needs() +
+        0;
 
     ser_params = malloc(needed);
     if (ser_params == NULL) {
@@ -3321,7 +3822,9 @@ uint32_t psa_interruptible_get_max_ops(
         goto fail;
     }
 
-    ok = psasim_deserialise_uint32_t(&rpos, &rremain, &value);
+    ok = psasim_deserialise_uint32_t(
+        &rpos, &rremain,
+        &value);
     if (!ok) {
         goto fail;
     }
@@ -3342,8 +3845,9 @@ void psa_interruptible_set_max_ops(
     uint8_t *ser_result = NULL;
     size_t result_length;
 
-    size_t needed = psasim_serialise_begin_needs() +
-                    psasim_serialise_uint32_t_needs(max_ops);
+    size_t needed =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_uint32_t_needs(max_ops);
 
     ser_params = malloc(needed);
     if (ser_params == NULL) {
@@ -3357,7 +3861,9 @@ void psa_interruptible_set_max_ops(
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_uint32_t(&pos, &remaining, max_ops);
+    ok = psasim_serialise_uint32_t(
+        &pos, &remaining,
+        max_ops);
     if (!ok) {
         goto fail;
     }
@@ -3392,8 +3898,9 @@ psa_status_t psa_key_derivation_abort(
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    size_t needed = psasim_serialise_begin_needs() +
-                    psasim_serialise_psa_key_derivation_operation_t_needs(*operation);
+    size_t needed =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_psa_key_derivation_operation_t_needs(*operation);
 
     ser_params = malloc(needed);
     if (ser_params == NULL) {
@@ -3408,7 +3915,9 @@ psa_status_t psa_key_derivation_abort(
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_psa_key_derivation_operation_t(&pos, &remaining, *operation);
+    ok = psasim_serialise_psa_key_derivation_operation_t(
+        &pos, &remaining,
+        *operation);
     if (!ok) {
         goto fail;
     }
@@ -3428,12 +3937,16 @@ psa_status_t psa_key_derivation_abort(
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    ok = psasim_deserialise_psa_status_t(
+        &rpos, &rremain,
+        &status);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_key_derivation_operation_t(&rpos, &rremain, operation);
+    ok = psasim_deserialise_psa_key_derivation_operation_t(
+        &rpos, &rremain,
+        operation);
     if (!ok) {
         goto fail;
     }
@@ -3456,9 +3969,10 @@ psa_status_t psa_key_derivation_get_capacity(
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    size_t needed = psasim_serialise_begin_needs() +
-                    psasim_serialise_psa_key_derivation_operation_t_needs(*operation) +
-                    psasim_serialise_size_t_needs(*capacity);
+    size_t needed =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_psa_key_derivation_operation_t_needs(*operation) +
+        psasim_serialise_size_t_needs(*capacity);
 
     ser_params = malloc(needed);
     if (ser_params == NULL) {
@@ -3473,11 +3987,15 @@ psa_status_t psa_key_derivation_get_capacity(
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_psa_key_derivation_operation_t(&pos, &remaining, *operation);
+    ok = psasim_serialise_psa_key_derivation_operation_t(
+        &pos, &remaining,
+        *operation);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_size_t(&pos, &remaining, *capacity);
+    ok = psasim_serialise_size_t(
+        &pos, &remaining,
+        *capacity);
     if (!ok) {
         goto fail;
     }
@@ -3497,12 +4015,16 @@ psa_status_t psa_key_derivation_get_capacity(
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    ok = psasim_deserialise_psa_status_t(
+        &rpos, &rremain,
+        &status);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_size_t(&rpos, &rremain, capacity);
+    ok = psasim_deserialise_size_t(
+        &rpos, &rremain,
+        capacity);
     if (!ok) {
         goto fail;
     }
@@ -3526,10 +4048,11 @@ psa_status_t psa_key_derivation_input_bytes(
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    size_t needed = psasim_serialise_begin_needs() +
-                    psasim_serialise_psa_key_derivation_operation_t_needs(*operation) +
-                    psasim_serialise_psa_key_derivation_step_t_needs(step) +
-                    psasim_serialise_buffer_needs(data, data_length);
+    size_t needed =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_psa_key_derivation_operation_t_needs(*operation) +
+        psasim_serialise_psa_key_derivation_step_t_needs(step) +
+        psasim_serialise_buffer_needs(data, data_length);
 
     ser_params = malloc(needed);
     if (ser_params == NULL) {
@@ -3544,15 +4067,21 @@ psa_status_t psa_key_derivation_input_bytes(
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_psa_key_derivation_operation_t(&pos, &remaining, *operation);
+    ok = psasim_serialise_psa_key_derivation_operation_t(
+        &pos, &remaining,
+        *operation);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_psa_key_derivation_step_t(&pos, &remaining, step);
+    ok = psasim_serialise_psa_key_derivation_step_t(
+        &pos, &remaining,
+        step);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_buffer(&pos, &remaining, data, data_length);
+    ok = psasim_serialise_buffer(
+        &pos, &remaining,
+        data, data_length);
     if (!ok) {
         goto fail;
     }
@@ -3572,12 +4101,16 @@ psa_status_t psa_key_derivation_input_bytes(
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    ok = psasim_deserialise_psa_status_t(
+        &rpos, &rremain,
+        &status);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_key_derivation_operation_t(&rpos, &rremain, operation);
+    ok = psasim_deserialise_psa_key_derivation_operation_t(
+        &rpos, &rremain,
+        operation);
     if (!ok) {
         goto fail;
     }
@@ -3601,10 +4134,11 @@ psa_status_t psa_key_derivation_input_integer(
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    size_t needed = psasim_serialise_begin_needs() +
-                    psasim_serialise_psa_key_derivation_operation_t_needs(*operation) +
-                    psasim_serialise_psa_key_derivation_step_t_needs(step) +
-                    psasim_serialise_uint64_t_needs(value);
+    size_t needed =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_psa_key_derivation_operation_t_needs(*operation) +
+        psasim_serialise_psa_key_derivation_step_t_needs(step) +
+        psasim_serialise_uint64_t_needs(value);
 
     ser_params = malloc(needed);
     if (ser_params == NULL) {
@@ -3619,15 +4153,21 @@ psa_status_t psa_key_derivation_input_integer(
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_psa_key_derivation_operation_t(&pos, &remaining, *operation);
+    ok = psasim_serialise_psa_key_derivation_operation_t(
+        &pos, &remaining,
+        *operation);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_psa_key_derivation_step_t(&pos, &remaining, step);
+    ok = psasim_serialise_psa_key_derivation_step_t(
+        &pos, &remaining,
+        step);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_uint64_t(&pos, &remaining, value);
+    ok = psasim_serialise_uint64_t(
+        &pos, &remaining,
+        value);
     if (!ok) {
         goto fail;
     }
@@ -3647,12 +4187,16 @@ psa_status_t psa_key_derivation_input_integer(
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    ok = psasim_deserialise_psa_status_t(
+        &rpos, &rremain,
+        &status);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_key_derivation_operation_t(&rpos, &rremain, operation);
+    ok = psasim_deserialise_psa_key_derivation_operation_t(
+        &rpos, &rremain,
+        operation);
     if (!ok) {
         goto fail;
     }
@@ -3676,10 +4220,11 @@ psa_status_t psa_key_derivation_input_key(
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    size_t needed = psasim_serialise_begin_needs() +
-                    psasim_serialise_psa_key_derivation_operation_t_needs(*operation) +
-                    psasim_serialise_psa_key_derivation_step_t_needs(step) +
-                    psasim_serialise_mbedtls_svc_key_id_t_needs(key);
+    size_t needed =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_psa_key_derivation_operation_t_needs(*operation) +
+        psasim_serialise_psa_key_derivation_step_t_needs(step) +
+        psasim_serialise_mbedtls_svc_key_id_t_needs(key);
 
     ser_params = malloc(needed);
     if (ser_params == NULL) {
@@ -3694,15 +4239,21 @@ psa_status_t psa_key_derivation_input_key(
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_psa_key_derivation_operation_t(&pos, &remaining, *operation);
+    ok = psasim_serialise_psa_key_derivation_operation_t(
+        &pos, &remaining,
+        *operation);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_psa_key_derivation_step_t(&pos, &remaining, step);
+    ok = psasim_serialise_psa_key_derivation_step_t(
+        &pos, &remaining,
+        step);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_mbedtls_svc_key_id_t(&pos, &remaining, key);
+    ok = psasim_serialise_mbedtls_svc_key_id_t(
+        &pos, &remaining,
+        key);
     if (!ok) {
         goto fail;
     }
@@ -3722,12 +4273,16 @@ psa_status_t psa_key_derivation_input_key(
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    ok = psasim_deserialise_psa_status_t(
+        &rpos, &rremain,
+        &status);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_key_derivation_operation_t(&rpos, &rremain, operation);
+    ok = psasim_deserialise_psa_key_derivation_operation_t(
+        &rpos, &rremain,
+        operation);
     if (!ok) {
         goto fail;
     }
@@ -3752,11 +4307,12 @@ psa_status_t psa_key_derivation_key_agreement(
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    size_t needed = psasim_serialise_begin_needs() +
-                    psasim_serialise_psa_key_derivation_operation_t_needs(*operation) +
-                    psasim_serialise_psa_key_derivation_step_t_needs(step) +
-                    psasim_serialise_mbedtls_svc_key_id_t_needs(private_key) +
-                    psasim_serialise_buffer_needs(peer_key, peer_key_length);
+    size_t needed =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_psa_key_derivation_operation_t_needs(*operation) +
+        psasim_serialise_psa_key_derivation_step_t_needs(step) +
+        psasim_serialise_mbedtls_svc_key_id_t_needs(private_key) +
+        psasim_serialise_buffer_needs(peer_key, peer_key_length);
 
     ser_params = malloc(needed);
     if (ser_params == NULL) {
@@ -3771,19 +4327,27 @@ psa_status_t psa_key_derivation_key_agreement(
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_psa_key_derivation_operation_t(&pos, &remaining, *operation);
+    ok = psasim_serialise_psa_key_derivation_operation_t(
+        &pos, &remaining,
+        *operation);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_psa_key_derivation_step_t(&pos, &remaining, step);
+    ok = psasim_serialise_psa_key_derivation_step_t(
+        &pos, &remaining,
+        step);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_mbedtls_svc_key_id_t(&pos, &remaining, private_key);
+    ok = psasim_serialise_mbedtls_svc_key_id_t(
+        &pos, &remaining,
+        private_key);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_buffer(&pos, &remaining, peer_key, peer_key_length);
+    ok = psasim_serialise_buffer(
+        &pos, &remaining,
+        peer_key, peer_key_length);
     if (!ok) {
         goto fail;
     }
@@ -3803,12 +4367,16 @@ psa_status_t psa_key_derivation_key_agreement(
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    ok = psasim_deserialise_psa_status_t(
+        &rpos, &rremain,
+        &status);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_key_derivation_operation_t(&rpos, &rremain, operation);
+    ok = psasim_deserialise_psa_key_derivation_operation_t(
+        &rpos, &rremain,
+        operation);
     if (!ok) {
         goto fail;
     }
@@ -3831,9 +4399,10 @@ psa_status_t psa_key_derivation_output_bytes(
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    size_t needed = psasim_serialise_begin_needs() +
-                    psasim_serialise_psa_key_derivation_operation_t_needs(*operation) +
-                    psasim_serialise_buffer_needs(output, output_length);
+    size_t needed =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_psa_key_derivation_operation_t_needs(*operation) +
+        psasim_serialise_buffer_needs(output, output_length);
 
     ser_params = malloc(needed);
     if (ser_params == NULL) {
@@ -3848,11 +4417,15 @@ psa_status_t psa_key_derivation_output_bytes(
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_psa_key_derivation_operation_t(&pos, &remaining, *operation);
+    ok = psasim_serialise_psa_key_derivation_operation_t(
+        &pos, &remaining,
+        *operation);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_buffer(&pos, &remaining, output, output_length);
+    ok = psasim_serialise_buffer(
+        &pos, &remaining,
+        output, output_length);
     if (!ok) {
         goto fail;
     }
@@ -3872,17 +4445,23 @@ psa_status_t psa_key_derivation_output_bytes(
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    ok = psasim_deserialise_psa_status_t(
+        &rpos, &rremain,
+        &status);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_key_derivation_operation_t(&rpos, &rremain, operation);
+    ok = psasim_deserialise_psa_key_derivation_operation_t(
+        &rpos, &rremain,
+        operation);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_return_buffer(&rpos, &rremain, output, output_length);
+    ok = psasim_deserialise_return_buffer(
+        &rpos, &rremain,
+        output, output_length);
     if (!ok) {
         goto fail;
     }
@@ -3906,10 +4485,11 @@ psa_status_t psa_key_derivation_output_key(
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    size_t needed = psasim_serialise_begin_needs() +
-                    psasim_serialise_psa_key_attributes_t_needs(*attributes) +
-                    psasim_serialise_psa_key_derivation_operation_t_needs(*operation) +
-                    psasim_serialise_mbedtls_svc_key_id_t_needs(*key);
+    size_t needed =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_psa_key_attributes_t_needs(*attributes) +
+        psasim_serialise_psa_key_derivation_operation_t_needs(*operation) +
+        psasim_serialise_mbedtls_svc_key_id_t_needs(*key);
 
     ser_params = malloc(needed);
     if (ser_params == NULL) {
@@ -3924,15 +4504,21 @@ psa_status_t psa_key_derivation_output_key(
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_psa_key_attributes_t(&pos, &remaining, *attributes);
+    ok = psasim_serialise_psa_key_attributes_t(
+        &pos, &remaining,
+        *attributes);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_psa_key_derivation_operation_t(&pos, &remaining, *operation);
+    ok = psasim_serialise_psa_key_derivation_operation_t(
+        &pos, &remaining,
+        *operation);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_mbedtls_svc_key_id_t(&pos, &remaining, *key);
+    ok = psasim_serialise_mbedtls_svc_key_id_t(
+        &pos, &remaining,
+        *key);
     if (!ok) {
         goto fail;
     }
@@ -3952,17 +4538,23 @@ psa_status_t psa_key_derivation_output_key(
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    ok = psasim_deserialise_psa_status_t(
+        &rpos, &rremain,
+        &status);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_key_derivation_operation_t(&rpos, &rremain, operation);
+    ok = psasim_deserialise_psa_key_derivation_operation_t(
+        &rpos, &rremain,
+        operation);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_mbedtls_svc_key_id_t(&rpos, &rremain, key);
+    ok = psasim_deserialise_mbedtls_svc_key_id_t(
+        &rpos, &rremain,
+        key);
     if (!ok) {
         goto fail;
     }
@@ -3987,11 +4579,12 @@ psa_status_t psa_key_derivation_output_key_ext(
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    size_t needed = psasim_serialise_begin_needs() +
-                    psasim_serialise_psa_key_attributes_t_needs(*attributes) +
-                    psasim_serialise_psa_key_derivation_operation_t_needs(*operation) +
-                    psasim_serialise_psa_key_production_parameters_t_needs(params, params_data_length) +
-                    psasim_serialise_mbedtls_svc_key_id_t_needs(*key);
+    size_t needed =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_psa_key_attributes_t_needs(*attributes) +
+        psasim_serialise_psa_key_derivation_operation_t_needs(*operation) +
+        psasim_serialise_psa_key_production_parameters_t_needs(params, params_data_length) +
+        psasim_serialise_mbedtls_svc_key_id_t_needs(*key);
 
     ser_params = malloc(needed);
     if (ser_params == NULL) {
@@ -4006,19 +4599,27 @@ psa_status_t psa_key_derivation_output_key_ext(
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_psa_key_attributes_t(&pos, &remaining, *attributes);
+    ok = psasim_serialise_psa_key_attributes_t(
+        &pos, &remaining,
+        *attributes);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_psa_key_derivation_operation_t(&pos, &remaining, *operation);
+    ok = psasim_serialise_psa_key_derivation_operation_t(
+        &pos, &remaining,
+        *operation);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_psa_key_production_parameters_t(&pos, &remaining, params, params_data_length);
+    ok = psasim_serialise_psa_key_production_parameters_t(
+        &pos, &remaining,
+        params, params_data_length);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_mbedtls_svc_key_id_t(&pos, &remaining, *key);
+    ok = psasim_serialise_mbedtls_svc_key_id_t(
+        &pos, &remaining,
+        *key);
     if (!ok) {
         goto fail;
     }
@@ -4038,17 +4639,23 @@ psa_status_t psa_key_derivation_output_key_ext(
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    ok = psasim_deserialise_psa_status_t(
+        &rpos, &rremain,
+        &status);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_key_derivation_operation_t(&rpos, &rremain, operation);
+    ok = psasim_deserialise_psa_key_derivation_operation_t(
+        &rpos, &rremain,
+        operation);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_mbedtls_svc_key_id_t(&rpos, &rremain, key);
+    ok = psasim_deserialise_mbedtls_svc_key_id_t(
+        &rpos, &rremain,
+        key);
     if (!ok) {
         goto fail;
     }
@@ -4071,9 +4678,10 @@ psa_status_t psa_key_derivation_set_capacity(
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    size_t needed = psasim_serialise_begin_needs() +
-                    psasim_serialise_psa_key_derivation_operation_t_needs(*operation) +
-                    psasim_serialise_size_t_needs(capacity);
+    size_t needed =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_psa_key_derivation_operation_t_needs(*operation) +
+        psasim_serialise_size_t_needs(capacity);
 
     ser_params = malloc(needed);
     if (ser_params == NULL) {
@@ -4088,11 +4696,15 @@ psa_status_t psa_key_derivation_set_capacity(
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_psa_key_derivation_operation_t(&pos, &remaining, *operation);
+    ok = psasim_serialise_psa_key_derivation_operation_t(
+        &pos, &remaining,
+        *operation);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_size_t(&pos, &remaining, capacity);
+    ok = psasim_serialise_size_t(
+        &pos, &remaining,
+        capacity);
     if (!ok) {
         goto fail;
     }
@@ -4112,12 +4724,16 @@ psa_status_t psa_key_derivation_set_capacity(
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    ok = psasim_deserialise_psa_status_t(
+        &rpos, &rremain,
+        &status);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_key_derivation_operation_t(&rpos, &rremain, operation);
+    ok = psasim_deserialise_psa_key_derivation_operation_t(
+        &rpos, &rremain,
+        operation);
     if (!ok) {
         goto fail;
     }
@@ -4140,9 +4756,10 @@ psa_status_t psa_key_derivation_setup(
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    size_t needed = psasim_serialise_begin_needs() +
-                    psasim_serialise_psa_key_derivation_operation_t_needs(*operation) +
-                    psasim_serialise_psa_algorithm_t_needs(alg);
+    size_t needed =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_psa_key_derivation_operation_t_needs(*operation) +
+        psasim_serialise_psa_algorithm_t_needs(alg);
 
     ser_params = malloc(needed);
     if (ser_params == NULL) {
@@ -4157,11 +4774,15 @@ psa_status_t psa_key_derivation_setup(
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_psa_key_derivation_operation_t(&pos, &remaining, *operation);
+    ok = psasim_serialise_psa_key_derivation_operation_t(
+        &pos, &remaining,
+        *operation);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_psa_algorithm_t(&pos, &remaining, alg);
+    ok = psasim_serialise_psa_algorithm_t(
+        &pos, &remaining,
+        alg);
     if (!ok) {
         goto fail;
     }
@@ -4181,12 +4802,16 @@ psa_status_t psa_key_derivation_setup(
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    ok = psasim_deserialise_psa_status_t(
+        &rpos, &rremain,
+        &status);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_key_derivation_operation_t(&rpos, &rremain, operation);
+    ok = psasim_deserialise_psa_key_derivation_operation_t(
+        &rpos, &rremain,
+        operation);
     if (!ok) {
         goto fail;
     }
@@ -4208,8 +4833,9 @@ psa_status_t psa_mac_abort(
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    size_t needed = psasim_serialise_begin_needs() +
-                    psasim_serialise_psa_mac_operation_t_needs(*operation);
+    size_t needed =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_psa_mac_operation_t_needs(*operation);
 
     ser_params = malloc(needed);
     if (ser_params == NULL) {
@@ -4224,7 +4850,9 @@ psa_status_t psa_mac_abort(
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_psa_mac_operation_t(&pos, &remaining, *operation);
+    ok = psasim_serialise_psa_mac_operation_t(
+        &pos, &remaining,
+        *operation);
     if (!ok) {
         goto fail;
     }
@@ -4244,12 +4872,16 @@ psa_status_t psa_mac_abort(
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    ok = psasim_deserialise_psa_status_t(
+        &rpos, &rremain,
+        &status);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_mac_operation_t(&rpos, &rremain, operation);
+    ok = psasim_deserialise_psa_mac_operation_t(
+        &rpos, &rremain,
+        operation);
     if (!ok) {
         goto fail;
     }
@@ -4275,12 +4907,13 @@ psa_status_t psa_mac_compute(
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    size_t needed = psasim_serialise_begin_needs() +
-                    psasim_serialise_mbedtls_svc_key_id_t_needs(key) +
-                    psasim_serialise_psa_algorithm_t_needs(alg) +
-                    psasim_serialise_buffer_needs(input, input_length) +
-                    psasim_serialise_buffer_needs(mac, mac_size) +
-                    psasim_serialise_size_t_needs(*mac_length);
+    size_t needed =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_mbedtls_svc_key_id_t_needs(key) +
+        psasim_serialise_psa_algorithm_t_needs(alg) +
+        psasim_serialise_buffer_needs(input, input_length) +
+        psasim_serialise_buffer_needs(mac, mac_size) +
+        psasim_serialise_size_t_needs(*mac_length);
 
     ser_params = malloc(needed);
     if (ser_params == NULL) {
@@ -4295,23 +4928,33 @@ psa_status_t psa_mac_compute(
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_mbedtls_svc_key_id_t(&pos, &remaining, key);
+    ok = psasim_serialise_mbedtls_svc_key_id_t(
+        &pos, &remaining,
+        key);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_psa_algorithm_t(&pos, &remaining, alg);
+    ok = psasim_serialise_psa_algorithm_t(
+        &pos, &remaining,
+        alg);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_buffer(&pos, &remaining, input, input_length);
+    ok = psasim_serialise_buffer(
+        &pos, &remaining,
+        input, input_length);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_buffer(&pos, &remaining, mac, mac_size);
+    ok = psasim_serialise_buffer(
+        &pos, &remaining,
+        mac, mac_size);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_size_t(&pos, &remaining, *mac_length);
+    ok = psasim_serialise_size_t(
+        &pos, &remaining,
+        *mac_length);
     if (!ok) {
         goto fail;
     }
@@ -4331,17 +4974,23 @@ psa_status_t psa_mac_compute(
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    ok = psasim_deserialise_psa_status_t(
+        &rpos, &rremain,
+        &status);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_return_buffer(&rpos, &rremain, mac, mac_size);
+    ok = psasim_deserialise_return_buffer(
+        &rpos, &rremain,
+        mac, mac_size);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_size_t(&rpos, &rremain, mac_length);
+    ok = psasim_deserialise_size_t(
+        &rpos, &rremain,
+        mac_length);
     if (!ok) {
         goto fail;
     }
@@ -4365,10 +5014,11 @@ psa_status_t psa_mac_sign_finish(
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    size_t needed = psasim_serialise_begin_needs() +
-                    psasim_serialise_psa_mac_operation_t_needs(*operation) +
-                    psasim_serialise_buffer_needs(mac, mac_size) +
-                    psasim_serialise_size_t_needs(*mac_length);
+    size_t needed =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_psa_mac_operation_t_needs(*operation) +
+        psasim_serialise_buffer_needs(mac, mac_size) +
+        psasim_serialise_size_t_needs(*mac_length);
 
     ser_params = malloc(needed);
     if (ser_params == NULL) {
@@ -4383,15 +5033,21 @@ psa_status_t psa_mac_sign_finish(
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_psa_mac_operation_t(&pos, &remaining, *operation);
+    ok = psasim_serialise_psa_mac_operation_t(
+        &pos, &remaining,
+        *operation);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_buffer(&pos, &remaining, mac, mac_size);
+    ok = psasim_serialise_buffer(
+        &pos, &remaining,
+        mac, mac_size);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_size_t(&pos, &remaining, *mac_length);
+    ok = psasim_serialise_size_t(
+        &pos, &remaining,
+        *mac_length);
     if (!ok) {
         goto fail;
     }
@@ -4411,22 +5067,30 @@ psa_status_t psa_mac_sign_finish(
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    ok = psasim_deserialise_psa_status_t(
+        &rpos, &rremain,
+        &status);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_mac_operation_t(&rpos, &rremain, operation);
+    ok = psasim_deserialise_psa_mac_operation_t(
+        &rpos, &rremain,
+        operation);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_return_buffer(&rpos, &rremain, mac, mac_size);
+    ok = psasim_deserialise_return_buffer(
+        &rpos, &rremain,
+        mac, mac_size);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_size_t(&rpos, &rremain, mac_length);
+    ok = psasim_deserialise_size_t(
+        &rpos, &rremain,
+        mac_length);
     if (!ok) {
         goto fail;
     }
@@ -4450,10 +5114,11 @@ psa_status_t psa_mac_sign_setup(
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    size_t needed = psasim_serialise_begin_needs() +
-                    psasim_serialise_psa_mac_operation_t_needs(*operation) +
-                    psasim_serialise_mbedtls_svc_key_id_t_needs(key) +
-                    psasim_serialise_psa_algorithm_t_needs(alg);
+    size_t needed =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_psa_mac_operation_t_needs(*operation) +
+        psasim_serialise_mbedtls_svc_key_id_t_needs(key) +
+        psasim_serialise_psa_algorithm_t_needs(alg);
 
     ser_params = malloc(needed);
     if (ser_params == NULL) {
@@ -4468,15 +5133,21 @@ psa_status_t psa_mac_sign_setup(
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_psa_mac_operation_t(&pos, &remaining, *operation);
+    ok = psasim_serialise_psa_mac_operation_t(
+        &pos, &remaining,
+        *operation);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_mbedtls_svc_key_id_t(&pos, &remaining, key);
+    ok = psasim_serialise_mbedtls_svc_key_id_t(
+        &pos, &remaining,
+        key);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_psa_algorithm_t(&pos, &remaining, alg);
+    ok = psasim_serialise_psa_algorithm_t(
+        &pos, &remaining,
+        alg);
     if (!ok) {
         goto fail;
     }
@@ -4496,12 +5167,16 @@ psa_status_t psa_mac_sign_setup(
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    ok = psasim_deserialise_psa_status_t(
+        &rpos, &rremain,
+        &status);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_mac_operation_t(&rpos, &rremain, operation);
+    ok = psasim_deserialise_psa_mac_operation_t(
+        &rpos, &rremain,
+        operation);
     if (!ok) {
         goto fail;
     }
@@ -4524,9 +5199,10 @@ psa_status_t psa_mac_update(
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    size_t needed = psasim_serialise_begin_needs() +
-                    psasim_serialise_psa_mac_operation_t_needs(*operation) +
-                    psasim_serialise_buffer_needs(input, input_length);
+    size_t needed =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_psa_mac_operation_t_needs(*operation) +
+        psasim_serialise_buffer_needs(input, input_length);
 
     ser_params = malloc(needed);
     if (ser_params == NULL) {
@@ -4541,11 +5217,15 @@ psa_status_t psa_mac_update(
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_psa_mac_operation_t(&pos, &remaining, *operation);
+    ok = psasim_serialise_psa_mac_operation_t(
+        &pos, &remaining,
+        *operation);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_buffer(&pos, &remaining, input, input_length);
+    ok = psasim_serialise_buffer(
+        &pos, &remaining,
+        input, input_length);
     if (!ok) {
         goto fail;
     }
@@ -4565,12 +5245,16 @@ psa_status_t psa_mac_update(
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    ok = psasim_deserialise_psa_status_t(
+        &rpos, &rremain,
+        &status);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_mac_operation_t(&rpos, &rremain, operation);
+    ok = psasim_deserialise_psa_mac_operation_t(
+        &rpos, &rremain,
+        operation);
     if (!ok) {
         goto fail;
     }
@@ -4595,11 +5279,12 @@ psa_status_t psa_mac_verify(
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    size_t needed = psasim_serialise_begin_needs() +
-                    psasim_serialise_mbedtls_svc_key_id_t_needs(key) +
-                    psasim_serialise_psa_algorithm_t_needs(alg) +
-                    psasim_serialise_buffer_needs(input, input_length) +
-                    psasim_serialise_buffer_needs(mac, mac_length);
+    size_t needed =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_mbedtls_svc_key_id_t_needs(key) +
+        psasim_serialise_psa_algorithm_t_needs(alg) +
+        psasim_serialise_buffer_needs(input, input_length) +
+        psasim_serialise_buffer_needs(mac, mac_length);
 
     ser_params = malloc(needed);
     if (ser_params == NULL) {
@@ -4614,19 +5299,27 @@ psa_status_t psa_mac_verify(
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_mbedtls_svc_key_id_t(&pos, &remaining, key);
+    ok = psasim_serialise_mbedtls_svc_key_id_t(
+        &pos, &remaining,
+        key);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_psa_algorithm_t(&pos, &remaining, alg);
+    ok = psasim_serialise_psa_algorithm_t(
+        &pos, &remaining,
+        alg);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_buffer(&pos, &remaining, input, input_length);
+    ok = psasim_serialise_buffer(
+        &pos, &remaining,
+        input, input_length);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_buffer(&pos, &remaining, mac, mac_length);
+    ok = psasim_serialise_buffer(
+        &pos, &remaining,
+        mac, mac_length);
     if (!ok) {
         goto fail;
     }
@@ -4646,7 +5339,9 @@ psa_status_t psa_mac_verify(
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    ok = psasim_deserialise_psa_status_t(
+        &rpos, &rremain,
+        &status);
     if (!ok) {
         goto fail;
     }
@@ -4669,9 +5364,10 @@ psa_status_t psa_mac_verify_finish(
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    size_t needed = psasim_serialise_begin_needs() +
-                    psasim_serialise_psa_mac_operation_t_needs(*operation) +
-                    psasim_serialise_buffer_needs(mac, mac_length);
+    size_t needed =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_psa_mac_operation_t_needs(*operation) +
+        psasim_serialise_buffer_needs(mac, mac_length);
 
     ser_params = malloc(needed);
     if (ser_params == NULL) {
@@ -4686,11 +5382,15 @@ psa_status_t psa_mac_verify_finish(
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_psa_mac_operation_t(&pos, &remaining, *operation);
+    ok = psasim_serialise_psa_mac_operation_t(
+        &pos, &remaining,
+        *operation);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_buffer(&pos, &remaining, mac, mac_length);
+    ok = psasim_serialise_buffer(
+        &pos, &remaining,
+        mac, mac_length);
     if (!ok) {
         goto fail;
     }
@@ -4710,12 +5410,16 @@ psa_status_t psa_mac_verify_finish(
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    ok = psasim_deserialise_psa_status_t(
+        &rpos, &rremain,
+        &status);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_mac_operation_t(&rpos, &rremain, operation);
+    ok = psasim_deserialise_psa_mac_operation_t(
+        &rpos, &rremain,
+        operation);
     if (!ok) {
         goto fail;
     }
@@ -4739,10 +5443,11 @@ psa_status_t psa_mac_verify_setup(
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    size_t needed = psasim_serialise_begin_needs() +
-                    psasim_serialise_psa_mac_operation_t_needs(*operation) +
-                    psasim_serialise_mbedtls_svc_key_id_t_needs(key) +
-                    psasim_serialise_psa_algorithm_t_needs(alg);
+    size_t needed =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_psa_mac_operation_t_needs(*operation) +
+        psasim_serialise_mbedtls_svc_key_id_t_needs(key) +
+        psasim_serialise_psa_algorithm_t_needs(alg);
 
     ser_params = malloc(needed);
     if (ser_params == NULL) {
@@ -4757,15 +5462,21 @@ psa_status_t psa_mac_verify_setup(
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_psa_mac_operation_t(&pos, &remaining, *operation);
+    ok = psasim_serialise_psa_mac_operation_t(
+        &pos, &remaining,
+        *operation);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_mbedtls_svc_key_id_t(&pos, &remaining, key);
+    ok = psasim_serialise_mbedtls_svc_key_id_t(
+        &pos, &remaining,
+        key);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_psa_algorithm_t(&pos, &remaining, alg);
+    ok = psasim_serialise_psa_algorithm_t(
+        &pos, &remaining,
+        alg);
     if (!ok) {
         goto fail;
     }
@@ -4785,12 +5496,16 @@ psa_status_t psa_mac_verify_setup(
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    ok = psasim_deserialise_psa_status_t(
+        &rpos, &rremain,
+        &status);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_mac_operation_t(&rpos, &rremain, operation);
+    ok = psasim_deserialise_psa_mac_operation_t(
+        &rpos, &rremain,
+        operation);
     if (!ok) {
         goto fail;
     }
@@ -4812,8 +5527,9 @@ psa_status_t psa_purge_key(
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    size_t needed = psasim_serialise_begin_needs() +
-                    psasim_serialise_mbedtls_svc_key_id_t_needs(key);
+    size_t needed =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_mbedtls_svc_key_id_t_needs(key);
 
     ser_params = malloc(needed);
     if (ser_params == NULL) {
@@ -4828,7 +5544,9 @@ psa_status_t psa_purge_key(
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_mbedtls_svc_key_id_t(&pos, &remaining, key);
+    ok = psasim_serialise_mbedtls_svc_key_id_t(
+        &pos, &remaining,
+        key);
     if (!ok) {
         goto fail;
     }
@@ -4848,7 +5566,9 @@ psa_status_t psa_purge_key(
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    ok = psasim_deserialise_psa_status_t(
+        &rpos, &rremain,
+        &status);
     if (!ok) {
         goto fail;
     }
@@ -4874,12 +5594,13 @@ psa_status_t psa_raw_key_agreement(
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    size_t needed = psasim_serialise_begin_needs() +
-                    psasim_serialise_psa_algorithm_t_needs(alg) +
-                    psasim_serialise_mbedtls_svc_key_id_t_needs(private_key) +
-                    psasim_serialise_buffer_needs(peer_key, peer_key_length) +
-                    psasim_serialise_buffer_needs(output, output_size) +
-                    psasim_serialise_size_t_needs(*output_length);
+    size_t needed =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_psa_algorithm_t_needs(alg) +
+        psasim_serialise_mbedtls_svc_key_id_t_needs(private_key) +
+        psasim_serialise_buffer_needs(peer_key, peer_key_length) +
+        psasim_serialise_buffer_needs(output, output_size) +
+        psasim_serialise_size_t_needs(*output_length);
 
     ser_params = malloc(needed);
     if (ser_params == NULL) {
@@ -4894,23 +5615,33 @@ psa_status_t psa_raw_key_agreement(
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_psa_algorithm_t(&pos, &remaining, alg);
+    ok = psasim_serialise_psa_algorithm_t(
+        &pos, &remaining,
+        alg);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_mbedtls_svc_key_id_t(&pos, &remaining, private_key);
+    ok = psasim_serialise_mbedtls_svc_key_id_t(
+        &pos, &remaining,
+        private_key);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_buffer(&pos, &remaining, peer_key, peer_key_length);
+    ok = psasim_serialise_buffer(
+        &pos, &remaining,
+        peer_key, peer_key_length);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_buffer(&pos, &remaining, output, output_size);
+    ok = psasim_serialise_buffer(
+        &pos, &remaining,
+        output, output_size);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_size_t(&pos, &remaining, *output_length);
+    ok = psasim_serialise_size_t(
+        &pos, &remaining,
+        *output_length);
     if (!ok) {
         goto fail;
     }
@@ -4930,17 +5661,23 @@ psa_status_t psa_raw_key_agreement(
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    ok = psasim_deserialise_psa_status_t(
+        &rpos, &rremain,
+        &status);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_return_buffer(&rpos, &rremain, output, output_size);
+    ok = psasim_deserialise_return_buffer(
+        &rpos, &rremain,
+        output, output_size);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_size_t(&rpos, &rremain, output_length);
+    ok = psasim_deserialise_size_t(
+        &rpos, &rremain,
+        output_length);
     if (!ok) {
         goto fail;
     }
@@ -4961,8 +5698,9 @@ void psa_reset_key_attributes(
     uint8_t *ser_result = NULL;
     size_t result_length;
 
-    size_t needed = psasim_serialise_begin_needs() +
-                    psasim_serialise_psa_key_attributes_t_needs(*attributes);
+    size_t needed =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_psa_key_attributes_t_needs(*attributes);
 
     ser_params = malloc(needed);
     if (ser_params == NULL) {
@@ -4976,7 +5714,9 @@ void psa_reset_key_attributes(
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_psa_key_attributes_t(&pos, &remaining, *attributes);
+    ok = psasim_serialise_psa_key_attributes_t(
+        &pos, &remaining,
+        *attributes);
     if (!ok) {
         goto fail;
     }
@@ -4996,7 +5736,9 @@ void psa_reset_key_attributes(
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_key_attributes_t(&rpos, &rremain, attributes);
+    ok = psasim_deserialise_psa_key_attributes_t(
+        &rpos, &rremain,
+        attributes);
     if (!ok) {
         goto fail;
     }
@@ -5020,12 +5762,13 @@ psa_status_t psa_sign_hash(
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    size_t needed = psasim_serialise_begin_needs() +
-                    psasim_serialise_mbedtls_svc_key_id_t_needs(key) +
-                    psasim_serialise_psa_algorithm_t_needs(alg) +
-                    psasim_serialise_buffer_needs(hash, hash_length) +
-                    psasim_serialise_buffer_needs(signature, signature_size) +
-                    psasim_serialise_size_t_needs(*signature_length);
+    size_t needed =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_mbedtls_svc_key_id_t_needs(key) +
+        psasim_serialise_psa_algorithm_t_needs(alg) +
+        psasim_serialise_buffer_needs(hash, hash_length) +
+        psasim_serialise_buffer_needs(signature, signature_size) +
+        psasim_serialise_size_t_needs(*signature_length);
 
     ser_params = malloc(needed);
     if (ser_params == NULL) {
@@ -5040,23 +5783,33 @@ psa_status_t psa_sign_hash(
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_mbedtls_svc_key_id_t(&pos, &remaining, key);
+    ok = psasim_serialise_mbedtls_svc_key_id_t(
+        &pos, &remaining,
+        key);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_psa_algorithm_t(&pos, &remaining, alg);
+    ok = psasim_serialise_psa_algorithm_t(
+        &pos, &remaining,
+        alg);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_buffer(&pos, &remaining, hash, hash_length);
+    ok = psasim_serialise_buffer(
+        &pos, &remaining,
+        hash, hash_length);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_buffer(&pos, &remaining, signature, signature_size);
+    ok = psasim_serialise_buffer(
+        &pos, &remaining,
+        signature, signature_size);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_size_t(&pos, &remaining, *signature_length);
+    ok = psasim_serialise_size_t(
+        &pos, &remaining,
+        *signature_length);
     if (!ok) {
         goto fail;
     }
@@ -5076,17 +5829,23 @@ psa_status_t psa_sign_hash(
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    ok = psasim_deserialise_psa_status_t(
+        &rpos, &rremain,
+        &status);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_return_buffer(&rpos, &rremain, signature, signature_size);
+    ok = psasim_deserialise_return_buffer(
+        &rpos, &rremain,
+        signature, signature_size);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_size_t(&rpos, &rremain, signature_length);
+    ok = psasim_deserialise_size_t(
+        &rpos, &rremain,
+        signature_length);
     if (!ok) {
         goto fail;
     }
@@ -5108,8 +5867,9 @@ psa_status_t psa_sign_hash_abort(
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    size_t needed = psasim_serialise_begin_needs() +
-                    psasim_serialise_psa_sign_hash_interruptible_operation_t_needs(*operation);
+    size_t needed =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_psa_sign_hash_interruptible_operation_t_needs(*operation);
 
     ser_params = malloc(needed);
     if (ser_params == NULL) {
@@ -5124,7 +5884,9 @@ psa_status_t psa_sign_hash_abort(
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_psa_sign_hash_interruptible_operation_t(&pos, &remaining, *operation);
+    ok = psasim_serialise_psa_sign_hash_interruptible_operation_t(
+        &pos, &remaining,
+        *operation);
     if (!ok) {
         goto fail;
     }
@@ -5144,12 +5906,16 @@ psa_status_t psa_sign_hash_abort(
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    ok = psasim_deserialise_psa_status_t(
+        &rpos, &rremain,
+        &status);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_sign_hash_interruptible_operation_t(&rpos, &rremain, operation);
+    ok = psasim_deserialise_psa_sign_hash_interruptible_operation_t(
+        &rpos, &rremain,
+        operation);
     if (!ok) {
         goto fail;
     }
@@ -5173,10 +5939,11 @@ psa_status_t psa_sign_hash_complete(
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    size_t needed = psasim_serialise_begin_needs() +
-                    psasim_serialise_psa_sign_hash_interruptible_operation_t_needs(*operation) +
-                    psasim_serialise_buffer_needs(signature, signature_size) +
-                    psasim_serialise_size_t_needs(*signature_length);
+    size_t needed =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_psa_sign_hash_interruptible_operation_t_needs(*operation) +
+        psasim_serialise_buffer_needs(signature, signature_size) +
+        psasim_serialise_size_t_needs(*signature_length);
 
     ser_params = malloc(needed);
     if (ser_params == NULL) {
@@ -5191,15 +5958,21 @@ psa_status_t psa_sign_hash_complete(
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_psa_sign_hash_interruptible_operation_t(&pos, &remaining, *operation);
+    ok = psasim_serialise_psa_sign_hash_interruptible_operation_t(
+        &pos, &remaining,
+        *operation);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_buffer(&pos, &remaining, signature, signature_size);
+    ok = psasim_serialise_buffer(
+        &pos, &remaining,
+        signature, signature_size);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_size_t(&pos, &remaining, *signature_length);
+    ok = psasim_serialise_size_t(
+        &pos, &remaining,
+        *signature_length);
     if (!ok) {
         goto fail;
     }
@@ -5219,22 +5992,30 @@ psa_status_t psa_sign_hash_complete(
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    ok = psasim_deserialise_psa_status_t(
+        &rpos, &rremain,
+        &status);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_sign_hash_interruptible_operation_t(&rpos, &rremain, operation);
+    ok = psasim_deserialise_psa_sign_hash_interruptible_operation_t(
+        &rpos, &rremain,
+        operation);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_return_buffer(&rpos, &rremain, signature, signature_size);
+    ok = psasim_deserialise_return_buffer(
+        &rpos, &rremain,
+        signature, signature_size);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_size_t(&rpos, &rremain, signature_length);
+    ok = psasim_deserialise_size_t(
+        &rpos, &rremain,
+        signature_length);
     if (!ok) {
         goto fail;
     }
@@ -5256,8 +6037,9 @@ uint32_t psa_sign_hash_get_num_ops(
     size_t result_length;
     uint32_t value = 0;
 
-    size_t needed = psasim_serialise_begin_needs() +
-                    psasim_serialise_psa_sign_hash_interruptible_operation_t_needs(*operation);
+    size_t needed =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_psa_sign_hash_interruptible_operation_t_needs(*operation);
 
     ser_params = malloc(needed);
     if (ser_params == NULL) {
@@ -5272,7 +6054,9 @@ uint32_t psa_sign_hash_get_num_ops(
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_psa_sign_hash_interruptible_operation_t(&pos, &remaining, *operation);
+    ok = psasim_serialise_psa_sign_hash_interruptible_operation_t(
+        &pos, &remaining,
+        *operation);
     if (!ok) {
         goto fail;
     }
@@ -5292,7 +6076,9 @@ uint32_t psa_sign_hash_get_num_ops(
         goto fail;
     }
 
-    ok = psasim_deserialise_uint32_t(&rpos, &rremain, &value);
+    ok = psasim_deserialise_uint32_t(
+        &rpos, &rremain,
+        &value);
     if (!ok) {
         goto fail;
     }
@@ -5317,11 +6103,12 @@ psa_status_t psa_sign_hash_start(
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    size_t needed = psasim_serialise_begin_needs() +
-                    psasim_serialise_psa_sign_hash_interruptible_operation_t_needs(*operation) +
-                    psasim_serialise_mbedtls_svc_key_id_t_needs(key) +
-                    psasim_serialise_psa_algorithm_t_needs(alg) +
-                    psasim_serialise_buffer_needs(hash, hash_length);
+    size_t needed =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_psa_sign_hash_interruptible_operation_t_needs(*operation) +
+        psasim_serialise_mbedtls_svc_key_id_t_needs(key) +
+        psasim_serialise_psa_algorithm_t_needs(alg) +
+        psasim_serialise_buffer_needs(hash, hash_length);
 
     ser_params = malloc(needed);
     if (ser_params == NULL) {
@@ -5336,19 +6123,27 @@ psa_status_t psa_sign_hash_start(
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_psa_sign_hash_interruptible_operation_t(&pos, &remaining, *operation);
+    ok = psasim_serialise_psa_sign_hash_interruptible_operation_t(
+        &pos, &remaining,
+        *operation);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_mbedtls_svc_key_id_t(&pos, &remaining, key);
+    ok = psasim_serialise_mbedtls_svc_key_id_t(
+        &pos, &remaining,
+        key);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_psa_algorithm_t(&pos, &remaining, alg);
+    ok = psasim_serialise_psa_algorithm_t(
+        &pos, &remaining,
+        alg);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_buffer(&pos, &remaining, hash, hash_length);
+    ok = psasim_serialise_buffer(
+        &pos, &remaining,
+        hash, hash_length);
     if (!ok) {
         goto fail;
     }
@@ -5368,12 +6163,16 @@ psa_status_t psa_sign_hash_start(
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    ok = psasim_deserialise_psa_status_t(
+        &rpos, &rremain,
+        &status);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_sign_hash_interruptible_operation_t(&rpos, &rremain, operation);
+    ok = psasim_deserialise_psa_sign_hash_interruptible_operation_t(
+        &rpos, &rremain,
+        operation);
     if (!ok) {
         goto fail;
     }
@@ -5399,12 +6198,13 @@ psa_status_t psa_sign_message(
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    size_t needed = psasim_serialise_begin_needs() +
-                    psasim_serialise_mbedtls_svc_key_id_t_needs(key) +
-                    psasim_serialise_psa_algorithm_t_needs(alg) +
-                    psasim_serialise_buffer_needs(input, input_length) +
-                    psasim_serialise_buffer_needs(signature, signature_size) +
-                    psasim_serialise_size_t_needs(*signature_length);
+    size_t needed =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_mbedtls_svc_key_id_t_needs(key) +
+        psasim_serialise_psa_algorithm_t_needs(alg) +
+        psasim_serialise_buffer_needs(input, input_length) +
+        psasim_serialise_buffer_needs(signature, signature_size) +
+        psasim_serialise_size_t_needs(*signature_length);
 
     ser_params = malloc(needed);
     if (ser_params == NULL) {
@@ -5419,23 +6219,33 @@ psa_status_t psa_sign_message(
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_mbedtls_svc_key_id_t(&pos, &remaining, key);
+    ok = psasim_serialise_mbedtls_svc_key_id_t(
+        &pos, &remaining,
+        key);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_psa_algorithm_t(&pos, &remaining, alg);
+    ok = psasim_serialise_psa_algorithm_t(
+        &pos, &remaining,
+        alg);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_buffer(&pos, &remaining, input, input_length);
+    ok = psasim_serialise_buffer(
+        &pos, &remaining,
+        input, input_length);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_buffer(&pos, &remaining, signature, signature_size);
+    ok = psasim_serialise_buffer(
+        &pos, &remaining,
+        signature, signature_size);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_size_t(&pos, &remaining, *signature_length);
+    ok = psasim_serialise_size_t(
+        &pos, &remaining,
+        *signature_length);
     if (!ok) {
         goto fail;
     }
@@ -5455,17 +6265,23 @@ psa_status_t psa_sign_message(
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    ok = psasim_deserialise_psa_status_t(
+        &rpos, &rremain,
+        &status);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_return_buffer(&rpos, &rremain, signature, signature_size);
+    ok = psasim_deserialise_return_buffer(
+        &rpos, &rremain,
+        signature, signature_size);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_size_t(&rpos, &rremain, signature_length);
+    ok = psasim_deserialise_size_t(
+        &rpos, &rremain,
+        signature_length);
     if (!ok) {
         goto fail;
     }
@@ -5490,11 +6306,12 @@ psa_status_t psa_verify_hash(
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    size_t needed = psasim_serialise_begin_needs() +
-                    psasim_serialise_mbedtls_svc_key_id_t_needs(key) +
-                    psasim_serialise_psa_algorithm_t_needs(alg) +
-                    psasim_serialise_buffer_needs(hash, hash_length) +
-                    psasim_serialise_buffer_needs(signature, signature_length);
+    size_t needed =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_mbedtls_svc_key_id_t_needs(key) +
+        psasim_serialise_psa_algorithm_t_needs(alg) +
+        psasim_serialise_buffer_needs(hash, hash_length) +
+        psasim_serialise_buffer_needs(signature, signature_length);
 
     ser_params = malloc(needed);
     if (ser_params == NULL) {
@@ -5509,19 +6326,27 @@ psa_status_t psa_verify_hash(
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_mbedtls_svc_key_id_t(&pos, &remaining, key);
+    ok = psasim_serialise_mbedtls_svc_key_id_t(
+        &pos, &remaining,
+        key);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_psa_algorithm_t(&pos, &remaining, alg);
+    ok = psasim_serialise_psa_algorithm_t(
+        &pos, &remaining,
+        alg);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_buffer(&pos, &remaining, hash, hash_length);
+    ok = psasim_serialise_buffer(
+        &pos, &remaining,
+        hash, hash_length);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_buffer(&pos, &remaining, signature, signature_length);
+    ok = psasim_serialise_buffer(
+        &pos, &remaining,
+        signature, signature_length);
     if (!ok) {
         goto fail;
     }
@@ -5541,7 +6366,9 @@ psa_status_t psa_verify_hash(
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    ok = psasim_deserialise_psa_status_t(
+        &rpos, &rremain,
+        &status);
     if (!ok) {
         goto fail;
     }
@@ -5563,8 +6390,9 @@ psa_status_t psa_verify_hash_abort(
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    size_t needed = psasim_serialise_begin_needs() +
-                    psasim_serialise_psa_verify_hash_interruptible_operation_t_needs(*operation);
+    size_t needed =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_psa_verify_hash_interruptible_operation_t_needs(*operation);
 
     ser_params = malloc(needed);
     if (ser_params == NULL) {
@@ -5579,7 +6407,9 @@ psa_status_t psa_verify_hash_abort(
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_psa_verify_hash_interruptible_operation_t(&pos, &remaining, *operation);
+    ok = psasim_serialise_psa_verify_hash_interruptible_operation_t(
+        &pos, &remaining,
+        *operation);
     if (!ok) {
         goto fail;
     }
@@ -5599,12 +6429,16 @@ psa_status_t psa_verify_hash_abort(
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    ok = psasim_deserialise_psa_status_t(
+        &rpos, &rremain,
+        &status);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_verify_hash_interruptible_operation_t(&rpos, &rremain, operation);
+    ok = psasim_deserialise_psa_verify_hash_interruptible_operation_t(
+        &rpos, &rremain,
+        operation);
     if (!ok) {
         goto fail;
     }
@@ -5626,8 +6460,9 @@ psa_status_t psa_verify_hash_complete(
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    size_t needed = psasim_serialise_begin_needs() +
-                    psasim_serialise_psa_verify_hash_interruptible_operation_t_needs(*operation);
+    size_t needed =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_psa_verify_hash_interruptible_operation_t_needs(*operation);
 
     ser_params = malloc(needed);
     if (ser_params == NULL) {
@@ -5642,7 +6477,9 @@ psa_status_t psa_verify_hash_complete(
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_psa_verify_hash_interruptible_operation_t(&pos, &remaining, *operation);
+    ok = psasim_serialise_psa_verify_hash_interruptible_operation_t(
+        &pos, &remaining,
+        *operation);
     if (!ok) {
         goto fail;
     }
@@ -5662,12 +6499,16 @@ psa_status_t psa_verify_hash_complete(
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    ok = psasim_deserialise_psa_status_t(
+        &rpos, &rremain,
+        &status);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_verify_hash_interruptible_operation_t(&rpos, &rremain, operation);
+    ok = psasim_deserialise_psa_verify_hash_interruptible_operation_t(
+        &rpos, &rremain,
+        operation);
     if (!ok) {
         goto fail;
     }
@@ -5689,8 +6530,9 @@ uint32_t psa_verify_hash_get_num_ops(
     size_t result_length;
     uint32_t value = 0;
 
-    size_t needed = psasim_serialise_begin_needs() +
-                    psasim_serialise_psa_verify_hash_interruptible_operation_t_needs(*operation);
+    size_t needed =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_psa_verify_hash_interruptible_operation_t_needs(*operation);
 
     ser_params = malloc(needed);
     if (ser_params == NULL) {
@@ -5705,7 +6547,9 @@ uint32_t psa_verify_hash_get_num_ops(
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_psa_verify_hash_interruptible_operation_t(&pos, &remaining, *operation);
+    ok = psasim_serialise_psa_verify_hash_interruptible_operation_t(
+        &pos, &remaining,
+        *operation);
     if (!ok) {
         goto fail;
     }
@@ -5725,7 +6569,9 @@ uint32_t psa_verify_hash_get_num_ops(
         goto fail;
     }
 
-    ok = psasim_deserialise_uint32_t(&rpos, &rremain, &value);
+    ok = psasim_deserialise_uint32_t(
+        &rpos, &rremain,
+        &value);
     if (!ok) {
         goto fail;
     }
@@ -5751,12 +6597,13 @@ psa_status_t psa_verify_hash_start(
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    size_t needed = psasim_serialise_begin_needs() +
-                    psasim_serialise_psa_verify_hash_interruptible_operation_t_needs(*operation) +
-                    psasim_serialise_mbedtls_svc_key_id_t_needs(key) +
-                    psasim_serialise_psa_algorithm_t_needs(alg) +
-                    psasim_serialise_buffer_needs(hash, hash_length) +
-                    psasim_serialise_buffer_needs(signature, signature_length);
+    size_t needed =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_psa_verify_hash_interruptible_operation_t_needs(*operation) +
+        psasim_serialise_mbedtls_svc_key_id_t_needs(key) +
+        psasim_serialise_psa_algorithm_t_needs(alg) +
+        psasim_serialise_buffer_needs(hash, hash_length) +
+        psasim_serialise_buffer_needs(signature, signature_length);
 
     ser_params = malloc(needed);
     if (ser_params == NULL) {
@@ -5771,23 +6618,33 @@ psa_status_t psa_verify_hash_start(
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_psa_verify_hash_interruptible_operation_t(&pos, &remaining, *operation);
+    ok = psasim_serialise_psa_verify_hash_interruptible_operation_t(
+        &pos, &remaining,
+        *operation);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_mbedtls_svc_key_id_t(&pos, &remaining, key);
+    ok = psasim_serialise_mbedtls_svc_key_id_t(
+        &pos, &remaining,
+        key);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_psa_algorithm_t(&pos, &remaining, alg);
+    ok = psasim_serialise_psa_algorithm_t(
+        &pos, &remaining,
+        alg);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_buffer(&pos, &remaining, hash, hash_length);
+    ok = psasim_serialise_buffer(
+        &pos, &remaining,
+        hash, hash_length);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_buffer(&pos, &remaining, signature, signature_length);
+    ok = psasim_serialise_buffer(
+        &pos, &remaining,
+        signature, signature_length);
     if (!ok) {
         goto fail;
     }
@@ -5807,12 +6664,16 @@ psa_status_t psa_verify_hash_start(
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    ok = psasim_deserialise_psa_status_t(
+        &rpos, &rremain,
+        &status);
     if (!ok) {
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_verify_hash_interruptible_operation_t(&rpos, &rremain, operation);
+    ok = psasim_deserialise_psa_verify_hash_interruptible_operation_t(
+        &rpos, &rremain,
+        operation);
     if (!ok) {
         goto fail;
     }
@@ -5837,11 +6698,12 @@ psa_status_t psa_verify_message(
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    size_t needed = psasim_serialise_begin_needs() +
-                    psasim_serialise_mbedtls_svc_key_id_t_needs(key) +
-                    psasim_serialise_psa_algorithm_t_needs(alg) +
-                    psasim_serialise_buffer_needs(input, input_length) +
-                    psasim_serialise_buffer_needs(signature, signature_length);
+    size_t needed =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_mbedtls_svc_key_id_t_needs(key) +
+        psasim_serialise_psa_algorithm_t_needs(alg) +
+        psasim_serialise_buffer_needs(input, input_length) +
+        psasim_serialise_buffer_needs(signature, signature_length);
 
     ser_params = malloc(needed);
     if (ser_params == NULL) {
@@ -5856,19 +6718,27 @@ psa_status_t psa_verify_message(
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_mbedtls_svc_key_id_t(&pos, &remaining, key);
+    ok = psasim_serialise_mbedtls_svc_key_id_t(
+        &pos, &remaining,
+        key);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_psa_algorithm_t(&pos, &remaining, alg);
+    ok = psasim_serialise_psa_algorithm_t(
+        &pos, &remaining,
+        alg);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_buffer(&pos, &remaining, input, input_length);
+    ok = psasim_serialise_buffer(
+        &pos, &remaining,
+        input, input_length);
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_buffer(&pos, &remaining, signature, signature_length);
+    ok = psasim_serialise_buffer(
+        &pos, &remaining,
+        signature, signature_length);
     if (!ok) {
         goto fail;
     }
@@ -5888,7 +6758,9 @@ psa_status_t psa_verify_message(
         goto fail;
     }
 
-    ok = psasim_deserialise_psa_status_t(&rpos, &rremain, &status);
+    ok = psasim_deserialise_psa_status_t(
+        &rpos, &rremain,
+        &status);
     if (!ok) {
         goto fail;
     }

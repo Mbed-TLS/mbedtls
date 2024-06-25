@@ -1362,7 +1362,7 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
     p += cipher_suites_len;
     cipher_suites_end = p;
 
-    /* Check if we have enough data to for legacy_compression_methods
+    /* Check if we have enough data for legacy_compression_methods
      * and a length byte.
      */
     MBEDTLS_SSL_CHK_BUF_READ_PTR(p, end, 1 + p[0]);

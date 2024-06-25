@@ -7402,9 +7402,11 @@ PSA generate key: raw data, 9 bits: invalid argument
 generate_key:PSA_KEY_TYPE_RAW_DATA:9:PSA_KEY_USAGE_EXPORT:0:PSA_ERROR_INVALID_ARGUMENT:0
 
 PSA generate key: raw data, (MBEDTLS_CTR_DRBG_MAX_REQUEST + 1) * 8 bits
+depends_on:!MBEDTLS_PSA_STATIC_KEY_SLOTS
 generate_key:PSA_KEY_TYPE_RAW_DATA:(MBEDTLS_CTR_DRBG_MAX_REQUEST + 1) * 8:PSA_KEY_USAGE_EXPORT:0:PSA_SUCCESS:0
 
 PSA generate key: raw data, (2 * MBEDTLS_CTR_DRBG_MAX_REQUEST + 1) * 8 bits
+depends_on:!MBEDTLS_PSA_STATIC_KEY_SLOTS
 generate_key:PSA_KEY_TYPE_RAW_DATA:(2 * MBEDTLS_CTR_DRBG_MAX_REQUEST + 1) * 8:PSA_KEY_USAGE_EXPORT:0:PSA_SUCCESS:0
 
 PSA generate key: raw data, 65528 bits (large key, ok if it fits)

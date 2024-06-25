@@ -24,6 +24,9 @@ static int check_stats(void)
 exit:
     return 0;
 }
+#if !defined(MBEDTLS_ENTROPY_BLOCK_SIZE)
+#define MBEDTLS_ENTROPY_BLOCK_SIZE  MBEDTLS_ENTROPY_MIN_PLATFORM
+#endif
 
 #define ENTROPY_MIN_NV_SEED_SIZE                                        \
     MAX(MBEDTLS_ENTROPY_MIN_PLATFORM, MBEDTLS_ENTROPY_BLOCK_SIZE)

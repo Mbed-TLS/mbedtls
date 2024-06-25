@@ -979,9 +979,9 @@ int mbedtls_internal_aes_decrypt(mbedtls_aes_context *ctx,
  * have a different alignment with respect to 16-byte memory. So we may need
  * to realign.
  */
+#if defined(MAY_NEED_TO_ALIGN)
 MBEDTLS_MAYBE_UNUSED static void aes_maybe_realign(mbedtls_aes_context *ctx)
 {
-#if defined(MAY_NEED_TO_ALIGN)
     unsigned new_offset = mbedtls_aes_rk_offset(ctx->buf);
     if (new_offset != ctx->rk_offset) {
         memmove(ctx->buf + new_offset,     // new address
@@ -989,10 +989,8 @@ MBEDTLS_MAYBE_UNUSED static void aes_maybe_realign(mbedtls_aes_context *ctx)
                 (ctx->nr + 1) * 16);       // number of round keys * bytes per rk
         ctx->rk_offset = new_offset;
     }
-#endif /* MAY_NEED_TO_ALIGN */
-    (void) ctx;
 }
-
+#endif /* MAY_NEED_TO_ALIGN */
 /*
  * AES-ECB block encryption/decryption
  */

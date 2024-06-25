@@ -1,5 +1,3 @@
 Removals
    * Drop support for VIA Padlock. Removes MBEDTLS_PADLOCK_C.
-     Note that this does not prevent users from using VIA Padlock
-     through a suitable PSA driver (not provided by Mbed TLS).
      Fixes #5903.

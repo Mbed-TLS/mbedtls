@@ -35,7 +35,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-/* aesni.c rely on these values! */
+/* aesni.c relies on these values! */
 #define MBEDTLS_AES_ENCRYPT     1 /**< AES encryption. */
 #define MBEDTLS_AES_DECRYPT     0 /**< AES decryption. */
 

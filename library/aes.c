@@ -972,7 +972,7 @@ int mbedtls_internal_aes_decrypt(mbedtls_aes_context *ctx,
 #endif /* !MBEDTLS_AES_DECRYPT_ALT && !MBEDTLS_BLOCK_CIPHER_NO_DECRYPT */
 
 /*
- * Our intrinsics-based implementation of AESNI require the round keys to be
+ * Our intrinsics-based implementation of AESNI requires the round keys to be
  * aligned on a 16-byte boundary. We take care of this before creating them,
  * but the AES context may have moved (this can happen if the library is
  * called from a language with managed memory), and in later calls it might

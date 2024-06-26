@@ -1303,14 +1303,27 @@ void mpi_core_exp_mod(char *input_N, char *input_A,
 
     TEST_CALLOC(T, working_limbs);
 
+    /* Temporary because MEMSAN doesn't support assembly implementation see #1243 */
+#if !defined(MBEDTLS_TEST_CONSTANT_FLOW_MEMSAN)
+    TEST_CF_SECRET(A, A_limbs * sizeof(mbedtls_mpi_uint));
+    TEST_CF_SECRET(N, N_limbs * sizeof(mbedtls_mpi_uint));
+    TEST_CF_SECRET(E, E_limbs * sizeof(mbedtls_mpi_uint));
+#endif
     mbedtls_mpi_core_exp_mod(Y, A, N, N_limbs, E, E_limbs, R2, T);
+
+    TEST_CF_PUBLIC(Y, N_limbs * sizeof(mbedtls_mpi_uint));
 
     TEST_EQUAL(0, memcmp(X, Y, N_limbs * sizeof(mbedtls_mpi_uint)));
 
+#if !defined(MBEDTLS_TEST_CONSTANT_FLOW_MEMSAN)
+    TEST_CF_SECRET(A, A_limbs * sizeof(mbedtls_mpi_uint));
+    TEST_CF_SECRET(N, N_limbs * sizeof(mbedtls_mpi_uint));
+    TEST_CF_SECRET(E, E_limbs * sizeof(mbedtls_mpi_uint));
+#endif
     /* Check when output aliased to input */
-
     mbedtls_mpi_core_exp_mod(A, A, N, N_limbs, E, E_limbs, R2, T);
 
+    TEST_CF_PUBLIC(A, A_limbs * sizeof(mbedtls_mpi_uint));
     TEST_EQUAL(0, memcmp(X, A, N_limbs * sizeof(mbedtls_mpi_uint)));
 
 exit:

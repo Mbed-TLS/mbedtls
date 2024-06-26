@@ -40,9 +40,6 @@ def single_setting_case(setting: config.Setting, when_on: bool,
     return tc
 
 
-PSA_WANT_KEY_TYPE_KEY_PAIR_RE = \
-    re.compile(r'(?P<prefix>PSA_WANT_KEY_TYPE_(?P<type>\w+)_KEY_PAIR_)(?P<operation>\w+)\Z')
-
 # If foo is a setting that is only meaningful when bar is enabled, set
 # SIMPLE_DEPENDENCIES[foo]=bar. More generally, bar can be a colon-separated
 # list of settings, meaning that all the settings must be enabled. Each setting
@@ -50,7 +47,6 @@ PSA_WANT_KEY_TYPE_KEY_PAIR_RE = \
 # depends_on directive in test data.
 # See also `dependencies_of_settting`.
 SIMPLE_DEPENDENCIES = {
-    'MBEDTLS_AESCE_C': 'MBEDTLS_AES_C',
     'MBEDTLS_AESNI_C': 'MBEDTLS_AES_C',
     'MBEDTLS_ERROR_STRERROR_DUMMY': '!MBEDTLS_ERROR_C',
     'MBEDTLS_GENPRIME': 'MBEDTLS_RSA_C',
@@ -95,8 +91,7 @@ def dependencies_of_setting(cfg: config.Config,
         # Requiring both sides to be enabled also means we know we'll run
         # tests that only run Mbed TLS against itself, which only run in
         # configurations with both sides enabled.
-        if name.startswith('MBEDTLS_SSL_TLS1_3_') or \
-           name == 'MBEDTLS_SSL_EARLY_DATA':
+        if name.startswith('MBEDTLS_SSL_TLS1_3_'):
             return 'MBEDTLS_SSL_CLI_C:MBEDTLS_SSL_SRV_C:MBEDTLS_SSL_PROTO_TLS1_3'
         if name.startswith('MBEDTLS_SSL_DTLS_'):
             return 'MBEDTLS_SSL_CLI_C:MBEDTLS_SSL_SRV_C:MBEDTLS_SSL_PROTO_DTLS'
@@ -106,9 +101,6 @@ def dependencies_of_setting(cfg: config.Config,
             super_name = name[:pos.start()] + '_C'
             if cfg.known(super_name):
                 return super_name
-    m = PSA_WANT_KEY_TYPE_KEY_PAIR_RE.match(name)
-    if m and m.group('operation') != 'BASIC':
-        return m.group('prefix') + 'BASIC'
     return None
 
 def conditions_for_setting(cfg: config.Config,

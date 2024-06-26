@@ -1,0 +1,4 @@
+Security
+   * Fix a stack buffer overflow in mbedtls_ecdsa_der_to_raw() and
+     mbedtls_ecdsa_raw_to_der() when curve_bits is larger than the
+     largest supported curve.

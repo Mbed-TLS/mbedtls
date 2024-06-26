@@ -278,8 +278,8 @@ int mbedtls_gcm_update_ad(mbedtls_gcm_context *ctx,
  *                      of at least \p output_size bytes.
  * \param output_size   The size of the output buffer in bytes.
  * \param output_length On success, \p *output_length contains the actual
- *                      length of the output written in \p output, which is
- *                      equal to \p input_length.
+ *                      length of the output written in \p output, which equals
+ *                      to \p input_length.
  *                      On failure, the content of \p *output_length is
  *                      unspecified.
  *

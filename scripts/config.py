@@ -403,7 +403,7 @@ def no_platform_adapter(adapter):
 class ConfigFile(metaclass=ABCMeta):
     """Representation of a configuration file."""
 
-    def __init__(self, default_path, filename=None, name=''):
+    def __init__(self, default_path, name, filename=None):
         """Check if the config file exists."""
         if filename is None:
             for candidate in default_path:
@@ -516,7 +516,7 @@ class MbedtlsConfigFile(ConfigFile):
                                  _path_in_tree)]
 
     def __init__(self, filename=None):
-        super().__init__(self.default_path, filename, 'Mbed TLS')
+        super().__init__(self.default_path, 'Mbed TLS', filename)
         self.current_section = 'header'
 
     def _format_template(self, setting, name, indent, middle):
@@ -554,7 +554,7 @@ class CryptoConfigFile(ConfigFile):
                                  _path_in_tree)]
 
     def __init__(self, filename=None):
-        super().__init__(self.default_path, filename, 'Crypto')
+        super().__init__(self.default_path, 'Crypto', filename)
 
     def _format_template(self, setting, name, indent, middle):
         """Build a line for crypto_config.h for the given setting.

@@ -167,7 +167,7 @@ def main() -> int:
     """
     def_arg_project_root = build_tree.guess_project_root()
 
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(allow_abbrev=False)
     parser.add_argument('--project-root', default=def_arg_project_root,
                         help='root directory of repo source code')
     parser.add_argument('--template-dir',

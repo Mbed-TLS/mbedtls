@@ -188,11 +188,9 @@ PSA_UNSTABLE_FEATURE = frozenset([
     'PSA_WANT_ECC_SECP_K1_224'
 ])
 
-EXCLUDE_FROM_CRYPTO = frozenset(
-    PSA_UNSUPPORTED_FEATURE |
-    PSA_DEPRECATED_FEATURE |
-    PSA_UNSTABLE_FEATURE
-)
+EXCLUDE_FROM_CRYPTO = PSA_UNSUPPORTED_FEATURE | \
+                      PSA_DEPRECATED_FEATURE | \
+                      PSA_UNSTABLE_FEATURE
 
 # The goal of the full configuration is to have everything that can be tested
 # together. This includes deprecated or insecure options. It excludes:

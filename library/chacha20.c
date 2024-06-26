@@ -22,8 +22,6 @@
 
 #include "mbedtls/platform.h"
 
-#if !defined(MBEDTLS_CHACHA20_ALT)
-
 #define ROTL32(value, amount) \
     ((uint32_t) ((value) << (amount)) | ((value) >> (32 - (amount))))
 
@@ -270,8 +268,6 @@ cleanup:
     mbedtls_chacha20_free(&ctx);
     return ret;
 }
-
-#endif /* !MBEDTLS_CHACHA20_ALT */
 
 #if defined(MBEDTLS_SELF_TEST)
 

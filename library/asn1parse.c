@@ -58,19 +58,38 @@ int mbedtls_asn1_get_len(unsigned char **p,
     return 0;
 }
 
-int mbedtls_asn1_get_tag(unsigned char **p,
-                         const unsigned char *end,
-                         size_t *len, int tag)
+int mbedtls_asn1_get_any_tag(unsigned char **p,
+                             const unsigned char *end,
+                             int *tag_number, int *tag_constructed, int *tag_class)
 {
+    unsigned char tag;
     if ((end - *p) < 1) {
         return MBEDTLS_ERR_ASN1_OUT_OF_DATA;
     }
 
-    if (**p != tag) {
-        return MBEDTLS_ERR_ASN1_UNEXPECTED_TAG;
+    tag = *((*p)++);
+    *tag_number = tag & 0x1F;
+    *tag_constructed = tag & 0x20;
+    *tag_class = tag & 0xC0;
+
+    return 0;
+}
+
+int mbedtls_asn1_get_tag(unsigned char **p,
+                         const unsigned char *end,
+                         size_t *len, int tag)
+{
+    int tag_number, tag_constructed, tag_class, ret;
+    unsigned char *start = *p;
+    if ((ret = mbedtls_asn1_get_any_tag(p, end, &tag_number, &tag_constructed, &tag_class)) != 0) {
+        return ret;
     }
 
-    (*p)++;
+    if (tag != (tag_number | tag_constructed | tag_class)) {
+        /* To keep same behaviour as historic implementation */
+        *p = start;
+        return MBEDTLS_ERR_ASN1_UNEXPECTED_TAG;
+    }
 
     return mbedtls_asn1_get_len(p, end, len);
 }

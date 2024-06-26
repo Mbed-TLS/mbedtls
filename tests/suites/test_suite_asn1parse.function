@@ -772,3 +772,30 @@ exit:
     mbedtls_asn1_free_named_data_list(&head);
 }
 /* END_CASE */
+
+/* BEGIN_CASE */
+void get_any_tag(const data_t *input,
+                 int expected_tag_number,
+                 int expected_tag_constructed,
+                 int expected_tag_class,
+                 int expected_tag_length,
+                 int expected_result)
+{
+    unsigned char *p = input->x;
+    int tag_number, tag_constructed, tag_class;
+    int ret;
+
+    ret = mbedtls_asn1_get_any_tag(&p,
+                                   input->x + input->len,
+                                   &tag_number,
+                                   &tag_constructed,
+                                   &tag_class);
+    TEST_EQUAL(ret, expected_result);
+    if (expected_result == 0) {
+        TEST_EQUAL(tag_number, expected_tag_number);
+        TEST_EQUAL(tag_constructed, expected_tag_constructed);
+        TEST_EQUAL(tag_class, expected_tag_class);
+        TEST_ASSERT(p == input->x + expected_tag_length);
+    }
+}
+/* END_CASE */

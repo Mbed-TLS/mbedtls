@@ -80,7 +80,10 @@
 #define MBEDTLS_ASN1_BMP_STRING              0x1E
 #define MBEDTLS_ASN1_PRIMITIVE               0x00
 #define MBEDTLS_ASN1_CONSTRUCTED             0x20
+#define MBEDTLS_ASN1_UNIVERSAL               0x00
+#define MBEDTLS_ASN1_APPLICATION             0x40
 #define MBEDTLS_ASN1_CONTEXT_SPECIFIC        0x80
+#define MBEDTLS_ASN1_PRIVATE                 0xC0
 
 /* Slightly smaller way to check if tag is a string tag
  * compared to canonical implementation. */
@@ -248,6 +251,35 @@ int mbedtls_asn1_get_tag(unsigned char **p,
 #endif /* MBEDTLS_ASN1_PARSE_C || MBEDTLS_X509_CREATE_C || MBEDTLS_PSA_UTIL_HAVE_ECDSA */
 
 #if defined(MBEDTLS_ASN1_PARSE_C)
+/**
+ * \brief       Get the tag of the element.
+ *              Updates the pointer to immediately in front of the tag.
+ *
+ * \param p     On entry, \c *p points to the start of the ASN.1 element.
+ *              On successful completion, \c *p points to the first byte
+ *              after the tag, i.e. the first byte of the length.
+ *              On error, the value of \c *p is undefined.
+ * \param end   End of data.
+ * \param tag_number   On successful completion, \c *tag_number contains the tag
+ *              read from the ASN.1 input.
+ * \param tag_constructed   On successful completion, \c *tag_constructed contains
+ *              either MBEDTLS_ASN1_CONSTRUCTED or MBEDTLS_ASN1_PRIMITIVE as read
+ *              from ASN.1 input.
+ * \param tag_class   On successful completion, \c *tag_class contains either
+ *              MBEDTLS_ASN1_UNIVERSAL, MBEDTLS_ASN1_APPLICATION, MBEDTLS_ASN1_CONTEXT_SPECIFIC, MBEDTLS_ASN1_PRIVATE
+ *              as read from ASN.1 input.
+ *
+ * \return      0 if successful.
+ * \return      #MBEDTLS_ERR_ASN1_OUT_OF_DATA if the ASN.1 element
+ *              would end beyond \p end.
+ */
+
+int mbedtls_asn1_get_any_tag(unsigned char **p,
+                             const unsigned char *end,
+                             int *tag_number,
+                             int *tag_constructed,
+                             int *tag_class);
+
 /**
  * \brief       Retrieve a boolean ASN.1 tag and its value.
  *              Updates the pointer to immediately behind the full tag.

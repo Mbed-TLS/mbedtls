@@ -21,9 +21,12 @@
 #include "mbedtls/platform.h"
 
 #include <mbedtls/ecdsa.h>
-#include <mbedtls/ecdh.h>
 #include <mbedtls/ecp.h>
 #include <mbedtls/error.h>
+
+#if defined(MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED)
+#include <Hacl_Curve25519.h>
+#endif
 
 #if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR_BASIC) || \
     defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR_IMPORT) || \
@@ -530,21 +533,52 @@ psa_status_t mbedtls_psa_key_agreement_ecdh(
         !PSA_ALG_IS_ECDH(alg)) {
         return PSA_ERROR_INVALID_ARGUMENT;
     }
-    mbedtls_ecp_keypair *ecp = NULL;
+
+    *shared_secret_length = PSA_BITS_TO_BYTES(attributes->core.bits);
+    if (shared_secret_size < *shared_secret_length) {
+        return PSA_ERROR_BUFFER_TOO_SMALL;
+    }
+
+#if defined(MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED)
+    /* Temporary for backwards compat: special dispatch for Everest.
+     * Everest should be turned into a regular PSA driver in the future. */
+    if (attributes->core.type == PSA_KEY_TYPE_ECC_KEY_PAIR(PSA_ECC_FAMILY_MONTGOMERY) &&
+        attributes->core.bits == 255) {
+
+        /* The core function expects fixed-size buffers.
+         * Validate input sizes (output has been done above). */
+        if (key_buffer_size != 32 || peer_key_length != 32) {
+            return PSA_ERROR_INVALID_ARGUMENT;
+        }
+
+        /* The function's declaration is missing const qualifiers,
+         * but the implementation does not write to input buffers,
+         * so casting the const away is safe. */
+        Hacl_Curve25519_crypto_scalarmult(shared_secret,
+                                          (uint8_t *) key_buffer,
+                                          (uint8_t *) peer_key);
+
+        return PSA_SUCCESS;
+    }
+#endif /*MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED */
+
+    mbedtls_ecp_keypair *our_key = NULL;
+    mbedtls_ecp_keypair *their_key = NULL;
+    mbedtls_ecp_point secret;
+    mbedtls_ecp_point_init(&secret);
+
     status = mbedtls_psa_ecp_load_representation(
         attributes->type,
         attributes->bits,
         key_buffer,
         key_buffer_size,
-        &ecp);
+        &our_key);
     if (status != PSA_SUCCESS) {
         return status;
     }
-    mbedtls_ecp_keypair *their_key = NULL;
-    mbedtls_ecdh_context ecdh;
+
     size_t bits = 0;
-    psa_ecc_family_t curve = mbedtls_ecc_group_to_psa(ecp->grp.id, &bits);
-    mbedtls_ecdh_init(&ecdh);
+    psa_ecc_family_t curve = mbedtls_ecc_group_to_psa(our_key->grp.id, &bits);
 
     status = mbedtls_psa_ecp_load_representation(
         PSA_KEY_TYPE_ECC_PUBLIC_KEY(curve),
@@ -557,37 +591,26 @@ psa_status_t mbedtls_psa_key_agreement_ecdh(
     }
 
     status = mbedtls_to_psa_error(
-        mbedtls_ecdh_get_params(&ecdh, their_key, MBEDTLS_ECDH_THEIRS));
-    if (status != PSA_SUCCESS) {
-        goto exit;
-    }
-    status = mbedtls_to_psa_error(
-        mbedtls_ecdh_get_params(&ecdh, ecp, MBEDTLS_ECDH_OURS));
+        mbedtls_ecp_mul(&our_key->grp, &secret, &our_key->d, &their_key->Q,
+                        mbedtls_psa_get_random, MBEDTLS_PSA_RANDOM_STATE));
     if (status != PSA_SUCCESS) {
         goto exit;
     }
 
     status = mbedtls_to_psa_error(
-        mbedtls_ecdh_calc_secret(&ecdh,
-                                 shared_secret_length,
-                                 shared_secret, shared_secret_size,
-                                 mbedtls_psa_get_random,
-                                 MBEDTLS_PSA_RANDOM_STATE));
-    if (status != PSA_SUCCESS) {
-        goto exit;
-    }
-    if (PSA_BITS_TO_BYTES(bits) != *shared_secret_length) {
-        status = PSA_ERROR_CORRUPTION_DETECTED;
-    }
+        mbedtls_ecp_get_type(&our_key->grp) == MBEDTLS_ECP_TYPE_MONTGOMERY ?
+        mbedtls_mpi_write_binary_le(&secret.X, shared_secret, *shared_secret_length) :
+        mbedtls_mpi_write_binary(&secret.X, shared_secret, *shared_secret_length));
+
 exit:
     if (status != PSA_SUCCESS) {
         mbedtls_platform_zeroize(shared_secret, shared_secret_size);
     }
-    mbedtls_ecdh_free(&ecdh);
+    mbedtls_ecp_point_free(&secret);
     mbedtls_ecp_keypair_free(their_key);
     mbedtls_free(their_key);
-    mbedtls_ecp_keypair_free(ecp);
-    mbedtls_free(ecp);
+    mbedtls_ecp_keypair_free(our_key);
+    mbedtls_free(our_key);
     return status;
 }
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_ECDH */

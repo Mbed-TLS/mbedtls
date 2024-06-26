@@ -14,9 +14,9 @@ PKCS7 Signed Data Parse with zero signers
 depends_on:MBEDTLS_MD_CAN_SHA256
 pkcs7_parse:"data_files/pkcs7_data_no_signers.der":MBEDTLS_PKCS7_SIGNED_DATA
 
-PKCS7 Signed Data Parse Fail with multiple certs #4
+PKCS7 Signed Data Parse with multiple certs #4
 depends_on:MBEDTLS_MD_CAN_SHA256:MBEDTLS_RSA_C
-pkcs7_parse:"data_files/pkcs7_data_multiple_certs_signed.der":MBEDTLS_ERR_PKCS7_FEATURE_UNAVAILABLE
+pkcs7_parse:"data_files/pkcs7_data_multiple_certs_signed.der":MBEDTLS_PKCS7_SIGNED_DATA
 
 PKCS7 Signed Data Parse Fail with corrupted cert #5.0
 depends_on:MBEDTLS_MD_CAN_SHA256:MBEDTLS_RSA_C
@@ -153,6 +153,30 @@ pkcs7_verify:"data_files/pkcs7_data_cert_signed_sha256.der":"data_files/pkcs7-rs
 PKCS7 Signed Data Verify Fail Expired Cert #19 no TIME_DATE 2
 depends_on:MBEDTLS_MD_CAN_SHA256:!MBEDTLS_HAVE_TIME_DATE:MBEDTLS_RSA_C
 pkcs7_verify:"data_files/pkcs7_data_rsa_expired.der":"data_files/pkcs7-rsa-expired.crt":"data_files/pkcs7_data_1.bin":0:MBEDTLS_ERR_RSA_VERIFY_FAILED
+
+PKCS7 Signed Data Verify 1 signer + authenticated attributes + nocert
+depends_on:MBEDTLS_MD_CAN_SHA256
+pkcs7_verify:"data_files/pkcs7_data_auth_attr_nocert.der":"data_files/pkcs7-rsa-sha256-1.pem":"data_files/pkcs7_data.bin":0:0
+
+PKCS7 Signed Data Verify 1 signer + authenticated attributes + 1 cert
+depends_on:MBEDTLS_MD_CAN_SHA256
+pkcs7_verify:"data_files/pkcs7_data_auth_attr_cert.der":"data_files/pkcs7-rsa-sha256-1.pem":"data_files/pkcs7_data.bin":0:0
+
+PKCS7 Signed Data Verify 2 signers + authenticated attributes
+depends_on:MBEDTLS_MD_CAN_SHA256
+pkcs7_verify:"data_files/pkcs7_data_auth_attr_2_signers.der":"data_files/pkcs7-rsa-sha256-1.pem data_files/pkcs7-rsa-sha256-2.pem":"data_files/pkcs7_data.bin":0:0
+
+PKCS7 Signed Data Verify Fail bad message digest inside authenticated attributes
+depends_on:MBEDTLS_MD_CAN_SHA256
+pkcs7_verify:"data_files/pkcs7_data_auth_attr_bad_message_digest.der":"data_files/pkcs7-rsa-sha256-1.pem":"data_files/pkcs7_data.bin":0:MBEDTLS_ERR_PKCS7_INVALID_AUTH_ATTR
+
+PKCS7 Signed Data Verify Fail authenticated attributes +  bad signature
+depends_on:MBEDTLS_MD_CAN_SHA256
+pkcs7_verify:"data_files/pkcs7_data_auth_attr_bad_signature.der":"data_files/pkcs7-rsa-sha256-1.pem":"data_files/pkcs7_data.bin":0:MBEDTLS_ERR_RSA_VERIFY_FAILED
+
+PKCS7 Signed Data Verify chain of trust through intermediate certificate
+depends_on:MBEDTLS_MD_CAN_SHA256
+pkcs7_verify:"data_files/pkcs7_data_intermediate_cert.der":"data_files/pkcs7-root-ca.pem":"data_files/pkcs7_data.bin":0:0
 
 PKCS7 Parse Failure Invalid ASN1: Add null byte to start #20.0
 depends_on:MBEDTLS_MD_CAN_SHA256

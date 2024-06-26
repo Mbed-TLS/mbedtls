@@ -1,0 +1,3 @@
+Features
+   * PKCS#7: Add support for authenticated attributes.
+   * PKCS#7: Add support for verifying embedded certificates.

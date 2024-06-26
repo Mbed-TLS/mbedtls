@@ -2066,6 +2066,73 @@ pkcs7_data_cert_encrypted.der: $(pkcs7_test_file) $(pkcs7_test_cert_1)
 	$(OPENSSL) smime -encrypt -aes256 -in pkcs7_data.bin -binary -outform DER -out $@ pkcs7-rsa-sha256-1.crt
 all_final += pkcs7_data_cert_encrypted.der
 
+##################################################
+# Authenticated attributes tests
+
+# pkcs7 file with 1 signer + authenticated attributes + nocert
+pkcs7_data_auth_attr_nocert.der: $(pkcs7_test_file) $(pkcs7_test_cert_1)
+	$(OPENSSL) smime -sign -binary -in pkcs7_data.bin -md sha256 -signer pkcs7-rsa-sha256-1.pem -nocerts -outform der -out $@
+all_final += pkcs7_data_auth_attr_nocert.der
+
+# pkcs7 file with 1 signer + authenticated attributes + 1 cert
+pkcs7_data_auth_attr_cert.der: $(pkcs7_test_file) $(pkcs7_test_cert_1)
+	$(OPENSSL) smime -sign -binary -in pkcs7_data.bin -md sha256 -signer pkcs7-rsa-sha256-1.pem -outform der -out $@
+all_final += pkcs7_data_auth_attr_cert.der
+
+# pkcs7 file with 2 signers + authenticated attributes
+pkcs7_data_auth_attr_2_signers.der: $(pkcs7_test_file) $(pkcs7_test_cert_1) $(pkcs7_test_cert_2)
+	$(OPENSSL) smime -sign -binary -in pkcs7_data.bin -md sha256 -signer pkcs7-rsa-sha256-1.pem -signer pkcs7-rsa-sha256-2.pem -nocerts -outform der -out $@
+all_final += pkcs7_data_auth_attr_2_signers.der
+
+# pkcs7 file with bad message digest inside authenticated attributes
+pkcs7_data_auth_attr_bad_message_digest.der: pkcs7_data_auth_attr_nocert.der
+	cp pkcs7_data_auth_attr_nocert.der $@
+	echo '00' | xxd -r -p | dd of=$@ bs=1 seek=240 conv=notrunc
+all_final += pkcs7_data_auth_attr_bad_message_digest.der
+
+# pkcs7 file with authenticated attributes and bad signature
+pkcs7_data_auth_attr_bad_signature.der: pkcs7_data_auth_attr_nocert.der
+	cp pkcs7_data_auth_attr_nocert.der $@
+	echo '00' | xxd -r -p | dd of=$@ bs=1 seek=420 conv=notrunc
+all_final += pkcs7_data_auth_attr_bad_signature.der
+###################################################
+
+###################################################
+# Chain of trust tests
+pkcs7_root_key = pkcs7-root-ca.key
+pkcs7_root_cert = pkcs7-root-ca.crt
+pkcs7_root_conf = pkcs7-root-ca-openssl.conf
+pkcs7_intermediate_key = pkcs7-intermediate-ca.key
+pkcs7_intermediate_cert = pkcs7-intermediate-ca.crt
+pkcs7_intermediate_conf = pkcs7-intermediate-ca-openssl.conf
+
+$(pkcs7_root_key):
+	$(OPENSSL) genrsa -out $@ 4096
+all_final += $(pkcs7_root_key)
+
+$(pkcs7_intermediate_key):
+	$(OPENSSL) genrsa -out $@ 4096
+all_final += $(pkcs7_intermediate_key)
+
+$(pkcs7_root_cert): $(pkcs7_root_key)
+	touch pkcs7-root-ca.serial
+	touch pkcs7.db
+	echo "1000" > pkcs7.serial
+	$(OPENSSL) req -x509 -config $(pkcs7_root_conf) -key $(pkcs7_root_key) -extensions v3_root_ca -days 3653 -out $(pkcs7_root_cert)
+	cat $(pkcs7_root_cert) $(pkcs7_root_key) > pkcs7-root-ca.pem
+all_final += $(pkcs7_root_cert)
+
+$(pkcs7_intermediate_cert): $(pkcs7_intermediate_key) $(pkcs7_root_cert)
+	$(OPENSSL) req -new -config $(pkcs7_intermediate_conf) -key $(pkcs7_intermediate_key) -out pkcs7-intermediate-ca.csr
+	$(OPENSSL) ca -batch -config $(pkcs7_root_conf) -extensions v3_intermediate_ca -days 3653 -notext -in pkcs7-intermediate-ca.csr -out $(pkcs7_intermediate_cert)
+	cat $(pkcs7_intermediate_cert) $(pkcs7_intermediate_key) > pkcs7-intermediate-ca.pem
+all_final += $(pkcs7_intermediate_cert)
+
+# pkcs7 file signed with intermediate cert
+pkcs7_data_intermediate_cert.der: $(pkcs7_root_cert) $(pkcs7_intermediate_cert)
+	$(OPENSSL) smime -sign -binary -in pkcs7_data.bin -md sha256 -signer pkcs7-intermediate-ca.pem -outform der -out $@
+###################################################
+
 ## Negative tests
 # For some interesting sizes, what happens if we make them off-by-one?
 pkcs7_signerInfo_issuer_invalid_size.der: pkcs7_data_cert_signed_sha256.der

@@ -102,4 +102,5 @@ check scripts/generate_visualc_files.pl visualc/VS2010
 check scripts/generate_psa_constants.py programs/psa/psa_constant_names_generated.c
 check tests/scripts/generate_psa_wrappers.py tests/include/test/psa_test_wrappers.h tests/src/psa_test_wrappers.c
 check tests/scripts/generate_bignum_tests.py $(tests/scripts/generate_bignum_tests.py --list)
+check tests/scripts/generate_config_tests.py $(tests/scripts/generate_bignum_tests.py --list)
 check tests/scripts/generate_psa_tests.py $(tests/scripts/generate_psa_tests.py --list)

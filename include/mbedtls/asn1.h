@@ -229,7 +229,9 @@ int mbedtls_asn1_get_len(unsigned char **p,
  * \param p     On entry, \c *p points to the start of the ASN.1 element.
  *              On successful completion, \c *p points to the first byte
  *              after the length, i.e. the first byte of the content.
- *              On error, the value of \c *p is undefined.
+ *              If #MBEDTLS_ERR_ASN1_UNEXPECTED_TAG is returned, \c *p
+ *              is unchanged.  On any other error, the value of \c *p is
+ *              undefined.
  * \param end   End of data.
  * \param len   On successful completion, \c *len contains the length
  *              read from the ASN.1 input.

@@ -264,6 +264,22 @@ int mbedtls_gcm_update_ad(mbedtls_gcm_context *ctx,
  *                  decrypt. After the last part of the input, call
  *                  mbedtls_gcm_finish().
  *
+ *                  This function may produce output in one of the following
+ *                  ways:
+ *                  - Immediate output: the output length is always equal
+ *                    to the input length.
+ *                  - Buffered output: the output consists of a whole number
+ *                    of 16-byte blocks. If the total input length so far
+ *                    (not including associated data) is 16 \* *B* + *A*
+ *                    with *A* < 16 then the total output length is 16 \* *B*.
+ *
+ *                  In particular:
+ *                  - It is always correct to call this function with
+ *                    \p output_size >= \p input_length + 15.
+ *                  - If \p input_length is a multiple of 16 for all the calls
+ *                    to this function during an operation, then it is
+ *                    correct to use \p output_size = \p input_length.
+ *
  * \note            The output buffer \p output can be the same as the input
  *                  buffer \p input. If \p output is greater than \p input, they
  *                  cannot overlap.
@@ -277,6 +293,7 @@ int mbedtls_gcm_update_ad(mbedtls_gcm_context *ctx,
  *                      is greater than zero, this must be a writable buffer of
  *                      of at least \p output_size bytes.
  * \param output_size   The size of the output buffer in bytes.
+ *                      See the function description regarding the output size.
  * \param output_length On success, \p *output_length contains the actual
  *                      length of the output written in \p output.
  *                      On failure, the content of \p *output_length is

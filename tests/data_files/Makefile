@@ -2066,6 +2066,37 @@ pkcs7_data_cert_encrypted.der: $(pkcs7_test_file) $(pkcs7_test_cert_1)
 	$(OPENSSL) smime -encrypt -aes256 -in pkcs7_data.bin -binary -outform DER -out $@ pkcs7-rsa-sha256-1.crt
 all_final += pkcs7_data_cert_encrypted.der
 
+##################################################
+# Authenticated attributes tests
+
+# pkcs7 file with 1 signer + authenticated attributes + nocert
+pkcs7_data_auth_attr_nocert.der: $(pkcs7_test_file) $(pkcs7_test_cert_1)
+	$(OPENSSL) smime -sign -binary -in pkcs7_data.bin -md sha256 -signer pkcs7-rsa-sha256-1.pem -nocerts -outform der -out $@
+all_final += pkcs7_data_auth_attr_nocert.der
+
+# pkcs7 file with 1 signer + authenticated attributes + 1 cert
+pkcs7_data_auth_attr_cert.der: $(pkcs7_test_file) $(pkcs7_test_cert_1)
+	$(OPENSSL) smime -sign -binary -in pkcs7_data.bin -md sha256 -signer pkcs7-rsa-sha256-1.pem -outform der -out $@
+all_final += pkcs7_data_auth_attr_cert.der
+
+# pkcs7 file with 2 signers + authenticated attributes
+pkcs7_data_auth_attr_2_signers.der: $(pkcs7_test_file) $(pkcs7_test_cert_1) $(pkcs7_test_cert_2)
+	$(OPENSSL) smime -sign -binary -in pkcs7_data.bin -md sha256 -signer pkcs7-rsa-sha256-1.pem -signer pkcs7-rsa-sha256-2.pem -nocerts -outform der -out $@
+all_final += pkcs7_data_auth_attr_2_signers.der
+
+# pkcs7 file with bad message digest inside authenticated attributes
+pkcs7_data_auth_attr_bad_message_digest.der: pkcs7_data_auth_attr_nocert.der
+	cp pkcs7_data_auth_attr_nocert.der $@
+	echo '00' | xxd -r -p | dd of=$@ bs=1 seek=240 conv=notrunc
+all_final += pkcs7_data_auth_attr_bad_message_digest.der
+
+# pkcs7 file with authenticated attributes and bad signature
+pkcs7_data_auth_attr_bad_signature.der: pkcs7_data_auth_attr_nocert.der
+	cp pkcs7_data_auth_attr_nocert.der $@
+	echo '00' | xxd -r -p | dd of=$@ bs=1 seek=420 conv=notrunc
+all_final += pkcs7_data_auth_attr_bad_signature.der
+###################################################
+
 ## Negative tests
 # For some interesting sizes, what happens if we make them off-by-one?
 pkcs7_signerInfo_issuer_invalid_size.der: pkcs7_data_cert_signed_sha256.der

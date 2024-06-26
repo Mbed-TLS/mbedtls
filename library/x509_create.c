@@ -494,8 +494,8 @@ int mbedtls_x509_write_sig(unsigned char **p, unsigned char *start,
     if (pk_alg == MBEDTLS_PK_ECDSA) {
         /*
          * The AlgorithmIdentifier's parameters field must be absent for DSA/ECDSA signature
-         * algorithms, see https://www.rfc-editor.org/rfc/rfc5480#page-17 and
-         * https://www.rfc-editor.org/rfc/rfc5758#section-3.
+         * algorithms, see https://datatracker.ietf.org/doc/html/rfc5480#page-17 and
+         * https://datatracker.ietf.org/doc/html/rfc5758#section-3.
          */
         write_null_par = 0;
     } else {

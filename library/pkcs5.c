@@ -11,8 +11,8 @@
 /*
  * PKCS#5 includes PBKDF2 and more
  *
- * http://tools.ietf.org/html/rfc2898 (Specification)
- * http://tools.ietf.org/html/rfc6070 (Test vectors)
+ * https://datatracker.ietf.org/doc/html/rfc2898 (Specification)
+ * https://datatracker.ietf.org/doc/html/rfc6070 (Test vectors)
  */
 
 #include "common.h"

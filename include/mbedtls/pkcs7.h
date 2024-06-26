@@ -2,7 +2,7 @@
  * \file pkcs7.h
  *
  * \brief PKCS #7 generic defines and structures
- *  https://tools.ietf.org/html/rfc2315
+ *  https://datatracker.ietf.org/doc/html/rfc2315
  */
 /*
  *  Copyright The Mbed TLS Contributors

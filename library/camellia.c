@@ -797,7 +797,7 @@ static const unsigned char camellia_test_cbc_cipher[3][CAMELLIA_TESTS_CBC][16] =
 /*
  * Camellia-CTR test vectors from:
  *
- * http://www.faqs.org/rfcs/rfc5528.html
+ * https://datatracker.ietf.org/doc/html/rfc5528
  */
 
 static const unsigned char camellia_test_ctr_key[3][16] =

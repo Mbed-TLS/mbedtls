@@ -7,7 +7,7 @@
 /*
  *  The MD5 algorithm was designed by Ron Rivest in 1991.
  *
- *  http://www.ietf.org/rfc/rfc1321.txt
+ *  https://datatracker.ietf.org/doc/html/rfc1321
  */
 
 #include "common.h"

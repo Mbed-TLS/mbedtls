@@ -1640,7 +1640,7 @@ static const unsigned char aes_test_ofb_ct[][64] =
 /*
  * AES-CTR test vectors from:
  *
- * http://www.faqs.org/rfcs/rfc3686.html
+ * https://datatracker.ietf.org/doc/html/rfc3686
  */
 
 static const unsigned char aes_test_ctr_key[][16] =

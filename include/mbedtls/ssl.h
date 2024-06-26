@@ -980,7 +980,7 @@ typedef int mbedtls_ssl_cache_set_t(void *data,
  *
  * \note            For ECDSA signatures, the output format is the DER encoding
  *                  `Ecdsa-Sig-Value` defined in
- *                  [RFC 4492 section 5.4](https://tools.ietf.org/html/rfc4492#section-5.4).
+ *                  [RFC 4492 section 5.4](https://datatracker.ietf.org/doc/html/rfc4492#section-5.4).
  *
  * \param ssl             The SSL connection instance. It should not be
  *                        modified other than via

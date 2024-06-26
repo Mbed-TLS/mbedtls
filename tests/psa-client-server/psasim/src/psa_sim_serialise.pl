@@ -36,11 +36,18 @@ die($usage) unless $which eq "c" || $which eq "h";
 # are).
 #
 my @types = qw(unsigned-int int size_t
+               uint16_t uint32_t uint64_t
                buffer
-               psa_status_t psa_algorithm_t
+               psa_key_production_parameters_t
+               psa_status_t psa_algorithm_t psa_key_derivation_step_t
                psa_hash_operation_t
                psa_aead_operation_t
                psa_key_attributes_t
+               psa_mac_operation_t
+               psa_cipher_operation_t
+               psa_key_derivation_operation_t
+               psa_sign_hash_interruptible_operation_t
+               psa_verify_hash_interruptible_operation_t
                mbedtls_svc_key_id_t);
 
 grep(s/-/ /g, @types);
@@ -49,6 +56,7 @@ grep(s/-/ /g, @types);
 my %isa = (
     "psa_status_t" => "int",
     "psa_algorithm_t" => "unsigned int",
+    "psa_key_derivation_step_t" => "uint16_t",
 );
 
 if ($which eq "h") {
@@ -58,6 +66,8 @@ if ($which eq "h") {
     for my $type (@types) {
         if ($type eq "buffer") {
             print declare_buffer_functions();
+        } elsif ($type eq "psa_key_production_parameters_t") {
+            print declare_psa_key_production_parameters_t_functions();
         } else {
             print declare_needs($type, "");
             print declare_serialise($type, "");
@@ -88,6 +98,8 @@ if ($which eq "h") {
     for my $type (@types) {
         if ($type eq "buffer") {
             print define_buffer_functions();
+        } elsif ($type eq "psa_key_production_parameters_t") {
+            print define_psa_key_production_parameters_t_functions();
         } elsif (exists($isa{$type})) {
             print define_needs_isa($type, $isa{$type});
             print define_serialise_isa($type, $isa{$type});
@@ -133,7 +145,8 @@ sub declare_needs
  *                           \\c psasim_serialise_$type_d() to serialise
  *                           the given value.
  */
-size_t psasim_${server}serialise_${type_d}_needs($type ${ptr}value);
+size_t psasim_${server}serialise_${type_d}_needs(
+    $type ${ptr}value);
 EOF
 }
 
@@ -271,6 +284,62 @@ int psasim_deserialise_return_buffer(uint8_t **pos, size_t *remaining,
 EOF
 }
 
+sub declare_psa_key_production_parameters_t_functions
+{
+    return <<'EOF';
+
+/** Return how much space is needed by \c psasim_serialise_psa_key_production_parameters_t()
+ *  to serialise a psa_key_production_parameters_t (a structure with a flexible array member).
+ *
+ * \param params             Pointer to the struct to be serialised
+ *                           (needed in case some serialisations are value-
+ *                           dependent).
+ * \param data_length        Number of bytes in the data[] of the struct to be serialised.
+ *
+ * \return                   The number of bytes needed in the serialisation buffer by
+ *                           \c psasim_serialise_psa_key_production_parameters_t() to serialise
+ *                           the specified structure.
+ */
+size_t psasim_serialise_psa_key_production_parameters_t_needs(
+    const psa_key_production_parameters_t *params,
+    size_t buffer_size);
+
+/** Serialise a psa_key_production_parameters_t.
+ *
+ * \param pos[in,out]        Pointer to a `uint8_t *` holding current position
+ *                           in the buffer.
+ * \param remaining[in,out]  Pointer to a `size_t` holding number of bytes
+ *                           remaining in the buffer.
+ * \param params             Pointer to the structure to be serialised.
+ * \param data_length        Number of bytes in the data[] of the struct to be serialised.
+ *
+ * \return                   \c 1 on success ("okay"), \c 0 on error.
+ */
+int psasim_serialise_psa_key_production_parameters_t(uint8_t **pos,
+                                                     size_t *remaining,
+                                                     const psa_key_production_parameters_t *params,
+                                                     size_t data_length);
+
+/** Deserialise a psa_key_production_parameters_t.
+ *
+ * \param pos[in,out]        Pointer to a `uint8_t *` holding current position
+ *                           in the serialisation buffer.
+ * \param remaining[in,out]  Pointer to a `size_t` holding number of bytes
+ *                           remaining in the serialisation buffer.
+ * \param params             Pointer to a `psa_key_production_parameters_t *` to
+ *                           receive the address of a newly-allocated structure,
+ *                           which the caller must `free()`.
+ * \param data_length        Pointer to a `size_t` to receive the number of
+ *                           bytes in the data[] member of the structure deserialised.
+ *
+ * \return                   \c 1 on success ("okay"), \c 0 on error.
+ */
+int psasim_deserialise_psa_key_production_parameters_t(uint8_t **pos, size_t *remaining,
+                                                       psa_key_production_parameters_t **params,
+                                                       size_t *buffer_length);
+EOF
+}
+
 sub h_header
 {
     return <<'EOF';
@@ -383,7 +452,8 @@ sub define_needs
 
     return <<EOF;
 
-size_t psasim_serialise_${type_d}_needs($type value)
+size_t psasim_serialise_${type_d}_needs(
+    $type value)
 {
     return sizeof(value);
 }
@@ -399,7 +469,8 @@ sub define_server_needs
 
     return <<EOF;
 
-size_t psasim_server_serialise_${type_d}_needs($type *operation)
+size_t psasim_server_serialise_${type_d}_needs(
+    $type *operation)
 {
     (void) operation;
 
@@ -421,7 +492,8 @@ sub define_needs_isa
 
     return <<EOF;
 
-size_t psasim_serialise_${type_d}_needs($type value)
+size_t psasim_serialise_${type_d}_needs(
+    $type value)
 {
     return psasim_serialise_${isa_d}_needs(value);
 }
@@ -716,6 +788,106 @@ int psasim_deserialise_return_buffer(uint8_t **pos,
 EOF
 }
 
+sub define_psa_key_production_parameters_t_functions
+{
+    return <<'EOF';
+
+#define SER_TAG_SIZE        4
+
+size_t psasim_serialise_psa_key_production_parameters_t_needs(
+    const psa_key_production_parameters_t *params,
+    size_t data_length)
+{
+    /* We will serialise with 4-byte tag = "PKPP" + 4-byte overall length at the beginning,
+     * followed by size_t data_length, then the actual data from the structure.
+     */
+    return SER_TAG_SIZE + sizeof(uint32_t) + sizeof(data_length) + sizeof(*params) + data_length;
+}
+
+int psasim_serialise_psa_key_production_parameters_t(uint8_t **pos,
+                                                     size_t *remaining,
+                                                     const psa_key_production_parameters_t *params,
+                                                     size_t data_length)
+{
+    if (data_length > UINT32_MAX / 2) {       /* arbitrary limit */
+        return 0;       /* too big to serialise */
+    }
+
+    /* We use 32-bit lengths, which should be enough for any reasonable usage :) */
+    /* (the UINT32_MAX / 2 above is an even more conservative check to avoid overflow here) */
+    uint32_t len = (uint32_t) (sizeof(data_length) + sizeof(*params) + data_length);
+    if (*remaining < SER_TAG_SIZE + sizeof(uint32_t) + len) {
+        return 0;
+    }
+
+    char tag[SER_TAG_SIZE] = "PKPP";
+
+    memcpy(*pos, tag, sizeof(tag));
+    memcpy(*pos + sizeof(tag), &len, sizeof(len));
+    *pos += sizeof(tag) + sizeof(len);
+    *remaining -= sizeof(tag) + sizeof(len);
+
+    memcpy(*pos, &data_length, sizeof(data_length));
+    memcpy(*pos + sizeof(data_length), params, sizeof(*params) + data_length);
+    *pos += sizeof(data_length) + sizeof(*params) + data_length;
+    *remaining -= sizeof(data_length) + sizeof(*params) + data_length;
+
+    return 1;
+}
+
+int psasim_deserialise_psa_key_production_parameters_t(uint8_t **pos,
+                                                       size_t *remaining,
+                                                       psa_key_production_parameters_t **params,
+                                                       size_t *data_length)
+{
+    if (*remaining < SER_TAG_SIZE + sizeof(uint32_t)) {
+        return 0;       /* can't even be an empty serialisation */
+    }
+
+    char tag[SER_TAG_SIZE] = "PKPP";    /* expected */
+    uint32_t len;
+
+    memcpy(&len, *pos + sizeof(tag), sizeof(len));
+
+    if (memcmp(*pos, tag, sizeof(tag)) != 0) {
+        return 0;       /* wrong tag */
+    }
+
+    *pos += sizeof(tag) + sizeof(len);
+    *remaining -= sizeof(tag) + sizeof(len);
+
+    if (*remaining < sizeof(*data_length)) {
+        return 0;       /* missing data_length */
+    }
+    memcpy(data_length, *pos, sizeof(*data_length));
+
+    if ((size_t) len != (sizeof(data_length) + sizeof(**params) + *data_length)) {
+        return 0;       /* wrong length */
+    }
+
+    if (*remaining < sizeof(*data_length) + sizeof(**params) + *data_length) {
+        return 0;       /* not enough data provided */
+    }
+
+    *pos += sizeof(data_length);
+    *remaining -= sizeof(data_length);
+
+    psa_key_production_parameters_t *out = malloc(sizeof(**params) + *data_length);
+    if (out == NULL) {
+        return 0;       /* allocation failure */
+    }
+
+    memcpy(out, *pos, sizeof(*out) + *data_length);
+    *pos += sizeof(*out) + *data_length;
+    *remaining -= sizeof(*out) + *data_length;
+
+    *params = out;
+
+    return 1;
+}
+EOF
+}
+
 sub c_header
 {
     return <<'EOF';
@@ -800,8 +972,10 @@ sub define_operation_type_data_and_functions
 
     return <<EOF;
 
-static psa_${type}_operation_t ${type}_operations[MAX_LIVE_HANDLES_PER_CLASS];
-static psasim_client_handle_t ${type}_operation_handles[MAX_LIVE_HANDLES_PER_CLASS];
+static psa_${type}_operation_t ${type}_operations[
+    MAX_LIVE_HANDLES_PER_CLASS];
+static psasim_client_handle_t ${type}_operation_handles[
+    MAX_LIVE_HANDLES_PER_CLASS];
 static psasim_client_handle_t next_${type}_operation_handle = 1;
 
 /* Get a free slot */
@@ -937,8 +1111,10 @@ EOF
         my $what = $1;  # e.g. "hash_operation"
 
         $code .= <<EOF;
-    memset(${what}_handles, 0, sizeof(${what}_handles));
-    memset(${what}s, 0, sizeof(${what}s));
+    memset(${what}_handles, 0,
+           sizeof(${what}_handles));
+    memset(${what}s, 0,
+           sizeof(${what}s));
 EOF
     }
 

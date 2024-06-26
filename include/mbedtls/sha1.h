@@ -30,10 +30,6 @@
 extern "C" {
 #endif
 
-#if !defined(MBEDTLS_SHA1_ALT)
-// Regular implementation
-//
-
 /**
  * \brief          The SHA-1 context structure.
  *
@@ -48,10 +44,6 @@ typedef struct mbedtls_sha1_context {
     unsigned char MBEDTLS_PRIVATE(buffer)[64];   /*!< The data block being processed. */
 }
 mbedtls_sha1_context;
-
-#else  /* MBEDTLS_SHA1_ALT */
-#include "sha1_alt.h"
-#endif /* MBEDTLS_SHA1_ALT */
 
 /**
  * \brief          This function initializes a SHA-1 context.

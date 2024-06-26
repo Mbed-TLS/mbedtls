@@ -25,10 +25,6 @@
 extern "C" {
 #endif
 
-#if !defined(MBEDTLS_SHA512_ALT)
-// Regular implementation
-//
-
 /**
  * \brief          The SHA-512 context structure.
  *
@@ -46,10 +42,6 @@ typedef struct mbedtls_sha512_context {
 #endif
 }
 mbedtls_sha512_context;
-
-#else  /* MBEDTLS_SHA512_ALT */
-#include "sha512_alt.h"
-#endif /* MBEDTLS_SHA512_ALT */
 
 /**
  * \brief          This function initializes a SHA-512 context.

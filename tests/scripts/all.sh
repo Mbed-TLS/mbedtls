@@ -2440,9 +2440,8 @@ component_build_module_alt () {
     scripts/config.py full
 
     # Disable options that are incompatible with some ALT implementations:
-    # aesni.c and padlock.c reference mbedtls_aes_context fields directly.
+    # aesni.c references mbedtls_aes_context fields directly.
     scripts/config.py unset MBEDTLS_AESNI_C
-    scripts/config.py unset MBEDTLS_PADLOCK_C
     scripts/config.py unset MBEDTLS_AESCE_C
     # MBEDTLS_ECP_RESTARTABLE is documented as incompatible.
     scripts/config.py unset MBEDTLS_ECP_RESTARTABLE
@@ -4153,9 +4152,6 @@ build_test_config_combos() {
 
 validate_aes_config_variations() {
     if [[ "$1" == *"MBEDTLS_AES_USE_HARDWARE_ONLY"* ]]; then
-        if [[ "$1" == *"MBEDTLS_PADLOCK_C"* ]]; then
-            return 1
-        fi
         if [[ !(("$HOSTTYPE" == "aarch64" && "$1" != *"MBEDTLS_AESCE_C"*) || \
                 ("$HOSTTYPE" == "x86_64"  && "$1" != *"MBEDTLS_AESNI_C"*)) ]]; then
             return 1
@@ -4176,7 +4172,7 @@ component_build_aes_variations() {
     build_test_config_combos library/aes.o validate_aes_config_variations \
         "MBEDTLS_AES_SETKEY_ENC_ALT" "MBEDTLS_AES_DECRYPT_ALT" \
         "MBEDTLS_AES_ROM_TABLES" "MBEDTLS_AES_ENCRYPT_ALT" "MBEDTLS_AES_SETKEY_DEC_ALT" \
-        "MBEDTLS_AES_FEWER_TABLES" "MBEDTLS_PADLOCK_C" "MBEDTLS_AES_USE_HARDWARE_ONLY" \
+        "MBEDTLS_AES_FEWER_TABLES" "MBEDTLS_AES_USE_HARDWARE_ONLY" \
         "MBEDTLS_AESNI_C" "MBEDTLS_AESCE_C" "MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH"
 
     cd "$MBEDTLS_ROOT_DIR"
@@ -4193,7 +4189,7 @@ component_build_aes_variations() {
     build_test_config_combos library/aes.o validate_aes_config_variations \
         "MBEDTLS_AES_SETKEY_ENC_ALT" "MBEDTLS_AES_DECRYPT_ALT" \
         "MBEDTLS_AES_ROM_TABLES" "MBEDTLS_AES_ENCRYPT_ALT" "MBEDTLS_AES_SETKEY_DEC_ALT" \
-        "MBEDTLS_AES_FEWER_TABLES" "MBEDTLS_PADLOCK_C" "MBEDTLS_AES_USE_HARDWARE_ONLY" \
+        "MBEDTLS_AES_FEWER_TABLES" "MBEDTLS_AES_USE_HARDWARE_ONLY" \
         "MBEDTLS_AESNI_C" "MBEDTLS_AESCE_C" "MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH"
 }
 
@@ -4536,7 +4532,6 @@ component_test_aesni_m32 () { # ~ 60s
 
     msg "build: default config with different AES implementations"
     scripts/config.py set MBEDTLS_AESNI_C
-    scripts/config.py set MBEDTLS_PADLOCK_C
     scripts/config.py unset MBEDTLS_AES_USE_HARDWARE_ONLY
     scripts/config.py set MBEDTLS_HAVE_ASM
 
@@ -4548,11 +4543,9 @@ component_test_aesni_m32 () { # ~ 60s
     ./programs/test/selftest aes | grep "AESNI code" | grep -q "intrinsics"
     grep -q "AES note: using AESNI" ./programs/test/selftest
     grep -q "AES note: built-in implementation." ./programs/test/selftest
-    grep -q "AES note: using VIA Padlock" ./programs/test/selftest
     grep -q mbedtls_aesni_has_support ./programs/test/selftest
 
     scripts/config.py set MBEDTLS_AESNI_C
-    scripts/config.py unset MBEDTLS_PADLOCK_C
     scripts/config.py set MBEDTLS_AES_USE_HARDWARE_ONLY
     msg "AES tests, test AESNI only"
     make clean
@@ -4561,7 +4554,6 @@ component_test_aesni_m32 () { # ~ 60s
     ./programs/test/selftest aes | not grep -q "AES note: built-in implementation."
     grep -q "AES note: using AESNI" ./programs/test/selftest
     not grep -q "AES note: built-in implementation." ./programs/test/selftest
-    not grep -q "AES note: using VIA Padlock" ./programs/test/selftest
     not grep -q mbedtls_aesni_has_support ./programs/test/selftest
 }
 
@@ -4573,7 +4565,6 @@ support_test_aesni_m32_clang() {
 component_test_aesni_m32_clang() {
 
     scripts/config.py set MBEDTLS_AESNI_C
-    scripts/config.py set MBEDTLS_PADLOCK_C
     scripts/config.py unset MBEDTLS_AES_USE_HARDWARE_ONLY
     scripts/config.py set MBEDTLS_HAVE_ASM
 
@@ -4585,7 +4576,6 @@ component_test_aesni_m32_clang() {
     ./programs/test/selftest aes | grep "AESNI code" | grep -q "intrinsics"
     grep -q "AES note: using AESNI" ./programs/test/selftest
     grep -q "AES note: built-in implementation." ./programs/test/selftest
-    grep -q "AES note: using VIA Padlock" ./programs/test/selftest
     grep -q mbedtls_aesni_has_support ./programs/test/selftest
 }
 
@@ -4744,24 +4734,6 @@ component_build_sha_armce () {
     not grep -E 'sha256[a-z0-9]+\s+[qv]' library/sha256.o
 }
 
-# For timebeing, no VIA Padlock platform available.
-component_build_aes_via_padlock () {
-
-    msg "AES:VIA PadLock, build with default configuration."
-    scripts/config.py unset MBEDTLS_AESNI_C
-    scripts/config.py set MBEDTLS_PADLOCK_C
-    scripts/config.py unset MBEDTLS_AES_USE_HARDWARE_ONLY
-    make CC=gcc CFLAGS="$ASAN_CFLAGS -m32" LDFLAGS="-m32 $ASAN_CFLAGS"
-    grep -q mbedtls_padlock_has_support ./programs/test/selftest
-
-}
-
-support_build_aes_via_padlock_only () {
-    ( [ "$MBEDTLS_TEST_PLATFORM" == "Linux-x86_64" ] || \
-        [ "$MBEDTLS_TEST_PLATFORM" == "Linux-amd64" ] ) && \
-    [ "`dpkg --print-foreign-architectures`" == "i386" ]
-}
-
 support_build_aes_aesce_armcc () {
     support_build_armcc
 }
@@ -4769,7 +4741,6 @@ support_build_aes_aesce_armcc () {
 component_test_aes_only_128_bit_keys () {
     msg "build: default config + AES_ONLY_128_BIT_KEY_LENGTH"
     scripts/config.py set MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH
-    scripts/config.py unset MBEDTLS_PADLOCK_C
 
     make CFLAGS='-O2 -Werror -Wall -Wextra'
 
@@ -4781,7 +4752,6 @@ component_test_no_ctr_drbg_aes_only_128_bit_keys () {
     msg "build: default config + AES_ONLY_128_BIT_KEY_LENGTH - CTR_DRBG_C"
     scripts/config.py set MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH
     scripts/config.py unset MBEDTLS_CTR_DRBG_C
-    scripts/config.py unset MBEDTLS_PADLOCK_C
 
     make CC=clang CFLAGS='-Werror -Wall -Wextra'
 
@@ -4792,7 +4762,6 @@ component_test_no_ctr_drbg_aes_only_128_bit_keys () {
 component_test_aes_only_128_bit_keys_have_builtins () {
     msg "build: default config + AES_ONLY_128_BIT_KEY_LENGTH - AESNI_C - AESCE_C"
     scripts/config.py set MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH
-    scripts/config.py unset MBEDTLS_PADLOCK_C
     scripts/config.py unset MBEDTLS_AESNI_C
     scripts/config.py unset MBEDTLS_AESCE_C
 
@@ -4808,7 +4777,6 @@ component_test_aes_only_128_bit_keys_have_builtins () {
 component_test_gcm_largetable () {
     msg "build: default config + GCM_LARGE_TABLE - AESNI_C - AESCE_C"
     scripts/config.py set MBEDTLS_GCM_LARGE_TABLE
-    scripts/config.py unset MBEDTLS_PADLOCK_C
     scripts/config.py unset MBEDTLS_AESNI_C
     scripts/config.py unset MBEDTLS_AESCE_C
 
@@ -5206,7 +5174,6 @@ component_test_m32_no_asm () {
     msg "build: i386, make, gcc, no asm (ASan build)" # ~ 30s
     scripts/config.py full
     scripts/config.py unset MBEDTLS_HAVE_ASM
-    scripts/config.py unset MBEDTLS_PADLOCK_C
     scripts/config.py unset MBEDTLS_AESNI_C # AESNI for 32-bit is tested in test_aesni_m32
     make CC=gcc CFLAGS="$ASAN_CFLAGS -m32" LDFLAGS="-m32 $ASAN_CFLAGS"
 
@@ -5287,7 +5254,6 @@ component_test_have_int32 () {
     msg "build: gcc, force 32-bit bignum limbs"
     scripts/config.py unset MBEDTLS_HAVE_ASM
     scripts/config.py unset MBEDTLS_AESNI_C
-    scripts/config.py unset MBEDTLS_PADLOCK_C
     scripts/config.py unset MBEDTLS_AESCE_C
     make CC=gcc CFLAGS='-O2 -Werror -Wall -Wextra -DMBEDTLS_HAVE_INT32'
 
@@ -5299,7 +5265,6 @@ component_test_have_int64 () {
     msg "build: gcc, force 64-bit bignum limbs"
     scripts/config.py unset MBEDTLS_HAVE_ASM
     scripts/config.py unset MBEDTLS_AESNI_C
-    scripts/config.py unset MBEDTLS_PADLOCK_C
     scripts/config.py unset MBEDTLS_AESCE_C
     make CC=gcc CFLAGS='-O2 -Werror -Wall -Wextra -DMBEDTLS_HAVE_INT64'
 
@@ -5311,7 +5276,6 @@ component_test_have_int32_cmake_new_bignum () {
     msg "build: gcc, force 32-bit bignum limbs, new bignum interface, test hooks (ASan build)"
     scripts/config.py unset MBEDTLS_HAVE_ASM
     scripts/config.py unset MBEDTLS_AESNI_C
-    scripts/config.py unset MBEDTLS_PADLOCK_C
     scripts/config.py unset MBEDTLS_AESCE_C
     scripts/config.py set MBEDTLS_TEST_HOOKS
     scripts/config.py set MBEDTLS_ECP_WITH_MPI_UINT

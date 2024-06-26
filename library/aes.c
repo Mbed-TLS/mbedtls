@@ -30,21 +30,6 @@
 #endif
 #endif
 
-#if defined(MBEDTLS_ARCH_IS_X86)
-#if defined(MBEDTLS_PADLOCK_C)
-#if !defined(MBEDTLS_HAVE_ASM)
-#error "MBEDTLS_PADLOCK_C defined, but not all prerequisites"
-#endif
-#if defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
-#error "MBEDTLS_AES_USE_HARDWARE_ONLY cannot be defined when " \
-    "MBEDTLS_PADLOCK_C is set"
-#endif
-#endif
-#endif
-
-#if defined(MBEDTLS_PADLOCK_C)
-#include "padlock.h"
-#endif
 #if defined(MBEDTLS_AESNI_C)
 #include "aesni.h"
 #endif
@@ -66,10 +51,6 @@
 #endif
 
 #if !defined(MBEDTLS_AES_ALT)
-
-#if defined(MBEDTLS_VIA_PADLOCK_HAVE_CODE)
-static int aes_padlock_ace = -1;
-#endif
 
 #if defined(MBEDTLS_AES_ROM_TABLES)
 /*
@@ -527,8 +508,7 @@ void mbedtls_aes_xts_free(mbedtls_aes_xts_context *ctx)
  * Note that the offset is in units of elements of buf, i.e. 32-bit words,
  * i.e. an offset of 1 means 4 bytes and so on.
  */
-#if (defined(MBEDTLS_VIA_PADLOCK_HAVE_CODE)) ||        \
-    (defined(MBEDTLS_AESNI_C) && MBEDTLS_AESNI_HAVE_CODE == 2)
+#if defined(MBEDTLS_AESNI_C) && MBEDTLS_AESNI_HAVE_CODE == 2
 #define MAY_NEED_TO_ALIGN
 #endif
 
@@ -536,15 +516,6 @@ MBEDTLS_MAYBE_UNUSED static unsigned mbedtls_aes_rk_offset(uint32_t *buf)
 {
 #if defined(MAY_NEED_TO_ALIGN)
     int align_16_bytes = 0;
-
-#if defined(MBEDTLS_VIA_PADLOCK_HAVE_CODE)
-    if (aes_padlock_ace == -1) {
-        aes_padlock_ace = mbedtls_padlock_has_support(MBEDTLS_PADLOCK_ACE);
-    }
-    if (aes_padlock_ace) {
-        align_16_bytes = 1;
-    }
-#endif
 
 #if defined(MBEDTLS_AESNI_C) && MBEDTLS_AESNI_HAVE_CODE == 2
     if (mbedtls_aesni_has_support(MBEDTLS_AESNI_AES)) {
@@ -1000,13 +971,15 @@ int mbedtls_internal_aes_decrypt(mbedtls_aes_context *ctx,
 }
 #endif /* !MBEDTLS_AES_DECRYPT_ALT && !MBEDTLS_BLOCK_CIPHER_NO_DECRYPT */
 
-/* VIA Padlock and our intrinsics-based implementation of AESNI require
- * the round keys to be aligned on a 16-byte boundary. We take care of this
- * before creating them, but the AES context may have moved (this can happen
- * if the library is called from a language with managed memory), and in later
- * calls it might have a different alignment with respect to 16-byte memory.
- * So we may need to realign.
+/*
+ * Our intrinsics-based implementation of AESNI requires the round keys to be
+ * aligned on a 16-byte boundary. We take care of this before creating them,
+ * but the AES context may have moved (this can happen if the library is
+ * called from a language with managed memory), and in later calls it might
+ * have a different alignment with respect to 16-byte memory. So we may need
+ * to realign.
  */
+#if defined(MAY_NEED_TO_ALIGN)
 MBEDTLS_MAYBE_UNUSED static void aes_maybe_realign(mbedtls_aes_context *ctx)
 {
     unsigned new_offset = mbedtls_aes_rk_offset(ctx->buf);
@@ -1017,7 +990,7 @@ MBEDTLS_MAYBE_UNUSED static void aes_maybe_realign(mbedtls_aes_context *ctx)
         ctx->rk_offset = new_offset;
     }
 }
-
+#endif /* MAY_NEED_TO_ALIGN */
 /*
  * AES-ECB block encryption/decryption
  */
@@ -1043,12 +1016,6 @@ int mbedtls_aes_crypt_ecb(mbedtls_aes_context *ctx,
 #if defined(MBEDTLS_AESCE_HAVE_CODE)
     if (MBEDTLS_AESCE_HAS_SUPPORT()) {
         return mbedtls_aesce_crypt_ecb(ctx, mode, input, output);
-    }
-#endif
-
-#if defined(MBEDTLS_VIA_PADLOCK_HAVE_CODE)
-    if (aes_padlock_ace > 0) {
-        return mbedtls_padlock_xcryptecb(ctx, mode, input, output);
     }
 #endif
 
@@ -1091,18 +1058,6 @@ int mbedtls_aes_crypt_cbc(mbedtls_aes_context *ctx,
     if (length % 16) {
         return MBEDTLS_ERR_AES_INVALID_INPUT_LENGTH;
     }
-
-#if defined(MBEDTLS_VIA_PADLOCK_HAVE_CODE)
-    if (aes_padlock_ace > 0) {
-        if (mbedtls_padlock_xcryptcbc(ctx, mode, length, iv, input, output) == 0) {
-            return 0;
-        }
-
-        // If padlock data misaligned, we just fall back to
-        // unaccelerated mode
-        //
-    }
-#endif
 
     const unsigned char *ivp = iv;
 
@@ -1858,11 +1813,6 @@ int mbedtls_aes_self_test(int verbose)
 #endif
         if (mbedtls_aesni_has_support(MBEDTLS_AESNI_AES)) {
             mbedtls_printf("  AES note: using AESNI.\n");
-        } else
-#endif
-#if defined(MBEDTLS_VIA_PADLOCK_HAVE_CODE)
-        if (mbedtls_padlock_has_support(MBEDTLS_PADLOCK_ACE)) {
-            mbedtls_printf("  AES note: using VIA Padlock.\n");
         } else
 #endif
 #if defined(MBEDTLS_AESCE_HAVE_CODE)

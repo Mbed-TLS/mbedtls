@@ -40,12 +40,10 @@
  *      library/aria.c
  *      library/bn_mul.h
  *      library/constant_time.c
- *      library/padlock.h
  *
  * Required by:
  *      MBEDTLS_AESCE_C
  *      MBEDTLS_AESNI_C (on some platforms)
- *      MBEDTLS_PADLOCK_C
  *
  * Comment to disable the use of assembly code.
  */
@@ -3009,20 +3007,6 @@
  * This modules translates between OIDs and internal values.
  */
 #define MBEDTLS_OID_C
-
-/**
- * \def MBEDTLS_PADLOCK_C
- *
- * Enable VIA Padlock support on x86.
- *
- * Module:  library/padlock.c
- * Caller:  library/aes.c
- *
- * Requires: MBEDTLS_HAVE_ASM
- *
- * This modules adds support for the VIA PadLock on x86.
- */
-#define MBEDTLS_PADLOCK_C
 
 /**
  * \def MBEDTLS_PEM_PARSE_C

@@ -19,7 +19,7 @@ Basic usage, to read the Mbed TLS configuration:
 import os
 import re
 
-from abc import ABCMeta, abstractmethod
+from abc import ABCMeta
 
 class Setting:
     """Representation of one Mbed TLS mbedtls_config.h setting.
@@ -475,9 +475,29 @@ class ConfigFile(metaclass=ABCMeta):
                     yield setting
         self.current_section = None
 
-    @abstractmethod
-    def _format_template(self, setting, name, indent, middle):
-        pass
+    #pylint: disable=no-self-use
+    def _format_template(self, setting, indent, middle):
+        """Build a line for mbedtls_config.h for the given setting.
+
+        The line has the form "<indent>#define <name> <value>"
+        where <middle> is "#define <name> ".
+        """
+        value = setting.value
+        if value is None:
+            value = ''
+        # Normally the whitespace to separate the symbol name from the
+        # value is part of middle, and there's no whitespace for a symbol
+        # with no value. But if a symbol has been changed from having a
+        # value to not having one, the whitespace is wrong, so fix it.
+        if value:
+            if middle[-1] not in '\t ':
+                middle += ' '
+        else:
+            middle = middle.rstrip()
+        return ''.join([indent,
+                        '' if setting.active else '//',
+                        middle,
+                        value]).rstrip()
 
     def write_to_stream(self, settings, output):
         """Write the whole configuration to output."""
@@ -485,8 +505,8 @@ class ConfigFile(metaclass=ABCMeta):
             if isinstance(template, str):
                 line = template
             else:
-                name, _, _ = template
-                line = self._format_template(settings[name], *template)
+                name, indent, middle = template
+                line = self._format_template(settings[name], indent, middle)
             output.write(line + '\n')
 
     def write(self, settings, filename=None):
@@ -519,29 +539,6 @@ class MbedtlsConfigFile(ConfigFile):
         super().__init__(self.default_path, 'Mbed TLS', filename)
         self.current_section = 'header'
 
-    def _format_template(self, setting, name, indent, middle):
-        """Build a line for mbedtls_config.h for the given setting.
-
-        The line has the form "<indent>#define <name> <value>"
-        where <middle> is "#define <name> ".
-        """
-        value = setting.value
-        if value is None:
-            value = ''
-        # Normally the whitespace to separate the symbol name from the
-        # value is part of middle, and there's no whitespace for a symbol
-        # with no value. But if a symbol has been changed from having a
-        # value to not having one, the whitespace is wrong, so fix it.
-        if value:
-            if middle[-1] not in '\t ':
-                middle += ' '
-        else:
-            middle = middle.rstrip()
-        return ''.join([indent,
-                        '' if setting.active else '//',
-                        middle,
-                        value]).rstrip()
-
 class CryptoConfigFile(ConfigFile):
     """Representation of an Crypto configuration file."""
 
@@ -555,22 +552,6 @@ class CryptoConfigFile(ConfigFile):
 
     def __init__(self, filename=None):
         super().__init__(self.default_path, 'Crypto', filename)
-
-    def _format_template(self, setting, name, indent, middle):
-        """Build a line for crypto_config.h for the given setting.
-
-        The line has the form "<indent>#define <name> <value>"
-        where <middle> is "#define <name> ".
-        """
-        value = setting.value
-        if value is None:
-            value = '1'
-        if middle[-1] not in '\t ':
-            middle += ' '
-        return ''.join([indent,
-                        '' if setting.active else '//',
-                        middle,
-                        value]).rstrip()
 
 class MbedtlsConfig(Config):
     """Representation of the Mbed TLS configuration.

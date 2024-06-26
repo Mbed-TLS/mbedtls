@@ -2951,7 +2951,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 run_test    "TLS 1.3: m->G: psk/all, good" \
-            "$G_NEXT_SRV -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:-KX-ALL:+ECDHE-PSK:+DHE-PSK:+PSK --pskpasswd=data_files/simplepass.psk" \
+            "$G_NEXT_SRV -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:-KX-ALL:+ECDHE-PSK:+DHE-PSK:+PSK --pskpasswd=../framework/data_files/simplepass.psk" \
             "$P_CLI debug_level=4 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk" \
             0 \
             -c "=> write client hello" \
@@ -2971,7 +2971,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 run_test    "TLS 1.3: m->G: psk/ephemeral_all, fail - no common kex mode" \
-            "$G_NEXT_SRV -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:-KX-ALL:+ECDHE-PSK:+DHE-PSK:-PSK --pskpasswd=data_files/simplepass.psk" \
+            "$G_NEXT_SRV -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:-KX-ALL:+ECDHE-PSK:+DHE-PSK:-PSK --pskpasswd=../framework/data_files/simplepass.psk" \
             "$P_CLI debug_level=4 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk" \
             1 \
             -c "=> write client hello" \
@@ -2992,7 +2992,7 @@ requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: m->G: psk_all/all, good" \
-            "$G_NEXT_SRV -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:-KX-ALL:+ECDHE-PSK:+DHE-PSK:+PSK --pskpasswd=data_files/simplepass.psk" \
+            "$G_NEXT_SRV -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:-KX-ALL:+ECDHE-PSK:+DHE-PSK:+PSK --pskpasswd=../framework/data_files/simplepass.psk" \
             "$P_CLI debug_level=4 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_all" \
             0 \
             -c "=> write client hello" \
@@ -3013,7 +3013,7 @@ requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: m->G: psk_all/ephemeral_all, good" \
-            "$G_NEXT_SRV -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:-KX-ALL:+ECDHE-PSK:+DHE-PSK:-PSK --pskpasswd=data_files/simplepass.psk" \
+            "$G_NEXT_SRV -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:-KX-ALL:+ECDHE-PSK:+DHE-PSK:-PSK --pskpasswd=../framework/data_files/simplepass.psk" \
             "$P_CLI debug_level=4 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_all" \
             0 \
             -c "=> write client hello" \
@@ -3034,7 +3034,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: m->G: psk_ephemeral/all, good" \
-            "$G_NEXT_SRV -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:-KX-ALL:+ECDHE-PSK:+DHE-PSK:+PSK --pskpasswd=data_files/simplepass.psk" \
+            "$G_NEXT_SRV -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:-KX-ALL:+ECDHE-PSK:+DHE-PSK:+PSK --pskpasswd=../framework/data_files/simplepass.psk" \
             "$P_CLI debug_level=4 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_ephemeral" \
             0 \
             -c "=> write client hello" \
@@ -3054,7 +3054,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: m->G: psk_ephemeral/ephemeral_all, good" \
-            "$G_NEXT_SRV -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:-KX-ALL:+ECDHE-PSK:+DHE-PSK:-PSK --pskpasswd=data_files/simplepass.psk" \
+            "$G_NEXT_SRV -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:-KX-ALL:+ECDHE-PSK:+DHE-PSK:-PSK --pskpasswd=../framework/data_files/simplepass.psk" \
             "$P_CLI debug_level=4 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_ephemeral" \
             0 \
             -c "=> write client hello" \
@@ -3075,7 +3075,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: m->G: ephemeral/all, good" \
-            "$G_NEXT_SRV -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:-KX-ALL:+ECDHE-PSK:+DHE-PSK:+PSK --pskpasswd=data_files/simplepass.psk" \
+            "$G_NEXT_SRV -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:-KX-ALL:+ECDHE-PSK:+DHE-PSK:+PSK --pskpasswd=../framework/data_files/simplepass.psk" \
             "$P_CLI debug_level=4 psk=010203 psk_identity=0a0b0c tls13_kex_modes=ephemeral" \
             0 \
             -c "Selected key exchange mode: ephemeral" \
@@ -3088,7 +3088,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: m->G: ephemeral/ephemeral_all, good" \
-            "$G_NEXT_SRV -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:-KX-ALL:+ECDHE-PSK:+DHE-PSK:-PSK --pskpasswd=data_files/simplepass.psk" \
+            "$G_NEXT_SRV -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:-KX-ALL:+ECDHE-PSK:+DHE-PSK:-PSK --pskpasswd=../framework/data_files/simplepass.psk" \
             "$P_CLI debug_level=4 psk=010203 psk_identity=0a0b0c tls13_kex_modes=ephemeral" \
             0 \
             -c "Selected key exchange mode: ephemeral" \
@@ -3103,7 +3103,7 @@ requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: m->G: ephemeral_all/all, good" \
-            "$G_NEXT_SRV -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:-KX-ALL:+ECDHE-PSK:+DHE-PSK:+PSK --pskpasswd=data_files/simplepass.psk" \
+            "$G_NEXT_SRV -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:-KX-ALL:+ECDHE-PSK:+DHE-PSK:+PSK --pskpasswd=../framework/data_files/simplepass.psk" \
             "$P_CLI debug_level=4 psk=010203 psk_identity=0a0b0c tls13_kex_modes=ephemeral_all" \
             0 \
             -c "=> write client hello" \
@@ -3124,7 +3124,7 @@ requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: m->G: ephemeral_all/ephemeral_all, good" \
-            "$G_NEXT_SRV -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:-KX-ALL:+ECDHE-PSK:+DHE-PSK:-PSK --pskpasswd=data_files/simplepass.psk" \
+            "$G_NEXT_SRV -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:-KX-ALL:+ECDHE-PSK:+DHE-PSK:-PSK --pskpasswd=../framework/data_files/simplepass.psk" \
             "$P_CLI debug_level=4 psk=010203 psk_identity=0a0b0c tls13_kex_modes=ephemeral_all" \
             0 \
             -c "=> write client hello" \
@@ -3147,7 +3147,7 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: m->G: all/all, good" \
-            "$G_NEXT_SRV -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:-KX-ALL:+ECDHE-PSK:+DHE-PSK:+PSK --pskpasswd=data_files/simplepass.psk" \
+            "$G_NEXT_SRV -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:-KX-ALL:+ECDHE-PSK:+DHE-PSK:+PSK --pskpasswd=../framework/data_files/simplepass.psk" \
             "$P_CLI debug_level=4 psk=010203 psk_identity=0a0b0c tls13_kex_modes=all" \
             0 \
             -c "=> write client hello" \
@@ -3169,7 +3169,7 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: m->G: all/ephemeral_all, good" \
-            "$G_NEXT_SRV -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:-KX-ALL:+ECDHE-PSK:+DHE-PSK:-PSK --pskpasswd=data_files/simplepass.psk" \
+            "$G_NEXT_SRV -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:-KX-ALL:+ECDHE-PSK:+DHE-PSK:-PSK --pskpasswd=../framework/data_files/simplepass.psk" \
             "$P_CLI debug_level=4 psk=010203 psk_identity=0a0b0c tls13_kex_modes=all" \
             0 \
             -c "=> write client hello" \

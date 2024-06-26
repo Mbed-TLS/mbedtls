@@ -1,4 +1,0 @@
-basicConstraints = critical,CA:false
-keyUsage=critical,digitalSignature
-subjectKeyIdentifier=hash
-

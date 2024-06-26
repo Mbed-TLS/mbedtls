@@ -4,7 +4,7 @@
  *
  * This is an internal header. Do not include it directly.
  *
- * Automatically enable certain dependencies. Generally, MBEDLTS_xxx
+ * Automatically enable certain dependencies. Generally, MBEDTLS_xxx
  * configurations need to be explicitly enabled by the user: enabling
  * MBEDTLS_xxx_A but not MBEDTLS_xxx_B when A requires B results in a
  * compilation error. However, we do automatically enable certain options

@@ -9,10 +9,10 @@ import re
 import sys
 from typing import Iterable, Iterator, List, Optional, Tuple
 
-import project_scripts # pylint: disable=unused-import
+import scripts_path # pylint: disable=unused-import
 import config
-from mbedtls_framework import test_case
-from mbedtls_framework import test_data_generation
+from mbedtls_dev import test_case
+from mbedtls_dev import test_data_generation
 
 
 def single_setting_case(setting: config.Setting, when_on: bool,

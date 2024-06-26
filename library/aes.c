@@ -311,11 +311,9 @@ MBEDTLS_MAYBE_UNUSED static const uint32_t RT3[256] = { RT };
 /*
  * Round constants
  */
-MBEDTLS_MAYBE_UNUSED static const uint32_t round_constants[10] =
+MBEDTLS_MAYBE_UNUSED static const uint8_t round_constants[10] =
 {
-    0x00000001, 0x00000002, 0x00000004, 0x00000008,
-    0x00000010, 0x00000020, 0x00000040, 0x00000080,
-    0x0000001B, 0x00000036
+    0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1B, 0x36
 };
 
 #else /* MBEDTLS_AES_ROM_TABLES */
@@ -342,7 +340,7 @@ MBEDTLS_MAYBE_UNUSED static uint32_t RT3[256];
 /*
  * Round constants
  */
-MBEDTLS_MAYBE_UNUSED static uint32_t round_constants[10];
+MBEDTLS_MAYBE_UNUSED static uint8_t round_constants[10];
 
 /*
  * Tables generation code
@@ -576,13 +574,18 @@ int mbedtls_aes_setkey_enc(mbedtls_aes_context *ctx, const unsigned char *key,
 
 #if defined(MBEDTLS_AESCE_HAVE_CODE)
     if (MBEDTLS_AESCE_HAS_SUPPORT()) {
-        return mbedtls_aesce_setkey_enc((unsigned char *) RK, key, keybits);
+        mbedtls_aesce_setkey_enc((unsigned char *) RK, key, keybits);
+        return 0;
     }
 #endif
 
 #if !defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
-    for (unsigned int i = 0; i < (keybits >> 5); i++) {
-        RK[i] = MBEDTLS_GET_UINT32_LE(key, i << 2);
+    if (MBEDTLS_IS_BIG_ENDIAN) {
+        for (unsigned int i = 0; i < (keybits >> 5); i++) {
+            RK[i] = MBEDTLS_GET_UINT32_LE(key, i << 2);
+        }
+    } else {
+        memcpy(RK, key, keybits >> 3);
     }
 
     switch (ctx->nr) {
@@ -855,6 +858,15 @@ int mbedtls_internal_aes_encrypt(mbedtls_aes_context *ctx,
                                  const unsigned char input[16],
                                  unsigned char output[16])
 {
+    return mbedtls_aes_crypt_ecb(ctx, MBEDTLS_AES_ENCRYPT, input, output);
+}
+#endif /* !MBEDTLS_AES_ENCRYPT_ALT */
+
+MBEDTLS_MAYBE_UNUSED
+static int mbedtls_internal_aes_sw_encrypt(mbedtls_aes_context *ctx,
+                                           const unsigned char input[16],
+                                           unsigned char output[16])
+{
     int i;
     uint32_t *RK = ctx->buf + ctx->rk_offset;
     struct {
@@ -907,7 +919,6 @@ int mbedtls_internal_aes_encrypt(mbedtls_aes_context *ctx,
 
     return 0;
 }
-#endif /* !MBEDTLS_AES_ENCRYPT_ALT */
 
 /*
  * AES-ECB block decryption
@@ -916,6 +927,15 @@ int mbedtls_internal_aes_encrypt(mbedtls_aes_context *ctx,
 int mbedtls_internal_aes_decrypt(mbedtls_aes_context *ctx,
                                  const unsigned char input[16],
                                  unsigned char output[16])
+{
+    return mbedtls_aes_crypt_ecb(ctx, MBEDTLS_AES_DECRYPT, input, output);
+}
+#endif /* !MBEDTLS_AES_DECRYPT_ALT && !MBEDTLS_BLOCK_CIPHER_NO_DECRYPT */
+
+MBEDTLS_MAYBE_UNUSED
+static int mbedtls_internal_aes_sw_decrypt(mbedtls_aes_context *ctx,
+                                           const unsigned char input[16],
+                                           unsigned char output[16])
 {
     int i;
     uint32_t *RK = ctx->buf + ctx->rk_offset;
@@ -969,7 +989,6 @@ int mbedtls_internal_aes_decrypt(mbedtls_aes_context *ctx,
 
     return 0;
 }
-#endif /* !MBEDTLS_AES_DECRYPT_ALT && !MBEDTLS_BLOCK_CIPHER_NO_DECRYPT */
 
 /*
  * Our intrinsics-based implementation of AESNI requires the round keys to be
@@ -1022,11 +1041,11 @@ int mbedtls_aes_crypt_ecb(mbedtls_aes_context *ctx,
 #if !defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
 #if !defined(MBEDTLS_BLOCK_CIPHER_NO_DECRYPT)
     if (mode == MBEDTLS_AES_DECRYPT) {
-        return mbedtls_internal_aes_decrypt(ctx, input, output);
+        return mbedtls_internal_aes_sw_decrypt(ctx, input, output);
     } else
 #endif
     {
-        return mbedtls_internal_aes_encrypt(ctx, input, output);
+        return mbedtls_internal_aes_sw_encrypt(ctx, input, output);
     }
 #endif /* !MBEDTLS_AES_USE_HARDWARE_ONLY */
 }

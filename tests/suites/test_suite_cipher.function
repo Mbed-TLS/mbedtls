@@ -1148,8 +1148,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_CIPHER_MODE_CBC */
-void check_padding(int pad_mode, data_t *input, int ret, int dlen_check
-                   )
+void check_padding(int pad_mode, data_t *input, int ret, int dlen_check)
 {
     mbedtls_cipher_info_t cipher_info;
     mbedtls_cipher_context_t ctx;
@@ -1162,10 +1161,25 @@ void check_padding(int pad_mode, data_t *input, int ret, int dlen_check
 
     TEST_ASSERT(0 == mbedtls_cipher_set_padding_mode(&ctx, pad_mode));
 
-
     TEST_ASSERT(ret == ctx.get_padding(input->x, input->len, &dlen));
     if (0 == ret) {
         TEST_ASSERT(dlen == (size_t) dlen_check);
+    }
+
+    /* Test padding round-trip (i.e., generation and then reading it back)
+     * for 16-byte blocks, for data length = [1..15]. */
+    uint8_t block[16];
+    for (size_t i = 1; i < sizeof(block); i++) {
+        memset(block, 255, sizeof(block));
+        if (ctx.add_padding != NULL) {
+            ctx.add_padding(block, sizeof(block), i);
+        }
+        TEST_ASSERT(0 == ctx.get_padding(block, sizeof(block), &dlen));
+        if (pad_mode == MBEDTLS_PADDING_NONE) {
+            TEST_EQUAL(dlen, sizeof(block));
+        } else {
+            TEST_EQUAL(dlen, i);
+        }
     }
 }
 /* END_CASE */

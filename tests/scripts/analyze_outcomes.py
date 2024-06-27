@@ -344,6 +344,12 @@ KNOWN_TASKS = {
                     'Key ASN1 (Encrypted key PKCS5, trailing garbage data)',
                     re.compile(r'Parse (RSA|EC) Key .*\(.* ([Ee]ncrypted|password).*\)'),
                 ],
+                # Encrypted keys are not supported so far.
+                'ssl-opt': [
+                    'TLS: password protected server key',
+                    'TLS: password protected client key',
+                    'TLS: password protected server key, two certificates',
+                ],
             }
         }
     },

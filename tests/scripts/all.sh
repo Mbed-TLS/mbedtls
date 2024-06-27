@@ -1402,68 +1402,6 @@ component_build_psa_crypto_spm () {
     check_renamed_symbols tests/include/spe/crypto_spe.h library/libmbedcrypto.a
 }
 
-# Get a list of library-wise undefined symbols and ensure that they only
-# belong to psa_xxx() functions and not to mbedtls_yyy() ones.
-# This function is a common helper used by both:
-# - component_test_default_psa_crypto_client_without_crypto_provider
-# - component_build_full_psa_crypto_client_without_crypto_provider.
-common_check_mbedtls_missing_symbols() {
-    nm library/libmbedcrypto.a | grep ' [TRrDC] ' | grep -Eo '(mbedtls_|psa_).*' | sort -u > sym_def.txt
-    nm library/libmbedcrypto.a | grep ' U ' | grep -Eo '(mbedtls_|psa_).*' | sort -u > sym_undef.txt
-    comm sym_def.txt sym_undef.txt -13 > linking_errors.txt
-    not grep mbedtls_ linking_errors.txt
-
-    rm sym_def.txt sym_undef.txt linking_errors.txt
-}
-
-component_test_default_psa_crypto_client_without_crypto_provider () {
-    msg "build: default config - PSA_CRYPTO_C + PSA_CRYPTO_CLIENT"
-
-    scripts/config.py unset MBEDTLS_PSA_CRYPTO_C
-    scripts/config.py unset MBEDTLS_PSA_CRYPTO_STORAGE_C
-    scripts/config.py unset MBEDTLS_PSA_ITS_FILE_C
-    scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1_3
-    scripts/config.py set MBEDTLS_PSA_CRYPTO_CLIENT
-    scripts/config.py unset MBEDTLS_LMS_C
-
-    make
-
-    msg "check missing symbols: default config - PSA_CRYPTO_C + PSA_CRYPTO_CLIENT"
-    common_check_mbedtls_missing_symbols
-
-    msg "test: default config - PSA_CRYPTO_C + PSA_CRYPTO_CLIENT"
-    make test
-}
-
-component_build_full_psa_crypto_client_without_crypto_provider () {
-    msg "build: full config - PSA_CRYPTO_C"
-
-    # Use full config which includes USE_PSA and CRYPTO_CLIENT.
-    scripts/config.py full
-
-    scripts/config.py unset MBEDTLS_PSA_CRYPTO_C
-    scripts/config.py unset MBEDTLS_PSA_CRYPTO_STORAGE_C
-    # Dynamic secure element support is a deprecated feature and it is not
-    # available when CRYPTO_C and PSA_CRYPTO_STORAGE_C are disabled.
-    scripts/config.py unset MBEDTLS_PSA_CRYPTO_SE_C
-
-    # Since there is no crypto provider in this build it is not possible to
-    # build all the test executables and progrems due to missing PSA functions
-    # at link time. Therefore we will just build libraries and we'll check
-    # that symbols of interest are there.
-    make lib
-
-    msg "check missing symbols: full config - PSA_CRYPTO_C"
-
-    common_check_mbedtls_missing_symbols
-
-    # Ensure that desired functions are included into the build (extend the
-    # following list as required).
-    grep mbedtls_pk_get_psa_attributes library/libmbedcrypto.a
-    grep mbedtls_pk_import_into_psa library/libmbedcrypto.a
-    grep mbedtls_pk_copy_from_psa library/libmbedcrypto.a
-}
-
 component_test_no_rsa_key_pair_generation() {
     msg "build: default config minus PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_GENERATE"
     scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG

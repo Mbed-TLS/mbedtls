@@ -349,7 +349,7 @@ int psa_crypto_call(int function,
     invec.base = in_params;
     invec.len = in_params_len;
 
-    size_t max_receive = 8192;
+    size_t max_receive = 24576;
     uint8_t *receive = malloc(max_receive);
     if (receive == NULL) {
         fprintf(stderr, "FAILED to allocate %u bytes\n", (unsigned) max_receive);
@@ -424,6 +424,11 @@ fail:
 
 void mbedtls_psa_crypto_free(void)
 {
+    /* Do not try to close a connection that was never started.*/
+    if (handle == -1) {
+        return;
+    }
+
     CLIENT_PRINT("Closing handle");
     psa_close(handle);
     handle = -1;

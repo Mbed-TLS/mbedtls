@@ -474,7 +474,7 @@ void psa_write(psa_handle_t msg_handle, uint32_t outvec_idx,
 
     while (sofar < num_bytes) {
         size_t sending = (num_bytes - sofar);
-        if (sending >= MAX_FRAGMENT_SIZE) {
+        if (sending > (MAX_FRAGMENT_SIZE - (sizeof(size_t) * 2))) {
             sending = MAX_FRAGMENT_SIZE - (sizeof(size_t) * 2);
         }
 

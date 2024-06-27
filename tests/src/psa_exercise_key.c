@@ -11,7 +11,7 @@
 #include <test/macros.h>
 #include <test/psa_exercise_key.h>
 
-#if defined(MBEDTLS_PSA_CRYPTO_C)
+#if defined(MBEDTLS_PSA_CRYPTO_CLIENT)
 
 #include <mbedtls/asn1.h>
 #include <psa/crypto.h>
@@ -1332,4 +1332,4 @@ exit:
 }
 #endif /* MBEDTLS_PK_C */
 
-#endif /* MBEDTLS_PSA_CRYPTO_C */
+#endif /* MBEDTLS_PSA_CRYPTO_CLIENT */

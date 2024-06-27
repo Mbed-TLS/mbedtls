@@ -177,6 +177,7 @@ $(BINARIES): %$(EXEXT): %.c $(MBEDLIBS) $(TEST_OBJS_DEPS) $(MBEDTLS_TEST_OBJS)
 
 clean:
 ifndef WINDOWS
+	$(MAKE) -C psa-client-server/psasim clean
 	rm -rf $(BINARIES) *.c *.datax
 	rm -f src/*.o src/drivers/*.o src/test_helpers/*.o src/libmbed* src/test_keys.h src/test_certs.h
 	rm -f src/test_keys.h src/test_certs.h

@@ -31,7 +31,10 @@ programs: lib mbedtls_test
 lib:
 	$(MAKE) -C library
 
-tests: lib mbedtls_test
+ifndef PSASIM
+tests: lib
+endif
+tests: mbedtls_test
 	$(MAKE) -C tests
 
 mbedtls_test:
@@ -168,7 +171,10 @@ else
 	if exist visualc\VS2017\mbedTLS.sln del /Q /F visualc\VS2017\mbedTLS.sln
 endif
 
-check: lib tests
+ifndef PSASIM
+check: lib
+endif
+check: tests
 	$(MAKE) -C tests check
 
 test: check

@@ -522,7 +522,7 @@ class ConfigFile(metaclass=ABCMeta):
         with open(filename, 'w', encoding='utf-8') as output:
             self.write_to_stream(settings, output)
 
-class MbedtlsConfigFile(ConfigFile):
+class MbedTLSConfigFile(ConfigFile):
     """Representation of an MbedTLS configuration file."""
 
     _path_in_tree = 'include/mbedtls/mbedtls_config.h'
@@ -551,7 +551,7 @@ class CryptoConfigFile(ConfigFile):
     def __init__(self, filename=None):
         super().__init__(self.default_path, 'Crypto', filename)
 
-class MbedtlsConfig(Config):
+class MbedTLSConfig(Config):
     """Representation of the Mbed TLS configuration.
 
     See the documentation of the `Config` class for methods to query
@@ -560,7 +560,7 @@ class MbedtlsConfig(Config):
     def __init__(self, filename=None):
         """Read the Mbed TLS configuration file."""
         super().__init__()
-        self.configfile = MbedtlsConfigFile(filename)
+        self.configfile = MbedTLSConfigFile(filename)
         self.settings.update({name: Setting(active, name, value, section)
                               for (active, name, value, section)
                               in self.configfile.parse_file()})
@@ -629,7 +629,7 @@ class MultiConfig(Config):
 
     def __init__(self, mbedtls_filename=None, crypto__filename=None):
         super().__init__()
-        self.mbedtls_configfile = MbedtlsConfigFile(mbedtls_filename)
+        self.mbedtls_configfile = MbedTLSConfigFile(mbedtls_filename)
         self.crypto_configfile = CryptoConfigFile(crypto__filename)
         self.settings.update({name: Setting(active, name, value, section, configfile)
                               for configfile in [self.mbedtls_configfile, self.crypto_configfile]
@@ -737,7 +737,7 @@ if __name__ == '__main__':
         parser.add_argument('--file', '-f',
                             help="""File to read (and modify if requested).
                             Default: {}.
-                            """.format(MbedtlsConfigFile.default_path))
+                            """.format(MbedTLSConfigFile.default_path))
         parser.add_argument('--cryptofile', '-c',
                             help="""Crypto file to read (and modify if requested).
                             Default: {}.

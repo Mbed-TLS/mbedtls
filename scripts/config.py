@@ -155,7 +155,11 @@ class Config:
                 setting.active = enable
 
 def is_full_section(section):
-    """Is this section affected by "config.py full" and friends?"""
+    """Is this section affected by "config.py full" and friends?
+
+    In a config file where the sections are not used the whole config file
+    is an empty section (with value None) and the whole file is affected.
+    """
     return section is None or section.endswith('support') or section.endswith('modules')
 
 def realfull_adapter(_name, active, section):

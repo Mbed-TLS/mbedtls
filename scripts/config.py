@@ -129,7 +129,13 @@ class Config:
         """
         if name not in self.settings:
             return
-        self.settings[name].active = False
+
+        setting = self.settings[name]
+        # Check if modifying the config file
+        if setting.configfile and setting.active:
+            setting.configfile.modified = True
+
+        setting.active = False
 
     def adapt(self, adapter):
         """Run adapter on each known symbol and (de)activate it accordingly.
@@ -142,8 +148,12 @@ class Config:
         otherwise unset `name` (i.e. make it known but inactive).
         """
         for setting in self.settings.values():
+            is_active = setting.active
             setting.active = adapter(setting.name, setting.active,
                                      setting.section)
+            # Check if modifying the config file
+            if setting.configfile and setting.active != is_active:
+                setting.configfile.modified = True
 
     def change_matching(self, regexs, enable):
         """Change all symbols matching one of the regexs to the desired state."""
@@ -152,6 +162,9 @@ class Config:
         regex = re.compile('|'.join(regexs))
         for setting in self.settings.values():
             if regex.search(setting.name):
+                # Check if modifying the config file
+                if setting.configfile and setting.active != enable:
+                    setting.configfile.modified = True
                 setting.active = enable
 
 def is_full_section(section):
@@ -565,7 +578,7 @@ class MbedTLSConfig(Config):
         """Read the Mbed TLS configuration file."""
         super().__init__()
         self.configfile = MbedTLSConfigFile(filename)
-        self.settings.update({name: Setting(active, name, value, section)
+        self.settings.update({name: Setting(active, name, value, section, self.configfile)
                               for (active, name, value, section)
                               in self.configfile.parse_file()})
 
@@ -595,7 +608,7 @@ class CryptoConfig(Config):
         """Read the PSA crypto configuration file."""
         super().__init__()
         self.configfile = CryptoConfigFile(filename)
-        self.settings.update({name: Setting(active, name, value, section)
+        self.settings.update({name: Setting(active, name, value, section, self.configfile)
                               for (active, name, value, section)
                               in self.configfile.parse_file()})
 
@@ -682,45 +695,6 @@ class MultiConfig(Config):
             configfile.modified = True
 
         super().set(name, value)
-
-    def unset(self, name):
-        if name in self.settings and self.settings[name].active:
-            self.settings[name].configfile.modified = True
-
-        super().unset(name)
-
-    def adapt(self, adapter):
-        # Determine if the config files will be modified
-        unmodified = {config for config in [self.mbedtls_configfile, self.crypto_configfile]
-                      if not config.modified}
-        if unmodified:
-            for setting in self.settings.values():
-                if not setting.configfile.modified and \
-                   setting.active != adapter(setting.name, setting.active, setting.section):
-                    setting.configfile.modified = True
-                    unmodified.remove(setting.configfile)
-                    if not unmodified:
-                        break
-
-        super().adapt(adapter)
-
-    def change_matching(self, regexs, enable):
-        # Determine if the config files will be modified
-        if regexs:
-            regex = re.compile('|'.join(regexs))
-            unmodified = {config for config in [self.mbedtls_configfile, self.crypto_configfile]
-                          if not config.modified}
-            if unmodified:
-                for setting in self.settings.values():
-                    if not setting.configfile.modified and \
-                       setting.active != enable and \
-                       regex.search(setting.name):
-                        setting.configfile.modified = True
-                        unmodified.remove(setting.configfile)
-                        if not unmodified:
-                            break
-
-        super().change_matching(regexs, enable)
 
     def write(self, mbedtls_file=None, crypto_file=None):
         """Write the whole configuration to the file it was read from.

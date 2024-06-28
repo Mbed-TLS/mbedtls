@@ -631,10 +631,16 @@ class MultiConfig(Config):
     and modify the configuration.
     """
 
-    def __init__(self, mbedtls_filename=None, crypto__filename=None):
+    def __init__(self, *configs):
         super().__init__()
-        self.mbedtls_configfile = MbedTLSConfigFile(mbedtls_filename)
-        self.crypto_configfile = CryptoConfigFile(crypto__filename)
+        for config in configs:
+            if isinstance(config, MbedTLSConfigFile):
+                self.mbedtls_configfile = config
+            elif isinstance(config, CryptoConfigFile):
+                self.crypto_configfile = config
+            else:
+                raise ValueError(f'Invalid configfile: {config}')
+
         self.settings.update({name: Setting(active, name, value, section, configfile)
                               for configfile in [self.mbedtls_configfile, self.crypto_configfile]
                               for (active, name, value, section) in configfile.parse_file()})
@@ -823,7 +829,7 @@ if __name__ == '__main__':
                     excluding X.509 and TLS.""")
 
         args = parser.parse_args()
-        config = MultiConfig(args.file, args.cryptofile)
+        config = MultiConfig(MbedTLSConfigFile(args.file), CryptoConfigFile(args.cryptofile))
         if args.command is None:
             parser.print_help()
             return 1

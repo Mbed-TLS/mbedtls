@@ -413,8 +413,8 @@ class ConfigFile(metaclass=ABCMeta):
                     filename = candidate
                     break
             else:
-                raise ValueError(f'{name} configuration file not found: '
-                                 f'{filename if filename else default_path}')
+                raise FileNotFoundError(f'{name} configuration file not found: '
+                                        f'{filename if filename else default_path}')
 
         self.filename = filename
         self.templates = []

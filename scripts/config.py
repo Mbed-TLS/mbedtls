@@ -637,7 +637,7 @@ class CryptoConfig(Config):
     def filename(self):
         return self.configfile.filename
 
-class MultiConfig(Config):
+class CombinedConfig(Config):
     """Representation of MbedTLS and PSA crypto configuration
 
     See the documentation of the `Config` class for methods to query
@@ -803,7 +803,7 @@ if __name__ == '__main__':
                     excluding X.509 and TLS.""")
 
         args = parser.parse_args()
-        config = MultiConfig(MbedTLSConfigFile(args.file), CryptoConfigFile(args.cryptofile))
+        config = CombinedConfig(MbedTLSConfigFile(args.file), CryptoConfigFile(args.cryptofile))
         if args.command is None:
             parser.print_help()
             return 1

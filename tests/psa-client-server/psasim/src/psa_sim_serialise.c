@@ -936,7 +936,8 @@ size_t psasim_server_serialise_psa_hash_operation_t_needs(
 
 int psasim_server_serialise_psa_hash_operation_t(uint8_t **pos,
                                                  size_t *remaining,
-                                                 psa_hash_operation_t *operation)
+                                                 psa_hash_operation_t *operation,
+                                                 int completed)
 {
     psasim_operation_t client_operation;
 
@@ -945,6 +946,13 @@ int psasim_server_serialise_psa_hash_operation_t(uint8_t **pos,
     }
 
     ssize_t slot = operation - hash_operations;
+
+    if (completed) {
+        memset(&hash_operations[slot],
+               0,
+               sizeof(psa_hash_operation_t));
+        hash_operation_handles[slot] = 0;
+    }
 
     client_operation.handle = hash_operation_handles[slot];
 
@@ -1031,7 +1039,8 @@ size_t psasim_server_serialise_psa_aead_operation_t_needs(
 
 int psasim_server_serialise_psa_aead_operation_t(uint8_t **pos,
                                                  size_t *remaining,
-                                                 psa_aead_operation_t *operation)
+                                                 psa_aead_operation_t *operation,
+                                                 int completed)
 {
     psasim_operation_t client_operation;
 
@@ -1040,6 +1049,13 @@ int psasim_server_serialise_psa_aead_operation_t(uint8_t **pos,
     }
 
     ssize_t slot = operation - aead_operations;
+
+    if (completed) {
+        memset(&aead_operations[slot],
+               0,
+               sizeof(psa_aead_operation_t));
+        aead_operation_handles[slot] = 0;
+    }
 
     client_operation.handle = aead_operation_handles[slot];
 
@@ -1162,7 +1178,8 @@ size_t psasim_server_serialise_psa_mac_operation_t_needs(
 
 int psasim_server_serialise_psa_mac_operation_t(uint8_t **pos,
                                                 size_t *remaining,
-                                                psa_mac_operation_t *operation)
+                                                psa_mac_operation_t *operation,
+                                                int completed)
 {
     psasim_operation_t client_operation;
 
@@ -1171,6 +1188,13 @@ int psasim_server_serialise_psa_mac_operation_t(uint8_t **pos,
     }
 
     ssize_t slot = operation - mac_operations;
+
+    if (completed) {
+        memset(&mac_operations[slot],
+               0,
+               sizeof(psa_mac_operation_t));
+        mac_operation_handles[slot] = 0;
+    }
 
     client_operation.handle = mac_operation_handles[slot];
 
@@ -1257,7 +1281,8 @@ size_t psasim_server_serialise_psa_cipher_operation_t_needs(
 
 int psasim_server_serialise_psa_cipher_operation_t(uint8_t **pos,
                                                    size_t *remaining,
-                                                   psa_cipher_operation_t *operation)
+                                                   psa_cipher_operation_t *operation,
+                                                   int completed)
 {
     psasim_operation_t client_operation;
 
@@ -1266,6 +1291,13 @@ int psasim_server_serialise_psa_cipher_operation_t(uint8_t **pos,
     }
 
     ssize_t slot = operation - cipher_operations;
+
+    if (completed) {
+        memset(&cipher_operations[slot],
+               0,
+               sizeof(psa_cipher_operation_t));
+        cipher_operation_handles[slot] = 0;
+    }
 
     client_operation.handle = cipher_operation_handles[slot];
 
@@ -1352,7 +1384,8 @@ size_t psasim_server_serialise_psa_key_derivation_operation_t_needs(
 
 int psasim_server_serialise_psa_key_derivation_operation_t(uint8_t **pos,
                                                            size_t *remaining,
-                                                           psa_key_derivation_operation_t *operation)
+                                                           psa_key_derivation_operation_t *operation,
+                                                           int completed)
 {
     psasim_operation_t client_operation;
 
@@ -1361,6 +1394,13 @@ int psasim_server_serialise_psa_key_derivation_operation_t(uint8_t **pos,
     }
 
     ssize_t slot = operation - key_derivation_operations;
+
+    if (completed) {
+        memset(&key_derivation_operations[slot],
+               0,
+               sizeof(psa_key_derivation_operation_t));
+        key_derivation_operation_handles[slot] = 0;
+    }
 
     client_operation.handle = key_derivation_operation_handles[slot];
 
@@ -1447,7 +1487,8 @@ size_t psasim_server_serialise_psa_sign_hash_interruptible_operation_t_needs(
 
 int psasim_server_serialise_psa_sign_hash_interruptible_operation_t(uint8_t **pos,
                                                                     size_t *remaining,
-                                                                    psa_sign_hash_interruptible_operation_t *operation)
+                                                                    psa_sign_hash_interruptible_operation_t *operation,
+                                                                    int completed)
 {
     psasim_operation_t client_operation;
 
@@ -1456,6 +1497,13 @@ int psasim_server_serialise_psa_sign_hash_interruptible_operation_t(uint8_t **po
     }
 
     ssize_t slot = operation - sign_hash_interruptible_operations;
+
+    if (completed) {
+        memset(&sign_hash_interruptible_operations[slot],
+               0,
+               sizeof(psa_sign_hash_interruptible_operation_t));
+        sign_hash_interruptible_operation_handles[slot] = 0;
+    }
 
     client_operation.handle = sign_hash_interruptible_operation_handles[slot];
 
@@ -1542,7 +1590,8 @@ size_t psasim_server_serialise_psa_verify_hash_interruptible_operation_t_needs(
 
 int psasim_server_serialise_psa_verify_hash_interruptible_operation_t(uint8_t **pos,
                                                                       size_t *remaining,
-                                                                      psa_verify_hash_interruptible_operation_t *operation)
+                                                                      psa_verify_hash_interruptible_operation_t *operation,
+                                                                      int completed)
 {
     psasim_operation_t client_operation;
 
@@ -1551,6 +1600,13 @@ int psasim_server_serialise_psa_verify_hash_interruptible_operation_t(uint8_t **
     }
 
     ssize_t slot = operation - verify_hash_interruptible_operations;
+
+    if (completed) {
+        memset(&verify_hash_interruptible_operations[slot],
+               0,
+               sizeof(psa_verify_hash_interruptible_operation_t));
+        verify_hash_interruptible_operation_handles[slot] = 0;
+    }
 
     client_operation.handle = verify_hash_interruptible_operation_handles[slot];
 

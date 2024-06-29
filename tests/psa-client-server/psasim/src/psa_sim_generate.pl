@@ -750,11 +750,19 @@ EOF
 
             my $server_specific = ($argtype =~ /^psa_\w+_operation_t/) ? "server_" : "";
 
+            my $completed = ""; # Only needed on server serialise calls
+            if (length($server_specific)) {
+                # On server serialisation, which is only for operation types,
+                # we need to mark the operation as completed (variously called
+                # terminated or inactive in psa/crypto.h) on certain calls.
+                $completed = ($name =~ /_(abort|finish|hash_verify)$/) ? ", 1" : ", 0";
+            }
+
             print $fh <<EOF;
 
     ok = psasim_${server_specific}serialise_${argtype}(
         &rpos, &rremain,
-        $argname);
+        $argname$completed);
     if (!ok) {
         goto fail;
     }

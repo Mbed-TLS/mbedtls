@@ -131,7 +131,7 @@ int psa_aead_abort_wrapper(
 
     ok = psasim_server_serialise_psa_aead_operation_t(
         &rpos, &rremain,
-        operation);
+        operation, 1);
     if (!ok) {
         goto fail;
     }
@@ -375,7 +375,7 @@ int psa_aead_decrypt_setup_wrapper(
 
     ok = psasim_server_serialise_psa_aead_operation_t(
         &rpos, &rremain,
-        operation);
+        operation, 0);
     if (!ok) {
         goto fail;
     }
@@ -619,7 +619,7 @@ int psa_aead_encrypt_setup_wrapper(
 
     ok = psasim_server_serialise_psa_aead_operation_t(
         &rpos, &rremain,
-        operation);
+        operation, 0);
     if (!ok) {
         goto fail;
     }
@@ -736,7 +736,7 @@ int psa_aead_finish_wrapper(
 
     ok = psasim_server_serialise_psa_aead_operation_t(
         &rpos, &rremain,
-        operation);
+        operation, 1);
     if (!ok) {
         goto fail;
     }
@@ -866,7 +866,7 @@ int psa_aead_generate_nonce_wrapper(
 
     ok = psasim_server_serialise_psa_aead_operation_t(
         &rpos, &rremain,
-        operation);
+        operation, 0);
     if (!ok) {
         goto fail;
     }
@@ -977,7 +977,7 @@ int psa_aead_set_lengths_wrapper(
 
     ok = psasim_server_serialise_psa_aead_operation_t(
         &rpos, &rremain,
-        operation);
+        operation, 0);
     if (!ok) {
         goto fail;
     }
@@ -1062,7 +1062,7 @@ int psa_aead_set_nonce_wrapper(
 
     ok = psasim_server_serialise_psa_aead_operation_t(
         &rpos, &rremain,
-        operation);
+        operation, 0);
     if (!ok) {
         goto fail;
     }
@@ -1172,7 +1172,7 @@ int psa_aead_update_wrapper(
 
     ok = psasim_server_serialise_psa_aead_operation_t(
         &rpos, &rremain,
-        operation);
+        operation, 0);
     if (!ok) {
         goto fail;
     }
@@ -1277,7 +1277,7 @@ int psa_aead_update_ad_wrapper(
 
     ok = psasim_server_serialise_psa_aead_operation_t(
         &rpos, &rremain,
-        operation);
+        operation, 0);
     if (!ok) {
         goto fail;
     }
@@ -1387,7 +1387,7 @@ int psa_aead_verify_wrapper(
 
     ok = psasim_server_serialise_psa_aead_operation_t(
         &rpos, &rremain,
-        operation);
+        operation, 0);
     if (!ok) {
         goto fail;
     }
@@ -1760,7 +1760,7 @@ int psa_cipher_abort_wrapper(
 
     ok = psasim_server_serialise_psa_cipher_operation_t(
         &rpos, &rremain,
-        operation);
+        operation, 1);
     if (!ok) {
         goto fail;
     }
@@ -1980,7 +1980,7 @@ int psa_cipher_decrypt_setup_wrapper(
 
     ok = psasim_server_serialise_psa_cipher_operation_t(
         &rpos, &rremain,
-        operation);
+        operation, 0);
     if (!ok) {
         goto fail;
     }
@@ -2200,7 +2200,7 @@ int psa_cipher_encrypt_setup_wrapper(
 
     ok = psasim_server_serialise_psa_cipher_operation_t(
         &rpos, &rremain,
-        operation);
+        operation, 0);
     if (!ok) {
         goto fail;
     }
@@ -2296,7 +2296,7 @@ int psa_cipher_finish_wrapper(
 
     ok = psasim_server_serialise_psa_cipher_operation_t(
         &rpos, &rremain,
-        operation);
+        operation, 1);
     if (!ok) {
         goto fail;
     }
@@ -2410,7 +2410,7 @@ int psa_cipher_generate_iv_wrapper(
 
     ok = psasim_server_serialise_psa_cipher_operation_t(
         &rpos, &rremain,
-        operation);
+        operation, 0);
     if (!ok) {
         goto fail;
     }
@@ -2513,7 +2513,7 @@ int psa_cipher_set_iv_wrapper(
 
     ok = psasim_server_serialise_psa_cipher_operation_t(
         &rpos, &rremain,
-        operation);
+        operation, 0);
     if (!ok) {
         goto fail;
     }
@@ -2623,7 +2623,7 @@ int psa_cipher_update_wrapper(
 
     ok = psasim_server_serialise_psa_cipher_operation_t(
         &rpos, &rremain,
-        operation);
+        operation, 0);
     if (!ok) {
         goto fail;
     }
@@ -3436,7 +3436,7 @@ int psa_hash_abort_wrapper(
 
     ok = psasim_server_serialise_psa_hash_operation_t(
         &rpos, &rremain,
-        operation);
+        operation, 1);
     if (!ok) {
         goto fail;
     }
@@ -3520,7 +3520,7 @@ int psa_hash_clone_wrapper(
 
     ok = psasim_server_serialise_psa_hash_operation_t(
         &rpos, &rremain,
-        target_operation);
+        target_operation, 0);
     if (!ok) {
         goto fail;
     }
@@ -3827,7 +3827,7 @@ int psa_hash_finish_wrapper(
 
     ok = psasim_server_serialise_psa_hash_operation_t(
         &rpos, &rremain,
-        operation);
+        operation, 1);
     if (!ok) {
         goto fail;
     }
@@ -3929,7 +3929,7 @@ int psa_hash_setup_wrapper(
 
     ok = psasim_server_serialise_psa_hash_operation_t(
         &rpos, &rremain,
-        operation);
+        operation, 0);
     if (!ok) {
         goto fail;
     }
@@ -4014,7 +4014,7 @@ int psa_hash_update_wrapper(
 
     ok = psasim_server_serialise_psa_hash_operation_t(
         &rpos, &rremain,
-        operation);
+        operation, 0);
     if (!ok) {
         goto fail;
     }
@@ -4103,7 +4103,7 @@ int psa_hash_verify_wrapper(
 
     ok = psasim_server_serialise_psa_hash_operation_t(
         &rpos, &rremain,
-        operation);
+        operation, 1);
     if (!ok) {
         goto fail;
     }
@@ -4389,7 +4389,7 @@ int psa_key_derivation_abort_wrapper(
 
     ok = psasim_server_serialise_psa_key_derivation_operation_t(
         &rpos, &rremain,
-        operation);
+        operation, 1);
     if (!ok) {
         goto fail;
     }
@@ -4567,7 +4567,7 @@ int psa_key_derivation_input_bytes_wrapper(
 
     ok = psasim_server_serialise_psa_key_derivation_operation_t(
         &rpos, &rremain,
-        operation);
+        operation, 0);
     if (!ok) {
         goto fail;
     }
@@ -4664,7 +4664,7 @@ int psa_key_derivation_input_integer_wrapper(
 
     ok = psasim_server_serialise_psa_key_derivation_operation_t(
         &rpos, &rremain,
-        operation);
+        operation, 0);
     if (!ok) {
         goto fail;
     }
@@ -4757,7 +4757,7 @@ int psa_key_derivation_input_key_wrapper(
 
     ok = psasim_server_serialise_psa_key_derivation_operation_t(
         &rpos, &rremain,
-        operation);
+        operation, 0);
     if (!ok) {
         goto fail;
     }
@@ -4860,7 +4860,7 @@ int psa_key_derivation_key_agreement_wrapper(
 
     ok = psasim_server_serialise_psa_key_derivation_operation_t(
         &rpos, &rremain,
-        operation);
+        operation, 0);
     if (!ok) {
         goto fail;
     }
@@ -4950,7 +4950,7 @@ int psa_key_derivation_output_bytes_wrapper(
 
     ok = psasim_server_serialise_psa_key_derivation_operation_t(
         &rpos, &rremain,
-        operation);
+        operation, 0);
     if (!ok) {
         goto fail;
     }
@@ -5055,7 +5055,7 @@ int psa_key_derivation_output_key_wrapper(
 
     ok = psasim_server_serialise_psa_key_derivation_operation_t(
         &rpos, &rremain,
-        operation);
+        operation, 0);
     if (!ok) {
         goto fail;
     }
@@ -5166,7 +5166,7 @@ int psa_key_derivation_output_key_ext_wrapper(
 
     ok = psasim_server_serialise_psa_key_derivation_operation_t(
         &rpos, &rremain,
-        operation);
+        operation, 0);
     if (!ok) {
         goto fail;
     }
@@ -5261,7 +5261,7 @@ int psa_key_derivation_set_capacity_wrapper(
 
     ok = psasim_server_serialise_psa_key_derivation_operation_t(
         &rpos, &rremain,
-        operation);
+        operation, 0);
     if (!ok) {
         goto fail;
     }
@@ -5345,7 +5345,7 @@ int psa_key_derivation_setup_wrapper(
 
     ok = psasim_server_serialise_psa_key_derivation_operation_t(
         &rpos, &rremain,
-        operation);
+        operation, 0);
     if (!ok) {
         goto fail;
     }
@@ -5420,7 +5420,7 @@ int psa_mac_abort_wrapper(
 
     ok = psasim_server_serialise_psa_mac_operation_t(
         &rpos, &rremain,
-        operation);
+        operation, 1);
     if (!ok) {
         goto fail;
     }
@@ -5643,7 +5643,7 @@ int psa_mac_sign_finish_wrapper(
 
     ok = psasim_server_serialise_psa_mac_operation_t(
         &rpos, &rremain,
-        operation);
+        operation, 1);
     if (!ok) {
         goto fail;
     }
@@ -5754,7 +5754,7 @@ int psa_mac_sign_setup_wrapper(
 
     ok = psasim_server_serialise_psa_mac_operation_t(
         &rpos, &rremain,
-        operation);
+        operation, 0);
     if (!ok) {
         goto fail;
     }
@@ -5839,7 +5839,7 @@ int psa_mac_update_wrapper(
 
     ok = psasim_server_serialise_psa_mac_operation_t(
         &rpos, &rremain,
-        operation);
+        operation, 0);
     if (!ok) {
         goto fail;
     }
@@ -6030,7 +6030,7 @@ int psa_mac_verify_finish_wrapper(
 
     ok = psasim_server_serialise_psa_mac_operation_t(
         &rpos, &rremain,
-        operation);
+        operation, 1);
     if (!ok) {
         goto fail;
     }
@@ -6127,7 +6127,7 @@ int psa_mac_verify_setup_wrapper(
 
     ok = psasim_server_serialise_psa_mac_operation_t(
         &rpos, &rremain,
-        operation);
+        operation, 0);
     if (!ok) {
         goto fail;
     }
@@ -6589,7 +6589,7 @@ int psa_sign_hash_abort_wrapper(
 
     ok = psasim_server_serialise_psa_sign_hash_interruptible_operation_t(
         &rpos, &rremain,
-        operation);
+        operation, 1);
     if (!ok) {
         goto fail;
     }
@@ -6685,7 +6685,7 @@ int psa_sign_hash_complete_wrapper(
 
     ok = psasim_server_serialise_psa_sign_hash_interruptible_operation_t(
         &rpos, &rremain,
-        operation);
+        operation, 0);
     if (!ok) {
         goto fail;
     }
@@ -6873,7 +6873,7 @@ int psa_sign_hash_start_wrapper(
 
     ok = psasim_server_serialise_psa_sign_hash_interruptible_operation_t(
         &rpos, &rremain,
-        operation);
+        operation, 0);
     if (!ok) {
         goto fail;
     }
@@ -7181,7 +7181,7 @@ int psa_verify_hash_abort_wrapper(
 
     ok = psasim_server_serialise_psa_verify_hash_interruptible_operation_t(
         &rpos, &rremain,
-        operation);
+        operation, 1);
     if (!ok) {
         goto fail;
     }
@@ -7256,7 +7256,7 @@ int psa_verify_hash_complete_wrapper(
 
     ok = psasim_server_serialise_psa_verify_hash_interruptible_operation_t(
         &rpos, &rremain,
-        operation);
+        operation, 0);
     if (!ok) {
         goto fail;
     }
@@ -7436,7 +7436,7 @@ int psa_verify_hash_start_wrapper(
 
     ok = psasim_server_serialise_psa_verify_hash_interruptible_operation_t(
         &rpos, &rremain,
-        operation);
+        operation, 0);
     if (!ok) {
         goto fail;
     }

@@ -664,12 +664,15 @@ size_t psasim_server_serialise_psa_hash_operation_t_needs(
  * \param remaining[in,out]  Pointer to a `size_t` holding number of bytes
  *                           remaining in the buffer.
  * \param value              The value to serialise into the buffer.
+ * \param completed          Non-zero if the operation is now completed (set by
+ *                           finish and abort calls).
  *
  * \return                   \c 1 on success ("okay"), \c 0 on error.
  */
 int psasim_server_serialise_psa_hash_operation_t(uint8_t **pos,
                                                  size_t *remaining,
-                                                 psa_hash_operation_t *value);
+                                                 psa_hash_operation_t *value,
+                                                 int completed);
 
 /** Deserialise a `psa_hash_operation_t` from a buffer on the server side.
  *
@@ -750,12 +753,15 @@ size_t psasim_server_serialise_psa_aead_operation_t_needs(
  * \param remaining[in,out]  Pointer to a `size_t` holding number of bytes
  *                           remaining in the buffer.
  * \param value              The value to serialise into the buffer.
+ * \param completed          Non-zero if the operation is now completed (set by
+ *                           finish and abort calls).
  *
  * \return                   \c 1 on success ("okay"), \c 0 on error.
  */
 int psasim_server_serialise_psa_aead_operation_t(uint8_t **pos,
                                                  size_t *remaining,
-                                                 psa_aead_operation_t *value);
+                                                 psa_aead_operation_t *value,
+                                                 int completed);
 
 /** Deserialise a `psa_aead_operation_t` from a buffer on the server side.
  *
@@ -879,12 +885,15 @@ size_t psasim_server_serialise_psa_mac_operation_t_needs(
  * \param remaining[in,out]  Pointer to a `size_t` holding number of bytes
  *                           remaining in the buffer.
  * \param value              The value to serialise into the buffer.
+ * \param completed          Non-zero if the operation is now completed (set by
+ *                           finish and abort calls).
  *
  * \return                   \c 1 on success ("okay"), \c 0 on error.
  */
 int psasim_server_serialise_psa_mac_operation_t(uint8_t **pos,
                                                 size_t *remaining,
-                                                psa_mac_operation_t *value);
+                                                psa_mac_operation_t *value,
+                                                int completed);
 
 /** Deserialise a `psa_mac_operation_t` from a buffer on the server side.
  *
@@ -965,12 +974,15 @@ size_t psasim_server_serialise_psa_cipher_operation_t_needs(
  * \param remaining[in,out]  Pointer to a `size_t` holding number of bytes
  *                           remaining in the buffer.
  * \param value              The value to serialise into the buffer.
+ * \param completed          Non-zero if the operation is now completed (set by
+ *                           finish and abort calls).
  *
  * \return                   \c 1 on success ("okay"), \c 0 on error.
  */
 int psasim_server_serialise_psa_cipher_operation_t(uint8_t **pos,
                                                    size_t *remaining,
-                                                   psa_cipher_operation_t *value);
+                                                   psa_cipher_operation_t *value,
+                                                   int completed);
 
 /** Deserialise a `psa_cipher_operation_t` from a buffer on the server side.
  *
@@ -1051,12 +1063,15 @@ size_t psasim_server_serialise_psa_key_derivation_operation_t_needs(
  * \param remaining[in,out]  Pointer to a `size_t` holding number of bytes
  *                           remaining in the buffer.
  * \param value              The value to serialise into the buffer.
+ * \param completed          Non-zero if the operation is now completed (set by
+ *                           finish and abort calls).
  *
  * \return                   \c 1 on success ("okay"), \c 0 on error.
  */
 int psasim_server_serialise_psa_key_derivation_operation_t(uint8_t **pos,
                                                            size_t *remaining,
-                                                           psa_key_derivation_operation_t *value);
+                                                           psa_key_derivation_operation_t *value,
+                                                           int completed);
 
 /** Deserialise a `psa_key_derivation_operation_t` from a buffer on the server side.
  *
@@ -1137,12 +1152,15 @@ size_t psasim_server_serialise_psa_sign_hash_interruptible_operation_t_needs(
  * \param remaining[in,out]  Pointer to a `size_t` holding number of bytes
  *                           remaining in the buffer.
  * \param value              The value to serialise into the buffer.
+ * \param completed          Non-zero if the operation is now completed (set by
+ *                           finish and abort calls).
  *
  * \return                   \c 1 on success ("okay"), \c 0 on error.
  */
 int psasim_server_serialise_psa_sign_hash_interruptible_operation_t(uint8_t **pos,
                                                                     size_t *remaining,
-                                                                    psa_sign_hash_interruptible_operation_t *value);
+                                                                    psa_sign_hash_interruptible_operation_t *value,
+                                                                    int completed);
 
 /** Deserialise a `psa_sign_hash_interruptible_operation_t` from a buffer on the server side.
  *
@@ -1223,12 +1241,15 @@ size_t psasim_server_serialise_psa_verify_hash_interruptible_operation_t_needs(
  * \param remaining[in,out]  Pointer to a `size_t` holding number of bytes
  *                           remaining in the buffer.
  * \param value              The value to serialise into the buffer.
+ * \param completed          Non-zero if the operation is now completed (set by
+ *                           finish and abort calls).
  *
  * \return                   \c 1 on success ("okay"), \c 0 on error.
  */
 int psasim_server_serialise_psa_verify_hash_interruptible_operation_t(uint8_t **pos,
                                                                       size_t *remaining,
-                                                                      psa_verify_hash_interruptible_operation_t *value);
+                                                                      psa_verify_hash_interruptible_operation_t *value,
+                                                                      int completed);
 
 /** Deserialise a `psa_verify_hash_interruptible_operation_t` from a buffer on the server side.
  *

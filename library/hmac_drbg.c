@@ -158,8 +158,7 @@ static int hmac_drbg_reseed_core(mbedtls_hmac_drbg_context *ctx,
     memset(seed, 0, MBEDTLS_HMAC_DRBG_MAX_SEED_INPUT);
 
     /* IV. Gather entropy_len bytes of entropy for the seed */
-    if ((ret = ctx->f_entropy(ctx->p_entropy,
-                              seed, ctx->entropy_len)) != 0) {
+    if (ctx->f_entropy(ctx->p_entropy, seed, ctx->entropy_len) != 0) {
         return MBEDTLS_ERR_HMAC_DRBG_ENTROPY_SOURCE_FAILED;
     }
     seedlen += ctx->entropy_len;
@@ -174,9 +173,9 @@ static int hmac_drbg_reseed_core(mbedtls_hmac_drbg_context *ctx,
          *       is larger than the maximum of 32 Bytes that our own
          *       entropy source implementation can emit in a single
          *       call in configurations disabling SHA-512. */
-        if ((ret = ctx->f_entropy(ctx->p_entropy,
-                                  seed + seedlen,
-                                  ctx->entropy_len / 2)) != 0) {
+        if (ctx->f_entropy(ctx->p_entropy,
+                           seed + seedlen,
+                           ctx->entropy_len / 2) != 0) {
             return MBEDTLS_ERR_HMAC_DRBG_ENTROPY_SOURCE_FAILED;
         }
 

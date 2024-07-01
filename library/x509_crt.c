@@ -1102,8 +1102,8 @@ static int x509_crt_parse_der_core(mbedtls_x509_crt *crt,
      *      signatureAlgorithm   AlgorithmIdentifier,
      *      signatureValue       BIT STRING  }
      */
-    if ((ret = mbedtls_asn1_get_tag(&p, end, &len,
-                                    MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE)) != 0) {
+    if (mbedtls_asn1_get_tag(&p, end, &len,
+                             MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE) != 0) {
         mbedtls_x509_crt_free(crt);
         return MBEDTLS_ERR_X509_INVALID_FORMAT;
     }

@@ -936,6 +936,9 @@ int mbedtls_x509_dn_gets(char *buf, size_t size, const mbedtls_x509_name *dn)
     }
 
     return (int) (size - n);
+
+cleanup:
+    return ret;
 }
 
 /*
@@ -970,6 +973,9 @@ int mbedtls_x509_serial_gets(char *buf, size_t size, const mbedtls_x509_buf *ser
     }
 
     return (int) (size - n);
+
+cleanup:
+    return ret;
 }
 
 #if !defined(MBEDTLS_X509_REMOVE_INFO)
@@ -1015,6 +1021,9 @@ int mbedtls_x509_sig_alg_gets(char *buf, size_t size, const mbedtls_x509_buf *si
 #endif /* MBEDTLS_X509_RSASSA_PSS_SUPPORT */
 
     return (int) (size - n);
+
+cleanup:
+    return ret;
 }
 #endif /* MBEDTLS_X509_REMOVE_INFO */
 
@@ -1031,6 +1040,9 @@ int mbedtls_x509_key_size_helper(char *buf, size_t buf_size, const char *name)
     MBEDTLS_X509_SAFE_SNPRINTF;
 
     return 0;
+
+cleanup:
+    return ret;
 }
 
 int mbedtls_x509_time_cmp(const mbedtls_x509_time *t1,
@@ -1585,7 +1597,8 @@ int mbedtls_x509_info_subject_alt_name(char **buf, size_t *size,
                     if (n > 0) {
                         *p = '\0';
                     }
-                    return MBEDTLS_ERR_X509_BUFFER_TOO_SMALL;
+                    ret = MBEDTLS_ERR_X509_BUFFER_TOO_SMALL;
+                    goto cleanup;
                 }
 
                 memcpy(p, san.san.unstructured_name.p, san.san.unstructured_name.len);
@@ -1613,7 +1626,8 @@ int mbedtls_x509_info_subject_alt_name(char **buf, size_t *size,
                     if (n > 0) {
                         *p = '\0';
                     }
-                    return MBEDTLS_ERR_X509_BUFFER_TOO_SMALL;
+                    ret = MBEDTLS_ERR_X509_BUFFER_TOO_SMALL;
+                    goto cleanup;
                 }
 
                 memcpy(p, san.san.unstructured_name.p, san.san.unstructured_name.len);
@@ -1633,7 +1647,8 @@ int mbedtls_x509_info_subject_alt_name(char **buf, size_t *size,
                     if (n > 0) {
                         *p = '\0';
                     }
-                    return MBEDTLS_ERR_X509_BUFFER_TOO_SMALL;
+                    ret = MBEDTLS_ERR_X509_BUFFER_TOO_SMALL;
+                    goto cleanup;
                 }
 
                 unsigned char *ip = san.san.unstructured_name.p;
@@ -1652,7 +1667,8 @@ int mbedtls_x509_info_subject_alt_name(char **buf, size_t *size,
                     if (n > 0) {
                         *p = '\0';
                     }
-                    return MBEDTLS_ERR_X509_BAD_INPUT_DATA;
+                    ret = MBEDTLS_ERR_X509_BAD_INPUT_DATA;
+                    goto cleanup;
                 }
             }
             break;
@@ -1662,19 +1678,13 @@ int mbedtls_x509_info_subject_alt_name(char **buf, size_t *size,
             case MBEDTLS_X509_SAN_DIRECTORY_NAME:
             {
                 ret = mbedtls_snprintf(p, n, "\n%s    directoryName : ", prefix);
-                if (ret < 0 || (size_t) ret >= n) {
-                    mbedtls_x509_free_subject_alt_name(&san);
-                }
-
                 MBEDTLS_X509_SAFE_SNPRINTF;
                 ret = mbedtls_x509_dn_gets(p, n, &san.san.directory_name);
-
                 if (ret < 0) {
-                    mbedtls_x509_free_subject_alt_name(&san);
                     if (n > 0) {
                         *p = '\0';
                     }
-                    return ret;
+                    goto cleanup;
                 }
 
                 p += ret;
@@ -1700,8 +1710,13 @@ int mbedtls_x509_info_subject_alt_name(char **buf, size_t *size,
 
     *size = n;
     *buf = p;
+    ret = 0;
 
-    return 0;
+cleanup:
+    if (cur != NULL) {
+        mbedtls_x509_free_subject_alt_name(&san);
+    }
+    return ret;
 }
 
 #define PRINT_ITEM(i)                                   \
@@ -1737,8 +1752,10 @@ int mbedtls_x509_info_cert_type(char **buf, size_t *size,
 
     *size = n;
     *buf = p;
+    ret = 0;
 
-    return 0;
+cleanup:
+    return ret;
 }
 
 #define KEY_USAGE(code, name)       \
@@ -1768,8 +1785,10 @@ int mbedtls_x509_info_key_usage(char **buf, size_t *size,
 
     *size = n;
     *buf = p;
+    ret = 0;
 
-    return 0;
+cleanup:
+    return ret;
 }
 #endif /* MBEDTLS_X509_REMOVE_INFO */
 #endif /* MBEDTLS_X509_CRT_PARSE_C || MBEDTLS_X509_CSR_PARSE_C */

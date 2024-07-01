@@ -1708,8 +1708,10 @@ static int x509_info_ext_key_usage(char **buf, size_t *size,
 
     *size = n;
     *buf = p;
+    ret = 0;
 
-    return 0;
+cleanup:
+    return ret;
 }
 
 static int x509_info_cert_policies(char **buf, size_t *size,
@@ -1737,8 +1739,10 @@ static int x509_info_cert_policies(char **buf, size_t *size,
 
     *size = n;
     *buf = p;
+    ret = 0;
 
-    return 0;
+cleanup:
+    return ret;
 }
 
 /*
@@ -1883,6 +1887,9 @@ int mbedtls_x509_crt_info(char *buf, size_t size, const char *prefix,
     MBEDTLS_X509_SAFE_SNPRINTF;
 
     return (int) (size - n);
+
+cleanup:
+    return ret;
 }
 
 struct x509_crt_verify_string {
@@ -1922,6 +1929,9 @@ int mbedtls_x509_crt_verify_info(char *buf, size_t size, const char *prefix,
     }
 
     return (int) (size - n);
+
+cleanup:
+    return ret;
 }
 #endif /* MBEDTLS_X509_REMOVE_INFO */
 

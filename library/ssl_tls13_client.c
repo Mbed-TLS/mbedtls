@@ -1370,24 +1370,14 @@ static int ssl_tls13_is_downgrade_negotiation(mbedtls_ssl_context *ssl,
                                               const unsigned char *buf,
                                               const unsigned char *end)
 {
-    /* First seven bytes of the magic downgrade strings, see RFC 8446 4.1.3 */
-    static const unsigned char magic_downgrade_string[] =
-    { 0x44, 0x4F, 0x57, 0x4E, 0x47, 0x52, 0x44 };
-    const unsigned char *last_eight_bytes_of_random;
-    unsigned char last_byte_of_random;
+    uint64_t last_eight_bytes;
 
     MBEDTLS_SSL_CHK_BUF_READ_PTR(buf, end, MBEDTLS_SERVER_HELLO_RANDOM_LEN + 2);
-    last_eight_bytes_of_random = buf + 2 + MBEDTLS_SERVER_HELLO_RANDOM_LEN - 8;
+    last_eight_bytes =
+        MBEDTLS_GET_UINT64_BE(buf, 2 + MBEDTLS_SERVER_HELLO_RANDOM_LEN - 8);
 
-    if (memcmp(last_eight_bytes_of_random,
-               magic_downgrade_string,
-               sizeof(magic_downgrade_string)) == 0) {
-        last_byte_of_random = last_eight_bytes_of_random[7];
-        return last_byte_of_random == 0 ||
-               last_byte_of_random == 1;
-    }
-
-    return 0;
+    return last_eight_bytes == mbedtls_ssl_tls13_downgrade_magic_tls12 ||
+           last_eight_bytes == mbedtls_ssl_tls13_downgrade_magic_tls11;
 }
 
 /* Returns a negative value on failure, and otherwise

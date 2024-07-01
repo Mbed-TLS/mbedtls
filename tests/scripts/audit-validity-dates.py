@@ -273,9 +273,8 @@ class TestDataAuditor(Auditor):
 
     def collect_default_files(self):
         """Collect all files in `framework/data_files/`"""
-        test_dir = self.find_test_dir()
-        test_data_glob = os.path.join(test_dir, os.path.pardir, 'framework',
-                                      'data_files/**')
+        test_data_glob = os.path.join(build_tree.guess_mbedtls_root(),
+                                      'framework', 'data_files/**')
         data_files = [f for f in glob.glob(test_data_glob, recursive=True)
                       if os.path.isfile(f)]
         return data_files

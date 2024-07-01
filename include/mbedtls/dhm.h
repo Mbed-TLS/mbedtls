@@ -93,8 +93,6 @@ typedef enum {
 extern "C" {
 #endif
 
-#if !defined(MBEDTLS_DHM_ALT)
-
 /**
  * \brief          The DHM context structure.
  */
@@ -111,10 +109,6 @@ typedef struct mbedtls_dhm_context {
     mbedtls_mpi MBEDTLS_PRIVATE(pX);     /*!<  The previous \c X. */
 }
 mbedtls_dhm_context;
-
-#else /* MBEDTLS_DHM_ALT */
-#include "dhm_alt.h"
-#endif /* MBEDTLS_DHM_ALT */
 
 /**
  * \brief          This function initializes the DHM context.

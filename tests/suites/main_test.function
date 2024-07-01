@@ -241,7 +241,7 @@ int main(int argc, const char *argv[])
      * using the default data file. This allows running the executable
      * from another directory (e.g. the project root) and still access
      * the .datax file as well as data files used by test cases
-     * (typically from framework/../framework/data_files).
+     * (typically from framework/data_files).
      *
      * Note that we do this before the platform setup (which may access
      * files such as a random seed). We also do this before accessing

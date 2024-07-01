@@ -28,7 +28,7 @@ LMOTS hsslms interop test #1
 # from hsslms import LMS_Priv, LM_OTS_Priv, LMS_ALGORITHM_TYPE, LMOTS_ALGORITHM_TYPE
 # import pickle
 #
-# with open('framework/../framework/data_files/lms_hsslms_sha256_m32_h5_lmots_sha256_n32_w8_prv', 'rb') as private_key_file:
+# with open('framework/data_files/lms_hsslms_sha256_m32_h5_lmots_sha256_n32_w8_prv', 'rb') as private_key_file:
 #     private_key = pickle.load(private_key_file)
 #
 # ots_private_key = LM_OTS_Priv(private_key.otstypecode, private_key.I, 0, private_key.SEED)
@@ -53,7 +53,7 @@ LMOTS hsslms interop test #2
 # from hsslms import LMS_Priv, LM_OTS_Priv, LMS_ALGORITHM_TYPE, LMOTS_ALGORITHM_TYPE
 # import pickle
 #
-# with open('framework/../framework/data_files/lms_hsslms_sha256_m32_h5_lmots_sha256_n32_w8_prv', 'rb') as private_key_file:
+# with open('framework/data_files/lms_hsslms_sha256_m32_h5_lmots_sha256_n32_w8_prv', 'rb') as private_key_file:
 #     private_key = pickle.load(private_key_file)
 #
 #ots_private_key = LM_OTS_Priv(private_key.otstypecode, private_key.I, 1, private_key.SEED)
@@ -76,7 +76,7 @@ LMOTS hsslms interop NULL-message test
 # from hsslms import LMS_Priv, LM_OTS_Priv, LMS_ALGORITHM_TYPE, LMOTS_ALGORITHM_TYPE
 # import pickle
 #
-# with open('framework/../framework/data_files/lms_hsslms_sha256_m32_h5_lmots_sha256_n32_w8_prv', 'rb') as private_key_file:
+# with open('framework/data_files/lms_hsslms_sha256_m32_h5_lmots_sha256_n32_w8_prv', 'rb') as private_key_file:
 #     private_key = pickle.load(private_key_file)
 #
 #ots_private_key = LM_OTS_Priv(private_key.otstypecode, private_key.I, 3, private_key.SEED)

@@ -324,11 +324,9 @@ endif(USE_SHARED_MBEDTLS_LIBRARY)
 
 foreach(target IN LISTS target_libraries)
     add_library(MbedTLS::${target} ALIAS ${target})  # add_subdirectory support
-    # Include public header files from /include and other directories
-    # declared by /3rdparty/**/CMakeLists.txt. Include private header files
-    # from /library and others declared by /3rdparty/**/CMakeLists.txt.
-    # /library needs to be listed explicitly when building .c files outside
-    # of /library (which currently means: under /3rdparty).
+    # Include public header files from /include, tf-psa-crypto/include/ and
+    # /tf-psa-crypto/drivers/builtin/include/. Include private header files
+    # from /library.
     target_include_directories(${target}
         PUBLIC $<BUILD_INTERFACE:${MBEDTLS_DIR}/include/>
                $<BUILD_INTERFACE:${MBEDTLS_DIR}/tf-psa-crypto/include/>

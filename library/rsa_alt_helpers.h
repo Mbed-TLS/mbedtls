@@ -3,6 +3,12 @@
  *
  * \brief Context-independent RSA helper functions
  *
+ *  Please note: The below explanation is historical and is no longer relevant
+ *  due to there being no compelling reason to keep these functions separate
+ *  since the RSA alt interface was removed. A future refactoring will address
+ *  this which is tracked by the following issue:
+ *  https://github.com/Mbed-TLS/TF-PSA-Crypto/issues/105.
+ *
  *  This module declares some RSA-related helper functions useful when
  *  implementing the RSA interface. These functions are provided in a separate
  *  compilation unit in order to make it easy for designers of alternative RSA

@@ -29,12 +29,16 @@ int mbedtls_asn1_get_len(unsigned char **p,
                          const unsigned char *end,
                          size_t *len)
 {
+    unsigned char lenlen;
+
     if ((end - *p) < 1) {
         return MBEDTLS_ERR_ASN1_OUT_OF_DATA;
     }
 
-    if ((**p & 0x80) == 0) {
-        *len = *(*p)++;
+    lenlen = **p;
+    if ((lenlen & 0x80) == 0) {
+        *len = lenlen;
+        (*p)++;
     } else {
         int n = (**p) & 0x7F;
         if (n == 0 || n > 4) {
@@ -45,12 +49,16 @@ int mbedtls_asn1_get_len(unsigned char **p,
         }
         *len = 0;
         (*p)++;
+        if (**p < (n > 1 ? 1 : 0x80)) {
+            return MBEDTLS_ERR_ASN1_INVALID_LENGTH;
+        }
         while (n--) {
             *len = (*len << 8) | **p;
             (*p)++;
         }
     }
 
+    /* Check that the payload fits in the buffer */
     if (*len > (size_t) (end - *p)) {
         return MBEDTLS_ERR_ASN1_OUT_OF_DATA;
     }

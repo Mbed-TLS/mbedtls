@@ -123,7 +123,7 @@ exit:
 }
 
 int get_len_step(const data_t *input, size_t buffer_size,
-                 size_t actual_length)
+                 size_t actual_length, int err)
 {
     unsigned char *buf = NULL;
     unsigned char *p = NULL;
@@ -152,10 +152,14 @@ int get_len_step(const data_t *input, size_t buffer_size,
 
     ret = mbedtls_asn1_get_len(&p, end, &parsed_length);
 
-    if (buffer_size >= input->len + actual_length) {
-        TEST_EQUAL(ret, 0);
-        TEST_ASSERT(p == buf + input->len);
-        TEST_EQUAL(parsed_length, actual_length);
+    if (buffer_size >= input->len + actual_length ||
+        (err == MBEDTLS_ERR_ASN1_INVALID_LENGTH && end > p &&
+         (*p < 0x81 || *p > 0x84 || (end - p) > *p - 0x80))) {
+        TEST_EQUAL(ret, err);
+        if (err == 0) {
+            TEST_ASSERT(p == buf + input->len);
+            TEST_EQUAL(parsed_length, actual_length);
+        }
     } else {
         TEST_EQUAL(ret, MBEDTLS_ERR_ASN1_OUT_OF_DATA);
     }
@@ -278,7 +282,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void get_len(const data_t *input, int actual_length_arg)
+void get_len(const data_t *input, int actual_length_arg, int err)
 {
     size_t actual_length = actual_length_arg;
     size_t buffer_size;
@@ -290,14 +294,14 @@ void get_len(const data_t *input, int actual_length_arg)
      * and we only test the empty string on a 1-byte input.
      */
     for (buffer_size = 1; buffer_size <= input->len + 1; buffer_size++) {
-        if (!get_len_step(input, buffer_size, actual_length)) {
+        if (!get_len_step(input, buffer_size, actual_length, err)) {
             goto exit;
         }
     }
-    if (!get_len_step(input, input->len + actual_length - 1, actual_length)) {
+    if (!get_len_step(input, input->len + actual_length - 1, actual_length, err)) {
         goto exit;
     }
-    if (!get_len_step(input, input->len + actual_length, actual_length)) {
+    if (!get_len_step(input, input->len + actual_length, actual_length, err)) {
         goto exit;
     }
 }
@@ -500,20 +504,30 @@ void get_mpi_too_large()
     unsigned char *buf = NULL;
     unsigned char *p;
     mbedtls_mpi actual_mpi;
+    size_t i = 0;
+    size_t lenbytes = 2;
+    size_t size;
+    size_t highbyte;
+
     size_t too_many_octets =
         MBEDTLS_MPI_MAX_LIMBS * sizeof(mbedtls_mpi_uint) + 1;
-    size_t size = too_many_octets + 6;
-
     mbedtls_mpi_init(&actual_mpi);
+    TEST_EQUAL(too_many_octets >> 24, 0);
+    highbyte = too_many_octets >> 16;
+    TEST_ASSERT((too_many_octets >> 8) != 0);
+    lenbytes = highbyte ? 3 : 2;
+    size = too_many_octets + lenbytes + 3;
 
     TEST_CALLOC(buf, size);
-    buf[0] = 0x02; /* tag: INTEGER */
-    buf[1] = 0x84; /* 4-octet length */
-    buf[2] = (too_many_octets >> 24) & 0xff;
-    buf[3] = (too_many_octets >> 16) & 0xff;
-    buf[4] = (too_many_octets >> 8) & 0xff;
-    buf[5] = too_many_octets & 0xff;
-    buf[6] = 0x01; /* most significant octet */
+    buf[i++] = 0x02; /* tag: INTEGER */
+    buf[i++] = 0x80 + lenbytes; /* 2 or 3 octet length */
+    if (highbyte) {
+        buf[i++] = highbyte & 0xff;
+    }
+    buf[i++] = (too_many_octets >> 8) & 0xff;
+    buf[i++] = too_many_octets & 0xff;
+    buf[i++] = 0x01; /* most significant octet */
+    TEST_EQUAL(i, size - too_many_octets);
 
     p = buf;
     TEST_EQUAL(mbedtls_asn1_get_mpi(&p, buf + size, &actual_mpi),

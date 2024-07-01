@@ -5,6 +5,7 @@ set(executables
     key_ladder_demo
     psa_constant_names
     psa_hash
+    psa_sign_verify
 )
 
 if(GEN_FILES)

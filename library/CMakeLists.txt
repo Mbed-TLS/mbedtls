@@ -95,6 +95,7 @@ set(src_crypto
 
 set(src_x509
     pkcs7.c
+    pkcs7_write.c
     x509.c
     x509_create.c
     x509_crl.c

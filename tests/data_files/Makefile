@@ -2000,6 +2000,17 @@ pkcs7_data_multiple_certs_signed.der: $(pkcs7_test_file) $(pkcs7_test_cert_1) $(
 	$(OPENSSL) smime -sign -binary -in pkcs7_data.bin -out $@ -md sha256 -signer pkcs7-rsa-sha256-1.pem -signer pkcs7-rsa-sha256-2.pem -noattr -outform DER -out $@
 all_final += pkcs7_data_multiple_certs_signed.der
 
+# pkcs7 raw signature file
+pkcs7_data_signed.bin: $(pkcs7_test_file) $(pkcs7_test_cert_1)
+	$(OPENSSL) dgst -sha256 -sign pkcs7-rsa-sha256-1.key -out $@ pkcs7_data.bin
+all_final += pkcs7_data_multiple_certs_signed.der
+
+# pkcs7 raw signature file, that is incorrectly generated
+pkcs7_data_signed_bad.bin: pkcs7_data_signed.bin
+	cp pkcs7_data_signed.bin $@
+	printf 'foo' | dd of=$@ bs=1 seek=1 count=3 conv=notrunc
+all_final += pkcs7_data_signed_bad.bin
+
 # pkcs7 signature file with corrupted CERT
 pkcs7_data_signed_badcert.der: pkcs7_data_cert_signed_sha256.der
 	cp pkcs7_data_cert_signed_sha256.der $@

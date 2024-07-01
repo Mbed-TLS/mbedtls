@@ -149,7 +149,7 @@ LMS hsslms interop test #1
 # from hsslms import LMS_Priv, LMS_ALGORITHM_TYPE, LMOTS_ALGORITHM_TYPE
 # import pickle
 #
-# with open('framework/../framework/data_files/lms_hsslms_sha256_m32_h5_lmots_sha256_n32_w8_prv', 'rb') as private_key_file:
+# with open('framework/data_files/lms_hsslms_sha256_m32_h5_lmots_sha256_n32_w8_prv', 'rb') as private_key_file:
 #     private_key = pickle.load(private_key_file)
 #
 # public_key = private_key.gen_pub()
@@ -172,7 +172,7 @@ LMS hsslms interop test #2
 # from hsslms import LMS_Priv, LMS_ALGORITHM_TYPE, LMOTS_ALGORITHM_TYPE
 # import pickle
 #
-# with open('framework/../framework/data_files/lms_hsslms_sha256_m32_h5_lmots_sha256_n32_w8_prv', 'rb') as private_key_file:
+# with open('framework/data_files/lms_hsslms_sha256_m32_h5_lmots_sha256_n32_w8_prv', 'rb') as private_key_file:
 #     private_key = pickle.load(private_key_file)
 #
 # public_key = private_key.gen_pub()

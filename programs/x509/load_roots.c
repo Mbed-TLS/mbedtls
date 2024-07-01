@@ -41,14 +41,14 @@ int main(void)
 /*
  * global options
  */
-struct options {
+static struct options {
     const char **filenames;     /* NULL-terminated list of file names */
     unsigned iterations;        /* Number of iterations to time */
     int prime_cache;            /* Prime the disk read cache? */
 } opt;
 
 
-int read_certificates(const char *const *filenames)
+static int read_certificates(const char *const *filenames)
 {
     mbedtls_x509_crt cas;
     int ret = 0;

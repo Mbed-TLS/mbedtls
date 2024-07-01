@@ -603,7 +603,7 @@ rng_context_t rng;
 /*
  * global options
  */
-struct options {
+static struct options {
     const char *server_addr;    /* address on which the ssl service runs    */
     const char *server_port;    /* port on which the ssl service runs       */
     int debug_level;            /* level of debugging                       */
@@ -1332,7 +1332,7 @@ static psa_status_t psa_setup_psk_key_slot(mbedtls_svc_key_id_t *slot,
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
-int report_cid_usage(mbedtls_ssl_context *ssl,
+static int report_cid_usage(mbedtls_ssl_context *ssl,
                      const char *additional_description)
 {
     int ret;

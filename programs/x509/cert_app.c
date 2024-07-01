@@ -74,7 +74,7 @@ int main(void)
 /*
  * global options
  */
-struct options {
+static struct options {
     int mode;                   /* the mode to run the application in   */
     const char *filename;       /* filename of the certificate file     */
     const char *ca_file;        /* the file with the CA certificate(s)  */

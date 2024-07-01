@@ -1794,7 +1794,13 @@ void mbedtls_ssl_set_timer(mbedtls_ssl_context *ssl, uint32_t millisecs);
 MBEDTLS_CHECK_RETURN_CRITICAL
 int mbedtls_ssl_check_timer(mbedtls_ssl_context *ssl);
 
-void mbedtls_ssl_reset_in_out_pointers(mbedtls_ssl_context *ssl);
+void mbedtls_ssl_reset_in_pointers(mbedtls_ssl_context *ssl);
+void mbedtls_ssl_reset_out_pointers(mbedtls_ssl_context *ssl);
+static inline void mbedtls_ssl_reset_in_out_pointers(mbedtls_ssl_context *ssl)
+{
+    mbedtls_ssl_reset_in_pointers(ssl);
+    mbedtls_ssl_reset_out_pointers(ssl);
+}
 void mbedtls_ssl_update_out_pointers(mbedtls_ssl_context *ssl,
                                      mbedtls_ssl_transform *transform);
 void mbedtls_ssl_update_in_pointers(mbedtls_ssl_context *ssl);

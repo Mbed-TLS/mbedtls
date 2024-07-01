@@ -1355,19 +1355,23 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
      * compression methods and the length of the extensions.
      *
      * cipher_suites                cipher_suites_len bytes
-     * legacy_compression_methods                   2 bytes
-     * extensions_len                               2 bytes
+     * legacy_compression_methods length            1 byte
      */
-    MBEDTLS_SSL_CHK_BUF_READ_PTR(p, end, cipher_suites_len + 2 + 2);
+    MBEDTLS_SSL_CHK_BUF_READ_PTR(p, end, cipher_suites_len + 1);
     p += cipher_suites_len;
     cipher_suites_end = p;
+
+    /* Check if we have enough data for legacy_compression_methods
+     * and the length of the extensions (2 bytes).
+     */
+    MBEDTLS_SSL_CHK_BUF_READ_PTR(p + 1, end, p[0] + 2);
 
     /*
      * Search for the supported versions extension and parse it to determine
      * if the client supports TLS 1.3.
      */
     ret = mbedtls_ssl_tls13_is_supported_versions_ext_present_in_exts(
-        ssl, p + 2, end,
+        ssl, p + 1 + p[0], end,
         &supported_versions_data, &supported_versions_data_end);
     if (ret < 0) {
         MBEDTLS_SSL_DEBUG_RET(1,

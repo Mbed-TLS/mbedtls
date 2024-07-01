@@ -16,22 +16,23 @@ import argparse
 import itertools
 from collections import namedtuple
 
+DATA_FILES_PATH = '../framework/data_files'
 # define certificates configuration entry
 Certificate = namedtuple("Certificate", ['cafile', 'certfile', 'keyfile'])
 # define the certificate parameters for signature algorithms
 CERTIFICATES = {
-    'ecdsa_secp256r1_sha256': Certificate('../framework/data_files/test-ca2.crt',
-                                          '../framework/data_files/ecdsa_secp256r1.crt',
-                                          '../framework/data_files/ecdsa_secp256r1.key'),
-    'ecdsa_secp384r1_sha384': Certificate('../framework/data_files/test-ca2.crt',
-                                          '../framework/data_files/ecdsa_secp384r1.crt',
-                                          '../framework/data_files/ecdsa_secp384r1.key'),
-    'ecdsa_secp521r1_sha512': Certificate('../framework/data_files/test-ca2.crt',
-                                          '../framework/data_files/ecdsa_secp521r1.crt',
-                                          '../framework/data_files/ecdsa_secp521r1.key'),
-    'rsa_pss_rsae_sha256': Certificate('../framework/data_files/test-ca_cat12.crt',
-                                       '../framework/data_files/server2-sha256.crt',
-                                       '../framework/data_files/server2.key')
+    'ecdsa_secp256r1_sha256': Certificate(DATA_FILES_PATH + '/test-ca2.crt',
+                                          DATA_FILES_PATH + '/ecdsa_secp256r1.crt',
+                                          DATA_FILES_PATH + '/ecdsa_secp256r1.key'),
+    'ecdsa_secp384r1_sha384': Certificate(DATA_FILES_PATH + '/test-ca2.crt',
+                                          DATA_FILES_PATH + '/ecdsa_secp384r1.crt',
+                                          DATA_FILES_PATH + '/ecdsa_secp384r1.key'),
+    'ecdsa_secp521r1_sha512': Certificate(DATA_FILES_PATH + '/test-ca2.crt',
+                                          DATA_FILES_PATH + '/ecdsa_secp521r1.crt',
+                                          DATA_FILES_PATH + '/ecdsa_secp521r1.key'),
+    'rsa_pss_rsae_sha256': Certificate(DATA_FILES_PATH + '/test-ca_cat12.crt',
+                                       DATA_FILES_PATH + '/server2-sha256.crt',
+                                       DATA_FILES_PATH + '/server2.key')
 }
 
 CIPHER_SUITE_IANA_VALUE = {

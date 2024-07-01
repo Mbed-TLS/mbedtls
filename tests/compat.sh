@@ -613,6 +613,8 @@ o_check_ciphersuite()
 
 setup_arguments()
 {
+    DATA_FILES_PATH="../framework/data_files"
+
     O_MODE=""
     G_MODE=""
     case "$MODE" in
@@ -651,7 +653,7 @@ setup_arguments()
     # force it or not for intermediate versions.
     case $($OPENSSL version) in
         "OpenSSL 1.0"*)
-            O_SERVER_ARGS="$O_SERVER_ARGS -dhparam ../framework/data_files/dhparams.pem"
+            O_SERVER_ARGS="$O_SERVER_ARGS -dhparam $DATA_FILES_PATH/dhparams.pem"
             ;;
     esac
 
@@ -702,13 +704,13 @@ setup_arguments()
 
     if [ "X$VERIFY" = "XYES" ];
     then
-        M_SERVER_ARGS="$M_SERVER_ARGS ca_file=../framework/data_files/test-ca_cat12.crt auth_mode=required"
-        O_SERVER_ARGS="$O_SERVER_ARGS -CAfile ../framework/data_files/test-ca_cat12.crt -Verify 10"
-        G_SERVER_ARGS="$G_SERVER_ARGS --x509cafile ../framework/data_files/test-ca_cat12.crt --require-client-cert"
+        M_SERVER_ARGS="$M_SERVER_ARGS ca_file=$DATA_FILES_PATH/test-ca_cat12.crt auth_mode=required"
+        O_SERVER_ARGS="$O_SERVER_ARGS -CAfile $DATA_FILES_PATH/test-ca_cat12.crt -Verify 10"
+        G_SERVER_ARGS="$G_SERVER_ARGS --x509cafile $DATA_FILES_PATH/test-ca_cat12.crt --require-client-cert"
 
-        M_CLIENT_ARGS="$M_CLIENT_ARGS ca_file=../framework/data_files/test-ca_cat12.crt auth_mode=required"
-        O_CLIENT_ARGS="$O_CLIENT_ARGS -CAfile ../framework/data_files/test-ca_cat12.crt -verify 10"
-        G_CLIENT_ARGS="$G_CLIENT_ARGS --x509cafile ../framework/data_files/test-ca_cat12.crt"
+        M_CLIENT_ARGS="$M_CLIENT_ARGS ca_file=$DATA_FILES_PATH/test-ca_cat12.crt auth_mode=required"
+        O_CLIENT_ARGS="$O_CLIENT_ARGS -CAfile $DATA_FILES_PATH/test-ca_cat12.crt -verify 10"
+        G_CLIENT_ARGS="$G_CLIENT_ARGS --x509cafile $DATA_FILES_PATH/test-ca_cat12.crt"
     else
         # don't request a client cert at all
         M_SERVER_ARGS="$M_SERVER_ARGS ca_file=none auth_mode=none"
@@ -721,28 +723,28 @@ setup_arguments()
 
     case $TYPE in
         "ECDSA")
-            M_SERVER_ARGS="$M_SERVER_ARGS crt_file=../framework/data_files/server5.crt key_file=../framework/data_files/server5.key"
-            O_SERVER_ARGS="$O_SERVER_ARGS -cert ../framework/data_files/server5.crt -key ../framework/data_files/server5.key"
-            G_SERVER_ARGS="$G_SERVER_ARGS --x509certfile ../framework/data_files/server5.crt --x509keyfile ../framework/data_files/server5.key"
+            M_SERVER_ARGS="$M_SERVER_ARGS crt_file=$DATA_FILES_PATH/server5.crt key_file=$DATA_FILES_PATH/server5.key"
+            O_SERVER_ARGS="$O_SERVER_ARGS -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key"
+            G_SERVER_ARGS="$G_SERVER_ARGS --x509certfile $DATA_FILES_PATH/server5.crt --x509keyfile $DATA_FILES_PATH/server5.key"
 
             if [ "X$VERIFY" = "XYES" ]; then
-                M_CLIENT_ARGS="$M_CLIENT_ARGS crt_file=../framework/data_files/server6.crt key_file=../framework/data_files/server6.key"
-                O_CLIENT_ARGS="$O_CLIENT_ARGS -cert ../framework/data_files/server6.crt -key ../framework/data_files/server6.key"
-                G_CLIENT_ARGS="$G_CLIENT_ARGS --x509certfile ../framework/data_files/server6.crt --x509keyfile ../framework/data_files/server6.key"
+                M_CLIENT_ARGS="$M_CLIENT_ARGS crt_file=$DATA_FILES_PATH/server6.crt key_file=$DATA_FILES_PATH/server6.key"
+                O_CLIENT_ARGS="$O_CLIENT_ARGS -cert $DATA_FILES_PATH/server6.crt -key $DATA_FILES_PATH/server6.key"
+                G_CLIENT_ARGS="$G_CLIENT_ARGS --x509certfile $DATA_FILES_PATH/server6.crt --x509keyfile $DATA_FILES_PATH/server6.key"
             else
                 M_CLIENT_ARGS="$M_CLIENT_ARGS crt_file=none key_file=none"
             fi
             ;;
 
         "RSA")
-            M_SERVER_ARGS="$M_SERVER_ARGS crt_file=../framework/data_files/server2-sha256.crt key_file=../framework/data_files/server2.key"
-            O_SERVER_ARGS="$O_SERVER_ARGS -cert ../framework/data_files/server2-sha256.crt -key ../framework/data_files/server2.key"
-            G_SERVER_ARGS="$G_SERVER_ARGS --x509certfile ../framework/data_files/server2-sha256.crt --x509keyfile ../framework/data_files/server2.key"
+            M_SERVER_ARGS="$M_SERVER_ARGS crt_file=$DATA_FILES_PATH/server2-sha256.crt key_file=$DATA_FILES_PATH/server2.key"
+            O_SERVER_ARGS="$O_SERVER_ARGS -cert $DATA_FILES_PATH/server2-sha256.crt -key $DATA_FILES_PATH/server2.key"
+            G_SERVER_ARGS="$G_SERVER_ARGS --x509certfile $DATA_FILES_PATH/server2-sha256.crt --x509keyfile $DATA_FILES_PATH/server2.key"
 
             if [ "X$VERIFY" = "XYES" ]; then
-                M_CLIENT_ARGS="$M_CLIENT_ARGS crt_file=../framework/data_files/cert_sha256.crt key_file=../framework/data_files/server1.key"
-                O_CLIENT_ARGS="$O_CLIENT_ARGS -cert ../framework/data_files/cert_sha256.crt -key ../framework/data_files/server1.key"
-                G_CLIENT_ARGS="$G_CLIENT_ARGS --x509certfile ../framework/data_files/cert_sha256.crt --x509keyfile ../framework/data_files/server1.key"
+                M_CLIENT_ARGS="$M_CLIENT_ARGS crt_file=$DATA_FILES_PATH/cert_sha256.crt key_file=$DATA_FILES_PATH/server1.key"
+                O_CLIENT_ARGS="$O_CLIENT_ARGS -cert $DATA_FILES_PATH/cert_sha256.crt -key $DATA_FILES_PATH/server1.key"
+                G_CLIENT_ARGS="$G_CLIENT_ARGS --x509certfile $DATA_FILES_PATH/cert_sha256.crt --x509keyfile $DATA_FILES_PATH/server1.key"
             else
                 M_CLIENT_ARGS="$M_CLIENT_ARGS crt_file=none key_file=none"
             fi
@@ -751,9 +753,9 @@ setup_arguments()
         "PSK")
             # give RSA-PSK-capable server a RSA cert
             # (should be a separate type, but harder to close with openssl)
-            M_SERVER_ARGS="$M_SERVER_ARGS psk=6162636465666768696a6b6c6d6e6f70 ca_file=none crt_file=../framework/data_files/server2-sha256.crt key_file=../framework/data_files/server2.key"
+            M_SERVER_ARGS="$M_SERVER_ARGS psk=6162636465666768696a6b6c6d6e6f70 ca_file=none crt_file=$DATA_FILES_PATH/server2-sha256.crt key_file=$DATA_FILES_PATH/server2.key"
             O_SERVER_ARGS="$O_SERVER_ARGS -psk 6162636465666768696a6b6c6d6e6f70 -nocert"
-            G_SERVER_ARGS="$G_SERVER_ARGS --x509certfile ../framework/data_files/server2-sha256.crt --x509keyfile ../framework/data_files/server2.key --pskpasswd ../framework/data_files/passwd.psk"
+            G_SERVER_ARGS="$G_SERVER_ARGS --x509certfile $DATA_FILES_PATH/server2-sha256.crt --x509keyfile $DATA_FILES_PATH/server2.key --pskpasswd $DATA_FILES_PATH/passwd.psk"
 
             M_CLIENT_ARGS="$M_CLIENT_ARGS psk=6162636465666768696a6b6c6d6e6f70 crt_file=none key_file=none"
             O_CLIENT_ARGS="$O_CLIENT_ARGS -psk 6162636465666768696a6b6c6d6e6f70"

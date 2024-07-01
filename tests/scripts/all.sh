@@ -6065,6 +6065,11 @@ component_test_suite_with_psasim()
 
     helper_psasim_server start
 
+    # psasim takes an extremely long execution time on some test suites so we
+    # exclude them from the list.
+    SKIP_TEST_SUITES="constant_time_hmac,lmots,lms"
+    export SKIP_TEST_SUITES
+
     msg "run test suites"
     make PSASIM=1 test
 

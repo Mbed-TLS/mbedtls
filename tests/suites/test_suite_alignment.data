@@ -117,3 +117,45 @@ unaligned_access_endian_aware:64:3:0
 
 Big-endian check
 mbedtls_is_big_endian
+
+mbedtls_memcpy_to 0 2
+mbedtls_memcpy_to:0:2
+
+mbedtls_memcpy_to 0 4
+mbedtls_memcpy_to:0:4
+
+mbedtls_memcpy_to 0 8
+mbedtls_memcpy_to:0:8
+
+mbedtls_memcpy_to 4 2
+mbedtls_memcpy_to:4:2
+
+mbedtls_memcpy_to 4 4
+mbedtls_memcpy_to:4:4
+
+mbedtls_memcpy_to 16 2
+mbedtls_memcpy_to:16:2
+
+mbedtls_memcpy_to 16 4
+mbedtls_memcpy_to:16:4
+
+mbedtls_memcpy_to 16 8
+mbedtls_memcpy_to:16:8
+
+mbedtls_memcpy_to 64 2
+mbedtls_memcpy_to:64:2
+
+mbedtls_memcpy_to 64 4
+mbedtls_memcpy_to:64:4
+
+mbedtls_memcpy_to 64 8
+mbedtls_memcpy_to:64:8
+
+mbedtls_memcpy_to 1024 2
+mbedtls_memcpy_to:1024:2
+
+mbedtls_memcpy_to 1024 4
+mbedtls_memcpy_to:1024:4
+
+mbedtls_memcpy_to 1024 8
+mbedtls_memcpy_to:1024:8

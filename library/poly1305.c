@@ -248,17 +248,10 @@ int mbedtls_poly1305_starts(mbedtls_poly1305_context *ctx,
     ctx->r[2] = MBEDTLS_GET_UINT32_LE(key, 8)  & 0x0FFFFFFCU;
     ctx->r[3] = MBEDTLS_GET_UINT32_LE(key, 12) & 0x0FFFFFFCU;
 
-    ctx->s[0] = MBEDTLS_GET_UINT32_LE(key, 16);
-    ctx->s[1] = MBEDTLS_GET_UINT32_LE(key, 20);
-    ctx->s[2] = MBEDTLS_GET_UINT32_LE(key, 24);
-    ctx->s[3] = MBEDTLS_GET_UINT32_LE(key, 28);
+    mbedtls_memcpy_to_le(ctx->s, key + 16, 16, 4);
 
     /* Initial accumulator state */
-    ctx->acc[0] = 0U;
-    ctx->acc[1] = 0U;
-    ctx->acc[2] = 0U;
-    ctx->acc[3] = 0U;
-    ctx->acc[4] = 0U;
+    memset(ctx->acc, 0, sizeof(ctx->acc));
 
     /* Queue initially empty */
     mbedtls_platform_zeroize(ctx->queue, sizeof(ctx->queue));

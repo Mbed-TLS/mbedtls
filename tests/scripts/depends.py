@@ -261,7 +261,7 @@ REVERSE_DEPENDENCIES = {
                          'MBEDTLS_ENTROPY_FORCE_SHA256',
                          'MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_IF_PRESENT',
                          'MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_ONLY'],
-    'MBEDTLS_X509_RSASSA_PSS_SUPPORT': []
+    'MBEDTLS_X509_RSASSA_PSS_SUPPORT': [],
 }
 
 # If an option is tested in an exclusive test, alter the following defines.
@@ -289,6 +289,7 @@ EXCLUSIVE_GROUPS = {
                       '-MBEDTLS_GCM_C',
                       '-MBEDTLS_SSL_TICKET_C',
                       '-MBEDTLS_SSL_CONTEXT_SERIALIZATION'],
+    'MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED': ['-MBEDTLS_SSL_EARLY_DATA'],
 }
 def handle_exclusive_groups(config_settings, symbol):
     """For every symbol tested in an exclusive group check if there are other
@@ -397,6 +398,9 @@ class DomainData:
         curve_symbols = self.config_symbols_matching(r'MBEDTLS_ECP_DP_\w+_ENABLED\Z')
         # Find key exchange enabling macros by name.
         key_exchange_symbols = self.config_symbols_matching(r'MBEDTLS_KEY_EXCHANGE_\w+_ENABLED\Z')
+        # Find TLS 1.3 key exchange enabling macros by name.
+        tls13_kex_symbols = self.config_symbols_matching(\
+                r'MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_\w+_ENABLED\Z')
         # Find cipher IDs (block permutations and stream ciphers --- chaining
         # and padding modes are exercised separately) information by parsing
         # cipher.h, as the information is not readily available in mbedtls_config.h.
@@ -426,6 +430,9 @@ class DomainData:
                                           '|MBEDTLS_SHA3_'),
             # Key exchange types.
             'kex': ExclusiveDomain(key_exchange_symbols, build_and_test),
+            # TLS 1.3 key exchange types.
+            'tls13_kex': ExclusiveDomain(tls13_kex_symbols, build_and_test),
+            # Public-key algorithms.
             'pkalgs': ComplementaryDomain(['MBEDTLS_ECDSA_C',
                                            'MBEDTLS_ECP_C',
                                            'MBEDTLS_PKCS1_V21',

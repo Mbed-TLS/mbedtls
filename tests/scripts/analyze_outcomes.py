@@ -160,10 +160,10 @@ def analyze_driver_vs_reference(results: Results, outcomes: Outcomes,
         # don't issue an error if they're skipped with drivers,
         # but issue an error if they're not (means we have a bad entry).
         ignored = False
-        if full_test_suite in ignored_tests:
-            for str_or_re in ignored_tests[full_test_suite]:
-                if name_matches_pattern(test_string, str_or_re):
-                    ignored = True
+        for str_or_re in (ignored_tests.get(full_test_suite, []) +
+                          ignored_tests.get(test_suite, [])):
+            if name_matches_pattern(test_string, str_or_re):
+                ignored = True
 
         if not ignored and not suite_case in driver_outcomes.successes:
             results.error("PASS -> SKIP/FAIL: {}", suite_case)
@@ -242,6 +242,9 @@ KNOWN_TASKS = {
                 'psa_crypto_low_hash.generated', # testing the builtins
             ],
             'ignored_tests': {
+                'test_suite_config': [
+                    re.compile(r'.*\bMBEDTLS_(MD5|RIPEMD160|SHA[0-9]+)_.*'),
+                ],
                 'test_suite_platform': [
                     # Incompatible with sanitizers (e.g. ASan). If the driver
                     # component uses a sanitizer but the reference component
@@ -265,6 +268,10 @@ KNOWN_TASKS = {
                 'psa_crypto_low_hash.generated',
             ],
             'ignored_tests': {
+                'test_suite_config': [
+                    re.compile(r'.*\bMBEDTLS_(MD5|RIPEMD160|SHA[0-9]+)_.*'),
+                    re.compile(r'.*\bMBEDTLS_MD_C\b')
+                ],
                 'test_suite_md': [
                     # Builtin HMAC is not supported in the accelerate component.
                     re.compile('.*HMAC.*'),
@@ -304,6 +311,12 @@ KNOWN_TASKS = {
                 'cipher',
             ],
             'ignored_tests': {
+                'test_suite_config': [
+                    re.compile(r'.*\bMBEDTLS_(AES|ARIA|CAMELLIA|CHACHA20|DES)_.*'),
+                    re.compile(r'.*\bMBEDTLS_(CCM|CHACHAPOLY|CMAC|GCM)_.*'),
+                    re.compile(r'.*\bMBEDTLS_AES(\w+)_C\b.*'),
+                    re.compile(r'.*\bMBEDTLS_CIPHER_.*'),
+                ],
                 # PEM decryption is not supported so far.
                 # The rest of PEM (write, unencrypted read) works though.
                 'test_suite_pem': [
@@ -357,6 +370,9 @@ KNOWN_TASKS = {
                 'ecdsa', 'ecdh', 'ecjpake',
             ],
             'ignored_tests': {
+                'test_suite_config': [
+                    re.compile(r'.*\bMBEDTLS_(ECDH|ECDSA|ECJPAKE|ECP)_.*'),
+                ],
                 'test_suite_platform': [
                     # Incompatible with sanitizers (e.g. ASan). If the driver
                     # component uses a sanitizer but the reference component
@@ -397,6 +413,10 @@ KNOWN_TASKS = {
                 'ecp', 'ecdsa', 'ecdh', 'ecjpake',
             ],
             'ignored_tests': {
+                'test_suite_config': [
+                    re.compile(r'.*\bMBEDTLS_(ECDH|ECDSA|ECJPAKE|ECP)_.*'),
+                    re.compile(r'.*\bMBEDTLS_PK_PARSE_EC_COMPRESSED\b.*'),
+                ],
                 'test_suite_platform': [
                     # Incompatible with sanitizers (e.g. ASan). If the driver
                     # component uses a sanitizer but the reference component
@@ -436,6 +456,11 @@ KNOWN_TASKS = {
                 'bignum.generated', 'bignum.misc',
             ],
             'ignored_tests': {
+                'test_suite_config': [
+                    re.compile(r'.*\bMBEDTLS_BIGNUM_C\b.*'),
+                    re.compile(r'.*\bMBEDTLS_(ECDH|ECDSA|ECJPAKE|ECP)_.*'),
+                    re.compile(r'.*\bMBEDTLS_PK_PARSE_EC_COMPRESSED\b.*'),
+                ],
                 'test_suite_platform': [
                     # Incompatible with sanitizers (e.g. ASan). If the driver
                     # component uses a sanitizer but the reference component
@@ -485,6 +510,13 @@ KNOWN_TASKS = {
                     # provide), even with MBEDTLS_USE_PSA_CRYPTO.
                     re.compile(r'PSK callback:.*\bdhe-psk\b.*'),
                 ],
+                'test_suite_config': [
+                    re.compile(r'.*\bMBEDTLS_BIGNUM_C\b.*'),
+                    re.compile(r'.*\bMBEDTLS_DHM_C\b.*'),
+                    re.compile(r'.*\bMBEDTLS_(ECDH|ECDSA|ECJPAKE|ECP)_.*'),
+                    re.compile(r'.*\bMBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED\b.*'),
+                    re.compile(r'.*\bMBEDTLS_PK_PARSE_EC_COMPRESSED\b.*'),
+                ],
                 'test_suite_platform': [
                     # Incompatible with sanitizers (e.g. ASan). If the driver
                     # component uses a sanitizer but the reference component
@@ -523,6 +555,9 @@ KNOWN_TASKS = {
             'component_driver': 'test_psa_crypto_config_accel_ffdh',
             'ignored_suites': ['dhm'],
             'ignored_tests': {
+                'test_suite_config': [
+                    re.compile(r'.*\bMBEDTLS_DHM_C\b.*'),
+                ],
                 'test_suite_platform': [
                     # Incompatible with sanitizers (e.g. ASan). If the driver
                     # component uses a sanitizer but the reference component
@@ -545,6 +580,15 @@ KNOWN_TASKS = {
                 'bignum.generated', 'bignum.misc',
             ],
             'ignored_tests': {
+                'test_suite_config': [
+                    re.compile(r'.*\bMBEDTLS_BIGNUM_C\b.*'),
+                    re.compile(r'.*\bMBEDTLS_(ASN1\w+)_C\b.*'),
+                    re.compile(r'.*\bMBEDTLS_(ECDH|ECDSA|ECP)_.*'),
+                    re.compile(r'.*\bMBEDTLS_PSA_P256M_DRIVER_ENABLED\b.*')
+                ],
+                'test_suite_config.crypto_combinations': [
+                    'Config: ECC: Weierstrass curves only',
+                ],
                 'test_suite_platform': [
                     # Incompatible with sanitizers (e.g. ASan). If the driver
                     # component uses a sanitizer but the reference component
@@ -570,6 +614,10 @@ KNOWN_TASKS = {
                 'pk', 'pkwrite', 'pkparse'
             ],
             'ignored_tests': {
+                'test_suite_config': [
+                    re.compile(r'.*\bMBEDTLS_(PKCS1|RSA)_.*'),
+                    re.compile(r'.*\bMBEDTLS_GENPRIME\b.*')
+                ],
                 'test_suite_platform': [
                     # Incompatible with sanitizers (e.g. ASan). If the driver
                     # component uses a sanitizer but the reference component
@@ -611,6 +659,10 @@ KNOWN_TASKS = {
                 'cipher.camellia',
             ],
             'ignored_tests': {
+                'test_suite_config': [
+                    re.compile(r'.*\bMBEDTLS_(AES|ARIA|CAMELLIA)_.*'),
+                    re.compile(r'.*\bMBEDTLS_AES(\w+)_C\b.*'),
+                ],
                 'test_suite_cmac': [
                     # Following tests require AES_C/ARIA_C/CAMELLIA_C to be enabled,
                     # but these are not available in the accelerated component.

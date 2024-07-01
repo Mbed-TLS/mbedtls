@@ -294,11 +294,9 @@ add_subdirectory(framework)
 
 add_subdirectory(include)
 
-add_subdirectory(3rdparty)
+add_subdirectory(tf-psa-crypto)
 
 add_subdirectory(library)
-
-add_subdirectory(tf-psa-crypto)
 
 add_subdirectory(pkgconfig)
 
@@ -374,7 +372,7 @@ if(ENABLE_TESTING OR ENABLE_PROGRAMS)
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/library
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tf-psa-crypto/core
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tf-psa-crypto/drivers/builtin/src
-        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/everest/include)
+        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tf-psa-crypto/drivers/everest/include)
 
     # Pass-through MBEDTLS_CONFIG_FILE and MBEDTLS_USER_CONFIG_FILE
     if(MBEDTLS_CONFIG_FILE)

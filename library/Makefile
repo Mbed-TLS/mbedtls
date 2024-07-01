@@ -192,7 +192,9 @@ OBJS_CRYPTO= \
 	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/version_features.o \
 	     # This line is intentionally left blank
 
-include ../3rdparty/Makefile.inc
+THIRDPARTY_DIR := $(MBEDTLS_PATH)/tf-psa-crypto/drivers
+include $(MBEDTLS_PATH)/tf-psa-crypto/drivers/everest/Makefile.inc
+include $(MBEDTLS_PATH)/tf-psa-crypto/drivers/p256-m/Makefile.inc
 LOCAL_CFLAGS+=$(THIRDPARTY_INCLUDES)
 OBJS_CRYPTO+=$(THIRDPARTY_CRYPTO_OBJECTS)
 

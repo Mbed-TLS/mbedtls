@@ -326,9 +326,9 @@ endif(USE_SHARED_MBEDTLS_LIBRARY)
 
 foreach(target IN LISTS target_libraries)
     add_library(MbedTLS::${target} ALIAS ${target})  # add_subdirectory support
-    # Include public header files from /include, tf-psa-crypto/include/ and
-    # /tf-psa-crypto/drivers/builtin/include/. Include private header files
-    # from /library.
+    # Include public header files from /include, /tf-psa-crypto/include/ and
+    # tf-psa-crypto/drivers/builtin/include/. Include private header files
+    # from /library, tf-psa-crypto/core/ and tf-psa-crypto/drivers/builtin/src/.
     target_include_directories(${target}
         PUBLIC $<BUILD_INTERFACE:${MBEDTLS_DIR}/include/>
                $<BUILD_INTERFACE:${MBEDTLS_DIR}/tf-psa-crypto/include/>

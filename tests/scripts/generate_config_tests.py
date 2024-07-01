@@ -57,6 +57,7 @@ SIMPLE_DEPENDENCIES = {
     'MBEDTLS_PSA_CRYPTO_CLIENT': '!MBEDTLS_PSA_CRYPTO_C',
     'MBEDTLS_PSA_INJECT_ENTROPY': 'MBEDTLS_PSA_CRYPTO_C',
     'MBEDTLS_PSA_ASSUME_EXCLUSIVE_BUFFERS': 'MBEDTLS_PSA_CRYPTO_C',
+    'MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL': 'MBEDTLS_SSL_CLI_C:MBEDTLS_SSL_SRV_C',
 }
 
 def dependencies_of_setting(cfg: config.Config,
@@ -92,7 +93,7 @@ def dependencies_of_setting(cfg: config.Config,
         # tests that only run Mbed TLS against itself, which only run in
         # configurations with both sides enabled.
         if name.startswith('MBEDTLS_SSL_TLS1_3_'):
-            return 'MBEDTLS_SSL_CLI_C:MBEDTLS_SSL_SRV_C:MBEDTLS_SSL_PROTO_TLS1_3'
+            return 'MBEDTLS_SSL_CLI_C:MBEDTLS_SSL_SRV_C:MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL'
         if name.startswith('MBEDTLS_SSL_DTLS_'):
             return 'MBEDTLS_SSL_CLI_C:MBEDTLS_SSL_SRV_C:MBEDTLS_SSL_PROTO_DTLS'
         if name.startswith('MBEDTLS_SSL_'):

@@ -253,6 +253,90 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
+void gcm_crypt_and_tag_reuse_ctx(int cipher_id, data_t *key_str,
+                                 data_t *src_str, data_t *iv_str,
+                                 data_t *add_str, data_t *dst,
+                                 int tag_len_bits, data_t *tag,
+                                 int init_result)
+{
+    #define ITERATIONS 100
+    unsigned char output_enc[128];
+    unsigned char output_dec[128];
+    unsigned char tag_output[16];
+    unsigned char output_enc_rnd[128 * ITERATIONS];
+    unsigned char tag_output_rnd[16 * ITERATIONS];
+    mbedtls_gcm_context ctx;
+    size_t tag_len = tag_len_bits / 8;
+    int nloop;
+
+    mbedtls_gcm_init(&ctx);
+
+    memset(output_enc, 0x00, sizeof(output_enc));
+    memset(output_dec, 0x00, sizeof(output_dec));
+    memset(tag_output, 0x00, sizeof(tag_output));
+
+    /* Allocate a buffer for random input data */
+    unsigned char rand_input[128];
+    memset(rand_input, 0x00, sizeof(rand_input));
+
+    TEST_EQUAL(mbedtls_gcm_setkey(&ctx, cipher_id, key_str->x, key_str->len * 8),
+               init_result);
+    if (init_result == 0) {
+        /* Re-Use context(encryption) for n iterations with random data */
+        for (nloop = 0; nloop < ITERATIONS; nloop += 1) {
+            (void) mbedtls_test_rnd_std_rand(NULL, (void *) &rand_input, 128);
+            TEST_EQUAL(mbedtls_gcm_crypt_and_tag(&ctx, MBEDTLS_GCM_ENCRYPT,
+                                                 128, iv_str->x, iv_str->len,
+                                                 add_str->x, add_str->len,
+                                                 rand_input,
+                                                 output_enc_rnd + (nloop * 128),
+                                                 tag_len,
+                                                 tag_output_rnd + (nloop * 16)), 0);
+        }
+
+        /* Now test and verify encryption with valid input without clearing the ctx */
+        TEST_EQUAL(mbedtls_gcm_crypt_and_tag(&ctx, MBEDTLS_GCM_ENCRYPT,
+                                             src_str->len, iv_str->x,
+                                             iv_str->len, add_str->x,
+                                             add_str->len, src_str->x,
+                                             output_enc, tag_len,
+                                             tag_output), 0);
+
+        ASSERT_COMPARE(output_enc, src_str->len, dst->x, dst->len);
+        ASSERT_COMPARE(tag_output, tag_len, tag->x, tag->len);
+
+        /* Re-Use context(decryption) for n iterations with random sourced data */
+        for (nloop = 0; nloop < ITERATIONS; nloop += 1) {
+            TEST_EQUAL(mbedtls_gcm_crypt_and_tag(&ctx, MBEDTLS_GCM_DECRYPT,
+                                                 128, iv_str->x, iv_str->len,
+                                                 add_str->x, add_str->len,
+                                                 output_enc_rnd  + (nloop * 128),
+                                                 output_dec, tag_len,
+                                                 tag_output_rnd + (nloop * 16)), 0);
+        }
+
+        /* Use the One-Shot auth_decrypt to verify integrity of pre-calculated data */
+        TEST_EQUAL(mbedtls_gcm_auth_decrypt(&ctx,
+                                            src_str->len,
+                                            iv_str->x,
+                                            iv_str->len,
+                                            add_str->x,
+                                            add_str->len,
+                                            tag_output,
+                                            tag_len,
+                                            output_enc,
+                                            output_dec), 0);
+
+        ASSERT_COMPARE(output_dec, src_str->len, src_str->x, src_str->len);
+    }
+
+exit:
+    mbedtls_gcm_free(&ctx);
+    #undef ITERATIONS
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
 void gcm_decrypt_and_verify(int cipher_id, data_t *key_str,
                             data_t *src_str, data_t *iv_str,
                             data_t *add_str, int tag_len_bits,

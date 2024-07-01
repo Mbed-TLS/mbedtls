@@ -115,12 +115,15 @@ set -e -o pipefail -u
 # Enable ksh/bash extended file matching patterns
 shopt -s extglob
 
+# For project detection
+PROJECT_NAME_FILE='./scripts/project_name.txt'
+
 in_mbedtls_repo () {
-    test -d include -a -d library -a -d programs -a -d tests
+    grep -Fxq "Mbed TLS" "$PROJECT_NAME_FILE"
 }
 
 in_tf_psa_crypto_repo () {
-    test -d include -a -d core -a -d drivers -a -d programs -a -d tests
+    grep -Fxq "TF-PSA-Crypto" "$PROJECT_NAME_FILE"
 }
 
 pre_check_environment () {

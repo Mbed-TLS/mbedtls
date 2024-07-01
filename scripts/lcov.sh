@@ -30,10 +30,12 @@ EOF
 
 set -eu
 
-# Repository detection
-in_mbedtls_build_dir () {
-    test -d library
-}
+# Project detection
+PROJECT_NAME_FILE='./scripts/project_name.txt'
+
+in_mbedtls_repo () {
+    grep -Fxq "Mbed TLS" "$PROJECT_NAME_FILE"
+ }
 
 # Collect stats and build a HTML report.
 lcov_library_report () {
@@ -68,7 +70,7 @@ if [ $# -gt 0 ] && [ "$1" = "--help" ]; then
     exit
 fi
 
-if in_mbedtls_build_dir; then
+if in_mbedtls_repo; then
     library_dir='library'
     title='Mbed TLS'
 else

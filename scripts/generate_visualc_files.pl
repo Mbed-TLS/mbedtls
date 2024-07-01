@@ -25,7 +25,9 @@ my $programs_dir = 'programs';
 my $mbedtls_header_dir = 'include/mbedtls';
 my $drivers_builtin_header_dir = 'tf-psa-crypto/drivers/builtin/include/mbedtls';
 my $psa_header_dir = 'tf-psa-crypto/include/psa';
-my $source_dir = 'library';
+my $tls_source_dir = 'library';
+my $crypto_core_source_dir = 'tf-psa-crypto/core';
+my $crypto_source_dir = 'tf-psa-crypto/drivers/builtin/src';
 my $test_source_dir = 'tests/src';
 my $test_header_dir = 'tests/include/test';
 my $test_drivers_header_dir = 'tests/include/test/drivers';
@@ -55,10 +57,12 @@ my @include_directories = qw(
 );
 my $include_directories = join(';', map {"../../$_"} @include_directories);
 
-# Directories to add to the include path when building the library, but not
+# Directories to add to the include path when building the libraries, but not
 # when building tests or applications.
 my @library_include_directories = qw(
     library
+    tf-psa-crypto/core
+    tf-psa-crypto/drivers/builtin/src
 );
 my $library_include_directories =
   join(';', map {"../../$_"} (@library_include_directories,
@@ -106,7 +110,9 @@ sub check_dirs {
         && -d $mbedtls_header_dir
         && -d $drivers_builtin_header_dir
         && -d $psa_header_dir
-        && -d $source_dir
+        && -d $tls_source_dir
+        && -d $crypto_core_source_dir
+        && -d $crypto_source_dir
         && -d $test_source_dir
         && -d $test_drivers_source_dir
         && -d $test_header_dir
@@ -265,12 +271,16 @@ sub main {
                        $psa_header_dir,
                        $test_header_dir,
                        $test_drivers_header_dir,
-                       $source_dir,
+                       $tls_source_dir,
+                       $crypto_core_source_dir,
+                       $crypto_source_dir,
                        @thirdparty_header_dirs,
                       );
     my @headers = (map { <$_/*.h> } @header_dirs);
     my @source_dirs = (
-                       $source_dir,
+                       $tls_source_dir,
+                       $crypto_core_source_dir,
+                       $crypto_source_dir,
                        $test_source_dir,
                        $test_drivers_source_dir,
                        @thirdparty_source_dirs,

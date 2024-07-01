@@ -36,3 +36,5 @@ if(LIB_INSTALL_DIR)
 endif()
 
 add_subdirectory(include)
+add_subdirectory(core)
+add_subdirectory(drivers)

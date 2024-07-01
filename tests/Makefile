@@ -4,8 +4,8 @@ include ../scripts/common.make
 # Set this to -v to see the details of failing test cases
 TEST_FLAGS ?= $(if $(filter-out 0 OFF Off off NO No no FALSE False false N n,$(CTEST_OUTPUT_ON_FAILURE)),-v,)
 
-# Also include library headers, for the sake of invasive tests.
-LOCAL_CFLAGS += -I../library
+# Also include private headers, for the sake of invasive tests.
+LOCAL_CFLAGS += -I../library -I../tf-psa-crypto/core -I../tf-psa-crypto/drivers/builtin/src
 
 
 # Enable definition of various functions used throughout the testsuite

@@ -3,13 +3,13 @@
 
 *.log
 /test_suite*
-data_files/mpi_write
-data_files/hmac_drbg_seed
-data_files/ctr_drbg_seed
-data_files/entropy_seed
+/data_files/mpi_write
+/data_files/hmac_drbg_seed
+/data_files/ctr_drbg_seed
+/data_files/entropy_seed
 
-include/test/instrument_record_status.h
+/include/test/instrument_record_status.h
 
-src/libmbed*
+/src/libmbed*
 
-libtestdriver1/*
+/libtestdriver1/*

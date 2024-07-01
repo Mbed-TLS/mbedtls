@@ -8,7 +8,9 @@ LIBPSACLIENT := -Llibpsaclient/ -lmbedcrypto -lmbedx509 -lmbedtls
 LIBPSASERVER := -Llibpsaserver/ -lmbedcrypto
 
 MBEDTLS_ROOT_PATH = ../../..
-COMMON_INCLUDE := -I./include -I$(MBEDTLS_ROOT_PATH)/include -I$(MBEDTLS_ROOT_PATH)/tf-psa-crypto/include
+COMMON_INCLUDE := -I./include -I$(MBEDTLS_ROOT_PATH)/include \
+                  -I$(MBEDTLS_ROOT_PATH)/tf-psa-crypto/include \
+                  -I$(MBEDTLS_ROOT_PATH)/tf-psa-crypto/drivers/builtin/include
 
 GENERATED_H_FILES =	include/psa_manifest/manifest.h \
 					include/psa_manifest/pid.h \

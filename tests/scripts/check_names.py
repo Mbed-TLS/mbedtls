@@ -239,6 +239,7 @@ class CodeParser():
             "include/mbedtls/*.h",
             "include/psa/*.h",
             "tf-psa-crypto/include/psa/*.h",
+            "tf-psa-crypto/drivers/builtin/include/mbedtls/*.h",
             "3rdparty/everest/include/everest/everest.h",
             "3rdparty/everest/include/everest/x25519.h"
         ])
@@ -253,6 +254,7 @@ class CodeParser():
             "include/mbedtls/*.h",
             "include/psa/*.h",
             "tf-psa-crypto/include/psa/*.h",
+            "tf-psa-crypto/drivers/builtin/include/mbedtls/*.h",
             "library/*.h",
             "library/*.c",
             "3rdparty/everest/include/everest/everest.h",
@@ -262,6 +264,7 @@ class CodeParser():
             "include/mbedtls/*.h",
             "include/psa/*.h",
             "tf-psa-crypto/include/psa/*.h",
+            "tf-psa-crypto/drivers/builtin/include/mbedtls/*.h",
             "library/*.h",
             "3rdparty/everest/include/everest/everest.h",
             "3rdparty/everest/include/everest/x25519.h"
@@ -270,6 +273,7 @@ class CodeParser():
             "include/mbedtls/*.h",
             "include/psa/*.h",
             "tf-psa-crypto/include/psa/*.h",
+            "tf-psa-crypto/drivers/builtin/include/mbedtls/*.h",
             "library/*.h",
             "3rdparty/everest/include/everest/everest.h",
             "3rdparty/everest/include/everest/x25519.h",

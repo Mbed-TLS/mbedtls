@@ -52,6 +52,8 @@ static int nested_parse(unsigned char **const p,
             *p = start;
             ret = mbedtls_asn1_get_bool(p, end, &val);
             if (ret == 0) {
+                TEST_EQUAL(*p - start, 3);
+                TEST_EQUAL(start[1], 1);
                 TEST_ASSERT(val == 0 || val == 1);
             }
             break;

@@ -81,20 +81,30 @@ int mbedtls_asn1_get_bool(unsigned char **p,
                           const unsigned char *end,
                           int *val)
 {
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    size_t len;
+    unsigned char out;
 
-    if ((ret = mbedtls_asn1_get_tag(p, end, &len, MBEDTLS_ASN1_BOOLEAN)) != 0) {
-        return ret;
+    if (end <= *p) {
+        return MBEDTLS_ERR_ASN1_OUT_OF_DATA;
     }
 
-    if (len != 1) {
+    if (**p != MBEDTLS_ASN1_BOOLEAN) {
+        return MBEDTLS_ERR_ASN1_UNEXPECTED_TAG;
+    }
+
+    if (end - *p < 3) {
+        return MBEDTLS_ERR_ASN1_OUT_OF_DATA;
+    }
+
+    if ((*p)[1] != 1) {
         return MBEDTLS_ERR_ASN1_INVALID_LENGTH;
     }
 
-    *val = (**p != 0) ? 1 : 0;
-    (*p)++;
+    out = (*p)[2];
+    if (out != 0 && out != 0xFF)
+        return MBEDTLS_ERR_ASN1_INVALID_DATA;
 
+    *val = !!out;
+    *p += 3;
     return 0;
 }
 

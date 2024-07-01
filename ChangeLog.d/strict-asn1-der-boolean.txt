@@ -1,0 +1,3 @@
+Bugfix:
+  * ASN.1 BOOLEAN types must use strict DER encoding.  Previously
+    multiple invalid encodings were accepted.

@@ -175,13 +175,18 @@ def analyze_outcomes(results: Results, outcomes: Outcomes, args) -> None:
     analyze_coverage(results, outcomes, args['allow_list'],
                      args['full_coverage'])
 
-def read_outcome_file(outcome_file: str) -> Outcomes:
+
+
+MAKE_LIB_TARGET = re.compile(r'all\Z|lib\Z|library/')
+
+def read_outcome_file(results: Results, outcome_file: str) -> Outcomes:
     """Parse an outcome file and return an outcome collection.
     """
     outcomes = {}
+    seen = {} #type: typing.Dict[str, int]
     with open(outcome_file, 'r', encoding='utf-8') as input_file:
         for line in input_file:
-            (_platform, component, suite, case, result, _cause) = line.split(';')
+            (platform, component, suite, case, result, _cause) = line.split(';')
             # Note that `component` is not unique. If a test case passes on Linux
             # and fails on FreeBSD, it'll end up in both the successes set and
             # the failures set.
@@ -192,6 +197,20 @@ def read_outcome_file(outcome_file: str) -> Outcomes:
                 outcomes[component].successes.add(suite_case)
             elif result == 'FAIL':
                 outcomes[component].failures.add(suite_case)
+            build_name = ';'.join([platform, component])
+            # Detect repeated make invocations to build all or part of the
+            # library in the same configuration on the same platform.
+            # This generally indicates that MBEDTLS_TEST_CONFIGURATION was
+            # not set to a unique value.
+            if suite == 'make' and MAKE_LIB_TARGET.match(case):
+                seen.setdefault(build_name, 0)
+                seen[build_name] += 1
+
+    # Complain about repeated configurations
+    for build_name in sorted(seen.keys()):
+        if seen[build_name] > 1:
+            results.error('Repeated platform;configuration for library build: {}',
+                          build_name, seen[build_name])
 
     return outcomes
 
@@ -688,6 +707,8 @@ def main():
 
         if options.specified_tasks == 'all':
             tasks_list = KNOWN_TASKS.keys()
+        elif options.specified_tasks == 'parse_only':
+            tasks_list = []
         else:
             tasks_list = re.split(r'[, ]+', options.specified_tasks)
             for task in tasks_list:
@@ -716,7 +737,7 @@ def main():
                                            task['args']['component_driver'],
                                            options.outcomes)
 
-        outcomes = read_outcome_file(options.outcomes)
+        outcomes = read_outcome_file(main_results, options.outcomes)
 
         for task in tasks_list:
             test_function = KNOWN_TASKS[task]['test_function']

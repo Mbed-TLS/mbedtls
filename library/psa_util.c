@@ -365,6 +365,14 @@ int mbedtls_psa_get_random(void *p_rng,
 
 #endif /* MBEDTLS_PSA_CRYPTO_CLIENT */
 
+#if defined(MBEDTLS_PSA_CRYPTO_CLIENT)
+#define MAX_COORDINATE_BYTES PSA_BITS_TO_BYTES(PSA_VENDOR_ECC_MAX_CURVE_BITS)
+#define ECDSA_SIGNATURE_MAX_SIZE PSA_VENDOR_ECDSA_SIGNATURE_MAX_SIZE
+#else
+#define MAX_COORDINATE_BYTES MBEDTLS_ECP_MAX_BYTES
+#define ECDSA_SIGNATURE_MAX_SIZE MBEDTLS_ECDSA_MAX_LEN
+#endif
+
 #if defined(MBEDTLS_PSA_UTIL_HAVE_ECDSA)
 
 /**
@@ -433,8 +441,8 @@ static int convert_raw_to_der_single_int(const unsigned char *raw_buf, size_t ra
 int mbedtls_ecdsa_raw_to_der(size_t bits, const unsigned char *raw, size_t raw_len,
                              unsigned char *der, size_t der_size, size_t *der_len)
 {
-    unsigned char r[PSA_BITS_TO_BYTES(PSA_VENDOR_ECC_MAX_CURVE_BITS)];
-    unsigned char s[PSA_BITS_TO_BYTES(PSA_VENDOR_ECC_MAX_CURVE_BITS)];
+    unsigned char r[MAX_COORDINATE_BYTES];
+    unsigned char s[MAX_COORDINATE_BYTES];
     const size_t coordinate_len = PSA_BITS_TO_BYTES(bits);
     size_t len = 0;
     unsigned char *p = der + der_size;
@@ -550,7 +558,7 @@ static int convert_der_to_raw_single_int(unsigned char *der, size_t der_len,
 int mbedtls_ecdsa_der_to_raw(size_t bits, const unsigned char *der, size_t der_len,
                              unsigned char *raw, size_t raw_size, size_t *raw_len)
 {
-    unsigned char raw_tmp[PSA_VENDOR_ECDSA_SIGNATURE_MAX_SIZE];
+    unsigned char raw_tmp[ECDSA_SIGNATURE_MAX_SIZE];
     unsigned char *p = (unsigned char *) der;
     size_t data_len;
     size_t coordinate_size = PSA_BITS_TO_BYTES(bits);

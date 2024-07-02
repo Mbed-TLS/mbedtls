@@ -485,9 +485,10 @@ size_t mbedtls_x509_crt_parse_cn_inet_pton(const char *cn, void *dst);
 
 #define MBEDTLS_X509_SAFE_SNPRINTF                          \
     do {                                                    \
-        if (ret < 0 || (size_t) ret >= n)                  \
-        return MBEDTLS_ERR_X509_BUFFER_TOO_SMALL;    \
-                                                          \
+        if (ret < 0 || (size_t) ret >= n) {                 \
+            ret = MBEDTLS_ERR_X509_BUFFER_TOO_SMALL;        \
+            goto cleanup;                                   \
+        }                                                   \
         n -= (size_t) ret;                                  \
         p += (size_t) ret;                                  \
     } while (0)

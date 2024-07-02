@@ -13,7 +13,7 @@ depends_on:MBEDTLS_MD_CAN_MD5
 md_info:MBEDTLS_MD_MD5:"MD5":16
 
 Information on RIPEMD160
-depends_on:MBEDTLS_MD_CAN_RIPEMD160
+depends_on:PSA_WANT_ALG_RIPEMD160
 md_info:MBEDTLS_MD_RIPEMD160:"RIPEMD160":20
 
 Information on SHA1
@@ -81,35 +81,35 @@ depends_on:MBEDTLS_MD_CAN_MD5
 md_text:MBEDTLS_MD_MD5:"12345678901234567890123456789012345678901234567890123456789012345678901234567890":"57edf4a22be3c955ac49da2e2107b67a"
 
 generic mbedtls_ripemd160 Test vector from paper #1
-depends_on:MBEDTLS_MD_CAN_RIPEMD160
+depends_on:PSA_WANT_ALG_RIPEMD160
 md_text:MBEDTLS_MD_RIPEMD160:"":"9c1185a5c5e9fc54612808977ee8f548b2258d31"
 
 generic mbedtls_ripemd160 Test vector from paper #2
-depends_on:MBEDTLS_MD_CAN_RIPEMD160
+depends_on:PSA_WANT_ALG_RIPEMD160
 md_text:MBEDTLS_MD_RIPEMD160:"a":"0bdc9d2d256b3ee9daae347be6f4dc835a467ffe"
 
 generic mbedtls_ripemd160 Test vector from paper #3
-depends_on:MBEDTLS_MD_CAN_RIPEMD160
+depends_on:PSA_WANT_ALG_RIPEMD160
 md_text:MBEDTLS_MD_RIPEMD160:"abc":"8eb208f7e05d987a9b044a8e98c6b087f15a0bfc"
 
 generic mbedtls_ripemd160 Test vector from paper #4
-depends_on:MBEDTLS_MD_CAN_RIPEMD160
+depends_on:PSA_WANT_ALG_RIPEMD160
 md_text:MBEDTLS_MD_RIPEMD160:"message digest":"5d0689ef49d2fae572b881b123a85ffa21595f36"
 
 generic mbedtls_ripemd160 Test vector from paper #5
-depends_on:MBEDTLS_MD_CAN_RIPEMD160
+depends_on:PSA_WANT_ALG_RIPEMD160
 md_text:MBEDTLS_MD_RIPEMD160:"abcdefghijklmnopqrstuvwxyz":"f71c27109c692c1b56bbdceb5b9d2865b3708dbc"
 
 generic mbedtls_ripemd160 Test vector from paper #6
-depends_on:MBEDTLS_MD_CAN_RIPEMD160
+depends_on:PSA_WANT_ALG_RIPEMD160
 md_text:MBEDTLS_MD_RIPEMD160:"abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq":"12a053384a9c0c88e405a06c27dcf49ada62eb2b"
 
 generic mbedtls_ripemd160 Test vector from paper #7
-depends_on:MBEDTLS_MD_CAN_RIPEMD160
+depends_on:PSA_WANT_ALG_RIPEMD160
 md_text:MBEDTLS_MD_RIPEMD160:"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789":"b0e20b6e3116640286ed3a87a5713079b21f5189"
 
 generic mbedtls_ripemd160 Test vector from paper #8
-depends_on:MBEDTLS_MD_CAN_RIPEMD160
+depends_on:PSA_WANT_ALG_RIPEMD160
 md_text:MBEDTLS_MD_RIPEMD160:"12345678901234567890123456789012345678901234567890123456789012345678901234567890":"9b752e45573d4b39f4dbd3323cab82bf63326bfb"
 
 generic mbedtls_sha3 SHA3-224 Test vector from CAVS 19.0 with Len = 8
@@ -173,31 +173,31 @@ depends_on:MBEDTLS_MD_CAN_MD5
 mbedtls_md_hmac:MBEDTLS_MD_MD5:16:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa":"54657374205573696e67204c6172676572205468616e20426c6f636b2d53697a65204b657920616e64204c6172676572205468616e204f6e6520426c6f636b2d53697a652044617461":"6f630fad67cda0ee1fb1f562db3aa53e"
 
 generic HMAC-RIPEMD160 Test vector RFC 2286 #1
-depends_on:MBEDTLS_MD_CAN_RIPEMD160
+depends_on:PSA_WANT_ALG_RIPEMD160
 mbedtls_md_hmac:MBEDTLS_MD_RIPEMD160:20:"0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b":"4869205468657265":"24cb4bd67d20fc1a5d2ed7732dcc39377f0a5668"
 
 generic HMAC-RIPEMD160 Test vector RFC 2286 #2
-depends_on:MBEDTLS_MD_CAN_RIPEMD160
+depends_on:PSA_WANT_ALG_RIPEMD160
 mbedtls_md_hmac:MBEDTLS_MD_RIPEMD160:20:"4a656665":"7768617420646f2079612077616e7420666f72206e6f7468696e673f":"dda6c0213a485a9e24f4742064a7f033b43c4069"
 
 generic HMAC-RIPEMD160 Test vector RFC 2286 #3
-depends_on:MBEDTLS_MD_CAN_RIPEMD160
+depends_on:PSA_WANT_ALG_RIPEMD160
 mbedtls_md_hmac:MBEDTLS_MD_RIPEMD160:20:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa":"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd":"b0b105360de759960ab4f35298e116e295d8e7c1"
 
 generic HMAC-RIPEMD160 Test vector RFC 2286 #4
-depends_on:MBEDTLS_MD_CAN_RIPEMD160
+depends_on:PSA_WANT_ALG_RIPEMD160
 mbedtls_md_hmac:MBEDTLS_MD_RIPEMD160:20:"0102030405060708090a0b0c0d0e0f10111213141516171819":"cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd":"d5ca862f4d21d5e610e18b4cf1beb97a4365ecf4"
 
 generic HMAC-RIPEMD160 Test vector RFC 2286 #5
-depends_on:MBEDTLS_MD_CAN_RIPEMD160
+depends_on:PSA_WANT_ALG_RIPEMD160
 mbedtls_md_hmac:MBEDTLS_MD_RIPEMD160:20:"0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c":"546573742057697468205472756e636174696f6e":"7619693978f91d90539ae786500ff3d8e0518e39"
 
 generic HMAC-RIPEMD160 Test vector RFC 2286 #6
-depends_on:MBEDTLS_MD_CAN_RIPEMD160
+depends_on:PSA_WANT_ALG_RIPEMD160
 mbedtls_md_hmac:MBEDTLS_MD_RIPEMD160:20:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa":"54657374205573696e67204c6172676572205468616e20426c6f636b2d53697a65204b6579202d2048617368204b6579204669727374":"6466ca07ac5eac29e1bd523e5ada7605b791fd8b"
 
 generic HMAC-RIPEMD160 Test vector RFC 2286 #7
-depends_on:MBEDTLS_MD_CAN_RIPEMD160
+depends_on:PSA_WANT_ALG_RIPEMD160
 mbedtls_md_hmac:MBEDTLS_MD_RIPEMD160:20:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa":"54657374205573696e67204c6172676572205468616e20426c6f636b2d53697a65204b657920616e64204c6172676572205468616e204f6e6520426c6f636b2d53697a652044617461":"69ea60798d71616cce5fd0871e23754cd75d5a0a"
 
 generic multi step mbedtls_md5 Test vector RFC1321 #1
@@ -229,35 +229,35 @@ depends_on:MBEDTLS_MD_CAN_MD5
 md_text_multi:MBEDTLS_MD_MD5:"12345678901234567890123456789012345678901234567890123456789012345678901234567890":"57edf4a22be3c955ac49da2e2107b67a"
 
 generic multi step mbedtls_ripemd160 Test vector from paper #1
-depends_on:MBEDTLS_MD_CAN_RIPEMD160
+depends_on:PSA_WANT_ALG_RIPEMD160
 md_text_multi:MBEDTLS_MD_RIPEMD160:"":"9c1185a5c5e9fc54612808977ee8f548b2258d31"
 
 generic multi step mbedtls_ripemd160 Test vector from paper #2
-depends_on:MBEDTLS_MD_CAN_RIPEMD160
+depends_on:PSA_WANT_ALG_RIPEMD160
 md_text_multi:MBEDTLS_MD_RIPEMD160:"a":"0bdc9d2d256b3ee9daae347be6f4dc835a467ffe"
 
 generic multi step mbedtls_ripemd160 Test vector from paper #3
-depends_on:MBEDTLS_MD_CAN_RIPEMD160
+depends_on:PSA_WANT_ALG_RIPEMD160
 md_text_multi:MBEDTLS_MD_RIPEMD160:"abc":"8eb208f7e05d987a9b044a8e98c6b087f15a0bfc"
 
 generic multi step mbedtls_ripemd160 Test vector from paper #4
-depends_on:MBEDTLS_MD_CAN_RIPEMD160
+depends_on:PSA_WANT_ALG_RIPEMD160
 md_text_multi:MBEDTLS_MD_RIPEMD160:"message digest":"5d0689ef49d2fae572b881b123a85ffa21595f36"
 
 generic multi step mbedtls_ripemd160 Test vector from paper #5
-depends_on:MBEDTLS_MD_CAN_RIPEMD160
+depends_on:PSA_WANT_ALG_RIPEMD160
 md_text_multi:MBEDTLS_MD_RIPEMD160:"abcdefghijklmnopqrstuvwxyz":"f71c27109c692c1b56bbdceb5b9d2865b3708dbc"
 
 generic multi step mbedtls_ripemd160 Test vector from paper #6
-depends_on:MBEDTLS_MD_CAN_RIPEMD160
+depends_on:PSA_WANT_ALG_RIPEMD160
 md_text_multi:MBEDTLS_MD_RIPEMD160:"abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq":"12a053384a9c0c88e405a06c27dcf49ada62eb2b"
 
 generic multi step mbedtls_ripemd160 Test vector from paper #7
-depends_on:MBEDTLS_MD_CAN_RIPEMD160
+depends_on:PSA_WANT_ALG_RIPEMD160
 md_text_multi:MBEDTLS_MD_RIPEMD160:"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789":"b0e20b6e3116640286ed3a87a5713079b21f5189"
 
 generic multi step mbedtls_ripemd160 Test vector from paper #8
-depends_on:MBEDTLS_MD_CAN_RIPEMD160
+depends_on:PSA_WANT_ALG_RIPEMD160
 md_text_multi:MBEDTLS_MD_RIPEMD160:"12345678901234567890123456789012345678901234567890123456789012345678901234567890":"9b752e45573d4b39f4dbd3323cab82bf63326bfb"
 
 generic multi step mbedtls_sha3 SHA3-224 Test vector from CAVS 19.0 with Len = 48
@@ -317,31 +317,31 @@ depends_on:MBEDTLS_MD_CAN_MD5
 md_hmac_multi:MBEDTLS_MD_MD5:16:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa":"54657374205573696e67204c6172676572205468616e20426c6f636b2d53697a65204b657920616e64204c6172676572205468616e204f6e6520426c6f636b2d53697a652044617461":"6f630fad67cda0ee1fb1f562db3aa53e"
 
 generic multi step HMAC-RIPEMD160 Test vector RFC 2286 #1
-depends_on:MBEDTLS_MD_CAN_RIPEMD160
+depends_on:PSA_WANT_ALG_RIPEMD160
 md_hmac_multi:MBEDTLS_MD_RIPEMD160:20:"0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b":"4869205468657265":"24cb4bd67d20fc1a5d2ed7732dcc39377f0a5668"
 
 generic multi step HMAC-RIPEMD160 Test vector RFC 2286 #2
-depends_on:MBEDTLS_MD_CAN_RIPEMD160
+depends_on:PSA_WANT_ALG_RIPEMD160
 md_hmac_multi:MBEDTLS_MD_RIPEMD160:20:"4a656665":"7768617420646f2079612077616e7420666f72206e6f7468696e673f":"dda6c0213a485a9e24f4742064a7f033b43c4069"
 
 generic multi step HMAC-RIPEMD160 Test vector RFC 2286 #3
-depends_on:MBEDTLS_MD_CAN_RIPEMD160
+depends_on:PSA_WANT_ALG_RIPEMD160
 md_hmac_multi:MBEDTLS_MD_RIPEMD160:20:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa":"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd":"b0b105360de759960ab4f35298e116e295d8e7c1"
 
 generic multi step HMAC-RIPEMD160 Test vector RFC 2286 #4
-depends_on:MBEDTLS_MD_CAN_RIPEMD160
+depends_on:PSA_WANT_ALG_RIPEMD160
 md_hmac_multi:MBEDTLS_MD_RIPEMD160:20:"0102030405060708090a0b0c0d0e0f10111213141516171819":"cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd":"d5ca862f4d21d5e610e18b4cf1beb97a4365ecf4"
 
 generic multi step HMAC-RIPEMD160 Test vector RFC 2286 #5
-depends_on:MBEDTLS_MD_CAN_RIPEMD160
+depends_on:PSA_WANT_ALG_RIPEMD160
 md_hmac_multi:MBEDTLS_MD_RIPEMD160:20:"0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c":"546573742057697468205472756e636174696f6e":"7619693978f91d90539ae786500ff3d8e0518e39"
 
 generic multi step HMAC-RIPEMD160 Test vector RFC 2286 #6
-depends_on:MBEDTLS_MD_CAN_RIPEMD160
+depends_on:PSA_WANT_ALG_RIPEMD160
 md_hmac_multi:MBEDTLS_MD_RIPEMD160:20:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa":"54657374205573696e67204c6172676572205468616e20426c6f636b2d53697a65204b6579202d2048617368204b6579204669727374":"6466ca07ac5eac29e1bd523e5ada7605b791fd8b"
 
 generic multi step HMAC-RIPEMD160 Test vector RFC 2286 #7
-depends_on:MBEDTLS_MD_CAN_RIPEMD160
+depends_on:PSA_WANT_ALG_RIPEMD160
 md_hmac_multi:MBEDTLS_MD_RIPEMD160:20:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa":"54657374205573696e67204c6172676572205468616e20426c6f636b2d53697a65204b657920616e64204c6172676572205468616e204f6e6520426c6f636b2d53697a652044617461":"69ea60798d71616cce5fd0871e23754cd75d5a0a"
 
 generic MD5 Hash file #1
@@ -361,23 +361,23 @@ depends_on:MBEDTLS_MD_CAN_MD5
 mbedtls_md_file:MBEDTLS_MD_MD5:"data_files/hash_file_4":"d41d8cd98f00b204e9800998ecf8427e"
 
 generic RIPEMD160 Hash file #0 (from paper)
-depends_on:MBEDTLS_MD_CAN_RIPEMD160
+depends_on:PSA_WANT_ALG_RIPEMD160
 mbedtls_md_file:MBEDTLS_MD_RIPEMD160:"data_files/hash_file_5":"52783243c1697bdbe16d37f97f68f08325dc1528"
 
 generic RIPEMD160 Hash file #1
-depends_on:MBEDTLS_MD_CAN_RIPEMD160
+depends_on:PSA_WANT_ALG_RIPEMD160
 mbedtls_md_file:MBEDTLS_MD_RIPEMD160:"data_files/hash_file_1":"82f1d072f0ec0c2b353703a7b575a04c113af1a6"
 
 generic RIPEMD160 Hash file #2
-depends_on:MBEDTLS_MD_CAN_RIPEMD160
+depends_on:PSA_WANT_ALG_RIPEMD160
 mbedtls_md_file:MBEDTLS_MD_RIPEMD160:"data_files/hash_file_2":"996fbc8b79206ba7393ebcd246584069b1c08f0f"
 
 generic RIPEMD160 Hash file #3
-depends_on:MBEDTLS_MD_CAN_RIPEMD160
+depends_on:PSA_WANT_ALG_RIPEMD160
 mbedtls_md_file:MBEDTLS_MD_RIPEMD160:"data_files/hash_file_3":"8653b46d65998fa8c8846efa17937e742533ae48"
 
 generic RIPEMD160 Hash file #4
-depends_on:MBEDTLS_MD_CAN_RIPEMD160
+depends_on:PSA_WANT_ALG_RIPEMD160
 mbedtls_md_file:MBEDTLS_MD_RIPEMD160:"data_files/hash_file_4":"9c1185a5c5e9fc54612808977ee8f548b2258d31"
 
 generic HMAC-SHA-1 Test Vector FIPS-198a #1

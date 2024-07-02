@@ -9,6 +9,7 @@ target_include_directories(${everest_target}
   PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
          $<BUILD_INTERFACE:${MBEDTLS_DIR}/include>
          $<BUILD_INTERFACE:${MBEDTLS_DIR}/tf-psa-crypto/include>
+         $<BUILD_INTERFACE:${MBEDTLS_DIR}/tf-psa-crypto/drivers/builtin/include>
          $<INSTALL_INTERFACE:include>
   PRIVATE include/everest
           include/everest/kremlib

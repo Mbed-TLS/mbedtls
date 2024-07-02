@@ -73,10 +73,16 @@ endif()
 
 option(DISABLE_PACKAGE_CONFIG_AND_INSTALL "Disable package configuration, target export and installation" ${MBEDTLS_AS_SUBPROJECT})
 
-string(REGEX MATCH "Clang" CMAKE_COMPILER_IS_CLANG "${CMAKE_C_COMPILER_ID}")
-string(REGEX MATCH "GNU" CMAKE_COMPILER_IS_GNU "${CMAKE_C_COMPILER_ID}")
-string(REGEX MATCH "IAR" CMAKE_COMPILER_IS_IAR "${CMAKE_C_COMPILER_ID}")
-string(REGEX MATCH "MSVC" CMAKE_COMPILER_IS_MSVC "${CMAKE_C_COMPILER_ID}")
+if (CMAKE_C_SIMULATE_ID)
+    set(COMPILER_ID ${CMAKE_C_SIMULATE_ID})
+else()
+    set(COMPILER_ID ${CMAKE_C_COMPILER_ID})
+endif(CMAKE_C_SIMULATE_ID)
+
+string(REGEX MATCH "Clang" CMAKE_COMPILER_IS_CLANG "${COMPILER_ID}")
+string(REGEX MATCH "GNU" CMAKE_COMPILER_IS_GNU "${COMPILER_ID}")
+string(REGEX MATCH "IAR" CMAKE_COMPILER_IS_IAR "${COMPILER_ID}")
+string(REGEX MATCH "MSVC" CMAKE_COMPILER_IS_MSVC "${COMPILER_ID}")
 
 # the test suites currently have compile errors with MSVC
 if(CMAKE_COMPILER_IS_MSVC)
@@ -183,8 +189,6 @@ function(get_name_without_last_ext dest_var full_name)
     # Copy into the desired variable
     set(${dest_var} ${no_ext_name} PARENT_SCOPE)
 endfunction(get_name_without_last_ext)
-
-string(REGEX MATCH "Clang" CMAKE_COMPILER_IS_CLANG "${CMAKE_C_COMPILER_ID}")
 
 include(CheckCCompilerFlag)
 
@@ -352,6 +356,7 @@ if(ENABLE_TESTING OR ENABLE_PROGRAMS)
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tests/include
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tf-psa-crypto/include
+        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tf-psa-crypto/drivers/builtin/include
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/library)
     # Request C11, needed for memory poisoning tests
     set_target_properties(mbedtls_test PROPERTIES C_STANDARD 11)
@@ -363,6 +368,7 @@ if(ENABLE_TESTING OR ENABLE_PROGRAMS)
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tests/include
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tf-psa-crypto/include
+        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tf-psa-crypto/drivers/builtin/include
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/library
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/everest/include)
 

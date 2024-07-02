@@ -244,6 +244,8 @@ include/alt-extra/%_alt.h: ../include/%.h
 	perl -p -e 's/^(# *(define|ifndef) +\w+_)H\b/$${1}ALT_H/' $< >$@
 include/alt-extra/%_alt.h: ../tf-psa-crypto/include/%.h
 	perl -p -e 's/^(# *(define|ifndef) +\w+_)H\b/$${1}ALT_H/' $< >$@
+include/alt-extra/%_alt.h: ../tf-psa-crypto/drivers/builtin/include/%.h
+	perl -p -e 's/^(# *(define|ifndef) +\w+_)H\b/$${1}ALT_H/' $< >$@
 
 # Generate test library
 
@@ -252,7 +254,13 @@ include/alt-extra/%_alt.h: ../tf-psa-crypto/include/%.h
 # library. Add a LIBTESTDRIVER1_/libtestdriver1_ to mbedtls_xxx and psa_xxx
 # symbols.
 define libtestdriver1_rewrite :=
-	s!^(\s*#\s*include\s*[\"<])mbedtls/!$${1}libtestdriver1/include/mbedtls/!; \
+	s!^(\s*#\s*include\s*[\"<])mbedtls/build_info.h!$${1}libtestdriver1/include/mbedtls/build_info.h!; \
+	s!^(\s*#\s*include\s*[\"<])mbedtls/mbedtls_config.h!$${1}libtestdriver1/include/mbedtls/mbedtls_config.h!; \
+	s!^(\s*#\s*include\s*[\"<])mbedtls/config_adjust_legacy_crypto.h!$${1}libtestdriver1/include/mbedtls/config_adjust_legacy_crypto.h!; \
+	s!^(\s*#\s*include\s*[\"<])mbedtls/config_adjust_x509.h!$${1}libtestdriver1/include/mbedtls/config_adjust_x509.h!; \
+	s!^(\s*#\s*include\s*[\"<])mbedtls/config_adjust_ssl.h!$${1}libtestdriver1/include/mbedtls/config_adjust_ssl.h!; \
+	s!^(\s*#\s*include\s*[\"<])mbedtls/check_config.h!$${1}libtestdriver1/include/mbedtls/check_config.h!; \
+	s!^(\s*#\s*include\s*[\"<])mbedtls/!$${1}libtestdriver1/tf-psa-crypto/drivers/builtin/include/mbedtls/!; \
 	s!^(\s*#\s*include\s*[\"<])psa/!$${1}libtestdriver1/tf-psa-crypto/include/psa/!; \
 	next if /^\s*#\s*include/; \
 	s/\b(?=MBEDTLS_|PSA_)/LIBTESTDRIVER1_/g; \
@@ -290,6 +298,7 @@ libtestdriver1.a:
 	perl -pi -e '$(libtestdriver1_rewrite)' ./libtestdriver1/library/*.[ch]
 	perl -pi -e '$(libtestdriver1_rewrite)' ./libtestdriver1/include/*/*.h
 	perl -pi -e '$(libtestdriver1_rewrite)' ./libtestdriver1/tf-psa-crypto/include/*/*.h
+	perl -pi -e '$(libtestdriver1_rewrite)' ./libtestdriver1/tf-psa-crypto/drivers/builtin/include/*/*.h
 
 	$(MAKE) -C ./libtestdriver1/library CFLAGS="-I../../ $(CFLAGS)" LDFLAGS="$(LDFLAGS)" libmbedcrypto.a
 	cp ./libtestdriver1/library/libmbedcrypto.a ../library/libtestdriver1.a

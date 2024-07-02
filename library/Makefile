@@ -28,11 +28,13 @@ CFLAGS	?= -O2
 WARNING_CFLAGS ?=  -Wall -Wextra -Wformat=2 -Wno-format-nonliteral
 LDFLAGS ?=
 
-# Include ../include, ../tf-psa-crypto/include for public headers and . for
+# Include ../include, ../tf-psa-crypto/include and
+# ../tf-psa-crypto/drivers/builtin/include for public headers and . for
 # private headers. Note that . needs to be included explicitly for the sake of
 # library files that are not in the /library directory (which currently means
 # under /3rdparty).
-LOCAL_CFLAGS = $(WARNING_CFLAGS) -I. -I../include -I../tf-psa-crypto/include -D_FILE_OFFSET_BITS=64
+LOCAL_CFLAGS = $(WARNING_CFLAGS) -I. -I../include -I../tf-psa-crypto/include \
+               -I../tf-psa-crypto/drivers/builtin/include -D_FILE_OFFSET_BITS=64
 LOCAL_LDFLAGS =
 
 ifdef DEBUG
@@ -145,7 +147,6 @@ OBJS_CRYPTO= \
 	     memory_buffer_alloc.o \
 	     nist_kw.o \
 	     oid.o \
-	     padlock.o \
 	     pem.o \
 	     pk.o \
 	     pk_ecc.o \

@@ -1,13 +1,4 @@
 /*
- *  Example computing a SHA-256 hash using the PSA Crypto API
- *
- *  The example computes the SHA-256 hash of a test string using the
- *  one-shot API call psa_hash_compute() and the using multi-part
- *  operation, which requires psa_hash_setup(), psa_hash_update() and
- *  psa_hash_finish(). The multi-part operation is popular on embedded
- *  devices where a rolling hash needs to be computed.
- *
- *
  *  Copyright The Mbed TLS Contributors
  *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
@@ -20,33 +11,13 @@
 #include "mbedtls/build_info.h"
 #include "mbedtls/platform.h"
 
-/* Information about hashing with the PSA API can be
- * found here:
- * https://arm-software.github.io/psa-api/crypto/1.1/api/ops/hashes.html
- *
- * The algorithm used by this demo is SHA 256.
- * Please see include/psa/crypto_values.h to see the other
- * algorithms that are supported by Mbed TLS.
- * If you switch to a different algorithm you will need to update
- * the hash data in the EXAMPLE_HASH_VALUE macro below. */
-
-#if !defined(MBEDTLS_PSA_CRYPTO_CLIENT) && \
-    (!defined(MBEDTLS_PSA_CRYPTO_C) || !defined(PSA_WANT_ALG_SHA_256))
-int main(void)
-{
-    mbedtls_printf("MBEDTLS_PSA_CRYPTO_C and PSA_WANT_ALG_SHA_256"
-                   "not defined, and not MBEDTLS_PSA_CRYPTO_CLIENT.\r\n");
-    return EXIT_SUCCESS;
-}
-#else
-
 #define HASH_ALG PSA_ALG_SHA_256
 
-const uint8_t sample_message[] = "Hello World!";
+static const uint8_t sample_message[] = "Hello World!";
 /* sample_message is terminated with a null byte which is not part of
  * the message itself so we make sure to subtract it in order to get
  * the message length. */
-const size_t sample_message_length = sizeof(sample_message) - 1;
+static const size_t sample_message_length = sizeof(sample_message) - 1;
 
 #define EXPECTED_HASH_VALUE {                                                    \
         0x7f, 0x83, 0xb1, 0x65, 0x7f, 0xf1, 0xfc, 0x53, 0xb9, 0x2d, 0xc1, 0x81, \
@@ -54,10 +25,10 @@ const size_t sample_message_length = sizeof(sample_message) - 1;
         0x4a, 0xdd, 0xd2, 0x00, 0x12, 0x6d, 0x90, 0x69 \
 }
 
-const uint8_t expected_hash[] = EXPECTED_HASH_VALUE;
-const size_t expected_hash_len = sizeof(expected_hash);
+static const uint8_t expected_hash[] = EXPECTED_HASH_VALUE;
+static const size_t expected_hash_len = sizeof(expected_hash);
 
-int main(void)
+int psa_hash_main(void)
 {
     psa_status_t status;
     uint8_t hash[PSA_HASH_LENGTH(HASH_ALG)];
@@ -157,4 +128,3 @@ cleanup:
     psa_hash_abort(&cloned_hash_operation);
     return EXIT_FAILURE;
 }
-#endif /* !MBEDTLS_PSA_CRYPTO_C || !PSA_WANT_ALG_SHA_256 */

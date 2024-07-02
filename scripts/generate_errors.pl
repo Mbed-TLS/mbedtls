@@ -3,7 +3,7 @@
 # Generate error.c
 #
 # Usage: ./generate_errors.pl or scripts/generate_errors.pl without arguments,
-# or generate_errors.pl include_dir data_dir error_file
+# or generate_errors.pl crypto_include_dir tls_include_dir data_dir error_file
 #
 # Copyright The Mbed TLS Contributors
 # SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
@@ -11,22 +11,24 @@
 use strict;
 use warnings;
 
-my ($include_dir, $data_dir, $error_file);
+my ($crypto_include_dir, $tls_include_dir, $data_dir, $error_file);
 
 if( @ARGV ) {
-    die "Invalid number of arguments" if scalar @ARGV != 3;
-    ($include_dir, $data_dir, $error_file) = @ARGV;
+    die "Invalid number of arguments" if scalar @ARGV != 4;
+    ($crypto_include_dir, $tls_include_dir, $data_dir, $error_file) = @ARGV;
 
-    -d $include_dir or die "No such directory: $include_dir\n";
+    -d $crypto_include_dir or die "No such directory: $crypto_include_dir\n";
+    -d $tls_include_dir or die "No such directory: $tls_include_dir\n";
     -d $data_dir or die "No such directory: $data_dir\n";
 } else {
-    $include_dir = 'include/mbedtls';
+    $crypto_include_dir = 'tf-psa-crypto/drivers/builtin/include/mbedtls';
+    $tls_include_dir = 'include/mbedtls';
     $data_dir = 'scripts/data_files';
     $error_file = 'library/error.c';
 
-    unless( -d $include_dir && -d $data_dir ) {
+    unless( -d $crypto_include_dir && -d $tls_include_dir && -d $data_dir ) {
         chdir '..' or die;
-        -d $include_dir && -d $data_dir
+        -d $crypto_include_dir && -d $tls_include_dir && -d $data_dir
             or die "Without arguments, must be run from root or scripts\n"
     }
 }
@@ -36,7 +38,7 @@ my $error_format_file = $data_dir.'/error.fmt';
 my @low_level_modules = qw( AES ARIA ASN1 BASE64 BIGNUM
                             CAMELLIA CCM CHACHA20 CHACHAPOLY CMAC CTR_DRBG DES
                             ENTROPY ERROR GCM HKDF HMAC_DRBG LMS MD5
-                            NET OID PADLOCK PBKDF2 PLATFORM POLY1305 RIPEMD160
+                            NET OID PBKDF2 PLATFORM POLY1305 RIPEMD160
                             SHA1 SHA256 SHA512 SHA3 THREADING );
 my @high_level_modules = qw( CIPHER DHM ECP MD
                              PEM PK PKCS12 PKCS5
@@ -48,7 +50,8 @@ open(FORMAT_FILE, '<:crlf', "$error_format_file") or die "Opening error format f
 my $error_format = <FORMAT_FILE>;
 close(FORMAT_FILE);
 
-my @files = glob qq("$include_dir/*.h");
+my @files = glob qq("$crypto_include_dir/*.h");
+push(@files, glob qq("$tls_include_dir/*.h"));
 my @necessary_include_files;
 my @matches;
 foreach my $file (@files) {

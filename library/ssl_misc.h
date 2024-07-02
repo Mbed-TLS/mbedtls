@@ -288,7 +288,7 @@ uint32_t mbedtls_ssl_get_extension_mask(unsigned int extension_type);
 
 #if defined(MBEDTLS_SSL_SOME_SUITES_USE_MAC)
 /* Ciphersuites using HMAC */
-#if defined(MBEDTLS_MD_CAN_SHA384)
+#if defined(PSA_WANT_ALG_SHA_384)
 #define MBEDTLS_SSL_MAC_ADD                 48  /* SHA-384 used for HMAC */
 #elif defined(MBEDTLS_MD_CAN_SHA256)
 #define MBEDTLS_SSL_MAC_ADD                 32  /* SHA-256 used for HMAC */
@@ -929,7 +929,7 @@ struct mbedtls_ssl_handshake_params {
     mbedtls_md_context_t fin_sha256;
 #endif
 #endif
-#if defined(MBEDTLS_MD_CAN_SHA384)
+#if defined(PSA_WANT_ALG_SHA_384)
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     psa_hash_operation_t fin_sha384_psa;
 #else
@@ -2433,10 +2433,10 @@ static inline int mbedtls_ssl_tls13_sig_alg_is_supported(
         case MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA256:
             break;
 #endif /* MBEDTLS_MD_CAN_SHA256 */
-#if defined(MBEDTLS_MD_CAN_SHA384)
+#if defined(PSA_WANT_ALG_SHA_384)
         case MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA384:
             break;
-#endif /* MBEDTLS_MD_CAN_SHA384 */
+#endif /* PSA_WANT_ALG_SHA_384 */
 #if defined(MBEDTLS_MD_CAN_SHA512)
         case MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA512:
             break;
@@ -2489,12 +2489,12 @@ static inline int mbedtls_ssl_get_pk_type_and_md_alg_from_sig_alg(
             *pk_type = MBEDTLS_PK_RSASSA_PSS;
             break;
 #endif /* MBEDTLS_MD_CAN_SHA256  */
-#if defined(MBEDTLS_MD_CAN_SHA384)
+#if defined(PSA_WANT_ALG_SHA_384)
         case MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA384:
             *md_alg = MBEDTLS_MD_SHA384;
             *pk_type = MBEDTLS_PK_RSASSA_PSS;
             break;
-#endif /* MBEDTLS_MD_CAN_SHA384 */
+#endif /* PSA_WANT_ALG_SHA_384 */
 #if defined(MBEDTLS_MD_CAN_SHA512)
         case MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA512:
             *md_alg = MBEDTLS_MD_SHA512;
@@ -2537,7 +2537,7 @@ static inline int mbedtls_ssl_tls12_sig_alg_is_supported(
             break;
 #endif
 
-#if defined(MBEDTLS_MD_CAN_SHA384)
+#if defined(PSA_WANT_ALG_SHA_384)
         case MBEDTLS_SSL_HASH_SHA384:
             break;
 #endif

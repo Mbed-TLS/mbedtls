@@ -1245,7 +1245,7 @@ int mbedtls_ssl_tls13_compute_early_transform(mbedtls_ssl_context *ssl)
         goto cleanup;
     }
 
-    transform_earlydata = mbedtls_calloc(1, sizeof(mbedtls_ssl_transform));
+    transform_earlydata = mbedtls_calloc(1, sizeof(*transform_earlydata));
     if (transform_earlydata == NULL) {
         ret = MBEDTLS_ERR_SSL_ALLOC_FAILED;
         goto cleanup;
@@ -1717,7 +1717,7 @@ int mbedtls_ssl_tls13_compute_handshake_transform(mbedtls_ssl_context *ssl)
         goto cleanup;
     }
 
-    transform_handshake = mbedtls_calloc(1, sizeof(mbedtls_ssl_transform));
+    transform_handshake = mbedtls_calloc(1, sizeof(*transform_handshake));
     if (transform_handshake == NULL) {
         ret = MBEDTLS_ERR_SSL_ALLOC_FAILED;
         goto cleanup;
@@ -1808,7 +1808,7 @@ int mbedtls_ssl_tls13_compute_application_transform(mbedtls_ssl_context *ssl)
     }
 
     transform_application =
-        mbedtls_calloc(1, sizeof(mbedtls_ssl_transform));
+        mbedtls_calloc(1, sizeof(*transform_application));
     if (transform_application == NULL) {
         ret = MBEDTLS_ERR_SSL_ALLOC_FAILED;
         goto cleanup;

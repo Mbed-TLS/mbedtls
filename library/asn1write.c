@@ -382,8 +382,7 @@ mbedtls_asn1_named_data *mbedtls_asn1_store_named_data(
     if ((cur = asn1_find_named_data(*head, oid, oid_len)) == NULL) {
         // Add new entry if not present yet based on OID
         //
-        cur = (mbedtls_asn1_named_data *) mbedtls_calloc(1,
-                                                         sizeof(mbedtls_asn1_named_data));
+        cur = mbedtls_calloc(1, sizeof(*cur));
         if (cur == NULL) {
             return NULL;
         }

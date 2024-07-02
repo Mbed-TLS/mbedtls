@@ -802,7 +802,7 @@ sni_entry *sni_parse(char *sni_string)
     *end = ',';
 
     while (p <= end) {
-        if ((new = mbedtls_calloc(1, sizeof(sni_entry))) == NULL) {
+        if ((new = mbedtls_calloc(1, sizeof(*new))) == NULL) {
             sni_free(cur);
             return NULL;
         }
@@ -816,8 +816,8 @@ sni_entry *sni_parse(char *sni_string)
 #endif
         GET_ITEM(auth_str);
 
-        if ((new->cert = mbedtls_calloc(1, sizeof(mbedtls_x509_crt))) == NULL ||
-            (new->key = mbedtls_calloc(1, sizeof(mbedtls_pk_context))) == NULL) {
+        if ((new->cert = mbedtls_calloc(1, sizeof(*new->cert))) == NULL ||
+            (new->key = mbedtls_calloc(1, sizeof(*new->key))) == NULL) {
             goto error;
         }
 
@@ -830,7 +830,7 @@ sni_entry *sni_parse(char *sni_string)
         }
 
         if (strcmp(ca_file, "-") != 0) {
-            if ((new->ca = mbedtls_calloc(1, sizeof(mbedtls_x509_crt))) == NULL) {
+            if ((new->ca = mbedtls_calloc(1, sizeof(*new->ca))) == NULL) {
                 goto error;
             }
 
@@ -843,7 +843,7 @@ sni_entry *sni_parse(char *sni_string)
 
 #if defined(MBEDTLS_X509_CRL_PARSE_C)
         if (strcmp(crl_file, "-") != 0) {
-            if ((new->crl = mbedtls_calloc(1, sizeof(mbedtls_x509_crl))) == NULL) {
+            if ((new->crl = mbedtls_calloc(1, sizeof(*new->crl))) == NULL) {
                 goto error;
             }
 
@@ -881,7 +881,7 @@ error:
 int sni_callback(void *p_info, mbedtls_ssl_context *ssl,
                  const unsigned char *name, size_t name_len)
 {
-    const sni_entry *cur = (const sni_entry *) p_info;
+    const sni_entry *cur = (const void*)p_info;
 
     /* preserve behavior which checks for SNI match in sni_callback() for
      * the benefits of tests using sni_callback(), even though the actual
@@ -911,7 +911,7 @@ int sni_callback(void *p_info, mbedtls_ssl_context *ssl,
  */
 int cert_callback(mbedtls_ssl_context *ssl)
 {
-    const sni_entry *cur = (sni_entry *) mbedtls_ssl_get_user_data_p(ssl);
+    const sni_entry *cur = (const void *) mbedtls_ssl_get_user_data_p(ssl);
     if (cur != NULL) {
         /*(exercise mbedtls_ssl_get_hs_sni(); not otherwise used here)*/
         size_t name_len;
@@ -998,11 +998,11 @@ psk_entry *psk_parse(char *psk_string)
     *end = ',';
 
     while (p <= end) {
-        if ((new = mbedtls_calloc(1, sizeof(psk_entry))) == NULL) {
+        if ((new = mbedtls_calloc(1, sizeof(*new))) == NULL) {
             goto error;
         }
 
-        memset(new, 0, sizeof(psk_entry));
+        memset(new, 0, sizeof(*new));
 
         GET_ITEM(new->name);
         GET_ITEM(key_hex);

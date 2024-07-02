@@ -2419,7 +2419,7 @@ static int ssl_flight_append(mbedtls_ssl_context *ssl)
                           ssl->out_msg, ssl->out_msglen);
 
     /* Allocate space for current message */
-    if ((msg = mbedtls_calloc(1, sizeof(mbedtls_ssl_flight_item))) == NULL) {
+    if ((msg = mbedtls_calloc(1, sizeof(*msg))) == NULL) {
         MBEDTLS_SSL_DEBUG_MSG(1, ("alloc %" MBEDTLS_PRINTF_SIZET " bytes failed",
                                   sizeof(mbedtls_ssl_flight_item)));
         return MBEDTLS_ERR_SSL_ALLOC_FAILED;

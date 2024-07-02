@@ -17,7 +17,7 @@ void mbedtls_pem_write_buffer(char *start, char *end, data_t *buf,
     ret = mbedtls_pem_write_buffer(start, end, buf->x, buf->len, NULL, 0, &olen);
     TEST_ASSERT(ret == MBEDTLS_ERR_BASE64_BUFFER_TOO_SMALL);
 
-    check_buf = (unsigned char *) mbedtls_calloc(1, olen);
+    check_buf = mbedtls_calloc(1, olen);
     TEST_ASSERT(check_buf != NULL);
 
     ret = mbedtls_pem_write_buffer(start, end, buf->x, buf->len, check_buf, olen, &olen2);

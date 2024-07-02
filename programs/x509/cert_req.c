@@ -240,7 +240,7 @@ usage:
                     r = NULL;
                 }
 
-                cur = mbedtls_calloc(1, sizeof(mbedtls_x509_san_list));
+                cur = mbedtls_calloc(1, sizeof(*cur));
                 if (cur == NULL) {
                     mbedtls_printf("Not enough memory for subjectAltName list\n");
                     goto usage;

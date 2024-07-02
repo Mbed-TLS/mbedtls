@@ -504,7 +504,7 @@ usage:
                     *r++ = '\0';
                 }
 
-                ext_key_usage = mbedtls_calloc(1, sizeof(mbedtls_asn1_sequence));
+                ext_key_usage = mbedtls_calloc(1, sizeof(*ext_key_usage));
                 ext_key_usage->buf.tag = MBEDTLS_ASN1_OID;
                 if (strcmp(q, "serverAuth") == 0) {
                     SET_OID(ext_key_usage->buf, MBEDTLS_OID_SERVER_AUTH);
@@ -561,7 +561,7 @@ usage:
                     r = NULL;
                 }
 
-                cur = mbedtls_calloc(1, sizeof(mbedtls_x509_san_list));
+                cur = mbedtls_calloc(1, sizeof(*cur));
                 if (cur == NULL) {
                     mbedtls_printf("Not enough memory for subjectAltName list\n");
                     goto usage;

@@ -263,7 +263,7 @@ int mbedtls_mpi_mod_inv(mbedtls_mpi_mod_residue *X,
         mbedtls_mpi_mod_raw_inv_prime_working_limbs(N->limbs);
 
     mbedtls_mpi_uint *working_memory = mbedtls_calloc(working_limbs,
-                                                      sizeof(mbedtls_mpi_uint));
+                                                      sizeof(*working_memory));
     if (working_memory == NULL) {
         return MBEDTLS_ERR_MPI_ALLOC_FAILED;
     }
@@ -363,7 +363,7 @@ int mbedtls_mpi_mod_write(const mbedtls_mpi_mod_residue *r,
 
     if (N->int_rep == MBEDTLS_MPI_MOD_REP_MONTGOMERY) {
 
-        working_memory = mbedtls_calloc(r->limbs, sizeof(mbedtls_mpi_uint));
+        working_memory = mbedtls_calloc(r->limbs, sizeof(*working_memory));
 
         if (working_memory == NULL) {
             ret = MBEDTLS_ERR_MPI_ALLOC_FAILED;

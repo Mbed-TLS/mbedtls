@@ -183,7 +183,7 @@ int mbedtls_cipher_cmac_starts(mbedtls_cipher_context_t *ctx,
 
     /* Allocated and initialise in the cipher context memory for the CMAC
      * context */
-    cmac_ctx = mbedtls_calloc(1, sizeof(mbedtls_cmac_context_t));
+    cmac_ctx = mbedtls_calloc(1, sizeof(*cmac_ctx));
     if (cmac_ctx == NULL) {
         return MBEDTLS_ERR_CIPHER_ALLOC_FAILED;
     }

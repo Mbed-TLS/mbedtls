@@ -183,7 +183,7 @@ static int ssl_cache_pick_writing_slot(mbedtls_ssl_cache_context *cache,
 
     if (count < cache->max_entries) {
         /* Create new entry */
-        cur = mbedtls_calloc(1, sizeof(mbedtls_ssl_cache_entry));
+        cur = mbedtls_calloc(1, sizeof(*cur));
         if (cur == NULL) {
             return MBEDTLS_ERR_SSL_ALLOC_FAILED;
         }

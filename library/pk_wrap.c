@@ -447,16 +447,16 @@ static int rsa_check_pair_wrap(mbedtls_pk_context *pub, mbedtls_pk_context *prv,
 {
     (void) f_rng;
     (void) p_rng;
-    return mbedtls_rsa_check_pub_priv((const mbedtls_rsa_context *) pub->pk_ctx,
-                                      (const mbedtls_rsa_context *) prv->pk_ctx);
+    return mbedtls_rsa_check_pub_priv((const void *) pub->pk_ctx,
+                                      (const void *) prv->pk_ctx);
 }
 
 static void *rsa_alloc_wrap(void)
 {
-    void *ctx = mbedtls_calloc(1, sizeof(mbedtls_rsa_context));
+    mbedtls_rsa_context *ctx = mbedtls_calloc(1, sizeof(*ctx));
 
     if (ctx != NULL) {
-        mbedtls_rsa_init((mbedtls_rsa_context *) ctx);
+        mbedtls_rsa_init(ctx);
     }
 
     return ctx;
@@ -464,7 +464,7 @@ static void *rsa_alloc_wrap(void)
 
 static void rsa_free_wrap(void *ctx)
 {
-    mbedtls_rsa_free((mbedtls_rsa_context *) ctx);
+    mbedtls_rsa_free(ctx);
     mbedtls_free(ctx);
 }
 
@@ -475,7 +475,7 @@ static void rsa_debug(mbedtls_pk_context *pk, mbedtls_pk_debug_item *items)
     (void) pk;
     (void) items;
 #else
-    mbedtls_rsa_context *rsa = (mbedtls_rsa_context *) pk->pk_ctx;
+    mbedtls_rsa_context *rsa = pk->pk_ctx;
 
     items->type = MBEDTLS_PK_DEBUG_MPI;
     items->name = "rsa.N";
@@ -845,32 +845,26 @@ typedef struct {
 
 static void *eckey_rs_alloc(void)
 {
-    eckey_restart_ctx *rs_ctx;
+    eckey_restart_ctx *rs_ctx = mbedtls_calloc(1, sizeof(*rs_ctx));
 
-    void *ctx = mbedtls_calloc(1, sizeof(eckey_restart_ctx));
-
-    if (ctx != NULL) {
-        rs_ctx = ctx;
+    if (rs_ctx != NULL) {
         mbedtls_ecdsa_restart_init(&rs_ctx->ecdsa_rs);
         mbedtls_ecdsa_init(&rs_ctx->ecdsa_ctx);
     }
 
-    return ctx;
+    return rs_ctx;
 }
 
 static void eckey_rs_free(void *ctx)
 {
-    eckey_restart_ctx *rs_ctx;
+    eckey_restart_ctx *rs_ctx = ctx;
 
-    if (ctx == NULL) {
-        return;
+    if (ctx != NULL) {
+        mbedtls_ecdsa_restart_free(&rs_ctx->ecdsa_rs);
+        mbedtls_ecdsa_free(&rs_ctx->ecdsa_ctx);
+
+        mbedtls_free(ctx);
     }
-
-    rs_ctx = ctx;
-    mbedtls_ecdsa_restart_free(&rs_ctx->ecdsa_rs);
-    mbedtls_ecdsa_free(&rs_ctx->ecdsa_ctx);
-
-    mbedtls_free(ctx);
 }
 
 static int eckey_verify_rs_wrap(mbedtls_pk_context *pk, mbedtls_md_type_t md_alg,
@@ -1080,7 +1074,7 @@ static int ecdsa_opaque_check_pair_wrap(mbedtls_pk_context *pub,
 #if !defined(MBEDTLS_PK_USE_PSA_EC_DATA)
 static void *eckey_alloc_wrap(void)
 {
-    void *ctx = mbedtls_calloc(1, sizeof(mbedtls_ecp_keypair));
+    mbedtls_ecp_keypair *ctx = mbedtls_calloc(1, sizeof(*ctx));
 
     if (ctx != NULL) {
         mbedtls_ecp_keypair_init(ctx);
@@ -1219,7 +1213,7 @@ static int ecdsa_sign_rs_wrap(mbedtls_pk_context *pk, mbedtls_md_type_t md_alg,
 
 static void *ecdsa_rs_alloc(void)
 {
-    void *ctx = mbedtls_calloc(1, sizeof(mbedtls_ecdsa_restart_ctx));
+    mbedtls_ecdsa_restart_ctx *ctx = mbedtls_calloc(1, sizeof(*ctx));
 
     if (ctx != NULL) {
         mbedtls_ecdsa_restart_init(ctx);
@@ -1365,10 +1359,10 @@ static int rsa_alt_check_pair(mbedtls_pk_context *pub, mbedtls_pk_context *prv,
 
 static void *rsa_alt_alloc_wrap(void)
 {
-    void *ctx = mbedtls_calloc(1, sizeof(mbedtls_rsa_alt_context));
+    mbedtls_rsa_alt_context *ctx = mbedtls_calloc(1, sizeof(*ctx));
 
     if (ctx != NULL) {
-        memset(ctx, 0, sizeof(mbedtls_rsa_alt_context));
+        memset(ctx, 0, sizeof(*ctx));
     }
 
     return ctx;

@@ -362,7 +362,7 @@ cleanup()
 # up the library's workspace after the server build and before the client
 # build. Built libraries (mbedcrypto, mbedx509 and mbedtls) are supposed to be
 # already copied to psasim folder at this point.
-cleanup_before_psasim_client() {
+helper_psasim_cleanup_before_client() {
     # Clean up library files
     make -C library clean
     # Clean up intermediate files that were used to build the server
@@ -971,7 +971,7 @@ helper_libtestdriver1_make_main() {
 # Set some default values $CONFIG_H in order to build server or client sides
 # in PSASIM. There is only 1 mandatory parameter:
 # - $1: target which can be "client" or "server"
-helper_psasim_base_config() {
+helper_psasim_config() {
     TARGET=$1
 
     if [ "$TARGET" == "client" ]; then
@@ -6022,13 +6022,13 @@ component_check_test_helpers () {
 component_test_psasim() {
     msg "build server library and application"
     scripts/config.py crypto
-    helper_psasim_base_config server
+    helper_psasim_config server
     helper_psasim_build server
 
-    cleanup_before_psasim_client
+    helper_psasim_cleanup_before_client
 
     msg "build library for client"
-    helper_psasim_base_config client
+    helper_psasim_config client
     helper_psasim_build client
 
     msg "build basic psasim client"
@@ -6047,14 +6047,14 @@ component_test_psasim() {
 component_test_suite_with_psasim()
 {
     msg "build server library and application"
-    helper_psasim_base_config server
+    helper_psasim_config server
     # Modify server's library configuration here (if needed)
     helper_psasim_build server
 
-    cleanup_before_psasim_client
+    helper_psasim_cleanup_before_client
 
     msg "build client library"
-    helper_psasim_base_config client
+    helper_psasim_config client
     # PAKE functions are still unsupported from PSASIM
     scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_JPAKE
     scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED

@@ -2527,7 +2527,7 @@ static inline int mbedtls_ssl_tls12_sig_alg_is_supported(
             break;
 #endif
 
-#if defined(MBEDTLS_MD_CAN_SHA224)
+#if defined(PSA_WANT_ALG_SHA_224)
         case MBEDTLS_SSL_HASH_SHA224:
             break;
 #endif

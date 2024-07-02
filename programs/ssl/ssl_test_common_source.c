@@ -301,7 +301,7 @@ uint16_t ssl_sig_algs_for_test[] = {
 #if defined(MBEDTLS_MD_CAN_SHA256)
     MBEDTLS_SSL_SIG_ALG(MBEDTLS_SSL_HASH_SHA256)
 #endif
-#if defined(MBEDTLS_MD_CAN_SHA224)
+#if defined(PSA_WANT_ALG_SHA_224)
     MBEDTLS_SSL_SIG_ALG(MBEDTLS_SSL_HASH_SHA224)
 #endif
 #if defined(MBEDTLS_RSA_C) && defined(MBEDTLS_MD_CAN_SHA256)

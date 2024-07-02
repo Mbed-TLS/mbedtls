@@ -391,13 +391,13 @@ static const oid_sig_alg_t oid_sig_alg[] =
         MBEDTLS_MD_SHA1,     MBEDTLS_PK_RSA,
     },
 #endif /* MBEDTLS_MD_CAN_SHA1 */
-#if defined(MBEDTLS_MD_CAN_SHA224)
+#if defined(PSA_WANT_ALG_SHA_224)
     {
         OID_DESCRIPTOR(MBEDTLS_OID_PKCS1_SHA224,     "sha224WithRSAEncryption",
                        "RSA with SHA-224"),
         MBEDTLS_MD_SHA224,   MBEDTLS_PK_RSA,
     },
-#endif /* MBEDTLS_MD_CAN_SHA224 */
+#endif /* PSA_WANT_ALG_SHA_224 */
 #if defined(MBEDTLS_MD_CAN_SHA256)
     {
         OID_DESCRIPTOR(MBEDTLS_OID_PKCS1_SHA256,     "sha256WithRSAEncryption",
@@ -433,7 +433,7 @@ static const oid_sig_alg_t oid_sig_alg[] =
         MBEDTLS_MD_SHA1,     MBEDTLS_PK_ECDSA,
     },
 #endif /* MBEDTLS_MD_CAN_SHA1 */
-#if defined(MBEDTLS_MD_CAN_SHA224)
+#if defined(PSA_WANT_ALG_SHA_224)
     {
         OID_DESCRIPTOR(MBEDTLS_OID_ECDSA_SHA224,     "ecdsa-with-SHA224",    "ECDSA with SHA224"),
         MBEDTLS_MD_SHA224,   MBEDTLS_PK_ECDSA,
@@ -731,7 +731,7 @@ static const oid_md_alg_t oid_md_alg[] =
         MBEDTLS_MD_SHA1,
     },
 #endif
-#if defined(MBEDTLS_MD_CAN_SHA224)
+#if defined(PSA_WANT_ALG_SHA_224)
     {
         OID_DESCRIPTOR(MBEDTLS_OID_DIGEST_ALG_SHA224,    "id-sha224",    "SHA-224"),
         MBEDTLS_MD_SHA224,
@@ -815,12 +815,12 @@ static const oid_md_hmac_t oid_md_hmac[] =
         MBEDTLS_MD_SHA1,
     },
 #endif /* MBEDTLS_MD_CAN_SHA1 */
-#if defined(MBEDTLS_MD_CAN_SHA224)
+#if defined(PSA_WANT_ALG_SHA_224)
     {
         OID_DESCRIPTOR(MBEDTLS_OID_HMAC_SHA224,    "hmacSHA224",    "HMAC-SHA-224"),
         MBEDTLS_MD_SHA224,
     },
-#endif /* MBEDTLS_MD_CAN_SHA224 */
+#endif /* PSA_WANT_ALG_SHA_224 */
 #if defined(MBEDTLS_MD_CAN_SHA256)
     {
         OID_DESCRIPTOR(MBEDTLS_OID_HMAC_SHA256,    "hmacSHA256",    "HMAC-SHA-256"),

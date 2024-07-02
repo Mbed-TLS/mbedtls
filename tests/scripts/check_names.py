@@ -240,8 +240,8 @@ class CodeParser():
             "include/psa/*.h",
             "tf-psa-crypto/include/psa/*.h",
             "tf-psa-crypto/drivers/builtin/include/mbedtls/*.h",
-            "3rdparty/everest/include/everest/everest.h",
-            "3rdparty/everest/include/everest/x25519.h"
+            "tf-psa-crypto/drivers/everest/include/everest/everest.h",
+            "tf-psa-crypto/drivers/everest/include/everest/x25519.h"
         ])
         all_macros["internal"] = self.parse_macros([
             "library/*.h",
@@ -265,8 +265,8 @@ class CodeParser():
             "library/*.c",
             "tf-psa-crypto/core/*.c",
             "tf-psa-crypto/drivers/builtin/src/*.c",
-            "3rdparty/everest/include/everest/everest.h",
-            "3rdparty/everest/include/everest/x25519.h"
+            "tf-psa-crypto/drivers/everest/include/everest/everest.h",
+            "tf-psa-crypto/drivers/everest/include/everest/x25519.h"
         ])
         identifiers, excluded_identifiers = self.parse_identifiers([
             "include/mbedtls/*.h",
@@ -276,9 +276,9 @@ class CodeParser():
             "library/*.h",
             "tf-psa-crypto/core/*.h",
             "tf-psa-crypto/drivers/builtin/src/*.h",
-            "3rdparty/everest/include/everest/everest.h",
-            "3rdparty/everest/include/everest/x25519.h"
-        ], ["3rdparty/p256-m/p256-m/p256-m.h"])
+            "tf-psa-crypto/drivers/everest/include/everest/everest.h",
+            "tf-psa-crypto/drivers/everest/include/everest/x25519.h"
+        ], ["tf-psa-crypto/drivers/p256-m/p256-m/p256-m.h"])
         mbed_psa_words = self.parse_mbed_psa_words([
             "include/mbedtls/*.h",
             "include/psa/*.h",
@@ -287,13 +287,13 @@ class CodeParser():
             "library/*.h",
             "tf-psa-crypto/core/*.h",
             "tf-psa-crypto/drivers/builtin/src/*.h",
-            "3rdparty/everest/include/everest/everest.h",
-            "3rdparty/everest/include/everest/x25519.h",
+            "tf-psa-crypto/drivers/everest/include/everest/everest.h",
+            "tf-psa-crypto/drivers/everest/include/everest/x25519.h",
             "library/*.c",
             "tf-psa-crypto/core/*.c",
             "tf-psa-crypto/drivers/builtin/src/*.c",
-            "3rdparty/everest/library/everest.c",
-            "3rdparty/everest/library/x25519.c"
+            "tf-psa-crypto/drivers/everest/library/everest.c",
+            "tf-psa-crypto/drivers/everest/library/x25519.c"
         ], ["tf-psa-crypto/core/psa_crypto_driver_wrappers.h"])
         symbols = self.parse_symbols()
 

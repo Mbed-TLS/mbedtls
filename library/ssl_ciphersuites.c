@@ -1331,7 +1331,7 @@ static const mbedtls_ssl_ciphersuite_t ciphersuite_definitions[] =
 
 #if defined(MBEDTLS_CIPHER_NULL_CIPHER)
 #if defined(MBEDTLS_KEY_EXCHANGE_RSA_ENABLED)
-#if defined(MBEDTLS_MD_CAN_MD5)
+#if defined(PSA_WANT_ALG_MD5)
     { MBEDTLS_TLS_RSA_WITH_NULL_MD5, "TLS-RSA-WITH-NULL-MD5",
       MBEDTLS_CIPHER_NULL, MBEDTLS_MD_MD5, MBEDTLS_KEY_EXCHANGE_RSA,
       MBEDTLS_CIPHERSUITE_WEAK,

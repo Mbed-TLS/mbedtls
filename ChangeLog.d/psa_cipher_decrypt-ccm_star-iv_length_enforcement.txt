@@ -1,0 +1,3 @@
+Bugfix
+   * Fix psa_cipher_decrypt() with CCM* rejecting messages less than 3 bytes
+     long. Credit to Cryptofuzz. Fixes #9314.

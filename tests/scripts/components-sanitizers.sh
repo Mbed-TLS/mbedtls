@@ -147,6 +147,7 @@ component_test_tsan () {
 component_test_memsan () {
     msg "build: MSan (clang)" # ~ 1 min 20s
     scripts/config.py unset MBEDTLS_AESNI_C # memsan doesn't grok asm
+    scripts/config.py unset MBEDTLS_HAVE_ASM
     CC=clang cmake -D CMAKE_BUILD_TYPE:String=MemSan .
     make
 

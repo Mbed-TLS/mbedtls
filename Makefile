@@ -204,8 +204,10 @@ C_SOURCE_FILES = $(wildcard \
 	3rdparty/*/*.c 3rdparty/*/*/*.c 3rdparty/*/*/*/*.c 3rdparty/*/*/*/*/*.c \
 	include/*/*.h \
 	library/*.[hc] \
+	tf-psa-crypto/core/*.[hc] \
 	tf-psa-crypto/include/*/*.h \
 	tf-psa-crypto/drivers/builtin/include/*/*.h \
+	tf-psa-crypto/drivers/builtin/src/*.[hc] \
 	programs/*/*.[hc] \
 	tests/include/*/*.h tests/include/*/*/*.h \
 	tests/src/*.c tests/src/*/*.c \
@@ -222,7 +224,9 @@ GPATH GRTAGS GSYMS GTAGS: $(C_SOURCE_FILES)
 	ls $(C_SOURCE_FILES) | gtags -f - --gtagsconf .globalrc
 cscope: cscope.in.out cscope.po.out cscope.out
 cscope.in.out cscope.po.out cscope.out: $(C_SOURCE_FILES)
-	cscope -bq -u -Iinclude -Ilibrary -Itf-psa-crypto/include \
+	cscope -bq -u -Iinclude -Ilibrary -Itf-psa-crypto/core \
+        -Itf-psa-crypto/include \
 	-Itf-psa-crypto/drivers/builtin/include \
+	-Itf-psa-crypto/drivers/builtin/src \
 	$(patsubst %,-I%,$(wildcard 3rdparty/*/include)) -Itests/include $(C_SOURCE_FILES)
 .PHONY: cscope global

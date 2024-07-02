@@ -158,11 +158,15 @@ sub declare_serialise
     my $type_d = $type;
     $type_d =~ s/ /_/g;
 
+    if (length($server) && $type !~ /^psa_(\w+)_operation_t$/) {
+        die("$0: declare_server_serialise: $type: not supported\n");
+    }
+
     my $server_side = (length($server)) ? " on the server side" : "";
 
     my $ptr = (length($server)) ? "*" : "";
 
-    return align_declaration(<<EOF);
+    my $code = <<EOF;
 
 /** Serialise $an `$type` into a buffer${server_side}.
  *
@@ -171,13 +175,29 @@ sub declare_serialise
  * \\param remaining[in,out]  Pointer to a `size_t` holding number of bytes
  *                           remaining in the buffer.
  * \\param value              The value to serialise into the buffer.
+EOF
+
+    $code .= <<EOF if length($server);
+ * \\param completed          Non-zero if the operation is now completed (set by
+ *                           finish and abort calls).
+EOF
+
+    my $value_sep = (length($server)) ? "," : ");";
+
+    $code .= <<EOF;
  *
  * \\return                   \\c 1 on success ("okay"), \\c 0 on error.
  */
 int psasim_${server}serialise_$type_d(uint8_t **pos,
                              size_t *remaining,
-                             $type ${ptr}value);
+                             $type ${ptr}value$value_sep
 EOF
+
+    $code .= <<EOF if length($server);
+                             int completed);
+EOF
+
+    return align_declaration($code);
 }
 
 sub declare_deserialise
@@ -543,7 +563,8 @@ sub define_server_serialise
 
 int psasim_server_serialise_$type_d(uint8_t **pos,
                              size_t *remaining,
-                             $type *operation)
+                             $type *operation,
+                             int completed)
 {
     psasim_operation_t client_operation;
 
@@ -552,6 +573,13 @@ int psasim_server_serialise_$type_d(uint8_t **pos,
     }
 
     ssize_t slot = operation - ${t}_operations;
+
+    if (completed) {
+        memset(&${t}_operations[slot],
+               0,
+               sizeof($type_d));
+        ${t}_operation_handles[slot] = 0;
+    }
 
     client_operation.handle = ${t}_operation_handles[slot];
 
@@ -619,7 +647,7 @@ sub define_server_deserialise
     if ($type =~ /^psa_(\w+)_operation_t$/) {
         $t = $1;
     } else {
-        die("$0: define_server_serialise: $type: not supported\n");
+        die("$0: define_server_deserialise: $type: not supported\n");
     }
 
     my $type_d = $type;
@@ -1123,8 +1151,8 @@ EOF
 EOF
 }
 
-# Horrible way to align first, second and third lines of function signature to
-# appease uncrustify (these are the 2nd-4th lines of code, indices 1, 2 and 3)
+# Horrible way to align first few lines of function signature to appease
+# uncrustify (these are usually the 2nd-4th lines of code, indices 1, 2 and 3)
 #
 sub align_signature
 {
@@ -1132,13 +1160,17 @@ sub align_signature
 
     my @code = split(/\n/, $code);
 
+    my $i = 1;
     # Find where the ( is
-    my $idx = index($code[1], "(");
+    my $idx = index($code[$i], "(");
     die("can't find (") if $idx < 0;
 
     my $indent = " " x ($idx + 1);
-    $code[2] =~ s/^\s+/$indent/;
-    $code[3] =~ s/^\s+/$indent/;
+
+    do {
+        # Indent each line up until the one that ends with )
+        $code[++$i] =~ s/^\s+/$indent/;
+    } while $code[$i] !~ /\)$/;
 
     return join("\n", @code) . "\n";
 }
@@ -1163,8 +1195,10 @@ sub align_declaration
     die("can't find (") if $idx < 0;
 
     my $indent = " " x ($idx + 1);
-    $code[$i + 1] =~ s/^\s+/$indent/;
-    $code[$i + 2] =~ s/^\s+/$indent/;
+    do {
+        # Indent each line up until the one with the ; on it
+        $code[++$i] =~ s/^\s+/$indent/;
+    } while ($code[$i] !~ /;/);
 
     return join("\n", @code) . "\n";
 }

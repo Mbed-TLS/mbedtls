@@ -349,7 +349,7 @@ int psa_crypto_call(int function,
     invec.base = in_params;
     invec.len = in_params_len;
 
-    size_t max_receive = 8192;
+    size_t max_receive = 24576;
     uint8_t *receive = malloc(max_receive);
     if (receive == NULL) {
         fprintf(stderr, "FAILED to allocate %u bytes\n", (unsigned) max_receive);
@@ -424,6 +424,11 @@ fail:
 
 void mbedtls_psa_crypto_free(void)
 {
+    /* Do not try to close a connection that was never started.*/
+    if (handle == -1) {
+        return;
+    }
+
     CLIENT_PRINT("Closing handle");
     psa_close(handle);
     handle = -1;
@@ -745,11 +750,19 @@ EOF
 
             my $server_specific = ($argtype =~ /^psa_\w+_operation_t/) ? "server_" : "";
 
+            my $completed = ""; # Only needed on server serialise calls
+            if (length($server_specific)) {
+                # On server serialisation, which is only for operation types,
+                # we need to mark the operation as completed (variously called
+                # terminated or inactive in psa/crypto.h) on certain calls.
+                $completed = ($name =~ /_(abort|finish|hash_verify)$/) ? ", 1" : ", 0";
+            }
+
             print $fh <<EOF;
 
     ok = psasim_${server_specific}serialise_${argtype}(
         &rpos, &rremain,
-        $argname);
+        $argname$completed);
     if (!ok) {
         goto fail;
     }

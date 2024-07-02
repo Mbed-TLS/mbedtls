@@ -18,11 +18,16 @@ needs to be changed to use new APIs. For a more detailed account of what's
 implemented, see `docs/use-psa-crypto.md`, where new APIs are about (G2), and
 internal changes implement (G1).
 
-As of early 2023, work towards G5 is in progress: Mbed TLS 3.3 and 3.4 saw
-some improvements in this area, and more will be coming in future releases.
+As of Mbed TLS 3.6 (early 2024), work towards G5 is well advanced: it is now
+possible to have hashes/HMAC, ciphers/AEAD, and ECC provided only by drivers,
+with some limitations. See
+[`docs/driver-only-builds.md`](../../driver-only-builds.html) for details.
+The main gap is RSA in PK, X.509 and TLS; it should be resolved by 4.0 work.
 
 Generally speaking, the numbering above doesn't mean that each goal requires
-the preceding ones to be completed.
+the preceding ones to be completed. (As an example, much progress towards G5
+was made in 3.x, while G4 will be mostly 4.0 and probably not fully complete
+until 5.0.)
 
 
 Compile-time options
@@ -146,7 +151,7 @@ crypto API.
 This strategy is currently (early 2023) used for all operations in the PK
 layer; the MD layer uses a variant where it dispatches to PSA if a driver is
 available and the driver subsystem has been initialized, regardless of whether
-`USE_PSA_CRYPTO` is enabled; see `md-cipher-dispatch.md` in the same directory
+`USE_PSA_CRYPTO` is enabled; see [`md-cipher-dispatch.md`](md-cipher-dispatch.html)
 for details.
 
 This strategy is not very well suited to the Cipher layer, as the PSA
@@ -172,7 +177,7 @@ Replace calls for each operation
 
 This strategy is currently (early 2023) used for the MD layer and the Cipher
 layer in X.509 and TLS. Crypto modules however always call to MD which may
-then dispatch to PSA, see `md-cipher-dispatch.md`.
+then dispatch to PSA, see [`md-cipher-dispatch.md`](md-cipher-dispatch.html).
 
 Opt-in use of PSA from the abstraction layer
 --------------------------------------------
@@ -219,11 +224,16 @@ Strategies currently (early 2022) used with each abstraction layer:
 
 - PK (for G1): silently call PSA
 - PK (for G2): opt-in use of PSA (new key type)
-- Cipher (G1): replace calls at each call site
+- PK (for G5): store keys in PSA-friendly format when `ECP_C` is disabled and
+  `USE_PSA` is enabled
+- Cipher (G1, TLS): replace calls at each call site
+- Cipher (G5): create a new internal abstraction layer for (non-DES) block
+  ciphers that silently calls PSA when a driver is available, see
+  [`md-cipher-dispatch.md`](md-cipher-dispatch.html).
 - MD (G1, X.509 and TLS): replace calls at each call site (depending on
   `USE_PSA_CRYPTO`)
 - MD (G5): silently call PSA when a driver is available, see
-  `md-cipher-dispatch.md`.
+  [`md-cipher-dispatch.md`](md-cipher-dispatch.html).
 
 
 Supporting builds with drivers without the software implementation
@@ -292,7 +302,7 @@ Regarding PK, X.509, and TLS, this is mostly achieved with only a few gaps.
 (The strategy was outlined in the previous section.)
 
 Regarding libmbedcrypto:
-- for hashes and ciphers, see `md-cipher-dispatch.md` in the same directory;
+- for hashes and ciphers, see [`md-cipher-dispatch.md`](md-cipher-dispatch.html);
 - for ECC, we have no internal uses of the top-level algorithms (ECDSA, ECDH,
   ECJPAKE), however they all depend on `ECP_C` which in turn depends on
 `BIGNUM_C`. So, direct calls from TLS, X.509 and PK to ECP and Bignum will

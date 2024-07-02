@@ -334,6 +334,9 @@ cleanup()
     rm -f 3rdparty/Makefile 3rdparty/*/Makefile pkgconfig/Makefile framework/Makefile
     rm -f include/Makefile programs/!(fuzz)/Makefile
     rm -f tf-psa-crypto/Makefile tf-psa-crypto/include/Makefile
+    rm -f tf-psa-crypto/core/Makefile tf-psa-crypto/drivers/Makefile
+    rm -f tf-psa-crypto/drivers/builtin/Makefile
+    rm -f tf-psa-crypto/drivers/builtin/src/Makefile
 
     # Remove any artifacts from the component_test_cmake_as_subdirectory test.
     rm -rf programs/test/cmake_subproject/build

@@ -3865,8 +3865,8 @@ psa_status_t psa_key_derivation_output_key_ext(
  * psa_key_derivation_abort().
  *
  * \param[in,out] operation The key derivation operation object to read from.
- * \param[in] expected_output Buffer containing the expected derivation output.
- * \param output_length     Length of the expected output; this is also the
+ * \param[in] expected      Buffer containing the expected derivation output.
+ * \param expected_length   Length of the expected output; this is also the
  *                          number of bytes that will be read.
  *
  * \retval #PSA_SUCCESS \emptydescription
@@ -3896,8 +3896,8 @@ psa_status_t psa_key_derivation_output_key_ext(
  */
 psa_status_t psa_key_derivation_verify_bytes(
     psa_key_derivation_operation_t *operation,
-    const uint8_t *expected_output,
-    size_t output_length);
+    const uint8_t *expected,
+    size_t expected_length);
 
 /** Compare output data from a key derivation operation to an expected value
  * stored in a key object.

@@ -13,7 +13,7 @@
 #include "test/drivers/mac.h"
 
 #if defined(MBEDTLS_TEST_LIBTESTDRIVER1)
-#include "libtestdriver1/library/psa_crypto_mac.h"
+#include "libtestdriver1/tf-psa-crypto/core/psa_crypto_mac.h"
 #endif
 
 mbedtls_test_driver_mac_hooks_t mbedtls_test_driver_mac_hooks =

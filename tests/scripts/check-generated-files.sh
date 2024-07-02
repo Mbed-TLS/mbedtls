@@ -132,13 +132,14 @@ check framework/scripts/generate_bignum_tests.py $(framework/scripts/generate_bi
 check framework/scripts/generate_ecp_tests.py $(framework/scripts/generate_ecp_tests.py --list)
 check framework/scripts/generate_psa_tests.py $(framework/scripts/generate_psa_tests.py --list)
 check framework/scripts/generate_test_keys.py tests/src/test_keys.h
-check scripts/generate_driver_wrappers.py $library_dir/psa_crypto_driver_wrappers.h $library_dir/psa_crypto_driver_wrappers_no_static.c
+check scripts/generate_driver_wrappers.py tf-psa-crypto/core/psa_crypto_driver_wrappers.h \
+                                          tf-psa-crypto/core/psa_crypto_driver_wrappers_no_static.c
 
 # Additional checks for Mbed TLS only
 if in_mbedtls_repo; then
-    check scripts/generate_errors.pl library/error.c
+    check scripts/generate_errors.pl tf-psa-crypto/drivers/builtin/src/error.c
     check scripts/generate_query_config.pl programs/test/query_config.c
-    check scripts/generate_features.pl library/version_features.c
+    check scripts/generate_features.pl tf-psa-crypto/drivers/builtin/src/version_features.c
     check scripts/generate_ssl_debug_helpers.py library/ssl_debug_helpers_generated.c
     check framework/scripts/generate_test_cert_macros.py tests/src/test_certs.h
     # generate_visualc_files enumerates source files (library/*.c). It doesn't

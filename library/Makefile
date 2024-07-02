@@ -2,11 +2,15 @@ ifndef MBEDTLS_PATH
 MBEDTLS_PATH := ..
 endif
 
+TF_PSA_CRYPTO_CORE_PATH = $(MBEDTLS_PATH)/tf-psa-crypto/core
+TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH = $(MBEDTLS_PATH)/tf-psa-crypto/drivers/builtin/src
+
 GENERATED_FILES := \
-	error.c version_features.c \
+	$(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/error.c \
+        $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/version_features.c \
 	ssl_debug_helpers_generated.c \
-	psa_crypto_driver_wrappers.h \
-	psa_crypto_driver_wrappers_no_static.c
+	$(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto_driver_wrappers.h \
+	$(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto_driver_wrappers_no_static.c
 
 ifneq ($(GENERATED_FILES),$(wildcard $(GENERATED_FILES)))
     ifeq (,$(wildcard $(MBEDTLS_PATH)/framework/exported.make))
@@ -29,11 +33,12 @@ WARNING_CFLAGS ?=  -Wall -Wextra -Wformat=2 -Wno-format-nonliteral
 LDFLAGS ?=
 
 # Include ../include, ../tf-psa-crypto/include and
-# ../tf-psa-crypto/drivers/builtin/include for public headers and . for
-# private headers. Note that . needs to be included explicitly for the sake of
-# library files that are not in the /library directory (which currently means
-# under /3rdparty).
-LOCAL_CFLAGS = $(WARNING_CFLAGS) -I. -I../include -I../tf-psa-crypto/include \
+# ../tf-psa-crypto/drivers/builtin/include for public headers and .,
+# ../tf-psa-crypto/core and ../tf-psa-crypto/drivers/builtin/src for
+# private headers.
+LOCAL_CFLAGS = $(WARNING_CFLAGS) -I. -I../tf-psa-crypto/core \
+               -I../tf-psa-crypto/drivers/builtin/src \
+               -I../include -I../tf-psa-crypto/include \
                -I../tf-psa-crypto/drivers/builtin/include -D_FILE_OFFSET_BITS=64
 LOCAL_LDFLAGS =
 
@@ -105,89 +110,91 @@ endif
 endif
 
 OBJS_CRYPTO= \
-	     aes.o \
-	     aesni.o \
-	     aesce.o \
-	     aria.o \
-	     asn1parse.o \
-	     asn1write.o \
-	     base64.o \
-	     bignum.o \
-	     bignum_core.o \
-	     bignum_mod.o \
-	     bignum_mod_raw.o \
-	     block_cipher.o \
-	     camellia.o \
-	     ccm.o \
-	     chacha20.o \
-	     chachapoly.o \
-	     cipher.o \
-	     cipher_wrap.o \
-	     cmac.o \
-	     constant_time.o \
-	     ctr_drbg.o \
-	     des.o \
-	     dhm.o \
-	     ecdh.o \
-	     ecdsa.o \
-	     ecjpake.o \
-	     ecp.o \
-	     ecp_curves.o \
-	     ecp_curves_new.o \
-	     entropy.o \
-	     entropy_poll.o \
-	     error.o \
-	     gcm.o \
-	     hkdf.o \
-	     hmac_drbg.o \
-	     lmots.o \
-	     lms.o \
-	     md.o \
-	     md5.o \
-	     memory_buffer_alloc.o \
-	     nist_kw.o \
-	     oid.o \
-	     pem.o \
-	     pk.o \
-	     pk_ecc.o \
-	     pk_wrap.o \
-	     pkcs12.o \
-	     pkcs5.o \
-	     pkparse.o \
-	     pkwrite.o \
-	     platform.o \
-	     platform_util.o \
-	     poly1305.o \
-	     psa_crypto.o \
-	     psa_crypto_aead.o \
-	     psa_crypto_cipher.o \
-	     psa_crypto_client.o \
-	     psa_crypto_driver_wrappers_no_static.o \
-	     psa_crypto_ecp.o \
-	     psa_crypto_ffdh.o \
-	     psa_crypto_hash.o \
-	     psa_crypto_mac.o \
-	     psa_crypto_pake.o \
-	     psa_crypto_rsa.o \
-	     psa_crypto_se.o \
-	     psa_crypto_slot_management.o \
-	     psa_crypto_storage.o \
-	     psa_its_file.o \
-	     psa_util.o \
-	     ripemd160.o \
-	     rsa.o \
-	     rsa_alt_helpers.o \
-	     sha1.o \
-	     sha256.o \
-	     sha512.o \
-	     sha3.o \
-	     threading.o \
-	     timing.o \
-	     version.o \
-	     version_features.o \
+	     $(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto.o \
+	     $(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto_aead.o \
+	     $(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto_cipher.o \
+	     $(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto_client.o \
+	     $(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto_driver_wrappers_no_static.o \
+	     $(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto_ecp.o \
+	     $(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto_ffdh.o \
+	     $(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto_hash.o \
+	     $(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto_mac.o \
+	     $(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto_pake.o \
+	     $(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto_rsa.o \
+	     $(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto_se.o \
+	     $(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto_slot_management.o \
+	     $(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto_storage.o \
+	     $(TF_PSA_CRYPTO_CORE_PATH)/psa_its_file.o \
+	     $(TF_PSA_CRYPTO_CORE_PATH)/psa_util.o \
+	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/aes.o \
+	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/aesni.o \
+	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/aesce.o \
+	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/aria.o \
+	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/asn1parse.o \
+	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/asn1write.o \
+	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/base64.o \
+	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/bignum.o \
+	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/bignum_core.o \
+	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/bignum_mod.o \
+	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/bignum_mod_raw.o \
+	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/block_cipher.o \
+	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/camellia.o \
+	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/ccm.o \
+	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/chacha20.o \
+	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/chachapoly.o \
+	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/cipher.o \
+	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/cipher_wrap.o \
+	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/cmac.o \
+	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/constant_time.o \
+	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/ctr_drbg.o \
+	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/des.o \
+	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/dhm.o \
+	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/ecdh.o \
+	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/ecdsa.o \
+	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/ecjpake.o \
+	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/ecp.o \
+	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/ecp_curves.o \
+	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/ecp_curves_new.o \
+	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/entropy.o \
+	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/entropy_poll.o \
+	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/error.o \
+	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/gcm.o \
+	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/hkdf.o \
+	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/hmac_drbg.o \
+	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/lmots.o \
+	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/lms.o \
+	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/md.o \
+	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/md5.o \
+	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/memory_buffer_alloc.o \
+	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/nist_kw.o \
+	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/oid.o \
+	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/pem.o \
+	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/pk.o \
+	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/pk_ecc.o \
+	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/pk_wrap.o \
+	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/pkcs12.o \
+	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/pkcs5.o \
+	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/pkparse.o \
+	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/pkwrite.o \
+	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/platform.o \
+	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/platform_util.o \
+	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/poly1305.o \
+	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/ripemd160.o \
+	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/rsa.o \
+	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/rsa_alt_helpers.o \
+	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/sha1.o \
+	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/sha256.o \
+	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/sha512.o \
+	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/sha3.o \
+	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/threading.o \
+	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/timing.o \
+	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/version.o \
+	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/version_features.o \
 	     # This line is intentionally left blank
 
-include ../3rdparty/Makefile.inc
+THIRDPARTY_DIR := $(MBEDTLS_PATH)/tf-psa-crypto/drivers
+include $(MBEDTLS_PATH)/tf-psa-crypto/drivers/everest/Makefile.inc
+include $(MBEDTLS_PATH)/tf-psa-crypto/drivers/p256-m/Makefile.inc
 LOCAL_CFLAGS+=$(THIRDPARTY_INCLUDES)
 OBJS_CRYPTO+=$(THIRDPARTY_CRYPTO_OBJECTS)
 
@@ -349,10 +356,10 @@ else
 gen_file_dep = |
 endif
 
-error.c: $(gen_file_dep) ../scripts/generate_errors.pl
-error.c: $(gen_file_dep) ../scripts/data_files/error.fmt
-error.c: $(gen_file_dep) $(filter-out %config%,$(wildcard ../include/mbedtls/*.h))
-error.c:
+$(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/error.c: $(gen_file_dep) ../scripts/generate_errors.pl
+$(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/error.c: $(gen_file_dep) ../scripts/data_files/error.fmt
+$(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/error.c: $(gen_file_dep) $(filter-out %config%,$(wildcard ../include/mbedtls/*.h))
+$(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/error.c:
 	echo "  Gen   $@"
 	$(PERL) ../scripts/generate_errors.pl
 
@@ -362,33 +369,34 @@ ssl_debug_helpers_generated.c:
 	echo "  Gen   $@"
 	$(PYTHON) ../scripts/generate_ssl_debug_helpers.py --mbedtls-root .. .
 
-version_features.c: $(gen_file_dep) ../scripts/generate_features.pl
-version_features.c: $(gen_file_dep) ../scripts/data_files/version_features.fmt
+$(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/version_features.c: $(gen_file_dep) ../scripts/generate_features.pl
+$(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/version_features.c: $(gen_file_dep) ../scripts/data_files/version_features.fmt
 ## The generated file only depends on the options that are present in mbedtls_config.h,
 ## not on which options are set. To avoid regenerating this file all the time
 ## when switching between configurations, don't declare mbedtls_config.h as a
 ## dependency. Remove this file from your working tree if you've just added or
 ## removed an option in mbedtls_config.h.
 #version_features.c: ../include/mbedtls/mbedtls_config.h
-version_features.c:
+$(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/version_features.c:
 	echo "  Gen   $@"
 	$(PERL) ../scripts/generate_features.pl
 
 GENERATED_WRAPPER_FILES = \
-                    psa_crypto_driver_wrappers.h \
-                    psa_crypto_driver_wrappers_no_static.c
+                    $(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto_driver_wrappers.h \
+                    $(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto_driver_wrappers_no_static.c
 $(GENERATED_WRAPPER_FILES): ../scripts/generate_driver_wrappers.py
 $(GENERATED_WRAPPER_FILES): ../scripts/data_files/driver_templates/psa_crypto_driver_wrappers.h.jinja
 $(GENERATED_WRAPPER_FILES): ../scripts/data_files/driver_templates/psa_crypto_driver_wrappers_no_static.c.jinja
 $(GENERATED_WRAPPER_FILES):
 	echo "  Gen   $(GENERATED_WRAPPER_FILES)"
-	$(PYTHON) ../scripts/generate_driver_wrappers.py
+	$(PYTHON) ../scripts/generate_driver_wrappers.py $(TF_PSA_CRYPTO_CORE_PATH)
 
-psa_crypto.o:psa_crypto_driver_wrappers.h
+$(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto.o:$(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto_driver_wrappers.h
 
 clean:
 ifndef WINDOWS
 	rm -f *.o libmbed*
+	rm -f $(OBJS_CRYPTO)
 	rm -f $(THIRDPARTY_CRYPTO_OBJECTS)
 else
 	if exist *.o del /Q /F *.o

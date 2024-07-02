@@ -268,11 +268,11 @@ define libtestdriver1_rewrite :=
 	s/\b(?=mbedtls_|psa_)/libtestdriver1_/g;
 endef
 
-libtestdriver1.a: export MBEDTLS_PATH := $(patsubst ../..//%,/%,../../$(MBEDTLS_PATH))
 libtestdriver1.a:
 	# Copy the library and fake a 3rdparty Makefile include.
 	rm -Rf ./libtestdriver1
 	mkdir ./libtestdriver1
+	cp -Rf ../framework ./libtestdriver1
 	cp -Rf ../library ./libtestdriver1
 	cp -Rf ../include ./libtestdriver1
 	cp -Rf ../tf-psa-crypto ./libtestdriver1
@@ -298,8 +298,10 @@ libtestdriver1.a:
 	# when this test driver library is linked with the Mbed TLS library.
 	perl -pi -e '$(libtestdriver1_rewrite)' ./libtestdriver1/library/*.[ch]
 	perl -pi -e '$(libtestdriver1_rewrite)' ./libtestdriver1/include/*/*.h
+	perl -pi -e '$(libtestdriver1_rewrite)' ./libtestdriver1/tf-psa-crypto/core/*.[ch]
 	perl -pi -e '$(libtestdriver1_rewrite)' ./libtestdriver1/tf-psa-crypto/include/*/*.h
 	perl -pi -e '$(libtestdriver1_rewrite)' ./libtestdriver1/tf-psa-crypto/drivers/builtin/include/*/*.h
+	perl -pi -e '$(libtestdriver1_rewrite)' ./libtestdriver1/tf-psa-crypto/drivers/builtin/src/*.[ch]
 
 	$(MAKE) -C ./libtestdriver1/library CFLAGS="-I../../ $(CFLAGS)" LDFLAGS="$(LDFLAGS)" libmbedcrypto.a
 	cp ./libtestdriver1/library/libmbedcrypto.a ../library/libtestdriver1.a

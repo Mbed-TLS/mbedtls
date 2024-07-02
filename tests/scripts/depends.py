@@ -47,7 +47,6 @@ a full config without a couple of slowing down or unnecessary options
 import argparse
 import os
 import re
-import shutil
 import subprocess
 import sys
 import traceback
@@ -99,24 +98,6 @@ def log_command(cmd):
 cmd is a list of strings: a command name and its arguments."""
     log_line(' '.join(cmd), prefix='+')
 
-def backup_config(options):
-    """Back up the library configuration file (mbedtls_config.h).
-If the backup file already exists, it is presumed to be the desired backup,
-so don't make another backup."""
-    if os.path.exists(options.config_backup):
-        options.own_backup = False
-    else:
-        options.own_backup = True
-        shutil.copy(options.config, options.config_backup)
-
-def restore_config(options):
-    """Restore the library configuration file (mbedtls_config.h).
-Remove the backup file if it was saved earlier."""
-    if options.own_backup:
-        shutil.move(options.config_backup, options.config)
-    else:
-        shutil.copy(options.config_backup, options.config)
-
 def option_exists(conf, option):
     return option in conf.settings
 
@@ -139,7 +120,7 @@ which will make a symbol defined with a certain value."""
         conf.set(option, value)
     return True
 
-def set_reference_config(conf, options, colors):
+def set_reference_config(conf, colors):
     """Change the library configuration file (mbedtls_config.h) to the reference state.
 The reference state is the one from which the tested configurations are
 derived."""
@@ -147,9 +128,6 @@ derived."""
     log_command(['config.py', 'full'])
     conf.adapt(config.full_adapter)
     set_config_option_value(conf, 'MBEDTLS_TEST_HOOKS', colors, False)
-    set_config_option_value(conf, 'MBEDTLS_PSA_CRYPTO_CONFIG', colors, False)
-    if options.unset_use_psa:
-        set_config_option_value(conf, 'MBEDTLS_USE_PSA_CRYPTO', colors, False)
 
 class Job:
     """A job builds the library in a specific configuration and runs some tests."""
@@ -179,9 +157,9 @@ If what is False, announce that the job has failed.'''
         else:
             log_line('starting ' + self.name, color=colors.cyan)
 
-    def configure(self, conf, options, colors):
+    def configure(self, conf, colors):
         '''Set library configuration options as required for the job.'''
-        set_reference_config(conf, options, colors)
+        set_reference_config(conf, colors)
         for key, value in sorted(self.config_settings.items()):
             ret = set_config_option_value(conf, key, colors, value)
             if ret is False:
@@ -451,7 +429,7 @@ def run(options, job, conf, colors=NO_COLORS):
     """Run the specified job (a Job instance)."""
     subprocess.check_call([options.make_command, 'clean'])
     job.announce(colors, None)
-    if not job.configure(conf, options, colors):
+    if not job.configure(conf, colors):
         job.announce(colors, False)
         return False
     conf.write()
@@ -464,15 +442,13 @@ def run_tests(options, domain_data, conf):
 domain_data should be a DomainData instance that describes the available
 domains and jobs.
 Run the jobs listed in options.tasks."""
-    if not hasattr(options, 'config_backup'):
-        options.config_backup = options.config + '.bak'
     colors = Colors(options)
     jobs = []
     failures = []
     successes = []
     for name in options.tasks:
         jobs += domain_data.get_jobs(name)
-    backup_config(options)
+    conf.backup()
     try:
         for job in jobs:
             success = run(options, job, conf, colors=colors)
@@ -483,13 +459,13 @@ Run the jobs listed in options.tasks."""
                     return False
             else:
                 successes.append(job.name)
-        restore_config(options)
+        conf.restore()
     except:
         # Restore the configuration, except in stop-on-error mode if there
         # was an error, where we leave the failing configuration up for
         # developer convenience.
         if options.keep_going:
-            restore_config(options)
+            conf.restore()
         raise
     if successes:
         log_line('{} passed'.format(' '.join(successes)), color=colors.bold_green)
@@ -514,7 +490,10 @@ def main():
                             choices=['always', 'auto', 'never'], default='auto')
         parser.add_argument('-c', '--config', metavar='FILE',
                             help='Configuration file to modify',
-                            default='include/mbedtls/mbedtls_config.h')
+                            default=config.MbedtlsConfigFile.default_path[0])
+        parser.add_argument('-r', '--crypto-config', metavar='FILE',
+                            help='Crypto configuration file to modify',
+                            default=config.CryptoConfigFile.default_path[0])
         parser.add_argument('-C', '--directory', metavar='DIR',
                             help='Change to this directory before anything else',
                             default='.')
@@ -533,15 +512,12 @@ def main():
         parser.add_argument('--make-command', metavar='CMD',
                             help='Command to run instead of make (e.g. gmake)',
                             action='store', default='make')
-        parser.add_argument('--unset-use-psa',
-                            help='Unset MBEDTLS_USE_PSA_CRYPTO before any test',
-                            action='store_true', dest='unset_use_psa')
         parser.add_argument('tasks', metavar='TASKS', nargs='*',
                             help='The domain(s) or job(s) to test (default: all).',
                             default=True)
         options = parser.parse_args()
         os.chdir(options.directory)
-        conf = config.ConfigFile(options.config)
+        conf = config.MultiConfig(options.config, options.crypto_config)
         domain_data = DomainData(options, conf)
 
         if options.tasks is True:

@@ -217,6 +217,8 @@ pre_initialize_variables () {
     # defined in this script whose name starts with "component_".
     ALL_COMPONENTS=$(compgen -A function component_ | sed 's/component_//')
 
+    PSASIM_PATH='tests/psa-client-server/psasim/'
+
     # Delay determining SUPPORTED_COMPONENTS until the command line options have a chance to override
     # the commands set by the environment
 }
@@ -349,6 +351,24 @@ cleanup()
     rm -f programs/test/cmake_package_install/cmake_package_install
 
     # Restore files that may have been clobbered by the job
+    for x in $files_to_back_up; do
+        if [[ -e "$x$backup_suffix" ]]; then
+            cp -p "$x$backup_suffix" "$x"
+        fi
+    done
+}
+
+# This is a helper function to be used in psasim builds. It is meant to clean
+# up the library's workspace after the server build and before the client
+# build. Built libraries (mbedcrypto, mbedx509 and mbedtls) are supposed to be
+# already copied to psasim folder at this point.
+helper_psasim_cleanup_before_client() {
+    # Clean up library files
+    make -C library clean
+    # Clean up intermediate files that were used to build the server
+    make -C $PSASIM_PATH clean_server_intermediate_files
+    # Restore files that were backup before building library files. This
+    # includes $CONFIG_H and $CRYPTO_CONFIG_H.
     for x in $files_to_back_up; do
         if [[ -e "$x$backup_suffix" ]]; then
             cp -p "$x$backup_suffix" "$x"
@@ -948,11 +968,11 @@ helper_libtestdriver1_make_main() {
     make CC=$ASAN_CC CFLAGS="$ASAN_CFLAGS -I../tests/include -I../tests -I../../tests -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_TEST_LIBTESTDRIVER1 $loc_accel_flags" LDFLAGS="-ltestdriver1 $ASAN_CFLAGS" "$@"
 }
 
-# $1: target which can be "client" or "server"
-helper_crypto_client_build() {
+# Set some default values $CONFIG_H in order to build server or client sides
+# in PSASIM. There is only 1 mandatory parameter:
+# - $1: target which can be "client" or "server"
+helper_psasim_config() {
     TARGET=$1
-    shift
-    TARGET_LIB=libpsa$TARGET
 
     if [ "$TARGET" == "client" ]; then
         scripts/config.py full
@@ -976,8 +996,23 @@ helper_crypto_client_build() {
         # Also ensure MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER not set (to match client)
         scripts/config.py unset MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER
     fi
+}
 
-    make -C tests/psa-client-server/psasim/ CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS" $TARGET_LIB "$@"
+# Helper to build the libraries for client/server in PSASIM. If the server is
+# being built, then it builds also the final executable.
+# There is only 1 mandatory parameter:
+# - $1: target which can be "client" or "server"
+helper_psasim_build() {
+    TARGET=$1
+    shift
+    TARGET_LIB=${TARGET}_libs
+
+    make -C $PSASIM_PATH CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS" $TARGET_LIB "$@"
+
+    # Build also the server application after its libraries have been built.
+    if [ "$TARGET" == "server" ]; then
+        make -C $PSASIM_PATH CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS" test/psa_server
+    fi
 }
 
 ################################################################
@@ -1035,6 +1070,24 @@ helper_get_psa_key_type_list() {
     done
 
     echo "$loc_list"
+}
+
+# Helper function for controlling (start & stop) the psasim server.
+helper_psasim_server() {
+    OPERATION=$1
+    if [ "$OPERATION" == "start" ]; then
+    (
+        cd tests
+        msg "start server"
+        psa-client-server/psasim/test/start_server.sh
+    )
+    else
+    (
+        cd tests
+        msg "terminate server and cleanup"
+        psa-client-server/psasim//test/kill_server.sh
+    )
+    fi
 }
 
 ################################################################
@@ -1347,68 +1400,6 @@ component_build_psa_crypto_spm () {
     # version is not present.
     echo "Checking for renamed symbols in the library"
     check_renamed_symbols tests/include/spe/crypto_spe.h library/libmbedcrypto.a
-}
-
-# Get a list of library-wise undefined symbols and ensure that they only
-# belong to psa_xxx() functions and not to mbedtls_yyy() ones.
-# This function is a common helper used by both:
-# - component_test_default_psa_crypto_client_without_crypto_provider
-# - component_build_full_psa_crypto_client_without_crypto_provider.
-common_check_mbedtls_missing_symbols() {
-    nm library/libmbedcrypto.a | grep ' [TRrDC] ' | grep -Eo '(mbedtls_|psa_).*' | sort -u > sym_def.txt
-    nm library/libmbedcrypto.a | grep ' U ' | grep -Eo '(mbedtls_|psa_).*' | sort -u > sym_undef.txt
-    comm sym_def.txt sym_undef.txt -13 > linking_errors.txt
-    not grep mbedtls_ linking_errors.txt
-
-    rm sym_def.txt sym_undef.txt linking_errors.txt
-}
-
-component_test_default_psa_crypto_client_without_crypto_provider () {
-    msg "build: default config - PSA_CRYPTO_C + PSA_CRYPTO_CLIENT"
-
-    scripts/config.py unset MBEDTLS_PSA_CRYPTO_C
-    scripts/config.py unset MBEDTLS_PSA_CRYPTO_STORAGE_C
-    scripts/config.py unset MBEDTLS_PSA_ITS_FILE_C
-    scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1_3
-    scripts/config.py set MBEDTLS_PSA_CRYPTO_CLIENT
-    scripts/config.py unset MBEDTLS_LMS_C
-
-    make
-
-    msg "check missing symbols: default config - PSA_CRYPTO_C + PSA_CRYPTO_CLIENT"
-    common_check_mbedtls_missing_symbols
-
-    msg "test: default config - PSA_CRYPTO_C + PSA_CRYPTO_CLIENT"
-    make test
-}
-
-component_build_full_psa_crypto_client_without_crypto_provider () {
-    msg "build: full config - PSA_CRYPTO_C"
-
-    # Use full config which includes USE_PSA and CRYPTO_CLIENT.
-    scripts/config.py full
-
-    scripts/config.py unset MBEDTLS_PSA_CRYPTO_C
-    scripts/config.py unset MBEDTLS_PSA_CRYPTO_STORAGE_C
-    # Dynamic secure element support is a deprecated feature and it is not
-    # available when CRYPTO_C and PSA_CRYPTO_STORAGE_C are disabled.
-    scripts/config.py unset MBEDTLS_PSA_CRYPTO_SE_C
-
-    # Since there is no crypto provider in this build it is not possible to
-    # build all the test executables and progrems due to missing PSA functions
-    # at link time. Therefore we will just build libraries and we'll check
-    # that symbols of interest are there.
-    make lib
-
-    msg "check missing symbols: full config - PSA_CRYPTO_C"
-
-    common_check_mbedtls_missing_symbols
-
-    # Ensure that desired functions are included into the build (extend the
-    # following list as required).
-    grep mbedtls_pk_get_psa_attributes library/libmbedcrypto.a
-    grep mbedtls_pk_import_into_psa library/libmbedcrypto.a
-    grep mbedtls_pk_copy_from_psa library/libmbedcrypto.a
 }
 
 component_test_no_rsa_key_pair_generation() {
@@ -6029,20 +6020,16 @@ component_check_test_helpers () {
 }
 
 component_test_psasim() {
-    msg "build library for server"
+    msg "build server library and application"
     scripts/config.py crypto
-    helper_crypto_client_build server
+    helper_psasim_config server
+    helper_psasim_build server
 
-    msg "build server"
-    make -C tests/psa-client-server/psasim CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS" test/psa_partition
-
-    # cleanup() will restore some backed-up files which include $CONFIG_H and
-    # $CRYPTO_CONFIG_H. Built libraries were already copied to psasim at this
-    # point.
-    cleanup
+    helper_psasim_cleanup_before_client
 
     msg "build library for client"
-    helper_crypto_client_build client
+    helper_psasim_config client
+    helper_psasim_build client
 
     msg "build basic psasim client"
     make -C tests/psa-client-server/psasim CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS" test/psa_client_base
@@ -6055,6 +6042,38 @@ component_test_psasim() {
     tests/psa-client-server/psasim/test/run_test.sh psa_client_full
 
     make -C tests/psa-client-server/psasim clean
+}
+
+component_test_suite_with_psasim()
+{
+    msg "build server library and application"
+    helper_psasim_config server
+    # Modify server's library configuration here (if needed)
+    helper_psasim_build server
+
+    helper_psasim_cleanup_before_client
+
+    msg "build client library"
+    helper_psasim_config client
+    # PAKE functions are still unsupported from PSASIM
+    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_JPAKE
+    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED
+    helper_psasim_build client
+
+    msg "build test suites"
+    make PSASIM=1 CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS" tests
+
+    helper_psasim_server start
+
+    # psasim takes an extremely long execution time on some test suites so we
+    # exclude them from the list.
+    SKIP_TEST_SUITES="constant_time_hmac,lmots,lms"
+    export SKIP_TEST_SUITES
+
+    msg "run test suites"
+    make PSASIM=1 test
+
+    helper_psasim_server kill
 }
 
 ################################################################

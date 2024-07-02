@@ -89,6 +89,43 @@ int psa_hash_main(void)
         mbedtls_printf("Multi-part hash operation successful!\n");
     }
 
+    /* A bit of white-box testing: ensure that we can abort an operation more
+     * times than there are operation slots on the simulator server.
+     */
+    for (int i = 0; i < 200; i++) {
+        /* This should be a no-op */
+        status = psa_hash_abort(&hash_operation);
+        if (status != PSA_SUCCESS) {
+            mbedtls_printf("psa_hash_abort failed\n");
+            goto cleanup;
+        }
+    }
+
+    /* Compute hash using multi-part operation using the same operation struct */
+    status = psa_hash_setup(&hash_operation, HASH_ALG);
+    if (status == PSA_ERROR_NOT_SUPPORTED) {
+        mbedtls_printf("unknown hash algorithm supplied\n");
+        goto cleanup;
+    } else if (status != PSA_SUCCESS) {
+        mbedtls_printf("psa_hash_setup failed: %d\n", status);
+        goto cleanup;
+    }
+
+    status = psa_hash_update(&hash_operation, sample_message, sample_message_length);
+    if (status != PSA_SUCCESS) {
+        mbedtls_printf("psa_hash_update failed\n");
+        goto cleanup;
+    }
+
+    /* Don't use psa_hash_finish() when going to check against an expected result */
+    status = psa_hash_verify(&hash_operation, expected_hash, expected_hash_len);
+    if (status != PSA_SUCCESS) {
+        mbedtls_printf("psa_hash_verify failed: %d\n", status);
+        goto cleanup;
+    } else {
+        mbedtls_printf("Second multi-part hash operation successful!\n");
+    }
+
     /* Clear local variables prior to one-shot hash demo */
     memset(hash, 0, sizeof(hash));
     hash_length = 0;

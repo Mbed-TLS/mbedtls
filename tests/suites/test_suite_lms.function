@@ -17,6 +17,7 @@ void lms_sign_verify_test(data_t *msg, data_t *seed)
 
     mbedtls_lms_public_init(&pub_ctx);
     mbedtls_lms_private_init(&priv_ctx);
+    USE_PSA_INIT();
 
     /* Allocation failure isn't a test failure, since it likely just means
      * there's not enough memory to run the test.
@@ -38,6 +39,7 @@ void lms_sign_verify_test(data_t *msg, data_t *seed)
 exit:
     mbedtls_lms_public_free(&pub_ctx);
     mbedtls_lms_private_free(&priv_ctx);
+    USE_PSA_DONE();
 }
 /* END_CASE */
 
@@ -50,6 +52,7 @@ void lms_sign_verify_null_msg_test(data_t *seed)
 
     mbedtls_lms_public_init(&pub_ctx);
     mbedtls_lms_private_init(&priv_ctx);
+    USE_PSA_INIT();
 
     /* Allocation failure isn't a test failure, since it likely just means
      * there's not enough memory to run the test.
@@ -71,6 +74,7 @@ void lms_sign_verify_null_msg_test(data_t *seed)
 exit:
     mbedtls_lms_public_free(&pub_ctx);
     mbedtls_lms_private_free(&priv_ctx);
+    USE_PSA_DONE();
 }
 /* END_CASE */
 
@@ -83,6 +87,7 @@ void lms_verify_test(data_t *msg, data_t *sig, data_t *pub_key,
     unsigned char *tmp_sig = NULL;
 
     mbedtls_lms_public_init(&ctx);
+    USE_PSA_INIT();
 
     TEST_EQUAL(mbedtls_lms_import_public_key(&ctx, pub_key->x, pub_key->len), 0);
 
@@ -139,6 +144,7 @@ void lms_verify_test(data_t *msg, data_t *sig, data_t *pub_key,
 exit:
     mbedtls_free(tmp_sig);
     mbedtls_lms_public_free(&ctx);
+    USE_PSA_DONE();
 }
 /* END_CASE */
 
@@ -151,6 +157,7 @@ void lms_import_export_test(data_t *pub_key, int expected_import_rc)
     unsigned char *exported_pub_key = NULL;
 
     mbedtls_lms_public_init(&ctx);
+    USE_PSA_INIT();
     TEST_EQUAL(mbedtls_lms_import_public_key(&ctx, pub_key->x, pub_key->len),
                expected_import_rc);
 
@@ -194,5 +201,6 @@ void lms_import_export_test(data_t *pub_key, int expected_import_rc)
 exit:
     mbedtls_free(exported_pub_key);
     mbedtls_lms_public_free(&ctx);
+    USE_PSA_DONE();
 }
 /* END_CASE */

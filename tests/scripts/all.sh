@@ -2096,6 +2096,7 @@ component_test_memsan_constant_flow () {
     scripts/config.py set MBEDTLS_TEST_CONSTANT_FLOW_MEMSAN
     scripts/config.py unset MBEDTLS_USE_PSA_CRYPTO
     scripts/config.py unset MBEDTLS_AESNI_C # memsan doesn't grok asm
+    scripts/config.py unset MBEDTLS_HAVE_ASM
     CC=clang cmake -D CMAKE_BUILD_TYPE:String=MemSan .
     make
 
@@ -2114,6 +2115,7 @@ component_test_memsan_constant_flow_psa () {
     scripts/config.py full
     scripts/config.py set MBEDTLS_TEST_CONSTANT_FLOW_MEMSAN
     scripts/config.py unset MBEDTLS_AESNI_C # memsan doesn't grok asm
+    scripts/config.py unset MBEDTLS_HAVE_ASM
     CC=clang cmake -D CMAKE_BUILD_TYPE:String=MemSan .
     make
 
@@ -2155,6 +2157,42 @@ component_release_test_valgrind_constant_flow () {
     make memcheck
 }
 
+component_release_test_valgrind_constant_flow_no_asm () {
+    # This tests both (1) everything that valgrind's memcheck usually checks
+    # (heap buffer overflows, use of uninitialized memory, use-after-free,
+    # etc.) and (2) branches or memory access depending on secret values,
+    # which will be reported as uninitialized memory. To distinguish between
+    # secret and actually uninitialized:
+    # - unset MBEDTLS_TEST_CONSTANT_FLOW_VALGRIND - does the failure persist?
+    # - or alternatively, build with debug info and manually run the offending
+    # test suite with valgrind --track-origins=yes, then check if the origin
+    # was TEST_CF_SECRET() or something else.
+    msg "build: cmake release GCC, full config minus MBEDTLS_USE_PSA_CRYPTO, minus MBEDTLS_HAVE_ASM with constant flow testing"
+    scripts/config.py full
+    scripts/config.py set MBEDTLS_TEST_CONSTANT_FLOW_VALGRIND
+    scripts/config.py unset MBEDTLS_USE_PSA_CRYPTO
+    scripts/config.py unset MBEDTLS_AESNI_C
+    scripts/config.py unset MBEDTLS_HAVE_ASM
+    skip_suites_without_constant_flow
+    cmake -D CMAKE_BUILD_TYPE:String=Release .
+    make
+
+    # this only shows a summary of the results (how many of each type)
+    # details are left in Testing/<date>/DynamicAnalysis.xml
+    msg "test: some suites (full minus MBEDTLS_USE_PSA_CRYPTO, minus MBEDTLS_HAVE_ASM, valgrind + constant flow)"
+    make memcheck
+
+    # Test asm path in constant time module - by default, it will test the plain C
+    # path under Valgrind or Memsan. Running only the constant_time tests is fast (<1s)
+    msg "test: valgrind asm constant_time"
+    scripts/config.py --force set MBEDTLS_TEST_CONSTANT_FLOW_ASM
+    skip_all_except_given_suite test_suite_constant_time
+    cmake -D CMAKE_BUILD_TYPE:String=Release .
+    make clean
+    make
+    make memcheck
+}
+
 component_release_test_valgrind_constant_flow_psa () {
     # This tests both (1) everything that valgrind's memcheck usually checks
     # (heap buffer overflows, use of uninitialized memory, use-after-free,
@@ -2175,6 +2213,31 @@ component_release_test_valgrind_constant_flow_psa () {
     # this only shows a summary of the results (how many of each type)
     # details are left in Testing/<date>/DynamicAnalysis.xml
     msg "test: some suites (valgrind + constant flow)"
+    make memcheck
+}
+
+component_release_test_valgrind_constant_flow_psa_no_asm () {
+    # This tests both (1) everything that valgrind's memcheck usually checks
+    # (heap buffer overflows, use of uninitialized memory, use-after-free,
+    # etc.) and (2) branches or memory access depending on secret values,
+    # which will be reported as uninitialized memory. To distinguish between
+    # secret and actually uninitialized:
+    # - unset MBEDTLS_TEST_CONSTANT_FLOW_VALGRIND - does the failure persist?
+    # - or alternatively, build with debug info and manually run the offending
+    # test suite with valgrind --track-origins=yes, then check if the origin
+    # was TEST_CF_SECRET() or something else.
+    msg "build: cmake release GCC, full config minus MBEDTLS_HAVE_ASM with constant flow testing"
+    scripts/config.py full
+    scripts/config.py set MBEDTLS_TEST_CONSTANT_FLOW_VALGRIND
+    scripts/config.py unset MBEDTLS_AESNI_C
+    scripts/config.py unset MBEDTLS_HAVE_ASM
+    skip_suites_without_constant_flow
+    cmake -D CMAKE_BUILD_TYPE:String=Release .
+    make
+
+    # this only shows a summary of the results (how many of each type)
+    # details are left in Testing/<date>/DynamicAnalysis.xml
+    msg "test: some suites (full minus MBEDTLS_HAVE_ASM, valgrind + constant flow)"
     make memcheck
 }
 
@@ -5701,6 +5764,7 @@ support_build_mingw() {
 component_test_memsan () {
     msg "build: MSan (clang)" # ~ 1 min 20s
     scripts/config.py unset MBEDTLS_AESNI_C # memsan doesn't grok asm
+    scripts/config.py unset MBEDTLS_HAVE_ASM
     CC=clang cmake -D CMAKE_BUILD_TYPE:String=MemSan .
     make
 

@@ -226,7 +226,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_MD_CAN_SHA256 */
+/* BEGIN_CASE depends_on:PSA_WANT_ALG_SHA_256 */
 void ecdsa_write_read_zero(int id)
 {
     mbedtls_ecdsa_context ctx;
@@ -291,7 +291,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_MD_CAN_SHA256 */
+/* BEGIN_CASE depends_on:PSA_WANT_ALG_SHA_256 */
 void ecdsa_write_read_random(int id)
 {
     mbedtls_ecdsa_context ctx;

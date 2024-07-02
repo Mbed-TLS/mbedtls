@@ -38,7 +38,7 @@ int main(void)
 {
     mbedtls_printf("MBEDTLS_AES_C and/or MBEDTLS_DHM_C and/or MBEDTLS_ENTROPY_C "
                    "and/or MBEDTLS_NET_C and/or MBEDTLS_RSA_C and/or "
-                   "MBEDTLS_MD_CAN_SHA256 and/or MBEDTLS_FS_IO and/or "
+                   "PSA_WANT_ALG_SHA_256 and/or MBEDTLS_FS_IO and/or "
                    "MBEDTLS_CTR_DRBG_C and/or MBEDTLS_SHA1_C not defined.\n");
     mbedtls_exit(0);
 }
@@ -284,5 +284,5 @@ exit:
     mbedtls_exit(exit_code);
 }
 #endif /* MBEDTLS_AES_C && MBEDTLS_DHM_C && MBEDTLS_ENTROPY_C &&
-          MBEDTLS_NET_C && MBEDTLS_RSA_C && MBEDTLS_MD_CAN_SHA256 &&
+          MBEDTLS_NET_C && MBEDTLS_RSA_C && PSA_WANT_ALG_SHA_256 &&
           MBEDTLS_FS_IO && MBEDTLS_CTR_DRBG_C */

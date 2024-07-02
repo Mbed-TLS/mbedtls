@@ -1,7 +1,7 @@
 /* BEGIN_HEADER */
 #include "mbedtls/ecjpake.h"
 
-#if defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED) && defined(MBEDTLS_MD_CAN_SHA256)
+#if defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED) && defined(PSA_WANT_ALG_SHA_256)
 static const unsigned char ecjpake_test_x1[] = {
     0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c,
     0x0d, 0x0e, 0x0f, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18,
@@ -90,7 +90,7 @@ cleanup:
 }
 
 #define ADD_SIZE(x)   x, sizeof(x)
-#endif /* MBEDTLS_ECP_DP_SECP256R1_ENABLED && MBEDTLS_MD_CAN_SHA256 */
+#endif /* MBEDTLS_ECP_DP_SECP256R1_ENABLED && PSA_WANT_ALG_SHA_256 */
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -135,7 +135,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_MD_CAN_SHA256 */
+/* BEGIN_CASE depends_on:MBEDTLS_ECP_DP_SECP256R1_ENABLED:PSA_WANT_ALG_SHA_256 */
 void read_bad_md(data_t *msg)
 {
     mbedtls_ecjpake_context corrupt_ctx;
@@ -160,7 +160,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_MD_CAN_SHA256 */
+/* BEGIN_CASE depends_on:MBEDTLS_ECP_DP_SECP256R1_ENABLED:PSA_WANT_ALG_SHA_256 */
 void read_round_one(int role, data_t *msg, int ref_ret)
 {
     mbedtls_ecjpake_context ctx;
@@ -183,7 +183,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_MD_CAN_SHA256 */
+/* BEGIN_CASE depends_on:MBEDTLS_ECP_DP_SECP256R1_ENABLED:PSA_WANT_ALG_SHA_256 */
 void read_round_two_cli(data_t *msg, int ref_ret)
 {
     mbedtls_ecjpake_context ctx;
@@ -212,7 +212,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_MD_CAN_SHA256 */
+/* BEGIN_CASE depends_on:MBEDTLS_ECP_DP_SECP256R1_ENABLED:PSA_WANT_ALG_SHA_256 */
 void read_round_two_srv(data_t *msg, int ref_ret)
 {
     mbedtls_ecjpake_context ctx;

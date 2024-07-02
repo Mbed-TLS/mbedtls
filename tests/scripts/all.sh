@@ -5845,10 +5845,13 @@ component_test_cmake_as_package () {
     make neat
 
     msg "build: cmake 'as-package' build"
+    root_dir="$(pwd)"
     cd programs/test/cmake_package
+    build_variant_dir="$(pwd)"
     cmake .
     make
     ./cmake_package
+    PKG_CONFIG_PATH="${build_variant_dir}/mbedtls/pkgconfig" ${root_dir}/tests/scripts/pkgconfig.sh
 }
 support_test_cmake_as_package () {
     support_test_cmake_out_of_source

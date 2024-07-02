@@ -767,7 +767,7 @@ static const oid_md_alg_t oid_md_alg[] =
         MBEDTLS_MD_SHA3_224,
     },
 #endif
-#if defined(MBEDTLS_MD_CAN_SHA3_256)
+#if defined(PSA_WANT_ALG_SHA3_256)
     {
         OID_DESCRIPTOR(MBEDTLS_OID_DIGEST_ALG_SHA3_256,    "id-sha3-256",    "SHA-3-256"),
         MBEDTLS_MD_SHA3_256,
@@ -845,12 +845,12 @@ static const oid_md_hmac_t oid_md_hmac[] =
         MBEDTLS_MD_SHA3_224,
     },
 #endif /* MBEDTLS_MD_CAN_SHA3_224 */
-#if defined(MBEDTLS_MD_CAN_SHA3_256)
+#if defined(PSA_WANT_ALG_SHA3_256)
     {
         OID_DESCRIPTOR(MBEDTLS_OID_HMAC_SHA3_256,    "hmacSHA3-256",    "HMAC-SHA3-256"),
         MBEDTLS_MD_SHA3_256,
     },
-#endif /* MBEDTLS_MD_CAN_SHA3_256 */
+#endif /* PSA_WANT_ALG_SHA3_256 */
 #if defined(MBEDTLS_MD_CAN_SHA3_384)
     {
         OID_DESCRIPTOR(MBEDTLS_OID_HMAC_SHA3_384,    "hmacSHA3-384",    "HMAC-SHA3-384"),

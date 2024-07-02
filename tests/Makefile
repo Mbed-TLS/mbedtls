@@ -269,16 +269,21 @@ define libtestdriver1_rewrite :=
 endef
 
 libtestdriver1.a:
-	# Copy the library and fake a 3rdparty Makefile include.
 	rm -Rf ./libtestdriver1
 	mkdir ./libtestdriver1
+	mkdir ./libtestdriver1/tf-psa-crypto
+	mkdir ./libtestdriver1/tf-psa-crypto/drivers
+	mkdir ./libtestdriver1/tf-psa-crypto/drivers/everest
+	mkdir ./libtestdriver1/tf-psa-crypto/drivers/p256-m
+	touch ./libtestdriver1/tf-psa-crypto/drivers/everest/Makefile.inc
+	touch ./libtestdriver1/tf-psa-crypto/drivers/p256-m/Makefile.inc
 	cp -Rf ../framework ./libtestdriver1
 	cp -Rf ../library ./libtestdriver1
 	cp -Rf ../include ./libtestdriver1
-	cp -Rf ../tf-psa-crypto ./libtestdriver1
+	cp -Rf ../tf-psa-crypto/core ./libtestdriver1/tf-psa-crypto
+	cp -Rf ../tf-psa-crypto/include ./libtestdriver1/tf-psa-crypto
+	cp -Rf ../tf-psa-crypto/drivers/builtin ./libtestdriver1/tf-psa-crypto/drivers
 	cp -Rf ../scripts ./libtestdriver1
-	mkdir ./libtestdriver1/3rdparty
-	touch ./libtestdriver1/3rdparty/Makefile.inc
 
 	# Set the test driver base (minimal) configuration.
 	cp ./include/test/drivers/config_test_driver.h ./libtestdriver1/include/mbedtls/mbedtls_config.h

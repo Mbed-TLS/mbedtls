@@ -31,9 +31,16 @@ in_tf_psa_crypto_repo () {
 }
 
 if in_mbedtls_repo; then
-    library_dir='library'
+    if [ -d tf-psa-crypto ]; then
+        crypto_core_dir='tf-psa-crypto/core'
+        builtin_drivers_dir='tf-psa-crypto/drivers/builtin/src'
+    else
+        crypto_core_dir='library'
+        builtin_drivers_dir='library'
+    fi
 elif in_tf_psa_crypto_repo; then
-    library_dir='core'
+    crypto_core_dir='core'
+    builtin_drivers_dir='drivers/builtin/src/'
 else
     echo "Must be run from Mbed TLS root or TF-PSA-Crypto root" >&2
     exit 1
@@ -133,13 +140,14 @@ check framework/scripts/generate_config_tests.py $(framework/scripts/generate_co
 check framework/scripts/generate_ecp_tests.py $(framework/scripts/generate_ecp_tests.py --list)
 check framework/scripts/generate_psa_tests.py $(framework/scripts/generate_psa_tests.py --list)
 check framework/scripts/generate_test_keys.py tests/src/test_keys.h
-check scripts/generate_driver_wrappers.py $library_dir/psa_crypto_driver_wrappers.h $library_dir/psa_crypto_driver_wrappers_no_static.c
+check scripts/generate_driver_wrappers.py ${crypto_core_dir}/psa_crypto_driver_wrappers.h \
+                                          ${crypto_core_dir}/psa_crypto_driver_wrappers_no_static.c
 
 # Additional checks for Mbed TLS only
 if in_mbedtls_repo; then
-    check scripts/generate_errors.pl library/error.c
+    check scripts/generate_errors.pl ${builtin_drivers_dir}/error.c
     check scripts/generate_query_config.pl programs/test/query_config.c
-    check scripts/generate_features.pl library/version_features.c
+    check scripts/generate_features.pl ${builtin_drivers_dir}/version_features.c
     check scripts/generate_ssl_debug_helpers.py library/ssl_debug_helpers_generated.c
     check framework/scripts/generate_test_cert_macros.py tests/src/test_certs.h
     # generate_visualc_files enumerates source files (library/*.c). It doesn't

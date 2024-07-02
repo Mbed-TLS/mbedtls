@@ -11,7 +11,7 @@
 
 #include "test/helpers.h"
 
-#if defined(MBEDTLS_PSA_CRYPTO_C)
+#if defined(MBEDTLS_PSA_CRYPTO_CLIENT)
 #include "test/psa_helpers.h"
 #include <psa/crypto.h>
 #endif
@@ -38,12 +38,15 @@
         mbedtls_psa_crypto_free();                                      \
     }                                                                   \
     while (0)
-#else /*MBEDTLS_PSA_CRYPTO_C */
+#elif defined(MBEDTLS_PSA_CRYPTO_CLIENT) /* MBEDTLS_PSA_CRYPTO_CLIENT && !MBEDTLS_PSA_CRYPTO_C */
+#define PSA_INIT() PSA_ASSERT(psa_crypto_init())
+#define PSA_DONE() mbedtls_psa_crypto_free();
+#else  /* MBEDTLS_PSA_CRYPTO_CLIENT && !MBEDTLS_PSA_CRYPTO_C */
 #define PSA_INIT() ((void) 0)
 #define PSA_DONE() ((void) 0)
 #endif /* MBEDTLS_PSA_CRYPTO_C */
 
-#if defined(MBEDTLS_PSA_CRYPTO_C)
+#if defined(MBEDTLS_PSA_CRYPTO_CLIENT)
 
 #if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
 
@@ -313,7 +316,7 @@ uint64_t mbedtls_test_parse_binary_string(data_t *bin_string);
     }                                                                      \
     while (0)
 
-#endif /* MBEDTLS_PSA_CRYPTO_C */
+#endif /* MBEDTLS_PSA_CRYPTO_CLIENT */
 
 /** \def USE_PSA_INIT
  *

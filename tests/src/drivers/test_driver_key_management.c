@@ -23,9 +23,9 @@
 #include "test/random.h"
 
 #if defined(MBEDTLS_TEST_LIBTESTDRIVER1)
-#include "libtestdriver1/library/psa_crypto_ecp.h"
-#include "libtestdriver1/library/psa_crypto_rsa.h"
-#include "libtestdriver1/library/psa_crypto_ffdh.h"
+#include "libtestdriver1/tf-psa-crypto/core/psa_crypto_ecp.h"
+#include "libtestdriver1/tf-psa-crypto/core/psa_crypto_rsa.h"
+#include "libtestdriver1/tf-psa-crypto/core/psa_crypto_ffdh.h"
 #endif
 
 #include <string.h>

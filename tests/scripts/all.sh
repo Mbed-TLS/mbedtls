@@ -444,6 +444,7 @@ armc6_build_test()
 
     msg "size: ARM Compiler 6 ($FLAGS)"
     "$ARMC6_FROMELF" -z library/*.o
+    "$ARMC6_FROMELF" -z ${PSA_CORE_PATH}/*.o
     "$ARMC6_FROMELF" -z ${BUILTIN_SRC_PATH}/*.o
 }
 
@@ -1095,6 +1096,7 @@ helper_psasim_server() {
 #### Basic checks
 ################################################################
 
+export PSA_CORE_PATH="tf-psa-crypto/core"
 export BUILTIN_SRC_PATH="tf-psa-crypto/drivers/builtin/src"
 
 #
@@ -1111,6 +1113,7 @@ export BUILTIN_SRC_PATH="tf-psa-crypto/drivers/builtin/src"
 component_check_recursion () {
     msg "Check: recursion.pl" # < 1s
     tests/scripts/recursion.pl library/*.c
+    tests/scripts/recursion.pl ${PSA_CORE_PATH}/*.c
     tests/scripts/recursion.pl ${BUILTIN_SRC_PATH}/*.c
 }
 
@@ -1791,7 +1794,7 @@ component_test_full_no_ccm_star_no_tag() {
     make
 
     # Ensure MBEDTLS_PSA_BUILTIN_CIPHER was not enabled
-    not grep mbedtls_psa_cipher library/psa_crypto_cipher.o
+    not grep mbedtls_psa_cipher ${PSA_CORE_PATH}/psa_crypto_cipher.o
 
     msg "test: full no PSA_WANT_ALG_CCM_STAR_NO_TAG"
     make test
@@ -5322,6 +5325,7 @@ component_build_arm_none_eabi_gcc () {
 
     msg "size: ${ARM_NONE_EABI_GCC_PREFIX}gcc -O1, baremetal+debug"
     ${ARM_NONE_EABI_GCC_PREFIX}size -t library/*.o
+    ${ARM_NONE_EABI_GCC_PREFIX}size -t ${PSA_CORE_PATH}/*.o
     ${ARM_NONE_EABI_GCC_PREFIX}size -t ${BUILTIN_SRC_PATH}/*.o
 }
 
@@ -5337,6 +5341,7 @@ component_build_arm_linux_gnueabi_gcc_arm5vte () {
 
     msg "size: ${ARM_LINUX_GNUEABI_GCC_PREFIX}gcc -march=armv5te -O1, baremetal+debug"
     ${ARM_LINUX_GNUEABI_GCC_PREFIX}size -t library/*.o
+    ${ARM_LINUX_GNUEABI_GCC_PREFIX}size -t ${PSA_CORE_PATH}/*.o
     ${ARM_LINUX_GNUEABI_GCC_PREFIX}size -t ${BUILTIN_SRC_PATH}/*.o
 }
 support_build_arm_linux_gnueabi_gcc_arm5vte () {
@@ -5353,6 +5358,7 @@ component_build_arm_none_eabi_gcc_arm5vte () {
 
     msg "size: ${ARM_NONE_EABI_GCC_PREFIX}gcc -march=armv5te -O1, baremetal+debug"
     ${ARM_NONE_EABI_GCC_PREFIX}size -t library/*.o
+    ${ARM_NONE_EABI_GCC_PREFIX}size -t ${PSA_CORE_PATH}/*.o
     ${ARM_NONE_EABI_GCC_PREFIX}size -t ${BUILTIN_SRC_PATH}/*.o
 }
 
@@ -5363,6 +5369,7 @@ component_build_arm_none_eabi_gcc_m0plus () {
 
     msg "size: ${ARM_NONE_EABI_GCC_PREFIX}gcc -mthumb -mcpu=cortex-m0plus -Os, baremetal_size"
     ${ARM_NONE_EABI_GCC_PREFIX}size -t library/*.o
+    ${ARM_NONE_EABI_GCC_PREFIX}size -t ${PSA_CORE_PATH}/*.o
     ${ARM_NONE_EABI_GCC_PREFIX}size -t ${BUILTIN_SRC_PATH}/*.o
     for lib in library/*.a; do
         echo "$lib:"
@@ -5377,6 +5384,7 @@ component_build_arm_none_eabi_gcc_no_udbl_division () {
     make CC="${ARM_NONE_EABI_GCC_PREFIX}gcc" AR="${ARM_NONE_EABI_GCC_PREFIX}ar" LD="${ARM_NONE_EABI_GCC_PREFIX}ld" CFLAGS='-std=c99 -Werror -Wall -Wextra' lib
     echo "Checking that software 64-bit division is not required"
     not grep __aeabi_uldiv library/*.o
+    not grep __aeabi_uldiv ${PSA_CORE_PATH}/*.o
     not grep __aeabi_uldiv ${BUILTIN_SRC_PATH}/*.o
 }
 
@@ -5387,6 +5395,7 @@ component_build_arm_none_eabi_gcc_no_64bit_multiplication () {
     make CC="${ARM_NONE_EABI_GCC_PREFIX}gcc" AR="${ARM_NONE_EABI_GCC_PREFIX}ar" LD="${ARM_NONE_EABI_GCC_PREFIX}ld" CFLAGS='-std=c99 -Werror -O1 -march=armv6-m -mthumb' lib
     echo "Checking that software 64-bit multiplication is not required"
     not grep __aeabi_lmul library/*.o
+    not grep __aeabi_lmul ${PSA_CORE_PATH}/*.o
     not grep __aeabi_lmul ${BUILTIN_SRC_PATH}/*.o
 }
 
@@ -5432,6 +5441,7 @@ component_build_armcc () {
 
     msg "size: ARM Compiler 5"
     "$ARMC5_FROMELF" -z library/*.o
+    "$ARMC5_FROMELF" -z ${PSA_CORE_PATH}/*.o
     "$ARMC5_FROMELF" -z ${BUILTIN_SRC_PATH}/*.o
 
     # Compile mostly with -O1 since some Arm inline assembly is disabled for -O0.

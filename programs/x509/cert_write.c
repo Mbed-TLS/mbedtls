@@ -83,7 +83,7 @@ int main(void)
 #define DFL_DIGEST              MBEDTLS_MD_SHA256
 #define DFL_FORMAT              FORMAT_PEM
 
-#define USAGE \
+#define USAGE1 \
     "\n usage: cert_write param=<>...\n"                \
     "\n acceptable parameters:\n"                       \
     USAGE_CSR                                           \
@@ -124,7 +124,9 @@ int main(void)
     "    not_before=%%s           default: 20010101000000\n" \
     "    not_after=%%s            default: 20301231235959\n" \
     "    is_ca=%%d                default: 0 (disabled)\n"  \
-    "    max_pathlen=%%d          default: -1 (none)\n"     \
+    "    max_pathlen=%%d          default: -1 (none)\n"
+
+#define USAGE2 \
     "    md=%%s                   default: SHA256\n"        \
     "                            Supported values (if enabled):\n"      \
     "                            MD5, RIPEMD160, SHA1,\n" \
@@ -353,7 +355,8 @@ int main(int argc, char *argv[])
 
     if (argc < 2) {
 usage:
-        mbedtls_printf(USAGE);
+        mbedtls_printf(USAGE1);
+        mbedtls_printf(USAGE2);
         goto exit;
     }
 

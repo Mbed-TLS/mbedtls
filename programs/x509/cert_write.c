@@ -863,6 +863,9 @@ usage:
             str_tag_type = MBEDTLS_ASN1_UNIVERSAL_STRING;
         } else if (strcmp(opt.subject_str_type, "PrintableString") == 0) {
             str_tag_type = MBEDTLS_ASN1_PRINTABLE_STRING;
+        } else {
+            mbedtls_printf("Invalid ASN1 string type: %s\n", opt.subject_str_type);
+            goto usage;
         }
 
         for (mbedtls_x509_name *name = crt.MBEDTLS_PRIVATE(subject); name != NULL; name = name->next) {

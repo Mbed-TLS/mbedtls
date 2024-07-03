@@ -16,7 +16,6 @@ ifdef RECORD_PSA_STATUS_COVERAGE_LOG
 LOCAL_CFLAGS += -Werror -DRECORD_PSA_STATUS_COVERAGE_LOG
 endif
 
-.PHONY: generated_files
 GENERATED_BIGNUM_DATA_FILES := $(patsubst tests/%,%,$(shell \
 	$(PYTHON) ../framework/scripts/generate_bignum_tests.py --list || \
 	echo FAILED \
@@ -24,6 +23,17 @@ GENERATED_BIGNUM_DATA_FILES := $(patsubst tests/%,%,$(shell \
 ifeq ($(GENERATED_BIGNUM_DATA_FILES),FAILED)
 $(error "$(PYTHON) ../framework/scripts/generate_bignum_tests.py --list" failed)
 endif
+GENERATED_DATA_FILES += $(GENERATED_BIGNUM_DATA_FILES)
+
+GENERATED_CONFIG_DATA_FILES := $(patsubst tests/%,%,$(shell \
+	$(PYTHON) ../framework/scripts/generate_config_tests.py --list || \
+	echo FAILED \
+))
+ifeq ($(GENERATED_CONFIG_DATA_FILES),FAILED)
+$(error "$(PYTHON) ../framework/scripts/generate_config_tests.py --list" failed)
+endif
+GENERATED_DATA_FILES += $(GENERATED_CONFIG_DATA_FILES)
+
 GENERATED_ECP_DATA_FILES := $(patsubst tests/%,%,$(shell \
 	$(PYTHON) ../framework/scripts/generate_ecp_tests.py --list || \
 	echo FAILED \
@@ -31,6 +41,8 @@ GENERATED_ECP_DATA_FILES := $(patsubst tests/%,%,$(shell \
 ifeq ($(GENERATED_ECP_DATA_FILES),FAILED)
 $(error "$(PYTHON) ../framework/scripts/generate_ecp_tests.py --list" failed)
 endif
+GENERATED_DATA_FILES += $(GENERATED_ECP_DATA_FILES)
+
 GENERATED_PSA_DATA_FILES := $(patsubst tests/%,%,$(shell \
 	$(PYTHON) ../framework/scripts/generate_psa_tests.py --list || \
 	echo FAILED \
@@ -38,8 +50,13 @@ GENERATED_PSA_DATA_FILES := $(patsubst tests/%,%,$(shell \
 ifeq ($(GENERATED_PSA_DATA_FILES),FAILED)
 $(error "$(PYTHON) ../framework/scripts/generate_psa_tests.py --list" failed)
 endif
-GENERATED_FILES := $(GENERATED_PSA_DATA_FILES) $(GENERATED_ECP_DATA_FILES) $(GENERATED_BIGNUM_DATA_FILES)
-generated_files: $(GENERATED_FILES) src/test_keys.h src/test_certs.h
+GENERATED_DATA_FILES += $(GENERATED_PSA_DATA_FILES)
+
+GENERATED_FILES = $(GENERATED_DATA_FILES)
+GENERATED_FILES += src/test_keys.h src/test_certs.h
+
+.PHONY: generated_files
+generated_files: $(GENERATED_FILES)
 
 # generate_bignum_tests.py and generate_psa_tests.py spend more time analyzing
 # inputs than generating outputs. Its inputs are the same no matter which files
@@ -47,7 +64,6 @@ generated_files: $(GENERATED_FILES) src/test_keys.h src/test_certs.h
 # It's rare not to want all the outputs. So always generate all of its outputs.
 # Use an intermediate phony dependency so that parallel builds don't run
 # a separate instance of the recipe for each output file.
-.SECONDARY: generated_bignum_test_data generated_ecp_test_data generated_psa_test_data
 $(GENERATED_BIGNUM_DATA_FILES): $(gen_file_dep) generated_bignum_test_data
 generated_bignum_test_data: ../framework/scripts/generate_bignum_tests.py
 generated_bignum_test_data: ../framework/scripts/mbedtls_framework/bignum_common.py
@@ -59,6 +75,23 @@ generated_bignum_test_data: ../framework/scripts/mbedtls_framework/test_data_gen
 generated_bignum_test_data:
 	echo "  Gen   $(GENERATED_BIGNUM_DATA_FILES)"
 	$(PYTHON) ../framework/scripts/generate_bignum_tests.py
+.SECONDARY: generated_bignum_test_data
+
+# We deliberately omit the configuration files (mbedtls_config.h,
+# crypto_config.h) from the depenency list because during development
+# and on the CI, we often edit those in a way that doesn't change the
+# output, to comment out certain options, or even to remove certain
+# lines which do affect the output negatively (it will miss the
+# corresponding test cases).
+$(GENERATED_CONFIG_DATA_FILES): $(gen_file_dep) generated_config_test_data
+generated_config_test_data: ../framework/scripts/generate_config_tests.py
+generated_config_test_data: ../scripts/config.py
+generated_config_test_data: ../framework/scripts/mbedtls_framework/test_case.py
+generated_config_test_data: ../framework/scripts/mbedtls_framework/test_data_generation.py
+generated_config_test_data:
+	echo "  Gen   $(GENERATED_CONFIG_DATA_FILES)"
+	$(PYTHON) ../framework/scripts/generate_config_tests.py
+.SECONDARY: generated_config_test_data
 
 $(GENERATED_ECP_DATA_FILES): $(gen_file_dep) generated_ecp_test_data
 generated_ecp_test_data: ../framework/scripts/generate_ecp_tests.py
@@ -69,6 +102,7 @@ generated_ecp_test_data: ../framework/scripts/mbedtls_framework/test_data_genera
 generated_ecp_test_data:
 	echo "  Gen   $(GENERATED_ECP_DATA_FILES)"
 	$(PYTHON) ../framework/scripts/generate_ecp_tests.py
+.SECONDARY: generated_ecp_test_data
 
 $(GENERATED_PSA_DATA_FILES): $(gen_file_dep) generated_psa_test_data
 generated_psa_test_data: ../framework/scripts/generate_psa_tests.py
@@ -91,6 +125,7 @@ generated_psa_test_data: suites/test_suite_psa_crypto_metadata.data
 generated_psa_test_data:
 	echo "  Gen   $(GENERATED_PSA_DATA_FILES) ..."
 	$(PYTHON) ../framework/scripts/generate_psa_tests.py
+.SECONDARY: generated_psa_test_data
 
 # A test application is built for each suites/test_suite_*.data file.
 # Application name is same as .data file's base name and can be
@@ -98,7 +133,7 @@ generated_psa_test_data:
 DATA_FILES := $(wildcard suites/test_suite_*.data)
 # Make sure that generated data files are included even if they don't
 # exist yet when the makefile is parsed.
-DATA_FILES += $(filter-out $(DATA_FILES),$(GENERATED_FILES))
+DATA_FILES += $(filter-out $(DATA_FILES),$(GENERATED_DATA_FILES))
 APPS = $(basename $(subst suites/,,$(DATA_FILES)))
 
 # Construct executable name by adding OS specific suffix $(EXEXT).

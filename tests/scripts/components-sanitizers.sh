@@ -95,7 +95,6 @@ component_release_test_valgrind_constant_flow () {
     # Test asm path in constant time module - by default, it will test the plain C
     # path under Valgrind or Memsan. Running only the constant_time tests is fast (<1s)
     msg "test: valgrind asm constant_time"
-    scripts/config.py --force set MBEDTLS_TEST_CONSTANT_FLOW_ASM
     skip_all_except_given_suite test_suite_constant_time
     cmake -D CMAKE_BUILD_TYPE:String=Release .
     make clean

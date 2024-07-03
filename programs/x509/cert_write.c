@@ -198,7 +198,7 @@ struct options {
     const char *output_file;    /* where to store the constructed CRT   */
     const char *subject_name;   /* subject name for certificate         */
     const char *subject_str_type; /* String type tag for subject name
-                                  * (used to generate test certificates) */
+                                   * (used to generate test certificates) */
     mbedtls_x509_san_list *san_list; /* subjectAltName for certificate  */
     const char *issuer_name;    /* issuer name for certificate          */
     const char *not_before;     /* validity period not before           */
@@ -871,7 +871,9 @@ usage:
             goto usage;
         }
 
-        for (mbedtls_x509_name *name = crt.MBEDTLS_PRIVATE(subject); name != NULL; name = name->next) {
+        for (mbedtls_x509_name *name = crt.MBEDTLS_PRIVATE(subject);
+             name != NULL;
+             name = name->next) {
             if (MBEDTLS_ASN1_IS_STRING_TAG(name->val.tag)) {
                 name->val.tag = str_tag_type;
             }

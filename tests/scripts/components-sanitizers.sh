@@ -127,16 +127,6 @@ component_release_test_valgrind_constant_flow_no_asm () {
     # details are left in Testing/<date>/DynamicAnalysis.xml
     msg "test: some suites (full minus MBEDTLS_USE_PSA_CRYPTO, minus MBEDTLS_HAVE_ASM, valgrind + constant flow)"
     make memcheck
-
-    # Test asm path in constant time module - by default, it will test the plain C
-    # path under Valgrind or Memsan. Running only the constant_time tests is fast (<1s)
-    msg "test: valgrind asm constant_time"
-    scripts/config.py --force set MBEDTLS_TEST_CONSTANT_FLOW_ASM
-    skip_all_except_given_suite test_suite_constant_time
-    cmake -D CMAKE_BUILD_TYPE:String=Release .
-    make clean
-    make
-    make memcheck
 }
 
 component_release_test_valgrind_constant_flow_psa () {

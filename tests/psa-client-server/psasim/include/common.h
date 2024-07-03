@@ -10,43 +10,42 @@
 
 #include <stdint.h>
 #include <stddef.h>
+#include <stdatomic.h>
 
-/* Increasing this might break on some platforms */
-#define MAX_FRAGMENT_SIZE 200
+#include "psa/crypto.h"
 
-#define CONNECT_REQUEST 1
-#define CALL_REQUEST 2
-#define CLOSE_REQUEST 3
-#define VERSION_REQUEST 4
-#define READ_REQUEST    5
-#define READ_RESPONSE   6
-#define WRITE_REQUEST   7
-#define WRITE_RESPONSE  8
-#define SKIP_REQUEST    9
-#define PSA_REPLY       10
+#define PSASIM_SHM_PATH     "psasim-shm"
 
-#define NON_SECURE (1 << 30)
-
-typedef int32_t psa_handle_t;
+/* This is the structure of the PSA message that will be exchanged between
+ * server and client.
+ */
+#define MAX_PSA_MESSAGE_LENGTH          (65536)
+#define PSA_MESSAGE_HEADER_LENGTH       (sizeof(int32_t) + 2 * PSA_MAX_IOVEC * sizeof(size_t))
+#define MAX_PSA_MESSAGE_PAYLOAD         (MAX_PSA_MESSAGE_LENGTH - PSA_MESSAGE_HEADER_LENGTH)
 
 #define PSA_MAX_IOVEC (4u)
-
-#define PSA_IPC_CALL (0)
-
-struct message_text {
-    int qid;
-    int32_t psa_type;
-    char buf[MAX_FRAGMENT_SIZE];
-};
-
-struct message {
-    long message_type;
-    struct message_text message_text;
-};
-
-typedef struct vector_sizes {
+struct psa_message_s {
+    int32_t psa_function;
     size_t invec_sizes[PSA_MAX_IOVEC];
     size_t outvec_sizes[PSA_MAX_IOVEC];
-} vector_sizes_t;
+    /* Payload will contain all invec first and then all outvec. */
+    char payload[MAX_PSA_MESSAGE_PAYLOAD];
+} __attribute__((packed));
+typedef struct psa_message_s psa_message_t;
+
+#define COMMUNICATION_TIMEOUT_S  (60)
+
+#define SHARED_MEMORY_OWNER_UNDEFINED   0 /* Default value at startup */
+#define SHARED_MEMORY_OWNER_CLIENT      1
+#define SHARED_MEMORY_OWNER_SERVER      2
+
+/* This is the layout the shared memory between client and server. It embeds
+ * the psa_message and some communication's control logic.
+ */
+struct shared_memory_s {
+    atomic_char owner; /* who controls the shared memory (client or server)? */
+    psa_message_t psa_message;
+} __attribute__((packed));
+typedef struct shared_memory_s shared_memory_t;
 
 #endif /* _COMMON_H_ */

@@ -365,8 +365,7 @@ cleanup()
 helper_psasim_cleanup_before_client() {
     # Clean up library files
     make -C library clean
-    # Clean up intermediate files that were used to build the server
-    make -C $PSASIM_PATH clean_server_intermediate_files
+
     # Restore files that were backup before building library files. This
     # includes $CONFIG_H and $CRYPTO_CONFIG_H.
     for x in $files_to_back_up; do

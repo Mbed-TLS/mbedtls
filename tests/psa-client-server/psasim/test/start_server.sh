@@ -5,10 +5,9 @@
 
 set -e
 
-# The server creates some local files when it starts up so we can wait for this
-# event as signal that the server is ready so that we can start client(s).
+# Wait for the server to start up and create the socket.
 function wait_for_server_startup() {
-    while [ $(find . -name "psa_notify_*" | wc -l) -eq 0 ]; do
+    while [ ! $(ss -lta | grep "127.0.0.1:4242") ]; do
         sleep 0.1
     done
 }

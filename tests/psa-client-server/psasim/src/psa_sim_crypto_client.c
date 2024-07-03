@@ -8,23 +8,18 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <unistd.h>
 
 /* Includes from psasim */
 #include <client.h>
 #include <util.h>
-#include "psa_manifest/sid.h"
 #include "psa_functions_codes.h"
 #include "psa_sim_serialise.h"
 
 /* Includes from mbedtls */
 #include "mbedtls/version.h"
 #include "psa/crypto.h"
-
-#define CLIENT_PRINT(fmt, ...) \
-    INFO("Client: " fmt, ##__VA_ARGS__)
-
-static psa_handle_t handle = -1;
 
 #if defined(MBEDTLS_PSA_CRYPTO_C)
 #error "Error: MBEDTLS_PSA_CRYPTO_C must be disabled on client build"
@@ -34,12 +29,6 @@ int psa_crypto_call(int function,
                     uint8_t *in_params, size_t in_params_len,
                     uint8_t **out_params, size_t *out_params_len)
 {
-    // psa_outvec outvecs[1];
-    if (handle < 0) {
-        fprintf(stderr, "NOT CONNECTED\n");
-        exit(1);
-    }
-
     psa_invec invec;
     invec.base = in_params;
     invec.len = in_params_len;
@@ -47,7 +36,7 @@ int psa_crypto_call(int function,
     size_t max_receive = 24576;
     uint8_t *receive = malloc(max_receive);
     if (receive == NULL) {
-        fprintf(stderr, "FAILED to allocate %u bytes\n", (unsigned) max_receive);
+        ERROR("FAILED to allocate %u bytes\n", (unsigned) max_receive);
         exit(1);
     }
 
@@ -59,7 +48,7 @@ int psa_crypto_call(int function,
     outvecs[1].base = receive;
     outvecs[1].len = max_receive;
 
-    psa_status_t status = psa_call(handle, function, &invec, 1, outvecs, 2);
+    psa_status_t status = psa_call(function, &invec, 1, outvecs, 2);
     if (status != PSA_SUCCESS) {
         free(receive);
         return 0;
@@ -79,20 +68,16 @@ psa_status_t psa_crypto_init(void)
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
     mbedtls_version_get_string_full(mbedtls_version);
-    CLIENT_PRINT("%s", mbedtls_version);
+    INFO("%s", mbedtls_version);
 
-    CLIENT_PRINT("My PID: %d", getpid());
-
-    CLIENT_PRINT("PSA version: %u", psa_version(PSA_SID_CRYPTO_SID));
-    handle = psa_connect(PSA_SID_CRYPTO_SID, 1);
-
-    if (handle < 0) {
-        CLIENT_PRINT("Couldn't connect %d", handle);
+    status = psa_connect();
+    if (status < 0) {
+        ERROR("Couldn't connect (%d)", status);
         return PSA_ERROR_COMMUNICATION_FAILURE;
     }
 
     int ok = psa_crypto_call(PSA_CRYPTO_INIT, NULL, 0, &result, &result_length);
-    CLIENT_PRINT("PSA_CRYPTO_INIT returned: %d", ok);
+    INFO("PSA_CRYPTO_INIT returned: %d", ok);
 
     if (!ok) {
         goto fail;
@@ -119,14 +104,8 @@ fail:
 
 void mbedtls_psa_crypto_free(void)
 {
-    /* Do not try to close a connection that was never started.*/
-    if (handle == -1) {
-        return;
-    }
-
-    CLIENT_PRINT("Closing handle");
-    psa_close(handle);
-    handle = -1;
+    INFO("Closing connection");
+    psa_close();
 }
 
 
@@ -166,7 +145,7 @@ psa_status_t psa_aead_abort(
     ok = psa_crypto_call(PSA_AEAD_ABORT,
                          ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
-        printf("PSA_AEAD_ABORT server call failed\n");
+        INFO("PSA_AEAD_ABORT server call failed\n");
         goto fail;
     }
 
@@ -284,7 +263,7 @@ psa_status_t psa_aead_decrypt(
     ok = psa_crypto_call(PSA_AEAD_DECRYPT,
                          ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
-        printf("PSA_AEAD_DECRYPT server call failed\n");
+        INFO("PSA_AEAD_DECRYPT server call failed\n");
         goto fail;
     }
 
@@ -377,7 +356,7 @@ psa_status_t psa_aead_decrypt_setup(
     ok = psa_crypto_call(PSA_AEAD_DECRYPT_SETUP,
                          ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
-        printf("PSA_AEAD_DECRYPT_SETUP server call failed\n");
+        INFO("PSA_AEAD_DECRYPT_SETUP server call failed\n");
         goto fail;
     }
 
@@ -495,7 +474,7 @@ psa_status_t psa_aead_encrypt(
     ok = psa_crypto_call(PSA_AEAD_ENCRYPT,
                          ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
-        printf("PSA_AEAD_ENCRYPT server call failed\n");
+        INFO("PSA_AEAD_ENCRYPT server call failed\n");
         goto fail;
     }
 
@@ -588,7 +567,7 @@ psa_status_t psa_aead_encrypt_setup(
     ok = psa_crypto_call(PSA_AEAD_ENCRYPT_SETUP,
                          ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
-        printf("PSA_AEAD_ENCRYPT_SETUP server call failed\n");
+        INFO("PSA_AEAD_ENCRYPT_SETUP server call failed\n");
         goto fail;
     }
 
@@ -690,7 +669,7 @@ psa_status_t psa_aead_finish(
     ok = psa_crypto_call(PSA_AEAD_FINISH,
                          ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
-        printf("PSA_AEAD_FINISH server call failed\n");
+        INFO("PSA_AEAD_FINISH server call failed\n");
         goto fail;
     }
 
@@ -804,7 +783,7 @@ psa_status_t psa_aead_generate_nonce(
     ok = psa_crypto_call(PSA_AEAD_GENERATE_NONCE,
                          ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
-        printf("PSA_AEAD_GENERATE_NONCE server call failed\n");
+        INFO("PSA_AEAD_GENERATE_NONCE server call failed\n");
         goto fail;
     }
 
@@ -904,7 +883,7 @@ psa_status_t psa_aead_set_lengths(
     ok = psa_crypto_call(PSA_AEAD_SET_LENGTHS,
                          ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
-        printf("PSA_AEAD_SET_LENGTHS server call failed\n");
+        INFO("PSA_AEAD_SET_LENGTHS server call failed\n");
         goto fail;
     }
 
@@ -982,7 +961,7 @@ psa_status_t psa_aead_set_nonce(
     ok = psa_crypto_call(PSA_AEAD_SET_NONCE,
                          ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
-        printf("PSA_AEAD_SET_NONCE server call failed\n");
+        INFO("PSA_AEAD_SET_NONCE server call failed\n");
         goto fail;
     }
 
@@ -1076,7 +1055,7 @@ psa_status_t psa_aead_update(
     ok = psa_crypto_call(PSA_AEAD_UPDATE,
                          ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
-        printf("PSA_AEAD_UPDATE server call failed\n");
+        INFO("PSA_AEAD_UPDATE server call failed\n");
         goto fail;
     }
 
@@ -1168,7 +1147,7 @@ psa_status_t psa_aead_update_ad(
     ok = psa_crypto_call(PSA_AEAD_UPDATE_AD,
                          ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
-        printf("PSA_AEAD_UPDATE_AD server call failed\n");
+        INFO("PSA_AEAD_UPDATE_AD server call failed\n");
         goto fail;
     }
 
@@ -1262,7 +1241,7 @@ psa_status_t psa_aead_verify(
     ok = psa_crypto_call(PSA_AEAD_VERIFY,
                          ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
-        printf("PSA_AEAD_VERIFY server call failed\n");
+        INFO("PSA_AEAD_VERIFY server call failed\n");
         goto fail;
     }
 
@@ -1386,7 +1365,7 @@ psa_status_t psa_asymmetric_decrypt(
     ok = psa_crypto_call(PSA_ASYMMETRIC_DECRYPT,
                          ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
-        printf("PSA_ASYMMETRIC_DECRYPT server call failed\n");
+        INFO("PSA_ASYMMETRIC_DECRYPT server call failed\n");
         goto fail;
     }
 
@@ -1503,7 +1482,7 @@ psa_status_t psa_asymmetric_encrypt(
     ok = psa_crypto_call(PSA_ASYMMETRIC_ENCRYPT,
                          ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
-        printf("PSA_ASYMMETRIC_ENCRYPT server call failed\n");
+        INFO("PSA_ASYMMETRIC_ENCRYPT server call failed\n");
         goto fail;
     }
 
@@ -1580,7 +1559,7 @@ psa_status_t psa_cipher_abort(
     ok = psa_crypto_call(PSA_CIPHER_ABORT,
                          ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
-        printf("PSA_CIPHER_ABORT server call failed\n");
+        INFO("PSA_CIPHER_ABORT server call failed\n");
         goto fail;
     }
 
@@ -1682,7 +1661,7 @@ psa_status_t psa_cipher_decrypt(
     ok = psa_crypto_call(PSA_CIPHER_DECRYPT,
                          ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
-        printf("PSA_CIPHER_DECRYPT server call failed\n");
+        INFO("PSA_CIPHER_DECRYPT server call failed\n");
         goto fail;
     }
 
@@ -1775,7 +1754,7 @@ psa_status_t psa_cipher_decrypt_setup(
     ok = psa_crypto_call(PSA_CIPHER_DECRYPT_SETUP,
                          ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
-        printf("PSA_CIPHER_DECRYPT_SETUP server call failed\n");
+        INFO("PSA_CIPHER_DECRYPT_SETUP server call failed\n");
         goto fail;
     }
 
@@ -1877,7 +1856,7 @@ psa_status_t psa_cipher_encrypt(
     ok = psa_crypto_call(PSA_CIPHER_ENCRYPT,
                          ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
-        printf("PSA_CIPHER_ENCRYPT server call failed\n");
+        INFO("PSA_CIPHER_ENCRYPT server call failed\n");
         goto fail;
     }
 
@@ -1970,7 +1949,7 @@ psa_status_t psa_cipher_encrypt_setup(
     ok = psa_crypto_call(PSA_CIPHER_ENCRYPT_SETUP,
                          ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
-        printf("PSA_CIPHER_ENCRYPT_SETUP server call failed\n");
+        INFO("PSA_CIPHER_ENCRYPT_SETUP server call failed\n");
         goto fail;
     }
 
@@ -2056,7 +2035,7 @@ psa_status_t psa_cipher_finish(
     ok = psa_crypto_call(PSA_CIPHER_FINISH,
                          ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
-        printf("PSA_CIPHER_FINISH server call failed\n");
+        INFO("PSA_CIPHER_FINISH server call failed\n");
         goto fail;
     }
 
@@ -2156,7 +2135,7 @@ psa_status_t psa_cipher_generate_iv(
     ok = psa_crypto_call(PSA_CIPHER_GENERATE_IV,
                          ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
-        printf("PSA_CIPHER_GENERATE_IV server call failed\n");
+        INFO("PSA_CIPHER_GENERATE_IV server call failed\n");
         goto fail;
     }
 
@@ -2248,7 +2227,7 @@ psa_status_t psa_cipher_set_iv(
     ok = psa_crypto_call(PSA_CIPHER_SET_IV,
                          ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
-        printf("PSA_CIPHER_SET_IV server call failed\n");
+        INFO("PSA_CIPHER_SET_IV server call failed\n");
         goto fail;
     }
 
@@ -2342,7 +2321,7 @@ psa_status_t psa_cipher_update(
     ok = psa_crypto_call(PSA_CIPHER_UPDATE,
                          ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
-        printf("PSA_CIPHER_UPDATE server call failed\n");
+        INFO("PSA_CIPHER_UPDATE server call failed\n");
         goto fail;
     }
 
@@ -2442,7 +2421,7 @@ psa_status_t psa_copy_key(
     ok = psa_crypto_call(PSA_COPY_KEY,
                          ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
-        printf("PSA_COPY_KEY server call failed\n");
+        INFO("PSA_COPY_KEY server call failed\n");
         goto fail;
     }
 
@@ -2512,7 +2491,7 @@ psa_status_t psa_destroy_key(
     ok = psa_crypto_call(PSA_DESTROY_KEY,
                          ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
-        printf("PSA_DESTROY_KEY server call failed\n");
+        INFO("PSA_DESTROY_KEY server call failed\n");
         goto fail;
     }
 
@@ -2591,7 +2570,7 @@ psa_status_t psa_export_key(
     ok = psa_crypto_call(PSA_EXPORT_KEY,
                          ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
-        printf("PSA_EXPORT_KEY server call failed\n");
+        INFO("PSA_EXPORT_KEY server call failed\n");
         goto fail;
     }
 
@@ -2684,7 +2663,7 @@ psa_status_t psa_export_public_key(
     ok = psa_crypto_call(PSA_EXPORT_PUBLIC_KEY,
                          ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
-        printf("PSA_EXPORT_PUBLIC_KEY server call failed\n");
+        INFO("PSA_EXPORT_PUBLIC_KEY server call failed\n");
         goto fail;
     }
 
@@ -2769,7 +2748,7 @@ psa_status_t psa_generate_key(
     ok = psa_crypto_call(PSA_GENERATE_KEY,
                          ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
-        printf("PSA_GENERATE_KEY server call failed\n");
+        INFO("PSA_GENERATE_KEY server call failed\n");
         goto fail;
     }
 
@@ -2855,7 +2834,7 @@ psa_status_t psa_generate_key_ext(
     ok = psa_crypto_call(PSA_GENERATE_KEY_EXT,
                          ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
-        printf("PSA_GENERATE_KEY_EXT server call failed\n");
+        INFO("PSA_GENERATE_KEY_EXT server call failed\n");
         goto fail;
     }
 
@@ -2925,7 +2904,7 @@ psa_status_t psa_generate_random(
     ok = psa_crypto_call(PSA_GENERATE_RANDOM,
                          ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
-        printf("PSA_GENERATE_RANDOM server call failed\n");
+        INFO("PSA_GENERATE_RANDOM server call failed\n");
         goto fail;
     }
 
@@ -3003,7 +2982,7 @@ psa_status_t psa_get_key_attributes(
     ok = psa_crypto_call(PSA_GET_KEY_ATTRIBUTES,
                          ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
-        printf("PSA_GET_KEY_ATTRIBUTES server call failed\n");
+        INFO("PSA_GET_KEY_ATTRIBUTES server call failed\n");
         goto fail;
     }
 
@@ -3073,7 +3052,7 @@ psa_status_t psa_hash_abort(
     ok = psa_crypto_call(PSA_HASH_ABORT,
                          ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
-        printf("PSA_HASH_ABORT server call failed\n");
+        INFO("PSA_HASH_ABORT server call failed\n");
         goto fail;
     }
 
@@ -3151,7 +3130,7 @@ psa_status_t psa_hash_clone(
     ok = psa_crypto_call(PSA_HASH_CLONE,
                          ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
-        printf("PSA_HASH_CLONE server call failed\n");
+        INFO("PSA_HASH_CLONE server call failed\n");
         goto fail;
     }
 
@@ -3237,7 +3216,7 @@ psa_status_t psa_hash_compare(
     ok = psa_crypto_call(PSA_HASH_COMPARE,
                          ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
-        printf("PSA_HASH_COMPARE server call failed\n");
+        INFO("PSA_HASH_COMPARE server call failed\n");
         goto fail;
     }
 
@@ -3324,7 +3303,7 @@ psa_status_t psa_hash_compute(
     ok = psa_crypto_call(PSA_HASH_COMPUTE,
                          ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
-        printf("PSA_HASH_COMPUTE server call failed\n");
+        INFO("PSA_HASH_COMPUTE server call failed\n");
         goto fail;
     }
 
@@ -3417,7 +3396,7 @@ psa_status_t psa_hash_finish(
     ok = psa_crypto_call(PSA_HASH_FINISH,
                          ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
-        printf("PSA_HASH_FINISH server call failed\n");
+        INFO("PSA_HASH_FINISH server call failed\n");
         goto fail;
     }
 
@@ -3509,7 +3488,7 @@ psa_status_t psa_hash_setup(
     ok = psa_crypto_call(PSA_HASH_SETUP,
                          ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
-        printf("PSA_HASH_SETUP server call failed\n");
+        INFO("PSA_HASH_SETUP server call failed\n");
         goto fail;
     }
 
@@ -3587,7 +3566,7 @@ psa_status_t psa_hash_update(
     ok = psa_crypto_call(PSA_HASH_UPDATE,
                          ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
-        printf("PSA_HASH_UPDATE server call failed\n");
+        INFO("PSA_HASH_UPDATE server call failed\n");
         goto fail;
     }
 
@@ -3665,7 +3644,7 @@ psa_status_t psa_hash_verify(
     ok = psa_crypto_call(PSA_HASH_VERIFY,
                          ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
-        printf("PSA_HASH_VERIFY server call failed\n");
+        INFO("PSA_HASH_VERIFY server call failed\n");
         goto fail;
     }
 
@@ -3751,7 +3730,7 @@ psa_status_t psa_import_key(
     ok = psa_crypto_call(PSA_IMPORT_KEY,
                          ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
-        printf("PSA_IMPORT_KEY server call failed\n");
+        INFO("PSA_IMPORT_KEY server call failed\n");
         goto fail;
     }
 
@@ -3815,7 +3794,7 @@ uint32_t psa_interruptible_get_max_ops(
     ok = psa_crypto_call(PSA_INTERRUPTIBLE_GET_MAX_OPS,
                          ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
-        printf("PSA_INTERRUPTIBLE_GET_MAX_OPS server call failed\n");
+        INFO("PSA_INTERRUPTIBLE_GET_MAX_OPS server call failed\n");
         goto fail;
     }
 
@@ -3876,7 +3855,7 @@ void psa_interruptible_set_max_ops(
     ok = psa_crypto_call(PSA_INTERRUPTIBLE_SET_MAX_OPS,
                          ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
-        printf("PSA_INTERRUPTIBLE_SET_MAX_OPS server call failed\n");
+        INFO("PSA_INTERRUPTIBLE_SET_MAX_OPS server call failed\n");
         goto fail;
     }
 
@@ -3930,7 +3909,7 @@ psa_status_t psa_key_derivation_abort(
     ok = psa_crypto_call(PSA_KEY_DERIVATION_ABORT,
                          ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
-        printf("PSA_KEY_DERIVATION_ABORT server call failed\n");
+        INFO("PSA_KEY_DERIVATION_ABORT server call failed\n");
         goto fail;
     }
 
@@ -4008,7 +3987,7 @@ psa_status_t psa_key_derivation_get_capacity(
     ok = psa_crypto_call(PSA_KEY_DERIVATION_GET_CAPACITY,
                          ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
-        printf("PSA_KEY_DERIVATION_GET_CAPACITY server call failed\n");
+        INFO("PSA_KEY_DERIVATION_GET_CAPACITY server call failed\n");
         goto fail;
     }
 
@@ -4094,7 +4073,7 @@ psa_status_t psa_key_derivation_input_bytes(
     ok = psa_crypto_call(PSA_KEY_DERIVATION_INPUT_BYTES,
                          ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
-        printf("PSA_KEY_DERIVATION_INPUT_BYTES server call failed\n");
+        INFO("PSA_KEY_DERIVATION_INPUT_BYTES server call failed\n");
         goto fail;
     }
 
@@ -4180,7 +4159,7 @@ psa_status_t psa_key_derivation_input_integer(
     ok = psa_crypto_call(PSA_KEY_DERIVATION_INPUT_INTEGER,
                          ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
-        printf("PSA_KEY_DERIVATION_INPUT_INTEGER server call failed\n");
+        INFO("PSA_KEY_DERIVATION_INPUT_INTEGER server call failed\n");
         goto fail;
     }
 
@@ -4266,7 +4245,7 @@ psa_status_t psa_key_derivation_input_key(
     ok = psa_crypto_call(PSA_KEY_DERIVATION_INPUT_KEY,
                          ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
-        printf("PSA_KEY_DERIVATION_INPUT_KEY server call failed\n");
+        INFO("PSA_KEY_DERIVATION_INPUT_KEY server call failed\n");
         goto fail;
     }
 
@@ -4360,7 +4339,7 @@ psa_status_t psa_key_derivation_key_agreement(
     ok = psa_crypto_call(PSA_KEY_DERIVATION_KEY_AGREEMENT,
                          ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
-        printf("PSA_KEY_DERIVATION_KEY_AGREEMENT server call failed\n");
+        INFO("PSA_KEY_DERIVATION_KEY_AGREEMENT server call failed\n");
         goto fail;
     }
 
@@ -4438,7 +4417,7 @@ psa_status_t psa_key_derivation_output_bytes(
     ok = psa_crypto_call(PSA_KEY_DERIVATION_OUTPUT_BYTES,
                          ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
-        printf("PSA_KEY_DERIVATION_OUTPUT_BYTES server call failed\n");
+        INFO("PSA_KEY_DERIVATION_OUTPUT_BYTES server call failed\n");
         goto fail;
     }
 
@@ -4531,7 +4510,7 @@ psa_status_t psa_key_derivation_output_key(
     ok = psa_crypto_call(PSA_KEY_DERIVATION_OUTPUT_KEY,
                          ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
-        printf("PSA_KEY_DERIVATION_OUTPUT_KEY server call failed\n");
+        INFO("PSA_KEY_DERIVATION_OUTPUT_KEY server call failed\n");
         goto fail;
     }
 
@@ -4632,7 +4611,7 @@ psa_status_t psa_key_derivation_output_key_ext(
     ok = psa_crypto_call(PSA_KEY_DERIVATION_OUTPUT_KEY_EXT,
                          ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
-        printf("PSA_KEY_DERIVATION_OUTPUT_KEY_EXT server call failed\n");
+        INFO("PSA_KEY_DERIVATION_OUTPUT_KEY_EXT server call failed\n");
         goto fail;
     }
 
@@ -4717,7 +4696,7 @@ psa_status_t psa_key_derivation_set_capacity(
     ok = psa_crypto_call(PSA_KEY_DERIVATION_SET_CAPACITY,
                          ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
-        printf("PSA_KEY_DERIVATION_SET_CAPACITY server call failed\n");
+        INFO("PSA_KEY_DERIVATION_SET_CAPACITY server call failed\n");
         goto fail;
     }
 
@@ -4795,7 +4774,7 @@ psa_status_t psa_key_derivation_setup(
     ok = psa_crypto_call(PSA_KEY_DERIVATION_SETUP,
                          ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
-        printf("PSA_KEY_DERIVATION_SETUP server call failed\n");
+        INFO("PSA_KEY_DERIVATION_SETUP server call failed\n");
         goto fail;
     }
 
@@ -4865,7 +4844,7 @@ psa_status_t psa_mac_abort(
     ok = psa_crypto_call(PSA_MAC_ABORT,
                          ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
-        printf("PSA_MAC_ABORT server call failed\n");
+        INFO("PSA_MAC_ABORT server call failed\n");
         goto fail;
     }
 
@@ -4967,7 +4946,7 @@ psa_status_t psa_mac_compute(
     ok = psa_crypto_call(PSA_MAC_COMPUTE,
                          ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
-        printf("PSA_MAC_COMPUTE server call failed\n");
+        INFO("PSA_MAC_COMPUTE server call failed\n");
         goto fail;
     }
 
@@ -5060,7 +5039,7 @@ psa_status_t psa_mac_sign_finish(
     ok = psa_crypto_call(PSA_MAC_SIGN_FINISH,
                          ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
-        printf("PSA_MAC_SIGN_FINISH server call failed\n");
+        INFO("PSA_MAC_SIGN_FINISH server call failed\n");
         goto fail;
     }
 
@@ -5160,7 +5139,7 @@ psa_status_t psa_mac_sign_setup(
     ok = psa_crypto_call(PSA_MAC_SIGN_SETUP,
                          ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
-        printf("PSA_MAC_SIGN_SETUP server call failed\n");
+        INFO("PSA_MAC_SIGN_SETUP server call failed\n");
         goto fail;
     }
 
@@ -5238,7 +5217,7 @@ psa_status_t psa_mac_update(
     ok = psa_crypto_call(PSA_MAC_UPDATE,
                          ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
-        printf("PSA_MAC_UPDATE server call failed\n");
+        INFO("PSA_MAC_UPDATE server call failed\n");
         goto fail;
     }
 
@@ -5332,7 +5311,7 @@ psa_status_t psa_mac_verify(
     ok = psa_crypto_call(PSA_MAC_VERIFY,
                          ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
-        printf("PSA_MAC_VERIFY server call failed\n");
+        INFO("PSA_MAC_VERIFY server call failed\n");
         goto fail;
     }
 
@@ -5403,7 +5382,7 @@ psa_status_t psa_mac_verify_finish(
     ok = psa_crypto_call(PSA_MAC_VERIFY_FINISH,
                          ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
-        printf("PSA_MAC_VERIFY_FINISH server call failed\n");
+        INFO("PSA_MAC_VERIFY_FINISH server call failed\n");
         goto fail;
     }
 
@@ -5489,7 +5468,7 @@ psa_status_t psa_mac_verify_setup(
     ok = psa_crypto_call(PSA_MAC_VERIFY_SETUP,
                          ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
-        printf("PSA_MAC_VERIFY_SETUP server call failed\n");
+        INFO("PSA_MAC_VERIFY_SETUP server call failed\n");
         goto fail;
     }
 
@@ -5559,7 +5538,7 @@ psa_status_t psa_purge_key(
     ok = psa_crypto_call(PSA_PURGE_KEY,
                          ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
-        printf("PSA_PURGE_KEY server call failed\n");
+        INFO("PSA_PURGE_KEY server call failed\n");
         goto fail;
     }
 
@@ -5654,7 +5633,7 @@ psa_status_t psa_raw_key_agreement(
     ok = psa_crypto_call(PSA_RAW_KEY_AGREEMENT,
                          ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
-        printf("PSA_RAW_KEY_AGREEMENT server call failed\n");
+        INFO("PSA_RAW_KEY_AGREEMENT server call failed\n");
         goto fail;
     }
 
@@ -5729,7 +5708,7 @@ void psa_reset_key_attributes(
     ok = psa_crypto_call(PSA_RESET_KEY_ATTRIBUTES,
                          ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
-        printf("PSA_RESET_KEY_ATTRIBUTES server call failed\n");
+        INFO("PSA_RESET_KEY_ATTRIBUTES server call failed\n");
         goto fail;
     }
 
@@ -5822,7 +5801,7 @@ psa_status_t psa_sign_hash(
     ok = psa_crypto_call(PSA_SIGN_HASH,
                          ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
-        printf("PSA_SIGN_HASH server call failed\n");
+        INFO("PSA_SIGN_HASH server call failed\n");
         goto fail;
     }
 
@@ -5899,7 +5878,7 @@ psa_status_t psa_sign_hash_abort(
     ok = psa_crypto_call(PSA_SIGN_HASH_ABORT,
                          ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
-        printf("PSA_SIGN_HASH_ABORT server call failed\n");
+        INFO("PSA_SIGN_HASH_ABORT server call failed\n");
         goto fail;
     }
 
@@ -5985,7 +5964,7 @@ psa_status_t psa_sign_hash_complete(
     ok = psa_crypto_call(PSA_SIGN_HASH_COMPLETE,
                          ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
-        printf("PSA_SIGN_HASH_COMPLETE server call failed\n");
+        INFO("PSA_SIGN_HASH_COMPLETE server call failed\n");
         goto fail;
     }
 
@@ -6069,7 +6048,7 @@ uint32_t psa_sign_hash_get_num_ops(
     ok = psa_crypto_call(PSA_SIGN_HASH_GET_NUM_OPS,
                          ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
-        printf("PSA_SIGN_HASH_GET_NUM_OPS server call failed\n");
+        INFO("PSA_SIGN_HASH_GET_NUM_OPS server call failed\n");
         goto fail;
     }
 
@@ -6156,7 +6135,7 @@ psa_status_t psa_sign_hash_start(
     ok = psa_crypto_call(PSA_SIGN_HASH_START,
                          ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
-        printf("PSA_SIGN_HASH_START server call failed\n");
+        INFO("PSA_SIGN_HASH_START server call failed\n");
         goto fail;
     }
 
@@ -6258,7 +6237,7 @@ psa_status_t psa_sign_message(
     ok = psa_crypto_call(PSA_SIGN_MESSAGE,
                          ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
-        printf("PSA_SIGN_MESSAGE server call failed\n");
+        INFO("PSA_SIGN_MESSAGE server call failed\n");
         goto fail;
     }
 
@@ -6359,7 +6338,7 @@ psa_status_t psa_verify_hash(
     ok = psa_crypto_call(PSA_VERIFY_HASH,
                          ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
-        printf("PSA_VERIFY_HASH server call failed\n");
+        INFO("PSA_VERIFY_HASH server call failed\n");
         goto fail;
     }
 
@@ -6422,7 +6401,7 @@ psa_status_t psa_verify_hash_abort(
     ok = psa_crypto_call(PSA_VERIFY_HASH_ABORT,
                          ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
-        printf("PSA_VERIFY_HASH_ABORT server call failed\n");
+        INFO("PSA_VERIFY_HASH_ABORT server call failed\n");
         goto fail;
     }
 
@@ -6492,7 +6471,7 @@ psa_status_t psa_verify_hash_complete(
     ok = psa_crypto_call(PSA_VERIFY_HASH_COMPLETE,
                          ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
-        printf("PSA_VERIFY_HASH_COMPLETE server call failed\n");
+        INFO("PSA_VERIFY_HASH_COMPLETE server call failed\n");
         goto fail;
     }
 
@@ -6562,7 +6541,7 @@ uint32_t psa_verify_hash_get_num_ops(
     ok = psa_crypto_call(PSA_VERIFY_HASH_GET_NUM_OPS,
                          ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
-        printf("PSA_VERIFY_HASH_GET_NUM_OPS server call failed\n");
+        INFO("PSA_VERIFY_HASH_GET_NUM_OPS server call failed\n");
         goto fail;
     }
 
@@ -6657,7 +6636,7 @@ psa_status_t psa_verify_hash_start(
     ok = psa_crypto_call(PSA_VERIFY_HASH_START,
                          ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
-        printf("PSA_VERIFY_HASH_START server call failed\n");
+        INFO("PSA_VERIFY_HASH_START server call failed\n");
         goto fail;
     }
 
@@ -6751,7 +6730,7 @@ psa_status_t psa_verify_message(
     ok = psa_crypto_call(PSA_VERIFY_MESSAGE,
                          ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
-        printf("PSA_VERIFY_MESSAGE server call failed\n");
+        INFO("PSA_VERIFY_MESSAGE server call failed\n");
         goto fail;
     }
 

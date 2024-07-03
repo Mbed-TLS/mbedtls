@@ -16,8 +16,6 @@ cd "$(dirname "$0")"
 CLIENT_BIN=$1
 shift
 
-ipcs | grep q | awk '{ printf " -q " $2 }' | xargs ipcrm > /dev/null 2>&1 || true
-
 ./start_server.sh
 ./$CLIENT_BIN "$@"
 

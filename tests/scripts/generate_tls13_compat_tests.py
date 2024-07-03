@@ -16,23 +16,22 @@ import argparse
 import itertools
 from collections import namedtuple
 
-DATA_FILES_PATH = '../framework/data_files'
 # define certificates configuration entry
 Certificate = namedtuple("Certificate", ['cafile', 'certfile', 'keyfile'])
 # define the certificate parameters for signature algorithms
 CERTIFICATES = {
-    'ecdsa_secp256r1_sha256': Certificate(DATA_FILES_PATH + '/test-ca2.crt',
-                                          DATA_FILES_PATH + '/ecdsa_secp256r1.crt',
-                                          DATA_FILES_PATH + '/ecdsa_secp256r1.key'),
-    'ecdsa_secp384r1_sha384': Certificate(DATA_FILES_PATH + '/test-ca2.crt',
-                                          DATA_FILES_PATH + '/ecdsa_secp384r1.crt',
-                                          DATA_FILES_PATH + '/ecdsa_secp384r1.key'),
-    'ecdsa_secp521r1_sha512': Certificate(DATA_FILES_PATH + '/test-ca2.crt',
-                                          DATA_FILES_PATH + '/ecdsa_secp521r1.crt',
-                                          DATA_FILES_PATH + '/ecdsa_secp521r1.key'),
-    'rsa_pss_rsae_sha256': Certificate(DATA_FILES_PATH + '/test-ca_cat12.crt',
-                                       DATA_FILES_PATH + '/server2-sha256.crt',
-                                       DATA_FILES_PATH + '/server2.key')
+    'ecdsa_secp256r1_sha256': Certificate('$DATA_FILES_PATH/test-ca2.crt',
+                                          '$DATA_FILES_PATH/ecdsa_secp256r1.crt',
+                                          '$DATA_FILES_PATH/ecdsa_secp256r1.key'),
+    'ecdsa_secp384r1_sha384': Certificate('$DATA_FILES_PATH/test-ca2.crt',
+                                          '$DATA_FILES_PATH/ecdsa_secp384r1.crt',
+                                          '$DATA_FILES_PATH/ecdsa_secp384r1.key'),
+    'ecdsa_secp521r1_sha512': Certificate('$DATA_FILES_PATH/test-ca2.crt',
+                                          '$DATA_FILES_PATH/ecdsa_secp521r1.crt',
+                                          '$DATA_FILES_PATH/ecdsa_secp521r1.key'),
+    'rsa_pss_rsae_sha256': Certificate('$DATA_FILES_PATH/test-ca_cat12.crt',
+                                       '$DATA_FILES_PATH/server2-sha256.crt',
+                                       '$DATA_FILES_PATH/server2.key')
 }
 
 CIPHER_SUITE_IANA_VALUE = {
@@ -550,6 +549,9 @@ SSL_OUTPUT_HEADER = '''#!/bin/sh
 # AND REGENERATE THIS FILE.
 #
 '''
+DATA_FILES_PATH_VAR = '''
+DATA_FILES_PATH=../framework/data_files
+'''
 
 def main():
     """
@@ -629,6 +631,7 @@ def main():
             with open(args.output, 'w', encoding="utf-8") as f:
                 f.write(SSL_OUTPUT_HEADER.format(
                     filename=os.path.basename(args.output), cmd=' '.join(sys.argv)))
+                f.write(DATA_FILES_PATH_VAR)
                 f.write('\n\n'.join(get_all_test_cases()))
                 f.write('\n')
         else:

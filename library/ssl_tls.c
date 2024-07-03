@@ -6136,7 +6136,7 @@ mbedtls_md_type_t mbedtls_ssl_md_alg_from_hash(unsigned char hash)
         case MBEDTLS_SSL_HASH_SHA1:
             return MBEDTLS_MD_SHA1;
 #endif
-#if defined(MBEDTLS_MD_CAN_SHA224)
+#if defined(PSA_WANT_ALG_SHA_224)
         case MBEDTLS_SSL_HASH_SHA224:
             return MBEDTLS_MD_SHA224;
 #endif
@@ -6171,7 +6171,7 @@ unsigned char mbedtls_ssl_hash_from_md_alg(int md)
         case MBEDTLS_MD_SHA1:
             return MBEDTLS_SSL_HASH_SHA1;
 #endif
-#if defined(MBEDTLS_MD_CAN_SHA224)
+#if defined(PSA_WANT_ALG_SHA_224)
         case MBEDTLS_MD_SHA224:
             return MBEDTLS_SSL_HASH_SHA224;
 #endif

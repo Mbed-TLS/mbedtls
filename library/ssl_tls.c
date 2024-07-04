@@ -5623,7 +5623,7 @@ static const uint16_t ssl_preset_default_groups[] = {
 #if defined(MBEDTLS_ECP_HAVE_CURVE448)
     MBEDTLS_SSL_IANA_TLS_GROUP_X448,
 #endif
-#if defined(MBEDTLS_ECP_HAVE_SECP521R1)
+#if defined(PSA_WANT_ECC_SECP_R1_521)
     MBEDTLS_SSL_IANA_TLS_GROUP_SECP521R1,
 #endif
 #if defined(MBEDTLS_ECP_HAVE_BP256R1)
@@ -6240,7 +6240,7 @@ static const struct {
     uint16_t bits;
 } tls_id_match_table[] =
 {
-#if defined(MBEDTLS_ECP_HAVE_SECP521R1)
+#if defined(PSA_WANT_ECC_SECP_R1_521)
     { 25, MBEDTLS_ECP_DP_SECP521R1, PSA_ECC_FAMILY_SECP_R1, 521 },
 #endif
 #if defined(MBEDTLS_ECP_HAVE_BP512R1)

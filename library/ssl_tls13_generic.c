@@ -479,9 +479,9 @@ int mbedtls_ssl_tls13_parse_certificate(mbedtls_ssl_context *ssl,
     }
 
     if ((ssl->session_negotiate->peer_cert =
-             mbedtls_calloc(1, sizeof(mbedtls_x509_crt))) == NULL) {
+             mbedtls_calloc(1, sizeof(*ssl->session_negotiate->peer_cert))) == NULL) {
         MBEDTLS_SSL_DEBUG_MSG(1, ("alloc( %" MBEDTLS_PRINTF_SIZET " bytes ) failed",
-                                  sizeof(mbedtls_x509_crt)));
+                                  sizeof(*ssl->session_negotiate->peer_cert)));
         MBEDTLS_SSL_PEND_FATAL_ALERT(MBEDTLS_SSL_ALERT_MSG_INTERNAL_ERROR,
                                      MBEDTLS_ERR_SSL_ALLOC_FAILED);
         return MBEDTLS_ERR_SSL_ALLOC_FAILED;

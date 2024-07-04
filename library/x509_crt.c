@@ -803,7 +803,7 @@ static int x509_get_certificate_policies(unsigned char **p,
                 return MBEDTLS_ERR_X509_INVALID_EXTENSIONS;
             }
 
-            cur->next = mbedtls_calloc(1, sizeof(mbedtls_asn1_sequence));
+            cur->next = mbedtls_calloc(1, sizeof(*cur->next));
 
             if (cur->next == NULL) {
                 return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS,
@@ -1334,7 +1334,7 @@ static int mbedtls_x509_crt_parse_der_internal(mbedtls_x509_crt *chain,
      * Add new certificate on the end of the chain if needed.
      */
     if (crt->version != 0 && crt->next == NULL) {
-        crt->next = mbedtls_calloc(1, sizeof(mbedtls_x509_crt));
+        crt->next = mbedtls_calloc(1, sizeof(*crt->next));
 
         if (crt->next == NULL) {
             return MBEDTLS_ERR_X509_ALLOC_FAILED;

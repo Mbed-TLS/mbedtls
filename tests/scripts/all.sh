@@ -133,10 +133,18 @@ pre_check_environment () {
 pre_initialize_variables () {
     if in_mbedtls_repo; then
         CONFIG_H='include/mbedtls/mbedtls_config.h'
-        CRYPTO_CONFIG_H='tf-psa-crypto/include/psa/crypto_config.h'
+        if [ -d tf-psa-crypto ]; then
+            CRYPTO_CONFIG_H='tf-psa-crypto/include/psa/crypto_config.h'
+            PSA_CORE_PATH='tf-psa-crypto/core'
+            BUILTIN_SRC_PATH='tf-psa-crypto/drivers/builtin/src'
+        else
+            CRYPTO_CONFIG_H='include/psa/crypto_config.h'
+        fi
     else
         CONFIG_H='drivers/builtin/include/mbedtls/mbedtls_config.h'
         CRYPTO_CONFIG_H='include/psa/crypto_config.h'
+        PSA_CORE_PATH='core'
+        BUILTIN_SRC_PATH='drivers/builtin/src'
     fi
     CONFIG_TEST_DRIVER_H='tests/include/test/drivers/config_test_driver.h'
 
@@ -449,8 +457,12 @@ armc6_build_test()
 
     msg "size: ARM Compiler 6 ($FLAGS)"
     "$ARMC6_FROMELF" -z library/*.o
-    "$ARMC6_FROMELF" -z ${PSA_CORE_PATH}/*.o
-    "$ARMC6_FROMELF" -z ${BUILTIN_SRC_PATH}/*.o
+    if [ -n ${PSA_CORE_PATH} ]; then
+        "$ARMC6_FROMELF" -z ${PSA_CORE_PATH}/*.o
+    fi
+    if [ -n ${BUILTIN_SRC_PATH} ]; then
+        "$ARMC6_FROMELF" -z ${BUILTIN_SRC_PATH}/*.o
+    fi
 }
 
 err_msg()
@@ -1100,9 +1112,6 @@ helper_psasim_server() {
 ################################################################
 #### Basic checks
 ################################################################
-
-export PSA_CORE_PATH="tf-psa-crypto/core"
-export BUILTIN_SRC_PATH="tf-psa-crypto/drivers/builtin/src"
 
 #
 # Test Suites to be executed

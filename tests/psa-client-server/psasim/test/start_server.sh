@@ -6,8 +6,10 @@
 set -e
 
 # Wait for the server to start up and create the socket.
+# Note: the socket file being checked must be in the same folder from where
+#       this script is called.
 function wait_for_server_startup() {
-    while [ ! $(ss -lta | grep "127.0.0.1:4242") ]; do
+    while [ ! -S "psasim-socket" ]; do
         sleep 0.1
     done
 }

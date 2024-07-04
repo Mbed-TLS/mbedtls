@@ -20,4 +20,4 @@ shift
 ./$CLIENT_BIN "$@"
 
 # Kill server once client exited
-pkill psa_server
+./kill_server.sh

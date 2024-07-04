@@ -32,8 +32,10 @@ struct psa_message_s {
 } __attribute__((packed));
 typedef struct psa_message_s psa_message_t;
 
-#define SOCKET_CONNECTION_PORT     (4242)
-#define MAX_SOCKET_MESSAGE_LENGTH   (1000)
+/* This is the name of the socket file that will be created by the server. */
+#define SOCKET_NAME                "psasim-socket"
+
+#define MAX_SOCKET_MESSAGE_LENGTH   (65536)
 /* Sum of is_last_message + length fields of the structure */
 #define SOCKET_MESSAGE_HEADER_LENGTH (sizeof(uint8_t) + sizeof(size_t))
 #define MAX_SOCKET_PAYLOAD_LENGTH   (MAX_SOCKET_MESSAGE_LENGTH - SOCKET_MESSAGE_HEADER_LENGTH)

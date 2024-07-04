@@ -8,6 +8,7 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <sys/time.h>
+#include <sys/un.h>
 #include <netinet/in.h>
 #include <netdb.h>
 #include <stdio.h>
@@ -27,7 +28,7 @@ int connfd = -1;
 
 psa_status_t psa_setup_socket(void)
 {
-    struct sockaddr_in serv_addr;
+    struct sockaddr_un sock_addr = { 0 };
     int ret;
 
     if (sockfd > 0) {
@@ -35,12 +36,10 @@ psa_status_t psa_setup_socket(void)
         return PSA_ERROR_BAD_STATE;
     }
 
-    sockfd = socket(AF_INET, SOCK_STREAM, 0);
-    memset(&serv_addr, 0, sizeof(serv_addr));
+    sockfd = socket(AF_UNIX, SOCK_STREAM, 0);
 
-    serv_addr.sin_family = AF_INET;
-    serv_addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
-    serv_addr.sin_port = htons(SOCKET_CONNECTION_PORT);
+    sock_addr.sun_family = AF_UNIX;
+    snprintf(sock_addr.sun_path, sizeof(sock_addr.sun_path), "%s", SOCKET_NAME);
 
     /* Set a timeout for socket operations in order to be sure we won't hang
      * forever if something weird happens. */
@@ -50,7 +49,8 @@ psa_status_t psa_setup_socket(void)
                (const char *) &socket_operation_timeout, sizeof(socket_operation_timeout));
 
     INFO("Create socket");
-    bind(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr));
+    bind(sockfd, (struct sockaddr *) &sock_addr,
+         sizeof(sock_addr.sun_family) + strlen(sock_addr.sun_path));
 
     /* Limit to just 1 client at a time. */
     INFO("Listen on socket");

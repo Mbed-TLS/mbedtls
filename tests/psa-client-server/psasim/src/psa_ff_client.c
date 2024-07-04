@@ -6,6 +6,7 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <sys/time.h>
+#include <sys/un.h>
 #include <netinet/in.h>
 #include <stdio.h>
 #include <string.h>
@@ -152,18 +153,17 @@ psa_status_t psa_call(int32_t psa_function,
 
 psa_status_t psa_connect(void)
 {
-    struct sockaddr_in serv_addr = { 0 };
+    struct sockaddr_un sock_addr = { 0 };
     int ret;
 
-    sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    sockfd = socket(AF_UNIX, SOCK_STREAM, 0);
     if (sockfd < 0) {
         ERROR("Could not create socket");
         return PSA_ERROR_CONNECTION_REFUSED;
     }
 
-    serv_addr.sin_family = AF_INET;
-    serv_addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
-    serv_addr.sin_port = htons(SOCKET_CONNECTION_PORT);
+    sock_addr.sun_family = AF_UNIX;
+    snprintf(sock_addr.sun_path, sizeof(sock_addr.sun_path), "%s", SOCKET_NAME);
 
     /* Set a timeout for socket operations in order to be sure we won't hang
      * forever if something weird happens. */
@@ -175,7 +175,8 @@ psa_status_t psa_connect(void)
     setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR,
                (const void *) &sock_reuse, sizeof(sock_reuse));
 
-    ret = connect(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr));
+    ret = connect(sockfd, (struct sockaddr *) &sock_addr,
+                  sizeof(sock_addr.sun_family) + strlen(sock_addr.sun_path));
     if (ret < 0) {
         ERROR("Connect failed (%d)", errno);
         sockfd = -1;

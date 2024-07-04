@@ -6,3 +6,6 @@
 set -e
 
 pkill psa_server || true
+
+# Remove the socket file.
+rm -f "psasim-socket"

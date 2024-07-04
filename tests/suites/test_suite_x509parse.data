@@ -179,7 +179,7 @@ depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:PSA_WANT_ALG_SHA_256:MBEDTLS_PK_CAN
 x509_cert_info:"../framework/data_files/parse_input/server4.crt":"cert. version     \: 3\nserial number     \: 08\nissuer name       \: C=NL, O=PolarSSL, CN=Polarssl Test EC CA\nsubject name      \: C=NL, O=PolarSSL, CN=localhost\nissued  on        \: 2013-09-24 15\:52\:04\nexpires on        \: 2023-09-22 15\:52\:04\nsigned using      \: ECDSA with SHA256\nRSA key size      \: 2048 bits\nbasic constraints \: CA=false\n"
 
 X509 CRT information EC signed by RSA
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_CAN_ECDSA_SOME:MBEDTLS_ECP_HAVE_SECP192R1:MBEDTLS_MD_CAN_SHA1:MBEDTLS_RSA_C
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_CAN_ECDSA_SOME:PSA_WANT_ECC_SECP_R1_192:MBEDTLS_MD_CAN_SHA1:MBEDTLS_RSA_C
 x509_cert_info:"../framework/data_files/parse_input/server3.crt":"cert. version     \: 3\nserial number     \: 0D\nissuer name       \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name      \: C=NL, O=PolarSSL, CN=localhost\nissued  on        \: 2013-08-09 09\:17\:03\nexpires on        \: 2023-08-07 09\:17\:03\nsigned using      \: RSA with SHA1\nEC key size       \: 192 bits\nbasic constraints \: CA=false\n"
 
 X509 CRT information Bitstring in subject name
@@ -752,7 +752,7 @@ depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_MD_CAN_SHA1:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V
 x509_verify:"../framework/data_files/cert_example_multi_nocn.crt":"../framework/data_files/test-ca.crt":"../framework/data_files/crl.pem":"www.example.net":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_CN_MISMATCH + MBEDTLS_X509_BADCERT_NOT_TRUSTED:"compat":"NULL"
 
 X509 CRT verification #32 (Valid, EC cert, RSA CA)
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_PK_CAN_ECDSA_VERIFY:MBEDTLS_ECP_HAVE_SECP192R1:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15:MBEDTLS_MD_CAN_SHA1
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_PK_CAN_ECDSA_VERIFY:PSA_WANT_ECC_SECP_R1_192:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15:MBEDTLS_MD_CAN_SHA1
 x509_verify:"../framework/data_files/server3.crt":"../framework/data_files/test-ca.crt":"../framework/data_files/crl.pem":"NULL":0:0:"compat":"NULL"
 
 X509 CRT verification #33 (Valid, RSA cert, EC CA)
@@ -1008,7 +1008,7 @@ depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_CAN_ECDSA_VERIFY:PSA_WANT_ALG_SHA_256:
 x509_verify:"../framework/data_files/server5.crt":"../framework/data_files/test-ca2.crt":"../framework/data_files/crl-ec-sha256.pem":"globalhost":0:0:"":"verify_all"
 
 X509 CRT verification #93 (Suite B invalid, EC cert, RSA CA)
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_PK_CAN_ECDSA_VERIFY:MBEDTLS_ECP_HAVE_SECP192R1:MBEDTLS_PKCS1_V15:MBEDTLS_MD_CAN_SHA1
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_PK_CAN_ECDSA_VERIFY:PSA_WANT_ECC_SECP_R1_192:MBEDTLS_PKCS1_V15:MBEDTLS_MD_CAN_SHA1
 x509_verify:"../framework/data_files/server3.crt":"../framework/data_files/test-ca.crt":"../framework/data_files/crl.pem":"NULL":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_BAD_MD|MBEDTLS_X509_BADCERT_BAD_PK|MBEDTLS_X509_BADCERT_BAD_KEY|MBEDTLS_X509_BADCRL_BAD_MD|MBEDTLS_X509_BADCRL_BAD_PK:"suite_b":"NULL"
 
 X509 CRT verification #94 (Suite B invalid, RSA cert, EC CA)
@@ -2400,11 +2400,11 @@ depends_on:MBEDTLS_RSA_C:MBEDTLS_MD_CAN_SHA1:MBEDTLS_PK_CAN_ECDSA_SOME
 x509parse_crt:"3081e630819e020103300906072a8648ce3d0401300f310d300b0603550403130454657374301e170d3133303731303039343631385a170d3233303730383039343631385a300f310d300b0603550403130454657374304c300d06092a864886f70d0101010500033b003038023100e8f546061d3b49bc2f6b7524b7ea4d73a8d5293ee8c64d9407b70b5d16baebc32b8205591eab4e1eb57e9241883701250203010001300906072a8648ce3d0401033800303502186e18209afbed14a0d9a796efcad68891e3ccd5f75815c833021900e92b4fd460b1994693243b9ffad54729de865381bda41d25":"cert. version     \: 1\nserial number     \: 03\nissuer name       \: CN=Test\nsubject name      \: CN=Test\nissued  on        \: 2013-07-10 09\:46\:18\nexpires on        \: 2023-07-08 09\:46\:18\nsigned using      \: ECDSA with SHA1\nRSA key size      \: 384 bits\n":0
 
 X509 CRT ASN1 (ECDSA signature, EC key)
-depends_on:MBEDTLS_PK_CAN_ECDSA_SOME:MBEDTLS_ECP_HAVE_SECP192R1:MBEDTLS_MD_CAN_SHA1
+depends_on:MBEDTLS_PK_CAN_ECDSA_SOME:PSA_WANT_ECC_SECP_R1_192:MBEDTLS_MD_CAN_SHA1
 x509parse_crt:"3081eb3081a3020900f41534662ec7e912300906072a8648ce3d0401300f310d300b0603550403130454657374301e170d3133303731303039343031395a170d3233303730383039343031395a300f310d300b06035504031304546573743049301306072a8648ce3d020106082a8648ce3d030101033200042137969fabd4e370624a0e1a33e379cab950cce00ef8c3c3e2adaeb7271c8f07659d65d3d777dcf21614363ae4b6e617300906072a8648ce3d04010338003035021858cc0f957946fe6a303d92885a456aa74c743c7b708cbd37021900fe293cac21af352d16b82eb8ea54e9410b3abaadd9f05dd6":"cert. version     \: 1\nserial number     \: F4\:15\:34\:66\:2E\:C7\:E9\:12\nissuer name       \: CN=Test\nsubject name      \: CN=Test\nissued  on        \: 2013-07-10 09\:40\:19\nexpires on        \: 2023-07-08 09\:40\:19\nsigned using      \: ECDSA with SHA1\nEC key size       \: 192 bits\n":0
 
 X509 CRT ASN1 (RSA signature, EC key)
-depends_on:MBEDTLS_PK_CAN_ECDSA_SOME:MBEDTLS_ECP_HAVE_SECP192R1:MBEDTLS_MD_CAN_SHA1:MBEDTLS_RSA_C
+depends_on:MBEDTLS_PK_CAN_ECDSA_SOME:PSA_WANT_ECC_SECP_R1_192:MBEDTLS_MD_CAN_SHA1:MBEDTLS_RSA_C
 x509parse_crt:"3081e430819f020104300d06092a864886f70d0101050500300f310d300b0603550403130454657374301e170d3133303731303135303233375a170d3233303730383135303233375a300f310d300b06035504031304546573743049301306072a8648ce3d020106082a8648ce3d03010103320004e962551a325b21b50cf6b990e33d4318fd16677130726357a196e3efe7107bcb6bdc6d9db2a4df7c964acfe81798433d300d06092a864886f70d01010505000331001a6c18cd1e457474b2d3912743f44b571341a7859a0122774a8e19a671680878936949f904c9255bdd6fffdb33a7e6d8":"cert. version     \: 1\nserial number     \: 04\nissuer name       \: CN=Test\nsubject name      \: CN=Test\nissued  on        \: 2013-07-10 15\:02\:37\nexpires on        \: 2023-07-08 15\:02\:37\nsigned using      \: RSA with SHA1\nEC key size       \: 192 bits\n":0
 
 X509 CRT ASN1 (Unsupported critical extension)
@@ -2670,7 +2670,7 @@ depends_on:PSA_WANT_ALG_SHA_256:MBEDTLS_PK_CAN_ECDSA_VERIFY:MBEDTLS_ECP_HAVE_SEC
 mbedtls_x509_crt_verify_chain:"../framework/data_files/dir4/cert92.crt":"../framework/data_files/dir4/cert91.crt":-1:MBEDTLS_ERR_X509_BAD_INPUT_DATA:"nonesuch":0
 
 X509 CRT verify chain #12 (suiteb profile, RSA root)
-depends_on:PSA_WANT_ALG_SHA_256:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15:MBEDTLS_PK_CAN_ECDSA_VERIFY:MBEDTLS_ECP_HAVE_SECP192R1:MBEDTLS_MD_CAN_SHA1
+depends_on:PSA_WANT_ALG_SHA_256:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15:MBEDTLS_PK_CAN_ECDSA_VERIFY:PSA_WANT_ECC_SECP_R1_192:MBEDTLS_MD_CAN_SHA1
 mbedtls_x509_crt_verify_chain:"../framework/data_files/server3.crt":"../framework/data_files/test-ca.crt":MBEDTLS_X509_BADCERT_BAD_MD|MBEDTLS_X509_BADCERT_BAD_PK|MBEDTLS_X509_BADCERT_BAD_KEY:MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:"suiteb":0
 
 X509 CRT verify chain #13 (RSA only profile, EC root)

@@ -11,5 +11,5 @@ depends_on:MBEDTLS_MD_CAN_SHA256
 ssl_cf_hmac:MBEDTLS_MD_SHA256
 
 Constant-flow HMAC: SHA384
-depends_on:MBEDTLS_MD_CAN_SHA384
+depends_on:PSA_WANT_ALG_SHA_384
 ssl_cf_hmac:MBEDTLS_MD_SHA384

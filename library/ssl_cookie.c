@@ -44,7 +44,7 @@ static int local_err_translation(psa_status_t status)
 #define COOKIE_MD           MBEDTLS_MD_SHA256
 #define COOKIE_MD_OUTLEN    32
 #define COOKIE_HMAC_LEN     28
-#elif defined(MBEDTLS_MD_CAN_SHA384)
+#elif defined(PSA_WANT_ALG_SHA_384)
 #define COOKIE_MD           MBEDTLS_MD_SHA384
 #define COOKIE_MD_OUTLEN    48
 #define COOKIE_HMAC_LEN     28

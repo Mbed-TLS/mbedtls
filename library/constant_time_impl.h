@@ -38,7 +38,7 @@
 
 /* armcc5 --gnu defines __GNUC__ but doesn't support GNU's extended asm */
 #if defined(MBEDTLS_HAVE_ASM) && defined(__GNUC__) && (!defined(__ARMCC_VERSION) || \
-    __ARMCC_VERSION >= 6000000) && !defined(MBEDTLS_CT_NO_ASM)
+    __ARMCC_VERSION >= 6000000)
 #define MBEDTLS_CT_ASM
 #if (defined(__arm__) || defined(__thumb__) || defined(__thumb2__))
 #define MBEDTLS_CT_ARM_ASM

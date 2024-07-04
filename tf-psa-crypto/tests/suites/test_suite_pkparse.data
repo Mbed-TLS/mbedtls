@@ -977,7 +977,7 @@ depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_PARSE_EC_COMPRESSED:MBEDTLS_ECP_DP_SEC
 pk_parse_public_keyfile_ec:"../../framework/data_files/ec_256_pub.comp.pem":0
 
 Parse Public EC Key #5 (RFC 5480, secp384r1)
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_HAVE_SECP384R1
+depends_on:MBEDTLS_PEM_PARSE_C:PSA_WANT_ECC_SECP_R1_384
 pk_parse_public_keyfile_ec:"../../framework/data_files/ec_384_pub.pem":0
 
 Parse Public EC Key #5a (RFC 5480, secp384r1, compressed)
@@ -1097,7 +1097,7 @@ depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_PARSE_EC_COMPRESSED:MBEDTLS_ECP_DP_SEC
 pk_parse_keyfile_ec:"../../framework/data_files/ec_256_prv.comp.pem":"NULL":0
 
 Parse EC Key #10 (SEC1 PEM, secp384r1)
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_HAVE_SECP384R1
+depends_on:MBEDTLS_PEM_PARSE_C:PSA_WANT_ECC_SECP_R1_384
 pk_parse_keyfile_ec:"../../framework/data_files/ec_384_prv.pem":"NULL":0
 
 Parse EC Key #10a (SEC1 PEM, secp384r1, compressed)

@@ -67,7 +67,7 @@ typedef enum {
  * and legacy, then assume the buffer's size is PSA_HASH_MAX_SIZE in another
  * part of the code based on PSA.
  */
-#if defined(MBEDTLS_MD_CAN_SHA512) || defined(MBEDTLS_MD_CAN_SHA3_512)
+#if defined(MBEDTLS_MD_CAN_SHA512) || defined(PSA_WANT_ALG_SHA3_512)
 #define MBEDTLS_MD_MAX_SIZE         64  /* longest known is SHA512 */
 #elif defined(PSA_WANT_ALG_SHA_384) || defined(MBEDTLS_MD_CAN_SHA3_384)
 #define MBEDTLS_MD_MAX_SIZE         48  /* longest known is SHA384 */
@@ -88,7 +88,7 @@ typedef enum {
 #define MBEDTLS_MD_MAX_BLOCK_SIZE         128
 #elif defined(MBEDTLS_MD_CAN_SHA3_384)
 #define MBEDTLS_MD_MAX_BLOCK_SIZE         104
-#elif defined(MBEDTLS_MD_CAN_SHA3_512)
+#elif defined(PSA_WANT_ALG_SHA3_512)
 #define MBEDTLS_MD_MAX_BLOCK_SIZE         72
 #else
 #define MBEDTLS_MD_MAX_BLOCK_SIZE         64

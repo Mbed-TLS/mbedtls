@@ -45,8 +45,8 @@ LOCAL_LDFLAGS = ${MBEDTLS_TEST_OBJS} 		\
 endif
 
 THIRDPARTY_DIR = $(MBEDTLS_PATH)/tf-psa-crypto/drivers
-include $(MBEDTLS_PATH)/tf-psa-crypto/drivers/everest/Makefile.inc
-include $(MBEDTLS_PATH)/tf-psa-crypto/drivers/p256-m/Makefile.inc
+include $(THIRDPARTY_DIR)/everest/Makefile.inc
+include $(THIRDPARTY_DIR)/p256-m/Makefile.inc
 LOCAL_CFLAGS+=$(THIRDPARTY_INCLUDES)
 
 ifdef PSASIM

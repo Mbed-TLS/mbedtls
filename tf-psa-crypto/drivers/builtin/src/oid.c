@@ -572,24 +572,24 @@ static const oid_ecp_grp_t oid_ecp_grp[] =
         MBEDTLS_ECP_DP_SECP521R1,
     },
 #endif /* MBEDTLS_ECP_HAVE_SECP521R1 */
-#if defined(MBEDTLS_ECP_HAVE_SECP192K1)
+#if defined(PSA_WANT_ECC_SECP_K1_192)
     {
         OID_DESCRIPTOR(MBEDTLS_OID_EC_GRP_SECP192K1, "secp192k1",    "secp192k1"),
         MBEDTLS_ECP_DP_SECP192K1,
     },
-#endif /* MBEDTLS_ECP_HAVE_SECP192K1 */
+#endif /* PSA_WANT_ECC_SECP_K1_192 */
 #if defined(MBEDTLS_ECP_HAVE_SECP224K1)
     {
         OID_DESCRIPTOR(MBEDTLS_OID_EC_GRP_SECP224K1, "secp224k1",    "secp224k1"),
         MBEDTLS_ECP_DP_SECP224K1,
     },
 #endif /* MBEDTLS_ECP_HAVE_SECP224K1 */
-#if defined(MBEDTLS_ECP_HAVE_SECP256K1)
+#if defined(PSA_WANT_ECC_SECP_K1_256)
     {
         OID_DESCRIPTOR(MBEDTLS_OID_EC_GRP_SECP256K1, "secp256k1",    "secp256k1"),
         MBEDTLS_ECP_DP_SECP256K1,
     },
-#endif /* MBEDTLS_ECP_HAVE_SECP256K1 */
+#endif /* PSA_WANT_ECC_SECP_K1_256 */
 #if defined(MBEDTLS_ECP_HAVE_BP256R1)
     {
         OID_DESCRIPTOR(MBEDTLS_OID_EC_GRP_BP256R1,   "brainpoolP256r1", "brainpool256r1"),

@@ -755,7 +755,7 @@ static const oid_md_alg_t oid_md_alg[] =
         MBEDTLS_MD_SHA512,
     },
 #endif
-#if defined(MBEDTLS_MD_CAN_RIPEMD160)
+#if defined(PSA_WANT_ALG_RIPEMD160)
     {
         OID_DESCRIPTOR(MBEDTLS_OID_DIGEST_ALG_RIPEMD160, "id-ripemd160", "RIPEMD-160"),
         MBEDTLS_MD_RIPEMD160,
@@ -863,12 +863,12 @@ static const oid_md_hmac_t oid_md_hmac[] =
         MBEDTLS_MD_SHA3_512,
     },
 #endif /* MBEDTLS_MD_CAN_SHA3_512 */
-#if defined(MBEDTLS_MD_CAN_RIPEMD160)
+#if defined(PSA_WANT_ALG_RIPEMD160)
     {
         OID_DESCRIPTOR(MBEDTLS_OID_HMAC_RIPEMD160,    "hmacRIPEMD160",    "HMAC-RIPEMD160"),
         MBEDTLS_MD_RIPEMD160,
     },
-#endif /* MBEDTLS_MD_CAN_RIPEMD160 */
+#endif /* PSA_WANT_ALG_RIPEMD160 */
     {
         NULL_OID_DESCRIPTOR,
         MBEDTLS_MD_NONE,

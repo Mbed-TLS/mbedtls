@@ -99,7 +99,7 @@ depends_on:MBEDTLS_MD_CAN_SHA3_512
 oid_get_md_alg_id:"60864801650304020a":MBEDTLS_MD_SHA3_512
 
 OID hash id - id-ripemd160
-depends_on:MBEDTLS_MD_CAN_RIPEMD160
+depends_on:PSA_WANT_ALG_RIPEMD160
 oid_get_md_alg_id:"2b24030201":MBEDTLS_MD_RIPEMD160
 
 OID hash id - invalid oid
@@ -203,7 +203,7 @@ OID from numeric string - OID with overflowing subidentifier
 oid_from_numeric_string:"2.4294967216":MBEDTLS_ERR_ASN1_INVALID_DATA:""
 
 mbedtls_oid_get_md_hmac - RIPEMD160
-depends_on:MBEDTLS_MD_CAN_RIPEMD160
+depends_on:PSA_WANT_ALG_RIPEMD160
 mbedtls_oid_get_md_hmac:"2B06010505080104":MBEDTLS_MD_RIPEMD160
 
 mbedtls_oid_get_md_hmac - SHA1

@@ -14135,6 +14135,17 @@ run_test    "TLS 1.3: no HRR in case of PSK key exchange mode" \
             -c "Selected key exchange mode: psk$" \
             -c "HTTP/1.0 200 OK"
 
+# Legacy_compression_methods testing
+
+requires_gnutls
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+run_test    "ClientHello parse handle Legacy_compression_methods" \
+            "$P_SRV debug_level=3" \
+            "$G_CLI  --priority=NORMAL:-VERS-ALL:+VERS-TLS1.2:+COMP-DEFLATE localhost" \
+            0 \
+            -c "Handshake was completed"
+
 # Test heap memory usage after handshake
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_MEMORY_DEBUG

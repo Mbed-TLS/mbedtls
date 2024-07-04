@@ -959,7 +959,7 @@ depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_PARSE_EC_COMPRESSED:MBEDTLS_ECP_DP_SEC
 pk_parse_public_keyfile_ec:"../framework/data_files/ec_pub.comp.pem":0
 
 Parse Public EC Key #3 (RFC 5480, secp224r1)
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_HAVE_SECP224R1
+depends_on:MBEDTLS_PEM_PARSE_C:PSA_WANT_ECC_SECP_R1_224
 pk_parse_public_keyfile_ec:"../framework/data_files/ec_224_pub.pem":0
 
 # Compressed points parsing does not support MBEDTLS_ECP_DP_SECP224R1 and
@@ -1081,7 +1081,7 @@ depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_HAVE_SECP256R1
 pk_parse_keyfile_ec:"../framework/data_files/ec_prv.pk8param.pem":"NULL":0
 
 Parse EC Key #8 (SEC1 PEM, secp224r1)
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_HAVE_SECP224R1
+depends_on:MBEDTLS_PEM_PARSE_C:PSA_WANT_ECC_SECP_R1_224
 pk_parse_keyfile_ec:"../framework/data_files/ec_224_prv.pem":"NULL":0
 
 Parse EC Key #8a (SEC1 PEM, secp224r1, compressed)

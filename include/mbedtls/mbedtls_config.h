@@ -3047,6 +3047,22 @@
 #define MBEDTLS_PKCS7_C
 
 /**
+ * \def MBEDTLS_PKCS7_WRITE_C
+ *
+ * This feature is a work in progress and not ready for production. The API may
+ * change. Testing and validation is incomplete.
+ * Enable PKCS7 functions for using generating a PKCS7.
+ * RFC Link - https://tools.ietf.org/html/rfc2315
+ *
+ * Module:  library/pkcs7_write.c
+ *
+ * Requires: MBEDTLS_ASN1_PARSE_C, MBEDTLS_PKCS7_C
+ *
+ * This module is required for generating PKCS7 modules.
+ */
+//#define MBEDTLS_PKCS7_WRITE_C
+
+/*
  * \def MBEDTLS_PKCS12_C
  *
  * Enable PKCS#12 PBE functions.

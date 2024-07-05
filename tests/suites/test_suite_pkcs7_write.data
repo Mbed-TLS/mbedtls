@@ -1,0 +1,40 @@
+PKCS7 Generate Pass MD SHA256 #1
+pkcs7_write:"data_files/pkcs7_data.bin":"data_files/pkcs7-rsa-sha256-1.crt":"data_files/pkcs7-rsa-sha256-1.key":4:0:0
+
+PKCS7 Generate Pass MD MD5 #2
+pkcs7_write:"data_files/pkcs7_data.bin":"data_files/pkcs7-rsa-sha256-1.crt":"data_files/pkcs7-rsa-sha256-1.key":1:0:0
+
+PKCS7 Generate Pass SHA256 MD SHA1 #3
+pkcs7_write:"data_files/pkcs7_data.bin":"data_files/pkcs7-rsa-sha256-1.crt":"data_files/pkcs7-rsa-sha256-1.key":2:0:0
+
+PKCS7 Generate Pass MD SHA224 #4
+pkcs7_write:"data_files/pkcs7_data.bin":"data_files/pkcs7-rsa-sha256-1.crt":"data_files/pkcs7-rsa-sha256-1.key":3:0:0
+
+PKCS7 Generate Pass MD SHA384 #5
+pkcs7_write:"data_files/pkcs7_data.bin":"data_files/pkcs7-rsa-sha256-1.crt":"data_files/pkcs7-rsa-sha256-1.key":5:0:0
+
+PKCS7 Generate Pass MD SHA512 #6
+pkcs7_write:"data_files/pkcs7_data.bin":"data_files/pkcs7-rsa-sha256-1.crt":"data_files/pkcs7-rsa-sha256-1.key":6:0:0
+
+PKCS7 Generate Pass MD RIPEMD160 #7
+pkcs7_write:"data_files/pkcs7_data.bin":"data_files/pkcs7-rsa-sha256-1.crt":"data_files/pkcs7-rsa-sha256-1.key":7:0:0
+
+PKCS7 Generate Pass With Already Signed Data #8
+pkcs7_write:"data_files/pkcs7_data.bin":"data_files/pkcs7-rsa-sha256-1.crt":"data_files/pkcs7_data_signed.bin":4:1:0
+
+PKCS7 Generate Fail With Wrong Signed Data File #9
+pkcs7_write:"data_files/pkcs7_data.bin":"data_files/pkcs7-rsa-sha256-1.crt":"data_files/pkcs7_data_signed_bad.bin":4:1:1
+
+PKCS7 Generate Fail Invalid MD #10
+pkcs7_write:"data_files/pkcs7_data.bin":"data_files/pkcs7-rsa-sha256-1.crt":"data_files/pkcs7-rsa-sha256-1.key":8:0:1
+
+PKCS7 Generate Fail Signer Unpaired Cert/Key #11
+pkcs7_write:"data_files/pkcs7_data.bin":"data_files/pkcs7-rsa-sha256-1.crt":"data_files/pkcs7-rsa-sha256-2.key":4:0:1
+
+PKCS7 Generate Fail Invalid Cert #12
+pkcs7_write:"data_files/pkcs7_data.bin":"data_files/pkcs7-rsa-sha256-1.key":"data_files/pkcs7-rsa-sha256-1.key":4:0:1
+
+PKCS7 Generate Fail Invalid Key #13
+pkcs7_write:"data_files/pkcs7_data.bin":"data_files/pkcs7-rsa-sha256-1.crt":"data_files/pkcs7-rsa-sha256-1.crt":4:0:1
+
+

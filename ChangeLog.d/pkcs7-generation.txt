@@ -1,0 +1,13 @@
+Features
+   * Add partial support for generating PKCS7 cryptographic messages,
+     as defined in RFC 2315. Currently, support is limited to the following:
+     - Only the signed data content type, version 1 is supported.
+     - Only DER encoding is supported.
+     - Only a single digest algorithm per message is supported.
+     - Only 0 or 1, certificate is supported per message, which must be in
+       X509 format.
+     - There is no support for certificate-revocation lists.
+     - The authenticated and unauthenticated attribute fields of SignerInfo
+       must be empty.
+     Many thanks to Daniel Axtens, Nayna Jain, and Nick Child from IBM for
+     contributing this feature.

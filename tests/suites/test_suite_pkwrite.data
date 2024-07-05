@@ -39,19 +39,19 @@ depends_on:MBEDTLS_PK_HAVE_ECC_KEYS:MBEDTLS_ECP_HAVE_BP512R1
 pk_write_pubkey_check:"../framework/data_files/ec_bp512_pub.der":TEST_DER
 
 Public key write check EC X25519
-depends_on:MBEDTLS_PK_HAVE_ECC_KEYS:MBEDTLS_PEM_PARSE_C:MBEDTLS_PEM_WRITE_C:MBEDTLS_ECP_HAVE_CURVE25519
+depends_on:MBEDTLS_PK_HAVE_ECC_KEYS:MBEDTLS_PEM_PARSE_C:MBEDTLS_PEM_WRITE_C:PSA_WANT_ECC_MONTGOMERY_255
 pk_write_pubkey_check:"../framework/data_files/ec_x25519_pub.pem":TEST_PEM
 
 Public key write check EC X25519 (DER)
-depends_on:MBEDTLS_PK_HAVE_ECC_KEYS:MBEDTLS_ECP_HAVE_CURVE25519
+depends_on:MBEDTLS_PK_HAVE_ECC_KEYS:PSA_WANT_ECC_MONTGOMERY_255
 pk_write_pubkey_check:"../framework/data_files/ec_x25519_pub.der":TEST_DER
 
 Public key write check EC X448
-depends_on:MBEDTLS_PK_HAVE_ECC_KEYS:MBEDTLS_PEM_PARSE_C:MBEDTLS_PEM_WRITE_C:MBEDTLS_ECP_HAVE_CURVE448
+depends_on:MBEDTLS_PK_HAVE_ECC_KEYS:MBEDTLS_PEM_PARSE_C:MBEDTLS_PEM_WRITE_C:PSA_WANT_ECC_MONTGOMERY_448
 pk_write_pubkey_check:"../framework/data_files/ec_x448_pub.pem":TEST_PEM
 
 Public key write check EC X448 (DER)
-depends_on:MBEDTLS_PK_HAVE_ECC_KEYS:MBEDTLS_ECP_HAVE_CURVE448
+depends_on:MBEDTLS_PK_HAVE_ECC_KEYS:PSA_WANT_ECC_MONTGOMERY_448
 pk_write_pubkey_check:"../framework/data_files/ec_x448_pub.der":TEST_DER
 
 Private key write check RSA
@@ -111,19 +111,19 @@ depends_on:MBEDTLS_PK_HAVE_ECC_KEYS:MBEDTLS_ECP_HAVE_BP512R1
 pk_write_key_check:"../framework/data_files/ec_bp512_prv.der":TEST_DER
 
 Private key write check EC X25519
-depends_on:MBEDTLS_PK_HAVE_ECC_KEYS:MBEDTLS_PEM_PARSE_C:MBEDTLS_PEM_WRITE_C:MBEDTLS_ECP_HAVE_CURVE25519
+depends_on:MBEDTLS_PK_HAVE_ECC_KEYS:MBEDTLS_PEM_PARSE_C:MBEDTLS_PEM_WRITE_C:PSA_WANT_ECC_MONTGOMERY_255
 pk_write_key_check:"../framework/data_files/ec_x25519_prv.pem":TEST_PEM
 
 Private key write check EC X25519 (DER)
-depends_on:MBEDTLS_PK_HAVE_ECC_KEYS:MBEDTLS_ECP_HAVE_CURVE25519
+depends_on:MBEDTLS_PK_HAVE_ECC_KEYS:PSA_WANT_ECC_MONTGOMERY_255
 pk_write_key_check:"../framework/data_files/ec_x25519_prv.der":TEST_DER
 
 Private key write check EC X448
-depends_on:MBEDTLS_PK_HAVE_ECC_KEYS:MBEDTLS_PEM_PARSE_C:MBEDTLS_PEM_WRITE_C:MBEDTLS_ECP_HAVE_CURVE448
+depends_on:MBEDTLS_PK_HAVE_ECC_KEYS:MBEDTLS_PEM_PARSE_C:MBEDTLS_PEM_WRITE_C:PSA_WANT_ECC_MONTGOMERY_448
 pk_write_key_check:"../framework/data_files/ec_x448_prv.pem":TEST_PEM
 
 Private key write check EC X448 (DER)
-depends_on:MBEDTLS_PK_HAVE_ECC_KEYS:MBEDTLS_ECP_HAVE_CURVE448
+depends_on:MBEDTLS_PK_HAVE_ECC_KEYS:PSA_WANT_ECC_MONTGOMERY_448
 pk_write_key_check:"../framework/data_files/ec_x448_prv.der":TEST_DER
 
 Derive public key RSA
@@ -147,9 +147,9 @@ depends_on:MBEDTLS_PK_HAVE_ECC_KEYS:MBEDTLS_ECP_HAVE_BP512R1
 pk_write_public_from_private:"../framework/data_files/ec_bp512_prv.der":"../framework/data_files/ec_bp512_pub.der"
 
 Derive public key EC X25519
-depends_on:MBEDTLS_PK_HAVE_ECC_KEYS:MBEDTLS_ECP_HAVE_CURVE25519
+depends_on:MBEDTLS_PK_HAVE_ECC_KEYS:PSA_WANT_ECC_MONTGOMERY_255
 pk_write_public_from_private:"../framework/data_files/ec_x25519_prv.der":"../framework/data_files/ec_x25519_pub.der"
 
 Derive public key EC X448
-depends_on:MBEDTLS_PK_HAVE_ECC_KEYS:MBEDTLS_ECP_HAVE_CURVE448
+depends_on:MBEDTLS_PK_HAVE_ECC_KEYS:PSA_WANT_ECC_MONTGOMERY_448
 pk_write_public_from_private:"../framework/data_files/ec_x448_prv.der":"../framework/data_files/ec_x448_pub.der"

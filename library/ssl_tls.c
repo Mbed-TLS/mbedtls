@@ -5611,7 +5611,7 @@ void mbedtls_ssl_config_init(mbedtls_ssl_config *conf)
  * about this list.
  */
 static const uint16_t ssl_preset_default_groups[] = {
-#if defined(MBEDTLS_ECP_HAVE_CURVE25519)
+#if defined(PSA_WANT_ECC_MONTGOMERY_255)
     MBEDTLS_SSL_IANA_TLS_GROUP_X25519,
 #endif
 #if defined(MBEDTLS_ECP_HAVE_SECP256R1)
@@ -5620,7 +5620,7 @@ static const uint16_t ssl_preset_default_groups[] = {
 #if defined(MBEDTLS_ECP_HAVE_SECP384R1)
     MBEDTLS_SSL_IANA_TLS_GROUP_SECP384R1,
 #endif
-#if defined(MBEDTLS_ECP_HAVE_CURVE448)
+#if defined(PSA_WANT_ECC_MONTGOMERY_448)
     MBEDTLS_SSL_IANA_TLS_GROUP_X448,
 #endif
 #if defined(MBEDTLS_ECP_HAVE_SECP521R1)
@@ -6273,10 +6273,10 @@ static const struct {
 #if defined(MBEDTLS_ECP_HAVE_SECP192K1)
     { 18, MBEDTLS_ECP_DP_SECP192K1, PSA_ECC_FAMILY_SECP_K1, 192 },
 #endif
-#if defined(MBEDTLS_ECP_HAVE_CURVE25519)
+#if defined(PSA_WANT_ECC_MONTGOMERY_255)
     { 29, MBEDTLS_ECP_DP_CURVE25519, PSA_ECC_FAMILY_MONTGOMERY, 255 },
 #endif
-#if defined(MBEDTLS_ECP_HAVE_CURVE448)
+#if defined(PSA_WANT_ECC_MONTGOMERY_448)
     { 30, MBEDTLS_ECP_DP_CURVE448, PSA_ECC_FAMILY_MONTGOMERY, 448 },
 #endif
     { 0, MBEDTLS_ECP_DP_NONE, 0, 0 },

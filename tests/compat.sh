@@ -676,7 +676,7 @@ setup_arguments()
         "OpenSSL 0"*|"OpenSSL 1.0"*) :;;
         *)
             O_CLIENT_ARGS="$O_CLIENT_ARGS -cipher ALL@SECLEVEL=0"
-            O_SERVER_ARGS="$O_SERVER_ARGS -cipher ALL@SECLEVEL=0"
+            O_SERVER_ARGS="$O_SERVER_ARGS -cipher NULL,ALL@SECLEVEL=0"
             ;;
     esac
 

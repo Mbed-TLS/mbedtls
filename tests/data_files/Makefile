@@ -374,7 +374,7 @@ server7-future.crt: server7.csr $(test_ca_int_rsa1)
 all_final += server7-future.crt
 
 server7-badsign.crt: server7.crt $(test_ca_int_rsa1)
-	{ head -n-2 $<; tail -n-2 $< | sed -e '1s/0\(=*\)$$/_\1/' -e '1s/[^_=]\(=*\)$$/0\1/' -e '1s/_/1/'; cat $(test_ca_int_rsa1); } > $@
+	../../scripts/mbedtls_dev/generate_bad_cert.py badsign $< $(test_ca_int_rsa1) --output $@
 all_final += server7-badsign.crt
 
 parse_input/server7_int-ca.crt server7_int-ca.crt: server7.crt $(test_ca_int_rsa1)
@@ -535,7 +535,7 @@ parse_input/rsa_multiple_san_uri.crt.der: rsa_multiple_san_uri.key
 	$(OPENSSL) req -x509 -outform der -nodes -days 7300 -newkey rsa:2048 -key $< -out $@ -addext "subjectAltName = URI:urn:example.com:5ff40f78-9210-494f-8206-c2c082f0609c, URI:urn:example.com:5ff40f78-9210-494f-8206-abcde1234567" -extensions 'v3_req' -subj "/C=UK/O=Mbed TLS/CN=Mbed TLS URI SAN"
 
 test-int-ca3-badsign.crt: test-int-ca3.crt
-	{ head -n-2 $<; tail -n-2 $< | sed -e '1s/0\(=*\)$$/_\1/' -e '1s/[^_=]\(=*\)$$/0\1/' -e '1s/_/1/'; } > $@
+	../../scripts/mbedtls_dev/generate_bad_cert.py badsign $< --output $@
 all_final += test-int-ca3-badsign.crt
 
 # server9*
@@ -571,7 +571,7 @@ server9-defaults.crt: server9.csr $(test_ca_crt) $(test_ca_key_file_rsa)
 all_final += server9-defaults.crt
 
 server9-badsign.crt: server9.crt
-	{ head -n-2 $<; tail -n-2 $< | sed -e '1s/0\(=*\)$$/_\1/' -e '1s/[^_=]\(=*\)$$/0\1/' -e '1s/_/1/'; } > $@
+	../../scripts/mbedtls_dev/generate_bad_cert.py badsign $< --output $@
 all_final += server9-badsign.crt
 
 server9-with-ca.crt: server9.crt $(test_ca_crt)
@@ -607,7 +607,7 @@ server10.crt: server10.key test-int-ca3.crt test-int-ca3.key
 		md=SHA256 version=3 output_file=$@
 all_final += server10.crt
 server10-badsign.crt: server10.crt
-	{ head -n-2 $<; tail -n-2 $< | sed -e '1s/0\(=*\)$$/_\1/' -e '1s/[^_=]\(=*\)$$/0\1/' -e '1s/_/1/'; } > $@
+	../../scripts/mbedtls_dev/generate_bad_cert.py badsign $< --output $@
 all_final += server10-badsign.crt
 server10-bs_int3.pem: server10-badsign.crt test-int-ca3.crt
 	cat server10-badsign.crt test-int-ca3.crt > $@
@@ -1549,7 +1549,7 @@ server5-sha%.crt: server5.csr $(test_ca_crt_file_ec) $(test_ca_key_file_ec) serv
 all_final += server5.crt server5-sha1.crt server5-sha224.crt server5-sha384.crt server5-sha512.crt
 
 server5-badsign.crt: server5.crt
-	{ head -n-2 $<; tail -n-2 $< | sed -e '1s/0\(=*\)$$/_\1/' -e '1s/[^_=]\(=*\)$$/0\1/' -e '1s/_/1/'; } > $@
+	../../scripts/mbedtls_dev/generate_bad_cert.py badsign $< --output $@
 all_final += server5-badsign.crt
 
 # The use of 'Server 1' in the DN is intentional here, as the DN is hardcoded in the x509_write test suite.'
@@ -1824,7 +1824,7 @@ server2.ku-%.crt: server2.req.sha256
 all_final += server2.ku-ka.crt server2.ku-ke.crt server2.ku-ds.crt server2.ku-ds_ke.crt
 
 server2-badsign.crt: server2.crt
-	{ head -n-2 $<; tail -n-2 $< | sed -e '1s/0\(=*\)$$/_\1/' -e '1s/[^_=]\(=*\)$$/0\1/' -e '1s/_/1/'; } > $@
+	../../scripts/mbedtls_dev/generate_bad_cert.py badsign $< --output $@
 all_final += server2-badsign.crt
 
 # server3*

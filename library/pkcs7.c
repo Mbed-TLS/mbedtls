@@ -171,11 +171,11 @@ static int pkcs7_get_certificates(unsigned char **p, unsigned char *end,
                                   mbedtls_x509_crt *certs)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    size_t len1 = 0;
-    size_t len2 = 0;
-    unsigned char *end_set, *end_cert, *start;
+    size_t len_set = 0, len_cert = 0;
+    unsigned char *end_set, *end_cert, *start_cert;
+    int cert_cnt = 0;
 
-    ret = mbedtls_asn1_get_tag(p, end, &len1, MBEDTLS_ASN1_CONSTRUCTED
+    ret = mbedtls_asn1_get_tag(p, end, &len_set, MBEDTLS_ASN1_CONSTRUCTED
                                | MBEDTLS_ASN1_CONTEXT_SPECIFIC);
     if (ret == MBEDTLS_ERR_ASN1_UNEXPECTED_TAG) {
         return 0;
@@ -183,38 +183,31 @@ static int pkcs7_get_certificates(unsigned char **p, unsigned char *end,
     if (ret != 0) {
         return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PKCS7_INVALID_FORMAT, ret);
     }
-    start = *p;
-    end_set = *p + len1;
 
-    ret = mbedtls_asn1_get_tag(p, end_set, &len2, MBEDTLS_ASN1_CONSTRUCTED
-                               | MBEDTLS_ASN1_SEQUENCE);
-    if (ret != 0) {
-        return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PKCS7_INVALID_CERT, ret);
+    end_set = *p + len_set;
+
+    while (*p != end_set) {
+        start_cert = *p;
+
+        ret = mbedtls_asn1_get_tag(p, end_set, &len_cert, MBEDTLS_ASN1_CONSTRUCTED
+                                   | MBEDTLS_ASN1_SEQUENCE);
+        if (ret != 0) {
+            return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PKCS7_INVALID_CERT, ret);
+        }
+
+        end_cert = *p + len_cert;
+
+        if ((ret = mbedtls_x509_crt_parse_der(certs, start_cert, end_cert - start_cert)) < 0) {
+            return MBEDTLS_ERR_PKCS7_INVALID_CERT;
+        }
+
+        cert_cnt++;
+        *p = end_cert;
     }
 
-    end_cert = *p + len2;
+    *p = end_set;
 
-    /*
-     * This is to verify that there is only one signer certificate. It seems it is
-     * not easy to differentiate between the chain vs different signer's certificate.
-     * So, we support only the root certificate and the single signer.
-     * The behaviour would be improved with addition of multiple signer support.
-     */
-    if (end_cert != end_set) {
-        return MBEDTLS_ERR_PKCS7_FEATURE_UNAVAILABLE;
-    }
-
-    if ((ret = mbedtls_x509_crt_parse_der(certs, start, len1)) < 0) {
-        return MBEDTLS_ERR_PKCS7_INVALID_CERT;
-    }
-
-    *p = end_cert;
-
-    /*
-     * Since in this version we strictly support single certificate, and reaching
-     * here implies we have parsed successfully, we return 1.
-     */
-    return 1;
+    return cert_cnt;
 }
 
 /**

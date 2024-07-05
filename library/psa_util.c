@@ -365,7 +365,7 @@ int mbedtls_psa_get_random(void *p_rng,
 
 #endif /* MBEDTLS_PSA_CRYPTO_CLIENT */
 
-#if defined(MBEDTLS_PSA_UTIL_HAVE_ECDSA)
+#if defined(PSA_WANT_ALG_ECDSA) || defined(PSA_WANT_ALG_DETERMINISTIC_ECDSA)
 
 /**
  * \brief  Convert a single raw coordinate to DER ASN.1 format. The output der
@@ -599,4 +599,4 @@ int mbedtls_ecdsa_der_to_raw(size_t bits, const unsigned char *der, size_t der_l
     return 0;
 }
 
-#endif /* MBEDTLS_PSA_UTIL_HAVE_ECDSA */
+#endif /* PSA_WANT_ALG_ECDSA || PSA_WANT_ALG_DETERMINISTIC_ECDSA */

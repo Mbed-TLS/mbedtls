@@ -37,7 +37,7 @@ extern "C" {
 #endif
 
 #if defined(MBEDTLS_ASN1_WRITE_C) || defined(MBEDTLS_X509_USE_C) || \
-    defined(MBEDTLS_PSA_UTIL_HAVE_ECDSA)
+    defined(PSA_WANT_ALG_ECDSA) || defined(PSA_WANT_ALG_DETERMINISTIC_ECDSA)
 /**
  * \brief           Write a length field in ASN.1 format.
  *
@@ -66,7 +66,7 @@ int mbedtls_asn1_write_len(unsigned char **p, const unsigned char *start,
  */
 int mbedtls_asn1_write_tag(unsigned char **p, const unsigned char *start,
                            unsigned char tag);
-#endif /* MBEDTLS_ASN1_WRITE_C || MBEDTLS_X509_USE_C || MBEDTLS_PSA_UTIL_HAVE_ECDSA*/
+#endif /* MBEDTLS_ASN1_WRITE_C || MBEDTLS_X509_USE_C || PSA_WANT_ALG_ECDSA || PSA_WANT_ALG_DETERMINISTIC_ECDSA*/
 
 #if defined(MBEDTLS_ASN1_WRITE_C)
 /**

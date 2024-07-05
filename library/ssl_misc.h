@@ -254,7 +254,7 @@ uint32_t mbedtls_ssl_get_extension_mask(unsigned int extension_type);
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
 
 /* This macro determines whether CBC is supported. */
-#if defined(MBEDTLS_SSL_HAVE_CBC)      &&                                  \
+#if defined(PSA_WANT_ALG_CBC_NO_PADDING)      &&                                  \
     (defined(PSA_WANT_KEY_TYPE_AES)     ||                                  \
     defined(MBEDTLS_SSL_HAVE_CAMELLIA) ||                                  \
     defined(MBEDTLS_SSL_HAVE_ARIA))
@@ -300,7 +300,7 @@ uint32_t mbedtls_ssl_get_extension_mask(unsigned int extension_type);
 #define MBEDTLS_SSL_MAC_ADD                 16
 #endif
 
-#if defined(MBEDTLS_SSL_HAVE_CBC)
+#if defined(PSA_WANT_ALG_CBC_NO_PADDING)
 #define MBEDTLS_SSL_PADDING_ADD            256
 #else
 #define MBEDTLS_SSL_PADDING_ADD              0

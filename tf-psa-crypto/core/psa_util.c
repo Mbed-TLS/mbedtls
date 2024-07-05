@@ -215,17 +215,17 @@ psa_ecc_family_t mbedtls_ecc_group_to_psa(mbedtls_ecp_group_id grpid,
             *bits = 521;
             return PSA_ECC_FAMILY_SECP_R1;
 #endif
-#if defined(MBEDTLS_ECP_HAVE_BP256R1)
+#if defined(PSA_WANT_ECC_BRAINPOOL_P_R1_256)
         case MBEDTLS_ECP_DP_BP256R1:
             *bits = 256;
             return PSA_ECC_FAMILY_BRAINPOOL_P_R1;
 #endif
-#if defined(MBEDTLS_ECP_HAVE_BP384R1)
+#if defined(PSA_WANT_ECC_BRAINPOOL_P_R1_384)
         case MBEDTLS_ECP_DP_BP384R1:
             *bits = 384;
             return PSA_ECC_FAMILY_BRAINPOOL_P_R1;
 #endif
-#if defined(MBEDTLS_ECP_HAVE_BP512R1)
+#if defined(PSA_WANT_ECC_BRAINPOOL_P_R1_512)
         case MBEDTLS_ECP_DP_BP512R1:
             *bits = 512;
             return PSA_ECC_FAMILY_BRAINPOOL_P_R1;

@@ -13,7 +13,7 @@
 
 #include "mbedtls/pk.h"
 
-#if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
+#if defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
 #include "mbedtls/ecp.h"
 #endif
 
@@ -44,7 +44,7 @@
 #define PEM_BEGIN_ENCRYPTED_PRIVATE_KEY_PKCS8 "-----BEGIN ENCRYPTED PRIVATE KEY-----"
 #define PEM_END_ENCRYPTED_PRIVATE_KEY_PKCS8   "-----END ENCRYPTED PRIVATE KEY-----"
 
-#if defined(MBEDTLS_PK_HAVE_ECC_KEYS) && !defined(MBEDTLS_PK_USE_PSA_EC_DATA)
+#if defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY) && !defined(MBEDTLS_PK_USE_PSA_EC_DATA)
 /**
  * Public function mbedtls_pk_ec() can be used to get direct access to the
  * wrapped ecp_keypair structure pointed to the pk_ctx. However this is not
@@ -80,9 +80,9 @@ static inline mbedtls_ecp_keypair *mbedtls_pk_ec_rw(const mbedtls_pk_context pk)
             return NULL;
     }
 }
-#endif /* MBEDTLS_PK_HAVE_ECC_KEYS && !MBEDTLS_PK_USE_PSA_EC_DATA */
+#endif /* PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY && !MBEDTLS_PK_USE_PSA_EC_DATA */
 
-#if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
+#if defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
 static inline mbedtls_ecp_group_id mbedtls_pk_get_ec_group_id(const mbedtls_pk_context *pk)
 {
     mbedtls_ecp_group_id id;
@@ -183,7 +183,7 @@ int mbedtls_pk_ecc_set_pubkey(mbedtls_pk_context *pk, const unsigned char *pub, 
 int mbedtls_pk_ecc_set_pubkey_from_prv(mbedtls_pk_context *pk,
                                        const unsigned char *prv, size_t prv_len,
                                        int (*f_rng)(void *, unsigned char *, size_t), void *p_rng);
-#endif /* MBEDTLS_PK_HAVE_ECC_KEYS */
+#endif /* PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY */
 
 /* Helper for (deterministic) ECDSA */
 #if defined(MBEDTLS_ECDSA_DETERMINISTIC)

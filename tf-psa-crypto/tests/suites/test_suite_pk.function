@@ -424,7 +424,7 @@ static int pk_public_same(const mbedtls_pk_context *pk1,
         }
 #endif /* MBEDTLS_RSA_C */
 
-#if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
+#if defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
         case MBEDTLS_PK_ECKEY:
         case MBEDTLS_PK_ECKEY_DH:
         case MBEDTLS_PK_ECDSA:
@@ -454,7 +454,7 @@ static int pk_public_same(const mbedtls_pk_context *pk1,
 #endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
         }
         break;
-#endif /* MBEDTLS_PK_HAVE_ECC_KEYS */
+#endif /* PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY */
 
         default:
             TEST_FAIL("Unsupported pk type in pk_public_same");
@@ -523,7 +523,7 @@ static int pk_setup_for_type(mbedtls_pk_type_t pk_type, int want_pair,
         }
 #endif /* MBEDTLS_RSA_C */
 
-#if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
+#if defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
         case MBEDTLS_PK_ECKEY:
         case MBEDTLS_PK_ECKEY_DH:
         case MBEDTLS_PK_ECDSA:
@@ -552,7 +552,7 @@ static int pk_setup_for_type(mbedtls_pk_type_t pk_type, int want_pair,
             }
             break;
         }
-#endif /* MBEDTLS_PK_HAVE_ECC_KEYS */
+#endif /* PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY */
 
         default:
             TEST_FAIL("Unknown PK type in test data");
@@ -2524,13 +2524,13 @@ void pk_copy_from_psa_fail(void)
     psa_destroy_key(key_id);
 #endif /* PSA_WANT_KEY_TYPE_DH_KEY_PAIR_GENERATE */
 
-#if defined(MBEDTLS_PK_HAVE_ECC_KEYS) && defined(PSA_WANT_ECC_SECP_R1_256)
+#if defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY) && defined(PSA_WANT_ECC_SECP_R1_256)
     /* Generate an EC key which cannot be exported. */
     PSA_ASSERT(pk_psa_setup(PSA_KEY_TYPE_ECC_KEY_PAIR(PSA_ECC_FAMILY_SECP_R1), 256,
                             0, PSA_ALG_NONE, PSA_ALG_NONE, MBEDTLS_SVC_KEY_ID_INIT, &key_id));
     TEST_EQUAL(mbedtls_pk_copy_from_psa(key_id, &pk_ctx), MBEDTLS_ERR_PK_TYPE_MISMATCH);
     psa_destroy_key(key_id);
-#endif /* MBEDTLS_PK_HAVE_ECC_KEYS && PSA_WANT_ECC_SECP_R1_256 */
+#endif /* PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY && PSA_WANT_ECC_SECP_R1_256 */
 
 exit:
     mbedtls_pk_free(&pk_ctx);

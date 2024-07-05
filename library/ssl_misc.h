@@ -1576,10 +1576,10 @@ int mbedtls_ssl_set_calc_verify_md(mbedtls_ssl_context *ssl, int md);
 
 MBEDTLS_CHECK_RETURN_CRITICAL
 int mbedtls_ssl_check_curve_tls_id(const mbedtls_ssl_context *ssl, uint16_t tls_id);
-#if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
+#if defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
 MBEDTLS_CHECK_RETURN_CRITICAL
 int mbedtls_ssl_check_curve(const mbedtls_ssl_context *ssl, mbedtls_ecp_group_id grp_id);
-#endif /* MBEDTLS_PK_HAVE_ECC_KEYS */
+#endif /* PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY */
 
 /**
  * \brief Return PSA EC info for the specified TLS ID.

@@ -202,6 +202,10 @@ test-ca2.crt: $(test_ca_key_file_ec) test-ca2.req.sha256
 		md=SHA256 version=3 output_file=$@
 all_final += test-ca2.crt
 
+revoking-test-ca2.crl.pem: certtool-crl.cfg test-ca2.key test-ca2.crt test-int-ca.crt
+	certtool --generate-crl --load-ca-privkey test-ca2.key --load-ca-certificate test-ca2.crt --template certtool-crl.cfg --load-certificate test-int-ca.crt > $@
+all_final += revoking-test-ca2.crl.pem
+
 test-ca2.ku-%.crt: test-ca2.ku-%.crt.openssl.v3_ext $(test_ca_key_file_ec) test-ca2.req.sha256
 	$(OPENSSL) x509 -req -in test-ca2.req.sha256 -extfile $< \
 		-signkey $(test_ca_key_file_ec) -days 3653 -out $@
@@ -1764,6 +1768,9 @@ server1.v1.der.openssl: server1.v1.crt.openssl
 # To revoke certificate in the openssl database:
 #
 # $(OPENSSL) ca -gencrl -batch -cert $(test_ca_crt) -keyfile $(test_ca_key_file_rsa) -key $(test_ca_pwd_rsa) -config $(test_ca_server1_config_file) -md sha256 -crldays 365 -revoke server1.crt
+#
+# Note: CRLs can also be generated without a database by using certtool from
+# Gnu TLS, see revoking-test-ca2.crl.pem for example.
 
 crl.pem: $(test_ca_crt) $(test_ca_key_file_rsa) $(test_ca_config_file)
 	$(OPENSSL) ca -gencrl -batch -cert $(test_ca_crt) -keyfile $(test_ca_key_file_rsa) -key $(test_ca_pwd_rsa) -config $(test_ca_server1_config_file) -md sha1 -crldays 3653 -out $@

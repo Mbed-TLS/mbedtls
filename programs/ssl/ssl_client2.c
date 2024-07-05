@@ -47,6 +47,7 @@ int main(void)
 #define DFL_MAX_RESEND          0
 #define DFL_CA_FILE             ""
 #define DFL_CA_PATH             ""
+#define DFL_CRL_FILE            "none"
 #define DFL_CRT_FILE            ""
 #define DFL_KEY_FILE            ""
 #define DFL_KEY_OPAQUE          0
@@ -130,6 +131,8 @@ int main(void)
     "    ca_path=%%s          The path containing the top-level CA(s) you fully trust\n" \
     "                        default: \"\" (pre-loaded) (overrides ca_file)\n" \
     "                        use \"none\" to skip loading any top-level CAs.\n" \
+    "    crl_file=%%s         The list of CRLs for the trusted CAs\n" \
+    "                        default: \"none\" (no CRL)\n" \
     "    crt_file=%%s         Your own cert and chain (in bottom to top order, top may be omitted)\n" \
     "                        default: \"\" (pre-loaded)\n" \
     "    key_file=%%s         default: \"\" (pre-loaded)\n" \
@@ -475,6 +478,7 @@ struct options {
     int request_size;           /* pad request with header to requested size */
     const char *ca_file;        /* the file with the CA certificate(s)      */
     const char *ca_path;        /* the path with the CA certificate(s) reside */
+    const char *crl_file;       /* the file with the CA CRLs                */
     const char *crt_file;       /* the file with the client certificate     */
     const char *key_file;       /* the file with the client key             */
     int key_opaque;             /* handle private key as if it were opaque  */
@@ -834,6 +838,7 @@ int main(int argc, char *argv[])
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
     uint32_t flags;
     mbedtls_x509_crt cacert;
+    mbedtls_x509_crl crl;
     mbedtls_x509_crt clicert;
     mbedtls_pk_context pkey;
     mbedtls_x509_crt_profile crt_profile_for_test = mbedtls_x509_crt_profile_default;
@@ -887,6 +892,7 @@ int main(int argc, char *argv[])
     rng_init(&rng);
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
     mbedtls_x509_crt_init(&cacert);
+    mbedtls_x509_crl_init(&crl);
     mbedtls_x509_crt_init(&clicert);
     mbedtls_pk_init(&pkey);
 #endif
@@ -924,6 +930,7 @@ int main(int argc, char *argv[])
     opt.request_size        = DFL_REQUEST_SIZE;
     opt.ca_file             = DFL_CA_FILE;
     opt.ca_path             = DFL_CA_PATH;
+    opt.crl_file            = DFL_CRL_FILE;
     opt.crt_file            = DFL_CRT_FILE;
     opt.key_file            = DFL_KEY_FILE;
     opt.key_opaque          = DFL_KEY_OPAQUE;
@@ -1104,6 +1111,8 @@ usage:
             opt.ca_file = q;
         } else if (strcmp(p, "ca_path") == 0) {
             opt.ca_path = q;
+        } else if (strcmp(p, "crl_file") == 0) {
+            opt.crl_file = q;
         } else if (strcmp(p, "crt_file") == 0) {
             opt.crt_file = q;
         } else if (strcmp(p, "key_file") == 0) {
@@ -1717,6 +1726,23 @@ usage:
 
     mbedtls_printf(" ok (%d skipped)\n", ret);
 
+    mbedtls_printf("  . Loading the CRLs...");
+    fflush(stdout);
+
+    if (strcmp(opt.crl_file, "none") == 0) {
+        ret = 0;
+    } else {
+        ret = mbedtls_x509_crl_parse_file(&crl, opt.crl_file);
+    }
+
+    if (ret != 0) {
+        mbedtls_printf(" failed\n  !  mbedtls_x509_crl_parse returned -0x%x\n\n",
+                       (unsigned int) -ret);
+        goto exit;
+    }
+
+    mbedtls_printf(" ok\n");
+
     /*
      * 1.2. Load own certificate and private key
      *
@@ -1955,7 +1981,14 @@ usage:
             mbedtls_ssl_conf_ca_cb(&conf, ca_callback, &cacert);
         } else
 #endif
-        mbedtls_ssl_conf_ca_chain(&conf, &cacert, NULL);
+        {
+            mbedtls_x509_crl *use_crl = NULL;
+            if (strcmp(opt.crl_file, "none") != 0) {
+                use_crl = &crl;
+            }
+
+            mbedtls_ssl_conf_ca_chain(&conf, &cacert, use_crl);
+        }
     }
     if (strcmp(opt.crt_file, "none") != 0 &&
         strcmp(opt.key_file, "none") != 0) {
@@ -3130,6 +3163,7 @@ exit:
 
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
     mbedtls_x509_crt_free(&clicert);
+    mbedtls_x509_crl_free(&crl);
     mbedtls_x509_crt_free(&cacert);
     mbedtls_pk_free(&pkey);
 #if defined(MBEDTLS_USE_PSA_CRYPTO)

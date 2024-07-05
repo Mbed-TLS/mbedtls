@@ -424,6 +424,8 @@ psa_status_t psa_get_and_lock_key_slot(mbedtls_svc_key_id_t key,
     if (status != PSA_SUCCESS) {
         psa_wipe_key_slot(*p_slot);
 
+        /* If the key does not exist, we need to return
+         * PSA_ERROR_INVALID_HANDLE. */
         if (status == PSA_ERROR_DOES_NOT_EXIST) {
             status = PSA_ERROR_INVALID_HANDLE;
         }
@@ -440,6 +442,9 @@ psa_status_t psa_get_and_lock_key_slot(mbedtls_svc_key_id_t key,
     status = PSA_ERROR_INVALID_HANDLE;
 #endif /* MBEDTLS_PSA_CRYPTO_STORAGE_C || MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS */
 
+    if (status != PSA_SUCCESS) {
+        *p_slot = NULL;
+    }
 #if defined(MBEDTLS_THREADING_C)
     PSA_THREADING_CHK_RET(mbedtls_mutex_unlock(
                               &mbedtls_threading_key_slot_mutex));

@@ -67,7 +67,7 @@ depends_on:MBEDTLS_MD_CAN_SHA1
 oid_get_md_alg_id:"2b0e03021a":MBEDTLS_MD_SHA1
 
 OID hash id - id-sha224
-depends_on:MBEDTLS_MD_CAN_SHA224
+depends_on:PSA_WANT_ALG_SHA_224
 oid_get_md_alg_id:"608648016503040204":MBEDTLS_MD_SHA224
 
 OID hash id - id-sha256
@@ -75,7 +75,7 @@ depends_on:MBEDTLS_MD_CAN_SHA256
 oid_get_md_alg_id:"608648016503040201":MBEDTLS_MD_SHA256
 
 OID hash id - id-sha384
-depends_on:MBEDTLS_MD_CAN_SHA384
+depends_on:PSA_WANT_ALG_SHA_384
 oid_get_md_alg_id:"608648016503040202":MBEDTLS_MD_SHA384
 
 OID hash id - id-sha512
@@ -95,11 +95,11 @@ depends_on:MBEDTLS_MD_CAN_SHA3_384
 oid_get_md_alg_id:"608648016503040209":MBEDTLS_MD_SHA3_384
 
 OID hash id - id-sha3-512
-depends_on:MBEDTLS_MD_CAN_SHA3_512
+depends_on:PSA_WANT_ALG_SHA3_512
 oid_get_md_alg_id:"60864801650304020a":MBEDTLS_MD_SHA3_512
 
 OID hash id - id-ripemd160
-depends_on:MBEDTLS_MD_CAN_RIPEMD160
+depends_on:PSA_WANT_ALG_RIPEMD160
 oid_get_md_alg_id:"2b24030201":MBEDTLS_MD_RIPEMD160
 
 OID hash id - invalid oid
@@ -203,7 +203,7 @@ OID from numeric string - OID with overflowing subidentifier
 oid_from_numeric_string:"2.4294967216":MBEDTLS_ERR_ASN1_INVALID_DATA:""
 
 mbedtls_oid_get_md_hmac - RIPEMD160
-depends_on:MBEDTLS_MD_CAN_RIPEMD160
+depends_on:PSA_WANT_ALG_RIPEMD160
 mbedtls_oid_get_md_hmac:"2B06010505080104":MBEDTLS_MD_RIPEMD160
 
 mbedtls_oid_get_md_hmac - SHA1
@@ -211,7 +211,7 @@ depends_on:MBEDTLS_MD_CAN_SHA1
 mbedtls_oid_get_md_hmac:"2A864886F70D0207":MBEDTLS_MD_SHA1
 
 mbedtls_oid_get_md_hmac - SHA224
-depends_on:MBEDTLS_MD_CAN_SHA224
+depends_on:PSA_WANT_ALG_SHA_224
 mbedtls_oid_get_md_hmac:"2A864886F70D0208":MBEDTLS_MD_SHA224
 
 mbedtls_oid_get_md_hmac - SHA256
@@ -219,7 +219,7 @@ depends_on:MBEDTLS_MD_CAN_SHA256
 mbedtls_oid_get_md_hmac:"2A864886F70D0209":MBEDTLS_MD_SHA256
 
 mbedtls_oid_get_md_hmac - SHA384
-depends_on:MBEDTLS_MD_CAN_SHA384
+depends_on:PSA_WANT_ALG_SHA_384
 mbedtls_oid_get_md_hmac:"2A864886F70D020A":MBEDTLS_MD_SHA384
 
 mbedtls_oid_get_md_hmac - SHA512
@@ -239,5 +239,5 @@ depends_on:MBEDTLS_MD_CAN_SHA3_384
 mbedtls_oid_get_md_hmac:"60864801650304020F":MBEDTLS_MD_SHA3_384
 
 mbedtls_oid_get_md_hmac - SHA3_512
-depends_on:MBEDTLS_MD_CAN_SHA3_512
+depends_on:PSA_WANT_ALG_SHA3_512
 mbedtls_oid_get_md_hmac:"608648016503040210":MBEDTLS_MD_SHA3_512

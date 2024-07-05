@@ -25,14 +25,20 @@ if(TEST_CPP)
         WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
     )
     add_executable(cpp_dummy_build "${cpp_dummy_build_cpp}")
-    target_include_directories(cpp_dummy_build PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../include)
+    target_include_directories(cpp_dummy_build
+        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../include
+        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../tf-psa-crypto/include
+        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../tf-psa-crypto/drivers/builtin/include)
     target_link_libraries(cpp_dummy_build ${mbedcrypto_target} ${CMAKE_THREAD_LIBS_INIT})
 endif()
 
 if(USE_SHARED_MBEDTLS_LIBRARY AND
    NOT ${CMAKE_SYSTEM_NAME} MATCHES "[Ww][Ii][Nn]")
     add_executable(dlopen "dlopen.c")
-    target_include_directories(dlopen PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../include)
+    target_include_directories(dlopen
+        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../include
+        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../tf-psa-crypto/include
+        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../tf-psa-crypto/drivers/builtin/include)
     target_link_libraries(dlopen ${CMAKE_DL_LIBS})
 endif()
 
@@ -46,13 +52,13 @@ if(GEN_FILES)
             ${PERL}
                 ${CMAKE_CURRENT_SOURCE_DIR}/../../scripts/generate_query_config.pl
                 ${CMAKE_CURRENT_SOURCE_DIR}/../../include/mbedtls/mbedtls_config.h
-                ${CMAKE_CURRENT_SOURCE_DIR}/../../include/psa/crypto_config.h
+                ${CMAKE_CURRENT_SOURCE_DIR}/../../tf-psa-crypto/include/psa/crypto_config.h
                 ${CMAKE_CURRENT_SOURCE_DIR}/../../scripts/data_files/query_config.fmt
                 ${CMAKE_CURRENT_BINARY_DIR}/query_config.c
         DEPENDS
             ${CMAKE_CURRENT_SOURCE_DIR}/../../scripts/generate_query_config.pl
             ${CMAKE_CURRENT_SOURCE_DIR}/../../include/mbedtls/mbedtls_config.h
-            ${CMAKE_CURRENT_SOURCE_DIR}/../../include/psa/crypto_config.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/../../tf-psa-crypto/include/psa/crypto_config.h
             ${CMAKE_CURRENT_SOURCE_DIR}/../../scripts/data_files/query_config.fmt
     )
     # this file will also be used in another directory, so create a target, see

@@ -41,7 +41,7 @@
 #include "mbedtls/sha512.h"
 #include "mbedtls/sha3.h"
 
-#if defined(MBEDTLS_PSA_CRYPTO_C)
+#if defined(MBEDTLS_PSA_CRYPTO_CLIENT)
 #include <psa/crypto.h>
 #include "md_psa.h"
 #include "psa_util_internal.h"
@@ -76,7 +76,7 @@ static const mbedtls_md_info_t mbedtls_md5_info = {
 };
 #endif
 
-#if defined(MBEDTLS_MD_CAN_RIPEMD160)
+#if defined(PSA_WANT_ALG_RIPEMD160)
 static const mbedtls_md_info_t mbedtls_ripemd160_info = {
     MD_INFO(MBEDTLS_MD_RIPEMD160, 20, 64)
 };
@@ -88,7 +88,7 @@ static const mbedtls_md_info_t mbedtls_sha1_info = {
 };
 #endif
 
-#if defined(MBEDTLS_MD_CAN_SHA224)
+#if defined(PSA_WANT_ALG_SHA_224)
 static const mbedtls_md_info_t mbedtls_sha224_info = {
     MD_INFO(MBEDTLS_MD_SHA224, 28, 64)
 };
@@ -100,7 +100,7 @@ static const mbedtls_md_info_t mbedtls_sha256_info = {
 };
 #endif
 
-#if defined(MBEDTLS_MD_CAN_SHA384)
+#if defined(PSA_WANT_ALG_SHA_384)
 static const mbedtls_md_info_t mbedtls_sha384_info = {
     MD_INFO(MBEDTLS_MD_SHA384, 48, 128)
 };
@@ -130,7 +130,7 @@ static const mbedtls_md_info_t mbedtls_sha3_384_info = {
 };
 #endif
 
-#if defined(MBEDTLS_MD_CAN_SHA3_512)
+#if defined(PSA_WANT_ALG_SHA3_512)
 static const mbedtls_md_info_t mbedtls_sha3_512_info = {
     MD_INFO(MBEDTLS_MD_SHA3_512, 64, 72)
 };
@@ -143,7 +143,7 @@ const mbedtls_md_info_t *mbedtls_md_info_from_type(mbedtls_md_type_t md_type)
         case MBEDTLS_MD_MD5:
             return &mbedtls_md5_info;
 #endif
-#if defined(MBEDTLS_MD_CAN_RIPEMD160)
+#if defined(PSA_WANT_ALG_RIPEMD160)
         case MBEDTLS_MD_RIPEMD160:
             return &mbedtls_ripemd160_info;
 #endif
@@ -151,7 +151,7 @@ const mbedtls_md_info_t *mbedtls_md_info_from_type(mbedtls_md_type_t md_type)
         case MBEDTLS_MD_SHA1:
             return &mbedtls_sha1_info;
 #endif
-#if defined(MBEDTLS_MD_CAN_SHA224)
+#if defined(PSA_WANT_ALG_SHA_224)
         case MBEDTLS_MD_SHA224:
             return &mbedtls_sha224_info;
 #endif
@@ -159,7 +159,7 @@ const mbedtls_md_info_t *mbedtls_md_info_from_type(mbedtls_md_type_t md_type)
         case MBEDTLS_MD_SHA256:
             return &mbedtls_sha256_info;
 #endif
-#if defined(MBEDTLS_MD_CAN_SHA384)
+#if defined(PSA_WANT_ALG_SHA_384)
         case MBEDTLS_MD_SHA384:
             return &mbedtls_sha384_info;
 #endif
@@ -179,7 +179,7 @@ const mbedtls_md_info_t *mbedtls_md_info_from_type(mbedtls_md_type_t md_type)
         case MBEDTLS_MD_SHA3_384:
             return &mbedtls_sha3_384_info;
 #endif
-#if defined(MBEDTLS_MD_CAN_SHA3_512)
+#if defined(PSA_WANT_ALG_SHA3_512)
         case MBEDTLS_MD_SHA3_512:
             return &mbedtls_sha3_512_info;
 #endif
@@ -761,13 +761,13 @@ mbedtls_md_type_t mbedtls_md_get_type(const mbedtls_md_info_t *md_info)
     return md_info->type;
 }
 
-#if defined(MBEDTLS_PSA_CRYPTO_C)
+#if defined(MBEDTLS_PSA_CRYPTO_CLIENT)
 int mbedtls_md_error_from_psa(psa_status_t status)
 {
     return PSA_TO_MBEDTLS_ERR_LIST(status, psa_to_md_errors,
                                    psa_generic_status_to_mbedtls);
 }
-#endif /* MBEDTLS_PSA_CRYPTO_C */
+#endif /* MBEDTLS_PSA_CRYPTO_CLIENT */
 
 
 /************************************************************************
@@ -785,14 +785,14 @@ static const int supported_digests[] = {
     MBEDTLS_MD_SHA512,
 #endif
 
-#if defined(MBEDTLS_MD_CAN_SHA384)
+#if defined(PSA_WANT_ALG_SHA_384)
     MBEDTLS_MD_SHA384,
 #endif
 
 #if defined(MBEDTLS_MD_CAN_SHA256)
     MBEDTLS_MD_SHA256,
 #endif
-#if defined(MBEDTLS_MD_CAN_SHA224)
+#if defined(PSA_WANT_ALG_SHA_224)
     MBEDTLS_MD_SHA224,
 #endif
 
@@ -800,7 +800,7 @@ static const int supported_digests[] = {
     MBEDTLS_MD_SHA1,
 #endif
 
-#if defined(MBEDTLS_MD_CAN_RIPEMD160)
+#if defined(PSA_WANT_ALG_RIPEMD160)
     MBEDTLS_MD_RIPEMD160,
 #endif
 
@@ -820,7 +820,7 @@ static const int supported_digests[] = {
     MBEDTLS_MD_SHA3_384,
 #endif
 
-#if defined(MBEDTLS_MD_CAN_SHA3_512)
+#if defined(PSA_WANT_ALG_SHA3_512)
     MBEDTLS_MD_SHA3_512,
 #endif
 
@@ -841,20 +841,20 @@ static const md_name_entry md_names[] = {
 #if defined(MBEDTLS_MD_CAN_MD5)
     { "MD5", MBEDTLS_MD_MD5 },
 #endif
-#if defined(MBEDTLS_MD_CAN_RIPEMD160)
+#if defined(PSA_WANT_ALG_RIPEMD160)
     { "RIPEMD160", MBEDTLS_MD_RIPEMD160 },
 #endif
 #if defined(MBEDTLS_MD_CAN_SHA1)
     { "SHA1", MBEDTLS_MD_SHA1 },
     { "SHA", MBEDTLS_MD_SHA1 }, // compatibility fallback
 #endif
-#if defined(MBEDTLS_MD_CAN_SHA224)
+#if defined(PSA_WANT_ALG_SHA_224)
     { "SHA224", MBEDTLS_MD_SHA224 },
 #endif
 #if defined(MBEDTLS_MD_CAN_SHA256)
     { "SHA256", MBEDTLS_MD_SHA256 },
 #endif
-#if defined(MBEDTLS_MD_CAN_SHA384)
+#if defined(PSA_WANT_ALG_SHA_384)
     { "SHA384", MBEDTLS_MD_SHA384 },
 #endif
 #if defined(MBEDTLS_MD_CAN_SHA512)
@@ -869,7 +869,7 @@ static const md_name_entry md_names[] = {
 #if defined(MBEDTLS_MD_CAN_SHA3_384)
     { "SHA3-384", MBEDTLS_MD_SHA3_384 },
 #endif
-#if defined(MBEDTLS_MD_CAN_SHA3_512)
+#if defined(PSA_WANT_ALG_SHA3_512)
     { "SHA3-512", MBEDTLS_MD_SHA3_512 },
 #endif
     { NULL, MBEDTLS_MD_NONE },

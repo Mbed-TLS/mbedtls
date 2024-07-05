@@ -9,7 +9,8 @@ Please write a few sentences describing the overall goals of the pull request's 
 Please tick as appropriate and edit the reasons (e.g.: "backport: not needed because this is a new feature")
 
 - [ ] **changelog** provided, or not required
-- [ ] **backport** done, or not required
+- [ ] **3.6 backport** done, or not required
+- [ ] **2.28 backport** done, or not required
 - [ ] **tests** provided, or not required
 
 

@@ -21,9 +21,10 @@ import sys
 import typing
 from enum import Enum
 
-from mbedtls_dev import build_tree
-from mbedtls_dev import logging_util
-from mbedtls_dev import typing_util
+import framework_scripts_path # pylint: disable=unused-import
+from mbedtls_framework import build_tree
+from mbedtls_framework import logging_util
+from mbedtls_framework import typing_util
 
 class SupportedArch(Enum):
     """Supported architecture for code size measurement."""
@@ -148,7 +149,7 @@ TFM_MEDIUM_CONFIG_H = 'configs/ext/tfm_mbedcrypto_config_profile_medium.h'
 TFM_MEDIUM_CRYPTO_CONFIG_H = 'configs/ext/crypto_config_profile_medium.h'
 
 CONFIG_H = 'include/mbedtls/mbedtls_config.h'
-CRYPTO_CONFIG_H = 'include/psa/crypto_config.h'
+CRYPTO_CONFIG_H = 'tf-psa-crypto/include/psa/crypto_config.h'
 BACKUP_SUFFIX = '.code_size.bak'
 
 class CodeSizeBuildInfo: # pylint: disable=too-few-public-methods

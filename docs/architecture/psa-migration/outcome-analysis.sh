@@ -27,7 +27,7 @@ set -eu
 
 cleanup() {
     make clean
-    git checkout -- include/mbedtls/mbedtls_config.h include/psa/crypto_config.h
+    git checkout -- include/mbedtls/mbedtls_config.h tf-psa-crypto/include/psa/crypto_config.h
 }
 
 record() {

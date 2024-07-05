@@ -193,10 +193,12 @@ static void ssl_tls13_create_verify_structure(const unsigned char *transcript_ha
     idx = 64;
 
     if (from == MBEDTLS_SSL_IS_CLIENT) {
-        memcpy(verify_buffer + idx, MBEDTLS_SSL_TLS1_3_LBL_WITH_LEN(client_cv));
+        memcpy(verify_buffer + idx, mbedtls_ssl_tls13_labels.client_cv,
+               MBEDTLS_SSL_TLS1_3_LBL_LEN(client_cv));
         idx += MBEDTLS_SSL_TLS1_3_LBL_LEN(client_cv);
     } else { /* from == MBEDTLS_SSL_IS_SERVER */
-        memcpy(verify_buffer + idx, MBEDTLS_SSL_TLS1_3_LBL_WITH_LEN(server_cv));
+        memcpy(verify_buffer + idx, mbedtls_ssl_tls13_labels.server_cv,
+               MBEDTLS_SSL_TLS1_3_LBL_LEN(server_cv));
         idx += MBEDTLS_SSL_TLS1_3_LBL_LEN(server_cv);
     }
 
@@ -1482,9 +1484,11 @@ int mbedtls_ssl_tls13_check_early_data_len(mbedtls_ssl_context *ssl,
          ssl->total_early_data_size)) {
 
         MBEDTLS_SSL_DEBUG_MSG(
-            2, ("EarlyData: Too much early data received, %u + %" MBEDTLS_PRINTF_SIZET " > %u",
-                ssl->total_early_data_size, early_data_len,
-                ssl->session_negotiate->max_early_data_size));
+            2, ("EarlyData: Too much early data received, "
+                "%lu + %" MBEDTLS_PRINTF_SIZET " > %lu",
+                (unsigned long) ssl->total_early_data_size,
+                early_data_len,
+                (unsigned long) ssl->session_negotiate->max_early_data_size));
 
         MBEDTLS_SSL_PEND_FATAL_ALERT(
             MBEDTLS_SSL_ALERT_MSG_UNEXPECTED_MESSAGE,

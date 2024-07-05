@@ -26,8 +26,6 @@
 
 #include <string.h>
 
-#if !defined(MBEDTLS_ECP_ALT)
-
 #define ECP_MPI_INIT(_p, _n) { .p = (mbedtls_mpi_uint *) (_p), .s = 1, .n = (_n) }
 
 #define ECP_MPI_INIT_ARRAY(x)   \
@@ -6031,6 +6029,5 @@ mbedtls_ecp_variant mbedtls_ecp_get_variant(void)
 
 #endif /* MBEDTLS_TEST_HOOKS */
 
-#endif /* !MBEDTLS_ECP_ALT */
 #endif /* MBEDTLS_ECP_LIGHT */
 #endif /* MBEDTLS_ECP_WITH_MPI_UINT */

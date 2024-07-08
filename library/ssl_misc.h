@@ -267,6 +267,13 @@ uint32_t mbedtls_ssl_get_extension_mask(unsigned int extension_type);
 #define MBEDTLS_SSL_SOME_SUITES_USE_STREAM
 #endif
 
+/* This macro determines whether AEAD is supported */
+#if defined(PSA_WANT_ALG_CCM) ||                                  \
+    defined(PSA_WANT_ALG_GCM) ||                                  \
+    defined(PSA_WANT_ALG_CHACHA20_POLY1305)
+#define MBEDTLS_SSL_SOME_SUITES_USE_AEAD
+#endif
+
 /* This macro determines whether the CBC construct used in TLS 1.2 is supported. */
 #if defined(MBEDTLS_SSL_SOME_SUITES_USE_CBC) && \
     defined(MBEDTLS_SSL_PROTO_TLS1_2)

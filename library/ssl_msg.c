@@ -851,7 +851,7 @@ static void ssl_extract_add_data_from_record(unsigned char *add_data,
     *add_data_len = (size_t) (cur - add_data);
 }
 
-#if defined(PSA_WANT_ALG_CCM) || defined(PSA_WANT_ALG_GCM) || defined(PSA_WANT_ALG_CHACHA20_POLY1305)
+#if defined(MBEDTLS_SSL_SOME_SUITES_USE_AEAD)
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_transform_aead_dynamic_iv_is_explicit(
     mbedtls_ssl_transform const *transform)
@@ -896,7 +896,7 @@ static void ssl_build_record_nonce(unsigned char *dst_iv,
     dst_iv += dst_iv_len - dynamic_iv_len;
     mbedtls_xor(dst_iv, dst_iv, dynamic_iv, dynamic_iv_len);
 }
-#endif /* PSA_WANT_ALG_CCM || PSA_WANT_ALG_GCM || PSA_WANT_ALG_CHACHA20_POLY1305 */
+#endif /* MBEDTLS_SSL_SOME_SUITES_USE_AEAD */
 
 int mbedtls_ssl_encrypt_buf(mbedtls_ssl_context *ssl,
                             mbedtls_ssl_transform *transform,
@@ -1132,7 +1132,7 @@ hmac_failed_etm_disabled:
     } else
 #endif /* MBEDTLS_SSL_SOME_SUITES_USE_STREAM */
 
-#if defined(PSA_WANT_ALG_CCM) || defined(PSA_WANT_ALG_GCM) || defined(PSA_WANT_ALG_CHACHA20_POLY1305)
+#if defined(MBEDTLS_SSL_SOME_SUITES_USE_AEAD)
     if (ssl_mode == MBEDTLS_SSL_MODE_AEAD) {
         unsigned char iv[12];
         unsigned char *dynamic_iv;
@@ -1242,7 +1242,7 @@ hmac_failed_etm_disabled:
 
         auth_done++;
     } else
-#endif /* PSA_WANT_ALG_CCM || PSA_WANT_ALG_GCM || PSA_WANT_ALG_CHACHA20_POLY1305 */
+#endif /* MBEDTLS_SSL_SOME_SUITES_USE_AEAD */
 #if defined(MBEDTLS_SSL_SOME_SUITES_USE_CBC)
     if (ssl_mode == MBEDTLS_SSL_MODE_CBC ||
         ssl_mode == MBEDTLS_SSL_MODE_CBC_ETM) {
@@ -1480,9 +1480,9 @@ int mbedtls_ssl_decrypt_buf(mbedtls_ssl_context const *ssl,
                             mbedtls_ssl_transform *transform,
                             mbedtls_record *rec)
 {
-#if defined(MBEDTLS_SSL_SOME_SUITES_USE_CBC) || defined(PSA_WANT_ALG_CCM) || defined(PSA_WANT_ALG_GCM) || defined(PSA_WANT_ALG_CHACHA20_POLY1305)
+#if defined(MBEDTLS_SSL_SOME_SUITES_USE_CBC) || defined(MBEDTLS_SSL_SOME_SUITES_USE_AEAD)
     size_t olen;
-#endif /* MBEDTLS_SSL_SOME_SUITES_USE_CBC || PSA_WANT_ALG_CCM || PSA_WANT_ALG_GCM || PSA_WANT_ALG_CHACHA20_POLY1305 */
+#endif /* MBEDTLS_SSL_SOME_SUITES_USE_CBC || MBEDTLS_SSL_SOME_SUITES_USE_AEAD */
     mbedtls_ssl_mode_t ssl_mode;
     int ret;
 
@@ -1543,7 +1543,7 @@ int mbedtls_ssl_decrypt_buf(mbedtls_ssl_context const *ssl,
          * so there's no encryption to do here.*/
     } else
 #endif /* MBEDTLS_SSL_SOME_SUITES_USE_STREAM */
-#if defined(PSA_WANT_ALG_CCM) || defined(PSA_WANT_ALG_GCM) || defined(PSA_WANT_ALG_CHACHA20_POLY1305)
+#if defined(MBEDTLS_SSL_SOME_SUITES_USE_AEAD)
     if (ssl_mode == MBEDTLS_SSL_MODE_AEAD) {
         unsigned char iv[12];
         unsigned char *dynamic_iv;
@@ -1660,7 +1660,7 @@ int mbedtls_ssl_decrypt_buf(mbedtls_ssl_context const *ssl,
             return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
         }
     } else
-#endif /* PSA_WANT_ALG_CCM || PSA_WANT_ALG_GCM || PSA_WANT_ALG_CHACHA20_POLY1305 */
+#endif /* MBEDTLS_SSL_SOME_SUITES_USE_AEAD */
 #if defined(MBEDTLS_SSL_SOME_SUITES_USE_CBC)
     if (ssl_mode == MBEDTLS_SSL_MODE_CBC ||
         ssl_mode == MBEDTLS_SSL_MODE_CBC_ETM) {

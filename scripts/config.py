@@ -452,6 +452,7 @@ class ConfigFile(metaclass=ABCMeta):
         """Parse a line in the config file, save the templates representing the lines
            and return the corresponding setting element.
         """
+
         line = line.rstrip('\r\n')
         m = re.match(self._config_line_regexp, line)
         if m is None:
@@ -483,6 +484,7 @@ class ConfigFile(metaclass=ABCMeta):
 
     def parse_file(self):
         """Parse the whole file and return the settings."""
+
         with open(self.filename, 'r', encoding='utf-8') as file:
             for line in file:
                 setting = self._parse_line(line)
@@ -492,11 +494,12 @@ class ConfigFile(metaclass=ABCMeta):
 
     #pylint: disable=no-self-use
     def _format_template(self, setting, indent, middle):
-        """Build a line for mbedtls_config.h for the given setting.
+        """Build a line for the config file for the given setting.
 
         The line has the form "<indent>#define <name> <value>"
         where <middle> is "#define <name> ".
         """
+
         value = setting.value
         if value is None:
             value = ''
@@ -516,6 +519,7 @@ class ConfigFile(metaclass=ABCMeta):
 
     def write_to_stream(self, settings, output):
         """Write the whole configuration to output."""
+
         for template in self.templates:
             if isinstance(template, str):
                 line = template
@@ -529,6 +533,7 @@ class ConfigFile(metaclass=ABCMeta):
 
         If filename is specified, write to this file instead.
         """
+
         if filename is None:
             filename = self.filename
 
@@ -555,7 +560,7 @@ class MbedTLSConfigFile(ConfigFile):
         self.current_section = 'header'
 
 class CryptoConfigFile(ConfigFile):
-    """Representation of an Crypto configuration file."""
+    """Representation of a Crypto configuration file."""
 
     # Temporary, while Mbed TLS does not just rely on the TF-PSA-Crypto
     # build system to build its crypto library. When it does, the
@@ -579,8 +584,10 @@ class MbedTLSConfig(Config):
     See the documentation of the `Config` class for methods to query
     and modify the configuration.
     """
+
     def __init__(self, filename=None):
         """Read the Mbed TLS configuration file."""
+
         super().__init__()
         self.configfile = MbedTLSConfigFile(filename)
         self.settings.update({name: Setting(active, name, value, section, self.configfile)
@@ -588,6 +595,8 @@ class MbedTLSConfig(Config):
                               in self.configfile.parse_file()})
 
     def set(self, name, value=None):
+        """Set name to the given value and make it active."""
+
         if name not in self.settings:
             self.configfile.templates.append((name, '', '#define ' + name + ' '))
 
@@ -598,9 +607,12 @@ class MbedTLSConfig(Config):
 
         If filename is specified, write to this file instead.
         """
+
         self.configfile.write(self.settings, filename)
 
     def filename(self):
+        """Get the name of the config file."""
+
         return self.configfile.filename
 
 class CryptoConfig(Config):
@@ -609,8 +621,10 @@ class CryptoConfig(Config):
     See the documentation of the `Config` class for methods to query
     and modify the configuration.
     """
+
     def __init__(self, filename=None):
         """Read the PSA crypto configuration file."""
+
         super().__init__()
         self.configfile = CryptoConfigFile(filename)
         self.settings.update({name: Setting(active, name, value, section, self.configfile)
@@ -618,12 +632,14 @@ class CryptoConfig(Config):
                               in self.configfile.parse_file()})
 
     def set(self, name, value='1'):
+        """Set name to the given value and make it active."""
+
         if name in PSA_UNSUPPORTED_FEATURE:
             raise ValueError(f'Feature is unsupported: \'{name}\'')
         if name in PSA_UNSTABLE_FEATURE:
             raise ValueError(f'Feature is unstable: \'{name}\'')
 
-        # The default value in the crypto config is '1'
+        # If value is set to None correct it
         if not value:
             value = '1'
 
@@ -637,9 +653,12 @@ class CryptoConfig(Config):
 
         If filename is specified, write to this file instead.
         """
+
         self.configfile.write(self.settings, filename)
 
     def filename(self):
+        """Get the name of the config file."""
+
         return self.configfile.filename
 
 class CombinedConfig(Config):
@@ -665,8 +684,8 @@ class CombinedConfig(Config):
 
     _crypto_regexp = re.compile(r'$PSA_.*')
     def _get_configfile(self, name):
-        """Find a config type for a setting name
-        """
+        """Find a config type for a setting name"""
+
         if name in self.settings:
             return self.settings[name].configfile
         elif re.match(self._crypto_regexp, name):
@@ -679,6 +698,8 @@ class CombinedConfig(Config):
         self.settings[name].configfile.modified = True
 
     def set(self, name, value=None):
+        """Set name to the given value and make it active."""
+
         configfile = self._get_configfile(name)
 
         if configfile == self.crypto_configfile:
@@ -707,10 +728,16 @@ class CombinedConfig(Config):
         If mbedtls_file or crypto_file is specified, write the specific configuration
         to the corresponding file instead.
         """
+
         self.mbedtls_configfile.write(self.settings, mbedtls_file)
         self.crypto_configfile.write(self.settings, crypto_file)
 
     def filename(self, name=None):
+        """Get the names of the config files.
+
+        If 'name' is specified return the name of the config file where it is defined.
+        """
+
         if not name:
             return [config.filename for config in [self.mbedtls_configfile, self.crypto_configfile]]
 

@@ -6,13 +6,15 @@ Please write a few sentences describing the overall goals of the pull request's 
 
 ## PR checklist
 
-Please add/remove strikethrough ~~ as appropriate, and add any relevant link/s to the end of the line.
+Please remove the segment/s on either side of the | symbol as appropriate, and add any relevant link/s to the end of the line.
+If the provided content is part of the present PR remove the # symbol.
 
-- [ ] **changelog** provided, ~not required because:~
-- [ ] **dev PR** provided #, ~not required because:~
-- [ ] **3.6 PR** provided #, ~not required because:~
-- [ ] **2.28 PR** provided #, ~not required because:~
-- **tests**  provided,  ~covered~ #, ~not required because:~
+- [ ] **changelog** provided | not required because: 
+- [ ] **development PR** provided # | not required because: 
+- [ ] **framework PR** provided # | not required because: 
+- [ ] **3.6 PR** provided # | not required because: 
+- [ ] **2.28 PR** provided # | not required because: 
+- **tests**  provided | covered # | not required because: 
 
 
 

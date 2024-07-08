@@ -4,3 +4,4 @@ Bugfix
      Previously we rendered T61String, UniversalString and BMPString types
      using numeric OID / der-encoded hex string format. Change this so that
      all string types are provided directly as strings.
+     Fixes #9376.

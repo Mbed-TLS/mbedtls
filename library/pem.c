@@ -501,13 +501,18 @@ int mbedtls_pem_write_buffer(const char *header, const char *footer,
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned char *encode_buf = NULL, *c, *p = buf;
-    size_t len = 0, use_len, add_len = 0;
+    size_t len = 0, use_len;
 
     mbedtls_base64_encode(NULL, 0, &use_len, der_data, der_len);
-    add_len = strlen(header) + strlen(footer) + (((use_len > 2) ? (use_len - 2) : 0) / 64) + 1;
+    /* The above call returns either 0 or one more than the actual length of
+     * the encoded data (terminating nul). */
+    size_t actual_use_len = use_len != 0 ? use_len - 1 : 0;
+    /* header + footer + one '\n' per line + final '\0' */
+    size_t nb_lines = (actual_use_len + 63) / 64;
+    size_t add_len = strlen(header) + strlen(footer) + nb_lines + 1;
 
-    if (use_len + add_len > buf_len) {
-        *olen = use_len + add_len;
+    if (actual_use_len + add_len > buf_len) {
+        *olen = actual_use_len + add_len;
         return MBEDTLS_ERR_BASE64_BUFFER_TOO_SMALL;
     }
 
@@ -516,6 +521,7 @@ int mbedtls_pem_write_buffer(const char *header, const char *footer,
         return MBEDTLS_ERR_PEM_ALLOC_FAILED;
     }
 
+    /* Note: this will set use_len to the same value as actual_use_len */
     if ((ret = mbedtls_base64_encode(encode_buf, use_len, &use_len, der_data,
                                      der_len)) != 0) {
         mbedtls_free(encode_buf);

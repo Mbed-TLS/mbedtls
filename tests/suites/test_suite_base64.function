@@ -58,47 +58,53 @@ void dec_chars()
 void mbedtls_base64_encode(char *src_string, char *dst_string,
                            int dst_buf_size, int result)
 {
-    unsigned char src_str[1000];
-    unsigned char dst_str[1000];
-    size_t len, src_len;
+    const unsigned char *src_str = (const unsigned char *) src_string;
+    const size_t src_len = strlen(src_string);
+    unsigned char *dst_str = NULL;
+    size_t len;
 
-    memset(src_str, 0x00, 1000);
-    memset(dst_str, 0x00, 1000);
+    /* Allocate output buffer to the exact size needed */
+    ASSERT_ALLOC(dst_str, dst_buf_size);
 
-    strncpy((char *) src_str, src_string, sizeof(src_str) - 1);
-    src_len = strlen((char *) src_str);
+    TEST_CF_SECRET(src_str, src_len);
+    TEST_EQUAL(result, mbedtls_base64_encode(dst_str, dst_buf_size, &len,
+                                             src_str, src_len));
+    TEST_CF_PUBLIC(src_str, src_len);
 
-    TEST_CF_SECRET(src_str, sizeof(src_str));
-    TEST_ASSERT(mbedtls_base64_encode(dst_str, dst_buf_size, &len, src_str, src_len) == result);
-    TEST_CF_PUBLIC(src_str, sizeof(src_str));
-
-    /* dest_str will have had tainted data copied to it, prevent the TEST_ASSERT below from triggering
-       CF failures by unmarking it. */
+    /* dest_str will have had tainted data copied to it, prevent the
+     * comparison below from triggering CF failures by unmarking it. */
     TEST_CF_PUBLIC(dst_str, len);
 
     if (result == 0) {
-        TEST_ASSERT(strcmp((char *) dst_str, dst_string) == 0);
+        ASSERT_COMPARE(dst_str, len, dst_string, strlen(dst_string));
     }
+
+exit:
+    mbedtls_free(dst_str);
 }
 /* END_CASE */
 
 /* BEGIN_CASE */
 void mbedtls_base64_decode(char *src_string, char *dst_string, int result)
 {
-    unsigned char src_str[1000];
-    unsigned char dst_str[1000];
+    const unsigned char *src_str = (const unsigned char *) src_string;
+    const size_t src_len = strlen(src_string);
+    const size_t dst_len = strlen(dst_string);
+    unsigned char *dst_str = NULL;
     size_t len;
     int res;
 
-    memset(src_str, 0x00, 1000);
-    memset(dst_str, 0x00, 1000);
+    /* Allocate output buffer to the exact size needed */
+    ASSERT_ALLOC(dst_str, dst_len);
 
-    strncpy((char *) src_str, src_string, sizeof(src_str) - 1);
-    res = mbedtls_base64_decode(dst_str, sizeof(dst_str), &len, src_str, strlen((char *) src_str));
-    TEST_ASSERT(res == result);
+    res = mbedtls_base64_decode(dst_str, dst_len, &len, src_str, src_len);
+    TEST_EQUAL(res, result);
     if (result == 0) {
-        TEST_ASSERT(strcmp((char *) dst_str, dst_string) == 0);
+        ASSERT_COMPARE(dst_str, len, dst_string, strlen(dst_string));
     }
+
+exit:
+    mbedtls_free(dst_str);
 }
 /* END_CASE */
 
@@ -112,16 +118,16 @@ void base64_encode_hex(data_t *src, char *dst, int dst_buf_size,
     res = mbedtls_test_zero_alloc(dst_buf_size);
 
     TEST_CF_SECRET(src->x, src->len);
-    TEST_ASSERT(mbedtls_base64_encode(res, dst_buf_size, &len, src->x, src->len) == result);
+    TEST_EQUAL(result, mbedtls_base64_encode(res, dst_buf_size, &len,
+                                             src->x, src->len));
     TEST_CF_PUBLIC(src->x, src->len);
 
-    /* res will have had tainted data copied to it, prevent the TEST_ASSERT below from triggering
-       CF failures by unmarking it. */
+    /* res will have had tainted data copied to it, prevent the comparison
+     * below from triggering CF failures by unmarking it. */
     TEST_CF_PUBLIC(res, len);
 
     if (result == 0) {
-        TEST_ASSERT(len == strlen(dst));
-        TEST_ASSERT(memcmp(dst, res, len) == 0);
+        ASSERT_COMPARE(res, len, dst, strlen(dst));
     }
 
 exit:
@@ -138,11 +144,10 @@ void base64_decode_hex(char *src, data_t *dst, int dst_buf_size,
 
     res = mbedtls_test_zero_alloc(dst_buf_size);
 
-    TEST_ASSERT(mbedtls_base64_decode(res, dst_buf_size, &len, (unsigned char *) src,
-                                      strlen(src)) == result);
+    TEST_EQUAL(result, mbedtls_base64_decode(res, dst_buf_size, &len,
+                                             (unsigned char *) src, strlen(src)));
     if (result == 0) {
-        TEST_ASSERT(len == dst->len);
-        TEST_ASSERT(memcmp(dst->x, res, len) == 0);
+        ASSERT_COMPARE(res, len, dst->x, dst->len);
     }
 
 exit:
@@ -156,10 +161,10 @@ void base64_decode_hex_src(data_t *src, char *dst_ref, int result)
     unsigned char dst[1000] = { 0 };
     size_t len;
 
-    TEST_ASSERT(mbedtls_base64_decode(dst, sizeof(dst), &len, src->x, src->len) == result);
+    TEST_EQUAL(result, mbedtls_base64_decode(dst, sizeof(dst), &len,
+                                             src->x, src->len));
     if (result == 0) {
-        TEST_ASSERT(len == strlen(dst_ref));
-        TEST_ASSERT(memcmp(dst, dst_ref, len) == 0);
+        ASSERT_COMPARE(dst, len, dst_ref, strlen(dst_ref));
     }
 
 exit:
@@ -170,6 +175,6 @@ exit:
 /* BEGIN_CASE depends_on:MBEDTLS_SELF_TEST */
 void base64_selftest()
 {
-    TEST_ASSERT(mbedtls_base64_self_test(1) == 0);
+    TEST_EQUAL(0, mbedtls_base64_self_test(1));
 }
 /* END_CASE */

@@ -129,7 +129,7 @@ generated_files: $(GENERATED_FILES)
 psa/psa_constant_names_generated.c: $(gen_file_dep) ../scripts/generate_psa_constants.py
 psa/psa_constant_names_generated.c: $(gen_file_dep) ../tf-psa-crypto/include/psa/crypto_values.h
 psa/psa_constant_names_generated.c: $(gen_file_dep) ../tf-psa-crypto/include/psa/crypto_extra.h
-psa/psa_constant_names_generated.c: $(gen_file_dep) ../tests/suites/test_suite_psa_crypto_metadata.data
+psa/psa_constant_names_generated.c: $(gen_file_dep) ../tf-psa-crypto/tests/suites/test_suite_psa_crypto_metadata.data
 psa/psa_constant_names_generated.c:
 	echo "  Gen   $@"
 	$(PYTHON) ../scripts/generate_psa_constants.py

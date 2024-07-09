@@ -166,14 +166,7 @@ int mbedtls_chacha20_setkey(mbedtls_chacha20_context *ctx,
     ctx->state[3] = 0x6b206574;
 
     /* Set key */
-    ctx->state[4]  = MBEDTLS_GET_UINT32_LE(key, 0);
-    ctx->state[5]  = MBEDTLS_GET_UINT32_LE(key, 4);
-    ctx->state[6]  = MBEDTLS_GET_UINT32_LE(key, 8);
-    ctx->state[7]  = MBEDTLS_GET_UINT32_LE(key, 12);
-    ctx->state[8]  = MBEDTLS_GET_UINT32_LE(key, 16);
-    ctx->state[9]  = MBEDTLS_GET_UINT32_LE(key, 20);
-    ctx->state[10] = MBEDTLS_GET_UINT32_LE(key, 24);
-    ctx->state[11] = MBEDTLS_GET_UINT32_LE(key, 28);
+    mbedtls_memcpy_to_le(&ctx->state[4], key, 32, 4);
 
     return 0;
 }
@@ -186,9 +179,7 @@ int mbedtls_chacha20_starts(mbedtls_chacha20_context *ctx,
     ctx->state[12] = counter;
 
     /* Nonce */
-    ctx->state[13] = MBEDTLS_GET_UINT32_LE(nonce, 0);
-    ctx->state[14] = MBEDTLS_GET_UINT32_LE(nonce, 4);
-    ctx->state[15] = MBEDTLS_GET_UINT32_LE(nonce, 8);
+    mbedtls_memcpy_to_le(&ctx->state[13], nonce, 12, 4);
 
     mbedtls_platform_zeroize(ctx->keystream8, sizeof(ctx->keystream8));
 

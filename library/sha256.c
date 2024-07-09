@@ -501,11 +501,11 @@ int mbedtls_internal_sha256_process_c(mbedtls_sha256_context *ctx,
         local.A[i] = ctx->state[i];
     }
 
+    mbedtls_memcpy_to_be(local.W, data, 64, 4);
+
 #if defined(MBEDTLS_SHA256_SMALLER)
     for (i = 0; i < 64; i++) {
-        if (i < 16) {
-            local.W[i] = MBEDTLS_GET_UINT32_BE(data, 4 * i);
-        } else {
+        if (i >= 16) {
             R(i);
         }
 
@@ -519,10 +519,6 @@ int mbedtls_internal_sha256_process_c(mbedtls_sha256_context *ctx,
         local.A[0] = local.temp1;
     }
 #else /* MBEDTLS_SHA256_SMALLER */
-    for (i = 0; i < 16; i++) {
-        local.W[i] = MBEDTLS_GET_UINT32_BE(data, 4 * i);
-    }
-
     for (i = 0; i < 16; i += 8) {
         P(local.A[0], local.A[1], local.A[2], local.A[3], local.A[4],
           local.A[5], local.A[6], local.A[7], local.W[i+0], K[i+0]);
@@ -741,20 +737,11 @@ int mbedtls_sha256_finish(mbedtls_sha256_context *ctx,
     /*
      * Output final state
      */
-    MBEDTLS_PUT_UINT32_BE(ctx->state[0], output,  0);
-    MBEDTLS_PUT_UINT32_BE(ctx->state[1], output,  4);
-    MBEDTLS_PUT_UINT32_BE(ctx->state[2], output,  8);
-    MBEDTLS_PUT_UINT32_BE(ctx->state[3], output, 12);
-    MBEDTLS_PUT_UINT32_BE(ctx->state[4], output, 16);
-    MBEDTLS_PUT_UINT32_BE(ctx->state[5], output, 20);
-    MBEDTLS_PUT_UINT32_BE(ctx->state[6], output, 24);
 
 #if defined(MBEDTLS_SHA224_C)
     truncated = ctx->is224;
 #endif
-    if (!truncated) {
-        MBEDTLS_PUT_UINT32_BE(ctx->state[7], output, 28);
-    }
+    mbedtls_memcpy_to_be(output, ctx->state, truncated ? 28 : 32, 4);
 
     ret = 0;
 

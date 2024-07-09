@@ -198,7 +198,19 @@ int mbedtls_asn1_get_bitstring(unsigned char **p, const unsigned char *end,
     /* Get number of unused bits, ensure unused bits <= 7 */
     bs->unused_bits = **p;
     if (bs->unused_bits > 7) {
-        return MBEDTLS_ERR_ASN1_INVALID_LENGTH;
+	return MBEDTLS_ERR_ASN1_INVALID_LENGTH;
+    }
+    if (bs->unused_bits != 0) {
+        /* Check that the BIT STRING can hold the unused bits */
+        if (bs->len < 1) {
+            return MBEDTLS_ERR_ASN1_INVALID_LENGTH;
+        }
+
+        /* Check that the unused bits are zeroed */
+        unsigned char last = (*p)[bs->len];
+        if ((last & ((1 << bs->unused_bits) - 1)) != 0) {
+            return MBEDTLS_ERR_ASN1_INVALID_DATA;
+        }
     }
     (*p)++;
 

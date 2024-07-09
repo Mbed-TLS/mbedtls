@@ -1,0 +1,2 @@
+Bugfix
+  * Require unused bits in BIT STRINGs to be zeroed.

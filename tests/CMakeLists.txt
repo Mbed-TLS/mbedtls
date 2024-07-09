@@ -69,7 +69,8 @@ string(REGEX REPLACE "[^;]*/" ""
 # Derive generated file paths in the build directory. The generated data
 # files go into the suites/ subdirectory.
 set(base_generated_data_files
-    ${base_bignum_generated_data_files} ${base_ecp_generated_data_files} ${base_psa_generated_data_files})
+    ${base_bignum_generated_data_files} ${base_config_generated_data_files}
+    ${base_ecp_generated_data_files} ${base_psa_generated_data_files})
 string(REGEX REPLACE "([^;]+)" "suites/\\1"
        all_generated_data_files "${base_generated_data_files}")
 set(bignum_generated_data_files "")
@@ -197,6 +198,7 @@ function(add_test_suite suite_name)
     # Get the test names of the tests with generated .data files
     # from the generated_data_files list in parent scope.
     set(bignum_generated_data_names "")
+    set(config_generated_data_names "")
     set(ecp_generated_data_names "")
     set(psa_generated_data_names "")
     foreach(generated_data_file ${bignum_generated_data_files})
@@ -207,6 +209,15 @@ function(add_test_suite suite_name)
         # Remove leading "test_suite_"
         string(SUBSTRING ${generated_data_name} 11 -1 generated_data_name)
         list(APPEND bignum_generated_data_names ${generated_data_name})
+    endforeach()
+    foreach(generated_data_file ${config_generated_data_files})
+        # Get the plain filename
+        get_filename_component(generated_data_name ${generated_data_file} NAME)
+        # Remove the ".data" extension
+        get_name_without_last_ext(generated_data_name ${generated_data_name})
+        # Remove leading "test_suite_"
+        string(SUBSTRING ${generated_data_name} 11 -1 generated_data_name)
+        list(APPEND config_generated_data_names ${generated_data_name})
     endforeach()
     foreach(generated_data_file ${ecp_generated_data_files})
         # Get the plain filename
@@ -234,7 +245,7 @@ function(add_test_suite suite_name)
     elseif(";${config_generated_data_names};" MATCHES ";${data_name};")
         set(data_file
             ${CMAKE_CURRENT_BINARY_DIR}/suites/test_suite_${data_name}.data)
-        set(dependency test_suite_bignum_generated_data)
+        set(dependency test_suite_config_generated_data)
     elseif(";${ecp_generated_data_names};" MATCHES ";${data_name};")
         set(data_file
             ${CMAKE_CURRENT_BINARY_DIR}/suites/test_suite_${data_name}.data)

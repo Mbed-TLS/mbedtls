@@ -95,10 +95,11 @@ static int getrandom_wrapper(void *buf, size_t buflen, unsigned int flags)
 #endif /* SYS_getrandom */
 #endif /* __linux__ || __midipix__ */
 
-#if defined(__FreeBSD__) || defined(__DragonFly__)
+#if defined(__FreeBSD__) || defined(__DragonFly__) || defined(__NuttX__)
 #include <sys/param.h>
 #if (defined(__FreeBSD__) && __FreeBSD_version >= 1200000) || \
-    (defined(__DragonFly__) && __DragonFly_version >= 500700)
+    (defined(__DragonFly__) && __DragonFly_version >= 500700) || \
+    defined(__NuttX__)
 #include <errno.h>
 #include <sys/random.h>
 #define HAVE_GETRANDOM
@@ -107,8 +108,8 @@ static int getrandom_wrapper(void *buf, size_t buflen, unsigned int flags)
     return (int) getrandom(buf, buflen, flags);
 }
 #endif /* (__FreeBSD__ && __FreeBSD_version >= 1200000) ||
-          (__DragonFly__ && __DragonFly_version >= 500700) */
-#endif /* __FreeBSD__ || __DragonFly__ */
+          (__DragonFly__ && __DragonFly_version >= 500700) || __NuttX__ */
+#endif /* __FreeBSD__ || __DragonFly__ || __NuttX__ */
 
 /*
  * Some BSD systems provide KERN_ARND.

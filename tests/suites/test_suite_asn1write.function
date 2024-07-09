@@ -308,7 +308,13 @@ void mbedtls_asn1_write_algorithm_identifier(data_t *oid,
                 expected_params_tag = buf_complete[data_len] = 0x04;
                 expected_params_len = par_len - 2;
                 buf_complete[data_len + 1] = (unsigned char) expected_params_len;
-            } else if (par_len >= 4 + 128 && par_len < 3 + 256 * 256) {
+            } else if (par_len >= 3 + 128 && par_len < 3 + 256) {
+                /* Write an OCTET STRING with a one-byte length encoding */
+                expected_params_tag = buf_complete[data_len] = 0x04;
+                expected_params_len = par_len - 3;
+                buf_complete[data_len + 1] = 0x81;
+                buf_complete[data_len + 2] = (unsigned char) (expected_params_len);
+            } else if (par_len >= 4 + 256 && par_len < 4 + 256 * 256) {
                 /* Write an OCTET STRING with a two-byte length encoding */
                 expected_params_tag = buf_complete[data_len] = 0x04;
                 expected_params_len = par_len - 4;

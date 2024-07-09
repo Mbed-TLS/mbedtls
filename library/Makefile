@@ -377,9 +377,9 @@ version_features.c:
 GENERATED_WRAPPER_FILES = \
                     psa_crypto_driver_wrappers.h \
                     psa_crypto_driver_wrappers_no_static.c
-$(GENERATED_WRAPPER_FILES): ../scripts/generate_driver_wrappers.py
-$(GENERATED_WRAPPER_FILES): ../scripts/data_files/driver_templates/psa_crypto_driver_wrappers.h.jinja
-$(GENERATED_WRAPPER_FILES): ../scripts/data_files/driver_templates/psa_crypto_driver_wrappers_no_static.c.jinja
+$(GENERATED_WRAPPER_FILES): $(gen_file_dep) ../scripts/generate_driver_wrappers.py
+$(GENERATED_WRAPPER_FILES): $(gen_file_dep) ../scripts/data_files/driver_templates/psa_crypto_driver_wrappers.h.jinja
+$(GENERATED_WRAPPER_FILES): $(gen_file_dep) ../scripts/data_files/driver_templates/psa_crypto_driver_wrappers_no_static.c.jinja
 $(GENERATED_WRAPPER_FILES):
 	echo "  Gen   $(GENERATED_WRAPPER_FILES)"
 	$(PYTHON) ../scripts/generate_driver_wrappers.py

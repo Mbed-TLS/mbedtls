@@ -21,7 +21,7 @@ file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/suites)
 execute_process(
     COMMAND
         ${MBEDTLS_PYTHON_EXECUTABLE}
-        ${CMAKE_CURRENT_SOURCE_DIR}/../framework/scripts/generate_bignum_tests.py
+        ${CMAKE_CURRENT_SOURCE_DIR}/../../framework/scripts/generate_bignum_tests.py
         --list-for-cmake
     WORKING_DIRECTORY
         ${CMAKE_CURRENT_SOURCE_DIR}/..
@@ -33,19 +33,26 @@ string(REGEX REPLACE "[^;]*/" ""
 execute_process(
     COMMAND
         ${MBEDTLS_PYTHON_EXECUTABLE}
-        ${CMAKE_CURRENT_SOURCE_DIR}/../framework/scripts/generate_config_tests.py
+        ${CMAKE_CURRENT_SOURCE_DIR}/../../framework/scripts/generate_config_tests.py
         --list-for-cmake
     WORKING_DIRECTORY
         ${CMAKE_CURRENT_SOURCE_DIR}/..
     OUTPUT_VARIABLE
-        base_config_generated_data_files)
+        base_config_generated_data_files_raw)
 string(REGEX REPLACE "[^;]*/" ""
-       base_config_generated_data_files "${base_config_generated_data_files}")
+       base_config_generated_data_files_raw
+       "${base_config_generated_data_files_raw}")
+# Can be replace by list(FILTER ...) when CI CMake version is >=3.6
+foreach(file ${base_config_generated_data_files_raw})
+    if(${file} MATCHES "psa")
+        list(APPEND base_config_generated_data_files ${file})
+    endif()
+endforeach()
 
 execute_process(
     COMMAND
         ${MBEDTLS_PYTHON_EXECUTABLE}
-        ${CMAKE_CURRENT_SOURCE_DIR}/../framework/scripts/generate_ecp_tests.py
+        ${CMAKE_CURRENT_SOURCE_DIR}/../../framework/scripts/generate_ecp_tests.py
         --list-for-cmake
     WORKING_DIRECTORY
         ${CMAKE_CURRENT_SOURCE_DIR}/..
@@ -57,7 +64,7 @@ string(REGEX REPLACE "[^;]*/" ""
 execute_process(
     COMMAND
         ${MBEDTLS_PYTHON_EXECUTABLE}
-        ${CMAKE_CURRENT_SOURCE_DIR}/../framework/scripts/generate_psa_tests.py
+        ${CMAKE_CURRENT_SOURCE_DIR}/../../framework/scripts/generate_psa_tests.py
         --list-for-cmake
     WORKING_DIRECTORY
         ${CMAKE_CURRENT_SOURCE_DIR}/..
@@ -98,16 +105,16 @@ if(GEN_FILES)
             ${CMAKE_CURRENT_SOURCE_DIR}/..
         COMMAND
             ${MBEDTLS_PYTHON_EXECUTABLE}
-            ${CMAKE_CURRENT_SOURCE_DIR}/../framework/scripts/generate_bignum_tests.py
+            ${CMAKE_CURRENT_SOURCE_DIR}/../../framework/scripts/generate_bignum_tests.py
             --directory ${CMAKE_CURRENT_BINARY_DIR}/suites
         DEPENDS
-            ${CMAKE_CURRENT_SOURCE_DIR}/../framework/scripts/generate_bignum_tests.py
-            ${CMAKE_CURRENT_SOURCE_DIR}/../framework/scripts/mbedtls_framework/bignum_common.py
-            ${CMAKE_CURRENT_SOURCE_DIR}/../framework/scripts/mbedtls_framework/bignum_core.py
-            ${CMAKE_CURRENT_SOURCE_DIR}/../framework/scripts/mbedtls_framework/bignum_mod_raw.py
-            ${CMAKE_CURRENT_SOURCE_DIR}/../framework/scripts/mbedtls_framework/bignum_mod.py
-            ${CMAKE_CURRENT_SOURCE_DIR}/../framework/scripts/mbedtls_framework/test_case.py
-            ${CMAKE_CURRENT_SOURCE_DIR}/../framework/scripts/mbedtls_framework/test_data_generation.py
+            ${CMAKE_CURRENT_SOURCE_DIR}/../../framework/scripts/generate_bignum_tests.py
+            ${CMAKE_CURRENT_SOURCE_DIR}/../../framework/scripts/mbedtls_framework/bignum_common.py
+            ${CMAKE_CURRENT_SOURCE_DIR}/../../framework/scripts/mbedtls_framework/bignum_core.py
+            ${CMAKE_CURRENT_SOURCE_DIR}/../../framework/scripts/mbedtls_framework/bignum_mod_raw.py
+            ${CMAKE_CURRENT_SOURCE_DIR}/../../framework/scripts/mbedtls_framework/bignum_mod.py
+            ${CMAKE_CURRENT_SOURCE_DIR}/../../framework/scripts/mbedtls_framework/test_case.py
+            ${CMAKE_CURRENT_SOURCE_DIR}/../../framework/scripts/mbedtls_framework/test_data_generation.py
     )
     add_custom_command(
         OUTPUT
@@ -116,10 +123,11 @@ if(GEN_FILES)
             ${CMAKE_CURRENT_SOURCE_DIR}/..
         COMMAND
             ${MBEDTLS_PYTHON_EXECUTABLE}
-            ${CMAKE_CURRENT_SOURCE_DIR}/../framework/scripts/generate_config_tests.py
+            ${CMAKE_CURRENT_SOURCE_DIR}/../../framework/scripts/generate_config_tests.py
             --directory ${CMAKE_CURRENT_BINARY_DIR}/suites
+            ${config_generated_data_files}
         DEPENDS
-            ${CMAKE_CURRENT_SOURCE_DIR}/../framework/scripts/generate_config_tests.py
+            ${CMAKE_CURRENT_SOURCE_DIR}/../../framework/scripts/generate_config_tests.py
             # Do not declare the configuration files as dependencies: they
             # change too often in ways that don't affect the result
             # ((un)commenting some options).
@@ -131,14 +139,14 @@ if(GEN_FILES)
             ${CMAKE_CURRENT_SOURCE_DIR}/..
         COMMAND
             ${MBEDTLS_PYTHON_EXECUTABLE}
-            ${CMAKE_CURRENT_SOURCE_DIR}/../framework/scripts/generate_ecp_tests.py
+            ${CMAKE_CURRENT_SOURCE_DIR}/../../framework/scripts/generate_ecp_tests.py
             --directory ${CMAKE_CURRENT_BINARY_DIR}/suites
         DEPENDS
-            ${CMAKE_CURRENT_SOURCE_DIR}/../framework/scripts/generate_ecp_tests.py
-            ${CMAKE_CURRENT_SOURCE_DIR}/../framework/scripts/mbedtls_framework/bignum_common.py
-            ${CMAKE_CURRENT_SOURCE_DIR}/../framework/scripts/mbedtls_framework/ecp.py
-            ${CMAKE_CURRENT_SOURCE_DIR}/../framework/scripts/mbedtls_framework/test_case.py
-            ${CMAKE_CURRENT_SOURCE_DIR}/../framework/scripts/mbedtls_framework/test_data_generation.py
+            ${CMAKE_CURRENT_SOURCE_DIR}/../../framework/scripts/generate_ecp_tests.py
+            ${CMAKE_CURRENT_SOURCE_DIR}/../../framework/scripts/mbedtls_framework/bignum_common.py
+            ${CMAKE_CURRENT_SOURCE_DIR}/../../framework/scripts/mbedtls_framework/ecp.py
+            ${CMAKE_CURRENT_SOURCE_DIR}/../../framework/scripts/mbedtls_framework/test_case.py
+            ${CMAKE_CURRENT_SOURCE_DIR}/../../framework/scripts/mbedtls_framework/test_data_generation.py
     )
     add_custom_command(
         OUTPUT
@@ -147,20 +155,20 @@ if(GEN_FILES)
             ${CMAKE_CURRENT_SOURCE_DIR}/..
         COMMAND
             ${MBEDTLS_PYTHON_EXECUTABLE}
-            ${CMAKE_CURRENT_SOURCE_DIR}/../framework/scripts/generate_psa_tests.py
+            ${CMAKE_CURRENT_SOURCE_DIR}/../../framework/scripts/generate_psa_tests.py
             --directory ${CMAKE_CURRENT_BINARY_DIR}/suites
         DEPENDS
-            ${CMAKE_CURRENT_SOURCE_DIR}/../framework/scripts/generate_psa_tests.py
-            ${CMAKE_CURRENT_SOURCE_DIR}/../framework/scripts/mbedtls_framework/crypto_data_tests.py
-            ${CMAKE_CURRENT_SOURCE_DIR}/../framework/scripts/mbedtls_framework/crypto_knowledge.py
-            ${CMAKE_CURRENT_SOURCE_DIR}/../framework/scripts/mbedtls_framework/macro_collector.py
-            ${CMAKE_CURRENT_SOURCE_DIR}/../framework/scripts/mbedtls_framework/psa_information.py
-            ${CMAKE_CURRENT_SOURCE_DIR}/../framework/scripts/mbedtls_framework/psa_storage.py
-            ${CMAKE_CURRENT_SOURCE_DIR}/../framework/scripts/mbedtls_framework/test_case.py
-            ${CMAKE_CURRENT_SOURCE_DIR}/../framework/scripts/mbedtls_framework/test_data_generation.py
-            ${CMAKE_CURRENT_SOURCE_DIR}/../tf-psa-crypto/include/psa/crypto_config.h
-            ${CMAKE_CURRENT_SOURCE_DIR}/../tf-psa-crypto/include/psa/crypto_values.h
-            ${CMAKE_CURRENT_SOURCE_DIR}/../tf-psa-crypto/include/psa/crypto_extra.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/../../framework/scripts/generate_psa_tests.py
+            ${CMAKE_CURRENT_SOURCE_DIR}/../../framework/scripts/mbedtls_framework/crypto_data_tests.py
+            ${CMAKE_CURRENT_SOURCE_DIR}/../../framework/scripts/mbedtls_framework/crypto_knowledge.py
+            ${CMAKE_CURRENT_SOURCE_DIR}/../../framework/scripts/mbedtls_framework/macro_collector.py
+            ${CMAKE_CURRENT_SOURCE_DIR}/../../framework/scripts/mbedtls_framework/psa_information.py
+            ${CMAKE_CURRENT_SOURCE_DIR}/../../framework/scripts/mbedtls_framework/psa_storage.py
+            ${CMAKE_CURRENT_SOURCE_DIR}/../../framework/scripts/mbedtls_framework/test_case.py
+            ${CMAKE_CURRENT_SOURCE_DIR}/../../framework/scripts/mbedtls_framework/test_data_generation.py
+            ${CMAKE_CURRENT_SOURCE_DIR}/../include/psa/crypto_config.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/../include/psa/crypto_values.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/../include/psa/crypto_extra.h
     )
 
 else()
@@ -174,7 +182,7 @@ endif()
 # With this line, only 4 sub-makefiles include the above command, that reduces
 # the risk of a race.
 add_custom_target(test_suite_bignum_generated_data DEPENDS ${bignum_generated_data_files})
-add_custom_target(test_suite_config_generated_data DEPENDS ${config_generated_data_files})
+add_custom_target(test_suite_tf_psa_crypto_config_generated_data DEPENDS ${config_generated_data_files})
 add_custom_target(test_suite_ecp_generated_data DEPENDS ${ecp_generated_data_files})
 add_custom_target(test_suite_psa_generated_data DEPENDS ${psa_generated_data_files})
 # If SKIP_TEST_SUITES is not defined with -D, get it from the environment.
@@ -245,7 +253,7 @@ function(add_test_suite suite_name)
     elseif(";${config_generated_data_names};" MATCHES ";${data_name};")
         set(data_file
             ${CMAKE_CURRENT_BINARY_DIR}/suites/test_suite_${data_name}.data)
-        set(dependency test_suite_config_generated_data)
+        set(dependency test_suite_tf_psa_crypto_config_generated_data)
     elseif(";${ecp_generated_data_names};" MATCHES ";${data_name};")
         set(data_file
             ${CMAKE_CURRENT_BINARY_DIR}/suites/test_suite_${data_name}.data)
@@ -259,7 +267,7 @@ function(add_test_suite suite_name)
             ${CMAKE_CURRENT_SOURCE_DIR}/suites/test_suite_${data_name}.data)
         set(dependency
             test_suite_bignum_generated_data
-            test_suite_config_generated_data
+            test_suite_tf_psa_crypto_config_generated_data
             test_suite_ecp_generated_data
             test_suite_psa_generated_data)
     endif()
@@ -271,7 +279,7 @@ function(add_test_suite suite_name)
             test_suite_${data_name}.c
         COMMAND
             ${MBEDTLS_PYTHON_EXECUTABLE}
-            ${CMAKE_CURRENT_SOURCE_DIR}/../framework/scripts/generate_test_code.py
+            ${CMAKE_CURRENT_SOURCE_DIR}/../../framework/scripts/generate_test_code.py
             -f ${CMAKE_CURRENT_SOURCE_DIR}/suites/test_suite_${suite_name}.function
             -d ${data_file}
             -t ${CMAKE_CURRENT_SOURCE_DIR}/suites/main_test.function
@@ -280,7 +288,7 @@ function(add_test_suite suite_name)
             --helpers-file ${CMAKE_CURRENT_SOURCE_DIR}/suites/helpers.function
             -o .
         DEPENDS
-            ${CMAKE_CURRENT_SOURCE_DIR}/../framework/scripts/generate_test_code.py
+            ${CMAKE_CURRENT_SOURCE_DIR}/../../framework/scripts/generate_test_code.py
             ${CMAKE_CURRENT_SOURCE_DIR}/suites/test_suite_${suite_name}.function
             ${data_file}
             ${CMAKE_CURRENT_SOURCE_DIR}/suites/main_test.function
@@ -301,10 +309,10 @@ function(add_test_suite suite_name)
     # files are automatically included because the library targets declare
     # them as PUBLIC.
     target_include_directories(test_suite_${data_name}
-        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include
-        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../library
-        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../tf-psa-crypto/core
-        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../tf-psa-crypto/drivers/builtin/src)
+        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../tests/include
+        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../library
+        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../core
+        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../drivers/builtin/src)
     # Request C11, which is needed for memory poisoning tests
     set_target_properties(test_suite_${data_name} PROPERTIES C_STANDARD 11)
 
@@ -350,11 +358,5 @@ if (NOT ${CMAKE_CURRENT_BINARY_DIR} STREQUAL ${CMAKE_CURRENT_SOURCE_DIR})
     if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/seedfile")
         link_to_source(seedfile)
     endif()
-    link_to_source(Descriptions.txt)
-    link_to_source(compat.sh)
-    link_to_source(context-info.sh)
-    link_to_source(../framework/data_files)
-    link_to_source(scripts)
-    link_to_source(ssl-opt.sh)
-    link_to_source(opt-testcases)
+    link_to_source(../../framework/data_files)
 endif()

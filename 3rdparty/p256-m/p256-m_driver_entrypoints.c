@@ -286,13 +286,10 @@ psa_status_t p256_transparent_verify_hash(
      * (keypair format), or 0x04 followed by the 64 byte public key (public
      * key format). To ensure the key is in the latter format, the public key
      * is exported. */
-    status = psa_driver_wrapper_export_public_key(
-        attributes,
-        key_buffer,
-        key_buffer_size,
-        public_key_buffer,
-        public_key_buffer_size,
-        public_key_length_ptr);
+    status = p256_transparent_export_public_key(
+        attributes, key_buffer, key_buffer_size, public_key_buffer,
+        public_key_buffer_size, public_key_length_ptr);
+
     if (status != PSA_SUCCESS) {
         goto exit;
     }

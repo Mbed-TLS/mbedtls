@@ -203,7 +203,7 @@ static int pk_group_from_specified(const mbedtls_asn1_buf *params, mbedtls_ecp_g
     p += len;
 
     /* Ignore seed BIT STRING OPTIONAL */
-    if ((ret = mbedtls_asn1_get_tag(&p, end_curve, &len, MBEDTLS_ASN1_BIT_STRING)) == 0) {
+    if (mbedtls_asn1_get_tag(&p, end_curve, &len, MBEDTLS_ASN1_BIT_STRING) == 0) {
         p += len;
     }
 

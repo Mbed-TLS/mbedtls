@@ -483,12 +483,13 @@
 /**
  * \def MBEDTLS_AES_FEWER_TABLES
  *
- * Use less ROM/RAM for AES tables.
+ * Use less ROM/RAM for AES tables and code.
  *
  * Uncommenting this macro omits 75% of the AES tables from
  * ROM / RAM (depending on the value of \c MBEDTLS_AES_ROM_TABLES)
  * by computing their values on the fly during operations
- * (the tables are entry-wise rotations of one another).
+ * (the tables are entry-wise rotations of one another). It
+ * also enables some additional code-size optimisations.
  *
  * Tradeoff: Uncommenting this reduces the RAM / ROM footprint
  * by ~6kb but at the cost of more arithmetic operations during

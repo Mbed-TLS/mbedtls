@@ -303,35 +303,29 @@ void unaligned_access_endian_aware(int size, int offset, int big_endian)
     }
     /* Overwrite sentinel with endian-aware write macro */
     if (big_endian) {
-        switch (size) {
-            case 16:
-                MBEDTLS_PUT_UINT16_BE(read, x, offset);
-                break;
-            case 24:
-                MBEDTLS_PUT_UINT24_BE(read, x, offset);
-                break;
-            case 32:
-                MBEDTLS_PUT_UINT32_BE(read, x, offset);
-                break;
-            case 64:
-                MBEDTLS_PUT_UINT64_BE(read, x, offset);
-                break;
-        }
+        /* Done this way rather than with a switch() to help ensure they
+         * are implemented properly with do-while(0). */
+        /* *INDENT-OFF* */
+        if (size == 16)
+            MBEDTLS_PUT_UINT16_BE(read, x, offset);
+        else if (size == 24)
+            MBEDTLS_PUT_UINT24_BE(read, x, offset);
+        else if (size == 32)
+            MBEDTLS_PUT_UINT32_BE(read, x, offset);
+        else if (size == 64)
+            MBEDTLS_PUT_UINT64_BE(read, x, offset);
+        /* *INDENT-ON* */
     } else {
-        switch (size) {
-            case 16:
-                MBEDTLS_PUT_UINT16_LE(read, x, offset);
-                break;
-            case 24:
-                MBEDTLS_PUT_UINT24_LE(read, x, offset);
-                break;
-            case 32:
-                MBEDTLS_PUT_UINT32_LE(read, x, offset);
-                break;
-            case 64:
-                MBEDTLS_PUT_UINT64_LE(read, x, offset);
-                break;
-        }
+        /* *INDENT-OFF* */
+        if (size == 16)
+            MBEDTLS_PUT_UINT16_LE(read, x, offset);
+        else if (size == 24)
+            MBEDTLS_PUT_UINT24_LE(read, x, offset);
+        else if (size == 32)
+            MBEDTLS_PUT_UINT32_LE(read, x, offset);
+        else if (size == 64)
+            MBEDTLS_PUT_UINT64_LE(read, x, offset);
+        /* *INDENT-ON* */
     }
 
     /* Verify write - check memory is correct */

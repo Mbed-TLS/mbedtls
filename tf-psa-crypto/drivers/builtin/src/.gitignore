@@ -1,9 +1,4 @@
-libmbed*
-*.sln
-*.vcxproj
-
 ###START_GENERATED_FILES###
 /error.c
 /version_features.c
-/ssl_debug_helpers_generated.c
 ###END_GENERATED_FILES###

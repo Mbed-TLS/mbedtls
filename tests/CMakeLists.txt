@@ -291,7 +291,9 @@ function(add_test_suite suite_name)
     # them as PUBLIC.
     target_include_directories(test_suite_${data_name}
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include
-        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../library)
+        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../library
+        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../tf-psa-crypto/core
+        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../tf-psa-crypto/drivers/builtin/src)
     # Request C11, which is needed for memory poisoning tests
     set_target_properties(test_suite_${data_name} PROPERTIES C_STANDARD 11)
 

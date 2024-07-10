@@ -368,9 +368,8 @@ class LicenseIssueTracker(LineIssueTracker):
     heading = "License issue:"
 
     LICENSE_EXEMPTION_RE_LIST = [
-        # Third-party code, other than whitelisted third-party modules,
-        # may be under a different license.
-        r'3rdparty/(?!(p256-m)/.*)',
+        # Exempt third-party drivers which may be under a different license
+        r'tf-psa-crypto/drivers/(?=(everest)/.*)',
         # Documentation explaining the license may have accidental
         # false positives.
         r'(ChangeLog|LICENSE|framework\/LICENSE|[-0-9A-Z_a-z]+\.md)\Z',

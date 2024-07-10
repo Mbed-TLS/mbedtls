@@ -13,7 +13,8 @@ target_include_directories(${everest_target}
          $<INSTALL_INTERFACE:include>
   PRIVATE include/everest
           include/everest/kremlib
-          ${MBEDTLS_DIR}/library/)
+          ${MBEDTLS_DIR}/library
+          ${MBEDTLS_DIR}/tf-psa-crypto/core)
 
 # Pass-through MBEDTLS_CONFIG_FILE and MBEDTLS_USER_CONFIG_FILE
 # This must be duplicated from library/CMakeLists.txt because

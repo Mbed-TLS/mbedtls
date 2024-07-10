@@ -11,7 +11,8 @@ target_include_directories(${p256m_target}
          $<BUILD_INTERFACE:${MBEDTLS_DIR}/tf-psa-crypto/include>
          $<BUILD_INTERFACE:${MBEDTLS_DIR}/tf-psa-crypto/drivers/builtin/include>
          $<INSTALL_INTERFACE:include>
-  PRIVATE ${MBEDTLS_DIR}/library/)
+  PRIVATE ${MBEDTLS_DIR}/library/
+          ${MBEDTLS_DIR}/tf-psa-crypto/core)
 
 # Pass-through MBEDTLS_CONFIG_FILE and MBEDTLS_USER_CONFIG_FILE
 # This must be duplicated from library/CMakeLists.txt because

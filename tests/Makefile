@@ -4,8 +4,8 @@ include ../scripts/common.make
 # Set this to -v to see the details of failing test cases
 TEST_FLAGS ?= $(if $(filter-out 0 OFF Off off NO No no FALSE False false N n,$(CTEST_OUTPUT_ON_FAILURE)),-v,)
 
-# Also include library headers, for the sake of invasive tests.
-LOCAL_CFLAGS += -I../library
+# Also include private headers, for the sake of invasive tests.
+LOCAL_CFLAGS += -I../library -I../tf-psa-crypto/core -I../tf-psa-crypto/drivers/builtin/src
 
 
 # Enable definition of various functions used throughout the testsuite
@@ -268,17 +268,22 @@ define libtestdriver1_rewrite :=
 	s/\b(?=mbedtls_|psa_)/libtestdriver1_/g;
 endef
 
-libtestdriver1.a: export MBEDTLS_PATH := $(patsubst ../..//%,/%,../../$(MBEDTLS_PATH))
 libtestdriver1.a:
-	# Copy the library and fake a 3rdparty Makefile include.
 	rm -Rf ./libtestdriver1
 	mkdir ./libtestdriver1
+	mkdir ./libtestdriver1/tf-psa-crypto
+	mkdir ./libtestdriver1/tf-psa-crypto/drivers
+	mkdir ./libtestdriver1/tf-psa-crypto/drivers/everest
+	mkdir ./libtestdriver1/tf-psa-crypto/drivers/p256-m
+	touch ./libtestdriver1/tf-psa-crypto/drivers/everest/Makefile.inc
+	touch ./libtestdriver1/tf-psa-crypto/drivers/p256-m/Makefile.inc
+	cp -Rf ../framework ./libtestdriver1
 	cp -Rf ../library ./libtestdriver1
 	cp -Rf ../include ./libtestdriver1
-	cp -Rf ../tf-psa-crypto ./libtestdriver1
+	cp -Rf ../tf-psa-crypto/core ./libtestdriver1/tf-psa-crypto
+	cp -Rf ../tf-psa-crypto/include ./libtestdriver1/tf-psa-crypto
+	cp -Rf ../tf-psa-crypto/drivers/builtin ./libtestdriver1/tf-psa-crypto/drivers
 	cp -Rf ../scripts ./libtestdriver1
-	mkdir ./libtestdriver1/3rdparty
-	touch ./libtestdriver1/3rdparty/Makefile.inc
 
 	# Set the test driver base (minimal) configuration.
 	cp ./include/test/drivers/config_test_driver.h ./libtestdriver1/include/mbedtls/mbedtls_config.h
@@ -298,8 +303,10 @@ libtestdriver1.a:
 	# when this test driver library is linked with the Mbed TLS library.
 	perl -pi -e '$(libtestdriver1_rewrite)' ./libtestdriver1/library/*.[ch]
 	perl -pi -e '$(libtestdriver1_rewrite)' ./libtestdriver1/include/*/*.h
+	perl -pi -e '$(libtestdriver1_rewrite)' ./libtestdriver1/tf-psa-crypto/core/*.[ch]
 	perl -pi -e '$(libtestdriver1_rewrite)' ./libtestdriver1/tf-psa-crypto/include/*/*.h
 	perl -pi -e '$(libtestdriver1_rewrite)' ./libtestdriver1/tf-psa-crypto/drivers/builtin/include/*/*.h
+	perl -pi -e '$(libtestdriver1_rewrite)' ./libtestdriver1/tf-psa-crypto/drivers/builtin/src/*.[ch]
 
 	$(MAKE) -C ./libtestdriver1/library CFLAGS="-I../../ $(CFLAGS)" LDFLAGS="$(LDFLAGS)" libmbedcrypto.a
 	cp ./libtestdriver1/library/libmbedcrypto.a ../library/libtestdriver1.a

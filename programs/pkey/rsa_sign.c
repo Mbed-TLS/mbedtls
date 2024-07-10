@@ -13,12 +13,14 @@
 
 #if !defined(MBEDTLS_BIGNUM_C) || !defined(MBEDTLS_RSA_C) ||  \
     !defined(MBEDTLS_MD_CAN_SHA256) || !defined(MBEDTLS_MD_C) || \
-    !defined(MBEDTLS_FS_IO)
+    !defined(MBEDTLS_FS_IO) || !defined(MBEDTLS_CTR_DRBG_C) || \
+    !defined(MBEDTLS_ENTROPY_C)
 int main(void)
 {
     mbedtls_printf("MBEDTLS_BIGNUM_C and/or MBEDTLS_RSA_C and/or "
                    "MBEDTLS_MD_C and/or "
-                   "MBEDTLS_MD_CAN_SHA256 and/or MBEDTLS_FS_IO not defined.\n");
+                   "MBEDTLS_MD_CAN_SHA256 and/or MBEDTLS_FS_IO and/or "
+                   "MBEDTLS_CTR_DRBG_C and/or MBEDTLS_ENTROPY_C not defined.\n");
     mbedtls_exit(0);
 }
 #else
@@ -28,6 +30,8 @@ int main(void)
 #include <stdio.h>
 #include <string.h>
 
+#include "mbedtls/entropy.h"
+#include "mbedtls/ctr_drbg.h"
 
 int main(int argc, char *argv[])
 {
@@ -40,12 +44,26 @@ int main(int argc, char *argv[])
     unsigned char buf[MBEDTLS_MPI_MAX_SIZE];
     char filename[512];
     mbedtls_mpi N, P, Q, D, E, DP, DQ, QP;
+    mbedtls_entropy_context entrophy_ctx;
+    mbedtls_ctr_drbg_context dbrg_ctx;
+    const char *pers = "rsa_sign";
 
     mbedtls_rsa_init(&rsa);
 
     mbedtls_mpi_init(&N); mbedtls_mpi_init(&P); mbedtls_mpi_init(&Q);
     mbedtls_mpi_init(&D); mbedtls_mpi_init(&E); mbedtls_mpi_init(&DP);
     mbedtls_mpi_init(&DQ); mbedtls_mpi_init(&QP);
+
+    mbedtls_entropy_init(&entrophy_ctx);
+    mbedtls_ctr_drbg_init(&dbrg_ctx);
+
+    if ((ret = mbedtls_ctr_drbg_seed(&dbrg_ctx, mbedtls_entropy_func, &entrophy_ctx,
+                                     (const unsigned char *) pers,
+                                     strlen(pers))) != 0) {
+        mbedtls_printf(" failed\n  ! mbedtls_ctr_drbg_seed returned -0x%04x\n",
+                       (unsigned int) -ret);
+        goto exit;
+    }
 
     if (argc != 2) {
         mbedtls_printf("usage: rsa_sign <filename>\n");
@@ -114,7 +132,7 @@ int main(int argc, char *argv[])
         goto exit;
     }
 
-    if ((ret = mbedtls_rsa_pkcs1_sign(&rsa, NULL, NULL, MBEDTLS_MD_SHA256,
+    if ((ret = mbedtls_rsa_pkcs1_sign(&rsa, mbedtls_ctr_drbg_random, &dbrg_ctx, MBEDTLS_MD_SHA256,
                                       32, hash, buf)) != 0) {
         mbedtls_printf(" failed\n  ! mbedtls_rsa_pkcs1_sign returned -0x%0x\n\n",
                        (unsigned int) -ret);
@@ -148,6 +166,9 @@ exit:
     mbedtls_mpi_free(&N); mbedtls_mpi_free(&P); mbedtls_mpi_free(&Q);
     mbedtls_mpi_free(&D); mbedtls_mpi_free(&E); mbedtls_mpi_free(&DP);
     mbedtls_mpi_free(&DQ); mbedtls_mpi_free(&QP);
+
+    mbedtls_ctr_drbg_free(&dbrg_ctx);
+    mbedtls_entropy_free(&entrophy_ctx);
 
     mbedtls_exit(exit_code);
 }

@@ -3,7 +3,7 @@
 #include <mbedtls/psa_util.h>
 /* END_HEADER */
 
-/* BEGIN_CASE depends_on:MBEDTLS_PSA_UTIL_HAVE_ECDSA */
+/* BEGIN_CASE depends_on:PSA_HAVE_ALG_SOME_ECDSA */
 void ecdsa_raw_to_der(int key_bits, data_t *input, data_t *exp_result, int exp_ret)
 {
     unsigned char *tmp_buf = NULL;
@@ -24,7 +24,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_PSA_UTIL_HAVE_ECDSA */
+/* BEGIN_CASE depends_on:PSA_HAVE_ALG_SOME_ECDSA */
 void ecdsa_raw_to_der_incremental(int key_bits, data_t *input, data_t *exp_result)
 {
     unsigned char *tmp_buf = NULL;
@@ -54,7 +54,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_PSA_UTIL_HAVE_ECDSA */
+/* BEGIN_CASE depends_on:PSA_HAVE_ALG_SOME_ECDSA */
 void ecdsa_der_to_raw(int key_bits, data_t *input, data_t *exp_result, int exp_ret)
 {
     unsigned char *in_buf = NULL;

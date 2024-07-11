@@ -1088,7 +1088,7 @@ depends_on:!MBEDTLS_CTR_DRBG_USE_128_BIT_KEY
 ctr_drbg_entropy_strength:256
 
 CTR_DRBG write/update seed file [#1]
-ctr_drbg_seed_file:"../framework/data_files/ctr_drbg_seed":0
+ctr_drbg_seed_file:"../../framework/data_files/ctr_drbg_seed":0
 
 CTR_DRBG write/update seed file [#2]
 ctr_drbg_seed_file:"no_such_dir/file":MBEDTLS_ERR_CTR_DRBG_FILE_IO_ERROR

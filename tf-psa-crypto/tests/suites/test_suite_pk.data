@@ -596,23 +596,23 @@ pk_rsa_verify_ext_test_vec:"ae6e43dd387c25741e42fc3570cdfc52e4f51a2343294f3b677d
 
 Check pair #1 (EC, OK)
 depends_on:MBEDTLS_PK_HAVE_ECC_KEYS:MBEDTLS_ECP_HAVE_SECP256R1:MBEDTLS_PEM_PARSE_C
-mbedtls_pk_check_pair:"../framework/data_files/ec_256_pub.pem":"../framework/data_files/ec_256_prv.pem":0
+mbedtls_pk_check_pair:"../../framework/data_files/ec_256_pub.pem":"../../framework/data_files/ec_256_prv.pem":0
 
 Check pair #2 (EC, bad)
 depends_on:MBEDTLS_PK_HAVE_ECC_KEYS:MBEDTLS_ECP_HAVE_SECP256R1:MBEDTLS_PEM_PARSE_C
-mbedtls_pk_check_pair:"../framework/data_files/ec_256_pub.pem":"../framework/data_files/server5.key":MBEDTLS_ERR_ECP_BAD_INPUT_DATA
+mbedtls_pk_check_pair:"../../framework/data_files/ec_256_pub.pem":"../../framework/data_files/server5.key":MBEDTLS_ERR_ECP_BAD_INPUT_DATA
 
 Check pair #3 (RSA, OK)
 depends_on:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15:MBEDTLS_PEM_PARSE_C
-mbedtls_pk_check_pair:"../framework/data_files/server1.pubkey":"../framework/data_files/server1.key":0
+mbedtls_pk_check_pair:"../../framework/data_files/server1.pubkey":"../../framework/data_files/server1.key":0
 
 Check pair #4 (RSA, bad)
 depends_on:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15:MBEDTLS_PEM_PARSE_C
-mbedtls_pk_check_pair:"../framework/data_files/server1.pubkey":"../framework/data_files/server2.key":MBEDTLS_ERR_RSA_KEY_CHECK_FAILED
+mbedtls_pk_check_pair:"../../framework/data_files/server1.pubkey":"../../framework/data_files/server2.key":MBEDTLS_ERR_RSA_KEY_CHECK_FAILED
 
 Check pair #5 (RSA vs EC)
 depends_on:MBEDTLS_PK_HAVE_ECC_KEYS:MBEDTLS_ECP_HAVE_SECP256R1:MBEDTLS_RSA_C:MBEDTLS_PEM_PARSE_C
-mbedtls_pk_check_pair:"../framework/data_files/ec_256_pub.pem":"../framework/data_files/server1.key":MBEDTLS_ERR_PK_TYPE_MISMATCH
+mbedtls_pk_check_pair:"../../framework/data_files/ec_256_pub.pem":"../../framework/data_files/server1.key":MBEDTLS_ERR_PK_TYPE_MISMATCH
 
 RSA hash_len overflow (size_t vs unsigned int)
 depends_on:MBEDTLS_RSA_C:MBEDTLS_HAVE_INT64

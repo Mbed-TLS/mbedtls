@@ -17,7 +17,7 @@ LMOTS hsslms interop test #1
 # This test uses data from https://github.com/pmvr/python-hsslms due to the
 # limited amount of available test vectors for LMOTS, and few implementations
 # providing direct access to the underlying OTS signature scheme. The private
-# key is stored in ../framework/data_files/lms_hsslms_sha256_m32_h5_lmots_sha256_n32_w8_prv.
+# key is stored in ../../framework/data_files/lms_hsslms_sha256_m32_h5_lmots_sha256_n32_w8_prv.
 # This test uses the same OTS key as the LMS hsslms interop test 1 (leaf 0 of
 # the LMS key), and the same message.
 #
@@ -42,7 +42,7 @@ LMOTS hsslms interop test #2
 # This test uses data from https://github.com/pmvr/python-hsslms due to the
 # limited amount of available test vectors for LMOTS, and few implementations
 # providing direct access to the underlying OTS signature scheme. The private
-# key is stored in ../framework/data_files/lms_hsslms_sha256_m32_h5_lmots_sha256_n32_w8_prv.
+# key is stored in ../../framework/data_files/lms_hsslms_sha256_m32_h5_lmots_sha256_n32_w8_prv.
 # This test uses the same OTS key as the LMS hsslms interop test 2 (leaf 1 of
 # the LMS key), and the same message.
 #
@@ -67,7 +67,7 @@ LMOTS hsslms interop NULL-message test
 # This test uses data from https://github.com/pmvr/python-hsslms due to the
 # limited amount of available test vectors for LMOTS, and few implementations
 # providing direct access to the underlying OTS signature scheme. The private
-# key is stored in ../framework/data_files/lms_hsslms_sha256_m32_h5_lmots_sha256_n32_w8_prv.
+# key is stored in ../../framework/data_files/lms_hsslms_sha256_m32_h5_lmots_sha256_n32_w8_prv.
 #
 # To produce another signature with this message and key (note that the actual
 # signature bytes will differ due to randomization):

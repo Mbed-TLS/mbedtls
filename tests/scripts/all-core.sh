@@ -228,6 +228,7 @@ pre_initialize_variables () {
     : ${ARM_NONE_EABI_GCC_PREFIX:=arm-none-eabi-}
     : ${ARM_LINUX_GNUEABI_GCC_PREFIX:=arm-linux-gnueabi-}
     : ${ARM_LINUX_GNUEABIHF_GCC_PREFIX:=arm-linux-gnueabihf-}
+    : ${AARCH64_LINUX_GNU_GCC_PREFIX:=aarch64-linux-gnu-}
     : ${CLANG_LATEST:="clang-latest"}
     : ${CLANG_EARLIEST:="clang-earliest"}
     : ${GCC_LATEST:="gcc-latest"}

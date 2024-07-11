@@ -425,6 +425,25 @@ support_test_arm_linux_gnueabihf_gcc_thumb_2 () {
     can_run_arm_linux_gnueabihf
 }
 
+component_test_aarch64_linux_gnu_gcc () {
+    msg "test: ${AARCH64_LINUX_GNU_GCC_PREFIX}gcc -O2, default config"
+    make clean
+    make CC="${AARCH64_LINUX_GNU_GCC_PREFIX}gcc" CFLAGS='-std=c99 -Werror -Wextra -O2'
+
+    msg "test: main suites make, default config (out-of-box)" # ~10s
+    make test
+
+    msg "selftest: make, default config (out-of-box)" # ~10s
+    programs/test/selftest
+
+    msg "program demos: make, default config (out-of-box)" # ~10s
+    tests/scripts/run_demos.py
+}
+
+support_test_aarch64_linux_gnu_gcc () {
+    [ "$(gcc_version "${AARCH64_LINUX_GNU_GCC_PREFIX}gcc")" -ge 6 ] && can_run_aarch64_linux_gnu
+}
+
 component_build_arm_none_eabi_gcc () {
     msg "build: ${ARM_NONE_EABI_GCC_PREFIX}gcc -O1, baremetal+debug" # ~ 10s
     scripts/config.py baremetal

@@ -167,6 +167,7 @@ pre_initialize_variables () {
     : ${ARM_NONE_EABI_GCC_PREFIX:=arm-none-eabi-}
     : ${ARM_LINUX_GNUEABI_GCC_PREFIX:=arm-linux-gnueabi-}
     : ${ARM_LINUX_GNUEABIHF_GCC_PREFIX:=arm-linux-gnueabihf-}
+    : ${AARCH64_LINUX_GNU_GCC_PREFIX:=aarch64-linux-gnu-}
     : ${CLANG_LATEST:="clang-latest"}
     : ${CLANG_EARLIEST:="clang-earliest"}
     : ${GCC_LATEST:="gcc-latest"}
@@ -796,6 +797,15 @@ pre_check_tools () {
     "$@" scripts/output_env.sh
 }
 
+gcc_version() {
+    cc="$1"
+    if command -v clang > /dev/null ; then
+        "$cc" --version | sed -En '1s/^[^ ]* \([^)]*\) ([0-9]+).*/\1/p'
+    else
+        echo 0  # report version 0 for "no clang"
+    fi
+}
+
 can_run_cc_output() {
     cc="$1"
     result=1
@@ -831,6 +841,17 @@ can_run_arm_linux_gnueabihf () {
         fi
     fi
     return $((! can_run_arm_linux_gnueabihf))
+}
+
+can_run_aarch64_linux_gnu () {
+    if [ -z "${can_run_aarch64_linux_gnu:-}" ]; then
+        if can_run_cc_output "${AARCH64_LINUX_GNU_GCC_PREFIX}gcc"; then
+            can_run_aarch64_linux_gnu=1
+        else
+            can_run_aarch64_linux_gnu=0
+        fi
+    fi
+    return $((! can_run_aarch64_linux_gnu))
 }
 
 
@@ -3355,6 +3376,25 @@ component_test_arm_linux_gnueabihf_gcc_thumb_2 () {
 
 support_test_arm_linux_gnueabihf_gcc_thumb_2 () {
     can_run_arm_linux_gnueabihf
+}
+
+component_test_aarch64_linux_gnu_gcc () {
+    msg "test: ${AARCH64_LINUX_GNU_GCC_PREFIX}gcc -O2, default config"
+    make clean
+    make CC="${AARCH64_LINUX_GNU_GCC_PREFIX}gcc" CFLAGS='-std=c99 -Werror -Wextra -O2'
+
+    msg "test: main suites make, default config (out-of-box)" # ~10s
+    make test
+
+    msg "selftest: make, default config (out-of-box)" # ~10s
+    programs/test/selftest
+
+    msg "program demos: make, default config (out-of-box)" # ~10s
+    tests/scripts/run_demos.py
+}
+
+support_test_aarch64_linux_gnu_gcc () {
+    [ "$(gcc_version "${AARCH64_LINUX_GNU_GCC_PREFIX}gcc")" -ge 6 ] && can_run_aarch64_linux_gnu
 }
 
 component_build_arm_none_eabi_gcc () {

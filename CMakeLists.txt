@@ -22,6 +22,10 @@ cmake_minimum_required(VERSION 3.5.1)
 
 include(CMakePackageConfigHelpers)
 
+# Include convenience functions for printing properties and variables, like
+# cmake_print_properties(), cmake_print_variables().
+include(CMakePrintHelpers)
+
 # https://cmake.org/cmake/help/latest/policy/CMP0011.html
 # Setting this policy is required in CMake >= 3.18.0, otherwise a warning is generated. The OLD
 # policy setting is deprecated, and will be removed in future versions.

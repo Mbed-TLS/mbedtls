@@ -823,7 +823,7 @@ cleanup:
 #include "mbedtls/platform.h"
 
 #if !defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED) || \
-    !defined(MBEDTLS_MD_CAN_SHA256)
+    !defined(PSA_WANT_ALG_SHA_256)
 int mbedtls_ecjpake_self_test(int verbose)
 {
     (void) verbose;
@@ -1199,7 +1199,7 @@ cleanup:
 
 #undef TEST_ASSERT
 
-#endif /* MBEDTLS_ECP_DP_SECP256R1_ENABLED && MBEDTLS_MD_CAN_SHA256 */
+#endif /* MBEDTLS_ECP_DP_SECP256R1_ENABLED && PSA_WANT_ALG_SHA_256 */
 
 #endif /* MBEDTLS_SELF_TEST */
 

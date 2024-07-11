@@ -7,7 +7,7 @@ depends_on:PSA_WANT_ALG_SHA_224
 hmac_drbg_entropy_usage:MBEDTLS_MD_SHA224
 
 HMAC_DRBG entropy usage SHA-256
-depends_on:MBEDTLS_MD_CAN_SHA256
+depends_on:PSA_WANT_ALG_SHA_256
 hmac_drbg_entropy_usage:MBEDTLS_MD_SHA256
 
 HMAC_DRBG entropy usage SHA-384
@@ -51,11 +51,11 @@ depends_on:PSA_WANT_ALG_SHA_224
 hmac_drbg_seed_file:MBEDTLS_MD_SHA224:"no_such_dir/file":MBEDTLS_ERR_HMAC_DRBG_FILE_IO_ERROR
 
 HMAC_DRBG write/update seed file SHA-256 [#1]
-depends_on:MBEDTLS_MD_CAN_SHA256
+depends_on:PSA_WANT_ALG_SHA_256
 hmac_drbg_seed_file:MBEDTLS_MD_SHA256:"../framework/data_files/hmac_drbg_seed":0
 
 HMAC_DRBG write/update seed file SHA-256 [#2]
-depends_on:MBEDTLS_MD_CAN_SHA256
+depends_on:PSA_WANT_ALG_SHA_256
 hmac_drbg_seed_file:MBEDTLS_MD_SHA256:"no_such_dir/file":MBEDTLS_ERR_HMAC_DRBG_FILE_IO_ERROR
 
 HMAC_DRBG write/update seed file SHA-384 [#1]
@@ -115,7 +115,7 @@ depends_on:PSA_WANT_ALG_SHA_224
 hmac_drbg_buf:MBEDTLS_MD_SHA224
 
 HMAC_DRBG from buffer SHA-256
-depends_on:MBEDTLS_MD_CAN_SHA256
+depends_on:PSA_WANT_ALG_SHA_256
 hmac_drbg_buf:MBEDTLS_MD_SHA256
 
 HMAC_DRBG from buffer SHA-384

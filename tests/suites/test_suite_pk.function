@@ -173,7 +173,7 @@
 #define MBEDTLS_MD_ALG_FOR_TEST         MBEDTLS_MD_SHA1
 #elif defined(PSA_WANT_ALG_SHA_224)
 #define MBEDTLS_MD_ALG_FOR_TEST         MBEDTLS_MD_SHA224
-#elif defined(MBEDTLS_MD_CAN_SHA256)
+#elif defined(PSA_WANT_ALG_SHA_256)
 #define MBEDTLS_MD_ALG_FOR_TEST         MBEDTLS_MD_SHA256
 #elif defined(PSA_WANT_ALG_SHA_384)
 #define MBEDTLS_MD_ALG_FOR_TEST         MBEDTLS_MD_SHA384
@@ -1316,7 +1316,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_MD_CAN_SHA256:PK_CAN_SIGN_SOME */
+/* BEGIN_CASE depends_on:PSA_WANT_ALG_SHA_256:PK_CAN_SIGN_SOME */
 void pk_sign_verify(int type, int curve_or_keybits, int rsa_padding, int rsa_md_alg,
                     int sign_ret, int verify_ret)
 {
@@ -1804,7 +1804,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_PK_PARSE_C:MBEDTLS_MD_CAN_SHA256:MBEDTLS_USE_PSA_CRYPTO:MBEDTLS_TEST_PK_PSA_SIGN */
+/* BEGIN_CASE depends_on:MBEDTLS_PK_PARSE_C:PSA_WANT_ALG_SHA_256:MBEDTLS_USE_PSA_CRYPTO:MBEDTLS_TEST_PK_PSA_SIGN */
 void pk_psa_sign(int psa_type, int bits, int rsa_padding)
 {
     mbedtls_pk_context pk;

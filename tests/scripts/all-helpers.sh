@@ -265,3 +265,40 @@ clang_version() {
         echo 0  # report version 0 for "no clang"
     fi
 }
+
+can_run_cc_output() {
+    cc="$1"
+    result=1
+    if type "$cc" >/dev/null 2>&1; then
+        testbin=$(mktemp)
+        if echo 'int main(void){return 0;}' | "$cc" -o "$testbin" -x c -; then
+            if "$testbin" 2>/dev/null; then
+                result=0
+            fi
+        fi
+        rm "$testbin"
+    fi
+    return $result
+}
+
+can_run_arm_linux_gnueabi () {
+    if [ -z "${can_run_arm_linux_gnueabi:-}" ]; then
+        if can_run_cc_output "${ARM_LINUX_GNUEABI_GCC_PREFIX}gcc"; then
+            can_run_arm_linux_gnueabi=1
+        else
+            can_run_arm_linux_gnueabi=0
+        fi
+    fi
+    return $((! can_run_arm_linux_gnueabi))
+}
+
+can_run_arm_linux_gnueabihf () {
+    if [ -z "${can_run_arm_linux_gnueabihf:-}" ]; then
+        if can_run_cc_output "${ARM_LINUX_GNUEABIHF_GCC_PREFIX}gcc"; then
+            can_run_arm_linux_gnueabihf=1
+        else
+            can_run_arm_linux_gnueabihf=0
+        fi
+    fi
+    return $((! can_run_arm_linux_gnueabihf))
+}

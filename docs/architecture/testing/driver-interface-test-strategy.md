@@ -132,7 +132,7 @@ The driver interface includes a fallback mechanism so that a driver can reject a
 
 We have test drivers that are enabled by `PSA_CRYPTO_DRIVER_TEST` (not present
 in the usual config files, must be defined on the command line or in a custom
-config file). Those test drivers are implemented in `tests/src/drivers/*.c`
+config file). Those test drivers are implemented in `framework/tests/src/drivers/*.c`
 and their API is declared in `tests/include/test/drivers/*.h`.
 
 We have two test driver registered: `mbedtls_test_opaque_driver` and

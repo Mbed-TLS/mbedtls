@@ -214,7 +214,7 @@ C_SOURCE_FILES = $(wildcard \
 	tf-psa-crypto/drivers/*/*/*/*/*.c \
 	programs/*/*.[hc] \
 	tests/include/*/*.h tests/include/*/*/*.h \
-	tests/src/*.c tests/src/*/*.c \
+	framework/tests/src/*.c framework/tests/src/*/*.c \
 	tests/suites/*.function \
 )
 # Exuberant-ctags invocation. Other ctags implementations may require different options.

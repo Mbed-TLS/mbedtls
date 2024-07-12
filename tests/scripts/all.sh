@@ -2078,7 +2078,7 @@ component_test_full_cmake_clang () {
 skip_suites_without_constant_flow () {
     # Skip the test suites that don't have any constant-flow annotations.
     # This will need to be adjusted if we ever start declaring things as
-    # secret from macros or functions inside tests/include or tests/src.
+    # secret from macros or functions inside tests/include or framework/tests/src.
     SKIP_TEST_SUITES=$(
         git -C tests/suites grep -L TEST_CF_ 'test_suite_*.function' |
             sed 's/test_suite_//; s/\.function$//' |

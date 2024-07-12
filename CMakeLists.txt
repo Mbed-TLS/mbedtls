@@ -301,7 +301,7 @@ add_subdirectory(library)
 add_subdirectory(pkgconfig)
 
 #
-# The C files in tests/src directory contain test code shared among test suites
+# The C files in framework/tests/src directory contain test code shared among test suites
 # and programs. This shared test code is compiled and linked to test suites and
 # programs objects as a set of compiled objects. The compiled objects are NOT
 # built into a library that the test suite and program objects would link
@@ -316,38 +316,38 @@ add_subdirectory(pkgconfig)
 #
 if(ENABLE_TESTING OR ENABLE_PROGRAMS)
     file(GLOB MBEDTLS_TEST_FILES
-         ${CMAKE_CURRENT_SOURCE_DIR}/tests/src/*.c
-         ${CMAKE_CURRENT_SOURCE_DIR}/tests/src/drivers/*.c)
+         ${CMAKE_CURRENT_SOURCE_DIR}/framework/tests/src/*.c
+         ${CMAKE_CURRENT_SOURCE_DIR}/framework/tests/src/drivers/*.c)
     add_library(mbedtls_test OBJECT ${MBEDTLS_TEST_FILES})
     if(GEN_FILES)
         add_custom_command(
             OUTPUT
-                ${CMAKE_CURRENT_SOURCE_DIR}/tests/src/test_keys.h
+                ${CMAKE_CURRENT_SOURCE_DIR}/framework/tests/src/test_keys.h
             WORKING_DIRECTORY
                 ${CMAKE_CURRENT_SOURCE_DIR}/tests
             COMMAND
                 "${MBEDTLS_PYTHON_EXECUTABLE}"
                 "${CMAKE_CURRENT_SOURCE_DIR}/framework/scripts/generate_test_keys.py"
                 "--output"
-                "${CMAKE_CURRENT_SOURCE_DIR}/tests/src/test_keys.h"
+                "${CMAKE_CURRENT_SOURCE_DIR}/framework/tests/src/test_keys.h"
             DEPENDS
                 ${CMAKE_CURRENT_SOURCE_DIR}/framework/scripts/generate_test_keys.py
         )
-        add_custom_target(test_keys_header DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/tests/src/test_keys.h)
+        add_custom_target(test_keys_header DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/framework/tests/src/test_keys.h)
         add_custom_command(
             OUTPUT
-                ${CMAKE_CURRENT_SOURCE_DIR}/tests/src/test_certs.h
+                ${CMAKE_CURRENT_SOURCE_DIR}/framework/tests/src/test_certs.h
             WORKING_DIRECTORY
                 ${CMAKE_CURRENT_SOURCE_DIR}/tests
             COMMAND
                 "${MBEDTLS_PYTHON_EXECUTABLE}"
                 "${CMAKE_CURRENT_SOURCE_DIR}/framework/scripts/generate_test_cert_macros.py"
                 "--output"
-                "${CMAKE_CURRENT_SOURCE_DIR}/tests/src/test_certs.h"
+                "${CMAKE_CURRENT_SOURCE_DIR}/framework/tests/src/test_certs.h"
             DEPENDS
                 ${CMAKE_CURRENT_SOURCE_DIR}/framework/scripts/generate_test_cert_macros.py
         )
-        add_custom_target(test_certs_header DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/tests/src/test_certs.h)
+        add_custom_target(test_certs_header DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/framework/tests/src/test_certs.h)
         add_dependencies(mbedtls_test test_keys_header test_certs_header)
     endif()
     target_include_directories(mbedtls_test
@@ -362,7 +362,7 @@ if(ENABLE_TESTING OR ENABLE_PROGRAMS)
     set_target_properties(mbedtls_test PROPERTIES C_STANDARD 11)
 
     file(GLOB MBEDTLS_TEST_HELPER_FILES
-         ${CMAKE_CURRENT_SOURCE_DIR}/tests/src/test_helpers/*.c)
+         ${CMAKE_CURRENT_SOURCE_DIR}/framework/tests/src/test_helpers/*.c)
     add_library(mbedtls_test_helpers OBJECT ${MBEDTLS_TEST_HELPER_FILES})
     target_include_directories(mbedtls_test_helpers
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tests/include

@@ -28,10 +28,10 @@ my $psa_header_dir = 'tf-psa-crypto/include/psa';
 my $tls_source_dir = 'library';
 my $crypto_core_source_dir = 'tf-psa-crypto/core';
 my $crypto_source_dir = 'tf-psa-crypto/drivers/builtin/src';
-my $test_source_dir = 'tests/src';
+my $test_source_dir = 'framework/tests/src';
 my $test_header_dir = 'tests/include/test';
 my $test_drivers_header_dir = 'tests/include/test/drivers';
-my $test_drivers_source_dir = 'tests/src/drivers';
+my $test_drivers_source_dir = 'framework/tests/src/drivers';
 
 my @thirdparty_header_dirs = qw(
     tf-psa-crypto/drivers/everest/include/everest

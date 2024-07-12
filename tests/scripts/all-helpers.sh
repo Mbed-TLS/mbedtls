@@ -285,7 +285,7 @@ can_run_cc_output() {
                 result=0
             fi
         fi
-        rm "$testbin"
+        rm -f "$testbin"
     fi
     return $result
 }

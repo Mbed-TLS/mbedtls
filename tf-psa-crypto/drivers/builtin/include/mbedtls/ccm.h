@@ -58,10 +58,6 @@
 extern "C" {
 #endif
 
-#if !defined(MBEDTLS_CCM_ALT)
-// Regular implementation
-//
-
 /**
  * \brief    The CCM context-type definition. The CCM context is passed
  *           to the APIs called.
@@ -93,10 +89,6 @@ typedef struct mbedtls_ccm_context {
                                                   state. Used for chunked data input */
 }
 mbedtls_ccm_context;
-
-#else  /* MBEDTLS_CCM_ALT */
-#include "ccm_alt.h"
-#endif /* MBEDTLS_CCM_ALT */
 
 /**
  * \brief           This function initializes the specified CCM context,

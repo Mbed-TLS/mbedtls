@@ -350,39 +350,7 @@
  */
 //#define MBEDTLS_TIMING_ALT
 
-/**
- * \def MBEDTLS_AES_ALT
- *
- * MBEDTLS__MODULE_NAME__ALT: Uncomment a macro to let Mbed TLS use your
- * alternate core implementation of a symmetric crypto, an arithmetic or hash
- * module (e.g. platform specific assembly optimized implementations). Keep
- * in mind that the function prototypes should remain the same.
- *
- * This replaces the whole module. If you only want to replace one of the
- * functions, use one of the MBEDTLS__FUNCTION_NAME__ALT flags.
- *
- * Example: In case you uncomment MBEDTLS_AES_ALT, Mbed TLS will no longer
- * provide the "struct mbedtls_aes_context" definition and omit the base
- * function declarations and implementations. "aes_alt.h" will be included from
- * "aes.h" to include the new function definitions.
- *
- * Uncomment a macro to enable alternate implementation of the corresponding
- * module.
- *
- * \warning   MD5, DES and SHA-1 are considered weak and their
- *            use constitutes a security risk. If possible, we recommend
- *            avoiding dependencies on them, and considering stronger message
- *            digests and ciphers instead.
- *
- */
-//#define MBEDTLS_AES_ALT
-//#define MBEDTLS_ARIA_ALT
-//#define MBEDTLS_CAMELLIA_ALT
-//#define MBEDTLS_CCM_ALT
 //#define MBEDTLS_CMAC_ALT
-//#define MBEDTLS_DES_ALT
-//#define MBEDTLS_GCM_ALT
-//#define MBEDTLS_NIST_KW_ALT
 //#define MBEDTLS_MD5_ALT
 //#define MBEDTLS_RIPEMD160_ALT
 //#define MBEDTLS_SHA1_ALT

@@ -53,10 +53,6 @@
 extern "C" {
 #endif
 
-#if !defined(MBEDTLS_AES_ALT)
-// Regular implementation
-//
-
 /**
  * \brief The AES context-type definition.
  */
@@ -87,10 +83,6 @@ typedef struct mbedtls_aes_xts_context {
                                                    computation. */
 } mbedtls_aes_xts_context;
 #endif /* MBEDTLS_CIPHER_MODE_XTS */
-
-#else  /* MBEDTLS_AES_ALT */
-#include "aes_alt.h"
-#endif /* MBEDTLS_AES_ALT */
 
 /**
  * \brief          This function initializes the specified AES context.

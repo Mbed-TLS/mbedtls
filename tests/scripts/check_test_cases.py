@@ -16,6 +16,9 @@ import re
 import subprocess
 import sys
 
+import scripts_path # pylint: disable=unused-import
+from mbedtls_framework import build_tree
+
 class ScriptOutputError(ValueError):
     """A kind of ValueError that indicates we found
     the script doesn't list test cases in an expected
@@ -130,13 +133,11 @@ option"""
     @staticmethod
     def collect_test_directories():
         """Get the relative path for the TLS and Crypto test directories."""
-        if os.path.isdir('tests'):
-            tests_dir = 'tests'
-        elif os.path.isdir('suites'):
-            tests_dir = '.'
-        elif os.path.isdir('../suites'):
-            tests_dir = '..'
-        directories = [tests_dir]
+        mbedtls_root = build_tree.guess_mbedtls_root()
+        directories = [os.path.join(mbedtls_root, 'tests'),
+                       os.path.join(mbedtls_root, 'tf-psa-crypto', 'tests')]
+        for index, value in enumerate(directories):
+            directories[index] = os.path.relpath(value)
         return directories
 
     def walk_all(self):
@@ -149,7 +150,8 @@ option"""
 
             for sh_file in ['ssl-opt.sh', 'compat.sh']:
                 sh_file = os.path.join(directory, sh_file)
-                self.collect_from_script(sh_file)
+                if os.path.isfile(sh_file):
+                    self.collect_from_script(sh_file)
 
 class TestDescriptions(TestDescriptionExplorer):
     """Collect the available test cases."""

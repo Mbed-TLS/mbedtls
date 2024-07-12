@@ -290,8 +290,9 @@ can_run_cc_output() {
     $result
 }
 
+can_run_arm_linux_gnueabi=
 can_run_arm_linux_gnueabi () {
-    if [ -z "${can_run_arm_linux_gnueabi:-}" ]; then
+    if [ -z "$can_run_arm_linux_gnueabi" ]; then
         if can_run_cc_output "${ARM_LINUX_GNUEABI_GCC_PREFIX}gcc"; then
             can_run_arm_linux_gnueabi=true
         else
@@ -301,8 +302,9 @@ can_run_arm_linux_gnueabi () {
     $can_run_arm_linux_gnueabi
 }
 
+can_run_arm_linux_gnueabihf=
 can_run_arm_linux_gnueabihf () {
-    if [ -z "${can_run_arm_linux_gnueabihf:-}" ]; then
+    if [ -z "$can_run_arm_linux_gnueabihf" ]; then
         if can_run_cc_output "${ARM_LINUX_GNUEABIHF_GCC_PREFIX}gcc"; then
             can_run_arm_linux_gnueabihf=true
         else
@@ -312,8 +314,9 @@ can_run_arm_linux_gnueabihf () {
     $can_run_arm_linux_gnueabihf
 }
 
+can_run_aarch64_linux_gnu=
 can_run_aarch64_linux_gnu () {
-    if [ -z "${can_run_aarch64_linux_gnu:-}" ]; then
+    if [ -z "$can_run_aarch64_linux_gnu" ]; then
         if can_run_cc_output "${AARCH64_LINUX_GNU_GCC_PREFIX}gcc"; then
             can_run_aarch64_linux_gnu=true
         else

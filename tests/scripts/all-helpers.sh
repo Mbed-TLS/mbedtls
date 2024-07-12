@@ -267,11 +267,11 @@ clang_version() {
 }
 
 gcc_version() {
-    cc="$1"
-    if command -v clang > /dev/null ; then
-        "$cc" --version | sed -En '1s/^[^ ]* \([^)]*\) ([0-9]+).*/\1/p'
+    gcc="$1"
+    if command -v "$gcc" > /dev/null ; then
+        "$gcc" --version | sed -En '1s/^[^ ]* \([^)]*\) ([0-9]+).*/\1/p'
     else
-        echo 0  # report version 0 for "no clang"
+        echo 0  # report version 0 for "no gcc"
     fi
 }
 

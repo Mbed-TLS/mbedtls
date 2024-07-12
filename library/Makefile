@@ -397,11 +397,10 @@ clean:
 ifndef WINDOWS
 	rm -f *.o libmbed*
 	rm -f $(OBJS_CRYPTO)
-	rm -f $(THIRDPARTY_CRYPTO_OBJECTS)
 else
 	if exist *.o del /Q /F *.o
 	if exist libmbed* del /Q /F libmbed*
-	del /Q /F del_errors_out_if_the_file_list_is_empty_but_not_if_a_file_does_not_exist $(subst /,\,$(THIRDPARTY_CRYPTO_OBJECTS))
+	del /Q /F del_errors_out_if_the_file_list_is_empty_but_not_if_a_file_does_not_exist $(subst /,\,$(OBJS_CRYPTO))
 endif
 
 neat: clean

@@ -417,6 +417,7 @@ x509/req_app$(EXEXT): x509/req_app.c $(DEP)
 clean:
 ifndef WINDOWS
 	rm -f $(EXES)
+	rm -f */*.o
 	-rm -f ssl/ssl_pthread_server$(EXEXT)
 	-rm -f test/cpp_dummy_build.cpp test/cpp_dummy_build$(EXEXT)
 	-rm -f test/dlopen$(EXEXT)

@@ -14145,13 +14145,25 @@ run_test    "TLS 1.3: no HRR in case of PSK key exchange mode" \
 # Legacy_compression_methods testing
 
 requires_gnutls
+requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-run_test    "ClientHello parse handle Legacy_compression_methods" \
+run_test    "TLS 1.2 ClientHello indicating support for deflate compression method (fallback from TLS 1.3)" \
             "$P_SRV debug_level=3" \
             "$G_CLI  --priority=NORMAL:-VERS-ALL:+VERS-TLS1.2:+COMP-DEFLATE localhost" \
             0 \
-            -c "Handshake was completed"
+            -c "Handshake was completed" \
+            -s "dumping .client hello, compression. (2 bytes)"
+
+requires_gnutls
+requires_config_enabled MBEDTLS_SSL_SRV_C
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+run_test    "TLS 1.2 ClientHello indicating support for deflate compression method" \
+            "$P_SRV debug_level=3" \
+            "$G_CLI  --priority=NORMAL:-VERS-ALL:+VERS-TLS1.2:+COMP-DEFLATE localhost" \
+            0 \
+            -c "Handshake was completed" \
+            -s "dumping .client hello, compression. (2 bytes)"
 
 # Test heap memory usage after handshake
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2

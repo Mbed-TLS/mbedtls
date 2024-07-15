@@ -10,13 +10,14 @@
 
 #include <stdint.h>
 #include <stddef.h>
+#include <stdatomic.h>
 
 #include "psa/crypto.h"
 
-typedef int32_t psa_handle_t;
+#define PSASIM_SHM_PATH     "psasim-shm"
 
-/* Both client and server will declare local buffers for command and replies
- * in order to avoid heap memory usage.
+/* This is the structure of the PSA message that will be exchanged between
+ * server and client.
  */
 #define MAX_PSA_MESSAGE_LENGTH          (65536)
 #define PSA_MESSAGE_HEADER_LENGTH       (sizeof(int32_t) + 2 * PSA_MAX_IOVEC * sizeof(size_t))
@@ -32,27 +33,19 @@ struct psa_message_s {
 } __attribute__((packed));
 typedef struct psa_message_s psa_message_t;
 
-/* This is the name of the socket file that will be created by the server. */
-#define SOCKET_NAME                "psasim-socket"
+#define COMMUNICATION_TIMEOUT_S  (60)
 
-#define MAX_SOCKET_MESSAGE_LENGTH   (65536)
-/* Sum of is_last_message + length fields of the structure */
-#define SOCKET_MESSAGE_HEADER_LENGTH (sizeof(uint8_t) + sizeof(size_t))
-#define MAX_SOCKET_PAYLOAD_LENGTH   (MAX_SOCKET_MESSAGE_LENGTH - SOCKET_MESSAGE_HEADER_LENGTH)
-#define SOCKET_OPERATION_TIMEOUT_S  (10)
+#define SHARED_MEMORY_OWNER_UNDEFINED   0 /* Default value at startup */
+#define SHARED_MEMORY_OWNER_CLIENT      1
+#define SHARED_MEMORY_OWNER_SERVER      2
 
-/* Since psa_message_t can easily be quite large and the amount
- * of data that can be exchanged on the socket is limited, we split it into
- * chunks.
+/* This is the layout the shared memory between client and server. It embeds
+ * the psa_message and some communication's control logic.
  */
-struct socket_message_s {
-    uint8_t is_last_message; /* In case the message is split in multiple parts,
-                                are there any blocks after this one? */
-    size_t length; /* Length of valid data in the payload. */
-    char payload[MAX_SOCKET_PAYLOAD_LENGTH]; /* Payload, i.e. a chunk of psa_message_t */
+struct shared_memory_s {
+    atomic_char owner; /* who controls the shared memory (client or server)? */
+    psa_message_t psa_message;
 } __attribute__((packed));
-typedef struct socket_message_s socket_message_t;
-
-psa_status_t send_psa_message(psa_message_t *psa_message, size_t payload_len, int sockfd);
+typedef struct shared_memory_s shared_memory_t;
 
 #endif /* _COMMON_H_ */

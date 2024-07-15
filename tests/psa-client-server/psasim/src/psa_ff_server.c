@@ -5,198 +5,168 @@
  *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
-#include <sys/socket.h>
 #include <sys/types.h>
-#include <sys/time.h>
-#include <sys/un.h>
-#include <netinet/in.h>
-#include <netdb.h>
+#include <sys/shm.h>
+#include <sys/ipc.h>
+#include <sys/stat.h>
+#include <time.h>
+#include <stdatomic.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <errno.h>
-#include <arpa/inet.h>
 
 #include "common.h"
 #include "server.h"
 #include "util.h"
 
-static psa_message_t psa_message;
-int sockfd = -1;
-int connfd = -1;
+static int shm_id = -1;
+static key_t shm_key = -1;
+static shared_memory_t *shared_memory = NULL;
+static psa_message_t *psa_message;
 
-psa_status_t psa_setup_socket(void)
+psa_status_t psa_setup(void)
 {
-    struct sockaddr_un sock_addr = { 0 };
-    int ret;
+    FILE *fp = NULL;
 
-    if (sockfd > 0) {
-        ERROR("Socket is already open.");
-        return PSA_ERROR_BAD_STATE;
+    /* Check if the required file exists. If yes, then cancel it before
+     * (re)creating it. */
+    fp = fopen(PSASIM_SHM_PATH, "wb");
+    if (fp == NULL) {
+        ERROR("Unable to create temporary file");
+        return PSA_ERROR_GENERIC_ERROR;
+    }
+    fclose(fp);
+
+    shm_key = ftok(PSASIM_SHM_PATH, 'X');
+    if (shm_key < 0) {
+        ERROR("Unable to generate SystemV IPC key (%d)", errno);
+        return PSA_ERROR_GENERIC_ERROR;
     }
 
-    sockfd = socket(AF_UNIX, SOCK_STREAM, 0);
+    shm_id = shmget(shm_key, sizeof(shared_memory_t), IPC_CREAT | 0660);
+    if (shm_id < 0) {
+        ERROR("Unable to allocate shared memory (%d)", errno);
+        return PSA_ERROR_GENERIC_ERROR;
+    }
 
-    sock_addr.sun_family = AF_UNIX;
-    snprintf(sock_addr.sun_path, sizeof(sock_addr.sun_path), "%s", SOCKET_NAME);
+    shared_memory = (shared_memory_t *) shmat(shm_id, NULL, 0);
+    if (shared_memory == (shared_memory_t *) -1) {
+        ERROR("Unable to attach process to shared memory (%d)", errno);
+        return PSA_ERROR_GENERIC_ERROR;
+    }
 
-    /* Set a timeout for socket operations in order to be sure we won't hang
-     * forever if something weird happens. */
-    struct timeval socket_operation_timeout = { 0 };
-    socket_operation_timeout.tv_sec = SOCKET_OPERATION_TIMEOUT_S;
-    setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO,
-               (const char *) &socket_operation_timeout, sizeof(socket_operation_timeout));
-
-    INFO("Create socket");
-    bind(sockfd, (struct sockaddr *) &sock_addr,
-         sizeof(sock_addr.sun_family) + strlen(sock_addr.sun_path));
-
-    /* Limit to just 1 client at a time. */
-    INFO("Listen on socket");
-    listen(sockfd, 1);
+    memset((void *) shared_memory, 0, sizeof(shared_memory_t));
+    psa_message = &(shared_memory->psa_message);
 
     return PSA_SUCCESS;
 }
 
-psa_status_t psa_wait_for_connection(void)
+void psa_close(void)
 {
-    int ret;
-
-    if (sockfd < 0) {
-        ERROR("Socket was not created so it cannot wait for connection");
-        return PSA_ERROR_BAD_STATE;
+    if (shared_memory != NULL) {
+        shmdt(shared_memory);
+        shared_memory = NULL;
     }
 
-    /* Wait for incoming connections. */
-    ret = accept(sockfd, NULL, NULL);
-    if (ret < 0) {
-        ERROR("Socket accept failed (%d)", errno);
-        return PSA_ERROR_COMMUNICATION_FAILURE;
+    if (shm_id != -1) {
+        shmctl(shm_id, IPC_RMID, NULL);
+        shm_id = -1;
     }
-    connfd = ret;
-    INFO("Incoming connection");
 
-    return PSA_SUCCESS;
+    remove(PSASIM_SHM_PATH);
 }
 
 psa_status_t psa_wait_for_command(void)
 {
-    size_t read_bytes, total_bytes_read = 0;
-    uint8_t *ptr = (uint8_t *) &psa_message;
-    socket_message_t socket_message = { 0 };
+    struct timespec start_ts;
+    struct timespec current_ts;
 
-    if ((sockfd < 0) || (connfd < 0)) {
-        ERROR("Invalid socket (sockfd=%d - connfd=%d).", sockfd, connfd);
-        return PSA_ERROR_BAD_STATE;
-    }
-
-    do {
-        /* Try to read as much bytes as possible. Wait if no data is available. */
-        read_bytes = read(connfd, &socket_message, sizeof(socket_message));
-        if (read_bytes <= 0) {
+    clock_gettime(CLOCK_MONOTONIC, &start_ts);
+    while (atomic_load(&(shared_memory->owner)) != SHARED_MEMORY_OWNER_SERVER) {
+        clock_gettime(CLOCK_MONOTONIC, &current_ts);
+        if ((current_ts.tv_sec - start_ts.tv_sec) > COMMUNICATION_TIMEOUT_S) {
             return PSA_ERROR_COMMUNICATION_FAILURE;
         }
-        memcpy(ptr, &socket_message.payload, socket_message.length);
-        ptr += socket_message.length;
-        total_bytes_read += read_bytes;
-        INFO("Read %zu bytes", socket_message.length);
-    } while (socket_message.is_last_message == 0);
-
-    INFO("Received command total length:%zu bytes", total_bytes_read);
+    }
 
     return PSA_SUCCESS;
 }
 
 size_t psa_get_invec(uint32_t invec_idx, void *buffer, size_t num_bytes)
 {
-    uint8_t *ptr = (uint8_t *) &psa_message.payload;
+    uint8_t *ptr = (uint8_t *) &psa_message->payload;
 
     if (invec_idx >= PSA_MAX_IOVEC) {
         ERROR("Invalid vector index");
         return 0;
     }
 
-    if (num_bytes < psa_message.invec_sizes[invec_idx]) {
+    if (num_bytes < psa_message->invec_sizes[invec_idx]) {
         ERROR("Specified buffer is too small to contain the specified invec");
         return PSA_ERROR_BUFFER_TOO_SMALL;
     }
 
     /* Go to the requested vector. */
     for (int i = 0; i < invec_idx; i++) {
-        ptr += psa_message.invec_sizes[i];
+        ptr += psa_message->invec_sizes[i];
     }
 
-    memcpy(buffer, ptr, psa_message.invec_sizes[invec_idx]);
-    INFO("Read %zu bytes from invec %u", psa_message.invec_sizes[invec_idx], invec_idx);
+    memcpy(buffer, ptr, psa_message->invec_sizes[invec_idx]);
+    INFO("Read %zu bytes from invec %u", psa_message->invec_sizes[invec_idx], invec_idx);
 
-    return psa_message.invec_sizes[invec_idx];
+    return psa_message->invec_sizes[invec_idx];
 }
 
 size_t psa_set_outvec(uint32_t outvec_idx, const void *buffer, size_t num_bytes)
 {
-    uint8_t *ptr = (uint8_t *) &psa_message.payload;
+    uint8_t *ptr = (uint8_t *) &psa_message->payload;
 
     if (outvec_idx >= PSA_MAX_IOVEC) {
         ERROR("Invalid vector index");
         return 0;
     }
 
+    if (atomic_load(&(shared_memory->owner)) != SHARED_MEMORY_OWNER_SERVER) {
+        ERROR("Cannot write on shared memory while it's owned by the client");
+        return PSA_ERROR_BAD_STATE;
+    }
+
     /* Go to the requested vector. */
     for (int i = 0; i < PSA_MAX_IOVEC; i++) {
-        ptr += psa_message.invec_sizes[i];
+        ptr += psa_message->invec_sizes[i];
     }
     for (int i = 0; i < outvec_idx; i++) {
-        ptr += psa_message.outvec_sizes[i];
+        ptr += psa_message->outvec_sizes[i];
     }
 
     memcpy(ptr, buffer, num_bytes);
-    INFO("Wrote %zd bytes to outvec %d", psa_message.outvec_sizes[outvec_idx], outvec_idx);
+    INFO("Wrote %zd bytes to outvec %d", psa_message->outvec_sizes[outvec_idx], outvec_idx);
 
     return num_bytes;
 }
 
 int32_t psa_get_psa_function(void)
 {
-    return psa_message.psa_function;
+    return psa_message->psa_function;
 }
 
 void psa_get_vectors_sizes(size_t *invec_sizes, size_t *outvec_sizes)
 {
-    memcpy(invec_sizes, psa_message.invec_sizes, sizeof(psa_message.invec_sizes));
-    memcpy(outvec_sizes, psa_message.outvec_sizes, sizeof(psa_message.outvec_sizes));
+    memcpy(invec_sizes, psa_message->invec_sizes, sizeof(psa_message->invec_sizes));
+    memcpy(outvec_sizes, psa_message->outvec_sizes, sizeof(psa_message->outvec_sizes));
 }
 
 psa_status_t psa_send_reply(void)
 {
-    psa_status_t status;
-    size_t psa_message_payload_len = 0;
-
-    for (int i = 0; i < PSA_MAX_IOVEC; i++) {
-        psa_message_payload_len += psa_message.invec_sizes[i];
-        psa_message_payload_len += psa_message.outvec_sizes[i];
+    if (atomic_load(&(shared_memory->owner)) != SHARED_MEMORY_OWNER_SERVER) {
+        ERROR("Cannot write on shared memory while it's owned by the client");
+        return PSA_ERROR_BAD_STATE;
     }
 
-    status = send_psa_message(&psa_message, psa_message_payload_len, connfd);
-    if (status != PSA_SUCCESS) {
-        return status;
-    }
+    /* Just toggle the ownership of the shared memory */
+    atomic_store(&(shared_memory->owner), SHARED_MEMORY_OWNER_CLIENT);
 
     return PSA_SUCCESS;
-}
-
-void psa_close_connection(void)
-{
-    if (connfd > 0) {
-        close(connfd);
-        connfd = -1;
-    }
-}
-
-void psa_close_socket(void)
-{
-    if (sockfd > 0) {
-        close(sockfd);
-        sockfd = -1;
-    }
 }

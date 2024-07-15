@@ -37,16 +37,35 @@ void parse_input_args(int argc, char *argv[])
     }
 }
 
-static psa_status_t manage_connection(void)
+int main(int argc, char *argv[])
 {
-    psa_status_t status;
+    psa_status_t status = PSA_ERROR_PROGRAMMER_ERROR;
+    char mbedtls_version[18];
+    int ret = EXIT_SUCCESS;
+
+    mbedtls_version_get_string_full(mbedtls_version);
+    INFO("%s", mbedtls_version);
+
+    parse_input_args(argc, argv);
+
+    INFO("Creating connection");
+    status = psa_setup();
+    if (status != PSA_SUCCESS) {
+        ret = EXIT_FAILURE;
+        goto exit;
+    }
 
     do {
         INFO("Wait for command");
         status = psa_wait_for_command();
         if (status != PSA_SUCCESS) {
-            INFO("Connection dropped");
-            return PSA_ERROR_COMMUNICATION_FAILURE;
+            if (kill_on_disconnect) {
+                INFO("Quitting");
+                goto exit;
+            } else {
+                INFO("Wait again");
+                continue;
+            }
         }
 
         INFO("Processing command");
@@ -64,52 +83,8 @@ static psa_status_t manage_connection(void)
             return PSA_ERROR_COMMUNICATION_FAILURE;
         }
     } while (1);
-}
-
-int main(int argc, char *argv[])
-{
-    psa_status_t status = PSA_ERROR_PROGRAMMER_ERROR;
-    char mbedtls_version[18];
-    int ret = EXIT_SUCCESS;
-
-    mbedtls_version_get_string_full(mbedtls_version);
-    INFO("%s", mbedtls_version);
-
-    parse_input_args(argc, argv);
-
-    INFO("Creating socket");
-    status = psa_setup_socket();
-    if (status != PSA_SUCCESS) {
-        ret = EXIT_FAILURE;
-        goto exit;
-    }
-
-    do {
-        INFO("Wait for connection");
-        status = psa_wait_for_connection();
-        if (status != PSA_SUCCESS) {
-            ret = EXIT_FAILURE;
-            goto exit;
-        }
-        INFO("Client connected");
-
-        /* Intentionally ignoring the return value here because the only way
-         * to return from this call is when the client disconnects or there is
-         * an issue with the communication. In both cases we'll just want
-         * to restart a new connection (if kill_on_disconnect is not set,
-         * of course). */
-        manage_connection();
-
-        INFO("Connection closed");
-        psa_close_connection();
-
-        if (kill_on_disconnect) {
-            break;
-        }
-    } while (1);
 
 exit:
-    psa_close_connection();
-    psa_close_socket();
+    psa_close();
     return EXIT_SUCCESS;
 }

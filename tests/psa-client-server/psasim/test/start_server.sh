@@ -9,7 +9,7 @@ set -e
 # Note: the socket file being checked must be in the same folder from where
 #       this script is called.
 function wait_for_server_startup() {
-    while [ ! -S "psasim-socket" ]; do
+    while [ ! -f "psasim-shm" ]; do
         sleep 0.1
     done
 }

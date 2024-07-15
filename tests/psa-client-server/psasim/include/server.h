@@ -14,11 +14,8 @@
 
 #include "common.h"
 
-psa_status_t psa_setup_socket(void);
-void psa_close_socket(void);
-
-psa_status_t psa_wait_for_connection(void);
-void psa_close_connection(void);
+psa_status_t psa_setup(void);
+void psa_close(void);
 
 psa_status_t psa_wait_for_command(void);
 psa_status_t psa_send_reply(void);

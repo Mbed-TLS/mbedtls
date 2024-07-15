@@ -14,8 +14,7 @@ COMMON_INCLUDE := -I./include -I$(MBEDTLS_ROOT_PATH)/include \
 
 LIBPSACLIENT_SRC = src/psa_ff_client.c \
 		 		src/psa_sim_crypto_client.c \
-		 		src/psa_sim_serialise.c \
-				src/common.c
+		 		src/psa_sim_serialise.c
 LIBPSACLIENT_OBJS=$(LIBPSACLIENT_SRC:.c=.o)
 
 PSA_CLIENT_BASE_SRC = $(LIBPSACLIENT_SRC) src/client.c
@@ -26,8 +25,7 @@ PSA_CLIENT_FULL_SRC = $(LIBPSACLIENT_SRC) \
 PSA_SERVER_SRC = src/server.c \
 				 src/psa_ff_server.c \
 				 src/psa_sim_crypto_server.c \
-				 src/psa_sim_serialise.c \
-				 src/common.c
+				 src/psa_sim_serialise.c
 
 .PHONY: all clean client_libs server_libs
 
@@ -64,6 +62,7 @@ client_libs server_libs:
 	cp $(MBEDTLS_ROOT_PATH)/library/libmbed*.a $@/
 
 clean:
+	rm -f src/*.o
 	rm -f test/psa_client_base test/psa_client_full test/psa_server
 	rm -rf client_libs server_libs
 	rm -f test/psa_service_* test/psa_notify_* test/*.log

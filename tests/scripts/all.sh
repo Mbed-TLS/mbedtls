@@ -6040,6 +6040,7 @@ component_test_psasim() {
     msg "test full psasim client"
     $PSASIM_PATH/test/run_test.sh psa_client_full
 
+    helper_psasim_server kill
     make -C $PSASIM_PATH clean
 }
 

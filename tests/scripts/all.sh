@@ -6076,6 +6076,32 @@ component_test_suite_with_psasim()
     helper_psasim_server kill
 }
 
+# This is the reference component of component_test_suite_with_psasim() to be
+# used in analyze_outcomes.py in order to verify test coverage.
+component_test_suite_with_psasim_reference()
+{
+    # Psasim is not involved in this test, but we set the same configuration of
+    # the client side of component_test_suite_with_psasim() a part from
+    # MBEDTLS_PSA_CRYPTO_C being enabled here, of course.
+    scripts/config.py full
+    scripts/config.py unset MBEDTLS_PSA_CRYPTO_STORAGE_C
+    scripts/config.py unset MBEDTLS_PSA_CRYPTO_SE_C
+    scripts/config.py unset MBEDTLS_X509_RSASSA_PSS_SUPPORT
+    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED
+    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED
+    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED
+    scripts/config.py unset MBEDTLS_ECP_RESTARTABLE
+    scripts/config.py unset MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER
+    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_JPAKE
+    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED
+
+    # Skip the same test suites skipped in psasim.
+    SKIP_TEST_SUITES="constant_time_hmac,lmots,lms"
+    export SKIP_TEST_SUITES
+
+    make CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS" test
+}
+
 ################################################################
 #### Termination
 ################################################################

@@ -709,6 +709,17 @@ KNOWN_TASKS = {
                 ],
             }
         }
+    },
+    'analyze_psasim': {
+        'test_function': do_analyze_driver_vs_reference,
+        'args': {
+            'component_ref': 'test_suite_with_psasim_reference',
+            'component_driver': 'test_suite_with_psasim',
+            'ignored_suites': [
+            ],
+            'ignored_tests': {
+            }
+        }
     }
 }
 

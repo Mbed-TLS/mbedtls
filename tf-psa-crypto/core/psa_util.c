@@ -235,7 +235,7 @@ psa_ecc_family_t mbedtls_ecc_group_to_psa(mbedtls_ecp_group_id grpid,
             *bits = 255;
             return PSA_ECC_FAMILY_MONTGOMERY;
 #endif
-#if defined(MBEDTLS_ECP_HAVE_SECP192K1)
+#if defined(PSA_WANT_ECC_SECP_K1_192)
         case MBEDTLS_ECP_DP_SECP192K1:
             *bits = 192;
             return PSA_ECC_FAMILY_SECP_K1;
@@ -243,7 +243,7 @@ psa_ecc_family_t mbedtls_ecc_group_to_psa(mbedtls_ecp_group_id grpid,
 #if defined(MBEDTLS_ECP_HAVE_SECP224K1)
     /* secp224k1 is not and will not be supported in PSA (#3541). */
 #endif
-#if defined(MBEDTLS_ECP_HAVE_SECP256K1)
+#if defined(PSA_WANT_ECC_SECP_K1_256)
         case MBEDTLS_ECP_DP_SECP256K1:
             *bits = 256;
             return PSA_ECC_FAMILY_SECP_K1;

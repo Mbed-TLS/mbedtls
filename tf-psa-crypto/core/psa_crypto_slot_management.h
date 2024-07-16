@@ -15,7 +15,7 @@
 
 /** Range of volatile key identifiers.
  *
- *  The last #MBEDTLS_PSA_KEY_SLOT_COUNT identifiers of the implementation
+ *  The first #MBEDTLS_PSA_KEY_SLOT_COUNT identifiers of the implementation
  *  range of key identifiers are reserved for volatile key identifiers.
  *  A volatile key identifier is equal to #PSA_KEY_ID_VOLATILE_MIN plus the
  *  index of the key slot containing the volatile key definition.
@@ -23,12 +23,12 @@
 
 /** The minimum value for a volatile key identifier.
  */
-#define PSA_KEY_ID_VOLATILE_MIN  (PSA_KEY_ID_VENDOR_MAX - \
-                                  MBEDTLS_PSA_KEY_SLOT_COUNT + 1)
+#define PSA_KEY_ID_VOLATILE_MIN  PSA_KEY_ID_VENDOR_MIN
 
 /** The maximum value for a volatile key identifier.
  */
-#define PSA_KEY_ID_VOLATILE_MAX  PSA_KEY_ID_VENDOR_MAX
+#define PSA_KEY_ID_VOLATILE_MAX                                 \
+    (PSA_KEY_ID_VOLATILE_MIN + MBEDTLS_PSA_KEY_SLOT_COUNT - 1)
 
 /** Test whether a key identifier is a volatile key identifier.
  *

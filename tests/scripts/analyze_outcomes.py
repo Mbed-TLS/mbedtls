@@ -74,7 +74,7 @@ def execute_reference_driver_tests(results: Results, ref_component: str, driver_
     coverage analysis"""
     results.new_section("Test {} and {}", ref_component, driver_component)
 
-    shell_command = "tests/scripts/all.sh --outcome-file " + outcome_file + \
+    shell_command = "tests/scripts/all.sh --force --outcome-file " + outcome_file + \
                     " " + ref_component + " " + driver_component
     results.info("Running: {}", shell_command)
     ret_val = subprocess.run(shell_command.split(), check=False).returncode
@@ -716,8 +716,60 @@ KNOWN_TASKS = {
             'component_ref': 'test_suite_with_psasim_reference',
             'component_driver': 'test_suite_with_psasim',
             'ignored_suites': [
+                # Following suites makes direct call to PSA core functions
+                # which are only available when CRYPTO_C is enabled (not in psasim).
+                'psa_crypto_slot_management',
+                'psa_crypto_init',
+                'psa_crypto_memory',
+                # Following tests depend on MBEDTLS_PSA_BUILTIN_HASH, which is
+                # not set when psasim is tested.
+                'psa_crypto_low_hash',
             ],
             'ignored_tests': {
+                'test_suite_config.mbedtls_boolean': [
+                    # Following tests depend on CRYPTO_C
+                    'Config: !MBEDTLS_PSA_CRYPTO_SPM',
+                    'Config: !MBEDTLS_PSA_INJECT_ENTROPY',
+                    'Config: !MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER',
+                    'Config: !MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG',
+                    'Config: !MBEDTLS_PSA_ASSUME_EXCLUSIVE_BUFFERS',
+                    'Config: MBEDTLS_PSA_CRYPTO_CONFIG',
+                    'Config: MBEDTLS_PSA_CRYPTO_C',
+                    'Config: MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS',
+                ],
+                'test_suite_pk': [
+                    # Following tests make use of enrollment algorithm which is
+                    # only available when CRYPTO_C is set.
+                    re.compile('PK can do ext: NONE.*'),
+                    'PK can do ext: ECDH/ECDSA(ANY), check ECDSA(SHA256)+DERIVE|SIGN',
+                    'PK can do ext: RSA_PKCS1V15_CRYPT/RSA_PSS(ANY), check RSA_PKCS1V15_CRYPT',
+                    'PK can do ext: ECDH/ECDSA(ANY), check ECDSA(SHA256)+SIGN',
+                    'PK can do ext: RSA_PKCS1V15_CRYPT/RSA_PSS(ANY), check RSA_PSS(SHA256)',
+                    'PK can do ext: ECDH/ECDSA(ANY), check ECDSA(SHA256)+DERIVE',
+                    'PK can do ext: RSA_PKCS1V15_SIGN(ANY)/RSA_PSS(ANY), check RSA_PSS(SHA256)',
+                ],
+                'test_suite_psa_crypto': [
+                    # psasim does not support concurrent operations, so these
+                    # are disabled.
+                    re.compile('PSA concurrent key generation.*'),
+                    # Following tests with customized exponent in RSA key generation
+                    # depend on built-in features that are only available when CRYPTO_C
+                    # is enabled.
+                    re.compile('PSA generate key ext: RSA, e=.*'),
+                    # Following test access PSA internal functions which are only
+                    # available when CRYPTO_C is enabled.
+                    'PSA can_do_hash'
+                ],
+                'test_suite_ssl': [
+                    # Following test make use of enrollment algorithm which is
+                    # only available when CRYPTO_C is set.
+                    ('Handshake, select ECDH-ECDSA-WITH-CAMELLIA-256-CBC-SHA384, opaque,'
+                     'PSA_ALG_ANY_HASH'),
+                    # Following tests make use of PSA core functions which are only
+                    # available when CRYPTO_C is enabled.
+                    'Raw key agreement: nominal',
+                    'Raw key agreement: bad server key',
+                ]
             }
         }
     }

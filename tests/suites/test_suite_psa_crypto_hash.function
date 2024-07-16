@@ -35,7 +35,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on: MBEDTLS_PSA_CRYPTO_C */
+/* BEGIN_CASE */
 void hmac(int alg_arg, char *input, data_t *expected_mac)
 {
     psa_algorithm_t alg = PSA_ALG_HMAC(alg_arg);

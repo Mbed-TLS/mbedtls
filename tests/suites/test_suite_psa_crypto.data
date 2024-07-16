@@ -7566,7 +7566,7 @@ generate_key_ext:PSA_KEY_TYPE_RSA_KEY_PAIR:PSA_VENDOR_RSA_GENERATE_MIN_KEY_BITS:
 # the dependency on MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR_GENERATE from
 # the positive/invalid_argument test cases.
 PSA generate key ext: RSA, e=3 with driver and no fallback (not yet supported)
-depends_on:PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_GENERATE:!MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR_GENERATE
+depends_on:PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_GENERATE:!MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR_GENERATE:MBEDTLS_PSA_CRYPTO_C
 generate_key_ext:PSA_KEY_TYPE_RSA_KEY_PAIR:PSA_VENDOR_RSA_GENERATE_MIN_KEY_BITS:PSA_KEY_USAGE_ENCRYPT | PSA_KEY_USAGE_DECRYPT:0:0:"03":PSA_ERROR_NOT_SUPPORTED
 
 PSA generate key ext: ECC, flags=0
@@ -7824,4 +7824,3 @@ ecc_conversion_functions:MBEDTLS_ECP_DP_NONE:0:0
 
 ECP group ID <-> PSA family - Wrong values
 ecc_conversion_functions_fail
-

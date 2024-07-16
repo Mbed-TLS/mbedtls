@@ -542,12 +542,12 @@ typedef struct {
 
 static const oid_ecp_grp_t oid_ecp_grp[] =
 {
-#if defined(MBEDTLS_ECP_HAVE_SECP192R1)
+#if defined(PSA_WANT_ECC_SECP_R1_192)
     {
         OID_DESCRIPTOR(MBEDTLS_OID_EC_GRP_SECP192R1, "secp192r1",    "secp192r1"),
         MBEDTLS_ECP_DP_SECP192R1,
     },
-#endif /* MBEDTLS_ECP_HAVE_SECP192R1 */
+#endif /* PSA_WANT_ECC_SECP_R1_192 */
 #if defined(MBEDTLS_ECP_HAVE_SECP224R1)
     {
         OID_DESCRIPTOR(MBEDTLS_OID_EC_GRP_SECP224R1, "secp224r1",    "secp224r1"),

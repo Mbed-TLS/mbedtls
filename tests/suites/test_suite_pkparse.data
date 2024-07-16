@@ -947,11 +947,11 @@ Parse Public RSA Key #4 (PKCS#1 wrapped, DER)
 pk_parse_public_keyfile_rsa:"../framework/data_files/rsa_pkcs1_2048_public.der":0
 
 Parse Public EC Key #1 (RFC 5480, DER)
-depends_on:MBEDTLS_ECP_HAVE_SECP192R1
+depends_on:PSA_WANT_ECC_SECP_R1_192
 pk_parse_public_keyfile_ec:"../framework/data_files/ec_pub.der":0
 
 Parse Public EC Key #2 (RFC 5480, PEM)
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_HAVE_SECP192R1
+depends_on:MBEDTLS_PEM_PARSE_C:PSA_WANT_ECC_SECP_R1_192
 pk_parse_public_keyfile_ec:"../framework/data_files/ec_pub.pem":0
 
 Parse Public EC Key #2a (RFC 5480, PEM, secp192r1, compressed)
@@ -1033,11 +1033,11 @@ depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_HAVE_CURVE448
 pk_parse_public_keyfile_ec:"../framework/data_files/ec_x448_pub.pem":0
 
 Parse EC Key #1 (SEC1 DER)
-depends_on:MBEDTLS_PK_HAVE_ECC_KEYS:MBEDTLS_ECP_HAVE_SECP192R1
+depends_on:MBEDTLS_PK_HAVE_ECC_KEYS:PSA_WANT_ECC_SECP_R1_192
 pk_parse_keyfile_ec:"../framework/data_files/ec_prv.sec1.der":"NULL":0
 
 Parse EC Key #2 (SEC1 PEM)
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_HAVE_SECP192R1
+depends_on:MBEDTLS_PEM_PARSE_C:PSA_WANT_ECC_SECP_R1_192
 pk_parse_keyfile_ec:"../framework/data_files/ec_prv.sec1.pem":"NULL":0
 
 Parse EC Key #2a (SEC1 PEM, secp192r1, compressed)
@@ -1045,11 +1045,11 @@ depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_PARSE_EC_COMPRESSED:MBEDTLS_ECP_DP_SEC
 pk_parse_keyfile_ec:"../framework/data_files/ec_prv.sec1.comp.pem":"NULL":0
 
 Parse EC Key #3 (SEC1 PEM encrypted)
-depends_on:MBEDTLS_DES_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_HAVE_SECP192R1:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_MD_CAN_MD5
+depends_on:MBEDTLS_DES_C:MBEDTLS_PEM_PARSE_C:PSA_WANT_ECC_SECP_R1_192:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_MD_CAN_MD5
 pk_parse_keyfile_ec:"../framework/data_files/ec_prv.sec1.pw.pem":"polar":0
 
 Parse EC Key #4 (PKCS8 DER)
-depends_on:MBEDTLS_ECP_HAVE_SECP192R1
+depends_on:PSA_WANT_ECC_SECP_R1_192
 pk_parse_keyfile_ec:"../framework/data_files/ec_prv.pk8.der":"NULL":0
 
 Parse EC Key #4a (PKCS8 DER, no public key)
@@ -1065,7 +1065,7 @@ depends_on:MBEDTLS_ECP_HAVE_SECP256R1
 pk_parse_keyfile_ec:"../framework/data_files/ec_prv.pk8param.der":"NULL":0
 
 Parse EC Key #5 (PKCS8 PEM)
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_HAVE_SECP192R1
+depends_on:MBEDTLS_PEM_PARSE_C:PSA_WANT_ECC_SECP_R1_192
 pk_parse_keyfile_ec:"../framework/data_files/ec_prv.pk8.pem":"NULL":0
 
 Parse EC Key #5a (PKCS8 PEM, no public key)

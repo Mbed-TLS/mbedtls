@@ -65,6 +65,10 @@ typedef struct {
 
 static psa_global_data_t global_data;
 
+MBEDTLS_STATIC_ASSERT(ARRAY_LENGTH(global_data.key_slots) <=
+                      PSA_KEY_ID_VOLATILE_MAX - PSA_KEY_ID_VOLATILE_MIN + 1,
+                      "The volatile key range is larger than the key slot array");
+
 static uint8_t psa_get_key_slots_initialized(void)
 {
     uint8_t initialized;

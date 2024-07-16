@@ -25,6 +25,8 @@
 #error "Error: MBEDTLS_PSA_CRYPTO_C must be disabled on client build"
 #endif
 
+static int communication_initialized = 0;
+
 int psa_crypto_call(int function,
                     uint8_t *in_params, size_t in_params_len,
                     uint8_t **out_params, size_t *out_params_len)
@@ -32,6 +34,15 @@ int psa_crypto_call(int function,
     psa_invec invec;
     invec.base = in_params;
     invec.len = in_params_len;
+
+    if (!communication_initialized) {
+        psa_status_t status = psa_connect();
+        if (status < 0) {
+            ERROR("Couldn't connect (%d)", status);
+            return PSA_ERROR_COMMUNICATION_FAILURE;
+        }
+        communication_initialized = 1;
+    }
 
     size_t max_receive = 24576;
     uint8_t *receive = malloc(max_receive);
@@ -70,12 +81,6 @@ psa_status_t psa_crypto_init(void)
     mbedtls_version_get_string_full(mbedtls_version);
     INFO("%s", mbedtls_version);
 
-    status = psa_connect();
-    if (status < 0) {
-        ERROR("Couldn't connect (%d)", status);
-        return PSA_ERROR_COMMUNICATION_FAILURE;
-    }
-
     int ok = psa_crypto_call(PSA_CRYPTO_INIT, NULL, 0, &result, &result_length);
     INFO("PSA_CRYPTO_INIT returned: %d", ok);
 
@@ -106,6 +111,7 @@ void mbedtls_psa_crypto_free(void)
 {
     INFO("Closing connection");
     psa_close();
+    communication_initialized = 0;
 }
 
 

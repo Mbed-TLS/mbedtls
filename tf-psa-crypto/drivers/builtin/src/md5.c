@@ -58,7 +58,6 @@ int mbedtls_md5_starts(mbedtls_md5_context *ctx)
     return 0;
 }
 
-#if !defined(MBEDTLS_MD5_PROCESS_ALT)
 int mbedtls_internal_md5_process(mbedtls_md5_context *ctx,
                                  const unsigned char data[64])
 {
@@ -192,8 +191,6 @@ int mbedtls_internal_md5_process(mbedtls_md5_context *ctx,
 
     return 0;
 }
-
-#endif /* !MBEDTLS_MD5_PROCESS_ALT */
 
 /*
  * MD5 process buffer

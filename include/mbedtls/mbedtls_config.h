@@ -387,7 +387,6 @@
  *            implementation should be provided for mbedtls_ecdsa_sign_det_ext().
  *
  */
-//#define MBEDTLS_MD5_PROCESS_ALT
 //#define MBEDTLS_RIPEMD160_PROCESS_ALT
 //#define MBEDTLS_SHA1_PROCESS_ALT
 //#define MBEDTLS_SHA256_PROCESS_ALT

@@ -675,7 +675,6 @@ exit:
 /*
  * 3DES-ECB block encryption/decryption
  */
-#if !defined(MBEDTLS_DES3_CRYPT_ECB_ALT)
 int mbedtls_des3_crypt_ecb(mbedtls_des3_context *ctx,
                            const unsigned char input[8],
                            unsigned char output[8])
@@ -712,7 +711,6 @@ int mbedtls_des3_crypt_ecb(mbedtls_des3_context *ctx,
 
     return 0;
 }
-#endif /* !MBEDTLS_DES3_CRYPT_ECB_ALT */
 
 #if defined(MBEDTLS_CIPHER_MODE_CBC)
 /*

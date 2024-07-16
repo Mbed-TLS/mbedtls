@@ -89,7 +89,14 @@ check()
         fi
     done
 
-    "$SCRIPT"
+    # In the case of the config tests, generate only the files to be checked
+    # by the caller as they are divided into Mbed TLS and TF-PSA-Crypto
+    # specific ones.
+    if [ "${SCRIPT##*/}" = "generate_config_tests.py" ]; then
+        "$SCRIPT" "$@"
+    else
+        "$SCRIPT"
+    fi
 
     # Compare the script output to the old files and remove backups
     for FILE in "$@"; do
@@ -134,11 +141,29 @@ check()
 #   - scripts/make_generated_files.bat (to generate them under Windows)
 
 # These checks are common to Mbed TLS and TF-PSA-Crypto
+
+# The first case is temporary for the hybrid situation with a tf-psa-crypto
+# directory in Mbed TLS that is not just a TF-PSA-Crypto submodule.
+if [ -d tf-psa-crypto ]; then
+    cd tf-psa-crypto
+    check ../framework/scripts/generate_bignum_tests.py $(../framework/scripts/generate_bignum_tests.py --list)
+    check ../framework/scripts/generate_config_tests.py tests/suites/test_suite_config.psa_boolean.data
+    check ../framework/scripts/generate_ecp_tests.py $(../framework/scripts/generate_ecp_tests.py --list)
+    check ../framework/scripts/generate_psa_tests.py $(../framework/scripts/generate_psa_tests.py --list)
+    cd ..
+    check framework/scripts/generate_config_tests.py tests/suites/test_suite_config.mbedtls_boolean.data
+else
+    check framework/scripts/generate_bignum_tests.py $(framework/scripts/generate_bignum_tests.py --list)
+    if in_mbedtls_repo; then
+        check framework/scripts/generate_config_tests.py tests/suites/test_suite_config.mbedtls_boolean.data
+    else
+        check framework/scripts/generate_config_tests.py tests/suites/test_suite_config.psa_boolean.data
+    fi
+    check framework/scripts/generate_ecp_tests.py $(framework/scripts/generate_ecp_tests.py --list)
+    check framework/scripts/generate_psa_tests.py $(framework/scripts/generate_psa_tests.py --list)
+fi
+
 check scripts/generate_psa_constants.py programs/psa/psa_constant_names_generated.c
-check framework/scripts/generate_bignum_tests.py $(framework/scripts/generate_bignum_tests.py --list)
-check framework/scripts/generate_config_tests.py $(framework/scripts/generate_config_tests.py --list)
-check framework/scripts/generate_ecp_tests.py $(framework/scripts/generate_ecp_tests.py --list)
-check framework/scripts/generate_psa_tests.py $(framework/scripts/generate_psa_tests.py --list)
 check framework/scripts/generate_test_keys.py tests/src/test_keys.h
 check scripts/generate_driver_wrappers.py ${crypto_core_dir}/psa_crypto_driver_wrappers.h \
                                           ${crypto_core_dir}/psa_crypto_driver_wrappers_no_static.c

@@ -225,11 +225,8 @@ invalid_handle:INVALID_HANDLE_CLOSED:PSA_ERROR_INVALID_HANDLE
 invalid handle: huge
 invalid_handle:INVALID_HANDLE_HUGE:PSA_ERROR_INVALID_HANDLE
 
-Key slot count: less than maximum
-many_transient_keys:MBEDTLS_PSA_KEY_SLOT_COUNT - 1
-
 Key slot count: maximum
-many_transient_keys:MBEDTLS_PSA_KEY_SLOT_COUNT
+many_transient_keys:MBEDTLS_PSA_KEY_SLOT_COUNT - MBEDTLS_TEST_PSA_INTERNAL_KEYS
 
 Key slot count: try to overfill, destroy first
 fill_key_store:0

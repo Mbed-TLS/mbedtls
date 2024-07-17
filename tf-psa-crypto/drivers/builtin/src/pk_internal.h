@@ -116,7 +116,7 @@ static inline mbedtls_ecp_group_id mbedtls_pk_get_ec_group_id(const mbedtls_pk_c
 /* Helper for Montgomery curves */
 #if defined(PSA_WANT_ECC_MONTGOMERY_255) || defined(PSA_WANT_ECC_MONTGOMERY_448)
 #define MBEDTLS_PK_HAVE_RFC8410_CURVES
-#endif /* PSA_WANT_ECC_MONTGOMERY_255 || MBEDTLS_ECP_DP_CURVE448 */
+#endif /* PSA_WANT_ECC_MONTGOMERY_255 || PSA_WANT_ECC_MONTGOMERY_448 */
 
 #define MBEDTLS_PK_IS_RFC8410_GROUP_ID(id)  \
     ((id == MBEDTLS_ECP_DP_CURVE25519) || (id == MBEDTLS_ECP_DP_CURVE448))

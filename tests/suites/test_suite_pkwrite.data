@@ -31,11 +31,11 @@ depends_on:MBEDTLS_PK_HAVE_ECC_KEYS:MBEDTLS_ECP_HAVE_SECP521R1
 pk_write_pubkey_check:"../framework/data_files/ec_521_pub.der":TEST_DER
 
 Public key write check EC Brainpool 512 bits
-depends_on:MBEDTLS_PK_HAVE_ECC_KEYS:MBEDTLS_PEM_PARSE_C:MBEDTLS_PEM_WRITE_C:MBEDTLS_ECP_HAVE_BP512R1
+depends_on:MBEDTLS_PK_HAVE_ECC_KEYS:MBEDTLS_PEM_PARSE_C:MBEDTLS_PEM_WRITE_C:PSA_WANT_ECC_BRAINPOOL_P_R1_512
 pk_write_pubkey_check:"../framework/data_files/ec_bp512_pub.pem":TEST_PEM
 
 Public key write check EC Brainpool 512 bits (DER)
-depends_on:MBEDTLS_PK_HAVE_ECC_KEYS:MBEDTLS_ECP_HAVE_BP512R1
+depends_on:MBEDTLS_PK_HAVE_ECC_KEYS:PSA_WANT_ECC_BRAINPOOL_P_R1_512
 pk_write_pubkey_check:"../framework/data_files/ec_bp512_pub.der":TEST_DER
 
 Public key write check EC X25519
@@ -103,11 +103,11 @@ depends_on:MBEDTLS_PK_HAVE_ECC_KEYS:MBEDTLS_ECP_HAVE_SECP521R1
 pk_write_key_check:"../framework/data_files/ec_521_short_prv.der":TEST_DER
 
 Private key write check EC Brainpool 512 bits
-depends_on:MBEDTLS_PK_HAVE_ECC_KEYS:MBEDTLS_PEM_PARSE_C:MBEDTLS_PEM_WRITE_C:MBEDTLS_ECP_HAVE_BP512R1
+depends_on:MBEDTLS_PK_HAVE_ECC_KEYS:MBEDTLS_PEM_PARSE_C:MBEDTLS_PEM_WRITE_C:PSA_WANT_ECC_BRAINPOOL_P_R1_512
 pk_write_key_check:"../framework/data_files/ec_bp512_prv.pem":TEST_PEM
 
 Private key write check EC Brainpool 512 bits (DER)
-depends_on:MBEDTLS_PK_HAVE_ECC_KEYS:MBEDTLS_ECP_HAVE_BP512R1
+depends_on:MBEDTLS_PK_HAVE_ECC_KEYS:PSA_WANT_ECC_BRAINPOOL_P_R1_512
 pk_write_key_check:"../framework/data_files/ec_bp512_prv.der":TEST_DER
 
 Private key write check EC X25519
@@ -143,7 +143,7 @@ depends_on:MBEDTLS_PK_HAVE_ECC_KEYS:MBEDTLS_ECP_HAVE_SECP521R1
 pk_write_public_from_private:"../framework/data_files/ec_521_prv.der":"../framework/data_files/ec_521_pub.der"
 
 Derive public key EC Brainpool 512 bits
-depends_on:MBEDTLS_PK_HAVE_ECC_KEYS:MBEDTLS_ECP_HAVE_BP512R1
+depends_on:MBEDTLS_PK_HAVE_ECC_KEYS:PSA_WANT_ECC_BRAINPOOL_P_R1_512
 pk_write_public_from_private:"../framework/data_files/ec_bp512_prv.der":"../framework/data_files/ec_bp512_pub.der"
 
 Derive public key EC X25519

@@ -440,4 +440,24 @@ uint64_t mbedtls_test_parse_binary_string(data_t *bin_string);
 #define AES_PSA_DONE() ((void) 0)
 #endif /* MBEDTLS_CTR_DRBG_USE_PSA_CRYPTO */
 
+#if !defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG) &&                        \
+    defined(MBEDTLS_CTR_DRBG_C) &&                                      \
+    defined(MBEDTLS_CTR_DRBG_USE_PSA_CRYPTO)
+/* When AES_C is not defined and PSA does not have an external RNG,
+ * then CTR_DRBG uses PSA to perform AES-ECB. In this scenario 1 key
+ * slot is used internally from PSA to hold the AES key and it should
+ * not be taken into account when evaluating remaining open slots. */
+#define MBEDTLS_TEST_PSA_INTERNAL_KEYS_FOR_DRBG 1
+#else
+#define MBEDTLS_TEST_PSA_INTERNAL_KEYS_FOR_DRBG 0
+#endif
+
+/** The number of volatile keys that PSA crypto uses internally.
+ *
+ * We expect that many volatile keys to be in use after a successful
+ * psa_crypto_init().
+ */
+#define MBEDTLS_TEST_PSA_INTERNAL_KEYS          \
+    MBEDTLS_TEST_PSA_INTERNAL_KEYS_FOR_DRBG
+
 #endif /* PSA_CRYPTO_HELPERS_H */

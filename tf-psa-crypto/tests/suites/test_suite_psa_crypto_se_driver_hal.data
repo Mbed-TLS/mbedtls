@@ -178,8 +178,8 @@ register_key_smoke_test:TEST_SE_PERSISTENT_LIFETIME:7:PSA_KEY_ID_VENDOR_MAX+1:-1
 Key registration: key id min vendor
 register_key_smoke_test:TEST_SE_PERSISTENT_LIFETIME:7:PSA_KEY_ID_VENDOR_MIN:1:PSA_ERROR_INVALID_ARGUMENT
 
-Key registration: key id max vendor except volatile
-register_key_smoke_test:TEST_SE_PERSISTENT_LIFETIME:7:PSA_KEY_ID_VOLATILE_MIN-1:1:PSA_ERROR_INVALID_ARGUMENT
+Key registration: key id max vendor
+register_key_smoke_test:TEST_SE_PERSISTENT_LIFETIME:7:PSA_KEY_ID_VENDOR_MAX:1:PSA_ERROR_INVALID_ARGUMENT
 
 Key registration: key id min volatile
 register_key_smoke_test:TEST_SE_PERSISTENT_LIFETIME:7:PSA_KEY_ID_VOLATILE_MIN:1:PSA_ERROR_INVALID_ARGUMENT

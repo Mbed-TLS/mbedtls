@@ -639,10 +639,6 @@ class CryptoConfig(Config):
         if name in PSA_UNSTABLE_FEATURE:
             raise ValueError(f'Feature is unstable: \'{name}\'')
 
-        # If value is set to None correct it
-        if not value:
-            value = '1'
-
         if name not in self.settings:
             self.configfile.templates.append((name, '', '#define ' + name + ' '))
 

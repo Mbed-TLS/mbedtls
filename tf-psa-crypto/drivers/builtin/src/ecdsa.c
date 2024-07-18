@@ -739,7 +739,6 @@ cleanup:
     return ret;
 }
 
-#if !defined(MBEDTLS_ECDSA_GENKEY_ALT)
 /*
  * Generate key pair
  */
@@ -755,7 +754,6 @@ int mbedtls_ecdsa_genkey(mbedtls_ecdsa_context *ctx, mbedtls_ecp_group_id gid,
     return mbedtls_ecp_gen_keypair(&ctx->grp, &ctx->d,
                                    &ctx->Q, f_rng, p_rng);
 }
-#endif /* !MBEDTLS_ECDSA_GENKEY_ALT */
 
 /*
  * Set context from an mbedtls_ecp_keypair

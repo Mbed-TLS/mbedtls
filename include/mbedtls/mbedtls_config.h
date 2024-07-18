@@ -350,8 +350,6 @@
  */
 //#define MBEDTLS_TIMING_ALT
 
-//#define MBEDTLS_ECDSA_GENKEY_ALT
-
 /**
  * \def MBEDTLS_ENTROPY_HARDWARE_ALT
  *

@@ -245,7 +245,7 @@ struct psa_custom_key_parameters_s {
  */
 /* This is a deprecated variant of `struct psa_custom_key_parameters_s`.
  * It has exactly the same layout, plus an extra field which is a flexible
- * array members. Thus a `const struct psa_key_production_parameters_s*`
+ * array member. Thus a `const struct psa_key_production_parameters_s*`
  * can be passed to any function that reads a
  * `const struct psa_custom_key_parameters_s*`.
  */

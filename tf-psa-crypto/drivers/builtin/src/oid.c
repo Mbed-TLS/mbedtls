@@ -633,18 +633,18 @@ typedef struct {
 
 static const oid_ecp_grp_algid_t oid_ecp_grp_algid[] =
 {
-#if defined(MBEDTLS_ECP_HAVE_CURVE25519)
+#if defined(PSA_WANT_ECC_MONTGOMERY_255)
     {
         OID_DESCRIPTOR(MBEDTLS_OID_X25519,               "X25519",       "X25519"),
         MBEDTLS_ECP_DP_CURVE25519,
     },
-#endif /* MBEDTLS_ECP_HAVE_CURVE25519 */
-#if defined(MBEDTLS_ECP_HAVE_CURVE448)
+#endif /* PSA_WANT_ECC_MONTGOMERY_255 */
+#if defined(PSA_WANT_ECC_MONTGOMERY_448)
     {
         OID_DESCRIPTOR(MBEDTLS_OID_X448,                 "X448",         "X448"),
         MBEDTLS_ECP_DP_CURVE448,
     },
-#endif /* MBEDTLS_ECP_HAVE_CURVE448 */
+#endif /* PSA_WANT_ECC_MONTGOMERY_448 */
     {
         NULL_OID_DESCRIPTOR,
         MBEDTLS_ECP_DP_NONE,

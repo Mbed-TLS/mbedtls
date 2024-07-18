@@ -230,7 +230,7 @@ psa_ecc_family_t mbedtls_ecc_group_to_psa(mbedtls_ecp_group_id grpid,
             *bits = 512;
             return PSA_ECC_FAMILY_BRAINPOOL_P_R1;
 #endif
-#if defined(MBEDTLS_ECP_HAVE_CURVE25519)
+#if defined(PSA_WANT_ECC_MONTGOMERY_255)
         case MBEDTLS_ECP_DP_CURVE25519:
             *bits = 255;
             return PSA_ECC_FAMILY_MONTGOMERY;
@@ -248,7 +248,7 @@ psa_ecc_family_t mbedtls_ecc_group_to_psa(mbedtls_ecp_group_id grpid,
             *bits = 256;
             return PSA_ECC_FAMILY_SECP_K1;
 #endif
-#if defined(MBEDTLS_ECP_HAVE_CURVE448)
+#if defined(PSA_WANT_ECC_MONTGOMERY_448)
         case MBEDTLS_ECP_DP_CURVE448:
             *bits = 448;
             return PSA_ECC_FAMILY_MONTGOMERY;

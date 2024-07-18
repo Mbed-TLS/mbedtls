@@ -541,7 +541,6 @@ MBEDTLS_MAYBE_UNUSED static unsigned mbedtls_aes_rk_offset(uint32_t *buf)
 /*
  * AES key schedule (encryption)
  */
-#if !defined(MBEDTLS_AES_SETKEY_ENC_ALT)
 int mbedtls_aes_setkey_enc(mbedtls_aes_context *ctx, const unsigned char *key,
                            unsigned int keybits)
 {
@@ -647,7 +646,6 @@ int mbedtls_aes_setkey_enc(mbedtls_aes_context *ctx, const unsigned char *key,
     return 0;
 #endif /* !MBEDTLS_AES_USE_HARDWARE_ONLY */
 }
-#endif /* !MBEDTLS_AES_SETKEY_ENC_ALT */
 
 /*
  * AES key schedule (decryption)
@@ -1858,12 +1856,6 @@ int mbedtls_aes_self_test(int verbose)
                 aes_tests = aes_test_ecb_enc[u];
             }
 
-            /*
-             * AES-192 is an optional feature that may be unavailable when
-             * there is an alternative underlying implementation i.e when
-             * MBEDTLS_AES_SETKEY_ENC_ALT or MBEDTLS_AES_SETKEY_DEC_ALT
-             * are defined.
-             */
             if (ret == MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED && keybits == 192) {
                 mbedtls_printf("skipped\n");
                 continue;
@@ -1923,12 +1915,6 @@ int mbedtls_aes_self_test(int verbose)
                 aes_tests = aes_test_cbc_enc[u];
             }
 
-            /*
-             * AES-192 is an optional feature that may be unavailable when
-             * there is an alternative underlying implementation i.e when
-             * MBEDTLS_AES_SETKEY_ENC_ALT or MBEDTLS_AES_SETKEY_DEC_ALT
-             * are defined.
-             */
             if (ret == MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED && keybits == 192) {
                 mbedtls_printf("skipped\n");
                 continue;
@@ -1991,12 +1977,7 @@ int mbedtls_aes_self_test(int verbose)
 
             offset = 0;
             ret = mbedtls_aes_setkey_enc(&ctx, key, keybits);
-            /*
-             * AES-192 is an optional feature that may be unavailable when
-             * there is an alternative underlying implementation i.e when
-             * MBEDTLS_AES_SETKEY_ENC_ALT or MBEDTLS_AES_SETKEY_DEC_ALT
-             * are defined.
-             */
+
             if (ret == MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED && keybits == 192) {
                 mbedtls_printf("skipped\n");
                 continue;
@@ -2056,12 +2037,7 @@ int mbedtls_aes_self_test(int verbose)
 
             offset = 0;
             ret = mbedtls_aes_setkey_enc(&ctx, key, keybits);
-            /*
-             * AES-192 is an optional feature that may be unavailable when
-             * there is an alternative underlying implementation i.e when
-             * MBEDTLS_AES_SETKEY_ENC_ALT or MBEDTLS_AES_SETKEY_DEC_ALT
-             * are defined.
-             */
+
             if (ret == MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED && keybits == 192) {
                 mbedtls_printf("skipped\n");
                 continue;

@@ -357,7 +357,6 @@ component_test_arm_linux_gnueabi_gcc_thumb_1 () {
     # The hard float ABI is not implemented for Thumb 1, so use gnueabi
     # Some Thumb 1 asm is sensitive to optimisation level, so test both -O0 and -Os
     msg "test: ${ARM_LINUX_GNUEABI_GCC_PREFIX}gcc -O0, thumb 1, default config" # ~2m 10s
-    make clean
     make CC="${ARM_LINUX_GNUEABI_GCC_PREFIX}gcc" CFLAGS='-std=c99 -Werror -Wextra -O0 -mcpu=arm1136j-s -mthumb'
 
     msg "test: main suites make, default config (out-of-box)" # ~36m
@@ -389,7 +388,6 @@ support_test_arm_linux_gnueabi_gcc_thumb_1 () {
 
 component_test_arm_linux_gnueabihf_gcc_armv7 () {
     msg "test: ${ARM_LINUX_GNUEABIHF_GCC_PREFIX}gcc -O2, A32, default config" # ~4m 30s
-    make clean
     make CC="${ARM_LINUX_GNUEABIHF_GCC_PREFIX}gcc" CFLAGS='-std=c99 -Werror -Wextra -O2 -march=armv7-a -marm'
 
     msg "test: main suites make, default config (out-of-box)" # ~3m 30s
@@ -408,7 +406,6 @@ support_test_arm_linux_gnueabihf_gcc_armv7 () {
 
 component_test_arm_linux_gnueabihf_gcc_thumb_2 () {
     msg "test: ${ARM_LINUX_GNUEABIHF_GCC_PREFIX}gcc -Os, thumb 2, default config" # ~4m
-    make clean
     make CC="${ARM_LINUX_GNUEABIHF_GCC_PREFIX}gcc" CFLAGS='-std=c99 -Werror -Wextra -Os -march=armv7-a -mthumb'
 
     msg "test: main suites make, default config (out-of-box)" # ~3m 40s
@@ -427,7 +424,6 @@ support_test_arm_linux_gnueabihf_gcc_thumb_2 () {
 
 component_test_aarch64_linux_gnu_gcc () {
     msg "test: ${AARCH64_LINUX_GNU_GCC_PREFIX}gcc -O2, default config" # ~3m 50s
-    make clean
     make CC="${AARCH64_LINUX_GNU_GCC_PREFIX}gcc" CFLAGS='-std=c99 -Werror -Wextra -O2'
 
     msg "test: main suites make, default config (out-of-box)" # ~1m 50s

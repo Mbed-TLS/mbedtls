@@ -6413,7 +6413,7 @@ exit:
 }
 
 static const psa_custom_key_parameters_t default_custom_production =
-    PSA_KEY_PRODUCTION_PARAMETERS_INIT;
+    PSA_CUSTOM_KEY_PARAMETERS_INIT;
 
 int psa_custom_key_parameters_are_default(
     const psa_custom_key_parameters_t *custom,

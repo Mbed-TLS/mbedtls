@@ -631,4 +631,11 @@ psa_status_t psa_key_agreement_iop_complete(
     return PSA_SUCCESS;
 }
 
+psa_status_t psa_key_agreement_iop_abort(
+    psa_key_agreement_iop_t *operation)
+{
+    (void) operation;
+
+    return PSA_SUCCESS;
+}
 #endif /* MBEDTLS_PSA_CRYPTO_C */

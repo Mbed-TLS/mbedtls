@@ -23,7 +23,7 @@ depends_on:MBEDTLS_RSA_C:MBEDTLS_MD_CAN_SHA1
 x509_cert_info:"../framework/data_files/parse_input/test-ca.crt.der":"cert. version     \: 3\nserial number     \: 03\nissuer name       \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name      \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nissued  on        \: 2019-02-10 14\:44\:00\nexpires on        \: 2029-02-10 14\:44\:00\nsigned using      \: RSA with SHA1\nRSA key size      \: 2048 bits\nbasic constraints \: CA=true\n"
 
 X509 CRT information MD5 Digest
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_MD_CAN_MD5
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:PSA_WANT_ALG_MD5
 x509_cert_info:"../framework/data_files/parse_input/cert_md5.crt":"cert. version     \: 3\nserial number     \: 06\nissuer name       \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name      \: C=NL, O=PolarSSL, CN=PolarSSL Cert MD5\nissued  on        \: 2000-01-01 12\:12\:12\nexpires on        \: 2030-01-01 12\:12\:12\nsigned using      \: RSA with MD5\nRSA key size      \: 2048 bits\nbasic constraints \: CA=false\n"
 
 X509 CRT information SHA1 Digest
@@ -243,7 +243,7 @@ depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_MD_CAN_SHA1:MBEDTLS_RSA_C
 mbedtls_x509_crl_info:"../framework/data_files/parse_input/crl_expired.pem":"CRL version   \: 1\nissuer name   \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nthis update   \: 2011-02-20 10\:24\:19\nnext update   \: 2011-02-20 11\:24\:19\nRevoked certificates\:\nserial number\: 01 revocation date\: 2011-02-12 14\:44\:07\nserial number\: 03 revocation date\: 2011-02-12 14\:44\:07\nsigned using  \: RSA with SHA1\n"
 
 X509 CRL Information MD5 Digest
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_MD_CAN_MD5:MBEDTLS_RSA_C
+depends_on:MBEDTLS_PEM_PARSE_C:PSA_WANT_ALG_MD5:MBEDTLS_RSA_C
 mbedtls_x509_crl_info:"../framework/data_files/parse_input/crl_md5.pem":"CRL version   \: 1\nissuer name   \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nthis update   \: 2011-02-12 14\:44\:07\nnext update   \: 2011-04-13 14\:44\:07\nRevoked certificates\:\nserial number\: 01 revocation date\: 2011-02-12 14\:44\:07\nserial number\: 03 revocation date\: 2011-02-12 14\:44\:07\nsigned using  \: RSA with MD5\n"
 
 X509 CRL Information SHA1 Digest
@@ -319,7 +319,7 @@ depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:PSA_WANT_ALG_SHA_256
 mbedtls_x509_crl_parse:"../framework/data_files/parse_input/crl-idpnc.pem":0
 
 X509 CSR Information RSA with MD5
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_MD_CAN_MD5:MBEDTLS_RSA_C:!MBEDTLS_X509_REMOVE_INFO
+depends_on:MBEDTLS_PEM_PARSE_C:PSA_WANT_ALG_MD5:MBEDTLS_RSA_C:!MBEDTLS_X509_REMOVE_INFO
 mbedtls_x509_csr_info:"../framework/data_files/parse_input/server1.req.md5":"CSR version   \: 1\nsubject name  \: C=NL, O=PolarSSL, CN=PolarSSL Server 1\nsigned using  \: RSA with MD5\nRSA key size  \: 2048 bits\n"
 
 X509 CSR Information RSA with SHA1
@@ -664,11 +664,11 @@ depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15:MBEDTLS_MD_CAN_SH
 x509_verify:"../framework/data_files/server2.crt":"../framework/data_files/server1.crt":"../framework/data_files/crl_expired.pem":"NULL":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_NOT_TRUSTED:"compat":"NULL"
 
 X509 CRT verification #13 (Valid Cert MD5 Digest, MD5 forbidden)
-depends_on:MBEDTLS_MD_CAN_MD5:MBEDTLS_PEM_PARSE_C:MBEDTLS_MD_CAN_SHA1:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
+depends_on:PSA_WANT_ALG_MD5:MBEDTLS_PEM_PARSE_C:MBEDTLS_MD_CAN_SHA1:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
 x509_verify:"../framework/data_files/cert_md5.crt":"../framework/data_files/test-ca.crt":"../framework/data_files/crl.pem":"NULL":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_BAD_MD:"compat":"NULL"
 
 X509 CRT verification #13 (Valid Cert MD5 Digest, MD5 allowed)
-depends_on:MBEDTLS_MD_CAN_MD5:MBEDTLS_PEM_PARSE_C:MBEDTLS_MD_CAN_SHA1:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
+depends_on:PSA_WANT_ALG_MD5:MBEDTLS_PEM_PARSE_C:MBEDTLS_MD_CAN_SHA1:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
 x509_verify:"../framework/data_files/cert_md5.crt":"../framework/data_files/test-ca.crt":"../framework/data_files/crl.pem":"NULL":0:0:"all":"NULL"
 
 X509 CRT verification #14 (Valid Cert SHA1 Digest explicitly allowed in profile)
@@ -3437,5 +3437,5 @@ x509_crt_parse_authoritykeyid:"../framework/data_files/authorityKeyId_subjectKey
 
 # clusterfuzz-testcase-minimized-fuzz_x509crt-6666050834661376: test for bad sequence of names in authorityCertIssuer (see issue #7576)
 X509 CRT parse Authority Key Id - Wrong Issuer sequence
-depends_on:MBEDTLS_MD_CAN_MD5:MBEDTLS_RSA_C
+depends_on:PSA_WANT_ALG_MD5:MBEDTLS_RSA_C
 x509_crt_parse_authoritykeyid:"../framework/data_files/clusterfuzz-testcase-minimized-fuzz_x509crt-6666050834661376.crt.der":"":"":"":MBEDTLS_ERR_X509_INVALID_EXTENSIONS+MBEDTLS_ERR_ASN1_OUT_OF_DATA

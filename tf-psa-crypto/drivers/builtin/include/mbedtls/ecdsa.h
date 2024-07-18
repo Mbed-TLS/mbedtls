@@ -375,7 +375,6 @@ int mbedtls_ecdsa_verify(mbedtls_ecp_group *grp,
                          const mbedtls_ecp_point *Q, const mbedtls_mpi *r,
                          const mbedtls_mpi *s);
 
-#if !defined(MBEDTLS_ECDSA_VERIFY_ALT)
 /**
  * \brief           This function verifies the ECDSA signature of a
  *                  previously-hashed message, in a restartable manner
@@ -417,8 +416,6 @@ int mbedtls_ecdsa_verify_restartable(mbedtls_ecp_group *grp,
                                      const mbedtls_mpi *r,
                                      const mbedtls_mpi *s,
                                      mbedtls_ecdsa_restart_ctx *rs_ctx);
-
-#endif /* !MBEDTLS_ECDSA_VERIFY_ALT */
 
 /**
  * \brief           This function computes the ECDSA signature and writes it

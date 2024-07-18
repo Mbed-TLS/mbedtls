@@ -186,7 +186,6 @@
 
 #if defined(MBEDTLS_ECP_RESTARTABLE)           && \
     ( defined(MBEDTLS_ECDSA_SIGN_ALT)          || \
-      defined(MBEDTLS_ECDSA_VERIFY_ALT)        || \
       defined(MBEDTLS_ECDSA_GENKEY_ALT) )
 #error "MBEDTLS_ECP_RESTARTABLE defined, but it cannot coexist with an alternative ECP implementation"
 #endif

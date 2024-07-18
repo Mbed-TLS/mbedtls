@@ -194,8 +194,7 @@ static void ecdsa_restart_det_free(mbedtls_ecdsa_restart_det_ctx *ctx)
 #endif /* MBEDTLS_ECP_RESTARTABLE */
 
 #if defined(MBEDTLS_ECDSA_DETERMINISTIC) || \
-    !defined(MBEDTLS_ECDSA_SIGN_ALT)     || \
-    !defined(MBEDTLS_ECDSA_VERIFY_ALT)
+    !defined(MBEDTLS_ECDSA_SIGN_ALT)
 /*
  * Derive a suitable integer for group grp from a buffer of length len
  * SEC1 4.1.3 step 5 aka SEC1 4.1.4 step 3
@@ -220,7 +219,7 @@ static int derive_mpi(const mbedtls_ecp_group *grp, mbedtls_mpi *x,
 cleanup:
     return ret;
 }
-#endif /* ECDSA_DETERMINISTIC || !ECDSA_SIGN_ALT || !ECDSA_VERIFY_ALT */
+#endif /* ECDSA_DETERMINISTIC || !ECDSA_SIGN_ALT */
 
 int mbedtls_ecdsa_can_do(mbedtls_ecp_group_id gid)
 {
@@ -480,7 +479,6 @@ int mbedtls_ecdsa_sign_det_ext(mbedtls_ecp_group *grp, mbedtls_mpi *r,
 }
 #endif /* MBEDTLS_ECDSA_DETERMINISTIC */
 
-#if !defined(MBEDTLS_ECDSA_VERIFY_ALT)
 /*
  * Verify ECDSA signature of hashed message (SEC1 4.1.4)
  * Obviously, compared to SEC1 4.1.3, we skip step 2 (hash message)
@@ -601,7 +599,6 @@ int mbedtls_ecdsa_verify(mbedtls_ecp_group *grp,
 {
     return mbedtls_ecdsa_verify_restartable(grp, buf, blen, Q, r, s, NULL);
 }
-#endif /* !MBEDTLS_ECDSA_VERIFY_ALT */
 
 /*
  * Convert a signature (given by context) to ASN.1
@@ -741,19 +738,11 @@ int mbedtls_ecdsa_read_signature_restartable(mbedtls_ecdsa_context *ctx,
         ret += MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
         goto cleanup;
     }
-#if defined(MBEDTLS_ECDSA_VERIFY_ALT)
-    (void) rs_ctx;
 
-    if ((ret = mbedtls_ecdsa_verify(&ctx->grp, hash, hlen,
-                                    &ctx->Q, &r, &s)) != 0) {
-        goto cleanup;
-    }
-#else
     if ((ret = mbedtls_ecdsa_verify_restartable(&ctx->grp, hash, hlen,
                                                 &ctx->Q, &r, &s, rs_ctx)) != 0) {
         goto cleanup;
     }
-#endif /* MBEDTLS_ECDSA_VERIFY_ALT */
 
     /* At this point we know that the buffer starts with a valid signature.
      * Return 0 if the buffer just contains the signature, and a specific

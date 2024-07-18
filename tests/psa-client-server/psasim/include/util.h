@@ -28,4 +28,4 @@
 
 #define PROJECT_ID              'M'
 #define PATHNAMESIZE            256
-#define TMP_FILE_BASE_PATH      "./"
+#define TMP_FILE_BASE_PATH      "/tmp/"

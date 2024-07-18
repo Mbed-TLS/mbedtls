@@ -5206,6 +5206,31 @@ psa_status_t psa_key_agreement_iop_abort(
  */
 typedef struct psa_generate_key_iop_s psa_generate_key_iop_t;
 
+/**
+ * \brief                       Get the number of ops that a key generation
+ *                              operation has taken so far. If the operation has
+ *                              completed, then this will represent the number
+ *                              of ops required for the entire operation. After
+ *                              initialization or calling \c
+ *                              psa_generate_key_iop_abort() on the operation,
+ *                              a value of 0 will be returned.
+ *
+ * \warning                     This is a beta API, and thus subject to change
+ *                              at any point. It is not bound by the usual
+ *                              interface stability promises.
+ *
+ *                              This is a helper provided to help you tune the
+ *                              value passed to \c
+ *                              psa_interruptible_set_max_ops().
+ *
+ * \param operation             The \c psa_generate_key_iop_t to use. This must
+ *                              be initialized first.
+ *
+ * \return                      Number of ops that the operation has taken so
+ *                              far.
+ */
+uint32_t psa_generate_key_iop_get_num_ops(psa_generate_key_iop_t *operation);
+
 /**@}*/
 
 #ifdef __cplusplus

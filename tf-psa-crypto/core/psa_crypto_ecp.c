@@ -593,6 +593,17 @@ exit:
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_ECDH */
 
 /****************************************************************/
+/* Interruptible ECC Key Generation */
+/****************************************************************/
+
+uint32_t psa_generate_key_iop_get_num_ops(
+    psa_generate_key_iop_t *operation)
+{
+    (void) operation;
+    return 0;
+}
+
+/****************************************************************/
 /* Interruptible ECC Key Agreement */
 /****************************************************************/
 

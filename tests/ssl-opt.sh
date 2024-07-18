@@ -595,6 +595,7 @@ case " $CONFIGS_ENABLED " in
     *) PSK_ONLY="NO";;
 esac
 
+HAS_ALG_MD5="NO"
 HAS_ALG_SHA_1="NO"
 HAS_ALG_SHA_224="NO"
 HAS_ALG_SHA_256="NO"
@@ -613,7 +614,10 @@ check_for_hash_alg()
     else
         CURR_ALG=MBEDTLS_${1}_C
         # Remove the second underscore to match MBEDTLS_* naming convention
-        CURR_ALG=$(echo "$CURR_ALG" | sed 's/_//2')
+        # MD5 is an exception to this convention
+        if [ "${1}" != "MD5" ]; then
+            CURR_ALG=$(echo "$CURR_ALG" | sed 's/_//2')
+        fi
     fi
 
     case $CONFIGS_ENABLED in
@@ -627,7 +631,7 @@ check_for_hash_alg()
 
 populate_enabled_hash_algs()
 {
-    for hash_alg in SHA_1 SHA_224 SHA_256 SHA_384 SHA_512; do
+    for hash_alg in SHA_1 SHA_224 SHA_256 SHA_384 SHA_512 MD5; do
         if check_for_hash_alg "$hash_alg"; then
             hash_alg_variable=HAS_ALG_${hash_alg}
             eval ${hash_alg_variable}=YES
@@ -640,6 +644,7 @@ requires_hash_alg() {
     HASH_DEFINE="Invalid"
     HAS_HASH_ALG="NO"
     case $1 in
+        MD5):;;
         SHA_1):;;
         SHA_224):;;
         SHA_256):;;
@@ -2109,11 +2114,11 @@ run_test    "key size: TLS-ECDHE-ECDSA-WITH-AES-128-CCM-8" \
             -c "Key size is 128"
 
 requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
-requires_config_enabled MBEDTLS_MD_CAN_MD5
 # server5.key.enc is in PEM format and AES-256-CBC crypted. Unfortunately PEM
 # module does not support PSA dispatching so we need builtin support.
 requires_config_enabled MBEDTLS_CIPHER_MODE_CBC
 requires_config_enabled MBEDTLS_AES_C
+requires_hash_alg MD5
 requires_hash_alg SHA_256
 run_test    "TLS: password protected client key" \
             "$P_SRV force_version=tls12 auth_mode=required" \
@@ -2121,11 +2126,11 @@ run_test    "TLS: password protected client key" \
             0
 
 requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
-requires_config_enabled MBEDTLS_MD_CAN_MD5
 # server5.key.enc is in PEM format and AES-256-CBC crypted. Unfortunately PEM
 # module does not support PSA dispatching so we need builtin support.
 requires_config_enabled MBEDTLS_CIPHER_MODE_CBC
 requires_config_enabled MBEDTLS_AES_C
+requires_hash_alg MD5
 requires_hash_alg SHA_256
 run_test    "TLS: password protected server key" \
             "$P_SRV crt_file=$DATA_FILES_PATH/server5.crt key_file=$DATA_FILES_PATH/server5.key.enc key_pwd=PolarSSLTest" \
@@ -2134,11 +2139,11 @@ run_test    "TLS: password protected server key" \
 
 requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
 requires_config_enabled MBEDTLS_RSA_C
-requires_config_enabled MBEDTLS_MD_CAN_MD5
 # server5.key.enc is in PEM format and AES-256-CBC crypted. Unfortunately PEM
 # module does not support PSA dispatching so we need builtin support.
 requires_config_enabled MBEDTLS_CIPHER_MODE_CBC
 requires_config_enabled MBEDTLS_AES_C
+requires_hash_alg MD5
 requires_hash_alg SHA_256
 run_test    "TLS: password protected server key, two certificates" \
             "$P_SRV force_version=tls12\

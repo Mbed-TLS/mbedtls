@@ -41,7 +41,7 @@
  * When MBEDTLS_AES_C is disabled, the CTR_DRBG module calls PSA crypto and
  * thus benefits from the PSA AES accelerator driver.
  * It is technically possible to enable MBEDTLS_CTR_DRBG_USE_PSA_CRYPTO
- * to use PSA even when MBEDTLS_AES_C is disabled, but there is very little
+ * to use PSA even when MBEDTLS_AES_C is enabled, but there is very little
  * reason to do so other than testing purposes and this is not officially
  * supported.
  */

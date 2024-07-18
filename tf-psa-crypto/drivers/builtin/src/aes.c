@@ -842,13 +842,14 @@ int mbedtls_aes_xts_setkey_dec(mbedtls_aes_xts_context *ctx,
                AES_RT3(MBEDTLS_BYTE_3(Y0));     \
     } while (0)
 
+#if !defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
 /*
  * AES-ECB block encryption
  */
-#if !defined(MBEDTLS_AES_ENCRYPT_ALT)
-int mbedtls_internal_aes_encrypt(mbedtls_aes_context *ctx,
-                                 const unsigned char input[16],
-                                 unsigned char output[16])
+MBEDTLS_CHECK_RETURN_TYPICAL
+static int mbedtls_internal_aes_encrypt(mbedtls_aes_context *ctx,
+                                        const unsigned char input[16],
+                                        unsigned char output[16])
 {
     int i;
     uint32_t *RK = ctx->buf + ctx->rk_offset;
@@ -902,7 +903,7 @@ int mbedtls_internal_aes_encrypt(mbedtls_aes_context *ctx,
 
     return 0;
 }
-#endif /* !MBEDTLS_AES_ENCRYPT_ALT */
+#endif /* !MBEDTLS_AES_USE_HARDWARE_ONLY */
 
 /*
  * AES-ECB block decryption

@@ -193,8 +193,6 @@ static void ecdsa_restart_det_free(mbedtls_ecdsa_restart_det_ctx *ctx)
 
 #endif /* MBEDTLS_ECP_RESTARTABLE */
 
-#if defined(MBEDTLS_ECDSA_DETERMINISTIC) || \
-    !defined(MBEDTLS_ECDSA_SIGN_ALT)
 /*
  * Derive a suitable integer for group grp from a buffer of length len
  * SEC1 4.1.3 step 5 aka SEC1 4.1.4 step 3
@@ -219,7 +217,6 @@ static int derive_mpi(const mbedtls_ecp_group *grp, mbedtls_mpi *x,
 cleanup:
     return ret;
 }
-#endif /* ECDSA_DETERMINISTIC || !ECDSA_SIGN_ALT */
 
 int mbedtls_ecdsa_can_do(mbedtls_ecp_group_id gid)
 {
@@ -234,7 +231,6 @@ int mbedtls_ecdsa_can_do(mbedtls_ecp_group_id gid)
     }
 }
 
-#if !defined(MBEDTLS_ECDSA_SIGN_ALT)
 /*
  * Compute ECDSA signature of a hashed message (SEC1 4.1.3)
  * Obviously, compared to SEC1 4.1.3, we skip step 4 (hash message)
@@ -384,7 +380,6 @@ int mbedtls_ecdsa_sign(mbedtls_ecp_group *grp, mbedtls_mpi *r, mbedtls_mpi *s,
     return mbedtls_ecdsa_sign_restartable(grp, r, s, d, buf, blen,
                                           f_rng, p_rng, f_rng, p_rng, NULL);
 }
-#endif /* !MBEDTLS_ECDSA_SIGN_ALT */
 
 #if defined(MBEDTLS_ECDSA_DETERMINISTIC)
 /*
@@ -443,16 +438,9 @@ int mbedtls_ecdsa_sign_det_restartable(mbedtls_ecp_group *grp,
 
 sign:
 #endif
-#if defined(MBEDTLS_ECDSA_SIGN_ALT)
-    (void) f_rng_blind;
-    (void) p_rng_blind;
-    ret = mbedtls_ecdsa_sign(grp, r, s, d, buf, blen,
-                             mbedtls_hmac_drbg_random, p_rng);
-#else
     ret = mbedtls_ecdsa_sign_restartable(grp, r, s, d, buf, blen,
                                          mbedtls_hmac_drbg_random, p_rng,
                                          f_rng_blind, p_rng_blind, rs_ctx);
-#endif /* MBEDTLS_ECDSA_SIGN_ALT */
 
 cleanup:
     mbedtls_hmac_drbg_free(&rng_ctx);
@@ -657,17 +645,10 @@ int mbedtls_ecdsa_write_signature_restartable(mbedtls_ecdsa_context *ctx,
 #else
     (void) md_alg;
 
-#if defined(MBEDTLS_ECDSA_SIGN_ALT)
-    (void) rs_ctx;
-
-    MBEDTLS_MPI_CHK(mbedtls_ecdsa_sign(&ctx->grp, &r, &s, &ctx->d,
-                                       hash, hlen, f_rng, p_rng));
-#else
     /* Use the same RNG for both blinding and ephemeral key generation */
     MBEDTLS_MPI_CHK(mbedtls_ecdsa_sign_restartable(&ctx->grp, &r, &s, &ctx->d,
                                                    hash, hlen, f_rng, p_rng, f_rng,
                                                    p_rng, rs_ctx));
-#endif /* MBEDTLS_ECDSA_SIGN_ALT */
 #endif /* MBEDTLS_ECDSA_DETERMINISTIC */
 
     MBEDTLS_MPI_CHK(ecdsa_signature_to_asn1(&r, &s, sig, sig_size, slen));

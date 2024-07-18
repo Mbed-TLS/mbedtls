@@ -603,4 +603,22 @@ uint32_t psa_key_agreement_iop_get_num_ops(
     return 0;
 }
 
+psa_status_t psa_key_agreement_iop_setup(
+    psa_key_agreement_iop_t *operation,
+    psa_key_id_t private_key,
+    const uint8_t *peer_key,
+    size_t peer_key_length,
+    psa_algorithm_t alg,
+    const psa_key_attributes_t *attributes)
+{
+    (void) operation;
+    (void) private_key;
+    (void) peer_key;
+    (void) peer_key_length;
+    (void) alg;
+    (void) attributes;
+
+    return PSA_SUCCESS;
+}
+
 #endif /* MBEDTLS_PSA_CRYPTO_C */

@@ -592,5 +592,15 @@ exit:
 }
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_ECDH */
 
+/****************************************************************/
+/* Interruptible ECC Key Agreement */
+/****************************************************************/
+
+uint32_t psa_key_agreement_iop_get_num_ops(
+    psa_key_agreement_iop_t *operation)
+{
+    (void) operation;
+    return 0;
+}
 
 #endif /* MBEDTLS_PSA_CRYPTO_C */

@@ -106,7 +106,7 @@ psa_status_t mbedtls_psa_rsa_export_public_key(
  * \brief Generate an RSA key.
  *
  * \param[in]  attributes         The attributes for the RSA key to generate.
- * \param[in]  custom             The public exponent to use.
+ * \param[in]  custom_data        The public exponent to use.
  *                                This can be a null pointer if
  *                                \c params_data_length is 0.
  * \param custom_data_length      Length of \p custom_data in bytes.
@@ -126,7 +126,7 @@ psa_status_t mbedtls_psa_rsa_export_public_key(
  */
 psa_status_t mbedtls_psa_rsa_generate_key(
     const psa_key_attributes_t *attributes,
-    const uint8_t *custom, size_t custom_data_length,
+    const uint8_t *custom_data, size_t custom_data_length,
     uint8_t *key_buffer, size_t key_buffer_size, size_t *key_buffer_length);
 
 /** Sign an already-calculated hash with an RSA private key.

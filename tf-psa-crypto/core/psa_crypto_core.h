@@ -365,8 +365,7 @@ int psa_custom_key_parameters_are_default(
  * \param[in]  attributes         The attributes for the key to generate.
  * \param[in] custom              Custom parameters for the key generation.
  * \param[in] custom_data         Variable-length data associated with \c custom.
- * \param custom_data_length
- *                                Length of `custom_data` in bytes.
+ * \param custom_data_length      Length of `custom_data` in bytes.
  * \param[out] key_buffer         Buffer where the key data is to be written.
  * \param[in]  key_buffer_size    Size of \p key_buffer in bytes.
  * \param[out] key_buffer_length  On success, the number of bytes written in

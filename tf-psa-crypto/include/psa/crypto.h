@@ -5419,6 +5419,46 @@ psa_status_t psa_generate_key_iop_complete(
     psa_generate_key_iop_t *operation,
     psa_key_id_t *key);
 
+/**
+ * \brief                       Abort a key generation operation.
+ *
+ * \warning                     This is a beta API, and thus subject to change
+ *                              at any point. It is not bound by the usual
+ *                              interface stability promises.
+ *
+ * \note                        This function clears the number of ops completed
+ *                              as part of the operation. Please ensure you copy
+ *                              this value via
+ *                              \c psa_generate_key_iop_get_num_ops() if
+ *                              required before calling.
+ *
+ * \note                        Aborting an operation frees all
+ *                              associated resources except for the operation
+ *                              structure itself. Once aborted, the operation
+ *                              object can be reused for another operation by
+ *                              calling \c psa_generate_key_iop_setup() again.
+ *
+ * \note                        You may call this function any time after the
+ *                              operation object has been initialized.
+ *                              In particular, calling \c
+ *                              psa_generate_key_iop_abort() after the
+ *                              operation has already been terminated by a call
+ *                              to \c psa_generate_key_iop_abort() or
+ *                              psa_generate_key_iop_complete() is safe.
+ *
+ * \param[in,out] operation     The \c psa_key_agreement_iop_t to use
+ *
+ * \retval #PSA_SUCCESS
+ *          The operation was aborted successfully.
+ *
+ * \retval #PSA_ERROR_NOT_SUPPORTED \emptydescription
+ * \retval #PSA_ERROR_BAD_STATE
+ *          The library has not been previously initialized by
+ *          \c psa_crypto_init().
+ */
+psa_status_t psa_generate_key_iop_abort(
+    psa_generate_key_iop_t *operation);
+
 /**@}*/
 
 #ifdef __cplusplus

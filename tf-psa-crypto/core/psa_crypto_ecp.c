@@ -623,6 +623,14 @@ psa_status_t psa_generate_key_iop_complete(
     return PSA_SUCCESS;
 }
 
+psa_status_t psa_generate_key_iop_abort(
+    psa_generate_key_iop_t *operation)
+{
+    (void) operation;
+
+    return PSA_SUCCESS;
+}
+
 /****************************************************************/
 /* Interruptible ECC Key Agreement */
 /****************************************************************/

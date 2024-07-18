@@ -44,8 +44,7 @@
  * This is a convenience shorthand macro to check if we need reverse S-box and
  * reverse tables. It's private and only defined in this file.
  */
-#if (!defined(MBEDTLS_AES_DECRYPT_ALT) || !defined(MBEDTLS_AES_USE_HARDWARE_ONLY)) \
-    && !defined(MBEDTLS_BLOCK_CIPHER_NO_DECRYPT)
+#if !defined(MBEDTLS_AES_USE_HARDWARE_ONLY) && !defined(MBEDTLS_BLOCK_CIPHER_NO_DECRYPT)
 #define MBEDTLS_AES_NEED_REVERSE_TABLES
 #endif
 
@@ -903,15 +902,15 @@ static int mbedtls_internal_aes_encrypt(mbedtls_aes_context *ctx,
 
     return 0;
 }
-#endif /* !MBEDTLS_AES_USE_HARDWARE_ONLY */
 
+#if !defined(MBEDTLS_BLOCK_CIPHER_NO_DECRYPT)
 /*
  * AES-ECB block decryption
  */
-#if !defined(MBEDTLS_AES_DECRYPT_ALT) && !defined(MBEDTLS_BLOCK_CIPHER_NO_DECRYPT)
-int mbedtls_internal_aes_decrypt(mbedtls_aes_context *ctx,
-                                 const unsigned char input[16],
-                                 unsigned char output[16])
+MBEDTLS_CHECK_RETURN_TYPICAL
+static int mbedtls_internal_aes_decrypt(mbedtls_aes_context *ctx,
+                                        const unsigned char input[16],
+                                        unsigned char output[16])
 {
     int i;
     uint32_t *RK = ctx->buf + ctx->rk_offset;
@@ -965,7 +964,8 @@ int mbedtls_internal_aes_decrypt(mbedtls_aes_context *ctx,
 
     return 0;
 }
-#endif /* !MBEDTLS_AES_DECRYPT_ALT && !MBEDTLS_BLOCK_CIPHER_NO_DECRYPT */
+#endif /* !MBEDTLS_BLOCK_CIPHER_NO_DECRYPT */
+#endif /* !MBEDTLS_AES_USE_HARDWARE_ONLY */
 
 /*
  * Our intrinsics-based implementation of AESNI requires the round keys to be

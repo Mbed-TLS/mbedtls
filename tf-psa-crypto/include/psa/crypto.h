@@ -5343,6 +5343,82 @@ psa_status_t psa_generate_key_iop_setup(
     psa_generate_key_iop_t *operation,
     const psa_key_attributes_t *attributes);
 
+/**
+ * \brief                       Continue and eventually complete the action of
+ *                              key generation, in an interruptible
+ *                              manner.
+ *
+ * \see                         \c psa_generate_key_iop_setup()
+ *
+ * \warning                     This is a beta API, and thus subject to change
+ *                              at any point. It is not bound by the usual
+ *                              interface stability promises.
+ *
+ * \note                        This function combined with \c
+ *                              psa_generate_key_iop_setup() is equivalent to
+ *                              \c psa_generate_key() but this
+ *                              function can return early and resume according
+ *                              to the limit set with \c
+ *                              psa_interruptible_set_max_ops() to reduce the
+ *                              maximum time spent in a function call.
+ *
+ * \note                        Users should call this function on the same
+ *                              operation object repeatedly whilst it returns
+ *                              #PSA_OPERATION_INCOMPLETE, stopping when it
+ *                              returns either #PSA_SUCCESS or an error.
+ *                              Alternatively users can call
+ *                              \c psa_generate_key_iop_abort() at any
+ *                              point if they no longer want the result.
+ *
+ * \note                        When this function returns successfully, the
+ *                              operation becomes inactive. If this function
+ *                              returns an error status, the operation enters an
+ *                              error state and must be aborted by calling
+ *                              \c psa_generate_key_iop_abort().
+ *
+ * \param[in, out] operation    The \c psa_generate_key_iop_t to use.
+ *                              This must be initialized first, and have had \c
+ *                              psa_generate_key_iop_start() called
+ *                              with it first.
+ *
+ * \param[out] key              On success, an identifier for the newly created
+ *                              key, on failure this will be set to
+ *                              #PSA_KEY_ID_NULL.
+ *
+ * \retval #PSA_SUCCESS
+ *          The operation is complete and \p key contains the new key.
+ *          If the key is persistent, the key material and the key's metadata
+ *          have been saved to persistent storage.
+ *
+ * \retval #PSA_OPERATION_INCOMPLETE
+ *         Operation was interrupted due to the setting of \c
+ *         psa_interruptible_set_max_ops(). There is still work to be done.
+ *         Call this function again with the same operation object.
+ *
+ * \retval #PSA_ERROR_ALREADY_EXISTS
+ *         This is an attempt to create a persistent key, and there is already a
+ *         persistent key with the given identifier.
+ *
+ * \retval #PSA_ERROR_NOT_SUPPORTED \emptydescription
+ * \retval #PSA_ERROR_INVALID_ARGUMENT \emptydescription
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE \emptydescription
+ * \retval #PSA_ERROR_HARDWARE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
+ * \retval #PSA_ERROR_STORAGE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_DATA_CORRUPT \emptydescription
+ * \retval #PSA_ERROR_DATA_INVALID \emptydescription
+ * \retval #PSA_ERROR_INSUFFICIENT_ENTROPY \emptydescription
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The following conditions can result in this error:
+ *         * The library has not been previously initialized by
+ *           \c psa_crypto_init().
+ *         * The operation state is not valid: it must be inactive.
+ */
+psa_status_t psa_generate_key_iop_complete(
+    psa_generate_key_iop_t *operation,
+    psa_key_id_t *key);
+
 /**@}*/
 
 #ifdef __cplusplus

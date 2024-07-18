@@ -603,6 +603,16 @@ uint32_t psa_generate_key_iop_get_num_ops(
     return 0;
 }
 
+psa_status_t psa_generate_key_iop_setup(
+    psa_generate_key_iop_t *operation,
+    const psa_key_attributes_t *attributes)
+{
+    (void) operation;
+    (void) attributes;
+
+    return PSA_SUCCESS;
+}
+
 /****************************************************************/
 /* Interruptible ECC Key Agreement */
 /****************************************************************/
@@ -649,4 +659,5 @@ psa_status_t psa_key_agreement_iop_abort(
 
     return PSA_SUCCESS;
 }
+
 #endif /* MBEDTLS_PSA_CRYPTO_C */

@@ -4812,6 +4812,48 @@ psa_status_t psa_verify_hash_abort(
 
 /**@}*/
 
+/**@}*/
+
+/**
+ *  \defgroup interruptible_key_agreement Interruptible Key Agreement
+ * @{
+ */
+
+/**
+ *  The type of the state data structure for interruptible key agreement
+ *  operations.
+ *
+ *  Before calling any function on an interruptible key agreement object, the
+ *  application must initialize it by any of the following means:
+ * - Set the structure to all-bits-zero, for example:
+ *   \code
+ *   psa_key_agreement_iop_t operation;
+ *   memset(&operation, 0, sizeof(operation));
+ *   \endcode
+ * - Initialize the structure to logical zero values, for example:
+ *   \code
+ *   psa_key_agreement_iop_t operation = {0};
+ *   \endcode
+ * - Initialize the structure to the initializer #PSA_KEY_AGREEMENT_IOP_INIT,
+ *   for example:
+ * - \code
+ *   psa_key_agreement_iop_t operation = PSA_KEY_AGREEMENT_IOP_INIT;
+ *   \endcode
+ * - Assign the result of the function psa_key_agreement_iop_init() to the
+ *   structure, for example:
+ *   \code
+ *   psa_key_agreement_iop_t operation;
+ *   operation = psa_key_agreement_iop_init();
+ *   \endcode
+ *
+ * This is an implementation-defined \c struct. Applications should not
+ * make any assumptions about the content of this structure.
+ * Implementation details can change in future versions without notice.
+ */
+typedef struct psa_key_agreement_iop_s psa_key_agreement_iop_t;
+
+/**@}*/
+
 #ifdef __cplusplus
 }
 #endif

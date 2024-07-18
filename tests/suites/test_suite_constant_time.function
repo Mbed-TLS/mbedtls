@@ -4,7 +4,7 @@
  * Functional testing of functions in the constant_time module.
  *
  * The tests are instrumented with #TEST_CF_SECRET and #TEST_CF_PUBLIC
- * (see tests/include/test/constant_flow.h) so that running the tests
+ * (see framework/tests/include/test/constant_flow.h) so that running the tests
  * under MSan or Valgrind will detect a non-constant-time implementation.
  */
 

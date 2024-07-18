@@ -378,8 +378,7 @@ cleanup()
 helper_psasim_cleanup_before_client() {
     # Clean up library files
     make -C library clean
-    # Clean up intermediate files that were used to build the server
-    make -C $PSASIM_PATH clean_server_intermediate_files
+
     # Restore files that were backup before building library files. This
     # includes $CONFIG_H and $CRYPTO_CONFIG_H.
     for x in $files_to_back_up; do
@@ -6054,16 +6053,17 @@ component_test_psasim() {
     helper_psasim_build client
 
     msg "build basic psasim client"
-    make -C tests/psa-client-server/psasim CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS" test/psa_client_base
+    make -C $PSASIM_PATH CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS" test/psa_client_base
     msg "test basic psasim client"
-    tests/psa-client-server/psasim/test/run_test.sh psa_client_base
+    $PSASIM_PATH/test/run_test.sh psa_client_base
 
     msg "build full psasim client"
-    make -C tests/psa-client-server/psasim CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS" test/psa_client_full
+    make -C $PSASIM_PATH CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS" test/psa_client_full
     msg "test full psasim client"
-    tests/psa-client-server/psasim/test/run_test.sh psa_client_full
+    $PSASIM_PATH/test/run_test.sh psa_client_full
 
-    make -C tests/psa-client-server/psasim clean
+    helper_psasim_server kill
+    make -C $PSASIM_PATH clean
 }
 
 component_test_suite_with_psasim()
@@ -6096,6 +6096,32 @@ component_test_suite_with_psasim()
     make PSASIM=1 test
 
     helper_psasim_server kill
+}
+
+# This is the reference component of component_test_suite_with_psasim() to be
+# used in analyze_outcomes.py in order to verify test coverage.
+component_test_suite_with_psasim_reference()
+{
+    # Psasim is not involved in this test, but we set the same configuration of
+    # the client side of component_test_suite_with_psasim() a part from
+    # MBEDTLS_PSA_CRYPTO_C being enabled here, of course.
+    scripts/config.py full
+    scripts/config.py unset MBEDTLS_PSA_CRYPTO_STORAGE_C
+    scripts/config.py unset MBEDTLS_PSA_CRYPTO_SE_C
+    scripts/config.py unset MBEDTLS_X509_RSASSA_PSS_SUPPORT
+    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED
+    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED
+    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED
+    scripts/config.py unset MBEDTLS_ECP_RESTARTABLE
+    scripts/config.py unset MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER
+    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_JPAKE
+    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED
+
+    # Skip the same test suites skipped in psasim.
+    SKIP_TEST_SUITES="constant_time_hmac,lmots,lms"
+    export SKIP_TEST_SUITES
+
+    make CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS" test
 }
 
 ################################################################

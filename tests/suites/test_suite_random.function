@@ -112,7 +112,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_PSA_CRYPTO_C:!MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
+/* BEGIN_CASE depends_on:MBEDTLS_PSA_CRYPTO_CLIENT:!MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
 void random_twice_with_psa_from_classic()
 {
     unsigned char output1[OUTPUT_SIZE];
@@ -138,7 +138,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_PSA_CRYPTO_C:!MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
+/* BEGIN_CASE depends_on:MBEDTLS_PSA_CRYPTO_CLIENT:!MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
 void random_twice_with_psa_from_psa()
 {
     unsigned char output1[OUTPUT_SIZE];
@@ -172,7 +172,7 @@ void mbedtls_psa_get_random_no_init()
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_PSA_CRYPTO_C */
+/* BEGIN_CASE depends_on:MBEDTLS_PSA_CRYPTO_CLIENT */
 void mbedtls_psa_get_random_length(int n)
 {
     unsigned char *output = NULL;
@@ -188,7 +188,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_PSA_CRYPTO_C:MBEDTLS_ECDSA_C */
+/* BEGIN_CASE depends_on:MBEDTLS_PSA_CRYPTO_CLIENT:MBEDTLS_ECDSA_C */
 void mbedtls_psa_get_random_ecdsa_sign(int curve)
 {
     mbedtls_ecp_group grp;

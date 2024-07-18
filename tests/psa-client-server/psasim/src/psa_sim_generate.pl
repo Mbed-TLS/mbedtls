@@ -171,20 +171,23 @@ sub write_server_implementations
 
     print $fh <<EOF;
 
-psa_status_t psa_crypto_call(psa_msg_t msg)
+psa_status_t psa_crypto_call(void)
 {
     int ok = 0;
+    int func = psa_get_psa_function();
+    size_t invec_sizes[PSA_MAX_IOVEC];
+    size_t outvec_sizes[PSA_MAX_IOVEC];
 
-    int func = msg.type;
+    psa_get_vectors_sizes(invec_sizes, outvec_sizes);
 
     /* We only expect a single input buffer, with everything serialised in it */
-    if (msg.in_size[1] != 0 || msg.in_size[2] != 0 || msg.in_size[3] != 0) {
+    if (invec_sizes[1] != 0 || invec_sizes[2] != 0 || invec_sizes[3] != 0) {
         return PSA_ERROR_INVALID_ARGUMENT;
     }
 
     /* We expect exactly 2 output buffers, one for size, the other for data */
-    if (msg.out_size[0] != sizeof(size_t) || msg.out_size[1] == 0 ||
-        msg.out_size[2] != 0 || msg.out_size[3] != 0) {
+    if (outvec_sizes[0] != sizeof(size_t) || outvec_sizes[1] == 0 ||
+        outvec_sizes[2] != 0 || outvec_sizes[3] != 0) {
         return PSA_ERROR_INVALID_ARGUMENT;
     }
 
@@ -193,14 +196,14 @@ psa_status_t psa_crypto_call(psa_msg_t msg)
     uint8_t *out_params = NULL;
     size_t out_params_len = 0;
 
-    in_params_len = msg.in_size[0];
+    in_params_len = invec_sizes[0];
     in_params = malloc(in_params_len);
     if (in_params == NULL) {
         return PSA_ERROR_INSUFFICIENT_MEMORY;
     }
 
     /* Read the bytes from the client */
-    size_t actual = psa_read(msg.handle, 0, in_params, in_params_len);
+    size_t actual = psa_get_invec(0, in_params, in_params_len);
     if (actual != in_params_len) {
         free(in_params);
         return PSA_ERROR_CORRUPTION_DETECTED;
@@ -234,18 +237,18 @@ EOF
 
     free(in_params);
 
-    if (out_params_len > msg.out_size[1]) {
-        fprintf(stderr, "unable to write %zu bytes into buffer of %zu bytes\\n",
-                out_params_len, msg.out_size[1]);
-        exit(1);
+    if (out_params_len > outvec_sizes[1]) {
+        ERROR("unable to write %zu bytes into buffer of %zu bytes\\n",
+              out_params_len, outvec_sizes[1]);
+        exit(EXIT_FAILURE);
     }
 
     /* Write the exact amount of data we're returning */
-    psa_write(msg.handle, 0, &out_params_len, sizeof(out_params_len));
+    psa_set_outvec(0, &out_params_len, sizeof(out_params_len));
 
     /* And write the data itself */
     if (out_params_len) {
-        psa_write(msg.handle, 1, out_params, out_params_len);
+        psa_set_outvec(1, out_params, out_params_len);
     }
 
     free(out_params);
@@ -287,7 +290,8 @@ sub server_implementations_header
 #include "psa_functions_codes.h"
 #include "psa_sim_serialise.h"
 
-#include "service.h"
+#include "server.h"
+#include "util.h"
 
 #if !defined(MBEDTLS_PSA_CRYPTO_C)
 #error "Error: MBEDTLS_PSA_CRYPTO_C must be enabled on server build"
@@ -308,23 +312,18 @@ sub client_calls_header
  */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <unistd.h>
 
 /* Includes from psasim */
 #include <client.h>
 #include <util.h>
-#include "psa_manifest/sid.h"
 #include "psa_functions_codes.h"
 #include "psa_sim_serialise.h"
 
 /* Includes from mbedtls */
 #include "mbedtls/version.h"
 #include "psa/crypto.h"
-
-#define CLIENT_PRINT(fmt, ...) \
-    INFO("Client: " fmt, ##__VA_ARGS__)
-
-static psa_handle_t handle = -1;
 
 #if defined(MBEDTLS_PSA_CRYPTO_C)
 #error "Error: MBEDTLS_PSA_CRYPTO_C must be disabled on client build"
@@ -339,12 +338,6 @@ int psa_crypto_call(int function,
                     uint8_t *in_params, size_t in_params_len,
                     uint8_t **out_params, size_t *out_params_len)
 {
-    // psa_outvec outvecs[1];
-    if (handle < 0) {
-        fprintf(stderr, "NOT CONNECTED\n");
-        exit(1);
-    }
-
     psa_invec invec;
     invec.base = in_params;
     invec.len = in_params_len;
@@ -352,7 +345,7 @@ int psa_crypto_call(int function,
     size_t max_receive = 24576;
     uint8_t *receive = malloc(max_receive);
     if (receive == NULL) {
-        fprintf(stderr, "FAILED to allocate %u bytes\n", (unsigned) max_receive);
+        ERROR("FAILED to allocate %u bytes\n", (unsigned) max_receive);
         exit(1);
     }
 
@@ -364,7 +357,7 @@ int psa_crypto_call(int function,
     outvecs[1].base = receive;
     outvecs[1].len = max_receive;
 
-    psa_status_t status = psa_call(handle, function, &invec, 1, outvecs, 2);
+    psa_status_t status = psa_call(function, &invec, 1, outvecs, 2);
     if (status != PSA_SUCCESS) {
         free(receive);
         return 0;
@@ -384,20 +377,16 @@ psa_status_t psa_crypto_init(void)
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
     mbedtls_version_get_string_full(mbedtls_version);
-    CLIENT_PRINT("%s", mbedtls_version);
+    INFO("%s", mbedtls_version);
 
-    CLIENT_PRINT("My PID: %d", getpid());
-
-    CLIENT_PRINT("PSA version: %u", psa_version(PSA_SID_CRYPTO_SID));
-    handle = psa_connect(PSA_SID_CRYPTO_SID, 1);
-
-    if (handle < 0) {
-        CLIENT_PRINT("Couldn't connect %d", handle);
+    status = psa_connect();
+    if (status < 0) {
+        ERROR("Couldn't connect (%d)", status);
         return PSA_ERROR_COMMUNICATION_FAILURE;
     }
 
     int ok = psa_crypto_call(PSA_CRYPTO_INIT, NULL, 0, &result, &result_length);
-    CLIENT_PRINT("PSA_CRYPTO_INIT returned: %d", ok);
+    INFO("PSA_CRYPTO_INIT returned: %d", ok);
 
     if (!ok) {
         goto fail;
@@ -424,14 +413,8 @@ fail:
 
 void mbedtls_psa_crypto_free(void)
 {
-    /* Do not try to close a connection that was never started.*/
-    if (handle == -1) {
-        return;
-    }
-
-    CLIENT_PRINT("Closing handle");
-    psa_close(handle);
-    handle = -1;
+    INFO("Closing connection");
+    psa_close();
 }
 EOF
 }
@@ -898,7 +881,7 @@ EOF
     ok = psa_crypto_call($enum,
                          ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
-        printf("$enum server call failed\\n");
+        INFO("$enum server call failed\\n");
         goto fail;
     }
 EOF

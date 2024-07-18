@@ -36,8 +36,13 @@
 
 /* Assert that an operation is (not) active.
  * This serves as a proxy for checking if the operation is aborted. */
+#if defined(MBEDTLS_PSA_CRYPTO_C)
 #define ASSERT_OPERATION_IS_ACTIVE(operation) TEST_ASSERT(operation.id != 0)
 #define ASSERT_OPERATION_IS_INACTIVE(operation) TEST_ASSERT(operation.id == 0)
+#else /* !MBEDTLS_PSA_CRYPTO_C */
+#define ASSERT_OPERATION_IS_ACTIVE(operation)
+#define ASSERT_OPERATION_IS_INACTIVE(operation)
+#endif /* MBEDTLS_PSA_CRYPTO_C */
 
 #if defined(PSA_WANT_ALG_JPAKE)
 int ecjpake_operation_setup(psa_pake_operation_t *operation,
@@ -1519,11 +1524,11 @@ exit:
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
- * depends_on:MBEDTLS_PSA_CRYPTO_C
+ * depends_on:MBEDTLS_PSA_CRYPTO_CLIENT
  * END_DEPENDENCIES
  */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:MBEDTLS_PSA_CRYPTO_C */
 void psa_can_do_hash()
 {
     /* We can't test that this is specific to drivers until partial init has
@@ -3227,6 +3232,7 @@ void hash_bad_order()
     PSA_ASSERT(psa_hash_abort(&operation));
 
     /* Check that update calls abort on error. */
+#if defined(MBEDTLS_PSA_CRYPTO_C)
     PSA_ASSERT(psa_hash_setup(&operation, alg));
     operation.id = UINT_MAX;
     ASSERT_OPERATION_IS_ACTIVE(operation);
@@ -3235,6 +3241,7 @@ void hash_bad_order()
     ASSERT_OPERATION_IS_INACTIVE(operation);
     PSA_ASSERT(psa_hash_abort(&operation));
     ASSERT_OPERATION_IS_INACTIVE(operation);
+#endif
 
     /* Call update after finish. */
     PSA_ASSERT(psa_hash_setup(&operation, alg));
@@ -4164,6 +4171,17 @@ void cipher_encrypt_fail(int alg_arg,
                                   &key));
     }
 
+    /* On client only builds there is only a single server instance serving
+     * all the client calls. This means that when we get here psa_crypto_init()
+     * has almost certainly already been called by some previous test. As a
+     * consequence the failure will be PSA_ERROR_INVALID_HANDLE if the key
+     * has not be initialized. */
+#if !defined(MBEDTLS_PSA_CRYPTO_C)
+    if (expected_status == PSA_ERROR_BAD_STATE) {
+        expected_status = PSA_ERROR_INVALID_HANDLE;
+    }
+#endif
+
     /* Encrypt, one-shot */
     status = psa_cipher_encrypt(key, alg, input->x, input->len, output,
                                 output_buffer_size, &output_length);
@@ -4708,6 +4726,17 @@ void cipher_decrypt_fail(int alg_arg,
         PSA_ASSERT(psa_import_key(&attributes, key_data->x, key_data->len,
                                   &key));
     }
+
+    /* On client only builds there is only a single server instance serving
+     * all the client calls. This means that when we get here psa_crypto_init()
+     * has almost certainly already been called by some previous test. As a
+     * consequence the failure will be PSA_ERROR_INVALID_HANDLE if the key
+     * has not be initialized. */
+#if !defined(MBEDTLS_PSA_CRYPTO_C)
+    if (expected_status == PSA_ERROR_BAD_STATE) {
+        expected_status = PSA_ERROR_INVALID_HANDLE;
+    }
+#endif
 
     /* Allocate input buffer and copy the iv and the plaintext */
     input_buffer_size = ((size_t) input_arg->len + (size_t) iv->len);
@@ -5648,7 +5677,7 @@ void aead_multipart_set_nonce(int key_type_arg, data_t *key_data,
             PSA_ASSERT(psa_aead_set_lengths(&operation, additional_data->len,
                                             input_data->len));
         }
-        if (operation.alg == PSA_ALG_CCM && set_lengths_method == DO_NOT_SET_LENGTHS) {
+        if (alg == PSA_ALG_CCM && set_lengths_method == DO_NOT_SET_LENGTHS) {
             expected_status = PSA_ERROR_BAD_STATE;
         }
 
@@ -6240,7 +6269,7 @@ void aead_multipart_state_test(int key_type_arg, data_t *key_data,
 
     PSA_ASSERT(psa_aead_encrypt_setup(&operation, key, alg));
 
-    if (operation.alg == PSA_ALG_CCM) {
+    if (alg == PSA_ALG_CCM) {
         TEST_EQUAL(psa_aead_set_lengths(&operation, UINT32_MAX,
                                         input_data->len),
                    PSA_ERROR_INVALID_ARGUMENT);
@@ -6262,7 +6291,7 @@ void aead_multipart_state_test(int key_type_arg, data_t *key_data,
 #if SIZE_MAX > UINT32_MAX
     PSA_ASSERT(psa_aead_encrypt_setup(&operation, key, alg));
 
-    if (operation.alg == PSA_ALG_CCM || operation.alg == PSA_ALG_GCM) {
+    if (alg == PSA_ALG_CCM || alg == PSA_ALG_GCM) {
         TEST_EQUAL(psa_aead_set_lengths(&operation, SIZE_MAX,
                                         input_data->len),
                    PSA_ERROR_INVALID_ARGUMENT);
@@ -6289,7 +6318,7 @@ void aead_multipart_state_test(int key_type_arg, data_t *key_data,
                                        PSA_AEAD_NONCE_MAX_SIZE,
                                        &nonce_length));
 
-    if (operation.alg == PSA_ALG_CCM) {
+    if (alg == PSA_ALG_CCM) {
         TEST_EQUAL(psa_aead_set_lengths(&operation, UINT32_MAX,
                                         input_data->len),
                    PSA_ERROR_INVALID_ARGUMENT);
@@ -6316,7 +6345,7 @@ void aead_multipart_state_test(int key_type_arg, data_t *key_data,
 
     PSA_ASSERT(psa_aead_encrypt_setup(&operation, key, alg));
 
-    if (operation.alg == PSA_ALG_CCM) {
+    if (alg == PSA_ALG_CCM) {
         TEST_EQUAL(psa_aead_set_lengths(&operation, UINT32_MAX,
                                         input_data->len),
                    PSA_ERROR_INVALID_ARGUMENT);
@@ -6334,7 +6363,7 @@ void aead_multipart_state_test(int key_type_arg, data_t *key_data,
 #if SIZE_MAX > UINT32_MAX
     PSA_ASSERT(psa_aead_encrypt_setup(&operation, key, alg));
 
-    if (operation.alg == PSA_ALG_CCM || operation.alg == PSA_ALG_GCM) {
+    if (alg == PSA_ALG_CCM || alg == PSA_ALG_GCM) {
         TEST_EQUAL(psa_aead_set_lengths(&operation, SIZE_MAX,
                                         input_data->len),
                    PSA_ERROR_INVALID_ARGUMENT);
@@ -6355,7 +6384,7 @@ void aead_multipart_state_test(int key_type_arg, data_t *key_data,
 
     PSA_ASSERT(psa_aead_set_nonce(&operation, nonce->x, nonce->len));
 
-    if (operation.alg == PSA_ALG_CCM) {
+    if (alg == PSA_ALG_CCM) {
         TEST_EQUAL(psa_aead_set_lengths(&operation, UINT32_MAX,
                                         input_data->len),
                    PSA_ERROR_INVALID_ARGUMENT);
@@ -6370,13 +6399,13 @@ void aead_multipart_state_test(int key_type_arg, data_t *key_data,
 #if SIZE_MAX > UINT32_MAX
     PSA_ASSERT(psa_aead_encrypt_setup(&operation, key, alg));
 
-    if (operation.alg == PSA_ALG_GCM) {
+    if (alg == PSA_ALG_GCM) {
         TEST_EQUAL(psa_aead_set_lengths(&operation, additional_data->len,
                                         SIZE_MAX),
                    PSA_ERROR_INVALID_ARGUMENT);
         TEST_EQUAL(psa_aead_set_nonce(&operation, nonce->x, nonce->len),
                    PSA_ERROR_BAD_STATE);
-    } else if (operation.alg != PSA_ALG_CCM) {
+    } else if (alg != PSA_ALG_CCM) {
         PSA_ASSERT(psa_aead_set_lengths(&operation, additional_data->len,
                                         SIZE_MAX));
         PSA_ASSERT(psa_aead_set_nonce(&operation, nonce->x, nonce->len));
@@ -6391,11 +6420,11 @@ void aead_multipart_state_test(int key_type_arg, data_t *key_data,
 
     PSA_ASSERT(psa_aead_set_nonce(&operation, nonce->x, nonce->len));
 
-    if (operation.alg == PSA_ALG_GCM) {
+    if (alg == PSA_ALG_GCM) {
         TEST_EQUAL(psa_aead_set_lengths(&operation, additional_data->len,
                                         SIZE_MAX),
                    PSA_ERROR_INVALID_ARGUMENT);
-    } else if (operation.alg != PSA_ALG_CCM) {
+    } else if (alg != PSA_ALG_CCM) {
         PSA_ASSERT(psa_aead_set_lengths(&operation, additional_data->len,
                                         SIZE_MAX));
     }
@@ -6448,7 +6477,7 @@ void aead_multipart_state_test(int key_type_arg, data_t *key_data,
 
     PSA_ASSERT(psa_aead_set_nonce(&operation, nonce->x, nonce->len));
 
-    if (operation.alg == PSA_ALG_CCM) {
+    if (alg == PSA_ALG_CCM) {
 
         TEST_EQUAL(psa_aead_update_ad(&operation, additional_data->x,
                                       additional_data->len),
@@ -6469,7 +6498,7 @@ void aead_multipart_state_test(int key_type_arg, data_t *key_data,
 
     PSA_ASSERT(psa_aead_set_nonce(&operation, nonce->x, nonce->len));
 
-    if (operation.alg == PSA_ALG_CCM) {
+    if (alg == PSA_ALG_CCM) {
         TEST_EQUAL(psa_aead_update(&operation, input_data->x,
                                    input_data->len, output_data,
                                    output_size, &output_length),
@@ -6492,7 +6521,7 @@ void aead_multipart_state_test(int key_type_arg, data_t *key_data,
 
     PSA_ASSERT(psa_aead_set_nonce(&operation, nonce->x, nonce->len));
 
-    if (operation.alg == PSA_ALG_CCM) {
+    if (alg == PSA_ALG_CCM) {
         PSA_ASSERT(psa_aead_finish(&operation, final_data,
                                    finish_output_size,
                                    &output_part_length,
@@ -6518,7 +6547,7 @@ void aead_multipart_state_test(int key_type_arg, data_t *key_data,
     PSA_ASSERT(psa_aead_generate_nonce(&operation, nonce_buffer,
                                        PSA_AEAD_NONCE_MAX_SIZE,
                                        &nonce_length));
-    if (operation.alg == PSA_ALG_CCM) {
+    if (alg == PSA_ALG_CCM) {
 
         TEST_EQUAL(psa_aead_update_ad(&operation, additional_data->x,
                                       additional_data->len),
@@ -6540,7 +6569,7 @@ void aead_multipart_state_test(int key_type_arg, data_t *key_data,
     PSA_ASSERT(psa_aead_generate_nonce(&operation, nonce_buffer,
                                        PSA_AEAD_NONCE_MAX_SIZE,
                                        &nonce_length));
-    if (operation.alg == PSA_ALG_CCM) {
+    if (alg == PSA_ALG_CCM) {
         TEST_EQUAL(psa_aead_update(&operation, input_data->x,
                                    input_data->len, output_data,
                                    output_size, &output_length),
@@ -6564,7 +6593,7 @@ void aead_multipart_state_test(int key_type_arg, data_t *key_data,
     PSA_ASSERT(psa_aead_generate_nonce(&operation, nonce_buffer,
                                        PSA_AEAD_NONCE_MAX_SIZE,
                                        &nonce_length));
-    if (operation.alg == PSA_ALG_CCM) {
+    if (alg == PSA_ALG_CCM) {
         PSA_ASSERT(psa_aead_finish(&operation, final_data,
                                    finish_output_size,
                                    &output_part_length,
@@ -6736,7 +6765,7 @@ void aead_multipart_state_test(int key_type_arg, data_t *key_data,
 
     PSA_ASSERT(psa_aead_set_nonce(&operation, nonce->x, nonce->len));
 
-    if (operation.alg != PSA_ALG_CCM) {
+    if (alg != PSA_ALG_CCM) {
         PSA_ASSERT(psa_aead_update(&operation, input_data->x,
                                    input_data->len, output_data,
                                    output_size, &output_length));
@@ -10044,7 +10073,7 @@ exit:
 
 #if defined MBEDTLS_THREADING_PTHREAD
 
-/* BEGIN_CASE depends_on:MBEDTLS_THREADING_PTHREAD */
+/* BEGIN_CASE depends_on:MBEDTLS_PSA_CRYPTO_C:MBEDTLS_THREADING_PTHREAD */
 void concurrently_generate_keys(int type_arg,
                                 int bits_arg,
                                 int usage_arg,

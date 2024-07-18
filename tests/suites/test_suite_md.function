@@ -62,7 +62,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_PSA_CRYPTO_C */
+/* BEGIN_CASE depends_on:MBEDTLS_PSA_CRYPTO_CLIENT */
 void md_to_from_psa()
 {
     /* We use a simplified implementation that relies on numerical values

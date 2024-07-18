@@ -248,7 +248,7 @@
 #error "MBEDTLS_TEST_CONSTANT_FLOW_MEMSAN requires building with MemorySanitizer"
 #endif
 #if defined(MBEDTLS_HAS_MEMSAN) && defined(MBEDTLS_HAVE_ASM)
-#error "MEMSAN does not support assembly implementation"
+#error "MemorySanitizer does not support assembly implementation"
 #endif
 #undef MBEDTLS_HAS_MEMSAN // temporary macro defined above
 

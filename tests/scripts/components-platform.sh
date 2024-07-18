@@ -353,9 +353,9 @@ support_test_arm_linux_gnueabi_gcc_arm5vte () {
     can_run_arm_linux_gnueabi
 }
 
-component_test_arm_linux_gnueabi_gcc_thumb_1 () {
-    # The hard float ABI is not implemented for Thumb 1, so use gnueabi
-    # Some Thumb 1 asm is sensitive to optimisation level, so test both -O0 and -Os
+# The hard float ABI is not implemented for Thumb 1, so use gnueabi
+# Some Thumb 1 asm is sensitive to optimisation level, so test both -O0 and -Os
+component_test_arm_linux_gnueabi_gcc_thumb_1_opt_0 () {
     msg "test: ${ARM_LINUX_GNUEABI_GCC_PREFIX}gcc -O0, thumb 1, default config" # ~2m 10s
     make CC="${ARM_LINUX_GNUEABI_GCC_PREFIX}gcc" CFLAGS='-std=c99 -Werror -Wextra -O0 -mcpu=arm1136j-s -mthumb'
 
@@ -367,9 +367,14 @@ component_test_arm_linux_gnueabi_gcc_thumb_1 () {
 
     msg "program demos: make, default config (out-of-box)" # ~0s
     tests/scripts/run_demos.py
+}
 
+support_test_arm_linux_gnueabi_gcc_thumb_1_opt_0 () {
+    can_run_arm_linux_gnueabi
+}
+
+component_test_arm_linux_gnueabi_gcc_thumb_1_opt_s () {
     msg "test: ${ARM_LINUX_GNUEABI_GCC_PREFIX}gcc -Os, thumb 1, default config" # ~3m 10s
-    make clean
     make CC="${ARM_LINUX_GNUEABI_GCC_PREFIX}gcc" CFLAGS='-std=c99 -Werror -Wextra -Os -mcpu=arm1136j-s -mthumb'
 
     msg "test: main suites make, default config (out-of-box)" # ~21m 10s
@@ -382,7 +387,7 @@ component_test_arm_linux_gnueabi_gcc_thumb_1 () {
     tests/scripts/run_demos.py
 }
 
-support_test_arm_linux_gnueabi_gcc_thumb_1 () {
+support_test_arm_linux_gnueabi_gcc_thumb_1_opt_s () {
     can_run_arm_linux_gnueabi
 }
 

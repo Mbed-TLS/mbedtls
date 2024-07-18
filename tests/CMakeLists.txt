@@ -285,12 +285,12 @@ function(add_test_suite suite_name)
                    $<TARGET_OBJECTS:mbedtls_test_helpers>)
     add_dependencies(test_suite_${data_name} ${dependency})
     target_link_libraries(test_suite_${data_name} ${libs})
-    # Include test-specific header files from ./include and private header
-    # files (used by some invasive tests) from ../library. Public header
-    # files are automatically included because the library targets declare
-    # them as PUBLIC.
+    # Include test-specific header files from framework/tests/include and
+    # private header files (used by some invasive tests) from ../library.
+    # Public header files are automatically included because the library
+    # targets declare them as PUBLIC.
     target_include_directories(test_suite_${data_name}
-        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include
+        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../framework/tests/include
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../library
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../tf-psa-crypto/core
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../tf-psa-crypto/drivers/builtin/src)

@@ -101,14 +101,11 @@ option(LINK_WITH_PTHREAD "Explicitly link Mbed TLS library to pthread." OFF)
 option(LINK_WITH_TRUSTED_STORAGE "Explicitly link Mbed TLS library to trusted_storage." OFF)
 
 set(mbedcrypto_target "${MBEDTLS_TARGET_PREFIX}mbedcrypto")
-set(builtin_target "${MBEDTLS_TARGET_PREFIX}builtin")
 if (USE_STATIC_MBEDTLS_LIBRARY)
     set(mbedcrypto_static_target ${mbedcrypto_target})
-    set(builtin_static_target ${builtin_target})
 endif()
 if(USE_STATIC_MBEDTLS_LIBRARY AND USE_SHARED_MBEDTLS_LIBRARY)
     string(APPEND mbedcrypto_static_target "_static")
-    string(APPEND builtin_static_target    "_static")
 endif()
 
 # Warning string - created as a list for compatibility with CMake 2.8

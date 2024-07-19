@@ -294,7 +294,7 @@ function(add_test_suite suite_name)
             ${CMAKE_CURRENT_SOURCE_DIR}/suites/main_test.function
             ${CMAKE_CURRENT_SOURCE_DIR}/suites/host_test.function
             ${CMAKE_CURRENT_SOURCE_DIR}/suites/helpers.function
-            ${mbedtls_target}
+            ${mbedcrypto_target}
         BYPRODUCTS
             test_suite_${data_name}.datax
     )

@@ -154,10 +154,10 @@ if [ -d tf-psa-crypto ]; then
     check framework/scripts/generate_config_tests.py tests/suites/test_suite_config.mbedtls_boolean.data
 else
     check framework/scripts/generate_bignum_tests.py $(framework/scripts/generate_bignum_tests.py --list)
-    if in_mbedtls_repo; then
-        check framework/scripts/generate_config_tests.py tests/suites/test_suite_config.mbedtls_boolean.data
-    else
+    if in_tf_psa_crypto_repo; then
         check framework/scripts/generate_config_tests.py tests/suites/test_suite_config.psa_boolean.data
+    else
+        check framework/scripts/generate_config_tests.py tests/suites/test_suite_config.mbedtls_boolean.data
     fi
     check framework/scripts/generate_ecp_tests.py $(framework/scripts/generate_ecp_tests.py --list)
     check framework/scripts/generate_psa_tests.py $(framework/scripts/generate_psa_tests.py --list)

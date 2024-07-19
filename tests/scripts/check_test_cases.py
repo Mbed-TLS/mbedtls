@@ -136,8 +136,7 @@ option"""
         mbedtls_root = build_tree.guess_mbedtls_root()
         directories = [os.path.join(mbedtls_root, 'tests'),
                        os.path.join(mbedtls_root, 'tf-psa-crypto', 'tests')]
-        for index, value in enumerate(directories):
-            directories[index] = os.path.relpath(value)
+        directories = [os.path.relpath(p) for p in directories]
         return directories
 
     def walk_all(self):

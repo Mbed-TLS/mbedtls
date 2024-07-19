@@ -363,6 +363,23 @@ psa_status_t mbedtls_test_wrap_psa_generate_key_custom(
 #define psa_generate_key_custom(arg0_attributes, arg1_custom, arg2_custom_data, arg3_custom_data_length, arg4_key) \
     mbedtls_test_wrap_psa_generate_key_custom(arg0_attributes, arg1_custom, arg2_custom_data, arg3_custom_data_length, arg4_key)
 
+psa_status_t mbedtls_test_wrap_psa_generate_key_iop_abort(
+    psa_generate_key_iop_t *arg0_operation);
+#define psa_generate_key_iop_abort(arg0_operation) \
+    mbedtls_test_wrap_psa_generate_key_iop_abort(arg0_operation)
+
+psa_status_t mbedtls_test_wrap_psa_generate_key_iop_complete(
+    psa_generate_key_iop_t *arg0_operation,
+    psa_key_id_t *arg1_key);
+#define psa_generate_key_iop_complete(arg0_operation, arg1_key) \
+    mbedtls_test_wrap_psa_generate_key_iop_complete(arg0_operation, arg1_key)
+
+psa_status_t mbedtls_test_wrap_psa_generate_key_iop_setup(
+    psa_generate_key_iop_t *arg0_operation,
+    const psa_key_attributes_t *arg1_attributes);
+#define psa_generate_key_iop_setup(arg0_operation, arg1_attributes) \
+    mbedtls_test_wrap_psa_generate_key_iop_setup(arg0_operation, arg1_attributes)
+
 psa_status_t mbedtls_test_wrap_psa_generate_random(
     uint8_t *arg0_output,
     size_t arg1_output_size);

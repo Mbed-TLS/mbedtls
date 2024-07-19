@@ -622,6 +622,32 @@ psa_status_t mbedtls_test_wrap_psa_generate_key_custom(
     return status;
 }
 
+/* Wrapper for psa_generate_key_iop_abort */
+psa_status_t mbedtls_test_wrap_psa_generate_key_iop_abort(
+    psa_generate_key_iop_t *arg0_operation)
+{
+    psa_status_t status = (psa_generate_key_iop_abort)(arg0_operation);
+    return status;
+}
+
+/* Wrapper for psa_generate_key_iop_complete */
+psa_status_t mbedtls_test_wrap_psa_generate_key_iop_complete(
+    psa_generate_key_iop_t *arg0_operation,
+    psa_key_id_t *arg1_key)
+{
+    psa_status_t status = (psa_generate_key_iop_complete)(arg0_operation, arg1_key);
+    return status;
+}
+
+/* Wrapper for psa_generate_key_iop_setup */
+psa_status_t mbedtls_test_wrap_psa_generate_key_iop_setup(
+    psa_generate_key_iop_t *arg0_operation,
+    const psa_key_attributes_t *arg1_attributes)
+{
+    psa_status_t status = (psa_generate_key_iop_setup)(arg0_operation, arg1_attributes);
+    return status;
+}
+
 /* Wrapper for psa_generate_random */
 psa_status_t mbedtls_test_wrap_psa_generate_random(
     uint8_t *arg0_output,

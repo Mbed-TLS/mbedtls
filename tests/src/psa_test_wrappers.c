@@ -773,6 +773,42 @@ psa_status_t mbedtls_test_wrap_psa_import_key(
     return status;
 }
 
+/* Wrapper for psa_key_agreement_iop_abort */
+psa_status_t mbedtls_test_wrap_psa_key_agreement_iop_abort(
+    psa_key_agreement_iop_t *arg0_operation)
+{
+    psa_status_t status = (psa_key_agreement_iop_abort)(arg0_operation);
+    return status;
+}
+
+/* Wrapper for psa_key_agreement_iop_complete */
+psa_status_t mbedtls_test_wrap_psa_key_agreement_iop_complete(
+    psa_key_agreement_iop_t *arg0_operation,
+    psa_key_id_t *arg1_key)
+{
+    psa_status_t status = (psa_key_agreement_iop_complete)(arg0_operation, arg1_key);
+    return status;
+}
+
+/* Wrapper for psa_key_agreement_iop_setup */
+psa_status_t mbedtls_test_wrap_psa_key_agreement_iop_setup(
+    psa_key_agreement_iop_t *arg0_operation,
+    psa_key_id_t arg1_private_key,
+    const uint8_t *arg2_peer_key,
+    size_t arg3_peer_key_length,
+    psa_algorithm_t arg4_alg,
+    const psa_key_attributes_t *arg5_attributes)
+{
+#if !defined(MBEDTLS_PSA_ASSUME_EXCLUSIVE_BUFFERS)
+    MBEDTLS_TEST_MEMORY_POISON(arg2_peer_key, arg3_peer_key_length);
+#endif /* !defined(MBEDTLS_PSA_ASSUME_EXCLUSIVE_BUFFERS) */
+    psa_status_t status = (psa_key_agreement_iop_setup)(arg0_operation, arg1_private_key, arg2_peer_key, arg3_peer_key_length, arg4_alg, arg5_attributes);
+#if !defined(MBEDTLS_PSA_ASSUME_EXCLUSIVE_BUFFERS)
+    MBEDTLS_TEST_MEMORY_UNPOISON(arg2_peer_key, arg3_peer_key_length);
+#endif /* !defined(MBEDTLS_PSA_ASSUME_EXCLUSIVE_BUFFERS) */
+    return status;
+}
+
 /* Wrapper for psa_key_derivation_abort */
 psa_status_t mbedtls_test_wrap_psa_key_derivation_abort(
     psa_key_derivation_operation_t *arg0_operation)

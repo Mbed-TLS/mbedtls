@@ -118,29 +118,3 @@ void mbedtls_oid_get_md_hmac(data_t *oid, int exp_md_id)
     }
 }
 /* END_CASE */
-
-/* BEGIN_CASE */
-void oid_from_numeric_string(char *oid_str, int error_ret,
-                             data_t *exp_oid_buf)
-{
-    mbedtls_asn1_buf oid = { 0, 0, NULL };
-    mbedtls_asn1_buf exp_oid = { 0, 0, NULL };
-    int ret;
-
-    exp_oid.tag = MBEDTLS_ASN1_OID;
-    exp_oid.p = exp_oid_buf->x;
-    exp_oid.len = exp_oid_buf->len;
-
-    ret = mbedtls_oid_from_numeric_string(&oid, oid_str, strlen(oid_str));
-
-    if (error_ret == 0) {
-        TEST_EQUAL(oid.len, exp_oid.len);
-        TEST_ASSERT(memcmp(oid.p, exp_oid.p, oid.len) == 0);
-        mbedtls_free(oid.p);
-        oid.p = NULL;
-        oid.len = 0;
-    } else {
-        TEST_EQUAL(ret, error_ret);
-    }
-}
-/* END_CASE */

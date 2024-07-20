@@ -59,7 +59,7 @@ const unsigned char msg2_part2[] = { 0x06, 0x06 };
 const unsigned char key_bytes[32] = { 0 };
 
 /* Print the contents of a buffer in hex */
-void print_buf(const char *title, uint8_t *buf, size_t len)
+static void print_buf(const char *title, uint8_t *buf, size_t len)
 {
     printf("%s:", title);
     for (size_t i = 0; i < len; i++) {

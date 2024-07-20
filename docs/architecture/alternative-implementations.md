@@ -46,7 +46,7 @@ Generally, alternative implementations can define their context types to any C t
 
 Where a context type needs to have a certain field, the field must have the same type and semantics as in the built-in implementation, but does not need to be at the same position in the structure. Furthermore, unless otherwise indicated, only read access is necessary: the field can be `const`, and modifications to it do not need to be supported. For example, if an alternative implementation of asymmetric cryptography uses a different representation of large integers, it is sufficient to provide a read-only copy of the fields listed here of type `mbedtls_mpi`.
 
-* AES: if `MBEDTLS_AESNI_C` or `MBEDTLS_PADLOCK_C` is enabled, `mbedtls_aes_context` must have the fields `nr` and `rk`.
+* AES: if `MBEDTLS_AESNI_C` is enabled, `mbedtls_aes_context` must have the fields `nr` and `rk`.
 * DHM: if `MBEDTLS_DEBUG_C` is enabled, `mbedtls_dhm_context` must have the fields `P`, `Q`, `G`, `GX`, `GY` and `K`.
 * ECP: `mbedtls_ecp_group` must have the fields `id`, `P`, `A`, `B`, `G`, `N`, `pbits` and `nbits`.
     * If `MBEDTLS_PK_PARSE_EC_EXTENDED` is enabled, those fields must be writable, and `mbedtls_ecp_point_read_binary()` must support a group structure where only `P`, `pbits`, `A` and `B` are set.

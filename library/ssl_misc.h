@@ -22,7 +22,7 @@
 #include "psa_util_internal.h"
 #endif
 
-#if defined(MBEDTLS_MD_CAN_MD5)
+#if defined(PSA_WANT_ALG_MD5)
 #include "mbedtls/md5.h"
 #endif
 
@@ -30,7 +30,7 @@
 #include "mbedtls/sha1.h"
 #endif
 
-#if defined(MBEDTLS_MD_CAN_SHA256)
+#if defined(PSA_WANT_ALG_SHA_256)
 #include "mbedtls/sha256.h"
 #endif
 
@@ -288,9 +288,9 @@ uint32_t mbedtls_ssl_get_extension_mask(unsigned int extension_type);
 
 #if defined(MBEDTLS_SSL_SOME_SUITES_USE_MAC)
 /* Ciphersuites using HMAC */
-#if defined(MBEDTLS_MD_CAN_SHA384)
+#if defined(PSA_WANT_ALG_SHA_384)
 #define MBEDTLS_SSL_MAC_ADD                 48  /* SHA-384 used for HMAC */
-#elif defined(MBEDTLS_MD_CAN_SHA256)
+#elif defined(PSA_WANT_ALG_SHA_256)
 #define MBEDTLS_SSL_MAC_ADD                 32  /* SHA-256 used for HMAC */
 #else
 #define MBEDTLS_SSL_MAC_ADD                 20  /* SHA-1   used for HMAC */
@@ -922,14 +922,14 @@ struct mbedtls_ssl_handshake_params {
     /*
      * Checksum contexts
      */
-#if defined(MBEDTLS_MD_CAN_SHA256)
+#if defined(PSA_WANT_ALG_SHA_256)
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     psa_hash_operation_t fin_sha256_psa;
 #else
     mbedtls_md_context_t fin_sha256;
 #endif
 #endif
-#if defined(MBEDTLS_MD_CAN_SHA384)
+#if defined(PSA_WANT_ALG_SHA_384)
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     psa_hash_operation_t fin_sha384_psa;
 #else
@@ -2429,14 +2429,14 @@ static inline int mbedtls_ssl_tls13_sig_alg_is_supported(
 {
     switch (sig_alg) {
 #if defined(MBEDTLS_PKCS1_V15)
-#if defined(MBEDTLS_MD_CAN_SHA256)
+#if defined(PSA_WANT_ALG_SHA_256)
         case MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA256:
             break;
-#endif /* MBEDTLS_MD_CAN_SHA256 */
-#if defined(MBEDTLS_MD_CAN_SHA384)
+#endif /* PSA_WANT_ALG_SHA_256 */
+#if defined(PSA_WANT_ALG_SHA_384)
         case MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA384:
             break;
-#endif /* MBEDTLS_MD_CAN_SHA384 */
+#endif /* PSA_WANT_ALG_SHA_384 */
 #if defined(MBEDTLS_MD_CAN_SHA512)
         case MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA512:
             break;
@@ -2483,18 +2483,18 @@ static inline int mbedtls_ssl_get_pk_type_and_md_alg_from_sig_alg(
 
     switch (sig_alg) {
 #if defined(MBEDTLS_PKCS1_V21)
-#if defined(MBEDTLS_MD_CAN_SHA256)
+#if defined(PSA_WANT_ALG_SHA_256)
         case MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA256:
             *md_alg = MBEDTLS_MD_SHA256;
             *pk_type = MBEDTLS_PK_RSASSA_PSS;
             break;
-#endif /* MBEDTLS_MD_CAN_SHA256  */
-#if defined(MBEDTLS_MD_CAN_SHA384)
+#endif /* PSA_WANT_ALG_SHA_256  */
+#if defined(PSA_WANT_ALG_SHA_384)
         case MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA384:
             *md_alg = MBEDTLS_MD_SHA384;
             *pk_type = MBEDTLS_PK_RSASSA_PSS;
             break;
-#endif /* MBEDTLS_MD_CAN_SHA384 */
+#endif /* PSA_WANT_ALG_SHA_384 */
 #if defined(MBEDTLS_MD_CAN_SHA512)
         case MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA512:
             *md_alg = MBEDTLS_MD_SHA512;
@@ -2517,7 +2517,7 @@ static inline int mbedtls_ssl_tls12_sig_alg_is_supported(
     unsigned char sig = MBEDTLS_BYTE_0(sig_alg);
 
     switch (hash) {
-#if defined(MBEDTLS_MD_CAN_MD5)
+#if defined(PSA_WANT_ALG_MD5)
         case MBEDTLS_SSL_HASH_MD5:
             break;
 #endif
@@ -2527,17 +2527,17 @@ static inline int mbedtls_ssl_tls12_sig_alg_is_supported(
             break;
 #endif
 
-#if defined(MBEDTLS_MD_CAN_SHA224)
+#if defined(PSA_WANT_ALG_SHA_224)
         case MBEDTLS_SSL_HASH_SHA224:
             break;
 #endif
 
-#if defined(MBEDTLS_MD_CAN_SHA256)
+#if defined(PSA_WANT_ALG_SHA_256)
         case MBEDTLS_SSL_HASH_SHA256:
             break;
 #endif
 
-#if defined(MBEDTLS_MD_CAN_SHA384)
+#if defined(PSA_WANT_ALG_SHA_384)
         case MBEDTLS_SSL_HASH_SHA384:
             break;
 #endif

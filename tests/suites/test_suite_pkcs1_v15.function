@@ -235,7 +235,6 @@ void pkcs1_v15_decode(data_t *input,
         size_t i;
         size_t count = 0;
 
-#if !defined(MBEDTLS_RSA_ALT)
         /* Check that the output in invalid cases is what the default
          * implementation currently does. Alternative implementations
          * may produce different output, so we only perform these precise
@@ -244,7 +243,7 @@ void pkcs1_v15_decode(data_t *input,
         for (i = 0; i < max_payload_length; i++) {
             TEST_ASSERT(final[i] == 0);
         }
-#endif
+
         /* Even in alternative implementations, the outputs must have
          * changed, otherwise it indicates at least a timing vulnerability
          * because no write to the outputs is performed in the bad case. */

@@ -328,6 +328,7 @@ if __name__ == '__main__':
     build_tree.chdir_to_root()
     # Allow to change the directory where psa_constant_names_generated.c is written to.
     OUTPUT_FILE_DIR = sys.argv[1] if len(sys.argv) == 2 else "programs/psa"
-    generate_psa_constants(['include/psa/crypto_values.h',
-                            'include/psa/crypto_extra.h'],
+
+    generate_psa_constants(['tf-psa-crypto/include/psa/crypto_values.h',
+                            'tf-psa-crypto/include/psa/crypto_extra.h'],
                            OUTPUT_FILE_DIR + '/psa_constant_names_generated.c')

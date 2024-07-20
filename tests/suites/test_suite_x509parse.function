@@ -15,7 +15,7 @@
 #if MBEDTLS_X509_MAX_INTERMEDIATE_CA > 19
 #error "The value of MBEDTLS_X509_MAX_INTERMEDIATE_C is larger \
     than the current threshold 19. To test larger values, please \
-    adapt the script tests/data_files/dir-max/long.sh."
+    adapt the script framework/data_files/dir-max/long.sh."
 #endif
 
 /* Test-only profile allowing all digests, PK algorithms, and curves. */

@@ -1,0 +1,3 @@
+Removals
+   * Drop support for VIA Padlock. Removes MBEDTLS_PADLOCK_C.
+     Fixes #5903.

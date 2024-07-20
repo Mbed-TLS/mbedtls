@@ -13,20 +13,18 @@
 #if defined(DEBUG)
 #define INFO(fmt, ...) \
     fprintf(stdout, "Info (%s - %d): " fmt "\n", __FILE__, __LINE__, ##__VA_ARGS__)
+#else /* !DEBUG */
+#define INFO(...)
+#endif /* DEBUG*/
 
 #define ERROR(fmt, ...) \
-    fprintf(stdout, "Error (%s - %d): " fmt "\n", __FILE__, __LINE__, ##__VA_ARGS__)
+    fprintf(stderr, "Error (%s - %d): " fmt "\n", __FILE__, __LINE__, ##__VA_ARGS__)
 
 #define FATAL(fmt, ...) \
     { \
-        fprintf(stdout, "Fatal (%s - %d): " fmt "\n", __FILE__, __LINE__, ##__VA_ARGS__); \
+        fprintf(stderr, "Fatal (%s - %d): " fmt "\n", __FILE__, __LINE__, ##__VA_ARGS__); \
         abort(); \
     }
-#else /* DEBUG */
-#define INFO(...)
-#define ERROR(...)
-#define FATAL(...)
-#endif /* DEBUG*/
 
 #define PROJECT_ID              'M'
 #define PATHNAMESIZE            256

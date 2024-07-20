@@ -149,7 +149,7 @@ TFM_MEDIUM_CONFIG_H = 'configs/ext/tfm_mbedcrypto_config_profile_medium.h'
 TFM_MEDIUM_CRYPTO_CONFIG_H = 'configs/ext/crypto_config_profile_medium.h'
 
 CONFIG_H = 'include/mbedtls/mbedtls_config.h'
-CRYPTO_CONFIG_H = 'include/psa/crypto_config.h'
+CRYPTO_CONFIG_H = 'tf-psa-crypto/include/psa/crypto_config.h'
 BACKUP_SUFFIX = '.code_size.bak'
 
 class CodeSizeBuildInfo: # pylint: disable=too-few-public-methods

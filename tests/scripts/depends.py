@@ -377,7 +377,11 @@ class CipherInfo: # pylint: disable=too-few-public-methods
     """Collect data about cipher.h."""
     def __init__(self):
         self.base_symbols = set()
-        with open('include/mbedtls/cipher.h', encoding="utf-8") as fh:
+        if os.path.isdir('tf-psa-crypto'):
+            cipher_h_path = 'tf-psa-crypto/drivers/builtin/include/mbedtls/cipher.h'
+        else:
+            cipher_h_path = 'include/mbedtls/cipher.h'
+        with open(cipher_h_path, encoding="utf-8") as fh:
             for line in fh:
                 m = re.match(r' *MBEDTLS_CIPHER_ID_(\w+),', line)
                 if m and m.group(1) not in ['NONE', 'NULL', '3DES']:

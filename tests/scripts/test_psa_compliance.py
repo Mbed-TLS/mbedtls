@@ -39,7 +39,14 @@ def main(library_build_dir: str):
     in_tf_psa_crypto_repo = build_tree.looks_like_tf_psa_crypto_root(root_dir)
 
     crypto_name = build_tree.crypto_library_filename(root_dir)
-    library_subdir = build_tree.crypto_core_directory(root_dir, relative=True)
+
+    # Temporary, while the crypto library is still located in the library
+    # directory. This will not be the case anymore when it will be built by
+    # the TF-PSA-Crypto build system.
+    if in_tf_psa_crypto_repo:
+        library_subdir = build_tree.crypto_core_directory(root_dir, relative=True)
+    else:
+        library_subdir = 'library'
 
     crypto_lib_filename = (library_build_dir + '/' +
                            library_subdir + '/' +
@@ -73,8 +80,14 @@ def main(library_build_dir: str):
         os.mkdir(build_dir)
         os.chdir(build_dir)
 
-        extra_includes = (';{}/drivers/builtin/include'.format(root_dir)
-                          if in_tf_psa_crypto_repo else '')
+        # Temporary while the PSA compliance test suite is still run as part
+        # of Mbed TLS testing. When it is not the case anymore, the second case
+        # can be removed.
+        if in_tf_psa_crypto_repo:
+            extra_includes = ';{}/drivers/builtin/include'.format(root_dir)
+        elif os.path.isdir(os.path.join(root_dir, 'tf-psa-crypto')):
+            extra_includes = ';{}/tf-psa-crypto/include'.format(root_dir) + \
+                             (';{}/tf-psa-crypto/drivers/builtin/include'.format(root_dir))
 
         #pylint: disable=bad-continuation
         subprocess.check_call([

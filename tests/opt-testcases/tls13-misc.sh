@@ -146,7 +146,7 @@ requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 \
 requires_any_configs_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test "TLS 1.3 m->m: resumption" \
-         "$P_SRV debug_level=2 crt_file=data_files/server5.crt key_file=data_files/server5.key" \
+         "$P_SRV debug_level=2 crt_file=../framework/data_files/server5.crt key_file=../framework/data_files/server5.key" \
          "$P_CLI reco_mode=1 reconnect=1" \
          0 \
          -c "Protocol is TLSv1.3" \
@@ -165,8 +165,8 @@ requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 \
 requires_any_configs_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test "TLS 1.3 m->m: resumption with servername" \
-         "$P_SRV debug_level=2 crt_file=data_files/server5.crt key_file=data_files/server5.key \
-            sni=localhost,data_files/server2.crt,data_files/server2.key,-,-,-,polarssl.example,data_files/server1-nospace.crt,data_files/server1.key,-,-,-" \
+         "$P_SRV debug_level=2 crt_file=../framework/data_files/server5.crt key_file=../framework/data_files/server5.key \
+            sni=localhost,../framework/data_files/server2.crt,../framework/data_files/server2.key,-,-,-,polarssl.example,../framework/data_files/server1-nospace.crt,../framework/data_files/server1.key,-,-,-" \
          "$P_CLI server_name=localhost reco_mode=1 reconnect=1" \
          0 \
          -c "Protocol is TLSv1.3" \
@@ -185,7 +185,7 @@ requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 \
 requires_any_configs_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test "TLS 1.3 m->m: resumption with ticket max lifetime (7d)" \
-         "$P_SRV debug_level=2 crt_file=data_files/server5.crt key_file=data_files/server5.key ticket_timeout=604800 tickets=1" \
+         "$P_SRV debug_level=2 crt_file=../framework/data_files/server5.crt key_file=../framework/data_files/server5.key ticket_timeout=604800 tickets=1" \
          "$P_CLI reco_mode=1 reconnect=1" \
          0 \
          -c "Protocol is TLSv1.3" \
@@ -205,7 +205,7 @@ requires_any_configs_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 requires_ciphersuite_enabled TLS1-3-AES-256-GCM-SHA384
 run_test "TLS 1.3 m->m: resumption with AES-256-GCM-SHA384 only" \
-         "$P_SRV debug_level=2 crt_file=data_files/server5.crt key_file=data_files/server5.key" \
+         "$P_SRV debug_level=2 crt_file=../framework/data_files/server5.crt key_file=../framework/data_files/server5.key" \
          "$P_CLI force_ciphersuite=TLS1-3-AES-256-GCM-SHA384 reco_mode=1 reconnect=1" \
          0 \
          -c "Protocol is TLSv1.3" \
@@ -225,7 +225,7 @@ requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 \
 requires_any_configs_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test "TLS 1.3 m->m: resumption with early data" \
-         "$P_SRV debug_level=4 early_data=1 crt_file=data_files/server5.crt key_file=data_files/server5.key" \
+         "$P_SRV debug_level=4 early_data=1 crt_file=../framework/data_files/server5.crt key_file=../framework/data_files/server5.key" \
          "$P_CLI debug_level=3 early_data=1 reco_mode=1 reconnect=1" \
          0 \
          -c "Protocol is TLSv1.3" \
@@ -256,7 +256,7 @@ requires_any_configs_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 requires_ciphersuite_enabled TLS1-3-AES-256-GCM-SHA384
 run_test "TLS 1.3 m->m: resumption with early data, AES-256-GCM-SHA384 only" \
-         "$P_SRV debug_level=4 early_data=1 crt_file=data_files/server5.crt key_file=data_files/server5.key" \
+         "$P_SRV debug_level=4 early_data=1 crt_file=../framework/data_files/server5.crt key_file=../framework/data_files/server5.key" \
          "$P_CLI debug_level=3 force_ciphersuite=TLS1-3-AES-256-GCM-SHA384 early_data=1 reco_mode=1 reconnect=1" \
          0 \
          -c "Protocol is TLSv1.3" \
@@ -287,7 +287,7 @@ requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 \
 requires_any_configs_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test "TLS 1.3 m->m: resumption, early data cli-enabled/srv-default" \
-         "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key" \
+         "$P_SRV debug_level=4 crt_file=../framework/data_files/server5.crt key_file=../framework/data_files/server5.key" \
          "$P_CLI debug_level=3 early_data=1 reco_mode=1 reconnect=1" \
          0 \
          -c "Protocol is TLSv1.3" \
@@ -316,7 +316,7 @@ requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 \
 requires_any_configs_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test "TLS 1.3 m->m: resumption, early data cli-enabled/srv-disabled" \
-         "$P_SRV debug_level=4 early_data=0 crt_file=data_files/server5.crt key_file=data_files/server5.key" \
+         "$P_SRV debug_level=4 early_data=0 crt_file=../framework/data_files/server5.crt key_file=../framework/data_files/server5.key" \
          "$P_CLI debug_level=3 early_data=1 reco_mode=1 reconnect=1" \
          0 \
          -c "Protocol is TLSv1.3" \
@@ -345,7 +345,7 @@ requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 \
 requires_any_configs_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test "TLS 1.3 m->m: resumption, early data cli-default/srv-enabled" \
-         "$P_SRV debug_level=4 early_data=1 crt_file=data_files/server5.crt key_file=data_files/server5.key" \
+         "$P_SRV debug_level=4 early_data=1 crt_file=../framework/data_files/server5.crt key_file=../framework/data_files/server5.key" \
          "$P_CLI debug_level=3 reco_mode=1 reconnect=1" \
          0 \
          -c "Protocol is TLSv1.3" \
@@ -374,7 +374,7 @@ requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 \
 requires_any_configs_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test "TLS 1.3 m->m: resumption, early data cli-disabled/srv-enabled" \
-         "$P_SRV debug_level=4 early_data=1 crt_file=data_files/server5.crt key_file=data_files/server5.key" \
+         "$P_SRV debug_level=4 early_data=1 crt_file=../framework/data_files/server5.crt key_file=../framework/data_files/server5.key" \
          "$P_CLI debug_level=3 early_data=0 reco_mode=1 reconnect=1" \
          0 \
          -c "Protocol is TLSv1.3" \
@@ -403,7 +403,7 @@ requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 \
 requires_any_configs_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test "TLS 1.3 m->m: resumption fails, ticket lifetime too long (7d + 1s)" \
-         "$P_SRV debug_level=2 crt_file=data_files/server5.crt key_file=data_files/server5.key ticket_timeout=604801 tickets=1" \
+         "$P_SRV debug_level=2 crt_file=../framework/data_files/server5.crt key_file=../framework/data_files/server5.key ticket_timeout=604801 tickets=1" \
          "$P_CLI reco_mode=1 reconnect=1" \
          1 \
          -c "Protocol is TLSv1.3" \
@@ -422,7 +422,7 @@ requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 \
 requires_any_configs_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test "TLS 1.3 m->m: resumption fails, ticket lifetime=0" \
-         "$P_SRV debug_level=2 crt_file=data_files/server5.crt key_file=data_files/server5.key ticket_timeout=0 tickets=1" \
+         "$P_SRV debug_level=2 crt_file=../framework/data_files/server5.crt key_file=../framework/data_files/server5.key ticket_timeout=0 tickets=1" \
          "$P_CLI debug_level=2 reco_mode=1 reconnect=1" \
          1 \
          -c "Protocol is TLSv1.3" \
@@ -441,8 +441,8 @@ requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 \
 requires_any_configs_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test "TLS 1.3 m->m: resumption fails, servername check failed" \
-         "$P_SRV debug_level=2 crt_file=data_files/server5.crt key_file=data_files/server5.key \
-            sni=localhost,data_files/server2.crt,data_files/server2.key,-,-,-,polarssl.example,data_files/server1-nospace.crt,data_files/server1.key,-,-,-" \
+         "$P_SRV debug_level=2 crt_file=../framework/data_files/server5.crt key_file=../framework/data_files/server5.key \
+            sni=localhost,../framework/data_files/server2.crt,../framework/data_files/server2.key,-,-,-,polarssl.example,../framework/data_files/server1-nospace.crt,../framework/data_files/server1.key,-,-,-" \
          "$P_CLI debug_level=4 server_name=localhost reco_server_name=remote reco_mode=1 reconnect=1" \
          1 \
          -c "Protocol is TLSv1.3" \
@@ -461,7 +461,7 @@ requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 \
 requires_any_configs_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test "TLS 1.3 m->m: resumption fails, ticket auth failed." \
-         "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key tickets=8 dummy_ticket=1" \
+         "$P_SRV debug_level=4 crt_file=../framework/data_files/server5.crt key_file=../framework/data_files/server5.key tickets=8 dummy_ticket=1" \
          "$P_CLI reco_mode=1 reconnect=1" \
          0 \
          -c "Protocol is TLSv1.3" \
@@ -484,7 +484,7 @@ requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 \
 requires_any_configs_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test "TLS 1.3 m->m: resumption fails, ticket expired." \
-         "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key tickets=8 dummy_ticket=2" \
+         "$P_SRV debug_level=4 crt_file=../framework/data_files/server5.crt key_file=../framework/data_files/server5.key tickets=8 dummy_ticket=2" \
          "$P_CLI reco_mode=1 reconnect=1" \
          0 \
          -c "Protocol is TLSv1.3" \
@@ -507,7 +507,7 @@ requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 \
 requires_any_configs_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test "TLS 1.3 m->m: resumption fails, invalid creation time." \
-         "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key tickets=8 dummy_ticket=3" \
+         "$P_SRV debug_level=4 crt_file=../framework/data_files/server5.crt key_file=../framework/data_files/server5.key tickets=8 dummy_ticket=3" \
          "$P_CLI debug_level=4 reco_mode=1 reconnect=1" \
          0 \
          -c "Protocol is TLSv1.3" \
@@ -530,7 +530,7 @@ requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 \
 requires_any_configs_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test "TLS 1.3 m->m: resumption fails, ticket expired, too old" \
-         "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key tickets=8 dummy_ticket=4" \
+         "$P_SRV debug_level=4 crt_file=../framework/data_files/server5.crt key_file=../framework/data_files/server5.key tickets=8 dummy_ticket=4" \
          "$P_CLI debug_level=4 reco_mode=1 reconnect=1" \
          0 \
          -c "Protocol is TLSv1.3" \
@@ -553,7 +553,7 @@ requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 \
 requires_any_configs_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test "TLS 1.3 m->m: resumption fails, age outside tolerance window, too young" \
-         "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key tickets=8 dummy_ticket=5" \
+         "$P_SRV debug_level=4 crt_file=../framework/data_files/server5.crt key_file=../framework/data_files/server5.key tickets=8 dummy_ticket=5" \
          "$P_CLI debug_level=4 reco_mode=1 reconnect=1" \
          0 \
          -c "Protocol is TLSv1.3" \
@@ -576,7 +576,7 @@ requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 \
 requires_any_configs_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test "TLS 1.3 m->m: resumption fails, age outside tolerance window, too old" \
-         "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key tickets=8 dummy_ticket=6" \
+         "$P_SRV debug_level=4 crt_file=../framework/data_files/server5.crt key_file=../framework/data_files/server5.key tickets=8 dummy_ticket=6" \
          "$P_CLI debug_level=4 reco_mode=1 reconnect=1" \
          0 \
          -c "Protocol is TLSv1.3" \
@@ -598,7 +598,7 @@ requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 run_test "TLS 1.3 m->m: resumption fails, cli/tkt kex modes psk/none" \
-         "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key dummy_ticket=7" \
+         "$P_SRV debug_level=4 crt_file=../framework/data_files/server5.crt key_file=../framework/data_files/server5.key dummy_ticket=7" \
          "$P_CLI debug_level=4 tls13_kex_modes=psk_or_ephemeral reconnect=1" \
          0 \
          -c "Protocol is TLSv1.3" \
@@ -616,7 +616,7 @@ requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 run_test "TLS 1.3 m->m: ephemeral over psk resumption, cli/tkt kex modes psk/psk" \
-         "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key dummy_ticket=8" \
+         "$P_SRV debug_level=4 crt_file=../framework/data_files/server5.crt key_file=../framework/data_files/server5.key dummy_ticket=8" \
          "$P_CLI debug_level=4 tls13_kex_modes=psk_or_ephemeral reconnect=1" \
          0 \
          -c "Protocol is TLSv1.3" \
@@ -634,7 +634,7 @@ requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 run_test "TLS 1.3 m->m: resumption fails, cli/tkt kex modes psk/psk_ephemeral" \
-         "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key dummy_ticket=9" \
+         "$P_SRV debug_level=4 crt_file=../framework/data_files/server5.crt key_file=../framework/data_files/server5.key dummy_ticket=9" \
          "$P_CLI debug_level=4 tls13_kex_modes=psk_or_ephemeral reconnect=1" \
          0 \
          -c "Protocol is TLSv1.3" \
@@ -652,7 +652,7 @@ requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 run_test "TLS 1.3 m->m: ephemeral over psk resumption, cli/tkt kex modes psk/psk_all" \
-         "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key dummy_ticket=10" \
+         "$P_SRV debug_level=4 crt_file=../framework/data_files/server5.crt key_file=../framework/data_files/server5.key dummy_ticket=10" \
          "$P_CLI debug_level=4 tls13_kex_modes=psk_or_ephemeral reconnect=1" \
          0 \
          -c "Protocol is TLSv1.3" \
@@ -670,7 +670,7 @@ requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test "TLS 1.3 m->m: resumption fails, cli/tkt kex modes psk_ephemeral/none" \
-         "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key dummy_ticket=7" \
+         "$P_SRV debug_level=4 crt_file=../framework/data_files/server5.crt key_file=../framework/data_files/server5.key dummy_ticket=7" \
          "$P_CLI debug_level=4 tls13_kex_modes=ephemeral_all reconnect=1" \
          0 \
          -c "Protocol is TLSv1.3" \
@@ -688,7 +688,7 @@ requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test "TLS 1.3 m->m: resumption fails, cli/tkt kex modes psk_ephemeral/psk" \
-         "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key dummy_ticket=8" \
+         "$P_SRV debug_level=4 crt_file=../framework/data_files/server5.crt key_file=../framework/data_files/server5.key dummy_ticket=8" \
          "$P_CLI debug_level=4 tls13_kex_modes=ephemeral_all reconnect=1" \
          0 \
          -c "Protocol is TLSv1.3" \
@@ -706,7 +706,7 @@ requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test "TLS 1.3 m->m: resumption, cli/tkt kex modes psk_ephemeral/psk_ephemeral" \
-         "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key dummy_ticket=9" \
+         "$P_SRV debug_level=4 crt_file=../framework/data_files/server5.crt key_file=../framework/data_files/server5.key dummy_ticket=9" \
          "$P_CLI debug_level=4 tls13_kex_modes=ephemeral_all reconnect=1" \
          0 \
          -c "Protocol is TLSv1.3" \
@@ -724,7 +724,7 @@ requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test "TLS 1.3 m->m: resumption, cli/tkt kex modes psk_ephemeral/psk_all" \
-         "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key dummy_ticket=10" \
+         "$P_SRV debug_level=4 crt_file=../framework/data_files/server5.crt key_file=../framework/data_files/server5.key dummy_ticket=10" \
          "$P_CLI debug_level=4 tls13_kex_modes=ephemeral_all reconnect=1" \
          0 \
          -c "Protocol is TLSv1.3" \
@@ -743,7 +743,7 @@ requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test "TLS 1.3 m->m: resumption fails, cli/tkt kex modes psk_all/none" \
-         "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key dummy_ticket=7" \
+         "$P_SRV debug_level=4 crt_file=../framework/data_files/server5.crt key_file=../framework/data_files/server5.key dummy_ticket=7" \
          "$P_CLI debug_level=4 tls13_kex_modes=all reconnect=1" \
          0 \
          -c "Pre-configured PSK number = 1" \
@@ -762,7 +762,7 @@ requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test "TLS 1.3 m->m: ephemeral over psk resumption, cli/tkt kex modes psk_all/psk" \
-         "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key dummy_ticket=8" \
+         "$P_SRV debug_level=4 crt_file=../framework/data_files/server5.crt key_file=../framework/data_files/server5.key dummy_ticket=8" \
          "$P_CLI debug_level=4 tls13_kex_modes=all reconnect=1" \
          0 \
          -c "Protocol is TLSv1.3" \
@@ -781,7 +781,7 @@ requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test "TLS 1.3 m->m: resumption, cli/tkt kex modes psk_all/psk_ephemeral" \
-         "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key dummy_ticket=9" \
+         "$P_SRV debug_level=4 crt_file=../framework/data_files/server5.crt key_file=../framework/data_files/server5.key dummy_ticket=9" \
          "$P_CLI debug_level=4 tls13_kex_modes=all reconnect=1" \
          0 \
          -c "Protocol is TLSv1.3" \
@@ -800,7 +800,7 @@ requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test "TLS 1.3 m->m: resumption, cli/tkt kex modes psk_all/psk_all" \
-         "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key dummy_ticket=10" \
+         "$P_SRV debug_level=4 crt_file=../framework/data_files/server5.crt key_file=../framework/data_files/server5.key dummy_ticket=10" \
          "$P_CLI debug_level=4 tls13_kex_modes=all reconnect=1" \
          0 \
          -c "Protocol is TLSv1.3" \

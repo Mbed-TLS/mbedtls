@@ -10,6 +10,7 @@
  */
 
 #include "psa_sim_serialise.h"
+#include "util.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -50,6 +51,297 @@
  * data types (e.g. int), types typedef'd to those, and even structures that
  * don't contain pointers.
  */
+
+/* include/psa/crypto_platform.h:typedef uint32_t mbedtls_psa_client_handle_t;
+ * but we don't get it on server builds, so redefine it here with a unique type name
+ */
+typedef uint32_t psasim_client_handle_t;
+
+typedef struct psasim_operation_s {
+    psasim_client_handle_t handle;
+} psasim_operation_t;
+
+#define MAX_LIVE_HANDLES_PER_CLASS   100        /* this many slots */
+
+static psa_hash_operation_t hash_operations[
+    MAX_LIVE_HANDLES_PER_CLASS];
+static psasim_client_handle_t hash_operation_handles[
+    MAX_LIVE_HANDLES_PER_CLASS];
+static psasim_client_handle_t next_hash_operation_handle = 1;
+
+/* Get a free slot */
+static ssize_t allocate_hash_operation_slot(void)
+{
+    psasim_client_handle_t handle = next_hash_operation_handle++;
+    if (next_hash_operation_handle == 0) {      /* wrapped around */
+        FATAL("Hash operation handle wrapped");
+    }
+
+    for (ssize_t i = 0; i < MAX_LIVE_HANDLES_PER_CLASS; i++) {
+        if (hash_operation_handles[i] == 0) {
+            hash_operation_handles[i] = handle;
+            return i;
+        }
+    }
+
+    ERROR("All slots are currently used. Unable to allocate a new one.");
+
+    return -1;  /* all in use */
+}
+
+/* Find the slot given the handle */
+static ssize_t find_hash_slot_by_handle(psasim_client_handle_t handle)
+{
+    for (ssize_t i = 0; i < MAX_LIVE_HANDLES_PER_CLASS; i++) {
+        if (hash_operation_handles[i] == handle) {
+            return i;
+        }
+    }
+
+    ERROR("Unable to find slot by handle %u", handle);
+
+    return -1;  /* not found */
+}
+
+static psa_aead_operation_t aead_operations[
+    MAX_LIVE_HANDLES_PER_CLASS];
+static psasim_client_handle_t aead_operation_handles[
+    MAX_LIVE_HANDLES_PER_CLASS];
+static psasim_client_handle_t next_aead_operation_handle = 1;
+
+/* Get a free slot */
+static ssize_t allocate_aead_operation_slot(void)
+{
+    psasim_client_handle_t handle = next_aead_operation_handle++;
+    if (next_aead_operation_handle == 0) {      /* wrapped around */
+        FATAL("Aead operation handle wrapped");
+    }
+
+    for (ssize_t i = 0; i < MAX_LIVE_HANDLES_PER_CLASS; i++) {
+        if (aead_operation_handles[i] == 0) {
+            aead_operation_handles[i] = handle;
+            return i;
+        }
+    }
+
+    ERROR("All slots are currently used. Unable to allocate a new one.");
+
+    return -1;  /* all in use */
+}
+
+/* Find the slot given the handle */
+static ssize_t find_aead_slot_by_handle(psasim_client_handle_t handle)
+{
+    for (ssize_t i = 0; i < MAX_LIVE_HANDLES_PER_CLASS; i++) {
+        if (aead_operation_handles[i] == handle) {
+            return i;
+        }
+    }
+
+    ERROR("Unable to find slot by handle %u", handle);
+
+    return -1;  /* not found */
+}
+
+static psa_mac_operation_t mac_operations[
+    MAX_LIVE_HANDLES_PER_CLASS];
+static psasim_client_handle_t mac_operation_handles[
+    MAX_LIVE_HANDLES_PER_CLASS];
+static psasim_client_handle_t next_mac_operation_handle = 1;
+
+/* Get a free slot */
+static ssize_t allocate_mac_operation_slot(void)
+{
+    psasim_client_handle_t handle = next_mac_operation_handle++;
+    if (next_mac_operation_handle == 0) {      /* wrapped around */
+        FATAL("Mac operation handle wrapped");
+    }
+
+    for (ssize_t i = 0; i < MAX_LIVE_HANDLES_PER_CLASS; i++) {
+        if (mac_operation_handles[i] == 0) {
+            mac_operation_handles[i] = handle;
+            return i;
+        }
+    }
+
+    ERROR("All slots are currently used. Unable to allocate a new one.");
+
+    return -1;  /* all in use */
+}
+
+/* Find the slot given the handle */
+static ssize_t find_mac_slot_by_handle(psasim_client_handle_t handle)
+{
+    for (ssize_t i = 0; i < MAX_LIVE_HANDLES_PER_CLASS; i++) {
+        if (mac_operation_handles[i] == handle) {
+            return i;
+        }
+    }
+
+    ERROR("Unable to find slot by handle %u", handle);
+
+    return -1;  /* not found */
+}
+
+static psa_cipher_operation_t cipher_operations[
+    MAX_LIVE_HANDLES_PER_CLASS];
+static psasim_client_handle_t cipher_operation_handles[
+    MAX_LIVE_HANDLES_PER_CLASS];
+static psasim_client_handle_t next_cipher_operation_handle = 1;
+
+/* Get a free slot */
+static ssize_t allocate_cipher_operation_slot(void)
+{
+    psasim_client_handle_t handle = next_cipher_operation_handle++;
+    if (next_cipher_operation_handle == 0) {      /* wrapped around */
+        FATAL("Cipher operation handle wrapped");
+    }
+
+    for (ssize_t i = 0; i < MAX_LIVE_HANDLES_PER_CLASS; i++) {
+        if (cipher_operation_handles[i] == 0) {
+            cipher_operation_handles[i] = handle;
+            return i;
+        }
+    }
+
+    ERROR("All slots are currently used. Unable to allocate a new one.");
+
+    return -1;  /* all in use */
+}
+
+/* Find the slot given the handle */
+static ssize_t find_cipher_slot_by_handle(psasim_client_handle_t handle)
+{
+    for (ssize_t i = 0; i < MAX_LIVE_HANDLES_PER_CLASS; i++) {
+        if (cipher_operation_handles[i] == handle) {
+            return i;
+        }
+    }
+
+    ERROR("Unable to find slot by handle %u", handle);
+
+    return -1;  /* not found */
+}
+
+static psa_key_derivation_operation_t key_derivation_operations[
+    MAX_LIVE_HANDLES_PER_CLASS];
+static psasim_client_handle_t key_derivation_operation_handles[
+    MAX_LIVE_HANDLES_PER_CLASS];
+static psasim_client_handle_t next_key_derivation_operation_handle = 1;
+
+/* Get a free slot */
+static ssize_t allocate_key_derivation_operation_slot(void)
+{
+    psasim_client_handle_t handle = next_key_derivation_operation_handle++;
+    if (next_key_derivation_operation_handle == 0) {      /* wrapped around */
+        FATAL("Key_derivation operation handle wrapped");
+    }
+
+    for (ssize_t i = 0; i < MAX_LIVE_HANDLES_PER_CLASS; i++) {
+        if (key_derivation_operation_handles[i] == 0) {
+            key_derivation_operation_handles[i] = handle;
+            return i;
+        }
+    }
+
+    ERROR("All slots are currently used. Unable to allocate a new one.");
+
+    return -1;  /* all in use */
+}
+
+/* Find the slot given the handle */
+static ssize_t find_key_derivation_slot_by_handle(psasim_client_handle_t handle)
+{
+    for (ssize_t i = 0; i < MAX_LIVE_HANDLES_PER_CLASS; i++) {
+        if (key_derivation_operation_handles[i] == handle) {
+            return i;
+        }
+    }
+
+    ERROR("Unable to find slot by handle %u", handle);
+
+    return -1;  /* not found */
+}
+
+static psa_sign_hash_interruptible_operation_t sign_hash_interruptible_operations[
+    MAX_LIVE_HANDLES_PER_CLASS];
+static psasim_client_handle_t sign_hash_interruptible_operation_handles[
+    MAX_LIVE_HANDLES_PER_CLASS];
+static psasim_client_handle_t next_sign_hash_interruptible_operation_handle = 1;
+
+/* Get a free slot */
+static ssize_t allocate_sign_hash_interruptible_operation_slot(void)
+{
+    psasim_client_handle_t handle = next_sign_hash_interruptible_operation_handle++;
+    if (next_sign_hash_interruptible_operation_handle == 0) {      /* wrapped around */
+        FATAL("Sign_hash_interruptible operation handle wrapped");
+    }
+
+    for (ssize_t i = 0; i < MAX_LIVE_HANDLES_PER_CLASS; i++) {
+        if (sign_hash_interruptible_operation_handles[i] == 0) {
+            sign_hash_interruptible_operation_handles[i] = handle;
+            return i;
+        }
+    }
+
+    ERROR("All slots are currently used. Unable to allocate a new one.");
+
+    return -1;  /* all in use */
+}
+
+/* Find the slot given the handle */
+static ssize_t find_sign_hash_interruptible_slot_by_handle(psasim_client_handle_t handle)
+{
+    for (ssize_t i = 0; i < MAX_LIVE_HANDLES_PER_CLASS; i++) {
+        if (sign_hash_interruptible_operation_handles[i] == handle) {
+            return i;
+        }
+    }
+
+    ERROR("Unable to find slot by handle %u", handle);
+
+    return -1;  /* not found */
+}
+
+static psa_verify_hash_interruptible_operation_t verify_hash_interruptible_operations[
+    MAX_LIVE_HANDLES_PER_CLASS];
+static psasim_client_handle_t verify_hash_interruptible_operation_handles[
+    MAX_LIVE_HANDLES_PER_CLASS];
+static psasim_client_handle_t next_verify_hash_interruptible_operation_handle = 1;
+
+/* Get a free slot */
+static ssize_t allocate_verify_hash_interruptible_operation_slot(void)
+{
+    psasim_client_handle_t handle = next_verify_hash_interruptible_operation_handle++;
+    if (next_verify_hash_interruptible_operation_handle == 0) {      /* wrapped around */
+        FATAL("Verify_hash_interruptible operation handle wrapped");
+    }
+
+    for (ssize_t i = 0; i < MAX_LIVE_HANDLES_PER_CLASS; i++) {
+        if (verify_hash_interruptible_operation_handles[i] == 0) {
+            verify_hash_interruptible_operation_handles[i] = handle;
+            return i;
+        }
+    }
+
+    ERROR("All slots are currently used. Unable to allocate a new one.");
+
+    return -1;  /* all in use */
+}
+
+/* Find the slot given the handle */
+static ssize_t find_verify_hash_interruptible_slot_by_handle(psasim_client_handle_t handle)
+{
+    for (ssize_t i = 0; i < MAX_LIVE_HANDLES_PER_CLASS; i++) {
+        if (verify_hash_interruptible_operation_handles[i] == handle) {
+            return i;
+        }
+    }
+
+    ERROR("Unable to find slot by handle %u", handle);
+
+    return -1;  /* not found */
+}
 
 size_t psasim_serialise_begin_needs(void)
 {
@@ -125,7 +417,8 @@ int psasim_deserialise_begin(uint8_t **pos, size_t *remaining)
     return 1;
 }
 
-size_t psasim_serialise_unsigned_int_needs(unsigned int value)
+size_t psasim_serialise_unsigned_int_needs(
+    unsigned int value)
 {
     return sizeof(value);
 }
@@ -160,7 +453,8 @@ int psasim_deserialise_unsigned_int(uint8_t **pos,
     return 1;
 }
 
-size_t psasim_serialise_int_needs(int value)
+size_t psasim_serialise_int_needs(
+    int value)
 {
     return sizeof(value);
 }
@@ -195,7 +489,8 @@ int psasim_deserialise_int(uint8_t **pos,
     return 1;
 }
 
-size_t psasim_serialise_size_t_needs(size_t value)
+size_t psasim_serialise_size_t_needs(
+    size_t value)
 {
     return sizeof(value);
 }
@@ -217,6 +512,114 @@ int psasim_serialise_size_t(uint8_t **pos,
 int psasim_deserialise_size_t(uint8_t **pos,
                               size_t *remaining,
                               size_t *value)
+{
+    if (*remaining < sizeof(*value)) {
+        return 0;
+    }
+
+    memcpy(value, *pos, sizeof(*value));
+
+    *pos += sizeof(*value);
+    *remaining -= sizeof(*value);
+
+    return 1;
+}
+
+size_t psasim_serialise_uint16_t_needs(
+    uint16_t value)
+{
+    return sizeof(value);
+}
+
+int psasim_serialise_uint16_t(uint8_t **pos,
+                              size_t *remaining,
+                              uint16_t value)
+{
+    if (*remaining < sizeof(value)) {
+        return 0;
+    }
+
+    memcpy(*pos, &value, sizeof(value));
+    *pos += sizeof(value);
+
+    return 1;
+}
+
+int psasim_deserialise_uint16_t(uint8_t **pos,
+                                size_t *remaining,
+                                uint16_t *value)
+{
+    if (*remaining < sizeof(*value)) {
+        return 0;
+    }
+
+    memcpy(value, *pos, sizeof(*value));
+
+    *pos += sizeof(*value);
+    *remaining -= sizeof(*value);
+
+    return 1;
+}
+
+size_t psasim_serialise_uint32_t_needs(
+    uint32_t value)
+{
+    return sizeof(value);
+}
+
+int psasim_serialise_uint32_t(uint8_t **pos,
+                              size_t *remaining,
+                              uint32_t value)
+{
+    if (*remaining < sizeof(value)) {
+        return 0;
+    }
+
+    memcpy(*pos, &value, sizeof(value));
+    *pos += sizeof(value);
+
+    return 1;
+}
+
+int psasim_deserialise_uint32_t(uint8_t **pos,
+                                size_t *remaining,
+                                uint32_t *value)
+{
+    if (*remaining < sizeof(*value)) {
+        return 0;
+    }
+
+    memcpy(value, *pos, sizeof(*value));
+
+    *pos += sizeof(*value);
+    *remaining -= sizeof(*value);
+
+    return 1;
+}
+
+size_t psasim_serialise_uint64_t_needs(
+    uint64_t value)
+{
+    return sizeof(value);
+}
+
+int psasim_serialise_uint64_t(uint8_t **pos,
+                              size_t *remaining,
+                              uint64_t value)
+{
+    if (*remaining < sizeof(value)) {
+        return 0;
+    }
+
+    memcpy(*pos, &value, sizeof(value));
+    *pos += sizeof(value);
+
+    return 1;
+}
+
+int psasim_deserialise_uint64_t(uint8_t **pos,
+                                size_t *remaining,
+                                uint64_t *value)
 {
     if (*remaining < sizeof(*value)) {
         return 0;
@@ -332,7 +735,102 @@ int psasim_deserialise_return_buffer(uint8_t **pos,
     return 1;
 }
 
-size_t psasim_serialise_psa_status_t_needs(psa_status_t value)
+#define SER_TAG_SIZE        4
+
+size_t psasim_serialise_psa_key_production_parameters_t_needs(
+    const psa_key_production_parameters_t *params,
+    size_t data_length)
+{
+    /* We will serialise with 4-byte tag = "PKPP" + 4-byte overall length at the beginning,
+     * followed by size_t data_length, then the actual data from the structure.
+     */
+    return SER_TAG_SIZE + sizeof(uint32_t) + sizeof(data_length) + sizeof(*params) + data_length;
+}
+
+int psasim_serialise_psa_key_production_parameters_t(uint8_t **pos,
+                                                     size_t *remaining,
+                                                     const psa_key_production_parameters_t *params,
+                                                     size_t data_length)
+{
+    if (data_length > UINT32_MAX / 2) {       /* arbitrary limit */
+        return 0;       /* too big to serialise */
+    }
+
+    /* We use 32-bit lengths, which should be enough for any reasonable usage :) */
+    /* (the UINT32_MAX / 2 above is an even more conservative check to avoid overflow here) */
+    uint32_t len = (uint32_t) (sizeof(data_length) + sizeof(*params) + data_length);
+    if (*remaining < SER_TAG_SIZE + sizeof(uint32_t) + len) {
+        return 0;
+    }
+
+    char tag[SER_TAG_SIZE] = "PKPP";
+
+    memcpy(*pos, tag, sizeof(tag));
+    memcpy(*pos + sizeof(tag), &len, sizeof(len));
+    *pos += sizeof(tag) + sizeof(len);
+    *remaining -= sizeof(tag) + sizeof(len);
+
+    memcpy(*pos, &data_length, sizeof(data_length));
+    memcpy(*pos + sizeof(data_length), params, sizeof(*params) + data_length);
+    *pos += sizeof(data_length) + sizeof(*params) + data_length;
+    *remaining -= sizeof(data_length) + sizeof(*params) + data_length;
+
+    return 1;
+}
+
+int psasim_deserialise_psa_key_production_parameters_t(uint8_t **pos,
+                                                       size_t *remaining,
+                                                       psa_key_production_parameters_t **params,
+                                                       size_t *data_length)
+{
+    if (*remaining < SER_TAG_SIZE + sizeof(uint32_t)) {
+        return 0;       /* can't even be an empty serialisation */
+    }
+
+    char tag[SER_TAG_SIZE] = "PKPP";    /* expected */
+    uint32_t len;
+
+    memcpy(&len, *pos + sizeof(tag), sizeof(len));
+
+    if (memcmp(*pos, tag, sizeof(tag)) != 0) {
+        return 0;       /* wrong tag */
+    }
+
+    *pos += sizeof(tag) + sizeof(len);
+    *remaining -= sizeof(tag) + sizeof(len);
+
+    if (*remaining < sizeof(*data_length)) {
+        return 0;       /* missing data_length */
+    }
+    memcpy(data_length, *pos, sizeof(*data_length));
+
+    if ((size_t) len != (sizeof(data_length) + sizeof(**params) + *data_length)) {
+        return 0;       /* wrong length */
+    }
+
+    if (*remaining < sizeof(*data_length) + sizeof(**params) + *data_length) {
+        return 0;       /* not enough data provided */
+    }
+
+    *pos += sizeof(data_length);
+    *remaining -= sizeof(data_length);
+
+    psa_key_production_parameters_t *out = malloc(sizeof(**params) + *data_length);
+    if (out == NULL) {
+        return 0;       /* allocation failure */
+    }
+
+    memcpy(out, *pos, sizeof(*out) + *data_length);
+    *pos += sizeof(*out) + *data_length;
+    *remaining -= sizeof(*out) + *data_length;
+
+    *params = out;
+
+    return 1;
+}
+
+size_t psasim_serialise_psa_status_t_needs(
+    psa_status_t value)
 {
     return psasim_serialise_int_needs(value);
 }
@@ -351,7 +849,8 @@ int psasim_deserialise_psa_status_t(uint8_t **pos,
     return psasim_deserialise_int(pos, remaining, value);
 }
 
-size_t psasim_serialise_psa_algorithm_t_needs(psa_algorithm_t value)
+size_t psasim_serialise_psa_algorithm_t_needs(
+    psa_algorithm_t value)
 {
     return psasim_serialise_unsigned_int_needs(value);
 }
@@ -370,7 +869,28 @@ int psasim_deserialise_psa_algorithm_t(uint8_t **pos,
     return psasim_deserialise_unsigned_int(pos, remaining, value);
 }
 
-size_t psasim_serialise_psa_hash_operation_t_needs(psa_hash_operation_t value)
+size_t psasim_serialise_psa_key_derivation_step_t_needs(
+    psa_key_derivation_step_t value)
+{
+    return psasim_serialise_uint16_t_needs(value);
+}
+
+int psasim_serialise_psa_key_derivation_step_t(uint8_t **pos,
+                                               size_t *remaining,
+                                               psa_key_derivation_step_t value)
+{
+    return psasim_serialise_uint16_t(pos, remaining, value);
+}
+
+int psasim_deserialise_psa_key_derivation_step_t(uint8_t **pos,
+                                                 size_t *remaining,
+                                                 psa_key_derivation_step_t *value)
+{
+    return psasim_deserialise_uint16_t(pos, remaining, value);
+}
+
+size_t psasim_serialise_psa_hash_operation_t_needs(
+    psa_hash_operation_t value)
 {
     return sizeof(value);
 }
@@ -403,4 +923,793 @@ int psasim_deserialise_psa_hash_operation_t(uint8_t **pos,
     *remaining -= sizeof(*value);
 
     return 1;
+}
+
+size_t psasim_server_serialise_psa_hash_operation_t_needs(
+    psa_hash_operation_t *operation)
+{
+    (void) operation;
+
+    /* We will actually return a handle */
+    return sizeof(psasim_operation_t);
+}
+
+int psasim_server_serialise_psa_hash_operation_t(uint8_t **pos,
+                                                 size_t *remaining,
+                                                 psa_hash_operation_t *operation,
+                                                 int completed)
+{
+    psasim_operation_t client_operation;
+
+    if (*remaining < sizeof(client_operation)) {
+        return 0;
+    }
+
+    ssize_t slot = operation - hash_operations;
+
+    if (completed) {
+        memset(&hash_operations[slot],
+               0,
+               sizeof(psa_hash_operation_t));
+        hash_operation_handles[slot] = 0;
+    }
+
+    client_operation.handle = hash_operation_handles[slot];
+
+    memcpy(*pos, &client_operation, sizeof(client_operation));
+    *pos += sizeof(client_operation);
+
+    return 1;
+}
+
+int psasim_server_deserialise_psa_hash_operation_t(uint8_t **pos,
+                                                   size_t *remaining,
+                                                   psa_hash_operation_t **operation)
+{
+    psasim_operation_t client_operation;
+
+    if (*remaining < sizeof(psasim_operation_t)) {
+        return 0;
+    }
+
+    memcpy(&client_operation, *pos, sizeof(psasim_operation_t));
+    *pos += sizeof(psasim_operation_t);
+    *remaining -= sizeof(psasim_operation_t);
+
+    ssize_t slot;
+    if (client_operation.handle == 0) {         /* We need a new handle */
+        slot = allocate_hash_operation_slot();
+    } else {
+        slot = find_hash_slot_by_handle(client_operation.handle);
+    }
+
+    if (slot < 0) {
+        return 0;
+    }
+
+    *operation = &hash_operations[slot];
+
+    return 1;
+}
+
+size_t psasim_serialise_psa_aead_operation_t_needs(
+    psa_aead_operation_t value)
+{
+    return sizeof(value);
+}
+
+int psasim_serialise_psa_aead_operation_t(uint8_t **pos,
+                                          size_t *remaining,
+                                          psa_aead_operation_t value)
+{
+    if (*remaining < sizeof(value)) {
+        return 0;
+    }
+
+    memcpy(*pos, &value, sizeof(value));
+    *pos += sizeof(value);
+
+    return 1;
+}
+
+int psasim_deserialise_psa_aead_operation_t(uint8_t **pos,
+                                            size_t *remaining,
+                                            psa_aead_operation_t *value)
+{
+    if (*remaining < sizeof(*value)) {
+        return 0;
+    }
+
+    memcpy(value, *pos, sizeof(*value));
+
+    *pos += sizeof(*value);
+    *remaining -= sizeof(*value);
+
+    return 1;
+}
+
+size_t psasim_server_serialise_psa_aead_operation_t_needs(
+    psa_aead_operation_t *operation)
+{
+    (void) operation;
+
+    /* We will actually return a handle */
+    return sizeof(psasim_operation_t);
+}
+
+int psasim_server_serialise_psa_aead_operation_t(uint8_t **pos,
+                                                 size_t *remaining,
+                                                 psa_aead_operation_t *operation,
+                                                 int completed)
+{
+    psasim_operation_t client_operation;
+
+    if (*remaining < sizeof(client_operation)) {
+        return 0;
+    }
+
+    ssize_t slot = operation - aead_operations;
+
+    if (completed) {
+        memset(&aead_operations[slot],
+               0,
+               sizeof(psa_aead_operation_t));
+        aead_operation_handles[slot] = 0;
+    }
+
+    client_operation.handle = aead_operation_handles[slot];
+
+    memcpy(*pos, &client_operation, sizeof(client_operation));
+    *pos += sizeof(client_operation);
+
+    return 1;
+}
+
+int psasim_server_deserialise_psa_aead_operation_t(uint8_t **pos,
+                                                   size_t *remaining,
+                                                   psa_aead_operation_t **operation)
+{
+    psasim_operation_t client_operation;
+
+    if (*remaining < sizeof(psasim_operation_t)) {
+        return 0;
+    }
+
+    memcpy(&client_operation, *pos, sizeof(psasim_operation_t));
+    *pos += sizeof(psasim_operation_t);
+    *remaining -= sizeof(psasim_operation_t);
+
+    ssize_t slot;
+    if (client_operation.handle == 0) {         /* We need a new handle */
+        slot = allocate_aead_operation_slot();
+    } else {
+        slot = find_aead_slot_by_handle(client_operation.handle);
+    }
+
+    if (slot < 0) {
+        return 0;
+    }
+
+    *operation = &aead_operations[slot];
+
+    return 1;
+}
+
+size_t psasim_serialise_psa_key_attributes_t_needs(
+    psa_key_attributes_t value)
+{
+    return sizeof(value);
+}
+
+int psasim_serialise_psa_key_attributes_t(uint8_t **pos,
+                                          size_t *remaining,
+                                          psa_key_attributes_t value)
+{
+    if (*remaining < sizeof(value)) {
+        return 0;
+    }
+
+    memcpy(*pos, &value, sizeof(value));
+    *pos += sizeof(value);
+
+    return 1;
+}
+
+int psasim_deserialise_psa_key_attributes_t(uint8_t **pos,
+                                            size_t *remaining,
+                                            psa_key_attributes_t *value)
+{
+    if (*remaining < sizeof(*value)) {
+        return 0;
+    }
+
+    memcpy(value, *pos, sizeof(*value));
+
+    *pos += sizeof(*value);
+    *remaining -= sizeof(*value);
+
+    return 1;
+}
+
+size_t psasim_serialise_psa_mac_operation_t_needs(
+    psa_mac_operation_t value)
+{
+    return sizeof(value);
+}
+
+int psasim_serialise_psa_mac_operation_t(uint8_t **pos,
+                                         size_t *remaining,
+                                         psa_mac_operation_t value)
+{
+    if (*remaining < sizeof(value)) {
+        return 0;
+    }
+
+    memcpy(*pos, &value, sizeof(value));
+    *pos += sizeof(value);
+
+    return 1;
+}
+
+int psasim_deserialise_psa_mac_operation_t(uint8_t **pos,
+                                           size_t *remaining,
+                                           psa_mac_operation_t *value)
+{
+    if (*remaining < sizeof(*value)) {
+        return 0;
+    }
+
+    memcpy(value, *pos, sizeof(*value));
+
+    *pos += sizeof(*value);
+    *remaining -= sizeof(*value);
+
+    return 1;
+}
+
+size_t psasim_server_serialise_psa_mac_operation_t_needs(
+    psa_mac_operation_t *operation)
+{
+    (void) operation;
+
+    /* We will actually return a handle */
+    return sizeof(psasim_operation_t);
+}
+
+int psasim_server_serialise_psa_mac_operation_t(uint8_t **pos,
+                                                size_t *remaining,
+                                                psa_mac_operation_t *operation,
+                                                int completed)
+{
+    psasim_operation_t client_operation;
+
+    if (*remaining < sizeof(client_operation)) {
+        return 0;
+    }
+
+    ssize_t slot = operation - mac_operations;
+
+    if (completed) {
+        memset(&mac_operations[slot],
+               0,
+               sizeof(psa_mac_operation_t));
+        mac_operation_handles[slot] = 0;
+    }
+
+    client_operation.handle = mac_operation_handles[slot];
+
+    memcpy(*pos, &client_operation, sizeof(client_operation));
+    *pos += sizeof(client_operation);
+
+    return 1;
+}
+
+int psasim_server_deserialise_psa_mac_operation_t(uint8_t **pos,
+                                                  size_t *remaining,
+                                                  psa_mac_operation_t **operation)
+{
+    psasim_operation_t client_operation;
+
+    if (*remaining < sizeof(psasim_operation_t)) {
+        return 0;
+    }
+
+    memcpy(&client_operation, *pos, sizeof(psasim_operation_t));
+    *pos += sizeof(psasim_operation_t);
+    *remaining -= sizeof(psasim_operation_t);
+
+    ssize_t slot;
+    if (client_operation.handle == 0) {         /* We need a new handle */
+        slot = allocate_mac_operation_slot();
+    } else {
+        slot = find_mac_slot_by_handle(client_operation.handle);
+    }
+
+    if (slot < 0) {
+        return 0;
+    }
+
+    *operation = &mac_operations[slot];
+
+    return 1;
+}
+
+size_t psasim_serialise_psa_cipher_operation_t_needs(
+    psa_cipher_operation_t value)
+{
+    return sizeof(value);
+}
+
+int psasim_serialise_psa_cipher_operation_t(uint8_t **pos,
+                                            size_t *remaining,
+                                            psa_cipher_operation_t value)
+{
+    if (*remaining < sizeof(value)) {
+        return 0;
+    }
+
+    memcpy(*pos, &value, sizeof(value));
+    *pos += sizeof(value);
+
+    return 1;
+}
+
+int psasim_deserialise_psa_cipher_operation_t(uint8_t **pos,
+                                              size_t *remaining,
+                                              psa_cipher_operation_t *value)
+{
+    if (*remaining < sizeof(*value)) {
+        return 0;
+    }
+
+    memcpy(value, *pos, sizeof(*value));
+
+    *pos += sizeof(*value);
+    *remaining -= sizeof(*value);
+
+    return 1;
+}
+
+size_t psasim_server_serialise_psa_cipher_operation_t_needs(
+    psa_cipher_operation_t *operation)
+{
+    (void) operation;
+
+    /* We will actually return a handle */
+    return sizeof(psasim_operation_t);
+}
+
+int psasim_server_serialise_psa_cipher_operation_t(uint8_t **pos,
+                                                   size_t *remaining,
+                                                   psa_cipher_operation_t *operation,
+                                                   int completed)
+{
+    psasim_operation_t client_operation;
+
+    if (*remaining < sizeof(client_operation)) {
+        return 0;
+    }
+
+    ssize_t slot = operation - cipher_operations;
+
+    if (completed) {
+        memset(&cipher_operations[slot],
+               0,
+               sizeof(psa_cipher_operation_t));
+        cipher_operation_handles[slot] = 0;
+    }
+
+    client_operation.handle = cipher_operation_handles[slot];
+
+    memcpy(*pos, &client_operation, sizeof(client_operation));
+    *pos += sizeof(client_operation);
+
+    return 1;
+}
+
+int psasim_server_deserialise_psa_cipher_operation_t(uint8_t **pos,
+                                                     size_t *remaining,
+                                                     psa_cipher_operation_t **operation)
+{
+    psasim_operation_t client_operation;
+
+    if (*remaining < sizeof(psasim_operation_t)) {
+        return 0;
+    }
+
+    memcpy(&client_operation, *pos, sizeof(psasim_operation_t));
+    *pos += sizeof(psasim_operation_t);
+    *remaining -= sizeof(psasim_operation_t);
+
+    ssize_t slot;
+    if (client_operation.handle == 0) {         /* We need a new handle */
+        slot = allocate_cipher_operation_slot();
+    } else {
+        slot = find_cipher_slot_by_handle(client_operation.handle);
+    }
+
+    if (slot < 0) {
+        return 0;
+    }
+
+    *operation = &cipher_operations[slot];
+
+    return 1;
+}
+
+size_t psasim_serialise_psa_key_derivation_operation_t_needs(
+    psa_key_derivation_operation_t value)
+{
+    return sizeof(value);
+}
+
+int psasim_serialise_psa_key_derivation_operation_t(uint8_t **pos,
+                                                    size_t *remaining,
+                                                    psa_key_derivation_operation_t value)
+{
+    if (*remaining < sizeof(value)) {
+        return 0;
+    }
+
+    memcpy(*pos, &value, sizeof(value));
+    *pos += sizeof(value);
+
+    return 1;
+}
+
+int psasim_deserialise_psa_key_derivation_operation_t(uint8_t **pos,
+                                                      size_t *remaining,
+                                                      psa_key_derivation_operation_t *value)
+{
+    if (*remaining < sizeof(*value)) {
+        return 0;
+    }
+
+    memcpy(value, *pos, sizeof(*value));
+
+    *pos += sizeof(*value);
+    *remaining -= sizeof(*value);
+
+    return 1;
+}
+
+size_t psasim_server_serialise_psa_key_derivation_operation_t_needs(
+    psa_key_derivation_operation_t *operation)
+{
+    (void) operation;
+
+    /* We will actually return a handle */
+    return sizeof(psasim_operation_t);
+}
+
+int psasim_server_serialise_psa_key_derivation_operation_t(uint8_t **pos,
+                                                           size_t *remaining,
+                                                           psa_key_derivation_operation_t *operation,
+                                                           int completed)
+{
+    psasim_operation_t client_operation;
+
+    if (*remaining < sizeof(client_operation)) {
+        return 0;
+    }
+
+    ssize_t slot = operation - key_derivation_operations;
+
+    if (completed) {
+        memset(&key_derivation_operations[slot],
+               0,
+               sizeof(psa_key_derivation_operation_t));
+        key_derivation_operation_handles[slot] = 0;
+    }
+
+    client_operation.handle = key_derivation_operation_handles[slot];
+
+    memcpy(*pos, &client_operation, sizeof(client_operation));
+    *pos += sizeof(client_operation);
+
+    return 1;
+}
+
+int psasim_server_deserialise_psa_key_derivation_operation_t(uint8_t **pos,
+                                                             size_t *remaining,
+                                                             psa_key_derivation_operation_t **operation)
+{
+    psasim_operation_t client_operation;
+
+    if (*remaining < sizeof(psasim_operation_t)) {
+        return 0;
+    }
+
+    memcpy(&client_operation, *pos, sizeof(psasim_operation_t));
+    *pos += sizeof(psasim_operation_t);
+    *remaining -= sizeof(psasim_operation_t);
+
+    ssize_t slot;
+    if (client_operation.handle == 0) {         /* We need a new handle */
+        slot = allocate_key_derivation_operation_slot();
+    } else {
+        slot = find_key_derivation_slot_by_handle(client_operation.handle);
+    }
+
+    if (slot < 0) {
+        return 0;
+    }
+
+    *operation = &key_derivation_operations[slot];
+
+    return 1;
+}
+
+size_t psasim_serialise_psa_sign_hash_interruptible_operation_t_needs(
+    psa_sign_hash_interruptible_operation_t value)
+{
+    return sizeof(value);
+}
+
+int psasim_serialise_psa_sign_hash_interruptible_operation_t(uint8_t **pos,
+                                                             size_t *remaining,
+                                                             psa_sign_hash_interruptible_operation_t value)
+{
+    if (*remaining < sizeof(value)) {
+        return 0;
+    }
+
+    memcpy(*pos, &value, sizeof(value));
+    *pos += sizeof(value);
+
+    return 1;
+}
+
+int psasim_deserialise_psa_sign_hash_interruptible_operation_t(uint8_t **pos,
+                                                               size_t *remaining,
+                                                               psa_sign_hash_interruptible_operation_t *value)
+{
+    if (*remaining < sizeof(*value)) {
+        return 0;
+    }
+
+    memcpy(value, *pos, sizeof(*value));
+
+    *pos += sizeof(*value);
+    *remaining -= sizeof(*value);
+
+    return 1;
+}
+
+size_t psasim_server_serialise_psa_sign_hash_interruptible_operation_t_needs(
+    psa_sign_hash_interruptible_operation_t *operation)
+{
+    (void) operation;
+
+    /* We will actually return a handle */
+    return sizeof(psasim_operation_t);
+}
+
+int psasim_server_serialise_psa_sign_hash_interruptible_operation_t(uint8_t **pos,
+                                                                    size_t *remaining,
+                                                                    psa_sign_hash_interruptible_operation_t *operation,
+                                                                    int completed)
+{
+    psasim_operation_t client_operation;
+
+    if (*remaining < sizeof(client_operation)) {
+        return 0;
+    }
+
+    ssize_t slot = operation - sign_hash_interruptible_operations;
+
+    if (completed) {
+        memset(&sign_hash_interruptible_operations[slot],
+               0,
+               sizeof(psa_sign_hash_interruptible_operation_t));
+        sign_hash_interruptible_operation_handles[slot] = 0;
+    }
+
+    client_operation.handle = sign_hash_interruptible_operation_handles[slot];
+
+    memcpy(*pos, &client_operation, sizeof(client_operation));
+    *pos += sizeof(client_operation);
+
+    return 1;
+}
+
+int psasim_server_deserialise_psa_sign_hash_interruptible_operation_t(uint8_t **pos,
+                                                                      size_t *remaining,
+                                                                      psa_sign_hash_interruptible_operation_t **operation)
+{
+    psasim_operation_t client_operation;
+
+    if (*remaining < sizeof(psasim_operation_t)) {
+        return 0;
+    }
+
+    memcpy(&client_operation, *pos, sizeof(psasim_operation_t));
+    *pos += sizeof(psasim_operation_t);
+    *remaining -= sizeof(psasim_operation_t);
+
+    ssize_t slot;
+    if (client_operation.handle == 0) {         /* We need a new handle */
+        slot = allocate_sign_hash_interruptible_operation_slot();
+    } else {
+        slot = find_sign_hash_interruptible_slot_by_handle(client_operation.handle);
+    }
+
+    if (slot < 0) {
+        return 0;
+    }
+
+    *operation = &sign_hash_interruptible_operations[slot];
+
+    return 1;
+}
+
+size_t psasim_serialise_psa_verify_hash_interruptible_operation_t_needs(
+    psa_verify_hash_interruptible_operation_t value)
+{
+    return sizeof(value);
+}
+
+int psasim_serialise_psa_verify_hash_interruptible_operation_t(uint8_t **pos,
+                                                               size_t *remaining,
+                                                               psa_verify_hash_interruptible_operation_t value)
+{
+    if (*remaining < sizeof(value)) {
+        return 0;
+    }
+
+    memcpy(*pos, &value, sizeof(value));
+    *pos += sizeof(value);
+
+    return 1;
+}
+
+int psasim_deserialise_psa_verify_hash_interruptible_operation_t(uint8_t **pos,
+                                                                 size_t *remaining,
+                                                                 psa_verify_hash_interruptible_operation_t *value)
+{
+    if (*remaining < sizeof(*value)) {
+        return 0;
+    }
+
+    memcpy(value, *pos, sizeof(*value));
+
+    *pos += sizeof(*value);
+    *remaining -= sizeof(*value);
+
+    return 1;
+}
+
+size_t psasim_server_serialise_psa_verify_hash_interruptible_operation_t_needs(
+    psa_verify_hash_interruptible_operation_t *operation)
+{
+    (void) operation;
+
+    /* We will actually return a handle */
+    return sizeof(psasim_operation_t);
+}
+
+int psasim_server_serialise_psa_verify_hash_interruptible_operation_t(uint8_t **pos,
+                                                                      size_t *remaining,
+                                                                      psa_verify_hash_interruptible_operation_t *operation,
+                                                                      int completed)
+{
+    psasim_operation_t client_operation;
+
+    if (*remaining < sizeof(client_operation)) {
+        return 0;
+    }
+
+    ssize_t slot = operation - verify_hash_interruptible_operations;
+
+    if (completed) {
+        memset(&verify_hash_interruptible_operations[slot],
+               0,
+               sizeof(psa_verify_hash_interruptible_operation_t));
+        verify_hash_interruptible_operation_handles[slot] = 0;
+    }
+
+    client_operation.handle = verify_hash_interruptible_operation_handles[slot];
+
+    memcpy(*pos, &client_operation, sizeof(client_operation));
+    *pos += sizeof(client_operation);
+
+    return 1;
+}
+
+int psasim_server_deserialise_psa_verify_hash_interruptible_operation_t(uint8_t **pos,
+                                                                        size_t *remaining,
+                                                                        psa_verify_hash_interruptible_operation_t **operation)
+{
+    psasim_operation_t client_operation;
+
+    if (*remaining < sizeof(psasim_operation_t)) {
+        return 0;
+    }
+
+    memcpy(&client_operation, *pos, sizeof(psasim_operation_t));
+    *pos += sizeof(psasim_operation_t);
+    *remaining -= sizeof(psasim_operation_t);
+
+    ssize_t slot;
+    if (client_operation.handle == 0) {         /* We need a new handle */
+        slot = allocate_verify_hash_interruptible_operation_slot();
+    } else {
+        slot = find_verify_hash_interruptible_slot_by_handle(client_operation.handle);
+    }
+
+    if (slot < 0) {
+        return 0;
+    }
+
+    *operation = &verify_hash_interruptible_operations[slot];
+
+    return 1;
+}
+
+size_t psasim_serialise_mbedtls_svc_key_id_t_needs(
+    mbedtls_svc_key_id_t value)
+{
+    return sizeof(value);
+}
+
+int psasim_serialise_mbedtls_svc_key_id_t(uint8_t **pos,
+                                          size_t *remaining,
+                                          mbedtls_svc_key_id_t value)
+{
+    if (*remaining < sizeof(value)) {
+        return 0;
+    }
+
+    memcpy(*pos, &value, sizeof(value));
+    *pos += sizeof(value);
+
+    return 1;
+}
+
+int psasim_deserialise_mbedtls_svc_key_id_t(uint8_t **pos,
+                                            size_t *remaining,
+                                            mbedtls_svc_key_id_t *value)
+{
+    if (*remaining < sizeof(*value)) {
+        return 0;
+    }
+
+    memcpy(value, *pos, sizeof(*value));
+
+    *pos += sizeof(*value);
+    *remaining -= sizeof(*value);
+
+    return 1;
+}
+
+void psa_sim_serialize_reset(void)
+{
+    memset(hash_operation_handles, 0,
+           sizeof(hash_operation_handles));
+    memset(hash_operations, 0,
+           sizeof(hash_operations));
+    memset(aead_operation_handles, 0,
+           sizeof(aead_operation_handles));
+    memset(aead_operations, 0,
+           sizeof(aead_operations));
+    memset(mac_operation_handles, 0,
+           sizeof(mac_operation_handles));
+    memset(mac_operations, 0,
+           sizeof(mac_operations));
+    memset(cipher_operation_handles, 0,
+           sizeof(cipher_operation_handles));
+    memset(cipher_operations, 0,
+           sizeof(cipher_operations));
+    memset(key_derivation_operation_handles, 0,
+           sizeof(key_derivation_operation_handles));
+    memset(key_derivation_operations, 0,
+           sizeof(key_derivation_operations));
+    memset(sign_hash_interruptible_operation_handles, 0,
+           sizeof(sign_hash_interruptible_operation_handles));
+    memset(sign_hash_interruptible_operations, 0,
+           sizeof(sign_hash_interruptible_operations));
+    memset(verify_hash_interruptible_operation_handles, 0,
+           sizeof(verify_hash_interruptible_operation_handles));
+    memset(verify_hash_interruptible_operations, 0,
+           sizeof(verify_hash_interruptible_operations));
 }

@@ -37,10 +37,23 @@ print_cpp () {
 
 EOF
 
-    for header in include/mbedtls/*.h include/psa/*.h; do
+    for header in include/mbedtls/*.h; do
         case ${header#include/} in
             mbedtls/mbedtls_config.h) :;; # not meant for direct inclusion
             mbedtls/config_*.h) :;; # not meant for direct inclusion
+            *) echo "#include \"${header#include/}\"";;
+        esac
+    done
+
+    for header in tf-psa-crypto/drivers/builtin/include/mbedtls/*.h; do
+        case ${header#tf-psa-crypto/drivers/builtin/include/} in
+            mbedtls/config_*.h) :;; # not meant for direct inclusion
+            *) echo "#include \"${header#tf-psa-crypto/drivers/builtin/include/}\"";;
+        esac
+    done
+
+    for header in tf-psa-crypto/include/psa/*.h; do
+        case ${header#tf-psa-crypto/include/} in
             psa/crypto_config.h) :;; # not meant for direct inclusion
             psa/crypto_ajdust_config*.h) :;; # not meant for direct inclusion
             # Some of the psa/crypto_*.h headers are not meant to be included
@@ -48,7 +61,7 @@ EOF
             # psa/crypto.h has been included before. Since psa/crypto.h comes
             # before psa/crypto_*.h in the wildcard enumeration, we don't need
             # to skip those headers.
-            *) echo "#include \"${header#include/}\"";;
+            *) echo "#include \"${header#tf-psa-crypto/include/}\"";;
         esac
     done
 

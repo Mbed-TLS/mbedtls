@@ -465,6 +465,7 @@ psa_status_t mbedtls_test_wrap_psa_copy_key(
 }
 
 /* Wrapper for psa_crypto_driver_pake_get_cipher_suite */
+#if defined(PSA_WANT_ALG_SOME_PAKE)
 psa_status_t mbedtls_test_wrap_psa_crypto_driver_pake_get_cipher_suite(
     const psa_crypto_driver_pake_inputs_t *arg0_inputs,
     psa_pake_cipher_suite_t *arg1_cipher_suite)
@@ -472,8 +473,10 @@ psa_status_t mbedtls_test_wrap_psa_crypto_driver_pake_get_cipher_suite(
     psa_status_t status = (psa_crypto_driver_pake_get_cipher_suite)(arg0_inputs, arg1_cipher_suite);
     return status;
 }
+#endif /* defined(PSA_WANT_ALG_SOME_PAKE) */
 
 /* Wrapper for psa_crypto_driver_pake_get_password */
+#if defined(PSA_WANT_ALG_SOME_PAKE)
 psa_status_t mbedtls_test_wrap_psa_crypto_driver_pake_get_password(
     const psa_crypto_driver_pake_inputs_t *arg0_inputs,
     uint8_t *arg1_buffer,
@@ -483,8 +486,10 @@ psa_status_t mbedtls_test_wrap_psa_crypto_driver_pake_get_password(
     psa_status_t status = (psa_crypto_driver_pake_get_password)(arg0_inputs, arg1_buffer, arg2_buffer_size, arg3_buffer_length);
     return status;
 }
+#endif /* defined(PSA_WANT_ALG_SOME_PAKE) */
 
 /* Wrapper for psa_crypto_driver_pake_get_password_len */
+#if defined(PSA_WANT_ALG_SOME_PAKE)
 psa_status_t mbedtls_test_wrap_psa_crypto_driver_pake_get_password_len(
     const psa_crypto_driver_pake_inputs_t *arg0_inputs,
     size_t *arg1_password_len)
@@ -492,8 +497,10 @@ psa_status_t mbedtls_test_wrap_psa_crypto_driver_pake_get_password_len(
     psa_status_t status = (psa_crypto_driver_pake_get_password_len)(arg0_inputs, arg1_password_len);
     return status;
 }
+#endif /* defined(PSA_WANT_ALG_SOME_PAKE) */
 
 /* Wrapper for psa_crypto_driver_pake_get_peer */
+#if defined(PSA_WANT_ALG_SOME_PAKE)
 psa_status_t mbedtls_test_wrap_psa_crypto_driver_pake_get_peer(
     const psa_crypto_driver_pake_inputs_t *arg0_inputs,
     uint8_t *arg1_peer_id,
@@ -503,8 +510,10 @@ psa_status_t mbedtls_test_wrap_psa_crypto_driver_pake_get_peer(
     psa_status_t status = (psa_crypto_driver_pake_get_peer)(arg0_inputs, arg1_peer_id, arg2_peer_id_size, arg3_peer_id_length);
     return status;
 }
+#endif /* defined(PSA_WANT_ALG_SOME_PAKE) */
 
 /* Wrapper for psa_crypto_driver_pake_get_peer_len */
+#if defined(PSA_WANT_ALG_SOME_PAKE)
 psa_status_t mbedtls_test_wrap_psa_crypto_driver_pake_get_peer_len(
     const psa_crypto_driver_pake_inputs_t *arg0_inputs,
     size_t *arg1_peer_len)
@@ -512,8 +521,10 @@ psa_status_t mbedtls_test_wrap_psa_crypto_driver_pake_get_peer_len(
     psa_status_t status = (psa_crypto_driver_pake_get_peer_len)(arg0_inputs, arg1_peer_len);
     return status;
 }
+#endif /* defined(PSA_WANT_ALG_SOME_PAKE) */
 
 /* Wrapper for psa_crypto_driver_pake_get_user */
+#if defined(PSA_WANT_ALG_SOME_PAKE)
 psa_status_t mbedtls_test_wrap_psa_crypto_driver_pake_get_user(
     const psa_crypto_driver_pake_inputs_t *arg0_inputs,
     uint8_t *arg1_user_id,
@@ -523,8 +534,10 @@ psa_status_t mbedtls_test_wrap_psa_crypto_driver_pake_get_user(
     psa_status_t status = (psa_crypto_driver_pake_get_user)(arg0_inputs, arg1_user_id, arg2_user_id_size, arg3_user_id_len);
     return status;
 }
+#endif /* defined(PSA_WANT_ALG_SOME_PAKE) */
 
 /* Wrapper for psa_crypto_driver_pake_get_user_len */
+#if defined(PSA_WANT_ALG_SOME_PAKE)
 psa_status_t mbedtls_test_wrap_psa_crypto_driver_pake_get_user_len(
     const psa_crypto_driver_pake_inputs_t *arg0_inputs,
     size_t *arg1_user_len)
@@ -532,6 +545,7 @@ psa_status_t mbedtls_test_wrap_psa_crypto_driver_pake_get_user_len(
     psa_status_t status = (psa_crypto_driver_pake_get_user_len)(arg0_inputs, arg1_user_len);
     return status;
 }
+#endif /* defined(PSA_WANT_ALG_SOME_PAKE) */
 
 /* Wrapper for psa_crypto_init */
 psa_status_t mbedtls_test_wrap_psa_crypto_init(void)
@@ -1008,14 +1022,17 @@ psa_status_t mbedtls_test_wrap_psa_mac_verify_setup(
 }
 
 /* Wrapper for psa_pake_abort */
+#if defined(PSA_WANT_ALG_SOME_PAKE)
 psa_status_t mbedtls_test_wrap_psa_pake_abort(
     psa_pake_operation_t *arg0_operation)
 {
     psa_status_t status = (psa_pake_abort)(arg0_operation);
     return status;
 }
+#endif /* defined(PSA_WANT_ALG_SOME_PAKE) */
 
 /* Wrapper for psa_pake_get_implicit_key */
+#if defined(PSA_WANT_ALG_SOME_PAKE)
 psa_status_t mbedtls_test_wrap_psa_pake_get_implicit_key(
     psa_pake_operation_t *arg0_operation,
     psa_key_derivation_operation_t *arg1_output)
@@ -1023,8 +1040,10 @@ psa_status_t mbedtls_test_wrap_psa_pake_get_implicit_key(
     psa_status_t status = (psa_pake_get_implicit_key)(arg0_operation, arg1_output);
     return status;
 }
+#endif /* defined(PSA_WANT_ALG_SOME_PAKE) */
 
 /* Wrapper for psa_pake_input */
+#if defined(PSA_WANT_ALG_SOME_PAKE)
 psa_status_t mbedtls_test_wrap_psa_pake_input(
     psa_pake_operation_t *arg0_operation,
     psa_pake_step_t arg1_step,
@@ -1040,8 +1059,10 @@ psa_status_t mbedtls_test_wrap_psa_pake_input(
 #endif /* !defined(MBEDTLS_PSA_ASSUME_EXCLUSIVE_BUFFERS) */
     return status;
 }
+#endif /* defined(PSA_WANT_ALG_SOME_PAKE) */
 
 /* Wrapper for psa_pake_output */
+#if defined(PSA_WANT_ALG_SOME_PAKE)
 psa_status_t mbedtls_test_wrap_psa_pake_output(
     psa_pake_operation_t *arg0_operation,
     psa_pake_step_t arg1_step,
@@ -1058,8 +1079,10 @@ psa_status_t mbedtls_test_wrap_psa_pake_output(
 #endif /* !defined(MBEDTLS_PSA_ASSUME_EXCLUSIVE_BUFFERS) */
     return status;
 }
+#endif /* defined(PSA_WANT_ALG_SOME_PAKE) */
 
 /* Wrapper for psa_pake_set_password_key */
+#if defined(PSA_WANT_ALG_SOME_PAKE)
 psa_status_t mbedtls_test_wrap_psa_pake_set_password_key(
     psa_pake_operation_t *arg0_operation,
     mbedtls_svc_key_id_t arg1_password)
@@ -1067,8 +1090,10 @@ psa_status_t mbedtls_test_wrap_psa_pake_set_password_key(
     psa_status_t status = (psa_pake_set_password_key)(arg0_operation, arg1_password);
     return status;
 }
+#endif /* defined(PSA_WANT_ALG_SOME_PAKE) */
 
 /* Wrapper for psa_pake_set_peer */
+#if defined(PSA_WANT_ALG_SOME_PAKE)
 psa_status_t mbedtls_test_wrap_psa_pake_set_peer(
     psa_pake_operation_t *arg0_operation,
     const uint8_t *arg1_peer_id,
@@ -1083,8 +1108,10 @@ psa_status_t mbedtls_test_wrap_psa_pake_set_peer(
 #endif /* !defined(MBEDTLS_PSA_ASSUME_EXCLUSIVE_BUFFERS) */
     return status;
 }
+#endif /* defined(PSA_WANT_ALG_SOME_PAKE) */
 
 /* Wrapper for psa_pake_set_role */
+#if defined(PSA_WANT_ALG_SOME_PAKE)
 psa_status_t mbedtls_test_wrap_psa_pake_set_role(
     psa_pake_operation_t *arg0_operation,
     psa_pake_role_t arg1_role)
@@ -1092,8 +1119,10 @@ psa_status_t mbedtls_test_wrap_psa_pake_set_role(
     psa_status_t status = (psa_pake_set_role)(arg0_operation, arg1_role);
     return status;
 }
+#endif /* defined(PSA_WANT_ALG_SOME_PAKE) */
 
 /* Wrapper for psa_pake_set_user */
+#if defined(PSA_WANT_ALG_SOME_PAKE)
 psa_status_t mbedtls_test_wrap_psa_pake_set_user(
     psa_pake_operation_t *arg0_operation,
     const uint8_t *arg1_user_id,
@@ -1108,8 +1137,10 @@ psa_status_t mbedtls_test_wrap_psa_pake_set_user(
 #endif /* !defined(MBEDTLS_PSA_ASSUME_EXCLUSIVE_BUFFERS) */
     return status;
 }
+#endif /* defined(PSA_WANT_ALG_SOME_PAKE) */
 
 /* Wrapper for psa_pake_setup */
+#if defined(PSA_WANT_ALG_SOME_PAKE)
 psa_status_t mbedtls_test_wrap_psa_pake_setup(
     psa_pake_operation_t *arg0_operation,
     const psa_pake_cipher_suite_t *arg1_cipher_suite)
@@ -1117,6 +1148,7 @@ psa_status_t mbedtls_test_wrap_psa_pake_setup(
     psa_status_t status = (psa_pake_setup)(arg0_operation, arg1_cipher_suite);
     return status;
 }
+#endif /* defined(PSA_WANT_ALG_SOME_PAKE) */
 
 /* Wrapper for psa_purge_key */
 psa_status_t mbedtls_test_wrap_psa_purge_key(

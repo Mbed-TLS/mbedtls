@@ -138,7 +138,7 @@ endif()
 if(TF_PSA_CRYPTO_PYTHON_EXECUTABLE)
 
     # If 128-bit keys are configured for CTR_DRBG, display an appropriate warning
-    execute_process(COMMAND ${TF_PSA_CRYPTO_PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/scripts/config.py -f ${CMAKE_CURRENT_SOURCE_DIR}/include/mbedtls/mbedtls_config.h get MBEDTLS_CTR_DRBG_USE_128_BIT_KEY
+    execute_process(COMMAND ${TF_PSA_CRYPTO_PYTHON_EXECUTABLE} ${MBEDTLS_DIR}/scripts/config.py -f ${MBEDTLS_DIR}/include/mbedtls/mbedtls_config.h get MBEDTLS_CTR_DRBG_USE_128_BIT_KEY
                         RESULT_VARIABLE result)
     if(${result} EQUAL 0)
         message(WARNING ${CTR_DRBG_128_BIT_KEY_WARNING})
@@ -340,48 +340,48 @@ add_subdirectory(drivers)
 #
 if(ENABLE_TESTING OR ENABLE_PROGRAMS)
     file(GLOB MBEDTLS_TEST_FILES
-         ${CMAKE_CURRENT_SOURCE_DIR}/tests/src/*.c
-         ${CMAKE_CURRENT_SOURCE_DIR}/tests/src/drivers/*.c)
+         ${MBEDTLS_DIR}/tests/src/*.c
+         ${MBEDTLS_DIR}/tests/src/drivers/*.c)
     add_library(mbedtls_test OBJECT ${MBEDTLS_TEST_FILES})
     if(GEN_FILES)
         add_custom_command(
             OUTPUT
-                ${CMAKE_CURRENT_SOURCE_DIR}/tests/src/test_keys.h
+                ${MBEDTLS_DIR}/tests/src/test_keys.h
             WORKING_DIRECTORY
-                ${CMAKE_CURRENT_SOURCE_DIR}/tests
+                ${MBEDTLS_DIR}/tests
             COMMAND
                 "${TF_PSA_CRYPTO_PYTHON_EXECUTABLE}"
                 "${MBEDTLS_FRAMEWORK_DIR}/scripts/generate_test_keys.py"
                 "--output"
-                "${CMAKE_CURRENT_SOURCE_DIR}/tests/src/test_keys.h"
+                "${MBEDTLS_DIR}/tests/src/test_keys.h"
             DEPENDS
                 ${MBEDTLS_FRAMEWORK_DIR}/scripts/generate_test_keys.py
         )
-        add_custom_target(test_keys_header DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/tests/src/test_keys.h)
+        add_custom_target(test_keys_header DEPENDS ${MBEDTLS_DIR}/tests/src/test_keys.h)
 
         add_custom_command(
             OUTPUT
-                ${CMAKE_CURRENT_SOURCE_DIR}/tests/src/test_certs.h
+                ${MBEDTLS_DIR}/tests/src/test_certs.h
             WORKING_DIRECTORY
-                ${CMAKE_CURRENT_SOURCE_DIR}/tests
+                ${MBEDTLS_DIR}/tests
             COMMAND
                 "${TF_PSA_CRYPTO_PYTHON_EXECUTABLE}"
                 "${MBEDTLS_FRAMEWORK_DIR}/scripts/generate_test_cert_macros.py"
                 "--output"
-                "${CMAKE_CURRENT_SOURCE_DIR}/tests/src/test_certs.h"
+                "${MBEDTLS_DIR}/tests/src/test_certs.h"
             DEPENDS
                 ${MBEDTLS_FRAMEWORK_DIR}/scripts/generate_test_cert_macros.py
         )
-        add_custom_target(test_certs_header DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/tests/src/test_certs.h)
+        add_custom_target(test_certs_header DEPENDS ${MBEDTLS_DIR}/tests/src/test_certs.h)
         add_dependencies(mbedtls_test test_keys_header test_certs_header)
     endif()
     target_include_directories(mbedtls_test
-        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tests/include
-        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include
-        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tf-psa-crypto/include
-        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tf-psa-crypto/drivers/builtin/include
-        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tf-psa-crypto/core
-        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tf-psa-crypto/drivers/builtin/src)
+        PRIVATE ${MBEDTLS_DIR}/tests/include
+        PRIVATE ${MBEDTLS_DIR}/include
+        PRIVATE include
+        PRIVATE drivers/builtin/include
+        PRIVATE core
+        PRIVATE drivers/builtin/src)
     # Request C11, needed for memory poisoning tests
     set_target_properties(mbedtls_test PROPERTIES C_STANDARD 11)
 

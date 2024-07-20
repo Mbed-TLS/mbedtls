@@ -32,8 +32,6 @@
 
 #include "mbedtls/platform_util.h" // for mbedtls_platform_zeroize
 
-#include <test/helpers.h>
-
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -57,6 +55,16 @@ const unsigned char msg2_part2[] = { 0x06, 0x06 };
 /* Dummy key material - never do this in production!
  * This example program uses SHA-256, so a 32-byte key makes sense. */
 const unsigned char key_bytes[32] = { 0 };
+
+/* Print the contents of a buffer in hex */
+void print_buf(const char *title, unsigned char *buf, size_t len)
+{
+    printf("%s:", title);
+    for (size_t i = 0; i < len; i++) {
+        printf(" %02x", buf[i]);
+    }
+    printf("\n");
+}
 
 /* Run an Mbed TLS function and bail out if it fails.
  * A string description of the error code can be recovered with:
@@ -99,14 +107,14 @@ static int hmac_demo(void)
     CHK(mbedtls_md_hmac_update(&ctx, msg1_part1, sizeof(msg1_part1)));
     CHK(mbedtls_md_hmac_update(&ctx, msg1_part2, sizeof(msg1_part2)));
     CHK(mbedtls_md_hmac_finish(&ctx, out));
-    mbedtls_test_print_buf("msg1", out, mbedtls_md_get_size(info));
+    print_buf("msg1", out, mbedtls_md_get_size(info));
 
     /* compute HMAC(key, msg2_part1 | msg2_part2) */
     CHK(mbedtls_md_hmac_reset(&ctx));     // prepare for new operation
     CHK(mbedtls_md_hmac_update(&ctx, msg2_part1, sizeof(msg2_part1)));
     CHK(mbedtls_md_hmac_update(&ctx, msg2_part2, sizeof(msg2_part2)));
     CHK(mbedtls_md_hmac_finish(&ctx, out));
-    mbedtls_test_print_buf("msg2", out, mbedtls_md_get_size(info));
+    print_buf("msg2", out, mbedtls_md_get_size(info));
 
 exit:
     mbedtls_md_free(&ctx);

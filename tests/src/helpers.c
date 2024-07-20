@@ -660,15 +660,6 @@ int mbedtls_test_hexcmp(uint8_t *a, uint8_t *b,
     return ret;
 }
 
-void mbedtls_test_print_buf(const char *title, unsigned char *buf, size_t len)
-{
-    printf("%s:", title);
-    for (size_t i = 0; i < len; i++) {
-        printf(" %02x", buf[i]);
-    }
-    printf("\n");
-}
-
 #if defined(MBEDTLS_TEST_HOOKS)
 void mbedtls_test_err_add_check(int high, int low,
                                 const char *file, int line)

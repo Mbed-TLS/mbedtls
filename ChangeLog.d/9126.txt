@@ -1,0 +1,5 @@
+Default behavior changes
+   * In a PSA-client-only build (i.e. MBEDTLS_PSA_CRYPTO_CLIENT &&
+     !MBEDTLS_PSA_CRYPTO_C), do not automatically enable local crypto when the
+     corresponding PSA mechanism is enabled, since the server provides the
+     crypto. Fixes #9126.

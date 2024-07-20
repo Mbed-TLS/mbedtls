@@ -127,8 +127,8 @@ GENERATED_FILES = psa/psa_constant_names_generated.c test/query_config.c
 generated_files: $(GENERATED_FILES)
 
 psa/psa_constant_names_generated.c: $(gen_file_dep) ../scripts/generate_psa_constants.py
-psa/psa_constant_names_generated.c: $(gen_file_dep) ../include/psa/crypto_values.h
-psa/psa_constant_names_generated.c: $(gen_file_dep) ../include/psa/crypto_extra.h
+psa/psa_constant_names_generated.c: $(gen_file_dep) ../tf-psa-crypto/include/psa/crypto_values.h
+psa/psa_constant_names_generated.c: $(gen_file_dep) ../tf-psa-crypto/include/psa/crypto_extra.h
 psa/psa_constant_names_generated.c: $(gen_file_dep) ../tests/suites/test_suite_psa_crypto_metadata.data
 psa/psa_constant_names_generated.c:
 	echo "  Gen   $@"
@@ -356,7 +356,7 @@ endif
 
 test/metatest$(EXEXT): test/metatest.c $(DEP)
 	echo "  CC    test/metatest.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) -I ../library test/metatest.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) -I../library -I../tf-psa-crypto/core test/metatest.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 test/query_config.o: test/query_config.c test/query_config.h $(DEP)
 	echo "  CC    test/query_config.c"

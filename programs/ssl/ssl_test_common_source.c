@@ -295,18 +295,18 @@ uint16_t ssl_sig_algs_for_test[] = {
 #if defined(MBEDTLS_MD_CAN_SHA512)
     MBEDTLS_SSL_SIG_ALG(MBEDTLS_SSL_HASH_SHA512)
 #endif
-#if defined(MBEDTLS_MD_CAN_SHA384)
+#if defined(PSA_WANT_ALG_SHA_384)
     MBEDTLS_SSL_SIG_ALG(MBEDTLS_SSL_HASH_SHA384)
 #endif
-#if defined(MBEDTLS_MD_CAN_SHA256)
+#if defined(PSA_WANT_ALG_SHA_256)
     MBEDTLS_SSL_SIG_ALG(MBEDTLS_SSL_HASH_SHA256)
 #endif
-#if defined(MBEDTLS_MD_CAN_SHA224)
+#if defined(PSA_WANT_ALG_SHA_224)
     MBEDTLS_SSL_SIG_ALG(MBEDTLS_SSL_HASH_SHA224)
 #endif
-#if defined(MBEDTLS_RSA_C) && defined(MBEDTLS_MD_CAN_SHA256)
+#if defined(MBEDTLS_RSA_C) && defined(PSA_WANT_ALG_SHA_256)
     MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA256,
-#endif /* MBEDTLS_RSA_C && MBEDTLS_MD_CAN_SHA256 */
+#endif /* MBEDTLS_RSA_C && PSA_WANT_ALG_SHA_256 */
 #if defined(MBEDTLS_MD_CAN_SHA1)
     /* Allow SHA-1 as we use it extensively in tests. */
     MBEDTLS_SSL_SIG_ALG(MBEDTLS_SSL_HASH_SHA1)

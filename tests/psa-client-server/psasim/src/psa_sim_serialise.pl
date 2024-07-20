@@ -36,15 +36,27 @@ die($usage) unless $which eq "c" || $which eq "h";
 # are).
 #
 my @types = qw(unsigned-int int size_t
+               uint16_t uint32_t uint64_t
                buffer
-               psa_status_t psa_algorithm_t
-               psa_hash_operation_t);
+               psa_key_production_parameters_t
+               psa_status_t psa_algorithm_t psa_key_derivation_step_t
+               psa_hash_operation_t
+               psa_aead_operation_t
+               psa_key_attributes_t
+               psa_mac_operation_t
+               psa_cipher_operation_t
+               psa_key_derivation_operation_t
+               psa_sign_hash_interruptible_operation_t
+               psa_verify_hash_interruptible_operation_t
+               mbedtls_svc_key_id_t);
+
 grep(s/-/ /g, @types);
 
 # IS-A: Some data types are typedef'd; we serialise them as the other type
 my %isa = (
     "psa_status_t" => "int",
     "psa_algorithm_t" => "unsigned int",
+    "psa_key_derivation_step_t" => "uint16_t",
 );
 
 if ($which eq "h") {
@@ -54,20 +66,40 @@ if ($which eq "h") {
     for my $type (@types) {
         if ($type eq "buffer") {
             print declare_buffer_functions();
+        } elsif ($type eq "psa_key_production_parameters_t") {
+            print declare_psa_key_production_parameters_t_functions();
         } else {
-            print declare_needs($type);
-            print declare_serialise($type);
-            print declare_deserialise($type);
+            print declare_needs($type, "");
+            print declare_serialise($type, "");
+            print declare_deserialise($type, "");
+
+            if ($type =~ /^psa_\w+_operation_t$/) {
+                print declare_needs($type, "server_");
+                print declare_serialise($type, "server_");
+                print declare_deserialise($type, "server_");
+            }
         }
     }
 
 } elsif ($which eq "c") {
 
+    my $have_operation_types = (grep(/psa_\w+_operation_t/, @types)) ? 1 : 0;
+
     print c_header();
+    print c_define_types_for_operation_types() if $have_operation_types;
+
+    for my $type (@types) {
+        next unless $type =~ /^psa_(\w+)_operation_t$/;
+        print define_operation_type_data_and_functions($1);
+    }
+
+    print c_define_begins();
 
     for my $type (@types) {
         if ($type eq "buffer") {
             print define_buffer_functions();
+        } elsif ($type eq "psa_key_production_parameters_t") {
+            print define_psa_key_production_parameters_t_functions();
         } elsif (exists($isa{$type})) {
             print define_needs_isa($type, $isa{$type});
             print define_serialise_isa($type, $isa{$type});
@@ -76,24 +108,33 @@ if ($which eq "h") {
             print define_needs($type);
             print define_serialise($type);
             print define_deserialise($type);
+
+            if ($type =~ /^psa_\w+_operation_t$/) {
+                print define_server_needs($type);
+                print define_server_serialise($type);
+                print define_server_deserialise($type);
+            }
         }
     }
 
+    print define_server_serialize_reset(@types);
 } else {
     die("internal error - shouldn't happen");
 }
 
 sub declare_needs
 {
-    my ($type) = @_;
+    my ($type, $server) = @_;
 
     my $an = ($type =~ /^[ui]/) ? "an" : "a";
     my $type_d = $type;
     $type_d =~ s/ /_/g;
 
+    my $ptr = (length($server)) ? "*" : "";
+
     return <<EOF;
 
-/** Return how much buffer space is needed by \\c psasim_serialise_$type_d()
+/** Return how much buffer space is needed by \\c psasim_${server}serialise_$type_d()
  *  to serialise $an `$type`.
  *
  * \\param value              The value that will be serialised into the buffer
@@ -104,47 +145,76 @@ sub declare_needs
  *                           \\c psasim_serialise_$type_d() to serialise
  *                           the given value.
  */
-size_t psasim_serialise_${type_d}_needs($type value);
+size_t psasim_${server}serialise_${type_d}_needs(
+    $type ${ptr}value);
 EOF
 }
 
 sub declare_serialise
 {
-    my ($type) = @_;
+    my ($type, $server) = @_;
 
     my $an = ($type =~ /^[ui]/) ? "an" : "a";
     my $type_d = $type;
     $type_d =~ s/ /_/g;
 
-    return align_declaration(<<EOF);
+    if (length($server) && $type !~ /^psa_(\w+)_operation_t$/) {
+        die("$0: declare_server_serialise: $type: not supported\n");
+    }
 
-/** Serialise $an `$type` into a buffer.
+    my $server_side = (length($server)) ? " on the server side" : "";
+
+    my $ptr = (length($server)) ? "*" : "";
+
+    my $code = <<EOF;
+
+/** Serialise $an `$type` into a buffer${server_side}.
  *
  * \\param pos[in,out]        Pointer to a `uint8_t *` holding current position
  *                           in the buffer.
  * \\param remaining[in,out]  Pointer to a `size_t` holding number of bytes
  *                           remaining in the buffer.
  * \\param value              The value to serialise into the buffer.
+EOF
+
+    $code .= <<EOF if length($server);
+ * \\param completed          Non-zero if the operation is now completed (set by
+ *                           finish and abort calls).
+EOF
+
+    my $value_sep = (length($server)) ? "," : ");";
+
+    $code .= <<EOF;
  *
  * \\return                   \\c 1 on success ("okay"), \\c 0 on error.
  */
-int psasim_serialise_$type_d(uint8_t **pos,
+int psasim_${server}serialise_$type_d(uint8_t **pos,
                              size_t *remaining,
-                             $type value);
+                             $type ${ptr}value$value_sep
 EOF
+
+    $code .= <<EOF if length($server);
+                             int completed);
+EOF
+
+    return align_declaration($code);
 }
 
 sub declare_deserialise
 {
-    my ($type) = @_;
+    my ($type, $server) = @_;
 
     my $an = ($type =~ /^[ui]/) ? "an" : "a";
     my $type_d = $type;
     $type_d =~ s/ /_/g;
 
+    my $server_side = (length($server)) ? " on the server side" : "";
+
+    my $ptr = (length($server)) ? "*" : "";
+
     return align_declaration(<<EOF);
 
-/** Deserialise $an `$type` from a buffer.
+/** Deserialise $an `$type` from a buffer${server_side}.
  *
  * \\param pos[in,out]        Pointer to a `uint8_t *` holding current position
  *                           in the buffer.
@@ -155,9 +225,9 @@ sub declare_deserialise
  *
  * \\return                   \\c 1 on success ("okay"), \\c 0 on error.
  */
-int psasim_deserialise_$type_d(uint8_t **pos,
+int psasim_${server}deserialise_$type_d(uint8_t **pos,
                                size_t *remaining,
-                               $type *value);
+                               $type ${ptr}*value);
 EOF
 }
 
@@ -234,6 +304,62 @@ int psasim_deserialise_return_buffer(uint8_t **pos, size_t *remaining,
 EOF
 }
 
+sub declare_psa_key_production_parameters_t_functions
+{
+    return <<'EOF';
+
+/** Return how much space is needed by \c psasim_serialise_psa_key_production_parameters_t()
+ *  to serialise a psa_key_production_parameters_t (a structure with a flexible array member).
+ *
+ * \param params             Pointer to the struct to be serialised
+ *                           (needed in case some serialisations are value-
+ *                           dependent).
+ * \param data_length        Number of bytes in the data[] of the struct to be serialised.
+ *
+ * \return                   The number of bytes needed in the serialisation buffer by
+ *                           \c psasim_serialise_psa_key_production_parameters_t() to serialise
+ *                           the specified structure.
+ */
+size_t psasim_serialise_psa_key_production_parameters_t_needs(
+    const psa_key_production_parameters_t *params,
+    size_t buffer_size);
+
+/** Serialise a psa_key_production_parameters_t.
+ *
+ * \param pos[in,out]        Pointer to a `uint8_t *` holding current position
+ *                           in the buffer.
+ * \param remaining[in,out]  Pointer to a `size_t` holding number of bytes
+ *                           remaining in the buffer.
+ * \param params             Pointer to the structure to be serialised.
+ * \param data_length        Number of bytes in the data[] of the struct to be serialised.
+ *
+ * \return                   \c 1 on success ("okay"), \c 0 on error.
+ */
+int psasim_serialise_psa_key_production_parameters_t(uint8_t **pos,
+                                                     size_t *remaining,
+                                                     const psa_key_production_parameters_t *params,
+                                                     size_t data_length);
+
+/** Deserialise a psa_key_production_parameters_t.
+ *
+ * \param pos[in,out]        Pointer to a `uint8_t *` holding current position
+ *                           in the serialisation buffer.
+ * \param remaining[in,out]  Pointer to a `size_t` holding number of bytes
+ *                           remaining in the serialisation buffer.
+ * \param params             Pointer to a `psa_key_production_parameters_t *` to
+ *                           receive the address of a newly-allocated structure,
+ *                           which the caller must `free()`.
+ * \param data_length        Pointer to a `size_t` to receive the number of
+ *                           bytes in the data[] member of the structure deserialised.
+ *
+ * \return                   \c 1 on success ("okay"), \c 0 on error.
+ */
+int psasim_deserialise_psa_key_production_parameters_t(uint8_t **pos, size_t *remaining,
+                                                       psa_key_production_parameters_t **params,
+                                                       size_t *buffer_length);
+EOF
+}
+
 sub h_header
 {
     return <<'EOF';
@@ -293,6 +419,12 @@ sub h_header
  * don't contain pointers.
  */
 
+/** Reset all operation slots.
+ *
+ * Should be called when all clients have disconnected.
+ */
+void psa_sim_serialize_reset(void);
+
 /** Return how much buffer space is needed by \c psasim_serialise_begin().
  *
  * \return                   The number of bytes needed in the buffer for
@@ -340,9 +472,30 @@ sub define_needs
 
     return <<EOF;
 
-size_t psasim_serialise_${type_d}_needs($type value)
+size_t psasim_serialise_${type_d}_needs(
+    $type value)
 {
     return sizeof(value);
+}
+EOF
+}
+
+sub define_server_needs
+{
+    my ($type) = @_;
+
+    my $type_d = $type;
+    $type_d =~ s/ /_/g;
+
+    return <<EOF;
+
+size_t psasim_server_serialise_${type_d}_needs(
+    $type *operation)
+{
+    (void) operation;
+
+    /* We will actually return a handle */
+    return sizeof(psasim_operation_t);
 }
 EOF
 }
@@ -359,7 +512,8 @@ sub define_needs_isa
 
     return <<EOF;
 
-size_t psasim_serialise_${type_d}_needs($type value)
+size_t psasim_serialise_${type_d}_needs(
+    $type value)
 {
     return psasim_serialise_${isa_d}_needs(value);
 }
@@ -385,6 +539,52 @@ int psasim_serialise_$type_d(uint8_t **pos,
 
     memcpy(*pos, &value, sizeof(value));
     *pos += sizeof(value);
+
+    return 1;
+}
+EOF
+}
+
+sub define_server_serialise
+{
+    my ($type) = @_;
+
+    my $t;
+    if ($type =~ /^psa_(\w+)_operation_t$/) {
+        $t = $1;
+    } else {
+        die("$0: define_server_serialise: $type: not supported\n");
+    }
+
+    my $type_d = $type;
+    $type_d =~ s/ /_/g;
+
+    return align_signature(<<EOF);
+
+int psasim_server_serialise_$type_d(uint8_t **pos,
+                             size_t *remaining,
+                             $type *operation,
+                             int completed)
+{
+    psasim_operation_t client_operation;
+
+    if (*remaining < sizeof(client_operation)) {
+        return 0;
+    }
+
+    ssize_t slot = operation - ${t}_operations;
+
+    if (completed) {
+        memset(&${t}_operations[slot],
+               0,
+               sizeof($type_d));
+        ${t}_operation_handles[slot] = 0;
+    }
+
+    client_operation.handle = ${t}_operation_handles[slot];
+
+    memcpy(*pos, &client_operation, sizeof(client_operation));
+    *pos += sizeof(client_operation);
 
     return 1;
 }
@@ -433,6 +633,54 @@ int psasim_deserialise_$type_d(uint8_t **pos,
 
     *pos += sizeof(*value);
     *remaining -= sizeof(*value);
+
+    return 1;
+}
+EOF
+}
+
+sub define_server_deserialise
+{
+    my ($type) = @_;
+
+    my $t;
+    if ($type =~ /^psa_(\w+)_operation_t$/) {
+        $t = $1;
+    } else {
+        die("$0: define_server_deserialise: $type: not supported\n");
+    }
+
+    my $type_d = $type;
+    $type_d =~ s/ /_/g;
+
+    return align_signature(<<EOF);
+
+int psasim_server_deserialise_$type_d(uint8_t **pos,
+                               size_t *remaining,
+                               $type **operation)
+{
+    psasim_operation_t client_operation;
+
+    if (*remaining < sizeof(psasim_operation_t)) {
+        return 0;
+    }
+
+    memcpy(&client_operation, *pos, sizeof(psasim_operation_t));
+    *pos += sizeof(psasim_operation_t);
+    *remaining -= sizeof(psasim_operation_t);
+
+    ssize_t slot;
+    if (client_operation.handle == 0) {         /* We need a new handle */
+        slot = allocate_${t}_operation_slot();
+    } else {
+        slot = find_${t}_slot_by_handle(client_operation.handle);
+    }
+
+    if (slot < 0) {
+        return 0;
+    }
+
+    *operation = &${t}_operations[slot];
 
     return 1;
 }
@@ -568,6 +816,106 @@ int psasim_deserialise_return_buffer(uint8_t **pos,
 EOF
 }
 
+sub define_psa_key_production_parameters_t_functions
+{
+    return <<'EOF';
+
+#define SER_TAG_SIZE        4
+
+size_t psasim_serialise_psa_key_production_parameters_t_needs(
+    const psa_key_production_parameters_t *params,
+    size_t data_length)
+{
+    /* We will serialise with 4-byte tag = "PKPP" + 4-byte overall length at the beginning,
+     * followed by size_t data_length, then the actual data from the structure.
+     */
+    return SER_TAG_SIZE + sizeof(uint32_t) + sizeof(data_length) + sizeof(*params) + data_length;
+}
+
+int psasim_serialise_psa_key_production_parameters_t(uint8_t **pos,
+                                                     size_t *remaining,
+                                                     const psa_key_production_parameters_t *params,
+                                                     size_t data_length)
+{
+    if (data_length > UINT32_MAX / 2) {       /* arbitrary limit */
+        return 0;       /* too big to serialise */
+    }
+
+    /* We use 32-bit lengths, which should be enough for any reasonable usage :) */
+    /* (the UINT32_MAX / 2 above is an even more conservative check to avoid overflow here) */
+    uint32_t len = (uint32_t) (sizeof(data_length) + sizeof(*params) + data_length);
+    if (*remaining < SER_TAG_SIZE + sizeof(uint32_t) + len) {
+        return 0;
+    }
+
+    char tag[SER_TAG_SIZE] = "PKPP";
+
+    memcpy(*pos, tag, sizeof(tag));
+    memcpy(*pos + sizeof(tag), &len, sizeof(len));
+    *pos += sizeof(tag) + sizeof(len);
+    *remaining -= sizeof(tag) + sizeof(len);
+
+    memcpy(*pos, &data_length, sizeof(data_length));
+    memcpy(*pos + sizeof(data_length), params, sizeof(*params) + data_length);
+    *pos += sizeof(data_length) + sizeof(*params) + data_length;
+    *remaining -= sizeof(data_length) + sizeof(*params) + data_length;
+
+    return 1;
+}
+
+int psasim_deserialise_psa_key_production_parameters_t(uint8_t **pos,
+                                                       size_t *remaining,
+                                                       psa_key_production_parameters_t **params,
+                                                       size_t *data_length)
+{
+    if (*remaining < SER_TAG_SIZE + sizeof(uint32_t)) {
+        return 0;       /* can't even be an empty serialisation */
+    }
+
+    char tag[SER_TAG_SIZE] = "PKPP";    /* expected */
+    uint32_t len;
+
+    memcpy(&len, *pos + sizeof(tag), sizeof(len));
+
+    if (memcmp(*pos, tag, sizeof(tag)) != 0) {
+        return 0;       /* wrong tag */
+    }
+
+    *pos += sizeof(tag) + sizeof(len);
+    *remaining -= sizeof(tag) + sizeof(len);
+
+    if (*remaining < sizeof(*data_length)) {
+        return 0;       /* missing data_length */
+    }
+    memcpy(data_length, *pos, sizeof(*data_length));
+
+    if ((size_t) len != (sizeof(data_length) + sizeof(**params) + *data_length)) {
+        return 0;       /* wrong length */
+    }
+
+    if (*remaining < sizeof(*data_length) + sizeof(**params) + *data_length) {
+        return 0;       /* not enough data provided */
+    }
+
+    *pos += sizeof(data_length);
+    *remaining -= sizeof(data_length);
+
+    psa_key_production_parameters_t *out = malloc(sizeof(**params) + *data_length);
+    if (out == NULL) {
+        return 0;       /* allocation failure */
+    }
+
+    memcpy(out, *pos, sizeof(*out) + *data_length);
+    *pos += sizeof(*out) + *data_length;
+    *remaining -= sizeof(*out) + *data_length;
+
+    *params = out;
+
+    return 1;
+}
+EOF
+}
+
 sub c_header
 {
     return <<'EOF';
@@ -583,6 +931,7 @@ sub c_header
  */
 
 #include "psa_sim_serialise.h"
+#include "util.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -623,6 +972,79 @@ sub c_header
  * data types (e.g. int), types typedef'd to those, and even structures that
  * don't contain pointers.
  */
+EOF
+}
+
+sub c_define_types_for_operation_types
+{
+    return <<'EOF';
+
+/* include/psa/crypto_platform.h:typedef uint32_t mbedtls_psa_client_handle_t;
+ * but we don't get it on server builds, so redefine it here with a unique type name
+ */
+typedef uint32_t psasim_client_handle_t;
+
+typedef struct psasim_operation_s {
+    psasim_client_handle_t handle;
+} psasim_operation_t;
+
+#define MAX_LIVE_HANDLES_PER_CLASS   100        /* this many slots */
+EOF
+}
+
+sub define_operation_type_data_and_functions
+{
+    my ($type) = @_;    # e.g. 'hash' rather than 'psa_hash_operation_t'
+
+    my $utype = ucfirst($type);
+
+    return <<EOF;
+
+static psa_${type}_operation_t ${type}_operations[
+    MAX_LIVE_HANDLES_PER_CLASS];
+static psasim_client_handle_t ${type}_operation_handles[
+    MAX_LIVE_HANDLES_PER_CLASS];
+static psasim_client_handle_t next_${type}_operation_handle = 1;
+
+/* Get a free slot */
+static ssize_t allocate_${type}_operation_slot(void)
+{
+    psasim_client_handle_t handle = next_${type}_operation_handle++;
+    if (next_${type}_operation_handle == 0) {      /* wrapped around */
+        FATAL("$utype operation handle wrapped");
+    }
+
+    for (ssize_t i = 0; i < MAX_LIVE_HANDLES_PER_CLASS; i++) {
+        if (${type}_operation_handles[i] == 0) {
+            ${type}_operation_handles[i] = handle;
+            return i;
+        }
+    }
+
+    ERROR("All slots are currently used. Unable to allocate a new one.");
+
+    return -1;  /* all in use */
+}
+
+/* Find the slot given the handle */
+static ssize_t find_${type}_slot_by_handle(psasim_client_handle_t handle)
+{
+    for (ssize_t i = 0; i < MAX_LIVE_HANDLES_PER_CLASS; i++) {
+        if (${type}_operation_handles[i] == handle) {
+            return i;
+        }
+    }
+
+    ERROR("Unable to find slot by handle %u", handle);
+
+    return -1;  /* not found */
+}
+EOF
+}
+
+sub c_define_begins
+{
+    return <<'EOF';
 
 size_t psasim_serialise_begin_needs(void)
 {
@@ -700,8 +1122,37 @@ int psasim_deserialise_begin(uint8_t **pos, size_t *remaining)
 EOF
 }
 
-# Horrible way to align first, second and third lines of function signature to
-# appease uncrustify (these are the 2nd-4th lines of code, indices 1, 2 and 3)
+# Return the code for psa_sim_serialize_reset()
+sub define_server_serialize_reset
+{
+    my @types = @_;
+
+    my $code = <<EOF;
+
+void psa_sim_serialize_reset(void)
+{
+EOF
+
+    for my $type (@types) {
+        next unless $type =~ /^psa_(\w+_operation)_t$/;
+
+        my $what = $1;  # e.g. "hash_operation"
+
+        $code .= <<EOF;
+    memset(${what}_handles, 0,
+           sizeof(${what}_handles));
+    memset(${what}s, 0,
+           sizeof(${what}s));
+EOF
+    }
+
+    $code .= <<EOF;
+}
+EOF
+}
+
+# Horrible way to align first few lines of function signature to appease
+# uncrustify (these are usually the 2nd-4th lines of code, indices 1, 2 and 3)
 #
 sub align_signature
 {
@@ -709,13 +1160,17 @@ sub align_signature
 
     my @code = split(/\n/, $code);
 
+    my $i = 1;
     # Find where the ( is
-    my $idx = index($code[1], "(");
+    my $idx = index($code[$i], "(");
     die("can't find (") if $idx < 0;
 
     my $indent = " " x ($idx + 1);
-    $code[2] =~ s/^\s+/$indent/;
-    $code[3] =~ s/^\s+/$indent/;
+
+    do {
+        # Indent each line up until the one that ends with )
+        $code[++$i] =~ s/^\s+/$indent/;
+    } while $code[$i] !~ /\)$/;
 
     return join("\n", @code) . "\n";
 }
@@ -740,8 +1195,10 @@ sub align_declaration
     die("can't find (") if $idx < 0;
 
     my $indent = " " x ($idx + 1);
-    $code[$i + 1] =~ s/^\s+/$indent/;
-    $code[$i + 2] =~ s/^\s+/$indent/;
+    do {
+        # Indent each line up until the one with the ; on it
+        $code[++$i] =~ s/^\s+/$indent/;
+    } while ($code[$i] !~ /;/);
 
     return join("\n", @code) . "\n";
 }

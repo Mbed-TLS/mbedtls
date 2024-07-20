@@ -10,10 +10,10 @@
 #     directories. That way, a target linking to a library (using the
 #     target_link_libraries command) inherits from the library PUBLIC include
 #     directories and not from the PRIVATE ones.
-# - MBEDTLS_TARGET_PREFIX: CMake targets are designed to be alterable by calling
-#   CMake in order to avoid target name clashes, via the use of
-#   MBEDTLS_TARGET_PREFIX. The value of this variable is prefixed to the
-#   mbedcrypto and apidoc targets.
+# - TF_PSA_CRYPTO_TARGET_PREFIX: CMake targets are designed to be alterable by
+#   calling CMake in order to avoid target name clashes, via the use of
+#   TF_PSA_CRYPTO_TARGET_PREFIX. The value of this variable is prefixed to the
+#   tfpsacrypto and apidoc targets.
 #
 
 # We specify a minimum requirement of 3.10.2, but for now use 3.5.1 here
@@ -38,35 +38,36 @@ cmake_policy(SET CMP0011 NEW)
 cmake_policy(SET CMP0012 NEW)
 
 if(TEST_CPP)
-    project("Mbed TLS"
+    project("TF-PSA-Crypto"
         LANGUAGES C CXX
-        VERSION 4.0.0
+        VERSION 0.1.0
     )
 else()
-    project("Mbed TLS"
+    project("TF-PSA-Crypto"
         LANGUAGES C
-        VERSION 4.0.0
+        VERSION 0.1.0
     )
 endif()
 
 include(GNUInstallDirs)
 
-# Determine if Mbed TLS is being built as a subproject using add_subdirectory()
-if(NOT DEFINED MBEDTLS_AS_SUBPROJECT)
-  set(MBEDTLS_AS_SUBPROJECT ON)
+# Determine if TF-PSA-Crypto is being built as a subproject using add_subdirectory()
+if(NOT DEFINED TF_PSA_CRYPTO_AS_SUBPROJECT)
+  set(TF_PSA_CRYPTO_AS_SUBPROJECT ON)
   if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
-    set(MBEDTLS_AS_SUBPROJECT OFF)
+    set(TF_PSA_CRYPTO_AS_SUBPROJECT OFF)
   endif()
 endif()
 
-# Set the project and framework root directory.
-set(MBEDTLS_DIR ${CMAKE_CURRENT_SOURCE_DIR})
-set(MBEDTLS_FRAMEWORK_DIR ${CMAKE_CURRENT_SOURCE_DIR}/framework)
+# Set the project, Mbed TLS and framework root directory.
+set(TF_PSA_CRYPTO_DIR ${CMAKE_CURRENT_SOURCE_DIR})
+set(MBEDTLS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/..)
+set(MBEDTLS_FRAMEWORK_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../framework)
 
-option(ENABLE_PROGRAMS "Build Mbed TLS programs." ON)
+option(ENABLE_PROGRAMS "Build TF-PSA-Crypto programs." ON)
 
 option(UNSAFE_BUILD "Allow unsafe builds. These builds ARE NOT SECURE." OFF)
-option(MBEDTLS_FATAL_WARNINGS "Compiler warnings treated as errors" ON)
+option(TF_PSA_CRYPTO_FATAL_WARNINGS "Compiler warnings treated as errors" ON)
 if(CMAKE_HOST_WIN32)
     # N.B. The comment on the next line is significant! If you change it,
     # edit the sed command in prepare_release.sh that modifies
@@ -92,21 +93,21 @@ string(REGEX MATCH "MSVC" CMAKE_COMPILER_IS_MSVC "${COMPILER_ID}")
 
 # the test suites currently have compile errors with MSVC
 if(CMAKE_COMPILER_IS_MSVC)
-    option(ENABLE_TESTING "Build Mbed TLS tests." OFF)
+    option(ENABLE_TESTING "Build TF-PSA-Crypto tests." OFF)
 else()
-    option(ENABLE_TESTING "Build Mbed TLS tests." ON)
+    option(ENABLE_TESTING "Build TF-PSA-Crypto tests." ON)
 endif()
 
-option(USE_STATIC_MBEDTLS_LIBRARY "Build Mbed TLS static library." ON)
-option(USE_SHARED_MBEDTLS_LIBRARY "Build Mbed TLS shared library." OFF)
+option(USE_STATIC_TF_PSA_CRYPTO_LIBRARY "Build TF-PSA-Crypto static library." ON)
+option(USE_SHARED_TF_PSA_CRYPTO_LIBRARY "Build TF-PSA-Crypto shared library." OFF)
 option(LINK_WITH_PTHREAD "Explicitly link Mbed TLS library to pthread." OFF)
 option(LINK_WITH_TRUSTED_STORAGE "Explicitly link Mbed TLS library to trusted_storage." OFF)
 
-set(mbedcrypto_target "${MBEDTLS_TARGET_PREFIX}mbedcrypto")
-if (USE_STATIC_MBEDTLS_LIBRARY)
+set(mbedcrypto_target "${TF_PSA_CRYPTO_TARGET_PREFIX}mbedcrypto")
+if (USE_STATIC_TF_PSA_CRYPTO_LIBRARY)
     set(mbedcrypto_static_target ${mbedcrypto_target})
 endif()
-if(USE_STATIC_MBEDTLS_LIBRARY AND USE_SHARED_MBEDTLS_LIBRARY)
+if(USE_STATIC_TF_PSA_CRYPTO_LIBRARY AND USE_SHARED_TF_PSA_CRYPTO_LIBRARY)
     string(APPEND mbedcrypto_static_target "_static")
 endif()
 
@@ -126,18 +127,18 @@ if(NOT CMAKE_VERSION VERSION_LESS 3.15.0)
     set(Python3_FIND_STRATEGY LOCATION)
     find_package(Python3 COMPONENTS Interpreter)
     if(Python3_Interpreter_FOUND)
-        set(MBEDTLS_PYTHON_EXECUTABLE ${Python3_EXECUTABLE})
+        set(TF_PSA_CRYPTO_PYTHON_EXECUTABLE ${Python3_EXECUTABLE})
     endif()
 else()
     find_package(PythonInterp 3)
     if(PYTHONINTERP_FOUND)
-        set(MBEDTLS_PYTHON_EXECUTABLE ${PYTHON_EXECUTABLE})
+        set(TF_PSA_CRYPTO_PYTHON_EXECUTABLE ${PYTHON_EXECUTABLE})
     endif()
 endif()
-if(MBEDTLS_PYTHON_EXECUTABLE)
+if(TF_PSA_CRYPTO_PYTHON_EXECUTABLE)
 
     # If 128-bit keys are configured for CTR_DRBG, display an appropriate warning
-    execute_process(COMMAND ${MBEDTLS_PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/scripts/config.py -f ${CMAKE_CURRENT_SOURCE_DIR}/include/mbedtls/mbedtls_config.h get MBEDTLS_CTR_DRBG_USE_128_BIT_KEY
+    execute_process(COMMAND ${TF_PSA_CRYPTO_PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/scripts/config.py -f ${CMAKE_CURRENT_SOURCE_DIR}/include/mbedtls/mbedtls_config.h get MBEDTLS_CTR_DRBG_USE_128_BIT_KEY
                         RESULT_VARIABLE result)
     if(${result} EQUAL 0)
         message(WARNING ${CTR_DRBG_128_BIT_KEY_WARNING})
@@ -157,9 +158,9 @@ if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
         FORCE)
 endif()
 
-# Make MBEDTLS_CONFIG_FILE and MBEDTLS_USER_CONFIG_FILE into PATHs
-set(MBEDTLS_CONFIG_FILE "" CACHE FILEPATH "Mbed TLS config file (overrides default).")
-set(MBEDTLS_USER_CONFIG_FILE "" CACHE FILEPATH "Mbed TLS user config file (appended to default).")
+# Make TF_PSA_CRYPTO_CONFIG_FILE and TF_PSA_CRYPTO_USER_CONFIG_FILE into PATHs
+set(TF_PSA_CRYPTO_CONFIG_FILE "" CACHE FILEPATH "TF-PSA-Crypto config file (overrides default).")
+set(TF_PSA_CRYPTO_USER_CONFIG_FILE "" CACHE FILEPATH "TF-PSA-Crypto user config file (appended to default).")
 
 # Create a symbolic link from ${base_name} in the binary directory
 # to the corresponding path in the source directory.
@@ -277,7 +278,7 @@ if(CMAKE_COMPILER_IS_MSVC)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /W3 /utf-8")
 endif(CMAKE_COMPILER_IS_MSVC)
 
-if(MBEDTLS_FATAL_WARNINGS)
+if(TF_PSA_CRYPTO_FATAL_WARNINGS)
     if(CMAKE_COMPILER_IS_MSVC)
         set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /WX")
     endif(CMAKE_COMPILER_IS_MSVC)
@@ -294,7 +295,7 @@ if(MBEDTLS_FATAL_WARNINGS)
     if (CMAKE_COMPILER_IS_IAR)
         set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --warnings_are_errors")
     endif(CMAKE_COMPILER_IS_IAR)
-endif(MBEDTLS_FATAL_WARNINGS)
+endif(TF_PSA_CRYPTO_FATAL_WARNINGS)
 
 if(CMAKE_BUILD_TYPE STREQUAL "Check" AND TEST_CPP)
     set(CMAKE_CXX_STANDARD 11)
@@ -328,7 +329,7 @@ add_subdirectory(drivers)
 # and programs. This shared test code is compiled and linked to test suites and
 # programs objects as a set of compiled objects. The compiled objects are NOT
 # built into a library that the test suite and program objects would link
-# against as they link against the mbedcrypto library. The reason is that such
+# against as they link against the tfpsacrypto library. The reason is that such
 # library is expected to have mutual dependencies with the aforementioned
 # library and that there is as of today no portable way of handling such
 # dependencies (only toolchain specific solutions).
@@ -349,7 +350,7 @@ if(ENABLE_TESTING OR ENABLE_PROGRAMS)
             WORKING_DIRECTORY
                 ${CMAKE_CURRENT_SOURCE_DIR}/tests
             COMMAND
-                "${MBEDTLS_PYTHON_EXECUTABLE}"
+                "${TF_PSA_CRYPTO_PYTHON_EXECUTABLE}"
                 "${MBEDTLS_FRAMEWORK_DIR}/scripts/generate_test_keys.py"
                 "--output"
                 "${CMAKE_CURRENT_SOURCE_DIR}/tests/src/test_keys.h"
@@ -364,7 +365,7 @@ if(ENABLE_TESTING OR ENABLE_PROGRAMS)
             WORKING_DIRECTORY
                 ${CMAKE_CURRENT_SOURCE_DIR}/tests
             COMMAND
-                "${MBEDTLS_PYTHON_EXECUTABLE}"
+                "${TF_PSA_CRYPTO_PYTHON_EXECUTABLE}"
                 "${MBEDTLS_FRAMEWORK_DIR}/scripts/generate_test_cert_macros.py"
                 "--output"
                 "${CMAKE_CURRENT_SOURCE_DIR}/tests/src/test_certs.h"
@@ -384,14 +385,14 @@ if(ENABLE_TESTING OR ENABLE_PROGRAMS)
     # Request C11, needed for memory poisoning tests
     set_target_properties(mbedtls_test PROPERTIES C_STANDARD 11)
 
-    # Pass-through MBEDTLS_CONFIG_FILE and MBEDTLS_USER_CONFIG_FILE
-    if(MBEDTLS_CONFIG_FILE)
+    # Pass-through TF_PSA_CRYPTO_CONFIG_FILE and TF_PSA_CRYPTO_USER_CONFIG_FILE
+    if(TF_PSA_CRYPTO_CONFIG_FILE)
         target_compile_definitions(mbedtls_test
-            PUBLIC MBEDTLS_CONFIG_FILE="${MBEDTLS_CONFIG_FILE}")
+            PUBLIC TF_PSA_CRYPTO_CONFIG_FILE="${TF_PSA_CRYPTO_CONFIG_FILE}")
     endif()
-    if(MBEDTLS_USER_CONFIG_FILE)
+    if(TF_PSA_CRYPTO_USER_CONFIG_FILE)
         target_compile_definitions(mbedtls_test
-            PUBLIC MBEDTLS_USER_CONFIG_FILE="${MBEDTLS_USER_CONFIG_FILE}")
+            PUBLIC TF_PSA_CRYPTO_USER_CONFIG_FILE="${TF_PSA_CRYPTO_USER_CONFIG_FILE}")
     endif()
 endif()
 

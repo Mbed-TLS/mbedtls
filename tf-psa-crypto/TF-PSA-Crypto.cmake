@@ -13,7 +13,7 @@
 # - MBEDTLS_TARGET_PREFIX: CMake targets are designed to be alterable by calling
 #   CMake in order to avoid target name clashes, via the use of
 #   MBEDTLS_TARGET_PREFIX. The value of this variable is prefixed to the
-#   mbedtls, mbedx509, mbedcrypto and apidoc targets.
+#   mbedcrypto and apidoc targets.
 #
 
 # We specify a minimum requirement of 3.10.2, but for now use 3.5.1 here
@@ -331,10 +331,10 @@ add_subdirectory(library)
 # and programs. This shared test code is compiled and linked to test suites and
 # programs objects as a set of compiled objects. The compiled objects are NOT
 # built into a library that the test suite and program objects would link
-# against as they link against the mbedcrypto, mbedx509 and mbedtls libraries.
-# The reason is that such library is expected to have mutual dependencies with
-# the aforementioned libraries and that there is as of today no portable way of
-# handling such dependencies (only toolchain specific solutions).
+# against as they link against the mbedcrypto library. The reason is that such
+# library is expected to have mutual dependencies with the aforementioned
+# library and that there is as of today no portable way of handling such
+# dependencies (only toolchain specific solutions).
 #
 # Thus the below definition of the `mbedtls_test` CMake library of objects
 # target. This library of objects is used by tests and programs CMake files
@@ -360,6 +360,7 @@ if(ENABLE_TESTING OR ENABLE_PROGRAMS)
                 ${MBEDTLS_FRAMEWORK_DIR}/scripts/generate_test_keys.py
         )
         add_custom_target(test_keys_header DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/tests/src/test_keys.h)
+
         add_custom_command(
             OUTPUT
                 ${CMAKE_CURRENT_SOURCE_DIR}/tests/src/test_certs.h
@@ -381,44 +382,23 @@ if(ENABLE_TESTING OR ENABLE_PROGRAMS)
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tf-psa-crypto/include
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tf-psa-crypto/drivers/builtin/include
-        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/library
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tf-psa-crypto/core
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tf-psa-crypto/drivers/builtin/src)
     # Request C11, needed for memory poisoning tests
     set_target_properties(mbedtls_test PROPERTIES C_STANDARD 11)
 
-    file(GLOB MBEDTLS_TEST_HELPER_FILES
-         ${CMAKE_CURRENT_SOURCE_DIR}/tests/src/test_helpers/*.c)
-    add_library(mbedtls_test_helpers OBJECT ${MBEDTLS_TEST_HELPER_FILES})
-    target_include_directories(mbedtls_test_helpers
-        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tests/include
-        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include
-        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tf-psa-crypto/include
-        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tf-psa-crypto/drivers/builtin/include
-        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/library
-        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tf-psa-crypto/core
-        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tf-psa-crypto/drivers/builtin/src
-        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tf-psa-crypto/drivers/everest/include)
-
     # Pass-through MBEDTLS_CONFIG_FILE and MBEDTLS_USER_CONFIG_FILE
     if(MBEDTLS_CONFIG_FILE)
         target_compile_definitions(mbedtls_test
-            PUBLIC MBEDTLS_CONFIG_FILE="${MBEDTLS_CONFIG_FILE}")
-        target_compile_definitions(mbedtls_test_helpers
             PUBLIC MBEDTLS_CONFIG_FILE="${MBEDTLS_CONFIG_FILE}")
     endif()
     if(MBEDTLS_USER_CONFIG_FILE)
         target_compile_definitions(mbedtls_test
             PUBLIC MBEDTLS_USER_CONFIG_FILE="${MBEDTLS_USER_CONFIG_FILE}")
-        target_compile_definitions(mbedtls_test_helpers
-            PUBLIC MBEDTLS_USER_CONFIG_FILE="${MBEDTLS_USER_CONFIG_FILE}")
     endif()
 endif()
 
 if(ENABLE_PROGRAMS)
-    set(ssl_opt_target "${MBEDTLS_TARGET_PREFIX}ssl-opt")
-    add_custom_target(${ssl_opt_target})
-
     add_subdirectory(programs)
 endif()
 

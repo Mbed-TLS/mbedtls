@@ -138,7 +138,7 @@ This guide assumes you are building Mbed TLS from source alongside your project.
 
 ### Example: Manually integrating a software accelerator alongside Mbed TLS
 
-[p256-m](https://github.com/mpg/p256-m) is a minimalistic implementation of ECDH and ECDSA on the NIST P-256 curve, specifically optimized for use in constrained 32-bit environments. It started out as an independent project and has been integrated in Mbed TLS as a PSA transparent driver. The source code of p256-m and the driver entry points is located in the Mbed TLS source tree under `3rdparty/p256-m`. In this section, we will look at how this integration was done.
+[p256-m](https://github.com/mpg/p256-m) is a minimalistic implementation of ECDH and ECDSA on the NIST P-256 curve, specifically optimized for use in constrained 32-bit environments. It started out as an independent project and has been integrated in Mbed TLS as a PSA transparent driver. The source code of p256-m and the driver entry points is located in the Mbed TLS source tree under `drivers/p256-m`. In this section, we will look at how this integration was done.
 
 The Mbed TLS build system includes the instructions needed to build p256-m. To build with and use p256-m, set the macro `MBEDTLS_PSA_P256M_DRIVER_ENABLED` using `config.py`, then build as usual using make/cmake. From the root of the `mbedtls/` directory, run:
 

@@ -56,7 +56,6 @@
  *
  * Required by:
  *      MBEDTLS_AESNI_C
- *      MBEDTLS_PADLOCK_C
  *
  * Comment to disable the use of assembly code.
  */

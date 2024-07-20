@@ -36,8 +36,6 @@
 
 #include "psa/crypto.h"
 
-#include <test/helpers.h>
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -82,6 +80,16 @@ const unsigned char msg2_part2[] = { 0x15, 0x16, 0x17 };
 /* Dummy key material - never do this in production!
  * 32-byte is enough to all the key size supported by this program. */
 const unsigned char key_bytes[32] = { 0x2a };
+
+/* Print the contents of a buffer in hex */
+void print_buf(const char *title, uint8_t *buf, size_t len)
+{
+    printf("%s:", title);
+    for (size_t i = 0; i < len; i++) {
+        printf(" %02x", buf[i]);
+    }
+    printf("\n");
+}
 
 /* Run a PSA function and bail out if it fails.
  * The symbolic name of the error code can be recovered using:
@@ -208,7 +216,7 @@ static int aead_encrypt(psa_key_id_t key, psa_algorithm_t alg,
     p += olen_tag;
 
     olen = p - out;
-    mbedtls_test_print_buf("out", out, olen);
+    print_buf("out", out, olen);
 
 exit:
     psa_aead_abort(&op);   // required on errors, harmless on success

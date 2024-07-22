@@ -102,6 +102,8 @@ int main(void)
 #define DFL_NSS_KEYLOG          0
 #define DFL_NSS_KEYLOG_FILE     NULL
 #define DFL_SKIP_CLOSE_NOTIFY   0
+#define DFL_EXP_LABEL           NULL
+#define DFL_EXP_LEN             20
 #define DFL_QUERY_CONFIG_MODE   0
 #define DFL_USE_SRTP            0
 #define DFL_SRTP_FORCE_PROFILE  0
@@ -395,6 +397,10 @@ int main(void)
                                                                       "    read_timeout=%%d     default: 0 ms (no timeout)\n"        \
                                                                       "    max_resend=%%d       default: 0 (no resend on timeout)\n" \
                                                                       "    skip_close_notify=%%d default: 0 (send close_notify)\n" \
+                                                                      "    exp_label=%%s       Label to input into TLS-Exporter\n" \
+                                                                      "                         default: None (don't try to export a key)\n" \
+                                                                      "    exp_len=%%d         Length of key to extract from TLS-Exporter \n" \
+                                                                      "                         default: 20\n" \
                                                                       "\n"                                                    \
     USAGE_DTLS                                              \
     USAGE_CID                                               \
@@ -542,6 +548,8 @@ struct options {
                                  * after renegotiation                      */
     int reproducible;           /* make communication reproducible          */
     int skip_close_notify;      /* skip sending the close_notify alert      */
+    const char *exp_label;      /* label to input into mbedtls_ssl_export_keying_material() */
+    int exp_len;                /* Lenght of key to export using mbedtls_ssl_export_keying_material() */
 #if defined(MBEDTLS_SSL_EARLY_DATA)
     int early_data;             /* early data enablement flag               */
 #endif
@@ -1423,6 +1431,10 @@ usage:
             if (opt.skip_close_notify < 0 || opt.skip_close_notify > 1) {
                 goto usage;
             }
+        } else if (strcmp(p, "exp_label") == 0) {
+            opt.exp_label = q;
+        } else if (strcmp(p, "exp_len") == 0) {
+            opt.exp_len = atoi(q);
         } else if (strcmp(p, "use_srtp") == 0) {
             opt.use_srtp = atoi(q);
         } else if (strcmp(p, "srtp_force_profile") == 0) {
@@ -2497,6 +2509,27 @@ usage:
         goto exit;
     }
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
+
+    if (opt.exp_label != NULL && opt.exp_len > 0) {
+        unsigned char *exported_key = calloc((size_t)opt.exp_len, sizeof(unsigned int));
+        if (exported_key == NULL) {
+            mbedtls_printf("Could not allocate %d bytes\n", opt.exp_len);
+            ret = 3;
+            goto exit;
+        }
+        ret = mbedtls_ssl_export_keying_material(&ssl, exported_key, (size_t)opt.exp_len,
+                                                 opt.exp_label, strlen(opt.exp_label),
+                                                 NULL, 0, 0);
+        if (ret != 0) {
+            goto exit;
+        }
+        mbedtls_printf("Exporting key of length %d with label \"%s\": 0x", opt.exp_len, opt.exp_label);
+        for (i = 0; i < opt.exp_len; i++) {
+            mbedtls_printf("%02X", exported_key[i]);
+        }
+        mbedtls_printf("\n\n");
+        fflush(stdout);
+    }
 
     /*
      * 6. Write the GET request

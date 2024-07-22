@@ -1098,16 +1098,24 @@ helper_psasim_server() {
     if [ "$OPERATION" == "start" ]; then
     (
         cd tests
-        msg "start server"
+        msg "start server in tests"
         psa-client-server/psasim/test/start_server.sh
+        msg "start server in tf-psa-crypto/tests"
+        cd ../tf-psa-crypto/tests
+        ../../tests/psa-client-server/psasim/test/start_server.sh
     )
     else
     (
-        cd tests
-        msg "terminate server and cleanup"
-        psa-client-server/psasim//test/kill_servers.sh
+        msg "terminate servers and cleanup"
+        tests/psa-client-server/psasim//test/kill_servers.sh
 
         # Remove temporary files and logs
+        cd tests
+        rm -f psa_notify_*
+        rm -f psa_service_*
+        rm -f psa_server.log
+
+        cd ../tf-psa-crypto/tests
         rm -f psa_notify_*
         rm -f psa_service_*
         rm -f psa_server.log
@@ -6099,6 +6107,7 @@ component_test_suite_with_psasim()
     msg "build test suites"
     make PSASIM=1 CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS" tests
 
+    helper_psasim_server kill
     helper_psasim_server start
 
     # psasim takes an extremely long execution time on some test suites so we

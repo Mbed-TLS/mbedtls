@@ -13,7 +13,5 @@ function wait_for_server_startup() {
     done
 }
 
-$(dirname "$0")/kill_servers.sh
-
 $(dirname "$0")/psa_server &
 wait_for_server_startup

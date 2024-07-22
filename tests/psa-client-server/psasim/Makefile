@@ -77,5 +77,5 @@ clean_server_intermediate_files:
 clean: clean_server_intermediate_files
 	rm -f test/psa_client_base test/psa_client_full test/psa_server
 	rm -rf client_libs server_libs
-	rm -f test/*.log
+	rm -f test/psa_service_* test/psa_notify_* test/*.log
 	rm -f test/seedfile

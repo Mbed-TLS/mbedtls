@@ -8,7 +8,7 @@ set -e
 # The server creates some local files when it starts up so we can wait for this
 # event as signal that the server is ready so that we can start client(s).
 function wait_for_server_startup() {
-    while [ -z $(find /tmp -maxdepth 1 -name "psa_notify_*" -printf 1 -quit) ]; do
+    while [ $(find . -name "psa_notify_*" | wc -l) -eq 0 ]; do
         sleep 0.1
     done
 }

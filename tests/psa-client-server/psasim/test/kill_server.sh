@@ -8,8 +8,8 @@ set -e
 pkill psa_server || true
 
 # Remove temporary files and logs
-rm -f /tmp/psa_notify_*
-rm -f /tmp/psa_service_*
+rm -f psa_notify_*
+rm -f psa_service_*
 rm -f psa_server.log
 
 # Remove all IPCs

@@ -7,11 +7,6 @@ set -e
 
 pkill psa_server || true
 
-# Remove temporary files and logs
-rm -f psa_notify_*
-rm -f psa_service_*
-rm -f psa_server.log
-
 # Remove all IPCs
 # Not just ipcrm -all=msg as it is not supported on macOS.
 # Filter out header and empty lines, choosing to select based on keys being

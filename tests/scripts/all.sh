@@ -1106,6 +1106,11 @@ helper_psasim_server() {
         cd tests
         msg "terminate server and cleanup"
         psa-client-server/psasim//test/kill_server.sh
+
+        # Remove temporary files and logs
+        rm -f psa_notify_*
+        rm -f psa_service_*
+        rm -f psa_server.log
     )
     fi
 }

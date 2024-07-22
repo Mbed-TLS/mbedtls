@@ -13,4 +13,7 @@ rm -f psa_service_*
 rm -f psa_server.log
 
 # Remove all IPCs
-ipcs -q | awk '{ printf " -q " $2 }' | xargs ipcrm > /dev/null 2>&1 || true
+# Not just ipcrm -all=msg as it is not supported on macOS.
+# Filter out header and empty lines, choosing to select based on keys being
+# output in hex.
+ipcs -q | fgrep 0x | awk '{ printf " -q " $2 }' | xargs ipcrm > /dev/null 2>&1 || true

@@ -605,9 +605,9 @@ void __init_psasim(const char **array,
     key_t key;
     int qid;
     FILE *fp;
-    char doorbell_path[PATHNAMESIZE] = { 0 };
+    char doorbell_file[PATHNAMESIZE] = { 0 };
     char queue_path[PATHNAMESIZE];
-    snprintf(doorbell_path, PATHNAMESIZE, TMP_FILE_BASE_PATH "psa_notify_%u", getpid());
+    snprintf(doorbell_file, PATHNAMESIZE, "psa_notify_%u", getpid());
 
     if (library_initialised > 0) {
         return;
@@ -619,7 +619,7 @@ void __init_psasim(const char **array,
         FATAL("Unsupported value. Aborting.");
     }
 
-    array[3] = doorbell_path;
+    array[3] = doorbell_file;
 
     for (int i = 0; i < 32; i++) {
         if (strncmp(array[i], "", 1) != 0) {

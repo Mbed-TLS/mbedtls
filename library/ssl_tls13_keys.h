@@ -646,6 +646,22 @@ int mbedtls_ssl_tls13_export_handshake_psk(mbedtls_ssl_context *ssl,
                                            size_t *psk_len);
 #endif
 
+/**
+ * \brief Calculate TLS-Exporter function as defined in RFC 8446, Section 7.5.
+ *
+ * \param[in]   hash_alg  The hash algorithm.
+ * \param[in]   secret  The secret to use. (Should be the exporter master secret.)
+ * \param[in]   secret_len  Length of secret.
+ * \param[in]   label  The label of the exported key.
+ * \param[in]   label_len  The length of label.
+ * \param[out]  out  The output buffer for the exported key. Must have room for at least out_len bytes.
+ * \param[in]   out_len  Length of the key to generate.
+int mbedtls_ssl_tls13_exporter(psa_algorithm_t hash_alg,
+                               const unsigned char *secret, size_t secret_len,
+                               const unsigned char *label, size_t label_len,
+                               const unsigned char *context_value, size_t context_len,
+                               unsigned char *out, size_t out_len);
+
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
 
 #endif /* MBEDTLS_SSL_TLS1_3_KEYS_H */

@@ -5591,6 +5591,30 @@ int  mbedtls_ssl_tls_prf(const mbedtls_tls_prf_types prf,
                          const unsigned char *random, size_t rlen,
                          unsigned char *dstbuf, size_t dlen);
 
+ /**
+  * \brief             TLS-Exporter to derive shared symmetric keys between server and client.
+  *
+  * \param ctx         SSL context from which to export keys. Must have finished the handshake.
+  * \param out         Output buffer of length at least key_len bytes.
+  * \param key_len     Length of the key to generate in bytes. Must be < 2^16 in TLS 1.3.
+  * \param label       Label for which to generate the key of length label_len.
+  * \param label_len   Length of label in bytes. Must be < 251 in TLS 1.3.
+  * \param context     Context of the key. Can be NULL if context_len or use_context is 0.
+  * \param context_len Length of context. Must be < 2^16 in TLS1.2.
+  * \param use_context Indicates if a context should be used in deriving the key.
+  *
+  * \note TLS 1.2 makes a distinction between a 0-length context and no context.
+  *       This is why the use_context argument exists. TLS 1.3 does not make
+  *       this distinction. If use_context is 0 and TLS 1.3 is used, context and
+  *       context_len are ignored and a 0-length context is used.
+  *
+  * \return            0 on success. An SSL specific error on failure.
+  */
+ int mbedtls_ssl_export_keying_material(mbedtls_ssl_context *ssl,
+                                        uint8_t *out, size_t key_len,
+                                        const char *label, size_t label_len,
+                                        const unsigned char *context, size_t context_len,
+                                        int use_context);
 #ifdef __cplusplus
 }
 #endif

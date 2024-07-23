@@ -31,6 +31,8 @@ cmake_policy(SET CMP0011 NEW)
 # is deprecated and will be removed in future versions.
 cmake_policy(SET CMP0012 NEW)
 
+if(NOT (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR))
+
 if(LIB_INSTALL_DIR)
     set(CMAKE_INSTALL_LIBDIR "${LIB_INSTALL_DIR}")
 endif()
@@ -52,3 +54,21 @@ if(ENABLE_TESTING)
     enable_testing()
     add_subdirectory(tests)
 endif()
+
+else(NOT (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR))
+
+if(TEST_CPP)
+    project("TF-PSA-Crypto"
+        LANGUAGES C CXX
+        VERSION 0.1.0
+    )
+else()
+    project("TF-PSA-Crypto"
+        LANGUAGES C
+        VERSION 0.1.0
+    )
+endif()
+
+include(TF-PSA-Crypto.cmake)
+
+endif(NOT (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR))

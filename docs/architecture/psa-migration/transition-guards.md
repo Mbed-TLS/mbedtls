@@ -33,27 +33,29 @@ It is useful to consider the following domains:
   `library/psa_*.c` and tested in `tests/suites/test_suite_psa*`.
 - The pure TLS 1.3 domain: the parts of TLS 1.3 that are not in the `USE_PSA`
   domain (see below). Those use PSA APIs unconditionally.
-- The `USE_PSA` domain: that's PK, X.509, most of TLS 1.2 and the parts of TLS
-  1.3 that are common with TLS 1.2 or are about public/private keys (see
-`docs/use-psa-crypto.md` for details).
+- The `USE_PSA` domain (that is, code that calls PSA crypto APIs when
+  `USE_PSA` is enabled, and legacy crypto APIs otherwise): that's PK, X.509,
+most of TLS 1.2 and the parts of TLS 1.3 that are common with TLS 1.2 or are
+about public/private keys (see `docs/use-psa-crypto.md` for details).
 - The legacy crypto domain: a number of modules there will use crypto from
   other modules, for example RSA and entropy will use hashes, PEM will use
 hashes and ciphers (from encrypted PEM), etc.
 
 The first two categories (PSA domain, pure TLS 1.3 domain) are simple: as a
 general rule, use `PSA_WANT` macros. (With very few exceptions, see
-`component_check_test_dependencies` in `all.sh`.) When it is necessary to
+`component_check_test_dependencies` in `all.sh`.) In the rare instances where it is necessary to
 check whether a mechanism is built-in or provided by a driver,
 `MBEDTLS_PSA_BUILTIN_xxx` and `MBEDTLS_PSA_ACCEL_xxx` macros should be used
 (but not legacy `MBEDTLS_xxx` macros).
 
-The other two categories (legacy and `USE_PSA` domains) tend to be more
-complex. There are different rules for different families of mechanisms, as
-detailed in the following sections.
+For the `USE_PSA` domain, it should always be correct to use expressions like
+`(!USE_PSA && MBEDTLS_xxx) || (USE_PSA && PSA_WANT_xxx)`. Sometimes, macros
+are defined in order to avoid using long expressions everywhere; they will be
+mentioned in the following sections.
 
-However as a general rule, it should always be correct for code in the
-`USE_PSA` domain to use expressions like `(!USE_PSA && MBEDTLS_xxx) ||
-(USE_PSA && PSA_WANT_xxx)`.
+The remaining category, the legacy domain, tends to be more complex. There are
+different rules for different families of mechanisms, as detailed in the
+following sections.
 
 Symmetric crypto
 ================
@@ -74,9 +76,9 @@ hash interface, excluding functions such as `mbedtls_md_list()` and
 `mbedtls_md_info_from_string()`, `mbedtls_md_file()`, etc. But I think the
 above should still provide a good intuition as first approximation.)
 
-Note that all users of hashes use either the PSA Crypto API or the `md.h` API.
-That is, no user, even in the legacy domain, uses the low-level hash APIs
-(`mbedtls_sha256` etc).
+Note that all users of hashes in the library use either the PSA Crypto API or the `md.h` API.
+That is, no user in the library, even in the legacy domain, uses the low-level hash APIs
+(`mbedtls_sha256` etc). (That's not true of all example programs, though.)
 
 **Helper macros:** in `config_adjust_legacy_crypto.h` we define a family of
 macro `MBEDTLS_MD_CAN_xxx`. These macros are defined (for available hashes) as
@@ -110,8 +112,9 @@ availability of HMAC-xxx is determined by `MBEDTLS_MD_C && MBEDTLS_MD_CAN_xxx`
 (see previous subsection about `MD_CAN`). Modules in this domain that may use
 HMAC are PKCS5, PKCS7, HKDF, HMAC-DRBG and ECDSA deterministic.
 
-**`USE_PSA` domain:** code will use either the `md.h` API or the `psa_mac`
-API. It should check for the availability of HMAC-xxx with either:
+**`USE_PSA` domain:** code will use the `md.h` API when `USE_PSA` is disabled,
+and the `psa_mac` API when `USE_PSA` is enabled. It should check for the
+availability of HMAC-xxx with either:
 ```
 ((!MBEDTLS_USE_PSA_CRYPTO && MBEDTLS_MD_C) ||
  (MBEDTLS_USE_PSA_CRYPTO && PSA_WANT_ALG_HMAC)) &&
@@ -135,7 +138,8 @@ is negotiated).
 
 **Pure TLS 1.3 domain:** HMAC is used for the Finished message via PSA Crypto
 APIs. So, TLS 1.3 should depend on `PSA_WANT_ALG_HMAC` - doesn't seem to be
-enforced by `check_config.h` at the moment.
+enforced by `check_config.h`, or documented in `mbedtls_config.h`, at the
+moment.
 
 Ciphers (AEAD and unauthenticated)
 ----------------------------------

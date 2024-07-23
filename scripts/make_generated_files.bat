@@ -14,5 +14,5 @@ python framework\scripts\generate_bignum_tests.py || exit /b 1
 python framework\scripts\generate_config_tests.py || exit /b 1
 python framework\scripts\generate_ecp_tests.py || exit /b 1
 python framework\scripts\generate_psa_tests.py || exit /b 1
-python framework\scripts\generate_test_keys.py --output tests\src\test_keys.h || exit /b 1
-python framework\scripts\generate_test_cert_macros.py --output tests\src\test_certs.h || exit /b 1
+python framework\scripts\generate_test_keys.py --output framework\tests\src\test_keys.h || exit /b 1
+python framework\scripts\generate_test_cert_macros.py --output framework\tests\src\test_certs.h || exit /b 1

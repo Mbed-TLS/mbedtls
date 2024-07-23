@@ -20,7 +20,7 @@
 #include <string.h>
 
 #if defined(MBEDTLS_TEST_LIBTESTDRIVER1)
-#include "libtestdriver1/include/psa/crypto.h"
+#include "libtestdriver1/tf-psa-crypto/include/psa/crypto.h"
 #include "libtestdriver1/library/psa_crypto_ecp.h"
 #include "libtestdriver1/library/psa_crypto_ffdh.h"
 #endif

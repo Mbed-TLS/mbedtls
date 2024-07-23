@@ -4,6 +4,8 @@ ifndef MBEDTLS_PATH
 MBEDTLS_PATH := ..
 endif
 
+PSASIM_PATH=$(MBEDTLS_PATH)/tests/psa-client-server/psasim
+
 ifeq (,$(wildcard $(MBEDTLS_PATH)/framework/exported.make))
     # Use the define keyword to get a multi-line message.
     # GNU make appends ".  Stop.", so tweak the ending of our message accordingly.
@@ -21,21 +23,43 @@ WARNING_CFLAGS ?= -Wall -Wextra -Wformat=2 -Wno-format-nonliteral
 WARNING_CXXFLAGS ?= -Wall -Wextra -Wformat=2 -Wno-format-nonliteral
 LDFLAGS ?=
 
-LOCAL_CFLAGS = $(WARNING_CFLAGS) -I$(MBEDTLS_TEST_PATH)/include -I$(MBEDTLS_PATH)/include -D_FILE_OFFSET_BITS=64
+LOCAL_CFLAGS = $(WARNING_CFLAGS) -I$(MBEDTLS_TEST_PATH)/include \
+               -I$(MBEDTLS_PATH)/include -I$(MBEDTLS_PATH)/tf-psa-crypto/include \
+               -I$(MBEDTLS_PATH)/tf-psa-crypto/drivers/builtin/include \
+               -D_FILE_OFFSET_BITS=64
 LOCAL_CXXFLAGS = $(WARNING_CXXFLAGS) -I$(MBEDTLS_PATH)/include -I$(MBEDTLS_PATH)/tests/include -D_FILE_OFFSET_BITS=64
+
+ifdef PSASIM
+LOCAL_LDFLAGS = ${MBEDTLS_TEST_OBJS} 		\
+		-L$(PSASIM_PATH)/client_libs			\
+		-lpsaclient \
+		-lmbedtls$(SHARED_SUFFIX)	\
+		-lmbedx509$(SHARED_SUFFIX)	\
+		-lmbedcrypto$(SHARED_SUFFIX)
+else
 LOCAL_LDFLAGS = ${MBEDTLS_TEST_OBJS} 		\
 		-L$(MBEDTLS_PATH)/library			\
 		-lmbedtls$(SHARED_SUFFIX)	\
 		-lmbedx509$(SHARED_SUFFIX)	\
 		-lmbedcrypto$(SHARED_SUFFIX)
+endif
 
 include $(MBEDTLS_PATH)/3rdparty/Makefile.inc
 LOCAL_CFLAGS+=$(THIRDPARTY_INCLUDES)
 
-ifndef SHARED
-MBEDLIBS=$(MBEDTLS_PATH)/library/libmbedcrypto.a $(MBEDTLS_PATH)/library/libmbedx509.a $(MBEDTLS_PATH)/library/libmbedtls.a
+ifdef PSASIM
+MBEDLIBS=$(PSASIM_PATH)/client_libs/libmbedcrypto.a \
+				$(PSASIM_PATH)/client_libs/libmbedx509.a \
+				$(PSASIM_PATH)/client_libs/libmbedtls.a \
+				$(PSASIM_PATH)/client_libs/libpsaclient.a
+else ifndef SHARED
+MBEDLIBS=$(MBEDTLS_PATH)/library/libmbedcrypto.a \
+				$(MBEDTLS_PATH)/library/libmbedx509.a \
+				$(MBEDTLS_PATH)/library/libmbedtls.a
 else
-MBEDLIBS=$(MBEDTLS_PATH)/library/libmbedcrypto.$(DLEXT) $(MBEDTLS_PATH)/library/libmbedx509.$(DLEXT) $(MBEDTLS_PATH)/library/libmbedtls.$(DLEXT)
+MBEDLIBS=$(MBEDTLS_PATH)/library/libmbedcrypto.$(DLEXT) \
+				$(MBEDTLS_PATH)/library/libmbedx509.$(DLEXT) \
+				$(MBEDTLS_PATH)/library/libmbedtls.$(DLEXT)
 endif
 
 ifdef DEBUG
@@ -123,10 +147,17 @@ else
 endif
 
 # Auxiliary modules used by tests and some sample programs
-MBEDTLS_CORE_TEST_OBJS = $(patsubst %.c,%.o,$(wildcard \
+MBEDTLS_CORE_TEST_OBJS := $(patsubst %.c,%.o,$(wildcard \
     ${MBEDTLS_TEST_PATH}/src/*.c \
     ${MBEDTLS_TEST_PATH}/src/drivers/*.c \
   ))
+# Ignore PSA stubs when building for the client side of PSASIM (i.e.
+# CRYPTO_CLIENT && !CRYPTO_C) otherwise there will be functions duplicates.
+ifdef PSASIM
+MBEDTLS_CORE_TEST_OBJS := $(filter-out \
+    ${MBEDTLS_TEST_PATH}/src/psa_crypto_stubs.o, $(MBEDTLS_CORE_TEST_OBJS)\
+  )
+endif
 # Additional auxiliary modules for TLS testing
 MBEDTLS_TLS_TEST_OBJS = $(patsubst %.c,%.o,$(wildcard \
     ${MBEDTLS_TEST_PATH}/src/test_helpers/*.c \

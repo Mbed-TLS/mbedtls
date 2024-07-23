@@ -23,7 +23,8 @@ my $vsx_sln_file = "$vsx_dir/mbedTLS.sln";
 
 my $programs_dir = 'programs';
 my $mbedtls_header_dir = 'include/mbedtls';
-my $psa_header_dir = 'include/psa';
+my $drivers_builtin_header_dir = 'tf-psa-crypto/drivers/builtin/include/mbedtls';
+my $psa_header_dir = 'tf-psa-crypto/include/psa';
 my $source_dir = 'library';
 my $test_source_dir = 'tests/src';
 my $test_header_dir = 'tests/include/test';
@@ -44,6 +45,8 @@ my @thirdparty_source_dirs = qw(
 # one directory: the compiler will use the first match.
 my @include_directories = qw(
     include
+    tf-psa-crypto/include
+    tf-psa-crypto/drivers/builtin/include
     3rdparty/everest/include/
     3rdparty/everest/include/everest
     3rdparty/everest/include/everest/vs2013
@@ -101,6 +104,7 @@ sub check_dirs {
     }
     return -d $vsx_dir
         && -d $mbedtls_header_dir
+        && -d $drivers_builtin_header_dir
         && -d $psa_header_dir
         && -d $source_dir
         && -d $test_source_dir
@@ -257,6 +261,7 @@ sub main {
     my @app_list = get_app_list();
     my @header_dirs = (
                        $mbedtls_header_dir,
+                       $drivers_builtin_header_dir,
                        $psa_header_dir,
                        $test_header_dir,
                        $test_drivers_header_dir,

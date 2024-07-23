@@ -666,6 +666,7 @@ static int ssl_tls13_write_psk_key_exchange_modes_ext(mbedtls_ssl_context *ssl,
     return 0;
 }
 
+#if defined(MBEDTLS_SSL_SESSION_TICKETS)
 static psa_algorithm_t ssl_tls13_get_ciphersuite_hash_alg(int ciphersuite)
 {
     const mbedtls_ssl_ciphersuite_t *ciphersuite_info = NULL;
@@ -678,7 +679,6 @@ static psa_algorithm_t ssl_tls13_get_ciphersuite_hash_alg(int ciphersuite)
     return PSA_ALG_NONE;
 }
 
-#if defined(MBEDTLS_SSL_SESSION_TICKETS)
 static int ssl_tls13_has_configured_ticket(mbedtls_ssl_context *ssl)
 {
     mbedtls_ssl_session *session = ssl->session_negotiate;

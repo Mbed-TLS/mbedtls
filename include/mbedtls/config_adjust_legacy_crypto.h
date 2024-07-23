@@ -2,6 +2,8 @@
  * \file mbedtls/config_adjust_legacy_crypto.h
  * \brief Adjust legacy configuration configuration
  *
+ * This is an internal header. Do not include it directly.
+ *
  * Automatically enable certain dependencies. Generally, MBEDLTS_xxx
  * configurations need to be explicitly enabled by the user: enabling
  * MBEDTLS_xxx_A but not MBEDTLS_xxx_B when A requires B results in a
@@ -21,6 +23,14 @@
 
 #ifndef MBEDTLS_CONFIG_ADJUST_LEGACY_CRYPTO_H
 #define MBEDTLS_CONFIG_ADJUST_LEGACY_CRYPTO_H
+
+#if !defined(MBEDTLS_CONFIG_FILES_READ)
+#error "Do not include mbedtls/config_adjust_*.h manually! This can lead to problems, " \
+    "up to and including runtime errors such as buffer overflows. " \
+    "If you're trying to fix a complaint from check_config.h, just remove " \
+    "it from your configuration file: since Mbed TLS 3.0, it is included " \
+    "automatically at the right point."
+#endif /* */
 
 /* Ideally, we'd set those as defaults in mbedtls_config.h, but
  * putting an #ifdef _WIN32 in mbedtls_config.h would confuse config.py.
@@ -48,7 +58,8 @@
     defined(MBEDTLS_PSA_BUILTIN_ALG_ECB_NO_PADDING) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_CBC_NO_PADDING) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_CBC_PKCS7) || \
-    defined(MBEDTLS_PSA_BUILTIN_ALG_CCM_STAR_NO_TAG))
+    defined(MBEDTLS_PSA_BUILTIN_ALG_CCM_STAR_NO_TAG) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_CMAC))
 #define MBEDTLS_CIPHER_C
 #endif
 
@@ -291,6 +302,14 @@
     defined(MBEDTLS_PK_PARSE_EC_COMPRESSED) || \
     defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR_DERIVE)
 #define MBEDTLS_ECP_LIGHT
+#endif
+
+/* Backward compatibility: after #8740 the RSA module offers functions to parse
+ * and write RSA private/public keys without relying on the PK one. Of course
+ * this needs ASN1 support to do so, so we enable it here. */
+#if defined(MBEDTLS_RSA_C)
+#define MBEDTLS_ASN1_PARSE_C
+#define MBEDTLS_ASN1_WRITE_C
 #endif
 
 /* MBEDTLS_PK_PARSE_EC_COMPRESSED is introduced in Mbed TLS version 3.5, while

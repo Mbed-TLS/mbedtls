@@ -20,7 +20,7 @@ from typing import List
 
 #pylint: disable=unused-import
 import scripts_path
-from mbedtls_dev import build_tree
+from mbedtls_framework import build_tree
 
 # PSA Compliance tests we expect to fail due to known defects in Mbed TLS /
 # TF-PSA-Crypto (or the test suite).
@@ -73,8 +73,14 @@ def main(library_build_dir: str):
         os.mkdir(build_dir)
         os.chdir(build_dir)
 
-        extra_includes = (';{}/drivers/builtin/include'.format(root_dir)
-                          if in_tf_psa_crypto_repo else '')
+        # Temporary while the PSA compliance test suite is still run as part
+        # of Mbed TLS testing. When it is not the case anymore, the second case
+        # can be removed.
+        if in_tf_psa_crypto_repo:
+            extra_includes = ';{}/drivers/builtin/include'.format(root_dir)
+        elif os.path.isdir(os.path.join(root_dir, 'tf-psa-crypto')):
+            extra_includes = ';{}/tf-psa-crypto/include'.format(root_dir) + \
+                             (';{}/tf-psa-crypto/drivers/builtin/include'.format(root_dir))
 
         #pylint: disable=bad-continuation
         subprocess.check_call([

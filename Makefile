@@ -31,7 +31,10 @@ programs: lib mbedtls_test
 lib:
 	$(MAKE) -C library
 
-tests: lib mbedtls_test
+ifndef PSASIM
+tests: lib
+endif
+tests: mbedtls_test
 	$(MAKE) -C tests
 
 mbedtls_test:
@@ -95,8 +98,9 @@ ifndef WINDOWS
 install: no_test
 	mkdir -p $(DESTDIR)/include/mbedtls
 	cp -rp include/mbedtls $(DESTDIR)/include
+	cp -rp tf-psa-crypto/drivers/builtin/include/mbedtls $(DESTDIR)/include
 	mkdir -p $(DESTDIR)/include/psa
-	cp -rp include/psa $(DESTDIR)/include
+	cp -rp tf-psa-crypto/include/psa $(DESTDIR)/include
 
 	mkdir -p $(DESTDIR)/lib
 	cp -RP library/libmbedtls.*    $(DESTDIR)/lib
@@ -167,7 +171,10 @@ else
 	if exist visualc\VS2017\mbedTLS.sln del /Q /F visualc\VS2017\mbedTLS.sln
 endif
 
-check: lib tests
+ifndef PSASIM
+check: lib
+endif
+check: tests
 	$(MAKE) -C tests check
 
 test: check
@@ -197,6 +204,8 @@ C_SOURCE_FILES = $(wildcard \
 	3rdparty/*/*.c 3rdparty/*/*/*.c 3rdparty/*/*/*/*.c 3rdparty/*/*/*/*/*.c \
 	include/*/*.h \
 	library/*.[hc] \
+	tf-psa-crypto/include/*/*.h \
+	tf-psa-crypto/drivers/builtin/include/*/*.h \
 	programs/*/*.[hc] \
 	tests/include/*/*.h tests/include/*/*/*.h \
 	tests/src/*.c tests/src/*/*.c \
@@ -213,5 +222,7 @@ GPATH GRTAGS GSYMS GTAGS: $(C_SOURCE_FILES)
 	ls $(C_SOURCE_FILES) | gtags -f - --gtagsconf .globalrc
 cscope: cscope.in.out cscope.po.out cscope.out
 cscope.in.out cscope.po.out cscope.out: $(C_SOURCE_FILES)
-	cscope -bq -u -Iinclude -Ilibrary $(patsubst %,-I%,$(wildcard 3rdparty/*/include)) -Itests/include $(C_SOURCE_FILES)
+	cscope -bq -u -Iinclude -Ilibrary -Itf-psa-crypto/include \
+	-Itf-psa-crypto/drivers/builtin/include \
+	$(patsubst %,-I%,$(wildcard 3rdparty/*/include)) -Itests/include $(C_SOURCE_FILES)
 .PHONY: cscope global

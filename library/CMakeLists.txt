@@ -53,7 +53,6 @@ set(src_crypto
     memory_buffer_alloc.c
     nist_kw.c
     oid.c
-    padlock.c
     pem.c
     pk.c
     pk_ecc.c
@@ -130,19 +129,22 @@ set(src_tls
 if(GEN_FILES)
     find_package(Perl REQUIRED)
 
-    file(GLOB error_headers ${CMAKE_CURRENT_SOURCE_DIR}/../include/mbedtls/*.h)
+    file(GLOB crypto_error_headers ${CMAKE_CURRENT_SOURCE_DIR}/../tf-psa-crypto/drivers/builtin/include/mbedtls/*.h)
+    file(GLOB tls_error_headers ${CMAKE_CURRENT_SOURCE_DIR}/../include/mbedtls/*.h)
     add_custom_command(
         OUTPUT
             ${CMAKE_CURRENT_BINARY_DIR}/error.c
         COMMAND
             ${PERL_EXECUTABLE}
                 ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/generate_errors.pl
+                ${CMAKE_CURRENT_SOURCE_DIR}/../tf-psa-crypto/drivers/builtin/include/mbedtls
                 ${CMAKE_CURRENT_SOURCE_DIR}/../include/mbedtls
                 ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/data_files
                 ${CMAKE_CURRENT_BINARY_DIR}/error.c
         DEPENDS
             ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/generate_errors.pl
-            ${error_headers}
+            ${crypto_error_headers}
+            ${tls_error_headers}
             ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/data_files/error.fmt
     )
 
@@ -171,7 +173,7 @@ if(GEN_FILES)
                 ${CMAKE_CURRENT_BINARY_DIR}
         DEPENDS
             ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/generate_ssl_debug_helpers.py
-            ${error_headers}
+            ${tls_error_headers}
     )
 
     add_custom_command(
@@ -220,11 +222,13 @@ if(WIN32)
     set(libs ${libs} ws2_32 bcrypt)
 endif(WIN32)
 
-if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-    SET(CMAKE_C_ARCHIVE_CREATE   "<CMAKE_AR> Scr <TARGET> <LINK_FLAGS> <OBJECTS>")
-    SET(CMAKE_CXX_ARCHIVE_CREATE "<CMAKE_AR> Scr <TARGET> <LINK_FLAGS> <OBJECTS>")
-    SET(CMAKE_C_ARCHIVE_FINISH   "<CMAKE_RANLIB> -no_warning_for_no_symbols -c <TARGET>")
-    SET(CMAKE_CXX_ARCHIVE_FINISH "<CMAKE_RANLIB> -no_warning_for_no_symbols -c <TARGET>")
+if(CMAKE_C_COMPILER_ID MATCHES "AppleClang")
+    set(CMAKE_C_ARCHIVE_CREATE   "<CMAKE_AR> Scr <TARGET> <LINK_FLAGS> <OBJECTS>")
+    set(CMAKE_C_ARCHIVE_FINISH   "<CMAKE_RANLIB> -no_warning_for_no_symbols -c <TARGET>")
+endif()
+if(CMAKE_CXX_COMPILER_ID MATCHES "AppleClang")
+    set(CMAKE_CXX_ARCHIVE_CREATE "<CMAKE_AR> Scr <TARGET> <LINK_FLAGS> <OBJECTS>")
+    set(CMAKE_CXX_ARCHIVE_FINISH "<CMAKE_RANLIB> -no_warning_for_no_symbols -c <TARGET>")
 endif()
 
 if(HAIKU)
@@ -327,6 +331,8 @@ foreach(target IN LISTS target_libraries)
     # of /library (which currently means: under /3rdparty).
     target_include_directories(${target}
         PUBLIC $<BUILD_INTERFACE:${MBEDTLS_DIR}/include/>
+               $<BUILD_INTERFACE:${MBEDTLS_DIR}/tf-psa-crypto/include/>
+               $<BUILD_INTERFACE:${MBEDTLS_DIR}/tf-psa-crypto/drivers/builtin/include/>
                $<INSTALL_INTERFACE:include/>
         PRIVATE ${MBEDTLS_DIR}/library/
                 # Needed to include psa_crypto_driver_wrappers.h

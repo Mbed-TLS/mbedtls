@@ -1,4 +1,4 @@
-MBEDTLS_TEST_PATH = .
+MBEDTLS_TEST_PATH = ../framework/tests
 include ../scripts/common.make
 
 # Set this to -v to see the details of failing test cases
@@ -54,7 +54,7 @@ endif
 GENERATED_DATA_FILES += $(GENERATED_PSA_DATA_FILES)
 
 GENERATED_FILES = $(GENERATED_DATA_FILES)
-GENERATED_FILES += src/test_keys.h src/test_certs.h
+GENERATED_FILES += ../framework/tests/src/test_keys.h ../framework/tests/src/test_certs.h
 
 .PHONY: generated_files
 generated_files: $(GENERATED_FILES)
@@ -148,11 +148,11 @@ all: $(BINARIES)
 
 mbedtls_test: $(MBEDTLS_TEST_OBJS)
 
-src/test_certs.h: ../framework/scripts/generate_test_cert_macros.py \
+../framework/tests/src/test_certs.h: ../framework/scripts/generate_test_cert_macros.py \
 				  $($(PYTHON) ../framework/scripts/generate_test_cert_macros.py --list-dependencies)
 	$(PYTHON) ../framework/scripts/generate_test_cert_macros.py --output $@
 
-src/test_keys.h: ../framework/scripts/generate_test_keys.py
+../framework/tests/src/test_keys.h: ../framework/scripts/generate_test_keys.py
 	$(PYTHON) ../framework/scripts/generate_test_keys.py --output $@
 
 TEST_OBJS_DEPS = $(wildcard ../framework/tests/include/test/*.h include/test/*/*.h)
@@ -162,18 +162,18 @@ ifdef RECORD_PSA_STATUS_COVERAGE_LOG
 # therefore the wildcard enumeration above doesn't include it.
 TEST_OBJS_DEPS += ../framework/tests/include/test/instrument_record_status.h
 endif
-TEST_OBJS_DEPS += src/test_certs.h src/test_keys.h
+TEST_OBJS_DEPS += ../framework/tests/src/test_certs.h ../framework/tests/src/test_keys.h
 
 # Rule to compile common test C files in src folder
-src/%.o : src/%.c $(TEST_OBJS_DEPS)
+../framework/tests/src/%.o : ../framework/tests/src/%.c $(TEST_OBJS_DEPS)
 	echo "  CC    $<"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) -o $@ -c $<
 
-src/drivers/%.o : src/drivers/%.c
+../framework/tests/src/drivers/%.o : ../framework/tests/src/drivers/%.c
 	echo "  CC    $<"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) -o $@ -c $<
 
-src/test_helpers/%.o : src/test_helpers/%.c
+../framework/tests/src/test_helpers/%.o : ../framework/tests/src/test_helpers/%.c
 	echo "  CC    $<"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) -o $@ -c $<
 

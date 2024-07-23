@@ -63,11 +63,12 @@ Hashes
 
 **Hash vs HMAC:** Historically (since 2.0) we've had the generic hash
 interface, and the implementation of HMAC, in the same file controlled by a
-single feature macro: `MBEDTLS_MD_C`. This has now be split in two:
+single feature macro: `MBEDTLS_MD_C`. This has now been split in two:
 - `MBEDTLS_MD_LIGHT` is about the generic hash interface; we could think of it
   as `MBEDTLS_HASH_C`.
-- `MBEDTLS_MC_C` is about the HMAC implementation; we could think of it as
+- `MBEDTLS_MD_C` is about the HMAC implementation; we could think of it as
   `MBEDTLS_HMAC_C` (auto-enabling `MBEDTLS_HASH_C`).
+
 (In fact, this is not the whole story: `MD_LIGHT` is the _core_ of the generic
 hash interface, excluding functions such as `mbedtls_md_list()` and
 `mbedtls_md_info_from_string()`, `mbedtls_md_file()`, etc. But I think the
@@ -81,7 +82,7 @@ That is, no user, even in the legacy domain, uses the low-level hash APIs
 macro `MBEDTLS_MD_CAN_xxx`. These macros are defined (for available hashes) as
 soon as `MBEDTLS_MD_LIGHT` is enabled. This subset of `MD` is automatically
 enabled as soon as something from the legacy domain, or from the `USE_PSA`
-domain, needs a hash. (Note that this include `ENTROPY_C`, so in practice
+domain, needs a hash. (Note that this includes `ENTROPY_C`, so in practice
 `MD_LIGHT` is enabled in most builds.)
 
 Note that there is a rule, enforced by `config_adjust_psa_superset_legacy.h`,
@@ -152,7 +153,7 @@ enabled (for compatibility reasons).
 
 **Legacy domain:** most code here is using either `cipher.h` or low-level APIs
 like `aes.h`, and should use legacy macros like `MBEDTLS_AES_C` and
-`MBEDTLS_CIPHER_MOD_CBC`. This includes NIST-KW, CMAC, PKCS5 en/decryption
+`MBEDTLS_CIPHER_MODE_CBC`. This includes NIST-KW, CMAC, PKCS5/PKCS12 en/decryption
 functions, PEM decryption, PK parsing of encrypted keys. The only exceptions
 are `GCM` and `CCM` which use the internal abstraction layer `block_cipher`
 and check for availability of block ciphers using `MBEDTLS_CCM_GCM_CAN_xxx`

@@ -44,7 +44,7 @@
  * This is a convenience shorthand macro to check if we need reverse S-box and
  * reverse tables. It's private and only defined in this file.
  */
-#if !defined(MBEDTLS_AES_USE_HARDWARE_ONLY) && !defined(MBEDTLS_BLOCK_CIPHER_NO_DECRYPT)
+#if !defined(MBEDTLS_BLOCK_CIPHER_NO_DECRYPT)
 #define MBEDTLS_AES_NEED_REVERSE_TABLES
 #endif
 

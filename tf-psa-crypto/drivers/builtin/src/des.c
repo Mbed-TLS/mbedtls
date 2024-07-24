@@ -389,9 +389,6 @@ int mbedtls_des_key_check_weak(const unsigned char key[MBEDTLS_DES_KEY_SIZE])
     return 0;
 }
 
-/*
- * Internal function for key expansion.
- */
 static void mbedtls_des_setkey(uint32_t SK[32], const unsigned char key[MBEDTLS_DES_KEY_SIZE])
 {
     int i;

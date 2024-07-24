@@ -217,7 +217,7 @@ ifndef WINDOWS
 	rm -f src/*.o src/drivers/*.o src/test_helpers/*.o src/libmbed* src/test_keys.h src/test_certs.h
 	rm -f src/test_keys.h src/test_certs.h
 	rm -f ../framework/tests/include/test/instrument_record_status.h
-	rm -f include/alt-extra/*/*_alt.h
+	rm -f ../framework/tests/include/alt-extra/*/*_alt.h
 	rm -rf libtestdriver1
 	rm -rf libpsaclient libpsaserver
 	rm -f ../library/libtestdriver1.a
@@ -241,11 +241,11 @@ check: $(BINARIES)
 test: check
 
 # Generate variants of some headers for testing
-include/alt-extra/%_alt.h: ../include/%.h
+../framework/tests/include/alt-extra/%_alt.h: ../include/%.h
 	perl -p -e 's/^(# *(define|ifndef) +\w+_)H\b/$${1}ALT_H/' $< >$@
-include/alt-extra/%_alt.h: ../tf-psa-crypto/include/%.h
+../framework/tests/include/alt-extra/%_alt.h: ../tf-psa-crypto/include/%.h
 	perl -p -e 's/^(# *(define|ifndef) +\w+_)H\b/$${1}ALT_H/' $< >$@
-include/alt-extra/%_alt.h: ../tf-psa-crypto/drivers/builtin/include/%.h
+../framework/tests/include/alt-extra/%_alt.h: ../tf-psa-crypto/drivers/builtin/include/%.h
 	perl -p -e 's/^(# *(define|ifndef) +\w+_)H\b/$${1}ALT_H/' $< >$@
 
 # Generate test library

@@ -35,6 +35,8 @@ if [ -d library -a -d include -a -d tests ]; then :; else
     exit 1
 fi
 
+MBEDTLS_ROOT_DIR="$PWD"
+
 : ${OPENSSL:="openssl"}
 : ${GNUTLS_CLI:="gnutls-cli"}
 : ${GNUTLS_SERV:="gnutls-serv"}
@@ -74,12 +76,16 @@ export LDFLAGS=' --coverage'
 make clean
 cp "$CONFIG_H" "$CONFIG_BAK"
 scripts/config.py full
-make
+make -j
 
 
 # Step 2 - Execute the tests
 TEST_OUTPUT=out_${PPID}
-cd tests
+cd $MBEDTLS_ROOT_DIR/tests
+if [ ! -f "seedfile" ]; then
+    dd if=/dev/urandom of="seedfile" bs=64 count=1
+fi
+cd $MBEDTLS_ROOT_DIR/tf-psa-crypto/tests
 if [ ! -f "seedfile" ]; then
     dd if=/dev/urandom of="seedfile" bs=64 count=1
 fi
@@ -87,10 +93,14 @@ echo
 
 # Step 2a - Unit Tests (keep going even if some tests fail)
 echo '################ Unit tests ################'
-perl scripts/run-test-suites.pl -v 2 |tee unit-test-$TEST_OUTPUT
+cd $MBEDTLS_ROOT_DIR/tests
+perl scripts/run-test-suites.pl -v 2 |tee tls-x509-unit-test-$TEST_OUTPUT
+cd $MBEDTLS_ROOT_DIR/tf-psa-crypto/tests
+perl $MBEDTLS_ROOT_DIR/tests/scripts/run-test-suites.pl -v 2 |tee ../../tests/crypto-unit-test-$TEST_OUTPUT
 echo '^^^^^^^^^^^^^^^^ Unit tests ^^^^^^^^^^^^^^^^'
 echo
 
+cd $MBEDTLS_ROOT_DIR/tests
 # Step 2b - System Tests (keep going even if some tests fail)
 echo
 echo '################ ssl-opt.sh ################'
@@ -141,13 +151,13 @@ rm -f "tests/basic-build-test-$$.ok"
 
     cd tests
 
-    # Step 4a - Unit tests
-    echo "Unit tests - tests/scripts/run-test-suites.pl"
+    # Step 4a - TLS and x509 unit tests
+    echo "TLS and x509 unit tests - tests/scripts/run-test-suites.pl"
 
-    PASSED_TESTS=$(tail -n6 unit-test-$TEST_OUTPUT|sed -n -e 's/test cases passed :[\t]*\([0-9]*\)/\1/p'| tr -d ' ')
-    SKIPPED_TESTS=$(tail -n6 unit-test-$TEST_OUTPUT|sed -n -e 's/skipped :[ \t]*\([0-9]*\)/\1/p'| tr -d ' ')
-    TOTAL_SUITES=$(tail -n6 unit-test-$TEST_OUTPUT|sed -n -e 's/.* (\([0-9]*\) .*, [0-9]* tests run)/\1/p'| tr -d ' ')
-    FAILED_TESTS=$(tail -n6 unit-test-$TEST_OUTPUT|sed -n -e 's/failed :[\t]*\([0-9]*\)/\1/p' |tr -d ' ')
+    PASSED_TESTS=$(tail -n6 tls-x509-unit-test-$TEST_OUTPUT|sed -n -e 's/test cases passed :[\t]*\([0-9]*\)/\1/p'| tr -d ' ')
+    SKIPPED_TESTS=$(tail -n6 tls-x509-unit-test-$TEST_OUTPUT|sed -n -e 's/skipped :[ \t]*\([0-9]*\)/\1/p'| tr -d ' ')
+    TOTAL_SUITES=$(tail -n6 tls-x509-unit-test-$TEST_OUTPUT|sed -n -e 's/.* (\([0-9]*\) .*, [0-9]* tests run)/\1/p'| tr -d ' ')
+    FAILED_TESTS=$(tail -n6 tls-x509-unit-test-$TEST_OUTPUT|sed -n -e 's/failed :[\t]*\([0-9]*\)/\1/p' |tr -d ' ')
 
     echo "No test suites     : $TOTAL_SUITES"
     echo "Passed             : $PASSED_TESTS"
@@ -163,7 +173,29 @@ rm -f "tests/basic-build-test-$$.ok"
     TOTAL_AVAIL=$(($PASSED_TESTS + $FAILED_TESTS + $SKIPPED_TESTS))
     TOTAL_EXED=$(($PASSED_TESTS + $FAILED_TESTS))
 
-    # Step 4b - TLS Options tests
+    # Step 4b - Crypto unit tests
+    echo "Crypto unit tests - tests/scripts/run-test-suites.pl"
+
+    PASSED_TESTS=$(tail -n6 crypto-unit-test-$TEST_OUTPUT|sed -n -e 's/test cases passed :[\t]*\([0-9]*\)/\1/p'| tr -d ' ')
+    SKIPPED_TESTS=$(tail -n6 crypto-unit-test-$TEST_OUTPUT|sed -n -e 's/skipped :[ \t]*\([0-9]*\)/\1/p'| tr -d ' ')
+    TOTAL_SUITES=$(tail -n6 crypto-unit-test-$TEST_OUTPUT|sed -n -e 's/.* (\([0-9]*\) .*, [0-9]* tests run)/\1/p'| tr -d ' ')
+    FAILED_TESTS=$(tail -n6 crypto-unit-test-$TEST_OUTPUT|sed -n -e 's/failed :[\t]*\([0-9]*\)/\1/p' |tr -d ' ')
+
+    echo "No test suites     : $TOTAL_SUITES"
+    echo "Passed             : $PASSED_TESTS"
+    echo "Failed             : $FAILED_TESTS"
+    echo "Skipped            : $SKIPPED_TESTS"
+    echo "Total exec'd tests : $(($PASSED_TESTS + $FAILED_TESTS))"
+    echo "Total avail tests  : $(($PASSED_TESTS + $FAILED_TESTS + $SKIPPED_TESTS))"
+    echo
+
+    TOTAL_PASS=$(($TOTAL_PASS+$PASSED_TESTS))
+    TOTAL_FAIL=$(($TOTAL_FAIL+$FAILED_TESTS))
+    TOTAL_SKIP=$(($TOTAL_SKIP+$SKIPPED_TESTS))
+    TOTAL_AVAIL=$(($TOTAL_AVAIL + $PASSED_TESTS + $FAILED_TESTS + $SKIPPED_TESTS))
+    TOTAL_EXED=$(($TOTAL_EXED + $PASSED_TESTS + $FAILED_TESTS))
+
+    # Step 4c - TLS Options tests
     echo "TLS Options tests - tests/ssl-opt.sh"
 
     PASSED_TESTS=$(tail -n5 sys-test-$TEST_OUTPUT|sed -n -e 's/.* (\([0-9]*\) \/ [0-9]* tests ([0-9]* skipped))$/\1/p')
@@ -185,7 +217,7 @@ rm -f "tests/basic-build-test-$$.ok"
     TOTAL_EXED=$(($TOTAL_EXED + $TOTAL_TESTS))
 
 
-    # Step 4c - System Compatibility tests
+    # Step 4d - System Compatibility tests
     echo "System/Compatibility tests - tests/compat.sh"
 
     PASSED_TESTS=$(cat compat-test-$TEST_OUTPUT | sed -n -e 's/.* (\([0-9]*\) \/ [0-9]* tests ([0-9]* skipped))$/\1/p' | awk 'BEGIN{ s = 0 } { s += $1 } END{ print s }')
@@ -207,7 +239,7 @@ rm -f "tests/basic-build-test-$$.ok"
     TOTAL_EXED=$(($TOTAL_EXED + $EXED_TESTS))
 
 
-    # Step 4d - Grand totals
+    # Step 4e - Grand totals
     echo "-------------------------------------------------------------------------"
     echo "Total tests"
 
@@ -219,12 +251,13 @@ rm -f "tests/basic-build-test-$$.ok"
     echo
 
 
-    # Step 4e - Coverage report
+    # Step 4f - Coverage report
     echo "Coverage statistics:"
     sed -n '1,/^Overall coverage/d; /%/p' cov-$TEST_OUTPUT
     echo
 
-    rm unit-test-$TEST_OUTPUT
+    rm tls-x509-unit-test-$TEST_OUTPUT
+    rm crypto-unit-test-$TEST_OUTPUT
     rm sys-test-$TEST_OUTPUT
     rm compat-test-$TEST_OUTPUT
     rm cov-$TEST_OUTPUT

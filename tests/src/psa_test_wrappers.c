@@ -10,7 +10,6 @@
     !defined(RECORD_PSA_STATUS_COVERAGE_LOG)
 
 #include <psa/crypto.h>
-
 #include <test/memory.h>
 #include <test/psa_crypto_helpers.h>
 #include <test/psa_test_wrappers.h>

@@ -343,6 +343,7 @@ cleanup()
     rm -f include/Makefile programs/!(fuzz)/Makefile
     rm -f tf-psa-crypto/Makefile tf-psa-crypto/include/Makefile
     rm -f tf-psa-crypto/core/Makefile tf-psa-crypto/drivers/Makefile
+    rm -f tf-psa-crypto/tests/Makefile
     rm -f tf-psa-crypto/drivers/everest/Makefile
     rm -f tf-psa-crypto/drivers/p256-m/Makefile
     rm -f tf-psa-crypto/drivers/builtin/Makefile
@@ -1097,14 +1098,27 @@ helper_psasim_server() {
     if [ "$OPERATION" == "start" ]; then
     (
         cd tests
-        msg "start server"
+        msg "start server in tests"
         psa-client-server/psasim/test/start_server.sh
+        msg "start server in tf-psa-crypto/tests"
+        cd ../tf-psa-crypto/tests
+        ../../tests/psa-client-server/psasim/test/start_server.sh
     )
     else
     (
+        msg "terminate servers and cleanup"
+        tests/psa-client-server/psasim//test/kill_servers.sh
+
+        # Remove temporary files and logs
         cd tests
-        msg "terminate server and cleanup"
-        psa-client-server/psasim//test/kill_server.sh
+        rm -f psa_notify_*
+        rm -f psa_service_*
+        rm -f psa_server.log
+
+        cd ../tf-psa-crypto/tests
+        rm -f psa_notify_*
+        rm -f psa_service_*
+        rm -f psa_server.log
     )
     fi
 }
@@ -1206,7 +1220,8 @@ component_check_test_dependencies () {
 
     # Find legacy dependencies in PSA tests
     grep 'depends_on' \
-        tests/suites/test_suite_psa*.data tests/suites/test_suite_psa*.function |
+        tf-psa-crypto/tests/suites/test_suite_psa*.data \
+        tf-psa-crypto/tests/suites/test_suite_psa*.function |
         grep -Eo '!?MBEDTLS_[^: ]*' |
         grep -v -e MBEDTLS_PSA_ -e MBEDTLS_TEST_ |
         sort -u > $found
@@ -1446,7 +1461,7 @@ component_test_ref_configs () {
     # dependency resolution for generated files and just rely on them being
     # present (thanks to pre_generate_files) by turning GEN_FILES off.
     CC=$ASAN_CC cmake -D GEN_FILES=Off -D CMAKE_BUILD_TYPE:String=Asan .
-    tests/scripts/test-ref-configs.pl
+    tests/scripts/test-ref-configs.pl config-tfm.h
 }
 
 component_test_no_renegotiation () {
@@ -2082,6 +2097,9 @@ skip_suites_without_constant_flow () {
     SKIP_TEST_SUITES=$(
         git -C tests/suites grep -L TEST_CF_ 'test_suite_*.function' |
             sed 's/test_suite_//; s/\.function$//' |
+            tr '\n' ,),$(
+        git -C tf-psa-crypto/tests/suites grep -L TEST_CF_ 'test_suite_*.function' |
+            sed 's/test_suite_//; s/\.function$//' |
             tr '\n' ,)
     export SKIP_TEST_SUITES
 }
@@ -2092,6 +2110,10 @@ skip_all_except_given_suite () {
         ls -1 tests/suites/test_suite_*.function |
         grep -v $1.function |
          sed 's/tests.suites.test_suite_//; s/\.function$//' |
+        tr '\n' ,),$(
+        ls -1 tf-psa-crypto/tests/suites/test_suite_*.function |
+        grep -v $1.function |
+         sed 's/tf-psa-crypto.tests.suites.test_suite_//; s/\.function$//' |
         tr '\n' ,)
     export SKIP_TEST_SUITES
 }
@@ -4511,13 +4533,13 @@ END
 
     msg "all loops unrolled"
     make clean
-    make -C tests test_suite_shax CFLAGS="-DMBEDTLS_SHA3_THETA_UNROLL=1 -DMBEDTLS_SHA3_PI_UNROLL=1 -DMBEDTLS_SHA3_CHI_UNROLL=1 -DMBEDTLS_SHA3_RHO_UNROLL=1"
-    ./tests/test_suite_shax
+    make -C tests ../tf-psa-crypto/tests/test_suite_shax CFLAGS="-DMBEDTLS_SHA3_THETA_UNROLL=1 -DMBEDTLS_SHA3_PI_UNROLL=1 -DMBEDTLS_SHA3_CHI_UNROLL=1 -DMBEDTLS_SHA3_RHO_UNROLL=1"
+    ./tf-psa-crypto/tests/test_suite_shax
 
     msg "all loops rolled up"
     make clean
-    make -C tests test_suite_shax CFLAGS="-DMBEDTLS_SHA3_THETA_UNROLL=0 -DMBEDTLS_SHA3_PI_UNROLL=0 -DMBEDTLS_SHA3_CHI_UNROLL=0 -DMBEDTLS_SHA3_RHO_UNROLL=0"
-    ./tests/test_suite_shax
+    make -C tests ../tf-psa-crypto/tests/test_suite_shax CFLAGS="-DMBEDTLS_SHA3_THETA_UNROLL=0 -DMBEDTLS_SHA3_PI_UNROLL=0 -DMBEDTLS_SHA3_CHI_UNROLL=0 -DMBEDTLS_SHA3_RHO_UNROLL=0"
+    ./tf-psa-crypto/tests/test_suite_shax
 }
 
 support_test_aesni_m32() {
@@ -6085,6 +6107,7 @@ component_test_suite_with_psasim()
     msg "build test suites"
     make PSASIM=1 CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS" tests
 
+    helper_psasim_server kill
     helper_psasim_server start
 
     # psasim takes an extremely long execution time on some test suites so we
@@ -6147,6 +6170,14 @@ run_component () {
         linux*|freebsd*|openbsd*) dd_cmd+=(status=none)
     esac
     "${dd_cmd[@]}"
+
+    if [ -d tf-psa-crypto ]; then
+        dd_cmd=(dd if=/dev/urandom of=./tf-psa-crypto/tests/seedfile bs=64 count=1)
+        case $OSTYPE in
+            linux*|freebsd*|openbsd*) dd_cmd+=(status=none)
+        esac
+        "${dd_cmd[@]}"
+    fi
 
     # Run the component in a subshell, with error trapping and output
     # redirection set up based on the relevant options.

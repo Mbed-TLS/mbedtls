@@ -110,19 +110,19 @@ Test mbedtls_mpi_write_binary_le #2 (Buffer too small)
 mpi_write_binary_le:"123123123123123123123123123":"23311223311223311223311223":13:MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL
 
 Base test mbedtls_mpi_read_file #1
-mpi_read_file:"../framework/data_files/mpi_16":"01f55332c3a48b910f9942f6c914e58bef37a47ee45cb164a5b6b8d1006bf59a059c21449939ebebfdf517d2e1dbac88010d7b1f141e997bd6801ddaec9d05910f4f2de2b2c4d714e2c14a72fc7f17aa428d59c531627f09":0
+mpi_read_file:"../../framework/data_files/mpi_16":"01f55332c3a48b910f9942f6c914e58bef37a47ee45cb164a5b6b8d1006bf59a059c21449939ebebfdf517d2e1dbac88010d7b1f141e997bd6801ddaec9d05910f4f2de2b2c4d714e2c14a72fc7f17aa428d59c531627f09":0
 
 Test mbedtls_mpi_read_file #1 (Empty file)
-mpi_read_file:"../framework/data_files/hash_file_4":"":MBEDTLS_ERR_MPI_FILE_IO_ERROR
+mpi_read_file:"../../framework/data_files/hash_file_4":"":MBEDTLS_ERR_MPI_FILE_IO_ERROR
 
 Test mbedtls_mpi_read_file #2 (Illegal input)
-mpi_read_file:"../framework/data_files/hash_file_2":"":0
+mpi_read_file:"../../framework/data_files/hash_file_2":"":0
 
 Test mbedtls_mpi_read_file #3 (Input too big)
-mpi_read_file:"../framework/data_files/mpi_too_big":"":MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL
+mpi_read_file:"../../framework/data_files/mpi_too_big":"":MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL
 
 Base test mbedtls_mpi_write_file #1
-mpi_write_file:"941379d00fed1491fe15df284dfde4a142f68aa8d412023195cee66883e6290ffe703f4ea5963bf212713cee46b107c09182b5edcd955adac418bf4918e2889af48e1099d513830cec85c26ac1e158b52620e33ba8692f893efbb2f958b4424":"../framework/data_files/mpi_write"
+mpi_write_file:"941379d00fed1491fe15df284dfde4a142f68aa8d412023195cee66883e6290ffe703f4ea5963bf212713cee46b107c09182b5edcd955adac418bf4918e2889af48e1099d513830cec85c26ac1e158b52620e33ba8692f893efbb2f958b4424":"../../framework/data_files/mpi_write"
 
 Test mbedtls_mpi_lsb: 0 (null)
 mpi_lsb:"":0

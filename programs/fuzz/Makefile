@@ -1,4 +1,4 @@
-MBEDTLS_TEST_PATH:=../../tests
+MBEDTLS_TEST_PATH:=../../framework/tests
 
 MBEDTLS_PATH := ../..
 include ../../scripts/common.make

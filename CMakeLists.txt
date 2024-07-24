@@ -95,6 +95,19 @@ else()
     option(ENABLE_TESTING "Build Mbed TLS tests." ON)
 endif()
 
+option(USE_STATIC_MBEDTLS_LIBRARY "Build Mbed TLS static library." ON)
+option(USE_SHARED_MBEDTLS_LIBRARY "Build Mbed TLS shared library." OFF)
+option(LINK_WITH_PTHREAD "Explicitly link Mbed TLS library to pthread." OFF)
+option(LINK_WITH_TRUSTED_STORAGE "Explicitly link Mbed TLS library to trusted_storage." OFF)
+
+set(mbedcrypto_target "${MBEDTLS_TARGET_PREFIX}mbedcrypto")
+if (USE_STATIC_MBEDTLS_LIBRARY)
+    set(mbedcrypto_static_target ${mbedcrypto_target})
+endif()
+if(USE_STATIC_MBEDTLS_LIBRARY AND USE_SHARED_MBEDTLS_LIBRARY)
+    string(APPEND mbedcrypto_static_target "_static")
+endif()
+
 # Warning string - created as a list for compatibility with CMake 2.8
 set(CTR_DRBG_128_BIT_KEY_WARN_L1 "****  WARNING!  MBEDTLS_CTR_DRBG_USE_128_BIT_KEY defined!\n")
 set(CTR_DRBG_128_BIT_KEY_WARN_L2 "****  Using 128-bit keys for CTR_DRBG limits the security of generated\n")

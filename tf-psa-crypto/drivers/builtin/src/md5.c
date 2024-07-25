@@ -58,7 +58,7 @@ int mbedtls_md5_starts(mbedtls_md5_context *ctx)
     return 0;
 }
 
-int mbedtls_internal_md5_process(mbedtls_md5_context *ctx,
+static int mbedtls_internal_md5_process(mbedtls_md5_context *ctx,
                                  const unsigned char data[64])
 {
     struct {

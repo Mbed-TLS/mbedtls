@@ -62,7 +62,7 @@ int mbedtls_ripemd160_starts(mbedtls_ripemd160_context *ctx)
 /*
  * Process one block
  */
-int mbedtls_internal_ripemd160_process(mbedtls_ripemd160_context *ctx,
+static int mbedtls_internal_ripemd160_process(mbedtls_ripemd160_context *ctx,
                                        const unsigned char data[64])
 {
     struct {

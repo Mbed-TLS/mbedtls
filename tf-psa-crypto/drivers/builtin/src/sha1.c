@@ -59,7 +59,7 @@ int mbedtls_sha1_starts(mbedtls_sha1_context *ctx)
     return 0;
 }
 
-int mbedtls_internal_sha1_process(mbedtls_sha1_context *ctx,
+static int mbedtls_internal_sha1_process(mbedtls_sha1_context *ctx,
                                   const unsigned char data[64])
 {
     struct {

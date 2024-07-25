@@ -59,8 +59,9 @@ if(NOT DEFINED MBEDTLS_AS_SUBPROJECT)
   endif()
 endif()
 
-# Set the project root directory.
+# Set the project and framework root directory.
 set(MBEDTLS_DIR ${CMAKE_CURRENT_SOURCE_DIR})
+set(MBEDTLS_FRAMEWORK_DIR ${CMAKE_CURRENT_SOURCE_DIR}/framework)
 
 option(ENABLE_PROGRAMS "Build Mbed TLS programs." ON)
 
@@ -313,8 +314,8 @@ if(LIB_INSTALL_DIR)
     set(CMAKE_INSTALL_LIBDIR "${LIB_INSTALL_DIR}")
 endif()
 
-if (NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/framework/CMakeLists.txt")
-    message(FATAL_ERROR "${CMAKE_CURRENT_SOURCE_DIR}/framework/CMakeLists.txt not found. Run `git submodule update --init` from the source tree to fetch the submodule contents.")
+if (NOT EXISTS "${MBEDTLS_FRAMEWORK_DIR}/CMakeLists.txt")
+    message(FATAL_ERROR "${MBEDTLS_FRAMEWORK_DIR}/CMakeLists.txt not found. Run `git submodule update --init` from the source tree to fetch the submodule contents.")
 endif()
 add_subdirectory(framework)
 
@@ -353,11 +354,11 @@ if(ENABLE_TESTING OR ENABLE_PROGRAMS)
                 ${CMAKE_CURRENT_SOURCE_DIR}/tests
             COMMAND
                 "${MBEDTLS_PYTHON_EXECUTABLE}"
-                "${CMAKE_CURRENT_SOURCE_DIR}/framework/scripts/generate_test_keys.py"
+                "${MBEDTLS_FRAMEWORK_DIR}/scripts/generate_test_keys.py"
                 "--output"
                 "${CMAKE_CURRENT_SOURCE_DIR}/tests/src/test_keys.h"
             DEPENDS
-                ${CMAKE_CURRENT_SOURCE_DIR}/framework/scripts/generate_test_keys.py
+                ${MBEDTLS_FRAMEWORK_DIR}/scripts/generate_test_keys.py
         )
         add_custom_target(test_keys_header DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/tests/src/test_keys.h)
         add_custom_command(
@@ -367,11 +368,11 @@ if(ENABLE_TESTING OR ENABLE_PROGRAMS)
                 ${CMAKE_CURRENT_SOURCE_DIR}/tests
             COMMAND
                 "${MBEDTLS_PYTHON_EXECUTABLE}"
-                "${CMAKE_CURRENT_SOURCE_DIR}/framework/scripts/generate_test_cert_macros.py"
+                "${MBEDTLS_FRAMEWORK_DIR}/scripts/generate_test_cert_macros.py"
                 "--output"
                 "${CMAKE_CURRENT_SOURCE_DIR}/tests/src/test_certs.h"
             DEPENDS
-                ${CMAKE_CURRENT_SOURCE_DIR}/framework/scripts/generate_test_cert_macros.py
+                ${MBEDTLS_FRAMEWORK_DIR}/scripts/generate_test_cert_macros.py
         )
         add_custom_target(test_certs_header DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/tests/src/test_certs.h)
         add_dependencies(mbedtls_test test_keys_header test_certs_header)

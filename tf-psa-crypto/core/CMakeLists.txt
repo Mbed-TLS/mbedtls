@@ -129,11 +129,11 @@ foreach(target IN LISTS target_libraries)
     # from core/ and drivers/builtin/src/.
     target_include_directories(${target}
         PUBLIC $<BUILD_INTERFACE:${MBEDTLS_DIR}/include/>
-               $<BUILD_INTERFACE:${MBEDTLS_DIR}/tf-psa-crypto/include/>
-               $<BUILD_INTERFACE:${MBEDTLS_DIR}/tf-psa-crypto/drivers/builtin/include/>
+               $<BUILD_INTERFACE:${TF_PSA_CRYPTO_DIR}/include/>
+               $<BUILD_INTERFACE:${TF_PSA_CRYPTO_DIR}/drivers/builtin/include/>
                $<INSTALL_INTERFACE:include/>
-        PRIVATE ${MBEDTLS_DIR}/tf-psa-crypto/core
-                ${MBEDTLS_DIR}/tf-psa-crypto/drivers/builtin/src
+        PRIVATE ${TF_PSA_CRYPTO_DIR}/core
+                ${TF_PSA_CRYPTO_DIR}/drivers/builtin/src
                 # Needed to include psa_crypto_driver_wrappers.h
                 ${CMAKE_CURRENT_BINARY_DIR})
     # Pass-through MBEDTLS_CONFIG_FILE and MBEDTLS_USER_CONFIG_FILE

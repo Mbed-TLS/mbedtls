@@ -35,6 +35,9 @@ if(LIB_INSTALL_DIR)
     set(CMAKE_INSTALL_LIBDIR "${LIB_INSTALL_DIR}")
 endif()
 
+# Set the project root directory.
+set(TF_PSA_CRYPTO_DIR ${CMAKE_CURRENT_SOURCE_DIR})
+
 add_subdirectory(include)
 add_subdirectory(core)
 add_subdirectory(drivers)

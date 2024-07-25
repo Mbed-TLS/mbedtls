@@ -128,8 +128,8 @@ foreach (target IN LISTS target_libraries)
       PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
              $<BUILD_INTERFACE:${MBEDTLS_DIR}/include>
-             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../include>
-      PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../core)
+             $<BUILD_INTERFACE:${TF_PSA_CRYPTO_DIR}/include>
+      PRIVATE ${TF_PSA_CRYPTO_DIR}/core)
 
     # Pass-through MBEDTLS_CONFIG_FILE and MBEDTLS_USER_CONFIG_FILE
     # This must be duplicated from library/CMakeLists.txt because

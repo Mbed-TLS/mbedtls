@@ -1,5 +1,5 @@
 set(libs
-    ${mbedtls_target}
+    ${mbedcrypto_target}
     ${CMAKE_THREAD_LIBS_INIT}
 )
 

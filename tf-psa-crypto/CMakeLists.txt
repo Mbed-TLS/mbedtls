@@ -38,3 +38,8 @@ endif()
 add_subdirectory(include)
 add_subdirectory(core)
 add_subdirectory(drivers)
+
+if(ENABLE_TESTING)
+    enable_testing()
+    add_subdirectory(tests)
+endif()

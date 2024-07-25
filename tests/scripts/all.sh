@@ -1092,6 +1092,10 @@ helper_get_psa_key_type_list() {
     echo "$loc_list"
 }
 
+# Include the components from components.sh
+test_script_dir="${0%/*}"
+source "$test_script_dir/components.sh"
+
 # Helper function for controlling (start & stop) the psasim server.
 helper_psasim_server() {
     OPERATION=$1

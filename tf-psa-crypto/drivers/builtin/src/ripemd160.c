@@ -63,7 +63,7 @@ int mbedtls_ripemd160_starts(mbedtls_ripemd160_context *ctx)
  * Process one block
  */
 static int mbedtls_internal_ripemd160_process(mbedtls_ripemd160_context *ctx,
-                                       const unsigned char data[64])
+                                              const unsigned char data[64])
 {
     struct {
         uint32_t A, B, C, D, E, Ap, Bp, Cp, Dp, Ep, X[16];

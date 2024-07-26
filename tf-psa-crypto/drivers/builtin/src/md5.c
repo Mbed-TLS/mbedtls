@@ -59,7 +59,7 @@ int mbedtls_md5_starts(mbedtls_md5_context *ctx)
 }
 
 static int mbedtls_internal_md5_process(mbedtls_md5_context *ctx,
-                                 const unsigned char data[64])
+                                        const unsigned char data[64])
 {
     struct {
         uint32_t X[16], A, B, C, D;

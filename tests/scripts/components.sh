@@ -5012,7 +5012,7 @@ component_check_test_helpers () {
     python3 -m unittest tests/scripts/translate_ciphers.py 2>&1
 }
 
-component_test_psasim() {
+component_test_psasim () {
     msg "build server library and application"
     scripts/config.py crypto
     helper_psasim_config server
@@ -5037,8 +5037,7 @@ component_test_psasim() {
     make -C tests/psa-client-server/psasim clean
 }
 
-component_test_suite_with_psasim()
-{
+component_test_suite_with_psasim () {
     msg "build server library and application"
     helper_psasim_config server
     # Modify server's library configuration here (if needed)

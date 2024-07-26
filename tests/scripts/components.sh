@@ -51,38 +51,3 @@ component_test_no_rsa_key_pair_generation() {
     msg "test: default config minus PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_GENERATE"
     make test
 }
-
-component_test_full_no_cipher () {
-    msg "build: full no CIPHER"
-
-    scripts/config.py full
-    scripts/config.py unset MBEDTLS_CIPHER_C
-
-    # The built-in implementation of the following algs/key-types depends
-    # on CIPHER_C so we disable them.
-    # This does not hold for KEY_TYPE_CHACHA20 and ALG_CHACHA20_POLY1305
-    # so we keep them enabled.
-    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CCM_STAR_NO_TAG
-    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CMAC
-    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CBC_NO_PADDING
-    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CBC_PKCS7
-    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CFB
-    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CTR
-    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_ECB_NO_PADDING
-    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_OFB
-    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_PBKDF2_AES_CMAC_PRF_128
-    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_STREAM_CIPHER
-    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_KEY_TYPE_DES
-
-    # The following modules directly depends on CIPHER_C
-    scripts/config.py unset MBEDTLS_CMAC_C
-    scripts/config.py unset MBEDTLS_NIST_KW_C
-
-    make
-
-    # Ensure that CIPHER_C was not re-enabled
-    not grep mbedtls_cipher_init ${BUILTIN_SRC_PATH}/cipher.o
-
-    msg "test: full no CIPHER"
-    make test
-}

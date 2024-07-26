@@ -10,7 +10,7 @@
 ################################################################
 
 # Helper function for controlling (start & stop) the psasim server.
-helper_psasim_server() {
+helper_psasim_server () {
     OPERATION=$1
     if [ "$OPERATION" == "start" ]; then
     (

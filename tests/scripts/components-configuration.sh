@@ -244,7 +244,7 @@ support_build_baremetal () {
     ! grep -q -F time.h /usr/include/x86_64-linux-gnu/sys/types.h
 }
 
-component_test_no_psa_crypto_full_cmake_asan() {
+component_test_no_psa_crypto_full_cmake_asan () {
     # full minus MBEDTLS_PSA_CRYPTO_C: run the same set of tests as basic-build-test.sh
     msg "build: cmake, full config minus PSA crypto, ASan"
     scripts/config.py full
@@ -278,7 +278,7 @@ component_test_no_psa_crypto_full_cmake_asan() {
     env OPENSSL="$OPENSSL_NEXT" tests/compat.sh -e '^$' -f 'ARIA\|CHACHA'
 }
 
-component_build_tfm() {
+component_build_tfm () {
     # Check that the TF-M configuration can build cleanly with various
     # warning flags enabled. We don't build or run tests, since the
     # TF-M configuration needs a TF-M platform. A tweaked version of

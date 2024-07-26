@@ -324,7 +324,7 @@ component_test_tls1_2_default_cbc_legacy_cbc_etm_cipher_only () {
 # implementations ourselves: one using PSA, the other not. At least test that
 # these two interoperate with each other.
 
-component_test_tls1_2_ecjpake_compatibility() {
+component_test_tls1_2_ecjpake_compatibility () {
     msg "build: TLS1.2 server+client w/ EC-JPAKE w/o USE_PSA"
     scripts/config.py set MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED
     # Explicitly make lib first to avoid a race condition:
@@ -819,7 +819,7 @@ component_test_tls13_no_compatibility_mode () {
     tests/ssl-opt.sh
 }
 
-component_test_full_minus_session_tickets() {
+component_test_full_minus_session_tickets () {
     msg "build: full config without session tickets"
     scripts/config.py full
     scripts/config.py unset MBEDTLS_SSL_SESSION_TICKETS

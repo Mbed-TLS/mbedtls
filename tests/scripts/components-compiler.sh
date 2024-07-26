@@ -14,7 +14,7 @@ support_build_tfm_armcc () {
     support_build_armcc
 }
 
-component_build_tfm_armcc() {
+component_build_tfm_armcc () {
     # test the TF-M configuration can build cleanly with various warning flags enabled
     cp configs/config-tfm.h "$CONFIG_H"
 
@@ -22,12 +22,12 @@ component_build_tfm_armcc() {
     armc6_build_test "--target=arm-arm-none-eabi -march=armv7-m -mthumb -Os -std=c99 -Werror -Wall -Wextra -Wwrite-strings -Wpointer-arith -Wimplicit-fallthrough -Wshadow -Wvla -Wformat=2 -Wno-format-nonliteral -Wshadow -Wasm-operand-widths -Wunused -I../tests/include/spe"
 }
 
-support_test_aesni_m32_clang() {
+support_test_aesni_m32_clang () {
     # clang >= 4 is required to build with target attributes
     support_test_aesni_m32 && [[ $(clang_version) -ge 4 ]]
 }
 
-component_test_aesni_m32_clang() {
+component_test_aesni_m32_clang () {
 
     scripts/config.py set MBEDTLS_AESNI_C
     scripts/config.py unset MBEDTLS_AES_USE_HARDWARE_ONLY
@@ -297,7 +297,7 @@ component_build_mingw () {
     make WINDOWS_BUILD=1 clean
 }
 
-support_build_mingw() {
+support_build_mingw () {
     case $(i686-w64-mingw32-gcc -dumpversion 2>/dev/null) in
         [0-5]*|"") false;;
         *) true;;

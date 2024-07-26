@@ -57,7 +57,7 @@ component_build_psa_crypto_spm () {
     check_renamed_symbols tests/include/spe/crypto_spe.h library/libmbedcrypto.a
 }
 
-component_test_no_rsa_key_pair_generation() {
+component_test_no_rsa_key_pair_generation () {
     msg "build: default config minus PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_GENERATE"
     scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
     scripts/config.py unset MBEDTLS_GENPRIME
@@ -98,7 +98,7 @@ component_test_psa_inject_entropy () {
     make test
 }
 
-component_full_no_pkparse_pkwrite() {
+component_full_no_pkparse_pkwrite () {
     msg "build: full without pkparse and pkwrite"
 
     scripts/config.py crypto_full
@@ -178,7 +178,7 @@ component_test_full_no_cipher () {
     make test
 }
 
-component_test_full_no_ccm() {
+component_test_full_no_ccm () {
     msg "build: full no PSA_WANT_ALG_CCM"
 
     # Full config enables:
@@ -200,7 +200,7 @@ component_test_full_no_ccm() {
     make test
 }
 
-component_test_full_no_ccm_star_no_tag() {
+component_test_full_no_ccm_star_no_tag () {
     msg "build: full no PSA_WANT_ALG_CCM_STAR_NO_TAG"
 
     # Full config enables CRYPTO_CONFIG so that PSA_WANT config symbols are evaluated
@@ -580,7 +580,7 @@ component_test_psa_crypto_config_reference_ffdh () {
     tests/ssl-opt.sh -f "ffdh"
 }
 
-component_test_psa_crypto_config_accel_pake() {
+component_test_psa_crypto_config_accel_pake () {
     msg "build: full with accelerated PAKE"
 
     loc_accel_list="ALG_JPAKE \
@@ -1019,7 +1019,7 @@ component_test_psa_crypto_config_reference_ecc_no_ecp_at_all () {
 # $2: a string value which states which components are tested. Allowed values
 #     are "ECC" or "ECC_DH".
 
-config_psa_crypto_config_accel_ecc_ffdh_no_bignum() {
+config_psa_crypto_config_accel_ecc_ffdh_no_bignum () {
     driver_only="$1"
     test_target="$2"
     # start with full config for maximum coverage (also enables USE_PSA)
@@ -1273,7 +1273,7 @@ component_test_tfm_config_p256m_driver_accel_ec () {
 # Keep this in sync with component_test_tfm_config_p256m_driver_accel_ec() as
 # they are both meant to be used in analyze_outcomes.py for driver's coverage
 # analysis.
-component_test_tfm_config() {
+component_test_tfm_config () {
     common_tfm_config
 
     # Disable P256M driver, which is on by default, so that analyze_outcomes
@@ -1308,7 +1308,7 @@ component_test_tfm_config() {
 # enabled, but one. Input arguments are as follows:
 # - $1 is the key type under test, i.e. ECC/RSA/DH
 # - $2 is the key option to be unset (i.e. generate, derive, etc)
-build_and_test_psa_want_key_pair_partial() {
+build_and_test_psa_want_key_pair_partial () {
     key_type=$1
     unset_option=$2
     disabled_psa_want="PSA_WANT_KEY_TYPE_${key_type}_KEY_PAIR_${unset_option}"
@@ -1328,11 +1328,11 @@ build_and_test_psa_want_key_pair_partial() {
     make test
 }
 
-component_test_psa_ecc_key_pair_no_derive() {
+component_test_psa_ecc_key_pair_no_derive () {
     build_and_test_psa_want_key_pair_partial "ECC" "DERIVE"
 }
 
-component_test_psa_ecc_key_pair_no_generate() {
+component_test_psa_ecc_key_pair_no_generate () {
     build_and_test_psa_want_key_pair_partial "ECC" "GENERATE"
 }
 
@@ -1411,7 +1411,7 @@ component_test_psa_crypto_config_reference_rsa_crypto () {
 # This is a temporary test to verify that full RSA support is present even when
 # only one single new symbols (PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC) is defined.
 
-component_test_new_psa_want_key_pair_symbol() {
+component_test_new_psa_want_key_pair_symbol () {
     msg "Build: crypto config - MBEDTLS_RSA_C + PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC"
 
     # Create a temporary output file unless there is already one set
@@ -1581,7 +1581,7 @@ component_test_psa_crypto_config_accel_hash_use_psa () {
 # script to find regression in test coverage when accelerated hash is used (tests and ssl-opt).
 # Both components need to be kept in sync.
 
-component_test_psa_crypto_config_reference_hash_use_psa() {
+component_test_psa_crypto_config_reference_hash_use_psa () {
     msg "test: full without accelerated hashes"
 
     config_psa_crypto_hash_use_psa 0
@@ -1624,7 +1624,7 @@ config_psa_crypto_hmac_use_psa () {
     scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_DETERMINISTIC_ECDSA
 }
 
-component_test_psa_crypto_config_accel_hmac() {
+component_test_psa_crypto_config_accel_hmac () {
     msg "test: full with accelerated hmac"
 
     loc_accel_list="ALG_HMAC KEY_TYPE_HMAC \
@@ -1654,7 +1654,7 @@ component_test_psa_crypto_config_accel_hmac() {
     make test
 }
 
-component_test_psa_crypto_config_reference_hmac() {
+component_test_psa_crypto_config_reference_hmac () {
     msg "test: full without accelerated hmac"
 
     config_psa_crypto_hmac_use_psa 0
@@ -1755,7 +1755,7 @@ component_test_psa_crypto_config_accel_aead () {
 # - component_test_psa_crypto_config_accel_cipher_aead_cmac
 # - component_test_psa_crypto_config_reference_cipher_aead_cmac
 
-common_psa_crypto_config_accel_cipher_aead_cmac() {
+common_psa_crypto_config_accel_cipher_aead_cmac () {
     # Start from the full config
     helper_libtestdriver1_adjust_config "full"
 
@@ -1849,7 +1849,7 @@ component_test_psa_crypto_config_reference_cipher_aead_cmac () {
     tests/compat.sh -V NO -p mbedTLS
 }
 
-common_block_cipher_dispatch() {
+common_block_cipher_dispatch () {
     TEST_WITH_DRIVER="$1"
 
     # Start from the full config
@@ -1931,7 +1931,7 @@ component_test_full_block_cipher_legacy_dispatch () {
     make test
 }
 
-component_test_aead_chachapoly_disabled() {
+component_test_aead_chachapoly_disabled () {
     msg "build: full minus CHACHAPOLY"
     scripts/config.py full
     scripts/config.py unset MBEDTLS_CHACHAPOLY_C
@@ -1942,7 +1942,7 @@ component_test_aead_chachapoly_disabled() {
     make test
 }
 
-component_test_aead_only_ccm() {
+component_test_aead_only_ccm () {
     msg "build: full minus CHACHAPOLY and GCM"
     scripts/config.py full
     scripts/config.py unset MBEDTLS_CHACHAPOLY_C
@@ -1955,7 +1955,7 @@ component_test_aead_only_ccm() {
     make test
 }
 
-component_test_ccm_aes_sha256() {
+component_test_ccm_aes_sha256 () {
     msg "build: CCM + AES + SHA256 configuration"
 
     cp "$CONFIG_TEST_DRIVER_H" "$CONFIG_H"
@@ -1975,7 +1975,7 @@ component_test_ccm_aes_sha256() {
 # It may be "" if all combinations are valid.
 # It receives a string containing a combination of options, as passed to the compiler,
 # e.g. "-DOPT1 -DOPT2 ...". It must return 0 iff the combination is valid, non-zero if invalid.
-build_test_config_combos() {
+build_test_config_combos () {
     file=$1
     shift
     validate_options=$1
@@ -2041,7 +2041,7 @@ build_test_config_combos() {
     rm ${makefile}
 }
 
-validate_aes_config_variations() {
+validate_aes_config_variations () {
     if [[ "$1" == *"MBEDTLS_AES_USE_HARDWARE_ONLY"* ]]; then
         if [[ !(("$HOSTTYPE" == "aarch64" && "$1" != *"MBEDTLS_AESCE_C"*) || \
                 ("$HOSTTYPE" == "x86_64"  && "$1" != *"MBEDTLS_AESNI_C"*)) ]]; then
@@ -2051,7 +2051,7 @@ validate_aes_config_variations() {
     return 0
 }
 
-component_build_aes_variations() {
+component_build_aes_variations () {
     # 18s - around 90ms per clang invocation on M1 Pro
     #
     # aes.o has many #if defined(...) guards that intersect in complex ways.
@@ -2084,7 +2084,7 @@ component_build_aes_variations() {
         "MBEDTLS_AESNI_C" "MBEDTLS_AESCE_C" "MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH"
 }
 
-support_test_aesni() {
+support_test_aesni () {
     # Check that gcc targets x86_64 (we can build AESNI), and check for
     # AESNI support on the host (we can run AESNI).
     #
@@ -2149,7 +2149,7 @@ component_test_aesni () { # ~ 60s
     not grep -q "AES note: built-in implementation." ./programs/test/selftest
 }
 
-component_test_sha3_variations() {
+component_test_sha3_variations () {
     msg "sha3 loop unroll variations"
 
     # define minimal config sufficient to test SHA3
@@ -2169,7 +2169,7 @@ END
     ./tf-psa-crypto/tests/test_suite_shax
 }
 
-support_test_aesni_m32() {
+support_test_aesni_m32 () {
     support_test_m32_no_asm && (lscpu | grep -qw aes)
 }
 
@@ -2233,7 +2233,7 @@ component_build_aes_aesce_armcc () {
     armc6_build_test "-O1 --target=aarch64-arm-none-eabi -march=armv8-a+crypto"
 }
 
-support_build_aes_armce() {
+support_build_aes_armce () {
     # clang >= 11 is required to build with AES extensions
     [[ $(clang_version) -ge 11 ]]
 }
@@ -2289,7 +2289,7 @@ component_build_aes_armce () {
     not grep -E 'aes[a-z]+\s*[qv]' ${BUILTIN_SRC_PATH}/aesce.o
 }
 
-support_build_sha_armce() {
+support_build_sha_armce () {
     # clang >= 4 is required to build with SHA extensions
     [[ $(clang_version) -ge 4 ]]
 }

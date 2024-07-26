@@ -617,7 +617,7 @@ static size_t mbedtls_internal_sha256_process_many(mbedtls_sha256_context *ctx,
     }
 }
 
-static int mbedtls_internal_sha256_process(mbedtls_sha256_context *ctx,
+int mbedtls_internal_sha256_process(mbedtls_sha256_context *ctx,
                                     const unsigned char data[SHA256_BLOCK_SIZE])
 {
     if (mbedtls_a64_crypto_sha256_has_support()) {

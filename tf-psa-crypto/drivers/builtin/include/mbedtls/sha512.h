@@ -121,6 +121,21 @@ int mbedtls_sha512_finish(mbedtls_sha512_context *ctx,
                           unsigned char *output);
 
 /**
+ * \brief          This function processes a single data block within
+ *                 the ongoing SHA-512 computation.
+ *                 This function is for internal use only.
+ *
+ * \param ctx      The SHA-512 context. This must be initialized.
+ * \param data     The buffer holding one block of data. This
+ *                 must be a readable buffer of length \c 128 Bytes.
+ *
+ * \return         \c 0 on success.
+ * \return         A negative error code on failure.
+ */
+int mbedtls_internal_sha512_process(mbedtls_sha512_context *ctx,
+                                    const unsigned char data[128]);
+
+/**
  * \brief          This function calculates the SHA-512 or SHA-384
  *                 checksum of a buffer.
  *

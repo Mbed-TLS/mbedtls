@@ -34,8 +34,12 @@ set -eu
 PROJECT_NAME_FILE='./scripts/project_name.txt'
 
 in_mbedtls_repo () {
+    if [ ! -f $PROJECT_NAME_FILE ]; then
+        echo "$PROJECT_NAME_FILE does not exist... Exiting..."
+        exit 1
+    fi
     grep -Fxq "Mbed TLS" "$PROJECT_NAME_FILE"
- }
+}
 
 # Collect stats and build a HTML report.
 lcov_library_report () {

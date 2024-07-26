@@ -1094,7 +1094,6 @@ helper_get_psa_key_type_list() {
 
 # Include the components from components.sh
 test_script_dir="${0%/*}"
-source "$test_script_dir/components.sh"
 source "$test_script_dir/components-compiler.sh"
 source "$test_script_dir/components-platform.sh"
 source "$test_script_dir/components-build-system.sh"

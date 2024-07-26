@@ -1417,7 +1417,7 @@ static int pk_parse_key_pkcs8_unencrypted_der(
 #endif /* MBEDTLS_PK_HAVE_ECC_KEYS */
     return MBEDTLS_ERR_PK_UNKNOWN_PK_ALG;
 
-    p = p+len; 
+    p = p + len;
     if (p != end) {
         /*
          * Is 'attributes' present?

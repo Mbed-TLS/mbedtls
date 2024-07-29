@@ -124,7 +124,7 @@ in_mbedtls_repo () {
         exit 1
     fi
     grep -Fxq "Mbed TLS" "$PROJECT_NAME_FILE"
- }
+}
 
 in_tf_psa_crypto_repo () {
     if [ ! -f $PROJECT_NAME_FILE ]; then

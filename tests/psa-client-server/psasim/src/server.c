@@ -11,7 +11,7 @@
 #include "psa/crypto.h"
 
 /* Includes from psasim */
-#include "server.h"
+#include "service.h"
 #include "error_ext.h"
 #include "util.h"
 #include "psa_functions_codes.h"
@@ -53,7 +53,7 @@ int main(int argc, char *argv[])
 
     do {
         INFO("Wait for command");
-        status = psa_wait_for_command();
+        status = psa_wait(0, COMMUNICATION_TIMEOUT_S);
         if (status != PSA_SUCCESS) {
             if (kill_on_disconnect) {
                 INFO("Quitting");
@@ -73,7 +73,7 @@ int main(int argc, char *argv[])
         }
 
         INFO("Sending reply");
-        status = psa_send_reply();
+        status = psa_reply(PSA_NULL_HANDLE, 0);
         if (status != PSA_SUCCESS) {
             ERROR("Unable to send the reply to the client.");
             return PSA_ERROR_COMMUNICATION_FAILURE;

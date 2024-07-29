@@ -104,14 +104,13 @@ static psa_status_t unwrap_psa_reply(psa_outvec *out_vec, size_t out_vec_count)
     return PSA_SUCCESS;
 }
 
-psa_status_t psa_call(int32_t psa_function,
-                      const psa_invec *in_vec,
-                      size_t in_len,
-                      psa_outvec *out_vec,
-                      size_t out_len)
+psa_status_t psa_call(psa_handle_t handle, int32_t type,
+                      const psa_invec *in_vec, size_t in_len,
+                      psa_outvec *out_vec, size_t out_len)
 {
     psa_status_t status;
     size_t psa_message_payload_len;
+    (void) handle;
 
     if (shared_memory == NULL) {
         /* Likely the PSA connection has not been established. */
@@ -124,7 +123,7 @@ psa_status_t psa_call(int32_t psa_function,
     }
 
     INFO("Prepare and send PSA message");
-    status = fill_psa_message(psa_function, in_vec, in_len, out_vec, out_len,
+    status = fill_psa_message(type, in_vec, in_len, out_vec, out_len,
                               &psa_message_payload_len);
     if (status != PSA_SUCCESS) {
         return status;
@@ -148,8 +147,11 @@ psa_status_t psa_call(int32_t psa_function,
     return status;
 }
 
-psa_status_t psa_connect(void)
+psa_handle_t psa_connect(uint32_t sid, uint32_t version)
 {
+    (void) sid;
+    (void) version;
+
     shm_key = ftok(PSASIM_SHM_PATH, 'X');
     if (shm_key < 0) {
         ERROR("Unable to generate SystemV IPC key (%d)", errno);
@@ -176,8 +178,10 @@ psa_status_t psa_connect(void)
     return PSA_SUCCESS;
 }
 
-void psa_close(void)
+void psa_close(psa_handle_t handle)
 {
+    (void) handle;
+
     if (shared_memory != NULL) {
         shmdt(shared_memory);
         shared_memory = NULL;

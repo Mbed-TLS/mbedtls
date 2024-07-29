@@ -76,7 +76,7 @@ export LDFLAGS=' --coverage'
 make clean
 cp "$CONFIG_H" "$CONFIG_BAK"
 scripts/config.py full
-make -j
+make
 
 
 # Step 2 - Execute the tests

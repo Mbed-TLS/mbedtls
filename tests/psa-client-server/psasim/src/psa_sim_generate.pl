@@ -213,7 +213,7 @@ psa_status_t psa_crypto_call(void)
     }
 
     /* Read the bytes from the client */
-    size_t actual = psa_get_invec(0, in_params, in_params_len);
+    size_t actual = psa_read(PSA_NULL_HANDLE, 0, in_params, in_params_len);
     if (actual != in_params_len) {
         free(in_params);
         return PSA_ERROR_CORRUPTION_DETECTED;
@@ -254,11 +254,11 @@ EOF
     }
 
     /* Write the exact amount of data we're returning */
-    psa_set_outvec(0, &out_params_len, sizeof(out_params_len));
+    psa_write(PSA_NULL_HANDLE, 0, &out_params_len, sizeof(out_params_len));
 
     /* And write the data itself */
     if (out_params_len) {
-        psa_set_outvec(1, out_params, out_params_len);
+        psa_write(PSA_NULL_HANDLE, 1, out_params, out_params_len);
     }
 
     free(out_params);
@@ -300,7 +300,7 @@ sub server_implementations_header
 #include "psa_functions_codes.h"
 #include "psa_sim_serialise.h"
 
-#include "server.h"
+#include "service.h"
 #include "util.h"
 
 #if !defined(MBEDTLS_PSA_CRYPTO_C)

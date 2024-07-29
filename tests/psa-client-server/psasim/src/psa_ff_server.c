@@ -18,7 +18,7 @@
 #include <errno.h>
 
 #include "common.h"
-#include "server.h"
+#include "service.h"
 #include "util.h"
 
 static int shm_id = -1;
@@ -78,15 +78,16 @@ void psa_close(void)
     remove(PSASIM_SHM_PATH);
 }
 
-psa_status_t psa_wait_for_command(void)
+psa_status_t psa_wait(psa_signal_t signal_mask, uint32_t timeout)
 {
     struct timespec start_ts;
     struct timespec current_ts;
+    (void) signal_mask;
 
     clock_gettime(CLOCK_MONOTONIC, &start_ts);
     while (atomic_load(&(shared_memory->owner)) != SHARED_MEMORY_OWNER_SERVER) {
         clock_gettime(CLOCK_MONOTONIC, &current_ts);
-        if ((current_ts.tv_sec - start_ts.tv_sec) > COMMUNICATION_TIMEOUT_S) {
+        if ((current_ts.tv_sec - start_ts.tv_sec) > timeout) {
             return PSA_ERROR_COMMUNICATION_FAILURE;
         }
     }
@@ -94,8 +95,9 @@ psa_status_t psa_wait_for_command(void)
     return PSA_SUCCESS;
 }
 
-size_t psa_get_invec(uint32_t invec_idx, void *buffer, size_t num_bytes)
+size_t psa_read(psa_handle_t msg_handle, uint32_t invec_idx, void *buffer, size_t num_bytes)
 {
+    (void) msg_handle;
     uint8_t *ptr = (uint8_t *) &psa_message->payload;
 
     if (invec_idx >= PSA_MAX_IOVEC) {
@@ -119,8 +121,9 @@ size_t psa_get_invec(uint32_t invec_idx, void *buffer, size_t num_bytes)
     return psa_message->invec_sizes[invec_idx];
 }
 
-size_t psa_set_outvec(uint32_t outvec_idx, const void *buffer, size_t num_bytes)
+size_t psa_write(psa_handle_t msg_handle, uint32_t outvec_idx, const void *buffer, size_t num_bytes)
 {
+    (void) msg_handle;
     uint8_t *ptr = (uint8_t *) &psa_message->payload;
 
     if (outvec_idx >= PSA_MAX_IOVEC) {
@@ -158,7 +161,7 @@ void psa_get_vectors_sizes(size_t *invec_sizes, size_t *outvec_sizes)
     memcpy(outvec_sizes, psa_message->outvec_sizes, sizeof(psa_message->outvec_sizes));
 }
 
-psa_status_t psa_send_reply(void)
+psa_status_t psa_reply(psa_handle_t msg_handle, psa_status_t status)
 {
     if (atomic_load(&(shared_memory->owner)) != SHARED_MEMORY_OWNER_SERVER) {
         ERROR("Cannot write on shared memory while it's owned by the client");

@@ -48,7 +48,7 @@ int psa_crypto_call(int function,
     outvecs[1].base = receive;
     outvecs[1].len = max_receive;
 
-    psa_status_t status = psa_call(function, &invec, 1, outvecs, 2);
+    psa_status_t status = psa_call(PSA_NULL_HANDLE, function, &invec, 1, outvecs, 2);
     if (status != PSA_SUCCESS) {
         free(receive);
         return 0;
@@ -70,7 +70,7 @@ psa_status_t psa_crypto_init(void)
     mbedtls_version_get_string_full(mbedtls_version);
     INFO("%s", mbedtls_version);
 
-    status = psa_connect();
+    status = psa_connect(0, PSA_VERSION_NONE);
     if (status < 0) {
         ERROR("Couldn't connect (%d)", status);
         return PSA_ERROR_COMMUNICATION_FAILURE;
@@ -105,7 +105,7 @@ fail:
 void mbedtls_psa_crypto_free(void)
 {
     INFO("Closing connection");
-    psa_close();
+    psa_close(PSA_NULL_HANDLE);
 }
 
 

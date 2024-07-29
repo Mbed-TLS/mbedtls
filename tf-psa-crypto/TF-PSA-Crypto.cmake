@@ -318,13 +318,10 @@ endif()
 if (NOT EXISTS "${MBEDTLS_FRAMEWORK_DIR}/CMakeLists.txt")
     message(FATAL_ERROR "${MBEDTLS_FRAMEWORK_DIR}/CMakeLists.txt not found. Run `git submodule update --init` from the source tree to fetch the submodule contents.")
 endif()
-add_subdirectory(framework)
 
 add_subdirectory(include)
-
-add_subdirectory(tf-psa-crypto)
-
-add_subdirectory(library)
+add_subdirectory(core)
+add_subdirectory(drivers)
 
 #
 # The C files in tests/src directory contain test code shared among test suites

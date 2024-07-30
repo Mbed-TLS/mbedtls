@@ -32,13 +32,13 @@ set -eu
 
 # Project detection
 PROJECT_NAME_FILE='./scripts/project_name.txt'
+if read -r PROJECT_NAME < "$PROJECT_NAME_FILE"; then :; else
+    echo "$PROJECT_NAME_FILE does not exist... Exiting..." >&2
+    exit 1
+fi
 
 in_mbedtls_repo () {
-    if [ ! -f $PROJECT_NAME_FILE ]; then
-        echo "$PROJECT_NAME_FILE does not exist... Exiting..." >&2
-        exit 1
-    fi
-    grep -Fxq "Mbed TLS" "$PROJECT_NAME_FILE"
+    test "$PROJECT_NAME" = "Mbed TLS"
 }
 
 # Collect stats and build a HTML report.

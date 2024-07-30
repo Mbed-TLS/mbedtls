@@ -117,21 +117,17 @@ shopt -s extglob
 
 # For project detection
 PROJECT_NAME_FILE='./scripts/project_name.txt'
+if read -r PROJECT_NAME < "$PROJECT_NAME_FILE"; then :; else
+    echo "$PROJECT_NAME_FILE does not exist... Exiting..." >&2
+    exit 1
+fi
 
 in_mbedtls_repo () {
-    if [ ! -f $PROJECT_NAME_FILE ]; then
-        echo "$PROJECT_NAME_FILE does not exist... Exiting..." >&2
-        exit 1
-    fi
-    grep -Fxq "Mbed TLS" "$PROJECT_NAME_FILE"
+    test "$PROJECT_NAME" = "Mbed TLS"
 }
 
 in_tf_psa_crypto_repo () {
-    if [ ! -f $PROJECT_NAME_FILE ]; then
-        echo "$PROJECT_NAME_FILE does not exist... Exiting..." >&2
-        exit 1
-    fi
-    grep -Fxq "TF-PSA-Crypto" "$PROJECT_NAME_FILE"
+    test "$PROJECT_NAME" = "TF-PSA-Crypto"
 }
 
 pre_check_environment () {

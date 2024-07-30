@@ -200,7 +200,7 @@ psa_ecc_family_t mbedtls_ecc_group_to_psa(mbedtls_ecp_group_id grpid,
             *bits = 224;
             return PSA_ECC_FAMILY_SECP_R1;
 #endif
-#if defined(MBEDTLS_ECP_HAVE_SECP256R1)
+#if defined(PSA_WANT_ECC_SECP_R1_256)
         case MBEDTLS_ECP_DP_SECP256R1:
             *bits = 256;
             return PSA_ECC_FAMILY_SECP_R1;

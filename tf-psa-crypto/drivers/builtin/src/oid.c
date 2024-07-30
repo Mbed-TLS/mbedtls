@@ -554,12 +554,12 @@ static const oid_ecp_grp_t oid_ecp_grp[] =
         MBEDTLS_ECP_DP_SECP224R1,
     },
 #endif /* PSA_WANT_ECC_SECP_R1_224 */
-#if defined(MBEDTLS_ECP_HAVE_SECP256R1)
+#if defined(PSA_WANT_ECC_SECP_R1_256)
     {
         OID_DESCRIPTOR(MBEDTLS_OID_EC_GRP_SECP256R1, "secp256r1",    "secp256r1"),
         MBEDTLS_ECP_DP_SECP256R1,
     },
-#endif /* MBEDTLS_ECP_HAVE_SECP256R1 */
+#endif /* PSA_WANT_ECC_SECP_R1_256 */
 #if defined(MBEDTLS_ECP_HAVE_SECP384R1)
     {
         OID_DESCRIPTOR(MBEDTLS_OID_EC_GRP_SECP384R1, "secp384r1",    "secp384r1"),

@@ -5614,7 +5614,7 @@ static const uint16_t ssl_preset_default_groups[] = {
 #if defined(PSA_WANT_ECC_MONTGOMERY_255)
     MBEDTLS_SSL_IANA_TLS_GROUP_X25519,
 #endif
-#if defined(MBEDTLS_ECP_HAVE_SECP256R1)
+#if defined(PSA_WANT_ECC_SECP_R1_256)
     MBEDTLS_SSL_IANA_TLS_GROUP_SECP256R1,
 #endif
 #if defined(MBEDTLS_ECP_HAVE_SECP384R1)
@@ -5760,7 +5760,7 @@ static const uint16_t ssl_preset_suiteb_sig_algs[] = {
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDSA_CERT_REQ_ANY_ALLOWED_ENABLED) && \
     defined(PSA_WANT_ALG_SHA_256) && \
-    defined(MBEDTLS_ECP_HAVE_SECP256R1)
+    defined(PSA_WANT_ECC_SECP_R1_256)
     MBEDTLS_TLS1_3_SIG_ECDSA_SECP256R1_SHA256,
     // == MBEDTLS_SSL_TLS12_SIG_AND_HASH_ALG(MBEDTLS_SSL_SIG_ECDSA, MBEDTLS_SSL_HASH_SHA256)
 #endif
@@ -5798,7 +5798,7 @@ static uint16_t ssl_tls12_preset_suiteb_sig_algs[] = {
 #endif /* MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED */
 
 static const uint16_t ssl_preset_suiteb_groups[] = {
-#if defined(MBEDTLS_ECP_HAVE_SECP256R1)
+#if defined(PSA_WANT_ECC_SECP_R1_256)
     MBEDTLS_SSL_IANA_TLS_GROUP_SECP256R1,
 #endif
 #if defined(MBEDTLS_ECP_HAVE_SECP384R1)
@@ -6252,7 +6252,7 @@ static const struct {
 #if defined(PSA_WANT_ECC_BRAINPOOL_P_R1_384)
     { 27, MBEDTLS_ECP_DP_BP384R1, PSA_ECC_FAMILY_BRAINPOOL_P_R1, 384 },
 #endif
-#if defined(MBEDTLS_ECP_HAVE_SECP256R1)
+#if defined(PSA_WANT_ECC_SECP_R1_256)
     { 23, MBEDTLS_ECP_DP_SECP256R1, PSA_ECC_FAMILY_SECP_R1, 256 },
 #endif
 #if defined(PSA_WANT_ECC_SECP_K1_256)

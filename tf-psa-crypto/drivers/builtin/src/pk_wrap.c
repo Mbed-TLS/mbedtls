@@ -36,7 +36,7 @@
 #include "rsa_internal.h"
 #endif
 
-#if defined(MBEDTLS_PK_CAN_ECDSA_SOME)
+#if defined(PSA_HAVE_ALG_SOME_ECDSA)
 #include "mbedtls/asn1write.h"
 #include "mbedtls/asn1.h"
 #endif
@@ -1171,7 +1171,7 @@ const mbedtls_pk_info_t mbedtls_eckeydh_info = {
     .debug_func = eckey_debug,            /* Same underlying key structure */
 };
 
-#if defined(MBEDTLS_PK_CAN_ECDSA_SOME)
+#if defined(PSA_HAVE_ALG_SOME_ECDSA)
 static int ecdsa_can_do(mbedtls_pk_type_t type)
 {
     return type == MBEDTLS_PK_ECDSA;
@@ -1262,7 +1262,7 @@ const mbedtls_pk_info_t mbedtls_ecdsa_info = {
 #endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
     .debug_func = eckey_debug,        /* Compatible key structures */
 };
-#endif /* MBEDTLS_PK_CAN_ECDSA_SOME */
+#endif /* PSA_HAVE_ALG_SOME_ECDSA */
 #endif /* PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY */
 
 #if defined(MBEDTLS_PK_RSA_ALT_SUPPORT)

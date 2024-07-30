@@ -260,7 +260,7 @@ static int send_cb(void *ctx, unsigned char const *buf, size_t len)
 }
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
-#if defined(MBEDTLS_PK_CAN_ECDSA_SOME) && defined(MBEDTLS_RSA_C)
+#if defined(PSA_HAVE_ALG_SOME_ECDSA) && defined(MBEDTLS_RSA_C)
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
 /*
  *   When GnuTLS/Openssl server is configured in TLS 1.2 mode with a certificate
@@ -277,7 +277,7 @@ static int send_cb(void *ctx, unsigned char const *buf, size_t len)
 #define MBEDTLS_SSL_SIG_ALG(hash) ((hash << 8) | MBEDTLS_SSL_SIG_ECDSA), \
     ((hash << 8) | MBEDTLS_SSL_SIG_RSA),
 #endif
-#elif defined(MBEDTLS_PK_CAN_ECDSA_SOME)
+#elif defined(PSA_HAVE_ALG_SOME_ECDSA)
 #define MBEDTLS_SSL_SIG_ALG(hash) ((hash << 8) | MBEDTLS_SSL_SIG_ECDSA),
 #elif defined(MBEDTLS_RSA_C)
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)

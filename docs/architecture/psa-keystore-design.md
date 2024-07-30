@@ -163,7 +163,7 @@ When destroying a volatile key, `psa_wipe_key_slot()` calls `psa_free_key_slot()
 
 As of Mbed TLS 3.6.1, `psa_free_key_slot()` does not deallocate slices. Thus the memory consumption for slots never decreases (except when the PSA crypto subsystem is deinitialized). Freeing key slices intelligently would be a desirable improvement.
 
-We should not free a key slice as soon as it becomes empty, because that would cause large allocations and deallocations if there are slices full of long-lived keys, and then one slice keeps being allocate and deallocated for the occasional short-lived keys. Rather, there should be some hysteresis, e.g. only deallocate a slice if there are at least T free slots in the previous slice.
+We should not free a key slice as soon as it becomes empty, because that would cause large allocations and deallocations if there are slices full of long-lived keys, and then one slice keeps being allocate and deallocated for the occasional short-lived keys. Rather, there should be some hysteresis, e.g. only deallocate a slice if there are at least T free slots in the previous slice. [#9435](https://github.com/Mbed-TLS/mbedtls/issues/9435)
 
 Note that currently, the slice array contains one sequence of allocated slices followed by one sequence of unallocated slices. Mixing allocated and unallocated slices may make some parts of the code a little more complex, and should be tested thoroughly.
 

@@ -67,7 +67,7 @@ Note that a slot must not be moved in memory while it is being read or written.
 There are three variants of the key store implementation, responding to different needs.
 
 * Hybrid key store ([static key slots](#static-key-store) with dynamic key data): the key store is a statically allocated array of slots, of size `MBEDTLS_PSA_KEY_SLOT_COUNT`. Key material is allocated on the heap. This is the historical implementation.
-* Fully [static key store](#static-key-store) (since Mbed TLS 3.6.1): the key store is a statically allocated array of slots, of size `MBEDTLS_PSA_KEY_SLOT_COUNT`. Each key slot contains the key representation directly, and the key representation must be no more than `MBEDTLS_PSA_KEY_SLOT_BUFFER_SIZE` bytes. This is intended for very constrained devices that do not have a heap.
+* Fully [static key store](#static-key-store) (since Mbed TLS 3.6.1): the key store is a statically allocated array of slots, of size `MBEDTLS_PSA_KEY_SLOT_COUNT`. Each key slot contains the key representation directly, and the key representation must be no more than `MBEDTLS_PSA_STATIC_KEY_SLOT_BUFFER_SIZE` bytes. This is intended for very constrained devices that do not have a heap.
 * [Dynamic key store](#dynamic-key-store) (since Mbed TLS 3.6.1): the key store is dynamically allocated as multiple slices on the heap, with a size that adjusts to the application's usage. Key material is allocated on the heap. This is intended for higher-end devices where applications are not expected to have a highly predicatable resource usage.
 
 #### Slice abstraction

@@ -46,6 +46,8 @@ The state of a key slot is indicated by its `state` field of type `psa_key_slot_
 * `PSA_SLOT_FULL`: a slot containing a key.
 * `PSA_SLOT_PENDING_DELETION`: a slot whose key is being destroy or purged.
 
+These states are mostly useful for concurrency. See [Concurrency](#concurrency) below and [key slot states in the PSA thread safety specification](psa-thread-safety/psa-thread-safety.md#key-slot-states).
+
 #### Concurrency
 
 In a multithreaded environment, since Mbed TLS 3.6.0, each key slot is protected by a reader-writer lock. (In earlier versions, the key store was not thread-safe.) The lock is controlled by a single global mutex `mbedtls_threading_psa_globaldata_mutex`. The concurrency state of the slot is indicated by the state and the `registered_readers` field:
@@ -103,7 +105,7 @@ The dynamic key store allows a large number of keys, at the expense of more comp
 
 #### Dynamic key slot performance characteristics
 
-Key managmeent and key access have O(1) performance in terms of the total number of keys, except that allocating or freeing a slot may trigger a call to `calloc()` or `free()` on an amount of memory that is proportional to the maximum number of volatile keys ever used by the application.
+Key management and key access have O(1) performance in terms of the total number of keys, with one exception: allocating or freeing a slot may trigger a call to `calloc()` or `free()` on an amount of memory that is at most proportional to the maximum number of volatile keys ever used by the application.
 
 The memory overhead is at most linear in the number of volatile keys currently used by the application. More precisely, the total number of key slots that consume memory is, at most, slightly more than twice the total number of volatile keys.
 
@@ -121,7 +123,7 @@ A volatile key identifier encodes the slice index and the slot index at separate
 
 #### From key slot to key slice
 
-Some parts of the slot management code need to determine which key slice contain a key slot when given a pointer to the key slot. In principle, the key slice is uniquely determined from the key identifier which is located in the slot:
+Some parts of the slot management code need to determine which key slice contains a key slot when given a pointer to the key slot. In principle, the key slice is uniquely determined from the key identifier which is located in the slot:
 
 * for a volatile key identifier, the [slice index is encoded in the key identifier](#volatile-key-identifiers-in-the-dynamic-key-store);
 * for a persistent key identifier or built-in key identifier, [the slot is in the sole cache slice](#key-slices-in-the-dynamic-key-store).
@@ -151,7 +153,7 @@ To create a volatile key, `psa_reserve_free_key_slot()` searches the free lists 
 
 The newly allocated slot is removed from the slice's free list.
 
-We only allocate a slice of size `B * 2^k` if there are already `B * (2^k - 1)` occupied slots. Thus the memory overhead is at most `B` slots plus the number of occupied slots, i.e. the memory consumption for slots is at most than twice the required memory plus a small constant overhead.
+We only allocate a slice of size `B * 2^k` if there are already `B * (2^k - 1)` occupied slots. Thus the memory overhead is at most `B` slots plus the number of occupied slots, i.e. the memory consumption for slots is at most twice the required memory plus a small constant overhead.
 
 #### Dynamic key slot deallocation
 
@@ -178,7 +180,7 @@ To avoid frequent storage access, we cache persistent keys in memory. This cache
 
 With the [static key store](#static-key-store), a non-empty slot can contain either a volatile key or a cache entry for a persistent or built-in key. With the [dynamic key store](#dynamic-key-store), volatile keys and cached keys are placed in separate [slices](#key-slices-in-the-dynamic-key-store).
 
-The persistent key cache is a fixed-size array of `MBEDTLS_PSA_KEY_SLOT_COUNT` slots. This array is shared with volatile keys in the static key store, and separate with the dynamic key store.
+The persistent key cache is a fixed-size array of `MBEDTLS_PSA_KEY_SLOT_COUNT` slots. In the static key store, this array is shared with volatile keys. In the dynamic key store, the cache is a separate array that does not contain volatile keys.
 
 #### Accessing a persistent key
 

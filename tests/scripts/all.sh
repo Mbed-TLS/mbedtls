@@ -115,12 +115,19 @@ set -e -o pipefail -u
 # Enable ksh/bash extended file matching patterns
 shopt -s extglob
 
+# For project detection
+PROJECT_NAME_FILE='./scripts/project_name.txt'
+if read -r PROJECT_NAME < "$PROJECT_NAME_FILE"; then :; else
+    echo "$PROJECT_NAME_FILE does not exist... Exiting..." >&2
+    exit 1
+fi
+
 in_mbedtls_repo () {
-    test -d include -a -d library -a -d programs -a -d tests
+    test "$PROJECT_NAME" = "Mbed TLS"
 }
 
 in_tf_psa_crypto_repo () {
-    test -d include -a -d core -a -d drivers -a -d programs -a -d tests
+    test "$PROJECT_NAME" = "TF-PSA-Crypto"
 }
 
 pre_check_environment () {

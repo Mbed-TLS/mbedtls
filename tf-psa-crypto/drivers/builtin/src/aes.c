@@ -841,6 +841,7 @@ int mbedtls_aes_xts_setkey_dec(mbedtls_aes_xts_context *ctx,
                AES_RT3(MBEDTLS_BYTE_3(Y0));     \
     } while (0)
 
+#if !defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
 /*
  * AES-ECB block encryption
  */
@@ -964,7 +965,7 @@ static int mbedtls_internal_aes_decrypt(mbedtls_aes_context *ctx,
     return 0;
 }
 #endif /* !MBEDTLS_BLOCK_CIPHER_NO_DECRYPT */
-
+#endif /* !MBEDTLS_AES_USE_HARDWARE_ONLY */
 /*
  * Our intrinsics-based implementation of AESNI requires the round keys to be
  * aligned on a 16-byte boundary. We take care of this before creating them,

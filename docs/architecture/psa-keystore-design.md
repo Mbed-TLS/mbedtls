@@ -143,9 +143,9 @@ When `MBEDTLS_TEST_HOOKS` is enabled, the length of key slices can be overridden
 
 #### Free list
 
-Each volatile key slice has a **free list**. This is a linked list of all the slots in the slice that are free. The global data contains a static array of free list heads, i.e. the index of a free slot in the slice. Each free slot contains the index of the next free slot in that slice's free list. The last element of the linked list (or the head if the list is empty) contains an index that is larger than the length of the slice,
+Each volatile key slice has a **free list**. This is a linked list of all the slots in the slice that are free. The global data contains a static array of free list heads, i.e. the index of a free slot in the slice. Each free slot contains the index of the next free slot in that slice's free list. The end of the list is indicated by an index that is larger than the length of the slice. If the list is empty, the head contains an index that is larger than the length.
 
-As a small optimization, a free slot does not actually contain the index of the next slot, but the index of the next free slot on the list _relative to the next slot in the array_. This way, a slice freshly obtained from `calloc` has all of its slots in the free list in order. The absolute index of the next slot after slot `i` in the free list is `i + slice[i].next_free_relative_to_next`.
+As a small optimization, a free slot does not actually contain the index of the next slot, but the index of the next free slot on the list _relative to the next slot in the array_. For example, 0 indicates that the next free slot is the slot immediately after the current slot. This fact is the reason for the encoding: a slice freshly obtained from `calloc` has all of its slots in the free list in order. The value 1 indicates that there is one element between this slot and the next free slot. The next element of the free list can come before the current slot: -2 indicates that it's the slot immediately before, -3 is two slots before, and so on (-1 is impossible). In general, the absolute index of the next slot after slot `i` in the free list is `i + 1 slice[i].next_free_relative_to_next`.
 
 #### Dynamic key slot allocation
 

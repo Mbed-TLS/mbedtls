@@ -207,11 +207,9 @@ REVERSE_DEPENDENCIES = {
                       'MBEDTLS_ECP_RESTARTABLE',
                       'MBEDTLS_PK_PARSE_EC_EXTENDED',
                       'MBEDTLS_PK_PARSE_EC_COMPRESSED',
-                      'MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED',
                       'MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED',
                       'MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED',
                       'MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED',
-                      'MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED',
                       'MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED',
                       'MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED',
                       'MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED'],
@@ -221,11 +219,8 @@ REVERSE_DEPENDENCIES = {
                           'MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED',
                           'MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED',
                           'MBEDTLS_KEY_EXCHANGE_RSA_ENABLED'],
-    'MBEDTLS_RSA_C': ['MBEDTLS_X509_RSASSA_PSS_SUPPORT',
-                      'MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED',
-                      'MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED',
-                      'MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED',
-                      'MBEDTLS_KEY_EXCHANGE_RSA_ENABLED',
+    'MBEDTLS_RSA_C': ['MBEDTLS_PKCS1_V15',
+                      'MBEDTLS_PKCS1_V21',
                       'MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED'],
     'MBEDTLS_SHA256_C': ['MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED',
                          'MBEDTLS_ENTROPY_FORCE_SHA256',
@@ -239,7 +234,6 @@ REVERSE_DEPENDENCIES = {
                          'MBEDTLS_ENTROPY_FORCE_SHA256',
                          'MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_IF_PRESENT',
                          'MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_ONLY'],
-    'MBEDTLS_X509_RSASSA_PSS_SUPPORT': []
 }
 
 # If an option is tested in an exclusive test, alter the following defines.
@@ -250,14 +244,10 @@ EXCLUSIVE_GROUPS = {
                          '-MBEDTLS_SSL_TLS_C'],
     'MBEDTLS_ECP_DP_CURVE448_ENABLED': ['-MBEDTLS_ECDSA_C',
                                         '-MBEDTLS_ECDSA_DETERMINISTIC',
-                                        '-MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED',
-                                        '-MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED',
                                         '-MBEDTLS_ECJPAKE_C',
                                         '-MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED'],
     'MBEDTLS_ECP_DP_CURVE25519_ENABLED': ['-MBEDTLS_ECDSA_C',
                                           '-MBEDTLS_ECDSA_DETERMINISTIC',
-                                          '-MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED',
-                                          '-MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED',
                                           '-MBEDTLS_ECJPAKE_C',
                                           '-MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED'],
     'MBEDTLS_ARIA_C': ['-MBEDTLS_CMAC_C'],
@@ -282,8 +272,11 @@ An option O is turned off if config_settings[O] is False."""
     for key, value in sorted(config_settings.items()):
         if value is not False:
             continue
-        for dep in REVERSE_DEPENDENCIES.get(key, []):
+        revdep = set(REVERSE_DEPENDENCIES.get(key, []))
+        while revdep:
+            dep = revdep.pop()
             config_settings[dep] = False
+            revdep.update(REVERSE_DEPENDENCIES.get(dep, []))
 
 class BaseDomain: # pylint: disable=too-few-public-methods, unused-argument
     """A base class for all domains."""

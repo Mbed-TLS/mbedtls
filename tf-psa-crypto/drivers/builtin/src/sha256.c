@@ -414,13 +414,6 @@ static size_t mbedtls_internal_sha256_process_many_a64_crypto(
     return processed;
 }
 
-#if defined(MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_IF_PRESENT)
-/*
- * This function is for internal use only if we are building both C and Armv8-A
- * versions, otherwise it is renamed to be the public mbedtls_internal_sha256_process()
- */
-static
-#endif
 int mbedtls_internal_sha256_process_a64_crypto(mbedtls_sha256_context *ctx,
                                                const unsigned char data[SHA256_BLOCK_SIZE])
 {
@@ -474,13 +467,6 @@ int mbedtls_internal_sha256_process_a64_crypto(mbedtls_sha256_context *ctx,
         (d) += local.temp1; (h) = local.temp1 + local.temp2;        \
     } while (0)
 
-#if defined(MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_IF_PRESENT)
-/*
- * This function is for internal use only if we are building both C and Armv8
- * versions, otherwise it is renamed to be the public mbedtls_internal_sha256_process()
- */
-static
-#endif
 int mbedtls_internal_sha256_process_c(mbedtls_sha256_context *ctx,
                                       const unsigned char data[SHA256_BLOCK_SIZE])
 {
@@ -617,7 +603,7 @@ static size_t mbedtls_internal_sha256_process_many(mbedtls_sha256_context *ctx,
     }
 }
 
-int mbedtls_internal_sha256_process(mbedtls_sha256_context *ctx,
+static int mbedtls_internal_sha256_process(mbedtls_sha256_context *ctx,
                                     const unsigned char data[SHA256_BLOCK_SIZE])
 {
     if (mbedtls_a64_crypto_sha256_has_support()) {

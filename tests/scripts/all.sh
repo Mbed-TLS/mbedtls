@@ -1094,18 +1094,10 @@ helper_get_psa_key_type_list() {
 
 # Include the components from components.sh
 test_script_dir="${0%/*}"
-source "$test_script_dir/components-compiler.sh"
-source "$test_script_dir/components-platform.sh"
-source "$test_script_dir/components-build-system.sh"
-source "$test_script_dir/components-configuration.sh"
-source "$test_script_dir/components-configuration-platform.sh"
-source "$test_script_dir/components-configuration-tls.sh"
-source "$test_script_dir/components-configuration-x509.sh"
-source "$test_script_dir/components-configuration-crypto.sh"
-source "$test_script_dir/components-basic-checks.sh"
-source "$test_script_dir/components-sanitizers.sh"
-source "$test_script_dir/components-compliance.sh"
-source "$test_script_dir/components-psasim.sh"
+for file in "$test_script_dir"/components*.sh; do
+    source $file
+done
+
 
 ################################################################
 #### Termination

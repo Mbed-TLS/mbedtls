@@ -6484,20 +6484,6 @@ psa_status_t psa_key_derivation_output_key_custom(
     return status;
 }
 
-psa_status_t psa_key_derivation_output_key_ext(
-    const psa_key_attributes_t *attributes,
-    psa_key_derivation_operation_t *operation,
-    const psa_key_production_parameters_t *params,
-    size_t params_data_length,
-    mbedtls_svc_key_id_t *key)
-{
-    return psa_key_derivation_output_key_custom(
-        attributes, operation,
-        (const psa_custom_key_parameters_t *) params,
-        params->data, params_data_length,
-        key);
-}
-
 psa_status_t psa_key_derivation_output_key(
     const psa_key_attributes_t *attributes,
     psa_key_derivation_operation_t *operation,
@@ -8030,18 +8016,6 @@ exit:
     }
 
     return status;
-}
-
-psa_status_t psa_generate_key_ext(const psa_key_attributes_t *attributes,
-                                  const psa_key_production_parameters_t *params,
-                                  size_t params_data_length,
-                                  mbedtls_svc_key_id_t *key)
-{
-    return psa_generate_key_custom(
-        attributes,
-        (const psa_custom_key_parameters_t *) params,
-        params->data, params_data_length,
-        key);
 }
 
 psa_status_t psa_generate_key(const psa_key_attributes_t *attributes,

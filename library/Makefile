@@ -111,21 +111,12 @@ endif
 
 OBJS_CRYPTO= \
 	     $(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto.o \
-	     $(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto_aead.o \
-	     $(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto_cipher.o \
 	     $(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto_client.o \
 	     $(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto_driver_wrappers_no_static.o \
-	     $(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto_ecp.o \
-	     $(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto_ffdh.o \
-	     $(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto_hash.o \
-	     $(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto_mac.o \
-	     $(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto_pake.o \
-	     $(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto_rsa.o \
 	     $(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto_se.o \
 	     $(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto_slot_management.o \
 	     $(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto_storage.o \
 	     $(TF_PSA_CRYPTO_CORE_PATH)/psa_its_file.o \
-	     $(TF_PSA_CRYPTO_CORE_PATH)/psa_util.o \
 	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/aes.o \
 	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/aesni.o \
 	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/aesce.o \
@@ -179,6 +170,15 @@ OBJS_CRYPTO= \
 	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/platform.o \
 	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/platform_util.o \
 	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/poly1305.o \
+	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/psa_crypto_aead.o \
+	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/psa_crypto_cipher.o \
+	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/psa_crypto_ecp.o \
+	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/psa_crypto_ffdh.o \
+	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/psa_crypto_hash.o \
+	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/psa_crypto_mac.o \
+	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/psa_crypto_pake.o \
+	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/psa_crypto_rsa.o \
+	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/psa_util.o \
 	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/ripemd160.o \
 	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/rsa.o \
 	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/rsa_alt_helpers.o \

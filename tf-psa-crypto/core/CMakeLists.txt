@@ -1,20 +1,11 @@
 set(src_crypto
     psa_crypto.c
-    psa_crypto_aead.c
-    psa_crypto_cipher.c
     psa_crypto_client.c
     psa_crypto_driver_wrappers_no_static.c
-    psa_crypto_ecp.c
-    psa_crypto_ffdh.c
-    psa_crypto_hash.c
-    psa_crypto_mac.c
-    psa_crypto_pake.c
-    psa_crypto_rsa.c
     psa_crypto_se.c
     psa_crypto_slot_management.c
     psa_crypto_storage.c
     psa_its_file.c
-    psa_util.c
 )
 
 if(GEN_FILES)

@@ -31,7 +31,7 @@ The following operations free a key slot by calling `psa_wipe_key_slot()` and, i
 
 Deinitializing the PSA Crypto subsystem with `mbedtls_psa_crypto_free()` destroys all volatile keys and purges all persistent keys.
 
-A key slot can be accessed:
+The library accesses key slots in the following scenarios:
 
 * while the key is being created or loaded;
 * while the key is being destroyed or purged;
@@ -82,10 +82,10 @@ A major constraint on the design of the dynamic key store is the need to preserv
 
 #### Slice abstraction
 
-Some parts of the key slot management code use **key slices** as an abstraction. A key slice is an array of key slots. Key slices are identified by a number which is a small non-negative integer.
+Some parts of the key slot management code use **key slices** as an abstraction. A key slice is an array of key slots. Key slices are identified by an index which is a small non-negative integer.
 
-* With a [static key store](#static-key-store), there is a single, statically allocated slice, with the number 0.
-* With a [dynamic key store](#dynamic-key-store), there is statically allocated array of pointers to key slices. The slices are allocated on the heap as needed.
+* With a [static key store](#static-key-store), there is a single, statically allocated slice, with the index 0.
+* With a [dynamic key store](#dynamic-key-store), there is statically allocated array of pointers to key slices. The index of a slice is the index in that array. The slices are allocated on the heap as needed.
 
 #### Key identifiers and slot location
 

@@ -66,9 +66,19 @@ Note that a slot must not be moved in memory while it is being read or written.
 
 There are three variants of the key store implementation, responding to different needs.
 
-* Hybrid key store ([static key slots](#static-key-store) with dynamic key data): the key store is a statically allocated array of slots, of size `MBEDTLS_PSA_KEY_SLOT_COUNT`. Key material is allocated on the heap. This is the historical implementation.
+* Hybrid key store ([static key slots](#static-key-store) with dynamic key data): the key store is a statically allocated array of slots, of size `MBEDTLS_PSA_KEY_SLOT_COUNT`. Key material is allocated on the heap. This is the historical implementation. It remains the default in the Mbed TLS 3.6 long-time support (LTS) branch when using a handwritten `mbedtls_config.h`, as is common on resource-constrained platforms, because the alternatives have tradeoffs (key size limit and larger RAM usage at rest for the static key store, larger code size and more risk due to code complexity for the dynamic key store).
 * Fully [static key store](#static-key-store) (since Mbed TLS 3.6.1): the key store is a statically allocated array of slots, of size `MBEDTLS_PSA_KEY_SLOT_COUNT`. Each key slot contains the key representation directly, and the key representation must be no more than `MBEDTLS_PSA_STATIC_KEY_SLOT_BUFFER_SIZE` bytes. This is intended for very constrained devices that do not have a heap.
-* [Dynamic key store](#dynamic-key-store) (since Mbed TLS 3.6.1): the key store is dynamically allocated as multiple slices on the heap, with a size that adjusts to the application's usage. Key material is allocated on the heap. This is intended for higher-end devices where applications are not expected to have a highly predicatable resource usage.
+* [Dynamic key store](#dynamic-key-store) (since Mbed TLS 3.6.1): the key store is dynamically allocated as multiple slices on the heap, with a size that adjusts to the application's usage. Key material is allocated on the heap. Compared to the hybrid key store, the code size and RAM consumption are larger. This is intended for higher-end devices where applications are not expected to have a highly predicatable resource usage. This is the default implementation when using the default `mbedtls_config.h` file, as is common on platforms such as Linux, starting with Mbed TLS 3.6.1.
+
+#### Future improvement: merging the key store variants
+
+In the future, we may reduce the number of key store variants to just two, perhaps even one.
+
+We introduced the variants other than the hybrid key store in a patch release of a long-time support version. As a consequence, we wanted to minimize making changes to the default build (when not using the supplied `mbedtls_config.h`, as explained above), to minimize the risk of bugs and the increase in code size. These considerations will not apply in future major or minor releases, so the default key store can change later.
+
+The static key store could become a runtime decision, where only keys larger than some threshold require the use of heap memory. The reasons not to do this in Mbed TLS 3.6.x are that this increases complexity somewhat (slightly more code size, and more risk), and this changes the RAM usage profile somewhat.
+
+A major constraint on the design of the dynamic key store is the need to preserve slot pointers while a slot may be accessed by another thread (see [“Concurrency”](#concurrency)). With the concurrency primitives available in Mbed TLS 3.x, it is very hard to move a key slot in memory, because there could be an indefinite wait until some other thread has finished accessing the slot. This pushed towards the slice-based organisation described below, where each slice is allocated for the long term. In particular, slices cannot be compacted (compacting would be moving slots out of a sparsely-used slice to free it). Better concurrency primitives (e.g. condition variables or semaphores), together with a `realloc()` primitive, could allow freeing unused memory more aggressively, which could make the dynamic key store not detrimental in RAM usage compared to the historical hybrid key store.
 
 #### Slice abstraction
 

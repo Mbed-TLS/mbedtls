@@ -115,9 +115,12 @@ The dynamic key store allows a large number of keys, at the expense of more comp
 
 #### Dynamic key slot performance characteristics
 
-Key management and key access have O(1) performance in terms of the total number of keys, with one exception: allocating or freeing a slot may trigger a call to `calloc()` or `free()` on an amount of memory that is at most proportional to the maximum number of volatile keys ever used by the application.
+Key management and key access have $O(1)$ amortized performance, and mostly $O(1)$ performance for actions involving keys. More precisely:
 
-The memory overhead is at most linear in the number of volatile keys currently used by the application. More precisely, the total number of key slots that consume memory is, at most, slightly more than twice the total number of volatile keys.
+* Access to an existing volatile key takes $O(1)$ time.
+* Access to a persistent key (including creation and destruction) takes time that is linear in `MBEDTLS_PSA_KEY_SLOT_COUNT`.
+* Allocating a key takes amortized $O(1)$ time. Usually the time is $O(s)$ where $s$ is the number of slices (which is a hard-coded value less than $30$), but when creating $k$ volatile keys, at most $\log(k)$ creations will involve calls to `calloc()`, totalling $O(k)$ memory.
+* Destroying a volatile key takes $O(1)$ time as of Mbed TLS 3.6.1. Later improvements to memory consumption are likely to involve calls to `free()` which may total $O(k)$ memory where $k$ is the maximum number of volatile keys.
 
 #### Key slices in the dynamic key store
 

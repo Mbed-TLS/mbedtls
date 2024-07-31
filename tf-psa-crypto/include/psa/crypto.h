@@ -4938,14 +4938,11 @@ uint32_t psa_key_agreement_iop_get_num_ops(psa_key_agreement_iop_t *operation);
  *                                `PSA_KEY_TYPE_DERIVE`,`PSA_KEY_TYPE_RAW_DATA`,
  *                                `PSA_KEY_TYPE_HMAC`, or
  *                                `PSA_KEY_TYPE_PASSWORD`.
- *                              * Implementations must support the
- *                                `PSA_KEY_TYPE_DERIVE` and
- *                               `PSA_KEY_TYPE_RAW_DATA` key types.
  *                              * The size of the returned key is always the
  *                                bit-size of the shared secret, rounded up to a
  *                                whole number of bytes. The key size in \p
- *                                attributes can be zero; if it is nonzero, it
- *                                must be equal to the output size of the key
+ *                                attributes can be zero; if it is nonzero,
+ *                                it must be equal to the output size of the key
  *                                agreement, in bits.
  *                              * The output size, in bits, of the key agreement
  *                                is #PSA_RAW_KEY_AGREEMENT_OUTPUT_SIZE(type,
@@ -4977,8 +4974,6 @@ uint32_t psa_key_agreement_iop_get_num_ops(psa_key_agreement_iop_t *operation);
  *          The following conditions can result in this error:
  *          * Either the \p private_key does not have the #PSA_KEY_USAGE_DERIVE`
  *          flag, or it does not permit the requested algorithm.
- *          * The implementation does not permit creating a key with the
- *          specified attributes due to some implementation-specific policy.
  *
  * \retval #PSA_ERROR_INVALID_HANDLE
  *          \p private_key is not a valid key identifier.
@@ -5022,8 +5017,7 @@ uint32_t psa_key_agreement_iop_get_num_ops(psa_key_agreement_iop_t *operation);
  * \retval #PSA_ERROR_BAD_STATE
  *         The following conditions can result in this error:
  *         * The library has not been previously initialized by
- *           \c psa_crypto_init(). It is implementation-dependent whether a
- *           failure to initialize results in this error code.
+ *           \c psa_crypto_init().
  *         * The operation state is not valid: it must be inactive.
  */
 
@@ -5109,8 +5103,7 @@ psa_status_t psa_key_agreement_iop_setup(
  * \retval #PSA_ERROR_BAD_STATE
  *         The following conditions can result in this error:
  *         * The library has not been previously initialized by
- *           \c psa_crypto_init(). It is implementation-dependent whether a
- *           failure to initialize results in this error code.
+ *           \c psa_crypto_init().
  *         * The operation state is not valid: it must be inactive.
  */
 psa_status_t psa_key_agreement_iop_complete(
@@ -5152,8 +5145,7 @@ psa_status_t psa_key_agreement_iop_complete(
  * \retval #PSA_ERROR_NOT_SUPPORTED \emptydescription
  * \retval #PSA_ERROR_BAD_STATE
  *          The library has not been previously initialized by
- *          \c psa_crypto_init(). It is implementation-dependent whether a
- *          failure to initialize results in this error code.
+ *          \c psa_crypto_init().
  */
 psa_status_t psa_key_agreement_iop_abort(
     psa_key_agreement_iop_t *operation);

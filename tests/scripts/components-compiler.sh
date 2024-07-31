@@ -3,12 +3,11 @@
 # Copyright The Mbed TLS Contributors
 # SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
 
-# This file contains the test components that are executed by all.sh
+# This file contains test components that are executed by all.sh
 
 ################################################################
 #### Compiler Testing
 ################################################################
-
 
 support_build_tfm_armcc () {
     support_build_armcc
@@ -43,8 +42,6 @@ component_test_aesni_m32_clang () {
     grep -q "AES note: built-in implementation." ./programs/test/selftest
     grep -q mbedtls_aesni_has_support ./programs/test/selftest
 }
-
-# For timebeing, no aarch64 gcc available in CI and no arm64 CI node.
 
 support_build_aes_aesce_armcc () {
     support_build_armcc

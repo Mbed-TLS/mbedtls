@@ -3,7 +3,7 @@
 # Copyright The Mbed TLS Contributors
 # SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
 
-# This file contains the test components that are executed by all.sh
+# This file contains test components that are executed by all.sh
 
 ################################################################
 #### Configuration Testing - TLS
@@ -323,7 +323,6 @@ component_test_tls1_2_default_cbc_legacy_cbc_etm_cipher_only () {
 # that we could use for interop testing. However, we now have sort of two
 # implementations ourselves: one using PSA, the other not. At least test that
 # these two interoperate with each other.
-
 component_test_tls1_2_ecjpake_compatibility () {
     msg "build: TLS1.2 server+client w/ EC-JPAKE w/o USE_PSA"
     scripts/config.py set MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED
@@ -473,14 +472,6 @@ component_full_without_ecdhe_ecdsa_and_tls13 () {
     build_full_minus_something_and_test_tls "MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
                                              MBEDTLS_SSL_PROTO_TLS1_3"
 }
-
-# This is an helper used by:
-# - component_test_psa_ecc_key_pair_no_derive
-# - component_test_psa_ecc_key_pair_no_generate
-# The goal is to test with all PSA_WANT_KEY_TYPE_xxx_KEY_PAIR_yyy symbols
-# enabled, but one. Input arguments are as follows:
-# - $1 is the key type under test, i.e. ECC/RSA/DH
-# - $2 is the key option to be unset (i.e. generate, derive, etc)
 
 component_build_no_ssl_srv () {
     msg "build: full config except SSL server, make, gcc" # ~ 30s

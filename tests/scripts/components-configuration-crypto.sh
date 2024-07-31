@@ -3,7 +3,7 @@
 # Copyright The Mbed TLS Contributors
 # SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
 
-# This file contains the test components that are executed by all.sh
+# This file contains test components that are executed by all.sh
 
 ################################################################
 #### Configuration Testing - Crypto
@@ -33,8 +33,7 @@ component_test_psa_assume_exclusive_buffers () {
 
 # check_renamed_symbols HEADER LIB
 # Check that if HEADER contains '#define MACRO ...' then MACRO is not a symbol
-# name is LIB.
-
+# name in LIB.
 check_renamed_symbols () {
     ! nm "$2" | sed 's/.* //' |
       grep -x -F "$(sed -n 's/^ *# *define  *\([A-Z_a-z][0-9A-Z_a-z]*\)..*/\1/p' "$1")"
@@ -339,7 +338,6 @@ component_test_depends_py_pkalgs () {
 }
 
 # PSA equivalents of the depends.py tests
-
 component_test_depends_py_cipher_id_psa () {
     msg "test/build: depends.py cipher_id (gcc) with MBEDTLS_USE_PSA_CRYPTO defined"
     tests/scripts/depends.py cipher_id
@@ -677,7 +675,6 @@ component_test_psa_crypto_config_accel_ecc_some_key_types () {
 # Common code used in:
 # - component_test_psa_crypto_config_accel_ecc_weierstrass_curves
 # - component_test_psa_crypto_config_accel_ecc_non_weierstrass_curves
-
 common_test_psa_crypto_config_accel_ecc_some_curves () {
     weierstrass=$1
     if [ $weierstrass -eq 1 ]; then
@@ -805,7 +802,6 @@ component_test_psa_crypto_config_accel_ecc_non_weierstrass_curves () {
 # - component_test_psa_crypto_config_accel_ecc_ecp_light_only;
 # - component_test_psa_crypto_config_reference_ecc_ecp_light_only.
 # This supports comparing their test coverage with analyze_outcomes.py.
-
 config_psa_crypto_config_ecp_light_only () {
     driver_only="$1"
     # start with config full for maximum coverage (also enables USE_PSA)
@@ -825,7 +821,6 @@ config_psa_crypto_config_ecp_light_only () {
 }
 
 # Keep in sync with component_test_psa_crypto_config_reference_ecc_ecp_light_only
-
 component_test_psa_crypto_config_accel_ecc_ecp_light_only () {
     msg "build: full with accelerated EC algs"
 
@@ -873,7 +868,6 @@ component_test_psa_crypto_config_accel_ecc_ecp_light_only () {
 }
 
 # Keep in sync with component_test_psa_crypto_config_accel_ecc_ecp_light_only
-
 component_test_psa_crypto_config_reference_ecc_ecp_light_only () {
     msg "build: MBEDTLS_PSA_CRYPTO_CONFIG with non-accelerated EC algs"
 
@@ -901,7 +895,6 @@ component_test_psa_crypto_config_reference_ecc_ecp_light_only () {
 #
 # PK_C and RSA_C are always disabled to ensure there is no remaining dependency
 # on the ECP module.
-
 config_psa_crypto_no_ecp_at_all () {
     driver_only="$1"
     # start with full config for maximum coverage (also enables USE_PSA)
@@ -932,7 +925,6 @@ config_psa_crypto_no_ecp_at_all () {
 # side.
 #
 # Keep in sync with component_test_psa_crypto_config_reference_ecc_no_ecp_at_all()
-
 component_test_psa_crypto_config_accel_ecc_no_ecp_at_all () {
     msg "build: full + accelerated EC algs - ECP"
 
@@ -983,7 +975,6 @@ component_test_psa_crypto_config_accel_ecc_no_ecp_at_all () {
 # Reference function used for driver's coverage analysis in analyze_outcomes.py
 # in conjunction with component_test_psa_crypto_config_accel_ecc_no_ecp_at_all().
 # Keep in sync with its accelerated counterpart.
-
 component_test_psa_crypto_config_reference_ecc_no_ecp_at_all () {
     msg "build: full + non accelerated EC algs"
 
@@ -1018,7 +1009,6 @@ component_test_psa_crypto_config_reference_ecc_no_ecp_at_all () {
 #     or not.
 # $2: a string value which states which components are tested. Allowed values
 #     are "ECC" or "ECC_DH".
-
 config_psa_crypto_config_accel_ecc_ffdh_no_bignum () {
     driver_only="$1"
     test_target="$2"
@@ -1092,7 +1082,6 @@ config_psa_crypto_config_accel_ecc_ffdh_no_bignum () {
 # It is meant to be used in conjunction with
 # common_test_psa_crypto_config_reference_ecc_ffdh_no_bignum() for drivers
 # coverage analysis in the "analyze_outcomes.py" script.
-
 common_test_psa_crypto_config_accel_ecc_ffdh_no_bignum () {
     test_target="$1"
 
@@ -1173,7 +1162,6 @@ common_test_psa_crypto_config_accel_ecc_ffdh_no_bignum () {
 # It is meant to be used in conjunction with
 # common_test_psa_crypto_config_accel_ecc_ffdh_no_bignum() for drivers'
 # coverage analysis in "analyze_outcomes.py" script.
-
 common_test_psa_crypto_config_reference_ecc_ffdh_no_bignum () {
     test_target="$1"
 
@@ -1216,7 +1204,6 @@ component_test_psa_crypto_config_reference_ecc_ffdh_no_bignum () {
 # Helper for setting common configurations between:
 # - component_test_tfm_config_p256m_driver_accel_ec()
 # - component_test_tfm_config()
-
 common_tfm_config () {
     # Enable TF-M config
     cp configs/config-tfm.h "$CONFIG_H"
@@ -1238,9 +1225,6 @@ common_tfm_config () {
 
 # Keep this in sync with component_test_tfm_config() as they are both meant
 # to be used in analyze_outcomes.py for driver's coverage analysis.
-
-
-
 component_test_tfm_config_p256m_driver_accel_ec () {
     msg "build: TF-M config + p256m driver + accel ECDH(E)/ECDSA"
 
@@ -1293,13 +1277,6 @@ component_test_tfm_config () {
     msg "test: TF-M config"
     make test
 }
-
-# Common helper for component_full_without_ecdhe_ecdsa() and
-# component_full_without_ecdhe_ecdsa_and_tls13() which:
-# - starts from the "full" configuration minus the list of symbols passed in
-#   as 1st parameter
-# - build
-# - test only TLS (i.e. test_suite_tls and ssl-opt)
 
 # This is an helper used by:
 # - component_test_psa_ecc_key_pair_no_derive
@@ -1410,7 +1387,6 @@ component_test_psa_crypto_config_reference_rsa_crypto () {
 
 # This is a temporary test to verify that full RSA support is present even when
 # only one single new symbols (PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC) is defined.
-
 component_test_new_psa_want_key_pair_symbol () {
     msg "Build: crypto config - MBEDTLS_RSA_C + PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC"
 
@@ -1507,7 +1483,6 @@ component_test_psa_crypto_config_accel_hash () {
 }
 
 # Auxiliary function to build config for hashes with and without drivers
-
 config_psa_crypto_hash_use_psa () {
     driver_only="$1"
     # start with config full for maximum coverage (also enables USE_PSA)
@@ -1530,7 +1505,6 @@ config_psa_crypto_hash_use_psa () {
 # Note that component_test_psa_crypto_config_reference_hash_use_psa
 # is related to this component and both components need to be kept in sync.
 # For details please see comments for component_test_psa_crypto_config_reference_hash_use_psa.
-
 component_test_psa_crypto_config_accel_hash_use_psa () {
     msg "test: full with accelerated hashes"
 
@@ -1580,7 +1554,6 @@ component_test_psa_crypto_config_accel_hash_use_psa () {
 # without accelerated hash. The outcome from both components are used by the analyze_outcomes.py
 # script to find regression in test coverage when accelerated hash is used (tests and ssl-opt).
 # Both components need to be kept in sync.
-
 component_test_psa_crypto_config_reference_hash_use_psa () {
     msg "test: full without accelerated hashes"
 
@@ -1596,7 +1569,6 @@ component_test_psa_crypto_config_reference_hash_use_psa () {
 }
 
 # Auxiliary function to build config for hashes with and without drivers
-
 config_psa_crypto_hmac_use_psa () {
     driver_only="$1"
     # start with config full for maximum coverage (also enables USE_PSA)
@@ -1754,7 +1726,6 @@ component_test_psa_crypto_config_accel_aead () {
 # This is a common configuration function used in:
 # - component_test_psa_crypto_config_accel_cipher_aead_cmac
 # - component_test_psa_crypto_config_reference_cipher_aead_cmac
-
 common_psa_crypto_config_accel_cipher_aead_cmac () {
     # Start from the full config
     helper_libtestdriver1_adjust_config "full"
@@ -1767,7 +1738,6 @@ common_psa_crypto_config_accel_cipher_aead_cmac () {
 # - component_test_psa_crypto_config_reference_cipher_aead_cmac
 # are meant to be used together in analyze_outcomes.py script in order to test
 # driver's coverage for ciphers and AEADs.
-
 component_test_psa_crypto_config_accel_cipher_aead_cmac () {
     msg "build: full config with accelerated cipher inc. AEAD and CMAC"
 
@@ -1919,7 +1889,6 @@ component_test_full_block_cipher_psa_dispatch () {
 }
 
 # This is the reference component of component_test_full_block_cipher_psa_dispatch
-
 component_test_full_block_cipher_legacy_dispatch () {
     msg "build: full + legacy dispatch in block_cipher"
 
@@ -2448,7 +2417,6 @@ component_test_aes_fewer_tables_and_rom_tables () {
 #           -u unset_opts   the list of config options to disable
 #           -c cflags       the list of options passed to CFLAGS
 #           -l ldflags      the list of options passed to LDFLAGS
-
 helper_block_cipher_no_decrypt_build_test () {
     while [ $# -gt 0 ]; do
         case "$1" in
@@ -2497,7 +2465,6 @@ helper_block_cipher_no_decrypt_build_test () {
 # in order to test BLOCK_CIPHER_NO_DECRYPT with AESNI intrinsics,
 # AESNI assembly and AES C implementation on x86_64 and with AESNI intrinsics
 # on x86.
-
 common_block_cipher_no_decrypt () {
     # test AESNI intrinsics
     helper_block_cipher_no_decrypt_build_test \
@@ -2523,7 +2490,6 @@ common_block_cipher_no_decrypt () {
 # This is a configuration function used in component_test_block_cipher_no_decrypt_xxx:
 # usage: 0: no PSA crypto configuration
 #        1: use PSA crypto configuration
-
 config_block_cipher_no_decrypt () {
     use_psa=$1
 

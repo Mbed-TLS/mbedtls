@@ -3,22 +3,11 @@
 # Copyright The Mbed TLS Contributors
 # SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
 
-# This file contains the test components that are executed by all.sh
+# This file contains test components that are executed by all.sh
 
 ################################################################
 #### Basic checks
 ################################################################
-
-#
-# Test Suites to be executed
-#
-# The test ordering tries to optimize for the following criteria:
-# 1. Catch possible problems early, by running first tests that run quickly
-#    and/or are more likely to fail than others (eg I use Clang most of the
-#    time, so start with a GCC build).
-# 2. Minimize total running time, by avoiding useless rebuilds
-#
-# Indicative running times are given for reference.
 
 component_check_recursion () {
     msg "Check: recursion.pl" # < 1s

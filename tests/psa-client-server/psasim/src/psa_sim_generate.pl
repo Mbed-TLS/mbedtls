@@ -10,11 +10,14 @@
 #
 use strict;
 use Data::Dumper;
+use File::Basename;
 use JSON qw(encode_json);
 
 my $debug = 0;
 
 # Globals (sorry!)
+my $output_dir = dirname($0);
+
 my %functions = get_functions();
 my @functions = sort keys %functions;
 
@@ -84,11 +87,11 @@ my %skip_functions = map { $_ => 1 } @skip_functions;
 # We'll do psa_crypto_init() first
 put_crypto_init_first(\@functions);
 
-write_function_codes("psa_functions_codes.h");
+write_function_codes("$output_dir/psa_functions_codes.h");
 
-write_client_calls("psa_sim_crypto_client.c");
+write_client_calls("$output_dir/psa_sim_crypto_client.c");
 
-write_server_implementations("psa_sim_crypto_server.c");
+write_server_implementations("$output_dir/psa_sim_crypto_server.c");
 
 sub write_function_codes
 {

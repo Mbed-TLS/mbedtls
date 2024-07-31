@@ -4923,9 +4923,9 @@ uint32_t psa_key_agreement_iop_get_num_ops(psa_key_agreement_iop_t *operation);
  *                              standard formats for public keys are documented
  *                              in the documentation of psa_export_public_key().
  *                              The peer key data is parsed with the type
- *                              #PSA_KEY_TYPE_PUBLIC_KEY_OF_KEY_PAIR(type) where
- *                              type is the type of \p private_key, and with the
- *                              same bit-size as \p private_key.
+ *                              #PSA_KEY_TYPE_PUBLIC_KEY_OF_KEY_PAIR(\c type)
+ *                              where \c type is the type of \p private_key,
+ *                              and with the same bit-size as \p private_key.
  * \param peer_key_length       Size of \p peer_key in bytes.
  *
  * \param alg                   The key agreement algorithm to compute
@@ -4945,9 +4945,9 @@ uint32_t psa_key_agreement_iop_get_num_ops(psa_key_agreement_iop_t *operation);
  *                                it must be equal to the output size of the key
  *                                agreement, in bits.
  *                              * The output size, in bits, of the key agreement
- *                                is #PSA_RAW_KEY_AGREEMENT_OUTPUT_SIZE(type,
- *                                bits), where type and bits are the type and
- *                                bit-size of \p private_key.
+ *                                is #PSA_RAW_KEY_AGREEMENT_OUTPUT_SIZE(\c type,
+ *                                \c bits), where \c type and \c bits are the
+ *                                type and bit-size of \p private_key.
  *                              * The key permitted-algorithm policy is required
  *                                for keys that will be used for a cryptographic
  *                                operation. The key usage flags define what
@@ -5068,7 +5068,7 @@ psa_status_t psa_key_agreement_iop_setup(
  *                              first.
  *
  * \param[out] key              On success, an identifier for the newly created
- *                              key, on failure this will be set to
+ *                              key. On failure this will be set to
  *                              #PSA_KEY_ID_NULL.
  *
  * \retval #PSA_SUCCESS

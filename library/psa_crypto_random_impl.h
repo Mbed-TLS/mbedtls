@@ -39,13 +39,10 @@ int mbedtls_psa_get_random(void *p_rng,
 #else /* MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
 
 /* Choose a DRBG based on configuration and availability */
-#if defined(MBEDTLS_PSA_HMAC_DRBG_MD_TYPE)
-
-#include "mbedtls/hmac_drbg.h"
-
-#elif defined(MBEDTLS_CTR_DRBG_C)
+#if defined(MBEDTLS_CTR_DRBG_C)
 
 #include "mbedtls/ctr_drbg.h"
+#undef MBEDTLS_PSA_HMAC_DRBG_MD_TYPE
 
 #elif defined(MBEDTLS_HMAC_DRBG_C)
 
@@ -67,9 +64,11 @@ int mbedtls_psa_get_random(void *p_rng,
 #error "No hash algorithm available for HMAC_DBRG."
 #endif
 
-#else
+#else /* !MBEDTLS_CTR_DRBG_C && !MBEDTLS_HMAC_DRBG_C*/
+
 #error "No DRBG module available for the psa_crypto module."
-#endif
+
+#endif /* !MBEDTLS_CTR_DRBG_C && !MBEDTLS_HMAC_DRBG_C*/
 
 #include "mbedtls/entropy.h"
 

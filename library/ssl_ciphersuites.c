@@ -280,7 +280,7 @@ static const int ciphersuite_preference[] =
 static const mbedtls_ssl_ciphersuite_t ciphersuite_definitions[] =
 {
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
-#if defined(MBEDTLS_SSL_HAVE_AES)
+#if defined(PSA_WANT_KEY_TYPE_AES)
 #if defined(MBEDTLS_SSL_HAVE_GCM)
 #if defined(PSA_WANT_ALG_SHA_384)
     { MBEDTLS_TLS1_3_AES_256_GCM_SHA384, "TLS1-3-AES-256-GCM-SHA384",
@@ -309,7 +309,7 @@ static const mbedtls_ssl_ciphersuite_t ciphersuite_definitions[] =
       MBEDTLS_CIPHERSUITE_SHORT_TAG,
       MBEDTLS_SSL_VERSION_TLS1_3, MBEDTLS_SSL_VERSION_TLS1_3 },
 #endif /* PSA_WANT_ALG_SHA_256 && MBEDTLS_SSL_HAVE_CCM */
-#endif /* MBEDTLS_SSL_HAVE_AES */
+#endif /* PSA_WANT_KEY_TYPE_AES */
 #if defined(MBEDTLS_SSL_HAVE_CHACHAPOLY) && defined(PSA_WANT_ALG_SHA_256)
     { MBEDTLS_TLS1_3_CHACHA20_POLY1305_SHA256,
       "TLS1-3-CHACHA20-POLY1305-SHA256",
@@ -383,7 +383,7 @@ static const mbedtls_ssl_ciphersuite_t ciphersuite_definitions[] =
           PSA_WANT_ALG_SHA_256 &&
           MBEDTLS_SSL_PROTO_TLS1_2 */
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)
-#if defined(MBEDTLS_SSL_HAVE_AES)
+#if defined(PSA_WANT_KEY_TYPE_AES)
 #if defined(MBEDTLS_MD_CAN_SHA1)
 #if defined(MBEDTLS_SSL_HAVE_CBC)
     { MBEDTLS_TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA, "TLS-ECDHE-ECDSA-WITH-AES-128-CBC-SHA",
@@ -442,7 +442,7 @@ static const mbedtls_ssl_ciphersuite_t ciphersuite_definitions[] =
       MBEDTLS_CIPHERSUITE_SHORT_TAG,
       MBEDTLS_SSL_VERSION_TLS1_2, MBEDTLS_SSL_VERSION_TLS1_2 },
 #endif /* MBEDTLS_SSL_HAVE_CCM */
-#endif /* MBEDTLS_SSL_HAVE_AES */
+#endif /* PSA_WANT_KEY_TYPE_AES */
 
 #if defined(MBEDTLS_SSL_HAVE_CAMELLIA)
 #if defined(MBEDTLS_SSL_HAVE_CBC)
@@ -491,7 +491,7 @@ static const mbedtls_ssl_ciphersuite_t ciphersuite_definitions[] =
 #endif /* MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED */
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED)
-#if defined(MBEDTLS_SSL_HAVE_AES)
+#if defined(PSA_WANT_KEY_TYPE_AES)
 #if defined(MBEDTLS_MD_CAN_SHA1)
 #if defined(MBEDTLS_SSL_HAVE_CBC)
     { MBEDTLS_TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA, "TLS-ECDHE-RSA-WITH-AES-128-CBC-SHA",
@@ -532,7 +532,7 @@ static const mbedtls_ssl_ciphersuite_t ciphersuite_definitions[] =
       MBEDTLS_SSL_VERSION_TLS1_2, MBEDTLS_SSL_VERSION_TLS1_2 },
 #endif /* MBEDTLS_SSL_HAVE_GCM */
 #endif /* PSA_WANT_ALG_SHA_384 */
-#endif /* MBEDTLS_SSL_HAVE_AES */
+#endif /* PSA_WANT_KEY_TYPE_AES */
 
 #if defined(MBEDTLS_SSL_HAVE_CAMELLIA)
 #if defined(MBEDTLS_SSL_HAVE_CBC)
@@ -581,7 +581,7 @@ static const mbedtls_ssl_ciphersuite_t ciphersuite_definitions[] =
 #endif /* MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED */
 
 #if defined(MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED)
-#if defined(MBEDTLS_SSL_HAVE_AES)
+#if defined(PSA_WANT_KEY_TYPE_AES)
 #if defined(PSA_WANT_ALG_SHA_384) && \
     defined(MBEDTLS_SSL_HAVE_GCM)
     { MBEDTLS_TLS_DHE_RSA_WITH_AES_256_GCM_SHA384, "TLS-DHE-RSA-WITH-AES-256-GCM-SHA384",
@@ -642,7 +642,7 @@ static const mbedtls_ssl_ciphersuite_t ciphersuite_definitions[] =
       MBEDTLS_CIPHERSUITE_SHORT_TAG,
       MBEDTLS_SSL_VERSION_TLS1_2, MBEDTLS_SSL_VERSION_TLS1_2 },
 #endif /* MBEDTLS_SSL_HAVE_CCM */
-#endif /* MBEDTLS_SSL_HAVE_AES */
+#endif /* PSA_WANT_KEY_TYPE_AES */
 
 #if defined(MBEDTLS_SSL_HAVE_CAMELLIA)
 #if defined(MBEDTLS_SSL_HAVE_CBC)
@@ -690,7 +690,7 @@ static const mbedtls_ssl_ciphersuite_t ciphersuite_definitions[] =
 #endif /* MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED */
 
 #if defined(MBEDTLS_KEY_EXCHANGE_RSA_ENABLED)
-#if defined(MBEDTLS_SSL_HAVE_AES)
+#if defined(PSA_WANT_KEY_TYPE_AES)
 #if defined(PSA_WANT_ALG_SHA_384) && \
     defined(MBEDTLS_SSL_HAVE_GCM)
     { MBEDTLS_TLS_RSA_WITH_AES_256_GCM_SHA384, "TLS-RSA-WITH-AES-256-GCM-SHA384",
@@ -751,7 +751,7 @@ static const mbedtls_ssl_ciphersuite_t ciphersuite_definitions[] =
       MBEDTLS_CIPHERSUITE_SHORT_TAG,
       MBEDTLS_SSL_VERSION_TLS1_2, MBEDTLS_SSL_VERSION_TLS1_2 },
 #endif /* MBEDTLS_SSL_HAVE_CCM */
-#endif /* MBEDTLS_SSL_HAVE_AES */
+#endif /* PSA_WANT_KEY_TYPE_AES */
 
 #if defined(MBEDTLS_SSL_HAVE_CAMELLIA)
 #if defined(MBEDTLS_SSL_HAVE_CBC)
@@ -800,7 +800,7 @@ static const mbedtls_ssl_ciphersuite_t ciphersuite_definitions[] =
 #endif /* MBEDTLS_KEY_EXCHANGE_RSA_ENABLED */
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED)
-#if defined(MBEDTLS_SSL_HAVE_AES)
+#if defined(PSA_WANT_KEY_TYPE_AES)
 #if defined(MBEDTLS_MD_CAN_SHA1)
 #if defined(MBEDTLS_SSL_HAVE_CBC)
     { MBEDTLS_TLS_ECDH_RSA_WITH_AES_128_CBC_SHA, "TLS-ECDH-RSA-WITH-AES-128-CBC-SHA",
@@ -841,7 +841,7 @@ static const mbedtls_ssl_ciphersuite_t ciphersuite_definitions[] =
       MBEDTLS_SSL_VERSION_TLS1_2, MBEDTLS_SSL_VERSION_TLS1_2 },
 #endif /* MBEDTLS_SSL_HAVE_GCM */
 #endif /* PSA_WANT_ALG_SHA_384 */
-#endif /* MBEDTLS_SSL_HAVE_AES */
+#endif /* PSA_WANT_KEY_TYPE_AES */
 
 #if defined(MBEDTLS_SSL_HAVE_CAMELLIA)
 #if defined(MBEDTLS_SSL_HAVE_CBC)
@@ -890,7 +890,7 @@ static const mbedtls_ssl_ciphersuite_t ciphersuite_definitions[] =
 #endif /* MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED */
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED)
-#if defined(MBEDTLS_SSL_HAVE_AES)
+#if defined(PSA_WANT_KEY_TYPE_AES)
 #if defined(MBEDTLS_MD_CAN_SHA1)
 #if defined(MBEDTLS_SSL_HAVE_CBC)
     { MBEDTLS_TLS_ECDH_ECDSA_WITH_AES_128_CBC_SHA, "TLS-ECDH-ECDSA-WITH-AES-128-CBC-SHA",
@@ -931,7 +931,7 @@ static const mbedtls_ssl_ciphersuite_t ciphersuite_definitions[] =
       MBEDTLS_SSL_VERSION_TLS1_2, MBEDTLS_SSL_VERSION_TLS1_2 },
 #endif /* MBEDTLS_SSL_HAVE_GCM */
 #endif /* PSA_WANT_ALG_SHA_384 */
-#endif /* MBEDTLS_SSL_HAVE_AES */
+#endif /* PSA_WANT_KEY_TYPE_AES */
 
 #if defined(MBEDTLS_SSL_HAVE_CAMELLIA)
 #if defined(MBEDTLS_SSL_HAVE_CBC)
@@ -980,7 +980,7 @@ static const mbedtls_ssl_ciphersuite_t ciphersuite_definitions[] =
 #endif /* MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED */
 
 #if defined(MBEDTLS_KEY_EXCHANGE_PSK_ENABLED)
-#if defined(MBEDTLS_SSL_HAVE_AES)
+#if defined(PSA_WANT_KEY_TYPE_AES)
 #if defined(MBEDTLS_SSL_HAVE_GCM)
 #if defined(PSA_WANT_ALG_SHA_256)
     { MBEDTLS_TLS_PSK_WITH_AES_128_GCM_SHA256, "TLS-PSK-WITH-AES-128-GCM-SHA256",
@@ -1042,7 +1042,7 @@ static const mbedtls_ssl_ciphersuite_t ciphersuite_definitions[] =
       MBEDTLS_CIPHERSUITE_SHORT_TAG,
       MBEDTLS_SSL_VERSION_TLS1_2, MBEDTLS_SSL_VERSION_TLS1_2 },
 #endif /* MBEDTLS_SSL_HAVE_CCM */
-#endif /* MBEDTLS_SSL_HAVE_AES */
+#endif /* PSA_WANT_KEY_TYPE_AES */
 
 #if defined(MBEDTLS_SSL_HAVE_CAMELLIA)
 #if defined(MBEDTLS_SSL_HAVE_CBC)
@@ -1081,7 +1081,7 @@ static const mbedtls_ssl_ciphersuite_t ciphersuite_definitions[] =
 #endif /* MBEDTLS_KEY_EXCHANGE_PSK_ENABLED */
 
 #if defined(MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED)
-#if defined(MBEDTLS_SSL_HAVE_AES)
+#if defined(PSA_WANT_KEY_TYPE_AES)
 #if defined(MBEDTLS_SSL_HAVE_GCM)
 #if defined(PSA_WANT_ALG_SHA_256)
     { MBEDTLS_TLS_DHE_PSK_WITH_AES_128_GCM_SHA256, "TLS-DHE-PSK-WITH-AES-128-GCM-SHA256",
@@ -1143,7 +1143,7 @@ static const mbedtls_ssl_ciphersuite_t ciphersuite_definitions[] =
       MBEDTLS_CIPHERSUITE_SHORT_TAG,
       MBEDTLS_SSL_VERSION_TLS1_2, MBEDTLS_SSL_VERSION_TLS1_2 },
 #endif /* MBEDTLS_SSL_HAVE_CCM */
-#endif /* MBEDTLS_SSL_HAVE_AES */
+#endif /* PSA_WANT_KEY_TYPE_AES */
 
 #if defined(MBEDTLS_SSL_HAVE_CAMELLIA)
 #if defined(MBEDTLS_SSL_HAVE_CBC)
@@ -1182,7 +1182,7 @@ static const mbedtls_ssl_ciphersuite_t ciphersuite_definitions[] =
 #endif /* MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED */
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED)
-#if defined(MBEDTLS_SSL_HAVE_AES)
+#if defined(PSA_WANT_KEY_TYPE_AES)
 
 #if defined(MBEDTLS_SSL_HAVE_CBC)
 #if defined(PSA_WANT_ALG_SHA_256)
@@ -1211,7 +1211,7 @@ static const mbedtls_ssl_ciphersuite_t ciphersuite_definitions[] =
       MBEDTLS_SSL_VERSION_TLS1_2, MBEDTLS_SSL_VERSION_TLS1_2 },
 #endif /* MBEDTLS_MD_CAN_SHA1 */
 #endif /* MBEDTLS_SSL_HAVE_CBC */
-#endif /* MBEDTLS_SSL_HAVE_AES */
+#endif /* PSA_WANT_KEY_TYPE_AES */
 
 #if defined(MBEDTLS_SSL_HAVE_CAMELLIA)
 #if defined(MBEDTLS_SSL_HAVE_CBC)
@@ -1236,7 +1236,7 @@ static const mbedtls_ssl_ciphersuite_t ciphersuite_definitions[] =
 #endif /* MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED */
 
 #if defined(MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED)
-#if defined(MBEDTLS_SSL_HAVE_AES)
+#if defined(PSA_WANT_KEY_TYPE_AES)
 #if defined(MBEDTLS_SSL_HAVE_GCM)
 #if defined(PSA_WANT_ALG_SHA_256)
     { MBEDTLS_TLS_RSA_PSK_WITH_AES_128_GCM_SHA256, "TLS-RSA-PSK-WITH-AES-128-GCM-SHA256",
@@ -1280,7 +1280,7 @@ static const mbedtls_ssl_ciphersuite_t ciphersuite_definitions[] =
       MBEDTLS_SSL_VERSION_TLS1_2, MBEDTLS_SSL_VERSION_TLS1_2 },
 #endif /* MBEDTLS_MD_CAN_SHA1 */
 #endif /* MBEDTLS_SSL_HAVE_CBC */
-#endif /* MBEDTLS_SSL_HAVE_AES */
+#endif /* PSA_WANT_KEY_TYPE_AES */
 
 #if defined(MBEDTLS_SSL_HAVE_CAMELLIA)
 #if defined(MBEDTLS_SSL_HAVE_CBC)
@@ -1319,14 +1319,14 @@ static const mbedtls_ssl_ciphersuite_t ciphersuite_definitions[] =
 #endif /* MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED */
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
-#if defined(MBEDTLS_SSL_HAVE_AES)
+#if defined(PSA_WANT_KEY_TYPE_AES)
 #if defined(MBEDTLS_SSL_HAVE_CCM)
     { MBEDTLS_TLS_ECJPAKE_WITH_AES_128_CCM_8, "TLS-ECJPAKE-WITH-AES-128-CCM-8",
       MBEDTLS_CIPHER_AES_128_CCM, MBEDTLS_MD_SHA256, MBEDTLS_KEY_EXCHANGE_ECJPAKE,
       MBEDTLS_CIPHERSUITE_SHORT_TAG,
       MBEDTLS_SSL_VERSION_TLS1_2, MBEDTLS_SSL_VERSION_TLS1_2 },
 #endif /* MBEDTLS_SSL_HAVE_CCM */
-#endif /* MBEDTLS_SSL_HAVE_AES */
+#endif /* PSA_WANT_KEY_TYPE_AES */
 #endif /* MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED */
 
 #if defined(MBEDTLS_CIPHER_NULL_CIPHER)

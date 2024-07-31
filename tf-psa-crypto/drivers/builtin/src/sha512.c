@@ -671,11 +671,6 @@ int mbedtls_internal_sha512_process_c(mbedtls_sha512_context *ctx,
     return 0;
 }
 
-#endif /* !MBEDTLS_SHA512_USE_A64_CRYPTO_ONLY */
-
-
-#if !defined(MBEDTLS_SHA512_USE_A64_CRYPTO_ONLY)
-
 static size_t mbedtls_internal_sha512_process_many_c(
     mbedtls_sha512_context *ctx, const uint8_t *data, size_t len)
 {

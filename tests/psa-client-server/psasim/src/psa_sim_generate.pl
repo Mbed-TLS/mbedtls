@@ -1241,11 +1241,11 @@ sub put_crypto_init_first
 # API functions declared in include/psa/crypto*.h change.
 #
 # All PSA functions used in test code must be listed here, unless they are
-# local functions (e.g. attribute accessors) or the test code that uses
+# static functions (e.g. attribute accessors) or the test code that uses
 # them is disabled in psasim builds. The order of functions does not matter.
 #
 # Some content that is not a function prototype (e.g. blank lines, comments,
-# type definitions) is allowed and ignored.
+# type definitions) is allowed and ignored. Static functions are also ignored.
 __END__
 psa_status_t psa_crypto_init(void);
 psa_status_t psa_hash_compute(psa_algorithm_t alg,

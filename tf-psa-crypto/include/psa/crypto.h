@@ -4961,6 +4961,12 @@ uint32_t psa_key_agreement_iop_get_num_ops(psa_key_agreement_iop_t *operation);
  *                              calling `psa_get_key_attributes()` with
  *                              the key's identifier.
  *
+ * \note                        This function clears the number of ops completed
+ *                              as part of the operation. Please ensure you copy
+ *                              this value via
+ *                              \c psa_key_agreement_iop_get_num_ops() if
+ *                              required before calling.
+ *
  * \retval #PSA_SUCCESS
  *          The operation started successfully - please call \c
  *          psa_key_agreement_iop_complete() with the same context to complete
@@ -5117,9 +5123,9 @@ psa_status_t psa_key_agreement_iop_complete(
  *                              at any point. It is not bound by the usual
  *                              interface stability promises.
  *
- * \note                        This function is the only function that clears
- *                              the number of ops completed as part of the
- *                              operation. Please ensure you copy this value via
+ * \note                        This function clears the number of ops completed
+ *                              as part of the operation. Please ensure you copy
+ *                              this value via
  *                              \c psa_key_agreement_iop_get_num_ops() if
  *                              required before calling.
  *

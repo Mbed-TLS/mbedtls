@@ -414,7 +414,7 @@ static size_t mbedtls_internal_sha256_process_many_a64_crypto(
     return processed;
 }
 
-int mbedtls_internal_sha256_process_a64_crypto(mbedtls_sha256_context *ctx,
+static int mbedtls_internal_sha256_process_a64_crypto(mbedtls_sha256_context *ctx,
                                                const unsigned char data[SHA256_BLOCK_SIZE])
 {
     return (mbedtls_internal_sha256_process_many_a64_crypto(ctx, data,
@@ -467,7 +467,7 @@ int mbedtls_internal_sha256_process_a64_crypto(mbedtls_sha256_context *ctx,
         (d) += local.temp1; (h) = local.temp1 + local.temp2;        \
     } while (0)
 
-int mbedtls_internal_sha256_process_c(mbedtls_sha256_context *ctx,
+static int mbedtls_internal_sha256_process_c(mbedtls_sha256_context *ctx,
                                       const unsigned char data[SHA256_BLOCK_SIZE])
 {
     struct {

@@ -551,7 +551,7 @@ static size_t mbedtls_internal_sha512_process_many_a64_crypto(
     return processed;
 }
 
-int mbedtls_internal_sha512_process_a64_crypto(mbedtls_sha512_context *ctx,
+static int mbedtls_internal_sha512_process_a64_crypto(mbedtls_sha512_context *ctx,
                                                const unsigned char data[SHA512_BLOCK_SIZE])
 {
     return (mbedtls_internal_sha512_process_many_a64_crypto(ctx, data,
@@ -579,7 +579,7 @@ int mbedtls_internal_sha512_process_a64_crypto(mbedtls_sha512_context *ctx,
 
 #if !defined(MBEDTLS_SHA512_USE_A64_CRYPTO_ONLY)
 
-int mbedtls_internal_sha512_process_c(mbedtls_sha512_context *ctx,
+static int mbedtls_internal_sha512_process_c(mbedtls_sha512_context *ctx,
                                       const unsigned char data[SHA512_BLOCK_SIZE])
 {
     int i;

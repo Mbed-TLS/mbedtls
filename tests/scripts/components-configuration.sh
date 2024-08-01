@@ -294,6 +294,28 @@ component_build_tfm () {
     make lib CC="gcc" CFLAGS="-Os -std=c99 -Werror -Wall -Wextra -Wwrite-strings -Wpointer-arith -Wshadow -Wvla -Wformat=2 -Wno-format-nonliteral -Wshadow -Wformat-signedness -Wlogical-op -I../tests/include/spe"
 }
 
+component_test_malloc_0_null () {
+    msg "build: malloc(0) returns NULL (ASan+UBSan build)"
+    scripts/config.py full
+    make CC=$ASAN_CC CFLAGS="'-DMBEDTLS_USER_CONFIG_FILE=\"$PWD/tests/configs/user-config-malloc-0-null.h\"' $ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS"
+
+    msg "test: malloc(0) returns NULL (ASan+UBSan build)"
+    make test
+
+    msg "selftest: malloc(0) returns NULL (ASan+UBSan build)"
+    # Just the calloc selftest. "make test" ran the others as part of the
+    # test suites.
+    programs/test/selftest calloc
+
+    msg "test ssl-opt.sh: malloc(0) returns NULL (ASan+UBSan build)"
+    # Run a subset of the tests. The choice is a balance between coverage
+    # and time (including time indirectly wasted due to flaky tests).
+    # The current choice is to skip tests whose description includes
+    # "proxy", which is an approximation of skipping tests that use the
+    # UDP proxy, which tend to be slower and flakier.
+    tests/ssl-opt.sh -e 'proxy'
+}
+
 component_test_no_platform () {
     # Full configuration build, without platform support, file IO and net sockets.
     # This should catch missing mbedtls_printf definitions, and by disabling file
@@ -344,4 +366,32 @@ component_test_no_strings () {
 
     msg "test: no strings" # ~ 10s
     make test
+}
+
+component_test_memory_buffer_allocator_backtrace () {
+    msg "build: default config with memory buffer allocator and backtrace enabled"
+    scripts/config.py set MBEDTLS_MEMORY_BUFFER_ALLOC_C
+    scripts/config.py set MBEDTLS_PLATFORM_MEMORY
+    scripts/config.py set MBEDTLS_MEMORY_BACKTRACE
+    scripts/config.py set MBEDTLS_MEMORY_DEBUG
+    cmake -DCMAKE_BUILD_TYPE:String=Release .
+    make
+
+    msg "test: MBEDTLS_MEMORY_BUFFER_ALLOC_C and MBEDTLS_MEMORY_BACKTRACE"
+    make test
+}
+
+component_test_memory_buffer_allocator () {
+    msg "build: default config with memory buffer allocator"
+    scripts/config.py set MBEDTLS_MEMORY_BUFFER_ALLOC_C
+    scripts/config.py set MBEDTLS_PLATFORM_MEMORY
+    cmake -DCMAKE_BUILD_TYPE:String=Release .
+    make
+
+    msg "test: MBEDTLS_MEMORY_BUFFER_ALLOC_C"
+    make test
+
+    msg "test: ssl-opt.sh, MBEDTLS_MEMORY_BUFFER_ALLOC_C"
+    # MBEDTLS_MEMORY_BUFFER_ALLOC is slow. Skip tests that tend to time out.
+    tests/ssl-opt.sh -e '^DTLS proxy'
 }

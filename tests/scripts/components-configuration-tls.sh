@@ -254,34 +254,6 @@ component_build_no_ssl_cli () {
     make CC=gcc CFLAGS='-Werror -Wall -Wextra -O1'
 }
 
-component_test_memory_buffer_allocator_backtrace () {
-    msg "build: default config with memory buffer allocator and backtrace enabled"
-    scripts/config.py set MBEDTLS_MEMORY_BUFFER_ALLOC_C
-    scripts/config.py set MBEDTLS_PLATFORM_MEMORY
-    scripts/config.py set MBEDTLS_MEMORY_BACKTRACE
-    scripts/config.py set MBEDTLS_MEMORY_DEBUG
-    cmake -DCMAKE_BUILD_TYPE:String=Release .
-    make
-
-    msg "test: MBEDTLS_MEMORY_BUFFER_ALLOC_C and MBEDTLS_MEMORY_BACKTRACE"
-    make test
-}
-
-component_test_memory_buffer_allocator () {
-    msg "build: default config with memory buffer allocator"
-    scripts/config.py set MBEDTLS_MEMORY_BUFFER_ALLOC_C
-    scripts/config.py set MBEDTLS_PLATFORM_MEMORY
-    cmake -DCMAKE_BUILD_TYPE:String=Release .
-    make
-
-    msg "test: MBEDTLS_MEMORY_BUFFER_ALLOC_C"
-    make test
-
-    msg "test: ssl-opt.sh, MBEDTLS_MEMORY_BUFFER_ALLOC_C"
-    # MBEDTLS_MEMORY_BUFFER_ALLOC is slow. Skip tests that tend to time out.
-    tests/ssl-opt.sh -e '^DTLS proxy'
-}
-
 component_test_no_max_fragment_length () {
     # Run max fragment length tests with MFL disabled
     msg "build: default config except MFL extension (ASan build)" # ~ 30s

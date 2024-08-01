@@ -22,17 +22,6 @@ component_test_no_renegotiation () {
     tests/ssl-opt.sh
 }
 
-component_test_sw_inet_pton () {
-    msg "build: default plus MBEDTLS_TEST_SW_INET_PTON"
-
-    # MBEDTLS_TEST_HOOKS required for x509_crt_parse_cn_inet_pton
-    scripts/config.py set MBEDTLS_TEST_HOOKS
-    make CFLAGS="-DMBEDTLS_TEST_SW_INET_PTON"
-
-    msg "test: default plus MBEDTLS_TEST_SW_INET_PTON"
-    make test
-}
-
 component_test_tls1_2_default_stream_cipher_only () {
     msg "build: default with only stream cipher use psa"
 

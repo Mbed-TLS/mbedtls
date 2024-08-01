@@ -22,14 +22,25 @@ my %functions = get_functions();
 my @functions = sort keys %functions;
 
 # We don't want these functions (e.g. because they are not implemented, etc)
-my @skip_functions = qw(
-    psa_key_derivation_verify_bytes
-    psa_key_derivation_verify_key
+my @skip_functions = (
+    'mbedtls_psa_crypto_free', # redefined rather than wrapped
+    'mbedtls_psa_external_get_random', # not in the default config, uses unsupported type
+    'mbedtls_psa_get_stats', # uses unsupported type
+    'mbedtls_psa_inject_entropy', # not in the default config, generally not for client use anyway
+    'mbedtls_psa_platform_get_builtin_key', # not in the default config, uses unsupported type
+    'mbedtls_psa_register_se_key', # not in the default config, generally not for client use anyway
+    'psa_get_key_slot_number', # not in the default config, uses unsupported type
+    'psa_key_derivation_verify_bytes', # not implemented yet
+    'psa_key_derivation_verify_key', # not implemented yet
 );
 
-# Remove @skip_functions from @functions
-my %skip_functions = map { $_ => 1 } @skip_functions;
-@functions = grep(!exists($skip_functions{$_}), @functions);
+my $skip_functions_re = '\A(' . join('|', @skip_functions). ')\Z';
+@functions = grep(!/$skip_functions_re
+                   |_pake_ # Skip everything PAKE
+                   |_init\Z # constructors
+                   /x, @functions);
+# Restore psa_crypto_init() and put it first.
+unshift @functions, 'psa_crypto_init';
 
 # get_functions(), called above, returns a data structure for each function
 # that we need to create client and server stubs for. In this example Perl script,
@@ -83,9 +94,6 @@ my %skip_functions = map { $_ => 1 } @skip_functions;
 #
 # It's possible that a production version might not need both type and ctypename;
 # that was done for convenience and future-proofing during development.
-
-# We'll do psa_crypto_init() first
-put_crypto_init_first(\@functions);
 
 write_function_codes("$output_dir/psa_functions_codes.h");
 
@@ -1119,31 +1127,6 @@ sub get_functions
             $line =~ s/\s+/ /g;
             if ($line =~ /(\w+)\s+\b(\w+)\s*\(\s*(.*\S)\s*\)\s*[;{]/s) {
                 my ($ret_type, $func, $args) = ($1, $2, $3);
-
-                if ($func =~ /_init$/ and $func ne 'psa_crypto_init' and
-                    $args eq 'void') {
-                    # IGNORE constructors
-                    next;
-                }
-                if ($func =~ /_pake_/ or
-                    $func eq 'mbedtls_psa_external_get_random' or
-                    $func eq 'mbedtls_psa_get_stats' or
-                    $func eq 'mbedtls_psa_platform_get_builtin_key' or
-                    $func eq 'psa_get_key_slot_number') {
-                    # IGNORE functions using unsupported types
-                    next;
-                }
-                if ($func eq 'mbedtls_psa_register_se_key' or
-                    $func eq 'mbedtls_psa_inject_entropy') {
-                    # IGNORE functions that are not supported, not used in
-                    # the default build, and not supposed to be invoked
-                    # by (unprivileged) clients anyway.
-                    next;
-                }
-                if ($func eq 'mbedtls_psa_crypto_free') {
-                    # IGNORE function that we redefine instead of wrapping
-                    next;
-                }
 
                 my $copy = $line;
                 $copy =~ s/{$//;

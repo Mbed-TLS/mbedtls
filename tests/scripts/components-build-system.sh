@@ -207,3 +207,4 @@ component_build_cmake_programs_no_testing () {
 support_build_cmake_programs_no_testing () {
     support_test_cmake_out_of_source
 }
+

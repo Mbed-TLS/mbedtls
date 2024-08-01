@@ -60,21 +60,4 @@
 #### Build and test many configurations and targets
 ################################################################
 
-# For timebeing, no VIA Padlock platform available.
-component_build_aes_via_padlock () {
-
-    msg "AES:VIA PadLock, build with default configuration."
-    scripts/config.py unset MBEDTLS_AESNI_C
-    scripts/config.py set MBEDTLS_PADLOCK_C
-    scripts/config.py unset MBEDTLS_AES_USE_HARDWARE_ONLY
-    make CC=gcc CFLAGS="$ASAN_CFLAGS -m32" LDFLAGS="-m32 $ASAN_CFLAGS"
-    grep -q mbedtls_padlock_has_support ./programs/test/selftest
-
-}
-
-support_build_aes_via_padlock_only () {
-    ( [ "$MBEDTLS_TEST_PLATFORM" == "Linux-x86_64" ] || \
-        [ "$MBEDTLS_TEST_PLATFORM" == "Linux-amd64" ] ) && \
-    [ "`dpkg --print-foreign-architectures`" == "i386" ]
-}
 

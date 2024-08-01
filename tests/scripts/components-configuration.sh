@@ -332,3 +332,16 @@ component_build_mbedtls_config_file () {
     rm -f user_config.h full_config.h
 }
 
+component_test_no_strings () {
+    msg "build: no strings" # ~10s
+    scripts/config.py full
+    # Disable options that activate a large amount of string constants.
+    scripts/config.py unset MBEDTLS_DEBUG_C
+    scripts/config.py unset MBEDTLS_ERROR_C
+    scripts/config.py set MBEDTLS_ERROR_STRERROR_DUMMY
+    scripts/config.py unset MBEDTLS_VERSION_FEATURES
+    make CFLAGS='-Werror -Os'
+
+    msg "test: no strings" # ~ 10s
+    make test
+}

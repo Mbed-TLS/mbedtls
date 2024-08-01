@@ -327,11 +327,6 @@ component_test_depends_py_hashes () {
     tests/scripts/depends.py hashes --unset-use-psa
 }
 
-component_test_depends_py_kex () {
-    msg "test/build: depends.py kex (gcc)"
-    tests/scripts/depends.py kex --unset-use-psa
-}
-
 component_test_depends_py_pkalgs () {
     msg "test/build: depends.py pkalgs (gcc)"
     tests/scripts/depends.py pkalgs --unset-use-psa
@@ -361,11 +356,6 @@ component_test_depends_py_curves_psa () {
 component_test_depends_py_hashes_psa () {
     msg "test/build: depends.py hashes (gcc) with MBEDTLS_USE_PSA_CRYPTO defined"
     tests/scripts/depends.py hashes
-}
-
-component_test_depends_py_kex_psa () {
-    msg "test/build: depends.py kex (gcc) with MBEDTLS_USE_PSA_CRYPTO defined"
-    tests/scripts/depends.py kex
 }
 
 component_test_depends_py_pkalgs_psa () {

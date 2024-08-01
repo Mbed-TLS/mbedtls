@@ -338,15 +338,6 @@ component_build_sha_armce () {
     not grep -E 'sha256[a-z0-9]+\s+[qv]' ${BUILTIN_SRC_PATH}/sha256.o
 }
 
-component_build_zeroize_checks () {
-    msg "build: check for obviously wrong calls to mbedtls_platform_zeroize()"
-
-    scripts/config.py full
-
-    # Only compile - we're looking for sizeof-pointer-memaccess warnings
-    make CFLAGS="'-DMBEDTLS_USER_CONFIG_FILE=\"../tests/configs/user-config-zeroize-memset.h\"' -DMBEDTLS_TEST_DEFINES_ZEROIZE -Werror -Wsizeof-pointer-memaccess"
-}
-
 component_build_arm_none_eabi_gcc () {
     msg "build: ${ARM_NONE_EABI_GCC_PREFIX}gcc -O1, baremetal+debug" # ~ 10s
     scripts/config.py baremetal

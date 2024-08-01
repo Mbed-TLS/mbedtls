@@ -4900,7 +4900,7 @@ uint32_t psa_key_agreement_iop_get_num_ops(psa_key_agreement_iop_t *operation);
  *                              on the same operation object after a successful
  *                              call to this function until \c
  *                              psa_key_agreement_iop_complete() either returns
- *                              0 or an error.
+ *                              #PSA_SUCCESS or an error.
  *                              \c psa_key_agreement_iop_complete() will return
  *                              #PSA_OPERATION_INCOMPLETE if there is more work
  *                              to do. Alternatively users can call
@@ -5049,10 +5049,10 @@ psa_status_t psa_key_agreement_iop_setup(
  *                              maximum time spent in a function call.
  *
  * \note                        Users should call this function on the same
- *                              operation object repeatedly until it either
- *                              returns 0 or an error. This function will return
- *                              #PSA_OPERATION_INCOMPLETE if there is more work
- *                              to do. Alternatively users can call
+ *                              operation object repeatedly whilst it returns
+ *                              #PSA_OPERATION_INCOMPLETE, stopping when it
+ *                              returns either #PSA_SUCCESS or an error.
+ *                              Alternatively users can call
  *                              \c psa_key_agreement_iop_abort() at any point if
  *                              they no longer want the result.
  *

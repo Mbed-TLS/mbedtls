@@ -2164,6 +2164,10 @@ component_test_aesni_m32 () { # ~ 60s
     not grep -q mbedtls_aesni_has_support ./programs/test/selftest
 }
 
+support_build_aes_aesce_armcc () {
+    support_build_armcc
+}
+
 # For timebeing, no aarch64 gcc available in CI and no arm64 CI node.
 component_build_aes_aesce_armcc () {
     msg "Build: AESCE test on arm64 platform without plain C."
@@ -2512,6 +2516,10 @@ component_test_block_cipher_no_decrypt_aesni_use_psa () {
     export CC=gcc
     config_block_cipher_no_decrypt 1
     common_block_cipher_no_decrypt
+}
+
+support_test_block_cipher_no_decrypt_aesce_armcc () {
+    support_build_armcc
 }
 
 component_test_block_cipher_no_decrypt_aesce_armcc () {

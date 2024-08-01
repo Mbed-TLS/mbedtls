@@ -43,14 +43,6 @@ component_test_aesni_m32_clang () {
     grep -q mbedtls_aesni_has_support ./programs/test/selftest
 }
 
-support_build_aes_aesce_armcc () {
-    support_build_armcc
-}
-
-support_test_block_cipher_no_decrypt_aesce_armcc () {
-    support_build_armcc
-}
-
 test_build_opt () {
     info=$1 cc=$2; shift 2
     $cc --version

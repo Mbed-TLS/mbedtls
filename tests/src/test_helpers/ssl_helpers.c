@@ -503,7 +503,10 @@ int mbedtls_test_mock_tcp_recv_msg(void *ctx,
              * happen in test environment, unless forced manually. */
         }
     }
-    mbedtls_test_ssl_message_queue_pop_info(queue, buf_len);
+    ret = mbedtls_test_ssl_message_queue_pop_info(queue, buf_len);
+    if (ret < 0) {
+        return ret;
+    }
 
     return (msg_len > INT_MAX) ? INT_MAX : (int) msg_len;
 }

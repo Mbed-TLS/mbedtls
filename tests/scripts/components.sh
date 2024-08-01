@@ -267,17 +267,6 @@ component_test_ref_configs () {
     tests/scripts/test-ref-configs.pl
 }
 
-component_test_sw_inet_pton () {
-    msg "build: default plus MBEDTLS_TEST_SW_INET_PTON"
-
-    # MBEDTLS_TEST_HOOKS required for x509_crt_parse_cn_inet_pton
-    scripts/config.py set MBEDTLS_TEST_HOOKS
-    make CFLAGS="-DMBEDTLS_TEST_SW_INET_PTON"
-
-    msg "test: default plus MBEDTLS_TEST_SW_INET_PTON"
-    make test
-}
-
 component_test_full_no_cipher_no_psa_crypto () {
     msg "build: full no CIPHER no PSA_CRYPTO_C"
     scripts/config.py full
@@ -1516,20 +1505,6 @@ component_test_no_strings () {
 
     msg "test: no strings" # ~ 10s
     make test
-}
-
-component_test_no_x509_info () {
-    msg "build: full + MBEDTLS_X509_REMOVE_INFO" # ~ 10s
-    scripts/config.pl full
-    scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # too slow for tests
-    scripts/config.pl set MBEDTLS_X509_REMOVE_INFO
-    make CFLAGS='-Werror -O2'
-
-    msg "test: full + MBEDTLS_X509_REMOVE_INFO" # ~ 10s
-    make test
-
-    msg "test: ssl-opt.sh, full + MBEDTLS_X509_REMOVE_INFO" # ~ 1 min
-    tests/ssl-opt.sh
 }
 
 component_build_arm_none_eabi_gcc () {

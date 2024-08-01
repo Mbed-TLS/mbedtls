@@ -5009,6 +5009,8 @@ uint32_t psa_key_agreement_iop_get_num_ops(psa_key_agreement_iop_t *operation);
  *          The following conditions can result in this error:
  *          * \p alg is not supported.
  *          * \p private_key is not supported for use with \p alg.
+ *          * Only elliptic curve Diffie-Hellman with ECC keys is supported, not
+ *            finite field Diffie_hellman with DH keys.
  *
  * \retval #PSA_ERROR_INVALID_ARGUMENT \emptydescription
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription

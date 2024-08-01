@@ -67,6 +67,184 @@ component_test_no_rsa_key_pair_generation () {
     make test
 }
 
+component_test_no_pem_no_fs () {
+    msg "build: Default + !MBEDTLS_PEM_PARSE_C + !MBEDTLS_FS_IO (ASan build)"
+    scripts/config.py unset MBEDTLS_PEM_PARSE_C
+    scripts/config.py unset MBEDTLS_FS_IO
+    scripts/config.py unset MBEDTLS_PSA_ITS_FILE_C # requires a filesystem
+    scripts/config.py unset MBEDTLS_PSA_CRYPTO_STORAGE_C # requires PSA ITS
+    CC=$ASAN_CC cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    make
+
+    msg "test: !MBEDTLS_PEM_PARSE_C !MBEDTLS_FS_IO - main suites (inc. selftests) (ASan build)" # ~ 50s
+    make test
+
+    msg "test: !MBEDTLS_PEM_PARSE_C !MBEDTLS_FS_IO - ssl-opt.sh (ASan build)" # ~ 6 min
+    tests/ssl-opt.sh
+}
+
+component_test_rsa_no_crt () {
+    msg "build: Default + RSA_NO_CRT (ASan build)" # ~ 6 min
+    scripts/config.py set MBEDTLS_RSA_NO_CRT
+    CC=$ASAN_CC cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    make
+
+    msg "test: RSA_NO_CRT - main suites (inc. selftests) (ASan build)" # ~ 50s
+    make test
+
+    msg "test: RSA_NO_CRT - RSA-related part of ssl-opt.sh (ASan build)" # ~ 5s
+    tests/ssl-opt.sh -f RSA
+
+    msg "test: RSA_NO_CRT - RSA-related part of compat.sh (ASan build)" # ~ 3 min
+    tests/compat.sh -t RSA
+
+    msg "test: RSA_NO_CRT - RSA-related part of context-info.sh (ASan build)" # ~ 15 sec
+    tests/context-info.sh
+}
+
+component_test_no_ctr_drbg_classic () {
+    msg "build: Full minus CTR_DRBG, classic crypto in TLS"
+    scripts/config.py full
+    scripts/config.py unset MBEDTLS_CTR_DRBG_C
+    scripts/config.py unset MBEDTLS_USE_PSA_CRYPTO
+    scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1_3
+
+    CC=$ASAN_CC cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    make
+
+    msg "test: Full minus CTR_DRBG, classic crypto - main suites"
+    make test
+
+    # In this configuration, the TLS test programs use HMAC_DRBG.
+    # The SSL tests are slow, so run a small subset, just enough to get
+    # confidence that the SSL code copes with HMAC_DRBG.
+    msg "test: Full minus CTR_DRBG, classic crypto - ssl-opt.sh (subset)"
+    tests/ssl-opt.sh -f 'Default\|SSL async private.*delay=\|tickets enabled on server'
+
+    msg "test: Full minus CTR_DRBG, classic crypto - compat.sh (subset)"
+    tests/compat.sh -m tls12 -t 'ECDSA PSK' -V NO -p OpenSSL
+}
+
+component_test_no_ctr_drbg_use_psa () {
+    msg "build: Full minus CTR_DRBG, PSA crypto in TLS"
+    scripts/config.py full
+    scripts/config.py unset MBEDTLS_CTR_DRBG_C
+    scripts/config.py set MBEDTLS_USE_PSA_CRYPTO
+
+    CC=$ASAN_CC cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    make
+
+    msg "test: Full minus CTR_DRBG, USE_PSA_CRYPTO - main suites"
+    make test
+
+    # In this configuration, the TLS test programs use HMAC_DRBG.
+    # The SSL tests are slow, so run a small subset, just enough to get
+    # confidence that the SSL code copes with HMAC_DRBG.
+    msg "test: Full minus CTR_DRBG, USE_PSA_CRYPTO - ssl-opt.sh (subset)"
+    tests/ssl-opt.sh -f 'Default\|SSL async private.*delay=\|tickets enabled on server'
+
+    msg "test: Full minus CTR_DRBG, USE_PSA_CRYPTO - compat.sh (subset)"
+    tests/compat.sh -m tls12 -t 'ECDSA PSK' -V NO -p OpenSSL
+}
+
+component_test_no_hmac_drbg_classic () {
+    msg "build: Full minus HMAC_DRBG, classic crypto in TLS"
+    scripts/config.py full
+    scripts/config.py unset MBEDTLS_HMAC_DRBG_C
+    scripts/config.py unset MBEDTLS_ECDSA_DETERMINISTIC # requires HMAC_DRBG
+    scripts/config.py unset MBEDTLS_USE_PSA_CRYPTO
+    scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1_3
+
+    CC=$ASAN_CC cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    make
+
+    msg "test: Full minus HMAC_DRBG, classic crypto - main suites"
+    make test
+
+    # Normally our ECDSA implementation uses deterministic ECDSA. But since
+    # HMAC_DRBG is disabled in this configuration, randomized ECDSA is used
+    # instead.
+    # Test SSL with non-deterministic ECDSA. Only test features that
+    # might be affected by how ECDSA signature is performed.
+    msg "test: Full minus HMAC_DRBG, classic crypto - ssl-opt.sh (subset)"
+    tests/ssl-opt.sh -f 'Default\|SSL async private: sign'
+
+    # To save time, only test one protocol version, since this part of
+    # the protocol is identical in (D)TLS up to 1.2.
+    msg "test: Full minus HMAC_DRBG, classic crypto - compat.sh (ECDSA)"
+    tests/compat.sh -m tls12 -t 'ECDSA'
+}
+
+component_test_no_hmac_drbg_use_psa () {
+    msg "build: Full minus HMAC_DRBG, PSA crypto in TLS"
+    scripts/config.py full
+    scripts/config.py unset MBEDTLS_HMAC_DRBG_C
+    scripts/config.py unset MBEDTLS_ECDSA_DETERMINISTIC # requires HMAC_DRBG
+    scripts/config.py set MBEDTLS_USE_PSA_CRYPTO
+
+    CC=$ASAN_CC cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    make
+
+    msg "test: Full minus HMAC_DRBG, USE_PSA_CRYPTO - main suites"
+    make test
+
+    # Normally our ECDSA implementation uses deterministic ECDSA. But since
+    # HMAC_DRBG is disabled in this configuration, randomized ECDSA is used
+    # instead.
+    # Test SSL with non-deterministic ECDSA. Only test features that
+    # might be affected by how ECDSA signature is performed.
+    msg "test: Full minus HMAC_DRBG, USE_PSA_CRYPTO - ssl-opt.sh (subset)"
+    tests/ssl-opt.sh -f 'Default\|SSL async private: sign'
+
+    # To save time, only test one protocol version, since this part of
+    # the protocol is identical in (D)TLS up to 1.2.
+    msg "test: Full minus HMAC_DRBG, USE_PSA_CRYPTO - compat.sh (ECDSA)"
+    tests/compat.sh -m tls12 -t 'ECDSA'
+}
+
+component_test_psa_external_rng_no_drbg_classic () {
+    msg "build: PSA_CRYPTO_EXTERNAL_RNG minus *_DRBG, classic crypto in TLS"
+    scripts/config.py full
+    scripts/config.py unset MBEDTLS_USE_PSA_CRYPTO
+    scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1_3
+    scripts/config.py set MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG
+    scripts/config.py unset MBEDTLS_ENTROPY_C
+    scripts/config.py unset MBEDTLS_ENTROPY_NV_SEED
+    scripts/config.py unset MBEDTLS_PLATFORM_NV_SEED_ALT
+    scripts/config.py unset MBEDTLS_CTR_DRBG_C
+    scripts/config.py unset MBEDTLS_HMAC_DRBG_C
+    scripts/config.py unset MBEDTLS_ECDSA_DETERMINISTIC # requires HMAC_DRBG
+    # When MBEDTLS_USE_PSA_CRYPTO is disabled and there is no DRBG,
+    # the SSL test programs don't have an RNG and can't work. Explicitly
+    # make them use the PSA RNG with -DMBEDTLS_TEST_USE_PSA_CRYPTO_RNG.
+    make CC=$ASAN_CC CFLAGS="$ASAN_CFLAGS -DMBEDTLS_TEST_USE_PSA_CRYPTO_RNG" LDFLAGS="$ASAN_CFLAGS"
+
+    msg "test: PSA_CRYPTO_EXTERNAL_RNG minus *_DRBG, classic crypto - main suites"
+    make test
+
+    msg "test: PSA_CRYPTO_EXTERNAL_RNG minus *_DRBG, classic crypto - ssl-opt.sh (subset)"
+    tests/ssl-opt.sh -f 'Default'
+}
+
+component_test_psa_external_rng_no_drbg_use_psa () {
+    msg "build: PSA_CRYPTO_EXTERNAL_RNG minus *_DRBG, PSA crypto in TLS"
+    scripts/config.py full
+    scripts/config.py set MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG
+    scripts/config.py unset MBEDTLS_ENTROPY_C
+    scripts/config.py unset MBEDTLS_ENTROPY_NV_SEED
+    scripts/config.py unset MBEDTLS_PLATFORM_NV_SEED_ALT
+    scripts/config.py unset MBEDTLS_CTR_DRBG_C
+    scripts/config.py unset MBEDTLS_HMAC_DRBG_C
+    scripts/config.py unset MBEDTLS_ECDSA_DETERMINISTIC # requires HMAC_DRBG
+    make CC=$ASAN_CC CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS"
+
+    msg "test: PSA_CRYPTO_EXTERNAL_RNG minus *_DRBG, PSA crypto - main suites"
+    make test
+
+    msg "test: PSA_CRYPTO_EXTERNAL_RNG minus *_DRBG, PSA crypto - ssl-opt.sh (subset)"
+    tests/ssl-opt.sh -f 'Default\|opaque'
+}
+
 component_test_psa_external_rng_use_psa_crypto () {
     msg "build: full + PSA_CRYPTO_EXTERNAL_RNG + USE_PSA_CRYPTO minus CTR_DRBG"
     scripts/config.py full
@@ -227,6 +405,50 @@ component_test_full_no_ccm_star_no_tag () {
     not grep mbedtls_psa_cipher ${PSA_CORE_PATH}/psa_crypto_cipher.o
 
     msg "test: full no PSA_WANT_ALG_CCM_STAR_NO_TAG"
+    make test
+}
+
+component_test_everest () {
+    msg "build: Everest ECDH context (ASan build)" # ~ 6 min
+    scripts/config.py set MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED
+    CC=clang cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    make
+
+    msg "test: Everest ECDH context - main suites (inc. selftests) (ASan build)" # ~ 50s
+    make test
+
+    msg "test: metatests (clang, ASan)"
+    tests/scripts/run-metatests.sh any asan poison
+
+    msg "test: Everest ECDH context - ECDH-related part of ssl-opt.sh (ASan build)" # ~ 5s
+    tests/ssl-opt.sh -f ECDH
+
+    msg "test: Everest ECDH context - compat.sh with some ECDH ciphersuites (ASan build)" # ~ 3 min
+    # Exclude some symmetric ciphers that are redundant here to gain time.
+    tests/compat.sh -f ECDH -V NO -e 'ARIA\|CAMELLIA\|CHACHA'
+}
+
+component_test_everest_curve25519_only () {
+    msg "build: Everest ECDH context, only Curve25519" # ~ 6 min
+    scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
+    scripts/config.py set MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED
+    scripts/config.py unset MBEDTLS_ECDSA_C
+    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_DETERMINISTIC_ECDSA
+    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_ECDSA
+    scripts/config.py -f $CRYPTO_CONFIG_H set PSA_WANT_ALG_ECDH
+    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED
+    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
+    scripts/config.py unset MBEDTLS_ECJPAKE_C
+    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_JPAKE
+
+    # Disable all curves
+    scripts/config.py unset-all "MBEDTLS_ECP_DP_[0-9A-Z_a-z]*_ENABLED"
+    scripts/config.py -f $CRYPTO_CONFIG_H unset-all "PSA_WANT_ECC_[0-9A-Z_a-z]*$"
+    scripts/config.py -f $CRYPTO_CONFIG_H set PSA_WANT_ECC_MONTGOMERY_255
+
+    make CC=$ASAN_CC CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS"
+
+    msg "test: Everest ECDH context, only Curve25519" # ~ 50s
     make test
 }
 

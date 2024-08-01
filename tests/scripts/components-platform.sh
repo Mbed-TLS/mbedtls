@@ -110,6 +110,107 @@ support_test_mx32 () {
     esac
 }
 
+support_test_aesni () {
+    # Check that gcc targets x86_64 (we can build AESNI), and check for
+    # AESNI support on the host (we can run AESNI).
+    #
+    # The name of this function is possibly slightly misleading, but needs to align
+    # with the name of the corresponding test, component_test_aesni.
+    #
+    # In principle 32-bit x86 can support AESNI, but our implementation does not
+    # support 32-bit x86, so we check for x86-64.
+    # We can only grep /proc/cpuinfo on Linux, so this also checks for Linux
+    (gcc -v 2>&1 | grep Target | grep -q x86_64) &&
+        [[ "$HOSTTYPE" == "x86_64" && "$OSTYPE" == "linux-gnu" ]] &&
+        (lscpu | grep -qw aes)
+}
+
+component_test_aesni () { # ~ 60s
+    # This tests the two AESNI implementations (intrinsics and assembly), and also the plain C
+    # fallback. It also tests the logic that is used to select which implementation(s) to build.
+    #
+    # This test does not require the host to have support for AESNI (if it doesn't, the run-time
+    # AESNI detection will fallback to the plain C implementation, so the tests will instead
+    # exercise the plain C impl).
+
+    msg "build: default config with different AES implementations"
+    scripts/config.py set MBEDTLS_AESNI_C
+    scripts/config.py unset MBEDTLS_AES_USE_HARDWARE_ONLY
+    scripts/config.py set MBEDTLS_HAVE_ASM
+
+    # test the intrinsics implementation
+    msg "AES tests, test intrinsics"
+    make clean
+    make CC=gcc CFLAGS='-Werror -Wall -Wextra -mpclmul -msse2 -maes'
+    # check that we built intrinsics - this should be used by default when supported by the compiler
+    ./programs/test/selftest aes | grep "AESNI code" | grep -q "intrinsics"
+
+    # test the asm implementation
+    msg "AES tests, test assembly"
+    make clean
+    make CC=gcc CFLAGS='-Werror -Wall -Wextra -mno-pclmul -mno-sse2 -mno-aes'
+    # check that we built assembly - this should be built if the compiler does not support intrinsics
+    ./programs/test/selftest aes | grep "AESNI code" | grep -q "assembly"
+
+    # test the plain C implementation
+    scripts/config.py unset MBEDTLS_AESNI_C
+    scripts/config.py unset MBEDTLS_AES_USE_HARDWARE_ONLY
+    msg "AES tests, plain C"
+    make clean
+    make CC=gcc CFLAGS='-O2 -Werror'
+    # check that there is no AESNI code present
+    ./programs/test/selftest aes | not grep -q "AESNI code"
+    not grep -q "AES note: using AESNI" ./programs/test/selftest
+    grep -q "AES note: built-in implementation." ./programs/test/selftest
+
+    # test the intrinsics implementation
+    scripts/config.py set MBEDTLS_AESNI_C
+    scripts/config.py set MBEDTLS_AES_USE_HARDWARE_ONLY
+    msg "AES tests, test AESNI only"
+    make clean
+    make CC=gcc CFLAGS='-Werror -Wall -Wextra -mpclmul -msse2 -maes'
+    ./programs/test/selftest aes | grep -q "AES note: using AESNI"
+    ./programs/test/selftest aes | not grep -q "AES note: built-in implementation."
+    grep -q "AES note: using AESNI" ./programs/test/selftest
+    not grep -q "AES note: built-in implementation." ./programs/test/selftest
+}
+
+support_test_aesni_m32 () {
+    support_test_m32_no_asm && (lscpu | grep -qw aes)
+}
+
+component_test_aesni_m32 () { # ~ 60s
+    # This tests are duplicated from component_test_aesni for i386 target
+    #
+    # AESNI intrinsic code supports i386 and assembly code does not support it.
+
+    msg "build: default config with different AES implementations"
+    scripts/config.py set MBEDTLS_AESNI_C
+    scripts/config.py unset MBEDTLS_AES_USE_HARDWARE_ONLY
+    scripts/config.py set MBEDTLS_HAVE_ASM
+
+    # test the intrinsics implementation with gcc
+    msg "AES tests, test intrinsics (gcc)"
+    make clean
+    make CC=gcc CFLAGS='-m32 -Werror -Wall -Wextra' LDFLAGS='-m32'
+    # check that we built intrinsics - this should be used by default when supported by the compiler
+    ./programs/test/selftest aes | grep "AESNI code" | grep -q "intrinsics"
+    grep -q "AES note: using AESNI" ./programs/test/selftest
+    grep -q "AES note: built-in implementation." ./programs/test/selftest
+    grep -q mbedtls_aesni_has_support ./programs/test/selftest
+
+    scripts/config.py set MBEDTLS_AESNI_C
+    scripts/config.py set MBEDTLS_AES_USE_HARDWARE_ONLY
+    msg "AES tests, test AESNI only"
+    make clean
+    make CC=gcc CFLAGS='-m32 -Werror -Wall -Wextra -mpclmul -msse2 -maes' LDFLAGS='-m32'
+    ./programs/test/selftest aes | grep -q "AES note: using AESNI"
+    ./programs/test/selftest aes | not grep -q "AES note: built-in implementation."
+    grep -q "AES note: using AESNI" ./programs/test/selftest
+    not grep -q "AES note: built-in implementation." ./programs/test/selftest
+    not grep -q mbedtls_aesni_has_support ./programs/test/selftest
+}
+
 support_test_aesni_m32_clang () {
     # clang >= 4 is required to build with target attributes
     support_test_aesni_m32 && [[ $(clang_version) -ge 4 ]]
@@ -130,6 +231,133 @@ component_test_aesni_m32_clang () {
     grep -q "AES note: using AESNI" ./programs/test/selftest
     grep -q "AES note: built-in implementation." ./programs/test/selftest
     grep -q mbedtls_aesni_has_support ./programs/test/selftest
+}
+
+support_build_aes_armce () {
+    # clang >= 11 is required to build with AES extensions
+    [[ $(clang_version) -ge 11 ]]
+}
+
+component_build_aes_armce () {
+    # Test variations of AES with Armv8 crypto extensions
+    scripts/config.py set MBEDTLS_AESCE_C
+    scripts/config.py set MBEDTLS_AES_USE_HARDWARE_ONLY
+
+    msg "MBEDTLS_AES_USE_HARDWARE_ONLY, clang, aarch64"
+    make -B library/../${BUILTIN_SRC_PATH}/aesce.o CC=clang CFLAGS="--target=aarch64-linux-gnu -march=armv8-a+crypto"
+
+    msg "MBEDTLS_AES_USE_HARDWARE_ONLY, clang, arm"
+    make -B library/../${BUILTIN_SRC_PATH}/aesce.o CC=clang CFLAGS="--target=arm-linux-gnueabihf -mcpu=cortex-a72+crypto -marm"
+
+    msg "MBEDTLS_AES_USE_HARDWARE_ONLY, clang, thumb"
+    make -B library/../${BUILTIN_SRC_PATH}/aesce.o CC=clang CFLAGS="--target=arm-linux-gnueabihf -mcpu=cortex-a32+crypto -mthumb"
+
+    scripts/config.py unset MBEDTLS_AES_USE_HARDWARE_ONLY
+
+    msg "no MBEDTLS_AES_USE_HARDWARE_ONLY, clang, aarch64"
+    make -B library/../${BUILTIN_SRC_PATH}/aesce.o CC=clang CFLAGS="--target=aarch64-linux-gnu -march=armv8-a+crypto"
+
+    msg "no MBEDTLS_AES_USE_HARDWARE_ONLY, clang, arm"
+    make -B library/../${BUILTIN_SRC_PATH}/aesce.o CC=clang CFLAGS="--target=arm-linux-gnueabihf -mcpu=cortex-a72+crypto -marm"
+
+    msg "no MBEDTLS_AES_USE_HARDWARE_ONLY, clang, thumb"
+    make -B library/../${BUILTIN_SRC_PATH}/aesce.o CC=clang CFLAGS="--target=arm-linux-gnueabihf -mcpu=cortex-a32+crypto -mthumb"
+
+    # test for presence of AES instructions
+    scripts/config.py set MBEDTLS_AES_USE_HARDWARE_ONLY
+    msg "clang, test A32 crypto instructions built"
+    make -B library/../${BUILTIN_SRC_PATH}/aesce.o CC=clang CFLAGS="--target=arm-linux-gnueabihf -mcpu=cortex-a72+crypto -marm -S"
+    grep -E 'aes[0-9a-z]+.[0-9]\s*[qv]' ${BUILTIN_SRC_PATH}/aesce.o
+    msg "clang, test T32 crypto instructions built"
+    make -B library/../${BUILTIN_SRC_PATH}/aesce.o CC=clang CFLAGS="--target=arm-linux-gnueabihf -mcpu=cortex-a32+crypto -mthumb -S"
+    grep -E 'aes[0-9a-z]+.[0-9]\s*[qv]' ${BUILTIN_SRC_PATH}/aesce.o
+    msg "clang, test aarch64 crypto instructions built"
+    make -B library/../${BUILTIN_SRC_PATH}/aesce.o CC=clang CFLAGS="--target=aarch64-linux-gnu -march=armv8-a -S"
+    grep -E 'aes[a-z]+\s*[qv]' ${BUILTIN_SRC_PATH}/aesce.o
+
+    # test for absence of AES instructions
+    scripts/config.py unset MBEDTLS_AES_USE_HARDWARE_ONLY
+    scripts/config.py unset MBEDTLS_AESCE_C
+    msg "clang, test A32 crypto instructions not built"
+    make -B library/../${BUILTIN_SRC_PATH}/aesce.o CC=clang CFLAGS="--target=arm-linux-gnueabihf -mcpu=cortex-a72+crypto -marm -S"
+    not grep -E 'aes[0-9a-z]+.[0-9]\s*[qv]' ${BUILTIN_SRC_PATH}/aesce.o
+    msg "clang, test T32 crypto instructions not built"
+    make -B library/../${BUILTIN_SRC_PATH}/aesce.o CC=clang CFLAGS="--target=arm-linux-gnueabihf -mcpu=cortex-a32+crypto -mthumb -S"
+    not grep -E 'aes[0-9a-z]+.[0-9]\s*[qv]' ${BUILTIN_SRC_PATH}/aesce.o
+    msg "clang, test aarch64 crypto instructions not built"
+    make -B library/../${BUILTIN_SRC_PATH}/aesce.o CC=clang CFLAGS="--target=aarch64-linux-gnu -march=armv8-a -S"
+    not grep -E 'aes[a-z]+\s*[qv]' ${BUILTIN_SRC_PATH}/aesce.o
+}
+
+support_build_sha_armce () {
+    # clang >= 4 is required to build with SHA extensions
+    [[ $(clang_version) -ge 4 ]]
+}
+
+component_build_sha_armce () {
+    scripts/config.py unset MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_IF_PRESENT
+
+
+    # Test variations of SHA256 Armv8 crypto extensions
+    scripts/config.py set MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_ONLY
+        msg "MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_ONLY clang, aarch64"
+        make -B library/../${BUILTIN_SRC_PATH}/sha256.o CC=clang CFLAGS="--target=aarch64-linux-gnu -march=armv8-a"
+        msg "MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_ONLY clang, arm"
+        make -B library/../${BUILTIN_SRC_PATH}/sha256.o CC=clang CFLAGS="--target=arm-linux-gnueabihf -mcpu=cortex-a72+crypto -marm"
+    scripts/config.py unset MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_ONLY
+
+
+    # test the deprecated form of the config option
+    scripts/config.py set MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY
+        msg "MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY clang, thumb"
+        make -B library/../${BUILTIN_SRC_PATH}/sha256.o CC=clang CFLAGS="--target=arm-linux-gnueabihf -mcpu=cortex-a32+crypto -mthumb"
+    scripts/config.py unset MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY
+
+    scripts/config.py set MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_IF_PRESENT
+        msg "MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_IF_PRESENT clang, aarch64"
+        make -B library/../${BUILTIN_SRC_PATH}/sha256.o CC=clang CFLAGS="--target=aarch64-linux-gnu -march=armv8-a"
+    scripts/config.py unset MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_IF_PRESENT
+
+
+    # test the deprecated form of the config option
+    scripts/config.py set MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT
+        msg "MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT clang, arm"
+        make -B library/../${BUILTIN_SRC_PATH}/sha256.o CC=clang CFLAGS="--target=arm-linux-gnueabihf -mcpu=cortex-a72+crypto -marm -std=c99"
+        msg "MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT clang, thumb"
+        make -B library/../${BUILTIN_SRC_PATH}/sha256.o CC=clang CFLAGS="--target=arm-linux-gnueabihf -mcpu=cortex-a32+crypto -mthumb"
+    scripts/config.py unset MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT
+
+
+    # examine the disassembly for presence of SHA instructions
+    for opt in MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_ONLY MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_IF_PRESENT; do
+        scripts/config.py set ${opt}
+            msg "${opt} clang, test A32 crypto instructions built"
+            make -B library/../${BUILTIN_SRC_PATH}/sha256.o CC=clang CFLAGS="--target=arm-linux-gnueabihf -mcpu=cortex-a72+crypto -marm -S"
+            grep -E 'sha256[a-z0-9]+.32\s+[qv]' ${BUILTIN_SRC_PATH}/sha256.o
+
+            msg "${opt} clang, test T32 crypto instructions built"
+            make -B library/../${BUILTIN_SRC_PATH}/sha256.o CC=clang CFLAGS="--target=arm-linux-gnueabihf -mcpu=cortex-a32+crypto -mthumb -S"
+            grep -E 'sha256[a-z0-9]+.32\s+[qv]' ${BUILTIN_SRC_PATH}/sha256.o
+
+            msg "${opt} clang, test aarch64 crypto instructions built"
+            make -B library/../${BUILTIN_SRC_PATH}/sha256.o CC=clang CFLAGS="--target=aarch64-linux-gnu -march=armv8-a -S"
+            grep -E 'sha256[a-z0-9]+\s+[qv]' ${BUILTIN_SRC_PATH}/sha256.o
+        scripts/config.py unset ${opt}
+    done
+
+
+    # examine the disassembly for absence of SHA instructions
+    msg "clang, test A32 crypto instructions not built"
+    make -B library/../${BUILTIN_SRC_PATH}/sha256.o CC=clang CFLAGS="--target=arm-linux-gnueabihf -mcpu=cortex-a72+crypto -marm -S"
+    not grep -E 'sha256[a-z0-9]+.32\s+[qv]' ${BUILTIN_SRC_PATH}/sha256.o
+
+    msg "clang, test T32 crypto instructions not built"
+    make -B library/../${BUILTIN_SRC_PATH}/sha256.o CC=clang CFLAGS="--target=arm-linux-gnueabihf -mcpu=cortex-a32+crypto -mthumb -S"
+    not grep -E 'sha256[a-z0-9]+.32\s+[qv]' ${BUILTIN_SRC_PATH}/sha256.o
+
+    msg "clang, test aarch64 crypto instructions not built"
+    make -B library/../${BUILTIN_SRC_PATH}/sha256.o CC=clang CFLAGS="--target=aarch64-linux-gnu -march=armv8-a -S"
+    not grep -E 'sha256[a-z0-9]+\s+[qv]' ${BUILTIN_SRC_PATH}/sha256.o
 }
 
 component_build_zeroize_checks () {

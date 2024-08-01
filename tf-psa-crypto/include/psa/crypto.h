@@ -4887,6 +4887,12 @@ uint32_t psa_key_agreement_iop_get_num_ops(psa_key_agreement_iop_t *operation);
  *                              at any point. It is not bound by the usual
  *                              interface stability promises.
  *
+ * \warning                     The raw result of a key agreement algorithm such
+ *                              elliptic curve Diffie-Hellman has biases
+ *                              and should not be used directly as key material.
+ *                              It should instead be passed as input to a key
+ *                              derivation algorithm.
+ *
  * \note                        This function combined with \c
  *                              psa_key_agreement_iop_complete() is equivalent
  *                              to \c psa_raw_key_agreement() but \c

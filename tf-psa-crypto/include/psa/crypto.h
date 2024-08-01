@@ -4933,27 +4933,28 @@ uint32_t psa_key_agreement_iop_get_num_ops(psa_key_agreement_iop_t *operation);
  *                              #PSA_ALG_IS_KEY_AGREEMENT(\p alg) is true).
  *
  * \param[in] attributes        The attributes for the new key.
- *                              This function uses the attributes as follows:
- *                              * The key type must be one of
- *                                `PSA_KEY_TYPE_DERIVE`,`PSA_KEY_TYPE_RAW_DATA`,
- *                                `PSA_KEY_TYPE_HMAC`, or
- *                                `PSA_KEY_TYPE_PASSWORD`.
- *                              * The size of the returned key is always the
- *                                bit-size of the shared secret, rounded up to a
- *                                whole number of bytes. The key size in \p
- *                                attributes can be zero; if it is nonzero,
- *                                it must be equal to the output size of the key
- *                                agreement, in bits.
- *                              * The output size, in bits, of the key agreement
- *                                is #PSA_RAW_KEY_AGREEMENT_OUTPUT_SIZE(\c type,
- *                                \c bits), where \c type and \c bits are the
- *                                type and bit-size of \p private_key.
- *                              * The key permitted-algorithm policy is required
- *                                for keys that will be used for a cryptographic
- *                                operation. The key usage flags define what
- *                                operations are permitted with the key. The key
- *                                lifetime and identifier are required for a
- *                                persistent key.
+ *                              The following attributes are required for all
+ *                              keys:
+ *                              * The key type, which must be one of
+ *                                #PSA_KEY_TYPE_DERIVE, #PSA_KEY_TYPE_RAW_DATA,
+ *                                #PSA_KEY_TYPE_HMAC or #PSA_KEY_TYPE_PASSWORD.
+ *                              The following attributes must be set for keys
+ *                              used in cryptographic operations:
+ *                              * The key permitted-algorithm policy
+ *                              * The key usage flags
+ *                              The following attributes must be set for keys
+ *                              that do not use the default volatile lifetime:
+ *                              * The key lifetime
+ *                              * The key identifier is required for a key with
+ *                                a persistent lifetime
+ *                              The following attributes are optional:
+ *                              * If the key size is nonzero, it must be equal
+ *                               to the output size of the key agreement,
+ *                               in bits.
+ *                              The output size, in bits, of the key agreement
+ *                              is 8 * #PSA_RAW_KEY_AGREEMENT_OUTPUT_SIZE(\c
+ *                              type, \c bits), where \c type and \c bits are
+ *                              the type and bit-size of \p private_key.
  *
  * \note                        \p attributes is an input parameter, it is not
  *                              updated with the final key attributes. The final

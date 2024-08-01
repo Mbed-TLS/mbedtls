@@ -415,7 +415,7 @@ static size_t mbedtls_internal_sha256_process_many_a64_crypto(
 }
 
 static int mbedtls_internal_sha256_process_a64_crypto(mbedtls_sha256_context *ctx,
-                                               const unsigned char data[SHA256_BLOCK_SIZE])
+                                                      const unsigned char data[SHA256_BLOCK_SIZE])
 {
     return (mbedtls_internal_sha256_process_many_a64_crypto(ctx, data,
                                                             SHA256_BLOCK_SIZE) ==
@@ -468,7 +468,7 @@ static int mbedtls_internal_sha256_process_a64_crypto(mbedtls_sha256_context *ct
     } while (0)
 
 static int mbedtls_internal_sha256_process_c(mbedtls_sha256_context *ctx,
-                                      const unsigned char data[SHA256_BLOCK_SIZE])
+                                             const unsigned char data[SHA256_BLOCK_SIZE])
 {
     struct {
         uint32_t temp1, temp2, W[64];
@@ -600,7 +600,7 @@ static size_t mbedtls_internal_sha256_process_many(mbedtls_sha256_context *ctx,
 }
 
 static int mbedtls_internal_sha256_process(mbedtls_sha256_context *ctx,
-                                    const unsigned char data[SHA256_BLOCK_SIZE])
+                                           const unsigned char data[SHA256_BLOCK_SIZE])
 {
     if (mbedtls_a64_crypto_sha256_has_support()) {
         return mbedtls_internal_sha256_process_a64_crypto(ctx, data);

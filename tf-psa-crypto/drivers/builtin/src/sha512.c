@@ -552,7 +552,7 @@ static size_t mbedtls_internal_sha512_process_many_a64_crypto(
 }
 
 static int mbedtls_internal_sha512_process_a64_crypto(mbedtls_sha512_context *ctx,
-                                               const unsigned char data[SHA512_BLOCK_SIZE])
+                                                      const unsigned char data[SHA512_BLOCK_SIZE])
 {
     return (mbedtls_internal_sha512_process_many_a64_crypto(ctx, data,
                                                             SHA512_BLOCK_SIZE) ==
@@ -580,7 +580,7 @@ static int mbedtls_internal_sha512_process_a64_crypto(mbedtls_sha512_context *ct
 #if !defined(MBEDTLS_SHA512_USE_A64_CRYPTO_ONLY)
 
 static int mbedtls_internal_sha512_process_c(mbedtls_sha512_context *ctx,
-                                      const unsigned char data[SHA512_BLOCK_SIZE])
+                                             const unsigned char data[SHA512_BLOCK_SIZE])
 {
     int i;
     struct {
@@ -719,7 +719,7 @@ static size_t mbedtls_internal_sha512_process_many(mbedtls_sha512_context *ctx,
 }
 
 static int mbedtls_internal_sha512_process(mbedtls_sha512_context *ctx,
-                                    const unsigned char data[SHA512_BLOCK_SIZE])
+                                           const unsigned char data[SHA512_BLOCK_SIZE])
 {
     if (mbedtls_a64_crypto_sha512_has_support()) {
         return mbedtls_internal_sha512_process_a64_crypto(ctx, data);

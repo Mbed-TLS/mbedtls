@@ -5006,10 +5006,8 @@ uint32_t psa_key_agreement_iop_get_num_ops(psa_key_agreement_iop_t *operation);
  *
  * \retval #PSA_ERROR_NOT_SUPPORTED
  *          The following conditions can result in this error:
- *          * \p alg is not supported or is not a key agreement algorithm.
- *          * \p private_key is not supported for use with \p alg. The output
- *            key attributes, as a whole, are not supported, either by the
- *            implementation in general or in the specified storage location.
+ *          * \p alg is not supported.
+ *          * \p private_key is not supported for use with \p alg.
  *
  * \retval #PSA_ERROR_INVALID_ARGUMENT \emptydescription
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription

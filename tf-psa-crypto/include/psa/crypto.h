@@ -4968,9 +4968,9 @@ uint32_t psa_key_agreement_iop_get_num_ops(psa_key_agreement_iop_t *operation);
  *                              required before calling.
  *
  * \retval #PSA_SUCCESS
- *          The operation started successfully - please call \c
- *          psa_key_agreement_iop_complete() with the same context to complete
- *          the operation.
+ *          The operation started successfully.
+ *          Call \c psa_key_agreement_iop_complete() with the same context to
+ *          complete the operation.
  *
  * \retval #PSA_ERROR_BAD_STATE
  *          Another operation has already been started on this context, and is

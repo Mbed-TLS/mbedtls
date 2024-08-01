@@ -21,28 +21,6 @@ component_build_tfm_armcc () {
     armc6_build_test "--target=arm-arm-none-eabi -march=armv7-m -mthumb -Os -std=c99 -Werror -Wall -Wextra -Wwrite-strings -Wpointer-arith -Wimplicit-fallthrough -Wshadow -Wvla -Wformat=2 -Wno-format-nonliteral -Wshadow -Wasm-operand-widths -Wunused -I../tests/include/spe"
 }
 
-support_test_aesni_m32_clang () {
-    # clang >= 4 is required to build with target attributes
-    support_test_aesni_m32 && [[ $(clang_version) -ge 4 ]]
-}
-
-component_test_aesni_m32_clang () {
-
-    scripts/config.py set MBEDTLS_AESNI_C
-    scripts/config.py unset MBEDTLS_AES_USE_HARDWARE_ONLY
-    scripts/config.py set MBEDTLS_HAVE_ASM
-
-    # test the intrinsics implementation with clang
-    msg "AES tests, test intrinsics (clang)"
-    make clean
-    make CC=clang CFLAGS='-m32 -Werror -Wall -Wextra' LDFLAGS='-m32'
-    # check that we built intrinsics - this should be used by default when supported by the compiler
-    ./programs/test/selftest aes | grep "AESNI code" | grep -q "intrinsics"
-    grep -q "AES note: using AESNI" ./programs/test/selftest
-    grep -q "AES note: built-in implementation." ./programs/test/selftest
-    grep -q mbedtls_aesni_has_support ./programs/test/selftest
-}
-
 test_build_opt () {
     info=$1 cc=$2; shift 2
     $cc --version

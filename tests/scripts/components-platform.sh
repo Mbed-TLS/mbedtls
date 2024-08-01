@@ -110,6 +110,28 @@ support_test_mx32 () {
     esac
 }
 
+support_test_aesni_m32_clang () {
+    # clang >= 4 is required to build with target attributes
+    support_test_aesni_m32 && [[ $(clang_version) -ge 4 ]]
+}
+
+component_test_aesni_m32_clang () {
+
+    scripts/config.py set MBEDTLS_AESNI_C
+    scripts/config.py unset MBEDTLS_AES_USE_HARDWARE_ONLY
+    scripts/config.py set MBEDTLS_HAVE_ASM
+
+    # test the intrinsics implementation with clang
+    msg "AES tests, test intrinsics (clang)"
+    make clean
+    make CC=clang CFLAGS='-m32 -Werror -Wall -Wextra' LDFLAGS='-m32'
+    # check that we built intrinsics - this should be used by default when supported by the compiler
+    ./programs/test/selftest aes | grep "AESNI code" | grep -q "intrinsics"
+    grep -q "AES note: using AESNI" ./programs/test/selftest
+    grep -q "AES note: built-in implementation." ./programs/test/selftest
+    grep -q mbedtls_aesni_has_support ./programs/test/selftest
+}
+
 component_build_zeroize_checks () {
     msg "build: check for obviously wrong calls to mbedtls_platform_zeroize()"
 

@@ -4889,7 +4889,7 @@ uint32_t psa_key_agreement_iop_get_num_ops(psa_key_agreement_iop_t *operation);
  *
  * \note                        This function combined with \c
  *                              psa_key_agreement_iop_complete() is equivalent
- *                              to \c psa_key_agreement() but \c
+ *                              to \c psa_raw_key_agreement() but \c
  *                              psa_key_agreement_iop_complete() can return
  *                              early and resume according to the limit set with
  *                              \c psa_interruptible_set_max_ops() to reduce the
@@ -5047,7 +5047,7 @@ psa_status_t psa_key_agreement_iop_setup(
  *
  * \note                        This function combined with \c
  *                              psa_key_agreement_iop_setup() is equivalent to
- *                              \c psa_key_agreement() but this
+ *                              \c psa_raw_key_agreement() but this
  *                              function can return early and resume according
  *                              to the limit set with \c
  *                              psa_interruptible_set_max_ops() to reduce the

@@ -6041,7 +6041,7 @@ component_check_code_style () {
 }
 
 support_check_code_style() {
-    case $(uncrustify --version) in
+    case $(uncrustify --version 2>/dev/null) in
         *0.75.1*) true;;
         *) false;;
     esac

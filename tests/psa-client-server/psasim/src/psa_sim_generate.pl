@@ -3,7 +3,8 @@
 # This is a proof-of-concept script to show that the client and server wrappers
 # can be created by a script. It is not hooked into the build, so is run
 # manually and the output files are what are to be reviewed. In due course
-# this will be replaced by a Python script.
+# this will be replaced by a Python script based on the
+# code_wrapper.psa_wrapper module.
 #
 # Copyright The Mbed TLS Contributors
 # SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
@@ -43,10 +44,8 @@ my $skip_functions_re = '\A(' . join('|', @skip_functions). ')\Z';
 unshift @functions, 'psa_crypto_init';
 
 # get_functions(), called above, returns a data structure for each function
-# that we need to create client and server stubs for. In this example Perl script,
-# the function declarations we want are in the data section (after __END__ at
-# the bottom of this file), but a production Python version should process
-# psa_crypto.h.
+# that we need to create client and server stubs for. The functions are
+# listed from PSA header files.
 #
 # In this script, the data for psa_crypto_init() looks like:
 #
@@ -1250,27 +1249,4 @@ sub get_functions
     #exit;
 
     return %funcs;
-}
-
-sub put_crypto_init_first
-{
-    my ($functions) = @_;
-
-    my $want_first = "psa_crypto_init";
-
-    my $idx = undef;
-    for my $i (0 .. $#$functions) {
-        if ($functions->[$i] eq $want_first) {
-            $idx = $i;
-            last;
-        }
-    }
-    if (!defined $idx) {
-        die "psa_crypto_init not found"
-    }
-
-    if ($idx != 0) {   # Do nothing if already first
-        splice(@$functions, $idx, 1);
-        unshift(@$functions, $want_first);
-    }
 }

@@ -55,6 +55,7 @@ from typing import Union
 # Add the Mbed TLS Python library directory to the module search path
 import scripts_path # pylint: disable=unused-import
 import config
+from mbedtls_framework import c_build_helper
 
 class Colors: # pylint: disable=too-few-public-methods
     """Minimalistic support for colored output.
@@ -166,6 +167,50 @@ If what is False, announce that the job has failed.'''
                 return False
         return True
 
+    def _consistency_check(self):
+        '''Check if the testable option is consistent with the goal.
+
+        The purpose of this function to ensure that every option is set or unset according to
+        the settings.
+        '''
+        log_command(['consistency check'])
+        c_name = None
+        exe_name = None
+        header = '#include "mbedtls/build_info.h"\n'
+
+        # Generate a C error directive for each setting to test if it is active
+        for option, value in sorted(self.config_settings.items()):
+            header += '#if '
+            if value:
+                header += '!'
+            header += 'defined(' + option + ')\n'
+            header += '#error "' + option + '"\n'
+            header += '#endif\n'
+        include_path = ['include', 'tf-psa-crypto/include',
+                        'tf-psa-crypto/drivers/builtin/include']
+
+        try:
+            # Generate a C file, build and run it
+            c_file, c_name, exe_name = c_build_helper.create_c_file(self.name)
+            c_build_helper.generate_c_file(c_file, 'depends.py', header, lambda x: '')
+            c_file.close()
+            c_build_helper.compile_c_file(c_name, exe_name, include_path)
+
+            return True
+
+        except c_build_helper.CompileError as e:
+            # Read the command line output to find out which setting has been failed
+            failed = {m.group(1) for m in re.finditer('.*#error "(.*)"', e.message) if m}
+            log_line('Inconsistent config option(s):')
+            for option in sorted(failed):
+                log_line('  ' + option)
+
+            return False
+
+        finally:
+            c_build_helper.remove_file_if_exists(c_name)
+            c_build_helper.remove_file_if_exists(exe_name)
+
     def test(self, options):
         '''Run the job's build and test commands.
 Return True if all the commands succeed and False otherwise.
@@ -173,6 +218,8 @@ If options.keep_going is false, stop as soon as one command fails. Otherwise
 run all the commands, except that if the first command fails, none of the
 other commands are run (typically, the first command is a build command
 and subsequent commands are tests that cannot run if the build failed).'''
+        if not self._consistency_check():
+            return False
         built = False
         success = True
         for command in self.commands:

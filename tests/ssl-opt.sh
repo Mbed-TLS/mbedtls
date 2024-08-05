@@ -7721,22 +7721,26 @@ run_test    "keyUsage cli: KeyEncipherment, RSA: OK" \
 run_test    "keyUsage cli: KeyEncipherment, DHE-RSA: fail" \
             "$O_SRV -tls1_2 -key $DATA_FILES_PATH/server2.key \
              -cert $DATA_FILES_PATH/server2.ku-ke.crt" \
-            "$P_CLI debug_level=1 \
+            "$P_CLI debug_level=3 \
              force_ciphersuite=TLS-DHE-RSA-WITH-AES-128-CBC-SHA" \
             1 \
             -c "bad certificate (usage extensions)" \
             -c "Processing of the Certificate handshake message failed" \
-            -C "Ciphersuite is TLS-"
+            -C "Ciphersuite is TLS-" \
+            -c "send alert level=2 message=43" \
+            -C "! Usage does not match the keyUsage extension"
+            # MBEDTLS_X509_BADCERT_KEY_USAGE -> MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT
 
 run_test    "keyUsage cli: KeyEncipherment, DHE-RSA: fail, soft" \
             "$O_SRV -tls1_2 -key $DATA_FILES_PATH/server2.key \
              -cert $DATA_FILES_PATH/server2.ku-ke.crt" \
-            "$P_CLI debug_level=1 auth_mode=optional \
+            "$P_CLI debug_level=3 auth_mode=optional \
              force_ciphersuite=TLS-DHE-RSA-WITH-AES-128-CBC-SHA" \
             0 \
             -c "bad certificate (usage extensions)" \
             -C "Processing of the Certificate handshake message failed" \
             -c "Ciphersuite is TLS-" \
+            -C "send alert level=2 message=43" \
             -c "! Usage does not match the keyUsage extension"
 
 run_test    "keyUsage cli: DigitalSignature, DHE-RSA: OK" \
@@ -7752,22 +7756,26 @@ run_test    "keyUsage cli: DigitalSignature, DHE-RSA: OK" \
 run_test    "keyUsage cli: DigitalSignature, RSA: fail" \
             "$O_SRV -tls1_2 -key $DATA_FILES_PATH/server2.key \
              -cert $DATA_FILES_PATH/server2.ku-ds.crt" \
-            "$P_CLI debug_level=1 \
+            "$P_CLI debug_level=3 \
              force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA" \
             1 \
             -c "bad certificate (usage extensions)" \
             -c "Processing of the Certificate handshake message failed" \
-            -C "Ciphersuite is TLS-"
+            -C "Ciphersuite is TLS-" \
+            -c "send alert level=2 message=43" \
+            -C "! Usage does not match the keyUsage extension"
+            # MBEDTLS_X509_BADCERT_KEY_USAGE -> MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT
 
 run_test    "keyUsage cli: DigitalSignature, RSA: fail, soft" \
             "$O_SRV -tls1_2 -key $DATA_FILES_PATH/server2.key \
              -cert $DATA_FILES_PATH/server2.ku-ds.crt" \
-            "$P_CLI debug_level=1 auth_mode=optional \
+            "$P_CLI debug_level=3 auth_mode=optional \
              force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA" \
             0 \
             -c "bad certificate (usage extensions)" \
             -C "Processing of the Certificate handshake message failed" \
             -c "Ciphersuite is TLS-" \
+            -C "send alert level=2 message=43" \
             -c "! Usage does not match the keyUsage extension"
 
 requires_openssl_tls1_3_with_compatible_ephemeral

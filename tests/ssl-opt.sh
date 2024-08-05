@@ -5809,6 +5809,7 @@ run_test    "DER format: with 9 trailing random bytes" \
 # Tests for auth_mode, there are duplicated tests using ca callback for authentication
 # When updating these tests, modify the matching authentication tests accordingly
 
+# The next 3 cases test the 3 auth modes with a badly signed server cert.
 requires_key_exchange_with_cert_in_tls12_or_tls13_enabled
 run_test    "Authentication: server badcert, client required" \
             "$P_SRV crt_file=$DATA_FILES_PATH/server5-badsign.crt \
@@ -5827,6 +5828,16 @@ run_test    "Authentication: server badcert, client optional" \
             0 \
             -c "x509_verify_cert() returned" \
             -c "! The certificate is not correctly signed by the trusted CA" \
+            -C "! mbedtls_ssl_handshake returned" \
+            -C "X509 - Certificate verification failed"
+
+run_test    "Authentication: server badcert, client none" \
+            "$P_SRV crt_file=$DATA_FILES_PATH/server5-badsign.crt \
+             key_file=$DATA_FILES_PATH/server5.key" \
+            "$P_CLI force_version=tls12 debug_level=1 auth_mode=none" \
+            0 \
+            -C "x509_verify_cert() returned" \
+            -C "! The certificate is not correctly signed by the trusted CA" \
             -C "! mbedtls_ssl_handshake returned" \
             -C "X509 - Certificate verification failed"
 
@@ -5888,16 +5899,6 @@ run_test    "Authentication: server ECDH p256v1, client optional, p256v1 unsuppo
             -c "bad certificate (EC key curve)"\
             -c "! Certificate verification flags"\
             -c "bad server certificate (ECDH curve)" # Expect failure only at ECDH params check
-
-run_test    "Authentication: server badcert, client none" \
-            "$P_SRV crt_file=$DATA_FILES_PATH/server5-badsign.crt \
-             key_file=$DATA_FILES_PATH/server5.key" \
-            "$P_CLI force_version=tls12 debug_level=1 auth_mode=none" \
-            0 \
-            -C "x509_verify_cert() returned" \
-            -C "! The certificate is not correctly signed by the trusted CA" \
-            -C "! mbedtls_ssl_handshake returned" \
-            -C "X509 - Certificate verification failed"
 
 requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
 run_test    "Authentication: client SHA256, server required" \

@@ -5016,7 +5016,7 @@ uint32_t psa_key_agreement_iop_get_num_ops(psa_key_agreement_iop_t *operation);
  *          * \p alg is not supported.
  *          * \p private_key is not supported for use with \p alg.
  *          * Only elliptic curve Diffie-Hellman with ECC keys is supported, not
- *            finite field Diffie_hellman with DH keys.
+ *            finite field Diffie-Hellman with DH keys.
  *
  * \retval #PSA_ERROR_INVALID_ARGUMENT \emptydescription
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
@@ -5062,7 +5062,7 @@ psa_status_t psa_key_agreement_iop_setup(
  *                              maximum time spent in a function call.
  *
  * \note                        Users should call this function on the same
- *                              operation object repeatedly whilst it returns
+ *                              operation object repeatedly while it returns
  *                              #PSA_OPERATION_INCOMPLETE, stopping when it
  *                              returns either #PSA_SUCCESS or an error.
  *                              Alternatively users can call

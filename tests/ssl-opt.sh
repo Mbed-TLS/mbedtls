@@ -6609,7 +6609,9 @@ run_test    "SNI: CA override with CRL" \
             -S "skip parse certificate verify" \
             -s "x509_verify_cert() returned" \
             -S "! The certificate is not correctly signed by the trusted CA" \
+            -s "send alert level=2 message=44" \
             -s "The certificate has been revoked (is on a CRL)"
+            # MBEDTLS_X509_BADCERT_REVOKED -> MBEDTLS_SSL_ALERT_MSG_CERT_REVOKED
 
 # Tests for SNI and DTLS
 
@@ -6757,7 +6759,9 @@ run_test    "SNI: DTLS, CA override with CRL" \
             -S "skip parse certificate verify" \
             -s "x509_verify_cert() returned" \
             -S "! The certificate is not correctly signed by the trusted CA" \
+            -s "send alert level=2 message=44" \
             -s "The certificate has been revoked (is on a CRL)"
+            # MBEDTLS_X509_BADCERT_REVOKED -> MBEDTLS_SSL_ALERT_MSG_CERT_REVOKED
 
 # Tests for non-blocking I/O: exercise a variety of handshake flows
 

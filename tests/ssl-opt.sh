@@ -5853,6 +5853,17 @@ run_test    "Authentication: server goodcert, client required, no trusted CA" \
             -c "! mbedtls_ssl_handshake returned" \
             -c "SSL - No CA Chain is set, but required to operate"
 
+requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
+run_test    "Authentication: server goodcert, client required, no trusted CA (1.2)" \
+            "$P_SRV force_version=tls12" \
+            "$P_CLI debug_level=3 auth_mode=required ca_file=none ca_path=none" \
+            1 \
+            -c "x509_verify_cert() returned" \
+            -c "! The certificate is not correctly signed by the trusted CA" \
+            -c "! Certificate verification flags"\
+            -c "! mbedtls_ssl_handshake returned" \
+            -c "SSL - No CA Chain is set, but required to operate"
+
 # The purpose of the next two tests is to test the client's behaviour when receiving a server
 # certificate with an unsupported elliptic curve. This should usually not happen because
 # the client informs the server about the supported curves - it does, though, in the

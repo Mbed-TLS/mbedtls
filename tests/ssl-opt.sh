@@ -5809,36 +5809,55 @@ run_test    "DER format: with 9 trailing random bytes" \
 # Tests for auth_mode, there are duplicated tests using ca callback for authentication
 # When updating these tests, modify the matching authentication tests accordingly
 
-# The next 3 cases test the 3 auth modes with a badly signed server cert.
+# The next 4 cases test the 3 auth modes with a badly signed server cert.
 requires_key_exchange_with_cert_in_tls12_or_tls13_enabled
 run_test    "Authentication: server badcert, client required" \
             "$P_SRV crt_file=$DATA_FILES_PATH/server5-badsign.crt \
              key_file=$DATA_FILES_PATH/server5.key" \
-            "$P_CLI debug_level=1 auth_mode=required" \
+            "$P_CLI debug_level=3 auth_mode=required" \
             1 \
             -c "x509_verify_cert() returned" \
             -c "! The certificate is not correctly signed by the trusted CA" \
             -c "! mbedtls_ssl_handshake returned" \
+            -c "send alert level=2 message=48" \
             -c "X509 - Certificate verification failed"
+            # MBEDTLS_X509_BADCERT_NOT_TRUSTED -> MBEDTLS_SSL_ALERT_MSG_UNKNOWN_CA
+# We don't check that the server receives the alert because it might
+# detect that its write end of the connection is closed and abort
+# before reading the alert message.
+
+run_test    "Authentication: server badcert, client required (1.2)" \
+            "$P_SRV crt_file=$DATA_FILES_PATH/server5-badsign.crt \
+             key_file=$DATA_FILES_PATH/server5.key" \
+            "$P_CLI force_version=tls12 debug_level=3 auth_mode=required" \
+            1 \
+            -c "x509_verify_cert() returned" \
+            -c "! The certificate is not correctly signed by the trusted CA" \
+            -c "! mbedtls_ssl_handshake returned" \
+            -c "send alert level=2 message=48" \
+            -c "X509 - Certificate verification failed"
+            # MBEDTLS_X509_BADCERT_NOT_TRUSTED -> MBEDTLS_SSL_ALERT_MSG_UNKNOWN_CA
 
 run_test    "Authentication: server badcert, client optional" \
             "$P_SRV crt_file=$DATA_FILES_PATH/server5-badsign.crt \
              key_file=$DATA_FILES_PATH/server5.key" \
-            "$P_CLI force_version=tls12 debug_level=1 auth_mode=optional" \
+            "$P_CLI force_version=tls12 debug_level=3 auth_mode=optional" \
             0 \
             -c "x509_verify_cert() returned" \
             -c "! The certificate is not correctly signed by the trusted CA" \
             -C "! mbedtls_ssl_handshake returned" \
+            -C "send alert level=2 message=48" \
             -C "X509 - Certificate verification failed"
 
 run_test    "Authentication: server badcert, client none" \
             "$P_SRV crt_file=$DATA_FILES_PATH/server5-badsign.crt \
              key_file=$DATA_FILES_PATH/server5.key" \
-            "$P_CLI force_version=tls12 debug_level=1 auth_mode=none" \
+            "$P_CLI force_version=tls12 debug_level=3 auth_mode=none" \
             0 \
             -C "x509_verify_cert() returned" \
             -C "! The certificate is not correctly signed by the trusted CA" \
             -C "! mbedtls_ssl_handshake returned" \
+            -C "send alert level=2 message=48" \
             -C "X509 - Certificate verification failed"
 
 requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT

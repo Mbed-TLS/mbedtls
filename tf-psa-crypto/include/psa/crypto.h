@@ -5280,8 +5280,7 @@ uint32_t psa_generate_key_iop_get_num_ops(psa_generate_key_iop_t *operation);
  * \param[in] attributes        The attributes for the new key.
  *                              The following attributes are required for all
  *                              keys:
- *                              * The key type. It must not be an asymmetric
- *                                public key.
+ *                              * The key type. It must be an asymmetric key-pair.
  *                              * The key size. It must be a valid size for the
  *                                key type.
  *                              The following attributes must be set for keys

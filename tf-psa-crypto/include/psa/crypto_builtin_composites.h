@@ -33,6 +33,10 @@
 #endif
 #include "mbedtls/chachapoly.h"
 
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_ECDH)
+#include "mbedtls/ecdh.h"
+#endif
+
 /*
  * MAC multi-part operation definitions.
  */
@@ -210,5 +214,23 @@ typedef struct {
 } mbedtls_psa_pake_operation_t;
 
 #define MBEDTLS_PSA_PAKE_OPERATION_INIT { { 0 } }
+
+/* Context structure for the Mbed TLS interruptible key agreement implementation. */
+typedef struct {
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_ECDH) && defined(MBEDTLS_ECP_RESTARTABLE)
+    mbedtls_ecdh_context MBEDTLS_PRIVATE(ctx);
+    const psa_key_attributes_t *MBEDTLS_PRIVATE(attributes);
+    uint32_t MBEDTLS_PRIVATE(num_ops);
+#else
+    /* Make the struct non-empty if algs not supported. */
+    unsigned MBEDTLS_PRIVATE(dummy);
+#endif
+} mbedtls_psa_key_agreement_interruptible_operation_t;
+
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_ECDH) && defined(MBEDTLS_ECP_RESTARTABLE)
+#define MBEDTLS_PSA_KEY_AGREEMENT_INTERRUPTIBLE_OPERATION_INIT { { 0 }, { 0 }, 0 }
+#else
+#define MBEDTLS_PSA_KEY_AGREEMENT_INTERRUPTIBLE_OPERATION_INIT { 0 }
+#endif
 
 #endif /* PSA_CRYPTO_BUILTIN_COMPOSITES_H */

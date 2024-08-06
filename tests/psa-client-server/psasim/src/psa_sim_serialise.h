@@ -1301,3 +1301,46 @@ int psasim_serialise_mbedtls_svc_key_id_t(uint8_t **pos,
 int psasim_deserialise_mbedtls_svc_key_id_t(uint8_t **pos,
                                             size_t *remaining,
                                             mbedtls_svc_key_id_t *value);
+
+/** Return how much buffer space is needed by \c psasim_serialise_psa_key_agreement_iop_t()
+ *  to serialise a `psa_key_agreement_iop_t`.
+ *
+ * \param value              The value that will be serialised into the buffer
+ *                           (needed in case some serialisations are value-
+ *                           dependent).
+ *
+ * \return                   The number of bytes needed in the buffer by
+ *                           \c psasim_serialise_psa_key_agreement_iop_t() to serialise
+ *                           the given value.
+ */
+size_t psasim_serialise_psa_key_agreement_iop_t_needs(
+    psa_key_agreement_iop_t value);
+
+/** Serialise a `psa_key_agreement_iop_t` into a buffer.
+ *
+ * \param pos[in,out]        Pointer to a `uint8_t *` holding current position
+ *                           in the buffer.
+ * \param remaining[in,out]  Pointer to a `size_t` holding number of bytes
+ *                           remaining in the buffer.
+ * \param value              The value to serialise into the buffer.
+ *
+ * \return                   \c 1 on success ("okay"), \c 0 on error.
+ */
+int psasim_serialise_psa_key_agreement_iop_t(uint8_t **pos,
+                                             size_t *remaining,
+                                             psa_key_agreement_iop_t value);
+
+/** Deserialise a `psa_key_agreement_iop_t` from a buffer.
+ *
+ * \param pos[in,out]        Pointer to a `uint8_t *` holding current position
+ *                           in the buffer.
+ * \param remaining[in,out]  Pointer to a `size_t` holding number of bytes
+ *                           remaining in the buffer.
+ * \param value              Pointer to a `psa_key_agreement_iop_t` to receive the value
+ *                           deserialised from the buffer.
+ *
+ * \return                   \c 1 on success ("okay"), \c 0 on error.
+ */
+int psasim_deserialise_psa_key_agreement_iop_t(uint8_t **pos,
+                                               size_t *remaining,
+                                               psa_key_agreement_iop_t *value);

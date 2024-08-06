@@ -1,16 +1,11 @@
 #!/usr/bin/env python3
 
-"""Mbed TLS configuration file manipulation library and tool
+"""Mbed TLS and PSA configuration file manipulation library and tool
 
 Basic usage, to read the Mbed TLS configuration:
-    config = ConfigFile()
+    config = CombinedConfigFile()
     if 'MBEDTLS_RSA_C' in config: print('RSA is enabled')
 """
-
-# Note that as long as Mbed TLS 2.28 LTS is maintained, the version of
-# this script in the mbedtls-2.28 branch must remain compatible with
-# Python 3.4. The version in development may only use more recent features
-# in parts that are not backported to 2.28.
 
 ## Copyright The Mbed TLS Contributors
 ## SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
@@ -22,7 +17,7 @@ import re
 from abc import ABCMeta
 
 class Setting:
-    """Representation of one Mbed TLS mbedtls_config.h setting.
+    """Representation of one Mbed TLS mbedtls_config.h pr PSA crypto_config.h setting.
 
     Fields:
     * name: the symbol name ('MBEDTLS_xxx').
@@ -41,7 +36,7 @@ class Setting:
         self.configfile = configfile
 
 class Config:
-    """Representation of the Mbed TLS configuration.
+    """Representation of the Mbed TLS and PSA configuration.
 
     In the documentation of this class, a symbol is said to be *active*
     if there is a #define for it that is not commented out, and *known*

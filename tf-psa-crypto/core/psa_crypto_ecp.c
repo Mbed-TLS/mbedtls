@@ -610,7 +610,7 @@ psa_status_t psa_generate_key_iop_setup(
     (void) operation;
     (void) attributes;
 
-    return PSA_SUCCESS;
+    return PSA_ERROR_NOT_SUPPORTED;
 }
 
 psa_status_t psa_generate_key_iop_complete(
@@ -620,7 +620,7 @@ psa_status_t psa_generate_key_iop_complete(
     (void) operation;
     (void) key;
 
-    return PSA_SUCCESS;
+    return PSA_ERROR_NOT_SUPPORTED;
 }
 
 psa_status_t psa_generate_key_iop_abort(
@@ -628,7 +628,7 @@ psa_status_t psa_generate_key_iop_abort(
 {
     (void) operation;
 
-    return PSA_SUCCESS;
+    return PSA_ERROR_NOT_SUPPORTED;
 }
 
 /****************************************************************/

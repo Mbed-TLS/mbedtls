@@ -116,12 +116,6 @@ set -e -o pipefail -u
 shopt -s extglob
 
 # For project detection
-PROJECT_NAME_FILE='./scripts/project_name.txt'
-if read -r PROJECT_NAME < "$PROJECT_NAME_FILE"; then :; else
-    echo "$PROJECT_NAME_FILE does not exist... Exiting..." >&2
-    exit 1
-fi
-
 in_mbedtls_repo () {
     test "$PROJECT_NAME" = "Mbed TLS"
 }
@@ -131,6 +125,13 @@ in_tf_psa_crypto_repo () {
 }
 
 pre_check_environment () {
+    # For project detection
+    PROJECT_NAME_FILE='./scripts/project_name.txt'
+    if read -r PROJECT_NAME < "$PROJECT_NAME_FILE"; then :; else
+        echo "$PROJECT_NAME_FILE does not exist... Exiting..." >&2
+        exit 1
+    fi
+
     if in_mbedtls_repo || in_tf_psa_crypto_repo; then :; else
         echo "Must be run from Mbed TLS / TF-PSA-Crypto root" >&2
         exit 1

@@ -101,21 +101,29 @@ class Config:
 
         If name is not known, raise KeyError.
         """
-        self.settings[name].value = value
+        setting = self.settings[name]
+        if setting.configfile and setting != value:
+            setting.configfile.modified = True
 
-    def set(self, name, value=None):
+        setting.value = value
+
+    def set(self, name, value=None, configfile=None):
         """Set name to the given value and make it active.
 
         If value is None and name is already known, don't change its value.
-        If value is None and name is not known, set its value to the empty
-        string.
+        If value is None and name is not known, set its value.
         """
         if name in self.settings:
+            setting = self.settings[name]
+            if setting.configfile and (setting.value != value or not setting.active):
+                setting.configfile.modified = True
             if value is not None:
-                self.settings[name].value = value
-            self.settings[name].active = True
+                setting.value = value
+            setting.active = True
         else:
-            self.settings[name] = Setting(True, name, value=value)
+            self.settings[name] = Setting(True, name, value=value, configfile=configfile)
+            if configfile:
+                self.settings[name].configfile.modified = True
 
     def unset(self, name):
         """Make name unset (inactive).
@@ -589,6 +597,7 @@ class MbedTLSConfig(Config):
                               for (active, name, value, section)
                               in self.configfile.parse_file()})
 
+    #pylint: disable=arguments-differ
     def set(self, name, value=None):
         """Set name to the given value and make it active."""
 
@@ -626,6 +635,7 @@ class CryptoConfig(Config):
                               for (active, name, value, section)
                               in self.configfile.parse_file()})
 
+    #pylint: disable=arguments-differ
     def set(self, name, value='1'):
         """Set name to the given value and make it active."""
 
@@ -684,10 +694,7 @@ class CombinedConfig(Config):
         else:
             return self.mbedtls_configfile
 
-    def __setitem__(self, name, value):
-        super().__setitem__(name, value)
-        self.settings[name].configfile.modified = True
-
+    #pylint: disable=arguments-differ
     def set(self, name, value=None):
         """Set name to the given value and make it active."""
 
@@ -703,15 +710,10 @@ class CombinedConfig(Config):
             if not value:
                 value = '1'
 
-        if name in self.settings:
-            setting = self.settings[name]
-            if not setting.active or (value is not None and setting.value != value):
-                configfile.modified = True
-        else:
+        if name not in self.settings:
             configfile.templates.append((name, '', '#define ' + name + ' '))
-            configfile.modified = True
 
-        super().set(name, value)
+        super().set(name, value, configfile)
 
     def write(self, mbedtls_file=None, crypto_file=None):
         """Write the whole configuration to the file it was read from.

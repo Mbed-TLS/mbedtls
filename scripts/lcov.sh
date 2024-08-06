@@ -74,7 +74,7 @@ if [ $# -gt 0 ] && [ "$1" = "--help" ]; then
     exit
 fi
 
-if in_mbedtls_build_dir; then
+if in_mbedtls_repo; then
     library_dir='library'
     title='Mbed TLS'
 else

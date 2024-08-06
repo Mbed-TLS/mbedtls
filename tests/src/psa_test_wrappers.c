@@ -604,14 +604,21 @@ psa_status_t mbedtls_test_wrap_psa_generate_key(
     return status;
 }
 
-/* Wrapper for psa_generate_key_ext */
-psa_status_t mbedtls_test_wrap_psa_generate_key_ext(
+/* Wrapper for psa_generate_key_custom */
+psa_status_t mbedtls_test_wrap_psa_generate_key_custom(
     const psa_key_attributes_t *arg0_attributes,
-    const psa_key_production_parameters_t *arg1_params,
-    size_t arg2_params_data_length,
-    mbedtls_svc_key_id_t *arg3_key)
+    const psa_custom_key_parameters_t *arg1_custom,
+    const uint8_t *arg2_custom_data,
+    size_t arg3_custom_data_length,
+    mbedtls_svc_key_id_t *arg4_key)
 {
-    psa_status_t status = (psa_generate_key_ext)(arg0_attributes, arg1_params, arg2_params_data_length, arg3_key);
+#if !defined(MBEDTLS_PSA_ASSUME_EXCLUSIVE_BUFFERS)
+    MBEDTLS_TEST_MEMORY_POISON(arg2_custom_data, arg3_custom_data_length);
+#endif /* !defined(MBEDTLS_PSA_ASSUME_EXCLUSIVE_BUFFERS) */
+    psa_status_t status = (psa_generate_key_custom)(arg0_attributes, arg1_custom, arg2_custom_data, arg3_custom_data_length, arg4_key);
+#if !defined(MBEDTLS_PSA_ASSUME_EXCLUSIVE_BUFFERS)
+    MBEDTLS_TEST_MEMORY_UNPOISON(arg2_custom_data, arg3_custom_data_length);
+#endif /* !defined(MBEDTLS_PSA_ASSUME_EXCLUSIVE_BUFFERS) */
     return status;
 }
 
@@ -870,15 +877,22 @@ psa_status_t mbedtls_test_wrap_psa_key_derivation_output_key(
     return status;
 }
 
-/* Wrapper for psa_key_derivation_output_key_ext */
-psa_status_t mbedtls_test_wrap_psa_key_derivation_output_key_ext(
+/* Wrapper for psa_key_derivation_output_key_custom */
+psa_status_t mbedtls_test_wrap_psa_key_derivation_output_key_custom(
     const psa_key_attributes_t *arg0_attributes,
     psa_key_derivation_operation_t *arg1_operation,
-    const psa_key_production_parameters_t *arg2_params,
-    size_t arg3_params_data_length,
-    mbedtls_svc_key_id_t *arg4_key)
+    const psa_custom_key_parameters_t *arg2_custom,
+    const uint8_t *arg3_custom_data,
+    size_t arg4_custom_data_length,
+    mbedtls_svc_key_id_t *arg5_key)
 {
-    psa_status_t status = (psa_key_derivation_output_key_ext)(arg0_attributes, arg1_operation, arg2_params, arg3_params_data_length, arg4_key);
+#if !defined(MBEDTLS_PSA_ASSUME_EXCLUSIVE_BUFFERS)
+    MBEDTLS_TEST_MEMORY_POISON(arg3_custom_data, arg4_custom_data_length);
+#endif /* !defined(MBEDTLS_PSA_ASSUME_EXCLUSIVE_BUFFERS) */
+    psa_status_t status = (psa_key_derivation_output_key_custom)(arg0_attributes, arg1_operation, arg2_custom, arg3_custom_data, arg4_custom_data_length, arg5_key);
+#if !defined(MBEDTLS_PSA_ASSUME_EXCLUSIVE_BUFFERS)
+    MBEDTLS_TEST_MEMORY_UNPOISON(arg3_custom_data, arg4_custom_data_length);
+#endif /* !defined(MBEDTLS_PSA_ASSUME_EXCLUSIVE_BUFFERS) */
     return status;
 }
 

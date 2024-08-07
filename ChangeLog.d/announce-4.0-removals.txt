@@ -27,3 +27,5 @@ New deprecations
      The cryptographic mechanisms remain present, but they will only be
      accessible via the PSA API (psa_xxx functions introduced in
      Mbed TLS 2.17.0) and, where relevant, PK.
+     For guidance on migrating application code to the PSA API, please consult
+     the PSA transition guide (docs/psa-transition.md).

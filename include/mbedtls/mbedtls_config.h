@@ -650,10 +650,6 @@
  *        PSA, and are not restartable. These are temporary limitations that
  *        should be lifted in the future.
  *
- * \note  This option only works with the default software implementation of
- *        elliptic curve functionality. It is incompatible with
- *        MBEDTLS_ECDH_XXX_ALT, MBEDTLS_ECDSA_XXX_ALT.
- *
  * Requires: MBEDTLS_ECP_C
  *
  * Uncomment this macro to enable restartable ECC computations.

@@ -219,6 +219,8 @@ void init_deinit(int count)
         }
         PSA_DONE();
     }
+exit:
+    PSA_DONE();
 }
 /* END_CASE */
 

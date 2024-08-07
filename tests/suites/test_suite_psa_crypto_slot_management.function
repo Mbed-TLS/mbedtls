@@ -855,6 +855,16 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MAX_VOLATILE_KEYS */
+/*
+ * 1. Fill the key store with volatile keys.
+ * 2. Check that attempting to create another volatile key fails without
+ *    corrupting the key store.
+ * 3. Destroy the key specified by key_to_destroy. This is the number of the
+ *    key in creation order (e.g. 0 means the first key that was created).
+ *    It can also  be a negative value to count in reverse order (e.g.
+ *    -1 means to destroy the last key that was created).
+ * 4. Check that creating another volatile key succeeds.
+ */
 void fill_key_store(int key_to_destroy_arg)
 {
     mbedtls_svc_key_id_t *keys = NULL;
@@ -920,6 +930,11 @@ void fill_key_store(int key_to_destroy_arg)
                             replacement_value, sizeof(replacement_value),
                             &keys[key_to_destroy]);
     PSA_ASSERT(status);
+    /* Since the key store was full except for one key, the new key must be
+     * in the same slot in the key store as the destroyed key.
+     * Since volatile keys IDs are assigned based on which slot contains
+     * the key, the new key should have the same ID as the destroyed key.
+     */
     TEST_ASSERT(mbedtls_svc_key_id_equal(reused_id, keys[key_to_destroy]));
 
     /* Check that the keys are not corrupted and destroy them. */

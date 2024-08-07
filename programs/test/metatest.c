@@ -128,7 +128,7 @@ void null_pointer_dereference(const char *name)
     volatile char *volatile p;
     set_to_zero_but_the_compiler_does_not_know(&p, sizeof(p));
     /* Undefined behavior (read from null data pointer) */
-    mbedtls_printf("%p -> %u\n", p, (unsigned) *p);
+    mbedtls_printf("%p -> %u\n", (char *) p, (unsigned) *p);
 }
 
 void null_pointer_call(const char *name)

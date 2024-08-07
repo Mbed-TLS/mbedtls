@@ -1,0 +1,29 @@
+New deprecations
+   * The following cryptographic mechanisms are planned to be removed
+     in Mbed TLS 4.0:
+     - DES (including 3DES).
+     - PKCS#1v1.5 encryption (RSA-PKCS1-v1_5). (OAEP, PSS, and PKCS#1v1.5
+       signature are staying.)
+     - Finite-field Diffie-Hellman with custom groups. (RFC 7919 remain
+       supported.)
+     - Elliptic curves of size 225 bits or less.
+   * The following mechanisms are planned to be removed from (D)TLS 1.2
+     in Mbed TLS 4.0:
+     - RSA decryption (i.e. cipher suites using RSA without a key exchange:
+       cipher suites using an RSA signature and ECDHE are staying).
+     - Static ECDH (ephemeral ECDH, i.e. cipher suites using ECDHE, is staying).
+     - Finite-field Diffie-Hellman (i.e. DHE; ECDHE is staying)
+     - All cipher suites using CBC.
+   * The following low-level interfaces are planned to be removed from the
+     public API in Mbed TLS 4.0:
+     - Hashes: md5.h, ripemd160.h, sha1.h, sha3.h, sha256.h, sha512.h;
+     - Pseudorandom generation: ctr_drbg.h, hmac_drbg.h.
+     - Cipher primitives: aes.h, aria.h, camellia.h, chacha20.h,
+       chachapoly.h, poly1305.h;
+     - Cipher modes: ccm.h, cipher.h, cmac.h, gcm.h, hkdf.h;
+     - Private key encryption mechanisms: pkcs5.h, pkcs12.h.
+     - Asymmetric cryptography: bignum.h, dhm.h, ecdh.h, ecdsa.h, ecjpake.h,
+       ecp.h, rsa.h.
+     The cryptographic mechanisms remain present, but they will only be
+     accessible via the PSA API (psa_xxx functions introduced in
+     Mbed TLS 2.17.0) and, where relevant, PK.

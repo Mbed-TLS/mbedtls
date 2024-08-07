@@ -74,7 +74,12 @@ const char *mbedtls_test_helper_is_psa_leaking(void)
 
     mbedtls_psa_get_stats(&stats);
 
-    if (stats.volatile_slots > 1) {
+    /* Some volatile slots may be used for internal purposes. Generally
+     * we'll have exactly MBEDTLS_TEST_PSA_INTERNAL_KEYS at this point,
+     * but in some cases we might have less, e.g. if a code path calls
+     * PSA_DONE more than once, or if there has only been a partial or
+     * failed initialization. */
+    if (stats.volatile_slots > MBEDTLS_TEST_PSA_INTERNAL_KEYS) {
         return "A volatile slot has not been closed properly.";
     }
     if (stats.persistent_slots != 0) {

@@ -297,7 +297,7 @@ static const mbedtls_ssl_ciphersuite_t ciphersuite_definitions[] =
       MBEDTLS_SSL_VERSION_TLS1_3, MBEDTLS_SSL_VERSION_TLS1_3 },
 #endif /* PSA_WANT_ALG_SHA_256 */
 #endif /* PSA_WANT_ALG_GCM */
-#if defined(MBEDTLS_SSL_HAVE_CCM) && defined(PSA_WANT_ALG_SHA_256)
+#if defined(PSA_WANT_ALG_CCM) && defined(PSA_WANT_ALG_SHA_256)
     { MBEDTLS_TLS1_3_AES_128_CCM_SHA256, "TLS1-3-AES-128-CCM-SHA256",
       MBEDTLS_CIPHER_AES_128_CCM, MBEDTLS_MD_SHA256,
       MBEDTLS_KEY_EXCHANGE_NONE, /* Key exchange not part of ciphersuite in TLS 1.3 */
@@ -308,7 +308,7 @@ static const mbedtls_ssl_ciphersuite_t ciphersuite_definitions[] =
       MBEDTLS_KEY_EXCHANGE_NONE, /* Key exchange not part of ciphersuite in TLS 1.3 */
       MBEDTLS_CIPHERSUITE_SHORT_TAG,
       MBEDTLS_SSL_VERSION_TLS1_3, MBEDTLS_SSL_VERSION_TLS1_3 },
-#endif /* PSA_WANT_ALG_SHA_256 && MBEDTLS_SSL_HAVE_CCM */
+#endif /* PSA_WANT_ALG_SHA_256 && PSA_WANT_ALG_CCM */
 #endif /* PSA_WANT_KEY_TYPE_AES */
 #if defined(PSA_WANT_ALG_CHACHA20_POLY1305) && defined(PSA_WANT_ALG_SHA_256)
     { MBEDTLS_TLS1_3_CHACHA20_POLY1305_SHA256,
@@ -424,7 +424,7 @@ static const mbedtls_ssl_ciphersuite_t ciphersuite_definitions[] =
       MBEDTLS_SSL_VERSION_TLS1_2, MBEDTLS_SSL_VERSION_TLS1_2 },
 #endif /* PSA_WANT_ALG_GCM */
 #endif /* PSA_WANT_ALG_SHA_384 */
-#if defined(MBEDTLS_SSL_HAVE_CCM)
+#if defined(PSA_WANT_ALG_CCM)
     { MBEDTLS_TLS_ECDHE_ECDSA_WITH_AES_256_CCM, "TLS-ECDHE-ECDSA-WITH-AES-256-CCM",
       MBEDTLS_CIPHER_AES_256_CCM, MBEDTLS_MD_SHA256, MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA,
       0,
@@ -441,7 +441,7 @@ static const mbedtls_ssl_ciphersuite_t ciphersuite_definitions[] =
       MBEDTLS_CIPHER_AES_128_CCM, MBEDTLS_MD_SHA256, MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA,
       MBEDTLS_CIPHERSUITE_SHORT_TAG,
       MBEDTLS_SSL_VERSION_TLS1_2, MBEDTLS_SSL_VERSION_TLS1_2 },
-#endif /* MBEDTLS_SSL_HAVE_CCM */
+#endif /* PSA_WANT_ALG_CCM */
 #endif /* PSA_WANT_KEY_TYPE_AES */
 
 #if defined(MBEDTLS_SSL_HAVE_CAMELLIA)
@@ -624,7 +624,7 @@ static const mbedtls_ssl_ciphersuite_t ciphersuite_definitions[] =
       MBEDTLS_SSL_VERSION_TLS1_2, MBEDTLS_SSL_VERSION_TLS1_2 },
 #endif /* MBEDTLS_MD_CAN_SHA1 */
 #endif /* PSA_WANT_ALG_CBC_NO_PADDING */
-#if defined(MBEDTLS_SSL_HAVE_CCM)
+#if defined(PSA_WANT_ALG_CCM)
     { MBEDTLS_TLS_DHE_RSA_WITH_AES_256_CCM, "TLS-DHE-RSA-WITH-AES-256-CCM",
       MBEDTLS_CIPHER_AES_256_CCM, MBEDTLS_MD_SHA256, MBEDTLS_KEY_EXCHANGE_DHE_RSA,
       0,
@@ -641,7 +641,7 @@ static const mbedtls_ssl_ciphersuite_t ciphersuite_definitions[] =
       MBEDTLS_CIPHER_AES_128_CCM, MBEDTLS_MD_SHA256, MBEDTLS_KEY_EXCHANGE_DHE_RSA,
       MBEDTLS_CIPHERSUITE_SHORT_TAG,
       MBEDTLS_SSL_VERSION_TLS1_2, MBEDTLS_SSL_VERSION_TLS1_2 },
-#endif /* MBEDTLS_SSL_HAVE_CCM */
+#endif /* PSA_WANT_ALG_CCM */
 #endif /* PSA_WANT_KEY_TYPE_AES */
 
 #if defined(MBEDTLS_SSL_HAVE_CAMELLIA)
@@ -733,7 +733,7 @@ static const mbedtls_ssl_ciphersuite_t ciphersuite_definitions[] =
       MBEDTLS_SSL_VERSION_TLS1_2, MBEDTLS_SSL_VERSION_TLS1_2 },
 #endif /* PSA_WANT_ALG_CBC_NO_PADDING */
 #endif /* MBEDTLS_MD_CAN_SHA1 */
-#if defined(MBEDTLS_SSL_HAVE_CCM)
+#if defined(PSA_WANT_ALG_CCM)
     { MBEDTLS_TLS_RSA_WITH_AES_256_CCM, "TLS-RSA-WITH-AES-256-CCM",
       MBEDTLS_CIPHER_AES_256_CCM, MBEDTLS_MD_SHA256, MBEDTLS_KEY_EXCHANGE_RSA,
       0,
@@ -750,7 +750,7 @@ static const mbedtls_ssl_ciphersuite_t ciphersuite_definitions[] =
       MBEDTLS_CIPHER_AES_128_CCM, MBEDTLS_MD_SHA256, MBEDTLS_KEY_EXCHANGE_RSA,
       MBEDTLS_CIPHERSUITE_SHORT_TAG,
       MBEDTLS_SSL_VERSION_TLS1_2, MBEDTLS_SSL_VERSION_TLS1_2 },
-#endif /* MBEDTLS_SSL_HAVE_CCM */
+#endif /* PSA_WANT_ALG_CCM */
 #endif /* PSA_WANT_KEY_TYPE_AES */
 
 #if defined(MBEDTLS_SSL_HAVE_CAMELLIA)
@@ -1024,7 +1024,7 @@ static const mbedtls_ssl_ciphersuite_t ciphersuite_definitions[] =
       MBEDTLS_SSL_VERSION_TLS1_2, MBEDTLS_SSL_VERSION_TLS1_2 },
 #endif /* MBEDTLS_MD_CAN_SHA1 */
 #endif /* PSA_WANT_ALG_CBC_NO_PADDING */
-#if defined(MBEDTLS_SSL_HAVE_CCM)
+#if defined(PSA_WANT_ALG_CCM)
     { MBEDTLS_TLS_PSK_WITH_AES_256_CCM, "TLS-PSK-WITH-AES-256-CCM",
       MBEDTLS_CIPHER_AES_256_CCM, MBEDTLS_MD_SHA256, MBEDTLS_KEY_EXCHANGE_PSK,
       0,
@@ -1041,7 +1041,7 @@ static const mbedtls_ssl_ciphersuite_t ciphersuite_definitions[] =
       MBEDTLS_CIPHER_AES_128_CCM, MBEDTLS_MD_SHA256, MBEDTLS_KEY_EXCHANGE_PSK,
       MBEDTLS_CIPHERSUITE_SHORT_TAG,
       MBEDTLS_SSL_VERSION_TLS1_2, MBEDTLS_SSL_VERSION_TLS1_2 },
-#endif /* MBEDTLS_SSL_HAVE_CCM */
+#endif /* PSA_WANT_ALG_CCM */
 #endif /* PSA_WANT_KEY_TYPE_AES */
 
 #if defined(MBEDTLS_SSL_HAVE_CAMELLIA)
@@ -1125,7 +1125,7 @@ static const mbedtls_ssl_ciphersuite_t ciphersuite_definitions[] =
       MBEDTLS_SSL_VERSION_TLS1_2, MBEDTLS_SSL_VERSION_TLS1_2 },
 #endif /* MBEDTLS_MD_CAN_SHA1 */
 #endif /* PSA_WANT_ALG_CBC_NO_PADDING */
-#if defined(MBEDTLS_SSL_HAVE_CCM)
+#if defined(PSA_WANT_ALG_CCM)
     { MBEDTLS_TLS_DHE_PSK_WITH_AES_256_CCM, "TLS-DHE-PSK-WITH-AES-256-CCM",
       MBEDTLS_CIPHER_AES_256_CCM, MBEDTLS_MD_SHA256, MBEDTLS_KEY_EXCHANGE_DHE_PSK,
       0,
@@ -1142,7 +1142,7 @@ static const mbedtls_ssl_ciphersuite_t ciphersuite_definitions[] =
       MBEDTLS_CIPHER_AES_128_CCM, MBEDTLS_MD_SHA256, MBEDTLS_KEY_EXCHANGE_DHE_PSK,
       MBEDTLS_CIPHERSUITE_SHORT_TAG,
       MBEDTLS_SSL_VERSION_TLS1_2, MBEDTLS_SSL_VERSION_TLS1_2 },
-#endif /* MBEDTLS_SSL_HAVE_CCM */
+#endif /* PSA_WANT_ALG_CCM */
 #endif /* PSA_WANT_KEY_TYPE_AES */
 
 #if defined(MBEDTLS_SSL_HAVE_CAMELLIA)
@@ -1320,12 +1320,12 @@ static const mbedtls_ssl_ciphersuite_t ciphersuite_definitions[] =
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
 #if defined(PSA_WANT_KEY_TYPE_AES)
-#if defined(MBEDTLS_SSL_HAVE_CCM)
+#if defined(PSA_WANT_ALG_CCM)
     { MBEDTLS_TLS_ECJPAKE_WITH_AES_128_CCM_8, "TLS-ECJPAKE-WITH-AES-128-CCM-8",
       MBEDTLS_CIPHER_AES_128_CCM, MBEDTLS_MD_SHA256, MBEDTLS_KEY_EXCHANGE_ECJPAKE,
       MBEDTLS_CIPHERSUITE_SHORT_TAG,
       MBEDTLS_SSL_VERSION_TLS1_2, MBEDTLS_SSL_VERSION_TLS1_2 },
-#endif /* MBEDTLS_SSL_HAVE_CCM */
+#endif /* PSA_WANT_ALG_CCM */
 #endif /* PSA_WANT_KEY_TYPE_AES */
 #endif /* MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED */
 

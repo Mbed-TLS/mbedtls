@@ -30,9 +30,15 @@ EOF
 
 set -eu
 
-# Repository detection
-in_mbedtls_build_dir () {
-    test -d library
+# Project detection
+PROJECT_NAME_FILE='./scripts/project_name.txt'
+if read -r PROJECT_NAME < "$PROJECT_NAME_FILE"; then :; else
+    echo "$PROJECT_NAME_FILE does not exist... Exiting..." >&2
+    exit 1
+fi
+
+in_mbedtls_repo () {
+    test "$PROJECT_NAME" = "Mbed TLS"
 }
 
 # Collect stats and build a HTML report.
@@ -68,7 +74,7 @@ if [ $# -gt 0 ] && [ "$1" = "--help" ]; then
     exit
 fi
 
-if in_mbedtls_build_dir; then
+if in_mbedtls_repo; then
     library_dir='library'
     title='Mbed TLS'
 else

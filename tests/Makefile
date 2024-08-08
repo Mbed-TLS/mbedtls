@@ -205,16 +205,11 @@ c: $(C_FILES)
 # dot in .c file's base name.
 #
 .SECONDEXPANSION:
-%.c: suites/$$(firstword $$(subst ., ,$$*)).function suites/%.data ../framework/scripts/generate_test_code.py ../tf-psa-crypto/tests/suites/helpers.function ../tf-psa-crypto/tests/suites/main_test.function ../tf-psa-crypto/tests/suites/host_test.function
-	echo "  Gen   $@"
-	$(PYTHON) ../framework/scripts/generate_test_code.py -f suites/$(firstword $(subst ., ,$*)).function \
-		-d suites/$*.data \
-		-t ../tf-psa-crypto/tests/suites/main_test.function \
-		-p ../tf-psa-crypto/tests/suites/host_test.function \
-		-s suites  \
-		--helpers-file ../tf-psa-crypto/tests/suites/helpers.function \
-		-o .
 
+# First handle the tf-psa-crypto case, which has different paths from
+# the local case. In GNU Make >=3.82, the shortest match applies regardless
+# of the order in the makefile. In GNU Make <=3.81, the first matching rule
+# applies.
 ../tf-psa-crypto/tests/%.c: ../tf-psa-crypto/tests/suites/$$(firstword $$(subst ., ,$$*)).function ../tf-psa-crypto/tests/suites/%.data ../framework/scripts/generate_test_code.py ../tf-psa-crypto/tests/suites/helpers.function ../tf-psa-crypto/tests/suites/main_test.function ../tf-psa-crypto/tests/suites/host_test.function
 	echo "  Gen   $@"
 	cd ../tf-psa-crypto/tests && $(PYTHON) ../../framework/scripts/generate_test_code.py -f suites/$(firstword $(subst ., ,$*)).function \
@@ -223,6 +218,16 @@ c: $(C_FILES)
 		-p suites/host_test.function \
 		-s suites  \
 		--helpers-file suites/helpers.function \
+		-o .
+
+%.c: suites/$$(firstword $$(subst ., ,$$*)).function suites/%.data ../framework/scripts/generate_test_code.py ../tf-psa-crypto/tests/suites/helpers.function ../tf-psa-crypto/tests/suites/main_test.function ../tf-psa-crypto/tests/suites/host_test.function
+	echo "  Gen   $@"
+	$(PYTHON) ../framework/scripts/generate_test_code.py -f suites/$(firstword $(subst ., ,$*)).function \
+		-d suites/$*.data \
+		-t ../tf-psa-crypto/tests/suites/main_test.function \
+		-p ../tf-psa-crypto/tests/suites/host_test.function \
+		-s suites  \
+		--helpers-file ../tf-psa-crypto/tests/suites/helpers.function \
 		-o .
 
 $(BINARIES): %$(EXEXT): %.c $(MBEDLIBS) $(TEST_OBJS_DEPS) $(MBEDTLS_TEST_OBJS)

@@ -309,8 +309,6 @@ int mbedtls_ccm_star_auth_decrypt(mbedtls_ccm_context *ctx, size_t length,
  *                  mbedtls_ccm_update(). This function can be called before
  *                  or after mbedtls_ccm_set_lengths().
  *
- * \note            This function is not implemented in Mbed TLS yet.
- *
  * \param ctx       The CCM context. This must be initialized.
  * \param mode      The operation to perform: #MBEDTLS_CCM_ENCRYPT or
  *                  #MBEDTLS_CCM_DECRYPT or #MBEDTLS_CCM_STAR_ENCRYPT or
@@ -342,8 +340,6 @@ int mbedtls_ccm_starts(mbedtls_ccm_context *ctx,
  *                  before calling mbedtls_ccm_update_ad() or
  *                  mbedtls_ccm_update(). This function can be called before
  *                  or after mbedtls_ccm_starts().
- *
- * \note            This function is not implemented in Mbed TLS yet.
  *
  * \param ctx       The CCM context. This must be initialized.
  * \param total_ad_len   The total length of additional data in bytes.
@@ -377,8 +373,6 @@ int mbedtls_ccm_set_lengths(mbedtls_ccm_context *ctx,
  *                  \c total_ad_len passed to mbedtls_ccm_set_lengths(). You
  *                  may not call this function after calling
  *                  mbedtls_ccm_update().
- *
- * \note            This function is not implemented in Mbed TLS yet.
  *
  * \param ctx       The CCM context. This must have been started with
  *                  mbedtls_ccm_starts(), the lengths of the message and
@@ -436,8 +430,6 @@ int mbedtls_ccm_update_ad(mbedtls_ccm_context *ctx,
  *                    the last one) then it is correct to use \p output_size
  *                    =\p input_len.
  *
- * \note            This function is not implemented in Mbed TLS yet.
- *
  * \param ctx           The CCM context. This must have been started with
  *                      mbedtls_ccm_starts() and the lengths of the message and
  *                      additional data must have been declared with
@@ -478,8 +470,6 @@ int mbedtls_ccm_update(mbedtls_ccm_context *ctx,
  *                  mbedtls_ct_memcmp() to compare the actual tag
  *                  with the expected tag. Do not use memcmp():
  *                  that would be vulnerable to timing attacks.
- *
- * \note            This function is not implemented in Mbed TLS yet.
  *
  * \param ctx       The CCM context. This must have been started with
  *                  mbedtls_ccm_starts() and the lengths of the message and

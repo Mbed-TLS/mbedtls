@@ -7726,7 +7726,7 @@ run_test    "keyUsage cli 1.2: KeyEncipherment, RSA: OK" \
             -C "Processing of the Certificate handshake message failed" \
             -c "Ciphersuite is TLS-"
 
-run_test    "keyUsage cli 1.2: KeyEncipherment, DHE-RSA: fail" \
+run_test    "keyUsage cli 1.2: KeyEncipherment, DHE-RSA: fail (hard)" \
             "$O_SRV -tls1_2 -key $DATA_FILES_PATH/server2.key \
              -cert $DATA_FILES_PATH/server2.ku-ke.crt" \
             "$P_CLI debug_level=3 \
@@ -7739,7 +7739,7 @@ run_test    "keyUsage cli 1.2: KeyEncipherment, DHE-RSA: fail" \
             -c "! Usage does not match the keyUsage extension"
             # MBEDTLS_X509_BADCERT_KEY_USAGE -> MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT
 
-run_test    "keyUsage cli 1.2: KeyEncipherment, DHE-RSA: fail, soft" \
+run_test    "keyUsage cli 1.2: KeyEncipherment, DHE-RSA: fail (soft)" \
             "$O_SRV -tls1_2 -key $DATA_FILES_PATH/server2.key \
              -cert $DATA_FILES_PATH/server2.ku-ke.crt" \
             "$P_CLI debug_level=3 auth_mode=optional \
@@ -7761,7 +7761,7 @@ run_test    "keyUsage cli 1.2: DigitalSignature, DHE-RSA: OK" \
             -C "Processing of the Certificate handshake message failed" \
             -c "Ciphersuite is TLS-"
 
-run_test    "keyUsage cli 1.2: DigitalSignature, RSA: fail" \
+run_test    "keyUsage cli 1.2: DigitalSignature, RSA: fail (hard)" \
             "$O_SRV -tls1_2 -key $DATA_FILES_PATH/server2.key \
              -cert $DATA_FILES_PATH/server2.ku-ds.crt" \
             "$P_CLI debug_level=3 \
@@ -7774,7 +7774,7 @@ run_test    "keyUsage cli 1.2: DigitalSignature, RSA: fail" \
             -c "! Usage does not match the keyUsage extension"
             # MBEDTLS_X509_BADCERT_KEY_USAGE -> MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT
 
-run_test    "keyUsage cli 1.2: DigitalSignature, RSA: fail, soft" \
+run_test    "keyUsage cli 1.2: DigitalSignature, RSA: fail (soft)" \
             "$O_SRV -tls1_2 -key $DATA_FILES_PATH/server2.key \
              -cert $DATA_FILES_PATH/server2.ku-ds.crt" \
             "$P_CLI debug_level=3 auth_mode=optional \
@@ -7813,7 +7813,7 @@ run_test    "keyUsage cli 1.3: DigitalSignature+KeyEncipherment, RSA: OK" \
 requires_openssl_tls1_3_with_compatible_ephemeral
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-run_test    "keyUsage cli 1.3: KeyEncipherment, RSA: fail" \
+run_test    "keyUsage cli 1.3: KeyEncipherment, RSA: fail (hard)" \
             "$O_NEXT_SRV_NO_CERT -tls1_3 -num_tickets=0 -key $DATA_FILES_PATH/server2.key \
              -cert $DATA_FILES_PATH/server2-sha256.ku-ke.crt" \
             "$P_CLI debug_level=3" \
@@ -7828,7 +7828,7 @@ run_test    "keyUsage cli 1.3: KeyEncipherment, RSA: fail" \
 requires_openssl_tls1_3_with_compatible_ephemeral
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-run_test    "keyUsage cli 1.3: KeyAgreement, RSA: fail" \
+run_test    "keyUsage cli 1.3: KeyAgreement, RSA: fail (hard)" \
             "$O_NEXT_SRV_NO_CERT -tls1_3 -num_tickets=0 -key $DATA_FILES_PATH/server2.key \
              -cert $DATA_FILES_PATH/server2-sha256.ku-ka.crt" \
             "$P_CLI debug_level=3" \
@@ -7855,7 +7855,7 @@ run_test    "keyUsage cli 1.3: DigitalSignature, ECDSA: OK" \
 requires_openssl_tls1_3_with_compatible_ephemeral
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-run_test    "keyUsage cli 1.3: KeyEncipherment, ECDSA: fail" \
+run_test    "keyUsage cli 1.3: KeyEncipherment, ECDSA: fail (hard)" \
             "$O_NEXT_SRV_NO_CERT -tls1_3 -num_tickets=0 -key $DATA_FILES_PATH/server5.key \
              -cert $DATA_FILES_PATH/server5.ku-ke.crt" \
             "$P_CLI debug_level=3" \
@@ -7870,7 +7870,7 @@ run_test    "keyUsage cli 1.3: KeyEncipherment, ECDSA: fail" \
 requires_openssl_tls1_3_with_compatible_ephemeral
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-run_test    "keyUsage cli 1.3: KeyAgreement, ECDSA: fail" \
+run_test    "keyUsage cli 1.3: KeyAgreement, ECDSA: fail (hard)" \
             "$O_NEXT_SRV_NO_CERT -tls1_3 -num_tickets=0 -key $DATA_FILES_PATH/server5.key \
              -cert $DATA_FILES_PATH/server5.ku-ka.crt" \
             "$P_CLI debug_level=3" \
@@ -7892,6 +7892,16 @@ run_test    "keyUsage cli-auth 1.2: RSA, DigitalSignature: OK" \
             "$P_SRV debug_level=1 auth_mode=optional" \
             "$O_CLI -tls1_2 -key $DATA_FILES_PATH/server2.key \
              -cert $DATA_FILES_PATH/server2.ku-ds.crt" \
+            0 \
+            -s "Verifying peer X.509 certificate... ok" \
+            -S "bad certificate (usage extensions)" \
+            -S "Processing of the Certificate handshake message failed"
+
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+run_test    "keyUsage cli-auth 1.2: RSA, DigitalSignature+KeyEncipherment: OK" \
+            "$P_SRV debug_level=1 auth_mode=optional" \
+            "$O_CLI -tls1_2 -key $DATA_FILES_PATH/server2.key \
+             -cert $DATA_FILES_PATH/server2.ku-ds_ke.crt" \
             0 \
             -s "Verifying peer X.509 certificate... ok" \
             -S "bad certificate (usage extensions)" \
@@ -7968,7 +7978,7 @@ run_test    "keyUsage cli-auth 1.3: RSA, DigitalSignature: OK" \
 requires_openssl_tls1_3_with_compatible_ephemeral
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-run_test    "keyUsage cli-auth 1.3: RSA, DigitalSignature+KeyEnciphermen: OK" \
+run_test    "keyUsage cli-auth 1.3: RSA, DigitalSignature+KeyEncipherment: OK" \
             "$P_SRV debug_level=1 force_version=tls13 auth_mode=optional" \
             "$O_NEXT_CLI_NO_CERT -key $DATA_FILES_PATH/server2.key \
              -cert $DATA_FILES_PATH/server2-sha256.ku-ds_ke.crt" \

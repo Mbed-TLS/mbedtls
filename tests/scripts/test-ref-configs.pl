@@ -27,7 +27,8 @@ my %configs = (
         'test_again_with_use_psa' => 1
     },
     'config-mini-tls1_1.h' => {
-        'compat' => '-m tls1_1 -f \'^DES-CBC3-SHA$\|^TLS-RSA-WITH-3DES-EDE-CBC-SHA$\'', #',
+         # Include DES; exclude (EC)DH; only pure-RSA key exchanges
+        'compat' => '-m tls1_1 -e \'NULL\|RC4\|ARCFOUR\|ARIA\|CAMELLIA\|DH\|PSK\' -t RSA',
         ## Skip ssl-opt testing for now because ssl-opt.sh is missing a lot
         ## of requires_xxx so it would try to run tests that don't apply.
         # 'opt' => ' ',

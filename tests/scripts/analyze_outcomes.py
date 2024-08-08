@@ -113,6 +113,18 @@ TASKS = {
                 'test_suite_psa_crypto_metadata;Asymmetric signature: pure EdDSA',
                 # Algorithm not supported yet
                 'test_suite_psa_crypto_metadata;Cipher: XTS',
+                # compat.sh tests with OpenSSL, DTLS 1.2 and singled-DES:
+                # we have no version of OpenSSL on the CI that supports both
+                # DTLS 1.2 and single-DES (1.0.2g is too recent for single-DES
+                # and 1.0.1j is too old for DTLS 1.2).
+                'compat;O->m dtls12,no DES-CBC-SHA',
+                'compat;O->m dtls12,no EDH-RSA-DES-CBC-SHA',
+                'compat;O->m dtls12,yes DES-CBC-SHA',
+                'compat;O->m dtls12,yes EDH-RSA-DES-CBC-SHA',
+                'compat;m->O dtls12,no TLS-DHE-RSA-WITH-DES-CBC-SHA',
+                'compat;m->O dtls12,no TLS-RSA-WITH-DES-CBC-SHA',
+                'compat;m->O dtls12,yes TLS-DHE-RSA-WITH-DES-CBC-SHA',
+                'compat;m->O dtls12,yes TLS-RSA-WITH-DES-CBC-SHA',
             ],
             'full_coverage': False,
         }

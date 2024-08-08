@@ -35,6 +35,8 @@
 #define MBEDTLS_EXIT_FAILURE    EXIT_FAILURE
 #endif /* MBEDTLS_PLATFORM_C */
 
+#include <limits.h>
+
 #if !defined(MBEDTLS_NET_C)
 int main(void)
 {

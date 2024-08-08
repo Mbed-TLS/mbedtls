@@ -25,23 +25,21 @@ from mbedtls_dev import test_data_generation
 
 def test_case_for_key_type_not_supported(
         verb: str, key_type: str, bits: int,
-        dependencies: List[str],
+        not_supported_mechanism: str,
         *args: str,
         param_descr: str = ''
 ) -> test_case.TestCase:
     """Return one test case exercising a key creation method
     for an unsupported key type or size.
     """
-    psa_information.hack_dependencies_not_implemented(dependencies)
-    tc = test_case.TestCase()
+    tc = psa_information.TestCase()
     short_key_type = crypto_knowledge.short_expression(key_type)
-    adverb = 'not' if dependencies else 'never'
-    if param_descr:
-        adverb = param_descr + ' ' + adverb
-    tc.set_description('PSA {} {} {}-bit {} supported'
-                       .format(verb, short_key_type, bits, adverb))
-    tc.set_dependencies(dependencies)
+    tc.set_description('PSA {} {} {}-bit{} not supported'
+                       .format(verb, short_key_type, bits,
+                               ' ' + param_descr if param_descr else ''))
     tc.set_function(verb + '_not_supported')
+    tc.set_key_bits(bits)
+    tc.assumes_not_supported(not_supported_mechanism)
     tc.set_arguments([key_type] + list(args))
     return tc
 
@@ -71,34 +69,27 @@ class KeyTypeNotSupported:
             # Don't generate test cases for key types that are always supported.
             # They would be skipped in all configurations, which is noise.
             return
-        import_dependencies = [('!' if param is None else '') +
-                               psa_information.psa_want_symbol(kt.name)]
-        if kt.params is not None:
-            import_dependencies += [('!' if param == i else '') +
-                                    psa_information.psa_want_symbol(sym)
-                                    for i, sym in enumerate(kt.params)]
-        if kt.name.endswith('_PUBLIC_KEY'):
-            generate_dependencies = []
+        if param is None:
+            not_supported_mechanism = kt.name
         else:
-            generate_dependencies = import_dependencies
+            assert kt.params is not None
+            not_supported_mechanism = kt.params[param]
         for bits in kt.sizes_to_test():
             yield test_case_for_key_type_not_supported(
                 'import', kt.expression, bits,
-                psa_information.finish_family_dependencies(import_dependencies, bits),
+                not_supported_mechanism,
                 test_case.hex_string(kt.key_material(bits)),
                 param_descr=param_descr,
             )
-            if not generate_dependencies and param is not None:
-                # If generation is impossible for this key type, rather than
-                # supported or not depending on implementation capabilities,
-                # only generate the test case once.
-                continue
-                # For public key we expect that key generation fails with
-                # INVALID_ARGUMENT. It is handled by KeyGenerate class.
+            # Don't generate not-supported test cases for key generation of
+            # public keys. Our implementation always returns
+            # PSA_ERROR_INVALID_ARGUMENT when attempting to generate a
+            # public key, so we cover this together with the positive cases
+            # in the KeyGenerate class.
             if not kt.is_public():
                 yield test_case_for_key_type_not_supported(
                     'generate', kt.expression, bits,
-                    psa_information.finish_family_dependencies(generate_dependencies, bits),
+                    not_supported_mechanism,
                     str(bits),
                     param_descr=param_descr,
                 )
@@ -124,21 +115,18 @@ class KeyTypeNotSupported:
 
 def test_case_for_key_generation(
         key_type: str, bits: int,
-        dependencies: List[str],
         *args: str,
         result: str = ''
 ) -> test_case.TestCase:
     """Return one test case exercising a key generation.
     """
-    psa_information.hack_dependencies_not_implemented(dependencies)
-    tc = test_case.TestCase()
+    tc = psa_information.TestCase()
     short_key_type = crypto_knowledge.short_expression(key_type)
     tc.set_description('PSA {} {}-bit'
                        .format(short_key_type, bits))
-    tc.set_dependencies(dependencies)
     tc.set_function('generate_key')
+    tc.set_key_bits(bits)
     tc.set_arguments([key_type] + list(args) + [result])
-
     return tc
 
 class KeyGenerate:
@@ -160,28 +148,25 @@ class KeyGenerate:
         PSA_ERROR_INVALID_ARGUMENT status is expected.
         """
         result = 'PSA_SUCCESS'
-
-        import_dependencies = [psa_information.psa_want_symbol(kt.name)]
-        if kt.params is not None:
-            import_dependencies += [psa_information.psa_want_symbol(sym)
-                                    for i, sym in enumerate(kt.params)]
         if kt.name.endswith('_PUBLIC_KEY'):
-            # The library checks whether the key type is a public key generically,
-            # before it reaches a point where it needs support for the specific key
-            # type, so it returns INVALID_ARGUMENT for unsupported public key types.
-            generate_dependencies = []
             result = 'PSA_ERROR_INVALID_ARGUMENT'
-        else:
-            generate_dependencies = import_dependencies
-            if kt.name == 'PSA_KEY_TYPE_RSA_KEY_PAIR':
-                generate_dependencies.append("MBEDTLS_GENPRIME")
         for bits in kt.sizes_to_test():
-            yield test_case_for_key_generation(
+            tc = test_case_for_key_generation(
                 kt.expression, bits,
-                psa_information.finish_family_dependencies(generate_dependencies, bits),
                 str(bits),
                 result
             )
+            if result == 'PSA_ERROR_INVALID_ARGUMENT':
+                # The library checks whether the key type is a public key generically,
+                # before it reaches a point where it needs support for the specific key
+                # type, so it returns INVALID_ARGUMENT for unsupported public key types.
+                tc.set_dependencies([])
+            elif kt.name == 'PSA_KEY_TYPE_RSA_KEY_PAIR':
+                # A necessary deviation because PSA_WANT symbols don't
+                # distinguish between key generation and usage, but for
+                # RSA key generation has an extra requirement.
+                tc.dependencies.insert(0, 'MBEDTLS_GENPRIME')
+            yield tc
 
     def test_cases_for_key_generation(self) -> Iterator[test_case.TestCase]:
         """Generate test cases that exercise the generation of keys."""
@@ -223,7 +208,7 @@ class OpFail:
     ) -> test_case.TestCase:
         """Construct a failure test case for a one-key or keyless operation."""
         #pylint: disable=too-many-arguments,too-many-locals
-        tc = test_case.TestCase()
+        tc = psa_information.TestCase()
         pretty_alg = alg.short_expression()
         if reason == self.Reason.NOT_SUPPORTED:
             short_deps = [re.sub(r'PSA_WANT_ALG_', r'', dep)
@@ -242,22 +227,22 @@ class OpFail:
                                    pretty_alg,
                                    pretty_reason,
                                    ' with ' + pretty_type if pretty_type else ''))
-        dependencies = psa_information.automatic_dependencies(alg.base_expression, key_type)
-        for i, dep in enumerate(dependencies):
-            if dep in not_deps:
-                dependencies[i] = '!' + dep
-        tc.set_dependencies(dependencies)
         tc.set_function(category.name.lower() + '_fail')
         arguments = [] # type: List[str]
         if kt:
-            key_material = kt.key_material(kt.sizes_to_test()[0])
+            bits = kt.sizes_to_test()[0]
+            key_material = kt.key_material(bits)
             arguments += [key_type, test_case.hex_string(key_material)]
+            tc.set_key_bits(bits)
         arguments.append(alg.expression)
         if category.is_asymmetric():
-            arguments.append('1' if reason == self.Reason.PUBLIC else '0')
+            private_only = (reason == self.Reason.PUBLIC)
+            arguments.append('1' if private_only else '0')
         error = ('NOT_SUPPORTED' if reason == self.Reason.NOT_SUPPORTED else
                  'INVALID_ARGUMENT')
         arguments.append('PSA_ERROR_' + error)
+        for dep in not_deps:
+            tc.assumes_not_supported(dep)
         tc.set_arguments(arguments)
         return tc
 
@@ -288,9 +273,25 @@ class OpFail:
             if key_is_compatible and alg.can_do(category):
                 # Compatible key and operation, unsupported algorithm
                 for dep in psa_information.automatic_dependencies(alg.base_expression):
+                    deps = [dep]
+                    # Special case: if one of deterministic/randomized
+                    # ECDSA is supported but not the other, then the one
+                    # that is not supported in the signature direction is
+                    # still supported in the verification direction,
+                    # because the two verification algorithms are
+                    # identical. This property is how Mbed TLS chooses to
+                    # behave, the specification would also allow it to
+                    # reject the algorithm. In the generated test cases,
+                    # we avoid this difficulty by not running the
+                    # not-supported test case when exactly one of the
+                    # two variants is supported.
+                    if dep == 'PSA_WANT_ALG_DETERMINISTIC_ECDSA':
+                        deps.append('PSA_WANT_ALG_ECDSA')
+                    elif dep == 'PSA_WANT_ALG_ECDSA':
+                        deps.append('PSA_WANT_ALG_DETERMINISTIC_ECDSA')
                     yield self.make_test_case(alg, category,
                                               self.Reason.NOT_SUPPORTED,
-                                              kt=kt, not_deps=frozenset([dep]))
+                                              kt=kt, not_deps=frozenset(deps))
                 # Public key for a private-key operation
                 if category.is_asymmetric() and kt.is_public():
                     yield self.make_test_case(alg, category,
@@ -461,14 +462,9 @@ class StorageFormat:
         correctly.
         """
         verb = 'save' if self.forward else 'read'
-        tc = test_case.TestCase()
+        tc = psa_information.TestCase()
         tc.set_description(verb + ' ' + key.description)
-        dependencies = psa_information.automatic_dependencies(
-            key.lifetime.string, key.type.string,
-            key.alg.string, key.alg2.string,
-        )
-        dependencies = psa_information.finish_family_dependencies(dependencies, key.bits)
-        tc.set_dependencies(dependencies)
+        tc.set_key_bits(key.bits)
         tc.set_function('key_storage_' + verb)
         if self.forward:
             extra_arguments = []

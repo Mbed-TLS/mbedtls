@@ -16,6 +16,7 @@
 #include "psa_crypto_rsa.h"
 #include "psa_crypto_hash.h"
 
+#include <limits.h>
 #include <stdlib.h>
 #include <string.h>
 #include "mbedtls/platform.h"

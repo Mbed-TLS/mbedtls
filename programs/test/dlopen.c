@@ -48,7 +48,7 @@ int main(void)
     void *tls_so = dlopen(TLS_SO_FILENAME, RTLD_NOW);
     CHECK_DLERROR("dlopen", TLS_SO_FILENAME);
     const int *(*ssl_list_ciphersuites)(void) =
-        dlsym(tls_so, "mbedtls_ssl_list_ciphersuites");
+        (const int *(*)(void))dlsym(tls_so, "mbedtls_ssl_list_ciphersuites");
     CHECK_DLERROR("dlsym", "mbedtls_ssl_list_ciphersuites");
     const int *ciphersuites = ssl_list_ciphersuites();
     for (n = 0; ciphersuites[n] != 0; n++) {/* nothing to do, we're just counting */
@@ -76,7 +76,7 @@ int main(void)
     void *crypto_so = dlopen(CRYPTO_SO_FILENAME, RTLD_NOW);
     CHECK_DLERROR("dlopen", CRYPTO_SO_FILENAME);
     const int *(*md_list)(void) =
-        dlsym(crypto_so, "mbedtls_md_list");
+        (const int *(*)(void))dlsym(crypto_so, "mbedtls_md_list");
     CHECK_DLERROR("dlsym", "mbedtls_md_list");
     const int *mds = md_list();
     for (n = 0; mds[n] != 0; n++) {/* nothing to do, we're just counting */

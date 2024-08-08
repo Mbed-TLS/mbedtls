@@ -101,7 +101,8 @@ from types import SimpleNamespace
 
 import xml.etree.ElementTree as ET
 
-from mbedtls_dev import build_tree
+import framework_scripts_path # pylint: disable=unused-import
+from mbedtls_framework import build_tree
 
 
 class AbiChecker:
@@ -325,8 +326,14 @@ class AbiChecker:
     @staticmethod
     def _list_generated_test_data_files(git_worktree_path):
         """List the generated test data files."""
+        generate_psa_tests = 'framework/scripts/generate_psa_tests.py'
+        if not os.path.isfile(git_worktree_path + '/' + generate_psa_tests):
+            # The checked-out revision is from before generate_psa_tests.py
+            # was moved to the framework submodule. Use the old location.
+            generate_psa_tests = 'tests/scripts/generate_psa_tests.py'
+
         output = subprocess.check_output(
-            ['tests/scripts/generate_psa_tests.py', '--list'],
+            [generate_psa_tests, '--list'],
             cwd=git_worktree_path,
         ).decode('ascii')
         return [line for line in output.split('\n') if line]
@@ -352,8 +359,14 @@ class AbiChecker:
             if 'storage_format' in filename:
                 storage_data_files.add(filename)
                 to_be_generated.add(filename)
+
+        generate_psa_tests = 'framework/scripts/generate_psa_tests.py'
+        if not os.path.isfile(git_worktree_path + '/' + generate_psa_tests):
+            # The checked-out revision is from before generate_psa_tests.py
+            # was moved to the framework submodule. Use the old location.
+            generate_psa_tests = 'tests/scripts/generate_psa_tests.py'
         subprocess.check_call(
-            ['tests/scripts/generate_psa_tests.py'] + sorted(to_be_generated),
+            [generate_psa_tests] + sorted(to_be_generated),
             cwd=git_worktree_path,
         )
         for test_file in sorted(storage_data_files):

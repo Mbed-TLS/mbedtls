@@ -31,14 +31,14 @@ EOF
 
 can_pylint () {
     # Pylint 1.5.2 from Ubuntu 16.04 is too old:
-    #     E: 34, 0: Unable to import 'mbedtls_dev' (import-error)
+    #     E: 34, 0: Unable to import 'mbedtls_framework' (import-error)
     # Pylint 1.8.3 from Ubuntu 18.04 passed on the first commit containing this line.
     check_version pylint 1.8.3
 }
 
 can_mypy () {
     # mypy 0.770 is too old:
-    #     tests/scripts/test_psa_constant_names.py:34: error: Cannot find implementation or library stub for module named 'mbedtls_dev'
+    #     tests/scripts/test_psa_constant_names.py:34: error: Cannot find implementation or library stub for module named 'mbedtls_framework'
     # mypy 0.780 from pip passed on the first commit containing this line.
     check_version mypy.version 0.780
 }
@@ -55,14 +55,14 @@ elif [ "$1" = "--can-mypy" ]; then
 fi
 
 echo 'Running pylint ...'
-$PYTHON -m pylint scripts/mbedtls_dev/*.py scripts/*.py tests/scripts/*.py || {
+$PYTHON -m pylint framework/scripts/*.py framework/scripts/mbedtls_framework/*.py scripts/*.py tests/scripts/*.py || {
     echo >&2 "pylint reported errors"
     ret=1
 }
 
 echo
 echo 'Running mypy ...'
-$PYTHON -m mypy scripts/*.py tests/scripts/*.py ||
+$PYTHON -m mypy framework/scripts/*.py framework/scripts/mbedtls_framework/*.py scripts/*.py tests/scripts/*.py ||
   ret=1
 
 exit $ret

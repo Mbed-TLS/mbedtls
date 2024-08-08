@@ -8,7 +8,7 @@
 This script is used to audit the validity date of crt/crl/csr used for testing.
 It prints the information about X.509 objects excluding the objects that
 are valid throughout the desired validity period. The data are collected
-from tests/data_files/ and tests/suites/*.data files by default.
+from framework/data_files/ and tests/suites/*.data files by default.
 """
 
 import os
@@ -29,8 +29,8 @@ from cryptography import x509
 from generate_test_code import FileWrapper
 
 import scripts_path # pylint: disable=unused-import
-from mbedtls_dev import build_tree
-from mbedtls_dev import logging_util
+from mbedtls_framework import build_tree
+from mbedtls_framework import logging_util
 
 def check_cryptography_version():
     match = re.match(r'^[0-9]+', cryptography.__version__)
@@ -269,12 +269,12 @@ class Auditor:
 
 
 class TestDataAuditor(Auditor):
-    """Class for auditing files in `tests/data_files/`"""
+    """Class for auditing files in `framework/data_files/`"""
 
     def collect_default_files(self):
-        """Collect all files in `tests/data_files/`"""
-        test_dir = self.find_test_dir()
-        test_data_glob = os.path.join(test_dir, 'data_files/**')
+        """Collect all files in `framework/data_files/`"""
+        test_data_glob = os.path.join(build_tree.guess_mbedtls_root(),
+                                      'framework', 'data_files/**')
         data_files = [f for f in glob.glob(test_data_glob, recursive=True)
                       if os.path.isfile(f)]
         return data_files

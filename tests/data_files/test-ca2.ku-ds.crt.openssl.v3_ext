@@ -1,4 +1,0 @@
-basicConstraints = CA:true
-subjectKeyIdentifier=none
-keyUsage = digitalSignature
-

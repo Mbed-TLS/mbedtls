@@ -24,7 +24,7 @@ except ImportError:
     pass
 
 import scripts_path # pylint: disable=unused-import
-from mbedtls_dev import build_tree
+from mbedtls_framework import build_tree
 
 
 class FileIssueTracker:
@@ -107,12 +107,12 @@ BINARY_FILE_PATH_RE_LIST = [
     r'docs/.*\.pdf\Z',
     r'docs/.*\.png\Z',
     r'programs/fuzz/corpuses/[^.]+\Z',
-    r'tests/data_files/[^.]+\Z',
-    r'tests/data_files/.*\.(crt|csr|db|der|key|pubkey)\Z',
-    r'tests/data_files/.*\.req\.[^/]+\Z',
-    r'tests/data_files/.*malformed[^/]+\Z',
-    r'tests/data_files/format_pkcs12\.fmt\Z',
-    r'tests/data_files/.*\.bin\Z',
+    r'framework/data_files/[^.]+\Z',
+    r'framework/data_files/.*\.(crt|csr|db|der|key|pubkey)\Z',
+    r'framework/data_files/.*\.req\.[^/]+\Z',
+    r'framework/data_files/.*malformed[^/]+\Z',
+    r'framework/data_files/format_pkcs12\.fmt\Z',
+    r'framework/data_files/.*\.bin\Z',
 ]
 BINARY_FILE_PATH_RE = re.compile('|'.join(BINARY_FILE_PATH_RE_LIST))
 
@@ -373,7 +373,7 @@ class LicenseIssueTracker(LineIssueTracker):
         r'3rdparty/(?!(p256-m)/.*)',
         # Documentation explaining the license may have accidental
         # false positives.
-        r'(ChangeLog|LICENSE|[-0-9A-Z_a-z]+\.md)\Z',
+        r'(ChangeLog|LICENSE|framework\/LICENSE|[-0-9A-Z_a-z]+\.md)\Z',
         # Files imported from TF-M, and not used except in test builds,
         # may be under a different license.
         r'configs/ext/crypto_config_profile_medium\.h\Z',
@@ -381,6 +381,7 @@ class LicenseIssueTracker(LineIssueTracker):
         r'configs/ext/README\.md\Z',
         # Third-party file.
         r'dco\.txt\Z',
+        r'framework\/dco\.txt\Z',
     ]
     path_exemptions = re.compile('|'.join(BINARY_FILE_PATH_RE_LIST +
                                           LICENSE_EXEMPTION_RE_LIST))
@@ -486,9 +487,17 @@ class IntegrityChecker:
 
         These are the regular files commited into Git.
         """
+        bytes_output = subprocess.check_output(['git', '-C', 'framework',
+                                                'ls-files', '-z'])
+        bytes_framework_filepaths = bytes_output.split(b'\0')[:-1]
+        bytes_framework_filepaths = ["framework/".encode() + filepath
+                                     for filepath in bytes_framework_filepaths]
+
         bytes_output = subprocess.check_output(['git', 'ls-files', '-z'])
-        bytes_filepaths = bytes_output.split(b'\0')[:-1]
+        bytes_filepaths = bytes_output.split(b'\0')[:-1] + \
+                          bytes_framework_filepaths
         ascii_filepaths = map(lambda fp: fp.decode('ascii'), bytes_filepaths)
+
         # Filter out directories. Normally Git doesn't list directories
         # (it only knows about the files inside them), but there is
         # at least one case where 'git ls-files' includes a directory:

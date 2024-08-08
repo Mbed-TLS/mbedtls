@@ -16,10 +16,9 @@ cd "$(dirname "$0")"
 CLIENT_BIN=$1
 shift
 
-ipcs | grep q | awk '{ printf " -q " $2 }' | xargs ipcrm > /dev/null 2>&1 || true
+./kill_servers.sh
 
 ./start_server.sh
 ./$CLIENT_BIN "$@"
 
-# Kill server once client exited
-pkill psa_server
+./kill_servers.sh

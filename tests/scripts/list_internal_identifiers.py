@@ -33,7 +33,9 @@ def main():
     name_check = CodeParser(logging.getLogger())
     result = name_check.parse_identifiers([
         "include/mbedtls/*_internal.h",
-        "library/*.h"
+        "library/*.h",
+        "tf-psa-crypto/core/*.h",
+        "tf-psa-crypto/drivers/builtin/src/*.h"
     ])[0]
     result.sort(key=lambda x: x.name)
 

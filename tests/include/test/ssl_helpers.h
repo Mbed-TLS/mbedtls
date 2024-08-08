@@ -38,21 +38,21 @@
 #endif
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
-#if defined(MBEDTLS_SSL_HAVE_AES)
-#if defined(MBEDTLS_SSL_HAVE_GCM)
+#if defined(PSA_WANT_KEY_TYPE_AES)
+#if defined(PSA_WANT_ALG_GCM)
 #if defined(PSA_WANT_ALG_SHA_384)
 #define MBEDTLS_TEST_HAS_TLS1_3_AES_256_GCM_SHA384
 #endif
-#if defined(MBEDTLS_MD_CAN_SHA256)
+#if defined(PSA_WANT_ALG_SHA_256)
 #define MBEDTLS_TEST_HAS_TLS1_3_AES_128_GCM_SHA256
 #endif
-#endif /* MBEDTLS_SSL_HAVE_GCM */
-#if defined(MBEDTLS_SSL_HAVE_CCM) && defined(MBEDTLS_MD_CAN_SHA256)
+#endif /* PSA_WANT_ALG_GCM */
+#if defined(PSA_WANT_ALG_CCM) && defined(PSA_WANT_ALG_SHA_256)
 #define MBEDTLS_TEST_HAS_TLS1_3_AES_128_CCM_SHA256
 #define MBEDTLS_TEST_HAS_TLS1_3_AES_128_CCM_8_SHA256
 #endif
-#endif /* MBEDTLS_SSL_HAVE_AES */
-#if defined(MBEDTLS_SSL_HAVE_CHACHAPOLY) && defined(MBEDTLS_MD_CAN_SHA256)
+#endif /* PSA_WANT_KEY_TYPE_AES */
+#if defined(PSA_WANT_ALG_CHACHA20_POLY1305) && defined(PSA_WANT_ALG_SHA_256)
 #define MBEDTLS_TEST_HAS_TLS1_3_CHACHA20_POLY1305_SHA256
 #endif
 
@@ -501,7 +501,7 @@ int mbedtls_test_move_handshake_to_state(mbedtls_ssl_context *ssl,
 #endif
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2) && \
-    defined(MBEDTLS_SSL_HAVE_CBC) && defined(MBEDTLS_SSL_HAVE_AES)
+    defined(PSA_WANT_ALG_CBC_NO_PADDING) && defined(PSA_WANT_KEY_TYPE_AES)
 int mbedtls_test_psa_cipher_encrypt_helper(mbedtls_ssl_transform *transform,
                                            const unsigned char *iv,
                                            size_t iv_len,
@@ -509,8 +509,8 @@ int mbedtls_test_psa_cipher_encrypt_helper(mbedtls_ssl_transform *transform,
                                            size_t ilen,
                                            unsigned char *output,
                                            size_t *olen);
-#endif /* MBEDTLS_SSL_PROTO_TLS1_2 && MBEDTLS_SSL_HAVE_CBC &&
-          MBEDTLS_SSL_HAVE_AES */
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 && PSA_WANT_ALG_CBC_NO_PADDING &&
+          PSA_WANT_KEY_TYPE_AES */
 
 int mbedtls_test_ssl_build_transforms(mbedtls_ssl_transform *t_in,
                                       mbedtls_ssl_transform *t_out,

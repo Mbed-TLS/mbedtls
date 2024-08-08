@@ -643,7 +643,7 @@
  */
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3) && \
     defined(MBEDTLS_SSL_SESSION_TICKETS) && \
-    defined(MBEDTLS_SSL_HAVE_AES) && defined(MBEDTLS_SSL_HAVE_GCM) && \
+    defined(PSA_WANT_KEY_TYPE_AES) && defined(PSA_WANT_ALG_GCM) && \
     defined(PSA_WANT_ALG_SHA_384)
 #define MBEDTLS_PSK_MAX_LEN 48 /* 384 bits */
 #else
@@ -1153,7 +1153,7 @@ typedef void mbedtls_ssl_async_cancel_t(mbedtls_ssl_context *ssl);
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED) &&        \
     !defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
 #define MBEDTLS_SSL_PEER_CERT_DIGEST_MAX_LEN  48
-#if defined(MBEDTLS_MD_CAN_SHA256)
+#if defined(PSA_WANT_ALG_SHA_256)
 #define MBEDTLS_SSL_PEER_CERT_DIGEST_DFL_TYPE MBEDTLS_MD_SHA256
 #define MBEDTLS_SSL_PEER_CERT_DIGEST_DFL_LEN  32
 #elif defined(PSA_WANT_ALG_SHA_384)

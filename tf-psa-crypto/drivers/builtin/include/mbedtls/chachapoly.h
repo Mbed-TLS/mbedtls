@@ -41,8 +41,6 @@ typedef enum {
 }
 mbedtls_chachapoly_mode_t;
 
-#if !defined(MBEDTLS_CHACHAPOLY_ALT)
-
 #include "mbedtls/chacha20.h"
 
 typedef struct mbedtls_chachapoly_context {
@@ -54,10 +52,6 @@ typedef struct mbedtls_chachapoly_context {
     mbedtls_chachapoly_mode_t MBEDTLS_PRIVATE(mode);         /**< Cipher mode (encrypt or decrypt). */
 }
 mbedtls_chachapoly_context;
-
-#else /* !MBEDTLS_CHACHAPOLY_ALT */
-#include "chachapoly_alt.h"
-#endif /* !MBEDTLS_CHACHAPOLY_ALT */
 
 /**
  * \brief           This function initializes the specified ChaCha20-Poly1305 context.

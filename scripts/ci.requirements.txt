@@ -19,6 +19,6 @@ mypy >= 0.780
 # to run audit-validity-dates.py on Python >=3.6.
 cryptography # >= 35.0.0
 
-# For building `tests/data_files/server9-bad-saltlen.crt` and check python
+# For building `framework/data_files/server9-bad-saltlen.crt` and check python
 # files.
 asn1crypto

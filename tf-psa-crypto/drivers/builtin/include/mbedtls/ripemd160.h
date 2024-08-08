@@ -20,10 +20,6 @@
 extern "C" {
 #endif
 
-#if !defined(MBEDTLS_RIPEMD160_ALT)
-// Regular implementation
-//
-
 /**
  * \brief          RIPEMD-160 context structure
  */
@@ -33,10 +29,6 @@ typedef struct mbedtls_ripemd160_context {
     unsigned char MBEDTLS_PRIVATE(buffer)[64];   /*!< data block being processed */
 }
 mbedtls_ripemd160_context;
-
-#else  /* MBEDTLS_RIPEMD160_ALT */
-#include "ripemd160_alt.h"
-#endif /* MBEDTLS_RIPEMD160_ALT */
 
 /**
  * \brief          Initialize RIPEMD-160 context

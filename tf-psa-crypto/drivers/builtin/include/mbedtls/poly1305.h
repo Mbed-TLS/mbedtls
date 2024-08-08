@@ -33,8 +33,6 @@
 extern "C" {
 #endif
 
-#if !defined(MBEDTLS_POLY1305_ALT)
-
 typedef struct mbedtls_poly1305_context {
     uint32_t MBEDTLS_PRIVATE(r)[4];      /** The value for 'r' (low 128 bits of the key). */
     uint32_t MBEDTLS_PRIVATE(s)[4];      /** The value for 's' (high 128 bits of the key). */
@@ -43,10 +41,6 @@ typedef struct mbedtls_poly1305_context {
     size_t MBEDTLS_PRIVATE(queue_len);   /** The number of bytes stored in 'queue'. */
 }
 mbedtls_poly1305_context;
-
-#else  /* MBEDTLS_POLY1305_ALT */
-#include "poly1305_alt.h"
-#endif /* MBEDTLS_POLY1305_ALT */
 
 /**
  * \brief           This function initializes the specified Poly1305 context.

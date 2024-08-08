@@ -22,6 +22,10 @@ cmake_minimum_required(VERSION 3.5.1)
 
 include(CMakePackageConfigHelpers)
 
+# Include convenience functions for printing properties and variables, like
+# cmake_print_properties(), cmake_print_variables().
+include(CMakePrintHelpers)
+
 # https://cmake.org/cmake/help/latest/policy/CMP0011.html
 # Setting this policy is required in CMake >= 3.18.0, otherwise a warning is generated. The OLD
 # policy setting is deprecated, and will be removed in future versions.
@@ -277,6 +281,15 @@ if(MBEDTLS_FATAL_WARNINGS)
     endif(CMAKE_COMPILER_IS_IAR)
 endif(MBEDTLS_FATAL_WARNINGS)
 
+if(CMAKE_BUILD_TYPE STREQUAL "Check" AND TEST_CPP)
+    set(CMAKE_CXX_STANDARD 11)
+    set(CMAKE_CXX_STANDARD_REQUIRED ON)
+    set(CMAKE_CXX_EXTENSIONS OFF)
+    if(CMAKE_COMPILER_IS_CLANG OR CMAKE_COMPILER_IS_GNU)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pedantic")
+    endif()
+endif()
+
 if(CMAKE_BUILD_TYPE STREQUAL "Coverage")
     if(CMAKE_COMPILER_IS_GNU OR CMAKE_COMPILER_IS_CLANG)
         set(CMAKE_SHARED_LINKER_FLAGS "--coverage")
@@ -294,11 +307,9 @@ add_subdirectory(framework)
 
 add_subdirectory(include)
 
-add_subdirectory(3rdparty)
+add_subdirectory(tf-psa-crypto)
 
 add_subdirectory(library)
-
-add_subdirectory(tf-psa-crypto)
 
 add_subdirectory(pkgconfig)
 
@@ -357,7 +368,9 @@ if(ENABLE_TESTING OR ENABLE_PROGRAMS)
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tf-psa-crypto/include
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tf-psa-crypto/drivers/builtin/include
-        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/library)
+        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/library
+        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tf-psa-crypto/core
+        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tf-psa-crypto/drivers/builtin/src)
     # Request C11, needed for memory poisoning tests
     set_target_properties(mbedtls_test PROPERTIES C_STANDARD 11)
 
@@ -370,7 +383,9 @@ if(ENABLE_TESTING OR ENABLE_PROGRAMS)
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tf-psa-crypto/include
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tf-psa-crypto/drivers/builtin/include
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/library
-        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/everest/include)
+        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tf-psa-crypto/core
+        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tf-psa-crypto/drivers/builtin/src
+        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tf-psa-crypto/drivers/everest/include)
 
     # Pass-through MBEDTLS_CONFIG_FILE and MBEDTLS_USER_CONFIG_FILE
     if(MBEDTLS_CONFIG_FILE)
@@ -399,6 +414,7 @@ if(ENABLE_TESTING)
     enable_testing()
 
     add_subdirectory(tests)
+    add_subdirectory(tf-psa-crypto/tests)
 
     # additional convenience targets for Unix only
     if(UNIX)

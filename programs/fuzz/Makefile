@@ -9,9 +9,7 @@ ifdef FUZZINGENGINE
 LOCAL_LDFLAGS += -lFuzzingEngine
 endif
 
-# A test application is built for each suites/test_suite_*.data file.
-# Application name is same as .data file's base name and can be
-# constructed by stripping path 'suites/' and extension .data.
+# A test application is built for each fuzz_*.c file.
 APPS = $(basename $(wildcard fuzz_*.c))
 
 # Construct executable name by adding OS specific suffix $(EXEXT).

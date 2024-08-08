@@ -69,10 +69,6 @@
 extern "C" {
 #endif
 
-#if !defined(MBEDTLS_RSA_ALT)
-// Regular implementation
-//
-
 #if !defined(MBEDTLS_RSA_GEN_KEY_MIN_BITS)
 #define MBEDTLS_RSA_GEN_KEY_MIN_BITS 1024
 #elif MBEDTLS_RSA_GEN_KEY_MIN_BITS < 128
@@ -121,10 +117,6 @@ typedef struct mbedtls_rsa_context {
 #endif
 }
 mbedtls_rsa_context;
-
-#else  /* MBEDTLS_RSA_ALT */
-#include "rsa_alt.h"
-#endif /* MBEDTLS_RSA_ALT */
 
 /**
  * \brief          This function initializes an RSA context.

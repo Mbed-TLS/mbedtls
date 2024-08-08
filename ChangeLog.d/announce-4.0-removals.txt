@@ -2,10 +2,10 @@ New deprecations
    * The following cryptographic mechanisms are planned to be removed
      in Mbed TLS 4.0:
      - DES (including 3DES).
-     - PKCS#1v1.5 encryption (RSA-PKCS1-v1_5). (OAEP, PSS, and PKCS#1v1.5
-       signature are staying.)
-     - Finite-field Diffie-Hellman with custom groups. (RFC 7919 remain
-       supported.)
+     - PKCS#1v1.5 encryption/decryption (RSAES-PKCS1-v1_5).
+       (OAEP, PSS, and PKCS#1v1.5 signature are staying.)
+     - Finite-field Diffie-Hellman with custom groups.
+       (RFC 7919 groups remain supported.)
      - Elliptic curves of size 225 bits or less.
    * The following mechanisms are planned to be removed from (D)TLS 1.2
      in Mbed TLS 4.0:

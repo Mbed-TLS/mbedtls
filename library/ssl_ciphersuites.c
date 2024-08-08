@@ -1446,7 +1446,7 @@ static const mbedtls_ssl_ciphersuite_t ciphersuite_definitions[] =
 #endif /* MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED */
 #endif /* MBEDTLS_CIPHER_NULL_CIPHER */
 
-#if defined(MBEDTLS_SSL_HAVE_ARIA)
+#if defined(PSA_WANT_KEY_TYPE_ARIA)
 
 #if defined(MBEDTLS_KEY_EXCHANGE_RSA_ENABLED)
 
@@ -1784,7 +1784,7 @@ static const mbedtls_ssl_ciphersuite_t ciphersuite_definitions[] =
 
 #endif /* MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED */
 
-#endif /* MBEDTLS_SSL_HAVE_ARIA */
+#endif /* PSA_WANT_KEY_TYPE_ARIA */
 
 
     { 0, "",

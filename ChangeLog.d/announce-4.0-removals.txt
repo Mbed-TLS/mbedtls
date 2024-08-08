@@ -16,11 +16,10 @@ New deprecations
      - All cipher suites using CBC.
    * The following low-level interfaces are planned to be removed from the
      public API in Mbed TLS 4.0:
-     - Hashes: md5.h, ripemd160.h, sha1.h, sha3.h, sha256.h, sha512.h;
-     - Pseudorandom generation: ctr_drbg.h, hmac_drbg.h.
-     - Cipher primitives: aes.h, aria.h, camellia.h, chacha20.h,
-       chachapoly.h, poly1305.h;
-     - Cipher modes: ccm.h, cipher.h, cmac.h, gcm.h, hkdf.h;
+     - Hashes: hkdf.h, md5.h, ripemd160.h, sha1.h, sha3.h, sha256.h, sha512.h;
+     - Pseudorandom generation: ctr_drbg.h, hmac_drbg.h;
+     - Ciphers and modes: aes.h, aria.h, camellia.h, chacha20.h, chachapoly.h,
+       cipher.h, cmac.h, gcm.h, poly1305.h;
      - Private key encryption mechanisms: pkcs5.h, pkcs12.h.
      - Asymmetric cryptography: bignum.h, dhm.h, ecdh.h, ecdsa.h, ecjpake.h,
        ecp.h, rsa.h.

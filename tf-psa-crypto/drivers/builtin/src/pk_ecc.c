@@ -12,7 +12,7 @@
 #include "mbedtls/ecp.h"
 #include "pk_internal.h"
 
-#if defined(MBEDTLS_PK_C) && defined(MBEDTLS_PK_HAVE_ECC_KEYS)
+#if defined(MBEDTLS_PK_C) && defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
 
 int mbedtls_pk_ecc_set_group(mbedtls_pk_context *pk, mbedtls_ecp_group_id grp_id)
 {
@@ -252,4 +252,4 @@ int mbedtls_pk_ecc_set_pubkey(mbedtls_pk_context *pk, const unsigned char *pub, 
 #endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
 }
 
-#endif /* MBEDTLS_PK_C && MBEDTLS_PK_HAVE_ECC_KEYS */
+#endif /* MBEDTLS_PK_C && PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY */

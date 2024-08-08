@@ -108,7 +108,7 @@ int mbedtls_poly1305_update(mbedtls_poly1305_context *ctx,
                             size_t ilen);
 
 /**
- * \brief           This function generates the Poly1305 Message
+ * \brief           This function generates the Poly1305 one-time Message
  *                  Authentication Code (MAC).
  *
  * \warning         To verify a MAC, call this function, then use
@@ -128,8 +128,8 @@ int mbedtls_poly1305_finish(mbedtls_poly1305_context *ctx,
                             unsigned char mac[16]);
 
 /**
- * \brief           This function calculates the Poly1305 MAC of the input
- *                  buffer with the provided key.
+ * \brief           This function calculates the Poly1305 one-time MAC
+ *                  of the input buffer with the provided key.
  *
  * \warning         The key must be unique and unpredictable for each
  *                  invocation of Poly1305.

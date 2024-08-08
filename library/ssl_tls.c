@@ -132,7 +132,7 @@ int mbedtls_ssl_set_cid(mbedtls_ssl_context *ssl,
 
 int mbedtls_ssl_get_own_cid(mbedtls_ssl_context *ssl,
                             int *enabled,
-                            unsigned char own_cid[MBEDTLS_SSL_CID_OUT_LEN_MAX],
+                            unsigned char own_cid[MBEDTLS_SSL_CID_IN_LEN_MAX],
                             size_t *own_cid_len)
 {
     *enabled = MBEDTLS_SSL_CID_DISABLED;
@@ -2243,6 +2243,7 @@ static void ssl_remove_psk(mbedtls_ssl_context *ssl)
         mbedtls_zeroize_and_free(ssl->handshake->psk,
                                  ssl->handshake->psk_len);
         ssl->handshake->psk_len = 0;
+        ssl->handshake->psk = NULL;
     }
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 }
@@ -6039,6 +6040,10 @@ int mbedtls_ssl_config_defaults(mbedtls_ssl_config *conf,
  */
 void mbedtls_ssl_config_free(mbedtls_ssl_config *conf)
 {
+    if (conf == NULL) {
+        return;
+    }
+
 #if defined(MBEDTLS_DHM_C)
     mbedtls_mpi_free(&conf->dhm_P);
     mbedtls_mpi_free(&conf->dhm_G);

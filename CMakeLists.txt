@@ -22,6 +22,10 @@ cmake_minimum_required(VERSION 3.5.1)
 
 include(CMakePackageConfigHelpers)
 
+# Include convenience functions for printing properties and variables, like
+# cmake_print_properties(), cmake_print_variables().
+include(CMakePrintHelpers)
+
 # https://cmake.org/cmake/help/latest/policy/CMP0011.html
 # Setting this policy is required in CMake >= 3.18.0, otherwise a warning is generated. The OLD
 # policy setting is deprecated, and will be removed in future versions.
@@ -73,10 +77,16 @@ endif()
 
 option(DISABLE_PACKAGE_CONFIG_AND_INSTALL "Disable package configuration, target export and installation" ${MBEDTLS_AS_SUBPROJECT})
 
-string(REGEX MATCH "Clang" CMAKE_COMPILER_IS_CLANG "${CMAKE_C_COMPILER_ID}")
-string(REGEX MATCH "GNU" CMAKE_COMPILER_IS_GNU "${CMAKE_C_COMPILER_ID}")
-string(REGEX MATCH "IAR" CMAKE_COMPILER_IS_IAR "${CMAKE_C_COMPILER_ID}")
-string(REGEX MATCH "MSVC" CMAKE_COMPILER_IS_MSVC "${CMAKE_C_COMPILER_ID}")
+if (CMAKE_C_SIMULATE_ID)
+    set(COMPILER_ID ${CMAKE_C_SIMULATE_ID})
+else()
+    set(COMPILER_ID ${CMAKE_C_COMPILER_ID})
+endif(CMAKE_C_SIMULATE_ID)
+
+string(REGEX MATCH "Clang" CMAKE_COMPILER_IS_CLANG "${COMPILER_ID}")
+string(REGEX MATCH "GNU" CMAKE_COMPILER_IS_GNU "${COMPILER_ID}")
+string(REGEX MATCH "IAR" CMAKE_COMPILER_IS_IAR "${COMPILER_ID}")
+string(REGEX MATCH "MSVC" CMAKE_COMPILER_IS_MSVC "${COMPILER_ID}")
 
 # the test suites currently have compile errors with MSVC
 if(CMAKE_COMPILER_IS_MSVC)
@@ -184,8 +194,6 @@ function(get_name_without_last_ext dest_var full_name)
     set(${dest_var} ${no_ext_name} PARENT_SCOPE)
 endfunction(get_name_without_last_ext)
 
-string(REGEX MATCH "Clang" CMAKE_COMPILER_IS_CLANG "${CMAKE_C_COMPILER_ID}")
-
 include(CheckCCompilerFlag)
 
 set(CMAKE_C_EXTENSIONS OFF)
@@ -273,6 +281,15 @@ if(MBEDTLS_FATAL_WARNINGS)
     endif(CMAKE_COMPILER_IS_IAR)
 endif(MBEDTLS_FATAL_WARNINGS)
 
+if(CMAKE_BUILD_TYPE STREQUAL "Check" AND TEST_CPP)
+    set(CMAKE_CXX_STANDARD 11)
+    set(CMAKE_CXX_STANDARD_REQUIRED ON)
+    set(CMAKE_CXX_EXTENSIONS OFF)
+    if(CMAKE_COMPILER_IS_CLANG OR CMAKE_COMPILER_IS_GNU)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pedantic")
+    endif()
+endif()
+
 if(CMAKE_BUILD_TYPE STREQUAL "Coverage")
     if(CMAKE_COMPILER_IS_GNU OR CMAKE_COMPILER_IS_CLANG)
         set(CMAKE_SHARED_LINKER_FLAGS "--coverage")
@@ -315,6 +332,37 @@ if(ENABLE_TESTING OR ENABLE_PROGRAMS)
          ${CMAKE_CURRENT_SOURCE_DIR}/tests/src/*.c
          ${CMAKE_CURRENT_SOURCE_DIR}/tests/src/drivers/*.c)
     add_library(mbedtls_test OBJECT ${MBEDTLS_TEST_FILES})
+    if(GEN_FILES)
+        add_custom_command(
+            OUTPUT
+                ${CMAKE_CURRENT_SOURCE_DIR}/tests/src/test_keys.h
+            WORKING_DIRECTORY
+                ${CMAKE_CURRENT_SOURCE_DIR}/tests
+            COMMAND
+                "${MBEDTLS_PYTHON_EXECUTABLE}"
+                "${CMAKE_CURRENT_SOURCE_DIR}/framework/scripts/generate_test_keys.py"
+                "--output"
+                "${CMAKE_CURRENT_SOURCE_DIR}/tests/src/test_keys.h"
+            DEPENDS
+                ${CMAKE_CURRENT_SOURCE_DIR}/framework/scripts/generate_test_keys.py
+        )
+        add_custom_target(test_keys_header DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/tests/src/test_keys.h)
+        add_custom_command(
+            OUTPUT
+                ${CMAKE_CURRENT_SOURCE_DIR}/tests/src/test_certs.h
+            WORKING_DIRECTORY
+                ${CMAKE_CURRENT_SOURCE_DIR}/tests
+            COMMAND
+                "${MBEDTLS_PYTHON_EXECUTABLE}"
+                "${CMAKE_CURRENT_SOURCE_DIR}/framework/scripts/generate_test_cert_macros.py"
+                "--output"
+                "${CMAKE_CURRENT_SOURCE_DIR}/tests/src/test_certs.h"
+            DEPENDS
+                ${CMAKE_CURRENT_SOURCE_DIR}/framework/scripts/generate_test_cert_macros.py
+        )
+        add_custom_target(test_certs_header DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/tests/src/test_certs.h)
+        add_dependencies(mbedtls_test test_keys_header test_certs_header)
+    endif()
     target_include_directories(mbedtls_test
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tests/include
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include

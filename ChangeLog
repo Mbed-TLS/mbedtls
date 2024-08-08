@@ -144,6 +144,7 @@ Security
    * Fix a stack buffer overread (less than 256 bytes) when parsing a TLS 1.3
      ClientHello in a TLS 1.3 server supporting some PSK key exchange mode. A
      malicious client could cause information disclosure or a denial of service.
+     Fixes CVE-2024-30166.
    * Passing buffers that are stored in untrusted memory as arguments
      to PSA functions is now secure by default.
      The PSA core now protects against modification of inputs or exposure

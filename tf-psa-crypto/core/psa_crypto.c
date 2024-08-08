@@ -7700,6 +7700,59 @@ exit:
     return (status == PSA_SUCCESS) ? unlock_status : status;
 }
 
+psa_status_t psa_key_agreement(mbedtls_svc_key_id_t private_key,
+                               const uint8_t *peer_key,
+                               size_t peer_key_length,
+                               psa_algorithm_t alg,
+                               const psa_key_attributes_t *attributes,
+                               mbedtls_svc_key_id_t *key)
+{
+    psa_status_t status;
+    uint8_t shared_secret[PSA_RAW_KEY_AGREEMENT_OUTPUT_MAX_SIZE];
+    size_t shared_secret_len;
+    psa_key_type_t key_type;
+    size_t key_size = PSA_RAW_KEY_AGREEMENT_OUTPUT_MAX_SIZE;
+    psa_algorithm_t key_alg;
+
+#if !defined(MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER)
+    *key = PSA_KEY_ID_NULL;
+#else
+    key->key_id = PSA_KEY_ID_NULL;
+#endif
+
+    key_type = psa_get_key_type(attributes);
+    if (key_type != PSA_KEY_TYPE_DERIVE && key_type != PSA_KEY_TYPE_RAW_DATA
+        && key_type != PSA_KEY_TYPE_HMAC && key_type != PSA_KEY_TYPE_PASSWORD) {
+        return PSA_ERROR_INVALID_ARGUMENT;
+    }
+
+    key_alg = psa_get_key_algorithm(attributes);
+    if (key_alg != PSA_ALG_ECDH && key_alg != PSA_ALG_FFDH) {
+        return PSA_ERROR_INVALID_ARGUMENT;
+    }
+
+    if (psa_get_key_bits(attributes) != 0) {
+        key_size = PSA_BITS_TO_BYTES(psa_get_key_bits(attributes));
+    }
+
+    status = psa_raw_key_agreement(alg, private_key, peer_key, peer_key_length, shared_secret,
+                                   key_size, &shared_secret_len);
+
+    if (status == PSA_SUCCESS) {
+
+        psa_key_attributes_t shared_secret_attributes = PSA_KEY_ATTRIBUTES_INIT;
+        psa_set_key_type(&shared_secret_attributes, key_type);
+        psa_set_key_usage_flags(&shared_secret_attributes, psa_get_key_usage_flags(attributes));
+        psa_set_key_algorithm(&shared_secret_attributes, key_alg);
+        psa_set_key_lifetime(&shared_secret_attributes, psa_get_key_lifetime(attributes));
+        psa_set_key_bits(&shared_secret_attributes, shared_secret_len * 8);
+
+        status = psa_import_key(&shared_secret_attributes, shared_secret,
+                                shared_secret_len, key);
+    }
+
+    return status;
+}
 
 /****************************************************************/
 /* Random generation */

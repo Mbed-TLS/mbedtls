@@ -458,6 +458,16 @@ psa_status_t mbedtls_test_wrap_psa_import_key(
 #define psa_import_key(arg0_attributes, arg1_data, arg2_data_length, arg3_key) \
     mbedtls_test_wrap_psa_import_key(arg0_attributes, arg1_data, arg2_data_length, arg3_key)
 
+psa_status_t mbedtls_test_wrap_psa_key_agreement(
+    mbedtls_svc_key_id_t arg0_private_key,
+    const uint8_t *arg1_peer_key,
+    size_t arg2_peer_key_length,
+    psa_algorithm_t arg3_alg,
+    const psa_key_attributes_t *arg4_attributes,
+    mbedtls_svc_key_id_t *arg5_key);
+#define psa_key_agreement(arg0_private_key, arg1_peer_key, arg2_peer_key_length, arg3_alg, arg4_attributes, arg5_key) \
+    mbedtls_test_wrap_psa_key_agreement(arg0_private_key, arg1_peer_key, arg2_peer_key_length, arg3_alg, arg4_attributes, arg5_key)
+
 psa_status_t mbedtls_test_wrap_psa_key_agreement_iop_abort(
     psa_key_agreement_iop_t *arg0_operation);
 #define psa_key_agreement_iop_abort(arg0_operation) \

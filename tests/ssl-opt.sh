@@ -7736,7 +7736,7 @@ run_test    "keyUsage cli 1.2: KeyEncipherment, DHE-RSA: fail" \
             -c "Processing of the Certificate handshake message failed" \
             -C "Ciphersuite is TLS-" \
             -c "send alert level=2 message=43" \
-            -C "! Usage does not match the keyUsage extension"
+            -c "! Usage does not match the keyUsage extension"
             # MBEDTLS_X509_BADCERT_KEY_USAGE -> MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT
 
 run_test    "keyUsage cli 1.2: KeyEncipherment, DHE-RSA: fail, soft" \
@@ -7771,7 +7771,7 @@ run_test    "keyUsage cli 1.2: DigitalSignature, RSA: fail" \
             -c "Processing of the Certificate handshake message failed" \
             -C "Ciphersuite is TLS-" \
             -c "send alert level=2 message=43" \
-            -C "! Usage does not match the keyUsage extension"
+            -c "! Usage does not match the keyUsage extension"
             # MBEDTLS_X509_BADCERT_KEY_USAGE -> MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT
 
 run_test    "keyUsage cli 1.2: DigitalSignature, RSA: fail, soft" \
@@ -7822,7 +7822,7 @@ run_test    "keyUsage cli 1.3: KeyEncipherment, RSA: fail" \
             -c "Processing of the Certificate handshake message failed" \
             -C "Ciphersuite is" \
             -c "send alert level=2 message=43" \
-            -C "! Usage does not match the keyUsage extension"
+            -c "! Usage does not match the keyUsage extension"
             # MBEDTLS_X509_BADCERT_KEY_USAGE -> MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT
 
 requires_openssl_tls1_3_with_compatible_ephemeral
@@ -7837,7 +7837,7 @@ run_test    "keyUsage cli 1.3: KeyAgreement, RSA: fail" \
             -c "Processing of the Certificate handshake message failed" \
             -C "Ciphersuite is" \
             -c "send alert level=2 message=43" \
-            -C "! Usage does not match the keyUsage extension"
+            -c "! Usage does not match the keyUsage extension"
             # MBEDTLS_X509_BADCERT_KEY_USAGE -> MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT
 
 requires_openssl_tls1_3_with_compatible_ephemeral
@@ -7864,7 +7864,7 @@ run_test    "keyUsage cli 1.3: KeyEncipherment, ECDSA: fail" \
             -c "Processing of the Certificate handshake message failed" \
             -C "Ciphersuite is" \
             -c "send alert level=2 message=43" \
-            -C "! Usage does not match the keyUsage extension"
+            -c "! Usage does not match the keyUsage extension"
             # MBEDTLS_X509_BADCERT_KEY_USAGE -> MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT
 
 requires_openssl_tls1_3_with_compatible_ephemeral
@@ -7879,7 +7879,7 @@ run_test    "keyUsage cli 1.3: KeyAgreement, ECDSA: fail" \
             -c "Processing of the Certificate handshake message failed" \
             -C "Ciphersuite is" \
             -c "send alert level=2 message=43" \
-            -C "! Usage does not match the keyUsage extension"
+            -c "! Usage does not match the keyUsage extension"
             # MBEDTLS_X509_BADCERT_KEY_USAGE -> MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT
 
 # Tests for keyUsage in leaf certificates, part 3:
@@ -7916,6 +7916,7 @@ run_test    "keyUsage cli-auth 1.2: RSA, KeyEncipherment: fail (hard)" \
             1 \
             -s "bad certificate (usage extensions)" \
             -s "send alert level=2 message=43" \
+            -s "! Usage does not match the keyUsage extension" \
             -s "Processing of the Certificate handshake message failed"
             # MBEDTLS_X509_BADCERT_KEY_USAGE -> MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT
 
@@ -7948,6 +7949,7 @@ run_test    "keyUsage cli-auth 1.2: ECDSA, KeyAgreement: fail (hard)" \
             1 \
             -s "bad certificate (usage extensions)" \
             -s "send alert level=2 message=43" \
+            -s "! Usage does not match the keyUsage extension" \
             -s "Processing of the Certificate handshake message failed"
             # MBEDTLS_X509_BADCERT_KEY_USAGE -> MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT
 
@@ -7999,6 +8001,7 @@ run_test    "keyUsage cli-auth 1.3: RSA, KeyEncipherment: fail (hard)" \
             -s "bad certificate (usage extensions)" \
             -s "Processing of the Certificate handshake message failed" \
             -s "send alert level=2 message=43" \
+            -s "! Usage does not match the keyUsage extension" \
             -s "! mbedtls_ssl_handshake returned"
             # MBEDTLS_X509_BADCERT_KEY_USAGE -> MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT
             #
@@ -8040,6 +8043,7 @@ run_test    "keyUsage cli-auth 1.3: ECDSA, KeyAgreement: fail (hard)" \
             -s "bad certificate (usage extensions)" \
             -s "Processing of the Certificate handshake message failed" \
             -s "send alert level=2 message=43" \
+            -s "! Usage does not match the keyUsage extension" \
             -s "! mbedtls_ssl_handshake returned"
             # MBEDTLS_X509_BADCERT_KEY_USAGE -> MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT
             #

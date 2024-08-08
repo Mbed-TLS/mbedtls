@@ -474,6 +474,11 @@ int mbedtls_ccm_update(mbedtls_ccm_context *ctx,
  *                  It wraps up the CCM stream, and generates the
  *                  tag. The tag can have a maximum length of 16 Bytes.
  *
+ * \warning         To verify the tag, call this function, then use
+ *                  mbedtls_ct_memcmp() to compare the actual tag
+ *                  with the expected tag. Do not use memcmp():
+ *                  that would be vulnerable to timing attacks.
+ *
  * \note            This function is not implemented in Mbed TLS yet.
  *
  * \param ctx       The CCM context. This must have been started with

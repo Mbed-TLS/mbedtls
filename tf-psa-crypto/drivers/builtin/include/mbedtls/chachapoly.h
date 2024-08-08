@@ -237,6 +237,10 @@ int mbedtls_chachapoly_update(mbedtls_chachapoly_context *ctx,
  *
  * \warning         Decryption with the piecewise API is discouraged, see the
  *                  warning on \c mbedtls_chachapoly_init().
+ *                  If you use this API for decryption, you must call
+ *                  mbedtls_ct_memcmp() to compare \p mac with the
+ *                  expected tag. (Do not use memcmp():
+ *                  that would be vulnerable to timing attacks.)
  *
  * \return          \c 0 on success.
  * \return          #MBEDTLS_ERR_CHACHAPOLY_BAD_STATE

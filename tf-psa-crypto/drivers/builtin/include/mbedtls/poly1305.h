@@ -111,6 +111,11 @@ int mbedtls_poly1305_update(mbedtls_poly1305_context *ctx,
  * \brief           This function generates the Poly1305 Message
  *                  Authentication Code (MAC).
  *
+ * \warning         To verify a MAC, call this function, then use
+ *                  mbedtls_ct_memcmp() to compare the actual MAC
+ *                  with the expected MAC. Do not use memcmp():
+ *                  that would be vulnerable to timing attacks.
+ *
  * \param ctx       The Poly1305 context to use for the Poly1305 operation.
  *                  This must be initialized and bound to a key.
  * \param mac       The buffer to where the MAC is written. This must
@@ -128,6 +133,11 @@ int mbedtls_poly1305_finish(mbedtls_poly1305_context *ctx,
  *
  * \warning         The key must be unique and unpredictable for each
  *                  invocation of Poly1305.
+ *
+ * \warning         To verify a MAC, call this function, then use
+ *                  mbedtls_ct_memcmp() to compare the actual MAC
+ *                  with the expected MAC. Do not use memcmp():
+ *                  that would be vulnerable to timing attacks.
  *
  * \param key       The buffer containing the \c 32 Byte (\c 256 Bit) key.
  * \param ilen      The length of the input data in Bytes.

@@ -723,7 +723,11 @@ usage:
     mbedtls_printf("  > Write MAIL FROM to server:");
     fflush(stdout);
 
-    len = sprintf((char *) buf, "MAIL FROM:<%s>\r\n", opt.mail_from);
+    len = mbedtls_snprintf((char *) buf, sizeof(buf), "MAIL FROM:<%s>\r\n", opt.mail_from);
+    if (len < 0 || (size_t) len >= sizeof(buf)) {
+        mbedtls_printf(" failed\n  ! mbedtls_snprintf encountered error or truncated output\n\n");
+        goto exit;
+    }
     ret = write_ssl_and_get_response(&ssl, buf, len);
     if (ret < 200 || ret > 299) {
         mbedtls_printf(" failed\n  ! server responded with %d\n\n", ret);
@@ -735,7 +739,11 @@ usage:
     mbedtls_printf("  > Write RCPT TO to server:");
     fflush(stdout);
 
-    len = sprintf((char *) buf, "RCPT TO:<%s>\r\n", opt.mail_to);
+    len = mbedtls_snprintf((char *) buf, sizeof(buf), "RCPT TO:<%s>\r\n", opt.mail_to);
+    if (len < 0 || (size_t) len >= sizeof(buf)) {
+        mbedtls_printf(" failed\n  ! mbedtls_snprintf encountered error or truncated output\n\n");
+        goto exit;
+    }
     ret = write_ssl_and_get_response(&ssl, buf, len);
     if (ret < 200 || ret > 299) {
         mbedtls_printf(" failed\n  ! server responded with %d\n\n", ret);
@@ -759,11 +767,16 @@ usage:
     mbedtls_printf("  > Write content to server:");
     fflush(stdout);
 
-    len = sprintf((char *) buf, "From: %s\r\nSubject: Mbed TLS Test mail\r\n\r\n"
-                                "This is a simple test mail from the "
-                                "Mbed TLS mail client example.\r\n"
-                                "\r\n"
-                                "Enjoy!", opt.mail_from);
+    len = mbedtls_snprintf((char *) buf, sizeof(buf),
+                           "From: %s\r\nSubject: Mbed TLS Test mail\r\n\r\n"
+                           "This is a simple test mail from the "
+                           "Mbed TLS mail client example.\r\n"
+                           "\r\n"
+                           "Enjoy!", opt.mail_from);
+    if (len < 0 || (size_t) len >= sizeof(buf)) {
+        mbedtls_printf(" failed\n  ! mbedtls_snprintf encountered error or truncated output\n\n");
+        goto exit;
+    }
     ret = write_ssl_data(&ssl, buf, len);
 
     len = sprintf((char *) buf, "\r\n.\r\n");

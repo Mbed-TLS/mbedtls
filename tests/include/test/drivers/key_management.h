@@ -30,6 +30,10 @@ typedef struct {
     /* Count the amount of times one of the key management driver functions
      * is called. */
     unsigned long hits;
+    /* Subset of hits which only counts public key export operations */
+    unsigned long hits_export_public_key;
+    /* Subset of hits which only counts key generation operations */
+    unsigned long hits_generate_key;
     /* Location of the last key management driver called to import a key. */
     psa_key_location_t location;
 } mbedtls_test_driver_key_management_hooks_t;
@@ -38,7 +42,7 @@ typedef struct {
  * sense that no PSA specification will assign a meaning to this location
  * (stated first in version 1.0.1 of the specification) and that it is not
  * used as a location of an opaque test drivers. */
-#define MBEDTLS_TEST_DRIVER_KEY_MANAGEMENT_INIT { NULL, 0, PSA_SUCCESS, 0, 0x800000 }
+#define MBEDTLS_TEST_DRIVER_KEY_MANAGEMENT_INIT { NULL, 0, PSA_SUCCESS, 0, 0, 0, 0x800000 }
 static inline mbedtls_test_driver_key_management_hooks_t
 mbedtls_test_driver_key_management_hooks_init(void)
 {

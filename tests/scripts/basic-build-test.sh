@@ -104,17 +104,20 @@ echo
 # Step 2c - Compatibility tests (keep going even if some tests fail)
 echo '################ compat.sh ################'
 {
-    echo '#### compat.sh: Default ciphers'
-    sh compat.sh -m 'ssl3 tls1 tls1_1 tls12 dtls1 dtls12'
+    echo '#### compat.sh: all except legacy/next'
+    sh compat.sh -e '^DES-CBC-\|-DES-CBC-\|ARIA\|CHACHA' \
+        -m 'ssl3 tls1 tls1_1 tls12 dtls1 dtls12'
     echo
 
-    echo '#### compat.sh: legacy (null, DES, RC4)'
-    OPENSSL="$OPENSSL_LEGACY" \
-    sh compat.sh -e '^$' -f 'NULL\|DES\|RC4\|ARCFOUR'
+    echo '#### compat.sh: legacy (single-DES)'
+    OPENSSL="$OPENSSL_LEGACY" sh compat.sh -e '^$' -f '^DES-CBC\|-DES-CBC-' \
+        -m 'ssl3 tls1 tls1_1 tls12 dtls1 dtls12'
     echo
 
+    # ARIA and ChachaPoly are both (D)TLS 1.2 only
     echo '#### compat.sh: next (ARIA, ChaCha)'
-    OPENSSL="$OPENSSL_NEXT" sh compat.sh -e '^$' -f 'ARIA\|CHACHA'
+    OPENSSL="$OPENSSL_NEXT" sh compat.sh -e '^$' -f 'ARIA\|CHACHA' \
+        -m 'tls12 dtls12'
     echo
 } | tee compat-test-$TEST_OUTPUT
 echo '^^^^^^^^^^^^^^^^ compat.sh ^^^^^^^^^^^^^^^^'

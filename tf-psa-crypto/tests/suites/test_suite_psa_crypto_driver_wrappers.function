@@ -490,6 +490,21 @@ exit:
  */
 
 /* BEGIN_CASE */
+void builtin_key_id_stability()
+{
+    /* If the range of built-in keys is reduced, it's an API break, since
+     * it breaks user code that hard-codes the key id of built-in keys.
+     * It's ok to expand this range, but not to shrink it. That is, you
+     * may make the MIN smaller or the MAX larger at any time, but
+     * making the MIN larger or the MAX smaller can only be done in
+     * a new major version of the library.
+     */
+    TEST_EQUAL(MBEDTLS_PSA_KEY_ID_BUILTIN_MIN, 0x7fff0000);
+    TEST_EQUAL(MBEDTLS_PSA_KEY_ID_BUILTIN_MAX, 0x7fffefff);
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
 void sign_hash(int key_type_arg,
                int alg_arg,
                int force_status_arg,

@@ -129,6 +129,9 @@ static psa_key_attributes_t psa_key_attributes_init(void);
  *
  * \param[out] attributes  The attribute structure to write to.
  * \param key              The persistent identifier for the key.
+ *                         This can be any value in the range from
+ *                         #PSA_KEY_ID_USER_MIN to #PSA_KEY_ID_USER_MAX
+ *                         inclusive.
  */
 static void psa_set_key_id(psa_key_attributes_t *attributes,
                            mbedtls_svc_key_id_t key);

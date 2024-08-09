@@ -148,7 +148,16 @@ generate_key_smoke:PSA_KEY_TYPE_HMAC:256:PSA_ALG_HMAC( PSA_ALG_SHA_256 )
 Key registration: smoke test
 register_key_smoke_test:TEST_SE_PERSISTENT_LIFETIME:7:1:1:PSA_SUCCESS
 
-Key registration: invalid lifetime (volatile internal storage)
+Key registration: invalid lifetime (volatile, in SE, id=0)
+register_key_smoke_test:TEST_SE_VOLATILE_LIFETIME:7:0:0:PSA_ERROR_INVALID_ARGUMENT
+
+Key registration: invalid lifetime (volatile, in SE, id=1)
+register_key_smoke_test:TEST_SE_VOLATILE_LIFETIME:7:1:1:PSA_ERROR_INVALID_ARGUMENT
+
+Key registration: invalid lifetime (volatile, internal, id=0)
+register_key_smoke_test:PSA_KEY_LIFETIME_VOLATILE:7:0:0:PSA_ERROR_INVALID_ARGUMENT
+
+Key registration: invalid lifetime (volatile, internal, id=1)
 register_key_smoke_test:PSA_KEY_LIFETIME_VOLATILE:7:1:1:PSA_ERROR_INVALID_ARGUMENT
 
 Key registration: invalid lifetime (internal storage)
@@ -169,8 +178,8 @@ register_key_smoke_test:TEST_SE_PERSISTENT_LIFETIME:7:PSA_KEY_ID_VENDOR_MAX+1:-1
 Key registration: key id min vendor
 register_key_smoke_test:TEST_SE_PERSISTENT_LIFETIME:7:PSA_KEY_ID_VENDOR_MIN:1:PSA_ERROR_INVALID_ARGUMENT
 
-Key registration: key id max vendor except volatile
-register_key_smoke_test:TEST_SE_PERSISTENT_LIFETIME:7:PSA_KEY_ID_VOLATILE_MIN-1:1:PSA_ERROR_INVALID_ARGUMENT
+Key registration: key id max vendor
+register_key_smoke_test:TEST_SE_PERSISTENT_LIFETIME:7:PSA_KEY_ID_VENDOR_MAX:1:PSA_ERROR_INVALID_ARGUMENT
 
 Key registration: key id min volatile
 register_key_smoke_test:TEST_SE_PERSISTENT_LIFETIME:7:PSA_KEY_ID_VOLATILE_MIN:1:PSA_ERROR_INVALID_ARGUMENT

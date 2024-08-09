@@ -752,7 +752,6 @@ static int ssl_tls13_validate_certificate(mbedtls_ssl_context *ssl)
             MBEDTLS_SSL_PEND_FATAL_ALERT(MBEDTLS_SSL_ALERT_MSG_BAD_CERT, ret);
         } else if (verify_result & (MBEDTLS_X509_BADCERT_KEY_USAGE |
                                     MBEDTLS_X509_BADCERT_EXT_KEY_USAGE |
-                                    MBEDTLS_X509_BADCERT_NS_CERT_TYPE |
                                     MBEDTLS_X509_BADCERT_BAD_PK |
                                     MBEDTLS_X509_BADCERT_BAD_KEY)) {
             MBEDTLS_SSL_PEND_FATAL_ALERT(

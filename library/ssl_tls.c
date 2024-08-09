@@ -8105,8 +8105,6 @@ static int ssl_parse_certificate_verify(mbedtls_ssl_context *ssl,
             alert = MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT;
         } else if (ssl->session_negotiate->verify_result & MBEDTLS_X509_BADCERT_EXT_KEY_USAGE) {
             alert = MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT;
-        } else if (ssl->session_negotiate->verify_result & MBEDTLS_X509_BADCERT_NS_CERT_TYPE) {
-            alert = MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT;
         } else if (ssl->session_negotiate->verify_result & MBEDTLS_X509_BADCERT_BAD_PK) {
             alert = MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT;
         } else if (ssl->session_negotiate->verify_result & MBEDTLS_X509_BADCERT_BAD_KEY) {

@@ -1674,18 +1674,18 @@ static inline mbedtls_x509_crt *mbedtls_ssl_own_cert(mbedtls_ssl_context *ssl)
 }
 
 /*
- * Check usage of a certificate wrt extensions:
- * keyUsage, extendedKeyUsage (later), and nSCertType (later).
+ * Check usage of a certificate wrt usage extensions:
+ * keyUsage and extendedKeyUsage.
+ * (Note: nSCertType is deprecated and not standard, we don't check it.)
  *
- * Warning: cert_endpoint is the endpoint of the cert (ie, of our peer when we
- * check a cert we received from them)!
+ * Note: recv_endpoint is the receiver's endpoint.
  *
  * Return 0 if everything is OK, -1 if not.
  */
 MBEDTLS_CHECK_RETURN_CRITICAL
 int mbedtls_ssl_check_cert_usage(const mbedtls_x509_crt *cert,
                                  const mbedtls_ssl_ciphersuite_t *ciphersuite,
-                                 int cert_endpoint,
+                                 int recv_endpoint,
                                  uint32_t *flags);
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 

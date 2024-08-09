@@ -6362,6 +6362,7 @@ const char *mbedtls_ssl_get_curve_name_from_tls_id(uint16_t tls_id)
 int mbedtls_ssl_check_cert_usage(const mbedtls_x509_crt *cert,
                                  const mbedtls_ssl_ciphersuite_t *ciphersuite,
                                  int recv_endpoint,
+                                 mbedtls_ssl_protocol_version tls_version,
                                  uint32_t *flags)
 {
     int ret = 0;
@@ -6369,11 +6370,17 @@ int mbedtls_ssl_check_cert_usage(const mbedtls_x509_crt *cert,
     const char *ext_oid;
     size_t ext_len;
 
+    /*
+     * keyUsage
+     */
+
     /* Note: don't guard this with MBEDTLS_SSL_CLI_C because the server wants
      * to check what a compliant client will think while choosing which cert
      * to send to the client. */
-    if (recv_endpoint == MBEDTLS_SSL_IS_CLIENT) {
-        /* Server part of the key exchange */
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
+    if (tls_version == MBEDTLS_SSL_VERSION_TLS1_2 &&
+        recv_endpoint == MBEDTLS_SSL_IS_CLIENT) {
+        /* TLS 1.2 server part of the key exchange */
         switch (ciphersuite->key_exchange) {
             case MBEDTLS_KEY_EXCHANGE_RSA:
             case MBEDTLS_KEY_EXCHANGE_RSA_PSK:
@@ -6399,8 +6406,14 @@ int mbedtls_ssl_check_cert_usage(const mbedtls_x509_crt *cert,
             case MBEDTLS_KEY_EXCHANGE_ECJPAKE:
                 usage = 0;
         }
-    } else {
-        /* Client auth: we only implement rsa_sign and mbedtls_ecdsa_sign for now */
+    } else
+#endif
+    {
+        /* This is either TLS 1.3 autentication, which always uses signatures,
+         * or 1.2 client auth: rsa_sign and mbedtls_ecdsa_sign are the only
+         * options we implement, both using signatures. */
+        (void) tls_version;
+        (void) ciphersuite;
         usage = MBEDTLS_X509_KU_DIGITAL_SIGNATURE;
     }
 
@@ -6408,6 +6421,10 @@ int mbedtls_ssl_check_cert_usage(const mbedtls_x509_crt *cert,
         *flags |= MBEDTLS_X509_BADCERT_KEY_USAGE;
         ret = -1;
     }
+
+    /*
+     * extKeyUsage
+     */
 
     if (recv_endpoint == MBEDTLS_SSL_IS_CLIENT) {
         ext_oid = MBEDTLS_OID_SERVER_AUTH;
@@ -8065,6 +8082,7 @@ static int ssl_parse_certificate_verify(mbedtls_ssl_context *ssl,
     if (mbedtls_ssl_check_cert_usage(chain,
                                      ciphersuite_info,
                                      ssl->conf->endpoint,
+                                     MBEDTLS_SSL_VERSION_TLS1_2,
                                      &ssl->session_negotiate->verify_result) != 0) {
         MBEDTLS_SSL_DEBUG_MSG(1, ("bad certificate (usage extensions)"));
         if (ret == 0) {

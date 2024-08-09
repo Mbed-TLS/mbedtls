@@ -656,6 +656,7 @@ int mbedtls_ssl_tls13_export_handshake_psk(mbedtls_ssl_context *ssl,
  * \param[in]   label_len  The length of label.
  * \param[out]  out  The output buffer for the exported key. Must have room for at least out_len bytes.
  * \param[in]   out_len  Length of the key to generate.
+ */
 int mbedtls_ssl_tls13_exporter(psa_algorithm_t hash_alg,
                                const unsigned char *secret, size_t secret_len,
                                const unsigned char *label, size_t label_len,

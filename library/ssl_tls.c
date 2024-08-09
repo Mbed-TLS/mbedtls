@@ -6361,7 +6361,7 @@ const char *mbedtls_ssl_get_curve_name_from_tls_id(uint16_t tls_id)
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
 int mbedtls_ssl_check_cert_usage(const mbedtls_x509_crt *cert,
                                  const mbedtls_ssl_ciphersuite_t *ciphersuite,
-                                 int cert_endpoint,
+                                 int recv_endpoint,
                                  uint32_t *flags)
 {
     int ret = 0;
@@ -6369,7 +6369,10 @@ int mbedtls_ssl_check_cert_usage(const mbedtls_x509_crt *cert,
     const char *ext_oid;
     size_t ext_len;
 
-    if (cert_endpoint == MBEDTLS_SSL_IS_SERVER) {
+    /* Note: don't guard this with MBEDTLS_SSL_CLI_C because the server wants
+     * to check what a compliant client will think while choosing which cert
+     * to send to the client. */
+    if (recv_endpoint == MBEDTLS_SSL_IS_CLIENT) {
         /* Server part of the key exchange */
         switch (ciphersuite->key_exchange) {
             case MBEDTLS_KEY_EXCHANGE_RSA:
@@ -6406,7 +6409,7 @@ int mbedtls_ssl_check_cert_usage(const mbedtls_x509_crt *cert,
         ret = -1;
     }
 
-    if (cert_endpoint == MBEDTLS_SSL_IS_SERVER) {
+    if (recv_endpoint == MBEDTLS_SSL_IS_CLIENT) {
         ext_oid = MBEDTLS_OID_SERVER_AUTH;
         ext_len = MBEDTLS_OID_SIZE(MBEDTLS_OID_SERVER_AUTH);
     } else {
@@ -8061,7 +8064,7 @@ static int ssl_parse_certificate_verify(mbedtls_ssl_context *ssl,
 
     if (mbedtls_ssl_check_cert_usage(chain,
                                      ciphersuite_info,
-                                     !ssl->conf->endpoint,
+                                     ssl->conf->endpoint,
                                      &ssl->session_negotiate->verify_result) != 0) {
         MBEDTLS_SSL_DEBUG_MSG(1, ("bad certificate (usage extensions)"));
         if (ret == 0) {

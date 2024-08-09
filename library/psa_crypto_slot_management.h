@@ -137,13 +137,15 @@ void psa_wipe_all_key_slots(void);
  * If multi-threading is enabled, the caller must hold the
  * global key slot mutex.
  *
- * \param[out] volatile_key_id   If null, reserve a cache slot for
- *                               a persistent or built-in key.
- *                               If non-null, allocate a slot for
- *                               a volatile key.
- *                               If non-null, on success, the volatile key
- *                               identifier corresponding with the
- *                               returned slot.
+ * \param[out] volatile_key_id   - If null, reserve a cache slot for
+ *                                 a persistent or built-in key.
+ *                               - If non-null, allocate a slot for
+ *                                 a volatile key. On success,
+ *                                 \p *volatile_key_id is the
+ *                                 identifier corresponding to the
+ *                                 returned slot. It is the caller's
+ *                                 responsibility to set this key identifier
+ *                                 in the attributes.
  * \param[out] p_slot            On success, a pointer to the slot.
  *
  * \retval #PSA_SUCCESS \emptydescription

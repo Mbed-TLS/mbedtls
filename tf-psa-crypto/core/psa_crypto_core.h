@@ -88,7 +88,15 @@ typedef struct {
     /* The index of the slice containing this slot.
      * This field must be filled if the slot contains a key
      * (including keys being created or destroyed), and can be either
-     * filled or 0 when the slot is free. */
+     * filled or 0 when the slot is free.
+     *
+     * In most cases, the slice index can be deduced from the key identifer.
+     * We keep it in a separate field for robustness (it reduces the chance
+     * that a coding mistake in the key store will result in accessing the
+     * wrong slice), and also so that it's available even on code paths
+     * during creation or destruction where the key identifier might not be
+     * filled in.
+     * */
     uint8_t slice_index;
 #endif /* MBEDTLS_PSA_KEY_STORE_DYNAMIC */
 

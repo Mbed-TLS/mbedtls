@@ -8050,35 +8050,19 @@ static int ssl_parse_certificate_verify(mbedtls_ssl_context *ssl,
      * Secondary checks: always done, but change 'ret' only if it was 0
      */
 
+    /* Check curve for ECC certs */
 #if defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
-    {
-        const mbedtls_pk_context *pk = &chain->pk;
-
-        /* If certificate uses an EC key, make sure the curve is OK.
-         * This is a public key, so it can't be opaque, so can_do() is a good
-         * enough check to ensure pk_ec() is safe to use here. */
-        if (mbedtls_pk_can_do(pk, MBEDTLS_PK_ECKEY)) {
-            /* and in the unlikely case the above assumption no longer holds
-             * we are making sure that pk_ec() here does not return a NULL
-             */
-            mbedtls_ecp_group_id grp_id = mbedtls_pk_get_ec_group_id(pk);
-            if (grp_id == MBEDTLS_ECP_DP_NONE) {
-                MBEDTLS_SSL_DEBUG_MSG(1, ("invalid group ID"));
-                return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
-            }
-            if (mbedtls_ssl_check_curve(ssl, grp_id) != 0) {
-                ssl->session_negotiate->verify_result |=
-                    MBEDTLS_X509_BADCERT_BAD_KEY;
-
-                MBEDTLS_SSL_DEBUG_MSG(1, ("bad certificate (EC key curve)"));
-                if (ret == 0) {
-                    ret = MBEDTLS_ERR_SSL_BAD_CERTIFICATE;
-                }
-            }
+    if (mbedtls_pk_can_do(&chain->pk, MBEDTLS_PK_ECKEY) &&
+        mbedtls_ssl_check_curve(ssl, mbedtls_pk_get_ec_group_id(&chain->pk)) != 0) {
+        MBEDTLS_SSL_DEBUG_MSG(1, ("bad certificate (EC key curve)"));
+        ssl->session_negotiate->verify_result |= MBEDTLS_X509_BADCERT_BAD_KEY;
+        if (ret == 0) {
+            ret = MBEDTLS_ERR_SSL_BAD_CERTIFICATE;
         }
     }
 #endif /* PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY */
 
+    /* Check X.509 usage extensions (keyUsage, extKeyUsage) */
     if (mbedtls_ssl_check_cert_usage(chain,
                                      ciphersuite_info,
                                      ssl->conf->endpoint,

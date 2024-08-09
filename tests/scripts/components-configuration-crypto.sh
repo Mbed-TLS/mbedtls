@@ -2242,8 +2242,7 @@ component_build_aes_variations () {
     msg "build: aes.o for all combinations of relevant config options"
 
     build_test_config_combos ${BUILTIN_SRC_PATH}/aes.o validate_aes_config_variations \
-        "MBEDTLS_AES_SETKEY_ENC_ALT" "MBEDTLS_AES_DECRYPT_ALT" \
-        "MBEDTLS_AES_ROM_TABLES" "MBEDTLS_AES_ENCRYPT_ALT" "MBEDTLS_AES_SETKEY_DEC_ALT" \
+        "MBEDTLS_AES_ROM_TABLES" \
         "MBEDTLS_AES_FEWER_TABLES" "MBEDTLS_AES_USE_HARDWARE_ONLY" \
         "MBEDTLS_AESNI_C" "MBEDTLS_AESCE_C" "MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH"
 
@@ -2259,8 +2258,7 @@ component_build_aes_variations () {
     scripts/config.py unset MBEDTLS_DES_C
     scripts/config.py unset MBEDTLS_NIST_KW_C
     build_test_config_combos ${BUILTIN_SRC_PATH}/aes.o validate_aes_config_variations \
-        "MBEDTLS_AES_SETKEY_ENC_ALT" "MBEDTLS_AES_DECRYPT_ALT" \
-        "MBEDTLS_AES_ROM_TABLES" "MBEDTLS_AES_ENCRYPT_ALT" "MBEDTLS_AES_SETKEY_DEC_ALT" \
+        "MBEDTLS_AES_ROM_TABLES" \
         "MBEDTLS_AES_FEWER_TABLES" "MBEDTLS_AES_USE_HARDWARE_ONLY" \
         "MBEDTLS_AESNI_C" "MBEDTLS_AESCE_C" "MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH"
 }

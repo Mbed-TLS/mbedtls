@@ -26,12 +26,47 @@
 
 #define ARRAY_LENGTH(array) (sizeof(array) / sizeof(*(array)))
 
+
+
+/* Make sure we have distinct ranges of key identifiers for distinct
+ * purposes. */
+MBEDTLS_STATIC_ASSERT(PSA_KEY_ID_USER_MIN < PSA_KEY_ID_USER_MAX,
+                      "Empty user key ID range");
+MBEDTLS_STATIC_ASSERT(PSA_KEY_ID_VENDOR_MIN < PSA_KEY_ID_VENDOR_MAX,
+                      "Empty vendor key ID range");
+MBEDTLS_STATIC_ASSERT(MBEDTLS_PSA_KEY_ID_BUILTIN_MIN < MBEDTLS_PSA_KEY_ID_BUILTIN_MAX,
+                      "Empty builtin key ID range");
+MBEDTLS_STATIC_ASSERT(PSA_KEY_ID_VOLATILE_MIN < PSA_KEY_ID_VOLATILE_MAX,
+                      "Empty volatile key ID range");
+
+MBEDTLS_STATIC_ASSERT(PSA_KEY_ID_USER_MAX < PSA_KEY_ID_VENDOR_MIN ||
+                      PSA_KEY_ID_VENDOR_MAX < PSA_KEY_ID_USER_MIN,
+                      "Overlap between user key IDs and vendor key IDs");
+
+MBEDTLS_STATIC_ASSERT(PSA_KEY_ID_VENDOR_MIN <= MBEDTLS_PSA_KEY_ID_BUILTIN_MIN &&
+                      MBEDTLS_PSA_KEY_ID_BUILTIN_MAX <= PSA_KEY_ID_VENDOR_MAX,
+                      "Builtin key identifiers are not in the vendor range");
+
+MBEDTLS_STATIC_ASSERT(PSA_KEY_ID_VENDOR_MIN <= PSA_KEY_ID_VOLATILE_MIN &&
+                      PSA_KEY_ID_VOLATILE_MAX <= PSA_KEY_ID_VENDOR_MAX,
+                      "Volatile key identifiers are not in the vendor range");
+
+MBEDTLS_STATIC_ASSERT(PSA_KEY_ID_VOLATILE_MAX < MBEDTLS_PSA_KEY_ID_BUILTIN_MIN ||
+                      MBEDTLS_PSA_KEY_ID_BUILTIN_MAX < PSA_KEY_ID_VOLATILE_MIN,
+                      "Overlap between builtin key IDs and volatile key IDs");
+
+
+
 typedef struct {
     psa_key_slot_t key_slots[MBEDTLS_PSA_KEY_SLOT_COUNT];
     unsigned key_slots_initialized : 1;
 } psa_global_data_t;
 
 static psa_global_data_t global_data;
+
+MBEDTLS_STATIC_ASSERT(ARRAY_LENGTH(global_data.key_slots) <=
+                      PSA_KEY_ID_VOLATILE_MAX - PSA_KEY_ID_VOLATILE_MIN + 1,
+                      "The key slot array is larger than the volatile key ID range");
 
 int psa_is_valid_key_id(mbedtls_svc_key_id_t key, int vendor_ok)
 {

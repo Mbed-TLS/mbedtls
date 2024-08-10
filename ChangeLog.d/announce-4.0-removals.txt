@@ -17,8 +17,8 @@ New deprecations
      - TLS_DHE_*, i.e. cipher suites using finite-field Diffie-Hellman.
        (Ephemeral ECDH, i.e. TLS_ECDHE_*, is staying.)
      - TLS_*CBC*, i.e. all cipher suites using CBC.
-   * The following low-level interfaces are planned to be removed from the
-     public API in Mbed TLS 4.0:
+   * The following low-level application interfaces are planned to be removed
+     from the public API in Mbed TLS 4.0:
      - Hashes: hkdf.h, md5.h, ripemd160.h, sha1.h, sha3.h, sha256.h, sha512.h;
      - Pseudorandom generation: ctr_drbg.h, hmac_drbg.h;
      - Ciphers and modes: aes.h, aria.h, camellia.h, chacha20.h, chachapoly.h,
@@ -31,3 +31,9 @@ New deprecations
      Mbed TLS 2.28.0) and, where relevant, PK.
      For guidance on migrating application code to the PSA API, please consult
      the PSA transition guide (docs/psa-transition.md).
+   * The following integration interfaces are planned to be removed
+     in Mbed TLS 4.0:
+     - MBEDTLS_xxx_ALT replacement of cryptographic modules and functions.
+       Use PSA transparent drivers instead.
+     - MBEDTLS_PK_RSA_ALT and MBEDTLS_PSA_CRYPTO_SE_C.
+       Use PSA opaque drivers instead.

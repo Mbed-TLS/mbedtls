@@ -827,8 +827,8 @@ component_test_psa_crypto_config_accel_ecdsa () {
     # Configure
     # ---------
 
-    # Start from default config (no USE_PSA) + TLS 1.3
-    helper_libtestdriver1_adjust_config "default"
+    # Start with full config for maximum coverage (also enables USE_PSA)
+    helper_libtestdriver1_adjust_config "full"
 
     # Disable the module that's accelerated
     scripts/config.py unset MBEDTLS_ECDSA_C
@@ -869,8 +869,8 @@ component_test_psa_crypto_config_accel_ecdh () {
     # Configure
     # ---------
 
-    # Start from default config (no USE_PSA)
-    helper_libtestdriver1_adjust_config "default"
+    # Start with full config for maximum coverage (also enables USE_PSA)
+    helper_libtestdriver1_adjust_config "full"
 
     # Disable the module that's accelerated
     scripts/config.py unset MBEDTLS_ECDH_C
@@ -1827,8 +1827,8 @@ component_test_psa_crypto_config_accel_hash () {
     # Configure
     # ---------
 
-    # Start from default config (no USE_PSA)
-    helper_libtestdriver1_adjust_config "default"
+    # Start with full config for maximum coverage (also enables USE_PSA)
+    helper_libtestdriver1_adjust_config "full"
 
     # Disable the things that are being accelerated
     scripts/config.py unset MBEDTLS_MD5_C
@@ -1871,8 +1871,8 @@ component_test_psa_crypto_config_accel_hash_keep_builtins () {
                     ALG_SHA_224 ALG_SHA_256 ALG_SHA_384 ALG_SHA_512 \
                     ALG_SHA3_224 ALG_SHA3_256 ALG_SHA3_384 ALG_SHA3_512"
 
-    # Start from default config (no USE_PSA)
-    helper_libtestdriver1_adjust_config "default"
+    # Start with full config for maximum coverage (also enables USE_PSA)
+    helper_libtestdriver1_adjust_config "full"
 
     helper_libtestdriver1_make_drivers "$loc_accel_list"
 

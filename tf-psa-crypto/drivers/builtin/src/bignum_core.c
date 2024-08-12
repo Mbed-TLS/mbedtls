@@ -818,9 +818,9 @@ static void mbedtls_mpi_core_exp_mod_optionally_safe(mbedtls_mpi_uint *X,
                                                      size_t AN_limbs,
                                                      const mbedtls_mpi_uint *E,
                                                      size_t E_limbs,
+                                                     int E_public,
                                                      const mbedtls_mpi_uint *RR,
-                                                     mbedtls_mpi_uint *T,
-                                                     int E_public)
+                                                     mbedtls_mpi_uint *T)
 {
     const size_t wsize = exp_mod_get_window_size(E_limbs * biL);
     const size_t welem = ((size_t) 1) << wsize;
@@ -911,9 +911,9 @@ void mbedtls_mpi_core_exp_mod(mbedtls_mpi_uint *X,
                                              AN_limbs,
                                              E,
                                              E_limbs,
+                                             MBEDTLS_MPI_IS_SECRET,
                                              RR,
-                                             T,
-                                             MBEDTLS_MPI_IS_SECRET);
+                                             T);
 }
 
 void mbedtls_mpi_core_exp_mod_unsafe(mbedtls_mpi_uint *X,
@@ -929,9 +929,9 @@ void mbedtls_mpi_core_exp_mod_unsafe(mbedtls_mpi_uint *X,
                                              AN_limbs,
                                              E,
                                              E_limbs,
+                                             MBEDTLS_MPI_IS_PUBLIC,
                                              RR,
-                                             T,
-                                             MBEDTLS_MPI_IS_PUBLIC);
+                                             T);
 }
 
 mbedtls_mpi_uint mbedtls_mpi_core_sub_int(mbedtls_mpi_uint *X,

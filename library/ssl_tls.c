@@ -10111,7 +10111,7 @@ static int mbedtls_ssl_tls13_export_keying_material(mbedtls_ssl_context *ssl,
     const size_t hash_len = PSA_HASH_LENGTH(hash_alg);
     const unsigned char *secret = ssl->session->app_secrets.exporter_master_secret;
 
-    if (key_len > 0xff || label_len > 250) {
+    if (key_len > 0xffff || label_len > 250) {
         return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
     }
 

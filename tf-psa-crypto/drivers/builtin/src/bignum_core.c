@@ -747,6 +747,56 @@ static void exp_mod_precompute_window(const mbedtls_mpi_uint *A,
     }
 }
 
+/*
+ * This function calculates the indices of the exponent where the exponentiation algorithm should
+ * start processing.
+ *
+ * Warning! If the parameter E_public has MBEDTLS_MPI_IS_PUBLIC as its value,
+ * this function is not constant time with respect to the exponent (parameter E).
+ */
+static inline void exp_mod_calc_first_bit_optionally_safe(const mbedtls_mpi_uint *E,
+                                                          size_t E_limbs,
+                                                          int E_public,
+                                                          size_t *E_limb_index,
+                                                          size_t *E_bit_index)
+{
+    if (E_public == MBEDTLS_MPI_IS_PUBLIC) {
+        size_t E_bits = mbedtls_mpi_core_bitlen(E, E_limbs);
+        if (E_bits != 0) {
+            *E_limb_index = E_bits / biL;
+            *E_bit_index = E_bits % biL;
+        }
+    } else {
+        /*
+         * Here we need to be constant time with respect to E and can't do anything better than
+         * start at the first allocated bit.
+         */
+        *E_limb_index = E_limbs;
+        *E_bit_index = 0;
+    }
+}
+
+/*
+ * Warning! If the parameter window_public has MBEDTLS_MPI_IS_PUBLIC as its value, this function is
+ * not constant time with respect to the window parameter and consequently the exponent of the
+ * exponentiation (parameter E of mbedtls_mpi_core_exp_mod_optionally_safe).
+ */
+static inline void exp_mod_table_lookup_optionally_safe(mbedtls_mpi_uint *Wselect,
+                                                        mbedtls_mpi_uint *Wtable,
+                                                        size_t AN_limbs, size_t welem,
+                                                        mbedtls_mpi_uint window,
+                                                        int window_public)
+{
+    if (window_public == MBEDTLS_MPI_IS_PUBLIC) {
+        memcpy(Wselect, Wtable + window * AN_limbs, AN_limbs * ciL);
+    } else {
+        /* Select Wtable[window] without leaking window through
+         * memory access patterns. */
+        mbedtls_mpi_core_ct_uint_table_lookup(Wselect, Wtable,
+                                              AN_limbs, welem, window);
+    }
+}
+
 /* Exponentiation: X := A^E mod N.
  *
  * Warning! If the parameter E_public has MBEDTLS_MPI_IS_PUBLIC as its value,
@@ -808,13 +858,8 @@ static void mbedtls_mpi_core_exp_mod_optionally_safe(mbedtls_mpi_uint *X,
      * (limb_index=0, E_bit_index=0). */
     size_t E_limb_index = E_limbs;
     size_t E_bit_index = 0;
-    if (E_public == MBEDTLS_MPI_IS_PUBLIC) {
-        size_t E_bits = mbedtls_mpi_core_bitlen(E, E_limbs);
-        if (E_bits != 0) {
-            E_limb_index = E_bits / biL;
-            E_bit_index = E_bits % biL;
-        }
-    }
+    exp_mod_calc_first_bit_optionally_safe(E, E_limbs, E_public,
+                                           &E_limb_index, &E_bit_index);
 
     /* At any given time, window contains window_bits bits from E.
      * window_bits can go up to wsize. */
@@ -841,14 +886,9 @@ static void mbedtls_mpi_core_exp_mod_optionally_safe(mbedtls_mpi_uint *X,
          * when we've finished processing the exponent. */
         if (window_bits == wsize ||
             (E_bit_index == 0 && E_limb_index == 0)) {
-            if (E_public == MBEDTLS_MPI_IS_PUBLIC) {
-                memcpy(Wselect, Wtable + window * AN_limbs, AN_limbs * ciL);
-            } else {
-                /* Select Wtable[window] without leaking window through
-                 * memory access patterns. */
-                mbedtls_mpi_core_ct_uint_table_lookup(Wselect, Wtable,
-                                                      AN_limbs, welem, window);
-            }
+
+            exp_mod_table_lookup_optionally_safe(Wselect, Wtable, AN_limbs, welem,
+                                                 window, E_public);
             /* Multiply X by the selected element. */
             mbedtls_mpi_core_montmul(X, X, Wselect, AN_limbs, N, AN_limbs, mm,
                                      temp);

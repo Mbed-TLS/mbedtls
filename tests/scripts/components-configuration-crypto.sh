@@ -1670,10 +1670,8 @@ build_and_test_psa_want_key_pair_partial () {
     unset_option=$2
     disabled_psa_want="PSA_WANT_KEY_TYPE_${key_type}_KEY_PAIR_${unset_option}"
 
-    msg "build: full - MBEDTLS_USE_PSA_CRYPTO - ${disabled_psa_want}"
+    msg "build: full - ${disabled_psa_want}"
     scripts/config.py full
-    scripts/config.py unset MBEDTLS_USE_PSA_CRYPTO
-    scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1_3
 
     # All the PSA_WANT_KEY_TYPE_xxx_KEY_PAIR_yyy are enabled by default in
     # crypto_config.h so we just disable the one we don't want.
@@ -1681,7 +1679,7 @@ build_and_test_psa_want_key_pair_partial () {
 
     make CC=$ASAN_CC CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS"
 
-    msg "test: full - MBEDTLS_USE_PSA_CRYPTO - ${disabled_psa_want}"
+    msg "test: full - ${disabled_psa_want}"
     make test
 }
 

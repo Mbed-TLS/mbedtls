@@ -2941,14 +2941,14 @@ config_block_cipher_no_decrypt () {
     fi
 }
 
-component_test_block_cipher_no_decrypt_aesni () {
+component_test_block_cipher_no_decrypt_aesni_legacy_config () {
     # This consistently causes an llvm crash on clang 3.8, so use gcc
     export CC=gcc
     config_block_cipher_no_decrypt 0
     common_block_cipher_no_decrypt
 }
 
-component_test_block_cipher_no_decrypt_aesni_use_psa () {
+component_test_block_cipher_no_decrypt_aesni_psa_config () {
     # This consistently causes an llvm crash on clang 3.8, so use gcc
     export CC=gcc
     config_block_cipher_no_decrypt 1

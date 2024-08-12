@@ -8005,18 +8005,15 @@ requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "keyUsage cli-auth 1.3: RSA, KeyEncipherment: fail (hard)" \
             "$P_SRV debug_level=3 force_version=tls13 auth_mode=required" \
-            "$O_NEXT_CLI_NO_CERT -key $DATA_FILES_PATH/server2.key \
-             -cert $DATA_FILES_PATH/server2-sha256.ku-ke.crt" \
-            0 \
+            "$P_CLI key_file=$DATA_FILES_PATH/server2.key \
+             crt_file=$DATA_FILES_PATH/server2-sha256.ku-ke.crt" \
+            1 \
             -s "bad certificate (usage extensions)" \
             -s "Processing of the Certificate handshake message failed" \
             -s "send alert level=2 message=43" \
             -s "! Usage does not match the keyUsage extension" \
             -s "! mbedtls_ssl_handshake returned"
             # MBEDTLS_X509_BADCERT_KEY_USAGE -> MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT
-            #
-            # OpenSSL client does not seem to mind that the server aborts the
-            # handshake with a fatal alert and still exits 0...
 
 requires_openssl_tls1_3_with_compatible_ephemeral
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
@@ -8047,18 +8044,15 @@ requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "keyUsage cli-auth 1.3: ECDSA, KeyAgreement: fail (hard)" \
             "$P_SRV debug_level=3 force_version=tls13 auth_mode=required" \
-            "$O_NEXT_CLI_NO_CERT -key $DATA_FILES_PATH/server5.key \
-             -cert $DATA_FILES_PATH/server5.ku-ka.crt" \
-            0 \
+            "$P_CLI key_file=$DATA_FILES_PATH/server5.key \
+             crt_file=$DATA_FILES_PATH/server5.ku-ka.crt" \
+            1 \
             -s "bad certificate (usage extensions)" \
             -s "Processing of the Certificate handshake message failed" \
             -s "send alert level=2 message=43" \
             -s "! Usage does not match the keyUsage extension" \
             -s "! mbedtls_ssl_handshake returned"
             # MBEDTLS_X509_BADCERT_KEY_USAGE -> MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT
-            #
-            # OpenSSL client does not seem to mind that the server aborts the
-            # handshake with a fatal alert and still exits 0...
 
 # Tests for extendedKeyUsage, part 1: server-side certificate/suite selection
 

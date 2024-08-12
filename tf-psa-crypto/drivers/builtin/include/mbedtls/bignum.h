@@ -44,27 +44,6 @@
         goto cleanup;        \
     } while (0)
 
-/* Constants to identify whether a value is public or secret. If a parameter is marked as secret by
- * this constant, the function must be constant time with respect to the parameter.
- *
- * This is only needed for functions with the _optionally_safe postfix. All other functions have
- * fixed behavior that can't be changed at runtime and are constant time with respect to their
- * parameters as prescribed by their documentation or by conventions in their module's documentation.
- *
- * Parameters should be named X_public where X is the name of the
- * corresponding input parameter.
- *
- * Implementation should always check using
- *  if (X_public == MBEDTLS_MPI_IS_PUBLIC) {
- *      // unsafe path
- *  } else {
- *      // safe path
- *  }
- * not the other way round, in order to prevent misuse. (This is, if a value
- * other than the two below is passed, default to the safe path.) */
-#define MBEDTLS_MPI_IS_PUBLIC  0x2a2a
-#define MBEDTLS_MPI_IS_SECRET  0
-
 /*
  * Maximum size MPIs are allowed to grow to in number of limbs.
  */

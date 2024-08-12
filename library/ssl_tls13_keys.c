@@ -1890,26 +1890,17 @@ int mbedtls_ssl_tls13_exporter(const psa_algorithm_t hash_alg,
 {
     size_t hash_len = PSA_HASH_LENGTH(hash_alg);
     unsigned char hkdf_secret[MBEDTLS_TLS1_3_MD_MAX_SIZE];
-    unsigned char hashed_context[PSA_HASH_MAX_SIZE];
-    size_t hashed_context_len = 0;
     int ret = 0;
-    psa_status_t status = 0;
 
     ret = mbedtls_ssl_tls13_derive_secret(hash_alg, secret, secret_len, label, label_len, NULL, 0,
                                           MBEDTLS_SSL_TLS1_3_CONTEXT_UNHASHED, hkdf_secret, hash_len);
     if (ret != 0) {
         goto exit;
     }
-
-    status = psa_hash_compute(hash_alg, context_value, context_len, hashed_context, hash_len, &hashed_context_len);
-    if (status != PSA_SUCCESS) {
-        ret = PSA_TO_MBEDTLS_ERR(status);
-        goto exit;
-    }
-    ret = mbedtls_ssl_tls13_hkdf_expand_label(hash_alg, hkdf_secret, hash_len,
-                                              MBEDTLS_SSL_TLS1_3_LBL_WITH_LEN(exporter),
-                                              hashed_context, hashed_context_len,
-                                              out, out_len);
+    ret = mbedtls_ssl_tls13_derive_secret(hash_alg, hkdf_secret, hash_len,
+                                          MBEDTLS_SSL_TLS1_3_LBL_WITH_LEN(exporter),
+                                          context_value, context_len, MBEDTLS_SSL_TLS1_3_CONTEXT_UNHASHED,
+                                          out, out_len);
 
 exit:
     mbedtls_platform_zeroize(hkdf_secret, sizeof(hkdf_secret));

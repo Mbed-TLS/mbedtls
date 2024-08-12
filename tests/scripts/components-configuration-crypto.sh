@@ -1767,6 +1767,7 @@ component_test_psa_crypto_config_reference_rsa_crypto () {
 
 # This is a temporary test to verify that full RSA support is present even when
 # only one single new symbols (PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC) is defined.
+# Eventually a PSA-configuration-based depends.py will take care of this.
 component_test_new_psa_want_key_pair_symbol () {
     msg "Build: crypto config - MBEDTLS_RSA_C + PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC"
 
@@ -1782,22 +1783,16 @@ component_test_new_psa_want_key_pair_symbol () {
     # Start from crypto configuration
     scripts/config.py crypto
 
-    # Remove RSA support and its dependencies
+    # Remove RSA support
     scripts/config.py unset MBEDTLS_PKCS1_V15
     scripts/config.py unset MBEDTLS_PKCS1_V21
-    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED
-    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED
-    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED
-    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED
-    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_RSA_ENABLED
     scripts/config.py unset MBEDTLS_RSA_C
-    scripts/config.py unset MBEDTLS_X509_RSASSA_PSS_SUPPORT
 
-    # Enable PSA support
+    # Enable PSA configuration mechanism
     scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
 
-    # Keep only PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC enabled in order to ensure
-    # that proper translations is done in crypto_legacy.h.
+    # Keep only PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC enabled.
+    # We expect that to allow cryptographic operations on RSA key.
     scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_IMPORT
     scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_EXPORT
     scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_GENERATE

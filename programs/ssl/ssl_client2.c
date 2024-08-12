@@ -992,6 +992,8 @@ int main(int argc, char *argv[])
     opt.nss_keylog          = DFL_NSS_KEYLOG;
     opt.nss_keylog_file     = DFL_NSS_KEYLOG_FILE;
     opt.skip_close_notify   = DFL_SKIP_CLOSE_NOTIFY;
+    opt.exp_label           = DFL_EXP_LABEL;
+    opt.exp_len             = DFL_EXP_LEN;
     opt.query_config_mode   = DFL_QUERY_CONFIG_MODE;
     opt.use_srtp            = DFL_USE_SRTP;
     opt.force_srtp_profile  = DFL_SRTP_FORCE_PROFILE;

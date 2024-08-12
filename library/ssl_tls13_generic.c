@@ -472,6 +472,7 @@ int mbedtls_ssl_tls13_parse_certificate(mbedtls_ssl_context *ssl,
         mbedtls_free(ssl->session_negotiate->peer_cert);
     }
 
+    /* This is used by ssl_tls13_validate_certificate() */
     if (certificate_list_len == 0) {
         ssl->session_negotiate->peer_cert = NULL;
         ret = 0;
@@ -675,6 +676,11 @@ static int ssl_tls13_validate_certificate(mbedtls_ssl_context *ssl)
 #endif /* MBEDTLS_SSL_SRV_C */
 
 #if defined(MBEDTLS_SSL_CLI_C)
+        /* Regardless of authmode, the server is not allowed to send an empty
+         * certificate chain. (Last paragraph before 4.4.2.1 in RFC 8446: "The
+         * server's certificate_list MUST always be non-empty.") With authmode
+         * optional/none, we continue the handshake if we can't validate the
+         * server's cert, but we still break it if no certificate was sent. */
         if (ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT) {
             MBEDTLS_SSL_PEND_FATAL_ALERT(MBEDTLS_SSL_ALERT_MSG_NO_CERT,
                                          MBEDTLS_ERR_SSL_FATAL_ALERT_MESSAGE);

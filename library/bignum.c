@@ -1615,8 +1615,8 @@ int mbedtls_mpi_mod_int(mbedtls_mpi_uint *r, const mbedtls_mpi *A, mbedtls_mpi_s
  * this function is not constant time with respect to the exponent (parameter E).
  */
 static int mbedtls_mpi_exp_mod_optionally_safe(mbedtls_mpi *X, const mbedtls_mpi *A,
-                                               const mbedtls_mpi *E, const mbedtls_mpi *N,
-                                               mbedtls_mpi *prec_RR, int E_public)
+                                               const mbedtls_mpi *E, int E_public,
+                                               const mbedtls_mpi *N, mbedtls_mpi *prec_RR)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
@@ -1732,14 +1732,14 @@ int mbedtls_mpi_exp_mod(mbedtls_mpi *X, const mbedtls_mpi *A,
                         const mbedtls_mpi *E, const mbedtls_mpi *N,
                         mbedtls_mpi *prec_RR)
 {
-    return mbedtls_mpi_exp_mod_optionally_safe(X, A, E, N, prec_RR, MBEDTLS_MPI_IS_SECRET);
+    return mbedtls_mpi_exp_mod_optionally_safe(X, A, E, MBEDTLS_MPI_IS_SECRET, N, prec_RR);
 }
 
 int mbedtls_mpi_exp_mod_unsafe(mbedtls_mpi *X, const mbedtls_mpi *A,
                                const mbedtls_mpi *E, const mbedtls_mpi *N,
                                mbedtls_mpi *prec_RR)
 {
-    return mbedtls_mpi_exp_mod_optionally_safe(X, A, E, N, prec_RR, MBEDTLS_MPI_IS_PUBLIC);
+    return mbedtls_mpi_exp_mod_optionally_safe(X, A, E, MBEDTLS_MPI_IS_PUBLIC, N, prec_RR);
 }
 
 /*

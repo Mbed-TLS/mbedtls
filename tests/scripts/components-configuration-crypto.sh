@@ -833,10 +833,6 @@ component_test_psa_crypto_config_accel_ecdsa () {
     # Disable the module that's accelerated
     scripts/config.py unset MBEDTLS_ECDSA_C
 
-    # Disable things that depend on it
-    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
-    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED
-
     # Build
     # -----
 
@@ -875,13 +871,6 @@ component_test_psa_crypto_config_accel_ecdh () {
     # Disable the module that's accelerated
     scripts/config.py unset MBEDTLS_ECDH_C
 
-    # Disable things that depend on it
-    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED
-    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED
-    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
-    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED
-    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
-
     # Build
     # -----
 
@@ -916,7 +905,8 @@ component_test_psa_crypto_config_accel_ffdh () {
     # Disable the module that's accelerated
     scripts/config.py unset MBEDTLS_DHM_C
 
-    # Disable things that depend on it
+    # The TLS 1.2 code uses legacy FFDH even when MBEDTLS_USE_PSA_CRYPTO
+    # is enabled. This is a documented limitation.
     scripts/config.py unset MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED
     scripts/config.py unset MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED
 

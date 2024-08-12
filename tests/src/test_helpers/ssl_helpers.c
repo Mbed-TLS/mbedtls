@@ -950,10 +950,10 @@ int mbedtls_test_move_handshake_to_state(mbedtls_ssl_context *ssl,
 /*
  * Write application data. Increase write counter if necessary.
  */
-int mbedtls_ssl_write_fragment(mbedtls_ssl_context *ssl,
-                               unsigned char *buf, int buf_len,
-                               int *written,
-                               const int expected_fragments)
+static int mbedtls_ssl_write_fragment(mbedtls_ssl_context *ssl,
+                                      unsigned char *buf, int buf_len,
+                                      int *written,
+                                      const int expected_fragments)
 {
     int ret;
     /* Verify that calling mbedtls_ssl_write with a NULL buffer and zero length is
@@ -997,10 +997,10 @@ exit:
  * Read application data and increase read counter and fragments counter
  * if necessary.
  */
-int mbedtls_ssl_read_fragment(mbedtls_ssl_context *ssl,
-                              unsigned char *buf, int buf_len,
-                              int *read, int *fragments,
-                              const int expected_fragments)
+static int mbedtls_ssl_read_fragment(mbedtls_ssl_context *ssl,
+                                     unsigned char *buf, int buf_len,
+                                     int *read, int *fragments,
+                                     const int expected_fragments)
 {
     int ret;
     /* Verify that calling mbedtls_ssl_write with a NULL buffer and zero length is

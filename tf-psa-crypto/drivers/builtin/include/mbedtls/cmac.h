@@ -51,8 +51,6 @@ extern "C" {
 #define MBEDTLS_CIPHER_BLKSIZE_MAX MBEDTLS_MAX_BLOCK_LENGTH
 #endif /* MBEDTLS_DEPRECATED_REMOVED */
 
-#if !defined(MBEDTLS_CMAC_ALT)
-
 /**
  * The CMAC context structure.
  */
@@ -68,10 +66,6 @@ struct mbedtls_cmac_context_t {
     size_t              MBEDTLS_PRIVATE(unprocessed_len);
 };
 
-#else  /* !MBEDTLS_CMAC_ALT */
-#include "cmac_alt.h"
-#endif /* !MBEDTLS_CMAC_ALT */
-
 /**
  * \brief               This function starts a new CMAC computation
  *                      by setting the CMAC key, and preparing to authenticate
@@ -84,12 +78,6 @@ struct mbedtls_cmac_context_t {
  *
  *                      To start a CMAC computation using the same key as a previous
  *                      CMAC computation, use mbedtls_cipher_cmac_finish().
- *
- * \note                When the CMAC implementation is supplied by an alternate
- *                      implementation (through #MBEDTLS_CMAC_ALT), some ciphers
- *                      may not be supported by that implementation, and thus
- *                      return an error. Alternate implementations must support
- *                      AES-128 and AES-256, and may support AES-192 and 3DES.
  *
  * \param ctx           The cipher context used for the CMAC operation, initialized
  *                      as one of the following types: MBEDTLS_CIPHER_AES_128_ECB,
@@ -177,12 +165,6 @@ int mbedtls_cipher_cmac_reset(mbedtls_cipher_context_t *ctx);
  *                      The CMAC result is calculated as
  *                      output = generic CMAC(cmac key, input buffer).
  *
- * \note                When the CMAC implementation is supplied by an alternate
- *                      implementation (through #MBEDTLS_CMAC_ALT), some ciphers
- *                      may not be supported by that implementation, and thus
- *                      return an error. Alternate implementations must support
- *                      AES-128 and AES-256, and may support AES-192 and 3DES.
- *
  * \param cipher_info   The cipher information.
  * \param key           The CMAC key.
  * \param keylen        The length of the CMAC key in bits.
@@ -226,12 +208,6 @@ int mbedtls_aes_cmac_prf_128(const unsigned char *key, size_t key_len,
 /**
  * \brief          The CMAC checkup routine.
  *
- * \note           In case the CMAC routines are provided by an alternative
- *                 implementation (i.e. #MBEDTLS_CMAC_ALT is defined), the
- *                 checkup routine will succeed even if the implementation does
- *                 not support the less widely used AES-192 or 3DES primitives.
- *                 The self-test requires at least AES-128 and AES-256 to be
- *                 supported by the underlying implementation.
  *
  * \return         \c 0 on success.
  * \return         \c 1 on failure.

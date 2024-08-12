@@ -357,6 +357,12 @@ KNOWN_TASKS = {
                     'Key ASN1 (Encrypted key PKCS5, trailing garbage data)',
                     re.compile(r'Parse (RSA|EC) Key .*\(.* ([Ee]ncrypted|password).*\)'),
                 ],
+                # Encrypted keys are not supported so far.
+                'ssl-opt': [
+                    'TLS: password protected server key',
+                    'TLS: password protected client key',
+                    'TLS: password protected server key, two certificates',
+                ],
             }
         }
     },
@@ -636,8 +642,9 @@ KNOWN_TASKS = {
                     re.compile(r'mbedtls_ct_memmove_left .*')
                 ],
                 'test_suite_psa_crypto': [
-                    # We don't support generate_key_ext entry points
+                    # We don't support generate_key_custom entry points
                     # in drivers yet.
+                    re.compile(r'PSA generate key custom: RSA, e=.*'),
                     re.compile(r'PSA generate key ext: RSA, e=.*'),
                 ],
             }

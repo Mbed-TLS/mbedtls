@@ -198,7 +198,7 @@ typedef struct mbedtls_asn1_named_data {
 mbedtls_asn1_named_data;
 
 #if defined(MBEDTLS_ASN1_PARSE_C) || defined(MBEDTLS_X509_CREATE_C) || \
-    defined(MBEDTLS_PSA_UTIL_HAVE_ECDSA)
+    defined(PSA_HAVE_ALG_SOME_ECDSA)
 /**
  * \brief       Get the length of an ASN.1 element.
  *              Updates the pointer to immediately behind the length.
@@ -245,7 +245,7 @@ int mbedtls_asn1_get_len(unsigned char **p,
 int mbedtls_asn1_get_tag(unsigned char **p,
                          const unsigned char *end,
                          size_t *len, int tag);
-#endif /* MBEDTLS_ASN1_PARSE_C || MBEDTLS_X509_CREATE_C || MBEDTLS_PSA_UTIL_HAVE_ECDSA */
+#endif /* MBEDTLS_ASN1_PARSE_C || MBEDTLS_X509_CREATE_C || PSA_HAVE_ALG_SOME_ECDSA */
 
 #if defined(MBEDTLS_ASN1_PARSE_C)
 /**

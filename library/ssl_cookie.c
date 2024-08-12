@@ -40,7 +40,7 @@ static int local_err_translation(psa_status_t status)
  * If DTLS is in use, then at least one of SHA-256 or SHA-384 is
  * available. Try SHA-256 first as 384 wastes resources
  */
-#if defined(MBEDTLS_MD_CAN_SHA256)
+#if defined(PSA_WANT_ALG_SHA_256)
 #define COOKIE_MD           MBEDTLS_MD_SHA256
 #define COOKIE_MD_OUTLEN    32
 #define COOKIE_HMAC_LEN     28

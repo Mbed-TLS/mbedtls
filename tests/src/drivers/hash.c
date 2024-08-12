@@ -13,7 +13,7 @@
 #include "test/drivers/hash.h"
 
 #if defined(MBEDTLS_TEST_LIBTESTDRIVER1)
-#include "libtestdriver1/library/psa_crypto_hash.h"
+#include "libtestdriver1/tf-psa-crypto/core/psa_crypto_hash.h"
 #endif
 
 mbedtls_test_driver_hash_hooks_t

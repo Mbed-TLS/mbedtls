@@ -2803,9 +2803,10 @@ fail:
 }
 
 
-psa_status_t psa_generate_key_ext(
+psa_status_t psa_generate_key_custom(
     const psa_key_attributes_t *attributes,
-    const psa_key_production_parameters_t *params, size_t  params_data_length,
+    const psa_custom_key_parameters_t *custom,
+    const uint8_t *custom_data, size_t  custom_data_length,
     mbedtls_svc_key_id_t *key
     )
 {
@@ -2817,7 +2818,8 @@ psa_status_t psa_generate_key_ext(
     size_t needed =
         psasim_serialise_begin_needs() +
         psasim_serialise_psa_key_attributes_t_needs(*attributes) +
-        psasim_serialise_psa_key_production_parameters_t_needs(params, params_data_length) +
+        psasim_serialise_psa_custom_key_parameters_t_needs(*custom) +
+        psasim_serialise_buffer_needs(custom_data, custom_data_length) +
         psasim_serialise_mbedtls_svc_key_id_t_needs(*key);
 
     ser_params = malloc(needed);
@@ -2839,9 +2841,15 @@ psa_status_t psa_generate_key_ext(
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_psa_key_production_parameters_t(
+    ok = psasim_serialise_psa_custom_key_parameters_t(
         &pos, &remaining,
-        params, params_data_length);
+        *custom);
+    if (!ok) {
+        goto fail;
+    }
+    ok = psasim_serialise_buffer(
+        &pos, &remaining,
+        custom_data, custom_data_length);
     if (!ok) {
         goto fail;
     }
@@ -2852,10 +2860,10 @@ psa_status_t psa_generate_key_ext(
         goto fail;
     }
 
-    ok = psa_crypto_call(PSA_GENERATE_KEY_EXT,
+    ok = psa_crypto_call(PSA_GENERATE_KEY_CUSTOM,
                          ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
-        printf("PSA_GENERATE_KEY_EXT server call failed\n");
+        printf("PSA_GENERATE_KEY_CUSTOM server call failed\n");
         goto fail;
     }
 
@@ -4572,10 +4580,11 @@ fail:
 }
 
 
-psa_status_t psa_key_derivation_output_key_ext(
+psa_status_t psa_key_derivation_output_key_custom(
     const psa_key_attributes_t *attributes,
     psa_key_derivation_operation_t *operation,
-    const psa_key_production_parameters_t *params, size_t  params_data_length,
+    const psa_custom_key_parameters_t *custom,
+    const uint8_t *custom_data, size_t  custom_data_length,
     mbedtls_svc_key_id_t *key
     )
 {
@@ -4588,7 +4597,8 @@ psa_status_t psa_key_derivation_output_key_ext(
         psasim_serialise_begin_needs() +
         psasim_serialise_psa_key_attributes_t_needs(*attributes) +
         psasim_serialise_psa_key_derivation_operation_t_needs(*operation) +
-        psasim_serialise_psa_key_production_parameters_t_needs(params, params_data_length) +
+        psasim_serialise_psa_custom_key_parameters_t_needs(*custom) +
+        psasim_serialise_buffer_needs(custom_data, custom_data_length) +
         psasim_serialise_mbedtls_svc_key_id_t_needs(*key);
 
     ser_params = malloc(needed);
@@ -4616,9 +4626,15 @@ psa_status_t psa_key_derivation_output_key_ext(
     if (!ok) {
         goto fail;
     }
-    ok = psasim_serialise_psa_key_production_parameters_t(
+    ok = psasim_serialise_psa_custom_key_parameters_t(
         &pos, &remaining,
-        params, params_data_length);
+        *custom);
+    if (!ok) {
+        goto fail;
+    }
+    ok = psasim_serialise_buffer(
+        &pos, &remaining,
+        custom_data, custom_data_length);
     if (!ok) {
         goto fail;
     }
@@ -4629,10 +4645,10 @@ psa_status_t psa_key_derivation_output_key_ext(
         goto fail;
     }
 
-    ok = psa_crypto_call(PSA_KEY_DERIVATION_OUTPUT_KEY_EXT,
+    ok = psa_crypto_call(PSA_KEY_DERIVATION_OUTPUT_KEY_CUSTOM,
                          ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
     if (!ok) {
-        printf("PSA_KEY_DERIVATION_OUTPUT_KEY_EXT server call failed\n");
+        printf("PSA_KEY_DERIVATION_OUTPUT_KEY_CUSTOM server call failed\n");
         goto fail;
     }
 

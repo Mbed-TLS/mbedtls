@@ -25,19 +25,21 @@ my $programs_dir = 'programs';
 my $mbedtls_header_dir = 'include/mbedtls';
 my $drivers_builtin_header_dir = 'tf-psa-crypto/drivers/builtin/include/mbedtls';
 my $psa_header_dir = 'tf-psa-crypto/include/psa';
-my $source_dir = 'library';
+my $tls_source_dir = 'library';
+my $crypto_core_source_dir = 'tf-psa-crypto/core';
+my $crypto_source_dir = 'tf-psa-crypto/drivers/builtin/src';
 my $test_source_dir = 'tests/src';
 my $test_header_dir = 'tests/include/test';
 my $test_drivers_header_dir = 'tests/include/test/drivers';
 my $test_drivers_source_dir = 'tests/src/drivers';
 
 my @thirdparty_header_dirs = qw(
-    3rdparty/everest/include/everest
+    tf-psa-crypto/drivers/everest/include/everest
 );
 my @thirdparty_source_dirs = qw(
-    3rdparty/everest/library
-    3rdparty/everest/library/kremlib
-    3rdparty/everest/library/legacy
+    tf-psa-crypto/drivers/everest/library
+    tf-psa-crypto/drivers/everest/library/kremlib
+    tf-psa-crypto/drivers/everest/library/legacy
 );
 
 # Directories to add to the include path.
@@ -47,25 +49,27 @@ my @include_directories = qw(
     include
     tf-psa-crypto/include
     tf-psa-crypto/drivers/builtin/include
-    3rdparty/everest/include/
-    3rdparty/everest/include/everest
-    3rdparty/everest/include/everest/vs2013
-    3rdparty/everest/include/everest/kremlib
+    tf-psa-crypto/drivers/everest/include/
+    tf-psa-crypto/drivers/everest/include/everest
+    tf-psa-crypto/drivers/everest/include/everest/vs2013
+    tf-psa-crypto/drivers/everest/include/everest/kremlib
     tests/include
 );
 my $include_directories = join(';', map {"../../$_"} @include_directories);
 
-# Directories to add to the include path when building the library, but not
+# Directories to add to the include path when building the libraries, but not
 # when building tests or applications.
 my @library_include_directories = qw(
     library
+    tf-psa-crypto/core
+    tf-psa-crypto/drivers/builtin/src
 );
 my $library_include_directories =
   join(';', map {"../../$_"} (@library_include_directories,
                               @include_directories));
 
 my @excluded_files = qw(
-    3rdparty/everest/library/Hacl_Curve25519.c
+    tf-psa-crypto/drivers/everest/library/Hacl_Curve25519.c
 );
 my %excluded_files = ();
 foreach (@excluded_files) { $excluded_files{$_} = 1 }
@@ -106,7 +110,9 @@ sub check_dirs {
         && -d $mbedtls_header_dir
         && -d $drivers_builtin_header_dir
         && -d $psa_header_dir
-        && -d $source_dir
+        && -d $tls_source_dir
+        && -d $crypto_core_source_dir
+        && -d $crypto_source_dir
         && -d $test_source_dir
         && -d $test_drivers_source_dir
         && -d $test_header_dir
@@ -265,12 +271,16 @@ sub main {
                        $psa_header_dir,
                        $test_header_dir,
                        $test_drivers_header_dir,
-                       $source_dir,
+                       $tls_source_dir,
+                       $crypto_core_source_dir,
+                       $crypto_source_dir,
                        @thirdparty_header_dirs,
                       );
     my @headers = (map { <$_/*.h> } @header_dirs);
     my @source_dirs = (
-                       $source_dir,
+                       $tls_source_dir,
+                       $crypto_core_source_dir,
+                       $crypto_source_dir,
                        $test_source_dir,
                        $test_drivers_source_dir,
                        @thirdparty_source_dirs,

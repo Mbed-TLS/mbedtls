@@ -20,14 +20,14 @@ include $(MBEDTLS_PATH)/framework/exported.make
 
 CFLAGS	?= -O2
 WARNING_CFLAGS ?= -Wall -Wextra -Wformat=2 -Wno-format-nonliteral
-WARNING_CXXFLAGS ?= -Wall -Wextra -Wformat=2 -Wno-format-nonliteral
+WARNING_CXXFLAGS ?= -Wall -Wextra -Wformat=2 -Wno-format-nonliteral -std=c++11 -pedantic
 LDFLAGS ?=
 
 LOCAL_CFLAGS = $(WARNING_CFLAGS) -I$(MBEDTLS_TEST_PATH)/include \
                -I$(MBEDTLS_PATH)/include -I$(MBEDTLS_PATH)/tf-psa-crypto/include \
                -I$(MBEDTLS_PATH)/tf-psa-crypto/drivers/builtin/include \
                -D_FILE_OFFSET_BITS=64
-LOCAL_CXXFLAGS = $(WARNING_CXXFLAGS) -I$(MBEDTLS_PATH)/include -I$(MBEDTLS_PATH)/tests/include -D_FILE_OFFSET_BITS=64
+LOCAL_CXXFLAGS = $(WARNING_CXXFLAGS) $(LOCAL_CFLAGS)
 
 ifdef PSASIM
 LOCAL_LDFLAGS = ${MBEDTLS_TEST_OBJS} 		\
@@ -44,7 +44,9 @@ LOCAL_LDFLAGS = ${MBEDTLS_TEST_OBJS} 		\
 		-lmbedcrypto$(SHARED_SUFFIX)
 endif
 
-include $(MBEDTLS_PATH)/3rdparty/Makefile.inc
+THIRDPARTY_DIR = $(MBEDTLS_PATH)/tf-psa-crypto/drivers
+include $(THIRDPARTY_DIR)/everest/Makefile.inc
+include $(THIRDPARTY_DIR)/p256-m/Makefile.inc
 LOCAL_CFLAGS+=$(THIRDPARTY_INCLUDES)
 
 ifdef PSASIM

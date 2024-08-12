@@ -108,7 +108,7 @@
  *  }
  * not the other way round, in order to prevent misuse. (This is, if a value
  * other than the two below is passed, default to the safe path.) */
-#define MBEDTLS_MPI_IS_PUBLIC  0x2a2a
+#define MBEDTLS_MPI_IS_PUBLIC  0x2a2a2a2a
 #define MBEDTLS_MPI_IS_SECRET  0
 
 /** Count leading zero bits in a given integer.

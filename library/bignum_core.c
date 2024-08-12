@@ -748,6 +748,9 @@ static void exp_mod_precompute_window(const mbedtls_mpi_uint *A,
 
 /* Exponentiation: X := A^E mod N.
  *
+ * Warning! If the parameter E_public has MBEDTLS_MPI_IS_PUBLIC as its value,
+ * this function is not constant time with respect to the exponent (parameter E).
+ *
  * A must already be in Montgomery form.
  *
  * As in other bignum functions, assume that AN_limbs and E_limbs are nonzero.
@@ -758,15 +761,15 @@ static void exp_mod_precompute_window(const mbedtls_mpi_uint *A,
  * (The difference is that the body in our loop processes a single bit instead
  * of a full window.)
  */
-void mbedtls_mpi_core_exp_mod_optionally_safe(mbedtls_mpi_uint *X,
-                                              const mbedtls_mpi_uint *A,
-                                              const mbedtls_mpi_uint *N,
-                                              size_t AN_limbs,
-                                              const mbedtls_mpi_uint *E,
-                                              size_t E_limbs,
-                                              const mbedtls_mpi_uint *RR,
-                                              mbedtls_mpi_uint *T,
-                                              int E_public)
+static void mbedtls_mpi_core_exp_mod_optionally_safe(mbedtls_mpi_uint *X,
+                                                     const mbedtls_mpi_uint *A,
+                                                     const mbedtls_mpi_uint *N,
+                                                     size_t AN_limbs,
+                                                     const mbedtls_mpi_uint *E,
+                                                     size_t E_limbs,
+                                                     const mbedtls_mpi_uint *RR,
+                                                     mbedtls_mpi_uint *T,
+                                                     int E_public)
 {
     const size_t wsize = exp_mod_get_window_size(E_limbs * biL);
     const size_t welem = ((size_t) 1) << wsize;
@@ -870,6 +873,24 @@ void mbedtls_mpi_core_exp_mod(mbedtls_mpi_uint *X,
                                              RR,
                                              T,
                                              MBEDTLS_MPI_IS_SECRET);
+}
+
+void mbedtls_mpi_core_exp_mod_unsafe(mbedtls_mpi_uint *X,
+                                     const mbedtls_mpi_uint *A,
+                                     const mbedtls_mpi_uint *N, size_t AN_limbs,
+                                     const mbedtls_mpi_uint *E, size_t E_limbs,
+                                     const mbedtls_mpi_uint *RR,
+                                     mbedtls_mpi_uint *T)
+{
+    mbedtls_mpi_core_exp_mod_optionally_safe(X,
+                                             A,
+                                             N,
+                                             AN_limbs,
+                                             E,
+                                             E_limbs,
+                                             RR,
+                                             T,
+                                             MBEDTLS_MPI_IS_PUBLIC);
 }
 
 mbedtls_mpi_uint mbedtls_mpi_core_sub_int(mbedtls_mpi_uint *X,

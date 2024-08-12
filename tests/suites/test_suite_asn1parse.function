@@ -122,8 +122,8 @@ exit:
     return ERR_PARSE_INCONSISTENCY;
 }
 
-int get_len_step(const data_t *input, size_t buffer_size,
-                 size_t actual_length)
+static int get_len_step(const data_t *input, size_t buffer_size,
+                        size_t actual_length)
 {
     unsigned char *buf = NULL;
     unsigned char *p = NULL;

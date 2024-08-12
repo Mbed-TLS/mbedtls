@@ -129,7 +129,7 @@ exit:
  * return   1 if it is,
  *          0 if it isn't.
  */
-int buffer_is_all_zero(const uint8_t *buf, size_t size)
+static int buffer_is_all_zero(const uint8_t *buf, size_t size)
 {
     for (size_t i = 0; i < size; i++) {
         if (buf[i] != 0) {

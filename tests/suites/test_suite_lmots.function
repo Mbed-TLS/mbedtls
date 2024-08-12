@@ -2,8 +2,8 @@
 #include "lmots.h"
 #include "mbedtls/lms.h"
 
-#if defined(MBEDTLS_TEST_HOOKS)
-int check_lmots_private_key_for_leak(unsigned char *sig)
+#if defined(MBEDTLS_TEST_HOOKS) && defined(MBEDTLS_LMS_PRIVATE)
+static int check_lmots_private_key_for_leak(unsigned char *sig)
 {
     size_t idx;
 
@@ -18,7 +18,7 @@ int check_lmots_private_key_for_leak(unsigned char *sig)
 exit:
     return -1;
 }
-#endif /* defined(MBEDTLS_TEST_HOOKS) */
+#endif /* MBEDTLS_TEST_HOOKS && MBEDTLS_LMS_PRIVATE */
 
 /* END_HEADER */
 

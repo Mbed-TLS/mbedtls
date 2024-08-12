@@ -903,6 +903,8 @@ int mbedtls_mpi_mod_int(mbedtls_mpi_uint *r, const mbedtls_mpi *A,
 /**
  * \brief          Perform a modular exponentiation: X = A^E mod N
  *
+ * \warning        This function is not constant time with respect to \p E (the exponent).
+ *
  * \param X        The destination MPI. This must point to an initialized MPI.
  *                 This must not alias E or N.
  * \param A        The base of the exponentiation.
@@ -927,9 +929,9 @@ int mbedtls_mpi_mod_int(mbedtls_mpi_uint *r, const mbedtls_mpi *A,
  * \return         Another negative error code on different kinds of failures.
  *
  */
-int mbedtls_mpi_exp_mod_optionally_safe(mbedtls_mpi *X, const mbedtls_mpi *A,
-                                        const mbedtls_mpi *E, const mbedtls_mpi *N,
-                                        mbedtls_mpi *prec_RR, int E_public);
+int mbedtls_mpi_exp_mod_unsafe(mbedtls_mpi *X, const mbedtls_mpi *A,
+                               const mbedtls_mpi *E, const mbedtls_mpi *N,
+                               mbedtls_mpi *prec_RR);
 
 /**
  * \brief          Perform a modular exponentiation: X = A^E mod N

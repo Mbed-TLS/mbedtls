@@ -44,7 +44,12 @@
         goto cleanup;        \
     } while (0)
 
-/* Constants to identify whether a value is public or secret.
+/* Constants to identify whether a value is public or secret. If a parameter is marked as secret by
+ * this constant, the function must be constant time with respect to the parameter.
+ *
+ * This is only needed for functions with the _optionally_safe postfix. All other functions have
+ * fixed behavior that can't be changed at runtime and are constant time with respect to their
+ * parameters as prescribed by their documentation or by conventions in their module's documentation.
  *
  * Parameters should be named X_public where X is the name of the
  * corresponding input parameter.

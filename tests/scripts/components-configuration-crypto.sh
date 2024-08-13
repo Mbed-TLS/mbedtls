@@ -36,6 +36,7 @@ component_test_crypto_with_static_key_slots() {
     scripts/config.py crypto_full
     scripts/config.py set MBEDTLS_PSA_STATIC_KEY_SLOTS
 
+    msg "test: crypto full + MBEDTLS_PSA_STATIC_KEY_SLOTS"
     make test
 }
 
@@ -68,16 +69,17 @@ component_build_psa_crypto_spm () {
 # - test code and libtestdriver1 can make use of calloc/free and
 # - core library (including PSA core) cannot use calloc/free.
 component_test_psa_crypto_without_heap() {
+    msg "crypto without heap: build libtestdriver1"
     # Disable PSA features that cannot be accelerated and whose builtin support
     # requires calloc/free.
     scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_DERIVE
-    scripts/config.py -f $CRYPTO_CONFIG_H unset-all PSA_WANT_ALG_HKDF*
-    scripts/config.py -f $CRYPTO_CONFIG_H unset-all PSA_WANT_ALG_PBKDF2*
-    scripts/config.py -f $CRYPTO_CONFIG_H unset-all PSA_WANT_ALG_TLS12*
+    scripts/config.py -f $CRYPTO_CONFIG_H unset-all "^PSA_WANT_ALG_HKDF"
+    scripts/config.py -f $CRYPTO_CONFIG_H unset-all "^PSA_WANT_ALG_PBKDF2_"
+    scripts/config.py -f $CRYPTO_CONFIG_H unset-all "^PSA_WANT_ALG_TLS12_"
     # RSA key support requires ASN1 parse/write support for testing, but ASN1
     # is disabled below.
-    scripts/config.py -f $CRYPTO_CONFIG_H unset-all PSA_WANT_KEY_TYPE_RSA_*
-    scripts/config.py -f $CRYPTO_CONFIG_H unset-all PSA_WANT_ALG_RSA_*
+    scripts/config.py -f $CRYPTO_CONFIG_H unset-all "^PSA_WANT_KEY_TYPE_RSA_"
+    scripts/config.py -f $CRYPTO_CONFIG_H unset-all "^PSA_WANT_ALG_RSA_"
     # DES requires built-in support for key generation (parity check) so it
     # cannot be accelerated
     scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_KEY_TYPE_DES
@@ -88,25 +90,24 @@ component_test_psa_crypto_without_heap() {
     PSA_SYM_LIST=$(./scripts/config.py -f $CRYPTO_CONFIG_H get-all-enabled PSA_WANT)
     loc_accel_list=$(echo $PSA_SYM_LIST | sed 's/PSA_WANT_//g')
 
-    msg "build: libtestdriver1"
     helper_libtestdriver1_adjust_config crypto
     helper_libtestdriver1_make_drivers "$loc_accel_list"
 
-    msg "build: main library"
+    msg "crypto without heap: build main library"
     # Enable fully-static key slots in PSA core.
     scripts/config.py set MBEDTLS_PSA_STATIC_KEY_SLOTS
     # Prevent PSA core from creating a copy of input/output buffers
     scripts/config.py set MBEDTLS_PSA_ASSUME_EXCLUSIVE_BUFFERS
     # Prevent PSA core from using CTR-DRBG or HMAC-DRBG for random generation.
     scripts/config.py set MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG
-    # Set cmalloc/free as null pointer functions. Calling them would crash
+    # Set calloc/free as null pointer functions. Calling them would crash
     # the program so we can use this as a "sentinel" for being sure no module
     # is making use of these functions in the library.
     scripts/config.py set MBEDTLS_PLATFORM_MEMORY
     scripts/config.py set MBEDTLS_PLATFORM_STD_CALLOC   NULL
     scripts/config.py set MBEDTLS_PLATFORM_STD_FREE     NULL
 
-    # Disable all the modules/features that use cmalloc directly
+    # Disable all the modules/features that use calloc directly
     scripts/config.py unset-all MBEDTLS_ASN1_
     scripts/config.py unset MBEDTLS_BIGNUM_C
     scripts/config.py unset MBEDTLS_CIPHER_C
@@ -115,21 +116,21 @@ component_test_psa_crypto_without_heap() {
     scripts/config.py unset MBEDTLS_ECDSA_C
     scripts/config.py unset MBEDTLS_ECP_RESTARTABLE
     scripts/config.py unset MBEDTLS_ECP_C
-    scripts/config.py unset-all MBEDTLS_LMS_
+    scripts/config.py unset-all "^MBEDTLS_LMS_"
     scripts/config.py unset MBEDTLS_MD_C
     scripts/config.py unset MBEDTLS_OID_C
-    scripts/config.py unset-all MBEDTLS_PEM_
+    scripts/config.py unset-all "^MBEDTLS_PEM_"
     scripts/config.py unset MBEDTLS_PKCS7_C
-    scripts/config.py unset-all MBEDTLS_PK_
+    scripts/config.py unset-all "^MBEDTLS_PK_"
     scripts/config.py unset MBEDTLS_RSA_C
     scripts/config.py unset MBEDTLS_PSA_CRYPTO_STORAGE_C
     # Disable all modules that depend on the the previous ones
     scripts/config.py unset MBEDTLS_NIST_KW_C
     scripts/config.py unset MBEDTLS_ECDH_C
     scripts/config.py unset MBEDTLS_ECJPAKE_C
-    scripts/config.py unset-all MBEDTLS_PKCS1_
-    scripts/config.py unset-all MBEDTLS_ENTROPY_
-    scripts/config.py unset-all MBEDTLS_SHA
+    scripts/config.py unset-all "^MBEDTLS_PKCS1_"
+    scripts/config.py unset-all "^MBEDTLS_ENTROPY_"
+    scripts/config.py unset-all "^MBEDTLS_SHA"
     scripts/config.py unset MBEDTLS_PLATFORM_NV_SEED_ALT
     scripts/config.py unset MBEDTLS_HKDF_C
     scripts/config.py unset MBEDTLS_PKCS5_C
@@ -138,15 +139,15 @@ component_test_psa_crypto_without_heap() {
     scripts/config.py unset MBEDTLS_ECDSA_DETERMINISTIC
     helper_libtestdriver1_make_main "$loc_accel_list" lib
 
-    msg "build: test suites and helpers"
-    # Reset cmalloc/free functions to normal operations so that test code can
+    msg "crypto without heap: build test suites and helpers"
+    # Reset calloc/free functions to normal operations so that test code can
     # freely use them.
     scripts/config.py unset MBEDTLS_PLATFORM_MEMORY
     scripts/config.py unset MBEDTLS_PLATFORM_STD_CALLOC
     scripts/config.py unset MBEDTLS_PLATFORM_STD_FREE
     helper_libtestdriver1_make_main "$loc_accel_list" tests
 
-    msg "run tests"
+    msg "crypto without heap: test"
     make test
 }
 

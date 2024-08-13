@@ -492,6 +492,40 @@ psa_verify_hash_interruptible_operation_init(void)
     return v;
 }
 
+/**
+ * \brief The context for PSA interruptible key agreement.
+ */
+struct psa_key_agreement_iop_s {
+#if defined(MBEDTLS_PSA_CRYPTO_CLIENT) && !defined(MBEDTLS_PSA_CRYPTO_C)
+    mbedtls_psa_client_handle_t handle;
+#else
+    /**
+     *  Unique ID indicating which driver got assigned to do the
+     * operation. Since driver contexts are driver-specific, swapping
+     * drivers halfway through the operation is not supported.
+     * ID values are auto-generated in psa_crypto_driver_wrappers.h
+     * ID value zero means the context is not valid or not assigned to
+     * any driver (i.e. none of the driver contexts are active).
+     */
+    unsigned int MBEDTLS_PRIVATE(id);
+
+#endif
+};
+
+#if defined(MBEDTLS_PSA_CRYPTO_CLIENT) && !defined(MBEDTLS_PSA_CRYPTO_C)
+#define PSA_KEY_AGREEMENT_IOP_INIT { 0 }
+#else
+#define PSA_KEY_AGREEMENT_IOP_INIT { 0 }
+#endif
+
+static inline struct psa_key_agreement_iop_s
+psa_key_agreement_iop_init(void)
+{
+    const struct psa_key_agreement_iop_s v = PSA_KEY_AGREEMENT_IOP_INIT;
+
+    return v;
+}
+
 #ifdef __cplusplus
 }
 #endif

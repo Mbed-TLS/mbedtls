@@ -441,6 +441,27 @@ psa_status_t mbedtls_test_wrap_psa_import_key(
 #define psa_import_key(arg0_attributes, arg1_data, arg2_data_length, arg3_key) \
     mbedtls_test_wrap_psa_import_key(arg0_attributes, arg1_data, arg2_data_length, arg3_key)
 
+psa_status_t mbedtls_test_wrap_psa_key_agreement_iop_abort(
+    psa_key_agreement_iop_t *arg0_operation);
+#define psa_key_agreement_iop_abort(arg0_operation) \
+    mbedtls_test_wrap_psa_key_agreement_iop_abort(arg0_operation)
+
+psa_status_t mbedtls_test_wrap_psa_key_agreement_iop_complete(
+    psa_key_agreement_iop_t *arg0_operation,
+    psa_key_id_t *arg1_key);
+#define psa_key_agreement_iop_complete(arg0_operation, arg1_key) \
+    mbedtls_test_wrap_psa_key_agreement_iop_complete(arg0_operation, arg1_key)
+
+psa_status_t mbedtls_test_wrap_psa_key_agreement_iop_setup(
+    psa_key_agreement_iop_t *arg0_operation,
+    psa_key_id_t arg1_private_key,
+    const uint8_t *arg2_peer_key,
+    size_t arg3_peer_key_length,
+    psa_algorithm_t arg4_alg,
+    const psa_key_attributes_t *arg5_attributes);
+#define psa_key_agreement_iop_setup(arg0_operation, arg1_private_key, arg2_peer_key, arg3_peer_key_length, arg4_alg, arg5_attributes) \
+    mbedtls_test_wrap_psa_key_agreement_iop_setup(arg0_operation, arg1_private_key, arg2_peer_key, arg3_peer_key_length, arg4_alg, arg5_attributes)
+
 psa_status_t mbedtls_test_wrap_psa_key_derivation_abort(
     psa_key_derivation_operation_t *arg0_operation);
 #define psa_key_derivation_abort(arg0_operation) \

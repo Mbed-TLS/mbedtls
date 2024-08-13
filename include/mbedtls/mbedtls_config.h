@@ -3287,21 +3287,6 @@
 //#define MBEDTLS_PSA_STATIC_KEY_SLOTS
 
 /**
- * \def MBEDTLS_PSA_STATIC_KEY_SLOTS
- *
- * Optionally define the size (in bytes) of each static key slot. If not
- * explicitly defined then it's automatically set to hold the maximum
- * asymmetric PSA key enabled in the build (through PSA_WANT_xxx symbols).
- * If required by the application this parameter can be set to higher values
- * in order to store larger objects (ex: raw keys), but please note that this
- * will increase RAM usage.
- *
- * Requires: MBEDTLS_PSA_STATIC_KEY_SLOTS
- *
- */
-//#define MBEDTLS_PSA_STATIC_KEY_SLOT_BUFFER_SIZE       256
-
-/**
  * \def MBEDTLS_RIPEMD160_C
  *
  * Enable the RIPEMD-160 hash algorithm.
@@ -4101,6 +4086,21 @@
  * This option has no effect when #MBEDTLS_PSA_CRYPTO_C is disabled.
  */
 //#define MBEDTLS_PSA_KEY_SLOT_COUNT 32
+
+/**
+ * \def MBEDTLS_PSA_STATIC_KEY_SLOTS
+ *
+ * Optionally define the size (in bytes) of each static key slot. If not
+ * explicitly defined then it's automatically set to hold the maximum
+ * asymmetric PSA key enabled in the build (through PSA_WANT_xxx symbols).
+ * If required by the application this parameter can be set to higher values
+ * in order to store larger objects (ex: raw keys), but please note that this
+ * will increase RAM usage.
+ *
+ * Requires: MBEDTLS_PSA_STATIC_KEY_SLOTS
+ *
+ */
+//#define MBEDTLS_PSA_STATIC_KEY_SLOT_BUFFER_SIZE       256
 
 /* RSA OPTIONS */
 //#define MBEDTLS_RSA_GEN_KEY_MIN_BITS            1024 /**<  Minimum RSA key size that can be generated in bits (Minimum possible value is 128 bits) */

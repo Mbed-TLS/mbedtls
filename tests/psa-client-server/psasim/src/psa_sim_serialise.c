@@ -735,96 +735,38 @@ int psasim_deserialise_return_buffer(uint8_t **pos,
     return 1;
 }
 
-#define SER_TAG_SIZE        4
-
-size_t psasim_serialise_psa_key_production_parameters_t_needs(
-    const psa_key_production_parameters_t *params,
-    size_t data_length)
+size_t psasim_serialise_psa_custom_key_parameters_t_needs(
+    psa_custom_key_parameters_t value)
 {
-    /* We will serialise with 4-byte tag = "PKPP" + 4-byte overall length at the beginning,
-     * followed by size_t data_length, then the actual data from the structure.
-     */
-    return SER_TAG_SIZE + sizeof(uint32_t) + sizeof(data_length) + sizeof(*params) + data_length;
+    return sizeof(value);
 }
 
-int psasim_serialise_psa_key_production_parameters_t(uint8_t **pos,
-                                                     size_t *remaining,
-                                                     const psa_key_production_parameters_t *params,
-                                                     size_t data_length)
+int psasim_serialise_psa_custom_key_parameters_t(uint8_t **pos,
+                                                 size_t *remaining,
+                                                 psa_custom_key_parameters_t value)
 {
-    if (data_length > UINT32_MAX / 2) {       /* arbitrary limit */
-        return 0;       /* too big to serialise */
-    }
-
-    /* We use 32-bit lengths, which should be enough for any reasonable usage :) */
-    /* (the UINT32_MAX / 2 above is an even more conservative check to avoid overflow here) */
-    uint32_t len = (uint32_t) (sizeof(data_length) + sizeof(*params) + data_length);
-    if (*remaining < SER_TAG_SIZE + sizeof(uint32_t) + len) {
+    if (*remaining < sizeof(value)) {
         return 0;
     }
 
-    char tag[SER_TAG_SIZE] = "PKPP";
-
-    memcpy(*pos, tag, sizeof(tag));
-    memcpy(*pos + sizeof(tag), &len, sizeof(len));
-    *pos += sizeof(tag) + sizeof(len);
-    *remaining -= sizeof(tag) + sizeof(len);
-
-    memcpy(*pos, &data_length, sizeof(data_length));
-    memcpy(*pos + sizeof(data_length), params, sizeof(*params) + data_length);
-    *pos += sizeof(data_length) + sizeof(*params) + data_length;
-    *remaining -= sizeof(data_length) + sizeof(*params) + data_length;
+    memcpy(*pos, &value, sizeof(value));
+    *pos += sizeof(value);
 
     return 1;
 }
 
-int psasim_deserialise_psa_key_production_parameters_t(uint8_t **pos,
-                                                       size_t *remaining,
-                                                       psa_key_production_parameters_t **params,
-                                                       size_t *data_length)
+int psasim_deserialise_psa_custom_key_parameters_t(uint8_t **pos,
+                                                   size_t *remaining,
+                                                   psa_custom_key_parameters_t *value)
 {
-    if (*remaining < SER_TAG_SIZE + sizeof(uint32_t)) {
-        return 0;       /* can't even be an empty serialisation */
+    if (*remaining < sizeof(*value)) {
+        return 0;
     }
 
-    char tag[SER_TAG_SIZE] = "PKPP";    /* expected */
-    uint32_t len;
+    memcpy(value, *pos, sizeof(*value));
 
-    memcpy(&len, *pos + sizeof(tag), sizeof(len));
-
-    if (memcmp(*pos, tag, sizeof(tag)) != 0) {
-        return 0;       /* wrong tag */
-    }
-
-    *pos += sizeof(tag) + sizeof(len);
-    *remaining -= sizeof(tag) + sizeof(len);
-
-    if (*remaining < sizeof(*data_length)) {
-        return 0;       /* missing data_length */
-    }
-    memcpy(data_length, *pos, sizeof(*data_length));
-
-    if ((size_t) len != (sizeof(data_length) + sizeof(**params) + *data_length)) {
-        return 0;       /* wrong length */
-    }
-
-    if (*remaining < sizeof(*data_length) + sizeof(**params) + *data_length) {
-        return 0;       /* not enough data provided */
-    }
-
-    *pos += sizeof(data_length);
-    *remaining -= sizeof(data_length);
-
-    psa_key_production_parameters_t *out = malloc(sizeof(**params) + *data_length);
-    if (out == NULL) {
-        return 0;       /* allocation failure */
-    }
-
-    memcpy(out, *pos, sizeof(*out) + *data_length);
-    *pos += sizeof(*out) + *data_length;
-    *remaining -= sizeof(*out) + *data_length;
-
-    *params = out;
+    *pos += sizeof(*value);
+    *remaining -= sizeof(*value);
 
     return 1;
 }

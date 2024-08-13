@@ -43,7 +43,6 @@ int mbedtls_ecdh_can_do(mbedtls_ecp_group_id gid)
     return 1;
 }
 
-#if !defined(MBEDTLS_ECDH_GEN_PUBLIC_ALT)
 /*
  * Generate public key (restartable version)
  *
@@ -84,9 +83,7 @@ int mbedtls_ecdh_gen_public(mbedtls_ecp_group *grp, mbedtls_mpi *d, mbedtls_ecp_
 {
     return ecdh_gen_public_restartable(grp, d, Q, f_rng, p_rng, NULL);
 }
-#endif /* !MBEDTLS_ECDH_GEN_PUBLIC_ALT */
 
-#if !defined(MBEDTLS_ECDH_COMPUTE_SHARED_ALT)
 /*
  * Compute shared secret (SEC1 3.3.1)
  */
@@ -129,7 +126,6 @@ int mbedtls_ecdh_compute_shared(mbedtls_ecp_group *grp, mbedtls_mpi *z,
     return ecdh_compute_shared_restartable(grp, z, Q, d,
                                            f_rng, p_rng, NULL);
 }
-#endif /* !MBEDTLS_ECDH_COMPUTE_SHARED_ALT */
 
 static void ecdh_init_internal(mbedtls_ecdh_context_mbed *ctx)
 {

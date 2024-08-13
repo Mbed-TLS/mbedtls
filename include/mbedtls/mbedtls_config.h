@@ -351,61 +351,6 @@
 //#define MBEDTLS_TIMING_ALT
 
 /**
- * \def MBEDTLS_SHA256_PROCESS_ALT
- *
- * MBEDTLS__FUNCTION_NAME__ALT: Uncomment a macro to let Mbed TLS use you
- * alternate core implementation of symmetric crypto or hash function. Keep in
- * mind that function prototypes should remain the same.
- *
- * This replaces only one function. The header file from Mbed TLS is still
- * used, in contrast to the MBEDTLS__MODULE_NAME__ALT flags.
- *
- * Example: In case you uncomment MBEDTLS_SHA256_PROCESS_ALT, Mbed TLS will
- * no longer provide the mbedtls_sha1_process() function, but it will still provide
- * the other function (using your mbedtls_sha1_process() function) and the definition
- * of mbedtls_sha1_context, so your implementation of mbedtls_sha1_process must be compatible
- * with this definition.
- *
- * \note If you use the AES_xxx_ALT macros, then it is recommended to also set
- *       MBEDTLS_AES_ROM_TABLES in order to help the linker garbage-collect the AES
- *       tables.
- *
- * Uncomment a macro to enable alternate implementation of the corresponding
- * function.
- *
- * \warning   MD5, DES and SHA-1 are considered weak and their use
- *            constitutes a security risk. If possible, we recommend avoiding
- *            dependencies on them, and considering stronger message digests
- *            and ciphers instead.
- *
- * \warning   If both MBEDTLS_ECDSA_SIGN_ALT and MBEDTLS_ECDSA_DETERMINISTIC are
- *            enabled, then the deterministic ECDH signature functions pass the
- *            the static HMAC-DRBG as RNG to mbedtls_ecdsa_sign(). Therefore
- *            alternative implementations should use the RNG only for generating
- *            the ephemeral key and nothing else. If this is not possible, then
- *            MBEDTLS_ECDSA_DETERMINISTIC should be disabled and an alternative
- *            implementation should be provided for mbedtls_ecdsa_sign_det_ext().
- *
- */
-//#define MBEDTLS_MD5_PROCESS_ALT
-//#define MBEDTLS_RIPEMD160_PROCESS_ALT
-//#define MBEDTLS_SHA1_PROCESS_ALT
-//#define MBEDTLS_SHA256_PROCESS_ALT
-//#define MBEDTLS_SHA512_PROCESS_ALT
-//#define MBEDTLS_DES_SETKEY_ALT
-//#define MBEDTLS_DES_CRYPT_ECB_ALT
-//#define MBEDTLS_DES3_CRYPT_ECB_ALT
-//#define MBEDTLS_AES_SETKEY_ENC_ALT
-//#define MBEDTLS_AES_SETKEY_DEC_ALT
-//#define MBEDTLS_AES_ENCRYPT_ALT
-//#define MBEDTLS_AES_DECRYPT_ALT
-//#define MBEDTLS_ECDH_GEN_PUBLIC_ALT
-//#define MBEDTLS_ECDH_COMPUTE_SHARED_ALT
-//#define MBEDTLS_ECDSA_VERIFY_ALT
-//#define MBEDTLS_ECDSA_SIGN_ALT
-//#define MBEDTLS_ECDSA_GENKEY_ALT
-
-/**
  * \def MBEDTLS_ENTROPY_HARDWARE_ALT
  *
  * Uncomment this macro to let Mbed TLS use your own implementation of a
@@ -707,10 +652,6 @@
  *        using PSA. On the other hand, ECDH computations in TLS are using
  *        PSA, and are not restartable. These are temporary limitations that
  *        should be lifted in the future.
- *
- * \note  This option only works with the default software implementation of
- *        elliptic curve functionality. It is incompatible with
- *        MBEDTLS_ECDH_XXX_ALT, MBEDTLS_ECDSA_XXX_ALT.
  *
  * Requires: MBEDTLS_ECP_C
  *
@@ -3901,13 +3842,18 @@
 //#define MBEDTLS_PSA_HMAC_DRBG_MD_TYPE MBEDTLS_MD_SHA256
 
 /** \def MBEDTLS_PSA_KEY_SLOT_COUNT
- * Restrict the PSA library to supporting a maximum amount of simultaneously
- * loaded keys. A loaded key is a key stored by the PSA Crypto core as a
- * volatile key, or a persistent key which is loaded temporarily by the
- * library as part of a crypto operation in flight.
  *
- * If this option is unset, the library will fall back to a default value of
- * 32 keys.
+ * The maximum amount of PSA keys simultaneously in memory. This counts all
+ * volatile keys, plus loaded persistent keys.
+ *
+ * Currently, persistent keys do not need to be loaded all the time while
+ * a multipart operation is in progress, only while the operation is being
+ * set up. This may change in future versions of the library.
+ *
+ * Currently, the library traverses of the whole table on each access to a
+ * persistent key. Therefore large values may cause poor performance.
+ *
+ * This option has no effect when #MBEDTLS_PSA_CRYPTO_C is disabled.
  */
 //#define MBEDTLS_PSA_KEY_SLOT_COUNT 32
 

@@ -126,22 +126,6 @@ int mbedtls_md5_finish(mbedtls_md5_context *ctx,
                        unsigned char output[16]);
 
 /**
- * \brief          MD5 process data block (internal use only)
- *
- * \param ctx      MD5 context
- * \param data     buffer holding one block of data
- *
- * \return         0 if successful
- *
- * \warning        MD5 is considered a weak message digest and its use
- *                 constitutes a security risk. We recommend considering
- *                 stronger message digests instead.
- *
- */
-int mbedtls_internal_md5_process(mbedtls_md5_context *ctx,
-                                 const unsigned char data[64]);
-
-/**
  * \brief          Output = MD5( input buffer )
  *
  * \param input    buffer holding the data

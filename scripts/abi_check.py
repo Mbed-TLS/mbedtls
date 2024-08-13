@@ -350,9 +350,15 @@ class AbiChecker:
         """
         # Existing test data files. This may be missing some automatically
         # generated files if they haven't been generated yet.
-        storage_data_files = set(glob.glob(
-            'tests/suites/test_suite_*storage_format*.data'
-        ))
+        if os.path.isdir(os.path.join(git_worktree_path, 'tf-psa-crypto',
+                                      'tests', 'suites')):
+            storage_data_files = set(glob.glob(
+                'tf-psa-crypto/tests/suites/test_suite_*storage_format*.data'
+            ))
+        else:
+            storage_data_files = set(glob.glob(
+                'tests/suites/test_suite_*storage_format*.data'
+            ))
         # Discover and (re)generate automatically generated data files.
         to_be_generated = set()
         for filename in self._list_generated_test_data_files(git_worktree_path):

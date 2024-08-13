@@ -254,10 +254,10 @@ uint32_t mbedtls_ssl_get_extension_mask(unsigned int extension_type);
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
 
 /* This macro determines whether CBC is supported. */
-#if defined(MBEDTLS_SSL_HAVE_CBC)      &&                                  \
-    (defined(MBEDTLS_SSL_HAVE_AES)     ||                                  \
+#if defined(PSA_WANT_ALG_CBC_NO_PADDING)      &&                                  \
+    (defined(PSA_WANT_KEY_TYPE_AES)     ||                                  \
     defined(MBEDTLS_SSL_HAVE_CAMELLIA) ||                                  \
-    defined(MBEDTLS_SSL_HAVE_ARIA))
+    defined(PSA_WANT_KEY_TYPE_ARIA))
 #define MBEDTLS_SSL_SOME_SUITES_USE_CBC
 #endif
 
@@ -300,7 +300,7 @@ uint32_t mbedtls_ssl_get_extension_mask(unsigned int extension_type);
 #define MBEDTLS_SSL_MAC_ADD                 16
 #endif
 
-#if defined(MBEDTLS_SSL_HAVE_CBC)
+#if defined(PSA_WANT_ALG_CBC_NO_PADDING)
 #define MBEDTLS_SSL_PADDING_ADD            256
 #else
 #define MBEDTLS_SSL_PADDING_ADD              0
@@ -1507,7 +1507,7 @@ int mbedtls_ssl_psk_derive_premaster(mbedtls_ssl_context *ssl,
 #endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */
 
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_PSK_ENABLED)
-#if defined(MBEDTLS_SSL_CLI_C)
+#if defined(MBEDTLS_SSL_CLI_C) || defined(MBEDTLS_SSL_SRV_C)
 MBEDTLS_CHECK_RETURN_CRITICAL
 int mbedtls_ssl_conf_has_static_psk(mbedtls_ssl_config const *conf);
 #endif
@@ -1576,10 +1576,10 @@ int mbedtls_ssl_set_calc_verify_md(mbedtls_ssl_context *ssl, int md);
 
 MBEDTLS_CHECK_RETURN_CRITICAL
 int mbedtls_ssl_check_curve_tls_id(const mbedtls_ssl_context *ssl, uint16_t tls_id);
-#if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
+#if defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
 MBEDTLS_CHECK_RETURN_CRITICAL
 int mbedtls_ssl_check_curve(const mbedtls_ssl_context *ssl, mbedtls_ecp_group_id grp_id);
-#endif /* MBEDTLS_PK_HAVE_ECC_KEYS */
+#endif /* PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY */
 
 /**
  * \brief Return PSA EC info for the specified TLS ID.

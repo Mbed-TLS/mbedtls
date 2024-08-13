@@ -643,7 +643,7 @@
  */
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3) && \
     defined(MBEDTLS_SSL_SESSION_TICKETS) && \
-    defined(MBEDTLS_SSL_HAVE_AES) && defined(MBEDTLS_SSL_HAVE_GCM) && \
+    defined(PSA_WANT_KEY_TYPE_AES) && defined(PSA_WANT_ALG_GCM) && \
     defined(PSA_WANT_ALG_SHA_384)
 #define MBEDTLS_PSK_MAX_LEN 48 /* 384 bits */
 #else

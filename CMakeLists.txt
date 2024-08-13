@@ -22,6 +22,10 @@ cmake_minimum_required(VERSION 3.5.1)
 
 include(CMakePackageConfigHelpers)
 
+# Include convenience functions for printing properties and variables, like
+# cmake_print_properties(), cmake_print_variables().
+include(CMakePrintHelpers)
+
 # https://cmake.org/cmake/help/latest/policy/CMP0011.html
 # Setting this policy is required in CMake >= 3.18.0, otherwise a warning is generated. The OLD
 # policy setting is deprecated, and will be removed in future versions.
@@ -200,7 +204,7 @@ if(CMAKE_COMPILER_IS_GNU)
     # note: starting with CMake 2.8 we could use CMAKE_C_COMPILER_VERSION
     execute_process(COMMAND ${CMAKE_C_COMPILER} -dumpversion
                     OUTPUT_VARIABLE GCC_VERSION)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Wwrite-strings")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Wwrite-strings -Wmissing-prototypes")
     if (GCC_VERSION VERSION_GREATER 3.0 OR GCC_VERSION VERSION_EQUAL 3.0)
         set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wformat=2 -Wno-format-nonliteral")
     endif()
@@ -234,7 +238,7 @@ if(CMAKE_COMPILER_IS_GNU)
 endif(CMAKE_COMPILER_IS_GNU)
 
 if(CMAKE_COMPILER_IS_CLANG)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Wwrite-strings -Wpointer-arith -Wimplicit-fallthrough -Wshadow -Wvla -Wformat=2 -Wno-format-nonliteral")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Wwrite-strings -Wmissing-prototypes -Wpointer-arith -Wimplicit-fallthrough -Wshadow -Wvla -Wformat=2 -Wno-format-nonliteral")
     set(CMAKE_C_FLAGS_RELEASE     "-O2")
     set(CMAKE_C_FLAGS_DEBUG       "-O0 -g3")
     set(CMAKE_C_FLAGS_COVERAGE    "-O0 -g3 --coverage")
@@ -276,6 +280,15 @@ if(MBEDTLS_FATAL_WARNINGS)
         set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --warnings_are_errors")
     endif(CMAKE_COMPILER_IS_IAR)
 endif(MBEDTLS_FATAL_WARNINGS)
+
+if(CMAKE_BUILD_TYPE STREQUAL "Check" AND TEST_CPP)
+    set(CMAKE_CXX_STANDARD 11)
+    set(CMAKE_CXX_STANDARD_REQUIRED ON)
+    set(CMAKE_CXX_EXTENSIONS OFF)
+    if(CMAKE_COMPILER_IS_CLANG OR CMAKE_COMPILER_IS_GNU)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pedantic")
+    endif()
+endif()
 
 if(CMAKE_BUILD_TYPE STREQUAL "Coverage")
     if(CMAKE_COMPILER_IS_GNU OR CMAKE_COMPILER_IS_CLANG)
@@ -401,6 +414,7 @@ if(ENABLE_TESTING)
     enable_testing()
 
     add_subdirectory(tests)
+    add_subdirectory(tf-psa-crypto/tests)
 
     # additional convenience targets for Unix only
     if(UNIX)

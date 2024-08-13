@@ -82,7 +82,7 @@ const unsigned char msg2_part2[] = { 0x15, 0x16, 0x17 };
 const unsigned char key_bytes[32] = { 0x2a };
 
 /* Print the contents of a buffer in hex */
-void print_buf(const char *title, uint8_t *buf, size_t len)
+static void print_buf(const char *title, uint8_t *buf, size_t len)
 {
     printf("%s:", title);
     for (size_t i = 0; i < len; i++) {

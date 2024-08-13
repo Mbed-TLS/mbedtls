@@ -13,6 +13,10 @@
 #include <psa_crypto_slot_management.h>
 #include <test/psa_crypto_helpers.h>
 
+#if defined(MBEDTLS_CTR_DRBG_C)
+#include <mbedtls/ctr_drbg.h>
+#endif
+
 #if defined(MBEDTLS_PSA_CRYPTO_C)
 
 #include <psa/crypto.h>
@@ -70,20 +74,14 @@ const char *mbedtls_test_helper_is_psa_leaking(void)
 
     mbedtls_psa_get_stats(&stats);
 
-#if defined(MBEDTLS_CTR_DRBG_C) && !defined(MBEDTLS_AES_C) && \
-    !defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG)
-    /* When AES_C is not defined and PSA does not have an external RNG,
-     * then CTR_DRBG uses PSA to perform AES-ECB. In this scenario 1 key
-     * slot is used internally from PSA to hold the AES key and it should
-     * not be taken into account when evaluating remaining open slots. */
-    if (stats.volatile_slots > 1) {
+    /* Some volatile slots may be used for internal purposes. Generally
+     * we'll have exactly MBEDTLS_TEST_PSA_INTERNAL_KEYS at this point,
+     * but in some cases we might have less, e.g. if a code path calls
+     * PSA_DONE more than once, or if there has only been a partial or
+     * failed initialization. */
+    if (stats.volatile_slots > MBEDTLS_TEST_PSA_INTERNAL_KEYS) {
         return "A volatile slot has not been closed properly.";
     }
-#else
-    if (stats.volatile_slots != 0) {
-        return "A volatile slot has not been closed properly.";
-    }
-#endif
     if (stats.persistent_slots != 0) {
         return "A persistent slot has not been closed properly.";
     }

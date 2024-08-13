@@ -1301,7 +1301,13 @@ void mpi_core_exp_mod(char *input_N, char *input_A,
     TEST_CF_SECRET(N, N_limbs * sizeof(mbedtls_mpi_uint));
     TEST_CF_SECRET(E, E_limbs * sizeof(mbedtls_mpi_uint));
 
+#if defined(MBEDTLS_TEST_HOOKS)
+    mbedtls_mpi_optionally_safe_codepath_reset();
+#endif
     mbedtls_mpi_core_exp_mod(Y, A, N, N_limbs, E, E_limbs, R2, T);
+#if defined(MBEDTLS_TEST_HOOKS)
+    TEST_EQUAL(mbedtls_mpi_optionally_safe_codepath, MBEDTLS_MPI_IS_SECRET);
+#endif
 
     TEST_CF_PUBLIC(Y, N_limbs * sizeof(mbedtls_mpi_uint));
 
@@ -1312,7 +1318,13 @@ void mpi_core_exp_mod(char *input_N, char *input_A,
     TEST_CF_SECRET(E, E_limbs * sizeof(mbedtls_mpi_uint));
 
     /* Check when output aliased to input */
+#if defined(MBEDTLS_TEST_HOOKS)
+    mbedtls_mpi_optionally_safe_codepath_reset();
+#endif
     mbedtls_mpi_core_exp_mod(A, A, N, N_limbs, E, E_limbs, R2, T);
+#if defined(MBEDTLS_TEST_HOOKS)
+    TEST_EQUAL(mbedtls_mpi_optionally_safe_codepath, MBEDTLS_MPI_IS_SECRET);
+#endif
 
     TEST_CF_PUBLIC(A, A_limbs * sizeof(mbedtls_mpi_uint));
     TEST_EQUAL(0, memcmp(X, A, N_limbs * sizeof(mbedtls_mpi_uint)));

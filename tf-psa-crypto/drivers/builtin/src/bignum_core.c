@@ -766,6 +766,9 @@ static inline void exp_mod_calc_first_bit_optionally_safe(const mbedtls_mpi_uint
             *E_limb_index = E_bits / biL;
             *E_bit_index = E_bits % biL;
         }
+#if defined(MBEDTLS_TEST_HOOKS)
+        mbedtls_mpi_optionally_safe_codepath = MBEDTLS_MPI_IS_PUBLIC;
+#endif
     } else {
         /*
          * Here we need to be constant time with respect to E and can't do anything better than
@@ -773,6 +776,12 @@ static inline void exp_mod_calc_first_bit_optionally_safe(const mbedtls_mpi_uint
          */
         *E_limb_index = E_limbs;
         *E_bit_index = 0;
+#if defined(MBEDTLS_TEST_HOOKS)
+        // Only mark the codepath safe if there wasn't an unsafe codepath before
+        if (mbedtls_mpi_optionally_safe_codepath != MBEDTLS_MPI_IS_PUBLIC) {
+            mbedtls_mpi_optionally_safe_codepath = MBEDTLS_MPI_IS_SECRET;
+        }
+#endif
     }
 }
 
@@ -789,11 +798,20 @@ static inline void exp_mod_table_lookup_optionally_safe(mbedtls_mpi_uint *Wselec
 {
     if (window_public == MBEDTLS_MPI_IS_PUBLIC) {
         memcpy(Wselect, Wtable + window * AN_limbs, AN_limbs * ciL);
+#if defined(MBEDTLS_TEST_HOOKS)
+        mbedtls_mpi_optionally_safe_codepath = MBEDTLS_MPI_IS_PUBLIC;
+#endif
     } else {
         /* Select Wtable[window] without leaking window through
          * memory access patterns. */
         mbedtls_mpi_core_ct_uint_table_lookup(Wselect, Wtable,
                                               AN_limbs, welem, window);
+#if defined(MBEDTLS_TEST_HOOKS)
+        // Only mark the codepath safe if there wasn't an unsafe codepath before
+        if (mbedtls_mpi_optionally_safe_codepath != MBEDTLS_MPI_IS_PUBLIC) {
+            mbedtls_mpi_optionally_safe_codepath = MBEDTLS_MPI_IS_SECRET;
+        }
+#endif
     }
 }
 

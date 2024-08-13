@@ -5272,7 +5272,7 @@ uint32_t psa_generate_key_iop_get_num_ops(psa_generate_key_iop_t *operation);
  *                              aborted by calling \c
  *                              psa_generate_key_iop_abort().
  *
- * \note                        Only asymmetric keys are supported. (See \p attributes.)
+ * \note                        Only asymmetric key pairs are supported. (See \p attributes.)
  *
  * \param[in, out] operation    The \c psa_generate_key_iop_t to use.
  *                              This must be initialized as per the

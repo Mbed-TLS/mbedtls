@@ -35,19 +35,11 @@ parse_storage_data_check:"505341004b45590000000000010000000170000001000000000000
 
 # Not specific to files, but only run this test in an environment where the maximum size could be reached.
 Save maximum-size persistent raw key
-depends_on:MBEDTLS_PSA_ITS_FILE_C:!MBEDTLS_PSA_STATIC_KEY_SLOTS
+depends_on:MBEDTLS_PSA_ITS_FILE_C
 save_large_persistent_key:PSA_CRYPTO_MAX_STORAGE_SIZE:PSA_SUCCESS
-
-Save maximum-size persistent raw key - static key slot size
-depends_on:MBEDTLS_PSA_ITS_FILE_C:MBEDTLS_PSA_STATIC_KEY_SLOTS
-save_large_persistent_key:MBEDTLS_PSA_STATIC_KEY_SLOT_BUFFER_SIZE:PSA_SUCCESS
 
 Save larger than maximum-size persistent raw key
 save_large_persistent_key:PSA_CRYPTO_MAX_STORAGE_SIZE + 1:PSA_ERROR_NOT_SUPPORTED
-
-Save larger than maximum-size persistent raw key - static key slot size
-depends_on:MBEDTLS_PSA_STATIC_KEY_SLOTS
-save_large_persistent_key:MBEDTLS_PSA_STATIC_KEY_SLOT_BUFFER_SIZE + 1:PSA_ERROR_NOT_SUPPORTED
 
 Persistent key destroy
 depends_on:PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC:PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_IMPORT

@@ -822,7 +822,15 @@ static void mbedtls_mpi_core_exp_mod_optionally_safe(mbedtls_mpi_uint *X,
                                                      const mbedtls_mpi_uint *RR,
                                                      mbedtls_mpi_uint *T)
 {
-    const size_t wsize = exp_mod_get_window_size(E_limbs * biL);
+    /* We'll process the bits of E from most significant
+     * (limb_index=E_limbs-1, E_bit_index=biL-1) to least significant
+     * (limb_index=0, E_bit_index=0). */
+    size_t E_limb_index = E_limbs;
+    size_t E_bit_index = 0;
+    exp_mod_calc_first_bit_optionally_safe(E, E_limbs, E_public,
+                                           &E_limb_index, &E_bit_index);
+
+    const size_t wsize = exp_mod_get_window_size(E_limb_index * biL);
     const size_t welem = ((size_t) 1) << wsize;
 
     /* This is how we will use the temporary storage T, which must have space
@@ -852,14 +860,6 @@ static void mbedtls_mpi_core_exp_mod_optionally_safe(mbedtls_mpi_uint *X,
 
     /* X = 1 (in Montgomery presentation) initially */
     memcpy(X, Wtable, AN_limbs * ciL);
-
-    /* We'll process the bits of E from most significant
-     * (limb_index=E_limbs-1, E_bit_index=biL-1) to least significant
-     * (limb_index=0, E_bit_index=0). */
-    size_t E_limb_index = E_limbs;
-    size_t E_bit_index = 0;
-    exp_mod_calc_first_bit_optionally_safe(E, E_limbs, E_public,
-                                           &E_limb_index, &E_bit_index);
 
     /* At any given time, window contains window_bits bits from E.
      * window_bits can go up to wsize. */

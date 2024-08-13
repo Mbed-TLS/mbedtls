@@ -817,7 +817,7 @@ component_build_module_alt () {
 }
 
 component_test_psa_crypto_config_accel_ecdsa () {
-    msg "build: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated ECDSA"
+    msg "build: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated ECDSA - USE_PSA_CRYPTO"
 
     # Algorithms and key types to accelerate
     loc_accel_list="ALG_ECDSA ALG_DETERMINISTIC_ECDSA \
@@ -827,8 +827,13 @@ component_test_psa_crypto_config_accel_ecdsa () {
     # Configure
     # ---------
 
-    # Start with full config for maximum coverage (also enables USE_PSA)
+    # Start with full config for maximum coverage
     helper_libtestdriver1_adjust_config "full"
+    # Disable MBEDTLS_USE_PSA_CRYPTO, even though in practice users who have
+    # psa acceleration are likely to enable it, for variety of coverage.
+    # component_test_psa_crypto_config_accel_ecc_xxx have
+    # MBEDTLS_USE_PSA_CRYPTO enabled.
+    scripts/config.py unset MBEDTLS_USE_PSA_CRYPTO
 
     # Disable the module that's accelerated
     scripts/config.py unset MBEDTLS_ECDSA_C
@@ -850,12 +855,12 @@ component_test_psa_crypto_config_accel_ecdsa () {
     # Run the tests
     # -------------
 
-    msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated ECDSA"
+    msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated ECDSA - USE_PSA_CRYPTO"
     make test
 }
 
 component_test_psa_crypto_config_accel_ecdh () {
-    msg "build: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated ECDH"
+    msg "build: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated ECDH - USE_PSA_CRYPTO"
 
     # Algorithms and key types to accelerate
     loc_accel_list="ALG_ECDH \
@@ -865,8 +870,13 @@ component_test_psa_crypto_config_accel_ecdh () {
     # Configure
     # ---------
 
-    # Start with full config for maximum coverage (also enables USE_PSA)
+    # Start with full config for maximum coverage
     helper_libtestdriver1_adjust_config "full"
+    # Disable MBEDTLS_USE_PSA_CRYPTO, even though in practice users who have
+    # psa acceleration are likely to enable it, for variety of coverage.
+    # component_test_psa_crypto_config_accel_ecc_xxx have
+    # MBEDTLS_USE_PSA_CRYPTO enabled.
+    scripts/config.py unset MBEDTLS_USE_PSA_CRYPTO
 
     # Disable the module that's accelerated
     scripts/config.py unset MBEDTLS_ECDH_C
@@ -884,7 +894,7 @@ component_test_psa_crypto_config_accel_ecdh () {
     # Run the tests
     # -------------
 
-    msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated ECDH"
+    msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated ECDH - USE_PSA_CRYPTO"
     make test
 }
 

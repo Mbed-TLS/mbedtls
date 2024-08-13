@@ -94,49 +94,25 @@ component_test_psa_crypto_without_heap() {
     helper_libtestdriver1_make_drivers "$loc_accel_list"
 
     msg "crypto without heap: build main library"
+    # Disable all legacy MBEDTLS_xxx symbols.
+    scripts/config.py unset-all "^MBEDTLS_"
+    # Build the PSA core using the proper config file.
+    scripts/config.py set MBEDTLS_PSA_CRYPTO_C
+    scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
     # Enable fully-static key slots in PSA core.
     scripts/config.py set MBEDTLS_PSA_STATIC_KEY_SLOTS
-    # Prevent PSA core from creating a copy of input/output buffers
+    # Prevent PSA core from creating a copy of input/output buffers.
     scripts/config.py set MBEDTLS_PSA_ASSUME_EXCLUSIVE_BUFFERS
     # Prevent PSA core from using CTR-DRBG or HMAC-DRBG for random generation.
     scripts/config.py set MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG
     # Set calloc/free as null pointer functions. Calling them would crash
     # the program so we can use this as a "sentinel" for being sure no module
     # is making use of these functions in the library.
+    scripts/config.py set MBEDTLS_PLATFORM_C
     scripts/config.py set MBEDTLS_PLATFORM_MEMORY
     scripts/config.py set MBEDTLS_PLATFORM_STD_CALLOC   NULL
     scripts/config.py set MBEDTLS_PLATFORM_STD_FREE     NULL
 
-    # Disable all the modules/features that use calloc directly
-    scripts/config.py unset-all MBEDTLS_ASN1_
-    scripts/config.py unset MBEDTLS_BIGNUM_C
-    scripts/config.py unset MBEDTLS_CIPHER_C
-    scripts/config.py unset MBEDTLS_CMAC_C
-    scripts/config.py unset MBEDTLS_DHM_C
-    scripts/config.py unset MBEDTLS_ECDSA_C
-    scripts/config.py unset MBEDTLS_ECP_RESTARTABLE
-    scripts/config.py unset MBEDTLS_ECP_C
-    scripts/config.py unset-all "^MBEDTLS_LMS_"
-    scripts/config.py unset MBEDTLS_MD_C
-    scripts/config.py unset MBEDTLS_OID_C
-    scripts/config.py unset-all "^MBEDTLS_PEM_"
-    scripts/config.py unset MBEDTLS_PKCS7_C
-    scripts/config.py unset-all "^MBEDTLS_PK_"
-    scripts/config.py unset MBEDTLS_RSA_C
-    scripts/config.py unset MBEDTLS_PSA_CRYPTO_STORAGE_C
-    # Disable all modules that depend on the the previous ones
-    scripts/config.py unset MBEDTLS_NIST_KW_C
-    scripts/config.py unset MBEDTLS_ECDH_C
-    scripts/config.py unset MBEDTLS_ECJPAKE_C
-    scripts/config.py unset-all "^MBEDTLS_PKCS1_"
-    scripts/config.py unset-all "^MBEDTLS_ENTROPY_"
-    scripts/config.py unset-all "^MBEDTLS_SHA"
-    scripts/config.py unset MBEDTLS_PLATFORM_NV_SEED_ALT
-    scripts/config.py unset MBEDTLS_HKDF_C
-    scripts/config.py unset MBEDTLS_PKCS5_C
-    scripts/config.py unset MBEDTLS_PKCS12_C
-    scripts/config.py unset MBEDTLS_HMAC_DRBG_C
-    scripts/config.py unset MBEDTLS_ECDSA_DETERMINISTIC
     helper_libtestdriver1_make_main "$loc_accel_list" lib
 
     msg "crypto without heap: build test suites and helpers"

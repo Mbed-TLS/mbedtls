@@ -5272,11 +5272,13 @@ uint32_t psa_generate_key_iop_get_num_ops(psa_generate_key_iop_t *operation);
  *                              aborted by calling \c
  *                              psa_generate_key_iop_abort().
  *
+ * \note                        Only asymmetric keys are supported. (See \p attributes.)
+ *
  * \param[in, out] operation    The \c psa_generate_key_iop_t to use.
  *                              This must be initialized as per the
  *                              documentation for
  *                              \c psa_generate_key_iop_t, and be inactive.
-
+ *
  * \param[in] attributes        The attributes for the new key.
  *                              The following attributes are required for all
  *                              keys:
@@ -5322,7 +5324,6 @@ uint32_t psa_generate_key_iop_get_num_ops(psa_generate_key_iop_t *operation);
  * \retval PSA_ERROR_NOT_PERMITTED
  *          Creating a key with the specified attributes is not permitted.
  *
- * \retval #PSA_ERROR_INVALID_ARGUMENT \emptydescription
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE \emptydescription
  * \retval #PSA_ERROR_HARDWARE_FAILURE \emptydescription
@@ -5377,7 +5378,7 @@ psa_status_t psa_generate_key_iop_setup(
  *
  * \param[in, out] operation    The \c psa_generate_key_iop_t to use.
  *                              This must be initialized first, and have had \c
- *                              psa_generate_key_iop_start() called
+ *                              psa_generate_key_iop_setup() called
  *                              with it first.
  *
  * \param[out] key              On success, an identifier for the newly created

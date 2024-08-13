@@ -59,9 +59,8 @@ int mbedtls_sha1_starts(mbedtls_sha1_context *ctx)
     return 0;
 }
 
-#if !defined(MBEDTLS_SHA1_PROCESS_ALT)
-int mbedtls_internal_sha1_process(mbedtls_sha1_context *ctx,
-                                  const unsigned char data[64])
+static int mbedtls_internal_sha1_process(mbedtls_sha1_context *ctx,
+                                         const unsigned char data[64])
 {
     struct {
         uint32_t temp, W[16], A, B, C, D, E;
@@ -227,8 +226,6 @@ int mbedtls_internal_sha1_process(mbedtls_sha1_context *ctx,
 
     return 0;
 }
-
-#endif /* !MBEDTLS_SHA1_PROCESS_ALT */
 
 /*
  * SHA-1 process buffer

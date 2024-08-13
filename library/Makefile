@@ -244,6 +244,7 @@ endif
 
 static: libmbedcrypto.a libmbedx509.a libmbedtls.a
 	cd ../tests && echo "This is a seedfile that contains 64 bytes (65 on Windows)......" > seedfile
+	cd ../tf-psa-crypto/tests && echo "This is a seedfile that contains 64 bytes (65 on Windows)......" > seedfile
 
 shared: libmbedcrypto.$(DLEXT) libmbedx509.$(DLEXT) libmbedtls.$(DLEXT)
 
@@ -398,11 +399,10 @@ clean:
 ifndef WINDOWS
 	rm -f *.o libmbed*
 	rm -f $(OBJS_CRYPTO)
-	rm -f $(THIRDPARTY_CRYPTO_OBJECTS)
 else
 	if exist *.o del /Q /F *.o
 	if exist libmbed* del /Q /F libmbed*
-	del /Q /F del_errors_out_if_the_file_list_is_empty_but_not_if_a_file_does_not_exist $(subst /,\,$(THIRDPARTY_CRYPTO_OBJECTS))
+	del /Q /F del_errors_out_if_the_file_list_is_empty_but_not_if_a_file_does_not_exist $(subst /,\,$(OBJS_CRYPTO))
 endif
 
 neat: clean

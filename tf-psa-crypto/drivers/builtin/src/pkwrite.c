@@ -23,10 +23,10 @@
 #include "mbedtls/ecp.h"
 #include "mbedtls/platform_util.h"
 #endif
-#if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
+#if defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
 #include "pk_internal.h"
 #endif
-#if defined(MBEDTLS_RSA_C) || defined(MBEDTLS_PK_HAVE_ECC_KEYS)
+#if defined(MBEDTLS_RSA_C) || defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
 #include "pkwrite.h"
 #endif
 #if defined(MBEDTLS_PEM_WRITE_C)
@@ -85,7 +85,7 @@ static int pk_write_rsa_der(unsigned char **p, unsigned char *buf,
 /******************************************************************************
  * Internal functions for EC keys.
  ******************************************************************************/
-#if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
+#if defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
 #if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
 static int pk_write_ec_pubkey(unsigned char **p, unsigned char *start,
                               const mbedtls_pk_context *pk)
@@ -343,7 +343,7 @@ static int pk_write_ec_der(unsigned char **p, unsigned char *buf,
 
     return (int) len;
 }
-#endif /* MBEDTLS_PK_HAVE_ECC_KEYS */
+#endif /* PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY */
 
 /******************************************************************************
  * Internal functions for Opaque keys.
@@ -419,7 +419,7 @@ int mbedtls_pk_write_pubkey(unsigned char **p, unsigned char *start,
         MBEDTLS_ASN1_CHK_ADD(len, mbedtls_rsa_write_pubkey(mbedtls_pk_rsa(*key), start, p));
     } else
 #endif
-#if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
+#if defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
     if (mbedtls_pk_get_type(key) == MBEDTLS_PK_ECKEY) {
         MBEDTLS_ASN1_CHK_ADD(len, pk_write_ec_pubkey(p, start, key));
     } else
@@ -468,7 +468,7 @@ int mbedtls_pk_write_pubkey_der(const mbedtls_pk_context *key, unsigned char *bu
 
     pk_type = pk_get_type_ext(key);
 
-#if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
+#if defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
     if (pk_get_type_ext(key) == MBEDTLS_PK_ECKEY) {
         mbedtls_ecp_group_id ec_grp_id = mbedtls_pk_get_ec_group_id(key);
         if (MBEDTLS_PK_IS_RFC8410_GROUP_ID(ec_grp_id)) {
@@ -481,7 +481,7 @@ int mbedtls_pk_write_pubkey_der(const mbedtls_pk_context *key, unsigned char *bu
             MBEDTLS_ASN1_CHK_ADD(par_len, pk_write_ec_param(&c, buf, ec_grp_id));
         }
     }
-#endif /* MBEDTLS_PK_HAVE_ECC_KEYS */
+#endif /* PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY */
 
     /* At this point oid_len is not null only for EC Montgomery keys. */
     if (oid_len == 0) {
@@ -516,7 +516,7 @@ int mbedtls_pk_write_key_der(const mbedtls_pk_context *key, unsigned char *buf, 
         return pk_write_rsa_der(&c, buf, key);
     } else
 #endif /* MBEDTLS_RSA_C */
-#if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
+#if defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
     if (pk_get_type_ext(key) == MBEDTLS_PK_ECKEY) {
 #if defined(MBEDTLS_PK_HAVE_RFC8410_CURVES)
         if (mbedtls_pk_is_rfc8410(key)) {
@@ -525,7 +525,7 @@ int mbedtls_pk_write_key_der(const mbedtls_pk_context *key, unsigned char *buf, 
 #endif /* MBEDTLS_PK_HAVE_RFC8410_CURVES */
         return pk_write_ec_der(&c, buf, key);
     } else
-#endif /* MBEDTLS_PK_HAVE_ECC_KEYS */
+#endif /* PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY */
     return MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE;
 }
 
@@ -589,7 +589,7 @@ int mbedtls_pk_write_key_pem(const mbedtls_pk_context *key, unsigned char *buf, 
         end = PEM_END_PRIVATE_KEY_RSA "\n";
     } else
 #endif
-#if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
+#if defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
     if (pk_get_type_ext(key) == MBEDTLS_PK_ECKEY) {
         if (mbedtls_pk_is_rfc8410(key)) {
             begin = PEM_BEGIN_PRIVATE_KEY_PKCS8 "\n";
@@ -599,7 +599,7 @@ int mbedtls_pk_write_key_pem(const mbedtls_pk_context *key, unsigned char *buf, 
             end = PEM_END_PRIVATE_KEY_EC "\n";
         }
     } else
-#endif /* MBEDTLS_PK_HAVE_ECC_KEYS */
+#endif /* PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY */
     {
         ret = MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE;
         goto cleanup;

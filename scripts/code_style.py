@@ -71,6 +71,7 @@ def get_src_files(since: Optional[str]) -> List[str]:
     """
     file_patterns = ["*.[hc]",
                      "tests/suites/*.function",
+                     "tf-psa-crypto/tests/suites/*.function",
                      "scripts/data_files/*.fmt"]
     output = subprocess.check_output(["git", "ls-files"] + file_patterns,
                                      universal_newlines=True)

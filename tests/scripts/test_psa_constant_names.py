@@ -156,7 +156,7 @@ class Tests:
             out.write(' PASS\n')
 
 HEADERS = ['psa/crypto.h', 'psa/crypto_extra.h', 'psa/crypto_values.h']
-TEST_SUITES = ['tests/suites/test_suite_psa_crypto_metadata.data']
+TEST_SUITES = ['tf-psa-crypto/tests/suites/test_suite_psa_crypto_metadata.data']
 
 def main():
     parser = argparse.ArgumentParser(description=globals()['__doc__'])

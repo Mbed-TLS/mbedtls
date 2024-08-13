@@ -44,9 +44,7 @@
  * This is a convenience shorthand macro to check if we need reverse S-box and
  * reverse tables. It's private and only defined in this file.
  */
-#if (!defined(MBEDTLS_AES_DECRYPT_ALT) || \
-    (!defined(MBEDTLS_AES_SETKEY_DEC_ALT) && !defined(MBEDTLS_AES_USE_HARDWARE_ONLY))) && \
-    !defined(MBEDTLS_BLOCK_CIPHER_NO_DECRYPT)
+#if !defined(MBEDTLS_BLOCK_CIPHER_NO_DECRYPT)
 #define MBEDTLS_AES_NEED_REVERSE_TABLES
 #endif
 
@@ -541,7 +539,6 @@ MBEDTLS_MAYBE_UNUSED static unsigned mbedtls_aes_rk_offset(uint32_t *buf)
 /*
  * AES key schedule (encryption)
  */
-#if !defined(MBEDTLS_AES_SETKEY_ENC_ALT)
 int mbedtls_aes_setkey_enc(mbedtls_aes_context *ctx, const unsigned char *key,
                            unsigned int keybits)
 {
@@ -647,12 +644,11 @@ int mbedtls_aes_setkey_enc(mbedtls_aes_context *ctx, const unsigned char *key,
     return 0;
 #endif /* !MBEDTLS_AES_USE_HARDWARE_ONLY */
 }
-#endif /* !MBEDTLS_AES_SETKEY_ENC_ALT */
 
 /*
  * AES key schedule (decryption)
  */
-#if !defined(MBEDTLS_AES_SETKEY_DEC_ALT) && !defined(MBEDTLS_BLOCK_CIPHER_NO_DECRYPT)
+#if !defined(MBEDTLS_BLOCK_CIPHER_NO_DECRYPT)
 int mbedtls_aes_setkey_dec(mbedtls_aes_context *ctx, const unsigned char *key,
                            unsigned int keybits)
 {
@@ -721,7 +717,7 @@ exit:
 
     return ret;
 }
-#endif /* !MBEDTLS_AES_SETKEY_DEC_ALT && !MBEDTLS_BLOCK_CIPHER_NO_DECRYPT */
+#endif /* !MBEDTLS_BLOCK_CIPHER_NO_DECRYPT */
 
 #if defined(MBEDTLS_CIPHER_MODE_XTS)
 static int mbedtls_aes_xts_decode_keys(const unsigned char *key,
@@ -845,13 +841,14 @@ int mbedtls_aes_xts_setkey_dec(mbedtls_aes_xts_context *ctx,
                AES_RT3(MBEDTLS_BYTE_3(Y0));     \
     } while (0)
 
+#if !defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
 /*
  * AES-ECB block encryption
  */
-#if !defined(MBEDTLS_AES_ENCRYPT_ALT)
-int mbedtls_internal_aes_encrypt(mbedtls_aes_context *ctx,
-                                 const unsigned char input[16],
-                                 unsigned char output[16])
+MBEDTLS_CHECK_RETURN_TYPICAL
+static int mbedtls_internal_aes_encrypt(mbedtls_aes_context *ctx,
+                                        const unsigned char input[16],
+                                        unsigned char output[16])
 {
     int i;
     uint32_t *RK = ctx->buf + ctx->rk_offset;
@@ -905,15 +902,15 @@ int mbedtls_internal_aes_encrypt(mbedtls_aes_context *ctx,
 
     return 0;
 }
-#endif /* !MBEDTLS_AES_ENCRYPT_ALT */
 
+#if !defined(MBEDTLS_BLOCK_CIPHER_NO_DECRYPT)
 /*
  * AES-ECB block decryption
  */
-#if !defined(MBEDTLS_AES_DECRYPT_ALT) && !defined(MBEDTLS_BLOCK_CIPHER_NO_DECRYPT)
-int mbedtls_internal_aes_decrypt(mbedtls_aes_context *ctx,
-                                 const unsigned char input[16],
-                                 unsigned char output[16])
+MBEDTLS_CHECK_RETURN_TYPICAL
+static int mbedtls_internal_aes_decrypt(mbedtls_aes_context *ctx,
+                                        const unsigned char input[16],
+                                        unsigned char output[16])
 {
     int i;
     uint32_t *RK = ctx->buf + ctx->rk_offset;
@@ -967,8 +964,8 @@ int mbedtls_internal_aes_decrypt(mbedtls_aes_context *ctx,
 
     return 0;
 }
-#endif /* !MBEDTLS_AES_DECRYPT_ALT && !MBEDTLS_BLOCK_CIPHER_NO_DECRYPT */
-
+#endif /* !MBEDTLS_BLOCK_CIPHER_NO_DECRYPT */
+#endif /* !MBEDTLS_AES_USE_HARDWARE_ONLY */
 /*
  * Our intrinsics-based implementation of AESNI requires the round keys to be
  * aligned on a 16-byte boundary. We take care of this before creating them,
@@ -1858,12 +1855,6 @@ int mbedtls_aes_self_test(int verbose)
                 aes_tests = aes_test_ecb_enc[u];
             }
 
-            /*
-             * AES-192 is an optional feature that may be unavailable when
-             * there is an alternative underlying implementation i.e when
-             * MBEDTLS_AES_SETKEY_ENC_ALT or MBEDTLS_AES_SETKEY_DEC_ALT
-             * are defined.
-             */
             if (ret == MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED && keybits == 192) {
                 mbedtls_printf("skipped\n");
                 continue;
@@ -1923,12 +1914,6 @@ int mbedtls_aes_self_test(int verbose)
                 aes_tests = aes_test_cbc_enc[u];
             }
 
-            /*
-             * AES-192 is an optional feature that may be unavailable when
-             * there is an alternative underlying implementation i.e when
-             * MBEDTLS_AES_SETKEY_ENC_ALT or MBEDTLS_AES_SETKEY_DEC_ALT
-             * are defined.
-             */
             if (ret == MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED && keybits == 192) {
                 mbedtls_printf("skipped\n");
                 continue;
@@ -1991,12 +1976,7 @@ int mbedtls_aes_self_test(int verbose)
 
             offset = 0;
             ret = mbedtls_aes_setkey_enc(&ctx, key, keybits);
-            /*
-             * AES-192 is an optional feature that may be unavailable when
-             * there is an alternative underlying implementation i.e when
-             * MBEDTLS_AES_SETKEY_ENC_ALT or MBEDTLS_AES_SETKEY_DEC_ALT
-             * are defined.
-             */
+
             if (ret == MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED && keybits == 192) {
                 mbedtls_printf("skipped\n");
                 continue;
@@ -2056,12 +2036,7 @@ int mbedtls_aes_self_test(int verbose)
 
             offset = 0;
             ret = mbedtls_aes_setkey_enc(&ctx, key, keybits);
-            /*
-             * AES-192 is an optional feature that may be unavailable when
-             * there is an alternative underlying implementation i.e when
-             * MBEDTLS_AES_SETKEY_ENC_ALT or MBEDTLS_AES_SETKEY_DEC_ALT
-             * are defined.
-             */
+
             if (ret == MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED && keybits == 192) {
                 mbedtls_printf("skipped\n");
                 continue;

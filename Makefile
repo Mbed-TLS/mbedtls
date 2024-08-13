@@ -216,6 +216,7 @@ C_SOURCE_FILES = $(wildcard \
 	tests/include/*/*.h tests/include/*/*/*.h \
 	tests/src/*.c tests/src/*/*.c \
 	tests/suites/*.function \
+	tf-psa-crypto/tests/suites/*.function \
 )
 # Exuberant-ctags invocation. Other ctags implementations may require different options.
 CTAGS = ctags --langmap=c:+.h.function --line-directives=no -o

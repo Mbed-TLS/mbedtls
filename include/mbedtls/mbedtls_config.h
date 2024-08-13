@@ -3271,15 +3271,17 @@
 /**
  * \def MBEDTLS_PSA_STATIC_KEY_SLOTS
  *
- * Statically preallocate all key slot buffers to store volatile keys in PSA
- * instead of allocating them dynamically when required. This helps reducing
- * heap memory usage as well as heap management code's footprint in embedded
- * devices.
+ * Statically preallocate memory to store keys' material in PSA instead
+ * of allocating it dynamically when required. This allows builds without a
+ * heap, if none of the enabled cryptographic implementations or other features
+ * require it.
+ * This feature affects both volatile and persistent keys which means that
+ * it's not possible to persistently store a key which is larger than
+ * MBEDTLS_PSA_STATIC_KEY_SLOT_BUFFER_SIZE.
  *
  * \note This feature comes with a (potentially) higher RAM usage since:
  *       - All the key slots are allocated no matter if they are used of not.
- *       - Each key slot's length is as large as the largest key type supported
- *         in the build.
+ *       - Each key buffer's length is MBEDTLS_PSA_STATIC_KEY_SLOT_BUFFER_SIZE bytes.
  *
  * Requires: MBEDTLS_PSA_CRYPTO_C
  *
@@ -4088,17 +4090,15 @@
 //#define MBEDTLS_PSA_KEY_SLOT_COUNT 32
 
 /**
- * \def MBEDTLS_PSA_STATIC_KEY_SLOTS
+ * \def MBEDTLS_PSA_STATIC_KEY_SLOT_BUFFER_SIZE
  *
- * Optionally define the size (in bytes) of each static key slot. If not
+ * Define the size (in bytes) of each static key slot when
+ * MBEDTLS_PSA_STATIC_KEY_SLOTS is set. If not
  * explicitly defined then it's automatically set to hold the maximum
  * asymmetric PSA key enabled in the build (through PSA_WANT_xxx symbols).
  * If required by the application this parameter can be set to higher values
  * in order to store larger objects (ex: raw keys), but please note that this
  * will increase RAM usage.
- *
- * Requires: MBEDTLS_PSA_STATIC_KEY_SLOTS
- *
  */
 //#define MBEDTLS_PSA_STATIC_KEY_SLOT_BUFFER_SIZE       256
 

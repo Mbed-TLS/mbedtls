@@ -849,7 +849,7 @@ void validate_key(int force_status_arg,
 {
     psa_key_lifetime_t lifetime =
         PSA_KEY_LIFETIME_FROM_PERSISTENCE_AND_LOCATION( \
-            PSA_KEY_PERSISTENCE_DEFAULT, location);
+            PSA_KEY_PERSISTENCE_VOLATILE, location);
     mbedtls_svc_key_id_t id = mbedtls_svc_key_id_make(owner_id_arg, id_arg);
     psa_status_t force_status = force_status_arg;
     psa_status_t expected_status = expected_status_arg;

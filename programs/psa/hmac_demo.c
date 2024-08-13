@@ -59,7 +59,7 @@ const unsigned char msg2_part2[] = { 0x06, 0x06 };
 const unsigned char key_bytes[32] = { 0 };
 
 /* Print the contents of a buffer in hex */
-void print_buf(const char *title, uint8_t *buf, size_t len)
+static void print_buf(const char *title, uint8_t *buf, size_t len)
 {
     printf("%s:", title);
     for (size_t i = 0; i < len; i++) {
@@ -90,7 +90,7 @@ void print_buf(const char *title, uint8_t *buf, size_t len)
  * This function demonstrates computation of the HMAC of two messages using
  * the multipart API.
  */
-psa_status_t hmac_demo(void)
+static psa_status_t hmac_demo(void)
 {
     psa_status_t status;
     const psa_algorithm_t alg = PSA_ALG_HMAC(PSA_ALG_SHA_256);

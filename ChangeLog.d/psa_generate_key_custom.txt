@@ -1,0 +1,9 @@
+API changes
+   * The experimental functions psa_generate_key_ext() and
+     psa_key_derivation_output_key_ext() have been replaced by
+     psa_generate_key_custom() and psa_key_derivation_output_key_custom().
+     They have almost exactly the same interface, but the variable-length
+     data is passed in a separate parameter instead of a flexible array
+     member. This resolves a build failure under C++ compilers that do not
+     support flexible array members (a C99 feature not adopted by C++).
+     Fixes #9020.

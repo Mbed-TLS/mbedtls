@@ -20,7 +20,7 @@
 #include "mbedtls/rsa.h"
 #include "rsa_internal.h"
 #endif
-#if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
+#if defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
 #include "mbedtls/ecp.h"
 #endif
 #if defined(MBEDTLS_ECDSA_C)
@@ -118,12 +118,12 @@ const mbedtls_pk_info_t *mbedtls_pk_info_from_type(mbedtls_pk_type_t pk_type)
         case MBEDTLS_PK_RSA:
             return &mbedtls_rsa_info;
 #endif /* MBEDTLS_RSA_C */
-#if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
+#if defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
         case MBEDTLS_PK_ECKEY:
             return &mbedtls_eckey_info;
         case MBEDTLS_PK_ECKEY_DH:
             return &mbedtls_eckeydh_info;
-#endif /* MBEDTLS_PK_HAVE_ECC_KEYS */
+#endif /* PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY */
 #if defined(MBEDTLS_PK_CAN_ECDSA_SOME)
         case MBEDTLS_PK_ECDSA:
             return &mbedtls_ecdsa_info;
@@ -174,11 +174,11 @@ int mbedtls_pk_setup_opaque(mbedtls_pk_context *ctx,
     type = psa_get_key_type(&attributes);
     psa_reset_key_attributes(&attributes);
 
-#if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
+#if defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
     if (PSA_KEY_TYPE_IS_ECC_KEY_PAIR(type)) {
         info = &mbedtls_ecdsa_opaque_info;
     } else
-#endif /* MBEDTLS_PK_HAVE_ECC_KEYS */
+#endif /* PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY */
     if (type == PSA_KEY_TYPE_RSA_KEY_PAIR) {
         info = &mbedtls_rsa_opaque_info;
     } else {
@@ -457,7 +457,7 @@ int mbedtls_pk_get_psa_attributes(const mbedtls_pk_context *pk,
         }
 #endif /* MBEDTLS_RSA_C */
 
-#if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
+#if defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
         case MBEDTLS_PK_ECKEY:
         case MBEDTLS_PK_ECKEY_DH:
         case MBEDTLS_PK_ECDSA:
@@ -512,7 +512,7 @@ int mbedtls_pk_get_psa_attributes(const mbedtls_pk_context *pk,
             psa_set_key_algorithm(attributes, alg);
             break;
         }
-#endif /* MBEDTLS_PK_HAVE_ECC_KEYS */
+#endif /* PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY */
 
 #if defined(MBEDTLS_PK_RSA_ALT_SUPPORT)
         case MBEDTLS_PK_RSA_ALT:
@@ -671,7 +671,7 @@ static int import_pair_into_psa(const mbedtls_pk_context *pk,
         }
 #endif /* MBEDTLS_RSA_C */
 
-#if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
+#if defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
         case MBEDTLS_PK_ECKEY:
         case MBEDTLS_PK_ECKEY_DH:
         case MBEDTLS_PK_ECDSA:
@@ -724,7 +724,7 @@ static int import_pair_into_psa(const mbedtls_pk_context *pk,
             return ret;
 #endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
         }
-#endif /* MBEDTLS_PK_HAVE_ECC_KEYS */
+#endif /* PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY */
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
         case MBEDTLS_PK_OPAQUE:
@@ -743,7 +743,7 @@ static int import_public_into_psa(const mbedtls_pk_context *pk,
     psa_key_type_t psa_type = psa_get_key_type(attributes);
 
 #if defined(MBEDTLS_RSA_C) ||                                           \
-    (defined(MBEDTLS_PK_HAVE_ECC_KEYS) && !defined(MBEDTLS_PK_USE_PSA_EC_DATA)) || \
+    (defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY) && !defined(MBEDTLS_PK_USE_PSA_EC_DATA)) || \
     defined(MBEDTLS_USE_PSA_CRYPTO)
     unsigned char key_buffer[PSA_EXPORT_PUBLIC_KEY_MAX_SIZE];
 #endif
@@ -769,7 +769,7 @@ static int import_public_into_psa(const mbedtls_pk_context *pk,
         }
 #endif /*MBEDTLS_RSA_C */
 
-#if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
+#if defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
         case MBEDTLS_PK_ECKEY:
         case MBEDTLS_PK_ECKEY_DH:
         case MBEDTLS_PK_ECDSA:
@@ -803,7 +803,7 @@ static int import_public_into_psa(const mbedtls_pk_context *pk,
 #endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
             break;
         }
-#endif /* MBEDTLS_PK_HAVE_ECC_KEYS */
+#endif /* PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY */
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
         case MBEDTLS_PK_OPAQUE:
@@ -934,7 +934,7 @@ static int copy_from_psa(mbedtls_svc_key_id_t key_id,
         }
     } else
 #endif /* MBEDTLS_RSA_C */
-#if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
+#if defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
     if (PSA_KEY_TYPE_IS_ECC_KEY_PAIR(key_type) ||
         PSA_KEY_TYPE_IS_ECC_PUBLIC_KEY(key_type)) {
         mbedtls_ecp_group_id grp_id;
@@ -965,7 +965,7 @@ static int copy_from_psa(mbedtls_svc_key_id_t key_id,
             goto exit;
         }
     } else
-#endif /* MBEDTLS_PK_HAVE_ECC_KEYS */
+#endif /* PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY */
     {
         (void) key_bits;
         return MBEDTLS_ERR_PK_BAD_INPUT_DATA;

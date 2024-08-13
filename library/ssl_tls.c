@@ -2482,179 +2482,179 @@ psa_status_t mbedtls_ssl_cipher_to_psa(mbedtls_cipher_type_t mbedtls_cipher_type
                                        psa_key_type_t *key_type,
                                        size_t *key_size)
 {
-#if !defined(MBEDTLS_SSL_HAVE_CCM)
+#if !defined(PSA_WANT_ALG_CCM)
     (void) taglen;
 #endif
     switch (mbedtls_cipher_type) {
-#if defined(MBEDTLS_SSL_HAVE_AES) && defined(MBEDTLS_SSL_HAVE_CBC)
+#if defined(PSA_WANT_KEY_TYPE_AES) && defined(PSA_WANT_ALG_CBC_NO_PADDING)
         case MBEDTLS_CIPHER_AES_128_CBC:
             *alg = PSA_ALG_CBC_NO_PADDING;
             *key_type = PSA_KEY_TYPE_AES;
             *key_size = 128;
             break;
 #endif
-#if defined(MBEDTLS_SSL_HAVE_AES) && defined(MBEDTLS_SSL_HAVE_CCM)
+#if defined(PSA_WANT_KEY_TYPE_AES) && defined(PSA_WANT_ALG_CCM)
         case MBEDTLS_CIPHER_AES_128_CCM:
             *alg = taglen ? PSA_ALG_AEAD_WITH_SHORTENED_TAG(PSA_ALG_CCM, taglen) : PSA_ALG_CCM;
             *key_type = PSA_KEY_TYPE_AES;
             *key_size = 128;
             break;
 #endif
-#if defined(MBEDTLS_SSL_HAVE_AES) && defined(MBEDTLS_SSL_HAVE_GCM)
+#if defined(PSA_WANT_KEY_TYPE_AES) && defined(PSA_WANT_ALG_GCM)
         case MBEDTLS_CIPHER_AES_128_GCM:
             *alg = PSA_ALG_GCM;
             *key_type = PSA_KEY_TYPE_AES;
             *key_size = 128;
             break;
 #endif
-#if defined(MBEDTLS_SSL_HAVE_AES) && defined(MBEDTLS_SSL_HAVE_CCM)
+#if defined(PSA_WANT_KEY_TYPE_AES) && defined(PSA_WANT_ALG_CCM)
         case MBEDTLS_CIPHER_AES_192_CCM:
             *alg = taglen ? PSA_ALG_AEAD_WITH_SHORTENED_TAG(PSA_ALG_CCM, taglen) : PSA_ALG_CCM;
             *key_type = PSA_KEY_TYPE_AES;
             *key_size = 192;
             break;
 #endif
-#if defined(MBEDTLS_SSL_HAVE_AES) && defined(MBEDTLS_SSL_HAVE_GCM)
+#if defined(PSA_WANT_KEY_TYPE_AES) && defined(PSA_WANT_ALG_GCM)
         case MBEDTLS_CIPHER_AES_192_GCM:
             *alg = PSA_ALG_GCM;
             *key_type = PSA_KEY_TYPE_AES;
             *key_size = 192;
             break;
 #endif
-#if defined(MBEDTLS_SSL_HAVE_AES) && defined(MBEDTLS_SSL_HAVE_CBC)
+#if defined(PSA_WANT_KEY_TYPE_AES) && defined(PSA_WANT_ALG_CBC_NO_PADDING)
         case MBEDTLS_CIPHER_AES_256_CBC:
             *alg = PSA_ALG_CBC_NO_PADDING;
             *key_type = PSA_KEY_TYPE_AES;
             *key_size = 256;
             break;
 #endif
-#if defined(MBEDTLS_SSL_HAVE_AES) && defined(MBEDTLS_SSL_HAVE_CCM)
+#if defined(PSA_WANT_KEY_TYPE_AES) && defined(PSA_WANT_ALG_CCM)
         case MBEDTLS_CIPHER_AES_256_CCM:
             *alg = taglen ? PSA_ALG_AEAD_WITH_SHORTENED_TAG(PSA_ALG_CCM, taglen) : PSA_ALG_CCM;
             *key_type = PSA_KEY_TYPE_AES;
             *key_size = 256;
             break;
 #endif
-#if defined(MBEDTLS_SSL_HAVE_AES) && defined(MBEDTLS_SSL_HAVE_GCM)
+#if defined(PSA_WANT_KEY_TYPE_AES) && defined(PSA_WANT_ALG_GCM)
         case MBEDTLS_CIPHER_AES_256_GCM:
             *alg = PSA_ALG_GCM;
             *key_type = PSA_KEY_TYPE_AES;
             *key_size = 256;
             break;
 #endif
-#if defined(MBEDTLS_SSL_HAVE_ARIA) && defined(MBEDTLS_SSL_HAVE_CBC)
+#if defined(PSA_WANT_KEY_TYPE_ARIA) && defined(PSA_WANT_ALG_CBC_NO_PADDING)
         case MBEDTLS_CIPHER_ARIA_128_CBC:
             *alg = PSA_ALG_CBC_NO_PADDING;
             *key_type = PSA_KEY_TYPE_ARIA;
             *key_size = 128;
             break;
 #endif
-#if defined(MBEDTLS_SSL_HAVE_ARIA) && defined(MBEDTLS_SSL_HAVE_CCM)
+#if defined(PSA_WANT_KEY_TYPE_ARIA) && defined(PSA_WANT_ALG_CCM)
         case MBEDTLS_CIPHER_ARIA_128_CCM:
             *alg = taglen ? PSA_ALG_AEAD_WITH_SHORTENED_TAG(PSA_ALG_CCM, taglen) : PSA_ALG_CCM;
             *key_type = PSA_KEY_TYPE_ARIA;
             *key_size = 128;
             break;
 #endif
-#if defined(MBEDTLS_SSL_HAVE_ARIA) && defined(MBEDTLS_SSL_HAVE_GCM)
+#if defined(PSA_WANT_KEY_TYPE_ARIA) && defined(PSA_WANT_ALG_GCM)
         case MBEDTLS_CIPHER_ARIA_128_GCM:
             *alg = PSA_ALG_GCM;
             *key_type = PSA_KEY_TYPE_ARIA;
             *key_size = 128;
             break;
 #endif
-#if defined(MBEDTLS_SSL_HAVE_ARIA) && defined(MBEDTLS_SSL_HAVE_CCM)
+#if defined(PSA_WANT_KEY_TYPE_ARIA) && defined(PSA_WANT_ALG_CCM)
         case MBEDTLS_CIPHER_ARIA_192_CCM:
             *alg = taglen ? PSA_ALG_AEAD_WITH_SHORTENED_TAG(PSA_ALG_CCM, taglen) : PSA_ALG_CCM;
             *key_type = PSA_KEY_TYPE_ARIA;
             *key_size = 192;
             break;
 #endif
-#if defined(MBEDTLS_SSL_HAVE_ARIA) && defined(MBEDTLS_SSL_HAVE_GCM)
+#if defined(PSA_WANT_KEY_TYPE_ARIA) && defined(PSA_WANT_ALG_GCM)
         case MBEDTLS_CIPHER_ARIA_192_GCM:
             *alg = PSA_ALG_GCM;
             *key_type = PSA_KEY_TYPE_ARIA;
             *key_size = 192;
             break;
 #endif
-#if defined(MBEDTLS_SSL_HAVE_ARIA) && defined(MBEDTLS_SSL_HAVE_CBC)
+#if defined(PSA_WANT_KEY_TYPE_ARIA) && defined(PSA_WANT_ALG_CBC_NO_PADDING)
         case MBEDTLS_CIPHER_ARIA_256_CBC:
             *alg = PSA_ALG_CBC_NO_PADDING;
             *key_type = PSA_KEY_TYPE_ARIA;
             *key_size = 256;
             break;
 #endif
-#if defined(MBEDTLS_SSL_HAVE_ARIA) && defined(MBEDTLS_SSL_HAVE_CCM)
+#if defined(PSA_WANT_KEY_TYPE_ARIA) && defined(PSA_WANT_ALG_CCM)
         case MBEDTLS_CIPHER_ARIA_256_CCM:
             *alg = taglen ? PSA_ALG_AEAD_WITH_SHORTENED_TAG(PSA_ALG_CCM, taglen) : PSA_ALG_CCM;
             *key_type = PSA_KEY_TYPE_ARIA;
             *key_size = 256;
             break;
 #endif
-#if defined(MBEDTLS_SSL_HAVE_ARIA) && defined(MBEDTLS_SSL_HAVE_GCM)
+#if defined(PSA_WANT_KEY_TYPE_ARIA) && defined(PSA_WANT_ALG_GCM)
         case MBEDTLS_CIPHER_ARIA_256_GCM:
             *alg = PSA_ALG_GCM;
             *key_type = PSA_KEY_TYPE_ARIA;
             *key_size = 256;
             break;
 #endif
-#if defined(MBEDTLS_SSL_HAVE_CAMELLIA) && defined(MBEDTLS_SSL_HAVE_CBC)
+#if defined(MBEDTLS_SSL_HAVE_CAMELLIA) && defined(PSA_WANT_ALG_CBC_NO_PADDING)
         case MBEDTLS_CIPHER_CAMELLIA_128_CBC:
             *alg = PSA_ALG_CBC_NO_PADDING;
             *key_type = PSA_KEY_TYPE_CAMELLIA;
             *key_size = 128;
             break;
 #endif
-#if defined(MBEDTLS_SSL_HAVE_CAMELLIA) && defined(MBEDTLS_SSL_HAVE_CCM)
+#if defined(MBEDTLS_SSL_HAVE_CAMELLIA) && defined(PSA_WANT_ALG_CCM)
         case MBEDTLS_CIPHER_CAMELLIA_128_CCM:
             *alg = taglen ? PSA_ALG_AEAD_WITH_SHORTENED_TAG(PSA_ALG_CCM, taglen) : PSA_ALG_CCM;
             *key_type = PSA_KEY_TYPE_CAMELLIA;
             *key_size = 128;
             break;
 #endif
-#if defined(MBEDTLS_SSL_HAVE_CAMELLIA) && defined(MBEDTLS_SSL_HAVE_GCM)
+#if defined(MBEDTLS_SSL_HAVE_CAMELLIA) && defined(PSA_WANT_ALG_GCM)
         case MBEDTLS_CIPHER_CAMELLIA_128_GCM:
             *alg = PSA_ALG_GCM;
             *key_type = PSA_KEY_TYPE_CAMELLIA;
             *key_size = 128;
             break;
 #endif
-#if defined(MBEDTLS_SSL_HAVE_CAMELLIA) && defined(MBEDTLS_SSL_HAVE_CCM)
+#if defined(MBEDTLS_SSL_HAVE_CAMELLIA) && defined(PSA_WANT_ALG_CCM)
         case MBEDTLS_CIPHER_CAMELLIA_192_CCM:
             *alg = taglen ? PSA_ALG_AEAD_WITH_SHORTENED_TAG(PSA_ALG_CCM, taglen) : PSA_ALG_CCM;
             *key_type = PSA_KEY_TYPE_CAMELLIA;
             *key_size = 192;
             break;
 #endif
-#if defined(MBEDTLS_SSL_HAVE_CAMELLIA) && defined(MBEDTLS_SSL_HAVE_GCM)
+#if defined(MBEDTLS_SSL_HAVE_CAMELLIA) && defined(PSA_WANT_ALG_GCM)
         case MBEDTLS_CIPHER_CAMELLIA_192_GCM:
             *alg = PSA_ALG_GCM;
             *key_type = PSA_KEY_TYPE_CAMELLIA;
             *key_size = 192;
             break;
 #endif
-#if defined(MBEDTLS_SSL_HAVE_CAMELLIA) && defined(MBEDTLS_SSL_HAVE_CBC)
+#if defined(MBEDTLS_SSL_HAVE_CAMELLIA) && defined(PSA_WANT_ALG_CBC_NO_PADDING)
         case MBEDTLS_CIPHER_CAMELLIA_256_CBC:
             *alg = PSA_ALG_CBC_NO_PADDING;
             *key_type = PSA_KEY_TYPE_CAMELLIA;
             *key_size = 256;
             break;
 #endif
-#if defined(MBEDTLS_SSL_HAVE_CAMELLIA) && defined(MBEDTLS_SSL_HAVE_CCM)
+#if defined(MBEDTLS_SSL_HAVE_CAMELLIA) && defined(PSA_WANT_ALG_CCM)
         case MBEDTLS_CIPHER_CAMELLIA_256_CCM:
             *alg = taglen ? PSA_ALG_AEAD_WITH_SHORTENED_TAG(PSA_ALG_CCM, taglen) : PSA_ALG_CCM;
             *key_type = PSA_KEY_TYPE_CAMELLIA;
             *key_size = 256;
             break;
 #endif
-#if defined(MBEDTLS_SSL_HAVE_CAMELLIA) && defined(MBEDTLS_SSL_HAVE_GCM)
+#if defined(MBEDTLS_SSL_HAVE_CAMELLIA) && defined(PSA_WANT_ALG_GCM)
         case MBEDTLS_CIPHER_CAMELLIA_256_GCM:
             *alg = PSA_ALG_GCM;
             *key_type = PSA_KEY_TYPE_CAMELLIA;
             *key_size = 256;
             break;
 #endif
-#if defined(MBEDTLS_SSL_HAVE_CHACHAPOLY)
+#if defined(PSA_WANT_ALG_CHACHA20_POLY1305)
         case MBEDTLS_CIPHER_CHACHA20_POLY1305:
             *alg = PSA_ALG_CHACHA20_POLY1305;
             *key_type = PSA_KEY_TYPE_CHACHA20;
@@ -4765,14 +4765,14 @@ void mbedtls_ssl_handshake_free(mbedtls_ssl_context *ssl)
         return;
     }
 
-#if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
+#if defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
     if (ssl->handshake->group_list_heap_allocated) {
         mbedtls_free((void *) handshake->group_list);
     }
     handshake->group_list = NULL;
 #endif /* MBEDTLS_DEPRECATED_REMOVED */
-#endif /* MBEDTLS_PK_HAVE_ECC_KEYS */
+#endif /* PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY */
 
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
@@ -5614,10 +5614,10 @@ static const uint16_t ssl_preset_default_groups[] = {
 #if defined(PSA_WANT_ECC_MONTGOMERY_255)
     MBEDTLS_SSL_IANA_TLS_GROUP_X25519,
 #endif
-#if defined(MBEDTLS_ECP_HAVE_SECP256R1)
+#if defined(PSA_WANT_ECC_SECP_R1_256)
     MBEDTLS_SSL_IANA_TLS_GROUP_SECP256R1,
 #endif
-#if defined(MBEDTLS_ECP_HAVE_SECP384R1)
+#if defined(PSA_WANT_ECC_SECP_R1_384)
     MBEDTLS_SSL_IANA_TLS_GROUP_SECP384R1,
 #endif
 #if defined(PSA_WANT_ECC_MONTGOMERY_448)
@@ -5760,14 +5760,14 @@ static const uint16_t ssl_preset_suiteb_sig_algs[] = {
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDSA_CERT_REQ_ANY_ALLOWED_ENABLED) && \
     defined(PSA_WANT_ALG_SHA_256) && \
-    defined(MBEDTLS_ECP_HAVE_SECP256R1)
+    defined(PSA_WANT_ECC_SECP_R1_256)
     MBEDTLS_TLS1_3_SIG_ECDSA_SECP256R1_SHA256,
     // == MBEDTLS_SSL_TLS12_SIG_AND_HASH_ALG(MBEDTLS_SSL_SIG_ECDSA, MBEDTLS_SSL_HASH_SHA256)
 #endif
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDSA_CERT_REQ_ANY_ALLOWED_ENABLED) && \
     defined(PSA_WANT_ALG_SHA_384) && \
-    defined(MBEDTLS_ECP_HAVE_SECP384R1)
+    defined(PSA_WANT_ECC_SECP_R1_384)
     MBEDTLS_TLS1_3_SIG_ECDSA_SECP384R1_SHA384,
     // == MBEDTLS_SSL_TLS12_SIG_AND_HASH_ALG(MBEDTLS_SSL_SIG_ECDSA, MBEDTLS_SSL_HASH_SHA384)
 #endif
@@ -5798,10 +5798,10 @@ static uint16_t ssl_tls12_preset_suiteb_sig_algs[] = {
 #endif /* MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED */
 
 static const uint16_t ssl_preset_suiteb_groups[] = {
-#if defined(MBEDTLS_ECP_HAVE_SECP256R1)
+#if defined(PSA_WANT_ECC_SECP_R1_256)
     MBEDTLS_SSL_IANA_TLS_GROUP_SECP256R1,
 #endif
-#if defined(MBEDTLS_ECP_HAVE_SECP384R1)
+#if defined(PSA_WANT_ECC_SECP_R1_384)
     MBEDTLS_SSL_IANA_TLS_GROUP_SECP384R1,
 #endif
     MBEDTLS_SSL_IANA_TLS_GROUP_NONE
@@ -6217,7 +6217,7 @@ int mbedtls_ssl_check_curve_tls_id(const mbedtls_ssl_context *ssl, uint16_t tls_
     return -1;
 }
 
-#if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
+#if defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
 /*
  * Same as mbedtls_ssl_check_curve_tls_id() but with a mbedtls_ecp_group_id.
  */
@@ -6231,7 +6231,7 @@ int mbedtls_ssl_check_curve(const mbedtls_ssl_context *ssl, mbedtls_ecp_group_id
 
     return mbedtls_ssl_check_curve_tls_id(ssl, tls_id);
 }
-#endif /* MBEDTLS_PK_HAVE_ECC_KEYS */
+#endif /* PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY */
 
 static const struct {
     uint16_t tls_id;
@@ -6246,13 +6246,13 @@ static const struct {
 #if defined(PSA_WANT_ECC_BRAINPOOL_P_R1_512)
     { 28, MBEDTLS_ECP_DP_BP512R1, PSA_ECC_FAMILY_BRAINPOOL_P_R1, 512 },
 #endif
-#if defined(MBEDTLS_ECP_HAVE_SECP384R1)
+#if defined(PSA_WANT_ECC_SECP_R1_384)
     { 24, MBEDTLS_ECP_DP_SECP384R1, PSA_ECC_FAMILY_SECP_R1, 384 },
 #endif
 #if defined(PSA_WANT_ECC_BRAINPOOL_P_R1_384)
     { 27, MBEDTLS_ECP_DP_BP384R1, PSA_ECC_FAMILY_BRAINPOOL_P_R1, 384 },
 #endif
-#if defined(MBEDTLS_ECP_HAVE_SECP256R1)
+#if defined(PSA_WANT_ECC_SECP_R1_256)
     { 23, MBEDTLS_ECP_DP_SECP256R1, PSA_ECC_FAMILY_SECP_R1, 256 },
 #endif
 #if defined(PSA_WANT_ECC_SECP_K1_256)
@@ -8030,7 +8030,7 @@ static int ssl_parse_certificate_verify(mbedtls_ssl_context *ssl,
      * Secondary checks: always done, but change 'ret' only if it was 0
      */
 
-#if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
+#if defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
     {
         const mbedtls_pk_context *pk = &chain->pk;
 
@@ -8057,7 +8057,7 @@ static int ssl_parse_certificate_verify(mbedtls_ssl_context *ssl,
             }
         }
     }
-#endif /* MBEDTLS_PK_HAVE_ECC_KEYS */
+#endif /* PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY */
 
     if (mbedtls_ssl_check_cert_usage(chain,
                                      ciphersuite_info,

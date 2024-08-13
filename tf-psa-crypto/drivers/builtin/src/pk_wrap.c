@@ -505,7 +505,7 @@ const mbedtls_pk_info_t mbedtls_rsa_info = {
 };
 #endif /* MBEDTLS_RSA_C */
 
-#if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
+#if defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
 /*
  * Generic EC key
  */
@@ -1263,7 +1263,7 @@ const mbedtls_pk_info_t mbedtls_ecdsa_info = {
     .debug_func = eckey_debug,        /* Compatible key structures */
 };
 #endif /* MBEDTLS_PK_CAN_ECDSA_SOME */
-#endif /* MBEDTLS_PK_HAVE_ECC_KEYS */
+#endif /* PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY */
 
 #if defined(MBEDTLS_PK_RSA_ALT_SUPPORT)
 /*
@@ -1414,7 +1414,7 @@ static size_t opaque_get_bitlen(mbedtls_pk_context *pk)
     return bits;
 }
 
-#if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
+#if defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
 static int ecdsa_opaque_can_do(mbedtls_pk_type_t type)
 {
     return type == MBEDTLS_PK_ECKEY ||
@@ -1449,7 +1449,7 @@ const mbedtls_pk_info_t mbedtls_ecdsa_opaque_info = {
     .ctx_free_func = NULL,
     .debug_func = NULL,
 };
-#endif /* MBEDTLS_PK_HAVE_ECC_KEYS */
+#endif /* PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY */
 
 static int rsa_opaque_can_do(mbedtls_pk_type_t type)
 {

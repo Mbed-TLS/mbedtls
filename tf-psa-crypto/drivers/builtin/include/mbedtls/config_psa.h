@@ -52,9 +52,7 @@
 
 #endif /* MBEDTLS_PSA_CRYPTO_CONFIG */
 
-#if defined(PSA_WANT_ALG_JPAKE)
-#define PSA_WANT_ALG_SOME_PAKE 1
-#endif
+#include "psa/crypto_adjust_config_derived.h"
 
 #include "psa/crypto_adjust_auto_enabled.h"
 

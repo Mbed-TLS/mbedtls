@@ -143,24 +143,6 @@ int mbedtls_sha1_finish(mbedtls_sha1_context *ctx,
                         unsigned char output[20]);
 
 /**
- * \brief          SHA-1 process data block (internal use only).
- *
- * \warning        SHA-1 is considered a weak message digest and its use
- *                 constitutes a security risk. We recommend considering
- *                 stronger message digests instead.
- *
- * \param ctx      The SHA-1 context to use. This must be initialized.
- * \param data     The data block being processed. This must be a
- *                 readable buffer of length \c 64 Bytes.
- *
- * \return         \c 0 on success.
- * \return         A negative error code on failure.
- *
- */
-int mbedtls_internal_sha1_process(mbedtls_sha1_context *ctx,
-                                  const unsigned char data[64]);
-
-/**
  * \brief          This function calculates the SHA-1 checksum of a buffer.
  *
  *                 The function allocates the context, performs the

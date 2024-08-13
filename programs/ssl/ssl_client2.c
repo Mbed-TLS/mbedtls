@@ -249,7 +249,7 @@ int main(void)
 #define USAGE_ALPN ""
 #endif /* MBEDTLS_SSL_ALPN */
 
-#if defined(MBEDTLS_PK_HAVE_ECC_KEYS) || \
+#if defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY) || \
     (defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED) && \
     defined(PSA_WANT_ALG_FFDH))
 #define USAGE_GROUPS \
@@ -597,8 +597,8 @@ static int my_verify(void *data, mbedtls_x509_crt *crt,
 #endif /* MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED */
 
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
-int report_cid_usage(mbedtls_ssl_context *ssl,
-                     const char *additional_description)
+static int report_cid_usage(mbedtls_ssl_context *ssl,
+                            const char *additional_description)
 {
     int ret;
     unsigned char peer_cid[MBEDTLS_SSL_CID_OUT_LEN_MAX];
@@ -1967,7 +1967,7 @@ usage:
     }
 #endif  /* MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED */
 
-#if defined(MBEDTLS_PK_HAVE_ECC_KEYS) || \
+#if defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY) || \
     (defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED) && \
     defined(PSA_WANT_ALG_FFDH))
     if (opt.groups != NULL &&

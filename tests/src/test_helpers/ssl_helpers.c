@@ -551,7 +551,10 @@ int mbedtls_test_mock_tcp_recv_msg(void *ctx,
              * happen in test environment, unless forced manually. */
         }
     }
-    mbedtls_test_ssl_message_queue_pop_info(queue, buf_len);
+    ret = mbedtls_test_ssl_message_queue_pop_info(queue, buf_len);
+    if (ret < 0) {
+        return ret;
+    }
 
     return (msg_len > INT_MAX) ? INT_MAX : (int) msg_len;
 }
@@ -947,10 +950,10 @@ int mbedtls_test_move_handshake_to_state(mbedtls_ssl_context *ssl,
 /*
  * Write application data. Increase write counter if necessary.
  */
-int mbedtls_ssl_write_fragment(mbedtls_ssl_context *ssl,
-                               unsigned char *buf, int buf_len,
-                               int *written,
-                               const int expected_fragments)
+static int mbedtls_ssl_write_fragment(mbedtls_ssl_context *ssl,
+                                      unsigned char *buf, int buf_len,
+                                      int *written,
+                                      const int expected_fragments)
 {
     int ret;
     /* Verify that calling mbedtls_ssl_write with a NULL buffer and zero length is
@@ -994,10 +997,10 @@ exit:
  * Read application data and increase read counter and fragments counter
  * if necessary.
  */
-int mbedtls_ssl_read_fragment(mbedtls_ssl_context *ssl,
-                              unsigned char *buf, int buf_len,
-                              int *read, int *fragments,
-                              const int expected_fragments)
+static int mbedtls_ssl_read_fragment(mbedtls_ssl_context *ssl,
+                                     unsigned char *buf, int buf_len,
+                                     int *read, int *fragments,
+                                     const int expected_fragments)
 {
     int ret;
     /* Verify that calling mbedtls_ssl_write with a NULL buffer and zero length is
@@ -1079,7 +1082,7 @@ static int psk_dummy_callback(void *p_info, mbedtls_ssl_context *ssl,
           MBEDTLS_SSL_SRV_C */
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2) && \
-    defined(MBEDTLS_SSL_HAVE_CBC) && defined(MBEDTLS_SSL_HAVE_AES)
+    defined(PSA_WANT_ALG_CBC_NO_PADDING) && defined(PSA_WANT_KEY_TYPE_AES)
 int mbedtls_test_psa_cipher_encrypt_helper(mbedtls_ssl_transform *transform,
                                            const unsigned char *iv,
                                            size_t iv_len,
@@ -1127,8 +1130,8 @@ int mbedtls_test_psa_cipher_encrypt_helper(mbedtls_ssl_transform *transform,
                                 iv, iv_len, input, ilen, output, olen);
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 }
-#endif /* MBEDTLS_SSL_PROTO_TLS1_2 && MBEDTLS_SSL_HAVE_CBC &&
-          MBEDTLS_SSL_HAVE_AES */
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 && PSA_WANT_ALG_CBC_NO_PADDING &&
+          PSA_WANT_KEY_TYPE_AES */
 
 static void mbedtls_test_ssl_cipher_info_from_type(mbedtls_cipher_type_t cipher_type,
                                                    mbedtls_cipher_mode_t *cipher_mode,

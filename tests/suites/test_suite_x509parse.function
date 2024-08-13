@@ -60,7 +60,10 @@ const mbedtls_x509_crt_profile profile_sha512 =
     1024,
 };
 
-int verify_none(void *data, mbedtls_x509_crt *crt, int certificate_depth, uint32_t *flags)
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
+
+#if defined(MBEDTLS_FS_IO)
+static int verify_none(void *data, mbedtls_x509_crt *crt, int certificate_depth, uint32_t *flags)
 {
     ((void) data);
     ((void) crt);
@@ -70,7 +73,7 @@ int verify_none(void *data, mbedtls_x509_crt *crt, int certificate_depth, uint32
     return 0;
 }
 
-int verify_all(void *data, mbedtls_x509_crt *crt, int certificate_depth, uint32_t *flags)
+static int verify_all(void *data, mbedtls_x509_crt *crt, int certificate_depth, uint32_t *flags)
 {
     ((void) data);
     ((void) crt);
@@ -80,8 +83,10 @@ int verify_all(void *data, mbedtls_x509_crt *crt, int certificate_depth, uint32_
     return 0;
 }
 
-#if defined(MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK)
-int ca_callback_fail(void *data, mbedtls_x509_crt const *child, mbedtls_x509_crt **candidates)
+#if defined(MBEDTLS_X509_CRL_PARSE_C) && \
+    defined(MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK)
+static int ca_callback_fail(void *data, mbedtls_x509_crt const *child,
+                            mbedtls_x509_crt **candidates)
 {
     ((void) data);
     ((void) child);
@@ -89,9 +94,9 @@ int ca_callback_fail(void *data, mbedtls_x509_crt const *child, mbedtls_x509_crt
 
     return -1;
 }
-#if defined(MBEDTLS_X509_CRT_PARSE_C)
-int ca_callback(void *data, mbedtls_x509_crt const *child,
-                mbedtls_x509_crt **candidates)
+
+static int ca_callback(void *data, mbedtls_x509_crt const *child,
+                       mbedtls_x509_crt **candidates)
 {
     int ret = 0;
     mbedtls_x509_crt *ca = (mbedtls_x509_crt *) data;
@@ -138,10 +143,9 @@ exit:
     *candidates = first;
     return ret;
 }
-#endif /* MBEDTLS_X509_CRT_PARSE_C */
-#endif /* MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK */
+#endif /* MBEDTLS_X509_CRL_PARSE_C && MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK */
 
-int verify_fatal(void *data, mbedtls_x509_crt *crt, int certificate_depth, uint32_t *flags)
+static int verify_fatal(void *data, mbedtls_x509_crt *crt, int certificate_depth, uint32_t *flags)
 {
     int *levels = (int *) data;
 
@@ -158,7 +162,7 @@ int verify_fatal(void *data, mbedtls_x509_crt *crt, int certificate_depth, uint3
 }
 
 /* strsep() not available on Windows */
-char *mystrsep(char **stringp, const char *delim)
+static char *mystrsep(char **stringp, const char *delim)
 {
     const char *p;
     char *ret = *stringp;
@@ -186,19 +190,18 @@ done:
     return ret;
 }
 
-#if defined(MBEDTLS_X509_CRT_PARSE_C)
 typedef struct {
     char buf[512];
     char *p;
 } verify_print_context;
 
-void verify_print_init(verify_print_context *ctx)
+static void verify_print_init(verify_print_context *ctx)
 {
     memset(ctx, 0, sizeof(verify_print_context));
     ctx->p = ctx->buf;
 }
 
-int verify_print(void *data, mbedtls_x509_crt *crt, int certificate_depth, uint32_t *flags)
+static int verify_print(void *data, mbedtls_x509_crt *crt, int certificate_depth, uint32_t *flags)
 {
     int ret;
     verify_print_context *ctx = (verify_print_context *) data;
@@ -226,8 +229,8 @@ int verify_print(void *data, mbedtls_x509_crt *crt, int certificate_depth, uint3
     return 0;
 }
 
-int verify_parse_san(mbedtls_x509_subject_alternative_name *san,
-                     char **buf, size_t *size)
+static int verify_parse_san(mbedtls_x509_subject_alternative_name *san,
+                            char **buf, size_t *size)
 {
     int ret;
     size_t i;
@@ -316,9 +319,10 @@ int verify_parse_san(mbedtls_x509_subject_alternative_name *san,
 
     return 0;
 }
+#endif /* MBEDTLS_FS_IO */
 
-int parse_crt_ext_cb(void *p_ctx, mbedtls_x509_crt const *crt, mbedtls_x509_buf const *oid,
-                     int critical, const unsigned char *cp, const unsigned char *end)
+static int parse_crt_ext_cb(void *p_ctx, mbedtls_x509_crt const *crt, mbedtls_x509_buf const *oid,
+                            int critical, const unsigned char *cp, const unsigned char *end)
 {
     (void) crt;
     (void) critical;
@@ -416,9 +420,14 @@ int parse_crt_ext_cb(void *p_ctx, mbedtls_x509_crt const *crt, mbedtls_x509_buf 
 }
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
-#if defined(MBEDTLS_X509_CSR_PARSE_C)
-int parse_csr_ext_accept_cb(void *p_ctx, mbedtls_x509_csr const *csr, mbedtls_x509_buf const *oid,
-                            int critical, const unsigned char *cp, const unsigned char *end)
+#if defined(MBEDTLS_X509_CSR_PARSE_C) && \
+    !defined(MBEDTLS_X509_REMOVE_INFO)
+static int parse_csr_ext_accept_cb(void *p_ctx,
+                                   mbedtls_x509_csr const *csr,
+                                   mbedtls_x509_buf const *oid,
+                                   int critical,
+                                   const unsigned char *cp,
+                                   const unsigned char *end)
 {
     (void) p_ctx;
     (void) csr;
@@ -430,8 +439,12 @@ int parse_csr_ext_accept_cb(void *p_ctx, mbedtls_x509_csr const *csr, mbedtls_x5
     return 0;
 }
 
-int parse_csr_ext_reject_cb(void *p_ctx, mbedtls_x509_csr const *csr, mbedtls_x509_buf const *oid,
-                            int critical, const unsigned char *cp, const unsigned char *end)
+static int parse_csr_ext_reject_cb(void *p_ctx,
+                                   mbedtls_x509_csr const *csr,
+                                   mbedtls_x509_buf const *oid,
+                                   int critical,
+                                   const unsigned char *cp,
+                                   const unsigned char *end)
 {
     (void) p_ctx;
     (void) csr;
@@ -443,7 +456,7 @@ int parse_csr_ext_reject_cb(void *p_ctx, mbedtls_x509_csr const *csr, mbedtls_x5
     return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS,
                              MBEDTLS_ERR_ASN1_UNEXPECTED_TAG);
 }
-#endif /* MBEDTLS_X509_CSR_PARSE_C */
+#endif /* MBEDTLS_X509_CSR_PARSE_C && !MBEDTLS_X509_REMOVE_INFO */
 /* END_HEADER */
 
 /* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C */

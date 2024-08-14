@@ -113,6 +113,8 @@ With a static key store, `psa_wipe_key_slot()` destroys or purges a key by freei
 
 The dynamic key store allows a large number of keys, at the expense of more complex memory management.
 
+The dynamic key store was added in Mbed TLS 3.6.1. It is enabled by `MBEDTLS_PSA_KEY_STORE_DYNAMIC`, which is enabled by default since Mbed TLS 3.6.1.
+
 #### Dynamic key slot performance characteristics
 
 Key management and key access have $O(1)$ amortized performance, and mostly $O(1)$ performance for actions involving keys. More precisely:

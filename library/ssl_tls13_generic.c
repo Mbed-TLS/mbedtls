@@ -630,8 +630,6 @@ static int ssl_tls13_validate_certificate(mbedtls_ssl_context *ssl)
 {
     int ret = 0;
     int have_ca_chain = 0;
-    mbedtls_x509_crt *ca_chain;
-    mbedtls_x509_crl *ca_crl;
     uint32_t verify_result = 0;
 
     /* Authmode: precedence order is SNI if used else configuration */
@@ -716,6 +714,8 @@ static int ssl_tls13_validate_certificate(mbedtls_ssl_context *ssl)
     } else
 #endif /* MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK */
     {
+        mbedtls_x509_crt *ca_chain;
+        mbedtls_x509_crl *ca_crl;
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
         if (ssl->handshake->sni_ca_chain != NULL) {
             ca_chain = ssl->handshake->sni_ca_chain;

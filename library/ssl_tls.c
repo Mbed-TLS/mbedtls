@@ -7949,13 +7949,12 @@ static int ssl_parse_certificate_verify(mbedtls_ssl_context *ssl,
         ssl->handshake->ciphersuite_info;
     int have_ca_chain = 0;
 
-    int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *);
-    void *p_vrfy;
-
     if (authmode == MBEDTLS_SSL_VERIFY_NONE) {
         return 0;
     }
 
+    int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *);
+    void *p_vrfy;
     if (ssl->f_vrfy != NULL) {
         MBEDTLS_SSL_DEBUG_MSG(3, ("Use context-specific verification callback"));
         f_vrfy = ssl->f_vrfy;
@@ -7988,7 +7987,6 @@ static int ssl_parse_certificate_verify(mbedtls_ssl_context *ssl,
     {
         mbedtls_x509_crt *ca_chain;
         mbedtls_x509_crl *ca_crl;
-
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
         if (ssl->handshake->sni_ca_chain != NULL) {
             ca_chain = ssl->handshake->sni_ca_chain;

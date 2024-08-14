@@ -165,7 +165,6 @@ typedef struct {
      * Format as specified in psa_export_key(). */
     struct key_data {
 #if defined(MBEDTLS_PSA_STATIC_KEY_SLOTS)
-        int in_use;
         uint8_t data[MBEDTLS_PSA_STATIC_KEY_SLOT_BUFFER_SIZE];
 #else /* MBEDTLS_PSA_STATIC_KEY_SLOTS */
         uint8_t *data;

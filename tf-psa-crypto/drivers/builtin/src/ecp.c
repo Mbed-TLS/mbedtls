@@ -4071,6 +4071,12 @@ int mbedtls_ecp_write_key_ext(const mbedtls_ecp_keypair *key,
     }
 #endif
 
+#if defined(MBEDTLS_ECP_EDWARDS_ENABLED)
+    if (mbedtls_ecp_get_type(&key->grp) == MBEDTLS_ECP_TYPE_EDWARDS) {
+        return mbedtls_mpi_write_binary_le(&key->d, buf, len);
+    }
+#endif
+
     /* Private key set but no recognized curve type? This shouldn't happen. */
     return MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 }

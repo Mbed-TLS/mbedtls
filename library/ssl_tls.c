@@ -8997,10 +8997,10 @@ static int mbedtls_ssl_tls13_export_keying_material(mbedtls_ssl_context *ssl,
 }
 
 int mbedtls_ssl_export_keying_material(mbedtls_ssl_context *ssl,
-                                        uint8_t *out, const size_t key_len,
-                                        const char *label, const size_t label_len,
-                                        const unsigned char *context, const size_t context_len,
-                                        const int use_context)
+                                       uint8_t *out, const size_t key_len,
+                                       const char *label, const size_t label_len,
+                                       const unsigned char *context, const size_t context_len,
+                                       const int use_context)
 {
     if (!mbedtls_ssl_is_handshake_over(ssl)) {
         return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;

@@ -5611,10 +5611,10 @@ int  mbedtls_ssl_tls_prf(const mbedtls_tls_prf_types prf,
   * \return            0 on success. An SSL specific error on failure.
   */
  int mbedtls_ssl_export_keying_material(mbedtls_ssl_context *ssl,
-                                        uint8_t *out, size_t key_len,
-                                        const char *label, size_t label_len,
-                                        const unsigned char *context, size_t context_len,
-                                        int use_context);
+                                        uint8_t *out, const size_t key_len,
+                                        const char *label, const size_t label_len,
+                                        const unsigned char *context, const size_t context_len,
+                                        const int use_context);
 #ifdef __cplusplus
 }
 #endif

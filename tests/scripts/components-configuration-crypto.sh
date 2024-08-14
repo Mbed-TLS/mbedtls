@@ -1671,7 +1671,22 @@ build_and_test_psa_want_key_pair_partial () {
     disabled_psa_want="PSA_WANT_KEY_TYPE_${key_type}_KEY_PAIR_${unset_option}"
 
     msg "build: full - ${disabled_psa_want}"
-    scripts/config.py full
+    # Only test crypto, not X.509 and TLS, for several reasons:
+    # * The selective disabling of DERIVE doesn't impact X.509 or TLS.
+    # * We don't test the selective disabling of IMPORT and EXPORT, which
+    #   are not supported (we always enable IMPORT and EXPORT when the
+    #   key pair type is enabled).
+    # * This doesn't impact PK/X.509/TLS-1.2 when MBEDTLS_USE_PSA_CRYPTO
+    #   is disabled, so there's no point in testing it.
+    # * The selective disabling of GENERATE doesn't impact X.509.
+    # * The selective disabling of GENERATE impacts TLS 1.2 when
+    #   MBEDTLS_USE_PSA_CRYPTO is enabled, and it impacts TLS 1.3:
+    #   in both cases, ephemeral ECDH is impossible, but in TLS 1.2,
+    #   static ECDH should be possible. So we should test in the "full"
+    #   configuration, but there are known bugs, tracked in
+    #   https://github.com/Mbed-TLS/mbedtls/issues/9481 .
+    #   Until that issue is resolved, we don't test TLS here.
+    scripts/config.py crypto_full
 
     # All the PSA_WANT_KEY_TYPE_xxx_KEY_PAIR_yyy are enabled by default in
     # crypto_config.h so we just disable the one we don't want.

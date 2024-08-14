@@ -4050,12 +4050,6 @@ psa_status_t psa_raw_key_agreement(psa_algorithm_t alg,
 
 /** Perform a key agreement and return the shared secret as a derivation key.
  *
- * \warning The shared secret resulting from a key agreement algorithm such as
- *  finite-field Diffie-Hellman or elliptic curve Diffie-Hellman has biases.
- * This makes it unsuitable for use as key material, for example, as an AES key.
- * Instead, it is recommended that a key derivation algorithm is applied to the
- * result, to derive unbiased cryptographic keys.
- *
  * \param private_key             Identifier of the private key to use. It must
  *                                allow the usage #PSA_KEY_USAGE_DERIVE.
  * \param[in] peer_key            Public key of the peer. It must be
@@ -4068,22 +4062,38 @@ psa_status_t psa_raw_key_agreement(psa_algorithm_t alg,
  *                                (\c PSA_ALG_XXX value such that
  *                                #PSA_ALG_IS_RAW_KEY_AGREEMENT(\p alg)
  *                                is true).
- * \param[in] attributes          The attributes for the new key.
+ * \param[in] attributes          The attributes for the new key. This function uses
+ *                                the attributes as follows:
+ *                                 * The key type must be one of #PSA_KEY_TYPE_DERIVE,
+ *                                   #PSA_KEY_TYPE_RAW_DATA, #PSA_KEY_TYPE_HMAC, or
+ *                                   #PSA_KEY_TYPE_PASSWORD.
+ *                                 * The size of the returned key is always the
+ *                                   bit-size of the shared secret, rounded up
+ *                                   to a whole number of bytes. The key size in
+ *                                   attributes can be zero; if it is nonzero, it
+ *                                   must be equal to the output size of the key
+ *                                   agreement, in bits.
+ *                                   The output size, in bits, of the key agreement
+ *                                   is 8 * PSA_RAW_KEY_AGREEMENT_OUTPUT_SIZE(type, bits),
+ *                                   where type and bits are the type and bit-size of
+ *                                   private_key.
+ *                                 * The key permitted-algorithm policy is required for
+ *                                   keys that will be used for a cryptographic operation.
+ *                                 * The key usage flags define what operations are
+ *                                   permitted with the key.
+ *                                 * The key lifetime and identifier are required
+ *                                   for a persistent key.
  * \param[out] key                On success, an identifier for the newly created
  *                                key. #PSA_KEY_ID_NULL on failure.
  * \retval #PSA_SUCCESS
  *         Success.
  * \retval #PSA_ERROR_BAD_STATE
  *         The library has not been previously initialized by psa_crypto_init().
- *         It is implementation-dependent whether a failure to initialize
- *         results in this error code.
  * \retval #PSA_ERROR_INVALID_HANDLE
  *          \p private_key is not a valid key identifier.
  * \retval #PSA_ERROR_NOT_PERMITTED
  *         \p private_key does not have the PSA_KEY_USAGE_DERIVE flag,
  *         or it does not permit the requested algorithm.
- *         The implementation does not permit creating a key with the specified attributes
- *         due to some implementation-specific policy.
  * \retval #PSA_ERROR_ALREADY_EXISTS
  *         This is an attempt to create a persistent key, and there is already
  *         a persistent key with the given identifier.
@@ -4093,19 +4103,19 @@ psa_status_t psa_raw_key_agreement(psa_algorithm_t alg,
  *         or \p peer_key is not valid for \p alg or not compatible with
  *         \p private_key.
  *         The output key attributes in \p attributes are not valid:
- *              The key type is not valid for key agreement output.
- *              The key size is nonzero, and is not the size of the shared secret.
- *              The key lifetime is invalid.
- *              The key identifier is not valid for the key lifetime.
- *              The key usage flags include invalid values.
- *              The key’s permitted-usage algorithm is invalid.
- *              The key attributes, as a whole, are invalid.
+ *              * The key type is not valid for key agreement output.
+ *              * The key size is nonzero, and is not the size of the shared secret.
+ *              * The key lifetime is invalid.
+ *              * The key identifier is not valid for the key lifetime.
+ *              * The key usage flags include invalid values.
+ *              * The key’s permitted-usage algorithm is invalid.
+ *              * The key attributes, as a whole, are invalid.
  * \retval #PSA_ERROR_NOT_SUPPORTED
- *         \p alg is not a supported key agreement algorithm.
- *         \p private_key is not supported for use with alg.
- *         The output key attributes, as a whole, are not supported,
- *         either by the implementation in general or in the specified
- *         storage location.
+ *         * \p alg is not a supported key agreement algorithm.
+ *         * \p private_key is not supported for use with alg.
+ *         * The output key attributes, as a whole, are not supported,
+ *           either by the implementation in general or in the specified
+ *           storage location.
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
  * \retval #PSA_ERROR_INSUFFICIENT_STORAGE \emptydescription
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE \emptydescription

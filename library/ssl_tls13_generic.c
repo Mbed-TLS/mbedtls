@@ -629,7 +629,7 @@ MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_tls13_validate_certificate(mbedtls_ssl_context *ssl)
 {
     int ret = 0;
-    int have_ca_chain = 0;
+    int have_ca_chain_or_callback = 0;
     uint32_t verify_result = 0;
 
     /* Authmode: precedence order is SNI if used else configuration */
@@ -700,7 +700,7 @@ static int ssl_tls13_validate_certificate(mbedtls_ssl_context *ssl)
      */
 #if defined(MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK)
     if (ssl->conf->f_ca_cb != NULL) {
-        have_ca_chain = 1;
+        have_ca_chain_or_callback = 1;
 
         MBEDTLS_SSL_DEBUG_MSG(3, ("use CA callback for X.509 CRT verification"));
         ret = mbedtls_x509_crt_verify_with_ca_cb(
@@ -728,7 +728,7 @@ static int ssl_tls13_validate_certificate(mbedtls_ssl_context *ssl)
         }
 
         if (ca_chain != NULL) {
-            have_ca_chain = 1;
+            have_ca_chain_or_callback = 1;
         }
 
         ret = mbedtls_x509_crt_verify_with_profile(
@@ -771,7 +771,7 @@ static int ssl_tls13_validate_certificate(mbedtls_ssl_context *ssl)
         ret = 0;
     }
 
-    if (!have_ca_chain && authmode == MBEDTLS_SSL_VERIFY_REQUIRED) {
+    if (!have_ca_chain_or_callback && authmode == MBEDTLS_SSL_VERIFY_REQUIRED) {
         MBEDTLS_SSL_DEBUG_MSG(1, ("got no CA chain"));
         ret = MBEDTLS_ERR_SSL_CA_CHAIN_REQUIRED;
     }

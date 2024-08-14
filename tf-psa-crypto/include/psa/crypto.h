@@ -4098,11 +4098,11 @@ psa_status_t psa_raw_key_agreement(psa_algorithm_t alg,
  *         This is an attempt to create a persistent key, and there is already
  *         a persistent key with the given identifier.
  * \retval #PSA_ERROR_INVALID_ARGUMENT
- *         \p alg is not a key agreement algorithm, or
- *         \p private_key is not compatible with \p alg,
- *         or \p peer_key is not valid for \p alg or not compatible with
- *         \p private_key.
- *         The output key attributes in \p attributes are not valid:
+ *         * \p alg is not a key agreement algorithm.
+ *         * \p private_key is not compatible with \p alg.
+ *         * \p peer_key is not valid for \p alg or not compatible with
+ *           \p private_key.
+ *         * The output key attributes in \p attributes are not valid:
  *              * The key type is not valid for key agreement output.
  *              * The key size is nonzero, and is not the size of the shared secret.
  *              * The key lifetime is invalid.

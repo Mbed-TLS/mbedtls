@@ -5841,6 +5841,17 @@ run_test    "Authentication: server badcert, client required (1.2)" \
 run_test    "Authentication: server badcert, client optional" \
             "$P_SRV crt_file=$DATA_FILES_PATH/server5-badsign.crt \
              key_file=$DATA_FILES_PATH/server5.key" \
+            "$P_CLI force_version=tls13 debug_level=3 auth_mode=optional" \
+            0 \
+            -c "x509_verify_cert() returned" \
+            -c "! The certificate is not correctly signed by the trusted CA" \
+            -C "! mbedtls_ssl_handshake returned" \
+            -C "send alert level=2 message=48" \
+            -C "X509 - Certificate verification failed"
+
+run_test    "Authentication: server badcert, client optional (1.2)" \
+            "$P_SRV crt_file=$DATA_FILES_PATH/server5-badsign.crt \
+             key_file=$DATA_FILES_PATH/server5.key" \
             "$P_CLI force_version=tls12 debug_level=3 auth_mode=optional" \
             0 \
             -c "x509_verify_cert() returned" \
@@ -5860,8 +5871,22 @@ run_test    "Authentication: server badcert, client none" \
             -C "send alert level=2 message=48" \
             -C "X509 - Certificate verification failed"
 
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
+# TODO: server goodcert, client none, no trusted CA
+
+requires_key_exchange_with_cert_in_tls12_or_tls13_enabled
 run_test    "Authentication: server goodcert, client optional, no trusted CA" \
+            "$P_SRV" \
+            "$P_CLI debug_level=3 auth_mode=optional ca_file=none ca_path=none" \
+            0 \
+            -c "x509_verify_cert() returned" \
+            -c "! The certificate is not correctly signed by the trusted CA" \
+            -c "! Certificate verification flags"\
+            -C "! mbedtls_ssl_handshake returned" \
+            -C "X509 - Certificate verification failed" \
+            -C "SSL - No CA Chain is set, but required to operate"
+
+requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
+run_test    "Authentication: server goodcert, client optional, no trusted CA (1.2)" \
             "$P_SRV" \
             "$P_CLI force_version=tls12 debug_level=3 auth_mode=optional ca_file=none ca_path=none" \
             0 \
@@ -6129,7 +6154,7 @@ requires_full_size_output_buffer
 run_test    "Authentication: server max_int+1 chain, client optional" \
             "$P_SRV crt_file=$DATA_FILES_PATH/dir-maxpath/c10.pem \
                     key_file=$DATA_FILES_PATH/dir-maxpath/10.key" \
-            "$P_CLI force_version=tls12 server_name=CA10 ca_file=$DATA_FILES_PATH/dir-maxpath/00.crt \
+            "$P_CLI server_name=CA10 ca_file=$DATA_FILES_PATH/dir-maxpath/00.crt \
                     auth_mode=optional" \
             1 \
             -c "X509 - A fatal error occurred"

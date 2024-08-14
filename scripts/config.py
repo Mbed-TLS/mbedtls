@@ -52,7 +52,6 @@ class Config:
       name to become set.
     """
 
-    # pylint: disable=unused-argument
     def __init__(self):
         self.settings = {}
 
@@ -66,11 +65,11 @@ class Config:
 
     def all(self, *names):
         """True if all the elements of names are active (i.e. set)."""
-        return all(self.__contains__(name) for name in names)
+        return all(name in self for name in names)
 
     def any(self, *names):
         """True if at least one symbol in names are active (i.e. set)."""
-        return any(self.__contains__(name) for name in names)
+        return any(name in self for name in names)
 
     def known(self, name):
         """True if a #define for name is present, whether it's commented out or not."""
@@ -715,6 +714,7 @@ class CombinedConfig(Config):
 
         super().set(name, value, configfile)
 
+    #pylint: disable=arguments-differ
     def write(self, mbedtls_file=None, crypto_file=None):
         """Write the whole configuration to the file it was read from.
 

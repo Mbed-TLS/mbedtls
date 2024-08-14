@@ -629,22 +629,17 @@ MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_tls13_validate_certificate(mbedtls_ssl_context *ssl)
 {
     int ret = 0;
-    int authmode = MBEDTLS_SSL_VERIFY_REQUIRED;
     mbedtls_x509_crt *ca_chain;
     mbedtls_x509_crl *ca_crl;
     uint32_t verify_result = 0;
 
-    /* If SNI was used, overwrite authentication mode
-     * from the configuration. */
-#if defined(MBEDTLS_SSL_SRV_C)
-    if (ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER) {
-#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
-        if (ssl->handshake->sni_authmode != MBEDTLS_SSL_VERIFY_UNSET) {
-            authmode = ssl->handshake->sni_authmode;
-        } else
-#endif
-        authmode = ssl->conf->authmode;
-    }
+    /* Authmode: precedence order is SNI if used else configuration */
+#if defined(MBEDTLS_SSL_SRV_C) && defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
+    const int authmode = ssl->handshake->sni_authmode != MBEDTLS_SSL_VERIFY_UNSET
+                       ? ssl->handshake->sni_authmode
+                       : ssl->conf->authmode;
+#else
+    const int authmode = ssl->conf->authmode;
 #endif
 
     /*

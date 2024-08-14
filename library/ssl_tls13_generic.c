@@ -684,6 +684,18 @@ static int ssl_tls13_validate_certificate(mbedtls_ssl_context *ssl)
 #endif /* MBEDTLS_SSL_CLI_C */
     }
 
+    /*
+     * NONE means we skip all checks
+     *
+     * Note: we still check above that the server did send a certificate,
+     * because only a non-compliant server would fail to do so. NONE means we
+     * don't care about the server certificate being valid, but we still care
+     * about the server otherwise following the TLS standard.
+     */
+    if (authmode == MBEDTLS_SSL_VERIFY_NONE) {
+        return 0;
+    }
+
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
     if (ssl->handshake->sni_ca_chain != NULL) {
         ca_chain = ssl->handshake->sni_ca_chain;

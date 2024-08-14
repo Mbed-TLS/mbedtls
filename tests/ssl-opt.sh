@@ -5863,6 +5863,17 @@ run_test    "Authentication: server badcert, client optional (1.2)" \
 run_test    "Authentication: server badcert, client none" \
             "$P_SRV crt_file=$DATA_FILES_PATH/server5-badsign.crt \
              key_file=$DATA_FILES_PATH/server5.key" \
+            "$P_CLI debug_level=3 auth_mode=none" \
+            0 \
+            -C "x509_verify_cert() returned" \
+            -C "! The certificate is not correctly signed by the trusted CA" \
+            -C "! mbedtls_ssl_handshake returned" \
+            -C "send alert level=2 message=48" \
+            -C "X509 - Certificate verification failed"
+
+run_test    "Authentication: server badcert, client none (1.2)" \
+            "$P_SRV crt_file=$DATA_FILES_PATH/server5-badsign.crt \
+             key_file=$DATA_FILES_PATH/server5.key" \
             "$P_CLI force_version=tls12 debug_level=3 auth_mode=none" \
             0 \
             -C "x509_verify_cert() returned" \
@@ -5917,7 +5928,29 @@ run_test    "Authentication: server goodcert, client optional, no trusted CA (1.
             -C "X509 - Certificate verification failed" \
             -C "SSL - No CA Chain is set, but required to operate"
 
-# TODO: server goodcert, client none, no trusted CA
+requires_key_exchange_with_cert_in_tls12_or_tls13_enabled
+run_test    "Authentication: server goodcert, client none, no trusted CA" \
+            "$P_SRV" \
+            "$P_CLI debug_level=3 auth_mode=none ca_file=none ca_path=none" \
+            0 \
+            -C "x509_verify_cert() returned" \
+            -C "! The certificate is not correctly signed by the trusted CA" \
+            -C "! Certificate verification flags"\
+            -C "! mbedtls_ssl_handshake returned" \
+            -C "X509 - Certificate verification failed" \
+            -C "SSL - No CA Chain is set, but required to operate"
+
+requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
+run_test    "Authentication: server goodcert, client none, no trusted CA (1.2)" \
+            "$P_SRV" \
+            "$P_CLI force_version=tls12 debug_level=3 auth_mode=none ca_file=none ca_path=none" \
+            0 \
+            -C "x509_verify_cert() returned" \
+            -C "! The certificate is not correctly signed by the trusted CA" \
+            -C "! Certificate verification flags"\
+            -C "! mbedtls_ssl_handshake returned" \
+            -C "X509 - Certificate verification failed" \
+            -C "SSL - No CA Chain is set, but required to operate"
 
 # The purpose of the next two tests is to test the client's behaviour when receiving a server
 # certificate with an unsupported elliptic curve. This should usually not happen because

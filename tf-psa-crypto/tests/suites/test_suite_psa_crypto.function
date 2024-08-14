@@ -9733,6 +9733,7 @@ void key_agreement(int alg_arg,
     size_t key_bits;
     mbedtls_svc_key_id_t shared_secret_id = MBEDTLS_SVC_KEY_ID_INIT;
     psa_key_attributes_t shared_secret_attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_key_attributes_t output_attributes;
 
     PSA_ASSERT(psa_crypto_init());
 
@@ -9761,12 +9762,11 @@ void key_agreement(int alg_arg,
     TEST_MEMORY_COMPARE(output, output_length,
                         expected_output->x, expected_output->len);
 
-    mbedtls_platform_zeroize(output, expected_output->len);
+    memset(output, 0, expected_output->len);
     output_length = 0;
 
     psa_set_key_type(&shared_secret_attributes, PSA_KEY_TYPE_DERIVE);
     psa_set_key_usage_flags(&shared_secret_attributes, PSA_KEY_USAGE_DERIVE | PSA_KEY_USAGE_EXPORT);
-    psa_set_key_algorithm(&shared_secret_attributes, PSA_ALG_ECDH);
 
     PSA_ASSERT(psa_key_agreement(our_key, peer_key_data->x, peer_key_data->len,
                                  alg, &shared_secret_attributes, &shared_secret_id));
@@ -9775,6 +9775,14 @@ void key_agreement(int alg_arg,
 
     TEST_MEMORY_COMPARE(output, output_length,
                         expected_output->x, expected_output->len);
+
+    PSA_ASSERT(psa_get_key_attributes(shared_secret_id, &output_attributes));
+
+    TEST_EQUAL(PSA_BITS_TO_BYTES(psa_get_key_bits(&output_attributes)),
+               expected_output->len);
+    TEST_EQUAL(psa_get_key_type(&output_attributes), PSA_KEY_TYPE_DERIVE);
+    TEST_EQUAL(psa_get_key_usage_flags(&output_attributes),
+               PSA_KEY_USAGE_DERIVE | PSA_KEY_USAGE_EXPORT);
 
     mbedtls_free(output);
     output = NULL;
@@ -9788,18 +9796,6 @@ void key_agreement(int alg_arg,
                                      peer_key_data->x, peer_key_data->len,
                                      output, expected_output->len + 1,
                                      &output_length));
-    TEST_MEMORY_COMPARE(output, output_length,
-                        expected_output->x, expected_output->len);
-
-    mbedtls_platform_zeroize(output, expected_output->len + 1);
-    output_length = 0;
-
-    psa_set_key_bits(&shared_secret_attributes, (expected_output->len + 1) * 8);
-    PSA_ASSERT(psa_key_agreement(our_key, peer_key_data->x, peer_key_data->len,
-                                 alg, &shared_secret_attributes, &shared_secret_id));
-
-    PSA_ASSERT(psa_export_key(shared_secret_id, output, expected_output->len + 1, &output_length));
-
     TEST_MEMORY_COMPARE(output, output_length,
                         expected_output->x, expected_output->len);
 
@@ -9818,20 +9814,6 @@ void key_agreement(int alg_arg,
                PSA_ERROR_BUFFER_TOO_SMALL);
     /* Not required by the spec, but good robustness */
     TEST_LE_U(output_length, expected_output->len - 1);
-
-    mbedtls_platform_zeroize(output, expected_output->len - 1);
-    output_length = 0;
-
-    psa_set_key_bits(&shared_secret_attributes, (expected_output->len - 1) * 8);
-    TEST_EQUAL(psa_key_agreement(our_key, peer_key_data->x, peer_key_data->len,
-                                 alg, &shared_secret_attributes, &shared_secret_id),
-               PSA_ERROR_BUFFER_TOO_SMALL);
-
-#if !defined(MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER)
-    TEST_EQUAL(shared_secret_id, PSA_KEY_ID_NULL);
-#else
-    TEST_EQUAL(shared_secret_id.key_id, PSA_KEY_ID_NULL);
-#endif
 
     mbedtls_free(output);
     output = NULL;

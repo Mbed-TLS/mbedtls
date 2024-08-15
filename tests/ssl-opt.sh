@@ -8087,7 +8087,7 @@ run_test    "extKeyUsage srv: codeSign -> fail" \
 # Tests for extendedKeyUsage, part 2: client-side checking of server cert
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-run_test    "extKeyUsage cli: serverAuth -> OK" \
+run_test    "extKeyUsage cli 1.2: serverAuth -> OK" \
             "$O_SRV -tls1_2 -key $DATA_FILES_PATH/server5.key \
              -cert $DATA_FILES_PATH/server5.eku-srv.crt" \
             "$P_CLI debug_level=1" \
@@ -8097,7 +8097,7 @@ run_test    "extKeyUsage cli: serverAuth -> OK" \
             -c "Ciphersuite is TLS-"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-run_test    "extKeyUsage cli: serverAuth,clientAuth -> OK" \
+run_test    "extKeyUsage cli 1.2: serverAuth,clientAuth -> OK" \
             "$O_SRV -tls1_2 -key $DATA_FILES_PATH/server5.key \
              -cert $DATA_FILES_PATH/server5.eku-srv_cli.crt" \
             "$P_CLI debug_level=1" \
@@ -8107,7 +8107,7 @@ run_test    "extKeyUsage cli: serverAuth,clientAuth -> OK" \
             -c "Ciphersuite is TLS-"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-run_test    "extKeyUsage cli: codeSign,anyEKU -> OK" \
+run_test    "extKeyUsage cli 1.2: codeSign,anyEKU -> OK" \
             "$O_SRV -tls1_2 -key $DATA_FILES_PATH/server5.key \
              -cert $DATA_FILES_PATH/server5.eku-cs_any.crt" \
             "$P_CLI debug_level=1" \
@@ -8117,14 +8117,17 @@ run_test    "extKeyUsage cli: codeSign,anyEKU -> OK" \
             -c "Ciphersuite is TLS-"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-run_test    "extKeyUsage cli: codeSign -> fail" \
+run_test    "extKeyUsage cli 1.2: codeSign -> fail (hard)" \
             "$O_SRV -tls1_2 -key $DATA_FILES_PATH/server5.key \
              -cert $DATA_FILES_PATH/server5.eku-cs.crt" \
-            "$P_CLI debug_level=1" \
+            "$P_CLI debug_level=3" \
             1 \
             -c "bad certificate (usage extensions)" \
             -c "Processing of the Certificate handshake message failed" \
-            -C "Ciphersuite is TLS-"
+            -C "Ciphersuite is TLS-" \
+            -c "send alert level=2 message=43" \
+            -c "! Usage does not match the extendedKeyUsage extension"
+            # MBEDTLS_X509_BADCERT_EXT_KEY_USAGE  -> MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT
 
 requires_openssl_tls1_3_with_compatible_ephemeral
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
@@ -8165,19 +8168,22 @@ run_test    "extKeyUsage cli 1.3: codeSign,anyEKU -> OK" \
 requires_openssl_tls1_3_with_compatible_ephemeral
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-run_test    "extKeyUsage cli 1.3: codeSign -> fail" \
+run_test    "extKeyUsage cli 1.3: codeSign -> fail (hard)" \
             "$O_NEXT_SRV_NO_CERT -tls1_3 -num_tickets=0 -key $DATA_FILES_PATH/server5.key \
              -cert $DATA_FILES_PATH/server5.eku-cs.crt" \
-            "$P_CLI debug_level=1" \
+            "$P_CLI debug_level=3" \
             1 \
             -c "bad certificate (usage extensions)" \
             -c "Processing of the Certificate handshake message failed" \
-            -C "Ciphersuite is"
+            -C "Ciphersuite is" \
+            -c "send alert level=2 message=43" \
+            -c "! Usage does not match the extendedKeyUsage extension"
+            # MBEDTLS_X509_BADCERT_EXT_KEY_USAGE  -> MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT
 
 # Tests for extendedKeyUsage, part 3: server-side checking of client cert
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-run_test    "extKeyUsage cli-auth: clientAuth -> OK" \
+run_test    "extKeyUsage cli-auth 1.2: clientAuth -> OK" \
             "$P_SRV debug_level=1 auth_mode=optional" \
             "$O_CLI -tls1_2 -key $DATA_FILES_PATH/server5.key \
              -cert $DATA_FILES_PATH/server5.eku-cli.crt" \
@@ -8186,7 +8192,7 @@ run_test    "extKeyUsage cli-auth: clientAuth -> OK" \
             -S "Processing of the Certificate handshake message failed"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-run_test    "extKeyUsage cli-auth: serverAuth,clientAuth -> OK" \
+run_test    "extKeyUsage cli-auth 1.2: serverAuth,clientAuth -> OK" \
             "$P_SRV debug_level=1 auth_mode=optional" \
             "$O_CLI -tls1_2 -key $DATA_FILES_PATH/server5.key \
              -cert $DATA_FILES_PATH/server5.eku-srv_cli.crt" \
@@ -8195,7 +8201,7 @@ run_test    "extKeyUsage cli-auth: serverAuth,clientAuth -> OK" \
             -S "Processing of the Certificate handshake message failed"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-run_test    "extKeyUsage cli-auth: codeSign,anyEKU -> OK" \
+run_test    "extKeyUsage cli-auth 1.2: codeSign,anyEKU -> OK" \
             "$P_SRV debug_level=1 auth_mode=optional" \
             "$O_CLI -tls1_2 -key $DATA_FILES_PATH/server5.key \
              -cert $DATA_FILES_PATH/server5.eku-cs_any.crt" \
@@ -8204,22 +8210,27 @@ run_test    "extKeyUsage cli-auth: codeSign,anyEKU -> OK" \
             -S "Processing of the Certificate handshake message failed"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-run_test    "extKeyUsage cli-auth: codeSign -> fail (soft)" \
-            "$P_SRV debug_level=1 auth_mode=optional" \
+run_test    "extKeyUsage cli-auth 1.2: codeSign -> fail (soft)" \
+            "$P_SRV debug_level=3 auth_mode=optional" \
             "$O_CLI -tls1_2 -key $DATA_FILES_PATH/server5.key \
              -cert $DATA_FILES_PATH/server5.eku-cs.crt" \
             0 \
             -s "bad certificate (usage extensions)" \
-            -S "Processing of the Certificate handshake message failed"
+            -S "send alert level=2 message=43" \
+            -s "! Usage does not match the extendedKeyUsage extension" \
+            -S "Processing of the Certificate handshake message failed" \
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-run_test    "extKeyUsage cli-auth: codeSign -> fail (hard)" \
-            "$P_SRV debug_level=1 auth_mode=required" \
+run_test    "extKeyUsage cli-auth 1.2: codeSign -> fail (hard)" \
+            "$P_SRV debug_level=3 auth_mode=required" \
             "$O_CLI -tls1_2 -key $DATA_FILES_PATH/server5.key \
              -cert $DATA_FILES_PATH/server5.eku-cs.crt" \
             1 \
             -s "bad certificate (usage extensions)" \
+            -s "send alert level=2 message=43" \
+            -s "! Usage does not match the extendedKeyUsage extension" \
             -s "Processing of the Certificate handshake message failed"
+            # MBEDTLS_X509_BADCERT_EXT_KEY_USAGE  -> MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT
 
 requires_openssl_tls1_3_with_compatible_ephemeral
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
@@ -8258,11 +8269,13 @@ requires_openssl_tls1_3_with_compatible_ephemeral
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "extKeyUsage cli-auth 1.3: codeSign -> fail (soft)" \
-            "$P_SRV debug_level=1 force_version=tls13 auth_mode=optional" \
+            "$P_SRV debug_level=3 force_version=tls13 auth_mode=optional" \
             "$O_NEXT_CLI_NO_CERT -key $DATA_FILES_PATH/server5.key \
              -cert $DATA_FILES_PATH/server5.eku-cs.crt" \
             0 \
             -s "bad certificate (usage extensions)" \
+            -S "send alert level=2 message=43" \
+            -s "! Usage does not match the extendedKeyUsage extension" \
             -S "Processing of the Certificate handshake message failed"
 
 # Tests for DHM parameters loading

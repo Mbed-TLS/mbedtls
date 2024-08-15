@@ -867,7 +867,7 @@ static void mbedtls_mpi_core_exp_mod_optionally_safe(mbedtls_mpi_uint *X,
 
     const mbedtls_mpi_uint mm = mbedtls_mpi_core_montmul_init(N);
 
-    /* Set Wtable[i] = A^(2^i) (in Montgomery representation) */
+    /* Set Wtable[i] = A^i (in Montgomery representation) */
     exp_mod_precompute_window(A, N, AN_limbs,
                               mm, RR,
                               welem, Wtable, temp);

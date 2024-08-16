@@ -3277,11 +3277,11 @@
  * require it.
  * This feature affects both volatile and persistent keys which means that
  * it's not possible to persistently store a key which is larger than
- * MBEDTLS_PSA_STATIC_KEY_SLOT_BUFFER_SIZE.
+ * #MBEDTLS_PSA_STATIC_KEY_SLOT_BUFFER_SIZE.
  *
  * \note This feature comes with a (potentially) higher RAM usage since:
  *       - All the key slots are allocated no matter if they are used of not.
- *       - Each key buffer's length is MBEDTLS_PSA_STATIC_KEY_SLOT_BUFFER_SIZE bytes.
+ *       - Each key buffer's length is #MBEDTLS_PSA_STATIC_KEY_SLOT_BUFFER_SIZE bytes.
  *
  * Requires: MBEDTLS_PSA_CRYPTO_C
  *
@@ -4092,10 +4092,10 @@
 /**
  * \def MBEDTLS_PSA_STATIC_KEY_SLOT_BUFFER_SIZE
  *
- * Define the size (in bytes) of each static key slot when
- * MBEDTLS_PSA_STATIC_KEY_SLOTS is set. If not
- * explicitly defined then it's automatically set to hold the maximum
- * asymmetric PSA key enabled in the build (through PSA_WANT_xxx symbols).
+ * Define the size (in bytes) of each static key buffer when
+ * #MBEDTLS_PSA_STATIC_KEY_SLOTS is set. If not
+ * explicitly defined then it's automatically guessed from available PSA keys
+ * enabled in the build through PSA_WANT_xxx symbols.
  * If required by the application this parameter can be set to higher values
  * in order to store larger objects (ex: raw keys), but please note that this
  * will increase RAM usage.

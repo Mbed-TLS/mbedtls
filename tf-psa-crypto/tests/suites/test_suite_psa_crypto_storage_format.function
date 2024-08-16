@@ -305,17 +305,17 @@ void key_storage_read(int lifetime_arg, int type_arg, int bits_arg,
     /* Create a persistent key which is intentionally larger than the specified
      * bit size. */
     if (flags & TEST_FLAG_OVERSIZED_KEY) {
-        TEST_CALLOC(custom_key_data, PSA_BITS_TO_BYTES(bits) + 1);
-        memset(custom_key_data, 0xAA, PSA_BITS_TO_BYTES(bits) + 1);
-        material->len = PSA_BITS_TO_BYTES(bits) + 1;
+        TEST_CALLOC(custom_key_data, PSA_BITS_TO_BYTES(bits));
+        memset(custom_key_data, 0xAA, PSA_BITS_TO_BYTES(bits));
+        material->len = PSA_BITS_TO_BYTES(bits);
         material->x = custom_key_data;
 
         /* 36 bytes are the overhead of psa_persistent_key_storage_format */
-        TEST_CALLOC(custom_storage_data, PSA_BITS_TO_BYTES(bits) + 1 + 36);
-        representation->len = PSA_BITS_TO_BYTES(bits) + 1 + 36;
+        TEST_CALLOC(custom_storage_data, PSA_BITS_TO_BYTES(bits) + 36);
+        representation->len = PSA_BITS_TO_BYTES(bits) + 36;
         representation->x = custom_storage_data;
 
-        psa_format_key_data_for_storage(custom_key_data, PSA_BITS_TO_BYTES(bits) + 1,
+        psa_format_key_data_for_storage(custom_key_data, PSA_BITS_TO_BYTES(bits),
                                         &attributes, custom_storage_data);
     }
 

@@ -2722,6 +2722,7 @@ run_test    "Single supported algorithm sending: openssl client" \
             0
 
 # Tests for certificate verification callback
+requires_key_exchange_with_cert_in_tls12_or_tls13_enabled
 run_test    "Configuration-specific CRT verification callback" \
             "$P_SRV debug_level=3" \
             "$P_CLI context_crt_cb=0 debug_level=3" \
@@ -2732,6 +2733,7 @@ run_test    "Configuration-specific CRT verification callback" \
             -C "Use context-specific verification callback" \
             -C "error"
 
+requires_key_exchange_with_cert_in_tls12_or_tls13_enabled
 run_test    "Context-specific CRT verification callback" \
             "$P_SRV debug_level=3" \
             "$P_CLI context_crt_cb=1 debug_level=3" \

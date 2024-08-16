@@ -7939,14 +7939,13 @@ static int ssl_parse_certificate_coordinate(mbedtls_ssl_context *ssl,
 }
 
 MBEDTLS_CHECK_RETURN_CRITICAL
-static int ssl_parse_certificate_verify(mbedtls_ssl_context *ssl,
-                                        int authmode,
-                                        mbedtls_x509_crt *chain,
-                                        void *rs_ctx)
+static int ssl_verify_certificate(mbedtls_ssl_context *ssl,
+                                  int authmode,
+                                  mbedtls_x509_crt *chain,
+                                  const mbedtls_ssl_ciphersuite_t *ciphersuite_info,
+                                  void *rs_ctx)
 {
     int ret = 0;
-    const mbedtls_ssl_ciphersuite_t *ciphersuite_info =
-        ssl->handshake->ciphersuite_info;
     int have_ca_chain_or_callback = 0;
 
     if (authmode == MBEDTLS_SSL_VERIFY_NONE) {
@@ -8246,8 +8245,8 @@ crt_verify:
     }
 #endif
 
-    ret = ssl_parse_certificate_verify(ssl, authmode,
-                                       chain, rs_ctx);
+    ret = ssl_verify_certificate(ssl, authmode, chain,
+                                 ssl->handshake->ciphersuite_info, rs_ctx);
     if (ret != 0) {
         goto exit;
     }

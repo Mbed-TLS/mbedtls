@@ -695,6 +695,19 @@ static int ssl_tls13_validate_certificate(mbedtls_ssl_context *ssl)
         return 0;
     }
 
+    /* Verify callback: precedence order is SSL context, else conf struct. */
+    int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *);
+    void *p_vrfy;
+    if (ssl->f_vrfy != NULL) {
+        MBEDTLS_SSL_DEBUG_MSG(3, ("Use context-specific verification callback"));
+        f_vrfy = ssl->f_vrfy;
+        p_vrfy = ssl->p_vrfy;
+    } else {
+        MBEDTLS_SSL_DEBUG_MSG(3, ("Use configuration-specific verification callback"));
+        f_vrfy = ssl->conf->f_vrfy;
+        p_vrfy = ssl->conf->p_vrfy;
+    }
+
     /*
      * Main check: verify certificate
      */
@@ -710,7 +723,7 @@ static int ssl_tls13_validate_certificate(mbedtls_ssl_context *ssl)
             ssl->conf->cert_profile,
             ssl->hostname,
             &verify_result,
-            ssl->conf->f_vrfy, ssl->conf->p_vrfy);
+            f_vrfy, p_vrfy);
     } else
 #endif /* MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK */
     {
@@ -737,7 +750,7 @@ static int ssl_tls13_validate_certificate(mbedtls_ssl_context *ssl)
             ssl->conf->cert_profile,
             ssl->hostname,
             &verify_result,
-            ssl->conf->f_vrfy, ssl->conf->p_vrfy);
+            f_vrfy, p_vrfy);
     }
 
     if (ret != 0) {

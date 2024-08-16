@@ -2724,7 +2724,7 @@ run_test    "Single supported algorithm sending: openssl client" \
 # Tests for certificate verification callback
 run_test    "Configuration-specific CRT verification callback" \
             "$P_SRV debug_level=3" \
-            "$P_CLI force_version=tls12 context_crt_cb=0 debug_level=3" \
+            "$P_CLI context_crt_cb=0 debug_level=3" \
             0 \
             -S "error" \
             -c "Verify requested for " \
@@ -2734,7 +2734,7 @@ run_test    "Configuration-specific CRT verification callback" \
 
 run_test    "Context-specific CRT verification callback" \
             "$P_SRV debug_level=3" \
-            "$P_CLI force_version=tls12 context_crt_cb=1 debug_level=3" \
+            "$P_CLI context_crt_cb=1 debug_level=3" \
             0 \
             -S "error" \
             -c "Verify requested for " \

@@ -8117,6 +8117,19 @@ run_test    "extKeyUsage cli 1.2: codeSign,anyEKU -> OK" \
             -c "Ciphersuite is TLS-"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+run_test    "extKeyUsage cli 1.2: codeSign -> fail (soft)" \
+            "$O_SRV -tls1_2 -key $DATA_FILES_PATH/server5.key \
+             -cert $DATA_FILES_PATH/server5.eku-cs.crt" \
+            "$P_CLI debug_level=3 auth_mode=optional" \
+            0 \
+            -c "bad certificate (usage extensions)" \
+            -C "Processing of the Certificate handshake message failed" \
+            -c "Ciphersuite is TLS-" \
+            -C "send alert level=2 message=43" \
+            -c "! Usage does not match the extendedKeyUsage extension"
+            # MBEDTLS_X509_BADCERT_EXT_KEY_USAGE  -> MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT
+
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "extKeyUsage cli 1.2: codeSign -> fail (hard)" \
             "$O_SRV -tls1_2 -key $DATA_FILES_PATH/server5.key \
              -cert $DATA_FILES_PATH/server5.eku-cs.crt" \
@@ -8277,6 +8290,20 @@ run_test    "extKeyUsage cli-auth 1.3: codeSign -> fail (soft)" \
             -S "send alert level=2 message=43" \
             -s "! Usage does not match the extendedKeyUsage extension" \
             -S "Processing of the Certificate handshake message failed"
+
+requires_openssl_tls1_3_with_compatible_ephemeral
+requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+run_test    "extKeyUsage cli-auth 1.3: codeSign -> fail (hard)" \
+            "$P_SRV debug_level=3 force_version=tls13 auth_mode=required" \
+            "$P_CLI key_file=$DATA_FILES_PATH/server5.key \
+             crt_file=$DATA_FILES_PATH/server5.eku-cs.crt" \
+            1 \
+            -s "bad certificate (usage extensions)" \
+            -s "send alert level=2 message=43" \
+            -s "! Usage does not match the extendedKeyUsage extension" \
+            -s "Processing of the Certificate handshake message failed"
+            # MBEDTLS_X509_BADCERT_EXT_KEY_USAGE  -> MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT
 
 # Tests for DHM parameters loading
 

@@ -7944,14 +7944,13 @@ int mbedtls_ssl_verify_certificate(mbedtls_ssl_context *ssl,
                                    const mbedtls_ssl_ciphersuite_t *ciphersuite_info,
                                    void *rs_ctx)
 {
-    int ret = 0;
-    int have_ca_chain_or_callback = 0;
-
     if (authmode == MBEDTLS_SSL_VERIFY_NONE) {
         return 0;
     }
 
-    /* Verify callback: precedence order is SSL context, else conf struct. */
+    /*
+     * Primary check: use the appropriate X.509 verification function
+     */
     int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *);
     void *p_vrfy;
     if (ssl->f_vrfy != NULL) {
@@ -7964,9 +7963,8 @@ int mbedtls_ssl_verify_certificate(mbedtls_ssl_context *ssl,
         p_vrfy = ssl->conf->p_vrfy;
     }
 
-    /*
-     * Main check: verify certificate
-     */
+    int ret = 0;
+    int have_ca_chain_or_callback = 0;
 #if defined(MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK)
     if (ssl->conf->f_ca_cb != NULL) {
         ((void) rs_ctx);
@@ -8057,18 +8055,22 @@ int mbedtls_ssl_verify_certificate(mbedtls_ssl_context *ssl,
         }
     }
 
-    /* mbedtls_x509_crt_verify_with_profile is supposed to report a
-     * verification failure through MBEDTLS_ERR_X509_CERT_VERIFY_FAILED,
-     * with details encoded in the verification flags. All other kinds
-     * of error codes, including those from the user provided f_vrfy
-     * functions, are treated as fatal and lead to a failure of
-     * ssl_parse_certificate even if verification was optional. */
+    /* With authmode optional, we want to keep going it the certificate was
+     * unacceptable, but still fail on other error (out of memory etc),
+     * including fatal errors from the f_vrfy callback.
+     *
+     * The only acceptable errors are:
+     * - MBEDTLS_ERR_X509_CERT_VERIFY_FAILED: cert rejected by primary check;
+     * - MBEDTLS_ERR_SSL_BAD_CERTIFICATE: cert rejected by secondary checks.
+     * Anything else is a fatal error. */
     if (authmode == MBEDTLS_SSL_VERIFY_OPTIONAL &&
         (ret == MBEDTLS_ERR_X509_CERT_VERIFY_FAILED ||
          ret == MBEDTLS_ERR_SSL_BAD_CERTIFICATE)) {
         ret = 0;
     }
 
+    /* Return a specific error as this is a user error: inconsistent
+     * configuration - can't verify without trust anchors. */
     if (have_ca_chain_or_callback == 0 && authmode == MBEDTLS_SSL_VERIFY_REQUIRED) {
         MBEDTLS_SSL_DEBUG_MSG(1, ("got no CA chain"));
         ret = MBEDTLS_ERR_SSL_CA_CHAIN_REQUIRED;

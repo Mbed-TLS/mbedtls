@@ -1183,7 +1183,11 @@ static psa_status_t psa_get_and_lock_transparent_key_slot_with_policy(
 
 psa_status_t psa_remove_key_data_from_memory(psa_key_slot_t *slot)
 {
-#if !defined(MBEDTLS_PSA_STATIC_KEY_SLOTS)
+#if defined(MBEDTLS_PSA_STATIC_KEY_SLOTS)
+    if (slot->key.bytes > 0) {
+        mbedtls_platform_zeroize(slot->key.data, MBEDTLS_PSA_STATIC_KEY_SLOT_BUFFER_SIZE);
+    }
+#else
     if (slot->key.data != NULL) {
         mbedtls_zeroize_and_free(slot->key.data, slot->key.bytes);
     }

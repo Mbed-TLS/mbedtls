@@ -35,10 +35,13 @@ component_test_crypto_with_static_key_slots() {
     msg "build: crypto full + MBEDTLS_PSA_STATIC_KEY_SLOTS"
     scripts/config.py crypto_full
     scripts/config.py set MBEDTLS_PSA_STATIC_KEY_SLOTS
-    # Intentionally set MBEDTLS_PSA_STATIC_KEY_SLOT_BUFFER_SIZE slightly smaller
-    # than PSA_EXPORT_KEY_PAIR_OR_PUBLIC_MAX_SIZE where the latter would be 2364
-    # bytes for an RSA key pair of 4096 bits.
-    scripts/config.py set MBEDTLS_PSA_STATIC_KEY_SLOT_BUFFER_SIZE 2362
+    # Intentionally set MBEDTLS_PSA_STATIC_KEY_SLOT_BUFFER_SIZE to a value that
+    # is enough to contain:
+    # - all RSA public keys up to 4096 bits (max of PSA_VENDOR_RSA_MAX_KEY_BITS).
+    # - RSA key pairs up to 1024 bits, but not 2048 or larger.
+    # - all FFDH key pairs and public keys up to 8192 bits (max of PSA_VENDOR_FFDH_MAX_KEY_BITS).
+    # - all EC key pairs and public keys up to 521 bits (max of PSA_VENDOR_ECC_MAX_CURVE_BITS).
+    scripts/config.py set MBEDTLS_PSA_STATIC_KEY_SLOT_BUFFER_SIZE 1212
 
     msg "test: crypto full + MBEDTLS_PSA_STATIC_KEY_SLOTS"
     make CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS" test

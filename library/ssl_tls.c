@@ -7953,6 +7953,7 @@ static int ssl_parse_certificate_verify(mbedtls_ssl_context *ssl,
         return 0;
     }
 
+    /* Verify callback: precedence order is SSL context, else conf struct. */
     int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *);
     void *p_vrfy;
     if (ssl->f_vrfy != NULL) {

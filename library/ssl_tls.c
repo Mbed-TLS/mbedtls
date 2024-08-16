@@ -7938,12 +7938,11 @@ static int ssl_parse_certificate_coordinate(mbedtls_ssl_context *ssl,
     return SSL_CERTIFICATE_EXPECTED;
 }
 
-MBEDTLS_CHECK_RETURN_CRITICAL
-static int ssl_verify_certificate(mbedtls_ssl_context *ssl,
-                                  int authmode,
-                                  mbedtls_x509_crt *chain,
-                                  const mbedtls_ssl_ciphersuite_t *ciphersuite_info,
-                                  void *rs_ctx)
+int mbedtls_ssl_verify_certificate(mbedtls_ssl_context *ssl,
+                                   int authmode,
+                                   mbedtls_x509_crt *chain,
+                                   const mbedtls_ssl_ciphersuite_t *ciphersuite_info,
+                                   void *rs_ctx)
 {
     int ret = 0;
     int have_ca_chain_or_callback = 0;
@@ -8025,23 +8024,32 @@ static int ssl_verify_certificate(mbedtls_ssl_context *ssl,
      * Secondary checks: always done, but change 'ret' only if it was 0
      */
 
-    /* Check curve for ECC certs */
-#if defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
-    if (mbedtls_pk_can_do(&chain->pk, MBEDTLS_PK_ECKEY) &&
-        mbedtls_ssl_check_curve(ssl, mbedtls_pk_get_ec_group_id(&chain->pk)) != 0) {
-        MBEDTLS_SSL_DEBUG_MSG(1, ("bad certificate (EC key curve)"));
-        ssl->session_negotiate->verify_result |= MBEDTLS_X509_BADCERT_BAD_KEY;
-        if (ret == 0) {
-            ret = MBEDTLS_ERR_SSL_BAD_CERTIFICATE;
+    /* With TLS 1.2 and ECC certs, check that the curve used by the
+     * certificate is on our list of acceptable curves.
+     *
+     * With TLS 1.3 this is not needed because the curve is part of the
+     * signature algorithm (eg ecdsa_secp256r1_sha256) which is checked when
+     * we validate the signature made with the key associated to this cert.
+     */
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2) && \
+    defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
+    if (ssl->tls_version == MBEDTLS_SSL_VERSION_TLS1_2 &&
+        mbedtls_pk_can_do(&chain->pk, MBEDTLS_PK_ECKEY)) {
+        if (mbedtls_ssl_check_curve(ssl, mbedtls_pk_get_ec_group_id(&chain->pk)) != 0) {
+            MBEDTLS_SSL_DEBUG_MSG(1, ("bad certificate (EC key curve)"));
+            ssl->session_negotiate->verify_result |= MBEDTLS_X509_BADCERT_BAD_KEY;
+            if (ret == 0) {
+                ret = MBEDTLS_ERR_SSL_BAD_CERTIFICATE;
+            }
         }
     }
-#endif /* PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY */
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 && PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY */
 
     /* Check X.509 usage extensions (keyUsage, extKeyUsage) */
     if (mbedtls_ssl_check_cert_usage(chain,
                                      ciphersuite_info,
                                      ssl->conf->endpoint,
-                                     MBEDTLS_SSL_VERSION_TLS1_2,
+                                     ssl->tls_version,
                                      &ssl->session_negotiate->verify_result) != 0) {
         MBEDTLS_SSL_DEBUG_MSG(1, ("bad certificate (usage extensions)"));
         if (ret == 0) {
@@ -8245,8 +8253,9 @@ crt_verify:
     }
 #endif
 
-    ret = ssl_verify_certificate(ssl, authmode, chain,
-                                 ssl->handshake->ciphersuite_info, rs_ctx);
+    ret = mbedtls_ssl_verify_certificate(ssl, authmode, chain,
+                                         ssl->handshake->ciphersuite_info,
+                                         rs_ctx);
     if (ret != 0) {
         goto exit;
     }

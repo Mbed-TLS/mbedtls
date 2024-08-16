@@ -1674,6 +1674,38 @@ static inline mbedtls_x509_crt *mbedtls_ssl_own_cert(mbedtls_ssl_context *ssl)
 }
 
 /*
+ * Verify a certificate.
+ *
+ * [in/out] ssl: misc. things read
+ *               ssl->session_negotiate->verify_result updated
+ * [in] authmode: one of MBEDTLS_SSL_VERIFY_{NONE,OPTIONAL,REQUIRED}
+ * [in] chain: the certificate chain to verify (ie the peer's chain)
+ * [in] ciphersuite_info: For TLS 1.2, this session's ciphersuite;
+ *                        for TLS 1.3, may be left NULL.
+ * [in] rs_ctx: restart context if restartable ECC is in use;
+ *              leave NULL for no restartable behaviour.
+ *
+ * Return:
+ * - 0 if the certificate is the handshake should continue. Depending on the
+ *   authmode it means:
+ *   - REQUIRED: the certificate was found to be valid, trusted & acceptable.
+ *     ssl->session_negotiate->verify_result is 0.
+ *   - OPTIONAL: the certificate may or may not be acceptable, but
+ *     ssl->session_negotiate->verify_result was updated with the result.
+ *   - NONE: the certificate wasn't even checked.
+ * - MBEDTLS_ERR_X509_CERT_VERIFY_FAILED or MBEDTLS_ERR_SSL_BAD_CERTIFICATE if
+ *   the certificate was found to be invalid/untrusted/unacceptable and the
+ *   handshake should be aborted (can only happen with REQUIRED).
+ * - another error code if another error happened (out-of-memory, etc.)
+ */
+MBEDTLS_CHECK_RETURN_CRITICAL
+int mbedtls_ssl_verify_certificate(mbedtls_ssl_context *ssl,
+                                   int authmode,
+                                   mbedtls_x509_crt *chain,
+                                   const mbedtls_ssl_ciphersuite_t *ciphersuite_info,
+                                   void *rs_ctx);
+
+/*
  * Check usage of a certificate wrt usage extensions:
  * keyUsage and extendedKeyUsage.
  * (Note: nSCertType is deprecated and not standard, we don't check it.)

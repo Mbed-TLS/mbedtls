@@ -593,6 +593,45 @@ exit:
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_ECDH */
 
 /****************************************************************/
+/* Interruptible ECC Key Generation */
+/****************************************************************/
+
+uint32_t psa_generate_key_iop_get_num_ops(
+    psa_generate_key_iop_t *operation)
+{
+    (void) operation;
+    return 0;
+}
+
+psa_status_t psa_generate_key_iop_setup(
+    psa_generate_key_iop_t *operation,
+    const psa_key_attributes_t *attributes)
+{
+    (void) operation;
+    (void) attributes;
+
+    return PSA_ERROR_NOT_SUPPORTED;
+}
+
+psa_status_t psa_generate_key_iop_complete(
+    psa_generate_key_iop_t *operation,
+    psa_key_id_t *key)
+{
+    (void) operation;
+    (void) key;
+
+    return PSA_ERROR_NOT_SUPPORTED;
+}
+
+psa_status_t psa_generate_key_iop_abort(
+    psa_generate_key_iop_t *operation)
+{
+    (void) operation;
+
+    return PSA_ERROR_NOT_SUPPORTED;
+}
+
+/****************************************************************/
 /* Interruptible ECC Key Agreement */
 /****************************************************************/
 
@@ -638,4 +677,5 @@ psa_status_t psa_key_agreement_iop_abort(
 
     return PSA_SUCCESS;
 }
+
 #endif /* MBEDTLS_PSA_CRYPTO_C */

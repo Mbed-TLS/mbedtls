@@ -7700,6 +7700,37 @@ exit:
     return (status == PSA_SUCCESS) ? unlock_status : status;
 }
 
+psa_status_t psa_key_agreement(mbedtls_svc_key_id_t private_key,
+                               const uint8_t *peer_key,
+                               size_t peer_key_length,
+                               psa_algorithm_t alg,
+                               const psa_key_attributes_t *attributes,
+                               mbedtls_svc_key_id_t *key)
+{
+    psa_status_t status;
+    uint8_t shared_secret[PSA_RAW_KEY_AGREEMENT_OUTPUT_MAX_SIZE];
+    size_t shared_secret_len;
+    psa_key_type_t key_type;
+
+    *key = MBEDTLS_SVC_KEY_ID_INIT;
+
+    key_type = psa_get_key_type(attributes);
+    if (key_type != PSA_KEY_TYPE_DERIVE && key_type != PSA_KEY_TYPE_RAW_DATA
+        && key_type != PSA_KEY_TYPE_HMAC && key_type != PSA_KEY_TYPE_PASSWORD) {
+        return PSA_ERROR_INVALID_ARGUMENT;
+    }
+
+    status = psa_raw_key_agreement(alg, private_key, peer_key, peer_key_length, shared_secret,
+                                   sizeof(shared_secret), &shared_secret_len);
+
+    if (status != PSA_SUCCESS) {
+        return status;
+    }
+
+    status = psa_import_key(attributes, shared_secret, shared_secret_len, key);
+
+    return status;
+}
 
 /****************************************************************/
 /* Random generation */

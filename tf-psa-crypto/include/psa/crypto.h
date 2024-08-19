@@ -4048,6 +4048,89 @@ psa_status_t psa_raw_key_agreement(psa_algorithm_t alg,
                                    size_t output_size,
                                    size_t *output_length);
 
+/** Perform a key agreement and return the shared secret as a derivation key.
+ *
+ * \param private_key             Identifier of the private key to use. It must
+ *                                allow the usage #PSA_KEY_USAGE_DERIVE.
+ * \param[in] peer_key            Public key of the peer. It must be
+ *                                in the same format that psa_import_key()
+ *                                accepts. The standard formats for public
+ *                                keys are documented in the documentation
+ *                                of psa_export_public_key().
+ * \param peer_key_length         Size of \p peer_key in bytes.
+ * \param alg                     The key agreement algorithm to compute
+ *                                (\c PSA_ALG_XXX value such that
+ *                                #PSA_ALG_IS_RAW_KEY_AGREEMENT(\p alg)
+ *                                is true).
+ * \param[in] attributes          The attributes for the new key. This function uses
+ *                                the attributes as follows:
+ *                                 * The key type must be one of #PSA_KEY_TYPE_DERIVE,
+ *                                   #PSA_KEY_TYPE_RAW_DATA, #PSA_KEY_TYPE_HMAC, or
+ *                                   #PSA_KEY_TYPE_PASSWORD.
+ *                                 * The size of the returned key is always the
+ *                                   bit-size of the shared secret, rounded up
+ *                                   to a whole number of bytes. The key size in
+ *                                   attributes can be zero; if it is nonzero, it
+ *                                   must be equal to the output size of the key
+ *                                   agreement, in bits.
+ *                                   The output size, in bits, of the key agreement
+ *                                   is 8 * PSA_RAW_KEY_AGREEMENT_OUTPUT_SIZE(type, bits),
+ *                                   where type and bits are the type and bit-size of
+ *                                   private_key.
+ *                                 * The key permitted-algorithm policy is required for
+ *                                   keys that will be used for a cryptographic operation.
+ *                                 * The key usage flags define what operations are
+ *                                   permitted with the key.
+ *                                 * The key lifetime and identifier are required
+ *                                   for a persistent key.
+ * \param[out] key                On success, an identifier for the newly created
+ *                                key. #PSA_KEY_ID_NULL on failure.
+ * \retval #PSA_SUCCESS
+ *         Success.
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The library has not been previously initialized by psa_crypto_init().
+ * \retval #PSA_ERROR_INVALID_HANDLE
+ *          \p private_key is not a valid key identifier.
+ * \retval #PSA_ERROR_NOT_PERMITTED
+ *         \p private_key does not have the PSA_KEY_USAGE_DERIVE flag,
+ *         or it does not permit the requested algorithm.
+ * \retval #PSA_ERROR_ALREADY_EXISTS
+ *         This is an attempt to create a persistent key, and there is already
+ *         a persistent key with the given identifier.
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         * \p alg is not a key agreement algorithm.
+ *         * \p private_key is not compatible with \p alg.
+ *         * \p peer_key is not valid for \p alg or not compatible with
+ *           \p private_key.
+ *         * The output key attributes in \p attributes are not valid:
+ *              * The key type is not valid for key agreement output.
+ *              * The key size is nonzero, and is not the size of the shared secret.
+ *              * The key lifetime is invalid.
+ *              * The key identifier is not valid for the key lifetime.
+ *              * The key usage flags include invalid values.
+ *              * The key’s permitted-usage algorithm is invalid.
+ *              * The key attributes, as a whole, are invalid.
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ *         * \p alg is not a supported key agreement algorithm.
+ *         * \p private_key is not supported for use with alg.
+ *         * The output key attributes, as a whole, are not supported,
+ *           either by the implementation in general or in the specified
+ *           storage location.
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
+ * \retval #PSA_ERROR_INSUFFICIENT_STORAGE \emptydescription
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE \emptydescription
+ * \retval #PSA_ERROR_HARDWARE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
+ * \retval #PSA_ERROR_STORAGE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_DATA_CORRUPT \emptydescription
+ * \retval #PSA_ERROR_DATA_INVALID \emptydescription
+ */
+psa_status_t psa_key_agreement(mbedtls_svc_key_id_t private_key,
+                               const uint8_t *peer_key,
+                               size_t peer_key_length,
+                               psa_algorithm_t alg,
+                               const psa_key_attributes_t *attributes,
+                               mbedtls_svc_key_id_t *key);
 /**@}*/
 
 /** \defgroup random Random generation

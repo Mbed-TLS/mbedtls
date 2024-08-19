@@ -1,0 +1,4 @@
+Bugfix
+   * Fix the failure to correctly update verification flags when
+   checking the (ext)KeyUsage extension.
+   Resolves #1260

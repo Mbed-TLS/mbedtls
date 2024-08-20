@@ -747,6 +747,11 @@ static void exp_mod_precompute_window(const mbedtls_mpi_uint *A,
     }
 }
 
+#if defined(MBEDTLS_TEST_HOOKS)
+// Set to a default that is neither MBEDTLS_MPI_IS_PUBLIC nor MBEDTLS_MPI_IS_SECRET
+int mbedtls_mpi_optionally_safe_codepath = MBEDTLS_MPI_IS_PUBLIC + MBEDTLS_MPI_IS_SECRET + 1;
+#endif
+
 /*
  * This function calculates the indices of the exponent where the exponentiation algorithm should
  * start processing.

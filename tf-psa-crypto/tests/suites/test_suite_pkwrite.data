@@ -79,11 +79,11 @@ depends_on:PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY:PSA_WANT_ECC_SECP_R1_192
 pk_write_key_check:"../../framework/data_files/ec_prv.sec1.der":TEST_DER
 
 Private key write check EC 256 bits (top bit set)
-depends_on:PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY:MBEDTLS_PEM_PARSE_C:MBEDTLS_PEM_WRITE_C:MBEDTLS_ECP_HAVE_SECP256R1
+depends_on:PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY:MBEDTLS_PEM_PARSE_C:MBEDTLS_PEM_WRITE_C:PSA_WANT_ECC_SECP_R1_256
 pk_write_key_check:"../../framework/data_files/ec_256_long_prv.pem":TEST_PEM
 
 Private key write check EC 256 bits (top bit set) (DER)
-depends_on:PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY:MBEDTLS_ECP_HAVE_SECP256R1
+depends_on:PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY:PSA_WANT_ECC_SECP_R1_256
 pk_write_key_check:"../../framework/data_files/ec_256_long_prv.der":TEST_DER
 
 Private key write check EC 521 bits

@@ -6335,91 +6335,6 @@ const char *mbedtls_ssl_get_curve_name_from_tls_id(uint16_t tls_id)
 }
 #endif
 
-#if defined(MBEDTLS_X509_CRT_PARSE_C)
-int mbedtls_ssl_check_cert_usage(const mbedtls_x509_crt *cert,
-                                 const mbedtls_ssl_ciphersuite_t *ciphersuite,
-                                 int recv_endpoint,
-                                 mbedtls_ssl_protocol_version tls_version,
-                                 uint32_t *flags)
-{
-    int ret = 0;
-    unsigned int usage = 0;
-    const char *ext_oid;
-    size_t ext_len;
-
-    /*
-     * keyUsage
-     */
-
-    /* Note: don't guard this with MBEDTLS_SSL_CLI_C because the server wants
-     * to check what a compliant client will think while choosing which cert
-     * to send to the client. */
-#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
-    if (tls_version == MBEDTLS_SSL_VERSION_TLS1_2 &&
-        recv_endpoint == MBEDTLS_SSL_IS_CLIENT) {
-        /* TLS 1.2 server part of the key exchange */
-        switch (ciphersuite->key_exchange) {
-            case MBEDTLS_KEY_EXCHANGE_RSA:
-            case MBEDTLS_KEY_EXCHANGE_RSA_PSK:
-                usage = MBEDTLS_X509_KU_KEY_ENCIPHERMENT;
-                break;
-
-            case MBEDTLS_KEY_EXCHANGE_DHE_RSA:
-            case MBEDTLS_KEY_EXCHANGE_ECDHE_RSA:
-            case MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA:
-                usage = MBEDTLS_X509_KU_DIGITAL_SIGNATURE;
-                break;
-
-            case MBEDTLS_KEY_EXCHANGE_ECDH_RSA:
-            case MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA:
-                usage = MBEDTLS_X509_KU_KEY_AGREEMENT;
-                break;
-
-            /* Don't use default: we want warnings when adding new values */
-            case MBEDTLS_KEY_EXCHANGE_NONE:
-            case MBEDTLS_KEY_EXCHANGE_PSK:
-            case MBEDTLS_KEY_EXCHANGE_DHE_PSK:
-            case MBEDTLS_KEY_EXCHANGE_ECDHE_PSK:
-            case MBEDTLS_KEY_EXCHANGE_ECJPAKE:
-                usage = 0;
-        }
-    } else
-#endif
-    {
-        /* This is either TLS 1.3 authentication, which always uses signatures,
-         * or 1.2 client auth: rsa_sign and mbedtls_ecdsa_sign are the only
-         * options we implement, both using signatures. */
-        (void) tls_version;
-        (void) ciphersuite;
-        usage = MBEDTLS_X509_KU_DIGITAL_SIGNATURE;
-    }
-
-    if (mbedtls_x509_crt_check_key_usage(cert, usage) != 0) {
-        *flags |= MBEDTLS_X509_BADCERT_KEY_USAGE;
-        ret = -1;
-    }
-
-    /*
-     * extKeyUsage
-     */
-
-    if (recv_endpoint == MBEDTLS_SSL_IS_CLIENT) {
-        ext_oid = MBEDTLS_OID_SERVER_AUTH;
-        ext_len = MBEDTLS_OID_SIZE(MBEDTLS_OID_SERVER_AUTH);
-    } else {
-        ext_oid = MBEDTLS_OID_CLIENT_AUTH;
-        ext_len = MBEDTLS_OID_SIZE(MBEDTLS_OID_CLIENT_AUTH);
-    }
-
-    if (mbedtls_x509_crt_check_extended_key_usage(cert, ext_oid, ext_len) != 0) {
-        *flags |= MBEDTLS_X509_BADCERT_EXT_KEY_USAGE;
-        ret = -1;
-    }
-
-    return ret;
-}
-#endif /* MBEDTLS_X509_CRT_PARSE_C */
-
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 int mbedtls_ssl_get_handshake_transcript(mbedtls_ssl_context *ssl,
                                          const mbedtls_md_type_t md,
@@ -7936,187 +7851,6 @@ static int ssl_parse_certificate_coordinate(mbedtls_ssl_context *ssl,
 #endif /* MBEDTLS_SSL_SRV_C */
 
     return SSL_CERTIFICATE_EXPECTED;
-}
-
-int mbedtls_ssl_verify_certificate(mbedtls_ssl_context *ssl,
-                                   int authmode,
-                                   mbedtls_x509_crt *chain,
-                                   const mbedtls_ssl_ciphersuite_t *ciphersuite_info,
-                                   void *rs_ctx)
-{
-    if (authmode == MBEDTLS_SSL_VERIFY_NONE) {
-        return 0;
-    }
-
-    /*
-     * Primary check: use the appropriate X.509 verification function
-     */
-    int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *);
-    void *p_vrfy;
-    if (ssl->f_vrfy != NULL) {
-        MBEDTLS_SSL_DEBUG_MSG(3, ("Use context-specific verification callback"));
-        f_vrfy = ssl->f_vrfy;
-        p_vrfy = ssl->p_vrfy;
-    } else {
-        MBEDTLS_SSL_DEBUG_MSG(3, ("Use configuration-specific verification callback"));
-        f_vrfy = ssl->conf->f_vrfy;
-        p_vrfy = ssl->conf->p_vrfy;
-    }
-
-    int ret = 0;
-    int have_ca_chain_or_callback = 0;
-#if defined(MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK)
-    if (ssl->conf->f_ca_cb != NULL) {
-        ((void) rs_ctx);
-        have_ca_chain_or_callback = 1;
-
-        MBEDTLS_SSL_DEBUG_MSG(3, ("use CA callback for X.509 CRT verification"));
-        ret = mbedtls_x509_crt_verify_with_ca_cb(
-            chain,
-            ssl->conf->f_ca_cb,
-            ssl->conf->p_ca_cb,
-            ssl->conf->cert_profile,
-            ssl->hostname,
-            &ssl->session_negotiate->verify_result,
-            f_vrfy, p_vrfy);
-    } else
-#endif /* MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK */
-    {
-        mbedtls_x509_crt *ca_chain;
-        mbedtls_x509_crl *ca_crl;
-#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
-        if (ssl->handshake->sni_ca_chain != NULL) {
-            ca_chain = ssl->handshake->sni_ca_chain;
-            ca_crl   = ssl->handshake->sni_ca_crl;
-        } else
-#endif
-        {
-            ca_chain = ssl->conf->ca_chain;
-            ca_crl   = ssl->conf->ca_crl;
-        }
-
-        if (ca_chain != NULL) {
-            have_ca_chain_or_callback = 1;
-        }
-
-        ret = mbedtls_x509_crt_verify_restartable(
-            chain,
-            ca_chain, ca_crl,
-            ssl->conf->cert_profile,
-            ssl->hostname,
-            &ssl->session_negotiate->verify_result,
-            f_vrfy, p_vrfy, rs_ctx);
-    }
-
-    if (ret != 0) {
-        MBEDTLS_SSL_DEBUG_RET(1, "x509_verify_cert", ret);
-    }
-
-#if defined(MBEDTLS_SSL_ECP_RESTARTABLE_ENABLED)
-    if (ret == MBEDTLS_ERR_ECP_IN_PROGRESS) {
-        return MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS;
-    }
-#endif
-
-    /*
-     * Secondary checks: always done, but change 'ret' only if it was 0
-     */
-
-    /* With TLS 1.2 and ECC certs, check that the curve used by the
-     * certificate is on our list of acceptable curves.
-     *
-     * With TLS 1.3 this is not needed because the curve is part of the
-     * signature algorithm (eg ecdsa_secp256r1_sha256) which is checked when
-     * we validate the signature made with the key associated to this cert.
-     */
-#if defined(MBEDTLS_SSL_PROTO_TLS1_2) && \
-    defined(MBEDTLS_PK_HAVE_ECC_KEYS)
-    if (ssl->tls_version == MBEDTLS_SSL_VERSION_TLS1_2 &&
-        mbedtls_pk_can_do(&chain->pk, MBEDTLS_PK_ECKEY)) {
-        if (mbedtls_ssl_check_curve(ssl, mbedtls_pk_get_ec_group_id(&chain->pk)) != 0) {
-            MBEDTLS_SSL_DEBUG_MSG(1, ("bad certificate (EC key curve)"));
-            ssl->session_negotiate->verify_result |= MBEDTLS_X509_BADCERT_BAD_KEY;
-            if (ret == 0) {
-                ret = MBEDTLS_ERR_SSL_BAD_CERTIFICATE;
-            }
-        }
-    }
-#endif /* MBEDTLS_SSL_PROTO_TLS1_2 && MBEDTLS_PK_HAVE_ECC_KEYS */
-
-    /* Check X.509 usage extensions (keyUsage, extKeyUsage) */
-    if (mbedtls_ssl_check_cert_usage(chain,
-                                     ciphersuite_info,
-                                     ssl->conf->endpoint,
-                                     ssl->tls_version,
-                                     &ssl->session_negotiate->verify_result) != 0) {
-        MBEDTLS_SSL_DEBUG_MSG(1, ("bad certificate (usage extensions)"));
-        if (ret == 0) {
-            ret = MBEDTLS_ERR_SSL_BAD_CERTIFICATE;
-        }
-    }
-
-    /* With authmode optional, we want to keep going if the certificate was
-     * unacceptable, but still fail on other errors (out of memory etc),
-     * including fatal errors from the f_vrfy callback.
-     *
-     * The only acceptable errors are:
-     * - MBEDTLS_ERR_X509_CERT_VERIFY_FAILED: cert rejected by primary check;
-     * - MBEDTLS_ERR_SSL_BAD_CERTIFICATE: cert rejected by secondary checks.
-     * Anything else is a fatal error. */
-    if (authmode == MBEDTLS_SSL_VERIFY_OPTIONAL &&
-        (ret == MBEDTLS_ERR_X509_CERT_VERIFY_FAILED ||
-         ret == MBEDTLS_ERR_SSL_BAD_CERTIFICATE)) {
-        ret = 0;
-    }
-
-    /* Return a specific error as this is a user error: inconsistent
-     * configuration - can't verify without trust anchors. */
-    if (have_ca_chain_or_callback == 0 && authmode == MBEDTLS_SSL_VERIFY_REQUIRED) {
-        MBEDTLS_SSL_DEBUG_MSG(1, ("got no CA chain"));
-        ret = MBEDTLS_ERR_SSL_CA_CHAIN_REQUIRED;
-    }
-
-    if (ret != 0) {
-        uint8_t alert;
-
-        /* The certificate may have been rejected for several reasons.
-           Pick one and send the corresponding alert. Which alert to send
-           may be a subject of debate in some cases. */
-        if (ssl->session_negotiate->verify_result & MBEDTLS_X509_BADCERT_OTHER) {
-            alert = MBEDTLS_SSL_ALERT_MSG_ACCESS_DENIED;
-        } else if (ssl->session_negotiate->verify_result & MBEDTLS_X509_BADCERT_CN_MISMATCH) {
-            alert = MBEDTLS_SSL_ALERT_MSG_BAD_CERT;
-        } else if (ssl->session_negotiate->verify_result & MBEDTLS_X509_BADCERT_KEY_USAGE) {
-            alert = MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT;
-        } else if (ssl->session_negotiate->verify_result & MBEDTLS_X509_BADCERT_EXT_KEY_USAGE) {
-            alert = MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT;
-        } else if (ssl->session_negotiate->verify_result & MBEDTLS_X509_BADCERT_BAD_PK) {
-            alert = MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT;
-        } else if (ssl->session_negotiate->verify_result & MBEDTLS_X509_BADCERT_BAD_KEY) {
-            alert = MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT;
-        } else if (ssl->session_negotiate->verify_result & MBEDTLS_X509_BADCERT_EXPIRED) {
-            alert = MBEDTLS_SSL_ALERT_MSG_CERT_EXPIRED;
-        } else if (ssl->session_negotiate->verify_result & MBEDTLS_X509_BADCERT_REVOKED) {
-            alert = MBEDTLS_SSL_ALERT_MSG_CERT_REVOKED;
-        } else if (ssl->session_negotiate->verify_result & MBEDTLS_X509_BADCERT_NOT_TRUSTED) {
-            alert = MBEDTLS_SSL_ALERT_MSG_UNKNOWN_CA;
-        } else {
-            alert = MBEDTLS_SSL_ALERT_MSG_CERT_UNKNOWN;
-        }
-        mbedtls_ssl_send_alert_message(ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
-                                       alert);
-    }
-
-#if defined(MBEDTLS_DEBUG_C)
-    if (ssl->session_negotiate->verify_result != 0) {
-        MBEDTLS_SSL_DEBUG_MSG(3, ("! Certificate verification flags %08x",
-                                  (unsigned int) ssl->session_negotiate->verify_result));
-    } else {
-        MBEDTLS_SSL_DEBUG_MSG(3, ("Certificate verification flags clear"));
-    }
-#endif /* MBEDTLS_DEBUG_C */
-
-    return ret;
 }
 
 #if !defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
@@ -9923,4 +9657,274 @@ int mbedtls_ssl_session_set_ticket_alpn(mbedtls_ssl_session *session,
     return 0;
 }
 #endif /* MBEDTLS_SSL_SRV_C && MBEDTLS_SSL_EARLY_DATA && MBEDTLS_SSL_ALPN */
+
+/*
+ * The following functions are used by 1.2 and 1.3, client and server.
+ */
+#if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
+int mbedtls_ssl_check_cert_usage(const mbedtls_x509_crt *cert,
+                                 const mbedtls_ssl_ciphersuite_t *ciphersuite,
+                                 int recv_endpoint,
+                                 mbedtls_ssl_protocol_version tls_version,
+                                 uint32_t *flags)
+{
+    int ret = 0;
+    unsigned int usage = 0;
+    const char *ext_oid;
+    size_t ext_len;
+
+    /*
+     * keyUsage
+     */
+
+    /* Note: don't guard this with MBEDTLS_SSL_CLI_C because the server wants
+     * to check what a compliant client will think while choosing which cert
+     * to send to the client. */
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
+    if (tls_version == MBEDTLS_SSL_VERSION_TLS1_2 &&
+        recv_endpoint == MBEDTLS_SSL_IS_CLIENT) {
+        /* TLS 1.2 server part of the key exchange */
+        switch (ciphersuite->key_exchange) {
+            case MBEDTLS_KEY_EXCHANGE_RSA:
+            case MBEDTLS_KEY_EXCHANGE_RSA_PSK:
+                usage = MBEDTLS_X509_KU_KEY_ENCIPHERMENT;
+                break;
+
+            case MBEDTLS_KEY_EXCHANGE_DHE_RSA:
+            case MBEDTLS_KEY_EXCHANGE_ECDHE_RSA:
+            case MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA:
+                usage = MBEDTLS_X509_KU_DIGITAL_SIGNATURE;
+                break;
+
+            case MBEDTLS_KEY_EXCHANGE_ECDH_RSA:
+            case MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA:
+                usage = MBEDTLS_X509_KU_KEY_AGREEMENT;
+                break;
+
+            /* Don't use default: we want warnings when adding new values */
+            case MBEDTLS_KEY_EXCHANGE_NONE:
+            case MBEDTLS_KEY_EXCHANGE_PSK:
+            case MBEDTLS_KEY_EXCHANGE_DHE_PSK:
+            case MBEDTLS_KEY_EXCHANGE_ECDHE_PSK:
+            case MBEDTLS_KEY_EXCHANGE_ECJPAKE:
+                usage = 0;
+        }
+    } else
+#endif
+    {
+        /* This is either TLS 1.3 authentication, which always uses signatures,
+         * or 1.2 client auth: rsa_sign and mbedtls_ecdsa_sign are the only
+         * options we implement, both using signatures. */
+        (void) tls_version;
+        (void) ciphersuite;
+        usage = MBEDTLS_X509_KU_DIGITAL_SIGNATURE;
+    }
+
+    if (mbedtls_x509_crt_check_key_usage(cert, usage) != 0) {
+        *flags |= MBEDTLS_X509_BADCERT_KEY_USAGE;
+        ret = -1;
+    }
+
+    /*
+     * extKeyUsage
+     */
+
+    if (recv_endpoint == MBEDTLS_SSL_IS_CLIENT) {
+        ext_oid = MBEDTLS_OID_SERVER_AUTH;
+        ext_len = MBEDTLS_OID_SIZE(MBEDTLS_OID_SERVER_AUTH);
+    } else {
+        ext_oid = MBEDTLS_OID_CLIENT_AUTH;
+        ext_len = MBEDTLS_OID_SIZE(MBEDTLS_OID_CLIENT_AUTH);
+    }
+
+    if (mbedtls_x509_crt_check_extended_key_usage(cert, ext_oid, ext_len) != 0) {
+        *flags |= MBEDTLS_X509_BADCERT_EXT_KEY_USAGE;
+        ret = -1;
+    }
+
+    return ret;
+}
+
+int mbedtls_ssl_verify_certificate(mbedtls_ssl_context *ssl,
+                                   int authmode,
+                                   mbedtls_x509_crt *chain,
+                                   const mbedtls_ssl_ciphersuite_t *ciphersuite_info,
+                                   void *rs_ctx)
+{
+    if (authmode == MBEDTLS_SSL_VERIFY_NONE) {
+        return 0;
+    }
+
+    /*
+     * Primary check: use the appropriate X.509 verification function
+     */
+    int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *);
+    void *p_vrfy;
+    if (ssl->f_vrfy != NULL) {
+        MBEDTLS_SSL_DEBUG_MSG(3, ("Use context-specific verification callback"));
+        f_vrfy = ssl->f_vrfy;
+        p_vrfy = ssl->p_vrfy;
+    } else {
+        MBEDTLS_SSL_DEBUG_MSG(3, ("Use configuration-specific verification callback"));
+        f_vrfy = ssl->conf->f_vrfy;
+        p_vrfy = ssl->conf->p_vrfy;
+    }
+
+    int ret = 0;
+    int have_ca_chain_or_callback = 0;
+#if defined(MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK)
+    if (ssl->conf->f_ca_cb != NULL) {
+        ((void) rs_ctx);
+        have_ca_chain_or_callback = 1;
+
+        MBEDTLS_SSL_DEBUG_MSG(3, ("use CA callback for X.509 CRT verification"));
+        ret = mbedtls_x509_crt_verify_with_ca_cb(
+            chain,
+            ssl->conf->f_ca_cb,
+            ssl->conf->p_ca_cb,
+            ssl->conf->cert_profile,
+            ssl->hostname,
+            &ssl->session_negotiate->verify_result,
+            f_vrfy, p_vrfy);
+    } else
+#endif /* MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK */
+    {
+        mbedtls_x509_crt *ca_chain;
+        mbedtls_x509_crl *ca_crl;
+#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
+        if (ssl->handshake->sni_ca_chain != NULL) {
+            ca_chain = ssl->handshake->sni_ca_chain;
+            ca_crl   = ssl->handshake->sni_ca_crl;
+        } else
+#endif
+        {
+            ca_chain = ssl->conf->ca_chain;
+            ca_crl   = ssl->conf->ca_crl;
+        }
+
+        if (ca_chain != NULL) {
+            have_ca_chain_or_callback = 1;
+        }
+
+        ret = mbedtls_x509_crt_verify_restartable(
+            chain,
+            ca_chain, ca_crl,
+            ssl->conf->cert_profile,
+            ssl->hostname,
+            &ssl->session_negotiate->verify_result,
+            f_vrfy, p_vrfy, rs_ctx);
+    }
+
+    if (ret != 0) {
+        MBEDTLS_SSL_DEBUG_RET(1, "x509_verify_cert", ret);
+    }
+
+#if defined(MBEDTLS_SSL_ECP_RESTARTABLE_ENABLED)
+    if (ret == MBEDTLS_ERR_ECP_IN_PROGRESS) {
+        return MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS;
+    }
+#endif
+
+    /*
+     * Secondary checks: always done, but change 'ret' only if it was 0
+     */
+
+    /* With TLS 1.2 and ECC certs, check that the curve used by the
+     * certificate is on our list of acceptable curves.
+     *
+     * With TLS 1.3 this is not needed because the curve is part of the
+     * signature algorithm (eg ecdsa_secp256r1_sha256) which is checked when
+     * we validate the signature made with the key associated to this cert.
+     */
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2) && \
+    defined(MBEDTLS_PK_HAVE_ECC_KEYS)
+    if (ssl->tls_version == MBEDTLS_SSL_VERSION_TLS1_2 &&
+        mbedtls_pk_can_do(&chain->pk, MBEDTLS_PK_ECKEY)) {
+        if (mbedtls_ssl_check_curve(ssl, mbedtls_pk_get_ec_group_id(&chain->pk)) != 0) {
+            MBEDTLS_SSL_DEBUG_MSG(1, ("bad certificate (EC key curve)"));
+            ssl->session_negotiate->verify_result |= MBEDTLS_X509_BADCERT_BAD_KEY;
+            if (ret == 0) {
+                ret = MBEDTLS_ERR_SSL_BAD_CERTIFICATE;
+            }
+        }
+    }
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 && MBEDTLS_PK_HAVE_ECC_KEYS */
+
+    /* Check X.509 usage extensions (keyUsage, extKeyUsage) */
+    if (mbedtls_ssl_check_cert_usage(chain,
+                                     ciphersuite_info,
+                                     ssl->conf->endpoint,
+                                     ssl->tls_version,
+                                     &ssl->session_negotiate->verify_result) != 0) {
+        MBEDTLS_SSL_DEBUG_MSG(1, ("bad certificate (usage extensions)"));
+        if (ret == 0) {
+            ret = MBEDTLS_ERR_SSL_BAD_CERTIFICATE;
+        }
+    }
+
+    /* With authmode optional, we want to keep going if the certificate was
+     * unacceptable, but still fail on other errors (out of memory etc),
+     * including fatal errors from the f_vrfy callback.
+     *
+     * The only acceptable errors are:
+     * - MBEDTLS_ERR_X509_CERT_VERIFY_FAILED: cert rejected by primary check;
+     * - MBEDTLS_ERR_SSL_BAD_CERTIFICATE: cert rejected by secondary checks.
+     * Anything else is a fatal error. */
+    if (authmode == MBEDTLS_SSL_VERIFY_OPTIONAL &&
+        (ret == MBEDTLS_ERR_X509_CERT_VERIFY_FAILED ||
+         ret == MBEDTLS_ERR_SSL_BAD_CERTIFICATE)) {
+        ret = 0;
+    }
+
+    /* Return a specific error as this is a user error: inconsistent
+     * configuration - can't verify without trust anchors. */
+    if (have_ca_chain_or_callback == 0 && authmode == MBEDTLS_SSL_VERIFY_REQUIRED) {
+        MBEDTLS_SSL_DEBUG_MSG(1, ("got no CA chain"));
+        ret = MBEDTLS_ERR_SSL_CA_CHAIN_REQUIRED;
+    }
+
+    if (ret != 0) {
+        uint8_t alert;
+
+        /* The certificate may have been rejected for several reasons.
+           Pick one and send the corresponding alert. Which alert to send
+           may be a subject of debate in some cases. */
+        if (ssl->session_negotiate->verify_result & MBEDTLS_X509_BADCERT_OTHER) {
+            alert = MBEDTLS_SSL_ALERT_MSG_ACCESS_DENIED;
+        } else if (ssl->session_negotiate->verify_result & MBEDTLS_X509_BADCERT_CN_MISMATCH) {
+            alert = MBEDTLS_SSL_ALERT_MSG_BAD_CERT;
+        } else if (ssl->session_negotiate->verify_result & MBEDTLS_X509_BADCERT_KEY_USAGE) {
+            alert = MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT;
+        } else if (ssl->session_negotiate->verify_result & MBEDTLS_X509_BADCERT_EXT_KEY_USAGE) {
+            alert = MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT;
+        } else if (ssl->session_negotiate->verify_result & MBEDTLS_X509_BADCERT_BAD_PK) {
+            alert = MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT;
+        } else if (ssl->session_negotiate->verify_result & MBEDTLS_X509_BADCERT_BAD_KEY) {
+            alert = MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT;
+        } else if (ssl->session_negotiate->verify_result & MBEDTLS_X509_BADCERT_EXPIRED) {
+            alert = MBEDTLS_SSL_ALERT_MSG_CERT_EXPIRED;
+        } else if (ssl->session_negotiate->verify_result & MBEDTLS_X509_BADCERT_REVOKED) {
+            alert = MBEDTLS_SSL_ALERT_MSG_CERT_REVOKED;
+        } else if (ssl->session_negotiate->verify_result & MBEDTLS_X509_BADCERT_NOT_TRUSTED) {
+            alert = MBEDTLS_SSL_ALERT_MSG_UNKNOWN_CA;
+        } else {
+            alert = MBEDTLS_SSL_ALERT_MSG_CERT_UNKNOWN;
+        }
+        mbedtls_ssl_send_alert_message(ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
+                                       alert);
+    }
+
+#if defined(MBEDTLS_DEBUG_C)
+    if (ssl->session_negotiate->verify_result != 0) {
+        MBEDTLS_SSL_DEBUG_MSG(3, ("! Certificate verification flags %08x",
+                                  (unsigned int) ssl->session_negotiate->verify_result));
+    } else {
+        MBEDTLS_SSL_DEBUG_MSG(3, ("Certificate verification flags clear"));
+    }
+#endif /* MBEDTLS_DEBUG_C */
+
+    return ret;
+}
+#endif /* MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED */
+
 #endif /* MBEDTLS_SSL_TLS_C */

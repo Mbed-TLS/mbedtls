@@ -817,7 +817,10 @@ void mbedtls_mpi_core_from_mont_rep(mbedtls_mpi_uint *X,
                                     mbedtls_mpi_uint mm,
                                     mbedtls_mpi_uint *T);
 
-#if defined(MBEDTLS_TEST_HOOKS)
+/*
+ * Can't define thread local variables with our abstraction layer: do nothing if threading is on.
+ */
+#if defined(MBEDTLS_TEST_HOOKS) && !defined(MBEDTLS_THREADING_C)
 extern int mbedtls_mpi_optionally_safe_codepath;
 
 static inline void mbedtls_mpi_optionally_safe_codepath_reset(void)

@@ -376,8 +376,8 @@
 #define MBEDTLS_SSL_HAVE_CHACHAPOLY
 #endif
 
-#if defined(MBEDTLS_SSL_HAVE_GCM) || defined(MBEDTLS_SSL_HAVE_CCM) || \
-    defined(MBEDTLS_SSL_HAVE_CHACHAPOLY)
+#if defined(PSA_WANT_ALG_GCM) || defined(PSA_WANT_ALG_CCM) || \
+    defined(PSA_WANT_ALG_CHACHA20_POLY1305)
 #define MBEDTLS_SSL_HAVE_AEAD
 #endif
 

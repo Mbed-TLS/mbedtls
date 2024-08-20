@@ -1255,7 +1255,7 @@ void mpi_core_exp_mod(char *input_N, char *input_A,
     /* Check both with output aliased to input */
 
     TEST_CALLOC(A_copy, A_limbs);
-    memcpy(A_copy, A, sizeof(A_copy) * A_limbs);
+    memcpy(A_copy, A, sizeof(*A_copy) * A_limbs);
 
 #if defined(MBEDTLS_TEST_HOOKS) && !defined(MBEDTLS_THREADING_C)
     mbedtls_mpi_optionally_safe_codepath_reset();
@@ -1266,7 +1266,7 @@ void mpi_core_exp_mod(char *input_N, char *input_A,
 #endif
     TEST_EQUAL(0, memcmp(X, A, N_limbs * sizeof(mbedtls_mpi_uint)));
 
-    memcpy(A, A_copy, sizeof(A) * A_limbs);
+    memcpy(A, A_copy, sizeof(*A) * A_limbs);
 #if defined(MBEDTLS_TEST_HOOKS) && !defined(MBEDTLS_THREADING_C)
     mbedtls_mpi_optionally_safe_codepath_reset();
 #endif

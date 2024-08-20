@@ -1686,7 +1686,7 @@ static inline mbedtls_x509_crt *mbedtls_ssl_own_cert(mbedtls_ssl_context *ssl)
  *              leave NULL for no restartable behaviour.
  *
  * Return:
- * - 0 if the certificate is the handshake should continue. Depending on the
+ * - 0 if the handshake should continue. Depending on the
  *   authmode it means:
  *   - REQUIRED: the certificate was found to be valid, trusted & acceptable.
  *     ssl->session_negotiate->verify_result is 0.

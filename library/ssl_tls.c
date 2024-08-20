@@ -6386,7 +6386,7 @@ int mbedtls_ssl_check_cert_usage(const mbedtls_x509_crt *cert,
     } else
 #endif
     {
-        /* This is either TLS 1.3 autentication, which always uses signatures,
+        /* This is either TLS 1.3 authentication, which always uses signatures,
          * or 1.2 client auth: rsa_sign and mbedtls_ecdsa_sign are the only
          * options we implement, both using signatures. */
         (void) tls_version;
@@ -8055,8 +8055,8 @@ int mbedtls_ssl_verify_certificate(mbedtls_ssl_context *ssl,
         }
     }
 
-    /* With authmode optional, we want to keep going it the certificate was
-     * unacceptable, but still fail on other error (out of memory etc),
+    /* With authmode optional, we want to keep going if the certificate was
+     * unacceptable, but still fail on other errors (out of memory etc),
      * including fatal errors from the f_vrfy callback.
      *
      * The only acceptable errors are:

@@ -333,44 +333,6 @@
 #define MBEDTLS_PSA_CRYPTO_CLIENT
 #endif /* MBEDTLS_PSA_CRYPTO_C */
 
-/* Helpers to state that each key is supported either on the builtin or PSA side. */
-#if defined(MBEDTLS_ECP_DP_SECP521R1_ENABLED) || defined(PSA_WANT_ECC_SECP_R1_521)
-#define MBEDTLS_ECP_HAVE_SECP521R1
-#endif
-#if defined(MBEDTLS_ECP_DP_BP512R1_ENABLED) || defined(PSA_WANT_ECC_BRAINPOOL_P_R1_512)
-#define MBEDTLS_ECP_HAVE_BP512R1
-#endif
-#if defined(MBEDTLS_ECP_DP_CURVE448_ENABLED) || defined(PSA_WANT_ECC_MONTGOMERY_448)
-#define MBEDTLS_ECP_HAVE_CURVE448
-#endif
-#if defined(MBEDTLS_ECP_DP_BP384R1_ENABLED) || defined(PSA_WANT_ECC_BRAINPOOL_P_R1_384)
-#define MBEDTLS_ECP_HAVE_BP384R1
-#endif
-#if defined(MBEDTLS_ECP_DP_SECP384R1_ENABLED) || defined(PSA_WANT_ECC_SECP_R1_384)
-#define MBEDTLS_ECP_HAVE_SECP384R1
-#endif
-#if defined(MBEDTLS_ECP_DP_BP256R1_ENABLED) || defined(PSA_WANT_ECC_BRAINPOOL_P_R1_256)
-#define MBEDTLS_ECP_HAVE_BP256R1
-#endif
-#if defined(MBEDTLS_ECP_DP_SECP256K1_ENABLED) || defined(PSA_WANT_ECC_SECP_K1_256)
-#define MBEDTLS_ECP_HAVE_SECP256K1
-#endif
-#if defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED) || defined(PSA_WANT_ECC_SECP_R1_256)
-#define MBEDTLS_ECP_HAVE_SECP256R1
-#endif
-#if defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED) || defined(PSA_WANT_ECC_MONTGOMERY_255)
-#define MBEDTLS_ECP_HAVE_CURVE25519
-#endif
-#if defined(MBEDTLS_ECP_DP_SECP224R1_ENABLED) || defined(PSA_WANT_ECC_SECP_R1_224)
-#define MBEDTLS_ECP_HAVE_SECP224R1
-#endif
-#if defined(MBEDTLS_ECP_DP_SECP192K1_ENABLED) || defined(PSA_WANT_ECC_SECP_K1_192)
-#define MBEDTLS_ECP_HAVE_SECP192K1
-#endif
-#if defined(MBEDTLS_ECP_DP_SECP192R1_ENABLED) || defined(PSA_WANT_ECC_SECP_R1_192)
-#define MBEDTLS_ECP_HAVE_SECP192R1
-#endif
-
 /* Helper symbol to state that the PK module has support for EC keys. This
  * can either be provided through the legacy ECP solution or through the
  * PSA friendly MBEDTLS_PK_USE_PSA_EC_DATA (see pk.h for its description). */
@@ -397,32 +359,7 @@
 #define MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_ONLY
 #endif
 
-/* psa_util file features some ECDSA conversion functions, to convert between
- * legacy's ASN.1 DER format and PSA's raw one. */
-#if defined(MBEDTLS_ECDSA_C) || (defined(MBEDTLS_PSA_CRYPTO_C) && \
-    (defined(PSA_WANT_ALG_ECDSA) || defined(PSA_WANT_ALG_DETERMINISTIC_ECDSA)))
-#define MBEDTLS_PSA_UTIL_HAVE_ECDSA
-#endif
-
-/* Some internal helpers to determine which keys are available. */
-#if (!defined(MBEDTLS_USE_PSA_CRYPTO) && defined(MBEDTLS_AES_C)) || \
-    (defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_KEY_TYPE_AES))
-#define MBEDTLS_SSL_HAVE_AES
-#endif
-#if (!defined(MBEDTLS_USE_PSA_CRYPTO) && defined(MBEDTLS_ARIA_C)) || \
-    (defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_KEY_TYPE_ARIA))
-#define MBEDTLS_SSL_HAVE_ARIA
-#endif
-#if (!defined(MBEDTLS_USE_PSA_CRYPTO) && defined(MBEDTLS_CAMELLIA_C)) || \
-    (defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_KEY_TYPE_CAMELLIA))
-#define MBEDTLS_SSL_HAVE_CAMELLIA
-#endif
-
 /* Some internal helpers to determine which operation modes are available. */
-#if (!defined(MBEDTLS_USE_PSA_CRYPTO) && defined(MBEDTLS_CIPHER_MODE_CBC)) || \
-    (defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_ALG_CBC_NO_PADDING))
-#define MBEDTLS_SSL_HAVE_CBC
-#endif
 
 #if (!defined(MBEDTLS_USE_PSA_CRYPTO) && defined(MBEDTLS_GCM_C)) || \
     (defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_ALG_GCM))

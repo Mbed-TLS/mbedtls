@@ -747,7 +747,7 @@ static void exp_mod_precompute_window(const mbedtls_mpi_uint *A,
     }
 }
 
-#if defined(MBEDTLS_TEST_HOOKS)
+#if defined(MBEDTLS_TEST_HOOKS) && !defined(MBEDTLS_THREADING_C)
 // Set to a default that is neither MBEDTLS_MPI_IS_PUBLIC nor MBEDTLS_MPI_IS_SECRET
 int mbedtls_mpi_optionally_safe_codepath = MBEDTLS_MPI_IS_PUBLIC + MBEDTLS_MPI_IS_SECRET + 1;
 #endif
@@ -771,7 +771,7 @@ static inline void exp_mod_calc_first_bit_optionally_safe(const mbedtls_mpi_uint
             *E_limb_index = E_bits / biL;
             *E_bit_index = E_bits % biL;
         }
-#if defined(MBEDTLS_TEST_HOOKS)
+#if defined(MBEDTLS_TEST_HOOKS) && !defined(MBEDTLS_THREADING_C)
         mbedtls_mpi_optionally_safe_codepath = MBEDTLS_MPI_IS_PUBLIC;
 #endif
     } else {
@@ -781,7 +781,7 @@ static inline void exp_mod_calc_first_bit_optionally_safe(const mbedtls_mpi_uint
          */
         *E_limb_index = E_limbs;
         *E_bit_index = 0;
-#if defined(MBEDTLS_TEST_HOOKS)
+#if defined(MBEDTLS_TEST_HOOKS) && !defined(MBEDTLS_THREADING_C)
         // Only mark the codepath safe if there wasn't an unsafe codepath before
         if (mbedtls_mpi_optionally_safe_codepath != MBEDTLS_MPI_IS_PUBLIC) {
             mbedtls_mpi_optionally_safe_codepath = MBEDTLS_MPI_IS_SECRET;
@@ -803,7 +803,7 @@ static inline void exp_mod_table_lookup_optionally_safe(mbedtls_mpi_uint *Wselec
 {
     if (window_public == MBEDTLS_MPI_IS_PUBLIC) {
         memcpy(Wselect, Wtable + window * AN_limbs, AN_limbs * ciL);
-#if defined(MBEDTLS_TEST_HOOKS)
+#if defined(MBEDTLS_TEST_HOOKS) && !defined(MBEDTLS_THREADING_C)
         mbedtls_mpi_optionally_safe_codepath = MBEDTLS_MPI_IS_PUBLIC;
 #endif
     } else {
@@ -811,7 +811,7 @@ static inline void exp_mod_table_lookup_optionally_safe(mbedtls_mpi_uint *Wselec
          * memory access patterns. */
         mbedtls_mpi_core_ct_uint_table_lookup(Wselect, Wtable,
                                               AN_limbs, welem, window);
-#if defined(MBEDTLS_TEST_HOOKS)
+#if defined(MBEDTLS_TEST_HOOKS) && !defined(MBEDTLS_THREADING_C)
         // Only mark the codepath safe if there wasn't an unsafe codepath before
         if (mbedtls_mpi_optionally_safe_codepath != MBEDTLS_MPI_IS_PUBLIC) {
             mbedtls_mpi_optionally_safe_codepath = MBEDTLS_MPI_IS_SECRET;

@@ -766,11 +766,21 @@ static inline void exp_mod_calc_first_bit_optionally_safe(const mbedtls_mpi_uint
                                                           size_t *E_bit_index)
 {
     if (E_public == MBEDTLS_MPI_IS_PUBLIC) {
+        /*
+         * Skip leading zero bits.
+         */
         size_t E_bits = mbedtls_mpi_core_bitlen(E, E_limbs);
-        if (E_bits != 0) {
-            *E_limb_index = E_bits / biL;
-            *E_bit_index = E_bits % biL;
+        if (E_bits == 0) {
+            /*
+             * If E is 0 mbedtls_mpi_core_bitlen() returns 0. Even if that is the case, we will want
+             * to represent it as a single 0 bit and as such the bitlength will be 1.
+             */
+            E_bits = 1;
         }
+
+        *E_limb_index = E_bits / biL;
+        *E_bit_index = E_bits % biL;
+
 #if defined(MBEDTLS_TEST_HOOKS) && !defined(MBEDTLS_THREADING_C)
         mbedtls_mpi_optionally_safe_codepath = MBEDTLS_MPI_IS_PUBLIC;
 #endif
@@ -848,8 +858,8 @@ static void mbedtls_mpi_core_exp_mod_optionally_safe(mbedtls_mpi_uint *X,
     /* We'll process the bits of E from most significant
      * (limb_index=E_limbs-1, E_bit_index=biL-1) to least significant
      * (limb_index=0, E_bit_index=0). */
-    size_t E_limb_index = E_limbs;
-    size_t E_bit_index = 0;
+    size_t E_limb_index;
+    size_t E_bit_index;
     exp_mod_calc_first_bit_optionally_safe(E, E_limbs, E_public,
                                            &E_limb_index, &E_bit_index);
 

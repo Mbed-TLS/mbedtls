@@ -77,10 +77,11 @@ MBEDTLS_STATIC_ASSERT(PSA_KEY_ID_VOLATILE_MAX < MBEDTLS_PSA_KEY_ID_BUILTIN_MIN |
  * located after the slices for volatile keys.
  */
 
-/* Size of slice 0 containing the cache of persistent and built-in keys. */
+/* Size of the last slice containing the cache of persistent and built-in keys. */
 #define PERSISTENT_KEY_CACHE_COUNT MBEDTLS_PSA_KEY_SLOT_COUNT
 
-/* Volatile keys are stored in slices 1 through KEY_SLICE_COUNT inclusive.
+/* Volatile keys are stored in slices 0 through
+ * (KEY_SLOT_VOLATILE_SLICE_COUNT - 1) inclusive.
  * Each slice is twice the size of the previous slice.
  * Volatile key identifiers encode the slice number as follows:
  *     bits 30..31:  0b10 (mandated by the PSA Crypto specification).

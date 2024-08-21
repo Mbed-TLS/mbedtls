@@ -99,7 +99,7 @@ MBEDTLS_STATIC_ASSERT(PSA_KEY_ID_VOLATILE_MAX < MBEDTLS_PSA_KEY_ID_BUILTIN_MIN |
 #if KEY_ID_SLICE_INDEX_WIDTH + KEY_ID_SLOT_INDEX_WIDTH > 30
 #error "Not enough room in volatile key IDs for slice index and slot index"
 #endif
-#if KEY_SLICE_COUNT >= (1 << KEY_ID_SLICE_INDEX_WIDTH) - 1
+#if KEY_SLOT_VOLATILE_SLICE_COUNT > (1 << KEY_ID_SLICE_INDEX_WIDTH)
 #error "Too many slices to fit the slice index in a volatile key ID"
 #endif
 #define KEY_SLICE_LENGTH_MAX                                            \

@@ -96,6 +96,18 @@ MBEDTLS_STATIC_ASSERT(PSA_KEY_ID_VOLATILE_MAX < MBEDTLS_PSA_KEY_ID_BUILTIN_MIN |
 #define KEY_SLICE_COUNT (KEY_SLOT_VOLATILE_SLICE_COUNT + 1u)
 #define KEY_SLOT_CACHE_SLICE_INDEX KEY_SLOT_VOLATILE_SLICE_COUNT
 
+
+/* Check that the length of the largest slice (calculated as
+ * KEY_SLICE_LENGTH_MAX below) does not overflow size_t. We use
+ * an indirect method in case the calculation of KEY_SLICE_LENGTH_MAX
+ * itself overflows uintmax_t: if (BASE_LENGTH << c)
+ * overflows size_t then BASE_LENGTH > SIZE_MAX >> c.
+ */
+#if (KEY_SLOT_VOLATILE_SLICE_BASE_LENGTH >              \
+     SIZE_MAX >> (KEY_SLOT_VOLATILE_SLICE_COUNT - 1))
+#error "Maximum slice length overflows size_t"
+#endif
+
 #if KEY_ID_SLICE_INDEX_WIDTH + KEY_ID_SLOT_INDEX_WIDTH > 30
 #error "Not enough room in volatile key IDs for slice index and slot index"
 #endif
@@ -110,11 +122,6 @@ MBEDTLS_STATIC_ASSERT(PSA_KEY_ID_VOLATILE_MAX < MBEDTLS_PSA_KEY_ID_BUILTIN_MIN |
 #if KEY_ID_SLICE_INDEX_WIDTH > 8
 #error "Slice index does not fit in uint8_t for psa_key_slot_t::slice_index"
 #endif
-
-MBEDTLS_STATIC_ASSERT((KEY_SLOT_VOLATILE_SLICE_BASE_LENGTH
-                       & (SIZE_MAX >> (KEY_SLOT_VOLATILE_SLICE_COUNT - 1)))
-                      == KEY_SLOT_VOLATILE_SLICE_BASE_LENGTH,
-                      "Maximum slice length overflows size_t");
 
 
 /* Calculate the volatile key id to use for a given slot.

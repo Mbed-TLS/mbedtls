@@ -111,6 +111,11 @@ MBEDTLS_STATIC_ASSERT(PSA_KEY_ID_VOLATILE_MAX < MBEDTLS_PSA_KEY_ID_BUILTIN_MIN |
 #error "Slice index does not fit in uint8_t for psa_key_slot_t::slice_index"
 #endif
 
+MBEDTLS_STATIC_ASSERT((KEY_SLOT_VOLATILE_SLICE_BASE_LENGTH
+                       & (SIZE_MAX >> (KEY_SLOT_VOLATILE_SLICE_COUNT - 1)))
+                      == KEY_SLOT_VOLATILE_SLICE_BASE_LENGTH,
+                      "Maximum slice length overflows size_t");
+
 
 /* Calculate the volatile key id to use for a given slot.
  * This function assumes valid parameter values. */

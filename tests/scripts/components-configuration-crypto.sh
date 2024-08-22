@@ -2504,6 +2504,40 @@ common_block_cipher_dispatch () {
     scripts/config.py set MBEDTLS_DEPRECATED_REMOVED
 }
 
+component_test_full_block_cipher_psa_dispatch_static_keystore () {
+    msg "build: full + PSA dispatch in block_cipher with static keystore"
+    # Check that the static key store works well when CTR_DRBG uses a
+    # PSA key for AES.
+    scripts/config.py unset MBEDTLS_PSA_KEY_STORE_DYNAMIC
+
+    loc_accel_list="ALG_ECB_NO_PADDING \
+                    KEY_TYPE_AES KEY_TYPE_ARIA KEY_TYPE_CAMELLIA"
+
+    # Configure
+    # ---------
+
+    common_block_cipher_dispatch 1
+
+    # Build
+    # -----
+
+    helper_libtestdriver1_make_drivers "$loc_accel_list"
+
+    helper_libtestdriver1_make_main "$loc_accel_list"
+
+    # Make sure disabled components were not re-enabled by accident (additive
+    # config)
+    not grep mbedtls_aes_ library/aes.o
+    not grep mbedtls_aria_ library/aria.o
+    not grep mbedtls_camellia_ library/camellia.o
+
+    # Run the tests
+    # -------------
+
+    msg "test: full + PSA dispatch in block_cipher with static keystore"
+    make test
+}
+
 component_test_full_block_cipher_psa_dispatch () {
     msg "build: full + PSA dispatch in block_cipher"
 
@@ -3035,6 +3069,16 @@ component_test_se_default () {
     make CC=clang CFLAGS="$ASAN_CFLAGS -Os" LDFLAGS="$ASAN_CFLAGS"
 
     msg "test: default config + MBEDTLS_PSA_CRYPTO_SE_C"
+    make test
+}
+
+component_test_full_static_keystore () {
+    msg "build: full config - MBEDTLS_PSA_KEY_STORE_DYNAMIC"
+    scripts/config.py full
+    scripts/config.py unset MBEDTLS_PSA_KEY_STORE_DYNAMIC
+    make CC=clang CFLAGS="$ASAN_CFLAGS -Os" LDFLAGS="$ASAN_CFLAGS"
+
+    msg "test: full config - MBEDTLS_PSA_KEY_STORE_DYNAMIC"
     make test
 }
 

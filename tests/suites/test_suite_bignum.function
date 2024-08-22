@@ -995,7 +995,7 @@ void mpi_exp_mod_min_RR(char *input_A, char *input_E,
 #endif
     res = mbedtls_mpi_exp_mod(&Z, &A, &E, &N, &RR);
 #if defined(MBEDTLS_TEST_HOOKS) && !defined(MBEDTLS_THREADING_C)
-    TEST_EQUAL(mbedtls_codepath_check, MBEDTLS_MPI_IS_SECRET);
+    ASSERT_BIGNUM_CODEPATH(MBEDTLS_MPI_IS_SECRET, res, E);
 #endif
     /* We know that exp_mod internally needs RR to be as large as N.
      * Validate that it is the case now, otherwise there was probably
@@ -1034,7 +1034,7 @@ void mpi_exp_mod(char *input_A, char *input_E,
 #endif
     res = mbedtls_mpi_exp_mod(&Z, &A, &E, &N, NULL);
 #if defined(MBEDTLS_TEST_HOOKS) && !defined(MBEDTLS_THREADING_C)
-    TEST_EQUAL(mbedtls_codepath_check, MBEDTLS_MPI_IS_SECRET);
+    ASSERT_BIGNUM_CODEPATH(MBEDTLS_MPI_IS_SECRET, res, E);
 #endif
     TEST_ASSERT(res == exp_result);
     if (res == 0) {
@@ -1047,7 +1047,7 @@ void mpi_exp_mod(char *input_A, char *input_E,
 #endif
     res = mbedtls_mpi_exp_mod_unsafe(&Z, &A, &E, &N, NULL);
 #if defined(MBEDTLS_TEST_HOOKS) && !defined(MBEDTLS_THREADING_C)
-    TEST_EQUAL(mbedtls_codepath_check, MBEDTLS_MPI_IS_PUBLIC);
+    ASSERT_BIGNUM_CODEPATH(MBEDTLS_MPI_IS_PUBLIC, res, E);
 #endif
     TEST_ASSERT(res == exp_result);
     if (res == 0) {
@@ -1061,7 +1061,7 @@ void mpi_exp_mod(char *input_A, char *input_E,
 #endif
     res = mbedtls_mpi_exp_mod(&Z, &A, &E, &N, &RR);
 #if defined(MBEDTLS_TEST_HOOKS) && !defined(MBEDTLS_THREADING_C)
-    TEST_EQUAL(mbedtls_codepath_check, MBEDTLS_MPI_IS_SECRET);
+    ASSERT_BIGNUM_CODEPATH(MBEDTLS_MPI_IS_SECRET, res, E);
 #endif
     TEST_ASSERT(res == exp_result);
     if (res == 0) {
@@ -1075,7 +1075,7 @@ void mpi_exp_mod(char *input_A, char *input_E,
 #endif
     res = mbedtls_mpi_exp_mod(&Z, &A, &E, &N, &RR);
 #if defined(MBEDTLS_TEST_HOOKS) && !defined(MBEDTLS_THREADING_C)
-    TEST_EQUAL(mbedtls_codepath_check, MBEDTLS_MPI_IS_SECRET);
+    ASSERT_BIGNUM_CODEPATH(MBEDTLS_MPI_IS_SECRET, res, E);
 #endif
     TEST_ASSERT(res == exp_result);
     if (res == 0) {
@@ -1121,7 +1121,7 @@ void mpi_exp_mod_size(int A_bytes, int E_bytes, int N_bytes,
 #endif
     TEST_ASSERT(mbedtls_mpi_exp_mod(&Z, &A, &E, &N, &RR) == exp_result);
 #if defined(MBEDTLS_TEST_HOOKS) && !defined(MBEDTLS_THREADING_C)
-    TEST_EQUAL(mbedtls_codepath_check, MBEDTLS_MPI_IS_SECRET);
+    ASSERT_BIGNUM_CODEPATH(MBEDTLS_MPI_IS_SECRET, exp_result, E);
 #endif
 
 #if defined(MBEDTLS_TEST_HOOKS) && !defined(MBEDTLS_THREADING_C)
@@ -1129,7 +1129,7 @@ void mpi_exp_mod_size(int A_bytes, int E_bytes, int N_bytes,
 #endif
     TEST_ASSERT(mbedtls_mpi_exp_mod_unsafe(&Z, &A, &E, &N, &RR) == exp_result);
 #if defined(MBEDTLS_TEST_HOOKS) && !defined(MBEDTLS_THREADING_C)
-    TEST_EQUAL(mbedtls_codepath_check, MBEDTLS_MPI_IS_PUBLIC);
+    ASSERT_BIGNUM_CODEPATH(MBEDTLS_MPI_IS_PUBLIC, exp_result, E);
 #endif
 
 exit:

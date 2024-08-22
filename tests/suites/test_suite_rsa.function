@@ -496,7 +496,7 @@ void mbedtls_rsa_public(data_t *message_str, int mod,
 #endif
     TEST_ASSERT(mbedtls_rsa_public(&ctx, message_str->x, output) == result);
 #if defined(MBEDTLS_TEST_HOOKS) && !defined(MBEDTLS_THREADING_C)
-    TEST_EQUAL(mbedtls_codepath_check, MBEDTLS_MPI_IS_PUBLIC);
+    ASSERT_RSA_CODEPATH(MBEDTLS_MPI_IS_PUBLIC, result);
 #endif
     if (result == 0) {
 
@@ -569,7 +569,7 @@ void mbedtls_rsa_private(data_t *message_str, int mod,
                                         &rnd_info, message_str->x,
                                         output) == result);
 #if defined(MBEDTLS_TEST_HOOKS) && !defined(MBEDTLS_THREADING_C)
-        TEST_EQUAL(mbedtls_codepath_check, MBEDTLS_MPI_IS_SECRET);
+        ASSERT_RSA_CODEPATH(MBEDTLS_MPI_IS_SECRET, result);
 #endif
         if (result == 0) {
 

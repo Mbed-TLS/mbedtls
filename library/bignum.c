@@ -27,6 +27,7 @@
 
 #include "mbedtls/bignum.h"
 #include "bignum_core.h"
+#include "bignum_internal.h"
 #include "bn_mul.h"
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"

@@ -410,6 +410,7 @@ if(ENABLE_TESTING OR ENABLE_PROGRAMS)
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tf-psa-crypto/include
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tf-psa-crypto/drivers/builtin/include
+        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tf-psa-crypto/drivers/everest/include
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/library
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tf-psa-crypto/core
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tf-psa-crypto/drivers/builtin/src)

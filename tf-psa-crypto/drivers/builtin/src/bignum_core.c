@@ -748,8 +748,7 @@ static void exp_mod_precompute_window(const mbedtls_mpi_uint *A,
 }
 
 #if defined(MBEDTLS_TEST_HOOKS) && !defined(MBEDTLS_THREADING_C)
-// Set to a default that is neither MBEDTLS_MPI_IS_PUBLIC nor MBEDTLS_MPI_IS_SECRET
-int mbedtls_mpi_optionally_safe_codepath = MBEDTLS_MPI_IS_PUBLIC + MBEDTLS_MPI_IS_SECRET + 1;
+int mbedtls_mpi_optionally_safe_codepath = MBEDTLS_MPI_IS_TEST;
 #endif
 
 /*

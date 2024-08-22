@@ -1,7 +1,6 @@
 Bugfix
-   * Fix an issue where TLS 1.2 clients who send a ClientHello message with
-     legacy_compression_methods get a failure in connection because TLS 1.3
-     is enabled by default and the server rejects the ClientHello packet as
-     malformed for TLS 1.3 in a way that stops the fallback to TLS 1.2.
+   * Fixes an issue where some TLS 1.2 clients could not connect to an
+     Mbed TLS 3.6.0 server, due to incorrect handling of
+     legacy_compression_methods in the ClientHello.
      fixes #8995, #9243.
 

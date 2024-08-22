@@ -1129,7 +1129,7 @@ void mpi_exp_mod_size(int A_bytes, int E_bytes, int N_bytes,
 #endif
     TEST_ASSERT(mbedtls_mpi_exp_mod_unsafe(&Z, &A, &E, &N, &RR) == exp_result);
 #if defined(MBEDTLS_TEST_HOOKS) && !defined(MBEDTLS_THREADING_C)
-    TEST_EQUAL(mbedtls_codepath_check, MBEDTLS_MPI_IS_SECRET);
+    TEST_EQUAL(mbedtls_codepath_check, MBEDTLS_MPI_IS_PUBLIC);
 #endif
 
 exit:

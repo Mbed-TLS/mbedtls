@@ -110,6 +110,10 @@
  * other than the two below is passed, default to the safe path.) */
 #define MBEDTLS_MPI_IS_PUBLIC  0x2a2a2a2a
 #define MBEDTLS_MPI_IS_SECRET  0
+#if defined(MBEDTLS_TEST_HOOKS) && !defined(MBEDTLS_THREADING_C)
+// Default value for testing that is neither MBEDTLS_MPI_IS_PUBLIC nor MBEDTLS_MPI_IS_SECRET
+#define MBEDTLS_MPI_IS_TEST  1
+#endif
 
 /** Count leading zero bits in a given integer.
  *
@@ -825,8 +829,7 @@ extern int mbedtls_mpi_optionally_safe_codepath;
 
 static inline void mbedtls_mpi_optionally_safe_codepath_reset(void)
 {
-    // Set to a default that is neither MBEDTLS_MPI_IS_PUBLIC nor MBEDTLS_MPI_IS_SECRET
-    mbedtls_mpi_optionally_safe_codepath = MBEDTLS_MPI_IS_PUBLIC + MBEDTLS_MPI_IS_SECRET + 1;
+    mbedtls_mpi_optionally_safe_codepath = MBEDTLS_MPI_IS_TEST;
 }
 #endif
 

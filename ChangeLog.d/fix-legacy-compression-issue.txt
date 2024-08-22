@@ -1,7 +1,7 @@
 Bugfix
-   * Fix an issue where ssl_tls13_parse_client_hello() assumed legacy_compression_methods
-     length would always be zero, which is true for TLS 1.3. However, with TLS 1.3 enabled
-     by default, all ClientHello requests (including TLS 1.2 requests) are initially
-     processed by ssl_tls13_parse_client_hello() before being passed to the TLS 1.2
-     parsing function. This caused an issue where legacy_compression_methods
-     might not be zero for TLS 1.2 requests, as it is processed earlier.
+   * Fix an issue where TLS 1.2 clients who send a ClientHello message with
+     legacy_compression_methods get a failure in connection because TLS 1.3
+     is enabled by default and the server rejects the ClientHello packet as
+     malformed for TLS 1.3 in a way that stops the fallback to TLS 1.2.
+     fixes #8995, #9243.
+

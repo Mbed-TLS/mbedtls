@@ -856,8 +856,8 @@ static void mbedtls_mpi_core_exp_mod_optionally_safe(mbedtls_mpi_uint *X,
     /* We'll process the bits of E from most significant
      * (limb_index=E_limbs-1, E_bit_index=biL-1) to least significant
      * (limb_index=0, E_bit_index=0). */
-    size_t E_limb_index;
-    size_t E_bit_index;
+    size_t E_limb_index = E_limbs;
+    size_t E_bit_index = 0;
     exp_mod_calc_first_bit_optionally_safe(E, E_limbs, E_public,
                                            &E_limb_index, &E_bit_index);
 

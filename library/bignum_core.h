@@ -107,7 +107,10 @@
  *      // safe path
  *  }
  * not the other way round, in order to prevent misuse. (This is, if a value
- * other than the two below is passed, default to the safe path.) */
+ * other than the two below is passed, default to the safe path.)
+ *
+ * The value of MBEDTLS_MPI_IS_PUBLIC is chosen in a way that is unlikely to happen by accident, but
+ * which can be used as an immediate value in a Thumb2 comparison (for code size). */
 #define MBEDTLS_MPI_IS_PUBLIC  0x2a2a2a2a
 #define MBEDTLS_MPI_IS_SECRET  0
 #if defined(MBEDTLS_TEST_HOOKS) && !defined(MBEDTLS_THREADING_C)

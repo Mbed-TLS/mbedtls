@@ -5,6 +5,7 @@
 #include "bignum_core.h"
 #include "bignum_internal.h"
 #include "test/constant_flow.h"
+#include "test/bignum_codepath_check.h"
 
 #if MBEDTLS_MPI_MAX_BITS > 792
 #define MPI_MAX_BITS_LARGER_THAN_792
@@ -990,11 +991,11 @@ void mpi_exp_mod_min_RR(char *input_A, char *input_E,
     TEST_LE_U(RR.n, N.n - 1);
 
 #if defined(MBEDTLS_TEST_HOOKS) && !defined(MBEDTLS_THREADING_C)
-    mbedtls_mpi_optionally_safe_codepath_reset();
+    mbedtls_codepath_reset();
 #endif
     res = mbedtls_mpi_exp_mod(&Z, &A, &E, &N, &RR);
 #if defined(MBEDTLS_TEST_HOOKS) && !defined(MBEDTLS_THREADING_C)
-    TEST_EQUAL(mbedtls_mpi_optionally_safe_codepath, MBEDTLS_MPI_IS_SECRET);
+    TEST_EQUAL(mbedtls_codepath_check, MBEDTLS_MPI_IS_SECRET);
 #endif
     /* We know that exp_mod internally needs RR to be as large as N.
      * Validate that it is the case now, otherwise there was probably
@@ -1029,11 +1030,11 @@ void mpi_exp_mod(char *input_A, char *input_E,
     TEST_ASSERT(mbedtls_test_read_mpi(&X, input_X) == 0);
 
 #if defined(MBEDTLS_TEST_HOOKS) && !defined(MBEDTLS_THREADING_C)
-    mbedtls_mpi_optionally_safe_codepath_reset();
+    mbedtls_codepath_reset();
 #endif
     res = mbedtls_mpi_exp_mod(&Z, &A, &E, &N, NULL);
 #if defined(MBEDTLS_TEST_HOOKS) && !defined(MBEDTLS_THREADING_C)
-    TEST_EQUAL(mbedtls_mpi_optionally_safe_codepath, MBEDTLS_MPI_IS_SECRET);
+    TEST_EQUAL(mbedtls_codepath_check, MBEDTLS_MPI_IS_SECRET);
 #endif
     TEST_ASSERT(res == exp_result);
     if (res == 0) {
@@ -1042,11 +1043,11 @@ void mpi_exp_mod(char *input_A, char *input_E,
     }
 
 #if defined(MBEDTLS_TEST_HOOKS) && !defined(MBEDTLS_THREADING_C)
-    mbedtls_mpi_optionally_safe_codepath_reset();
+    mbedtls_codepath_reset();
 #endif
     res = mbedtls_mpi_exp_mod_unsafe(&Z, &A, &E, &N, NULL);
 #if defined(MBEDTLS_TEST_HOOKS) && !defined(MBEDTLS_THREADING_C)
-    TEST_EQUAL(mbedtls_mpi_optionally_safe_codepath, MBEDTLS_MPI_IS_PUBLIC);
+    TEST_EQUAL(mbedtls_codepath_check, MBEDTLS_MPI_IS_PUBLIC);
 #endif
     TEST_ASSERT(res == exp_result);
     if (res == 0) {
@@ -1056,11 +1057,11 @@ void mpi_exp_mod(char *input_A, char *input_E,
 
     /* Now test again with the speed-up parameter supplied as an output. */
 #if defined(MBEDTLS_TEST_HOOKS) && !defined(MBEDTLS_THREADING_C)
-    mbedtls_mpi_optionally_safe_codepath_reset();
+    mbedtls_codepath_reset();
 #endif
     res = mbedtls_mpi_exp_mod(&Z, &A, &E, &N, &RR);
 #if defined(MBEDTLS_TEST_HOOKS) && !defined(MBEDTLS_THREADING_C)
-    TEST_EQUAL(mbedtls_mpi_optionally_safe_codepath, MBEDTLS_MPI_IS_SECRET);
+    TEST_EQUAL(mbedtls_codepath_check, MBEDTLS_MPI_IS_SECRET);
 #endif
     TEST_ASSERT(res == exp_result);
     if (res == 0) {
@@ -1070,11 +1071,11 @@ void mpi_exp_mod(char *input_A, char *input_E,
 
     /* Now test again with the speed-up parameter supplied in calculated form. */
 #if defined(MBEDTLS_TEST_HOOKS) && !defined(MBEDTLS_THREADING_C)
-    mbedtls_mpi_optionally_safe_codepath_reset();
+    mbedtls_codepath_reset();
 #endif
     res = mbedtls_mpi_exp_mod(&Z, &A, &E, &N, &RR);
 #if defined(MBEDTLS_TEST_HOOKS) && !defined(MBEDTLS_THREADING_C)
-    TEST_EQUAL(mbedtls_mpi_optionally_safe_codepath, MBEDTLS_MPI_IS_SECRET);
+    TEST_EQUAL(mbedtls_codepath_check, MBEDTLS_MPI_IS_SECRET);
 #endif
     TEST_ASSERT(res == exp_result);
     if (res == 0) {
@@ -1116,19 +1117,19 @@ void mpi_exp_mod_size(int A_bytes, int E_bytes, int N_bytes,
     }
 
 #if defined(MBEDTLS_TEST_HOOKS) && !defined(MBEDTLS_THREADING_C)
-    mbedtls_mpi_optionally_safe_codepath_reset();
+    mbedtls_codepath_reset();
 #endif
     TEST_ASSERT(mbedtls_mpi_exp_mod(&Z, &A, &E, &N, &RR) == exp_result);
 #if defined(MBEDTLS_TEST_HOOKS) && !defined(MBEDTLS_THREADING_C)
-    TEST_EQUAL(mbedtls_mpi_optionally_safe_codepath, MBEDTLS_MPI_IS_SECRET);
+    TEST_EQUAL(mbedtls_codepath_check, MBEDTLS_MPI_IS_SECRET);
 #endif
 
 #if defined(MBEDTLS_TEST_HOOKS) && !defined(MBEDTLS_THREADING_C)
-    mbedtls_mpi_optionally_safe_codepath_reset();
+    mbedtls_codepath_reset();
 #endif
     TEST_ASSERT(mbedtls_mpi_exp_mod_unsafe(&Z, &A, &E, &N, &RR) == exp_result);
 #if defined(MBEDTLS_TEST_HOOKS) && !defined(MBEDTLS_THREADING_C)
-    TEST_EQUAL(mbedtls_mpi_optionally_safe_codepath, MBEDTLS_MPI_IS_SECRET);
+    TEST_EQUAL(mbedtls_codepath_check, MBEDTLS_MPI_IS_SECRET);
 #endif
 
 exit:

@@ -29,6 +29,7 @@
 
 #include "mbedtls/rsa.h"
 #include "bignum_core.h"
+#include "bignum_internal.h"
 #include "rsa_alt_helpers.h"
 #include "rsa_internal.h"
 #include "mbedtls/oid.h"
@@ -1225,16 +1226,6 @@ int mbedtls_rsa_check_pub_priv(const mbedtls_rsa_context *pub,
 
     return 0;
 }
-
-/*
- * This function is identical to mbedtls_mpi_exp_mod() the only difference is that this function is
- * not constant time.
- *
- * WARNING! This function is not constant time.
- */
-int mbedtls_mpi_exp_mod_unsafe(mbedtls_mpi *X, const mbedtls_mpi *A,
-                               const mbedtls_mpi *E, const mbedtls_mpi *N,
-                               mbedtls_mpi *prec_RR);
 
 /*
  * Do an RSA public key operation

@@ -1594,7 +1594,7 @@ int main(int argc, char *argv[])
     int i;
     char *p, *q;
     const int *list;
-#if defined(MBEDTLS_USE_PSA_CRYPTO) || defined(MBEDTLS_SSL_PROTO_TLS1_3)
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
     psa_status_t status;
 #endif
     unsigned char eap_tls_keymaterial[16];
@@ -1660,7 +1660,15 @@ int main(int argc, char *argv[])
     mbedtls_ssl_cookie_init(&cookie_ctx);
 #endif
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO) || defined(MBEDTLS_SSL_PROTO_TLS1_3)
+    /* For builds with TLS 1.3 enabled but not MBEDTLS_USE_PSA_CRYPTO,
+     * we deliberately do not call psa_crypto_init() here, to test that
+     * the library is backward-compatible with versions prior to 3.6.0
+     * where calling psa_crypto_init() was not required to open a TLS
+     * connection in the default configuration. See
+     * https://github.com/Mbed-TLS/mbedtls/issues/9072 and
+     * mbedtls_ssl_tls13_crypto_init().
+     */
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
     status = psa_crypto_init();
     if (status != PSA_SUCCESS) {
         mbedtls_fprintf(stderr, "Failed to initialize PSA Crypto implementation: %d\n",
@@ -4309,6 +4317,9 @@ exit:
 
     /* For builds with MBEDTLS_TEST_USE_PSA_CRYPTO_RNG psa crypto
      * resources are freed by rng_free(). */
+    /* For builds with MBEDTLS_SSL_PROTO_TLS1_3, PSA may have been
+     * initialized under the hood by the TLS layer. See
+     * mbedtls_ssl_tls13_crypto_init(). */
 #if (defined(MBEDTLS_USE_PSA_CRYPTO) || defined(MBEDTLS_SSL_PROTO_TLS1_3)) \
     && !defined(MBEDTLS_TEST_USE_PSA_CRYPTO_RNG)
     mbedtls_psa_crypto_free();

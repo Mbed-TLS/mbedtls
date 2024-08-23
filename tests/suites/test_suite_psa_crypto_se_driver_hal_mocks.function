@@ -6,7 +6,7 @@
 
 /** The location and lifetime used for tests that use a single driver. */
 #define TEST_DRIVER_LOCATION 1
-#define TEST_SE_PERSISTENT_LIFETIME                             \
+#define TEST_SE_PERSISTENT_LIFETIME                            \
     (PSA_KEY_LIFETIME_FROM_PERSISTENCE_AND_LOCATION(           \
          PSA_KEY_PERSISTENCE_DEFAULT, TEST_DRIVER_LOCATION))
 
@@ -162,11 +162,11 @@ static psa_status_t mock_import(psa_drv_se_context_t *drv_context,
     return mock_import_data.return_value;
 }
 
-psa_status_t mock_export(psa_drv_se_context_t *context,
-                         psa_key_slot_number_t slot_number,
-                         uint8_t *p_data,
-                         size_t data_size,
-                         size_t *p_data_length)
+static psa_status_t mock_export(psa_drv_se_context_t *context,
+                                psa_key_slot_number_t slot_number,
+                                uint8_t *p_data,
+                                size_t data_size,
+                                size_t *p_data_length)
 {
     (void) context;
     (void) p_data;
@@ -179,11 +179,11 @@ psa_status_t mock_export(psa_drv_se_context_t *context,
     return mock_export_data.return_value;
 }
 
-psa_status_t mock_export_public(psa_drv_se_context_t *context,
-                                psa_key_slot_number_t slot_number,
-                                uint8_t *p_data,
-                                size_t data_size,
-                                size_t *p_data_length)
+static psa_status_t mock_export_public(psa_drv_se_context_t *context,
+                                       psa_key_slot_number_t slot_number,
+                                       uint8_t *p_data,
+                                       size_t data_size,
+                                       size_t *p_data_length)
 {
     (void) context;
     (void) p_data;
@@ -196,14 +196,14 @@ psa_status_t mock_export_public(psa_drv_se_context_t *context,
     return mock_export_public_data.return_value;
 }
 
-psa_status_t mock_sign(psa_drv_se_context_t *context,
-                       psa_key_slot_number_t key_slot,
-                       psa_algorithm_t alg,
-                       const uint8_t *p_hash,
-                       size_t hash_length,
-                       uint8_t *p_signature,
-                       size_t signature_size,
-                       size_t *p_signature_length)
+static psa_status_t mock_sign(psa_drv_se_context_t *context,
+                              psa_key_slot_number_t key_slot,
+                              psa_algorithm_t alg,
+                              const uint8_t *p_hash,
+                              size_t hash_length,
+                              uint8_t *p_signature,
+                              size_t signature_size,
+                              size_t *p_signature_length)
 {
     (void) context;
     (void) p_hash;
@@ -219,13 +219,13 @@ psa_status_t mock_sign(psa_drv_se_context_t *context,
     return mock_sign_data.return_value;
 }
 
-psa_status_t mock_verify(psa_drv_se_context_t *context,
-                         psa_key_slot_number_t key_slot,
-                         psa_algorithm_t alg,
-                         const uint8_t *p_hash,
-                         size_t hash_length,
-                         const uint8_t *p_signature,
-                         size_t signature_length)
+static psa_status_t mock_verify(psa_drv_se_context_t *context,
+                                psa_key_slot_number_t key_slot,
+                                psa_algorithm_t alg,
+                                const uint8_t *p_hash,
+                                size_t hash_length,
+                                const uint8_t *p_signature,
+                                size_t signature_length)
 {
     (void) context;
     (void) p_hash;
@@ -240,11 +240,11 @@ psa_status_t mock_verify(psa_drv_se_context_t *context,
     return mock_verify_data.return_value;
 }
 
-psa_status_t mock_allocate(psa_drv_se_context_t *drv_context,
-                           void *persistent_data,
-                           const psa_key_attributes_t *attributes,
-                           psa_key_creation_method_t method,
-                           psa_key_slot_number_t *key_slot)
+static psa_status_t mock_allocate(psa_drv_se_context_t *drv_context,
+                                  void *persistent_data,
+                                  const psa_key_attributes_t *attributes,
+                                  psa_key_creation_method_t method,
+                                  psa_key_slot_number_t *key_slot)
 {
     (void) drv_context;
     (void) persistent_data;
@@ -258,9 +258,9 @@ psa_status_t mock_allocate(psa_drv_se_context_t *drv_context,
     return mock_allocate_data.return_value;
 }
 
-psa_status_t mock_destroy(psa_drv_se_context_t *context,
-                          void *persistent_data,
-                          psa_key_slot_number_t slot_number)
+static psa_status_t mock_destroy(psa_drv_se_context_t *context,
+                                 void *persistent_data,
+                                 psa_key_slot_number_t slot_number)
 {
     (void) context;
     (void) persistent_data;

@@ -39,28 +39,6 @@
 #define ASSERT_OPERATION_IS_ACTIVE(operation) TEST_ASSERT(operation.id != 0)
 #define ASSERT_OPERATION_IS_INACTIVE(operation) TEST_ASSERT(operation.id == 0)
 
-#if defined(PSA_WANT_ALG_JPAKE)
-int ecjpake_operation_setup(psa_pake_operation_t *operation,
-                            psa_pake_cipher_suite_t *cipher_suite,
-                            psa_pake_role_t role,
-                            mbedtls_svc_key_id_t key,
-                            size_t key_available)
-{
-    PSA_ASSERT(psa_pake_abort(operation));
-
-    PSA_ASSERT(psa_pake_setup(operation, cipher_suite));
-
-    PSA_ASSERT(psa_pake_set_role(operation, role));
-
-    if (key_available) {
-        PSA_ASSERT(psa_pake_set_password_key(operation, key));
-    }
-    return 0;
-exit:
-    return 1;
-}
-#endif
-
 /** An invalid export length that will never be set by psa_export_key(). */
 static const size_t INVALID_EXPORT_LENGTH = ~0U;
 
@@ -175,12 +153,12 @@ static int construct_fake_rsa_key(unsigned char *buffer,
 }
 #endif /* MBEDTLS_ASN1_WRITE_C */
 
-int exercise_mac_setup(psa_key_type_t key_type,
-                       const unsigned char *key_bytes,
-                       size_t key_length,
-                       psa_algorithm_t alg,
-                       psa_mac_operation_t *operation,
-                       psa_status_t *status)
+static int exercise_mac_setup(psa_key_type_t key_type,
+                              const unsigned char *key_bytes,
+                              size_t key_length,
+                              psa_algorithm_t alg,
+                              psa_mac_operation_t *operation,
+                              psa_status_t *status)
 {
     mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
@@ -207,12 +185,12 @@ exit:
     return 0;
 }
 
-int exercise_cipher_setup(psa_key_type_t key_type,
-                          const unsigned char *key_bytes,
-                          size_t key_length,
-                          psa_algorithm_t alg,
-                          psa_cipher_operation_t *operation,
-                          psa_status_t *status)
+static int exercise_cipher_setup(psa_key_type_t key_type,
+                                 const unsigned char *key_bytes,
+                                 size_t key_length,
+                                 psa_algorithm_t alg,
+                                 psa_cipher_operation_t *operation,
+                                 psa_status_t *status)
 {
     mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
@@ -285,14 +263,14 @@ exit:
 /* Assert that a key isn't reported as having a slot number. */
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
 #define ASSERT_NO_SLOT_NUMBER(attributes)                             \
-    do                                                                  \
-    {                                                                   \
-        psa_key_slot_number_t ASSERT_NO_SLOT_NUMBER_slot_number;        \
-        TEST_EQUAL(psa_get_key_slot_number(                            \
-                       attributes,                                     \
+    do                                                                \
+    {                                                                 \
+        psa_key_slot_number_t ASSERT_NO_SLOT_NUMBER_slot_number;      \
+        TEST_EQUAL(psa_get_key_slot_number(                           \
+                       attributes,                                    \
                        &ASSERT_NO_SLOT_NUMBER_slot_number),           \
                    PSA_ERROR_INVALID_ARGUMENT);                       \
-    }                                                                   \
+    }                                                                 \
     while (0)
 #else /* MBEDTLS_PSA_CRYPTO_SE_C */
 #define ASSERT_NO_SLOT_NUMBER(attributes)     \
@@ -1338,6 +1316,7 @@ exit:
 
 #if defined(MBEDTLS_THREADING_PTHREAD)
 
+#if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
 typedef struct same_key_context {
     data_t *data;
     mbedtls_svc_key_id_t key;
@@ -1354,7 +1333,7 @@ same_key_context;
 /* Attempt to import the key in ctx. This handles any valid error codes
  * and reports an error for any invalid codes. This function also insures
  * that once imported by some thread, all threads can use the key. */
-void *thread_import_key(void *ctx)
+static void *thread_import_key(void *ctx)
 {
     mbedtls_svc_key_id_t returned_key_id;
     same_key_context *skc = (struct same_key_context *) ctx;
@@ -1428,7 +1407,7 @@ exit:
     return NULL;
 }
 
-void *thread_use_and_destroy_key(void *ctx)
+static void *thread_use_and_destroy_key(void *ctx)
 {
     same_key_context *skc = (struct same_key_context *) ctx;
 
@@ -1456,6 +1435,7 @@ void *thread_use_and_destroy_key(void *ctx)
 exit:
     return NULL;
 }
+#endif /* MBEDTLS_PSA_CRYPTO_STORAGE_C */
 
 typedef struct generate_key_context {
     psa_key_type_t type;
@@ -1468,7 +1448,7 @@ typedef struct generate_key_context {
     int reps;
 }
 generate_key_context;
-void *thread_generate_key(void *ctx)
+static void *thread_generate_key(void *ctx)
 {
     mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
     psa_key_attributes_t got_attributes = PSA_KEY_ATTRIBUTES_INIT;

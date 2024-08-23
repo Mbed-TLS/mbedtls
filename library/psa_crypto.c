@@ -1210,15 +1210,15 @@ psa_status_t psa_wipe_key_slot(psa_key_slot_t *slot)
         case PSA_SLOT_PENDING_DELETION:
             /* In this state psa_wipe_key_slot() must only be called if the
              * caller is the last reader. */
-            if (slot->registered_readers != 1) {
-                MBEDTLS_TEST_HOOK_TEST_ASSERT(slot->registered_readers == 1);
+            if (slot->var.occupied.registered_readers != 1) {
+                MBEDTLS_TEST_HOOK_TEST_ASSERT(slot->var.occupied.registered_readers == 1);
                 status = PSA_ERROR_CORRUPTION_DETECTED;
             }
             break;
         case PSA_SLOT_FILLING:
             /* In this state registered_readers must be 0. */
-            if (slot->registered_readers != 0) {
-                MBEDTLS_TEST_HOOK_TEST_ASSERT(slot->registered_readers == 0);
+            if (slot->var.occupied.registered_readers != 0) {
+                MBEDTLS_TEST_HOOK_TEST_ASSERT(slot->var.occupied.registered_readers == 0);
                 status = PSA_ERROR_CORRUPTION_DETECTED;
             }
             break;
@@ -1232,6 +1232,11 @@ psa_status_t psa_wipe_key_slot(psa_key_slot_t *slot)
             status = PSA_ERROR_CORRUPTION_DETECTED;
     }
 
+#if defined(MBEDTLS_PSA_KEY_STORE_DYNAMIC)
+    size_t slice_index = slot->slice_index;
+#endif /* MBEDTLS_PSA_KEY_STORE_DYNAMIC */
+
+
     /* Multipart operations may still be using the key. This is safe
      * because all multipart operation objects are independent from
      * the key slot: if they need to access the key after the setup
@@ -1242,6 +1247,17 @@ psa_status_t psa_wipe_key_slot(psa_key_slot_t *slot)
      * zeroize because the metadata is not particularly sensitive.
      * This memset also sets the slot's state to PSA_SLOT_EMPTY. */
     memset(slot, 0, sizeof(*slot));
+
+#if defined(MBEDTLS_PSA_KEY_STORE_DYNAMIC)
+    /* If the slot is already corrupted, something went deeply wrong,
+     * like a thread still using the slot or a stray pointer leading
+     * to the slot's memory being used for another object. Let the slot
+     * leak rather than make the corruption worse. */
+    if (status == PSA_SUCCESS) {
+        status = psa_free_key_slot(slice_index, slot);
+    }
+#endif /* MBEDTLS_PSA_KEY_STORE_DYNAMIC */
+
     return status;
 }
 
@@ -1753,8 +1769,6 @@ static psa_status_t psa_start_key_creation(
     psa_se_drv_table_entry_t **p_drv)
 {
     psa_status_t status;
-    psa_key_id_t volatile_key_id;
-    psa_key_slot_t *slot;
 
     (void) method;
     *p_drv = NULL;
@@ -1764,11 +1778,16 @@ static psa_status_t psa_start_key_creation(
         return status;
     }
 
+    int key_is_volatile = PSA_KEY_LIFETIME_IS_VOLATILE(attributes->lifetime);
+    psa_key_id_t volatile_key_id;
+
 #if defined(MBEDTLS_THREADING_C)
     PSA_THREADING_CHK_RET(mbedtls_mutex_lock(
                               &mbedtls_threading_key_slot_mutex));
 #endif
-    status = psa_reserve_free_key_slot(&volatile_key_id, p_slot);
+    status = psa_reserve_free_key_slot(
+        key_is_volatile ? &volatile_key_id : NULL,
+        p_slot);
 #if defined(MBEDTLS_THREADING_C)
     PSA_THREADING_CHK_RET(mbedtls_mutex_unlock(
                               &mbedtls_threading_key_slot_mutex));
@@ -1776,7 +1795,7 @@ static psa_status_t psa_start_key_creation(
     if (status != PSA_SUCCESS) {
         return status;
     }
-    slot = *p_slot;
+    psa_key_slot_t *slot = *p_slot;
 
     /* We're storing the declared bit-size of the key. It's up to each
      * creation mechanism to verify that this information is correct.
@@ -1787,7 +1806,7 @@ static psa_status_t psa_start_key_creation(
      * definition. */
 
     slot->attr = *attributes;
-    if (PSA_KEY_LIFETIME_IS_VOLATILE(slot->attr.lifetime)) {
+    if (key_is_volatile) {
 #if !defined(MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER)
         slot->attr.id = volatile_key_id;
 #else
@@ -2147,6 +2166,14 @@ psa_status_t mbedtls_psa_register_se_key(
     }
     if (psa_get_key_bits(attributes) == 0) {
         return PSA_ERROR_NOT_SUPPORTED;
+    }
+
+    /* Not usable with volatile keys, even with an appropriate location,
+     * due to the API design.
+     * https://github.com/Mbed-TLS/mbedtls/issues/9253
+     */
+    if (PSA_KEY_LIFETIME_IS_VOLATILE(psa_get_key_lifetime(attributes))) {
+        return PSA_ERROR_INVALID_ARGUMENT;
     }
 
     status = psa_start_key_creation(PSA_KEY_CREATION_REGISTER, attributes,

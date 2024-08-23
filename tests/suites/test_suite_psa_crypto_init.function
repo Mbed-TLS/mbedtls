@@ -8,6 +8,23 @@
 #include "mbedtls/entropy.h"
 #include "entropy_poll.h"
 
+static int check_stats(void)
+{
+    mbedtls_psa_stats_t stats;
+    mbedtls_psa_get_stats(&stats);
+
+    TEST_EQUAL(stats.volatile_slots, MBEDTLS_TEST_PSA_INTERNAL_KEYS);
+    TEST_EQUAL(stats.persistent_slots, 0);
+    TEST_EQUAL(stats.external_slots, 0);
+    TEST_EQUAL(stats.half_filled_slots, 0);
+    TEST_EQUAL(stats.locked_slots, 0);
+
+    return 1;
+
+exit:
+    return 0;
+}
+
 #define ENTROPY_MIN_NV_SEED_SIZE                                        \
     MAX(MBEDTLS_ENTROPY_MIN_PLATFORM, MBEDTLS_ENTROPY_BLOCK_SIZE)
 
@@ -187,12 +204,23 @@ void init_deinit(int count)
     psa_status_t status;
     int i;
     for (i = 0; i < count; i++) {
+        mbedtls_test_set_step(2 * i);
         status = psa_crypto_init();
         PSA_ASSERT(status);
+        if (!check_stats()) {
+            goto exit;
+        }
+
+        mbedtls_test_set_step(2 * i);
         status = psa_crypto_init();
         PSA_ASSERT(status);
+        if (!check_stats()) {
+            goto exit;
+        }
         PSA_DONE();
     }
+exit:
+    PSA_DONE();
 }
 /* END_CASE */
 

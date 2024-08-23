@@ -444,7 +444,7 @@ static const mbedtls_ssl_ciphersuite_t ciphersuite_definitions[] =
 #endif /* PSA_WANT_ALG_CCM */
 #endif /* PSA_WANT_KEY_TYPE_AES */
 
-#if defined(MBEDTLS_SSL_HAVE_CAMELLIA)
+#if defined(PSA_WANT_KEY_TYPE_CAMELLIA)
 #if defined(PSA_WANT_ALG_CBC_NO_PADDING)
 #if defined(PSA_WANT_ALG_SHA_256)
     { MBEDTLS_TLS_ECDHE_ECDSA_WITH_CAMELLIA_128_CBC_SHA256,
@@ -478,7 +478,7 @@ static const mbedtls_ssl_ciphersuite_t ciphersuite_definitions[] =
       MBEDTLS_SSL_VERSION_TLS1_2, MBEDTLS_SSL_VERSION_TLS1_2 },
 #endif /* PSA_WANT_ALG_SHA_384 */
 #endif /* PSA_WANT_ALG_GCM */
-#endif /* MBEDTLS_SSL_HAVE_CAMELLIA */
+#endif /* PSA_WANT_KEY_TYPE_CAMELLIA */
 
 #if defined(MBEDTLS_CIPHER_NULL_CIPHER)
 #if defined(MBEDTLS_MD_CAN_SHA1)
@@ -534,7 +534,7 @@ static const mbedtls_ssl_ciphersuite_t ciphersuite_definitions[] =
 #endif /* PSA_WANT_ALG_SHA_384 */
 #endif /* PSA_WANT_KEY_TYPE_AES */
 
-#if defined(MBEDTLS_SSL_HAVE_CAMELLIA)
+#if defined(PSA_WANT_KEY_TYPE_CAMELLIA)
 #if defined(PSA_WANT_ALG_CBC_NO_PADDING)
 #if defined(PSA_WANT_ALG_SHA_256)
     { MBEDTLS_TLS_ECDHE_RSA_WITH_CAMELLIA_128_CBC_SHA256,
@@ -568,7 +568,7 @@ static const mbedtls_ssl_ciphersuite_t ciphersuite_definitions[] =
       MBEDTLS_SSL_VERSION_TLS1_2, MBEDTLS_SSL_VERSION_TLS1_2 },
 #endif /* PSA_WANT_ALG_SHA_384 */
 #endif /* PSA_WANT_ALG_GCM */
-#endif /* MBEDTLS_SSL_HAVE_CAMELLIA */
+#endif /* PSA_WANT_KEY_TYPE_CAMELLIA */
 
 #if defined(MBEDTLS_CIPHER_NULL_CIPHER)
 #if defined(MBEDTLS_MD_CAN_SHA1)
@@ -644,7 +644,7 @@ static const mbedtls_ssl_ciphersuite_t ciphersuite_definitions[] =
 #endif /* PSA_WANT_ALG_CCM */
 #endif /* PSA_WANT_KEY_TYPE_AES */
 
-#if defined(MBEDTLS_SSL_HAVE_CAMELLIA)
+#if defined(PSA_WANT_KEY_TYPE_CAMELLIA)
 #if defined(PSA_WANT_ALG_CBC_NO_PADDING)
 #if defined(PSA_WANT_ALG_SHA_256)
     { MBEDTLS_TLS_DHE_RSA_WITH_CAMELLIA_128_CBC_SHA256, "TLS-DHE-RSA-WITH-CAMELLIA-128-CBC-SHA256",
@@ -685,7 +685,7 @@ static const mbedtls_ssl_ciphersuite_t ciphersuite_definitions[] =
       MBEDTLS_SSL_VERSION_TLS1_2, MBEDTLS_SSL_VERSION_TLS1_2 },
 #endif /* PSA_WANT_ALG_SHA_384 */
 #endif /* PSA_WANT_ALG_GCM */
-#endif /* MBEDTLS_SSL_HAVE_CAMELLIA */
+#endif /* PSA_WANT_KEY_TYPE_CAMELLIA */
 
 #endif /* MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED */
 
@@ -753,7 +753,7 @@ static const mbedtls_ssl_ciphersuite_t ciphersuite_definitions[] =
 #endif /* PSA_WANT_ALG_CCM */
 #endif /* PSA_WANT_KEY_TYPE_AES */
 
-#if defined(MBEDTLS_SSL_HAVE_CAMELLIA)
+#if defined(PSA_WANT_KEY_TYPE_CAMELLIA)
 #if defined(PSA_WANT_ALG_CBC_NO_PADDING)
 #if defined(PSA_WANT_ALG_SHA_256)
     { MBEDTLS_TLS_RSA_WITH_CAMELLIA_128_CBC_SHA256, "TLS-RSA-WITH-CAMELLIA-128-CBC-SHA256",
@@ -795,7 +795,7 @@ static const mbedtls_ssl_ciphersuite_t ciphersuite_definitions[] =
       MBEDTLS_SSL_VERSION_TLS1_2, MBEDTLS_SSL_VERSION_TLS1_2 },
 #endif /* PSA_WANT_ALG_SHA_384 */
 #endif /* PSA_WANT_ALG_GCM */
-#endif /* MBEDTLS_SSL_HAVE_CAMELLIA */
+#endif /* PSA_WANT_KEY_TYPE_CAMELLIA */
 
 #endif /* MBEDTLS_KEY_EXCHANGE_RSA_ENABLED */
 
@@ -843,7 +843,7 @@ static const mbedtls_ssl_ciphersuite_t ciphersuite_definitions[] =
 #endif /* PSA_WANT_ALG_SHA_384 */
 #endif /* PSA_WANT_KEY_TYPE_AES */
 
-#if defined(MBEDTLS_SSL_HAVE_CAMELLIA)
+#if defined(PSA_WANT_KEY_TYPE_CAMELLIA)
 #if defined(PSA_WANT_ALG_CBC_NO_PADDING)
 #if defined(PSA_WANT_ALG_SHA_256)
     { MBEDTLS_TLS_ECDH_RSA_WITH_CAMELLIA_128_CBC_SHA256,
@@ -877,7 +877,7 @@ static const mbedtls_ssl_ciphersuite_t ciphersuite_definitions[] =
       MBEDTLS_SSL_VERSION_TLS1_2, MBEDTLS_SSL_VERSION_TLS1_2 },
 #endif /* PSA_WANT_ALG_SHA_384 */
 #endif /* PSA_WANT_ALG_GCM */
-#endif /* MBEDTLS_SSL_HAVE_CAMELLIA */
+#endif /* PSA_WANT_KEY_TYPE_CAMELLIA */
 
 #if defined(MBEDTLS_CIPHER_NULL_CIPHER)
 #if defined(MBEDTLS_MD_CAN_SHA1)
@@ -933,7 +933,7 @@ static const mbedtls_ssl_ciphersuite_t ciphersuite_definitions[] =
 #endif /* PSA_WANT_ALG_SHA_384 */
 #endif /* PSA_WANT_KEY_TYPE_AES */
 
-#if defined(MBEDTLS_SSL_HAVE_CAMELLIA)
+#if defined(PSA_WANT_KEY_TYPE_CAMELLIA)
 #if defined(PSA_WANT_ALG_CBC_NO_PADDING)
 #if defined(PSA_WANT_ALG_SHA_256)
     { MBEDTLS_TLS_ECDH_ECDSA_WITH_CAMELLIA_128_CBC_SHA256,
@@ -967,7 +967,7 @@ static const mbedtls_ssl_ciphersuite_t ciphersuite_definitions[] =
       MBEDTLS_SSL_VERSION_TLS1_2, MBEDTLS_SSL_VERSION_TLS1_2 },
 #endif /* PSA_WANT_ALG_SHA_384 */
 #endif /* PSA_WANT_ALG_GCM */
-#endif /* MBEDTLS_SSL_HAVE_CAMELLIA */
+#endif /* PSA_WANT_KEY_TYPE_CAMELLIA */
 
 #if defined(MBEDTLS_CIPHER_NULL_CIPHER)
 #if defined(MBEDTLS_MD_CAN_SHA1)
@@ -1044,7 +1044,7 @@ static const mbedtls_ssl_ciphersuite_t ciphersuite_definitions[] =
 #endif /* PSA_WANT_ALG_CCM */
 #endif /* PSA_WANT_KEY_TYPE_AES */
 
-#if defined(MBEDTLS_SSL_HAVE_CAMELLIA)
+#if defined(PSA_WANT_KEY_TYPE_CAMELLIA)
 #if defined(PSA_WANT_ALG_CBC_NO_PADDING)
 #if defined(PSA_WANT_ALG_SHA_256)
     { MBEDTLS_TLS_PSK_WITH_CAMELLIA_128_CBC_SHA256, "TLS-PSK-WITH-CAMELLIA-128-CBC-SHA256",
@@ -1076,7 +1076,7 @@ static const mbedtls_ssl_ciphersuite_t ciphersuite_definitions[] =
       MBEDTLS_SSL_VERSION_TLS1_2, MBEDTLS_SSL_VERSION_TLS1_2 },
 #endif /* PSA_WANT_ALG_SHA_384 */
 #endif /* PSA_WANT_ALG_GCM */
-#endif /* MBEDTLS_SSL_HAVE_CAMELLIA */
+#endif /* PSA_WANT_KEY_TYPE_CAMELLIA */
 
 #endif /* MBEDTLS_KEY_EXCHANGE_PSK_ENABLED */
 
@@ -1145,7 +1145,7 @@ static const mbedtls_ssl_ciphersuite_t ciphersuite_definitions[] =
 #endif /* PSA_WANT_ALG_CCM */
 #endif /* PSA_WANT_KEY_TYPE_AES */
 
-#if defined(MBEDTLS_SSL_HAVE_CAMELLIA)
+#if defined(PSA_WANT_KEY_TYPE_CAMELLIA)
 #if defined(PSA_WANT_ALG_CBC_NO_PADDING)
 #if defined(PSA_WANT_ALG_SHA_256)
     { MBEDTLS_TLS_DHE_PSK_WITH_CAMELLIA_128_CBC_SHA256, "TLS-DHE-PSK-WITH-CAMELLIA-128-CBC-SHA256",
@@ -1177,7 +1177,7 @@ static const mbedtls_ssl_ciphersuite_t ciphersuite_definitions[] =
       MBEDTLS_SSL_VERSION_TLS1_2, MBEDTLS_SSL_VERSION_TLS1_2 },
 #endif /* PSA_WANT_ALG_SHA_384 */
 #endif /* PSA_WANT_ALG_GCM */
-#endif /* MBEDTLS_SSL_HAVE_CAMELLIA */
+#endif /* PSA_WANT_KEY_TYPE_CAMELLIA */
 
 #endif /* MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED */
 
@@ -1213,7 +1213,7 @@ static const mbedtls_ssl_ciphersuite_t ciphersuite_definitions[] =
 #endif /* PSA_WANT_ALG_CBC_NO_PADDING */
 #endif /* PSA_WANT_KEY_TYPE_AES */
 
-#if defined(MBEDTLS_SSL_HAVE_CAMELLIA)
+#if defined(PSA_WANT_KEY_TYPE_CAMELLIA)
 #if defined(PSA_WANT_ALG_CBC_NO_PADDING)
 #if defined(PSA_WANT_ALG_SHA_256)
     { MBEDTLS_TLS_ECDHE_PSK_WITH_CAMELLIA_128_CBC_SHA256,
@@ -1231,7 +1231,7 @@ static const mbedtls_ssl_ciphersuite_t ciphersuite_definitions[] =
       MBEDTLS_SSL_VERSION_TLS1_2, MBEDTLS_SSL_VERSION_TLS1_2 },
 #endif /* PSA_WANT_ALG_SHA_384 */
 #endif /* PSA_WANT_ALG_CBC_NO_PADDING */
-#endif /* MBEDTLS_SSL_HAVE_CAMELLIA */
+#endif /* PSA_WANT_KEY_TYPE_CAMELLIA */
 
 #endif /* MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED */
 
@@ -1282,7 +1282,7 @@ static const mbedtls_ssl_ciphersuite_t ciphersuite_definitions[] =
 #endif /* PSA_WANT_ALG_CBC_NO_PADDING */
 #endif /* PSA_WANT_KEY_TYPE_AES */
 
-#if defined(MBEDTLS_SSL_HAVE_CAMELLIA)
+#if defined(PSA_WANT_KEY_TYPE_CAMELLIA)
 #if defined(PSA_WANT_ALG_CBC_NO_PADDING)
 #if defined(PSA_WANT_ALG_SHA_256)
     { MBEDTLS_TLS_RSA_PSK_WITH_CAMELLIA_128_CBC_SHA256, "TLS-RSA-PSK-WITH-CAMELLIA-128-CBC-SHA256",
@@ -1314,7 +1314,7 @@ static const mbedtls_ssl_ciphersuite_t ciphersuite_definitions[] =
       MBEDTLS_SSL_VERSION_TLS1_2, MBEDTLS_SSL_VERSION_TLS1_2 },
 #endif /* PSA_WANT_ALG_SHA_384 */
 #endif /* PSA_WANT_ALG_GCM */
-#endif /* MBEDTLS_SSL_HAVE_CAMELLIA */
+#endif /* PSA_WANT_KEY_TYPE_CAMELLIA */
 
 #endif /* MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED */
 
@@ -1446,7 +1446,7 @@ static const mbedtls_ssl_ciphersuite_t ciphersuite_definitions[] =
 #endif /* MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED */
 #endif /* MBEDTLS_CIPHER_NULL_CIPHER */
 
-#if defined(MBEDTLS_SSL_HAVE_ARIA)
+#if defined(PSA_WANT_KEY_TYPE_ARIA)
 
 #if defined(MBEDTLS_KEY_EXCHANGE_RSA_ENABLED)
 
@@ -1784,7 +1784,7 @@ static const mbedtls_ssl_ciphersuite_t ciphersuite_definitions[] =
 
 #endif /* MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED */
 
-#endif /* MBEDTLS_SSL_HAVE_ARIA */
+#endif /* PSA_WANT_KEY_TYPE_ARIA */
 
 
     { 0, "",

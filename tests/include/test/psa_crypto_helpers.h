@@ -16,6 +16,8 @@
 #include <psa/crypto.h>
 #endif
 
+#include <mbedtls/ctr_drbg.h>
+
 #if defined(MBEDTLS_PSA_CRYPTO_C)
 /** Initialize the PSA Crypto subsystem. */
 #define PSA_INIT() PSA_ASSERT(psa_crypto_init())
@@ -251,8 +253,7 @@ uint64_t mbedtls_test_parse_binary_string(data_t *bin_string);
  *  \param key_type  Key type
  *  \param key_bits  Key length in number of bits.
  */
-#if defined(MBEDTLS_AES_SETKEY_ENC_ALT) || \
-    defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_AES)
+#if defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_AES)
 #define MBEDTLS_TEST_HAVE_ALT_AES 1
 #else
 #define MBEDTLS_TEST_HAVE_ALT_AES 0
@@ -432,12 +433,32 @@ uint64_t mbedtls_test_parse_binary_string(data_t *bin_string);
  * This is like #PSA_DONE except it does nothing under the same conditions as
  * #AES_PSA_INIT.
  */
-#if defined(MBEDTLS_AES_C)
-#define AES_PSA_INIT() ((void) 0)
-#define AES_PSA_DONE() ((void) 0)
-#else /* MBEDTLS_AES_C */
+#if defined(MBEDTLS_CTR_DRBG_USE_PSA_CRYPTO)
 #define AES_PSA_INIT()   PSA_INIT()
 #define AES_PSA_DONE()   PSA_DONE()
-#endif /* MBEDTLS_AES_C */
+#else /* MBEDTLS_CTR_DRBG_USE_PSA_CRYPTO */
+#define AES_PSA_INIT() ((void) 0)
+#define AES_PSA_DONE() ((void) 0)
+#endif /* MBEDTLS_CTR_DRBG_USE_PSA_CRYPTO */
+
+#if !defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG) &&                        \
+    defined(MBEDTLS_CTR_DRBG_C) &&                                      \
+    defined(MBEDTLS_CTR_DRBG_USE_PSA_CRYPTO)
+/* When AES_C is not defined and PSA does not have an external RNG,
+ * then CTR_DRBG uses PSA to perform AES-ECB. In this scenario 1 key
+ * slot is used internally from PSA to hold the AES key and it should
+ * not be taken into account when evaluating remaining open slots. */
+#define MBEDTLS_TEST_PSA_INTERNAL_KEYS_FOR_DRBG 1
+#else
+#define MBEDTLS_TEST_PSA_INTERNAL_KEYS_FOR_DRBG 0
+#endif
+
+/** The number of volatile keys that PSA crypto uses internally.
+ *
+ * We expect that many volatile keys to be in use after a successful
+ * psa_crypto_init().
+ */
+#define MBEDTLS_TEST_PSA_INTERNAL_KEYS          \
+    MBEDTLS_TEST_PSA_INTERNAL_KEYS_FOR_DRBG
 
 #endif /* PSA_CRYPTO_HELPERS_H */

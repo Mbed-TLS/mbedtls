@@ -65,7 +65,7 @@
 
 #endif /* MBEDTLS_RSA_C */
 
-#if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
+#if defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
 
 /* Find the maximum number of bytes necessary to store an EC point. When USE_PSA
  * is defined this means looking for the maximum between PSA and built-in
@@ -103,12 +103,12 @@
  */
 #define MBEDTLS_PK_ECP_PRV_DER_MAX_BYTES    (29 + 3 * MBEDTLS_PK_MAX_ECC_BYTES)
 
-#else /* MBEDTLS_PK_HAVE_ECC_KEYS */
+#else /* PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY */
 
 #define MBEDTLS_PK_ECP_PUB_DER_MAX_BYTES   0
 #define MBEDTLS_PK_ECP_PRV_DER_MAX_BYTES   0
 
-#endif /* MBEDTLS_PK_HAVE_ECC_KEYS */
+#endif /* PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY */
 
 /* Define the maximum available public key DER length based on the supported
  * key types (EC and/or RSA). */

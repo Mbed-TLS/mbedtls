@@ -60,12 +60,14 @@ static void entropy_clear_sources(mbedtls_entropy_context *ctx)
 }
 
 #if defined(MBEDTLS_ENTROPY_NV_SEED)
+
+#if defined(MBEDTLS_MD_LIGHT) && defined(MBEDTLS_PLATFORM_NV_SEED_ALT)
 /*
  * NV seed read/write functions that use a buffer instead of a file
  */
 static unsigned char buffer_seed[MBEDTLS_ENTROPY_BLOCK_SIZE];
 
-int buffer_nv_seed_read(unsigned char *buf, size_t buf_len)
+static int buffer_nv_seed_read(unsigned char *buf, size_t buf_len)
 {
     if (buf_len != MBEDTLS_ENTROPY_BLOCK_SIZE) {
         return -1;
@@ -75,7 +77,7 @@ int buffer_nv_seed_read(unsigned char *buf, size_t buf_len)
     return 0;
 }
 
-int buffer_nv_seed_write(unsigned char *buf, size_t buf_len)
+static int buffer_nv_seed_write(unsigned char *buf, size_t buf_len)
 {
     if (buf_len != MBEDTLS_ENTROPY_BLOCK_SIZE) {
         return -1;
@@ -84,7 +86,9 @@ int buffer_nv_seed_write(unsigned char *buf, size_t buf_len)
     memcpy(buffer_seed, buf, MBEDTLS_ENTROPY_BLOCK_SIZE);
     return 0;
 }
+#endif /* MBEDTLS_MD_LIGHT && MBEDTLS_PLATFORM_NV_SEED_ALT */
 
+#if defined(MBEDTLS_FS_IO)
 /*
  * NV seed read/write helpers that fill the base seedfile
  */
@@ -111,7 +115,8 @@ static int write_nv_seed(unsigned char *buf, size_t buf_len)
     return 0;
 }
 
-int read_nv_seed(unsigned char *buf, size_t buf_len)
+#if defined(MBEDTLS_PLATFORM_NV_SEED_ALT)
+static int read_nv_seed(unsigned char *buf, size_t buf_len)
 {
     FILE *f;
 
@@ -133,6 +138,8 @@ int read_nv_seed(unsigned char *buf, size_t buf_len)
 
     return 0;
 }
+#endif /* MBEDTLS_PLATFORM_NV_SEED_ALT */
+#endif /* MBEDTLS_FS_IO */
 #endif /* MBEDTLS_ENTROPY_NV_SEED */
 /* END_HEADER */
 

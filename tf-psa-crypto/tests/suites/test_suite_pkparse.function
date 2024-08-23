@@ -81,7 +81,7 @@ exit:
     return ok;
 }
 
-#if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
+#if defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
 /* Whether a pk key can do ECDSA. Opaque keys are not supported since this
  * test suite does not create opaque keys. */
 static int pk_can_ecdsa(const mbedtls_pk_context *ctx)
@@ -100,7 +100,7 @@ static int pk_can_ecdsa(const mbedtls_pk_context *ctx)
     return 0;
 #endif
 }
-#endif /* MBEDTLS_PK_HAVE_ECC_KEYS */
+#endif /* PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY */
 #endif /* MBEDTLS_PSA_CRYPTO_C &&  && MBEDTLS_FS_IO */
 
 /* END_HEADER */
@@ -194,7 +194,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_FS_IO:MBEDTLS_PK_HAVE_ECC_KEYS */
+/* BEGIN_CASE depends_on:MBEDTLS_FS_IO:PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY */
 void pk_parse_public_keyfile_ec(char *key_file, int result)
 {
     mbedtls_pk_context ctx;
@@ -234,7 +234,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_FS_IO:MBEDTLS_PK_HAVE_ECC_KEYS */
+/* BEGIN_CASE depends_on:MBEDTLS_FS_IO:PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY */
 void pk_parse_keyfile_ec(char *key_file, char *password, int result)
 {
     mbedtls_pk_context ctx;
@@ -310,7 +310,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_PK_HAVE_ECC_KEYS:MBEDTLS_PK_WRITE_C */
+/* BEGIN_CASE depends_on:PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY:MBEDTLS_PK_WRITE_C */
 void pk_parse_fix_montgomery(data_t *input_key, data_t *exp_output)
 {
     /* Montgomery keys have specific bits set to either 0 or 1 depending on

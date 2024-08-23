@@ -87,17 +87,6 @@ int mbedtls_ripemd160_finish(mbedtls_ripemd160_context *ctx,
                              unsigned char output[20]);
 
 /**
- * \brief          RIPEMD-160 process data block (internal use only)
- *
- * \param ctx      RIPEMD-160 context
- * \param data     buffer holding one block of data
- *
- * \return         0 if successful
- */
-int mbedtls_internal_ripemd160_process(mbedtls_ripemd160_context *ctx,
-                                       const unsigned char data[64]);
-
-/**
  * \brief          Output = RIPEMD-160( input buffer )
  *
  * \param input    buffer holding the data

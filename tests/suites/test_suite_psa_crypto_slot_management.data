@@ -214,8 +214,23 @@ invalid_handle:INVALID_HANDLE_CLOSED:PSA_ERROR_INVALID_HANDLE
 invalid handle: huge
 invalid_handle:INVALID_HANDLE_HUGE:PSA_ERROR_INVALID_HANDLE
 
-Open many transient keys
-many_transient_keys:42
+Key slot count: less than maximum
+many_transient_keys:MBEDTLS_PSA_KEY_SLOT_COUNT - 1
+
+Key slot count: maximum
+many_transient_keys:MBEDTLS_PSA_KEY_SLOT_COUNT
+
+Key slot count: try to overfill, destroy first
+fill_key_store:0
+
+Key slot count: try to overfill, destroy second
+fill_key_store:1
+
+Key slot count: try to overfill, destroy next-to-last
+fill_key_store:-2
+
+Key slot count: try to overfill, destroy last
+fill_key_store:-1
 
 # Eviction from a key slot to be able to import a new persistent key.
 Key slot eviction to import a new persistent key

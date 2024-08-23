@@ -39,6 +39,16 @@ static int local_err_translation(psa_status_t status)
 #define PSA_TO_MBEDTLS_ERR(status) local_err_translation(status)
 #endif
 
+int mbedtls_ssl_tls13_crypto_init(mbedtls_ssl_context *ssl)
+{
+    psa_status_t status = psa_crypto_init();
+    if (status != PSA_SUCCESS) {
+        (void) ssl; // unused when debugging is disabled
+        MBEDTLS_SSL_DEBUG_RET(1, "psa_crypto_init", status);
+    }
+    return PSA_TO_MBEDTLS_ERR(status);
+}
+
 const uint8_t mbedtls_ssl_tls13_hello_retry_request_magic[
     MBEDTLS_SERVER_HELLO_RANDOM_LEN] =
 { 0xCF, 0x21, 0xAD, 0x74, 0xE5, 0x9A, 0x61, 0x11,

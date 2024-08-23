@@ -1141,6 +1141,11 @@ int mbedtls_ssl_tls13_write_client_hello_exts(mbedtls_ssl_context *ssl,
 
     *out_len = 0;
 
+    ret = mbedtls_ssl_tls13_crypto_init(ssl);
+    if (ret != 0) {
+        return ret;
+    }
+
     /* Write supported_versions extension
      *
      * Supported Versions Extension is mandatory with TLS 1.3.

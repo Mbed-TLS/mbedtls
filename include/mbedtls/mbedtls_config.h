@@ -1798,8 +1798,9 @@
  * Requires: MBEDTLS_PSA_CRYPTO_C
  *
  * \note TLS 1.3 uses PSA crypto for cryptographic operations that are
- *       directly performed by TLS 1.3 code. As a consequence, you must
- *       call psa_crypto_init() before the first TLS 1.3 handshake.
+ *       directly performed by TLS 1.3 code. As a consequence, when TLS 1.3
+ *       is enabled, a TLS handshake may call psa_crypto_init(), even
+ *       if it ends up negotiating a different TLS version.
  *
  * \note Cryptographic operations performed indirectly via another module
  *       (X.509, PK) or by code shared with TLS 1.2 (record protection,

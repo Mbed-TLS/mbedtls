@@ -3923,7 +3923,7 @@ static int ssl_parse_client_key_exchange(mbedtls_ssl_context *ssl)
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
         psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
         psa_status_t destruction_status = PSA_ERROR_CORRUPTION_DETECTED;
-        uint8_t ecpoint_len;
+        size_t ecpoint_len;
 
         mbedtls_ssl_handshake_params *handshake = ssl->handshake;
 

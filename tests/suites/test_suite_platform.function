@@ -18,7 +18,7 @@
 #else
 #include <unistd.h>
 #endif
-void sleep_ms(int milliseconds)
+static void sleep_ms(int milliseconds)
 {
 #if defined(_WIN32) || defined(WIN32) || defined(__CYGWIN__) || \
     defined(__MINGW32__) || defined(_WIN64)

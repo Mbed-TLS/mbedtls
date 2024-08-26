@@ -98,6 +98,31 @@ exit:
     return 0;
 }
 
+#if defined(MBEDTLS_PSA_KEY_STORE_DYNAMIC)
+#if defined(MBEDTLS_TEST_HOOKS)
+/* Artificially restrictable dynamic key store */
+#define KEY_SLICE_1_LENGTH 4
+#define KEY_SLICE_2_LENGTH 10
+static size_t tiny_key_slice_length(size_t slice_idx)
+{
+    switch (slice_idx) {
+        case 1: return KEY_SLICE_1_LENGTH;
+        case 2: return KEY_SLICE_2_LENGTH;
+        default: return 1;
+    }
+}
+#define MAX_VOLATILE_KEYS                       \
+    (KEY_SLICE_1_LENGTH + KEY_SLICE_2_LENGTH +  \
+     psa_key_slot_volatile_slice_count() - 2)
+
+#else  /* Effectively unbounded dynamic key store */
+#undef MAX_VOLATILE_KEYS
+#endif
+
+#else  /* Static key store */
+#define MAX_VOLATILE_KEYS MBEDTLS_PSA_KEY_SLOT_COUNT
+#endif
+
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -813,21 +838,19 @@ void many_transient_keys(int max_keys_arg)
     psa_set_key_type(&attributes, PSA_KEY_TYPE_RAW_DATA);
 
     for (i = 0; i < max_keys; i++) {
+        mbedtls_test_set_step(i);
         status = psa_import_key(&attributes,
                                 (uint8_t *) &i, sizeof(i),
                                 &keys[i]);
-        if (status == PSA_ERROR_INSUFFICIENT_MEMORY) {
-            break;
-        }
         PSA_ASSERT(status);
         TEST_ASSERT(!mbedtls_svc_key_id_is_null(keys[i]));
         for (j = 0; j < i; j++) {
             TEST_ASSERT(!mbedtls_svc_key_id_equal(keys[i], keys[j]));
         }
     }
-    max_keys = i;
 
     for (i = 1; i < max_keys; i++) {
+        mbedtls_test_set_step(i);
         PSA_ASSERT(psa_close_key(keys[i - 1]));
         PSA_ASSERT(psa_export_key(keys[i],
                                   exported, sizeof(exported),
@@ -840,6 +863,119 @@ void many_transient_keys(int max_keys_arg)
 exit:
     PSA_DONE();
     mbedtls_free(keys);
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MAX_VOLATILE_KEYS */
+/*
+ * 1. Fill the key store with volatile keys.
+ * 2. Check that attempting to create another volatile key fails without
+ *    corrupting the key store.
+ * 3. Destroy the key specified by key_to_destroy. This is the number of the
+ *    key in creation order (e.g. 0 means the first key that was created).
+ *    It can also  be a negative value to count in reverse order (e.g.
+ *    -1 means to destroy the last key that was created).
+ * 4. Check that creating another volatile key succeeds.
+ */
+void fill_key_store(int key_to_destroy_arg)
+{
+    mbedtls_svc_key_id_t *keys = NULL;
+    size_t max_keys = MAX_VOLATILE_KEYS;
+    size_t i, j;
+    psa_status_t status;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    uint8_t exported[sizeof(size_t)];
+    size_t exported_length;
+
+#if defined(MBEDTLS_PSA_KEY_STORE_DYNAMIC) && defined(MBEDTLS_TEST_HOOKS)
+    mbedtls_test_hook_psa_volatile_key_slice_length = &tiny_key_slice_length;
+#endif
+
+    PSA_ASSERT(psa_crypto_init());
+
+    mbedtls_psa_stats_t stats;
+    mbedtls_psa_get_stats(&stats);
+    /* Account for any system-created volatile key, e.g. for the RNG. */
+    max_keys -= stats.volatile_slots;
+    TEST_CALLOC(keys, max_keys + 1);
+
+    psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_EXPORT);
+    psa_set_key_algorithm(&attributes, 0);
+    psa_set_key_type(&attributes, PSA_KEY_TYPE_RAW_DATA);
+
+    /* Fill the key store. */
+    for (i = 0; i < max_keys; i++) {
+        mbedtls_test_set_step(i);
+        status = psa_import_key(&attributes,
+                                (uint8_t *) &i, sizeof(i),
+                                &keys[i]);
+        PSA_ASSERT(status);
+        TEST_ASSERT(!mbedtls_svc_key_id_is_null(keys[i]));
+        for (j = 0; j < i; j++) {
+            TEST_ASSERT(!mbedtls_svc_key_id_equal(keys[i], keys[j]));
+        }
+    }
+
+    /* Attempt to overfill. */
+    mbedtls_test_set_step(max_keys);
+    status = psa_import_key(&attributes,
+                            (uint8_t *) &max_keys, sizeof(max_keys),
+                            &keys[max_keys]);
+    TEST_EQUAL(status, PSA_ERROR_INSUFFICIENT_MEMORY);
+    TEST_ASSERT(mbedtls_svc_key_id_is_null(keys[max_keys]));
+
+    /* Check that the keys are not corrupted. */
+    for (i = 0; i < max_keys; i++) {
+        mbedtls_test_set_step(i);
+        PSA_ASSERT(psa_export_key(keys[i],
+                                  exported, sizeof(exported),
+                                  &exported_length));
+        TEST_MEMORY_COMPARE(exported, exported_length,
+                            (uint8_t *) &i, sizeof(i));
+    }
+
+    /* Destroy one key and try again. */
+    size_t key_to_destroy = (key_to_destroy_arg >= 0 ?
+                             (size_t) key_to_destroy_arg :
+                             max_keys + key_to_destroy_arg);
+    mbedtls_svc_key_id_t reused_id = keys[key_to_destroy];
+    const uint8_t replacement_value[1] = { 0x64 };
+    PSA_ASSERT(psa_destroy_key(keys[key_to_destroy]));
+    keys[key_to_destroy] = MBEDTLS_SVC_KEY_ID_INIT;
+    status = psa_import_key(&attributes,
+                            replacement_value, sizeof(replacement_value),
+                            &keys[key_to_destroy]);
+    PSA_ASSERT(status);
+    /* Since the key store was full except for one key, the new key must be
+     * in the same slot in the key store as the destroyed key.
+     * Since volatile keys IDs are assigned based on which slot contains
+     * the key, the new key should have the same ID as the destroyed key.
+     */
+    TEST_ASSERT(mbedtls_svc_key_id_equal(reused_id, keys[key_to_destroy]));
+
+    /* Check that the keys are not corrupted and destroy them. */
+    for (i = 0; i < max_keys; i++) {
+        mbedtls_test_set_step(i);
+        PSA_ASSERT(psa_export_key(keys[i],
+                                  exported, sizeof(exported),
+                                  &exported_length));
+        if (i == key_to_destroy) {
+            TEST_MEMORY_COMPARE(exported, exported_length,
+                                replacement_value, sizeof(replacement_value));
+        } else {
+            TEST_MEMORY_COMPARE(exported, exported_length,
+                                (uint8_t *) &i, sizeof(i));
+        }
+        PSA_ASSERT(psa_destroy_key(keys[i]));
+        keys[i] = MBEDTLS_SVC_KEY_ID_INIT;
+    }
+
+exit:
+    PSA_DONE();
+    mbedtls_free(keys);
+#if defined(MBEDTLS_PSA_KEY_STORE_DYNAMIC) && defined(MBEDTLS_TEST_HOOKS)
+    mbedtls_test_hook_psa_volatile_key_slice_length = NULL;
+#endif
 }
 /* END_CASE */
 
@@ -919,7 +1055,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_PSA_CRYPTO_STORAGE_C */
+/* BEGIN_CASE depends_on:MBEDTLS_PSA_CRYPTO_STORAGE_C:!MBEDTLS_PSA_KEY_STORE_DYNAMIC */
 void non_reusable_key_slots_integrity_in_case_of_key_slot_starvation()
 {
     psa_status_t status;
@@ -959,7 +1095,14 @@ void non_reusable_key_slots_integrity_in_case_of_key_slot_starvation()
     TEST_ASSERT(mbedtls_svc_key_id_equal(returned_key_id, persistent_key));
 
     /*
-     * Create the maximum available number of volatile keys
+     * Create the maximum available number of keys that are locked in
+     * memory. This can be:
+     * - volatile keys, when MBEDTLS_PSA_KEY_STORE_DYNAMIC is disabled;
+     * - opened persistent keys (could work, but not currently implemented
+     *   in this test function);
+     * - keys in use by another thread (we don't do this because it would
+     *   be hard to arrange and we can't control how long the keys are
+     *   locked anyway).
      */
     psa_set_key_lifetime(&attributes, PSA_KEY_LIFETIME_VOLATILE);
     for (i = 0; i < available_key_slots; i++) {

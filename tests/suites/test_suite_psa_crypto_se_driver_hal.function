@@ -14,8 +14,8 @@
 #endif
 
 /* Same in library/psa_crypto.c */
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF) ||          \
-    defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF_EXTRACT) ||  \
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF_EXTRACT) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF_EXPAND)
 #define BUILTIN_ALG_ANY_HKDF 1
 #endif
@@ -36,11 +36,11 @@
 
 /** The location and lifetime used for tests that use a single driver. */
 #define TEST_DRIVER_LOCATION 1
-#define TEST_SE_PERSISTENT_LIFETIME                             \
+#define TEST_SE_PERSISTENT_LIFETIME                            \
     (PSA_KEY_LIFETIME_FROM_PERSISTENCE_AND_LOCATION(           \
          PSA_KEY_PERSISTENCE_DEFAULT, TEST_DRIVER_LOCATION))
 
-#define TEST_SE_VOLATILE_LIFETIME                               \
+#define TEST_SE_VOLATILE_LIFETIME                              \
     (PSA_KEY_LIFETIME_FROM_PERSISTENCE_AND_LOCATION(           \
          PSA_KEY_PERSISTENCE_VOLATILE, TEST_DRIVER_LOCATION))
 
@@ -54,13 +54,13 @@
  *
  * Use this macro to assert on guarantees provided by the core.
  */
-#define DRIVER_ASSERT_RETURN(TEST)                        \
-    do {                                                    \
-        if (!(TEST))                                       \
-        {                                                    \
-            mbedtls_test_fail( #TEST, __LINE__, __FILE__);   \
-            return PSA_ERROR_DETECTED_BY_DRIVER;           \
-        }                                                    \
+#define DRIVER_ASSERT_RETURN(TEST)                            \
+    do {                                                      \
+        if (!(TEST))                                          \
+        {                                                     \
+            mbedtls_test_fail( #TEST, __LINE__, __FILE__);    \
+            return PSA_ERROR_DETECTED_BY_DRIVER;              \
+        }                                                     \
     } while (0)
 
 /** Like #TEST_ASSERT for use in a driver method, with cleanup.
@@ -70,14 +70,14 @@
  *
  * Use this macro to assert on guarantees provided by the core.
  */
-#define DRIVER_ASSERT(TEST)                               \
-    do {                                                    \
-        if (!(TEST))                                       \
-        {                                                    \
-            mbedtls_test_fail( #TEST, __LINE__, __FILE__);   \
+#define DRIVER_ASSERT(TEST)                                   \
+    do {                                                      \
+        if (!(TEST))                                          \
+        {                                                     \
+            mbedtls_test_fail( #TEST, __LINE__, __FILE__);    \
             status = PSA_ERROR_DETECTED_BY_DRIVER;            \
             goto exit;                                        \
-        }                                                    \
+        }                                                     \
     } while (0)
 
 /** Like #PSA_ASSERT for a PSA API call that calls a driver underneath.
@@ -91,16 +91,16 @@
  * case, the test driver code is expected to have called mbedtls_test_fail()
  * already, so we make sure not to overwrite the failure information.
  */
-#define PSA_ASSERT_VIA_DRIVER(expr, expected_status)                  \
-    do {                                                                \
-        psa_status_t PSA_ASSERT_VIA_DRIVER_status = (expr);           \
-        if (PSA_ASSERT_VIA_DRIVER_status == PSA_ERROR_DETECTED_BY_DRIVER) \
-        goto exit;                                                  \
-        if (PSA_ASSERT_VIA_DRIVER_status != (expected_status))       \
-        {                                                               \
+#define PSA_ASSERT_VIA_DRIVER(expr, expected_status)                           \
+    do {                                                                       \
+        psa_status_t PSA_ASSERT_VIA_DRIVER_status = (expr);                    \
+        if (PSA_ASSERT_VIA_DRIVER_status == PSA_ERROR_DETECTED_BY_DRIVER)      \
+        goto exit;                                                             \
+        if (PSA_ASSERT_VIA_DRIVER_status != (expected_status))                 \
+        {                                                                      \
             mbedtls_test_fail( #expr, __LINE__, __FILE__);                     \
-            goto exit;                                                  \
-        }                                                               \
+            goto exit;                                                         \
+        }                                                                      \
     } while (0)
 
 
@@ -599,7 +599,7 @@ exit:
  * If this changes, the storage format version must change.
  * See psa_get_se_driver_its_file_uid() in psa_crypto_se.c.
  */
-psa_storage_uid_t file_uid_for_location(psa_key_location_t location)
+static psa_storage_uid_t file_uid_for_location(psa_key_location_t location)
 {
     if (location > PSA_MAX_SE_LOCATION) {
         return 0;

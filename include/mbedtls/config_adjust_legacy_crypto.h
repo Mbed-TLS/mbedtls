@@ -428,7 +428,7 @@
 
 /* psa_util file features some ECDSA conversion functions, to convert between
  * legacy's ASN.1 DER format and PSA's raw one. */
-#if defined(MBEDTLS_ECDSA_C) || (defined(MBEDTLS_PSA_CRYPTO_C) && \
+#if (defined(MBEDTLS_PSA_CRYPTO_CLIENT) && \
     (defined(PSA_WANT_ALG_ECDSA) || defined(PSA_WANT_ALG_DETERMINISTIC_ECDSA)))
 #define MBEDTLS_PSA_UTIL_HAVE_ECDSA
 #endif

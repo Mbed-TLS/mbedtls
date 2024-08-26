@@ -1,5 +1,6 @@
 #include <stdint.h>
 #include "mbedtls/x509_csr.h"
+#include "common.h"
 
 int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size)
 {

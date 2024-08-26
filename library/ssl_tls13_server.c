@@ -1412,6 +1412,12 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
     ssl->session_negotiate->tls_version = MBEDTLS_SSL_VERSION_TLS1_3;
     ssl->session_negotiate->endpoint = ssl->conf->endpoint;
 
+    /* Before doing any crypto, make sure we can. */
+    ret = mbedtls_ssl_tls13_crypto_init(ssl);
+    if (ret != 0) {
+        return ret;
+    }
+
     /*
      * We are negotiating the version 1.3 of the protocol. Do what we have
      * postponed: copy of the client random bytes, copy of the legacy session
@@ -1947,11 +1953,6 @@ static int ssl_tls13_process_client_hello(mbedtls_ssl_context *ssl)
     int parse_client_hello_ret;
 
     MBEDTLS_SSL_DEBUG_MSG(2, ("=> parse client hello"));
-
-    ret = mbedtls_ssl_tls13_crypto_init(ssl);
-    if (ret != 0) {
-        return ret;
-    }
 
     MBEDTLS_SSL_PROC_CHK(mbedtls_ssl_tls13_fetch_handshake_msg(
                              ssl, MBEDTLS_SSL_HS_CLIENT_HELLO,

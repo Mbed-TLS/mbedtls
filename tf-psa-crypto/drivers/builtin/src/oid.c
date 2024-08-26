@@ -531,7 +531,7 @@ FN_OID_GET_OID_BY_ATTR1(mbedtls_oid_get_oid_by_pk_alg,
                         mbedtls_pk_type_t,
                         pk_alg)
 
-#if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
+#if defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
 /*
  * For elliptic curves that use namedCurve inside ECParams (RFC 5480)
  */
@@ -560,12 +560,12 @@ static const oid_ecp_grp_t oid_ecp_grp[] =
         MBEDTLS_ECP_DP_SECP256R1,
     },
 #endif /* PSA_WANT_ECC_SECP_R1_256 */
-#if defined(MBEDTLS_ECP_HAVE_SECP384R1)
+#if defined(PSA_WANT_ECC_SECP_R1_384)
     {
         OID_DESCRIPTOR(MBEDTLS_OID_EC_GRP_SECP384R1, "secp384r1",    "secp384r1"),
         MBEDTLS_ECP_DP_SECP384R1,
     },
-#endif /* MBEDTLS_ECP_HAVE_SECP384R1 */
+#endif /* PSA_WANT_ECC_SECP_R1_384 */
 #if defined(PSA_WANT_ECC_SECP_R1_521)
     {
         OID_DESCRIPTOR(MBEDTLS_OID_EC_GRP_SECP521R1, "secp521r1",    "secp521r1"),
@@ -662,7 +662,7 @@ FN_OID_GET_OID_BY_ATTR1(mbedtls_oid_get_oid_by_ec_grp_algid,
                         oid_ecp_grp_algid,
                         mbedtls_ecp_group_id,
                         grp_id)
-#endif /* MBEDTLS_PK_HAVE_ECC_KEYS */
+#endif /* PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY */
 
 #if defined(MBEDTLS_CIPHER_C)
 /*

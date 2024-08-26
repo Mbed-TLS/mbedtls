@@ -120,21 +120,6 @@ int mbedtls_sha256_finish(mbedtls_sha256_context *ctx,
                           unsigned char *output);
 
 /**
- * \brief          This function processes a single data block within
- *                 the ongoing SHA-256 computation. This function is for
- *                 internal use only.
- *
- * \param ctx      The SHA-256 context. This must be initialized.
- * \param data     The buffer holding one block of data. This must
- *                 be a readable buffer of length \c 64 Bytes.
- *
- * \return         \c 0 on success.
- * \return         A negative error code on failure.
- */
-int mbedtls_internal_sha256_process(mbedtls_sha256_context *ctx,
-                                    const unsigned char data[64]);
-
-/**
  * \brief          This function calculates the SHA-224 or SHA-256
  *                 checksum of a buffer.
  *

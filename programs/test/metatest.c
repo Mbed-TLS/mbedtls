@@ -76,13 +76,13 @@ void(*volatile do_nothing_with_object_but_the_compiler_does_not_know)(void *) =
 /* Test framework features */
 /****************************************************************/
 
-void meta_test_fail(const char *name)
+static void meta_test_fail(const char *name)
 {
     (void) name;
     mbedtls_test_fail("Forced test failure", __LINE__, __FILE__);
 }
 
-void meta_test_not_equal(const char *name)
+static void meta_test_not_equal(const char *name)
 {
     int left = 20;
     int right = 10;
@@ -94,7 +94,7 @@ exit:
     ;
 }
 
-void meta_test_not_le_s(const char *name)
+static void meta_test_not_le_s(const char *name)
 {
     int left = 20;
     int right = 10;
@@ -106,7 +106,7 @@ exit:
     ;
 }
 
-void meta_test_not_le_u(const char *name)
+static void meta_test_not_le_u(const char *name)
 {
     size_t left = 20;
     size_t right = 10;
@@ -122,16 +122,16 @@ exit:
 /* Platform features */
 /****************************************************************/
 
-void null_pointer_dereference(const char *name)
+static void null_pointer_dereference(const char *name)
 {
     (void) name;
     volatile char *volatile p;
     set_to_zero_but_the_compiler_does_not_know(&p, sizeof(p));
     /* Undefined behavior (read from null data pointer) */
-    mbedtls_printf("%p -> %u\n", p, (unsigned) *p);
+    mbedtls_printf("%p -> %u\n", (void *) p, (unsigned) *p);
 }
 
-void null_pointer_call(const char *name)
+static void null_pointer_call(const char *name)
 {
     (void) name;
     unsigned(*volatile p)(void);
@@ -148,7 +148,7 @@ void null_pointer_call(const char *name)
 /* Memory */
 /****************************************************************/
 
-void read_after_free(const char *name)
+static void read_after_free(const char *name)
 {
     (void) name;
     volatile char *p = calloc_but_the_compiler_does_not_know(1, 1);
@@ -158,7 +158,7 @@ void read_after_free(const char *name)
     mbedtls_printf("%u\n", (unsigned) *p);
 }
 
-void double_free(const char *name)
+static void double_free(const char *name)
 {
     (void) name;
     volatile char *p = calloc_but_the_compiler_does_not_know(1, 1);
@@ -168,7 +168,7 @@ void double_free(const char *name)
     free_but_the_compiler_does_not_know((void *) p);
 }
 
-void read_uninitialized_stack(const char *name)
+static void read_uninitialized_stack(const char *name)
 {
     (void) name;
     char buf[1];
@@ -182,7 +182,7 @@ void read_uninitialized_stack(const char *name)
     }
 }
 
-void memory_leak(const char *name)
+static void memory_leak(const char *name)
 {
     (void) name;
     volatile char *p = calloc_but_the_compiler_does_not_know(1, 1);
@@ -196,7 +196,7 @@ void memory_leak(const char *name)
  * %(start), %(offset) and %(count) are decimal integers.
  * %(direction) is either the character 'r' for read or 'w' for write.
  */
-void test_memory_poison(const char *name)
+static void test_memory_poison(const char *name)
 {
     size_t start = 0, offset = 0, count = 0;
     char direction = 'r';
@@ -254,7 +254,7 @@ void test_memory_poison(const char *name)
 /* Threading */
 /****************************************************************/
 
-void mutex_lock_not_initialized(const char *name)
+static void mutex_lock_not_initialized(const char *name)
 {
     (void) name;
 #if defined(MBEDTLS_THREADING_C)
@@ -270,7 +270,7 @@ exit:
 #endif
 }
 
-void mutex_unlock_not_initialized(const char *name)
+static void mutex_unlock_not_initialized(const char *name)
 {
     (void) name;
 #if defined(MBEDTLS_THREADING_C)
@@ -286,7 +286,7 @@ exit:
 #endif
 }
 
-void mutex_free_not_initialized(const char *name)
+static void mutex_free_not_initialized(const char *name)
 {
     (void) name;
 #if defined(MBEDTLS_THREADING_C)
@@ -300,7 +300,7 @@ void mutex_free_not_initialized(const char *name)
 #endif
 }
 
-void mutex_double_init(const char *name)
+static void mutex_double_init(const char *name)
 {
     (void) name;
 #if defined(MBEDTLS_THREADING_C)
@@ -315,7 +315,7 @@ void mutex_double_init(const char *name)
 #endif
 }
 
-void mutex_double_free(const char *name)
+static void mutex_double_free(const char *name)
 {
     (void) name;
 #if defined(MBEDTLS_THREADING_C)
@@ -330,7 +330,7 @@ void mutex_double_free(const char *name)
 #endif
 }
 
-void mutex_leak(const char *name)
+static void mutex_leak(const char *name)
 {
     (void) name;
 #if defined(MBEDTLS_THREADING_C)

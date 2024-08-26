@@ -10,7 +10,7 @@
 /*
  * Convert a string of the form "abcd" (case-insensitive) to a uint64_t.
  */
-int parse_hex_string(char *hex_string, uint64_t *result)
+static int parse_hex_string(char *hex_string, uint64_t *result)
 {
     uint8_t raw[8] = { 0 };
     size_t olen;

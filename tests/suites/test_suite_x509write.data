@@ -155,11 +155,11 @@ depends_on:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15:PSA_WANT_ALG_MD5
 x509_crt_check:"../framework/data_files/server1.key":"":"C=NL,O=PolarSSL,CN=PolarSSL Server 1":"../framework/data_files/test-ca_unenc.key":"PolarSSLTest":"C=NL,O=PolarSSL,CN=PolarSSL Test CA":"ffffffffffffffffffffffffffffffff":"20190210144406":"20290210144406":MBEDTLS_MD_SHA1:0:0:"NULL":0:0:1:-1:"../framework/data_files/server1.long_serial_FF.crt":0:0:"../framework/data_files/test-ca.crt":0
 
 Certificate write check Server5 ECDSA
-depends_on:PSA_WANT_ALG_SHA_256:MBEDTLS_PK_CAN_ECDSA_SIGN:MBEDTLS_ECDSA_DETERMINISTIC:MBEDTLS_ECP_HAVE_SECP384R1:PSA_WANT_ECC_SECP_R1_256
+depends_on:PSA_WANT_ALG_SHA_256:MBEDTLS_PK_CAN_ECDSA_SIGN:MBEDTLS_ECDSA_DETERMINISTIC:PSA_WANT_ECC_SECP_R1_384:PSA_WANT_ECC_SECP_R1_256
 x509_crt_check:"../framework/data_files/server5.key":"":"C=NL,O=PolarSSL,CN=PolarSSL Server 1":"../framework/data_files/test-ca2.key":"PolarSSLTest":"C=NL,O=PolarSSL,CN=Polarssl Test EC CA":"01":"20190210144406":"20290210144406":MBEDTLS_MD_SHA256:0:0:"NULL":0:0:1:-1:"../framework/data_files/server5.crt":0:0:"../framework/data_files/test-ca2.crt":0
 
 Certificate write check Server5 ECDSA, Opaque
-depends_on:PSA_WANT_ALG_SHA_256:MBEDTLS_PK_CAN_ECDSA_SIGN:MBEDTLS_ECDSA_DETERMINISTIC:MBEDTLS_ECP_HAVE_SECP384R1:PSA_WANT_ECC_SECP_R1_256:MBEDTLS_USE_PSA_CRYPTO
+depends_on:PSA_WANT_ALG_SHA_256:MBEDTLS_PK_CAN_ECDSA_SIGN:MBEDTLS_ECDSA_DETERMINISTIC:PSA_WANT_ECC_SECP_R1_384:PSA_WANT_ECC_SECP_R1_256:MBEDTLS_USE_PSA_CRYPTO
 x509_crt_check:"../framework/data_files/server5.key":"":"C=NL,O=PolarSSL,CN=PolarSSL Server 1":"../framework/data_files/test-ca2.key":"PolarSSLTest":"C=NL,O=PolarSSL,CN=Polarssl Test EC CA":"01":"20190210144406":"20290210144406":MBEDTLS_MD_SHA256:0:0:"NULL":0:0:1:-1:"":2:0:"../framework/data_files/test-ca2.crt":0
 
 Certificate write check Server1 SHA1, SubjectAltNames

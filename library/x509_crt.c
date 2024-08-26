@@ -48,7 +48,9 @@
 
 #if defined(MBEDTLS_HAVE_TIME)
 #if defined(_WIN32) && !defined(EFIX64) && !defined(EFI32)
+#ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
+#endif
 #include <windows.h>
 #else
 #include <time.h>
@@ -92,7 +94,7 @@ const mbedtls_x509_crt_profile mbedtls_x509_crt_profile_default =
     MBEDTLS_X509_ID_FLAG(MBEDTLS_MD_SHA384) |
     MBEDTLS_X509_ID_FLAG(MBEDTLS_MD_SHA512),
     0xFFFFFFF, /* Any PK alg    */
-#if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
+#if defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
     /* Curves at or above 128-bit security level. Note that this selection
      * should be aligned with ssl_preset_default_curves in ssl_tls.c. */
     MBEDTLS_X509_ID_FLAG(MBEDTLS_ECP_DP_SECP256R1) |
@@ -102,9 +104,9 @@ const mbedtls_x509_crt_profile mbedtls_x509_crt_profile_default =
     MBEDTLS_X509_ID_FLAG(MBEDTLS_ECP_DP_BP384R1) |
     MBEDTLS_X509_ID_FLAG(MBEDTLS_ECP_DP_BP512R1) |
     0,
-#else /* MBEDTLS_PK_HAVE_ECC_KEYS */
+#else /* PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY */
     0,
-#endif /* MBEDTLS_PK_HAVE_ECC_KEYS */
+#endif /* PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY */
     2048,
 };
 
@@ -143,13 +145,13 @@ const mbedtls_x509_crt_profile mbedtls_x509_crt_profile_suiteb =
     /* Only ECDSA */
     MBEDTLS_X509_ID_FLAG(MBEDTLS_PK_ECDSA) |
     MBEDTLS_X509_ID_FLAG(MBEDTLS_PK_ECKEY),
-#if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
+#if defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
     /* Only NIST P-256 and P-384 */
     MBEDTLS_X509_ID_FLAG(MBEDTLS_ECP_DP_SECP256R1) |
     MBEDTLS_X509_ID_FLAG(MBEDTLS_ECP_DP_SECP384R1),
-#else /* MBEDTLS_PK_HAVE_ECC_KEYS */
+#else /* PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY */
     0,
-#endif /* MBEDTLS_PK_HAVE_ECC_KEYS */
+#endif /* PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY */
     0,
 };
 
@@ -219,7 +221,7 @@ static int x509_profile_check_key(const mbedtls_x509_crt_profile *profile,
     }
 #endif /* MBEDTLS_RSA_C */
 
-#if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
+#if defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
     if (pk_alg == MBEDTLS_PK_ECDSA ||
         pk_alg == MBEDTLS_PK_ECKEY ||
         pk_alg == MBEDTLS_PK_ECKEY_DH) {
@@ -235,7 +237,7 @@ static int x509_profile_check_key(const mbedtls_x509_crt_profile *profile,
 
         return -1;
     }
-#endif /* MBEDTLS_PK_HAVE_ECC_KEYS */
+#endif /* PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY */
 
     return -1;
 }

@@ -4923,10 +4923,13 @@ int mbedtls_ssl_get_session(const mbedtls_ssl_context *ssl,
  *                 currently being processed might or might not contain further
  *                 DTLS records.
  *
- * \note           If the context is configured to allow TLS 1.3, or if
- *                 #MBEDTLS_USE_PSA_CRYPTO is enabled, the PSA crypto
+ * \note           If #MBEDTLS_USE_PSA_CRYPTO is enabled, the PSA crypto
  *                 subsystem must have been initialized by calling
  *                 psa_crypto_init() before calling this function.
+ *                 Otherwise, the handshake may call psa_crypto_init()
+ *                 if a negotiation involving TLS 1.3 takes place (this may
+ *                 be the case even if TLS 1.3 is offered but eventually
+ *                 not selected).
  */
 int mbedtls_ssl_handshake(mbedtls_ssl_context *ssl);
 

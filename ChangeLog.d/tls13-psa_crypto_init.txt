@@ -1,0 +1,9 @@
+Bugfix
+   * Fix TLS connections failing when the handshake selects TLS 1.3
+     in an application that does not call psa_crypto_init().
+     Fixes #9072.
+
+Changes
+   * A TLS handshake may now call psa_crypto_init() if TLS 1.3 is enabled.
+     This can happen even if TLS 1.3 is offered but eventually not selected
+     in the protocol version negotiation.

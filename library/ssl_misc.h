@@ -1891,6 +1891,26 @@ static inline int mbedtls_ssl_conf_is_hybrid_tls12_tls13(const mbedtls_ssl_confi
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 && MBEDTLS_SSL_PROTO_TLS1_3 */
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
+
+/** \brief Initialize the PSA crypto subsystem if necessary.
+ *
+ * Call this function before doing any cryptography in a TLS 1.3 handshake.
+ *
+ * This is necessary in Mbed TLS 3.x for backward compatibility.
+ * Up to Mbed TLS 3.5, in the default configuration, you could perform
+ * a TLS connection with default parameters without having called
+ * psa_crypto_init(), since the TLS layer only supported TLS 1.2 and
+ * did not use PSA crypto. (TLS 1.2 only uses PSA crypto if
+ * MBEDTLS_USE_PSA_CRYPTO is enabled, which is not the case in the default
+ * configuration.) Starting with Mbed TLS 3.6.0, TLS 1.3 is enabled
+ * by default, and the TLS 1.3 layer uses PSA crypto. This means that
+ * applications that are not otherwise using PSA crypto and that worked
+ * with Mbed TLS 3.5 started failing in TLS 3.6.0 if they connected to
+ * a peer that supports TLS 1.3. See
+ * https://github.com/Mbed-TLS/mbedtls/issues/9072
+ */
+int mbedtls_ssl_tls13_crypto_init(mbedtls_ssl_context *ssl);
+
 extern const uint8_t mbedtls_ssl_tls13_hello_retry_request_magic[
     MBEDTLS_SERVER_HELLO_RANDOM_LEN];
 MBEDTLS_CHECK_RETURN_CRITICAL

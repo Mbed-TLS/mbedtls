@@ -4927,7 +4927,9 @@ int mbedtls_ssl_get_session(const mbedtls_ssl_context *ssl,
  *                 subsystem must have been initialized by calling
  *                 psa_crypto_init() before calling this function.
  *                 Otherwise, the handshake may call psa_crypto_init()
- *                 if it ends up negotiating TLS 1.3.
+ *                 if a negotiation involving TLS 1.3 takes place (this may
+ *                 be the case even if TLS 1.3 is offered but eventually
+ *                 not selected).
  */
 int mbedtls_ssl_handshake(mbedtls_ssl_context *ssl);
 

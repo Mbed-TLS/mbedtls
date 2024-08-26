@@ -1233,6 +1233,23 @@
 //#define MBEDTLS_PSA_CRYPTO_SPM
 
 /**
+ * \def MBEDTLS_PSA_KEY_STORE_DYNAMIC
+ *
+ * Dynamically resize the PSA key store to accommodate any number of
+ * volatile keys (until the heap memory is exhausted).
+ *
+ * If this option is disabled, the key store has a fixed size
+ * #MBEDTLS_PSA_KEY_SLOT_COUNT for volatile keys and loaded persistent keys
+ * together.
+ *
+ * This option has no effect when #MBEDTLS_PSA_CRYPTO_C is disabled.
+ *
+ * Module:  library/psa_crypto.c
+ * Requires: MBEDTLS_PSA_CRYPTO_C
+ */
+#define MBEDTLS_PSA_KEY_STORE_DYNAMIC
+
+/**
  * Uncomment to enable p256-m. This is an alternative implementation of
  * key generation, ECDH and (randomized) ECDSA on the curve SECP256R1.
  * Compared to the default implementation:
@@ -3825,8 +3842,12 @@
 
 /** \def MBEDTLS_PSA_KEY_SLOT_COUNT
  *
- * The maximum amount of PSA keys simultaneously in memory. This counts all
+ * When #MBEDTLS_PSA_KEY_STORE_DYNAMIC is disabled,
+ * the maximum amount of PSA keys simultaneously in memory. This counts all
  * volatile keys, plus loaded persistent keys.
+ *
+ * When #MBEDTLS_PSA_KEY_STORE_DYNAMIC is enabled,
+ * the maximum number of loaded persistent keys.
  *
  * Currently, persistent keys do not need to be loaded all the time while
  * a multipart operation is in progress, only while the operation is being

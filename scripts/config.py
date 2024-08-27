@@ -26,9 +26,10 @@ class Setting:
     * active: True if name is defined, False if a #define for name is
       present in mbedtls_config.h but commented out.
     * section: the name of the section that contains this symbol.
+    * configfile: the file the settings is defined
     """
     # pylint: disable=too-few-public-methods, too-many-arguments
-    def __init__(self, active, name, value='', section=None, configfile=None):
+    def __init__(self, configfile, active, name, value='', section=None):
         self.active = active
         self.name = name
         self.value = value
@@ -54,6 +55,7 @@ class Config:
 
     def __init__(self):
         self.settings = {}
+        self.configfiles = []
 
     def __contains__(self, name):
         """True if the given symbol is active (i.e. set).
@@ -101,12 +103,12 @@ class Config:
         If name is not known, raise KeyError.
         """
         setting = self.settings[name]
-        if setting.configfile and setting != value:
+        if setting != value:
             setting.configfile.modified = True
 
         setting.value = value
 
-    def set(self, name, value=None, configfile=None):
+    def set(self, name, value=None):
         """Set name to the given value and make it active.
 
         If value is None and name is already known, don't change its value.
@@ -114,15 +116,15 @@ class Config:
         """
         if name in self.settings:
             setting = self.settings[name]
-            if setting.configfile and (setting.value != value or not setting.active):
+            if setting.value != value or not setting.active:
                 setting.configfile.modified = True
             if value is not None:
                 setting.value = value
             setting.active = True
         else:
-            self.settings[name] = Setting(True, name, value=value, configfile=configfile)
-            if configfile:
-                self.settings[name].configfile.modified = True
+            configfile = self._get_configfile(name)
+            self.settings[name] = Setting(configfile, True, name, value=value)
+            configfile.modified = True
 
     def unset(self, name):
         """Make name unset (inactive).
@@ -134,7 +136,7 @@ class Config:
 
         setting = self.settings[name]
         # Check if modifying the config file
-        if setting.configfile and setting.active:
+        if setting.active:
             setting.configfile.modified = True
 
         setting.active = False
@@ -154,7 +156,7 @@ class Config:
             setting.active = adapter(setting.name, setting.active,
                                      setting.section)
             # Check if modifying the config file
-            if setting.configfile and setting.active != is_active:
+            if setting.active != is_active:
                 setting.configfile.modified = True
 
     def change_matching(self, regexs, enable):
@@ -165,9 +167,33 @@ class Config:
         for setting in self.settings.values():
             if regex.search(setting.name):
                 # Check if modifying the config file
-                if setting.configfile and setting.active != enable:
+                if setting.active != enable:
                     setting.configfile.modified = True
                 setting.active = enable
+
+    def _get_configfile(self, name=None):
+        """Find a config for a setting name.
+
+        If more then one configfile is used this function must be overridden.
+        """
+
+        if name and name in self.settings:
+            return self.get(name).configfile
+        return self.configfiles[0]
+
+    def write(self, filename=None):
+        """Write the whole configuration to the file it was read from.
+
+        If filename is specified, write to this file instead.
+        """
+
+        for configfile in self.configfiles:
+            configfile.write(self.settings, filename)
+
+    def filename(self, name=None):
+        """Get the name of the config file."""
+
+        return self._get_configfile(name).filename
 
 def is_full_section(section):
     """Is this section affected by "config.py full" and friends?
@@ -591,32 +617,19 @@ class MbedTLSConfig(Config):
         """Read the Mbed TLS configuration file."""
 
         super().__init__()
-        self.configfile = MbedTLSConfigFile(filename)
-        self.settings.update({name: Setting(active, name, value, section, self.configfile)
+        configfile = MbedTLSConfigFile(filename)
+        self.configfiles.append(configfile)
+        self.settings.update({name: Setting(configfile, active, name, value, section)
                               for (active, name, value, section)
-                              in self.configfile.parse_file()})
+                              in configfile.parse_file()})
 
-    #pylint: disable=arguments-differ
     def set(self, name, value=None):
         """Set name to the given value and make it active."""
 
         if name not in self.settings:
-            self.configfile.templates.append((name, '', '#define ' + name + ' '))
+            self._get_configfile().templates.append((name, '', '#define ' + name + ' '))
 
         super().set(name, value)
-
-    def write(self, filename=None):
-        """Write the whole configuration to the file it was read from.
-
-        If filename is specified, write to this file instead.
-        """
-
-        self.configfile.write(self.settings, filename)
-
-    def filename(self):
-        """Get the name of the config file."""
-
-        return self.configfile.filename
 
 class CryptoConfig(Config):
     """Representation of the PSA crypto configuration.
@@ -629,12 +642,12 @@ class CryptoConfig(Config):
         """Read the PSA crypto configuration file."""
 
         super().__init__()
-        self.configfile = CryptoConfigFile(filename)
-        self.settings.update({name: Setting(active, name, value, section, self.configfile)
+        configfile = CryptoConfigFile(filename)
+        self.configfiles.append(configfile)
+        self.settings.update({name: Setting(configfile, active, name, value, section)
                               for (active, name, value, section)
-                              in self.configfile.parse_file()})
+                              in configfile.parse_file()})
 
-    #pylint: disable=arguments-differ
     def set(self, name, value='1'):
         """Set name to the given value and make it active."""
 
@@ -644,22 +657,9 @@ class CryptoConfig(Config):
             raise ValueError(f'Feature is unstable: \'{name}\'')
 
         if name not in self.settings:
-            self.configfile.templates.append((name, '', '#define ' + name + ' '))
+            self._get_configfile().templates.append((name, '', '#define ' + name + ' '))
 
         super().set(name, value)
-
-    def write(self, filename=None):
-        """Write the whole configuration to the file it was read from.
-
-        If filename is specified, write to this file instead.
-        """
-
-        self.configfile.write(self.settings, filename)
-
-    def filename(self):
-        """Get the name of the config file."""
-
-        return self.configfile.filename
 
 class CombinedConfig(Config):
     """Representation of MbedTLS and PSA crypto configuration
@@ -677,13 +677,14 @@ class CombinedConfig(Config):
                 self.crypto_configfile = config
             else:
                 raise ValueError(f'Invalid configfile: {config}')
+            self.configfiles.append(config)
 
-        self.settings.update({name: Setting(active, name, value, section, configfile)
+        self.settings.update({name: Setting(configfile, active, name, value, section)
                               for configfile in [self.mbedtls_configfile, self.crypto_configfile]
                               for (active, name, value, section) in configfile.parse_file()})
 
     _crypto_regexp = re.compile(r'$PSA_.*')
-    def _get_configfile(self, name):
+    def _get_configfile(self, name=None):
         """Find a config type for a setting name"""
 
         if name in self.settings:
@@ -693,7 +694,6 @@ class CombinedConfig(Config):
         else:
             return self.mbedtls_configfile
 
-    #pylint: disable=arguments-differ
     def set(self, name, value=None):
         """Set name to the given value and make it active."""
 
@@ -712,7 +712,7 @@ class CombinedConfig(Config):
         if name not in self.settings:
             configfile.templates.append((name, '', '#define ' + name + ' '))
 
-        super().set(name, value, configfile)
+        super().set(name, value)
 
     #pylint: disable=arguments-differ
     def write(self, mbedtls_file=None, crypto_file=None):

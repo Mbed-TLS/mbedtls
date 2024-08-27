@@ -5595,11 +5595,17 @@ static int ssl_tls13_handle_hs_message_post_handshake(mbedtls_ssl_context *ssl)
         if (ssl_tls13_is_new_session_ticket(ssl)) {
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
             MBEDTLS_SSL_DEBUG_MSG(3, ("NewSessionTicket received"));
-            ssl->keep_current_message = 1;
+            if (ssl->conf->new_session_tickets_enabled ==
+                MBEDTLS_SSL_ENABLE_NEW_SESSION_TICKETS_ENABLED) {
+                ssl->keep_current_message = 1;
 
-            mbedtls_ssl_handshake_set_state(ssl,
-                                            MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET);
-            return MBEDTLS_ERR_SSL_WANT_READ;
+                mbedtls_ssl_handshake_set_state(ssl,
+                                                MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET);
+                return MBEDTLS_ERR_SSL_WANT_READ;
+            } else {
+                MBEDTLS_SSL_DEBUG_MSG(3, ("Ignore NewSessionTicket, disabled."));
+                return 0;
+            }
 #else
             MBEDTLS_SSL_DEBUG_MSG(3, ("Ignore NewSessionTicket, not supported."));
             return 0;

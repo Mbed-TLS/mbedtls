@@ -841,6 +841,20 @@ run_test    "TLS 1.3 m->O: resumption fails, no ticket support" \
             -C "Reconnecting with saved session... ok" \
             -c "Ignore NewSessionTicket, not supported."
 
+requires_openssl_tls1_3_with_compatible_ephemeral
+requires_all_configs_enabled MBEDTLS_SSL_CLI_C \
+                             MBEDTLS_SSL_SESSION_TICKETS \
+                             MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+run_test    "TLS 1.3 m->O: resumption fails, ticket handling disabled" \
+            "$O_NEXT_SRV -msg -tls1_3 -no_resume_ephemeral -no_cache --num_tickets 1" \
+            "$P_CLI debug_level=3 new_session_tickets=0 reco_mode=1 reconnect=1" \
+            1 \
+            -c "Protocol is TLSv1.3" \
+            -C "Saving session for reuse... ok" \
+            -C "Reconnecting with saved session... ok" \
+            -c "Ignore NewSessionTicket, disabled."
+
 # No early data m->O tests for the time being. The option -early_data is needed
 # to enable early data on OpenSSL server and it is not compatible with the
 # -www option we usually use for testing with OpenSSL server (see
@@ -900,6 +914,20 @@ run_test    "TLS 1.3 m->G: resumption fails, no ticket support" \
             -C "Saving session for reuse... ok" \
             -C "Reconnecting with saved session... ok" \
             -c "Ignore NewSessionTicket, not supported."
+
+requires_gnutls_tls1_3
+requires_all_configs_enabled MBEDTLS_SSL_CLI_C \
+                             MBEDTLS_SSL_SESSION_TICKETS \
+                             MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+run_test    "TLS 1.3 m->G: resumption fails, ticket handling disabled" \
+            "$G_NEXT_SRV -d 5 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3 --disable-client-cert" \
+            "$P_CLI debug_level=3 new_session_tickets=0 reco_mode=1 reconnect=1" \
+            1 \
+            -c "Protocol is TLSv1.3" \
+            -C "Saving session for reuse... ok" \
+            -C "Reconnecting with saved session... ok" \
+            -c "Ignore NewSessionTicket, disabled."
 
 requires_gnutls_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_CLI_C \

@@ -1231,7 +1231,7 @@ usage:
                 goto usage;
             }
         } else if (strcmp(p, "new_session_tickets") == 0) {
-            opt.tickets = atoi(q);
+            opt.new_session_tickets = atoi(q);
             if (opt.new_session_tickets < 0) {
                 goto usage;
             }

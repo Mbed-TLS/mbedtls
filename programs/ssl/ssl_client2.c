@@ -82,6 +82,7 @@ int main(void)
 #define DFL_CID_VALUE_RENEGO    NULL
 #define DFL_RECONNECT_HARD      0
 #define DFL_TICKETS             MBEDTLS_SSL_SESSION_TICKETS_ENABLED
+#define DFL_NEW_SESSION_TICKETS MBEDTLS_SSL_ENABLE_NEW_SESSION_TICKETS_ENABLED
 #define DFL_ALPN_STRING         NULL
 #define DFL_GROUPS              NULL
 #define DFL_SIG_ALGS            NULL
@@ -198,7 +199,8 @@ int main(void)
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
 #define USAGE_TICKETS                                       \
-    "    tickets=%%d          default: 1 (enabled)\n"
+    "    tickets=%%d              default: 1 (enabled)\n"    \
+    "    new_session_tickets=%%d  default: 1 (enabled)\n"
 #else
 #define USAGE_TICKETS ""
 #endif /* MBEDTLS_SSL_SESSION_TICKETS */
@@ -514,7 +516,8 @@ struct options {
     int reco_delay;             /* delay in seconds before resuming session */
     int reco_mode;              /* how to keep the session around           */
     int reconnect_hard;         /* unexpectedly reconnect from the same port */
-    int tickets;                /* enable / disable session tickets         */
+    int tickets;                /* enable / disable session tickets (TLS 1.2) */
+    int new_session_tickets;    /* enable / disable new session tickets (TLS 1.3) */
     const char *groups;         /* list of supported groups                 */
     const char *sig_algs;       /* supported TLS 1.3 signature algorithms   */
     const char *alpn_string;    /* ALPN supported protocols                 */
@@ -969,6 +972,7 @@ int main(int argc, char *argv[])
     opt.reco_mode           = DFL_RECO_MODE;
     opt.reconnect_hard      = DFL_RECONNECT_HARD;
     opt.tickets             = DFL_TICKETS;
+    opt.new_session_tickets = DFL_NEW_SESSION_TICKETS;
     opt.alpn_string         = DFL_ALPN_STRING;
     opt.groups              = DFL_GROUPS;
     opt.sig_algs            = DFL_SIG_ALGS;
@@ -1224,6 +1228,11 @@ usage:
         } else if (strcmp(p, "tickets") == 0) {
             opt.tickets = atoi(q);
             if (opt.tickets < 0) {
+                goto usage;
+            }
+        } else if (strcmp(p, "new_session_tickets") == 0) {
+            opt.tickets = atoi(q);
+            if (opt.new_session_tickets < 0) {
                 goto usage;
             }
         } else if (strcmp(p, "alpn") == 0) {
@@ -1936,6 +1945,7 @@ usage:
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
     mbedtls_ssl_conf_session_tickets(&conf, opt.tickets);
+    mbedtls_ssl_conf_enable_new_session_tickets(&conf, opt.new_session_tickets);
 #endif
 
     if (opt.force_ciphersuite[0] != DFL_FORCE_CIPHER) {

@@ -2543,6 +2543,9 @@ int mbedtls_test_get_tls13_ticket(
                                          server_options, NULL, NULL, NULL);
     TEST_EQUAL(ret, 0);
 
+    mbedtls_ssl_conf_enable_new_session_tickets(
+        &client_ep.conf, MBEDTLS_SSL_ENABLE_NEW_SESSION_TICKETS_ENABLED);
+
     mbedtls_ssl_conf_session_tickets_cb(&server_ep.conf,
                                         mbedtls_test_ticket_write,
                                         mbedtls_test_ticket_parse,

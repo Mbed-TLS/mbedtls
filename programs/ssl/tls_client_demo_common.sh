@@ -59,7 +59,8 @@ run_one_connection () {
     kill "$server_pid" 2>/dev/null || true # The server may exit first
     # Check and display the presence of a few connection parameters
     grep '^ *client_version=' "$server_log"
-    grep '^ *KeyExchangeAlgorithm=' "$server_log"
+    grep '^ *KeyExchangeAlgorithm=' "$server_log" || # TLS 1.2
+        grep -A1 '^ *extension_type=key_share' "$server_log" # TLS 1.3
     grep '^ *cipher_suite ' "$server_log"
     grep 'ApplicationData' "$server_log"
     if [ "$ret" -ne 0 ]; then

@@ -681,7 +681,7 @@ static int ecdsa_verify_wrap(mbedtls_pk_context *pk, mbedtls_md_type_t md_alg,
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 #endif /* MBEDTLS_PK_CAN_ECDSA_VERIFY */
 
-#if defined(MBEDTLS_PK_CAN_ECDSA_SIGN)
+#if defined(PSA_HAVE_ALG_ECDSA_SIGN)
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 /* Common helper for ECDSA sign using PSA functions.
  * Instead of extracting key's properties in order to check which kind of ECDSA
@@ -811,7 +811,7 @@ static int ecdsa_sign_wrap(mbedtls_pk_context *pk, mbedtls_md_type_t md_alg,
                                          f_rng, p_rng);
 }
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
-#endif /* MBEDTLS_PK_CAN_ECDSA_SIGN */
+#endif /* PSA_HAVE_ALG_ECDSA_SIGN */
 
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
 /* Forward declarations */
@@ -1114,7 +1114,7 @@ const mbedtls_pk_info_t mbedtls_eckey_info = {
 #else /* MBEDTLS_PK_CAN_ECDSA_VERIFY */
     .verify_func = NULL,
 #endif /* MBEDTLS_PK_CAN_ECDSA_VERIFY */
-#if defined(MBEDTLS_PK_CAN_ECDSA_SIGN)
+#if defined(PSA_HAVE_ALG_ECDSA_SIGN)
     .sign_func = ecdsa_sign_wrap,   /* Compatible key structures */
 #else /* MBEDTLS_PK_CAN_ECDSA_VERIFY */
     .sign_func = NULL,
@@ -1239,11 +1239,11 @@ const mbedtls_pk_info_t mbedtls_ecdsa_info = {
 #else /* MBEDTLS_PK_CAN_ECDSA_VERIFY */
     .verify_func = NULL,
 #endif /* MBEDTLS_PK_CAN_ECDSA_VERIFY */
-#if defined(MBEDTLS_PK_CAN_ECDSA_SIGN)
+#if defined(PSA_HAVE_ALG_ECDSA_SIGN)
     .sign_func = ecdsa_sign_wrap,   /* Compatible key structures */
-#else /* MBEDTLS_PK_CAN_ECDSA_SIGN */
+#else /* PSA_HAVE_ALG_ECDSA_SIGN */
     .sign_func = NULL,
-#endif /* MBEDTLS_PK_CAN_ECDSA_SIGN */
+#endif /* PSA_HAVE_ALG_ECDSA_SIGN */
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
     .verify_rs_func = ecdsa_verify_rs_wrap,
     .sign_rs_func = ecdsa_sign_rs_wrap,
@@ -1431,11 +1431,11 @@ const mbedtls_pk_info_t mbedtls_ecdsa_opaque_info = {
 #else /* MBEDTLS_PK_CAN_ECDSA_VERIFY */
     .verify_func = NULL,
 #endif /* MBEDTLS_PK_CAN_ECDSA_VERIFY */
-#if defined(MBEDTLS_PK_CAN_ECDSA_SIGN)
+#if defined(PSA_HAVE_ALG_ECDSA_SIGN)
     .sign_func = ecdsa_opaque_sign_wrap,
-#else /* MBEDTLS_PK_CAN_ECDSA_SIGN */
+#else /* PSA_HAVE_ALG_ECDSA_SIGN */
     .sign_func = NULL,
-#endif /* MBEDTLS_PK_CAN_ECDSA_SIGN */
+#endif /* PSA_HAVE_ALG_ECDSA_SIGN */
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
     .verify_rs_func = NULL,
     .sign_rs_func = NULL,

@@ -84,8 +84,13 @@
 #define MBEDTLS_ERR_SSL_BAD_CERTIFICATE                   -0x7A00
 /* Error space gap */
 /**
- * Received NewSessionTicket Post Handshake Message.
- * This error code is experimental and may be changed or removed without notice.
+ * A TLS 1.3 NewSessionTicket message has been received.
+ * This error code can be returned only on client side if and only if handling
+ * of TLS 1.3 NewSessionTicket messages has been enabled through the
+ * mbedtls_ssl_conf_enable_new_session_tickets() API. This error
+ * code can then be returned by mbedtls_ssl_handshake(),
+ * mbedtls_ssl_handshake_step(), mbedtls_ssl_read(), mbedtls_ssl_write() and
+ * mbedtls_ssl_write_early_data().
  */
 #define MBEDTLS_ERR_SSL_RECEIVED_NEW_SESSION_TICKET       -0x7B00
 /** Not possible to read early data */
@@ -4910,6 +4915,13 @@ int mbedtls_ssl_get_session(const mbedtls_ssl_context *ssl,
  * \return         #MBEDTLS_ERR_SSL_HELLO_VERIFY_REQUIRED if DTLS is in use
  *                 and the client did not demonstrate reachability yet - in
  *                 this case you must stop using the context (see below).
+ * \return         #MBEDTLS_ERR_SSL_RECEIVED_NEW_SESSION_TICKET if a TLS 1.3
+ *                 NewSessionTicket message has been received. This is client
+ *                 specific and may occur only if the handling of
+ *                 NewSessionTicket message has been enabled (see
+ *                 mbedtls_ssl_conf_enable_new_session_tickets() documentation).
+ *                 You may call mbedtls_ssl_get_session() to retrieve the
+ *                 ticket data.
  * \return         #MBEDTLS_ERR_SSL_RECEIVED_EARLY_DATA if early data, as
  *                 defined in RFC 8446 (TLS 1.3 specification), has been
  *                 received as part of the handshake. This is server specific
@@ -4926,6 +4938,7 @@ int mbedtls_ssl_get_session(const mbedtls_ssl_context *ssl,
  *                 #MBEDTLS_ERR_SSL_WANT_WRITE,
  *                 #MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS or
  *                 #MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS or
+ *                 #MBEDTLS_ERR_SSL_RECEIVED_NEW_SESSION_TICKET or
  *                 #MBEDTLS_ERR_SSL_RECEIVED_EARLY_DATA,
  *                 you must stop using the SSL context for reading or writing,
  *                 and either free it or call \c mbedtls_ssl_session_reset()
@@ -5000,6 +5013,7 @@ static inline int mbedtls_ssl_is_handshake_over(mbedtls_ssl_context *ssl)
  *                 #MBEDTLS_ERR_SSL_WANT_READ, #MBEDTLS_ERR_SSL_WANT_WRITE,
  *                 #MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS,
  *                 #MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS or
+ *                 #MBEDTLS_ERR_SSL_RECEIVED_NEW_SESSION_TICKET or
  *                 #MBEDTLS_ERR_SSL_RECEIVED_EARLY_DATA, you must stop using
  *                 the SSL context for reading or writing, and either free it
  *                 or call \c mbedtls_ssl_session_reset() on it before
@@ -5068,6 +5082,13 @@ int mbedtls_ssl_renegotiate(mbedtls_ssl_context *ssl);
  * \return         #MBEDTLS_ERR_SSL_CLIENT_RECONNECT if we're at the server
  *                 side of a DTLS connection and the client is initiating a
  *                 new connection using the same source port. See below.
+ * \return         #MBEDTLS_ERR_SSL_RECEIVED_NEW_SESSION_TICKET if a TLS 1.3
+ *                 NewSessionTicket message has been received. This is client
+ *                 specific and may occur only if the handling of
+ *                 NewSessionTicket message has been enabled (see
+ *                 mbedtls_ssl_conf_enable_new_session_tickets() documentation).
+ *                 You may call mbedtls_ssl_get_session() to retrieve the
+ *                 ticket data.
  * \return         #MBEDTLS_ERR_SSL_RECEIVED_EARLY_DATA if early data, as
  *                 defined in RFC 8446 (TLS 1.3 specification), has been
  *                 received as part of the handshake. This is server specific
@@ -5085,6 +5106,7 @@ int mbedtls_ssl_renegotiate(mbedtls_ssl_context *ssl);
  *                 #MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS,
  *                 #MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS,
  *                 #MBEDTLS_ERR_SSL_CLIENT_RECONNECT or
+ *                 #MBEDTLS_ERR_SSL_RECEIVED_NEW_SESSION_TICKET or
  *                 #MBEDTLS_ERR_SSL_RECEIVED_EARLY_DATA,
  *                 you must stop using the SSL context for reading or writing,
  *                 and either free it or call \c mbedtls_ssl_session_reset()
@@ -5150,6 +5172,13 @@ int mbedtls_ssl_read(mbedtls_ssl_context *ssl, unsigned char *buf, size_t len);
  *                 operation is in progress (see mbedtls_ecp_set_max_ops()) -
  *                 in this case you must call this function again to complete
  *                 the handshake when you're done attending other tasks.
+ * \return         #MBEDTLS_ERR_SSL_RECEIVED_NEW_SESSION_TICKET if a TLS 1.3
+ *                 NewSessionTicket message has been received. This is client
+ *                 specific and may occur only if the handling of
+ *                 NewSessionTicket message has been enabled (see
+ *                 mbedtls_ssl_conf_enable_new_session_tickets() documentation).
+ *                 You may call mbedtls_ssl_get_session() to retrieve the
+ *                 ticket data.
  * \return         #MBEDTLS_ERR_SSL_RECEIVED_EARLY_DATA if early data, as
  *                 defined in RFC 8446 (TLS 1.3 specification), has been
  *                 received as part of the handshake. This is server specific
@@ -5166,6 +5195,7 @@ int mbedtls_ssl_read(mbedtls_ssl_context *ssl, unsigned char *buf, size_t len);
  *                 #MBEDTLS_ERR_SSL_WANT_WRITE,
  *                 #MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS,
  *                 #MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS or
+ *                 #MBEDTLS_ERR_SSL_RECEIVED_NEW_SESSION_TICKET or
  *                 #MBEDTLS_ERR_SSL_RECEIVED_EARLY_DATA,
  *                 you must stop using the SSL context for reading or writing,
  *                 and either free it or call \c mbedtls_ssl_session_reset()

@@ -3013,7 +3013,14 @@ void mbedtls_ssl_conf_session_tickets(mbedtls_ssl_config *conf, int use_tickets)
 {
     conf->session_tickets = use_tickets;
 }
-#endif
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
+void mbedtls_ssl_conf_enable_new_session_tickets(mbedtls_ssl_config *conf,
+                                                 int new_session_tickets_enabled)
+{
+    conf->new_session_tickets_enabled = new_session_tickets_enabled;
+}
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
+#endif /* MBEDTLS_SSL_CLI_C */
 
 #if defined(MBEDTLS_SSL_SRV_C)
 
@@ -5879,6 +5886,9 @@ int mbedtls_ssl_config_defaults(mbedtls_ssl_config *conf,
         conf->authmode = MBEDTLS_SSL_VERIFY_REQUIRED;
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
         conf->session_tickets = MBEDTLS_SSL_SESSION_TICKETS_ENABLED;
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
+        conf->new_session_tickets_enabled = MBEDTLS_SSL_ENABLE_NEW_SESSION_TICKETS_DISABLED;
+#endif
 #endif
     }
 #endif

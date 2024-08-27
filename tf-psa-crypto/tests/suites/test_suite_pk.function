@@ -1194,7 +1194,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_PK_CAN_ECDSA_VERIFY */
+/* BEGIN_CASE depends_on:PSA_HAVE_ALG_ECDSA_VERIFY */
 void pk_ec_test_vec(int type, int id, data_t *key, data_t *hash,
                     data_t *sig, int ret)
 {

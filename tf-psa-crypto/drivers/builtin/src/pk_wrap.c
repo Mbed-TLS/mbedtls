@@ -526,7 +526,7 @@ static size_t eckey_get_bitlen(mbedtls_pk_context *pk)
 #endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
 }
 
-#if defined(MBEDTLS_PK_CAN_ECDSA_VERIFY)
+#if defined(PSA_HAVE_ALG_ECDSA_VERIFY)
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 /* Common helper for ECDSA verify using PSA functions. */
 static int ecdsa_verify_psa(unsigned char *key, size_t key_len,
@@ -679,7 +679,7 @@ static int ecdsa_verify_wrap(mbedtls_pk_context *pk, mbedtls_md_type_t md_alg,
     return ret;
 }
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
-#endif /* MBEDTLS_PK_CAN_ECDSA_VERIFY */
+#endif /* PSA_HAVE_ALG_ECDSA_VERIFY */
 
 #if defined(PSA_HAVE_ALG_ECDSA_SIGN)
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
@@ -1109,16 +1109,16 @@ const mbedtls_pk_info_t mbedtls_eckey_info = {
     .name = "EC",
     .get_bitlen = eckey_get_bitlen,
     .can_do = eckey_can_do,
-#if defined(MBEDTLS_PK_CAN_ECDSA_VERIFY)
+#if defined(PSA_HAVE_ALG_ECDSA_VERIFY)
     .verify_func = ecdsa_verify_wrap,   /* Compatible key structures */
-#else /* MBEDTLS_PK_CAN_ECDSA_VERIFY */
+#else /* PSA_HAVE_ALG_ECDSA_VERIFY */
     .verify_func = NULL,
-#endif /* MBEDTLS_PK_CAN_ECDSA_VERIFY */
+#endif /* PSA_HAVE_ALG_ECDSA_VERIFY */
 #if defined(PSA_HAVE_ALG_ECDSA_SIGN)
     .sign_func = ecdsa_sign_wrap,   /* Compatible key structures */
-#else /* MBEDTLS_PK_CAN_ECDSA_VERIFY */
+#else /* PSA_HAVE_ALG_ECDSA_VERIFY */
     .sign_func = NULL,
-#endif /* MBEDTLS_PK_CAN_ECDSA_VERIFY */
+#endif /* PSA_HAVE_ALG_ECDSA_VERIFY */
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
     .verify_rs_func = eckey_verify_rs_wrap,
     .sign_rs_func = eckey_sign_rs_wrap,
@@ -1234,11 +1234,11 @@ const mbedtls_pk_info_t mbedtls_ecdsa_info = {
     .name = "ECDSA",
     .get_bitlen = eckey_get_bitlen,     /* Compatible key structures */
     .can_do = ecdsa_can_do,
-#if defined(MBEDTLS_PK_CAN_ECDSA_VERIFY)
+#if defined(PSA_HAVE_ALG_ECDSA_VERIFY)
     .verify_func = ecdsa_verify_wrap,   /* Compatible key structures */
-#else /* MBEDTLS_PK_CAN_ECDSA_VERIFY */
+#else /* PSA_HAVE_ALG_ECDSA_VERIFY */
     .verify_func = NULL,
-#endif /* MBEDTLS_PK_CAN_ECDSA_VERIFY */
+#endif /* PSA_HAVE_ALG_ECDSA_VERIFY */
 #if defined(PSA_HAVE_ALG_ECDSA_SIGN)
     .sign_func = ecdsa_sign_wrap,   /* Compatible key structures */
 #else /* PSA_HAVE_ALG_ECDSA_SIGN */
@@ -1426,11 +1426,11 @@ const mbedtls_pk_info_t mbedtls_ecdsa_opaque_info = {
     .name = "Opaque",
     .get_bitlen = opaque_get_bitlen,
     .can_do = ecdsa_opaque_can_do,
-#if defined(MBEDTLS_PK_CAN_ECDSA_VERIFY)
+#if defined(PSA_HAVE_ALG_ECDSA_VERIFY)
     .verify_func = ecdsa_opaque_verify_wrap,
-#else /* MBEDTLS_PK_CAN_ECDSA_VERIFY */
+#else /* PSA_HAVE_ALG_ECDSA_VERIFY */
     .verify_func = NULL,
-#endif /* MBEDTLS_PK_CAN_ECDSA_VERIFY */
+#endif /* PSA_HAVE_ALG_ECDSA_VERIFY */
 #if defined(PSA_HAVE_ALG_ECDSA_SIGN)
     .sign_func = ecdsa_opaque_sign_wrap,
 #else /* PSA_HAVE_ALG_ECDSA_SIGN */

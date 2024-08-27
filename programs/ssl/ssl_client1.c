@@ -240,6 +240,9 @@ int main(void)
         }
 
         if (ret == MBEDTLS_ERR_SSL_PEER_CLOSE_NOTIFY) {
+            mbedtls_printf("The return value %d from mbedtls_ssl_read() means that the server\n"
+                           "closed the connection first. We're ok with that.\n",
+                           MBEDTLS_ERR_SSL_PEER_CLOSE_NOTIFY);
             break;
         }
 
@@ -259,7 +262,9 @@ int main(void)
 
     mbedtls_ssl_close_notify(&ssl);
 
-    exit_code = MBEDTLS_EXIT_SUCCESS;
+    if (ret == 0 || ret == MBEDTLS_ERR_SSL_PEER_CLOSE_NOTIFY) {
+        exit_code = MBEDTLS_EXIT_SUCCESS;
+    }
 
 exit:
 

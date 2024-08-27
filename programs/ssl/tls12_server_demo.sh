@@ -20,6 +20,11 @@ fi
 
 run_one_connection -tls1_2
 
+if config_has MBEDTLS_THREADING_PTHREAD; then
+    program="${0%/*}"/ssl_pthread_server
+    run_one_connection -tls1_2
+fi
+
 if config_has MBEDTLS_SSL_PROTO_DTLS; then
     program="${0%/*}"/dtls_server
     protocol='DTLS 1.2'

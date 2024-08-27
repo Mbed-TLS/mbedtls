@@ -12,4 +12,9 @@ depends_on MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMER
 
 run_one_connection -tls1_3
 
+if config_has MBEDTLS_THREADING_PTHREAD; then
+    program="${0%/*}"/ssl_pthread_server
+    run_one_connection -tls1_3
+fi
+
 cleanup

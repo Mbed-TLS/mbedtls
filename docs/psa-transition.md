@@ -617,7 +617,7 @@ Applications currently using `mbedtls_pkcs5_pbkdf2_hmac` or `mbedtls_pkcs5_pbkdf
     1. [`PSA_KEY_DERIVATION_INPUT_SALT`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__derivation/#group__derivation_1gab62757fb125243562c3947a752470d4a) for the salt used during the extraction step. You may repeat this step to pass the salt in pieces (for example a salt and a pepper).
     2. [`PSA_KEY_DERIVATION_INPUT_SECRET`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__derivation/#group__derivation_1ga0ddfbe764baba995c402b1b0ef59392e) for the password.
 5. Call [`psa_key_derivation_output_bytes`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__key__derivation/#group__key__derivation_1ga06b7eb34a2fa88965f68e3d023fa12b9) to obtain the output of the derivation. You may call this function more than once to retrieve the output in successive chunks.
-  Use [`psa_key_derivation_output_key`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__key__derivation/#group__key__derivation_1gada7a6e17222ea9e7a6be6864a00316e1) instead if you want to use a chunk as a PSA key.  
+  Use [`psa_key_derivation_output_key`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__key__derivation/#group__key__derivation_1gada7a6e17222ea9e7a6be6864a00316e1) instead if you want to use a chunk as a PSA key.
   If you want to verify the output against an expected value (for authentication, rather than to derive key material), call [`psa_key_derivation_verify_bytes`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__key__derivation/#group__key__derivation_1gaf01520beb7ba932143ffe733b0795b08) or [`psa_key_derivation_verify_key`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__key__derivation/#group__key__derivation_1gac041714e34a94742e8ee006ac7dfea5a) instead of `psa_key_derivation_output_bytes`. (Note that the `verify` functions are not yet present in the 3.5 release of Mbed TLS. They are expected to be released in version 3.6.0.)
 6. Call [`psa_key_derivation_abort`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__key__derivation/#group__key__derivation_1ga90fdd2716124d0bd258826184824675f) to free the resources associated with the key derivation object.
 
@@ -939,7 +939,7 @@ This is also the equivalent of the type-specific functions `mbedtls_rsa_pkcs1_si
 
 The equivalent of `mbedtls_pk_verify` or `mbedtls_pk_verify_ext` to verify an already calculated hash is [`psa_verify_hash`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__asymmetric/#group__asymmetric_1gae2ffbf01e5266391aff22b101a49f5f5).
 The key must be a public key (or a key pair) allowing the usage `PSA_KEY_USAGE_VERIFY_HASH` (see “[Public-key cryptography policies](#public-key-cryptography-policies)”).
-This is also the equivalent of the type-specific functions `mbedtls_rsa_pkcs1_verify`, `mbedtls_rsa_rsassa_pkcs1_v15_verify`, `mbedtls_rsa_rsassa_pss_verify`, `mbedtls_rsa_rsassa_pss_verify_ext`, `mbedtls_ecdsa_verify` amd `mbedtls_ecdsa_read_signature`. Note that the PSA API uses the raw format for ECDSA signatures, not the ASN.1 format; see “[ECDSA signature](#ecdsa-signature)” for more details.
+This is also the equivalent of the type-specific functions `mbedtls_rsa_pkcs1_verify`, `mbedtls_rsa_rsassa_pkcs1_v15_verify`, `mbedtls_rsa_rsassa_pss_verify`, `mbedtls_rsa_rsassa_pss_verify_ext`, `mbedtls_ecdsa_verify` and `mbedtls_ecdsa_read_signature`. Note that the PSA API uses the raw format for ECDSA signatures, not the ASN.1 format; see “[ECDSA signature](#ecdsa-signature)” for more details.
 
 Generally, `psa_sign_hash` and `psa_verify_hash` require the input to have the correct length for the hash (this has historically not always been enforced in the corresponding legacy APIs).
 
@@ -1140,7 +1140,7 @@ The corresponding workflow with the PSA API is as follows:
 2. Prepare an attribute structure as described in “[Diffie-Hellman key pair management](#diffie-hellman-key-pair-management)”, in particular selecting the curve with `psa_set_key_type`.
 3. Call [`psa_generate_key`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__random/#group__random_1ga1985eae417dfbccedf50d5fff54ea8c5) on `attributes` and `our_key` (output) to generate a key pair, then [`psa_export_public_key`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__import__export/#group__import__export_1gaf22ae73312217aaede2ea02cdebb6062) on `our_key` and `our_pub` (output) to obtain our public key.
 4. Send `our_pub` to the peer. Retrieve the peer's public key and import it into `their_pub`. These two actions may be performed in either order.
-5. Call [`psa_raw_key_agreement`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__key__derivation/#group__key__derivation_1ga90fdd2716124d0bd258826184824675f) on `our_key`, `their_pub` and `shared_secret` (output).  
+5. Call [`psa_raw_key_agreement`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__key__derivation/#group__key__derivation_1ga90fdd2716124d0bd258826184824675f) on `our_key`, `their_pub` and `shared_secret` (output).
    Alternatively, call `psa_key_derivation_key_agreement` to use the shared secret directly in a key derivation operation (see “[Performing a key agreement](#performing-a-key-agreement)”).
 6. Call [`psa_destroy_key`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__key__management/#group__key__management_1ga5f52644312291335682fbc0292c43cd2) on `key_id`, and free the memory buffers.
 
@@ -1167,7 +1167,7 @@ The corresponding workflow with the PSA API is as follows:
     3. Format a ServerKeyExchange message containing the curve/group selection and our public key.
 2. Send the ServerKeyExchange message to the peer.
 3. Retrieve the peer's public key.
-4. Call [`psa_raw_key_agreement`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__key__derivation/#group__key__derivation_1ga90fdd2716124d0bd258826184824675f) on `our_key`, `their_pub` and `shared_secret` (output).  
+4. Call [`psa_raw_key_agreement`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__key__derivation/#group__key__derivation_1ga90fdd2716124d0bd258826184824675f) on `our_key`, `their_pub` and `shared_secret` (output).
    Alternatively, call `psa_key_derivation_key_agreement` to use the shared secret directly in a key derivation operation (see “[Performing a key agreement](#performing-a-key-agreement)”).
 5. Call [`psa_destroy_key`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__key__management/#group__key__management_1ga5f52644312291335682fbc0292c43cd2) to free the resources associated with our key pair.
 
@@ -1190,7 +1190,7 @@ The corresponding workflow with the PSA API is as follows:
 2. Generate an ECDH or DHM key pair with `psa_generate_key` as described in “[Diffie-Hellman key pair management](#diffie-hellman-key-pair-management)”.
    Call [`psa_export_public_key`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__import__export/#group__import__export_1gaf22ae73312217aaede2ea02cdebb6062) to obtain our public key.
 3. Send our public key to the peer.
-4. Call [`psa_raw_key_agreement`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__key__derivation/#group__key__derivation_1ga90fdd2716124d0bd258826184824675f) on `our_key`, `their_pub` and `shared_secret` (output).  
+4. Call [`psa_raw_key_agreement`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__key__derivation/#group__key__derivation_1ga90fdd2716124d0bd258826184824675f) on `our_key`, `their_pub` and `shared_secret` (output).
    Alternatively, call `psa_key_derivation_key_agreement` to use the shared secret directly in a key derivation operation (see “[Performing a key agreement](#performing-a-key-agreement)”).
 5. Call [`psa_destroy_key`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__key__management/#group__key__management_1ga5f52644312291335682fbc0292c43cd2) to free the resources associated with our key pair.
 

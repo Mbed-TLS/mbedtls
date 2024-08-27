@@ -90,7 +90,10 @@
  * mbedtls_ssl_conf_enable_new_session_tickets() API. This error
  * code can then be returned by mbedtls_ssl_handshake(),
  * mbedtls_ssl_handshake_step(), mbedtls_ssl_read(), mbedtls_ssl_write() and
- * mbedtls_ssl_write_early_data().
+ * mbedtls_ssl_write_early_data(). A TLS 1.3 NewSessionTicket message has been
+ * received and parsed successfully by the client. Ticket data is available
+ * in the SSL context and may be retrieved through the
+ * mbedtls_ssl_get_session() API.
  */
 #define MBEDTLS_ERR_SSL_RECEIVED_NEW_SESSION_TICKET       -0x7B00
 /** Not possible to read early data */
@@ -4916,12 +4919,9 @@ int mbedtls_ssl_get_session(const mbedtls_ssl_context *ssl,
  *                 and the client did not demonstrate reachability yet - in
  *                 this case you must stop using the context (see below).
  * \return         #MBEDTLS_ERR_SSL_RECEIVED_NEW_SESSION_TICKET if a TLS 1.3
- *                 NewSessionTicket message has been received. This is client
- *                 specific and may occur only if the handling of
- *                 NewSessionTicket message has been enabled (see
- *                 mbedtls_ssl_conf_enable_new_session_tickets() documentation).
- *                 You may call mbedtls_ssl_get_session() to retrieve the
- *                 ticket data.
+ *                 NewSessionTicket message has been received. See
+ *                 #MBEDTLS_ERR_SSL_RECEIVED_NEW_SESSION_TICKET documentation
+ *                 for more information.
  * \return         #MBEDTLS_ERR_SSL_RECEIVED_EARLY_DATA if early data, as
  *                 defined in RFC 8446 (TLS 1.3 specification), has been
  *                 received as part of the handshake. This is server specific
@@ -5083,12 +5083,9 @@ int mbedtls_ssl_renegotiate(mbedtls_ssl_context *ssl);
  *                 side of a DTLS connection and the client is initiating a
  *                 new connection using the same source port. See below.
  * \return         #MBEDTLS_ERR_SSL_RECEIVED_NEW_SESSION_TICKET if a TLS 1.3
- *                 NewSessionTicket message has been received. This is client
- *                 specific and may occur only if the handling of
- *                 NewSessionTicket message has been enabled (see
- *                 mbedtls_ssl_conf_enable_new_session_tickets() documentation).
- *                 You may call mbedtls_ssl_get_session() to retrieve the
- *                 ticket data.
+ *                 NewSessionTicket message has been received. See
+ *                 #MBEDTLS_ERR_SSL_RECEIVED_NEW_SESSION_TICKET documentation
+ *                 for more information.
  * \return         #MBEDTLS_ERR_SSL_RECEIVED_EARLY_DATA if early data, as
  *                 defined in RFC 8446 (TLS 1.3 specification), has been
  *                 received as part of the handshake. This is server specific
@@ -5173,12 +5170,9 @@ int mbedtls_ssl_read(mbedtls_ssl_context *ssl, unsigned char *buf, size_t len);
  *                 in this case you must call this function again to complete
  *                 the handshake when you're done attending other tasks.
  * \return         #MBEDTLS_ERR_SSL_RECEIVED_NEW_SESSION_TICKET if a TLS 1.3
- *                 NewSessionTicket message has been received. This is client
- *                 specific and may occur only if the handling of
- *                 NewSessionTicket message has been enabled (see
- *                 mbedtls_ssl_conf_enable_new_session_tickets() documentation).
- *                 You may call mbedtls_ssl_get_session() to retrieve the
- *                 ticket data.
+ *                 NewSessionTicket message has been received. See
+ *                 #MBEDTLS_ERR_SSL_RECEIVED_NEW_SESSION_TICKET documentation
+ *                 for more information.
  * \return         #MBEDTLS_ERR_SSL_RECEIVED_EARLY_DATA if early data, as
  *                 defined in RFC 8446 (TLS 1.3 specification), has been
  *                 received as part of the handshake. This is server specific

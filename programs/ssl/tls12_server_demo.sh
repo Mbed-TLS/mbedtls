@@ -20,4 +20,10 @@ fi
 
 run_one_connection -tls1_2
 
+if config_has MBEDTLS_SSL_PROTO_DTLS; then
+    program="${0%/*}"/dtls_server
+    protocol='DTLS 1.2'
+    run_one_connection -dtls1_2
+fi
+
 cleanup

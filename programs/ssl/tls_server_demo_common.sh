@@ -40,6 +40,7 @@ run_one_connection () {
     set openssl s_client -connect localhost:4433 "$@"
     printf '\n+ %s\n' "$*"
     echo "This is some content." | "$@" >"$client_log" 2>&1
+    echo
 
     ret=0
     kill "$server_pid" || wait "$server_pid" || ret=$?

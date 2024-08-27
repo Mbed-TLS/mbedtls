@@ -10,6 +10,6 @@ protocol='TLS 1.3'
 
 depends_on MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 
-run_one_connection -www -tls1_3
+run_one_connection -tls1_3
 
 cleanup

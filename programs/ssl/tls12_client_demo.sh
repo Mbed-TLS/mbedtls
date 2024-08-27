@@ -18,6 +18,6 @@ if ! { config_has MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED ||
     depends_on 'MBEDTLS_KEY_EXCHANGE_<any-non-PSK>_ENABLED'
 fi
 
-run_one_connection -www -tls1_2
+run_one_connection -tls1_2
 
 cleanup

@@ -1656,6 +1656,37 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_3 */
+void ssl_tls13_exporter(int hash_alg,
+                        data_t *secret,
+                        char *label,
+                        char *context_value,
+                        int desired_length,
+                        data_t *expected)
+{
+    unsigned char dst[100];
+
+    /* Check sanity of test parameters. */
+    TEST_ASSERT((size_t) desired_length <= sizeof(dst));
+    TEST_ASSERT((size_t) desired_length == expected->len);
+
+    PSA_INIT();
+
+    TEST_ASSERT(mbedtls_ssl_tls13_exporter(
+                    (psa_algorithm_t) hash_alg,
+                    secret->x, secret->len,
+                    (unsigned char *)label, strlen(label),
+                    (unsigned char *)context_value, strlen(context_value),
+                    dst, desired_length) == 0);
+
+    TEST_MEMORY_COMPARE(dst, desired_length,
+                        expected->x, desired_length);
+
+exit:
+    PSA_DONE();
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_3 */
 void ssl_tls13_derive_early_secrets(int hash_alg,
                                     data_t *secret,
                                     data_t *transcript,

@@ -72,7 +72,7 @@ if(CMAKE_HOST_WIN32)
     # CMakeLists.txt.
     option(GEN_FILES "Generate the auto-generated files as needed" OFF) # off in development
 else()
-    option(GEN_FILES "Generate the auto-generated files as needed" ON)
+    option(GEN_FILES "Generate the auto-generated files as needed" OFF)
 endif()
 
 option(DISABLE_PACKAGE_CONFIG_AND_INSTALL "Disable package configuration, target export and installation" ${MBEDTLS_AS_SUBPROJECT})

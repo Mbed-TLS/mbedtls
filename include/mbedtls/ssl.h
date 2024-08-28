@@ -4485,26 +4485,27 @@ void mbedtls_ssl_conf_session_tickets(mbedtls_ssl_config *conf, int use_tickets)
  *        The handling of TLS 1.3 NewSessionTicket messages is disabled by
  *        default.
  *
- *        Contrary to TLS 1.2 tickets, the default value is disabled in Mbed TLS
- *        3.6.x for backward compatibility with applications based on the Mbed TLS
- *        client in the default configuration connecting to TLS 1.3 servers
- *        supporting NewSessionTicket messages.
+ *        Contrary to TLS 1.2 tickets, the default value is disabled in
+ *        Mbed TLS 3.6.x for backward compatibility with client applications
+ *        developed using Mbed TLS 3.5 or earlier with the default
+ *        configuration.
  *
  *        Up to Mbed TLS 3.5, in the default configuration TLS 1.3 was
- *        disabled, and an Mbed TLS client in the default configuration would
+ *        disabled, and a Mbed TLS client with the default configuration would
  *        establish a TLS 1.2 connection with a TLS 1.2 and TLS 1.3 capable
  *        server.
  *
  *        Starting with Mbed TLS 3.6.0, TLS 1.3 is enabled by default, and thus
- *        an Mbed TLS client in the default configuration establishes a TLS 1.3
- *        connection with a TLS 1.2 and TLS 1.3 capable server. If following
- *        the handshake the TLS 1.3 server sends NewSessionTicket messages and
- *        the Mbed TLS client processes them, this results in Mbed TLS high
- *        level APIs (mbedtls_ssl_read(), mbedtls_ssl_handshake(), ...) to
- *        eventually return an #MBEDTLS_ERR_SSL_RECEIVED_NEW_SESSION_TICKET non
- *        fatal error code (see the documentation of mbedtls_ssl_read() for
- *        more information on that error code). Applications unaware of that
- *        TLS 1.3 specific non fatal error code are then failing.
+ *        an Mbed TLS client with the default configuration establishes a
+ *        TLS 1.3 connection with a TLS 1.2 and TLS 1.3 capable server. If
+ *        following the handshake the TLS 1.3 server sends NewSessionTicket
+ *        messages and the Mbed TLS client processes them, this results in
+ *        Mbed TLS high level APIs (mbedtls_ssl_read(),
+ *        mbedtls_ssl_handshake(), ...) to eventually return an
+ *        #MBEDTLS_ERR_SSL_RECEIVED_NEW_SESSION_TICKET non fatal error code
+ *        (see the documentation of mbedtls_ssl_read() for more information on
+ *        that error code). Applications unaware of that TLS 1.3 specific non
+ *        fatal error code are then failing.
  *
  * \param conf  SSL configuration
  * \param use_new_session_tickets Enable or disable
@@ -5095,7 +5096,7 @@ int mbedtls_ssl_renegotiate(mbedtls_ssl_context *ssl);
  *                 mbedtls_ssl_conf_enable_new_session_tickets() API. A TLS 1.3
  *                 NewSessionTicket message has been received and parsed
  *                 successfully by the client. Ticket data is available in the
- *                 SSL context and remain available as long as the client does
+ *                 SSL context and remain available as long as the client will
  *                 not receive a new NewSessionTicket message. Ticket data may
  *                 be retrieved through the mbedtls_ssl_get_session() API.
  * \return         #MBEDTLS_ERR_SSL_RECEIVED_EARLY_DATA if early data, as

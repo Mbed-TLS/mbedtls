@@ -5603,11 +5603,11 @@ static int ssl_tls13_handle_hs_message_post_handshake(mbedtls_ssl_context *ssl)
                                                 MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET);
                 return MBEDTLS_ERR_SSL_WANT_READ;
             } else {
-                MBEDTLS_SSL_DEBUG_MSG(3, ("Ignore NewSessionTicket, disabled."));
+                MBEDTLS_SSL_DEBUG_MSG(3, ("Ignoring NewSessionTicket, handling disabled."));
                 return 0;
             }
 #else
-            MBEDTLS_SSL_DEBUG_MSG(3, ("Ignore NewSessionTicket, not supported."));
+            MBEDTLS_SSL_DEBUG_MSG(3, ("Ignoring NewSessionTicket, not supported."));
             return 0;
 #endif
         }

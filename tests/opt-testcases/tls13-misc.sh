@@ -839,7 +839,7 @@ run_test    "TLS 1.3 m->O: resumption fails, no ticket support" \
             -c "Protocol is TLSv1.3" \
             -C "Saving session for reuse... ok" \
             -C "Reconnecting with saved session... ok" \
-            -c "Ignore NewSessionTicket, not supported."
+            -c "Ignoring NewSessionTicket, not supported."
 
 requires_openssl_tls1_3_with_compatible_ephemeral
 requires_all_configs_enabled MBEDTLS_SSL_CLI_C \
@@ -853,7 +853,7 @@ run_test    "TLS 1.3 m->O: resumption fails, ticket handling disabled" \
             -c "Protocol is TLSv1.3" \
             -C "Saving session for reuse... ok" \
             -C "Reconnecting with saved session... ok" \
-            -c "Ignore NewSessionTicket, disabled."
+            -c "Ignoring NewSessionTicket, handling disabled."
 
 # No early data m->O tests for the time being. The option -early_data is needed
 # to enable early data on OpenSSL server and it is not compatible with the
@@ -913,7 +913,7 @@ run_test    "TLS 1.3 m->G: resumption fails, no ticket support" \
             -c "Protocol is TLSv1.3" \
             -C "Saving session for reuse... ok" \
             -C "Reconnecting with saved session... ok" \
-            -c "Ignore NewSessionTicket, not supported."
+            -c "Ignoring NewSessionTicket, not supported."
 
 requires_gnutls_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_CLI_C \
@@ -927,7 +927,7 @@ run_test    "TLS 1.3 m->G: resumption fails, ticket handling disabled" \
             -c "Protocol is TLSv1.3" \
             -C "Saving session for reuse... ok" \
             -C "Reconnecting with saved session... ok" \
-            -c "Ignore NewSessionTicket, disabled."
+            -c "Ignoring NewSessionTicket, handling disabled."
 
 requires_gnutls_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_CLI_C \

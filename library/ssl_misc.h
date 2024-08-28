@@ -2934,7 +2934,36 @@ static inline void mbedtls_ssl_tls13_session_clear_ticket_flags(
 {
     session->ticket_flags &= ~(flags & MBEDTLS_SSL_TLS1_3_TICKET_FLAGS_MASK);
 }
+
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 && MBEDTLS_SSL_SESSION_TICKETS */
+
+#if defined(MBEDTLS_SSL_SESSION_TICKETS) && defined(MBEDTLS_SSL_CLI_C)
+#define MBEDTLS_SSL_SESSION_TICKETS_TLS1_2_BIT 0
+#define MBEDTLS_SSL_SESSION_TICKETS_TLS1_3_BIT 1
+
+#define MBEDTLS_SSL_SESSION_TICKETS_TLS1_2_MASK \
+    (1 << MBEDTLS_SSL_SESSION_TICKETS_TLS1_2_BIT)
+#define MBEDTLS_SSL_SESSION_TICKETS_TLS1_3_MASK \
+    (1 << MBEDTLS_SSL_SESSION_TICKETS_TLS1_3_BIT)
+
+static inline int mbedtls_ssl_conf_get_session_tickets(
+    const mbedtls_ssl_config *conf)
+{
+    return conf->session_tickets & MBEDTLS_SSL_SESSION_TICKETS_TLS1_2_MASK ?
+           MBEDTLS_SSL_SESSION_TICKETS_ENABLED :
+           MBEDTLS_SSL_SESSION_TICKETS_DISABLED;
+}
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
+static inline int mbedtls_ssl_conf_is_signal_new_session_tickets_enabled(
+    const mbedtls_ssl_config *conf)
+{
+    return conf->session_tickets & MBEDTLS_SSL_SESSION_TICKETS_TLS1_3_MASK ?
+           MBEDTLS_SSL_TLS1_3_SIGNAL_NEW_SESSION_TICKETS_ENABLED :
+           MBEDTLS_SSL_TLS1_3_SIGNAL_NEW_SESSION_TICKETS_DISABLED;
+}
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
+#endif /* MBEDTLS_SSL_SESSION_TICKETS && MBEDTLS_SSL_CLI_C */
 
 #if defined(MBEDTLS_SSL_CLI_C) && defined(MBEDTLS_SSL_PROTO_TLS1_3)
 int mbedtls_ssl_tls13_finalize_client_hello(mbedtls_ssl_context *ssl);

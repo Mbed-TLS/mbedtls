@@ -1,0 +1,14 @@
+Bugfix
+   * Fix TLS connection failure in applications using an Mbed TLS client in
+     the default configuration connecting to a TLS 1.3 server sending tickets.
+     See the documentation of
+     mbedtls_ssl_conf_tls13_enable_signal_new_session_tickets() for more
+     information.
+     Fixes #8749.
+
+Changes
+   * By default, the handling of TLS 1.3 tickets by the Mbed TLS client is now
+     disabled at runtime. Applications that were using TLS 1.3 tickets
+     signalled by MBEDTLS_ERR_SSL_RECEIVED_NEW_SESSION_TICKET return values now
+     need to enable the handling of TLS 1.3 tickets through the new
+     mbedtls_ssl_conf_tls13_enable_signal_new_session_tickets() API.

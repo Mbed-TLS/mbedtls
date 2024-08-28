@@ -3009,15 +3009,43 @@ void mbedtls_ssl_conf_renegotiation_period(mbedtls_ssl_config *conf,
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
 #if defined(MBEDTLS_SSL_CLI_C)
+
+#define MBEDTLS_SSL_SESSION_TICKETS_TLS1_2_BIT 0
+#define MBEDTLS_SSL_SESSION_TICKETS_TLS1_3_BIT 1
+
+#define MBEDTLS_SSL_SESSION_TICKETS_TLS1_2_MASK \
+    (1 << MBEDTLS_SSL_SESSION_TICKETS_TLS1_2_BIT)
+#define MBEDTLS_SSL_SESSION_TICKETS_TLS1_3_MASK \
+    (1 << MBEDTLS_SSL_SESSION_TICKETS_TLS1_3_BIT)
+
 void mbedtls_ssl_conf_session_tickets(mbedtls_ssl_config *conf, int use_tickets)
 {
-    conf->session_tickets = use_tickets;
+    conf->session_tickets &= ~MBEDTLS_SSL_SESSION_TICKETS_TLS1_2_MASK;
+    conf->session_tickets |= (use_tickets != 0) <<
+                             MBEDTLS_SSL_SESSION_TICKETS_TLS1_2_BIT;
 }
+
+int mbedtls_ssl_conf_get_session_tickets(const mbedtls_ssl_config *conf)
+{
+    return conf->session_tickets & MBEDTLS_SSL_SESSION_TICKETS_TLS1_2_MASK ?
+           MBEDTLS_SSL_SESSION_TICKETS_ENABLED :
+           MBEDTLS_SSL_SESSION_TICKETS_DISABLED;
+}
+
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
 void mbedtls_ssl_conf_enable_new_session_tickets(mbedtls_ssl_config *conf,
-                                                 int new_session_tickets_enabled)
+                                                 int use_new_session_tickets)
 {
-    conf->new_session_tickets_enabled = new_session_tickets_enabled;
+    conf->session_tickets &= ~MBEDTLS_SSL_SESSION_TICKETS_TLS1_3_MASK;
+    conf->session_tickets |= (use_new_session_tickets != 0) <<
+                             MBEDTLS_SSL_SESSION_TICKETS_TLS1_3_BIT;
+}
+
+int mbedtls_ssl_conf_is_new_session_tickets_enabled(const mbedtls_ssl_config *conf)
+{
+    return conf->session_tickets & MBEDTLS_SSL_SESSION_TICKETS_TLS1_3_MASK ?
+           MBEDTLS_SSL_NEW_SESSION_TICKETS_ENABLED :
+           MBEDTLS_SSL_NEW_SESSION_TICKETS_DISABLED;
 }
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
 #endif /* MBEDTLS_SSL_CLI_C */
@@ -5885,9 +5913,9 @@ int mbedtls_ssl_config_defaults(mbedtls_ssl_config *conf,
     if (endpoint == MBEDTLS_SSL_IS_CLIENT) {
         conf->authmode = MBEDTLS_SSL_VERIFY_REQUIRED;
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
-        conf->session_tickets = MBEDTLS_SSL_SESSION_TICKETS_ENABLED;
+        mbedtls_ssl_conf_session_tickets(conf, MBEDTLS_SSL_SESSION_TICKETS_ENABLED);
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
-        conf->new_session_tickets_enabled = MBEDTLS_SSL_ENABLE_NEW_SESSION_TICKETS_DISABLED;
+        mbedtls_ssl_conf_enable_new_session_tickets(conf, MBEDTLS_SSL_NEW_SESSION_TICKETS_DISABLED);
 #endif
 #endif
     }

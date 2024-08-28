@@ -332,8 +332,8 @@
 #define MBEDTLS_SSL_SESSION_TICKETS_DISABLED     0
 #define MBEDTLS_SSL_SESSION_TICKETS_ENABLED      1
 
-#define MBEDTLS_SSL_ENABLE_NEW_SESSION_TICKETS_DISABLED  0
-#define MBEDTLS_SSL_ENABLE_NEW_SESSION_TICKETS_ENABLED   1
+#define MBEDTLS_SSL_NEW_SESSION_TICKETS_DISABLED  0
+#define MBEDTLS_SSL_NEW_SESSION_TICKETS_ENABLED   1
 
 #define MBEDTLS_SSL_PRESET_DEFAULT              0
 #define MBEDTLS_SSL_PRESET_SUITEB               2
@@ -1458,12 +1458,6 @@ struct mbedtls_ssl_config {
 #if defined(MBEDTLS_SSL_SESSION_TICKETS) && \
     defined(MBEDTLS_SSL_CLI_C)
     uint8_t MBEDTLS_PRIVATE(session_tickets);   /*!< use session tickets? */
-#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
-    /** Whether we handle NewSessionTicket TLS 1.3 messages (<>0) or just ignore them (==0)
-     *  They are ignored by default.
-     */
-    uint8_t MBEDTLS_PRIVATE(new_session_tickets_enabled);
-#endif
 #endif
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS) && \
@@ -4485,8 +4479,8 @@ void mbedtls_ssl_conf_preference_order(mbedtls_ssl_config *conf, int order);
 #if defined(MBEDTLS_SSL_SESSION_TICKETS) && \
     defined(MBEDTLS_SSL_CLI_C)
 /**
- * \brief          Enable / Disable session tickets (client only).
- *                 (Default: MBEDTLS_SSL_SESSION_TICKETS_ENABLED.)
+ * \brief          Enable / Disable TLS 1.2 session tickets (client and TLS 1.2 only).
+ *                 Disabled by default.
  *
  * \note           On server, use \c mbedtls_ssl_conf_session_tickets_cb().
  *
@@ -4495,6 +4489,16 @@ void mbedtls_ssl_conf_preference_order(mbedtls_ssl_config *conf, int order);
  *                                         MBEDTLS_SSL_SESSION_TICKETS_DISABLED)
  */
 void mbedtls_ssl_conf_session_tickets(mbedtls_ssl_config *conf, int use_tickets);
+
+/**
+ * \brief          Get if TLS 1.2 session tickets usage is enabled or not
+ *
+ * \param conf     SSL configuration
+ *
+ * \return         MBEDTLS_SSL_SESSION_TICKETS_ENABLED or
+ *                 MBEDTLS_SSL_SESSION_TICKETS_DISABLED
+ */
+int mbedtls_ssl_conf_get_session_tickets(const mbedtls_ssl_config *conf);
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
 /**
@@ -4525,12 +4529,23 @@ void mbedtls_ssl_conf_session_tickets(mbedtls_ssl_config *conf, int use_tickets)
  *        error code are then failing.
  *
  * \param conf  SSL configuration
- * \param new_session_tickets_enabled  Enable or disable
- *                                     (MBEDTLS_SSL_ENABLE_NEW_SESSION_TICKETS_ENABLED or
- *                                      MBEDTLS_SSL_ENABLE_NEW_SESSION_TICKETS_DISABLED)
+ * \param use_new_session_tickets Enable or disable
+ *                                (MBEDTLS_SSL_NEW_SESSION_TICKETS_ENABLED or
+ *                                 MBEDTLS_SSL_NEW_SESSION_TICKETS_DISABLED)
  */
 void mbedtls_ssl_conf_enable_new_session_tickets(mbedtls_ssl_config *conf,
-                                                 int new_session_tickets_enabled);
+                                                 int use_new_session_tickets);
+
+/**
+ * \brief          Get if usage of TLS 1.3 NewSessionTicket messages is enabled or not
+ *
+ * \param conf     SSL configuration
+ *
+ * \return         MBEDTLS_SSL_NEW_SESSION_TICKETS_ENABLED or
+ *                 MBEDTLS_SSL_NEW_SESSION_TICKETS_DISABLED
+ */
+int mbedtls_ssl_conf_is_new_session_tickets_enabled(const mbedtls_ssl_config *conf);
+
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
 #endif /* MBEDTLS_SSL_SESSION_TICKETS &&
           MBEDTLS_SSL_CLI_C */

@@ -71,11 +71,13 @@ Security
    * Unlike previously documented, enabling MBEDTLS_PSA_HMAC_DRBG_MD_TYPE does
      not cause the PSA subsystem to use HMAC_DRBG: it uses HMAC_DRBG only when
      MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG and MBEDTLS_CTR_DRBG_C are disabled.
+     CVE-2024-45157
    * Fix a stack buffer overflow in mbedtls_ecdsa_der_to_raw() and
      mbedtls_ecdsa_raw_to_der() when the bits parameter is larger than the
      largest supported curve. In some configurations with PSA disabled,
      all values of bits are affected. This never happens in internal library
      calls, but can affect applications that call these functions directly.
+     CVE-2024-45158
    * With TLS 1.3, when a server enables optional authentication of the
      client, if the client-provided certificate does not have appropriate values
      in keyUsage or extKeyUsage extensions, then the return value of
@@ -86,6 +88,7 @@ Security
      authentication anyway. Only TLS 1.3 servers were affected, and only with
      optional authentication (required would abort the handshake with a fatal
      alert).
+     CVE-2024-45159
 
 Bugfix
    * Fix TLS 1.3 client build and runtime when support for session tickets is

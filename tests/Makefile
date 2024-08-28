@@ -225,9 +225,9 @@ else
 	if exist src/*.o del /Q /F src/*.o
 	if exist src/drivers/*.o del /Q /F src/drivers/*.o
 	if exist src/test_keys.h del /Q /F src/test_keys.h
-	if exist src/test_certs.h del /Q /F src/test_cers.h
+	if exist src/test_certs.h del /Q /F src/test_certs.h
 	if exist src/test_helpers/*.o del /Q /F src/test_helpers/*.o
-	if exist src/libmbed* del /Q /F src/libmed*
+	if exist src/libmbed* del /Q /F src/libmbed*
 	if exist include/test/instrument_record_status.h del /Q /F include/test/instrument_record_status.h
 endif
 

@@ -42,6 +42,9 @@ component_test_crypto_with_static_key_slots() {
     # - all FFDH key pairs and public keys up to 8192 bits (max of PSA_VENDOR_FFDH_MAX_KEY_BITS).
     # - all EC key pairs and public keys up to 521 bits (max of PSA_VENDOR_ECC_MAX_CURVE_BITS).
     scripts/config.py set MBEDTLS_PSA_STATIC_KEY_SLOT_BUFFER_SIZE 1212
+    # Disable the fully dynamic key store (default on) since it conflicts
+    # with the static behavior that we're testing here.
+    scripts/config.py unset MBEDTLS_PSA_KEY_STORE_DYNAMIC
 
     msg "test: crypto full + MBEDTLS_PSA_STATIC_KEY_SLOTS"
     make CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS" test

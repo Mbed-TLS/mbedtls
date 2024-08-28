@@ -1,6 +1,6 @@
 Mbed TLS ChangeLog (Sorted per branch, date)
 
-= Mbed TLS x.x.x branch released xxxx-xx-xx
+= Mbed TLS 3.6.1 branch released 2024-08-30
 
 API changes
    * The experimental functions psa_generate_key_ext() and

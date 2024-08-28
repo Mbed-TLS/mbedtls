@@ -14,6 +14,14 @@ Default behavior changes
      !MBEDTLS_PSA_CRYPTO_C), do not automatically enable local crypto when the
      corresponding PSA mechanism is enabled, since the server provides the
      crypto. Fixes #9126.
+   * A TLS handshake may now call psa_crypto_init() if TLS 1.3 is enabled.
+     This can happen even if TLS 1.3 is offered but eventually not selected
+     in the protocol version negotiation.
+   * By default, the handling of TLS 1.3 tickets by the Mbed TLS client is now
+     disabled at runtime. Applications that were using TLS 1.3 tickets
+     signalled by MBEDTLS_ERR_SSL_RECEIVED_NEW_SESSION_TICKET return values now
+     need to enable the handling of TLS 1.3 tickets through the new
+     mbedtls_ssl_conf_tls13_enable_signal_new_session_tickets() API.
 
 New deprecations
    * The experimental functions psa_generate_key_ext() and
@@ -174,14 +182,6 @@ Changes
      included check_config.h, remove this inclusion from the Mbed TLS 3.x
      configuration file (renamed to mbedtls_config.h). This change was made
      in Mbed TLS 3.0, but was not announced in a changelog entry at the time.
-   * A TLS handshake may now call psa_crypto_init() if TLS 1.3 is enabled.
-     This can happen even if TLS 1.3 is offered but eventually not selected
-     in the protocol version negotiation.
-   * By default, the handling of TLS 1.3 tickets by the Mbed TLS client is now
-     disabled at runtime. Applications that were using TLS 1.3 tickets
-     signalled by MBEDTLS_ERR_SSL_RECEIVED_NEW_SESSION_TICKET return values now
-     need to enable the handling of TLS 1.3 tickets through the new
-     mbedtls_ssl_conf_tls13_enable_signal_new_session_tickets() API.
 
 = Mbed TLS 3.6.0 branch released 2024-03-28
 

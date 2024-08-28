@@ -247,8 +247,7 @@ ifndef WINDOWS
 	$(MAKE) -C psa-client-server/psasim clean
 	rm -rf $(BINARIES) *.c *.datax
 	rm -rf $(CRYPTO_BINARIES) ../tf-psa-crypto/tests/*.c ../tf-psa-crypto/tests/*.datax
-	rm -f src/*.o src/drivers/*.o src/test_helpers/*.o src/libmbed* src/test_keys.h src/test_certs.h
-	rm -f src/test_keys.h src/test_certs.h
+	rm -f src/*.o src/drivers/*.o src/test_helpers/*.o src/libmbed*
 	rm -f include/test/instrument_record_status.h
 	rm -f include/alt-extra/*/*_alt.h
 	rm -rf libtestdriver1
@@ -263,8 +262,6 @@ else
 	if exist ../tf-psa-crypto/tests/*.datax del /Q /F ../tf-psa-crypto/tests/*.datax
 	if exist src/*.o del /Q /F src/*.o
 	if exist src/drivers/*.o del /Q /F src/drivers/*.o
-	if exist src/test_keys.h del /Q /F src/test_keys.h
-	if exist src/test_certs.h del /Q /F src/test_certs.h
 	if exist src/test_helpers/*.o del /Q /F src/test_helpers/*.o
 	if exist src/libmbed* del /Q /F src/libmbed*
 	if exist include/test/instrument_record_status.h del /Q /F include/test/instrument_record_status.h

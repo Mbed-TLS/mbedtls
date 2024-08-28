@@ -321,8 +321,8 @@
 #define MBEDTLS_SSL_SESSION_TICKETS_DISABLED     0
 #define MBEDTLS_SSL_SESSION_TICKETS_ENABLED      1
 
-#define MBEDTLS_SSL_NEW_SESSION_TICKETS_DISABLED  0
-#define MBEDTLS_SSL_NEW_SESSION_TICKETS_ENABLED   1
+#define MBEDTLS_SSL_TLS1_3_SIGNAL_NEW_SESSION_TICKETS_DISABLED  0
+#define MBEDTLS_SSL_TLS1_3_SIGNAL_NEW_SESSION_TICKETS_ENABLED   1
 
 #define MBEDTLS_SSL_PRESET_DEFAULT              0
 #define MBEDTLS_SSL_PRESET_SUITEB               2
@@ -4508,12 +4508,12 @@ void mbedtls_ssl_conf_session_tickets(mbedtls_ssl_config *conf, int use_tickets)
  *        fatal error code are then failing.
  *
  * \param conf  SSL configuration
- * \param use_new_session_tickets Enable or disable
- *                                (MBEDTLS_SSL_NEW_SESSION_TICKETS_ENABLED or
- *                                 MBEDTLS_SSL_NEW_SESSION_TICKETS_DISABLED)
+ * \param signal_new_session_tickets Enable or disable
+ *                                   (MBEDTLS_SSL_TLS1_3_SIGNAL_NEW_SESSION_TICKETS_ENABLED or
+ *                                    MBEDTLS_SSL_TLS1_3_SIGNAL_NEW_SESSION_TICKETS_DISABLED)
  */
-void mbedtls_ssl_conf_enable_new_session_tickets(mbedtls_ssl_config *conf,
-                                                 int use_new_session_tickets);
+void mbedtls_ssl_conf_tls13_enable_signal_new_session_tickets(
+    mbedtls_ssl_config *conf, int signal_new_session_tickets);
 
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
 #endif /* MBEDTLS_SSL_SESSION_TICKETS && MBEDTLS_SSL_CLI_C */
@@ -5093,8 +5093,8 @@ int mbedtls_ssl_renegotiate(mbedtls_ssl_context *ssl);
  *                 This error code can be returned only on client side if and
  *                 only if handling of TLS 1.3 NewSessionTicket messages has
  *                 been enabled through the
- *                 mbedtls_ssl_conf_enable_new_session_tickets() API. A TLS 1.3
- *                 NewSessionTicket message has been received and parsed
+ *                 mbedtls_ssl_conf_tls13_enable_signal_new_session_tickets() API.
+ *                 A TLS 1.3 NewSessionTicket message has been received and parsed
  *                 successfully by the client. Ticket data is available in the
  *                 SSL context and remain available as long as the client will
  *                 not receive a new NewSessionTicket message. Ticket data may

@@ -2955,12 +2955,12 @@ static inline int mbedtls_ssl_conf_get_session_tickets(
 }
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
-static inline int mbedtls_ssl_conf_is_new_session_tickets_enabled(
+static inline int mbedtls_ssl_conf_is_signal_new_session_tickets_enabled(
     const mbedtls_ssl_config *conf)
 {
     return conf->session_tickets & MBEDTLS_SSL_SESSION_TICKETS_TLS1_3_MASK ?
-           MBEDTLS_SSL_NEW_SESSION_TICKETS_ENABLED :
-           MBEDTLS_SSL_NEW_SESSION_TICKETS_DISABLED;
+           MBEDTLS_SSL_TLS1_3_SIGNAL_NEW_SESSION_TICKETS_ENABLED :
+           MBEDTLS_SSL_TLS1_3_SIGNAL_NEW_SESSION_TICKETS_DISABLED;
 }
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
 #endif /* MBEDTLS_SSL_SESSION_TICKETS && MBEDTLS_SSL_CLI_C */

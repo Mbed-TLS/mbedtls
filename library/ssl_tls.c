@@ -3018,11 +3018,11 @@ void mbedtls_ssl_conf_session_tickets(mbedtls_ssl_config *conf, int use_tickets)
 }
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
-void mbedtls_ssl_conf_enable_new_session_tickets(mbedtls_ssl_config *conf,
-                                                 int use_new_session_tickets)
+void mbedtls_ssl_conf_tls13_enable_signal_new_session_tickets(
+    mbedtls_ssl_config *conf, int signal_new_session_tickets)
 {
     conf->session_tickets &= ~MBEDTLS_SSL_SESSION_TICKETS_TLS1_3_MASK;
-    conf->session_tickets |= (use_new_session_tickets != 0) <<
+    conf->session_tickets |= (signal_new_session_tickets != 0) <<
                              MBEDTLS_SSL_SESSION_TICKETS_TLS1_3_BIT;
 }
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
@@ -5893,7 +5893,8 @@ int mbedtls_ssl_config_defaults(mbedtls_ssl_config *conf,
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
         mbedtls_ssl_conf_session_tickets(conf, MBEDTLS_SSL_SESSION_TICKETS_ENABLED);
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
-        mbedtls_ssl_conf_enable_new_session_tickets(conf, MBEDTLS_SSL_NEW_SESSION_TICKETS_DISABLED);
+        mbedtls_ssl_conf_tls13_enable_signal_new_session_tickets(
+            conf, MBEDTLS_SSL_TLS1_3_SIGNAL_NEW_SESSION_TICKETS_DISABLED);
 #endif
 #endif
     }

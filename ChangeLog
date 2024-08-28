@@ -1,5 +1,185 @@
 Mbed TLS ChangeLog (Sorted per branch, date)
 
+= Mbed TLS x.x.x branch released xxxx-xx-xx
+
+API changes
+   * The experimental functions psa_generate_key_ext() and
+     psa_key_derivation_output_key_ext() are no longer declared when compiling
+     in C++. This resolves a build failure under C++ compilers that do not
+     support flexible array members (a C99 feature not adopted by C++).
+     Fixes #9020.
+
+Default behavior changes
+   * In a PSA-client-only build (i.e. MBEDTLS_PSA_CRYPTO_CLIENT &&
+     !MBEDTLS_PSA_CRYPTO_C), do not automatically enable local crypto when the
+     corresponding PSA mechanism is enabled, since the server provides the
+     crypto. Fixes #9126.
+
+New deprecations
+   * The experimental functions psa_generate_key_ext() and
+     psa_key_derivation_output_key_ext() are deprecated in favor of
+     psa_generate_key_custom() and psa_key_derivation_output_key_custom().
+     They have almost exactly the same interface, but the variable-length
+     data is passed in a separate parameter instead of a flexible array
+     member.
+   * The following cryptographic mechanisms are planned to be removed
+     in Mbed TLS 4.0:
+     - DES (including 3DES).
+     - PKCS#1v1.5 encryption/decryption (RSAES-PKCS1-v1_5).
+       (OAEP, PSS, and PKCS#1v1.5 signature are staying.)
+     - Finite-field Diffie-Hellman with custom groups.
+       (RFC 7919 groups remain supported.)
+     - Elliptic curves of size 225 bits or less.
+   * The following cipher suites are planned to be removed from (D)TLS 1.2
+     in Mbed TLS 4.0:
+     - TLS_RSA_* (including TLS_RSA_PSK_*), i.e. cipher suites using
+       RSA decryption.
+       (RSA signatures, i.e. TLS_ECDHE_RSA_*, are staying.)
+     - TLS_ECDH_*, i.e. cipher suites using static ECDH.
+       (Ephemeral ECDH, i.e. TLS_ECDHE_*, is staying.)
+     - TLS_DHE_*, i.e. cipher suites using finite-field Diffie-Hellman.
+       (Ephemeral ECDH, i.e. TLS_ECDHE_*, is staying.)
+     - TLS_*CBC*, i.e. all cipher suites using CBC.
+   * The following low-level application interfaces are planned to be removed
+     from the public API in Mbed TLS 4.0:
+     - Hashes: hkdf.h, md5.h, ripemd160.h, sha1.h, sha3.h, sha256.h, sha512.h;
+     - Random generation: ctr_drbg.h, hmac_drbg.h, entropy.h;
+     - Ciphers and modes: aes.h, aria.h, camellia.h, chacha20.h, chachapoly.h,
+       cipher.h, cmac.h, gcm.h, poly1305.h;
+     - Private key encryption mechanisms: pkcs5.h, pkcs12.h.
+     - Asymmetric cryptography: bignum.h, dhm.h, ecdh.h, ecdsa.h, ecjpake.h,
+       ecp.h, rsa.h.
+     The cryptographic mechanisms remain present, but they will only be
+     accessible via the PSA API (psa_xxx functions introduced gradually
+     starting with Mbed TLS 2.17) and, where relevant, `pk.h`.
+     For guidance on migrating application code to the PSA API, please consult
+     the PSA transition guide (docs/psa-transition.md).
+   * The following integration interfaces are planned to be removed
+     in Mbed TLS 4.0:
+     - MBEDTLS_xxx_ALT replacement of cryptographic modules and functions.
+       Use PSA transparent drivers instead.
+     - MBEDTLS_PK_RSA_ALT and MBEDTLS_PSA_CRYPTO_SE_C.
+       Use PSA opaque drivers instead.
+
+Features
+   * When the new compilation option MBEDTLS_PSA_KEY_STORE_DYNAMIC is enabled,
+     the number of volatile PSA keys is virtually unlimited, at the expense
+     of increased code size. This option is off by default, but enabled in
+     the default mbedtls_config.h. Fixes #9216.
+
+Security
+   * Unlike previously documented, enabling MBEDTLS_PSA_HMAC_DRBG_MD_TYPE does
+     not cause the PSA subsystem to use HMAC_DRBG: it uses HMAC_DRBG only when
+     MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG and MBEDTLS_CTR_DRBG_C are disabled.
+   * Fix a stack buffer overflow in mbedtls_ecdsa_der_to_raw() and
+     mbedtls_ecdsa_raw_to_der() when the bits parameter is larger than the
+     largest supported curve. In some configurations with PSA disabled,
+     all values of bits are affected. This never happens in internal library
+     calls, but can affect applications that call these functions directly.
+   * With TLS 1.3, when a server enables optional authentication of the
+     client, if the client-provided certificate does not have appropriate values
+     in keyUsage or extKeyUsage extensions, then the return value of
+     mbedtls_ssl_get_verify_result() would incorrectly have the
+     MBEDTLS_X509_BADCERT_KEY_USAGE and MBEDTLS_X509_BADCERT_EXT_KEY_USAGE bits
+     clear. As a result, an attacker that had a certificate valid for uses other
+     than TLS client authentication could be able to use it for TLS client
+     authentication anyway. Only TLS 1.3 servers were affected, and only with
+     optional authentication (required would abort the handshake with a fatal
+     alert).
+
+Bugfix
+   * Fix TLS 1.3 client build and runtime when support for session tickets is
+     disabled (MBEDTLS_SSL_SESSION_TICKETS configuration option). Fixes #6395.
+   * Fix compilation error when memcpy() is a function-like macros. Fixes #8994.
+   * MBEDTLS_ASN1_PARSE_C and MBEDTLS_ASN1_WRITE_C are now automatically enabled
+     as soon as MBEDTLS_RSA_C is enabled. Fixes #9041.
+   * Fix undefined behaviour (incrementing a NULL pointer by zero length) when
+     passing in zero length additional data to multipart AEAD.
+   * Fix rare concurrent access bug where attempting to operate on a
+     non-existent key while concurrently creating a new key could potentially
+     corrupt the key store.
+   * Fix error handling when creating a key in a dynamic secure element
+     (feature enabled by MBEDTLS_PSA_CRYPTO_SE_C). In a low memory condition,
+     the creation could return PSA_SUCCESS but using or destroying the key
+     would not work. Fixes #8537.
+   * Fix issue of redefinition warning messages for _GNU_SOURCE in
+     entropy_poll.c and sha_256.c. There was a build warning during
+     building for linux platform.
+     Resolves #9026
+   * Fix a compilation warning in pk.c when PSA is enabled and RSA is disabled.
+   * Fix the build when MBEDTLS_PSA_CRYPTO_CONFIG is enabled and the built-in
+     CMAC is enabled, but no built-in unauthenticated cipher is enabled.
+     Fixes #9209.
+   * Fix redefinition warnings when SECP192R1 and/or SECP192K1 are disabled.
+     Fixes #9029.
+   * Fix psa_cipher_decrypt() with CCM* rejecting messages less than 3 bytes
+     long. Credit to Cryptofuzz. Fixes #9314.
+   * Fix interference between PSA volatile keys and built-in keys
+     when MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS is enabled and
+     MBEDTLS_PSA_KEY_SLOT_COUNT is more than 4096.
+   * Document and enforce the limitation of mbedtls_psa_register_se_key()
+     to persistent keys. Resolves #9253.
+   * Fix Clang compilation error when MBEDTLS_USE_PSA_CRYPTO is enabled
+     but MBEDTLS_DHM_C is disabled. Reported by Michael Schuster in #9188.
+   * Fix server mode only build when MBEDTLS_SSL_SRV_C is enabled but
+     MBEDTLS_SSL_CLI_C is disabled. Reported by M-Bab on GitHub in #9186.
+   * When MBEDTLS_PSA_CRYPTO_C was disabled and MBEDTLS_ECDSA_C enabled,
+     some code was defining 0-size arrays, resulting in compilation errors.
+     Fixed by disabling the offending code in configurations without PSA
+     Crypto, where it never worked. Fixes #9311.
+   * Fix unintended performance regression when using short RSA public keys.
+     Fixes #9232.
+   * Fixes an issue where some TLS 1.2 clients could not connect to an
+     Mbed TLS 3.6.0 server, due to incorrect handling of
+     legacy_compression_methods in the ClientHello.
+     Fixes #8995, #9243.
+   * Fix TLS connections failing when the handshake selects TLS 1.3
+     in an application that does not call psa_crypto_init().
+     Fixes #9072.
+   * Fix TLS connection failure in applications using an Mbed TLS client in
+     the default configuration connecting to a TLS 1.3 server sending tickets.
+     See the documentation of
+     mbedtls_ssl_conf_tls13_enable_signal_new_session_tickets() for more
+     information.
+     Fixes #8749.
+   * Fix a memory leak that could occur when failing to process an RSA
+     key through some PSA functions due to low memory conditions.
+   * Fixed a regression introduced in 3.6.0 where the CA callback set with
+     mbedtls_ssl_conf_ca_cb() would stop working when connections were
+     upgraded to TLS 1.3. Fixed by adding support for the CA callback with TLS
+     1.3.
+   * Fixed a regression introduced in 3.6.0 where clients that relied on
+     optional/none authentication mode, by calling mbedtls_ssl_conf_authmode()
+     with MBEDTLS_SSL_VERIFY_OPTIONAL or MBEDTLS_SSL_VERIFY_NONE, would stop
+     working when connections were upgraded to TLS 1.3. Fixed by adding
+     support for optional/none with TLS 1.3 as well. Note that the TLS 1.3
+     standard makes server authentication mandatory; users are advised not to
+     use authmode none, and to carefully check the results when using optional
+     mode.
+   * Fixed a regression introduced in 3.6.0 where context-specific certificate
+     verify callbacks, set with mbedtls_ssl_set_verify() as opposed to
+     mbedtls_ssl_conf_verify(), would stop working when connections were
+     upgraded to TLS 1.3. Fixed by adding support for context-specific verify
+     callback in TLS 1.3.
+
+Changes
+   * Warn if mbedtls/check_config.h is included manually, as this can
+     lead to spurious errors. Error if a *adjust*.h header is included
+     manually, as this can lead to silently inconsistent configurations,
+     potentially resulting in buffer overflows.
+     When migrating from Mbed TLS 2.x, if you had a custom config.h that
+     included check_config.h, remove this inclusion from the Mbed TLS 3.x
+     configuration file (renamed to mbedtls_config.h). This change was made
+     in Mbed TLS 3.0, but was not announced in a changelog entry at the time.
+   * A TLS handshake may now call psa_crypto_init() if TLS 1.3 is enabled.
+     This can happen even if TLS 1.3 is offered but eventually not selected
+     in the protocol version negotiation.
+   * By default, the handling of TLS 1.3 tickets by the Mbed TLS client is now
+     disabled at runtime. Applications that were using TLS 1.3 tickets
+     signalled by MBEDTLS_ERR_SSL_RECEIVED_NEW_SESSION_TICKET return values now
+     need to enable the handling of TLS 1.3 tickets through the new
+     mbedtls_ssl_conf_tls13_enable_signal_new_session_tickets() API.
+
 = Mbed TLS 3.6.0 branch released 2024-03-28
 
 API changes

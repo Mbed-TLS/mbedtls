@@ -17,7 +17,6 @@ extern "C" {
 
 #include "psa/crypto.h"
 #include "psa/crypto_se_driver.h"
-#include "psa_crypto_core.h"
 
 #include <stdint.h>
 #include <string.h>

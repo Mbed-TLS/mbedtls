@@ -55,15 +55,6 @@ typedef enum {
     PSA_SLOT_PENDING_DELETION,
 } psa_key_slot_state_t;
 
-/* If the size of static key slots is not explicitly defined by the user, then
- * set it to the maximum between PSA_EXPORT_KEY_PAIR_OR_PUBLIC_MAX_SIZE and
- * PSA_CIPHER_MAX_KEY_LENGTH. */
-#if !defined(MBEDTLS_PSA_STATIC_KEY_SLOT_BUFFER_SIZE)
-#define MBEDTLS_PSA_STATIC_KEY_SLOT_BUFFER_SIZE  \
-    ((PSA_EXPORT_KEY_PAIR_OR_PUBLIC_MAX_SIZE > PSA_CIPHER_MAX_KEY_LENGTH) ? \
-     PSA_EXPORT_KEY_PAIR_OR_PUBLIC_MAX_SIZE : PSA_CIPHER_MAX_KEY_LENGTH)
-#endif /* !MBEDTLS_PSA_STATIC_KEY_SLOT_BUFFER_SIZE*/
-
 /** The data structure representing a key slot, containing key material
  * and metadata for one key.
  */

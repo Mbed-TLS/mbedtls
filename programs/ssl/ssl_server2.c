@@ -3513,7 +3513,8 @@ handshake:
                        (unsigned int) -ret);
 
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
-        if (ret == MBEDTLS_ERR_X509_CERT_VERIFY_FAILED) {
+        if (ret == MBEDTLS_ERR_X509_CERT_VERIFY_FAILED ||
+            ret == MBEDTLS_ERR_SSL_BAD_CERTIFICATE) {
             char vrfy_buf[512];
             flags = mbedtls_ssl_get_verify_result(&ssl);
 

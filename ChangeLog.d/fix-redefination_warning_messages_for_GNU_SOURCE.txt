@@ -1,5 +1,0 @@
-Bugfix
-   * Fix issue of redefinition warning messages for _GNU_SOURCE in
-     entropy_poll.c and sha_256.c. There was a build warning during
-     building for linux platform.
-     Resolves #9026

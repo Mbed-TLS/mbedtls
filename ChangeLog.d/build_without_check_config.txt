@@ -1,3 +1,0 @@
-Bugfix
-   * Fix the build in some configurations when check_config.h is not included.
-     Fix #9152.

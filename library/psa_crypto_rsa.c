@@ -215,15 +215,13 @@ psa_status_t mbedtls_psa_rsa_export_public_key(
 
     status = mbedtls_psa_rsa_load_representation(
         attributes->core.type, key_buffer, key_buffer_size, &rsa);
-    if (status != PSA_SUCCESS) {
-        return status;
+    if (status == PSA_SUCCESS) {
+        status = mbedtls_psa_rsa_export_key(PSA_KEY_TYPE_RSA_PUBLIC_KEY,
+                                            rsa,
+                                            data,
+                                            data_size,
+                                            data_length);
     }
-
-    status = mbedtls_psa_rsa_export_key(PSA_KEY_TYPE_RSA_PUBLIC_KEY,
-                                        rsa,
-                                        data,
-                                        data_size,
-                                        data_length);
 
     mbedtls_rsa_free(rsa);
     mbedtls_free(rsa);
@@ -286,6 +284,7 @@ psa_status_t mbedtls_psa_rsa_generate_key(
                               (unsigned int) attributes->core.bits,
                               exponent);
     if (ret != 0) {
+        mbedtls_rsa_free(&rsa);
         return mbedtls_to_psa_error(ret);
     }
 
@@ -354,7 +353,7 @@ psa_status_t mbedtls_psa_rsa_sign_hash(
                                                  key_buffer_size,
                                                  &rsa);
     if (status != PSA_SUCCESS) {
-        return status;
+        goto exit;
     }
 
     status = psa_rsa_decode_md_type(alg, hash_length, &md_alg);

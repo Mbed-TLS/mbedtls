@@ -16,13 +16,13 @@
 
 /libtestdriver1/*
 
-####START_COMMENTED_GENERATED_FILES###
-## Generated source files
-#/suites/*.generated.data
-#/suites/test_suite_config.mbedtls_boolean.data
-#/suites/test_suite_config.psa_boolean.data
-#/suites/test_suite_psa_crypto_storage_format.v[0-9]*.data
-#/suites/test_suite_psa_crypto_storage_format.current.data
-#/src/test_keys.h
-#/src/test_certs.h
-####END_COMMENTED_GENERATED_FILES###
+###START_GENERATED_FILES###
+# Generated source files
+/suites/*.generated.data
+/suites/test_suite_config.mbedtls_boolean.data
+/suites/test_suite_config.psa_boolean.data
+/suites/test_suite_psa_crypto_storage_format.v[0-9]*.data
+/suites/test_suite_psa_crypto_storage_format.current.data
+/src/test_keys.h
+/src/test_certs.h
+###END_GENERATED_FILES###

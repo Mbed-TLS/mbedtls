@@ -1,3 +1,0 @@
-Bugfix
-   * Document and enforce the limitation of mbedtls_psa_register_se_key()
-     to persistent keys. Resolves #9253.

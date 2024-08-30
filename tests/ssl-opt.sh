@@ -2155,7 +2155,7 @@ run_test    "TLS: password protected server key, two certificates" \
 requires_config_enabled MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK
 run_test    "CA callback on client" \
             "$P_SRV debug_level=3" \
-            "$P_CLI force_version=tls12 ca_callback=1 debug_level=3 " \
+            "$P_CLI ca_callback=1 debug_level=3 " \
             0 \
             -c "use CA callback for X.509 CRT verification" \
             -S "error" \
@@ -2165,7 +2165,7 @@ requires_config_enabled MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK
 requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
 requires_hash_alg SHA_256
 run_test    "CA callback on server" \
-            "$P_SRV force_version=tls12 auth_mode=required" \
+            "$P_SRV auth_mode=required" \
             "$P_CLI ca_callback=1 debug_level=3 crt_file=$DATA_FILES_PATH/server5.crt \
              key_file=$DATA_FILES_PATH/server5.key" \
             0 \
@@ -2722,9 +2722,10 @@ run_test    "Single supported algorithm sending: openssl client" \
             0
 
 # Tests for certificate verification callback
+requires_key_exchange_with_cert_in_tls12_or_tls13_enabled
 run_test    "Configuration-specific CRT verification callback" \
             "$P_SRV debug_level=3" \
-            "$P_CLI force_version=tls12 context_crt_cb=0 debug_level=3" \
+            "$P_CLI context_crt_cb=0 debug_level=3" \
             0 \
             -S "error" \
             -c "Verify requested for " \
@@ -2732,9 +2733,10 @@ run_test    "Configuration-specific CRT verification callback" \
             -C "Use context-specific verification callback" \
             -C "error"
 
+requires_key_exchange_with_cert_in_tls12_or_tls13_enabled
 run_test    "Context-specific CRT verification callback" \
             "$P_SRV debug_level=3" \
-            "$P_CLI force_version=tls12 context_crt_cb=1 debug_level=3" \
+            "$P_CLI context_crt_cb=1 debug_level=3" \
             0 \
             -S "error" \
             -c "Verify requested for " \
@@ -5809,38 +5811,78 @@ run_test    "DER format: with 9 trailing random bytes" \
 # Tests for auth_mode, there are duplicated tests using ca callback for authentication
 # When updating these tests, modify the matching authentication tests accordingly
 
+# The next 4 cases test the 3 auth modes with a badly signed server cert.
 requires_key_exchange_with_cert_in_tls12_or_tls13_enabled
 run_test    "Authentication: server badcert, client required" \
             "$P_SRV crt_file=$DATA_FILES_PATH/server5-badsign.crt \
              key_file=$DATA_FILES_PATH/server5.key" \
-            "$P_CLI debug_level=1 auth_mode=required" \
+            "$P_CLI debug_level=3 auth_mode=required" \
             1 \
             -c "x509_verify_cert() returned" \
             -c "! The certificate is not correctly signed by the trusted CA" \
             -c "! mbedtls_ssl_handshake returned" \
+            -c "send alert level=2 message=48" \
             -c "X509 - Certificate verification failed"
+            # MBEDTLS_X509_BADCERT_NOT_TRUSTED -> MBEDTLS_SSL_ALERT_MSG_UNKNOWN_CA
+# We don't check that the server receives the alert because it might
+# detect that its write end of the connection is closed and abort
+# before reading the alert message.
+
+run_test    "Authentication: server badcert, client required (1.2)" \
+            "$P_SRV crt_file=$DATA_FILES_PATH/server5-badsign.crt \
+             key_file=$DATA_FILES_PATH/server5.key" \
+            "$P_CLI force_version=tls12 debug_level=3 auth_mode=required" \
+            1 \
+            -c "x509_verify_cert() returned" \
+            -c "! The certificate is not correctly signed by the trusted CA" \
+            -c "! mbedtls_ssl_handshake returned" \
+            -c "send alert level=2 message=48" \
+            -c "X509 - Certificate verification failed"
+            # MBEDTLS_X509_BADCERT_NOT_TRUSTED -> MBEDTLS_SSL_ALERT_MSG_UNKNOWN_CA
 
 run_test    "Authentication: server badcert, client optional" \
             "$P_SRV crt_file=$DATA_FILES_PATH/server5-badsign.crt \
              key_file=$DATA_FILES_PATH/server5.key" \
-            "$P_CLI force_version=tls12 debug_level=1 auth_mode=optional" \
+            "$P_CLI force_version=tls13 debug_level=3 auth_mode=optional" \
             0 \
             -c "x509_verify_cert() returned" \
             -c "! The certificate is not correctly signed by the trusted CA" \
             -C "! mbedtls_ssl_handshake returned" \
+            -C "send alert level=2 message=48" \
             -C "X509 - Certificate verification failed"
 
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
-run_test    "Authentication: server goodcert, client optional, no trusted CA" \
-            "$P_SRV" \
-            "$P_CLI force_version=tls12 debug_level=3 auth_mode=optional ca_file=none ca_path=none" \
+run_test    "Authentication: server badcert, client optional (1.2)" \
+            "$P_SRV crt_file=$DATA_FILES_PATH/server5-badsign.crt \
+             key_file=$DATA_FILES_PATH/server5.key" \
+            "$P_CLI force_version=tls12 debug_level=3 auth_mode=optional" \
             0 \
             -c "x509_verify_cert() returned" \
             -c "! The certificate is not correctly signed by the trusted CA" \
-            -c "! Certificate verification flags"\
             -C "! mbedtls_ssl_handshake returned" \
-            -C "X509 - Certificate verification failed" \
-            -C "SSL - No CA Chain is set, but required to operate"
+            -C "send alert level=2 message=48" \
+            -C "X509 - Certificate verification failed"
+
+run_test    "Authentication: server badcert, client none" \
+            "$P_SRV crt_file=$DATA_FILES_PATH/server5-badsign.crt \
+             key_file=$DATA_FILES_PATH/server5.key" \
+            "$P_CLI debug_level=3 auth_mode=none" \
+            0 \
+            -C "x509_verify_cert() returned" \
+            -C "! The certificate is not correctly signed by the trusted CA" \
+            -C "! mbedtls_ssl_handshake returned" \
+            -C "send alert level=2 message=48" \
+            -C "X509 - Certificate verification failed"
+
+run_test    "Authentication: server badcert, client none (1.2)" \
+            "$P_SRV crt_file=$DATA_FILES_PATH/server5-badsign.crt \
+             key_file=$DATA_FILES_PATH/server5.key" \
+            "$P_CLI force_version=tls12 debug_level=3 auth_mode=none" \
+            0 \
+            -C "x509_verify_cert() returned" \
+            -C "! The certificate is not correctly signed by the trusted CA" \
+            -C "! mbedtls_ssl_handshake returned" \
+            -C "send alert level=2 message=48" \
+            -C "X509 - Certificate verification failed"
 
 requires_key_exchange_with_cert_in_tls12_or_tls13_enabled
 run_test    "Authentication: server goodcert, client required, no trusted CA" \
@@ -5852,6 +5894,65 @@ run_test    "Authentication: server goodcert, client required, no trusted CA" \
             -c "! Certificate verification flags"\
             -c "! mbedtls_ssl_handshake returned" \
             -c "SSL - No CA Chain is set, but required to operate"
+
+requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
+run_test    "Authentication: server goodcert, client required, no trusted CA (1.2)" \
+            "$P_SRV force_version=tls12" \
+            "$P_CLI debug_level=3 auth_mode=required ca_file=none ca_path=none" \
+            1 \
+            -c "x509_verify_cert() returned" \
+            -c "! The certificate is not correctly signed by the trusted CA" \
+            -c "! Certificate verification flags"\
+            -c "! mbedtls_ssl_handshake returned" \
+            -c "SSL - No CA Chain is set, but required to operate"
+
+requires_key_exchange_with_cert_in_tls12_or_tls13_enabled
+run_test    "Authentication: server goodcert, client optional, no trusted CA" \
+            "$P_SRV" \
+            "$P_CLI debug_level=3 auth_mode=optional ca_file=none ca_path=none" \
+            0 \
+            -c "x509_verify_cert() returned" \
+            -c "! The certificate is not correctly signed by the trusted CA" \
+            -c "! Certificate verification flags"\
+            -C "! mbedtls_ssl_handshake returned" \
+            -C "X509 - Certificate verification failed" \
+            -C "SSL - No CA Chain is set, but required to operate"
+
+requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
+run_test    "Authentication: server goodcert, client optional, no trusted CA (1.2)" \
+            "$P_SRV" \
+            "$P_CLI force_version=tls12 debug_level=3 auth_mode=optional ca_file=none ca_path=none" \
+            0 \
+            -c "x509_verify_cert() returned" \
+            -c "! The certificate is not correctly signed by the trusted CA" \
+            -c "! Certificate verification flags"\
+            -C "! mbedtls_ssl_handshake returned" \
+            -C "X509 - Certificate verification failed" \
+            -C "SSL - No CA Chain is set, but required to operate"
+
+requires_key_exchange_with_cert_in_tls12_or_tls13_enabled
+run_test    "Authentication: server goodcert, client none, no trusted CA" \
+            "$P_SRV" \
+            "$P_CLI debug_level=3 auth_mode=none ca_file=none ca_path=none" \
+            0 \
+            -C "x509_verify_cert() returned" \
+            -C "! The certificate is not correctly signed by the trusted CA" \
+            -C "! Certificate verification flags"\
+            -C "! mbedtls_ssl_handshake returned" \
+            -C "X509 - Certificate verification failed" \
+            -C "SSL - No CA Chain is set, but required to operate"
+
+requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
+run_test    "Authentication: server goodcert, client none, no trusted CA (1.2)" \
+            "$P_SRV" \
+            "$P_CLI force_version=tls12 debug_level=3 auth_mode=none ca_file=none ca_path=none" \
+            0 \
+            -C "x509_verify_cert() returned" \
+            -C "! The certificate is not correctly signed by the trusted CA" \
+            -C "! Certificate verification flags"\
+            -C "! mbedtls_ssl_handshake returned" \
+            -C "X509 - Certificate verification failed" \
+            -C "SSL - No CA Chain is set, but required to operate"
 
 # The purpose of the next two tests is to test the client's behaviour when receiving a server
 # certificate with an unsupported elliptic curve. This should usually not happen because
@@ -5877,16 +5978,6 @@ run_test    "Authentication: server ECDH p256v1, client optional, p256v1 unsuppo
             -c "bad certificate (EC key curve)"\
             -c "! Certificate verification flags"\
             -c "bad server certificate (ECDH curve)" # Expect failure only at ECDH params check
-
-run_test    "Authentication: server badcert, client none" \
-            "$P_SRV crt_file=$DATA_FILES_PATH/server5-badsign.crt \
-             key_file=$DATA_FILES_PATH/server5.key" \
-            "$P_CLI force_version=tls12 debug_level=1 auth_mode=none" \
-            0 \
-            -C "x509_verify_cert() returned" \
-            -C "! The certificate is not correctly signed by the trusted CA" \
-            -C "! mbedtls_ssl_handshake returned" \
-            -C "X509 - Certificate verification failed"
 
 requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
 run_test    "Authentication: client SHA256, server required" \
@@ -6098,7 +6189,7 @@ requires_full_size_output_buffer
 run_test    "Authentication: server max_int+1 chain, client optional" \
             "$P_SRV crt_file=$DATA_FILES_PATH/dir-maxpath/c10.pem \
                     key_file=$DATA_FILES_PATH/dir-maxpath/10.key" \
-            "$P_CLI force_version=tls12 server_name=CA10 ca_file=$DATA_FILES_PATH/dir-maxpath/00.crt \
+            "$P_CLI server_name=CA10 ca_file=$DATA_FILES_PATH/dir-maxpath/00.crt \
                     auth_mode=optional" \
             1 \
             -c "X509 - A fatal error occurred"
@@ -6219,7 +6310,7 @@ requires_config_enabled MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK
 run_test    "Authentication, CA callback: server badcert, client required" \
             "$P_SRV crt_file=$DATA_FILES_PATH/server5-badsign.crt \
              key_file=$DATA_FILES_PATH/server5.key" \
-            "$P_CLI force_version=tls12 ca_callback=1 debug_level=3 auth_mode=required" \
+            "$P_CLI ca_callback=1 debug_level=3 auth_mode=required" \
             1 \
             -c "use CA callback for X.509 CRT verification" \
             -c "x509_verify_cert() returned" \
@@ -6231,11 +6322,23 @@ requires_config_enabled MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK
 run_test    "Authentication, CA callback: server badcert, client optional" \
             "$P_SRV crt_file=$DATA_FILES_PATH/server5-badsign.crt \
              key_file=$DATA_FILES_PATH/server5.key" \
-            "$P_CLI force_version=tls12 ca_callback=1 debug_level=3 auth_mode=optional" \
+            "$P_CLI ca_callback=1 debug_level=3 auth_mode=optional" \
             0 \
             -c "use CA callback for X.509 CRT verification" \
             -c "x509_verify_cert() returned" \
             -c "! The certificate is not correctly signed by the trusted CA" \
+            -C "! mbedtls_ssl_handshake returned" \
+            -C "X509 - Certificate verification failed"
+
+requires_config_enabled MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK
+run_test    "Authentication, CA callback: server badcert, client none" \
+            "$P_SRV crt_file=$DATA_FILES_PATH/server5-badsign.crt \
+             key_file=$DATA_FILES_PATH/server5.key" \
+            "$P_CLI ca_callback=1 debug_level=3 auth_mode=none" \
+            0 \
+            -C "use CA callback for X.509 CRT verification" \
+            -C "x509_verify_cert() returned" \
+            -C "! The certificate is not correctly signed by the trusted CA" \
             -C "! mbedtls_ssl_handshake returned" \
             -C "X509 - Certificate verification failed"
 
@@ -6270,7 +6373,7 @@ run_test    "Authentication, CA callback: server ECDH p256v1, client optional, p
 
 requires_config_enabled MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK
 requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
-run_test    "Authentication, CA callback: client SHA256, server required" \
+run_test    "Authentication, CA callback: client SHA384, server required" \
             "$P_SRV ca_callback=1 debug_level=3 auth_mode=required" \
             "$P_CLI debug_level=3 crt_file=$DATA_FILES_PATH/server6.crt \
              key_file=$DATA_FILES_PATH/server6.key \
@@ -6282,7 +6385,7 @@ run_test    "Authentication, CA callback: client SHA256, server required" \
 
 requires_config_enabled MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK
 requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
-run_test    "Authentication, CA callback: client SHA384, server required" \
+run_test    "Authentication, CA callback: client SHA256, server required" \
             "$P_SRV ca_callback=1 debug_level=3 auth_mode=required" \
             "$P_CLI debug_level=3 crt_file=$DATA_FILES_PATH/server6.crt \
              key_file=$DATA_FILES_PATH/server6.key \
@@ -6294,7 +6397,7 @@ run_test    "Authentication, CA callback: client SHA384, server required" \
 
 requires_config_enabled MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK
 run_test    "Authentication, CA callback: client badcert, server required" \
-            "$P_SRV force_version=tls12 ca_callback=1 debug_level=3 auth_mode=required" \
+            "$P_SRV ca_callback=1 debug_level=3 auth_mode=required" \
             "$P_CLI debug_level=3 crt_file=$DATA_FILES_PATH/server5-badsign.crt \
              key_file=$DATA_FILES_PATH/server5.key" \
             1 \
@@ -6309,7 +6412,6 @@ run_test    "Authentication, CA callback: client badcert, server required" \
             -s "! The certificate is not correctly signed by the trusted CA" \
             -s "! mbedtls_ssl_handshake returned" \
             -s "send alert level=2 message=48" \
-            -c "! mbedtls_ssl_handshake returned" \
             -s "X509 - Certificate verification failed"
 # We don't check that the client receives the alert because it might
 # detect that its write end of the connection is closed and abort
@@ -6317,7 +6419,7 @@ run_test    "Authentication, CA callback: client badcert, server required" \
 
 requires_config_enabled MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK
 run_test    "Authentication, CA callback: client cert not trusted, server required" \
-            "$P_SRV force_version=tls12 ca_callback=1 debug_level=3 auth_mode=required" \
+            "$P_SRV ca_callback=1 debug_level=3 auth_mode=required" \
             "$P_CLI debug_level=3 crt_file=$DATA_FILES_PATH/server5-selfsigned.crt \
              key_file=$DATA_FILES_PATH/server5.key" \
             1 \
@@ -6331,12 +6433,11 @@ run_test    "Authentication, CA callback: client cert not trusted, server requir
             -s "x509_verify_cert() returned" \
             -s "! The certificate is not correctly signed by the trusted CA" \
             -s "! mbedtls_ssl_handshake returned" \
-            -c "! mbedtls_ssl_handshake returned" \
             -s "X509 - Certificate verification failed"
 
 requires_config_enabled MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK
 run_test    "Authentication, CA callback: client badcert, server optional" \
-            "$P_SRV force_version=tls12 ca_callback=1 debug_level=3 auth_mode=optional" \
+            "$P_SRV ca_callback=1 debug_level=3 auth_mode=optional" \
             "$P_CLI debug_level=3 crt_file=$DATA_FILES_PATH/server5-badsign.crt \
              key_file=$DATA_FILES_PATH/server5.key" \
             0 \
@@ -6359,7 +6460,7 @@ requires_config_enabled MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK
 run_test    "Authentication, CA callback: server max_int chain, client default" \
             "$P_SRV crt_file=$DATA_FILES_PATH/dir-maxpath/c09.pem \
                     key_file=$DATA_FILES_PATH/dir-maxpath/09.key" \
-            "$P_CLI force_version=tls12 ca_callback=1 debug_level=3 server_name=CA09 ca_file=$DATA_FILES_PATH/dir-maxpath/00.crt" \
+            "$P_CLI ca_callback=1 debug_level=3 server_name=CA09 ca_file=$DATA_FILES_PATH/dir-maxpath/00.crt" \
             0 \
             -c "use CA callback for X.509 CRT verification" \
             -C "X509 - A fatal error occurred"
@@ -6370,7 +6471,7 @@ requires_config_enabled MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK
 run_test    "Authentication, CA callback: server max_int+1 chain, client default" \
             "$P_SRV crt_file=$DATA_FILES_PATH/dir-maxpath/c10.pem \
                     key_file=$DATA_FILES_PATH/dir-maxpath/10.key" \
-            "$P_CLI force_version=tls12 debug_level=3 ca_callback=1 server_name=CA10 ca_file=$DATA_FILES_PATH/dir-maxpath/00.crt" \
+            "$P_CLI debug_level=3 ca_callback=1 server_name=CA10 ca_file=$DATA_FILES_PATH/dir-maxpath/00.crt" \
             1 \
             -c "use CA callback for X.509 CRT verification" \
             -c "X509 - A fatal error occurred"
@@ -6381,7 +6482,7 @@ requires_config_enabled MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK
 run_test    "Authentication, CA callback: server max_int+1 chain, client optional" \
             "$P_SRV crt_file=$DATA_FILES_PATH/dir-maxpath/c10.pem \
                     key_file=$DATA_FILES_PATH/dir-maxpath/10.key" \
-            "$P_CLI force_version=tls12 ca_callback=1 server_name=CA10 ca_file=$DATA_FILES_PATH/dir-maxpath/00.crt \
+            "$P_CLI ca_callback=1 server_name=CA10 ca_file=$DATA_FILES_PATH/dir-maxpath/00.crt \
                     debug_level=3 auth_mode=optional" \
             1 \
             -c "use CA callback for X.509 CRT verification" \
@@ -6391,7 +6492,7 @@ requires_config_value_equals "MBEDTLS_X509_MAX_INTERMEDIATE_CA" $MAX_IM_CA
 requires_full_size_output_buffer
 requires_config_enabled MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK
 run_test    "Authentication, CA callback: client max_int+1 chain, server optional" \
-            "$P_SRV force_version=tls12 ca_callback=1 debug_level=3 ca_file=$DATA_FILES_PATH/dir-maxpath/00.crt auth_mode=optional" \
+            "$P_SRV ca_callback=1 debug_level=3 ca_file=$DATA_FILES_PATH/dir-maxpath/00.crt auth_mode=optional" \
             "$P_CLI crt_file=$DATA_FILES_PATH/dir-maxpath/c10.pem \
                     key_file=$DATA_FILES_PATH/dir-maxpath/10.key" \
             1 \
@@ -6402,7 +6503,7 @@ requires_config_value_equals "MBEDTLS_X509_MAX_INTERMEDIATE_CA" $MAX_IM_CA
 requires_full_size_output_buffer
 requires_config_enabled MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK
 run_test    "Authentication, CA callback: client max_int+1 chain, server required" \
-            "$P_SRV force_version=tls12 ca_callback=1 debug_level=3 ca_file=$DATA_FILES_PATH/dir-maxpath/00.crt auth_mode=required" \
+            "$P_SRV ca_callback=1 debug_level=3 ca_file=$DATA_FILES_PATH/dir-maxpath/00.crt auth_mode=required" \
             "$P_CLI crt_file=$DATA_FILES_PATH/dir-maxpath/c10.pem \
                     key_file=$DATA_FILES_PATH/dir-maxpath/10.key" \
             1 \
@@ -6413,7 +6514,7 @@ requires_config_value_equals "MBEDTLS_X509_MAX_INTERMEDIATE_CA" $MAX_IM_CA
 requires_full_size_output_buffer
 requires_config_enabled MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK
 run_test    "Authentication, CA callback: client max_int chain, server required" \
-            "$P_SRV force_version=tls12 ca_callback=1 debug_level=3 ca_file=$DATA_FILES_PATH/dir-maxpath/00.crt auth_mode=required" \
+            "$P_SRV ca_callback=1 debug_level=3 ca_file=$DATA_FILES_PATH/dir-maxpath/00.crt auth_mode=required" \
             "$P_CLI crt_file=$DATA_FILES_PATH/dir-maxpath/c09.pem \
                     key_file=$DATA_FILES_PATH/dir-maxpath/09.key" \
             0 \
@@ -6578,7 +6679,9 @@ run_test    "SNI: CA override with CRL" \
             -S "skip parse certificate verify" \
             -s "x509_verify_cert() returned" \
             -S "! The certificate is not correctly signed by the trusted CA" \
+            -s "send alert level=2 message=44" \
             -s "The certificate has been revoked (is on a CRL)"
+            # MBEDTLS_X509_BADCERT_REVOKED -> MBEDTLS_SSL_ALERT_MSG_CERT_REVOKED
 
 # Tests for SNI and DTLS
 
@@ -6726,7 +6829,9 @@ run_test    "SNI: DTLS, CA override with CRL" \
             -S "skip parse certificate verify" \
             -s "x509_verify_cert() returned" \
             -S "! The certificate is not correctly signed by the trusted CA" \
+            -s "send alert level=2 message=44" \
             -s "The certificate has been revoked (is on a CRL)"
+            # MBEDTLS_X509_BADCERT_REVOKED -> MBEDTLS_SSL_ALERT_MSG_CERT_REVOKED
 
 # Tests for non-blocking I/O: exercise a variety of handshake flows
 
@@ -7640,22 +7745,26 @@ run_test    "ALPN: both, no common" \
 
 # Tests for keyUsage in leaf certificates, part 1:
 # server-side certificate/suite selection
+#
+# This is only about 1.2 (for 1.3, all key exchanges use signatures).
+# In 4.0 this will probably go away as all TLS 1.2 key exchanges will use
+# signatures too, following the removal of RSA #8170 and static ECDH #9201.
 
-run_test    "keyUsage srv: RSA, digitalSignature -> (EC)DHE-RSA" \
+run_test    "keyUsage srv 1.2: RSA, digitalSignature -> (EC)DHE-RSA" \
             "$P_SRV force_version=tls12 key_file=$DATA_FILES_PATH/server2.key \
              crt_file=$DATA_FILES_PATH/server2.ku-ds.crt" \
             "$P_CLI" \
             0 \
             -c "Ciphersuite is TLS-[EC]*DHE-RSA-WITH-"
 
-run_test    "keyUsage srv: RSA, keyEncipherment -> RSA" \
+run_test    "keyUsage srv 1.2: RSA, keyEncipherment -> RSA" \
             "$P_SRV force_version=tls12 key_file=$DATA_FILES_PATH/server2.key \
              crt_file=$DATA_FILES_PATH/server2.ku-ke.crt" \
             "$P_CLI" \
             0 \
             -c "Ciphersuite is TLS-RSA-WITH-"
 
-run_test    "keyUsage srv: RSA, keyAgreement -> fail" \
+run_test    "keyUsage srv 1.2: RSA, keyAgreement -> fail" \
             "$P_SRV force_version=tls12 key_file=$DATA_FILES_PATH/server2.key \
              crt_file=$DATA_FILES_PATH/server2.ku-ka.crt" \
             "$P_CLI" \
@@ -7663,7 +7772,7 @@ run_test    "keyUsage srv: RSA, keyAgreement -> fail" \
             -C "Ciphersuite is "
 
 requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
-run_test    "keyUsage srv: ECDSA, digitalSignature -> ECDHE-ECDSA" \
+run_test    "keyUsage srv 1.2: ECC, digitalSignature -> ECDHE-ECDSA" \
             "$P_SRV force_version=tls12 key_file=$DATA_FILES_PATH/server5.key \
              crt_file=$DATA_FILES_PATH/server5.ku-ds.crt" \
             "$P_CLI" \
@@ -7671,14 +7780,14 @@ run_test    "keyUsage srv: ECDSA, digitalSignature -> ECDHE-ECDSA" \
             -c "Ciphersuite is TLS-ECDHE-ECDSA-WITH-"
 
 
-run_test    "keyUsage srv: ECDSA, keyAgreement -> ECDH-" \
+run_test    "keyUsage srv 1.2: ECC, keyAgreement -> ECDH-" \
             "$P_SRV force_version=tls12 key_file=$DATA_FILES_PATH/server5.key \
              crt_file=$DATA_FILES_PATH/server5.ku-ka.crt" \
             "$P_CLI" \
             0 \
             -c "Ciphersuite is TLS-ECDH-"
 
-run_test    "keyUsage srv: ECDSA, keyEncipherment -> fail" \
+run_test    "keyUsage srv 1.2: ECC, keyEncipherment -> fail" \
             "$P_SRV force_version=tls12 key_file=$DATA_FILES_PATH/server5.key \
              crt_file=$DATA_FILES_PATH/server5.ku-ke.crt" \
             "$P_CLI" \
@@ -7687,8 +7796,12 @@ run_test    "keyUsage srv: ECDSA, keyEncipherment -> fail" \
 
 # Tests for keyUsage in leaf certificates, part 2:
 # client-side checking of server cert
+#
+# TLS 1.3 uses only signature, but for 1.2 it depends on the key exchange.
+# In 4.0 this will probably change as all TLS 1.2 key exchanges will use
+# signatures too, following the removal of RSA #8170 and static ECDH #9201.
 
-run_test    "keyUsage cli: DigitalSignature+KeyEncipherment, RSA: OK" \
+run_test    "keyUsage cli 1.2: DigitalSignature+KeyEncipherment, RSA: OK" \
             "$O_SRV -tls1_2 -key $DATA_FILES_PATH/server2.key \
              -cert $DATA_FILES_PATH/server2.ku-ds_ke.crt" \
             "$P_CLI debug_level=1 \
@@ -7698,7 +7811,7 @@ run_test    "keyUsage cli: DigitalSignature+KeyEncipherment, RSA: OK" \
             -C "Processing of the Certificate handshake message failed" \
             -c "Ciphersuite is TLS-"
 
-run_test    "keyUsage cli: DigitalSignature+KeyEncipherment, DHE-RSA: OK" \
+run_test    "keyUsage cli 1.2: DigitalSignature+KeyEncipherment, DHE-RSA: OK" \
             "$O_SRV -tls1_2 -key $DATA_FILES_PATH/server2.key \
              -cert $DATA_FILES_PATH/server2.ku-ds_ke.crt" \
             "$P_CLI debug_level=1 \
@@ -7708,7 +7821,7 @@ run_test    "keyUsage cli: DigitalSignature+KeyEncipherment, DHE-RSA: OK" \
             -C "Processing of the Certificate handshake message failed" \
             -c "Ciphersuite is TLS-"
 
-run_test    "keyUsage cli: KeyEncipherment, RSA: OK" \
+run_test    "keyUsage cli 1.2: KeyEncipherment, RSA: OK" \
             "$O_SRV -tls1_2 -key $DATA_FILES_PATH/server2.key \
              -cert $DATA_FILES_PATH/server2.ku-ke.crt" \
             "$P_CLI debug_level=1 \
@@ -7718,28 +7831,32 @@ run_test    "keyUsage cli: KeyEncipherment, RSA: OK" \
             -C "Processing of the Certificate handshake message failed" \
             -c "Ciphersuite is TLS-"
 
-run_test    "keyUsage cli: KeyEncipherment, DHE-RSA: fail" \
+run_test    "keyUsage cli 1.2: KeyEncipherment, DHE-RSA: fail (hard)" \
             "$O_SRV -tls1_2 -key $DATA_FILES_PATH/server2.key \
              -cert $DATA_FILES_PATH/server2.ku-ke.crt" \
-            "$P_CLI debug_level=1 \
+            "$P_CLI debug_level=3 \
              force_ciphersuite=TLS-DHE-RSA-WITH-AES-128-CBC-SHA" \
             1 \
             -c "bad certificate (usage extensions)" \
             -c "Processing of the Certificate handshake message failed" \
-            -C "Ciphersuite is TLS-"
+            -C "Ciphersuite is TLS-" \
+            -c "send alert level=2 message=43" \
+            -c "! Usage does not match the keyUsage extension"
+            # MBEDTLS_X509_BADCERT_KEY_USAGE -> MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT
 
-run_test    "keyUsage cli: KeyEncipherment, DHE-RSA: fail, soft" \
+run_test    "keyUsage cli 1.2: KeyEncipherment, DHE-RSA: fail (soft)" \
             "$O_SRV -tls1_2 -key $DATA_FILES_PATH/server2.key \
              -cert $DATA_FILES_PATH/server2.ku-ke.crt" \
-            "$P_CLI debug_level=1 auth_mode=optional \
+            "$P_CLI debug_level=3 auth_mode=optional \
              force_ciphersuite=TLS-DHE-RSA-WITH-AES-128-CBC-SHA" \
             0 \
             -c "bad certificate (usage extensions)" \
             -C "Processing of the Certificate handshake message failed" \
             -c "Ciphersuite is TLS-" \
+            -C "send alert level=2 message=43" \
             -c "! Usage does not match the keyUsage extension"
 
-run_test    "keyUsage cli: DigitalSignature, DHE-RSA: OK" \
+run_test    "keyUsage cli 1.2: DigitalSignature, DHE-RSA: OK" \
             "$O_SRV -tls1_2 -key $DATA_FILES_PATH/server2.key \
              -cert $DATA_FILES_PATH/server2.ku-ds.crt" \
             "$P_CLI debug_level=1 \
@@ -7749,26 +7866,42 @@ run_test    "keyUsage cli: DigitalSignature, DHE-RSA: OK" \
             -C "Processing of the Certificate handshake message failed" \
             -c "Ciphersuite is TLS-"
 
-run_test    "keyUsage cli: DigitalSignature, RSA: fail" \
+run_test    "keyUsage cli 1.2: DigitalSignature, RSA: fail (hard)" \
             "$O_SRV -tls1_2 -key $DATA_FILES_PATH/server2.key \
              -cert $DATA_FILES_PATH/server2.ku-ds.crt" \
-            "$P_CLI debug_level=1 \
+            "$P_CLI debug_level=3 \
              force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA" \
             1 \
             -c "bad certificate (usage extensions)" \
             -c "Processing of the Certificate handshake message failed" \
-            -C "Ciphersuite is TLS-"
+            -C "Ciphersuite is TLS-" \
+            -c "send alert level=2 message=43" \
+            -c "! Usage does not match the keyUsage extension"
+            # MBEDTLS_X509_BADCERT_KEY_USAGE -> MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT
 
-run_test    "keyUsage cli: DigitalSignature, RSA: fail, soft" \
+run_test    "keyUsage cli 1.2: DigitalSignature, RSA: fail (soft)" \
             "$O_SRV -tls1_2 -key $DATA_FILES_PATH/server2.key \
              -cert $DATA_FILES_PATH/server2.ku-ds.crt" \
-            "$P_CLI debug_level=1 auth_mode=optional \
+            "$P_CLI debug_level=3 auth_mode=optional \
              force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA" \
             0 \
             -c "bad certificate (usage extensions)" \
             -C "Processing of the Certificate handshake message failed" \
             -c "Ciphersuite is TLS-" \
+            -C "send alert level=2 message=43" \
             -c "! Usage does not match the keyUsage extension"
+
+requires_openssl_tls1_3_with_compatible_ephemeral
+requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+run_test    "keyUsage cli 1.3: DigitalSignature, RSA: OK" \
+            "$O_NEXT_SRV_NO_CERT -tls1_3 -num_tickets=0 -key $DATA_FILES_PATH/server2.key \
+             -cert $DATA_FILES_PATH/server2-sha256.ku-ds.crt" \
+            "$P_CLI debug_level=3" \
+            0 \
+            -C "bad certificate (usage extensions)" \
+            -C "Processing of the Certificate handshake message failed" \
+            -c "Ciphersuite is"
 
 requires_openssl_tls1_3_with_compatible_ephemeral
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
@@ -7785,26 +7918,32 @@ run_test    "keyUsage cli 1.3: DigitalSignature+KeyEncipherment, RSA: OK" \
 requires_openssl_tls1_3_with_compatible_ephemeral
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-run_test    "keyUsage cli 1.3: KeyEncipherment, RSA: fail" \
+run_test    "keyUsage cli 1.3: KeyEncipherment, RSA: fail (hard)" \
             "$O_NEXT_SRV_NO_CERT -tls1_3 -num_tickets=0 -key $DATA_FILES_PATH/server2.key \
              -cert $DATA_FILES_PATH/server2-sha256.ku-ke.crt" \
-            "$P_CLI debug_level=1" \
+            "$P_CLI debug_level=3" \
             1 \
             -c "bad certificate (usage extensions)" \
             -c "Processing of the Certificate handshake message failed" \
-            -C "Ciphersuite is"
+            -C "Ciphersuite is" \
+            -c "send alert level=2 message=43" \
+            -c "! Usage does not match the keyUsage extension"
+            # MBEDTLS_X509_BADCERT_KEY_USAGE -> MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT
 
 requires_openssl_tls1_3_with_compatible_ephemeral
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-run_test    "keyUsage cli 1.3: KeyAgreement, RSA: fail" \
+run_test    "keyUsage cli 1.3: KeyAgreement, RSA: fail (hard)" \
             "$O_NEXT_SRV_NO_CERT -tls1_3 -num_tickets=0 -key $DATA_FILES_PATH/server2.key \
              -cert $DATA_FILES_PATH/server2-sha256.ku-ka.crt" \
-            "$P_CLI debug_level=1" \
+            "$P_CLI debug_level=3" \
             1 \
             -c "bad certificate (usage extensions)" \
             -c "Processing of the Certificate handshake message failed" \
-            -C "Ciphersuite is"
+            -C "Ciphersuite is" \
+            -c "send alert level=2 message=43" \
+            -c "! Usage does not match the keyUsage extension"
+            # MBEDTLS_X509_BADCERT_KEY_USAGE -> MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT
 
 requires_openssl_tls1_3_with_compatible_ephemeral
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
@@ -7821,32 +7960,40 @@ run_test    "keyUsage cli 1.3: DigitalSignature, ECDSA: OK" \
 requires_openssl_tls1_3_with_compatible_ephemeral
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-run_test    "keyUsage cli 1.3: KeyEncipherment, ECDSA: fail" \
+run_test    "keyUsage cli 1.3: KeyEncipherment, ECDSA: fail (hard)" \
             "$O_NEXT_SRV_NO_CERT -tls1_3 -num_tickets=0 -key $DATA_FILES_PATH/server5.key \
              -cert $DATA_FILES_PATH/server5.ku-ke.crt" \
-            "$P_CLI debug_level=1" \
+            "$P_CLI debug_level=3" \
             1 \
             -c "bad certificate (usage extensions)" \
             -c "Processing of the Certificate handshake message failed" \
-            -C "Ciphersuite is"
+            -C "Ciphersuite is" \
+            -c "send alert level=2 message=43" \
+            -c "! Usage does not match the keyUsage extension"
+            # MBEDTLS_X509_BADCERT_KEY_USAGE -> MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT
 
 requires_openssl_tls1_3_with_compatible_ephemeral
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-run_test    "keyUsage cli 1.3: KeyAgreement, ECDSA: fail" \
+run_test    "keyUsage cli 1.3: KeyAgreement, ECDSA: fail (hard)" \
             "$O_NEXT_SRV_NO_CERT -tls1_3 -num_tickets=0 -key $DATA_FILES_PATH/server5.key \
              -cert $DATA_FILES_PATH/server5.ku-ka.crt" \
-            "$P_CLI debug_level=1" \
+            "$P_CLI debug_level=3" \
             1 \
             -c "bad certificate (usage extensions)" \
             -c "Processing of the Certificate handshake message failed" \
-            -C "Ciphersuite is"
+            -C "Ciphersuite is" \
+            -c "send alert level=2 message=43" \
+            -c "! Usage does not match the keyUsage extension"
+            # MBEDTLS_X509_BADCERT_KEY_USAGE -> MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT
 
 # Tests for keyUsage in leaf certificates, part 3:
 # server-side checking of client cert
+#
+# Here, both 1.2 and 1.3 only use signatures.
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-run_test    "keyUsage cli-auth: RSA, DigitalSignature: OK" \
+run_test    "keyUsage cli-auth 1.2: RSA, DigitalSignature: OK" \
             "$P_SRV debug_level=1 auth_mode=optional" \
             "$O_CLI -tls1_2 -key $DATA_FILES_PATH/server2.key \
              -cert $DATA_FILES_PATH/server2.ku-ds.crt" \
@@ -7856,25 +8003,40 @@ run_test    "keyUsage cli-auth: RSA, DigitalSignature: OK" \
             -S "Processing of the Certificate handshake message failed"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-run_test    "keyUsage cli-auth: RSA, KeyEncipherment: fail (soft)" \
+run_test    "keyUsage cli-auth 1.2: RSA, DigitalSignature+KeyEncipherment: OK" \
             "$P_SRV debug_level=1 auth_mode=optional" \
+            "$O_CLI -tls1_2 -key $DATA_FILES_PATH/server2.key \
+             -cert $DATA_FILES_PATH/server2.ku-ds_ke.crt" \
+            0 \
+            -s "Verifying peer X.509 certificate... ok" \
+            -S "bad certificate (usage extensions)" \
+            -S "Processing of the Certificate handshake message failed"
+
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+run_test    "keyUsage cli-auth 1.2: RSA, KeyEncipherment: fail (soft)" \
+            "$P_SRV debug_level=3 auth_mode=optional" \
             "$O_CLI -tls1_2 -key $DATA_FILES_PATH/server2.key \
              -cert $DATA_FILES_PATH/server2.ku-ke.crt" \
             0 \
             -s "bad certificate (usage extensions)" \
+            -S "send alert level=2 message=43" \
+            -s "! Usage does not match the keyUsage extension" \
             -S "Processing of the Certificate handshake message failed"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-run_test    "keyUsage cli-auth: RSA, KeyEncipherment: fail (hard)" \
-            "$P_SRV debug_level=1 force_version=tls12 auth_mode=required" \
+run_test    "keyUsage cli-auth 1.2: RSA, KeyEncipherment: fail (hard)" \
+            "$P_SRV debug_level=3 force_version=tls12 auth_mode=required" \
             "$O_CLI -tls1_2 -key $DATA_FILES_PATH/server2.key \
              -cert $DATA_FILES_PATH/server2.ku-ke.crt" \
             1 \
             -s "bad certificate (usage extensions)" \
+            -s "send alert level=2 message=43" \
+            -s "! Usage does not match the keyUsage extension" \
             -s "Processing of the Certificate handshake message failed"
+            # MBEDTLS_X509_BADCERT_KEY_USAGE -> MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-run_test    "keyUsage cli-auth: ECDSA, DigitalSignature: OK" \
+run_test    "keyUsage cli-auth 1.2: ECDSA, DigitalSignature: OK" \
             "$P_SRV debug_level=1 auth_mode=optional" \
             "$O_CLI -tls1_2 -key $DATA_FILES_PATH/server5.key \
              -cert $DATA_FILES_PATH/server5.ku-ds.crt" \
@@ -7884,13 +8046,27 @@ run_test    "keyUsage cli-auth: ECDSA, DigitalSignature: OK" \
             -S "Processing of the Certificate handshake message failed"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-run_test    "keyUsage cli-auth: ECDSA, KeyAgreement: fail (soft)" \
-            "$P_SRV debug_level=1 auth_mode=optional" \
+run_test    "keyUsage cli-auth 1.2: ECDSA, KeyAgreement: fail (soft)" \
+            "$P_SRV debug_level=3 auth_mode=optional" \
             "$O_CLI -tls1_2 -key $DATA_FILES_PATH/server5.key \
              -cert $DATA_FILES_PATH/server5.ku-ka.crt" \
             0 \
             -s "bad certificate (usage extensions)" \
+            -S "send alert level=2 message=43" \
+            -s "! Usage does not match the keyUsage extension" \
             -S "Processing of the Certificate handshake message failed"
+
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+run_test    "keyUsage cli-auth 1.2: ECDSA, KeyAgreement: fail (hard)" \
+            "$P_SRV debug_level=3 auth_mode=required" \
+            "$O_CLI -tls1_2 -key $DATA_FILES_PATH/server5.key \
+             -cert $DATA_FILES_PATH/server5.ku-ka.crt" \
+            1 \
+            -s "bad certificate (usage extensions)" \
+            -s "send alert level=2 message=43" \
+            -s "! Usage does not match the keyUsage extension" \
+            -s "Processing of the Certificate handshake message failed"
+            # MBEDTLS_X509_BADCERT_KEY_USAGE -> MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT
 
 requires_openssl_tls1_3_with_compatible_ephemeral
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
@@ -7907,13 +8083,42 @@ run_test    "keyUsage cli-auth 1.3: RSA, DigitalSignature: OK" \
 requires_openssl_tls1_3_with_compatible_ephemeral
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-run_test    "keyUsage cli-auth 1.3: RSA, KeyEncipherment: fail (soft)" \
+run_test    "keyUsage cli-auth 1.3: RSA, DigitalSignature+KeyEncipherment: OK" \
             "$P_SRV debug_level=1 force_version=tls13 auth_mode=optional" \
+            "$O_NEXT_CLI_NO_CERT -key $DATA_FILES_PATH/server2.key \
+             -cert $DATA_FILES_PATH/server2-sha256.ku-ds_ke.crt" \
+            0 \
+            -s "Verifying peer X.509 certificate... ok" \
+            -S "bad certificate (usage extensions)" \
+            -S "Processing of the Certificate handshake message failed"
+
+requires_openssl_tls1_3_with_compatible_ephemeral
+requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+run_test    "keyUsage cli-auth 1.3: RSA, KeyEncipherment: fail (soft)" \
+            "$P_SRV debug_level=3 force_version=tls13 auth_mode=optional" \
             "$O_NEXT_CLI_NO_CERT -key $DATA_FILES_PATH/server2.key \
              -cert $DATA_FILES_PATH/server2-sha256.ku-ke.crt" \
             0 \
             -s "bad certificate (usage extensions)" \
+            -S "send alert level=2 message=43" \
+            -s "! Usage does not match the keyUsage extension" \
             -S "Processing of the Certificate handshake message failed"
+
+requires_openssl_tls1_3_with_compatible_ephemeral
+requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+run_test    "keyUsage cli-auth 1.3: RSA, KeyEncipherment: fail (hard)" \
+            "$P_SRV debug_level=3 force_version=tls13 auth_mode=required" \
+            "$P_CLI key_file=$DATA_FILES_PATH/server2.key \
+             crt_file=$DATA_FILES_PATH/server2-sha256.ku-ke.crt" \
+            1 \
+            -s "bad certificate (usage extensions)" \
+            -s "Processing of the Certificate handshake message failed" \
+            -s "send alert level=2 message=43" \
+            -s "! Usage does not match the keyUsage extension" \
+            -s "! mbedtls_ssl_handshake returned"
+            # MBEDTLS_X509_BADCERT_KEY_USAGE -> MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT
 
 requires_openssl_tls1_3_with_compatible_ephemeral
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
@@ -7931,12 +8136,28 @@ requires_openssl_tls1_3_with_compatible_ephemeral
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "keyUsage cli-auth 1.3: ECDSA, KeyAgreement: fail (soft)" \
-            "$P_SRV debug_level=1 force_version=tls13 auth_mode=optional" \
+            "$P_SRV debug_level=3 force_version=tls13 auth_mode=optional" \
             "$O_NEXT_CLI_NO_CERT -key $DATA_FILES_PATH/server5.key \
              -cert $DATA_FILES_PATH/server5.ku-ka.crt" \
             0 \
             -s "bad certificate (usage extensions)" \
+            -s "! Usage does not match the keyUsage extension" \
             -S "Processing of the Certificate handshake message failed"
+
+requires_openssl_tls1_3_with_compatible_ephemeral
+requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+run_test    "keyUsage cli-auth 1.3: ECDSA, KeyAgreement: fail (hard)" \
+            "$P_SRV debug_level=3 force_version=tls13 auth_mode=required" \
+            "$P_CLI key_file=$DATA_FILES_PATH/server5.key \
+             crt_file=$DATA_FILES_PATH/server5.ku-ka.crt" \
+            1 \
+            -s "bad certificate (usage extensions)" \
+            -s "Processing of the Certificate handshake message failed" \
+            -s "send alert level=2 message=43" \
+            -s "! Usage does not match the keyUsage extension" \
+            -s "! mbedtls_ssl_handshake returned"
+            # MBEDTLS_X509_BADCERT_KEY_USAGE -> MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT
 
 # Tests for extendedKeyUsage, part 1: server-side certificate/suite selection
 
@@ -7971,7 +8192,7 @@ run_test    "extKeyUsage srv: codeSign -> fail" \
 # Tests for extendedKeyUsage, part 2: client-side checking of server cert
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-run_test    "extKeyUsage cli: serverAuth -> OK" \
+run_test    "extKeyUsage cli 1.2: serverAuth -> OK" \
             "$O_SRV -tls1_2 -key $DATA_FILES_PATH/server5.key \
              -cert $DATA_FILES_PATH/server5.eku-srv.crt" \
             "$P_CLI debug_level=1" \
@@ -7981,7 +8202,7 @@ run_test    "extKeyUsage cli: serverAuth -> OK" \
             -c "Ciphersuite is TLS-"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-run_test    "extKeyUsage cli: serverAuth,clientAuth -> OK" \
+run_test    "extKeyUsage cli 1.2: serverAuth,clientAuth -> OK" \
             "$O_SRV -tls1_2 -key $DATA_FILES_PATH/server5.key \
              -cert $DATA_FILES_PATH/server5.eku-srv_cli.crt" \
             "$P_CLI debug_level=1" \
@@ -7991,7 +8212,7 @@ run_test    "extKeyUsage cli: serverAuth,clientAuth -> OK" \
             -c "Ciphersuite is TLS-"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-run_test    "extKeyUsage cli: codeSign,anyEKU -> OK" \
+run_test    "extKeyUsage cli 1.2: codeSign,anyEKU -> OK" \
             "$O_SRV -tls1_2 -key $DATA_FILES_PATH/server5.key \
              -cert $DATA_FILES_PATH/server5.eku-cs_any.crt" \
             "$P_CLI debug_level=1" \
@@ -8001,14 +8222,30 @@ run_test    "extKeyUsage cli: codeSign,anyEKU -> OK" \
             -c "Ciphersuite is TLS-"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-run_test    "extKeyUsage cli: codeSign -> fail" \
+run_test    "extKeyUsage cli 1.2: codeSign -> fail (soft)" \
             "$O_SRV -tls1_2 -key $DATA_FILES_PATH/server5.key \
              -cert $DATA_FILES_PATH/server5.eku-cs.crt" \
-            "$P_CLI debug_level=1" \
+            "$P_CLI debug_level=3 auth_mode=optional" \
+            0 \
+            -c "bad certificate (usage extensions)" \
+            -C "Processing of the Certificate handshake message failed" \
+            -c "Ciphersuite is TLS-" \
+            -C "send alert level=2 message=43" \
+            -c "! Usage does not match the extendedKeyUsage extension"
+            # MBEDTLS_X509_BADCERT_EXT_KEY_USAGE  -> MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT
+
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+run_test    "extKeyUsage cli 1.2: codeSign -> fail (hard)" \
+            "$O_SRV -tls1_2 -key $DATA_FILES_PATH/server5.key \
+             -cert $DATA_FILES_PATH/server5.eku-cs.crt" \
+            "$P_CLI debug_level=3" \
             1 \
             -c "bad certificate (usage extensions)" \
             -c "Processing of the Certificate handshake message failed" \
-            -C "Ciphersuite is TLS-"
+            -C "Ciphersuite is TLS-" \
+            -c "send alert level=2 message=43" \
+            -c "! Usage does not match the extendedKeyUsage extension"
+            # MBEDTLS_X509_BADCERT_EXT_KEY_USAGE  -> MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT
 
 requires_openssl_tls1_3_with_compatible_ephemeral
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
@@ -8049,19 +8286,22 @@ run_test    "extKeyUsage cli 1.3: codeSign,anyEKU -> OK" \
 requires_openssl_tls1_3_with_compatible_ephemeral
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-run_test    "extKeyUsage cli 1.3: codeSign -> fail" \
+run_test    "extKeyUsage cli 1.3: codeSign -> fail (hard)" \
             "$O_NEXT_SRV_NO_CERT -tls1_3 -num_tickets=0 -key $DATA_FILES_PATH/server5.key \
              -cert $DATA_FILES_PATH/server5.eku-cs.crt" \
-            "$P_CLI debug_level=1" \
+            "$P_CLI debug_level=3" \
             1 \
             -c "bad certificate (usage extensions)" \
             -c "Processing of the Certificate handshake message failed" \
-            -C "Ciphersuite is"
+            -C "Ciphersuite is" \
+            -c "send alert level=2 message=43" \
+            -c "! Usage does not match the extendedKeyUsage extension"
+            # MBEDTLS_X509_BADCERT_EXT_KEY_USAGE  -> MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT
 
 # Tests for extendedKeyUsage, part 3: server-side checking of client cert
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-run_test    "extKeyUsage cli-auth: clientAuth -> OK" \
+run_test    "extKeyUsage cli-auth 1.2: clientAuth -> OK" \
             "$P_SRV debug_level=1 auth_mode=optional" \
             "$O_CLI -tls1_2 -key $DATA_FILES_PATH/server5.key \
              -cert $DATA_FILES_PATH/server5.eku-cli.crt" \
@@ -8070,7 +8310,7 @@ run_test    "extKeyUsage cli-auth: clientAuth -> OK" \
             -S "Processing of the Certificate handshake message failed"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-run_test    "extKeyUsage cli-auth: serverAuth,clientAuth -> OK" \
+run_test    "extKeyUsage cli-auth 1.2: serverAuth,clientAuth -> OK" \
             "$P_SRV debug_level=1 auth_mode=optional" \
             "$O_CLI -tls1_2 -key $DATA_FILES_PATH/server5.key \
              -cert $DATA_FILES_PATH/server5.eku-srv_cli.crt" \
@@ -8079,7 +8319,7 @@ run_test    "extKeyUsage cli-auth: serverAuth,clientAuth -> OK" \
             -S "Processing of the Certificate handshake message failed"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-run_test    "extKeyUsage cli-auth: codeSign,anyEKU -> OK" \
+run_test    "extKeyUsage cli-auth 1.2: codeSign,anyEKU -> OK" \
             "$P_SRV debug_level=1 auth_mode=optional" \
             "$O_CLI -tls1_2 -key $DATA_FILES_PATH/server5.key \
              -cert $DATA_FILES_PATH/server5.eku-cs_any.crt" \
@@ -8088,22 +8328,27 @@ run_test    "extKeyUsage cli-auth: codeSign,anyEKU -> OK" \
             -S "Processing of the Certificate handshake message failed"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-run_test    "extKeyUsage cli-auth: codeSign -> fail (soft)" \
-            "$P_SRV debug_level=1 auth_mode=optional" \
+run_test    "extKeyUsage cli-auth 1.2: codeSign -> fail (soft)" \
+            "$P_SRV debug_level=3 auth_mode=optional" \
             "$O_CLI -tls1_2 -key $DATA_FILES_PATH/server5.key \
              -cert $DATA_FILES_PATH/server5.eku-cs.crt" \
             0 \
             -s "bad certificate (usage extensions)" \
-            -S "Processing of the Certificate handshake message failed"
+            -S "send alert level=2 message=43" \
+            -s "! Usage does not match the extendedKeyUsage extension" \
+            -S "Processing of the Certificate handshake message failed" \
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-run_test    "extKeyUsage cli-auth: codeSign -> fail (hard)" \
-            "$P_SRV debug_level=1 auth_mode=required" \
+run_test    "extKeyUsage cli-auth 1.2: codeSign -> fail (hard)" \
+            "$P_SRV debug_level=3 auth_mode=required" \
             "$O_CLI -tls1_2 -key $DATA_FILES_PATH/server5.key \
              -cert $DATA_FILES_PATH/server5.eku-cs.crt" \
             1 \
             -s "bad certificate (usage extensions)" \
+            -s "send alert level=2 message=43" \
+            -s "! Usage does not match the extendedKeyUsage extension" \
             -s "Processing of the Certificate handshake message failed"
+            # MBEDTLS_X509_BADCERT_EXT_KEY_USAGE  -> MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT
 
 requires_openssl_tls1_3_with_compatible_ephemeral
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
@@ -8142,12 +8387,28 @@ requires_openssl_tls1_3_with_compatible_ephemeral
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "extKeyUsage cli-auth 1.3: codeSign -> fail (soft)" \
-            "$P_SRV debug_level=1 force_version=tls13 auth_mode=optional" \
+            "$P_SRV debug_level=3 force_version=tls13 auth_mode=optional" \
             "$O_NEXT_CLI_NO_CERT -key $DATA_FILES_PATH/server5.key \
              -cert $DATA_FILES_PATH/server5.eku-cs.crt" \
             0 \
             -s "bad certificate (usage extensions)" \
+            -S "send alert level=2 message=43" \
+            -s "! Usage does not match the extendedKeyUsage extension" \
             -S "Processing of the Certificate handshake message failed"
+
+requires_openssl_tls1_3_with_compatible_ephemeral
+requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+run_test    "extKeyUsage cli-auth 1.3: codeSign -> fail (hard)" \
+            "$P_SRV debug_level=3 force_version=tls13 auth_mode=required" \
+            "$P_CLI key_file=$DATA_FILES_PATH/server5.key \
+             crt_file=$DATA_FILES_PATH/server5.eku-cs.crt" \
+            1 \
+            -s "bad certificate (usage extensions)" \
+            -s "send alert level=2 message=43" \
+            -s "! Usage does not match the extendedKeyUsage extension" \
+            -s "Processing of the Certificate handshake message failed"
+            # MBEDTLS_X509_BADCERT_EXT_KEY_USAGE  -> MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT
 
 # Tests for DHM parameters loading
 

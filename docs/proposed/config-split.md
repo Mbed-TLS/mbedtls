@@ -27,9 +27,6 @@ part (TF-PSA-Crypto).
   builtin drivers and the platform abstraction layer.
 * tf_psa_crypto_config.h inherites from all the cryptography configuration
   options of mbedtls_config.h.
-* apart from the PSA cryptography API configuration options that are prefixed
-  by PSA_WANT_, the tf_psa_crypto_config.h configuration options are prefixed
-  by TF_PSA_CRYPTO_.
 
 ## Comments about objectives and requirements
 
@@ -40,12 +37,6 @@ based on mbedtls_config.h and crypto_config.h. The configuration file
 crypto_config.h is extended to become the TF-PSA-Crypto configuration file,
 mbedtls_config.h mainly becomes the configuration file for the TLS and x509
 libraries.
-
-Regarding the platform abstraction layer configuration options, we do not
-want to use the TF-PSA-Crypto ones in TLS and x509 code thus each of them has
-an equivalent one in mbedtls_config.h prefixed by MBEDTLS_ instead of
-TF_PSA_CRYPTO_ that just expand to the TF_PSA_CRYPTO_ one:
-#define MBEDTLS_xyz TF_PSA_CRYPTO_xyz.
 
 ## Sections in tf_psa_crypto_config.h
 

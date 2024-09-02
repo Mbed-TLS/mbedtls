@@ -135,8 +135,6 @@ Open question: do we group them into a subsection?
 //#define MBEDTLS_PLATFORM_MS_TIME_TYPE_MACRO   int64_t
 //#define MBEDTLS_PRINTF_MS_TIME    PRId64
 //#define MBEDTLS_MEMORY_ALIGN_MULTIPLE      4
-//#define MBEDTLS_CHECK_RETURN __attribute__((__warn_unused_result__))
-//#define MBEDTLS_IGNORE_RETURN( result ) ((void) !(result))
 
 * SECTION "General and test configuration options"
 //#define MBEDTLS_PSA_CRYPTO_CONFIG_FILE "psa/crypto_config.h"
@@ -151,6 +149,8 @@ Open question: do we group them into a subsection?
 #define MBEDTLS_VERSION_C
 #define MBEDTLS_VERSION_FEATURES
 
+//#define MBEDTLS_CHECK_RETURN __attribute__((__warn_unused_result__))
+//#define MBEDTLS_IGNORE_RETURN( result ) ((void) !(result))
 
 * SECTION "Cryptographic mechanism selection (PSA API)"
 PSA_WANT_\* macros as in current crypto_config.h.

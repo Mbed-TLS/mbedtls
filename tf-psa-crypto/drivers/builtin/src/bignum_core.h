@@ -70,9 +70,7 @@
 
 #include "common.h"
 
-#if defined(MBEDTLS_BIGNUM_C)
 #include "mbedtls/bignum.h"
-#endif
 
 #include "constant_time_internal.h"
 

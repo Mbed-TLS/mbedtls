@@ -59,11 +59,12 @@ static inline void mbedtls_codepath_reset(void)
  */
 #define ASSERT_BIGNUM_CODEPATH(path, ret, E)                            \
     do {                                                                \
-        if((ret)!=0 || (E).n == 0)                                      \
+        if ((ret) != 0 || (E).n == 0) {                                 \
             TEST_ASSERT(mbedtls_codepath_check == (path) ||             \
                         mbedtls_codepath_check == MBEDTLS_MPI_IS_TEST); \
-        else                                                            \
+        } else {                                                        \
             TEST_EQUAL(mbedtls_codepath_check, (path));                 \
+        }                                                               \
     } while (0)
 
 /** Check the codepath taken and fail if it doesn't match.
@@ -80,11 +81,12 @@ static inline void mbedtls_codepath_reset(void)
  */
 #define ASSERT_RSA_CODEPATH(path, ret)                                  \
     do {                                                                \
-        if((ret)!=0)                                                    \
+        if ((ret) != 0) {                                               \
             TEST_ASSERT(mbedtls_codepath_check == (path) ||             \
                         mbedtls_codepath_check == MBEDTLS_MPI_IS_TEST); \
-        else                                                            \
+        } else {                                                        \
             TEST_EQUAL(mbedtls_codepath_check, (path));                 \
+        }                                                               \
     } while (0)
 #endif /* MBEDTLS_TEST_HOOKS && !MBEDTLS_THREADING_C */
 

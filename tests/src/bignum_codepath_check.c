@@ -13,7 +13,7 @@ int mbedtls_codepath_check = MBEDTLS_MPI_IS_TEST;
 
 void mbedtls_codepath_take_safe(void)
 {
-    if(mbedtls_codepath_check == MBEDTLS_MPI_IS_TEST) {
+    if (mbedtls_codepath_check == MBEDTLS_MPI_IS_TEST) {
         mbedtls_codepath_check = MBEDTLS_MPI_IS_SECRET;
     }
 }
@@ -36,4 +36,3 @@ void mbedtls_codepath_test_hooks_teardown(void)
 }
 
 #endif /* MBEDTLS_TEST_HOOKS && !MBEDTLS_THREADING_C */
-

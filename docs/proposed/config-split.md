@@ -62,25 +62,24 @@ options that apply to the whole code base (TLS, x509, crypto and tests) mostly
 related to the platform abstraction layer and testing. In tf_psa_crypto_config.h
 these configurations options are organized into two sections, one for the
 platform abstraction layer options and one for the others, respectively named
-"Platform abstraction layer configuration options" and
-"General and test configuration options".
+"Platform abstraction layer" and "General and test configuration options".
 
-Then, the "PSA cryptography API configuration options" section is the
+Then, the "Cryptographic mechanism selection (PSA API)" section is the
 equivalent of the pre-split crypto_config.h configuration file containing the
 PSA_WANT_ prefixed macros.
 
 Compared to Mbed TLS, the cryptography code in TF-PSA-Crypto is not located
 in a single directory but split between the PSA core (core directory) and the
 PSA builtin drivers (drivers/builtin/src directory). This is reflected in
-tf_psa_crypto_config.h with two sections named "PSA core configuration options"
-and "Builtin drivers configuration options".
+tf_psa_crypto_config.h with two sections respectively named "PSA core" and
+"Builtin drivers".
 
 The two last sections contain the configuration options for the cryptography
 mechanisms that are not yet part of the PSA cryptography API (like LMS) and
 for cryptography utilities (like base64 or ASN1 APIs) that facilitate the usage
 of the PSA cryptography API in other cryptography projects. They are
-named respectively "Beyond the current PSA cryptography API configuration
-options" and "Cryptography utilities configuration options".
+named respectively "Cryptographic mechanism selection (extended API)"
+options" and "Data format support".
 
 By contrast to mbedtls_config.h, tf_psa_crypto_config.h does not contain a
 section like the "Module configuration options" one containing non boolean
@@ -198,7 +197,7 @@ options or obsolete options:
 #define MBEDTLS_SHA3_C
 
 ### In tf_psa_crypto_config.h, we have:
-* SECTION "Platform abstraction layer configuration options"
+* SECTION "Platform abstraction layer"
 #define MBEDTLS_HAVE_TIME
 #define MBEDTLS_HAVE_TIME_DATE
 //#define MBEDTLS_PLATFORM_MEMORY
@@ -269,11 +268,11 @@ options or obsolete options:
 #define MBEDTLS_VERSION_FEATURES
 
 
-* SECTION "PSA cryptography API configuration options"
-include/psa/crypto_config.h
+* SECTION "Cryptographic mechanism selection (PSA API)"
+PSA_WANT_\* macros as in current crypto_config.h.
 
 
-* SECTION "PSA core configuration options"
+* SECTION "PSA core"
 //#define MBEDTLS_ENTROPY_HARDWARE_ALT
 //#define MBEDTLS_CTR_DRBG_USE_128_BIT_KEY
 //#define MBEDTLS_NO_DEFAULT_ENTROPY_SOURCES
@@ -310,7 +309,7 @@ include/psa/crypto_config.h
 //#define MBEDTLS_ENTROPY_MAX_GATHER                128
 //#define MBEDTLS_ENTROPY_MIN_HARDWARE               32
 
-* SECTION "Builtin drivers configuration options"
+* SECTION "Builtin drivers"
 #define MBEDTLS_HAVE_ASM
 //#define MBEDTLS_NO_UDBL_DIVISION
 //#define MBEDTLS_NO_64BIT_MULTIPLICATION
@@ -346,7 +345,7 @@ include/psa/crypto_config.h
 //#define MBEDTLS_RSA_GEN_KEY_MIN_BITS            1024
 
 
-* SECTION "Beyond the current PSA cryptography API configuration options."
+* SECTION "Cryptographic mechanism selection (extended API)"
 #define MBEDTLS_CIPHER_C
 #define MBEDTLS_LMS_C
 //#define MBEDTLS_LMS_PRIVATE
@@ -362,7 +361,7 @@ include/psa/crypto_config.h
 #define MBEDTLS_PKCS12_C
 
 
-* SECTION "Cryptography utilities configuration options"
+* SECTION "Data format support"
 #define MBEDTLS_ASN1_PARSE_C
 #define MBEDTLS_ASN1_WRITE_C
 #define MBEDTLS_BASE64_C
@@ -372,7 +371,7 @@ include/psa/crypto_config.h
 
 
 ### In mbedtls_config.h, we have:
-* SECTION "System support"
+* SECTION "Platform abstraction layer"
 Empty
 
 

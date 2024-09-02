@@ -166,7 +166,7 @@ def analyze_driver_vs_reference(results: Results, outcomes: Outcomes,
                     ignored = True
 
         if not ignored and not suite_case in driver_outcomes.successes:
-            results.error("PASS -> SKIP/FAIL: {}", suite_case)
+            results.error("SKIP/FAIL -> PASS: {}", suite_case)
         if ignored and suite_case in driver_outcomes.successes:
             results.error("uselessly ignored: {}", suite_case)
 

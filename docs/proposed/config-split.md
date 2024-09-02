@@ -53,18 +53,20 @@ Then, the "Cryptographic mechanism selection (PSA API)" section is the
 equivalent of the pre-split crypto_config.h configuration file containing the
 PSA_WANT_ prefixed macros.
 
+The following section named "Cryptographic mechanism selection (extended API)"
+contains the configuration options for the cryptography mechanisms that are not
+yet part of the PSA cryptography API (like LMS or PK).
+
+It is followed by the "Data format support" section that contains configuration
+options of utilities related to various data formats (like base64 or ASN1 APIs).
+These utilities aim to facilitate the usage of the PSA cryptography API in other
+cryptography projects.
+
 Compared to Mbed TLS, the cryptography code in TF-PSA-Crypto is not located
 in a single directory but split between the PSA core (core directory) and the
 PSA builtin drivers (drivers/builtin/src directory). This is reflected in
 tf_psa_crypto_config.h with two sections respectively named "PSA core" and
 "Builtin drivers".
-
-The two following sections contain the configuration options for the cryptography
-mechanisms that are not yet part of the PSA cryptography API (like LMS) and
-for cryptography utilities (like base64 or ASN1 APIs) that facilitate the usage
-of the PSA cryptography API in other cryptography projects. They are
-named respectively "Cryptographic mechanism selection (extended API)"
-options" and "Data format support".
 
 Finally, the last section named "Legacy cryptography" contains the configuration
 options that will eventually be removed as duplicates of PSA_WANT_\* and
@@ -156,6 +158,45 @@ Open question: do we group them into a subsection?
 PSA_WANT_\* macros as in current crypto_config.h.
 
 
+* SECTION "Cryptographic mechanism selection (extended API)"
+#define MBEDTLS_CIPHER_C
+//#define MBEDTLS_CTR_DRBG_USE_128_BIT_KEY
+#define MBEDTLS_CTR_DRBG_C
+#define MBEDTLS_HMAC_DRBG_C
+#define MBEDTLS_LMS_C
+//#define MBEDTLS_LMS_PRIVATE
+#define MBEDTLS_MD_C
+#define MBEDTLS_NIST_KW_C
+#define MBEDTLS_PK_PARSE_EC_EXTENDED
+#define MBEDTLS_PK_PARSE_EC_COMPRESSED
+#define MBEDTLS_PK_RSA_ALT_SUPPORT
+#define MBEDTLS_PK_C
+#define MBEDTLS_PK_PARSE_C
+#define MBEDTLS_PK_WRITE_C
+#define MBEDTLS_PKCS5_C
+#define MBEDTLS_PKCS12_C
+
+//#define MBEDTLS_PSA_HMAC_DRBG_MD_TYPE MBEDTLS_MD_SHA256
+//#define MBEDTLS_CTR_DRBG_ENTROPY_LEN               48
+//#define MBEDTLS_CTR_DRBG_RESEED_INTERVAL        10000
+//#define MBEDTLS_CTR_DRBG_MAX_INPUT                256
+//#define MBEDTLS_CTR_DRBG_MAX_REQUEST             1024
+//#define MBEDTLS_CTR_DRBG_MAX_SEED_INPUT           384
+//#define MBEDTLS_HMAC_DRBG_RESEED_INTERVAL   10000
+//#define MBEDTLS_HMAC_DRBG_MAX_INPUT           256
+//#define MBEDTLS_HMAC_DRBG_MAX_REQUEST        1024
+//#define MBEDTLS_HMAC_DRBG_MAX_SEED_INPUT      384
+
+
+* SECTION "Data format support"
+#define MBEDTLS_ASN1_PARSE_C
+#define MBEDTLS_ASN1_WRITE_C
+#define MBEDTLS_BASE64_C
+#define MBEDTLS_OID_C
+#define MBEDTLS_PEM_PARSE_C
+#define MBEDTLS_PEM_WRITE_C
+
+
 * SECTION "PSA core"
 //#define MBEDTLS_ENTROPY_HARDWARE_ALT
 //#define MBEDTLS_NO_DEFAULT_ENTROPY_SOURCES
@@ -214,44 +255,6 @@ PSA_WANT_\* macros as in current crypto_config.h.
 //#define MBEDTLS_ECP_FIXED_POINT_OPTIM      1
 //#define MBEDTLS_RSA_GEN_KEY_MIN_BITS            1024
 
-
-* SECTION "Cryptographic mechanism selection (extended API)"
-#define MBEDTLS_CIPHER_C
-//#define MBEDTLS_CTR_DRBG_USE_128_BIT_KEY
-#define MBEDTLS_CTR_DRBG_C
-#define MBEDTLS_HMAC_DRBG_C
-#define MBEDTLS_LMS_C
-//#define MBEDTLS_LMS_PRIVATE
-#define MBEDTLS_MD_C
-#define MBEDTLS_NIST_KW_C
-#define MBEDTLS_PK_PARSE_EC_EXTENDED
-#define MBEDTLS_PK_PARSE_EC_COMPRESSED
-#define MBEDTLS_PK_RSA_ALT_SUPPORT
-#define MBEDTLS_PK_C
-#define MBEDTLS_PK_PARSE_C
-#define MBEDTLS_PK_WRITE_C
-#define MBEDTLS_PKCS5_C
-#define MBEDTLS_PKCS12_C
-
-//#define MBEDTLS_PSA_HMAC_DRBG_MD_TYPE MBEDTLS_MD_SHA256
-//#define MBEDTLS_CTR_DRBG_ENTROPY_LEN               48
-//#define MBEDTLS_CTR_DRBG_RESEED_INTERVAL        10000
-//#define MBEDTLS_CTR_DRBG_MAX_INPUT                256
-//#define MBEDTLS_CTR_DRBG_MAX_REQUEST             1024
-//#define MBEDTLS_CTR_DRBG_MAX_SEED_INPUT           384
-//#define MBEDTLS_HMAC_DRBG_RESEED_INTERVAL   10000
-//#define MBEDTLS_HMAC_DRBG_MAX_INPUT           256
-//#define MBEDTLS_HMAC_DRBG_MAX_REQUEST        1024
-//#define MBEDTLS_HMAC_DRBG_MAX_SEED_INPUT      384
-
-
-* SECTION "Data format support"
-#define MBEDTLS_ASN1_PARSE_C
-#define MBEDTLS_ASN1_WRITE_C
-#define MBEDTLS_BASE64_C
-#define MBEDTLS_OID_C
-#define MBEDTLS_PEM_PARSE_C
-#define MBEDTLS_PEM_WRITE_C
 
 * SECTION "Legacy cryptography"
 #define MBEDTLS_CIPHER_MODE_CBC

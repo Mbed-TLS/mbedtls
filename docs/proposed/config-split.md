@@ -25,14 +25,8 @@ part (TF-PSA-Crypto).
 ## Requirements on tf_psa_crypto_config.h
 * it configures the PSA APIs, their implementations, the implementation of the
   builtin drivers and the platform abstraction layer.
-* it does not contain the legacy cryptography configuration options that are
-  superseded by the PSA cryptography configuration scheme (PSA_WANT_ and
-  MBEDTLS_PSA_ACCEL_ macros), for example MBEDTLS_CCM_C or
-  MBEDTLS_CHACHAPOLY_ALT.
-* apart from the legacy cryptography configuration options mentioned in the
-  previous point and the cryptography configuration options that are planned
-  to be removed for 4.0, tf_psa_crypto_config.h inherites from all the
-  cryptography configuration options of mbedtls_config.h.
+* tf_psa_crypto_config.h inherites from all the cryptography configuration
+  options of mbedtls_config.h.
 * apart from the PSA cryptography API configuration options that are prefixed
   by PSA_WANT_, the tf_psa_crypto_config.h configuration options are prefixed
   by TF_PSA_CRYPTO_.
@@ -55,7 +49,7 @@ TF_PSA_CRYPTO_ that just expand to the TF_PSA_CRYPTO_ one:
 
 ## Sections in tf_psa_crypto_config.h
 
-The tf_psa_crypto_config.h configuration file is organized into seven sections.
+The tf_psa_crypto_config.h configuration file is organized into eight sections.
 
 The pre-split mbedtls_config.h configuration files contains configuration
 options that apply to the whole code base (TLS, x509, crypto and tests) mostly
@@ -74,12 +68,16 @@ PSA builtin drivers (drivers/builtin/src directory). This is reflected in
 tf_psa_crypto_config.h with two sections respectively named "PSA core" and
 "Builtin drivers".
 
-The two last sections contain the configuration options for the cryptography
+The two following sections contain the configuration options for the cryptography
 mechanisms that are not yet part of the PSA cryptography API (like LMS) and
 for cryptography utilities (like base64 or ASN1 APIs) that facilitate the usage
 of the PSA cryptography API in other cryptography projects. They are
 named respectively "Cryptographic mechanism selection (extended API)"
 options" and "Data format support".
+
+Finally, the last section named "Legacy cryptography" contains the configuration
+options that will eventually be removed as duplicates of PSA_WANT_\* and
+MBEDTLS_PSA_ACCEL_\* configuration options.
 
 By contrast to mbedtls_config.h, tf_psa_crypto_config.h does not contain a
 section like the "Module configuration options" one containing non boolean
@@ -89,112 +87,6 @@ located in the same section as the boolean option they are associated to.
 Open question: do we group them into a subsection?
 
 ## Repartition of the configuration options
-
-Starting from mbedtls_config.h as in c085cc767d, we remove the following
-configuration options as duplicates of PSA_WANT_ and MBEDTLS_PSA_ACCEL_
-options or obsolete options:
-//#define MBEDTLS_AES_ALT
-//#define MBEDTLS_ARIA_ALT
-//#define MBEDTLS_CAMELLIA_ALT
-//#define MBEDTLS_CCM_ALT
-//#define MBEDTLS_CHACHA20_ALT
-//#define MBEDTLS_CHACHAPOLY_ALT
-//#define MBEDTLS_CMAC_ALT
-//#define MBEDTLS_DES_ALT
-//#define MBEDTLS_DHM_ALT
-//#define MBEDTLS_ECJPAKE_ALT
-//#define MBEDTLS_GCM_ALT
-//#define MBEDTLS_NIST_KW_ALT
-//#define MBEDTLS_MD5_ALT
-//#define MBEDTLS_POLY1305_ALT
-//#define MBEDTLS_RIPEMD160_ALT
-//#define MBEDTLS_RSA_ALT
-//#define MBEDTLS_SHA1_ALT
-//#define MBEDTLS_SHA256_ALT
-//#define MBEDTLS_SHA512_ALT
-//#define MBEDTLS_ECP_ALT
-//#define MBEDTLS_MD5_PROCESS_ALT
-//#define MBEDTLS_RIPEMD160_PROCESS_ALT
-//#define MBEDTLS_SHA1_PROCESS_ALT
-//#define MBEDTLS_SHA256_PROCESS_ALT
-//#define MBEDTLS_SHA512_PROCESS_ALT
-//#define MBEDTLS_DES_SETKEY_ALT
-//#define MBEDTLS_DES_CRYPT_ECB_ALT
-//#define MBEDTLS_DES3_CRYPT_ECB_ALT
-//#define MBEDTLS_AES_SETKEY_ENC_ALT
-//#define MBEDTLS_AES_SETKEY_DEC_ALT
-//#define MBEDTLS_AES_ENCRYPT_ALT
-//#define MBEDTLS_AES_DECRYPT_ALT
-//#define MBEDTLS_ECDH_GEN_PUBLIC_ALT
-//#define MBEDTLS_ECDH_COMPUTE_SHARED_ALT
-//#define MBEDTLS_ECDSA_VERIFY_ALT
-//#define MBEDTLS_ECDSA_SIGN_ALT
-//#define MBEDTLS_ECDSA_GENKEY_ALT
-//#define MBEDTLS_ECP_INTERNAL_ALT
-//#define MBEDTLS_ECP_NO_FALLBACK
-//#define MBEDTLS_ECP_RANDOMIZE_JAC_ALT
-//#define MBEDTLS_ECP_ADD_MIXED_ALT
-//#define MBEDTLS_ECP_DOUBLE_JAC_ALT
-//#define MBEDTLS_ECP_NORMALIZE_JAC_MANY_ALT
-//#define MBEDTLS_ECP_NORMALIZE_JAC_ALT
-//#define MBEDTLS_ECP_DOUBLE_ADD_MXZ_ALT
-//#define MBEDTLS_ECP_RANDOMIZE_MXZ_ALT
-//#define MBEDTLS_ECP_NORMALIZE_MXZ_ALT
-#define MBEDTLS_CIPHER_MODE_CBC
-#define MBEDTLS_CIPHER_MODE_CFB
-#define MBEDTLS_CIPHER_MODE_CTR
-#define MBEDTLS_CIPHER_MODE_OFB
-#define MBEDTLS_CIPHER_MODE_XTS
-#define MBEDTLS_CIPHER_PADDING_PKCS7
-#define MBEDTLS_CIPHER_PADDING_ONE_AND_ZEROS
-#define MBEDTLS_CIPHER_PADDING_ZEROS_AND_LEN
-#define MBEDTLS_CIPHER_PADDING_ZEROS
-#define MBEDTLS_ECP_DP_SECP192R1_ENABLED
-#define MBEDTLS_ECP_DP_SECP224R1_ENABLED
-#define MBEDTLS_ECP_DP_SECP256R1_ENABLED
-#define MBEDTLS_ECP_DP_SECP384R1_ENABLED
-#define MBEDTLS_ECP_DP_SECP521R1_ENABLED
-#define MBEDTLS_ECP_DP_SECP192K1_ENABLED
-#define MBEDTLS_ECP_DP_SECP224K1_ENABLED
-#define MBEDTLS_ECP_DP_SECP256K1_ENABLED
-#define MBEDTLS_ECP_DP_BP256R1_ENABLED
-#define MBEDTLS_ECP_DP_BP384R1_ENABLED
-#define MBEDTLS_ECP_DP_BP512R1_ENABLED
-#define MBEDTLS_ECP_DP_CURVE25519_ENABLED
-#define MBEDTLS_ECP_DP_CURVE448_ENABLED
-#define MBEDTLS_ECDSA_DETERMINISTIC
-#define MBEDTLS_GENPRIME
-#define MBEDTLS_PKCS1_V15
-#define MBEDTLS_PKCS1_V21
-//#define MBEDTLS_PSA_CRYPTO_CONFIG
-#define MBEDTLS_AES_C
-#define MBEDTLS_BIGNUM_C
-#define MBEDTLS_CAMELLIA_C
-#define MBEDTLS_ARIA_C
-#define MBEDTLS_CCM_C
-#define MBEDTLS_CHACHA20_C
-#define MBEDTLS_CHACHAPOLY_C
-#define MBEDTLS_CMAC_C
-#define MBEDTLS_DES_C
-#define MBEDTLS_DHM_C
-#define MBEDTLS_ECDH_C
-#define MBEDTLS_ECDSA_C
-#define MBEDTLS_ECJPAKE_C
-#define MBEDTLS_ECP_C
-#define MBEDTLS_GCM_C
-#define MBEDTLS_HKDF_C
-#define MBEDTLS_MD5_C
-#define MBEDTLS_PADLOCK_C
-#define MBEDTLS_POLY1305_C
-//#define MBEDTLS_PSA_CRYPTO_SE_C
-#define MBEDTLS_RIPEMD160_C
-#define MBEDTLS_RSA_C
-#define MBEDTLS_SHA1_C
-#define MBEDTLS_SHA224_C
-#define MBEDTLS_SHA256_C
-#define MBEDTLS_SHA384_C
-#define MBEDTLS_SHA512_C
-#define MBEDTLS_SHA3_C
 
 ### In tf_psa_crypto_config.h, we have:
 * SECTION "Platform abstraction layer"
@@ -368,6 +260,110 @@ PSA_WANT_\* macros as in current crypto_config.h.
 #define MBEDTLS_OID_C
 #define MBEDTLS_PEM_PARSE_C
 #define MBEDTLS_PEM_WRITE_C
+
+* SECTION "Legacy cryptography"
+//#define MBEDTLS_AES_ALT
+//#define MBEDTLS_ARIA_ALT
+//#define MBEDTLS_CAMELLIA_ALT
+//#define MBEDTLS_CCM_ALT
+//#define MBEDTLS_CHACHA20_ALT
+//#define MBEDTLS_CHACHAPOLY_ALT
+//#define MBEDTLS_CMAC_ALT
+//#define MBEDTLS_DES_ALT
+//#define MBEDTLS_DHM_ALT
+//#define MBEDTLS_ECJPAKE_ALT
+//#define MBEDTLS_GCM_ALT
+//#define MBEDTLS_NIST_KW_ALT
+//#define MBEDTLS_MD5_ALT
+//#define MBEDTLS_POLY1305_ALT
+//#define MBEDTLS_RIPEMD160_ALT
+//#define MBEDTLS_RSA_ALT
+//#define MBEDTLS_SHA1_ALT
+//#define MBEDTLS_SHA256_ALT
+//#define MBEDTLS_SHA512_ALT
+//#define MBEDTLS_ECP_ALT
+//#define MBEDTLS_MD5_PROCESS_ALT
+//#define MBEDTLS_RIPEMD160_PROCESS_ALT
+//#define MBEDTLS_SHA1_PROCESS_ALT
+//#define MBEDTLS_SHA256_PROCESS_ALT
+//#define MBEDTLS_SHA512_PROCESS_ALT
+//#define MBEDTLS_DES_SETKEY_ALT
+//#define MBEDTLS_DES_CRYPT_ECB_ALT
+//#define MBEDTLS_DES3_CRYPT_ECB_ALT
+//#define MBEDTLS_AES_SETKEY_ENC_ALT
+//#define MBEDTLS_AES_SETKEY_DEC_ALT
+//#define MBEDTLS_AES_ENCRYPT_ALT
+//#define MBEDTLS_AES_DECRYPT_ALT
+//#define MBEDTLS_ECDH_GEN_PUBLIC_ALT
+//#define MBEDTLS_ECDH_COMPUTE_SHARED_ALT
+//#define MBEDTLS_ECDSA_VERIFY_ALT
+//#define MBEDTLS_ECDSA_SIGN_ALT
+//#define MBEDTLS_ECDSA_GENKEY_ALT
+//#define MBEDTLS_ECP_INTERNAL_ALT
+//#define MBEDTLS_ECP_NO_FALLBACK
+//#define MBEDTLS_ECP_RANDOMIZE_JAC_ALT
+//#define MBEDTLS_ECP_ADD_MIXED_ALT
+//#define MBEDTLS_ECP_DOUBLE_JAC_ALT
+//#define MBEDTLS_ECP_NORMALIZE_JAC_MANY_ALT
+//#define MBEDTLS_ECP_NORMALIZE_JAC_ALT
+//#define MBEDTLS_ECP_DOUBLE_ADD_MXZ_ALT
+//#define MBEDTLS_ECP_RANDOMIZE_MXZ_ALT
+//#define MBEDTLS_ECP_NORMALIZE_MXZ_ALT
+#define MBEDTLS_CIPHER_MODE_CBC
+#define MBEDTLS_CIPHER_MODE_CFB
+#define MBEDTLS_CIPHER_MODE_CTR
+#define MBEDTLS_CIPHER_MODE_OFB
+#define MBEDTLS_CIPHER_MODE_XTS
+#define MBEDTLS_CIPHER_PADDING_PKCS7
+#define MBEDTLS_CIPHER_PADDING_ONE_AND_ZEROS
+#define MBEDTLS_CIPHER_PADDING_ZEROS_AND_LEN
+#define MBEDTLS_CIPHER_PADDING_ZEROS
+#define MBEDTLS_ECP_DP_SECP192R1_ENABLED
+#define MBEDTLS_ECP_DP_SECP224R1_ENABLED
+#define MBEDTLS_ECP_DP_SECP256R1_ENABLED
+#define MBEDTLS_ECP_DP_SECP384R1_ENABLED
+#define MBEDTLS_ECP_DP_SECP521R1_ENABLED
+#define MBEDTLS_ECP_DP_SECP192K1_ENABLED
+#define MBEDTLS_ECP_DP_SECP224K1_ENABLED
+#define MBEDTLS_ECP_DP_SECP256K1_ENABLED
+#define MBEDTLS_ECP_DP_BP256R1_ENABLED
+#define MBEDTLS_ECP_DP_BP384R1_ENABLED
+#define MBEDTLS_ECP_DP_BP512R1_ENABLED
+#define MBEDTLS_ECP_DP_CURVE25519_ENABLED
+#define MBEDTLS_ECP_DP_CURVE448_ENABLED
+#define MBEDTLS_ECDSA_DETERMINISTIC
+#define MBEDTLS_GENPRIME
+#define MBEDTLS_PKCS1_V15
+#define MBEDTLS_PKCS1_V21
+//#define MBEDTLS_PSA_CRYPTO_CONFIG
+#define MBEDTLS_AES_C
+#define MBEDTLS_BIGNUM_C
+#define MBEDTLS_CAMELLIA_C
+#define MBEDTLS_ARIA_C
+#define MBEDTLS_CCM_C
+#define MBEDTLS_CHACHA20_C
+#define MBEDTLS_CHACHAPOLY_C
+#define MBEDTLS_CMAC_C
+#define MBEDTLS_DES_C
+#define MBEDTLS_DHM_C
+#define MBEDTLS_ECDH_C
+#define MBEDTLS_ECDSA_C
+#define MBEDTLS_ECJPAKE_C
+#define MBEDTLS_ECP_C
+#define MBEDTLS_GCM_C
+#define MBEDTLS_HKDF_C
+#define MBEDTLS_MD5_C
+#define MBEDTLS_PADLOCK_C
+#define MBEDTLS_POLY1305_C
+//#define MBEDTLS_PSA_CRYPTO_SE_C
+#define MBEDTLS_RIPEMD160_C
+#define MBEDTLS_RSA_C
+#define MBEDTLS_SHA1_C
+#define MBEDTLS_SHA224_C
+#define MBEDTLS_SHA256_C
+#define MBEDTLS_SHA384_C
+#define MBEDTLS_SHA512_C
+#define MBEDTLS_SHA3_C
 
 
 ### In mbedtls_config.h, we have:

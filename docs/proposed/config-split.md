@@ -313,7 +313,7 @@ PSA_WANT_\* macros as in current crypto_config.h.
 
 ### In mbedtls_config.h, we have:
 * SECTION "Platform abstraction layer"
-Empty
+#define MBEDTLS_NET_C
 
 
 * SECTION "Mbed TLS feature support"
@@ -367,7 +367,6 @@ Empty
 * SECTION "Mbed TLS modules"
 #define MBEDTLS_DEBUG_C
 #define MBEDTLS_ERROR_C
-#define MBEDTLS_NET_C
 #define MBEDTLS_PKCS7_C
 #define MBEDTLS_SSL_CACHE_C
 #define MBEDTLS_SSL_COOKIE_C

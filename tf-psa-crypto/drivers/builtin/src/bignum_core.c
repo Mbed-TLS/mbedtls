@@ -782,8 +782,9 @@ static inline void exp_mod_calc_first_bit_optionally_safe(const mbedtls_mpi_uint
         *E_bit_index = E_bits % biL;
 
 #if defined(MBEDTLS_TEST_HOOKS) && !defined(MBEDTLS_THREADING_C)
-        if(mbedtls_unsafe_codepath_hook != NULL)
+        if (mbedtls_unsafe_codepath_hook != NULL) {
             mbedtls_unsafe_codepath_hook();
+        }
 #endif
     } else {
         /*
@@ -793,8 +794,9 @@ static inline void exp_mod_calc_first_bit_optionally_safe(const mbedtls_mpi_uint
         *E_limb_index = E_limbs;
         *E_bit_index = 0;
 #if defined(MBEDTLS_TEST_HOOKS) && !defined(MBEDTLS_THREADING_C)
-        if(mbedtls_safe_codepath_hook != NULL)
+        if (mbedtls_safe_codepath_hook != NULL) {
             mbedtls_safe_codepath_hook();
+        }
 #endif
     }
 }
@@ -813,8 +815,9 @@ static inline void exp_mod_table_lookup_optionally_safe(mbedtls_mpi_uint *Wselec
     if (window_public == MBEDTLS_MPI_IS_PUBLIC) {
         memcpy(Wselect, Wtable + window * AN_limbs, AN_limbs * ciL);
 #if defined(MBEDTLS_TEST_HOOKS) && !defined(MBEDTLS_THREADING_C)
-        if(mbedtls_unsafe_codepath_hook != NULL)
+        if (mbedtls_unsafe_codepath_hook != NULL) {
             mbedtls_unsafe_codepath_hook();
+        }
 #endif
     } else {
         /* Select Wtable[window] without leaking window through
@@ -822,8 +825,9 @@ static inline void exp_mod_table_lookup_optionally_safe(mbedtls_mpi_uint *Wselec
         mbedtls_mpi_core_ct_uint_table_lookup(Wselect, Wtable,
                                               AN_limbs, welem, window);
 #if defined(MBEDTLS_TEST_HOOKS) && !defined(MBEDTLS_THREADING_C)
-        if(mbedtls_safe_codepath_hook != NULL)
+        if (mbedtls_safe_codepath_hook != NULL) {
             mbedtls_safe_codepath_hook();
+        }
 #endif
     }
 }

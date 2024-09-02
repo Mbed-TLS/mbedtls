@@ -157,7 +157,6 @@ PSA_WANT_\* macros as in current crypto_config.h.
 
 * SECTION "PSA core"
 //#define MBEDTLS_ENTROPY_HARDWARE_ALT
-//#define MBEDTLS_CTR_DRBG_USE_128_BIT_KEY
 //#define MBEDTLS_NO_DEFAULT_ENTROPY_SOURCES
 //#define MBEDTLS_NO_PLATFORM_ENTROPY
 //#define MBEDTLS_ENTROPY_FORCE_SHA256
@@ -170,24 +169,12 @@ PSA_WANT_\* macros as in current crypto_config.h.
 //#define MBEDTLS_PSA_CRYPTO_SPM
 //#define MBEDTLS_PSA_INJECT_ENTROPY
 //#define MBEDTLS_PSA_ASSUME_EXCLUSIVE_BUFFERS
-#define MBEDTLS_CTR_DRBG_C
 #define MBEDTLS_ENTROPY_C
-#define MBEDTLS_HMAC_DRBG_C
 #define MBEDTLS_PSA_CRYPTO_STORAGE_C
 #define MBEDTLS_PSA_ITS_FILE_C
 //#define MBEDTLS_PSA_CRYPTO_PLATFORM_FILE "psa/crypto_platform_alt.h"
 //#define MBEDTLS_PSA_CRYPTO_STRUCT_FILE "psa/crypto_struct_alt.h"
 //#define MBEDTLS_PSA_KEY_SLOT_COUNT 32
-//#define MBEDTLS_PSA_HMAC_DRBG_MD_TYPE MBEDTLS_MD_SHA256
-//#define MBEDTLS_CTR_DRBG_ENTROPY_LEN               48
-//#define MBEDTLS_CTR_DRBG_RESEED_INTERVAL        10000
-//#define MBEDTLS_CTR_DRBG_MAX_INPUT                256
-//#define MBEDTLS_CTR_DRBG_MAX_REQUEST             1024
-//#define MBEDTLS_CTR_DRBG_MAX_SEED_INPUT           384
-//#define MBEDTLS_HMAC_DRBG_RESEED_INTERVAL   10000
-//#define MBEDTLS_HMAC_DRBG_MAX_INPUT           256
-//#define MBEDTLS_HMAC_DRBG_MAX_REQUEST        1024
-//#define MBEDTLS_HMAC_DRBG_MAX_SEED_INPUT      384
 //#define MBEDTLS_ENTROPY_MAX_SOURCES                20
 //#define MBEDTLS_ENTROPY_MAX_GATHER                128
 //#define MBEDTLS_ENTROPY_MIN_HARDWARE               32
@@ -230,6 +217,9 @@ PSA_WANT_\* macros as in current crypto_config.h.
 
 * SECTION "Cryptographic mechanism selection (extended API)"
 #define MBEDTLS_CIPHER_C
+//#define MBEDTLS_CTR_DRBG_USE_128_BIT_KEY
+#define MBEDTLS_CTR_DRBG_C
+#define MBEDTLS_HMAC_DRBG_C
 #define MBEDTLS_LMS_C
 //#define MBEDTLS_LMS_PRIVATE
 #define MBEDTLS_MD_C
@@ -242,6 +232,17 @@ PSA_WANT_\* macros as in current crypto_config.h.
 #define MBEDTLS_PK_WRITE_C
 #define MBEDTLS_PKCS5_C
 #define MBEDTLS_PKCS12_C
+
+//#define MBEDTLS_PSA_HMAC_DRBG_MD_TYPE MBEDTLS_MD_SHA256
+//#define MBEDTLS_CTR_DRBG_ENTROPY_LEN               48
+//#define MBEDTLS_CTR_DRBG_RESEED_INTERVAL        10000
+//#define MBEDTLS_CTR_DRBG_MAX_INPUT                256
+//#define MBEDTLS_CTR_DRBG_MAX_REQUEST             1024
+//#define MBEDTLS_CTR_DRBG_MAX_SEED_INPUT           384
+//#define MBEDTLS_HMAC_DRBG_RESEED_INTERVAL   10000
+//#define MBEDTLS_HMAC_DRBG_MAX_INPUT           256
+//#define MBEDTLS_HMAC_DRBG_MAX_REQUEST        1024
+//#define MBEDTLS_HMAC_DRBG_MAX_SEED_INPUT      384
 
 
 * SECTION "Data format support"

@@ -211,7 +211,7 @@
 #endif
 
 #if defined(MBEDTLS_ENTROPY_C) && \
-    !(defined(MBEDTLS_MD_CAN_SHA512) || defined(PSA_WANT_ALG_SHA_256))
+    !(defined(PSA_WANT_ALG_SHA_512) || defined(PSA_WANT_ALG_SHA_256))
 #error "MBEDTLS_ENTROPY_C defined, but not all prerequisites"
 #endif
 #if defined(MBEDTLS_ENTROPY_C) && \
@@ -219,7 +219,7 @@
 #error "MBEDTLS_CTR_DRBG_ENTROPY_LEN value too high"
 #endif
 #if defined(MBEDTLS_ENTROPY_C) &&                                            \
-    (defined(MBEDTLS_ENTROPY_FORCE_SHA256) || !defined(MBEDTLS_MD_CAN_SHA512)) \
+    (defined(MBEDTLS_ENTROPY_FORCE_SHA256) || !defined(PSA_WANT_ALG_SHA_512)) \
     && defined(MBEDTLS_CTR_DRBG_ENTROPY_LEN) && (MBEDTLS_CTR_DRBG_ENTROPY_LEN > 32)
 #error "MBEDTLS_CTR_DRBG_ENTROPY_LEN value too high"
 #endif
@@ -346,7 +346,7 @@
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED) &&        \
     !defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE) &&            \
     !defined(PSA_WANT_ALG_SHA_256) &&                        \
-    !defined(MBEDTLS_MD_CAN_SHA512) &&                        \
+    !defined(PSA_WANT_ALG_SHA_512) &&                        \
     !defined(PSA_WANT_ALG_SHA_1)
 #error "!MBEDTLS_SSL_KEEP_PEER_CERTIFICATE requires SHA-512, SHA-256 or SHA-1".
 #endif
@@ -358,7 +358,7 @@
     !defined(PSA_WANT_ALG_SHA_224) && \
     !defined(PSA_WANT_ALG_SHA_256) && \
     !defined(PSA_WANT_ALG_SHA_384) && \
-    !defined(MBEDTLS_MD_CAN_SHA512) && \
+    !defined(PSA_WANT_ALG_SHA_512) && \
     !defined(PSA_WANT_ALG_SHA3_224) && \
     !defined(PSA_WANT_ALG_SHA3_256) && \
     !defined(PSA_WANT_ALG_SHA3_384) && \

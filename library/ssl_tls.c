@@ -2598,56 +2598,56 @@ psa_status_t mbedtls_ssl_cipher_to_psa(mbedtls_cipher_type_t mbedtls_cipher_type
             *key_size = 256;
             break;
 #endif
-#if defined(MBEDTLS_SSL_HAVE_CAMELLIA) && defined(PSA_WANT_ALG_CBC_NO_PADDING)
+#if defined(PSA_WANT_KEY_TYPE_CAMELLIA) && defined(PSA_WANT_ALG_CBC_NO_PADDING)
         case MBEDTLS_CIPHER_CAMELLIA_128_CBC:
             *alg = PSA_ALG_CBC_NO_PADDING;
             *key_type = PSA_KEY_TYPE_CAMELLIA;
             *key_size = 128;
             break;
 #endif
-#if defined(MBEDTLS_SSL_HAVE_CAMELLIA) && defined(PSA_WANT_ALG_CCM)
+#if defined(PSA_WANT_KEY_TYPE_CAMELLIA) && defined(PSA_WANT_ALG_CCM)
         case MBEDTLS_CIPHER_CAMELLIA_128_CCM:
             *alg = taglen ? PSA_ALG_AEAD_WITH_SHORTENED_TAG(PSA_ALG_CCM, taglen) : PSA_ALG_CCM;
             *key_type = PSA_KEY_TYPE_CAMELLIA;
             *key_size = 128;
             break;
 #endif
-#if defined(MBEDTLS_SSL_HAVE_CAMELLIA) && defined(PSA_WANT_ALG_GCM)
+#if defined(PSA_WANT_KEY_TYPE_CAMELLIA) && defined(PSA_WANT_ALG_GCM)
         case MBEDTLS_CIPHER_CAMELLIA_128_GCM:
             *alg = PSA_ALG_GCM;
             *key_type = PSA_KEY_TYPE_CAMELLIA;
             *key_size = 128;
             break;
 #endif
-#if defined(MBEDTLS_SSL_HAVE_CAMELLIA) && defined(PSA_WANT_ALG_CCM)
+#if defined(PSA_WANT_KEY_TYPE_CAMELLIA) && defined(PSA_WANT_ALG_CCM)
         case MBEDTLS_CIPHER_CAMELLIA_192_CCM:
             *alg = taglen ? PSA_ALG_AEAD_WITH_SHORTENED_TAG(PSA_ALG_CCM, taglen) : PSA_ALG_CCM;
             *key_type = PSA_KEY_TYPE_CAMELLIA;
             *key_size = 192;
             break;
 #endif
-#if defined(MBEDTLS_SSL_HAVE_CAMELLIA) && defined(PSA_WANT_ALG_GCM)
+#if defined(PSA_WANT_KEY_TYPE_CAMELLIA) && defined(PSA_WANT_ALG_GCM)
         case MBEDTLS_CIPHER_CAMELLIA_192_GCM:
             *alg = PSA_ALG_GCM;
             *key_type = PSA_KEY_TYPE_CAMELLIA;
             *key_size = 192;
             break;
 #endif
-#if defined(MBEDTLS_SSL_HAVE_CAMELLIA) && defined(PSA_WANT_ALG_CBC_NO_PADDING)
+#if defined(PSA_WANT_KEY_TYPE_CAMELLIA) && defined(PSA_WANT_ALG_CBC_NO_PADDING)
         case MBEDTLS_CIPHER_CAMELLIA_256_CBC:
             *alg = PSA_ALG_CBC_NO_PADDING;
             *key_type = PSA_KEY_TYPE_CAMELLIA;
             *key_size = 256;
             break;
 #endif
-#if defined(MBEDTLS_SSL_HAVE_CAMELLIA) && defined(PSA_WANT_ALG_CCM)
+#if defined(PSA_WANT_KEY_TYPE_CAMELLIA) && defined(PSA_WANT_ALG_CCM)
         case MBEDTLS_CIPHER_CAMELLIA_256_CCM:
             *alg = taglen ? PSA_ALG_AEAD_WITH_SHORTENED_TAG(PSA_ALG_CCM, taglen) : PSA_ALG_CCM;
             *key_type = PSA_KEY_TYPE_CAMELLIA;
             *key_size = 256;
             break;
 #endif
-#if defined(MBEDTLS_SSL_HAVE_CAMELLIA) && defined(PSA_WANT_ALG_GCM)
+#if defined(PSA_WANT_KEY_TYPE_CAMELLIA) && defined(PSA_WANT_ALG_GCM)
         case MBEDTLS_CIPHER_CAMELLIA_256_GCM:
             *alg = PSA_ALG_GCM;
             *key_type = PSA_KEY_TYPE_CAMELLIA;

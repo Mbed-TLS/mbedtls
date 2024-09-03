@@ -141,7 +141,7 @@ component_test_ref_configs () {
     # dependency resolution for generated files and just rely on them being
     # present (thanks to pre_generate_files) by turning GEN_FILES off.
     CC=$ASAN_CC cmake -D GEN_FILES=Off -D CMAKE_BUILD_TYPE:String=Asan .
-    tests/scripts/test-ref-configs.pl config-tfm.h
+    tests/scripts/test-ref-configs.pl
 }
 
 component_test_full_cmake_clang () {

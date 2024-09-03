@@ -9719,10 +9719,10 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void raw_key_agreement(int alg_arg,
-                       int our_key_type_arg, data_t *our_key_data,
-                       data_t *peer_key_data,
-                       data_t *expected_output)
+void key_agreement(int alg_arg,
+                   int our_key_type_arg, data_t *our_key_data,
+                   data_t *peer_key_data,
+                   data_t *expected_output)
 {
     mbedtls_svc_key_id_t our_key = MBEDTLS_SVC_KEY_ID_INIT;
     psa_algorithm_t alg = alg_arg;
@@ -9731,6 +9731,9 @@ void raw_key_agreement(int alg_arg,
     unsigned char *output = NULL;
     size_t output_length = ~0;
     size_t key_bits;
+    mbedtls_svc_key_id_t shared_secret_id = MBEDTLS_SVC_KEY_ID_INIT;
+    psa_key_attributes_t shared_secret_attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_key_attributes_t output_attributes;
 
     PSA_ASSERT(psa_crypto_init());
 
@@ -9758,9 +9761,34 @@ void raw_key_agreement(int alg_arg,
                                      &output_length));
     TEST_MEMORY_COMPARE(output, output_length,
                         expected_output->x, expected_output->len);
+
+    memset(output, 0, expected_output->len);
+    output_length = 0;
+
+    psa_set_key_type(&shared_secret_attributes, PSA_KEY_TYPE_DERIVE);
+    psa_set_key_usage_flags(&shared_secret_attributes, PSA_KEY_USAGE_DERIVE | PSA_KEY_USAGE_EXPORT);
+
+    PSA_ASSERT(psa_key_agreement(our_key, peer_key_data->x, peer_key_data->len,
+                                 alg, &shared_secret_attributes, &shared_secret_id));
+
+    PSA_ASSERT(psa_export_key(shared_secret_id, output, expected_output->len, &output_length));
+
+    TEST_MEMORY_COMPARE(output, output_length,
+                        expected_output->x, expected_output->len);
+
+    PSA_ASSERT(psa_get_key_attributes(shared_secret_id, &output_attributes));
+
+    TEST_EQUAL(PSA_BITS_TO_BYTES(psa_get_key_bits(&output_attributes)),
+               expected_output->len);
+    TEST_EQUAL(psa_get_key_type(&output_attributes), PSA_KEY_TYPE_DERIVE);
+    TEST_EQUAL(psa_get_key_usage_flags(&output_attributes),
+               PSA_KEY_USAGE_DERIVE | PSA_KEY_USAGE_EXPORT);
+
     mbedtls_free(output);
     output = NULL;
     output_length = ~0;
+    psa_destroy_key(shared_secret_id);
+    shared_secret_id = MBEDTLS_SVC_KEY_ID_INIT;
 
     /* Larger buffer */
     TEST_CALLOC(output, expected_output->len + 1);
@@ -9770,9 +9798,12 @@ void raw_key_agreement(int alg_arg,
                                      &output_length));
     TEST_MEMORY_COMPARE(output, output_length,
                         expected_output->x, expected_output->len);
+
     mbedtls_free(output);
     output = NULL;
     output_length = ~0;
+    psa_destroy_key(shared_secret_id);
+    shared_secret_id = MBEDTLS_SVC_KEY_ID_INIT;
 
     /* Buffer too small */
     TEST_CALLOC(output, expected_output->len - 1);
@@ -9783,11 +9814,13 @@ void raw_key_agreement(int alg_arg,
                PSA_ERROR_BUFFER_TOO_SMALL);
     /* Not required by the spec, but good robustness */
     TEST_LE_U(output_length, expected_output->len - 1);
+
     mbedtls_free(output);
     output = NULL;
 
 exit:
     mbedtls_free(output);
+    psa_destroy_key(shared_secret_id);
     psa_destroy_key(our_key);
     PSA_DONE();
 }

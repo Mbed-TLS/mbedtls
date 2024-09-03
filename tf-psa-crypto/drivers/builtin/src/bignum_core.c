@@ -449,9 +449,10 @@ mbedtls_mpi_uint mbedtls_mpi_core_sub(mbedtls_mpi_uint *X,
     mbedtls_mpi_uint c = 0;
 
     for (size_t i = 0; i < limbs; i++) {
-        mbedtls_mpi_uint z = (A[i] < c);
+        mbedtls_mpi_uint z = mbedtls_ct_mpi_uint_if(mbedtls_ct_uint_lt(A[i], c),
+                                                    1, 0);
         mbedtls_mpi_uint t = A[i] - c;
-        c = (t < B[i]) + z;
+        c = mbedtls_ct_mpi_uint_if(mbedtls_ct_uint_lt(t, B[i]), 1, 0) + z;
         X[i] = t - B[i];
     }
 
@@ -489,7 +490,7 @@ mbedtls_mpi_uint mbedtls_mpi_core_mla(mbedtls_mpi_uint *d, size_t d_len,
 
     while (excess_len--) {
         *d += c;
-        c = (*d < c);
+        c = mbedtls_ct_mpi_uint_if(mbedtls_ct_uint_lt(*d, c), 1, 0);
         d++;
     }
 

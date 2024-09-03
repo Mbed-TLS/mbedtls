@@ -592,5 +592,90 @@ exit:
 }
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_ECDH */
 
+/****************************************************************/
+/* Interruptible ECC Key Generation */
+/****************************************************************/
+
+uint32_t psa_generate_key_iop_get_num_ops(
+    psa_generate_key_iop_t *operation)
+{
+    (void) operation;
+    return 0;
+}
+
+psa_status_t psa_generate_key_iop_setup(
+    psa_generate_key_iop_t *operation,
+    const psa_key_attributes_t *attributes)
+{
+    (void) operation;
+    (void) attributes;
+
+    return PSA_ERROR_NOT_SUPPORTED;
+}
+
+psa_status_t psa_generate_key_iop_complete(
+    psa_generate_key_iop_t *operation,
+    psa_key_id_t *key)
+{
+    (void) operation;
+    (void) key;
+
+    return PSA_ERROR_NOT_SUPPORTED;
+}
+
+psa_status_t psa_generate_key_iop_abort(
+    psa_generate_key_iop_t *operation)
+{
+    (void) operation;
+
+    return PSA_ERROR_NOT_SUPPORTED;
+}
+
+/****************************************************************/
+/* Interruptible ECC Key Agreement */
+/****************************************************************/
+
+uint32_t psa_key_agreement_iop_get_num_ops(
+    psa_key_agreement_iop_t *operation)
+{
+    (void) operation;
+    return 0;
+}
+
+psa_status_t psa_key_agreement_iop_setup(
+    psa_key_agreement_iop_t *operation,
+    psa_key_id_t private_key,
+    const uint8_t *peer_key,
+    size_t peer_key_length,
+    psa_algorithm_t alg,
+    const psa_key_attributes_t *attributes)
+{
+    (void) operation;
+    (void) private_key;
+    (void) peer_key;
+    (void) peer_key_length;
+    (void) alg;
+    (void) attributes;
+
+    return PSA_SUCCESS;
+}
+
+psa_status_t psa_key_agreement_iop_complete(
+    psa_key_agreement_iop_t *operation,
+    psa_key_id_t *key)
+{
+    (void) operation;
+    (void) key;
+
+    return PSA_SUCCESS;
+}
+
+psa_status_t psa_key_agreement_iop_abort(
+    psa_key_agreement_iop_t *operation)
+{
+    (void) operation;
+
+    return PSA_SUCCESS;
+}
 
 #endif /* MBEDTLS_PSA_CRYPTO_C */

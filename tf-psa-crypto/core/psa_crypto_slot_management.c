@@ -58,16 +58,139 @@ MBEDTLS_STATIC_ASSERT(PSA_KEY_ID_VOLATILE_MAX < MBEDTLS_PSA_KEY_ID_BUILTIN_MIN |
 
 
 
+#if defined(MBEDTLS_PSA_KEY_STORE_DYNAMIC)
+
+/* Dynamic key store.
+ *
+ * The key store consists of multiple slices.
+ *
+ * The volatile keys are stored in variable-sized tables called slices.
+ * Slices are allocated on demand and deallocated when possible.
+ * The size of slices increases exponentially, so the average overhead
+ * (number of slots that are allocated but not used) is roughly
+ * proportional to the number of keys (with a factor that grows
+ * when the key store is fragmented).
+ *
+ * One slice is dedicated to the cache of persistent and built-in keys.
+ * For simplicity, they are separated from volatile keys. This cache
+ * slice has a fixed size and has the slice index KEY_SLOT_CACHE_SLICE_INDEX,
+ * located after the slices for volatile keys.
+ */
+
+/* Size of the last slice containing the cache of persistent and built-in keys. */
+#define PERSISTENT_KEY_CACHE_COUNT MBEDTLS_PSA_KEY_SLOT_COUNT
+
+/* Volatile keys are stored in slices 0 through
+ * (KEY_SLOT_VOLATILE_SLICE_COUNT - 1) inclusive.
+ * Each slice is twice the size of the previous slice.
+ * Volatile key identifiers encode the slice number as follows:
+ *     bits 30..31:  0b10 (mandated by the PSA Crypto specification).
+ *     bits 25..29:  slice index (0...KEY_SLOT_VOLATILE_SLICE_COUNT-1)
+ *     bits 0..24:   slot index in slice
+ */
+#define KEY_ID_SLOT_INDEX_WIDTH 25u
+#define KEY_ID_SLICE_INDEX_WIDTH 5u
+
+#define KEY_SLOT_VOLATILE_SLICE_BASE_LENGTH 16u
+#define KEY_SLOT_VOLATILE_SLICE_COUNT 22u
+#define KEY_SLICE_COUNT (KEY_SLOT_VOLATILE_SLICE_COUNT + 1u)
+#define KEY_SLOT_CACHE_SLICE_INDEX KEY_SLOT_VOLATILE_SLICE_COUNT
+
+
+/* Check that the length of the largest slice (calculated as
+ * KEY_SLICE_LENGTH_MAX below) does not overflow size_t. We use
+ * an indirect method in case the calculation of KEY_SLICE_LENGTH_MAX
+ * itself overflows uintmax_t: if (BASE_LENGTH << c)
+ * overflows size_t then BASE_LENGTH > SIZE_MAX >> c.
+ */
+#if (KEY_SLOT_VOLATILE_SLICE_BASE_LENGTH >              \
+     SIZE_MAX >> (KEY_SLOT_VOLATILE_SLICE_COUNT - 1))
+#error "Maximum slice length overflows size_t"
+#endif
+
+#if KEY_ID_SLICE_INDEX_WIDTH + KEY_ID_SLOT_INDEX_WIDTH > 30
+#error "Not enough room in volatile key IDs for slice index and slot index"
+#endif
+#if KEY_SLOT_VOLATILE_SLICE_COUNT > (1 << KEY_ID_SLICE_INDEX_WIDTH)
+#error "Too many slices to fit the slice index in a volatile key ID"
+#endif
+#define KEY_SLICE_LENGTH_MAX                                            \
+    (KEY_SLOT_VOLATILE_SLICE_BASE_LENGTH << (KEY_SLOT_VOLATILE_SLICE_COUNT - 1))
+#if KEY_SLICE_LENGTH_MAX > 1 << KEY_ID_SLOT_INDEX_WIDTH
+#error "Not enough room in volatile key IDs for a slot index in the largest slice"
+#endif
+#if KEY_ID_SLICE_INDEX_WIDTH > 8
+#error "Slice index does not fit in uint8_t for psa_key_slot_t::slice_index"
+#endif
+
+
+/* Calculate the volatile key id to use for a given slot.
+ * This function assumes valid parameter values. */
+static psa_key_id_t volatile_key_id_of_index(size_t slice_idx,
+                                             size_t slot_idx)
+{
+    /* We assert above that the slice and slot indexes fit in separate
+     * bit-fields inside psa_key_id_t, which is a 32-bit type per the
+     * PSA Cryptography specification. */
+    return (psa_key_id_t) (0x40000000u |
+                           (slice_idx << KEY_ID_SLOT_INDEX_WIDTH) |
+                           slot_idx);
+}
+
+/* Calculate the slice containing the given volatile key.
+ * This function assumes valid parameter values. */
+static size_t slice_index_of_volatile_key_id(psa_key_id_t key_id)
+{
+    size_t mask = (1LU << KEY_ID_SLICE_INDEX_WIDTH) - 1;
+    return (key_id >> KEY_ID_SLOT_INDEX_WIDTH) & mask;
+}
+
+/* Calculate the index of the slot containing the given volatile key.
+ * This function assumes valid parameter values. */
+static size_t slot_index_of_volatile_key_id(psa_key_id_t key_id)
+{
+    return key_id & ((1LU << KEY_ID_SLOT_INDEX_WIDTH) - 1);
+}
+
+/* In global_data.first_free_slot_index, use this special value to
+ * indicate that the slice is full. */
+#define FREE_SLOT_INDEX_NONE ((size_t) -1)
+
+#if defined(MBEDTLS_TEST_HOOKS)
+size_t psa_key_slot_volatile_slice_count(void)
+{
+    return KEY_SLOT_VOLATILE_SLICE_COUNT;
+}
+#endif
+
+#else /* MBEDTLS_PSA_KEY_STORE_DYNAMIC */
+
+/* Static key store.
+ *
+ * All the keys (volatile or persistent) are in a single slice.
+ * We only use slices as a concept to allow some differences between
+ * static and dynamic key store management to be buried in auxiliary
+ * functions.
+ */
+
+#define PERSISTENT_KEY_CACHE_COUNT MBEDTLS_PSA_KEY_SLOT_COUNT
+#define KEY_SLICE_COUNT 1u
+#define KEY_SLOT_CACHE_SLICE_INDEX 0
+
+#endif /* MBEDTLS_PSA_KEY_STORE_DYNAMIC */
+
+
 typedef struct {
+#if defined(MBEDTLS_PSA_KEY_STORE_DYNAMIC)
+    psa_key_slot_t *key_slices[KEY_SLICE_COUNT];
+    size_t first_free_slot_index[KEY_SLOT_VOLATILE_SLICE_COUNT];
+#else /* MBEDTLS_PSA_KEY_STORE_DYNAMIC */
     psa_key_slot_t key_slots[MBEDTLS_PSA_KEY_SLOT_COUNT];
+#endif /* MBEDTLS_PSA_KEY_STORE_DYNAMIC */
     uint8_t key_slots_initialized;
 } psa_global_data_t;
 
 static psa_global_data_t global_data;
-
-MBEDTLS_STATIC_ASSERT(ARRAY_LENGTH(global_data.key_slots) <=
-                      PSA_KEY_ID_VOLATILE_MAX - PSA_KEY_ID_VOLATILE_MIN + 1,
-                      "The key slot array is larger than the volatile key ID range");
 
 static uint8_t psa_get_key_slots_initialized(void)
 {
@@ -85,6 +208,125 @@ static uint8_t psa_get_key_slots_initialized(void)
 
     return initialized;
 }
+
+
+
+/** The length of the given slice in the key slot table.
+ *
+ * \param slice_idx     The slice number. It must satisfy
+ *                      0 <= slice_idx < KEY_SLICE_COUNT.
+ *
+ * \return              The number of elements in the given slice.
+ */
+static inline size_t key_slice_length(size_t slice_idx);
+
+/** Get a pointer to the slot where the given volatile key is located.
+ *
+ * \param key_id        The key identifier. It must be a valid volatile key
+ *                      identifier.
+ * \return              A pointer to the only slot that the given key
+ *                      can be in. Note that the slot may be empty or
+ *                      contain a different key.
+ */
+static inline psa_key_slot_t *get_volatile_key_slot(psa_key_id_t key_id);
+
+/** Get a pointer to an entry in the persistent key cache.
+ *
+ * \param slot_idx      The index in the table. It must satisfy
+ *                      0 <= slot_idx < PERSISTENT_KEY_CACHE_COUNT.
+ * \return              A pointer to the slot containing the given
+ *                      persistent key cache entry.
+ */
+static inline psa_key_slot_t *get_persistent_key_slot(size_t slot_idx);
+
+/** Get a pointer to a slot given by slice and index.
+ *
+ * \param slice_idx     The slice number. It must satisfy
+ *                      0 <= slice_idx < KEY_SLICE_COUNT.
+ * \param slot_idx      An index in the given slice. It must satisfy
+ *                      0 <= slot_idx < key_slice_length(slice_idx).
+ *
+ * \return              A pointer to the given slot.
+ */
+static inline psa_key_slot_t *get_key_slot(size_t slice_idx, size_t slot_idx);
+
+#if defined(MBEDTLS_PSA_KEY_STORE_DYNAMIC)
+
+#if defined(MBEDTLS_TEST_HOOKS)
+size_t (*mbedtls_test_hook_psa_volatile_key_slice_length)(size_t slice_idx) = NULL;
+#endif
+
+static inline size_t key_slice_length(size_t slice_idx)
+{
+    if (slice_idx == KEY_SLOT_CACHE_SLICE_INDEX) {
+        return PERSISTENT_KEY_CACHE_COUNT;
+    } else {
+#if defined(MBEDTLS_TEST_HOOKS)
+        if (mbedtls_test_hook_psa_volatile_key_slice_length != NULL) {
+            return mbedtls_test_hook_psa_volatile_key_slice_length(slice_idx);
+        }
+#endif
+        return KEY_SLOT_VOLATILE_SLICE_BASE_LENGTH << slice_idx;
+    }
+}
+
+static inline psa_key_slot_t *get_volatile_key_slot(psa_key_id_t key_id)
+{
+    size_t slice_idx = slice_index_of_volatile_key_id(key_id);
+    if (slice_idx >= KEY_SLOT_VOLATILE_SLICE_COUNT) {
+        return NULL;
+    }
+    size_t slot_idx = slot_index_of_volatile_key_id(key_id);
+    if (slot_idx >= key_slice_length(slice_idx)) {
+        return NULL;
+    }
+    psa_key_slot_t *slice = global_data.key_slices[slice_idx];
+    if (slice == NULL) {
+        return NULL;
+    }
+    return &slice[slot_idx];
+}
+
+static inline psa_key_slot_t *get_persistent_key_slot(size_t slot_idx)
+{
+    return &global_data.key_slices[KEY_SLOT_CACHE_SLICE_INDEX][slot_idx];
+}
+
+static inline psa_key_slot_t *get_key_slot(size_t slice_idx, size_t slot_idx)
+{
+    return &global_data.key_slices[slice_idx][slot_idx];
+}
+
+#else /* MBEDTLS_PSA_KEY_STORE_DYNAMIC */
+
+static inline size_t key_slice_length(size_t slice_idx)
+{
+    (void) slice_idx;
+    return ARRAY_LENGTH(global_data.key_slots);
+}
+
+static inline psa_key_slot_t *get_volatile_key_slot(psa_key_id_t key_id)
+{
+    MBEDTLS_STATIC_ASSERT(ARRAY_LENGTH(global_data.key_slots) <=
+                          PSA_KEY_ID_VOLATILE_MAX - PSA_KEY_ID_VOLATILE_MIN + 1,
+                          "The key slot array is larger than the volatile key ID range");
+    return &global_data.key_slots[key_id - PSA_KEY_ID_VOLATILE_MIN];
+}
+
+static inline psa_key_slot_t *get_persistent_key_slot(size_t slot_idx)
+{
+    return &global_data.key_slots[slot_idx];
+}
+
+static inline psa_key_slot_t *get_key_slot(size_t slice_idx, size_t slot_idx)
+{
+    (void) slice_idx;
+    return &global_data.key_slots[slot_idx];
+}
+
+#endif /* MBEDTLS_PSA_KEY_STORE_DYNAMIC */
+
+
 
 int psa_is_valid_key_id(mbedtls_svc_key_id_t key, int vendor_ok)
 {
@@ -147,12 +389,13 @@ static psa_status_t psa_get_and_lock_key_slot_in_memory(
     psa_key_slot_t *slot = NULL;
 
     if (psa_key_id_is_volatile(key_id)) {
-        slot = &global_data.key_slots[key_id - PSA_KEY_ID_VOLATILE_MIN];
+        slot = get_volatile_key_slot(key_id);
 
         /* Check if both the PSA key identifier key_id and the owner
          * identifier of key match those of the key slot. */
-        if ((slot->state == PSA_SLOT_FULL) &&
-            (mbedtls_svc_key_id_equal(key, slot->attr.id))) {
+        if (slot != NULL &&
+            slot->state == PSA_SLOT_FULL &&
+            mbedtls_svc_key_id_equal(key, slot->attr.id)) {
             status = PSA_SUCCESS;
         } else {
             status = PSA_ERROR_DOES_NOT_EXIST;
@@ -162,8 +405,8 @@ static psa_status_t psa_get_and_lock_key_slot_in_memory(
             return PSA_ERROR_INVALID_HANDLE;
         }
 
-        for (slot_idx = 0; slot_idx < MBEDTLS_PSA_KEY_SLOT_COUNT; slot_idx++) {
-            slot = &global_data.key_slots[slot_idx];
+        for (slot_idx = 0; slot_idx < PERSISTENT_KEY_CACHE_COUNT; slot_idx++) {
+            slot = get_persistent_key_slot(slot_idx);
             /* Only consider slots which are in a full state. */
             if ((slot->state == PSA_SLOT_FULL) &&
                 (mbedtls_svc_key_id_equal(key, slot->attr.id))) {
@@ -186,28 +429,168 @@ static psa_status_t psa_get_and_lock_key_slot_in_memory(
 
 psa_status_t psa_initialize_key_slots(void)
 {
+#if defined(MBEDTLS_PSA_KEY_STORE_DYNAMIC)
+    global_data.key_slices[KEY_SLOT_CACHE_SLICE_INDEX] =
+        mbedtls_calloc(PERSISTENT_KEY_CACHE_COUNT,
+                       sizeof(*global_data.key_slices[KEY_SLOT_CACHE_SLICE_INDEX]));
+    if (global_data.key_slices[KEY_SLOT_CACHE_SLICE_INDEX] == NULL) {
+        return PSA_ERROR_INSUFFICIENT_MEMORY;
+    }
+#else /* MBEDTLS_PSA_KEY_STORE_DYNAMIC */
     /* Nothing to do: program startup and psa_wipe_all_key_slots() both
      * guarantee that the key slots are initialized to all-zero, which
      * means that all the key slots are in a valid, empty state. The global
      * data mutex is already held when calling this function, so no need to
      * lock it here, to set the flag. */
+#endif /* MBEDTLS_PSA_KEY_STORE_DYNAMIC */
+
     global_data.key_slots_initialized = 1;
     return PSA_SUCCESS;
 }
 
 void psa_wipe_all_key_slots(void)
 {
-    size_t slot_idx;
-
-    for (slot_idx = 0; slot_idx < MBEDTLS_PSA_KEY_SLOT_COUNT; slot_idx++) {
-        psa_key_slot_t *slot = &global_data.key_slots[slot_idx];
-        slot->registered_readers = 1;
-        slot->state = PSA_SLOT_PENDING_DELETION;
-        (void) psa_wipe_key_slot(slot);
+    for (size_t slice_idx = 0; slice_idx < KEY_SLICE_COUNT; slice_idx++) {
+#if defined(MBEDTLS_PSA_KEY_STORE_DYNAMIC)
+        if (global_data.key_slices[slice_idx] == NULL) {
+            continue;
+        }
+#endif  /* MBEDTLS_PSA_KEY_STORE_DYNAMIC */
+        for (size_t slot_idx = 0; slot_idx < key_slice_length(slice_idx); slot_idx++) {
+            psa_key_slot_t *slot = get_key_slot(slice_idx, slot_idx);
+#if defined(MBEDTLS_PSA_KEY_STORE_DYNAMIC)
+            /* When MBEDTLS_PSA_KEY_STORE_DYNAMIC is disabled, calling
+             * psa_wipe_key_slot() on an unused slot is useless, but it
+             * happens to work (because we flip the state to PENDING_DELETION).
+             *
+             * When MBEDTLS_PSA_KEY_STORE_DYNAMIC is enabled,
+             * psa_wipe_key_slot() needs to have a valid slice_index
+             * field, but that value might not be correct in a
+             * free slot, so we must not call it.
+             *
+             * Bypass the call to psa_wipe_key_slot() if the slot is empty,
+             * but only if MBEDTLS_PSA_KEY_STORE_DYNAMIC is enabled, to save
+             * a few bytes of code size otherwise.
+             */
+            if (slot->state == PSA_SLOT_EMPTY) {
+                continue;
+            }
+#endif
+            slot->var.occupied.registered_readers = 1;
+            slot->state = PSA_SLOT_PENDING_DELETION;
+            (void) psa_wipe_key_slot(slot);
+        }
+#if defined(MBEDTLS_PSA_KEY_STORE_DYNAMIC)
+        mbedtls_free(global_data.key_slices[slice_idx]);
+        global_data.key_slices[slice_idx] = NULL;
+#endif  /* MBEDTLS_PSA_KEY_STORE_DYNAMIC */
     }
+
+#if defined(MBEDTLS_PSA_KEY_STORE_DYNAMIC)
+    for (size_t slice_idx = 0; slice_idx < KEY_SLOT_VOLATILE_SLICE_COUNT; slice_idx++) {
+        global_data.first_free_slot_index[slice_idx] = 0;
+    }
+#endif  /* MBEDTLS_PSA_KEY_STORE_DYNAMIC */
+
     /* The global data mutex is already held when calling this function. */
     global_data.key_slots_initialized = 0;
 }
+
+#if defined(MBEDTLS_PSA_KEY_STORE_DYNAMIC)
+
+static psa_status_t psa_allocate_volatile_key_slot(psa_key_id_t *key_id,
+                                                   psa_key_slot_t **p_slot)
+{
+    size_t slice_idx;
+    for (slice_idx = 0; slice_idx < KEY_SLOT_VOLATILE_SLICE_COUNT; slice_idx++) {
+        if (global_data.first_free_slot_index[slice_idx] != FREE_SLOT_INDEX_NONE) {
+            break;
+        }
+    }
+    if (slice_idx == KEY_SLOT_VOLATILE_SLICE_COUNT) {
+        return PSA_ERROR_INSUFFICIENT_MEMORY;
+    }
+
+    if (global_data.key_slices[slice_idx] == NULL) {
+        global_data.key_slices[slice_idx] =
+            mbedtls_calloc(key_slice_length(slice_idx),
+                           sizeof(psa_key_slot_t));
+        if (global_data.key_slices[slice_idx] == NULL) {
+            return PSA_ERROR_INSUFFICIENT_MEMORY;
+        }
+    }
+    psa_key_slot_t *slice = global_data.key_slices[slice_idx];
+
+    size_t slot_idx = global_data.first_free_slot_index[slice_idx];
+    *key_id = volatile_key_id_of_index(slice_idx, slot_idx);
+
+    psa_key_slot_t *slot = &slice[slot_idx];
+    size_t next_free = slot_idx + 1 + slot->var.free.next_free_relative_to_next;
+    if (next_free >= key_slice_length(slice_idx)) {
+        next_free = FREE_SLOT_INDEX_NONE;
+    }
+    global_data.first_free_slot_index[slice_idx] = next_free;
+    /* The .next_free field is not meaningful when the slot is not free,
+     * so give it the same content as freshly initialized memory. */
+    slot->var.free.next_free_relative_to_next = 0;
+
+    psa_status_t status = psa_key_slot_state_transition(slot,
+                                                        PSA_SLOT_EMPTY,
+                                                        PSA_SLOT_FILLING);
+    if (status != PSA_SUCCESS) {
+        /* The only reason for failure is if the slot state was not empty.
+         * This indicates that something has gone horribly wrong.
+         * In this case, we leave the slot out of the free list, and stop
+         * modifying it. This minimizes any further corruption. The slot
+         * is a memory leak, but that's a lesser evil. */
+        return status;
+    }
+
+    *p_slot = slot;
+    /* We assert at compile time that the slice index fits in uint8_t. */
+    slot->slice_index = (uint8_t) slice_idx;
+    return PSA_SUCCESS;
+}
+
+psa_status_t psa_free_key_slot(size_t slice_idx,
+                               psa_key_slot_t *slot)
+{
+
+    if (slice_idx == KEY_SLOT_CACHE_SLICE_INDEX) {
+        /* This is a cache entry. We don't maintain a free list, so
+         * there's nothing to do. */
+        return PSA_SUCCESS;
+    }
+    if (slice_idx >= KEY_SLOT_VOLATILE_SLICE_COUNT) {
+        return PSA_ERROR_CORRUPTION_DETECTED;
+    }
+
+    psa_key_slot_t *slice = global_data.key_slices[slice_idx];
+    psa_key_slot_t *slice_end = slice + key_slice_length(slice_idx);
+    if (slot < slice || slot >= slice_end) {
+        /* The slot isn't actually in the slice! We can't detect that
+         * condition for sure, because the pointer comparison itself is
+         * undefined behavior in that case. That same condition makes the
+         * subtraction to calculate the slot index also UB.
+         * Give up now to avoid causing further corruption.
+         */
+        return PSA_ERROR_CORRUPTION_DETECTED;
+    }
+    size_t slot_idx = slot - slice;
+
+    size_t next_free = global_data.first_free_slot_index[slice_idx];
+    if (next_free >= key_slice_length(slice_idx)) {
+        /* The slot was full. The newly freed slot thus becomes the
+         * end of the free list. */
+        next_free = key_slice_length(slice_idx);
+    }
+    global_data.first_free_slot_index[slice_idx] = slot_idx;
+    slot->var.free.next_free_relative_to_next =
+        (int32_t) next_free - (int32_t) slot_idx - 1;
+
+    return PSA_SUCCESS;
+}
+#endif /* MBEDTLS_PSA_KEY_STORE_DYNAMIC */
 
 psa_status_t psa_reserve_free_key_slot(psa_key_id_t *volatile_key_id,
                                        psa_key_slot_t **p_slot)
@@ -221,9 +604,19 @@ psa_status_t psa_reserve_free_key_slot(psa_key_id_t *volatile_key_id,
         goto error;
     }
 
+#if defined(MBEDTLS_PSA_KEY_STORE_DYNAMIC)
+    if (volatile_key_id != NULL) {
+        return psa_allocate_volatile_key_slot(volatile_key_id, p_slot);
+    }
+#endif /* MBEDTLS_PSA_KEY_STORE_DYNAMIC */
+
+    /* With a dynamic key store, allocate an entry in the cache slice,
+     * applicable only to non-volatile keys that get cached in RAM.
+     * With a static key store, allocate an entry in the sole slice,
+     * applicable to all keys. */
     selected_slot = unused_persistent_key_slot = NULL;
-    for (slot_idx = 0; slot_idx < MBEDTLS_PSA_KEY_SLOT_COUNT; slot_idx++) {
-        psa_key_slot_t *slot = &global_data.key_slots[slot_idx];
+    for (slot_idx = 0; slot_idx < PERSISTENT_KEY_CACHE_COUNT; slot_idx++) {
+        psa_key_slot_t *slot = get_key_slot(KEY_SLOT_CACHE_SLICE_INDEX, slot_idx);
         if (slot->state == PSA_SLOT_EMPTY) {
             selected_slot = slot;
             break;
@@ -261,8 +654,18 @@ psa_status_t psa_reserve_free_key_slot(psa_key_id_t *volatile_key_id,
             goto error;
         }
 
-        *volatile_key_id = PSA_KEY_ID_VOLATILE_MIN +
-                           ((psa_key_id_t) (selected_slot - global_data.key_slots));
+#if defined(MBEDTLS_PSA_KEY_STORE_DYNAMIC)
+        selected_slot->slice_index = KEY_SLOT_CACHE_SLICE_INDEX;
+#endif /* MBEDTLS_PSA_KEY_STORE_DYNAMIC */
+
+#if !defined(MBEDTLS_PSA_KEY_STORE_DYNAMIC)
+        if (volatile_key_id != NULL) {
+            /* Refresh slot_idx, for when the slot is not the original
+             * selected_slot but rather unused_persistent_key_slot.  */
+            slot_idx = selected_slot - global_data.key_slots;
+            *volatile_key_id = PSA_KEY_ID_VOLATILE_MIN + slot_idx;
+        }
+#endif
         *p_slot = selected_slot;
 
         return PSA_SUCCESS;
@@ -271,7 +674,6 @@ psa_status_t psa_reserve_free_key_slot(psa_key_id_t *volatile_key_id,
 
 error:
     *p_slot = NULL;
-    *volatile_key_id = 0;
 
     return status;
 }
@@ -430,9 +832,8 @@ psa_status_t psa_get_and_lock_key_slot(mbedtls_svc_key_id_t key,
     /* Loading keys from storage requires support for such a mechanism */
 #if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C) || \
     defined(MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS)
-    psa_key_id_t volatile_key_id;
 
-    status = psa_reserve_free_key_slot(&volatile_key_id, p_slot);
+    status = psa_reserve_free_key_slot(NULL, p_slot);
     if (status != PSA_SUCCESS) {
 #if defined(MBEDTLS_THREADING_C)
         PSA_THREADING_CHK_RET(mbedtls_mutex_unlock(
@@ -500,12 +901,12 @@ psa_status_t psa_unregister_read(psa_key_slot_t *slot)
     /* If we are the last reader and the slot is marked for deletion,
      * we must wipe the slot here. */
     if ((slot->state == PSA_SLOT_PENDING_DELETION) &&
-        (slot->registered_readers == 1)) {
+        (slot->var.occupied.registered_readers == 1)) {
         return psa_wipe_key_slot(slot);
     }
 
     if (psa_key_slot_has_readers(slot)) {
-        slot->registered_readers--;
+        slot->var.occupied.registered_readers--;
         return PSA_SUCCESS;
     }
 
@@ -639,7 +1040,7 @@ psa_status_t psa_close_key(psa_key_handle_t handle)
         return status;
     }
 
-    if (slot->registered_readers == 1) {
+    if (slot->var.occupied.registered_readers == 1) {
         status = psa_wipe_key_slot(slot);
     } else {
         status = psa_unregister_read(slot);
@@ -674,7 +1075,7 @@ psa_status_t psa_purge_key(mbedtls_svc_key_id_t key)
     }
 
     if ((!PSA_KEY_LIFETIME_IS_VOLATILE(slot->attr.lifetime)) &&
-        (slot->registered_readers == 1)) {
+        (slot->var.occupied.registered_readers == 1)) {
         status = psa_wipe_key_slot(slot);
     } else {
         status = psa_unregister_read(slot);
@@ -689,34 +1090,39 @@ psa_status_t psa_purge_key(mbedtls_svc_key_id_t key)
 
 void mbedtls_psa_get_stats(mbedtls_psa_stats_t *stats)
 {
-    size_t slot_idx;
-
     memset(stats, 0, sizeof(*stats));
 
-    for (slot_idx = 0; slot_idx < MBEDTLS_PSA_KEY_SLOT_COUNT; slot_idx++) {
-        const psa_key_slot_t *slot = &global_data.key_slots[slot_idx];
-        if (psa_key_slot_has_readers(slot)) {
-            ++stats->locked_slots;
-        }
-        if (slot->state == PSA_SLOT_EMPTY) {
-            ++stats->empty_slots;
+    for (size_t slice_idx = 0; slice_idx < KEY_SLICE_COUNT; slice_idx++) {
+#if defined(MBEDTLS_PSA_KEY_STORE_DYNAMIC)
+        if (global_data.key_slices[slice_idx] == NULL) {
             continue;
         }
-        if (PSA_KEY_LIFETIME_IS_VOLATILE(slot->attr.lifetime)) {
-            ++stats->volatile_slots;
-        } else {
-            psa_key_id_t id = MBEDTLS_SVC_KEY_ID_GET_KEY_ID(slot->attr.id);
-            ++stats->persistent_slots;
-            if (id > stats->max_open_internal_key_id) {
-                stats->max_open_internal_key_id = id;
+#endif  /* MBEDTLS_PSA_KEY_STORE_DYNAMIC */
+        for (size_t slot_idx = 0; slot_idx < key_slice_length(slice_idx); slot_idx++) {
+            const psa_key_slot_t *slot = get_key_slot(slice_idx, slot_idx);
+            if (slot->state == PSA_SLOT_EMPTY) {
+                ++stats->empty_slots;
+                continue;
             }
-        }
-        if (PSA_KEY_LIFETIME_GET_LOCATION(slot->attr.lifetime) !=
-            PSA_KEY_LOCATION_LOCAL_STORAGE) {
-            psa_key_id_t id = MBEDTLS_SVC_KEY_ID_GET_KEY_ID(slot->attr.id);
-            ++stats->external_slots;
-            if (id > stats->max_open_external_key_id) {
-                stats->max_open_external_key_id = id;
+            if (psa_key_slot_has_readers(slot)) {
+                ++stats->locked_slots;
+            }
+            if (PSA_KEY_LIFETIME_IS_VOLATILE(slot->attr.lifetime)) {
+                ++stats->volatile_slots;
+            } else {
+                psa_key_id_t id = MBEDTLS_SVC_KEY_ID_GET_KEY_ID(slot->attr.id);
+                ++stats->persistent_slots;
+                if (id > stats->max_open_internal_key_id) {
+                    stats->max_open_internal_key_id = id;
+                }
+            }
+            if (PSA_KEY_LIFETIME_GET_LOCATION(slot->attr.lifetime) !=
+                PSA_KEY_LOCATION_LOCAL_STORAGE) {
+                psa_key_id_t id = MBEDTLS_SVC_KEY_ID_GET_KEY_ID(slot->attr.id);
+                ++stats->external_slots;
+                if (id > stats->max_open_external_key_id) {
+                    stats->max_open_external_key_id = id;
+                }
             }
         }
     }

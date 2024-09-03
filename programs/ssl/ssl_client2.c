@@ -2204,7 +2204,9 @@ usage:
             ret != MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS) {
             mbedtls_printf(" failed\n  ! mbedtls_ssl_handshake returned -0x%x\n",
                            (unsigned int) -ret);
-            if (ret == MBEDTLS_ERR_X509_CERT_VERIFY_FAILED) {
+#if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
+            if (ret == MBEDTLS_ERR_X509_CERT_VERIFY_FAILED ||
+                ret == MBEDTLS_ERR_SSL_BAD_CERTIFICATE) {
                 mbedtls_printf(
                     "    Unable to verify the server's certificate. "
                     "Either it is invalid,\n"
@@ -2215,7 +2217,13 @@ usage:
                     "not using TLS 1.3.\n"
                     "    For TLS 1.3 server, try `ca_path=/etc/ssl/certs/`"
                     "or other folder that has root certificates\n");
+
+                flags = mbedtls_ssl_get_verify_result(&ssl);
+                char vrfy_buf[512];
+                x509_crt_verify_info(vrfy_buf, sizeof(vrfy_buf), "  ! ", flags);
+                mbedtls_printf("%s\n", vrfy_buf);
             }
+#endif
             mbedtls_printf("\n");
             goto exit;
         }

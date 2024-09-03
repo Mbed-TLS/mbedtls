@@ -104,7 +104,7 @@
  *  } else {
  *      // safe path
  *  }
- * not the other way round, in order to prevent misuse. (This is, if a value
+ * not the other way round, in order to prevent misuse. (That is, if a value
  * other than the two below is passed, default to the safe path.)
  *
  * The value of MBEDTLS_MPI_IS_PUBLIC is chosen in a way that is unlikely to happen by accident, but

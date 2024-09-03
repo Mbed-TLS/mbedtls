@@ -1,0 +1,3 @@
+Bugfix
+   * Fix a memory leak that could occur when failing to process an RSA
+     key through some PSA functions due to low memory conditions.

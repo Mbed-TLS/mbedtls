@@ -6,8 +6,8 @@
  *      - MBEDTLS_MPI_IS_SECRET: Only safe paths were teken since the last reset
  *      - MBEDTLS_MPI_IS_PUBLIC: At least one unsafe path has been taken since the last reset
  *
- * Using a simple global variable to track execution path. Making it work with multithreading
- * doesn't worth the effort as multithreaded tests add little to no value here.
+ * Use a simple global variable to track execution path. Making it work with multithreading
+ * isn't worth the effort as multithreaded tests add little to no value here.
  */
 /*
  *  Copyright The Mbed TLS Contributors
@@ -47,7 +47,7 @@ static inline void mbedtls_codepath_reset(void)
  *
  * When a function returns with an error, it can do so before reaching any interesting codepath. The
  * same can happen if a parameter to the function is zero. In these cases we need to allow
- * uninitialised value for the codepath tracking variable.
+ * the codepath tracking variable to still have its initial "not set" value.
  *
  * This macro expands to an instruction, not an expression.
  * It may jump to the \c exit label.
@@ -70,7 +70,8 @@ static inline void mbedtls_codepath_reset(void)
 /** Check the codepath taken and fail if it doesn't match.
  *
  * When a function returns with an error, it can do so before reaching any interesting codepath. In
- * this case we need to allow uninitialised value for the codepath tracking variable.
+ * this case we need to allow the codepath tracking variable to still have its
+ * initial "not set" value.
  *
  * This macro expands to an instruction, not an expression.
  * It may jump to the \c exit label.

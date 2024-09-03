@@ -5678,13 +5678,13 @@ static const uint16_t ssl_preset_default_sig_algs[] = {
 #endif
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDSA_CERT_REQ_ANY_ALLOWED_ENABLED) && \
-    defined(MBEDTLS_MD_CAN_SHA512) && \
+    defined(PSA_WANT_ALG_SHA_512) && \
     defined(PSA_WANT_ECC_SECP_R1_521)
     MBEDTLS_TLS1_3_SIG_ECDSA_SECP521R1_SHA512,
     // == MBEDTLS_SSL_TLS12_SIG_AND_HASH_ALG(MBEDTLS_SSL_SIG_ECDSA, MBEDTLS_SSL_HASH_SHA512)
 #endif
 
-#if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT) && defined(MBEDTLS_MD_CAN_SHA512)
+#if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT) && defined(PSA_WANT_ALG_SHA_512)
     MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA512,
 #endif
 
@@ -5696,9 +5696,9 @@ static const uint16_t ssl_preset_default_sig_algs[] = {
     MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA256,
 #endif
 
-#if defined(MBEDTLS_RSA_C) && defined(MBEDTLS_MD_CAN_SHA512)
+#if defined(MBEDTLS_RSA_C) && defined(PSA_WANT_ALG_SHA_512)
     MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA512,
-#endif /* MBEDTLS_RSA_C && MBEDTLS_MD_CAN_SHA512 */
+#endif /* MBEDTLS_RSA_C && PSA_WANT_ALG_SHA_512 */
 
 #if defined(MBEDTLS_RSA_C) && defined(PSA_WANT_ALG_SHA_384)
     MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA384,
@@ -5715,7 +5715,7 @@ static const uint16_t ssl_preset_default_sig_algs[] = {
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
 static uint16_t ssl_tls12_preset_default_sig_algs[] = {
 
-#if defined(MBEDTLS_MD_CAN_SHA512)
+#if defined(PSA_WANT_ALG_SHA_512)
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDSA_CERT_REQ_ALLOWED_ENABLED)
     MBEDTLS_SSL_TLS12_SIG_AND_HASH_ALG(MBEDTLS_SSL_SIG_ECDSA, MBEDTLS_SSL_HASH_SHA512),
 #endif
@@ -5725,7 +5725,7 @@ static uint16_t ssl_tls12_preset_default_sig_algs[] = {
 #if defined(MBEDTLS_RSA_C)
     MBEDTLS_SSL_TLS12_SIG_AND_HASH_ALG(MBEDTLS_SSL_SIG_RSA, MBEDTLS_SSL_HASH_SHA512),
 #endif
-#endif /* MBEDTLS_MD_CAN_SHA512 */
+#endif /* PSA_WANT_ALG_SHA_512 */
 
 #if defined(PSA_WANT_ALG_SHA_384)
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDSA_CERT_REQ_ALLOWED_ENABLED)
@@ -6152,7 +6152,7 @@ mbedtls_md_type_t mbedtls_ssl_md_alg_from_hash(unsigned char hash)
         case MBEDTLS_SSL_HASH_SHA384:
             return MBEDTLS_MD_SHA384;
 #endif
-#if defined(MBEDTLS_MD_CAN_SHA512)
+#if defined(PSA_WANT_ALG_SHA_512)
         case MBEDTLS_SSL_HASH_SHA512:
             return MBEDTLS_MD_SHA512;
 #endif
@@ -6187,7 +6187,7 @@ unsigned char mbedtls_ssl_hash_from_md_alg(int md)
         case MBEDTLS_MD_SHA384:
             return MBEDTLS_SSL_HASH_SHA384;
 #endif
-#if defined(MBEDTLS_MD_CAN_SHA512)
+#if defined(PSA_WANT_ALG_SHA_512)
         case MBEDTLS_MD_SHA512:
             return MBEDTLS_SSL_HASH_SHA512;
 #endif

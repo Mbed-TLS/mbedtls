@@ -79,7 +79,7 @@ depends_on:PSA_WANT_ALG_SHA_384
 oid_get_md_alg_id:"608648016503040202":MBEDTLS_MD_SHA384
 
 OID hash id - id-sha512
-depends_on:MBEDTLS_MD_CAN_SHA512
+depends_on:PSA_WANT_ALG_SHA_512
 oid_get_md_alg_id:"608648016503040203":MBEDTLS_MD_SHA512
 
 OID hash id - id-sha3-224
@@ -223,7 +223,7 @@ depends_on:PSA_WANT_ALG_SHA_384
 mbedtls_oid_get_md_hmac:"2A864886F70D020A":MBEDTLS_MD_SHA384
 
 mbedtls_oid_get_md_hmac - SHA512
-depends_on:MBEDTLS_MD_CAN_SHA512
+depends_on:PSA_WANT_ALG_SHA_512
 mbedtls_oid_get_md_hmac:"2A864886F70D020B":MBEDTLS_MD_SHA512
 
 mbedtls_oid_get_md_hmac - SHA3_224

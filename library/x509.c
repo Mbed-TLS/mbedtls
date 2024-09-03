@@ -149,7 +149,7 @@ static inline const char *md_type_to_string(mbedtls_md_type_t md_alg)
         case MBEDTLS_MD_SHA384:
             return "SHA384";
 #endif
-#if defined(MBEDTLS_MD_CAN_SHA512)
+#if defined(PSA_WANT_ALG_SHA_512)
         case MBEDTLS_MD_SHA512:
             return "SHA512";
 #endif

@@ -1674,18 +1674,53 @@ static inline mbedtls_x509_crt *mbedtls_ssl_own_cert(mbedtls_ssl_context *ssl)
 }
 
 /*
- * Check usage of a certificate wrt extensions:
- * keyUsage, extendedKeyUsage (later), and nSCertType (later).
+ * Verify a certificate.
  *
- * Warning: cert_endpoint is the endpoint of the cert (ie, of our peer when we
- * check a cert we received from them)!
+ * [in/out] ssl: misc. things read
+ *               ssl->session_negotiate->verify_result updated
+ * [in] authmode: one of MBEDTLS_SSL_VERIFY_{NONE,OPTIONAL,REQUIRED}
+ * [in] chain: the certificate chain to verify (ie the peer's chain)
+ * [in] ciphersuite_info: For TLS 1.2, this session's ciphersuite;
+ *                        for TLS 1.3, may be left NULL.
+ * [in] rs_ctx: restart context if restartable ECC is in use;
+ *              leave NULL for no restartable behaviour.
+ *
+ * Return:
+ * - 0 if the handshake should continue. Depending on the
+ *   authmode it means:
+ *   - REQUIRED: the certificate was found to be valid, trusted & acceptable.
+ *     ssl->session_negotiate->verify_result is 0.
+ *   - OPTIONAL: the certificate may or may not be acceptable, but
+ *     ssl->session_negotiate->verify_result was updated with the result.
+ *   - NONE: the certificate wasn't even checked.
+ * - MBEDTLS_ERR_X509_CERT_VERIFY_FAILED or MBEDTLS_ERR_SSL_BAD_CERTIFICATE if
+ *   the certificate was found to be invalid/untrusted/unacceptable and the
+ *   handshake should be aborted (can only happen with REQUIRED).
+ * - another error code if another error happened (out-of-memory, etc.)
+ */
+MBEDTLS_CHECK_RETURN_CRITICAL
+int mbedtls_ssl_verify_certificate(mbedtls_ssl_context *ssl,
+                                   int authmode,
+                                   mbedtls_x509_crt *chain,
+                                   const mbedtls_ssl_ciphersuite_t *ciphersuite_info,
+                                   void *rs_ctx);
+
+/*
+ * Check usage of a certificate wrt usage extensions:
+ * keyUsage and extendedKeyUsage.
+ * (Note: nSCertType is deprecated and not standard, we don't check it.)
+ *
+ * Note: if tls_version is 1.3, ciphersuite is ignored and can be NULL.
+ *
+ * Note: recv_endpoint is the receiver's endpoint.
  *
  * Return 0 if everything is OK, -1 if not.
  */
 MBEDTLS_CHECK_RETURN_CRITICAL
 int mbedtls_ssl_check_cert_usage(const mbedtls_x509_crt *cert,
                                  const mbedtls_ssl_ciphersuite_t *ciphersuite,
-                                 int cert_endpoint,
+                                 int recv_endpoint,
+                                 mbedtls_ssl_protocol_version tls_version,
                                  uint32_t *flags);
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 

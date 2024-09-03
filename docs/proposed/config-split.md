@@ -148,8 +148,6 @@ Open question: do we group them into a subsection?
 //#define MBEDTLS_TEST_CONSTANT_FLOW_MEMSAN
 //#define MBEDTLS_TEST_CONSTANT_FLOW_VALGRIND
 //#define MBEDTLS_TEST_HOOKS
-#define MBEDTLS_VERSION_C
-#define MBEDTLS_VERSION_FEATURES
 
 //#define MBEDTLS_CHECK_RETURN __attribute__((__warn_unused_result__))
 //#define MBEDTLS_IGNORE_RETURN( result ) ((void) !(result))
@@ -362,6 +360,8 @@ PSA_WANT_\* macros as in current crypto_config.h.
 #define MBEDTLS_SSL_SERVER_NAME_INDICATION
 //#define MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH
 //#define MBEDTLS_USE_PSA_CRYPTO
+#define MBEDTLS_VERSION_C
+#define MBEDTLS_VERSION_FEATURES
 //#define MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK
 //#define MBEDTLS_X509_REMOVE_INFO
 #define MBEDTLS_X509_RSASSA_PSS_SUPPORT

@@ -49,6 +49,7 @@ component_test_memsan_constant_flow () {
     scripts/config.py set MBEDTLS_TEST_CONSTANT_FLOW_MEMSAN
     scripts/config.py unset MBEDTLS_USE_PSA_CRYPTO
     scripts/config.py unset MBEDTLS_AESNI_C # memsan doesn't grok asm
+    scripts/config.py unset MBEDTLS_HAVE_ASM
     CC=clang cmake -D CMAKE_BUILD_TYPE:String=MemSan .
     make
 
@@ -67,6 +68,7 @@ component_test_memsan_constant_flow_psa () {
     scripts/config.py full
     scripts/config.py set MBEDTLS_TEST_CONSTANT_FLOW_MEMSAN
     scripts/config.py unset MBEDTLS_AESNI_C # memsan doesn't grok asm
+    scripts/config.py unset MBEDTLS_HAVE_ASM
     CC=clang cmake -D CMAKE_BUILD_TYPE:String=MemSan .
     make
 

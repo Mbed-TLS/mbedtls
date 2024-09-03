@@ -129,9 +129,9 @@ depends_on:MBEDTLS_PSA_CRYPTO_STORAGE_C
 # writing, this happens in builds where AES uses a PSA driver and the
 # PSA RNG uses AES-CTR_DRBG through the PSA AES.
 # Pick a key id that's in the middle of the volatile key ID range.
-# That works out both when MBEDTLS_PSA_KEY_SLOT_DYNAMIC is enabled and
+# That works out both when MBEDTLS_PSA_KEY_STORE_DYNAMIC is enabled and
 # volatile key IDs are assigned starting with the lowest value, and when
-# MBEDTLS_PSA_KEY_SLOT_DYNAMIC is disabled and volatile key IDs are assigned
+# MBEDTLS_PSA_KEY_STORE_DYNAMIC is disabled and volatile key IDs are assigned
 # starting with the highest values.
 open_fail:(PSA_KEY_ID_VOLATILE_MIN + PSA_KEY_ID_VOLATILE_MAX) / 2:PSA_ERROR_DOES_NOT_EXIST
 
@@ -227,6 +227,11 @@ invalid_handle:INVALID_HANDLE_HUGE:PSA_ERROR_INVALID_HANDLE
 
 Key slot count: maximum
 many_transient_keys:MBEDTLS_PSA_KEY_SLOT_COUNT - MBEDTLS_TEST_PSA_INTERNAL_KEYS
+
+Key slot count: dynamic: more than MBEDTLS_PSA_KEY_SLOT_COUNT
+depends_on:MBEDTLS_PSA_KEY_STORE_DYNAMIC
+# Check that MBEDTLS_PSA_KEY_SLOT_COUNT doesn't apply to volatile keys.
+many_transient_keys:MBEDTLS_PSA_KEY_SLOT_COUNT + 1
 
 Key slot count: try to overfill, destroy first
 fill_key_store:0

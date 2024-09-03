@@ -1,7 +1,7 @@
-Mbed TLS and TF-PSA-Crypto configuration
-========================================
+Configuration file split
+========================
 
-## Objectives
+## Why splitting the configuration file?
 
 The objective of the repository split is to reach the point where in Mbed TLS
 all the cryptography code and its tests are located in a tf-psa-crypto
@@ -12,31 +12,40 @@ cryptography library and its tests.
 
 The TF-PSA-Crypto configuration file tf_psa_crypto_config.h configures
 entirely the cryptography interface exposed by Mbed TLS through TF-PSA-Crypto.
-Mbed TLS is configured with two files: mbedtls_config.h for TLS and x509
-and tf_psa_crypto_config.h.
+Mbed TLS configuration is splitted in two files: mbedtls_config.h for TLS and
+x509, tf_psa_crypto_config.h for the cryptography.
 
-The platform abstraction layer and its configuration are the same in Mbed TLS
-and TF-PSA-Crypto as:
-* we want an user of Mbed TLS to set up only one plaform
-abstraction layer for both the TLS/x509 part of Mbed TLS and its cryptography
-part (TF-PSA-Crypto).
-* we want to avoid an interface adaptation.
+## How do we split the configuration file?
 
-## Requirements on tf_psa_crypto_config.h
-* it configures the PSA APIs, their implementations, the implementation of the
-  builtin drivers and the platform abstraction layer.
-* tf_psa_crypto_config.h inherites from all the cryptography configuration
-  options of mbedtls_config.h.
+We extend the so called PSA cryptographic configuration scheme based on
+mbedtls_config.h and crypto_config.h. The configuration file crypto_config.h is
+extended to become the TF-PSA-Crypto configuration file, mbedtls_config.h
+becomes the configuration file for the TLS and x509 libraries. All the options
+to select the cryptographic mechanisms and to configure their implementation
+are moved from mbedtls_config.h to (tf_psa_)crypto_config.h.
 
-## Comments about objectives and requirements
+The configuration options that are relevant to both Mbed TLS and TF-PSA-Crypto
+like platform or system ones are moved to (tf_psa_)crypto_config.h. That way
+they are available in both repositories (as Mbed TLS includes
+tf_psa_crypto_config.h) without duplication. Later, we may duplicate or create
+aliases for some of them to align with the naming conventions of the
+repositories.
 
-Given the objectives and requirements on tf_psa_crypto_config.h above, the
-Mbed TLS configuration with mbedtls_config.h and tf_psa_crypto_config.h can be
-seen as an extension of the so called PSA cryptographic configuration scheme
-based on mbedtls_config.h and crypto_config.h. The configuration file
-crypto_config.h is extended to become the TF-PSA-Crypto configuration file,
-mbedtls_config.h mainly becomes the configuration file for the TLS and x509
-libraries.
+The layout of options into sections in mbedtls_config.h does not suit
+TF-PSA-Crypto well thus the configuration options tf_psa_crypto_config.h are
+organized into different sections (see below).
+
+## Configuration files and config.py
+
+Each repository contains a config.py script to create and modify configurations.
+
+In Mbed TLS, config.py handles both mbedtls_config.h and
+tf_psa_crypto_config.h. It can set or unset TLS, x509 and cryptographic
+configuration options without having to specify the configuration file the
+options belong to. Commands like full and baremetal affect both configuration
+files.
+
+In TF-PSA-Crypto, config.py addresses only tf_psa_crypto_config.h.
 
 ## Sections in tf_psa_crypto_config.h
 

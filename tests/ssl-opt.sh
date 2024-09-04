@@ -492,6 +492,7 @@ detect_required_features() {
     esac
 
     case " $CMD_LINE " in
+        *"programs/ssl/dtls_client "*|\
         *"programs/ssl/ssl_client1 "*)
             requires_config_enabled MBEDTLS_CTR_DRBG_C
             requires_config_enabled MBEDTLS_ENTROPY_C
@@ -1382,9 +1383,13 @@ skip_handshake_stage_check() {
 # Outputs:
 # * $CLI_CMD, $PXY_CMD, $SRV_CMD: may be tweaked.
 analyze_test_commands() {
-    # if the test uses DTLS but no custom proxy, add a simple proxy
-    # as it provides timing info that's useful to debug failures
-    if [ -z "$PXY_CMD" ] && [ "$DTLS" -eq 1 ]; then
+    # If the test uses DTLS, does not force a specific port, and does not
+    # specify a custom proxy, add a simple proxy.
+    # It provides timing info that's useful to debug failures.
+    if [ "$DTLS" -eq 1 ] &&
+       [ "$THIS_SRV_PORT" = "$SRV_PORT" ] &&
+       [ -z "$PXY_CMD" ]
+    then
         PXY_CMD="$P_PXY"
         case " $SRV_CMD " in
             *' server_addr=::1 '*)
@@ -1751,7 +1756,7 @@ run_test() {
         esac
     fi
 
-    # does this test use a proxy?
+    # Does this test specify a proxy?
     if [ "X$1" = "X-p" ]; then
         PXY_CMD="$2"
         shift 2

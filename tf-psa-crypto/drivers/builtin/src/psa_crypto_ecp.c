@@ -12,7 +12,6 @@
 
 #include <psa/crypto.h>
 #include "psa_crypto_core.h"
-#include "psa_crypto_driver_wrappers.h"
 #include "psa_crypto_ecp.h"
 #include "psa_crypto_random_impl.h"
 #include "mbedtls/psa_util.h"
@@ -659,8 +658,8 @@ psa_status_t mbedtls_psa_key_agreement_setup(
     size_t bits = 0;
 
     status = mbedtls_psa_ecp_load_representation(
-        attributes->type,
-        attributes->bits,
+        psa_get_key_type(attributes),
+        psa_get_key_bits(attributes),
         private_key_buffer,
         private_key_buffer_len,
         &ecp);

@@ -312,16 +312,19 @@ reset:
     mbedtls_printf(" %d bytes written\n\n%s\n", len, (char *) buf);
 
     mbedtls_printf("  . Closing the connection...");
+    fflush(stdout);
 
     while ((ret = mbedtls_ssl_close_notify(&ssl)) < 0) {
         if (ret != MBEDTLS_ERR_SSL_WANT_READ &&
-            ret != MBEDTLS_ERR_SSL_WANT_WRITE) {
+            ret != MBEDTLS_ERR_SSL_WANT_WRITE &&
+            ret != MBEDTLS_ERR_NET_CONN_RESET) {
             mbedtls_printf(" failed\n  ! mbedtls_ssl_close_notify returned %d\n\n", ret);
             goto reset;
         }
     }
 
     mbedtls_printf(" ok\n");
+    fflush(stdout);
 
     ret = 0;
     goto reset;

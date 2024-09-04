@@ -500,6 +500,13 @@ detect_required_features() {
             requires_config_enabled MBEDTLS_SSL_CLI_C
             requires_certificate_authentication
             ;;
+        *"programs/ssl/ssl_server "*)
+            requires_config_enabled MBEDTLS_CTR_DRBG_C
+            requires_config_enabled MBEDTLS_ENTROPY_C
+            requires_config_enabled MBEDTLS_PEM_PARSE_C
+            requires_config_enabled MBEDTLS_SSL_SRV_C
+            requires_certificate_authentication
+            ;;
     esac
 
     case "$CMD_LINE" in

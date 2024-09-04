@@ -1410,7 +1410,16 @@ analyze_test_commands() {
     if [ -n "$PXY_CMD" ]; then
         CLI_CMD=$( echo "$CLI_CMD" | sed s/+SRV_PORT/$PXY_PORT/g )
     else
-        CLI_CMD=$( echo "$CLI_CMD" | sed s/+SRV_PORT/$SRV_PORT/g )
+        CLI_CMD=$( echo "$CLI_CMD" | sed s/+SRV_PORT/$THIS_SRV_PORT/g )
+    fi
+
+    # If the test forces a specific port and the server is OpenSSL or
+    # GnuTLS, override its port specification.
+    if [ "$THIS_SRV_PORT" != "$SRV_PORT" ]; then
+        case "$SRV_CMD" in
+            "$G_SRV"*|"$G_NEXT_SRV"*) SRV_CMD="$SRV_CMD -p $THIS_SRV_PORT";;
+            "$O_SRV"*|"$O_NEXT_SRV"*) SRV_CMD="$SRV_CMD -accept $THIS_SRV_PORT";;
+        esac
     fi
 
     # prepend valgrind to our commands if active
@@ -1609,7 +1618,7 @@ do_run_test_once() {
     printf '# %s\n%s\n' "$NAME" "$SRV_CMD" > $SRV_OUT
     provide_input | $SRV_CMD >> $SRV_OUT 2>&1 &
     SRV_PID=$!
-    wait_server_start "$SRV_PORT" "$SRV_PID"
+    wait_server_start "$THIS_SRV_PORT" "$SRV_PID"
 
     printf '# %s\n%s\n' "$NAME" "$CLI_CMD" > $CLI_OUT
     # The client must be a subprocess of the script in order for killing it to
@@ -1738,6 +1747,14 @@ run_test() {
         shift 2
     else
         PXY_CMD=""
+    fi
+
+    # Does this test force a specific port?
+    if [ "$1" = "-P" ]; then
+        THIS_SRV_PORT="$2"
+        shift 2
+    else
+        THIS_SRV_PORT="$SRV_PORT"
     fi
 
     # get commands and client output

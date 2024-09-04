@@ -135,8 +135,8 @@
     do {                                                    \
         TEST_ASSERT((pointer) == NULL);                     \
         if ((item_count) != 0) {                            \
-            (pointer) = mbedtls_calloc(sizeof(*(pointer)),  \
-                                       (item_count));       \
+            (pointer) = mbedtls_calloc((item_count),        \
+                                       sizeof(*(pointer))); \
             TEST_ASSERT((pointer) != NULL);                 \
         }                                                   \
     } while (0)
@@ -165,8 +165,8 @@
 #define TEST_CALLOC_NONNULL(pointer, item_count)            \
     do {                                                    \
         TEST_ASSERT((pointer) == NULL);                     \
-        (pointer) = mbedtls_calloc(sizeof(*(pointer)),      \
-                                   (item_count));           \
+        (pointer) = mbedtls_calloc((item_count),            \
+                                   sizeof(*(pointer)));     \
         if (((pointer) == NULL) && ((item_count) == 0)) {   \
             (pointer) = mbedtls_calloc(1, 1);               \
         }                                                   \
@@ -185,8 +185,8 @@
     do {                                                    \
         TEST_ASSERT((pointer) == NULL);                     \
         if ((item_count) != 0) {                            \
-            (pointer) = mbedtls_calloc(sizeof(*(pointer)),  \
-                                       (item_count));       \
+            (pointer) = mbedtls_calloc((item_count),        \
+                                       sizeof(*(pointer))); \
             TEST_ASSUME((pointer) != NULL);                 \
         }                                                   \
     } while (0)

@@ -27,9 +27,10 @@ run_test    "Sample: ssl_client1, gnutls server, TLS 1.2" \
             -C "error"
 
 requires_protocol_version tls13
+requires_openssl_tls1_3
 run_test    "Sample: ssl_client1, openssl server, TLS 1.3" \
             -P 4433 \
-            "$O_SRV -tls1_3" \
+            "$O_NEXT_SRV -tls1_3" \
             "$PROGRAMS_DIR/ssl_client1" \
             0 \
             -c "New, TLSv1.3, Cipher is" \
@@ -98,10 +99,11 @@ run_test    "Sample: ssl_server, gnutls client, TLS 1.2" \
             -C "ERROR"
 
 requires_protocol_version tls13
+requires_openssl_tls1_3
 run_test    "Sample: ssl_server, openssl client, TLS 1.3" \
             -P 4433 \
             "$PROGRAMS_DIR/ssl_server" \
-            "$O_CLI -tls1_3" \
+            "$O_NEXT_CLI -tls1_3" \
             0 \
             -s "Successful connection using: TLS1-3-" \
             -c "New, TLSv1.3, Cipher is" \
@@ -142,10 +144,11 @@ run_test    "Sample: ssl_fork_server, gnutls client, TLS 1.2" \
             -C "ERROR"
 
 requires_protocol_version tls13
+requires_openssl_tls1_3
 run_test    "Sample: ssl_fork_server, openssl client, TLS 1.3" \
             -P 4433 \
             "$PROGRAMS_DIR/ssl_fork_server" \
-            "$O_CLI -tls1_3" \
+            "$O_NEXT_CLI -tls1_3" \
             0 \
             -s "Successful connection using: TLS1-3-" \
             -c "New, TLSv1.3, Cipher is" \
@@ -186,10 +189,11 @@ run_test    "Sample: ssl_pthread_server, gnutls client, TLS 1.2" \
             -C "ERROR"
 
 requires_protocol_version tls13
+requires_openssl_tls1_3
 run_test    "Sample: ssl_pthread_server, openssl client, TLS 1.3" \
             -P 4433 \
             "$PROGRAMS_DIR/ssl_pthread_server" \
-            "$O_CLI -tls1_3" \
+            "$O_NEXT_CLI -tls1_3" \
             0 \
             -s "Successful connection using: TLS1-3-" \
             -c "New, TLSv1.3, Cipher is" \

@@ -167,7 +167,8 @@ class TestGenerator:
 
 def main(args, description: str, generator_class: Type[TestGenerator] = TestGenerator):
     """Command line entry point."""
-    parser = argparse.ArgumentParser(description=description)
+    parser = argparse.ArgumentParser(description=description,
+                                     allow_abbrev=False)
     parser.add_argument('--list', action='store_true',
                         help='List available targets and exit')
     parser.add_argument('targets', nargs='*', metavar='TARGET',

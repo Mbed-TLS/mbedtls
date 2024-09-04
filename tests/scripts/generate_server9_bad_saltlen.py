@@ -47,7 +47,7 @@ def build_argparser(parser):
 
 
 def main():
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(allow_abbrev=False)
     build_argparser(parser)
     args = parser.parse_args()
 

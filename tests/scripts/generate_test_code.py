@@ -132,12 +132,13 @@ __MBEDTLS_TEST_TEMPLATE__EXPRESSION_CODE
             expressions in the .data file and
             generates code to handle enumerated
             expression Ids and return the values.
-__MBEDTLS_TEST_TEMPLATE__DEP_CHECK_CODE
-            This script enumerates all
-            build dependencies and generate
-            code to handle enumerated build
-            dependency Id and return status: if
-            the dependency is defined or not.
+__MBEDTLS_TEST_TEMPLATE__SUITE_DEPENDENCIES
+            A preprocessor expression for the build dependencies
+            that apply to the whole test suite.
+__MBEDTLS_TEST_TEMPLATE__DEPENDENCIES_CODE
+            Initializer for an array where each element is
+            a string literal explaining why a dependency is unmet,
+            or NULL if the dependency is met.
 __MBEDTLS_TEST_TEMPLATE__DISPATCH_CODE
             This script enumerates the functions
             specified in the input test data file
@@ -288,18 +289,19 @@ def gen_dependencies(dependencies):
     return dep_start, dep_end
 
 
-def gen_dependencies_one_line(dependencies):
+def gen_dependencies_expression(dependencies):
     """
-    Similar to gen_dependencies() but generates dependency checks in one line.
+    Similar to gen_dependencies() but generates a preprocessor expression.
     Useful for generating code with #else block.
 
     :param dependencies: List of dependencies.
     :return: Preprocessor check code
     """
-    defines = '#if ' if dependencies else ''
-    defines += ' && '.join(['%sdefined(%s)' % (x, y) for x, y in map(
-        split_dep, dependencies)])
-    return defines
+    if dependencies:
+        return ' && '.join(['%sdefined(%s)' % (x, y)
+                            for x, y in map(split_dep, dependencies)])
+    else:
+        return '1'
 
 
 def gen_function_wrapper(name, local_vars, args_dispatch):
@@ -341,9 +343,9 @@ def gen_dispatch(name, dependencies):
     :return: Dispatch code.
     """
     if dependencies:
-        preprocessor_check = gen_dependencies_one_line(dependencies)
+        preprocessor_check = gen_dependencies_expression(dependencies)
         dispatch_code = '''
-{preprocessor_check}
+#if {preprocessor_check}
     {name}_wrapper,
 #else
     NULL,
@@ -599,14 +601,13 @@ def skip_comments(line, stream):
     # Strip whitespace at the end of lines (it's irrelevant to error messages).
     return re.sub(r' +(\n|\Z)', r'\1', line)
 
-def parse_function_code(funcs_f, dependencies, suite_dependencies):
+def parse_function_code(funcs_f, dependencies):
     """
     Parses out a function from function file object and generates
     function and dispatch code.
 
     :param funcs_f: file object of the functions file.
-    :param dependencies: List of dependencies
-    :param suite_dependencies: List of test suite dependencies
+    :param dependencies: List of dependencies of the function.
     :return: Function name, arguments, function code and dispatch code.
     """
     line_directive = '#line %d "%s"\n' % (funcs_f.line_no + 1, funcs_f.name)
@@ -661,7 +662,7 @@ def parse_function_code(funcs_f, dependencies, suite_dependencies):
     code = line_directive + code
     code = generate_function_code(name, code, local_vars, args_dispatch,
                                   dependencies)
-    dispatch_code = gen_dispatch(name, suite_dependencies + dependencies)
+    dispatch_code = gen_dispatch(name, dependencies)
     return (name, args, code, dispatch_code)
 
 
@@ -697,7 +698,7 @@ def parse_functions(funcs_f):
                     "%s:%d: %s" % (funcs_f.name, funcs_f.line_no,
                                    str(error)))
             func_name, args, func_code, func_dispatch =\
-                parse_function_code(funcs_f, dependencies, suite_dependencies)
+                parse_function_code(funcs_f, dependencies)
             suite_functions += func_code
             # Generate dispatch code and enumeration info
             if func_name in func_info:
@@ -797,44 +798,45 @@ def parse_test_data(data_f):
                                   "%s" % (data_f.name, data_f.line_no, name))
 
 
-def gen_dep_check(dep_id, dep):
+def gen_dependencies_element(dep):
     """
-    Generate code for checking dependency with the associated
-    identifier.
+    Generate an entry in the dependency array.
 
-    :param dep_id: Dependency identifier
     :param dep: Dependency macro
-    :return: Dependency check code
+    :return: Dependency array element initializer
     """
-    if dep_id < 0:
-        raise GeneratorInputError("Dependency Id should be a positive "
-                                  "integer.")
-    _not, dep = ('!', dep[1:]) if dep[0] == '!' else ('', dep)
-    if not dep:
+    not_, core_dep = ('!', dep[1:]) if dep[0] == '!' else ('', dep)
+    if not core_dep:
         raise GeneratorInputError("Dependency should not be an empty string.")
 
-    dependency = re.match(CONDITION_REGEX, dep, re.I)
+    dependency = re.match(CONDITION_REGEX, core_dep, re.I)
     if not dependency:
         raise GeneratorInputError('Invalid dependency %s' % dep)
 
-    _defined = '' if dependency.group(2) else 'defined'
-    _cond = dependency.group(2) if dependency.group(2) else ''
-    _value = dependency.group(3) if dependency.group(3) else ''
+    defined = '' if dependency.group(2) else 'defined'
+    cond = dependency.group(2) if dependency.group(2) else ''
+    value = dependency.group(3) if dependency.group(3) else ''
 
-    dep_check = '''
-        case {id}:
-            {{
-#if {_not}{_defined}({macro}{_cond}{_value})
-                ret = DEPENDENCY_SUPPORTED;
+    pp_expr = '{not_}{defined}({macro}{cond}{value})'.format(
+        not_=not_, defined=defined, macro=dependency.group(1),
+        cond=cond, value=value)
+    dep_check = '''\
+#if {pp_expr}
+        NULL,
 #else
-                ret = DEPENDENCY_NOT_SUPPORTED;
+        "{dep}",
 #endif
-            }}
-            break;'''.format(_not=_not, _defined=_defined,
-                             macro=dependency.group(1), id=dep_id,
-                             _cond=_cond, _value=_value)
+'''.format(pp_expr=pp_expr, dep=dep)
     return dep_check
 
+def gen_dependencies_array(dependencies):
+    """
+    Generate the dependency array.
+
+    :param dep: Dependency macros
+    :return: Dependency array initializer (without surrounding braces)
+    """
+    return ''.join(gen_dependencies_element(dep) for dep in dependencies)
 
 def gen_expression_check(exp_id, exp):
     """
@@ -869,21 +871,17 @@ def write_dependencies(out_data_f, test_dependencies, unique_dependencies):
     :param test_dependencies: Dependencies
     :param unique_dependencies: Mutable list to track unique dependencies
            that are global to this re-entrant function.
-    :return: returns dependency check code.
     """
-    dep_check_code = ''
     if test_dependencies:
         out_data_f.write('depends_on')
         for dep in test_dependencies:
             if dep not in unique_dependencies:
                 unique_dependencies.append(dep)
                 dep_id = unique_dependencies.index(dep)
-                dep_check_code += gen_dep_check(dep_id, dep)
             else:
                 dep_id = unique_dependencies.index(dep)
             out_data_f.write(':' + str(dep_id))
         out_data_f.write('\n')
-    return dep_check_code
 
 
 INT_VAL_REGEX = re.compile(r'-?(\d+|0x[0-9a-f]+)$', re.I)
@@ -931,32 +929,6 @@ def write_parameters(out_data_f, test_args, func_args, unique_expressions):
     return expression_code
 
 
-def gen_suite_dep_checks(suite_dependencies, dep_check_code, expression_code):
-    """
-    Generates preprocessor checks for test suite dependencies.
-
-    :param suite_dependencies: Test suite dependencies read from the
-            .function file.
-    :param dep_check_code: Dependency check code
-    :param expression_code: Expression check code
-    :return: Dependency and expression code guarded by test suite
-             dependencies.
-    """
-    if suite_dependencies:
-        preprocessor_check = gen_dependencies_one_line(suite_dependencies)
-        dep_check_code = '''
-{preprocessor_check}
-{code}
-#endif
-'''.format(preprocessor_check=preprocessor_check, code=dep_check_code)
-        expression_code = '''
-{preprocessor_check}
-{code}
-#endif
-'''.format(preprocessor_check=preprocessor_check, code=expression_code)
-    return dep_check_code, expression_code
-
-
 def get_function_info(func_info, function_name, line_no):
     """Look up information about a test function by name.
 
@@ -975,7 +947,7 @@ def get_function_info(func_info, function_name, line_no):
     return func_info[test_function_name]
 
 
-def gen_from_test_data(data_f, out_data_f, func_info, suite_dependencies):
+def gen_from_test_data(data_f, out_data_f, func_info):
     """
     This function reads test case name, dependencies and test vectors
     from the .data file. This information is correlated with the test
@@ -995,15 +967,13 @@ def gen_from_test_data(data_f, out_data_f, func_info, suite_dependencies):
     """
     unique_dependencies = []
     unique_expressions = []
-    dep_check_code = ''
     expression_code = ''
     for line_no, test_name, function_name, test_dependencies, test_args in \
             parse_test_data(data_f):
         out_data_f.write(test_name + '\n')
 
         # Write dependencies
-        dep_check_code += write_dependencies(out_data_f, test_dependencies,
-                                             unique_dependencies)
+        write_dependencies(out_data_f, test_dependencies, unique_dependencies)
 
         # Write test function name
         func_id, func_args = \
@@ -1021,9 +991,9 @@ def gen_from_test_data(data_f, out_data_f, func_info, suite_dependencies):
         # Write a newline as test case separator
         out_data_f.write('\n')
 
-    dep_check_code, expression_code = gen_suite_dep_checks(
-        suite_dependencies, dep_check_code, expression_code)
-    return dep_check_code, expression_code
+    dependencies_code = gen_dependencies_array(unique_dependencies)
+
+    return dependencies_code, expression_code
 
 
 def add_input_info(funcs_file, data_file, template_file,
@@ -1113,13 +1083,15 @@ def parse_function_file(funcs_file, snippets):
     with FileWrapper(funcs_file) as funcs_f:
         suite_dependencies, dispatch_code, func_code, func_info = \
             parse_functions(funcs_f)
+        snippets['suite_dependencies'] = \
+            gen_dependencies_expression(suite_dependencies)
         snippets['functions_code'] = func_code
         snippets['dispatch_code'] = dispatch_code
         return suite_dependencies, func_info
 
 
 def generate_intermediate_data_file(data_file, out_data_file,
-                                    suite_dependencies, func_info, snippets):
+                                    func_info, snippets):
     """
     Generates intermediate data file from input data file and
     information read from functions file.
@@ -1134,9 +1106,9 @@ def generate_intermediate_data_file(data_file, out_data_file,
     """
     with FileWrapper(data_file) as data_f, \
             open(out_data_file, 'w') as out_data_f:
-        dep_check_code, expression_code = gen_from_test_data(
-            data_f, out_data_f, func_info, suite_dependencies)
-        snippets['dep_check_code'] = dep_check_code
+        dependencies_code, expression_code = gen_from_test_data(
+            data_f, out_data_f, func_info)
+        snippets['dependencies_code'] = dependencies_code
         snippets['expression_code'] = expression_code
 
 
@@ -1180,7 +1152,7 @@ def generate_code(**input_info):
                    c_file, snippets)
     suite_dependencies, func_info = parse_function_file(funcs_file, snippets)
     generate_intermediate_data_file(data_file, out_data_file,
-                                    suite_dependencies, func_info, snippets)
+                                    func_info, snippets)
     write_test_source_file(template_file, c_file, snippets)
 
 

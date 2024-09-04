@@ -12,7 +12,7 @@ from io import StringIO
 from unittest import TestCase, main as unittest_main
 from unittest.mock import patch
 
-from generate_test_code import gen_dependencies, gen_dependencies_one_line
+from generate_test_code import gen_dependencies, gen_dependencies_expression
 from generate_test_code import gen_function_wrapper, gen_dispatch
 from generate_test_code import parse_until_pattern, GeneratorInputError
 from generate_test_code import parse_suite_dependencies
@@ -20,15 +20,16 @@ from generate_test_code import parse_function_dependencies
 from generate_test_code import parse_function_arguments, parse_function_code
 from generate_test_code import parse_functions, END_HEADER_REGEX
 from generate_test_code import END_SUITE_HELPERS_REGEX, escaped_split
-from generate_test_code import parse_test_data, gen_dep_check
+from generate_test_code import parse_test_data
+from generate_test_code import gen_dependencies_element, gen_dependencies_array
 from generate_test_code import gen_expression_check, write_dependencies
-from generate_test_code import write_parameters, gen_suite_dep_checks
+from generate_test_code import write_parameters
 from generate_test_code import gen_from_test_data
 
 
-class GenDep(TestCase):
+class GenDependencies(TestCase):
     """
-    Test suite for function gen_dep()
+    Test suite for function gen_dependencies()
     """
 
     def test_dependencies_list(self):
@@ -116,9 +117,9 @@ class GenDep(TestCase):
                          'Preprocessor generated incorrectly')
 
 
-class GenDepOneLine(TestCase):
+class GenDependenciesExpression(TestCase):
     """
-    Test Suite for testing gen_dependencies_one_line()
+    Test Suite for testing gen_dependencies_expression()
     """
 
     def test_dependencies_list(self):
@@ -128,8 +129,8 @@ class GenDepOneLine(TestCase):
         :return:
         """
         dependencies = ['DEP1', 'DEP2']
-        dep_str = gen_dependencies_one_line(dependencies)
-        self.assertEqual(dep_str, '#if defined(DEP1) && defined(DEP2)',
+        dep_str = gen_dependencies_expression(dependencies)
+        self.assertEqual(dep_str, 'defined(DEP1) && defined(DEP2)',
                          'Preprocessor generated incorrectly')
 
     def test_disabled_dependencies_list(self):
@@ -139,8 +140,8 @@ class GenDepOneLine(TestCase):
         :return:
         """
         dependencies = ['!DEP1', '!DEP2']
-        dep_str = gen_dependencies_one_line(dependencies)
-        self.assertEqual(dep_str, '#if !defined(DEP1) && !defined(DEP2)',
+        dep_str = gen_dependencies_expression(dependencies)
+        self.assertEqual(dep_str, '!defined(DEP1) && !defined(DEP2)',
                          'Preprocessor generated incorrectly')
 
     def test_mixed_dependencies_list(self):
@@ -150,8 +151,8 @@ class GenDepOneLine(TestCase):
         :return:
         """
         dependencies = ['!DEP1', 'DEP2']
-        dep_str = gen_dependencies_one_line(dependencies)
-        self.assertEqual(dep_str, '#if !defined(DEP1) && defined(DEP2)',
+        dep_str = gen_dependencies_expression(dependencies)
+        self.assertEqual(dep_str, '!defined(DEP1) && defined(DEP2)',
                          'Preprocessor generated incorrectly')
 
     def test_empty_dependencies_list(self):
@@ -161,8 +162,8 @@ class GenDepOneLine(TestCase):
         :return:
         """
         dependencies = []
-        dep_str = gen_dependencies_one_line(dependencies)
-        self.assertEqual(dep_str, '', 'Preprocessor generated incorrectly')
+        dep_str = gen_dependencies_expression(dependencies)
+        self.assertEqual(dep_str, '1', 'Preprocessor generated incorrectly')
 
     def test_large_dependencies_list(self):
         """
@@ -174,9 +175,8 @@ class GenDepOneLine(TestCase):
         count = 10
         for i in range(count):
             dependencies.append('DEP%d' % i)
-        dep_str = gen_dependencies_one_line(dependencies)
-        expected = '#if ' + ' && '.join(['defined(%s)' %
-                                         x for x in dependencies])
+        dep_str = gen_dependencies_expression(dependencies)
+        expected = ' && '.join(['defined(%s)' % x for x in dependencies])
         self.assertEqual(dep_str, expected,
                          'Preprocessor generated incorrectly')
 
@@ -459,7 +459,7 @@ class ParseFuncDependencies(TestCase):
         self.assertEqual(dependencies, ['MBEDTLS_FS_IO', 'A', '!B', 'C', 'F'])
 
 
-class ParseFuncSignature(TestCase):
+class ParseFunctionArguments(TestCase):
     """
     Test Suite for parse_function_arguments().
     """
@@ -564,7 +564,7 @@ function
         stream = StringIOWrapper('test_suite_ut.function', data)
         err_msg = 'file: test_suite_ut.function - Test functions not found!'
         self.assertRaisesRegex(GeneratorInputError, err_msg,
-                               parse_function_code, stream, [], [])
+                               parse_function_code, stream, [])
 
     def test_no_end_case_comment(self):
         """
@@ -580,7 +580,7 @@ void test_func()
         err_msg = r'file: test_suite_ut.function - '\
                   'end case pattern .*? not found!'
         self.assertRaisesRegex(GeneratorInputError, err_msg,
-                               parse_function_code, stream, [], [])
+                               parse_function_code, stream, [])
 
     @patch("generate_test_code.parse_function_arguments")
     def test_function_called(self,
@@ -596,8 +596,8 @@ void test_func()
 }
 '''
         stream = StringIOWrapper('test_suite_ut.function', data)
-        self.assertRaises(GeneratorInputError, parse_function_code,
-                          stream, [], [])
+        self.assertRaises(GeneratorInputError,
+                          parse_function_code, stream, [])
         self.assertTrue(parse_function_arguments_mock.called)
         parse_function_arguments_mock.assert_called_with('void test_func()\n')
 
@@ -626,7 +626,7 @@ void func()
 /* END_CASE */
 '''
         stream = StringIOWrapper('test_suite_ut.function', data)
-        name, arg, code, dispatch_code = parse_function_code(stream, [], [])
+        name, arg, code, dispatch_code = parse_function_code(stream, [])
 
         self.assertTrue(parse_function_arguments_mock.called)
         parse_function_arguments_mock.assert_called_with('void func()\n')
@@ -674,7 +674,7 @@ exit:
 /* END_CASE */
 '''
         stream = StringIOWrapper('test_suite_ut.function', data)
-        _, _, code, _ = parse_function_code(stream, [], [])
+        _, _, code, _ = parse_function_code(stream, [])
 
         expected = '''#line 1 "test_suite_ut.function"
 
@@ -698,7 +698,7 @@ exit:
         err_msg = 'file: test_suite_ut.function - Test functions not found!'
         stream = StringIOWrapper('test_suite_ut.function', data)
         self.assertRaisesRegex(GeneratorInputError, err_msg,
-                               parse_function_code, stream, [], [])
+                               parse_function_code, stream, [])
 
     @patch("generate_test_code.gen_dispatch")
     @patch("generate_test_code.gen_dependencies")
@@ -731,7 +731,7 @@ exit:
 /* END_CASE */
 '''
         stream = StringIOWrapper('test_suite_ut.function', data)
-        _, _, code, _ = parse_function_code(stream, [], [])
+        _, _, code, _ = parse_function_code(stream, [])
 
         expected = '''#line 1 "test_suite_ut.function"
 
@@ -782,7 +782,7 @@ exit:
 /* END_CASE */
 '''
         stream = StringIOWrapper('test_suite_ut.function', data)
-        _, _, code, _ = parse_function_code(stream, [], [])
+        _, _, code, _ = parse_function_code(stream, [])
 
         expected = '''#line 1 "test_suite_ut.function"
 
@@ -832,7 +832,7 @@ exit:
 /* END_CASE */
 '''
         stream = StringIOWrapper('test_suite_ut.function', data)
-        _, _, code, _ = parse_function_code(stream, [], [])
+        _, _, code, _ = parse_function_code(stream, [])
 
         expected = '''#line 1 "test_suite_ut.function"
 
@@ -877,7 +877,7 @@ exit:
 /* END_CASE */
 '''
         stream = StringIOWrapper('test_suite_ut.function', data)
-        _, _, code, _ = parse_function_code(stream, [], [])
+        _, _, code, _ = parse_function_code(stream, [])
 
         expected = '''#line 1 "test_suite_ut.function"
 
@@ -921,7 +921,7 @@ exit:
 /* END_CASE */
 '''
         stream = StringIOWrapper('test_suite_ut.function', data)
-        _, _, code, _ = parse_function_code(stream, [], [])
+        _, _, code, _ = parse_function_code(stream, [])
 
         expected = '''#line 1 "test_suite_ut.function"
 
@@ -938,7 +938,7 @@ exit:
         self.assertEqual(code, expected)
 
 
-class ParseFunction(TestCase):
+class ParseFunctions(TestCase):
     """
     Test Suite for testing parse_functions()
     """
@@ -1058,7 +1058,7 @@ void print_hello_world()
         suite_dependencies, dispatch_code, func_code, func_info = \
             parse_functions(stream)
         func_mock1.assert_called_with(dependencies_str)
-        func_mock2.assert_called_with(stream, [], [])
+        func_mock2.assert_called_with(stream, [])
         self.assertEqual(stream.line_no, 5)
         self.assertEqual(suite_dependencies, [])
         expected_dispatch_code = '''/* Function Id: 0 */
@@ -1105,14 +1105,14 @@ void func2()
 
         expected_dispatch_code = '''/* Function Id: 0 */
 
-#if defined(MBEDTLS_ECP_C) && defined(MBEDTLS_ENTROPY_NV_SEED) && defined(MBEDTLS_FS_IO)
+#if defined(MBEDTLS_ENTROPY_NV_SEED) && defined(MBEDTLS_FS_IO)
     test_func1_wrapper,
 #else
     NULL,
 #endif
 /* Function Id: 1 */
 
-#if defined(MBEDTLS_ECP_C) && defined(MBEDTLS_ENTROPY_NV_SEED) && defined(MBEDTLS_FS_IO)
+#if defined(MBEDTLS_ENTROPY_NV_SEED) && defined(MBEDTLS_FS_IO)
     test_func2_wrapper,
 #else
     NULL,
@@ -1261,7 +1261,7 @@ class EscapedSplit(TestCase):
 
 class ParseTestData(TestCase):
     """
-    Test suite for parse test data.
+    Test suite for parse_test_data.
     """
 
     def test_parser(self):
@@ -1387,28 +1387,25 @@ depends_on:YAHOO
             self.assertEqual(type(err), GeneratorInputError)
 
 
-class GenDepCheck(TestCase):
+class GenDependenciesElement(TestCase):
     """
-    Test suite for gen_dep_check(). It is assumed this function is
+    Test suite for gen_dependencies_element(). It is assumed this function is
     called with valid inputs.
     """
 
-    def test_gen_dep_check(self):
+    def test_gen_dependencies_element(self):
         """
-        Test that dependency check code generated correctly.
+        Test that dependency element is generated correctly.
         :return:
         """
-        expected = """
-        case 5:
-            {
+        expected = """\
 #if defined(YAHOO)
-                ret = DEPENDENCY_SUPPORTED;
+        NULL,
 #else
-                ret = DEPENDENCY_NOT_SUPPORTED;
+        "YAHOO",
 #endif
-            }
-            break;"""
-        out = gen_dep_check(5, 'YAHOO')
+"""
+        out = gen_dependencies_element('YAHOO')
         self.assertEqual(out, expected)
 
     def test_not_defined_dependency(self):
@@ -1416,17 +1413,14 @@ class GenDepCheck(TestCase):
         Test dependency with !.
         :return:
         """
-        expected = """
-        case 5:
-            {
+        expected = """\
 #if !defined(YAHOO)
-                ret = DEPENDENCY_SUPPORTED;
+        NULL,
 #else
-                ret = DEPENDENCY_NOT_SUPPORTED;
+        "!YAHOO",
 #endif
-            }
-            break;"""
-        out = gen_dep_check(5, '!YAHOO')
+"""
+        out = gen_dependencies_element('!YAHOO')
         self.assertEqual(out, expected)
 
     def test_empty_dependency(self):
@@ -1434,17 +1428,10 @@ class GenDepCheck(TestCase):
         Test invalid dependency input.
         :return:
         """
-        self.assertRaises(GeneratorInputError, gen_dep_check, 5, '!')
-
-    def test_negative_dep_id(self):
-        """
-        Test invalid dependency input.
-        :return:
-        """
-        self.assertRaises(GeneratorInputError, gen_dep_check, -1, 'YAHOO')
+        self.assertRaises(GeneratorInputError, gen_dependencies_element, '!')
 
 
-class GenExpCheck(TestCase):
+class GenExpressionCheck(TestCase):
     """
     Test suite for gen_expression_check(). It is assumed this function
     is called with valid inputs.
@@ -1492,8 +1479,9 @@ class WriteDependencies(TestCase):
         """
         stream = StringIOWrapper('test_suite_ut.data', '')
         unique_dependencies = []
-        dep_check_code = write_dependencies(stream, [], unique_dependencies)
-        self.assertEqual(dep_check_code, '')
+        write_dependencies(stream, [], unique_dependencies)
+        dependencies_code = gen_dependencies_array(unique_dependencies)
+        self.assertEqual(dependencies_code, '')
         self.assertEqual(len(unique_dependencies), 0)
         self.assertEqual(stream.getvalue(), '')
 
@@ -1504,37 +1492,27 @@ class WriteDependencies(TestCase):
         """
         stream = StringIOWrapper('test_suite_ut.data', '')
         unique_dependencies = []
-        dep_check_code = write_dependencies(stream, ['DEP3', 'DEP2', 'DEP1'],
-                                            unique_dependencies)
-        expect_dep_check_code = '''
-        case 0:
-            {
+        write_dependencies(stream, ['DEP3', 'DEP2', 'DEP1'],
+                           unique_dependencies)
+        dependencies_code = gen_dependencies_array(unique_dependencies)
+        expect_dependencies_code = '''\
 #if defined(DEP3)
-                ret = DEPENDENCY_SUPPORTED;
+        NULL,
 #else
-                ret = DEPENDENCY_NOT_SUPPORTED;
+        "DEP3",
 #endif
-            }
-            break;
-        case 1:
-            {
 #if defined(DEP2)
-                ret = DEPENDENCY_SUPPORTED;
+        NULL,
 #else
-                ret = DEPENDENCY_NOT_SUPPORTED;
+        "DEP2",
 #endif
-            }
-            break;
-        case 2:
-            {
 #if defined(DEP1)
-                ret = DEPENDENCY_SUPPORTED;
+        NULL,
 #else
-                ret = DEPENDENCY_NOT_SUPPORTED;
+        "DEP1",
 #endif
-            }
-            break;'''
-        self.assertEqual(dep_check_code, expect_dep_check_code)
+'''
+        self.assertEqual(dependencies_code, expect_dependencies_code)
         self.assertEqual(len(unique_dependencies), 3)
         self.assertEqual(stream.getvalue(), 'depends_on:0:1:2\n')
 
@@ -1545,48 +1523,34 @@ class WriteDependencies(TestCase):
         """
         stream = StringIOWrapper('test_suite_ut.data', '')
         unique_dependencies = []
-        dep_check_code = ''
-        dep_check_code += write_dependencies(stream, ['DEP3', 'DEP2'],
-                                             unique_dependencies)
-        dep_check_code += write_dependencies(stream, ['DEP2', 'DEP1'],
-                                             unique_dependencies)
-        dep_check_code += write_dependencies(stream, ['DEP1', 'DEP3'],
-                                             unique_dependencies)
-        expect_dep_check_code = '''
-        case 0:
-            {
+        write_dependencies(stream, ['DEP3', 'DEP2'], unique_dependencies)
+        write_dependencies(stream, ['DEP2', 'DEP1'], unique_dependencies)
+        write_dependencies(stream, ['DEP1', 'DEP3'], unique_dependencies)
+        dependencies_code = gen_dependencies_array(unique_dependencies)
+        expect_dependencies_code = '''\
 #if defined(DEP3)
-                ret = DEPENDENCY_SUPPORTED;
+        NULL,
 #else
-                ret = DEPENDENCY_NOT_SUPPORTED;
+        "DEP3",
 #endif
-            }
-            break;
-        case 1:
-            {
 #if defined(DEP2)
-                ret = DEPENDENCY_SUPPORTED;
+        NULL,
 #else
-                ret = DEPENDENCY_NOT_SUPPORTED;
+        "DEP2",
 #endif
-            }
-            break;
-        case 2:
-            {
 #if defined(DEP1)
-                ret = DEPENDENCY_SUPPORTED;
+        NULL,
 #else
-                ret = DEPENDENCY_NOT_SUPPORTED;
+        "DEP1",
 #endif
-            }
-            break;'''
-        self.assertEqual(dep_check_code, expect_dep_check_code)
+'''
+        self.assertEqual(dependencies_code, expect_dependencies_code)
         self.assertEqual(len(unique_dependencies), 3)
         self.assertEqual(stream.getvalue(),
                          'depends_on:0:1\ndepends_on:1:2\ndepends_on:2:0\n')
 
 
-class WriteParams(TestCase):
+class WriteParameters(TestCase):
     """
     Test Suite for testing write_parameters().
     """
@@ -1717,53 +1681,6 @@ class WriteParams(TestCase):
         self.assertEqual(stream.getvalue(), expected_data_file)
 
 
-class GenTestSuiteDependenciesChecks(TestCase):
-    """
-    Test suite for testing gen_suite_dep_checks()
-    """
-    def test_empty_suite_dependencies(self):
-        """
-        Test with empty suite_dependencies list.
-
-        :return:
-        """
-        dep_check_code, expression_code = \
-            gen_suite_dep_checks([], 'DEP_CHECK_CODE', 'EXPRESSION_CODE')
-        self.assertEqual(dep_check_code, 'DEP_CHECK_CODE')
-        self.assertEqual(expression_code, 'EXPRESSION_CODE')
-
-    def test_suite_dependencies(self):
-        """
-        Test with suite_dependencies list.
-
-        :return:
-        """
-        dep_check_code, expression_code = \
-            gen_suite_dep_checks(['SUITE_DEP'], 'DEP_CHECK_CODE',
-                                 'EXPRESSION_CODE')
-        expected_dep_check_code = '''
-#if defined(SUITE_DEP)
-DEP_CHECK_CODE
-#endif
-'''
-        expected_expression_code = '''
-#if defined(SUITE_DEP)
-EXPRESSION_CODE
-#endif
-'''
-        self.assertEqual(dep_check_code, expected_dep_check_code)
-        self.assertEqual(expression_code, expected_expression_code)
-
-    def test_no_dep_no_exp(self):
-        """
-        Test when there are no dependency and expression code.
-        :return:
-        """
-        dep_check_code, expression_code = gen_suite_dep_checks([], '', '')
-        self.assertEqual(dep_check_code, '')
-        self.assertEqual(expression_code, '')
-
-
 class GenFromTestData(TestCase):
     """
     Test suite for gen_from_test_data()
@@ -1772,8 +1689,8 @@ class GenFromTestData(TestCase):
     @staticmethod
     @patch("generate_test_code.write_dependencies")
     @patch("generate_test_code.write_parameters")
-    @patch("generate_test_code.gen_suite_dep_checks")
-    def test_intermediate_data_file(func_mock1,
+    @patch("generate_test_code.gen_dependencies_array")
+    def test_intermediate_data_file(gen_dependencies_array_mock,
                                     write_parameters_mock,
                                     write_dependencies_mock):
         """
@@ -1788,27 +1705,15 @@ func1:0
         data_f = StringIOWrapper('test_suite_ut.data', data)
         out_data_f = StringIOWrapper('test_suite_ut.datax', '')
         func_info = {'test_func1': (1, ('int',))}
-        suite_dependencies = []
         write_parameters_mock.side_effect = write_parameters
         write_dependencies_mock.side_effect = write_dependencies
-        func_mock1.side_effect = gen_suite_dep_checks
-        gen_from_test_data(data_f, out_data_f, func_info, suite_dependencies)
+        gen_dependencies_array_mock.side_effect = gen_dependencies_array
+        gen_from_test_data(data_f, out_data_f, func_info)
         write_dependencies_mock.assert_called_with(out_data_f,
                                                    ['DEP1'], ['DEP1'])
         write_parameters_mock.assert_called_with(out_data_f, ['0'],
                                                  ('int',), [])
-        expected_dep_check_code = '''
-        case 0:
-            {
-#if defined(DEP1)
-                ret = DEPENDENCY_SUPPORTED;
-#else
-                ret = DEPENDENCY_NOT_SUPPORTED;
-#endif
-            }
-            break;'''
-        func_mock1.assert_called_with(
-            suite_dependencies, expected_dep_check_code, '')
+        gen_dependencies_array_mock.assert_called_with(['DEP1'])
 
     def test_function_not_found(self):
         """
@@ -1823,9 +1728,8 @@ func1:0
         data_f = StringIOWrapper('test_suite_ut.data', data)
         out_data_f = StringIOWrapper('test_suite_ut.datax', '')
         func_info = {'test_func2': (1, ('int',))}
-        suite_dependencies = []
         self.assertRaises(GeneratorInputError, gen_from_test_data,
-                          data_f, out_data_f, func_info, suite_dependencies)
+                          data_f, out_data_f, func_info)
 
     def test_different_func_args(self):
         """
@@ -1841,9 +1745,8 @@ func1:0
         data_f = StringIOWrapper('test_suite_ut.data', data)
         out_data_f = StringIOWrapper('test_suite_ut.datax', '')
         func_info = {'test_func2': (1, ('int', 'hex'))}
-        suite_dependencies = []
         self.assertRaises(GeneratorInputError, gen_from_test_data, data_f,
-                          out_data_f, func_info, suite_dependencies)
+                          out_data_f, func_info)
 
     def test_output(self):
         """
@@ -1863,29 +1766,20 @@ func2:"yahoo":88:MACRO1
         out_data_f = StringIOWrapper('test_suite_ut.datax', '')
         func_info = {'test_func1': (0, ('int', 'int', 'int', 'int')),
                      'test_func2': (1, ('char*', 'int', 'int'))}
-        suite_dependencies = []
         dep_check_code, expression_code = \
-            gen_from_test_data(data_f, out_data_f, func_info,
-                               suite_dependencies)
-        expected_dep_check_code = '''
-        case 0:
-            {
+            gen_from_test_data(data_f, out_data_f, func_info)
+        expected_dependencies_code = '''\
 #if defined(DEP1)
-                ret = DEPENDENCY_SUPPORTED;
+        NULL,
 #else
-                ret = DEPENDENCY_NOT_SUPPORTED;
+        "DEP1",
 #endif
-            }
-            break;
-        case 1:
-            {
 #if defined(DEP2)
-                ret = DEPENDENCY_SUPPORTED;
+        NULL,
 #else
-                ret = DEPENDENCY_NOT_SUPPORTED;
+        "DEP2",
 #endif
-            }
-            break;'''
+'''
         expected_data = '''My test 1
 depends_on:0
 0:int:0:int:0xfa:exp:0:exp:1
@@ -1906,7 +1800,7 @@ depends_on:0:1
                 *out_value = MACRO2;
             }
             break;'''
-        self.assertEqual(dep_check_code, expected_dep_check_code)
+        self.assertEqual(dep_check_code, expected_dependencies_code)
         self.assertEqual(out_data_f.getvalue(), expected_data)
         self.assertEqual(expression_code, expected_expression_code)
 

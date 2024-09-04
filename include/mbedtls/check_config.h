@@ -347,14 +347,14 @@
     !defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE) &&            \
     !defined(MBEDTLS_MD_CAN_SHA256) &&                        \
     !defined(MBEDTLS_MD_CAN_SHA512) &&                        \
-    !defined(MBEDTLS_MD_CAN_SHA1)
+    !defined(PSA_WANT_ALG_SHA_1)
 #error "!MBEDTLS_SSL_KEEP_PEER_CERTIFICATE requires SHA-512, SHA-256 or SHA-1".
 #endif
 
 #if defined(MBEDTLS_MD_C) && \
     !defined(MBEDTLS_MD_CAN_MD5) && \
     !defined(MBEDTLS_MD_CAN_RIPEMD160) && \
-    !defined(MBEDTLS_MD_CAN_SHA1) && \
+    !defined(PSA_WANT_ALG_SHA_1) && \
     !defined(MBEDTLS_MD_CAN_SHA224) && \
     !defined(MBEDTLS_MD_CAN_SHA256) && \
     !defined(MBEDTLS_MD_CAN_SHA384) && \

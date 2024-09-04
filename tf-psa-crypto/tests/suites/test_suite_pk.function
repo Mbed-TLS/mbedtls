@@ -169,7 +169,7 @@
 #endif
 
 /* Get an available MD alg to be used in sign/verify tests. */
-#if defined(MBEDTLS_MD_CAN_SHA1)
+#if defined(PSA_WANT_ALG_SHA_1)
 #define MBEDTLS_MD_ALG_FOR_TEST         MBEDTLS_MD_SHA1
 #elif defined(PSA_WANT_ALG_SHA_224)
 #define MBEDTLS_MD_ALG_FOR_TEST         MBEDTLS_MD_SHA224

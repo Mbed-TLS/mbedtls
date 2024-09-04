@@ -26,7 +26,7 @@
 #include "mbedtls/md5.h"
 #endif
 
-#if defined(MBEDTLS_MD_CAN_SHA1)
+#if defined(PSA_WANT_ALG_SHA_1)
 #include "mbedtls/sha1.h"
 #endif
 
@@ -2557,7 +2557,7 @@ static inline int mbedtls_ssl_tls12_sig_alg_is_supported(
             break;
 #endif
 
-#if defined(MBEDTLS_MD_CAN_SHA1)
+#if defined(PSA_WANT_ALG_SHA_1)
         case MBEDTLS_SSL_HASH_SHA1:
             break;
 #endif

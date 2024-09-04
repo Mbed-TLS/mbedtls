@@ -206,3 +206,27 @@ run_test    "Sample: ssl_pthread_server, gnutls client, TLS 1.3" \
             -c "Description:.*TLS1.3" \
             -S "error" \
             -C "ERROR"
+
+requires_protocol_version dtls12
+run_test    "Sample: dtls_server, openssl client, DTLS 1.2" \
+            -P 4433 \
+            "$PROGRAMS_DIR/dtls_server" \
+            "$O_CLI -dtls1_2" \
+            0 \
+            -s "[1-9][0-9]* bytes read" \
+            -s "[1-9][0-9]* bytes written" \
+            -c "New, TLSv1.2, Cipher is" \
+            -S "error" \
+            -C "ERROR"
+
+requires_protocol_version dtls12
+run_test    "Sample: dtls_server, gnutls client, DTLS 1.2" \
+            -P 4433 \
+            "$PROGRAMS_DIR/dtls_server" \
+            "$G_CLI -u --priority=NORMAL:-VERS-TLS-ALL:+VERS-TLS1.2 localhost" \
+            0 \
+            -s "[1-9][0-9]* bytes read" \
+            -s "[1-9][0-9]* bytes written" \
+            -c "Description:.*DTLS1.2" \
+            -S "error" \
+            -C "ERROR"

@@ -500,6 +500,7 @@ detect_required_features() {
             requires_config_enabled MBEDTLS_SSL_CLI_C
             requires_certificate_authentication
             ;;
+        *"programs/ssl/ssl_fork_server "*|\
         *"programs/ssl/ssl_pthread_server "*|\
         *"programs/ssl/ssl_server "*)
             requires_config_enabled MBEDTLS_CTR_DRBG_C

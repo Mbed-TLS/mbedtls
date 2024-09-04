@@ -1447,7 +1447,11 @@ analyze_test_commands() {
     # GnuTLS, override its port specification.
     if [ "$THIS_SRV_PORT" != "$SRV_PORT" ]; then
         case "$SRV_CMD" in
-            "$G_SRV"*|"$G_NEXT_SRV"*) SRV_CMD="$SRV_CMD -p $THIS_SRV_PORT";;
+            "$G_SRV"*|"$G_NEXT_SRV"*)
+                SRV_CMD=$(
+                    printf %s "$SRV_CMD " |
+                    sed -e "s/ -p $SRV_PORT / -p $THIS_SRV_PORT /"
+                );;
             "$O_SRV"*|"$O_NEXT_SRV"*) SRV_CMD="$SRV_CMD -accept $THIS_SRV_PORT";;
         esac
     fi

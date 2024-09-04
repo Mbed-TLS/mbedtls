@@ -118,3 +118,47 @@ run_test    "Sample: ssl_server, gnutls client, TLS 1.3" \
             -c "Description:.*TLS1.3" \
             -S "error" \
             -C "ERROR"
+
+requires_protocol_version tls12
+run_test    "Sample: ssl_pthread_server, openssl client, TLS 1.2" \
+            -P 4433 \
+            "$PROGRAMS_DIR/ssl_pthread_server" \
+            "$O_CLI -tls1_2" \
+            0 \
+            -s "Successful connection using: TLS-" \
+            -c "New, TLSv1.2, Cipher is" \
+            -S "error" \
+            -C "ERROR"
+
+requires_protocol_version tls12
+run_test    "Sample: ssl_pthread_server, gnutls client, TLS 1.2" \
+            -P 4433 \
+            "$PROGRAMS_DIR/ssl_pthread_server" \
+            "$G_CLI --priority=NORMAL:-VERS-TLS-ALL:+VERS-TLS1.2 localhost" \
+            0 \
+            -s "Successful connection using: TLS-" \
+            -c "Description:.*TLS1.2" \
+            -S "error" \
+            -C "ERROR"
+
+requires_protocol_version tls13
+run_test    "Sample: ssl_pthread_server, openssl client, TLS 1.3" \
+            -P 4433 \
+            "$PROGRAMS_DIR/ssl_pthread_server" \
+            "$O_CLI -tls1_3" \
+            0 \
+            -s "Successful connection using: TLS1-3-" \
+            -c "New, TLSv1.3, Cipher is" \
+            -S "error" \
+            -C "ERROR"
+
+requires_protocol_version tls13
+run_test    "Sample: ssl_pthread_server, gnutls client, TLS 1.3" \
+            -P 4433 \
+            "$PROGRAMS_DIR/ssl_pthread_server" \
+            "$G_CLI --priority=NORMAL:-VERS-TLS-ALL:+VERS-TLS1.3 localhost" \
+            0 \
+            -s "Successful connection using: TLS1-3-" \
+            -c "Description:.*TLS1.3" \
+            -S "error" \
+            -C "ERROR"

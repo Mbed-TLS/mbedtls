@@ -3,7 +3,7 @@
 """Mbed TLS and PSA configuration file manipulation library and tool
 
 Basic usage, to read the Mbed TLS configuration:
-    config = CombinedConfigFile()
+    config = MbedTLSConfig()
     if 'MBEDTLS_RSA_C' in config: print('RSA is enabled')
 """
 
@@ -448,8 +448,7 @@ class MbedTLSConfigTool(config_common.ConfigTool):
 
     def __init__(self):
         super().__init__(MbedTLSConfigFile.default_path)
-        self.config = CombinedConfig(MbedTLSConfigFile(self.args.file),
-                                     CryptoConfigFile(self.args.cryptofile))
+        self.config = MbedTLSConfig(self.args.file)
 
     def custom_parser_options(self):
         """Adds MbedTLS specific options for the parser."""

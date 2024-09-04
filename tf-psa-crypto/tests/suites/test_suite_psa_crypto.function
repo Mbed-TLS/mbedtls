@@ -1237,24 +1237,28 @@ static void interruptible_signverify_get_minmax_completes(uint32_t max_ops,
 
 static uint32_t interruptible_key_agreement_get_min_num_ops(size_t key_bits)
 {
-    uint32_t min_values[3][5] = {
-        { 208, 208, 160, 136, 124 }, // P-256
-        { 682, 416, 320, 272, 248 }, // P-384
-        { 1364, 832, 640, 544, 496 } // P-521
-    };
-
-    int curve_index = -1;
-    if (key_bits == 256) {
-        curve_index = 0;
-    }
-    if (key_bits == 384) {
-        curve_index = 1;
-    }
-    if (key_bits == 512 || key_bits <= 521) {
-        curve_index = 2;
-    }
-    if (curve_index != -1) {
-        return min_values[curve_index][6 - MBEDTLS_ECP_WINDOW_SIZE];
+    /* Those values are taken from documentation of mbedtls_ecp_set_max_ops()
+       in ecp.h. Those values can change at any time. */
+    switch (key_bits) {
+        case 256:
+        {
+            const uint32_t min_values[5] = { 208, 208, 160, 136, 124 }; // P-256
+            return min_values[6 - MBEDTLS_ECP_WINDOW_SIZE];
+            break;
+        }
+        case 384:
+        {
+            const uint32_t min_values[5] = { 682, 416, 320, 272, 248 }; // P-384
+            return min_values[6 - MBEDTLS_ECP_WINDOW_SIZE];
+            break;
+        }
+        case 512:
+        case 521:
+        {
+            const uint32_t min_values[5] = { 1364, 832, 640, 544, 496 }; // P-521
+            return min_values[6 - MBEDTLS_ECP_WINDOW_SIZE];
+            break;
+        }
     }
     return 0;
 }

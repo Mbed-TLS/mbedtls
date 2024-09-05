@@ -49,11 +49,7 @@
 /* Pick an elliptic curve that's supported by PSA. Note that the curve is
  * not guaranteed to be supported by the ECP module.
  *
- * This should always find a curve if ECC is enabled in the build, except in
- * one edge case: in a build with MBEDTLS_PSA_CRYPTO_CONFIG disabled and
- * where the only legacy curve is secp224k1, which is not supported in PSA,
- * PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY ends up enabled but PSA does not
- * support any curve.
+ * This should always find a curve if ECC is enabled in the build.
  */
 
 /* First try all the curves that can do both ECDSA and ECDH, then try

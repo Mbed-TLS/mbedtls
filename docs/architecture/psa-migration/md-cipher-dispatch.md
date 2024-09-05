@@ -73,7 +73,6 @@ The following configuration options are described as experimental, and are likel
 
 * `MBEDTLS_PSA_CRYPTO_CLIENT`: “This interface is experimental and may change or be removed without notice.” In practice we don't want to remove this, but we may constrain how it's used.
 * `MBEDTLS_PSA_CRYPTO_DRIVERS`: “This interface is experimental. We intend to maintain backward compatibility with application code that relies on drivers, but the driver interfaces may change without notice.” In practice, this may mean constraints not only on how to write drivers, but also on how to integrate drivers into code that is platform code more than application code.
-* `MBEDTLS_PSA_CRYPTO_CONFIG`: “This feature is still experimental and is not ready for production since it is not completed.” We may want to change this, for example, to automatically enable more mechanisms (although this wouldn't be considered a backward compatibility break anyway, since we don't promise that you will not get a feature if you don't enable its `PSA_WANT_xxx`).
 
 ### Non-goals
 
@@ -285,8 +284,7 @@ We could go further and make PSA accelerators available to legacy callers that c
 
 #### Implications between legacy availability and PSA availability
 
-* When `MBEDTLS_PSA_CRYPTO_CONFIG` is disabled, all legacy mechanisms are automatically enabled through PSA. Users can manually enable PSA mechanisms that are available through accelerators but not through legacy, but this is not officially supported (users are not supposed to manually define PSA configuration symbols when `MBEDTLS_PSA_CRYPTO_CONFIG` is disabled).
-* When `MBEDTLS_PSA_CRYPTO_CONFIG` is enabled, there is no mandatory relationship between PSA support and legacy support for a mechanism. Users can configure legacy support and PSA support independently. Legacy support is automatically enabled if PSA support is requested, but only if there is no accelerator.
+There is no mandatory relationship between PSA support and legacy support for a mechanism. Users can configure legacy support and PSA support independently. Legacy support is automatically enabled if PSA support is requested, but only if there is no accelerator.
 
 It is strongly desirable to allow mechanisms available through PSA but not legacy: this allows saving code size when an accelerator is present.
 
@@ -521,8 +519,6 @@ After calling a PSA function, MD light calls `mbedtls_md_error_from_psa` to conv
 As discussed in [“Implications between legacy availability and PSA availability”](#implications-between-legacy-availability-and-psa-availability), we require the following property:
 
 > If an algorithm has a legacy implementation, it is also available through PSA.
-
-When `MBEDTLS_PSA_CRYPTO_CONFIG` is disabled, this is already the case. When is enabled, we will now make it so as well. Change `include/mbedtls/config_psa.h` accordingly.
 
 ### MD light optimizations
 

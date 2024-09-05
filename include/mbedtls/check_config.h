@@ -118,7 +118,7 @@
 #error "MBEDTLS_NIST_KW_C defined, but not all prerequisites"
 #endif
 
-#if defined(MBEDTLS_BLOCK_CIPHER_NO_DECRYPT) && defined(MBEDTLS_PSA_CRYPTO_CONFIG)
+#if defined(MBEDTLS_BLOCK_CIPHER_NO_DECRYPT)
 #if defined(PSA_WANT_ALG_CBC_NO_PADDING)
 #error "MBEDTLS_BLOCK_CIPHER_NO_DECRYPT and PSA_WANT_ALG_CBC_NO_PADDING cannot be defined simultaneously"
 #endif

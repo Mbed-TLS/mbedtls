@@ -4,8 +4,7 @@
  *
  * This is an internal header for test purposes only. Do not include it directly.
  *
- * As part of the transition to MBEDTLS_PSA_CRYPTO_CONFIG always on, the
- * purpose of this header is to keep executing as long as necessary some
+ * The purpose of this header is to keep executing as long as necessary some
  * driver-only related unit test cases when running the test_psa_crypto_drivers
  * all.sh component (namely test cases in test_suite_block_cipher and
  * test_suite_md.psa). It is expected that as the 4.x work progress these test

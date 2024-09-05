@@ -4,11 +4,10 @@
  *
  * This is an internal header. Do not include it directly.
  *
- * When MBEDTLS_PSA_CRYPTO_CONFIG is enabled, activate legacy implementations
- * of cryptographic mechanisms as needed to fulfill the needs of the PSA
- * configuration. Generally speaking, we activate a legacy mechanism if
- * it's needed for a requested PSA mechanism and there is no PSA driver
- * for it.
+ * Activate legacy implementations of cryptographic mechanisms as needed to
+ * fulfill the needs of the PSA configuration. Generally speaking, we activate
+ * a legacy mechanism if it's needed for a requested PSA mechanism and there is
+ * no PSA driver for it.
  */
 /*
  *  Copyright The Mbed TLS Contributors

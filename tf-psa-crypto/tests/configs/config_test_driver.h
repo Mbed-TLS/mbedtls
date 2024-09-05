@@ -18,7 +18,6 @@
 #endif
 
 #define MBEDTLS_PSA_CRYPTO_C
-#define MBEDTLS_PSA_CRYPTO_CONFIG
 
 /* PSA core mandatory configuration options */
 #define MBEDTLS_CIPHER_C

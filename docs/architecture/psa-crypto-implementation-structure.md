@@ -124,9 +124,7 @@ New constants must have a test case in `tests/suites/test_suite_psa_crypto_metad
 
 Each cryptographic mechanism is optional and can be selected by the application at build time. For each feature `PSA_ttt_xxx`:
 
-* The feature is available to applications when the preprocessor symbol `PSA_WANT_ttt_xxx` is defined. These symbols are set:
-    * If `MBEDTLS_PSA_CRYPTO_CONFIG` is disabled: based on the available mechanisms in Mbed TLS, deduced from `mbedtls/mbedtls_config.h` by code in `include/mbedtls/config_psa.h`.
-    * if `MBEDTLS_PSA_CRYPTO_CONFIG` is enabled: in the application configuration file `include/psa/crypto_config.h` (or `MBEDTLS_PSA_CRYPTO_CONFIG_FILE`, plus `MBEDTLS_PSA_CRYPTO_USER_CONFIG_FILE`), with code in `include/mbedtls/config_psa.h` deducing the necessary underlying `MBEDTLS_xxx` symbols.
+* The feature is available to applications when the preprocessor symbol `PSA_WANT_ttt_xxx` is defined. These symbols are set in the application configuration file `include/psa/crypto_config.h` (or `MBEDTLS_PSA_CRYPTO_CONFIG_FILE`, plus `MBEDTLS_PSA_CRYPTO_USER_CONFIG_FILE`), with code in `include/mbedtls/config_psa.h` deducing the necessary underlying `MBEDTLS_xxx` symbols.
 *  For transparent keys (keys that are not in a secure element), the feature is implemented by Mbed TLS if `MBEDTLS_PSA_BUILTIN_ttt_xxx` is defined, and by an accelerator driver if `MBEDTLS_PSA_ACCEL_ttt_xxx` is defined. `MBEDTLS_PSA_BUILTIN_ttt_xxx` constants are set in `include/mbedtls/config_psa.h` based on the application requests `PSA_WANT_ttt_xxx` and the accelerator driver declarations `MBEDTLS_PSA_ACCEL_ttt_xxx`.
 * For the testing of the driver dispatch code, `tests/configs/crypto_config_test_driver_extension.h` sets additional `MBEDTLS_PSA_ACCEL_xxx` symbols.
 

@@ -303,11 +303,6 @@ Mbed TLS supports drivers for cryptographic accelerators, secure elements and ra
 
 Please see the [PSA driver example and guide](docs/psa-driver-example-and-guide.md) for information on writing a driver.
 
-When using drivers, you will generally want to enable two compilation options (see the reference manual for more information):
-
-* `MBEDTLS_USE_PSA_CRYPTO` is necessary so that the X.509 and TLS code calls the PSA drivers rather than the built-in software implementation.
-* `MBEDTLS_PSA_CRYPTO_CONFIG` allows you to enable PSA cryptographic mechanisms without including the code of the corresponding software implementation. This is not yet supported for all mechanisms.
-
 License
 -------
 

@@ -44,7 +44,7 @@ int main(void)
 #ifdef FORCE_IPV4
 #define SERVER_ADDR "127.0.0.1"     /* Forces IPv4 */
 #else
-#define SERVER_ADDR "::1"
+#define SERVER_ADDR SERVER_NAME
 #endif
 
 #define MESSAGE     "Echo this"

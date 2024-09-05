@@ -38,9 +38,10 @@ run_test    "Sample: ssl_client1, openssl server, TLS 1.3" \
             -C "error"
 
 requires_protocol_version tls13
+requires_gnutls_tls1_3
 run_test    "Sample: ssl_client1, gnutls server, TLS 1.3" \
             -P 4433 \
-            "$G_SRV --priority=NORMAL:-VERS-TLS-ALL:+VERS-TLS1.3" \
+            "$G_NEXT_SRV --priority=NORMAL:-VERS-TLS-ALL:+VERS-TLS1.3" \
             "$PROGRAMS_DIR/ssl_client1" \
             0 \
             -s "Version: TLS1.3" \
@@ -111,10 +112,11 @@ run_test    "Sample: ssl_server, openssl client, TLS 1.3" \
             -C "ERROR"
 
 requires_protocol_version tls13
+requires_gnutls_tls1_3
 run_test    "Sample: ssl_server, gnutls client, TLS 1.3" \
             -P 4433 \
             "$PROGRAMS_DIR/ssl_server" \
-            "$G_CLI --priority=NORMAL:-VERS-TLS-ALL:+VERS-TLS1.3 localhost" \
+            "$G_NEXT_CLI --priority=NORMAL:-VERS-TLS-ALL:+VERS-TLS1.3 localhost" \
             0 \
             -s "Successful connection using: TLS1-3-" \
             -c "Description:.*TLS1.3" \
@@ -156,10 +158,11 @@ run_test    "Sample: ssl_fork_server, openssl client, TLS 1.3" \
             -C "ERROR"
 
 requires_protocol_version tls13
+requires_gnutls_tls1_3
 run_test    "Sample: ssl_fork_server, gnutls client, TLS 1.3" \
             -P 4433 \
             "$PROGRAMS_DIR/ssl_fork_server" \
-            "$G_CLI --priority=NORMAL:-VERS-TLS-ALL:+VERS-TLS1.3 localhost" \
+            "$G_NEXT_CLI --priority=NORMAL:-VERS-TLS-ALL:+VERS-TLS1.3 localhost" \
             0 \
             -s "Successful connection using: TLS1-3-" \
             -c "Description:.*TLS1.3" \
@@ -201,10 +204,11 @@ run_test    "Sample: ssl_pthread_server, openssl client, TLS 1.3" \
             -C "ERROR"
 
 requires_protocol_version tls13
+requires_gnutls_tls1_3
 run_test    "Sample: ssl_pthread_server, gnutls client, TLS 1.3" \
             -P 4433 \
             "$PROGRAMS_DIR/ssl_pthread_server" \
-            "$G_CLI --priority=NORMAL:-VERS-TLS-ALL:+VERS-TLS1.3 localhost" \
+            "$G_NEXT_CLI --priority=NORMAL:-VERS-TLS-ALL:+VERS-TLS1.3 localhost" \
             0 \
             -s "Successful connection using: TLS1-3-" \
             -c "Description:.*TLS1.3" \

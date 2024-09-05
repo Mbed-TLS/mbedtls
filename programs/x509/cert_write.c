@@ -880,7 +880,7 @@ usage:
         mbedtls_printf(" ok\n");
     }
 
-#if defined(MBEDTLS_MD_CAN_SHA1)
+#if defined(PSA_WANT_ALG_SHA_1)
     if (opt.version == MBEDTLS_X509_CRT_VERSION_3 &&
         opt.subject_identifier != 0) {
         mbedtls_printf("  . Adding the Subject Key Identifier ...");
@@ -914,7 +914,7 @@ usage:
 
         mbedtls_printf(" ok\n");
     }
-#endif /* MBEDTLS_MD_CAN_SHA1 */
+#endif /* PSA_WANT_ALG_SHA_1 */
 
     if (opt.version == MBEDTLS_X509_CRT_VERSION_3 &&
         opt.key_usage != 0) {

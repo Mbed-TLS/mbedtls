@@ -82,7 +82,7 @@ static const mbedtls_md_info_t mbedtls_ripemd160_info = {
 };
 #endif
 
-#if defined(MBEDTLS_MD_CAN_SHA1)
+#if defined(PSA_WANT_ALG_SHA_1)
 static const mbedtls_md_info_t mbedtls_sha1_info = {
     MD_INFO(MBEDTLS_MD_SHA1, 20, 64)
 };
@@ -147,7 +147,7 @@ const mbedtls_md_info_t *mbedtls_md_info_from_type(mbedtls_md_type_t md_type)
         case MBEDTLS_MD_RIPEMD160:
             return &mbedtls_ripemd160_info;
 #endif
-#if defined(MBEDTLS_MD_CAN_SHA1)
+#if defined(PSA_WANT_ALG_SHA_1)
         case MBEDTLS_MD_SHA1:
             return &mbedtls_sha1_info;
 #endif
@@ -796,7 +796,7 @@ static const int supported_digests[] = {
     MBEDTLS_MD_SHA224,
 #endif
 
-#if defined(MBEDTLS_MD_CAN_SHA1)
+#if defined(PSA_WANT_ALG_SHA_1)
     MBEDTLS_MD_SHA1,
 #endif
 
@@ -844,7 +844,7 @@ static const md_name_entry md_names[] = {
 #if defined(PSA_WANT_ALG_RIPEMD160)
     { "RIPEMD160", MBEDTLS_MD_RIPEMD160 },
 #endif
-#if defined(MBEDTLS_MD_CAN_SHA1)
+#if defined(PSA_WANT_ALG_SHA_1)
     { "SHA1", MBEDTLS_MD_SHA1 },
     { "SHA", MBEDTLS_MD_SHA1 }, // compatibility fallback
 #endif

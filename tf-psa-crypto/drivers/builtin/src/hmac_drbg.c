@@ -498,7 +498,7 @@ exit:
 
 #if defined(MBEDTLS_SELF_TEST)
 
-#if !defined(MBEDTLS_MD_CAN_SHA1)
+#if !defined(PSA_WANT_ALG_SHA_1)
 /* Dummy checkup routine */
 int mbedtls_hmac_drbg_self_test(int verbose)
 {
@@ -627,7 +627,7 @@ int mbedtls_hmac_drbg_self_test(int verbose)
 
     return 0;
 }
-#endif /* MBEDTLS_MD_CAN_SHA1 */
+#endif /* PSA_WANT_ALG_SHA_1 */
 #endif /* MBEDTLS_SELF_TEST */
 
 #endif /* MBEDTLS_HMAC_DRBG_C */

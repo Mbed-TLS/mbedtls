@@ -406,7 +406,7 @@ const size_t mbedtls_test_cli_crt_len =
 
 /* List of CAs in PEM or DER, depending on config */
 const char *mbedtls_test_cas[] = {
-#if defined(MBEDTLS_RSA_C) && defined(MBEDTLS_MD_CAN_SHA1)
+#if defined(MBEDTLS_RSA_C) && defined(PSA_WANT_ALG_SHA_1)
     mbedtls_test_ca_crt_rsa_sha1,
 #endif
 #if defined(MBEDTLS_RSA_C) && defined(PSA_WANT_ALG_SHA_256)
@@ -418,7 +418,7 @@ const char *mbedtls_test_cas[] = {
     NULL
 };
 const size_t mbedtls_test_cas_len[] = {
-#if defined(MBEDTLS_RSA_C) && defined(MBEDTLS_MD_CAN_SHA1)
+#if defined(MBEDTLS_RSA_C) && defined(PSA_WANT_ALG_SHA_1)
     sizeof(mbedtls_test_ca_crt_rsa_sha1),
 #endif
 #if defined(MBEDTLS_RSA_C) && defined(PSA_WANT_ALG_SHA_256)
@@ -436,9 +436,9 @@ const unsigned char *mbedtls_test_cas_der[] = {
 #if defined(PSA_WANT_ALG_SHA_256)
     mbedtls_test_ca_crt_rsa_sha256_der,
 #endif /* PSA_WANT_ALG_SHA_256 */
-#if defined(MBEDTLS_MD_CAN_SHA1)
+#if defined(PSA_WANT_ALG_SHA_1)
     mbedtls_test_ca_crt_rsa_sha1_der,
-#endif /* MBEDTLS_MD_CAN_SHA1 */
+#endif /* PSA_WANT_ALG_SHA_1 */
 #endif /* MBEDTLS_RSA_C */
 #if defined(MBEDTLS_PK_CAN_ECDSA_SOME)
     mbedtls_test_ca_crt_ec_der,
@@ -451,9 +451,9 @@ const size_t mbedtls_test_cas_der_len[] = {
 #if defined(PSA_WANT_ALG_SHA_256)
     sizeof(mbedtls_test_ca_crt_rsa_sha256_der),
 #endif /* PSA_WANT_ALG_SHA_256 */
-#if defined(MBEDTLS_MD_CAN_SHA1)
+#if defined(PSA_WANT_ALG_SHA_1)
     sizeof(mbedtls_test_ca_crt_rsa_sha1_der),
-#endif /* MBEDTLS_MD_CAN_SHA1 */
+#endif /* PSA_WANT_ALG_SHA_1 */
 #endif /* MBEDTLS_RSA_C */
 #if defined(MBEDTLS_PK_CAN_ECDSA_SOME)
     sizeof(mbedtls_test_ca_crt_ec_der),
@@ -468,9 +468,9 @@ const char mbedtls_test_cas_pem[] =
 #if defined(PSA_WANT_ALG_SHA_256)
     TEST_CA_CRT_RSA_SHA256_PEM
 #endif /* PSA_WANT_ALG_SHA_256 */
-#if defined(MBEDTLS_MD_CAN_SHA1)
+#if defined(PSA_WANT_ALG_SHA_1)
     TEST_CA_CRT_RSA_SHA1_PEM
-#endif /* MBEDTLS_MD_CAN_SHA1 */
+#endif /* PSA_WANT_ALG_SHA_1 */
 #endif /* MBEDTLS_RSA_C */
 #if defined(MBEDTLS_PK_CAN_ECDSA_SOME)
     TEST_CA_CRT_EC_PEM

@@ -1,5 +1,5 @@
 Certificate Request check Server1 SHA1
-depends_on:MBEDTLS_MD_CAN_SHA1:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
+depends_on:PSA_WANT_ALG_SHA_1:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
 x509_csr_check:"../framework/data_files/server1.key":"../framework/data_files/server1.req.sha1":MBEDTLS_MD_SHA1:0:0:0:0:0
 
 Certificate Request check Server1 SHA224
@@ -23,31 +23,31 @@ depends_on:PSA_WANT_ALG_MD5:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
 x509_csr_check:"../framework/data_files/server1.key":"../framework/data_files/server1.req.md5":MBEDTLS_MD_MD5:0:0:0:0:0
 
 Certificate Request check Server1 key_usage
-depends_on:MBEDTLS_MD_CAN_SHA1:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
+depends_on:PSA_WANT_ALG_SHA_1:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
 x509_csr_check:"../framework/data_files/server1.key":"../framework/data_files/server1.req.key_usage":MBEDTLS_MD_SHA1:MBEDTLS_X509_KU_DIGITAL_SIGNATURE | MBEDTLS_X509_KU_NON_REPUDIATION | MBEDTLS_X509_KU_KEY_ENCIPHERMENT:1:0:0:0
 
 Certificate Request check opaque Server1 key_usage
-depends_on:MBEDTLS_MD_CAN_SHA1:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
+depends_on:PSA_WANT_ALG_SHA_1:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
 x509_csr_check_opaque:"../framework/data_files/server1.key":MBEDTLS_MD_SHA1:MBEDTLS_X509_KU_DIGITAL_SIGNATURE | MBEDTLS_X509_KU_NON_REPUDIATION:0
 
 Certificate Request check Server1 key_usage empty
-depends_on:MBEDTLS_MD_CAN_SHA1:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
+depends_on:PSA_WANT_ALG_SHA_1:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
 x509_csr_check:"../framework/data_files/server1.key":"../framework/data_files/server1.req.key_usage_empty":MBEDTLS_MD_SHA1:0:1:0:0:0
 
 Certificate Request check Server1 ns_cert_type
-depends_on:MBEDTLS_MD_CAN_SHA1:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
+depends_on:PSA_WANT_ALG_SHA_1:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
 x509_csr_check:"../framework/data_files/server1.key":"../framework/data_files/server1.req.cert_type":MBEDTLS_MD_SHA1:0:0:MBEDTLS_X509_NS_CERT_TYPE_SSL_SERVER:1:0
 
 Certificate Request check Server1 ns_cert_type empty
-depends_on:MBEDTLS_MD_CAN_SHA1:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
+depends_on:PSA_WANT_ALG_SHA_1:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
 x509_csr_check:"../framework/data_files/server1.key":"../framework/data_files/server1.req.cert_type_empty":MBEDTLS_MD_SHA1:0:0:0:1:0
 
 Certificate Request check Server1 key_usage + ns_cert_type
-depends_on:MBEDTLS_MD_CAN_SHA1:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
+depends_on:PSA_WANT_ALG_SHA_1:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
 x509_csr_check:"../framework/data_files/server1.key":"../framework/data_files/server1.req.ku-ct":MBEDTLS_MD_SHA1:MBEDTLS_X509_KU_DIGITAL_SIGNATURE | MBEDTLS_X509_KU_NON_REPUDIATION | MBEDTLS_X509_KU_KEY_ENCIPHERMENT:1:MBEDTLS_X509_NS_CERT_TYPE_SSL_SERVER:1:0
 
 Certificate Request check Server5 ECDSA, key_usage
-depends_on:MBEDTLS_MD_CAN_SHA1:MBEDTLS_PK_CAN_ECDSA_SIGN:MBEDTLS_ECDSA_DETERMINISTIC:PSA_WANT_ECC_SECP_R1_256
+depends_on:PSA_WANT_ALG_SHA_1:MBEDTLS_PK_CAN_ECDSA_SIGN:MBEDTLS_ECDSA_DETERMINISTIC:PSA_WANT_ECC_SECP_R1_256
 x509_csr_check:"../framework/data_files/server5.key":"../framework/data_files/server5.req.ku.sha1":MBEDTLS_MD_SHA1:MBEDTLS_X509_KU_DIGITAL_SIGNATURE | MBEDTLS_X509_KU_NON_REPUDIATION:1:0:0:0
 
 Certificate Request check Server1, set_extension

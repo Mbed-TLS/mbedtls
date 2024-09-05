@@ -109,7 +109,6 @@
 #define MBEDTLS_MD_SOME_PSA
 #endif
 #if defined(MBEDTLS_PSA_ACCEL_ALG_SHA_1)
-#define MBEDTLS_MD_CAN_SHA1
 #define MBEDTLS_MD_SHA1_VIA_PSA
 #define MBEDTLS_MD_SOME_PSA
 #endif
@@ -166,7 +165,6 @@
 #define MBEDTLS_MD_SOME_LEGACY
 #endif
 #if defined(MBEDTLS_SHA1_C)
-#define MBEDTLS_MD_CAN_SHA1
 #define MBEDTLS_MD_SOME_LEGACY
 #endif
 #if defined(MBEDTLS_SHA224_C)

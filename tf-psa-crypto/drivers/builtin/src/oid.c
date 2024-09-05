@@ -385,12 +385,12 @@ static const oid_sig_alg_t oid_sig_alg[] =
         MBEDTLS_MD_MD5,      MBEDTLS_PK_RSA,
     },
 #endif /* PSA_WANT_ALG_MD5 */
-#if defined(MBEDTLS_MD_CAN_SHA1)
+#if defined(PSA_WANT_ALG_SHA_1)
     {
         OID_DESCRIPTOR(MBEDTLS_OID_PKCS1_SHA1,       "sha-1WithRSAEncryption",   "RSA with SHA1"),
         MBEDTLS_MD_SHA1,     MBEDTLS_PK_RSA,
     },
-#endif /* MBEDTLS_MD_CAN_SHA1 */
+#endif /* PSA_WANT_ALG_SHA_1 */
 #if defined(PSA_WANT_ALG_SHA_224)
     {
         OID_DESCRIPTOR(MBEDTLS_OID_PKCS1_SHA224,     "sha224WithRSAEncryption",
@@ -419,20 +419,20 @@ static const oid_sig_alg_t oid_sig_alg[] =
         MBEDTLS_MD_SHA512,   MBEDTLS_PK_RSA,
     },
 #endif /* PSA_WANT_ALG_SHA_512 */
-#if defined(MBEDTLS_MD_CAN_SHA1)
+#if defined(PSA_WANT_ALG_SHA_1)
     {
         OID_DESCRIPTOR(MBEDTLS_OID_RSA_SHA_OBS,      "sha-1WithRSAEncryption",   "RSA with SHA1"),
         MBEDTLS_MD_SHA1,     MBEDTLS_PK_RSA,
     },
-#endif /* MBEDTLS_MD_CAN_SHA1 */
+#endif /* PSA_WANT_ALG_SHA_1 */
 #endif /* MBEDTLS_RSA_C */
 #if defined(MBEDTLS_PK_CAN_ECDSA_SOME)
-#if defined(MBEDTLS_MD_CAN_SHA1)
+#if defined(PSA_WANT_ALG_SHA_1)
     {
         OID_DESCRIPTOR(MBEDTLS_OID_ECDSA_SHA1,       "ecdsa-with-SHA1",      "ECDSA with SHA1"),
         MBEDTLS_MD_SHA1,     MBEDTLS_PK_ECDSA,
     },
-#endif /* MBEDTLS_MD_CAN_SHA1 */
+#endif /* PSA_WANT_ALG_SHA_1 */
 #if defined(PSA_WANT_ALG_SHA_224)
     {
         OID_DESCRIPTOR(MBEDTLS_OID_ECDSA_SHA224,     "ecdsa-with-SHA224",    "ECDSA with SHA224"),
@@ -725,7 +725,7 @@ static const oid_md_alg_t oid_md_alg[] =
         MBEDTLS_MD_MD5,
     },
 #endif
-#if defined(MBEDTLS_MD_CAN_SHA1)
+#if defined(PSA_WANT_ALG_SHA_1)
     {
         OID_DESCRIPTOR(MBEDTLS_OID_DIGEST_ALG_SHA1,      "id-sha1",      "SHA-1"),
         MBEDTLS_MD_SHA1,
@@ -809,12 +809,12 @@ typedef struct {
 
 static const oid_md_hmac_t oid_md_hmac[] =
 {
-#if defined(MBEDTLS_MD_CAN_SHA1)
+#if defined(PSA_WANT_ALG_SHA_1)
     {
         OID_DESCRIPTOR(MBEDTLS_OID_HMAC_SHA1,      "hmacSHA1",      "HMAC-SHA-1"),
         MBEDTLS_MD_SHA1,
     },
-#endif /* MBEDTLS_MD_CAN_SHA1 */
+#endif /* PSA_WANT_ALG_SHA_1 */
 #if defined(PSA_WANT_ALG_SHA_224)
     {
         OID_DESCRIPTOR(MBEDTLS_OID_HMAC_SHA224,    "hmacSHA224",    "HMAC-SHA-224"),

@@ -832,18 +832,10 @@
 #endif
 
 /* TLS 1.2 and 1.3 require SHA-256 or SHA-384 (running handshake hash) */
-#if defined(MBEDTLS_SSL_TLS_C)
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-#if !(defined(PSA_WANT_ALG_SHA_256) || defined(PSA_WANT_ALG_SHA_384))
-#error "MBEDTLS_SSL_TLS_C defined, but not all prerequisites"
-#endif
-#else /* MBEDTLS_USE_PSA_CRYPTO */
-#if !defined(MBEDTLS_MD_C) || \
+#if defined(MBEDTLS_SSL_TLS_C) && \
     !(defined(PSA_WANT_ALG_SHA_256) || defined(PSA_WANT_ALG_SHA_384))
 #error "MBEDTLS_SSL_TLS_C defined, but not all prerequisites"
 #endif
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
-#endif /* MBEDTLS_SSL_TLS_C */
 
 #if defined(MBEDTLS_SSL_SRV_C) && !defined(MBEDTLS_SSL_TLS_C)
 #error "MBEDTLS_SSL_SRV_C defined, but not all prerequisites"

@@ -150,28 +150,14 @@
 #endif /* MBEDTLS_PSA_CRYPTO_C */
 
 /* Built-in implementations */
-#if defined(MBEDTLS_MD5_C)
-#define MBEDTLS_MD_SOME_LEGACY
-#endif
-#if defined(MBEDTLS_SHA1_C)
-#define MBEDTLS_MD_SOME_LEGACY
-#endif
-#if defined(MBEDTLS_SHA224_C)
-#define MBEDTLS_MD_SOME_LEGACY
-#endif
-#if defined(MBEDTLS_SHA256_C)
-#define MBEDTLS_MD_SOME_LEGACY
-#endif
-#if defined(MBEDTLS_SHA384_C)
-#define MBEDTLS_MD_SOME_LEGACY
-#endif
-#if defined(MBEDTLS_SHA512_C)
-#define MBEDTLS_MD_SOME_LEGACY
-#endif
-#if defined(MBEDTLS_SHA3_C)
-#define MBEDTLS_MD_SOME_LEGACY
-#endif
-#if defined(MBEDTLS_RIPEMD160_C)
+#if defined(MBEDTLS_MD5_C) || \
+    defined(MBEDTLS_SHA1_C) || \
+    defined(MBEDTLS_SHA224_C) || \
+    defined(MBEDTLS_SHA256_C) || \
+    defined(MBEDTLS_SHA384_C) || \
+    defined(MBEDTLS_SHA512_C) || \
+    defined(MBEDTLS_SHA3_C) || \
+    defined(MBEDTLS_RIPEMD160_C)
 #define MBEDTLS_MD_SOME_LEGACY
 #endif
 

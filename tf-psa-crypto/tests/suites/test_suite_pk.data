@@ -668,7 +668,7 @@ pk_psa_sign:PSA_KEY_TYPE_ECC_KEY_PAIR(PSA_ECC_FAMILY_SECP_K1):192:0
 
 ## Currently buggy: https://github.com/ARMmbed/mbed-crypto/issues/336
 # PSA wrapped sign: SECP224K1
-# depends_on:MBEDTLS_PK_CAN_ECDSA_SIGN:MBEDTLS_ECP_HAVE_SECP224K1
+# depends_on:MBEDTLS_PK_CAN_ECDSA_SIGN:PSA_WANT_ECC_SECP_K1_224
 # pk_psa_sign:PSA_KEY_TYPE_ECC_KEY_PAIR(PSA_ECC_FAMILY_SECP_K1):224:0
 
 PSA wrapped sign: SECP256K1

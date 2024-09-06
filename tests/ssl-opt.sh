@@ -325,7 +325,7 @@ TLS1_2_KEY_EXCHANGES_WITH_CERT_WO_ECDH="MBEDTLS_KEY_EXCHANGE_RSA_ENABLED \
                                        MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED \
                                        MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED"
 
-requires_key_exchange_with_cert_in_tls12_or_tls13_enabled() {
+requires_certificate_authentication () {
     if is_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
     then
         requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
@@ -540,12 +540,6 @@ detect_required_features() {
     esac
 
     unset tmp
-}
-
-requires_certificate_authentication () {
-    if [ "$PSK_ONLY" = "YES" ]; then
-        SKIP_NEXT="YES"
-    fi
 }
 
 adapt_cmd_for_psk () {
@@ -2124,7 +2118,6 @@ run_test    "Default, DTLS" \
             -s "Protocol is DTLSv1.2" \
             -s "Ciphersuite is TLS-ECDHE-RSA-WITH-CHACHA20-POLY1305-SHA256"
 
-requires_key_exchange_with_cert_in_tls12_or_tls13_enabled
 run_test    "TLS client auth: required" \
             "$P_SRV auth_mode=required" \
             "$P_CLI" \
@@ -2754,7 +2747,6 @@ run_test    "Single supported algorithm sending: openssl client" \
             0
 
 # Tests for certificate verification callback
-requires_key_exchange_with_cert_in_tls12_or_tls13_enabled
 run_test    "Configuration-specific CRT verification callback" \
             "$P_SRV debug_level=3" \
             "$P_CLI context_crt_cb=0 debug_level=3" \
@@ -2765,7 +2757,6 @@ run_test    "Configuration-specific CRT verification callback" \
             -C "Use context-specific verification callback" \
             -C "error"
 
-requires_key_exchange_with_cert_in_tls12_or_tls13_enabled
 run_test    "Context-specific CRT verification callback" \
             "$P_SRV debug_level=3" \
             "$P_CLI context_crt_cb=1 debug_level=3" \
@@ -5844,7 +5835,6 @@ run_test    "DER format: with 9 trailing random bytes" \
 # When updating these tests, modify the matching authentication tests accordingly
 
 # The next 4 cases test the 3 auth modes with a badly signed server cert.
-requires_key_exchange_with_cert_in_tls12_or_tls13_enabled
 run_test    "Authentication: server badcert, client required" \
             "$P_SRV crt_file=$DATA_FILES_PATH/server5-badsign.crt \
              key_file=$DATA_FILES_PATH/server5.key" \
@@ -5916,7 +5906,6 @@ run_test    "Authentication: server badcert, client none (1.2)" \
             -C "send alert level=2 message=48" \
             -C "X509 - Certificate verification failed"
 
-requires_key_exchange_with_cert_in_tls12_or_tls13_enabled
 run_test    "Authentication: server goodcert, client required, no trusted CA" \
             "$P_SRV" \
             "$P_CLI debug_level=3 auth_mode=required ca_file=none ca_path=none" \
@@ -5938,7 +5927,6 @@ run_test    "Authentication: server goodcert, client required, no trusted CA (1.
             -c "! mbedtls_ssl_handshake returned" \
             -c "SSL - No CA Chain is set, but required to operate"
 
-requires_key_exchange_with_cert_in_tls12_or_tls13_enabled
 run_test    "Authentication: server goodcert, client optional, no trusted CA" \
             "$P_SRV" \
             "$P_CLI debug_level=3 auth_mode=optional ca_file=none ca_path=none" \
@@ -5962,7 +5950,6 @@ run_test    "Authentication: server goodcert, client optional, no trusted CA (1.
             -C "X509 - Certificate verification failed" \
             -C "SSL - No CA Chain is set, but required to operate"
 
-requires_key_exchange_with_cert_in_tls12_or_tls13_enabled
 run_test    "Authentication: server goodcert, client none, no trusted CA" \
             "$P_SRV" \
             "$P_CLI debug_level=3 auth_mode=none ca_file=none ca_path=none" \
@@ -6031,7 +6018,6 @@ run_test    "Authentication: client SHA384, server required" \
             -c "Supported Signature Algorithm found: 04 " \
             -c "Supported Signature Algorithm found: 05 "
 
-requires_key_exchange_with_cert_in_tls12_or_tls13_enabled
 run_test    "Authentication: client has no cert, server required (TLS)" \
             "$P_SRV debug_level=3 auth_mode=required" \
             "$P_CLI debug_level=3 crt_file=none \
@@ -6047,7 +6033,6 @@ run_test    "Authentication: client has no cert, server required (TLS)" \
             -s "! mbedtls_ssl_handshake returned" \
             -s "No client certification received from the client, but required by the authentication mode"
 
-requires_key_exchange_with_cert_in_tls12_or_tls13_enabled
 run_test    "Authentication: client badcert, server required" \
             "$P_SRV debug_level=3 auth_mode=required" \
             "$P_CLI debug_level=3 crt_file=$DATA_FILES_PATH/server5-badsign.crt \
@@ -6068,7 +6053,6 @@ run_test    "Authentication: client badcert, server required" \
 # detect that its write end of the connection is closed and abort
 # before reading the alert message.
 
-requires_key_exchange_with_cert_in_tls12_or_tls13_enabled
 run_test    "Authentication: client cert self-signed and trusted, server required" \
             "$P_SRV debug_level=3 auth_mode=required ca_file=$DATA_FILES_PATH/server5-selfsigned.crt" \
             "$P_CLI debug_level=3 crt_file=$DATA_FILES_PATH/server5-selfsigned.crt \
@@ -6084,7 +6068,6 @@ run_test    "Authentication: client cert self-signed and trusted, server require
             -S "! The certificate is not correctly signed" \
             -S "X509 - Certificate verification failed"
 
-requires_key_exchange_with_cert_in_tls12_or_tls13_enabled
 run_test    "Authentication: client cert not trusted, server required" \
             "$P_SRV debug_level=3 auth_mode=required" \
             "$P_CLI debug_level=3 crt_file=$DATA_FILES_PATH/server5-selfsigned.crt \
@@ -6101,7 +6084,6 @@ run_test    "Authentication: client cert not trusted, server required" \
             -s "! mbedtls_ssl_handshake returned" \
             -s "X509 - Certificate verification failed"
 
-requires_key_exchange_with_cert_in_tls12_or_tls13_enabled
 run_test    "Authentication: client badcert, server optional" \
             "$P_SRV debug_level=3 auth_mode=optional" \
             "$P_CLI debug_level=3 crt_file=$DATA_FILES_PATH/server5-badsign.crt \
@@ -6119,7 +6101,6 @@ run_test    "Authentication: client badcert, server optional" \
             -C "! mbedtls_ssl_handshake returned" \
             -S "X509 - Certificate verification failed"
 
-requires_key_exchange_with_cert_in_tls12_or_tls13_enabled
 run_test    "Authentication: client badcert, server none" \
             "$P_SRV debug_level=3 auth_mode=none" \
             "$P_CLI debug_level=3 crt_file=$DATA_FILES_PATH/server5-badsign.crt \
@@ -6137,7 +6118,6 @@ run_test    "Authentication: client badcert, server none" \
             -C "! mbedtls_ssl_handshake returned" \
             -S "X509 - Certificate verification failed"
 
-requires_key_exchange_with_cert_in_tls12_or_tls13_enabled
 run_test    "Authentication: client no cert, server optional" \
             "$P_SRV debug_level=3 auth_mode=optional" \
             "$P_CLI debug_level=3 crt_file=none key_file=none" \
@@ -6155,7 +6135,6 @@ run_test    "Authentication: client no cert, server optional" \
             -S "X509 - Certificate verification failed"
 
 requires_openssl_tls1_3_with_compatible_ephemeral
-requires_key_exchange_with_cert_in_tls12_or_tls13_enabled
 run_test    "Authentication: openssl client no cert, server optional" \
             "$P_SRV debug_level=3 auth_mode=optional" \
             "$O_NEXT_CLI_NO_CERT -no_middlebox" \
@@ -6569,7 +6548,6 @@ run_test    "Certificate hash: client TLS 1.2 -> SHA-2" \
 # tests for SNI
 
 requires_config_disabled MBEDTLS_X509_REMOVE_INFO
-requires_key_exchange_with_cert_in_tls12_or_tls13_enabled
 run_test    "SNI: no SNI callback" \
             "$P_SRV debug_level=3 \
              crt_file=$DATA_FILES_PATH/server5.crt key_file=$DATA_FILES_PATH/server5.key" \
@@ -6579,7 +6557,6 @@ run_test    "SNI: no SNI callback" \
             -c "subject name *: C=NL, O=PolarSSL, CN=localhost"
 
 requires_config_disabled MBEDTLS_X509_REMOVE_INFO
-requires_key_exchange_with_cert_in_tls12_or_tls13_enabled
 run_test    "SNI: matching cert 1" \
             "$P_SRV debug_level=3 \
              crt_file=$DATA_FILES_PATH/server5.crt key_file=$DATA_FILES_PATH/server5.key \
@@ -6591,7 +6568,6 @@ run_test    "SNI: matching cert 1" \
             -c "subject name *: C=NL, O=PolarSSL, CN=localhost"
 
 requires_config_disabled MBEDTLS_X509_REMOVE_INFO
-requires_key_exchange_with_cert_in_tls12_or_tls13_enabled
 run_test    "SNI: matching cert 2" \
             "$P_SRV debug_level=3 \
              crt_file=$DATA_FILES_PATH/server5.crt key_file=$DATA_FILES_PATH/server5.key \
@@ -6603,7 +6579,6 @@ run_test    "SNI: matching cert 2" \
             -c "subject name *: C=NL, O=PolarSSL, CN=polarssl.example"
 
 requires_config_disabled MBEDTLS_X509_REMOVE_INFO
-requires_key_exchange_with_cert_in_tls12_or_tls13_enabled
 run_test    "SNI: no matching cert" \
             "$P_SRV debug_level=3 \
              crt_file=$DATA_FILES_PATH/server5.crt key_file=$DATA_FILES_PATH/server5.key \
@@ -6616,7 +6591,6 @@ run_test    "SNI: no matching cert" \
             -c "mbedtls_ssl_handshake returned" \
             -c "SSL - A fatal alert message was received from our peer"
 
-requires_key_exchange_with_cert_in_tls12_or_tls13_enabled
 run_test    "SNI: client auth no override: optional" \
             "$P_SRV debug_level=3 auth_mode=optional \
              crt_file=$DATA_FILES_PATH/server5.crt key_file=$DATA_FILES_PATH/server5.key \
@@ -6630,7 +6604,6 @@ run_test    "SNI: client auth no override: optional" \
             -C "skip write certificate verify" \
             -S "skip parse certificate verify"
 
-requires_key_exchange_with_cert_in_tls12_or_tls13_enabled
 run_test    "SNI: client auth override: none -> optional" \
             "$P_SRV debug_level=3 auth_mode=none \
              crt_file=$DATA_FILES_PATH/server5.crt key_file=$DATA_FILES_PATH/server5.key \
@@ -6644,7 +6617,6 @@ run_test    "SNI: client auth override: none -> optional" \
             -C "skip write certificate verify" \
             -S "skip parse certificate verify"
 
-requires_key_exchange_with_cert_in_tls12_or_tls13_enabled
 run_test    "SNI: client auth override: optional -> none" \
             "$P_SRV debug_level=3 auth_mode=optional \
              crt_file=$DATA_FILES_PATH/server5.crt key_file=$DATA_FILES_PATH/server5.key \
@@ -6656,7 +6628,6 @@ run_test    "SNI: client auth override: optional -> none" \
             -c "got no certificate request" \
             -c "skip write certificate"
 
-requires_key_exchange_with_cert_in_tls12_or_tls13_enabled
 run_test    "SNI: CA no override" \
             "$P_SRV debug_level=3 auth_mode=optional \
              crt_file=$DATA_FILES_PATH/server5.crt key_file=$DATA_FILES_PATH/server5.key \
@@ -6675,7 +6646,6 @@ run_test    "SNI: CA no override" \
             -s "! The certificate is not correctly signed by the trusted CA" \
             -S "The certificate has been revoked (is on a CRL)"
 
-requires_key_exchange_with_cert_in_tls12_or_tls13_enabled
 run_test    "SNI: CA override" \
             "$P_SRV debug_level=3 auth_mode=optional \
              crt_file=$DATA_FILES_PATH/server5.crt key_file=$DATA_FILES_PATH/server5.key \
@@ -6694,7 +6664,6 @@ run_test    "SNI: CA override" \
             -S "! The certificate is not correctly signed by the trusted CA" \
             -S "The certificate has been revoked (is on a CRL)"
 
-requires_key_exchange_with_cert_in_tls12_or_tls13_enabled
 run_test    "SNI: CA override with CRL" \
             "$P_SRV debug_level=3 auth_mode=optional \
              crt_file=$DATA_FILES_PATH/server5.crt key_file=$DATA_FILES_PATH/server5.key \
@@ -6867,7 +6836,6 @@ run_test    "SNI: DTLS, CA override with CRL" \
 
 # Tests for non-blocking I/O: exercise a variety of handshake flows
 
-requires_key_exchange_with_cert_in_tls12_or_tls13_enabled
 run_test    "Non-blocking I/O: basic handshake" \
             "$P_SRV nbio=2 tickets=0 auth_mode=none" \
             "$P_CLI nbio=2 tickets=0" \
@@ -6876,7 +6844,6 @@ run_test    "Non-blocking I/O: basic handshake" \
             -C "mbedtls_ssl_handshake returned" \
             -c "Read from server: .* bytes read"
 
-requires_key_exchange_with_cert_in_tls12_or_tls13_enabled
 run_test    "Non-blocking I/O: client auth" \
             "$P_SRV nbio=2 tickets=0 auth_mode=required" \
             "$P_CLI nbio=2 tickets=0" \
@@ -6885,7 +6852,6 @@ run_test    "Non-blocking I/O: client auth" \
             -C "mbedtls_ssl_handshake returned" \
             -c "Read from server: .* bytes read"
 
-requires_key_exchange_with_cert_in_tls12_or_tls13_enabled
 requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Non-blocking I/O: ticket" \
             "$P_SRV nbio=2 tickets=1 auth_mode=none" \
@@ -6895,7 +6861,6 @@ run_test    "Non-blocking I/O: ticket" \
             -C "mbedtls_ssl_handshake returned" \
             -c "Read from server: .* bytes read"
 
-requires_key_exchange_with_cert_in_tls12_or_tls13_enabled
 requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Non-blocking I/O: ticket + client auth" \
             "$P_SRV nbio=2 tickets=1 auth_mode=required" \
@@ -6960,7 +6925,6 @@ run_test    "Non-blocking I/O: session-id resume" \
 
 # Tests for event-driven I/O: exercise a variety of handshake flows
 
-requires_key_exchange_with_cert_in_tls12_or_tls13_enabled
 run_test    "Event-driven I/O: basic handshake" \
             "$P_SRV event=1 tickets=0 auth_mode=none" \
             "$P_CLI event=1 tickets=0" \
@@ -6969,7 +6933,6 @@ run_test    "Event-driven I/O: basic handshake" \
             -C "mbedtls_ssl_handshake returned" \
             -c "Read from server: .* bytes read"
 
-requires_key_exchange_with_cert_in_tls12_or_tls13_enabled
 run_test    "Event-driven I/O: client auth" \
             "$P_SRV event=1 tickets=0 auth_mode=required" \
             "$P_CLI event=1 tickets=0" \
@@ -6978,7 +6941,6 @@ run_test    "Event-driven I/O: client auth" \
             -C "mbedtls_ssl_handshake returned" \
             -c "Read from server: .* bytes read"
 
-requires_key_exchange_with_cert_in_tls12_or_tls13_enabled
 requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Event-driven I/O: ticket" \
             "$P_SRV event=1 tickets=1 auth_mode=none" \
@@ -6988,7 +6950,6 @@ run_test    "Event-driven I/O: ticket" \
             -C "mbedtls_ssl_handshake returned" \
             -c "Read from server: .* bytes read"
 
-requires_key_exchange_with_cert_in_tls12_or_tls13_enabled
 requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Event-driven I/O: ticket + client auth" \
             "$P_SRV event=1 tickets=1 auth_mode=required" \
@@ -7683,7 +7644,6 @@ run_test    "TLS 1.3: Not supported version:openssl: srv max TLS 1.2" \
 
 # Tests for ALPN extension
 
-requires_key_exchange_with_cert_in_tls12_or_tls13_enabled
 run_test    "ALPN: none" \
             "$P_SRV debug_level=3" \
             "$P_CLI debug_level=3" \
@@ -7696,7 +7656,6 @@ run_test    "ALPN: none" \
             -C "Application Layer Protocol is" \
             -S "Application Layer Protocol is"
 
-requires_key_exchange_with_cert_in_tls12_or_tls13_enabled
 run_test    "ALPN: client only" \
             "$P_SRV debug_level=3" \
             "$P_CLI debug_level=3 alpn=abc,1234" \
@@ -7709,7 +7668,6 @@ run_test    "ALPN: client only" \
             -c "Application Layer Protocol is (none)" \
             -S "Application Layer Protocol is"
 
-requires_key_exchange_with_cert_in_tls12_or_tls13_enabled
 run_test    "ALPN: server only" \
             "$P_SRV debug_level=3 alpn=abc,1234" \
             "$P_CLI debug_level=3" \
@@ -7722,7 +7680,6 @@ run_test    "ALPN: server only" \
             -C "Application Layer Protocol is" \
             -s "Application Layer Protocol is (none)"
 
-requires_key_exchange_with_cert_in_tls12_or_tls13_enabled
 run_test    "ALPN: both, common cli1-srv1" \
             "$P_SRV debug_level=3 alpn=abc,1234" \
             "$P_CLI debug_level=3 alpn=abc,1234" \
@@ -7735,7 +7692,6 @@ run_test    "ALPN: both, common cli1-srv1" \
             -c "Application Layer Protocol is abc" \
             -s "Application Layer Protocol is abc"
 
-requires_key_exchange_with_cert_in_tls12_or_tls13_enabled
 run_test    "ALPN: both, common cli2-srv1" \
             "$P_SRV debug_level=3 alpn=abc,1234" \
             "$P_CLI debug_level=3 alpn=1234,abc" \
@@ -7748,7 +7704,6 @@ run_test    "ALPN: both, common cli2-srv1" \
             -c "Application Layer Protocol is abc" \
             -s "Application Layer Protocol is abc"
 
-requires_key_exchange_with_cert_in_tls12_or_tls13_enabled
 run_test    "ALPN: both, common cli1-srv2" \
             "$P_SRV debug_level=3 alpn=abc,1234" \
             "$P_CLI debug_level=3 alpn=1234,abcde" \
@@ -7761,7 +7716,6 @@ run_test    "ALPN: both, common cli1-srv2" \
             -c "Application Layer Protocol is 1234" \
             -s "Application Layer Protocol is 1234"
 
-requires_key_exchange_with_cert_in_tls12_or_tls13_enabled
 run_test    "ALPN: both, no common" \
             "$P_SRV debug_level=3 alpn=abc,123" \
             "$P_CLI debug_level=3 alpn=1234,abcde" \
@@ -8193,28 +8147,24 @@ run_test    "keyUsage cli-auth 1.3: ECDSA, KeyAgreement: fail (hard)" \
 
 # Tests for extendedKeyUsage, part 1: server-side certificate/suite selection
 
-requires_key_exchange_with_cert_in_tls12_or_tls13_enabled
 run_test    "extKeyUsage srv: serverAuth -> OK" \
             "$P_SRV key_file=$DATA_FILES_PATH/server5.key \
              crt_file=$DATA_FILES_PATH/server5.eku-srv.crt" \
             "$P_CLI" \
             0
 
-requires_key_exchange_with_cert_in_tls12_or_tls13_enabled
 run_test    "extKeyUsage srv: serverAuth,clientAuth -> OK" \
             "$P_SRV key_file=$DATA_FILES_PATH/server5.key \
              crt_file=$DATA_FILES_PATH/server5.eku-srv.crt" \
             "$P_CLI" \
             0
 
-requires_key_exchange_with_cert_in_tls12_or_tls13_enabled
 run_test    "extKeyUsage srv: codeSign,anyEKU -> OK" \
             "$P_SRV key_file=$DATA_FILES_PATH/server5.key \
              crt_file=$DATA_FILES_PATH/server5.eku-cs_any.crt" \
             "$P_CLI" \
             0
 
-requires_key_exchange_with_cert_in_tls12_or_tls13_enabled
 run_test    "extKeyUsage srv: codeSign -> fail" \
             "$P_SRV key_file=$DATA_FILES_PATH/server5.key \
              crt_file=$DATA_FILES_PATH/server5.eku-cli.crt" \

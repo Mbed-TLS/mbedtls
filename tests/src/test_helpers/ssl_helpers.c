@@ -1082,7 +1082,7 @@ static int psk_dummy_callback(void *p_info, mbedtls_ssl_context *ssl,
           MBEDTLS_SSL_SRV_C */
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2) && \
-    defined(MBEDTLS_SSL_HAVE_CBC) && defined(MBEDTLS_SSL_HAVE_AES)
+    defined(PSA_WANT_ALG_CBC_NO_PADDING) && defined(PSA_WANT_KEY_TYPE_AES)
 int mbedtls_test_psa_cipher_encrypt_helper(mbedtls_ssl_transform *transform,
                                            const unsigned char *iv,
                                            size_t iv_len,
@@ -1130,8 +1130,8 @@ int mbedtls_test_psa_cipher_encrypt_helper(mbedtls_ssl_transform *transform,
                                 iv, iv_len, input, ilen, output, olen);
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 }
-#endif /* MBEDTLS_SSL_PROTO_TLS1_2 && MBEDTLS_SSL_HAVE_CBC &&
-          MBEDTLS_SSL_HAVE_AES */
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 && PSA_WANT_ALG_CBC_NO_PADDING &&
+          PSA_WANT_KEY_TYPE_AES */
 
 static void mbedtls_test_ssl_cipher_info_from_type(mbedtls_cipher_type_t cipher_type,
                                                    mbedtls_cipher_mode_t *cipher_mode,
@@ -2542,9 +2542,6 @@ int mbedtls_test_get_tls13_ticket(
     ret = mbedtls_test_ssl_endpoint_init(&server_ep, MBEDTLS_SSL_IS_SERVER,
                                          server_options, NULL, NULL, NULL);
     TEST_EQUAL(ret, 0);
-
-    mbedtls_ssl_conf_tls13_enable_signal_new_session_tickets(
-        &client_ep.conf, MBEDTLS_SSL_TLS1_3_SIGNAL_NEW_SESSION_TICKETS_ENABLED);
 
     mbedtls_ssl_conf_session_tickets_cb(&server_ep.conf,
                                         mbedtls_test_ticket_write,

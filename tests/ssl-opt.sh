@@ -483,10 +483,16 @@ detect_required_features() {
             requires_config_enabled MBEDTLS_SSL_ALPN;;
     esac
 
+    case " $CMD_LINE " in
+         *\ auth_mode=*|*[-_\ =]crt[_=]*)
+            requires_certificate_authentication;;
+    esac
+
     case "$CMD_LINE" in
         */server5*|\
         */server7*|\
         */dir-maxpath*)
+            requires_certificate_authentication
             if [ "$TLS_VERSION" = "TLS13" ]; then
                 # In case of TLS13 the support for ECDSA is enough
                 requires_pk_alg "ECDSA"
@@ -521,6 +527,7 @@ detect_required_features() {
         */server1*|\
         */server2*|\
         */server7*)
+            requires_certificate_authentication
             # Certificates with an RSA key. The algorithm requirement is
             # some subset of {PKCS#1v1.5 encryption, PKCS#1v1.5 signature,
             # PSS signature}. We can't easily tell which subset works, and

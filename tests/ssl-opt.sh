@@ -273,31 +273,39 @@ requires_config_disabled() {
 }
 
 requires_all_configs_enabled() {
-    if ! $P_QUERY -all $* 2>&1 > /dev/null
-    then
-        SKIP_NEXT="YES"
-    fi
+    for x in "$@"; do
+        if ! is_config_enabled "$x"; then
+            SKIP_NEXT="YES"
+            return
+        fi
+    done
 }
 
 requires_all_configs_disabled() {
-    if $P_QUERY -any $* 2>&1 > /dev/null
-    then
-        SKIP_NEXT="YES"
-    fi
+    for x in "$@"; do
+        if is_config_enabled "$x"; then
+            SKIP_NEXT="YES"
+            return
+        fi
+    done
 }
 
 requires_any_configs_enabled() {
-    if ! $P_QUERY -any $* 2>&1 > /dev/null
-    then
-        SKIP_NEXT="YES"
-    fi
+    for x in "$@"; do
+        if is_config_enabled "$x"; then
+            return
+        fi
+    done
+    SKIP_NEXT="YES"
 }
 
 requires_any_configs_disabled() {
-    if $P_QUERY -all $* 2>&1 > /dev/null
-    then
-        SKIP_NEXT="YES"
-    fi
+    for x in "$@"; do
+        if ! is_config_enabled "$x"; then
+            return
+        fi
+    done
+    SKIP_NEXT="YES"
 }
 
 TLS1_2_KEY_EXCHANGES_WITH_CERT="MBEDTLS_KEY_EXCHANGE_RSA_ENABLED \
@@ -318,10 +326,10 @@ TLS1_2_KEY_EXCHANGES_WITH_CERT_WO_ECDH="MBEDTLS_KEY_EXCHANGE_RSA_ENABLED \
                                        MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED"
 
 requires_key_exchange_with_cert_in_tls12_or_tls13_enabled() {
-    if $P_QUERY -all MBEDTLS_SSL_PROTO_TLS1_2
+    if is_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
     then
         requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
-    elif ! $P_QUERY -all MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+    elif ! is_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
     then
         SKIP_NEXT="YES"
     fi
@@ -1653,7 +1661,7 @@ get_tls_version() {
     esac
     # Third if the version is not forced, if TLS 1.3 is enabled then the test
     # is aimed to run a TLS 1.3 handshake.
-    if $P_QUERY -all MBEDTLS_SSL_PROTO_TLS1_3
+    if is_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
     then
         echo "TLS13"
     else

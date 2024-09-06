@@ -795,6 +795,14 @@ requires_openssl_tls1_3() {
     fi
 }
 
+# OpenSSL 3 servers forbid client renegotiation by default.
+# Older versions always alow it.
+OPENSSL_S_SERVER_CLIENT_RENEGOTIATION=
+case $($OPENSSL s_server -help 2>&1) in
+    *-client_renegotiation*)
+        OPENSSL_S_SERVER_CLIENT_RENEGOTIATION=-client_renegotiation;;
+esac
+
 # skip next test if tls1_3 is not available
 requires_gnutls_tls1_3() {
     requires_gnutls_next
@@ -5550,7 +5558,7 @@ run_test    "Renegotiation: nbio, server-initiated" \
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Renegotiation: openssl server, client-initiated" \
-            "$O_SRV -www -tls1_2" \
+            "$O_SRV -www $OPENSSL_S_SERVER_CLIENT_RENEGOTIATION -tls1_2" \
             "$P_CLI debug_level=3 exchanges=1 renegotiation=1 renegotiate=1" \
             0 \
             -c "client hello, adding renegotiation extension" \

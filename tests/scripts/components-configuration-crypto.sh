@@ -2286,11 +2286,19 @@ component_build_aes_variations () {
     # MBEDTLS_BLOCK_CIPHER_NO_DECRYPT is incompatible with ECB in PSA, CBC/XTS/NIST_KW/DES,
     # manually set or unset those configurations to check
     # MBEDTLS_BLOCK_CIPHER_NO_DECRYPT with various combinations in aes.o.
+    scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
     scripts/config.py set MBEDTLS_BLOCK_CIPHER_NO_DECRYPT
-    scripts/config.py unset MBEDTLS_CIPHER_MODE_CBC
     scripts/config.py unset MBEDTLS_CIPHER_MODE_XTS
-    scripts/config.py unset MBEDTLS_DES_C
     scripts/config.py unset MBEDTLS_NIST_KW_C
+
+    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CBC_NO_PADDING
+    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CBC_PKCS7
+    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_ECB_NO_PADDING
+    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_KEY_TYPE_DES
+    # Note: The three unsets below are to be removed for Mbed TLS 4.0
+    scripts/config.py unset MBEDTLS_CIPHER_MODE_CBC
+    scripts/config.py unset MBEDTLS_DES_C
+
     build_test_config_combos ${BUILTIN_SRC_PATH}/aes.o validate_aes_config_variations \
         "MBEDTLS_AES_ROM_TABLES" \
         "MBEDTLS_AES_FEWER_TABLES" "MBEDTLS_AES_USE_HARDWARE_ONLY" \

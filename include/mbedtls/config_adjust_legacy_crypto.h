@@ -87,7 +87,6 @@
 
 #if defined(MBEDTLS_MD_LIGHT)
 /*
- * - MBEDTLS_MD_CAN_xxx is defined if the md module can perform xxx.
  * - MBEDTLS_MD_xxx_VIA_PSA is defined if the md module may perform xxx via PSA
  *   (see below).
  * - MBEDTLS_MD_SOME_PSA is defined if at least one algorithm may be performed

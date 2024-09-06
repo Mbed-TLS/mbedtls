@@ -100,12 +100,8 @@ considerations](#general-considerations) above.
 
 If you want to check at compile-time whether a certain hash algorithm is
 available in the present build of Mbed TLS, regardless of whether it's
-provided by a driver or built-in, you should use the following macros:
-
-- for code that uses only the PSA Crypto API: `PSA_WANT_ALG_xxx` from
-  `psa/crypto.h`;
-- for code that uses non-PSA crypto APIs: `MBEDTLS_MD_CAN_xxx` from
-  `mbedtls/config_adjust_legacy_crypto.h`.
+provided by a driver or built-in, you should use `PSA_WANT_ALG_xxx` from
+`psa/crypto.h`.
 
 ### HMAC
 
@@ -186,13 +182,8 @@ enabled, with the following exceptions:
 
 If you want to check at compile-time whether a certain curve is available in
 the present build of Mbed TLS, regardless of whether ECC is provided by a
-driver or built-in, you should use the following macros:
-
-- for code that uses only the PSA Crypto API: `PSA_WANT_ECC_xxx` from
-  `psa/crypto.h`;
-- for code that may also use non-PSA crypto APIs: `MBEDTLS_ECP_HAVE_xxx` from
-  `mbedtls/build_info.h` where xxx can take the same values as for
-`MBEDTLS_ECP_DP_xxx` macros.
+driver or built-in, you should use `PSA_WANT_ECC_xxx` from
+  `psa/crypto.h`.
 
 Note that for externally-provided drivers, the integrator is responsible for
 ensuring the appropriate `MBEDTLS_PSA_ACCEL_xxx` macros are defined. However,

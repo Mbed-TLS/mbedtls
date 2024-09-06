@@ -489,6 +489,7 @@ detect_required_features() {
     esac
 
     case "$CMD_LINE" in
+        *[-_\ =]psk*|*[-_\ =]PSK*) :;; # No certificate requirement with PSK
         */server5*|\
         */server7*|\
         */dir-maxpath*)
@@ -524,6 +525,7 @@ detect_required_features() {
     esac
 
     case "$CMD_LINE" in
+        *[-_\ =]psk*|*[-_\ =]PSK*) :;; # No certificate requirement with PSK
         */server1*|\
         */server2*|\
         */server7*)
@@ -1755,13 +1757,13 @@ run_test() {
         TLS_VERSION="TLS12"
     fi
 
+    # If we're in a PSK-only build and the test can be adapted to PSK, do that.
+    maybe_adapt_for_psk "$@"
+
     # If the client or server requires certain features that can be detected
     # from their command-line arguments, check whether they're enabled.
     detect_required_features "$SRV_CMD" "server" "$TLS_VERSION" "$EXT_WO_ECDH" "$@"
     detect_required_features "$CLI_CMD" "client" "$TLS_VERSION" "$EXT_WO_ECDH" "$@"
-
-    # If we're in a PSK-only build and the test can be adapted to PSK, do that.
-    maybe_adapt_for_psk "$@"
 
     # should we skip?
     if [ "X$SKIP_NEXT" = "XYES" ]; then

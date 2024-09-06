@@ -363,22 +363,13 @@ psa_status_t mbedtls_test_wrap_psa_generate_key_custom(
 #define psa_generate_key_custom(arg0_attributes, arg1_custom, arg2_custom_data, arg3_custom_data_length, arg4_key) \
     mbedtls_test_wrap_psa_generate_key_custom(arg0_attributes, arg1_custom, arg2_custom_data, arg3_custom_data_length, arg4_key)
 
-psa_status_t mbedtls_test_wrap_psa_generate_key_iop_abort(
-    psa_generate_key_iop_t *arg0_operation);
-#define psa_generate_key_iop_abort(arg0_operation) \
-    mbedtls_test_wrap_psa_generate_key_iop_abort(arg0_operation)
-
-psa_status_t mbedtls_test_wrap_psa_generate_key_iop_complete(
-    psa_generate_key_iop_t *arg0_operation,
-    psa_key_id_t *arg1_key);
-#define psa_generate_key_iop_complete(arg0_operation, arg1_key) \
-    mbedtls_test_wrap_psa_generate_key_iop_complete(arg0_operation, arg1_key)
-
-psa_status_t mbedtls_test_wrap_psa_generate_key_iop_setup(
-    psa_generate_key_iop_t *arg0_operation,
-    const psa_key_attributes_t *arg1_attributes);
-#define psa_generate_key_iop_setup(arg0_operation, arg1_attributes) \
-    mbedtls_test_wrap_psa_generate_key_iop_setup(arg0_operation, arg1_attributes)
+psa_status_t mbedtls_test_wrap_psa_generate_key_ext(
+    const psa_key_attributes_t *arg0_attributes,
+    const psa_key_production_parameters_t *arg1_params,
+    size_t arg2_params_data_length,
+    mbedtls_svc_key_id_t *arg3_key);
+#define psa_generate_key_ext(arg0_attributes, arg1_params, arg2_params_data_length, arg3_key) \
+    mbedtls_test_wrap_psa_generate_key_ext(arg0_attributes, arg1_params, arg2_params_data_length, arg3_key)
 
 psa_status_t mbedtls_test_wrap_psa_generate_random(
     uint8_t *arg0_output,
@@ -458,37 +449,6 @@ psa_status_t mbedtls_test_wrap_psa_import_key(
 #define psa_import_key(arg0_attributes, arg1_data, arg2_data_length, arg3_key) \
     mbedtls_test_wrap_psa_import_key(arg0_attributes, arg1_data, arg2_data_length, arg3_key)
 
-psa_status_t mbedtls_test_wrap_psa_key_agreement(
-    mbedtls_svc_key_id_t arg0_private_key,
-    const uint8_t *arg1_peer_key,
-    size_t arg2_peer_key_length,
-    psa_algorithm_t arg3_alg,
-    const psa_key_attributes_t *arg4_attributes,
-    mbedtls_svc_key_id_t *arg5_key);
-#define psa_key_agreement(arg0_private_key, arg1_peer_key, arg2_peer_key_length, arg3_alg, arg4_attributes, arg5_key) \
-    mbedtls_test_wrap_psa_key_agreement(arg0_private_key, arg1_peer_key, arg2_peer_key_length, arg3_alg, arg4_attributes, arg5_key)
-
-psa_status_t mbedtls_test_wrap_psa_key_agreement_iop_abort(
-    psa_key_agreement_iop_t *arg0_operation);
-#define psa_key_agreement_iop_abort(arg0_operation) \
-    mbedtls_test_wrap_psa_key_agreement_iop_abort(arg0_operation)
-
-psa_status_t mbedtls_test_wrap_psa_key_agreement_iop_complete(
-    psa_key_agreement_iop_t *arg0_operation,
-    psa_key_id_t *arg1_key);
-#define psa_key_agreement_iop_complete(arg0_operation, arg1_key) \
-    mbedtls_test_wrap_psa_key_agreement_iop_complete(arg0_operation, arg1_key)
-
-psa_status_t mbedtls_test_wrap_psa_key_agreement_iop_setup(
-    psa_key_agreement_iop_t *arg0_operation,
-    psa_key_id_t arg1_private_key,
-    const uint8_t *arg2_peer_key,
-    size_t arg3_peer_key_length,
-    psa_algorithm_t arg4_alg,
-    const psa_key_attributes_t *arg5_attributes);
-#define psa_key_agreement_iop_setup(arg0_operation, arg1_private_key, arg2_peer_key, arg3_peer_key_length, arg4_alg, arg5_attributes) \
-    mbedtls_test_wrap_psa_key_agreement_iop_setup(arg0_operation, arg1_private_key, arg2_peer_key, arg3_peer_key_length, arg4_alg, arg5_attributes)
-
 psa_status_t mbedtls_test_wrap_psa_key_derivation_abort(
     psa_key_derivation_operation_t *arg0_operation);
 #define psa_key_derivation_abort(arg0_operation) \
@@ -554,6 +514,15 @@ psa_status_t mbedtls_test_wrap_psa_key_derivation_output_key_custom(
     mbedtls_svc_key_id_t *arg5_key);
 #define psa_key_derivation_output_key_custom(arg0_attributes, arg1_operation, arg2_custom, arg3_custom_data, arg4_custom_data_length, arg5_key) \
     mbedtls_test_wrap_psa_key_derivation_output_key_custom(arg0_attributes, arg1_operation, arg2_custom, arg3_custom_data, arg4_custom_data_length, arg5_key)
+
+psa_status_t mbedtls_test_wrap_psa_key_derivation_output_key_ext(
+    const psa_key_attributes_t *arg0_attributes,
+    psa_key_derivation_operation_t *arg1_operation,
+    const psa_key_production_parameters_t *arg2_params,
+    size_t arg3_params_data_length,
+    mbedtls_svc_key_id_t *arg4_key);
+#define psa_key_derivation_output_key_ext(arg0_attributes, arg1_operation, arg2_params, arg3_params_data_length, arg4_key) \
+    mbedtls_test_wrap_psa_key_derivation_output_key_ext(arg0_attributes, arg1_operation, arg2_params, arg3_params_data_length, arg4_key)
 
 psa_status_t mbedtls_test_wrap_psa_key_derivation_set_capacity(
     psa_key_derivation_operation_t *arg0_operation,

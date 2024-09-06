@@ -1,9 +1,24 @@
 /**
- * This file is intended to be used to build PSA test driver libraries. It is
- * intended to be appended by the test build system to the crypto_config.h file
- * of the Mbed TLS library the test library will be linked to. It mirrors the
- * PSA_ACCEL_* macros defining the cryptographic operations the test library
- * supports.
+ * This file is intended to be used to build PSA external test driver
+ * libraries (libtestdriver1).
+ *
+ * It is intended to be appended by the test build system to the
+ * crypto_config.h file of the Mbed TLS library the test library will be
+ * linked to (see `tests/Makefile` libtestdriver1 target). This is done in
+ * order to insert it at the right time: after the main configuration
+ * (PSA_WANT) but before the logic that determines what built-ins to enable
+ * based on PSA_WANT and MBEDTLS_PSA_ACCEL macros.
+ *
+ * It reverses the PSA_ACCEL_* macros defining the cryptographic operations
+ * that will be accelerated in the main library:
+ * - When something is accelerated in the main library, we need it supported
+ *   in libtestdriver1, so we disable the accel macro in order to the built-in
+ *   to be enabled.
+ * - When something is NOT accelerated in the main library, we don't need it
+ *   in libtestdriver1, so we enable its accel macro in order to the built-in
+ *   to be disabled, to keep libtestdriver1 minimal. (We can't adjust the
+ *   PSA_WANT macros as they need to be the same between libtestdriver1 and
+ *   the main library, since they determine the ABI between the two.)
  */
 
 #include "psa/crypto_legacy.h"

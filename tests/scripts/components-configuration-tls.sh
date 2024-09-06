@@ -404,15 +404,35 @@ component_test_tls13_only_psk () {
     msg "build: TLS 1.3 only from default, only PSK key exchange mode"
     scripts/config.py unset MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
     scripts/config.py unset MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
-    scripts/config.py unset MBEDTLS_ECDH_C
-    scripts/config.py unset MBEDTLS_DHM_C
     scripts/config.py unset MBEDTLS_X509_CRT_PARSE_C
     scripts/config.py unset MBEDTLS_X509_RSASSA_PSS_SUPPORT
     scripts/config.py unset MBEDTLS_SSL_SERVER_NAME_INDICATION
-    scripts/config.py unset MBEDTLS_ECDSA_C
-    scripts/config.py unset MBEDTLS_PKCS1_V21
     scripts/config.py unset MBEDTLS_PKCS7_C
     scripts/config.py set   MBEDTLS_SSL_EARLY_DATA
+
+    scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
+    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_ECDH
+    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_ECDSA
+    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_DETERMINISTIC_ECDSA
+    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_RSA_OAEP
+    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_RSA_PSS
+    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_FFDH
+    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_KEY_TYPE_DH_PUBLIC_KEY
+    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_KEY_TYPE_DH_KEY_PAIR_BASIC
+    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_KEY_TYPE_DH_KEY_PAIR_IMPORT
+    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_KEY_TYPE_DH_KEY_PAIR_EXPORT
+    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_KEY_TYPE_DH_KEY_PAIR_GENERATE
+    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_DH_RFC7919_2048
+    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_DH_RFC7919_3072
+    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_DH_RFC7919_4096
+    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_DH_RFC7919_6144
+    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_DH_RFC7919_8192
+    # Note: The three unsets below are to be removed for Mbed TLS 4.0
+    scripts/config.py unset MBEDTLS_ECDH_C
+    scripts/config.py unset MBEDTLS_ECDSA_C
+    scripts/config.py unset MBEDTLS_PKCS1_V21
+    scripts/config.py unset MBEDTLS_DHM_C
+
     make CFLAGS="'-DMBEDTLS_USER_CONFIG_FILE=\"../tests/configs/tls13-only.h\"'"
 
     msg "test_suite_ssl: TLS 1.3 only, only PSK key exchange mode enabled"
@@ -441,6 +461,10 @@ component_test_tls13_only_ephemeral_ffdh () {
     scripts/config.py unset MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
     scripts/config.py unset MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
     scripts/config.py unset MBEDTLS_SSL_EARLY_DATA
+
+    scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
+    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_ECDH
+    # Note: The three unsets below are to be removed for Mbed TLS 4.0
     scripts/config.py unset MBEDTLS_ECDH_C
 
     make CFLAGS="'-DMBEDTLS_USER_CONFIG_FILE=\"../tests/configs/tls13-only.h\"'"
@@ -459,10 +483,18 @@ component_test_tls13_only_psk_ephemeral () {
     scripts/config.py unset MBEDTLS_X509_CRT_PARSE_C
     scripts/config.py unset MBEDTLS_X509_RSASSA_PSS_SUPPORT
     scripts/config.py unset MBEDTLS_SSL_SERVER_NAME_INDICATION
-    scripts/config.py unset MBEDTLS_ECDSA_C
-    scripts/config.py unset MBEDTLS_PKCS1_V21
     scripts/config.py unset MBEDTLS_PKCS7_C
     scripts/config.py set   MBEDTLS_SSL_EARLY_DATA
+
+    scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
+    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_ECDSA
+    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_DETERMINISTIC_ECDSA
+    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_RSA_OAEP
+    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_RSA_PSS
+    # Note: The three unsets below are to be removed for Mbed TLS 4.0
+    scripts/config.py unset MBEDTLS_ECDSA_C
+    scripts/config.py unset MBEDTLS_PKCS1_V21
+
     make CFLAGS="'-DMBEDTLS_USER_CONFIG_FILE=\"../tests/configs/tls13-only.h\"'"
 
     msg "test_suite_ssl: TLS 1.3 only, only PSK ephemeral key exchange mode"
@@ -479,11 +511,20 @@ component_test_tls13_only_psk_ephemeral_ffdh () {
     scripts/config.py unset MBEDTLS_X509_CRT_PARSE_C
     scripts/config.py unset MBEDTLS_X509_RSASSA_PSS_SUPPORT
     scripts/config.py unset MBEDTLS_SSL_SERVER_NAME_INDICATION
-    scripts/config.py unset MBEDTLS_ECDSA_C
-    scripts/config.py unset MBEDTLS_PKCS1_V21
     scripts/config.py unset MBEDTLS_PKCS7_C
     scripts/config.py set   MBEDTLS_SSL_EARLY_DATA
+
+    scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
+    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_ECDH
+    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_ECDSA
+    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_DETERMINISTIC_ECDSA
+    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_RSA_OAEP
+    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_RSA_PSS
+    # Note: The three unsets below are to be removed for Mbed TLS 4.0
     scripts/config.py unset MBEDTLS_ECDH_C
+    scripts/config.py unset MBEDTLS_ECDSA_C
+    scripts/config.py unset MBEDTLS_PKCS1_V21
+
     make CFLAGS="'-DMBEDTLS_USER_CONFIG_FILE=\"../tests/configs/tls13-only.h\"'"
 
     msg "test_suite_ssl: TLS 1.3 only, only PSK ephemeral ffdh key exchange mode"
@@ -499,10 +540,18 @@ component_test_tls13_only_psk_all () {
     scripts/config.py unset MBEDTLS_X509_CRT_PARSE_C
     scripts/config.py unset MBEDTLS_X509_RSASSA_PSS_SUPPORT
     scripts/config.py unset MBEDTLS_SSL_SERVER_NAME_INDICATION
-    scripts/config.py unset MBEDTLS_ECDSA_C
-    scripts/config.py unset MBEDTLS_PKCS1_V21
     scripts/config.py unset MBEDTLS_PKCS7_C
     scripts/config.py set   MBEDTLS_SSL_EARLY_DATA
+
+    scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
+    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_ECDSA
+    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_DETERMINISTIC_ECDSA
+    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_RSA_OAEP
+    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_RSA_PSS
+    # Note: The three unsets below are to be removed for Mbed TLS 4.0
+    scripts/config.py unset MBEDTLS_ECDSA_C
+    scripts/config.py unset MBEDTLS_PKCS1_V21
+
     make CFLAGS="'-DMBEDTLS_USER_CONFIG_FILE=\"../tests/configs/tls13-only.h\"'"
 
     msg "test_suite_ssl: TLS 1.3 only, PSK and PSK ephemeral key exchange modes"

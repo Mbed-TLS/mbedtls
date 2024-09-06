@@ -543,7 +543,8 @@ adapt_cmd_for_psk () {
     case "$2" in
         *openssl*s_server*) s='-psk 73776f726466697368 -nocert';;
         *openssl*) s='-psk 73776f726466697368';;
-        *gnutls-*) s='--pskusername=Client_identity --pskkey=73776f726466697368';;
+        *gnutls-cli*) s='--pskusername=Client_identity --pskkey=73776f726466697368';;
+        *gnutls-serv*) s='--pskpasswd=../framework/data_files/simplepass.psk';;
         *) s='psk=73776f726466697368';;
     esac
     eval $1='"$2 $s"'

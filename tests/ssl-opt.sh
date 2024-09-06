@@ -604,14 +604,20 @@ maybe_adapt_for_psk() {
     adapt_cmd_for_psk SRV_CMD "$SRV_CMD"
 }
 
-case " $CONFIGS_ENABLED " in
-    *\ MBEDTLS_KEY_EXCHANGE_[^P]*) PSK_ONLY="NO";;
-    *\ MBEDTLS_KEY_EXCHANGE_P[^S]*) PSK_ONLY="NO";;
-    *\ MBEDTLS_KEY_EXCHANGE_PS[^K]*) PSK_ONLY="NO";;
-    *\ MBEDTLS_KEY_EXCHANGE_PSK[^_]*) PSK_ONLY="NO";;
-    *\ MBEDTLS_KEY_EXCHANGE_PSK_ENABLED\ *) PSK_ONLY="YES";;
-    *) PSK_ONLY="NO";;
-esac
+# PSK_PRESENT="YES" if at least one protocol versions supports pure-PSK.
+PSK_PRESENT="NO"
+# PSK_ONLY="YES" if no key exchange is enabled except pure-PSK.
+PSK_ONLY=""
+for c in $CONFIGS_ENABLED; do
+    case $c in
+        MBEDTLS_KEY_EXCHANGE_PSK_ENABLED) PSK_PRESENT="YES";;
+        MBEDTLS_KEY_EXCHANGE_*_ENABLED) PSK_ONLY="NO";;
+        MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED) PSK_PRESENT="YES";;
+        MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_*_ENABLED) PSK_ONLY="NO";;
+    esac
+done
+: ${PSK_ONLY:=$PSK_PRESENT}
+unset c
 
 HAS_ALG_MD5="NO"
 HAS_ALG_SHA_1="NO"

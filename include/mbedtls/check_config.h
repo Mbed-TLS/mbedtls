@@ -171,10 +171,10 @@
 #endif
 
 #if defined(MBEDTLS_PK_C) && defined(MBEDTLS_USE_PSA_CRYPTO)
-#if defined(MBEDTLS_PK_CAN_ECDSA_SIGN) && !defined(MBEDTLS_ASN1_WRITE_C)
+#if defined(PSA_HAVE_ALG_ECDSA_SIGN) && !defined(MBEDTLS_ASN1_WRITE_C)
 #error "MBEDTLS_PK_C with MBEDTLS_USE_PSA_CRYPTO needs MBEDTLS_ASN1_WRITE_C for ECDSA signature"
 #endif
-#if defined(MBEDTLS_PK_CAN_ECDSA_VERIFY) && !defined(MBEDTLS_ASN1_PARSE_C)
+#if defined(PSA_HAVE_ALG_ECDSA_VERIFY) && !defined(MBEDTLS_ASN1_PARSE_C)
 #error "MBEDTLS_PK_C with MBEDTLS_USE_PSA_CRYPTO needs MBEDTLS_ASN1_PARSE_C for ECDSA verification"
 #endif
 #endif /* MBEDTLS_PK_C && MBEDTLS_USE_PSA_CRYPTO */
@@ -271,7 +271,7 @@
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED) &&                 \
     ( !defined(MBEDTLS_CAN_ECDH) ||                                       \
-      !defined(MBEDTLS_PK_CAN_ECDSA_SIGN) ||                                \
+      !defined(PSA_HAVE_ALG_ECDSA_SIGN) ||                                \
       !defined(MBEDTLS_X509_CRT_PARSE_C) )
 #error "MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED defined, but not all prerequisites"
 #endif
@@ -305,7 +305,7 @@
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED) &&                \
     ( !defined(MBEDTLS_CAN_ECDH) ||                                       \
-      !defined(MBEDTLS_PK_CAN_ECDSA_SIGN) ||                                \
+      !defined(PSA_HAVE_ALG_ECDSA_SIGN) ||                                \
       !defined(MBEDTLS_X509_CRT_PARSE_C) )
 #error "MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED defined, but not all prerequisites"
 #endif
@@ -765,7 +765,7 @@
 #if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED)
 #if !( (defined(PSA_WANT_ALG_ECDH) || defined(PSA_WANT_ALG_FFDH)) && \
        defined(MBEDTLS_X509_CRT_PARSE_C) && \
-       ( defined(MBEDTLS_PK_CAN_ECDSA_SIGN) || defined(MBEDTLS_PKCS1_V21) ) )
+       ( defined(PSA_HAVE_ALG_ECDSA_SIGN) || defined(MBEDTLS_PKCS1_V21) ) )
 #error "MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED defined, but not all prerequisites"
 #endif
 #endif

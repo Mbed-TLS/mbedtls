@@ -326,30 +326,6 @@
 #define MBEDTLS_CAN_ECDH
 #endif
 
-/* PK module can achieve ECDSA functionalities by means of either software
- * implementations (ECDSA_C) or through a PSA driver. The following defines
- * are meant to list these capabilities in a general way which abstracts how
- * they are implemented under the hood. */
-#if !defined(MBEDTLS_USE_PSA_CRYPTO)
-#if defined(MBEDTLS_ECDSA_C)
-#define MBEDTLS_PK_CAN_ECDSA_SIGN
-#define MBEDTLS_PK_CAN_ECDSA_VERIFY
-#endif /* MBEDTLS_ECDSA_C */
-#else /* MBEDTLS_USE_PSA_CRYPTO */
-#if defined(PSA_WANT_ALG_ECDSA)
-#if defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_BASIC)
-#define MBEDTLS_PK_CAN_ECDSA_SIGN
-#endif /* PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_BASIC */
-#if defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
-#define MBEDTLS_PK_CAN_ECDSA_VERIFY
-#endif /* PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY */
-#endif /* PSA_WANT_ALG_ECDSA */
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
-
-#if defined(MBEDTLS_PK_CAN_ECDSA_VERIFY) || defined(MBEDTLS_PK_CAN_ECDSA_SIGN)
-#define MBEDTLS_PK_CAN_ECDSA_SOME
-#endif
-
 /* If MBEDTLS_PSA_CRYPTO_C is defined, make sure MBEDTLS_PSA_CRYPTO_CLIENT
  * is defined as well to include all PSA code.
  */

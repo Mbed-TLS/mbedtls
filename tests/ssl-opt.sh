@@ -614,6 +614,10 @@ for c in $CONFIGS_ENABLED; do
         MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_*_ENABLED) PSK_ONLY="NO";;
     esac
 done
+# At this stage, $PSK_ONLY is empty if we haven't detected a non-PSK
+# key exchange, i.e. if we're in a PSK-only build or a build with no
+# key exchanges at all. We avoid triggering PSK-only adaptation code in
+# the edge case of no key exchangs.
 : ${PSK_ONLY:=$PSK_PRESENT}
 unset c
 
@@ -817,8 +821,8 @@ requires_openssl_tls1_3() {
     fi
 }
 
-# OpenSSL 3 servers forbid client renegotiation by default.
-# Older versions always alow it.
+# OpenSSL servers forbid client renegotiation by default since OpenSSL 3.0.
+# Older versions always allow it and have no command-line option.
 OPENSSL_S_SERVER_CLIENT_RENEGOTIATION=
 case $($OPENSSL s_server -help 2>&1) in
     *-client_renegotiation*)

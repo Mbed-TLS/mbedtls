@@ -10,56 +10,59 @@ The cryptography APIs exposed by Mbed TLS are just the TF-PSA-Crypto ones.
 Mbed TLS relies solely on the TF-PSA-Crypto build system to build its
 cryptography library and its tests.
 
-The TF-PSA-Crypto configuration file tf_psa_crypto_config.h configures
+The TF-PSA-Crypto configuration file `tf_psa_crypto_config.h` configures
 entirely the cryptography interface exposed by Mbed TLS through TF-PSA-Crypto.
-Mbed TLS configuration is splitted in two files: mbedtls_config.h for TLS and
-x509, tf_psa_crypto_config.h for the cryptography.
+Mbed TLS configuration is splitted in two files: `mbedtls_config.h` for TLS and
+x509, `tf_psa_crypto_config.h` for the cryptography.
 
 ## How do we split the configuration file?
 
 We extend the so called PSA cryptographic configuration scheme based on
-mbedtls_config.h and crypto_config.h. The configuration file crypto_config.h is
-extended to become the TF-PSA-Crypto configuration file, mbedtls_config.h
+`mbedtls_config.h` and `crypto_config.h`. The configuration file `crypto_config.h`
+is extended to become the TF-PSA-Crypto configuration file, `mbedtls_config.h`
 becomes the configuration file for the TLS and x509 libraries. All the options
 to select the cryptographic mechanisms and to configure their implementation
-are moved from mbedtls_config.h to (tf_psa_)crypto_config.h.
+are moved from `mbedtls_config.h` to `(tf_psa_)crypto_config.h`.
 
 The configuration options that are relevant to both Mbed TLS and TF-PSA-Crypto
-like platform or system ones are moved to (tf_psa_)crypto_config.h. That way
+like platform or system ones are moved to `(tf_psa_)crypto_config.h`. That way
 they are available in both repositories (as Mbed TLS includes
-tf_psa_crypto_config.h) without duplication. Later, we may duplicate or create
-aliases for some of them to align with the naming conventions of the
+`tf_psa_crypto_config.h`) without duplication. Later, we may duplicate or
+create aliases for some of them to align with the naming conventions of the
 repositories.
 
-The layout of options into sections in mbedtls_config.h does not suit
-TF-PSA-Crypto well thus the configuration options tf_psa_crypto_config.h are
+The layout of options into sections in `mbedtls_config.h` does not suit
+TF-PSA-Crypto well thus the configuration options `tf_psa_crypto_config.h` are
 organized into different sections (see below).
 
-## Configuration files and config.py
+## Configuration files and `config.py`
 
-Each repository contains a config.py script to create and modify configurations.
+Each repository contains a `config.py` script to create and modify
+configurations.
 
-In Mbed TLS, config.py handles both mbedtls_config.h and
-tf_psa_crypto_config.h. It can set or unset TLS, x509 and cryptographic
+In Mbed TLS, `config.py` handles both `mbedtls_config.h` and
+`tf_psa_crypto_config.h`. It can set or unset TLS, x509 and cryptographic
 configuration options without having to specify the configuration file the
 options belong to. Commands like full and baremetal affect both configuration
 files.
 
-In TF-PSA-Crypto, config.py addresses only tf_psa_crypto_config.h.
+In TF-PSA-Crypto, `config.py` addresses only `tf_psa_crypto_config.h`.
 
-## Sections in tf_psa_crypto_config.h
+## Sections in `tf_psa_crypto_config.h`
 
-The tf_psa_crypto_config.h configuration file is organized into eight sections.
+The `tf_psa_crypto_config.h` configuration file is organized into eight
+sections.
 
-The pre-split mbedtls_config.h configuration files contains configuration
+The pre-split `mbedtls_config.h` configuration file contains configuration
 options that apply to the whole code base (TLS, x509, crypto and tests) mostly
-related to the platform abstraction layer and testing. In tf_psa_crypto_config.h
-these configurations options are organized into two sections, one for the
-platform abstraction layer options and one for the others, respectively named
-"Platform abstraction layer" and "General and test configuration options".
+related to the platform abstraction layer and testing. In
+`tf_psa_crypto_config.h` these configurations options are organized into two
+sections, one for the platform abstraction layer options and one for the others,
+respectively named "Platform abstraction layer" and
+"General and test configuration options".
 
 Then, the "Cryptographic mechanism selection (PSA API)" section is the
-equivalent of the pre-split crypto_config.h configuration file containing the
+equivalent of the pre-split `crypto_config.h` configuration file containing the
 PSA_WANT_ prefixed macros.
 
 The following section named "Cryptographic mechanism selection (extended API)"
@@ -74,14 +77,14 @@ cryptography projects.
 Compared to Mbed TLS, the cryptography code in TF-PSA-Crypto is not located
 in a single directory but split between the PSA core (core directory) and the
 PSA builtin drivers (drivers/builtin/src directory). This is reflected in
-tf_psa_crypto_config.h with two sections respectively named "PSA core" and
+`tf_psa_crypto_config.h` with two sections respectively named "PSA core" and
 "Builtin drivers".
 
 Finally, the last section named "Legacy cryptography" contains the configuration
 options that will eventually be removed as duplicates of PSA_WANT_\* and
 MBEDTLS_PSA_ACCEL_\* configuration options.
 
-By contrast to mbedtls_config.h, tf_psa_crypto_config.h does not contain a
+By contrast to `mbedtls_config.h`, `tf_psa_crypto_config.h` does not contain a
 section like the "Module configuration options" one containing non boolean
 configuration options. The configuration options that are not boolean are
 located in the same section as the boolean option they are associated to.
@@ -90,7 +93,7 @@ Open question: do we group them into a subsection?
 
 ## Repartition of the configuration options
 
-### In tf_psa_crypto_config.h, we have:
+### In `tf_psa_crypto_config.h`, we have:
 * SECTION "Platform abstraction layer"
 #define MBEDTLS_HAVE_TIME
 #define MBEDTLS_HAVE_TIME_DATE
@@ -162,7 +165,7 @@ Open question: do we group them into a subsection?
 //#define MBEDTLS_IGNORE_RETURN( result ) ((void) !(result))
 
 * SECTION "Cryptographic mechanism selection (PSA API)"
-PSA_WANT_\* macros as in current crypto_config.h.
+PSA_WANT_\* macros as in current `crypto_config.h`.
 
 
 * SECTION "Cryptographic mechanism selection (extended API)"
@@ -321,7 +324,7 @@ PSA_WANT_\* macros as in current crypto_config.h.
 #define MBEDTLS_SHA3_C
 
 
-### In mbedtls_config.h, we have:
+### In `mbedtls_config.h`, we have:
 * SECTION "Platform abstraction layer"
 #define MBEDTLS_NET_C
 

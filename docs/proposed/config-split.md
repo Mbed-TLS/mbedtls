@@ -118,8 +118,6 @@ Open question: do we group them into a subsection?
 //#define MBEDTLS_THREADING_PTHREAD
 #define MBEDTLS_PLATFORM_C
 //#define MBEDTLS_THREADING_C
-#define MBEDTLS_TIMING_C
-//#define MBEDTLS_TIMING_ALT
 //#define MBEDTLS_PLATFORM_STD_MEM_HDR   <stdlib.h>
 //#define MBEDTLS_PLATFORM_STD_CALLOC        calloc
 //#define MBEDTLS_PLATFORM_STD_FREE            free
@@ -169,10 +167,6 @@ PSA_WANT_\* macros as in current `crypto_config.h`.
 
 
 * SECTION "Cryptographic mechanism selection (extended API)"
-#define MBEDTLS_CIPHER_C
-//#define MBEDTLS_CTR_DRBG_USE_128_BIT_KEY
-#define MBEDTLS_CTR_DRBG_C
-#define MBEDTLS_HMAC_DRBG_C
 #define MBEDTLS_LMS_C
 //#define MBEDTLS_LMS_PRIVATE
 #define MBEDTLS_MD_C
@@ -267,6 +261,7 @@ PSA_WANT_\* macros as in current `crypto_config.h`.
 
 
 * SECTION "Legacy cryptography"
+#define MBEDTLS_CIPHER_C
 #define MBEDTLS_CIPHER_MODE_CBC
 #define MBEDTLS_CIPHER_MODE_CFB
 #define MBEDTLS_CIPHER_MODE_CTR
@@ -276,6 +271,8 @@ PSA_WANT_\* macros as in current `crypto_config.h`.
 #define MBEDTLS_CIPHER_PADDING_ONE_AND_ZEROS
 #define MBEDTLS_CIPHER_PADDING_ZEROS_AND_LEN
 #define MBEDTLS_CIPHER_PADDING_ZEROS
+//#define MBEDTLS_CTR_DRBG_USE_128_BIT_KEY
+#define MBEDTLS_CTR_DRBG_C
 #define MBEDTLS_ECP_DP_SECP192R1_ENABLED
 #define MBEDTLS_ECP_DP_SECP224R1_ENABLED
 #define MBEDTLS_ECP_DP_SECP256R1_ENABLED
@@ -291,6 +288,7 @@ PSA_WANT_\* macros as in current `crypto_config.h`.
 #define MBEDTLS_ECP_DP_CURVE448_ENABLED
 #define MBEDTLS_ECDSA_DETERMINISTIC
 #define MBEDTLS_GENPRIME
+#define MBEDTLS_HMAC_DRBG_C
 #define MBEDTLS_PKCS1_V15
 #define MBEDTLS_PKCS1_V21
 //#define MBEDTLS_PSA_CRYPTO_CONFIG
@@ -327,6 +325,8 @@ PSA_WANT_\* macros as in current `crypto_config.h`.
 ### In `mbedtls_config.h`, we have:
 * SECTION "Platform abstraction layer"
 #define MBEDTLS_NET_C
+#define MBEDTLS_TIMING_C
+//#define MBEDTLS_TIMING_ALT
 
 
 * SECTION "Mbed TLS feature support"

@@ -18,6 +18,7 @@ import sys
 
 from abc import ABCMeta
 
+
 class Setting:
     """Representation of one Mbed TLS mbedtls_config.h pr PSA crypto_config.h setting.
 
@@ -37,6 +38,7 @@ class Setting:
         self.value = value
         self.section = section
         self.configfile = configfile
+
 
 class Config:
     """Representation of the Mbed TLS and PSA configuration.
@@ -196,6 +198,7 @@ class Config:
         """Get the name of the config file."""
 
         return self._get_configfile(name).filename
+
 
 def is_full_section(section):
     """Is this section affected by "config.py full" and friends?
@@ -445,6 +448,7 @@ def no_platform_adapter(adapter):
         return adapter(name, active, section)
     return continuation
 
+
 class ConfigFile(metaclass=ABCMeta):
     """Representation of a configuration file."""
 
@@ -574,6 +578,7 @@ class ConfigFile(metaclass=ABCMeta):
         with open(filename, 'w', encoding='utf-8') as output:
             self.write_to_stream(settings, output)
 
+
 class MbedTLSConfigFile(ConfigFile):
     """Representation of an MbedTLS configuration file."""
 
@@ -588,6 +593,7 @@ class MbedTLSConfigFile(ConfigFile):
     def __init__(self, filename=None):
         super().__init__(self.default_path, 'Mbed TLS', filename)
         self.current_section = 'header'
+
 
 class CryptoConfigFile(ConfigFile):
     """Representation of a Crypto configuration file."""
@@ -609,6 +615,7 @@ class CryptoConfigFile(ConfigFile):
 
     def __init__(self, filename=None):
         super().__init__(self.default_path, 'Crypto', filename)
+
 
 class MbedTLSConfig(Config):
     """Representation of the Mbed TLS configuration.
@@ -634,6 +641,7 @@ class MbedTLSConfig(Config):
             self._get_configfile().templates.append((name, '', '#define ' + name + ' '))
 
         super().set(name, value)
+
 
 class CryptoConfig(Config):
     """Representation of the PSA crypto configuration.
@@ -664,6 +672,7 @@ class CryptoConfig(Config):
             self._get_configfile().templates.append((name, '', '#define ' + name + ' '))
 
         super().set(name, value)
+
 
 class CombinedConfig(Config):
     """Representation of MbedTLS and PSA crypto configuration
@@ -768,49 +777,42 @@ class ConfigTool(metaclass=ABCMeta):
     def _common_parser_options(self, file_type):
         """Common parser options for config manipulation tool."""
 
-        self.parser.add_argument('--file', '-f',
-                                 help="""File to read (and modify if requested).
-                                 Default: {}.
-                                 """.format(file_type.default_path))
-        self.parser.add_argument('--force', '-o',
-                                 action='store_true',
-                                 help="""For the set command, if SYMBOL is not
-                                 present, add a definition for it.""")
-        self.parser.add_argument('--write', '-w', metavar='FILE',
-                                 help="""File to write to instead of the input file.""")
+        self.parser.add_argument(
+            '--file', '-f',
+            help="""File to read (and modify if requested). Default: {}.
+                 """.format(file_type.default_path))
+        self.parser.add_argument(
+            '--force', '-o',
+            action='store_true',
+            help="""For the set command, if SYMBOL is not present, add a definition for it.""")
+        self.parser.add_argument(
+            '--write', '-w',
+            metavar='FILE',
+            help="""File to write to instead of the input file.""")
 
-        parser_get = self.subparsers.add_parser('get',
-                                                help="""Find the value of SYMBOL
-                                                and print it. Exit with
-                                                status 0 if a #define for SYMBOL is
-                                                found, 1 otherwise.
-                                                """)
+        parser_get = self.subparsers.add_parser(
+            'get',
+            help="""Find the value of SYMBOL and print it. Exit with
+                 status 0 if a #define for SYMBOL is found, 1 otherwise.""")
         parser_get.add_argument('symbol', metavar='SYMBOL')
-        parser_set = self.subparsers.add_parser('set',
-                                                help="""Set SYMBOL to VALUE.
-                                                If VALUE is omitted, just uncomment
-                                                the #define for SYMBOL.
-                                                Error out of a line defining
-                                                SYMBOL (commented or not) is not
-                                                found, unless --force is passed.
-                                                """)
+        parser_set = self.subparsers.add_parser(
+            'set',
+            help="""Set SYMBOL to VALUE. If VALUE is omitted, just uncomment
+                 the #define for SYMBOL. Error out of a line defining
+                 SYMBOL (commented or not) is not found, unless --force is passed. """)
         parser_set.add_argument('symbol', metavar='SYMBOL')
-        parser_set.add_argument('value', metavar='VALUE', nargs='?',
-                                default='')
-        parser_set_all = self.subparsers.add_parser('set-all',
-                                                    help="""Uncomment all #define
-                                                    whose name contains a match for
-                                                    REGEX.""")
+        parser_set.add_argument('value', metavar='VALUE', nargs='?', default='')
+        parser_set_all = self.subparsers.add_parser(
+            'set-all',
+            help="""Uncomment all #define whose name contains a match for REGEX.""")
         parser_set_all.add_argument('regexs', metavar='REGEX', nargs='*')
-        parser_unset = self.subparsers.add_parser('unset',
-                                                  help="""Comment out the #define
-                                                  for SYMBOL. Do nothing if none
-                                                  is present.""")
+        parser_unset = self.subparsers.add_parser(
+            'unset',
+            help="""Comment out the #define for SYMBOL. Do nothing if none is present.""")
         parser_unset.add_argument('symbol', metavar='SYMBOL')
-        parser_unset_all = self.subparsers.add_parser('unset-all',
-                                                      help="""Comment out all #define
-                                                      whose name contains a match for
-                                                      REGEX.""")
+        parser_unset_all = self.subparsers.add_parser(
+            'unset-all',
+            help="""Comment out all #define whose name contains a match for REGEX.""")
         parser_unset_all.add_argument('regexs', metavar='REGEX', nargs='*')
 
     def custom_parser_options(self):
@@ -861,41 +863,49 @@ class MbedTLSConfigTool(ConfigTool):
     def custom_parser_options(self):
         """Adds MbedTLS specific options for the parser."""
 
-        self.parser.add_argument('--cryptofile', '-c',
-                                 help="""Crypto file to read (and modify if requested).
-                                 Default: {}.
-                                 """.format(CryptoConfigFile.default_path))
+        self.parser.add_argument(
+            '--cryptofile', '-c',
+            help="""Crypto file to read (and modify if requested). Default: {}."""
+            .format(CryptoConfigFile.default_path))
 
-        add_adapter('baremetal', baremetal_adapter,
-                    """Like full, but exclude features that require platform
-                    features such as file input-output.""")
-        add_adapter('baremetal_size', baremetal_size_adapter,
-                    """Like baremetal, but exclude debugging features.
-                    Useful for code size measurements.""")
-        add_adapter('full', full_adapter,
-                    """Uncomment most features.
-                    Exclude alternative implementations and platform support
-                    options, as well as some options that are awkward to test.
-                    """)
-        add_adapter('full_no_deprecated', no_deprecated_adapter(full_adapter),
-                    """Uncomment most non-deprecated features.
-                    Like "full", but without deprecated features.
-                    """)
-        add_adapter('full_no_platform', no_platform_adapter(full_adapter),
-                    """Uncomment most non-platform features.
-                    Like "full", but without platform features.
-                    """)
-        add_adapter('realfull', realfull_adapter,
-                    """Uncomment all boolean #defines.
-                    Suitable for generating documentation, but not for building.""")
-        add_adapter('crypto', crypto_adapter(None),
-                    """Only include crypto features. Exclude X.509 and TLS.""")
-        add_adapter('crypto_baremetal', crypto_adapter(baremetal_adapter),
-                    """Like baremetal, but with only crypto features,
-                    excluding X.509 and TLS.""")
-        add_adapter('crypto_full', crypto_adapter(full_adapter),
-                    """Like full, but with only crypto features,
-                    excluding X.509 and TLS.""")
+        self.add_adapter(
+            'baremetal', baremetal_adapter,
+            """Like full, but exclude features that require platform features
+            such as file input-output.
+            """)
+        self.add_adapter(
+            'baremetal_size', baremetal_size_adapter,
+            """Like baremetal, but exclude debugging features. Useful for code size measurements.
+            """)
+        self.add_adapter(
+            'full', full_adapter,
+            """Uncomment most features.
+            Exclude alternative implementations and platform support options, as well as
+            some options that are awkward to test.
+            """)
+        self.add_adapter(
+            'full_no_deprecated', no_deprecated_adapter(full_adapter),
+            """Uncomment most non-deprecated features.
+            Like "full", but without deprecated features.
+            """)
+        self.add_adapter(
+            'full_no_platform', no_platform_adapter(full_adapter),
+            """Uncomment most non-platform features. Like "full", but without platform features.
+            """)
+        self.add_adapter(
+            'realfull', realfull_adapter,
+            """Uncomment all boolean #defines.
+            Suitable for generating documentation, but not for building.
+            """)
+        self.add_adapter(
+            'crypto', crypto_adapter(None),
+            """Only include crypto features. Exclude X.509 and TLS.""")
+        self.add_adapter(
+            'crypto_baremetal', crypto_adapter(baremetal_adapter),
+            """Like baremetal, but with only crypto features, excluding X.509 and TLS.""")
+        self.add_adapter(
+            'crypto_full', crypto_adapter(full_adapter),
+            """Like full, but with only crypto features, excluding X.509 and TLS.""")
 
 
 if __name__ == '__main__':

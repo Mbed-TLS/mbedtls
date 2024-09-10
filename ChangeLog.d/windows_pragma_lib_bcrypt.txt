@@ -1,2 +1,2 @@
 Changes
-   * Add pragma bcrypt.lib to entropy_poll.c for msvc builds
+   * When building with MSVC, it is no longer necessary to link with bcrypt.lib explicitly.

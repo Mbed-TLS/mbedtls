@@ -3865,7 +3865,7 @@ requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Session resume using tickets: openssl server" \
             "$O_SRV -tls1_2" \
-            "$P_CLI debug_level=3 tickets=1 reconnect=1" \
+            "$P_CLI debug_level=3 tickets=1 new_session_tickets=1 reconnect=1" \
             0 \
             -c "client hello, adding session ticket extension" \
             -c "found session_ticket extension" \
@@ -6857,7 +6857,7 @@ requires_key_exchange_with_cert_in_tls12_or_tls13_enabled
 requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Non-blocking I/O: ticket" \
             "$P_SRV nbio=2 tickets=1 auth_mode=none" \
-            "$P_CLI nbio=2 tickets=1" \
+            "$P_CLI nbio=2 tickets=1 new_session_tickets=1" \
             0 \
             -S "mbedtls_ssl_handshake returned" \
             -C "mbedtls_ssl_handshake returned" \
@@ -6867,7 +6867,7 @@ requires_key_exchange_with_cert_in_tls12_or_tls13_enabled
 requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Non-blocking I/O: ticket + client auth" \
             "$P_SRV nbio=2 tickets=1 auth_mode=required" \
-            "$P_CLI nbio=2 tickets=1" \
+            "$P_CLI nbio=2 tickets=1 new_session_tickets=1" \
             0 \
             -S "mbedtls_ssl_handshake returned" \
             -C "mbedtls_ssl_handshake returned" \
@@ -6889,7 +6889,7 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABL
 requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Non-blocking I/O: TLS 1.3 + ticket + client auth + resume" \
             "$P_SRV nbio=2 tickets=1 auth_mode=required" \
-            "$P_CLI nbio=2 tickets=1 reconnect=1" \
+            "$P_CLI nbio=2 tickets=1 new_session_tickets=1 reconnect=1" \
             0 \
             -S "mbedtls_ssl_handshake returned" \
             -C "mbedtls_ssl_handshake returned" \
@@ -6911,7 +6911,7 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABL
 requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Non-blocking I/O: TLS 1.3 + ticket + resume" \
             "$P_SRV nbio=2 tickets=1 auth_mode=none" \
-            "$P_CLI nbio=2 tickets=1 reconnect=1" \
+            "$P_CLI nbio=2 tickets=1 new_session_tickets=1 reconnect=1" \
             0 \
             -S "mbedtls_ssl_handshake returned" \
             -C "mbedtls_ssl_handshake returned" \
@@ -6950,7 +6950,7 @@ requires_key_exchange_with_cert_in_tls12_or_tls13_enabled
 requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Event-driven I/O: ticket" \
             "$P_SRV event=1 tickets=1 auth_mode=none" \
-            "$P_CLI event=1 tickets=1" \
+            "$P_CLI event=1 tickets=1 new_session_tickets=1" \
             0 \
             -S "mbedtls_ssl_handshake returned" \
             -C "mbedtls_ssl_handshake returned" \
@@ -6960,7 +6960,7 @@ requires_key_exchange_with_cert_in_tls12_or_tls13_enabled
 requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Event-driven I/O: ticket + client auth" \
             "$P_SRV event=1 tickets=1 auth_mode=required" \
-            "$P_CLI event=1 tickets=1" \
+            "$P_CLI event=1 tickets=1 new_session_tickets=1" \
             0 \
             -S "mbedtls_ssl_handshake returned" \
             -C "mbedtls_ssl_handshake returned" \
@@ -6982,7 +6982,7 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABL
 requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Event-driven I/O: TLS 1.3 + ticket + client auth + resume" \
             "$P_SRV event=1 tickets=1 auth_mode=required" \
-            "$P_CLI event=1 tickets=1 reconnect=1" \
+            "$P_CLI event=1 tickets=1 new_session_tickets=1 reconnect=1" \
             0 \
             -S "mbedtls_ssl_handshake returned" \
             -C "mbedtls_ssl_handshake returned" \
@@ -7004,7 +7004,7 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABL
 requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Event-driven I/O: TLS 1.3 + ticket + resume" \
             "$P_SRV event=1 tickets=1 auth_mode=none" \
-            "$P_CLI event=1 tickets=1 reconnect=1" \
+            "$P_CLI event=1 tickets=1 new_session_tickets=1 reconnect=1" \
             0 \
             -S "mbedtls_ssl_handshake returned" \
             -C "mbedtls_ssl_handshake returned" \

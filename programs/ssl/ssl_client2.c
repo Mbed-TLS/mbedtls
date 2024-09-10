@@ -82,7 +82,7 @@ int main(void)
 #define DFL_CID_VALUE_RENEGO    NULL
 #define DFL_RECONNECT_HARD      0
 #define DFL_TICKETS             MBEDTLS_SSL_SESSION_TICKETS_ENABLED
-#define DFL_NEW_SESSION_TICKETS MBEDTLS_SSL_TLS1_3_SIGNAL_NEW_SESSION_TICKETS_ENABLED
+#define DFL_NEW_SESSION_TICKETS -1
 #define DFL_ALPN_STRING         NULL
 #define DFL_GROUPS              NULL
 #define DFL_SIG_ALGS            NULL
@@ -200,7 +200,7 @@ int main(void)
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
 #define USAGE_TICKETS                                       \
     "    tickets=%%d              default: 1 (enabled)\n"    \
-    "    new_session_tickets=%%d  default: 1 (enabled)\n"
+    "    new_session_tickets=%%d  default: (library default: disabled)\n"
 #else
 #define USAGE_TICKETS ""
 #endif /* MBEDTLS_SSL_SESSION_TICKETS */
@@ -1946,8 +1946,10 @@ usage:
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
     mbedtls_ssl_conf_session_tickets(&conf, opt.tickets);
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
-    mbedtls_ssl_conf_tls13_enable_signal_new_session_tickets(
-        &conf, opt.new_session_tickets);
+    if (opt.new_session_tickets != DFL_NEW_SESSION_TICKETS) {
+        mbedtls_ssl_conf_tls13_enable_signal_new_session_tickets(
+            &conf, opt.new_session_tickets);
+    }
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
 #endif /* MBEDTLS_SSL_SESSION_TICKETS */
 

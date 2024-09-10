@@ -14,8 +14,8 @@ Limitations relevant for G1 (performing crypto operations)
 Executive summary
 -----------------
 
-- Restartable/interruptible ECC operations: in progress (mid-2024).
-- Arbitrary parameters for FFDH: will be dropped in 4.0.
+- Restartable/interruptible ECC operations: support in PSA will be added in 4.0.
+- Arbitrary parameters for FFDH: use in TLS will be dropped in 4.0.
 - RSA-PSS parameters: already implemented safe though arguably non-compliant
   solution in Mbed TLS 3.4, no complaints so far.
 

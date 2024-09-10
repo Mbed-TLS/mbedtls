@@ -326,12 +326,13 @@ TLS1_2_KEY_EXCHANGES_WITH_CERT_WO_ECDH="MBEDTLS_KEY_EXCHANGE_RSA_ENABLED \
                                        MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED"
 
 requires_certificate_authentication () {
-    if is_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+    if is_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
     then
+        # TLS 1.3 is negotiated by default, so check whether it supports
+        # certificate-based authentication.
+        requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+    else # Only TLS 1.2 is enabled.
         requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
-    elif ! is_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-    then
-        SKIP_NEXT="YES"
     fi
 }
 

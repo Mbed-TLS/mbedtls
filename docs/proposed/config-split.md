@@ -94,7 +94,8 @@ Open question: do we group them into a subsection?
 ## Repartition of the configuration options
 
 ### In `tf_psa_crypto_config.h`, we have:
-* SECTION "Platform abstraction layer"
+#### SECTION "Platform abstraction layer"
+```
 #define MBEDTLS_FS_IO
 #define MBEDTLS_HAVE_TIME
 #define MBEDTLS_HAVE_TIME_DATE
@@ -148,8 +149,10 @@ Open question: do we group them into a subsection?
 //#define MBEDTLS_PLATFORM_TIME_MACRO            time
 //#define MBEDTLS_PLATFORM_TIME_TYPE_MACRO       time_t
 //#define MBEDTLS_PLATFORM_VSNPRINTF_MACRO    vsnprintf
+```
 
-* SECTION "General and test configuration options"
+#### SECTION "General and test configuration options"
+```
 //#define MBEDTLS_CHECK_RETURN_WARNING
 //#define MBEDTLS_DEPRECATED_REMOVED
 //#define MBEDTLS_DEPRECATED_WARNING
@@ -162,12 +165,14 @@ Open question: do we group them into a subsection?
 
 //#define MBEDTLS_CHECK_RETURN __attribute__((__warn_unused_result__))
 //#define MBEDTLS_IGNORE_RETURN( result ) ((void) !(result))
+```
 
-* SECTION "Cryptographic mechanism selection (PSA API)"
+#### SECTION "Cryptographic mechanism selection (PSA API)"
 PSA_WANT_\* macros as in current `crypto_config.h`.
 
 
-* SECTION "Cryptographic mechanism selection (extended API)"
+#### SECTION "Cryptographic mechanism selection (extended API)"
+```
 #define MBEDTLS_LMS_C
 //#define MBEDTLS_LMS_PRIVATE
 #define MBEDTLS_MD_C
@@ -191,18 +196,22 @@ PSA_WANT_\* macros as in current `crypto_config.h`.
 //#define MBEDTLS_HMAC_DRBG_MAX_SEED_INPUT      384
 //#define MBEDTLS_HMAC_DRBG_RESEED_INTERVAL   10000
 //#define MBEDTLS_PSA_HMAC_DRBG_MD_TYPE MBEDTLS_MD_SHA256
+```
 
 
-* SECTION "Data format support"
+#### SECTION "Data format support"
+```
 #define MBEDTLS_ASN1_PARSE_C
 #define MBEDTLS_ASN1_WRITE_C
 #define MBEDTLS_BASE64_C
 #define MBEDTLS_OID_C
 #define MBEDTLS_PEM_PARSE_C
 #define MBEDTLS_PEM_WRITE_C
+```
 
 
-* SECTION "PSA core"
+#### SECTION "PSA core"
+```
 #define MBEDTLS_ENTROPY_C
 //#define MBEDTLS_ENTROPY_FORCE_SHA256
 //#define MBEDTLS_ENTROPY_HARDWARE_ALT
@@ -226,8 +235,10 @@ PSA_WANT_\* macros as in current `crypto_config.h`.
 //#define MBEDTLS_PSA_CRYPTO_PLATFORM_FILE "psa/crypto_platform_alt.h"
 //#define MBEDTLS_PSA_CRYPTO_STRUCT_FILE "psa/crypto_struct_alt.h"
 //#define MBEDTLS_PSA_KEY_SLOT_COUNT 32
+```
 
-* SECTION "Builtin drivers"
+#### SECTION "Builtin drivers"
+```
 #define MBEDTLS_AESNI_C
 #define MBEDTLS_AESCE_C
 //#define MBEDTLS_AES_ROM_TABLES
@@ -261,9 +272,11 @@ PSA_WANT_\* macros as in current `crypto_config.h`.
 //#define MBEDTLS_MPI_MAX_SIZE            1024
 //#define MBEDTLS_MPI_WINDOW_SIZE            2
 //#define MBEDTLS_RSA_GEN_KEY_MIN_BITS            1024
+```
 
 
-* SECTION "Legacy cryptography"
+#### SECTION "Legacy cryptography"
+```
 #define MBEDTLS_AES_C
 #define MBEDTLS_ARIA_C
 #define MBEDTLS_BIGNUM_C
@@ -323,16 +336,20 @@ PSA_WANT_\* macros as in current `crypto_config.h`.
 #define MBEDTLS_SHA384_C
 #define MBEDTLS_SHA512_C
 #define MBEDTLS_SHA3_C
+```
 
 
 ### In `mbedtls_config.h`, we have:
-* SECTION "Platform abstraction layer"
+#### SECTION "Platform abstraction layer"
+```
 #define MBEDTLS_NET_C
 #define MBEDTLS_TIMING_C
 //#define MBEDTLS_TIMING_ALT
+```
 
 
-* SECTION "Mbed TLS feature support"
+#### SECTION "Mbed TLS feature support"
+```
 //#define MBEDTLS_CIPHER_NULL_CIPHER
 #define MBEDTLS_ERROR_STRERROR_DUMMY
 #define MBEDTLS_KEY_EXCHANGE_PSK_ENABLED
@@ -380,9 +397,11 @@ PSA_WANT_\* macros as in current `crypto_config.h`.
 //#define MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK
 //#define MBEDTLS_X509_REMOVE_INFO
 #define MBEDTLS_X509_RSASSA_PSS_SUPPORT
+```
 
 
-* SECTION "Mbed TLS modules"
+#### SECTION "Mbed TLS modules"
+```
 #define MBEDTLS_DEBUG_C
 #define MBEDTLS_ERROR_C
 #define MBEDTLS_PKCS7_C
@@ -399,14 +418,18 @@ PSA_WANT_\* macros as in current `crypto_config.h`.
 #define MBEDTLS_X509_CSR_PARSE_C
 #define MBEDTLS_X509_CSR_WRITE_C
 #define MBEDTLS_X509_USE_C
+```
 
 
-* SECTION "General configuration options"
+#### SECTION "General configuration options"
+```
 //#define MBEDTLS_CONFIG_FILE "mbedtls/mbedtls_config.h"
 //#define MBEDTLS_USER_CONFIG_FILE "/dev/null"
+```
 
 
-* SECTION "Module configuration options"
+#### SECTION "Module configuration options"
+```
 //#define MBEDTLS_SSL_CACHE_DEFAULT_TIMEOUT       86400
 //#define MBEDTLS_SSL_CACHE_DEFAULT_MAX_ENTRIES      50
 //#define MBEDTLS_SSL_CIPHERSUITES MBEDTLS_TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,MBEDTLS_TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256
@@ -424,3 +447,4 @@ PSA_WANT_\* macros as in current `crypto_config.h`.
 //#define MBEDTLS_PSK_MAX_LEN               32
 //#define MBEDTLS_X509_MAX_INTERMEDIATE_CA   8
 //#define MBEDTLS_X509_MAX_FILE_PATH_LEN     512
+```

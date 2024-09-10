@@ -8085,6 +8085,113 @@ psa_status_t psa_generate_key(const psa_key_attributes_t *attributes,
                                    key);
 }
 
+
+uint32_t psa_generate_key_iop_get_num_ops(
+    psa_generate_key_iop_t *operation)
+{
+#if defined(MBEDTLS_ECP_RESTARTABLE)
+    return psa_driver_wrapper_generate_key_get_num_ops(operation);
+#else
+    (void) operation;
+    return 0;
+#endif
+}
+
+psa_status_t psa_generate_key_iop_setup(
+    psa_generate_key_iop_t *operation,
+    const psa_key_attributes_t *attributes)
+{
+#if defined(MBEDTLS_ECP_RESTARTABLE)
+    psa_status_t status;
+    psa_key_type_t type;
+
+    if (operation->id != 0 || operation->error_occurred) {
+        return PSA_ERROR_BAD_STATE;
+    }
+
+    type = psa_get_key_type(attributes);
+
+    if (!PSA_KEY_TYPE_IS_ECC(type)) {
+        operation->error_occurred = 1;
+        return PSA_ERROR_NOT_SUPPORTED;
+    }
+
+    if (psa_get_key_bits(attributes) == 0) {
+        operation->error_occurred = 1;
+        return PSA_ERROR_INVALID_ARGUMENT;
+    }
+
+
+    if (PSA_KEY_TYPE_IS_PUBLIC_KEY(type)) {
+        operation->error_occurred = 1;
+        return PSA_ERROR_INVALID_ARGUMENT;
+    }
+
+    operation->attributes = attributes;
+
+    status = psa_driver_wrapper_generate_key_setup(operation, attributes);
+    if (status != PSA_SUCCESS) {
+        operation->error_occurred = 1;
+    }
+
+    return status;
+#else
+    (void) operation;
+    (void) attributes;
+    return PSA_ERROR_NOT_SUPPORTED;
+#endif
+}
+
+psa_status_t psa_generate_key_iop_complete(
+    psa_generate_key_iop_t *operation,
+    mbedtls_svc_key_id_t *key)
+{
+#if defined(MBEDTLS_ECP_RESTARTABLE)
+    psa_status_t status;
+    uint8_t key_data[MBEDTLS_ECP_MAX_BYTES] = { 0 };
+    size_t key_len = 0;
+
+    if (operation->id == 0 || operation->error_occurred) {
+        return PSA_ERROR_BAD_STATE;
+    }
+
+    status = psa_driver_wrapper_generate_key_complete(operation, key_data, &key_len);
+    if (status != PSA_SUCCESS) {
+        operation->error_occurred = 1;
+        return status;
+    }
+
+    status = psa_import_key(operation->attributes, key_data, key_len, key);
+    if (status != PSA_SUCCESS) {
+        operation->error_occurred = 1;
+    }
+
+    mbedtls_platform_zeroize(key_data, MBEDTLS_ECP_MAX_BYTES);
+    return status;
+#else
+    (void) operation;
+    (void) key;
+    return PSA_ERROR_NOT_SUPPORTED;
+#endif
+}
+
+psa_status_t psa_generate_key_iop_abort(
+    psa_generate_key_iop_t *operation)
+{
+#if defined(MBEDTLS_ECP_RESTARTABLE)
+    psa_status_t status;
+
+    status = psa_driver_wrapper_generate_key_abort(operation);
+    operation->error_occurred = 0;
+    operation->attributes = NULL;
+    return status;
+#else
+    (void) operation;
+    return PSA_ERROR_NOT_SUPPORTED;
+#endif
+}
+
+
 /****************************************************************/
 /* Module setup */
 /****************************************************************/

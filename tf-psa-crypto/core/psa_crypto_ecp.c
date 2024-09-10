@@ -596,39 +596,83 @@ exit:
 /* Interruptible ECC Key Generation */
 /****************************************************************/
 
-uint32_t psa_generate_key_iop_get_num_ops(
-    psa_generate_key_iop_t *operation)
+uint32_t mbedtls_psa_generate_key_get_num_ops(
+    mbedtls_psa_generate_key_iop_operation_t *operation)
 {
+#if defined(MBEDTLS_ECP_C)
+    return operation->num_ops;
+#else
     (void) operation;
     return 0;
+#endif
 }
 
-psa_status_t psa_generate_key_iop_setup(
-    psa_generate_key_iop_t *operation,
+psa_status_t mbedtls_psa_generate_key_setup(
+    mbedtls_psa_generate_key_iop_operation_t *operation,
     const psa_key_attributes_t *attributes)
 {
+#if defined(MBEDTLS_ECP_C)
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
+    psa_ecc_family_t curve = PSA_KEY_TYPE_ECC_GET_FAMILY(
+        psa_get_key_type(attributes));
+    mbedtls_ecp_group_id grp_id =
+        mbedtls_ecc_group_from_psa(curve, psa_get_key_bits(attributes));
+    if (grp_id == MBEDTLS_ECP_DP_NONE) {
+        return PSA_ERROR_NOT_SUPPORTED;
+    }
+
+    mbedtls_ecp_keypair_init(&operation->ecp);
+
+    status = mbedtls_ecp_group_load(&operation->ecp.grp, grp_id);
+
+    return mbedtls_to_psa_error(status);
+#else
     (void) operation;
     (void) attributes;
-
     return PSA_ERROR_NOT_SUPPORTED;
+#endif
 }
 
-psa_status_t psa_generate_key_iop_complete(
-    psa_generate_key_iop_t *operation,
-    psa_key_id_t *key)
+psa_status_t mbedtls_psa_generate_key_complete(
+    mbedtls_psa_generate_key_iop_operation_t *operation,
+    uint8_t *key_output,
+    size_t *key_len)
 {
-    (void) operation;
-    (void) key;
+#if defined(MBEDTLS_ECP_C)
+    *key_len = 0;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    status = mbedtls_ecp_gen_privkey(&operation->ecp.grp, &operation->ecp.d,
+                                     mbedtls_psa_get_random, MBEDTLS_PSA_RANDOM_STATE);
 
+    if (status) {
+        return mbedtls_to_psa_error(status);
+    }
+
+    operation->num_ops = 1;
+    *key_len = mbedtls_mpi_size(&operation->ecp.d);
+    memcpy(key_output, operation->ecp.d.p, *key_len);
+
+    return mbedtls_to_psa_error(status);
+#else
+    (void) operation;
+    (void) key_output;
+    (void) key_len;
     return PSA_ERROR_NOT_SUPPORTED;
+#endif
 }
 
-psa_status_t psa_generate_key_iop_abort(
-    psa_generate_key_iop_t *operation)
+psa_status_t mbedtls_psa_generate_key_abort(
+    mbedtls_psa_generate_key_iop_operation_t *operation)
 {
+#if defined(MBEDTLS_ECP_C)
+    mbedtls_ecp_keypair_free(&operation->ecp);
+    operation->num_ops = 0;
+    return PSA_SUCCESS;
+#else
     (void) operation;
-
     return PSA_ERROR_NOT_SUPPORTED;
+#endif
 }
 
 /****************************************************************/

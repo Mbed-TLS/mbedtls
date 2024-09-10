@@ -485,6 +485,8 @@ detect_required_features() {
 
     case " $CMD_LINE " in
          *\ auth_mode=*|*[-_\ =]crt[_=]*)
+            # The test case involves certificates (crt), or a relevant
+            # aspect of it is the (certificate-based) authentication mode.
             requires_certificate_authentication;;
     esac
 
@@ -617,7 +619,7 @@ done
 # At this stage, $PSK_ONLY is empty if we haven't detected a non-PSK
 # key exchange, i.e. if we're in a PSK-only build or a build with no
 # key exchanges at all. We avoid triggering PSK-only adaptation code in
-# the edge case of no key exchangs.
+# the edge case of no key exchanges.
 : ${PSK_ONLY:=$PSK_PRESENT}
 unset c
 

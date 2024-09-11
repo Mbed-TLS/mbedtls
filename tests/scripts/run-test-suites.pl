@@ -85,8 +85,11 @@ sub pad_print_center {
 
 for my $suite_path (@suites)
 {
-    my $suite = $suite_path;
-    $suite =~ s!.*/!!;
+    my ($dir, $suite) = ('.', $suite_path);
+    if ($suite =~ m!(.*)/([^/]*)!) {
+        $dir = $1;
+        $suite = $2;
+    }
     print "$suite ", "." x ( 72 - length($suite) - 2 - 4 ), " ";
     if( $suite =~ /$skip_re/o ) {
         print "SKIP\n";
@@ -94,7 +97,7 @@ for my $suite_path (@suites)
         next;
     }
 
-    my $command = "$prefix$suite_path";
+    my $command = "cd $dir && $prefix$suite";
     if( $verbose ) {
         $command .= ' -v';
     }

@@ -516,6 +516,24 @@ psa_status_t mbedtls_psa_generate_key_abort(
     mbedtls_psa_generate_key_iop_operation_t *operation);
 
 
+uint32_t mbedtls_psa_export_public_key_get_num_ops(
+    mbedtls_psa_export_public_key_iop_operation_t *operation);
+
+psa_status_t mbedtls_psa_export_public_key_setup(
+            mbedtls_psa_export_public_key_iop_operation_t *operation,
+            uint8_t *private_key,
+            size_t private_key_len,
+            const psa_key_attributes_t *private_key_attributes);
+
+psa_status_t mbedtls_psa_export_public_key_complete(
+             mbedtls_psa_export_public_key_iop_operation_t *operation,
+             uint8_t *pub_key,
+             size_t pub_key_size,
+             size_t *pub_key_len);
+
+psa_status_t mbedtls_psa_export_public_key_abort(
+             mbedtls_psa_export_public_key_iop_operation_t *operation);
+
 /** Sign a message with a private key. For hash-and-sign algorithms,
  *  this includes the hashing step.
  *

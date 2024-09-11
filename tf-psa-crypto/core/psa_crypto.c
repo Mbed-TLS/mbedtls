@@ -8192,6 +8192,95 @@ psa_status_t psa_generate_key_iop_abort(
 }
 
 
+uint32_t psa_export_public_key_iop_get_num_ops(psa_export_public_key_iop_t * operation)
+{
+    return psa_driver_wrapper_export_public_key_get_num_ops(operation);
+}
+
+psa_status_t psa_export_public_key_iop_setup(psa_export_public_key_iop_t * operation,
+             mbedtls_svc_key_id_t key)
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    uint8_t *private_key_buffer = NULL;
+    size_t key_size = 0;
+    size_t key_len = 0;
+    psa_key_attributes_t private_key_attributes;
+    psa_key_type_t private_key_type;
+
+    if (operation->id != 0 || operation->error_occurred) {
+        return PSA_ERROR_BAD_STATE;
+    }
+
+    status = psa_get_key_attributes(key, &private_key_attributes);
+    if (status != PSA_SUCCESS) {
+        operation->error_occurred = 1;
+        return status;
+    }
+
+    private_key_type = psa_get_key_type(&private_key_attributes);
+    if (!PSA_KEY_TYPE_IS_ECC_KEY_PAIR(private_key_type)) {
+        operation->error_occurred = 1;
+        return PSA_ERROR_INVALID_ARGUMENT;
+    }
+
+    key_size = PSA_EXPORT_KEY_OUTPUT_SIZE(private_key_type,
+                                          psa_get_key_bits(&private_key_attributes));
+    if (key_size == 0) {
+        operation->error_occurred = 1;
+        return PSA_ERROR_INVALID_ARGUMENT;
+    }
+
+    private_key_buffer = mbedtls_calloc(key_size, 1);
+    if (private_key_buffer == NULL) {
+        operation->error_occurred = 1;
+        return PSA_ERROR_INSUFFICIENT_MEMORY;
+    }
+
+    status = psa_export_key(key, private_key_buffer, key_size, &key_len);
+    if (status != PSA_SUCCESS) {
+        goto exit;
+    }
+
+    status = psa_driver_wrapper_export_public_key_setup(operation, private_key_buffer,
+                                                        key_len, &private_key_attributes);
+
+exit:
+    mbedtls_free(private_key_buffer);
+    if (status != PSA_SUCCESS) {
+        operation->error_occurred = 1;
+    }
+    return status;
+}
+
+psa_status_t psa_export_public_key_iop_complete(psa_export_public_key_iop_t * operation,
+        uint8_t * data,
+        size_t data_size,
+        size_t * data_length)
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
+    if (operation->id == 0 || operation->error_occurred) {
+        return PSA_ERROR_BAD_STATE;
+    }
+
+    status = psa_driver_wrapper_export_public_key_complete(operation, data, data_size,
+                                                           data_length);
+
+    if (status != PSA_SUCCESS && status != PSA_OPERATION_INCOMPLETE) {
+        operation->error_occurred = 1;
+    }
+    return status;
+}
+
+psa_status_t psa_export_public_key_iop_abort(psa_export_public_key_iop_t * operation)
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
+    status = psa_driver_wrapper_export_public_key_abort(operation);
+
+    return status;
+}
+
 /****************************************************************/
 /* Module setup */
 /****************************************************************/

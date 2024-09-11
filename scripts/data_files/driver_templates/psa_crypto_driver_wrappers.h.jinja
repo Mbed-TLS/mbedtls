@@ -936,6 +936,112 @@ static inline psa_status_t psa_driver_wrapper_generate_key_abort(
     return( status );
 }
 
+static inline uint32_t psa_driver_wrapper_export_public_key_get_num_ops(
+    psa_export_public_key_iop_t *operation)
+{
+    switch( operation->id )
+    {
+        /* If uninitialised, return 0, as no work can have been done. */
+        case 0:
+            return 0;
+
+        case PSA_CRYPTO_MBED_TLS_DRIVER_ID:
+            return(mbedtls_psa_export_public_key_get_num_ops(&operation->ctx.mbedtls_ctx));
+
+#if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
+
+#endif /* PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
+    }
+
+    return 0;
+}
+
+
+static inline psa_status_t psa_driver_wrapper_export_public_key_setup(
+    psa_export_public_key_iop_t *operation,
+    uint8_t *key,
+    size_t key_len,
+    const psa_key_attributes_t *attributes)
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_key_location_t location = PSA_KEY_LIFETIME_GET_LOCATION(
+                                                    psa_get_key_lifetime(attributes) );
+
+    switch( location )
+    {
+        case PSA_KEY_LOCATION_LOCAL_STORAGE:
+            /* Key is stored in the slot in export representation, so
+             * cycle through all known transparent accelerators */
+
+#if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
+
+
+#endif /* PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
+
+            /* Fell through, meaning no accelerator supports this operation */
+            operation->id = PSA_CRYPTO_MBED_TLS_DRIVER_ID;
+            status = mbedtls_psa_export_public_key_setup(&operation->ctx.mbedtls_ctx,
+                                                        key,
+                                                        key_len,
+                                                        attributes);
+            break;
+
+            /* Add cases for opaque driver here */
+
+            default:
+                /* Key is declared with a lifetime not known to us */
+                status = PSA_ERROR_INVALID_ARGUMENT;
+                break;
+    }
+    return( status );
+}
+
+static inline psa_status_t psa_driver_wrapper_export_public_key_complete(
+    psa_export_public_key_iop_t *operation,
+    uint8_t *key_output,
+    size_t key_output_size,
+    size_t *key_len)
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    switch( operation->id )
+    {
+        case PSA_CRYPTO_MBED_TLS_DRIVER_ID:
+            status = mbedtls_psa_export_public_key_complete(&operation->ctx.mbedtls_ctx,
+                                                       key_output, key_output_size,
+                                                       key_len);
+            break;
+
+#if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
+
+
+#endif /* PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
+        default:
+            status = PSA_ERROR_INVALID_ARGUMENT;
+            break;
+    }
+    return( status );
+}
+
+static inline psa_status_t psa_driver_wrapper_export_public_key_abort(
+    psa_export_public_key_iop_t *operation)
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    switch( operation->id )
+    {
+        case PSA_CRYPTO_MBED_TLS_DRIVER_ID:
+            status = mbedtls_psa_export_public_key_abort(&operation->ctx.mbedtls_ctx);
+            break;
+
+#if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
+
+
+#endif /* PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
+        default:
+            status = PSA_ERROR_INVALID_ARGUMENT;
+            break;
+    }
+    return( status );
+}
 
 static inline psa_status_t psa_driver_wrapper_import_key(
     const psa_key_attributes_t *attributes,

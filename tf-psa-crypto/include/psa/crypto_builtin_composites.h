@@ -227,4 +227,21 @@ typedef struct {
 #define MBEDTLS_PSA_KEY_AGREEMENT_INTERRUPTIBLE_OPERATION_INIT { 0 }
 #endif
 
+typedef struct {
+#if defined(MBEDTLS_ECP_C) && defined(MBEDTLS_ECP_RESTARTABLE)
+    mbedtls_ecp_keypair *MBEDTLS_PRIVATE(key);
+    mbedtls_ecp_restart_ctx MBEDTLS_PRIVATE(restart_ctx);
+    uint32_t MBEDTLS_PRIVATE(num_ops);
+#else
+    /* Make the struct non-empty if algs not supported. */
+    unsigned MBEDTLS_PRIVATE(dummy);
+#endif
+} mbedtls_psa_export_public_key_iop_operation_t;
+
+#if defined(MBEDTLS_ECP_C) && defined(MBEDTLS_ECP_RESTARTABLE)
+#define MBEDTLS_PSA_EXPORT_PUBLIC_KEY_INTERRUPTIBLE_OPERATION_INIT { 0 , { 0 }, 0 }
+#else
+#define MBEDTLS_PSA_EXPORT_PUBLIC_KEY_INTERRUPTIBLE_OPERATION_INIT { 0 }
+#endif
+
 #endif /* PSA_CRYPTO_BUILTIN_COMPOSITES_H */

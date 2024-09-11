@@ -675,6 +675,72 @@ psa_status_t mbedtls_psa_generate_key_abort(
 #endif
 }
 
+uint32_t mbedtls_psa_export_public_key_get_num_ops(
+    mbedtls_psa_export_public_key_iop_operation_t *operation)
+{
+    return operation->num_ops;
+}
+
+psa_status_t mbedtls_psa_export_public_key_setup(
+            mbedtls_psa_export_public_key_iop_operation_t *operation,
+            uint8_t *private_key,
+            size_t private_key_len,
+            const psa_key_attributes_t *private_key_attributes)
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
+    status = mbedtls_psa_ecp_load_representation(
+                psa_get_key_type(private_key_attributes),
+                psa_get_key_bits(private_key_attributes),
+                private_key,
+                private_key_len,
+                &operation->key);
+    if (status != PSA_SUCCESS) {
+        goto exit;
+    }
+
+    mbedtls_ecp_restart_init(&operation->restart_ctx);
+    operation->num_ops = 0;
+
+exit:
+    return status;
+}
+
+psa_status_t mbedtls_psa_export_public_key_complete(
+             mbedtls_psa_export_public_key_iop_operation_t *operation,
+             uint8_t *pub_key,
+             size_t pub_key_size,
+             size_t *pub_key_len)
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
+    mbedtls_psa_interruptible_set_max_ops(psa_interruptible_get_max_ops());
+
+    status = mbedtls_ecp_mul_restartable(&operation->key->grp, &operation->key->Q,
+                &operation->key->d, &operation->key->grp.G,
+                mbedtls_psa_get_random, MBEDTLS_PSA_RANDOM_STATE,
+                &operation->restart_ctx);
+    operation->num_ops += operation->restart_ctx.ops_done;
+
+    if (!status) {
+        mbedtls_ecp_write_public_key((const mbedtls_ecp_keypair *) &operation->key->Q,
+                                     MBEDTLS_ECP_PF_UNCOMPRESSED, pub_key_len,
+                                     pub_key, pub_key_size);
+    }
+
+    return status;
+}
+
+psa_status_t mbedtls_psa_export_public_key_abort(
+             mbedtls_psa_export_public_key_iop_operation_t *operation)
+{
+    mbedtls_ecp_keypair_free(operation->key);
+    mbedtls_free(operation->key);
+    mbedtls_ecp_restart_free(&operation->restart_ctx);
+    operation->num_ops = 0;
+    return PSA_SUCCESS;
+}
+
 /****************************************************************/
 /* Interruptible ECC Key Agreement */
 /****************************************************************/

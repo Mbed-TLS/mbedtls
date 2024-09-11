@@ -40,7 +40,8 @@ GetOptions(
 
 # All test suites = executable files with a .datax file.
 my @suites = ();
-for my $data_file (glob 'test_suite_*.datax') {
+my @test_dirs = qw(../tf-psa-crypto/tests .);
+for my $data_file (map {glob "$_/test_suite_*.datax"} @test_dirs) {
     (my $base = $data_file) =~ s/\.datax$//;
     push @suites, $base if -x $base;
     push @suites, "$base.exe" if -e "$base.exe";
@@ -82,8 +83,10 @@ sub pad_print_center {
     print $padchar x( $padlen ), " $string ", $padchar x( $padlen ), "\n";
 }
 
-for my $suite (@suites)
+for my $suite_path (@suites)
 {
+    my $suite = $suite_path;
+    $suite =~ s!.*/!!;
     print "$suite ", "." x ( 72 - length($suite) - 2 - 4 ), " ";
     if( $suite =~ /$skip_re/o ) {
         print "SKIP\n";
@@ -91,7 +94,7 @@ for my $suite (@suites)
         next;
     }
 
-    my $command = "$prefix$suite";
+    my $command = "$prefix$suite_path";
     if( $verbose ) {
         $command .= ' -v';
     }

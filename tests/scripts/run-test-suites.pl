@@ -28,6 +28,7 @@ use strict;
 use utf8;
 use open qw(:std utf8);
 
+use Cwd qw(getcwd);
 use Getopt::Long qw(:config auto_help gnu_compat);
 use Pod::Usage;
 
@@ -60,15 +61,8 @@ my $skip_re =
       ')(\z|\.)' );
 
 # in case test suites are linked dynamically
-if (-d '../../tf-psa-crypto') {
-    $ENV{'LD_LIBRARY_PATH'} = '../../library';
-    $ENV{'DYLD_LIBRARY_PATH'} = '../../library';
-}
-else
-{
-    $ENV{'LD_LIBRARY_PATH'} = '../library';
-    $ENV{'DYLD_LIBRARY_PATH'} = '../library';
-}
+$ENV{'LD_LIBRARY_PATH'} = getcwd() . "/../library";
+$ENV{'DYLD_LIBRARY_PATH'} = $ENV{'LD_LIBRARY_PATH'}; # For macOS
 
 my $prefix = $^O eq "MSWin32" ? '' : './';
 

@@ -1812,7 +1812,10 @@ run_test() {
     # Check if we are trying to use an external tool which does not support ECDH
     EXT_WO_ECDH=$(use_ext_tool_without_ecdh_support "$SRV_CMD" "$CLI_CMD")
 
-    # Guess the TLS version which is going to be used
+    # Guess the TLS version which is going to be used.
+    # Note that this detection is wrong in some cases, which causes unduly
+    # skipped test cases in builds with TLS 1.3 but not TLS 1.2.
+    # https://github.com/Mbed-TLS/mbedtls/issues/9560
     if [ "$EXT_WO_ECDH" = "no" ]; then
         TLS_VERSION=$(get_tls_version "$SRV_CMD" "$CLI_CMD")
     else

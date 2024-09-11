@@ -83,6 +83,9 @@ cd tests
 if [ ! -f "seedfile" ]; then
     dd if=/dev/urandom of="seedfile" bs=64 count=1
 fi
+if [ ! -f "../tf-psa-crypto/tests/seedfile" ]; then
+    cp "seedfile" "../tf-psa-crypto/tests/seedfile"
+fi
 echo
 
 # Step 2a - Unit Tests (keep going even if some tests fail)

@@ -427,7 +427,7 @@ component_test_tls13_only_psk () {
     scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_DH_RFC7919_4096
     scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_DH_RFC7919_6144
     scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_DH_RFC7919_8192
-    # Note: The three unsets below are to be removed for Mbed TLS 4.0
+    # Note: The four unsets below are to be removed for Mbed TLS 4.0
     scripts/config.py unset MBEDTLS_ECDH_C
     scripts/config.py unset MBEDTLS_ECDSA_C
     scripts/config.py unset MBEDTLS_PKCS1_V21
@@ -464,7 +464,7 @@ component_test_tls13_only_ephemeral_ffdh () {
 
     scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
     scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_ECDH
-    # Note: The three unsets below are to be removed for Mbed TLS 4.0
+    # Note: The unset below is to be removed for Mbed TLS 4.0
     scripts/config.py unset MBEDTLS_ECDH_C
 
     make CFLAGS="'-DMBEDTLS_USER_CONFIG_FILE=\"../tests/configs/tls13-only.h\"'"
@@ -491,7 +491,7 @@ component_test_tls13_only_psk_ephemeral () {
     scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_DETERMINISTIC_ECDSA
     scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_RSA_OAEP
     scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_RSA_PSS
-    # Note: The three unsets below are to be removed for Mbed TLS 4.0
+    # Note: The two unsets below are to be removed for Mbed TLS 4.0
     scripts/config.py unset MBEDTLS_ECDSA_C
     scripts/config.py unset MBEDTLS_PKCS1_V21
 
@@ -548,7 +548,7 @@ component_test_tls13_only_psk_all () {
     scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_DETERMINISTIC_ECDSA
     scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_RSA_OAEP
     scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_RSA_PSS
-    # Note: The three unsets below are to be removed for Mbed TLS 4.0
+    # Note: The two unsets below are to be removed for Mbed TLS 4.0
     scripts/config.py unset MBEDTLS_ECDSA_C
     scripts/config.py unset MBEDTLS_PKCS1_V21
 

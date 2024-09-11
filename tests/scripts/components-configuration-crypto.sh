@@ -2295,7 +2295,7 @@ component_build_aes_variations () {
     scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CBC_PKCS7
     scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_ECB_NO_PADDING
     scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_KEY_TYPE_DES
-    # Note: The three unsets below are to be removed for Mbed TLS 4.0
+    # Note: The two unsets below are to be removed for Mbed TLS 4.0
     scripts/config.py unset MBEDTLS_CIPHER_MODE_CBC
     scripts/config.py unset MBEDTLS_DES_C
 
@@ -2512,7 +2512,7 @@ config_block_cipher_no_decrypt () {
     scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CBC_PKCS7
     scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_ECB_NO_PADDING
     scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_KEY_TYPE_DES
-    # Note: The three unsets below are to be removed for Mbed TLS 4.0
+    # Note: The two unsets below are to be removed for Mbed TLS 4.0
     scripts/config.py unset MBEDTLS_CIPHER_MODE_CBC
     scripts/config.py unset MBEDTLS_DES_C
 }

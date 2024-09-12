@@ -55,11 +55,19 @@ if ($#ARGV >= 0) {
 my $config_h = 'include/mbedtls/mbedtls_config.h';
 
 system( "cp $config_h $config_h.bak" ) and die;
-sub abort {
-    system( "mv $config_h.bak $config_h" ) and warn "$config_h not restored\n";
-    # use an exit code between 1 and 124 for git bisect (die returns 255)
+
+my $config_count = 0;
+my $failed_config_count = 0;
+my @failure_messages;
+my $this_config_failed = 0;
+
+sub fail {
     warn $_[0];
-    exit 1;
+    push @failure_messages, $_[0];
+    if (!$this_config_failed) {
+        ++$failed_config_count;
+    }
+    $this_config_failed = 1;
 }
 
 # Create a seedfile for configurations that enable MBEDTLS_ENTROPY_NV_SEED.
@@ -82,6 +90,9 @@ sub perform_test {
         $conf_name .= "+PSA";
     }
 
+    $this_config_failed = 0;
+    ++$config_count;
+
     system( "cp $config_h.bak $config_h" ) and die;
     system( "make clean" ) and die;
 
@@ -92,7 +103,7 @@ sub perform_test {
     $ENV{MBEDTLS_TEST_CONFIGURATION} = $conf_name;
 
     system( "cp configs/$conf_file $config_h" )
-        and abort "Failed to activate $conf_file\n";
+        and do {fail "Failed to activate $conf_file\n"; return;};
 
     if ( $test_with_psa )
     {
@@ -100,15 +111,17 @@ sub perform_test {
         system( "scripts/config.py set MBEDTLS_USE_PSA_CRYPTO" );
     }
 
-    system( "CFLAGS='-Os -Werror -Wall -Wextra' make" ) and abort "Failed to build: $conf_name\n";
-    system( "make test" ) and abort "Failed test suite: $conf_name\n";
+    system( "CFLAGS='-Os -Werror -Wall -Wextra' make" )
+      and do {fail "Failed to build: $conf_name\n"; return;};
+
+    system( "make test" ) and fail "Failed test suite: $conf_name\n";
 
     my $compat = $data->{'compat'};
     if( $compat )
     {
         print "\nrunning compat.sh $compat ($conf_name)\n";
         system( "tests/compat.sh $compat" )
-            and abort "Failed compat.sh: $conf_name\n";
+            and fail "Failed compat.sh: $conf_name\n";
     }
     else
     {
@@ -126,12 +139,13 @@ sub perform_test {
             system( "make clean" );
             system( "scripts/config.py set MBEDTLS_DEBUG_C" );
             system( "scripts/config.py set MBEDTLS_ERROR_C" );
-            system( "CFLAGS='-Os -Werror -Wall -Wextra' make" ) and abort "Failed to build: $conf_name\n";
+            system( "CFLAGS='-Os -Werror -Wall -Wextra' make" )
+              and do {fail "Failed to build: $conf_name\n"; return;};
         }
 
         print "\nrunning ssl-opt.sh $opt ($conf_name)\n";
         system( "tests/ssl-opt.sh $opt" )
-            and abort "Failed ssl-opt.sh: $conf_name\n";
+            and fail "Failed ssl-opt.sh: $conf_name\n";
     }
     else
     {
@@ -153,4 +167,13 @@ foreach my $conf ( @configs_to_test ) {
 
 system( "mv $config_h.bak $config_h" ) and warn "$config_h not restored\n";
 system( "make clean" );
-exit 0;
+
+if ($failed_config_count) {
+    print "Tested $config_count configurations, $failed_config_count FAILED\n";
+    foreach (@failure_messages) {
+        print "    $_";
+    }
+    exit 1;
+} else {
+    print "Tested $config_count configurations, all PASSED"
+}

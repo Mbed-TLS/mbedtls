@@ -841,7 +841,7 @@ component_test_psa_crypto_config_accel_ecdsa () {
     # -----
 
     # These hashes are needed for some ECDSA signature tests.
-    loc_extra_list="ALG_SHA_224 ALG_SHA_256 ALG_SHA_384 ALG_SHA_512 \
+    loc_extra_list="ALG_SHA_1 ALG_SHA_224 ALG_SHA_256 ALG_SHA_384 ALG_SHA_512 \
                     ALG_SHA3_224 ALG_SHA3_256 ALG_SHA3_384 ALG_SHA3_512"
 
     helper_libtestdriver1_make_drivers "$loc_accel_list" "$loc_extra_list"

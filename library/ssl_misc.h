@@ -65,13 +65,6 @@
 /* Faked handshake message identity for HelloRetryRequest. */
 #define MBEDTLS_SSL_TLS1_3_HS_HELLO_RETRY_REQUEST (-MBEDTLS_SSL_HS_SERVER_HELLO)
 
-/* TLS 1.3: Interoperate with peers that support middlebox compatibility
- * mode, but don't produce the relevant messages ourselves.
- *
- * This is always enabled (with effect only when TLS 1.3 is enabled).
- */
-#define MBEDTLS_SSL_TLS1_3_ACCEPT_COMPATIBILITY_MODE
-
 /*
  * Internal identity of handshake extensions
  */

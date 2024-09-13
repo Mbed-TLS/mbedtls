@@ -78,10 +78,20 @@ run_test    "Sample: dtls_client, ssl_server2" \
             -c "[1-9][0-9]* bytes written" \
             -C "error"
 
+# The dtls_client program connects to localhost. This test case fails on
+# systems where the name "localhost" resolves to an IPv6 address, but
+# the IPv6 connection is not possible. Possible reasons include:
+# * OpenSSL is too old (IPv6 support was added in 1.1.0).
+# * OpenSSL was built without IPv6 support.
+# * A firewall blocks IPv6.
+#
+# To facilitate working with this test case, have it run with $OPENSSL_NEXT
+# which is at least 1.1.1a. At the time it was introduced, this test case
+# passed with OpenSSL 1.0.2g on an environment where IPv6 is disabled.
 requires_protocol_version dtls12
 run_test    "Sample: dtls_client, openssl server, DTLS 1.2" \
             -P 4433 \
-            "$O_SRV -dtls1_2" \
+            "$O_NEXT_SRV -dtls1_2" \
             "$PROGRAMS_DIR/dtls_client" \
             0 \
             -s "Echo this" \

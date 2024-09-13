@@ -66,7 +66,7 @@ class TLSProgram:
 
     # pylint: disable=too-many-arguments
     def __init__(self, ciphersuite=None, signature_algorithm=None, named_group=None,
-                 cert_sig_alg=None, compat_mode=True):
+                 cert_sig_alg=None):
         self._ciphers = []
         self._sig_algs = []
         self._named_groups = []
@@ -79,7 +79,6 @@ class TLSProgram:
             self.add_signature_algorithms(signature_algorithm)
         if cert_sig_alg:
             self.add_cert_signature_algorithms(cert_sig_alg)
-        self._compat_mode = compat_mode
 
     # add_ciphersuites should not override by sub class
     def add_ciphersuites(self, *ciphersuites):
@@ -157,8 +156,6 @@ class OpenSSLBase(TLSProgram):
             ret += ["-groups {named_groups}".format(named_groups=named_groups)]
 
         ret += ['-msg -tls1_3']
-        if not self._compat_mode:
-            ret += ['-no_middlebox']
 
         return ret
 
@@ -288,9 +285,6 @@ class GnuTLSBase(TLSProgram):
         priority_string = ':+'.join(priority_string_list)
         priority_string += ':%NO_TICKETS'
 
-        if not self._compat_mode:
-            priority_string += [':%DISABLE_TLS13_COMPAT_MODE']
-
         ret += ['--priority={priority_string}'.format(
             priority_string=priority_string)]
         return ret
@@ -369,9 +363,6 @@ class MbedTLSBase(TLSProgram):
     def pre_checks(self):
         ret = ['requires_config_enabled MBEDTLS_DEBUG_C',
                'requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED']
-
-        if self._compat_mode:
-            ret += ['requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE']
 
         if 'rsa_pss_rsae_sha256' in self._sig_algs + self._cert_sig_algs:
             ret.append(

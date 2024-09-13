@@ -280,6 +280,57 @@ error:
 
 #if defined(MBEDTLS_OID_C)
 
+static int oid_parse_number(unsigned int *num, const char **p, const char *bound)
+{
+    int ret = MBEDTLS_ERR_ASN1_INVALID_DATA;
+
+    *num = 0;
+
+    while (*p < bound && **p >= '0' && **p <= '9') {
+        ret = 0;
+        if (*num > (UINT_MAX / 10)) {
+            return MBEDTLS_ERR_ASN1_INVALID_DATA;
+        }
+        *num *= 10;
+        *num += **p - '0';
+        (*p)++;
+    }
+    return ret;
+}
+
+static size_t oid_subidentifier_num_bytes(unsigned int value)
+{
+    size_t num_bytes = 0;
+
+    do {
+        value >>= 7;
+        num_bytes++;
+    } while (value != 0);
+
+    return num_bytes;
+}
+
+static int oid_subidentifier_encode_into(unsigned char **p,
+                                         unsigned char *bound,
+                                         unsigned int value)
+{
+    size_t num_bytes = oid_subidentifier_num_bytes(value);
+
+    if ((size_t) (bound - *p) < num_bytes) {
+        return MBEDTLS_ERR_OID_BUF_TOO_SMALL;
+    }
+    (*p)[num_bytes - 1] = (unsigned char) (value & 0x7f);
+    value >>= 7;
+
+    for (size_t i = 2; i <= num_bytes; i++) {
+        (*p)[num_bytes - i] = 0x80 | (unsigned char) (value & 0x7f);
+        value >>= 7;
+    }
+    *p += num_bytes;
+
+    return 0;
+}
+
 /* Return the OID for the given x.y.z.... style numeric string  */
 int mbedtls_oid_from_numeric_string(mbedtls_asn1_buf *oid,
                                     const char *oid_str, size_t size)

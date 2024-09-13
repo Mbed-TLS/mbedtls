@@ -13702,8 +13702,9 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3 m->O server with middlebox compat support, not client" \
             "$O_NEXT_SRV -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
             "$P_CLI debug_level=4" \
-            1 \
-            -c "ChangeCipherSpec invalid in TLS 1.3 without compatibility mode"
+            0 \
+            -c "Protocol is TLSv1.3" \
+            -c "Ignore ChangeCipherSpec in TLS 1.3 compatibility mode"
 
 requires_openssl_tls1_3_with_compatible_ephemeral
 requires_config_enabled MBEDTLS_DEBUG_C
@@ -13741,8 +13742,9 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3 m->G server with middlebox compat support, not client" \
             "$G_NEXT_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL:%NO_TICKETS --disable-client-cert" \
             "$P_CLI debug_level=4" \
-            1 \
-            -c "ChangeCipherSpec invalid in TLS 1.3 without compatibility mode"
+            0 \
+            -c "Protocol is TLSv1.3" \
+            -c "Ignore ChangeCipherSpec in TLS 1.3 compatibility mode"
 
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -13894,9 +13896,10 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3 m->O HRR server with middlebox compat support, not client" \
             "$O_NEXT_SRV -msg -tls1_3 -groups P-384 -num_tickets 0 -no_cache" \
             "$P_CLI debug_level=4 groups=secp256r1,secp384r1" \
-            1 \
+            0 \
             -c "received HelloRetryRequest message" \
-            -c "ChangeCipherSpec invalid in TLS 1.3 without compatibility mode"
+            -c "Protocol is TLSv1.3" \
+            -c "Ignore ChangeCipherSpec in TLS 1.3 compatibility mode"
 
 requires_openssl_tls1_3_with_compatible_ephemeral
 requires_config_enabled MBEDTLS_DEBUG_C
@@ -13935,9 +13938,10 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3 m->G HRR server with middlebox compat support, not client" \
             "$G_NEXT_SRV --priority=NORMAL:-GROUP-ALL:+GROUP-SECP384R1:-VERS-ALL:+VERS-TLS1.3:%NO_TICKETS --disable-client-cert" \
             "$P_CLI debug_level=4 groups=secp256r1,secp384r1" \
-            1 \
+            0 \
             -c "received HelloRetryRequest message" \
-            -c "ChangeCipherSpec invalid in TLS 1.3 without compatibility mode"
+            -c "Protocol is TLSv1.3" \
+            -c "Ignore ChangeCipherSpec in TLS 1.3 compatibility mode"
 
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket

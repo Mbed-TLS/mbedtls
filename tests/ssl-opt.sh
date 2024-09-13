@@ -509,6 +509,11 @@ detect_required_features() {
             requires_config_enabled MBEDTLS_PEM_PARSE_C
             requires_config_enabled MBEDTLS_SSL_SRV_C
             requires_certificate_authentication
+            # The actual minimum depends on the configuration since it's
+            # mostly about the certificate size.
+            # In config-suite-b.h, for the test certificates (server5.crt),
+            # 1024 is not enough.
+            requires_config_value_at_least MBEDTLS_SSL_OUT_CONTENT_LEN 2000
             ;;
     esac
 

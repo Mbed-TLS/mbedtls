@@ -55,6 +55,10 @@ GENERATED_DATA_FILES += $(GENERATED_PSA_DATA_FILES)
 GENERATED_FILES = $(GENERATED_DATA_FILES)
 GENERATED_FILES += src/test_keys.h src/test_certs.h
 
+opt-testcases/tls13-compat.sh: scripts/generate_tls13_compat_tests.py
+	$(PYTHON) scripts/generate_tls13_compat_tests.py -o $@
+GENERATED_FILES += opt-testcases/tls13-compat.sh
+
 .PHONY: generated_files
 generated_files: $(GENERATED_FILES)
 

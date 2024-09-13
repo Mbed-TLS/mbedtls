@@ -545,11 +545,16 @@ def main():
     """
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('-o', '--output', nargs='?',
-                        default=None, help='Output file path if `-a` was set')
+    parser.add_argument('-o', '--output',
+                        default='tests/opt-testcases/tls13-compat.sh',
+                        help='Output file path (not used with -1)')
 
-    parser.add_argument('-a', '--generate-all-tls13-compat-tests', action='store_true',
-                        default=False, help='Generate all available tls13 compat tests')
+    parser.add_argument('-1', '--single', action='store_true',
+                        help='Print a single test case')
+    # Single mode used to be the default.
+    parser.add_argument('-a', '--generate-all-tls13-compat-tests',
+                        action='store_false', dest='single',
+                        help='Generate all test cases (negates -1) (default)')
 
     parser.add_argument('--list-ciphers', action='store_true',
                         default=False, help='List supported ciphersuites')
@@ -612,7 +617,7 @@ def main():
                                                server_named_group=server_named_group,
                                                cert_sig_alg="ecdsa_secp256r1_sha256")
 
-    if args.generate_all_tls13_compat_tests:
+    if not args.single:
         if args.output:
             with open(args.output, 'w', encoding="utf-8") as f:
                 f.write(SSL_OUTPUT_HEADER.format(

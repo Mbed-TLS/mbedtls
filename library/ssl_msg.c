@@ -5066,7 +5066,7 @@ int mbedtls_ssl_handle_message_type(mbedtls_ssl_context *ssl)
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
         if (ssl->tls_version == MBEDTLS_SSL_VERSION_TLS1_3) {
-#if defined(MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE)
+#if defined(MBEDTLS_SSL_TLS1_3_ACCEPT_COMPATIBILITY_MODE)
             MBEDTLS_SSL_DEBUG_MSG(1,
                                   ("Ignore ChangeCipherSpec in TLS 1.3 compatibility mode"));
             return MBEDTLS_ERR_SSL_CONTINUE_PROCESSING;
@@ -5074,7 +5074,7 @@ int mbedtls_ssl_handle_message_type(mbedtls_ssl_context *ssl)
             MBEDTLS_SSL_DEBUG_MSG(1,
                                   ("ChangeCipherSpec invalid in TLS 1.3 without compatibility mode"));
             return MBEDTLS_ERR_SSL_INVALID_RECORD;
-#endif /* MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE */
+#endif /* MBEDTLS_SSL_TLS1_3_ACCEPT_COMPATIBILITY_MODE */
         }
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
     }

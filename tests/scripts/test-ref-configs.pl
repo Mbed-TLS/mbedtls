@@ -16,11 +16,6 @@ use warnings;
 use strict;
 
 my %configs = (
-    'config-ccm-psk-dtls1_2.h' => {
-        'compat' => '-m dtls12 -f \'^TLS_PSK_WITH_AES_..._CCM_8\'',
-        'opt' => ' ',
-        'opt_needs_debug' => 1,
-    },
     'config-suite-b.h' => {
         'compat' => "-m tls12 -f 'ECDHE_ECDSA.*AES.*GCM' -p mbedTLS",
         'opt' => ' ',

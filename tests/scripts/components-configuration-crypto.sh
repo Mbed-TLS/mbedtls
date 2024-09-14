@@ -1453,9 +1453,19 @@ component_test_psa_crypto_config_reference_ecc_ffdh_no_bignum () {
     common_test_psa_crypto_config_reference_ecc_ffdh_no_bignum "ECC_DH"
 }
 
+component_test_tfm_config_as_is () {
+    msg "build: configs/config-tfm.h"
+    cp configs/config-tfm.h "$CONFIG_H"
+    CC=$ASAN_CC cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    make
+
+    msg "test: configs/config-tfm.h - unit tests"
+    make test
+}
+
 # Helper for setting common configurations between:
 # - component_test_tfm_config_p256m_driver_accel_ec()
-# - component_test_tfm_config()
+# - component_test_tfm_config_no_p256m()
 common_tfm_config () {
     # Enable TF-M config
     cp configs/config-tfm.h "$CONFIG_H"
@@ -1509,14 +1519,14 @@ component_test_tfm_config_p256m_driver_accel_ec () {
 # Keep this in sync with component_test_tfm_config_p256m_driver_accel_ec() as
 # they are both meant to be used in analyze_outcomes.py for driver's coverage
 # analysis.
-component_test_tfm_config () {
+component_test_tfm_config_no_p256m () {
     common_tfm_config
 
     # Disable P256M driver, which is on by default, so that analyze_outcomes
     # can compare this test with test_tfm_config_p256m_driver_accel_ec
     echo "#undef MBEDTLS_PSA_P256M_DRIVER_ENABLED" >> "$CONFIG_H"
 
-    msg "build: TF-M config"
+    msg "build: TF-M config without p256m"
     make CFLAGS='-Werror -Wall -Wextra -I../tests/include/spe' tests
 
     # Check that p256m was not built
@@ -1526,7 +1536,7 @@ component_test_tfm_config () {
     # files, so we want to ensure that it has not be re-enabled accidentally.
     not grep mbedtls_cipher ${BUILTIN_SRC_PATH}/cipher.o
 
-    msg "test: TF-M config"
+    msg "test: TF-M config without p256m"
     make test
 }
 

@@ -20,9 +20,6 @@ my %configs = (
     },
     'config-tfm.h' => {
     },
-    'config-thread.h' => {
-        'opt' => '-f ECJPAKE.*nolog',
-    },
 );
 
 # If no config-name is provided, use all known configs.

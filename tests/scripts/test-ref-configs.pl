@@ -16,8 +16,6 @@ use warnings;
 use strict;
 
 my %configs = (
-    'config-tfm.h' => {
-    },
 );
 
 # If no config-name is provided, use all known configs.

@@ -16,8 +16,6 @@ use warnings;
 use strict;
 
 my %configs = (
-    'config-symmetric-only.h' => {
-    },
     'config-tfm.h' => {
     },
 );

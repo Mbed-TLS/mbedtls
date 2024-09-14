@@ -224,6 +224,52 @@ component_test_tls1_2_ecjpake_compatibility () {
     rm s2_no_use_psa c2_no_use_psa
 }
 
+component_test_tls1_2_ccm_psk_legacy () {
+    msg "build: configs/config-ccm-psk-tls1_2.h"
+    cp configs/config-ccm-psk-tls1_2.h "$CONFIG_H"
+    # test-ref-configs works by overwriting mbedtls_config.h; this makes cmake
+    # want to re-generate generated files that depend on it, quite correctly.
+    # However this doesn't work as the generation script expects a specific
+    # format for mbedtls_config.h, which the other files don't follow. Also,
+    # cmake can't know this, but re-generation is actually not necessary as
+    # the generated files only depend on the list of available options, not
+    # whether they're on or off. So, disable cmake's (over-sensitive here)
+    # dependency resolution for generated files and just rely on them being
+    # present (thanks to pre_generate_files) by turning GEN_FILES off.
+    CC=$ASAN_CC cmake -D GEN_FILES=Off -D CMAKE_BUILD_TYPE:String=Asan .
+    make
+
+    msg "test: configs/config-ccm-psk-tls1_2.h - unit tests"
+    make test
+
+    msg "test: configs/config-ccm-psk-tls1_2.h - compat.sh"
+    tests/compat.sh -m tls12 -f '^TLS_PSK_WITH_AES_..._CCM_8'
+}
+
+component_test_tls1_2_ccm_psk_psa () {
+    msg "build: configs/config-ccm-psk-tls1_2.h + USE_PSA_CRYPTO"
+    cp configs/config-ccm-psk-tls1_2.h "$CONFIG_H"
+    scripts/config.py set MBEDTLS_PSA_CRYPTO_C
+    scripts/config.py set MBEDTLS_USE_PSA_CRYPTO
+    # test-ref-configs works by overwriting mbedtls_config.h; this makes cmake
+    # want to re-generate generated files that depend on it, quite correctly.
+    # However this doesn't work as the generation script expects a specific
+    # format for mbedtls_config.h, which the other files don't follow. Also,
+    # cmake can't know this, but re-generation is actually not necessary as
+    # the generated files only depend on the list of available options, not
+    # whether they're on or off. So, disable cmake's (over-sensitive here)
+    # dependency resolution for generated files and just rely on them being
+    # present (thanks to pre_generate_files) by turning GEN_FILES off.
+    CC=$ASAN_CC cmake -D GEN_FILES=Off -D CMAKE_BUILD_TYPE:String=Asan .
+    make
+
+    msg "test: configs/config-ccm-psk-tls1_2.h + USE_PSA_CRYPTO - unit tests"
+    make test
+
+    msg "test: configs/config-ccm-psk-tls1_2.h + USE_PSA_CRYPTO - compat.sh"
+    tests/compat.sh -m tls12 -f '^TLS_PSK_WITH_AES_..._CCM_8'
+}
+
 component_test_small_ssl_out_content_len () {
     msg "build: small SSL_OUT_CONTENT_LEN (ASan build)"
     scripts/config.py set MBEDTLS_SSL_IN_CONTENT_LEN 16384

@@ -16,6 +16,7 @@ set(executables
     ssl_server
     ssl_server2
 )
+add_dependencies(${programs_target} ${executables})
 
 if(GEN_FILES)
     # Inform CMake that the following file will be generated as part of the build

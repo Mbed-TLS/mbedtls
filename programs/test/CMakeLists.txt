@@ -8,12 +8,14 @@ set(executables_libs
     selftest
     udp_proxy
 )
+add_dependencies(${programs_target} ${executables_libs})
 
 set(executables_mbedcrypto
     benchmark
     query_compile_time_config
     zeroize
 )
+add_dependencies(${programs_target} ${executables_mbedcrypto})
 
 if(TEST_CPP)
     set(cpp_dummy_build_cpp "${CMAKE_CURRENT_BINARY_DIR}/cpp_dummy_build.cpp")

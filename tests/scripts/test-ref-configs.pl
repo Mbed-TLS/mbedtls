@@ -16,11 +16,6 @@ use warnings;
 use strict;
 
 my %configs = (
-    'config-suite-b.h' => {
-        'compat' => "-m tls12 -f 'ECDHE_ECDSA.*AES.*GCM' -p mbedTLS",
-        'opt' => ' ',
-        'opt_needs_debug' => 1,
-    },
     'config-symmetric-only.h' => {
     },
     'config-tfm.h' => {

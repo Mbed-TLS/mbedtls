@@ -446,6 +446,25 @@ class LicenseIssueTracker(LineIssueTracker):
         return False
 
 
+class ErrorAddIssueTracker(LineIssueTracker):
+    """Signal direct additions of error codes.
+
+    Adding a low-level error code with a high-level error code is deprecated
+    and should use MBEDTLS_ERROR_ADD.
+    """
+
+    heading = "Direct addition of error codes"
+
+    _ERR_PLUS_RE = re.compile(br'MBEDTLS_ERR_\w+ *\+|'
+                              br'\+ *MBEDTLS_ERR_')
+    _EXCLUDE_RE = re.compile(br' *case ')
+
+    def issue_with_line(self, line, filepath, line_number):
+        if self._ERR_PLUS_RE.search(line) and not self._EXCLUDE_RE.match(line):
+            return True
+        return False
+
+
 class IntegrityChecker:
     """Sanity-check files under the current directory."""
 
@@ -467,6 +486,7 @@ class IntegrityChecker:
             TabIssueTracker(),
             MergeArtifactIssueTracker(),
             LicenseIssueTracker(),
+            ErrorAddIssueTracker(),
         ]
 
     def setup_logger(self, log_file, level=logging.INFO):

@@ -1,4 +1,5 @@
 /* BEGIN_HEADER */
+#include "mbedtls/error.h"
 #include "mbedtls/rsa.h"
 #include "rsa_alt_helpers.h"
 #include "rsa_internal.h"

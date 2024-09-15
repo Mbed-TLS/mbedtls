@@ -1,4 +1,5 @@
 /* BEGIN_HEADER */
+#include "mbedtls/error.h"
 #include "mbedtls/pk.h"
 #include "mbedtls/pem.h"
 #include "mbedtls/oid.h"

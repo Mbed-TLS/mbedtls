@@ -211,6 +211,25 @@ def do_analyze_driver_vs_reference(results: Results, outcomes: Outcomes, args) -
                                 args['component_ref'], args['component_driver'],
                                 ignored_suites, args['ignored_tests'])
 
+
+class Task:
+    """Base class for outcome analysis tasks."""
+
+    def __init__(self, options) -> None:
+        """Pass command line options to the tasks.
+
+        Each task decides which command line options it cares about.
+        """
+        pass
+
+    def run(self, results: Results, outcomes: Outcomes):
+        """Run the analysis on the specified outcomes.
+
+        Signal errors via the results objects
+        """
+        raise NotImplementedError
+
+
 # List of tasks with a function that can handle this task and additional arguments if required
 KNOWN_TASKS = {
     'analyze_coverage':                 {
@@ -766,7 +785,8 @@ def main():
 
             task_name = tasks_list[0]
             task = KNOWN_TASKS[task_name]
-            if task['test_function'] != do_analyze_driver_vs_reference: # pylint: disable=comparison-with-callable
+            if isinstance(task, dict) and \
+               task['test_function'] != do_analyze_driver_vs_reference: # pylint: disable=comparison-with-callable
                 sys.stderr.write("please provide valid outcomes file for {}.\n".format(task_name))
                 sys.exit(2)
 
@@ -777,10 +797,15 @@ def main():
 
         outcomes = read_outcome_file(options.outcomes)
 
-        for task in tasks_list:
-            test_function = KNOWN_TASKS[task]['test_function']
-            test_args = KNOWN_TASKS[task]['args']
-            test_function(main_results, outcomes, test_args)
+        for task_name in tasks_list:
+            task_constructor = KNOWN_TASKS[task_name]
+            if isinstance(task_constructor, dict):
+                test_function = task_constructor['test_function']
+                test_args = task_constructor['args']
+                test_function(main_results, outcomes, test_args)
+            else:
+                task = task_constructor(options)
+                task.run(main_results, outcomes)
 
         main_results.info("Overall results: {} warnings and {} errors",
                           main_results.warning_count, main_results.error_count)

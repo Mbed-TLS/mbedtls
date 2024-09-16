@@ -120,6 +120,12 @@ def read_outcome_file(outcome_file: str) -> Outcomes:
 class Task:
     """Base class for outcome analysis tasks."""
 
+    # Override the following in child classes.
+    # Map test suite names (with the test_suite_prefix) to a list of ignored
+    # test cases. Each element in the list can be either a string or a regex;
+    # see the `name_matches_pattern` function.
+    IGNORED_TESTS = {} #type: typing.Dict[str, typing.List[IgnoreEntry]]
+
     def __init__(self, options) -> None:
         """Pass command line options to the tasks.
 
@@ -129,6 +135,15 @@ class Task:
 
     def section_name(self) -> str:
         """The section name to use in results."""
+
+    def is_test_case_ignored(self, full_test_suite: str, test_string: str) -> bool:
+        """Check if the specified test case is ignored."""
+        test_suite = full_test_suite.split('.')[0] # retrieve main part of test suite name
+        for str_or_re in (self.IGNORED_TESTS.get(full_test_suite, []) +
+                          self.IGNORED_TESTS.get(test_suite, [])):
+            if name_matches_pattern(test_string, str_or_re):
+                return True
+        return False
 
     def run(self, results: Results, outcomes: Outcomes):
         """Run the analysis on the specified outcomes.
@@ -206,10 +221,6 @@ class DriverVSReference(Task):
     DRIVER = ''
     # Ignored test suites (without the test_suite_ prefix).
     IGNORED_SUITES = [] #type: typing.List[str]
-    # Map test suite names (with the test_suite_prefix) to a list of ignored
-    # test cases. Each element in the list can be either a string or a regex;
-    # see the `name_matches_pattern` function.
-    IGNORED_TESTS = {} #type: typing.Dict[str, typing.List[IgnoreEntry]]
 
     def __init__(self, options) -> None:
         super().__init__(options)
@@ -251,11 +262,7 @@ class DriverVSReference(Task):
             # For ignored test cases inside test suites, just remember and:
             # don't issue an error if they're skipped with drivers,
             # but issue an error if they're not (means we have a bad entry).
-            ignored = False
-            for str_or_re in (self.IGNORED_TESTS.get(full_test_suite, []) +
-                              self.IGNORED_TESTS.get(test_suite, [])):
-                if name_matches_pattern(test_string, str_or_re):
-                    ignored = True
+            ignored = self.is_test_case_ignored(full_test_suite, test_string)
 
             if not ignored and not suite_case in driver_outcomes.successes:
                 results.error("SKIP/FAIL -> PASS: {}", suite_case)

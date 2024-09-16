@@ -108,33 +108,6 @@
  */
 //#define MBEDTLS_HAVE_SSE2
 
-/**
- * \def MBEDTLS_DEPRECATED_WARNING
- *
- * Mark deprecated functions and features so that they generate a warning if
- * used. Functionality deprecated in one version will usually be removed in the
- * next version. You can enable this to help you prepare the transition to a
- * new major version by making sure your code is not using this functionality.
- *
- * This only works with GCC and Clang. With other compilers, you may want to
- * use MBEDTLS_DEPRECATED_REMOVED
- *
- * Uncomment to get warnings on using deprecated functions and features.
- */
-//#define MBEDTLS_DEPRECATED_WARNING
-
-/**
- * \def MBEDTLS_DEPRECATED_REMOVED
- *
- * Remove deprecated functions and features so that they generate an error if
- * used. Functionality deprecated in one version will usually be removed in the
- * next version. You can enable this to help you prepare the transition to a
- * new major version by making sure your code is not using this functionality.
- *
- * Uncomment to get errors on using deprecated functions and features.
- */
-//#define MBEDTLS_DEPRECATED_REMOVED
-
 /** \} name SECTION: System support */
 
 /**
@@ -251,29 +224,6 @@
  * Uncomment this macro to use less memory for Camellia.
  */
 //#define MBEDTLS_CAMELLIA_SMALL_MEMORY
-
-/**
- * \def MBEDTLS_CHECK_RETURN_WARNING
- *
- * If this macro is defined, emit a compile-time warning if application code
- * calls a function without checking its return value, but the return value
- * should generally be checked in portable applications.
- *
- * This is only supported on platforms where #MBEDTLS_CHECK_RETURN is
- * implemented. Otherwise this option has no effect.
- *
- * Uncomment to get warnings on using fallible functions without checking
- * their return value.
- *
- * \note  This feature is a work in progress.
- *        Warnings will be added to more functions in the future.
- *
- * \note  A few functions are considered critical, and ignoring the return
- *        value of these functions will trigger a warning even if this
- *        macro is not defined. To completely disable return value check
- *        warnings, define #MBEDTLS_CHECK_RETURN with an empty expansion.
- */
-//#define MBEDTLS_CHECK_RETURN_WARNING
 
 /**
  * \def MBEDTLS_CIPHER_MODE_CBC
@@ -3221,40 +3171,6 @@
 //#define MBEDTLS_USER_CONFIG_FILE "/dev/null"
 
 /**
- * \def MBEDTLS_PSA_CRYPTO_CONFIG_FILE
- *
- * If defined, this is a header which will be included instead of
- * `"psa/crypto_config.h"`.
- * This header file specifies which cryptographic mechanisms are available
- * through the PSA API.
- *
- * This macro is expanded after an <tt>\#include</tt> directive. This is a popular but
- * non-standard feature of the C language, so this feature is only available
- * with compilers that perform macro expansion on an <tt>\#include</tt> line.
- *
- * The value of this symbol is typically a path in double quotes, either
- * absolute or relative to a directory on the include search path.
- */
-//#define MBEDTLS_PSA_CRYPTO_CONFIG_FILE "psa/crypto_config.h"
-
-/**
- * \def MBEDTLS_PSA_CRYPTO_USER_CONFIG_FILE
- *
- * If defined, this is a header which will be included after
- * `"psa/crypto_config.h"` or #MBEDTLS_PSA_CRYPTO_CONFIG_FILE.
- * This allows you to modify the default configuration, including the ability
- * to undefine options that are enabled by default.
- *
- * This macro is expanded after an <tt>\#include</tt> directive. This is a popular but
- * non-standard feature of the C language, so this feature is only available
- * with compilers that perform macro expansion on an <tt>\#include</tt> line.
- *
- * The value of this symbol is typically a path in double quotes, either
- * absolute or relative to a directory on the include search path.
- */
-//#define MBEDTLS_PSA_CRYPTO_USER_CONFIG_FILE "/dev/null"
-
-/**
  * \def MBEDTLS_PSA_CRYPTO_PLATFORM_FILE
  *
  * If defined, this is a header which will be included instead of
@@ -3347,29 +3263,6 @@
 //#define MBEDTLS_ENTROPY_MAX_SOURCES                20 /**< Maximum number of sources supported */
 //#define MBEDTLS_ENTROPY_MAX_GATHER                128 /**< Maximum amount requested from entropy sources */
 //#define MBEDTLS_ENTROPY_MIN_HARDWARE               32 /**< Default minimum number of bytes required for the hardware entropy source mbedtls_hardware_poll() before entropy is released */
-
-/** \def MBEDTLS_CHECK_RETURN
- *
- * This macro is used at the beginning of the declaration of a function
- * to indicate that its return value should be checked. It should
- * instruct the compiler to emit a warning or an error if the function
- * is called without checking its return value.
- *
- * There is a default implementation for popular compilers in platform_util.h.
- * You can override the default implementation by defining your own here.
- *
- * If the implementation here is empty, this will effectively disable the
- * checking of functions' return values.
- */
-//#define MBEDTLS_CHECK_RETURN __attribute__((__warn_unused_result__))
-
-/** \def MBEDTLS_IGNORE_RETURN
- *
- * This macro requires one argument, which should be a C function call.
- * If that function call would cause a #MBEDTLS_CHECK_RETURN warning, this
- * warning is suppressed.
- */
-//#define MBEDTLS_IGNORE_RETURN( result ) ((void) !(result))
 
 /* PSA options */
 /**

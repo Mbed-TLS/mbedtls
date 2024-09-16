@@ -164,12 +164,14 @@ class Task:
 class CoverageTask(Task):
     """Analyze test coverage."""
 
-    ALLOW_LIST = [
-        # Algorithm not supported yet
-        'test_suite_psa_crypto_metadata;Asymmetric signature: pure EdDSA',
-        # Algorithm not supported yet
-        'test_suite_psa_crypto_metadata;Cipher: XTS',
-    ]
+    IGNORED_TESTS = {
+        'test_suite_psa_crypto_metadata': [
+            # Algorithm not supported yet
+            'Asymmetric signature: pure EdDSA',
+            # Algorithm not supported yet
+            'Cipher: XTS',
+        ],
+    }
 
     def __init__(self, options) -> None:
         super().__init__(options)
@@ -197,13 +199,15 @@ class CoverageTask(Task):
             hit = any(suite_case in comp_outcomes.successes or
                       suite_case in comp_outcomes.failures
                       for comp_outcomes in outcomes.values())
+            (test_suite, test_description) = suite_case.split(';')
+            ignored = self.is_test_case_ignored(test_suite, test_description)
 
-            if not hit and suite_case not in self.ALLOW_LIST:
+            if not hit and not ignored:
                 if self.full_coverage:
                     results.error('Test case not executed: {}', suite_case)
                 else:
                     results.warning('Test case not executed: {}', suite_case)
-            elif hit and suite_case in self.ALLOW_LIST:
+            elif hit and ignored:
                 # Test Case should be removed from the allow list.
                 if self.full_coverage:
                     results.error('Allow listed test case was executed: {}', suite_case)

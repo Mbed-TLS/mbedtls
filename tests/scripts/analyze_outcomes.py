@@ -136,11 +136,19 @@ class Task:
     def section_name(self) -> str:
         """The section name to use in results."""
 
-    def is_test_case_ignored(self, full_test_suite: str, test_string: str) -> bool:
+    def ignored_tests(self, test_suite: str) -> typing.Iterator[IgnoreEntry]:
+        """Generate the ignore list for the specified test suite."""
+        if test_suite in self.IGNORED_TESTS:
+            yield from self.IGNORED_TESTS[test_suite]
+        pos = test_suite.find('.')
+        if pos != -1:
+            base_test_suite = test_suite[:pos]
+            if base_test_suite in self.IGNORED_TESTS:
+                yield from self.IGNORED_TESTS[base_test_suite]
+
+    def is_test_case_ignored(self, test_suite: str, test_string: str) -> bool:
         """Check if the specified test case is ignored."""
-        test_suite = full_test_suite.split('.')[0] # retrieve main part of test suite name
-        for str_or_re in (self.IGNORED_TESTS.get(full_test_suite, []) +
-                          self.IGNORED_TESTS.get(test_suite, [])):
+        for str_or_re in self.ignored_tests(test_suite):
             if name_matches_pattern(test_string, str_or_re):
                 return True
         return False

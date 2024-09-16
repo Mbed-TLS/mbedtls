@@ -149,8 +149,7 @@ static inline int mbedtls_error_add(int high, int low,
     (void) file;
     (void) line;
 
-    (void) high;
-    return low;
+    return low ? low : high;
 }
 
 /**

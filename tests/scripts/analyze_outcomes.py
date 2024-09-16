@@ -156,9 +156,7 @@ class CoverageTask(Task):
     def section_name() -> str:
         return "Analyze coverage"
 
-    @staticmethod
-    def analyze_coverage(results: Results, outcomes: Outcomes,
-                         allow_list: typing.List[str], full_coverage: bool) -> None:
+    def run(self, results: Results, outcomes: Outcomes) -> None:
         """Check that all available test cases are executed at least once."""
         # Make sure that the generated data files are present (and up-to-date).
         # This allows analyze_outcomes.py to run correctly on a fresh Git
@@ -177,22 +175,17 @@ class CoverageTask(Task):
                       suite_case in comp_outcomes.failures
                       for comp_outcomes in outcomes.values())
 
-            if not hit and suite_case not in allow_list:
-                if full_coverage:
+            if not hit and suite_case not in self.ALLOW_LIST:
+                if self.full_coverage:
                     results.error('Test case not executed: {}', suite_case)
                 else:
                     results.warning('Test case not executed: {}', suite_case)
-            elif hit and suite_case in allow_list:
+            elif hit and suite_case in self.ALLOW_LIST:
                 # Test Case should be removed from the allow list.
-                if full_coverage:
+                if self.full_coverage:
                     results.error('Allow listed test case was executed: {}', suite_case)
                 else:
                     results.warning('Allow listed test case was executed: {}', suite_case)
-
-    def run(self, results: Results, outcomes: Outcomes):
-        """Check that all test cases are executed at least once."""
-        self.analyze_coverage(results, outcomes,
-                              self.ALLOW_LIST, self.full_coverage)
 
 
 class DriverVSReference(Task):
@@ -218,13 +211,15 @@ class DriverVSReference(Task):
     # see the `name_matches_pattern` function.
     IGNORED_TESTS = {} #type: typing.Dict[str, typing.List[IgnoreEntry]]
 
+    def __init__(self, options) -> None:
+        super().__init__(options)
+        self.ignored_suites = frozenset('test_suite_' + x
+                                        for x in self.IGNORED_SUITES)
+
     def section_name(self) -> str:
         return f"Analyze driver {self.DRIVER} vs reference {self.REFERENCE}"
 
-    @staticmethod
-    def analyze_driver_vs_reference(results: Results, outcomes: Outcomes,
-                                    component_ref: str, component_driver: str,
-                                    ignored_suites: typing.List[str], ignored_tests=None) -> None:
+    def run(self, results: Results, outcomes: Outcomes) -> None:
         """Check that all tests passing in the driver component are also
         passing in the corresponding reference component.
         Skip:
@@ -232,8 +227,8 @@ class DriverVSReference(Task):
         - only some specific test inside a test suite, for which the corresponding
           output string is provided
         """
-        ref_outcomes = outcomes.get("component_" + component_ref)
-        driver_outcomes = outcomes.get("component_" + component_driver)
+        ref_outcomes = outcomes.get("component_" + self.REFERENCE)
+        driver_outcomes = outcomes.get("component_" + self.DRIVER)
 
         if ref_outcomes is None or driver_outcomes is None:
             results.error("required components are missing: bad outcome file?")
@@ -249,15 +244,16 @@ class DriverVSReference(Task):
             test_suite = full_test_suite.split('.')[0] # retrieve main part of test suite name
 
             # Immediately skip fully-ignored test suites
-            if test_suite in ignored_suites or full_test_suite in ignored_suites:
+            if test_suite in self.ignored_suites or \
+               full_test_suite in self.ignored_suites:
                 continue
 
             # For ignored test cases inside test suites, just remember and:
             # don't issue an error if they're skipped with drivers,
             # but issue an error if they're not (means we have a bad entry).
             ignored = False
-            for str_or_re in (ignored_tests.get(full_test_suite, []) +
-                              ignored_tests.get(test_suite, [])):
+            for str_or_re in (self.IGNORED_TESTS.get(full_test_suite, []) +
+                              self.IGNORED_TESTS.get(test_suite, [])):
                 if name_matches_pattern(test_string, str_or_re):
                     ignored = True
 
@@ -265,13 +261,6 @@ class DriverVSReference(Task):
                 results.error("SKIP/FAIL -> PASS: {}", suite_case)
             if ignored and suite_case in driver_outcomes.successes:
                 results.error("uselessly ignored: {}", suite_case)
-
-    def run(self, results: Results, outcomes: Outcomes) -> None:
-        """Compare driver test outcomes with reference outcomes."""
-        ignored_suites = ['test_suite_' + x for x in self.IGNORED_SUITES]
-        self.analyze_driver_vs_reference(results, outcomes,
-                                         self.REFERENCE, self.DRIVER,
-                                         ignored_suites, self.IGNORED_TESTS)
 
 
 # The names that we give to classes derived from DriverVSReference do not

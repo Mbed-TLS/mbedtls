@@ -114,7 +114,9 @@ def analyze_coverage(results: Results, outcomes: Outcomes,
             else:
                 results.warning('Allow listed test case was executed: {}', suite_case)
 
-def name_matches_pattern(name: str, str_or_re) -> bool:
+IgnoreEntry = typing.Union[str, typing.Pattern]
+
+def name_matches_pattern(name: str, str_or_re: IgnoreEntry) -> bool:
     """Check if name matches a pattern, that may be a string or regex.
     - If the pattern is a string, name must be equal to match.
     - If the pattern is a regex, name must fully match.
@@ -190,17 +192,6 @@ def read_outcome_file(outcome_file: str) -> Outcomes:
 
     return outcomes
 
-def do_analyze_driver_vs_reference(results: Results, outcomes: Outcomes, args) -> None:
-    """Perform driver vs reference analyze."""
-    results.new_section("Analyze driver {} vs reference {}",
-                        args['component_driver'], args['component_ref'])
-
-    ignored_suites = ['test_suite_' + x for x in args['ignored_suites']]
-
-    analyze_driver_vs_reference(results, outcomes,
-                                args['component_ref'], args['component_driver'],
-                                ignored_suites, args['ignored_tests'])
-
 
 class Task:
     """Base class for outcome analysis tasks."""
@@ -247,19 +238,58 @@ class CoverageTask(Task):
                          self.ALLOW_LIST, self.full_coverage)
 
 
+class DriverVSReference(Task):
+    """Compare outcomes from testing with and without a driver.
+
+    There are 2 options to use analyze_driver_vs_reference_xxx locally:
+    1. Run tests and then analysis:
+      - tests/scripts/all.sh --outcome-file "$PWD/out.csv" <component_ref> <component_driver>
+      - tests/scripts/analyze_outcomes.py out.csv analyze_driver_vs_reference_xxx
+    2. Let this script run both automatically:
+      - tests/scripts/analyze_outcomes.py out.csv analyze_driver_vs_reference_xxx
+    """
+
+    # Override the following in child classes.
+    # Configuration name (all.sh component) used as the reference.
+    REFERENCE = ''
+    # Configuration name (all.sh component) used as the driver.
+    DRIVER = ''
+    # Ignored test suites (without the test_suite_ prefix).
+    IGNORED_SUITES = [] #type: typing.List[str]
+    # Map test suite names (with the test_suite_prefix) to a list of ignored
+    # test cases. Each element in the list can be either a string or a regex;
+    # see the `name_matches_pattern` function.
+    IGNORED_TESTS = {} #type: typing.Dict[str, typing.List[IgnoreEntry]]
+
+    def section_name(self) -> str:
+        return f"Analyze driver {self.DRIVER} vs reference {self.REFERENCE}"
+
+    def run(self, results: Results, outcomes: Outcomes) -> None:
+        """Compare driver test outcomes with reference outcomes."""
+        ignored_suites = ['test_suite_' + x for x in self.IGNORED_SUITES]
+        analyze_driver_vs_reference(results, outcomes,
+                                    self.REFERENCE, self.DRIVER,
+                                    ignored_suites, self.IGNORED_TESTS)
+
+
+def driver_vs_reference_factory(name: str,
+                                args: typing.Dict[str, typing.Any]
+                                ) -> typing.Type[DriverVSReference]:
+    """Build a driver-vs-reference class from dynamic data."""
+    return type('Drivervsreference_' + name,
+                (DriverVSReference,),
+                {
+                    'REFERENCE': args['component_ref'],
+                    'DRIVER': args['component_driver'],
+                    'IGNORED_SUITES': args['ignored_suites'],
+                    'IGNORED_TESTS': args['ignored_tests'],
+                })
+
 # List of tasks with a function that can handle this task and additional arguments if required
 KNOWN_TASKS = {
     'analyze_coverage': CoverageTask,
 
-    # There are 2 options to use analyze_driver_vs_reference_xxx locally:
-    # 1. Run tests and then analysis:
-    #   - tests/scripts/all.sh --outcome-file "$PWD/out.csv" <component_ref> <component_driver>
-    #   - tests/scripts/analyze_outcomes.py out.csv analyze_driver_vs_reference_xxx
-    # 2. Let this script run both automatically:
-    #   - tests/scripts/analyze_outcomes.py out.csv analyze_driver_vs_reference_xxx
-    'analyze_driver_vs_reference_hash': {
-        'test_function': do_analyze_driver_vs_reference,
-        'args': {
+    'analyze_driver_vs_reference_hash': driver_vs_reference_factory('hash', {
             'component_ref': 'test_psa_crypto_config_reference_hash_use_psa',
             'component_driver': 'test_psa_crypto_config_accel_hash_use_psa',
             'ignored_suites': [
@@ -279,10 +309,8 @@ KNOWN_TASKS = {
                 ],
             }
         }
-    },
-    'analyze_driver_vs_reference_hmac': {
-        'test_function': do_analyze_driver_vs_reference,
-        'args': {
+    ),
+    'analyze_driver_vs_reference_hmac': driver_vs_reference_factory('hmac', {
             'component_ref': 'test_psa_crypto_config_reference_hmac',
             'component_driver': 'test_psa_crypto_config_accel_hmac',
             'ignored_suites': [
@@ -321,10 +349,8 @@ KNOWN_TASKS = {
                 ],
             }
         }
-    },
-    'analyze_driver_vs_reference_cipher_aead_cmac': {
-        'test_function': do_analyze_driver_vs_reference,
-        'args': {
+    ),
+    'analyze_driver_vs_reference_cipher_aead_cmac': driver_vs_reference_factory('cipher_aead_cmac', {
             'component_ref': 'test_psa_crypto_config_reference_cipher_aead_cmac',
             'component_driver': 'test_psa_crypto_config_accel_cipher_aead_cmac',
             # Modules replaced by drivers.
@@ -391,10 +417,8 @@ KNOWN_TASKS = {
                 ],
             }
         }
-    },
-    'analyze_driver_vs_reference_ecp_light_only': {
-        'test_function': do_analyze_driver_vs_reference,
-        'args': {
+    ),
+    'analyze_driver_vs_reference_ecp_light_only': driver_vs_reference_factory('ecp_light_only', {
             'component_ref': 'test_psa_crypto_config_reference_ecc_ecp_light_only',
             'component_driver': 'test_psa_crypto_config_accel_ecc_ecp_light_only',
             'ignored_suites': [
@@ -434,10 +458,8 @@ KNOWN_TASKS = {
                 ],
             }
         }
-    },
-    'analyze_driver_vs_reference_no_ecp_at_all': {
-        'test_function': do_analyze_driver_vs_reference,
-        'args': {
+    ),
+    'analyze_driver_vs_reference_no_ecp_at_all': driver_vs_reference_factory('no_ecp_at_all', {
             'component_ref': 'test_psa_crypto_config_reference_ecc_no_ecp_at_all',
             'component_driver': 'test_psa_crypto_config_accel_ecc_no_ecp_at_all',
             'ignored_suites': [
@@ -475,10 +497,8 @@ KNOWN_TASKS = {
                 ],
             }
         }
-    },
-    'analyze_driver_vs_reference_ecc_no_bignum': {
-        'test_function': do_analyze_driver_vs_reference,
-        'args': {
+    ),
+    'analyze_driver_vs_reference_ecc_no_bignum': driver_vs_reference_factory('ecc_no_bignum', {
             'component_ref': 'test_psa_crypto_config_reference_ecc_no_bignum',
             'component_driver': 'test_psa_crypto_config_accel_ecc_no_bignum',
             'ignored_suites': [
@@ -523,10 +543,8 @@ KNOWN_TASKS = {
                 ],
             }
         }
-    },
-    'analyze_driver_vs_reference_ecc_ffdh_no_bignum': {
-        'test_function': do_analyze_driver_vs_reference,
-        'args': {
+    ),
+    'analyze_driver_vs_reference_ecc_ffdh_no_bignum': driver_vs_reference_factory('ecc_ffdh_no_bignum', {
             'component_ref': 'test_psa_crypto_config_reference_ecc_ffdh_no_bignum',
             'component_driver': 'test_psa_crypto_config_accel_ecc_ffdh_no_bignum',
             'ignored_suites': [
@@ -579,10 +597,8 @@ KNOWN_TASKS = {
                 ],
             }
         }
-    },
-    'analyze_driver_vs_reference_ffdh_alg': {
-        'test_function': do_analyze_driver_vs_reference,
-        'args': {
+    ),
+    'analyze_driver_vs_reference_ffdh_alg': driver_vs_reference_factory('ffdh_alg', {
             'component_ref': 'test_psa_crypto_config_reference_ffdh',
             'component_driver': 'test_psa_crypto_config_accel_ffdh',
             'ignored_suites': ['dhm'],
@@ -598,10 +614,8 @@ KNOWN_TASKS = {
                 ],
             }
         }
-    },
-    'analyze_driver_vs_reference_tfm_config': {
-        'test_function':  do_analyze_driver_vs_reference,
-        'args': {
+    ),
+    'analyze_driver_vs_reference_tfm_config': driver_vs_reference_factory('tfm_config', {
             'component_ref': 'test_tfm_config_no_p256m',
             'component_driver': 'test_tfm_config_p256m_driver_accel_ec',
             'ignored_suites': [
@@ -633,10 +647,8 @@ KNOWN_TASKS = {
                 ],
             }
         }
-    },
-    'analyze_driver_vs_reference_rsa': {
-        'test_function': do_analyze_driver_vs_reference,
-        'args': {
+    ),
+    'analyze_driver_vs_reference_rsa': driver_vs_reference_factory('rsa', {
             'component_ref': 'test_psa_crypto_config_reference_rsa_crypto',
             'component_driver': 'test_psa_crypto_config_accel_rsa_crypto',
             'ignored_suites': [
@@ -675,10 +687,8 @@ KNOWN_TASKS = {
                 ],
             }
         }
-    },
-    'analyze_block_cipher_dispatch': {
-        'test_function': do_analyze_driver_vs_reference,
-        'args': {
+    ),
+    'analyze_block_cipher_dispatch': driver_vs_reference_factory('block_cipher_dispatch', {
             'component_ref': 'test_full_block_cipher_legacy_dispatch',
             'component_driver': 'test_full_block_cipher_psa_dispatch',
             'ignored_suites': [
@@ -742,7 +752,7 @@ KNOWN_TASKS = {
                 ],
             }
         }
-    }
+    ),
 }
 
 def main():
@@ -790,14 +800,12 @@ def main():
 
             task_name = tasks_list[0]
             task = KNOWN_TASKS[task_name]
-            if isinstance(task, dict) and \
-               task['test_function'] != do_analyze_driver_vs_reference: # pylint: disable=comparison-with-callable
+            if not issubclass(task, DriverVSReference):
                 sys.stderr.write("please provide valid outcomes file for {}.\n".format(task_name))
                 sys.exit(2)
-
             execute_reference_driver_tests(main_results,
-                                           task['args']['component_ref'],
-                                           task['args']['component_driver'],
+                                           task.REFERENCE,
+                                           task.DRIVER,
                                            options.outcomes)
 
         outcomes = read_outcome_file(options.outcomes)

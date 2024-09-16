@@ -810,14 +810,9 @@ def main():
 
         for task_name in tasks_list:
             task_constructor = KNOWN_TASKS[task_name]
-            if isinstance(task_constructor, dict):
-                test_function = task_constructor['test_function']
-                test_args = task_constructor['args']
-                test_function(main_results, outcomes, test_args)
-            else:
-                task = task_constructor(options)
-                main_results.new_section(task.section_name())
-                task.run(main_results, outcomes)
+            task = task_constructor(options)
+            main_results.new_section(task.section_name())
+            task.run(main_results, outcomes)
 
         main_results.info("Overall results: {} warnings and {} errors",
                           main_results.warning_count, main_results.error_count)

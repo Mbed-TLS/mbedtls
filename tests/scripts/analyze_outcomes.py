@@ -82,38 +82,6 @@ def execute_reference_driver_tests(results: Results, ref_component: str, driver_
     if ret_val != 0:
         results.error("failed to run reference/driver components")
 
-def analyze_coverage(results: Results, outcomes: Outcomes,
-                     allow_list: typing.List[str], full_coverage: bool) -> None:
-    """Check that all available test cases are executed at least once."""
-    # Make sure that the generated data files are present (and up-to-date).
-    # This allows analyze_outcomes.py to run correctly on a fresh Git
-    # checkout.
-    cp = subprocess.run(['make', 'generated_files'],
-                        cwd='tests',
-                        stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                        check=False)
-    if cp.returncode != 0:
-        sys.stderr.write(cp.stdout.decode('utf-8'))
-        results.error("Failed \"make generated_files\" in tests. "
-                      "Coverage analysis may be incorrect.")
-    available = check_test_cases.collect_available_test_cases()
-    for suite_case in available:
-        hit = any(suite_case in comp_outcomes.successes or
-                  suite_case in comp_outcomes.failures
-                  for comp_outcomes in outcomes.values())
-
-        if not hit and suite_case not in allow_list:
-            if full_coverage:
-                results.error('Test case not executed: {}', suite_case)
-            else:
-                results.warning('Test case not executed: {}', suite_case)
-        elif hit and suite_case in allow_list:
-            # Test Case should be removed from the allow list.
-            if full_coverage:
-                results.error('Allow listed test case was executed: {}', suite_case)
-            else:
-                results.warning('Allow listed test case was executed: {}', suite_case)
-
 IgnoreEntry = typing.Union[str, typing.Pattern]
 
 def name_matches_pattern(name: str, str_or_re: IgnoreEntry) -> bool:
@@ -127,50 +95,6 @@ def name_matches_pattern(name: str, str_or_re: IgnoreEntry) -> bool:
         return str_or_re.fullmatch(name) is not None
     else:
         return str_or_re == name
-
-def analyze_driver_vs_reference(results: Results, outcomes: Outcomes,
-                                component_ref: str, component_driver: str,
-                                ignored_suites: typing.List[str], ignored_tests=None) -> None:
-    """Check that all tests passing in the driver component are also
-    passing in the corresponding reference component.
-    Skip:
-    - full test suites provided in ignored_suites list
-    - only some specific test inside a test suite, for which the corresponding
-      output string is provided
-    """
-    ref_outcomes = outcomes.get("component_" + component_ref)
-    driver_outcomes = outcomes.get("component_" + component_driver)
-
-    if ref_outcomes is None or driver_outcomes is None:
-        results.error("required components are missing: bad outcome file?")
-        return
-
-    if not ref_outcomes.successes:
-        results.error("no passing test in reference component: bad outcome file?")
-        return
-
-    for suite_case in ref_outcomes.successes:
-        # suite_case is like "test_suite_foo.bar;Description of test case"
-        (full_test_suite, test_string) = suite_case.split(';')
-        test_suite = full_test_suite.split('.')[0] # retrieve main part of test suite name
-
-        # Immediately skip fully-ignored test suites
-        if test_suite in ignored_suites or full_test_suite in ignored_suites:
-            continue
-
-        # For ignored test cases inside test suites, just remember and:
-        # don't issue an error if they're skipped with drivers,
-        # but issue an error if they're not (means we have a bad entry).
-        ignored = False
-        for str_or_re in (ignored_tests.get(full_test_suite, []) +
-                          ignored_tests.get(test_suite, [])):
-            if name_matches_pattern(test_string, str_or_re):
-                ignored = True
-
-        if not ignored and not suite_case in driver_outcomes.successes:
-            results.error("SKIP/FAIL -> PASS: {}", suite_case)
-        if ignored and suite_case in driver_outcomes.successes:
-            results.error("uselessly ignored: {}", suite_case)
 
 def read_outcome_file(outcome_file: str) -> Outcomes:
     """Parse an outcome file and return an outcome collection.
@@ -232,10 +156,43 @@ class CoverageTask(Task):
     def section_name() -> str:
         return "Analyze coverage"
 
+    @staticmethod
+    def analyze_coverage(results: Results, outcomes: Outcomes,
+                         allow_list: typing.List[str], full_coverage: bool) -> None:
+        """Check that all available test cases are executed at least once."""
+        # Make sure that the generated data files are present (and up-to-date).
+        # This allows analyze_outcomes.py to run correctly on a fresh Git
+        # checkout.
+        cp = subprocess.run(['make', 'generated_files'],
+                            cwd='tests',
+                            stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                            check=False)
+        if cp.returncode != 0:
+            sys.stderr.write(cp.stdout.decode('utf-8'))
+            results.error("Failed \"make generated_files\" in tests. "
+                          "Coverage analysis may be incorrect.")
+        available = check_test_cases.collect_available_test_cases()
+        for suite_case in available:
+            hit = any(suite_case in comp_outcomes.successes or
+                      suite_case in comp_outcomes.failures
+                      for comp_outcomes in outcomes.values())
+
+            if not hit and suite_case not in allow_list:
+                if full_coverage:
+                    results.error('Test case not executed: {}', suite_case)
+                else:
+                    results.warning('Test case not executed: {}', suite_case)
+            elif hit and suite_case in allow_list:
+                # Test Case should be removed from the allow list.
+                if full_coverage:
+                    results.error('Allow listed test case was executed: {}', suite_case)
+                else:
+                    results.warning('Allow listed test case was executed: {}', suite_case)
+
     def run(self, results: Results, outcomes: Outcomes):
         """Check that all test cases are executed at least once."""
-        analyze_coverage(results, outcomes,
-                         self.ALLOW_LIST, self.full_coverage)
+        self.analyze_coverage(results, outcomes,
+                              self.ALLOW_LIST, self.full_coverage)
 
 
 class DriverVSReference(Task):
@@ -264,12 +221,57 @@ class DriverVSReference(Task):
     def section_name(self) -> str:
         return f"Analyze driver {self.DRIVER} vs reference {self.REFERENCE}"
 
+    @staticmethod
+    def analyze_driver_vs_reference(results: Results, outcomes: Outcomes,
+                                    component_ref: str, component_driver: str,
+                                    ignored_suites: typing.List[str], ignored_tests=None) -> None:
+        """Check that all tests passing in the driver component are also
+        passing in the corresponding reference component.
+        Skip:
+        - full test suites provided in ignored_suites list
+        - only some specific test inside a test suite, for which the corresponding
+          output string is provided
+        """
+        ref_outcomes = outcomes.get("component_" + component_ref)
+        driver_outcomes = outcomes.get("component_" + component_driver)
+
+        if ref_outcomes is None or driver_outcomes is None:
+            results.error("required components are missing: bad outcome file?")
+            return
+
+        if not ref_outcomes.successes:
+            results.error("no passing test in reference component: bad outcome file?")
+            return
+
+        for suite_case in ref_outcomes.successes:
+            # suite_case is like "test_suite_foo.bar;Description of test case"
+            (full_test_suite, test_string) = suite_case.split(';')
+            test_suite = full_test_suite.split('.')[0] # retrieve main part of test suite name
+
+            # Immediately skip fully-ignored test suites
+            if test_suite in ignored_suites or full_test_suite in ignored_suites:
+                continue
+
+            # For ignored test cases inside test suites, just remember and:
+            # don't issue an error if they're skipped with drivers,
+            # but issue an error if they're not (means we have a bad entry).
+            ignored = False
+            for str_or_re in (ignored_tests.get(full_test_suite, []) +
+                              ignored_tests.get(test_suite, [])):
+                if name_matches_pattern(test_string, str_or_re):
+                    ignored = True
+
+            if not ignored and not suite_case in driver_outcomes.successes:
+                results.error("SKIP/FAIL -> PASS: {}", suite_case)
+            if ignored and suite_case in driver_outcomes.successes:
+                results.error("uselessly ignored: {}", suite_case)
+
     def run(self, results: Results, outcomes: Outcomes) -> None:
         """Compare driver test outcomes with reference outcomes."""
         ignored_suites = ['test_suite_' + x for x in self.IGNORED_SUITES]
-        analyze_driver_vs_reference(results, outcomes,
-                                    self.REFERENCE, self.DRIVER,
-                                    ignored_suites, self.IGNORED_TESTS)
+        self.analyze_driver_vs_reference(results, outcomes,
+                                         self.REFERENCE, self.DRIVER,
+                                         ignored_suites, self.IGNORED_TESTS)
 
 
 # The names that we give to classes derived from DriverVSReference do not

@@ -92,14 +92,114 @@ class CoverageTask(outcome_analysis.CoverageTask):
             'Opaque key for server authentication: invalid key: decrypt with ECC key, no async',
             'Opaque key for server authentication: invalid key: ecdh with RSA key, no async',
         ],
+        'test_suite_config.mbedtls_boolean': [
+            # We never test with CBC/PKCS5/PKCS12 enabled but
+            # PKCS7 padding disabled.
+            # https://github.com/Mbed-TLS/mbedtls/issues/9580
+            'Config: !MBEDTLS_CIPHER_PADDING_PKCS7',
+            # https://github.com/Mbed-TLS/mbedtls/issues/9583
+            'Config: !MBEDTLS_ECP_NIST_OPTIM',
+            # Missing coverage of test configurations.
+            # https://github.com/Mbed-TLS/mbedtls/issues/9585
+            'Config: !MBEDTLS_SSL_DTLS_ANTI_REPLAY',
+            # Missing coverage of test configurations.
+            # https://github.com/Mbed-TLS/mbedtls/issues/9585
+            'Config: !MBEDTLS_SSL_DTLS_HELLO_VERIFY',
+            # We don't run test_suite_config when we test this.
+            # https://github.com/Mbed-TLS/mbedtls/issues/9586
+            'Config: !MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED',
+            # We only test multithreading with pthreads.
+            # https://github.com/Mbed-TLS/mbedtls/issues/9584
+            'Config: !MBEDTLS_THREADING_PTHREAD',
+            # Built but not tested.
+            # https://github.com/Mbed-TLS/mbedtls/issues/9587
+            'Config: MBEDTLS_AES_USE_HARDWARE_ONLY',
+            # Untested platform-specific optimizations.
+            # https://github.com/Mbed-TLS/mbedtls/issues/9588
+            'Config: MBEDTLS_HAVE_SSE2',
+            # Obsolete configuration option, to be replaced by
+            # PSA entropy drivers.
+            # https://github.com/Mbed-TLS/mbedtls/issues/8150
+            'Config: MBEDTLS_NO_PLATFORM_ENTROPY',
+            # Untested aspect of the platform interface.
+            # https://github.com/Mbed-TLS/mbedtls/issues/9589
+            'Config: MBEDTLS_PLATFORM_NO_STD_FUNCTIONS',
+            # In a client-server build, test_suite_config runs in the
+            # client configuration, so it will never report
+            # MBEDTLS_PSA_CRYPTO_SPM as enabled. That's ok.
+            'Config: MBEDTLS_PSA_CRYPTO_SPM',
+            # We don't test on armv8 yet.
+            'Config: MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT',
+            'Config: MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY',
+            'Config: MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_ONLY',
+            'Config: MBEDTLS_SHA512_USE_A64_CRYPTO_ONLY',
+            # We don't run test_suite_config when we test this.
+            # https://github.com/Mbed-TLS/mbedtls/issues/9586
+            'Config: MBEDTLS_TEST_CONSTANT_FLOW_VALGRIND',
+        ],
+        'test_suite_config.psa_boolean': [
+            # We don't test with HMAC disabled.
+            # https://github.com/Mbed-TLS/mbedtls/issues/9591
+            'Config: !PSA_WANT_ALG_HMAC',
+            # We don't test with HMAC disabled.
+            # https://github.com/Mbed-TLS/mbedtls/issues/9591
+            'Config: !PSA_WANT_ALG_TLS12_PRF',
+            # The DERIVE key type is always enabled.
+            'Config: !PSA_WANT_KEY_TYPE_DERIVE',
+            # More granularity of key pair type enablement macros
+            # than we care to test.
+            # https://github.com/Mbed-TLS/mbedtls/issues/9590
+            'Config: !PSA_WANT_KEY_TYPE_DH_KEY_PAIR_EXPORT',
+            'Config: !PSA_WANT_KEY_TYPE_DH_KEY_PAIR_GENERATE',
+            'Config: !PSA_WANT_KEY_TYPE_DH_KEY_PAIR_IMPORT',
+            # More granularity of key pair type enablement macros
+            # than we care to test.
+            # https://github.com/Mbed-TLS/mbedtls/issues/9590
+            'Config: !PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_EXPORT',
+            'Config: !PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_IMPORT',
+            # We don't test with HMAC disabled.
+            # https://github.com/Mbed-TLS/mbedtls/issues/9591
+            'Config: !PSA_WANT_KEY_TYPE_HMAC',
+            # The PASSWORD key type is always enabled.
+            'Config: !PSA_WANT_KEY_TYPE_PASSWORD',
+            # The PASSWORD_HASH key type is always enabled.
+            'Config: !PSA_WANT_KEY_TYPE_PASSWORD_HASH',
+            # The RAW_DATA key type is always enabled.
+            'Config: !PSA_WANT_KEY_TYPE_RAW_DATA',
+            # More granularity of key pair type enablement macros
+            # than we care to test.
+            # https://github.com/Mbed-TLS/mbedtls/issues/9590
+            'Config: !PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_EXPORT',
+            'Config: !PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_IMPORT',
+            # Algorithm declared but not supported.
+            'Config: PSA_WANT_ALG_CBC_MAC',
+            # Algorithm declared but not supported.
+            'Config: PSA_WANT_ALG_XTS',
+            # Family declared but not supported.
+            'Config: PSA_WANT_ECC_SECP_K1_224',
+            # More granularity of key pair type enablement macros
+            # than we care to test.
+            # https://github.com/Mbed-TLS/mbedtls/issues/9590
+            'Config: PSA_WANT_KEY_TYPE_DH_KEY_PAIR_DERIVE',
+            'Config: PSA_WANT_KEY_TYPE_ECC_KEY_PAIR',
+            'Config: PSA_WANT_KEY_TYPE_RSA_KEY_PAIR',
+            'Config: PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_DERIVE',
+        ],
+        'test_suite_config.psa_combinations': [
+            # We don't test this unusual, but sensible configuration.
+            # https://github.com/Mbed-TLS/mbedtls/issues/9592
+            'Config: PSA_WANT_ALG_DETERMINSTIC_ECDSA without PSA_WANT_ALG_ECDSA',
+        ],
         'test_suite_pkcs12': [
-            # Probably a missing configuration in the CI.
+            # We never test with CBC/PKCS5/PKCS12 enabled but
+            # PKCS7 padding disabled.
             # https://github.com/Mbed-TLS/mbedtls/issues/9580
             'PBE Decrypt, (Invalid padding & PKCS7 padding disabled)',
             'PBE Encrypt, pad = 8 (PKCS7 padding disabled)',
         ],
         'test_suite_pkcs5': [
-            # Probably a missing configuration in the CI.
+            # We never test with CBC/PKCS5/PKCS12 enabled but
+            # PKCS7 padding disabled.
             # https://github.com/Mbed-TLS/mbedtls/issues/9580
             'PBES2 Decrypt (Invalid padding & PKCS7 padding disabled)',
             'PBES2 Encrypt, pad=6 (PKCS7 padding disabled)',

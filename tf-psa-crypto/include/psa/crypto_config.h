@@ -852,4 +852,114 @@
 
 /** \} name SECTION: Cryptographic mechanism selection (extended API) */
 
+/**
+ * \name SECTION: Data format support
+ *
+ * This section sets data-format specific settings.
+ * \{
+ */
+
+/**
+ * \def MBEDTLS_ASN1_PARSE_C
+ *
+ * Enable the generic ASN1 parser.
+ *
+ * Module:  library/asn1.c
+ * Caller:  library/x509.c
+ *          library/dhm.c
+ *          library/pkcs12.c
+ *          library/pkcs5.c
+ *          library/pkparse.c
+ */
+#define MBEDTLS_ASN1_PARSE_C
+
+/**
+ * \def MBEDTLS_ASN1_WRITE_C
+ *
+ * Enable the generic ASN1 writer.
+ *
+ * Module:  library/asn1write.c
+ * Caller:  library/ecdsa.c
+ *          library/pkwrite.c
+ *          library/x509_create.c
+ *          library/x509write_crt.c
+ *          library/x509write_csr.c
+ */
+#define MBEDTLS_ASN1_WRITE_C
+
+/**
+ * \def MBEDTLS_BASE64_C
+ *
+ * Enable the Base64 module.
+ *
+ * Module:  library/base64.c
+ * Caller:  library/pem.c
+ *
+ * This module is required for PEM support (required by X.509).
+ */
+#define MBEDTLS_BASE64_C
+
+/**
+ * \def MBEDTLS_OID_C
+ *
+ * Enable the OID database.
+ *
+ * Module:  library/oid.c
+ * Caller:  library/asn1write.c
+ *          library/pkcs5.c
+ *          library/pkparse.c
+ *          library/pkwrite.c
+ *          library/rsa.c
+ *          library/x509.c
+ *          library/x509_create.c
+ *          library/x509_crl.c
+ *          library/x509_crt.c
+ *          library/x509_csr.c
+ *          library/x509write_crt.c
+ *          library/x509write_csr.c
+ *
+ * This modules translates between OIDs and internal values.
+ */
+#define MBEDTLS_OID_C
+
+/**
+ * \def MBEDTLS_PEM_PARSE_C
+ *
+ * Enable PEM decoding / parsing.
+ *
+ * Module:  library/pem.c
+ * Caller:  library/dhm.c
+ *          library/pkparse.c
+ *          library/x509_crl.c
+ *          library/x509_crt.c
+ *          library/x509_csr.c
+ *
+ * Requires: MBEDTLS_BASE64_C
+ *           optionally MBEDTLS_MD5_C, or PSA Crypto with MD5 (see below)
+ *
+ * \warning When parsing password-protected files, if MD5 is provided only by
+ * a PSA driver, you must call psa_crypto_init() before the first file.
+ *
+ * This modules adds support for decoding / parsing PEM files.
+ */
+#define MBEDTLS_PEM_PARSE_C
+
+/**
+ * \def MBEDTLS_PEM_WRITE_C
+ *
+ * Enable PEM encoding / writing.
+ *
+ * Module:  library/pem.c
+ * Caller:  library/pkwrite.c
+ *          library/x509write_crt.c
+ *          library/x509write_csr.c
+ *
+ * Requires: MBEDTLS_BASE64_C
+ *
+ * This modules adds support for encoding / writing PEM files.
+ */
+#define MBEDTLS_PEM_WRITE_C
+
+/** \} name SECTION: Data format support */
+
 #endif /* PSA_CRYPTO_CONFIG_H */

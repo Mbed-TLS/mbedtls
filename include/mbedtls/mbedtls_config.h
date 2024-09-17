@@ -673,33 +673,6 @@
 //#define MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED
 
 /**
- * \def MBEDTLS_PK_PARSE_EC_EXTENDED
- *
- * Enhance support for reading EC keys using variants of SEC1 not allowed by
- * RFC 5915 and RFC 5480.
- *
- * Currently this means parsing the SpecifiedECDomain choice of EC
- * parameters (only known groups are supported, not arbitrary domains, to
- * avoid validation issues).
- *
- * Disable if you only need to support RFC 5915 + 5480 key formats.
- */
-#define MBEDTLS_PK_PARSE_EC_EXTENDED
-
-/**
- * \def MBEDTLS_PK_PARSE_EC_COMPRESSED
- *
- * Enable the support for parsing public keys of type Short Weierstrass
- * (MBEDTLS_ECP_DP_SECP_XXX and MBEDTLS_ECP_DP_BP_XXX) which are using the
- * compressed point format. This parsing is done through ECP module's functions.
- *
- * \note As explained in the description of MBEDTLS_ECP_PF_COMPRESSED (in ecp.h)
- *       the only unsupported curves are MBEDTLS_ECP_DP_SECP224R1 and
- *       MBEDTLS_ECP_DP_SECP224K1.
- */
-#define MBEDTLS_PK_PARSE_EC_COMPRESSED
-
-/**
  * \def MBEDTLS_ERROR_STRERROR_DUMMY
  *
  * Enable a dummy error function to make use of mbedtls_strerror() in
@@ -801,15 +774,6 @@
  * without notice.
  */
 //#define MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER
-
-/**
- * \def MBEDTLS_PK_RSA_ALT_SUPPORT
- *
- * Support external private RSA keys (eg from a HSM) in the PK layer.
- *
- * Comment this macro to disable support for external private RSA keys.
- */
-#define MBEDTLS_PK_RSA_ALT_SUPPORT
 
 /**
  * \def MBEDTLS_PKCS1_V15
@@ -2266,78 +2230,6 @@
 #define MBEDTLS_HMAC_DRBG_C
 
 /**
- * \def MBEDTLS_LMS_C
- *
- * Enable the LMS stateful-hash asymmetric signature algorithm.
- *
- * Module:  library/lms.c
- * Caller:
- *
- * Requires: MBEDTLS_PSA_CRYPTO_C
- *
- * Uncomment to enable the LMS verification algorithm and public key operations.
- */
-#define MBEDTLS_LMS_C
-
-/**
- * \def MBEDTLS_LMS_PRIVATE
- *
- * Enable LMS private-key operations and signing code. Functions enabled by this
- * option are experimental, and should not be used in production.
- *
- * Requires: MBEDTLS_LMS_C
- *
- * Uncomment to enable the LMS signature algorithm and private key operations.
- */
-//#define MBEDTLS_LMS_PRIVATE
-
-/**
- * \def MBEDTLS_NIST_KW_C
- *
- * Enable the Key Wrapping mode for 128-bit block ciphers,
- * as defined in NIST SP 800-38F. Only KW and KWP modes
- * are supported. At the moment, only AES is approved by NIST.
- *
- * Module:  library/nist_kw.c
- *
- * Requires: MBEDTLS_AES_C and MBEDTLS_CIPHER_C
- */
-#define MBEDTLS_NIST_KW_C
-
-/**
- * \def MBEDTLS_MD_C
- *
- * Enable the generic layer for message digest (hashing) and HMAC.
- *
- * Requires: one of: MBEDTLS_MD5_C, MBEDTLS_RIPEMD160_C, MBEDTLS_SHA1_C,
- *                   MBEDTLS_SHA224_C, MBEDTLS_SHA256_C, MBEDTLS_SHA384_C,
- *                   MBEDTLS_SHA512_C, or MBEDTLS_PSA_CRYPTO_C with at least
- *                   one hash.
- * Module:  library/md.c
- * Caller:  library/constant_time.c
- *          library/ecdsa.c
- *          library/ecjpake.c
- *          library/hkdf.c
- *          library/hmac_drbg.c
- *          library/pk.c
- *          library/pkcs5.c
- *          library/pkcs12.c
- *          library/psa_crypto_ecp.c
- *          library/psa_crypto_rsa.c
- *          library/rsa.c
- *          library/ssl_cookie.c
- *          library/ssl_msg.c
- *          library/ssl_tls.c
- *          library/x509.c
- *          library/x509_crt.c
- *          library/x509write_crt.c
- *          library/x509write_csr.c
- *
- * Uncomment to enable generic message digest wrappers.
- */
-#define MBEDTLS_MD_C
-
-/**
  * \def MBEDTLS_MD5_C
  *
  * Enable the MD5 hash algorithm.
@@ -2455,69 +2347,6 @@
 #define MBEDTLS_PEM_WRITE_C
 
 /**
- * \def MBEDTLS_PK_C
- *
- * Enable the generic public (asymmetric) key layer.
- *
- * Module:  library/pk.c
- * Caller:  library/psa_crypto_rsa.c
- *          library/ssl_tls.c
- *          library/ssl*_client.c
- *          library/ssl*_server.c
- *          library/x509.c
- *
- * Requires: MBEDTLS_MD_C, MBEDTLS_RSA_C or MBEDTLS_ECP_C
- *
- * Uncomment to enable generic public key wrappers.
- */
-#define MBEDTLS_PK_C
-
-/**
- * \def MBEDTLS_PK_PARSE_C
- *
- * Enable the generic public (asymmetric) key parser.
- *
- * Module:  library/pkparse.c
- * Caller:  library/x509_crt.c
- *          library/x509_csr.c
- *
- * Requires: MBEDTLS_ASN1_PARSE_C, MBEDTLS_OID_C, MBEDTLS_PK_C
- *
- * Uncomment to enable generic public key parse functions.
- */
-#define MBEDTLS_PK_PARSE_C
-
-/**
- * \def MBEDTLS_PK_WRITE_C
- *
- * Enable the generic public (asymmetric) key writer.
- *
- * Module:  library/pkwrite.c
- * Caller:  library/x509write.c
- *
- * Requires: MBEDTLS_ASN1_WRITE_C, MBEDTLS_OID_C, MBEDTLS_PK_C
- *
- * Uncomment to enable generic public key write functions.
- */
-#define MBEDTLS_PK_WRITE_C
-
-/**
- * \def MBEDTLS_PKCS5_C
- *
- * Enable PKCS#5 functions.
- *
- * Module:  library/pkcs5.c
- *
- * Auto-enables: MBEDTLS_MD_C
- *
- * \warning If using a hash that is only provided by PSA drivers, you must
- * call psa_crypto_init() before doing any PKCS5 operations.
- *
- * This module adds support for the PKCS#5 functions.
- */
-#define MBEDTLS_PKCS5_C
-
-/**
  * \def MBEDTLS_PKCS7_C
  *
  * Enable PKCS #7 core for using PKCS #7-formatted signatures.
@@ -2532,25 +2361,6 @@
  * This module is required for the PKCS #7 parsing modules.
  */
 #define MBEDTLS_PKCS7_C
-
-/**
- * \def MBEDTLS_PKCS12_C
- *
- * Enable PKCS#12 PBE functions.
- * Adds algorithms for parsing PKCS#8 encrypted private keys
- *
- * Module:  library/pkcs12.c
- * Caller:  library/pkparse.c
- *
- * Requires: MBEDTLS_ASN1_PARSE_C and either MBEDTLS_MD_C or
- *           MBEDTLS_PSA_CRYPTO_C.
- *
- * \warning If using a hash that is only provided by PSA drivers, you must
- * call psa_crypto_init() before doing any PKCS12 operations.
- *
- * This module enables PKCS#12 functions.
- */
-#define MBEDTLS_PKCS12_C
 
 /**
  * \def MBEDTLS_POLY1305_C
@@ -3242,19 +3052,6 @@
 //#define MBEDTLS_MPI_WINDOW_SIZE            2 /**< Maximum window size used. */
 //#define MBEDTLS_MPI_MAX_SIZE            1024 /**< Maximum number of bytes for usable MPIs. */
 
-/* CTR_DRBG options */
-//#define MBEDTLS_CTR_DRBG_ENTROPY_LEN               48 /**< Amount of entropy used per seed by default (48 with SHA-512, 32 with SHA-256) */
-//#define MBEDTLS_CTR_DRBG_RESEED_INTERVAL        10000 /**< Interval before reseed is performed by default */
-//#define MBEDTLS_CTR_DRBG_MAX_INPUT                256 /**< Maximum number of additional input bytes */
-//#define MBEDTLS_CTR_DRBG_MAX_REQUEST             1024 /**< Maximum number of requested bytes per call */
-//#define MBEDTLS_CTR_DRBG_MAX_SEED_INPUT           384 /**< Maximum size of (re)seed buffer */
-
-/* HMAC_DRBG options */
-//#define MBEDTLS_HMAC_DRBG_RESEED_INTERVAL   10000 /**< Interval before reseed is performed by default */
-//#define MBEDTLS_HMAC_DRBG_MAX_INPUT           256 /**< Maximum number of additional input bytes */
-//#define MBEDTLS_HMAC_DRBG_MAX_REQUEST        1024 /**< Maximum number of requested bytes per call */
-//#define MBEDTLS_HMAC_DRBG_MAX_SEED_INPUT      384 /**< Maximum size of (re)seed buffer */
-
 /* ECP options */
 //#define MBEDTLS_ECP_WINDOW_SIZE            4 /**< Maximum window size used */
 //#define MBEDTLS_ECP_FIXED_POINT_OPTIM      1 /**< Enable fixed-point speed-up */
@@ -3263,26 +3060,6 @@
 //#define MBEDTLS_ENTROPY_MAX_SOURCES                20 /**< Maximum number of sources supported */
 //#define MBEDTLS_ENTROPY_MAX_GATHER                128 /**< Maximum amount requested from entropy sources */
 //#define MBEDTLS_ENTROPY_MIN_HARDWARE               32 /**< Default minimum number of bytes required for the hardware entropy source mbedtls_hardware_poll() before entropy is released */
-
-/* PSA options */
-/**
- * Use HMAC_DRBG with the specified hash algorithm for HMAC_DRBG for the
- * PSA crypto subsystem.
- *
- * If this option is unset, the library chooses a hash (currently between
- * #MBEDTLS_MD_SHA512 and #MBEDTLS_MD_SHA256) based on availability and
- * unspecified heuristics.
- *
- * \note The PSA crypto subsystem uses the first available mechanism amongst
- *       the following:
- *       - #MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG if enabled;
- *       - Entropy from #MBEDTLS_ENTROPY_C plus CTR_DRBG with AES
- *         if #MBEDTLS_CTR_DRBG_C is enabled;
- *       - Entropy from #MBEDTLS_ENTROPY_C plus HMAC_DRBG.
- *
- *       A future version may reevaluate the prioritization of DRBG mechanisms.
- */
-//#define MBEDTLS_PSA_HMAC_DRBG_MD_TYPE MBEDTLS_MD_SHA256
 
 /** \def MBEDTLS_PSA_KEY_SLOT_COUNT
  *

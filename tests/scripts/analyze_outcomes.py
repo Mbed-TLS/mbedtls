@@ -71,6 +71,27 @@ class CoverageTask(outcome_analysis.CoverageTask):
         _has_word_re(_PSA_MECHANISMS_NOT_IMPLEMENTED)
 
     IGNORED_TESTS = {
+        'ssl-opt': [
+            # We don't run ssl-opt.sh with Valgrind on the CI because
+            # it's extremely slow. We don't intend to change this.
+            'DTLS client reconnect from same port: reconnect, nbio, valgrind',
+
+            # We don't have IPv6 in our CI environment.
+            # https://github.com/Mbed-TLS/mbedtls-test/issues/176
+            'DTLS cookie: enabled, IPv6',
+            # Disabled due to OpenSSL bug.
+            # https://github.com/openssl/openssl/issues/18887
+            'DTLS fragmenting: 3d, openssl client, DTLS 1.2',
+            # We don't run ssl-opt.sh with Valgrind on the CI because
+            # it's extremely slow. We don't intend to change this.
+            'DTLS fragmenting: proxy MTU: auto-reduction (with valgrind)',
+            # It seems that we don't run `ssl-opt.sh` with
+            # `MBEDTLS_USE_PSA_CRYPTO` enabled but `MBEDTLS_SSL_ASYNC_PRIVATE`
+            # disabled.
+            # https://github.com/Mbed-TLS/mbedtls/issues/9581
+            'Opaque key for server authentication: invalid key: decrypt with ECC key, no async',
+            'Opaque key for server authentication: invalid key: ecdh with RSA key, no async',
+        ],
         'test_suite_psa_crypto_generate_key.generated': [
             # Ignore mechanisms that are not implemented, except
             # for public keys for which we always test that
@@ -138,6 +159,14 @@ class CoverageTask(outcome_analysis.CoverageTask):
         ],
         'test_suite_psa_crypto_storage_format.v0': [
             PSA_MECHANISM_NOT_IMPLEMENTED_SEARCH_RE,
+        ],
+        'tls13-misc': [
+            # Disabled due to OpenSSL bug.
+            # https://github.com/openssl/openssl/issues/10714
+            'TLS 1.3 O->m: resumption',
+            # Disabled due to OpenSSL command line limitation.
+            # https://github.com/Mbed-TLS/mbedtls/issues/9582
+            'TLS 1.3 m->O: resumption with early data',
         ],
     }
 

@@ -132,20 +132,6 @@
 //#define MBEDTLS_TIMING_ALT
 
 /**
- * \def MBEDTLS_ENTROPY_HARDWARE_ALT
- *
- * Uncomment this macro to let Mbed TLS use your own implementation of a
- * hardware entropy collector.
- *
- * Your function must be called \c mbedtls_hardware_poll(), have the same
- * prototype as declared in library/entropy_poll.h, and accept NULL as first
- * argument.
- *
- * Uncomment to use your own hardware entropy collector.
- */
-//#define MBEDTLS_ENTROPY_HARDWARE_ALT
-
-/**
  * \def MBEDTLS_AES_ROM_TABLES
  *
  * Use precomputed AES tables stored in ROM.
@@ -697,85 +683,6 @@
 #define MBEDTLS_GENPRIME
 
 /**
- * \def MBEDTLS_NO_DEFAULT_ENTROPY_SOURCES
- *
- * Do not add default entropy sources in mbedtls_entropy_init().
- *
- * This is useful to have more control over the added entropy sources in an
- * application.
- *
- * Uncomment this macro to prevent loading of default entropy functions.
- */
-//#define MBEDTLS_NO_DEFAULT_ENTROPY_SOURCES
-
-/**
- * \def MBEDTLS_NO_PLATFORM_ENTROPY
- *
- * Do not use built-in platform entropy functions.
- * This is useful if your platform does not support
- * standards like the /dev/urandom or Windows CryptoAPI.
- *
- * Uncomment this macro to disable the built-in platform entropy functions.
- */
-//#define MBEDTLS_NO_PLATFORM_ENTROPY
-
-/**
- * \def MBEDTLS_ENTROPY_FORCE_SHA256
- *
- * Force the entropy accumulator to use a SHA-256 accumulator instead of the
- * default SHA-512 based one (if both are available).
- *
- * Requires: MBEDTLS_SHA256_C
- *
- * On 32-bit systems SHA-256 can be much faster than SHA-512. Use this option
- * if you have performance concerns.
- *
- * This option is only useful if both MBEDTLS_SHA256_C and
- * MBEDTLS_SHA512_C are defined. Otherwise the available hash module is used.
- */
-//#define MBEDTLS_ENTROPY_FORCE_SHA256
-
-/**
- * \def MBEDTLS_ENTROPY_NV_SEED
- *
- * Enable the non-volatile (NV) seed file-based entropy source.
- * (Also enables the NV seed read/write functions in the platform layer)
- *
- * This is crucial (if not required) on systems that do not have a
- * cryptographic entropy source (in hardware or kernel) available.
- *
- * Requires: MBEDTLS_ENTROPY_C, MBEDTLS_PLATFORM_C
- *
- * \note The read/write functions that are used by the entropy source are
- *       determined in the platform layer, and can be modified at runtime and/or
- *       compile-time depending on the flags (MBEDTLS_PLATFORM_NV_SEED_*) used.
- *
- * \note If you use the default implementation functions that read a seedfile
- *       with regular fopen(), please make sure you make a seedfile with the
- *       proper name (defined in MBEDTLS_PLATFORM_STD_NV_SEED_FILE) and at
- *       least MBEDTLS_ENTROPY_BLOCK_SIZE bytes in size that can be read from
- *       and written to or you will get an entropy source error! The default
- *       implementation will only use the first MBEDTLS_ENTROPY_BLOCK_SIZE
- *       bytes from the file.
- *
- * \note The entropy collector will write to the seed file before entropy is
- *       given to an external source, to update it.
- */
-//#define MBEDTLS_ENTROPY_NV_SEED
-
-/* MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER
- *
- * Enable key identifiers that encode a key owner identifier.
- *
- * The owner of a key is identified by a value of type ::mbedtls_key_owner_id_t
- * which is currently hard-coded to be int32_t.
- *
- * Note that this option is meant for internal use only and may be removed
- * without notice.
- */
-//#define MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER
-
-/**
  * \def MBEDTLS_PKCS1_V15
  *
  * Enable support for PKCS#1 v1.5 encoding.
@@ -799,97 +706,6 @@
  * This enables support for RSAES-OAEP and RSASSA-PSS operations.
  */
 #define MBEDTLS_PKCS1_V21
-
-/** \def MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS
- *
- * Enable support for platform built-in keys. If you enable this feature,
- * you must implement the function mbedtls_psa_platform_get_builtin_key().
- * See the documentation of that function for more information.
- *
- * Built-in keys are typically derived from a hardware unique key or
- * stored in a secure element.
- *
- * Requires: MBEDTLS_PSA_CRYPTO_C.
- *
- * \warning This interface is experimental and may change or be removed
- * without notice.
- */
-//#define MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS
-
-/** \def MBEDTLS_PSA_CRYPTO_CLIENT
- *
- * Enable support for PSA crypto client.
- *
- * \note This option allows to include the code necessary for a PSA
- *       crypto client when the PSA crypto implementation is not included in
- *       the library (MBEDTLS_PSA_CRYPTO_C disabled). The code included is the
- *       code to set and get PSA key attributes.
- *       The development of PSA drivers partially relying on the library to
- *       fulfill the hardware gaps is another possible usage of this option.
- *
- * \warning This interface is experimental and may change or be removed
- * without notice.
- */
-//#define MBEDTLS_PSA_CRYPTO_CLIENT
-
-/** \def MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG
- *
- * Make the PSA Crypto module use an external random generator provided
- * by a driver, instead of Mbed TLS's entropy and DRBG modules.
- *
- * \note This random generator must deliver random numbers with cryptographic
- *       quality and high performance. It must supply unpredictable numbers
- *       with a uniform distribution. The implementation of this function
- *       is responsible for ensuring that the random generator is seeded
- *       with sufficient entropy. If you have a hardware TRNG which is slow
- *       or delivers non-uniform output, declare it as an entropy source
- *       with mbedtls_entropy_add_source() instead of enabling this option.
- *
- * If you enable this option, you must configure the type
- * ::mbedtls_psa_external_random_context_t in psa/crypto_platform.h
- * and define a function called mbedtls_psa_external_get_random()
- * with the following prototype:
- * ```
- * psa_status_t mbedtls_psa_external_get_random(
- *     mbedtls_psa_external_random_context_t *context,
- *     uint8_t *output, size_t output_size, size_t *output_length);
- * );
- * ```
- * The \c context value is initialized to 0 before the first call.
- * The function must fill the \c output buffer with \c output_size bytes
- * of random data and set \c *output_length to \c output_size.
- *
- * Requires: MBEDTLS_PSA_CRYPTO_C
- *
- * \warning If you enable this option, code that uses the PSA cryptography
- *          interface will not use any of the entropy sources set up for
- *          the entropy module, nor the NV seed that MBEDTLS_ENTROPY_NV_SEED
- *          enables.
- *
- * \note This option is experimental and may be removed without notice.
- */
-//#define MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG
-
-/**
- * \def MBEDTLS_PSA_CRYPTO_SPM
- *
- * When MBEDTLS_PSA_CRYPTO_SPM is defined, the code is built for SPM (Secure
- * Partition Manager) integration which separates the code into two parts: a
- * NSPE (Non-Secure Process Environment) and an SPE (Secure Process
- * Environment).
- *
- * If you enable this option, your build environment must include a header
- * file `"crypto_spe.h"` (either in the `psa` subdirectory of the Mbed TLS
- * header files, or in another directory on the compiler's include search
- * path). Alternatively, your platform may customize the header
- * `psa/crypto_platform.h`, in which case it can skip or replace the
- * inclusion of `"crypto_spe.h"`.
- *
- * Module:  library/psa_crypto.c
- * Requires: MBEDTLS_PSA_CRYPTO_C
- *
- */
-//#define MBEDTLS_PSA_CRYPTO_SPM
 
 /**
  * \def MBEDTLS_PSA_KEY_STORE_DYNAMIC
@@ -945,39 +761,6 @@
  *       the built-in ECC implementation, see docs/driver-only-builds.md.
  */
 //#define MBEDTLS_PSA_P256M_DRIVER_ENABLED
-
-/**
- * \def MBEDTLS_PSA_INJECT_ENTROPY
- *
- * Enable support for entropy injection at first boot. This feature is
- * required on systems that do not have a built-in entropy source (TRNG).
- * This feature is currently not supported on systems that have a built-in
- * entropy source.
- *
- * Requires: MBEDTLS_PSA_CRYPTO_STORAGE_C, MBEDTLS_ENTROPY_NV_SEED
- *
- */
-//#define MBEDTLS_PSA_INJECT_ENTROPY
-
-/**
- * \def MBEDTLS_PSA_ASSUME_EXCLUSIVE_BUFFERS
- *
- * Assume all buffers passed to PSA functions are owned exclusively by the
- * PSA function and are not stored in shared memory.
- *
- * This option may be enabled if all buffers passed to any PSA function reside
- * in memory that is accessible only to the PSA function during its execution.
- *
- * This option MUST be disabled whenever buffer arguments are in memory shared
- * with an untrusted party, for example where arguments to PSA calls are passed
- * across a trust boundary.
- *
- * \note Enabling this option reduces memory usage and code size.
- *
- * \note Enabling this option causes overlap of input and output buffers
- *       not to be supported by PSA functions.
- */
-//#define MBEDTLS_PSA_ASSUME_EXCLUSIVE_BUFFERS
 
 /**
  * \def MBEDTLS_RSA_NO_CRT
@@ -2104,20 +1887,6 @@
 #define MBEDTLS_ECP_C
 
 /**
- * \def MBEDTLS_ENTROPY_C
- *
- * Enable the platform-specific entropy code.
- *
- * Module:  library/entropy.c
- * Caller:
- *
- * Requires: MBEDTLS_SHA512_C or MBEDTLS_SHA256_C
- *
- * This module provides a generic entropy pool
- */
-#define MBEDTLS_ENTROPY_C
-
-/**
  * \def MBEDTLS_ERROR_C
  *
  * Enable error code to error string conversion.
@@ -2272,22 +2041,6 @@
 #define MBEDTLS_POLY1305_C
 
 /**
- * \def MBEDTLS_PSA_CRYPTO_C
- *
- * Enable the Platform Security Architecture cryptography API.
- *
- * Module:  library/psa_crypto.c
- *
- * Requires: either MBEDTLS_CTR_DRBG_C and MBEDTLS_ENTROPY_C,
- *           or MBEDTLS_HMAC_DRBG_C and MBEDTLS_ENTROPY_C,
- *           or MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG.
- * Auto-enables: MBEDTLS_CIPHER_C if any unauthenticated (ie, non-AEAD) cipher
- *               is enabled in PSA (unless it's fully accelerated, see
- *               docs/driver-only-builds.md about that).
- */
-#define MBEDTLS_PSA_CRYPTO_C
-
-/**
  * \def MBEDTLS_PSA_CRYPTO_SE_C
  *
  * Enable dynamic secure element support in the Platform Security Architecture
@@ -2305,31 +2058,6 @@
  *
  */
 //#define MBEDTLS_PSA_CRYPTO_SE_C
-
-/**
- * \def MBEDTLS_PSA_CRYPTO_STORAGE_C
- *
- * Enable the Platform Security Architecture persistent key storage.
- *
- * Module:  library/psa_crypto_storage.c
- *
- * Requires: MBEDTLS_PSA_CRYPTO_C,
- *           either MBEDTLS_PSA_ITS_FILE_C or a native implementation of
- *           the PSA ITS interface
- */
-#define MBEDTLS_PSA_CRYPTO_STORAGE_C
-
-/**
- * \def MBEDTLS_PSA_ITS_FILE_C
- *
- * Enable the emulation of the Platform Security Architecture
- * Internal Trusted Storage (PSA ITS) over files.
- *
- * Module:  library/psa_its_file.c
- *
- * Requires: MBEDTLS_FS_IO
- */
-#define MBEDTLS_PSA_ITS_FILE_C
 
 /**
  * \def MBEDTLS_PSA_STATIC_KEY_SLOTS
@@ -2879,53 +2607,6 @@
  */
 //#define MBEDTLS_USER_CONFIG_FILE "/dev/null"
 
-/**
- * \def MBEDTLS_PSA_CRYPTO_PLATFORM_FILE
- *
- * If defined, this is a header which will be included instead of
- * `"psa/crypto_platform.h"`. This file should declare the same identifiers
- * as the one in Mbed TLS, but with definitions adapted to the platform on
- * which the library code will run.
- *
- * \note The required content of this header can vary from one version of
- *       Mbed TLS to the next. Integrators who provide an alternative file
- *       should review the changes in the original file whenever they
- *       upgrade Mbed TLS.
- *
- * This macro is expanded after an <tt>\#include</tt> directive. This is a popular but
- * non-standard feature of the C language, so this feature is only available
- * with compilers that perform macro expansion on an <tt>\#include</tt> line.
- *
- * The value of this symbol is typically a path in double quotes, either
- * absolute or relative to a directory on the include search path.
- */
-//#define MBEDTLS_PSA_CRYPTO_PLATFORM_FILE "psa/crypto_platform_alt.h"
-
-/**
- * \def MBEDTLS_PSA_CRYPTO_STRUCT_FILE
- *
- * If defined, this is a header which will be included instead of
- * `"psa/crypto_struct.h"`. This file should declare the same identifiers
- * as the one in Mbed TLS, but with definitions adapted to the environment
- * in which the library code will run. The typical use for this feature
- * is to provide alternative type definitions on the client side in
- * client-server integrations of PSA crypto, where operation structures
- * contain handles instead of cryptographic data.
- *
- * \note The required content of this header can vary from one version of
- *       Mbed TLS to the next. Integrators who provide an alternative file
- *       should review the changes in the original file whenever they
- *       upgrade Mbed TLS.
- *
- * This macro is expanded after an <tt>\#include</tt> directive. This is a popular but
- * non-standard feature of the C language, so this feature is only available
- * with compilers that perform macro expansion on an <tt>\#include</tt> line.
- *
- * The value of this symbol is typically a path in double quotes, either
- * absolute or relative to a directory on the include search path.
- */
-//#define MBEDTLS_PSA_CRYPTO_STRUCT_FILE "psa/crypto_struct_alt.h"
-
 /** \} name SECTION: General configuration options */
 
 /**
@@ -2954,31 +2635,6 @@
 /* ECP options */
 //#define MBEDTLS_ECP_WINDOW_SIZE            4 /**< Maximum window size used */
 //#define MBEDTLS_ECP_FIXED_POINT_OPTIM      1 /**< Enable fixed-point speed-up */
-
-/* Entropy options */
-//#define MBEDTLS_ENTROPY_MAX_SOURCES                20 /**< Maximum number of sources supported */
-//#define MBEDTLS_ENTROPY_MAX_GATHER                128 /**< Maximum amount requested from entropy sources */
-//#define MBEDTLS_ENTROPY_MIN_HARDWARE               32 /**< Default minimum number of bytes required for the hardware entropy source mbedtls_hardware_poll() before entropy is released */
-
-/** \def MBEDTLS_PSA_KEY_SLOT_COUNT
- *
- * When #MBEDTLS_PSA_KEY_STORE_DYNAMIC is disabled,
- * the maximum amount of PSA keys simultaneously in memory. This counts all
- * volatile keys, plus loaded persistent keys.
- *
- * When #MBEDTLS_PSA_KEY_STORE_DYNAMIC is enabled,
- * the maximum number of loaded persistent keys.
- *
- * Currently, persistent keys do not need to be loaded all the time while
- * a multipart operation is in progress, only while the operation is being
- * set up. This may change in future versions of the library.
- *
- * Currently, the library traverses of the whole table on each access to a
- * persistent key. Therefore large values may cause poor performance.
- *
- * This option has no effect when #MBEDTLS_PSA_CRYPTO_C is disabled.
- */
-//#define MBEDTLS_PSA_KEY_SLOT_COUNT 32
 
 /**
  * \def MBEDTLS_PSA_STATIC_KEY_SLOT_BUFFER_SIZE

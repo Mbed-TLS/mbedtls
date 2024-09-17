@@ -19,12 +19,21 @@ class CoverageTask(outcome_analysis.CoverageTask):
     outcome_analysis.FULL_COVERAGE_BY_DEFAULT = False
 
     @staticmethod
-    def _has_word_re(words: typing.Iterable[str]) -> typing.Pattern:
+    def _has_word_re(words: typing.Iterable[str],
+                     exclude: typing.Optional[str] = None) -> typing.Pattern:
         """Construct a regex that matches if any of the words appears.
 
         The occurrence must start and end at a word boundary.
+
+        If exclude is specified, strings containing a match for that
+        regular expression will not match the returned pattern.
         """
-        return re.compile(r'.*\b(?:' + r'|'.join(words) + r')\b.*')
+        exclude_clause = r''
+        if exclude:
+            exclude_clause = r'(?!.*' + exclude + ')'
+        return re.compile(exclude_clause +
+                          r'.*\b(?:' + r'|'.join(words) + r')\b.*',
+                          re.S)
 
     # generate_psa_tests.py generates test cases involving cryptographic
     # mechanisms (key types, families, algorithms) that are declared but
@@ -63,13 +72,25 @@ class CoverageTask(outcome_analysis.CoverageTask):
 
     IGNORED_TESTS = {
         'test_suite_psa_crypto_generate_key.generated': [
-            PSA_MECHANISM_NOT_IMPLEMENTED_SEARCH_RE,
+            # Ignore mechanisms that are not implemented, except
+            # for public keys for which we always test that
+            # psa_generate_key() returns PSA_ERROR_INVALID_ARGUMENT
+            # regardless of whether the specific key type is supported.
+            _has_word_re((mech
+                          for mech in _PSA_MECHANISMS_NOT_IMPLEMENTED
+                          if not mech.startswith('ECC_PUB')),
+                         exclude=r'ECC_PUB'),
         ],
         'test_suite_psa_crypto_not_supported.generated': [
             PSA_MECHANISM_NOT_IMPLEMENTED_SEARCH_RE,
         ],
         'test_suite_psa_crypto_op_fail.generated': [
-            PSA_MECHANISM_NOT_IMPLEMENTED_SEARCH_RE,
+            # Ignore mechanisms that are not implemented, except
+            # for test cases that assume the mechanism is not supported.
+            _has_word_re(_PSA_MECHANISMS_NOT_IMPLEMENTED,
+                         exclude=(r'.*: !(?:' +
+                                  r'|'.join(_PSA_MECHANISMS_NOT_IMPLEMENTED) +
+                                  r')\b')),
         ],
         'test_suite_psa_crypto_storage_format.current': [
             PSA_MECHANISM_NOT_IMPLEMENTED_SEARCH_RE,

@@ -11,6 +11,19 @@ $(MBEDTLS_PATH)/framework/exported.make not found.
 Run `git submodule update --init` to fetch the submodule contents.
 This is a fatal error
         endef
+        ifeq (,$(wildcard .git))
+          define error_message
+$(MBEDTLS_PATH)/.git/ not found.
+Please ensure you have downloaded a release version of Mbed TLS from GitHub.
+This is a fatal error
+          endef
+        else
+          define error_message
+$(MBEDTLS_PATH)/framework/exported.make not found.
+Run `git submodule update --init` to fetch the submodule contents.
+This is a fatal error
+          endef
+        endif
         $(error $(error_message))
     endif
     include framework/exported.make

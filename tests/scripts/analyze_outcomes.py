@@ -7,6 +7,7 @@ less likely to be useful.
 """
 
 import re
+import typing
 
 import scripts_path # pylint: disable=unused-import
 from mbedtls_framework import outcome_analysis
@@ -16,6 +17,67 @@ class CoverageTask(outcome_analysis.CoverageTask):
     # We'll populate IGNORED_TESTS soon. In the meantime, lack of coverage
     # is just a warning.
     outcome_analysis.FULL_COVERAGE_BY_DEFAULT = False
+
+    @staticmethod
+    def _has_word_re(words: typing.Iterable[str]) -> typing.Pattern:
+        """Construct a regex that matches if any of the words appears.
+
+        The occurrence must start and end at a word boundary.
+        """
+        return re.compile(r'.*\b(?:' + r'|'.join(words) + r')\b.*')
+
+    # generate_psa_tests.py generates test cases involving cryptographic
+    # mechanisms (key types, families, algorithms) that are declared but
+    # not implemented. Until we improve the Python scripts, ignore those
+    # test cases in the analysis.
+    # https://github.com/Mbed-TLS/mbedtls/issues/9572
+    _PSA_MECHANISMS_NOT_IMPLEMENTED = [
+        r'CBC_MAC',
+        r'DETERMINISTIC_DSA',
+        r'DET_DSA',
+        r'DSA',
+        r'ECC_KEY_PAIR\(BRAINPOOL_P_R1\) (?:160|192|224|320)-bit',
+        r'ECC_KEY_PAIR\(SECP_K1\) 225-bit',
+        r'ECC_PAIR\(BP_R1\) (?:160|192|224|320)-bit',
+        r'ECC_PAIR\(SECP_K1\) 225-bit',
+        r'ECC_PUBLIC_KEY\(BRAINPOOL_P_R1\) (?:160|192|224|320)-bit',
+        r'ECC_PUBLIC_KEY\(SECP_K1\) 225-bit',
+        r'ECC_PUB\(BP_R1\) (?:160|192|224|320)-bit',
+        r'ECC_PUB\(SECP_K1\) 225-bit',
+        r'ED25519PH',
+        r'ED448PH',
+        r'PEPPER',
+        r'PURE_EDDSA',
+        r'SECP_R2',
+        r'SECT_K1',
+        r'SECT_R1',
+        r'SECT_R2',
+        r'SHAKE256_512',
+        r'SHA_512_224',
+        r'SHA_512_256',
+        r'TWISTED_EDWARDS',
+        r'XTS',
+    ]
+    PSA_MECHANISM_NOT_IMPLEMENTED_SEARCH_RE = \
+        _has_word_re(_PSA_MECHANISMS_NOT_IMPLEMENTED)
+
+    IGNORED_TESTS = {
+        'test_suite_psa_crypto_generate_key.generated': [
+            PSA_MECHANISM_NOT_IMPLEMENTED_SEARCH_RE,
+        ],
+        'test_suite_psa_crypto_not_supported.generated': [
+            PSA_MECHANISM_NOT_IMPLEMENTED_SEARCH_RE,
+        ],
+        'test_suite_psa_crypto_op_fail.generated': [
+            PSA_MECHANISM_NOT_IMPLEMENTED_SEARCH_RE,
+        ],
+        'test_suite_psa_crypto_storage_format.current': [
+            PSA_MECHANISM_NOT_IMPLEMENTED_SEARCH_RE,
+        ],
+        'test_suite_psa_crypto_storage_format.v0': [
+            PSA_MECHANISM_NOT_IMPLEMENTED_SEARCH_RE,
+        ],
+    }
 
 
 # The names that we give to classes derived from DriverVSReference do not

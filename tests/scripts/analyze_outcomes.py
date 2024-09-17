@@ -82,7 +82,21 @@ class CoverageTask(outcome_analysis.CoverageTask):
                          exclude=r'ECC_PUB'),
         ],
         'test_suite_psa_crypto_not_supported.generated': [
+            # It is a bug that not-supported test cases aren't getting
+            # run for never-implemented key types.
+            # https://github.com/Mbed-TLS/mbedtls/issues/7915
             PSA_MECHANISM_NOT_IMPLEMENTED_SEARCH_RE,
+            # We mever test with DH key support disabled but support
+            # for a DH group enabled. The dependencies of these test
+            # cases don't really make sense.
+            # https://github.com/Mbed-TLS/mbedtls/issues/9574
+            re.compile(r'PSA \w+ DH_.*type not supported'),
+            # We only test partial support for DH with the 2048-bit group
+            # enabled and the other groups disabled.
+            # https://github.com/Mbed-TLS/mbedtls/issues/9575
+            'PSA generate DH_KEY_PAIR(RFC7919) 2048-bit group not supported',
+            'PSA import DH_KEY_PAIR(RFC7919) 2048-bit group not supported',
+            'PSA import DH_PUBLIC_KEY(RFC7919) 2048-bit group not supported',
         ],
         'test_suite_psa_crypto_op_fail.generated': [
             # Ignore mechanisms that are not implemented, except
@@ -91,6 +105,33 @@ class CoverageTask(outcome_analysis.CoverageTask):
                          exclude=(r'.*: !(?:' +
                                   r'|'.join(_PSA_MECHANISMS_NOT_IMPLEMENTED) +
                                   r')\b')),
+            # Incorrect dependency generation. To be fixed as part of the
+            # resolution of https://github.com/Mbed-TLS/mbedtls/issues/9167
+            # by forward-porting the commit
+            # "PSA test case generation: dependency inference class: operation fail"
+            # from https://github.com/Mbed-TLS/mbedtls/pull/9025 .
+            re.compile(r'.* with (?:DH|ECC)_(?:KEY_PAIR|PUBLIC_KEY)\(.*'),
+            # PBKDF2_HMAC is not in the default configuration, so we don't
+            # enable it in depends.py where we remove hashes.
+            # https://github.com/Mbed-TLS/mbedtls/issues/9576
+            re.compile(r'PSA key_derivation PBKDF2_HMAC\(\w+\): !(?!PBKDF2_HMAC\Z).*'),
+            # We never test with TLS12_PRF or TLS12_PSK_TO_MS disabled
+            # but certain other things enabled.
+            # https://github.com/Mbed-TLS/mbedtls/issues/9577
+            re.compile(r'PSA key_derivation TLS12_PRF\(\w+\): !TLS12_PRF'),
+            re.compile(r'PSA key_derivation TLS12_PSK_TO_MS'
+                       r'\((?!SHA_256|SHA_384|SHA_512)\w+\): !TLS12_PSK_TO_MS'),
+            'PSA key_derivation KEY_AGREEMENT(ECDH,TLS12_PRF(SHA_256)): !TLS12_PRF',
+            'PSA key_derivation KEY_AGREEMENT(ECDH,TLS12_PRF(SHA_384)): !TLS12_PRF',
+
+            # We never test with the HMAC algorithm enabled but the HMAC
+            # key type disabled. Those dependencies don't really make sense.
+            # https://github.com/Mbed-TLS/mbedtls/issues/9573
+            re.compile(r'.* !HMAC with HMAC'),
+            # There's something wrong with PSA_WANT_ALG_RSA_PSS_ANY_SALT
+            # differing from PSA_WANT_ALG_RSA_PSS.
+            # https://github.com/Mbed-TLS/mbedtls/issues/9578
+            re.compile(r'PSA sign RSA_PSS_ANY_SALT.*!(?:MD|RIPEMD|SHA).*'),
         ],
         'test_suite_psa_crypto_storage_format.current': [
             PSA_MECHANISM_NOT_IMPLEMENTED_SEARCH_RE,

@@ -1885,4 +1885,759 @@
 
 /** \} name SECTION: Builtin drivers */
 
+/**
+ * \name SECTION: Legacy cryptography
+ *
+ * This section sets legacy settings.
+ * \{
+ */
+
+/**
+ * \def MBEDTLS_AES_C
+ *
+ * Enable the AES block cipher.
+ *
+ * Module:  library/aes.c
+ * Caller:  library/cipher.c
+ *          library/pem.c
+ *          library/ctr_drbg.c
+ *
+ * This module enables the following ciphersuites (if other requisites are
+ * enabled as well):
+ *      MBEDTLS_TLS_ECDH_ECDSA_WITH_AES_128_CBC_SHA
+ *      MBEDTLS_TLS_ECDH_ECDSA_WITH_AES_256_CBC_SHA
+ *      MBEDTLS_TLS_ECDH_RSA_WITH_AES_128_CBC_SHA
+ *      MBEDTLS_TLS_ECDH_RSA_WITH_AES_256_CBC_SHA
+ *      MBEDTLS_TLS_ECDH_ECDSA_WITH_AES_128_CBC_SHA256
+ *      MBEDTLS_TLS_ECDH_ECDSA_WITH_AES_256_CBC_SHA384
+ *      MBEDTLS_TLS_ECDH_RSA_WITH_AES_128_CBC_SHA256
+ *      MBEDTLS_TLS_ECDH_RSA_WITH_AES_256_CBC_SHA384
+ *      MBEDTLS_TLS_ECDH_ECDSA_WITH_AES_128_GCM_SHA256
+ *      MBEDTLS_TLS_ECDH_ECDSA_WITH_AES_256_GCM_SHA384
+ *      MBEDTLS_TLS_ECDH_RSA_WITH_AES_128_GCM_SHA256
+ *      MBEDTLS_TLS_ECDH_RSA_WITH_AES_256_GCM_SHA384
+ *      MBEDTLS_TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384
+ *      MBEDTLS_TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+ *      MBEDTLS_TLS_DHE_RSA_WITH_AES_256_GCM_SHA384
+ *      MBEDTLS_TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384
+ *      MBEDTLS_TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384
+ *      MBEDTLS_TLS_DHE_RSA_WITH_AES_256_CBC_SHA256
+ *      MBEDTLS_TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA
+ *      MBEDTLS_TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA
+ *      MBEDTLS_TLS_DHE_RSA_WITH_AES_256_CBC_SHA
+ *      MBEDTLS_TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256
+ *      MBEDTLS_TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+ *      MBEDTLS_TLS_DHE_RSA_WITH_AES_128_GCM_SHA256
+ *      MBEDTLS_TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256
+ *      MBEDTLS_TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256
+ *      MBEDTLS_TLS_DHE_RSA_WITH_AES_128_CBC_SHA256
+ *      MBEDTLS_TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA
+ *      MBEDTLS_TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA
+ *      MBEDTLS_TLS_DHE_RSA_WITH_AES_128_CBC_SHA
+ *      MBEDTLS_TLS_DHE_PSK_WITH_AES_256_GCM_SHA384
+ *      MBEDTLS_TLS_ECDHE_PSK_WITH_AES_256_CBC_SHA384
+ *      MBEDTLS_TLS_DHE_PSK_WITH_AES_256_CBC_SHA384
+ *      MBEDTLS_TLS_ECDHE_PSK_WITH_AES_256_CBC_SHA
+ *      MBEDTLS_TLS_DHE_PSK_WITH_AES_256_CBC_SHA
+ *      MBEDTLS_TLS_DHE_PSK_WITH_AES_128_GCM_SHA256
+ *      MBEDTLS_TLS_ECDHE_PSK_WITH_AES_128_CBC_SHA256
+ *      MBEDTLS_TLS_DHE_PSK_WITH_AES_128_CBC_SHA256
+ *      MBEDTLS_TLS_ECDHE_PSK_WITH_AES_128_CBC_SHA
+ *      MBEDTLS_TLS_DHE_PSK_WITH_AES_128_CBC_SHA
+ *      MBEDTLS_TLS_RSA_WITH_AES_256_GCM_SHA384
+ *      MBEDTLS_TLS_RSA_WITH_AES_256_CBC_SHA256
+ *      MBEDTLS_TLS_RSA_WITH_AES_256_CBC_SHA
+ *      MBEDTLS_TLS_RSA_WITH_AES_128_GCM_SHA256
+ *      MBEDTLS_TLS_RSA_WITH_AES_128_CBC_SHA256
+ *      MBEDTLS_TLS_RSA_WITH_AES_128_CBC_SHA
+ *      MBEDTLS_TLS_PSK_WITH_AES_256_GCM_SHA384
+ *      MBEDTLS_TLS_PSK_WITH_AES_256_CBC_SHA384
+ *      MBEDTLS_TLS_PSK_WITH_AES_256_CBC_SHA
+ *      MBEDTLS_TLS_PSK_WITH_AES_128_GCM_SHA256
+ *      MBEDTLS_TLS_PSK_WITH_AES_128_CBC_SHA256
+ *      MBEDTLS_TLS_PSK_WITH_AES_128_CBC_SHA
+ *
+ * PEM_PARSE uses AES for decrypting encrypted keys.
+ */
+#define MBEDTLS_AES_C
+
+/**
+ * \def MBEDTLS_ARIA_C
+ *
+ * Enable the ARIA block cipher.
+ *
+ * Module:  library/aria.c
+ * Caller:  library/cipher.c
+ *
+ * This module enables the following ciphersuites (if other requisites are
+ * enabled as well):
+ *
+ *      MBEDTLS_TLS_RSA_WITH_ARIA_128_CBC_SHA256
+ *      MBEDTLS_TLS_RSA_WITH_ARIA_256_CBC_SHA384
+ *      MBEDTLS_TLS_DHE_RSA_WITH_ARIA_128_CBC_SHA256
+ *      MBEDTLS_TLS_DHE_RSA_WITH_ARIA_256_CBC_SHA384
+ *      MBEDTLS_TLS_ECDHE_ECDSA_WITH_ARIA_128_CBC_SHA256
+ *      MBEDTLS_TLS_ECDHE_ECDSA_WITH_ARIA_256_CBC_SHA384
+ *      MBEDTLS_TLS_ECDH_ECDSA_WITH_ARIA_128_CBC_SHA256
+ *      MBEDTLS_TLS_ECDH_ECDSA_WITH_ARIA_256_CBC_SHA384
+ *      MBEDTLS_TLS_ECDHE_RSA_WITH_ARIA_128_CBC_SHA256
+ *      MBEDTLS_TLS_ECDHE_RSA_WITH_ARIA_256_CBC_SHA384
+ *      MBEDTLS_TLS_ECDH_RSA_WITH_ARIA_128_CBC_SHA256
+ *      MBEDTLS_TLS_ECDH_RSA_WITH_ARIA_256_CBC_SHA384
+ *      MBEDTLS_TLS_RSA_WITH_ARIA_128_GCM_SHA256
+ *      MBEDTLS_TLS_RSA_WITH_ARIA_256_GCM_SHA384
+ *      MBEDTLS_TLS_DHE_RSA_WITH_ARIA_128_GCM_SHA256
+ *      MBEDTLS_TLS_DHE_RSA_WITH_ARIA_256_GCM_SHA384
+ *      MBEDTLS_TLS_ECDHE_ECDSA_WITH_ARIA_128_GCM_SHA256
+ *      MBEDTLS_TLS_ECDHE_ECDSA_WITH_ARIA_256_GCM_SHA384
+ *      MBEDTLS_TLS_ECDH_ECDSA_WITH_ARIA_128_GCM_SHA256
+ *      MBEDTLS_TLS_ECDH_ECDSA_WITH_ARIA_256_GCM_SHA384
+ *      MBEDTLS_TLS_ECDHE_RSA_WITH_ARIA_128_GCM_SHA256
+ *      MBEDTLS_TLS_ECDHE_RSA_WITH_ARIA_256_GCM_SHA384
+ *      MBEDTLS_TLS_ECDH_RSA_WITH_ARIA_128_GCM_SHA256
+ *      MBEDTLS_TLS_ECDH_RSA_WITH_ARIA_256_GCM_SHA384
+ *      MBEDTLS_TLS_PSK_WITH_ARIA_128_CBC_SHA256
+ *      MBEDTLS_TLS_PSK_WITH_ARIA_256_CBC_SHA384
+ *      MBEDTLS_TLS_DHE_PSK_WITH_ARIA_128_CBC_SHA256
+ *      MBEDTLS_TLS_DHE_PSK_WITH_ARIA_256_CBC_SHA384
+ *      MBEDTLS_TLS_PSK_WITH_ARIA_128_GCM_SHA256
+ *      MBEDTLS_TLS_PSK_WITH_ARIA_256_GCM_SHA384
+ *      MBEDTLS_TLS_DHE_PSK_WITH_ARIA_128_GCM_SHA256
+ *      MBEDTLS_TLS_DHE_PSK_WITH_ARIA_256_GCM_SHA384
+ *      MBEDTLS_TLS_ECDHE_PSK_WITH_ARIA_128_CBC_SHA256
+ *      MBEDTLS_TLS_ECDHE_PSK_WITH_ARIA_256_CBC_SHA384
+ */
+#define MBEDTLS_ARIA_C
+
+/**
+ * \def MBEDTLS_BIGNUM_C
+ *
+ * Enable the multi-precision integer library.
+ *
+ * Module:  library/bignum.c
+ *          library/bignum_core.c
+ *          library/bignum_mod.c
+ *          library/bignum_mod_raw.c
+ * Caller:  library/dhm.c
+ *          library/ecp.c
+ *          library/ecdsa.c
+ *          library/rsa.c
+ *          library/rsa_alt_helpers.c
+ *          library/ssl_tls.c
+ *
+ * This module is required for RSA, DHM and ECC (ECDH, ECDSA) support.
+ */
+#define MBEDTLS_BIGNUM_C
+
+/**
+ * \def MBEDTLS_CAMELLIA_C
+ *
+ * Enable the Camellia block cipher.
+ *
+ * Module:  library/camellia.c
+ * Caller:  library/cipher.c
+ *
+ * This module enables the following ciphersuites (if other requisites are
+ * enabled as well):
+ *      MBEDTLS_TLS_ECDH_ECDSA_WITH_CAMELLIA_128_CBC_SHA256
+ *      MBEDTLS_TLS_ECDH_ECDSA_WITH_CAMELLIA_256_CBC_SHA384
+ *      MBEDTLS_TLS_ECDH_RSA_WITH_CAMELLIA_128_CBC_SHA256
+ *      MBEDTLS_TLS_ECDH_RSA_WITH_CAMELLIA_256_CBC_SHA384
+ *      MBEDTLS_TLS_ECDH_ECDSA_WITH_CAMELLIA_128_GCM_SHA256
+ *      MBEDTLS_TLS_ECDH_ECDSA_WITH_CAMELLIA_256_GCM_SHA384
+ *      MBEDTLS_TLS_ECDH_RSA_WITH_CAMELLIA_128_GCM_SHA256
+ *      MBEDTLS_TLS_ECDH_RSA_WITH_CAMELLIA_256_GCM_SHA384
+ *      MBEDTLS_TLS_ECDHE_ECDSA_WITH_CAMELLIA_256_GCM_SHA384
+ *      MBEDTLS_TLS_ECDHE_RSA_WITH_CAMELLIA_256_GCM_SHA384
+ *      MBEDTLS_TLS_DHE_RSA_WITH_CAMELLIA_256_GCM_SHA384
+ *      MBEDTLS_TLS_ECDHE_ECDSA_WITH_CAMELLIA_256_CBC_SHA384
+ *      MBEDTLS_TLS_ECDHE_RSA_WITH_CAMELLIA_256_CBC_SHA384
+ *      MBEDTLS_TLS_DHE_RSA_WITH_CAMELLIA_256_CBC_SHA256
+ *      MBEDTLS_TLS_DHE_RSA_WITH_CAMELLIA_256_CBC_SHA
+ *      MBEDTLS_TLS_ECDHE_ECDSA_WITH_CAMELLIA_128_GCM_SHA256
+ *      MBEDTLS_TLS_ECDHE_RSA_WITH_CAMELLIA_128_GCM_SHA256
+ *      MBEDTLS_TLS_DHE_RSA_WITH_CAMELLIA_128_GCM_SHA256
+ *      MBEDTLS_TLS_ECDHE_ECDSA_WITH_CAMELLIA_128_CBC_SHA256
+ *      MBEDTLS_TLS_ECDHE_RSA_WITH_CAMELLIA_128_CBC_SHA256
+ *      MBEDTLS_TLS_DHE_RSA_WITH_CAMELLIA_128_CBC_SHA256
+ *      MBEDTLS_TLS_DHE_RSA_WITH_CAMELLIA_128_CBC_SHA
+ *      MBEDTLS_TLS_DHE_PSK_WITH_CAMELLIA_256_GCM_SHA384
+ *      MBEDTLS_TLS_ECDHE_PSK_WITH_CAMELLIA_256_CBC_SHA384
+ *      MBEDTLS_TLS_DHE_PSK_WITH_CAMELLIA_256_CBC_SHA384
+ *      MBEDTLS_TLS_DHE_PSK_WITH_CAMELLIA_128_GCM_SHA256
+ *      MBEDTLS_TLS_DHE_PSK_WITH_CAMELLIA_128_CBC_SHA256
+ *      MBEDTLS_TLS_ECDHE_PSK_WITH_CAMELLIA_128_CBC_SHA256
+ *      MBEDTLS_TLS_RSA_WITH_CAMELLIA_256_GCM_SHA384
+ *      MBEDTLS_TLS_RSA_WITH_CAMELLIA_256_CBC_SHA256
+ *      MBEDTLS_TLS_RSA_WITH_CAMELLIA_256_CBC_SHA
+ *      MBEDTLS_TLS_RSA_WITH_CAMELLIA_128_GCM_SHA256
+ *      MBEDTLS_TLS_RSA_WITH_CAMELLIA_128_CBC_SHA256
+ *      MBEDTLS_TLS_RSA_WITH_CAMELLIA_128_CBC_SHA
+ *      MBEDTLS_TLS_PSK_WITH_CAMELLIA_256_GCM_SHA384
+ *      MBEDTLS_TLS_PSK_WITH_CAMELLIA_256_CBC_SHA384
+ *      MBEDTLS_TLS_PSK_WITH_CAMELLIA_128_GCM_SHA256
+ *      MBEDTLS_TLS_PSK_WITH_CAMELLIA_128_CBC_SHA256
+ */
+#define MBEDTLS_CAMELLIA_C
+
+/**
+ * \def MBEDTLS_CCM_C
+ *
+ * Enable the Counter with CBC-MAC (CCM) mode for 128-bit block cipher.
+ *
+ * Module:  library/ccm.c
+ *
+ * Requires: MBEDTLS_CIPHER_C, MBEDTLS_AES_C or MBEDTLS_CAMELLIA_C or
+ *                             MBEDTLS_ARIA_C
+ *
+ * This module enables the AES-CCM ciphersuites, if other requisites are
+ * enabled as well.
+ */
+#define MBEDTLS_CCM_C
+
+/**
+ * \def MBEDTLS_CHACHA20_C
+ *
+ * Enable the ChaCha20 stream cipher.
+ *
+ * Module:  library/chacha20.c
+ */
+#define MBEDTLS_CHACHA20_C
+
+/**
+ * \def MBEDTLS_CHACHAPOLY_C
+ *
+ * Enable the ChaCha20-Poly1305 AEAD algorithm.
+ *
+ * Module:  library/chachapoly.c
+ *
+ * This module requires: MBEDTLS_CHACHA20_C, MBEDTLS_POLY1305_C
+ */
+#define MBEDTLS_CHACHAPOLY_C
+
+/**
+ * \def MBEDTLS_CIPHER_C
+ *
+ * Enable the generic cipher layer.
+ *
+ * Module:  library/cipher.c
+ * Caller:  library/ccm.c
+ *          library/cmac.c
+ *          library/gcm.c
+ *          library/nist_kw.c
+ *          library/pkcs12.c
+ *          library/pkcs5.c
+ *          library/psa_crypto_aead.c
+ *          library/psa_crypto_mac.c
+ *          library/ssl_ciphersuites.c
+ *          library/ssl_msg.c
+ * Auto-enabled by: MBEDTLS_PSA_CRYPTO_C depending on which ciphers are enabled
+ *                  (see the documentation of that option for details).
+ *
+ * Uncomment to enable generic cipher wrappers.
+ */
+#define MBEDTLS_CIPHER_C
+
+/**
+ * \def MBEDTLS_CIPHER_MODE_CBC
+ *
+ * Enable Cipher Block Chaining mode (CBC) for symmetric ciphers.
+ */
+#define MBEDTLS_CIPHER_MODE_CBC
+
+/**
+ * \def MBEDTLS_CIPHER_MODE_CFB
+ *
+ * Enable Cipher Feedback mode (CFB) for symmetric ciphers.
+ */
+#define MBEDTLS_CIPHER_MODE_CFB
+
+/**
+ * \def MBEDTLS_CIPHER_MODE_CTR
+ *
+ * Enable Counter Block Cipher mode (CTR) for symmetric ciphers.
+ */
+#define MBEDTLS_CIPHER_MODE_CTR
+
+/**
+ * \def MBEDTLS_CIPHER_MODE_OFB
+ *
+ * Enable Output Feedback mode (OFB) for symmetric ciphers.
+ */
+#define MBEDTLS_CIPHER_MODE_OFB
+
+/**
+ * \def MBEDTLS_CIPHER_MODE_XTS
+ *
+ * Enable Xor-encrypt-xor with ciphertext stealing mode (XTS) for AES.
+ */
+#define MBEDTLS_CIPHER_MODE_XTS
+
+/**
+ * \def MBEDTLS_CIPHER_PADDING_PKCS7
+ *
+ * MBEDTLS_CIPHER_PADDING_XXX: Uncomment or comment macros to add support for
+ * specific padding modes in the cipher layer with cipher modes that support
+ * padding (e.g. CBC)
+ *
+ * If you disable all padding modes, only full blocks can be used with CBC.
+ *
+ * Enable padding modes in the cipher layer.
+ */
+#define MBEDTLS_CIPHER_PADDING_PKCS7
+#define MBEDTLS_CIPHER_PADDING_ONE_AND_ZEROS
+#define MBEDTLS_CIPHER_PADDING_ZEROS_AND_LEN
+#define MBEDTLS_CIPHER_PADDING_ZEROS
+
+/**
+ * \def MBEDTLS_CMAC_C
+ *
+ * Enable the CMAC (Cipher-based Message Authentication Code) mode for block
+ * ciphers.
+ *
+ * Module:  library/cmac.c
+ *
+ * Requires: MBEDTLS_CIPHER_C, MBEDTLS_AES_C or MBEDTLS_DES_C
+ *
+ */
+#define MBEDTLS_CMAC_C
+
+/**
+ * \def MBEDTLS_CTR_DRBG_C
+ *
+ * Enable the CTR_DRBG AES-based random generator.
+ * The CTR_DRBG generator uses AES-256 by default.
+ * To use AES-128 instead, enable \c MBEDTLS_CTR_DRBG_USE_128_BIT_KEY above.
+ *
+ * AES support can either be achieved through builtin (MBEDTLS_AES_C) or PSA.
+ * Builtin is the default option when MBEDTLS_AES_C is defined otherwise PSA
+ * is used.
+ *
+ * \warning When using PSA, the user should call `psa_crypto_init()` before
+ *          using any CTR_DRBG operation (except `mbedtls_ctr_drbg_init()`).
+ *
+ * \note AES-128 will be used if \c MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH is set.
+ *
+ * \note To achieve a 256-bit security strength with CTR_DRBG,
+ *       you must use AES-256 *and* use sufficient entropy.
+ *       See ctr_drbg.h for more details.
+ *
+ * Module:  library/ctr_drbg.c
+ * Caller:
+ *
+ * Requires: MBEDTLS_AES_C or
+ *           (PSA_WANT_KEY_TYPE_AES and PSA_WANT_ALG_ECB_NO_PADDING and
+ *            MBEDTLS_PSA_CRYPTO_C)
+ *
+ * This module provides the CTR_DRBG AES random number generator.
+ */
+#define MBEDTLS_CTR_DRBG_C
+
+/** \def MBEDTLS_CTR_DRBG_USE_128_BIT_KEY
+ *
+ * Uncomment this macro to use a 128-bit key in the CTR_DRBG module.
+ * Without this, CTR_DRBG uses a 256-bit key
+ * unless \c MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH is set.
+ */
+//#define MBEDTLS_CTR_DRBG_USE_128_BIT_KEY
+
+/**
+ * \def MBEDTLS_DES_C
+ *
+ * Enable the DES block cipher.
+ *
+ * Module:  library/des.c
+ * Caller:  library/pem.c
+ *          library/cipher.c
+ *
+ * PEM_PARSE uses DES/3DES for decrypting encrypted keys.
+ *
+ * \warning   DES/3DES are considered weak ciphers and their use constitutes a
+ *            security risk. We recommend considering stronger ciphers instead.
+ */
+#define MBEDTLS_DES_C
+
+/**
+ * \def MBEDTLS_DHM_C
+ *
+ * Enable the Diffie-Hellman-Merkle module.
+ *
+ * Module:  library/dhm.c
+ * Caller:  library/ssl_tls.c
+ *          library/ssl*_client.c
+ *          library/ssl*_server.c
+ *
+ * This module is used by the following key exchanges:
+ *      DHE-RSA, DHE-PSK
+ *
+ * \warning    Using DHE constitutes a security risk as it
+ *             is not possible to validate custom DH parameters.
+ *             If possible, it is recommended users should consider
+ *             preferring other methods of key exchange.
+ *             See dhm.h for more details.
+ *
+ */
+#define MBEDTLS_DHM_C
+
+/**
+ * \def MBEDTLS_ECDH_C
+ *
+ * Enable the elliptic curve Diffie-Hellman library.
+ *
+ * Module:  library/ecdh.c
+ * Caller:  library/psa_crypto.c
+ *          library/ssl_tls.c
+ *          library/ssl*_client.c
+ *          library/ssl*_server.c
+ *
+ * This module is used by the following key exchanges:
+ *      ECDHE-ECDSA, ECDHE-RSA, DHE-PSK
+ *
+ * Requires: MBEDTLS_ECP_C
+ */
+#define MBEDTLS_ECDH_C
+
+/**
+ * \def MBEDTLS_ECP_C
+ *
+ * Enable the elliptic curve over GF(p) library.
+ *
+ * Module:  library/ecp.c
+ * Caller:  library/ecdh.c
+ *          library/ecdsa.c
+ *          library/ecjpake.c
+ *
+ * Requires: MBEDTLS_BIGNUM_C and at least one MBEDTLS_ECP_DP_XXX_ENABLED
+ */
+#define MBEDTLS_ECP_C
+
+/**
+ * \def MBEDTLS_ECP_DP_SECP192R1_ENABLED
+ *
+ * MBEDTLS_ECP_XXXX_ENABLED: Enables specific curves within the Elliptic Curve
+ * module.  By default all supported curves are enabled.
+ *
+ * Comment macros to disable the curve and functions for it
+ */
+/* Short Weierstrass curves (supporting ECP, ECDH, ECDSA) */
+#define MBEDTLS_ECP_DP_SECP192R1_ENABLED
+#define MBEDTLS_ECP_DP_SECP224R1_ENABLED
+#define MBEDTLS_ECP_DP_SECP256R1_ENABLED
+#define MBEDTLS_ECP_DP_SECP384R1_ENABLED
+#define MBEDTLS_ECP_DP_SECP521R1_ENABLED
+#define MBEDTLS_ECP_DP_SECP192K1_ENABLED
+#define MBEDTLS_ECP_DP_SECP224K1_ENABLED
+#define MBEDTLS_ECP_DP_SECP256K1_ENABLED
+#define MBEDTLS_ECP_DP_BP256R1_ENABLED
+#define MBEDTLS_ECP_DP_BP384R1_ENABLED
+#define MBEDTLS_ECP_DP_BP512R1_ENABLED
+/* Montgomery curves (supporting ECP) */
+#define MBEDTLS_ECP_DP_CURVE25519_ENABLED
+#define MBEDTLS_ECP_DP_CURVE448_ENABLED
+
+/**
+ * \def MBEDTLS_ECDSA_C
+ *
+ * Enable the elliptic curve DSA library.
+ *
+ * Module:  library/ecdsa.c
+ * Caller:
+ *
+ * This module is used by the following key exchanges:
+ *      ECDHE-ECDSA
+ *
+ * Requires: MBEDTLS_ECP_C, MBEDTLS_ASN1_WRITE_C, MBEDTLS_ASN1_PARSE_C,
+ *           and at least one MBEDTLS_ECP_DP_XXX_ENABLED for a
+ *           short Weierstrass curve.
+ */
+#define MBEDTLS_ECDSA_C
+
+/**
+ * \def MBEDTLS_ECDSA_DETERMINISTIC
+ *
+ * Enable deterministic ECDSA (RFC 6979).
+ * Standard ECDSA is "fragile" in the sense that lack of entropy when signing
+ * may result in a compromise of the long-term signing key. This is avoided by
+ * the deterministic variant.
+ *
+ * Requires: MBEDTLS_HMAC_DRBG_C, MBEDTLS_ECDSA_C
+ *
+ * Comment this macro to disable deterministic ECDSA.
+ */
+#define MBEDTLS_ECDSA_DETERMINISTIC
+
+/**
+ * \def MBEDTLS_ECJPAKE_C
+ *
+ * Enable the elliptic curve J-PAKE library.
+ *
+ * \note EC J-PAKE support is based on the Thread v1.0.0 specification.
+ *       It has not been reviewed for compliance with newer standards such as
+ *       Thread v1.1 or RFC 8236.
+ *
+ * Module:  library/ecjpake.c
+ * Caller:
+ *
+ * This module is used by the following key exchanges:
+ *      ECJPAKE
+ *
+ * Requires: MBEDTLS_ECP_C and either MBEDTLS_MD_C or MBEDTLS_PSA_CRYPTO_C
+ *
+ * \warning If using a hash that is only provided by PSA drivers, you must
+ * call psa_crypto_init() before doing any EC J-PAKE operations.
+ */
+#define MBEDTLS_ECJPAKE_C
+
+/**
+ * \def MBEDTLS_GCM_C
+ *
+ * Enable the Galois/Counter Mode (GCM).
+ *
+ * Module:  library/gcm.c
+ *
+ * Requires: MBEDTLS_CIPHER_C, MBEDTLS_AES_C or MBEDTLS_CAMELLIA_C or
+ *                             MBEDTLS_ARIA_C
+ *
+ * This module enables the AES-GCM and CAMELLIA-GCM ciphersuites, if other
+ * requisites are enabled as well.
+ */
+#define MBEDTLS_GCM_C
+
+/**
+ * \def MBEDTLS_GENPRIME
+ *
+ * Enable the prime-number generation code.
+ *
+ * Requires: MBEDTLS_BIGNUM_C
+ */
+#define MBEDTLS_GENPRIME
+
+/**
+ * \def MBEDTLS_HKDF_C
+ *
+ * Enable the HKDF algorithm (RFC 5869).
+ *
+ * Module:  library/hkdf.c
+ * Caller:
+ *
+ * Requires: MBEDTLS_MD_C
+ *
+ * This module adds support for the Hashed Message Authentication Code
+ * (HMAC)-based key derivation function (HKDF).
+ */
+#define MBEDTLS_HKDF_C
+
+/**
+ * \def MBEDTLS_HMAC_DRBG_C
+ *
+ * Enable the HMAC_DRBG random generator.
+ *
+ * Module:  library/hmac_drbg.c
+ * Caller:
+ *
+ * Requires: MBEDTLS_MD_C
+ *
+ * Uncomment to enable the HMAC_DRBG random number generator.
+ */
+#define MBEDTLS_HMAC_DRBG_C
+
+/**
+ * \def MBEDTLS_MD5_C
+ *
+ * Enable the MD5 hash algorithm.
+ *
+ * Module:  library/md5.c
+ * Caller:  library/md.c
+ *          library/pem.c
+ *          library/ssl_tls.c
+ *
+ * This module is required for TLS 1.2 depending on the handshake parameters.
+ * Further, it is used for checking MD5-signed certificates, and for PBKDF1
+ * when decrypting PEM-encoded encrypted keys.
+ *
+ * \warning   MD5 is considered a weak message digest and its use constitutes a
+ *            security risk. If possible, we recommend avoiding dependencies on
+ *            it, and considering stronger message digests instead.
+ *
+ */
+#define MBEDTLS_MD5_C
+
+/**
+ * \def MBEDTLS_PKCS1_V15
+ *
+ * Enable support for PKCS#1 v1.5 encoding.
+ *
+ * Requires: MBEDTLS_RSA_C
+ *
+ * This enables support for PKCS#1 v1.5 operations.
+ */
+#define MBEDTLS_PKCS1_V15
+
+/**
+ * \def MBEDTLS_PKCS1_V21
+ *
+ * Enable support for PKCS#1 v2.1 encoding.
+ *
+ * Requires: MBEDTLS_RSA_C
+ *
+ * \warning If using a hash that is only provided by PSA drivers, you must
+ * call psa_crypto_init() before doing any PKCS#1 v2.1 operation.
+ *
+ * This enables support for RSAES-OAEP and RSASSA-PSS operations.
+ */
+#define MBEDTLS_PKCS1_V21
+
+/**
+ * \def MBEDTLS_POLY1305_C
+ *
+ * Enable the Poly1305 MAC algorithm.
+ *
+ * Module:  library/poly1305.c
+ * Caller:  library/chachapoly.c
+ */
+#define MBEDTLS_POLY1305_C
+
+/**
+ * \def MBEDTLS_PSA_CRYPTO_SE_C
+ *
+ * Enable dynamic secure element support in the Platform Security Architecture
+ * cryptography API.
+ *
+ * \deprecated This feature is deprecated. Please switch to the PSA driver
+ *             interface.
+ *
+ * \warning    This feature is not thread-safe, and should not be used in a
+ *             multi-threaded environment.
+ *
+ * Module:  library/psa_crypto_se.c
+ *
+ * Requires: MBEDTLS_PSA_CRYPTO_C, MBEDTLS_PSA_CRYPTO_STORAGE_C
+ *
+ */
+//#define MBEDTLS_PSA_CRYPTO_SE_C
+
+/**
+ * \def MBEDTLS_RIPEMD160_C
+ *
+ * Enable the RIPEMD-160 hash algorithm.
+ *
+ * Module:  library/ripemd160.c
+ * Caller:  library/md.c
+ *
+ */
+#define MBEDTLS_RIPEMD160_C
+
+/**
+ * \def MBEDTLS_RSA_C
+ *
+ * Enable the RSA public-key cryptosystem.
+ *
+ * Module:  library/rsa.c
+ *          library/rsa_alt_helpers.c
+ * Caller:  library/pk.c
+ *          library/psa_crypto.c
+ *          library/ssl_tls.c
+ *          library/ssl*_client.c
+ *          library/ssl*_server.c
+ *
+ * This module is used by the following key exchanges:
+ *      RSA, DHE-RSA, ECDHE-RSA
+ *
+ * Requires: MBEDTLS_BIGNUM_C, MBEDTLS_OID_C
+ */
+#define MBEDTLS_RSA_C
+
+/**
+ * \def MBEDTLS_SHA1_C
+ *
+ * Enable the SHA1 cryptographic hash algorithm.
+ *
+ * Module:  library/sha1.c
+ * Caller:  library/md.c
+ *          library/psa_crypto_hash.c
+ *
+ * This module is required for TLS 1.2 depending on the handshake parameters,
+ * and for SHA1-signed certificates.
+ *
+ * \warning   SHA-1 is considered a weak message digest and its use constitutes
+ *            a security risk. If possible, we recommend avoiding dependencies
+ *            on it, and considering stronger message digests instead.
+ *
+ */
+#define MBEDTLS_SHA1_C
+
+/**
+ * \def MBEDTLS_SHA224_C
+ *
+ * Enable the SHA-224 cryptographic hash algorithm.
+ *
+ * Module:  library/sha256.c
+ * Caller:  library/md.c
+ *          library/ssl_cookie.c
+ *
+ * This module adds support for SHA-224.
+ */
+#define MBEDTLS_SHA224_C
+
+/**
+ * \def MBEDTLS_SHA256_C
+ *
+ * Enable the SHA-256 cryptographic hash algorithm.
+ *
+ * Module:  library/sha256.c
+ * Caller:  library/entropy.c
+ *          library/md.c
+ *          library/ssl_tls.c
+ *          library/ssl*_client.c
+ *          library/ssl*_server.c
+ *
+ * This module adds support for SHA-256.
+ * This module is required for the SSL/TLS 1.2 PRF function.
+ */
+#define MBEDTLS_SHA256_C
+
+/**
+ * \def MBEDTLS_SHA384_C
+ *
+ * Enable the SHA-384 cryptographic hash algorithm.
+ *
+ * Module:  library/sha512.c
+ * Caller:  library/md.c
+ *          library/psa_crypto_hash.c
+ *          library/ssl_tls.c
+ *          library/ssl*_client.c
+ *          library/ssl*_server.c
+ *
+ * Comment to disable SHA-384
+ */
+#define MBEDTLS_SHA384_C
+
+/**
+ * \def MBEDTLS_SHA512_C
+ *
+ * Enable SHA-512 cryptographic hash algorithms.
+ *
+ * Module:  library/sha512.c
+ * Caller:  library/entropy.c
+ *          library/md.c
+ *          library/ssl_tls.c
+ *          library/ssl_cookie.c
+ *
+ * This module adds support for SHA-512.
+ */
+#define MBEDTLS_SHA512_C
+
+/**
+ * \def MBEDTLS_SHA3_C
+ *
+ * Enable the SHA3 cryptographic hash algorithm.
+ *
+ * Module:  library/sha3.c
+ *
+ * This module adds support for SHA3.
+ */
+#define MBEDTLS_SHA3_C
+
+/** \} name SECTION: Legacy cryptography */
+
 #endif /* PSA_CRYPTO_CONFIG_H */

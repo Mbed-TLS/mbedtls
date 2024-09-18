@@ -424,8 +424,8 @@ class CombinedConfig(config_common.Config):
         If mbedtls_file or crypto_file is specified, write the specific configuration
         to the corresponding file instead.
 
-        The parameter name is differ from the definition of the super class to handle
-        two different config files.
+        Two file name parameters and not only one as in the super class as we handle
+        two configuration files in this class.
         """
 
         self.mbedtls_configfile.write(self.settings, mbedtls_file)

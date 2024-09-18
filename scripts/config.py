@@ -447,8 +447,8 @@ class MbedTLSConfigTool(config_common.ConfigTool):
 
     def __init__(self):
         super().__init__(MbedTLSConfigFile)
-        self.config = CombinedConfig(MbedTLSConfigFile(self.parser_args.file),
-                                     CryptoConfigFile(self.parser_args.cryptofile))
+        self.config = CombinedConfig(MbedTLSConfigFile(self.args.file),
+                                     CryptoConfigFile(self.args.cryptofile))
 
     def custom_parser_options(self):
         """Adds MbedTLS specific options for the parser."""

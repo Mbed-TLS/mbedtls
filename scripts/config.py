@@ -422,13 +422,16 @@ class CombinedConfig(config_common.Config):
 
         If mbedtls_file or crypto_file is specified, write the specific configuration
         to the corresponding file instead.
+
+        The parameter name is differ from the definition of the super class to handle
+        two different config files.
         """
 
         self.mbedtls_configfile.write(self.settings, mbedtls_file)
         self.crypto_configfile.write(self.settings, crypto_file)
 
     def filename(self, name=None):
-        """Get the names of the config files.
+        """Get the name of the config files.
 
         If 'name' is specified return the name of the config file where it is defined.
         """

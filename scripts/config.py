@@ -447,7 +447,7 @@ class MbedTLSConfigTool(config_common.ConfigTool):
     """Command line mbedtls_config.h and crypto_config.h manipulation tool."""
 
     def __init__(self):
-        super().__init__(MbedTLSConfigFile)
+        super().__init__(MbedTLSConfigFile.default_path)
         self.config = CombinedConfig(MbedTLSConfigFile(self.args.file),
                                      CryptoConfigFile(self.args.cryptofile))
 

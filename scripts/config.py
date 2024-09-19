@@ -12,7 +12,6 @@ Basic usage, to read the Mbed TLS configuration:
 ##
 
 import os
-import re
 import sys
 
 import framework_scripts_path # pylint: disable=unused-import
@@ -362,85 +361,6 @@ class CryptoConfig(config_common.Config):
             self._get_configfile().templates.append((name, '', '#define ' + name + ' '))
 
         super().set(name, value)
-
-
-class CombinedConfig(config_common.Config):
-    """Representation of MbedTLS and PSA crypto configuration
-
-    See the documentation of the `Config` class for methods to query
-    and modify the configuration.
-    """
-
-    def __init__(self, *configs):
-        super().__init__()
-        for config in configs:
-            if isinstance(config, MbedTLSConfigFile):
-                self.mbedtls_configfile = config
-            elif isinstance(config, CryptoConfigFile):
-                self.crypto_configfile = config
-            else:
-                raise ValueError(f'Invalid configfile: {config}')
-            self.configfiles.append(config)
-
-        self.settings.update({name: config_common.Setting(configfile, active, name, value, section)
-                              for configfile in [self.mbedtls_configfile, self.crypto_configfile]
-                              for (active, name, value, section) in configfile.parse_file()})
-
-    _crypto_regexp = re.compile(r'$PSA_.*')
-    def _get_configfile(self, name=None):
-        """Find a config type for a setting name"""
-
-        if name in self.settings:
-            return self.settings[name].configfile
-        elif re.match(self._crypto_regexp, name):
-            return self.crypto_configfile
-        else:
-            return self.mbedtls_configfile
-
-    def set(self, name, value=None):
-        """Set name to the given value and make it active."""
-
-        configfile = self._get_configfile(name)
-
-        if configfile == self.crypto_configfile:
-            if name in PSA_UNSUPPORTED_FEATURE:
-                raise ValueError(f'Feature is unsupported: \'{name}\'')
-            if name in PSA_UNSTABLE_FEATURE:
-                raise ValueError(f'Feature is unstable: \'{name}\'')
-
-            # The default value in the crypto config is '1'
-            if not value:
-                value = '1'
-
-        if name not in self.settings:
-            configfile.templates.append((name, '', '#define ' + name + ' '))
-
-        super().set(name, value)
-
-    #pylint: disable=arguments-differ
-    def write(self, mbedtls_file=None, crypto_file=None):
-        """Write the whole configuration to the file it was read from.
-
-        If mbedtls_file or crypto_file is specified, write the specific configuration
-        to the corresponding file instead.
-
-        Two file name parameters and not only one as in the super class as we handle
-        two configuration files in this class.
-        """
-
-        self.mbedtls_configfile.write(self.settings, mbedtls_file)
-        self.crypto_configfile.write(self.settings, crypto_file)
-
-    def filename(self, name=None):
-        """Get the name of the config files.
-
-        If 'name' is specified return the name of the config file where it is defined.
-        """
-
-        if not name:
-            return [config.filename for config in [self.mbedtls_configfile, self.crypto_configfile]]
-
-        return self._get_configfile(name).filename
 
 
 class MbedTLSConfigTool(config_common.ConfigTool):

@@ -9,11 +9,9 @@
 #### Configuration Testing - TLS
 ################################################################
 
-component_test_config_suite_b_psa () {
-    msg "build: configs/config-suite-b.h + USE_PSA_CRYPTO"
+component_test_config_suite_b () {
+    msg "build: configs/config-suite-b.h"
     cp configs/config-suite-b.h "$CONFIG_H"
-    scripts/config.py set MBEDTLS_PSA_CRYPTO_C
-    scripts/config.py set MBEDTLS_USE_PSA_CRYPTO
     # test-ref-configs works by overwriting mbedtls_config.h; this makes cmake
     # want to re-generate generated files that depend on it, quite correctly.
     # However this doesn't work as the generation script expects a specific
@@ -26,20 +24,20 @@ component_test_config_suite_b_psa () {
     CC=$ASAN_CC cmake -D GEN_FILES=Off -D CMAKE_BUILD_TYPE:String=Asan .
     make
 
-    msg "test: configs/config-suite-b.h + USE_PSA_CRYPTO - unit tests"
+    msg "test: configs/config-suite-b.h - unit tests"
     make test
 
-    msg "test: configs/config-suite-b.h + USE_PSA_CRYPTO - compat.sh"
+    msg "test: configs/config-suite-b.h - compat.sh"
     tests/compat.sh -m tls12 -f 'ECDHE_ECDSA.*AES.*GCM' -p mbedTLS
 
-    msg "build: configs/config-suite-b.h + USE_PSA_CRYPTO + DEBUG"
+    msg "build: configs/config-suite-b.h + DEBUG"
     MBEDTLS_TEST_CONFIGURATION="$MBEDTLS_TEST_CONFIGURATION+DEBUG"
     make clean
     scripts/config.py set MBEDTLS_DEBUG_C
     scripts/config.py set MBEDTLS_ERROR_C
     make ssl-opt
 
-    msg "test: configs/config-suite-b.h + USE_PSA_CRYPTO + DEBUG - ssl-opt.sh"
+    msg "test: configs/config-suite-b.h + DEBUG - ssl-opt.sh"
     tests/ssl-opt.sh
 }
 
@@ -164,11 +162,9 @@ component_test_tls1_2_default_cbc_legacy_cbc_etm_cipher_only () {
     tests/ssl-opt.sh -f "TLS 1.2"
 }
 
-component_test_config_thread_psa () {
-    msg "build: configs/config-thread.h + USE_PSA_CRYPTO"
+component_test_config_thread () {
+    msg "build: configs/config-thread.h"
     cp configs/config-thread.h "$CONFIG_H"
-    scripts/config.py set MBEDTLS_PSA_CRYPTO_C
-    scripts/config.py set MBEDTLS_USE_PSA_CRYPTO
     # test-ref-configs works by overwriting mbedtls_config.h; this makes cmake
     # want to re-generate generated files that depend on it, quite correctly.
     # However this doesn't work as the generation script expects a specific
@@ -181,10 +177,10 @@ component_test_config_thread_psa () {
     CC=$ASAN_CC cmake -D GEN_FILES=Off -D CMAKE_BUILD_TYPE:String=Asan .
     make
 
-    msg "test: configs/config-thread.h + USE_PSA_CRYPTO - unit tests"
+    msg "test: configs/config-thread.h - unit tests"
     make test
 
-    msg "test: configs/config-thread.h + USE_PSA_CRYPTO - ssl-opt.sh"
+    msg "test: configs/config-thread.h - ssl-opt.sh"
     tests/ssl-opt.sh -f 'ECJPAKE.*nolog'
 }
 
@@ -221,11 +217,9 @@ component_test_tls1_2_ecjpake_compatibility () {
     rm s2_no_use_psa c2_no_use_psa
 }
 
-component_test_tls1_2_ccm_psk_psa () {
-    msg "build: configs/config-ccm-psk-tls1_2.h + USE_PSA_CRYPTO"
+component_test_tls1_2_ccm_psk () {
+    msg "build: configs/config-ccm-psk-tls1_2.h"
     cp configs/config-ccm-psk-tls1_2.h "$CONFIG_H"
-    scripts/config.py set MBEDTLS_PSA_CRYPTO_C
-    scripts/config.py set MBEDTLS_USE_PSA_CRYPTO
     # test-ref-configs works by overwriting mbedtls_config.h; this makes cmake
     # want to re-generate generated files that depend on it, quite correctly.
     # However this doesn't work as the generation script expects a specific
@@ -238,18 +232,16 @@ component_test_tls1_2_ccm_psk_psa () {
     CC=$ASAN_CC cmake -D GEN_FILES=Off -D CMAKE_BUILD_TYPE:String=Asan .
     make
 
-    msg "test: configs/config-ccm-psk-tls1_2.h + USE_PSA_CRYPTO - unit tests"
+    msg "test: configs/config-ccm-psk-tls1_2.h - unit tests"
     make test
 
-    msg "test: configs/config-ccm-psk-tls1_2.h + USE_PSA_CRYPTO - compat.sh"
+    msg "test: configs/config-ccm-psk-tls1_2.h - compat.sh"
     tests/compat.sh -m tls12 -f '^TLS_PSK_WITH_AES_..._CCM_8'
 }
 
-component_test_tls1_2_ccm_psk_dtls_psa () {
-    msg "build: configs/config-ccm-psk-dtls1_2.h + USE_PSA_CRYPTO"
+component_test_tls1_2_ccm_psk_dtls () {
+    msg "build: configs/config-ccm-psk-dtls1_2.h"
     cp configs/config-ccm-psk-dtls1_2.h "$CONFIG_H"
-    scripts/config.py set MBEDTLS_PSA_CRYPTO_C
-    scripts/config.py set MBEDTLS_USE_PSA_CRYPTO
     # test-ref-configs works by overwriting mbedtls_config.h; this makes cmake
     # want to re-generate generated files that depend on it, quite correctly.
     # However this doesn't work as the generation script expects a specific
@@ -262,20 +254,20 @@ component_test_tls1_2_ccm_psk_dtls_psa () {
     CC=$ASAN_CC cmake -D GEN_FILES=Off -D CMAKE_BUILD_TYPE:String=Asan .
     make
 
-    msg "test: configs/config-ccm-psk-dtls1_2.h + USE_PSA_CRYPTO - unit tests"
+    msg "test: configs/config-ccm-psk-dtls1_2.h - unit tests"
     make test
 
-    msg "test: configs/config-ccm-psk-dtls1_2.h + USE_PSA_CRYPTO - compat.sh"
+    msg "test: configs/config-ccm-psk-dtls1_2.h - compat.sh"
     tests/compat.sh -m dtls12 -f '^TLS_PSK_WITH_AES_..._CCM_8'
 
-    msg "build: configs/config-ccm-psk-dtls1_2.h + USE_PSA_CRYPTO + DEBUG"
+    msg "build: configs/config-ccm-psk-dtls1_2.h + DEBUG"
     MBEDTLS_TEST_CONFIGURATION="$MBEDTLS_TEST_CONFIGURATION+DEBUG"
     make clean
     scripts/config.py set MBEDTLS_DEBUG_C
     scripts/config.py set MBEDTLS_ERROR_C
     make ssl-opt
 
-    msg "test: configs/config-ccm-psk-dtls1_2.h + USE_PSA_CRYPTO + DEBUG - ssl-opt.sh"
+    msg "test: configs/config-ccm-psk-dtls1_2.h + DEBUG - ssl-opt.sh"
     tests/ssl-opt.sh
 }
 

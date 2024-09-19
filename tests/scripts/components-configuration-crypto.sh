@@ -408,11 +408,9 @@ component_test_full_no_ccm_star_no_tag () {
     make test
 }
 
-component_test_config_symmetric_only_psa () {
-    msg "build: configs/config-symmetric-only.h + USE_PSA_CRYPTO"
+component_test_config_symmetric_only () {
+    msg "build: configs/config-symmetric-only.h"
     cp configs/config-symmetric-only.h "$CONFIG_H"
-    scripts/config.py set MBEDTLS_PSA_CRYPTO_C
-    scripts/config.py set MBEDTLS_USE_PSA_CRYPTO
     # test-ref-configs works by overwriting mbedtls_config.h; this makes cmake
     # want to re-generate generated files that depend on it, quite correctly.
     # However this doesn't work as the generation script expects a specific
@@ -425,7 +423,7 @@ component_test_config_symmetric_only_psa () {
     CC=$ASAN_CC cmake -D GEN_FILES=Off -D CMAKE_BUILD_TYPE:String=Asan .
     make
 
-    msg "test: configs/config-symmetric-only.h + USE_PSA_CRYPTO - unit tests"
+    msg "test: configs/config-symmetric-only.h - unit tests"
     make test
 }
 

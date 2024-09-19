@@ -408,25 +408,6 @@ component_test_full_no_ccm_star_no_tag () {
     make test
 }
 
-component_test_config_symmetric_only_legacy () {
-    msg "build: configs/config-symmetric-only.h"
-    cp configs/config-symmetric-only.h "$CONFIG_H"
-    # test-ref-configs works by overwriting mbedtls_config.h; this makes cmake
-    # want to re-generate generated files that depend on it, quite correctly.
-    # However this doesn't work as the generation script expects a specific
-    # format for mbedtls_config.h, which the other files don't follow. Also,
-    # cmake can't know this, but re-generation is actually not necessary as
-    # the generated files only depend on the list of available options, not
-    # whether they're on or off. So, disable cmake's (over-sensitive here)
-    # dependency resolution for generated files and just rely on them being
-    # present (thanks to pre_generate_files) by turning GEN_FILES off.
-    CC=$ASAN_CC cmake -D GEN_FILES=Off -D CMAKE_BUILD_TYPE:String=Asan .
-    make
-
-    msg "test: configs/config-symmetric-only.h - unit tests"
-    make test
-}
-
 component_test_config_symmetric_only_psa () {
     msg "build: configs/config-symmetric-only.h + USE_PSA_CRYPTO"
     cp configs/config-symmetric-only.h "$CONFIG_H"

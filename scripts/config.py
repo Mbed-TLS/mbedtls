@@ -27,7 +27,7 @@ def is_full_section(section):
     """
     return section is None or section.endswith('support') or section.endswith('modules')
 
-def realfull_adapter(_name, active, section):
+def realfull_adapter(_name, _value, active, section):
     """Activate all symbols found in the global and boolean feature sections.
 
     This is intended for building the documentation, including the
@@ -138,7 +138,7 @@ def include_in_full(name):
         return is_seamless_alt(name)
     return True
 
-def full_adapter(name, active, section):
+def full_adapter(name, _value, active, section):
     """Config adapter for "full"."""
     if not is_full_section(section):
         return active
@@ -176,7 +176,7 @@ def keep_in_baremetal(name):
         return False
     return True
 
-def baremetal_adapter(name, active, section):
+def baremetal_adapter(name, _value, active, section):
     """Config adapter for "baremetal"."""
     if not is_full_section(section):
         return active
@@ -195,10 +195,10 @@ EXCLUDE_FOR_SIZE = frozenset([
     'MBEDTLS_TEST_HOOKS', # only useful with the hosted test framework, increases code size
 ])
 
-def baremetal_size_adapter(name, active, section):
+def baremetal_size_adapter(name, value, active, section):
     if name in EXCLUDE_FOR_SIZE:
         return False
-    return baremetal_adapter(name, active, section)
+    return baremetal_adapter(name, value, active, section)
 
 def include_in_crypto(name):
     """Rules for symbols in a crypto configuration."""
@@ -219,15 +219,15 @@ def include_in_crypto(name):
 def crypto_adapter(adapter):
     """Modify an adapter to disable non-crypto symbols.
 
-    ``crypto_adapter(adapter)(name, active, section)`` is like
-    ``adapter(name, active, section)``, but unsets all X.509 and TLS symbols.
+    ``crypto_adapter(adapter)(name, value, active, section)`` is like
+    ``adapter(name, value, active, section)``, but unsets all X.509 and TLS symbols.
     """
-    def continuation(name, active, section):
+    def continuation(name, value, active, section):
         if not include_in_crypto(name):
             return False
         if adapter is None:
             return active
-        return adapter(name, active, section)
+        return adapter(name, value, active, section)
     return continuation
 
 DEPRECATED = frozenset([
@@ -237,34 +237,34 @@ DEPRECATED = frozenset([
 def no_deprecated_adapter(adapter):
     """Modify an adapter to disable deprecated symbols.
 
-    ``no_deprecated_adapter(adapter)(name, active, section)`` is like
-    ``adapter(name, active, section)``, but unsets all deprecated symbols
+    ``no_deprecated_adapter(adapter)(name, value, active, section)`` is like
+    ``adapter(name, value, active, section)``, but unsets all deprecated symbols
     and sets ``MBEDTLS_DEPRECATED_REMOVED``.
     """
-    def continuation(name, active, section):
+    def continuation(name, value, active, section):
         if name == 'MBEDTLS_DEPRECATED_REMOVED':
             return True
         if name in DEPRECATED:
             return False
         if adapter is None:
             return active
-        return adapter(name, active, section)
+        return adapter(name, value, active, section)
     return continuation
 
 def no_platform_adapter(adapter):
     """Modify an adapter to disable platform symbols.
 
-    ``no_platform_adapter(adapter)(name, active, section)`` is like
-    ``adapter(name, active, section)``, but unsets all platform symbols other
+    ``no_platform_adapter(adapter)(name, value, active, section)`` is like
+    ``adapter(name, value, active, section)``, but unsets all platform symbols other
     ``than MBEDTLS_PLATFORM_C.
     """
-    def continuation(name, active, section):
+    def continuation(name, value, active, section):
         # Allow MBEDTLS_PLATFORM_C but remove all other platform symbols.
         if name.startswith('MBEDTLS_PLATFORM_') and name != 'MBEDTLS_PLATFORM_C':
             return False
         if adapter is None:
             return active
-        return adapter(name, active, section)
+        return adapter(name, value, active, section)
     return continuation
 
 

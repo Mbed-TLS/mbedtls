@@ -159,7 +159,8 @@ HEADERS = ['psa/crypto.h', 'psa/crypto_extra.h', 'psa/crypto_values.h']
 TEST_SUITES = ['tests/suites/test_suite_psa_crypto_metadata.data']
 
 def main():
-    parser = argparse.ArgumentParser(description=globals()['__doc__'])
+    parser = argparse.ArgumentParser(description=globals()['__doc__'],
+                                     allow_abbrev=False)
     parser.add_argument('--include', '-I',
                         action='append', default=['include'],
                         help='Directory for header files')

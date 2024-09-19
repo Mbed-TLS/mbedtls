@@ -557,7 +557,7 @@ def main():
     """
     Main function of this program
     """
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(allow_abbrev=False)
 
     parser.add_argument('-o', '--output', nargs='?',
                         default=None, help='Output file path if `-a` was set')

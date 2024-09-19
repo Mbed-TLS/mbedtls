@@ -508,7 +508,8 @@ def main():
             "Example usage:\n"
             r"./tests/scripts/depends.py \!MBEDTLS_SHA1_C MBEDTLS_SHA256_C""\n"
             "./tests/scripts/depends.py MBEDTLS_AES_C hashes\n"
-            "./tests/scripts/depends.py cipher_id cipher_chaining\n")
+            "./tests/scripts/depends.py cipher_id cipher_chaining\n",
+            allow_abbrev=False)
         parser.add_argument('--color', metavar='WHEN',
                             help='Colorize the output (always/auto/never)',
                             choices=['always', 'auto', 'never'], default='auto')

@@ -26,7 +26,8 @@ def main():
         description=(
             "This script writes a list of parsed identifiers in internal "
             "headers to \"identifiers\". This is useful for generating a list "
-            "of names to exclude from API/ABI compatibility checking. "))
+            "of names to exclude from API/ABI compatibility checking. "),
+        allow_abbrev=False)
 
     parser.parse_args()
 

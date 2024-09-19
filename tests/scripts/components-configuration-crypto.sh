@@ -162,6 +162,25 @@ component_test_rsa_no_crt () {
     tests/context-info.sh
 }
 
+component_test_config_no_entropy () {
+    msg "build: configs/config-no-entropy.h"
+    cp configs/config-no-entropy.h "$CONFIG_H"
+    # test-ref-configs works by overwriting mbedtls_config.h; this makes cmake
+    # want to re-generate generated files that depend on it, quite correctly.
+    # However this doesn't work as the generation script expects a specific
+    # format for mbedtls_config.h, which the other files don't follow. Also,
+    # cmake can't know this, but re-generation is actually not necessary as
+    # the generated files only depend on the list of available options, not
+    # whether they're on or off. So, disable cmake's (over-sensitive here)
+    # dependency resolution for generated files and just rely on them being
+    # present (thanks to pre_generate_files) by turning GEN_FILES off.
+    CC=$ASAN_CC cmake -D GEN_FILES=Off -D CMAKE_BUILD_TYPE:String=Asan .
+    make
+
+    msg "test: configs/config-no-entropy.h - unit tests"
+    make test
+}
+
 component_test_no_ctr_drbg_classic () {
     msg "build: Full minus CTR_DRBG, classic crypto in TLS"
     scripts/config.py full

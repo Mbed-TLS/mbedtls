@@ -37,18 +37,14 @@ def is_boolean_setting(name, value):
         return True
     return False
 
-def realfull_adapter(_name, _value, active, section):
-    """Activate all symbols found in the global and boolean feature sections.
+def realfull_adapter(_name, _value, _active, _section):
+    """Activate all symbols.
 
     This is intended for building the documentation, including the
     documentation of settings that are activated by defining an optional
-    preprocessor macro.
-
-    Do not activate definitions in the section containing symbols that are
-    supposed to be defined and documented in their own module.
+    preprocessor macro. There is no expectation that the resulting
+    configuration can be built.
     """
-    if section == 'Module configuration options':
-        return active
     return True
 
 PSA_UNSUPPORTED_FEATURE = frozenset([

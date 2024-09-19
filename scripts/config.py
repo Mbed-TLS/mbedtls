@@ -19,13 +19,24 @@ import framework_scripts_path # pylint: disable=unused-import
 from mbedtls_framework import config_common
 
 
-def is_full_section(section):
-    """Is this section affected by "config.py full" and friends?
+def is_boolean_setting(name, value):
+    """Is this a boolean setting?
 
-    In a config file where the sections are not used the whole config file
-    is an empty section (with value None) and the whole file is affected.
+    Mbed TLS boolean settings are enabled if the preprocessor macro is
+    defined, and disabled if the preprocessor macro is not defined. The
+    macro definition line in the configuration file has an empty expansion.
+
+    PSA_WANT_xxx settings are also boolean, but when they are enabled,
+    they expand to a nonzero value. We leave them undefined when they
+    are disabled. (Setting them to 0 currently means to enable them, but
+    this might change to mean disabling them. Currently we just never set
+    them to 0.)
     """
-    return section is None or section.endswith('support') or section.endswith('modules')
+    if name.startswith('PSA_WANT_'):
+        return True
+    if not value:
+        return True
+    return False
 
 def realfull_adapter(_name, _value, active, section):
     """Activate all symbols found in the global and boolean feature sections.
@@ -138,9 +149,9 @@ def include_in_full(name):
         return is_seamless_alt(name)
     return True
 
-def full_adapter(name, _value, active, section):
+def full_adapter(name, value, active, _section):
     """Config adapter for "full"."""
-    if not is_full_section(section):
+    if not is_boolean_setting(name, value):
         return active
     return include_in_full(name)
 
@@ -176,9 +187,9 @@ def keep_in_baremetal(name):
         return False
     return True
 
-def baremetal_adapter(name, _value, active, section):
+def baremetal_adapter(name, value, active, _section):
     """Config adapter for "baremetal"."""
-    if not is_full_section(section):
+    if not is_boolean_setting(name, value):
         return active
     if name == 'MBEDTLS_NO_PLATFORM_ENTROPY':
         # No OS-provided entropy source

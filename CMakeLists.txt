@@ -362,20 +362,6 @@ if(ENABLE_TESTING OR ENABLE_PROGRAMS)
         )
         add_custom_target(test_certs_header DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/tests/src/test_certs.h)
         add_dependencies(mbedtls_test test_keys_header test_certs_header)
-
-        add_custom_command(
-            OUTPUT
-                ${CMAKE_CURRENT_SOURCE_DIR}/tests/opt-testcases/tls13-compat.sh
-            WORKING_DIRECTORY
-                ${CMAKE_CURRENT_SOURCE_DIR}
-            COMMAND
-                "${MBEDTLS_PYTHON_EXECUTABLE}"
-                "${CMAKE_CURRENT_SOURCE_DIR}/tests/scripts/generate_tls13_compat_tests.py"
-            DEPENDS
-                ${CMAKE_CURRENT_SOURCE_DIR}/framework/scripts/generate_test_keys.py
-        )
-        add_custom_target(tls13-compat.sh
-            DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/tests/opt-testcases/tls13-compat.sh)
     endif()
     target_include_directories(mbedtls_test
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tests/include

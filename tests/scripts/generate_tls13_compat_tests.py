@@ -245,8 +245,7 @@ class GnuTLSBase(TLSProgram):
 
     def pre_checks(self):
         return ["requires_gnutls_tls1_3",
-                "requires_gnutls_next_no_ticket",
-                "requires_gnutls_next_disable_tls13_compat", ]
+                "requires_gnutls_next_no_ticket"]
 
     def cmd(self):
         ret = super().cmd()

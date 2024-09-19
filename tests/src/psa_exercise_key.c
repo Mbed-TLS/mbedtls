@@ -695,6 +695,9 @@ psa_status_t mbedtls_test_psa_raw_key_agreement_with_self(
     size_t output_length;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
 
+    mbedtls_svc_key_id_t shared_secret_id = MBEDTLS_SVC_KEY_ID_INIT;
+    psa_key_attributes_t shared_secret_attributes = PSA_KEY_ATTRIBUTES_INIT;
+
     psa_status_t status = psa_get_key_attributes(key, &attributes);
     if (key_destroyable && status == PSA_ERROR_INVALID_HANDLE) {
         /* The key has been destroyed. */
@@ -734,12 +737,27 @@ psa_status_t mbedtls_test_psa_raw_key_agreement_with_self(
                     PSA_RAW_KEY_AGREEMENT_OUTPUT_MAX_SIZE);
     }
 
+    psa_set_key_type(&shared_secret_attributes, PSA_KEY_TYPE_DERIVE);
+    psa_set_key_usage_flags(&shared_secret_attributes, PSA_KEY_USAGE_DERIVE | PSA_KEY_USAGE_EXPORT);
+
+    status = psa_key_agreement(key, public_key, public_key_length, alg,
+                               &shared_secret_attributes, &shared_secret_id);
+
+    if (key_destroyable && status == PSA_ERROR_INVALID_HANDLE) {
+        /* The key has been destroyed. */
+        status = PSA_SUCCESS;
+    }
+
 exit:
     /*
      * Key attributes may have been returned by psa_get_key_attributes()
      * thus reset them as required.
      */
     psa_reset_key_attributes(&attributes);
+
+    /* Make sure to reset and free derived key attributes and slot. */
+    psa_reset_key_attributes(&shared_secret_attributes);
+    psa_destroy_key(shared_secret_id);
 
     mbedtls_free(public_key);
     return status;

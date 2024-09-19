@@ -138,7 +138,7 @@ int mbedtls_test_psa_setup_key_derivation_wrap(
     size_t capacity, int key_destroyable);
 
 /** Perform a key agreement using the given key pair against its public key
- * using psa_raw_key_agreement().
+ * using psa_raw_key_agreement() and psa_key_agreement().
  *
  * The result is discarded. The purpose of this function is to smoke-test a key.
  *

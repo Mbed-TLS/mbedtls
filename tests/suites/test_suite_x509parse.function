@@ -1750,7 +1750,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_x509_USE_C */
+/* BEGIN_CASE depends_on:MBEDTLS_X509_USE_C */
 void oid_get_numeric_string(data_t *oid, int error_ret, char *result_str)
 {
     char buf[256];

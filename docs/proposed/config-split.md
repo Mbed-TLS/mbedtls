@@ -1,10 +1,10 @@
 Configuration file split
 ========================
 
-## Why splitting the configuration file?
+## Why split the configuration file?
 
 The objective of the repository split is to reach the point where in Mbed TLS
-all the cryptography code and its tests are located in a tf-psa-crypto
+all the cryptography code and its tests are located in a `tf-psa-crypto`
 directory that just contains the TF-PSA-Crypto repository as a submodule.
 The cryptography APIs exposed by Mbed TLS are just the TF-PSA-Crypto ones.
 Mbed TLS relies solely on the TF-PSA-Crypto build system to build its
@@ -12,12 +12,12 @@ cryptography library and its tests.
 
 The TF-PSA-Crypto configuration file `tf_psa_crypto_config.h` configures
 entirely the cryptography interface exposed by Mbed TLS through TF-PSA-Crypto.
-Mbed TLS configuration is splitted in two files: `mbedtls_config.h` for TLS and
+Mbed TLS configuration is split in two files: `mbedtls_config.h` for TLS and
 x509, `tf_psa_crypto_config.h` for the cryptography.
 
 ## How do we split the configuration file?
 
-We extend the so called PSA cryptographic configuration scheme based on
+We extend the so-called PSA cryptographic configuration scheme based on
 `mbedtls_config.h` and `crypto_config.h`. The configuration file `crypto_config.h`
 is extended to become the TF-PSA-Crypto configuration file, `mbedtls_config.h`
 becomes the configuration file for the TLS and x509 libraries. All the options
@@ -70,7 +70,7 @@ contains the configuration options for the cryptography mechanisms that are not
 yet part of the PSA cryptography API (like LMS or PK).
 
 It is followed by the "Data format support" section that contains configuration
-options of utilities related to various data formats (like base64 or ASN1 APIs).
+options of utilities related to various data formats (like Base64 or ASN.1 APIs).
 These utilities aim to facilitate the usage of the PSA cryptography API in other
 cryptography projects.
 

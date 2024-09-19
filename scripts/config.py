@@ -333,6 +333,9 @@ def baremetal_adapter(name, active, section):
         return True
     return include_in_full(name) and keep_in_baremetal(name)
 
+def baremetal_compatible_adapter(name, active, section):
+    return active and keep_in_baremetal(name)
+
 # This set contains options that are mostly for debugging or test purposes,
 # and therefore should be excluded when doing code size measurements.
 # Options that are their own module (such as MBEDTLS_ERROR_C) are not listed
@@ -805,6 +808,9 @@ if __name__ == '__main__':
         add_adapter('baremetal_size', baremetal_size_adapter,
                     """Like baremetal, but exclude debugging features.
                     Useful for code size measurements.""")
+        add_adapter('baremetal_compatible', baremetal_compatible_adapter,
+                    """Use the existing configuration, but disable any features
+                    (e.g. file IO) that are not compatible with a baremetal build.""")
         add_adapter('full', full_adapter,
                     """Uncomment most features.
                     Exclude alternative implementations and platform support

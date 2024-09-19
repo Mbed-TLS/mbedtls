@@ -659,8 +659,10 @@ component_test_psa_crypto_config_accel_ecdsa () {
     # Configure
     # ---------
 
-    # Start from default config (no USE_PSA) + TLS 1.3
+    # Start from default config + TLS 1.3
     helper_libtestdriver1_adjust_config "default"
+
+    scripts/config.py set MBEDTLS_USE_PSA_CRYPTO
 
     # Disable the module that's accelerated
     scripts/config.py unset MBEDTLS_ECDSA_C
@@ -673,7 +675,7 @@ component_test_psa_crypto_config_accel_ecdsa () {
     # -----
 
     # These hashes are needed for some ECDSA signature tests.
-    loc_extra_list="ALG_SHA_224 ALG_SHA_256 ALG_SHA_384 ALG_SHA_512 \
+    loc_extra_list="ALG_SHA_1 ALG_SHA_224 ALG_SHA_256 ALG_SHA_384 ALG_SHA_512 \
                     ALG_SHA3_224 ALG_SHA3_256 ALG_SHA3_384 ALG_SHA3_512"
 
     helper_libtestdriver1_make_drivers "$loc_accel_list" "$loc_extra_list"

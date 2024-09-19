@@ -40,8 +40,8 @@
  * - The build has built-in ECC and ECDSA signature.
  */
 #if (defined(MBEDTLS_PK_PARSE_C) && defined(MBEDTLS_PK_WRITE_C) && \
-    (defined(MBEDTLS_RSA_C) || defined(MBEDTLS_PK_CAN_ECDSA_SIGN))) || \
-    (defined(MBEDTLS_ECP_C) && defined(MBEDTLS_PK_CAN_ECDSA_SIGN))
+    (defined(MBEDTLS_RSA_C) || defined(PSA_HAVE_ALG_ECDSA_SIGN))) || \
+    (defined(MBEDTLS_ECP_C) && defined(PSA_HAVE_ALG_ECDSA_SIGN))
 #define MBEDTLS_TEST_PK_PSA_SIGN
 #endif
 
@@ -1194,7 +1194,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_PK_CAN_ECDSA_VERIFY */
+/* BEGIN_CASE depends_on:PSA_HAVE_ALG_ECDSA_VERIFY */
 void pk_ec_test_vec(int type, int id, data_t *key, data_t *hash,
                     data_t *sig, int ret)
 {
@@ -1818,9 +1818,9 @@ void pk_psa_sign(int psa_type, int bits, int rsa_padding)
 #if defined(MBEDTLS_RSA_C) || defined(MBEDTLS_PK_WRITE_C)
     int ret;
 #endif /* MBEDTLS_RSA_C || MBEDTLS_PK_WRITE_C */
-#if defined(MBEDTLS_PK_CAN_ECDSA_SIGN)
+#if defined(PSA_HAVE_ALG_ECDSA_SIGN)
     mbedtls_ecp_group_id ecp_grp_id = MBEDTLS_ECP_DP_NONE;
-#endif /* MBEDTLS_PK_CAN_ECDSA_SIGN */
+#endif /* PSA_HAVE_ALG_ECDSA_SIGN */
 
     /*
      * Following checks are perfomed:
@@ -1843,12 +1843,12 @@ void pk_psa_sign(int psa_type, int bits, int rsa_padding)
 #else /* MBEDTLS_RSA_C */
     (void) rsa_padding;
 #endif /* MBEDTLS_RSA_C */
-#if defined(MBEDTLS_PK_CAN_ECDSA_SIGN)
+#if defined(PSA_HAVE_ALG_ECDSA_SIGN)
     if (PSA_KEY_TYPE_IS_ECC_KEY_PAIR(psa_type)) {
         ecp_grp_id = mbedtls_ecc_group_from_psa(psa_type, bits);
         TEST_ASSERT(pk_setup(&pk, MBEDTLS_PK_ECKEY, ecp_grp_id) == 0);
     }
-#endif /* MBEDTLS_PK_CAN_ECDSA_SIGN */
+#endif /* PSA_HAVE_ALG_ECDSA_SIGN */
 
     /* Export public key from the non-opaque PK context we just created. */
 #if defined(MBEDTLS_PK_PARSE_C) && defined(MBEDTLS_PK_WRITE_C)
@@ -1861,7 +1861,7 @@ void pk_psa_sign(int psa_type, int bits, int rsa_padding)
             legacy_pub_key + sizeof(legacy_pub_key) - legacy_pub_key_len,
             legacy_pub_key_len);
 #else /* MBEDTLS_PK_PARSE_C && MBEDTLS_PK_WRITE_C */
-#if defined(MBEDTLS_PK_CAN_ECDSA_SIGN)
+#if defined(PSA_HAVE_ALG_ECDSA_SIGN)
     if (PSA_KEY_TYPE_IS_ECC_KEY_PAIR(psa_type)) {
         TEST_EQUAL(mbedtls_ecp_point_write_binary(&(mbedtls_pk_ec_ro(pk)->grp),
                                                   &(mbedtls_pk_ec_ro(pk)->Q),
@@ -1869,7 +1869,7 @@ void pk_psa_sign(int psa_type, int bits, int rsa_padding)
                                                   &legacy_pub_key_len, legacy_pub_key,
                                                   sizeof(legacy_pub_key)), 0);
     }
-#endif /* MBEDTLS_PK_CAN_ECDSA_SIGN */
+#endif /* PSA_HAVE_ALG_ECDSA_SIGN */
 #if defined(MBEDTLS_RSA_C)
     if (PSA_KEY_TYPE_IS_RSA(psa_type)) {
         unsigned char *end = legacy_pub_key + sizeof(legacy_pub_key);
@@ -1934,7 +1934,7 @@ void pk_psa_sign(int psa_type, int bits, int rsa_padding)
 #if defined(MBEDTLS_PK_PARSE_C) && defined(MBEDTLS_PK_WRITE_C)
     TEST_EQUAL(mbedtls_pk_parse_public_key(&pk, legacy_pub_key, legacy_pub_key_len), 0);
 #else /* MBEDTLS_PK_PARSE_C && MBEDTLS_PK_WRITE_C */
-#if defined(MBEDTLS_PK_CAN_ECDSA_SIGN)
+#if defined(PSA_HAVE_ALG_ECDSA_SIGN)
     if (PSA_KEY_TYPE_IS_ECC_KEY_PAIR(psa_type)) {
         TEST_EQUAL(mbedtls_pk_setup(&pk, mbedtls_pk_info_from_type(MBEDTLS_PK_ECKEY)), 0);
         TEST_EQUAL(mbedtls_ecp_group_load(&(mbedtls_pk_ec_rw(pk)->grp), ecp_grp_id), 0);
@@ -1942,7 +1942,7 @@ void pk_psa_sign(int psa_type, int bits, int rsa_padding)
                                                  &(mbedtls_pk_ec_rw(pk)->Q),
                                                  legacy_pub_key, legacy_pub_key_len), 0);
     }
-#endif /* MBEDTLS_PK_CAN_ECDSA_SIGN */
+#endif /* PSA_HAVE_ALG_ECDSA_SIGN */
 #if defined(MBEDTLS_RSA_C)
     if (PSA_KEY_TYPE_IS_RSA(psa_type)) {
         TEST_EQUAL(mbedtls_pk_setup(&pk, mbedtls_pk_info_from_type(MBEDTLS_PK_RSA)), 0);

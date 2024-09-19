@@ -426,7 +426,7 @@ static const oid_sig_alg_t oid_sig_alg[] =
     },
 #endif /* PSA_WANT_ALG_SHA_1 */
 #endif /* MBEDTLS_RSA_C */
-#if defined(MBEDTLS_PK_CAN_ECDSA_SOME)
+#if defined(PSA_HAVE_ALG_SOME_ECDSA)
 #if defined(PSA_WANT_ALG_SHA_1)
     {
         OID_DESCRIPTOR(MBEDTLS_OID_ECDSA_SHA1,       "ecdsa-with-SHA1",      "ECDSA with SHA1"),
@@ -457,7 +457,7 @@ static const oid_sig_alg_t oid_sig_alg[] =
         MBEDTLS_MD_SHA512,   MBEDTLS_PK_ECDSA,
     },
 #endif /* PSA_WANT_ALG_SHA_512 */
-#endif /* MBEDTLS_PK_CAN_ECDSA_SOME */
+#endif /* PSA_HAVE_ALG_SOME_ECDSA */
 #if defined(MBEDTLS_RSA_C)
     {
         OID_DESCRIPTOR(MBEDTLS_OID_RSASSA_PSS,        "RSASSA-PSS",           "RSASSA-PSS"),

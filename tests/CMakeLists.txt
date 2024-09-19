@@ -77,6 +77,7 @@ if(GEN_FILES)
     )
     add_custom_target(tls13-compat.sh
         DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/opt-testcases/tls13-compat.sh)
+    set_target_properties(tls13-compat.sh PROPERTIES EXCLUDE_FROM_ALL NO)
 
 else()
     foreach(file ${all_generated_data_files})

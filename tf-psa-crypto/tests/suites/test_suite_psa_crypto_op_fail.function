@@ -364,6 +364,9 @@ void key_agreement_fail(int key_type_arg, data_t *key_data,
     size_t length = 0;
     psa_key_derivation_operation_t operation = PSA_KEY_DERIVATION_OPERATION_INIT;
 
+    mbedtls_svc_key_id_t shared_secret_id = MBEDTLS_SVC_KEY_ID_INIT;
+    psa_key_attributes_t shared_secret_attributes = PSA_KEY_ATTRIBUTES_INIT;
+
     PSA_INIT();
 
     psa_set_key_type(&attributes, key_type);
@@ -385,6 +388,14 @@ void key_agreement_fail(int key_type_arg, data_t *key_data,
                                       public_key, public_key_length,
                                       output, sizeof(output), &length));
 
+    psa_set_key_type(&shared_secret_attributes, PSA_KEY_TYPE_DERIVE);
+    psa_set_key_usage_flags(&shared_secret_attributes, PSA_KEY_USAGE_DERIVE | PSA_KEY_USAGE_EXPORT);
+
+    TEST_STATUS(expected_status, psa_key_agreement(key_id, public_key,
+                                                   public_key_length, alg,
+                                                   &shared_secret_attributes,
+                                                   &shared_secret_id));
+
 #if defined(PSA_WANT_ALG_HKDF) && defined(PSA_WANT_ALG_SHA_256)
     PSA_ASSERT(psa_key_derivation_setup(&operation,
                                         PSA_ALG_HKDF(PSA_ALG_SHA_256)));
@@ -403,6 +414,8 @@ exit:
     psa_key_derivation_abort(&operation);
     psa_destroy_key(key_id);
     psa_reset_key_attributes(&attributes);
+    psa_destroy_key(shared_secret_id);
+    psa_reset_key_attributes(&shared_secret_attributes);
     PSA_DONE();
 }
 /* END_CASE */

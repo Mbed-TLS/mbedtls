@@ -2137,7 +2137,7 @@ static int ssl_parse_server_key_exchange(mbedtls_ssl_context *ssl)
     }
 
     /*
-     * ServerKeyExchange may be skipped with PSK and RSA-PSK when the server
+     * ServerKeyExchange may be skipped with PSK when the server
      * doesn't use a psk_identity_hint
      */
     if (ssl->in_msg[0] != MBEDTLS_SSL_HS_SERVER_KEY_EXCHANGE) {

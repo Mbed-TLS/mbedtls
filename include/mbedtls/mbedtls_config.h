@@ -3058,7 +3058,7 @@
  *          library/ssl*_server.c
  *
  * This module is used by the following key exchanges:
- *      RSA, DHE-RSA, ECDHE-RSA, RSA-PSK
+ *      RSA, DHE-RSA, ECDHE-RSA
  *
  * Requires: MBEDTLS_BIGNUM_C, MBEDTLS_OID_C
  */

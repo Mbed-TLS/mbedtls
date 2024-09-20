@@ -468,37 +468,6 @@ support_build_crypto_baremetal () {
 }
 
 # depends.py family of tests
-component_test_depends_py_cipher_id () {
-    msg "test/build: depends.py cipher_id (gcc)"
-    tests/scripts/depends.py cipher_id --unset-use-psa
-}
-
-component_test_depends_py_cipher_chaining () {
-    msg "test/build: depends.py cipher_chaining (gcc)"
-    tests/scripts/depends.py cipher_chaining --unset-use-psa
-}
-
-component_test_depends_py_cipher_padding () {
-    msg "test/build: depends.py cipher_padding (gcc)"
-    tests/scripts/depends.py cipher_padding --unset-use-psa
-}
-
-component_test_depends_py_curves () {
-    msg "test/build: depends.py curves (gcc)"
-    tests/scripts/depends.py curves --unset-use-psa
-}
-
-component_test_depends_py_hashes () {
-    msg "test/build: depends.py hashes (gcc)"
-    tests/scripts/depends.py hashes --unset-use-psa
-}
-
-component_test_depends_py_pkalgs () {
-    msg "test/build: depends.py pkalgs (gcc)"
-    tests/scripts/depends.py pkalgs --unset-use-psa
-}
-
-# PSA equivalents of the depends.py tests
 component_test_depends_py_cipher_id_psa () {
     msg "test/build: depends.py cipher_id (gcc) with MBEDTLS_USE_PSA_CRYPTO defined"
     tests/scripts/depends.py cipher_id

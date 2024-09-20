@@ -272,19 +272,14 @@ typedef enum {
 
 /* Key exchanges allowing client certificate requests.
  *
- * Note: that's almost the same as MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED
- * above, except RSA-PSK uses a server certificate but no client cert.
- *
- * Note: this difference is specific to TLS 1.2, as with TLS 1.3, things are
- * more symmetrical: client certs and server certs are either both allowed
- * (Ephemeral mode) or both disallowed (PSK and PKS-Ephemeral modes).
+ * This is now the same as MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED,
+ * and the two macros could be unified.
+ * Until Mbed TLS 3.x, the two sets were different because
+ * MBEDTLS_KEY_EXCHANGE_CERT_REQ_ALLOWED_ENABLED covers
+ * MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED plus RSA-PSK.
+ * But RSA-PSK was removed in Mbed TLS 4.0.
  */
-#if defined(MBEDTLS_KEY_EXCHANGE_RSA_ENABLED)           ||       \
-    defined(MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED)       ||       \
-    defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED)     ||       \
-    defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)   ||       \
-    defined(MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED)    ||       \
-    defined(MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED)
+#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
 #define MBEDTLS_KEY_EXCHANGE_CERT_REQ_ALLOWED_ENABLED
 #endif
 

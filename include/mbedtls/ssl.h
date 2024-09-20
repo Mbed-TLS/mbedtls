@@ -5594,7 +5594,7 @@ int  mbedtls_ssl_tls_prf(const mbedtls_tls_prf_types prf,
  /**
   * \brief             TLS-Exporter to derive shared symmetric keys between server and client.
   *
-  * \param ctx         SSL context from which to export keys. Must have finished the handshake.
+  * \param ssl         SSL context from which to export keys. Must have finished the handshake.
   * \param out         Output buffer of length at least key_len bytes.
   * \param key_len     Length of the key to generate in bytes. Must be < 2^16 in TLS 1.3.
   * \param label       Label for which to generate the key of length label_len.

@@ -2140,7 +2140,7 @@ component_test_psa_crypto_config_accel_cipher () {
     loc_accel_flags="$loc_accel_flags $( echo "$loc_accel_list" | sed 's/[^ ]* */-DMBEDTLS_PSA_ACCEL_&/g' )"
     make CFLAGS="$ASAN_CFLAGS -Werror -I../tests/include -I../tests -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_TEST_LIBTESTDRIVER1 $loc_accel_flags" LDFLAGS="-ltestdriver1 $ASAN_CFLAGS"
 
-    not grep mbedtls_des* library/des.o
+    not grep mbedtls_des library/des.o
 
     msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated hash"
     make test
@@ -3031,7 +3031,7 @@ support_test_clang_latest_opt () {
 
 component_test_clang_earliest_opt () {
     scripts/config.py full
-    test_build_opt 'full config' "$CLANG_EARLIEST" -O0
+    test_build_opt 'full config' "$CLANG_EARLIEST" -O2
 }
 support_test_clang_earliest_opt () {
     type "$CLANG_EARLIEST" >/dev/null 2>/dev/null
@@ -3047,7 +3047,7 @@ support_test_gcc_latest_opt () {
 
 component_test_gcc_earliest_opt () {
     scripts/config.py full
-    test_build_opt 'full config' "$GCC_EARLIEST" -O0
+    test_build_opt 'full config' "$GCC_EARLIEST" -O2
 }
 support_test_gcc_earliest_opt () {
     type "$GCC_EARLIEST" >/dev/null 2>/dev/null
@@ -3369,26 +3369,27 @@ component_test_tls13_experimental () {
 
 component_build_mingw () {
     msg "build: Windows cross build - mingw64, make (Link Library)" # ~ 30s
-    make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror -Wall -Wextra' WINDOWS_BUILD=1 lib programs
+    make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar CFLAGS='-Werror -Wall -Wextra' WINDOWS_BUILD=1 lib programs
 
     # note Make tests only builds the tests, but doesn't run them
-    make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror' WINDOWS_BUILD=1 tests
+    make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar CFLAGS='-Werror' WINDOWS_BUILD=1 tests
     make WINDOWS_BUILD=1 clean
 
     msg "build: Windows cross build - mingw64, make (DLL)" # ~ 30s
-    make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror -Wall -Wextra' WINDOWS_BUILD=1 SHARED=1 lib programs
-    make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror -Wall -Wextra' WINDOWS_BUILD=1 SHARED=1 tests
+    make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar CFLAGS='-Werror -Wall -Wextra' WINDOWS_BUILD=1 SHARED=1 lib programs
+    make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar CFLAGS='-Werror -Wall -Wextra' WINDOWS_BUILD=1 SHARED=1 tests
     make WINDOWS_BUILD=1 clean
 
     msg "build: Windows cross build - mingw64, make (Library only, AESNI intrinsics)" # ~ 30s
-    make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror -Wall -Wextra -maes -msse2 -mpclmul' WINDOWS_BUILD=1 lib
+    make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar CFLAGS='-Werror -Wall -Wextra -maes -msse2 -mpclmul' WINDOWS_BUILD=1 lib
     make WINDOWS_BUILD=1 clean
 
     msg "build: Windows cross build - mingw64, make (Library only, default config without MBEDTLS_AESNI_C)" # ~ 30s
     ./scripts/config.py unset MBEDTLS_AESNI_C
-    make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror -Wall -Wextra' WINDOWS_BUILD=1 lib
+    make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar CFLAGS='-Werror -Wall -Wextra' WINDOWS_BUILD=1 lib
     make WINDOWS_BUILD=1 clean
- }
+}
+
 support_build_mingw() {
     case $(i686-w64-mingw32-gcc -dumpversion 2>/dev/null) in
         [0-5]*|"") false;;

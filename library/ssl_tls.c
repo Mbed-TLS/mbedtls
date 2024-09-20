@@ -7357,21 +7357,6 @@ int mbedtls_ssl_psk_derive_premaster(mbedtls_ssl_context *ssl, mbedtls_key_excha
         p += psk_len;
     } else
 #endif /* MBEDTLS_KEY_EXCHANGE_PSK_ENABLED */
-#if defined(MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED)
-    if (key_ex == MBEDTLS_KEY_EXCHANGE_RSA_PSK) {
-        /*
-         * other_secret already set by the ClientKeyExchange message,
-         * and is 48 bytes long
-         */
-        if (end - p < 2) {
-            return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
-        }
-
-        *p++ = 0;
-        *p++ = 48;
-        p += 48;
-    } else
-#endif /* MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED */
 #if defined(MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED)
     if (key_ex == MBEDTLS_KEY_EXCHANGE_DHE_PSK) {
         int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;

@@ -312,7 +312,6 @@ TLS1_2_KEY_EXCHANGES_WITH_CERT="MBEDTLS_KEY_EXCHANGE_RSA_ENABLED \
                                 MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED \
                                 MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED \
                                 MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED \
-                                MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED \
                                 MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED \
                                 MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED"
 
@@ -322,8 +321,7 @@ TLS1_2_KEY_EXCHANGES_WITH_ECDSA_CERT="MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED \
 TLS1_2_KEY_EXCHANGES_WITH_CERT_WO_ECDH="MBEDTLS_KEY_EXCHANGE_RSA_ENABLED \
                                        MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED \
                                        MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED \
-                                       MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED \
-                                       MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED"
+                                       MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED"
 
 requires_certificate_authentication () {
     if is_config_enabled MBEDTLS_SSL_PROTO_TLS1_3

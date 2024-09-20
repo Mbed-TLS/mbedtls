@@ -1900,8 +1900,7 @@ static int ssl_parse_server_psk_hint(mbedtls_ssl_context *ssl,
 }
 #endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */
 
-#if defined(MBEDTLS_KEY_EXCHANGE_RSA_ENABLED) ||                           \
-    defined(MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED)
+#if defined(MBEDTLS_KEY_EXCHANGE_RSA_ENABLED)
 /*
  * Generate a pre-master secret and encrypt it with the server's RSA key
  */
@@ -1976,8 +1975,7 @@ static int ssl_write_encrypted_pms(mbedtls_ssl_context *ssl,
 #endif /* !MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
     return 0;
 }
-#endif /* MBEDTLS_KEY_EXCHANGE_RSA_ENABLED ||
-          MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED */
+#endif /* MBEDTLS_KEY_EXCHANGE_RSA_ENABLED */
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED) || \
     defined(MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED)
@@ -2188,14 +2186,12 @@ start_processing:
     } /* FALLTHROUGH */
 #endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */
 
-#if defined(MBEDTLS_KEY_EXCHANGE_PSK_ENABLED) ||                       \
-    defined(MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED)
+#if defined(MBEDTLS_KEY_EXCHANGE_PSK_ENABLED)
     if (ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_PSK ||
         ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_RSA_PSK) {
         ; /* nothing more to do */
     } else
-#endif /* MBEDTLS_KEY_EXCHANGE_PSK_ENABLED ||
-          MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED */
+#endif /* MBEDTLS_KEY_EXCHANGE_PSK_ENABLED */
 #if defined(MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED) ||                       \
     defined(MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED)
     if (ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_DHE_RSA ||
@@ -3048,14 +3044,6 @@ ecdh_calc_secret:
 #if defined(MBEDTLS_KEY_EXCHANGE_PSK_ENABLED)
         if (ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_PSK) {
             content_len = 0;
-        } else
-#endif
-#if defined(MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED)
-        if (ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_RSA_PSK) {
-            if ((ret = ssl_write_encrypted_pms(ssl, header_len,
-                                               &content_len, 2)) != 0) {
-                return ret;
-            }
         } else
 #endif
 #if defined(MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED)

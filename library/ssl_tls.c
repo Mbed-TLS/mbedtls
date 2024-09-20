@@ -7016,11 +7016,6 @@ static int ssl_compute_master(mbedtls_ssl_handshake_params *handshake,
              * Other secret is stored in premaster, where first 2 bytes hold the
              * length of the other key.
              */
-            case MBEDTLS_KEY_EXCHANGE_RSA_PSK:
-                /* For RSA-PSK other key length is always 48 bytes. */
-                other_secret_len = 48;
-                other_secret = handshake->premaster + 2;
-                break;
             case MBEDTLS_KEY_EXCHANGE_ECDHE_PSK:
             case MBEDTLS_KEY_EXCHANGE_DHE_PSK:
                 other_secret_len = MBEDTLS_GET_UINT16_BE(handshake->premaster, 0);
@@ -7820,10 +7815,6 @@ static int ssl_parse_certificate_coordinate(mbedtls_ssl_context *ssl,
 
 #if defined(MBEDTLS_SSL_SRV_C)
     if (ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER) {
-        if (ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_RSA_PSK) {
-            return SSL_CERTIFICATE_SKIP;
-        }
-
         if (authmode == MBEDTLS_SSL_VERIFY_NONE) {
             ssl->session_negotiate->verify_result =
                 MBEDTLS_X509_BADCERT_SKIP_VERIFY;
@@ -9670,7 +9661,6 @@ int mbedtls_ssl_check_cert_usage(const mbedtls_x509_crt *cert,
         /* TLS 1.2 server part of the key exchange */
         switch (ciphersuite->key_exchange) {
             case MBEDTLS_KEY_EXCHANGE_RSA:
-            case MBEDTLS_KEY_EXCHANGE_RSA_PSK:
                 usage = MBEDTLS_X509_KU_KEY_ENCIPHERMENT;
                 break;
 

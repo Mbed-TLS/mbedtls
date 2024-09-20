@@ -3670,8 +3670,7 @@ static int ssl_parse_client_key_exchange(mbedtls_ssl_context *ssl)
 
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE) && \
     defined(MBEDTLS_KEY_EXCHANGE_RSA_ENABLED)
-    if ((ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_RSA_PSK ||
-         ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_RSA) &&
+    if (ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_RSA &&
         (ssl->handshake->async_in_progress != 0)) {
         /* We've already read a record and there is an asynchronous
          * operation in progress to decrypt it. So skip reading the

@@ -107,7 +107,7 @@ size_t psa_read(psa_handle_t msg_handle, uint32_t invec_idx, void *buffer, size_
 
     if (num_bytes < psa_message->invec_sizes[invec_idx]) {
         ERROR("Specified buffer is too small to contain the specified invec");
-        return PSA_ERROR_BUFFER_TOO_SMALL;
+        return 0;
     }
 
     /* Go to the requested vector. */
@@ -133,7 +133,7 @@ size_t psa_write(psa_handle_t msg_handle, uint32_t outvec_idx, const void *buffe
 
     if (atomic_load(&(shared_memory->owner)) != SHARED_MEMORY_OWNER_SERVER) {
         ERROR("Cannot write on shared memory while it's owned by the client");
-        return PSA_ERROR_BAD_STATE;
+        return 0;
     }
 
     /* Go to the requested vector. */
@@ -163,6 +163,9 @@ void psa_get_vectors_sizes(size_t *invec_sizes, size_t *outvec_sizes)
 
 psa_status_t psa_reply(psa_handle_t msg_handle, psa_status_t status)
 {
+    (void) msg_handle;
+    (void) status;
+
     if (atomic_load(&(shared_memory->owner)) != SHARED_MEMORY_OWNER_SERVER) {
         ERROR("Cannot write on shared memory while it's owned by the client");
         return PSA_ERROR_BAD_STATE;

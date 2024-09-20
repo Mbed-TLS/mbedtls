@@ -1495,17 +1495,17 @@ component_test_tfm_config_no_p256m () {
 # - component_test_psa_ecc_key_pair_no_generate
 # The goal is to test with all PSA_WANT_KEY_TYPE_xxx_KEY_PAIR_yyy symbols
 # enabled, but one. Input arguments are as follows:
-# - $1 is the key type under test, i.e. ECC/RSA/DH
-# - $2 is the key option to be unset (i.e. generate, derive, etc)
+# - $1 is the configuration to start from
+# - $2 is the key type under test, i.e. ECC/RSA/DH
+# - $3 is the key option to be unset (i.e. generate, derive, etc)
 build_and_test_psa_want_key_pair_partial () {
-    key_type=$1
-    unset_option=$2
+    base_config=$1
+    key_type=$2
+    unset_option=$3
     disabled_psa_want="PSA_WANT_KEY_TYPE_${key_type}_KEY_PAIR_${unset_option}"
 
-    msg "build: full - MBEDTLS_USE_PSA_CRYPTO - ${disabled_psa_want}"
-    scripts/config.py full
-    scripts/config.py unset MBEDTLS_USE_PSA_CRYPTO
-    scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1_3
+    msg "build: $base_config - ${disabled_psa_want}"
+    scripts/config.py "$base_config"
 
     # All the PSA_WANT_KEY_TYPE_xxx_KEY_PAIR_yyy are enabled by default in
     # crypto_config.h so we just disable the one we don't want.
@@ -1513,16 +1513,20 @@ build_and_test_psa_want_key_pair_partial () {
 
     make CC=$ASAN_CC CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS"
 
-    msg "test: full - MBEDTLS_USE_PSA_CRYPTO - ${disabled_psa_want}"
+    msg "test: $base_config - ${disabled_psa_want}"
     make test
 }
 
 component_test_psa_ecc_key_pair_no_derive () {
-    build_and_test_psa_want_key_pair_partial "ECC" "DERIVE"
+    build_and_test_psa_want_key_pair_partial full "ECC" "DERIVE"
 }
 
 component_test_psa_ecc_key_pair_no_generate () {
-    build_and_test_psa_want_key_pair_partial "ECC" "GENERATE"
+    # TLS needs ECC key generation whenever ephemeral ECDH is enabled.
+    # We don't have proper guards for configurations with ECC key generation
+    # disabled (https://github.com/Mbed-TLS/mbedtls/issues/9481). Until
+    # then (if ever), just test the crypto part of the library.
+    build_and_test_psa_want_key_pair_partial crypto_full "ECC" "GENERATE"
 }
 
 config_psa_crypto_accel_rsa () {

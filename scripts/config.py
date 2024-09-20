@@ -103,9 +103,6 @@ EXCLUDE_FROM_FULL = frozenset([
     'MBEDTLS_TEST_CONSTANT_FLOW_MEMSAN', # build dependency (clang+memsan)
     'MBEDTLS_TEST_CONSTANT_FLOW_VALGRIND', # build dependency (valgrind headers)
     'MBEDTLS_X509_REMOVE_INFO', # removes a feature
-    *PSA_UNSUPPORTED_FEATURE,
-    *PSA_DEPRECATED_FEATURE,
-    *PSA_UNSTABLE_FEATURE
 ])
 
 def is_seamless_alt(name):
@@ -212,8 +209,6 @@ def include_in_crypto(name):
             'MBEDTLS_PKCS7_C', # part of libmbedx509
     ]:
         return False
-    if name in EXCLUDE_FROM_CRYPTO:
-        return False
     return True
 
 def crypto_adapter(adapter):
@@ -232,7 +227,6 @@ def crypto_adapter(adapter):
 
 DEPRECATED = frozenset([
     'MBEDTLS_PSA_CRYPTO_SE_C',
-    *PSA_DEPRECATED_FEATURE
 ])
 def no_deprecated_adapter(adapter):
     """Modify an adapter to disable deprecated symbols.

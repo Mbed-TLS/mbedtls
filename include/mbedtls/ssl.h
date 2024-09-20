@@ -5600,7 +5600,7 @@ int  mbedtls_ssl_tls_prf(const mbedtls_tls_prf_types prf,
   * \param label       Label for which to generate the key of length label_len.
   * \param label_len   Length of label in bytes. Must be < 251 in TLS 1.3.
   * \param context     Context of the key. Can be NULL if context_len or use_context is 0.
-  * \param context_len Length of context. Must be < 2^16 in TLS1.2.
+  * \param context_len Length of context. Must be < 2^16 in TLS 1.2.
   * \param use_context Indicates if a context should be used in deriving the key.
   *
   * \note TLS 1.2 makes a distinction between a 0-length context and no context.

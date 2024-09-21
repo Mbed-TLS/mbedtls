@@ -10056,9 +10056,12 @@ int mbedtls_ssl_verify_certificate(mbedtls_ssl_context *ssl,
 
 static int mbedtls_ssl_tls12_export_keying_material(const mbedtls_ssl_context *ssl,
                                                     const mbedtls_md_type_t hash_alg,
-                                                    uint8_t *out, const size_t key_len,
-                                                    const char *label, const size_t label_len,
-                                                    const unsigned char *context, const size_t context_len,
+                                                    uint8_t *out,
+                                                    const size_t key_len,
+                                                    const char *label,
+                                                    const size_t label_len,
+                                                    const unsigned char *context,
+                                                    const size_t context_len,
                                                     const int use_context)
 {
     int ret = 0;
@@ -10087,8 +10090,8 @@ static int mbedtls_ssl_tls12_export_keying_material(const mbedtls_ssl_context *s
     memcpy(prf_input, ssl->transform->randbytes + 32, 32);
     memcpy(prf_input + 32, ssl->transform->randbytes, 32);
     if (use_context) {
-        prf_input[64] = (unsigned char)((context_len >> 8) & 0xff);
-        prf_input[65] = (unsigned char)(context_len & 0xff);
+        prf_input[64] = (unsigned char) ((context_len >> 8) & 0xff);
+        prf_input[65] = (unsigned char) (context_len & 0xff);
         memcpy(prf_input + 66, context, context_len);
     }
     ret = tls_prf_generic(hash_alg, ssl->session->master, 48, label_str,
@@ -10103,9 +10106,12 @@ exit:
 
 static int mbedtls_ssl_tls13_export_keying_material(mbedtls_ssl_context *ssl,
                                                     const mbedtls_md_type_t hash_alg,
-                                                    uint8_t *out, const size_t key_len,
-                                                    const char *label, const size_t label_len,
-                                                    const unsigned char *context, const size_t context_len)
+                                                    uint8_t *out,
+                                                    const size_t key_len,
+                                                    const char *label,
+                                                    const size_t label_len,
+                                                    const unsigned char *context,
+                                                    const size_t context_len)
 {
     const psa_algorithm_t psa_hash_alg = mbedtls_md_psa_alg_from_type(hash_alg);
     const size_t hash_len = PSA_HASH_LENGTH(hash_alg);
@@ -10116,7 +10122,7 @@ static int mbedtls_ssl_tls13_export_keying_material(mbedtls_ssl_context *ssl,
     }
 
     return mbedtls_ssl_tls13_exporter(psa_hash_alg, secret, hash_len,
-                                      (const unsigned char *)label, label_len,
+                                      (const unsigned char *) label, label_len,
                                       context, context_len, out, key_len);
 }
 
@@ -10140,7 +10146,12 @@ int mbedtls_ssl_export_keying_material(mbedtls_ssl_context *ssl,
                                                             label, label_len,
                                                             context, context_len, use_context);
         case MBEDTLS_SSL_VERSION_TLS1_3:
-            return mbedtls_ssl_tls13_export_keying_material(ssl, hash_alg, out, key_len, label, label_len,
+            return mbedtls_ssl_tls13_export_keying_material(ssl,
+                                                            hash_alg,
+                                                            out,
+                                                            key_len,
+                                                            label,
+                                                            label_len,
                                                             use_context ? context : NULL,
                                                             use_context ? context_len : 0);
         default:

@@ -8930,6 +8930,7 @@ int mbedtls_ssl_verify_certificate(mbedtls_ssl_context *ssl,
 }
 #endif /* MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED */
 
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
 static int mbedtls_ssl_tls12_export_keying_material(const mbedtls_ssl_context *ssl,
                                                     const mbedtls_md_type_t hash_alg,
                                                     uint8_t *out,
@@ -8979,7 +8980,9 @@ exit:
     mbedtls_free(label_str);
     return ret;
 }
+#endif
 
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
 static int mbedtls_ssl_tls13_export_keying_material(mbedtls_ssl_context *ssl,
                                                     const mbedtls_md_type_t hash_alg,
                                                     uint8_t *out,
@@ -9001,6 +9004,7 @@ static int mbedtls_ssl_tls13_export_keying_material(mbedtls_ssl_context *ssl,
                                       (const unsigned char *) label, label_len,
                                       context, context_len, out, key_len);
 }
+#endif
 
 int mbedtls_ssl_export_keying_material(mbedtls_ssl_context *ssl,
                                        uint8_t *out, const size_t key_len,
@@ -9017,10 +9021,13 @@ int mbedtls_ssl_export_keying_material(mbedtls_ssl_context *ssl,
     const mbedtls_md_type_t hash_alg = ciphersuite->mac;
 
     switch (mbedtls_ssl_get_version_number(ssl)) {
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
         case MBEDTLS_SSL_VERSION_TLS1_2:
             return mbedtls_ssl_tls12_export_keying_material(ssl, hash_alg, out, key_len,
                                                             label, label_len,
                                                             context, context_len, use_context);
+#endif
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
         case MBEDTLS_SSL_VERSION_TLS1_3:
             return mbedtls_ssl_tls13_export_keying_material(ssl,
                                                             hash_alg,
@@ -9030,6 +9037,7 @@ int mbedtls_ssl_export_keying_material(mbedtls_ssl_context *ssl,
                                                             label_len,
                                                             use_context ? context : NULL,
                                                             use_context ? context_len : 0);
+#endif
         default:
             return MBEDTLS_ERR_SSL_BAD_PROTOCOL_VERSION;
     }

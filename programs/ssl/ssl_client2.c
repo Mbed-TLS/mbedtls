@@ -2513,19 +2513,21 @@ usage:
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 
     if (opt.exp_label != NULL && opt.exp_len > 0) {
-        unsigned char *exported_key = calloc((size_t)opt.exp_len, sizeof(unsigned int));
+        unsigned char *exported_key = calloc((size_t) opt.exp_len, sizeof(unsigned int));
         if (exported_key == NULL) {
             mbedtls_printf("Could not allocate %d bytes\n", opt.exp_len);
             ret = 3;
             goto exit;
         }
-        ret = mbedtls_ssl_export_keying_material(&ssl, exported_key, (size_t)opt.exp_len,
+        ret = mbedtls_ssl_export_keying_material(&ssl, exported_key, (size_t) opt.exp_len,
                                                  opt.exp_label, strlen(opt.exp_label),
                                                  NULL, 0, 0);
         if (ret != 0) {
             goto exit;
         }
-        mbedtls_printf("Exporting key of length %d with label \"%s\": 0x", opt.exp_len, opt.exp_label);
+        mbedtls_printf("Exporting key of length %d with label \"%s\": 0x",
+                       opt.exp_len,
+                       opt.exp_label);
         for (i = 0; i < opt.exp_len; i++) {
             mbedtls_printf("%02X", exported_key[i]);
         }

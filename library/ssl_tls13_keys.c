@@ -1893,14 +1893,20 @@ int mbedtls_ssl_tls13_exporter(const psa_algorithm_t hash_alg,
     int ret = 0;
 
     ret = mbedtls_ssl_tls13_derive_secret(hash_alg, secret, secret_len, label, label_len, NULL, 0,
-                                          MBEDTLS_SSL_TLS1_3_CONTEXT_UNHASHED, hkdf_secret, hash_len);
+                                          MBEDTLS_SSL_TLS1_3_CONTEXT_UNHASHED, hkdf_secret,
+                                          hash_len);
     if (ret != 0) {
         goto exit;
     }
-    ret = mbedtls_ssl_tls13_derive_secret(hash_alg, hkdf_secret, hash_len,
+    ret = mbedtls_ssl_tls13_derive_secret(hash_alg,
+                                          hkdf_secret,
+                                          hash_len,
                                           MBEDTLS_SSL_TLS1_3_LBL_WITH_LEN(exporter),
-                                          context_value, context_len, MBEDTLS_SSL_TLS1_3_CONTEXT_UNHASHED,
-                                          out, out_len);
+                                          context_value,
+                                          context_len,
+                                          MBEDTLS_SSL_TLS1_3_CONTEXT_UNHASHED,
+                                          out,
+                                          out_len);
 
 exit:
     mbedtls_platform_zeroize(hkdf_secret, sizeof(hkdf_secret));

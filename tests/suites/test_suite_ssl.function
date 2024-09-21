@@ -1674,8 +1674,8 @@ void ssl_tls13_exporter(int hash_alg,
     TEST_ASSERT(mbedtls_ssl_tls13_exporter(
                     (psa_algorithm_t) hash_alg,
                     secret->x, secret->len,
-                    (unsigned char *)label, strlen(label),
-                    (unsigned char *)context_value, strlen(context_value),
+                    (unsigned char *) label, strlen(label),
+                    (unsigned char *) context_value, strlen(context_value),
                     dst, desired_length) == 0);
 
     TEST_MEMORY_COMPARE(dst, desired_length,

@@ -7,9 +7,9 @@
 # 2.4.4 is the version in Ubuntu 20.04. It supports Python >=3.5.
 pylint == 2.4.4
 
-# Use the earliest version of mypy that works with our code base.
-# See https://github.com/Mbed-TLS/mbedtls/pull/3953 .
-mypy >= 0.780
+# Use the last version of mypy that is compatible with Python 3.6.
+# Newer versions should be ok too.
+mypy >= 0.971
 
 # At the time of writing, only needed for tests/scripts/audit-validity-dates.py.
 # It needs >=35.0.0 for correct operation, and that requires Python >=3.6,

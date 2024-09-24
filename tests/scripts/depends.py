@@ -56,6 +56,7 @@ from typing import Union
 import scripts_path # pylint: disable=unused-import
 import config
 from mbedtls_framework import c_build_helper
+from mbedtls_framework import crypto_knowledge
 
 class Colors: # pylint: disable=too-few-public-methods
     """Minimalistic support for colored output.
@@ -489,6 +490,9 @@ class DomainData:
         build_command = [options.make_command, 'CFLAGS=-Werror -O2']
         build_and_test = [build_command, [options.make_command, 'test']]
         self.all_config_symbols = set(conf.settings.keys())
+        algs = {crypto_knowledge.Algorithm(symbol.replace('_WANT', '')): symbol
+                for symbol in self.config_symbols_matching(r'PSA_WANT_ALG_\w+\Z')}
+
         # Find hash modules by name.
         hash_symbols = self.config_symbols_matching(r'MBEDTLS_(MD|RIPEMD|SHA)[0-9]+_C\Z')
         # Find elliptic curve enabling macros by name.

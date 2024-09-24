@@ -1235,6 +1235,9 @@ static void interruptible_signverify_get_minmax_completes(uint32_t max_ops,
     }
 }
 
+/*  ECP need to block for a minimum number of operations even if max_ops is set to a
+    lower value. This functions calculates this minimum value given the curve size
+    and the window size. */
 static uint32_t interruptible_key_agreement_get_min_num_ops(size_t key_bits)
 {
     /* Those values are taken from documentation of mbedtls_ecp_set_max_ops()
@@ -9910,7 +9913,9 @@ void key_agreement_interruptible(int alg_arg,
                                            peer_key_data->len, alg, &shared_secret_attributes));
 
     num_ops_prior = psa_key_agreement_iop_get_num_ops(&operation);
-    TEST_EQUAL(num_ops_prior, 0);
+    /* psa_key_agreement_iop_setup() takes a number of ops because it calls
+       mbedtls_ecp_check_pubkey() */
+    TEST_EQUAL(num_ops_prior, MBEDTLS_ECP_OPS_CHK);
 
     min_num_ops = interruptible_key_agreement_get_min_num_ops(key_bits);
 
@@ -9924,7 +9929,11 @@ void key_agreement_interruptible(int alg_arg,
                number of operations was less than the minium possible for
                the curve size. */
             num_ops = psa_key_agreement_iop_get_num_ops(&operation);
-            TEST_LE_U(num_ops - num_ops_prior, MAX(max_ops, min_num_ops));
+            if (max_ops <= min_num_ops) {
+                TEST_LE_U(num_ops - num_ops_prior, min_num_ops);
+            } else {
+                TEST_LE_U(num_ops - num_ops_prior, max_ops);
+            }
 
             num_ops_prior = num_ops;
 
@@ -9946,7 +9955,7 @@ void key_agreement_interruptible(int alg_arg,
     PSA_ASSERT(psa_key_agreement_iop_abort(&operation));
 
     num_ops = psa_key_agreement_iop_get_num_ops(&operation);
-    TEST_ASSERT(num_ops == 0);
+    TEST_EQUAL(num_ops, 0);
 
 exit:
     psa_destroy_key(our_key);

@@ -328,26 +328,26 @@ REVERSE_DEPENDENCIES = {
         'MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED',
         'MBEDTLS_RSA_C'],
 
-    'MBEDTLS_MD5_C' : ['PSA_WANT_ALG_MD5'],
-    'MBEDTLS_RIPEMD160_C' : ['PSA_WANT_ALG_RIPEMD160'],
-    'MBEDTLS_SHA1_C' : ['PSA_WANT_ALG_SHA_1'],
-    'MBEDTLS_SHA224_C': ['MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED',
-                         'MBEDTLS_ENTROPY_FORCE_SHA256',
-                         'MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_IF_PRESENT',
-                         'MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_ONLY',
-                         'PSA_WANT_ALG_SHA_224'],
-    'MBEDTLS_SHA256_C': ['MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED',
-                         'MBEDTLS_ENTROPY_FORCE_SHA256',
-                         'MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_IF_PRESENT',
-                         'MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_ONLY',
-                         'MBEDTLS_LMS_C',
-                         'MBEDTLS_LMS_PRIVATE',
-                         'PSA_WANT_ALG_SHA_256',
-                         'PSA_WANT_ALG_TLS12_ECJPAKE_TO_PMS'],
-    'MBEDTLS_SHA384_C' : ['PSA_WANT_ALG_SHA_384'],
-    'MBEDTLS_SHA512_C': ['MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT',
-                         'MBEDTLS_SHA512_USE_A64_CRYPTO_ONLY',
-                         'PSA_WANT_ALG_SHA_512'],
+    'PSA_WANT_ALG_MD5': ['MBEDTLS_MD5_C'],
+    'PSA_WANT_ALG_RIPEMD160': ['MBEDTLS_RIPEMD160_C'],
+    'PSA_WANT_ALG_SHA_1': ['MBEDTLS_SHA1_C'],
+    'PSA_WANT_ALG_SHA_224': ['MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED',
+                             'MBEDTLS_ENTROPY_FORCE_SHA256',
+                             'MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_IF_PRESENT',
+                             'MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_ONLY',
+                             'MBEDTLS_SHA224_C'],
+    'PSA_WANT_ALG_SHA_256': ['MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED',
+                             'MBEDTLS_ENTROPY_FORCE_SHA256',
+                             'MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_IF_PRESENT',
+                             'MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_ONLY',
+                             'MBEDTLS_LMS_C',
+                             'MBEDTLS_LMS_PRIVATE',
+                             'MBEDTLS_SHA256_C',
+                             'PSA_WANT_ALG_TLS12_ECJPAKE_TO_PMS'],
+    'PSA_WANT_ALG_SHA_384': ['MBEDTLS_SHA384_C'],
+    'PSA_WANT_ALG_SHA_512': ['MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT',
+                             'MBEDTLS_SHA512_USE_A64_CRYPTO_ONLY',
+                             'MBEDTLS_SHA512_C'],
     'PSA_WANT_ALG_ECB_NO_PADDING' : ['MBEDTLS_NIST_KW_C'],
 }
 
@@ -355,8 +355,8 @@ REVERSE_DEPENDENCIES = {
 # These are not necessarily dependencies, but just minimal required changes
 # if a given define is the only one enabled from an exclusive group.
 EXCLUSIVE_GROUPS = {
-    'MBEDTLS_SHA512_C': ['-MBEDTLS_SSL_COOKIE_C',
-                         '-MBEDTLS_SSL_TLS_C'],
+    'PSA_WANT_ALG_SHA_512': ['-MBEDTLS_SSL_COOKIE_C',
+                             '-MBEDTLS_SSL_TLS_C'],
     'PSA_WANT_ECC_MONTGOMERY_448': ['-PSA_WANT_ALG_ECDSA',
                                     '-PSA_WANT_ALG_JPAKE',],
     'PSA_WANT_ECC_MONTGOMERY_255': ['-PSA_WANT_ALG_ECDSA',
@@ -503,10 +503,12 @@ class DomainData:
                                           for expr in psa_info.generate_expressions([key_type]))
                      if symbol in self.all_config_symbols}
 
-        # Find hash modules by name.
-        hash_symbols = self.config_symbols_matching(r'MBEDTLS_(MD|RIPEMD|SHA)[0-9]+_C\Z')
+        # Find hash modules by category.
+        hash_symbols = {symbol
+                        for alg, symbol in algs.items()
+                        if alg.can_do(crypto_knowledge.AlgorithmCategory.HASH)}
 
-        # Find elliptic curve enabling macros
+        # Find elliptic curve enabling macros by name.
         # MBEDTLS_ECP_DP_SECP224K1_ENABLED added to disable it for all curves
         curve_symbols = self.config_symbols_matching(r'PSA_WANT_ECC_\w+\Z|'
                                                      r'MBEDTLS_ECP_DP_SECP224K1_ENABLED')
@@ -540,19 +542,16 @@ class DomainData:
                                               build_and_test),
 
             # Elliptic curves. Run the test suites.
-            'curves': ExclusiveDomain(curve_symbols, build_and_test,
-                                      exclude=r'MBEDTLS_ECP_DP_SECP224K1_ENABLED'),
+            'curves': ExclusiveDomain(curve_symbols, build_and_test),
 
-            # Hash algorithms. Excluding exclusive domains of MD, RIPEMD, SHA1,
+            # Hash algorithms. Excluding exclusive domains of MD, RIPEMD, SHA1, SHA3*,
             # SHA224 and SHA384 because MBEDTLS_ENTROPY_C is extensively used
             # across various modules, but it depends on either SHA256 or SHA512.
             # As a consequence an "exclusive" test of anything other than SHA256
             # or SHA512 with MBEDTLS_ENTROPY_C enabled is not possible.
             'hashes': DualDomain(hash_symbols, build_and_test,
-                                 exclude=r'MBEDTLS_(MD|RIPEMD|SHA1_)' \
-                                          '|MBEDTLS_SHA224_' \
-                                          '|MBEDTLS_SHA384_' \
-                                          '|MBEDTLS_SHA3_'),
+                                 exclude=r'PSA_WANT_ALG_(?!SHA_(256|512))'),
+
             # Key exchange types.
             'kex': ExclusiveDomain(key_exchange_symbols, build_and_test),
 

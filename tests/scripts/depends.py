@@ -50,6 +50,7 @@ import re
 import subprocess
 import sys
 import traceback
+from collections import OrderedDict
 from typing import Union
 
 # Add the Mbed TLS Python library directory to the module search path
@@ -134,19 +135,26 @@ derived."""
 
 class Job:
     """A job builds the library in a specific configuration and runs some tests."""
-    def __init__(self, name, config_settings, commands):
+    def __init__(self, name, config_settings, commands, alter_names=None):
         """Build a job object.
-The job uses the configuration described by config_settings. This is a
-dictionary where the keys are preprocessor symbols and the values are
-booleans or strings. A boolean indicates whether or not to #define the
-symbol. With a string, the symbol is #define'd to that value.
-After setting the configuration, the job runs the programs specified by
-commands. This is a list of lists of strings; each list of string is a
-command name and its arguments and is passed to subprocess.call with
-shell=False."""
+
+        The job uses the configuration described by config_settings. This is a
+        dictionary where the keys are preprocessor symbols and the values are
+        booleans or strings. A boolean indicates whether or not to #define the
+        symbol. With a string, the symbol is #define'd to that value.
+        After setting the configuration, the job runs the programs specified by
+        commands. This is a list of lists of strings; each list of string is a
+        command name and its arguments and is passed to subprocess.call with
+        shell=False.
+
+        The alter_names can be set for complex jobs which handle multiple symbols
+        within one job and thus each symbol be referenced separately.
+        """
+
         self.name = name
         self.config_settings = config_settings
         self.commands = commands
+        self.alter_names = alter_names if isinstance(alter_names, set) else set()
 
     def announce(self, colors, what):
         '''Announce the start or completion of a job.
@@ -389,7 +397,7 @@ defines to be altered. """
         dep = dep[1:]
         config_settings[dep] = not unset
 
-def turn_off_dependencies(config_settings, exclude=None):
+def turn_off_dependencies(config_settings, *exclude):
     """For every option turned off config_settings, also turn off what depends on it.
 
     An option O is turned off if config_settings[O] is False.
@@ -402,7 +410,9 @@ def turn_off_dependencies(config_settings, exclude=None):
     # Determine recursively the settings that should not be turned off for the sake of 'exclude'.
     excludes = set()
     if exclude:
-        revdep = set(REVERSE_DEPENDENCIES.get(exclude, []))
+        revdep = {dep
+                  for e in exclude
+                  for dep in REVERSE_DEPENDENCIES.get(e, [])}
         while revdep:
             dep = revdep.pop()
             excludes.add(dep)
@@ -425,51 +435,120 @@ def turn_off_dependencies(config_settings, exclude=None):
 
 class BaseDomain: # pylint: disable=too-few-public-methods, unused-argument
     """A base class for all domains."""
-    def __init__(self, symbols, commands, exclude):
+    def __init__(self, symbols, commands, exclude, mutual_exclusion):
         """Initialize the jobs container"""
         self.jobs = []
 
 class ExclusiveDomain(BaseDomain): # pylint: disable=too-few-public-methods
     """A domain consisting of a set of conceptually-equivalent settings.
-Establish a list of configuration symbols. For each symbol, run a test job
-with this symbol set and the others unset."""
-    def __init__(self, symbols, commands, exclude=None):
+
+    Establish a list of configuration symbols. For each symbol, run a test job
+    with this symbol set and the others unset.
+    """
+
+    # pylint: disable=too-many-locals
+    def __init__(self, symbols, commands, exclude=None, mutual_exclusion=None):
         """Build a domain for the specified list of configuration symbols.
-The domain contains a set of jobs that enable one of the elements
-of symbols and disable the others.
-Each job runs the specified commands.
-If exclude is a regular expression, skip generated jobs whose description
-would match this regular expression."""
-        super().__init__(symbols, commands, exclude)
+
+        The domain contains a set of jobs that enable one of the elements
+        of symbols and disable the others.
+        Each job runs the specified commands.
+
+        If `exclude` is a regular expression, skip generated jobs whose description
+        would match this regular expression.
+
+        If `mutual_exclusion` contains regular expressions, create only one job
+        for the matching symbols.
+        """
+
+        super().__init__(symbols, commands, exclude, mutual_exclusion)
         base_config_settings = {}
+        single_symbols = set()
+        groupped_symbols = {}
         for symbol in symbols:
             base_config_settings[symbol] = False
-        for symbol in symbols:
-            description = symbol
-            if exclude and re.match(exclude, description):
+
+            if exclude and re.match(exclude, symbol):
                 continue
+
+            matched = False
+            if mutual_exclusion:
+                for group in mutual_exclusion:
+                    if re.match(group, symbol):
+                        matched = True
+                        groupped_symbols.get(group, set()).add(symbol)
+            if not matched:
+                single_symbols.add(symbol)
+
+        for symbol in single_symbols:
             config_settings = base_config_settings.copy()
             config_settings[symbol] = True
+            description = symbol
+
             handle_exclusive_groups(config_settings, symbol)
             turn_off_dependencies(config_settings, symbol)
             job = Job(description, config_settings, commands)
             self.jobs.append(job)
 
+        for gsymbols in groupped_symbols.values():
+            config_settings = base_config_settings.copy()
+            config_settings.update({symbol: True for symbol in gsymbols})
+            description = '(' + ' '.join(gsymbols) + ')'
+            alter_names = groupped_symbols
+
+            for symbol in gsymbols:
+                handle_exclusive_groups(config_settings, symbol)
+
+            turn_off_dependencies(config_settings, *gsymbols)
+            job = Job(description, config_settings, commands, alter_names)
+            self.jobs.append(job)
+
 class ComplementaryDomain(BaseDomain): # pylint: disable=too-few-public-methods
     """A domain consisting of a set of loosely-related settings.
-Establish a list of configuration symbols. For each symbol, run a test job
-with this symbol unset.
-If exclude is a regular expression, skip generated jobs whose description
-would match this regular expression."""
-    def __init__(self, symbols, commands, exclude=None):
+
+    Establish a list of configuration symbols. For each symbol, run a test job
+    with this symbol unset.
+    """
+
+    def __init__(self, symbols, commands, exclude=None, mutual_exclusion=None):
         """Build a domain for the specified list of configuration symbols.
-Each job in the domain disables one of the specified symbols.
-Each job runs the specified commands."""
-        super().__init__(symbols, commands, exclude)
-        for symbol in symbols:
+
+        Each job in the domain disables one of the specified symbols or
+        group of symbols if mutual_exclusion is used.
+        Each job runs the specified commands.
+
+        If `exclude` is a regular expression, skip generated jobs whose description
+        would match this regular expression.
+
+        If `mutual_exclusion` contains regular expressions, create one job for all the
+        symbols matching a regular expression. Thus these symbols can be handled as
+        one entity.
+        """
+
+        super().__init__(symbols, commands, exclude, mutual_exclusion)
+
+        # Filter out excluded symbols
+        valid_symbols = {symbol
+                         for symbol in symbols
+                         if not (exclude and re.match(exclude, '!' + symbol))}
+
+        # Handle mutually exclusive symbols.
+        # These symbols have its own job and excluded from the individual symbol handling.
+        if mutual_exclusion:
+            for group in mutual_exclusion:
+                config_settings = {symbol: False
+                                   for symbol in valid_symbols
+                                   if re.match(group, symbol)}
+                description = '!(' + ' '.join(sorted(config_settings.keys())) + ')'
+                turn_off_dependencies(config_settings)
+                alter_names = {'!' + symbol for symbol in config_settings.keys()}
+                job = Job(description, config_settings, commands, alter_names)
+                self.jobs.append(job)
+                valid_symbols -= config_settings.keys()
+
+        # Individual symbol handling
+        for symbol in valid_symbols:
             description = '!' + symbol
-            if exclude and re.match(exclude, description):
-                continue
             config_settings = {symbol: False}
             turn_off_dependencies(config_settings)
             job = Job(description, config_settings, commands)
@@ -485,8 +564,8 @@ class DomainData:
     """A container for domains and jobs, used to structurize testing."""
     def config_symbols_matching(self, regexp):
         """List the mbedtls_config.h settings matching regexp."""
-        return [symbol for symbol in self.all_config_symbols
-                if re.match(regexp, symbol)]
+        return {symbol for symbol in self.all_config_symbols
+                if re.match(regexp, symbol)}
 
     # pylint: disable=too-many-locals
     def __init__(self, options, conf):
@@ -577,8 +656,15 @@ class DomainData:
 A name can either be the name of a domain or the name of one specific job."""
         if name in self.domains:
             return sorted(self.domains[name].jobs, key=lambda job: job.name)
-        else:
+        elif name in self.jobs:
             return [self.jobs[name]]
+        else:
+            # Use the altarnative names of the complex jobs
+            for job in self.jobs.values():
+                if name in job.alter_names:
+                    return [job]
+
+        raise ValueError(f'Invalid job name: \'{name}\'')
 
 def run(options, job, conf, colors=NO_COLORS):
     """Run the specified job (a Job instance)."""
@@ -605,7 +691,8 @@ Run the jobs listed in options.tasks."""
         jobs += domain_data.get_jobs(name)
     conf.backup()
     try:
-        for job in jobs:
+        # Run the jobs, without duplication
+        for job in OrderedDict.fromkeys(jobs).keys():
             success = run(options, job, conf, colors=colors)
             if not success:
                 if options.keep_going:

@@ -1,6 +1,7 @@
 set(executables
     cipher_aead_demo
 )
+add_dependencies(${programs_target} ${executables})
 
 foreach(exe IN LISTS executables)
     add_executable(${exe} ${exe}.c $<TARGET_OBJECTS:mbedtls_test>)

@@ -162,6 +162,25 @@ component_test_rsa_no_crt () {
     tests/context-info.sh
 }
 
+component_test_config_no_entropy () {
+    msg "build: configs/config-no-entropy.h"
+    cp configs/config-no-entropy.h "$CONFIG_H"
+    # test-ref-configs works by overwriting mbedtls_config.h; this makes cmake
+    # want to re-generate generated files that depend on it, quite correctly.
+    # However this doesn't work as the generation script expects a specific
+    # format for mbedtls_config.h, which the other files don't follow. Also,
+    # cmake can't know this, but re-generation is actually not necessary as
+    # the generated files only depend on the list of available options, not
+    # whether they're on or off. So, disable cmake's (over-sensitive here)
+    # dependency resolution for generated files and just rely on them being
+    # present (thanks to pre_generate_files) by turning GEN_FILES off.
+    CC=$ASAN_CC cmake -D GEN_FILES=Off -D CMAKE_BUILD_TYPE:String=Asan .
+    make
+
+    msg "test: configs/config-no-entropy.h - unit tests"
+    make test
+}
+
 component_test_no_ctr_drbg_classic () {
     msg "build: Full minus CTR_DRBG, classic crypto in TLS"
     scripts/config.py full
@@ -513,6 +532,46 @@ component_test_full_no_ccm_star_no_tag () {
     not grep mbedtls_psa_cipher library/psa_crypto_cipher.o
 
     msg "test: full no PSA_WANT_ALG_CCM_STAR_NO_TAG"
+    make test
+}
+
+component_test_config_symmetric_only_legacy () {
+    msg "build: configs/config-symmetric-only.h"
+    cp configs/config-symmetric-only.h "$CONFIG_H"
+    # test-ref-configs works by overwriting mbedtls_config.h; this makes cmake
+    # want to re-generate generated files that depend on it, quite correctly.
+    # However this doesn't work as the generation script expects a specific
+    # format for mbedtls_config.h, which the other files don't follow. Also,
+    # cmake can't know this, but re-generation is actually not necessary as
+    # the generated files only depend on the list of available options, not
+    # whether they're on or off. So, disable cmake's (over-sensitive here)
+    # dependency resolution for generated files and just rely on them being
+    # present (thanks to pre_generate_files) by turning GEN_FILES off.
+    CC=$ASAN_CC cmake -D GEN_FILES=Off -D CMAKE_BUILD_TYPE:String=Asan .
+    make
+
+    msg "test: configs/config-symmetric-only.h - unit tests"
+    make test
+}
+
+component_test_config_symmetric_only_psa () {
+    msg "build: configs/config-symmetric-only.h + USE_PSA_CRYPTO"
+    cp configs/config-symmetric-only.h "$CONFIG_H"
+    scripts/config.py set MBEDTLS_PSA_CRYPTO_C
+    scripts/config.py set MBEDTLS_USE_PSA_CRYPTO
+    # test-ref-configs works by overwriting mbedtls_config.h; this makes cmake
+    # want to re-generate generated files that depend on it, quite correctly.
+    # However this doesn't work as the generation script expects a specific
+    # format for mbedtls_config.h, which the other files don't follow. Also,
+    # cmake can't know this, but re-generation is actually not necessary as
+    # the generated files only depend on the list of available options, not
+    # whether they're on or off. So, disable cmake's (over-sensitive here)
+    # dependency resolution for generated files and just rely on them being
+    # present (thanks to pre_generate_files) by turning GEN_FILES off.
+    CC=$ASAN_CC cmake -D GEN_FILES=Off -D CMAKE_BUILD_TYPE:String=Asan .
+    make
+
+    msg "test: configs/config-symmetric-only.h + USE_PSA_CRYPTO - unit tests"
     make test
 }
 
@@ -1581,9 +1640,19 @@ component_test_psa_crypto_config_reference_ecc_ffdh_no_bignum () {
     common_test_psa_crypto_config_reference_ecc_ffdh_no_bignum "ECC_DH"
 }
 
+component_test_tfm_config_as_is () {
+    msg "build: configs/config-tfm.h"
+    cp configs/config-tfm.h "$CONFIG_H"
+    CC=$ASAN_CC cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    make
+
+    msg "test: configs/config-tfm.h - unit tests"
+    make test
+}
+
 # Helper for setting common configurations between:
 # - component_test_tfm_config_p256m_driver_accel_ec()
-# - component_test_tfm_config()
+# - component_test_tfm_config_no_p256m()
 common_tfm_config () {
     # Enable TF-M config
     cp configs/config-tfm.h "$CONFIG_H"
@@ -1637,14 +1706,14 @@ component_test_tfm_config_p256m_driver_accel_ec () {
 # Keep this in sync with component_test_tfm_config_p256m_driver_accel_ec() as
 # they are both meant to be used in analyze_outcomes.py for driver's coverage
 # analysis.
-component_test_tfm_config () {
+component_test_tfm_config_no_p256m () {
     common_tfm_config
 
     # Disable P256M driver, which is on by default, so that analyze_outcomes
     # can compare this test with test_tfm_config_p256m_driver_accel_ec
     echo "#undef MBEDTLS_PSA_P256M_DRIVER_ENABLED" >> "$CONFIG_H"
 
-    msg "build: TF-M config"
+    msg "build: TF-M config without p256m"
     make CFLAGS='-Werror -Wall -Wextra -I../tests/include/spe' tests
 
     # Check that p256m was not built
@@ -1654,7 +1723,7 @@ component_test_tfm_config () {
     # files, so we want to ensure that it has not be re-enabled accidentally.
     not grep mbedtls_cipher library/cipher.o
 
-    msg "test: TF-M config"
+    msg "test: TF-M config without p256m"
     make test
 }
 

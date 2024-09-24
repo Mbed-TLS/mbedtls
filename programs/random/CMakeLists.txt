@@ -2,6 +2,7 @@ set(executables
     gen_entropy
     gen_random_ctr_drbg
 )
+add_dependencies(${programs_target} ${executables})
 
 foreach(exe IN LISTS executables)
     add_executable(${exe} ${exe}.c $<TARGET_OBJECTS:mbedtls_test>)

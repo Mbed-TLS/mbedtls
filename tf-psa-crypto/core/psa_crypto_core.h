@@ -702,7 +702,7 @@ psa_status_t psa_key_agreement_raw_builtin(
 
 /**
  * \brief Get the total number of ops that a key agreement operation has taken
- *        Since it's start.
+ *        Since its start.
  *
  * \note The signature of this function is that of a PSA driver
  *       key_agreement_get_num_ops entry point. This function behaves as an
@@ -718,7 +718,7 @@ uint32_t mbedtls_psa_key_agreement_get_num_ops(
     mbedtls_psa_key_agreement_interruptible_operation_t *operation);
 
 /**
- * \brief  Setup a new interruptible key agreement operation.
+ * \brief  Set up a new interruptible key agreement operation.
  *
  * \note The signature of this function is that of a PSA driver
  *       key_agreement_setup entry point. This function behaves as a
@@ -775,8 +775,8 @@ psa_status_t mbedtls_psa_key_agreement_setup(
  * \retval #PSA_SUCCESS
  *         The shared secret was calculated successfully.
  * \retval #PSA_ERROR_INVALID_ARGUMENT \emptydescription
- * \retval #PSA_ERROR_NOT_SUPPORTED
- *         Internal interruptible operations are currently supported.
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED
+ *         Internal interruptible operations are currently not supported.
  * \retval #PSA_ERROR_BUFFER_TOO_SMALL
  *         \p shared_secret_size is too small
  */

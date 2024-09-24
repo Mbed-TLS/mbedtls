@@ -7764,12 +7764,25 @@ psa_status_t psa_key_agreement(mbedtls_svc_key_id_t private_key,
     return status;
 }
 
+#if defined(MBEDTLS_ECP_RESTARTABLE) && \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_ECDH)
+
+static psa_status_t psa_key_agreement_iop_abort_internal(psa_key_agreement_iop_t *operation)
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
+    status = psa_driver_wrapper_key_agreement_abort(operation);
+
+    return status;
+}
+#endif
+
 uint32_t psa_key_agreement_iop_get_num_ops(
     psa_key_agreement_iop_t *operation)
 {
 #if defined(MBEDTLS_ECP_RESTARTABLE) && \
     defined(MBEDTLS_PSA_BUILTIN_ALG_ECDH)
-    return psa_driver_wrapper_key_agreement_get_num_ops(operation);
+    return operation->num_ops;
 #else
     (void) operation;
     return 0;
@@ -7786,60 +7799,52 @@ psa_status_t psa_key_agreement_iop_setup(
 {
 #if defined(MBEDTLS_ECP_RESTARTABLE) && \
     defined(MBEDTLS_PSA_BUILTIN_ALG_ECDH)
-    psa_status_t status = PSA_SUCCESS;
-    uint8_t *private_key_buffer = NULL;
-    size_t key_size = 0;
-    size_t key_len = 0;
-    psa_key_attributes_t private_key_attributes;
-    psa_key_type_t private_key_type;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_status_t unlock_status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_key_type_t key_type;
+    psa_key_slot_t *slot = NULL;
 
     if (operation->id != 0 || operation->error_occurred) {
         return PSA_ERROR_BAD_STATE;
     }
 
-    status = psa_get_key_attributes(private_key, &private_key_attributes);
-    if (status != PSA_SUCCESS) {
-        operation->error_occurred = 1;
-        return status;
-    }
-
-    private_key_type = psa_get_key_type(&private_key_attributes);
-    if (!PSA_KEY_TYPE_IS_ECC_KEY_PAIR(private_key_type) ||
-        !PSA_ALG_IS_ECDH(alg)) {
+    if (!PSA_ALG_IS_RAW_KEY_AGREEMENT(alg)) {
         operation->error_occurred = 1;
         return PSA_ERROR_INVALID_ARGUMENT;
     }
 
-    key_size = PSA_EXPORT_KEY_OUTPUT_SIZE(private_key_type,
-                                          psa_get_key_bits(&private_key_attributes));
-    if (key_size == 0) {
+    key_type = psa_get_key_type(attributes);
+    if (key_type != PSA_KEY_TYPE_DERIVE &&
+        key_type != PSA_KEY_TYPE_RAW_DATA) {
         operation->error_occurred = 1;
         return PSA_ERROR_INVALID_ARGUMENT;
     }
-    private_key_buffer = mbedtls_calloc(key_size, 1);
-    if (private_key_buffer == NULL) {
-        operation->error_occurred = 1;
-        return PSA_ERROR_INSUFFICIENT_MEMORY;
-    }
 
-    status = psa_export_key(private_key, private_key_buffer, key_size, &key_len);
+    status = psa_get_and_lock_transparent_key_slot_with_policy(
+        private_key, &slot, PSA_KEY_USAGE_DERIVE, alg);
     if (status != PSA_SUCCESS) {
         goto exit;
     }
 
-    operation->ctx.mbedtls_ctx.attributes = attributes;
+    operation->attributes = *attributes;
 
-    status = psa_driver_wrapper_key_agreement_setup(operation, private_key_buffer,
-                                                    key_len, peer_key,
+    operation->num_ops = 0;
+
+    status = psa_driver_wrapper_key_agreement_setup(operation, slot->key.data,
+                                                    slot->key.bytes, peer_key,
                                                     peer_key_length,
-                                                    &private_key_attributes);
+                                                    &slot->attr);
+
+    operation->num_ops = psa_driver_wrapper_key_agreement_get_num_ops(operation);
 
 exit:
-    mbedtls_free(private_key_buffer);
+    unlock_status = psa_unregister_read_under_mutex(slot);
     if (status != PSA_SUCCESS) {
         operation->error_occurred = 1;
+        psa_key_agreement_iop_abort_internal(operation);
+        return status;
     }
-    return status;
+    return unlock_status;
 #else
     (void) operation;
     (void) private_key;
@@ -7873,19 +7878,20 @@ psa_status_t psa_key_agreement_iop_complete(
     operation->num_ops = psa_driver_wrapper_key_agreement_get_num_ops(operation);
 
     if (status == PSA_SUCCESS) {
-        status = psa_import_key(operation->ctx.mbedtls_ctx.attributes, intermediate_key,
+        status = psa_import_key(&operation->attributes, intermediate_key,
                                 key_len, key);
     }
 
     if (status != PSA_SUCCESS && status != PSA_OPERATION_INCOMPLETE) {
         operation->error_occurred = 1;
+        psa_key_agreement_iop_abort_internal(operation);
     }
     mbedtls_platform_zeroize(intermediate_key, PSA_RAW_KEY_AGREEMENT_OUTPUT_MAX_SIZE);
     return status;
 #else
     (void) operation;
     (void) key;
-    return PSA_ERROR_NOT_SUPPORTED;
+    return PSA_ERROR_BAD_STATE;
 #endif
 }
 
@@ -7896,12 +7902,16 @@ psa_status_t psa_key_agreement_iop_abort(
     defined(MBEDTLS_PSA_BUILTIN_ALG_ECDH)
     psa_status_t status;
 
-    status = psa_driver_wrapper_key_agreement_abort(operation);
+    status = psa_key_agreement_iop_abort_internal(operation);
+
+    operation->num_ops = 0;
     operation->error_occurred = 0;
+    operation->id = 0;
+
     return status;
 #else
     (void) operation;
-    return PSA_ERROR_NOT_SUPPORTED;
+    return PSA_SUCCESS;
 #endif
 }
 

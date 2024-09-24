@@ -387,15 +387,23 @@ defines to be altered. """
 
 def turn_off_dependencies(config_settings):
     """For every option turned off config_settings, also turn off what depends on it.
-An option O is turned off if config_settings[O] is False."""
+
+    An option O is turned off if config_settings[O] is False.
+    Handle the dependencies recursively.
+    """
     for key, value in sorted(config_settings.items()):
         if value is not False:
             continue
+
+        # Save the processed settings to handle cross referencies
         revdep = set(REVERSE_DEPENDENCIES.get(key, []))
+        history = set()
         while revdep:
             dep = revdep.pop()
+            history.add(dep)
             config_settings[dep] = False
-            revdep.update(REVERSE_DEPENDENCIES.get(dep, []))
+            # Do not add symbols which are already processed
+            revdep.update(set(REVERSE_DEPENDENCIES.get(dep, [])) - history)
 
 class BaseDomain: # pylint: disable=too-few-public-methods, unused-argument
     """A base class for all domains."""

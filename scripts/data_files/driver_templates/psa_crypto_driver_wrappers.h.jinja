@@ -2702,7 +2702,7 @@ static inline psa_status_t psa_driver_wrapper_key_agreement(
 }
 
 static inline uint32_t psa_driver_wrapper_key_agreement_get_num_ops(
-    psa_key_agreement_iop_t *operation)
+    psa_key_agreement_iop_t *operation )
 {
     switch( operation->id )
     {
@@ -2711,9 +2711,11 @@ static inline uint32_t psa_driver_wrapper_key_agreement_get_num_ops(
             return 0;
 
         case PSA_CRYPTO_MBED_TLS_DRIVER_ID:
-            return(mbedtls_psa_key_agreement_get_num_ops(&operation->ctx.mbedtls_ctx));
+            return( mbedtls_psa_key_agreement_get_num_ops( &operation->ctx.mbedtls_ctx ) );
 
 #if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
+
+    /* Add cases for drivers here */
 
 #endif /* PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
     }
@@ -2727,7 +2729,7 @@ static inline psa_status_t psa_driver_wrapper_key_agreement_setup(
     size_t private_key_buffer_len,
     const uint8_t *peer_key,
     size_t peer_key_length,
-    const psa_key_attributes_t *attributes)
+    const psa_key_attributes_t *attributes )
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_key_location_t location = PSA_KEY_LIFETIME_GET_LOCATION(
@@ -2741,15 +2743,16 @@ static inline psa_status_t psa_driver_wrapper_key_agreement_setup(
 
 #if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
 
+    /* Add cases for drivers here */
 
 #endif /* PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
 
             /* Fell through, meaning no accelerator supports this operation */
             operation->id = PSA_CRYPTO_MBED_TLS_DRIVER_ID;
-            status = mbedtls_psa_key_agreement_setup(&operation->ctx.mbedtls_ctx, private_key_buffer,
-                                                    private_key_buffer_len, peer_key,
-                                                    peer_key_length,
-                                                    attributes);
+            status = mbedtls_psa_key_agreement_setup( &operation->ctx.mbedtls_ctx, private_key_buffer,
+                                                      private_key_buffer_len, peer_key,
+                                                      peer_key_length,
+                                                      attributes );
             break;
 
             /* Add cases for opaque driver here */
@@ -2773,13 +2776,14 @@ static inline psa_status_t psa_driver_wrapper_key_agreement_complete(
     switch( operation->id )
     {
         case PSA_CRYPTO_MBED_TLS_DRIVER_ID:
-            status = mbedtls_psa_key_agreement_complete(&operation->ctx.mbedtls_ctx, shared_secret,
-                                                        shared_secret_size,
-                                                        shared_secret_length);
+            status = mbedtls_psa_key_agreement_complete( &operation->ctx.mbedtls_ctx, shared_secret,
+                                                         shared_secret_size,
+                                                         shared_secret_length );
             break;
 
 #if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
 
+    /* Add cases for drivers here */
 
 #endif /* PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
         default:
@@ -2796,11 +2800,12 @@ static inline psa_status_t psa_driver_wrapper_key_agreement_abort(
     switch( operation->id )
     {
         case PSA_CRYPTO_MBED_TLS_DRIVER_ID:
-            status = mbedtls_psa_key_agreement_abort(&operation->ctx.mbedtls_ctx);
+            status = mbedtls_psa_key_agreement_abort( &operation->ctx.mbedtls_ctx );
             break;
 
 #if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
 
+    /* Add cases for drivers here */
 
 #endif /* PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
         default:

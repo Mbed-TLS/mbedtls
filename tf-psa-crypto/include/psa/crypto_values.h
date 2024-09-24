@@ -27,6 +27,7 @@
 #ifndef PSA_CRYPTO_VALUES_H
 #define PSA_CRYPTO_VALUES_H
 #include "mbedtls/private_access.h"
+#include <psa/crypto_types.h>
 
 /** \defgroup error Error codes
  * @{

@@ -129,21 +129,6 @@ component_test_full_cmake_gcc_asan_new_bignum () {
     tests/context-info.sh
 }
 
-component_test_ref_configs () {
-    msg "test/build: ref-configs (ASan build)" # ~ 6 min 20s
-    # test-ref-configs works by overwriting mbedtls_config.h; this makes cmake
-    # want to re-generate generated files that depend on it, quite correctly.
-    # However this doesn't work as the generation script expects a specific
-    # format for mbedtls_config.h, which the other files don't follow. Also,
-    # cmake can't know this, but re-generation is actually not necessary as
-    # the generated files only depend on the list of available options, not
-    # whether they're on or off. So, disable cmake's (over-sensitive here)
-    # dependency resolution for generated files and just rely on them being
-    # present (thanks to pre_generate_files) by turning GEN_FILES off.
-    CC=$ASAN_CC cmake -D GEN_FILES=Off -D CMAKE_BUILD_TYPE:String=Asan .
-    tests/scripts/test-ref-configs.pl
-}
-
 component_test_full_cmake_clang () {
     msg "build: cmake, full config, clang" # ~ 50s
     scripts/config.py full

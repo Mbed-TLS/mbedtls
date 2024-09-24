@@ -576,7 +576,7 @@ KNOWN_TASKS = {
     'analyze_driver_vs_reference_tfm_config': {
         'test_function':  do_analyze_driver_vs_reference,
         'args': {
-            'component_ref': 'test_tfm_config',
+            'component_ref': 'test_tfm_config_no_p256m',
             'component_driver': 'test_tfm_config_p256m_driver_accel_ec',
             'ignored_suites': [
                 # Modules replaced by drivers

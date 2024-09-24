@@ -356,10 +356,10 @@ REVERSE_DEPENDENCIES = {
     'PSA_WANT_ALG_SHA_512': ['MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT',
                              'MBEDTLS_SHA512_USE_A64_CRYPTO_ONLY',
                              'MBEDTLS_SHA512_C'],
-#    'PSA_WANT_ALG_SHA3_224': ['MBEDTLS_SHA3_C'],
-#    'PSA_WANT_ALG_SHA3_256': ['MBEDTLS_SHA3_C'],
-#    'PSA_WANT_ALG_SHA3_384': ['MBEDTLS_SHA3_C'],
-#    'PSA_WANT_ALG_SHA3_512': ['MBEDTLS_SHA3_C'],
+    'PSA_WANT_ALG_SHA3_224': ['MBEDTLS_SHA3_C'],
+    'PSA_WANT_ALG_SHA3_256': ['MBEDTLS_SHA3_C'],
+    'PSA_WANT_ALG_SHA3_384': ['MBEDTLS_SHA3_C'],
+    'PSA_WANT_ALG_SHA3_512': ['MBEDTLS_SHA3_C'],
 }
 
 # If an option is tested in an exclusive test, alter the following defines.
@@ -633,8 +633,11 @@ class DomainData:
             # across various modules, but it depends on either SHA256 or SHA512.
             # As a consequence an "exclusive" test of anything other than SHA256
             # or SHA512 with MBEDTLS_ENTROPY_C enabled is not possible.
+            # Note for update: when MBEDTLS_SHA3_C is removed the mutual_exclusion
+            # argument must be removed.
             'hashes': DualDomain(hash_symbols, build_and_test,
                                  exclude=r'PSA_WANT_ALG_(?!SHA_(256|512))',
+                                 mutual_exclusion=[r'PSA_WANT_ALG_SHA3_']),
 
             # Key exchange types.
             'kex': ExclusiveDomain(key_exchange_symbols, build_and_test),

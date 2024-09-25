@@ -47,15 +47,17 @@ a full config without a couple of slowing down or unnecessary options
 import argparse
 import os
 import re
-import shutil
 import subprocess
 import sys
 import traceback
+from collections import OrderedDict
 from typing import Union
 
 # Add the Mbed TLS Python library directory to the module search path
 import scripts_path # pylint: disable=unused-import
 import config
+from mbedtls_framework import c_build_helper
+from mbedtls_framework import crypto_knowledge
 
 class Colors: # pylint: disable=too-few-public-methods
     """Minimalistic support for colored output.
@@ -99,24 +101,6 @@ def log_command(cmd):
 cmd is a list of strings: a command name and its arguments."""
     log_line(' '.join(cmd), prefix='+')
 
-def backup_config(options):
-    """Back up the library configuration file (mbedtls_config.h).
-If the backup file already exists, it is presumed to be the desired backup,
-so don't make another backup."""
-    if os.path.exists(options.config_backup):
-        options.own_backup = False
-    else:
-        options.own_backup = True
-        shutil.copy(options.config, options.config_backup)
-
-def restore_config(options):
-    """Restore the library configuration file (mbedtls_config.h).
-Remove the backup file if it was saved earlier."""
-    if options.own_backup:
-        shutil.move(options.config_backup, options.config)
-    else:
-        shutil.copy(options.config_backup, options.config)
-
 def option_exists(conf, option):
     return option in conf.settings
 
@@ -139,7 +123,7 @@ which will make a symbol defined with a certain value."""
         conf.set(option, value)
     return True
 
-def set_reference_config(conf, options, colors):
+def set_reference_config(conf, colors):
     """Change the library configuration file (mbedtls_config.h) to the reference state.
 The reference state is the one from which the tested configurations are
 derived."""
@@ -147,25 +131,29 @@ derived."""
     log_command(['config.py', 'full'])
     conf.adapt(config.full_adapter)
     set_config_option_value(conf, 'MBEDTLS_TEST_HOOKS', colors, False)
-    set_config_option_value(conf, 'MBEDTLS_PSA_CRYPTO_CONFIG', colors, False)
-    if options.unset_use_psa:
-        set_config_option_value(conf, 'MBEDTLS_USE_PSA_CRYPTO', colors, False)
 
 class Job:
     """A job builds the library in a specific configuration and runs some tests."""
-    def __init__(self, name, config_settings, commands):
+    def __init__(self, name, config_settings, commands, alter_names=None):
         """Build a job object.
-The job uses the configuration described by config_settings. This is a
-dictionary where the keys are preprocessor symbols and the values are
-booleans or strings. A boolean indicates whether or not to #define the
-symbol. With a string, the symbol is #define'd to that value.
-After setting the configuration, the job runs the programs specified by
-commands. This is a list of lists of strings; each list of string is a
-command name and its arguments and is passed to subprocess.call with
-shell=False."""
+
+        The job uses the configuration described by config_settings. This is a
+        dictionary where the keys are preprocessor symbols and the values are
+        booleans or strings. A boolean indicates whether or not to #define the
+        symbol. With a string, the symbol is #define'd to that value.
+        After setting the configuration, the job runs the programs specified by
+        commands. This is a list of lists of strings; each list of string is a
+        command name and its arguments and is passed to subprocess.call with
+        shell=False.
+
+        The alter_names can be set for complex jobs which handle multiple symbols
+        within one job and thus each symbol be referenced separately.
+        """
+
         self.name = name
         self.config_settings = config_settings
         self.commands = commands
+        self.alter_names = alter_names if isinstance(alter_names, set) else set()
 
     def announce(self, colors, what):
         '''Announce the start or completion of a job.
@@ -179,14 +167,58 @@ If what is False, announce that the job has failed.'''
         else:
             log_line('starting ' + self.name, color=colors.cyan)
 
-    def configure(self, conf, options, colors):
+    def configure(self, conf, colors):
         '''Set library configuration options as required for the job.'''
-        set_reference_config(conf, options, colors)
+        set_reference_config(conf, colors)
         for key, value in sorted(self.config_settings.items()):
             ret = set_config_option_value(conf, key, colors, value)
             if ret is False:
                 return False
         return True
+
+    def _consistency_check(self):
+        '''Check if the testable option is consistent with the goal.
+
+        The purpose of this function to ensure that every option is set or unset according to
+        the settings.
+        '''
+        log_command(['consistency check'])
+        c_name = None
+        exe_name = None
+        header = '#include "mbedtls/build_info.h"\n'
+
+        # Generate a C error directive for each setting to test if it is active
+        for option, value in sorted(self.config_settings.items()):
+            header += '#if '
+            if value:
+                header += '!'
+            header += 'defined(' + option + ')\n'
+            header += '#error "' + option + '"\n'
+            header += '#endif\n'
+        include_path = ['include', 'tf-psa-crypto/include',
+                        'tf-psa-crypto/drivers/builtin/include']
+
+        try:
+            # Generate a C file, build and run it
+            c_file, c_name, exe_name = c_build_helper.create_c_file(self.name)
+            c_build_helper.generate_c_file(c_file, 'depends.py', header, lambda x: '')
+            c_file.close()
+            c_build_helper.compile_c_file(c_name, exe_name, include_path)
+
+            return True
+
+        except c_build_helper.CompileError as e:
+            # Read the command line output to find out which setting has been failed
+            failed = {m.group(1) for m in re.finditer('.*#error "(.*)"', e.message) if m}
+            log_line('Inconsistent config option(s):')
+            for option in sorted(failed):
+                log_line('  ' + option)
+
+            return False
+
+        finally:
+            c_build_helper.remove_file_if_exists(c_name)
+            c_build_helper.remove_file_if_exists(exe_name)
 
     def test(self, options):
         '''Run the job's build and test commands.
@@ -195,6 +227,8 @@ If options.keep_going is false, stop as soon as one command fails. Otherwise
 run all the commands, except that if the first command fails, none of the
 other commands are run (typically, the first command is a build command
 and subsequent commands are tests that cannot run if the build failed).'''
+        if not self._consistency_check():
+            return False
         built = False
         success = True
         for command in self.commands:
@@ -214,77 +248,139 @@ and subsequent commands are tests that cannot run if the build failed).'''
 
 # If the configuration option A requires B, make sure that
 # B in REVERSE_DEPENDENCIES[A].
-# All the information here should be contained in check_config.h. This
-# file includes a copy because it changes rarely and it would be a pain
+# All the information here should be contained in check_config.h or check_crypto_config.h.
+# This file includes a copy because it changes rarely and it would be a pain
 # to extract automatically.
 REVERSE_DEPENDENCIES = {
     'MBEDTLS_AES_C': ['MBEDTLS_CTR_DRBG_C',
-                      'MBEDTLS_NIST_KW_C'],
-    'MBEDTLS_CHACHA20_C': ['MBEDTLS_CHACHAPOLY_C'],
+                      'MBEDTLS_NIST_KW_C',
+                      'PSA_WANT_KEY_TYPE_AES',
+                      'PSA_WANT_ALG_PBKDF2_AES_CMAC_PRF_128'],
+    'MBEDTLS_ARIA_C': ['PSA_WANT_KEY_TYPE_ARIA'],
+    'MBEDTLS_CAMELLIA_C': ['PSA_WANT_KEY_TYPE_CAMELLIA'],
+    'MBEDTLS_CCM_C': ['PSA_WANT_ALG_CCM',
+                      'PSA_WANT_ALG_CCM_STAR_NO_TAG'],
+    'MBEDTLS_CHACHA20_C': ['MBEDTLS_CHACHAPOLY_C',
+                           'PSA_WANT_KEY_TYPE_CHACHA20',
+                           'PSA_WANT_ALG_CHACHA20_POLY1305'],
+    'MBEDTLS_CMAC_C': ['PSA_WANT_ALG_CMAC',
+                       'PSA_WANT_ALG_PBKDF2_AES_CMAC_PRF_128'],
+    'MBEDTLS_DES_C': ['PSA_WANT_KEY_TYPE_DES'],
+    'MBEDTLS_GCM_C': ['PSA_WANT_ALG_GCM'],
+
+    'MBEDTLS_CIPHER_MODE_CBC': ['PSA_WANT_ALG_CBC_PKCS7',
+                                'PSA_WANT_ALG_CBC_NO_PADDING'],
+    'MBEDTLS_CIPHER_MODE_CFB': ['PSA_WANT_ALG_CFB'],
+    'MBEDTLS_CIPHER_MODE_CTR': ['PSA_WANT_ALG_CTR'],
+    'MBEDTLS_CIPHER_MODE_OFB': ['PSA_WANT_ALG_OFB'],
+
+    'MBEDTLS_CIPHER_PADDING_PKCS7': ['MBEDTLS_PKCS5_C',
+                                     'MBEDTLS_PKCS12_C',
+                                     'PSA_WANT_ALG_CBC_PKCS7'],
+
+    'MBEDTLS_ECP_DP_BP256R1_ENABLED': ['PSA_WANT_ECC_BRAINPOOL_P_R1_256'],
+    'MBEDTLS_ECP_DP_BP384R1_ENABLED': ['PSA_WANT_ECC_BRAINPOOL_P_R1_384'],
+    'MBEDTLS_ECP_DP_BP512R1_ENABLED': ['PSA_WANT_ECC_BRAINPOOL_P_R1_512'],
+    'MBEDTLS_ECP_DP_CURVE25519_ENABLED': ['PSA_WANT_ECC_MONTGOMERY_255'],
+    'MBEDTLS_ECP_DP_CURVE448_ENABLED': ['PSA_WANT_ECC_MONTGOMERY_448'],
+    'MBEDTLS_ECP_DP_SECP192R1_ENABLED': ['PSA_WANT_ECC_SECP_R1_192'],
+    'MBEDTLS_ECP_DP_SECP224R1_ENABLED': ['PSA_WANT_ECC_SECP_R1_224'],
+    'MBEDTLS_ECP_DP_SECP256R1_ENABLED': ['MBEDTLS_ECJPAKE_C',
+                                         'PSA_WANT_ECC_SECP_R1_256'],
+    'MBEDTLS_ECP_DP_SECP384R1_ENABLED': ['PSA_WANT_ECC_SECP_R1_384'],
+    'MBEDTLS_ECP_DP_SECP512R1_ENABLED': ['PSA_WANT_ECC_SECP_R1_512'],
+    'MBEDTLS_ECP_DP_SECP521R1_ENABLED': ['PSA_WANT_ECC_SECP_R1_521'],
+    'MBEDTLS_ECP_DP_SECP192K1_ENABLED': ['PSA_WANT_ECC_SECP_K1_192'],
+    'MBEDTLS_ECP_DP_SECP256K1_ENABLED': ['PSA_WANT_ECC_SECP_K1_256'],
+
     'MBEDTLS_ECDSA_C': ['MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED',
-                        'MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED'],
+                        'MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED',
+                        'PSA_WANT_ALG_ECDSA',
+                        'PSA_WANT_ALG_DETERMINISTIC_ECDSA'],
     'MBEDTLS_ECP_C': ['MBEDTLS_ECDSA_C',
-                      'MBEDTLS_ECDH_C',
+                      'MBEDTLS_ECDH_C', 'PSA_WANT_ALG_ECDH',
                       'MBEDTLS_ECJPAKE_C',
                       'MBEDTLS_ECP_RESTARTABLE',
                       'MBEDTLS_PK_PARSE_EC_EXTENDED',
                       'MBEDTLS_PK_PARSE_EC_COMPRESSED',
-                      'MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED',
                       'MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED',
                       'MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED',
                       'MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED',
-                      'MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED',
-                      'MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED',
                       'MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED',
-                      'MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED'],
-    'MBEDTLS_ECP_DP_SECP256R1_ENABLED': ['MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED'],
-    'MBEDTLS_PKCS1_V21': ['MBEDTLS_X509_RSASSA_PSS_SUPPORT'],
+                      'MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED',
+                      'PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY',
+                      'PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_BASIC',
+                      'PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_IMPORT',
+                      'PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_EXPORT',
+                      'PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_GENERATE',
+                      'PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_DERIVE'],
+    'MBEDTLS_ECJPAKE_C': ['MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED',
+                          'PSA_WANT_ALG_JPAKE'],
+    'MBEDTLS_PKCS1_V21': ['MBEDTLS_X509_RSASSA_PSS_SUPPORT',
+                          'PSA_WANT_ALG_RSA_OAEP',
+                          'PSA_WANT_ALG_RSA_PSS'],
     'MBEDTLS_PKCS1_V15': ['MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED',
                           'MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED',
                           'MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED',
-                          'MBEDTLS_KEY_EXCHANGE_RSA_ENABLED'],
-    'MBEDTLS_RSA_C': ['MBEDTLS_X509_RSASSA_PSS_SUPPORT',
-                      'MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED',
-                      'MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED',
-                      'MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED',
-                      'MBEDTLS_KEY_EXCHANGE_RSA_ENABLED',
-                      'MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED'],
-    'MBEDTLS_SHA256_C': ['MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED',
-                         'MBEDTLS_ENTROPY_FORCE_SHA256',
-                         'MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_IF_PRESENT',
-                         'MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_ONLY',
-                         'MBEDTLS_LMS_C',
-                         'MBEDTLS_LMS_PRIVATE'],
-    'MBEDTLS_SHA512_C': ['MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT',
-                         'MBEDTLS_SHA512_USE_A64_CRYPTO_ONLY'],
-    'MBEDTLS_SHA224_C': ['MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED',
-                         'MBEDTLS_ENTROPY_FORCE_SHA256',
-                         'MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_IF_PRESENT',
-                         'MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_ONLY'],
-    'MBEDTLS_X509_RSASSA_PSS_SUPPORT': []
+                          'MBEDTLS_KEY_EXCHANGE_RSA_ENABLED',
+                          'PSA_WANT_ALG_RSA_PKCS1V15_CRYPT',
+                          'PSA_WANT_ALG_RSA_PKCS1V15_SIGN'],
+    'MBEDTLS_RSA_C': ['MBEDTLS_PKCS1_V15',
+                      'MBEDTLS_PKCS1_V21',
+                      'MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED',
+                      'PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY',
+                      'PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC',
+                      'PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_IMPORT',
+                      'PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_EXPORT',
+                      'PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_GENERATE'],
+
+    'PSA_WANT_ALG_MD5': ['MBEDTLS_MD5_C'],
+    'PSA_WANT_ALG_RIPEMD160': ['MBEDTLS_RIPEMD160_C'],
+    'PSA_WANT_ALG_SHA_1': ['MBEDTLS_SHA1_C'],
+    'PSA_WANT_ALG_SHA_224': ['MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED',
+                             'MBEDTLS_ENTROPY_FORCE_SHA256',
+                             'MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_IF_PRESENT',
+                             'MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_ONLY',
+                             'MBEDTLS_SHA224_C'],
+    'PSA_WANT_ALG_SHA_256': ['MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED',
+                             'MBEDTLS_ENTROPY_FORCE_SHA256',
+                             'MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_IF_PRESENT',
+                             'MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_ONLY',
+                             'MBEDTLS_LMS_C',
+                             'MBEDTLS_LMS_PRIVATE',
+                             'MBEDTLS_SHA256_C',
+                             'PSA_WANT_ALG_TLS12_ECJPAKE_TO_PMS'],
+    'PSA_WANT_ALG_SHA_384': ['MBEDTLS_SHA384_C'],
+    'PSA_WANT_ALG_SHA_512': ['MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT',
+                             'MBEDTLS_SHA512_USE_A64_CRYPTO_ONLY',
+                             'MBEDTLS_SHA512_C'],
+    'PSA_WANT_ALG_SHA3_224': ['MBEDTLS_SHA3_C'],
+    'PSA_WANT_ALG_SHA3_256': ['MBEDTLS_SHA3_C'],
+    'PSA_WANT_ALG_SHA3_384': ['MBEDTLS_SHA3_C'],
+    'PSA_WANT_ALG_SHA3_512': ['MBEDTLS_SHA3_C'],
 }
 
 # If an option is tested in an exclusive test, alter the following defines.
 # These are not necessarily dependencies, but just minimal required changes
 # if a given define is the only one enabled from an exclusive group.
 EXCLUSIVE_GROUPS = {
-    'MBEDTLS_SHA512_C': ['-MBEDTLS_SSL_COOKIE_C',
-                         '-MBEDTLS_SSL_TLS_C'],
+    'PSA_WANT_ALG_SHA_512': ['-MBEDTLS_SSL_COOKIE_C',
+                             '-MBEDTLS_SSL_TLS_C'],
     'MBEDTLS_ECP_DP_CURVE448_ENABLED': ['-MBEDTLS_ECDSA_C',
                                         '-MBEDTLS_ECDSA_DETERMINISTIC',
-                                        '-MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED',
-                                        '-MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED',
-                                        '-MBEDTLS_ECJPAKE_C',
-                                        '-MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED'],
+                                        '-MBEDTLS_ECJPAKE_C',],
     'MBEDTLS_ECP_DP_CURVE25519_ENABLED': ['-MBEDTLS_ECDSA_C',
                                           '-MBEDTLS_ECDSA_DETERMINISTIC',
-                                          '-MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED',
-                                          '-MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED',
-                                          '-MBEDTLS_ECJPAKE_C',
-                                          '-MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED'],
-    'MBEDTLS_ARIA_C': ['-MBEDTLS_CMAC_C'],
+                                          '-MBEDTLS_ECJPAKE_C'],
+    'MBEDTLS_ARIA_C': ['-MBEDTLS_CMAC_C',
+                       '-MBEDTLS_CCM_C',
+                       '-MBEDTLS_GCM_C',
+                       '-MBEDTLS_SSL_TICKET_C',
+                       '-MBEDTLS_SSL_CONTEXT_SERIALIZATION'],
     'MBEDTLS_CAMELLIA_C': ['-MBEDTLS_CMAC_C'],
-    'MBEDTLS_CHACHA20_C': ['-MBEDTLS_CMAC_C', '-MBEDTLS_CCM_C', '-MBEDTLS_GCM_C'],
+    'MBEDTLS_CHACHA20_C': ['-MBEDTLS_CMAC_C',
+                           '-MBEDTLS_CCM_C',
+                           '-MBEDTLS_GCM_C'],
     'MBEDTLS_DES_C': ['-MBEDTLS_CCM_C',
                       '-MBEDTLS_GCM_C',
                       '-MBEDTLS_SSL_TICKET_C',
@@ -300,16 +396,27 @@ defines to be altered. """
 
 def turn_off_dependencies(config_settings):
     """For every option turned off config_settings, also turn off what depends on it.
-An option O is turned off if config_settings[O] is False."""
+
+    An option O is turned off if config_settings[O] is False.
+    Handle the dependencies recursively.
+    """
     for key, value in sorted(config_settings.items()):
         if value is not False:
             continue
-        for dep in REVERSE_DEPENDENCIES.get(key, []):
+
+        # Save the processed settings to handle cross referencies
+        revdep = set(REVERSE_DEPENDENCIES.get(key, []))
+        history = set()
+        while revdep:
+            dep = revdep.pop()
+            history.add(dep)
             config_settings[dep] = False
+            # Do not add symbols which are already processed
+            revdep.update(set(REVERSE_DEPENDENCIES.get(dep, [])) - history)
 
 class BaseDomain: # pylint: disable=too-few-public-methods, unused-argument
     """A base class for all domains."""
-    def __init__(self, symbols, commands, exclude):
+    def __init__(self, symbols, commands, exclude, mutual_exclusion):
         """Initialize the jobs container"""
         self.jobs = []
 
@@ -317,14 +424,14 @@ class ExclusiveDomain(BaseDomain): # pylint: disable=too-few-public-methods
     """A domain consisting of a set of conceptually-equivalent settings.
 Establish a list of configuration symbols. For each symbol, run a test job
 with this symbol set and the others unset."""
-    def __init__(self, symbols, commands, exclude=None):
+    def __init__(self, symbols, commands, exclude=None, mutual_exclusion=None):
         """Build a domain for the specified list of configuration symbols.
 The domain contains a set of jobs that enable one of the elements
 of symbols and disable the others.
 Each job runs the specified commands.
 If exclude is a regular expression, skip generated jobs whose description
 would match this regular expression."""
-        super().__init__(symbols, commands, exclude)
+        super().__init__(symbols, commands, exclude, mutual_exclusion)
         base_config_settings = {}
         for symbol in symbols:
             base_config_settings[symbol] = False
@@ -341,19 +448,48 @@ would match this regular expression."""
 
 class ComplementaryDomain(BaseDomain): # pylint: disable=too-few-public-methods
     """A domain consisting of a set of loosely-related settings.
-Establish a list of configuration symbols. For each symbol, run a test job
-with this symbol unset.
-If exclude is a regular expression, skip generated jobs whose description
-would match this regular expression."""
-    def __init__(self, symbols, commands, exclude=None):
+
+    Establish a list of configuration symbols. For each symbol, run a test job
+    with this symbol unset.
+    If exclude is a regular expression, skip generated jobs whose description
+    would match this regular expression.
+    If mutual_exclusion contains regular expressions, create one job for all the
+    symbols matching a regular expression. Thus these symbols can be handled as
+    one entity.
+    """
+
+    def __init__(self, symbols, commands, exclude=None, mutual_exclusion=None):
         """Build a domain for the specified list of configuration symbols.
-Each job in the domain disables one of the specified symbols.
-Each job runs the specified commands."""
-        super().__init__(symbols, commands, exclude)
-        for symbol in symbols:
+
+        Each job in the domain disables one of the specified symbols or
+        group of symbols if mutual_exclusion is used.
+        Each job runs the specified commands.
+        """
+
+        super().__init__(symbols, commands, exclude, mutual_exclusion)
+
+        # Filter out excluded symbols
+        valid_symbols = {symbol
+                         for symbol in symbols
+                         if not (exclude and re.match(exclude, '!' + symbol))}
+
+        # Handle mutually exclusive symbols.
+        # These symbols have its own job and excluded from the individual symbol handling.
+        if mutual_exclusion:
+            for group in mutual_exclusion:
+                config_settings = {symbol: False
+                                   for symbol in valid_symbols
+                                   if re.match(group, symbol)}
+                description = '!(' + ' '.join(sorted(config_settings.keys())) + ')'
+                turn_off_dependencies(config_settings)
+                alter_names = {'!' + symbol for symbol in config_settings.keys()}
+                job = Job(description, config_settings, commands, alter_names)
+                self.jobs.append(job)
+                valid_symbols -= config_settings.keys()
+
+        # Individual symbol handling
+        for symbol in valid_symbols:
             description = '!' + symbol
-            if exclude and re.match(exclude, description):
-                continue
             config_settings = {symbol: False}
             turn_off_dependencies(config_settings)
             job = Job(description, config_settings, commands)
@@ -383,16 +519,21 @@ class DomainData:
     """A container for domains and jobs, used to structurize testing."""
     def config_symbols_matching(self, regexp):
         """List the mbedtls_config.h settings matching regexp."""
-        return [symbol for symbol in self.all_config_symbols
-                if re.match(regexp, symbol)]
+        return {symbol for symbol in self.all_config_symbols
+                if re.match(regexp, symbol)}
 
     def __init__(self, options, conf):
         """Gather data about the library and establish a list of domains to test."""
         build_command = [options.make_command, 'CFLAGS=-Werror -O2']
         build_and_test = [build_command, [options.make_command, 'test']]
         self.all_config_symbols = set(conf.settings.keys())
-        # Find hash modules by name.
-        hash_symbols = self.config_symbols_matching(r'MBEDTLS_(MD|RIPEMD|SHA)[0-9]+_C\Z')
+        algs = {crypto_knowledge.Algorithm(symbol.replace('_WANT', '')): symbol
+                for symbol in self.config_symbols_matching(r'PSA_WANT_ALG_\w+\Z')}
+
+        # Find hash modules by category.
+        hash_symbols = {symbol
+                        for alg, symbol in algs.items()
+                        if alg.can_do(crypto_knowledge.AlgorithmCategory.HASH)}
         # Find elliptic curve enabling macros by name.
         curve_symbols = self.config_symbols_matching(r'MBEDTLS_ECP_DP_\w+_ENABLED\Z')
         # Find key exchange enabling macros by name.
@@ -414,16 +555,17 @@ class DomainData:
                                               build_and_test),
             # Elliptic curves. Run the test suites.
             'curves': ExclusiveDomain(curve_symbols, build_and_test),
-            # Hash algorithms. Excluding exclusive domains of MD, RIPEMD, SHA1,
+
+            # Hash algorithms. Excluding exclusive domains of MD, RIPEMD, SHA1, SHA3*,
             # SHA224 and SHA384 because MBEDTLS_ENTROPY_C is extensively used
             # across various modules, but it depends on either SHA256 or SHA512.
             # As a consequence an "exclusive" test of anything other than SHA256
             # or SHA512 with MBEDTLS_ENTROPY_C enabled is not possible.
+            # Note for update: when MBEDTLS_SHA3_C is removed the mutual_exclusion
+            # argument must be removed.
             'hashes': DualDomain(hash_symbols, build_and_test,
-                                 exclude=r'MBEDTLS_(MD|RIPEMD|SHA1_)' \
-                                          '|MBEDTLS_SHA224_' \
-                                          '|MBEDTLS_SHA384_' \
-                                          '|MBEDTLS_SHA3_'),
+                                 exclude=r'PSA_WANT_ALG_(?!SHA_(256|512))',
+                                 mutual_exclusion=[r'PSA_WANT_ALG_SHA3_']),
             # Key exchange types.
             'kex': ExclusiveDomain(key_exchange_symbols, build_and_test),
             'pkalgs': ComplementaryDomain(['MBEDTLS_ECDSA_C',
@@ -444,14 +586,21 @@ class DomainData:
 A name can either be the name of a domain or the name of one specific job."""
         if name in self.domains:
             return sorted(self.domains[name].jobs, key=lambda job: job.name)
-        else:
+        elif name in self.jobs:
             return [self.jobs[name]]
+        else:
+            # Use the altarnative names of the complex jobs
+            for job in self.jobs.values():
+                if name in job.alter_names:
+                    return [job]
+
+        raise ValueError(f'Invalid job name: \'{name}\'')
 
 def run(options, job, conf, colors=NO_COLORS):
     """Run the specified job (a Job instance)."""
     subprocess.check_call([options.make_command, 'clean'])
     job.announce(colors, None)
-    if not job.configure(conf, options, colors):
+    if not job.configure(conf, colors):
         job.announce(colors, False)
         return False
     conf.write()
@@ -464,17 +613,16 @@ def run_tests(options, domain_data, conf):
 domain_data should be a DomainData instance that describes the available
 domains and jobs.
 Run the jobs listed in options.tasks."""
-    if not hasattr(options, 'config_backup'):
-        options.config_backup = options.config + '.bak'
     colors = Colors(options)
     jobs = []
     failures = []
     successes = []
     for name in options.tasks:
         jobs += domain_data.get_jobs(name)
-    backup_config(options)
+    conf.backup()
     try:
-        for job in jobs:
+        # Run the jobs, without duplication
+        for job in OrderedDict.fromkeys(jobs).keys():
             success = run(options, job, conf, colors=colors)
             if not success:
                 if options.keep_going:
@@ -483,13 +631,13 @@ Run the jobs listed in options.tasks."""
                     return False
             else:
                 successes.append(job.name)
-        restore_config(options)
+        conf.restore()
     except:
         # Restore the configuration, except in stop-on-error mode if there
         # was an error, where we leave the failing configuration up for
         # developer convenience.
         if options.keep_going:
-            restore_config(options)
+            conf.restore()
         raise
     if successes:
         log_line('{} passed'.format(' '.join(successes)), color=colors.bold_green)
@@ -514,7 +662,10 @@ def main():
                             choices=['always', 'auto', 'never'], default='auto')
         parser.add_argument('-c', '--config', metavar='FILE',
                             help='Configuration file to modify',
-                            default='include/mbedtls/mbedtls_config.h')
+                            default=config.MbedTLSConfigFile.default_path[0])
+        parser.add_argument('-r', '--crypto-config', metavar='FILE',
+                            help='Crypto configuration file to modify',
+                            default=config.CryptoConfigFile.default_path[0])
         parser.add_argument('-C', '--directory', metavar='DIR',
                             help='Change to this directory before anything else',
                             default='.')
@@ -533,15 +684,13 @@ def main():
         parser.add_argument('--make-command', metavar='CMD',
                             help='Command to run instead of make (e.g. gmake)',
                             action='store', default='make')
-        parser.add_argument('--unset-use-psa',
-                            help='Unset MBEDTLS_USE_PSA_CRYPTO before any test',
-                            action='store_true', dest='unset_use_psa')
         parser.add_argument('tasks', metavar='TASKS', nargs='*',
                             help='The domain(s) or job(s) to test (default: all).',
                             default=True)
         options = parser.parse_args()
         os.chdir(options.directory)
-        conf = config.MbedTLSConfig(options.config)
+        conf = config.CombinedConfig(config.MbedTLSConfigFile(options.config),
+                                     config.CryptoConfigFile(options.crypto_config))
         domain_data = DomainData(options, conf)
 
         if options.tasks is True:

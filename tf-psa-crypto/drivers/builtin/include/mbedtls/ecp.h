@@ -162,6 +162,8 @@ typedef struct mbedtls_ecp_point {
 }
 mbedtls_ecp_point;
 
+#define MBEDTLS_ECP_POINT_INIT { MBEDTLS_MPI_INIT, MBEDTLS_MPI_INIT, MBEDTLS_MPI_INIT }
+
 /**
  * \brief           The ECP group structure.
  *
@@ -250,6 +252,9 @@ typedef struct mbedtls_ecp_group {
 }
 mbedtls_ecp_group;
 
+#define MBEDTLS_ECP_GROUP_INIT { MBEDTLS_ECP_DP_NONE, MBEDTLS_MPI_INIT, MBEDTLS_MPI_INIT, \
+                                 MBEDTLS_MPI_INIT, MBEDTLS_ECP_POINT_INIT, MBEDTLS_MPI_INIT, \
+                                 0, 0, 0, NULL, NULL, NULL, NULL, NULL, 0 }
 /**
  * \name SECTION: Module settings
  *
@@ -418,6 +423,9 @@ typedef struct mbedtls_ecp_keypair {
     mbedtls_ecp_point MBEDTLS_PRIVATE(Q);        /*!<  our public value                  */
 }
 mbedtls_ecp_keypair;
+
+#define MBEDTLS_ECP_KEYPAIR_INIT { MBEDTLS_ECP_GROUP_INIT, MBEDTLS_MPI_INIT, \
+                                   MBEDTLS_ECP_POINT_INIT }
 
 /**
  * The uncompressed point format for Short Weierstrass curves

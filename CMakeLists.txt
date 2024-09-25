@@ -395,6 +395,9 @@ if(ENABLE_TESTING OR ENABLE_PROGRAMS)
 endif()
 
 if(ENABLE_PROGRAMS)
+    set(ssl_opt_target "${MBEDTLS_TARGET_PREFIX}ssl-opt")
+    add_custom_target(${ssl_opt_target})
+
     add_subdirectory(programs)
 endif()
 

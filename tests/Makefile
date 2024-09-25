@@ -55,6 +55,15 @@ GENERATED_DATA_FILES += $(GENERATED_PSA_DATA_FILES)
 GENERATED_FILES = $(GENERATED_DATA_FILES)
 GENERATED_FILES += src/test_keys.h src/test_certs.h
 
+# Generated files needed to (fully) run ssl-opt.sh
+.PHONY: ssl-opt
+
+opt-testcases/tls13-compat.sh: scripts/generate_tls13_compat_tests.py
+	echo "  Gen   $@"
+	$(PYTHON) scripts/generate_tls13_compat_tests.py -o $@
+GENERATED_FILES += opt-testcases/tls13-compat.sh
+ssl-opt: opt-testcases/tls13-compat.sh
+
 .PHONY: generated_files
 generated_files: $(GENERATED_FILES)
 
@@ -149,9 +158,11 @@ mbedtls_test: $(MBEDTLS_TEST_OBJS)
 
 src/test_certs.h: ../framework/scripts/generate_test_cert_macros.py \
 				  $($(PYTHON) ../framework/scripts/generate_test_cert_macros.py --list-dependencies)
+	echo "  Gen   $@"
 	$(PYTHON) ../framework/scripts/generate_test_cert_macros.py --output $@
 
 src/test_keys.h: ../framework/scripts/generate_test_keys.py
+	echo "  Gen   $@"
 	$(PYTHON) ../framework/scripts/generate_test_keys.py --output $@
 
 TEST_OBJS_DEPS = $(wildcard include/test/*.h include/test/*/*.h)

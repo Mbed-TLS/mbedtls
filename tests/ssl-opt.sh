@@ -4901,7 +4901,8 @@ run_test    "Max fragment length: DTLS client, larger message" \
 
 requires_gnutls_tls1_3
 requires_gnutls_record_size_limit
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_SRV_C
+requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_RECORD_SIZE_LIMIT
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "Record Size Limit: TLS 1.3: Server-side parsing and debug output" \
@@ -4915,7 +4916,8 @@ run_test    "Record Size Limit: TLS 1.3: Server-side parsing and debug output" \
 
 requires_gnutls_tls1_3
 requires_gnutls_record_size_limit
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_CLI_C MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_RECORD_SIZE_LIMIT
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "Record Size Limit: TLS 1.3: Client-side parsing and debug output" \
@@ -4947,7 +4949,8 @@ run_test    "Record Size Limit: TLS 1.3: Client-side parsing and debug output" \
 
 requires_gnutls_tls1_3
 requires_gnutls_record_size_limit
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_SRV_C
+requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_RECORD_SIZE_LIMIT
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 run_test    "Record Size Limit: TLS 1.3: Server complies with record size limit (513), 1 fragment" \
@@ -4966,7 +4969,8 @@ run_test    "Record Size Limit: TLS 1.3: Server complies with record size limit 
 
 requires_gnutls_tls1_3
 requires_gnutls_record_size_limit
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_SRV_C
+requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_RECORD_SIZE_LIMIT
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 run_test    "Record Size Limit: TLS 1.3: Server complies with record size limit (513), 2 fragments" \
@@ -4985,7 +4989,8 @@ run_test    "Record Size Limit: TLS 1.3: Server complies with record size limit 
 
 requires_gnutls_tls1_3
 requires_gnutls_record_size_limit
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_SRV_C
+requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_RECORD_SIZE_LIMIT
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 run_test    "Record Size Limit: TLS 1.3: Server complies with record size limit (513), 3 fragments" \
@@ -5004,7 +5009,8 @@ run_test    "Record Size Limit: TLS 1.3: Server complies with record size limit 
 
 requires_gnutls_tls1_3
 requires_gnutls_record_size_limit
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_SRV_C
+requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_RECORD_SIZE_LIMIT
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "Record Size Limit: TLS 1.3: Server complies with record size limit (1024), 1 fragment" \
@@ -5020,7 +5026,8 @@ run_test    "Record Size Limit: TLS 1.3: Server complies with record size limit 
 
 requires_gnutls_tls1_3
 requires_gnutls_record_size_limit
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_SRV_C
+requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_RECORD_SIZE_LIMIT
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "Record Size Limit: TLS 1.3: Server complies with record size limit (1024), 2 fragments" \
@@ -5036,7 +5043,8 @@ run_test    "Record Size Limit: TLS 1.3: Server complies with record size limit 
 
 requires_gnutls_tls1_3
 requires_gnutls_record_size_limit
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_SRV_C
+requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_RECORD_SIZE_LIMIT
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "Record Size Limit: TLS 1.3: Server complies with record size limit (1024), 3 fragments" \
@@ -5052,7 +5060,8 @@ run_test    "Record Size Limit: TLS 1.3: Server complies with record size limit 
 
 requires_gnutls_tls1_3
 requires_gnutls_record_size_limit
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_SRV_C
+requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_RECORD_SIZE_LIMIT
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "Record Size Limit: TLS 1.3: Server complies with record size limit (4096), 1 fragment" \
@@ -5068,7 +5077,8 @@ run_test    "Record Size Limit: TLS 1.3: Server complies with record size limit 
 
 requires_gnutls_tls1_3
 requires_gnutls_record_size_limit
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_SRV_C
+requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_RECORD_SIZE_LIMIT
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "Record Size Limit: TLS 1.3: Server complies with record size limit (4096), 2 fragments" \
@@ -5084,7 +5094,8 @@ run_test    "Record Size Limit: TLS 1.3: Server complies with record size limit 
 
 requires_gnutls_tls1_3
 requires_gnutls_record_size_limit
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_SRV_C
+requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_RECORD_SIZE_LIMIT
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "Record Size Limit: TLS 1.3: Server complies with record size limit (4096), 3 fragments" \
@@ -5100,7 +5111,8 @@ run_test    "Record Size Limit: TLS 1.3: Server complies with record size limit 
 
 requires_gnutls_tls1_3
 requires_gnutls_record_size_limit
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_CLI_C MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_RECORD_SIZE_LIMIT
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "Record Size Limit: TLS 1.3: Client complies with record size limit (513), 1 fragment" \
@@ -5116,7 +5128,8 @@ run_test    "Record Size Limit: TLS 1.3: Client complies with record size limit 
 
 requires_gnutls_tls1_3
 requires_gnutls_record_size_limit
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_CLI_C MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_RECORD_SIZE_LIMIT
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "Record Size Limit: TLS 1.3: Client complies with record size limit (513), 2 fragments" \
@@ -5132,7 +5145,8 @@ run_test    "Record Size Limit: TLS 1.3: Client complies with record size limit 
 
 requires_gnutls_tls1_3
 requires_gnutls_record_size_limit
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_CLI_C MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_RECORD_SIZE_LIMIT
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "Record Size Limit: TLS 1.3: Client complies with record size limit (513), 3 fragments" \
@@ -5148,7 +5162,8 @@ run_test    "Record Size Limit: TLS 1.3: Client complies with record size limit 
 
 requires_gnutls_tls1_3
 requires_gnutls_record_size_limit
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_CLI_C MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_RECORD_SIZE_LIMIT
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "Record Size Limit: TLS 1.3: Client complies with record size limit (1024), 1 fragment" \
@@ -5164,7 +5179,8 @@ run_test    "Record Size Limit: TLS 1.3: Client complies with record size limit 
 
 requires_gnutls_tls1_3
 requires_gnutls_record_size_limit
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_CLI_C MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_RECORD_SIZE_LIMIT
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "Record Size Limit: TLS 1.3: Client complies with record size limit (1024), 2 fragments" \
@@ -5180,7 +5196,8 @@ run_test    "Record Size Limit: TLS 1.3: Client complies with record size limit 
 
 requires_gnutls_tls1_3
 requires_gnutls_record_size_limit
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_CLI_C MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_RECORD_SIZE_LIMIT
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "Record Size Limit: TLS 1.3: Client complies with record size limit (1024), 3 fragments" \
@@ -5196,7 +5213,8 @@ run_test    "Record Size Limit: TLS 1.3: Client complies with record size limit 
 
 requires_gnutls_tls1_3
 requires_gnutls_record_size_limit
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_CLI_C MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_RECORD_SIZE_LIMIT
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "Record Size Limit: TLS 1.3: Client complies with record size limit (4096), 1 fragment" \
@@ -5212,7 +5230,8 @@ run_test    "Record Size Limit: TLS 1.3: Client complies with record size limit 
 
 requires_gnutls_tls1_3
 requires_gnutls_record_size_limit
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_CLI_C MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_RECORD_SIZE_LIMIT
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "Record Size Limit: TLS 1.3: Client complies with record size limit (4096), 2 fragments" \
@@ -5228,7 +5247,8 @@ run_test    "Record Size Limit: TLS 1.3: Client complies with record size limit 
 
 requires_gnutls_tls1_3
 requires_gnutls_record_size_limit
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_CLI_C MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_RECORD_SIZE_LIMIT
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "Record Size Limit: TLS 1.3: Client complies with record size limit (4096), 3 fragments" \
@@ -5246,7 +5266,9 @@ run_test    "Record Size Limit: TLS 1.3: Client complies with record size limit 
 # MBEDTLS_SSL_IN_CONTENT_LEN. Once we support variable buffer length of
 # RecordSizeLimit, we need to modify value of RecordSizeLimit in below test.
 requires_config_value_equals "MBEDTLS_SSL_IN_CONTENT_LEN" 16384
-requires_all_configs_enabled MBEDTLS_SSL_CLI_C MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_enabled MBEDTLS_SSL_SRV_C
+requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_RECORD_SIZE_LIMIT
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "Record Size Limit: TLS 1.3 m->m: both peer comply with record size limit (default)" \
@@ -7102,7 +7124,8 @@ run_test    "Event-driven I/O, DTLS: session-id resume, UDP packing" \
 
 # Tests for version negotiation, MbedTLS client and server
 
-requires_all_configs_enabled MBEDTLS_SSL_CLI_C MBEDTLS_SSL_SRV_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_disabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
 run_test    "Version nego m->m: cli 1.2, srv 1.2 -> 1.2" \
@@ -7114,8 +7137,10 @@ run_test    "Version nego m->m: cli 1.2, srv 1.2 -> 1.2" \
             -s "Protocol is TLSv1.2" \
             -c "Protocol is TLSv1.2"
 
-requires_all_configs_enabled MBEDTLS_SSL_CLI_C MBEDTLS_SSL_SRV_C \
-                             MBEDTLS_SSL_PROTO_TLS1_2 MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_enabled MBEDTLS_SSL_SRV_C
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
 run_test    "Version nego m->m: cli max=1.2, srv max=1.2 -> 1.2" \
             "$P_SRV max_version=tls12" \
@@ -7126,8 +7151,9 @@ run_test    "Version nego m->m: cli max=1.2, srv max=1.2 -> 1.2" \
             -s "Protocol is TLSv1.2" \
             -c "Protocol is TLSv1.2"
 
-requires_all_configs_enabled MBEDTLS_SSL_CLI_C MBEDTLS_SSL_SRV_C \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_enabled MBEDTLS_SSL_SRV_C
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_disabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Version nego m->m: cli 1.3, srv 1.3 -> 1.3" \
             "$P_SRV" \
@@ -7138,9 +7164,11 @@ run_test    "Version nego m->m: cli 1.3, srv 1.3 -> 1.3" \
             -s "Protocol is TLSv1.3" \
             -c "Protocol is TLSv1.3"
 
-requires_all_configs_enabled MBEDTLS_SSL_CLI_C MBEDTLS_SSL_SRV_C \
-                             MBEDTLS_SSL_PROTO_TLS1_2 MBEDTLS_SSL_PROTO_TLS1_3 \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_enabled MBEDTLS_SSL_SRV_C
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "Version nego m->m: cli min=1.3, srv min=1.3 -> 1.3" \
             "$P_SRV min_version=tls13" \
             "$P_CLI min_version=tls13" \
@@ -7150,9 +7178,11 @@ run_test    "Version nego m->m: cli min=1.3, srv min=1.3 -> 1.3" \
             -s "Protocol is TLSv1.3" \
             -c "Protocol is TLSv1.3"
 
-requires_all_configs_enabled MBEDTLS_SSL_CLI_C MBEDTLS_SSL_SRV_C \
-                             MBEDTLS_SSL_PROTO_TLS1_2 MBEDTLS_SSL_PROTO_TLS1_3 \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_enabled MBEDTLS_SSL_SRV_C
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "Version nego m->m: cli 1.2+1.3, srv 1.2+1.3 -> 1.3" \
             "$P_SRV" \
             "$P_CLI" \
@@ -7162,9 +7192,11 @@ run_test    "Version nego m->m: cli 1.2+1.3, srv 1.2+1.3 -> 1.3" \
             -s "Protocol is TLSv1.3" \
             -c "Protocol is TLSv1.3"
 
-requires_all_configs_enabled MBEDTLS_SSL_CLI_C MBEDTLS_SSL_SRV_C \
-                             MBEDTLS_SSL_PROTO_TLS1_2 MBEDTLS_SSL_PROTO_TLS1_3 \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_enabled MBEDTLS_SSL_SRV_C
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "Version nego m->m: cli 1.2+1.3, srv min=1.3 -> 1.3" \
             "$P_SRV min_version=tls13" \
             "$P_CLI" \
@@ -7174,8 +7206,10 @@ run_test    "Version nego m->m: cli 1.2+1.3, srv min=1.3 -> 1.3" \
             -s "Protocol is TLSv1.3" \
             -c "Protocol is TLSv1.3"
 
-requires_all_configs_enabled MBEDTLS_SSL_CLI_C MBEDTLS_SSL_SRV_C \
-                             MBEDTLS_SSL_PROTO_TLS1_2 MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_enabled MBEDTLS_SSL_SRV_C
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
 run_test    "Version nego m->m: cli 1.2+1.3, srv max=1.2 -> 1.2" \
             "$P_SRV max_version=tls12" \
@@ -7186,8 +7220,10 @@ run_test    "Version nego m->m: cli 1.2+1.3, srv max=1.2 -> 1.2" \
             -s "Protocol is TLSv1.2" \
             -c "Protocol is TLSv1.2"
 
-requires_all_configs_enabled MBEDTLS_SSL_CLI_C MBEDTLS_SSL_SRV_C \
-                             MBEDTLS_SSL_PROTO_TLS1_2 MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_enabled MBEDTLS_SSL_SRV_C
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
 run_test    "Version nego m->m: cli max=1.2, srv 1.2+1.3 -> 1.2" \
             "$P_SRV" \
@@ -7198,9 +7234,11 @@ run_test    "Version nego m->m: cli max=1.2, srv 1.2+1.3 -> 1.2" \
             -s "Protocol is TLSv1.2" \
             -c "Protocol is TLSv1.2"
 
-requires_all_configs_enabled MBEDTLS_SSL_CLI_C MBEDTLS_SSL_SRV_C \
-                             MBEDTLS_SSL_PROTO_TLS1_2 MBEDTLS_SSL_PROTO_TLS1_3 \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_enabled MBEDTLS_SSL_SRV_C
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "Version nego m->m: cli min=1.3, srv 1.2+1.3 -> 1.3" \
             "$P_SRV" \
             "$P_CLI min_version=tls13" \
@@ -7210,8 +7248,10 @@ run_test    "Version nego m->m: cli min=1.3, srv 1.2+1.3 -> 1.3" \
             -s "Protocol is TLSv1.3" \
             -c "Protocol is TLSv1.3"
 
-requires_all_configs_enabled MBEDTLS_SSL_CLI_C MBEDTLS_SSL_SRV_C \
-                             MBEDTLS_SSL_PROTO_TLS1_2 MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_enabled MBEDTLS_SSL_SRV_C
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 run_test    "Not supported version m->m: cli max=1.2, srv min=1.3" \
             "$P_SRV min_version=tls13" \
             "$P_CLI max_version=tls12" \
@@ -7222,8 +7262,10 @@ run_test    "Not supported version m->m: cli max=1.2, srv min=1.3" \
             -S "Protocol is TLSv1.3" \
             -C "Protocol is TLSv1.3"
 
-requires_all_configs_enabled MBEDTLS_SSL_CLI_C MBEDTLS_SSL_SRV_C \
-                             MBEDTLS_SSL_PROTO_TLS1_2 MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_enabled MBEDTLS_SSL_SRV_C
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 run_test    "Not supported version m->m: cli min=1.3, srv max=1.2" \
             "$P_SRV max_version=tls12" \
             "$P_CLI min_version=tls13" \
@@ -7236,7 +7278,8 @@ run_test    "Not supported version m->m: cli min=1.3, srv max=1.2" \
 
 # Tests of version negotiation on server side against GnuTLS client
 
-requires_all_configs_enabled MBEDTLS_SSL_SRV_C MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_SRV_C
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
 run_test    "Server version nego G->m: cli 1.2, srv 1.2+(1.3) -> 1.2" \
             "$P_SRV" \
@@ -7245,8 +7288,9 @@ run_test    "Server version nego G->m: cli 1.2, srv 1.2+(1.3) -> 1.2" \
             -S "mbedtls_ssl_handshake returned" \
             -s "Protocol is TLSv1.2"
 
-requires_all_configs_enabled MBEDTLS_SSL_SRV_C \
-                             MBEDTLS_SSL_PROTO_TLS1_2 MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_SRV_C
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
 run_test    "Server version nego G->m: cli 1.2, srv max=1.2 -> 1.2" \
             "$P_SRV max_version=tls12" \
@@ -7255,9 +7299,9 @@ run_test    "Server version nego G->m: cli 1.2, srv max=1.2 -> 1.2" \
             -S "mbedtls_ssl_handshake returned" \
             -s "Protocol is TLSv1.2"
 
-requires_all_configs_enabled MBEDTLS_SSL_SRV_C MBEDTLS_SSL_PROTO_TLS1_3 \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
-                             MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+requires_config_enabled MBEDTLS_SSL_SRV_C
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "Server version nego G->m: cli 1.3, srv (1.2)+1.3 -> 1.3" \
             "$P_SRV" \
             "$G_NEXT_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3" \
@@ -7265,10 +7309,10 @@ run_test    "Server version nego G->m: cli 1.3, srv (1.2)+1.3 -> 1.3" \
             -S "mbedtls_ssl_handshake returned" \
             -s "Protocol is TLSv1.3"
 
-requires_all_configs_enabled MBEDTLS_SSL_SRV_C \
-                             MBEDTLS_SSL_PROTO_TLS1_2 MBEDTLS_SSL_PROTO_TLS1_3 \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
-                             MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+requires_config_enabled MBEDTLS_SSL_SRV_C
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "Server version nego G->m: cli 1.3, srv min=1.3 -> 1.3" \
             "$P_SRV min_version=tls13" \
             "$G_NEXT_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3" \
@@ -7276,9 +7320,9 @@ run_test    "Server version nego G->m: cli 1.3, srv min=1.3 -> 1.3" \
             -S "mbedtls_ssl_handshake returned" \
             -s "Protocol is TLSv1.3"
 
-requires_all_configs_enabled MBEDTLS_SSL_SRV_C MBEDTLS_SSL_PROTO_TLS1_3 \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
-                             MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+requires_config_enabled MBEDTLS_SSL_SRV_C
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "Server version nego G->m: cli 1.2+1.3, srv (1.2)+1.3 -> 1.3" \
             "$P_SRV" \
             "$G_NEXT_CLI localhost --priority=NORMAL" \
@@ -7287,8 +7331,9 @@ run_test    "Server version nego G->m: cli 1.2+1.3, srv (1.2)+1.3 -> 1.3" \
             -s "Protocol is TLSv1.3"
 
 requires_gnutls_next_disable_tls13_compat
-requires_all_configs_enabled MBEDTLS_SSL_SRV_C MBEDTLS_SSL_PROTO_TLS1_3 \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_SRV_C
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "Server version nego G->m (no compat): cli 1.2+1.3, srv (1.2)+1.3 -> 1.3" \
             "$P_SRV" \
             "$G_NEXT_CLI localhost --priority=NORMAL:%DISABLE_TLS13_COMPAT_MODE" \
@@ -7304,19 +7349,19 @@ run_test    "Server version nego G->m (no compat): cli 1.2+1.3, srv (1.2)+1.3 ->
 # if TLS 1.2 was its preferred version. Keeping the test even if the
 # handshake fails eventually as it exercices parts of the Mbed TLS
 # implementation that are otherwise not exercised.
-requires_all_configs_enabled MBEDTLS_SSL_SRV_C \
-                             MBEDTLS_SSL_PROTO_TLS1_2 MBEDTLS_SSL_PROTO_TLS1_3 \
-                             MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+requires_config_enabled MBEDTLS_SSL_SRV_C
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 run_test    "Server version nego G->m: cli 1.2+1.3 (1.2 preferred!), srv 1.2+1.3 -> 1.2" \
             "$P_SRV" \
             "$G_NEXT_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.2:+VERS-TLS1.3" \
             1 \
             -c "Detected downgrade to TLS 1.2 from TLS 1.3"
 
-requires_all_configs_enabled MBEDTLS_SSL_SRV_C \
-                             MBEDTLS_SSL_PROTO_TLS1_2 MBEDTLS_SSL_PROTO_TLS1_3 \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
-                             MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+requires_config_enabled MBEDTLS_SSL_SRV_C
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "Server version nego G->m: cli 1.2+1.3, srv min=1.3 -> 1.3" \
             "$P_SRV min_version=tls13" \
             "$G_NEXT_CLI localhost --priority=NORMAL" \
@@ -7334,8 +7379,9 @@ run_test    "Server version nego G->m: cli 1.2+1.3, srv 1.2 -> 1.2" \
             -S "mbedtls_ssl_handshake returned" \
             -s "Protocol is TLSv1.2"
 
-requires_all_configs_enabled MBEDTLS_SSL_SRV_C \
-                             MBEDTLS_SSL_PROTO_TLS1_2 MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_SRV_C
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
 run_test    "Server version nego G->m: cli 1.2+1.3, max=1.2 -> 1.2" \
             "$P_SRV max_version=tls12" \
@@ -7379,8 +7425,9 @@ run_test    "Not supported version G->m: cli 1.3, srv 1.2" \
             -s "The handshake negotiation failed" \
             -S "Protocol is TLSv1.3"
 
-requires_all_configs_enabled MBEDTLS_SSL_SRV_C \
-                             MBEDTLS_SSL_PROTO_TLS1_2 MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_SRV_C
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 run_test    "Not supported version G->m: cli 1.2, srv min=1.3" \
             "$P_SRV min_version=tls13" \
             "$G_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.2" \
@@ -7388,8 +7435,9 @@ run_test    "Not supported version G->m: cli 1.2, srv min=1.3" \
             -s "Handshake protocol not within min/max boundaries" \
             -S "Protocol is TLSv1.2"
 
-requires_all_configs_enabled MBEDTLS_SSL_SRV_C \
-                             MBEDTLS_SSL_PROTO_TLS1_2 MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_SRV_C
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 run_test    "Not supported version G->m: cli 1.3, srv max=1.2" \
             "$P_SRV max_version=tls12" \
             "$G_NEXT_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3" \
@@ -7400,7 +7448,8 @@ run_test    "Not supported version G->m: cli 1.3, srv max=1.2" \
 
 # Tests of version negotiation on server side against OpenSSL client
 
-requires_all_configs_enabled MBEDTLS_SSL_SRV_C MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_SRV_C
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
 run_test    "Server version nego O->m: cli 1.2, srv 1.2+(1.3) -> 1.2" \
             "$P_SRV" \
@@ -7409,8 +7458,9 @@ run_test    "Server version nego O->m: cli 1.2, srv 1.2+(1.3) -> 1.2" \
             -S "mbedtls_ssl_handshake returned" \
             -s "Protocol is TLSv1.2"
 
-requires_all_configs_enabled MBEDTLS_SSL_SRV_C \
-                             MBEDTLS_SSL_PROTO_TLS1_2 MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_SRV_C
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
 run_test    "Server version nego O->m: cli 1.2, srv max=1.2 -> 1.2" \
             "$P_SRV max_version=tls12" \
@@ -7420,9 +7470,9 @@ run_test    "Server version nego O->m: cli 1.2, srv max=1.2 -> 1.2" \
             -s "Protocol is TLSv1.2"
 
 requires_openssl_tls1_3_with_compatible_ephemeral
-requires_all_configs_enabled MBEDTLS_SSL_SRV_C MBEDTLS_SSL_PROTO_TLS1_3 \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
-                             MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+requires_config_enabled MBEDTLS_SSL_SRV_C
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "Server version nego O->m: cli 1.3, srv (1.2)+1.3 -> 1.3" \
             "$P_SRV" \
             "$O_NEXT_CLI -tls1_3" \
@@ -7431,10 +7481,10 @@ run_test    "Server version nego O->m: cli 1.3, srv (1.2)+1.3 -> 1.3" \
             -s "Protocol is TLSv1.3"
 
 requires_openssl_tls1_3_with_compatible_ephemeral
-requires_all_configs_enabled MBEDTLS_SSL_SRV_C \
-                             MBEDTLS_SSL_PROTO_TLS1_2 MBEDTLS_SSL_PROTO_TLS1_3 \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
-                             MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+requires_config_enabled MBEDTLS_SSL_SRV_C
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "Server version nego O->m: cli 1.3, srv min=1.3 -> 1.3" \
             "$P_SRV min_version=tls13" \
             "$O_NEXT_CLI -tls1_3" \
@@ -7443,9 +7493,9 @@ run_test    "Server version nego O->m: cli 1.3, srv min=1.3 -> 1.3" \
             -s "Protocol is TLSv1.3"
 
 requires_openssl_tls1_3_with_compatible_ephemeral
-requires_all_configs_enabled MBEDTLS_SSL_SRV_C MBEDTLS_SSL_PROTO_TLS1_3 \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
-                             MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+requires_config_enabled MBEDTLS_SSL_SRV_C
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "Server version nego O->m: cli 1.2+1.3, srv (1.2)+1.3 -> 1.3" \
             "$P_SRV" \
             "$O_NEXT_CLI" \
@@ -7454,8 +7504,9 @@ run_test    "Server version nego O->m: cli 1.2+1.3, srv (1.2)+1.3 -> 1.3" \
             -s "Protocol is TLSv1.3"
 
 requires_openssl_tls1_3_with_compatible_ephemeral
-requires_all_configs_enabled MBEDTLS_SSL_SRV_C MBEDTLS_SSL_PROTO_TLS1_3 \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_SRV_C
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "Server version nego O->m (no compat): cli 1.2+1.3, srv (1.2)+1.3 -> 1.3" \
             "$P_SRV" \
             "$O_NEXT_CLI -no_middlebox" \
@@ -7464,10 +7515,10 @@ run_test    "Server version nego O->m (no compat): cli 1.2+1.3, srv (1.2)+1.3 ->
             -s "Protocol is TLSv1.3"
 
 requires_openssl_tls1_3_with_compatible_ephemeral
-requires_all_configs_enabled MBEDTLS_SSL_SRV_C \
-                             MBEDTLS_SSL_PROTO_TLS1_2 MBEDTLS_SSL_PROTO_TLS1_3 \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
-                             MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+requires_config_enabled MBEDTLS_SSL_SRV_C
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "Server version nego O->m: cli 1.2+1.3, srv min=1.3 -> 1.3" \
             "$P_SRV min_version=tls13" \
             "$O_NEXT_CLI" \
@@ -7485,8 +7536,9 @@ run_test    "Server version nego O->m: cli 1.2+1.3, srv 1.2 -> 1.2" \
             -S "mbedtls_ssl_handshake returned" \
             -s "Protocol is TLSv1.2"
 
-requires_all_configs_enabled MBEDTLS_SSL_SRV_C \
-                             MBEDTLS_SSL_PROTO_TLS1_2 MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_SRV_C
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
 run_test    "Server version nego O->m: cli 1.2+1.3, srv max=1.2 -> 1.2" \
             "$P_SRV max_version=tls12" \
@@ -7530,8 +7582,9 @@ run_test    "Not supported version O->m: cli 1.3, srv 1.2" \
             -s "The handshake negotiation failed" \
             -S "Protocol is TLSv1.3"
 
-requires_all_configs_enabled MBEDTLS_SSL_SRV_C \
-                             MBEDTLS_SSL_PROTO_TLS1_2 MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_SRV_C
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 run_test    "Not supported version O->m: cli 1.2, srv min=1.3" \
             "$P_SRV min_version=tls13" \
             "$O_NEXT_CLI -tls1_2" \
@@ -7539,8 +7592,9 @@ run_test    "Not supported version O->m: cli 1.2, srv min=1.3" \
             -s "Handshake protocol not within min/max boundaries" \
             -S "Protocol is TLSv1.2"
 
-requires_all_configs_enabled MBEDTLS_SSL_SRV_C \
-                             MBEDTLS_SSL_PROTO_TLS1_2 MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_SRV_C
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 run_test    "Not supported version O->m: cli 1.3, srv max=1.2" \
             "$P_SRV max_version=tls12" \
             "$O_NEXT_CLI -tls1_3" \
@@ -7889,8 +7943,7 @@ run_test    "keyUsage cli 1.2: DigitalSignature, RSA: fail (soft)" \
             -c "! Usage does not match the keyUsage extension"
 
 requires_openssl_tls1_3_with_compatible_ephemeral
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "keyUsage cli 1.3: DigitalSignature, RSA: OK" \
             "$O_NEXT_SRV_NO_CERT -tls1_3 -num_tickets=0 -key $DATA_FILES_PATH/server2.key \
              -cert $DATA_FILES_PATH/server2-sha256.ku-ds.crt" \
@@ -7901,8 +7954,7 @@ run_test    "keyUsage cli 1.3: DigitalSignature, RSA: OK" \
             -c "Ciphersuite is"
 
 requires_openssl_tls1_3_with_compatible_ephemeral
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "keyUsage cli 1.3: DigitalSignature+KeyEncipherment, RSA: OK" \
             "$O_NEXT_SRV_NO_CERT -tls1_3 -num_tickets=0 -key $DATA_FILES_PATH/server2.key \
              -cert $DATA_FILES_PATH/server2-sha256.ku-ds_ke.crt" \
@@ -7913,8 +7965,7 @@ run_test    "keyUsage cli 1.3: DigitalSignature+KeyEncipherment, RSA: OK" \
             -c "Ciphersuite is"
 
 requires_openssl_tls1_3_with_compatible_ephemeral
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "keyUsage cli 1.3: KeyEncipherment, RSA: fail (hard)" \
             "$O_NEXT_SRV_NO_CERT -tls1_3 -num_tickets=0 -key $DATA_FILES_PATH/server2.key \
              -cert $DATA_FILES_PATH/server2-sha256.ku-ke.crt" \
@@ -7928,8 +7979,7 @@ run_test    "keyUsage cli 1.3: KeyEncipherment, RSA: fail (hard)" \
             # MBEDTLS_X509_BADCERT_KEY_USAGE -> MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT
 
 requires_openssl_tls1_3_with_compatible_ephemeral
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "keyUsage cli 1.3: KeyAgreement, RSA: fail (hard)" \
             "$O_NEXT_SRV_NO_CERT -tls1_3 -num_tickets=0 -key $DATA_FILES_PATH/server2.key \
              -cert $DATA_FILES_PATH/server2-sha256.ku-ka.crt" \
@@ -7943,8 +7993,7 @@ run_test    "keyUsage cli 1.3: KeyAgreement, RSA: fail (hard)" \
             # MBEDTLS_X509_BADCERT_KEY_USAGE -> MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT
 
 requires_openssl_tls1_3_with_compatible_ephemeral
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "keyUsage cli 1.3: DigitalSignature, ECDSA: OK" \
             "$O_NEXT_SRV_NO_CERT -tls1_3 -num_tickets=0 -key $DATA_FILES_PATH/server5.key \
              -cert $DATA_FILES_PATH/server5.ku-ds.crt" \
@@ -7955,8 +8004,7 @@ run_test    "keyUsage cli 1.3: DigitalSignature, ECDSA: OK" \
             -c "Ciphersuite is"
 
 requires_openssl_tls1_3_with_compatible_ephemeral
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "keyUsage cli 1.3: KeyEncipherment, ECDSA: fail (hard)" \
             "$O_NEXT_SRV_NO_CERT -tls1_3 -num_tickets=0 -key $DATA_FILES_PATH/server5.key \
              -cert $DATA_FILES_PATH/server5.ku-ke.crt" \
@@ -7970,8 +8018,7 @@ run_test    "keyUsage cli 1.3: KeyEncipherment, ECDSA: fail (hard)" \
             # MBEDTLS_X509_BADCERT_KEY_USAGE -> MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT
 
 requires_openssl_tls1_3_with_compatible_ephemeral
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "keyUsage cli 1.3: KeyAgreement, ECDSA: fail (hard)" \
             "$O_NEXT_SRV_NO_CERT -tls1_3 -num_tickets=0 -key $DATA_FILES_PATH/server5.key \
              -cert $DATA_FILES_PATH/server5.ku-ka.crt" \
@@ -8066,8 +8113,7 @@ run_test    "keyUsage cli-auth 1.2: ECDSA, KeyAgreement: fail (hard)" \
             # MBEDTLS_X509_BADCERT_KEY_USAGE -> MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT
 
 requires_openssl_tls1_3_with_compatible_ephemeral
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "keyUsage cli-auth 1.3: RSA, DigitalSignature: OK" \
             "$P_SRV debug_level=1 force_version=tls13 auth_mode=optional" \
             "$O_NEXT_CLI_NO_CERT -key $DATA_FILES_PATH/server2.key \
@@ -8078,8 +8124,7 @@ run_test    "keyUsage cli-auth 1.3: RSA, DigitalSignature: OK" \
             -S "Processing of the Certificate handshake message failed"
 
 requires_openssl_tls1_3_with_compatible_ephemeral
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "keyUsage cli-auth 1.3: RSA, DigitalSignature+KeyEncipherment: OK" \
             "$P_SRV debug_level=1 force_version=tls13 auth_mode=optional" \
             "$O_NEXT_CLI_NO_CERT -key $DATA_FILES_PATH/server2.key \
@@ -8090,8 +8135,7 @@ run_test    "keyUsage cli-auth 1.3: RSA, DigitalSignature+KeyEncipherment: OK" \
             -S "Processing of the Certificate handshake message failed"
 
 requires_openssl_tls1_3_with_compatible_ephemeral
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "keyUsage cli-auth 1.3: RSA, KeyEncipherment: fail (soft)" \
             "$P_SRV debug_level=3 force_version=tls13 auth_mode=optional" \
             "$O_NEXT_CLI_NO_CERT -key $DATA_FILES_PATH/server2.key \
@@ -8103,8 +8147,7 @@ run_test    "keyUsage cli-auth 1.3: RSA, KeyEncipherment: fail (soft)" \
             -S "Processing of the Certificate handshake message failed"
 
 requires_openssl_tls1_3_with_compatible_ephemeral
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "keyUsage cli-auth 1.3: RSA, KeyEncipherment: fail (hard)" \
             "$P_SRV debug_level=3 force_version=tls13 auth_mode=required" \
             "$P_CLI key_file=$DATA_FILES_PATH/server2.key \
@@ -8118,8 +8161,7 @@ run_test    "keyUsage cli-auth 1.3: RSA, KeyEncipherment: fail (hard)" \
             # MBEDTLS_X509_BADCERT_KEY_USAGE -> MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT
 
 requires_openssl_tls1_3_with_compatible_ephemeral
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "keyUsage cli-auth 1.3: ECDSA, DigitalSignature: OK" \
             "$P_SRV debug_level=1 force_version=tls13 auth_mode=optional" \
             "$O_NEXT_CLI_NO_CERT -key $DATA_FILES_PATH/server5.key \
@@ -8130,8 +8172,7 @@ run_test    "keyUsage cli-auth 1.3: ECDSA, DigitalSignature: OK" \
             -S "Processing of the Certificate handshake message failed"
 
 requires_openssl_tls1_3_with_compatible_ephemeral
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "keyUsage cli-auth 1.3: ECDSA, KeyAgreement: fail (soft)" \
             "$P_SRV debug_level=3 force_version=tls13 auth_mode=optional" \
             "$O_NEXT_CLI_NO_CERT -key $DATA_FILES_PATH/server5.key \
@@ -8142,8 +8183,7 @@ run_test    "keyUsage cli-auth 1.3: ECDSA, KeyAgreement: fail (soft)" \
             -S "Processing of the Certificate handshake message failed"
 
 requires_openssl_tls1_3_with_compatible_ephemeral
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "keyUsage cli-auth 1.3: ECDSA, KeyAgreement: fail (hard)" \
             "$P_SRV debug_level=3 force_version=tls13 auth_mode=required" \
             "$P_CLI key_file=$DATA_FILES_PATH/server5.key \
@@ -8241,8 +8281,7 @@ run_test    "extKeyUsage cli 1.2: codeSign -> fail (hard)" \
             # MBEDTLS_X509_BADCERT_EXT_KEY_USAGE  -> MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT
 
 requires_openssl_tls1_3_with_compatible_ephemeral
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "extKeyUsage cli 1.3: serverAuth -> OK" \
             "$O_NEXT_SRV_NO_CERT -tls1_3 -num_tickets=0 -key $DATA_FILES_PATH/server5.key \
              -cert $DATA_FILES_PATH/server5.eku-srv.crt" \
@@ -8253,8 +8292,7 @@ run_test    "extKeyUsage cli 1.3: serverAuth -> OK" \
             -c "Ciphersuite is"
 
 requires_openssl_tls1_3_with_compatible_ephemeral
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "extKeyUsage cli 1.3: serverAuth,clientAuth -> OK" \
             "$O_NEXT_SRV_NO_CERT -tls1_3 -num_tickets=0 -key $DATA_FILES_PATH/server5.key \
              -cert $DATA_FILES_PATH/server5.eku-srv_cli.crt" \
@@ -8265,8 +8303,7 @@ run_test    "extKeyUsage cli 1.3: serverAuth,clientAuth -> OK" \
             -c "Ciphersuite is"
 
 requires_openssl_tls1_3_with_compatible_ephemeral
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "extKeyUsage cli 1.3: codeSign,anyEKU -> OK" \
             "$O_NEXT_SRV_NO_CERT -tls1_3 -num_tickets=0 -key $DATA_FILES_PATH/server5.key \
              -cert $DATA_FILES_PATH/server5.eku-cs_any.crt" \
@@ -8277,8 +8314,7 @@ run_test    "extKeyUsage cli 1.3: codeSign,anyEKU -> OK" \
             -c "Ciphersuite is"
 
 requires_openssl_tls1_3_with_compatible_ephemeral
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "extKeyUsage cli 1.3: codeSign -> fail (hard)" \
             "$O_NEXT_SRV_NO_CERT -tls1_3 -num_tickets=0 -key $DATA_FILES_PATH/server5.key \
              -cert $DATA_FILES_PATH/server5.eku-cs.crt" \
@@ -8344,8 +8380,7 @@ run_test    "extKeyUsage cli-auth 1.2: codeSign -> fail (hard)" \
             # MBEDTLS_X509_BADCERT_EXT_KEY_USAGE  -> MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT
 
 requires_openssl_tls1_3_with_compatible_ephemeral
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "extKeyUsage cli-auth 1.3: clientAuth -> OK" \
             "$P_SRV debug_level=1 force_version=tls13 auth_mode=optional" \
             "$O_NEXT_CLI_NO_CERT -key $DATA_FILES_PATH/server5.key \
@@ -8355,8 +8390,7 @@ run_test    "extKeyUsage cli-auth 1.3: clientAuth -> OK" \
             -S "Processing of the Certificate handshake message failed"
 
 requires_openssl_tls1_3_with_compatible_ephemeral
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "extKeyUsage cli-auth 1.3: serverAuth,clientAuth -> OK" \
             "$P_SRV debug_level=1 force_version=tls13 auth_mode=optional" \
             "$O_NEXT_CLI_NO_CERT -key $DATA_FILES_PATH/server5.key \
@@ -8366,8 +8400,7 @@ run_test    "extKeyUsage cli-auth 1.3: serverAuth,clientAuth -> OK" \
             -S "Processing of the Certificate handshake message failed"
 
 requires_openssl_tls1_3_with_compatible_ephemeral
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "extKeyUsage cli-auth 1.3: codeSign,anyEKU -> OK" \
             "$P_SRV debug_level=1 force_version=tls13 auth_mode=optional" \
             "$O_NEXT_CLI_NO_CERT -key $DATA_FILES_PATH/server5.key \
@@ -8377,8 +8410,7 @@ run_test    "extKeyUsage cli-auth 1.3: codeSign,anyEKU -> OK" \
             -S "Processing of the Certificate handshake message failed"
 
 requires_openssl_tls1_3_with_compatible_ephemeral
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "extKeyUsage cli-auth 1.3: codeSign -> fail (soft)" \
             "$P_SRV debug_level=3 force_version=tls13 auth_mode=optional" \
             "$O_NEXT_CLI_NO_CERT -key $DATA_FILES_PATH/server5.key \
@@ -8390,8 +8422,7 @@ run_test    "extKeyUsage cli-auth 1.3: codeSign -> fail (soft)" \
             -S "Processing of the Certificate handshake message failed"
 
 requires_openssl_tls1_3_with_compatible_ephemeral
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "extKeyUsage cli-auth 1.3: codeSign -> fail (hard)" \
             "$P_SRV debug_level=3 force_version=tls13 auth_mode=required" \
             "$P_CLI key_file=$DATA_FILES_PATH/server5.key \
@@ -12563,8 +12594,7 @@ run_test    "Establish TLS 1.3 then TLS 1.2 session" \
 requires_openssl_tls1_3_with_compatible_ephemeral
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: minimal feature sets - openssl" \
             "$O_NEXT_SRV -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
             "$P_CLI debug_level=3" \
@@ -12596,8 +12626,7 @@ requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: minimal feature sets - gnutls" \
             "$G_NEXT_SRV --debug=4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL:%NO_TICKETS --disable-client-cert" \
             "$P_CLI debug_level=3" \
@@ -12630,8 +12659,7 @@ requires_openssl_tls1_3_with_compatible_ephemeral
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_ALPN
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: alpn - openssl" \
             "$O_NEXT_SRV -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache -alpn h2" \
             "$P_CLI debug_level=3 alpn=h2" \
@@ -12665,8 +12693,7 @@ requires_gnutls_next_no_ticket
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_ALPN
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: alpn - gnutls" \
             "$G_NEXT_SRV --debug=4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL:%NO_TICKETS --disable-client-cert --alpn=h2" \
             "$P_CLI debug_level=3 alpn=h2" \
@@ -12729,8 +12756,7 @@ run_test    "TLS 1.3: server alpn - gnutls" \
 requires_openssl_tls1_3_with_compatible_ephemeral
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: Client authentication, no client certificate - openssl" \
             "$O_NEXT_SRV -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache -verify 10" \
             "$P_CLI debug_level=4 crt_file=none key_file=none" \
@@ -12745,8 +12771,7 @@ requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: Client authentication, no client certificate - gnutls" \
             "$G_NEXT_SRV --debug=4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL:%NO_TICKETS --verify-client-cert" \
             "$P_CLI debug_level=3 crt_file=none key_file=none" \
@@ -12789,8 +12814,7 @@ run_test    "TLS 1.3: Client authentication, no server middlebox compat - gnutls
 requires_openssl_tls1_3_with_compatible_ephemeral
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: Client authentication, ecdsa_secp256r1_sha256 - openssl" \
             "$O_NEXT_SRV -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache -Verify 10" \
             "$P_CLI debug_level=4 crt_file=$DATA_FILES_PATH/ecdsa_secp256r1.crt \
@@ -12805,8 +12829,7 @@ requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: Client authentication, ecdsa_secp256r1_sha256 - gnutls" \
             "$G_NEXT_SRV --debug=4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL:%NO_TICKETS" \
             "$P_CLI debug_level=3 crt_file=$DATA_FILES_PATH/ecdsa_secp256r1.crt \
@@ -12820,8 +12843,7 @@ run_test    "TLS 1.3: Client authentication, ecdsa_secp256r1_sha256 - gnutls" \
 requires_openssl_tls1_3_with_compatible_ephemeral
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: Client authentication, ecdsa_secp384r1_sha384 - openssl" \
             "$O_NEXT_SRV -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache -Verify 10" \
             "$P_CLI debug_level=4 crt_file=$DATA_FILES_PATH/ecdsa_secp384r1.crt \
@@ -12836,8 +12858,7 @@ requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: Client authentication, ecdsa_secp384r1_sha384 - gnutls" \
             "$G_NEXT_SRV --debug=4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL:%NO_TICKETS" \
             "$P_CLI debug_level=3 crt_file=$DATA_FILES_PATH/ecdsa_secp384r1.crt \
@@ -12851,8 +12872,7 @@ run_test    "TLS 1.3: Client authentication, ecdsa_secp384r1_sha384 - gnutls" \
 requires_openssl_tls1_3_with_compatible_ephemeral
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: Client authentication, ecdsa_secp521r1_sha512 - openssl" \
             "$O_NEXT_SRV -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache -Verify 10" \
             "$P_CLI debug_level=4 crt_file=$DATA_FILES_PATH/ecdsa_secp521r1.crt \
@@ -12867,8 +12887,7 @@ requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: Client authentication, ecdsa_secp521r1_sha512 - gnutls" \
             "$G_NEXT_SRV --debug=4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL:%NO_TICKETS" \
             "$P_CLI debug_level=3 crt_file=$DATA_FILES_PATH/ecdsa_secp521r1.crt \
@@ -12883,8 +12902,7 @@ requires_openssl_tls1_3_with_compatible_ephemeral
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_RSA_C
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: Client authentication, rsa_pss_rsae_sha256 - openssl" \
             "$O_NEXT_SRV -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache -Verify 10" \
             "$P_CLI debug_level=4 crt_file=$DATA_FILES_PATH/cert_sha256.crt \
@@ -12900,8 +12918,7 @@ requires_gnutls_next_no_ticket
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_RSA_C
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: Client authentication, rsa_pss_rsae_sha256 - gnutls" \
             "$G_NEXT_SRV --debug=4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL:%NO_TICKETS" \
             "$P_CLI debug_level=3 crt_file=$DATA_FILES_PATH/server2-sha256.crt \
@@ -12916,8 +12933,7 @@ requires_openssl_tls1_3_with_compatible_ephemeral
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_RSA_C
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: Client authentication, rsa_pss_rsae_sha384 - openssl" \
             "$O_NEXT_SRV -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache -Verify 10" \
             "$P_CLI debug_level=4 crt_file=$DATA_FILES_PATH/cert_sha256.crt \
@@ -12933,8 +12949,7 @@ requires_gnutls_next_no_ticket
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_RSA_C
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: Client authentication, rsa_pss_rsae_sha384 - gnutls" \
             "$G_NEXT_SRV --debug=4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL:%NO_TICKETS" \
             "$P_CLI debug_level=3 crt_file=$DATA_FILES_PATH/server2-sha256.crt \
@@ -12949,8 +12964,7 @@ requires_openssl_tls1_3_with_compatible_ephemeral
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_RSA_C
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: Client authentication, rsa_pss_rsae_sha512 - openssl" \
             "$O_NEXT_SRV -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache -Verify 10" \
             "$P_CLI debug_level=4 crt_file=$DATA_FILES_PATH/cert_sha256.crt \
@@ -12966,8 +12980,7 @@ requires_gnutls_next_no_ticket
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_RSA_C
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: Client authentication, rsa_pss_rsae_sha512 - gnutls" \
             "$G_NEXT_SRV --debug=4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL:%NO_TICKETS" \
             "$P_CLI debug_level=3 crt_file=$DATA_FILES_PATH/server2-sha256.crt \
@@ -12982,8 +12995,7 @@ requires_openssl_tls1_3_with_compatible_ephemeral
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_RSA_C
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: Client authentication, client alg not in server list - openssl" \
             "$O_NEXT_SRV -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache -Verify 10
                 -sigalgs ecdsa_secp256r1_sha256" \
@@ -13000,8 +13012,7 @@ requires_gnutls_next_no_ticket
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_RSA_C
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: Client authentication, client alg not in server list - gnutls" \
             "$G_NEXT_SRV --debug=4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL:-SIGN-ALL:+SIGN-ECDSA-SECP256R1-SHA256:%NO_TICKETS" \
             "$P_CLI debug_level=3 crt_file=$DATA_FILES_PATH/ecdsa_secp521r1.crt \
@@ -13047,8 +13058,7 @@ requires_openssl_tls1_3_with_compatible_ephemeral
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: Client authentication - opaque key, ecdsa_secp256r1_sha256 - openssl" \
             "$O_NEXT_SRV -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache -Verify 10" \
             "$P_CLI debug_level=4 crt_file=$DATA_FILES_PATH/ecdsa_secp256r1.crt \
@@ -13064,8 +13074,7 @@ requires_gnutls_next_no_ticket
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: Client authentication - opaque key, ecdsa_secp256r1_sha256 - gnutls" \
             "$G_NEXT_SRV --debug=4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL:%NO_TICKETS" \
             "$P_CLI debug_level=3 crt_file=$DATA_FILES_PATH/ecdsa_secp256r1.crt \
@@ -13080,8 +13089,7 @@ requires_openssl_tls1_3_with_compatible_ephemeral
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: Client authentication - opaque key, ecdsa_secp384r1_sha384 - openssl" \
             "$O_NEXT_SRV -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache -Verify 10" \
             "$P_CLI debug_level=4 crt_file=$DATA_FILES_PATH/ecdsa_secp384r1.crt \
@@ -13097,8 +13105,7 @@ requires_gnutls_next_no_ticket
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: Client authentication - opaque key, ecdsa_secp384r1_sha384 - gnutls" \
             "$G_NEXT_SRV --debug=4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL:%NO_TICKETS" \
             "$P_CLI debug_level=3 crt_file=$DATA_FILES_PATH/ecdsa_secp384r1.crt \
@@ -13113,8 +13120,7 @@ requires_openssl_tls1_3_with_compatible_ephemeral
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: Client authentication - opaque key, ecdsa_secp521r1_sha512 - openssl" \
             "$O_NEXT_SRV -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache -Verify 10" \
             "$P_CLI debug_level=4 crt_file=$DATA_FILES_PATH/ecdsa_secp521r1.crt \
@@ -13130,8 +13136,7 @@ requires_gnutls_next_no_ticket
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: Client authentication - opaque key, ecdsa_secp521r1_sha512 - gnutls" \
             "$G_NEXT_SRV --debug=4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL:%NO_TICKETS" \
             "$P_CLI debug_level=3 crt_file=$DATA_FILES_PATH/ecdsa_secp521r1.crt \
@@ -13147,8 +13152,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: Client authentication - opaque key, rsa_pss_rsae_sha256 - openssl" \
             "$O_NEXT_SRV -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache -Verify 10" \
             "$P_CLI debug_level=4 crt_file=$DATA_FILES_PATH/cert_sha256.crt \
@@ -13165,8 +13169,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: Client authentication - opaque key, rsa_pss_rsae_sha256 - gnutls" \
             "$G_NEXT_SRV --debug=4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL:%NO_TICKETS" \
             "$P_CLI debug_level=3 crt_file=$DATA_FILES_PATH/server2-sha256.crt \
@@ -13182,8 +13185,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: Client authentication - opaque key, rsa_pss_rsae_sha384 - openssl" \
             "$O_NEXT_SRV -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache -Verify 10" \
             "$P_CLI debug_level=4 crt_file=$DATA_FILES_PATH/cert_sha256.crt \
@@ -13200,8 +13202,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: Client authentication - opaque key, rsa_pss_rsae_sha384 - gnutls" \
             "$G_NEXT_SRV --debug=4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL:%NO_TICKETS" \
             "$P_CLI debug_level=3 crt_file=$DATA_FILES_PATH/server2-sha256.crt \
@@ -13217,8 +13218,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: Client authentication - opaque key, rsa_pss_rsae_sha512 - openssl" \
             "$O_NEXT_SRV -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache -Verify 10" \
             "$P_CLI debug_level=4 crt_file=$DATA_FILES_PATH/cert_sha256.crt \
@@ -13235,8 +13235,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: Client authentication - opaque key, rsa_pss_rsae_sha512 - gnutls" \
             "$G_NEXT_SRV --debug=4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL:%NO_TICKETS" \
             "$P_CLI debug_level=3 crt_file=$DATA_FILES_PATH/server2-sha256.crt \
@@ -13252,8 +13251,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: Client authentication - opaque key, client alg not in server list - openssl" \
             "$O_NEXT_SRV -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache -Verify 10
                 -sigalgs ecdsa_secp256r1_sha256" \
@@ -13271,8 +13269,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: Client authentication - opaque key, client alg not in server list - gnutls" \
             "$G_NEXT_SRV --debug=4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL:-SIGN-ALL:+SIGN-ECDSA-SECP256R1-SHA256:%NO_TICKETS" \
             "$P_CLI debug_level=3 crt_file=$DATA_FILES_PATH/ecdsa_secp521r1.crt \
@@ -13286,8 +13283,7 @@ run_test    "TLS 1.3: Client authentication - opaque key, client alg not in serv
 requires_openssl_tls1_3_with_compatible_ephemeral
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: HRR check, ciphersuite TLS_AES_128_GCM_SHA256 - openssl" \
             "$O_NEXT_SRV -ciphersuites TLS_AES_128_GCM_SHA256  -sigalgs ecdsa_secp256r1_sha256 -groups P-256 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
             "$P_CLI debug_level=4" \
@@ -13301,8 +13297,7 @@ run_test    "TLS 1.3: HRR check, ciphersuite TLS_AES_128_GCM_SHA256 - openssl" \
 requires_openssl_tls1_3_with_compatible_ephemeral
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: HRR check, ciphersuite TLS_AES_256_GCM_SHA384 - openssl" \
             "$O_NEXT_SRV -ciphersuites TLS_AES_256_GCM_SHA384  -sigalgs ecdsa_secp256r1_sha256 -groups P-256 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
             "$P_CLI debug_level=4" \
@@ -13318,8 +13313,7 @@ requires_gnutls_next_no_ticket
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled PSA_WANT_ALG_ECDH
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: HRR check, ciphersuite TLS_AES_128_GCM_SHA256 - gnutls" \
             "$G_NEXT_SRV -d 4 --priority=NONE:+GROUP-SECP256R1:+AES-128-GCM:+SHA256:+AEAD:+SIGN-ECDSA-SECP256R1-SHA256:+VERS-TLS1.3:%NO_TICKETS --disable-client-cert" \
             "$P_CLI debug_level=4" \
@@ -13335,8 +13329,7 @@ requires_gnutls_next_no_ticket
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled PSA_WANT_ALG_ECDH
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: HRR check, ciphersuite TLS_AES_256_GCM_SHA384 - gnutls" \
             "$G_NEXT_SRV -d 4 --priority=NONE:+GROUP-SECP256R1:+AES-256-GCM:+SHA384:+AEAD:+SIGN-ECDSA-SECP256R1-SHA256:+VERS-TLS1.3:%NO_TICKETS --disable-client-cert" \
             "$P_CLI debug_level=4" \
@@ -13525,8 +13518,7 @@ run_test    "TLS 1.3: Server side check, no server certificate available" \
 requires_openssl_tls1_3_with_compatible_ephemeral
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: Server side check - openssl with sni" \
             "$P_SRV debug_level=4 auth_mode=required crt_file=$DATA_FILES_PATH/server5.crt key_file=$DATA_FILES_PATH/server5.key tickets=0 \
              sni=localhost,$DATA_FILES_PATH/server5.crt,$DATA_FILES_PATH/server5.key,$DATA_FILES_PATH/test-ca_cat12.crt,-,-,polarssl.example,$DATA_FILES_PATH/server1-nospace.crt,$DATA_FILES_PATH/server1.key,-,-,-" \
@@ -13538,8 +13530,7 @@ run_test    "TLS 1.3: Server side check - openssl with sni" \
 requires_gnutls_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: Server side check - gnutls with sni" \
             "$P_SRV debug_level=4 auth_mode=required crt_file=$DATA_FILES_PATH/server5.crt key_file=$DATA_FILES_PATH/server5.key tickets=0 \
              sni=localhost,$DATA_FILES_PATH/server5.crt,$DATA_FILES_PATH/server5.key,$DATA_FILES_PATH/test-ca_cat12.crt,-,-,polarssl.example,$DATA_FILES_PATH/server1-nospace.crt,$DATA_FILES_PATH/server1.key,-,-,-" \
@@ -13551,8 +13542,7 @@ run_test    "TLS 1.3: Server side check - gnutls with sni" \
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: Server side check - mbedtls with sni" \
             "$P_SRV debug_level=4 auth_mode=required crt_file=$DATA_FILES_PATH/server5.crt key_file=$DATA_FILES_PATH/server5.key tickets=0 \
              sni=localhost,$DATA_FILES_PATH/server2.crt,$DATA_FILES_PATH/server2.key,-,-,-,polarssl.example,$DATA_FILES_PATH/server1-nospace.crt,$DATA_FILES_PATH/server1.key,-,-,-" \
@@ -13587,8 +13577,8 @@ run_test    "TLS 1.3 m->m both peers do not support middlebox compatibility" \
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3 m->m both with middlebox compat support" \
             "$P_SRV debug_level=4 tickets=0" \
             "$P_CLI debug_level=4" \
@@ -13619,14 +13609,15 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3 m->O server with middlebox compat support, not client" \
             "$O_NEXT_SRV -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
             "$P_CLI debug_level=4" \
-            1 \
-            -c "ChangeCipherSpec invalid in TLS 1.3 without compatibility mode"
+            0 \
+            -c "Protocol is TLSv1.3" \
+            -c "Ignore ChangeCipherSpec in TLS 1.3 compatibility mode"
 
 requires_openssl_tls1_3_with_compatible_ephemeral
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3 m->O both with middlebox compat support" \
             "$O_NEXT_SRV -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
             "$P_CLI debug_level=4" \
@@ -13658,15 +13649,16 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3 m->G server with middlebox compat support, not client" \
             "$G_NEXT_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL:%NO_TICKETS --disable-client-cert" \
             "$P_CLI debug_level=4" \
-            1 \
-            -c "ChangeCipherSpec invalid in TLS 1.3 without compatibility mode"
+            0 \
+            -c "Protocol is TLSv1.3" \
+            -c "Ignore ChangeCipherSpec in TLS 1.3 compatibility mode"
 
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3 m->G both with middlebox compat support" \
             "$G_NEXT_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL:%NO_TICKETS --disable-client-cert" \
             "$P_CLI debug_level=4" \
@@ -13690,8 +13682,8 @@ run_test    "TLS 1.3 O->m both peers do not support middlebox compatibility" \
 requires_openssl_tls1_3_with_compatible_ephemeral
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3 O->m server with middlebox compat support, not client" \
             "$P_SRV debug_level=4 crt_file=$DATA_FILES_PATH/server5.crt key_file=$DATA_FILES_PATH/server5.key tickets=0" \
             "$O_NEXT_CLI -msg -debug -no_middlebox" \
@@ -13702,8 +13694,8 @@ run_test    "TLS 1.3 O->m server with middlebox compat support, not client" \
 requires_openssl_tls1_3_with_compatible_ephemeral
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3 O->m both with middlebox compat support" \
             "$P_SRV debug_level=4 crt_file=$DATA_FILES_PATH/server5.crt key_file=$DATA_FILES_PATH/server5.key tickets=0" \
             "$O_NEXT_CLI -msg -debug" \
@@ -13732,8 +13724,8 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3 G->m server with middlebox compat support, not client" \
             "$P_SRV debug_level=4 crt_file=$DATA_FILES_PATH/server5.crt key_file=$DATA_FILES_PATH/server5.key tickets=0" \
             "$G_NEXT_CLI localhost --debug=10 --priority=NORMAL:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE -V" \
@@ -13748,8 +13740,8 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3 G->m both with middlebox compat support" \
             "$P_SRV debug_level=4 crt_file=$DATA_FILES_PATH/server5.crt key_file=$DATA_FILES_PATH/server5.key tickets=0" \
             "$G_NEXT_CLI localhost --debug=10 --priority=NORMAL:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE -V" \
@@ -13777,8 +13769,8 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled PSA_WANT_ALG_ECDH
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3 m->m HRR both with middlebox compat support" \
             "$P_SRV debug_level=4 groups=secp384r1 tickets=0" \
             "$P_CLI debug_level=4 groups=secp256r1,secp384r1" \
@@ -13811,15 +13803,16 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3 m->O HRR server with middlebox compat support, not client" \
             "$O_NEXT_SRV -msg -tls1_3 -groups P-384 -num_tickets 0 -no_cache" \
             "$P_CLI debug_level=4 groups=secp256r1,secp384r1" \
-            1 \
+            0 \
             -c "received HelloRetryRequest message" \
-            -c "ChangeCipherSpec invalid in TLS 1.3 without compatibility mode"
+            -c "Protocol is TLSv1.3" \
+            -c "Ignore ChangeCipherSpec in TLS 1.3 compatibility mode"
 
 requires_openssl_tls1_3_with_compatible_ephemeral
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3 m->O HRR both with middlebox compat support" \
             "$O_NEXT_SRV -msg -tls1_3 -groups P-384 -num_tickets 0 -no_resume_ephemeral -no_cache" \
             "$P_CLI debug_level=4 groups=secp256r1,secp384r1" \
@@ -13852,17 +13845,18 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3 m->G HRR server with middlebox compat support, not client" \
             "$G_NEXT_SRV --priority=NORMAL:-GROUP-ALL:+GROUP-SECP384R1:-VERS-ALL:+VERS-TLS1.3:%NO_TICKETS --disable-client-cert" \
             "$P_CLI debug_level=4 groups=secp256r1,secp384r1" \
-            1 \
+            0 \
             -c "received HelloRetryRequest message" \
-            -c "ChangeCipherSpec invalid in TLS 1.3 without compatibility mode"
+            -c "Protocol is TLSv1.3" \
+            -c "Ignore ChangeCipherSpec in TLS 1.3 compatibility mode"
 
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled PSA_WANT_ALG_ECDH
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3 m->G HRR both with middlebox compat support" \
             "$G_NEXT_SRV --priority=NORMAL:-GROUP-ALL:+GROUP-SECP384R1:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL:%NO_TICKETS --disable-client-cert" \
             "$P_CLI debug_level=4 groups=secp256r1,secp384r1" \
@@ -13886,8 +13880,8 @@ run_test    "TLS 1.3 O->m HRR both peers do not support middlebox compatibility"
 requires_openssl_tls1_3_with_compatible_ephemeral
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3 O->m HRR server with middlebox compat support, not client" \
             "$P_SRV debug_level=4 crt_file=$DATA_FILES_PATH/server5.crt key_file=$DATA_FILES_PATH/server5.key groups=secp384r1 tickets=0" \
             "$O_NEXT_CLI -msg -debug -groups P-256:P-384 -no_middlebox" \
@@ -13898,8 +13892,8 @@ run_test    "TLS 1.3 O->m HRR server with middlebox compat support, not client" 
 requires_openssl_tls1_3_with_compatible_ephemeral
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3 O->m HRR both with middlebox compat support" \
             "$P_SRV debug_level=4 crt_file=$DATA_FILES_PATH/server5.crt key_file=$DATA_FILES_PATH/server5.key groups=secp384r1 tickets=0" \
             "$O_NEXT_CLI -msg -debug -groups P-256:P-384" \
@@ -13929,8 +13923,8 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled PSA_WANT_ALG_ECDH
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3 G->m HRR server with middlebox compat support, not client" \
             "$P_SRV debug_level=4 crt_file=$DATA_FILES_PATH/server5.crt key_file=$DATA_FILES_PATH/server5.key groups=secp384r1 tickets=0" \
             "$G_NEXT_CLI localhost --debug=10 --priority=NORMAL:-GROUP-ALL:+GROUP-SECP256R1:+GROUP-SECP384R1:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE -V" \
@@ -13946,8 +13940,8 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled PSA_WANT_ALG_ECDH
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3 G->m HRR both with middlebox compat support" \
             "$P_SRV debug_level=4 crt_file=$DATA_FILES_PATH/server5.crt key_file=$DATA_FILES_PATH/server5.key groups=secp384r1 tickets=0" \
             "$G_NEXT_CLI localhost --debug=10 --priority=NORMAL:-GROUP-ALL:+GROUP-SECP256R1:+GROUP-SECP384R1:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE -V" \
@@ -13959,8 +13953,7 @@ run_test    "TLS 1.3 G->m HRR both with middlebox compat support" \
 requires_openssl_tls1_3_with_compatible_ephemeral
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: Check signature algorithm order, m->O" \
             "$O_NEXT_SRV_NO_CERT -cert $DATA_FILES_PATH/server2-sha256.crt -key $DATA_FILES_PATH/server2.key
                                  -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache
@@ -13975,8 +13968,7 @@ run_test    "TLS 1.3: Check signature algorithm order, m->O" \
 requires_gnutls_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: Check signature algorithm order, m->G" \
             "$G_NEXT_SRV_NO_CERT --x509certfile $DATA_FILES_PATH/server2-sha256.crt --x509keyfile $DATA_FILES_PATH/server2.key
                     -d 4
@@ -13991,8 +13983,7 @@ run_test    "TLS 1.3: Check signature algorithm order, m->G" \
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: Check signature algorithm order, m->m" \
             "$P_SRV debug_level=4 auth_mode=required
                     crt_file2=$DATA_FILES_PATH/server2-sha256.crt key_file2=$DATA_FILES_PATH/server2.key
@@ -14010,8 +14001,7 @@ run_test    "TLS 1.3: Check signature algorithm order, m->m" \
 requires_openssl_tls1_3_with_compatible_ephemeral
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: Check signature algorithm order, O->m" \
             "$P_SRV debug_level=4 auth_mode=required
                     crt_file2=$DATA_FILES_PATH/server2-sha256.crt key_file2=$DATA_FILES_PATH/server2.key
@@ -14028,8 +14018,7 @@ run_test    "TLS 1.3: Check signature algorithm order, O->m" \
 requires_gnutls_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: Check signature algorithm order, G->m" \
             "$P_SRV debug_level=4 auth_mode=required
                     crt_file2=$DATA_FILES_PATH/server2-sha256.crt key_file2=$DATA_FILES_PATH/server2.key
@@ -14047,8 +14036,7 @@ run_test    "TLS 1.3: Check signature algorithm order, G->m" \
 requires_gnutls_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: Check server no suitable signature algorithm, G->m" \
             "$P_SRV debug_level=4 auth_mode=required
                     crt_file2=$DATA_FILES_PATH/server2-sha256.crt key_file2=$DATA_FILES_PATH/server2.key
@@ -14063,8 +14051,7 @@ run_test    "TLS 1.3: Check server no suitable signature algorithm, G->m" \
 requires_openssl_tls1_3_with_compatible_ephemeral
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: Check server no suitable signature algorithm, O->m" \
             "$P_SRV debug_level=4 auth_mode=required
                     crt_file2=$DATA_FILES_PATH/server2-sha256.crt key_file2=$DATA_FILES_PATH/server2.key
@@ -14079,8 +14066,7 @@ run_test    "TLS 1.3: Check server no suitable signature algorithm, O->m" \
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: Check server no suitable signature algorithm, m->m" \
             "$P_SRV debug_level=4 auth_mode=required
                     crt_file2=$DATA_FILES_PATH/server2-sha256.crt key_file2=$DATA_FILES_PATH/server2.key
@@ -14094,8 +14080,7 @@ run_test    "TLS 1.3: Check server no suitable signature algorithm, m->m" \
 requires_gnutls_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: Check server no suitable certificate, G->m" \
             "$P_SRV debug_level=4
                     crt_file=$DATA_FILES_PATH/server2-sha256.crt key_file=$DATA_FILES_PATH/server2.key
@@ -14108,8 +14093,7 @@ run_test    "TLS 1.3: Check server no suitable certificate, G->m" \
 requires_openssl_tls1_3_with_compatible_ephemeral
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: Check server no suitable certificate, O->m" \
             "$P_SRV debug_level=4
                     crt_file=$DATA_FILES_PATH/server2-sha256.crt key_file=$DATA_FILES_PATH/server2.key
@@ -14122,8 +14106,7 @@ run_test    "TLS 1.3: Check server no suitable certificate, O->m" \
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: Check server no suitable certificate, m->m" \
             "$P_SRV debug_level=4
                     crt_file=$DATA_FILES_PATH/server2-sha256.crt key_file=$DATA_FILES_PATH/server2.key
@@ -14136,8 +14119,7 @@ run_test    "TLS 1.3: Check server no suitable certificate, m->m" \
 requires_openssl_tls1_3_with_compatible_ephemeral
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: Check client no signature algorithm, m->O" \
             "$O_NEXT_SRV_NO_CERT -cert $DATA_FILES_PATH/server2-sha256.crt -key $DATA_FILES_PATH/server2.key
                                  -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache
@@ -14150,8 +14132,7 @@ run_test    "TLS 1.3: Check client no signature algorithm, m->O" \
 requires_gnutls_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: Check client no signature algorithm, m->G" \
             "$G_NEXT_SRV_NO_CERT --x509certfile $DATA_FILES_PATH/server2-sha256.crt --x509keyfile $DATA_FILES_PATH/server2.key
                     -d 4
@@ -14164,8 +14145,7 @@ run_test    "TLS 1.3: Check client no signature algorithm, m->G" \
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: Check client no signature algorithm, m->m" \
             "$P_SRV debug_level=4 auth_mode=required
                     crt_file2=$DATA_FILES_PATH/server2-sha256.crt key_file2=$DATA_FILES_PATH/server2.key
@@ -14210,7 +14190,6 @@ run_test    "TLS 1.2: Check rsa_pss_rsae compatibility issue, m->G" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_config_enabled PSA_WANT_ALG_FFDH
 requires_config_enabled PSA_WANT_DH_RFC7919_3072
@@ -14235,7 +14214,6 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_config_enabled PSA_WANT_ALG_FFDH
 requires_config_enabled PSA_WANT_DH_RFC7919_3072
@@ -14254,7 +14232,6 @@ run_test "TLS 1.3 m->G: AES_128_GCM_SHA256,ffdhe3072,rsa_pss_rsae_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_config_enabled PSA_WANT_ALG_FFDH
 requires_config_enabled PSA_WANT_DH_RFC7919_4096
@@ -14279,7 +14256,6 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_config_enabled PSA_WANT_ALG_FFDH
 requires_config_enabled PSA_WANT_DH_RFC7919_4096
@@ -14298,7 +14274,6 @@ run_test "TLS 1.3 m->G: AES_128_GCM_SHA256,ffdhe4096,rsa_pss_rsae_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_config_enabled PSA_WANT_ALG_FFDH
 requires_config_enabled PSA_WANT_DH_RFC7919_6144
@@ -14322,7 +14297,6 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_config_enabled PSA_WANT_ALG_FFDH
 requires_config_enabled PSA_WANT_DH_RFC7919_6144
@@ -14341,7 +14315,6 @@ run_test "TLS 1.3 m->G: AES_128_GCM_SHA256,ffdhe6144,rsa_pss_rsae_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_config_enabled PSA_WANT_ALG_FFDH
 requires_config_enabled PSA_WANT_DH_RFC7919_8192
@@ -14366,7 +14339,6 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_config_enabled PSA_WANT_ALG_FFDH
 requires_config_enabled PSA_WANT_DH_RFC7919_8192

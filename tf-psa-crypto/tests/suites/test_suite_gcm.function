@@ -628,7 +628,7 @@ void gcm_encrypt_input_output_buffer_overlap(int cipher_id, data_t *key_str,
      */
     buffer_len = src_str->len;
     if (buffer_len % 16 != 0) {
-      buffer_len += (16 - (buffer_len % 16));
+        buffer_len += (16 - (buffer_len % 16));
     }
     buffer = malloc(buffer_len);
     if (buffer == NULL) {
@@ -693,7 +693,7 @@ void gcm_decrypt_input_output_buffer_overlap(int cipher_id, data_t *key_str,
      */
     buffer_len = src_str->len;
     if (buffer_len % 16 != 0) {
-      buffer_len += (16 - (buffer_len % 16));
+        buffer_len += (16 - (buffer_len % 16));
     }
     buffer = malloc(buffer_len);
     if (buffer == NULL) {

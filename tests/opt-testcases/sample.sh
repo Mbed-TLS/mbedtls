@@ -6,9 +6,12 @@
 
 : ${PROGRAMS_DIR:=../programs/ssl}
 
+# Disable session tickets for ssl_client1 when potentially using TLS 1.3
+# until https://github.com/Mbed-TLS/mbedtls/issues/6640 is resolved
+# and (if relevant) implemented in ssl_client1.
 run_test    "Sample: ssl_client1, ssl_server2" \
             -P 4433 \
-            "$PROGRAMS_DIR/ssl_server2" \
+            "$PROGRAMS_DIR/ssl_server2 tickets=0" \
             "$PROGRAMS_DIR/ssl_client1" \
             0 \
             -s "[1-9][0-9]* bytes read" \
@@ -39,22 +42,28 @@ run_test    "Sample: ssl_client1, gnutls server, TLS 1.2" \
             -S "Error" \
             -C "error"
 
+# Disable session tickets for ssl_client1 when using TLS 1.3
+# until https://github.com/Mbed-TLS/mbedtls/issues/6640 is resolved
+# and (if relevant) implemented in ssl_client1.
 requires_protocol_version tls13
 requires_openssl_tls1_3
 run_test    "Sample: ssl_client1, openssl server, TLS 1.3" \
             -P 4433 \
-            "$O_NEXT_SRV -tls1_3" \
+            "$O_NEXT_SRV -tls1_3 -num_tickets 0" \
             "$PROGRAMS_DIR/ssl_client1" \
             0 \
             -c "New, TLSv1.3, Cipher is" \
             -S "ERROR" \
             -C "error"
 
+# Disable session tickets for ssl_client1 when using TLS 1.3
+# until https://github.com/Mbed-TLS/mbedtls/issues/6640 is resolved
+# and (if relevant) implemented in ssl_client1.
 requires_protocol_version tls13
 requires_gnutls_tls1_3
 run_test    "Sample: ssl_client1, gnutls server, TLS 1.3" \
             -P 4433 \
-            "$G_NEXT_SRV --priority=NORMAL:-VERS-TLS-ALL:+VERS-TLS1.3" \
+            "$G_NEXT_SRV --priority=NORMAL:-VERS-TLS-ALL:+VERS-TLS1.3 --noticket" \
             "$PROGRAMS_DIR/ssl_client1" \
             0 \
             -s "Version: TLS1.3" \

@@ -278,8 +278,6 @@ error:
     return MBEDTLS_ERR_X509_INVALID_NAME;
 }
 
-#if defined(MBEDTLS_OID_C)
-
 static int oid_parse_number(unsigned int *num, const char **p, const char *bound)
 {
     int ret = MBEDTLS_ERR_ASN1_INVALID_DATA;
@@ -455,8 +453,6 @@ error:
     oid->len = 0;
     return ret;
 }
-
-#endif /* MBEDTLS_OID_C */
 
 int mbedtls_x509_string_to_names(mbedtls_asn1_named_data **head, const char *name)
 {

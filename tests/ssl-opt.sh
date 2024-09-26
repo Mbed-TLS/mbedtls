@@ -491,6 +491,37 @@ detect_required_features() {
             requires_certificate_authentication;;
     esac
 
+    case " $CMD_LINE " in
+        *"programs/ssl/dtls_client "*|\
+        *"programs/ssl/ssl_client1 "*)
+            requires_config_enabled MBEDTLS_CTR_DRBG_C
+            requires_config_enabled MBEDTLS_ENTROPY_C
+            requires_config_enabled MBEDTLS_PEM_PARSE_C
+            requires_config_enabled MBEDTLS_SSL_CLI_C
+            requires_certificate_authentication
+            ;;
+        *"programs/ssl/dtls_server "*|\
+        *"programs/ssl/ssl_fork_server "*|\
+        *"programs/ssl/ssl_pthread_server "*|\
+        *"programs/ssl/ssl_server "*)
+            requires_config_enabled MBEDTLS_CTR_DRBG_C
+            requires_config_enabled MBEDTLS_ENTROPY_C
+            requires_config_enabled MBEDTLS_PEM_PARSE_C
+            requires_config_enabled MBEDTLS_SSL_SRV_C
+            requires_certificate_authentication
+            # The actual minimum depends on the configuration since it's
+            # mostly about the certificate size.
+            # In config-suite-b.h, for the test certificates (server5.crt),
+            # 1024 is not enough.
+            requires_config_value_at_least MBEDTLS_SSL_OUT_CONTENT_LEN 2000
+            ;;
+    esac
+
+    case " $CMD_LINE " in
+        *"programs/ssl/ssl_pthread_server "*)
+            requires_config_enabled MBEDTLS_THREADING_PTHREAD;;
+    esac
+
     case "$CMD_LINE" in
         *[-_\ =]psk*|*[-_\ =]PSK*) :;; # No certificate requirement with PSK
         */server5*|\
@@ -1252,7 +1283,7 @@ wait_client_done() {
 # check if the given command uses dtls and sets global variable DTLS
 detect_dtls() {
     case "$1" in
-        *dtls=1*|*-dtls*|*-u*) DTLS=1;;
+        *dtls=1*|*-dtls*|*-u*|*/dtls_*) DTLS=1;;
         *) DTLS=0;;
     esac
 }
@@ -1372,9 +1403,13 @@ skip_handshake_stage_check() {
 # Outputs:
 # * $CLI_CMD, $PXY_CMD, $SRV_CMD: may be tweaked.
 analyze_test_commands() {
-    # if the test uses DTLS but no custom proxy, add a simple proxy
-    # as it provides timing info that's useful to debug failures
-    if [ -z "$PXY_CMD" ] && [ "$DTLS" -eq 1 ]; then
+    # If the test uses DTLS, does not force a specific port, and does not
+    # specify a custom proxy, add a simple proxy.
+    # It provides timing info that's useful to debug failures.
+    if [ "$DTLS" -eq 1 ] &&
+       [ "$THIS_SRV_PORT" = "$SRV_PORT" ] &&
+       [ -z "$PXY_CMD" ]
+    then
         PXY_CMD="$P_PXY"
         case " $SRV_CMD " in
             *' server_addr=::1 '*)
@@ -1410,7 +1445,20 @@ analyze_test_commands() {
     if [ -n "$PXY_CMD" ]; then
         CLI_CMD=$( echo "$CLI_CMD" | sed s/+SRV_PORT/$PXY_PORT/g )
     else
-        CLI_CMD=$( echo "$CLI_CMD" | sed s/+SRV_PORT/$SRV_PORT/g )
+        CLI_CMD=$( echo "$CLI_CMD" | sed s/+SRV_PORT/$THIS_SRV_PORT/g )
+    fi
+
+    # If the test forces a specific port and the server is OpenSSL or
+    # GnuTLS, override its port specification.
+    if [ "$THIS_SRV_PORT" != "$SRV_PORT" ]; then
+        case "$SRV_CMD" in
+            "$G_SRV"*|"$G_NEXT_SRV"*)
+                SRV_CMD=$(
+                    printf %s "$SRV_CMD " |
+                    sed -e "s/ -p $SRV_PORT / -p $THIS_SRV_PORT /"
+                );;
+            "$O_SRV"*|"$O_NEXT_SRV"*) SRV_CMD="$SRV_CMD -accept $THIS_SRV_PORT";;
+        esac
     fi
 
     # prepend valgrind to our commands if active
@@ -1609,7 +1657,7 @@ do_run_test_once() {
     printf '# %s\n%s\n' "$NAME" "$SRV_CMD" > $SRV_OUT
     provide_input | $SRV_CMD >> $SRV_OUT 2>&1 &
     SRV_PID=$!
-    wait_server_start "$SRV_PORT" "$SRV_PID"
+    wait_server_start "$THIS_SRV_PORT" "$SRV_PID"
 
     printf '# %s\n%s\n' "$NAME" "$CLI_CMD" > $CLI_OUT
     # The client must be a subprocess of the script in order for killing it to
@@ -1732,12 +1780,20 @@ run_test() {
         esac
     fi
 
-    # does this test use a proxy?
+    # Does this test specify a proxy?
     if [ "X$1" = "X-p" ]; then
         PXY_CMD="$2"
         shift 2
     else
         PXY_CMD=""
+    fi
+
+    # Does this test force a specific port?
+    if [ "$1" = "-P" ]; then
+        THIS_SRV_PORT="$2"
+        shift 2
+    else
+        THIS_SRV_PORT="$SRV_PORT"
     fi
 
     # get commands and client output
@@ -1761,7 +1817,10 @@ run_test() {
     # Check if we are trying to use an external tool which does not support ECDH
     EXT_WO_ECDH=$(use_ext_tool_without_ecdh_support "$SRV_CMD" "$CLI_CMD")
 
-    # Guess the TLS version which is going to be used
+    # Guess the TLS version which is going to be used.
+    # Note that this detection is wrong in some cases, which causes unduly
+    # skipped test cases in builds with TLS 1.3 but not TLS 1.2.
+    # https://github.com/Mbed-TLS/mbedtls/issues/9560
     if [ "$EXT_WO_ECDH" = "no" ]; then
         TLS_VERSION=$(get_tls_version "$SRV_CMD" "$CLI_CMD")
     else

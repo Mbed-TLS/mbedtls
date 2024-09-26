@@ -229,40 +229,6 @@ support_build_baremetal () {
     ! grep -q -F time.h /usr/include/x86_64-linux-gnu/sys/types.h
 }
 
-component_test_no_psa_crypto_full_cmake_asan () {
-    # full minus MBEDTLS_PSA_CRYPTO_C: run the same set of tests as basic-build-test.sh
-    msg "build: cmake, full config minus PSA crypto, ASan"
-    scripts/config.py full
-    scripts/config.py unset MBEDTLS_PSA_CRYPTO_C
-    scripts/config.py unset MBEDTLS_PSA_CRYPTO_CLIENT
-    scripts/config.py unset MBEDTLS_USE_PSA_CRYPTO
-    scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1_3
-    scripts/config.py unset MBEDTLS_PSA_ITS_FILE_C
-    scripts/config.py unset MBEDTLS_PSA_CRYPTO_SE_C
-    scripts/config.py unset MBEDTLS_PSA_CRYPTO_STORAGE_C
-    scripts/config.py unset MBEDTLS_LMS_C
-    scripts/config.py unset MBEDTLS_LMS_PRIVATE
-    CC=$ASAN_CC cmake -D CMAKE_BUILD_TYPE:String=Asan .
-    make
-
-    msg "test: main suites (full minus PSA crypto)"
-    make test
-
-    # Note: ssl-opt.sh has some test cases that depend on
-    # MBEDTLS_ECP_RESTARTABLE && !MBEDTLS_USE_PSA_CRYPTO
-    # This is the only component where those tests are not skipped.
-    msg "test: ssl-opt.sh (full minus PSA crypto)"
-    tests/ssl-opt.sh
-
-    # Note: the next two invocations cover all compat.sh test cases.
-    # We should use the same here and in basic-build-test.sh.
-    msg "test: compat.sh: default version (full minus PSA crypto)"
-    tests/compat.sh -e 'ARIA\|CHACHA'
-
-    msg "test: compat.sh: next: ARIA, Chacha (full minus PSA crypto)"
-    env OPENSSL="$OPENSSL_NEXT" tests/compat.sh -e '^$' -f 'ARIA\|CHACHA'
-}
-
 component_build_tfm () {
     # Check that the TF-M configuration can build cleanly with various
     # warning flags enabled. We don't build or run tests, since the

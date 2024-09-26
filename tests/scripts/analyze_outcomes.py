@@ -164,6 +164,9 @@ class Task:
 class CoverageTask(Task):
     """Analyze test coverage."""
 
+    # Test cases whose suite and description are matched by an entry in
+    # IGNORED_TESTS are expected to be never executed.
+    # All other test cases are expected to be executed at least once.
     IGNORED_TESTS = {
         'test_suite_psa_crypto_metadata': [
             # Algorithm not supported yet
@@ -208,11 +211,14 @@ class CoverageTask(Task):
                 else:
                     results.warning('Test case not executed: {}', suite_case)
             elif hit and ignored:
-                # Test Case should be removed from the allow list.
+                # If a test case is no longer always skipped, we should remove
+                # it from the ignore list.
                 if self.full_coverage:
-                    results.error('Allow listed test case was executed: {}', suite_case)
+                    results.error('Test case was executed but marked as ignored for coverage: {}',
+                                  suite_case)
                 else:
-                    results.warning('Allow listed test case was executed: {}', suite_case)
+                    results.warning('Test case was executed but marked as ignored for coverage: {}',
+                                    suite_case)
 
 
 class DriverVSReference(Task):

@@ -420,7 +420,7 @@ class CombinedConfig(config_common.Config):
                 raise ValueError(f'Feature is unstable: \'{name}\'')
 
             # The default value in the crypto config is '1'
-            if not value:
+            if not value and re.match(self._crypto_regexp, name):
                 value = '1'
 
         if name not in self.settings:

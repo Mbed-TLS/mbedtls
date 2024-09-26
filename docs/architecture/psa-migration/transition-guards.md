@@ -88,9 +88,11 @@ domain, needs a hash. (Note that this includes `ENTROPY_C`, so in practice
 `MD_LIGHT` is enabled in most builds.)
 
 Note that there is a rule, enforced by `config_adjust_psa_superset_legacy.h`,
-that all hashes that are enabled on the legacy side are also enabled on the
-PSA side. So, in practice, when `MD_LIGHT` is enabled, `PSA_WANT_ALG_xxx` and
-`MBEDTLS_MD_CAN_xxx` are equivalent.
+that as soon as `PSA_CRYPTO_C` is enabled, all hashes that are enabled on the
+legacy side are also enabled on the PSA side (the converse is not true: a hash
+that's provided by a driver will typically be available only on the PSA side). So, in
+practice, when `PSA_CRYPTO_C` and `MD_LIGHT` are both enabled,
+`PSA_WANT_ALG_xxx` and `MBEDTLS_MD_CAN_xxx` are equivalent.
 
 **Legacy and `USE_PSA` domains:** for hashes, `MBEDTLS_MD_CAN_xxx` (where
 `xxx` is the legacy name of the hash) can be used everywhere (except in the
@@ -220,9 +222,12 @@ this implies support for the corresponding key type).
 ECC
 ---
 
-**Curves:** in `config_adjut_psa_superset_legacy.h` we ensure that all
+**Curves:** in `config_adjut_psa_superset_legacy.h` we ensure that, as soon as
+`PSA_CRYPTO_C` is enabled, all
 curves that are supported on the legacy side (`MBEDTLS_ECP_DP_xxx_ENABLED`)
-are also supported on the PSA side (`PSA_WANT_ECC_xxx`).
+are also supported on the PSA side (`PSA_WANT_ECC_xxx`). (The converse is not
+true as a curve provided by a driver will typically only be available on the
+PSA side).
 
 In `config_adjust_legacy_crypto.h` we define macros `MBEDTLS_ECP_HAVE_xxx`.
 These macros are useful for data and functions that have users in several

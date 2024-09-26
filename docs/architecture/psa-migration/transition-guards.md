@@ -100,11 +100,9 @@ PSA domain which should use `PSA_WANT` as usual). No special include is
 required, `build_info.h` or `common.h` is enough.
 
 **Pure TLS 1.3 domain:** it is not easy to know which uses of hashes fall in
-this domain as opposed to the `USE_PSA` domain which looking at the code.
+this domain as opposed to the `USE_PSA` domain whithout looking at the code.
 Fortunately, `MD_CAN` and `PSA_WANT` macros can be used interchangeably, as
 per the note above.
-
-
 
 HMAC
 ----
@@ -188,7 +186,15 @@ ciphers and modes it needs to know about.
 Key derivation
 --------------
 
-**Legacy and `USE_PSA` domains:** no users here.
+**Legacy domain:** the modules PKCS5 and PKCS12 both provide
+key derivation (respectively PBKDF2-HMAC and PKCS12 derivation), and use it
+for password-based encryption. (Note: PEM has an implementation of PBKDF1 but
+it's internal.)
+
+**`USE_PSA` domain:** PK (parse) will use PKCS5 and PKCS12 encryption (hence
+indirectly key derivation) if present in the build. The macros are
+`MBEDTLS_PKCS5_C` and `MBEDTLS_PKCS12_C`. Note that even when `USE_PSA` is
+enabled, PK parse will _not_ use PSA for the PBKDF2 part of PKCS5 decryption.
 
 **Pure TLS 1.3 domain:** TLS 1.3 is using HKDF via PSA Crypto APIs. We already
 enforce in `check_config.h` that TLS 1.3 depends on the appropriate `PSA_WANT`

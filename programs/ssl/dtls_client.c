@@ -9,18 +9,17 @@
 
 #include "mbedtls/platform.h"
 
-#if !defined(MBEDTLS_SSL_CLI_C) || !defined(MBEDTLS_SSL_PROTO_DTLS) ||    \
-    !defined(MBEDTLS_NET_C)  || !defined(MBEDTLS_TIMING_C) ||             \
-    !defined(MBEDTLS_ENTROPY_C) || !defined(MBEDTLS_CTR_DRBG_C) ||        \
-    !defined(MBEDTLS_X509_CRT_PARSE_C) || !defined(MBEDTLS_RSA_C) ||      \
-    !defined(MBEDTLS_PEM_PARSE_C)
+#if !defined(MBEDTLS_ENTROPY_C) || !defined(MBEDTLS_CTR_DRBG_C) ||      \
+    !defined(MBEDTLS_NET_C) || !defined(MBEDTLS_SSL_CLI_C) ||           \
+    !defined(MBEDTLS_TIMING_C) || !defined(MBEDTLS_SSL_PROTO_DTLS) ||   \
+    !defined(MBEDTLS_PEM_PARSE_C) || !defined(MBEDTLS_X509_CRT_PARSE_C)
 int main(void)
 {
-    mbedtls_printf("MBEDTLS_SSL_CLI_C and/or MBEDTLS_SSL_PROTO_DTLS and/or "
-                   "MBEDTLS_NET_C and/or MBEDTLS_TIMING_C and/or "
-                   "MBEDTLS_ENTROPY_C and/or MBEDTLS_CTR_DRBG_C and/or "
-                   "MBEDTLS_X509_CRT_PARSE_C and/or MBEDTLS_RSA_C and/or "
-                   "MBEDTLS_PEM_PARSE_C not defined.\n");
+    mbedtls_printf("MBEDTLS_ENTROPY_C and/or MBEDTLS_CTR_DRBG_C and/or "
+                   "MBEDTLS_NET_C and/or MBEDTLS_SSL_CLI_C and/or "
+                   "MBEDTLS_TIMING_C and/or MBEDTLS_SSL_PROTO_DTLS and/or "
+                   "MBEDTLS_PEM_PARSE_C and/or MBEDTLS_X509_CRT_PARSE_C "
+                   "not defined.\n");
     mbedtls_exit(0);
 }
 #else
@@ -45,7 +44,7 @@ int main(void)
 #ifdef FORCE_IPV4
 #define SERVER_ADDR "127.0.0.1"     /* Forces IPv4 */
 #else
-#define SERVER_ADDR "::1"
+#define SERVER_ADDR SERVER_NAME
 #endif
 
 #define MESSAGE     "Echo this"
@@ -337,6 +336,5 @@ exit:
 
     mbedtls_exit(ret);
 }
-#endif /* MBEDTLS_SSL_CLI_C && MBEDTLS_SSL_PROTO_DTLS && MBEDTLS_NET_C &&
-          MBEDTLS_TIMING_C && MBEDTLS_ENTROPY_C && MBEDTLS_CTR_DRBG_C &&
-          MBEDTLS_X509_CRT_PARSE_C && MBEDTLS_RSA_C && MBEDTLS_PEM_PARSE_C */
+
+#endif /* configuration allows running this program */

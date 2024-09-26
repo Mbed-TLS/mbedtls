@@ -18,26 +18,33 @@ import framework_scripts_path # pylint: disable=unused-import
 from mbedtls_framework import config_common
 
 
-def is_full_section(section):
-    """Is this section affected by "config.py full" and friends?
+def is_boolean_setting(name, value):
+    """Is this a boolean setting?
 
-    In a config file where the sections are not used the whole config file
-    is an empty section (with value None) and the whole file is affected.
+    Mbed TLS boolean settings are enabled if the preprocessor macro is
+    defined, and disabled if the preprocessor macro is not defined. The
+    macro definition line in the configuration file has an empty expansion.
+
+    PSA_WANT_xxx settings are also boolean, but when they are enabled,
+    they expand to a nonzero value. We leave them undefined when they
+    are disabled. (Setting them to 0 currently means to enable them, but
+    this might change to mean disabling them. Currently we just never set
+    them to 0.)
     """
-    return section is None or section.endswith('support') or section.endswith('modules')
+    if name.startswith('PSA_WANT_'):
+        return True
+    if not value:
+        return True
+    return False
 
-def realfull_adapter(_name, active, section):
-    """Activate all symbols found in the global and boolean feature sections.
+def realfull_adapter(_name, _value, _active):
+    """Activate all symbols.
 
     This is intended for building the documentation, including the
     documentation of settings that are activated by defining an optional
-    preprocessor macro.
-
-    Do not activate definitions in the section containing symbols that are
-    supposed to be defined and documented in their own module.
+    preprocessor macro. There is no expectation that the resulting
+    configuration can be built.
     """
-    if section == 'Module configuration options':
-        return active
     return True
 
 PSA_UNSUPPORTED_FEATURE = frozenset([
@@ -135,9 +142,9 @@ def include_in_full(name):
         return is_seamless_alt(name)
     return True
 
-def full_adapter(name, active, section):
+def full_adapter(name, value, active):
     """Config adapter for "full"."""
-    if not is_full_section(section):
+    if not is_boolean_setting(name, value):
         return active
     return include_in_full(name)
 
@@ -173,9 +180,9 @@ def keep_in_baremetal(name):
         return False
     return True
 
-def baremetal_adapter(name, active, section):
+def baremetal_adapter(name, value, active):
     """Config adapter for "baremetal"."""
-    if not is_full_section(section):
+    if not is_boolean_setting(name, value):
         return active
     if name == 'MBEDTLS_NO_PLATFORM_ENTROPY':
         # No OS-provided entropy source
@@ -192,10 +199,10 @@ EXCLUDE_FOR_SIZE = frozenset([
     'MBEDTLS_TEST_HOOKS', # only useful with the hosted test framework, increases code size
 ])
 
-def baremetal_size_adapter(name, active, section):
+def baremetal_size_adapter(name, value, active):
     if name in EXCLUDE_FOR_SIZE:
         return False
-    return baremetal_adapter(name, active, section)
+    return baremetal_adapter(name, value, active)
 
 def include_in_crypto(name):
     """Rules for symbols in a crypto configuration."""
@@ -214,15 +221,15 @@ def include_in_crypto(name):
 def crypto_adapter(adapter):
     """Modify an adapter to disable non-crypto symbols.
 
-    ``crypto_adapter(adapter)(name, active, section)`` is like
-    ``adapter(name, active, section)``, but unsets all X.509 and TLS symbols.
+    ``crypto_adapter(adapter)(name, value, active)`` is like
+    ``adapter(name, value, active)``, but unsets all X.509 and TLS symbols.
     """
-    def continuation(name, active, section):
+    def continuation(name, value, active):
         if not include_in_crypto(name):
             return False
         if adapter is None:
             return active
-        return adapter(name, active, section)
+        return adapter(name, value, active)
     return continuation
 
 DEPRECATED = frozenset([
@@ -231,34 +238,34 @@ DEPRECATED = frozenset([
 def no_deprecated_adapter(adapter):
     """Modify an adapter to disable deprecated symbols.
 
-    ``no_deprecated_adapter(adapter)(name, active, section)`` is like
-    ``adapter(name, active, section)``, but unsets all deprecated symbols
+    ``no_deprecated_adapter(adapter)(name, value, active)`` is like
+    ``adapter(name, value, active)``, but unsets all deprecated symbols
     and sets ``MBEDTLS_DEPRECATED_REMOVED``.
     """
-    def continuation(name, active, section):
+    def continuation(name, value, active):
         if name == 'MBEDTLS_DEPRECATED_REMOVED':
             return True
         if name in DEPRECATED:
             return False
         if adapter is None:
             return active
-        return adapter(name, active, section)
+        return adapter(name, value, active)
     return continuation
 
 def no_platform_adapter(adapter):
     """Modify an adapter to disable platform symbols.
 
-    ``no_platform_adapter(adapter)(name, active, section)`` is like
-    ``adapter(name, active, section)``, but unsets all platform symbols other
+    ``no_platform_adapter(adapter)(name, value, active)`` is like
+    ``adapter(name, value, active)``, but unsets all platform symbols other
     ``than MBEDTLS_PLATFORM_C.
     """
-    def continuation(name, active, section):
+    def continuation(name, value, active):
         # Allow MBEDTLS_PLATFORM_C but remove all other platform symbols.
         if name.startswith('MBEDTLS_PLATFORM_') and name != 'MBEDTLS_PLATFORM_C':
             return False
         if adapter is None:
             return active
-        return adapter(name, active, section)
+        return adapter(name, value, active)
     return continuation
 
 

@@ -195,7 +195,6 @@ If what is False, announce that the job has failed.'''
             c_build_helper.generate_c_file(c_file, 'depends.py', header, lambda x: '')
             c_file.close()
             c_build_helper.compile_c_file(c_name, exe_name, include_path)
-
             return True
 
         except c_build_helper.CompileError as e:
@@ -204,7 +203,6 @@ If what is False, announce that the job has failed.'''
             log_line('Inconsistent config option(s):')
             for option in sorted(failed):
                 log_line('  ' + option)
-
             return False
 
         finally:

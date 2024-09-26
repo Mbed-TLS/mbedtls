@@ -183,8 +183,8 @@ If what is False, announce that the job has failed.'''
             header += '#if '
             if value:
                 header += '!'
-            header += 'defined(' + option + ')\n'
-            header += '#error "' + option + '"\n'
+            header += f'defined({option})\n'
+            header += f'#error "{option}"\n'
             header += '#endif\n'
         include_path = ['include', 'tf-psa-crypto/include',
                         'tf-psa-crypto/drivers/builtin/include']

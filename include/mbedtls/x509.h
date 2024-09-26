@@ -492,6 +492,38 @@ size_t mbedtls_x509_crt_parse_cn_inet_pton(const char *cn, void *dst);
         p += (size_t) ret;                                  \
     } while (0)
 
+/**
+ * \brief           Translate an ASN.1 OID into its numeric representation
+ *                  (e.g. "\x2A\x86\x48\x86\xF7\x0D" into "1.2.840.113549")
+ *
+ * \param buf       buffer to put representation in
+ * \param size      size of the buffer
+ * \param oid       OID to translate
+ *
+ * \return          Length of the string written (excluding final NULL) or
+ *                  MBEDTLS_ERR_OID_BUF_TOO_SMALL in case of error
+ */
+int mbedtls_oid_get_numeric_string(char *buf, size_t size, const mbedtls_asn1_buf *oid);
+
+/**
+ * \brief           Translate a string containing a dotted-decimal
+ *                  representation of an ASN.1 OID into its encoded form
+ *                  (e.g. "1.2.840.113549" into "\x2A\x86\x48\x86\xF7\x0D").
+ *                  On success, this function allocates oid->buf from the
+ *                  heap. It must be freed by the caller using mbedtls_free().
+ *
+ * \param oid       #mbedtls_asn1_buf to populate with the DER-encoded OID
+ * \param oid_str   string representation of the OID to parse
+ * \param size      length of the OID string, not including any null terminator
+ *
+ * \return          0 if successful
+ * \return          #MBEDTLS_ERR_ASN1_INVALID_DATA if \p oid_str does not
+ *                  represent a valid OID
+ * \return          #MBEDTLS_ERR_ASN1_ALLOC_FAILED if the function fails to
+ *                  allocate oid->buf
+ */
+int mbedtls_oid_from_numeric_string(mbedtls_asn1_buf *oid, const char *oid_str, size_t size);
+
 #ifdef __cplusplus
 }
 #endif

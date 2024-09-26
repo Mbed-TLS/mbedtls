@@ -805,6 +805,75 @@ static char nibble_to_hex_digit(int i)
     return (i < 10) ? (i + '0') : (i - 10 + 'A');
 }
 
+/* Return the x.y.z.... style numeric string for the given OID */
+int mbedtls_oid_get_numeric_string(char *buf, size_t size,
+                                   const mbedtls_asn1_buf *oid)
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    char *p = buf;
+    size_t n = size;
+    unsigned int value = 0;
+
+    if (size > INT_MAX) {
+        /* Avoid overflow computing return value */
+        return MBEDTLS_ERR_ASN1_INVALID_LENGTH;
+    }
+
+    if (oid->len <= 0) {
+        /* OID must not be empty */
+        return MBEDTLS_ERR_ASN1_OUT_OF_DATA;
+    }
+
+    for (size_t i = 0; i < oid->len; i++) {
+        /* Prevent overflow in value. */
+        if (value > (UINT_MAX >> 7)) {
+            return MBEDTLS_ERR_ASN1_INVALID_DATA;
+        }
+        if ((value == 0) && ((oid->p[i]) == 0x80)) {
+            /* Overlong encoding is not allowed */
+            return MBEDTLS_ERR_ASN1_INVALID_DATA;
+        }
+
+        value <<= 7;
+        value |= oid->p[i] & 0x7F;
+
+        if (!(oid->p[i] & 0x80)) {
+            /* Last byte */
+            if (n == size) {
+                int component1;
+                unsigned int component2;
+                /* First subidentifier contains first two OID components */
+                if (value >= 80) {
+                    component1 = '2';
+                    component2 = value - 80;
+                } else if (value >= 40) {
+                    component1 = '1';
+                    component2 = value - 40;
+                } else {
+                    component1 = '0';
+                    component2 = value;
+                }
+                ret = mbedtls_snprintf(p, n, "%c.%u", component1, component2);
+            } else {
+                ret = mbedtls_snprintf(p, n, ".%u", value);
+            }
+            if (ret < 2 || (size_t) ret >= n) {
+                return MBEDTLS_ERR_OID_BUF_TOO_SMALL;
+            }
+            n -= (size_t) ret;
+            p += ret;
+            value = 0;
+        }
+    }
+
+    if (value != 0) {
+        /* Unterminated subidentifier */
+        return MBEDTLS_ERR_ASN1_OUT_OF_DATA;
+    }
+
+    return (int) (size - n);
+}
+
 /*
  * Store the name in printable form into buf; no more
  * than size characters will be written

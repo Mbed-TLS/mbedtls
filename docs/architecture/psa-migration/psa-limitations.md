@@ -14,7 +14,10 @@ Limitations relevant for G1 (performing crypto operations)
 Executive summary
 -----------------
 
-- Restartable/interruptible ECC operations: support in PSA will be added in 4.0.
+- Restartable/interruptible ECC operations: some operations (`sign_hash`) are
+  already supported in PSA, but not used by TLS. The remaining operations
+(ECDH `key_agreement` and `export_public`) will be implemented in 4.0 or 4.x,
+and used by TLS in 4.x.
 - Arbitrary parameters for FFDH: use in TLS will be dropped in 4.0.
 - RSA-PSS parameters: already implemented safe though arguably non-compliant
   solution in Mbed TLS 3.4, no complaints so far.

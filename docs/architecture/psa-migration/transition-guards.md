@@ -144,13 +144,19 @@ moment.
 Ciphers (AEAD and unauthenticated)
 ----------------------------------
 
-**Overview of existing (internal) APIs:** we currently have 4 (families of)
-APIs for ciphers in the library:
-- Low-level API: `mbedtls_aes_xxx` etc. - used by `cipher.c` and some other
-  modules in the legacy domain.
+**Overview of existing (internal) APIs:** we currently have 5 (families of)
+APIs for ciphers (and associated constructs) in the library:
+- Low-level API for primitives: `mbedtls_aes_xxx` etc. - used by `cipher.c`
+  and some other modules in the legacy domain.
 - Internal abstraction layer `block_cipher` for AES, ARIA and Camellia
   primitives - used only by `gcm.c` and `ccm.c`, only when `CIPHER_C` is not
 enabled (for compatibility reasons).
+- Block cipher modes / derivatives:
+  - `mbedtls_gcm_xxx` and `mbedtls_ccm_xxx`, used by `cipher.c` and
+    the built-in PSA implementation;
+  - `mbedtls_nist_kw_xxx`, used by `cipher.c`;
+  - `mbedtls_cipher_cmac_xxx`, used by the built-in PSA implementation;
+  - `mbedtls_ctr_drbg_xxx`, used by PSA crypto's RNG subsystem.
 - Cipher: used by some modules in the legacy domain, and by the built-in PSA
   implementation.
 - PSA: used by the `USE_PSA` domain when `MBEDTLS_USE_PSA_CRYPTO` is enabled.
@@ -159,9 +165,17 @@ enabled (for compatibility reasons).
 like `aes.h`, and should use legacy macros like `MBEDTLS_AES_C` and
 `MBEDTLS_CIPHER_MODE_CBC`. This includes NIST-KW, CMAC, PKCS5/PKCS12 en/decryption
 functions, PEM decryption, PK parsing of encrypted keys. The only exceptions
-are `GCM` and `CCM` which use the internal abstraction layer `block_cipher`
-and check for availability of block ciphers using `MBEDTLS_CCM_GCM_CAN_xxx`
-macros defined in `config_adjut_legacy_crypto.h`.
+are:
+1. `GCM` and `CCM` use the internal abstraction layer `block_cipher` and check
+   for availability of block ciphers using `MBEDTLS_CCM_GCM_CAN_xxx` macros
+defined in `config_adjut_legacy_crypto.h`. As a user, to check if AES-GCM is
+available through the `mbedtls_gcm` API, you want to check for `MBEDTLS_GCM_C`
+and `MBDTLS_CCM_GCM_CAN_AES`.
+2. `CTR_DRBG` uses the low-level `mbedtls_aes_` API if it's available,
+  otherwise it uses the PSA API. There is no need for users of `CTR_DRBG` to
+check if AES is available: `check_config.h` is already taking care of that, so
+from a user's perspective as soon as `MBEDTLS_CTR_DRBG_C` is enabled, you can
+use it without worrying about AES.
 
 **`USE_PSA` domain:** here we should use conditions like the following in
 order to test for availability of ciphers and associated modes.

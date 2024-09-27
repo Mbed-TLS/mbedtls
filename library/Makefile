@@ -7,7 +7,7 @@ TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH = $(MBEDTLS_PATH)/tf-psa-crypto/drivers/b
 
 GENERATED_FILES := \
 	$(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/error.c \
-        $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/version_features.c \
+	version_features.c \
 	ssl_debug_helpers_generated.c \
 	$(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto_driver_wrappers.h \
 	$(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto_driver_wrappers_no_static.c
@@ -188,8 +188,6 @@ OBJS_CRYPTO= \
 	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/sha3.o \
 	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/threading.o \
 	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/timing.o \
-	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/version.o \
-	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/version_features.o \
 	     # This line is intentionally left blank
 
 THIRDPARTY_DIR := $(MBEDTLS_PATH)/tf-psa-crypto/drivers
@@ -229,6 +227,8 @@ OBJS_TLS= \
 	  ssl_tls13_client.o \
 	  ssl_tls13_server.o \
 	  ssl_tls13_generic.o \
+	  version.o \
+	  version_features.o \
 	  # This line is intentionally left blank
 
 .SILENT:
@@ -370,15 +370,15 @@ ssl_debug_helpers_generated.c:
 	echo "  Gen   $@"
 	$(PYTHON) ../scripts/generate_ssl_debug_helpers.py --mbedtls-root .. .
 
-$(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/version_features.c: $(gen_file_dep) ../scripts/generate_features.pl
-$(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/version_features.c: $(gen_file_dep) ../scripts/data_files/version_features.fmt
+version_features.c: $(gen_file_dep) ../scripts/generate_features.pl
+version_features.c: $(gen_file_dep) ../scripts/data_files/version_features.fmt
 ## The generated file only depends on the options that are present in mbedtls_config.h,
 ## not on which options are set. To avoid regenerating this file all the time
 ## when switching between configurations, don't declare mbedtls_config.h as a
 ## dependency. Remove this file from your working tree if you've just added or
 ## removed an option in mbedtls_config.h.
 #version_features.c: ../include/mbedtls/mbedtls_config.h
-$(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/version_features.c:
+version_features.c:
 	echo "  Gen   $@"
 	$(PERL) ../scripts/generate_features.pl
 

@@ -36,9 +36,26 @@ set(src_tls
     ssl_tls13_server.c
     ssl_tls13_client.c
     ssl_tls13_generic.c
+    version.c
+    version_features.c
 )
 
 if(GEN_FILES)
+    add_custom_command(
+        OUTPUT
+            ${CMAKE_CURRENT_BINARY_DIR}/version_features.c
+        COMMAND
+            ${PERL_EXECUTABLE}
+                ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/generate_features.pl
+                ${CMAKE_CURRENT_SOURCE_DIR}/../include/mbedtls
+                ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/data_files
+                ${CMAKE_CURRENT_BINARY_DIR}/version_features.c
+        DEPENDS
+            ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/generate_features.pl
+            ${CMAKE_CURRENT_SOURCE_DIR}/../include/mbedtls/mbedtls_config.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/data_files/version_features.fmt
+    )
+
     add_custom_command(
         OUTPUT
             ${CMAKE_CURRENT_BINARY_DIR}/ssl_debug_helpers_generated.c
@@ -52,6 +69,7 @@ if(GEN_FILES)
             ${tls_error_headers}
     )
 else()
+    link_to_source(version_features.c)
     link_to_source(ssl_debug_helpers_generated.c)
 endif()
 

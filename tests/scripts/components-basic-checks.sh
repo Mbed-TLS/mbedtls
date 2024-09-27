@@ -106,6 +106,9 @@ component_check_test_dependencies () {
     # the test code and that's probably the most convenient way of achieving
     # the test's goal.
     echo "MBEDTLS_ASN1_WRITE_C" >> $expected
+    # No PSA equivalent - used in test_suite_psa_crypto to get some "known" size
+    # for raw key generation.
+    echo "MBEDTLS_CTR_DRBG_MAX_REQUEST" >> $expected
     # No PSA equivalent - we should probably have one in the future.
     echo "MBEDTLS_ECP_RESTARTABLE" >> $expected
     # No PSA equivalent - needed by some init tests
@@ -159,4 +162,3 @@ component_check_test_helpers () {
     msg "unit test: translate_ciphers.py"
     python3 -m unittest framework/scripts/translate_ciphers.py 2>&1
 }
-

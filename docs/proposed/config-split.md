@@ -166,6 +166,11 @@ same section as the boolean option they are associated to.
 ```
 
 #### SECTION General and test configuration options
+Note: for consistency with the configuration file name change from
+`crypto_config.h` to `tf_psa_crypto_config.h`, the configuration options
+MBEDTLS_PSA_CRYPTO_CONFIG_FILE and MBEDTLS_PSA_CRYPTO_USER_CONFIG_FILE are
+respectively renamed TF_PSA_CRYPTO_CONFIG_FILE and TF_PSA_CRYPTO_USER_CONFIG_FILE.
+These are the only configuration options renamed by this document.
 ```
 //#define MBEDTLS_CHECK_RETURN_WARNING
 //#define MBEDTLS_DEPRECATED_REMOVED
@@ -177,8 +182,8 @@ same section as the boolean option they are associated to.
 
 //#define MBEDTLS_CHECK_RETURN __attribute__((__warn_unused_result__))
 //#define MBEDTLS_IGNORE_RETURN( result ) ((void) !(result))
-//#define MBEDTLS_PSA_CRYPTO_CONFIG_FILE "psa/crypto_config.h"
-//#define MBEDTLS_PSA_CRYPTO_USER_CONFIG_FILE "/dev/null"
+//#define TF_PSA_CRYPTO_CONFIG_FILE "psa/tf_psa_crypto_config.h"
+//#define TF_PSA_CRYPTO_USER_CONFIG_FILE "/dev/null"
 ```
 
 #### SECTION Cryptographic mechanism selection (PSA API)

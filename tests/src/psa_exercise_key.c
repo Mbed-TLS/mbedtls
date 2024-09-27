@@ -13,7 +13,8 @@
 
 #if ((MBEDTLS_VERSION_MAJOR < 4) \
     && defined(MBEDTLS_PSA_CRYPTO_C)) \
-    || defined(MBEDTLS_PSA_CRYPTO_CLIENT)
+    || (MBEDTLS_VERSION_MAJOR >= 4 \
+        && defined(MBEDTLS_PSA_CRYPTO_CLIENT))
 
 #include <mbedtls/asn1.h>
 #include <psa/crypto.h>

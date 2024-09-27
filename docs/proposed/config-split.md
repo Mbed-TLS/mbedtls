@@ -31,9 +31,17 @@ they are available in both repositories (as Mbed TLS includes
 create aliases for some of them to align with the naming conventions of the
 repositories.
 
-The layout of options into sections in `mbedtls_config.h` does not suit
-TF-PSA-Crypto well thus the configuration options `tf_psa_crypto_config.h` are
-organized into different sections (see below).
+The cryptographic configuration options in `tf_psa_crypto_config.h` are
+organized into sections that are different from the ones in the pre-split
+`mbedtls_config.h` (see below). This is first to take into account the
+specifics of TF-PSA-Crypto, for example a specific section for the
+configuration of builtin drivers. We also get rid of the grouping of non
+boolean options into a dedicated section: related boolean and non boolean
+configuration options are rather grouped together into the same section.
+
+Finally, for consistency, the sections in `mbedtls_config.h` are reorganized
+to be better aligned with the `tf_psa_crypto_config.h` ones.
+
 
 ## Configuration files and `config.py`
 

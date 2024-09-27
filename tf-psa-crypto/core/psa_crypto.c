@@ -8110,6 +8110,8 @@ static psa_status_t psa_generate_key_iop_abort_internal(
 
     status = mbedtls_psa_generate_key_iop_abort(&operation->ctx);
 
+    psa_reset_key_attributes(&operation->attributes);
+
     operation->id = 0;
 
     return status;
@@ -8178,12 +8180,41 @@ exit:
 
 psa_status_t psa_generate_key_iop_complete(
     psa_generate_key_iop_t *operation,
-    psa_key_id_t *key)
+    mbedtls_svc_key_id_t *key)
 {
+#if defined(MBEDTLS_ECP_RESTARTABLE)
+    psa_status_t status;
+    uint8_t key_data[MBEDTLS_ECP_MAX_BYTES] = { 0 };
+    size_t key_len = 0;
+
+    if (operation->id == 0 || operation->error_occurred) {
+        return PSA_ERROR_BAD_STATE;
+    }
+
+    status = mbedtls_psa_generate_key_complete(&operation->ctx, key_data,
+                                               MBEDTLS_ECP_MAX_BYTES, &key_len);
+    if (status != PSA_SUCCESS) {
+        goto exit;
+    }
+
+    status = psa_import_key(&operation->attributes, key_data, key_len, key);
+
+exit:
+    if (status != PSA_OPERATION_INCOMPLETE) {
+        if (status != PSA_SUCCESS) {
+            operation->error_occurred = 1;
+        }
+        psa_generate_key_iop_abort_internal(operation);
+    }
+
+    mbedtls_platform_zeroize(key_data, MBEDTLS_ECP_MAX_BYTES);
+    return status;
+#else
     (void) operation;
     (void) key;
 
-    return PSA_ERROR_NOT_SUPPORTED;
+    return PSA_ERROR_BAD_STATE;
+#endif
 }
 
 psa_status_t psa_generate_key_iop_abort(

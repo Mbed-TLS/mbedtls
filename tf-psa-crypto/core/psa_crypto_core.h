@@ -456,6 +456,35 @@ psa_status_t mbedtls_psa_generate_key_iop_setup(
     mbedtls_psa_generate_key_iop_t *operation,
     const psa_key_attributes_t *attributes);
 
+
+/**
+ * \brief Continue and eventually complete a key generation operation.
+ *
+ * \note The signature of this function is that of a PSA driver
+ *       generate_key_complete entry point. This function behaves as a
+ *       generate_key_complete entry point as defined in the PSA driver
+ *       interface specification for transparent drivers.
+ *
+ * \param[in] operation                  The \c mbedtls_psa_generate_key_iop_t to use.
+ *                                       This must be initialized first and
+ *                                       had \c mbedtls_psa_generate_key_iop_setup()
+ *                                       called successfully.
+ * \param[out] key_output                The buffer to which the generated key
+ *                                       is to be written.
+ * \param[out] key_len                   On success, the number of bytes that make
+ *                                       up the returned key output.
+ * \retval #PSA_SUCCESS
+ *         The key was generated successfully.
+ * \retval #PSA_ERROR_INVALID_ARGUMENT \emptydescription
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
+ *
+ */
+psa_status_t mbedtls_psa_generate_key_complete(
+    mbedtls_psa_generate_key_iop_t *operation,
+    uint8_t *key_output,
+    size_t key_output_size,
+    size_t *key_len);
+
 /**
  * \brief Abort a key generation operation.
  *

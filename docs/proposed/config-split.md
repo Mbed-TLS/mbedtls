@@ -90,8 +90,6 @@ section like the "Module configuration options" one containing non boolean
 configuration options. The configuration options that are not boolean are
 located in the same section as the boolean option they are associated to.
 
-Open question: do we group them into a subsection?
-
 ## Repartition of the configuration options
 
 ### In `tf_psa_crypto_config.h`, we have:

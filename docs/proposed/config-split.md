@@ -58,31 +58,32 @@ options that apply to the whole code base (TLS, x509, crypto and tests) mostly
 related to the platform abstraction layer and testing. In
 `tf_psa_crypto_config.h` these configurations options are organized into two
 sections, one for the platform abstraction layer options and one for the others,
-respectively named "Platform abstraction layer" and
-"General and test configuration options".
+respectively named ["Platform abstraction layer"](#section-platform-abstraction-layer)
+and ["General and test configuration options"](#section-general-and-test-configuration-options).
 
-Then, the "Cryptographic mechanism selection (PSA API)" section is the
-equivalent of the pre-split `crypto_config.h` configuration file containing the
-PSA_WANT_ prefixed macros.
+Then, the ["Cryptographic mechanism selection (PSA API)"](#section-cryptographic-mechanism-selection-PSA-API)
+section is the equivalent of the pre-split `crypto_config.h` configuration file
+containing the PSA_WANT_ prefixed macros.
 
-The following section named "Cryptographic mechanism selection (extended API)"
+The following section named
+["Cryptographic mechanism selection (extended API)"](#section-cryptographic-mechanism-selection-extended-API)
 contains the configuration options for the cryptography mechanisms that are not
 yet part of the PSA cryptography API (like LMS or PK).
 
-It is followed by the "Data format support" section that contains configuration
-options of utilities related to various data formats (like Base64 or ASN.1 APIs).
-These utilities aim to facilitate the usage of the PSA cryptography API in other
-cryptography projects.
+It is followed by the ["Data format support"](#section-data-format-support)
+section that contains configuration options of utilities related to various data
+formats (like Base64 or ASN.1 APIs). These utilities aim to facilitate the
+usage of the PSA cryptography API in other cryptography projects.
 
 Compared to Mbed TLS, the cryptography code in TF-PSA-Crypto is not located
 in a single directory but split between the PSA core (core directory) and the
 PSA builtin drivers (drivers/builtin/src directory). This is reflected in
-`tf_psa_crypto_config.h` with two sections respectively named "PSA core" and
-"Builtin drivers".
+`tf_psa_crypto_config.h` with two sections respectively named ["PSA core"](#section-psa-core)
+and ["Builtin drivers"](#section-builtin-drivers).
 
-Finally, the last section named "Legacy cryptography" contains the configuration
-options that will eventually be removed as duplicates of PSA_WANT_\* and
-MBEDTLS_PSA_ACCEL_\* configuration options.
+Finally, the last section named ["Legacy cryptography"](#section-legacy-cryptography)
+contains the configuration options that will eventually be removed as duplicates
+of PSA_WANT_\* and MBEDTLS_PSA_ACCEL_\* configuration options.
 
 By contrast to `mbedtls_config.h`, `tf_psa_crypto_config.h` does not contain a
 section like the "Module configuration options" one containing non boolean
@@ -94,7 +95,7 @@ Open question: do we group them into a subsection?
 ## Repartition of the configuration options
 
 ### In `tf_psa_crypto_config.h`, we have:
-#### SECTION "Platform abstraction layer"
+#### SECTION Platform abstraction layer
 ```
 #define MBEDTLS_FS_IO
 #define MBEDTLS_HAVE_TIME
@@ -151,7 +152,7 @@ Open question: do we group them into a subsection?
 //#define MBEDTLS_PRINTF_MS_TIME    PRId64
 ```
 
-#### SECTION "General and test configuration options"
+#### SECTION General and test configuration options
 ```
 //#define MBEDTLS_CHECK_RETURN_WARNING
 //#define MBEDTLS_DEPRECATED_REMOVED
@@ -167,11 +168,11 @@ Open question: do we group them into a subsection?
 //#define MBEDTLS_PSA_CRYPTO_USER_CONFIG_FILE "/dev/null"
 ```
 
-#### SECTION "Cryptographic mechanism selection (PSA API)"
+#### SECTION Cryptographic mechanism selection (PSA API)
 PSA_WANT_\* macros as in current `crypto_config.h`.
 
 
-#### SECTION "Cryptographic mechanism selection (extended API)"
+#### SECTION Cryptographic mechanism selection (extended API)
 ```
 #define MBEDTLS_LMS_C
 //#define MBEDTLS_LMS_PRIVATE
@@ -199,7 +200,7 @@ PSA_WANT_\* macros as in current `crypto_config.h`.
 ```
 
 
-#### SECTION "Data format support"
+#### SECTION Data format support
 ```
 #define MBEDTLS_ASN1_PARSE_C
 #define MBEDTLS_ASN1_WRITE_C
@@ -210,7 +211,7 @@ PSA_WANT_\* macros as in current `crypto_config.h`.
 ```
 
 
-#### SECTION "PSA core"
+#### SECTION PSA core
 ```
 #define MBEDTLS_ENTROPY_C
 //#define MBEDTLS_ENTROPY_FORCE_SHA256
@@ -237,7 +238,7 @@ PSA_WANT_\* macros as in current `crypto_config.h`.
 //#define MBEDTLS_PSA_KEY_SLOT_COUNT 32
 ```
 
-#### SECTION "Builtin drivers"
+#### SECTION Builtin drivers
 ```
 #define MBEDTLS_AESCE_C
 #define MBEDTLS_AESNI_C
@@ -275,7 +276,7 @@ PSA_WANT_\* macros as in current `crypto_config.h`.
 ```
 
 
-#### SECTION "Legacy cryptography"
+#### SECTION Legacy cryptography
 ```
 #define MBEDTLS_AES_C
 #define MBEDTLS_ARIA_C
@@ -340,7 +341,7 @@ PSA_WANT_\* macros as in current `crypto_config.h`.
 
 
 ### In `mbedtls_config.h`, we have:
-#### SECTION "Platform abstraction layer"
+#### SECTION Platform abstraction layer
 ```
 #define MBEDTLS_NET_C
 //#define MBEDTLS_TIMING_ALT
@@ -348,7 +349,7 @@ PSA_WANT_\* macros as in current `crypto_config.h`.
 ```
 
 
-#### SECTION "Mbed TLS feature support"
+#### SECTION Mbed TLS feature support
 ```
 //#define MBEDTLS_CIPHER_NULL_CIPHER
 #define MBEDTLS_ERROR_STRERROR_DUMMY
@@ -400,7 +401,7 @@ PSA_WANT_\* macros as in current `crypto_config.h`.
 ```
 
 
-#### SECTION "Mbed TLS modules"
+#### SECTION Mbed TLS modules
 ```
 #define MBEDTLS_DEBUG_C
 #define MBEDTLS_ERROR_C
@@ -421,14 +422,14 @@ PSA_WANT_\* macros as in current `crypto_config.h`.
 ```
 
 
-#### SECTION "General configuration options"
+#### SECTION General configuration options
 ```
 //#define MBEDTLS_CONFIG_FILE "mbedtls/mbedtls_config.h"
 //#define MBEDTLS_USER_CONFIG_FILE "/dev/null"
 ```
 
 
-#### SECTION "Module configuration options"
+#### SECTION Module configuration options
 ```
 //#define MBEDTLS_PSK_MAX_LEN               32
 //#define MBEDTLS_SSL_CACHE_DEFAULT_MAX_ENTRIES      50

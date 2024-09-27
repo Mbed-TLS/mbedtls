@@ -85,10 +85,17 @@ Finally, the last section named ["Legacy cryptography"](#section-legacy-cryptogr
 contains the configuration options that will eventually be removed as duplicates
 of PSA_WANT_\* and MBEDTLS_PSA_ACCEL_\* configuration options.
 
-By contrast to `mbedtls_config.h`, `tf_psa_crypto_config.h` does not contain a
-section like the "Module configuration options" one containing non boolean
-configuration options. The configuration options that are not boolean are
-located in the same section as the boolean option they are associated to.
+## Sections in `mbedtls_config.h`
+
+The sections in `mbedtls_config.h` are reorganized to be better aligned with
+the ones in `tf_psa_crypto_config.h`. The main change is the reorganization
+of the "Mbed TLS modules" and "Module configuration options" sections into
+the ["TLS feature selection"](#section-tls-feature-selection) and
+["X.509 feature selection"](#section-x.509-feature-selection) sections. That
+way both configuration files do not have a section dedicated to non boolean
+configuration options. The non boolean configuration options are located in the
+same section as the boolean option they are associated to.
+
 
 ## Repartition of the configuration options
 
@@ -346,35 +353,25 @@ PSA_WANT_\* macros as in current `crypto_config.h`.
 #define MBEDTLS_TIMING_C
 ```
 
+
 #### SECTION General configuration options
 ```
 //#define MBEDTLS_CONFIG_FILE "mbedtls/mbedtls_config.h"
 //#define MBEDTLS_USER_CONFIG_FILE "/dev/null"
 ```
 
-#### SECTION Mbed TLS modules
+
+#### SECTION TLS feature selection
 ```
 #define MBEDTLS_DEBUG_C
 #define MBEDTLS_ERROR_C
-#define MBEDTLS_PKCS7_C
 #define MBEDTLS_SSL_CACHE_C
 #define MBEDTLS_SSL_CLI_C
 #define MBEDTLS_SSL_COOKIE_C
 #define MBEDTLS_SSL_SRV_C
 #define MBEDTLS_SSL_TICKET_C
 #define MBEDTLS_SSL_TLS_C
-#define MBEDTLS_X509_CREATE_C
-#define MBEDTLS_X509_CRL_PARSE_C
-#define MBEDTLS_X509_CRT_PARSE_C
-#define MBEDTLS_X509_CRT_WRITE_C
-#define MBEDTLS_X509_CSR_PARSE_C
-#define MBEDTLS_X509_CSR_WRITE_C
-#define MBEDTLS_X509_USE_C
-```
 
-
-#### SECTION Module configuration options
-```
 //#define MBEDTLS_PSK_MAX_LEN               32
 //#define MBEDTLS_SSL_CACHE_DEFAULT_MAX_ENTRIES      50
 //#define MBEDTLS_SSL_CACHE_DEFAULT_TIMEOUT       86400
@@ -390,6 +387,20 @@ PSA_WANT_\* macros as in current `crypto_config.h`.
 //#define MBEDTLS_SSL_TLS1_3_DEFAULT_NEW_SESSION_TICKETS 1
 //#define MBEDTLS_SSL_TLS1_3_TICKET_AGE_TOLERANCE 6000
 //#define MBEDTLS_SSL_TLS1_3_TICKET_NONCE_LENGTH 32
+```
+
+
+#### SECTION X.509 feature selection
+```
+#define MBEDTLS_PKCS7_C
+#define MBEDTLS_X509_CREATE_C
+#define MBEDTLS_X509_CRL_PARSE_C
+#define MBEDTLS_X509_CRT_PARSE_C
+#define MBEDTLS_X509_CRT_WRITE_C
+#define MBEDTLS_X509_CSR_PARSE_C
+#define MBEDTLS_X509_CSR_WRITE_C
+#define MBEDTLS_X509_USE_C
+
 //#define MBEDTLS_X509_MAX_FILE_PATH_LEN     512
 //#define MBEDTLS_X509_MAX_INTERMEDIATE_CA   8
 ```

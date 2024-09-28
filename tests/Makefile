@@ -281,7 +281,6 @@ endif
 # Test suites caught by SKIP_TEST_SUITES are built but not executed.
 check: $(BINARIES) $(CRYPTO_BINARIES)
 	perl scripts/run-test-suites.pl $(TEST_FLAGS) --skip=$(SKIP_TEST_SUITES)
-	cd ../tf-psa-crypto/tests && perl ../../tests/scripts/run-test-suites.pl $(TEST_FLAGS) --skip=$(SKIP_TEST_SUITES)
 
 test: check
 

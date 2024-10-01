@@ -395,7 +395,7 @@ exit:
 
 #if defined(MBEDTLS_SELF_TEST)
 
-#if !defined(MBEDTLS_MD_CAN_SHA1)
+#if !defined(PSA_WANT_ALG_SHA_1)
 int mbedtls_pkcs5_self_test(int verbose)
 {
     if (verbose != 0) {
@@ -493,7 +493,7 @@ int mbedtls_pkcs5_self_test(int verbose)
 exit:
     return ret;
 }
-#endif /* MBEDTLS_MD_CAN_SHA1 */
+#endif /* PSA_WANT_ALG_SHA_1 */
 
 #endif /* MBEDTLS_SELF_TEST */
 

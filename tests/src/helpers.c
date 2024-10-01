@@ -16,6 +16,9 @@
 #if defined(MBEDTLS_TEST_HOOKS) && defined(MBEDTLS_PSA_CRYPTO_C)
 #include <test/psa_memory_poisoning_wrappers.h>
 #endif
+#if defined(MBEDTLS_TEST_HOOKS) && !defined(MBEDTLS_THREADING_C)
+#include <test/bignum_codepath_check.h>
+#endif
 #if defined(MBEDTLS_THREADING_C)
 #include "mbedtls/threading.h"
 #endif
@@ -342,6 +345,11 @@ int mbedtls_test_platform_setup(void)
     mbedtls_mutex_init(&mbedtls_test_info_mutex);
 #endif /* MBEDTLS_THREADING_C */
 
+
+#if defined(MBEDTLS_TEST_HOOKS) && !defined(MBEDTLS_THREADING_C)
+    mbedtls_codepath_test_hooks_setup();
+#endif /* MBEDTLS_TEST_HOOKS && !MBEDTLS_THREADING_C */
+
     return ret;
 }
 
@@ -359,6 +367,10 @@ void mbedtls_test_platform_teardown(void)
 #if defined(MBEDTLS_PLATFORM_C)
     mbedtls_platform_teardown(&platform_ctx);
 #endif /* MBEDTLS_PLATFORM_C */
+
+#if defined(MBEDTLS_TEST_HOOKS) && !defined(MBEDTLS_THREADING_C)
+    mbedtls_codepath_test_hooks_teardown();
+#endif /* MBEDTLS_TEST_HOOKS && !MBEDTLS_THREADING_C */
 }
 
 int mbedtls_test_ascii2uc(const char c, unsigned char *uc)

@@ -2687,7 +2687,7 @@ usage:
         }
         key_cert_init = 2;
 #endif /* MBEDTLS_RSA_C */
-#if defined(MBEDTLS_PK_CAN_ECDSA_SOME)
+#if defined(PSA_HAVE_ALG_SOME_ECDSA) && defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_IMPORT)
         if ((ret = mbedtls_x509_crt_parse(&srvcert2,
                                           (const unsigned char *) mbedtls_test_srv_crt_ec,
                                           mbedtls_test_srv_crt_ec_len)) != 0) {
@@ -2704,7 +2704,7 @@ usage:
             goto exit;
         }
         key_cert_init2 = 2;
-#endif /* MBEDTLS_PK_CAN_ECDSA_SOME */
+#endif /* PSA_HAVE_ALG_SOME_ECDSA && PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_IMPORT */
     }
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)

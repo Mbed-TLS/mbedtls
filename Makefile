@@ -28,6 +28,10 @@ no_test: programs
 programs: lib mbedtls_test
 	$(MAKE) -C programs
 
+ssl-opt: lib mbedtls_test
+	$(MAKE) -C programs ssl-opt
+	$(MAKE) -C tests ssl-opt
+
 lib:
 	$(MAKE) -C library
 

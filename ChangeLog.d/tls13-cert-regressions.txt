@@ -1,0 +1,18 @@
+Bugfix
+   * Fixed a regression introduced in 3.6.0 where the CA callback set with
+     mbedtls_ssl_conf_ca_cb() would stop working when connections were
+     upgraded to TLS 1.3. Fixed by adding support for the CA callback with TLS
+     1.3.
+   * Fixed a regression introduced in 3.6.0 where clients that relied on
+     optional/none authentication mode, by calling mbedtls_ssl_conf_authmode()
+     with MBEDTLS_SSL_VERIFY_OPTIONAL or MBEDTLS_SSL_VERIFY_NONE, would stop
+     working when connections were upgraded to TLS 1.3. Fixed by adding
+     support for optional/none with TLS 1.3 as well. Note that the TLS 1.3
+     standard makes server authentication mandatory; users are advised not to
+     use authmode none, and to carefully check the results when using optional
+     mode.
+   * Fixed a regression introduced in 3.6.0 where context-specific certificate
+     verify callbacks, set with mbedtls_ssl_set_verify() as opposed to
+     mbedtls_ssl_conf_verify(), would stop working when connections were
+     upgraded to TLS 1.3. Fixed by adding support for context-specific verify
+     callback in TLS 1.3.

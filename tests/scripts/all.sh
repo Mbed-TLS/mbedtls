@@ -141,6 +141,15 @@ pre_check_environment () {
     fi
 }
 
+# Must be called before pre_initialize_variables which sets ALL_COMPONENTS.
+pre_load_components () {
+    # Include the components from components.sh
+    test_script_dir="${0%/*}"
+    for file in "$test_script_dir"/components*.sh; do
+        source $file
+    done
+}
+
 pre_initialize_variables () {
     if in_mbedtls_repo; then
         CONFIG_H='include/mbedtls/mbedtls_config.h'
@@ -443,25 +452,6 @@ msg()
     echo "* $current_section "
     printf "* "; date
     echo "******************************************************************"
-}
-
-helper_armc6_build_test()
-{
-    FLAGS="$1"
-
-    msg "build: ARM Compiler 6 ($FLAGS)"
-    make clean
-    ARM_TOOL_VARIANT="ult" CC="$ARMC6_CC" AR="$ARMC6_AR" CFLAGS="$FLAGS" \
-                    WARNING_CFLAGS='-Werror -xc -std=c99' make lib
-
-    msg "size: ARM Compiler 6 ($FLAGS)"
-    "$ARMC6_FROMELF" -z library/*.o
-    if [ -n ${PSA_CORE_PATH} ]; then
-        "$ARMC6_FROMELF" -z ${PSA_CORE_PATH}/*.o
-    fi
-    if [ -n ${BUILTIN_SRC_PATH} ]; then
-        "$ARMC6_FROMELF" -z ${BUILTIN_SRC_PATH}/*.o
-    fi
 }
 
 err_msg()
@@ -1098,13 +1088,27 @@ helper_get_psa_key_type_list() {
     echo "$loc_list"
 }
 
-# Must be called before pre_initialize_variables which sets ALL_COMPONENTS.
-pre_load_components () {
-    # Include the components from components.sh
-    test_script_dir="${0%/*}"
-    for file in "$test_script_dir"/components*.sh; do
-        source $file
-    done
+################################################################
+#### Misc. helpers for components
+################################################################
+
+helper_armc6_build_test()
+{
+    FLAGS="$1"
+
+    msg "build: ARM Compiler 6 ($FLAGS)"
+    make clean
+    ARM_TOOL_VARIANT="ult" CC="$ARMC6_CC" AR="$ARMC6_AR" CFLAGS="$FLAGS" \
+                    WARNING_CFLAGS='-Werror -xc -std=c99' make lib
+
+    msg "size: ARM Compiler 6 ($FLAGS)"
+    "$ARMC6_FROMELF" -z library/*.o
+    if [ -n ${PSA_CORE_PATH} ]; then
+        "$ARMC6_FROMELF" -z ${PSA_CORE_PATH}/*.o
+    fi
+    if [ -n ${BUILTIN_SRC_PATH} ]; then
+        "$ARMC6_FROMELF" -z ${BUILTIN_SRC_PATH}/*.o
+    fi
 }
 
 

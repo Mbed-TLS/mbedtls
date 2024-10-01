@@ -385,12 +385,12 @@ static const oid_sig_alg_t oid_sig_alg[] =
         MBEDTLS_MD_MD5,      MBEDTLS_PK_RSA,
     },
 #endif /* PSA_WANT_ALG_MD5 */
-#if defined(MBEDTLS_MD_CAN_SHA1)
+#if defined(PSA_WANT_ALG_SHA_1)
     {
         OID_DESCRIPTOR(MBEDTLS_OID_PKCS1_SHA1,       "sha-1WithRSAEncryption",   "RSA with SHA1"),
         MBEDTLS_MD_SHA1,     MBEDTLS_PK_RSA,
     },
-#endif /* MBEDTLS_MD_CAN_SHA1 */
+#endif /* PSA_WANT_ALG_SHA_1 */
 #if defined(PSA_WANT_ALG_SHA_224)
     {
         OID_DESCRIPTOR(MBEDTLS_OID_PKCS1_SHA224,     "sha224WithRSAEncryption",
@@ -412,27 +412,27 @@ static const oid_sig_alg_t oid_sig_alg[] =
         MBEDTLS_MD_SHA384,   MBEDTLS_PK_RSA,
     },
 #endif /* PSA_WANT_ALG_SHA_384 */
-#if defined(MBEDTLS_MD_CAN_SHA512)
+#if defined(PSA_WANT_ALG_SHA_512)
     {
         OID_DESCRIPTOR(MBEDTLS_OID_PKCS1_SHA512,     "sha512WithRSAEncryption",
                        "RSA with SHA-512"),
         MBEDTLS_MD_SHA512,   MBEDTLS_PK_RSA,
     },
-#endif /* MBEDTLS_MD_CAN_SHA512 */
-#if defined(MBEDTLS_MD_CAN_SHA1)
+#endif /* PSA_WANT_ALG_SHA_512 */
+#if defined(PSA_WANT_ALG_SHA_1)
     {
         OID_DESCRIPTOR(MBEDTLS_OID_RSA_SHA_OBS,      "sha-1WithRSAEncryption",   "RSA with SHA1"),
         MBEDTLS_MD_SHA1,     MBEDTLS_PK_RSA,
     },
-#endif /* MBEDTLS_MD_CAN_SHA1 */
+#endif /* PSA_WANT_ALG_SHA_1 */
 #endif /* MBEDTLS_RSA_C */
-#if defined(MBEDTLS_PK_CAN_ECDSA_SOME)
-#if defined(MBEDTLS_MD_CAN_SHA1)
+#if defined(PSA_HAVE_ALG_SOME_ECDSA)
+#if defined(PSA_WANT_ALG_SHA_1)
     {
         OID_DESCRIPTOR(MBEDTLS_OID_ECDSA_SHA1,       "ecdsa-with-SHA1",      "ECDSA with SHA1"),
         MBEDTLS_MD_SHA1,     MBEDTLS_PK_ECDSA,
     },
-#endif /* MBEDTLS_MD_CAN_SHA1 */
+#endif /* PSA_WANT_ALG_SHA_1 */
 #if defined(PSA_WANT_ALG_SHA_224)
     {
         OID_DESCRIPTOR(MBEDTLS_OID_ECDSA_SHA224,     "ecdsa-with-SHA224",    "ECDSA with SHA224"),
@@ -451,13 +451,13 @@ static const oid_sig_alg_t oid_sig_alg[] =
         MBEDTLS_MD_SHA384,   MBEDTLS_PK_ECDSA,
     },
 #endif /* PSA_WANT_ALG_SHA_384 */
-#if defined(MBEDTLS_MD_CAN_SHA512)
+#if defined(PSA_WANT_ALG_SHA_512)
     {
         OID_DESCRIPTOR(MBEDTLS_OID_ECDSA_SHA512,     "ecdsa-with-SHA512",    "ECDSA with SHA512"),
         MBEDTLS_MD_SHA512,   MBEDTLS_PK_ECDSA,
     },
-#endif /* MBEDTLS_MD_CAN_SHA512 */
-#endif /* MBEDTLS_PK_CAN_ECDSA_SOME */
+#endif /* PSA_WANT_ALG_SHA_512 */
+#endif /* PSA_HAVE_ALG_SOME_ECDSA */
 #if defined(MBEDTLS_RSA_C)
     {
         OID_DESCRIPTOR(MBEDTLS_OID_RSASSA_PSS,        "RSASSA-PSS",           "RSASSA-PSS"),
@@ -578,12 +578,12 @@ static const oid_ecp_grp_t oid_ecp_grp[] =
         MBEDTLS_ECP_DP_SECP192K1,
     },
 #endif /* PSA_WANT_ECC_SECP_K1_192 */
-#if defined(MBEDTLS_ECP_HAVE_SECP224K1)
+#if defined(PSA_WANT_ECC_SECP_K1_224)
     {
         OID_DESCRIPTOR(MBEDTLS_OID_EC_GRP_SECP224K1, "secp224k1",    "secp224k1"),
         MBEDTLS_ECP_DP_SECP224K1,
     },
-#endif /* MBEDTLS_ECP_HAVE_SECP224K1 */
+#endif /* PSA_WANT_ECC_SECP_K1_224 */
 #if defined(PSA_WANT_ECC_SECP_K1_256)
     {
         OID_DESCRIPTOR(MBEDTLS_OID_EC_GRP_SECP256K1, "secp256k1",    "secp256k1"),
@@ -725,7 +725,7 @@ static const oid_md_alg_t oid_md_alg[] =
         MBEDTLS_MD_MD5,
     },
 #endif
-#if defined(MBEDTLS_MD_CAN_SHA1)
+#if defined(PSA_WANT_ALG_SHA_1)
     {
         OID_DESCRIPTOR(MBEDTLS_OID_DIGEST_ALG_SHA1,      "id-sha1",      "SHA-1"),
         MBEDTLS_MD_SHA1,
@@ -749,7 +749,7 @@ static const oid_md_alg_t oid_md_alg[] =
         MBEDTLS_MD_SHA384,
     },
 #endif
-#if defined(MBEDTLS_MD_CAN_SHA512)
+#if defined(PSA_WANT_ALG_SHA_512)
     {
         OID_DESCRIPTOR(MBEDTLS_OID_DIGEST_ALG_SHA512,    "id-sha512",    "SHA-512"),
         MBEDTLS_MD_SHA512,
@@ -809,12 +809,12 @@ typedef struct {
 
 static const oid_md_hmac_t oid_md_hmac[] =
 {
-#if defined(MBEDTLS_MD_CAN_SHA1)
+#if defined(PSA_WANT_ALG_SHA_1)
     {
         OID_DESCRIPTOR(MBEDTLS_OID_HMAC_SHA1,      "hmacSHA1",      "HMAC-SHA-1"),
         MBEDTLS_MD_SHA1,
     },
-#endif /* MBEDTLS_MD_CAN_SHA1 */
+#endif /* PSA_WANT_ALG_SHA_1 */
 #if defined(PSA_WANT_ALG_SHA_224)
     {
         OID_DESCRIPTOR(MBEDTLS_OID_HMAC_SHA224,    "hmacSHA224",    "HMAC-SHA-224"),
@@ -833,12 +833,12 @@ static const oid_md_hmac_t oid_md_hmac[] =
         MBEDTLS_MD_SHA384,
     },
 #endif /* PSA_WANT_ALG_SHA_384 */
-#if defined(MBEDTLS_MD_CAN_SHA512)
+#if defined(PSA_WANT_ALG_SHA_512)
     {
         OID_DESCRIPTOR(MBEDTLS_OID_HMAC_SHA512,    "hmacSHA512",    "HMAC-SHA-512"),
         MBEDTLS_MD_SHA512,
     },
-#endif /* MBEDTLS_MD_CAN_SHA512 */
+#endif /* PSA_WANT_ALG_SHA_512 */
 #if defined(PSA_WANT_ALG_SHA3_224)
     {
         OID_DESCRIPTOR(MBEDTLS_OID_HMAC_SHA3_224,    "hmacSHA3-224",    "HMAC-SHA3-224"),
@@ -917,250 +917,5 @@ FN_OID_GET_ATTR2(mbedtls_oid_get_pkcs12_pbe_alg,
                  mbedtls_cipher_type_t,
                  cipher_alg)
 #endif /* MBEDTLS_PKCS12_C && MBEDTLS_CIPHER_C */
-
-/* Return the x.y.z.... style numeric string for the given OID */
-int mbedtls_oid_get_numeric_string(char *buf, size_t size,
-                                   const mbedtls_asn1_buf *oid)
-{
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    char *p = buf;
-    size_t n = size;
-    unsigned int value = 0;
-
-    if (size > INT_MAX) {
-        /* Avoid overflow computing return value */
-        return MBEDTLS_ERR_ASN1_INVALID_LENGTH;
-    }
-
-    if (oid->len <= 0) {
-        /* OID must not be empty */
-        return MBEDTLS_ERR_ASN1_OUT_OF_DATA;
-    }
-
-    for (size_t i = 0; i < oid->len; i++) {
-        /* Prevent overflow in value. */
-        if (value > (UINT_MAX >> 7)) {
-            return MBEDTLS_ERR_ASN1_INVALID_DATA;
-        }
-        if ((value == 0) && ((oid->p[i]) == 0x80)) {
-            /* Overlong encoding is not allowed */
-            return MBEDTLS_ERR_ASN1_INVALID_DATA;
-        }
-
-        value <<= 7;
-        value |= oid->p[i] & 0x7F;
-
-        if (!(oid->p[i] & 0x80)) {
-            /* Last byte */
-            if (n == size) {
-                int component1;
-                unsigned int component2;
-                /* First subidentifier contains first two OID components */
-                if (value >= 80) {
-                    component1 = '2';
-                    component2 = value - 80;
-                } else if (value >= 40) {
-                    component1 = '1';
-                    component2 = value - 40;
-                } else {
-                    component1 = '0';
-                    component2 = value;
-                }
-                ret = mbedtls_snprintf(p, n, "%c.%u", component1, component2);
-            } else {
-                ret = mbedtls_snprintf(p, n, ".%u", value);
-            }
-            if (ret < 2 || (size_t) ret >= n) {
-                return MBEDTLS_ERR_OID_BUF_TOO_SMALL;
-            }
-            n -= (size_t) ret;
-            p += ret;
-            value = 0;
-        }
-    }
-
-    if (value != 0) {
-        /* Unterminated subidentifier */
-        return MBEDTLS_ERR_ASN1_OUT_OF_DATA;
-    }
-
-    return (int) (size - n);
-}
-
-static int oid_parse_number(unsigned int *num, const char **p, const char *bound)
-{
-    int ret = MBEDTLS_ERR_ASN1_INVALID_DATA;
-
-    *num = 0;
-
-    while (*p < bound && **p >= '0' && **p <= '9') {
-        ret = 0;
-        if (*num > (UINT_MAX / 10)) {
-            return MBEDTLS_ERR_ASN1_INVALID_DATA;
-        }
-        *num *= 10;
-        *num += **p - '0';
-        (*p)++;
-    }
-    return ret;
-}
-
-static size_t oid_subidentifier_num_bytes(unsigned int value)
-{
-    size_t num_bytes = 0;
-
-    do {
-        value >>= 7;
-        num_bytes++;
-    } while (value != 0);
-
-    return num_bytes;
-}
-
-static int oid_subidentifier_encode_into(unsigned char **p,
-                                         unsigned char *bound,
-                                         unsigned int value)
-{
-    size_t num_bytes = oid_subidentifier_num_bytes(value);
-
-    if ((size_t) (bound - *p) < num_bytes) {
-        return MBEDTLS_ERR_OID_BUF_TOO_SMALL;
-    }
-    (*p)[num_bytes - 1] = (unsigned char) (value & 0x7f);
-    value >>= 7;
-
-    for (size_t i = 2; i <= num_bytes; i++) {
-        (*p)[num_bytes - i] = 0x80 | (unsigned char) (value & 0x7f);
-        value >>= 7;
-    }
-    *p += num_bytes;
-
-    return 0;
-}
-
-/* Return the OID for the given x.y.z.... style numeric string  */
-int mbedtls_oid_from_numeric_string(mbedtls_asn1_buf *oid,
-                                    const char *oid_str, size_t size)
-{
-    int ret = MBEDTLS_ERR_ASN1_INVALID_DATA;
-    const char *str_ptr = oid_str;
-    const char *str_bound = oid_str + size;
-    unsigned int val = 0;
-    unsigned int component1, component2;
-    size_t encoded_len;
-    unsigned char *resized_mem;
-
-    /* Count the number of dots to get a worst-case allocation size. */
-    size_t num_dots = 0;
-    for (size_t i = 0; i < size; i++) {
-        if (oid_str[i] == '.') {
-            num_dots++;
-        }
-    }
-    /* Allocate maximum possible required memory:
-     * There are (num_dots + 1) integer components, but the first 2 share the
-     * same subidentifier, so we only need num_dots subidentifiers maximum. */
-    if (num_dots == 0 || (num_dots > MBEDTLS_OID_MAX_COMPONENTS - 1)) {
-        return MBEDTLS_ERR_ASN1_INVALID_DATA;
-    }
-    /* Each byte can store 7 bits, calculate number of bytes for a
-     * subidentifier:
-     *
-     * bytes = ceil(subidentifer_size * 8 / 7)
-     */
-    size_t bytes_per_subidentifier = (((sizeof(unsigned int) * 8) - 1) / 7)
-                                     + 1;
-    size_t max_possible_bytes = num_dots * bytes_per_subidentifier;
-    oid->p = mbedtls_calloc(max_possible_bytes, 1);
-    if (oid->p == NULL) {
-        return MBEDTLS_ERR_ASN1_ALLOC_FAILED;
-    }
-    unsigned char *out_ptr = oid->p;
-    unsigned char *out_bound = oid->p + max_possible_bytes;
-
-    ret = oid_parse_number(&component1, &str_ptr, str_bound);
-    if (ret != 0) {
-        goto error;
-    }
-    if (component1 > 2) {
-        /* First component can't be > 2 */
-        ret = MBEDTLS_ERR_ASN1_INVALID_DATA;
-        goto error;
-    }
-    if (str_ptr >= str_bound || *str_ptr != '.') {
-        ret = MBEDTLS_ERR_ASN1_INVALID_DATA;
-        goto error;
-    }
-    str_ptr++;
-
-    ret = oid_parse_number(&component2, &str_ptr, str_bound);
-    if (ret != 0) {
-        goto error;
-    }
-    if ((component1 < 2) && (component2 > 39)) {
-        /* Root nodes 0 and 1 may have up to 40 children, numbered 0-39 */
-        ret = MBEDTLS_ERR_ASN1_INVALID_DATA;
-        goto error;
-    }
-    if (str_ptr < str_bound) {
-        if (*str_ptr == '.') {
-            str_ptr++;
-        } else {
-            ret = MBEDTLS_ERR_ASN1_INVALID_DATA;
-            goto error;
-        }
-    }
-
-    if (component2 > (UINT_MAX - (component1 * 40))) {
-        ret = MBEDTLS_ERR_ASN1_INVALID_DATA;
-        goto error;
-    }
-    ret = oid_subidentifier_encode_into(&out_ptr, out_bound,
-                                        (component1 * 40) + component2);
-    if (ret != 0) {
-        goto error;
-    }
-
-    while (str_ptr < str_bound) {
-        ret = oid_parse_number(&val, &str_ptr, str_bound);
-        if (ret != 0) {
-            goto error;
-        }
-        if (str_ptr < str_bound) {
-            if (*str_ptr == '.') {
-                str_ptr++;
-            } else {
-                ret = MBEDTLS_ERR_ASN1_INVALID_DATA;
-                goto error;
-            }
-        }
-
-        ret = oid_subidentifier_encode_into(&out_ptr, out_bound, val);
-        if (ret != 0) {
-            goto error;
-        }
-    }
-
-    encoded_len = (size_t) (out_ptr - oid->p);
-    resized_mem = mbedtls_calloc(encoded_len, 1);
-    if (resized_mem == NULL) {
-        ret = MBEDTLS_ERR_ASN1_ALLOC_FAILED;
-        goto error;
-    }
-    memcpy(resized_mem, oid->p, encoded_len);
-    mbedtls_free(oid->p);
-    oid->p = resized_mem;
-    oid->len = encoded_len;
-
-    oid->tag = MBEDTLS_ASN1_OID;
-
-    return 0;
-
-error:
-    mbedtls_free(oid->p);
-    oid->p = NULL;
-    oid->len = 0;
-    return ret;
-}
 
 #endif /* MBEDTLS_OID_C */

@@ -1,0 +1,4 @@
+Changes
+   * Functions regarding numeric string conversions for OIDs have been moved
+     from the OID module and now reside in X.509 module. This helps to reduce
+     the code size as these functions are not commonly used outside of X.509.

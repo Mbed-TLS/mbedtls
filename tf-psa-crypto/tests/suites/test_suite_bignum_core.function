@@ -4,6 +4,7 @@
 #include "bignum_core.h"
 #include "constant_time_internal.h"
 #include "test/constant_flow.h"
+#include "test/bignum_codepath_check.h"
 
 /** Verifies mbedtls_mpi_core_add().
  *
@@ -1246,6 +1247,7 @@ void mpi_core_exp_mod(char *input_N, char *input_A,
                       char *input_E, char *input_X)
 {
     mbedtls_mpi_uint *A = NULL;
+    mbedtls_mpi_uint *A_copy = NULL;
     mbedtls_mpi_uint *E = NULL;
     mbedtls_mpi_uint *N = NULL;
     mbedtls_mpi_uint *X = NULL;
@@ -1297,6 +1299,7 @@ void mpi_core_exp_mod(char *input_N, char *input_A,
 
     TEST_CALLOC(T, working_limbs);
 
+    /* Test the safe variant */
     TEST_CF_SECRET(A, A_limbs * sizeof(mbedtls_mpi_uint));
     TEST_CF_SECRET(N, N_limbs * sizeof(mbedtls_mpi_uint));
     TEST_CF_SECRET(E, E_limbs * sizeof(mbedtls_mpi_uint));
@@ -1304,22 +1307,48 @@ void mpi_core_exp_mod(char *input_N, char *input_A,
     mbedtls_mpi_core_exp_mod(Y, A, N, N_limbs, E, E_limbs, R2, T);
 
     TEST_CF_PUBLIC(Y, N_limbs * sizeof(mbedtls_mpi_uint));
+    TEST_EQUAL(0, memcmp(X, Y, N_limbs * sizeof(mbedtls_mpi_uint)));
+
+    /* Test the unsafe variant */
+    TEST_CF_PUBLIC(A, A_limbs * sizeof(mbedtls_mpi_uint));
+    TEST_CF_PUBLIC(N, N_limbs * sizeof(mbedtls_mpi_uint));
+    TEST_CF_PUBLIC(E, E_limbs * sizeof(mbedtls_mpi_uint));
+
+    mbedtls_mpi_core_exp_mod_unsafe(Y, A, N, N_limbs, E, E_limbs, R2, T);
 
     TEST_EQUAL(0, memcmp(X, Y, N_limbs * sizeof(mbedtls_mpi_uint)));
 
+    /*
+     * Check both with output aliased to input
+     */
+
+    TEST_CALLOC(A_copy, A_limbs);
+    memcpy(A_copy, A, sizeof(*A_copy) * A_limbs); // save A
+
+    /* Safe */
     TEST_CF_SECRET(A, A_limbs * sizeof(mbedtls_mpi_uint));
     TEST_CF_SECRET(N, N_limbs * sizeof(mbedtls_mpi_uint));
     TEST_CF_SECRET(E, E_limbs * sizeof(mbedtls_mpi_uint));
 
-    /* Check when output aliased to input */
     mbedtls_mpi_core_exp_mod(A, A, N, N_limbs, E, E_limbs, R2, T);
 
     TEST_CF_PUBLIC(A, A_limbs * sizeof(mbedtls_mpi_uint));
     TEST_EQUAL(0, memcmp(X, A, N_limbs * sizeof(mbedtls_mpi_uint)));
 
+    /* Unsafe */
+    memcpy(A, A_copy, sizeof(*A) * A_limbs); // restore A
+    TEST_CF_PUBLIC(A, A_limbs * sizeof(mbedtls_mpi_uint));
+    TEST_CF_PUBLIC(N, N_limbs * sizeof(mbedtls_mpi_uint));
+    TEST_CF_PUBLIC(E, E_limbs * sizeof(mbedtls_mpi_uint));
+
+    mbedtls_mpi_core_exp_mod_unsafe(A, A, N, N_limbs, E, E_limbs, R2, T);
+
+    TEST_EQUAL(0, memcmp(X, A, N_limbs * sizeof(mbedtls_mpi_uint)));
+
 exit:
     mbedtls_free(T);
     mbedtls_free(A);
+    mbedtls_free(A_copy);
     mbedtls_free(E);
     mbedtls_free(N);
     mbedtls_free(X);

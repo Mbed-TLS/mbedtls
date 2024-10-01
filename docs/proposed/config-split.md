@@ -369,6 +369,7 @@ PSA_WANT_\* macros as in current `crypto_config.h`.
 
 #### SECTION General configuration options
 ```
+#define MBEDTLS_ERROR_C
 //#define MBEDTLS_CONFIG_FILE "mbedtls/mbedtls_config.h"
 //#define MBEDTLS_USER_CONFIG_FILE "/dev/null"
 ```
@@ -377,7 +378,6 @@ PSA_WANT_\* macros as in current `crypto_config.h`.
 #### SECTION TLS feature selection
 ```
 #define MBEDTLS_DEBUG_C
-#define MBEDTLS_ERROR_C
 #define MBEDTLS_SSL_CACHE_C
 #define MBEDTLS_SSL_CLI_C
 #define MBEDTLS_SSL_COOKIE_C

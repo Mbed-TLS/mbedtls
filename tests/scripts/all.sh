@@ -763,15 +763,6 @@ pre_setup_keep_going () {
     }
 }
 
-# record_status() and if_build_succeeded() are kept temporarily for backward
-# compatibility. Don't use them in new components.
-record_status () {
-    "$@"
-}
-if_build_succeeded () {
-    "$@"
-}
-
 # '! true' does not trigger the ERR trap. Arrange to trigger it, with
 # a reasonably informative error message (not just "$@").
 not () {

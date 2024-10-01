@@ -383,23 +383,6 @@ cleanup()
     done
 }
 
-# This is a helper function to be used in psasim builds. It is meant to clean
-# up the library's workspace after the server build and before the client
-# build. Built libraries (mbedcrypto, mbedx509 and mbedtls) are supposed to be
-# already copied to psasim folder at this point.
-helper_psasim_cleanup_before_client() {
-    # Clean up library files
-    make -C library clean
-
-    # Restore files that were backup before building library files. This
-    # includes $CONFIG_H and $CRYPTO_CONFIG_H.
-    for x in $files_to_back_up; do
-        if [[ -e "$x$backup_suffix" ]]; then
-            cp -p "$x$backup_suffix" "$x"
-        fi
-    done
-}
-
 # Final cleanup when this script exits (except when exiting on a failure
 # in non-keep-going mode).
 final_cleanup () {
@@ -989,6 +972,10 @@ helper_libtestdriver1_make_main() {
     make CC=$ASAN_CC CFLAGS="$ASAN_CFLAGS -I../tests/include -I../tests -I../../tests -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_TEST_LIBTESTDRIVER1 $loc_accel_flags" LDFLAGS="-ltestdriver1 $ASAN_CFLAGS" "$@"
 }
 
+################################################################
+#### Helpers for components using psasim
+################################################################
+
 # Set some default values $CONFIG_H in order to build server or client sides
 # in PSASIM. There is only 1 mandatory parameter:
 # - $1: target which can be "client" or "server"
@@ -1017,6 +1004,23 @@ helper_psasim_config() {
         # Also ensure MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER not set (to match client)
         scripts/config.py unset MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER
     fi
+}
+
+# This is a helper function to be used in psasim builds. It is meant to clean
+# up the library's workspace after the server build and before the client
+# build. Built libraries (mbedcrypto, mbedx509 and mbedtls) are supposed to be
+# already copied to psasim folder at this point.
+helper_psasim_cleanup_before_client() {
+    # Clean up library files
+    make -C library clean
+
+    # Restore files that were backup before building library files. This
+    # includes $CONFIG_H and $CRYPTO_CONFIG_H.
+    for x in $files_to_back_up; do
+        if [[ -e "$x$backup_suffix" ]]; then
+            cp -p "$x$backup_suffix" "$x"
+        fi
+    done
 }
 
 # Helper to build the libraries for client/server in PSASIM. If the server is

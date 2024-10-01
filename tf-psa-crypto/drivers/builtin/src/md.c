@@ -82,7 +82,7 @@ static const mbedtls_md_info_t mbedtls_ripemd160_info = {
 };
 #endif
 
-#if defined(MBEDTLS_MD_CAN_SHA1)
+#if defined(PSA_WANT_ALG_SHA_1)
 static const mbedtls_md_info_t mbedtls_sha1_info = {
     MD_INFO(MBEDTLS_MD_SHA1, 20, 64)
 };
@@ -106,7 +106,7 @@ static const mbedtls_md_info_t mbedtls_sha384_info = {
 };
 #endif
 
-#if defined(MBEDTLS_MD_CAN_SHA512)
+#if defined(PSA_WANT_ALG_SHA_512)
 static const mbedtls_md_info_t mbedtls_sha512_info = {
     MD_INFO(MBEDTLS_MD_SHA512, 64, 128)
 };
@@ -147,7 +147,7 @@ const mbedtls_md_info_t *mbedtls_md_info_from_type(mbedtls_md_type_t md_type)
         case MBEDTLS_MD_RIPEMD160:
             return &mbedtls_ripemd160_info;
 #endif
-#if defined(MBEDTLS_MD_CAN_SHA1)
+#if defined(PSA_WANT_ALG_SHA_1)
         case MBEDTLS_MD_SHA1:
             return &mbedtls_sha1_info;
 #endif
@@ -163,7 +163,7 @@ const mbedtls_md_info_t *mbedtls_md_info_from_type(mbedtls_md_type_t md_type)
         case MBEDTLS_MD_SHA384:
             return &mbedtls_sha384_info;
 #endif
-#if defined(MBEDTLS_MD_CAN_SHA512)
+#if defined(PSA_WANT_ALG_SHA_512)
         case MBEDTLS_MD_SHA512:
             return &mbedtls_sha512_info;
 #endif
@@ -781,7 +781,7 @@ int mbedtls_md_error_from_psa(psa_status_t status)
  */
 static const int supported_digests[] = {
 
-#if defined(MBEDTLS_MD_CAN_SHA512)
+#if defined(PSA_WANT_ALG_SHA_512)
     MBEDTLS_MD_SHA512,
 #endif
 
@@ -796,7 +796,7 @@ static const int supported_digests[] = {
     MBEDTLS_MD_SHA224,
 #endif
 
-#if defined(MBEDTLS_MD_CAN_SHA1)
+#if defined(PSA_WANT_ALG_SHA_1)
     MBEDTLS_MD_SHA1,
 #endif
 
@@ -844,7 +844,7 @@ static const md_name_entry md_names[] = {
 #if defined(PSA_WANT_ALG_RIPEMD160)
     { "RIPEMD160", MBEDTLS_MD_RIPEMD160 },
 #endif
-#if defined(MBEDTLS_MD_CAN_SHA1)
+#if defined(PSA_WANT_ALG_SHA_1)
     { "SHA1", MBEDTLS_MD_SHA1 },
     { "SHA", MBEDTLS_MD_SHA1 }, // compatibility fallback
 #endif
@@ -857,7 +857,7 @@ static const md_name_entry md_names[] = {
 #if defined(PSA_WANT_ALG_SHA_384)
     { "SHA384", MBEDTLS_MD_SHA384 },
 #endif
-#if defined(MBEDTLS_MD_CAN_SHA512)
+#if defined(PSA_WANT_ALG_SHA_512)
     { "SHA512", MBEDTLS_MD_SHA512 },
 #endif
 #if defined(PSA_WANT_ALG_SHA3_224)

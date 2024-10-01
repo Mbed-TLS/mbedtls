@@ -1159,7 +1159,7 @@ typedef void mbedtls_ssl_async_cancel_t(mbedtls_ssl_context *ssl);
 #elif defined(PSA_WANT_ALG_SHA_384)
 #define MBEDTLS_SSL_PEER_CERT_DIGEST_DFL_TYPE MBEDTLS_MD_SHA384
 #define MBEDTLS_SSL_PEER_CERT_DIGEST_DFL_LEN  48
-#elif defined(MBEDTLS_MD_CAN_SHA1)
+#elif defined(PSA_WANT_ALG_SHA_1)
 #define MBEDTLS_SSL_PEER_CERT_DIGEST_DFL_TYPE MBEDTLS_MD_SHA1
 #define MBEDTLS_SSL_PEER_CERT_DIGEST_DFL_LEN  20
 #else

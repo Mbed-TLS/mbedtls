@@ -24,6 +24,14 @@
 #define PSA_HAVE_ALG_SOME_ECDSA
 #endif
 
+#if defined(PSA_HAVE_ALG_SOME_ECDSA) && defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_BASIC)
+#define PSA_HAVE_ALG_ECDSA_SIGN
+#endif
+
+#if defined(PSA_HAVE_ALG_SOME_ECDSA) && defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
+#define PSA_HAVE_ALG_ECDSA_VERIFY
+#endif
+
 #if defined(PSA_WANT_ALG_JPAKE)
 #define PSA_WANT_ALG_SOME_PAKE 1
 #endif

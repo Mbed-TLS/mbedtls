@@ -129,21 +129,6 @@ component_test_full_cmake_gcc_asan_new_bignum () {
     tests/context-info.sh
 }
 
-component_test_ref_configs () {
-    msg "test/build: ref-configs (ASan build)" # ~ 6 min 20s
-    # test-ref-configs works by overwriting mbedtls_config.h; this makes cmake
-    # want to re-generate generated files that depend on it, quite correctly.
-    # However this doesn't work as the generation script expects a specific
-    # format for mbedtls_config.h, which the other files don't follow. Also,
-    # cmake can't know this, but re-generation is actually not necessary as
-    # the generated files only depend on the list of available options, not
-    # whether they're on or off. So, disable cmake's (over-sensitive here)
-    # dependency resolution for generated files and just rely on them being
-    # present (thanks to pre_generate_files) by turning GEN_FILES off.
-    CC=$ASAN_CC cmake -D GEN_FILES=Off -D CMAKE_BUILD_TYPE:String=Asan .
-    tests/scripts/test-ref-configs.pl
-}
-
 component_test_full_cmake_clang () {
     msg "build: cmake, full config, clang" # ~ 50s
     scripts/config.py full
@@ -242,40 +227,6 @@ support_build_baremetal () {
     # which makes the no-time.h-in-baremetal check fail. Ubuntu 16.04 has this
     # problem, Ubuntu 18.04 is ok.
     ! grep -q -F time.h /usr/include/x86_64-linux-gnu/sys/types.h
-}
-
-component_test_no_psa_crypto_full_cmake_asan () {
-    # full minus MBEDTLS_PSA_CRYPTO_C: run the same set of tests as basic-build-test.sh
-    msg "build: cmake, full config minus PSA crypto, ASan"
-    scripts/config.py full
-    scripts/config.py unset MBEDTLS_PSA_CRYPTO_C
-    scripts/config.py unset MBEDTLS_PSA_CRYPTO_CLIENT
-    scripts/config.py unset MBEDTLS_USE_PSA_CRYPTO
-    scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1_3
-    scripts/config.py unset MBEDTLS_PSA_ITS_FILE_C
-    scripts/config.py unset MBEDTLS_PSA_CRYPTO_SE_C
-    scripts/config.py unset MBEDTLS_PSA_CRYPTO_STORAGE_C
-    scripts/config.py unset MBEDTLS_LMS_C
-    scripts/config.py unset MBEDTLS_LMS_PRIVATE
-    CC=$ASAN_CC cmake -D CMAKE_BUILD_TYPE:String=Asan .
-    make
-
-    msg "test: main suites (full minus PSA crypto)"
-    make test
-
-    # Note: ssl-opt.sh has some test cases that depend on
-    # MBEDTLS_ECP_RESTARTABLE && !MBEDTLS_USE_PSA_CRYPTO
-    # This is the only component where those tests are not skipped.
-    msg "test: ssl-opt.sh (full minus PSA crypto)"
-    tests/ssl-opt.sh
-
-    # Note: the next two invocations cover all compat.sh test cases.
-    # We should use the same here and in basic-build-test.sh.
-    msg "test: compat.sh: default version (full minus PSA crypto)"
-    tests/compat.sh -e 'ARIA\|CHACHA'
-
-    msg "test: compat.sh: next: ARIA, Chacha (full minus PSA crypto)"
-    env OPENSSL="$OPENSSL_NEXT" tests/compat.sh -e '^$' -f 'ARIA\|CHACHA'
 }
 
 component_build_tfm () {

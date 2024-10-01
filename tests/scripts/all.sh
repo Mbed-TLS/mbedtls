@@ -108,12 +108,15 @@
 #### Initialization and command line parsing
 ################################################################
 
-# Abort on errors (even on the left-hand side of a pipe).
-# Treat uninitialised variables as errors.
-set -e -o pipefail -u
-
-# Enable ksh/bash extended file matching patterns
+# Enable ksh/bash extended file matching patterns.
+# Must come before function definitions or some of them wouldn't parse.
 shopt -s extglob
+
+pre_set_shell_options () {
+    # Abort on errors (even on the left-hand side of a pipe).
+    # Treat uninitialised variables as errors.
+    set -e -o pipefail -u
+}
 
 # For project detection
 in_mbedtls_repo () {
@@ -1099,11 +1102,14 @@ helper_get_psa_key_type_list() {
     echo "$loc_list"
 }
 
-# Include the components from components.sh
-test_script_dir="${0%/*}"
-for file in "$test_script_dir"/components*.sh; do
-    source $file
-done
+# Must be called before pre_initialize_variables which sets ALL_COMPONENTS.
+pre_load_components () {
+    # Include the components from components.sh
+    test_script_dir="${0%/*}"
+    for file in "$test_script_dir"/components*.sh; do
+        source $file
+    done
+}
 
 
 ################################################################
@@ -1200,8 +1206,15 @@ run_component () {
     unset current_component
 }
 
+################################################################
+#### Main (only function definitions above)
+################################################################
+
+
 # Preliminary setup
+pre_set_shell_options
 pre_check_environment
+pre_load_components
 pre_initialize_variables
 pre_parse_command_line "$@"
 

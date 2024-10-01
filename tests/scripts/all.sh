@@ -376,6 +376,11 @@ cleanup()
     rm -f programs/test/cmake_package_install/cmake_package_install
 
     # Restore files that may have been clobbered by the job
+    restore_backed_up_files
+}
+
+# Restore files that may have been clobbered
+restore_backed_up_files () {
     for x in $files_to_back_up; do
         if [[ -e "$x$backup_suffix" ]]; then
             cp -p "$x$backup_suffix" "$x"
@@ -1016,11 +1021,7 @@ helper_psasim_cleanup_before_client() {
 
     # Restore files that were backup before building library files. This
     # includes $CONFIG_H and $CRYPTO_CONFIG_H.
-    for x in $files_to_back_up; do
-        if [[ -e "$x$backup_suffix" ]]; then
-            cp -p "$x$backup_suffix" "$x"
-        fi
-    done
+    restore_backed_up_files
 }
 
 # Helper to build the libraries for client/server in PSASIM. If the server is

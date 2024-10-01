@@ -325,11 +325,6 @@ run_test    "Sample: ssl_pthread_server, gnutls client, TLS 1.3" \
             -S "error" \
             -C "ERROR"
 
-# The server complains of extra data after it closes the connection
-# because the client keeps sending data, so the server receives
-# more application data when it expects a new handshake. We consider
-# the test a success if both sides have sent and received application
-# data, no matter what happens afterwards.
 run_test    "Sample: dtls_client with dtls_server" \
             -P 4433 \
             "$PROGRAMS_DIR/dtls_server" \
@@ -339,13 +334,9 @@ run_test    "Sample: dtls_client with dtls_server" \
             -s "[1-9][0-9]* bytes written" \
             -c "[1-9][0-9]* bytes read" \
             -c "[1-9][0-9]* bytes written" \
+            -S "error" \
             -C "error"
 
-# The server complains of extra data after it closes the connection
-# because the client keeps sending data, so the server receives
-# more application data when it expects a new handshake. We consider
-# the test a success if both sides have sent and received application
-# data, no matter what happens afterwards.
 run_test    "Sample: ssl_client2, dtls_server" \
             -P 4433 \
             "$PROGRAMS_DIR/dtls_server" \
@@ -355,6 +346,7 @@ run_test    "Sample: ssl_client2, dtls_server" \
             -s "[1-9][0-9]* bytes written" \
             -c "[1-9][0-9]* bytes read" \
             -c "[1-9][0-9]* bytes written" \
+            -S "error" \
             -C "error"
 
 requires_protocol_version dtls12

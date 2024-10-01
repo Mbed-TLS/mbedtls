@@ -26,7 +26,7 @@
 #include "mbedtls/md5.h"
 #endif
 
-#if defined(MBEDTLS_MD_CAN_SHA1)
+#if defined(PSA_WANT_ALG_SHA_1)
 #include "mbedtls/sha1.h"
 #endif
 
@@ -34,7 +34,7 @@
 #include "mbedtls/sha256.h"
 #endif
 
-#if defined(MBEDTLS_MD_CAN_SHA512)
+#if defined(PSA_WANT_ALG_SHA_512)
 #include "mbedtls/sha512.h"
 #endif
 
@@ -1674,18 +1674,53 @@ static inline mbedtls_x509_crt *mbedtls_ssl_own_cert(mbedtls_ssl_context *ssl)
 }
 
 /*
- * Check usage of a certificate wrt extensions:
- * keyUsage, extendedKeyUsage (later), and nSCertType (later).
+ * Verify a certificate.
  *
- * Warning: cert_endpoint is the endpoint of the cert (ie, of our peer when we
- * check a cert we received from them)!
+ * [in/out] ssl: misc. things read
+ *               ssl->session_negotiate->verify_result updated
+ * [in] authmode: one of MBEDTLS_SSL_VERIFY_{NONE,OPTIONAL,REQUIRED}
+ * [in] chain: the certificate chain to verify (ie the peer's chain)
+ * [in] ciphersuite_info: For TLS 1.2, this session's ciphersuite;
+ *                        for TLS 1.3, may be left NULL.
+ * [in] rs_ctx: restart context if restartable ECC is in use;
+ *              leave NULL for no restartable behaviour.
+ *
+ * Return:
+ * - 0 if the handshake should continue. Depending on the
+ *   authmode it means:
+ *   - REQUIRED: the certificate was found to be valid, trusted & acceptable.
+ *     ssl->session_negotiate->verify_result is 0.
+ *   - OPTIONAL: the certificate may or may not be acceptable, but
+ *     ssl->session_negotiate->verify_result was updated with the result.
+ *   - NONE: the certificate wasn't even checked.
+ * - MBEDTLS_ERR_X509_CERT_VERIFY_FAILED or MBEDTLS_ERR_SSL_BAD_CERTIFICATE if
+ *   the certificate was found to be invalid/untrusted/unacceptable and the
+ *   handshake should be aborted (can only happen with REQUIRED).
+ * - another error code if another error happened (out-of-memory, etc.)
+ */
+MBEDTLS_CHECK_RETURN_CRITICAL
+int mbedtls_ssl_verify_certificate(mbedtls_ssl_context *ssl,
+                                   int authmode,
+                                   mbedtls_x509_crt *chain,
+                                   const mbedtls_ssl_ciphersuite_t *ciphersuite_info,
+                                   void *rs_ctx);
+
+/*
+ * Check usage of a certificate wrt usage extensions:
+ * keyUsage and extendedKeyUsage.
+ * (Note: nSCertType is deprecated and not standard, we don't check it.)
+ *
+ * Note: if tls_version is 1.3, ciphersuite is ignored and can be NULL.
+ *
+ * Note: recv_endpoint is the receiver's endpoint.
  *
  * Return 0 if everything is OK, -1 if not.
  */
 MBEDTLS_CHECK_RETURN_CRITICAL
 int mbedtls_ssl_check_cert_usage(const mbedtls_x509_crt *cert,
                                  const mbedtls_ssl_ciphersuite_t *ciphersuite,
-                                 int cert_endpoint,
+                                 int recv_endpoint,
+                                 mbedtls_ssl_protocol_version tls_version,
                                  uint32_t *flags);
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
@@ -2388,7 +2423,7 @@ static inline int mbedtls_ssl_tls13_sig_alg_for_cert_verify_is_supported(
     const uint16_t sig_alg)
 {
     switch (sig_alg) {
-#if defined(MBEDTLS_PK_CAN_ECDSA_SOME)
+#if defined(PSA_HAVE_ALG_SOME_ECDSA)
 #if defined(PSA_WANT_ALG_SHA_256) && defined(PSA_WANT_ECC_SECP_R1_256)
         case MBEDTLS_TLS1_3_SIG_ECDSA_SECP256R1_SHA256:
             break;
@@ -2401,7 +2436,7 @@ static inline int mbedtls_ssl_tls13_sig_alg_for_cert_verify_is_supported(
         case MBEDTLS_TLS1_3_SIG_ECDSA_SECP521R1_SHA512:
             break;
 #endif /* PSA_WANT_ALG_SHA_512 && MBEDTLS_ECP_DP_SECP521R1_ENABLED */
-#endif /* MBEDTLS_PK_CAN_ECDSA_SOME */
+#endif /* PSA_HAVE_ALG_SOME_ECDSA */
 
 #if defined(MBEDTLS_PKCS1_V21)
 #if defined(PSA_WANT_ALG_SHA_256)
@@ -2437,10 +2472,10 @@ static inline int mbedtls_ssl_tls13_sig_alg_is_supported(
         case MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA384:
             break;
 #endif /* PSA_WANT_ALG_SHA_384 */
-#if defined(MBEDTLS_MD_CAN_SHA512)
+#if defined(PSA_WANT_ALG_SHA_512)
         case MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA512:
             break;
-#endif /* MBEDTLS_MD_CAN_SHA512 */
+#endif /* PSA_WANT_ALG_SHA_512 */
 #endif /* MBEDTLS_PKCS1_V15 */
         default:
             return mbedtls_ssl_tls13_sig_alg_for_cert_verify_is_supported(
@@ -2495,12 +2530,12 @@ static inline int mbedtls_ssl_get_pk_type_and_md_alg_from_sig_alg(
             *pk_type = MBEDTLS_PK_RSASSA_PSS;
             break;
 #endif /* PSA_WANT_ALG_SHA_384 */
-#if defined(MBEDTLS_MD_CAN_SHA512)
+#if defined(PSA_WANT_ALG_SHA_512)
         case MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA512:
             *md_alg = MBEDTLS_MD_SHA512;
             *pk_type = MBEDTLS_PK_RSASSA_PSS;
             break;
-#endif /* MBEDTLS_MD_CAN_SHA512 */
+#endif /* PSA_WANT_ALG_SHA_512 */
 #endif /* MBEDTLS_PKCS1_V21 */
         default:
             return MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE;
@@ -2522,7 +2557,7 @@ static inline int mbedtls_ssl_tls12_sig_alg_is_supported(
             break;
 #endif
 
-#if defined(MBEDTLS_MD_CAN_SHA1)
+#if defined(PSA_WANT_ALG_SHA_1)
         case MBEDTLS_SSL_HASH_SHA1:
             break;
 #endif
@@ -2542,7 +2577,7 @@ static inline int mbedtls_ssl_tls12_sig_alg_is_supported(
             break;
 #endif
 
-#if defined(MBEDTLS_MD_CAN_SHA512)
+#if defined(PSA_WANT_ALG_SHA_512)
         case MBEDTLS_SSL_HASH_SHA512:
             break;
 #endif

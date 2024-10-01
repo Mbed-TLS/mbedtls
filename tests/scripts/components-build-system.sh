@@ -65,7 +65,7 @@ component_test_cmake_out_of_source () {
     mkdir "$OUT_OF_SOURCE_DIR"
     cd "$OUT_OF_SOURCE_DIR"
     # Note: Explicitly generate files as these are turned off in releases
-    cmake -D CMAKE_BUILD_TYPE:String=Check -D GEN_FILES=ON _D TEST_CPP=1 "$MBEDTLS_ROOT_DIR"
+    cmake -D CMAKE_BUILD_TYPE:String=Check -D GEN_FILES=ON -D TEST_CPP=1 "$MBEDTLS_ROOT_DIR"
     make
 
     msg "test: cmake 'out-of-source' build"
@@ -108,10 +108,15 @@ component_test_cmake_as_package () {
     make neat
 
     msg "build: cmake 'as-package' build"
+    root_dir="$(pwd)"
     cd programs/test/cmake_package
+    build_variant_dir="$(pwd)"
     cmake .
     make
     ./cmake_package
+    if [[ "$OSTYPE" == linux* ]]; then
+        PKG_CONFIG_PATH="${build_variant_dir}/mbedtls/pkgconfig" ${root_dir}/tests/scripts/pkgconfig.sh
+    fi
 }
 
 support_test_cmake_as_package () {

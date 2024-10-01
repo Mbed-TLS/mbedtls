@@ -24,8 +24,8 @@
  * The version number x.y.z is split into three parts.
  * Major, Minor, Patchlevel
  */
-#define MBEDTLS_VERSION_MAJOR  3
-#define MBEDTLS_VERSION_MINOR  6
+#define MBEDTLS_VERSION_MAJOR  4
+#define MBEDTLS_VERSION_MINOR  0
 #define MBEDTLS_VERSION_PATCH  0
 
 /**
@@ -33,9 +33,9 @@
  *    MMNNPP00
  *    Major version | Minor version | Patch version
  */
-#define MBEDTLS_VERSION_NUMBER         0x03060000
-#define MBEDTLS_VERSION_STRING         "3.6.0"
-#define MBEDTLS_VERSION_STRING_FULL    "Mbed TLS 3.6.0"
+#define MBEDTLS_VERSION_NUMBER         0x04000000
+#define MBEDTLS_VERSION_STRING         "4.0.0"
+#define MBEDTLS_VERSION_STRING_FULL    "Mbed TLS 4.0.0"
 
 /* Macros for build-time platform detection */
 

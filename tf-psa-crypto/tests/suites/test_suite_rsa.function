@@ -1,7 +1,9 @@
 /* BEGIN_HEADER */
 #include "mbedtls/rsa.h"
+#include "bignum_core.h"
 #include "rsa_alt_helpers.h"
 #include "rsa_internal.h"
+#include "test/bignum_codepath_check.h"
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -489,7 +491,13 @@ void mbedtls_rsa_public(data_t *message_str, int mod,
     TEST_EQUAL(mbedtls_rsa_get_bitlen(&ctx), (size_t) mod);
     TEST_ASSERT(mbedtls_rsa_check_pubkey(&ctx) == 0);
 
+#if defined(MBEDTLS_TEST_HOOKS) && !defined(MBEDTLS_THREADING_C)
+    mbedtls_codepath_reset();
+#endif
     TEST_ASSERT(mbedtls_rsa_public(&ctx, message_str->x, output) == result);
+#if defined(MBEDTLS_TEST_HOOKS) && !defined(MBEDTLS_THREADING_C)
+    ASSERT_RSA_CODEPATH(MBEDTLS_MPI_IS_PUBLIC, result);
+#endif
     if (result == 0) {
 
         TEST_ASSERT(mbedtls_test_hexcmp(output, result_str->x,
@@ -554,9 +562,15 @@ void mbedtls_rsa_private(data_t *message_str, int mod,
     /* repeat three times to test updating of blinding values */
     for (i = 0; i < 3; i++) {
         memset(output, 0x00, sizeof(output));
+#if defined(MBEDTLS_TEST_HOOKS) && !defined(MBEDTLS_THREADING_C)
+        mbedtls_codepath_reset();
+#endif
         TEST_ASSERT(mbedtls_rsa_private(&ctx, mbedtls_test_rnd_pseudo_rand,
                                         &rnd_info, message_str->x,
                                         output) == result);
+#if defined(MBEDTLS_TEST_HOOKS) && !defined(MBEDTLS_THREADING_C)
+        ASSERT_RSA_CODEPATH(MBEDTLS_MPI_IS_SECRET, result);
+#endif
         if (result == 0) {
 
             TEST_ASSERT(mbedtls_test_hexcmp(output, result_str->x,

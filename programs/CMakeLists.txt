@@ -1,3 +1,6 @@
+set(programs_target "${MBEDTLS_TARGET_PREFIX}programs")
+add_custom_target(${programs_target})
+
 add_subdirectory(aes)
 add_subdirectory(cipher)
 if (NOT WIN32)

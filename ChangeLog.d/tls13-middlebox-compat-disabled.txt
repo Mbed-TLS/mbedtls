@@ -1,0 +1,4 @@
+Bugfix
+   * When MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE is disabled, work with
+     peers that have middlebox compatibility enabled, as long as no
+     problematic middlebox is in the way. Fixes #9551.

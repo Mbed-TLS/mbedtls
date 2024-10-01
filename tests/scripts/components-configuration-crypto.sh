@@ -408,6 +408,25 @@ component_test_full_no_ccm_star_no_tag () {
     make test
 }
 
+component_test_config_symmetric_only () {
+    msg "build: configs/config-symmetric-only.h"
+    cp configs/config-symmetric-only.h "$CONFIG_H"
+    # test-ref-configs works by overwriting mbedtls_config.h; this makes cmake
+    # want to re-generate generated files that depend on it, quite correctly.
+    # However this doesn't work as the generation script expects a specific
+    # format for mbedtls_config.h, which the other files don't follow. Also,
+    # cmake can't know this, but re-generation is actually not necessary as
+    # the generated files only depend on the list of available options, not
+    # whether they're on or off. So, disable cmake's (over-sensitive here)
+    # dependency resolution for generated files and just rely on them being
+    # present (thanks to pre_generate_files) by turning GEN_FILES off.
+    CC=$ASAN_CC cmake -D GEN_FILES=Off -D CMAKE_BUILD_TYPE:String=Asan .
+    make
+
+    msg "test: configs/config-symmetric-only.h - unit tests"
+    make test
+}
+
 component_test_everest () {
     msg "build: Everest ECDH context (ASan build)" # ~ 6 min
     scripts/config.py set MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED
@@ -659,8 +678,10 @@ component_test_psa_crypto_config_accel_ecdsa () {
     # Configure
     # ---------
 
-    # Start from default config (no USE_PSA) + TLS 1.3
+    # Start from default config + TLS 1.3
     helper_libtestdriver1_adjust_config "default"
+
+    scripts/config.py set MBEDTLS_USE_PSA_CRYPTO
 
     # Disable the module that's accelerated
     scripts/config.py unset MBEDTLS_ECDSA_C
@@ -673,7 +694,7 @@ component_test_psa_crypto_config_accel_ecdsa () {
     # -----
 
     # These hashes are needed for some ECDSA signature tests.
-    loc_extra_list="ALG_SHA_224 ALG_SHA_256 ALG_SHA_384 ALG_SHA_512 \
+    loc_extra_list="ALG_SHA_1 ALG_SHA_224 ALG_SHA_256 ALG_SHA_384 ALG_SHA_512 \
                     ALG_SHA3_224 ALG_SHA3_256 ALG_SHA3_384 ALG_SHA3_512"
 
     helper_libtestdriver1_make_drivers "$loc_accel_list" "$loc_extra_list"
@@ -1413,9 +1434,19 @@ component_test_psa_crypto_config_reference_ecc_ffdh_no_bignum () {
     common_test_psa_crypto_config_reference_ecc_ffdh_no_bignum "ECC_DH"
 }
 
+component_test_tfm_config_as_is () {
+    msg "build: configs/config-tfm.h"
+    cp configs/config-tfm.h "$CONFIG_H"
+    CC=$ASAN_CC cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    make
+
+    msg "test: configs/config-tfm.h - unit tests"
+    make test
+}
+
 # Helper for setting common configurations between:
 # - component_test_tfm_config_p256m_driver_accel_ec()
-# - component_test_tfm_config()
+# - component_test_tfm_config_no_p256m()
 common_tfm_config () {
     # Enable TF-M config
     cp configs/config-tfm.h "$CONFIG_H"
@@ -1469,14 +1500,14 @@ component_test_tfm_config_p256m_driver_accel_ec () {
 # Keep this in sync with component_test_tfm_config_p256m_driver_accel_ec() as
 # they are both meant to be used in analyze_outcomes.py for driver's coverage
 # analysis.
-component_test_tfm_config () {
+component_test_tfm_config_no_p256m () {
     common_tfm_config
 
     # Disable P256M driver, which is on by default, so that analyze_outcomes
     # can compare this test with test_tfm_config_p256m_driver_accel_ec
     echo "#undef MBEDTLS_PSA_P256M_DRIVER_ENABLED" >> "$CONFIG_H"
 
-    msg "build: TF-M config"
+    msg "build: TF-M config without p256m"
     make CFLAGS='-Werror -Wall -Wextra -I../tests/include/spe' tests
 
     # Check that p256m was not built
@@ -1486,7 +1517,7 @@ component_test_tfm_config () {
     # files, so we want to ensure that it has not be re-enabled accidentally.
     not grep mbedtls_cipher ${BUILTIN_SRC_PATH}/cipher.o
 
-    msg "test: TF-M config"
+    msg "test: TF-M config without p256m"
     make test
 }
 
@@ -2286,11 +2317,19 @@ component_build_aes_variations () {
     # MBEDTLS_BLOCK_CIPHER_NO_DECRYPT is incompatible with ECB in PSA, CBC/XTS/NIST_KW/DES,
     # manually set or unset those configurations to check
     # MBEDTLS_BLOCK_CIPHER_NO_DECRYPT with various combinations in aes.o.
+    scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
     scripts/config.py set MBEDTLS_BLOCK_CIPHER_NO_DECRYPT
-    scripts/config.py unset MBEDTLS_CIPHER_MODE_CBC
     scripts/config.py unset MBEDTLS_CIPHER_MODE_XTS
-    scripts/config.py unset MBEDTLS_DES_C
     scripts/config.py unset MBEDTLS_NIST_KW_C
+
+    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CBC_NO_PADDING
+    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CBC_PKCS7
+    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_ECB_NO_PADDING
+    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_KEY_TYPE_DES
+    # Note: The two unsets below are to be removed for Mbed TLS 4.0
+    scripts/config.py unset MBEDTLS_CIPHER_MODE_CBC
+    scripts/config.py unset MBEDTLS_DES_C
+
     build_test_config_combos ${BUILTIN_SRC_PATH}/aes.o validate_aes_config_variations \
         "MBEDTLS_AES_ROM_TABLES" \
         "MBEDTLS_AES_FEWER_TABLES" "MBEDTLS_AES_USE_HARDWARE_ONLY" \
@@ -2301,9 +2340,21 @@ component_test_sha3_variations () {
     msg "sha3 loop unroll variations"
 
     # define minimal config sufficient to test SHA3
-    cat > include/mbedtls/mbedtls_config.h << END
-        #define MBEDTLS_SELF_TEST
-        #define MBEDTLS_SHA3_C
+     cat > include/mbedtls/mbedtls_config.h << END
+         #define MBEDTLS_AES_C
+         #define MBEDTLS_CTR_DRBG_C
+         #define MBEDTLS_ENTROPY_C
+         #define MBEDTLS_PSA_CRYPTO_C
+         #define MBEDTLS_PSA_CRYPTO_CONFIG
+         #define MBEDTLS_SELF_TEST
+END
+
+    cat > tf-psa-crypto/include/psa/crypto_config.h << END
+        #define PSA_WANT_ALG_SHA_256   1
+        #define PSA_WANT_ALG_SHA3_224  1
+        #define PSA_WANT_ALG_SHA3_256  1
+        #define PSA_WANT_ALG_SHA3_384  1
+        #define PSA_WANT_ALG_SHA3_512  1
 END
 
     msg "all loops unrolled"
@@ -2425,7 +2476,7 @@ component_test_aes_fewer_tables_and_rom_tables () {
     make test
 }
 
-# helper for common_block_cipher_no_decrypt() which:
+# helper for component_test_block_cipher_no_decrypt_aesni() which:
 # - enable/disable the list of config options passed from -s/-u respectively.
 # - build
 # - test for tests_suite_xxx
@@ -2479,13 +2530,32 @@ helper_block_cipher_no_decrypt_build_test () {
     programs/test/selftest
 }
 
-# This is a common configuration function used in:
-# - component_test_block_cipher_no_decrypt_aesni_legacy()
-# - component_test_block_cipher_no_decrypt_aesni_use_psa()
-# in order to test BLOCK_CIPHER_NO_DECRYPT with AESNI intrinsics,
-# AESNI assembly and AES C implementation on x86_64 and with AESNI intrinsics
-# on x86.
-common_block_cipher_no_decrypt () {
+# This is a configuration function used in component_test_block_cipher_no_decrypt_xxx:
+config_block_cipher_no_decrypt () {
+    scripts/config.py set MBEDTLS_BLOCK_CIPHER_NO_DECRYPT
+    scripts/config.py unset MBEDTLS_CIPHER_MODE_XTS
+    scripts/config.py unset MBEDTLS_NIST_KW_C
+
+    # Enable support for cryptographic mechanisms through the PSA API.
+    # Note: XTS, KW are not yet supported via the PSA API in Mbed TLS.
+    scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
+    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CBC_NO_PADDING
+    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CBC_PKCS7
+    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_ECB_NO_PADDING
+    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_KEY_TYPE_DES
+    # Note: The two unsets below are to be removed for Mbed TLS 4.0
+    scripts/config.py unset MBEDTLS_CIPHER_MODE_CBC
+    scripts/config.py unset MBEDTLS_DES_C
+}
+
+component_test_block_cipher_no_decrypt_aesni () {
+    # Test BLOCK_CIPHER_NO_DECRYPT with AESNI intrinsics, AESNI assembly and
+    # AES C implementation on x86_64 and with AESNI intrinsics on x86.
+
+    # This consistently causes an llvm crash on clang 3.8, so use gcc
+    export CC=gcc
+    config_block_cipher_no_decrypt
+
     # test AESNI intrinsics
     helper_block_cipher_no_decrypt_build_test \
         -s "MBEDTLS_AESNI_C" \
@@ -2507,43 +2577,6 @@ common_block_cipher_no_decrypt () {
         -l "-m32"
 }
 
-# This is a configuration function used in component_test_block_cipher_no_decrypt_xxx:
-# usage: 0: no PSA crypto configuration
-#        1: use PSA crypto configuration
-config_block_cipher_no_decrypt () {
-    use_psa=$1
-
-    scripts/config.py set MBEDTLS_BLOCK_CIPHER_NO_DECRYPT
-    scripts/config.py unset MBEDTLS_CIPHER_MODE_CBC
-    scripts/config.py unset MBEDTLS_CIPHER_MODE_XTS
-    scripts/config.py unset MBEDTLS_DES_C
-    scripts/config.py unset MBEDTLS_NIST_KW_C
-
-    if [ "$use_psa" -eq 1 ]; then
-        # Enable support for cryptographic mechanisms through the PSA API.
-        # Note: XTS, KW are not yet supported via the PSA API in Mbed TLS.
-        scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
-        scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CBC_NO_PADDING
-        scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CBC_PKCS7
-        scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_ECB_NO_PADDING
-        scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_KEY_TYPE_DES
-    fi
-}
-
-component_test_block_cipher_no_decrypt_aesni () {
-    # This consistently causes an llvm crash on clang 3.8, so use gcc
-    export CC=gcc
-    config_block_cipher_no_decrypt 0
-    common_block_cipher_no_decrypt
-}
-
-component_test_block_cipher_no_decrypt_aesni_use_psa () {
-    # This consistently causes an llvm crash on clang 3.8, so use gcc
-    export CC=gcc
-    config_block_cipher_no_decrypt 1
-    common_block_cipher_no_decrypt
-}
-
 support_test_block_cipher_no_decrypt_aesce_armcc () {
     support_build_armcc
 }
@@ -2563,7 +2596,7 @@ component_test_block_cipher_no_decrypt_aesce_armcc () {
     scripts/config.py unset MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT
     scripts/config.py set MBEDTLS_HAVE_ASM
 
-    config_block_cipher_no_decrypt 1
+    config_block_cipher_no_decrypt
 
     # test AESCE baremetal build
     scripts/config.py set MBEDTLS_AESCE_C

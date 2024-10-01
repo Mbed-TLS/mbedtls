@@ -129,8 +129,8 @@ def name_matches_pattern(name: str, str_or_re) -> bool:
 def analyze_driver_vs_reference(results: Results, outcomes: Outcomes,
                                 component_ref: str, component_driver: str,
                                 ignored_suites: typing.List[str], ignored_tests=None) -> None:
-    """Check that all tests passing in the reference component are also
-    passing in the corresponding driver component.
+    """Check that all tests passing in the driver component are also
+    passing in the corresponding reference component.
     Skip:
     - full test suites provided in ignored_suites list
     - only some specific test inside a test suite, for which the corresponding
@@ -166,7 +166,7 @@ def analyze_driver_vs_reference(results: Results, outcomes: Outcomes,
                 ignored = True
 
         if not ignored and not suite_case in driver_outcomes.successes:
-            results.error("PASS -> SKIP/FAIL: {}", suite_case)
+            results.error("SKIP/FAIL -> PASS: {}", suite_case)
         if ignored and suite_case in driver_outcomes.successes:
             results.error("uselessly ignored: {}", suite_case)
 
@@ -576,7 +576,7 @@ KNOWN_TASKS = {
     'analyze_driver_vs_reference_tfm_config': {
         'test_function':  do_analyze_driver_vs_reference,
         'args': {
-            'component_ref': 'test_tfm_config',
+            'component_ref': 'test_tfm_config_no_p256m',
             'component_driver': 'test_tfm_config_p256m_driver_accel_ec',
             'ignored_suites': [
                 # Modules replaced by drivers

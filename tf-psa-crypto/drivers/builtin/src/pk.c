@@ -124,10 +124,10 @@ const mbedtls_pk_info_t *mbedtls_pk_info_from_type(mbedtls_pk_type_t pk_type)
         case MBEDTLS_PK_ECKEY_DH:
             return &mbedtls_eckeydh_info;
 #endif /* PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY */
-#if defined(MBEDTLS_PK_CAN_ECDSA_SOME)
+#if defined(PSA_HAVE_ALG_SOME_ECDSA)
         case MBEDTLS_PK_ECDSA:
             return &mbedtls_ecdsa_info;
-#endif /* MBEDTLS_PK_CAN_ECDSA_SOME */
+#endif /* PSA_HAVE_ALG_SOME_ECDSA */
         /* MBEDTLS_PK_RSA_ALT omitted on purpose */
         default:
             return NULL;

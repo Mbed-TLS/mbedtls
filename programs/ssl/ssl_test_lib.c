@@ -115,7 +115,7 @@ int rng_seed(rng_context_t *rng, int reproducible, const char *pers)
 #elif defined(MBEDTLS_HMAC_DRBG_C)
 #if defined(PSA_WANT_ALG_SHA_256)
     const mbedtls_md_type_t md_type = MBEDTLS_MD_SHA256;
-#elif defined(MBEDTLS_MD_CAN_SHA512)
+#elif defined(PSA_WANT_ALG_SHA_512)
     const mbedtls_md_type_t md_type = MBEDTLS_MD_SHA512;
 #else
 #error "No message digest available for HMAC_DRBG"

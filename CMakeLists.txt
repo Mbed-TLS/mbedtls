@@ -40,12 +40,12 @@ cmake_policy(SET CMP0012 NEW)
 if(TEST_CPP)
     project("Mbed TLS"
         LANGUAGES C CXX
-        VERSION 3.6.0
+        VERSION 4.0.0
     )
 else()
     project("Mbed TLS"
         LANGUAGES C
-        VERSION 3.6.0
+        VERSION 4.0.0
     )
 endif()
 
@@ -403,6 +403,9 @@ if(ENABLE_TESTING OR ENABLE_PROGRAMS)
 endif()
 
 if(ENABLE_PROGRAMS)
+    set(ssl_opt_target "${MBEDTLS_TARGET_PREFIX}ssl-opt")
+    add_custom_target(${ssl_opt_target})
+
     add_subdirectory(programs)
 endif()
 
@@ -458,7 +461,7 @@ if(NOT DISABLE_PACKAGE_CONFIG_AND_INSTALL)
     write_basic_package_version_file(
         "cmake/MbedTLSConfigVersion.cmake"
             COMPATIBILITY SameMajorVersion
-            VERSION 3.6.0)
+            VERSION 4.0.0)
 
     install(
         FILES "${CMAKE_CURRENT_BINARY_DIR}/cmake/MbedTLSConfig.cmake"

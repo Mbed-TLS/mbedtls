@@ -59,6 +59,15 @@ GENERATED_CRYPTO_DATA_FILES += $(GENERATED_PSA_DATA_FILES)
 GENERATED_FILES = $(GENERATED_DATA_FILES) $(GENERATED_CRYPTO_DATA_FILES)
 GENERATED_FILES += src/test_keys.h src/test_certs.h
 
+# Generated files needed to (fully) run ssl-opt.sh
+.PHONY: ssl-opt
+
+opt-testcases/tls13-compat.sh: scripts/generate_tls13_compat_tests.py
+	echo "  Gen   $@"
+	$(PYTHON) scripts/generate_tls13_compat_tests.py -o $@
+GENERATED_FILES += opt-testcases/tls13-compat.sh
+ssl-opt: opt-testcases/tls13-compat.sh
+
 .PHONY: generated_files
 generated_files: $(GENERATED_FILES)
 
@@ -160,9 +169,11 @@ mbedtls_test: $(MBEDTLS_TEST_OBJS)
 
 src/test_certs.h: ../framework/scripts/generate_test_cert_macros.py \
 				  $($(PYTHON) ../framework/scripts/generate_test_cert_macros.py --list-dependencies)
+	echo "  Gen   $@"
 	$(PYTHON) ../framework/scripts/generate_test_cert_macros.py --output $@
 
 src/test_keys.h: ../framework/scripts/generate_test_keys.py
+	echo "  Gen   $@"
 	$(PYTHON) ../framework/scripts/generate_test_keys.py --output $@
 
 TEST_OBJS_DEPS = $(wildcard include/test/*.h include/test/*/*.h)
@@ -247,8 +258,7 @@ ifndef WINDOWS
 	$(MAKE) -C psa-client-server/psasim clean
 	rm -rf $(BINARIES) *.c *.datax
 	rm -rf $(CRYPTO_BINARIES) ../tf-psa-crypto/tests/*.c ../tf-psa-crypto/tests/*.datax
-	rm -f src/*.o src/drivers/*.o src/test_helpers/*.o src/libmbed* src/test_keys.h src/test_certs.h
-	rm -f src/test_keys.h src/test_certs.h
+	rm -f src/*.o src/drivers/*.o src/test_helpers/*.o src/libmbed*
 	rm -f include/test/instrument_record_status.h
 	rm -f include/alt-extra/*/*_alt.h
 	rm -rf libtestdriver1
@@ -263,17 +273,14 @@ else
 	if exist ../tf-psa-crypto/tests/*.datax del /Q /F ../tf-psa-crypto/tests/*.datax
 	if exist src/*.o del /Q /F src/*.o
 	if exist src/drivers/*.o del /Q /F src/drivers/*.o
-	if exist src/test_keys.h del /Q /F src/test_keys.h
-	if exist src/test_certs.h del /Q /F src/test_cers.h
 	if exist src/test_helpers/*.o del /Q /F src/test_helpers/*.o
-	if exist src/libmbed* del /Q /F src/libmed*
+	if exist src/libmbed* del /Q /F src/libmbed*
 	if exist include/test/instrument_record_status.h del /Q /F include/test/instrument_record_status.h
 endif
 
 # Test suites caught by SKIP_TEST_SUITES are built but not executed.
 check: $(BINARIES) $(CRYPTO_BINARIES)
 	perl scripts/run-test-suites.pl $(TEST_FLAGS) --skip=$(SKIP_TEST_SUITES)
-	cd ../tf-psa-crypto/tests && perl ../../tests/scripts/run-test-suites.pl $(TEST_FLAGS) --skip=$(SKIP_TEST_SUITES)
 
 test: check
 

@@ -1090,7 +1090,7 @@ int mbedtls_x509write_crt_set_extension(mbedtls_x509write_cert *ctx,
 int mbedtls_x509write_crt_set_basic_constraints(mbedtls_x509write_cert *ctx,
                                                 int is_ca, int max_pathlen);
 
-#if defined(MBEDTLS_MD_CAN_SHA1)
+#if defined(PSA_WANT_ALG_SHA_1)
 /**
  * \brief           Set the subjectKeyIdentifier extension for a CRT
  *                  Requires that mbedtls_x509write_crt_set_subject_key() has been
@@ -1112,7 +1112,7 @@ int mbedtls_x509write_crt_set_subject_key_identifier(mbedtls_x509write_cert *ctx
  * \return          0 if successful, or a MBEDTLS_ERR_X509_ALLOC_FAILED
  */
 int mbedtls_x509write_crt_set_authority_key_identifier(mbedtls_x509write_cert *ctx);
-#endif /* MBEDTLS_MD_CAN_SHA1 */
+#endif /* PSA_WANT_ALG_SHA_1 */
 
 /**
  * \brief           Set the Key Usage Extension flags

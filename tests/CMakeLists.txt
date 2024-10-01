@@ -64,6 +64,22 @@ if(GEN_FILES)
             # change too often in ways that don't affect the result
             # ((un)commenting some options).
     )
+    add_custom_command(
+        OUTPUT
+            ${CMAKE_CURRENT_SOURCE_DIR}/opt-testcases/tls13-compat.sh
+        WORKING_DIRECTORY
+            ${CMAKE_CURRENT_SOURCE_DIR}/..
+        COMMAND
+            "${MBEDTLS_PYTHON_EXECUTABLE}"
+            "${CMAKE_CURRENT_SOURCE_DIR}/scripts/generate_tls13_compat_tests.py"
+        DEPENDS
+            ${CMAKE_CURRENT_SOURCE_DIR}/scripts/generate_tls13_compat_tests.py
+    )
+    add_custom_target(tls13-compat.sh
+        DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/opt-testcases/tls13-compat.sh)
+    set_target_properties(tls13-compat.sh PROPERTIES EXCLUDE_FROM_ALL NO)
+    add_dependencies(${ssl_opt_target} tls13-compat.sh)
+
 else()
     foreach(file ${all_generated_data_files})
         link_to_source(${file})

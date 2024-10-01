@@ -29,6 +29,7 @@
 
 #include "mbedtls/rsa.h"
 #include "bignum_core.h"
+#include "bignum_internal.h"
 #include "rsa_alt_helpers.h"
 #include "rsa_internal.h"
 #include "mbedtls/oid.h"
@@ -1257,7 +1258,7 @@ int mbedtls_rsa_public(mbedtls_rsa_context *ctx,
     }
 
     olen = ctx->len;
-    MBEDTLS_MPI_CHK(mbedtls_mpi_exp_mod(&T, &T, &ctx->E, &ctx->N, &ctx->RN));
+    MBEDTLS_MPI_CHK(mbedtls_mpi_exp_mod_unsafe(&T, &T, &ctx->E, &ctx->N, &ctx->RN));
     MBEDTLS_MPI_CHK(mbedtls_mpi_write_binary(&T, output, olen));
 
 cleanup:
@@ -2918,7 +2919,7 @@ int mbedtls_rsa_self_test(int verbose)
     unsigned char rsa_plaintext[PT_LEN];
     unsigned char rsa_decrypted[PT_LEN];
     unsigned char rsa_ciphertext[KEY_LEN];
-#if defined(MBEDTLS_MD_CAN_SHA1)
+#if defined(PSA_WANT_ALG_SHA_1)
     unsigned char sha1sum[20];
 #endif
 
@@ -2999,7 +3000,7 @@ int mbedtls_rsa_self_test(int verbose)
         mbedtls_printf("passed\n");
     }
 
-#if defined(MBEDTLS_MD_CAN_SHA1)
+#if defined(PSA_WANT_ALG_SHA_1)
     if (verbose != 0) {
         mbedtls_printf("  PKCS#1 data sign  : ");
     }
@@ -3041,7 +3042,7 @@ int mbedtls_rsa_self_test(int verbose)
     if (verbose != 0) {
         mbedtls_printf("passed\n");
     }
-#endif /* MBEDTLS_MD_CAN_SHA1 */
+#endif /* PSA_WANT_ALG_SHA_1 */
 
     if (verbose != 0) {
         mbedtls_printf("\n");

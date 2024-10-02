@@ -431,6 +431,23 @@ psa_status_t psa_generate_key_internal(const psa_key_attributes_t *attributes,
                                        size_t key_buffer_size,
                                        size_t *key_buffer_length);
 
+
+/**
+ * \brief Get the total number of ops that a key generation operation has taken
+ *        Since it's start.
+ *
+ * \note The signature of this function is that of a PSA driver
+ *       generate_key_get_num_ops entry point. This function behaves as an
+ *       generate_key_get_num_ops entry point as defined in the PSA driver
+ *       interface specification for transparent drivers.
+ *
+ * \param[in] operation                 The \c mbedtls_psa_generate_key_iop_t to use.
+ *                                      This must be initialized first.
+ * \return Total number of operations.
+ */
+uint32_t mbedtls_psa_generate_key_get_num_ops(
+    mbedtls_psa_generate_key_iop_t *operation);
+
 /**
  * \brief Setup a new interruptible key generation operation.
  *

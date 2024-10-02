@@ -8106,8 +8106,7 @@ static psa_status_t psa_generate_key_iop_abort_internal(
 uint32_t psa_generate_key_iop_get_num_ops(
     psa_generate_key_iop_t *operation)
 {
-    (void) operation;
-    return 0;
+    return operation->num_ops;
 }
 
 psa_status_t psa_generate_key_iop_setup(
@@ -8182,6 +8181,8 @@ psa_status_t psa_generate_key_iop_complete(
     if (status != PSA_SUCCESS) {
         goto exit;
     }
+
+    operation->num_ops = mbedtls_psa_generate_key_get_num_ops(&operation->ctx);
 
     status = psa_import_key(&operation->attributes, key_data, key_len, key);
 

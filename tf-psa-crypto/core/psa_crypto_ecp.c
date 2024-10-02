@@ -598,6 +598,12 @@ exit:
 
 #if defined(MBEDTLS_ECP_RESTARTABLE) && defined(MBEDTLS_ECP_C)
 
+uint32_t mbedtls_psa_generate_key_get_num_ops(
+    mbedtls_psa_generate_key_iop_t *operation)
+{
+    return operation->num_ops;
+}
+
 psa_status_t mbedtls_psa_generate_key_iop_setup(
     mbedtls_psa_generate_key_iop_t *operation,
     const psa_key_attributes_t *attributes)

@@ -607,12 +607,12 @@ exit:
 
 /* BEGIN_CASE */
 void gcm_encrypt_input_output_buffer_overlap(int cipher_id, data_t *key_str,
-                         data_t *src_str, data_t *iv_str,
-                         data_t *add_str, data_t *dst,
-                         int tag_len_bits, data_t *tag,
-                         int init_result)
+                                             data_t *src_str, data_t *iv_str,
+                                             data_t *add_str, data_t *dst,
+                                             int tag_len_bits, data_t *tag,
+                                             int init_result)
 {
-    unsigned char *buffer;
+    unsigned char *buffer = NULL;
     size_t buffer_len;
     unsigned char tag_output[16];
     mbedtls_gcm_context ctx;
@@ -672,12 +672,12 @@ exit:
 
 /* BEGIN_CASE */
 void gcm_decrypt_input_output_buffer_overlap(int cipher_id, data_t *key_str,
-                            data_t *src_str, data_t *iv_str,
-                            data_t *add_str, int tag_len_bits,
-                            data_t *tag_str, char *result,
-                            data_t *pt_result, int init_result)
+                                             data_t *src_str, data_t *iv_str,
+                                             data_t *add_str, int tag_len_bits,
+                                             data_t *tag_str, char *result,
+                                             data_t *pt_result, int init_result)
 {
-    unsigned char *buffer;
+    unsigned char *buffer = NULL;
     size_t buffer_len;
     mbedtls_gcm_context ctx;
     int ret;

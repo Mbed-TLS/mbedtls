@@ -291,7 +291,14 @@ reset:
         ret = 0;
         goto reset;
     } else if (ret != 0) {
-        printf(" failed\n  ! mbedtls_ssl_handshake returned -0x%x\n\n", (unsigned int) -ret);
+        printf(" failed\n  ! mbedtls_ssl_handshake returned -0x%x\n", (unsigned int) -ret);
+        if (ret == MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE) {
+            printf("    An unexpected message was received from our peer. If this happened at\n");
+            printf("    the beginning of the handshake, this is likely a duplicated packet or\n");
+            printf("    a close_notify alert from the previous connection, which is harmless.\n");
+            ret = 0;
+        }
+        printf("\n");
         goto reset;
     }
 

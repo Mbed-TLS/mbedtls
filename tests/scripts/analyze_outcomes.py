@@ -14,7 +14,7 @@ import subprocess
 import os
 import typing
 
-import check_test_cases
+import collect_test_cases
 
 
 # `ComponentOutcomes` is a named tuple which is defined as:
@@ -197,7 +197,7 @@ class CoverageTask(Task):
             sys.stderr.write(cp.stdout.decode('utf-8'))
             results.error("Failed \"make generated_files\" in tests. "
                           "Coverage analysis may be incorrect.")
-        available = check_test_cases.collect_available_test_cases()
+        available = collect_test_cases.collect_available_test_cases()
         for suite_case in available:
             hit = any(suite_case in comp_outcomes.successes or
                       suite_case in comp_outcomes.failures

@@ -858,14 +858,6 @@ pre_generate_files() {
     fi
 }
 
-clang_version() {
-    if command -v clang > /dev/null ; then
-        clang --version|grep version|sed -E 's#.*version ([0-9]+).*#\1#'
-    else
-        echo 0  # report version 0 for "no clang"
-    fi
-}
-
 pre_load_helpers () {
     # The path is going to change when this is moved to the framework
     test_script_dir="${0%/*}"

@@ -249,3 +249,11 @@ helper_armc6_build_test()
         "$ARMC6_FROMELF" -z ${BUILTIN_SRC_PATH}/*.o
     fi
 }
+
+clang_version() {
+    if command -v clang > /dev/null ; then
+        clang --version|grep version|sed -E 's#.*version ([0-9]+).*#\1#'
+    else
+        echo 0  # report version 0 for "no clang"
+    fi
+}

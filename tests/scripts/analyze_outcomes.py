@@ -167,14 +167,6 @@ class CoverageTask(Task):
     # Test cases whose suite and description are matched by an entry in
     # IGNORED_TESTS are expected to be never executed.
     # All other test cases are expected to be executed at least once.
-    IGNORED_TESTS = {
-        'test_suite_psa_crypto_metadata': [
-            # Algorithm not supported yet
-            'Asymmetric signature: pure EdDSA',
-            # Algorithm not supported yet
-            'Cipher: XTS',
-        ],
-    }
 
     def __init__(self, options) -> None:
         super().__init__(options)

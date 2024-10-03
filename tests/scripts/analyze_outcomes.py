@@ -761,7 +761,7 @@ KNOWN_TASKS = {
     'analyze_block_cipher_dispatch': DriverVSReference_block_cipher_dispatch,
 }
 
-def main() -> None:
+def main(known_tasks: typing.Dict[str, typing.Type[Task]]) -> None:
     main_results = Results()
 
     try:
@@ -783,16 +783,16 @@ def main() -> None:
         options = parser.parse_args()
 
         if options.list:
-            for task_name in KNOWN_TASKS:
+            for task_name in known_tasks:
                 print(task_name)
             sys.exit(0)
 
         if options.specified_tasks == 'all':
-            tasks_list = list(KNOWN_TASKS.keys())
+            tasks_list = list(known_tasks.keys())
         else:
             tasks_list = re.split(r'[, ]+', options.specified_tasks)
             for task_name in tasks_list:
-                if task_name not in KNOWN_TASKS:
+                if task_name not in known_tasks:
                     sys.stderr.write('invalid task: {}\n'.format(task_name))
                     sys.exit(2)
 
@@ -805,7 +805,7 @@ def main() -> None:
                 sys.exit(2)
 
             task_name = tasks_list[0]
-            task_class = KNOWN_TASKS[task_name]
+            task_class = known_tasks[task_name]
             if not issubclass(task_class, DriverVSReference):
                 sys.stderr.write("please provide valid outcomes file for {}.\n".format(task_name))
                 sys.exit(2)
@@ -824,7 +824,7 @@ def main() -> None:
         outcomes = read_outcome_file(options.outcomes)
 
         for task_name in tasks_list:
-            task_constructor = KNOWN_TASKS[task_name]
+            task_constructor = known_tasks[task_name]
             task_instance = task_constructor(options)
             main_results.new_section(task_instance.section_name())
             task_instance.run(main_results, outcomes)
@@ -840,4 +840,4 @@ def main() -> None:
         sys.exit(120)
 
 if __name__ == '__main__':
-    main()
+    main(KNOWN_TASKS)

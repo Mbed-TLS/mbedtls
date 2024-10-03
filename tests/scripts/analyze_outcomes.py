@@ -8,7 +8,8 @@ less likely to be useful.
 
 import re
 
-import outcome_analysis
+import scripts_path # pylint: disable=unused-import
+from mbedtls_framework import outcome_analysis
 
 
 class CoverageTask(outcome_analysis.CoverageTask):

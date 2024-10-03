@@ -761,8 +761,7 @@ KNOWN_TASKS = {
     'analyze_block_cipher_dispatch': DriverVSReference_block_cipher_dispatch,
 }
 
-
-def main():
+def main() -> None:
     main_results = Results()
 
     try:
@@ -789,7 +788,7 @@ def main():
             sys.exit(0)
 
         if options.specified_tasks == 'all':
-            tasks_list = KNOWN_TASKS.keys()
+            tasks_list = list(KNOWN_TASKS.keys())
         else:
             tasks_list = re.split(r'[, ]+', options.specified_tasks)
             for task_name in tasks_list:
@@ -810,9 +809,16 @@ def main():
             if not issubclass(task_class, DriverVSReference):
                 sys.stderr.write("please provide valid outcomes file for {}.\n".format(task_name))
                 sys.exit(2)
+            # mypy isn't smart enough to know that REFERENCE and DRIVER
+            # are *class* attributes of all classes derived from
+            # DriverVSReference. (It would be smart enough if we had an
+            # instance of task_class, but we can't construct an instance
+            # until we have the outcome data, so at this point we only
+            # have the class.) So we use indirection to access the class
+            # attributes.
             execute_reference_driver_tests(main_results,
-                                           task_class.REFERENCE,
-                                           task_class.DRIVER,
+                                           getattr(task_class, 'REFERENCE'),
+                                           getattr(task_class, 'DRIVER'),
                                            options.outcomes)
 
         outcomes = read_outcome_file(options.outcomes)

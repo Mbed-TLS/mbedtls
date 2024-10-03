@@ -135,6 +135,7 @@ class Task:
 
     def section_name(self) -> str:
         """The section name to use in results."""
+        raise NotImplementedError
 
     def ignored_tests(self, test_suite: str) -> typing.Iterator[IgnoreEntry]:
         """Generate the ignore list for the specified test suite."""

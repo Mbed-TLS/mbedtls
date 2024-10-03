@@ -100,7 +100,7 @@ the ones in `tf_psa_crypto_config.h`. The main change is the reorganization
 of the "Mbed TLS modules", "Mbed TLS feature support" and
 "Module configuration options" sections into the
 ["TLS feature selection"](#section-tls-feature-selection) and
-["X.509 feature selection"](#section-x.509-feature-selection) sections. That
+["X.509 feature selection"](#section-x-509-feature-selection) sections. That
 way all TLS/x509 options are grouped into one section and there is no
 section dedicated to non boolean configuration options anymore.
 

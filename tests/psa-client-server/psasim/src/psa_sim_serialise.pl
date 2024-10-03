@@ -48,7 +48,9 @@ my @types = qw(unsigned-int int size_t
                psa_key_derivation_operation_t
                psa_sign_hash_interruptible_operation_t
                psa_verify_hash_interruptible_operation_t
-               mbedtls_svc_key_id_t);
+               mbedtls_svc_key_id_t
+               psa_generate_key_iop_t
+               psa_key_agreement_iop_t);
 
 grep(s/-/ /g, @types);
 

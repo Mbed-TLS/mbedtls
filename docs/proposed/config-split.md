@@ -168,9 +168,10 @@ section dedicated to non boolean configuration options anymore.
 #### SECTION General and test configuration options
 Note: for consistency with the configuration file name change from
 `crypto_config.h` to `tf_psa_crypto_config.h`, the configuration options
-MBEDTLS_PSA_CRYPTO_CONFIG_FILE and MBEDTLS_PSA_CRYPTO_USER_CONFIG_FILE are
-respectively renamed TF_PSA_CRYPTO_CONFIG_FILE and TF_PSA_CRYPTO_USER_CONFIG_FILE.
-These are the only configuration options renamed by this document.
+`MBEDTLS_PSA_CRYPTO_CONFIG_FILE` and `MBEDTLS_PSA_CRYPTO_USER_CONFIG_FILE` are
+respectively renamed `TF_PSA_CRYPTO_CONFIG_FILE` and
+`TF_PSA_CRYPTO_USER_CONFIG_FILE`. These are the only configuration options
+renamed by this document.
 ```
 //#define MBEDTLS_CHECK_RETURN_WARNING
 //#define MBEDTLS_DEPRECATED_REMOVED

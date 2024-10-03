@@ -959,43 +959,46 @@ run_component () {
 }
 
 ################################################################
-#### Main (only function definitions above)
+#### Main
 ################################################################
 
+main () {
+    # Preliminary setup
+    pre_set_shell_options
+    pre_check_environment
+    pre_load_helpers
+    pre_load_components
+    pre_initialize_variables
+    pre_parse_command_line "$@"
 
-# Preliminary setup
-pre_set_shell_options
-pre_check_environment
-pre_load_helpers
-pre_load_components
-pre_initialize_variables
-pre_parse_command_line "$@"
+    setup_quiet_wrappers
+    pre_check_git
+    pre_restore_files
+    pre_back_up
 
-setup_quiet_wrappers
-pre_check_git
-pre_restore_files
-pre_back_up
+    build_status=0
+    if [ $KEEP_GOING -eq 1 ]; then
+        pre_setup_keep_going
+    fi
+    pre_prepare_outcome_file
+    pre_print_configuration
+    pre_check_tools
+    cleanup
+    if in_mbedtls_repo; then
+        pre_generate_files
+    fi
 
-build_status=0
-if [ $KEEP_GOING -eq 1 ]; then
-    pre_setup_keep_going
-fi
-pre_prepare_outcome_file
-pre_print_configuration
-pre_check_tools
-cleanup
-if in_mbedtls_repo; then
-    pre_generate_files
-fi
+    # Run the requested tests.
+    for ((error_test_i=1; error_test_i <= error_test; error_test_i++)); do
+        run_component pseudo_component_error_test
+    done
+    unset error_test_i
+    for component in $RUN_COMPONENTS; do
+        run_component "component_$component"
+    done
 
-# Run the requested tests.
-for ((error_test_i=1; error_test_i <= error_test; error_test_i++)); do
-    run_component pseudo_component_error_test
-done
-unset error_test_i
-for component in $RUN_COMPONENTS; do
-    run_component "component_$component"
-done
+    # We're done.
+    post_report
+}
 
-# We're done.
-post_report
+main "$@"

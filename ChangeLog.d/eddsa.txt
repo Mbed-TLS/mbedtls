@@ -1,0 +1,7 @@
+Features
+    * Add Ed25519 curve.
+    * Add mbedtls_eddsa_sign() for EdDSA signatures. It supports pure, ctx
+      and prehash signature types, for Ed25519 curve.
+    * Add mbedtls_eddsa_verify() for EdDSA signatures verification.
+    * Add mbedtls_eddsa_read_signature() and mbedtls_eddsa_write_signature()
+      for reading from ASN.1 and writing to ASN.1 signatures.

@@ -391,7 +391,7 @@ static int ecjpake_kkp_read(const mbedtls_md_type_t md_type,
      * } ECJPAKEKeyKP;
      */
     MBEDTLS_MPI_CHK(mbedtls_ecp_tls_read_point(grp, X, p, (size_t) (end - *p)));
-    if (mbedtls_ecp_is_zero(X)) {
+    if (mbedtls_ecp_is_zero_ext(grp, X)) {
         ret = MBEDTLS_ERR_ECP_INVALID_KEY;
         goto cleanup;
     }

@@ -102,7 +102,7 @@ static int ecdh_compute_shared_restartable(mbedtls_ecp_group *grp,
     MBEDTLS_MPI_CHK(mbedtls_ecp_mul_restartable(grp, &P, d, Q,
                                                 f_rng, p_rng, rs_ctx));
 
-    if (mbedtls_ecp_is_zero(&P)) {
+    if (mbedtls_ecp_is_zero_ext(grp, &P)) {
         ret = MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
         goto cleanup;
     }

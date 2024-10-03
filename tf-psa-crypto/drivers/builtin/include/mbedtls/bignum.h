@@ -238,6 +238,8 @@ typedef struct mbedtls_mpi {
 }
 mbedtls_mpi;
 
+#define MBEDTLS_MPI_INIT { 0, 0, 0 }
+
 /**
  * \brief           Initialize an MPI context.
  *

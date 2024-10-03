@@ -1,4 +1,4 @@
-set(everest_target "${MBEDTLS_TARGET_PREFIX}everest")
+set(everest_target "${TF_PSA_CRYPTO_TARGET_PREFIX}everest")
 
 add_library(${everest_target}
   library/everest.c
@@ -8,13 +8,13 @@ add_library(${everest_target}
 target_include_directories(${everest_target}
   PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
          $<BUILD_INTERFACE:${MBEDTLS_DIR}/include>
-         $<BUILD_INTERFACE:${MBEDTLS_DIR}/tf-psa-crypto/include>
-         $<BUILD_INTERFACE:${MBEDTLS_DIR}/tf-psa-crypto/drivers/builtin/include>
+         $<BUILD_INTERFACE:${TF_PSA_CRYPTO_DIR}/include>
+         $<BUILD_INTERFACE:${TF_PSA_CRYPTO_DIR}/drivers/builtin/include>
          $<INSTALL_INTERFACE:include>
   PRIVATE include/everest
           include/everest/kremlib
           ${MBEDTLS_DIR}/library
-          ${MBEDTLS_DIR}/tf-psa-crypto/core)
+          ${TF_PSA_CRYPTO_DIR}/core)
 
 # Pass-through MBEDTLS_CONFIG_FILE and MBEDTLS_USER_CONFIG_FILE
 # This must be duplicated from library/CMakeLists.txt because
@@ -29,7 +29,7 @@ if(MBEDTLS_USER_CONFIG_FILE)
         PUBLIC MBEDTLS_USER_CONFIG_FILE="${MBEDTLS_USER_CONFIG_FILE}")
 endif()
 
-if(INSTALL_MBEDTLS_HEADERS)
+if(INSTALL_TF_PSA_CRYPTO_HEADERS)
 
   install(DIRECTORY include/everest
     DESTINATION include
@@ -37,7 +37,7 @@ if(INSTALL_MBEDTLS_HEADERS)
     DIRECTORY_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
     FILES_MATCHING PATTERN "*.h")
 
-endif(INSTALL_MBEDTLS_HEADERS)
+endif(INSTALL_TF_PSA_CRYPTO_HEADERS)
 
 install(TARGETS ${everest_target}
   EXPORT MbedTLSTargets

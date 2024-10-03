@@ -1,5 +1,5 @@
 set(libs
-    ${mbedtls_target}
+    ${mbedcrypto_target}
     ${CMAKE_THREAD_LIBS_INIT}
 )
 
@@ -10,7 +10,7 @@ if(NOT DEFINED MBEDTLS_DIR)
     set(MBEDTLS_DIR ${CMAKE_SOURCE_DIR})
 endif()
 
-if(NOT MBEDTLS_PYTHON_EXECUTABLE)
+if(NOT TF_PSA_CRYPTO_PYTHON_EXECUTABLE)
     message(FATAL_ERROR "Cannot build test suites without Python 3")
 endif()
 
@@ -20,8 +20,8 @@ file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/suites)
 # Get base names for generated files
 execute_process(
     COMMAND
-        ${MBEDTLS_PYTHON_EXECUTABLE}
-        ${CMAKE_CURRENT_SOURCE_DIR}/../../framework/scripts/generate_bignum_tests.py
+        ${TF_PSA_CRYPTO_PYTHON_EXECUTABLE}
+        ${MBEDTLS_FRAMEWORK_DIR}/scripts/generate_bignum_tests.py
         --list-for-cmake
     WORKING_DIRECTORY
         ${CMAKE_CURRENT_SOURCE_DIR}/..
@@ -32,8 +32,8 @@ string(REGEX REPLACE "[^;]*/" ""
 
 execute_process(
     COMMAND
-        ${MBEDTLS_PYTHON_EXECUTABLE}
-        ${CMAKE_CURRENT_SOURCE_DIR}/../../framework/scripts/generate_config_tests.py
+        ${TF_PSA_CRYPTO_PYTHON_EXECUTABLE}
+        ${MBEDTLS_FRAMEWORK_DIR}/scripts/generate_config_tests.py
         --list-for-cmake
     WORKING_DIRECTORY
         ${CMAKE_CURRENT_SOURCE_DIR}/..
@@ -51,8 +51,8 @@ endforeach()
 
 execute_process(
     COMMAND
-        ${MBEDTLS_PYTHON_EXECUTABLE}
-        ${CMAKE_CURRENT_SOURCE_DIR}/../../framework/scripts/generate_ecp_tests.py
+        ${TF_PSA_CRYPTO_PYTHON_EXECUTABLE}
+        ${MBEDTLS_FRAMEWORK_DIR}/scripts/generate_ecp_tests.py
         --list-for-cmake
     WORKING_DIRECTORY
         ${CMAKE_CURRENT_SOURCE_DIR}/..
@@ -63,8 +63,8 @@ string(REGEX REPLACE "[^;]*/" ""
 
 execute_process(
     COMMAND
-        ${MBEDTLS_PYTHON_EXECUTABLE}
-        ${CMAKE_CURRENT_SOURCE_DIR}/../../framework/scripts/generate_psa_tests.py
+        ${TF_PSA_CRYPTO_PYTHON_EXECUTABLE}
+        ${MBEDTLS_FRAMEWORK_DIR}/scripts/generate_psa_tests.py
         --list-for-cmake
     WORKING_DIRECTORY
         ${CMAKE_CURRENT_SOURCE_DIR}/..
@@ -104,17 +104,17 @@ if(GEN_FILES)
         WORKING_DIRECTORY
             ${CMAKE_CURRENT_SOURCE_DIR}/..
         COMMAND
-            ${MBEDTLS_PYTHON_EXECUTABLE}
-            ${CMAKE_CURRENT_SOURCE_DIR}/../../framework/scripts/generate_bignum_tests.py
+            ${TF_PSA_CRYPTO_PYTHON_EXECUTABLE}
+            ${MBEDTLS_FRAMEWORK_DIR}/scripts/generate_bignum_tests.py
             --directory ${CMAKE_CURRENT_BINARY_DIR}/suites
         DEPENDS
-            ${CMAKE_CURRENT_SOURCE_DIR}/../../framework/scripts/generate_bignum_tests.py
-            ${CMAKE_CURRENT_SOURCE_DIR}/../../framework/scripts/mbedtls_framework/bignum_common.py
-            ${CMAKE_CURRENT_SOURCE_DIR}/../../framework/scripts/mbedtls_framework/bignum_core.py
-            ${CMAKE_CURRENT_SOURCE_DIR}/../../framework/scripts/mbedtls_framework/bignum_mod_raw.py
-            ${CMAKE_CURRENT_SOURCE_DIR}/../../framework/scripts/mbedtls_framework/bignum_mod.py
-            ${CMAKE_CURRENT_SOURCE_DIR}/../../framework/scripts/mbedtls_framework/test_case.py
-            ${CMAKE_CURRENT_SOURCE_DIR}/../../framework/scripts/mbedtls_framework/test_data_generation.py
+            ${MBEDTLS_FRAMEWORK_DIR}/scripts/generate_bignum_tests.py
+            ${MBEDTLS_FRAMEWORK_DIR}/scripts/mbedtls_framework/bignum_common.py
+            ${MBEDTLS_FRAMEWORK_DIR}/scripts/mbedtls_framework/bignum_core.py
+            ${MBEDTLS_FRAMEWORK_DIR}/scripts/mbedtls_framework/bignum_mod_raw.py
+            ${MBEDTLS_FRAMEWORK_DIR}/scripts/mbedtls_framework/bignum_mod.py
+            ${MBEDTLS_FRAMEWORK_DIR}/scripts/mbedtls_framework/test_case.py
+            ${MBEDTLS_FRAMEWORK_DIR}/scripts/mbedtls_framework/test_data_generation.py
     )
     add_custom_command(
         OUTPUT
@@ -122,12 +122,12 @@ if(GEN_FILES)
         WORKING_DIRECTORY
             ${CMAKE_CURRENT_SOURCE_DIR}/..
         COMMAND
-            ${MBEDTLS_PYTHON_EXECUTABLE}
-            ${CMAKE_CURRENT_SOURCE_DIR}/../../framework/scripts/generate_config_tests.py
+            ${TF_PSA_CRYPTO_PYTHON_EXECUTABLE}
+            ${MBEDTLS_FRAMEWORK_DIR}/scripts/generate_config_tests.py
             --directory ${CMAKE_CURRENT_BINARY_DIR}/suites
             ${config_generated_data_files}
         DEPENDS
-            ${CMAKE_CURRENT_SOURCE_DIR}/../../framework/scripts/generate_config_tests.py
+            ${MBEDTLS_FRAMEWORK_DIR}/scripts/generate_config_tests.py
             # Do not declare the configuration files as dependencies: they
             # change too often in ways that don't affect the result
             # ((un)commenting some options).
@@ -138,15 +138,15 @@ if(GEN_FILES)
         WORKING_DIRECTORY
             ${CMAKE_CURRENT_SOURCE_DIR}/..
         COMMAND
-            ${MBEDTLS_PYTHON_EXECUTABLE}
-            ${CMAKE_CURRENT_SOURCE_DIR}/../../framework/scripts/generate_ecp_tests.py
+            ${TF_PSA_CRYPTO_PYTHON_EXECUTABLE}
+            ${MBEDTLS_FRAMEWORK_DIR}/scripts/generate_ecp_tests.py
             --directory ${CMAKE_CURRENT_BINARY_DIR}/suites
         DEPENDS
-            ${CMAKE_CURRENT_SOURCE_DIR}/../../framework/scripts/generate_ecp_tests.py
-            ${CMAKE_CURRENT_SOURCE_DIR}/../../framework/scripts/mbedtls_framework/bignum_common.py
-            ${CMAKE_CURRENT_SOURCE_DIR}/../../framework/scripts/mbedtls_framework/ecp.py
-            ${CMAKE_CURRENT_SOURCE_DIR}/../../framework/scripts/mbedtls_framework/test_case.py
-            ${CMAKE_CURRENT_SOURCE_DIR}/../../framework/scripts/mbedtls_framework/test_data_generation.py
+            ${MBEDTLS_FRAMEWORK_DIR}/scripts/generate_ecp_tests.py
+            ${MBEDTLS_FRAMEWORK_DIR}/scripts/mbedtls_framework/bignum_common.py
+            ${MBEDTLS_FRAMEWORK_DIR}/scripts/mbedtls_framework/ecp.py
+            ${MBEDTLS_FRAMEWORK_DIR}/scripts/mbedtls_framework/test_case.py
+            ${MBEDTLS_FRAMEWORK_DIR}/scripts/mbedtls_framework/test_data_generation.py
     )
     add_custom_command(
         OUTPUT
@@ -154,18 +154,18 @@ if(GEN_FILES)
         WORKING_DIRECTORY
             ${CMAKE_CURRENT_SOURCE_DIR}/..
         COMMAND
-            ${MBEDTLS_PYTHON_EXECUTABLE}
-            ${CMAKE_CURRENT_SOURCE_DIR}/../../framework/scripts/generate_psa_tests.py
+            ${TF_PSA_CRYPTO_PYTHON_EXECUTABLE}
+            ${MBEDTLS_FRAMEWORK_DIR}/scripts/generate_psa_tests.py
             --directory ${CMAKE_CURRENT_BINARY_DIR}/suites
         DEPENDS
-            ${CMAKE_CURRENT_SOURCE_DIR}/../../framework/scripts/generate_psa_tests.py
-            ${CMAKE_CURRENT_SOURCE_DIR}/../../framework/scripts/mbedtls_framework/crypto_data_tests.py
-            ${CMAKE_CURRENT_SOURCE_DIR}/../../framework/scripts/mbedtls_framework/crypto_knowledge.py
-            ${CMAKE_CURRENT_SOURCE_DIR}/../../framework/scripts/mbedtls_framework/macro_collector.py
-            ${CMAKE_CURRENT_SOURCE_DIR}/../../framework/scripts/mbedtls_framework/psa_information.py
-            ${CMAKE_CURRENT_SOURCE_DIR}/../../framework/scripts/mbedtls_framework/psa_storage.py
-            ${CMAKE_CURRENT_SOURCE_DIR}/../../framework/scripts/mbedtls_framework/test_case.py
-            ${CMAKE_CURRENT_SOURCE_DIR}/../../framework/scripts/mbedtls_framework/test_data_generation.py
+            ${MBEDTLS_FRAMEWORK_DIR}/scripts/generate_psa_tests.py
+            ${MBEDTLS_FRAMEWORK_DIR}/scripts/mbedtls_framework/crypto_data_tests.py
+            ${MBEDTLS_FRAMEWORK_DIR}/scripts/mbedtls_framework/crypto_knowledge.py
+            ${MBEDTLS_FRAMEWORK_DIR}/scripts/mbedtls_framework/macro_collector.py
+            ${MBEDTLS_FRAMEWORK_DIR}/scripts/mbedtls_framework/psa_information.py
+            ${MBEDTLS_FRAMEWORK_DIR}/scripts/mbedtls_framework/psa_storage.py
+            ${MBEDTLS_FRAMEWORK_DIR}/scripts/mbedtls_framework/test_case.py
+            ${MBEDTLS_FRAMEWORK_DIR}/scripts/mbedtls_framework/test_data_generation.py
             ${CMAKE_CURRENT_SOURCE_DIR}/../include/psa/crypto_config.h
             ${CMAKE_CURRENT_SOURCE_DIR}/../include/psa/crypto_values.h
             ${CMAKE_CURRENT_SOURCE_DIR}/../include/psa/crypto_extra.h
@@ -278,8 +278,8 @@ function(add_test_suite suite_name)
             # input argument.
             test_suite_${data_name}.c
         COMMAND
-            ${MBEDTLS_PYTHON_EXECUTABLE}
-            ${CMAKE_CURRENT_SOURCE_DIR}/../../framework/scripts/generate_test_code.py
+            ${TF_PSA_CRYPTO_PYTHON_EXECUTABLE}
+            ${MBEDTLS_FRAMEWORK_DIR}/scripts/generate_test_code.py
             -f ${CMAKE_CURRENT_SOURCE_DIR}/suites/test_suite_${suite_name}.function
             -d ${data_file}
             -t ${CMAKE_CURRENT_SOURCE_DIR}/suites/main_test.function
@@ -288,20 +288,19 @@ function(add_test_suite suite_name)
             --helpers-file ${CMAKE_CURRENT_SOURCE_DIR}/suites/helpers.function
             -o .
         DEPENDS
-            ${CMAKE_CURRENT_SOURCE_DIR}/../../framework/scripts/generate_test_code.py
+            ${MBEDTLS_FRAMEWORK_DIR}/scripts/generate_test_code.py
             ${CMAKE_CURRENT_SOURCE_DIR}/suites/test_suite_${suite_name}.function
             ${data_file}
             ${CMAKE_CURRENT_SOURCE_DIR}/suites/main_test.function
             ${CMAKE_CURRENT_SOURCE_DIR}/suites/host_test.function
             ${CMAKE_CURRENT_SOURCE_DIR}/suites/helpers.function
-            ${mbedtls_target}
+            ${mbedcrypto_target}
         BYPRODUCTS
             test_suite_${data_name}.datax
     )
 
     add_executable(test_suite_${data_name} test_suite_${data_name}.c
-                   $<TARGET_OBJECTS:mbedtls_test>
-                   $<TARGET_OBJECTS:mbedtls_test_helpers>)
+                   $<TARGET_OBJECTS:mbedtls_test>)
     add_dependencies(test_suite_${data_name} ${dependency})
     target_link_libraries(test_suite_${data_name} ${libs})
     # Include test-specific header files from ./include and private header

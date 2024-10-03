@@ -4568,10 +4568,11 @@ static int ecp_mod_p521(mbedtls_mpi *);
 #endif /* MBEDTLS_ECP_NIST_OPTIM */
 
 /* Additional forward declarations */
-#if defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED)
+#if defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED) || defined(MBEDTLS_ECP_DP_ED25519_ENABLED)
 static int ecp_mod_p255(mbedtls_mpi *);
 #endif
-#if defined(MBEDTLS_ECP_DP_CURVE448_ENABLED)
+
+#if defined(MBEDTLS_ECP_DP_CURVE448_ENABLED) || defined(MBEDTLS_ECP_DP_ED448_ENABLED)
 static int ecp_mod_p448(mbedtls_mpi *);
 #endif
 #if defined(MBEDTLS_ECP_DP_SECP192K1_ENABLED)
@@ -4606,14 +4607,15 @@ static int ecp_mod_p256k1(mbedtls_mpi *);
                                          )
 #endif /* ECP_LOAD_GROUP */
 
-#if defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED)
+#if defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED) || defined(MBEDTLS_ECP_DP_ED25519_ENABLED)
 /* Constants used by ecp_use_curve25519() */
-static const mbedtls_mpi_sint curve25519_a24 = 0x01DB42;
 static const unsigned char curve25519_part_of_n[] = {
     0x14, 0xDE, 0xF9, 0xDE, 0xA2, 0xF7, 0x9C, 0xD6,
     0x58, 0x12, 0x63, 0x1A, 0x5C, 0xF5, 0xD3, 0xED,
 };
 
+#if defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED)
+static const mbedtls_mpi_sint curve25519_a24 = 0x01DB42;
 /*
  * Specialized function for creating the Curve25519 group
  */
@@ -4652,16 +4654,18 @@ cleanup:
     return ret;
 }
 #endif /* MBEDTLS_ECP_DP_CURVE25519_ENABLED */
+#endif /* MBEDTLS_ECP_DP_CURVE25519_ENABLED ||  MBEDTLS_ECP_DP_ED25519_ENABLED */
 
-#if defined(MBEDTLS_ECP_DP_CURVE448_ENABLED)
+#if defined(MBEDTLS_ECP_DP_CURVE448_ENABLED) || defined(MBEDTLS_ECP_DP_ED448_ENABLED)
 /* Constants used by ecp_use_curve448() */
-static const mbedtls_mpi_sint curve448_a24 = 0x98AA;
 static const unsigned char curve448_part_of_n[] = {
     0x83, 0x35, 0xDC, 0x16, 0x3B, 0xB1, 0x24,
     0xB6, 0x51, 0x29, 0xC9, 0x6F, 0xDE, 0x93,
     0x3D, 0x8D, 0x72, 0x3A, 0x70, 0xAA, 0xDC,
     0x87, 0x3D, 0x6D, 0x54, 0xA7, 0xBB, 0x0D,
 };
+#if defined(MBEDTLS_ECP_DP_CURVE448_ENABLED)
+static const mbedtls_mpi_sint curve448_a24 = 0x98AA;
 
 /*
  * Specialized function for creating the Curve448 group
@@ -4708,6 +4712,126 @@ cleanup:
     return ret;
 }
 #endif /* MBEDTLS_ECP_DP_CURVE448_ENABLED */
+
+#endif /* MBEDTLS_ECP_DP_CURVE448_ENABLED || MBEDTLS_ECP_DP_ED448_ENABLED */
+
+#if defined(MBEDTLS_ECP_DP_ED25519_ENABLED)
+/* Constants used by ecp_use_ed25519() */
+static const unsigned char ed25519_b[] = {
+    0x52, 0x03, 0x6C, 0xEE, 0x2B, 0x6F, 0xFE, 0x73,
+    0x8C, 0xC7, 0x40, 0x79, 0x77, 0x79, 0xE8, 0x98,
+    0x00, 0x70, 0x0A, 0x4D, 0x41, 0x41, 0xD8, 0xAB,
+    0x75, 0xEB, 0x4D, 0xCA, 0x13, 0x59, 0x78, 0xA3,
+};
+static const unsigned char ed25519_g_x[] = {
+    0x21, 0x69, 0x36, 0xD3, 0xCD, 0x6E, 0x53, 0xFE,
+    0xC0, 0xA4, 0xE2, 0x31, 0xFD, 0xD6, 0xDC, 0x5C,
+    0x69, 0x2C, 0xC7, 0x60, 0x95, 0x25, 0xA7, 0xB2,
+    0xC9, 0x56, 0x2D, 0x60, 0x8F, 0x25, 0xD5, 0x1A,
+};
+static const unsigned char ed25519_g_y[] = {
+    0x66, 0x66, 0x66, 0x66, 0x66, 0x66, 0x66, 0x66,
+    0x66, 0x66, 0x66, 0x66, 0x66, 0x66, 0x66, 0x66,
+    0x66, 0x66, 0x66, 0x66, 0x66, 0x66, 0x66, 0x66,
+    0x66, 0x66, 0x66, 0x66, 0x66, 0x66, 0x66, 0x58,
+};
+
+/*
+ * Specialized function for creating the Ed25519 group
+ */
+static int ecp_use_ed25519(mbedtls_ecp_group *grp)
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+
+    /* P = 2^255 - 19 */
+    MBEDTLS_MPI_CHK(mbedtls_mpi_lset(&grp->P, 1));
+    MBEDTLS_MPI_CHK(mbedtls_mpi_shift_l(&grp->P, 255));
+    MBEDTLS_MPI_CHK(mbedtls_mpi_sub_int(&grp->P, &grp->P, 19));
+    grp->pbits = mbedtls_mpi_bitlen(&grp->P);
+
+    /* N = 2^252 + 27742317777372353535851937790883648493 */
+    MBEDTLS_MPI_CHK(mbedtls_mpi_read_binary(&grp->N,
+                                            curve25519_part_of_n, sizeof(curve25519_part_of_n)));
+    MBEDTLS_MPI_CHK(mbedtls_mpi_set_bit(&grp->N, 252, 1));
+
+    /* Actually, the required msb for private keys */
+    grp->nbits = 254;
+
+    /* A = -1 */
+    MBEDTLS_MPI_CHK(mbedtls_mpi_sub_int(&grp->A, &grp->P, 1));
+
+    /* B = -121665/121666 (actually d of edwards25519) */
+    MBEDTLS_MPI_CHK(mbedtls_mpi_read_binary(&grp->B,
+                                            ed25519_b, sizeof(ed25519_b)));
+
+    /* (X(P),Y(P)) of edwards25519 in RFC7748. Also set Z so that
+     * projective coordinates can be used. */
+    MBEDTLS_MPI_CHK(mbedtls_mpi_read_binary(&grp->G.X,
+                                            ed25519_g_x, sizeof(ed25519_g_x)));
+    MBEDTLS_MPI_CHK(mbedtls_mpi_read_binary(&grp->G.Y,
+                                            ed25519_g_y, sizeof(ed25519_g_y)));
+    MBEDTLS_MPI_CHK(mbedtls_mpi_lset(&grp->G.Z, 1));
+
+cleanup:
+    if (ret != 0) {
+        mbedtls_ecp_group_free(grp);
+    }
+
+    return ret;
+}
+#endif /* MBEDTLS_ECP_DP_ED25519_ENABLED */
+
+#if defined(MBEDTLS_ECP_DP_ED448_ENABLED)
+/*
+ * Specialized function for creating the Ed448 group
+ */
+static int ecp_use_ed448(mbedtls_ecp_group *grp)
+{
+    mbedtls_mpi Ns;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+
+    mbedtls_mpi_init(&Ns);
+
+    /* P = 2^448 - 2^224 - 1 */
+    MBEDTLS_MPI_CHK(mbedtls_mpi_lset(&grp->P, 1));
+    MBEDTLS_MPI_CHK(mbedtls_mpi_shift_l(&grp->P, 224));
+    MBEDTLS_MPI_CHK(mbedtls_mpi_sub_int(&grp->P, &grp->P, 1));
+    MBEDTLS_MPI_CHK(mbedtls_mpi_shift_l(&grp->P, 224));
+    MBEDTLS_MPI_CHK(mbedtls_mpi_sub_int(&grp->P, &grp->P, 1));
+    grp->pbits = mbedtls_mpi_bitlen(&grp->P);
+
+    /* N = 2^446 - 13818066809895115352007386748515426880336692474882178609894547503885 */
+    MBEDTLS_MPI_CHK(mbedtls_mpi_set_bit(&grp->N, 446, 1));
+    MBEDTLS_MPI_CHK(mbedtls_mpi_read_binary(&Ns,
+                                            curve448_part_of_n, sizeof(curve448_part_of_n)));
+    MBEDTLS_MPI_CHK(mbedtls_mpi_sub_mpi(&grp->N, &grp->N, &Ns));
+
+    /* A = 1 */
+    MBEDTLS_MPI_CHK(mbedtls_mpi_lset(&grp->A, 1));
+
+    /* B = -39081 (actually d of edwards448) */
+    MBEDTLS_MPI_CHK(mbedtls_mpi_sub_int(&grp->B, &grp->P, 39081));
+
+    /* (X(P),Y(P)) of edwards448 in RFC7748. Also set Z so that
+     * projective coordinates can be used. */
+    MBEDTLS_MPI_CHK(mbedtls_mpi_read_string(&grp->G.X, 16,
+                                            "4F1970C66BED0DED221D15A622BF36DA9E146570470F1767EA6DE324A3D3A46412AE1AF72AB66511433B80E18B00938E2626A82BC70CC05E"));
+    MBEDTLS_MPI_CHK(mbedtls_mpi_read_string(&grp->G.Y, 16,
+                                            "693F46716EB6BC248876203756C9C7624BEA73736CA3984087789C1E05A0C2D73AD3FF1CE67C39C4FDBD132C4ED7C8AD9808795BF230FA14"));
+    MBEDTLS_MPI_CHK(mbedtls_mpi_lset(&grp->G.Z, 1));
+
+    grp->nbits = 456;
+
+cleanup:
+    mbedtls_mpi_free(&Ns);
+    if (ret != 0) {
+        mbedtls_ecp_group_free(grp);
+    }
+
+    return ret;
+}
+
+#endif /* MBEDTLS_ECP_DP_ED448_ENABLED */
 
 /*
  * Set a group using well-known domain parameters
@@ -4795,6 +4919,17 @@ int mbedtls_ecp_group_load(mbedtls_ecp_group *grp, mbedtls_ecp_group_id id)
             grp->modp = ecp_mod_p448;
             return ecp_use_curve448(grp);
 #endif /* MBEDTLS_ECP_DP_CURVE448_ENABLED */
+
+#if defined(MBEDTLS_ECP_DP_ED25519_ENABLED)
+        case MBEDTLS_ECP_DP_ED25519:
+            grp->modp = ecp_mod_p255;
+            return ecp_use_ed25519(grp);
+#endif /* MBEDTLS_ECP_DP_ED25519_ENABLED */
+#if defined(MBEDTLS_ECP_DP_ED448_ENABLED)
+        case MBEDTLS_ECP_DP_ED448:
+            grp->modp = ecp_mod_p448;
+            return ecp_use_ed448(grp);
+#endif /* MBEDTLS_ECP_DP_ED448_ENABLED */
 
         default:
             grp->id = MBEDTLS_ECP_DP_NONE;
@@ -5184,7 +5319,7 @@ cleanup:
 
 #endif /* MBEDTLS_ECP_NIST_OPTIM */
 
-#if defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED)
+#if defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED) || defined(MBEDTLS_ECP_DP_ED25519_ENABLED)
 
 /* Size of p255 in terms of mbedtls_mpi_uint */
 #define P255_WIDTH      (255 / 8 / sizeof(mbedtls_mpi_uint) + 1)
@@ -5218,9 +5353,9 @@ static int ecp_mod_p255(mbedtls_mpi *N)
 
     return 0;
 }
-#endif /* MBEDTLS_ECP_DP_CURVE25519_ENABLED */
+#endif /* MBEDTLS_ECP_DP_CURVE25519_ENABLED || MBEDTLS_ECP_DP_ED25519_ENABLED */
 
-#if defined(MBEDTLS_ECP_DP_CURVE448_ENABLED)
+#if defined(MBEDTLS_ECP_DP_CURVE448_ENABLED) || defined(MBEDTLS_ECP_DP_ED448_ENABLED)
 
 /* Size of p448 in terms of mbedtls_mpi_uint */
 #define P448_WIDTH      (448 / 8 / sizeof(mbedtls_mpi_uint))
@@ -5295,7 +5430,7 @@ static int ecp_mod_p448(mbedtls_mpi *N)
 cleanup:
     return ret;
 }
-#endif /* MBEDTLS_ECP_DP_CURVE448_ENABLED */
+#endif /* MBEDTLS_ECP_DP_CURVE448_ENABLED || defined(MBEDTLS_ECP_DP_ED448_ENABLED) */
 
 #if defined(MBEDTLS_ECP_DP_SECP192K1_ENABLED) ||   \
     defined(MBEDTLS_ECP_DP_SECP224K1_ENABLED) ||   \

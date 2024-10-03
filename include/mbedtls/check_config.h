@@ -170,6 +170,17 @@
 #error "MBEDTLS_ECDSA_C defined, but not all prerequisites"
 #endif
 
+#if defined(MBEDTLS_EDDSA_C) &&            \
+    ( !defined(MBEDTLS_ECP_C) ||           \
+      !( defined(MBEDTLS_ECP_DP_ED25519_ENABLED) || \
+         defined(MBEDTLS_ECP_DP_ED448_ENABLED) ) || \
+      ( defined(MBEDTLS_ECP_DP_ED25519_ENABLED) \
+        && !defined(MBEDTLS_SHA512_C) )   ||    \
+      ( defined(MBEDTLS_ECP_DP_ED448_ENABLED) \
+        && !defined(MBEDTLS_SHA3_C) ) )
+#error "MBEDTLS_EDDSA_C defined, but not all prerequisites"
+#endif
+
 #if defined(MBEDTLS_PK_C) && defined(MBEDTLS_USE_PSA_CRYPTO)
 #if defined(PSA_HAVE_ALG_ECDSA_SIGN) && !defined(MBEDTLS_ASN1_WRITE_C)
 #error "MBEDTLS_PK_C with MBEDTLS_USE_PSA_CRYPTO needs MBEDTLS_ASN1_WRITE_C for ECDSA signature"
@@ -206,8 +217,10 @@
     !defined(MBEDTLS_ECP_DP_SECP224K1_ENABLED) &&                  \
     !defined(MBEDTLS_ECP_DP_SECP256K1_ENABLED) &&                  \
     !defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED) &&                 \
-    !defined(MBEDTLS_ECP_DP_CURVE448_ENABLED) ) )
-#error "MBEDTLS_ECP_C defined (or a subset enabled), but not all prerequisites"
+    !defined(MBEDTLS_ECP_DP_CURVE448_ENABLED)  &&                  \
+    !defined(MBEDTLS_ECP_DP_ED25519_ENABLED)   &&                  \
+    !defined(MBEDTLS_ECP_DP_ED448_ENABLED) ) )
+#error "MBEDTLS_ECP_C defined, but not all prerequisites"
 #endif
 
 #if defined(MBEDTLS_ENTROPY_C) && \

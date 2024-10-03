@@ -784,17 +784,17 @@ def main():
         options = parser.parse_args()
 
         if options.list:
-            for task in KNOWN_TASKS:
-                print(task)
+            for task_name in KNOWN_TASKS:
+                print(task_name)
             sys.exit(0)
 
         if options.specified_tasks == 'all':
             tasks_list = KNOWN_TASKS.keys()
         else:
             tasks_list = re.split(r'[, ]+', options.specified_tasks)
-            for task in tasks_list:
-                if task not in KNOWN_TASKS:
-                    sys.stderr.write('invalid task: {}\n'.format(task))
+            for task_name in tasks_list:
+                if task_name not in KNOWN_TASKS:
+                    sys.stderr.write('invalid task: {}\n'.format(task_name))
                     sys.exit(2)
 
         # If the outcome file exists, parse it once and share the result
@@ -806,22 +806,22 @@ def main():
                 sys.exit(2)
 
             task_name = tasks_list[0]
-            task = KNOWN_TASKS[task_name]
-            if not issubclass(task, DriverVSReference):
+            task_class = KNOWN_TASKS[task_name]
+            if not issubclass(task_class, DriverVSReference):
                 sys.stderr.write("please provide valid outcomes file for {}.\n".format(task_name))
                 sys.exit(2)
             execute_reference_driver_tests(main_results,
-                                           task.REFERENCE,
-                                           task.DRIVER,
+                                           task_class.REFERENCE,
+                                           task_class.DRIVER,
                                            options.outcomes)
 
         outcomes = read_outcome_file(options.outcomes)
 
         for task_name in tasks_list:
             task_constructor = KNOWN_TASKS[task_name]
-            task = task_constructor(options)
-            main_results.new_section(task.section_name())
-            task.run(main_results, outcomes)
+            task_instance = task_constructor(options)
+            main_results.new_section(task_instance.section_name())
+            task_instance.run(main_results, outcomes)
 
         main_results.info("Overall results: {} warnings and {} errors",
                           main_results.warning_count, main_results.error_count)

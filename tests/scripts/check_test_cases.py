@@ -14,7 +14,7 @@ import re
 import sys
 
 import scripts_path # pylint: disable=unused-import
-import collect_test_cases
+from mbedtls_framework import collect_test_cases
 
 
 class DescriptionChecker(collect_test_cases.TestDescriptionExplorer):

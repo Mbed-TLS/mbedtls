@@ -18,6 +18,7 @@ import sys
 
 import scripts_path # pylint: disable=unused-import
 from mbedtls_framework import build_tree
+import collect_test_cases
 
 class ScriptOutputError(ValueError):
     """A kind of ValueError that indicates we found

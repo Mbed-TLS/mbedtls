@@ -147,5 +147,10 @@ typedef union {
 #endif
 } psa_driver_pake_context_t;
 
+typedef union {
+    unsigned dummy; /* Make sure this union is always non-empty */
+    mbedtls_psa_generate_key_iop_operation_t mbedtls_ctx;
+} psa_driver_generate_key_context_t;
+
 #endif /* PSA_CRYPTO_DRIVER_CONTEXTS_COMPOSITES_H */
 /* End of automatically generated file. */

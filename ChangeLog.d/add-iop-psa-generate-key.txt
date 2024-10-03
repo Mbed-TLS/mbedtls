@@ -1,0 +1,4 @@
+Features
+   * Add new psa key agreements APIs to generate private key
+     in an interruptible manner and return an identifier for
+     the newly created key.

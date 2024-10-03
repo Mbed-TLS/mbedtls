@@ -8085,6 +8085,143 @@ psa_status_t psa_generate_key(const psa_key_attributes_t *attributes,
                                    key);
 }
 
+#if defined(MBEDTLS_ECP_RESTARTABLE)
+static psa_status_t psa_generate_key_iop_abort_internal(
+    psa_generate_key_iop_t *operation)
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
+    if (operation->id == 0) {
+        return PSA_SUCCESS;
+    }
+
+    status = mbedtls_psa_generate_key_iop_abort(&operation->ctx);
+
+    operation->id = 0;
+
+    return status;
+}
+#endif
+
+uint32_t psa_generate_key_iop_get_num_ops(
+    psa_generate_key_iop_t *operation)
+{
+    return operation->num_ops;
+}
+
+psa_status_t psa_generate_key_iop_setup(
+    psa_generate_key_iop_t *operation,
+    const psa_key_attributes_t *attributes)
+{
+#if defined(MBEDTLS_ECP_RESTARTABLE)
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_key_type_t type;
+
+    if (operation->id != 0 || operation->error_occurred) {
+        status = PSA_ERROR_BAD_STATE;
+        goto exit;
+    }
+
+    type = psa_get_key_type(attributes);
+
+    if (!PSA_KEY_TYPE_IS_ECC(type)) {
+        status = PSA_ERROR_NOT_SUPPORTED;
+        goto exit;
+    }
+
+    if (psa_get_key_bits(attributes) == 0) {
+        status = PSA_ERROR_INVALID_ARGUMENT;
+        goto exit;
+    }
+
+
+    if (PSA_KEY_TYPE_IS_PUBLIC_KEY(type)) {
+        status = PSA_ERROR_INVALID_ARGUMENT;
+        goto exit;
+    }
+
+    operation->attributes = *attributes;
+
+    operation->num_ops = 0;
+
+    /* To be removed later when driver dispatch is added. */
+    operation->id = PSA_CRYPTO_MBED_TLS_DRIVER_ID;
+
+    status = mbedtls_psa_generate_key_iop_setup(&operation->ctx, attributes);
+
+exit:
+    if (status != PSA_SUCCESS) {
+        operation->error_occurred = 1;
+        psa_generate_key_iop_abort_internal(operation);
+    }
+
+    return status;
+#else
+    (void) operation;
+    (void) attributes;
+    return PSA_ERROR_NOT_SUPPORTED;
+#endif
+}
+
+psa_status_t psa_generate_key_iop_complete(
+    psa_generate_key_iop_t *operation,
+    mbedtls_svc_key_id_t *key)
+{
+#if defined(MBEDTLS_ECP_RESTARTABLE)
+    psa_status_t status;
+    uint8_t key_data[MBEDTLS_ECP_MAX_BYTES] = { 0 };
+    size_t key_len = 0;
+
+    if (operation->id == 0 || operation->error_occurred) {
+        return PSA_ERROR_BAD_STATE;
+    }
+
+    status = mbedtls_psa_generate_key_complete(&operation->ctx, key_data,
+                                               MBEDTLS_ECP_MAX_BYTES, &key_len);
+    if (status != PSA_SUCCESS) {
+        goto exit;
+    }
+
+    operation->num_ops = mbedtls_psa_generate_key_get_num_ops(&operation->ctx);
+
+    status = psa_import_key(&operation->attributes, key_data, key_len, key);
+
+exit:
+    if (status != PSA_OPERATION_INCOMPLETE) {
+        if (status != PSA_SUCCESS) {
+            operation->error_occurred = 1;
+        }
+        psa_generate_key_iop_abort_internal(operation);
+    }
+
+    mbedtls_platform_zeroize(key_data, MBEDTLS_ECP_MAX_BYTES);
+    return status;
+#else
+    (void) operation;
+    (void) key;
+
+    return PSA_ERROR_BAD_STATE;
+#endif
+}
+
+psa_status_t psa_generate_key_iop_abort(
+    psa_generate_key_iop_t *operation)
+{
+#if defined(MBEDTLS_ECP_RESTARTABLE)
+    psa_status_t status;
+
+    status = psa_generate_key_iop_abort_internal(operation);
+
+    operation->error_occurred = 0;
+    operation->num_ops = 0;
+    return status;
+#else
+    (void) operation;
+    return PSA_SUCCESS;
+#endif
+}
+
+
 /****************************************************************/
 /* Module setup */
 /****************************************************************/

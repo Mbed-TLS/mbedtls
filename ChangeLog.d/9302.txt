@@ -1,8 +1,8 @@
 Features
    * When the new compilation option MBEDTLS_PSA_STATIC_KEY_SLOTS is enabled,
-     key store uses static key slot buffers instead of dynamically allocated
-     ones.
-   * The size of each static key slot buffer is determined by
-     MBEDTLS_PSA_STATIC_KEY_SLOT_BUFFER_SIZE. If not set, its default value
-     is set to accomodate for the largest PSA asymmetric/symmetric key enabled
-     in the build.
+     key store uses statically allocated key slot's buffers instead of
+     dynamically allocating them on heap memory at runtime (through malloc/free
+     calls).
+     The size of each buffer is given by the option
+     MBEDTLS_PSA_STATIC_KEY_SLOT_BUFFER_SIZE. By default it accomodates the
+     largest PSA key enabled in the build.

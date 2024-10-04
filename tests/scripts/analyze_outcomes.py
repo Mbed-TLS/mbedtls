@@ -14,9 +14,7 @@ from mbedtls_framework import outcome_analysis
 
 
 class CoverageTask(outcome_analysis.CoverageTask):
-    # We'll populate IGNORED_TESTS soon. In the meantime, lack of coverage
-    # is just a warning.
-    outcome_analysis.FULL_COVERAGE_BY_DEFAULT = False
+    """Justify test cases that are never executed."""
 
     @staticmethod
     def _has_word_re(words: typing.Iterable[str],

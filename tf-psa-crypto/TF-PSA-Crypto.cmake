@@ -13,6 +13,19 @@ set(TF_PSA_CRYPTO_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 set(MBEDTLS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/..)
 set(MBEDTLS_FRAMEWORK_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../framework)
 
+# Put the version numbers into relevant files
+set(version_number_files
+        doxygen/input/doc_mainpage.h
+        doxygen/tfpsacrypto.doxyfile)
+foreach(file ${version_number_files})
+    configure_file(${file}.in
+                   ${TF_PSA_CRYPTO_DIR}/${file})
+endforeach(file)
+
+ADD_CUSTOM_TARGET(${TF_PSA_CRYPTO_TARGET_PREFIX}apidoc
+    COMMAND doxygen tfpsacrypto.doxyfile
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/doxygen)
+
 option(ENABLE_PROGRAMS "Build TF-PSA-Crypto programs." ON)
 
 option(UNSAFE_BUILD "Allow unsafe builds. These builds ARE NOT SECURE." OFF)

@@ -57,15 +57,18 @@ endif()
 
 else(NOT (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR))
 
+set(TF_PSA_CRYPTO_VERSION 0.1.0)
+set(TF_PSA_CRYPTO_SOVERSION 0)
+
 if(TEST_CPP)
     project("TF-PSA-Crypto"
         LANGUAGES C CXX
-        VERSION 0.1.0
+        VERSION ${TF_PSA_CRYPTO_VERSION}
     )
 else()
     project("TF-PSA-Crypto"
         LANGUAGES C
-        VERSION 0.1.0
+        VERSION ${TF_PSA_CRYPTO_VERSION}
     )
 endif()
 

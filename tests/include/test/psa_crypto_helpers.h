@@ -491,7 +491,7 @@ uint64_t mbedtls_test_parse_binary_string(data_t *bin_string);
 #endif
 
 /* Helper macro for the PK module to check whether MBEDTLS_PSA_STATIC_KEY_SLOT_BUFFER_SIZE
- * is large enough to contain 4096 bits RSA key pairs. Of course this check is only
+ * is large enough to contain 4096-bit RSA key pairs. Of course this check is only
  * necessary if PK relies on PSA (i.e. MBEDTLS_USE_PSA_CRYPTO) to store and manage
  * the key. */
 #if defined(MBEDTLS_USE_PSA_CRYPTO)

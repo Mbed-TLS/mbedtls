@@ -3280,7 +3280,7 @@
  * #MBEDTLS_PSA_STATIC_KEY_SLOT_BUFFER_SIZE.
  *
  * \note This feature comes with a (potentially) higher RAM usage since:
- *       - All the key slots are allocated no matter if they are used of not.
+ *       - All the key slots are allocated no matter if they are used or not.
  *       - Each key buffer's length is #MBEDTLS_PSA_STATIC_KEY_SLOT_BUFFER_SIZE bytes.
  *
  * Requires: MBEDTLS_PSA_CRYPTO_C

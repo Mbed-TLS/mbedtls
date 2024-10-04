@@ -157,9 +157,9 @@ typedef struct {
     struct key_data {
 #if defined(MBEDTLS_PSA_STATIC_KEY_SLOTS)
         uint8_t data[MBEDTLS_PSA_STATIC_KEY_SLOT_BUFFER_SIZE];
-#else /* MBEDTLS_PSA_STATIC_KEY_SLOTS */
+#else
         uint8_t *data;
-#endif /* MBEDTLS_PSA_STATIC_KEY_SLOTS */
+#endif
         size_t bytes;
     } key;
 } psa_key_slot_t;

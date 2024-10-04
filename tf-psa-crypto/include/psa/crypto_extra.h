@@ -42,13 +42,6 @@ extern "C" {
      PSA_EXPORT_KEY_PAIR_OR_PUBLIC_MAX_SIZE : PSA_CIPHER_MAX_KEY_LENGTH)
 #endif /* !MBEDTLS_PSA_STATIC_KEY_SLOT_BUFFER_SIZE*/
 
-/* Define the size of the each key slot buffer. */
-#if defined(MBEDTLS_PSA_STATIC_KEY_SLOTS)
-#define MBEDTLS_PSA_KEY_BUFFER_MAX_SIZE     MBEDTLS_PSA_STATIC_KEY_SLOT_BUFFER_SIZE
-#else
-#define MBEDTLS_PSA_KEY_BUFFER_MAX_SIZE     SIZE_MAX
-#endif
-
 /** \addtogroup attributes
  * @{
  */

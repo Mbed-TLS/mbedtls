@@ -9,10 +9,11 @@
  */
 #ifndef MBEDTLS_X509_INTERNAL_H
 #define MBEDTLS_X509_INTERNAL_H
+
+#include "common.h"
 #include "mbedtls/private_access.h"
 
 #include "mbedtls/build_info.h"
-#include "common.h"
 
 #include "mbedtls/x509.h"
 #include "mbedtls/asn1.h"

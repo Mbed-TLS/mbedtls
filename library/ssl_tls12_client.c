@@ -5,7 +5,7 @@
  *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
-#include "common.h"
+#include "ssl_misc.h"
 
 #if defined(MBEDTLS_SSL_CLI_C) && defined(MBEDTLS_SSL_PROTO_TLS1_2)
 
@@ -13,7 +13,6 @@
 
 #include "mbedtls/ssl.h"
 #include "ssl_client.h"
-#include "ssl_misc.h"
 #include "debug_internal.h"
 #include "mbedtls/error.h"
 #include "mbedtls/constant_time.h"

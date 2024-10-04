@@ -102,6 +102,9 @@ class CoverageTask(outcome_analysis.CoverageTask):
             'Config: !MBEDTLS_CIPHER_PADDING_PKCS7',
             # https://github.com/Mbed-TLS/mbedtls/issues/9583
             'Config: !MBEDTLS_ECP_NIST_OPTIM',
+            # We never test without the PSA client code. Should we?
+            # https://github.com/Mbed-TLS/TF-PSA-Crypto/issues/112
+            'Config: !MBEDTLS_PSA_CRYPTO_CLIENT',
             # Missing coverage of test configurations.
             # https://github.com/Mbed-TLS/mbedtls/issues/9585
             'Config: !MBEDTLS_SSL_DTLS_ANTI_REPLAY',

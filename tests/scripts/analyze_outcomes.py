@@ -13,7 +13,9 @@ from mbedtls_framework import outcome_analysis
 
 
 class CoverageTask(outcome_analysis.CoverageTask):
-    pass # We'll populate IGNORED_TESTS soon
+    # We'll populate IGNORED_TESTS soon. In the meantime, lack of coverage
+    # is just a warning.
+    outcome_analysis.FULL_COVERAGE_BY_DEFAULT = False
 
 
 # The names that we give to classes derived from DriverVSReference do not

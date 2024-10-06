@@ -85,12 +85,6 @@ class CoverageTask(outcome_analysis.CoverageTask):
             # TLS doesn't use restartable ECDH yet.
             # https://github.com/Mbed-TLS/mbedtls/issues/7294
             re.compile(r'EC restart:.*no USE_PSA.*'),
-            # It seems that we don't run `ssl-opt.sh` with
-            # `MBEDTLS_USE_PSA_CRYPTO` enabled but `MBEDTLS_SSL_ASYNC_PRIVATE`
-            # disabled.
-            # https://github.com/Mbed-TLS/mbedtls/issues/9581
-            'Opaque key for server authentication: invalid key: decrypt with ECC key, no async',
-            'Opaque key for server authentication: invalid key: ecdh with RSA key, no async',
         ],
         'test_suite_config.mbedtls_boolean': [
             # https://github.com/Mbed-TLS/mbedtls/issues/9583

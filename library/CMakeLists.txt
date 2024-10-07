@@ -166,11 +166,11 @@ if(GEN_FILES)
             ${CMAKE_CURRENT_BINARY_DIR}/ssl_debug_helpers_generated.c
         COMMAND
             ${MBEDTLS_PYTHON_EXECUTABLE}
-                ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/generate_ssl_debug_helpers.py
+                ${CMAKE_CURRENT_SOURCE_DIR}/../framework/scripts/generate_ssl_debug_helpers.py
                 --mbedtls-root ${CMAKE_CURRENT_SOURCE_DIR}/..
                 ${CMAKE_CURRENT_BINARY_DIR}
         DEPENDS
-            ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/generate_ssl_debug_helpers.py
+            ${CMAKE_CURRENT_SOURCE_DIR}/../framework/scripts/generate_ssl_debug_helpers.py
             ${error_headers}
     )
 

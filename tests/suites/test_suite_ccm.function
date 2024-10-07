@@ -579,6 +579,9 @@ void mbedtls_ccm_overflow_ad(int cipher_id, int mode,
     mbedtls_ccm_context ctx;
     mbedtls_ccm_init(&ctx);
 
+    /* This test can't be run with empty additional data */
+    TEST_LE_U(1, add->len);
+
     BLOCK_CIPHER_PSA_INIT();
     TEST_EQUAL(mbedtls_ccm_setkey(&ctx, cipher_id, key->x, key->len * 8), 0);
     TEST_EQUAL(0, mbedtls_ccm_starts(&ctx, mode, iv->x, iv->len));
@@ -654,6 +657,9 @@ void mbedtls_ccm_incomplete_ad(int cipher_id, int mode,
     mbedtls_ccm_init(&ctx);
     uint8_t *output = NULL;
 
+    /* This test can't be run with empty additional data */
+    TEST_LE_U(1, add->len);
+
     BLOCK_CIPHER_PSA_INIT();
     TEST_EQUAL(mbedtls_ccm_setkey(&ctx, cipher_id, key->x, key->len * 8), 0);
     TEST_EQUAL(0, mbedtls_ccm_starts(&ctx, mode, iv->x, iv->len));
@@ -709,6 +715,9 @@ void mbedtls_ccm_incomplete_ad_and_overflow(int cipher_id, int mode,
     mbedtls_ccm_init(&ctx);
     uint8_t add_second_buffer[2];
 
+    /* This test can't be run with empty additional data */
+    TEST_LE_U(1, add->len);
+
     add_second_buffer[0] = add->x[add->len - 1];
     add_second_buffer[1] = 0xAB; // some magic value
 
@@ -739,6 +748,9 @@ void mbedtls_ccm_overflow_update(int cipher_id, int mode,
     uint8_t *output = NULL;
     size_t olen;
 
+    /* This test can't be run with an empty message */
+    TEST_LE_U(1, msg->len);
+
     BLOCK_CIPHER_PSA_INIT();
     TEST_EQUAL(mbedtls_ccm_setkey(&ctx, cipher_id, key->x, key->len * 8), 0);
     TEST_EQUAL(0, mbedtls_ccm_starts(&ctx, mode, iv->x, iv->len));
@@ -768,6 +780,9 @@ void mbedtls_ccm_incomplete_update(int cipher_id, int mode,
     mbedtls_ccm_init(&ctx);
     uint8_t *output = NULL;
     size_t olen;
+
+    /* This test can't be run with an empty message */
+    TEST_LE_U(1, msg->len);
 
     BLOCK_CIPHER_PSA_INIT();
     TEST_EQUAL(mbedtls_ccm_setkey(&ctx, cipher_id, key->x, key->len * 8), 0);
@@ -838,6 +853,9 @@ void mbedtls_ccm_incomplete_update_overflow(int cipher_id, int mode,
     uint8_t *output = NULL;
     size_t olen;
     uint8_t msg_second_buffer[2];
+
+    /* This test can't be run with an empty message */
+    TEST_LE_U(1, msg->len);
 
     msg_second_buffer[0] = msg->x[msg->len - 1];
     msg_second_buffer[1] = 0xAB; // some magic value

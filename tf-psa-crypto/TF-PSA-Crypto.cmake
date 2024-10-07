@@ -342,16 +342,16 @@ add_subdirectory(pkgconfig)
 # library and that there is as of today no portable way of handling such
 # dependencies (only toolchain specific solutions).
 #
-# Thus the below definition of the `mbedtls_test` CMake library of objects
-# target. This library of objects is used by tests and programs CMake files
-# to define the test executables.
+# Thus the below definition of the `tf_psa_crypto_test` CMake library of
+# objects target. This library of objects is used by tests and programs CMake
+# files to define the test executables.
 #
 if(ENABLE_TESTING OR ENABLE_PROGRAMS)
     file(GLOB MBEDTLS_TEST_FILES
          ${MBEDTLS_DIR}/tests/src/*.c
          ${MBEDTLS_DIR}/tests/src/drivers/*.c)
-    add_library(mbedtls_test OBJECT ${MBEDTLS_TEST_FILES})
-    set_base_compile_options(mbedtls_test)
+    add_library(tf_psa_crypto_test OBJECT ${MBEDTLS_TEST_FILES})
+    set_base_compile_options(tf_psa_crypto_test)
     if(GEN_FILES)
         add_custom_command(
             OUTPUT
@@ -366,7 +366,7 @@ if(ENABLE_TESTING OR ENABLE_PROGRAMS)
             DEPENDS
                 ${MBEDTLS_FRAMEWORK_DIR}/scripts/generate_test_keys.py
         )
-        add_custom_target(test_keys_header DEPENDS ${MBEDTLS_DIR}/tests/src/test_keys.h)
+        add_custom_target(tf_psa_crypto_test_keys_header DEPENDS ${MBEDTLS_DIR}/tests/src/test_keys.h)
 
         add_custom_command(
             OUTPUT
@@ -381,10 +381,10 @@ if(ENABLE_TESTING OR ENABLE_PROGRAMS)
             DEPENDS
                 ${MBEDTLS_FRAMEWORK_DIR}/scripts/generate_test_cert_macros.py
         )
-        add_custom_target(test_certs_header DEPENDS ${MBEDTLS_DIR}/tests/src/test_certs.h)
-        add_dependencies(mbedtls_test test_keys_header test_certs_header)
+        add_custom_target(tf_psa_crypto_test_certs_header DEPENDS ${MBEDTLS_DIR}/tests/src/test_certs.h)
+        add_dependencies(tf_psa_crypto_test tf_psa_crypto_test_keys_header tf_psa_crypto_test_certs_header)
     endif()
-    target_include_directories(mbedtls_test
+    target_include_directories(tf_psa_crypto_test
         PRIVATE ${MBEDTLS_DIR}/tests/include
         PRIVATE ${MBEDTLS_DIR}/include
         PRIVATE include
@@ -392,8 +392,8 @@ if(ENABLE_TESTING OR ENABLE_PROGRAMS)
         PRIVATE core
         PRIVATE drivers/builtin/src)
     # Request C11, needed for memory poisoning tests
-    set_target_properties(mbedtls_test PROPERTIES C_STANDARD 11)
-    set_config_files_compile_definitions(mbedtls_test)
+    set_target_properties(tf_psa_crypto_test PROPERTIES C_STANDARD 11)
+    set_config_files_compile_definitions(tf_psa_crypto_test)
 endif()
 
 if(ENABLE_PROGRAMS)

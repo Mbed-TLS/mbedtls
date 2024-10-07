@@ -473,8 +473,7 @@ if(ENABLE_TESTING)
     add_subdirectory(tests)
 
     # additional convenience targets for Unix only
-    if(UNIX)
-
+    if(UNIX AND (NOT MBEDTLS_AS_SUBPROJECT))
         # For coverage testing:
         # 1. Build with:
         #         cmake -D CMAKE_BUILD_TYPE=Coverage /path/to/source && make
@@ -493,7 +492,7 @@ if(ENABLE_TESTING)
             COMMAND rm -f memcheck.log
             COMMAND mv DartConfiguration.tcl.bak DartConfiguration.tcl
         )
-    endif(UNIX)
+    endif()
 
     # Make scripts needed for testing available in an out-of-source build.
     if (NOT ${CMAKE_CURRENT_BINARY_DIR} STREQUAL ${CMAKE_CURRENT_SOURCE_DIR})

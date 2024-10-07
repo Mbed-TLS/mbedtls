@@ -294,6 +294,7 @@ function(add_test_suite suite_name)
 
     add_executable(test_suite_${data_name} test_suite_${data_name}.c
                    $<TARGET_OBJECTS:mbedtls_test>)
+    set_base_compile_options(test_suite_${data_name})
     add_dependencies(test_suite_${data_name} ${dependency})
     target_link_libraries(test_suite_${data_name} ${libs})
     # Include test-specific header files from ./include and private header

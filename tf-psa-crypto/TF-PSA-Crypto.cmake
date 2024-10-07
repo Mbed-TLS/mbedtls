@@ -177,48 +177,66 @@ include(CheckCCompilerFlag)
 set(CMAKE_C_EXTENSIONS OFF)
 set(CMAKE_C_STANDARD 99)
 
-if(CMAKE_COMPILER_IS_GNU)
+function(set_base_compile_options target)
+    if(CMAKE_COMPILER_IS_GNU)
+        set_gnu_base_compile_options(${target})
+    endif()
+endfunction(set_base_compile_options)
+
+function(set_gnu_base_compile_options target)
     # some warnings we want are not available with old GCC versions
     # note: starting with CMake 2.8 we could use CMAKE_C_COMPILER_VERSION
     execute_process(COMMAND ${CMAKE_C_COMPILER} -dumpversion
                     OUTPUT_VARIABLE GCC_VERSION)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Wwrite-strings -Wmissing-prototypes")
+    target_compile_options(${target} PRIVATE -Wall -Wextra -Wwrite-strings -Wmissing-prototypes)
     if (GCC_VERSION VERSION_GREATER 3.0 OR GCC_VERSION VERSION_EQUAL 3.0)
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wformat=2 -Wno-format-nonliteral")
+        target_compile_options(${target} PRIVATE -Wformat=2 -Wno-format-nonliteral)
     endif()
     if (GCC_VERSION VERSION_GREATER 4.3 OR GCC_VERSION VERSION_EQUAL 4.3)
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wvla")
+        target_compile_options(${target} PRIVATE -Wvla)
     endif()
     if (GCC_VERSION VERSION_GREATER 4.5 OR GCC_VERSION VERSION_EQUAL 4.5)
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wlogical-op")
+        target_compile_options(${target} PRIVATE -Wlogical-op)
     endif()
     if (GCC_VERSION VERSION_GREATER 4.8 OR GCC_VERSION VERSION_EQUAL 4.8)
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wshadow")
+        target_compile_options(${target} PRIVATE -Wshadow)
     endif()
     if (GCC_VERSION VERSION_GREATER 5.0)
         CHECK_C_COMPILER_FLAG("-Wformat-signedness" C_COMPILER_SUPPORTS_WFORMAT_SIGNEDNESS)
         if(C_COMPILER_SUPPORTS_WFORMAT_SIGNEDNESS)
-            set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wformat-signedness")
+            target_compile_options(${target} PRIVATE -Wformat-signedness)
         endif()
     endif()
     if (GCC_VERSION VERSION_GREATER 7.0 OR GCC_VERSION VERSION_EQUAL 7.0)
-      set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wformat-overflow=2 -Wformat-truncation")
+      target_compile_options(${target} PRIVATE -Wformat-overflow=2 -Wformat-truncation)
     endif()
-
-    set(CMAKE_C_FLAGS_RELEASE     "-O2")
-    set(CMAKE_C_FLAGS_DEBUG       "-O0 -g3")
-    set(CMAKE_C_FLAGS_COVERAGE    "-O0 -g3 --coverage")
-    set(CMAKE_C_FLAGS_ASAN        "-fsanitize=address -fno-common -fsanitize=undefined -fno-sanitize-recover=all -O3")
-    set(CMAKE_C_FLAGS_ASANDBG     "-fsanitize=address -fno-common -fsanitize=undefined -fno-sanitize-recover=all -O1 -g3 -fno-omit-frame-pointer -fno-optimize-sibling-calls")
-    set(CMAKE_C_FLAGS_TSAN        "-fsanitize=thread -O3")
-    set(CMAKE_C_FLAGS_TSANDBG     "-fsanitize=thread -O1 -g3 -fno-omit-frame-pointer -fno-optimize-sibling-calls")
-    set(CMAKE_C_FLAGS_CHECK       "-Os")
-    set(CMAKE_C_FLAGS_CHECKFULL   "${CMAKE_C_FLAGS_CHECK} -Wcast-qual")
+    target_compile_options(${target} PRIVATE $<$<CONFIG:Release>:-O2>)
+    target_compile_options(${target} PRIVATE $<$<CONFIG:Debug>:-O0 -g3>)
+    target_compile_options(${target} PRIVATE $<$<CONFIG:Coverage>:-O0 -g3 --coverage>)
+    # Old GCC versions hit a performance problem with test_suite_pkwrite
+    # "Private keey write check EC" tests when building with Asan+UBSan
+    # and -O3: those tests take more than 100x time than normal, with
+    # test_suite_pkwrite taking >3h on the CI. Observed with GCC 5.4 on
+    # Ubuntu 16.04 x86_64 and GCC 6.5 on Ubuntu 18.04 x86_64.
+    # GCC 7.5 and above on Ubuntu 18.04 appear fine.
+    # To avoid the performance problem, we use -O2 when GCC version is lower than 7.0.
+    # It doesn't slow down much even with modern compiler versions.
+    target_compile_options(${target} PRIVATE $<$<CONFIG:ASan>:-fsanitize=address -fno-common -fsanitize=undefined -fno-sanitize-recover=all>)
+    if (GCC_VERSION VERSION_LESS 7.0)
+        target_compile_options(${target} PRIVATE $<$<CONFIG:ASan>:-O2>)
+    else()
+        target_compile_options(${target} PRIVATE $<$<CONFIG:ASan>:-O3>)
+    endif()
+    target_compile_options(${target} PRIVATE $<$<CONFIG:ASanDbg>:-fsanitize=address -fno-common -fsanitize=undefined -fno-sanitize-recover=all -O1 -g3 -fno-omit-frame-pointer -fno-optimize-sibling-calls>)
+    target_compile_options(${target} PRIVATE $<$<CONFIG:TSan>:-fsanitize=thread -O3>)
+    target_compile_options(${target} PRIVATE $<$<CONFIG:TSanDbg>:-fsanitize=thread -O1 -g3 -fno-omit-frame-pointer -fno-optimize-sibling-calls>)
+    target_compile_options(${target} PRIVATE $<$<CONFIG:Check>:-Os>)
+    target_compile_options(${target} PRIVATE $<$<CONFIG:CheckFull>:-Os -Wcast-qual>)
 
     if(TF_PSA_CRYPTO_FATAL_WARNINGS)
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Werror")
+        target_compile_options(${target} PRIVATE -Werror)
     endif(TF_PSA_CRYPTO_FATAL_WARNINGS)
-endif(CMAKE_COMPILER_IS_GNU)
+endfunction(set_gnu_base_compile_options)
 
 if(CMAKE_COMPILER_IS_CLANG)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Wwrite-strings -Wmissing-prototypes -Wpointer-arith -Wimplicit-fallthrough -Wshadow -Wvla -Wformat=2 -Wno-format-nonliteral")
@@ -300,6 +318,7 @@ if(ENABLE_TESTING OR ENABLE_PROGRAMS)
          ${MBEDTLS_DIR}/tests/src/*.c
          ${MBEDTLS_DIR}/tests/src/drivers/*.c)
     add_library(mbedtls_test OBJECT ${MBEDTLS_TEST_FILES})
+    set_base_compile_options(mbedtls_test)
     if(GEN_FILES)
         add_custom_command(
             OUTPUT

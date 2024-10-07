@@ -91,6 +91,7 @@ set(everest_target "${TF_PSA_CRYPTO_TARGET_PREFIX}everest")
 
 if(USE_STATIC_TF_PSA_CRYPTO_LIBRARY)
     add_library(${mbedcrypto_static_target} STATIC ${src_crypto})
+    set_base_compile_options(${mbedcrypto_static_target})
     set_target_properties(${mbedcrypto_static_target} PROPERTIES OUTPUT_NAME mbedcrypto)
     target_link_libraries(${mbedcrypto_static_target} PUBLIC ${libs})
 
@@ -108,6 +109,7 @@ endif(USE_STATIC_TF_PSA_CRYPTO_LIBRARY)
 if(USE_SHARED_TF_PSA_CRYPTO_LIBRARY)
     set(CMAKE_LIBRARY_PATH ${CMAKE_CURRENT_BINARY_DIR})
     add_library(${mbedcrypto_target} SHARED ${src_crypto})
+    set_base_compile_options(${mbedcrypto_target})
     set_target_properties(${mbedcrypto_target} PROPERTIES VERSION 4.0.0 SOVERSION 16)
     target_link_libraries(${mbedcrypto_target} PUBLIC ${libs})
 

@@ -359,8 +359,6 @@ int main(void)
         goto exit;
     }
 
-    exit_code = MBEDTLS_EXIT_SUCCESS;
-
 exit:
     mbedtls_net_free(&client_fd);
     mbedtls_net_free(&listen_fd);

@@ -630,7 +630,7 @@ void gcm_encrypt_input_output_buffer_overlap(int cipher_id, data_t *key_str,
     if (buffer_len % 16 != 0) {
         buffer_len += (16 - (buffer_len % 16));
     }
-    buffer = malloc(buffer_len);
+    TEST_CALLOC(buffer, buffer_len);
     if (buffer == NULL) {
         TEST_FAIL("Could not allocate memory for input output buffer overlap");
         goto exit;
@@ -642,7 +642,7 @@ void gcm_encrypt_input_output_buffer_overlap(int cipher_id, data_t *key_str,
     TEST_ASSERT(mbedtls_gcm_setkey(&ctx, cipher_id, key_str->x, key_str->len * 8) == init_result);
     if (init_result == 0) {
         TEST_ASSERT(mbedtls_gcm_crypt_and_tag(&ctx, MBEDTLS_GCM_ENCRYPT, src_str->len, iv_str->x,
-                                              iv_str->len, add_str->x, add_str->len, src_str->x,
+                                              iv_str->len, add_str->x, add_str->len, buffer,
                                               buffer, tag_len, tag_output) == 0);
 
         TEST_MEMORY_COMPARE(buffer, src_str->len, dst->x, dst->len);
@@ -695,7 +695,7 @@ void gcm_decrypt_input_output_buffer_overlap(int cipher_id, data_t *key_str,
     if (buffer_len % 16 != 0) {
         buffer_len += (16 - (buffer_len % 16));
     }
-    buffer = malloc(buffer_len);
+    TEST_CALLOC(buffer, buffer_len);
     if (buffer == NULL) {
         TEST_FAIL("Could not allocate memory for input output buffer overlap");
         goto exit;

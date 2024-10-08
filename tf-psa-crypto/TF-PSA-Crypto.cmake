@@ -204,6 +204,7 @@ if(CMAKE_COMPILER_IS_GNU)
     if (GCC_VERSION VERSION_GREATER 7.0 OR GCC_VERSION VERSION_EQUAL 7.0)
       set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wformat-overflow=2 -Wformat-truncation")
     endif()
+
     set(CMAKE_C_FLAGS_RELEASE     "-O2")
     set(CMAKE_C_FLAGS_DEBUG       "-O0 -g3")
     set(CMAKE_C_FLAGS_COVERAGE    "-O0 -g3 --coverage")
@@ -213,6 +214,10 @@ if(CMAKE_COMPILER_IS_GNU)
     set(CMAKE_C_FLAGS_TSANDBG     "-fsanitize=thread -O1 -g3 -fno-omit-frame-pointer -fno-optimize-sibling-calls")
     set(CMAKE_C_FLAGS_CHECK       "-Os")
     set(CMAKE_C_FLAGS_CHECKFULL   "${CMAKE_C_FLAGS_CHECK} -Wcast-qual")
+
+    if(TF_PSA_CRYPTO_FATAL_WARNINGS)
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Werror")
+    endif(TF_PSA_CRYPTO_FATAL_WARNINGS)
 endif(CMAKE_COMPILER_IS_GNU)
 
 if(CMAKE_COMPILER_IS_CLANG)
@@ -227,32 +232,30 @@ if(CMAKE_COMPILER_IS_CLANG)
     set(CMAKE_C_FLAGS_TSAN        "-fsanitize=thread -O3")
     set(CMAKE_C_FLAGS_TSANDBG     "-fsanitize=thread -O1 -g3 -fno-omit-frame-pointer -fno-optimize-sibling-calls")
     set(CMAKE_C_FLAGS_CHECK       "-Os")
+
+    if(TF_PSA_CRYPTO_FATAL_WARNINGS)
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Werror")
+    endif(TF_PSA_CRYPTO_FATAL_WARNINGS)
 endif(CMAKE_COMPILER_IS_CLANG)
 
 if(CMAKE_COMPILER_IS_IAR)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --warn_about_c_style_casts")
     set(CMAKE_C_FLAGS_RELEASE     "-Ohz")
     set(CMAKE_C_FLAGS_DEBUG       "--debug -On")
+
+    if(TF_PSA_CRYPTO_FATAL_WARNINGS)
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --warnings_are_errors")
+    endif(TF_PSA_CRYPTO_FATAL_WARNINGS)
 endif(CMAKE_COMPILER_IS_IAR)
 
 if(CMAKE_COMPILER_IS_MSVC)
     # Strictest warnings, UTF-8 source and execution charset
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /W3 /utf-8")
-endif(CMAKE_COMPILER_IS_MSVC)
 
-if(TF_PSA_CRYPTO_FATAL_WARNINGS)
-    if(CMAKE_COMPILER_IS_MSVC)
+    if(TF_PSA_CRYPTO_FATAL_WARNINGS)
         set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /WX")
-    endif(CMAKE_COMPILER_IS_MSVC)
-
-    if(CMAKE_COMPILER_IS_CLANG OR CMAKE_COMPILER_IS_GNU)
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Werror")
-    endif(CMAKE_COMPILER_IS_CLANG OR CMAKE_COMPILER_IS_GNU)
-
-    if (CMAKE_COMPILER_IS_IAR)
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --warnings_are_errors")
-    endif(CMAKE_COMPILER_IS_IAR)
-endif(TF_PSA_CRYPTO_FATAL_WARNINGS)
+    endif(TF_PSA_CRYPTO_FATAL_WARNINGS)
+endif(CMAKE_COMPILER_IS_MSVC)
 
 if(CMAKE_BUILD_TYPE STREQUAL "Check" AND TEST_CPP)
     set(CMAKE_CXX_STANDARD 11)

@@ -174,7 +174,9 @@ int mbedtls_gcm_crypt_and_tag(mbedtls_gcm_context *ctx,
  *
  * \note            The output buffer \p output can be the same as the input
  *                  buffer \p input. If \p output is greater than \p input, they
- *                  cannot overlap.
+ *                  cannot overlap. Implementations which require
+ *                  MBEDTLS_GCM_ALT to be enabled may not provide support
+ *                  overlapping buffers.
  *
  * \param ctx       The GCM context. This must be initialized.
  * \param length    The length of the ciphertext to decrypt, which is also
@@ -282,7 +284,9 @@ int mbedtls_gcm_update_ad(mbedtls_gcm_context *ctx,
  *
  * \note            The output buffer \p output can be the same as the input
  *                  buffer \p input. If \p output is greater than \p input, they
- *                  cannot overlap.
+ *                  cannot overlap. Implementations which require
+ *                  MBEDTLS_GCM_ALT to be enabled may not provide support
+ *                  overlapping buffers.
  *
  * \param ctx           The GCM context. This must be initialized.
  * \param input         The buffer holding the input data. If \p input_length

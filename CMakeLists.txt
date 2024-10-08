@@ -248,6 +248,7 @@ function(set_gnu_base_compile_options target)
     target_compile_options(${target} PRIVATE $<$<CONFIG:Release>:-O2>)
     target_compile_options(${target} PRIVATE $<$<CONFIG:Debug>:-O0 -g3>)
     target_compile_options(${target} PRIVATE $<$<CONFIG:Coverage>:-O0 -g3 --coverage>)
+    set_target_properties(${target} PROPERTIES LINK_FLAGS_COVERAGE "--coverage")
     # Old GCC versions hit a performance problem with test_suite_pkwrite
     # "Private keey write check EC" tests when building with Asan+UBSan
     # and -O3: those tests take more than 100x time than normal, with
@@ -262,9 +263,13 @@ function(set_gnu_base_compile_options target)
     else()
         target_compile_options(${target} PRIVATE $<$<CONFIG:ASan>:-O3>)
     endif()
+    set_target_properties(${target} PROPERTIES LINK_FLAGS_ASAN "-fsanitize=address -fsanitize=undefined")
     target_compile_options(${target} PRIVATE $<$<CONFIG:ASanDbg>:-fsanitize=address -fno-common -fsanitize=undefined -fno-sanitize-recover=all -O1 -g3 -fno-omit-frame-pointer -fno-optimize-sibling-calls>)
+    set_target_properties(${target} PROPERTIES LINK_FLAGS_ASANDBG "-fsanitize=address -fsanitize=undefined")
     target_compile_options(${target} PRIVATE $<$<CONFIG:TSan>:-fsanitize=thread -O3>)
+    set_target_properties(${target} PROPERTIES LINK_FLAGS_TSAN "-fsanitize=thread")
     target_compile_options(${target} PRIVATE $<$<CONFIG:TSanDbg>:-fsanitize=thread -O1 -g3 -fno-omit-frame-pointer -fno-optimize-sibling-calls>)
+    set_target_properties(${target} PROPERTIES LINK_FLAGS_TSANDBG "-fsanitize=thread")
     target_compile_options(${target} PRIVATE $<$<CONFIG:Check>:-Os>)
     target_compile_options(${target} PRIVATE $<$<CONFIG:CheckFull>:-Os -Wcast-qual>)
 

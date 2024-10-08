@@ -160,6 +160,6 @@ component_check_test_helpers () {
     ./framework/scripts/test_generate_test_code.py 2>&1
 
     msg "unit test: translate_ciphers.py"
-    python3 -m unittest tests/scripts/translate_ciphers.py 2>&1
+    python3 -m unittest framework/scripts/translate_ciphers.py 2>&1
 }
 

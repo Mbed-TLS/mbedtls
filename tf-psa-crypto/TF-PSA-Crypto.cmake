@@ -29,7 +29,6 @@ ADD_CUSTOM_TARGET(${TF_PSA_CRYPTO_TARGET_PREFIX}apidoc
 
 option(ENABLE_PROGRAMS "Build TF-PSA-Crypto programs." ON)
 
-option(UNSAFE_BUILD "Allow unsafe builds. These builds ARE NOT SECURE." OFF)
 option(TF_PSA_CRYPTO_FATAL_WARNINGS "Compiler warnings treated as errors" ON)
 if(CMAKE_HOST_WIN32)
     # N.B. The comment on the next line is significant! If you change it,
@@ -248,11 +247,6 @@ if(TF_PSA_CRYPTO_FATAL_WARNINGS)
 
     if(CMAKE_COMPILER_IS_CLANG OR CMAKE_COMPILER_IS_GNU)
         set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Werror")
-        if(UNSAFE_BUILD)
-            set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-error=cpp")
-            set(CMAKE_C_FLAGS_ASAN "${CMAKE_C_FLAGS_ASAN} -Wno-error=cpp")
-            set(CMAKE_C_FLAGS_ASANDBG "${CMAKE_C_FLAGS_ASANDBG} -Wno-error=cpp")
-        endif(UNSAFE_BUILD)
     endif(CMAKE_COMPILER_IS_CLANG OR CMAKE_COMPILER_IS_GNU)
 
     if (CMAKE_COMPILER_IS_IAR)

@@ -210,6 +210,7 @@ def baremetal_size_adapter(name, value, active):
 def include_in_crypto(name):
     """Rules for symbols in a crypto configuration."""
     if name.startswith('MBEDTLS_X509_') or \
+       name.startswith('MBEDTLS_VERSION_') or \
        name.startswith('MBEDTLS_SSL_') or \
        name.startswith('MBEDTLS_KEY_EXCHANGE_'):
         return False

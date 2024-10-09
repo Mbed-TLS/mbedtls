@@ -433,9 +433,11 @@ fatal_signal () {
     kill -$1 $$
 }
 
-trap 'fatal_signal HUP' HUP
-trap 'fatal_signal INT' INT
-trap 'fatal_signal TERM' TERM
+pre_set_signal_handlers () {
+    trap 'fatal_signal HUP' HUP
+    trap 'fatal_signal INT' INT
+    trap 'fatal_signal TERM' TERM
+}
 
 # Number of processors on this machine. Used as the default setting
 # for parallel make.
@@ -979,6 +981,7 @@ run_component () {
 main () {
     # Preliminary setup
     pre_set_shell_options
+    pre_set_signal_handlers
     pre_check_environment
     pre_load_helpers
     pre_load_components

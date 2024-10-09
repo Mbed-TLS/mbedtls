@@ -7820,9 +7820,7 @@ ECP group ID <-> PSA family - SECP192K1
 depends_on:PSA_WANT_ECC_SECP_K1_192
 ecc_conversion_functions:MBEDTLS_ECP_DP_SECP192K1:PSA_ECC_FAMILY_SECP_K1:192
 
-ECP group ID <-> PSA family - SECP224K1
-depends_on:PSA_WANT_ECC_SECP_K1_224
-ecc_conversion_functions:MBEDTLS_ECP_DP_SECP224K1:PSA_ECC_FAMILY_SECP_K1:224
+# No test case for SECP224K1, which is not implemented in the PSA API.
 
 ECP group ID <-> PSA family - SECP256K1
 depends_on:PSA_WANT_ECC_SECP_K1_256

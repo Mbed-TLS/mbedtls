@@ -6,286 +6,298 @@ This script can also run on outcomes from a partial run, but the results are
 less likely to be useful.
 """
 
-import argparse
-import sys
-import traceback
 import re
-import subprocess
-import os
 import typing
 
-import check_test_cases
+import scripts_path # pylint: disable=unused-import
+from mbedtls_framework import outcome_analysis
 
 
-# `ComponentOutcomes` is a named tuple which is defined as:
-# ComponentOutcomes(
-#     successes = {
-#         "<suite_case>",
-#         ...
-#     },
-#     failures = {
-#         "<suite_case>",
-#         ...
-#     }
-# )
-# suite_case = "<suite>;<case>"
-ComponentOutcomes = typing.NamedTuple('ComponentOutcomes',
-                                      [('successes', typing.Set[str]),
-                                       ('failures', typing.Set[str])])
-
-# `Outcomes` is a representation of the outcomes file,
-# which defined as:
-# Outcomes = {
-#     "<component>": ComponentOutcomes,
-#     ...
-# }
-Outcomes = typing.Dict[str, ComponentOutcomes]
-
-
-class Results:
-    """Process analysis results."""
-
-    def __init__(self):
-        self.error_count = 0
-        self.warning_count = 0
-
-    def new_section(self, fmt, *args, **kwargs):
-        self._print_line('\n*** ' + fmt + ' ***\n', *args, **kwargs)
-
-    def info(self, fmt, *args, **kwargs):
-        self._print_line('Info: ' + fmt, *args, **kwargs)
-
-    def error(self, fmt, *args, **kwargs):
-        self.error_count += 1
-        self._print_line('Error: ' + fmt, *args, **kwargs)
-
-    def warning(self, fmt, *args, **kwargs):
-        self.warning_count += 1
-        self._print_line('Warning: ' + fmt, *args, **kwargs)
+class CoverageTask(outcome_analysis.CoverageTask):
+    """Justify test cases that are never executed."""
 
     @staticmethod
-    def _print_line(fmt, *args, **kwargs):
-        sys.stderr.write((fmt + '\n').format(*args, **kwargs))
+    def _has_word_re(words: typing.Iterable[str],
+                     exclude: typing.Optional[str] = None) -> typing.Pattern:
+        """Construct a regex that matches if any of the words appears.
 
-def execute_reference_driver_tests(results: Results, ref_component: str, driver_component: str, \
-                                   outcome_file: str) -> None:
-    """Run the tests specified in ref_component and driver_component. Results
-    are stored in the output_file and they will be used for the following
-    coverage analysis"""
-    results.new_section("Test {} and {}", ref_component, driver_component)
+        The occurrence must start and end at a word boundary.
 
-    shell_command = "tests/scripts/all.sh --outcome-file " + outcome_file + \
-                    " " + ref_component + " " + driver_component
-    results.info("Running: {}", shell_command)
-    ret_val = subprocess.run(shell_command.split(), check=False).returncode
-
-    if ret_val != 0:
-        results.error("failed to run reference/driver components")
-
-IgnoreEntry = typing.Union[str, typing.Pattern]
-
-def name_matches_pattern(name: str, str_or_re: IgnoreEntry) -> bool:
-    """Check if name matches a pattern, that may be a string or regex.
-    - If the pattern is a string, name must be equal to match.
-    - If the pattern is a regex, name must fully match.
-    """
-    # The CI's python is too old for re.Pattern
-    #if isinstance(str_or_re, re.Pattern):
-    if not isinstance(str_or_re, str):
-        return str_or_re.fullmatch(name) is not None
-    else:
-        return str_or_re == name
-
-def read_outcome_file(outcome_file: str) -> Outcomes:
-    """Parse an outcome file and return an outcome collection.
-    """
-    outcomes = {}
-    with open(outcome_file, 'r', encoding='utf-8') as input_file:
-        for line in input_file:
-            (_platform, component, suite, case, result, _cause) = line.split(';')
-            # Note that `component` is not unique. If a test case passes on Linux
-            # and fails on FreeBSD, it'll end up in both the successes set and
-            # the failures set.
-            suite_case = ';'.join([suite, case])
-            if component not in outcomes:
-                outcomes[component] = ComponentOutcomes(set(), set())
-            if result == 'PASS':
-                outcomes[component].successes.add(suite_case)
-            elif result == 'FAIL':
-                outcomes[component].failures.add(suite_case)
-
-    return outcomes
-
-
-class Task:
-    """Base class for outcome analysis tasks."""
-
-    # Override the following in child classes.
-    # Map test suite names (with the test_suite_prefix) to a list of ignored
-    # test cases. Each element in the list can be either a string or a regex;
-    # see the `name_matches_pattern` function.
-    IGNORED_TESTS = {} #type: typing.Dict[str, typing.List[IgnoreEntry]]
-
-    def __init__(self, options) -> None:
-        """Pass command line options to the tasks.
-
-        Each task decides which command line options it cares about.
+        If exclude is specified, strings containing a match for that
+        regular expression will not match the returned pattern.
         """
-        pass
+        exclude_clause = r''
+        if exclude:
+            exclude_clause = r'(?!.*' + exclude + ')'
+        return re.compile(exclude_clause +
+                          r'.*\b(?:' + r'|'.join(words) + r')\b.*',
+                          re.S)
 
-    def section_name(self) -> str:
-        """The section name to use in results."""
+    # generate_psa_tests.py generates test cases involving cryptographic
+    # mechanisms (key types, families, algorithms) that are declared but
+    # not implemented. Until we improve the Python scripts, ignore those
+    # test cases in the analysis.
+    # https://github.com/Mbed-TLS/mbedtls/issues/9572
+    _PSA_MECHANISMS_NOT_IMPLEMENTED = [
+        r'CBC_MAC',
+        r'DETERMINISTIC_DSA',
+        r'DET_DSA',
+        r'DSA',
+        r'ECC_KEY_PAIR\(BRAINPOOL_P_R1\) (?:160|192|224|320)-bit',
+        r'ECC_KEY_PAIR\(SECP_K1\) 225-bit',
+        r'ECC_PAIR\(BP_R1\) (?:160|192|224|320)-bit',
+        r'ECC_PAIR\(SECP_K1\) 225-bit',
+        r'ECC_PUBLIC_KEY\(BRAINPOOL_P_R1\) (?:160|192|224|320)-bit',
+        r'ECC_PUBLIC_KEY\(SECP_K1\) 225-bit',
+        r'ECC_PUB\(BP_R1\) (?:160|192|224|320)-bit',
+        r'ECC_PUB\(SECP_K1\) 225-bit',
+        r'ED25519PH',
+        r'ED448PH',
+        r'PEPPER',
+        r'PURE_EDDSA',
+        r'SECP_R2',
+        r'SECT_K1',
+        r'SECT_R1',
+        r'SECT_R2',
+        r'SHAKE256_512',
+        r'SHA_512_224',
+        r'SHA_512_256',
+        r'TWISTED_EDWARDS',
+        r'XTS',
+    ]
+    PSA_MECHANISM_NOT_IMPLEMENTED_SEARCH_RE = \
+        _has_word_re(_PSA_MECHANISMS_NOT_IMPLEMENTED)
 
-    def ignored_tests(self, test_suite: str) -> typing.Iterator[IgnoreEntry]:
-        """Generate the ignore list for the specified test suite."""
-        if test_suite in self.IGNORED_TESTS:
-            yield from self.IGNORED_TESTS[test_suite]
-        pos = test_suite.find('.')
-        if pos != -1:
-            base_test_suite = test_suite[:pos]
-            if base_test_suite in self.IGNORED_TESTS:
-                yield from self.IGNORED_TESTS[base_test_suite]
-
-    def is_test_case_ignored(self, test_suite: str, test_string: str) -> bool:
-        """Check if the specified test case is ignored."""
-        for str_or_re in self.ignored_tests(test_suite):
-            if name_matches_pattern(test_string, str_or_re):
-                return True
-        return False
-
-    def run(self, results: Results, outcomes: Outcomes):
-        """Run the analysis on the specified outcomes.
-
-        Signal errors via the results objects
-        """
-        raise NotImplementedError
-
-
-class CoverageTask(Task):
-    """Analyze test coverage."""
-
-    # Test cases whose suite and description are matched by an entry in
-    # IGNORED_TESTS are expected to be never executed.
-    # All other test cases are expected to be executed at least once.
     IGNORED_TESTS = {
+        'ssl-opt': [
+            # We don't run ssl-opt.sh with Valgrind on the CI because
+            # it's extremely slow. We don't intend to change this.
+            'DTLS client reconnect from same port: reconnect, nbio, valgrind',
+
+            # We don't have IPv6 in our CI environment.
+            # https://github.com/Mbed-TLS/mbedtls-test/issues/176
+            'DTLS cookie: enabled, IPv6',
+            # Disabled due to OpenSSL bug.
+            # https://github.com/openssl/openssl/issues/18887
+            'DTLS fragmenting: 3d, openssl client, DTLS 1.2',
+            # We don't run ssl-opt.sh with Valgrind on the CI because
+            # it's extremely slow. We don't intend to change this.
+            'DTLS fragmenting: proxy MTU: auto-reduction (with valgrind)',
+            # TLS doesn't use restartable ECDH yet.
+            # https://github.com/Mbed-TLS/mbedtls/issues/7294
+            re.compile(r'EC restart:.*no USE_PSA.*'),
+            # It seems that we don't run `ssl-opt.sh` with
+            # `MBEDTLS_USE_PSA_CRYPTO` enabled but `MBEDTLS_SSL_ASYNC_PRIVATE`
+            # disabled.
+            # https://github.com/Mbed-TLS/mbedtls/issues/9581
+            'Opaque key for server authentication: invalid key: decrypt with ECC key, no async',
+            'Opaque key for server authentication: invalid key: ecdh with RSA key, no async',
+        ],
+        'test_suite_config.mbedtls_boolean': [
+            # We never test with CBC/PKCS5/PKCS12 enabled but
+            # PKCS7 padding disabled.
+            # https://github.com/Mbed-TLS/mbedtls/issues/9580
+            'Config: !MBEDTLS_CIPHER_PADDING_PKCS7',
+            # https://github.com/Mbed-TLS/mbedtls/issues/9583
+            'Config: !MBEDTLS_ECP_NIST_OPTIM',
+            # We never test without the PSA client code. Should we?
+            # https://github.com/Mbed-TLS/TF-PSA-Crypto/issues/112
+            'Config: !MBEDTLS_PSA_CRYPTO_CLIENT',
+            # Missing coverage of test configurations.
+            # https://github.com/Mbed-TLS/mbedtls/issues/9585
+            'Config: !MBEDTLS_SSL_DTLS_ANTI_REPLAY',
+            # Missing coverage of test configurations.
+            # https://github.com/Mbed-TLS/mbedtls/issues/9585
+            'Config: !MBEDTLS_SSL_DTLS_HELLO_VERIFY',
+            # We don't run test_suite_config when we test this.
+            # https://github.com/Mbed-TLS/mbedtls/issues/9586
+            'Config: !MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED',
+            # We only test multithreading with pthreads.
+            # https://github.com/Mbed-TLS/mbedtls/issues/9584
+            'Config: !MBEDTLS_THREADING_PTHREAD',
+            # Built but not tested.
+            # https://github.com/Mbed-TLS/mbedtls/issues/9587
+            'Config: MBEDTLS_AES_USE_HARDWARE_ONLY',
+            # Untested platform-specific optimizations.
+            # https://github.com/Mbed-TLS/mbedtls/issues/9588
+            'Config: MBEDTLS_HAVE_SSE2',
+            # Obsolete configuration option, to be replaced by
+            # PSA entropy drivers.
+            # https://github.com/Mbed-TLS/mbedtls/issues/8150
+            'Config: MBEDTLS_NO_PLATFORM_ENTROPY',
+            # Untested aspect of the platform interface.
+            # https://github.com/Mbed-TLS/mbedtls/issues/9589
+            'Config: MBEDTLS_PLATFORM_NO_STD_FUNCTIONS',
+            # In a client-server build, test_suite_config runs in the
+            # client configuration, so it will never report
+            # MBEDTLS_PSA_CRYPTO_SPM as enabled. That's ok.
+            'Config: MBEDTLS_PSA_CRYPTO_SPM',
+            # We don't test on armv8 yet.
+            'Config: MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT',
+            'Config: MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY',
+            'Config: MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_ONLY',
+            'Config: MBEDTLS_SHA512_USE_A64_CRYPTO_ONLY',
+            # We don't run test_suite_config when we test this.
+            # https://github.com/Mbed-TLS/mbedtls/issues/9586
+            'Config: MBEDTLS_TEST_CONSTANT_FLOW_VALGRIND',
+        ],
+        'test_suite_config.psa_boolean': [
+            # We don't test with HMAC disabled.
+            # https://github.com/Mbed-TLS/mbedtls/issues/9591
+            'Config: !PSA_WANT_ALG_HMAC',
+            # We don't test with HMAC disabled.
+            # https://github.com/Mbed-TLS/mbedtls/issues/9591
+            'Config: !PSA_WANT_ALG_TLS12_PRF',
+            # The DERIVE key type is always enabled.
+            'Config: !PSA_WANT_KEY_TYPE_DERIVE',
+            # More granularity of key pair type enablement macros
+            # than we care to test.
+            # https://github.com/Mbed-TLS/mbedtls/issues/9590
+            'Config: !PSA_WANT_KEY_TYPE_DH_KEY_PAIR_EXPORT',
+            'Config: !PSA_WANT_KEY_TYPE_DH_KEY_PAIR_GENERATE',
+            'Config: !PSA_WANT_KEY_TYPE_DH_KEY_PAIR_IMPORT',
+            # More granularity of key pair type enablement macros
+            # than we care to test.
+            # https://github.com/Mbed-TLS/mbedtls/issues/9590
+            'Config: !PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_EXPORT',
+            'Config: !PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_IMPORT',
+            # We don't test with HMAC disabled.
+            # https://github.com/Mbed-TLS/mbedtls/issues/9591
+            'Config: !PSA_WANT_KEY_TYPE_HMAC',
+            # The PASSWORD key type is always enabled.
+            'Config: !PSA_WANT_KEY_TYPE_PASSWORD',
+            # The PASSWORD_HASH key type is always enabled.
+            'Config: !PSA_WANT_KEY_TYPE_PASSWORD_HASH',
+            # The RAW_DATA key type is always enabled.
+            'Config: !PSA_WANT_KEY_TYPE_RAW_DATA',
+            # More granularity of key pair type enablement macros
+            # than we care to test.
+            # https://github.com/Mbed-TLS/mbedtls/issues/9590
+            'Config: !PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_EXPORT',
+            'Config: !PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_IMPORT',
+            # Algorithm declared but not supported.
+            'Config: PSA_WANT_ALG_CBC_MAC',
+            # Algorithm declared but not supported.
+            'Config: PSA_WANT_ALG_XTS',
+            # Family declared but not supported.
+            'Config: PSA_WANT_ECC_SECP_K1_224',
+            # More granularity of key pair type enablement macros
+            # than we care to test.
+            # https://github.com/Mbed-TLS/mbedtls/issues/9590
+            'Config: PSA_WANT_KEY_TYPE_DH_KEY_PAIR_DERIVE',
+            'Config: PSA_WANT_KEY_TYPE_ECC_KEY_PAIR',
+            'Config: PSA_WANT_KEY_TYPE_RSA_KEY_PAIR',
+            'Config: PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_DERIVE',
+        ],
+        'test_suite_config.psa_combinations': [
+            # We don't test this unusual, but sensible configuration.
+            # https://github.com/Mbed-TLS/mbedtls/issues/9592
+            'Config: PSA_WANT_ALG_DETERMINSTIC_ECDSA without PSA_WANT_ALG_ECDSA',
+        ],
+        'test_suite_pkcs12': [
+            # We never test with CBC/PKCS5/PKCS12 enabled but
+            # PKCS7 padding disabled.
+            # https://github.com/Mbed-TLS/mbedtls/issues/9580
+            'PBE Decrypt, (Invalid padding & PKCS7 padding disabled)',
+            'PBE Encrypt, pad = 8 (PKCS7 padding disabled)',
+        ],
+        'test_suite_pkcs5': [
+            # We never test with CBC/PKCS5/PKCS12 enabled but
+            # PKCS7 padding disabled.
+            # https://github.com/Mbed-TLS/mbedtls/issues/9580
+            'PBES2 Decrypt (Invalid padding & PKCS7 padding disabled)',
+            'PBES2 Encrypt, pad=6 (PKCS7 padding disabled)',
+            'PBES2 Encrypt, pad=8 (PKCS7 padding disabled)',
+        ],
+        'test_suite_psa_crypto_generate_key.generated': [
+            # Ignore mechanisms that are not implemented, except
+            # for public keys for which we always test that
+            # psa_generate_key() returns PSA_ERROR_INVALID_ARGUMENT
+            # regardless of whether the specific key type is supported.
+            _has_word_re((mech
+                          for mech in _PSA_MECHANISMS_NOT_IMPLEMENTED
+                          if not mech.startswith('ECC_PUB')),
+                         exclude=r'ECC_PUB'),
+        ],
         'test_suite_psa_crypto_metadata': [
-            # Algorithm not supported yet
+            # Algorithms declared but not supported.
+            # https://github.com/Mbed-TLS/mbedtls/issues/9579
+            'Asymmetric signature: Ed25519ph',
+            'Asymmetric signature: Ed448ph',
             'Asymmetric signature: pure EdDSA',
-            # Algorithm not supported yet
             'Cipher: XTS',
+            'MAC: CBC_MAC-3DES',
+            'MAC: CBC_MAC-AES-128',
+            'MAC: CBC_MAC-AES-192',
+            'MAC: CBC_MAC-AES-256',
+        ],
+        'test_suite_psa_crypto_not_supported.generated': [
+            # It is a bug that not-supported test cases aren't getting
+            # run for never-implemented key types.
+            # https://github.com/Mbed-TLS/mbedtls/issues/7915
+            PSA_MECHANISM_NOT_IMPLEMENTED_SEARCH_RE,
+            # We mever test with DH key support disabled but support
+            # for a DH group enabled. The dependencies of these test
+            # cases don't really make sense.
+            # https://github.com/Mbed-TLS/mbedtls/issues/9574
+            re.compile(r'PSA \w+ DH_.*type not supported'),
+            # We only test partial support for DH with the 2048-bit group
+            # enabled and the other groups disabled.
+            # https://github.com/Mbed-TLS/mbedtls/issues/9575
+            'PSA generate DH_KEY_PAIR(RFC7919) 2048-bit group not supported',
+            'PSA import DH_KEY_PAIR(RFC7919) 2048-bit group not supported',
+            'PSA import DH_PUBLIC_KEY(RFC7919) 2048-bit group not supported',
+        ],
+        'test_suite_psa_crypto_op_fail.generated': [
+            # Ignore mechanisms that are not implemented, except
+            # for test cases that assume the mechanism is not supported.
+            _has_word_re(_PSA_MECHANISMS_NOT_IMPLEMENTED,
+                         exclude=(r'.*: !(?:' +
+                                  r'|'.join(_PSA_MECHANISMS_NOT_IMPLEMENTED) +
+                                  r')\b')),
+            # Incorrect dependency generation. To be fixed as part of the
+            # resolution of https://github.com/Mbed-TLS/mbedtls/issues/9167
+            # by forward-porting the commit
+            # "PSA test case generation: dependency inference class: operation fail"
+            # from https://github.com/Mbed-TLS/mbedtls/pull/9025 .
+            re.compile(r'.* with (?:DH|ECC)_(?:KEY_PAIR|PUBLIC_KEY)\(.*'),
+            # PBKDF2_HMAC is not in the default configuration, so we don't
+            # enable it in depends.py where we remove hashes.
+            # https://github.com/Mbed-TLS/mbedtls/issues/9576
+            re.compile(r'PSA key_derivation PBKDF2_HMAC\(\w+\): !(?!PBKDF2_HMAC\Z).*'),
+            # We never test with TLS12_PRF or TLS12_PSK_TO_MS disabled
+            # but certain other things enabled.
+            # https://github.com/Mbed-TLS/mbedtls/issues/9577
+            re.compile(r'PSA key_derivation TLS12_PRF\(\w+\): !TLS12_PRF'),
+            re.compile(r'PSA key_derivation TLS12_PSK_TO_MS'
+                       r'\((?!SHA_256|SHA_384|SHA_512)\w+\): !TLS12_PSK_TO_MS'),
+            'PSA key_derivation KEY_AGREEMENT(ECDH,TLS12_PRF(SHA_256)): !TLS12_PRF',
+            'PSA key_derivation KEY_AGREEMENT(ECDH,TLS12_PRF(SHA_384)): !TLS12_PRF',
+
+            # We never test with the HMAC algorithm enabled but the HMAC
+            # key type disabled. Those dependencies don't really make sense.
+            # https://github.com/Mbed-TLS/mbedtls/issues/9573
+            re.compile(r'.* !HMAC with HMAC'),
+            # There's something wrong with PSA_WANT_ALG_RSA_PSS_ANY_SALT
+            # differing from PSA_WANT_ALG_RSA_PSS.
+            # https://github.com/Mbed-TLS/mbedtls/issues/9578
+            re.compile(r'PSA sign RSA_PSS_ANY_SALT.*!(?:MD|RIPEMD|SHA).*'),
+        ],
+        'test_suite_psa_crypto_storage_format.current': [
+            PSA_MECHANISM_NOT_IMPLEMENTED_SEARCH_RE,
+        ],
+        'test_suite_psa_crypto_storage_format.v0': [
+            PSA_MECHANISM_NOT_IMPLEMENTED_SEARCH_RE,
+        ],
+        'tls13-misc': [
+            # Disabled due to OpenSSL bug.
+            # https://github.com/openssl/openssl/issues/10714
+            'TLS 1.3 O->m: resumption',
+            # Disabled due to OpenSSL command line limitation.
+            # https://github.com/Mbed-TLS/mbedtls/issues/9582
+            'TLS 1.3 m->O: resumption with early data',
         ],
     }
-
-    def __init__(self, options) -> None:
-        super().__init__(options)
-        self.full_coverage = options.full_coverage #type: bool
-
-    @staticmethod
-    def section_name() -> str:
-        return "Analyze coverage"
-
-    def run(self, results: Results, outcomes: Outcomes) -> None:
-        """Check that all available test cases are executed at least once."""
-        # Make sure that the generated data files are present (and up-to-date).
-        # This allows analyze_outcomes.py to run correctly on a fresh Git
-        # checkout.
-        cp = subprocess.run(['make', 'generated_files'],
-                            cwd='tests',
-                            stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                            check=False)
-        if cp.returncode != 0:
-            sys.stderr.write(cp.stdout.decode('utf-8'))
-            results.error("Failed \"make generated_files\" in tests. "
-                          "Coverage analysis may be incorrect.")
-        available = check_test_cases.collect_available_test_cases()
-        for suite_case in available:
-            hit = any(suite_case in comp_outcomes.successes or
-                      suite_case in comp_outcomes.failures
-                      for comp_outcomes in outcomes.values())
-            (test_suite, test_description) = suite_case.split(';')
-            ignored = self.is_test_case_ignored(test_suite, test_description)
-
-            if not hit and not ignored:
-                if self.full_coverage:
-                    results.error('Test case not executed: {}', suite_case)
-                else:
-                    results.warning('Test case not executed: {}', suite_case)
-            elif hit and ignored:
-                # If a test case is no longer always skipped, we should remove
-                # it from the ignore list.
-                if self.full_coverage:
-                    results.error('Test case was executed but marked as ignored for coverage: {}',
-                                  suite_case)
-                else:
-                    results.warning('Test case was executed but marked as ignored for coverage: {}',
-                                    suite_case)
-
-
-class DriverVSReference(Task):
-    """Compare outcomes from testing with and without a driver.
-
-    There are 2 options to use analyze_driver_vs_reference_xxx locally:
-    1. Run tests and then analysis:
-      - tests/scripts/all.sh --outcome-file "$PWD/out.csv" <component_ref> <component_driver>
-      - tests/scripts/analyze_outcomes.py out.csv analyze_driver_vs_reference_xxx
-    2. Let this script run both automatically:
-      - tests/scripts/analyze_outcomes.py out.csv analyze_driver_vs_reference_xxx
-    """
-
-    # Override the following in child classes.
-    # Configuration name (all.sh component) used as the reference.
-    REFERENCE = ''
-    # Configuration name (all.sh component) used as the driver.
-    DRIVER = ''
-    # Ignored test suites (without the test_suite_ prefix).
-    IGNORED_SUITES = [] #type: typing.List[str]
-
-    def __init__(self, options) -> None:
-        super().__init__(options)
-        self.ignored_suites = frozenset('test_suite_' + x
-                                        for x in self.IGNORED_SUITES)
-
-    def section_name(self) -> str:
-        return f"Analyze driver {self.DRIVER} vs reference {self.REFERENCE}"
-
-    def run(self, results: Results, outcomes: Outcomes) -> None:
-        """Check that all tests passing in the driver component are also
-        passing in the corresponding reference component.
-        Skip:
-        - full test suites provided in ignored_suites list
-        - only some specific test inside a test suite, for which the corresponding
-          output string is provided
-        """
-        ref_outcomes = outcomes.get("component_" + self.REFERENCE)
-        driver_outcomes = outcomes.get("component_" + self.DRIVER)
-
-        if ref_outcomes is None or driver_outcomes is None:
-            results.error("required components are missing: bad outcome file?")
-            return
-
-        if not ref_outcomes.successes:
-            results.error("no passing test in reference component: bad outcome file?")
-            return
-
-        for suite_case in ref_outcomes.successes:
-            # suite_case is like "test_suite_foo.bar;Description of test case"
-            (full_test_suite, test_string) = suite_case.split(';')
-            test_suite = full_test_suite.split('.')[0] # retrieve main part of test suite name
-
-            # Immediately skip fully-ignored test suites
-            if test_suite in self.ignored_suites or \
-               full_test_suite in self.ignored_suites:
-                continue
-
-            # For ignored test cases inside test suites, just remember and:
-            # don't issue an error if they're skipped with drivers,
-            # but issue an error if they're not (means we have a bad entry).
-            ignored = self.is_test_case_ignored(full_test_suite, test_string)
-
-            if not ignored and not suite_case in driver_outcomes.successes:
-                results.error("SKIP/FAIL -> PASS: {}", suite_case)
-            if ignored and suite_case in driver_outcomes.successes:
-                results.error("uselessly ignored: {}", suite_case)
 
 
 # The names that we give to classes derived from DriverVSReference do not
@@ -295,7 +307,7 @@ class DriverVSReference(Task):
 # documentation.
 #pylint: disable=invalid-name,missing-class-docstring
 
-class DriverVSReference_hash(DriverVSReference):
+class DriverVSReference_hash(outcome_analysis.DriverVSReference):
     REFERENCE = 'test_psa_crypto_config_reference_hash_use_psa'
     DRIVER = 'test_psa_crypto_config_accel_hash_use_psa'
     IGNORED_SUITES = [
@@ -315,7 +327,7 @@ class DriverVSReference_hash(DriverVSReference):
         ],
     }
 
-class DriverVSReference_hmac(DriverVSReference):
+class DriverVSReference_hmac(outcome_analysis.DriverVSReference):
     REFERENCE = 'test_psa_crypto_config_reference_hmac'
     DRIVER = 'test_psa_crypto_config_accel_hmac'
     IGNORED_SUITES = [
@@ -354,7 +366,7 @@ class DriverVSReference_hmac(DriverVSReference):
         ],
     }
 
-class DriverVSReference_cipher_aead_cmac(DriverVSReference):
+class DriverVSReference_cipher_aead_cmac(outcome_analysis.DriverVSReference):
     REFERENCE = 'test_psa_crypto_config_reference_cipher_aead_cmac'
     DRIVER = 'test_psa_crypto_config_accel_cipher_aead_cmac'
     # Modules replaced by drivers.
@@ -421,7 +433,7 @@ class DriverVSReference_cipher_aead_cmac(DriverVSReference):
         ],
     }
 
-class DriverVSReference_ecp_light_only(DriverVSReference):
+class DriverVSReference_ecp_light_only(outcome_analysis.DriverVSReference):
     REFERENCE = 'test_psa_crypto_config_reference_ecc_ecp_light_only'
     DRIVER = 'test_psa_crypto_config_accel_ecc_ecp_light_only'
     IGNORED_SUITES = [
@@ -461,7 +473,7 @@ class DriverVSReference_ecp_light_only(DriverVSReference):
         ],
     }
 
-class DriverVSReference_no_ecp_at_all(DriverVSReference):
+class DriverVSReference_no_ecp_at_all(outcome_analysis.DriverVSReference):
     REFERENCE = 'test_psa_crypto_config_reference_ecc_no_ecp_at_all'
     DRIVER = 'test_psa_crypto_config_accel_ecc_no_ecp_at_all'
     IGNORED_SUITES = [
@@ -499,7 +511,7 @@ class DriverVSReference_no_ecp_at_all(DriverVSReference):
         ],
     }
 
-class DriverVSReference_ecc_no_bignum(DriverVSReference):
+class DriverVSReference_ecc_no_bignum(outcome_analysis.DriverVSReference):
     REFERENCE = 'test_psa_crypto_config_reference_ecc_no_bignum'
     DRIVER = 'test_psa_crypto_config_accel_ecc_no_bignum'
     IGNORED_SUITES = [
@@ -544,7 +556,7 @@ class DriverVSReference_ecc_no_bignum(DriverVSReference):
         ],
     }
 
-class DriverVSReference_ecc_ffdh_no_bignum(DriverVSReference):
+class DriverVSReference_ecc_ffdh_no_bignum(outcome_analysis.DriverVSReference):
     REFERENCE = 'test_psa_crypto_config_reference_ecc_ffdh_no_bignum'
     DRIVER = 'test_psa_crypto_config_accel_ecc_ffdh_no_bignum'
     IGNORED_SUITES = [
@@ -597,7 +609,7 @@ class DriverVSReference_ecc_ffdh_no_bignum(DriverVSReference):
         ],
     }
 
-class DriverVSReference_ffdh_alg(DriverVSReference):
+class DriverVSReference_ffdh_alg(outcome_analysis.DriverVSReference):
     REFERENCE = 'test_psa_crypto_config_reference_ffdh'
     DRIVER = 'test_psa_crypto_config_accel_ffdh'
     IGNORED_SUITES = ['dhm']
@@ -613,7 +625,7 @@ class DriverVSReference_ffdh_alg(DriverVSReference):
         ],
     }
 
-class DriverVSReference_tfm_config(DriverVSReference):
+class DriverVSReference_tfm_config(outcome_analysis.DriverVSReference):
     REFERENCE = 'test_tfm_config_no_p256m'
     DRIVER = 'test_tfm_config_p256m_driver_accel_ec'
     IGNORED_SUITES = [
@@ -645,7 +657,7 @@ class DriverVSReference_tfm_config(DriverVSReference):
         ],
     }
 
-class DriverVSReference_rsa(DriverVSReference):
+class DriverVSReference_rsa(outcome_analysis.DriverVSReference):
     REFERENCE = 'test_psa_crypto_config_reference_rsa_crypto'
     DRIVER = 'test_psa_crypto_config_accel_rsa_crypto'
     IGNORED_SUITES = [
@@ -684,7 +696,7 @@ class DriverVSReference_rsa(DriverVSReference):
         ],
     }
 
-class DriverVSReference_block_cipher_dispatch(DriverVSReference):
+class DriverVSReference_block_cipher_dispatch(outcome_analysis.DriverVSReference):
     REFERENCE = 'test_full_block_cipher_legacy_dispatch'
     DRIVER = 'test_full_block_cipher_psa_dispatch'
     IGNORED_SUITES = [
@@ -751,7 +763,6 @@ class DriverVSReference_block_cipher_dispatch(DriverVSReference):
 #pylint: enable=invalid-name,missing-class-docstring
 
 
-
 # List of tasks with a function that can handle this task and additional arguments if required
 KNOWN_TASKS = {
     'analyze_coverage': CoverageTask,
@@ -768,77 +779,5 @@ KNOWN_TASKS = {
     'analyze_block_cipher_dispatch': DriverVSReference_block_cipher_dispatch,
 }
 
-
-def main():
-    main_results = Results()
-
-    try:
-        parser = argparse.ArgumentParser(description=__doc__)
-        parser.add_argument('outcomes', metavar='OUTCOMES.CSV',
-                            help='Outcome file to analyze')
-        parser.add_argument('specified_tasks', default='all', nargs='?',
-                            help='Analysis to be done. By default, run all tasks. '
-                                 'With one or more TASK, run only those. '
-                                 'TASK can be the name of a single task or '
-                                 'comma/space-separated list of tasks. ')
-        parser.add_argument('--list', action='store_true',
-                            help='List all available tasks and exit.')
-        parser.add_argument('--require-full-coverage', action='store_true',
-                            dest='full_coverage', help="Require all available "
-                            "test cases to be executed and issue an error "
-                            "otherwise. This flag is ignored if 'task' is "
-                            "neither 'all' nor 'analyze_coverage'")
-        options = parser.parse_args()
-
-        if options.list:
-            for task in KNOWN_TASKS:
-                print(task)
-            sys.exit(0)
-
-        if options.specified_tasks == 'all':
-            tasks_list = KNOWN_TASKS.keys()
-        else:
-            tasks_list = re.split(r'[, ]+', options.specified_tasks)
-            for task in tasks_list:
-                if task not in KNOWN_TASKS:
-                    sys.stderr.write('invalid task: {}\n'.format(task))
-                    sys.exit(2)
-
-        # If the outcome file exists, parse it once and share the result
-        # among tasks to improve performance.
-        # Otherwise, it will be generated by execute_reference_driver_tests.
-        if not os.path.exists(options.outcomes):
-            if len(tasks_list) > 1:
-                sys.stderr.write("mutiple tasks found, please provide a valid outcomes file.\n")
-                sys.exit(2)
-
-            task_name = tasks_list[0]
-            task = KNOWN_TASKS[task_name]
-            if not issubclass(task, DriverVSReference):
-                sys.stderr.write("please provide valid outcomes file for {}.\n".format(task_name))
-                sys.exit(2)
-            execute_reference_driver_tests(main_results,
-                                           task.REFERENCE,
-                                           task.DRIVER,
-                                           options.outcomes)
-
-        outcomes = read_outcome_file(options.outcomes)
-
-        for task_name in tasks_list:
-            task_constructor = KNOWN_TASKS[task_name]
-            task = task_constructor(options)
-            main_results.new_section(task.section_name())
-            task.run(main_results, outcomes)
-
-        main_results.info("Overall results: {} warnings and {} errors",
-                          main_results.warning_count, main_results.error_count)
-
-        sys.exit(0 if (main_results.error_count == 0) else 1)
-
-    except Exception: # pylint: disable=broad-except
-        # Print the backtrace and exit explicitly with our chosen status.
-        traceback.print_exc()
-        sys.exit(120)
-
 if __name__ == '__main__':
-    main()
+    outcome_analysis.main(KNOWN_TASKS)

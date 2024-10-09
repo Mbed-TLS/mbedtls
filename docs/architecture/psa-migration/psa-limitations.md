@@ -11,6 +11,17 @@ is, of course, to actually do the migration work.
 Limitations relevant for G1 (performing crypto operations)
 ==========================================================
 
+Executive summary
+-----------------
+
+- Restartable/interruptible ECC operations: some operations (`sign_hash`) are
+  already supported in PSA, but not used by TLS. The remaining operations
+(ECDH `key_agreement` and `export_public`) will be implemented in 4.0 or 4.x,
+and used by TLS in 4.x.
+- Arbitrary parameters for FFDH: use in TLS will be dropped in 4.0.
+- RSA-PSS parameters: already implemented safe though arguably non-compliant
+  solution in Mbed TLS 3.4, no complaints so far.
+
 Restartable (aka interruptible) ECC operations
 ----------------------------------------------
 
@@ -27,19 +38,8 @@ both enabled, some operations that should be restartable are not (ECDH in TLS
 operations that should use PSA do not (signature generation & verification) as
 they use the legacy API instead, in order to get restartable behaviour.
 
-Things that are in the API but not implemented yet
---------------------------------------------------
-
-PSA Crypto has an API for FFDH, but it's not implemented in Mbed TLS yet.
-(Regarding FFDH, see the next section as well.) See issue [3261][ffdh] on
-github.
-
-[ffdh]: https://github.com/Mbed-TLS/mbedtls/issues/3261
-
 Arbitrary parameters for FFDH
 -----------------------------
-
-(See also the first paragraph in the previous section.)
 
 Currently, the PSA Crypto API can only perform FFDH with a limited set of
 well-known parameters (some of them defined in the spec, but implementations

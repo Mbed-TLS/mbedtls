@@ -3,7 +3,15 @@
 # Copyright The Mbed TLS Contributors
 # SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
 
-# This file contains helpers for test components that are executed by all.sh
+# This file contains helpers for test components that are executed by all.sh.
+# See "Files structure" in all-core.sh for other files used by all.sh.
+#
+# This file is the right place for helpers:
+# - that are used by more than one component living in more than one file;
+# - or (inclusive) that we want to share accross repos or branches.
+#
+# Helpers that are used in a single component file that is
+# repo&branch-specific can be defined in the file where they are used.
 
 ################################################################
 #### Helpers for components using libtestdriver1

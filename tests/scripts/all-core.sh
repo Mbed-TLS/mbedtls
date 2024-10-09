@@ -3,8 +3,6 @@
 # Copyright The Mbed TLS Contributors
 # SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
 
-
-
 ################################################################
 #### Documentation
 ################################################################
@@ -13,6 +11,24 @@
 # -------
 #
 # To run all tests possible or available on the platform.
+#
+# Files structure
+# ---------------
+#
+# The executable entry point for users and the CI is tests/scripts/all.sh.
+#
+# The actual content is in the following files:
+# - all-core.sh contains the core logic for running test components,
+#   processing command line options, reporting results, etc.
+# - all-helpers.sh contains helper functions used by more than 1 component.
+# - components-*.sh contain the definitions of the various components.
+#
+# The first two parts are shared between repos and branches;
+# the component files are repo&branch-specific.
+#
+# The files all-*.sh and components-*.sh should only define functions and not
+# run code when sourced; the only exception being that all-core.sh runs
+# 'shopt' because that is necessary for the rest of the file to parse.
 #
 # Notes for users
 # ---------------
@@ -143,7 +159,7 @@ pre_check_environment () {
 pre_load_components () {
     # Include the components from components.sh
     test_script_dir="${0%/*}"
-    for file in "$test_script_dir"/components*.sh; do
+    for file in "$test_script_dir"/components-*.sh; do
         source $file
     done
 }

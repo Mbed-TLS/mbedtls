@@ -337,12 +337,6 @@ if(CMAKE_BUILD_TYPE STREQUAL "Check" AND TEST_CPP)
     endif()
 endif()
 
-if(CMAKE_BUILD_TYPE STREQUAL "Coverage")
-    if(CMAKE_COMPILER_IS_GNU OR CMAKE_COMPILER_IS_CLANG)
-        set(CMAKE_SHARED_LINKER_FLAGS "--coverage")
-    endif(CMAKE_COMPILER_IS_GNU OR CMAKE_COMPILER_IS_CLANG)
-endif(CMAKE_BUILD_TYPE STREQUAL "Coverage")
-
 if (NOT EXISTS "${MBEDTLS_FRAMEWORK_DIR}/CMakeLists.txt")
     message(FATAL_ERROR "${MBEDTLS_FRAMEWORK_DIR}/CMakeLists.txt not found. Run `git submodule update --init` from the source tree to fetch the submodule contents.")
 endif()

@@ -922,6 +922,7 @@ run_test    "TLS 1.3 m->O: resumption fails, no ticket support" \
 # ephemeral then ticket based scenario we use for early data testing the first
 # handshake fails. The following skipped test is here to illustrate the kind
 # of testing we would like to do.
+# https://github.com/Mbed-TLS/mbedtls/issues/9582
 skip_next_test
 requires_openssl_tls1_3_with_compatible_ephemeral
 requires_config_enabled MBEDTLS_SSL_CLI_C

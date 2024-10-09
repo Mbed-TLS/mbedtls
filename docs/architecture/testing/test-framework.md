@@ -22,7 +22,7 @@ Each test case has a description which succinctly describes for a human audience
 * Make the description descriptive. “foo: x=2, y=4” is more descriptive than “foo #2”. “foo: 0<x<y, both even” is even better if these inequalities and parities are why this particular test data was chosen.
 * Avoid changing the description of an existing test case without a good reason. This breaks the tracking of failures across CI runs, since this tracking is based on the descriptions.
 
-`tests/scripts/check_test_cases.py` enforces some rules and warns if some guidelines are violated.
+`framework/scripts/check_test_cases.py` enforces some rules and warns if some guidelines are violated.
 
 ## TLS tests
 

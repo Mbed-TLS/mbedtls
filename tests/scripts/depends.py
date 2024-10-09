@@ -139,7 +139,7 @@ which will make a symbol defined with a certain value."""
         conf.set(option, value)
     return True
 
-def set_reference_config(conf, options, colors):
+def set_reference_config(conf, colors):
     """Change the library configuration file (mbedtls_config.h) to the reference state.
 The reference state is the one from which the tested configurations are
 derived."""
@@ -148,8 +148,6 @@ derived."""
     conf.adapt(config.full_adapter)
     set_config_option_value(conf, 'MBEDTLS_TEST_HOOKS', colors, False)
     set_config_option_value(conf, 'MBEDTLS_PSA_CRYPTO_CONFIG', colors, False)
-    if options.unset_use_psa:
-        set_config_option_value(conf, 'MBEDTLS_USE_PSA_CRYPTO', colors, False)
 
 class Job:
     """A job builds the library in a specific configuration and runs some tests."""
@@ -179,9 +177,9 @@ If what is False, announce that the job has failed.'''
         else:
             log_line('starting ' + self.name, color=colors.cyan)
 
-    def configure(self, conf, options, colors):
+    def configure(self, conf, _options, colors):
         '''Set library configuration options as required for the job.'''
-        set_reference_config(conf, options, colors)
+        set_reference_config(conf, colors)
         for key, value in sorted(self.config_settings.items()):
             ret = set_config_option_value(conf, key, colors, value)
             if ret is False:
@@ -533,9 +531,6 @@ def main():
         parser.add_argument('--make-command', metavar='CMD',
                             help='Command to run instead of make (e.g. gmake)',
                             action='store', default='make')
-        parser.add_argument('--unset-use-psa',
-                            help='Unset MBEDTLS_USE_PSA_CRYPTO before any test',
-                            action='store_true', dest='unset_use_psa')
         parser.add_argument('tasks', metavar='TASKS', nargs='*',
                             help='The domain(s) or job(s) to test (default: all).',
                             default=True)

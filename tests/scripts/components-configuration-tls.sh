@@ -719,11 +719,6 @@ component_test_full_minus_session_tickets () {
     tests/ssl-opt.sh
 }
 
-component_test_depends_py_kex () {
-    msg "test/build: depends.py kex (gcc)"
-    tests/scripts/depends.py kex --unset-use-psa
-}
-
 component_test_depends_py_kex_psa () {
     msg "test/build: depends.py kex (gcc) with MBEDTLS_USE_PSA_CRYPTO defined"
     tests/scripts/depends.py kex

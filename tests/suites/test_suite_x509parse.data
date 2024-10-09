@@ -899,10 +899,6 @@ X509 CRT verification #67 (Valid, RSASSA-PSS, all defaults)
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_X509_RSASSA_PSS_SUPPORT:PSA_WANT_ALG_SHA_1
 x509_verify:"../framework/data_files/server9-defaults.crt":"../framework/data_files/test-ca.crt":"../framework/data_files/crl-rsa-pss-sha1.pem":"NULL":0:0:"compat":"NULL"
 
-X509 CRT verification #68 (RSASSA-PSS, wrong salt_len, !USE_PSA)
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_X509_RSASSA_PSS_SUPPORT:PSA_WANT_ALG_SHA_256:PSA_WANT_ALG_SHA_1:!MBEDTLS_USE_PSA_CRYPTO
-x509_verify:"../framework/data_files/server9-bad-saltlen.crt":"../framework/data_files/test-ca.crt":"../framework/data_files/crl-rsa-pss-sha1.pem":"NULL":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_NOT_TRUSTED:"compat":"NULL"
-
 X509 CRT verification #68 (RSASSA-PSS, wrong salt_len, USE_PSA)
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_X509_RSASSA_PSS_SUPPORT:PSA_WANT_ALG_SHA_256:PSA_WANT_ALG_SHA_1:MBEDTLS_USE_PSA_CRYPTO
 x509_verify:"../framework/data_files/server9-bad-saltlen.crt":"../framework/data_files/test-ca.crt":"../framework/data_files/crl-rsa-pss-sha1.pem":"NULL":0:0:"compat":"NULL"

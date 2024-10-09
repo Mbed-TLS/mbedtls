@@ -70,7 +70,7 @@ component_check_test_cases () {
     else
         opt=''
     fi
-    tests/scripts/check_test_cases.py -q $opt
+    framework/scripts/check_test_cases.py -q $opt
     unset opt
 }
 

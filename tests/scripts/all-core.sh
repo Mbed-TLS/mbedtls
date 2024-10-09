@@ -83,16 +83,19 @@
 #
 # The bulk of the code is organized into functions that follow one of the
 # following naming conventions:
-#  * pre_XXX: things to do before running the tests, in order.
-#  * component_XXX: independent components. They can be run in any order.
-#      * component_check_XXX: quick tests that aren't worth parallelizing.
-#      * component_build_XXX: build things but don't run them.
-#      * component_test_XXX: build and test.
-#      * component_release_XXX: tests that the CI should skip during PR testing.
-#  * support_XXX: if support_XXX exists and returns false then
-#    component_XXX is not run by default.
-#  * post_XXX: things to do after running the tests.
-#  * other: miscellaneous support functions.
+# * in all-core.sh:
+#   * pre_XXX: things to do before running the tests, in order.
+#   * post_XXX: things to do after running the tests.
+# * in components-*.sh:
+#   * component_XXX: independent components. They can be run in any order.
+#     * component_check_XXX: quick tests that aren't worth parallelizing.
+#     * component_build_XXX: build things but don't run them.
+#     * component_test_XXX: build and test.
+#     * component_release_XXX: tests that the CI should skip during PR testing.
+#   * support_XXX: if support_XXX exists and returns false then
+#     component_XXX is not run by default.
+# * in various files:
+#   * other: miscellaneous support functions.
 #
 # Each component must start by invoking `msg` with a short informative message.
 #
@@ -111,11 +114,6 @@
 # * Check out `Makefile`, `library/Makefile`, `programs/Makefile`,
 #   `tests/Makefile` and `programs/fuzz/Makefile` from git.
 #   This cleans up after an in-tree use of CMake.
-#
-# The tests are roughly in order from fastest to slowest. This doesn't
-# have to be exact, but in general you should add slower tests towards
-# the end and fast checks near the beginning.
-
 
 
 ################################################################

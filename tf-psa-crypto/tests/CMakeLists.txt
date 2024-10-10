@@ -295,6 +295,7 @@ function(add_test_suite suite_name)
     add_executable(test_suite_${data_name} test_suite_${data_name}.c
                    $<TARGET_OBJECTS:mbedtls_test>)
     set_base_compile_options(test_suite_${data_name})
+    target_compile_options(test_suite_${data_name} PRIVATE ${TEST_C_FLAGS})
     add_dependencies(test_suite_${data_name} ${dependency})
     target_link_libraries(test_suite_${data_name} ${libs})
     # Include test-specific header files from ./include and private header
@@ -322,13 +323,12 @@ endfunction(add_test_suite)
 add_definitions("-D_POSIX_C_SOURCE=200809L")
 
 if(CMAKE_COMPILER_IS_CLANG)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wdocumentation -Wno-documentation-deprecated-sync -Wunreachable-code")
+    set(TEST_C_FLAGS -Wdocumentation -Wno-documentation-deprecated-sync -Wunreachable-code)
 endif(CMAKE_COMPILER_IS_CLANG)
 
 if(MSVC)
     # If a warning level has been defined, suppress all warnings for test code
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /W0")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /WX-")
+    set(TEST_C_FLAGS /W0 /WX-)
 endif(MSVC)
 
 file(GLOB test_suites RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" suites/*.data)

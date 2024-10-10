@@ -99,6 +99,13 @@ class CoverageTask(outcome_analysis.CoverageTask):
             'Config: !MBEDTLS_CIPHER_PADDING_PKCS7',
             # https://github.com/Mbed-TLS/mbedtls/issues/9583
             'Config: !MBEDTLS_ECP_NIST_OPTIM',
+            # MBEDTLS_ECP_NO_FALLBACK only affects builds using a partial
+            # alternative implementation of ECP arithmetic (with
+            # MBEDTLS_ECP_INTERNAL_ALT enabled). We don't test those builds.
+            # The configuration enumeration script skips xxx_ALT options
+            # but not MBEDTLS_ECP_NO_FALLBACK, so it appears in the report,
+            # but we don't care about it.
+            'Config: MBEDTLS_ECP_NO_FALLBACK',
             # Missing coverage of test configurations.
             # https://github.com/Mbed-TLS/mbedtls/issues/9585
             'Config: !MBEDTLS_SSL_DTLS_ANTI_REPLAY',

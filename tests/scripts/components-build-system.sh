@@ -190,11 +190,11 @@ component_build_cmake_custom_config_file () {
     msg "build: cmake with -DMBEDTLS_CONFIG_FILE + -DMBEDTLS_USER_CONFIG_FILE"
     # In the user config, disable one feature (for simplicity, pick a feature
     # that nothing else depends on).
-    echo '#undef MBEDTLS_NIST_KW_C' >user_config.h
+    echo '#undef MBEDTLS_SSL_ALL_ALERT_MESSAGES' >user_config.h
 
     cmake -DGEN_FILES=OFF -DMBEDTLS_CONFIG_FILE=full_config.h -DMBEDTLS_USER_CONFIG_FILE=user_config.h "$MBEDTLS_ROOT_DIR"
     make
-    not programs/test/query_compile_time_config MBEDTLS_NIST_KW_C
+    not programs/test/query_compile_time_config MBEDTLS_SSL_ALL_ALERT_MESSAGES
 
     rm -f user_config.h full_config.h full_crypto_config.h
 
@@ -222,11 +222,11 @@ component_build_cmake_custom_config_file () {
     msg "build: cmake (in-tree) with -DMBEDTLS_CONFIG_FILE + -DMBEDTLS_USER_CONFIG_FILE"
     # In the user config, disable one feature (for simplicity, pick a feature
     # that nothing else depends on).
-    echo '#undef MBEDTLS_NIST_KW_C' >user_config.h
+    echo '#undef MBEDTLS_SSL_ALL_ALERT_MESSAGES' >user_config.h
 
     cmake -DGEN_FILES=OFF -DMBEDTLS_CONFIG_FILE=full_config.h -DMBEDTLS_PSA_CRYPTO_CONFIG_FILE=full_crypto_config.h -DMBEDTLS_USER_CONFIG_FILE=user_config.h .
     make
-    not programs/test/query_compile_time_config MBEDTLS_NIST_KW_C
+    not programs/test/query_compile_time_config MBEDTLS_SSL_ALL_ALERT_MESSAGES
 
     rm -f user_config.h full_config.h
 }

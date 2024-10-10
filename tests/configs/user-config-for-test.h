@@ -39,6 +39,7 @@
 /* Use the accelerator driver for all cryptographic mechanisms for which
  * the test driver implemented. */
 #define MBEDTLS_PSA_ACCEL_KEY_TYPE_AES
+#define MBEDTLS_PSA_ACCEL_KEY_TYPE_ARIA
 #define MBEDTLS_PSA_ACCEL_KEY_TYPE_CAMELLIA
 #define MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_PUBLIC_KEY
 #define MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR_BASIC

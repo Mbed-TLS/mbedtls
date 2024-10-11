@@ -318,10 +318,6 @@ if(CMAKE_BUILD_TYPE STREQUAL "Coverage")
     endif(CMAKE_COMPILER_IS_GNU OR CMAKE_COMPILER_IS_CLANG)
 endif(CMAKE_BUILD_TYPE STREQUAL "Coverage")
 
-if(LIB_INSTALL_DIR)
-    set(CMAKE_INSTALL_LIBDIR "${LIB_INSTALL_DIR}")
-endif()
-
 if (NOT EXISTS "${MBEDTLS_FRAMEWORK_DIR}/CMakeLists.txt")
     message(FATAL_ERROR "${MBEDTLS_FRAMEWORK_DIR}/CMakeLists.txt not found. Run `git submodule update --init` from the source tree to fetch the submodule contents.")
 endif()

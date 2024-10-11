@@ -31,7 +31,7 @@ class CoverageTask(outcome_analysis.CoverageTask):
             exclude_clause = r'(?!.*' + exclude + ')'
         return re.compile(exclude_clause +
                           r'.*\b(?:' + r'|'.join(words) + r')\b.*',
-                          re.S)
+                          re.DOTALL)
 
     # generate_psa_tests.py generates test cases involving cryptographic
     # mechanisms (key types, families, algorithms) that are declared but
@@ -73,7 +73,6 @@ class CoverageTask(outcome_analysis.CoverageTask):
             # We don't run ssl-opt.sh with Valgrind on the CI because
             # it's extremely slow. We don't intend to change this.
             'DTLS client reconnect from same port: reconnect, nbio, valgrind',
-
             # We don't have IPv6 in our CI environment.
             # https://github.com/Mbed-TLS/mbedtls-test/issues/176
             'DTLS cookie: enabled, IPv6',
@@ -236,7 +235,7 @@ class CoverageTask(outcome_analysis.CoverageTask):
             # run for never-implemented key types.
             # https://github.com/Mbed-TLS/mbedtls/issues/7915
             PSA_MECHANISM_NOT_IMPLEMENTED_SEARCH_RE,
-            # We mever test with DH key support disabled but support
+            # We never test with DH key support disabled but support
             # for a DH group enabled. The dependencies of these test
             # cases don't really make sense.
             # https://github.com/Mbed-TLS/mbedtls/issues/9574

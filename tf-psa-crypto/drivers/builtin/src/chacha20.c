@@ -140,8 +140,7 @@ static void chacha20_block(const uint32_t initial_state[16],
 
 void mbedtls_chacha20_init(mbedtls_chacha20_context *ctx)
 {
-    mbedtls_platform_zeroize(ctx->state, sizeof(ctx->state));
-    mbedtls_platform_zeroize(ctx->keystream8, sizeof(ctx->keystream8));
+    mbedtls_platform_zeroize(ctx, sizeof(mbedtls_chacha20_context));
 
     /* Initially, there's no keystream bytes available */
     ctx->keystream_bytes_used = CHACHA20_BLOCK_SIZE_BYTES;
@@ -164,14 +163,18 @@ int mbedtls_chacha20_setkey(mbedtls_chacha20_context *ctx,
     ctx->state[3] = 0x6b206574;
 
     /* Set key */
-    ctx->state[4]  = MBEDTLS_GET_UINT32_LE(key, 0);
-    ctx->state[5]  = MBEDTLS_GET_UINT32_LE(key, 4);
-    ctx->state[6]  = MBEDTLS_GET_UINT32_LE(key, 8);
-    ctx->state[7]  = MBEDTLS_GET_UINT32_LE(key, 12);
-    ctx->state[8]  = MBEDTLS_GET_UINT32_LE(key, 16);
-    ctx->state[9]  = MBEDTLS_GET_UINT32_LE(key, 20);
-    ctx->state[10] = MBEDTLS_GET_UINT32_LE(key, 24);
-    ctx->state[11] = MBEDTLS_GET_UINT32_LE(key, 28);
+    if (MBEDTLS_IS_BIG_ENDIAN) {
+        ctx->state[4]  = MBEDTLS_GET_UINT32_LE(key, 0);
+        ctx->state[5]  = MBEDTLS_GET_UINT32_LE(key, 4);
+        ctx->state[6]  = MBEDTLS_GET_UINT32_LE(key, 8);
+        ctx->state[7]  = MBEDTLS_GET_UINT32_LE(key, 12);
+        ctx->state[8]  = MBEDTLS_GET_UINT32_LE(key, 16);
+        ctx->state[9]  = MBEDTLS_GET_UINT32_LE(key, 20);
+        ctx->state[10] = MBEDTLS_GET_UINT32_LE(key, 24);
+        ctx->state[11] = MBEDTLS_GET_UINT32_LE(key, 28);
+    } else {
+        memcpy(&ctx->state[4], key, 32);
+    }
 
     return 0;
 }
@@ -184,9 +187,13 @@ int mbedtls_chacha20_starts(mbedtls_chacha20_context *ctx,
     ctx->state[12] = counter;
 
     /* Nonce */
-    ctx->state[13] = MBEDTLS_GET_UINT32_LE(nonce, 0);
-    ctx->state[14] = MBEDTLS_GET_UINT32_LE(nonce, 4);
-    ctx->state[15] = MBEDTLS_GET_UINT32_LE(nonce, 8);
+    if (MBEDTLS_IS_BIG_ENDIAN) {
+        ctx->state[13] = MBEDTLS_GET_UINT32_LE(nonce, 0);
+        ctx->state[14] = MBEDTLS_GET_UINT32_LE(nonce, 4);
+        ctx->state[15] = MBEDTLS_GET_UINT32_LE(nonce, 8);
+    } else {
+        memcpy(&ctx->state[13], nonce, 12);
+    }
 
     mbedtls_platform_zeroize(ctx->keystream8, sizeof(ctx->keystream8));
 

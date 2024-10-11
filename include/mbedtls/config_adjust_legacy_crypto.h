@@ -180,17 +180,21 @@
  *   driver;
  * - MBEDTLS_BLOCK_CIPHER_xxx_VIA_LEGACY: xxx key type is supported through
  *   a legacy module (i.e. MBEDTLS_xxx_C)
+ *
+ * UPDATE: block_cipher now dispatches to PSA even when there is no driver.
+ * The macros below could be removed (as well as a lot of now-dead code). The
+ * only reason this hasn't been done yet is lack of time.
  */
 #if defined(MBEDTLS_PSA_CRYPTO_C)
-#if defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_AES)
+#if defined(PSA_WANT_KEY_TYPE_AES)
 #define MBEDTLS_BLOCK_CIPHER_AES_VIA_PSA
 #define MBEDTLS_BLOCK_CIPHER_SOME_PSA
 #endif
-#if defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ARIA)
+#if defined(PSA_WANT_KEY_TYPE_ARIA)
 #define MBEDTLS_BLOCK_CIPHER_ARIA_VIA_PSA
 #define MBEDTLS_BLOCK_CIPHER_SOME_PSA
 #endif
-#if defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_CAMELLIA)
+#if defined(PSA_WANT_KEY_TYPE_CAMELLIA)
 #define MBEDTLS_BLOCK_CIPHER_CAMELLIA_VIA_PSA
 #define MBEDTLS_BLOCK_CIPHER_SOME_PSA
 #endif

@@ -1,3 +1,4 @@
+include(CMakePackageConfigHelpers)
 include(GNUInstallDirs)
 
 # Determine if TF-PSA-Crypto is being built as a subproject using add_subdirectory()
@@ -40,7 +41,7 @@ else()
 endif()
 
 # Support for package config and install to be added later.
-option(DISABLE_PACKAGE_CONFIG_AND_INSTALL "Disable package configuration, target export and installation" ON)
+option(DISABLE_PACKAGE_CONFIG_AND_INSTALL "Disable package configuration, target export and installation" ${TF_PSA_CRYPTO_AS_SUBPROJECT})
 
 if (CMAKE_C_SIMULATE_ID)
     set(COMPILER_ID ${CMAKE_C_SIMULATE_ID})
@@ -281,6 +282,7 @@ endif()
 add_subdirectory(include)
 add_subdirectory(core)
 add_subdirectory(drivers)
+add_subdirectory(pkgconfig)
 
 #
 # The C files in tests/src directory contain test code shared among test suites
@@ -381,5 +383,41 @@ if(ENABLE_TESTING)
         # keep things simple with the sed commands in the memcheck target.
         configure_file(${CMAKE_CURRENT_SOURCE_DIR}/DartConfiguration.tcl
                     ${CMAKE_CURRENT_BINARY_DIR}/DartConfiguration.tcl COPYONLY)
+    endif()
+endif()
+
+if(NOT DISABLE_PACKAGE_CONFIG_AND_INSTALL)
+    configure_package_config_file(
+        "cmake/TF-PSA-CryptoConfig.cmake.in"
+        "cmake/TF-PSA-CryptoConfig.cmake"
+            INSTALL_DESTINATION "cmake")
+
+    write_basic_package_version_file(
+        "cmake/TF-PSA-CryptoConfigVersion.cmake"
+            COMPATIBILITY SameMajorVersion
+            VERSION 0.1.0)
+
+    install(
+        FILES "${CMAKE_CURRENT_BINARY_DIR}/cmake/TF-PSA-CryptoConfig.cmake"
+              "${CMAKE_CURRENT_BINARY_DIR}/cmake/TF-PSA-CryptoConfigVersion.cmake"
+        DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/TF-PSA-Crypto")
+
+    export(
+        EXPORT MbedTLSTargets
+        NAMESPACE TF-PSA-Crypto::
+        FILE "cmake/TF-PSA-CryptoTargets.cmake")
+
+    install(
+        EXPORT MbedTLSTargets
+        NAMESPACE TF-PSA-Crypto::
+        DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/TF-PSA-Crypto"
+        FILE "TF-PSA-CryptoTargets.cmake")
+
+    if(CMAKE_VERSION VERSION_GREATER 3.15 OR CMAKE_VERSION VERSION_EQUAL 3.15)
+        # Do not export the package by default
+        cmake_policy(SET CMP0090 NEW)
+
+        # Make this package visible to the system
+        export(PACKAGE TF-PSA-Crypto)
     endif()
 endif()

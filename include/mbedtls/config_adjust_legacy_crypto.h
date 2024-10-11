@@ -94,55 +94,59 @@
  * - MBEDTLS_MD_SOME_LEGACY is defined if at least one algorithm may be performed
  *   via a direct legacy call (see below).
  *
- * The md module performs an algorithm via PSA if there is a PSA hash
+ * The md module used to perform an algorithm via PSA if there is a PSA hash
  * accelerator and the PSA driver subsytem is initialized at the time the
- * operation is started, and makes a direct legacy call otherwise.
+ * operation is started, and make a direct legacy call otherwise.
+ *
+ * Now it always performs all algorithms via PSA. So, the macros could be
+ * removed any time (as well as a lot of now-dead code). The only reason this
+ * has not been done yet is lack of time.
  */
 
-/* PSA accelerated implementations */
+/* PSA based implementations */
 #if defined(MBEDTLS_PSA_CRYPTO_C)
 
-#if defined(MBEDTLS_PSA_ACCEL_ALG_MD5)
+#if defined(PSA_WANT_ALG_MD5)
 #define MBEDTLS_MD_MD5_VIA_PSA
 #define MBEDTLS_MD_SOME_PSA
 #endif
-#if defined(MBEDTLS_PSA_ACCEL_ALG_SHA_1)
+#if defined(PSA_WANT_ALG_SHA_1)
 #define MBEDTLS_MD_SHA1_VIA_PSA
 #define MBEDTLS_MD_SOME_PSA
 #endif
-#if defined(MBEDTLS_PSA_ACCEL_ALG_SHA_224)
+#if defined(PSA_WANT_ALG_SHA_224)
 #define MBEDTLS_MD_SHA224_VIA_PSA
 #define MBEDTLS_MD_SOME_PSA
 #endif
-#if defined(MBEDTLS_PSA_ACCEL_ALG_SHA_256)
+#if defined(PSA_WANT_ALG_SHA_256)
 #define MBEDTLS_MD_SHA256_VIA_PSA
 #define MBEDTLS_MD_SOME_PSA
 #endif
-#if defined(MBEDTLS_PSA_ACCEL_ALG_SHA_384)
+#if defined(PSA_WANT_ALG_SHA_384)
 #define MBEDTLS_MD_SHA384_VIA_PSA
 #define MBEDTLS_MD_SOME_PSA
 #endif
-#if defined(MBEDTLS_PSA_ACCEL_ALG_SHA_512)
+#if defined(PSA_WANT_ALG_SHA_512)
 #define MBEDTLS_MD_SHA512_VIA_PSA
 #define MBEDTLS_MD_SOME_PSA
 #endif
-#if defined(MBEDTLS_PSA_ACCEL_ALG_RIPEMD160)
+#if defined(PSA_WANT_ALG_RIPEMD160)
 #define MBEDTLS_MD_RIPEMD160_VIA_PSA
 #define MBEDTLS_MD_SOME_PSA
 #endif
-#if defined(MBEDTLS_PSA_ACCEL_ALG_SHA3_224)
+#if defined(PSA_WANT_ALG_SHA3_224)
 #define MBEDTLS_MD_SHA3_224_VIA_PSA
 #define MBEDTLS_MD_SOME_PSA
 #endif
-#if defined(MBEDTLS_PSA_ACCEL_ALG_SHA3_256)
+#if defined(PSA_WANT_ALG_SHA3_256)
 #define MBEDTLS_MD_SHA3_256_VIA_PSA
 #define MBEDTLS_MD_SOME_PSA
 #endif
-#if defined(MBEDTLS_PSA_ACCEL_ALG_SHA3_384)
+#if defined(PSA_WANT_ALG_SHA3_384)
 #define MBEDTLS_MD_SHA3_384_VIA_PSA
 #define MBEDTLS_MD_SOME_PSA
 #endif
-#if defined(MBEDTLS_PSA_ACCEL_ALG_SHA3_512)
+#if defined(PSA_WANT_ALG_SHA3_512)
 #define MBEDTLS_MD_SHA3_512_VIA_PSA
 #define MBEDTLS_MD_SOME_PSA
 #endif

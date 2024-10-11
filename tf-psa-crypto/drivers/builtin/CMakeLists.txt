@@ -1,34 +1,6 @@
 add_subdirectory(src)
 
 file(GLOB src_builtin RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} src/*.c)
-if(NOT "src/error.c" IN_LIST "${src_builtin}")
-    list(APPEND src_builtin src/error.c)
-endif()
-
-if(GEN_FILES)
-    find_package(Perl REQUIRED)
-
-    file(GLOB crypto_error_headers ${CMAKE_CURRENT_SOURCE_DIR}/include/mbedtls/*.h)
-    file(GLOB tls_error_headers ${MBEDTLS_DIR}/include/mbedtls/*.h)
-    add_custom_command(
-        OUTPUT
-            ${CMAKE_CURRENT_BINARY_DIR}/src/error.c
-        COMMAND
-            ${PERL_EXECUTABLE}
-                ${MBEDTLS_DIR}/scripts/generate_errors.pl
-                ${CMAKE_CURRENT_SOURCE_DIR}/include/mbedtls
-                ${MBEDTLS_DIR}/include/mbedtls
-                ${MBEDTLS_DIR}/scripts/data_files
-                ${CMAKE_CURRENT_BINARY_DIR}/src/error.c
-        DEPENDS
-            ${MBEDTLS_DIR}/scripts/generate_errors.pl
-            ${crypto_error_headers}
-            ${tls_error_headers}
-            ${MBEDTLS_DIR}/scripts/data_files/error.fmt
-    )
-else()
-    link_to_source(src/error.c)
-endif()
 
 if(CMAKE_COMPILER_IS_GNUCC)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wmissing-declarations -Wmissing-prototypes")

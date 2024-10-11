@@ -310,7 +310,6 @@
     <ClInclude Include="..\..\library\psa_crypto_cipher.h" />
     <ClInclude Include="..\..\library\psa_crypto_core.h" />
     <ClInclude Include="..\..\library\psa_crypto_core_common.h" />
-    <ClInclude Include="..\..\library\psa_crypto_driver_wrappers.h" />
     <ClInclude Include="..\..\library\psa_crypto_driver_wrappers_no_static.h" />
     <ClInclude Include="..\..\library\psa_crypto_ecp.h" />
     <ClInclude Include="..\..\library\psa_crypto_ffdh.h" />
@@ -403,7 +402,6 @@
     <ClCompile Include="..\..\library\psa_crypto_aead.c" />
     <ClCompile Include="..\..\library\psa_crypto_cipher.c" />
     <ClCompile Include="..\..\library\psa_crypto_client.c" />
-    <ClCompile Include="..\..\library\psa_crypto_driver_wrappers_no_static.c" />
     <ClCompile Include="..\..\library\psa_crypto_ecp.c" />
     <ClCompile Include="..\..\library\psa_crypto_ffdh.c" />
     <ClCompile Include="..\..\library\psa_crypto_hash.c" />
@@ -426,7 +424,6 @@
     <ClCompile Include="..\..\library\ssl_ciphersuites.c" />
     <ClCompile Include="..\..\library\ssl_client.c" />
     <ClCompile Include="..\..\library\ssl_cookie.c" />
-    <ClCompile Include="..\..\library\ssl_debug_helpers_generated.c" />
     <ClCompile Include="..\..\library\ssl_msg.c" />
     <ClCompile Include="..\..\library\ssl_ticket.c" />
     <ClCompile Include="..\..\library\ssl_tls.c" />

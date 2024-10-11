@@ -72,7 +72,7 @@ if(CMAKE_HOST_WIN32)
     # CMakeLists.txt.
     option(GEN_FILES "Generate the auto-generated files as needed" OFF) # off in development
 else()
-    option(GEN_FILES "Generate the auto-generated files as needed" OFF)
+    option(GEN_FILES "Generate the auto-generated files as needed" ON)
 endif()
 
 option(DISABLE_PACKAGE_CONFIG_AND_INSTALL "Disable package configuration, target export and installation" ${MBEDTLS_AS_SUBPROJECT})
@@ -395,6 +395,9 @@ if(ENABLE_TESTING OR ENABLE_PROGRAMS)
 endif()
 
 if(ENABLE_PROGRAMS)
+    set(ssl_opt_target "${MBEDTLS_TARGET_PREFIX}ssl-opt")
+    add_custom_target(${ssl_opt_target})
+
     add_subdirectory(programs)
 endif()
 

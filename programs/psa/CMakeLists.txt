@@ -6,6 +6,7 @@ set(executables
     psa_constant_names
     psa_hash
 )
+add_dependencies(${programs_target} ${executables})
 
 if(GEN_FILES)
     add_custom_command(

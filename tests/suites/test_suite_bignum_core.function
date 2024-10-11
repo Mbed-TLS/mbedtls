@@ -4,6 +4,7 @@
 #include "bignum_core.h"
 #include "constant_time_internal.h"
 #include "test/constant_flow.h"
+#include "test/bignum_codepath_check.h"
 
 /** Verifies mbedtls_mpi_core_add().
  *
@@ -1233,22 +1234,22 @@ void mpi_core_exp_mod(char *input_N, char *input_A,
     /* Test the safe variant */
 
 #if defined(MBEDTLS_TEST_HOOKS) && !defined(MBEDTLS_THREADING_C)
-    mbedtls_mpi_optionally_safe_codepath_reset();
+    mbedtls_codepath_reset();
 #endif
     mbedtls_mpi_core_exp_mod(Y, A, N, N_limbs, E, E_limbs, R2, T);
 #if defined(MBEDTLS_TEST_HOOKS) && !defined(MBEDTLS_THREADING_C)
-    TEST_EQUAL(mbedtls_mpi_optionally_safe_codepath, MBEDTLS_MPI_IS_SECRET);
+    TEST_EQUAL(mbedtls_codepath_check, MBEDTLS_MPI_IS_SECRET);
 #endif
     TEST_EQUAL(0, memcmp(X, Y, N_limbs * sizeof(mbedtls_mpi_uint)));
 
     /* Test the unsafe variant */
 
 #if defined(MBEDTLS_TEST_HOOKS) && !defined(MBEDTLS_THREADING_C)
-    mbedtls_mpi_optionally_safe_codepath_reset();
+    mbedtls_codepath_reset();
 #endif
     mbedtls_mpi_core_exp_mod_unsafe(Y, A, N, N_limbs, E, E_limbs, R2, T);
 #if defined(MBEDTLS_TEST_HOOKS) && !defined(MBEDTLS_THREADING_C)
-    TEST_EQUAL(mbedtls_mpi_optionally_safe_codepath, MBEDTLS_MPI_IS_PUBLIC);
+    TEST_EQUAL(mbedtls_codepath_check, MBEDTLS_MPI_IS_PUBLIC);
 #endif
     TEST_EQUAL(0, memcmp(X, Y, N_limbs * sizeof(mbedtls_mpi_uint)));
 
@@ -1258,21 +1259,21 @@ void mpi_core_exp_mod(char *input_N, char *input_A,
     memcpy(A_copy, A, sizeof(*A_copy) * A_limbs);
 
 #if defined(MBEDTLS_TEST_HOOKS) && !defined(MBEDTLS_THREADING_C)
-    mbedtls_mpi_optionally_safe_codepath_reset();
+    mbedtls_codepath_reset();
 #endif
     mbedtls_mpi_core_exp_mod(A, A, N, N_limbs, E, E_limbs, R2, T);
 #if defined(MBEDTLS_TEST_HOOKS) && !defined(MBEDTLS_THREADING_C)
-    TEST_EQUAL(mbedtls_mpi_optionally_safe_codepath, MBEDTLS_MPI_IS_SECRET);
+    TEST_EQUAL(mbedtls_codepath_check, MBEDTLS_MPI_IS_SECRET);
 #endif
     TEST_EQUAL(0, memcmp(X, A, N_limbs * sizeof(mbedtls_mpi_uint)));
 
     memcpy(A, A_copy, sizeof(*A) * A_limbs);
 #if defined(MBEDTLS_TEST_HOOKS) && !defined(MBEDTLS_THREADING_C)
-    mbedtls_mpi_optionally_safe_codepath_reset();
+    mbedtls_codepath_reset();
 #endif
     mbedtls_mpi_core_exp_mod_unsafe(A, A, N, N_limbs, E, E_limbs, R2, T);
 #if defined(MBEDTLS_TEST_HOOKS) && !defined(MBEDTLS_THREADING_C)
-    TEST_EQUAL(mbedtls_mpi_optionally_safe_codepath, MBEDTLS_MPI_IS_PUBLIC);
+    TEST_EQUAL(mbedtls_codepath_check, MBEDTLS_MPI_IS_PUBLIC);
 #endif
     TEST_EQUAL(0, memcmp(X, A, N_limbs * sizeof(mbedtls_mpi_uint)));
 

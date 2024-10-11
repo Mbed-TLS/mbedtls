@@ -28,6 +28,10 @@ no_test: programs
 programs: lib mbedtls_test
 	$(MAKE) -C programs
 
+ssl-opt: lib mbedtls_test
+	$(MAKE) -C programs ssl-opt
+	$(MAKE) -C tests ssl-opt
+
 lib:
 	$(MAKE) -C library
 
@@ -59,7 +63,7 @@ generated_files: visualc_files
 # that lacks some of the necessary tools to re-generate the files.
 # If $(GEN_FILES) is non-empty, the generated source files' dependencies
 # are treated ordinarily, based on file timestamps.
-GEN_FILES ?=
+GEN_FILES ?= yes
 
 # In dependencies where the target is a configuration-independent generated
 # file, use `TARGET: $(gen_file_dep) DEPENDENCY1 DEPENDENCY2 ...`

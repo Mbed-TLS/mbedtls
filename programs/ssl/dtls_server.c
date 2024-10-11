@@ -18,19 +18,19 @@
 #define BIND_IP     "::"
 #endif
 
-#if !defined(MBEDTLS_SSL_SRV_C) || !defined(MBEDTLS_SSL_PROTO_DTLS) ||    \
-    !defined(MBEDTLS_SSL_COOKIE_C) || !defined(MBEDTLS_NET_C) ||          \
-    !defined(MBEDTLS_ENTROPY_C) || !defined(MBEDTLS_CTR_DRBG_C) ||        \
-    !defined(MBEDTLS_X509_CRT_PARSE_C) || !defined(MBEDTLS_RSA_C) ||      \
-    !defined(MBEDTLS_PEM_PARSE_C) || !defined(MBEDTLS_TIMING_C)
-
+#if !defined(MBEDTLS_ENTROPY_C) || !defined(MBEDTLS_CTR_DRBG_C) ||      \
+    !defined(MBEDTLS_NET_C) || !defined(MBEDTLS_SSL_SRV_C) ||           \
+    !defined(MBEDTLS_TIMING_C) || !defined(MBEDTLS_SSL_PROTO_DTLS) ||   \
+    !defined(MBEDTLS_SSL_COOKIE_C) ||                                   \
+    !defined(MBEDTLS_PEM_PARSE_C) || !defined(MBEDTLS_X509_CRT_PARSE_C)
 int main(void)
 {
-    printf("MBEDTLS_SSL_SRV_C and/or MBEDTLS_SSL_PROTO_DTLS and/or "
-           "MBEDTLS_SSL_COOKIE_C and/or MBEDTLS_NET_C and/or "
-           "MBEDTLS_ENTROPY_C and/or MBEDTLS_CTR_DRBG_C and/or "
-           "MBEDTLS_X509_CRT_PARSE_C and/or MBEDTLS_RSA_C and/or "
-           "MBEDTLS_PEM_PARSE_C and/or MBEDTLS_TIMING_C not defined.\n");
+    mbedtls_printf("MBEDTLS_ENTROPY_C and/or MBEDTLS_CTR_DRBG_C and/or "
+                   "MBEDTLS_NET_C and/or MBEDTLS_SSL_SRV_C and/or "
+                   "MBEDTLS_TIMING_C and/or MBEDTLS_SSL_PROTO_DTLS and/or "
+                   "MBEDTLS_SSL_COOKIE_C and/or "
+                   "MBEDTLS_PEM_PARSE_C and/or MBEDTLS_X509_CRT_PARSE_C "
+                   "not defined.\n");
     mbedtls_exit(0);
 }
 #else
@@ -291,7 +291,14 @@ reset:
         ret = 0;
         goto reset;
     } else if (ret != 0) {
-        printf(" failed\n  ! mbedtls_ssl_handshake returned -0x%x\n\n", (unsigned int) -ret);
+        printf(" failed\n  ! mbedtls_ssl_handshake returned -0x%x\n", (unsigned int) -ret);
+        if (ret == MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE) {
+            printf("    An unexpected message was received from our peer. If this happened at\n");
+            printf("    the beginning of the handshake, this is likely a duplicated packet or\n");
+            printf("    a close_notify alert from the previous connection, which is harmless.\n");
+            ret = 0;
+        }
+        printf("\n");
         goto reset;
     }
 
@@ -402,7 +409,5 @@ exit:
 
     mbedtls_exit(ret);
 }
-#endif /* MBEDTLS_SSL_SRV_C && MBEDTLS_SSL_PROTO_DTLS &&
-          MBEDTLS_SSL_COOKIE_C && MBEDTLS_NET_C && MBEDTLS_ENTROPY_C &&
-          MBEDTLS_CTR_DRBG_C && MBEDTLS_X509_CRT_PARSE_C && MBEDTLS_RSA_C
-          && MBEDTLS_PEM_PARSE_C && MBEDTLS_TIMING_C */
+
+#endif /* configuration allows running this program */

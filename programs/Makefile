@@ -116,6 +116,12 @@ ifndef WINDOWS
 all: fuzz
 endif
 
+SSL_OPT_APPS = $(filter ssl/%,$(APPS))
+SSL_OPT_APPS += test/query_compile_time_config test/udp_proxy
+# Just the programs needed to run ssl-opt.sh (and compat.sh)
+ssl-opt: $(patsubst %,%$(EXEXT),$(SSL_OPT_APPS))
+.PHONY: ssl-opt
+
 fuzz: ${MBEDTLS_TEST_OBJS}
 	$(MAKE) -C fuzz
 

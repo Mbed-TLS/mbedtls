@@ -1,9 +1,0 @@
-Security
-   * Fix a buffer overflow in mbedtls_pk_write_pubkey(),
-     mbedtls_pk_write_pubkey_der() and mbedtls_pk_write_key_der().
-     With MBEDTLS_USE_PSA_CRYPTO turned on, these functions would
-     write to a location before the start of the output buffer if it was less
-     than the size of the key being written and also less than
-     PK_MAX_EC_PUBLIC_KEY_SIZE (for EC public keys) and
-     PSA_EXPORT_KEY_PAIR_MAX_SIZE (for RSA private keys).
-     This buffer overflow only occurs for keys with the type MBEDTLS_PK_OPAQUE.

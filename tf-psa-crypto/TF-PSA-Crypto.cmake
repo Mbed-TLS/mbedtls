@@ -454,12 +454,12 @@ if(NOT DISABLE_PACKAGE_CONFIG_AND_INSTALL)
         DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/TF-PSA-Crypto")
 
     export(
-        EXPORT MbedTLSTargets
+        EXPORT TF-PSA-CryptoTargets
         NAMESPACE TF-PSA-Crypto::
         FILE "cmake/TF-PSA-CryptoTargets.cmake")
 
     install(
-        EXPORT MbedTLSTargets
+        EXPORT TF-PSA-CryptoTargets
         NAMESPACE TF-PSA-Crypto::
         DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/TF-PSA-Crypto"
         FILE "TF-PSA-CryptoTargets.cmake")

@@ -127,7 +127,7 @@ if(USE_SHARED_TF_PSA_CRYPTO_LIBRARY)
 endif(USE_SHARED_TF_PSA_CRYPTO_LIBRARY)
 
 foreach(target IN LISTS target_libraries)
-    add_library(MbedTLS::${target} ALIAS ${target})  # add_subdirectory support
+    add_library(TF-PSA-Crypto::${target} ALIAS ${target})  # add_subdirectory support
     # Include public header files include/, drivers/builtin/include/ and
     # ${MBEDTLS_DIR}/include/ as we still need it. Include private header files
     # from core/ and drivers/builtin/src/.
@@ -144,6 +144,13 @@ foreach(target IN LISTS target_libraries)
     install(
         TARGETS ${target}
         EXPORT MbedTLSTargets
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+        PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ)
+    install(
+        TARGETS ${target}
+        EXPORT TF-PSA-CryptoTargets
         ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}

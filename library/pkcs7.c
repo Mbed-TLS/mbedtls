@@ -4,7 +4,6 @@
  */
 #include "x509_internal.h"
 
-#include "mbedtls/build_info.h"
 #if defined(MBEDTLS_PKCS7_C)
 #include "mbedtls/pkcs7.h"
 #include "mbedtls/asn1.h"

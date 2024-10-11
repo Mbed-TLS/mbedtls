@@ -634,7 +634,7 @@ psa_status_t mbedtls_psa_generate_key_complete(
 
     operation->num_ops = 1;
 
-    *key_len = mbedtls_mpi_size(&operation->ecp.d);
+    *key_len = operation->ecp.d.n * sizeof(mbedtls_mpi_uint);
     if (*key_len > key_output_size) {
         return PSA_ERROR_BUFFER_TOO_SMALL;
     }

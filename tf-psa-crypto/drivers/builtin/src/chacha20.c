@@ -65,6 +65,14 @@ static inline uint32x4_t chacha20_neon_vrotlq_7_u32(uint32x4_t v)
     return vsriq_n_u32(x, v, 25);
 }
 
+// Increment the 32-bit element within v that corresponds to the ChaCha20 counter
+static inline uint32x4_t chacha20_neon_inc_counter(uint32x4_t v)
+{
+     const uint32_t inc_const_scalar[4] = { 1, 0, 0, 0 };
+     const uint32x4_t inc_const = vld1q_u32(inc_const_scalar);
+     return vaddq_u32(v, inc_const);
+}
+
 static inline void chacha20_block(uint32x4_t a,
                                        uint32x4_t b,
                                        uint32x4_t c,
@@ -330,14 +338,11 @@ int mbedtls_chacha20_update(mbedtls_chacha20_context *ctx,
     uint32x4_t c = vld1q_u32(&ctx->state[8]);
     uint32x4_t d = vld1q_u32(&ctx->state[12]);
 
-    const uint32_t inc_const_scalar[4] = { 1, 0, 0, 0 };
-    const uint32x4_t inc_const = vld1q_u32(inc_const_scalar);
-
     /* Process full blocks */
     while (size >= CHACHA20_BLOCK_SIZE_BYTES) {
         chacha20_block(a, b, c, d, output + offset, input + offset);
 
-        d = vaddq_u32(d, inc_const);
+        d = chacha20_neon_inc_counter(d);
 
         offset += CHACHA20_BLOCK_SIZE_BYTES;
         size   -= CHACHA20_BLOCK_SIZE_BYTES;
@@ -348,7 +353,7 @@ int mbedtls_chacha20_update(mbedtls_chacha20_context *ctx,
         /* Generate new keystream block and increment counter */
         memset(ctx->keystream8, 0, CHACHA20_BLOCK_SIZE_BYTES);
         chacha20_block(a, b, c, d, ctx->keystream8, ctx->keystream8);
-        d = vaddq_u32(d, inc_const);
+        d = chacha20_neon_inc_counter(d);
 
         mbedtls_xor_no_simd(output + offset, input + offset, ctx->keystream8, size);
 

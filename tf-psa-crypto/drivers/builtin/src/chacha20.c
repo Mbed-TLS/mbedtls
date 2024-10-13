@@ -22,12 +22,120 @@
 
 #include "mbedtls/platform.h"
 
-#define ROTL32(value, amount) \
-    ((uint32_t) ((value) << (amount)) | ((value) >> (32 - (amount))))
-
 #define CHACHA20_CTR_INDEX (12U)
 
 #define CHACHA20_BLOCK_SIZE_BYTES (4U * 16U)
+
+#if defined(MBEDTLS_HAVE_NEON_INTRINSICS)
+
+// Tested on all combinations of armv7 arm/thumb2; armv8 arm/thumb2/aarch64 on clang 14, gcc 11,
+// and some more recent versions.
+
+// Define rotate-left operations that rotate within each 32-bit element in a 128-bit vector.
+static inline uint32x4_t chacha20_neon_vrotlq_16_u32(uint32x4_t v)
+{
+    return vreinterpretq_u32_u16(vrev32q_u16(vreinterpretq_u16_u32(v)));
+}
+
+static inline uint32x4_t chacha20_neon_vrotlq_12_u32(uint32x4_t v)
+{
+    uint32x4_t x = vshlq_n_u32(v, 12);
+    return vsriq_n_u32(x, v, 20);
+}
+
+static inline uint32x4_t chacha20_neon_vrotlq_8_u32(uint32x4_t v)
+{
+    uint32x4_t result;
+#if defined(MBEDTLS_ARCH_IS_ARM64)
+    // This implementation is slightly faster, but only supported on 64-bit Arm
+    // Table look-up which results in an 8-bit rotate-left within each 32-bit element
+    const uint8_t    tbl_rotl8[16] = { 3, 0, 1, 2, 7, 4, 5, 6, 11, 8, 9, 10, 15, 12, 13, 14 };
+    const uint8x16_t vrotl8_tbl = vld1q_u8(tbl_rotl8);
+    result = vreinterpretq_u32_u8(vqtbl1q_u8(vreinterpretq_u8_u32(v), vrotl8_tbl));
+#else
+    uint32x4_t a = vshlq_n_u32(v, 8);
+    result = vsriq_n_u32(a, v, 24);
+#endif
+    return result;
+}
+
+static inline uint32x4_t chacha20_neon_vrotlq_7_u32(uint32x4_t v)
+{
+    uint32x4_t x = vshlq_n_u32(v, 7);
+    return vsriq_n_u32(x, v, 25);
+}
+
+static inline void chacha20_block(const uint32_t initial_state[16], unsigned char keystream[64])
+{
+    /* Load state into NEON registers */
+    uint32x4_t a = vld1q_u32(&initial_state[0]);
+    uint32x4_t b = vld1q_u32(&initial_state[4]);
+    uint32x4_t c = vld1q_u32(&initial_state[8]);
+    uint32x4_t d = vld1q_u32(&initial_state[12]);
+
+    // capture initial values for use after the main loop
+    const uint32x4_t a1 = a, b1 = b, c1 = c, d1 = d;
+
+    for (int i = 0; i < 10; i++) {
+        a = vaddq_u32(a, b);   // a += b
+        d = veorq_u32(d, a);   // d ^= a
+        d = chacha20_neon_vrotlq_16_u32(d);  // d <<<= 16
+
+        c = vaddq_u32(c, d);   // c += d
+        b = veorq_u32(b, c);   // b ^= c
+        b = chacha20_neon_vrotlq_12_u32(b);  // b <<<= 12
+
+        a = vaddq_u32(a, b);   // a += b
+        d = veorq_u32(d, a);   // d ^= a
+        d = chacha20_neon_vrotlq_8_u32(d);   // d <<<= 8
+
+        c = vaddq_u32(c, d);   // c += d
+        b = veorq_u32(b, c);   // b ^= c
+        b = chacha20_neon_vrotlq_7_u32(b);   // b <<<= 7
+
+        // re-order b, c and d for the diagonal rounds
+        b = vextq_u32(b, b, 1); // b now holds positions 5,6,7,4
+        c = vextq_u32(c, c, 2); // 10, 11, 8, 9
+        d = vextq_u32(d, d, 3); // 15, 12, 13, 14
+
+        a = vaddq_u32(a, b);   // a += b
+        d = veorq_u32(d, a);   // d ^= a
+        d = chacha20_neon_vrotlq_16_u32(d);  // d <<<= 16
+
+        c = vaddq_u32(c, d);   // c += d
+        b = veorq_u32(b, c);   // b ^= c
+        b = chacha20_neon_vrotlq_12_u32(b);  // b <<<= 12
+
+        a = vaddq_u32(a, b);   // a += b
+        d = veorq_u32(d, a);   // d ^= a
+        d = chacha20_neon_vrotlq_8_u32(d);   // d <<<= 8
+
+        c = vaddq_u32(c, d);   // c += d
+        b = veorq_u32(b, c);   // b ^= c
+        b = chacha20_neon_vrotlq_7_u32(b);   // b <<<= 7
+
+        // restore element order in b, c, d
+        b = vextq_u32(b, b, 3);
+        c = vextq_u32(c, c, 2);
+        d = vextq_u32(d, d, 1);
+    }
+
+    a = vaddq_u32(a, a1);
+    b = vaddq_u32(b, b1);
+    c = vaddq_u32(c, c1);
+    d = vaddq_u32(d, d1);
+
+    /* Store into keystream */
+    vst1q_u8(keystream + 0,  vreinterpretq_u8_u32(a));
+    vst1q_u8(keystream + 16, vreinterpretq_u8_u32(b));
+    vst1q_u8(keystream + 32, vreinterpretq_u8_u32(c));
+    vst1q_u8(keystream + 48, vreinterpretq_u8_u32(d));
+}
+
+#else
+
+#define ROTL32(value, amount) \
+    ((uint32_t) ((value) << (amount)) | ((value) >> (32 - (amount))))
 
 /**
  * \brief           ChaCha20 quarter round operation.
@@ -137,6 +245,8 @@ static void chacha20_block(const uint32_t initial_state[16],
 
     mbedtls_platform_zeroize(working_state, sizeof(working_state));
 }
+
+#endif
 
 void mbedtls_chacha20_init(mbedtls_chacha20_context *ctx)
 {

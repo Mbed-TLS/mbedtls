@@ -65,15 +65,13 @@ static inline uint32x4_t chacha20_neon_vrotlq_7_u32(uint32x4_t v)
     return vsriq_n_u32(x, v, 25);
 }
 
-static inline void chacha20_block(const uint32_t initial_state[16], unsigned char keystream[64])
+static inline void chacha20_block(uint32x4_t a,
+                                       uint32x4_t b,
+                                       uint32x4_t c,
+                                       uint32x4_t d,
+                                       uint8_t *output,
+                                       const uint8_t *input)
 {
-    /* Load state into NEON registers */
-    uint32x4_t a = vld1q_u32(&initial_state[0]);
-    uint32x4_t b = vld1q_u32(&initial_state[4]);
-    uint32x4_t c = vld1q_u32(&initial_state[8]);
-    uint32x4_t d = vld1q_u32(&initial_state[12]);
-
-    // capture initial values for use after the main loop
     const uint32x4_t a1 = a, b1 = b, c1 = c, d1 = d;
 
     for (int i = 0; i < 10; i++) {
@@ -125,11 +123,10 @@ static inline void chacha20_block(const uint32_t initial_state[16], unsigned cha
     c = vaddq_u32(c, c1);
     d = vaddq_u32(d, d1);
 
-    /* Store into keystream */
-    vst1q_u8(keystream + 0,  vreinterpretq_u8_u32(a));
-    vst1q_u8(keystream + 16, vreinterpretq_u8_u32(b));
-    vst1q_u8(keystream + 32, vreinterpretq_u8_u32(c));
-    vst1q_u8(keystream + 48, vreinterpretq_u8_u32(d));
+    vst1q_u8(output + 0,  veorq_u8(vld1q_u8(input + 0),  vreinterpretq_u8_u32(a)));
+    vst1q_u8(output + 16, veorq_u8(vld1q_u8(input + 16), vreinterpretq_u8_u32(b)));
+    vst1q_u8(output + 32, veorq_u8(vld1q_u8(input + 32), vreinterpretq_u8_u32(c)));
+    vst1q_u8(output + 48, veorq_u8(vld1q_u8(input + 48), vreinterpretq_u8_u32(d)));
 }
 
 #else
@@ -326,6 +323,41 @@ int mbedtls_chacha20_update(mbedtls_chacha20_context *ctx,
         size--;
     }
 
+#if defined(MBEDTLS_HAVE_NEON_INTRINSICS)
+    /* Load state into NEON registers */
+    uint32x4_t a = vld1q_u32(&ctx->state[0]);
+    uint32x4_t b = vld1q_u32(&ctx->state[4]);
+    uint32x4_t c = vld1q_u32(&ctx->state[8]);
+    uint32x4_t d = vld1q_u32(&ctx->state[12]);
+
+    const uint32_t inc_const_scalar[4] = { 1, 0, 0, 0 };
+    const uint32x4_t inc_const = vld1q_u32(inc_const_scalar);
+
+    /* Process full blocks */
+    while (size >= CHACHA20_BLOCK_SIZE_BYTES) {
+        chacha20_block(a, b, c, d, output + offset, input + offset);
+
+        d = vaddq_u32(d, inc_const);
+
+        offset += CHACHA20_BLOCK_SIZE_BYTES;
+        size   -= CHACHA20_BLOCK_SIZE_BYTES;
+    }
+
+    /* Last (partial) block */
+    if (size > 0U) {
+        /* Generate new keystream block and increment counter */
+        memset(ctx->keystream8, 0, CHACHA20_BLOCK_SIZE_BYTES);
+        chacha20_block(a, b, c, d, ctx->keystream8, ctx->keystream8);
+        d = vaddq_u32(d, inc_const);
+
+        mbedtls_xor_no_simd(output + offset, input + offset, ctx->keystream8, size);
+
+        ctx->keystream_bytes_remaining = CHACHA20_BLOCK_SIZE_BYTES - size;
+    }
+
+    /* Capture state */
+    vst1q_u32(&ctx->state[12], d);
+#else
     /* Process full blocks */
     while (size >= CHACHA20_BLOCK_SIZE_BYTES) {
         /* Generate new keystream block and increment counter */
@@ -349,6 +381,7 @@ int mbedtls_chacha20_update(mbedtls_chacha20_context *ctx,
         ctx->keystream_bytes_remaining = CHACHA20_BLOCK_SIZE_BYTES - size;
 
     }
+#endif
 
     return 0;
 }

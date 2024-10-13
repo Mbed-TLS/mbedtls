@@ -27,7 +27,6 @@
 #define CHACHA20_BLOCK_SIZE_BYTES (4U * 16U)
 
 #if defined(MBEDTLS_HAVE_NEON_INTRINSICS)
-
 // Tested on all combinations of armv7 arm/thumb2; armv8 arm/thumb2/aarch64 on clang 14, gcc 11,
 // and some more recent versions.
 
@@ -68,74 +67,101 @@ static inline uint32x4_t chacha20_neon_vrotlq_7_u32(uint32x4_t v)
 // Increment the 32-bit element within v that corresponds to the ChaCha20 counter
 static inline uint32x4_t chacha20_neon_inc_counter(uint32x4_t v)
 {
-     const uint32_t inc_const_scalar[4] = { 1, 0, 0, 0 };
-     const uint32x4_t inc_const = vld1q_u32(inc_const_scalar);
-     return vaddq_u32(v, inc_const);
+    const uint32_t inc_const_scalar[4] = { 1, 0, 0, 0 };
+    const uint32x4_t inc_const = vld1q_u32(inc_const_scalar);
+    return vaddq_u32(v, inc_const);
 }
 
 typedef struct {
     uint32x4_t a, b, c, d;
 } chacha20_neon_regs_t;
 
-static inline void chacha20_block(chacha20_neon_regs_t r,
-                                  uint8_t *output,
-                                  const uint8_t *input)
+static inline chacha20_neon_regs_t chacha20_neon_singlepass(chacha20_neon_regs_t r)
 {
-    const chacha20_neon_regs_t r_original = r;
+    r.a = vaddq_u32(r.a, r.b);                    // r.a += b
+    r.d = veorq_u32(r.d, r.a);                    // r.d ^= a
+    r.d = chacha20_neon_vrotlq_16_u32(r.d);       // r.d <<<= 16
 
-    for (int i = 0; i < 10; i++) {
-        r.a = vaddq_u32(r.a, r.b);                    // r.a += b
-        r.d = veorq_u32(r.d, r.a);                    // r.d ^= a
-        r.d = chacha20_neon_vrotlq_16_u32(r.d);       // r.d <<<= 16
+    r.c = vaddq_u32(r.c, r.d);                    // r.c += d
+    r.b = veorq_u32(r.b, r.c);                    // r.b ^= c
+    r.b = chacha20_neon_vrotlq_12_u32(r.b);       // r.b <<<= 12
 
-        r.c = vaddq_u32(r.c, r.d);                    // r.c += d
-        r.b = veorq_u32(r.b, r.c);                    // r.b ^= c
-        r.b = chacha20_neon_vrotlq_12_u32(r.b);       // r.b <<<= 12
+    r.a = vaddq_u32(r.a, r.b);                    // r.a += b
+    r.d = veorq_u32(r.d, r.a);                    // r.d ^= a
+    r.d = chacha20_neon_vrotlq_8_u32(r.d);        // r.d <<<= 8
 
-        r.a = vaddq_u32(r.a, r.b);                    // r.a += b
-        r.d = veorq_u32(r.d, r.a);                    // r.d ^= a
-        r.d = chacha20_neon_vrotlq_8_u32(r.d);        // r.d <<<= 8
+    r.c = vaddq_u32(r.c, r.d);                    // r.c += d
+    r.b = veorq_u32(r.b, r.c);                    // r.b ^= c
+    r.b = chacha20_neon_vrotlq_7_u32(r.b);        // r.b <<<= 7
 
-        r.c = vaddq_u32(r.c, r.d);                    // r.c += d
-        r.b = veorq_u32(r.b, r.c);                    // r.b ^= c
-        r.b = chacha20_neon_vrotlq_7_u32(r.b);        // r.b <<<= 7
+    // re-order b, c and d for the diagonal rounds
+    r.b = vextq_u32(r.b, r.b, 1);                 // r.b now holds positions 5,6,7,4
+    r.c = vextq_u32(r.c, r.c, 2);                 // 10, 11, 8, 9
+    r.d = vextq_u32(r.d, r.d, 3);                 // 15, 12, 13, 14
 
-        // re-order b, c and d for the diagonal rounds
-        r.b = vextq_u32(r.b, r.b, 1);                 // r.b now holds positions 5,6,7,4
-        r.c = vextq_u32(r.c, r.c, 2);                 // 10, 11, 8, 9
-        r.d = vextq_u32(r.d, r.d, 3);                 // 15, 12, 13, 14
+    r.a = vaddq_u32(r.a, r.b);                    // r.a += b
+    r.d = veorq_u32(r.d, r.a);                    // r.d ^= a
+    r.d = chacha20_neon_vrotlq_16_u32(r.d);       // r.d <<<= 16
 
-        r.a = vaddq_u32(r.a, r.b);                    // r.a += b
-        r.d = veorq_u32(r.d, r.a);                    // r.d ^= a
-        r.d = chacha20_neon_vrotlq_16_u32(r.d);       // r.d <<<= 16
+    r.c = vaddq_u32(r.c, r.d);                    // r.c += d
+    r.b = veorq_u32(r.b, r.c);                    // r.b ^= c
+    r.b = chacha20_neon_vrotlq_12_u32(r.b);       // r.b <<<= 12
 
-        r.c = vaddq_u32(r.c, r.d);                    // r.c += d
-        r.b = veorq_u32(r.b, r.c);                    // r.b ^= c
-        r.b = chacha20_neon_vrotlq_12_u32(r.b);       // r.b <<<= 12
+    r.a = vaddq_u32(r.a, r.b);                    // r.a += b
+    r.d = veorq_u32(r.d, r.a);                    // r.d ^= a
+    r.d = chacha20_neon_vrotlq_8_u32(r.d);        // r.d <<<= 8
 
-        r.a = vaddq_u32(r.a, r.b);                    // r.a += b
-        r.d = veorq_u32(r.d, r.a);                    // r.d ^= a
-        r.d = chacha20_neon_vrotlq_8_u32(r.d);        // r.d <<<= 8
+    r.c = vaddq_u32(r.c, r.d);                    // r.c += d
+    r.b = veorq_u32(r.b, r.c);                    // r.b ^= c
+    r.b = chacha20_neon_vrotlq_7_u32(r.b);        // r.b <<<= 7
 
-        r.c = vaddq_u32(r.c, r.d);                    // r.c += d
-        r.b = veorq_u32(r.b, r.c);                    // r.b ^= c
-        r.b = chacha20_neon_vrotlq_7_u32(r.b);        // r.b <<<= 7
+    // restore element order in b, c, d
+    r.b = vextq_u32(r.b, r.b, 3);
+    r.c = vextq_u32(r.c, r.c, 2);
+    r.d = vextq_u32(r.d, r.d, 1);
 
-        // restore element order in b, c, d
-        r.b = vextq_u32(r.b, r.b, 3);
-        r.c = vextq_u32(r.c, r.c, 2);
-        r.d = vextq_u32(r.d, r.d, 1);
-    }
+    return r;
+}
 
+static inline void chacha20_neon_finish_block(chacha20_neon_regs_t r,
+                                              chacha20_neon_regs_t r_original,
+                                              uint8_t **output,
+                                              const uint8_t **input)
+{
     r.a = vaddq_u32(r.a, r_original.a);
     r.b = vaddq_u32(r.b, r_original.b);
     r.c = vaddq_u32(r.c, r_original.c);
     r.d = vaddq_u32(r.d, r_original.d);
-    
-    vst1q_u8(output + 0,  veorq_u8(vld1q_u8(input + 0),  vreinterpretq_u8_u32(r.a)));
-    vst1q_u8(output + 16, veorq_u8(vld1q_u8(input + 16), vreinterpretq_u8_u32(r.b)));
-    vst1q_u8(output + 32, veorq_u8(vld1q_u8(input + 32), vreinterpretq_u8_u32(r.c)));
-    vst1q_u8(output + 48, veorq_u8(vld1q_u8(input + 48), vreinterpretq_u8_u32(r.d)));
+
+    vst1q_u8(*output + 0,  veorq_u8(vld1q_u8(*input + 0),  vreinterpretq_u8_u32(r.a)));
+    vst1q_u8(*output + 16, veorq_u8(vld1q_u8(*input + 16), vreinterpretq_u8_u32(r.b)));
+    vst1q_u8(*output + 32, veorq_u8(vld1q_u8(*input + 32), vreinterpretq_u8_u32(r.c)));
+    vst1q_u8(*output + 48, veorq_u8(vld1q_u8(*input + 48), vreinterpretq_u8_u32(r.d)));
+
+    *input += CHACHA20_BLOCK_SIZE_BYTES;
+    *output += CHACHA20_BLOCK_SIZE_BYTES;
+}
+
+static inline uint32x4_t chacha20_neon_blocks(chacha20_neon_regs_t r_original,
+                                              uint8_t *output,
+                                              const uint8_t *input,
+                                              size_t blocks)
+{
+    for (;;) {
+        chacha20_neon_regs_t r[1];
+
+        r[0] = r_original;
+
+        for (unsigned i = 0; i < 10; i++) {
+            r[0] = chacha20_neon_singlepass(r[0]);
+        }
+
+        chacha20_neon_finish_block(r[0], r_original, &output, &input);
+        r_original.d = chacha20_neon_inc_counter(r_original.d);
+        if (--blocks == 0) {
+            return r_original.d;
+        }
+    }
 }
 
 #else
@@ -341,21 +367,19 @@ int mbedtls_chacha20_update(mbedtls_chacha20_context *ctx,
     state.d = vld1q_u32(&ctx->state[12]);
 
     /* Process full blocks */
-    while (size >= CHACHA20_BLOCK_SIZE_BYTES) {
-        chacha20_block(state, output + offset, input + offset);
+    if (size >= CHACHA20_BLOCK_SIZE_BYTES) {
+        size_t blocks = size / CHACHA20_BLOCK_SIZE_BYTES;
+        state.d = chacha20_neon_blocks(state, output + offset, input + offset, blocks);
 
-        state.d = chacha20_neon_inc_counter(state.d);
-
-        offset += CHACHA20_BLOCK_SIZE_BYTES;
-        size   -= CHACHA20_BLOCK_SIZE_BYTES;
+        offset += CHACHA20_BLOCK_SIZE_BYTES * blocks;
+        size   -= CHACHA20_BLOCK_SIZE_BYTES * blocks;
     }
 
     /* Last (partial) block */
     if (size > 0U) {
         /* Generate new keystream block and increment counter */
         memset(ctx->keystream8, 0, CHACHA20_BLOCK_SIZE_BYTES);
-        chacha20_block(state, ctx->keystream8, ctx->keystream8);
-        state.d = chacha20_neon_inc_counter(state.d);
+        state.d = chacha20_neon_blocks(state, ctx->keystream8, ctx->keystream8, 1);
 
         mbedtls_xor_no_simd(output + offset, input + offset, ctx->keystream8, size);
 

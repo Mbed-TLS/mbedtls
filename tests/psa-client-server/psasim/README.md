@@ -1,61 +1,48 @@
 # psasim
 
-This tool simulates a PSA Firmware Framework implementation.
-It allows you to develop secure partitions and their clients on a desktop computer.
-It should be able to run on all systems that support POSIX and System V IPC:
-e.g. macOS, Linux, FreeBSD, and perhaps Windows 10 WSL2.
+Psasim is part of the Mbed TLS test system and it provides a way to test
+client/server separation for PSA crypto APIs. This is also known as "pure crypto
+client" support.
 
-Please note that the code in this directory is maintained by the Mbed TLS / PSA Crypto project solely for the purpose of testing the use of Mbed TLS with client/service separation. We do not recommend using this code for any other purpose. In particular:
+In this scenario the client is built with `MBEDTLS_PSA_CRYPTO_CLIENT && !MBEDTLS_PSA_CRYPTO_C`
+so that it does not embed any PSA crypto implementation. These implementations are
+instead in the server which is built with `MBEDTLS_PSA_CRYPTO_C`. Therefore
+every time the client needs to perform some PSA crypto operation, it communicates
+with the server in order to get the proper support for that operation. Psasim
+is the one that implements such communication:
 
-* This simulator is not intended to pass or demonstrate compliance.
-* This code is only intended for simulation and does not have any security goals. It does not isolate services from clients.
+* provides entry points for all PSA crypto APIs on the client and server sides;
+* serializes/deserializes all the data passed as parameters to PSA crypto APIs on both sides;
+* implements the physical low-level communication between the client and the server.
 
-## Building
+Based on performance testing, we decided to use Linux's shared memory as the
+medium for such low-level communication.
 
-To build and run the test program make sure you have `make`, `python` and a
-C compiler installed and then enter the following commands:
+## Limitations/disclaimers
 
-```sh
-make run
-```
+This tool is partially inspired by the PSA Firmware Framework (PSA-FF), but
+it not completely compliant to it.
 
-Optionally the `DEBUG=1` command line option can be enabled to increase verbosity:
+Albeit psasim implements the client/server separaton, it only allows one single
+client and one single server at the time. So far no multiple instances of any
+of the two is supported.
 
-```sh
-make DEBUG=1 run
-```
+Please note that the code in this directory is maintained by the Mbed TLS / PSA Crypto
+project solely for the purpose of testing the client/service separation.
+We do not recommend using this code for any other purpose.
 
-Once done with the test, it is possible to clean all the generated files with:
+## How to test
 
-```sh
-make clean
-```
+Since psasim implements only the communnication part between the client and
+the server, it cannot not be built as standalone, but it must be part
+of some executable (like the `crypto`, `x509` and `tls` libraries, for example).
+The following test components make use of it in order to validate che client/server
+separation:
 
-## Features
+* component_test_psasim: run some basic tests in order to check if psasim
+  communication works correctly.
 
-The implemented API is intended to be compliant with PSA-FF 1.0.0 with the exception of a couple of things that are a work in progress:
-
-* `psa_notify` support
-* "strict" policy in manifest
-
-The only supported "interrupts" are POSIX signals, which act
-as a "virtual interrupt".
-
-The standard PSA RoT APIs are not included (e.g. cryptography, attestation, lifecycle etc).
-
-## Design
-
-The code is designed to be readable rather than fast or secure.
-In this implementation only one message is delivered to a
-RoT service at a time.
-The code is not thread-safe.
-
-## Unsupported features
-
-Because this is a simulator there are a few things that
-can't be reasonably emulated:
-
-* Manifest MMIO regions are unsupported
-* Manifest priority field is ignored
-* Partition IDs are in fact POSIX `pid_t`, which are only assigned at runtime,
-  making it infeasible to populate pid.h with correct values.
+* component_test_suite_with_psasim: run almost all the standard test suites (with the
+  exception of `test_suite_constant_time_hmac`, `test_suite_lmots`, `test_suite_lms` -
+  because they are too much time consuming) to extensively validate the crypto
+  client support.

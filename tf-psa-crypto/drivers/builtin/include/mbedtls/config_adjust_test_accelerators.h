@@ -57,13 +57,6 @@
  * part of the test driver. */
 #define PSA_CRYPTO_DRIVER_TEST
 
-/* With MBEDTLS_PSA_CRYPTO_CONFIG, if we set up the acceleration, the
- * built-in implementations won't be enabled. */
-#if defined(MBEDTLS_PSA_CRYPTO_CONFIG)
-#error \
-    "PSA_CRYPTO_DRIVER_TEST_ALL sets up a nonstandard configuration that is incompatible with MBEDTLS_PSA_CRYPTO_CONFIG"
-#endif
-
 /* Use the accelerator driver for all cryptographic mechanisms for which
  * the test driver is implemented. This is copied from psa/crypto_config.h
  * with the parts not implemented by the test driver commented out. */

@@ -46,7 +46,6 @@
     "automatically at the right point."
 #endif
 
-#if defined(PSA_CRYPTO_DRIVER_TEST_ALL)
 /* PSA_CRYPTO_DRIVER_TEST_ALL activates test drivers while keeping the
  * built-in implementations active. Normally setting MBEDTLS_PSA_ACCEL_xxx
  * would disable MBEDTLS_PSA_BUILTIN_xxx unless fallback is activated, but
@@ -132,7 +131,5 @@
 //#define MBEDTLS_PSA_ACCEL_ALG_TLS12_PRF
 //#define MBEDTLS_PSA_ACCEL_ALG_TLS12_PSK_TO_MS
 //#define MBEDTLS_PSA_ACCEL_ALG_TLS12_ECJPAKE_TO_PMS
-
-#endif  /* PSA_CRYPTO_DRIVER_TEST_ALL */
 
 #endif /* MBEDTLS_CONFIG_ADJUST_TEST_ACCELERATORS_H */

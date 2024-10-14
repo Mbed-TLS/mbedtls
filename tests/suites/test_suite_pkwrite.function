@@ -73,7 +73,7 @@ static void pk_write_check_common(char *key_file, int is_public_key, int is_der)
     unsigned char *buf = NULL;
     unsigned char *check_buf = NULL;
     unsigned char *start_buf;
-    size_t buf_len, check_buf_len, wrong_buf_len = 1;
+    size_t buf_len, check_buf_len;
     int expected_result;
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     mbedtls_svc_key_id_t opaque_id = MBEDTLS_SVC_KEY_ID_INIT;
@@ -118,10 +118,10 @@ static void pk_write_check_common(char *key_file, int is_public_key, int is_der)
     }
     /* Intentionally pass a wrong size for the provided output buffer and check
      * that the writing functions fails as expected. */
-    TEST_EQUAL(pk_write_any_key(&key, &start_buf, &wrong_buf_len, is_public_key,
-                                is_der), expected_result);
-    TEST_EQUAL(pk_write_any_key(&key, &start_buf, &buf_len, is_public_key,
-                                is_der), 0);
+    for (size_t i = 1; i < buf_len; i++) {
+        TEST_EQUAL(pk_write_any_key(&key, &start_buf, &i, is_public_key,
+                                    is_der), expected_result);
+    }
     TEST_EQUAL(pk_write_any_key(&key, &start_buf, &buf_len, is_public_key,
                                 is_der), 0);
 
@@ -142,8 +142,10 @@ static void pk_write_check_common(char *key_file, int is_public_key, int is_der)
         buf_len = check_buf_len;
         /* Intentionally pass a wrong size for the provided output buffer and check
          * that the writing functions fails as expected. */
-        TEST_EQUAL(pk_write_any_key(&key, &start_buf, &wrong_buf_len, is_public_key,
-                                    is_der), expected_result);
+        for (size_t i = 1; i < buf_len; i++) {
+            TEST_EQUAL(pk_write_any_key(&key, &start_buf, &i, is_public_key,
+                                        is_der), expected_result);
+        }
         TEST_EQUAL(pk_write_any_key(&key, &start_buf, &buf_len, is_public_key,
                                     is_der), 0);
 

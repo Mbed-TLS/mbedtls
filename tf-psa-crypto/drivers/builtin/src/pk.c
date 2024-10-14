@@ -14,7 +14,7 @@
 #include "pk_internal.h"
 
 #include "mbedtls/platform_util.h"
-#include "mbedtls/error.h"
+#include "mbedtls/error_common.h"
 
 #if defined(MBEDTLS_RSA_C)
 #include "mbedtls/rsa.h"

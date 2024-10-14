@@ -14,7 +14,7 @@
 #include "mbedtls/oid.h"
 #include "mbedtls/platform_util.h"
 #include "mbedtls/platform.h"
-#include "mbedtls/error.h"
+#include "mbedtls/error_common.h"
 #include "mbedtls/ecp.h"
 #include "pk_internal.h"
 

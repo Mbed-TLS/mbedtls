@@ -14,7 +14,7 @@
 #include "psa_crypto_core.h"
 #include "psa_crypto_hash.h"
 
-#include <mbedtls/error.h>
+#include <mbedtls/error_common.h>
 #include <string.h>
 
 #if defined(MBEDTLS_PSA_BUILTIN_HASH)

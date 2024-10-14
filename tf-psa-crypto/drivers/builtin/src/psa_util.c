@@ -9,7 +9,7 @@
 #include "common.h"
 
 /* This is needed for MBEDTLS_ERR_XXX macros */
-#include <mbedtls/error.h>
+#include <mbedtls/error_common.h>
 
 #if defined(MBEDTLS_ASN1_WRITE_C)
 #include <mbedtls/asn1write.h>

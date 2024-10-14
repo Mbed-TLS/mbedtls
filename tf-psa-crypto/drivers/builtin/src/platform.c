@@ -11,7 +11,7 @@
 
 #include "mbedtls/platform.h"
 #include "mbedtls/platform_util.h"
-#include "mbedtls/error.h"
+#include "mbedtls/error_common.h"
 
 /* The compile time configuration of memory allocation via the macros
  * MBEDTLS_PLATFORM_{FREE/CALLOC}_MACRO takes precedence over the runtime

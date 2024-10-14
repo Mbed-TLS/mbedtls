@@ -8,7 +8,7 @@
 #include "common.h"
 
 #include "mbedtls/pk.h"
-#include "mbedtls/error.h"
+#include "mbedtls/error_common.h"
 #include "mbedtls/ecp.h"
 #include "pk_internal.h"
 

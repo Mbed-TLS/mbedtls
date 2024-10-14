@@ -18,6 +18,7 @@
 
 ###START_GENERATED_FILES###
 # Generated source files
+/opt-testcases/tls13-compat.sh
 /suites/*.generated.data
 /suites/test_suite_config.mbedtls_boolean.data
 /suites/test_suite_config.psa_boolean.data

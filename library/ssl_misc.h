@@ -11,7 +11,6 @@
 #define MBEDTLS_SSL_MISC_H
 
 #include "common.h"
-#include "mbedtls/build_info.h"
 
 #include "mbedtls/error.h"
 

@@ -2368,6 +2368,42 @@ END
     ./tf-psa-crypto/tests/test_suite_shax
 }
 
+
+support_test_chacha20_variations () {
+    case $(uname -m) in
+        aarch64) true;;
+        *) false;;
+    esac
+}
+
+component_test_chacha20_neon_variations () {
+    msg "ChaCha20 Neon scalar and multiblock variations"
+
+    # define minimal config sufficient to test ChaCha20
+     cat > include/mbedtls/mbedtls_config.h << END
+         #define MBEDTLS_AES_C
+         #define MBEDTLS_CHACHA20_C
+         #define MBEDTLS_ENTROPY_C
+         #define MBEDTLS_CTR_DRBG_C
+         #define MBEDTLS_PSA_CRYPTO_C
+         #define MBEDTLS_PSA_CRYPTO_CONFIG
+         #define MBEDTLS_SELF_TEST
+END
+
+    cat > tf-psa-crypto/include/psa/crypto_config.h << END
+        #define PSA_WANT_ALG_SHA_256   1
+END
+
+    make clean
+    for x in 0 1 2 3 4 5 6; do
+        msg "multiblock = $x"
+        make clean
+        make -C tests ../tf-psa-crypto/tests/test_suite_chacha20 CFLAGS="-DMBEDTLS_CHACHA20_NEON_MULTIBLOCK=$x"
+        ./tf-psa-crypto/tests/test_suite_chacha20
+    done
+}
+
+
 support_build_aes_aesce_armcc () {
     support_build_armcc
 }

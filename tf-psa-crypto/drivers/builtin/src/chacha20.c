@@ -115,47 +115,35 @@ typedef struct {
 
 static inline chacha20_neon_regs_t chacha20_neon_singlepass(chacha20_neon_regs_t r)
 {
-    r.a = vaddq_u32(r.a, r.b);                    // r.a += b
-    r.d = veorq_u32(r.d, r.a);                    // r.d ^= a
-    r.d = chacha20_neon_vrotlq_16_u32(r.d);       // r.d <<<= 16
+    for (unsigned i = 0; i < 2; i++) {
+        r.a = vaddq_u32(r.a, r.b);                    // r.a += b
+        r.d = veorq_u32(r.d, r.a);                    // r.d ^= a
+        r.d = chacha20_neon_vrotlq_16_u32(r.d);       // r.d <<<= 16
 
-    r.c = vaddq_u32(r.c, r.d);                    // r.c += d
-    r.b = veorq_u32(r.b, r.c);                    // r.b ^= c
-    r.b = chacha20_neon_vrotlq_12_u32(r.b);       // r.b <<<= 12
+        r.c = vaddq_u32(r.c, r.d);                    // r.c += d
+        r.b = veorq_u32(r.b, r.c);                    // r.b ^= c
+        r.b = chacha20_neon_vrotlq_12_u32(r.b);       // r.b <<<= 12
 
-    r.a = vaddq_u32(r.a, r.b);                    // r.a += b
-    r.d = veorq_u32(r.d, r.a);                    // r.d ^= a
-    r.d = chacha20_neon_vrotlq_8_u32(r.d);        // r.d <<<= 8
+        r.a = vaddq_u32(r.a, r.b);                    // r.a += b
+        r.d = veorq_u32(r.d, r.a);                    // r.d ^= a
+        r.d = chacha20_neon_vrotlq_8_u32(r.d);        // r.d <<<= 8
 
-    r.c = vaddq_u32(r.c, r.d);                    // r.c += d
-    r.b = veorq_u32(r.b, r.c);                    // r.b ^= c
-    r.b = chacha20_neon_vrotlq_7_u32(r.b);        // r.b <<<= 7
+        r.c = vaddq_u32(r.c, r.d);                    // r.c += d
+        r.b = veorq_u32(r.b, r.c);                    // r.b ^= c
+        r.b = chacha20_neon_vrotlq_7_u32(r.b);        // r.b <<<= 7
 
-    // re-order b, c and d for the diagonal rounds
-    r.b = vextq_u32(r.b, r.b, 1);                 // r.b now holds positions 5,6,7,4
-    r.c = vextq_u32(r.c, r.c, 2);                 // 10, 11, 8, 9
-    r.d = vextq_u32(r.d, r.d, 3);                 // 15, 12, 13, 14
-
-    r.a = vaddq_u32(r.a, r.b);                    // r.a += b
-    r.d = veorq_u32(r.d, r.a);                    // r.d ^= a
-    r.d = chacha20_neon_vrotlq_16_u32(r.d);       // r.d <<<= 16
-
-    r.c = vaddq_u32(r.c, r.d);                    // r.c += d
-    r.b = veorq_u32(r.b, r.c);                    // r.b ^= c
-    r.b = chacha20_neon_vrotlq_12_u32(r.b);       // r.b <<<= 12
-
-    r.a = vaddq_u32(r.a, r.b);                    // r.a += b
-    r.d = veorq_u32(r.d, r.a);                    // r.d ^= a
-    r.d = chacha20_neon_vrotlq_8_u32(r.d);        // r.d <<<= 8
-
-    r.c = vaddq_u32(r.c, r.d);                    // r.c += d
-    r.b = veorq_u32(r.b, r.c);                    // r.b ^= c
-    r.b = chacha20_neon_vrotlq_7_u32(r.b);        // r.b <<<= 7
-
-    // restore element order in b, c, d
-    r.b = vextq_u32(r.b, r.b, 3);
-    r.c = vextq_u32(r.c, r.c, 2);
-    r.d = vextq_u32(r.d, r.d, 1);
+        if (i == 0) {
+            // re-order b, c and d for the diagonal rounds
+            r.b = vextq_u32(r.b, r.b, 1);                 // r.b now holds positions 5,6,7,4
+            r.c = vextq_u32(r.c, r.c, 2);                 // 10, 11, 8, 9
+            r.d = vextq_u32(r.d, r.d, 3);                 // 15, 12, 13, 14
+        } else {
+            // restore element order in b, c, d
+            r.b = vextq_u32(r.b, r.b, 3);
+            r.c = vextq_u32(r.c, r.c, 2);
+            r.d = vextq_u32(r.d, r.d, 1);
+        }
+    }
 
     return r;
 }

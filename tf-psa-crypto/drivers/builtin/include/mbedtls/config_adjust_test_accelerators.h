@@ -46,21 +46,7 @@
     "automatically at the right point."
 #endif
 
-/* PSA_CRYPTO_DRIVER_TEST_ALL activates test drivers while keeping the
- * built-in implementations active. Normally setting MBEDTLS_PSA_ACCEL_xxx
- * would disable MBEDTLS_PSA_BUILTIN_xxx unless fallback is activated, but
- * here we arrange to have both active so that psa_crypto_*.c includes
- * the built-in implementations and the driver code can call the built-in
- * implementations.
- *
- * The point of this test mode is to verify that the
- * driver entry points are called when they should be in a lightweight
- * way, without requiring an actual driver. This is different from builds
- * with libtestdriver1, where we make a copy of the library source code
- * and use that as an external driver.
- */
-
-/* Use the accelerator driver for all cryptographic mechanisms for which
+/* Declare the accelerator driver for all cryptographic mechanisms for which
  * the test driver is implemented. This is copied from psa/crypto_config.h
  * with the parts not implemented by the test driver commented out. */
 #define MBEDTLS_PSA_ACCEL_KEY_TYPE_DERIVE

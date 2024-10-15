@@ -170,7 +170,7 @@ check scripts/generate_driver_wrappers.py ${crypto_core_dir}/psa_crypto_driver_w
 
 # Additional checks for Mbed TLS only
 if in_mbedtls_repo; then
-    check scripts/generate_errors.pl ${builtin_drivers_dir}/error.c
+    check scripts/generate_errors.pl library/error.c
     check scripts/generate_query_config.pl programs/test/query_config.c
     check scripts/generate_features.pl library/version_features.c
     check framework/scripts/generate_ssl_debug_helpers.py library/ssl_debug_helpers_generated.c

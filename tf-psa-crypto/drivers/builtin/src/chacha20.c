@@ -141,9 +141,6 @@ static void chacha20_block(const uint32_t initial_state[16],
 void mbedtls_chacha20_init(mbedtls_chacha20_context *ctx)
 {
     mbedtls_platform_zeroize(ctx, sizeof(mbedtls_chacha20_context));
-
-    /* Initially, there's no keystream bytes available */
-    ctx->keystream_bytes_used = CHACHA20_BLOCK_SIZE_BYTES;
 }
 
 void mbedtls_chacha20_free(mbedtls_chacha20_context *ctx)
@@ -195,10 +192,8 @@ int mbedtls_chacha20_starts(mbedtls_chacha20_context *ctx,
         memcpy(&ctx->state[13], nonce, 12);
     }
 
-    mbedtls_platform_zeroize(ctx->keystream8, sizeof(ctx->keystream8));
-
     /* Initially, there's no keystream bytes available */
-    ctx->keystream_bytes_used = CHACHA20_BLOCK_SIZE_BYTES;
+    ctx->keystream_bytes_remaining = 0U;
 
     return 0;
 }
@@ -211,11 +206,12 @@ int mbedtls_chacha20_update(mbedtls_chacha20_context *ctx,
     size_t offset = 0U;
 
     /* Use leftover keystream bytes, if available */
-    while (size > 0U && ctx->keystream_bytes_used < CHACHA20_BLOCK_SIZE_BYTES) {
+    while (size > 0U && ctx->keystream_bytes_remaining > 0U) {
         output[offset] = input[offset]
-                         ^ ctx->keystream8[ctx->keystream_bytes_used];
+                         ^ ctx->keystream8[CHACHA20_BLOCK_SIZE_BYTES -
+                                           ctx->keystream_bytes_remaining];
 
-        ctx->keystream_bytes_used++;
+        ctx->keystream_bytes_remaining--;
         offset++;
         size--;
     }
@@ -240,7 +236,7 @@ int mbedtls_chacha20_update(mbedtls_chacha20_context *ctx,
 
         mbedtls_xor(output + offset, input + offset, ctx->keystream8, size);
 
-        ctx->keystream_bytes_used = size;
+        ctx->keystream_bytes_remaining = CHACHA20_BLOCK_SIZE_BYTES - size;
 
     }
 

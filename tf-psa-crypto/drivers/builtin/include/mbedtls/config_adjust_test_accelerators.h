@@ -49,10 +49,10 @@
 /* Declare the accelerator driver for all cryptographic mechanisms for which
  * the test driver is implemented. This is copied from psa/crypto_config.h
  * with the parts not implemented by the test driver commented out. */
-#define MBEDTLS_PSA_ACCEL_KEY_TYPE_DERIVE
-#define MBEDTLS_PSA_ACCEL_KEY_TYPE_PASSWORD
-#define MBEDTLS_PSA_ACCEL_KEY_TYPE_PASSWORD_HASH
-#define MBEDTLS_PSA_ACCEL_KEY_TYPE_HMAC
+#define MBEDTLS_PSA_ACCEL_KEY_TYPE_DERIVE //no-check-names
+#define MBEDTLS_PSA_ACCEL_KEY_TYPE_PASSWORD //no-check-names
+#define MBEDTLS_PSA_ACCEL_KEY_TYPE_PASSWORD_HASH //no-check-names
+#define MBEDTLS_PSA_ACCEL_KEY_TYPE_HMAC //no-check-names
 #define MBEDTLS_PSA_ACCEL_KEY_TYPE_AES
 #define MBEDTLS_PSA_ACCEL_KEY_TYPE_ARIA
 #define MBEDTLS_PSA_ACCEL_KEY_TYPE_CAMELLIA
@@ -69,7 +69,7 @@
 #define MBEDTLS_PSA_ACCEL_KEY_TYPE_DH_KEY_PAIR_IMPORT
 #define MBEDTLS_PSA_ACCEL_KEY_TYPE_DH_KEY_PAIR_EXPORT
 #define MBEDTLS_PSA_ACCEL_KEY_TYPE_DH_KEY_PAIR_GENERATE
-#define MBEDTLS_PSA_ACCEL_KEY_TYPE_RAW_DATA
+#define MBEDTLS_PSA_ACCEL_KEY_TYPE_RAW_DATA //no-check-names
 #define MBEDTLS_PSA_ACCEL_KEY_TYPE_RSA_KEY_PAIR_BASIC
 #define MBEDTLS_PSA_ACCEL_KEY_TYPE_RSA_KEY_PAIR_IMPORT
 #define MBEDTLS_PSA_ACCEL_KEY_TYPE_RSA_KEY_PAIR_EXPORT

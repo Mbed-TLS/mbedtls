@@ -26,9 +26,46 @@
 
 #define CHACHA20_BLOCK_SIZE_BYTES (4U * 16U)
 
-#if defined(MBEDTLS_HAVE_NEON_INTRINSICS)
-// Tested on all combinations of armv7 arm/thumb2; armv8 arm/thumb2/aarch64 on clang 14, gcc 11,
-// and some more recent versions.
+/*
+ * The Neon implementation can be configured to process multiple blocks in parallel; increasing the
+ * number of blocks gains a lot of performance, but adds on average around 250 bytes of code size
+ * for each additional block.
+ *
+ * This is controlled by setting MBEDTLS_CHACHA20_NEON_MULTIBLOCK in the range [0..6] (0 selects
+ * the scalar implementation; 1 selects single-block Neon; 2..6 select multi-block Neon).
+ *
+ * The default (i.e., if MBEDTLS_CHACHA20_NEON_MULTIBLOCK is not set) selects the fastest variant
+ * which has better code size than the scalar implementation (based on testing for Aarch64 on clang
+ * and gcc).
+ *
+ * Size & performance notes for Neon implementation from informal tests on Aarch64
+ * (applies to both gcc and clang except as noted):
+ *   - When single-block is selected, this saves around 400-550 bytes of code-size c.f. the scalar
+ *     implementation
+ *   - Multi-block Neon is smaller and faster than scalar (up to 2 blocks for gcc, 3 for clang)
+ *   - Code size increases consistently with number of blocks
+ *   - Performance increases with number of blocks (except at 5 which is slightly slower than 4)
+ *   - Performance is within a few % for gcc vs clang at all settings
+ *   - Performance at 4 blocks roughly matches our hardware accelerated AES-GCM impl with
+ *     better code size
+ *   - Performance is worse at 7 or more blocks, due to running out of Neon registers
+ */
+
+#if !defined(MBEDTLS_HAVE_NEON_INTRINSICS)
+// Select scalar implementation if Neon not available
+    #define MBEDTLS_CHACHA20_NEON_MULTIBLOCK 0
+#elif !defined(MBEDTLS_CHACHA20_NEON_MULTIBLOCK)
+// By default, select the best performing option that is smaller than the scalar implementation.
+    #if defined(MBEDTLS_COMPILER_IS_GCC)
+        #define MBEDTLS_CHACHA20_NEON_MULTIBLOCK 2
+    #else
+        #define MBEDTLS_CHACHA20_NEON_MULTIBLOCK 3
+    #endif
+#endif
+
+#if MBEDTLS_CHACHA20_NEON_MULTIBLOCK != 0
+// Tested on all combinations of Armv7 arm/thumb2; Armv8 arm/thumb2/aarch64; Armv8 aarch64_be on
+// clang 14, gcc 11, and some more recent versions.
 
 // Define rotate-left operations that rotate within each 32-bit element in a 128-bit vector.
 static inline uint32x4_t chacha20_neon_vrotlq_16_u32(uint32x4_t v)
@@ -142,18 +179,41 @@ static inline void chacha20_neon_finish_block(chacha20_neon_regs_t r,
     *output += CHACHA20_BLOCK_SIZE_BYTES;
 }
 
+// Prevent gcc from rolling up the (manually unrolled) interleaved block loops
+MBEDTLS_OPTIMIZE_FOR_PERFORMANCE
 static inline uint32x4_t chacha20_neon_blocks(chacha20_neon_regs_t r_original,
                                               uint8_t *output,
                                               const uint8_t *input,
                                               size_t blocks)
 {
-    for (;;) {
-        chacha20_neon_regs_t r[1];
+    // Assuming 32 regs, with 4 for original values plus 4 for scratch, with 4 regs per block,
+    // we should be able to process up to 24/4 = 6 blocks simultaneously.
+    // Testing confirms that perf indeed increases with more blocks, and then falls off after 6.
 
+    for (;;) {
+        chacha20_neon_regs_t r[6];
+
+        // It's essential to unroll these loops to benefit from interleaving multiple blocks.
+        // If MBEDTLS_CHACHA20_NEON_MULTIBLOCK < 6, gcc and clang will optimise away the unused bits
         r[0] = r_original;
+        r[1] = r_original;
+        r[2] = r_original;
+        r[3] = r_original;
+        r[4] = r_original;
+        r[5] = r_original;
+        r[1].d = chacha20_neon_inc_counter(r[0].d);
+        r[2].d = chacha20_neon_inc_counter(r[1].d);
+        r[3].d = chacha20_neon_inc_counter(r[2].d);
+        r[4].d = chacha20_neon_inc_counter(r[3].d);
+        r[5].d = chacha20_neon_inc_counter(r[4].d);
 
         for (unsigned i = 0; i < 10; i++) {
             r[0] = chacha20_neon_singlepass(r[0]);
+            r[1] = chacha20_neon_singlepass(r[1]);
+            r[2] = chacha20_neon_singlepass(r[2]);
+            r[3] = chacha20_neon_singlepass(r[3]);
+            r[4] = chacha20_neon_singlepass(r[4]);
+            r[5] = chacha20_neon_singlepass(r[5]);
         }
 
         chacha20_neon_finish_block(r[0], r_original, &output, &input);
@@ -161,6 +221,41 @@ static inline uint32x4_t chacha20_neon_blocks(chacha20_neon_regs_t r_original,
         if (--blocks == 0) {
             return r_original.d;
         }
+#if MBEDTLS_CHACHA20_NEON_MULTIBLOCK >= 2
+        chacha20_neon_finish_block(r[1], r_original, &output, &input);
+        r_original.d = chacha20_neon_inc_counter(r_original.d);
+        if (--blocks == 0) {
+            return r_original.d;
+        }
+#endif
+#if MBEDTLS_CHACHA20_NEON_MULTIBLOCK >= 3
+        chacha20_neon_finish_block(r[2], r_original, &output, &input);
+        r_original.d = chacha20_neon_inc_counter(r_original.d);
+        if (--blocks == 0) {
+            return r_original.d;
+        }
+#endif
+#if MBEDTLS_CHACHA20_NEON_MULTIBLOCK >= 4
+        chacha20_neon_finish_block(r[3], r_original, &output, &input);
+        r_original.d = chacha20_neon_inc_counter(r_original.d);
+        if (--blocks == 0) {
+            return r_original.d;
+        }
+#endif
+#if MBEDTLS_CHACHA20_NEON_MULTIBLOCK >= 5
+        chacha20_neon_finish_block(r[4], r_original, &output, &input);
+        r_original.d = chacha20_neon_inc_counter(r_original.d);
+        if (--blocks == 0) {
+            return r_original.d;
+        }
+#endif
+#if MBEDTLS_CHACHA20_NEON_MULTIBLOCK >= 6
+        chacha20_neon_finish_block(r[5], r_original, &output, &input);
+        r_original.d = chacha20_neon_inc_counter(r_original.d);
+        if (--blocks == 0) {
+            return r_original.d;
+        }
+#endif
     }
 }
 
@@ -358,7 +453,7 @@ int mbedtls_chacha20_update(mbedtls_chacha20_context *ctx,
         size--;
     }
 
-#if defined(MBEDTLS_HAVE_NEON_INTRINSICS)
+#if MBEDTLS_CHACHA20_NEON_MULTIBLOCK != 0
     /* Load state into NEON registers */
     chacha20_neon_regs_t state;
     state.a = vld1q_u32(&ctx->state[0]);

@@ -31,6 +31,25 @@ component_test_psa_assume_exclusive_buffers () {
     make test
 }
 
+component_test_crypto_with_static_key_slots() {
+    msg "build: crypto full + MBEDTLS_PSA_STATIC_KEY_SLOTS"
+    scripts/config.py crypto_full
+    scripts/config.py set MBEDTLS_PSA_STATIC_KEY_SLOTS
+    # Intentionally set MBEDTLS_PSA_STATIC_KEY_SLOT_BUFFER_SIZE to a value that
+    # is enough to contain:
+    # - all RSA public keys up to 4096 bits (max of PSA_VENDOR_RSA_MAX_KEY_BITS).
+    # - RSA key pairs up to 1024 bits, but not 2048 or larger.
+    # - all FFDH key pairs and public keys up to 8192 bits (max of PSA_VENDOR_FFDH_MAX_KEY_BITS).
+    # - all EC key pairs and public keys up to 521 bits (max of PSA_VENDOR_ECC_MAX_CURVE_BITS).
+    scripts/config.py set MBEDTLS_PSA_STATIC_KEY_SLOT_BUFFER_SIZE 1212
+    # Disable the fully dynamic key store (default on) since it conflicts
+    # with the static behavior that we're testing here.
+    scripts/config.py unset MBEDTLS_PSA_KEY_STORE_DYNAMIC
+
+    msg "test: crypto full + MBEDTLS_PSA_STATIC_KEY_SLOTS"
+    make CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS" test
+}
+
 # check_renamed_symbols HEADER LIB
 # Check that if HEADER contains '#define MACRO ...' then MACRO is not a symbol
 # name in LIB.
@@ -54,6 +73,68 @@ component_build_psa_crypto_spm () {
     # version is not present.
     echo "Checking for renamed symbols in the library"
     check_renamed_symbols tests/include/spe/crypto_spe.h library/libmbedcrypto.a
+}
+
+# The goal of this component is to build a configuration where:
+# - test code and libtestdriver1 can make use of calloc/free and
+# - core library (including PSA core) cannot use calloc/free.
+component_test_psa_crypto_without_heap() {
+    msg "crypto without heap: build libtestdriver1"
+    # Disable PSA features that cannot be accelerated and whose builtin support
+    # requires calloc/free.
+    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_DERIVE
+    scripts/config.py -f $CRYPTO_CONFIG_H unset-all "^PSA_WANT_ALG_HKDF"
+    scripts/config.py -f $CRYPTO_CONFIG_H unset-all "^PSA_WANT_ALG_PBKDF2_"
+    scripts/config.py -f $CRYPTO_CONFIG_H unset-all "^PSA_WANT_ALG_TLS12_"
+    # RSA key support requires ASN1 parse/write support for testing, but ASN1
+    # is disabled below.
+    scripts/config.py -f $CRYPTO_CONFIG_H unset-all "^PSA_WANT_KEY_TYPE_RSA_"
+    scripts/config.py -f $CRYPTO_CONFIG_H unset-all "^PSA_WANT_ALG_RSA_"
+    # DES requires built-in support for key generation (parity check) so it
+    # cannot be accelerated
+    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_KEY_TYPE_DES
+    # EC-JPAKE use calloc/free in PSA core
+    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_JPAKE
+
+    # Accelerate all PSA features (which are still enabled in CRYPTO_CONFIG_H).
+    PSA_SYM_LIST=$(./scripts/config.py -f $CRYPTO_CONFIG_H get-all-enabled PSA_WANT)
+    loc_accel_list=$(echo $PSA_SYM_LIST | sed 's/PSA_WANT_//g')
+
+    helper_libtestdriver1_adjust_config crypto
+    helper_libtestdriver1_make_drivers "$loc_accel_list"
+
+    msg "crypto without heap: build main library"
+    # Disable all legacy MBEDTLS_xxx symbols.
+    scripts/config.py unset-all "^MBEDTLS_"
+    # Build the PSA core using the proper config file.
+    scripts/config.py set MBEDTLS_PSA_CRYPTO_C
+    scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
+    # Enable fully-static key slots in PSA core.
+    scripts/config.py set MBEDTLS_PSA_STATIC_KEY_SLOTS
+    # Prevent PSA core from creating a copy of input/output buffers.
+    scripts/config.py set MBEDTLS_PSA_ASSUME_EXCLUSIVE_BUFFERS
+    # Prevent PSA core from using CTR-DRBG or HMAC-DRBG for random generation.
+    scripts/config.py set MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG
+    # Set calloc/free as null pointer functions. Calling them would crash
+    # the program so we can use this as a "sentinel" for being sure no module
+    # is making use of these functions in the library.
+    scripts/config.py set MBEDTLS_PLATFORM_C
+    scripts/config.py set MBEDTLS_PLATFORM_MEMORY
+    scripts/config.py set MBEDTLS_PLATFORM_STD_CALLOC   NULL
+    scripts/config.py set MBEDTLS_PLATFORM_STD_FREE     NULL
+
+    helper_libtestdriver1_make_main "$loc_accel_list" lib
+
+    msg "crypto without heap: build test suites and helpers"
+    # Reset calloc/free functions to normal operations so that test code can
+    # freely use them.
+    scripts/config.py unset MBEDTLS_PLATFORM_MEMORY
+    scripts/config.py unset MBEDTLS_PLATFORM_STD_CALLOC
+    scripts/config.py unset MBEDTLS_PLATFORM_STD_FREE
+    helper_libtestdriver1_make_main "$loc_accel_list" tests
+
+    msg "crypto without heap: test"
+    make test
 }
 
 # Get a list of library-wise undefined symbols and ensure that they only

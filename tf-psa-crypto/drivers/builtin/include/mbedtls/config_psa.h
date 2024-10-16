@@ -38,7 +38,10 @@
 /* If we are implementing PSA crypto ourselves, then we want to enable the
  * required built-ins. Otherwise, PSA features will be provided by the server. */
 #include "mbedtls/config_adjust_legacy_from_psa.h"
+#if defined(MBEDTLS_CONFIG_ADJUST_TEST_ACCELERATORS) //no-check-names
+#include "mbedtls/config_adjust_test_accelerators.h"
 #endif
+#endif /* MBEDTLS_PSA_CRYPTO_C */
 
 #else /* MBEDTLS_PSA_CRYPTO_CONFIG */
 

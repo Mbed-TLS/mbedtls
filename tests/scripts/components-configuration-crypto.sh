@@ -2683,7 +2683,7 @@ component_test_psa_crypto_drivers () {
     msg "build: full + test drivers dispatching to builtins"
     scripts/config.py full
     loc_cflags="$ASAN_CFLAGS -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_CONFIG_ADJUST_TEST_ACCELERATORS"
-    loc_cflags="${loc_cflags} -I../tests/include -O2"
+    loc_cflags="${loc_cflags} -I../tests/include"
 
     make CC=$ASAN_CC CFLAGS="${loc_cflags}" LDFLAGS="$ASAN_CFLAGS"
 

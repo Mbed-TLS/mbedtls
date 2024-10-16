@@ -717,4 +717,9 @@ void mbedtls_test_err_add_check(int high, int low,
                           line, file);
     }
 }
+
+#if defined(MBEDTLS_TEST_HOOKS)
+void (*mbedtls_test_hook_error_add)(int, int, const char *, int);
+#endif
+
 #endif /* MBEDTLS_TEST_HOOKS */

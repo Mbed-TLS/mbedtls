@@ -834,7 +834,7 @@ pre_check_tools () {
     "$@" scripts/output_env.sh
 }
 
-pre_generate_files () {
+pre_generate_files() {
     # since make doesn't have proper dependencies, remove any possibly outdate
     # file that might be around before generating fresh ones
     make neat
@@ -845,7 +845,7 @@ pre_generate_files () {
     fi
 }
 
-clang_version () {
+clang_version() {
     if command -v clang > /dev/null ; then
         clang --version|grep version|sed -E 's#.*version ([0-9]+).*#\1#'
     else
@@ -900,7 +900,7 @@ clang_version () {
 
 # Adjust the configuration - for both libtestdriver1 and main library,
 # as they should have the same PSA_WANT macros.
-helper_libtestdriver1_adjust_config () {
+helper_libtestdriver1_adjust_config() {
     base_config=$1
     # Select the base configuration
     if [ "$base_config" != "default" ]; then
@@ -928,7 +928,7 @@ helper_libtestdriver1_adjust_config () {
 # When called with no parameter this function disables all builtin curves.
 # The function optionally accepts 1 parameter: a space-separated list of the
 # curves that should be kept enabled.
-helper_disable_builtin_curves () {
+helper_disable_builtin_curves() {
     allowed_list="${1:-}"
     scripts/config.py unset-all "MBEDTLS_ECP_DP_[0-9A-Z_a-z]*_ENABLED"
 
@@ -964,7 +964,7 @@ helper_get_psa_dh_group_list () {
 # Get the list of uncommented PSA_WANT_KEY_TYPE_xxx_ from CRYPTO_CONFIG_H. This
 # is useful to easily get a list of key type symbols to accelerate.
 # The function accepts a single argument which is the key type: ECC, DH, RSA.
-helper_get_psa_key_type_list () {
+helper_get_psa_key_type_list() {
     key_type="$1"
     loc_list=""
     for item in $(sed -n "s/^#define PSA_WANT_\(KEY_TYPE_${key_type}_[0-9A-Z_a-z]*\).*/\1/p" <"$CRYPTO_CONFIG_H"); do
@@ -984,7 +984,7 @@ helper_get_psa_key_type_list () {
 # 1. a space-separated list of things to accelerate;
 # 2. optional: a space-separate list of things to also support.
 # Here "things" are PSA_WANT_ symbols but with PSA_WANT_ removed.
-helper_libtestdriver1_make_drivers () {
+helper_libtestdriver1_make_drivers() {
     loc_accel_flags=$( echo "$1 ${2-}" | sed 's/[^ ]* */-DLIBTESTDRIVER1_MBEDTLS_PSA_ACCEL_&/g' )
     make CC=$ASAN_CC -C tests libtestdriver1.a CFLAGS=" $ASAN_CFLAGS $loc_accel_flags" LDFLAGS="$ASAN_CFLAGS"
 }
@@ -997,7 +997,7 @@ helper_libtestdriver1_make_drivers () {
 # *. remaining arguments if any are passed directly to make
 #    (examples: lib, -C tests test_suite_xxx, etc.)
 # Here "things" are PSA_WANT_ symbols but with PSA_WANT_ removed.
-helper_libtestdriver1_make_main () {
+helper_libtestdriver1_make_main() {
     loc_accel_list=$1
     shift
 
@@ -1012,6 +1012,7 @@ test_script_dir="${0%/*}"
 for file in "$test_script_dir"/components*.sh; do
     source $file
 done
+
 
 ################################################################
 #### Termination

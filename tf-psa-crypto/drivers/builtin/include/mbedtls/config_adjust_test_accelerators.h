@@ -20,7 +20,7 @@
  * drivers. All the built-in drivers and the transparent test drivers are
  * included in the build by starting from a full configuration (config.py full)
  * and defining PSA_CRYPTO_DRIVER_TEST when building
- * (make -DPSA_CRYPTO_DRIVER_TEST ...).
+ * (make CFLAGS="-DPSA_CRYPTO_DRIVER_TEST ...").
  *
  * The purpose of this header is to declare the transparent test drivers as
  * accelerators just after infering the built-in drivers

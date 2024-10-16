@@ -233,6 +233,8 @@ pre_initialize_variables () {
     # defined in this script whose name starts with "component_".
     ALL_COMPONENTS=$(compgen -A function component_ | sed 's/component_//')
 
+    PSASIM_PATH='tests/psa-client-server/psasim/'
+
     # Delay determining SUPPORTED_COMPONENTS until the command line options have a chance to override
     # the commands set by the environment
 }
@@ -371,6 +373,23 @@ cleanup()
     rm -f programs/test/cmake_package_install/cmake_package_install
 
     # Restore files that may have been clobbered by the job
+    for x in $files_to_back_up; do
+        if [[ -e "$x$backup_suffix" ]]; then
+            cp -p "$x$backup_suffix" "$x"
+        fi
+    done
+}
+
+# This is a helper function to be used in psasim builds. It is meant to clean
+# up the library's workspace after the server build and before the client
+# build. Built libraries (mbedcrypto, mbedx509 and mbedtls) are supposed to be
+# already copied to psasim folder at this point.
+helper_psasim_cleanup_before_client() {
+    # Clean up library files
+    make -C library clean
+
+    # Restore files that were backup before building library files. This
+    # includes $CONFIG_H and $CRYPTO_CONFIG_H.
     for x in $files_to_back_up; do
         if [[ -e "$x$backup_suffix" ]]; then
             cp -p "$x$backup_suffix" "$x"
@@ -975,6 +994,57 @@ helper_libtestdriver1_make_main() {
     loc_accel_flags="$loc_accel_flags $( echo "$loc_accel_list" | sed 's/[^ ]* */-DMBEDTLS_PSA_ACCEL_&/g' )"
     make CC=$ASAN_CC CFLAGS="$ASAN_CFLAGS -I../tests/include -I../tests -I../../tests -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_TEST_LIBTESTDRIVER1 $loc_accel_flags" LDFLAGS="-ltestdriver1 $ASAN_CFLAGS" "$@"
 }
+
+# Set some default values $CONFIG_H in order to build server or client sides
+# in PSASIM. There is only 1 mandatory parameter:
+# - $1: target which can be "client" or "server"
+helper_psasim_config() {
+    TARGET=$1
+
+    if [ "$TARGET" == "client" ]; then
+        scripts/config.py full
+        scripts/config.py unset MBEDTLS_PSA_CRYPTO_C
+        scripts/config.py unset MBEDTLS_PSA_CRYPTO_STORAGE_C
+        # Dynamic secure element support is a deprecated feature and it is not
+        # available when CRYPTO_C and PSA_CRYPTO_STORAGE_C are disabled.
+        scripts/config.py unset MBEDTLS_PSA_CRYPTO_SE_C
+        # Disable potentially problematic features
+        scripts/config.py unset MBEDTLS_X509_RSASSA_PSS_SUPPORT
+        scripts/config.py unset MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED
+        scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED
+        scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED
+        scripts/config.py unset MBEDTLS_ECP_RESTARTABLE
+        scripts/config.py unset MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER
+    else
+        scripts/config.py crypto_full
+        scripts/config.py unset MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS
+        # We need to match the client with MBEDTLS_PSA_CRYPTO_SE_C
+        scripts/config.py unset MBEDTLS_PSA_CRYPTO_SE_C
+        # Also ensure MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER not set (to match client)
+        scripts/config.py unset MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER
+    fi
+}
+
+# Helper to build the libraries for client/server in PSASIM. If the server is
+# being built, then it builds also the final executable.
+# There is only 1 mandatory parameter:
+# - $1: target which can be "client" or "server"
+helper_psasim_build() {
+    TARGET=$1
+    shift
+    TARGET_LIB=${TARGET}_libs
+
+    make -C $PSASIM_PATH CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS" $TARGET_LIB "$@"
+
+    # Build also the server application after its libraries have been built.
+    if [ "$TARGET" == "server" ]; then
+        make -C $PSASIM_PATH CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS" test/psa_server
+    fi
+}
+
+################################################################
+#### Configuration helpers
+################################################################
 
 # When called with no parameter this function disables all builtin curves.
 # The function optionally accepts 1 parameter: a space-separated list of the

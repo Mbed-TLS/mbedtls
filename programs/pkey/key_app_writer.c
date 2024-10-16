@@ -469,8 +469,9 @@ exit:
 
     if (exit_code != MBEDTLS_EXIT_SUCCESS) {
 #ifdef MBEDTLS_ERROR_C
-        mbedtls_strerror(ret, buf, sizeof(buf));
-        mbedtls_printf(" - %s\n", buf);
+        mbedtls_printf("Error code: %d", ret);
+        /* mbedtls_strerror(ret, buf, sizeof(buf));
+           mbedtls_printf(" - %s\n", buf); */
 #else
         mbedtls_printf("\n");
 #endif

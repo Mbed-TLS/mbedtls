@@ -1,3 +1,4 @@
+Features
    * ChaCha20 size and performance: add a Neon implementation of ChaCha20 for
      Thumb2 and 32 and 64-bit Arm, for Armv7 onwards. At default settings,
      this improves performance by around 2x to 2.3x on Aarch64.

@@ -37,7 +37,7 @@ my $error_format_file = $data_dir.'/error.fmt';
 
 my @low_level_modules = qw( AES ARIA ASN1 BASE64 BIGNUM
                             CAMELLIA CCM CHACHA20 CHACHAPOLY CMAC CTR_DRBG DES
-                            ENTROPY ERROR_COMMON GCM HKDF HMAC_DRBG LMS MD5
+                            ENTROPY ERROR GCM HKDF HMAC_DRBG LMS MD5
                             NET OID PBKDF2 PLATFORM POLY1305 RIPEMD160
                             SHA1 SHA256 SHA512 SHA3 THREADING );
 my @high_level_modules = qw( CIPHER DHM ECP MD
@@ -91,6 +91,7 @@ foreach my $file (@files) {
     if ($found) {
         my $include_name = $file;
         $include_name =~ s!.*/!!;
+        $include_name = "error.h" if ($include_name eq "error_common.h");
         push @necessary_include_files, $include_name;
     }
 }
@@ -121,7 +122,6 @@ foreach my $match (@matches)
     $module_name = "BIGNUM" if ($module_name eq "MPI");
     $module_name = "CTR_DRBG" if ($module_name eq "CTR");
     $module_name = "HMAC_DRBG" if ($module_name eq "HMAC");
-    $module_name = "ERROR_COMMON" if ($module_name eq "ERROR");
 
     my $define_name = $module_name;
     $define_name = "X509_USE,X509_CREATE" if ($define_name eq "X509");

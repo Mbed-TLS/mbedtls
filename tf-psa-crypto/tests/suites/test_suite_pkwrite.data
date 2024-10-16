@@ -7,11 +7,11 @@ depends_on:MBEDTLS_RSA_C
 pk_write_pubkey_check:"../../framework/data_files/server1.pubkey.der":TEST_DER
 
 Public key write check RSA 4096
-depends_on:MBEDTLS_RSA_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_PEM_WRITE_C
+depends_on:MBEDTLS_RSA_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_PEM_WRITE_C:MBEDTLS_TEST_PK_ALLOW_RSA_KEY_PAIR_4096
 pk_write_pubkey_check:"../../framework/data_files/rsa4096_pub.pem":TEST_PEM
 
 Public key write check RSA 4096 (DER)
-depends_on:MBEDTLS_RSA_C
+depends_on:MBEDTLS_RSA_C:MBEDTLS_TEST_PK_ALLOW_RSA_KEY_PAIR_4096
 pk_write_pubkey_check:"../../framework/data_files/rsa4096_pub.der":TEST_DER
 
 Public key write check EC 192 bits
@@ -66,11 +66,11 @@ depends_on:MBEDTLS_RSA_C
 pk_write_key_check:"../../framework/data_files/server1.key.der":TEST_DER
 
 Private key write check RSA 4096
-depends_on:MBEDTLS_RSA_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_PEM_WRITE_C
+depends_on:MBEDTLS_RSA_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_PEM_WRITE_C:MBEDTLS_TEST_PK_ALLOW_RSA_KEY_PAIR_4096
 pk_write_key_check:"../../framework/data_files/rsa4096_prv.pem":TEST_PEM
 
 Private key write check RSA 4096 (DER)
-depends_on:MBEDTLS_RSA_C
+depends_on:MBEDTLS_RSA_C:MBEDTLS_TEST_PK_ALLOW_RSA_KEY_PAIR_4096
 pk_write_key_check:"../../framework/data_files/rsa4096_prv.der":TEST_DER
 
 Private key write check EC 192 bits
@@ -134,7 +134,7 @@ depends_on:MBEDTLS_RSA_C
 pk_write_public_from_private:"../../framework/data_files/server1.key.der":"../../framework/data_files/server1.pubkey.der"
 
 Derive public key RSA 4096
-depends_on:MBEDTLS_RSA_C
+depends_on:MBEDTLS_RSA_C:MBEDTLS_TEST_PK_ALLOW_RSA_KEY_PAIR_4096
 pk_write_public_from_private:"../../framework/data_files/rsa4096_prv.der":"../../framework/data_files/rsa4096_pub.der"
 
 Derive public key EC 192 bits

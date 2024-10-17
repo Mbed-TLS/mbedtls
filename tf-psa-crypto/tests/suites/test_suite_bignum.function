@@ -212,28 +212,22 @@ void mpi_write_binary(char *input_X, data_t *input_A,
                       int output_size, int result)
 {
     mbedtls_mpi X;
-    unsigned char buf[1000];
-    size_t buflen;
-
-    memset(buf, 0x00, 1000);
-
     mbedtls_mpi_init(&X);
+    unsigned char *buf = NULL;
 
-    TEST_ASSERT(mbedtls_test_read_mpi(&X, input_X) == 0);
+    TEST_EQUAL(mbedtls_test_read_mpi(&X, input_X), 0);
 
-    buflen = mbedtls_mpi_size(&X);
-    if (buflen > (size_t) output_size) {
-        buflen = (size_t) output_size;
-    }
+    TEST_CALLOC(buf, output_size);
 
-    TEST_ASSERT(mbedtls_mpi_write_binary(&X, buf, buflen) == result);
+    TEST_EQUAL(mbedtls_mpi_write_binary(&X, buf, output_size), result);
+
     if (result == 0) {
-
-        TEST_ASSERT(mbedtls_test_hexcmp(buf, input_A->x,
-                                        buflen, input_A->len) == 0);
+        TEST_EQUAL(mbedtls_test_hexcmp(buf, input_A->x,
+                                       output_size, input_A->len), 0);
     }
 
 exit:
+    mbedtls_free(buf);
     mbedtls_mpi_free(&X);
 }
 /* END_CASE */
@@ -243,28 +237,22 @@ void mpi_write_binary_le(char *input_X, data_t *input_A,
                          int output_size, int result)
 {
     mbedtls_mpi X;
-    unsigned char buf[1000];
-    size_t buflen;
-
-    memset(buf, 0x00, 1000);
-
     mbedtls_mpi_init(&X);
+    unsigned char *buf = NULL;
 
-    TEST_ASSERT(mbedtls_test_read_mpi(&X, input_X) == 0);
+    TEST_EQUAL(mbedtls_test_read_mpi(&X, input_X), 0);
 
-    buflen = mbedtls_mpi_size(&X);
-    if (buflen > (size_t) output_size) {
-        buflen = (size_t) output_size;
-    }
+    TEST_CALLOC(buf, output_size);
 
-    TEST_ASSERT(mbedtls_mpi_write_binary_le(&X, buf, buflen) == result);
+    TEST_EQUAL(mbedtls_mpi_write_binary_le(&X, buf, output_size), result);
+
     if (result == 0) {
-
-        TEST_ASSERT(mbedtls_test_hexcmp(buf, input_A->x,
-                                        buflen, input_A->len) == 0);
+        TEST_EQUAL(mbedtls_test_hexcmp(buf, input_A->x,
+                                       output_size, input_A->len), 0);
     }
 
 exit:
+    mbedtls_free(buf);
     mbedtls_mpi_free(&X);
 }
 /* END_CASE */

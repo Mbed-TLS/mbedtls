@@ -1,0 +1,3 @@
+Bugfix
+   * Fix undefined behavior in some cases when mbedtls_psa_raw_to_der() or
+     mbedtls_psa_der_to_raw() is called with bits=0.

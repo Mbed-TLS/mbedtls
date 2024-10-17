@@ -423,7 +423,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:MBEDTLS_PSA_CRYPTO_C */
 void md_psa_dynamic_dispatch(int md_type, int pre_psa_ret, int post_psa_engine)
 {
     const mbedtls_md_info_t *md_info = mbedtls_md_info_from_type(md_type);

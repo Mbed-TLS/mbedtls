@@ -72,4 +72,62 @@ psa_status_t psa_import_key(const psa_key_attributes_t *attributes,
     return PSA_ERROR_COMMUNICATION_FAILURE;
 }
 
+psa_status_t psa_hash_clone(const psa_hash_operation_t *source_operation,
+                            psa_hash_operation_t *target_operation)
+{
+    (void) source_operation;
+    (void) target_operation;
+    return PSA_ERROR_COMMUNICATION_FAILURE;
+}
+
+int psa_can_do_hash(psa_algorithm_t hash_alg)
+{
+    (void) hash_alg;
+    return 0;
+}
+
+psa_status_t psa_hash_setup(psa_hash_operation_t *operation,
+                            psa_algorithm_t alg)
+{
+    (void) operation;
+    (void) alg;
+    return PSA_ERROR_COMMUNICATION_FAILURE;
+}
+
+psa_status_t psa_hash_update(psa_hash_operation_t *operation,
+                             const uint8_t *input_external,
+                             size_t input_length)
+{
+    (void) operation;
+    (void) input_external;
+    (void) input_length;
+    return PSA_ERROR_COMMUNICATION_FAILURE;
+}
+
+psa_status_t psa_hash_finish(psa_hash_operation_t *operation,
+                             uint8_t *hash_external,
+                             size_t hash_size,
+                             size_t *hash_length)
+{
+    (void) operation;
+    (void) hash_external;
+    (void) hash_size;
+    (void) hash_length;
+    return PSA_ERROR_COMMUNICATION_FAILURE;
+}
+
+psa_status_t psa_hash_compute(psa_algorithm_t alg,
+                              const uint8_t *input_external, size_t input_length,
+                              uint8_t *hash_external, size_t hash_size,
+                              size_t *hash_length)
+{
+    (void) alg;
+    (void) input_external;
+    (void) input_length;
+    (void) hash_external;
+    (void) hash_size;
+    (void) hash_length;
+    return PSA_ERROR_COMMUNICATION_FAILURE;
+}
+
 #endif /* MBEDTLS_PSA_CRYPTO_CLIENT && !MBEDTLS_PSA_CRYPTO_C */

@@ -250,10 +250,10 @@ helper_armc6_build_test()
 
     msg "size: ARM Compiler 6 ($FLAGS)"
     "$ARMC6_FROMELF" -z library/*.o
-    if [ -n ${PSA_CORE_PATH} ]; then
+    if [ -n "${PSA_CORE_PATH}" ]; then
         "$ARMC6_FROMELF" -z ${PSA_CORE_PATH}/*.o
     fi
-    if [ -n ${BUILTIN_SRC_PATH} ]; then
+    if [ -n "${BUILTIN_SRC_PATH}" ]; then
         "$ARMC6_FROMELF" -z ${BUILTIN_SRC_PATH}/*.o
     fi
 }

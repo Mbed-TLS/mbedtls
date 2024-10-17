@@ -104,9 +104,12 @@ static inline uint32x4_t chacha20_neon_vrotlq_7_u32(uint32x4_t v)
 // Increment the 32-bit element within v that corresponds to the ChaCha20 counter
 static inline uint32x4_t chacha20_neon_inc_counter(uint32x4_t v)
 {
-    const uint32_t inc_const_scalar[4] = { 1, 0, 0, 0 };
-    const uint32x4_t inc_const = vld1q_u32(inc_const_scalar);
-    return vaddq_u32(v, inc_const);
+    if (MBEDTLS_IS_BIG_ENDIAN) {
+        v[3]++;
+    } else {
+        v[0]++;
+    }
+    return v;
 }
 
 typedef struct {

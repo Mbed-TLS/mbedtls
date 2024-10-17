@@ -415,9 +415,10 @@ class CombinedConfig(config_common.Config):
             if name in PSA_UNSTABLE_FEATURE:
                 raise ValueError(f'Feature is unstable: \'{name}\'')
 
+            # Temporary disable the default and apply it later only for PSA_WANT entries
             # The default value in the crypto config is '1'
-            if not value:
-                value = '1'
+            #if not value:
+            #    value = '1'
 
         if name not in self.settings:
             configfile.templates.append((name, '', '#define ' + name + ' '))

@@ -159,6 +159,7 @@ endif()
 # Make MBEDTLS_CONFIG_FILE and MBEDTLS_USER_CONFIG_FILE into PATHs
 set(MBEDTLS_CONFIG_FILE "" CACHE FILEPATH "Mbed TLS config file (overrides default).")
 set(MBEDTLS_USER_CONFIG_FILE "" CACHE FILEPATH "Mbed TLS user config file (appended to default).")
+set(MBEDTLS_USER_CRYPTO_CONFIG_FILE "" CACHE FILEPATH "TF-PSA crypto user config file (appended to default).")
 
 # Create a symbolic link from ${base_name} in the binary directory
 # to the corresponding path in the source directory.
@@ -421,6 +422,12 @@ if(ENABLE_TESTING OR ENABLE_PROGRAMS)
             PUBLIC MBEDTLS_USER_CONFIG_FILE="${MBEDTLS_USER_CONFIG_FILE}")
         target_compile_definitions(mbedtls_test_helpers
             PUBLIC MBEDTLS_USER_CONFIG_FILE="${MBEDTLS_USER_CONFIG_FILE}")
+    endif()
+    if(MBEDTLS_USER_CRYPTO_CONFIG_FILE)
+        target_compile_definitions(mbedtls_test
+            PUBLIC MBEDTLS_USER_CRYPTO_CONFIG_FILE="${MBEDTLS_USER_CRYPTO_CONFIG_FILE}")
+        target_compile_definitions(mbedtls_test_helpers
+            PUBLIC MBEDTLS_USER_CRYPTO_CONFIG_FILE="${MBEDTLS_USER_CRYPTO_CONFIG_FILE}")
     endif()
 endif()
 

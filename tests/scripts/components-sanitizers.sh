@@ -44,32 +44,20 @@ component_test_memsan_constant_flow () {
     # - or alternatively, change the build type to MemSanDbg, which enables
     # origin tracking and nicer stack traces (which are useful for debugging
     # anyway), and check if the origin was TEST_CF_SECRET() or something else.
-    msg "build: cmake MSan (clang), full config minus MBEDTLS_USE_PSA_CRYPTO with constant flow testing"
-    scripts/config.py full
-    scripts/config.py set MBEDTLS_TEST_CONSTANT_FLOW_MEMSAN
-    scripts/config.py unset MBEDTLS_USE_PSA_CRYPTO
-    scripts/config.py unset MBEDTLS_AESNI_C # memsan doesn't grok asm
-    scripts/config.py unset MBEDTLS_HAVE_ASM
-    CC=clang cmake -D CMAKE_BUILD_TYPE:String=MemSan .
-    make
-
-    msg "test: main suites (full minus MBEDTLS_USE_PSA_CRYPTO, Msan + constant flow)"
-    make test
-}
-
-component_test_memsan_constant_flow_psa () {
-    # This tests both (1) accesses to undefined memory, and (2) branches or
-    # memory access depending on secret values. To distinguish between those:
-    # - unset MBEDTLS_TEST_CONSTANT_FLOW_MEMSAN - does the failure persist?
-    # - or alternatively, change the build type to MemSanDbg, which enables
-    # origin tracking and nicer stack traces (which are useful for debugging
-    # anyway), and check if the origin was TEST_CF_SECRET() or something else.
     msg "build: cmake MSan (clang), full config with constant flow testing"
     scripts/config.py full
     scripts/config.py set MBEDTLS_TEST_CONSTANT_FLOW_MEMSAN
     scripts/config.py unset MBEDTLS_AESNI_C # memsan doesn't grok asm
     scripts/config.py unset MBEDTLS_HAVE_ASM
-    CC=clang cmake -D CMAKE_BUILD_TYPE:String=MemSan .
+    # Auto-generated files are independently compiled and require a minimal
+    # version of mbedtls_config.h and psa_config.h. Passing CMKAE_BUILD_TYPE=Memsan
+    # as a feature to the compiler is not compatbile and re-generating files
+    # is not neccessary.
+
+    # So, disable cmake's (over-sensitive here)
+    # dependency resolution for generated files and just rely on them being
+    # present (thanks to pre_generate_files) by turning GEN_FILES off.
+    CC=clang cmake -D GEN_FILES=Off -D CMAKE_BUILD_TYPE:String=MemSan .
     make
 
     msg "test: main suites (Msan + constant flow)"

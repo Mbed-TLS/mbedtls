@@ -30,13 +30,16 @@ Public key write check EC 521 bits (DER)
 depends_on:MBEDTLS_PK_HAVE_ECC_KEYS:MBEDTLS_ECP_HAVE_SECP521R1
 pk_write_pubkey_check:"../framework/data_files/ec_521_pub.der":TEST_DER
 
-Public key write check EC Brainpool 512 bits
-depends_on:MBEDTLS_PK_HAVE_ECC_KEYS:MBEDTLS_PEM_PARSE_C:MBEDTLS_PEM_WRITE_C:MBEDTLS_ECP_HAVE_BP512R1
-pk_write_pubkey_check:"../framework/data_files/ec_bp512_pub.pem":TEST_PEM
+## The pk_write_pubkey_check sometimes take ~3 hours to run with
+## GCC+Asan on the CI in the full config. Comment out the slowest
+## ones while we investigate and release 3.6.2.
+# Public key write check EC Brainpool 512 bits
+# depends_on:MBEDTLS_PK_HAVE_ECC_KEYS:MBEDTLS_PEM_PARSE_C:MBEDTLS_PEM_WRITE_C:MBEDTLS_ECP_HAVE_BP512R1
+# pk_write_pubkey_check:"../framework/data_files/ec_bp512_pub.pem":TEST_PEM
 
-Public key write check EC Brainpool 512 bits (DER)
-depends_on:MBEDTLS_PK_HAVE_ECC_KEYS:MBEDTLS_ECP_HAVE_BP512R1
-pk_write_pubkey_check:"../framework/data_files/ec_bp512_pub.der":TEST_DER
+# Public key write check EC Brainpool 512 bits (DER)
+# depends_on:MBEDTLS_PK_HAVE_ECC_KEYS:MBEDTLS_ECP_HAVE_BP512R1
+# pk_write_pubkey_check:"../framework/data_files/ec_bp512_pub.der":TEST_DER
 
 Public key write check EC X25519
 depends_on:MBEDTLS_PK_HAVE_ECC_KEYS:MBEDTLS_PEM_PARSE_C:MBEDTLS_PEM_WRITE_C:MBEDTLS_ECP_HAVE_CURVE25519

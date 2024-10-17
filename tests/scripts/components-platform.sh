@@ -468,32 +468,32 @@ component_build_armcc () {
     # Compile mostly with -O1 since some Arm inline assembly is disabled for -O0.
 
     # ARM Compiler 6 - Target ARMv7-A
-    armc6_build_test "-O1 --target=arm-arm-none-eabi -march=armv7-a"
+    helper_armc6_build_test "-O1 --target=arm-arm-none-eabi -march=armv7-a"
 
     # ARM Compiler 6 - Target ARMv7-M
-    armc6_build_test "-O1 --target=arm-arm-none-eabi -march=armv7-m"
+    helper_armc6_build_test "-O1 --target=arm-arm-none-eabi -march=armv7-m"
 
     # ARM Compiler 6 - Target ARMv7-M+DSP
-    armc6_build_test "-O1 --target=arm-arm-none-eabi -march=armv7-m+dsp"
+    helper_armc6_build_test "-O1 --target=arm-arm-none-eabi -march=armv7-m+dsp"
 
     # ARM Compiler 6 - Target ARMv8-A - AArch32
-    armc6_build_test "-O1 --target=arm-arm-none-eabi -march=armv8.2-a"
+    helper_armc6_build_test "-O1 --target=arm-arm-none-eabi -march=armv8.2-a"
 
     # ARM Compiler 6 - Target ARMv8-M
-    armc6_build_test "-O1 --target=arm-arm-none-eabi -march=armv8-m.main"
+    helper_armc6_build_test "-O1 --target=arm-arm-none-eabi -march=armv8-m.main"
 
     # ARM Compiler 6 - Target Cortex-M0 - no optimisation
-    armc6_build_test "-O0 --target=arm-arm-none-eabi -mcpu=cortex-m0"
+    helper_armc6_build_test "-O0 --target=arm-arm-none-eabi -mcpu=cortex-m0"
 
     # ARM Compiler 6 - Target Cortex-M0
-    armc6_build_test "-Os --target=arm-arm-none-eabi -mcpu=cortex-m0"
+    helper_armc6_build_test "-Os --target=arm-arm-none-eabi -mcpu=cortex-m0"
 
     # ARM Compiler 6 - Target ARMv8.2-A - AArch64
     #
     # Re-enable MBEDTLS_AESCE_C as this should be supported by the version of armclang
     # that we have in our CI
     scripts/config.py set MBEDTLS_AESCE_C
-    armc6_build_test "-O1 --target=aarch64-arm-none-eabi -march=armv8.2-a+crypto"
+    helper_armc6_build_test "-O1 --target=aarch64-arm-none-eabi -march=armv8.2-a+crypto"
 }
 
 support_build_armcc () {

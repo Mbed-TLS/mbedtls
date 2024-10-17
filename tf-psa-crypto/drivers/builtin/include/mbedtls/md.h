@@ -463,6 +463,11 @@ int mbedtls_md_hmac_update(mbedtls_md_context_t *ctx, const unsigned char *input
  *                  or call mbedtls_md_hmac_reset() to reuse the context with
  *                  the same HMAC key.
  *
+ * \warning         To verify a MAC, call this function, then use
+ *                  mbedtls_ct_memcmp() to compare the actual MAC
+ *                  with the expected MAC. Do not use memcmp():
+ *                  that would be vulnerable to timing attacks.
+ *
  * \param ctx       The message digest context containing an embedded HMAC
  *                  context.
  * \param output    The generic HMAC checksum result.
@@ -501,6 +506,11 @@ int mbedtls_md_hmac_reset(mbedtls_md_context_t *ctx);
  *
  *                 The HMAC result is calculated as
  *                 output = generic HMAC(hmac key, input buffer).
+ *
+ * \warning         To verify a MAC, call this function, then use
+ *                  mbedtls_ct_memcmp() to compare the actual MAC
+ *                  with the expected MAC. Do not use memcmp():
+ *                  that would be vulnerable to timing attacks.
  *
  * \param md_info  The information structure of the message-digest algorithm
  *                 to use.

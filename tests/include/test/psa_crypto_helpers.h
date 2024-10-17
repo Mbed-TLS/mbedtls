@@ -11,7 +11,10 @@
 
 #include "test/helpers.h"
 
-#if defined(MBEDTLS_PSA_CRYPTO_CLIENT)
+#if ((MBEDTLS_VERSION_MAJOR < 4) \
+    && defined(MBEDTLS_PSA_CRYPTO_C)) \
+    || (MBEDTLS_VERSION_MAJOR >= 4 \
+        && defined(MBEDTLS_PSA_CRYPTO_CLIENT))
 #include "test/psa_helpers.h"
 #include <psa/crypto.h>
 #endif
@@ -40,7 +43,8 @@
         mbedtls_psa_crypto_free();                                      \
     }                                                                   \
     while (0)
-#elif defined(MBEDTLS_PSA_CRYPTO_CLIENT) /* MBEDTLS_PSA_CRYPTO_CLIENT && !MBEDTLS_PSA_CRYPTO_C */
+#elif MBEDTLS_VERSION_MAJOR >= 4 && \
+    defined(MBEDTLS_PSA_CRYPTO_CLIENT)   /* MBEDTLS_PSA_CRYPTO_CLIENT && !MBEDTLS_PSA_CRYPTO_C */
 #define PSA_INIT() PSA_ASSERT(psa_crypto_init())
 #define PSA_DONE() mbedtls_psa_crypto_free();
 #else  /* MBEDTLS_PSA_CRYPTO_CLIENT && !MBEDTLS_PSA_CRYPTO_C */
@@ -48,7 +52,10 @@
 #define PSA_DONE() ((void) 0)
 #endif /* MBEDTLS_PSA_CRYPTO_C */
 
-#if defined(MBEDTLS_PSA_CRYPTO_CLIENT)
+#if ((MBEDTLS_VERSION_MAJOR < 4) \
+    && defined(MBEDTLS_PSA_CRYPTO_C)) \
+    || (MBEDTLS_VERSION_MAJOR >= 4 \
+        && defined(MBEDTLS_PSA_CRYPTO_CLIENT))
 
 #if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
 
@@ -253,7 +260,9 @@ uint64_t mbedtls_test_parse_binary_string(data_t *bin_string);
  *  \param key_type  Key type
  *  \param key_bits  Key length in number of bits.
  */
-#if defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_AES)
+#if defined(MBEDTLS_AES_ALT) || \
+    defined(MBEDTLS_AES_SETKEY_ENC_ALT) || \
+    defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_AES)
 #define MBEDTLS_TEST_HAVE_ALT_AES 1
 #else
 #define MBEDTLS_TEST_HAVE_ALT_AES 0
@@ -295,7 +304,8 @@ uint64_t mbedtls_test_parse_binary_string(data_t *bin_string);
  *  \param  nonce_length    The nonce length in number of bytes.
  */
 
-#if defined(MBEDTLS_PSA_ACCEL_ALG_GCM)
+#if defined(MBEDTLS_GCM_ALT) || \
+    defined(MBEDTLS_PSA_ACCEL_ALG_GCM)
 #define MBEDTLS_TEST_HAVE_ACCEL_GCM  1
 #else
 #define MBEDTLS_TEST_HAVE_ACCEL_GCM  0
@@ -316,7 +326,7 @@ uint64_t mbedtls_test_parse_binary_string(data_t *bin_string);
     }                                                                      \
     while (0)
 
-#endif /* MBEDTLS_PSA_CRYPTO_CLIENT */
+#endif /* MBEDTLS_PSA_CRYPTO_CLIENT || MBEDTLS_PSA_CRYPTO_C */
 
 /** \def USE_PSA_INIT
  *

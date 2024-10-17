@@ -38,21 +38,26 @@
 #endif
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
-#if defined(PSA_WANT_KEY_TYPE_AES)
-#if defined(PSA_WANT_ALG_GCM)
-#if defined(PSA_WANT_ALG_SHA_384)
+#if defined(MBEDTLS_SSL_HAVE_AES) || defined(PSA_WANT_KEY_TYPE_AES)
+#if defined(MBEDTLS_SSL_HAVE_GCM) || defined(PSA_WANT_ALG_GCM)
+#if defined(MBEDTLS_MD_CAN_SHA384) || defined(PSA_WANT_ALG_SHA384)
 #define MBEDTLS_TEST_HAS_TLS1_3_AES_256_GCM_SHA384
 #endif
-#if defined(PSA_WANT_ALG_SHA_256)
+#if defined(MBEDTLS_MD_CAN_SHA256) \
+    || defined(PSA_WANT_ALG_SHA256)
 #define MBEDTLS_TEST_HAS_TLS1_3_AES_128_GCM_SHA256
 #endif
-#endif /* PSA_WANT_ALG_GCM */
-#if defined(PSA_WANT_ALG_CCM) && defined(PSA_WANT_ALG_SHA_256)
+#endif /* MBEDTLS_SSL_HAVE_GCM || PSA_WANT_ALG_GCM */
+#if defined(PSA_WANT_ALG_CCM) \
+    && (defined(MBEDTLS_MD_CAN_SHA256) \
+    || defined(PSA_WANT_ALG_SHA256))
 #define MBEDTLS_TEST_HAS_TLS1_3_AES_128_CCM_SHA256
 #define MBEDTLS_TEST_HAS_TLS1_3_AES_128_CCM_8_SHA256
 #endif
-#endif /* PSA_WANT_KEY_TYPE_AES */
-#if defined(PSA_WANT_ALG_CHACHA20_POLY1305) && defined(PSA_WANT_ALG_SHA_256)
+#endif /* PSA_WANT_KEY_TYPE_AES || MBEDTLS_SSL_HAVE_AES */
+#if defined(PSA_WANT_ALG_CHACHA20_POLY1305) \
+    && (defined(MBEDTLS_MD_CAN_SHA256) \
+    || defined(PSA_WANT_ALG_SHA256))
 #define MBEDTLS_TEST_HAS_TLS1_3_CHACHA20_POLY1305_SHA256
 #endif
 

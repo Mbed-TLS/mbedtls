@@ -15,7 +15,7 @@
 #include "psa_crypto_random_impl.h"
 
 #include "mbedtls/cipher.h"
-#include "mbedtls/error.h"
+#include "mbedtls/error_common.h"
 
 #include <string.h>
 

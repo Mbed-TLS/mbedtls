@@ -16,7 +16,7 @@
 #include "mbedtls/cipher.h"
 #include "cipher_wrap.h"
 #include "mbedtls/platform_util.h"
-#include "mbedtls/error.h"
+#include "mbedtls/error_common.h"
 #include "mbedtls/constant_time.h"
 #include "constant_time_internal.h"
 

@@ -143,6 +143,27 @@ component_test_cmake_as_package () {
     fi
 }
 
+component_test_tf_psa_crypto_cmake_as_package () {
+    # Remove existing generated files so that we use the ones CMake
+    # generates
+    make neat
+
+    msg "build: cmake 'as-package' build"
+    root_dir="$(pwd)"
+    cd tf-psa-crypto/programs/test/cmake_package
+    build_variant_dir="$(pwd)"
+    cmake .
+    make
+    ./cmake_package
+    if [[ "$OSTYPE" == linux* ]]; then
+        PKG_CONFIG_PATH="${build_variant_dir}/tf-psa-crypto/pkgconfig" \
+        ${root_dir}/tests/scripts/pkgconfig.sh \
+        tfpsacrypto
+        # This is the EXPECTED package name. Renaming it could break consumers
+        # of pkg-config, consider carefully.
+    fi
+}
+
 support_test_cmake_as_package () {
     support_test_cmake_out_of_source
 }

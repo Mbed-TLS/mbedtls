@@ -99,15 +99,19 @@ int mbedtls_chachapoly_setkey(mbedtls_chachapoly_context *ctx,
     return ret;
 }
 
-int mbedtls_chachapoly_starts(mbedtls_chachapoly_context *ctx,
-                              const unsigned char nonce[12],
-                              mbedtls_chachapoly_mode_t mode)
+static int chachapoly_starts(int is_xchacha20, mbedtls_chachapoly_context *ctx,
+                             const unsigned char *nonce,
+                             mbedtls_chachapoly_mode_t mode)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned char poly1305_key[64];
 
     /* Set counter = 0, will be update to 1 when generating Poly1305 key */
-    ret = mbedtls_chacha20_starts(&ctx->chacha20_ctx, nonce, 0U);
+    if (is_xchacha20 == 1) {
+        ret = mbedtls_xchacha20_starts(&ctx->chacha20_ctx, nonce, 0U);
+    } else {
+        ret = mbedtls_chacha20_starts(&ctx->chacha20_ctx, nonce, 0U);
+    }
     if (ret != 0) {
         goto cleanup;
     }
@@ -136,6 +140,20 @@ int mbedtls_chachapoly_starts(mbedtls_chachapoly_context *ctx,
 cleanup:
     mbedtls_platform_zeroize(poly1305_key, 64U);
     return ret;
+}
+
+int mbedtls_chachapoly_starts(mbedtls_chachapoly_context *ctx,
+                              const unsigned char nonce[12],
+                              mbedtls_chachapoly_mode_t mode)
+{
+    return chachapoly_starts(0, ctx, nonce, mode);
+}
+
+int mbedtls_xchachapoly_starts(mbedtls_chachapoly_context *ctx,
+                               const unsigned char nonce[24],
+                               mbedtls_chachapoly_mode_t mode)
+{
+    return chachapoly_starts(1, ctx, nonce, mode);
 }
 
 int mbedtls_chachapoly_update_aad(mbedtls_chachapoly_context *ctx,
@@ -239,10 +257,11 @@ int mbedtls_chachapoly_finish(mbedtls_chachapoly_context *ctx,
     return ret;
 }
 
-static int chachapoly_crypt_and_tag(mbedtls_chachapoly_context *ctx,
+static int chachapoly_crypt_and_tag(int is_xchacha20,
+                                    mbedtls_chachapoly_context *ctx,
                                     mbedtls_chachapoly_mode_t mode,
                                     size_t length,
-                                    const unsigned char nonce[12],
+                                    const unsigned char *nonce,
                                     const unsigned char *aad,
                                     size_t aad_len,
                                     const unsigned char *input,
@@ -251,7 +270,11 @@ static int chachapoly_crypt_and_tag(mbedtls_chachapoly_context *ctx,
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
-    ret = mbedtls_chachapoly_starts(ctx, nonce, mode);
+    if (is_xchacha20 == 1) {
+        ret = mbedtls_xchachapoly_starts(ctx, nonce, mode);
+    } else {
+        ret = mbedtls_chachapoly_starts(ctx, nonce, mode);
+    }
     if (ret != 0) {
         goto cleanup;
     }
@@ -281,25 +304,40 @@ int mbedtls_chachapoly_encrypt_and_tag(mbedtls_chachapoly_context *ctx,
                                        unsigned char *output,
                                        unsigned char tag[16])
 {
-    return chachapoly_crypt_and_tag(ctx, MBEDTLS_CHACHAPOLY_ENCRYPT,
+    return chachapoly_crypt_and_tag(0, ctx, MBEDTLS_CHACHAPOLY_ENCRYPT,
                                     length, nonce, aad, aad_len,
                                     input, output, tag);
 }
 
-int mbedtls_chachapoly_auth_decrypt(mbedtls_chachapoly_context *ctx,
-                                    size_t length,
-                                    const unsigned char nonce[12],
-                                    const unsigned char *aad,
-                                    size_t aad_len,
-                                    const unsigned char tag[16],
-                                    const unsigned char *input,
-                                    unsigned char *output)
+int mbedtls_xchachapoly_encrypt_and_tag(mbedtls_chachapoly_context *ctx,
+                                        size_t length,
+                                        const unsigned char nonce[24],
+                                        const unsigned char *aad,
+                                        size_t aad_len,
+                                        const unsigned char *input,
+                                        unsigned char *output,
+                                        unsigned char tag[16])
+{
+    return chachapoly_crypt_and_tag(1, ctx, MBEDTLS_CHACHAPOLY_ENCRYPT,
+                                    length, nonce, aad, aad_len,
+                                    input, output, tag);
+}
+
+static int chachapoly_auth_decrypt(int is_xchacha20,
+                                   mbedtls_chachapoly_context *ctx,
+                                   size_t length,
+                                   const unsigned char *nonce,
+                                   const unsigned char *aad,
+                                   size_t aad_len,
+                                   const unsigned char tag[16],
+                                   const unsigned char *input,
+                                   unsigned char *output)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned char check_tag[16];
     int diff;
 
-    if ((ret = chachapoly_crypt_and_tag(ctx,
+    if ((ret = chachapoly_crypt_and_tag(is_xchacha20, ctx,
                                         MBEDTLS_CHACHAPOLY_DECRYPT, length, nonce,
                                         aad, aad_len, input, output, check_tag)) != 0) {
         return ret;
@@ -314,6 +352,32 @@ int mbedtls_chachapoly_auth_decrypt(mbedtls_chachapoly_context *ctx,
     }
 
     return 0;
+}
+
+int mbedtls_chachapoly_auth_decrypt(mbedtls_chachapoly_context *ctx,
+                                    size_t length,
+                                    const unsigned char nonce[12],
+                                    const unsigned char *aad,
+                                    size_t aad_len,
+                                    const unsigned char tag[16],
+                                    const unsigned char *input,
+                                    unsigned char *output)
+{
+    return chachapoly_auth_decrypt(0, ctx, length, nonce, aad, aad_len,
+                                   tag, input, output);
+}
+
+int mbedtls_xchachapoly_auth_decrypt(mbedtls_chachapoly_context *ctx,
+                                     size_t length,
+                                     const unsigned char nonce[24],
+                                     const unsigned char *aad,
+                                     size_t aad_len,
+                                     const unsigned char tag[16],
+                                     const unsigned char *input,
+                                     unsigned char *output)
+{
+    return chachapoly_auth_decrypt(1, ctx, length, nonce, aad, aad_len,
+                                   tag, input, output);
 }
 
 #if defined(MBEDTLS_SELF_TEST)
@@ -468,6 +532,95 @@ int mbedtls_chachapoly_self_test(int verbose)
 
     return 0;
 }
+
+#if !defined(MBEDTLS_CHACHAPOLY_ALT)
+static const unsigned char test_xnonce[1][24] =
+{
+    {
+        0x40, 0x41, 0x42, 0x43, 0x44, 0x45, 0x46, 0x47,
+        0x48, 0x49, 0x4a, 0x4b, 0x4c, 0x4d, 0x4e, 0x4f,
+        0x50, 0x51, 0x52, 0x53, 0x54, 0x55, 0x56, 0x57
+    }
+};
+
+static const unsigned char test_xoutput[1][114] =
+{
+    {
+        0xbd, 0x6d, 0x17, 0x9d, 0x3e, 0x83, 0xd4, 0x3b,
+        0x95, 0x76, 0x57, 0x94, 0x93, 0xc0, 0xe9, 0x39,
+        0x57, 0x2a, 0x17, 0x00, 0x25, 0x2b, 0xfa, 0xcc,
+        0xbe, 0xd2, 0x90, 0x2c, 0x21, 0x39, 0x6c, 0xbb,
+        0x73, 0x1c, 0x7f, 0x1b, 0x0b, 0x4a, 0xa6, 0x44,
+        0x0b, 0xf3, 0xa8, 0x2f, 0x4e, 0xda, 0x7e, 0x39,
+        0xae, 0x64, 0xc6, 0x70, 0x8c, 0x54, 0xc2, 0x16,
+        0xcb, 0x96, 0xb7, 0x2e, 0x12, 0x13, 0xb4, 0x52,
+        0x2f, 0x8c, 0x9b, 0xa4, 0x0d, 0xb5, 0xd9, 0x45,
+        0xb1, 0x1b, 0x69, 0xb9, 0x82, 0xc1, 0xbb, 0x9e,
+        0x3f, 0x3f, 0xac, 0x2b, 0xc3, 0x69, 0x48, 0x8f,
+        0x76, 0xb2, 0x38, 0x35, 0x65, 0xd3, 0xff, 0xf9,
+        0x21, 0xf9, 0x66, 0x4c, 0x97, 0x63, 0x7d, 0xa9,
+        0x76, 0x88, 0x12, 0xf6, 0x15, 0xc6, 0x8b, 0x13,
+        0xb5, 0x2e
+    }
+};
+
+static const unsigned char test_xmac[1][16] =
+{
+    {
+        0xc0, 0x87, 0x59, 0x24, 0xc1, 0xc7, 0x98, 0x79,
+        0x47, 0xde, 0xaf, 0xd8, 0x78, 0x0a, 0xcf, 0x49
+    }
+};
+
+int mbedtls_xchachapoly_self_test(int verbose)
+{
+    mbedtls_chachapoly_context ctx;
+    unsigned i;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    unsigned char output[200];
+    unsigned char mac[16];
+
+    for (i = 0U; i < 1U; i++) {
+        if (verbose != 0) {
+            mbedtls_printf("  XChaCha20-Poly1305 test %u ", i);
+        }
+
+        mbedtls_chachapoly_init(&ctx);
+
+        ret = mbedtls_chachapoly_setkey(&ctx, test_key[i]);
+        ASSERT(0 == ret, ("setkey() error code: %i\n", ret));
+
+        ret = mbedtls_xchachapoly_encrypt_and_tag(&ctx,
+                                                  test_input_len[i],
+                                                  test_xnonce[i],
+                                                  test_aad[i],
+                                                  test_aad_len[i],
+                                                  test_input[i],
+                                                  output,
+                                                  mac);
+
+        ASSERT(0 == ret, ("crypt_and_tag() error code: %i\n", ret));
+
+        ASSERT(0 == memcmp(output, test_xoutput[i], test_input_len[i]),
+               ("failure (wrong output)\n"));
+
+        ASSERT(0 == memcmp(mac, test_xmac[i], 16U),
+               ("failure (wrong MAC)\n"));
+
+        mbedtls_chachapoly_free(&ctx);
+
+        if (verbose != 0) {
+            mbedtls_printf("passed\n");
+        }
+    }
+
+    if (verbose != 0) {
+        mbedtls_printf("\n");
+    }
+
+    return 0;
+}
+#endif /* MBEDTLS_CHACHAPOLY_ALT */
 
 #endif /* MBEDTLS_SELF_TEST */
 

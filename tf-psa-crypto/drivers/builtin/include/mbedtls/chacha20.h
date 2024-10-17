@@ -110,6 +110,31 @@ int mbedtls_chacha20_starts(mbedtls_chacha20_context *ctx,
                             const unsigned char nonce[12],
                             uint32_t counter);
 
+#if !defined(MBEDTLS_CHACHA20_ALT)
+/**
+ * \brief           This function sets the nonce and initial counter value. XChaCha20 variant.
+ *
+ * \note            A ChaCha20 context can be re-used with the same key by
+ *                  calling this function to change the nonce.
+ *
+ * \warning         You must never use the same nonce twice with the same key.
+ *                  This would void any confidentiality guarantees for the
+ *                  messages encrypted with the same nonce and key.
+ *
+ * \param ctx       The ChaCha20 context to which the nonce should be bound.
+ *                  It must be initialized and bound to a key.
+ * \param nonce     The nonce. This must be \c 24 Bytes in size.
+ * \param counter   The initial counter value. This is usually \c 0.
+ *
+ * \return          \c 0 on success.
+ * \return          #MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA if ctx or nonce is
+ *                  NULL.
+ */
+int mbedtls_xchacha20_starts(mbedtls_chacha20_context *ctx,
+                             const unsigned char nonce[24],
+                             uint32_t counter);
+ #endif /* MBEDTLS_CHACHA20_ALT */
+
 /**
  * \brief           This function encrypts or decrypts data.
  *
@@ -179,6 +204,43 @@ int mbedtls_chacha20_crypt(const unsigned char key[32],
                            const unsigned char *input,
                            unsigned char *output);
 
+#if !defined(MBEDTLS_CHACHA20_ALT)
+/**
+ * \brief           This function encrypts or decrypts data with XChaCha20 and
+ *                  the given key and nonce.
+ *
+ *                  Since XChaCha20 is a stream cipher, the same operation is
+ *                  used for encrypting and decrypting data.
+ *
+ * \warning         You must never use the same (key, nonce) pair more than
+ *                  once. This would void any confidentiality guarantees for
+ *                  the messages encrypted with the same nonce and key.
+ *
+ * \note            The \p input and \p output pointers must either be equal or
+ *                  point to non-overlapping buffers.
+ *
+ * \param key       The encryption/decryption key.
+ *                  This must be \c 32 Bytes in length.
+ * \param nonce     The nonce. This must be \c 24 Bytes in size.
+ * \param counter   The initial counter value. This is usually \c 0.
+ * \param size      The length of the input data in Bytes.
+ * \param input     The buffer holding the input data.
+ *                  This pointer can be \c NULL if `size == 0`.
+ * \param output    The buffer holding the output data.
+ *                  This must be able to hold \p size Bytes.
+ *                  This pointer can be \c NULL if `size == 0`.
+ *
+ * \return          \c 0 on success.
+ * \return          A negative error code on failure.
+ */
+int mbedtls_xchacha20_crypt(const unsigned char key[32],
+                            const unsigned char nonce[24],
+                            uint32_t counter,
+                            size_t size,
+                            const unsigned char *input,
+                            unsigned char *output);
+#endif /* MBEDTLS_CHACHA20_ALT */
+
 #if defined(MBEDTLS_SELF_TEST)
 /**
  * \brief           The ChaCha20 checkup routine.
@@ -187,6 +249,14 @@ int mbedtls_chacha20_crypt(const unsigned char key[32],
  * \return          \c 1 on failure.
  */
 int mbedtls_chacha20_self_test(int verbose);
+
+/**
+ * \brief           The XChaCha20 checkup routine.
+ *
+ * \return          \c 0 on success.
+ * \return          \c 1 on failure.
+ */
+int mbedtls_xchacha20_self_test(int verbose);
 #endif /* MBEDTLS_SELF_TEST */
 
 #ifdef __cplusplus

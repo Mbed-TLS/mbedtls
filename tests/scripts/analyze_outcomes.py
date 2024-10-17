@@ -7,15 +7,296 @@ less likely to be useful.
 """
 
 import re
+import typing
 
 import scripts_path # pylint: disable=unused-import
 from mbedtls_framework import outcome_analysis
 
 
 class CoverageTask(outcome_analysis.CoverageTask):
-    # We'll populate IGNORED_TESTS soon. In the meantime, lack of coverage
-    # is just a warning.
-    outcome_analysis.FULL_COVERAGE_BY_DEFAULT = False
+    """Justify test cases that are never executed."""
+
+    @staticmethod
+    def _has_word_re(words: typing.Iterable[str],
+                     exclude: typing.Optional[str] = None) -> typing.Pattern:
+        """Construct a regex that matches if any of the words appears.
+
+        The occurrence must start and end at a word boundary.
+
+        If exclude is specified, strings containing a match for that
+        regular expression will not match the returned pattern.
+        """
+        exclude_clause = r''
+        if exclude:
+            exclude_clause = r'(?!.*' + exclude + ')'
+        return re.compile(exclude_clause +
+                          r'.*\b(?:' + r'|'.join(words) + r')\b.*',
+                          re.DOTALL)
+
+    # generate_psa_tests.py generates test cases involving cryptographic
+    # mechanisms (key types, families, algorithms) that are declared but
+    # not implemented. Until we improve the Python scripts, ignore those
+    # test cases in the analysis.
+    # https://github.com/Mbed-TLS/mbedtls/issues/9572
+    _PSA_MECHANISMS_NOT_IMPLEMENTED = [
+        r'CBC_MAC',
+        r'DETERMINISTIC_DSA',
+        r'DET_DSA',
+        r'DSA',
+        r'ECC_KEY_PAIR\(BRAINPOOL_P_R1\) (?:160|192|224|320)-bit',
+        r'ECC_KEY_PAIR\(SECP_K1\) 225-bit',
+        r'ECC_PAIR\(BP_R1\) (?:160|192|224|320)-bit',
+        r'ECC_PAIR\(SECP_K1\) 225-bit',
+        r'ECC_PUBLIC_KEY\(BRAINPOOL_P_R1\) (?:160|192|224|320)-bit',
+        r'ECC_PUBLIC_KEY\(SECP_K1\) 225-bit',
+        r'ECC_PUB\(BP_R1\) (?:160|192|224|320)-bit',
+        r'ECC_PUB\(SECP_K1\) 225-bit',
+        r'ED25519PH',
+        r'ED448PH',
+        r'PEPPER',
+        r'PURE_EDDSA',
+        r'SECP_R2',
+        r'SECT_K1',
+        r'SECT_R1',
+        r'SECT_R2',
+        r'SHAKE256_512',
+        r'SHA_512_224',
+        r'SHA_512_256',
+        r'TWISTED_EDWARDS',
+        r'XTS',
+    ]
+    PSA_MECHANISM_NOT_IMPLEMENTED_SEARCH_RE = \
+        _has_word_re(_PSA_MECHANISMS_NOT_IMPLEMENTED)
+
+    IGNORED_TESTS = {
+        'ssl-opt': [
+            # We don't run ssl-opt.sh with Valgrind on the CI because
+            # it's extremely slow. We don't intend to change this.
+            'DTLS client reconnect from same port: reconnect, nbio, valgrind',
+            # We don't have IPv6 in our CI environment.
+            # https://github.com/Mbed-TLS/mbedtls-test/issues/176
+            'DTLS cookie: enabled, IPv6',
+            # Disabled due to OpenSSL bug.
+            # https://github.com/openssl/openssl/issues/18887
+            'DTLS fragmenting: 3d, openssl client, DTLS 1.2',
+            # We don't run ssl-opt.sh with Valgrind on the CI because
+            # it's extremely slow. We don't intend to change this.
+            'DTLS fragmenting: proxy MTU: auto-reduction (with valgrind)',
+            # TLS doesn't use restartable ECDH yet.
+            # https://github.com/Mbed-TLS/mbedtls/issues/7294
+            re.compile(r'EC restart:.*no USE_PSA.*'),
+            # It seems that we don't run `ssl-opt.sh` with
+            # `MBEDTLS_USE_PSA_CRYPTO` enabled but `MBEDTLS_SSL_ASYNC_PRIVATE`
+            # disabled.
+            # https://github.com/Mbed-TLS/mbedtls/issues/9581
+            'Opaque key for server authentication: invalid key: decrypt with ECC key, no async',
+            'Opaque key for server authentication: invalid key: ecdh with RSA key, no async',
+        ],
+        'test_suite_config.mbedtls_boolean': [
+            # We never test with CBC/PKCS5/PKCS12 enabled but
+            # PKCS7 padding disabled.
+            # https://github.com/Mbed-TLS/mbedtls/issues/9580
+            'Config: !MBEDTLS_CIPHER_PADDING_PKCS7',
+            # https://github.com/Mbed-TLS/mbedtls/issues/9583
+            'Config: !MBEDTLS_ECP_NIST_OPTIM',
+            # We never test without the PSA client code. Should we?
+            # https://github.com/Mbed-TLS/TF-PSA-Crypto/issues/112
+            'Config: !MBEDTLS_PSA_CRYPTO_CLIENT',
+            # Missing coverage of test configurations.
+            # https://github.com/Mbed-TLS/mbedtls/issues/9585
+            'Config: !MBEDTLS_SSL_DTLS_ANTI_REPLAY',
+            # Missing coverage of test configurations.
+            # https://github.com/Mbed-TLS/mbedtls/issues/9585
+            'Config: !MBEDTLS_SSL_DTLS_HELLO_VERIFY',
+            # We don't run test_suite_config when we test this.
+            # https://github.com/Mbed-TLS/mbedtls/issues/9586
+            'Config: !MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED',
+            # We only test multithreading with pthreads.
+            # https://github.com/Mbed-TLS/mbedtls/issues/9584
+            'Config: !MBEDTLS_THREADING_PTHREAD',
+            # Built but not tested.
+            # https://github.com/Mbed-TLS/mbedtls/issues/9587
+            'Config: MBEDTLS_AES_USE_HARDWARE_ONLY',
+            # Untested platform-specific optimizations.
+            # https://github.com/Mbed-TLS/mbedtls/issues/9588
+            'Config: MBEDTLS_HAVE_SSE2',
+            # Obsolete configuration option, to be replaced by
+            # PSA entropy drivers.
+            # https://github.com/Mbed-TLS/mbedtls/issues/8150
+            'Config: MBEDTLS_NO_PLATFORM_ENTROPY',
+            # Untested aspect of the platform interface.
+            # https://github.com/Mbed-TLS/mbedtls/issues/9589
+            'Config: MBEDTLS_PLATFORM_NO_STD_FUNCTIONS',
+            # In a client-server build, test_suite_config runs in the
+            # client configuration, so it will never report
+            # MBEDTLS_PSA_CRYPTO_SPM as enabled. That's ok.
+            'Config: MBEDTLS_PSA_CRYPTO_SPM',
+            # We don't test on armv8 yet.
+            'Config: MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT',
+            'Config: MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY',
+            'Config: MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_ONLY',
+            'Config: MBEDTLS_SHA512_USE_A64_CRYPTO_ONLY',
+            # We don't run test_suite_config when we test this.
+            # https://github.com/Mbed-TLS/mbedtls/issues/9586
+            'Config: MBEDTLS_TEST_CONSTANT_FLOW_VALGRIND',
+        ],
+        'test_suite_config.psa_boolean': [
+            # We don't test with HMAC disabled.
+            # https://github.com/Mbed-TLS/mbedtls/issues/9591
+            'Config: !PSA_WANT_ALG_HMAC',
+            # We don't test with HMAC disabled.
+            # https://github.com/Mbed-TLS/mbedtls/issues/9591
+            'Config: !PSA_WANT_ALG_TLS12_PRF',
+            # The DERIVE key type is always enabled.
+            'Config: !PSA_WANT_KEY_TYPE_DERIVE',
+            # More granularity of key pair type enablement macros
+            # than we care to test.
+            # https://github.com/Mbed-TLS/mbedtls/issues/9590
+            'Config: !PSA_WANT_KEY_TYPE_DH_KEY_PAIR_EXPORT',
+            'Config: !PSA_WANT_KEY_TYPE_DH_KEY_PAIR_GENERATE',
+            'Config: !PSA_WANT_KEY_TYPE_DH_KEY_PAIR_IMPORT',
+            # More granularity of key pair type enablement macros
+            # than we care to test.
+            # https://github.com/Mbed-TLS/mbedtls/issues/9590
+            'Config: !PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_EXPORT',
+            'Config: !PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_IMPORT',
+            # We don't test with HMAC disabled.
+            # https://github.com/Mbed-TLS/mbedtls/issues/9591
+            'Config: !PSA_WANT_KEY_TYPE_HMAC',
+            # The PASSWORD key type is always enabled.
+            'Config: !PSA_WANT_KEY_TYPE_PASSWORD',
+            # The PASSWORD_HASH key type is always enabled.
+            'Config: !PSA_WANT_KEY_TYPE_PASSWORD_HASH',
+            # The RAW_DATA key type is always enabled.
+            'Config: !PSA_WANT_KEY_TYPE_RAW_DATA',
+            # More granularity of key pair type enablement macros
+            # than we care to test.
+            # https://github.com/Mbed-TLS/mbedtls/issues/9590
+            'Config: !PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_EXPORT',
+            'Config: !PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_IMPORT',
+            # Algorithm declared but not supported.
+            'Config: PSA_WANT_ALG_CBC_MAC',
+            # Algorithm declared but not supported.
+            'Config: PSA_WANT_ALG_XTS',
+            # Family declared but not supported.
+            'Config: PSA_WANT_ECC_SECP_K1_224',
+            # More granularity of key pair type enablement macros
+            # than we care to test.
+            # https://github.com/Mbed-TLS/mbedtls/issues/9590
+            'Config: PSA_WANT_KEY_TYPE_DH_KEY_PAIR_DERIVE',
+            'Config: PSA_WANT_KEY_TYPE_ECC_KEY_PAIR',
+            'Config: PSA_WANT_KEY_TYPE_RSA_KEY_PAIR',
+            'Config: PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_DERIVE',
+        ],
+        'test_suite_config.psa_combinations': [
+            # We don't test this unusual, but sensible configuration.
+            # https://github.com/Mbed-TLS/mbedtls/issues/9592
+            'Config: PSA_WANT_ALG_DETERMINSTIC_ECDSA without PSA_WANT_ALG_ECDSA',
+        ],
+        'test_suite_pkcs12': [
+            # We never test with CBC/PKCS5/PKCS12 enabled but
+            # PKCS7 padding disabled.
+            # https://github.com/Mbed-TLS/mbedtls/issues/9580
+            'PBE Decrypt, (Invalid padding & PKCS7 padding disabled)',
+            'PBE Encrypt, pad = 8 (PKCS7 padding disabled)',
+        ],
+        'test_suite_pkcs5': [
+            # We never test with CBC/PKCS5/PKCS12 enabled but
+            # PKCS7 padding disabled.
+            # https://github.com/Mbed-TLS/mbedtls/issues/9580
+            'PBES2 Decrypt (Invalid padding & PKCS7 padding disabled)',
+            'PBES2 Encrypt, pad=6 (PKCS7 padding disabled)',
+            'PBES2 Encrypt, pad=8 (PKCS7 padding disabled)',
+        ],
+        'test_suite_psa_crypto_generate_key.generated': [
+            # Ignore mechanisms that are not implemented, except
+            # for public keys for which we always test that
+            # psa_generate_key() returns PSA_ERROR_INVALID_ARGUMENT
+            # regardless of whether the specific key type is supported.
+            _has_word_re((mech
+                          for mech in _PSA_MECHANISMS_NOT_IMPLEMENTED
+                          if not mech.startswith('ECC_PUB')),
+                         exclude=r'ECC_PUB'),
+        ],
+        'test_suite_psa_crypto_metadata': [
+            # Algorithms declared but not supported.
+            # https://github.com/Mbed-TLS/mbedtls/issues/9579
+            'Asymmetric signature: Ed25519ph',
+            'Asymmetric signature: Ed448ph',
+            'Asymmetric signature: pure EdDSA',
+            'Cipher: XTS',
+            'MAC: CBC_MAC-3DES',
+            'MAC: CBC_MAC-AES-128',
+            'MAC: CBC_MAC-AES-192',
+            'MAC: CBC_MAC-AES-256',
+        ],
+        'test_suite_psa_crypto_not_supported.generated': [
+            # It is a bug that not-supported test cases aren't getting
+            # run for never-implemented key types.
+            # https://github.com/Mbed-TLS/mbedtls/issues/7915
+            PSA_MECHANISM_NOT_IMPLEMENTED_SEARCH_RE,
+            # We never test with DH key support disabled but support
+            # for a DH group enabled. The dependencies of these test
+            # cases don't really make sense.
+            # https://github.com/Mbed-TLS/mbedtls/issues/9574
+            re.compile(r'PSA \w+ DH_.*type not supported'),
+            # We only test partial support for DH with the 2048-bit group
+            # enabled and the other groups disabled.
+            # https://github.com/Mbed-TLS/mbedtls/issues/9575
+            'PSA generate DH_KEY_PAIR(RFC7919) 2048-bit group not supported',
+            'PSA import DH_KEY_PAIR(RFC7919) 2048-bit group not supported',
+            'PSA import DH_PUBLIC_KEY(RFC7919) 2048-bit group not supported',
+        ],
+        'test_suite_psa_crypto_op_fail.generated': [
+            # Ignore mechanisms that are not implemented, except
+            # for test cases that assume the mechanism is not supported.
+            _has_word_re(_PSA_MECHANISMS_NOT_IMPLEMENTED,
+                         exclude=(r'.*: !(?:' +
+                                  r'|'.join(_PSA_MECHANISMS_NOT_IMPLEMENTED) +
+                                  r')\b')),
+            # Incorrect dependency generation. To be fixed as part of the
+            # resolution of https://github.com/Mbed-TLS/mbedtls/issues/9167
+            # by forward-porting the commit
+            # "PSA test case generation: dependency inference class: operation fail"
+            # from https://github.com/Mbed-TLS/mbedtls/pull/9025 .
+            re.compile(r'.* with (?:DH|ECC)_(?:KEY_PAIR|PUBLIC_KEY)\(.*'),
+            # PBKDF2_HMAC is not in the default configuration, so we don't
+            # enable it in depends.py where we remove hashes.
+            # https://github.com/Mbed-TLS/mbedtls/issues/9576
+            re.compile(r'PSA key_derivation PBKDF2_HMAC\(\w+\): !(?!PBKDF2_HMAC\Z).*'),
+            # We never test with TLS12_PRF or TLS12_PSK_TO_MS disabled
+            # but certain other things enabled.
+            # https://github.com/Mbed-TLS/mbedtls/issues/9577
+            re.compile(r'PSA key_derivation TLS12_PRF\(\w+\): !TLS12_PRF'),
+            re.compile(r'PSA key_derivation TLS12_PSK_TO_MS'
+                       r'\((?!SHA_256|SHA_384|SHA_512)\w+\): !TLS12_PSK_TO_MS'),
+            'PSA key_derivation KEY_AGREEMENT(ECDH,TLS12_PRF(SHA_256)): !TLS12_PRF',
+            'PSA key_derivation KEY_AGREEMENT(ECDH,TLS12_PRF(SHA_384)): !TLS12_PRF',
+
+            # We never test with the HMAC algorithm enabled but the HMAC
+            # key type disabled. Those dependencies don't really make sense.
+            # https://github.com/Mbed-TLS/mbedtls/issues/9573
+            re.compile(r'.* !HMAC with HMAC'),
+            # There's something wrong with PSA_WANT_ALG_RSA_PSS_ANY_SALT
+            # differing from PSA_WANT_ALG_RSA_PSS.
+            # https://github.com/Mbed-TLS/mbedtls/issues/9578
+            re.compile(r'PSA sign RSA_PSS_ANY_SALT.*!(?:MD|RIPEMD|SHA).*'),
+        ],
+        'test_suite_psa_crypto_storage_format.current': [
+            PSA_MECHANISM_NOT_IMPLEMENTED_SEARCH_RE,
+        ],
+        'test_suite_psa_crypto_storage_format.v0': [
+            PSA_MECHANISM_NOT_IMPLEMENTED_SEARCH_RE,
+        ],
+        'tls13-misc': [
+            # Disabled due to OpenSSL bug.
+            # https://github.com/openssl/openssl/issues/10714
+            'TLS 1.3 O->m: resumption',
+            # Disabled due to OpenSSL command line limitation.
+            # https://github.com/Mbed-TLS/mbedtls/issues/9582
+            'TLS 1.3 m->O: resumption with early data',
+        ],
+    }
 
 
 # The names that we give to classes derived from DriverVSReference do not

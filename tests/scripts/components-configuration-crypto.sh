@@ -2671,12 +2671,19 @@ component_test_full_static_keystore () {
 }
 
 component_test_psa_crypto_drivers () {
+    # Test dispatch to drivers and fallbacks with
+    # test_suite_psa_crypto_driver_wrappers test suite. The test drivers that
+    # are wrappers around the builtin drivers are activated by
+    # PSA_CRYPTO_DRIVER_TEST.
+    #
+    # For the time being, some test cases in test_suite_block_cipher and
+    # test_suite_md.psa rely on this component to be run at least once by the
+    # CI. This should disappear as we progress the 4.x work. See
+    # config_adjust_test_accelerators.h for more information.
     msg "build: full + test drivers dispatching to builtins"
     scripts/config.py full
-    scripts/config.py unset MBEDTLS_PSA_CRYPTO_CONFIG
-    loc_cflags="$ASAN_CFLAGS -DPSA_CRYPTO_DRIVER_TEST_ALL"
-    loc_cflags="${loc_cflags} '-DMBEDTLS_USER_CONFIG_FILE=\"../tests/configs/user-config-for-test.h\"'"
-    loc_cflags="${loc_cflags} -I../tests/include -O2"
+    loc_cflags="$ASAN_CFLAGS -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_CONFIG_ADJUST_TEST_ACCELERATORS"
+    loc_cflags="${loc_cflags} -I../tests/include"
 
     make CC=$ASAN_CC CFLAGS="${loc_cflags}" LDFLAGS="$ASAN_CFLAGS"
 

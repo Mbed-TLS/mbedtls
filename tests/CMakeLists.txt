@@ -71,9 +71,9 @@ if(GEN_FILES)
             ${CMAKE_CURRENT_SOURCE_DIR}/..
         COMMAND
             "${MBEDTLS_PYTHON_EXECUTABLE}"
-            "${CMAKE_CURRENT_SOURCE_DIR}/scripts/generate_tls13_compat_tests.py"
+            "${CMAKE_CURRENT_SOURCE_DIR}/../framework/scripts/generate_tls13_compat_tests.py"
         DEPENDS
-            ${CMAKE_CURRENT_SOURCE_DIR}/scripts/generate_tls13_compat_tests.py
+            ${CMAKE_CURRENT_SOURCE_DIR}/../framework/scripts/generate_tls13_compat_tests.py
     )
     add_custom_target(tls13-compat.sh
         DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/opt-testcases/tls13-compat.sh)

@@ -364,11 +364,11 @@ $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/error.c:
 	echo "  Gen   $@"
 	$(PERL) ../scripts/generate_errors.pl
 
-ssl_debug_helpers_generated.c: $(gen_file_dep) ../scripts/generate_ssl_debug_helpers.py
+ssl_debug_helpers_generated.c: $(gen_file_dep) ../framework/scripts/generate_ssl_debug_helpers.py
 ssl_debug_helpers_generated.c: $(gen_file_dep) $(filter-out %config%,$(wildcard ../include/mbedtls/*.h))
 ssl_debug_helpers_generated.c:
 	echo "  Gen   $@"
-	$(PYTHON) ../scripts/generate_ssl_debug_helpers.py --mbedtls-root .. .
+	$(PYTHON) ../framework/scripts/generate_ssl_debug_helpers.py --mbedtls-root .. .
 
 version_features.c: $(gen_file_dep) ../scripts/generate_features.pl
 version_features.c: $(gen_file_dep) ../scripts/data_files/version_features.fmt

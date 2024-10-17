@@ -1,5 +1,6 @@
 /* BEGIN_HEADER */
 #include "mbedtls/dhm.h"
+#include "mbedtls/error.h"
 
 static int check_get_value(const mbedtls_dhm_context *ctx,
                            mbedtls_dhm_parameter param,

@@ -243,7 +243,15 @@ if(CMAKE_COMPILER_IS_GNU)
     set(CMAKE_C_FLAGS_RELEASE     "-O2")
     set(CMAKE_C_FLAGS_DEBUG       "-O0 -g3")
     set(CMAKE_C_FLAGS_COVERAGE    "-O0 -g3 --coverage")
-    set(CMAKE_C_FLAGS_ASAN        "-fsanitize=address -fno-common -fsanitize=undefined -fno-sanitize-recover=all -O3")
+    # Old GCC versions hit a performance problem with test_suite_pkwrite
+    # "Private keey write check EC" tests when building with Asan+UBSan
+    # and -O3: those tests take more than 100x time than normal, with
+    # test_suite_pkwrite taking >3h on the CI. Observed with GCC 5.4 on
+    # Ubuntu 16.04 x86_64 and GCC 6.5 on Ubuntu 18.04 x86_64.
+    # GCC 7.5 and above on Ubuntu 18.04 appear fine.
+    # To avoid the performance problem, we use -O2 here. It doesn't slow
+    # down much even with modern compiler versions.
+    set(CMAKE_C_FLAGS_ASAN        "-fsanitize=address -fno-common -fsanitize=undefined -fno-sanitize-recover=all -O2")
     set(CMAKE_C_FLAGS_ASANDBG     "-fsanitize=address -fno-common -fsanitize=undefined -fno-sanitize-recover=all -O1 -g3 -fno-omit-frame-pointer -fno-optimize-sibling-calls")
     set(CMAKE_C_FLAGS_TSAN        "-fsanitize=thread -O3")
     set(CMAKE_C_FLAGS_TSANDBG     "-fsanitize=thread -O1 -g3 -fno-omit-frame-pointer -fno-optimize-sibling-calls")

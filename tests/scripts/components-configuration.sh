@@ -292,15 +292,15 @@ component_build_mbedtls_config_file () {
     echo '#error "MBEDTLS_CONFIG_FILE is not working"' >"$CONFIG_H"
     make CFLAGS="-I '$PWD' -DMBEDTLS_CONFIG_FILE='\"full_config.h\"'"
     # Make sure this feature is enabled. We'll disable it in the next phase.
-    programs/test/query_compile_time_config MBEDTLS_NIST_KW_C
+    programs/test/query_compile_time_config MBEDTLS_SSL_ALL_ALERT_MESSAGES
     make clean
 
     msg "build: make with MBEDTLS_CONFIG_FILE + MBEDTLS_USER_CONFIG_FILE"
     # In the user config, disable one feature (for simplicity, pick a feature
     # that nothing else depends on).
-    echo '#undef MBEDTLS_NIST_KW_C' >user_config.h
+    echo '#undef MBEDTLS_SSL_ALL_ALERT_MESSAGES' >user_config.h
     make CFLAGS="-I '$PWD' -DMBEDTLS_CONFIG_FILE='\"full_config.h\"' -DMBEDTLS_USER_CONFIG_FILE='\"user_config.h\"'"
-    not programs/test/query_compile_time_config MBEDTLS_NIST_KW_C
+    not programs/test/query_compile_time_config MBEDTLS_SSL_ALL_ALERT_MESSAGES
 
     rm -f user_config.h full_config.h
 }

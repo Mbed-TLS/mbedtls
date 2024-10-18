@@ -329,8 +329,9 @@ libtestdriver1.a:
 	cp -Rf ../tf-psa-crypto/drivers/builtin ./libtestdriver1/tf-psa-crypto/drivers
 	cp -Rf ../scripts ./libtestdriver1
 
-	# Set the test driver base (minimal) configuration.
+	# Set the test drivers base (minimal) configuration.
 	cp ./include/test/drivers/config_test_driver.h ./libtestdriver1/include/mbedtls/mbedtls_config.h
+	cp ./include/test/drivers/config_test_driver_tf_psa_crypto.h  ./libtestdriver1/tf-psa-crypto/include/psa/crypto_config.h
 
 	# Set the PSA cryptography configuration for the test library.
 	# It is set from the copied include/psa/crypto_config.h of the Mbed TLS
@@ -347,6 +348,7 @@ libtestdriver1.a:
 	# when this test driver library is linked with the Mbed TLS library.
 	perl -pi -e '$(libtestdriver1_rewrite)' ./libtestdriver1/library/*.[ch]
 	perl -pi -e '$(libtestdriver1_rewrite)' ./libtestdriver1/include/*/*.h
+	perl -pi -e '$(libtestdriver1_rewrite)' ./libtestdriver1/include/*/*/*.h
 	perl -pi -e '$(libtestdriver1_rewrite)' ./libtestdriver1/tf-psa-crypto/core/*.[ch]
 	perl -pi -e '$(libtestdriver1_rewrite)' ./libtestdriver1/tf-psa-crypto/include/*/*.h
 	perl -pi -e '$(libtestdriver1_rewrite)' ./libtestdriver1/tf-psa-crypto/drivers/builtin/include/*/*.h

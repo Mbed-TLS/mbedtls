@@ -134,6 +134,8 @@
 #if defined(MBEDTLS_PSA_CRYPTO_CONFIG)
 #if defined(MBEDTLS_PSA_CRYPTO_CONFIG_FILE)
 #include MBEDTLS_PSA_CRYPTO_CONFIG_FILE
+#elif defined(MBEDTLS_USER_CRYPTO_CONFIG_FILE)
+#include MBEDTLS_USER_CRYPTO_CONFIG_FILE
 #else
 #include "psa/crypto_config.h"
 #endif

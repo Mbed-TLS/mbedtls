@@ -1945,7 +1945,8 @@ component_test_psa_crypto_config_accel_aead () {
     scripts/config.py unset MBEDTLS_CHACHAPOLY_C
 
     # Disable CCM_STAR_NO_TAG because this re-enables CCM_C.
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CCM_STAR_NO_TAG
+    scripts/config.py unset PSA_WANT_ALG_CCM_STAR_NO_TAG
+    scripts/config.py -c "$CONFIG_CRYPTO_TEST_DRIVER_H" unset PSA_WANT_ALG_CCM_STAR_NO_TAG
 
     # Build
     # -----
@@ -2080,14 +2081,24 @@ common_block_cipher_dispatch () {
     # legacy key types to be re-enabled in "config_adjust_legacy_from_psa.h".
     # Keep this also in the reference component in order to skip the same tests
     # that were skipped in the accelerated one.
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CTR
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CFB
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_OFB
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CBC_NO_PADDING
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CBC_PKCS7
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CMAC
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CCM_STAR_NO_TAG
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_PBKDF2_AES_CMAC_PRF_128
+    scripts/config.py unset PSA_WANT_ALG_CTR
+    scripts/config.py unset PSA_WANT_ALG_CFB
+    scripts/config.py unset PSA_WANT_ALG_OFB
+    scripts/config.py unset PSA_WANT_ALG_CBC_NO_PADDING
+    scripts/config.py unset PSA_WANT_ALG_CBC_PKCS7
+    scripts/config.py unset PSA_WANT_ALG_CMAC
+    scripts/config.py unset PSA_WANT_ALG_CCM_STAR_NO_TAG
+    scripts/config.py unset PSA_WANT_ALG_PBKDF2_AES_CMAC_PRF_128
+
+    # The  PSA_WANT configuration entries between Library and libtestdriver should match.
+    scripts/config.py -c "$CONFIG_CRYPTO_TEST_DRIVER_H" unset PSA_WANT_ALG_CTR
+    scripts/config.py -c "$CONFIG_CRYPTO_TEST_DRIVER_H" unset PSA_WANT_ALG_CFB
+    scripts/config.py -c "$CONFIG_CRYPTO_TEST_DRIVER_H" unset PSA_WANT_ALG_OFB
+    scripts/config.py -c "$CONFIG_CRYPTO_TEST_DRIVER_H" unset PSA_WANT_ALG_CBC_NO_PADDING
+    scripts/config.py -c "$CONFIG_CRYPTO_TEST_DRIVER_H" unset PSA_WANT_ALG_CBC_PKCS7
+    scripts/config.py -c "$CONFIG_CRYPTO_TEST_DRIVER_H" unset PSA_WANT_ALG_CMAC
+    scripts/config.py -c "$CONFIG_CRYPTO_TEST_DRIVER_H" unset PSA_WANT_ALG_CCM_STAR_NO_TAG
+    scripts/config.py -c "$CONFIG_CRYPTO_TEST_DRIVER_H" unset PSA_WANT_ALG_PBKDF2_AES_CMAC_PRF_128
 
     # Disable direct dependency on AES_C
     scripts/config.py unset MBEDTLS_NIST_KW_C

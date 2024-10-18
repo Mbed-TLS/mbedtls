@@ -36,7 +36,7 @@
 #include "mbedtls/ecp.h"
 #include "mbedtls/threading.h"
 #include "mbedtls/platform_util.h"
-#include "mbedtls/error.h"
+#include "mbedtls/error_common.h"
 
 #include "bn_mul.h"
 #include "ecp_invasive.h"

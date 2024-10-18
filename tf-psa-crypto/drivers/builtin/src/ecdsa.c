@@ -27,7 +27,7 @@
 #include "mbedtls/platform.h"
 
 #include "mbedtls/platform_util.h"
-#include "mbedtls/error.h"
+#include "mbedtls/error_common.h"
 
 #if defined(MBEDTLS_ECP_RESTARTABLE)
 

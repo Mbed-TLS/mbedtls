@@ -35,7 +35,7 @@
 #include "mbedtls/oid.h"
 #include "mbedtls/asn1write.h"
 #include "mbedtls/platform_util.h"
-#include "mbedtls/error.h"
+#include "mbedtls/error_common.h"
 #include "constant_time_internal.h"
 #include "mbedtls/constant_time.h"
 #include "md_psa.h"

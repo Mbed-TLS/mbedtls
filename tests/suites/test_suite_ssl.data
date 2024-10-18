@@ -2840,6 +2840,11 @@ SSL TLS 1.3 Key schedule: Derive-Secret( ., "res master", hash)
 depends_on:PSA_WANT_ALG_SHA_256
 ssl_tls13_derive_secret:PSA_ALG_SHA_256:"e2d32d4ed66dd37897a0e80c84107503ce58bf8aad4cb55a5002d77ecb890ece":tls13_label_res_master:"c3c122e0bd907a4a3ff6112d8fd53dbf89c773d9552e8b6b9d56d361b3a97bf6":32:MBEDTLS_SSL_TLS1_3_CONTEXT_HASHED:"5e95bdf1f89005ea2e9aa0ba85e728e3c19c5fe0c699e3f5bee59faebd0b5406"
 
+SSL TLS 1.3 Exporter
+# Based on the "exp master" key from RFC 8448, expected result calculated with a HMAC-SHA256 calculator.
+depends_on:PSA_WANT_ALG_SHA_256
+ssl_tls13_exporter:PSA_ALG_SHA_256:"3fd93d4ffddc98e64b14dd107aedf8ee4add23f4510f58a4592d0b201bee56b4":"test":"context value":32:"83d0fac39f87c1b4fbcd261369f31149c535391a9199bd4c5daf89fe259c2e94"
+
 SSL TLS 1.3 Key schedule: Early secrets derivation helper
 # Vector from RFC 8448
 depends_on:PSA_WANT_ALG_SHA_256

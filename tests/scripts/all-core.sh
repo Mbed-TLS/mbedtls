@@ -172,7 +172,7 @@ pre_initialize_variables () {
         else
             CRYPTO_CONFIG_H='include/psa/crypto_config.h'
             # helper_armc6_build_test() relies on these being defined,
-            # but empty if the paths don't exits (as in 3.6).
+            # but empty if the paths don't exist (as in 3.6).
             PSA_CORE_PATH=''
             BUILTIN_SRC_PATH=''
         fi

@@ -1,10 +1,3 @@
-# Set the project root directory if it's not already defined, as may happen if
-# the library folder is included directly by a parent project, without
-# including the top level CMakeLists.txt.
-if(NOT DEFINED MBEDTLS_DIR)
-    set(MBEDTLS_DIR ${CMAKE_SOURCE_DIR})
-endif()
-
 set(src_x509
     pkcs7.c
     x509.c

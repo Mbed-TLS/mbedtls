@@ -150,7 +150,7 @@ set(THREADS_PREFER_PTHREAD_FLAG TRUE)
 find_package(Threads)
 
 # If this is the root project add longer list of available CMAKE_BUILD_TYPE values
-if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+if(NOT MBEDTLS_AS_SUBPROJECT)
     set(CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE}
         CACHE STRING "Choose the type of build: None Debug Release Coverage ASan ASanDbg MemSan MemSanDbg Check CheckFull TSan TSanDbg"
         FORCE)
@@ -317,10 +317,6 @@ if(CMAKE_BUILD_TYPE STREQUAL "Coverage")
         set(CMAKE_SHARED_LINKER_FLAGS "--coverage")
     endif(CMAKE_COMPILER_IS_GNU OR CMAKE_COMPILER_IS_CLANG)
 endif(CMAKE_BUILD_TYPE STREQUAL "Coverage")
-
-if(LIB_INSTALL_DIR)
-    set(CMAKE_INSTALL_LIBDIR "${LIB_INSTALL_DIR}")
-endif()
 
 if (NOT EXISTS "${MBEDTLS_FRAMEWORK_DIR}/CMakeLists.txt")
     message(FATAL_ERROR "${MBEDTLS_FRAMEWORK_DIR}/CMakeLists.txt not found. Run `git submodule update --init` from the source tree to fetch the submodule contents.")

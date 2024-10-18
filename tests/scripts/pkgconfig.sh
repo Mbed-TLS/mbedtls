@@ -18,11 +18,14 @@
 
 set -e -u
 
-# These are the EXPECTED package names. Renaming these could break
-# consumers of pkg-config, consider carefully.
-all_pcs="mbedtls mbedx509 mbedcrypto"
+if [ $# -le 0 ]
+then
+    echo " [!] No package names specified" >&2
+    echo "Usage: $0 <package name 1> <package name 2> ..." >&2
+    exit 1
+fi
 
-for pc in $all_pcs; do
+for pc in "$@"; do
     printf "testing package config file: ${pc} ... "
     pkg-config --validate "${pc}"
     version="$(pkg-config --modversion "${pc}")"

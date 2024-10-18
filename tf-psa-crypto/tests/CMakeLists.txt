@@ -3,13 +3,6 @@ set(libs
     ${CMAKE_THREAD_LIBS_INIT}
 )
 
-# Set the project root directory if it's not already defined, as may happen if
-# the tests folder is included directly by a parent project, without including
-# the top level CMakeLists.txt.
-if(NOT DEFINED MBEDTLS_DIR)
-    set(MBEDTLS_DIR ${CMAKE_SOURCE_DIR})
-endif()
-
 if(NOT TF_PSA_CRYPTO_PYTHON_EXECUTABLE)
     message(FATAL_ERROR "Cannot build test suites without Python 3")
 endif()
@@ -357,5 +350,6 @@ if (NOT ${CMAKE_CURRENT_BINARY_DIR} STREQUAL ${CMAKE_CURRENT_SOURCE_DIR})
     if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/seedfile")
         link_to_source(seedfile)
     endif()
+    link_to_source(Descriptions.txt)
     link_to_source(../../framework/data_files)
 endif()

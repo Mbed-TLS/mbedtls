@@ -200,7 +200,8 @@ mbedtls_ecp_point;
  *
  * For Montgomery curves, we do not store \p A, but <code>(A + 2) / 4</code>,
  * which is the quantity used in the formulas. Additionally, \p nbits is
- * not the size of \p N but the required size for private keys.
+ * not the size of \p N but the position of the highest bit for private keys,
+ * i.e. the private key bit-size minus 1.
  *
  * If \p modp is NULL, reduction modulo \p P is done using a generic algorithm.
  * Otherwise, \p modp must point to a function that takes an \p mbedtls_mpi in the
@@ -235,8 +236,8 @@ typedef struct mbedtls_ecp_group {
     mbedtls_mpi N;              /*!< The order of \p G. */
     size_t pbits;               /*!< The number of bits in \p P.*/
     size_t nbits;               /*!< For Short Weierstrass: The number of bits in \p P.
-                                     For Montgomery curves: the number of bits in the
-                                     private keys. */
+                                     For Montgomery curves: one less than the
+                                     number of bits in private keys. */
     /* End of public fields */
 
     unsigned int MBEDTLS_PRIVATE(h);             /*!< \internal 1 if the constants are static. */

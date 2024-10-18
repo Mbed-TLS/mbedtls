@@ -1,0 +1,3 @@
+Bugfix:
+   * Fix pkgconfig files on Windows: the bcrypt library was missing when
+     linking statically.

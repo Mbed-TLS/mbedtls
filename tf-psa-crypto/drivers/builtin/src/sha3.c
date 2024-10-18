@@ -52,6 +52,7 @@
 #endif /* MBEDTLS_SELF_TEST */
 
 #define XOR_BYTE 0x6
+#define XOR_BYTE_SHAKE 0x1F
 
 /* Precomputed masks for the iota transform.
  *
@@ -286,12 +287,22 @@ int mbedtls_sha3_starts(mbedtls_sha3_context *ctx, mbedtls_sha3_id id)
             ctx->olen = 512 / 8;
             ctx->max_block_size = 576 / 8;
             break;
+        case MBEDTLS_SHA3_SHAKE128:
+            ctx->olen = 0;
+            ctx->max_block_size = 1344 / 8;
+            break;
+        case MBEDTLS_SHA3_SHAKE256:
+            ctx->olen = 0;
+            ctx->max_block_size = 1088 / 8;
+            break;
         default:
             return MBEDTLS_ERR_SHA3_BAD_INPUT_DATA;
     }
 
     memset(ctx->state, 0, sizeof(ctx->state));
     ctx->index = 0;
+    ctx->finished = 0; // Used by SHAKE, since mbedtls_sha3_finish() can be called multiple times.
+    ctx->id = id;
 
     return 0;
 }
@@ -353,10 +364,18 @@ int mbedtls_sha3_finish(mbedtls_sha3_context *ctx,
         olen = ctx->olen;
     }
 
-    ABSORB(ctx, ctx->index, XOR_BYTE);
-    ABSORB(ctx, ctx->max_block_size - 1, 0x80);
-    keccak_f1600(ctx);
-    ctx->index = 0;
+    if (ctx->finished == 0) {
+        if (ctx->id == MBEDTLS_SHA3_SHAKE128 || ctx->id == MBEDTLS_SHA3_SHAKE256) {
+            ABSORB(ctx, ctx->index, XOR_BYTE_SHAKE);
+        }
+        else {
+            ABSORB(ctx, ctx->index, XOR_BYTE);
+        }
+        ABSORB(ctx, ctx->max_block_size - 1, 0x80);
+        keccak_f1600(ctx);
+        ctx->index = 0;
+        ctx->finished = 1;
+    }
 
     while (olen-- > 0) {
         *output++ = SQUEEZE(ctx, ctx->index);
@@ -369,7 +388,8 @@ int mbedtls_sha3_finish(mbedtls_sha3_context *ctx,
     ret = 0;
 
 exit:
-    mbedtls_sha3_free(ctx);
+    /* Do not call mbedtls_sha3_free() since
+    mbedtls_sha3_finish() can be called multiple times */
     return ret;
 }
 
@@ -662,6 +682,122 @@ cleanup:
     return result;
 }
 
+static const unsigned char shake128_test_input[2][16] =
+{
+    {
+        0xD4, 0xD6, 0x7B, 0x00, 0xCA, 0x51, 0x39, 0x77,
+        0x91, 0xB8, 0x12, 0x05, 0xD5, 0x58, 0x2C, 0x0A
+    },
+    {
+        0xCC, 0x0A, 0x93, 0x9D, 0x40, 0xFE, 0xFD, 0xC6,
+        0xC9, 0x9A, 0xCF, 0xA3, 0x7D, 0xE1, 0x0D, 0xF6
+    }
+};
+
+static const unsigned char shake128_test_output[2][16] =
+{
+    {
+        0xD0, 0xAC, 0xFB, 0x2A, 0x14, 0x92, 0x8C, 0xAF,
+        0x8C, 0x16, 0x8A, 0xE5, 0x14, 0x92, 0x5E, 0x4E
+    },
+    {
+        0xB7, 0x0B, 0x72, 0x4A, 0x91, 0xBA, 0x86, 0x5E,
+        0xF4, 0x34, 0xF8, 0x50, 0x48, 0x50, 0x48, 0x91
+    }
+};
+
+static const unsigned char shake256_test_input[2][32] =
+{
+    {
+        0xEF, 0x89, 0x6C, 0xDC, 0xB3, 0x63, 0xA6, 0x15,
+        0x91, 0x78, 0xA1, 0xBB, 0x1C, 0x99, 0x39, 0x46,
+        0xC5, 0x04, 0x02, 0x09, 0x5C, 0xDA, 0xEA, 0x4F,
+        0xD4, 0xD4, 0x19, 0xAA, 0x47, 0x32, 0x1C, 0x88
+    },
+    {
+        0x76, 0x89, 0x1A, 0x7B, 0xCC, 0x6C, 0x04, 0x49,
+        0x00, 0x35, 0xB7, 0x43, 0x15, 0x2F, 0x64, 0xA8,
+        0xDD, 0x2E, 0xA1, 0x8A, 0xB4, 0x72, 0xB8, 0xD3,
+        0x6E, 0xCF, 0x45, 0x85, 0x8D, 0x0B, 0x00, 0x46
+    }
+};
+
+static const unsigned char shake256_test_output[2][32] =
+{
+    {
+        0x7A, 0xBB, 0xA4, 0xE8, 0xB8, 0xDD, 0x76, 0x6B,
+        0xBA, 0xBE, 0x98, 0xF8, 0xF1, 0x69, 0xCB, 0x62,
+        0x08, 0x67, 0x4D, 0xE1, 0x9A, 0x51, 0xD7, 0x3C,
+        0x92, 0xB7, 0xDC, 0x04, 0xA4, 0xB5, 0xEE, 0x3D
+    },
+    {
+        0xE8, 0x44, 0x7D, 0xF8, 0x7D, 0x01, 0xBE, 0xEB,
+        0x72, 0x4C, 0x9A, 0x2A, 0x38, 0xAB, 0x00, 0xFC,
+        0xC2, 0x4E, 0x9B, 0xD1, 0x78, 0x60, 0xE6, 0x73,
+        0xB0, 0x21, 0x22, 0x2D, 0x62, 0x1A, 0x78, 0x10
+    }
+};
+
+static int mbedtls_shake_self_test(int verbose)
+{
+    uint8_t output[32];
+    int i;
+    int result;
+
+    for (i = 0; i < 2; i++) {
+        if (verbose != 0) {
+            mbedtls_printf("  SHAKE128 test %d ", i);
+        }
+
+        result = mbedtls_sha3(MBEDTLS_SHA3_SHAKE128,
+                              shake128_test_input[i], 16,
+                              output, 16);
+        if (result != 0) {
+            if (verbose != 0) {
+                mbedtls_printf("error code: %d\n", result);
+            }
+            return -1;
+        }
+        if (0 != memcmp(shake128_test_output[i], output, 16)) {
+            if (verbose != 0) {
+                mbedtls_printf("failed\n");
+            }
+            return -1;
+        }
+
+        if (verbose != 0) {
+            mbedtls_printf("passed\n");
+            mbedtls_printf("  SHAKE256 test %d ", i);
+        }
+
+        result = mbedtls_sha3(MBEDTLS_SHA3_SHAKE256,
+                              shake256_test_input[i], 32,
+                              output, 32);
+        if (result != 0) {
+            if (verbose != 0) {
+                mbedtls_printf("error code: %d\n", result);
+            }
+            return -1;
+        }
+        if (0 != memcmp(shake256_test_output[i], output, 32)) {
+            if (verbose != 0) {
+                mbedtls_printf("failed\n");
+            }
+            return -1;
+        }
+
+        if (verbose != 0) {
+            mbedtls_printf("passed\n");
+        }
+    }
+
+    if (verbose != 0) {
+        mbedtls_printf("\n");
+    }
+
+    return 0;
+}
+
 int mbedtls_sha3_self_test(int verbose)
 {
     int i;
@@ -712,6 +848,12 @@ int mbedtls_sha3_self_test(int verbose)
 
     if (verbose != 0) {
         mbedtls_printf("\n");
+    }
+
+
+    /* SHAKE and cSHAKE tests */
+    if (0 != mbedtls_shake_self_test(verbose)) {
+        return 1;
     }
 
     return 0;

@@ -8669,7 +8669,7 @@ static int ssl_tls12_populate_transform(mbedtls_ssl_transform *transform,
 #endif /* MBEDTLS_SSL_SOME_SUITES_USE_CBC_ETM */
     transform->tls_version = tls_version;
 
-#if defined(MBEDTLS_SSL_CONTEXT_SERIALIZATION)
+#if defined(MBEDTLS_SSL_CONTEXT_SERIALIZATION) || defined(MBEDTLS_SSL_PROTO_TLS1_2)
     memcpy(transform->randbytes, randbytes, sizeof(transform->randbytes));
 #endif
 

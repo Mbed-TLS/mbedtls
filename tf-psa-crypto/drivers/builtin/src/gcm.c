@@ -246,12 +246,12 @@ static const uint16_t last8[256] = {
     0xf0bb, 0x32ba, 0x74b8, 0xb6b9, 0xf8bc, 0x3abd, 0x7cbf, 0xbebe
 };
 
-static void gcm_mult_largetable(uint8_t *output, const uint8_t *x, uint64_t H[256][2])
+static void gcm_mult_largetable(uint8_t *restrict output,
+                                const uint8_t *restrict x,
+                                uint64_t H[256][2])
 {
     int i;
     uint64_t u64z[2];
-    uint16_t *u16z = (uint16_t *) u64z;
-    uint8_t *u8z = (uint8_t *) u64z;
     uint8_t rem;
 
     u64z[0] = 0;
@@ -259,29 +259,34 @@ static void gcm_mult_largetable(uint8_t *output, const uint8_t *x, uint64_t H[25
 
     if (MBEDTLS_IS_BIG_ENDIAN) {
         for (i = 15; i > 0; i--) {
-            mbedtls_xor_no_simd(u8z, u8z, (uint8_t *) H[x[i]], 16);
-            rem = u8z[15];
+            u64z[0] ^= H[x[i]][0];
+            u64z[1] ^= H[x[i]][1];
+            rem = u64z[1] & 0xFF;
 
             u64z[1] >>= 8;
-            u8z[8] = u8z[7];
+            u64z[1] |= u64z[0] << 56;
             u64z[0] >>= 8;
 
-            u16z[0] ^= MBEDTLS_GET_UINT16_LE(&last8[rem], 0);
+            u64z[0] ^= (uint64_t) MBEDTLS_GET_UINT16_LE(&last8[rem], 0) << 48;
         }
     } else {
         for (i = 15; i > 0; i--) {
-            mbedtls_xor_no_simd(u8z, u8z, (uint8_t *) H[x[i]], 16);
-            rem = u8z[15];
+            u64z[0] ^= H[x[i]][0];
+            u64z[1] ^= H[x[i]][1];
+            rem = u64z[1] >> 56;
 
             u64z[1] <<= 8;
-            u8z[8] = u8z[7];
+            u64z[1] |= u64z[0] >> 56;
             u64z[0] <<= 8;
 
-            u16z[0] ^= last8[rem];
+            u64z[0] ^= last8[rem];
         }
     }
 
-    mbedtls_xor_no_simd(output, u8z, (uint8_t *) H[x[0]], 16);
+    mbedtls_xor_no_simd(output,
+                        (uint8_t *) u64z,
+                        (uint8_t *) H[x[0]],
+                        16);
 }
 #else
 /*
@@ -289,21 +294,21 @@ static void gcm_mult_largetable(uint8_t *output, const uint8_t *x, uint64_t H[25
  *      last4[x] = x times P^128
  * where x and last4[x] are seen as elements of GF(2^128) as in [MGV]
  */
-static const uint16_t last4[16] =
+static const uint32_t last4[16] =
 {
-    0x0000, 0x1c20, 0x3840, 0x2460,
-    0x7080, 0x6ca0, 0x48c0, 0x54e0,
-    0xe100, 0xfd20, 0xd940, 0xc560,
-    0x9180, 0x8da0, 0xa9c0, 0xb5e0
+    0x00000000, 0x1c200000, 0x38400000, 0x24600000,
+    0x70800000, 0x6ca00000, 0x48c00000, 0x54e00000,
+    0xe1000000, 0xfd200000, 0xd9400000, 0xc5600000,
+    0x91800000, 0x8da00000, 0xa9c00000, 0xb5e00000
 };
 
-static void gcm_mult_smalltable(uint8_t *output, const uint8_t *x, uint64_t H[16][2])
+static void gcm_mult_smalltable(uint8_t *restrict output, const uint8_t *restrict x,
+                                uint64_t H[16][2])
 {
     int i = 0;
     unsigned char lo, hi, rem;
     uint64_t u64z[2];
     const uint64_t *pu64z = NULL;
-    uint8_t *u8z = (uint8_t *) u64z;
 
     lo = x[15] & 0xf;
     hi = (x[15] >> 4) & 0xf;
@@ -313,8 +318,9 @@ static void gcm_mult_smalltable(uint8_t *output, const uint8_t *x, uint64_t H[16
     rem = (unsigned char) pu64z[1] & 0xf;
     u64z[1] = (pu64z[0] << 60) | (pu64z[1] >> 4);
     u64z[0] = (pu64z[0] >> 4);
-    u64z[0] ^= (uint64_t) last4[rem] << 48;
-    mbedtls_xor_no_simd(u8z, u8z, (uint8_t *) H[hi], 16);
+    u64z[0] ^= (uint64_t) last4[rem] << 32;
+    u64z[0] ^= H[hi][0];
+    u64z[1] ^= H[hi][1];
 
     for (i = 14; i >= 0; i--) {
         lo = x[i] & 0xf;
@@ -323,14 +329,16 @@ static void gcm_mult_smalltable(uint8_t *output, const uint8_t *x, uint64_t H[16
         rem = (unsigned char) u64z[1] & 0xf;
         u64z[1] = (u64z[0] << 60) | (u64z[1] >> 4);
         u64z[0] = (u64z[0] >> 4);
-        u64z[0] ^= (uint64_t) last4[rem] << 48;
-        mbedtls_xor_no_simd(u8z, u8z, (uint8_t *) H[lo], 16);
+        u64z[0] ^= (uint64_t) last4[rem] << 32;
+        u64z[1] ^= H[lo][1];
+        u64z[0] ^= H[lo][0];
 
         rem = (unsigned char) u64z[1] & 0xf;
         u64z[1] = (u64z[0] << 60) | (u64z[1] >> 4);
         u64z[0] = (u64z[0] >> 4);
-        u64z[0] ^= (uint64_t) last4[rem] << 48;
-        mbedtls_xor_no_simd(u8z, u8z, (uint8_t *) H[hi], 16);
+        u64z[0] ^= (uint64_t) last4[rem] << 32;
+        u64z[1] ^= H[hi][1];
+        u64z[0] ^= H[hi][0];
     }
 
     MBEDTLS_PUT_UINT64_BE(u64z[0], output, 0);

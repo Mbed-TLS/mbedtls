@@ -158,8 +158,18 @@ void mbedtls_net_init(mbedtls_net_context *ctx)
 int mbedtls_net_connect(mbedtls_net_context *ctx, const char *host,
                         const char *port, int proto)
 {
+    return mbedtls_net_connect_timeout(ctx, host, port, proto, 0);
+}
+
+/*
+ * Initiate a TCP connection with host:port and the given protocol blocking for at most 'timeout' ms
+ */
+int mbedtls_net_connect_timeout(mbedtls_net_context *ctx, const char *host,
+                                const char *port, int proto, uint32_t timeout)
+{
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     struct addrinfo hints, *addr_list, *cur;
+    int last_error;
 
     if ((ret = net_prepare()) != 0) {
         return ret;
@@ -185,8 +195,68 @@ int mbedtls_net_connect(mbedtls_net_context *ctx, const char *host,
             continue;
         }
 
+        if (mbedtls_net_set_nonblock(ctx) < 0) {
+            close(ctx->fd);
+            ret = MBEDTLS_ERR_NET_CONNECT_FAILED;
+            break;
+        }
+
         if (connect(ctx->fd, cur->ai_addr, MSVC_INT_CAST cur->ai_addrlen) == 0) {
             ret = 0;
+            break;
+        }
+
+#if _WIN32
+        last_error = WSAGetLastError();
+        if (last_error == WSAEWOULDBLOCK) {
+            last_error = EINPROGRESS;
+        }
+#else
+        last_error = errno;
+#endif
+        if (last_error == EINPROGRESS) {
+            int            fd = (int) ctx->fd;
+            int            opt;
+            socklen_t      slen;
+            struct timeval tv;
+            fd_set         write_fds;
+            fd_set         error_fds;
+
+            while (1) {
+                FD_ZERO(&write_fds);
+                FD_ZERO(&error_fds);
+                FD_SET(fd, &write_fds);
+                FD_SET(fd, &error_fds);
+
+                tv.tv_sec = timeout / 1000;
+                tv.tv_usec = (timeout % 1000) * 1000;
+
+                ret = select(fd + 1, NULL, &write_fds, &error_fds, timeout == 0 ? NULL : &tv);
+                if (ret == -1) {
+#if _WIN32
+                    if (WSAGetLastError() == WSAEINTR) {
+                        continue;
+                    }
+#else
+                    if (errno == EINTR) {
+                        continue;
+                    }
+#endif
+                } else if (ret == 0) {
+                    close(fd);
+                    ret = MBEDTLS_ERR_NET_CONNECT_FAILED;
+                } else {
+                    ret = 0;
+
+                    slen = sizeof(int);
+                    if ((getsockopt(fd, SOL_SOCKET, SO_ERROR, (void *) &opt,
+                                    &slen) == 0) && (opt > 0)) {
+                        close(fd);
+                        ret = MBEDTLS_ERR_NET_CONNECT_FAILED;
+                    }
+                }
+                break;
+            }
             break;
         }
 
@@ -195,6 +265,11 @@ int mbedtls_net_connect(mbedtls_net_context *ctx, const char *host,
     }
 
     freeaddrinfo(addr_list);
+
+    if (ret == 0 && mbedtls_net_set_block(ctx) < 0) {
+        close(ctx->fd);
+        ret = MBEDTLS_ERR_NET_CONNECT_FAILED;
+    }
 
     return ret;
 }

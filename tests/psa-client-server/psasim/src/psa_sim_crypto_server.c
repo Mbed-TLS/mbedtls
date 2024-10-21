@@ -21,6 +21,10 @@
 #error "Error: MBEDTLS_PSA_CRYPTO_C must be enabled on server build"
 #endif
 
+#if defined(MBEDTLS_TEST_HOOKS)                                                 
+void (*mbedtls_test_hook_error_add)(int, int, const char *, int);               
+#endif
+
 // Returns 1 for success, 0 for failure
 int psa_crypto_init_wrapper(
     uint8_t *in_params, size_t in_params_len,

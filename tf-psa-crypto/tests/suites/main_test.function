@@ -232,9 +232,7 @@ int main(int argc, const char *argv[])
 #if defined(MBEDTLS_TEST_HOOKS)
     extern void (*mbedtls_test_hook_test_fail)(const char *test, int line, const char *file);
     mbedtls_test_hook_test_fail = &mbedtls_test_fail;
-#if defined(MBEDTLS_ERRORCOMMON_C)
     mbedtls_test_hook_error_add = &mbedtls_test_err_add_check;
-#endif
 #endif
 
     /* Try changing to the directory containing the executable, if

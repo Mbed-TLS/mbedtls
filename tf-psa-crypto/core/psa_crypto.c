@@ -8191,8 +8191,8 @@ psa_status_t psa_generate_key_iop_complete(
         return PSA_ERROR_BAD_STATE;
     }
 
-    status = mbedtls_psa_generate_key_complete(&operation->ctx, key_data,
-                                               MBEDTLS_ECP_MAX_BYTES, &key_len);
+    status = mbedtls_psa_generate_key_iop_complete(&operation->ctx, key_data,
+                                                   MBEDTLS_ECP_MAX_BYTES, &key_len);
     if (status != PSA_SUCCESS) {
         goto exit;
     }

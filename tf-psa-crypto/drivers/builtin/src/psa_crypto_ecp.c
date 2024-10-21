@@ -617,7 +617,7 @@ psa_status_t mbedtls_psa_generate_key_iop_setup(
     return mbedtls_to_psa_error(status);
 }
 
-psa_status_t mbedtls_psa_generate_key_complete(
+psa_status_t mbedtls_psa_generate_key_iop_complete(
     mbedtls_psa_generate_key_iop_t *operation,
     uint8_t *key_output,
     size_t key_output_size,

@@ -443,7 +443,7 @@ psa_status_t psa_generate_key_internal(const psa_key_attributes_t *attributes,
  *  \param[in] attributes                The desired attributes of the generated key.
  *
  *  \retval #PSA_SUCCESS
- *         The operation started successfully - call \c mbedtls_psa_generate_key_complete()
+ *         The operation started successfully - call \c mbedtls_psa_generate_key_iop_complete()
  *         with the same operation to complete the operation.
  * * \retval #PSA_ERROR_NOT_SUPPORTED
  *           Either no internal interruptible operations are
@@ -479,7 +479,7 @@ psa_status_t mbedtls_psa_generate_key_iop_setup(
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
  *
  */
-psa_status_t mbedtls_psa_generate_key_complete(
+psa_status_t mbedtls_psa_generate_key_iop_complete(
     mbedtls_psa_generate_key_iop_t *operation,
     uint8_t *key_output,
     size_t key_output_size,

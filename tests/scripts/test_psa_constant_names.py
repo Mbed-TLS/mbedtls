@@ -173,7 +173,7 @@ def main():
                         action='store_false', dest='keep_c',
                         help='Don\'t keep the intermediate C file (default)')
     parser.add_argument('--program',
-                        default='programs/psa/psa_constant_names',
+                        default='tf-psa-crypto/programs/psa/psa_constant_names',
                         help='Program to test')
     parser.add_argument('--show',
                         action='store_true',

@@ -93,10 +93,6 @@ class CoverageTask(outcome_analysis.CoverageTask):
             'Opaque key for server authentication: invalid key: ecdh with RSA key, no async',
         ],
         'test_suite_config.mbedtls_boolean': [
-            # We never test with CBC/PKCS5/PKCS12 enabled but
-            # PKCS7 padding disabled.
-            # https://github.com/Mbed-TLS/mbedtls/issues/9580
-            'Config: !MBEDTLS_CIPHER_PADDING_PKCS7',
             # https://github.com/Mbed-TLS/mbedtls/issues/9583
             'Config: !MBEDTLS_ECP_NIST_OPTIM',
             # We never test without the PSA client code. Should we?
@@ -260,10 +256,6 @@ class CoverageTask(outcome_analysis.CoverageTask):
             # "PSA test case generation: dependency inference class: operation fail"
             # from https://github.com/Mbed-TLS/mbedtls/pull/9025 .
             re.compile(r'.* with (?:DH|ECC)_(?:KEY_PAIR|PUBLIC_KEY)\(.*'),
-            # PBKDF2_HMAC is not in the default configuration, so we don't
-            # enable it in depends.py where we remove hashes.
-            # https://github.com/Mbed-TLS/mbedtls/issues/9576
-            re.compile(r'PSA key_derivation PBKDF2_HMAC\(\w+\): !(?!PBKDF2_HMAC\Z).*'),
             # We never test with TLS12_PRF or TLS12_PSK_TO_MS disabled
             # but certain other things enabled.
             # https://github.com/Mbed-TLS/mbedtls/issues/9577
@@ -277,10 +269,6 @@ class CoverageTask(outcome_analysis.CoverageTask):
             # key type disabled. Those dependencies don't really make sense.
             # https://github.com/Mbed-TLS/mbedtls/issues/9573
             re.compile(r'.* !HMAC with HMAC'),
-            # There's something wrong with PSA_WANT_ALG_RSA_PSS_ANY_SALT
-            # differing from PSA_WANT_ALG_RSA_PSS.
-            # https://github.com/Mbed-TLS/mbedtls/issues/9578
-            re.compile(r'PSA sign RSA_PSS_ANY_SALT.*!(?:MD|RIPEMD|SHA).*'),
         ],
         'test_suite_psa_crypto_storage_format.current': [
             PSA_MECHANISM_NOT_IMPLEMENTED_SEARCH_RE,

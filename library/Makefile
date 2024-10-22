@@ -148,7 +148,6 @@ OBJS_CRYPTO= \
 	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/ecp_curves_new.o \
 	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/entropy.o \
 	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/entropy_poll.o \
-	     error.o \
 	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/gcm.o \
 	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/hkdf.o \
 	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/hmac_drbg.o \
@@ -206,6 +205,7 @@ OBJS_X509= \
 	   x509write_crt.o \
 	   x509write_csr.o \
 	   pkcs7.o \
+	   error.o \
 	   # This line is intentionally left blank
 
 OBJS_TLS= \

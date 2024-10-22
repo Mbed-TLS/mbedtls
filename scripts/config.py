@@ -218,6 +218,8 @@ def include_in_crypto(name):
             'MBEDTLS_DEBUG_C', # part of libmbedtls
             'MBEDTLS_NET_C', # part of libmbedtls
             'MBEDTLS_PKCS7_C', # part of libmbedx509
+            'MBEDTLS_ERROR_C', # part of libmbedx509
+            'MBEDTLS_ERROR_STRERROR_DUMMY', # part of libmbedx509
     ]:
         return False
     if name in EXCLUDE_FROM_CRYPTO:

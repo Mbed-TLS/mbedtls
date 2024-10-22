@@ -232,7 +232,8 @@ DEFAULT_C_OUTPUT_FILE_NAME = 'tests/src/psa_test_wrappers.c'
 DEFAULT_H_OUTPUT_FILE_NAME = 'tests/include/test/psa_test_wrappers.h'
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description=globals()['__doc__'])
+    parser = argparse.ArgumentParser(description=globals()['__doc__'],
+                                     allow_abbrev=False)
     parser.add_argument('--log',
                         help='Stream to log to (default: no logging code)')
     parser.add_argument('--output-c',

@@ -177,7 +177,7 @@ def main() -> int:
         print("Note: The only supported version is " +
               UNCRUSTIFY_SUPPORTED_VERSION)
 
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(allow_abbrev=False)
     parser.add_argument('-f', '--fix', action='store_true',
                         help=('modify source files to fix the code style '
                               '(default: print diff, do not modify files)'))

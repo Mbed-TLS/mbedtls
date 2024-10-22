@@ -185,7 +185,8 @@ class DescriptionChecker(TestDescriptionExplorer):
         seen[description] = line_number
 
 def main():
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = argparse.ArgumentParser(description=__doc__,
+                                     allow_abbrev=False)
     parser.add_argument('--list-all',
                         action='store_true',
                         help='List all test cases, without doing checks')

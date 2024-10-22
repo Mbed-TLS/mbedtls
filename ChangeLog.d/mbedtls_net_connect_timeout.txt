@@ -1,0 +1,3 @@
+Features
+    * Add mbedtls_net_connect_timeout() function which behaves the same as
+      mbedtls_net_connect() but allows specifying a connect timeout.

@@ -26,6 +26,10 @@ if(MBEDTLS_USER_CONFIG_FILE)
     target_compile_definitions(${p256m_target}
         PUBLIC MBEDTLS_USER_CONFIG_FILE="${MBEDTLS_USER_CONFIG_FILE}")
 endif()
+if(MBEDTLS_USER_CRYPTO_CONFIG_FILE)
+    target_compile_definitions(${p256m_target}
+        PUBLIC MBEDTLS_USER_CRYPTO_CONFIG_FILE="${MBEDTLS_USER_CRYPTO_CONFIG_FILE}")
+endif()
 
 if(INSTALL_TF_PSA_CRYPTO_HEADERS)
 

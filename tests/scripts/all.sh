@@ -155,13 +155,15 @@ pre_initialize_variables () {
         BUILTIN_SRC_PATH='drivers/builtin/src'
     fi
     CONFIG_TEST_DRIVER_H='tests/include/test/drivers/config_test_driver.h'
+    # Temporarily declare the second file until MBEDTLS_PEM_PARSE_C and MBEDTLS_BASE64_C are migrated
+    CONFIG_CRYPTO_TEST_DRIVER_H='tests/include/test/drivers/config_test_driver_tf_psa_crypto.h'
 
     # Files that are clobbered by some jobs will be backed up. Use a different
     # suffix from auxiliary scripts so that all.sh and auxiliary scripts can
     # independently decide when to remove the backup file.
     backup_suffix='.all.bak'
     # Files clobbered by config.py
-    files_to_back_up="$CONFIG_H $CRYPTO_CONFIG_H $CONFIG_TEST_DRIVER_H"
+    files_to_back_up="$CONFIG_H $CRYPTO_CONFIG_H $CONFIG_TEST_DRIVER_H $CONFIG_CRYPTO_TEST_DRIVER_H"
     if in_mbedtls_repo; then
         # Files clobbered by in-tree cmake
         files_to_back_up="$files_to_back_up Makefile library/Makefile programs/Makefile tests/Makefile programs/fuzz/Makefile"
@@ -958,11 +960,11 @@ helper_libtestdriver1_adjust_config() {
     # If threading is enabled on the normal build, then we need to enable it in the drivers as well,
     # otherwise we will end up running multithreaded tests without mutexes to protect them.
     if scripts/config.py get MBEDTLS_THREADING_C; then
-        scripts/config.py -f "$CONFIG_TEST_DRIVER_H" set MBEDTLS_THREADING_C
+        scripts/config.py -c "$CONFIG_CRYPTO_TEST_DRIVER_H" set MBEDTLS_THREADING_C
     fi
 
     if scripts/config.py get MBEDTLS_THREADING_PTHREAD; then
-        scripts/config.py -f "$CONFIG_TEST_DRIVER_H" set MBEDTLS_THREADING_PTHREAD
+        scripts/config.py -c "$CONFIG_CRYPTO_TEST_DRIVER_H" set MBEDTLS_THREADING_PTHREAD
     fi
 }
 

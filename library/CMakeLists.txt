@@ -178,6 +178,10 @@ foreach(target IN LISTS target_libraries)
         target_compile_definitions(${target}
             PUBLIC MBEDTLS_USER_CONFIG_FILE="${MBEDTLS_USER_CONFIG_FILE}")
     endif()
+    if(MBEDTLS_USER_CRYPTO_CONFIG_FILE)
+        target_compile_definitions(${target}
+            PUBLIC MBEDTLS_USER_CRYPTO_CONFIG_FILE="${MBEDTLS_USER_CRYPTO_CONFIG_FILE}")
+    endif()
     install(
         TARGETS ${target}
         EXPORT MbedTLSTargets

@@ -115,6 +115,20 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
+/* PSA crypto configuration */
+#if defined(MBEDTLS_PSA_CRYPTO_CONFIG)
+#if defined(MBEDTLS_PSA_CRYPTO_CONFIG_FILE)
+#include MBEDTLS_PSA_CRYPTO_CONFIG_FILE
+#elif defined(MBEDTLS_USER_CRYPTO_CONFIG_FILE)
+#include MBEDTLS_USER_CRYPTO_CONFIG_FILE
+#else
+#include "psa/crypto_config.h"
+#endif
+#if defined(MBEDTLS_PSA_CRYPTO_USER_CONFIG_FILE)
+#include MBEDTLS_PSA_CRYPTO_USER_CONFIG_FILE
+#endif
+#endif /* defined(MBEDTLS_PSA_CRYPTO_CONFIG) */
+
 #if defined(MBEDTLS_CONFIG_VERSION) && ( \
     MBEDTLS_CONFIG_VERSION < 0x03000000 || \
                              MBEDTLS_CONFIG_VERSION > MBEDTLS_VERSION_NUMBER)
@@ -129,18 +143,6 @@
 #if defined(MBEDTLS_USER_CONFIG_FILE)
 #include MBEDTLS_USER_CONFIG_FILE
 #endif
-
-/* PSA crypto configuration */
-#if defined(MBEDTLS_PSA_CRYPTO_CONFIG)
-#if defined(MBEDTLS_PSA_CRYPTO_CONFIG_FILE)
-#include MBEDTLS_PSA_CRYPTO_CONFIG_FILE
-#else
-#include "psa/crypto_config.h"
-#endif
-#if defined(MBEDTLS_PSA_CRYPTO_USER_CONFIG_FILE)
-#include MBEDTLS_PSA_CRYPTO_USER_CONFIG_FILE
-#endif
-#endif /* defined(MBEDTLS_PSA_CRYPTO_CONFIG) */
 
 /* Indicate that all configuration files have been read.
  * It is now time to adjust the configuration (follow through on dependencies,

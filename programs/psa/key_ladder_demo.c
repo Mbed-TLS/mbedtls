@@ -392,6 +392,7 @@ static psa_status_t wrap_data(const char *input_file_name,
     input_file = NULL;
 
     /* Construct a header. */
+    memset(&header, 0, sizeof(header));
     memcpy(&header.magic, WRAPPED_DATA_MAGIC, WRAPPED_DATA_MAGIC_LENGTH);
     header.ad_size = sizeof(header);
     header.payload_size = input_size;

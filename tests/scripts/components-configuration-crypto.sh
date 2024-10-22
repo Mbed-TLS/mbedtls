@@ -270,7 +270,7 @@ component_test_psa_inject_entropy () {
     scripts/config.py unset MBEDTLS_PLATFORM_NV_SEED_ALT
     scripts/config.py unset MBEDTLS_PLATFORM_STD_NV_SEED_READ
     scripts/config.py unset MBEDTLS_PLATFORM_STD_NV_SEED_WRITE
-    make CC=$ASAN_CC CFLAGS="$ASAN_CFLAGS '-DMBEDTLS_USER_CONFIG_FILE=\"../tests/configs/user-config-for-test.h\"'" LDFLAGS="$ASAN_CFLAGS"
+    make CC=$ASAN_CC CFLAGS="$ASAN_CFLAGS '-DMBEDTLS_PSA_CRYPTO_USER_CONFIG_FILE=\"../tests/configs/user-config-for-test.h\"'" LDFLAGS="$ASAN_CFLAGS"
 
     msg "test: full + MBEDTLS_PSA_INJECT_ENTROPY"
     make test
@@ -2663,7 +2663,7 @@ component_build_psa_config_file () {
     # query_compile_time_config.
     echo '#undef PSA_WANT_ALG_CMAC' >psa_user_config.h
     echo '#undef PSA_WANT_ALG_PBKDF2_AES_CMAC_PRF_128' >> psa_user_config.h
-    scripts/config.py unset MBEDTLS_CMAC_C
+    echo '#undef MBEDTLS_CMAC_C' >> psa_user_config.h
     make CFLAGS="-I '$PWD' -DMBEDTLS_PSA_CRYPTO_CONFIG_FILE='\"psa_test_config.h\"' -DMBEDTLS_PSA_CRYPTO_USER_CONFIG_FILE='\"psa_user_config.h\"'"
     not programs/test/query_compile_time_config MBEDTLS_CMAC_C
 

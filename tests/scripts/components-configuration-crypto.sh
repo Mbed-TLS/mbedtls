@@ -2361,12 +2361,12 @@ component_build_aes_aesce_armcc () {
     msg "AESCE, build with default configuration."
     scripts/config.py set MBEDTLS_AESCE_C
     scripts/config.py unset MBEDTLS_AES_USE_HARDWARE_ONLY
-    armc6_build_test "-O1 --target=aarch64-arm-none-eabi -march=armv8-a+crypto"
+    helper_armc6_build_test "-O1 --target=aarch64-arm-none-eabi -march=armv8-a+crypto"
 
     msg "AESCE, build AESCE only"
     scripts/config.py set MBEDTLS_AESCE_C
     scripts/config.py set MBEDTLS_AES_USE_HARDWARE_ONLY
-    armc6_build_test "-O1 --target=aarch64-arm-none-eabi -march=armv8-a+crypto"
+    helper_armc6_build_test "-O1 --target=aarch64-arm-none-eabi -march=armv8-a+crypto"
 }
 
 component_test_aes_only_128_bit_keys () {
@@ -2570,7 +2570,7 @@ component_test_block_cipher_no_decrypt_aesce_armcc () {
     # test AESCE baremetal build
     scripts/config.py set MBEDTLS_AESCE_C
     msg "build: default config + BLOCK_CIPHER_NO_DECRYPT with AESCE"
-    armc6_build_test "-O1 --target=aarch64-arm-none-eabi -march=armv8-a+crypto -Werror -Wall -Wextra"
+    helper_armc6_build_test "-O1 --target=aarch64-arm-none-eabi -march=armv8-a+crypto -Werror -Wall -Wextra"
 
     # Make sure we don't have mbedtls_xxx_setkey_dec in AES/ARIA/CAMELLIA
     not grep mbedtls_aes_setkey_dec ${BUILTIN_SRC_PATH}/aes.o

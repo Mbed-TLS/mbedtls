@@ -11,10 +11,8 @@
 
 #include "test/helpers.h"
 
-#if ((MBEDTLS_VERSION_MAJOR < 4) \
-    && defined(MBEDTLS_PSA_CRYPTO_C)) \
-    || (MBEDTLS_VERSION_MAJOR >= 4 \
-        && defined(MBEDTLS_PSA_CRYPTO_CLIENT))
+#if (MBEDTLS_VERSION_MAJOR < 4 && defined(MBEDTLS_PSA_CRYPTO_C)) || \
+    (MBEDTLS_VERSION_MAJOR >= 4 && defined(MBEDTLS_PSA_CRYPTO_CLIENT))
 #include "test/psa_helpers.h"
 #include <psa/crypto.h>
 #endif
@@ -43,8 +41,7 @@
         mbedtls_psa_crypto_free();                                      \
     }                                                                   \
     while (0)
-#elif MBEDTLS_VERSION_MAJOR >= 4 && \
-    defined(MBEDTLS_PSA_CRYPTO_CLIENT)   /* MBEDTLS_PSA_CRYPTO_CLIENT && !MBEDTLS_PSA_CRYPTO_C */
+#elif MBEDTLS_VERSION_MAJOR >= 4 && defined(MBEDTLS_PSA_CRYPTO_CLIENT)
 #define PSA_INIT() PSA_ASSERT(psa_crypto_init())
 #define PSA_DONE() mbedtls_psa_crypto_free();
 #else  /* MBEDTLS_PSA_CRYPTO_CLIENT && !MBEDTLS_PSA_CRYPTO_C */
@@ -52,10 +49,8 @@
 #define PSA_DONE() ((void) 0)
 #endif /* MBEDTLS_PSA_CRYPTO_C */
 
-#if ((MBEDTLS_VERSION_MAJOR < 4) \
-    && defined(MBEDTLS_PSA_CRYPTO_C)) \
-    || (MBEDTLS_VERSION_MAJOR >= 4 \
-        && defined(MBEDTLS_PSA_CRYPTO_CLIENT))
+#if (MBEDTLS_VERSION_MAJOR < 4 && defined(MBEDTLS_PSA_CRYPTO_C)) || \
+    (MBEDTLS_VERSION_MAJOR >= 4 && defined(MBEDTLS_PSA_CRYPTO_CLIENT))
 
 #if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
 

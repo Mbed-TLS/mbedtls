@@ -11,10 +11,8 @@
 #include <test/macros.h>
 #include <test/psa_exercise_key.h>
 
-#if ((MBEDTLS_VERSION_MAJOR < 4) \
-    && defined(MBEDTLS_PSA_CRYPTO_C)) \
-    || (MBEDTLS_VERSION_MAJOR >= 4 \
-        && defined(MBEDTLS_PSA_CRYPTO_CLIENT))
+#if (MBEDTLS_VERSION_MAJOR < 4 && defined(MBEDTLS_PSA_CRYPTO_C)) || \
+    (MBEDTLS_VERSION_MAJOR >= 4 && defined(MBEDTLS_PSA_CRYPTO_CLIENT))
 
 #include <mbedtls/asn1.h>
 #include <psa/crypto.h>

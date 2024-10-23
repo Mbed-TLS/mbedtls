@@ -541,7 +541,7 @@ struct options {
     int reproducible;           /* make communication reproducible          */
     int skip_close_notify;      /* skip sending the close_notify alert      */
     const char *exp_label;      /* label to input into mbedtls_ssl_export_keying_material() */
-    int exp_len;                /* Lenght of key to export using mbedtls_ssl_export_keying_material() */
+    int exp_len;                /* Length of key to export using mbedtls_ssl_export_keying_material() */
 #if defined(MBEDTLS_SSL_EARLY_DATA)
     int early_data;             /* early data enablement flag               */
 #endif

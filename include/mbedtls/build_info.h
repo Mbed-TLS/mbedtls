@@ -50,6 +50,11 @@
 #define MBEDTLS_ARCH_IS_ARM32
 #endif
 
+#if !defined(MBEDTLS_ARCH_IS_THUMB) && \
+    defined(_M_ARMT) || defined(__thumb__) || defined(__thumb2__)
+#define MBEDTLS_ARCH_IS_THUMB
+#endif
+
 #if !defined(MBEDTLS_ARCH_IS_X64) && \
     (defined(__amd64__) || defined(__x86_64__) || \
     ((defined(_M_X64) || defined(_M_AMD64)) && !defined(_M_ARM64EC)))

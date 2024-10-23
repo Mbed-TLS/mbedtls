@@ -328,6 +328,27 @@ function(set_msvc_base_compile_options target)
     endif(MBEDTLS_FATAL_WARNINGS)
 endfunction(set_msvc_base_compile_options)
 
+function(set_config_files_compile_definitions target)
+    # Pass-through MBEDTLS_CONFIG_FILE, MBEDTLS_USER_CONFIG_FILE,
+    # MBEDTLS_PSA_CRYPTO_CONFIG_FILE and MBEDTLS_PSA_CRYPTO_USER_CONFIG_FILE
+    if(MBEDTLS_CONFIG_FILE)
+        target_compile_definitions(${target}
+            PUBLIC MBEDTLS_CONFIG_FILE="${MBEDTLS_CONFIG_FILE}")
+    endif()
+    if(MBEDTLS_USER_CONFIG_FILE)
+        target_compile_definitions(${target}
+            PUBLIC MBEDTLS_USER_CONFIG_FILE="${MBEDTLS_USER_CONFIG_FILE}")
+    endif()
+    if(MBEDTLS_PSA_CRYPTO_CONFIG_FILE)
+        target_compile_definitions(${target}
+            PUBLIC MBEDTLS_PSA_CRYPTO_CONFIG_FILE="${MBEDTLS_PSA_CRYPTO_CONFIG_FILE}")
+    endif()
+    if(MBEDTLS_PSA_CRYPTO_USER_CONFIG_FILE)
+        target_compile_definitions(${target}
+            PUBLIC MBEDTLS_PSA_CRYPTO_USER_CONFIG_FILE="${MBEDTLS_PSA_CRYPTO_USER_CONFIG_FILE}")
+    endif()
+endfunction(set_config_files_compile_definitions)
+
 if(CMAKE_BUILD_TYPE STREQUAL "Check" AND TEST_CPP)
     set(CMAKE_CXX_STANDARD 11)
     set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -431,19 +452,8 @@ if(ENABLE_TESTING OR ENABLE_PROGRAMS)
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tf-psa-crypto/drivers/builtin/src
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tf-psa-crypto/drivers/everest/include)
 
-    # Pass-through MBEDTLS_CONFIG_FILE and MBEDTLS_USER_CONFIG_FILE
-    if(MBEDTLS_CONFIG_FILE)
-        target_compile_definitions(mbedtls_test
-            PUBLIC MBEDTLS_CONFIG_FILE="${MBEDTLS_CONFIG_FILE}")
-        target_compile_definitions(mbedtls_test_helpers
-            PUBLIC MBEDTLS_CONFIG_FILE="${MBEDTLS_CONFIG_FILE}")
-    endif()
-    if(MBEDTLS_USER_CONFIG_FILE)
-        target_compile_definitions(mbedtls_test
-            PUBLIC MBEDTLS_USER_CONFIG_FILE="${MBEDTLS_USER_CONFIG_FILE}")
-        target_compile_definitions(mbedtls_test_helpers
-            PUBLIC MBEDTLS_USER_CONFIG_FILE="${MBEDTLS_USER_CONFIG_FILE}")
-    endif()
+    set_config_files_compile_definitions(mbedtls_test)
+    set_config_files_compile_definitions(mbedtls_test_helpers)
 endif()
 
 if(ENABLE_PROGRAMS)

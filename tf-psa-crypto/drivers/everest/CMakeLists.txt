@@ -16,19 +16,7 @@ target_include_directories(${everest_target}
           include/everest/kremlib
           ${MBEDTLS_DIR}/library
           ${TF_PSA_CRYPTO_DIR}/core)
-
-# Pass-through MBEDTLS_CONFIG_FILE and MBEDTLS_USER_CONFIG_FILE
-# This must be duplicated from library/CMakeLists.txt because
-# everest is not directly linked against any mbedtls targets
-# so does not inherit the compile definitions.
-if(MBEDTLS_CONFIG_FILE)
-    target_compile_definitions(${everest_target}
-        PUBLIC MBEDTLS_CONFIG_FILE="${MBEDTLS_CONFIG_FILE}")
-endif()
-if(MBEDTLS_USER_CONFIG_FILE)
-    target_compile_definitions(${everest_target}
-        PUBLIC MBEDTLS_USER_CONFIG_FILE="${MBEDTLS_USER_CONFIG_FILE}")
-endif()
+set_config_files_compile_definitions(${everest_target})
 
 if(INSTALL_TF_PSA_CRYPTO_HEADERS)
 

@@ -140,15 +140,7 @@ foreach(target IN LISTS target_libraries)
                 ${TF_PSA_CRYPTO_DIR}/drivers/builtin/src
                 # Needed to include psa_crypto_driver_wrappers.h
                 ${CMAKE_CURRENT_BINARY_DIR})
-    # Pass-through MBEDTLS_CONFIG_FILE and MBEDTLS_USER_CONFIG_FILE
-    if(MBEDTLS_CONFIG_FILE)
-        target_compile_definitions(${target}
-            PUBLIC MBEDTLS_CONFIG_FILE="${MBEDTLS_CONFIG_FILE}")
-    endif()
-    if(MBEDTLS_USER_CONFIG_FILE)
-        target_compile_definitions(${target}
-            PUBLIC MBEDTLS_USER_CONFIG_FILE="${MBEDTLS_USER_CONFIG_FILE}")
-    endif()
+    set_config_files_compile_definitions(${target})
     install(
         TARGETS ${target}
         EXPORT MbedTLSTargets

@@ -192,15 +192,7 @@ foreach(target IN LISTS target_libraries)
         PRIVATE ${MBEDTLS_DIR}/library/
                 ${MBEDTLS_DIR}/tf-psa-crypto/core
                 ${MBEDTLS_DIR}/tf-psa-crypto/drivers/builtin/src)
-    # Pass-through MBEDTLS_CONFIG_FILE and MBEDTLS_USER_CONFIG_FILE
-    if(MBEDTLS_CONFIG_FILE)
-        target_compile_definitions(${target}
-            PUBLIC MBEDTLS_CONFIG_FILE="${MBEDTLS_CONFIG_FILE}")
-    endif()
-    if(MBEDTLS_USER_CONFIG_FILE)
-        target_compile_definitions(${target}
-            PUBLIC MBEDTLS_USER_CONFIG_FILE="${MBEDTLS_USER_CONFIG_FILE}")
-    endif()
+    set_config_files_compile_definitions(${target})
     install(
         TARGETS ${target}
         EXPORT MbedTLSTargets

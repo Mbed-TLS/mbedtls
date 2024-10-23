@@ -6769,7 +6769,7 @@ static psa_status_t setup_psa_key_derivation(psa_key_derivation_operation_t *der
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int tls_prf_generic(mbedtls_md_type_t md_type,
                            const unsigned char *secret, size_t slen,
-                           const char *label,
+                           const char *label, size_t label_len,
                            const unsigned char *random, size_t rlen,
                            unsigned char *dstbuf, size_t dlen)
 {
@@ -6809,7 +6809,7 @@ static int tls_prf_generic(mbedtls_md_type_t md_type,
                                       NULL, 0,
                                       random, rlen,
                                       (unsigned char const *) label,
-                                      (size_t) strlen(label),
+                                      label_len,
                                       NULL, 0,
                                       dlen);
     if (status != PSA_SUCCESS) {
@@ -6960,7 +6960,7 @@ static int tls_prf_sha256(const unsigned char *secret, size_t slen,
                           unsigned char *dstbuf, size_t dlen)
 {
     return tls_prf_generic(MBEDTLS_MD_SHA256, secret, slen,
-                           label, random, rlen, dstbuf, dlen);
+                           label, strlen(label), random, rlen, dstbuf, dlen);
 }
 #endif /* MBEDTLS_MD_CAN_SHA256*/
 
@@ -6972,7 +6972,7 @@ static int tls_prf_sha384(const unsigned char *secret, size_t slen,
                           unsigned char *dstbuf, size_t dlen)
 {
     return tls_prf_generic(MBEDTLS_MD_SHA384, secret, slen,
-                           label, random, rlen, dstbuf, dlen);
+                           label, strlen(label), random, rlen, dstbuf, dlen);
 }
 #endif /* MBEDTLS_MD_CAN_SHA384*/
 
@@ -10068,7 +10068,6 @@ static int mbedtls_ssl_tls12_export_keying_material(const mbedtls_ssl_context *s
     int ret = 0;
     size_t prf_input_len = use_context ? 64 + 2 + context_len : 64;
     unsigned char *prf_input = NULL;
-    char *label_str = NULL;
 
     if (use_context && context_len >= (1 << 16)) {
         ret = MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
@@ -10076,14 +10075,10 @@ static int mbedtls_ssl_tls12_export_keying_material(const mbedtls_ssl_context *s
     }
 
     prf_input = mbedtls_calloc(prf_input_len, sizeof(unsigned char));
-    label_str = mbedtls_calloc(label_len + 1, sizeof(char));
-    if (prf_input == NULL || label_str == NULL) {
+    if (prf_input == NULL) {
         ret = MBEDTLS_ERR_SSL_ALLOC_FAILED;
         goto exit;
     }
-
-    memcpy(label_str, label, label_len);
-    label_str[label_len] = '\0';
 
     /* The input to the PRF is client_random, then server_random.
      * If a context is provided, this is then followed by the context length
@@ -10095,13 +10090,13 @@ static int mbedtls_ssl_tls12_export_keying_material(const mbedtls_ssl_context *s
         prf_input[65] = (unsigned char) (context_len & 0xff);
         memcpy(prf_input + 66, context, context_len);
     }
-    ret = tls_prf_generic(hash_alg, ssl->session->master, 48, label_str,
+    ret = tls_prf_generic(hash_alg, ssl->session->master, 48,
+                          label, label_len,
                           prf_input, prf_input_len,
                           out, key_len);
 
 exit:
     mbedtls_free(prf_input);
-    mbedtls_free(label_str);
     return ret;
 }
 #endif

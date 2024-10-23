@@ -23,7 +23,7 @@ foreach(file ${version_number_files})
                    ${TF_PSA_CRYPTO_DIR}/${file})
 endforeach(file)
 
-ADD_CUSTOM_TARGET(${TF_PSA_CRYPTO_TARGET_PREFIX}apidoc
+ADD_CUSTOM_TARGET(${TF_PSA_CRYPTO_TARGET_PREFIX}tfpsacrypto-apidoc
     COMMAND doxygen tfpsacrypto.doxyfile
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/doxygen)
 

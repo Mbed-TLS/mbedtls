@@ -13,7 +13,7 @@
 # - TF_PSA_CRYPTO_TARGET_PREFIX: CMake targets are designed to be alterable by
 #   calling CMake in order to avoid target name clashes, via the use of
 #   TF_PSA_CRYPTO_TARGET_PREFIX. The value of this variable is prefixed to the
-#   tfpsacrypto and apidoc targets.
+#   tfpsacrypto and tfpsacrypto-apidoc targets.
 #
 
 # We specify a minimum requirement of 3.10.2, but for now use 3.5.1 here

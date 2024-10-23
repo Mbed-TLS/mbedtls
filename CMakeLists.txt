@@ -13,7 +13,7 @@
 # - MBEDTLS_TARGET_PREFIX: CMake targets are designed to be alterable by calling
 #   CMake in order to avoid target name clashes, via the use of
 #   MBEDTLS_TARGET_PREFIX. The value of this variable is prefixed to the
-#   mbedtls, mbedx509, mbedcrypto and apidoc targets.
+#   mbedtls, mbedx509, mbedcrypto and mbedtls-apidoc targets.
 #
 
 # We specify a minimum requirement of 3.10.2, but for now use 3.5.1 here
@@ -463,7 +463,7 @@ if(ENABLE_PROGRAMS)
     add_subdirectory(programs)
 endif()
 
-ADD_CUSTOM_TARGET(${MBEDTLS_TARGET_PREFIX}apidoc
+ADD_CUSTOM_TARGET(${MBEDTLS_TARGET_PREFIX}mbedtls-apidoc
     COMMAND doxygen mbedtls.doxyfile
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/doxygen)
 

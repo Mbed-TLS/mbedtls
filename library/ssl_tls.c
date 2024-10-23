@@ -10054,6 +10054,9 @@ int mbedtls_ssl_verify_certificate(mbedtls_ssl_context *ssl,
 }
 #endif /* MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED */
 
+
+#if defined(MBEDTLS_SSL_CONTEXT_SERIALIZATION) || !defined(MBEDTLS_SSL_PROTO_TLS1_2)
+
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
 static int mbedtls_ssl_tls12_export_keying_material(const mbedtls_ssl_context *ssl,
                                                     const mbedtls_md_type_t hash_alg,
@@ -10106,7 +10109,7 @@ static int mbedtls_ssl_tls12_export_keying_material(const mbedtls_ssl_context *s
     mbedtls_free(prf_input);
     return ret;
 }
-#endif
+#endif /* defined(MBEDTLS_SSL_PROTO_TLS1_2) */
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
 static int mbedtls_ssl_tls13_export_keying_material(mbedtls_ssl_context *ssl,
@@ -10134,7 +10137,7 @@ static int mbedtls_ssl_tls13_export_keying_material(mbedtls_ssl_context *ssl,
                                       (const unsigned char *) label, label_len,
                                       context, context_len, out, key_len);
 }
-#endif
+#endif /* defined(MBEDTLS_SSL_PROTO_TLS1_3) */
 
 int mbedtls_ssl_export_keying_material(mbedtls_ssl_context *ssl,
                                        uint8_t *out, const size_t key_len,
@@ -10172,5 +10175,7 @@ int mbedtls_ssl_export_keying_material(mbedtls_ssl_context *ssl,
             return MBEDTLS_ERR_SSL_BAD_PROTOCOL_VERSION;
     }
 }
+
+#endif /* defined(MBEDTLS_SSL_CONTEXT_SERIALIZATION) || !defined(MBEDTLS_SSL_PROTO_TLS1_2) */
 
 #endif /* MBEDTLS_SSL_TLS_C */

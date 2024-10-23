@@ -347,7 +347,11 @@ int main(void)
     "                        in the form of base64 code (serialize option\n"   \
     "                        must be set)\n"                                   \
     "                         default: \"\" (do nothing)\n"                    \
-    "                         option: a file path\n"
+    "                         option: a file path\n" \
+    "    exp_label=%%s       Label to input into TLS-Exporter\n" \
+    "                         default: None (don't try to export a key)\n" \
+    "    exp_len=%%d         Length of key to extract from TLS-Exporter \n" \
+    "                         default: 20\n"
 #else
 #define USAGE_SERIALIZATION ""
 #endif
@@ -402,10 +406,6 @@ int main(void)
                                                                       "    read_timeout=%%d     default: 0 ms (no timeout)\n"        \
                                                                       "    max_resend=%%d       default: 0 (no resend on timeout)\n" \
                                                                       "    skip_close_notify=%%d default: 0 (send close_notify)\n" \
-                                                                      "    exp_label=%%s       Label to input into TLS-Exporter\n" \
-                                                                      "                         default: None (don't try to export a key)\n" \
-                                                                      "    exp_len=%%d         Length of key to extract from TLS-Exporter \n" \
-                                                                      "                         default: 20\n" \
                                                                       "\n"                                                    \
     USAGE_DTLS                                              \
     USAGE_CID                                               \
@@ -2574,6 +2574,7 @@ usage:
     }
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 
+#if defined(MBEDTLS_SSL_CONTEXT_SERIALIZATION)
     if (opt.exp_label != NULL && opt.exp_len > 0) {
         unsigned char *exported_key = calloc((size_t) opt.exp_len, sizeof(unsigned int));
         if (exported_key == NULL) {
@@ -2596,6 +2597,7 @@ usage:
         mbedtls_printf("\n\n");
         fflush(stdout);
     }
+#endif /* defined(MBEDTLS_SSL_CONTEXT_SERIALIZATION) */
 
     /*
      * 6. Write the GET request

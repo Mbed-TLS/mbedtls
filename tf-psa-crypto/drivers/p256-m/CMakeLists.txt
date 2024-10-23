@@ -4,6 +4,8 @@ add_library(${p256m_target}
     p256-m_driver_entrypoints.c
     p256-m/p256-m.c)
 
+set_base_compile_options(${p256m_target})
+
 target_include_directories(${p256m_target}
   PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
          $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/p256-m>

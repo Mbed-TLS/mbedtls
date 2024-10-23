@@ -8,8 +8,9 @@
 # This file is executable; it is the entry point for users and the CI.
 # See "Files structure" in all-core.sh for other files used.
 
+# This script must be invoked from the project's root.
+
 # The path is going to change when this is moved to the framework
-test_script_dir="${0%/*}"
-source "$test_script_dir"/all-core.sh
+source tests/scripts/all-core.sh
 
 main "$@"

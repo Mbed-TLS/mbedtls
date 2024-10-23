@@ -56,11 +56,20 @@
     #define MBEDTLS_CHACHA20_NEON_MULTIBLOCK 0
 #elif !defined(MBEDTLS_CHACHA20_NEON_MULTIBLOCK)
 // By default, select the best performing option that is smaller than the scalar implementation.
+#if defined(MBEDTLS_ARCH_IS_THUMB)
+// For Thumb, we need a smaller multiblock settting to be smaller than the scalar implementation
+    #if defined(MBEDTLS_COMPILER_IS_GCC)
+        #define MBEDTLS_CHACHA20_NEON_MULTIBLOCK 1
+    #else
+        #define MBEDTLS_CHACHA20_NEON_MULTIBLOCK 2
+    #endif
+#else // arm or aarch64
     #if defined(MBEDTLS_COMPILER_IS_GCC)
         #define MBEDTLS_CHACHA20_NEON_MULTIBLOCK 2
     #else
         #define MBEDTLS_CHACHA20_NEON_MULTIBLOCK 3
     #endif
+#endif
 #endif
 
 #if MBEDTLS_CHACHA20_NEON_MULTIBLOCK != 0

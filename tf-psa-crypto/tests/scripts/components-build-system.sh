@@ -22,3 +22,12 @@ component_test_tf_psa_crypto_cmake_out_of_source () {
     cd "$TF_PSA_CRYPTO_ROOT_DIR"
     rm -rf "$OUT_OF_SOURCE_DIR"
 }
+
+component_test_tf_psa_crypto_cmake_as_subdirectory () {
+    msg "build: cmake 'as-subdirectory' build"
+    cd programs/test/cmake_subproject
+    # Note: Explicitly generate files as these are turned off in releases
+    cmake -D GEN_FILES=ON .
+    make
+    ./cmake_subproject
+}

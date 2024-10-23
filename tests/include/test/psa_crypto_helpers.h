@@ -258,15 +258,15 @@ uint64_t mbedtls_test_parse_binary_string(data_t *bin_string);
 #if defined(MBEDTLS_AES_ALT) || \
     defined(MBEDTLS_AES_SETKEY_ENC_ALT) || \
     defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_AES)
-#define MBEDTLS_TEST_HAVE_ALT_AES 1
+#define MBEDTLS_TEST_HAVE_ACCEL_AES 1
 #else
-#define MBEDTLS_TEST_HAVE_ALT_AES 0
+#define MBEDTLS_TEST_HAVE_ACCEL_AES 0
 #endif
 
 #define MBEDTLS_TEST_PSA_SKIP_IF_ALT_AES_192(key_type, key_bits)        \
     do                                                                    \
     {                                                                     \
-        if ((MBEDTLS_TEST_HAVE_ALT_AES) &&                              \
+        if ((MBEDTLS_TEST_HAVE_ACCEL_AES) &&                              \
             ((key_type) == PSA_KEY_TYPE_AES) &&                       \
             (key_bits == 192))                                         \
         {                                                                 \

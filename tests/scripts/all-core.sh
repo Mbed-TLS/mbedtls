@@ -156,8 +156,8 @@ pre_check_environment () {
 # Must be called before pre_initialize_variables which sets ALL_COMPONENTS.
 pre_load_components () {
     # Include the components from components.sh
-    test_script_dir="${0%/*}"
-    for file in "$test_script_dir"/components-*.sh; do
+    # Use a path relative to the current directory, aka project's root.
+    for file in tests/scripts/components-*.sh; do
         source $file
     done
 }
@@ -864,7 +864,8 @@ pre_check_tools () {
             set "$@" ARMC5_CC="$ARMC5_CC" ARMC6_CC="$ARMC6_CC" RUN_ARMCC=1;;
         *) set "$@" RUN_ARMCC=0;;
     esac
-    "$@" scripts/output_env.sh
+    # Use a path relative to the currently-sourced file.
+    "$@" "${BASH_SOURCE%/*}"/../../scripts/output_env.sh
 }
 
 pre_generate_files() {
@@ -879,8 +880,8 @@ pre_generate_files() {
 }
 
 pre_load_helpers () {
-    # The path is going to change when this is moved to the framework
-    test_script_dir="${0%/*}"
+    # Use a path relative to the currently-sourced file.
+    test_script_dir="${BASH_SOURCE%/*}"
     source "$test_script_dir"/all-helpers.sh
 }
 

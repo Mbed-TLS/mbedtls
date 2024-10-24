@@ -705,6 +705,11 @@ MBEDTLS_STATIC_TESTABLE psa_status_t psa_mac_key_can_do(
 psa_status_t psa_allocate_buffer_to_slot(psa_key_slot_t *slot,
                                          size_t buffer_length)
 {
+#if defined(MBEDTLS_PSA_STATIC_KEY_SLOTS)
+    if (buffer_length > ((size_t) MBEDTLS_PSA_STATIC_KEY_SLOT_BUFFER_SIZE)) {
+        return PSA_ERROR_NOT_SUPPORTED;
+    }
+#else
     if (slot->key.data != NULL) {
         return PSA_ERROR_ALREADY_EXISTS;
     }
@@ -713,6 +718,7 @@ psa_status_t psa_allocate_buffer_to_slot(psa_key_slot_t *slot,
     if (slot->key.data == NULL) {
         return PSA_ERROR_INSUFFICIENT_MEMORY;
     }
+#endif
 
     slot->key.bytes = buffer_length;
     return PSA_SUCCESS;
@@ -1177,11 +1183,18 @@ static psa_status_t psa_get_and_lock_transparent_key_slot_with_policy(
 
 psa_status_t psa_remove_key_data_from_memory(psa_key_slot_t *slot)
 {
+#if defined(MBEDTLS_PSA_STATIC_KEY_SLOTS)
+    if (slot->key.bytes > 0) {
+        mbedtls_platform_zeroize(slot->key.data, MBEDTLS_PSA_STATIC_KEY_SLOT_BUFFER_SIZE);
+    }
+#else
     if (slot->key.data != NULL) {
         mbedtls_zeroize_and_free(slot->key.data, slot->key.bytes);
     }
 
     slot->key.data = NULL;
+#endif /* MBEDTLS_PSA_STATIC_KEY_SLOTS */
+
     slot->key.bytes = 0;
 
     return PSA_SUCCESS;
@@ -2096,7 +2109,7 @@ psa_status_t psa_import_key(const psa_key_attributes_t *attributes,
      * storage ( thus not in the case of importing a key in a secure element
      * with storage ( MBEDTLS_PSA_CRYPTO_SE_C ) ),we have to allocate a
      * buffer to hold the imported key material. */
-    if (slot->key.data == NULL) {
+    if (slot->key.bytes == 0) {
         if (psa_key_lifetime_is_external(attributes->lifetime)) {
             status = psa_driver_wrapper_get_key_buffer_size_from_key_data(
                 attributes, data, data_length, &storage_size);
@@ -8013,7 +8026,7 @@ psa_status_t psa_generate_key_custom(const psa_key_attributes_t *attributes,
      * storage ( thus not in the case of generating a key in a secure element
      * with storage ( MBEDTLS_PSA_CRYPTO_SE_C ) ),we have to allocate a
      * buffer to hold the generated key material. */
-    if (slot->key.data == NULL) {
+    if (slot->key.bytes == 0) {
         if (PSA_KEY_LIFETIME_GET_LOCATION(attributes->lifetime) ==
             PSA_KEY_LOCATION_LOCAL_STORAGE) {
             status = psa_validate_key_type_and_size_for_key_generation(

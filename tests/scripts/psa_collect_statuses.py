@@ -21,7 +21,7 @@ import subprocess
 import sys
 
 DEFAULT_STATUS_LOG_FILE = 'tests/statuses.log'
-DEFAULT_PSA_CONSTANT_NAMES = 'programs/psa/psa_constant_names'
+DEFAULT_PSA_CONSTANT_NAMES = 'tf-psa-crypto/programs/psa/psa_constant_names'
 
 class Statuses:
     """Information about observed return statues of API functions."""

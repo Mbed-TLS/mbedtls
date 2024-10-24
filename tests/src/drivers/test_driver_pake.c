@@ -1,5 +1,5 @@
 /*
- * Test driver for MAC entry points.
+ * Test driver for PAKE entry points.
  */
 /*  Copyright The Mbed TLS Contributors
  *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
@@ -14,7 +14,11 @@
 #include "string.h"
 
 #if defined(MBEDTLS_TEST_LIBTESTDRIVER1)
+#if MBEDTLS_VERSION_MAJOR < 4
 #include "libtestdriver1/library/psa_crypto_pake.h"
+#else
+#include "libtestdriver1/tf-psa-crypto/drivers/builtin/src/psa_crypto_pake.h"
+#endif
 #endif
 
 mbedtls_test_driver_pake_hooks_t mbedtls_test_driver_pake_hooks =

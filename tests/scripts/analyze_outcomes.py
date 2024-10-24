@@ -140,9 +140,6 @@ class CoverageTask(outcome_analysis.CoverageTask):
             # We don't test with HMAC disabled.
             # https://github.com/Mbed-TLS/mbedtls/issues/9591
             'Config: !PSA_WANT_ALG_HMAC',
-            # We don't test with HMAC disabled.
-            # https://github.com/Mbed-TLS/mbedtls/issues/9591
-            'Config: !PSA_WANT_ALG_TLS12_PRF',
             # The DERIVE key type is always enabled.
             'Config: !PSA_WANT_KEY_TYPE_DERIVE',
             # More granularity of key pair type enablement macros
@@ -256,14 +253,6 @@ class CoverageTask(outcome_analysis.CoverageTask):
             # "PSA test case generation: dependency inference class: operation fail"
             # from https://github.com/Mbed-TLS/mbedtls/pull/9025 .
             re.compile(r'.* with (?:DH|ECC)_(?:KEY_PAIR|PUBLIC_KEY)\(.*'),
-            # We never test with TLS12_PRF or TLS12_PSK_TO_MS disabled
-            # but certain other things enabled.
-            # https://github.com/Mbed-TLS/mbedtls/issues/9577
-            re.compile(r'PSA key_derivation TLS12_PRF\(\w+\): !TLS12_PRF'),
-            re.compile(r'PSA key_derivation TLS12_PSK_TO_MS'
-                       r'\((?!SHA_256|SHA_384|SHA_512)\w+\): !TLS12_PSK_TO_MS'),
-            'PSA key_derivation KEY_AGREEMENT(ECDH,TLS12_PRF(SHA_256)): !TLS12_PRF',
-            'PSA key_derivation KEY_AGREEMENT(ECDH,TLS12_PRF(SHA_384)): !TLS12_PRF',
 
             # We never test with the HMAC algorithm enabled but the HMAC
             # key type disabled. Those dependencies don't really make sense.

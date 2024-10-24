@@ -694,6 +694,11 @@
 #error "MBEDTLS_PSA_INJECT_ENTROPY is not compatible with MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG"
 #endif
 
+#if defined(MBEDTLS_PSA_KEY_STORE_DYNAMIC) &&           \
+    defined(MBEDTLS_PSA_STATIC_KEY_SLOTS)
+#error "MBEDTLS_PSA_KEY_STORE_DYNAMIC and MBEDTLS_PSA_STATIC_KEY_SLOTS cannot be defined simultaneously"
+#endif
+
 #if defined(MBEDTLS_PSA_ITS_FILE_C) && \
     !defined(MBEDTLS_FS_IO)
 #error "MBEDTLS_PSA_ITS_FILE_C defined, but not all prerequisites"

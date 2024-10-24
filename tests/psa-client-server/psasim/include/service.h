@@ -1,5 +1,3 @@
-/* PSA Firmware Framework service header for psasim. */
-
 /*
  *  Copyright The Mbed TLS Contributors
  *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
@@ -8,9 +6,6 @@
 #ifndef __PSA_SERVICE_H__
 #define __PSA_SERVICE_H__
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 #include <stdlib.h>
 #include <stdint.h>
 #include <stddef.h>
@@ -19,27 +14,10 @@ extern "C" {
 
 #include "psa/crypto.h"
 
-/********************** PSA Secure Partition Macros and Types ****************/
 
-/* PSA wait timeouts */
-#define PSA_POLL                (0x00000000u)
-#define PSA_BLOCK               (0x80000000u)
-
-/* A mask value that includes all Secure Partition signals */
-#define PSA_WAIT_ANY            (~0u)
-
-/* Doorbell signal */
-#define PSA_DOORBELL            (0x00000008u)
-
-/* PSA message types */
-#define PSA_IPC_CONNECT         (-1)
-#define PSA_IPC_DISCONNECT      (-2)
-
-/* Return code from psa_get() */
-#define PSA_ERR_NOMSG           (INT32_MIN + 3)
-
-/* Store a set of one or more Secure Partition signals */
 typedef uint32_t psa_signal_t;
+typedef int32_t psa_handle_t;
+#define PSA_NULL_HANDLE ((psa_handle_t) 0)
 
 /**
  * Describe a message received by an RoT Service after calling \ref psa_get().
@@ -67,22 +45,70 @@ typedef struct psa_msg_t {
                                     */
 } psa_msg_t;
 
-/************************* PSA Secure Partition API **************************/
+/* Functions from the PSA Firmware Framework which are implemented. */
 
 /**
- * \brief Return the Secure Partition interrupt signals that have been asserted
- *        from a subset of signals provided by the caller.
+ * \brief Wait for a message from the client to arrive. Fail if timeout expires.
  *
- * \param[in] signal_mask       A set of signals to query. Signals that are not
- *                              in this set will be ignored.
- * \param[in] timeout           Specify either blocking \ref PSA_BLOCK or
- *                              polling \ref PSA_POLL operation.
+ * \param[in] signal_mask       Ignored parameter.
+ * \param[in] timeout           Amount of seconds to wait for the client message
+ *                              to arrive before returning a failure.
  *
- * \retval >0                   At least one signal is asserted.
- * \retval 0                    No signals are asserted. This is only seen when
- *                              a polling timeout is used.
+ * \retval PSA_SUCCESS                          If a message is received from
+ *                                              the client before timeout expires.
+ * \retval PSA_ERROR_COMMUNICATION_FAILURE      If the timeout expires before any
+ *                                              message is received.
  */
-psa_signal_t psa_wait(psa_signal_t signal_mask, uint32_t timeout);
+psa_status_t psa_wait(psa_signal_t signal_mask, uint32_t timeout);
+
+/**
+ * \brief Copy message's invec to the specified output buffer.
+ *
+ * \param[in] msg_handle        Ignored parameter.
+ * \param[in] invec_idx         Index of the input vector to read from. Must be
+ *                              less than \ref PSA_MAX_IOVEC.
+ * \param[out] buffer           Buffer to copy the requested data to.
+ * \param[in] num_bytes         Sizeo (in bytes) of the output buffer.
+ *
+ * \retval >0                   On success the number of bytes read to the buffer
+ *                              is returned.
+ * \retval 0                    On failure. This can either be due to:
+ *                              - output buffer too small,
+ *                              - invalid invec_idx, i.e. > PSA_MAX_IOVEC.
+ */
+size_t psa_read(psa_handle_t msg_handle, uint32_t invec_idx, void *buffer, size_t num_bytes);
+
+/**
+ * \brief Copy the content of the provided buffer into the specified outvec.
+ *
+ * \param[in] msg_handle        Ignored parameter.
+ * \param[out] outvec_idx       Index of output vector in message to write to.
+ *                              Must be less than \ref PSA_MAX_IOVEC.
+ * \param[in] buffer            Buffer with the data to write.
+ * \param[in] num_bytes         Number of bytes to write from the input buffer.
+ *
+ * \retval >0                   On success the number of written bytes is returned.
+ * \retval 0                    On failure, which can happen if:
+ *                              - outvec_idx is invalid, i.e. outvec_idx > PSA_MAX_IOVEC,
+ *                              - the server tries to write a message when it's not
+ *                                owning the shared memory.
+ */
+size_t psa_write(psa_handle_t msg_handle, uint32_t outvec_idx, const void *buffer,
+                 size_t num_bytes);
+/**
+ * \brief Notify the client that a message is ready.
+ *
+ * \param[in] msg_handle        Ignored parameter.
+ * \param[in] status            Ignored parameter.
+ *
+ * \retval PSA_SUCCESS          On success.
+ * \retval PSA_ERROR_BAD_STATE  On failure. This happens when the server does not
+ *                              own the shared memeory so it is not allowed to
+ *                              modify its ownership.
+ */
+psa_status_t psa_reply(psa_handle_t msg_handle, psa_status_t status);
+
+/* Functions from the PSA Firmware Framework which are not implemented. */
 
 /**
  * \brief Retrieve the message which corresponds to a given RoT Service signal
@@ -120,32 +146,24 @@ psa_status_t psa_get(psa_signal_t signal, psa_msg_t *msg);
 void psa_set_rhandle(psa_handle_t msg_handle, void *rhandle);
 
 /**
- * \brief Read a message parameter or part of a message parameter from a client
- *        input vector.
+ * \brief Clear the PSA_DOORBELL signal.
  *
- * \param[in] msg_handle        Handle for the client's message.
- * \param[in] invec_idx         Index of the input vector to read from. Must be
- *                              less than \ref PSA_MAX_IOVEC.
- * \param[out] buffer           Buffer in the Secure Partition to copy the
- *                              requested data to.
- * \param[in] num_bytes         Maximum number of bytes to be read from the
- *                              client input vector.
- *
- * \retval >0                   Number of bytes copied.
- * \retval 0                    There was no remaining data in this input
- *                              vector.
- * \retval "Does not return"    The call is invalid, one or more of the
- *                              following are true:
- * \arg                           msg_handle is invalid.
- * \arg                           msg_handle does not refer to a
- *                                \ref PSA_IPC_CALL message.
- * \arg                           invec_idx is equal to or greater than
- *                                \ref PSA_MAX_IOVEC.
- * \arg                           the memory reference for buffer is invalid or
- *                                not writable.
+ * \retval void                 Success.
+ * \retval "Does not return"    The Secure Partition's doorbell signal is not
+ *                              currently asserted.
  */
-size_t psa_read(psa_handle_t msg_handle, uint32_t invec_idx,
-                void *buffer, size_t num_bytes);
+void psa_clear(void);
+
+/**
+ * \brief Send a PSA_DOORBELL signal to a specific Secure Partition.
+ *
+ * \param[in] partition_id      Secure Partition ID of the target partition.
+ *
+ * \retval void                 Success.
+ * \retval "Does not return"    partition_id does not correspond to a Secure
+ *                              Partition.
+ */
+void psa_notify(int32_t partition_id);
 
 /**
  * \brief Skip over part of a client input vector.
@@ -170,67 +188,6 @@ size_t psa_read(psa_handle_t msg_handle, uint32_t invec_idx,
 size_t psa_skip(psa_handle_t msg_handle, uint32_t invec_idx, size_t num_bytes);
 
 /**
- * \brief Write a message response to a client output vector.
- *
- * \param[in] msg_handle        Handle for the client's message.
- * \param[out] outvec_idx       Index of output vector in message to write to.
- *                              Must be less than \ref PSA_MAX_IOVEC.
- * \param[in] buffer            Buffer with the data to write.
- * \param[in] num_bytes         Number of bytes to write to the client output
- *                              vector.
- *
- * \retval void                 Success
- * \retval "Does not return"    The call is invalid, one or more of the
- *                              following are true:
- * \arg                           msg_handle is invalid.
- * \arg                           msg_handle does not refer to a
- *                                \ref PSA_IPC_CALL message.
- * \arg                           outvec_idx is equal to or greater than
- *                                \ref PSA_MAX_IOVEC.
- * \arg                           The memory reference for buffer is invalid.
- * \arg                           The call attempts to write data past the end
- *                                of the client output vector.
- */
-void psa_write(psa_handle_t msg_handle, uint32_t outvec_idx,
-               const void *buffer, size_t num_bytes);
-
-/**
- * \brief Complete handling of a specific message and unblock the client.
- *
- * \param[in] msg_handle        Handle for the client's message.
- * \param[in] status            Message result value to be reported to the
- *                              client.
- *
- * \retval void                 Success.
- * \retval "Does not return"    The call is invalid, one or more of the
- *                              following are true:
- * \arg                         msg_handle is invalid.
- * \arg                         An invalid status code is specified for the
- *                              type of message.
- */
-void psa_reply(psa_handle_t msg_handle, psa_status_t status);
-
-/**
- * \brief Send a PSA_DOORBELL signal to a specific Secure Partition.
- *
- * \param[in] partition_id      Secure Partition ID of the target partition.
- *
- * \retval void                 Success.
- * \retval "Does not return"    partition_id does not correspond to a Secure
- *                              Partition.
- */
-void psa_notify(int32_t partition_id);
-
-/**
- * \brief Clear the PSA_DOORBELL signal.
- *
- * \retval void                 Success.
- * \retval "Does not return"    The Secure Partition's doorbell signal is not
- *                              currently asserted.
- */
-void psa_clear(void);
-
-/**
  * \brief Inform the SPM that an interrupt has been handled (end of interrupt).
  *
  * \param[in] irq_signal        The interrupt signal that has been processed.
@@ -244,10 +201,47 @@ void psa_clear(void);
  */
 void psa_eoi(psa_signal_t irq_signal);
 
-#define psa_panic(X) abort();
+void psa_panic(void);
 
-#ifdef __cplusplus
-}
-#endif
+/* Extra functions which are not part of the PSA Firmware Framework*/
+
+/**
+ * \brief Setup the shared memory that is used to perform the communication
+ *        with the client.
+ *
+ * \retval PSA_SUCCESS                  On success.
+ * \retval PSA_ERROR_GENERIC_ERROR      On failure if the shared memory cannot
+ *                                      be initialized.
+ */
+psa_status_t psa_setup(void);
+
+/**
+ * \brief Close the shared memory.
+ *
+ * \retval  None
+ */
+void psa_close(void);
+
+/**
+ * \brief Return a unique identified for the PSA crypto API function that was
+ *        called by the client.
+ *
+ * \retval int32_t              The unique code for the PSA crypto API function
+ *                              called by the client. See "psa_functions_code.h"
+ *                              for the list of IDs.
+ */
+int32_t psa_get_psa_function(void);
+
+/**
+ * \brief Return invec and outvec sizes from the client's message.
+ *
+ * \param invec_sizes[in/out]   Array of PSA_MAX_IOVEC elements representing the
+ *                              sizes of the invecs.
+ * \param outvec_sizes[in/out]  Array of PSA_MAX_IOVEC elements representing the
+ *                              sizes of the outvecs.
+ *
+ * \retval  None
+ */
+void psa_get_vectors_sizes(size_t *invec_sizes, size_t *outvec_sizes);
 
 #endif /* __PSA_SERVICE_H__ */

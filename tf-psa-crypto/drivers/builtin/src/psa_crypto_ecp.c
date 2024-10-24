@@ -596,41 +596,70 @@ exit:
 /* Interruptible ECC Key Generation */
 /****************************************************************/
 
-uint32_t psa_generate_key_iop_get_num_ops(
-    psa_generate_key_iop_t *operation)
+#if defined(MBEDTLS_ECP_RESTARTABLE) && defined(MBEDTLS_ECP_C)
+
+uint32_t mbedtls_psa_generate_key_get_num_ops(
+    mbedtls_psa_generate_key_iop_t *operation)
 {
-    (void) operation;
-    return 0;
+    return operation->num_ops;
 }
 
-psa_status_t psa_generate_key_iop_setup(
-    psa_generate_key_iop_t *operation,
+psa_status_t mbedtls_psa_generate_key_iop_setup(
+    mbedtls_psa_generate_key_iop_t *operation,
     const psa_key_attributes_t *attributes)
 {
-    (void) operation;
-    (void) attributes;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    return PSA_ERROR_NOT_SUPPORTED;
+    mbedtls_ecp_keypair_init(&operation->ecp);
+
+    psa_ecc_family_t curve = PSA_KEY_TYPE_ECC_GET_FAMILY(
+        psa_get_key_type(attributes));
+    mbedtls_ecp_group_id grp_id =
+        mbedtls_ecc_group_from_psa(curve, psa_get_key_bits(attributes));
+    if (grp_id == MBEDTLS_ECP_DP_NONE) {
+        return PSA_ERROR_NOT_SUPPORTED;
+    }
+
+    status = mbedtls_ecp_group_load(&operation->ecp.grp, grp_id);
+
+    return mbedtls_to_psa_error(status);
 }
 
-psa_status_t psa_generate_key_iop_complete(
-    psa_generate_key_iop_t *operation,
-    psa_key_id_t *key)
+psa_status_t mbedtls_psa_generate_key_iop_complete(
+    mbedtls_psa_generate_key_iop_t *operation,
+    uint8_t *key_output,
+    size_t key_output_size,
+    size_t *key_len)
 {
-    (void) operation;
-    (void) key;
+    *key_len = 0;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    status = mbedtls_ecp_gen_privkey(&operation->ecp.grp, &operation->ecp.d,
+                                     mbedtls_psa_get_random, MBEDTLS_PSA_RANDOM_STATE);
 
-    return PSA_ERROR_NOT_SUPPORTED;
+    if (status) {
+        return mbedtls_to_psa_error(status);
+    }
+
+    operation->num_ops = 1;
+
+    *key_len = operation->ecp.d.n * sizeof(mbedtls_mpi_uint);
+    if (*key_len > key_output_size) {
+        return PSA_ERROR_BUFFER_TOO_SMALL;
+    }
+    memcpy(key_output, operation->ecp.d.p, *key_len);
+
+    return mbedtls_to_psa_error(status);
 }
 
-psa_status_t psa_generate_key_iop_abort(
-    psa_generate_key_iop_t *operation)
+psa_status_t mbedtls_psa_generate_key_iop_abort(
+    mbedtls_psa_generate_key_iop_t *operation)
 {
-    (void) operation;
-
-    return PSA_ERROR_NOT_SUPPORTED;
+    mbedtls_ecp_keypair_free(&operation->ecp);
+    operation->num_ops = 0;
+    return PSA_SUCCESS;
 }
 
+#endif
 /****************************************************************/
 /* Interruptible ECC Key Agreement */
 /****************************************************************/

@@ -56,6 +56,7 @@ from typing import Union
 import scripts_path # pylint: disable=unused-import
 import config
 from mbedtls_framework import c_build_helper
+from mbedtls_framework import crypto_knowledge
 
 class Colors: # pylint: disable=too-few-public-methods
     """Minimalistic support for colored output.
@@ -258,11 +259,7 @@ REVERSE_DEPENDENCIES = {
     'MBEDTLS_DES_C': ['PSA_WANT_KEY_TYPE_DES'],
     'MBEDTLS_GCM_C': ['PSA_WANT_ALG_GCM'],
 
-    'MBEDTLS_CIPHER_MODE_CBC': ['PSA_WANT_ALG_CBC_PKCS7',
-                                'PSA_WANT_ALG_CBC_NO_PADDING'],
-    'MBEDTLS_CIPHER_MODE_CFB': ['PSA_WANT_ALG_CFB'],
-    'MBEDTLS_CIPHER_MODE_CTR': ['PSA_WANT_ALG_CTR'],
-    'MBEDTLS_CIPHER_MODE_OFB': ['PSA_WANT_ALG_OFB'],
+    'PSA_WANT_ALG_CBC_NO_PADDING': ['PSA_WANT_ALG_CBC_PKCS7'],
 
     'MBEDTLS_CIPHER_PADDING_PKCS7': ['MBEDTLS_PKCS5_C',
                                      'MBEDTLS_PKCS12_C',
@@ -490,6 +487,9 @@ class DomainData:
         build_command = [options.make_command, 'CFLAGS=-Werror -O2']
         build_and_test = [build_command, [options.make_command, 'test']]
         self.all_config_symbols = set(conf.settings.keys())
+        algs = {crypto_knowledge.Algorithm(symbol.replace('_WANT', '')): symbol
+                for symbol in self.config_symbols_matching(r'PSA_WANT_ALG_\w+\Z')}
+
         # Find hash modules by name.
         hash_symbols = self.config_symbols_matching(r'MBEDTLS_(MD|RIPEMD|SHA)[0-9]+_C\Z')
         # Find elliptic curve enabling macros by name.
@@ -500,15 +500,27 @@ class DomainData:
         # and padding modes are exercised separately) information by parsing
         # cipher.h, as the information is not readily available in mbedtls_config.h.
         cipher_info = CipherInfo()
-        # Find block cipher chaining and padding mode enabling macros by name.
-        cipher_chaining_symbols = self.config_symbols_matching(r'MBEDTLS_CIPHER_MODE_\w+\Z')
+
+        # Get block cipher chaining modes. Do not select ECB, it is always enabled.
+        cipher_modes_filter = re.compile(r'PSA_WANT_ALG_(?!ECB|STREAM|CCM)\w+\Z')
+        cipher_chaining_symbols = {symbol
+                                   for alg, symbol in algs.items()
+                                   if alg.can_do(crypto_knowledge.AlgorithmCategory.CIPHER)
+                                   if re.match(cipher_modes_filter, symbol)}
+
+        # Find block padding mode enabling macros by name.
         cipher_padding_symbols = self.config_symbols_matching(r'MBEDTLS_CIPHER_PADDING_\w+\Z')
+
         self.domains = {
             # Cipher IDs, chaining modes and padding modes. Run the test suites.
             'cipher_id': ExclusiveDomain(cipher_info.base_symbols,
                                          build_and_test),
+
+            # XTS is not supported via the PSA API.
             'cipher_chaining': ExclusiveDomain(cipher_chaining_symbols,
-                                               build_and_test),
+                                               build_and_test,
+                                               exclude=r'PSA_WANT_ALG_XTS'),
+
             'cipher_padding': ExclusiveDomain(cipher_padding_symbols,
                                               build_and_test),
             # Elliptic curves. Run the test suites.

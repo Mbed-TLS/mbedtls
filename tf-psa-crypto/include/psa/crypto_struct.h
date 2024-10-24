@@ -542,14 +542,18 @@ struct psa_generate_key_iop_s {
      * any driver (i.e. none of the driver contexts are active).
      */
     unsigned int MBEDTLS_PRIVATE(id);
-
+    mbedtls_psa_generate_key_iop_t MBEDTLS_PRIVATE(ctx);
+    psa_key_attributes_t MBEDTLS_PRIVATE(attributes);
+    unsigned int MBEDTLS_PRIVATE(error_occurred) : 1;
+    uint32_t MBEDTLS_PRIVATE(num_ops);
 #endif
 };
 
 #if defined(MBEDTLS_PSA_CRYPTO_CLIENT) && !defined(MBEDTLS_PSA_CRYPTO_C)
 #define PSA_GENERATE_KEY_IOP_INIT { 0 }
 #else
-#define PSA_GENERATE_KEY_IOP_INIT { 0 }
+#define PSA_GENERATE_KEY_IOP_INIT { 0, MBEDTLS_PSA_GENERATE_KEY_IOP_INIT, PSA_KEY_ATTRIBUTES_INIT, \
+                                    0, 0 }
 #endif
 
 static inline struct psa_generate_key_iop_s

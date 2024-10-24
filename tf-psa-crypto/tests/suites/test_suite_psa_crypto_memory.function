@@ -243,7 +243,7 @@ void local_output_round_trip()
     TEST_CALLOC(buffer_copy_for_comparison, local_output.length);
     memcpy(buffer_copy_for_comparison, local_output.buffer, local_output.length);
 
-    psa_crypto_local_output_free(&local_output);
+    TEST_EQUAL(psa_crypto_local_output_free(&local_output), PSA_SUCCESS);
     TEST_ASSERT(local_output.buffer == NULL);
     TEST_EQUAL(local_output.length, 0);
 

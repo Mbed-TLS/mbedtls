@@ -1,8 +1,8 @@
 Debug print msg (threshold 1, level 0)
-debug_print_msg_threshold:1:0:"MyFile":999:"MyFile(0999)\: Text message, 2 == 2\n"
+debug_print_msg_threshold:1:0:"MyFile":999:"MyFile(0999)\: Text message, 2 == 2, len=10\n"
 
 Debug print msg (threshold 1, level 1)
-debug_print_msg_threshold:1:1:"MyFile":999:"MyFile(0999)\: Text message, 2 == 2\n"
+debug_print_msg_threshold:1:1:"MyFile":999:"MyFile(0999)\: Text message, 2 == 2, len=10\n"
 
 Debug print msg (threshold 1, level 2)
 debug_print_msg_threshold:1:2:"MyFile":999:""

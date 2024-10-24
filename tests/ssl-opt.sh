@@ -422,29 +422,16 @@ requires_ciphersuite_enabled() {
 requires_cipher_enabled() {
     KEY_TYPE=$1
     MODE=${2:-}
-    if is_config_enabled MBEDTLS_USE_PSA_CRYPTO; then
-        case "$KEY_TYPE" in
-            CHACHA20)
-                requires_config_enabled PSA_WANT_ALG_CHACHA20_POLY1305
-                requires_config_enabled PSA_WANT_KEY_TYPE_CHACHA20
-                ;;
-            *)
-                requires_config_enabled PSA_WANT_ALG_${MODE}
-                requires_config_enabled PSA_WANT_KEY_TYPE_${KEY_TYPE}
-                ;;
-        esac
-    else
-        case "$KEY_TYPE" in
-            CHACHA20)
-                requires_config_enabled MBEDTLS_CHACHA20_C
-                requires_config_enabled MBEDTLS_CHACHAPOLY_C
-                ;;
-            *)
-                requires_config_enabled MBEDTLS_${MODE}_C
-                requires_config_enabled MBEDTLS_${KEY_TYPE}_C
-                ;;
-        esac
-    fi
+    case "$KEY_TYPE" in
+        CHACHA20)
+            requires_config_enabled PSA_WANT_ALG_CHACHA20_POLY1305
+            requires_config_enabled PSA_WANT_KEY_TYPE_CHACHA20
+            ;;
+        *)
+            requires_config_enabled PSA_WANT_ALG_${MODE}
+            requires_config_enabled PSA_WANT_KEY_TYPE_${KEY_TYPE}
+            ;;
+    esac
 }
 
 # Automatically detect required features based on command line parameters.
@@ -665,20 +652,7 @@ HAS_ALG_SHA_512="NO"
 check_for_hash_alg()
 {
     CURR_ALG="INVALID";
-    USE_PSA="NO"
-    if is_config_enabled "MBEDTLS_USE_PSA_CRYPTO"; then
-        USE_PSA="YES";
-    fi
-    if [ $USE_PSA = "YES" ]; then
-        CURR_ALG=PSA_WANT_ALG_${1}
-    else
-        CURR_ALG=MBEDTLS_${1}_C
-        # Remove the second underscore to match MBEDTLS_* naming convention
-        # MD5 is an exception to this convention
-        if [ "${1}" != "MD5" ]; then
-            CURR_ALG=$(echo "$CURR_ALG" | sed 's/_//2')
-        fi
-    fi
+    CURR_ALG=PSA_WANT_ALG_${1}
 
     case $CONFIGS_ENABLED in
         *" $CURR_ALG"[\ =]*)
@@ -728,11 +702,7 @@ requires_hash_alg() {
 requires_pk_alg() {
     case $1 in
         ECDSA)
-            if is_config_enabled MBEDTLS_USE_PSA_CRYPTO; then
-                requires_config_enabled PSA_WANT_ALG_ECDSA
-            else
-                requires_config_enabled MBEDTLS_ECDSA_C
-            fi
+            requires_config_enabled PSA_WANT_ALG_ECDSA
             ;;
         *)
             echo "Unknown/unimplemented case $1 in requires_pk_alg"
@@ -1362,10 +1332,7 @@ set_maybe_calc_verify() {
                 *) echo "Bad parameter 1 to set_maybe_calc_verify: $1"; exit 1;;
             esac
     esac
-    case $CONFIGS_ENABLED in
-        *\ MBEDTLS_USE_PSA_CRYPTO\ *) maybe_calc_verify="PSA calc verify";;
-        *) maybe_calc_verify="<= calc verify";;
-    esac
+    maybe_calc_verify="PSA calc verify"
 }
 
 # Compare file content
@@ -1874,7 +1841,6 @@ run_test() {
 }
 
 run_test_psa() {
-    requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
     set_maybe_calc_verify none
     run_test    "PSA-supported ciphersuite: $1" \
                 "$P_SRV debug_level=3 force_version=tls12" \
@@ -1893,7 +1859,6 @@ run_test_psa() {
 }
 
 run_test_psa_force_curve() {
-    requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
     set_maybe_calc_verify none
     run_test    "PSA - ECDH with $1" \
                 "$P_SRV debug_level=4 force_version=tls12 groups=$1" \

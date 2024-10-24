@@ -1161,10 +1161,11 @@ struct mbedtls_ssl_transform {
     unsigned char out_cid[MBEDTLS_SSL_CID_OUT_LEN_MAX];
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 
-#if defined(MBEDTLS_SSL_CONTEXT_SERIALIZATION)
+#if defined(MBEDTLS_SSL_KEEP_RANDBYTES)
     /* We need the Hello random bytes in order to re-derive keys from the
-     * Master Secret and other session info,
-     * see ssl_tls12_populate_transform() */
+     * Master Secret and other session info and for the keying material
+     * exporter in TLS 1.2.
+     * See ssl_tls12_populate_transform() */
     unsigned char randbytes[MBEDTLS_SERVER_HELLO_RANDOM_LEN +
                             MBEDTLS_CLIENT_HELLO_RANDOM_LEN];
     /*!< ServerHello.random+ClientHello.random */

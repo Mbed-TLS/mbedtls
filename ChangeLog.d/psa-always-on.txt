@@ -1,0 +1,9 @@
+Default behavior changes
+   * The PK, X.509, PKCS7 and TLS modules now always use the PSA subsystem
+     to perform cryptographic operations, with a few exceptions documented
+     in docs/use-psa-crypto.md. This corresponds to the behavior of
+     Mbed TLS 3.x when MBEDTLS_USE_PSA_CRYPTO is enabled. In effect,
+     MBEDTLS_USE_PSA_CRYPTO is now always enabled.
+   * psa_crypto_init() must be called before performing any cryptographic
+     operation, including indirect requests such as parsing a key or
+     certificate or starting a TLS handshake.

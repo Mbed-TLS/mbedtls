@@ -1,3 +1,4 @@
+include(CMakePackageConfigHelpers)
 include(GNUInstallDirs)
 
 # Determine if TF-PSA-Crypto is being built as a subproject using add_subdirectory()
@@ -13,6 +14,19 @@ set(TF_PSA_CRYPTO_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 set(MBEDTLS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/..)
 set(MBEDTLS_FRAMEWORK_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../framework)
 
+# Put the version numbers into relevant files
+set(version_number_files
+        doxygen/input/doc_mainpage.h
+        doxygen/tfpsacrypto.doxyfile)
+foreach(file ${version_number_files})
+    configure_file(${file}.in
+                   ${TF_PSA_CRYPTO_DIR}/${file})
+endforeach(file)
+
+ADD_CUSTOM_TARGET(${TF_PSA_CRYPTO_TARGET_PREFIX}apidoc
+    COMMAND doxygen tfpsacrypto.doxyfile
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/doxygen)
+
 option(ENABLE_PROGRAMS "Build TF-PSA-Crypto programs." ON)
 
 option(UNSAFE_BUILD "Allow unsafe builds. These builds ARE NOT SECURE." OFF)
@@ -27,7 +41,7 @@ else()
 endif()
 
 # Support for package config and install to be added later.
-option(DISABLE_PACKAGE_CONFIG_AND_INSTALL "Disable package configuration, target export and installation" ON)
+option(DISABLE_PACKAGE_CONFIG_AND_INSTALL "Disable package configuration, target export and installation" ${TF_PSA_CRYPTO_AS_SUBPROJECT})
 
 if (CMAKE_C_SIMULATE_ID)
     set(COMPILER_ID ${CMAKE_C_SIMULATE_ID})
@@ -101,7 +115,7 @@ set(THREADS_PREFER_PTHREAD_FLAG TRUE)
 find_package(Threads)
 
 # If this is the root project add longer list of available CMAKE_BUILD_TYPE values
-if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+if(NOT TF_PSA_CRYPTO_AS_SUBPROJECT)
     set(CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE}
         CACHE STRING "Choose the type of build: None Debug Release Coverage ASan ASanDbg MemSan MemSanDbg Check CheckFull TSan TSanDbg"
         FORCE)
@@ -261,10 +275,6 @@ if(CMAKE_BUILD_TYPE STREQUAL "Coverage")
     endif(CMAKE_COMPILER_IS_GNU OR CMAKE_COMPILER_IS_CLANG)
 endif(CMAKE_BUILD_TYPE STREQUAL "Coverage")
 
-if(LIB_INSTALL_DIR)
-    set(CMAKE_INSTALL_LIBDIR "${LIB_INSTALL_DIR}")
-endif()
-
 if (NOT EXISTS "${MBEDTLS_FRAMEWORK_DIR}/CMakeLists.txt")
     message(FATAL_ERROR "${MBEDTLS_FRAMEWORK_DIR}/CMakeLists.txt not found. Run `git submodule update --init` from the source tree to fetch the submodule contents.")
 endif()
@@ -272,6 +282,7 @@ endif()
 add_subdirectory(include)
 add_subdirectory(core)
 add_subdirectory(drivers)
+add_subdirectory(pkgconfig)
 
 #
 # The C files in tests/src directory contain test code shared among test suites
@@ -356,6 +367,17 @@ if(ENABLE_TESTING)
 
     # additional convenience targets for Unix only
     if(UNIX)
+        # For coverage testing:
+        # 1. Build with:
+        #         cmake -D CMAKE_BUILD_TYPE=Coverage /path/to/source && make
+        # 2. Run the relevant tests for the part of the code you're interested in.
+        #    For the reference coverage measurement, see
+        #    tests/scripts/basic-build-test.sh
+        # 3. Run scripts/lcov.sh to generate an HTML report.
+        ADD_CUSTOM_TARGET(lcov
+            COMMAND ${MBEDTLS_DIR}/scripts/lcov.sh
+        )
+
         ADD_CUSTOM_TARGET(memcheck
             COMMAND sed -i.bak s+/usr/bin/valgrind+`which valgrind`+ DartConfiguration.tcl
             COMMAND ctest -O memcheck.log -D ExperimentalMemCheck
@@ -372,5 +394,41 @@ if(ENABLE_TESTING)
         # keep things simple with the sed commands in the memcheck target.
         configure_file(${CMAKE_CURRENT_SOURCE_DIR}/DartConfiguration.tcl
                     ${CMAKE_CURRENT_BINARY_DIR}/DartConfiguration.tcl COPYONLY)
+    endif()
+endif()
+
+if(NOT DISABLE_PACKAGE_CONFIG_AND_INSTALL)
+    configure_package_config_file(
+        "cmake/TF-PSA-CryptoConfig.cmake.in"
+        "cmake/TF-PSA-CryptoConfig.cmake"
+            INSTALL_DESTINATION "cmake")
+
+    write_basic_package_version_file(
+        "cmake/TF-PSA-CryptoConfigVersion.cmake"
+            COMPATIBILITY SameMajorVersion
+            VERSION 0.1.0)
+
+    install(
+        FILES "${CMAKE_CURRENT_BINARY_DIR}/cmake/TF-PSA-CryptoConfig.cmake"
+              "${CMAKE_CURRENT_BINARY_DIR}/cmake/TF-PSA-CryptoConfigVersion.cmake"
+        DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/TF-PSA-Crypto")
+
+    export(
+        EXPORT MbedTLSTargets
+        NAMESPACE TF-PSA-Crypto::
+        FILE "cmake/TF-PSA-CryptoTargets.cmake")
+
+    install(
+        EXPORT MbedTLSTargets
+        NAMESPACE TF-PSA-Crypto::
+        DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/TF-PSA-Crypto"
+        FILE "TF-PSA-CryptoTargets.cmake")
+
+    if(CMAKE_VERSION VERSION_GREATER 3.15 OR CMAKE_VERSION VERSION_EQUAL 3.15)
+        # Do not export the package by default
+        cmake_policy(SET CMP0090 NEW)
+
+        # Make this package visible to the system
+        export(PACKAGE TF-PSA-Crypto)
     endif()
 endif()

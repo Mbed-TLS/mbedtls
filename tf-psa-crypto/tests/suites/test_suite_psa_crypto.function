@@ -10096,6 +10096,7 @@ void generate_key(int type_arg,
     psa_status_t expected_status = expected_status_arg;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_key_attributes_t got_attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_generate_key_iop_t operation = PSA_GENERATE_KEY_IOP_INIT;
 
     PSA_ASSERT(psa_crypto_init());
 
@@ -10111,21 +10112,40 @@ void generate_key(int type_arg,
         TEST_ASSUME(status != PSA_ERROR_INSUFFICIENT_MEMORY);
     }
     TEST_EQUAL(status, expected_status);
+    if (expected_status == PSA_SUCCESS) {
+        /* Test the key information */
+        PSA_ASSERT(psa_get_key_attributes(key, &got_attributes));
+        TEST_EQUAL(psa_get_key_type(&got_attributes), type);
+        TEST_EQUAL(psa_get_key_bits(&got_attributes), bits);
+
+        /* Do something with the key according to its type and permitted usage. */
+        TEST_EQUAL(mbedtls_test_psa_exercise_key(key, usage, alg, 0), 1);
+    }
+
+    if (!PSA_KEY_TYPE_IS_ECC(type)) {
+        expected_status = PSA_ERROR_NOT_SUPPORTED;
+    }
+
+#if !defined(MBEDTLS_ECP_RESTARTABLE)
+    expected_status = PSA_ERROR_NOT_SUPPORTED;
+#endif
+
+    status = psa_generate_key_iop_setup(&operation, &attributes);
+    TEST_EQUAL(status, expected_status);
     if (expected_status != PSA_SUCCESS) {
         goto exit;
     }
 
-    /* Test the key information */
-    PSA_ASSERT(psa_get_key_attributes(key, &got_attributes));
-    TEST_EQUAL(psa_get_key_type(&got_attributes), type);
-    TEST_EQUAL(psa_get_key_bits(&got_attributes), bits);
+    status = psa_generate_key_iop_setup(&operation, &attributes);
+    TEST_EQUAL(status, PSA_ERROR_BAD_STATE);
 
-    /* Do something with the key according to its type and permitted usage. */
-    if (!mbedtls_test_psa_exercise_key(key, usage, alg, 0)) {
-        goto exit;
-    }
+    status = psa_generate_key_iop_abort(&operation);
+
+    status = psa_generate_key_iop_setup(&operation, &attributes);
+    TEST_EQUAL(status, PSA_SUCCESS);
 
 exit:
+    psa_generate_key_iop_abort(&operation);
     /*
      * Key attributes may have been returned by psa_get_key_attributes()
      * thus reset them as required.

@@ -11,7 +11,7 @@
     defined(PSA_HAVE_ALG_SOME_ECDSA)
 
 #include "mbedtls/asn1write.h"
-#include "mbedtls/error.h"
+#include "mbedtls/error_common.h"
 
 #include <string.h>
 

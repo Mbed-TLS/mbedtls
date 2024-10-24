@@ -16,9 +16,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#if defined(MBEDTLS_ERROR_C)
-#include "mbedtls/error.h"
-#endif
+#include "mbedtls/error_common.h"
 #include "mbedtls/platform.h"
 
 #if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)

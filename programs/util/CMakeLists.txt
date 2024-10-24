@@ -1,5 +1,6 @@
 set(libs
     ${mbedcrypto_target}
+    ${mbedx509_target}
 )
 
 set(executables

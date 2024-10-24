@@ -13,7 +13,7 @@
 
 #include "mbedtls/ecp.h"
 #include "mbedtls/platform_util.h"
-#include "mbedtls/error.h"
+#include "mbedtls/error_common.h"
 
 #include "bn_mul.h"
 #include "bignum_core.h"

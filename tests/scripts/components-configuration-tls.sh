@@ -57,7 +57,6 @@ component_test_no_renegotiation () {
 component_test_tls1_2_default_stream_cipher_only () {
     msg "build: default with only stream cipher use psa"
 
-    scripts/config.py set MBEDTLS_USE_PSA_CRYPTO
     scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
     # Disable AEAD (controlled by the presence of one of GCM_C, CCM_C, CHACHAPOLY_C)
     scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CCM
@@ -95,7 +94,6 @@ component_test_tls1_2_default_stream_cipher_only () {
 component_test_tls1_2_default_cbc_legacy_cipher_only () {
     msg "build: default with only CBC-legacy cipher use psa"
 
-    scripts/config.py set MBEDTLS_USE_PSA_CRYPTO
     scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
     # Disable AEAD (controlled by the presence of one of GCM_C, CCM_C, CHACHAPOLY_C)
     scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CCM
@@ -130,7 +128,6 @@ component_test_tls1_2_default_cbc_legacy_cipher_only () {
 component_test_tls1_2_default_cbc_legacy_cbc_etm_cipher_only () {
     msg "build: default with only CBC-legacy and CBC-EtM ciphers use psa"
 
-    scripts/config.py set MBEDTLS_USE_PSA_CRYPTO
     scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
     # Disable AEAD (controlled by the presence of one of GCM_C, CCM_C, CHACHAPOLY_C)
     scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CCM

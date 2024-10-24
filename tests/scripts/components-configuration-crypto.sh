@@ -187,7 +187,6 @@ component_test_no_ctr_drbg_use_psa () {
     msg "build: Full minus CTR_DRBG, PSA crypto in TLS"
     scripts/config.py full
     scripts/config.py unset MBEDTLS_CTR_DRBG_C
-    scripts/config.py set MBEDTLS_USE_PSA_CRYPTO
 
     CC=$ASAN_CC cmake -D CMAKE_BUILD_TYPE:String=Asan .
     make
@@ -210,7 +209,6 @@ component_test_no_hmac_drbg_use_psa () {
     scripts/config.py full
     scripts/config.py unset MBEDTLS_HMAC_DRBG_C
     scripts/config.py unset MBEDTLS_ECDSA_DETERMINISTIC # requires HMAC_DRBG
-    scripts/config.py set MBEDTLS_USE_PSA_CRYPTO
 
     CC=$ASAN_CC cmake -D CMAKE_BUILD_TYPE:String=Asan .
     make
@@ -255,7 +253,6 @@ component_test_psa_external_rng_use_psa_crypto () {
     msg "build: full + PSA_CRYPTO_EXTERNAL_RNG + USE_PSA_CRYPTO minus CTR_DRBG"
     scripts/config.py full
     scripts/config.py set MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG
-    scripts/config.py set MBEDTLS_USE_PSA_CRYPTO
     scripts/config.py unset MBEDTLS_CTR_DRBG_C
     make CC=$ASAN_CC CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS"
 
@@ -655,8 +652,6 @@ component_test_psa_crypto_config_accel_ecdsa () {
 
     # Start from default config + TLS 1.3
     helper_libtestdriver1_adjust_config "default"
-
-    scripts/config.py set MBEDTLS_USE_PSA_CRYPTO
 
     # Disable the module that's accelerated
     scripts/config.py unset MBEDTLS_ECDSA_C
@@ -1427,12 +1422,6 @@ common_tfm_config () {
     cp configs/config-tfm.h "$CONFIG_H"
     echo "#undef MBEDTLS_PSA_CRYPTO_CONFIG_FILE" >> "$CONFIG_H"
     cp configs/ext/crypto_config_profile_medium.h "$CRYPTO_CONFIG_H"
-
-    # Other config adjustment to make the tests pass.
-    # This should probably be adopted upstream.
-    #
-    # - USE_PSA_CRYPTO for PK_HAVE_ECC_KEYS
-    echo "#define MBEDTLS_USE_PSA_CRYPTO" >> "$CONFIG_H"
 
     # Config adjustment for better test coverage in our environment.
     # This is not needed just to build and pass tests.

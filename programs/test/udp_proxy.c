@@ -938,8 +938,6 @@ accept:
 
     }
 
-    exit_code = MBEDTLS_EXIT_SUCCESS;
-
 exit:
 
 #ifdef MBEDTLS_ERROR_C

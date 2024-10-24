@@ -8669,7 +8669,7 @@ static int ssl_tls12_populate_transform(mbedtls_ssl_transform *transform,
 #endif /* MBEDTLS_SSL_SOME_SUITES_USE_CBC_ETM */
     transform->tls_version = tls_version;
 
-#if defined(MBEDTLS_SSL_CONTEXT_SERIALIZATION)
+#if defined(MBEDTLS_SSL_KEEP_RANDBYTES)
     memcpy(transform->randbytes, randbytes, sizeof(transform->randbytes));
 #endif
 
@@ -10054,8 +10054,7 @@ int mbedtls_ssl_verify_certificate(mbedtls_ssl_context *ssl,
 }
 #endif /* MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED */
 
-
-#if defined(MBEDTLS_SSL_CONTEXT_SERIALIZATION) || !defined(MBEDTLS_SSL_PROTO_TLS1_2)
+#if defined(MBEDTLS_SSL_KEYING_MATERIAL_EXPORT)
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
 static int mbedtls_ssl_tls12_export_keying_material(const mbedtls_ssl_context *ssl,
@@ -10176,6 +10175,6 @@ int mbedtls_ssl_export_keying_material(mbedtls_ssl_context *ssl,
     }
 }
 
-#endif /* defined(MBEDTLS_SSL_CONTEXT_SERIALIZATION) || !defined(MBEDTLS_SSL_PROTO_TLS1_2) */
+#endif /* defined(MBEDTLS_SSL_KEYING_MATERIAL_EXPORT) */
 
 #endif /* MBEDTLS_SSL_TLS_C */

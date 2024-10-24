@@ -5122,7 +5122,7 @@ uint32_t psa_key_agreement_iop_get_num_ops(psa_key_agreement_iop_t *operation);
 
 psa_status_t psa_key_agreement_iop_setup(
     psa_key_agreement_iop_t *operation,
-    psa_key_id_t private_key,
+    mbedtls_svc_key_id_t private_key,
     const uint8_t *peer_key,
     size_t peer_key_length,
     psa_algorithm_t alg,
@@ -5207,7 +5207,7 @@ psa_status_t psa_key_agreement_iop_setup(
  */
 psa_status_t psa_key_agreement_iop_complete(
     psa_key_agreement_iop_t *operation,
-    psa_key_id_t *key);
+    mbedtls_svc_key_id_t *key);
 
 /**
  * \brief                       Abort a key agreement operation.

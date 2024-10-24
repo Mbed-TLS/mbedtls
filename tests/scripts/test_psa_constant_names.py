@@ -163,6 +163,7 @@ def main():
     parser.add_argument('--include', '-I',
                         action='append', default=['tf-psa-crypto/include',
                                                   'tf-psa-crypto/drivers/builtin/include',
+                                                  'tf-psa-crypto/drivers/everest/include',
                                                   'include'],
                         help='Directory for header files')
     parser.add_argument('--keep-c',

@@ -508,14 +508,17 @@ struct psa_key_agreement_iop_s {
      * any driver (i.e. none of the driver contexts are active).
      */
     unsigned int MBEDTLS_PRIVATE(id);
-
+    psa_driver_key_agreement_interruptible_context_t MBEDTLS_PRIVATE(ctx);
+    uint32_t MBEDTLS_PRIVATE(num_ops);
+    psa_key_attributes_t MBEDTLS_PRIVATE(attributes);
+    unsigned int MBEDTLS_PRIVATE(error_occurred) : 1;
 #endif
 };
 
 #if defined(MBEDTLS_PSA_CRYPTO_CLIENT) && !defined(MBEDTLS_PSA_CRYPTO_C)
 #define PSA_KEY_AGREEMENT_IOP_INIT { 0 }
 #else
-#define PSA_KEY_AGREEMENT_IOP_INIT { 0 }
+#define PSA_KEY_AGREEMENT_IOP_INIT { 0, { 0 }, 0, PSA_KEY_ATTRIBUTES_INIT, 0 }
 #endif
 
 static inline struct psa_key_agreement_iop_s

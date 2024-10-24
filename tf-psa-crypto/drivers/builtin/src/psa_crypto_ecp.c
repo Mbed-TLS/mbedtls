@@ -635,47 +635,110 @@ psa_status_t psa_generate_key_iop_abort(
 /* Interruptible ECC Key Agreement */
 /****************************************************************/
 
-uint32_t psa_key_agreement_iop_get_num_ops(
-    psa_key_agreement_iop_t *operation)
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_ECDH) && defined(MBEDTLS_ECP_RESTARTABLE)
+
+uint32_t mbedtls_psa_key_agreement_get_num_ops(
+    mbedtls_psa_key_agreement_interruptible_operation_t *operation)
 {
-    (void) operation;
-    return 0;
+    return operation->num_ops;
 }
 
-psa_status_t psa_key_agreement_iop_setup(
-    psa_key_agreement_iop_t *operation,
-    psa_key_id_t private_key,
+psa_status_t mbedtls_psa_key_agreement_setup(
+    mbedtls_psa_key_agreement_interruptible_operation_t *operation,
+    const uint8_t *private_key_buffer,
+    size_t private_key_buffer_len,
     const uint8_t *peer_key,
     size_t peer_key_length,
-    psa_algorithm_t alg,
     const psa_key_attributes_t *attributes)
 {
-    (void) operation;
-    (void) private_key;
-    (void) peer_key;
-    (void) peer_key_length;
-    (void) alg;
-    (void) attributes;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    mbedtls_ecp_keypair *our_key = NULL;
+    mbedtls_ecp_keypair *their_key = NULL;
 
-    return PSA_SUCCESS;
+    mbedtls_ecdh_init(&operation->ctx);
+    mbedtls_ecdh_enable_restart(&operation->ctx);
+
+    /* We need to clear number of ops here in case there was a previous
+       complete operation which doesn't reset it after finsishing. */
+    operation->num_ops = 0;
+
+    status = mbedtls_psa_ecp_load_representation(
+        psa_get_key_type(attributes),
+        psa_get_key_bits(attributes),
+        private_key_buffer,
+        private_key_buffer_len,
+        &our_key);
+    if (status != PSA_SUCCESS) {
+        goto exit;
+    }
+
+    status = mbedtls_to_psa_error(
+        mbedtls_ecdh_get_params(&operation->ctx, our_key, MBEDTLS_ECDH_OURS));
+    if (status != PSA_SUCCESS) {
+        goto exit;
+    }
+
+    mbedtls_ecp_keypair_free(our_key);
+    mbedtls_free(our_key);
+    our_key = NULL;
+
+    status = mbedtls_psa_ecp_load_representation(
+        PSA_KEY_TYPE_PUBLIC_KEY_OF_KEY_PAIR(psa_get_key_type(attributes)),
+        psa_get_key_bits(attributes),
+        peer_key,
+        peer_key_length,
+        &their_key);
+    if (status != PSA_SUCCESS) {
+        goto exit;
+    }
+
+    /* mbedtls_psa_ecp_load_representation() calls mbedtls_ecp_check_pubkey() which
+       takes MBEDTLS_ECP_OPS_CHK amount of ops. */
+    operation->num_ops += MBEDTLS_ECP_OPS_CHK;
+
+    status = mbedtls_to_psa_error(
+        mbedtls_ecdh_get_params(&operation->ctx, their_key, MBEDTLS_ECDH_THEIRS));
+    if (status != PSA_SUCCESS) {
+        goto exit;
+    }
+
+exit:
+    mbedtls_ecp_keypair_free(our_key);
+    mbedtls_free(our_key);
+    mbedtls_ecp_keypair_free(their_key);
+    mbedtls_free(their_key);
+    return status;
 }
 
-psa_status_t psa_key_agreement_iop_complete(
-    psa_key_agreement_iop_t *operation,
-    psa_key_id_t *key)
+psa_status_t mbedtls_psa_key_agreement_complete(
+    mbedtls_psa_key_agreement_interruptible_operation_t *operation,
+    uint8_t *shared_secret,
+    size_t shared_secret_size,
+    size_t *shared_secret_length)
 {
-    (void) operation;
-    (void) key;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    return PSA_SUCCESS;
+    mbedtls_psa_interruptible_set_max_ops(psa_interruptible_get_max_ops());
+
+    status = mbedtls_to_psa_error(mbedtls_ecdh_calc_secret(&operation->ctx, shared_secret_length,
+                                                           shared_secret,
+                                                           shared_secret_size,
+                                                           mbedtls_psa_get_random,
+                                                           MBEDTLS_PSA_RANDOM_STATE));
+
+    operation->num_ops += operation->ctx.rs.ops_done;
+
+    return status;
 }
 
-psa_status_t psa_key_agreement_iop_abort(
-    psa_key_agreement_iop_t *operation)
+psa_status_t mbedtls_psa_key_agreement_abort(
+    mbedtls_psa_key_agreement_interruptible_operation_t *operation)
 {
-    (void) operation;
-
+    operation->num_ops = 0;
+    mbedtls_ecdh_free(&operation->ctx);
     return PSA_SUCCESS;
 }
+
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_ECDH */
 
 #endif /* MBEDTLS_PSA_CRYPTO_C */

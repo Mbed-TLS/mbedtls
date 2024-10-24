@@ -1,0 +1,4 @@
+Features
+   * Add an interruptible version of key agreement to the PSA interface.
+     See psa_key_agreement_iop_setup() and related functions.
+

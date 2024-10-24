@@ -7764,6 +7764,157 @@ psa_status_t psa_key_agreement(mbedtls_svc_key_id_t private_key,
     return status;
 }
 
+#if defined(MBEDTLS_ECP_RESTARTABLE) && \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_ECDH)
+
+static psa_status_t psa_key_agreement_iop_abort_internal(psa_key_agreement_iop_t *operation)
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
+    status = psa_driver_wrapper_key_agreement_abort(operation);
+
+    return status;
+}
+#endif
+
+uint32_t psa_key_agreement_iop_get_num_ops(
+    psa_key_agreement_iop_t *operation)
+{
+#if defined(MBEDTLS_ECP_RESTARTABLE) && \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_ECDH)
+    return operation->num_ops;
+#else
+    (void) operation;
+    return 0;
+#endif
+}
+
+psa_status_t psa_key_agreement_iop_setup(
+    psa_key_agreement_iop_t *operation,
+    mbedtls_svc_key_id_t private_key,
+    const uint8_t *peer_key,
+    size_t peer_key_length,
+    psa_algorithm_t alg,
+    const psa_key_attributes_t *attributes)
+{
+#if defined(MBEDTLS_ECP_RESTARTABLE) && \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_ECDH)
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_status_t unlock_status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_key_type_t key_type;
+    psa_key_slot_t *slot = NULL;
+
+    if (operation->id != 0 || operation->error_occurred) {
+        return PSA_ERROR_BAD_STATE;
+    }
+
+    if (!PSA_ALG_IS_RAW_KEY_AGREEMENT(alg)) {
+        operation->error_occurred = 1;
+        return PSA_ERROR_INVALID_ARGUMENT;
+    }
+
+    key_type = psa_get_key_type(attributes);
+    if (key_type != PSA_KEY_TYPE_DERIVE &&
+        key_type != PSA_KEY_TYPE_RAW_DATA) {
+        operation->error_occurred = 1;
+        return PSA_ERROR_INVALID_ARGUMENT;
+    }
+
+    status = psa_get_and_lock_transparent_key_slot_with_policy(
+        private_key, &slot, PSA_KEY_USAGE_DERIVE, alg);
+    if (status != PSA_SUCCESS) {
+        goto exit;
+    }
+
+    operation->attributes = *attributes;
+
+    operation->num_ops = 0;
+
+    status = psa_driver_wrapper_key_agreement_setup(operation, slot->key.data,
+                                                    slot->key.bytes, peer_key,
+                                                    peer_key_length,
+                                                    &slot->attr);
+
+    operation->num_ops = psa_driver_wrapper_key_agreement_get_num_ops(operation);
+
+exit:
+    unlock_status = psa_unregister_read_under_mutex(slot);
+    if (status != PSA_SUCCESS) {
+        operation->error_occurred = 1;
+        psa_key_agreement_iop_abort_internal(operation);
+        return status;
+    }
+    return unlock_status;
+#else
+    (void) operation;
+    (void) private_key;
+    (void) peer_key;
+    (void) peer_key_length;
+    (void) alg;
+    (void) attributes;
+    return PSA_ERROR_NOT_SUPPORTED;
+#endif
+}
+
+psa_status_t psa_key_agreement_iop_complete(
+    psa_key_agreement_iop_t *operation,
+    mbedtls_svc_key_id_t *key)
+{
+#if defined(MBEDTLS_ECP_RESTARTABLE) && \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_ECDH)
+
+    if (operation->id == 0 || operation->error_occurred) {
+        return PSA_ERROR_BAD_STATE;
+    }
+
+    psa_status_t status;
+    uint8_t intermediate_key[PSA_RAW_KEY_AGREEMENT_OUTPUT_MAX_SIZE];
+    size_t key_len = 0;
+
+    status = psa_driver_wrapper_key_agreement_complete(operation, intermediate_key,
+                                                       PSA_RAW_KEY_AGREEMENT_OUTPUT_MAX_SIZE,
+                                                       &key_len);
+
+    operation->num_ops = psa_driver_wrapper_key_agreement_get_num_ops(operation);
+
+    if (status == PSA_SUCCESS) {
+        status = psa_import_key(&operation->attributes, intermediate_key,
+                                key_len, key);
+    }
+
+    if (status != PSA_SUCCESS && status != PSA_OPERATION_INCOMPLETE) {
+        operation->error_occurred = 1;
+        psa_key_agreement_iop_abort_internal(operation);
+    }
+    mbedtls_platform_zeroize(intermediate_key, PSA_RAW_KEY_AGREEMENT_OUTPUT_MAX_SIZE);
+    return status;
+#else
+    (void) operation;
+    (void) key;
+    return PSA_ERROR_BAD_STATE;
+#endif
+}
+
+psa_status_t psa_key_agreement_iop_abort(
+    psa_key_agreement_iop_t *operation)
+{
+#if defined(MBEDTLS_ECP_RESTARTABLE) && \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_ECDH)
+    psa_status_t status;
+
+    status = psa_key_agreement_iop_abort_internal(operation);
+
+    operation->num_ops = 0;
+    operation->error_occurred = 0;
+    operation->id = 0;
+
+    return status;
+#else
+    (void) operation;
+    return PSA_SUCCESS;
+#endif
+}
+
 /****************************************************************/
 /* Random generation */
 /****************************************************************/

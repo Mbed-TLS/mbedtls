@@ -10,6 +10,13 @@
 
 # This script must be invoked from the project's root.
 
+# Prevent silly mistakes when people would invoke this from mbedtls
+if [ -d tf-psa-crypto -a -d library ]; then
+    echo "When invoking this script from an mbedtls checkout," >&2
+    echo "you must change the working directory to tf-psa-crypto." >&2
+    exit 255
+fi
+
 # The path is going to change when this is moved to the framework
 source ../tests/scripts/all-core.sh
 

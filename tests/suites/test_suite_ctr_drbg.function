@@ -365,11 +365,11 @@ void ctr_drbg_threads(data_t *expected_result, int reseed, int arg_thread_count)
 
     AES_PSA_INIT();
 
-    TEST_CALLOC(threads, sizeof(mbedtls_test_thread_t) * thread_count);
-    memset(out, 0, sizeof(out));
-
     mbedtls_ctr_drbg_context ctx;
     mbedtls_ctr_drbg_init(&ctx);
+
+    TEST_CALLOC(threads, sizeof(mbedtls_test_thread_t) * thread_count);
+    memset(out, 0, sizeof(out));
 
     test_offset_idx = 0;
 

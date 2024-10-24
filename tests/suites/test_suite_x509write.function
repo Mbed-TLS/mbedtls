@@ -297,11 +297,12 @@ void x509_csr_check_opaque(char *key_file, int md_type, int key_usage,
     mbedtls_test_rnd_pseudo_info rnd_info;
 
     mbedtls_x509write_csr_init(&req);
+    mbedtls_pk_init(&key);
+
     MD_OR_USE_PSA_INIT();
 
     memset(&rnd_info, 0x2a, sizeof(mbedtls_test_rnd_pseudo_info));
 
-    mbedtls_pk_init(&key);
     TEST_ASSERT(mbedtls_pk_parse_keyfile(&key, key_file, NULL,
                                          mbedtls_test_rnd_std_rand, NULL) == 0);
 

@@ -11,14 +11,14 @@
 #if defined(MBEDTLS_TEST_HOOKS) && !defined(MBEDTLS_THREADING_C)
 int mbedtls_codepath_check = MBEDTLS_MPI_IS_TEST;
 
-void mbedtls_codepath_take_safe(void)
+static void mbedtls_codepath_take_safe(void)
 {
     if (mbedtls_codepath_check == MBEDTLS_MPI_IS_TEST) {
         mbedtls_codepath_check = MBEDTLS_MPI_IS_SECRET;
     }
 }
 
-void mbedtls_codepath_take_unsafe(void)
+static void mbedtls_codepath_take_unsafe(void)
 {
     mbedtls_codepath_check = MBEDTLS_MPI_IS_PUBLIC;
 }

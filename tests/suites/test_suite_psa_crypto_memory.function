@@ -107,7 +107,10 @@ void local_input_alloc(int input_len, psa_status_t exp_status)
 
 exit:
     mbedtls_free(local_input.buffer);
-    mbedtls_free(input);
+
+    if (local_input.buffer != input) {
+        mbedtls_free(input);
+    }
 }
 /* END_CASE */
 

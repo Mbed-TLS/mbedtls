@@ -1928,36 +1928,6 @@
 //#define MBEDTLS_THREADING_PTHREAD
 
 /**
- * \def MBEDTLS_USE_PSA_CRYPTO
- *
- * Make the X.509 and TLS libraries use PSA for cryptographic operations as
- * much as possible, and enable new APIs for using keys handled by PSA Crypto.
- *
- * \note Development of this option is currently in progress, and parts of Mbed
- * TLS's X.509 and TLS modules are not ported to PSA yet. However, these parts
- * will still continue to work as usual, so enabling this option should not
- * break backwards compatibility.
- *
- * \warning If you enable this option, you need to call `psa_crypto_init()`
- * before calling any function from the SSL/TLS, X.509 or PK modules, except
- * for the various mbedtls_xxx_init() functions which can be called at any time.
- *
- * \note An important and desirable effect of this option is that it allows
- * PK, X.509 and TLS to take advantage of PSA drivers. For example, enabling
- * this option is what allows use of drivers for ECDSA, ECDH and EC J-PAKE in
- * those modules. However, note that even with this option disabled, some code
- * in PK, X.509, TLS or the crypto library might still use PSA drivers, if it
- * can determine it's safe to do so; currently that's the case for hashes.
- *
- * \note See docs/use-psa-crypto.md for a complete description this option.
- *
- * Requires: MBEDTLS_PSA_CRYPTO_C.
- *
- * Uncomment this to enable internal use of PSA Crypto and new associated APIs.
- */
-#define MBEDTLS_USE_PSA_CRYPTO
-
-/**
  * \def MBEDTLS_PSA_CRYPTO_CONFIG
  *
  * This setting allows support for cryptographic mechanisms through the PSA

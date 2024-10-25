@@ -118,12 +118,12 @@ option(USE_SHARED_TF_PSA_CRYPTO_LIBRARY "Build TF-PSA-Crypto shared library." OF
 option(LINK_WITH_PTHREAD "Explicitly link Mbed TLS library to pthread." OFF)
 option(LINK_WITH_TRUSTED_STORAGE "Explicitly link Mbed TLS library to trusted_storage." OFF)
 
-set(mbedcrypto_target "${TF_PSA_CRYPTO_TARGET_PREFIX}mbedcrypto")
+set(tfpsacrypto_target "${TF_PSA_CRYPTO_TARGET_PREFIX}tfpsacrypto")
 if (USE_STATIC_TF_PSA_CRYPTO_LIBRARY)
-    set(mbedcrypto_static_target ${mbedcrypto_target})
+    set(tfpsacrypto_static_target ${tfpsacrypto_target})
 endif()
 if(USE_STATIC_TF_PSA_CRYPTO_LIBRARY AND USE_SHARED_TF_PSA_CRYPTO_LIBRARY)
-    string(APPEND mbedcrypto_static_target "_static")
+    string(APPEND tfpsacrypto_static_target "_static")
 endif()
 
 # Warning string - created as a list for compatibility with CMake 2.8

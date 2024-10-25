@@ -14,7 +14,7 @@ add_subdirectory(${MBEDTLS_DIR} build)
 # Link against all the Mbed TLS libraries. Verifies that the targets have been
 # created using the specified prefix
 set(libs
-    subproject_test_mbedcrypto
+    subproject_test_tfpsacrypto
     subproject_test_mbedx509
     subproject_test_mbedtls
 )

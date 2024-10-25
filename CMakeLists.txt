@@ -13,7 +13,7 @@
 # - MBEDTLS_TARGET_PREFIX: CMake targets are designed to be alterable by calling
 #   CMake in order to avoid target name clashes, via the use of
 #   MBEDTLS_TARGET_PREFIX. The value of this variable is prefixed to the
-#   mbedtls, mbedx509, mbedcrypto and mbedtls-apidoc targets.
+#   mbedtls, mbedx509, tfpsacrypto and mbedtls-apidoc targets.
 #
 
 # We specify a minimum requirement of 3.10.2, but for now use 3.5.1 here
@@ -100,12 +100,12 @@ option(USE_SHARED_MBEDTLS_LIBRARY "Build Mbed TLS shared library." OFF)
 option(LINK_WITH_PTHREAD "Explicitly link Mbed TLS library to pthread." OFF)
 option(LINK_WITH_TRUSTED_STORAGE "Explicitly link Mbed TLS library to trusted_storage." OFF)
 
-set(mbedcrypto_target "${MBEDTLS_TARGET_PREFIX}mbedcrypto")
+set(tfpsacrypto_target "${MBEDTLS_TARGET_PREFIX}tfpsacrypto")
 if (USE_STATIC_MBEDTLS_LIBRARY)
-    set(mbedcrypto_static_target ${mbedcrypto_target})
+    set(tfpsacrypto_static_target ${tfpsacrypto_target})
 endif()
 if(USE_STATIC_MBEDTLS_LIBRARY AND USE_SHARED_MBEDTLS_LIBRARY)
-    string(APPEND mbedcrypto_static_target "_static")
+    string(APPEND tfpsacrypto_static_target "_static")
 endif()
 
 # Warning string - created as a list for compatibility with CMake 2.8

@@ -15,4 +15,4 @@ add_subdirectory(${TF_PSA_CRYPTO_DIR} build)
 # created using the specified prefix
 
 add_executable(cmake_subproject cmake_subproject.c)
-target_link_libraries(cmake_subproject subproject_test_mbedcrypto ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(cmake_subproject subproject_test_tfpsacrypto ${CMAKE_THREAD_LIBS_INIT})

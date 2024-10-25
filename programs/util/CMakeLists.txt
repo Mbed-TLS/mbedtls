@@ -1,5 +1,5 @@
 set(libs
-    ${mbedcrypto_target}
+    ${tfpsacrypto_target}
     ${mbedx509_target}
 )
 

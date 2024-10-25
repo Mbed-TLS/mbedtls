@@ -235,9 +235,15 @@ if(CMAKE_COMPILER_IS_GNU)
     # test_suite_pkwrite taking >3h on the CI. Observed with GCC 5.4 on
     # Ubuntu 16.04 x86_64 and GCC 6.5 on Ubuntu 18.04 x86_64.
     # GCC 7.5 and above on Ubuntu 18.04 appear fine.
-    # To avoid the performance problem, we use -O2 here. It doesn't slow
-    # down much even with modern compiler versions.
-    set(CMAKE_C_FLAGS_ASAN        "-fsanitize=address -fno-common -fsanitize=undefined -fno-sanitize-recover=all -O2")
+    # To avoid the performance problem, we use -O2 when GCC version is lower than 7.0.
+    # It doesn't slow down much even with modern compiler versions.
+    if (GCC_VERSION VERSION_LESS 7.0)
+        message(STATUS "USING O2")
+        set(CMAKE_C_FLAGS_ASAN        "-fsanitize=address -fno-common -fsanitize=undefined -fno-sanitize-recover=all -O2")
+    else()
+        message(STATUS "USING O3")
+        set(CMAKE_C_FLAGS_ASAN        "-fsanitize=address -fno-common -fsanitize=undefined -fno-sanitize-recover=all -O3")
+    endif()
     set(CMAKE_C_FLAGS_ASANDBG     "-fsanitize=address -fno-common -fsanitize=undefined -fno-sanitize-recover=all -O1 -g3 -fno-omit-frame-pointer -fno-optimize-sibling-calls")
     set(CMAKE_C_FLAGS_TSAN        "-fsanitize=thread -O3")
     set(CMAKE_C_FLAGS_TSANDBG     "-fsanitize=thread -O1 -g3 -fno-omit-frame-pointer -fno-optimize-sibling-calls")

@@ -93,7 +93,7 @@ if(USE_STATIC_TF_PSA_CRYPTO_LIBRARY)
     add_library(${tfpsacrypto_static_target} STATIC ${src_crypto})
     set_base_compile_options(${tfpsacrypto_static_target})
     target_compile_options(${tfpsacrypto_static_target} PRIVATE ${LIBS_C_FLAGS})
-    set_target_properties(${tfpsacrypto_static_target} PROPERTIES OUTPUT_NAME mbedcrypto)
+    set_target_properties(${tfpsacrypto_static_target} PROPERTIES OUTPUT_NAME tfpsacrypto)
     target_link_libraries(${tfpsacrypto_static_target} PUBLIC ${libs})
 
     target_link_libraries(${tfpsacrypto_static_target} PUBLIC ${builtin_static_target})

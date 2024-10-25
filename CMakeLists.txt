@@ -384,7 +384,7 @@ add_subdirectory(pkgconfig)
 # and programs. This shared test code is compiled and linked to test suites and
 # programs objects as a set of compiled objects. The compiled objects are NOT
 # built into a library that the test suite and program objects would link
-# against as they link against the mbedcrypto, mbedx509 and mbedtls libraries.
+# against as they link against the tfpsacrypto, mbedx509 and mbedtls libraries.
 # The reason is that such library is expected to have mutual dependencies with
 # the aforementioned libraries and that there is as of today no portable way of
 # handling such dependencies (only toolchain specific solutions).

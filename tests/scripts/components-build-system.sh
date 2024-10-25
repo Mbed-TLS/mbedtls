@@ -20,7 +20,7 @@ component_test_cmake_shared () {
     msg "build/test: cmake shared" # ~ 2min
     cmake -DUSE_SHARED_MBEDTLS_LIBRARY=On .
     make
-    ldd programs/util/strerror | grep libmbedcrypto
+    ldd programs/util/strerror | grep libtfpsacrypto
     make test
     programs/test/dlopen_demo.sh
 }

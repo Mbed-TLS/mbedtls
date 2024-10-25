@@ -323,6 +323,21 @@ uint64_t mbedtls_test_parse_binary_string(data_t *bin_string);
 
 #endif /* MBEDTLS_PSA_CRYPTO_CLIENT || MBEDTLS_PSA_CRYPTO_C */
 
+#if MBEDTLS_VERSION_MAJOR >= 4
+/* Legacy PSA_INIT() / PSA_DONE() variants from 3.6 */
+#define USE_PSA_INIT()          PSA_INIT()
+#define USE_PSA_DONE()          PSA_DONE()
+#define MD_PSA_INIT()           PSA_INIT()
+#define MD_PSA_DONE()           PSA_DONE()
+#define BLOCK_CIPHER_PSA_INIT() PSA_INIT()
+#define BLOCK_CIPHER_PSA_DONE() PSA_DONE()
+#define MD_OR_USE_PSA_INIT()    PSA_INIT()
+#define MD_OR_USE_PSA_DONE()    PSA_DONE()
+#define AES_PSA_INIT()          PSA_INIT()
+#define AES_PSA_DONE()          PSA_DONE()
+
+#else /* MBEDTLS_VERSION_MAJOR < 4 */
+
 /** \def USE_PSA_INIT
  *
  * Call this macro to initialize the PSA subsystem if #MBEDTLS_USE_PSA_CRYPTO
@@ -340,11 +355,10 @@ uint64_t mbedtls_test_parse_binary_string(data_t *bin_string);
  * This is like #PSA_DONE except it does nothing under the same conditions as
  * #USE_PSA_INIT.
  */
-#if defined(MBEDTLS_USE_PSA_CRYPTO) \
-    || (MBEDTLS_VERSION_MAJOR >= 4 && defined(MBEDTLS_SSL_PROTO_TLS1_3))
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
 #define USE_PSA_INIT() PSA_INIT()
 #define USE_PSA_DONE() PSA_DONE()
-#elif (MBEDTLS_VERSION_MAJOR < 4 && defined(MBEDTLS_SSL_PROTO_TLS1_3))
+#elif defined(MBEDTLS_SSL_PROTO_TLS1_3)
 /* TLS 1.3 must work without having called psa_crypto_init(), for backward
  * compatibility with Mbed TLS <= 3.5 when connecting with a peer that
  * supports both TLS 1.2 and TLS 1.3. See mbedtls_ssl_tls13_crypto_init()
@@ -424,13 +438,12 @@ uint64_t mbedtls_test_parse_binary_string(data_t *bin_string);
  * This is like #PSA_DONE except it does nothing under the same conditions as
  * #MD_OR_USE_PSA_INIT.
  */
-#if defined(MBEDTLS_MD_SOME_PSA) || \
-    defined(MBEDTLS_USE_PSA_CRYPTO) || defined(MBEDTLS_SSL_PROTO_TLS1_3)
+#if defined(MBEDTLS_MD_SOME_PSA)
 #define MD_OR_USE_PSA_INIT()   PSA_INIT()
 #define MD_OR_USE_PSA_DONE()   PSA_DONE()
 #else
-#define MD_OR_USE_PSA_INIT() ((void) 0)
-#define MD_OR_USE_PSA_DONE() ((void) 0)
+#define MD_OR_USE_PSA_INIT()   USE_PSA_INIT()
+#define MD_OR_USE_PSA_DONE()   USE_PSA_DONE()
 #endif
 
 /** \def AES_PSA_INIT
@@ -455,6 +468,8 @@ uint64_t mbedtls_test_parse_binary_string(data_t *bin_string);
 #define AES_PSA_INIT() ((void) 0)
 #define AES_PSA_DONE() ((void) 0)
 #endif /* MBEDTLS_CTR_DRBG_USE_PSA_CRYPTO */
+
+#endif /* MBEDTLS_VERSION_MAJOR >= 4 */
 
 #if !defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG) &&                        \
     defined(MBEDTLS_CTR_DRBG_C) &&                                      \

@@ -7,7 +7,7 @@
 #include "mbedtls/asn1.h"
 #include "mbedtls/base64.h"
 #include "mbedtls/ecp.h"
-#include "mbedtls/error.h"
+#include "mbedtls/error_common.h"
 #include "mbedtls/rsa.h"
 #include "rsa_internal.h"
 #include "pk_internal.h"

@@ -1,5 +1,5 @@
 /* BEGIN_HEADER */
-#include "mbedtls/error.h"
+#include "mbedtls/error_common.h"
 #include "mbedtls/rsa.h"
 #include "bignum_core.h"
 #include "rsa_alt_helpers.h"

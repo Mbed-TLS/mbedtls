@@ -12,7 +12,7 @@
 
 #include "mbedtls/chachapoly.h"
 #include "mbedtls/platform_util.h"
-#include "mbedtls/error.h"
+#include "mbedtls/error_common.h"
 #include "mbedtls/constant_time.h"
 
 #include <string.h>

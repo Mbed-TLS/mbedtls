@@ -14,7 +14,7 @@
 #if defined(MBEDTLS_CIPHER_C)
 
 #include "cipher_wrap.h"
-#include "mbedtls/error.h"
+#include "mbedtls/error_common.h"
 
 #if defined(MBEDTLS_CHACHAPOLY_C)
 #include "mbedtls/chachapoly.h"

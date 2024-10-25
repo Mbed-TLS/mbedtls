@@ -1,4 +1,5 @@
 set(src_x509
+    error.c
     pkcs7.c
     x509.c
     x509_create.c
@@ -34,6 +35,26 @@ set(src_tls
 )
 
 if(GEN_FILES)
+    find_package(Perl REQUIRED)
+
+    file(GLOB crypto_error_headers ${CMAKE_CURRENT_SOURCE_DIR}/include/mbedtls/*.h)
+    file(GLOB tls_error_headers ${MBEDTLS_DIR}/include/mbedtls/*.h)
+    add_custom_command(
+        OUTPUT
+            ${CMAKE_CURRENT_BINARY_DIR}/error.c
+        COMMAND
+            ${PERL_EXECUTABLE}
+                ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/generate_errors.pl
+                ${CMAKE_CURRENT_SOURCE_DIR}/../tf-psa-crypto/drivers/builtin/include/mbedtls
+                ${CMAKE_CURRENT_SOURCE_DIR}/../include/mbedtls
+                ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/data_files
+                ${CMAKE_CURRENT_BINARY_DIR}/${TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_DIR}/error.c
+        DEPENDS
+            ${MBEDTLS_DIR}/scripts/generate_errors.pl
+            ${crypto_error_headers}
+            ${tls_error_headers}
+            ${MBEDTLS_DIR}/scripts/data_files/error.fmt
+    )
     add_custom_command(
         OUTPUT
             ${CMAKE_CURRENT_BINARY_DIR}/version_features.c
@@ -62,6 +83,7 @@ if(GEN_FILES)
             ${tls_error_headers}
     )
 else()
+    link_to_source(error.c)
     link_to_source(version_features.c)
     link_to_source(ssl_debug_helpers_generated.c)
 endif()

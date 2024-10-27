@@ -257,6 +257,12 @@ General options:
      --arm-linux-gnueabi-gcc-prefix=<string>
                         Prefix for a cross-compiler for arm-linux-gnueabi
                         (default: "${ARM_LINUX_GNUEABI_GCC_PREFIX}")
+     --arm-linux-gnueabihf-gcc-prefix=<string>
+                        Prefix for a cross-compiler for arm-linux-gnueabihf
+                        (default: "${ARM_LINUX_GNUEABIHF_GCC_PREFIX}")
+     --aarch64-linux-gnu-gcc-prefix=<string>
+                        Prefix for a cross-compiler for aarch64-linux-gnu
+                        (default: "${AARCH64_LINUX_GNU_GCC_PREFIX}")
      --armcc            Run ARM Compiler builds (on by default).
      --restore          First clean up the build tree, restoring backed up
                         files. Do not run any components unless they are
@@ -425,6 +431,8 @@ pre_parse_command_line () {
             --append-outcome) append_outcome=1;;
             --arm-none-eabi-gcc-prefix) shift; ARM_NONE_EABI_GCC_PREFIX="$1";;
             --arm-linux-gnueabi-gcc-prefix) shift; ARM_LINUX_GNUEABI_GCC_PREFIX="$1";;
+            --arm-linux-gnueabihf-gcc-prefix) shift; ARM_LINUX_GNUEABIHF_GCC_PREFIX="$1";;
+            --aarch64-linux-gnu-gcc-prefix) shift; AARCH64_LINUX_GNU_GCC_PREFIX="$1";;
             --armcc) no_armcc=;;
             --armc5-bin-dir) shift; ARMC5_BIN_DIR="$1";;
             --armc6-bin-dir) shift; ARMC6_BIN_DIR="$1";;

@@ -442,6 +442,7 @@ component_test_aarch64_linux_gnu_gcc () {
 }
 
 support_test_aarch64_linux_gnu_gcc () {
+    # Minimum version of GCC for MBEDTLS_AESCE_C is 6.0
     [ "$(gcc_version "${AARCH64_LINUX_GNU_GCC_PREFIX}gcc")" -ge 6 ] && can_run_aarch64_linux_gnu
 }
 

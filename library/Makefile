@@ -6,8 +6,8 @@ TF_PSA_CRYPTO_CORE_PATH = $(MBEDTLS_PATH)/tf-psa-crypto/core
 TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH = $(MBEDTLS_PATH)/tf-psa-crypto/drivers/builtin/src
 
 GENERATED_FILES := \
-	$(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/error.c \
-        $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/version_features.c \
+	error.c \
+	version_features.c \
 	ssl_debug_helpers_generated.c \
 	$(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto_driver_wrappers.h \
 	$(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto_driver_wrappers_no_static.c
@@ -111,21 +111,12 @@ endif
 
 OBJS_CRYPTO= \
 	     $(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto.o \
-	     $(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto_aead.o \
-	     $(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto_cipher.o \
 	     $(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto_client.o \
 	     $(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto_driver_wrappers_no_static.o \
-	     $(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto_ecp.o \
-	     $(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto_ffdh.o \
-	     $(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto_hash.o \
-	     $(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto_mac.o \
-	     $(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto_pake.o \
-	     $(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto_rsa.o \
 	     $(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto_se.o \
 	     $(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto_slot_management.o \
 	     $(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto_storage.o \
 	     $(TF_PSA_CRYPTO_CORE_PATH)/psa_its_file.o \
-	     $(TF_PSA_CRYPTO_CORE_PATH)/psa_util.o \
 	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/aes.o \
 	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/aesni.o \
 	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/aesce.o \
@@ -157,7 +148,6 @@ OBJS_CRYPTO= \
 	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/ecp_curves_new.o \
 	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/entropy.o \
 	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/entropy_poll.o \
-	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/error.o \
 	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/gcm.o \
 	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/hkdf.o \
 	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/hmac_drbg.o \
@@ -179,6 +169,15 @@ OBJS_CRYPTO= \
 	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/platform.o \
 	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/platform_util.o \
 	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/poly1305.o \
+	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/psa_crypto_aead.o \
+	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/psa_crypto_cipher.o \
+	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/psa_crypto_ecp.o \
+	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/psa_crypto_ffdh.o \
+	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/psa_crypto_hash.o \
+	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/psa_crypto_mac.o \
+	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/psa_crypto_pake.o \
+	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/psa_crypto_rsa.o \
+	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/psa_util.o \
 	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/ripemd160.o \
 	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/rsa.o \
 	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/rsa_alt_helpers.o \
@@ -188,8 +187,6 @@ OBJS_CRYPTO= \
 	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/sha3.o \
 	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/threading.o \
 	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/timing.o \
-	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/version.o \
-	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/version_features.o \
 	     # This line is intentionally left blank
 
 THIRDPARTY_DIR := $(MBEDTLS_PATH)/tf-psa-crypto/drivers
@@ -208,6 +205,7 @@ OBJS_X509= \
 	   x509write_crt.o \
 	   x509write_csr.o \
 	   pkcs7.o \
+	   error.o \
 	   # This line is intentionally left blank
 
 OBJS_TLS= \
@@ -229,6 +227,8 @@ OBJS_TLS= \
 	  ssl_tls13_client.o \
 	  ssl_tls13_server.o \
 	  ssl_tls13_generic.o \
+	  version.o \
+	  version_features.o \
 	  # This line is intentionally left blank
 
 .SILENT:
@@ -346,6 +346,10 @@ libmbedcrypto.dll: $(OBJS_CRYPTO)
 	echo "  CC    $<"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) -o $@ -c $<
 
+.c.s:
+	echo "  CC    $<"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) -S -o $@ -c $<
+
 .PHONY: generated_files
 generated_files: $(GENERATED_FILES)
 
@@ -357,28 +361,28 @@ else
 gen_file_dep = |
 endif
 
-$(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/error.c: $(gen_file_dep) ../scripts/generate_errors.pl
-$(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/error.c: $(gen_file_dep) ../scripts/data_files/error.fmt
-$(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/error.c: $(gen_file_dep) $(filter-out %config%,$(wildcard ../include/mbedtls/*.h))
-$(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/error.c:
+error.c: $(gen_file_dep) ../scripts/generate_errors.pl
+error.c: $(gen_file_dep) ../scripts/data_files/error.fmt
+error.c: $(gen_file_dep) $(filter-out %config%,$(wildcard ../include/mbedtls/*.h))
+error.c:
 	echo "  Gen   $@"
 	$(PERL) ../scripts/generate_errors.pl
 
-ssl_debug_helpers_generated.c: $(gen_file_dep) ../scripts/generate_ssl_debug_helpers.py
+ssl_debug_helpers_generated.c: $(gen_file_dep) ../framework/scripts/generate_ssl_debug_helpers.py
 ssl_debug_helpers_generated.c: $(gen_file_dep) $(filter-out %config%,$(wildcard ../include/mbedtls/*.h))
 ssl_debug_helpers_generated.c:
 	echo "  Gen   $@"
-	$(PYTHON) ../scripts/generate_ssl_debug_helpers.py --mbedtls-root .. .
+	$(PYTHON) ../framework/scripts/generate_ssl_debug_helpers.py --mbedtls-root .. .
 
-$(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/version_features.c: $(gen_file_dep) ../scripts/generate_features.pl
-$(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/version_features.c: $(gen_file_dep) ../scripts/data_files/version_features.fmt
+version_features.c: $(gen_file_dep) ../scripts/generate_features.pl
+version_features.c: $(gen_file_dep) ../scripts/data_files/version_features.fmt
 ## The generated file only depends on the options that are present in mbedtls_config.h,
 ## not on which options are set. To avoid regenerating this file all the time
 ## when switching between configurations, don't declare mbedtls_config.h as a
 ## dependency. Remove this file from your working tree if you've just added or
 ## removed an option in mbedtls_config.h.
 #version_features.c: ../include/mbedtls/mbedtls_config.h
-$(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/version_features.c:
+version_features.c:
 	echo "  Gen   $@"
 	$(PERL) ../scripts/generate_features.pl
 
@@ -396,10 +400,11 @@ $(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto.o:$(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto_dr
 
 clean:
 ifndef WINDOWS
-	rm -f *.o libmbed*
-	rm -f $(OBJS_CRYPTO)
+	rm -f *.o *.s libmbed*
+	rm -f $(OBJS_CRYPTO) $(OBJS_CRYPTO:.o=.s)
 else
 	if exist *.o del /Q /F *.o
+	if exist *.s del /Q /F *.s
 	if exist libmbed* del /Q /F libmbed*
 	del /Q /F del_errors_out_if_the_file_list_is_empty_but_not_if_a_file_does_not_exist $(subst /,\,$(OBJS_CRYPTO))
 endif

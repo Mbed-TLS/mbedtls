@@ -32,7 +32,7 @@
 #include "mbedtls/md.h"
 #include "md_wrap.h"
 #include "mbedtls/platform_util.h"
-#include "mbedtls/error.h"
+#include "mbedtls/error_common.h"
 
 #include "mbedtls/md5.h"
 #include "mbedtls/ripemd160.h"

@@ -1,4 +1,5 @@
 /* BEGIN_HEADER */
+#include "mbedtls/error_common.h"
 #include "mbedtls/pkcs5.h"
 #include "mbedtls/cipher.h"
 /* END_HEADER */

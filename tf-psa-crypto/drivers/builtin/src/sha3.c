@@ -43,7 +43,7 @@
 
 #include "mbedtls/sha3.h"
 #include "mbedtls/platform_util.h"
-#include "mbedtls/error.h"
+#include "mbedtls/error_common.h"
 
 #include <string.h>
 

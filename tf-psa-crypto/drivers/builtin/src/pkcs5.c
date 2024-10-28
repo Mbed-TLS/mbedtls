@@ -20,7 +20,7 @@
 #if defined(MBEDTLS_PKCS5_C)
 
 #include "mbedtls/pkcs5.h"
-#include "mbedtls/error.h"
+#include "mbedtls/error_common.h"
 
 #if defined(MBEDTLS_ASN1_PARSE_C)
 #include "mbedtls/asn1.h"

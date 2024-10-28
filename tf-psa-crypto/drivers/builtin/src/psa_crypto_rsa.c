@@ -23,7 +23,7 @@
 #include "mbedtls/platform.h"
 
 #include <mbedtls/rsa.h>
-#include <mbedtls/error.h>
+#include <mbedtls/error_common.h>
 #include "rsa_internal.h"
 
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PKCS1V15_CRYPT) || \

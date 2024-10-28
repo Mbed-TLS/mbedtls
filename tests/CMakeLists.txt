@@ -3,13 +3,6 @@ set(libs
     ${CMAKE_THREAD_LIBS_INIT}
 )
 
-# Set the project root directory if it's not already defined, as may happen if
-# the tests folder is included directly by a parent project, without including
-# the top level CMakeLists.txt.
-if(NOT DEFINED MBEDTLS_DIR)
-    set(MBEDTLS_DIR ${CMAKE_SOURCE_DIR})
-endif()
-
 if(NOT MBEDTLS_PYTHON_EXECUTABLE)
     message(FATAL_ERROR "Cannot build test suites without Python 3")
 endif()
@@ -21,7 +14,7 @@ file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/suites)
 execute_process(
     COMMAND
         ${MBEDTLS_PYTHON_EXECUTABLE}
-        ${CMAKE_CURRENT_SOURCE_DIR}/../framework/scripts/generate_config_tests.py
+        ${MBEDTLS_FRAMEWORK_DIR}/scripts/generate_config_tests.py
         --list-for-cmake
     WORKING_DIRECTORY
         ${CMAKE_CURRENT_SOURCE_DIR}/..
@@ -55,11 +48,11 @@ if(GEN_FILES)
             ${CMAKE_CURRENT_SOURCE_DIR}/..
         COMMAND
             ${MBEDTLS_PYTHON_EXECUTABLE}
-            ${CMAKE_CURRENT_SOURCE_DIR}/../framework/scripts/generate_config_tests.py
+            ${MBEDTLS_FRAMEWORK_DIR}/scripts/generate_config_tests.py
             --directory ${CMAKE_CURRENT_BINARY_DIR}/suites
             ${config_generated_data_files}
         DEPENDS
-            ${CMAKE_CURRENT_SOURCE_DIR}/../framework/scripts/generate_config_tests.py
+            ${MBEDTLS_FRAMEWORK_DIR}/scripts/generate_config_tests.py
             # Do not declare the configuration files as dependencies: they
             # change too often in ways that don't affect the result
             # ((un)commenting some options).
@@ -71,9 +64,9 @@ if(GEN_FILES)
             ${CMAKE_CURRENT_SOURCE_DIR}/..
         COMMAND
             "${MBEDTLS_PYTHON_EXECUTABLE}"
-            "${CMAKE_CURRENT_SOURCE_DIR}/scripts/generate_tls13_compat_tests.py"
+            "${CMAKE_CURRENT_SOURCE_DIR}/../framework/scripts/generate_tls13_compat_tests.py"
         DEPENDS
-            ${CMAKE_CURRENT_SOURCE_DIR}/scripts/generate_tls13_compat_tests.py
+            ${CMAKE_CURRENT_SOURCE_DIR}/../framework/scripts/generate_tls13_compat_tests.py
     )
     add_custom_target(tls13-compat.sh
         DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/opt-testcases/tls13-compat.sh)
@@ -140,7 +133,7 @@ function(add_test_suite suite_name)
             test_suite_${data_name}.c
         COMMAND
             ${MBEDTLS_PYTHON_EXECUTABLE}
-            ${CMAKE_CURRENT_SOURCE_DIR}/../framework/scripts/generate_test_code.py
+            ${MBEDTLS_FRAMEWORK_DIR}/scripts/generate_test_code.py
             -f ${CMAKE_CURRENT_SOURCE_DIR}/suites/test_suite_${suite_name}.function
             -d ${data_file}
             -t ${CMAKE_CURRENT_SOURCE_DIR}/../tf-psa-crypto/tests/suites/main_test.function
@@ -149,7 +142,7 @@ function(add_test_suite suite_name)
             --helpers-file ${CMAKE_CURRENT_SOURCE_DIR}/../tf-psa-crypto/tests/suites/helpers.function
             -o .
         DEPENDS
-            ${CMAKE_CURRENT_SOURCE_DIR}/../framework/scripts/generate_test_code.py
+            ${MBEDTLS_FRAMEWORK_DIR}/scripts/generate_test_code.py
             ${CMAKE_CURRENT_SOURCE_DIR}/suites/test_suite_${suite_name}.function
             ${data_file}
             ${CMAKE_CURRENT_SOURCE_DIR}/../tf-psa-crypto/tests/suites/main_test.function

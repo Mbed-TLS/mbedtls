@@ -11,12 +11,11 @@
  * - attributes: PKCS#9 v2.0 aka RFC 2985
  */
 
-#include "common.h"
+#include "x509_internal.h"
 
 #if defined(MBEDTLS_X509_CRT_WRITE_C)
 
 #include "mbedtls/x509_crt.h"
-#include "x509_internal.h"
 #include "mbedtls/asn1write.h"
 #include "mbedtls/error.h"
 #include "mbedtls/oid.h"

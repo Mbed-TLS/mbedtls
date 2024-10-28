@@ -12,7 +12,7 @@
 #include <string.h>
 
 #include "mbedtls/platform_util.h"
-#include "mbedtls/error.h"
+#include "mbedtls/error_common.h"
 #include "mbedtls/bignum.h"
 
 #include "mbedtls/platform.h"

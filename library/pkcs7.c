@@ -2,12 +2,10 @@
  *  Copyright The Mbed TLS Contributors
  *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
-#include "common.h"
+#include "x509_internal.h"
 
-#include "mbedtls/build_info.h"
 #if defined(MBEDTLS_PKCS7_C)
 #include "mbedtls/pkcs7.h"
-#include "x509_internal.h"
 #include "mbedtls/asn1.h"
 #include "mbedtls/x509_crt.h"
 #include "mbedtls/x509_crl.h"

@@ -19,7 +19,7 @@
 #include "psa_util_internal.h"
 
 #include <mbedtls/platform.h>
-#include <mbedtls/error.h>
+#include <mbedtls/error_common.h>
 #include <string.h>
 
 /*

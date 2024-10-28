@@ -10,7 +10,7 @@
 #ifndef MBEDTLS_SSL_MISC_H
 #define MBEDTLS_SSL_MISC_H
 
-#include "mbedtls/build_info.h"
+#include "common.h"
 
 #include "mbedtls/error.h"
 
@@ -47,7 +47,6 @@
 #include "ssl_ciphersuites_internal.h"
 #include "x509_internal.h"
 #include "pk_internal.h"
-#include "common.h"
 
 /* Shorthand for restartable ECC */
 #if defined(MBEDTLS_ECP_RESTARTABLE) && \

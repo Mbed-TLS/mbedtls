@@ -12,7 +12,7 @@
 #if defined(MBEDTLS_PK_C)
 #include "pk_wrap.h"
 #include "pk_internal.h"
-#include "mbedtls/error.h"
+#include "mbedtls/error_common.h"
 #include "mbedtls/psa_util.h"
 
 /* Even if RSA not activated, for the sake of RSA-alt */

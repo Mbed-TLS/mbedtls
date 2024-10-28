@@ -15,7 +15,7 @@
 #define _XOPEN_SOURCE 600 /* sockaddr_storage */
 #endif
 
-#include "common.h"
+#include "ssl_misc.h"
 
 #if defined(MBEDTLS_NET_C)
 
@@ -190,7 +190,7 @@ int mbedtls_net_connect(mbedtls_net_context *ctx, const char *host,
             break;
         }
 
-        close(ctx->fd);
+        mbedtls_net_close(ctx);
         ret = MBEDTLS_ERR_NET_CONNECT_FAILED;
     }
 
@@ -237,13 +237,13 @@ int mbedtls_net_bind(mbedtls_net_context *ctx, const char *bind_ip, const char *
         n = 1;
         if (setsockopt(ctx->fd, SOL_SOCKET, SO_REUSEADDR,
                        (const char *) &n, sizeof(n)) != 0) {
-            close(ctx->fd);
+            mbedtls_net_close(ctx);
             ret = MBEDTLS_ERR_NET_SOCKET_FAILED;
             continue;
         }
 
         if (bind(ctx->fd, cur->ai_addr, MSVC_INT_CAST cur->ai_addrlen) != 0) {
-            close(ctx->fd);
+            mbedtls_net_close(ctx);
             ret = MBEDTLS_ERR_NET_BIND_FAILED;
             continue;
         }
@@ -251,7 +251,7 @@ int mbedtls_net_bind(mbedtls_net_context *ctx, const char *bind_ip, const char *
         /* Listen only makes sense for TCP */
         if (proto == MBEDTLS_NET_PROTO_TCP) {
             if (listen(ctx->fd, MBEDTLS_NET_LISTEN_BACKLOG) != 0) {
-                close(ctx->fd);
+                mbedtls_net_close(ctx);
                 ret = MBEDTLS_ERR_NET_LISTEN_FAILED;
                 continue;
             }

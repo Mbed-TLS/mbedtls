@@ -32,6 +32,16 @@ extern "C" {
 #define MBEDTLS_PSA_KEY_SLOT_COUNT 32
 #endif
 
+/* If the size of static key slots is not explicitly defined by the user, then
+ * set it to the maximum between PSA_EXPORT_KEY_PAIR_OR_PUBLIC_MAX_SIZE and
+ * PSA_CIPHER_MAX_KEY_LENGTH.
+ * See mbedtls_config.h for the definition. */
+#if !defined(MBEDTLS_PSA_STATIC_KEY_SLOT_BUFFER_SIZE)
+#define MBEDTLS_PSA_STATIC_KEY_SLOT_BUFFER_SIZE  \
+    ((PSA_EXPORT_KEY_PAIR_OR_PUBLIC_MAX_SIZE > PSA_CIPHER_MAX_KEY_LENGTH) ? \
+     PSA_EXPORT_KEY_PAIR_OR_PUBLIC_MAX_SIZE : PSA_CIPHER_MAX_KEY_LENGTH)
+#endif /* !MBEDTLS_PSA_STATIC_KEY_SLOT_BUFFER_SIZE*/
+
 /** \addtogroup attributes
  * @{
  */

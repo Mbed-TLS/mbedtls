@@ -17,7 +17,7 @@
 #include "ctr.h"
 #include "mbedtls/ctr_drbg.h"
 #include "mbedtls/platform_util.h"
-#include "mbedtls/error.h"
+#include "mbedtls/error_common.h"
 
 #include <string.h>
 

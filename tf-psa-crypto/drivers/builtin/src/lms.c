@@ -29,7 +29,7 @@
 #include "psa/crypto.h"
 #include "psa_util_internal.h"
 #include "mbedtls/lms.h"
-#include "mbedtls/error.h"
+#include "mbedtls/error_common.h"
 #include "mbedtls/platform_util.h"
 
 #include "mbedtls/platform.h"

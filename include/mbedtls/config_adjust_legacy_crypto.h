@@ -87,7 +87,6 @@
 
 #if defined(MBEDTLS_MD_LIGHT)
 /*
- * - MBEDTLS_MD_CAN_xxx is defined if the md module can perform xxx.
  * - MBEDTLS_MD_xxx_VIA_PSA is defined if the md module may perform xxx via PSA
  *   (see below).
  * - MBEDTLS_MD_SOME_PSA is defined if at least one algorithm may be performed
@@ -104,7 +103,6 @@
 #if defined(MBEDTLS_PSA_CRYPTO_C)
 
 #if defined(MBEDTLS_PSA_ACCEL_ALG_MD5)
-#define MBEDTLS_MD_CAN_MD5
 #define MBEDTLS_MD_MD5_VIA_PSA
 #define MBEDTLS_MD_SOME_PSA
 #endif
@@ -113,85 +111,52 @@
 #define MBEDTLS_MD_SOME_PSA
 #endif
 #if defined(MBEDTLS_PSA_ACCEL_ALG_SHA_224)
-#define MBEDTLS_MD_CAN_SHA224
 #define MBEDTLS_MD_SHA224_VIA_PSA
 #define MBEDTLS_MD_SOME_PSA
 #endif
 #if defined(MBEDTLS_PSA_ACCEL_ALG_SHA_256)
-#define MBEDTLS_MD_CAN_SHA256
 #define MBEDTLS_MD_SHA256_VIA_PSA
 #define MBEDTLS_MD_SOME_PSA
 #endif
 #if defined(MBEDTLS_PSA_ACCEL_ALG_SHA_384)
-#define MBEDTLS_MD_CAN_SHA384
 #define MBEDTLS_MD_SHA384_VIA_PSA
 #define MBEDTLS_MD_SOME_PSA
 #endif
 #if defined(MBEDTLS_PSA_ACCEL_ALG_SHA_512)
-#define MBEDTLS_MD_CAN_SHA512
 #define MBEDTLS_MD_SHA512_VIA_PSA
 #define MBEDTLS_MD_SOME_PSA
 #endif
 #if defined(MBEDTLS_PSA_ACCEL_ALG_RIPEMD160)
-#define MBEDTLS_MD_CAN_RIPEMD160
 #define MBEDTLS_MD_RIPEMD160_VIA_PSA
 #define MBEDTLS_MD_SOME_PSA
 #endif
 #if defined(MBEDTLS_PSA_ACCEL_ALG_SHA3_224)
-#define MBEDTLS_MD_CAN_SHA3_224
 #define MBEDTLS_MD_SHA3_224_VIA_PSA
 #define MBEDTLS_MD_SOME_PSA
 #endif
 #if defined(MBEDTLS_PSA_ACCEL_ALG_SHA3_256)
-#define MBEDTLS_MD_CAN_SHA3_256
 #define MBEDTLS_MD_SHA3_256_VIA_PSA
 #define MBEDTLS_MD_SOME_PSA
 #endif
 #if defined(MBEDTLS_PSA_ACCEL_ALG_SHA3_384)
-#define MBEDTLS_MD_CAN_SHA3_384
 #define MBEDTLS_MD_SHA3_384_VIA_PSA
 #define MBEDTLS_MD_SOME_PSA
 #endif
 #if defined(MBEDTLS_PSA_ACCEL_ALG_SHA3_512)
-#define MBEDTLS_MD_CAN_SHA3_512
 #define MBEDTLS_MD_SHA3_512_VIA_PSA
 #define MBEDTLS_MD_SOME_PSA
 #endif
 #endif /* MBEDTLS_PSA_CRYPTO_C */
 
 /* Built-in implementations */
-#if defined(MBEDTLS_MD5_C)
-#define MBEDTLS_MD_CAN_MD5
-#define MBEDTLS_MD_SOME_LEGACY
-#endif
-#if defined(MBEDTLS_SHA1_C)
-#define MBEDTLS_MD_SOME_LEGACY
-#endif
-#if defined(MBEDTLS_SHA224_C)
-#define MBEDTLS_MD_CAN_SHA224
-#define MBEDTLS_MD_SOME_LEGACY
-#endif
-#if defined(MBEDTLS_SHA256_C)
-#define MBEDTLS_MD_CAN_SHA256
-#define MBEDTLS_MD_SOME_LEGACY
-#endif
-#if defined(MBEDTLS_SHA384_C)
-#define MBEDTLS_MD_CAN_SHA384
-#define MBEDTLS_MD_SOME_LEGACY
-#endif
-#if defined(MBEDTLS_SHA512_C)
-#define MBEDTLS_MD_CAN_SHA512
-#define MBEDTLS_MD_SOME_LEGACY
-#endif
-#if defined(MBEDTLS_SHA3_C)
-#define MBEDTLS_MD_CAN_SHA3_224
-#define MBEDTLS_MD_CAN_SHA3_256
-#define MBEDTLS_MD_CAN_SHA3_384
-#define MBEDTLS_MD_CAN_SHA3_512
-#define MBEDTLS_MD_SOME_LEGACY
-#endif
-#if defined(MBEDTLS_RIPEMD160_C)
-#define MBEDTLS_MD_CAN_RIPEMD160
+#if defined(MBEDTLS_MD5_C) || \
+    defined(MBEDTLS_SHA1_C) || \
+    defined(MBEDTLS_SHA224_C) || \
+    defined(MBEDTLS_SHA256_C) || \
+    defined(MBEDTLS_SHA384_C) || \
+    defined(MBEDTLS_SHA512_C) || \
+    defined(MBEDTLS_SHA3_C) || \
+    defined(MBEDTLS_RIPEMD160_C)
 #define MBEDTLS_MD_SOME_LEGACY
 #endif
 
@@ -333,52 +298,6 @@
 #define MBEDTLS_PSA_CRYPTO_CLIENT
 #endif /* MBEDTLS_PSA_CRYPTO_C */
 
-/* Helpers to state that each key is supported either on the builtin or PSA side. */
-#if defined(MBEDTLS_ECP_DP_SECP521R1_ENABLED) || defined(PSA_WANT_ECC_SECP_R1_521)
-#define MBEDTLS_ECP_HAVE_SECP521R1
-#endif
-#if defined(MBEDTLS_ECP_DP_BP512R1_ENABLED) || defined(PSA_WANT_ECC_BRAINPOOL_P_R1_512)
-#define MBEDTLS_ECP_HAVE_BP512R1
-#endif
-#if defined(MBEDTLS_ECP_DP_CURVE448_ENABLED) || defined(PSA_WANT_ECC_MONTGOMERY_448)
-#define MBEDTLS_ECP_HAVE_CURVE448
-#endif
-#if defined(MBEDTLS_ECP_DP_BP384R1_ENABLED) || defined(PSA_WANT_ECC_BRAINPOOL_P_R1_384)
-#define MBEDTLS_ECP_HAVE_BP384R1
-#endif
-#if defined(MBEDTLS_ECP_DP_SECP384R1_ENABLED) || defined(PSA_WANT_ECC_SECP_R1_384)
-#define MBEDTLS_ECP_HAVE_SECP384R1
-#endif
-#if defined(MBEDTLS_ECP_DP_BP256R1_ENABLED) || defined(PSA_WANT_ECC_BRAINPOOL_P_R1_256)
-#define MBEDTLS_ECP_HAVE_BP256R1
-#endif
-#if defined(MBEDTLS_ECP_DP_SECP256K1_ENABLED) || defined(PSA_WANT_ECC_SECP_K1_256)
-#define MBEDTLS_ECP_HAVE_SECP256K1
-#endif
-#if defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED) || defined(PSA_WANT_ECC_SECP_R1_256)
-#define MBEDTLS_ECP_HAVE_SECP256R1
-#endif
-#if defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED) || defined(PSA_WANT_ECC_MONTGOMERY_255)
-#define MBEDTLS_ECP_HAVE_CURVE25519
-#endif
-#if defined(MBEDTLS_ECP_DP_SECP224R1_ENABLED) || defined(PSA_WANT_ECC_SECP_R1_224)
-#define MBEDTLS_ECP_HAVE_SECP224R1
-#endif
-#if defined(MBEDTLS_ECP_DP_SECP192K1_ENABLED) || defined(PSA_WANT_ECC_SECP_K1_192)
-#define MBEDTLS_ECP_HAVE_SECP192K1
-#endif
-#if defined(MBEDTLS_ECP_DP_SECP192R1_ENABLED) || defined(PSA_WANT_ECC_SECP_R1_192)
-#define MBEDTLS_ECP_HAVE_SECP192R1
-#endif
-
-/* Helper symbol to state that the PK module has support for EC keys. This
- * can either be provided through the legacy ECP solution or through the
- * PSA friendly MBEDTLS_PK_USE_PSA_EC_DATA (see pk.h for its description). */
-#if defined(MBEDTLS_ECP_C) || \
-    (defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY))
-#define MBEDTLS_PK_HAVE_ECC_KEYS
-#endif /* MBEDTLS_PK_USE_PSA_EC_DATA || MBEDTLS_ECP_C */
-
 /* Historically pkparse did not check the CBC padding when decrypting
  * a key. This was a bug, which is now fixed. As a consequence, pkparse
  * now needs PKCS7 padding support, but existing configurations might not
@@ -397,50 +316,10 @@
 #define MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_ONLY
 #endif
 
-/* psa_util file features some ECDSA conversion functions, to convert between
- * legacy's ASN.1 DER format and PSA's raw one. */
-#if defined(MBEDTLS_ECDSA_C) || (defined(MBEDTLS_PSA_CRYPTO_C) && \
-    (defined(PSA_WANT_ALG_ECDSA) || defined(PSA_WANT_ALG_DETERMINISTIC_ECDSA)))
-#define MBEDTLS_PSA_UTIL_HAVE_ECDSA
-#endif
-
-/* Some internal helpers to determine which keys are available. */
-#if (!defined(MBEDTLS_USE_PSA_CRYPTO) && defined(MBEDTLS_AES_C)) || \
-    (defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_KEY_TYPE_AES))
-#define MBEDTLS_SSL_HAVE_AES
-#endif
-#if (!defined(MBEDTLS_USE_PSA_CRYPTO) && defined(MBEDTLS_ARIA_C)) || \
-    (defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_KEY_TYPE_ARIA))
-#define MBEDTLS_SSL_HAVE_ARIA
-#endif
-#if (!defined(MBEDTLS_USE_PSA_CRYPTO) && defined(MBEDTLS_CAMELLIA_C)) || \
-    (defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_KEY_TYPE_CAMELLIA))
-#define MBEDTLS_SSL_HAVE_CAMELLIA
-#endif
-
 /* Some internal helpers to determine which operation modes are available. */
-#if (!defined(MBEDTLS_USE_PSA_CRYPTO) && defined(MBEDTLS_CIPHER_MODE_CBC)) || \
-    (defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_ALG_CBC_NO_PADDING))
-#define MBEDTLS_SSL_HAVE_CBC
-#endif
 
-#if (!defined(MBEDTLS_USE_PSA_CRYPTO) && defined(MBEDTLS_GCM_C)) || \
-    (defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_ALG_GCM))
-#define MBEDTLS_SSL_HAVE_GCM
-#endif
-
-#if (!defined(MBEDTLS_USE_PSA_CRYPTO) && defined(MBEDTLS_CCM_C)) || \
-    (defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_ALG_CCM))
-#define MBEDTLS_SSL_HAVE_CCM
-#endif
-
-#if (!defined(MBEDTLS_USE_PSA_CRYPTO) && defined(MBEDTLS_CHACHAPOLY_C)) || \
-    (defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_ALG_CHACHA20_POLY1305))
-#define MBEDTLS_SSL_HAVE_CHACHAPOLY
-#endif
-
-#if defined(MBEDTLS_SSL_HAVE_GCM) || defined(MBEDTLS_SSL_HAVE_CCM) || \
-    defined(MBEDTLS_SSL_HAVE_CHACHAPOLY)
+#if defined(PSA_WANT_ALG_GCM) || defined(PSA_WANT_ALG_CCM) || \
+    defined(PSA_WANT_ALG_CHACHA20_POLY1305)
 #define MBEDTLS_SSL_HAVE_AEAD
 #endif
 

@@ -21,7 +21,7 @@
 #include "mbedtls/cipher.h"
 #endif /* MBEDTLS_CIPHER_C */
 #include "mbedtls/platform_util.h"
-#include "mbedtls/error.h"
+#include "mbedtls/error_common.h"
 
 #include <string.h>
 

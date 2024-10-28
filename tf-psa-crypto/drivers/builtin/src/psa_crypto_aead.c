@@ -21,7 +21,7 @@
 #include "mbedtls/chachapoly.h"
 #include "mbedtls/cipher.h"
 #include "mbedtls/gcm.h"
-#include "mbedtls/error.h"
+#include "mbedtls/error_common.h"
 
 static psa_status_t psa_aead_setup(
     mbedtls_psa_aead_operation_t *operation,

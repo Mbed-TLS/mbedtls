@@ -13,7 +13,7 @@
 
 #include "mbedtls/oid.h"
 #include "mbedtls/rsa.h"
-#include "mbedtls/error.h"
+#include "mbedtls/error_common.h"
 #include "mbedtls/pk.h"
 
 #include <stdio.h>

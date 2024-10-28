@@ -31,10 +31,43 @@ cmake_policy(SET CMP0011 NEW)
 # is deprecated and will be removed in future versions.
 cmake_policy(SET CMP0012 NEW)
 
-if(LIB_INSTALL_DIR)
-    set(CMAKE_INSTALL_LIBDIR "${LIB_INSTALL_DIR}")
-endif()
+if(NOT (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR))
+
+set(TF_PSA_CRYPTO_PYTHON_EXECUTABLE ${MBEDTLS_PYTHON_EXECUTABLE})
+set(USE_STATIC_TF_PSA_CRYPTO_LIBRARY ${USE_STATIC_MBEDTLS_LIBRARY})
+set(USE_SHARED_TF_PSA_CRYPTO_LIBRARY ${USE_SHARED_MBEDTLS_LIBRARY})
+set(TF_PSA_CRYPTO_TARGET_PREFIX ${MBEDTLS_TARGET_PREFIX})
+option(INSTALL_TF_PSA_CRYPTO_HEADERS "Install TF-PSA-Crypto headers." ${INSTALL_MBEDTLS_HEADERS})
+
+# Set the project root directory.
+set(TF_PSA_CRYPTO_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 
 add_subdirectory(include)
 add_subdirectory(core)
 add_subdirectory(drivers)
+
+if(ENABLE_TESTING)
+    enable_testing()
+    add_subdirectory(tests)
+endif()
+
+else(NOT (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR))
+
+set(TF_PSA_CRYPTO_VERSION 0.1.0)
+set(TF_PSA_CRYPTO_SOVERSION 0)
+
+if(TEST_CPP)
+    project("TF-PSA-Crypto"
+        LANGUAGES C CXX
+        VERSION ${TF_PSA_CRYPTO_VERSION}
+    )
+else()
+    project("TF-PSA-Crypto"
+        LANGUAGES C
+        VERSION ${TF_PSA_CRYPTO_VERSION}
+    )
+endif()
+
+include(TF-PSA-Crypto.cmake)
+
+endif(NOT (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR))

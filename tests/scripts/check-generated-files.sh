@@ -170,11 +170,11 @@ check scripts/generate_driver_wrappers.py ${crypto_core_dir}/psa_crypto_driver_w
 
 # Additional checks for Mbed TLS only
 if in_mbedtls_repo; then
-    check scripts/generate_errors.pl ${builtin_drivers_dir}/error.c
+    check scripts/generate_errors.pl library/error.c
     check scripts/generate_query_config.pl programs/test/query_config.c
-    check scripts/generate_features.pl ${builtin_drivers_dir}/version_features.c
-    check scripts/generate_ssl_debug_helpers.py library/ssl_debug_helpers_generated.c
-    check tests/scripts/generate_tls13_compat_tests.py tests/opt-testcases/tls13-compat.sh
+    check scripts/generate_features.pl library/version_features.c
+    check framework/scripts/generate_ssl_debug_helpers.py library/ssl_debug_helpers_generated.c
+    check framework/scripts/generate_tls13_compat_tests.py tests/opt-testcases/tls13-compat.sh
     check framework/scripts/generate_test_cert_macros.py tests/src/test_certs.h
     # generate_visualc_files enumerates source files (library/*.c). It doesn't
     # care about their content, but the files must exist. So it must run after

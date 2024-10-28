@@ -461,4 +461,43 @@ uint64_t mbedtls_test_parse_binary_string(data_t *bin_string);
 #define MBEDTLS_TEST_PSA_INTERNAL_KEYS          \
     MBEDTLS_TEST_PSA_INTERNAL_KEYS_FOR_DRBG
 
+/* A couple of helper macros to verify if MBEDTLS_PSA_STATIC_KEY_SLOT_BUFFER_SIZE is
+ * large enough to contain an RSA key pair of the given size. This is meant to be
+ * used in test cases where MBEDTLS_PSA_STATIC_KEY_SLOTS is enabled. */
+#if defined(MBEDTLS_PSA_CRYPTO_CLIENT)
+
+#if (MBEDTLS_PSA_STATIC_KEY_SLOT_BUFFER_SIZE >= PSA_KEY_EXPORT_RSA_KEY_PAIR_MAX_SIZE(4096))
+#define MBEDTLS_TEST_STATIC_KEY_SLOTS_SUPPORT_RSA_4096
+#endif
+
+#if (MBEDTLS_PSA_STATIC_KEY_SLOT_BUFFER_SIZE >= PSA_KEY_EXPORT_RSA_KEY_PAIR_MAX_SIZE(2048))
+#define MBEDTLS_TEST_STATIC_KEY_SLOTS_SUPPORT_RSA_2048
+#endif
+
+#endif /* MBEDTLS_PSA_CRYPTO_CLIENT */
+
+/* Helper macro to get the size of the each key slot buffer. */
+#if defined(MBEDTLS_PSA_STATIC_KEY_SLOTS)
+#define MBEDTLS_PSA_KEY_BUFFER_MAX_SIZE     MBEDTLS_PSA_STATIC_KEY_SLOT_BUFFER_SIZE
+#else
+#define MBEDTLS_PSA_KEY_BUFFER_MAX_SIZE     SIZE_MAX
+#endif
+
+/* Helper macro for the PK module to check whether MBEDTLS_PSA_STATIC_KEY_SLOT_BUFFER_SIZE
+ * is large enough to contain 4096-bit RSA key pairs. Of course this check is only
+ * necessary if PK relies on PSA (i.e. MBEDTLS_USE_PSA_CRYPTO) to store and manage
+ * the key. */
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+
+#if !defined(MBEDTLS_PSA_STATIC_KEY_SLOTS) || \
+    defined(MBEDTLS_TEST_STATIC_KEY_SLOTS_SUPPORT_RSA_4096)
+#define MBEDTLS_TEST_PK_ALLOW_RSA_KEY_PAIR_4096
+#endif
+
+#else /* MBEDTLS_USE_PSA_CRYPTO */
+
+#define MBEDTLS_TEST_PK_ALLOW_RSA_KEY_PAIR_4096
+
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+
 #endif /* PSA_CRYPTO_HELPERS_H */

@@ -143,8 +143,9 @@ exit:
 
 #if defined(MBEDTLS_ERROR_C)
     if (exit_code != MBEDTLS_EXIT_SUCCESS) {
-        mbedtls_strerror(ret, (char *) buf, sizeof(buf));
-        mbedtls_printf("  !  Last error was: %s\n", buf);
+        mbedtls_printf("Error code: %d", ret);
+        /* mbedtls_strerror(ret, (char *) buf, sizeof(buf));
+           mbedtls_printf("  !  Last error was: %s\n", buf); */
     }
 #endif
 

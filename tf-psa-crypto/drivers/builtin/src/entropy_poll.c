@@ -20,7 +20,7 @@
 
 #include "mbedtls/entropy.h"
 #include "entropy_poll.h"
-#include "mbedtls/error.h"
+#include "mbedtls/error_common.h"
 
 #if defined(MBEDTLS_TIMING_C)
 #include "mbedtls/timing.h"

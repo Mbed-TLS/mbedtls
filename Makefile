@@ -6,23 +6,15 @@ ifneq (,$(filter-out lib library/%,$(or $(MAKECMDGOALS),all)))
     ifeq (,$(wildcard framework/exported.make))
         # Use the define keyword to get a multi-line message.
         # GNU make appends ".  Stop.", so tweak the ending of our message accordingly.
-        define error_message
-$(MBEDTLS_PATH)/framework/exported.make not found.
-Run `git submodule update --init` to fetch the submodule contents.
-This is a fatal error
-        endef
         ifeq (,$(wildcard .git))
-          define error_message
-$(MBEDTLS_PATH)/.git/ not found.
-Please ensure you have downloaded a release version of Mbed TLS from GitHub.
+            define error_message
+${MBEDTLS_FRAMEWORK_DIR}/CMakeLists.txt not found (and does appear to be a git checkout). Run `git submodule update --init` from the source tree to fetch the submodule contents.
 This is a fatal error
           endef
         else
           define error_message
-$(MBEDTLS_PATH)/framework/exported.make not found.
-Run `git submodule update --init` to fetch the submodule contents.
-This is a fatal error
-          endef
+${MBEDTLS_FRAMEWORK_DIR}/CMakeLists.txt not found (and does not appear to be a git checkout). Please ensure you have downloaded the right archive from the release page on GitHub.
+        endef
         endif
         $(error $(error_message))
     endif

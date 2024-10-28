@@ -1174,7 +1174,7 @@ struct mbedtls_ssl_transform {
     unsigned char randbytes[MBEDTLS_SERVER_HELLO_RANDOM_LEN +
                             MBEDTLS_CLIENT_HELLO_RANDOM_LEN];
     /*!< ServerHello.random+ClientHello.random */
-#endif /* MBEDTLS_SSL_CONTEXT_SERIALIZATION */
+#endif /* defined(MBEDTLS_SSL_KEEP_RANDBYTES) */
 };
 
 /*

@@ -15,11 +15,10 @@
  *  http://www.itu.int/ITU-T/studygroups/com17/languages/X.690-0207.pdf
  */
 
-#include "common.h"
+#include "x509_internal.h"
 
 #if defined(MBEDTLS_X509_USE_C)
 
-#include "x509_internal.h"
 #include "mbedtls/asn1.h"
 #include "mbedtls/error.h"
 #include "mbedtls/oid.h"

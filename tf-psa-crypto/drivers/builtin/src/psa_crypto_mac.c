@@ -16,7 +16,7 @@
 #include "psa_crypto_mac.h"
 #include <mbedtls/md.h>
 
-#include <mbedtls/error.h>
+#include <mbedtls/error_common.h>
 #include "mbedtls/constant_time.h"
 #include <string.h>
 

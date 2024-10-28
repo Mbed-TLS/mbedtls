@@ -71,7 +71,7 @@ Diffie-Hellman full exchange: 286-bit
 dhm_do_dhm:"301abc09a57b66a953bfcc206a32e9ab56724084e4b47635779ca35fee79ce1060cb4117":36:"15aa1039b4dd361ed1b5b88e52f2919d0cbcb15adbe5fc290dab13b34e7":0
 
 Diffie-Hellman small modulus
-dhm_do_dhm:"3":1:"5":MBEDTLS_ERR_DHM_MAKE_PARAMS_FAILED+MBEDTLS_ERR_MPI_BAD_INPUT_DATA
+dhm_do_dhm:"3":1:"5":MBEDTLS_ERROR_ADD(MBEDTLS_ERR_DHM_MAKE_PARAMS_FAILED, MBEDTLS_ERR_MPI_BAD_INPUT_DATA)
 
 Diffie-Hellman zero modulus
 dhm_do_dhm:"0":1:"5":MBEDTLS_ERR_DHM_BAD_INPUT_DATA
@@ -107,7 +107,7 @@ Diffie-Hellman MPI_MAX_SIZE modulus
 dhm_make_public:MBEDTLS_MPI_MAX_SIZE:"5":0
 
 Diffie-Hellman MPI_MAX_SIZE + 1 modulus
-dhm_make_public:MBEDTLS_MPI_MAX_SIZE + 1:"5":MBEDTLS_ERR_DHM_MAKE_PUBLIC_FAILED+MBEDTLS_ERR_MPI_BAD_INPUT_DATA
+dhm_make_public:MBEDTLS_MPI_MAX_SIZE + 1:"5":MBEDTLS_ERROR_ADD(MBEDTLS_ERR_DHM_MAKE_PUBLIC_FAILED, MBEDTLS_ERR_MPI_BAD_INPUT_DATA)
 
 DH load parameters from PEM file (1024-bit, g=2)
 depends_on:MBEDTLS_PEM_PARSE_C

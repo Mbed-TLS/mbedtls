@@ -290,7 +290,7 @@ reset_ciphersuites()
 # list of entries of the form "STANDARD_NAME=PROGRAM_NAME".
 translate_ciphers()
 {
-    ciphers=$(scripts/translate_ciphers.py "$@")
+    ciphers=$(../framework/scripts/translate_ciphers.py "$@")
     if [ $? -ne 0 ]; then
         echo "translate_ciphers.py failed with exit code $1" >&2
         echo "$2" >&2

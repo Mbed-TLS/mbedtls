@@ -24,7 +24,7 @@ if( @ARGV ) {
     $crypto_include_dir = 'tf-psa-crypto/drivers/builtin/include/mbedtls';
     $tls_include_dir = 'include/mbedtls';
     $data_dir = 'scripts/data_files';
-    $error_file = 'tf-psa-crypto/drivers/builtin/src/error.c';
+    $error_file = 'library/error.c';
 
     unless( -d $crypto_include_dir && -d $tls_include_dir && -d $data_dir ) {
         chdir '..' or die;
@@ -91,6 +91,7 @@ foreach my $file (@files) {
     if ($found) {
         my $include_name = $file;
         $include_name =~ s!.*/!!;
+        $include_name = "error.h" if ($include_name eq "error_common.h");
         push @necessary_include_files, $include_name;
     }
 }

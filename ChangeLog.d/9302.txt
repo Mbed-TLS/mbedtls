@@ -1,0 +1,6 @@
+Features
+   * Added new configuration option MBEDTLS_PSA_STATIC_KEY_SLOTS, which
+     uses static storage for keys, enabling malloc-less use of key slots.
+     The size of each buffer is given by the option
+     MBEDTLS_PSA_STATIC_KEY_SLOT_BUFFER_SIZE. By default it accommodates the
+     largest PSA key enabled in the build.

@@ -117,8 +117,9 @@ static unsigned long mbedtls_timing_hardclock(void);
 
 #if defined(MBEDTLS_ERROR_C)
 #define PRINT_ERROR                                                     \
-    mbedtls_strerror(ret, (char *) tmp, sizeof(tmp));          \
-    mbedtls_printf("FAILED: %s\n", tmp);
+    mbedtls_printf("Error code: %d", ret);
+/* mbedtls_strerror(ret, (char *) tmp, sizeof(tmp));          \
+   mbedtls_printf("FAILED: %s\n", tmp); */
 #else
 #define PRINT_ERROR                                                     \
     mbedtls_printf("FAILED: -0x%04x\n", (unsigned int) -ret);

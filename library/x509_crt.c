@@ -17,12 +17,11 @@
  *  [SIRO] https://cabforum.org/wp-content/uploads/Chunghwatelecom201503cabforumV4.pdf
  */
 
-#include "common.h"
+#include "x509_internal.h"
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
 
 #include "mbedtls/x509_crt.h"
-#include "x509_internal.h"
 #include "mbedtls/error.h"
 #include "mbedtls/oid.h"
 #include "mbedtls/platform_util.h"
@@ -680,8 +679,8 @@ static int x509_get_authority_key_id(unsigned char **p,
     }
 
     if (*p != end) {
-        return MBEDTLS_ERR_X509_INVALID_EXTENSIONS +
-               MBEDTLS_ERR_ASN1_LENGTH_MISMATCH;
+        return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS,
+                                 MBEDTLS_ERR_ASN1_LENGTH_MISMATCH);
     }
 
     return 0;

@@ -59,8 +59,9 @@ if(NOT DEFINED MBEDTLS_AS_SUBPROJECT)
   endif()
 endif()
 
-# Set the project root directory.
+# Set the project and framework root directory.
 set(MBEDTLS_DIR ${CMAKE_CURRENT_SOURCE_DIR})
+set(MBEDTLS_FRAMEWORK_DIR ${CMAKE_CURRENT_SOURCE_DIR}/framework)
 
 option(ENABLE_PROGRAMS "Build Mbed TLS programs." ON)
 
@@ -93,6 +94,19 @@ if(CMAKE_COMPILER_IS_MSVC)
     option(ENABLE_TESTING "Build Mbed TLS tests." OFF)
 else()
     option(ENABLE_TESTING "Build Mbed TLS tests." ON)
+endif()
+
+option(USE_STATIC_MBEDTLS_LIBRARY "Build Mbed TLS static library." ON)
+option(USE_SHARED_MBEDTLS_LIBRARY "Build Mbed TLS shared library." OFF)
+option(LINK_WITH_PTHREAD "Explicitly link Mbed TLS library to pthread." OFF)
+option(LINK_WITH_TRUSTED_STORAGE "Explicitly link Mbed TLS library to trusted_storage." OFF)
+
+set(mbedcrypto_target "${MBEDTLS_TARGET_PREFIX}mbedcrypto")
+if (USE_STATIC_MBEDTLS_LIBRARY)
+    set(mbedcrypto_static_target ${mbedcrypto_target})
+endif()
+if(USE_STATIC_MBEDTLS_LIBRARY AND USE_SHARED_MBEDTLS_LIBRARY)
+    string(APPEND mbedcrypto_static_target "_static")
 endif()
 
 # Warning string - created as a list for compatibility with CMake 2.8
@@ -136,7 +150,7 @@ set(THREADS_PREFER_PTHREAD_FLAG TRUE)
 find_package(Threads)
 
 # If this is the root project add longer list of available CMAKE_BUILD_TYPE values
-if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+if(NOT MBEDTLS_AS_SUBPROJECT)
     set(CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE}
         CACHE STRING "Choose the type of build: None Debug Release Coverage ASan ASanDbg MemSan MemSanDbg Check CheckFull TSan TSanDbg"
         FORCE)
@@ -229,7 +243,21 @@ if(CMAKE_COMPILER_IS_GNU)
     set(CMAKE_C_FLAGS_RELEASE     "-O2")
     set(CMAKE_C_FLAGS_DEBUG       "-O0 -g3")
     set(CMAKE_C_FLAGS_COVERAGE    "-O0 -g3 --coverage")
-    set(CMAKE_C_FLAGS_ASAN        "-fsanitize=address -fno-common -fsanitize=undefined -fno-sanitize-recover=all -O3")
+    # Old GCC versions hit a performance problem with test_suite_pkwrite
+    # "Private keey write check EC" tests when building with Asan+UBSan
+    # and -O3: those tests take more than 100x time than normal, with
+    # test_suite_pkwrite taking >3h on the CI. Observed with GCC 5.4 on
+    # Ubuntu 16.04 x86_64 and GCC 6.5 on Ubuntu 18.04 x86_64.
+    # GCC 7.5 and above on Ubuntu 18.04 appear fine.
+    # To avoid the performance problem, we use -O2 when GCC version is lower than 7.0.
+    # It doesn't slow down much even with modern compiler versions.
+    if (GCC_VERSION VERSION_LESS 7.0)
+        message(STATUS "USING O2")
+        set(CMAKE_C_FLAGS_ASAN        "-fsanitize=address -fno-common -fsanitize=undefined -fno-sanitize-recover=all -O2")
+    else()
+        message(STATUS "USING O3")
+        set(CMAKE_C_FLAGS_ASAN        "-fsanitize=address -fno-common -fsanitize=undefined -fno-sanitize-recover=all -O3")
+    endif()
     set(CMAKE_C_FLAGS_ASANDBG     "-fsanitize=address -fno-common -fsanitize=undefined -fno-sanitize-recover=all -O1 -g3 -fno-omit-frame-pointer -fno-optimize-sibling-calls")
     set(CMAKE_C_FLAGS_TSAN        "-fsanitize=thread -O3")
     set(CMAKE_C_FLAGS_TSANDBG     "-fsanitize=thread -O1 -g3 -fno-omit-frame-pointer -fno-optimize-sibling-calls")
@@ -296,12 +324,8 @@ if(CMAKE_BUILD_TYPE STREQUAL "Coverage")
     endif(CMAKE_COMPILER_IS_GNU OR CMAKE_COMPILER_IS_CLANG)
 endif(CMAKE_BUILD_TYPE STREQUAL "Coverage")
 
-if(LIB_INSTALL_DIR)
-    set(CMAKE_INSTALL_LIBDIR "${LIB_INSTALL_DIR}")
-endif()
-
-if (NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/framework/CMakeLists.txt")
-    message(FATAL_ERROR "${CMAKE_CURRENT_SOURCE_DIR}/framework/CMakeLists.txt not found. Run `git submodule update --init` from the source tree to fetch the submodule contents.")
+if (NOT EXISTS "${MBEDTLS_FRAMEWORK_DIR}/CMakeLists.txt")
+    message(FATAL_ERROR "${MBEDTLS_FRAMEWORK_DIR}/CMakeLists.txt not found. Run `git submodule update --init` from the source tree to fetch the submodule contents.")
 endif()
 add_subdirectory(framework)
 
@@ -340,11 +364,11 @@ if(ENABLE_TESTING OR ENABLE_PROGRAMS)
                 ${CMAKE_CURRENT_SOURCE_DIR}/tests
             COMMAND
                 "${MBEDTLS_PYTHON_EXECUTABLE}"
-                "${CMAKE_CURRENT_SOURCE_DIR}/framework/scripts/generate_test_keys.py"
+                "${MBEDTLS_FRAMEWORK_DIR}/scripts/generate_test_keys.py"
                 "--output"
                 "${CMAKE_CURRENT_SOURCE_DIR}/tests/src/test_keys.h"
             DEPENDS
-                ${CMAKE_CURRENT_SOURCE_DIR}/framework/scripts/generate_test_keys.py
+                ${MBEDTLS_FRAMEWORK_DIR}/scripts/generate_test_keys.py
         )
         add_custom_target(test_keys_header DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/tests/src/test_keys.h)
         add_custom_command(
@@ -354,11 +378,11 @@ if(ENABLE_TESTING OR ENABLE_PROGRAMS)
                 ${CMAKE_CURRENT_SOURCE_DIR}/tests
             COMMAND
                 "${MBEDTLS_PYTHON_EXECUTABLE}"
-                "${CMAKE_CURRENT_SOURCE_DIR}/framework/scripts/generate_test_cert_macros.py"
+                "${MBEDTLS_FRAMEWORK_DIR}/scripts/generate_test_cert_macros.py"
                 "--output"
                 "${CMAKE_CURRENT_SOURCE_DIR}/tests/src/test_certs.h"
             DEPENDS
-                ${CMAKE_CURRENT_SOURCE_DIR}/framework/scripts/generate_test_cert_macros.py
+                ${MBEDTLS_FRAMEWORK_DIR}/scripts/generate_test_cert_macros.py
         )
         add_custom_target(test_certs_header DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/tests/src/test_certs.h)
         add_dependencies(mbedtls_test test_keys_header test_certs_header)
@@ -417,7 +441,6 @@ if(ENABLE_TESTING)
     enable_testing()
 
     add_subdirectory(tests)
-    add_subdirectory(tf-psa-crypto/tests)
 
     # additional convenience targets for Unix only
     if(UNIX)

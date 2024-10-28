@@ -16,7 +16,7 @@ if( @ARGV ) {
 } else {
     $include_dir = 'include/mbedtls';
     $data_dir = 'scripts/data_files';
-    $feature_file = 'tf-psa-crypto/drivers/builtin/src/version_features.c';
+    $feature_file = 'library/version_features.c';
 
     unless( -d $include_dir && -d $data_dir ) {
         chdir '..' or die;

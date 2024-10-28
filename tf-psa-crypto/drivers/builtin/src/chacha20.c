@@ -15,7 +15,7 @@
 
 #include "mbedtls/chacha20.h"
 #include "mbedtls/platform_util.h"
-#include "mbedtls/error.h"
+#include "mbedtls/error_common.h"
 
 #include <stddef.h>
 #include <string.h>

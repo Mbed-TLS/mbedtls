@@ -9,7 +9,7 @@
  *  http://www.ietf.org/rfc/rfc4346.txt
  */
 
-#include "common.h"
+#include "ssl_misc.h"
 
 #if defined(MBEDTLS_SSL_TLS_C)
 
@@ -18,7 +18,6 @@
 #include "mbedtls/ssl.h"
 #include "ssl_client.h"
 #include "ssl_debug_helpers.h"
-#include "ssl_misc.h"
 
 #include "debug_internal.h"
 #include "mbedtls/error.h"

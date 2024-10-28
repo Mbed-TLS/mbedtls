@@ -14,7 +14,7 @@
 #include "string.h"
 
 #if defined(MBEDTLS_TEST_LIBTESTDRIVER1)
-#include "libtestdriver1/tf-psa-crypto/core/psa_crypto_pake.h"
+#include "libtestdriver1/tf-psa-crypto/drivers/builtin/src/psa_crypto_pake.h"
 #endif
 
 mbedtls_test_driver_pake_hooks_t mbedtls_test_driver_pake_hooks =

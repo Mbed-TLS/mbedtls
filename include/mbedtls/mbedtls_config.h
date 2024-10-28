@@ -747,9 +747,9 @@
  * The process for deriving the keys is specified in RFC 5705 for TLS 1.2 and
  * in RFC 8446, Section 7.5, for TLS 1.3.
  *
- * Uncomment this macro to enable mbedtls_ssl_export_keying_material().
+ * Comment this macro to disable mbedtls_ssl_export_keying_material().
  */
-//#define MBEDTLS_SSL_KEYING_MATERIAL_EXPORT
+#define MBEDTLS_SSL_KEYING_MATERIAL_EXPORT
 
 /**
  * \def MBEDTLS_SSL_RENEGOTIATION

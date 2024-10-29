@@ -2041,25 +2041,25 @@ exit:
 int mbedtls_test_ssl_do_handshake_with_endpoints(
     mbedtls_test_ssl_endpoint *server_ep,
     mbedtls_test_ssl_endpoint *client_ep,
+    mbedtls_test_handshake_test_options *options,
     mbedtls_ssl_protocol_version proto)
 {
     enum { BUFFSIZE = 1024 };
 
     int ret = -1;
-    mbedtls_test_handshake_test_options options;
 
-    mbedtls_test_init_handshake_options(&options);
-    options.server_min_version = proto;
-    options.client_min_version = proto;
-    options.server_max_version = proto;
-    options.client_max_version = proto;
+    mbedtls_test_init_handshake_options(options);
+    options->server_min_version = proto;
+    options->client_min_version = proto;
+    options->server_max_version = proto;
+    options->client_max_version = proto;
 
-    ret = mbedtls_test_ssl_endpoint_init(client_ep, MBEDTLS_SSL_IS_CLIENT, &options,
+    ret = mbedtls_test_ssl_endpoint_init(client_ep, MBEDTLS_SSL_IS_CLIENT, options,
                                          NULL, NULL, NULL);
     if (ret != 0) {
         return ret;
     }
-    ret = mbedtls_test_ssl_endpoint_init(server_ep, MBEDTLS_SSL_IS_SERVER, &options,
+    ret = mbedtls_test_ssl_endpoint_init(server_ep, MBEDTLS_SSL_IS_SERVER, options,
                                          NULL, NULL, NULL);
     if (ret != 0) {
         return ret;

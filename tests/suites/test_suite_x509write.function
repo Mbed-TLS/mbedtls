@@ -207,25 +207,27 @@ void x509_csr_check_opaque(char *key_file, int md_type, int key_usage,
                            int cert_type)
 {
     mbedtls_pk_context key;
+    mbedtls_pk_init(&key);
+
     mbedtls_svc_key_id_t key_id = MBEDTLS_SVC_KEY_ID_INIT;
     psa_algorithm_t md_alg_psa;
+
     mbedtls_x509write_csr req;
+    mbedtls_x509write_csr_init(&req);
+
     unsigned char buf[4096];
     int ret;
     size_t pem_len = 0;
     const char *subject_name = "C=NL,O=PolarSSL,CN=PolarSSL Server 1";
     mbedtls_test_rnd_pseudo_info rnd_info;
-
     memset(&rnd_info, 0x2a, sizeof(mbedtls_test_rnd_pseudo_info));
 
-    mbedtls_x509write_csr_init(&req);
 
     USE_PSA_INIT();
 
     md_alg_psa = mbedtls_psa_translate_md((mbedtls_md_type_t) md_type);
     TEST_ASSERT(md_alg_psa != MBEDTLS_MD_NONE);
 
-    mbedtls_pk_init(&key);
     TEST_ASSERT(mbedtls_pk_parse_keyfile(&key, key_file, NULL) == 0);
     TEST_ASSERT(mbedtls_pk_wrap_as_opaque(&key, &key_id, md_alg_psa) == 0);
 

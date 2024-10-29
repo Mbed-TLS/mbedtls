@@ -166,6 +166,8 @@ pre_initialize_variables () {
     : ${ARMC6_BIN_DIR:=/usr/bin}
     : ${ARM_NONE_EABI_GCC_PREFIX:=arm-none-eabi-}
     : ${ARM_LINUX_GNUEABI_GCC_PREFIX:=arm-linux-gnueabi-}
+    : ${ARM_LINUX_GNUEABIHF_GCC_PREFIX:=arm-linux-gnueabihf-}
+    : ${AARCH64_LINUX_GNU_GCC_PREFIX:=aarch64-linux-gnu-}
     : ${CLANG_LATEST:="clang-latest"}
     : ${CLANG_EARLIEST:="clang-earliest"}
     : ${GCC_LATEST:="gcc-latest"}
@@ -255,6 +257,12 @@ General options:
      --arm-linux-gnueabi-gcc-prefix=<string>
                         Prefix for a cross-compiler for arm-linux-gnueabi
                         (default: "${ARM_LINUX_GNUEABI_GCC_PREFIX}")
+     --arm-linux-gnueabihf-gcc-prefix=<string>
+                        Prefix for a cross-compiler for arm-linux-gnueabihf
+                        (default: "${ARM_LINUX_GNUEABIHF_GCC_PREFIX}")
+     --aarch64-linux-gnu-gcc-prefix=<string>
+                        Prefix for a cross-compiler for aarch64-linux-gnu
+                        (default: "${AARCH64_LINUX_GNU_GCC_PREFIX}")
      --armcc            Run ARM Compiler builds (on by default).
      --restore          First clean up the build tree, restoring backed up
                         files. Do not run any components unless they are
@@ -423,6 +431,8 @@ pre_parse_command_line () {
             --append-outcome) append_outcome=1;;
             --arm-none-eabi-gcc-prefix) shift; ARM_NONE_EABI_GCC_PREFIX="$1";;
             --arm-linux-gnueabi-gcc-prefix) shift; ARM_LINUX_GNUEABI_GCC_PREFIX="$1";;
+            --arm-linux-gnueabihf-gcc-prefix) shift; ARM_LINUX_GNUEABIHF_GCC_PREFIX="$1";;
+            --aarch64-linux-gnu-gcc-prefix) shift; AARCH64_LINUX_GNU_GCC_PREFIX="$1";;
             --armcc) no_armcc=;;
             --armc5-bin-dir) shift; ARMC5_BIN_DIR="$1";;
             --armc6-bin-dir) shift; ARMC6_BIN_DIR="$1";;
@@ -793,6 +803,66 @@ pre_check_tools () {
         *) set "$@" RUN_ARMCC=0;;
     esac
     "$@" scripts/output_env.sh
+}
+
+gcc_version() {
+    gcc="$1"
+    if command -v "$gcc" > /dev/null ; then
+        "$gcc" --version | sed -En '1s/^[^ ]* \([^)]*\) ([0-9]+).*/\1/p'
+    else
+        echo 0  # report version 0 for "no gcc"
+    fi
+}
+
+can_run_cc_output() {
+    cc="$1"
+    result=false
+    if type "$cc" >/dev/null 2>&1; then
+        testbin=$(mktemp)
+        if echo 'int main(void){return 0;}' | "$cc" -o "$testbin" -x c -; then
+            if "$testbin" 2>/dev/null; then
+                result=true
+            fi
+        fi
+        rm -f "$testbin"
+    fi
+    $result
+}
+
+can_run_arm_linux_gnueabi=
+can_run_arm_linux_gnueabi () {
+    if [ -z "$can_run_arm_linux_gnueabi" ]; then
+        if can_run_cc_output "${ARM_LINUX_GNUEABI_GCC_PREFIX}gcc"; then
+            can_run_arm_linux_gnueabi=true
+        else
+            can_run_arm_linux_gnueabi=false
+        fi
+    fi
+    $can_run_arm_linux_gnueabi
+}
+
+can_run_arm_linux_gnueabihf=
+can_run_arm_linux_gnueabihf () {
+    if [ -z "$can_run_arm_linux_gnueabihf" ]; then
+        if can_run_cc_output "${ARM_LINUX_GNUEABIHF_GCC_PREFIX}gcc"; then
+            can_run_arm_linux_gnueabihf=true
+        else
+            can_run_arm_linux_gnueabihf=false
+        fi
+    fi
+    $can_run_arm_linux_gnueabihf
+}
+
+can_run_aarch64_linux_gnu=
+can_run_aarch64_linux_gnu () {
+    if [ -z "$can_run_aarch64_linux_gnu" ]; then
+        if can_run_cc_output "${AARCH64_LINUX_GNU_GCC_PREFIX}gcc"; then
+            can_run_aarch64_linux_gnu=true
+        else
+            can_run_aarch64_linux_gnu=false
+        fi
+    fi
+    $can_run_aarch64_linux_gnu
 }
 
 
@@ -3226,6 +3296,118 @@ component_test_no_strings () {
 
     msg "test: no strings" # ~ 10s
     make test
+}
+
+component_test_arm_linux_gnueabi_gcc_arm5vte () {
+    # Mimic Debian armel port
+    msg "test: ${ARM_LINUX_GNUEABI_GCC_PREFIX}gcc -march=arm5vte, default config" # ~4m
+    make CC="${ARM_LINUX_GNUEABI_GCC_PREFIX}gcc" AR="${ARM_LINUX_GNUEABI_GCC_PREFIX}ar" CFLAGS='-Werror -Wall -Wextra -march=armv5te -O1'
+
+    msg "test: main suites make, default config (out-of-box)" # ~7m 40s
+    make test
+
+    msg "selftest: make, default config (out-of-box)" # ~0s
+    programs/test/selftest
+
+    msg "program demos: make, default config (out-of-box)" # ~0s
+    tests/scripts/run_demos.py
+}
+
+support_test_arm_linux_gnueabi_gcc_arm5vte () {
+    can_run_arm_linux_gnueabi
+}
+
+# The hard float ABI is not implemented for Thumb 1, so use gnueabi
+# Some Thumb 1 asm is sensitive to optimisation level, so test both -O0 and -Os
+component_test_arm_linux_gnueabi_gcc_thumb_1_opt_0 () {
+    msg "test: ${ARM_LINUX_GNUEABI_GCC_PREFIX}gcc -O0, thumb 1, default config" # ~2m 10s
+    make CC="${ARM_LINUX_GNUEABI_GCC_PREFIX}gcc" CFLAGS='-std=c99 -Werror -Wextra -O0 -mcpu=arm1136j-s -mthumb'
+
+    msg "test: main suites make, default config (out-of-box)" # ~36m
+    make test
+
+    msg "selftest: make, default config (out-of-box)" # ~10s
+    programs/test/selftest
+
+    msg "program demos: make, default config (out-of-box)" # ~0s
+    tests/scripts/run_demos.py
+}
+
+support_test_arm_linux_gnueabi_gcc_thumb_1_opt_0 () {
+    can_run_arm_linux_gnueabi
+}
+
+component_test_arm_linux_gnueabi_gcc_thumb_1_opt_s () {
+    msg "test: ${ARM_LINUX_GNUEABI_GCC_PREFIX}gcc -Os, thumb 1, default config" # ~3m 10s
+    make CC="${ARM_LINUX_GNUEABI_GCC_PREFIX}gcc" CFLAGS='-std=c99 -Werror -Wextra -Os -mcpu=arm1136j-s -mthumb'
+
+    msg "test: main suites make, default config (out-of-box)" # ~21m 10s
+    make test
+
+    msg "selftest: make, default config (out-of-box)" # ~2s
+    programs/test/selftest
+
+    msg "program demos: make, default config (out-of-box)" # ~0s
+    tests/scripts/run_demos.py
+}
+
+support_test_arm_linux_gnueabi_gcc_thumb_1_opt_s () {
+    can_run_arm_linux_gnueabi
+}
+
+component_test_arm_linux_gnueabihf_gcc_armv7 () {
+    msg "test: ${ARM_LINUX_GNUEABIHF_GCC_PREFIX}gcc -O2, A32, default config" # ~4m 30s
+    make CC="${ARM_LINUX_GNUEABIHF_GCC_PREFIX}gcc" CFLAGS='-std=c99 -Werror -Wextra -O2 -march=armv7-a -marm'
+
+    msg "test: main suites make, default config (out-of-box)" # ~3m 30s
+    make test
+
+    msg "selftest: make, default config (out-of-box)" # ~0s
+    programs/test/selftest
+
+    msg "program demos: make, default config (out-of-box)" # ~0s
+    tests/scripts/run_demos.py
+}
+
+support_test_arm_linux_gnueabihf_gcc_armv7 () {
+    can_run_arm_linux_gnueabihf
+}
+
+component_test_arm_linux_gnueabihf_gcc_thumb_2 () {
+    msg "test: ${ARM_LINUX_GNUEABIHF_GCC_PREFIX}gcc -Os, thumb 2, default config" # ~4m
+    make CC="${ARM_LINUX_GNUEABIHF_GCC_PREFIX}gcc" CFLAGS='-std=c99 -Werror -Wextra -Os -march=armv7-a -mthumb'
+
+    msg "test: main suites make, default config (out-of-box)" # ~3m 40s
+    make test
+
+    msg "selftest: make, default config (out-of-box)" # ~0s
+    programs/test/selftest
+
+    msg "program demos: make, default config (out-of-box)" # ~0s
+    tests/scripts/run_demos.py
+}
+
+support_test_arm_linux_gnueabihf_gcc_thumb_2 () {
+    can_run_arm_linux_gnueabihf
+}
+
+component_test_aarch64_linux_gnu_gcc () {
+    msg "test: ${AARCH64_LINUX_GNU_GCC_PREFIX}gcc -O2, default config" # ~3m 50s
+    make CC="${AARCH64_LINUX_GNU_GCC_PREFIX}gcc" CFLAGS='-std=c99 -Werror -Wextra -O2'
+
+    msg "test: main suites make, default config (out-of-box)" # ~1m 50s
+    make test
+
+    msg "selftest: make, default config (out-of-box)" # ~0s
+    programs/test/selftest
+
+    msg "program demos: make, default config (out-of-box)" # ~0s
+    tests/scripts/run_demos.py
+}
+
+support_test_aarch64_linux_gnu_gcc () {
+    # Minimum version of GCC for MBEDTLS_AESCE_C is 6.0
+    [ "$(gcc_version "${AARCH64_LINUX_GNU_GCC_PREFIX}gcc")" -ge 6 ] && can_run_aarch64_linux_gnu
 }
 
 component_build_arm_none_eabi_gcc () {

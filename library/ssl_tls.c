@@ -10124,11 +10124,16 @@ static int mbedtls_ssl_tls13_export_keying_material(mbedtls_ssl_context *ssl,
     const size_t hash_len = PSA_HASH_LENGTH(hash_alg);
     const unsigned char *secret = ssl->session->app_secrets.exporter_master_secret;
 
-    /* Check that the label and key_len fit into the HkdfLabel struct as defined
-     * in RFC 8446, Section 7.1. key_len must fit into an uint16 and the label
-     * must be at most 250 bytes long. (The struct allows up to 256 bytes for
-     * the label, but it is prefixed with "tls13 ".) */
-    if (key_len > UINT16_MAX || label_len > 250) {
+    /* Validate the length of the label and the desired key length. The key
+     * length can be at most 255 * hash_len by definition of HKDF-Expand in
+     * RFC 5869.
+     *
+     * The length of the label must be at most 250 bytes long to fit into the
+     * HkdfLabel struct as defined in RFC 8446, Section 7.1. This struct also
+     * requires that key_len fits into a uint16, but until we have to deal with
+     * a hash function with more than 2048 bits of output, the 255 * hash_len
+     * limit will guarantee that. */
+    if (key_len > 255 * hash_len || label_len > 250) {
         return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
     }
 

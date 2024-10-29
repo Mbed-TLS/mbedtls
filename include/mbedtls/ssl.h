@@ -5401,7 +5401,8 @@ int  mbedtls_ssl_tls_prf(const mbedtls_tls_prf_types prf,
  *
  * \param ssl         SSL context from which to export keys. Must have finished the handshake.
  * \param out         Output buffer of length at least key_len bytes.
- * \param key_len     Length of the key to generate in bytes. Must be < 2^16 in TLS 1.3.
+ * \param key_len     Length of the key to generate in bytes. In TLS 1.3, this can be at most
+ *                    8160 if SHA256 is used as hash function or 12240 if SHA384 is used.
  * \param label       Label for which to generate the key of length label_len.
  * \param label_len   Length of label in bytes. Must be < 251 in TLS 1.3.
  * \param context     Context of the key. Can be NULL if context_len or use_context is 0.

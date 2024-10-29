@@ -22,10 +22,16 @@ static int buffer_is_all_zero(const uint8_t *buf, size_t size)
     return 1;
 }
 
+typedef struct {
+    unsigned bit_bot;           /* lowest non-forced bit */
+    unsigned bit_top;           /* highest non-forced bit */
+} ecc_private_key_stats_t;
+
 /* Do some sanity checks on an ECC private key. This is not intended to be
  * a full validity check, just to catch some potential mistakes. */
 static int check_ecc_private_key(psa_ecc_family_t family, size_t bits,
-                                 const uint8_t *key, size_t key_length)
+                                 const uint8_t *key, size_t key_length,
+                                 ecc_private_key_stats_t *stats)
 {
     int ok = 0;
 
@@ -59,7 +65,30 @@ static int check_ecc_private_key(psa_ecc_family_t family, size_t bits,
         TEST_EQUAL(key[55] & 0x80, 0x80);
     }
 #endif /* MBEDTLS_PSA_BUILTIN_ECC_MONTGOMERY_448 */
-    (void) family; // unused in Weierstrass-only builds
+
+    /* Collect statistics on random-valued bits */
+    /* Defaults for big-endian numbers */
+    uint8_t bit_bot_mask = 0x01;
+    size_t bit_bot_index = key_length - 1;
+    uint8_t bit_top_mask = (bits % 8 == 0 ? 0x80 : 1 << (bits % 8 - 1));
+    size_t bit_top_index = 0;
+    if (family == PSA_ECC_FAMILY_MONTGOMERY) {
+        bit_bot_index = 0;
+        bit_top_index = key_length - 1;
+        if (bits == 255) {
+            bit_bot_mask = 0x08;
+            bit_top_mask = 0x20;
+        } else {
+            bit_bot_mask = 0x04;
+            bit_top_mask = 0x40;
+        }
+    }
+    if (key[bit_bot_index] & bit_bot_mask) {
+        ++stats->bit_bot;
+    }
+    if (key[bit_top_index] & bit_top_mask) {
+        ++stats->bit_top;
+    }
 
     ok = 1;
 exit:
@@ -88,17 +117,38 @@ void generate_key(int family_arg, int bits_arg,
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_set_key_type(&attributes, PSA_KEY_TYPE_ECC_KEY_PAIR(family));
     psa_set_key_bits(&attributes, bits);
+    ecc_private_key_stats_t stats = { 0, 0 };
+
     PSA_INIT();
     TEST_CALLOC(output, output_size);
 
-    TEST_EQUAL(mbedtls_psa_ecp_generate_key(&attributes,
-                                            output, output_size,
-                                            &output_length),
-               expected_status);
+    /* In success cases, run multiple iterations so that we can make
+     * statistical observations. */
+    unsigned iteration_count = expected_status == PSA_SUCCESS ? 256 : 1;
+    for (unsigned i = 0; i < iteration_count; i++) {
+        mbedtls_test_set_step(i);
+        TEST_EQUAL(mbedtls_psa_ecp_generate_key(&attributes,
+                                                output, output_size,
+                                                &output_length),
+                   expected_status);
+        if (expected_status == PSA_SUCCESS) {
+            TEST_LE_U(output_length, output_size);
+            TEST_ASSERT(check_ecc_private_key(family, bits,
+                                              output, output_length,
+                                              &stats));
+        }
+    }
+
     if (expected_status == PSA_SUCCESS) {
-        TEST_LE_U(output_length, output_size);
-        TEST_ASSERT(check_ecc_private_key(family, bits,
-                                          output, output_length));
+        /* For selected bits, check that we saw the values 0 and 1 each
+         * at least some minimum number of times. The iteration count and
+         * the minimum are chosen so that a random failure is unlikely
+         * to more than cryptographic levels. */
+        unsigned const min_times = 10;
+        TEST_LE_U(min_times, stats.bit_bot);
+        TEST_LE_U(stats.bit_bot, iteration_count - min_times);
+        TEST_LE_U(min_times, stats.bit_top);
+        TEST_LE_U(stats.bit_top, iteration_count - min_times);
     }
 
 exit:

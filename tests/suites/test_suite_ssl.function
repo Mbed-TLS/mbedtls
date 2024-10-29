@@ -5753,16 +5753,16 @@ void ssl_tls_exporter_consistent_result(int proto, int exported_key_length, int 
     char label[] = "test-label";
     unsigned char context[128] = { 0 };
     ret = mbedtls_ssl_export_keying_material(&server_ep.ssl,
-                                             key_buffer_server, (size_t)exported_key_length,
+                                             key_buffer_server, (size_t) exported_key_length,
                                              label, sizeof(label),
                                              context, sizeof(context), use_context);
     TEST_ASSERT(ret == 0);
     ret = mbedtls_ssl_export_keying_material(&client_ep.ssl,
-                                             key_buffer_client, (size_t)exported_key_length,
+                                             key_buffer_client, (size_t) exported_key_length,
                                              label, sizeof(label),
                                              context, sizeof(context), use_context);
     TEST_ASSERT(ret == 0);
-    TEST_ASSERT(memcmp(key_buffer_server, key_buffer_client, (size_t)exported_key_length) == 0);
+    TEST_ASSERT(memcmp(key_buffer_server, key_buffer_client, (size_t) exported_key_length) == 0);
 
 exit:
     MD_OR_USE_PSA_DONE();
@@ -5864,7 +5864,10 @@ void ssl_tls13_exporter_uses_length(void)
 
     MD_OR_USE_PSA_INIT();
 
-    ret = mbedtls_test_ssl_do_handshake_with_endpoints(&server_ep, &client_ep, &options, MBEDTLS_SSL_VERSION_TLS1_3);
+    ret = mbedtls_test_ssl_do_handshake_with_endpoints(&server_ep,
+                                                       &client_ep,
+                                                       &options,
+                                                       MBEDTLS_SSL_VERSION_TLS1_3);
     TEST_ASSERT(ret == 0);
 
     char label[] = "test-label";

@@ -2070,15 +2070,20 @@ int mbedtls_test_ssl_do_handshake_with_endpoints(
         return ret;
     }
 
-    ret = mbedtls_test_move_handshake_to_state(&server_ep->ssl, &client_ep->ssl, MBEDTLS_SSL_HANDSHAKE_OVER);
+    ret = mbedtls_test_move_handshake_to_state(&server_ep->ssl,
+                                               &client_ep->ssl,
+                                               MBEDTLS_SSL_HANDSHAKE_OVER);
     if (ret != 0 && ret != MBEDTLS_ERR_SSL_WANT_READ && ret != MBEDTLS_ERR_SSL_WANT_WRITE) {
         return ret;
     }
-    ret = mbedtls_test_move_handshake_to_state(&client_ep->ssl, &server_ep->ssl, MBEDTLS_SSL_HANDSHAKE_OVER);
+    ret = mbedtls_test_move_handshake_to_state(&client_ep->ssl,
+                                               &server_ep->ssl,
+                                               MBEDTLS_SSL_HANDSHAKE_OVER);
     if (ret != 0 && ret != MBEDTLS_ERR_SSL_WANT_READ && ret != MBEDTLS_ERR_SSL_WANT_WRITE) {
         return ret;
     }
-    if (!mbedtls_ssl_is_handshake_over(&client_ep->ssl) || !mbedtls_ssl_is_handshake_over(&server_ep->ssl)) {
+    if (!mbedtls_ssl_is_handshake_over(&client_ep->ssl) ||
+        !mbedtls_ssl_is_handshake_over(&server_ep->ssl)) {
         return -1;
     }
 

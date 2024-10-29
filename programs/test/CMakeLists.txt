@@ -29,6 +29,7 @@ if(TEST_CPP)
         WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
     )
     add_executable(cpp_dummy_build "${cpp_dummy_build_cpp}")
+    set_base_compile_options(cpp_dummy_build)
     target_include_directories(cpp_dummy_build
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../include
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../tf-psa-crypto/include
@@ -39,6 +40,7 @@ endif()
 if(USE_SHARED_MBEDTLS_LIBRARY AND
    NOT ${CMAKE_SYSTEM_NAME} MATCHES "[Ww][Ii][Nn]")
     add_executable(dlopen "dlopen.c")
+    set_base_compile_options(dlopen)
     target_include_directories(dlopen
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../include
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../tf-psa-crypto/include
@@ -82,6 +84,7 @@ foreach(exe IN LISTS executables_libs executables_mbedcrypto)
     endif()
     add_executable(${exe} ${exe}.c $<TARGET_OBJECTS:mbedtls_test>
         ${extra_sources})
+    set_base_compile_options(${exe})
     target_include_directories(${exe}
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../tests/include)
     target_include_directories(${exe}

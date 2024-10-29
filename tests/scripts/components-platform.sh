@@ -436,8 +436,9 @@ component_build_arm_clang_thumb () {
 }
 
 component_build_armcc () {
-    msg "build: ARM Compiler 5"
+    # Common configuration for all the builds below
     scripts/config.py baremetal
+
     # armc[56] don't support SHA-512 intrinsics
     scripts/config.py unset MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT
 
@@ -453,13 +454,6 @@ component_build_armcc () {
     scripts/config.py unset MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_IF_PRESENT
 
     scripts/config.py set MBEDTLS_HAVE_ASM
-
-    make CC="$ARMC5_CC" AR="$ARMC5_AR" WARNING_CFLAGS='--strict --c99' lib
-
-    msg "size: ARM Compiler 5"
-    "$ARMC5_FROMELF" -z library/*.o
-    "$ARMC5_FROMELF" -z ${PSA_CORE_PATH}/*.o
-    "$ARMC5_FROMELF" -z ${BUILTIN_SRC_PATH}/*.o
 
     # Compile mostly with -O1 since some Arm inline assembly is disabled for -O0.
 
@@ -493,7 +487,6 @@ component_build_armcc () {
 }
 
 support_build_armcc () {
-    armc5_cc="$ARMC5_BIN_DIR/armcc"
     armc6_cc="$ARMC6_BIN_DIR/armclang"
     (check_tools "$armc5_cc" "$armc6_cc" > /dev/null 2>&1)
 }

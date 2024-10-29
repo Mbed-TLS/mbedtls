@@ -51,7 +51,7 @@
 #   * GCC and Clang (recent enough for using ASan with gcc and MemSan with clang, or valgrind)
 #   * G++
 #   * arm-gcc and mingw-gcc
-#   * ArmCC 5 and ArmCC 6, unless invoked with --no-armcc
+#   * ArmCC 6 (aka armclang), unless invoked with --no-armcc
 #   * OpenSSL and GnuTLS command line tools, in suitable versions for the
 #     interoperability tests. The following are the official versions at the
 #     time of writing:
@@ -223,7 +223,6 @@ pre_initialize_variables () {
     : ${GNUTLS_CLI:="gnutls-cli"}
     : ${GNUTLS_SERV:="gnutls-serv"}
     : ${OUT_OF_SOURCE_DIR:=./mbedtls_out_of_source_build}
-    : ${ARMC5_BIN_DIR:=/usr/bin}
     : ${ARMC6_BIN_DIR:=/usr/bin}
     : ${ARM_NONE_EABI_GCC_PREFIX:=arm-none-eabi-}
     : ${ARM_LINUX_GNUEABI_GCC_PREFIX:=arm-linux-gnueabi-}
@@ -345,7 +344,6 @@ General options:
   -s|--seed             Integer seed value to use for this test run.
 
 Tool path options:
-     --armc5-bin-dir=<ARMC5_bin_dir_path>       ARM Compiler 5 bin directory.
      --armc6-bin-dir=<ARMC6_bin_dir_path>       ARM Compiler 6 bin directory.
      --clang-earliest=<Clang_earliest_path>     Earliest version of clang available
      --clang-latest=<Clang_latest_path>         Latest version of clang available
@@ -506,7 +504,6 @@ pre_parse_command_line () {
             --arm-none-eabi-gcc-prefix) shift; ARM_NONE_EABI_GCC_PREFIX="$1";;
             --arm-linux-gnueabi-gcc-prefix) shift; ARM_LINUX_GNUEABI_GCC_PREFIX="$1";;
             --armcc) no_armcc=;;
-            --armc5-bin-dir) shift; ARMC5_BIN_DIR="$1";;
             --armc6-bin-dir) shift; ARMC6_BIN_DIR="$1";;
             --clang-earliest) shift; CLANG_EARLIEST="$1";;
             --clang-latest) shift; CLANG_LATEST="$1";;
@@ -795,7 +792,6 @@ pre_print_configuration () {
     echo "OPENSSL_NEXT: $OPENSSL_NEXT"
     echo "GNUTLS_CLI: $GNUTLS_CLI"
     echo "GNUTLS_SERV: $GNUTLS_SERV"
-    echo "ARMC5_BIN_DIR: $ARMC5_BIN_DIR"
     echo "ARMC6_BIN_DIR: $ARMC6_BIN_DIR"
 }
 
@@ -843,14 +839,10 @@ pre_check_tools () {
 
     case " $RUN_COMPONENTS " in
         *_armcc*)
-            ARMC5_CC="$ARMC5_BIN_DIR/armcc"
-            ARMC5_AR="$ARMC5_BIN_DIR/armar"
-            ARMC5_FROMELF="$ARMC5_BIN_DIR/fromelf"
             ARMC6_CC="$ARMC6_BIN_DIR/armclang"
             ARMC6_AR="$ARMC6_BIN_DIR/armar"
             ARMC6_FROMELF="$ARMC6_BIN_DIR/fromelf"
-            check_tools "$ARMC5_CC" "$ARMC5_AR" "$ARMC5_FROMELF" \
-                        "$ARMC6_CC" "$ARMC6_AR" "$ARMC6_FROMELF";;
+            check_tools "$ARMC6_CC" "$ARMC6_AR" "$ARMC6_FROMELF";;
     esac
 
     # past this point, no call to check_tool, only printing output
@@ -861,7 +853,7 @@ pre_check_tools () {
     msg "info: output_env.sh"
     case $RUN_COMPONENTS in
         *_armcc*)
-            set "$@" ARMC5_CC="$ARMC5_CC" ARMC6_CC="$ARMC6_CC" RUN_ARMCC=1;;
+            set "$@" ARMC6_CC="$ARMC6_CC" RUN_ARMCC=1;;
         *) set "$@" RUN_ARMCC=0;;
     esac
     "$@" scripts/output_env.sh

@@ -1955,7 +1955,7 @@
  *
  * Uncomment this to enable internal use of PSA Crypto and new associated APIs.
  */
-//#define MBEDTLS_USE_PSA_CRYPTO
+#define MBEDTLS_USE_PSA_CRYPTO
 
 /**
  * \def MBEDTLS_PSA_CRYPTO_CONFIG

@@ -483,7 +483,7 @@ component_build_armcc () {
 
 support_build_armcc () {
     armc6_cc="$ARMC6_BIN_DIR/armclang"
-    (check_tools "$armc5_cc" "$armc6_cc" > /dev/null 2>&1)
+    (check_tools "$armc6_cc" > /dev/null 2>&1)
 }
 
 # For timebeing, no VIA Padlock platform available.

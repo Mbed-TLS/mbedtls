@@ -5747,6 +5747,9 @@ void ssl_tls_exporter_consistent_result(int proto, int exported_key_length, int 
     TEST_CALLOC(key_buffer_server, exported_key_length);
     TEST_CALLOC(key_buffer_client, exported_key_length);
 
+    memset(key_buffer_server, 0, exported_key_length);
+    memset(key_buffer_client, 0, exported_key_length);
+
     char label[] = "test-label";
     unsigned char context[128] = { 0 };
     ret = mbedtls_ssl_export_keying_material(&server_ep.ssl,
@@ -5907,6 +5910,10 @@ void ssl_tls_exporter_rejects_bad_parameters(
     TEST_CALLOC(key_buffer, exported_key_length);
     TEST_CALLOC(label, label_length);
     TEST_CALLOC(context, context_length);
+
+    memset(key_buffer, 0, exported_key_length);
+    memset(label, 0, label_length);
+    memset(context, 0, context_length);
 
     ret = mbedtls_test_ssl_do_handshake_with_endpoints(&server_ep, &client_ep, &options, proto);
     TEST_ASSERT(ret == 0);

@@ -5240,10 +5240,11 @@ void ssl_tls_exporter_consistent_result(int proto, int exported_key_length, int 
     uint8_t *key_buffer_server = NULL;
     uint8_t *key_buffer_client = NULL;
     mbedtls_test_ssl_endpoint client_ep, server_ep;
+    mbedtls_test_handshake_test_options options;
 
     MD_OR_USE_PSA_INIT();
 
-    ret = mbedtls_test_ssl_do_handshake_with_endpoints(&server_ep, &client_ep, proto);
+    ret = mbedtls_test_ssl_do_handshake_with_endpoints(&server_ep, &client_ep, &options, proto);
     TEST_ASSERT(ret == 0);
 
     TEST_ASSERT(exported_key_length > 0);
@@ -5266,6 +5267,9 @@ void ssl_tls_exporter_consistent_result(int proto, int exported_key_length, int 
 
 exit:
     MD_OR_USE_PSA_DONE();
+    mbedtls_test_ssl_endpoint_free(&server_ep, NULL);
+    mbedtls_test_ssl_endpoint_free(&client_ep, NULL);
+    mbedtls_test_free_handshake_options(&options);
     mbedtls_free(key_buffer_server);
     mbedtls_free(key_buffer_client);
 }
@@ -5278,10 +5282,11 @@ void ssl_tls_exporter_uses_label(int proto)
 
     int ret = -1;
     mbedtls_test_ssl_endpoint client_ep, server_ep;
+    mbedtls_test_handshake_test_options options;
 
     MD_OR_USE_PSA_INIT();
 
-    ret = mbedtls_test_ssl_do_handshake_with_endpoints(&server_ep, &client_ep, proto);
+    ret = mbedtls_test_ssl_do_handshake_with_endpoints(&server_ep, &client_ep, &options, proto);
     TEST_ASSERT(ret == 0);
 
     char label_server[] = "test-label-server";
@@ -5302,6 +5307,9 @@ void ssl_tls_exporter_uses_label(int proto)
     TEST_ASSERT(memcmp(key_buffer_server, key_buffer_client, sizeof(key_buffer_server)) != 0);
 
 exit:
+    mbedtls_test_ssl_endpoint_free(&server_ep, NULL);
+    mbedtls_test_ssl_endpoint_free(&client_ep, NULL);
+    mbedtls_test_free_handshake_options(&options);
     MD_OR_USE_PSA_DONE();
 }
 /* END_CASE */
@@ -5313,10 +5321,11 @@ void ssl_tls_exporter_uses_context(int proto)
 
     int ret = -1;
     mbedtls_test_ssl_endpoint client_ep, server_ep;
+    mbedtls_test_handshake_test_options options;
 
     MD_OR_USE_PSA_INIT();
 
-    ret = mbedtls_test_ssl_do_handshake_with_endpoints(&server_ep, &client_ep, proto);
+    ret = mbedtls_test_ssl_do_handshake_with_endpoints(&server_ep, &client_ep, &options, proto);
     TEST_ASSERT(ret == 0);
 
     char label[] = "test-label";
@@ -5337,6 +5346,9 @@ void ssl_tls_exporter_uses_context(int proto)
     TEST_ASSERT(memcmp(key_buffer_server, key_buffer_client, sizeof(key_buffer_server)) != 0);
 
 exit:
+    mbedtls_test_ssl_endpoint_free(&server_ep, NULL);
+    mbedtls_test_ssl_endpoint_free(&client_ep, NULL);
+    mbedtls_test_free_handshake_options(&options);
     MD_OR_USE_PSA_DONE();
 }
 /* END_CASE */
@@ -5349,10 +5361,11 @@ void ssl_tls13_exporter_uses_length(void)
 
     int ret = -1;
     mbedtls_test_ssl_endpoint client_ep, server_ep;
+    mbedtls_test_handshake_test_options options;
 
     MD_OR_USE_PSA_INIT();
 
-    ret = mbedtls_test_ssl_do_handshake_with_endpoints(&server_ep, &client_ep, MBEDTLS_SSL_VERSION_TLS1_3);
+    ret = mbedtls_test_ssl_do_handshake_with_endpoints(&server_ep, &client_ep, &options, MBEDTLS_SSL_VERSION_TLS1_3);
     TEST_ASSERT(ret == 0);
 
     char label[] = "test-label";
@@ -5372,6 +5385,9 @@ void ssl_tls13_exporter_uses_length(void)
     TEST_ASSERT(memcmp(key_buffer_server, key_buffer_client, sizeof(key_buffer_server)) != 0);
 
 exit:
+    mbedtls_test_ssl_endpoint_free(&server_ep, NULL);
+    mbedtls_test_ssl_endpoint_free(&client_ep, NULL);
+    mbedtls_test_free_handshake_options(&options);
     MD_OR_USE_PSA_DONE();
 }
 /* END_CASE */
@@ -5387,6 +5403,7 @@ void ssl_tls_exporter_rejects_bad_parameters(
     char *label = NULL;
     uint8_t *context = NULL;
     mbedtls_test_ssl_endpoint client_ep, server_ep;
+    mbedtls_test_handshake_test_options options;
 
     TEST_ASSERT(exported_key_length > 0);
     TEST_ASSERT(label_length > 0);
@@ -5395,7 +5412,7 @@ void ssl_tls_exporter_rejects_bad_parameters(
     TEST_CALLOC(label, label_length);
     TEST_CALLOC(context, context_length);
 
-    ret = mbedtls_test_ssl_do_handshake_with_endpoints(&server_ep, &client_ep, proto);
+    ret = mbedtls_test_ssl_do_handshake_with_endpoints(&server_ep, &client_ep, &options, proto);
     TEST_ASSERT(ret == 0);
 
     ret = mbedtls_ssl_export_keying_material(&client_ep.ssl,
@@ -5406,6 +5423,9 @@ void ssl_tls_exporter_rejects_bad_parameters(
 
 exit:
     MD_OR_USE_PSA_DONE();
+    mbedtls_test_ssl_endpoint_free(&server_ep, NULL);
+    mbedtls_test_ssl_endpoint_free(&client_ep, NULL);
+    mbedtls_test_free_handshake_options(&options);
     mbedtls_free(key_buffer);
     mbedtls_free(label);
     mbedtls_free(context);
@@ -5458,5 +5478,8 @@ void ssl_tls_exporter_too_early(int proto, int check_server, int state)
 
 exit:
     MD_OR_USE_PSA_DONE();
+    mbedtls_test_ssl_endpoint_free(&server_ep, NULL);
+    mbedtls_test_ssl_endpoint_free(&client_ep, NULL);
+    mbedtls_test_free_handshake_options(&options);
 }
 /* END_CASE */

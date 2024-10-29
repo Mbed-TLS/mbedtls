@@ -70,13 +70,11 @@ extern const struct mbedtls_ssl_tls13_labels_struct mbedtls_ssl_tls13_labels;
     PSA_HASH_MAX_SIZE
 
 /* Maximum desired length for expanded key material generated
- * by HKDF-Expand-Label.
- *
- * Warning: If this ever needs to be increased, the implementation
- * ssl_tls13_hkdf_encode_label() in ssl_tls13_keys.c needs to be
- * adjusted since it currently assumes that HKDF key expansion
- * is never used with more than 255 Bytes of output. */
-#define MBEDTLS_SSL_TLS1_3_KEY_SCHEDULE_MAX_EXPANSION_LEN 255
+ * by HKDF-Expand-Label. This algorithm can output up to 255 * hash_size
+ * bytes of key material where hash_size is the output size of the
+ * underlying hash function. */
+#define MBEDTLS_SSL_TLS1_3_KEY_SCHEDULE_MAX_EXPANSION_LEN \
+    (255 * MBEDTLS_TLS1_3_MD_MAX_SIZE)
 
 /**
  * \brief            The \c HKDF-Expand-Label function from

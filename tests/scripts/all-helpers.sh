@@ -265,3 +265,63 @@ clang_version() {
         echo 0  # report version 0 for "no clang"
     fi
 }
+
+gcc_version() {
+    gcc="$1"
+    if command -v "$gcc" > /dev/null ; then
+        "$gcc" --version | sed -En '1s/^[^ ]* \([^)]*\) ([0-9]+).*/\1/p'
+    else
+        echo 0  # report version 0 for "no gcc"
+    fi
+}
+
+can_run_cc_output() {
+    cc="$1"
+    result=false
+    if type "$cc" >/dev/null 2>&1; then
+        testbin=$(mktemp)
+        if echo 'int main(void){return 0;}' | "$cc" -o "$testbin" -x c -; then
+            if "$testbin" 2>/dev/null; then
+                result=true
+            fi
+        fi
+        rm -f "$testbin"
+    fi
+    $result
+}
+
+can_run_arm_linux_gnueabi=
+can_run_arm_linux_gnueabi () {
+    if [ -z "$can_run_arm_linux_gnueabi" ]; then
+        if can_run_cc_output "${ARM_LINUX_GNUEABI_GCC_PREFIX}gcc"; then
+            can_run_arm_linux_gnueabi=true
+        else
+            can_run_arm_linux_gnueabi=false
+        fi
+    fi
+    $can_run_arm_linux_gnueabi
+}
+
+can_run_arm_linux_gnueabihf=
+can_run_arm_linux_gnueabihf () {
+    if [ -z "$can_run_arm_linux_gnueabihf" ]; then
+        if can_run_cc_output "${ARM_LINUX_GNUEABIHF_GCC_PREFIX}gcc"; then
+            can_run_arm_linux_gnueabihf=true
+        else
+            can_run_arm_linux_gnueabihf=false
+        fi
+    fi
+    $can_run_arm_linux_gnueabihf
+}
+
+can_run_aarch64_linux_gnu=
+can_run_aarch64_linux_gnu () {
+    if [ -z "$can_run_aarch64_linux_gnu" ]; then
+        if can_run_cc_output "${AARCH64_LINUX_GNU_GCC_PREFIX}gcc"; then
+            can_run_aarch64_linux_gnu=true
+        else
+            can_run_aarch64_linux_gnu=false
+        fi
+    fi
+    $can_run_aarch64_linux_gnu
+}

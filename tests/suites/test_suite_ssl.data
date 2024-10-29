@@ -3334,3 +3334,67 @@ tls13_srv_max_early_data_size:TEST_EARLY_DATA_HRR:3:3
 
 TLS 1.3 srv, max early data size, HRR, 98, wsz=49
 tls13_srv_max_early_data_size:TEST_EARLY_DATA_HRR:97:0
+
+TLS 1.2 Keying Material Exporter: Consistent results, no context
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2
+ssl_tls_exporter_consistent_result:MBEDTLS_SSL_VERSION_TLS1_2:24:0
+
+TLS 1.2 Keying Material Exporter: Consistent results, with context
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2
+ssl_tls_exporter_consistent_result:MBEDTLS_SSL_VERSION_TLS1_2:24:1
+
+TLS 1.2 Keying Material Exporter: Consistent results, large keys
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2
+ssl_tls_exporter_consistent_result:MBEDTLS_SSL_VERSION_TLS1_2:UINT16_MAX:0
+
+TLS 1.2 Keying Material Exporter: Uses label
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2
+ssl_tls_exporter_uses_label:MBEDTLS_SSL_VERSION_TLS1_2
+
+TLS 1.2 Keying Material Exporter: Uses context
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2
+ssl_tls_exporter_uses_context:MBEDTLS_SSL_VERSION_TLS1_2
+
+TLS 1.2 Keying Material Exporter: Context too long
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2
+ssl_tls_exporter_rejects_bad_parameters:MBEDTLS_SSL_VERSION_TLS1_2:24:251:UINT16_MAX + 1
+
+TLS 1.2 Keying Material Exporter: Handshake not done
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2
+ssl_tls_exporter_too_early:MBEDTLS_SSL_VERSION_TLS1_2:1:MBEDTLS_SSL_SERVER_CERTIFICATE
+
+TLS 1.3 Keying Material Exporter: Consistent results, no context
+depends_on:MBEDTLS_SSL_PROTO_TLS1_3
+ssl_tls_exporter_consistent_result:MBEDTLS_SSL_VERSION_TLS1_3:24:0
+
+TLS 1.3 Keying Material Exporter: Consistent results, with context
+depends_on:MBEDTLS_SSL_PROTO_TLS1_3
+ssl_tls_exporter_consistent_result:MBEDTLS_SSL_VERSION_TLS1_3:24:1
+
+TLS 1.3 Keying Material Exporter: Consistent results, large keys
+depends_on:MBEDTLS_SSL_PROTO_TLS1_3
+ssl_tls_exporter_consistent_result:MBEDTLS_SSL_VERSION_TLS1_3:UINT16_MAX:0
+
+TLS 1.3 Keying Material Exporter: Uses label
+depends_on:MBEDTLS_SSL_PROTO_TLS1_3
+ssl_tls_exporter_uses_label:MBEDTLS_SSL_VERSION_TLS1_3
+
+TLS 1.3 Keying Material Exporter: Uses context
+depends_on:MBEDTLS_SSL_PROTO_TLS1_3
+ssl_tls_exporter_uses_context:MBEDTLS_SSL_VERSION_TLS1_3
+
+TLS 1.3 Keying Material Exporter: Uses length
+depends_on:MBEDTLS_SSL_PROTO_TLS1_3
+ssl_tls13_exporter_uses_length
+
+TLS 1.3 Keying Material Exporter: Exported key too long
+depends_on:MBEDTLS_SSL_PROTO_TLS1_3
+ssl_tls_exporter_rejects_bad_parameters:MBEDTLS_SSL_VERSION_TLS1_3:UINT16_MAX + 1:20:20
+
+TLS 1.3 Keying Material Exporter: Label too long
+depends_on:MBEDTLS_SSL_PROTO_TLS1_3
+ssl_tls_exporter_rejects_bad_parameters:MBEDTLS_SSL_VERSION_TLS1_3:24:251:10
+
+TLS 1.3 Keying Material Exporter: Handshake not done
+depends_on:MBEDTLS_SSL_PROTO_TLS1_3
+ssl_tls_exporter_too_early:MBEDTLS_SSL_VERSION_TLS1_3:1:MBEDTLS_SSL_SERVER_CERTIFICATE

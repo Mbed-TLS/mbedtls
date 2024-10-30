@@ -52,7 +52,8 @@ static int check_ecc_private_key(psa_ecc_family_t family, size_t bits,
         TEST_EQUAL(top_byte & mask, 0);
     }
 
-    /* Check masked bits on Curve25519 and Curve448. */
+    /* Check masked bits on Curve25519 and Curve448 scalars.
+     * See RFC 7748 §4.1 (we expect the "decoded" form here). */
 #if defined(MBEDTLS_PSA_BUILTIN_ECC_MONTGOMERY_255)
     if (family == PSA_ECC_FAMILY_MONTGOMERY && bits == 255) {
         TEST_EQUAL(key[0] & 0xf8, key[0]);
@@ -65,6 +66,12 @@ static int check_ecc_private_key(psa_ecc_family_t family, size_t bits,
         TEST_EQUAL(key[55] & 0x80, 0x80);
     }
 #endif /* MBEDTLS_PSA_BUILTIN_ECC_MONTGOMERY_448 */
+
+    /* Don't bother to check that the value is in the exact permitted range
+     * (1 to p-1 for Weierstrass curves, 2^{n-1} to p-1 for Montgomery curves).
+     * We would need to bring in bignum machinery, and on most curves
+     * the probability of a number being out of range is negligible.
+     */
 
     /* Collect statistics on random-valued bits */
     /* Defaults for big-endian numbers */

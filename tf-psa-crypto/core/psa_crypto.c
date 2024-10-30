@@ -7862,6 +7862,9 @@ exit:
         psa_key_agreement_iop_abort_internal(operation);
         return status;
     }
+    if (unlock_status != PSA_SUCCESS) {
+        operation->error_occurred = 1;
+    }
     return unlock_status;
 #else
     (void) operation;
@@ -7904,7 +7907,7 @@ psa_status_t psa_key_agreement_iop_complete(
         operation->error_occurred = 1;
         psa_key_agreement_iop_abort_internal(operation);
     }
-    mbedtls_platform_zeroize(intermediate_key, PSA_RAW_KEY_AGREEMENT_OUTPUT_MAX_SIZE);
+    mbedtls_platform_zeroize(intermediate_key, sizeof(intermediate_key));
     return status;
 #else
     (void) operation;
@@ -7924,7 +7927,6 @@ psa_status_t psa_key_agreement_iop_abort(
 
     operation->num_ops = 0;
     operation->error_occurred = 0;
-    operation->id = 0;
 
     return status;
 #else

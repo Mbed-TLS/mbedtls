@@ -790,6 +790,19 @@ pre_prepare_outcome_file () {
     fi
 }
 
+## write_outcome_line SUITE CASE RESULT [CAUSE]
+## Write a line in the outcome file if enabled.
+## Report $MBEDTLS_TEST_PLATFORM, $MBEDTLS_TEST_CONFIGURATION and the
+## supplied arguments.
+write_outcome_line () {
+    if [ -z "$MBEDTLS_TEST_OUTCOME_FILE" ]; then
+        return
+    fi
+    printf '%s;%s;%s;%s;%s;%s\n' >>"$MBEDTLS_TEST_OUTCOME_FILE" \
+           "$MBEDTLS_TEST_PLATFORM" "$MBEDTLS_TEST_CONFIGURATION" \
+           "$1" "$2" "$3" "${4-}"
+}
+
 pre_print_configuration () {
     if [ $QUIET -eq 1 ]; then
         return
@@ -981,6 +994,12 @@ run_component () {
         if [ $component_status -ne 0 ]; then
             failure_count=$((failure_count + 1))
         fi
+    fi
+
+    if [ $component_status -eq 0 ]; then
+        write_outcome_line "all.sh" "whole" "PASS"
+    else
+        write_outcome_line "all.sh" "whole" "FAIL" "$component_status"
     fi
 
     # Restore the build tree to a clean state.

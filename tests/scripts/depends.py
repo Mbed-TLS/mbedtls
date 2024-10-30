@@ -529,7 +529,8 @@ class DomainData:
             # Cipher key types
             'cipher_id': ExclusiveDomain(cipher_key_types, build_and_test),
 
-            # XTS is not supported via the PSA API.
+            # XTS is not yet supported via the PSA API.
+            # See https://github.com/Mbed-TLS/mbedtls/issues/6384
             'cipher_chaining': ExclusiveDomain(cipher_chaining_symbols,
                                                build_and_test,
                                                exclude=r'PSA_WANT_ALG_XTS'),

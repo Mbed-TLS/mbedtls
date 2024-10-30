@@ -387,19 +387,33 @@ defines to be altered. """
         dep = dep[1:]
         config_settings[dep] = not unset
 
-def turn_off_dependencies(config_settings):
+def turn_off_dependencies(config_settings, exclude=None):
     """For every option turned off config_settings, also turn off what depends on it.
 
     An option O is turned off if config_settings[O] is False.
     Handle the dependencies recursively.
+
+    If 'exclude' is a symbol, do not process it's dependencies. It is usefull when
+    two symbol has dependencies is common but need to be switched separately.
     """
+
+    # Recursively determine the excludable dependencies
+    excludes = set()
+    if exclude:
+        rev_excludes = set(REVERSE_DEPENDENCIES.get(exclude, []))
+        while rev_excludes:
+            dep = rev_excludes.pop()
+            excludes.add(dep)
+            rev_excludes.update(set(REVERSE_DEPENDENCIES.get(dep, [])) - excludes)
+
     for key, value in sorted(config_settings.items()):
         if value is not False:
             continue
 
-        # Save the processed settings to handle cross referencies
-        revdep = set(REVERSE_DEPENDENCIES.get(key, []))
-        history = set()
+        # Save the processed settings to handle cross referencies.
+        # Mark the excluded dependencies as already processed to skip it.
+        history = excludes.copy()
+        revdep = set(REVERSE_DEPENDENCIES.get(key, [])) - excludes
         while revdep:
             dep = revdep.pop()
             history.add(dep)
@@ -435,7 +449,7 @@ would match this regular expression."""
             config_settings = base_config_settings.copy()
             config_settings[symbol] = True
             handle_exclusive_groups(config_settings, symbol)
-            turn_off_dependencies(config_settings)
+            turn_off_dependencies(config_settings, symbol)
             job = Job(description, config_settings, commands)
             self.jobs.append(job)
 

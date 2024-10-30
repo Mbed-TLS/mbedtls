@@ -19,6 +19,9 @@ TOOL="make"
 . "$(dirname "$0")/quiet.sh"
 EXIT_STATUS=$?
 
+nl='
+' # set the variable to a newline
+
 log_outcome () {
     targets=
     skip=
@@ -57,7 +60,19 @@ log_outcome () {
     else
         result=FAIL
     fi
-    cause= # Identifying failure causes would be nice, but difficult
+
+    # Identifying failure causes would be nice, but difficult.
+    # To help diagnose the tracing and our analysis of the traces in
+    # outcome analysis, log the full make command line in the "cause"
+    # column. Once tracing is more mature, I hope this won't be useful
+    # any longer.
+    cause="$*"
+    case "$cause" in
+        *[${nl}\\\;\"]*)
+            # Truncate command lines containing special characters that
+            # we don't want in the outcome file.
+            cause=${cause%%[${nl}\\\;\"]*}...;;
+    esac
 
     for target in $targets; do
         case "$target" in

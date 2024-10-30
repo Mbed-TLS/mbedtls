@@ -28,6 +28,8 @@ log_outcome () {
             continue
         fi
         case $arg in
+            --question|-q) # do-nothing option
+                return;;
             --assume-new|--assume-old|--directory|--file| \
             --include-dir|--makefile|--new-file|--old-file|--what-if| \
             -C|-I|-W|-f|-k|-o) # Option with separate argument

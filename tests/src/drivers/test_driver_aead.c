@@ -16,7 +16,11 @@
 #include "mbedtls/constant_time.h"
 
 #if defined(MBEDTLS_TEST_LIBTESTDRIVER1)
+#if MBEDTLS_VERSION_MAJOR < 4
+#include "libtestdriver1/library/psa_crypto_aead.h"
+#else
 #include "libtestdriver1/tf-psa-crypto/drivers/builtin/src/psa_crypto_aead.h"
+#endif
 #endif
 
 mbedtls_test_driver_aead_hooks_t

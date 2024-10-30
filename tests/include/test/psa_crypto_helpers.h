@@ -11,7 +11,8 @@
 
 #include "test/helpers.h"
 
-#if defined(MBEDTLS_PSA_CRYPTO_CLIENT)
+#if (MBEDTLS_VERSION_MAJOR < 4 && defined(MBEDTLS_PSA_CRYPTO_C)) || \
+    (MBEDTLS_VERSION_MAJOR >= 4 && defined(MBEDTLS_PSA_CRYPTO_CLIENT))
 #include "test/psa_helpers.h"
 #include <psa/crypto.h>
 #endif
@@ -40,7 +41,7 @@
         mbedtls_psa_crypto_free();                                      \
     }                                                                   \
     while (0)
-#elif defined(MBEDTLS_PSA_CRYPTO_CLIENT) /* MBEDTLS_PSA_CRYPTO_CLIENT && !MBEDTLS_PSA_CRYPTO_C */
+#elif MBEDTLS_VERSION_MAJOR >= 4 && defined(MBEDTLS_PSA_CRYPTO_CLIENT)
 #define PSA_INIT() PSA_ASSERT(psa_crypto_init())
 #define PSA_DONE() mbedtls_psa_crypto_free();
 #else  /* MBEDTLS_PSA_CRYPTO_CLIENT && !MBEDTLS_PSA_CRYPTO_C */
@@ -48,7 +49,8 @@
 #define PSA_DONE() ((void) 0)
 #endif /* MBEDTLS_PSA_CRYPTO_C */
 
-#if defined(MBEDTLS_PSA_CRYPTO_CLIENT)
+#if (MBEDTLS_VERSION_MAJOR < 4 && defined(MBEDTLS_PSA_CRYPTO_C)) || \
+    (MBEDTLS_VERSION_MAJOR >= 4 && defined(MBEDTLS_PSA_CRYPTO_CLIENT))
 
 #if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
 
@@ -253,16 +255,18 @@ uint64_t mbedtls_test_parse_binary_string(data_t *bin_string);
  *  \param key_type  Key type
  *  \param key_bits  Key length in number of bits.
  */
-#if defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_AES)
-#define MBEDTLS_TEST_HAVE_ALT_AES 1
+#if defined(MBEDTLS_AES_ALT) || \
+    defined(MBEDTLS_AES_SETKEY_ENC_ALT) || \
+    defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_AES)
+#define MBEDTLS_TEST_HAVE_ACCEL_AES 1
 #else
-#define MBEDTLS_TEST_HAVE_ALT_AES 0
+#define MBEDTLS_TEST_HAVE_ACCEL_AES 0
 #endif
 
 #define MBEDTLS_TEST_PSA_SKIP_IF_ALT_AES_192(key_type, key_bits)        \
     do                                                                    \
     {                                                                     \
-        if ((MBEDTLS_TEST_HAVE_ALT_AES) &&                              \
+        if ((MBEDTLS_TEST_HAVE_ACCEL_AES) &&                              \
             ((key_type) == PSA_KEY_TYPE_AES) &&                       \
             (key_bits == 192))                                         \
         {                                                                 \
@@ -295,7 +299,8 @@ uint64_t mbedtls_test_parse_binary_string(data_t *bin_string);
  *  \param  nonce_length    The nonce length in number of bytes.
  */
 
-#if defined(MBEDTLS_PSA_ACCEL_ALG_GCM)
+#if defined(MBEDTLS_GCM_ALT) || \
+    defined(MBEDTLS_PSA_ACCEL_ALG_GCM)
 #define MBEDTLS_TEST_HAVE_ACCEL_GCM  1
 #else
 #define MBEDTLS_TEST_HAVE_ACCEL_GCM  0
@@ -316,7 +321,22 @@ uint64_t mbedtls_test_parse_binary_string(data_t *bin_string);
     }                                                                      \
     while (0)
 
-#endif /* MBEDTLS_PSA_CRYPTO_CLIENT */
+#endif /* MBEDTLS_PSA_CRYPTO_CLIENT || MBEDTLS_PSA_CRYPTO_C */
+
+#if MBEDTLS_VERSION_MAJOR >= 4
+/* Legacy PSA_INIT() / PSA_DONE() variants from 3.6 */
+#define USE_PSA_INIT()          PSA_INIT()
+#define USE_PSA_DONE()          PSA_DONE()
+#define MD_PSA_INIT()           PSA_INIT()
+#define MD_PSA_DONE()           PSA_DONE()
+#define BLOCK_CIPHER_PSA_INIT() PSA_INIT()
+#define BLOCK_CIPHER_PSA_DONE() PSA_DONE()
+#define MD_OR_USE_PSA_INIT()    PSA_INIT()
+#define MD_OR_USE_PSA_DONE()    PSA_DONE()
+#define AES_PSA_INIT()          PSA_INIT()
+#define AES_PSA_DONE()          PSA_DONE()
+
+#else /* MBEDTLS_VERSION_MAJOR < 4 */
 
 /** \def USE_PSA_INIT
  *
@@ -335,8 +355,17 @@ uint64_t mbedtls_test_parse_binary_string(data_t *bin_string);
  * This is like #PSA_DONE except it does nothing under the same conditions as
  * #USE_PSA_INIT.
  */
-#if defined(MBEDTLS_USE_PSA_CRYPTO) || defined(MBEDTLS_SSL_PROTO_TLS1_3)
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
 #define USE_PSA_INIT() PSA_INIT()
+#define USE_PSA_DONE() PSA_DONE()
+#elif defined(MBEDTLS_SSL_PROTO_TLS1_3)
+/* TLS 1.3 must work without having called psa_crypto_init(), for backward
+ * compatibility with Mbed TLS <= 3.5 when connecting with a peer that
+ * supports both TLS 1.2 and TLS 1.3. See mbedtls_ssl_tls13_crypto_init()
+ * and https://github.com/Mbed-TLS/mbedtls/issues/9072 . */
+#define USE_PSA_INIT() ((void) 0)
+/* TLS 1.3 may have initialized the PSA subsystem. Shut it down cleanly,
+ * otherwise Asan and Valgrind would notice a resource leak. */
 #define USE_PSA_DONE() PSA_DONE()
 #else /* MBEDTLS_USE_PSA_CRYPTO || MBEDTLS_SSL_PROTO_TLS1_3 */
 /* Define empty macros so that we can use them in the preamble and teardown
@@ -409,13 +438,12 @@ uint64_t mbedtls_test_parse_binary_string(data_t *bin_string);
  * This is like #PSA_DONE except it does nothing under the same conditions as
  * #MD_OR_USE_PSA_INIT.
  */
-#if defined(MBEDTLS_MD_SOME_PSA) || \
-    defined(MBEDTLS_USE_PSA_CRYPTO) || defined(MBEDTLS_SSL_PROTO_TLS1_3)
+#if defined(MBEDTLS_MD_SOME_PSA)
 #define MD_OR_USE_PSA_INIT()   PSA_INIT()
 #define MD_OR_USE_PSA_DONE()   PSA_DONE()
 #else
-#define MD_OR_USE_PSA_INIT() ((void) 0)
-#define MD_OR_USE_PSA_DONE() ((void) 0)
+#define MD_OR_USE_PSA_INIT()   USE_PSA_INIT()
+#define MD_OR_USE_PSA_DONE()   USE_PSA_DONE()
 #endif
 
 /** \def AES_PSA_INIT
@@ -440,6 +468,8 @@ uint64_t mbedtls_test_parse_binary_string(data_t *bin_string);
 #define AES_PSA_INIT() ((void) 0)
 #define AES_PSA_DONE() ((void) 0)
 #endif /* MBEDTLS_CTR_DRBG_USE_PSA_CRYPTO */
+
+#endif /* MBEDTLS_VERSION_MAJOR >= 4 */
 
 #if !defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG) &&                        \
     defined(MBEDTLS_CTR_DRBG_C) &&                                      \

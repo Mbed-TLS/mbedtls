@@ -16,7 +16,11 @@
 #include "test/drivers/key_management.h"
 
 #if defined(MBEDTLS_TEST_LIBTESTDRIVER1)
+#if MBEDTLS_VERSION_MAJOR < 4
+#include "libtestdriver1/library/psa_crypto_rsa.h"
+#else
 #include "libtestdriver1/tf-psa-crypto/drivers/builtin/src/psa_crypto_rsa.h"
+#endif
 #endif
 
 #define PSA_RSA_KEY_PAIR_MAX_SIZE \

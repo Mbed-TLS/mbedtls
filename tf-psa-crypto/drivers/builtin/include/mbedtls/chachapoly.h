@@ -233,7 +233,7 @@ int mbedtls_chachapoly_update(mbedtls_chachapoly_context *ctx,
  *                  generates authentication tag.
  *
  * \param ctx       The ChaCha20-Poly1305 context to use. This must be initialized.
- * \param mac       The buffer to where the 128-bit (16 bytes) authentication
+ * \param mac       The buffer to where the 128-bit (16-byte) authentication
  *                  tag is written.
  *
  * \warning         Decryption with the piecewise API is discouraged, see the
@@ -275,7 +275,7 @@ int mbedtls_chachapoly_finish(mbedtls_chachapoly_context *ctx,
  *                  This pointer can be \c NULL if `ilen == 0`.
  * \param output    The buffer to where the encrypted or decrypted data
  *                  is written. This pointer can be \c NULL if `ilen == 0`.
- * \param tag       The buffer to where the computed 128-bit (16 bytes)
+ * \param tag       The buffer to where the computed 128-bit (16-byte)
  *                  authentication tag is written. This must not be \c NULL.
  *
  * \return          \c 0 on success.

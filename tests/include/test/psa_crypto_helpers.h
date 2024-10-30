@@ -11,7 +11,8 @@
 
 #include "test/helpers.h"
 
-#if defined(MBEDTLS_PSA_CRYPTO_C)
+#if (MBEDTLS_VERSION_MAJOR < 4 && defined(MBEDTLS_PSA_CRYPTO_C)) || \
+    (MBEDTLS_VERSION_MAJOR >= 4 && defined(MBEDTLS_PSA_CRYPTO_CLIENT))
 #include "test/psa_helpers.h"
 #include <psa/crypto.h>
 #endif
@@ -40,12 +41,16 @@
         mbedtls_psa_crypto_free();                                      \
     }                                                                   \
     while (0)
-#else /*MBEDTLS_PSA_CRYPTO_C */
+#elif MBEDTLS_VERSION_MAJOR >= 4 && defined(MBEDTLS_PSA_CRYPTO_CLIENT)
+#define PSA_INIT() PSA_ASSERT(psa_crypto_init())
+#define PSA_DONE() mbedtls_psa_crypto_free();
+#else  /* MBEDTLS_PSA_CRYPTO_CLIENT && !MBEDTLS_PSA_CRYPTO_C */
 #define PSA_INIT() ((void) 0)
 #define PSA_DONE() ((void) 0)
 #endif /* MBEDTLS_PSA_CRYPTO_C */
 
-#if defined(MBEDTLS_PSA_CRYPTO_C)
+#if (MBEDTLS_VERSION_MAJOR < 4 && defined(MBEDTLS_PSA_CRYPTO_C)) || \
+    (MBEDTLS_VERSION_MAJOR >= 4 && defined(MBEDTLS_PSA_CRYPTO_CLIENT))
 
 #if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
 
@@ -253,15 +258,15 @@ uint64_t mbedtls_test_parse_binary_string(data_t *bin_string);
 #if defined(MBEDTLS_AES_ALT) || \
     defined(MBEDTLS_AES_SETKEY_ENC_ALT) || \
     defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_AES)
-#define MBEDTLS_TEST_HAVE_ALT_AES 1
+#define MBEDTLS_TEST_HAVE_ACCEL_AES 1
 #else
-#define MBEDTLS_TEST_HAVE_ALT_AES 0
+#define MBEDTLS_TEST_HAVE_ACCEL_AES 0
 #endif
 
 #define MBEDTLS_TEST_PSA_SKIP_IF_ALT_AES_192(key_type, key_bits)        \
     do                                                                    \
     {                                                                     \
-        if ((MBEDTLS_TEST_HAVE_ALT_AES) &&                              \
+        if ((MBEDTLS_TEST_HAVE_ACCEL_AES) &&                              \
             ((key_type) == PSA_KEY_TYPE_AES) &&                       \
             (key_bits == 192))                                         \
         {                                                                 \
@@ -293,18 +298,19 @@ uint64_t mbedtls_test_parse_binary_string(data_t *bin_string);
  *  \param  alg             The AEAD algorithm.
  *  \param  nonce_length    The nonce length in number of bytes.
  */
+
 #if defined(MBEDTLS_GCM_ALT) || \
     defined(MBEDTLS_PSA_ACCEL_ALG_GCM)
-#define MBEDTLS_TEST_HAVE_ALT_GCM  1
+#define MBEDTLS_TEST_HAVE_ACCEL_GCM  1
 #else
-#define MBEDTLS_TEST_HAVE_ALT_GCM  0
+#define MBEDTLS_TEST_HAVE_ACCEL_GCM  0
 #endif
 
 #define MBEDTLS_TEST_PSA_SKIP_IF_ALT_GCM_NOT_12BYTES_NONCE(alg,           \
                                                            nonce_length) \
     do                                                                     \
     {                                                                      \
-        if ((MBEDTLS_TEST_HAVE_ALT_GCM) &&                               \
+        if ((MBEDTLS_TEST_HAVE_ACCEL_GCM) &&                               \
             (PSA_ALG_AEAD_WITH_SHORTENED_TAG((alg), 0) ==            \
              PSA_ALG_AEAD_WITH_SHORTENED_TAG(PSA_ALG_GCM, 0)) &&       \
             ((nonce_length) != 12))                                   \
@@ -315,7 +321,22 @@ uint64_t mbedtls_test_parse_binary_string(data_t *bin_string);
     }                                                                      \
     while (0)
 
-#endif /* MBEDTLS_PSA_CRYPTO_C */
+#endif /* MBEDTLS_PSA_CRYPTO_CLIENT || MBEDTLS_PSA_CRYPTO_C */
+
+#if MBEDTLS_VERSION_MAJOR >= 4
+/* Legacy PSA_INIT() / PSA_DONE() variants from 3.6 */
+#define USE_PSA_INIT()          PSA_INIT()
+#define USE_PSA_DONE()          PSA_DONE()
+#define MD_PSA_INIT()           PSA_INIT()
+#define MD_PSA_DONE()           PSA_DONE()
+#define BLOCK_CIPHER_PSA_INIT() PSA_INIT()
+#define BLOCK_CIPHER_PSA_DONE() PSA_DONE()
+#define MD_OR_USE_PSA_INIT()    PSA_INIT()
+#define MD_OR_USE_PSA_DONE()    PSA_DONE()
+#define AES_PSA_INIT()          PSA_INIT()
+#define AES_PSA_DONE()          PSA_DONE()
+
+#else /* MBEDTLS_VERSION_MAJOR < 4 */
 
 /** \def USE_PSA_INIT
  *
@@ -447,6 +468,8 @@ uint64_t mbedtls_test_parse_binary_string(data_t *bin_string);
 #define AES_PSA_INIT() ((void) 0)
 #define AES_PSA_DONE() ((void) 0)
 #endif /* MBEDTLS_CTR_DRBG_USE_PSA_CRYPTO */
+
+#endif /* MBEDTLS_VERSION_MAJOR >= 4 */
 
 #if !defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG) &&                        \
     defined(MBEDTLS_CTR_DRBG_C) &&                                      \

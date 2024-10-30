@@ -501,12 +501,8 @@ class DomainData:
                             for alg in cipher_algs
                             if key_type.can_do(alg)}
 
-        # Get block cipher chaining modes. Do not select ECB, it is always enabled.
-        cipher_modes_filter = re.compile(r'PSA_WANT_ALG_(?!ECB|STREAM|CCM)\w+\Z')
-        cipher_chaining_symbols = {symbol
-                                   for alg, symbol in algs.items()
-                                   if alg.can_do(crypto_knowledge.AlgorithmCategory.CIPHER)
-                                   if re.match(cipher_modes_filter, symbol)}
+        # Get cipher modes
+        cipher_chaining_symbols = {algs[cipher_alg] for cipher_alg in cipher_algs}
 
         # Find block padding mode enabling macros by name.
         cipher_padding_symbols = self.config_symbols_matching(r'MBEDTLS_CIPHER_PADDING_\w+\Z')

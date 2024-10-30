@@ -93,8 +93,18 @@ if [ "$is_crypto" -eq 0 -a "$is_mbedtls" -eq 0 ]; then
     exit 1
 fi
 
+
 # Invoke the real thing
 if [ "$is_crypto" -eq 1 ]; then
+    # Make sure the path to the outcomes file is absolute. This is done by
+    # pre_prepare_outcome_file() however by the time it runs we've already
+    # changed the working directory, so do it now.
+    if [ -n "${MBEDTLS_TEST_OUTCOME_FILE+set}" ]; then
+        case "$MBEDTLS_TEST_OUTCOME_FILE" in
+          [!/]*) MBEDTLS_TEST_OUTCOME_FILE="$PWD/$MBEDTLS_TEST_OUTCOME_FILE";;
+        esac
+        export MBEDTLS_TEST_OUTCOME_FILE
+    fi
     cd tf-psa-crypto
     exec tests/scripts/all.sh "$@"
 else

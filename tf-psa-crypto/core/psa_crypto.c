@@ -7732,6 +7732,24 @@ exit:
     return (status == PSA_SUCCESS) ? unlock_status : status;
 }
 
+static psa_status_t validate_key_agreement_params(const psa_key_attributes_t *attributes,
+                                                  psa_algorithm_t alg)
+{
+    psa_key_type_t key_type;
+
+    if (!PSA_ALG_IS_RAW_KEY_AGREEMENT(alg)) {
+        return PSA_ERROR_INVALID_ARGUMENT;
+    }
+
+    key_type = psa_get_key_type(attributes);
+    if (key_type != PSA_KEY_TYPE_DERIVE && key_type != PSA_KEY_TYPE_RAW_DATA
+        && key_type != PSA_KEY_TYPE_HMAC && key_type != PSA_KEY_TYPE_PASSWORD) {
+        return PSA_ERROR_INVALID_ARGUMENT;
+    }
+
+    return PSA_SUCCESS;
+}
+
 psa_status_t psa_key_agreement(mbedtls_svc_key_id_t private_key,
                                const uint8_t *peer_key,
                                size_t peer_key_length,
@@ -7742,14 +7760,12 @@ psa_status_t psa_key_agreement(mbedtls_svc_key_id_t private_key,
     psa_status_t status;
     uint8_t shared_secret[PSA_RAW_KEY_AGREEMENT_OUTPUT_MAX_SIZE];
     size_t shared_secret_len;
-    psa_key_type_t key_type;
 
     *key = MBEDTLS_SVC_KEY_ID_INIT;
 
-    key_type = psa_get_key_type(attributes);
-    if (key_type != PSA_KEY_TYPE_DERIVE && key_type != PSA_KEY_TYPE_RAW_DATA
-        && key_type != PSA_KEY_TYPE_HMAC && key_type != PSA_KEY_TYPE_PASSWORD) {
-        return PSA_ERROR_INVALID_ARGUMENT;
+    status = validate_key_agreement_params(attributes, alg);
+    if (status != PSA_SUCCESS) {
+        return status;
     }
 
     status = psa_raw_key_agreement(alg, private_key, peer_key, peer_key_length, shared_secret,
@@ -7807,23 +7823,16 @@ psa_status_t psa_key_agreement_iop_setup(
     defined(MBEDTLS_PSA_BUILTIN_ALG_ECDH)
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_status_t unlock_status = PSA_ERROR_CORRUPTION_DETECTED;
-    psa_key_type_t key_type;
     psa_key_slot_t *slot = NULL;
 
     if (operation->id != 0 || operation->error_occurred) {
         return PSA_ERROR_BAD_STATE;
     }
 
-    if (!PSA_ALG_IS_RAW_KEY_AGREEMENT(alg)) {
+    status = validate_key_agreement_params(attributes, alg);
+    if (status != PSA_SUCCESS) {
         operation->error_occurred = 1;
-        return PSA_ERROR_INVALID_ARGUMENT;
-    }
-
-    key_type = psa_get_key_type(attributes);
-    if (key_type != PSA_KEY_TYPE_DERIVE &&
-        key_type != PSA_KEY_TYPE_RAW_DATA) {
-        operation->error_occurred = 1;
-        return PSA_ERROR_INVALID_ARGUMENT;
+        return status;
     }
 
     status = psa_get_and_lock_transparent_key_slot_with_policy(

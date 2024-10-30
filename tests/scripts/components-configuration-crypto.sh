@@ -1448,7 +1448,6 @@ component_test_tfm_config_p256m_driver_accel_ec () {
 
     common_tfm_config
 
-    # Build crypto library
     make CC=$ASAN_CC CFLAGS="$ASAN_CFLAGS -I../tests/include/spe" LDFLAGS="$ASAN_CFLAGS"
 
     # Make sure any built-in EC alg was not re-enabled by accident (additive config)
@@ -1483,7 +1482,7 @@ component_test_tfm_config_no_p256m () {
     echo "#undef MBEDTLS_PSA_P256M_DRIVER_ENABLED" >> "$CONFIG_H"
 
     msg "build: TF-M config without p256m"
-    make CFLAGS='-Werror -Wall -Wextra -I../tests/include/spe' tests
+    make CFLAGS='-Werror -Wall -Wextra -I../tests/include/spe'
 
     # Check that p256m was not built
     not grep p256_ecdsa_ library/libmbedcrypto.a

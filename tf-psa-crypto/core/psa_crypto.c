@@ -7771,7 +7771,13 @@ static psa_status_t psa_key_agreement_iop_abort_internal(psa_key_agreement_iop_t
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    status = psa_driver_wrapper_key_agreement_abort(operation);
+    if (operation->id == 0) {
+        return PSA_SUCCESS;
+    }
+
+    status = mbedtls_psa_key_agreement_iop_abort(&operation->mbedtls_ctx);
+
+    operation->id = 0;
 
     return status;
 }
@@ -7830,12 +7836,15 @@ psa_status_t psa_key_agreement_iop_setup(
 
     operation->num_ops = 0;
 
-    status = psa_driver_wrapper_key_agreement_setup(operation, slot->key.data,
-                                                    slot->key.bytes, peer_key,
-                                                    peer_key_length,
-                                                    &slot->attr);
+    /* To be removed later when driver dispatch is added. */
+    operation->id = PSA_CRYPTO_MBED_TLS_DRIVER_ID;
 
-    operation->num_ops = psa_driver_wrapper_key_agreement_get_num_ops(operation);
+    status = mbedtls_psa_key_agreement_iop_setup(&operation->mbedtls_ctx,
+                                                 &slot->attr, slot->key.data,
+                                                 slot->key.bytes, peer_key,
+                                                 peer_key_length);
+
+    operation->num_ops = mbedtls_psa_key_agreement_iop_get_num_ops(&operation->mbedtls_ctx);
 
 exit:
     unlock_status = psa_unregister_read_under_mutex(slot);
@@ -7871,11 +7880,11 @@ psa_status_t psa_key_agreement_iop_complete(
     uint8_t intermediate_key[PSA_RAW_KEY_AGREEMENT_OUTPUT_MAX_SIZE];
     size_t key_len = 0;
 
-    status = psa_driver_wrapper_key_agreement_complete(operation, intermediate_key,
-                                                       PSA_RAW_KEY_AGREEMENT_OUTPUT_MAX_SIZE,
-                                                       &key_len);
+    status = mbedtls_psa_key_agreement_iop_complete(&operation->mbedtls_ctx, intermediate_key,
+                                                    sizeof(intermediate_key),
+                                                    &key_len);
 
-    operation->num_ops = psa_driver_wrapper_key_agreement_get_num_ops(operation);
+    operation->num_ops = mbedtls_psa_key_agreement_iop_get_num_ops(&operation->mbedtls_ctx);
 
     if (status == PSA_SUCCESS) {
         status = psa_import_key(&operation->attributes, intermediate_key,

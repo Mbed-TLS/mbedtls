@@ -508,7 +508,7 @@ struct psa_key_agreement_iop_s {
      * any driver (i.e. none of the driver contexts are active).
      */
     unsigned int MBEDTLS_PRIVATE(id);
-    psa_driver_key_agreement_interruptible_context_t MBEDTLS_PRIVATE(ctx);
+    mbedtls_psa_key_agreement_interruptible_operation_t MBEDTLS_PRIVATE(mbedtls_ctx);
     uint32_t MBEDTLS_PRIVATE(num_ops);
     psa_key_attributes_t MBEDTLS_PRIVATE(attributes);
     unsigned int MBEDTLS_PRIVATE(error_occurred) : 1;

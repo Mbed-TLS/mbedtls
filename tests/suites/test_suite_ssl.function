@@ -5402,8 +5402,6 @@ exit:
 void ssl_tls_exporter_rejects_bad_parameters(
     int proto, int exported_key_length, int label_length, int context_length)
 {
-    MD_OR_USE_PSA_INIT();
-
     int ret = -1;
     uint8_t *key_buffer = NULL;
     char *label = NULL;
@@ -5418,9 +5416,7 @@ void ssl_tls_exporter_rejects_bad_parameters(
     TEST_CALLOC(label, label_length);
     TEST_CALLOC(context, context_length);
 
-    memset(key_buffer, 0, exported_key_length);
-    memset(label, 0, label_length);
-    memset(context, 0, context_length);
+    MD_OR_USE_PSA_INIT();
 
     ret = mbedtls_test_ssl_do_handshake_with_endpoints(&server_ep, &client_ep, &options, proto);
     TEST_ASSERT(ret == 0);

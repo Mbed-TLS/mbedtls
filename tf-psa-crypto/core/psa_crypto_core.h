@@ -702,7 +702,7 @@ psa_status_t psa_key_agreement_raw_builtin(
 
 /**
  * \brief Get the total number of ops that a key agreement operation has taken
- *        Since its start.
+ *        since its start.
  *
  * \note The signature of this function is that of a PSA driver
  *       key_agreement_get_num_ops entry point. This function behaves as an
@@ -714,7 +714,7 @@ psa_status_t psa_key_agreement_raw_builtin(
  *
  * \return                      Total number of operations.
  */
-uint32_t mbedtls_psa_key_agreement_get_num_ops(
+uint32_t mbedtls_psa_key_agreement_iop_get_num_ops(
     mbedtls_psa_key_agreement_interruptible_operation_t *operation);
 
 /**
@@ -748,13 +748,13 @@ uint32_t mbedtls_psa_key_agreement_get_num_ops(
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
  *         There was insufficient memory to load the key representation.
  */
-psa_status_t mbedtls_psa_key_agreement_setup(
+psa_status_t mbedtls_psa_key_agreement_iop_setup(
     mbedtls_psa_key_agreement_interruptible_operation_t *operation,
+    const psa_key_attributes_t *private_key_attributes,
     const uint8_t *private_key_buffer,
     size_t private_key_buffer_len,
     const uint8_t *peer_key,
-    size_t peer_key_length,
-    const psa_key_attributes_t *attributes);
+    size_t peer_key_length);
 
 /**
  * \brief Continue and eventually complete a key agreement operation.
@@ -780,7 +780,7 @@ psa_status_t mbedtls_psa_key_agreement_setup(
  * \retval #PSA_ERROR_BUFFER_TOO_SMALL
  *         \p shared_secret_size is too small
  */
-psa_status_t mbedtls_psa_key_agreement_complete(
+psa_status_t mbedtls_psa_key_agreement_iop_complete(
     mbedtls_psa_key_agreement_interruptible_operation_t *operation,
     uint8_t *shared_secret,
     size_t shared_secret_size,
@@ -800,7 +800,7 @@ psa_status_t mbedtls_psa_key_agreement_complete(
  * \retval #PSA_SUCCESS
  *         The operation was aborted successfully.
  */
-psa_status_t mbedtls_psa_key_agreement_abort(
+psa_status_t mbedtls_psa_key_agreement_iop_abort(
     mbedtls_psa_key_agreement_interruptible_operation_t *operation);
 
 

@@ -632,19 +632,19 @@ psa_status_t mbedtls_psa_generate_key_iop_abort(
 
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_ECDH) && defined(MBEDTLS_ECP_RESTARTABLE)
 
-uint32_t mbedtls_psa_key_agreement_get_num_ops(
+uint32_t mbedtls_psa_key_agreement_iop_get_num_ops(
     mbedtls_psa_key_agreement_interruptible_operation_t *operation)
 {
     return operation->num_ops;
 }
 
-psa_status_t mbedtls_psa_key_agreement_setup(
+psa_status_t mbedtls_psa_key_agreement_iop_setup(
     mbedtls_psa_key_agreement_interruptible_operation_t *operation,
+    const psa_key_attributes_t *private_key_attributes,
     const uint8_t *private_key_buffer,
     size_t private_key_buffer_len,
     const uint8_t *peer_key,
-    size_t peer_key_length,
-    const psa_key_attributes_t *attributes)
+    size_t peer_key_length)
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     mbedtls_ecp_keypair *our_key = NULL;
@@ -658,8 +658,8 @@ psa_status_t mbedtls_psa_key_agreement_setup(
     operation->num_ops = 0;
 
     status = mbedtls_psa_ecp_load_representation(
-        psa_get_key_type(attributes),
-        psa_get_key_bits(attributes),
+        psa_get_key_type(private_key_attributes),
+        psa_get_key_bits(private_key_attributes),
         private_key_buffer,
         private_key_buffer_len,
         &our_key);
@@ -678,8 +678,8 @@ psa_status_t mbedtls_psa_key_agreement_setup(
     our_key = NULL;
 
     status = mbedtls_psa_ecp_load_representation(
-        PSA_KEY_TYPE_PUBLIC_KEY_OF_KEY_PAIR(psa_get_key_type(attributes)),
-        psa_get_key_bits(attributes),
+        PSA_KEY_TYPE_PUBLIC_KEY_OF_KEY_PAIR(psa_get_key_type(private_key_attributes)),
+        psa_get_key_bits(private_key_attributes),
         peer_key,
         peer_key_length,
         &their_key);
@@ -705,7 +705,7 @@ exit:
     return status;
 }
 
-psa_status_t mbedtls_psa_key_agreement_complete(
+psa_status_t mbedtls_psa_key_agreement_iop_complete(
     mbedtls_psa_key_agreement_interruptible_operation_t *operation,
     uint8_t *shared_secret,
     size_t shared_secret_size,
@@ -726,7 +726,7 @@ psa_status_t mbedtls_psa_key_agreement_complete(
     return status;
 }
 
-psa_status_t mbedtls_psa_key_agreement_abort(
+psa_status_t mbedtls_psa_key_agreement_iop_abort(
     mbedtls_psa_key_agreement_interruptible_operation_t *operation)
 {
     operation->num_ops = 0;

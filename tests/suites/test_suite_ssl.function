@@ -5765,12 +5765,12 @@ void ssl_tls_exporter_consistent_result(int proto, int exported_key_length, int 
     TEST_ASSERT(memcmp(key_buffer_server, key_buffer_client, (size_t) exported_key_length) == 0);
 
 exit:
-    MD_OR_USE_PSA_DONE();
     mbedtls_test_ssl_endpoint_free(&server_ep, NULL);
     mbedtls_test_ssl_endpoint_free(&client_ep, NULL);
     mbedtls_test_free_handshake_options(&options);
     mbedtls_free(key_buffer_server);
     mbedtls_free(key_buffer_client);
+    MD_OR_USE_PSA_DONE();
 }
 /* END_CASE */
 
@@ -5924,13 +5924,13 @@ void ssl_tls_exporter_rejects_bad_parameters(
     TEST_ASSERT(ret == MBEDTLS_ERR_SSL_BAD_INPUT_DATA);
 
 exit:
-    MD_OR_USE_PSA_DONE();
     mbedtls_test_ssl_endpoint_free(&server_ep, NULL);
     mbedtls_test_ssl_endpoint_free(&client_ep, NULL);
     mbedtls_test_free_handshake_options(&options);
     mbedtls_free(key_buffer);
     mbedtls_free(label);
     mbedtls_free(context);
+    MD_OR_USE_PSA_DONE();
 }
 /* END_CASE */
 
@@ -5979,9 +5979,9 @@ void ssl_tls_exporter_too_early(int proto, int check_server, int state)
     TEST_ASSERT(ret == MBEDTLS_ERR_SSL_BAD_INPUT_DATA);
 
 exit:
-    MD_OR_USE_PSA_DONE();
     mbedtls_test_ssl_endpoint_free(&server_ep, NULL);
     mbedtls_test_ssl_endpoint_free(&client_ep, NULL);
     mbedtls_test_free_handshake_options(&options);
+    MD_OR_USE_PSA_DONE();
 }
 /* END_CASE */

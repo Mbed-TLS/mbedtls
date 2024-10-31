@@ -10158,6 +10158,21 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
+void generate_key_iop_init()
+{
+    psa_generate_key_iop_t init = PSA_GENERATE_KEY_IOP_INIT;
+    psa_generate_key_iop_t func = psa_generate_key_iop_init();
+    psa_generate_key_iop_t zero;
+
+    memset(&zero, 0, sizeof(zero));
+
+    PSA_ASSERT(psa_generate_key_iop_abort(&init));
+    PSA_ASSERT(psa_generate_key_iop_abort(&func));
+    PSA_ASSERT(psa_generate_key_iop_abort(&zero));
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
 void generate_key_custom(int type_arg,
                          int bits_arg,
                          int usage_arg,

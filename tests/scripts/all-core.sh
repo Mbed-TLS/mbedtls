@@ -212,6 +212,9 @@ pre_initialize_variables () {
     # Specify character collation for regular expressions and sorting with C locale
     export LC_COLLATE=C
 
+    # Make the location of the root directory available to reporting scripts
+    export MBEDTLS_TEST_ROOT="$PWD"
+
     : ${MBEDTLS_TEST_OUTCOME_FILE=}
     : ${MBEDTLS_TEST_PLATFORM="$(uname -s | tr -c \\n0-9A-Za-z _)-$(uname -m | tr -c \\n0-9A-Za-z _)"}
     export MBEDTLS_TEST_OUTCOME_FILE

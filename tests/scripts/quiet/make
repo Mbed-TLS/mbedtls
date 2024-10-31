@@ -23,21 +23,36 @@ nl='
 ' # set the variable to a newline
 
 log_outcome () {
+    # Options passed to make indicating that a different makefile is used
+    modifier=
+    # Space-separated list of targets
     targets=
+    # Temporary variable used in the loop after an option that takes an argument
     skip=
+
     for arg in "$@"; do
         if [ -n "$skip" ]; then
+            if [ "$skip" = "modifier" ]; then
+                modifier="$modifier$arg "
+            fi
             skip=
             continue
         fi
+
         case $arg in
-            --question|-q) # do-nothing option
+            --dry-run|--help|--just-print|--question|--recon|--version|-n|-q|-v)
+                # do-nothing option
                 return;;
-            --assume-new|--assume-old|--directory|--file| \
+            --directory=*|--file=*|-C?*|-f?*) # Modifier option with its argument
+                modifier="$modifier$arg ";;
+            --directory|--file|-C|-f) # Modifier option with separate argument
+                skip=modifier
+                modifier="$modifier$arg ";;
+            --assume-new|--assume-old| \
             --include-dir|--makefile|--new-file|--old-file|--what-if| \
-            -C|-I|-W|-f|-k|-o) # Option with separate argument
+            -I|-W|-k|-o) # Boring option with separate argument
                 skip=1; continue;;
-            -*) continue;; # Option
+            -*) continue;; # Other option (assumed boring)
             *=*) continue;; # Variable assignment
             *[!-+./0-9@A-Z_a-z]*) # Target with problematic character
                 targets="$targets ${arg%%[!-+./0-9@A-Z_a-z]*}...";;
@@ -45,9 +60,23 @@ log_outcome () {
                 targets="$targets $arg";;
         esac
     done
+
+    if [ -n "$MBEDTLS_TEST_ROOT" ] && [ "$MBEDTLS_TEST_ROOT" != "$PWD" ]; then
+        # Record that `make` was run in a different directory.
+        # This is only accurate when run by all.sh (or more generally
+        # if $MBEDTLS_TEST_ROOT is set in the environment).
+        case "$PWD" in
+            "$MBEDTLS_TEST_ROOT/"*) modifier="-C ${PWD#"${MBEDTLS_TEST_ROOT}/"} $modifier";;
+            *) modifier="-C $PWD $modifier";;
+        esac
+    fi
+
     if [ -n "$targets" ]; then
         targets=${targets# }
     else
+        # Assume that the default target is "all". This is true for
+        # the toplevel Makefile and when using CMake, but might not be
+        # true when using a different makefile.
         targets=all
     fi
 

@@ -596,7 +596,7 @@ exit:
 /* Interruptible ECC Key Generation */
 /****************************************************************/
 
-#if defined(MBEDTLS_ECP_RESTARTABLE) && defined(MBEDTLS_ECP_C)
+#if defined(MBEDTLS_ECP_RESTARTABLE)
 
 psa_status_t mbedtls_psa_generate_key_iop_setup(
     mbedtls_psa_generate_key_iop_t *operation,

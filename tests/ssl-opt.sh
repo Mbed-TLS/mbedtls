@@ -989,6 +989,14 @@ requires_full_size_output_buffer() {
     fi
 }
 
+# Skip the next test if called by all.sh in a component with MSan
+# (which we also call MemSan) or Valgrind.
+not_with_msan_or_valgrind() {
+    case "_${MBEDTLS_TEST_CONFIGURATION:-}_" in
+        *_msan_*|*_memsan_*|*_valgrind_*) SKIP_NEXT="YES";;
+    esac
+}
+
 # skip the next test if valgrind is in use
 not_with_valgrind() {
     if [ "$MEMCHECK" -gt 0 ]; then
@@ -14339,6 +14347,14 @@ requires_config_enabled PSA_WANT_DH_RFC7919_6144
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
+# Tests using FFDH with a large prime take a long time to run with a memory
+# sanitizer. GnuTLS <=3.8.1 has a hard-coded timeout and gives up after
+# 30s (since 3.8.1, it can be configured with --timeout). We've observed
+# 8192-bit FFDH test cases failing intermittently on heavily loaded CI
+# executors (https://github.com/Mbed-TLS/mbedtls/issues/9742),
+# when using MSan. As a workaround, skip them.
+# Also skip 6144-bit FFDH to have a bit of safety margin.
+not_with_msan_or_valgrind
 run_test "TLS 1.3 G->m: AES_128_GCM_SHA256,ffdhe6144,rsa_pss_rsae_sha256" \
          "$P_SRV crt_file=$DATA_FILES_PATH/server2-sha256.crt key_file=$DATA_FILES_PATH/server2.key debug_level=4 force_ciphersuite=TLS1-3-AES-128-GCM-SHA256 sig_algs=rsa_pss_rsae_sha256 groups=ffdhe6144 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
          "$G_NEXT_CLI_NO_CERT --debug=4 --single-key-share --x509cafile $DATA_FILES_PATH/test-ca_cat12.crt --priority=NONE:+AES-128-GCM:+SHA256:+AEAD:+SIGN-RSA-PSS-RSAE-SHA256:+GROUP-FFDHE6144:+VERS-TLS1.3:%NO_TICKETS" \
@@ -14359,6 +14375,7 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_config_enabled PSA_WANT_ALG_FFDH
 requires_config_enabled PSA_WANT_DH_RFC7919_6144
+not_with_msan_or_valgrind
 run_test "TLS 1.3 m->G: AES_128_GCM_SHA256,ffdhe6144,rsa_pss_rsae_sha256" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile $DATA_FILES_PATH/server2-sha256.crt --x509keyfile $DATA_FILES_PATH/server2.key --priority=NONE:+AES-128-GCM:+SHA256:+AEAD:+SIGN-RSA-PSS-RSAE-SHA256:+GROUP-FFDHE6144:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI ca_file=$DATA_FILES_PATH/test-ca_cat12.crt debug_level=4 force_ciphersuite=TLS1-3-AES-128-GCM-SHA256 sig_algs=rsa_pss_rsae_sha256 groups=ffdhe6144" \
@@ -14380,6 +14397,7 @@ requires_config_enabled PSA_WANT_DH_RFC7919_8192
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
+not_with_msan_or_valgrind
 client_needs_more_time 4
 run_test "TLS 1.3 G->m: AES_128_GCM_SHA256,ffdhe8192,rsa_pss_rsae_sha256" \
          "$P_SRV crt_file=$DATA_FILES_PATH/server2-sha256.crt key_file=$DATA_FILES_PATH/server2.key debug_level=4 force_ciphersuite=TLS1-3-AES-128-GCM-SHA256 sig_algs=rsa_pss_rsae_sha256 groups=ffdhe8192 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -14401,6 +14419,7 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_config_enabled PSA_WANT_ALG_FFDH
 requires_config_enabled PSA_WANT_DH_RFC7919_8192
+not_with_msan_or_valgrind
 client_needs_more_time 4
 run_test "TLS 1.3 m->G: AES_128_GCM_SHA256,ffdhe8192,rsa_pss_rsae_sha256" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile $DATA_FILES_PATH/server2-sha256.crt --x509keyfile $DATA_FILES_PATH/server2.key --priority=NONE:+AES-128-GCM:+SHA256:+AEAD:+SIGN-RSA-PSS-RSAE-SHA256:+GROUP-FFDHE8192:+VERS-TLS1.3:%NO_TICKETS" \

@@ -222,8 +222,8 @@ C_SOURCE_FILES = $(wildcard \
 	tf-psa-crypto/drivers/*/*/*/*.c \
 	tf-psa-crypto/drivers/*/*/*/*/*.c \
 	programs/*/*.[hc] \
-	tests/include/*/*.h tests/include/*/*/*.h \
-	tests/src/*.c tests/src/*/*.c \
+	framework/tests/include/*/*.h framework/tests/include/*/*/*.h \
+	framework/tests/src/*.c framework/tests/src/*/*.c \
 	tests/suites/*.function \
 	tf-psa-crypto/tests/suites/*.function \
 )
@@ -241,5 +241,5 @@ cscope.in.out cscope.po.out cscope.out: $(C_SOURCE_FILES)
 	cscope -bq -u -Iinclude -Ilibrary -Itf-psa-crypto/core \
         -Itf-psa-crypto/include \
 	-Itf-psa-crypto/drivers/builtin/src \
-	$(patsubst %,-I%,$(wildcard tf-psa-crypto/drivers/*/include)) -Itests/include $(C_SOURCE_FILES)
+	$(patsubst %,-I%,$(wildcard tf-psa-crypto/drivers/*/include)) -Iframework/tests/include $(C_SOURCE_FILES)
 .PHONY: cscope global

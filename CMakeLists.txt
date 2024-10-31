@@ -398,7 +398,7 @@ add_subdirectory(library)
 add_subdirectory(pkgconfig)
 
 #
-# The C files in tests/src directory contain test code shared among test suites
+# The C files in framework/tests/src directory contain test code shared among test suites
 # and programs. This shared test code is compiled and linked to test suites and
 # programs objects as a set of compiled objects. The compiled objects are NOT
 # built into a library that the test suite and program objects would link
@@ -417,7 +417,7 @@ if(ENABLE_TESTING OR ENABLE_PROGRAMS)
     add_library(mbedtls_test_helpers OBJECT ${MBEDTLS_TEST_HELPER_FILES})
     set_base_compile_options(mbedtls_test_helpers)
     target_include_directories(mbedtls_test_helpers
-        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tests/include
+        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/framework/tests/include
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tf-psa-crypto/include
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tf-psa-crypto/drivers/builtin/include

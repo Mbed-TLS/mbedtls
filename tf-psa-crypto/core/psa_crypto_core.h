@@ -434,11 +434,6 @@ psa_status_t psa_generate_key_internal(const psa_key_attributes_t *attributes,
 /**
  * \brief Setup a new interruptible key generation operation.
  *
- * \note The signature of this function is that of a PSA driver
- *       generate_key_setup entry point. This function behaves as a
- *       generate_key_setup entry point as defined in the PSA driver interface
- *       specification for transparent drivers.
- *
  *  \param[in] operation                 The \c mbedtls_psa_generate_key_iop_t to use.
  *                                       This must be initialized first.
  *  \param[in] attributes                The desired attributes of the generated key.
@@ -459,11 +454,6 @@ psa_status_t mbedtls_psa_generate_key_iop_setup(
 
 /**
  * \brief Abort a key generation operation.
- *
- * \note The signature of this function is that of a PSA driver
- *       generate_key_abort entry point. This function behaves as a
- *       generate_key_abort entry point as defined in the PSA driver
- *       interface specification for transparent drivers.
  *
  * \param[in] operation               The \c mbedtls_psa_generate_key_iop_t to abort.
  *

@@ -8144,7 +8144,7 @@ psa_status_t psa_generate_key_iop_setup(
 
     operation->num_ops = 0;
 
-    /* To be removed later when driver dispatch is added. */
+    /* We only support the builtin/Mbed TLS driver for now. */
     operation->id = PSA_CRYPTO_MBED_TLS_DRIVER_ID;
 
     status = mbedtls_psa_generate_key_iop_setup(&operation->ctx, attributes);

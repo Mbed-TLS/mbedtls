@@ -24,16 +24,7 @@
 
 #define MBEDTLS_PSA_CRYPTO_CONFIG_FILE "../configs/crypto-config-ccm-psk-tls1_2.h"
 
-#define MBEDTLS_PSA_CRYPTO_C
-#define MBEDTLS_USE_PSA_CRYPTO
-
-/* System support */
-//#define MBEDTLS_HAVE_TIME /* Optionally used in Hello messages */
-/* Other MBEDTLS_HAVE_XXX flags irrelevant for this configuration */
-
 /* Mbed TLS modules */
-#define MBEDTLS_CTR_DRBG_C
-#define MBEDTLS_ENTROPY_C
 #define MBEDTLS_NET_C
 #define MBEDTLS_SSL_CLI_C
 #define MBEDTLS_SSL_SRV_C
@@ -59,18 +50,9 @@
 #define MBEDTLS_SSL_IN_CONTENT_LEN              1024
 #define MBEDTLS_SSL_OUT_CONTENT_LEN             1024
 
-/* Save RAM at the expense of ROM */
-#define MBEDTLS_AES_ROM_TABLES
 
 /* Save some RAM by adjusting to your exact needs */
 #define MBEDTLS_PSK_MAX_LEN    16 /* 128-bits keys are generally enough */
-
-/*
- * You should adjust this to the exact number of sources you're using: default
- * is the "platform_entropy_poll" source, but you may want to add other ones
- * Minimum is 2 for the entropy test suite.
- */
-#define MBEDTLS_ENTROPY_MAX_SOURCES 2
 
 /* Error messages and TLS debugging traces
  * (huge code size increase, needed for tests/ssl-opt.sh) */

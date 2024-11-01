@@ -5727,7 +5727,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_SSL_KEYING_MATERIAL_EXPORT */
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_KEYING_MATERIAL_EXPORT:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:PSA_WANT_ECC_SECP_R1_384:PSA_WANT_ALG_SHA_256 */
 void ssl_tls_exporter_consistent_result(int proto, int exported_key_length, int use_context)
 {
     /* Test that the client and server generate the same key. */
@@ -5774,7 +5774,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_SSL_KEYING_MATERIAL_EXPORT */
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_KEYING_MATERIAL_EXPORT:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:PSA_WANT_ECC_SECP_R1_384:PSA_WANT_ALG_SHA_256 */
 void ssl_tls_exporter_uses_label(int proto)
 {
     /* Test that the client and server export different keys when using different labels. */
@@ -5813,7 +5813,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_SSL_KEYING_MATERIAL_EXPORT */
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_KEYING_MATERIAL_EXPORT:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:PSA_WANT_ECC_SECP_R1_384:PSA_WANT_ALG_SHA_256 */
 void ssl_tls_exporter_uses_context(int proto)
 {
     /* Test that the client and server export different keys when using different contexts. */
@@ -5852,7 +5852,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_SSL_KEYING_MATERIAL_EXPORT */
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_TEST_AT_LEAST_ONE_TLS1_3_CIPHERSUITE:MBEDTLS_SSL_KEYING_MATERIAL_EXPORT:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:PSA_WANT_ECC_SECP_R1_384:PSA_WANT_ALG_SHA_256 */
 void ssl_tls13_exporter_uses_length(void)
 {
     /* In TLS 1.3, when two keys are exported with the same parameters except one is shorter,
@@ -5894,7 +5894,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_SSL_KEYING_MATERIAL_EXPORT */
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_KEYING_MATERIAL_EXPORT:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:PSA_WANT_ECC_SECP_R1_384:PSA_WANT_ALG_SHA_256 */
 void ssl_tls_exporter_rejects_bad_parameters(
     int proto, int exported_key_length, int label_length, int context_length)
 {
@@ -5934,7 +5934,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_SSL_KEYING_MATERIAL_EXPORT */
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_KEYING_MATERIAL_EXPORT:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:PSA_WANT_ECC_SECP_R1_384:PSA_WANT_ALG_SHA_256 */
 void ssl_tls_exporter_too_early(int proto, int check_server, int state)
 {
     enum { BUFFSIZE = 1024 };

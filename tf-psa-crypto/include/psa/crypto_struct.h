@@ -518,7 +518,7 @@ struct psa_key_agreement_iop_s {
 #if defined(MBEDTLS_PSA_CRYPTO_CLIENT) && !defined(MBEDTLS_PSA_CRYPTO_C)
 #define PSA_KEY_AGREEMENT_IOP_INIT { 0 }
 #else
-#define PSA_KEY_AGREEMENT_IOP_INIT { 0, { 0 }, 0, PSA_KEY_ATTRIBUTES_INIT, 0 }
+#define PSA_KEY_AGREEMENT_IOP_INIT { 0, MBEDTLS_PSA_KEY_AGREEMENT_IOP_INIT, 0, PSA_KEY_ATTRIBUTES_INIT, 0 }
 #endif
 
 static inline struct psa_key_agreement_iop_s

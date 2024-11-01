@@ -255,6 +255,7 @@ mbedtls_ecp_group;
 #define MBEDTLS_ECP_GROUP_INIT { MBEDTLS_ECP_DP_NONE, MBEDTLS_MPI_INIT, MBEDTLS_MPI_INIT, \
                                  MBEDTLS_MPI_INIT, MBEDTLS_ECP_POINT_INIT, MBEDTLS_MPI_INIT, \
                                  0, 0, 0, NULL, NULL, NULL, NULL, NULL, 0 }
+
 /**
  * \name SECTION: Module settings
  *
@@ -371,6 +372,8 @@ typedef struct {
     mbedtls_ecp_restart_mul_ctx *MBEDTLS_PRIVATE(rsm);   /*!<  ecp_mul_comb() sub-context    */
     mbedtls_ecp_restart_muladd_ctx *MBEDTLS_PRIVATE(ma); /*!<  ecp_muladd() sub-context      */
 } mbedtls_ecp_restart_ctx;
+
+#define MBEDTLS_ECP_RESTART_INIT {0, 0, NULL, NULL}
 
 /*
  * Operation counts for restartable functions

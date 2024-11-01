@@ -47,6 +47,8 @@ typedef struct
   unsigned char peer_point[MBEDTLS_X25519_KEY_SIZE_BYTES];
 } mbedtls_x25519_context;
 
+#define MBEDTLS_X25519_CTX_INIT {{0}, {0}}
+
 /**
  * \brief           This function initializes an x25519 context.
  *

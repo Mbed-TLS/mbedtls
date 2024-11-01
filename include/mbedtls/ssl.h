@@ -5396,15 +5396,22 @@ int  mbedtls_ssl_tls_prf(const mbedtls_tls_prf_types prf,
                          const unsigned char *random, size_t rlen,
                          unsigned char *dstbuf, size_t dlen);
 
+#if defined(MBEDTLS_SSL_KEYING_MATERIAL_EXPORT)
+/* Maximum value for key_len in mbedtls_ssl_export_keying material. Depending on the TLS
+ * version and the negotiated ciphersuite, larger keys could in principle be exported,
+ * but for simplicity, we define one limit that works in all cases. TLS 1.3 with SHA256
+ * has the strictest limit: 255 blocks of SHA256 output, or 8160 bytes. */
+#define MBEDTLS_SSL_EXPORT_MAX_KEY_LEN 8160
+
 /**
  * \brief             TLS-Exporter to derive shared symmetric keys between server and client.
  *
  * \param ssl         SSL context from which to export keys. Must have finished the handshake.
  * \param out         Output buffer of length at least key_len bytes.
- * \param key_len     Length of the key to generate in bytes. In TLS 1.3, this can be at most
- *                    8160 if SHA256 is used as hash function or 12240 if SHA384 is used.
+ * \param key_len     Length of the key to generate in bytes, must be at most
+ *                    MBEDTLS_SSL_EXPORT_MAX_KEY_LEN (8160).
  * \param label       Label for which to generate the key of length label_len.
- * \param label_len   Length of label in bytes. Must be < 251 in TLS 1.3.
+ * \param label_len   Length of label in bytes. Must be at most 250 in TLS 1.3.
  * \param context     Context of the key. Can be NULL if context_len or use_context is 0.
  * \param context_len Length of context. Must be < 2^16 in TLS 1.2.
  * \param use_context Indicates if a context should be used in deriving the key.
@@ -5416,7 +5423,6 @@ int  mbedtls_ssl_tls_prf(const mbedtls_tls_prf_types prf,
  *
  * \return            0 on success. An SSL specific error on failure.
  */
-#if defined(MBEDTLS_SSL_KEYING_MATERIAL_EXPORT)
 int mbedtls_ssl_export_keying_material(mbedtls_ssl_context *ssl,
                                        uint8_t *out, const size_t key_len,
                                        const char *label, const size_t label_len,

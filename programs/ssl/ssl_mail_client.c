@@ -619,7 +619,7 @@ usage:
         fflush(stdout);
 
         gethostname(hostname, 32);
-        len = sprintf((char *) buf, "EHLO %s\r\n", hostname);
+        len = snprintf((char *) buf, sizeof(buf), "EHLO %s\r\n", hostname);
         ret = write_ssl_and_get_response(&ssl, buf, len);
         if (ret < 200 || ret > 299) {
             mbedtls_printf(" failed\n  ! server responded with %d\n\n", ret);
@@ -641,7 +641,7 @@ usage:
         fflush(stdout);
 
         gethostname(hostname, 32);
-        len = sprintf((char *) buf, "EHLO %s\r\n", hostname);
+        len = snprintf((char *) buf, sizeof(buf), "EHLO %s\r\n", hostname);
         ret = write_and_get_response(&server_fd, buf, len);
         if (ret < 200 || ret > 299) {
             mbedtls_printf(" failed\n  ! server responded with %d\n\n", ret);
@@ -654,7 +654,7 @@ usage:
         fflush(stdout);
 
         gethostname(hostname, 32);
-        len = sprintf((char *) buf, "STARTTLS\r\n");
+        len = snprintf((char *) buf, sizeof(buf), "STARTTLS\r\n");
         ret = write_and_get_response(&server_fd, buf, len);
         if (ret < 200 || ret > 299) {
             mbedtls_printf(" failed\n  ! server responded with %d\n\n", ret);
@@ -673,7 +673,7 @@ usage:
         mbedtls_printf("  > Write AUTH LOGIN to server:");
         fflush(stdout);
 
-        len = sprintf((char *) buf, "AUTH LOGIN\r\n");
+        len = snprintf((char *) buf, sizeof(buf), "AUTH LOGIN\r\n");
         ret = write_ssl_and_get_response(&ssl, buf, len);
         if (ret < 200 || ret > 399) {
             mbedtls_printf(" failed\n  ! server responded with %d\n\n", ret);
@@ -692,7 +692,7 @@ usage:
             mbedtls_printf(" failed\n  ! mbedtls_base64_encode returned %d\n\n", ret);
             goto exit;
         }
-        len = sprintf((char *) buf, "%s\r\n", base);
+        len = snprintf((char *) buf, sizeof(buf), "%s\r\n", base);
         ret = write_ssl_and_get_response(&ssl, buf, len);
         if (ret < 300 || ret > 399) {
             mbedtls_printf(" failed\n  ! server responded with %d\n\n", ret);
@@ -711,7 +711,7 @@ usage:
             mbedtls_printf(" failed\n  ! mbedtls_base64_encode returned %d\n\n", ret);
             goto exit;
         }
-        len = sprintf((char *) buf, "%s\r\n", base);
+        len = snprintf((char *) buf, sizeof(buf), "%s\r\n", base);
         ret = write_ssl_and_get_response(&ssl, buf, len);
         if (ret < 200 || ret > 399) {
             mbedtls_printf(" failed\n  ! server responded with %d\n\n", ret);
@@ -757,7 +757,7 @@ usage:
     mbedtls_printf("  > Write DATA to server:");
     fflush(stdout);
 
-    len = sprintf((char *) buf, "DATA\r\n");
+    len = snprintf((char *) buf, sizeof(buf), "DATA\r\n");
     ret = write_ssl_and_get_response(&ssl, buf, len);
     if (ret < 300 || ret > 399) {
         mbedtls_printf(" failed\n  ! server responded with %d\n\n", ret);
@@ -781,7 +781,7 @@ usage:
     }
     ret = write_ssl_data(&ssl, buf, len);
 
-    len = sprintf((char *) buf, "\r\n.\r\n");
+    len = snprintf((char *) buf, sizeof(buf), "\r\n.\r\n");
     ret = write_ssl_and_get_response(&ssl, buf, len);
     if (ret < 200 || ret > 299) {
         mbedtls_printf(" failed\n  ! server responded with %d\n\n", ret);

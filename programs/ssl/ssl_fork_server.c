@@ -325,7 +325,7 @@ int main(void)
         mbedtls_printf("pid %d: Start writing to client.\n", pid);
         fflush(stdout);
 
-        len = sprintf((char *) buf, HTTP_RESPONSE,
+        len = snprintf((char *) buf, sizeof(buf), HTTP_RESPONSE,
                       mbedtls_ssl_get_ciphersuite(&ssl));
 
         while (cnt++ < 10) {

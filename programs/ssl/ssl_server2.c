@@ -3918,7 +3918,7 @@ data_exchange:
 
     /* If the format of the response changes, make sure there is enough
      * room in buf (buf_content_size calculation above). */
-    len = sprintf((char *) buf, HTTP_RESPONSE,
+    len = snprintf((char *) buf, sizeof(buf), HTTP_RESPONSE,
                   mbedtls_ssl_get_ciphersuite(&ssl));
 
     /* Add padding to the response to reach opt.response_size in length */

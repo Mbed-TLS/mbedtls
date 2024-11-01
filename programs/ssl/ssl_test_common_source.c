@@ -58,22 +58,22 @@ static void nss_keylog_export(void *p_expkey,
     ((void) server_random);
     ((void) tls_prf_type);
 
-    len += sprintf(nss_keylog_line + len,
+    len += snprintf(nss_keylog_line + len, sizeof(nss_keylog_line) - len,
                    "%s", "CLIENT_RANDOM ");
 
     for (j = 0; j < client_random_len; j++) {
-        len += sprintf(nss_keylog_line + len,
+        len += snprintf(nss_keylog_line + len, sizeof(nss_keylog_line) - len,
                        "%02x", client_random[j]);
     }
 
-    len += sprintf(nss_keylog_line + len, " ");
+    len += snprintf(nss_keylog_line + len, sizeof(nss_keylog_line) - len, " ");
 
     for (j = 0; j < secret_len; j++) {
-        len += sprintf(nss_keylog_line + len,
+        len += snprintf(nss_keylog_line + len, sizeof(nss_keylog_line) - len,
                        "%02x", secret[j]);
     }
 
-    len += sprintf(nss_keylog_line + len, "\n");
+    len += snprintf(nss_keylog_line + len, sizeof(nss_keylog_line) - len, "\n");
     nss_keylog_line[len] = '\0';
 
     mbedtls_printf("\n");

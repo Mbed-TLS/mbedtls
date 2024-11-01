@@ -373,7 +373,7 @@ typedef struct {
     mbedtls_ecp_restart_muladd_ctx *MBEDTLS_PRIVATE(ma); /*!<  ecp_muladd() sub-context      */
 } mbedtls_ecp_restart_ctx;
 
-#define MBEDTLS_ECP_RESTART_INIT {0, 0, NULL, NULL}
+#define MBEDTLS_ECP_RESTART_INIT { 0, 0, NULL, NULL }
 
 /*
  * Operation counts for restartable functions

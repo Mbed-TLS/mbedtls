@@ -727,6 +727,8 @@ uint32_t mbedtls_psa_key_agreement_iop_get_num_ops(
  *
  *  \param[in] operation                 The \c psa_key_agreement_iop_t to use.
  *                                       This must be initialized first.
+ *  \param[in] private_key_attributes    The attributes of the private key to use for the
+ *                                       operation.
  *  \param[in] private_key_buffer        The buffer containing the private key
  *                                       context.
  *  \param[in] private_key_buffer_len    Size of the \p private_key_buffer buffer in
@@ -735,8 +737,6 @@ uint32_t mbedtls_psa_key_agreement_iop_get_num_ops(
  *                                       of the peer's public key.
  *  \param[in]  peer_key_length          Size of the \p peer_key buffer in
  *                                       bytes.
- *  \param[in]  attributes               The attributes of the private key to use for the
- *                                       operation.
  *  \retval #PSA_SUCCESS
  *         The operation started successfully - call \c psa_key_agreement_complete()
  *         with the same context to complete the operation

@@ -245,10 +245,10 @@ $(BINARIES): %$(EXEXT): %.c $(MBEDLIBS) $(TEST_OBJS_DEPS) $(MBEDTLS_TEST_OBJS)
 	echo "  CC   $<"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $< $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
-LOCAL_CRYPTO_CFLAGS = $(patsubst -I./include, -I../../framework/tests/include, $(patsubst -I../%,-I../../%, $(LOCAL_CFLAGS)))
+LOCAL_CRYPTO_CFLAGS = $(patsubst -I./include, -I../../tests/include, $(patsubst -I../%,-I../../%, $(LOCAL_CFLAGS)))
 LOCAL_CRYPTO_LDFLAGS = $(patsubst -L../library, -L../../library, \
                        $(patsubst -L../tests/%, -L../../tests/%, \
-                       $(patsubst ./src/%,../../framework/tests/src/%, $(LOCAL_LDFLAGS))))
+                       $(patsubst ./src/%,../../tests/src/%, $(LOCAL_LDFLAGS))))
 $(CRYPTO_BINARIES): %$(EXEXT): %.c $(MBEDLIBS) $(TEST_OBJS_DEPS) $(MBEDTLS_TEST_OBJS)
 	echo "  CC   $<"
 	cd ../tf-psa-crypto/tests && $(CC) $(LOCAL_CRYPTO_CFLAGS) $(CFLAGS) $(subst $(EXEXT),,$(@F)).c $(LOCAL_CRYPTO_LDFLAGS) $(LDFLAGS) -o $(@F)

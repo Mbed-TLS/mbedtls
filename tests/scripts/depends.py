@@ -457,20 +457,6 @@ Both parent class __init__ calls are performed in any order and
 each call adds respective jobs. The job array initialization is done once in
 BaseDomain, before the parent __init__ calls."""
 
-class CipherInfo: # pylint: disable=too-few-public-methods
-    """Collect data about cipher.h."""
-    def __init__(self):
-        self.base_symbols = set()
-        if os.path.isdir('tf-psa-crypto'):
-            cipher_h_path = 'tf-psa-crypto/drivers/builtin/include/mbedtls/cipher.h'
-        else:
-            cipher_h_path = 'include/mbedtls/cipher.h'
-        with open(cipher_h_path, encoding="utf-8") as fh:
-            for line in fh:
-                m = re.match(r' *MBEDTLS_CIPHER_ID_(\w+),', line)
-                if m and m.group(1) not in ['NONE', 'NULL', '3DES']:
-                    self.base_symbols.add('PSA_WANT_KEY_TYPE_' + m.group(1))
-
 class DomainData:
     """A container for domains and jobs, used to structurize testing."""
     def config_symbols_matching(self, regexp):
@@ -504,17 +490,17 @@ class DomainData:
         # Find key exchange enabling macros by name.
         key_exchange_symbols = self.config_symbols_matching(r'MBEDTLS_KEY_EXCHANGE_\w+_ENABLED\Z')
 
-        # Find cipher IDs (block permutations and stream ciphers --- chaining
-        # and padding modes are exercised separately) information by parsing
-        # cipher.h, as the information is not readily available in mbedtls_config.h.
-        cipher_info = CipherInfo()
+        # Find cipher key types
+        cipher_key_types = {symbol
+                            for key_type, symbol in key_types.items()
+                            for alg in cipher_algs
+                            if key_type.can_do(alg)}
         # Find block cipher chaining and padding mode enabling macros by name.
         cipher_chaining_symbols = self.config_symbols_matching(r'MBEDTLS_CIPHER_MODE_\w+\Z')
         cipher_padding_symbols = self.config_symbols_matching(r'MBEDTLS_CIPHER_PADDING_\w+\Z')
         self.domains = {
-            # Cipher IDs, chaining modes and padding modes. Run the test suites.
-            'cipher_id': ExclusiveDomain(cipher_info.base_symbols,
-                                         build_and_test),
+            # Cipher key types
+            'cipher_id': ExclusiveDomain(cipher_key_types, build_and_test),
             'cipher_chaining': ExclusiveDomain(cipher_chaining_symbols,
                                                build_and_test),
             'cipher_padding': ExclusiveDomain(cipher_padding_symbols,

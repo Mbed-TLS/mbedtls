@@ -55,7 +55,7 @@ if [ "$#" -eq 1 ]; then
     fi
 fi
 
-if [ "$#" -ne 4 -o "$1" != '--seed' -o "$3" != '--keep-going' ]; then
+if [ "$#" -ne 4 -o "${1:-unset}" != '--seed' -o "${3:-unset}" != '--keep-going' ]; then
     echo "This invocation is not supported by the transitional wrapper." >&2
     echo "See the comments at the top of $0." >&2
     exit 1

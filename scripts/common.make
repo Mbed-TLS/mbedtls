@@ -24,6 +24,7 @@ WARNING_CXXFLAGS ?= -Wall -Wextra -Wformat=2 -Wno-format-nonliteral -std=c++11 -
 LDFLAGS ?=
 
 LOCAL_CFLAGS = $(WARNING_CFLAGS) -I$(MBEDTLS_TEST_PATH)/include \
+               -I$(MBEDTLS_PATH)/framework/tests/include \
                -I$(MBEDTLS_PATH)/include -I$(MBEDTLS_PATH)/tf-psa-crypto/include \
                -I$(MBEDTLS_PATH)/tf-psa-crypto/drivers/builtin/include \
                -D_FILE_OFFSET_BITS=64

@@ -229,8 +229,8 @@ int mbedtls_chachapoly_update(mbedtls_chachapoly_context *ctx,
                               unsigned char *output);
 
 /**
- * \brief           This function finished the ChaCha20-Poly1305 operation and
- *                  generates authentication tag.
+ * \brief           This function finishes the ChaCha20-Poly1305 operation and
+ *                  generates the authentication tag.
  *
  * \param ctx       The ChaCha20-Poly1305 context to use. This must be initialized.
  * \param mac       The buffer to where the 128-bit (16-byte) authentication

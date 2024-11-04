@@ -21,8 +21,12 @@ WARNING_CFLAGS ?= -Wall -Wextra -Wformat=2 -Wno-format-nonliteral
 WARNING_CXXFLAGS ?= -Wall -Wextra -Wformat=2 -Wno-format-nonliteral -std=c++11 -pedantic
 LDFLAGS ?=
 
-LOCAL_CFLAGS = $(WARNING_CFLAGS) -I$(MBEDTLS_TEST_PATH)/include -I$(MBEDTLS_PATH)/include -D_FILE_OFFSET_BITS=64
-LOCAL_CXXFLAGS = $(WARNING_CXXFLAGS) -I$(MBEDTLS_PATH)/include -I$(MBEDTLS_PATH)/framework/tests/include -D_FILE_OFFSET_BITS=64
+LOCAL_CFLAGS = $(WARNING_CFLAGS) -I$(MBEDTLS_TEST_PATH)/include \
+               -I$(MBEDTLS_PATH)/framework/tests/include \
+               -I$(MBEDTLS_PATH)/include \
+               -D_FILE_OFFSET_BITS=64
+LOCAL_CXXFLAGS = $(WARNING_CXXFLAGS) $(LOCAL_CFLAGS)
+
 LOCAL_LDFLAGS = ${MBEDTLS_TEST_OBJS} 		\
 		-L$(MBEDTLS_PATH)/library			\
 		-lmbedtls$(SHARED_SUFFIX)	\

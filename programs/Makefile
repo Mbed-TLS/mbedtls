@@ -141,7 +141,7 @@ psa/psa_constant_names_generated.c: $(gen_file_dep) ../tf-psa-crypto/include/psa
 psa/psa_constant_names_generated.c: $(gen_file_dep) ../tf-psa-crypto/tests/suites/test_suite_psa_crypto_metadata.data
 psa/psa_constant_names_generated.c:
 	echo "  Gen   $@"
-	cd ../tf-psa-crypto; $(PYTHON) ../scripts/generate_psa_constants.py
+	cd ../tf-psa-crypto; $(PYTHON) ./scripts/generate_psa_constants.py
 
 test/query_config.c: $(gen_file_dep) ../scripts/generate_query_config.pl
 ## The generated file only depends on the options that are present in mbedtls_config.h,

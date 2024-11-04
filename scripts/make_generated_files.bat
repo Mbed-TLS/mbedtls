@@ -19,7 +19,7 @@ python framework\scripts\generate_ssl_debug_helpers.py || exit /b 1
 perl scripts\generate_visualc_files.pl || exit /b 1
 
 @rem @@@@ programs\** @@@@
-python scripts\generate_psa_constants.py || exit /b 1
+python tf-psa-crypto\scripts\generate_psa_constants.py || exit /b 1
 
 @rem @@@@ tests\** @@@@
 python framework\scripts\generate_bignum_tests.py --directory tf-psa-crypto\tests\suites || exit /b 1

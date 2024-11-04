@@ -1,5 +1,4 @@
-TF-PSA-CRYPTO_PATH = ../tf-psa-crypto/
-TF-PSA-CRYPTO_PROGRAM_PATH = ../tf-psa-crypto/programs
+TF-PSA-CRYPTO_CORE_PATH = ../tf-psa-crypto/programs
 MBEDTLS_TEST_PATH = ../tests
 include ../scripts/common.make
 

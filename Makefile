@@ -8,12 +8,12 @@ ifneq (,$(filter-out lib library/%,$(or $(MAKECMDGOALS),all)))
         # GNU make appends ".  Stop.", so tweak the ending of our message accordingly.
         ifeq (,$(wildcard .git))
             define error_message
-${MBEDTLS_FRAMEWORK_DIR}/exported.make not found (and does appear to be a git checkout). Run `git submodule update --init` from the source tree to fetch the submodule contents.
+${MBEDTLS_PATH}/framework/exported.make not found (and does appear to be a git checkout). Run `git submodule update --init` from the source tree to fetch the submodule contents.
 This is a fatal error
             endef
         else
             define error_message
-${MBEDTLS_FRAMEWORK_DIR}/exported.make not found (and does not appear to be a git checkout). Please ensure you have downloaded the right archive from the release page on GitHub.
+${MBEDTLS_PATH}/framework/exported.make not found (and does not appear to be a git checkout). Please ensure you have downloaded the right archive from the release page on GitHub.
             endef
         endif
         $(error $(error_message))

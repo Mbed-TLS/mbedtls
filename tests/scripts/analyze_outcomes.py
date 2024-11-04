@@ -409,6 +409,8 @@ class DriverVSReference_ecp_light_only(outcome_analysis.DriverVSReference):
     IGNORED_SUITES = [
         # Modules replaced by drivers
         'ecdsa', 'ecdh', 'ecjpake',
+        # Unit tests for the built-in implementation
+        'psa_crypto_ecp',
     ]
     IGNORED_TESTS = {
         'test_suite_config': [
@@ -449,6 +451,8 @@ class DriverVSReference_no_ecp_at_all(outcome_analysis.DriverVSReference):
     IGNORED_SUITES = [
         # Modules replaced by drivers
         'ecp', 'ecdsa', 'ecdh', 'ecjpake',
+        # Unit tests for the built-in implementation
+        'psa_crypto_ecp',
     ]
     IGNORED_TESTS = {
         'test_suite_config': [
@@ -489,6 +493,8 @@ class DriverVSReference_ecc_no_bignum(outcome_analysis.DriverVSReference):
         'ecp', 'ecdsa', 'ecdh', 'ecjpake',
         'bignum_core', 'bignum_random', 'bignum_mod', 'bignum_mod_raw',
         'bignum.generated', 'bignum.misc',
+        # Unit tests for the built-in implementation
+        'psa_crypto_ecp',
     ]
     IGNORED_TESTS = {
         'test_suite_config': [
@@ -534,6 +540,8 @@ class DriverVSReference_ecc_ffdh_no_bignum(outcome_analysis.DriverVSReference):
         'ecp', 'ecdsa', 'ecdh', 'ecjpake', 'dhm',
         'bignum_core', 'bignum_random', 'bignum_mod', 'bignum_mod_raw',
         'bignum.generated', 'bignum.misc',
+        # Unit tests for the built-in implementation
+        'psa_crypto_ecp',
     ]
     IGNORED_TESTS = {
         'ssl-opt': [
@@ -604,6 +612,8 @@ class DriverVSReference_tfm_config(outcome_analysis.DriverVSReference):
         'ecp', 'ecdsa', 'ecdh', 'ecjpake',
         'bignum_core', 'bignum_random', 'bignum_mod', 'bignum_mod_raw',
         'bignum.generated', 'bignum.misc',
+        # Unit tests for the built-in implementation
+        'psa_crypto_ecp',
     ]
     IGNORED_TESTS = {
         'test_suite_config': [

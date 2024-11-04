@@ -57,7 +57,6 @@ component_test_no_renegotiation () {
 component_test_tls1_2_default_stream_cipher_only () {
     msg "build: default with only stream cipher use psa"
 
-    scripts/config.py set MBEDTLS_USE_PSA_CRYPTO
     scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
     # Disable AEAD (controlled by the presence of one of GCM_C, CCM_C, CHACHAPOLY_C)
     scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CCM
@@ -95,7 +94,6 @@ component_test_tls1_2_default_stream_cipher_only () {
 component_test_tls1_2_default_cbc_legacy_cipher_only () {
     msg "build: default with only CBC-legacy cipher use psa"
 
-    scripts/config.py set MBEDTLS_USE_PSA_CRYPTO
     scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
     # Disable AEAD (controlled by the presence of one of GCM_C, CCM_C, CHACHAPOLY_C)
     scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CCM
@@ -130,7 +128,6 @@ component_test_tls1_2_default_cbc_legacy_cipher_only () {
 component_test_tls1_2_default_cbc_legacy_cbc_etm_cipher_only () {
     msg "build: default with only CBC-legacy and CBC-EtM ciphers use psa"
 
-    scripts/config.py set MBEDTLS_USE_PSA_CRYPTO
     scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
     # Disable AEAD (controlled by the presence of one of GCM_C, CCM_C, CHACHAPOLY_C)
     scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CCM
@@ -182,39 +179,6 @@ component_test_config_thread () {
 
     msg "test: configs/config-thread.h - ssl-opt.sh"
     tests/ssl-opt.sh -f 'ECJPAKE.*nolog'
-}
-
-# We're not aware of any other (open source) implementation of EC J-PAKE in TLS
-# that we could use for interop testing. However, we now have sort of two
-# implementations ourselves: one using PSA, the other not. At least test that
-# these two interoperate with each other.
-component_test_tls1_2_ecjpake_compatibility () {
-    msg "build: TLS1.2 server+client w/ EC-JPAKE w/o USE_PSA"
-    scripts/config.py set MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED
-    # Explicitly make lib first to avoid a race condition:
-    # https://github.com/Mbed-TLS/mbedtls/issues/8229
-    make lib
-    make -C programs ssl/ssl_server2 ssl/ssl_client2
-    cp programs/ssl/ssl_server2 s2_no_use_psa
-    cp programs/ssl/ssl_client2 c2_no_use_psa
-
-    msg "build: TLS1.2 server+client w/ EC-JPAKE w/ USE_PSA"
-    scripts/config.py set MBEDTLS_USE_PSA_CRYPTO
-    make clean
-    make lib
-    make -C programs ssl/ssl_server2 ssl/ssl_client2
-    make -C programs test/udp_proxy test/query_compile_time_config
-
-    msg "test: server w/o USE_PSA - client w/ USE_PSA, text password"
-    P_SRV=../s2_no_use_psa tests/ssl-opt.sh -f "ECJPAKE: working, TLS"
-    msg "test: server w/o USE_PSA - client w/ USE_PSA, opaque password"
-    P_SRV=../s2_no_use_psa tests/ssl-opt.sh -f "ECJPAKE: opaque password client only, working, TLS"
-    msg "test: client w/o USE_PSA - server w/ USE_PSA, text password"
-    P_CLI=../c2_no_use_psa tests/ssl-opt.sh -f "ECJPAKE: working, TLS"
-    msg "test: client w/o USE_PSA - server w/ USE_PSA, opaque password"
-    P_CLI=../c2_no_use_psa tests/ssl-opt.sh -f "ECJPAKE: opaque password server only, working, TLS"
-
-    rm s2_no_use_psa c2_no_use_psa
 }
 
 component_test_tls1_2_ccm_psk () {

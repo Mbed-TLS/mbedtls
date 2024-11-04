@@ -66,14 +66,13 @@ void mbedtls_pem_read_buffer(char *header, char *footer, char *data,
                              char *pwd, int res, data_t *out)
 {
     mbedtls_pem_context ctx;
+    mbedtls_pem_init(&ctx);
     int ret;
     size_t use_len = 0;
     size_t pwd_len = strlen(pwd);
     const unsigned char *buf;
 
     MD_PSA_INIT();
-
-    mbedtls_pem_init(&ctx);
 
     ret = mbedtls_pem_read_buffer(&ctx, header, footer, (unsigned char *) data,
                                   (unsigned char *) pwd, pwd_len, &use_len);

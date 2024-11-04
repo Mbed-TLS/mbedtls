@@ -14,18 +14,18 @@ void pkcs1_rsaes_oaep_encrypt(int mod, data_t *input_N, data_t *input_E,
 {
     unsigned char output[256];
     mbedtls_rsa_context ctx;
+    mbedtls_rsa_init(&ctx);
     mbedtls_test_rnd_buf_info info;
     mbedtls_mpi N, E;
-
-    MD_PSA_INIT();
+    mbedtls_mpi_init(&N); mbedtls_mpi_init(&E);
 
     info.fallback_f_rng = mbedtls_test_rnd_std_rand;
     info.fallback_p_rng = NULL;
     info.buf = rnd_buf->x;
     info.length = rnd_buf->len;
 
-    mbedtls_mpi_init(&N); mbedtls_mpi_init(&E);
-    mbedtls_rsa_init(&ctx);
+    MD_PSA_INIT();
+
     TEST_ASSERT(mbedtls_rsa_set_padding(&ctx,
                                         MBEDTLS_RSA_PKCS_V21, hash) == 0);
     memset(output, 0x00, sizeof(output));
@@ -66,17 +66,16 @@ void pkcs1_rsaes_oaep_decrypt(int mod, data_t *input_P, data_t *input_Q,
 {
     unsigned char output[64];
     mbedtls_rsa_context ctx;
+    mbedtls_rsa_init(&ctx);
     size_t output_len;
     mbedtls_test_rnd_pseudo_info rnd_info;
     mbedtls_mpi N, P, Q, E;
+    mbedtls_mpi_init(&N); mbedtls_mpi_init(&P);
+    mbedtls_mpi_init(&Q); mbedtls_mpi_init(&E);
     ((void) seed);
 
     MD_PSA_INIT();
 
-    mbedtls_mpi_init(&N); mbedtls_mpi_init(&P);
-    mbedtls_mpi_init(&Q); mbedtls_mpi_init(&E);
-
-    mbedtls_rsa_init(&ctx);
     TEST_ASSERT(mbedtls_rsa_set_padding(&ctx,
                                         MBEDTLS_RSA_PKCS_V21, hash) == 0);
 
@@ -131,19 +130,19 @@ void pkcs1_rsassa_pss_sign(int mod, data_t *input_P, data_t *input_Q,
 {
     unsigned char output[512];
     mbedtls_rsa_context ctx;
+    mbedtls_rsa_init(&ctx);
     mbedtls_test_rnd_buf_info info;
     mbedtls_mpi N, P, Q, E;
-
-    MD_PSA_INIT();
+    mbedtls_mpi_init(&N); mbedtls_mpi_init(&P);
+    mbedtls_mpi_init(&Q); mbedtls_mpi_init(&E);
 
     info.fallback_f_rng = mbedtls_test_rnd_std_rand;
     info.fallback_p_rng = NULL;
     info.buf = rnd_buf->x;
     info.length = rnd_buf->len;
 
-    mbedtls_mpi_init(&N); mbedtls_mpi_init(&P);
-    mbedtls_mpi_init(&Q); mbedtls_mpi_init(&E);
-    mbedtls_rsa_init(&ctx);
+    MD_PSA_INIT();
+
     TEST_ASSERT(mbedtls_rsa_set_padding(&ctx,
                                         MBEDTLS_RSA_PKCS_V21, hash) == 0);
 
@@ -196,13 +195,13 @@ void pkcs1_rsassa_pss_verify(int mod, data_t *input_N, data_t *input_E,
                              char *salt, data_t *result_str, int result)
 {
     mbedtls_rsa_context ctx;
+    mbedtls_rsa_init(&ctx);
     mbedtls_mpi N, E;
+    mbedtls_mpi_init(&N); mbedtls_mpi_init(&E);
     ((void) salt);
 
     MD_PSA_INIT();
 
-    mbedtls_mpi_init(&N); mbedtls_mpi_init(&E);
-    mbedtls_rsa_init(&ctx);
     TEST_ASSERT(mbedtls_rsa_set_padding(&ctx,
                                         MBEDTLS_RSA_PKCS_V21, hash) == 0);
 
@@ -236,12 +235,12 @@ void pkcs1_rsassa_pss_verify_ext(int mod, data_t *input_N, data_t *input_E,
                                  int result_full)
 {
     mbedtls_rsa_context ctx;
+    mbedtls_rsa_init(&ctx);
     mbedtls_mpi N, E;
+    mbedtls_mpi_init(&N); mbedtls_mpi_init(&E);
 
     MD_PSA_INIT();
 
-    mbedtls_mpi_init(&N); mbedtls_mpi_init(&E);
-    mbedtls_rsa_init(&ctx);
     TEST_ASSERT(mbedtls_rsa_set_padding(&ctx,
                                         MBEDTLS_RSA_PKCS_V21, ctx_hash) == 0);
 

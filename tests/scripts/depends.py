@@ -488,6 +488,9 @@ class DomainData:
                 for alg, symbol in ((alg, psa_information.psa_want_symbol(alg))
                                     for alg in psa_info.algorithms)
                 if symbol in self.all_config_symbols}
+        cipher_algs = {alg
+                       for alg in algs
+                       if alg.can_do(crypto_knowledge.AlgorithmCategory.CIPHER)}
 
         # Find hash modules by name.
         hash_symbols = self.config_symbols_matching(r'MBEDTLS_(MD|RIPEMD|SHA)[0-9]+_C\Z')

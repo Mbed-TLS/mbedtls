@@ -19,9 +19,9 @@ if(GEN_FILES)
         WORKING_DIRECTORY
             ${CMAKE_CURRENT_SOURCE_DIR}/../../..
         DEPENDS
-            ${CMAKE_CURRENT_SOURCE_DIR}/../../../scripts/generate_psa_constants.py
-            ${CMAKE_CURRENT_SOURCE_DIR}/../../../tf-psa-crypto/include/psa/crypto_values.h
-            ${CMAKE_CURRENT_SOURCE_DIR}/../../../tf-psa-crypto/include/psa/crypto_extra.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/../../scripts/generate_psa_constants.py
+            ${CMAKE_CURRENT_SOURCE_DIR}/../../include/psa/crypto_values.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/../../include/psa/crypto_extra.h
     )
 else()
     link_to_source(psa_constant_names_generated.c)

@@ -1,4 +1,3 @@
-TF-PSA-CRYPTO_CORE_PATH = ../tf-psa-crypto/programs
 MBEDTLS_TEST_PATH = ../tests
 include ../scripts/common.make
 
@@ -30,6 +29,9 @@ endif
 ## be declared by appending with `APPS += ...` afterwards.
 ## See the get_app_list function in scripts/generate_visualc_files.pl and
 ## make sure to check that it still works if you tweak the format here.
+##
+## Note: Variables cannot be used to define an apps path. This cannot be
+## substituted by the script generate_visualc_files.pl.
 APPS = \
 	aes/crypt_and_hash \
 	cipher/cipher_aead_demo \
@@ -56,12 +58,12 @@ APPS = \
 	pkey/rsa_sign_pss \
 	pkey/rsa_verify \
 	pkey/rsa_verify_pss \
-	$(TF-PSA-CRYPTO_PROGRAM_PATH)/psa/aead_demo \
-	$(TF-PSA-CRYPTO_PROGRAM_PATH)/psa/crypto_examples \
-	$(TF-PSA-CRYPTO_PROGRAM_PATH)/psa/hmac_demo \
-	$(TF-PSA-CRYPTO_PROGRAM_PATH)/psa/key_ladder_demo \
-	$(TF-PSA-CRYPTO_PROGRAM_PATH)/psa/psa_constant_names \
-	$(TF-PSA-CRYPTO_PROGRAM_PATH)/psa/psa_hash \
+	../tf-psa-crypto/programs/psa/aead_demo \
+	../tf-psa-crypto/programs/psa/crypto_examples \
+	../tf-psa-crypto/programs/psa/hmac_demo \
+	../tf-psa-crypto/programs/psa/key_ladder_demo \
+	../tf-psa-crypto/programs/psa/psa_constant_names \
+	../tf-psa-crypto/programs/psa/psa_hash \
 	random/gen_entropy \
 	random/gen_random_ctr_drbg \
 	ssl/dtls_client \
@@ -253,29 +255,29 @@ pkey/rsa_encrypt$(EXEXT): pkey/rsa_encrypt.c $(DEP)
 	echo "  CC    pkey/rsa_encrypt.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) pkey/rsa_encrypt.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
-$(TF-PSA-CRYPTO_PROGRAM_PATH)/psa/aead_demo$(EXEXT): $(TF-PSA-CRYPTO_PROGRAM_PATH)/psa/aead_demo.c $(DEP)
-	echo "  CC    $(TF-PSA-CRYPTO_PROGRAM_PATH)/psa/aead_demo.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $(TF-PSA-CRYPTO_PROGRAM_PATH)/psa/aead_demo.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+../tf-psa-crypto/programs/psa/aead_demo$(EXEXT): ../tf-psa-crypto/programs/psa/aead_demo.c $(DEP)
+	echo "  CC    ../tf-psa-crypto/programs/psa/aead_demo.c"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) ../tf-psa-crypto/programs/psa/aead_demo.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
-$(TF-PSA-CRYPTO_PROGRAM_PATH)/psa/crypto_examples$(EXEXT): $(TF-PSA-CRYPTO_PROGRAM_PATH)/psa/crypto_examples.c $(DEP)
-	echo "  CC    $(TF-PSA-CRYPTO_PROGRAM_PATH)/psa/crypto_examples.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $(TF-PSA-CRYPTO_PROGRAM_PATH)/psa/crypto_examples.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+../tf-psa-crypto/programs/psa/crypto_examples$(EXEXT): ../tf-psa-crypto/programs/psa/crypto_examples.c $(DEP)
+	echo "  CC    ../tf-psa-crypto/programs/psa/crypto_examples.c"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) ../tf-psa-crypto/programs/psa/crypto_examples.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
-$(TF-PSA-CRYPTO_PROGRAM_PATH)/psa/hmac_demo$(EXEXT): $(TF-PSA-CRYPTO_PROGRAM_PATH)/psa/hmac_demo.c $(DEP)
-	echo "  CC    $(TF-PSA-CRYPTO_PROGRAM_PATH)/psa/hmac_demo.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $(TF-PSA-CRYPTO_PROGRAM_PATH)/psa/hmac_demo.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+../tf-psa-crypto/programs/psa/hmac_demo$(EXEXT): ../tf-psa-crypto/programs/psa/hmac_demo.c $(DEP)
+	echo "  CC    ../tf-psa-crypto/programs/psa/hmac_demo.c"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) ../tf-psa-crypto/programs/psa/hmac_demo.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
-$(TF-PSA-CRYPTO_PROGRAM_PATH)/psa/key_ladder_demo$(EXEXT): $(TF-PSA-CRYPTO_PROGRAM_PATH)/psa/key_ladder_demo.c $(DEP)
-	echo "  CC    $(TF-PSA-CRYPTO_PROGRAM_PATH)/psa/key_ladder_demo.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $(TF-PSA-CRYPTO_PROGRAM_PATH)/psa/key_ladder_demo.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+../tf-psa-crypto/programs/psa/key_ladder_demo$(EXEXT): ../tf-psa-crypto/programs/psa/key_ladder_demo.c $(DEP)
+	echo "  CC    ../tf-psa-crypto/programs/psa/key_ladder_demo.c"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) ../tf-psa-crypto/programs/psa/key_ladder_demo.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
-$(TF-PSA-CRYPTO_PROGRAM_PATH)/psa/psa_constant_names$(EXEXT): $(TF-PSA-CRYPTO_PROGRAM_PATH)/psa/psa_constant_names.c psa/psa_constant_names_generated.c $(DEP)
-	echo "  CC    $(TF-PSA-CRYPTO_PROGRAM_PATH)/psa/psa_constant_names.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $(TF-PSA-CRYPTO_PROGRAM_PATH)/psa/psa_constant_names.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+../tf-psa-crypto/programs/psa/psa_constant_names$(EXEXT): ../tf-psa-crypto/programs/psa/psa_constant_names.c psa/psa_constant_names_generated.c $(DEP)
+	echo "  CC    ../tf-psa-crypto/programs/psa/psa_constant_names.c"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) ../tf-psa-crypto/programs/psa/psa_constant_names.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
-$(TF-PSA-CRYPTO_PROGRAM_PATH)/psa/psa_hash$(EXEXT): $(TF-PSA-CRYPTO_PROGRAM_PATH)/psa/psa_hash.c $(DEP)
-	echo "  CC    $(TF-PSA-CRYPTO_PROGRAM_PATH)/psa/psa_hash.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $(TF-PSA-CRYPTO_PROGRAM_PATH)/psa/psa_hash.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+../tf-psa-crypto/programs/psa/psa_hash$(EXEXT): ../tf-psa-crypto/programs/psa/psa_hash.c $(DEP)
+	echo "  CC    ../tf-psa-crypto/programs/psa/psa_hash.c"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) ../tf-psa-crypto/programs/psa/psa_hash.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 random/gen_entropy$(EXEXT): random/gen_entropy.c $(DEP)
 	echo "  CC    random/gen_entropy.c"

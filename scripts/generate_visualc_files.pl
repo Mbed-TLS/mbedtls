@@ -186,7 +186,6 @@ sub gen_app {
 
 sub get_app_list {
     my $makefile_contents = slurp_file('programs/Makefile');
-    $makefile_contents =~ s/\$\(TF-PSA-CRYPTO_PROGRAM_PATH\)/..\/tf-psa-crypto\/programs/g;
     $makefile_contents =~ /\n\s*APPS\s*=[\\\s]*(.*?)(?<!\\)[\#\n]/s
       or die "Cannot find APPS = ... in programs/Makefile\n";
     return split /(?:\s|\\)+/, $1;

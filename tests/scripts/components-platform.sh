@@ -111,12 +111,14 @@ component_test_aesni () { # ~ 60s
     # AESNI detection will fallback to the plain C implementation, so the tests will instead
     # exercise the plain C impl).
 
+    MBEDTLS_TEST_CONFIGURATION="$current_component/both/default"
     msg "build: default config with different AES implementations"
     scripts/config.py set MBEDTLS_AESNI_C
     scripts/config.py unset MBEDTLS_AES_USE_HARDWARE_ONLY
     scripts/config.py set MBEDTLS_HAVE_ASM
 
     # test the intrinsics implementation
+    MBEDTLS_TEST_CONFIGURATION="$current_component/both/intrinsics"
     msg "AES tests, test intrinsics"
     make clean
     make CC=gcc CFLAGS='-Werror -Wall -Wextra -mpclmul -msse2 -maes'
@@ -124,6 +126,7 @@ component_test_aesni () { # ~ 60s
     ./programs/test/selftest aes | grep "AESNI code" | grep -q "intrinsics"
 
     # test the asm implementation
+    MBEDTLS_TEST_CONFIGURATION="$current_component/both/assembly"
     msg "AES tests, test assembly"
     make clean
     make CC=gcc CFLAGS='-Werror -Wall -Wextra -mno-pclmul -mno-sse2 -mno-aes'
@@ -131,6 +134,7 @@ component_test_aesni () { # ~ 60s
     ./programs/test/selftest aes | grep "AESNI code" | grep -q "assembly"
 
     # test the plain C implementation
+    MBEDTLS_TEST_CONFIGURATION="$current_component/software"
     scripts/config.py unset MBEDTLS_AESNI_C
     scripts/config.py unset MBEDTLS_AES_USE_HARDWARE_ONLY
     msg "AES tests, plain C"
@@ -142,6 +146,7 @@ component_test_aesni () { # ~ 60s
     grep -q "AES note: built-in implementation." ./programs/test/selftest
 
     # test the intrinsics implementation
+    MBEDTLS_TEST_CONFIGURATION="$current_component/hardware/intrinsics"
     scripts/config.py set MBEDTLS_AESNI_C
     scripts/config.py set MBEDTLS_AES_USE_HARDWARE_ONLY
     msg "AES tests, test AESNI only"
@@ -168,6 +173,7 @@ component_test_aesni_m32 () { # ~ 60s
     scripts/config.py set MBEDTLS_HAVE_ASM
 
     # test the intrinsics implementation with gcc
+    MBEDTLS_TEST_CONFIGURATION="$current_component/both/intrinsics"
     msg "AES tests, test intrinsics (gcc)"
     make clean
     make CC=gcc CFLAGS='-m32 -Werror -Wall -Wextra' LDFLAGS='-m32'
@@ -177,6 +183,7 @@ component_test_aesni_m32 () { # ~ 60s
     grep -q "AES note: built-in implementation." ./programs/test/selftest
     grep -q mbedtls_aesni_has_support ./programs/test/selftest
 
+    MBEDTLS_TEST_CONFIGURATION="$current_component/hardware/intrinsics"
     scripts/config.py set MBEDTLS_AESNI_C
     scripts/config.py set MBEDTLS_AES_USE_HARDWARE_ONLY
     msg "AES tests, test AESNI only"
@@ -221,16 +228,19 @@ component_build_aes_armce () {
     scripts/config.py set MBEDTLS_AESCE_C
     scripts/config.py set MBEDTLS_AES_USE_HARDWARE_ONLY
 
+    MBEDTLS_TEST_CONFIGURATION="$current_component/hardware/aarch64"
     msg "MBEDTLS_AES_USE_HARDWARE_ONLY, clang, aarch64"
     make -B library/../${BUILTIN_SRC_PATH}/aesce.o library/../${BUILTIN_SRC_PATH}/aesce.s CC=clang CFLAGS="--target=aarch64-linux-gnu -march=armv8-a+crypto"
     msg "clang, test aarch64 crypto instructions built"
     grep -E 'aes[a-z]+\s*[qv]' ${BUILTIN_SRC_PATH}/aesce.s
 
+    MBEDTLS_TEST_CONFIGURATION="$current_component/hardware/arm"
     msg "MBEDTLS_AES_USE_HARDWARE_ONLY, clang, arm"
     make -B library/../${BUILTIN_SRC_PATH}/aesce.o library/../${BUILTIN_SRC_PATH}/aesce.s CC=clang CFLAGS="--target=arm-linux-gnueabihf -mcpu=cortex-a72+crypto -marm"
     msg "clang, test A32 crypto instructions built"
     grep -E 'aes[0-9a-z]+.[0-9]\s*[qv]' ${BUILTIN_SRC_PATH}/aesce.s
 
+    MBEDTLS_TEST_CONFIGURATION="$current_component/hardware/thumb"
     msg "MBEDTLS_AES_USE_HARDWARE_ONLY, clang, thumb"
     make -B library/../${BUILTIN_SRC_PATH}/aesce.o library/../${BUILTIN_SRC_PATH}/aesce.s CC=clang CFLAGS="--target=arm-linux-gnueabihf -mcpu=cortex-a32+crypto -mthumb"
     msg "clang, test T32 crypto instructions built"
@@ -238,16 +248,19 @@ component_build_aes_armce () {
 
     scripts/config.py unset MBEDTLS_AES_USE_HARDWARE_ONLY
 
+    MBEDTLS_TEST_CONFIGURATION="$current_component/both/aarch64"
     msg "MBEDTLS_AES_USE_both, clang, aarch64"
     make -B library/../${BUILTIN_SRC_PATH}/aesce.o library/../${BUILTIN_SRC_PATH}/aesce.s CC=clang CFLAGS="--target=aarch64-linux-gnu -march=armv8-a+crypto"
     msg "clang, test aarch64 crypto instructions built"
     grep -E 'aes[a-z]+\s*[qv]' ${BUILTIN_SRC_PATH}/aesce.s
 
+    MBEDTLS_TEST_CONFIGURATION="$current_component/both/arm"
     msg "MBEDTLS_AES_USE_both, clang, arm"
     make -B library/../${BUILTIN_SRC_PATH}/aesce.o library/../${BUILTIN_SRC_PATH}/aesce.s CC=clang CFLAGS="--target=arm-linux-gnueabihf -mcpu=cortex-a72+crypto -marm"
     msg "clang, test A32 crypto instructions built"
     grep -E 'aes[0-9a-z]+.[0-9]\s*[qv]' ${BUILTIN_SRC_PATH}/aesce.s
 
+    MBEDTLS_TEST_CONFIGURATION="$current_component/both/thumb"
     msg "MBEDTLS_AES_USE_both, clang, thumb"
     make -B library/../${BUILTIN_SRC_PATH}/aesce.o library/../${BUILTIN_SRC_PATH}/aesce.s CC=clang CFLAGS="--target=arm-linux-gnueabihf -mcpu=cortex-a32+crypto -mthumb"
     msg "clang, test T32 crypto instructions built"
@@ -255,16 +268,19 @@ component_build_aes_armce () {
 
     scripts/config.py unset MBEDTLS_AESCE_C
 
+    MBEDTLS_TEST_CONFIGURATION="$current_component/software_only/aarch64"
     msg "no MBEDTLS_AESCE_C, clang, aarch64"
     make -B library/../${BUILTIN_SRC_PATH}/aesce.o library/../${BUILTIN_SRC_PATH}/aesce.s CC=clang CFLAGS="--target=aarch64-linux-gnu -march=armv8-a"
     msg "clang, test aarch64 crypto instructions not built"
     not grep -E 'aes[a-z]+\s*[qv]' ${BUILTIN_SRC_PATH}/aesce.s
 
+    MBEDTLS_TEST_CONFIGURATION="$current_component/software_only/arm"
     msg "no MBEDTLS_AESCE_C, clang, arm"
     make -B library/../${BUILTIN_SRC_PATH}/aesce.o library/../${BUILTIN_SRC_PATH}/aesce.s CC=clang CFLAGS="--target=arm-linux-gnueabihf -mcpu=cortex-a72 -marm"
     msg "clang, test A32 crypto instructions not built"
     not grep -E 'aes[0-9a-z]+.[0-9]\s*[qv]' ${BUILTIN_SRC_PATH}/aesce.s
 
+    MBEDTLS_TEST_CONFIGURATION="$current_component/software_only/thumb"
     msg "no MBEDTLS_AESCE_C, clang, thumb"
     make -B library/../${BUILTIN_SRC_PATH}/aesce.o library/../${BUILTIN_SRC_PATH}/aesce.s CC=clang CFLAGS="--target=arm-linux-gnueabihf -mcpu=cortex-a32 -mthumb"
     msg "clang, test T32 crypto instructions not built"
@@ -281,11 +297,13 @@ component_build_sha_armce () {
 
     # Test variations of SHA256 Armv8 crypto extensions
     scripts/config.py set MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_ONLY
+        MBEDTLS_TEST_CONFIGURATION="$current_component/hardware/aarch64"
         msg "MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_ONLY clang, aarch64"
         make -B library/../${BUILTIN_SRC_PATH}/sha256.o library/../${BUILTIN_SRC_PATH}/sha256.s CC=clang CFLAGS="--target=aarch64-linux-gnu -march=armv8-a+crypto"
         msg "MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_ONLY clang, test aarch64 crypto instructions built"
         grep -E 'sha256[a-z0-9]+\s+[qv]' ${BUILTIN_SRC_PATH}/sha256.s
 
+        MBEDTLS_TEST_CONFIGURATION="$current_component/hardware/arm"
         msg "MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_ONLY clang, arm"
         make -B library/../${BUILTIN_SRC_PATH}/sha256.o library/../${BUILTIN_SRC_PATH}/sha256.s CC=clang CFLAGS="--target=arm-linux-gnueabihf -mcpu=cortex-a72+crypto -marm"
         msg "MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_ONLY clang, test A32 crypto instructions built"
@@ -295,6 +313,7 @@ component_build_sha_armce () {
 
     # test the deprecated form of the config option
     scripts/config.py set MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY
+        MBEDTLS_TEST_CONFIGURATION="$current_component/hardware/thumb"
         msg "MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY clang, thumb"
         make -B library/../${BUILTIN_SRC_PATH}/sha256.o library/../${BUILTIN_SRC_PATH}/sha256.s CC=clang CFLAGS="--target=arm-linux-gnueabihf -mcpu=cortex-a32+crypto -mthumb"
         msg "MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY clang, test T32 crypto instructions built"
@@ -302,6 +321,7 @@ component_build_sha_armce () {
     scripts/config.py unset MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY
 
     scripts/config.py set MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_IF_PRESENT
+        MBEDTLS_TEST_CONFIGURATION="$current_component/both/aarch64"
         msg "MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_IF_PRESENT clang, aarch64"
         make -B library/../${BUILTIN_SRC_PATH}/sha256.o library/../${BUILTIN_SRC_PATH}/sha256.s CC=clang CFLAGS="--target=aarch64-linux-gnu -march=armv8-a+crypto"
         msg "MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_IF_PRESENT clang, test aarch64 crypto instructions built"
@@ -311,9 +331,11 @@ component_build_sha_armce () {
 
     # test the deprecated form of the config option
     scripts/config.py set MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT
+        MBEDTLS_TEST_CONFIGURATION="$current_component/both/arm"
         msg "MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT clang, arm"
         make -B library/../${BUILTIN_SRC_PATH}/sha256.o library/../${BUILTIN_SRC_PATH}/sha256.s CC=clang CFLAGS="--target=arm-linux-gnueabihf -mcpu=cortex-a72+crypto -marm -std=c99"
 
+        MBEDTLS_TEST_CONFIGURATION="$current_component/both/thumb"
         msg "MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT clang, thumb"
         make -B library/../${BUILTIN_SRC_PATH}/sha256.o library/../${BUILTIN_SRC_PATH}/sha256.s CC=clang CFLAGS="--target=arm-linux-gnueabihf -mcpu=cortex-a32+crypto -mthumb"
         msg "MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT clang, test T32 crypto instructions built"
@@ -533,15 +555,18 @@ component_build_arm_clang_thumb () {
 
     scripts/config.py baremetal
 
+    MBEDTLS_TEST_CONFIGURATION="$current_component/thumb2/-Os"
     msg "build: clang thumb 2, make"
     make clean
     make CC="clang" CFLAGS='-std=c99 -Werror -Os --target=arm-linux-gnueabihf -march=armv7-m -mthumb' lib
 
     # Some Thumb 1 asm is sensitive to optimisation level, so test both -O0 and -Os
+    MBEDTLS_TEST_CONFIGURATION="$current_component/thumb/-O0"
     msg "build: clang thumb 1 -O0, make"
     make clean
     make CC="clang" CFLAGS='-std=c99 -Werror -O0 --target=arm-linux-gnueabihf -mcpu=arm1136j-s -mthumb' lib
 
+    MBEDTLS_TEST_CONFIGURATION="$current_component/thumb/-Os"
     msg "build: clang thumb 1 -Os, make"
     make clean
     make CC="clang" CFLAGS='-std=c99 -Werror -Os --target=arm-linux-gnueabihf -mcpu=arm1136j-s -mthumb' lib
@@ -570,24 +595,31 @@ component_build_armcc () {
     # Compile mostly with -O1 since some Arm inline assembly is disabled for -O0.
 
     # ARM Compiler 6 - Target ARMv7-A
+    MBEDTLS_TEST_CONFIGURATION="$current_component/v7a/-O1"
     helper_armc6_build_test "-O1 --target=arm-arm-none-eabi -march=armv7-a"
 
     # ARM Compiler 6 - Target ARMv7-M
+    MBEDTLS_TEST_CONFIGURATION="$current_component/v7m/-O1"
     helper_armc6_build_test "-O1 --target=arm-arm-none-eabi -march=armv7-m"
 
     # ARM Compiler 6 - Target ARMv7-M+DSP
+    MBEDTLS_TEST_CONFIGURATION="$current_component/v7m+dsp/-O1"
     helper_armc6_build_test "-O1 --target=arm-arm-none-eabi -march=armv7-m+dsp"
 
     # ARM Compiler 6 - Target ARMv8-A - AArch32
+    MBEDTLS_TEST_CONFIGURATION="$current_component/v82a/-O1"
     helper_armc6_build_test "-O1 --target=arm-arm-none-eabi -march=armv8.2-a"
 
     # ARM Compiler 6 - Target ARMv8-M
+    MBEDTLS_TEST_CONFIGURATION="$current_component/v8m/-O1"
     helper_armc6_build_test "-O1 --target=arm-arm-none-eabi -march=armv8-m.main"
 
     # ARM Compiler 6 - Target Cortex-M0 - no optimisation
+    MBEDTLS_TEST_CONFIGURATION="$current_component/m0/-O0"
     helper_armc6_build_test "-O0 --target=arm-arm-none-eabi -mcpu=cortex-m0"
 
     # ARM Compiler 6 - Target Cortex-M0
+    MBEDTLS_TEST_CONFIGURATION="$current_component/m0/-Os"
     helper_armc6_build_test "-Os --target=arm-arm-none-eabi -mcpu=cortex-m0"
 
     # ARM Compiler 6 - Target ARMv8.2-A - AArch64
@@ -595,6 +627,7 @@ component_build_armcc () {
     # Re-enable MBEDTLS_AESCE_C as this should be supported by the version of armclang
     # that we have in our CI
     scripts/config.py set MBEDTLS_AESCE_C
+    MBEDTLS_TEST_CONFIGURATION="$current_component/v82a+crypto/-O1"
     helper_armc6_build_test "-O1 --target=aarch64-arm-none-eabi -march=armv8.2-a+crypto"
 }
 

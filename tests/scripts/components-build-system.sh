@@ -193,15 +193,18 @@ component_build_cmake_custom_config_file () {
     cd "$OUT_OF_SOURCE_DIR"
 
     # Build once to get the generated files (which need an intact config file)
+    MBEDTLS_TEST_CONFIGURATION="$current_component/out_of_tree/default"
     cmake "$MBEDTLS_ROOT_DIR"
     make
 
+    MBEDTLS_TEST_CONFIGURATION="$current_component/out_of_tree/MBEDTLS_CONFIG_FILE"
     msg "build: cmake with -DMBEDTLS_CONFIG_FILE"
     scripts/config.py -w full_config.h full
     echo '#error "cmake -DMBEDTLS_CONFIG_FILE is not working."' > "$MBEDTLS_ROOT_DIR/$CONFIG_H"
     cmake -DGEN_FILES=OFF -DMBEDTLS_CONFIG_FILE=full_config.h "$MBEDTLS_ROOT_DIR"
     make
 
+    MBEDTLS_TEST_CONFIGURATION="$current_component/out_of_tree/MBEDTLS_USER_CONFIG_FILE"
     msg "build: cmake with -DMBEDTLS_CONFIG_FILE + -DMBEDTLS_USER_CONFIG_FILE"
     # In the user config, disable one feature (for simplicity, pick a feature
     # that nothing else depends on).
@@ -217,6 +220,7 @@ component_build_cmake_custom_config_file () {
     rm -rf "$OUT_OF_SOURCE_DIR"
 
     # Now repeat the test for an in-tree build:
+    MBEDTLS_TEST_CONFIGURATION="$current_component/in_tree/default"
 
     # Restore config for the in-tree test
     mv include/mbedtls_config_in_tree_copy.h "$CONFIG_H"
@@ -225,12 +229,14 @@ component_build_cmake_custom_config_file () {
     cmake .
     make
 
+    MBEDTLS_TEST_CONFIGURATION="$current_component/in_tree/MBEDTLS_CONFIG_FILE"
     msg "build: cmake (in-tree) with -DMBEDTLS_CONFIG_FILE"
     scripts/config.py -w full_config.h full
     echo '#error "cmake -DMBEDTLS_CONFIG_FILE is not working."' > "$MBEDTLS_ROOT_DIR/$CONFIG_H"
     cmake -DGEN_FILES=OFF -DMBEDTLS_CONFIG_FILE=full_config.h .
     make
 
+    MBEDTLS_TEST_CONFIGURATION="$current_component/in_tree/MBEDTLS_USER_CONFIG_FILE"
     msg "build: cmake (in-tree) with -DMBEDTLS_CONFIG_FILE + -DMBEDTLS_USER_CONFIG_FILE"
     # In the user config, disable one feature (for simplicity, pick a feature
     # that nothing else depends on).

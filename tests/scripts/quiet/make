@@ -17,3 +17,105 @@ NO_SILENCE=" --version | test "
 TOOL="make"
 
 . "$(dirname "$0")/quiet.sh"
+EXIT_STATUS=$?
+
+nl='
+' # set the variable to a newline
+
+log_outcome () {
+    # Options passed to make indicating that a different makefile is used
+    modifier=
+    # Space-separated list of targets
+    targets=
+    # Temporary variable used in the loop after an option that takes an argument
+    skip=
+
+    for arg in "$@"; do
+        if [ -n "$skip" ]; then
+            if [ "$skip" = "modifier" ]; then
+                modifier="$modifier$arg "
+            fi
+            skip=
+            continue
+        fi
+
+        case $arg in
+            --dry-run|--help|--just-print|--question|--recon|--version|-n|-q|-v)
+                # do-nothing option
+                return;;
+            --directory=*|--file=*|-C?*|-f?*) # Modifier option with its argument
+                modifier="$modifier$arg ";;
+            --directory|--file|-C|-f) # Modifier option with separate argument
+                skip=modifier
+                modifier="$modifier$arg ";;
+            --assume-new|--assume-old| \
+            --include-dir|--makefile|--new-file|--old-file|--what-if| \
+            -I|-W|-k|-o) # Boring option with separate argument
+                skip=1; continue;;
+            -*) continue;; # Other option (assumed boring)
+            *=*) continue;; # Variable assignment
+            *[!-+./0-9@A-Z_a-z]*) # Target with problematic character
+                targets="$targets ${arg%%[!-+./0-9@A-Z_a-z]*}...";;
+            *) # Normal target
+                targets="$targets $arg";;
+        esac
+    done
+
+    if [ -n "$MBEDTLS_TEST_ROOT" ] && [ "$MBEDTLS_TEST_ROOT" != "$PWD" ]; then
+        # Record that `make` was run in a different directory.
+        # This is only accurate when run by all.sh (or more generally
+        # if $MBEDTLS_TEST_ROOT is set in the environment).
+        case "$PWD" in
+            "$MBEDTLS_TEST_ROOT/"*) modifier="-C ${PWD#"${MBEDTLS_TEST_ROOT}/"} $modifier";;
+            *) modifier="-C $PWD $modifier";;
+        esac
+    fi
+
+    if [ -n "$targets" ]; then
+        targets=${targets# }
+    else
+        # Assume that the default target is "all". This is true for
+        # the toplevel Makefile and when using CMake, but might not be
+        # true when using a different makefile.
+        targets=all
+    fi
+
+    # We have a single pass/fail status. This is not accurate when there are
+    # multiple targets: it's possible that some passed and some failed.
+    # To figure out which targets passed when the overall result is a failure,
+    # we'd have to do some complex parsing of logs.
+    if [ $EXIT_STATUS -eq 0 ]; then
+        result=PASS
+    else
+        result=FAIL
+    fi
+
+    # Identifying failure causes would be nice, but difficult.
+    # To help diagnose the tracing and our analysis of the traces in
+    # outcome analysis, log the full make command line in the "cause"
+    # column. Once tracing is more mature, I hope this won't be useful
+    # any longer.
+    cause="$*"
+    case "$cause" in
+        *[${nl}\\\;\"]*)
+            # Truncate command lines containing special characters that
+            # we don't want in the outcome file.
+            cause=${cause%%[${nl}\\\;\"]*}...;;
+    esac
+
+    for target in $targets; do
+        case "$target" in
+            "clean"|"neat") continue;; # Boring
+            cmTC_*) continue;; # Weirdness from CMake
+        esac
+        echo >>"${MBEDTLS_TEST_OUTCOME_FILE}" \
+             "${MBEDTLS_TEST_PLATFORM};${MBEDTLS_TEST_CONFIGURATION};${TOOL};${target};${result};${cause}"
+    done
+}
+
+if [ -n "${MBEDTLS_TEST_OUTCOME_FILE}" ] &&
+   [ -n "${MBEDTLS_TEST_CONFIGURATION}" ]; then
+    log_outcome "$@"
+fi
+
+exit $EXIT_STATUS

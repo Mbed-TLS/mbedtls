@@ -59,7 +59,7 @@ fi
 
 if [[ " $@ " =~ $NO_SILENCE || -n "${VERBOSE_LOGS}" ]]; then
     # Run original command with no output supression
-    exec "${ORIGINAL_TOOL}" "$@"
+    "${ORIGINAL_TOOL}" "$@"
 else
     # Run original command and capture output & exit status
     TMPFILE=$(mktemp "quiet-${TOOL}.XXXXXX")
@@ -75,5 +75,6 @@ else
     rm "${TMPFILE}"
 
     # Propagate the exit status
-    exit $EXIT_STATUS
+    set_status () { return $1; }
+    set_status $EXIT_STATUS
 fi

@@ -10146,21 +10146,9 @@ void generate_key(int type_arg,
 
     PSA_ASSERT(psa_generate_key_iop_abort(&operation));
 
-#if defined(MBEDTLS_ECP_RESTARTABLE)
-    /* In case the expected status is a failure test a valid input will succeed after abort */
-    if (expected_status != PSA_SUCCESS) {
-        memset(&attributes, 0, sizeof(attributes));
-        psa_set_key_type(&attributes, PSA_KEY_TYPE_ECC_KEY_PAIR(PSA_ECC_FAMILY_SECP_R1));
-        psa_set_key_bits(&attributes, 256);
-        psa_set_key_usage_flags(&attributes,
-                                PSA_KEY_USAGE_EXPORT | PSA_KEY_USAGE_SIGN_HASH |
-                                PSA_KEY_USAGE_VERIFY_HASH);
-        psa_set_key_algorithm(&attributes, PSA_ALG_ECDSA_ANY);
-    }
     /* Test that after calling abort operation is reset to it's fresh state */
     status = psa_generate_key_iop_setup(&operation, &attributes);
-    TEST_EQUAL(status, PSA_SUCCESS);
-#endif
+    TEST_EQUAL(status, expected_status);
 
 exit:
     psa_generate_key_iop_abort(&operation);

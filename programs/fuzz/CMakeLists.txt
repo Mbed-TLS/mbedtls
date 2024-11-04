@@ -40,7 +40,8 @@ foreach(exe IN LISTS executables_no_common_c executables_with_common_c)
     endif()
 
     add_executable(${exe} ${exe_sources})
-    target_include_directories(${exe} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../framework/tests/include)
+    target_include_directories(${exe} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../framework/tests/include
+                                              ${CMAKE_CURRENT_SOURCE_DIR}/../../tests/include)
 
     if (NOT FUZZINGENGINE_LIB)
         target_link_libraries(${exe} ${libs})

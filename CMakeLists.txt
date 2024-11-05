@@ -338,7 +338,11 @@ if(CMAKE_BUILD_TYPE STREQUAL "Check" AND TEST_CPP)
 endif()
 
 if (NOT EXISTS "${MBEDTLS_FRAMEWORK_DIR}/CMakeLists.txt")
-    message(FATAL_ERROR "${MBEDTLS_FRAMEWORK_DIR}/CMakeLists.txt not found. Run `git submodule update --init` from the source tree to fetch the submodule contents.")
+    if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/.git/")
+        message(FATAL_ERROR "${MBEDTLS_FRAMEWORK_DIR}/CMakeLists.txt not found (and does appear to be a git checkout). Run `git submodule update --init` from the source tree to fetch the submodule contents.")
+    else ()
+        message(FATAL_ERROR "${MBEDTLS_FRAMEWORK_DIR}/CMakeLists.txt not found (and does not appear to be a git checkout). Please ensure you have downloaded the right archive from the release page on GitHub.")
+    endif()
 endif()
 add_subdirectory(framework)
 

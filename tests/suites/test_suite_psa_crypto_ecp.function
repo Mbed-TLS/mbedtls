@@ -53,7 +53,7 @@ static int check_ecc_private_key(psa_ecc_family_t family, size_t bits,
     }
 
     /* Check masked bits on Curve25519 and Curve448 scalars.
-     * See RFC 7748 \S4.1 (we expect the "decoded" form here). */
+     * See RFC 7748 §4.1 (we expect the "decoded" form here). */
 #if defined(MBEDTLS_PSA_BUILTIN_ECC_MONTGOMERY_255)
     if (family == PSA_ECC_FAMILY_MONTGOMERY && bits == 255) {
         TEST_EQUAL(key[0] & 0xf8, key[0]);

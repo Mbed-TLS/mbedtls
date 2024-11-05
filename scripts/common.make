@@ -151,18 +151,19 @@ endif
 
 # Auxiliary modules used by tests and some sample programs
 MBEDTLS_CORE_TEST_OBJS := $(patsubst %.c,%.o,$(wildcard \
-    ${MBEDTLS_TEST_PATH}/src/*.c \
-    ${MBEDTLS_TEST_PATH}/src/drivers/*.c \
+    ${MBEDTLS_PATH}/framework/tests/src/*.c \
+    ${MBEDTLS_PATH}/framework/tests/src/drivers/*.c \
   ))
 # Ignore PSA stubs when building for the client side of PSASIM (i.e.
 # CRYPTO_CLIENT && !CRYPTO_C) otherwise there will be functions duplicates.
 ifdef PSASIM
 MBEDTLS_CORE_TEST_OBJS := $(filter-out \
-    ${MBEDTLS_TEST_PATH}/src/psa_crypto_stubs.o, $(MBEDTLS_CORE_TEST_OBJS)\
+    ${MBEDTLS_PATH}/framework/tests/src/psa_crypto_stubs.o, $(MBEDTLS_CORE_TEST_OBJS)\
   )
 endif
 # Additional auxiliary modules for TLS testing
 MBEDTLS_TLS_TEST_OBJS = $(patsubst %.c,%.o,$(wildcard \
+    ${MBEDTLS_TEST_PATH}/src/*.c \
     ${MBEDTLS_TEST_PATH}/src/test_helpers/*.c \
   ))
 

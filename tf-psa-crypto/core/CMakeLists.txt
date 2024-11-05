@@ -111,7 +111,7 @@ if(USE_SHARED_TF_PSA_CRYPTO_LIBRARY)
     set(CMAKE_LIBRARY_PATH ${CMAKE_CURRENT_BINARY_DIR})
     add_library(${mbedcrypto_target} SHARED ${src_crypto})
     set_base_compile_options(${mbedcrypto_target})
-    target_compile_options(${mbedcrypto_static_target} PRIVATE ${LIBS_C_FLAGS})
+    target_compile_options(${mbedcrypto_target} PRIVATE ${LIBS_C_FLAGS})
     set_target_properties(${mbedcrypto_target} PROPERTIES VERSION 4.0.0 SOVERSION 16)
     target_link_libraries(${mbedcrypto_target} PUBLIC ${libs})
 

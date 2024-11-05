@@ -9,7 +9,7 @@
 #### Build System Testing
 ################################################################
 
-component_test_cmake_tf_psa_crypto_out_of_source () {
+component_test_tf_psa_crypto_cmake_out_of_source () {
     msg "build: cmake tf-psa-crypto 'out-of-source' build"
     TF_PSA_CRYPTO_ROOT_DIR="$PWD"
     mkdir "$OUT_OF_SOURCE_DIR"

@@ -375,6 +375,24 @@ set(USE_STATIC_TF_PSA_CRYPTO_LIBRARY ${USE_STATIC_MBEDTLS_LIBRARY} CACHE BOOL ""
 set(USE_SHARED_TF_PSA_CRYPTO_LIBRARY ${USE_SHARED_MBEDTLS_LIBRARY} CACHE BOOL "")
 add_subdirectory(tf-psa-crypto)
 
+set(tf_psa_crypto_library_targets
+    ${MBEDTLS_TARGET_PREFIX}tfpsacrypto
+    ${MBEDTLS_TARGET_PREFIX}builtin
+    ${MBEDTLS_TARGET_PREFIX}everest
+    ${MBEDTLS_TARGET_PREFIX}p256m)
+
+if(USE_STATIC_MBEDTLS_LIBRARY AND USE_SHARED_MBEDTLS_LIBRARY)
+    list(APPEND tf_psa_crypto_library_targets
+         ${MBEDTLS_TARGET_PREFIX}tfpsacrypto_static
+         ${MBEDTLS_TARGET_PREFIX}builtin_static)
+endif()
+
+foreach(target IN LISTS tf_psa_crypto_library_targets)
+    if(NOT TARGET ${target})
+        message(FATAL_ERROR "TF-PSA-Crypto target ${target} does not exist.")
+    endif()
+endforeach(target)
+
 add_subdirectory(library)
 
 add_subdirectory(pkgconfig)

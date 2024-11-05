@@ -156,26 +156,3 @@ foreach(target IN LISTS target_libraries)
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
         PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ)
 endforeach(target)
-
-if(USE_STATIC_TF_PSA_CRYPTO_LIBRARY)
-    add_custom_command(
-        TARGET ${tfpsacrypto_static_target}
-        POST_BUILD
-        COMMAND ${CMAKE_COMMAND}
-        ARGS -E copy $<TARGET_FILE:${tfpsacrypto_static_target}> ${CMAKE_BINARY_DIR}/library)
-endif(USE_STATIC_TF_PSA_CRYPTO_LIBRARY)
-
-if(USE_SHARED_TF_PSA_CRYPTO_LIBRARY)
-    add_custom_command(
-        TARGET ${tfpsacrypto_target}
-        POST_BUILD
-        COMMAND ${CMAKE_COMMAND}
-        ARGS -E copy $<TARGET_FILE:${tfpsacrypto_target}>
-        ${CMAKE_BINARY_DIR}/library/$<TARGET_FILE_NAME:${tfpsacrypto_target}>)
-    add_custom_command(
-        TARGET ${tfpsacrypto_target}
-        POST_BUILD
-        COMMAND ${CMAKE_COMMAND}
-        ARGS -E copy $<TARGET_LINKER_FILE:${tfpsacrypto_target}>
-        ${CMAKE_BINARY_DIR}/library/$<TARGET_LINKER_FILE_NAME:${tfpsacrypto_target}>)
-endif(USE_SHARED_TF_PSA_CRYPTO_LIBRARY)

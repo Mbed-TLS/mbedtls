@@ -208,3 +208,27 @@ add_custom_target(${lib_target} DEPENDS ${mbedx509_target} ${mbedtls_target})
 if(USE_STATIC_MBEDTLS_LIBRARY AND USE_SHARED_MBEDTLS_LIBRARY)
     add_dependencies(${lib_target} ${mbedx509_static_target} ${mbedtls_static_target})
 endif()
+
+foreach(target IN LISTS tf_psa_crypto_library_targets)
+    get_target_property(target_type ${target} TYPE)
+    if (target_type STREQUAL STATIC_LIBRARY)
+        add_custom_command(
+            TARGET ${mbedtls_target}
+            POST_BUILD
+            COMMAND ${CMAKE_COMMAND}
+            ARGS -E copy $<TARGET_FILE:${target}> ${CMAKE_BINARY_DIR}/library)
+    else()
+        add_custom_command(
+            TARGET ${mbedtls_target}
+            POST_BUILD
+            COMMAND ${CMAKE_COMMAND}
+            ARGS -E copy $<TARGET_FILE:${target}>
+            ${CMAKE_BINARY_DIR}/library/$<TARGET_FILE_NAME:${target}>)
+        add_custom_command(
+            TARGET ${mbedtls_target}
+            POST_BUILD
+            COMMAND ${CMAKE_COMMAND}
+            ARGS -E copy $<TARGET_LINKER_FILE:${target}>
+            ${CMAKE_BINARY_DIR}/library/$<TARGET_LINKER_FILE_NAME:${target}>)
+    endif()
+endforeach(target)

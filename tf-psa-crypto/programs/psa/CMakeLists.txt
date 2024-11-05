@@ -14,10 +14,10 @@ if(GEN_FILES)
             ${CMAKE_CURRENT_BINARY_DIR}/psa_constant_names_generated.c
         COMMAND
             ${MBEDTLS_PYTHON_EXECUTABLE}
-                ${CMAKE_CURRENT_SOURCE_DIR}/../../../scripts/generate_psa_constants.py
+                ${CMAKE_CURRENT_SOURCE_DIR}/../../scripts/generate_psa_constants.py
                 ${CMAKE_CURRENT_BINARY_DIR}
         WORKING_DIRECTORY
-            ${CMAKE_CURRENT_SOURCE_DIR}/../../..
+            ${CMAKE_CURRENT_SOURCE_DIR}/../..
         DEPENDS
             ${CMAKE_CURRENT_SOURCE_DIR}/../../scripts/generate_psa_constants.py
             ${CMAKE_CURRENT_SOURCE_DIR}/../../include/psa/crypto_values.h

@@ -127,12 +127,13 @@ else
 endif
 
 # Auxiliary modules used by tests and some sample programs
-MBEDTLS_CORE_TEST_OBJS = $(patsubst %.c,%.o,$(wildcard \
-    ${MBEDTLS_TEST_PATH}/src/*.c \
-    ${MBEDTLS_TEST_PATH}/src/drivers/*.c \
+MBEDTLS_CORE_TEST_OBJS := $(patsubst %.c,%.o,$(wildcard \
+    ${MBEDTLS_PATH}/framework/tests/src/*.c \
+    ${MBEDTLS_PATH}/framework/tests/src/drivers/*.c \
   ))
 # Additional auxiliary modules for TLS testing
 MBEDTLS_TLS_TEST_OBJS = $(patsubst %.c,%.o,$(wildcard \
+    ${MBEDTLS_TEST_PATH}/src/*.c \
     ${MBEDTLS_TEST_PATH}/src/test_helpers/*.c \
   ))
 

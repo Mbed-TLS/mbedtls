@@ -10,7 +10,7 @@
 #ifndef MBEDTLS_PKCS12_H
 #define MBEDTLS_PKCS12_H
 
-#include "mbedtls/build_info.h"
+#include "tf-psa-crypto/build_info.h"
 
 #include "mbedtls/md.h"
 #include "mbedtls/cipher.h"

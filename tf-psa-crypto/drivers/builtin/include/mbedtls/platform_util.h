@@ -11,7 +11,7 @@
 #ifndef MBEDTLS_PLATFORM_UTIL_H
 #define MBEDTLS_PLATFORM_UTIL_H
 
-#include "mbedtls/build_info.h"
+#include "tf-psa-crypto/build_info.h"
 
 #include <stddef.h>
 #if defined(MBEDTLS_HAVE_TIME_DATE)

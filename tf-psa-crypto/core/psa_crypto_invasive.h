@@ -16,14 +16,7 @@
 #ifndef PSA_CRYPTO_INVASIVE_H
 #define PSA_CRYPTO_INVASIVE_H
 
-/*
- * Include the build-time configuration information header. Here, we do not
- * include `"mbedtls/build_info.h"` directly but `"psa/build_info.h"`, which
- * is basically just an alias to it. This is to ease the maintenance of the
- * TF-PSA-Crypto repository which has a different build system and
- * configuration.
- */
-#include "psa/build_info.h"
+#include "tf-psa-crypto/build_info.h"
 
 #include "psa/crypto.h"
 #include "common.h"

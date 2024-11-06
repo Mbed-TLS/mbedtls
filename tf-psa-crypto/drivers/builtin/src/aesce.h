@@ -14,7 +14,6 @@
 #ifndef MBEDTLS_AESCE_H
 #define MBEDTLS_AESCE_H
 
-#include "mbedtls/build_info.h"
 #include "common.h"
 
 #include "mbedtls/aes.h"

@@ -12,7 +12,7 @@
 #ifndef MBEDTLS_PKCS5_H
 #define MBEDTLS_PKCS5_H
 
-#include "mbedtls/build_info.h"
+#include "tf-psa-crypto/build_info.h"
 #include "mbedtls/platform_util.h"
 
 #include "mbedtls/asn1.h"

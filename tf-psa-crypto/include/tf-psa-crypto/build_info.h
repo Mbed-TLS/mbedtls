@@ -1,5 +1,5 @@
 /**
- * \file psa/build_info.h
+ * \file tf-psa-crypto/build_info.h
  *
  * \brief Build-time PSA configuration info
  *

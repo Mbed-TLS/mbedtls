@@ -19,7 +19,7 @@
 #include <stddef.h>
 
 #include "mbedtls/private_access.h"
-#include "mbedtls/build_info.h"
+#include "tf-psa-crypto/build_info.h"
 
 #define MBEDTLS_ERR_LMS_BAD_INPUT_DATA   -0x0011 /**< Bad data has been input to an LMS function */
 #define MBEDTLS_ERR_LMS_OUT_OF_PRIVATE_KEYS -0x0013 /**< Specified LMS key has utilised all of its private keys */

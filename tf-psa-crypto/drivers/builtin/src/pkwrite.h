@@ -11,7 +11,7 @@
 #ifndef MBEDTLS_PK_WRITE_H
 #define MBEDTLS_PK_WRITE_H
 
-#include "mbedtls/build_info.h"
+#include "tf-psa-crypto/build_info.h"
 
 #include "mbedtls/pk.h"
 

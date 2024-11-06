@@ -18,7 +18,7 @@
 #define MBEDTLS_ARIA_H
 #include "mbedtls/private_access.h"
 
-#include "mbedtls/build_info.h"
+#include "tf-psa-crypto/build_info.h"
 
 #include <stddef.h>
 #include <stdint.h>

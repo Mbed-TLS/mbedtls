@@ -17,7 +17,7 @@
 #define MBEDTLS_RSA_H
 #include "mbedtls/private_access.h"
 
-#include "mbedtls/build_info.h"
+#include "tf-psa-crypto/build_info.h"
 
 #include "mbedtls/bignum.h"
 #include "mbedtls/md.h"

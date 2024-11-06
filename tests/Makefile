@@ -315,9 +315,10 @@ define libtestdriver1_rewrite :=
 	s!^(\s*#\s*include\s*[\"<])mbedtls/check_config.h!$${1}libtestdriver1/include/mbedtls/check_config.h!; \
 	s!^(\s*#\s*include\s*[\"<])mbedtls/!$${1}libtestdriver1/tf-psa-crypto/drivers/builtin/include/mbedtls/!; \
 	s!^(\s*#\s*include\s*[\"<])psa/!$${1}libtestdriver1/tf-psa-crypto/include/psa/!; \
+	s!^(\s*#\s*include\s*[\"<])tf-psa-crypto/!$${1}libtestdriver1/tf-psa-crypto/include/tf-psa-crypto/!; \
 	next if /^\s*#\s*include/; \
-	s/\b(?=MBEDTLS_|PSA_)/LIBTESTDRIVER1_/g; \
-	s/\b(?=mbedtls_|psa_)/libtestdriver1_/g;
+	s/\b(?=MBEDTLS_|PSA_|TF_PSA_CRYPTO_)/LIBTESTDRIVER1_/g; \
+	s/\b(?=mbedtls_|psa_|tf_psa_crypto_)/libtestdriver1_/g;
 endef
 
 libtestdriver1.a:

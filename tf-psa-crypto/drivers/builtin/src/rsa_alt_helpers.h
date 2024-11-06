@@ -47,7 +47,7 @@
 #ifndef MBEDTLS_RSA_ALT_HELPERS_H
 #define MBEDTLS_RSA_ALT_HELPERS_H
 
-#include "mbedtls/build_info.h"
+#include "tf-psa-crypto/build_info.h"
 
 #include "mbedtls/bignum.h"
 

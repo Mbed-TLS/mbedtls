@@ -21,7 +21,7 @@
 #define MBEDTLS_POLY1305_H
 #include "mbedtls/private_access.h"
 
-#include "mbedtls/build_info.h"
+#include "tf-psa-crypto/build_info.h"
 
 #include <stdint.h>
 #include <stddef.h>

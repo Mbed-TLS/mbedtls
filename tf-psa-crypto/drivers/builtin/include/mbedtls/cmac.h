@@ -16,7 +16,7 @@
 #define MBEDTLS_CMAC_H
 #include "mbedtls/private_access.h"
 
-#include "mbedtls/build_info.h"
+#include "tf-psa-crypto/build_info.h"
 
 #include "mbedtls/cipher.h"
 

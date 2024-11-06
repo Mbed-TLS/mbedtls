@@ -37,7 +37,7 @@
 #ifndef MBEDTLS_CONFIG_ADJUST_TEST_ACCELERATORS_H
 #define MBEDTLS_CONFIG_ADJUST_TEST_ACCELERATORS_H
 
-#if !defined(MBEDTLS_CONFIG_FILES_READ)
+#if !defined(TF_PSA_CRYPTO_CONFIG_FILES_READ)
 #error "Do not include mbedtls/config_adjust_*.h manually! This can lead to problems, " \
     "up to and including runtime errors such as buffer overflows. " \
     "If you're trying to fix a complaint from check_config.h, just remove " \

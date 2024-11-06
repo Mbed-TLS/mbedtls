@@ -7,6 +7,7 @@ EXTRACT_PRIVATE        = YES
 EXTRACT_STATIC         = YES
 CASE_SENSE_NAMES       = NO
 INPUT                  = ../include ../tf-psa-crypto/include input ../tf-psa-crypto/drivers/builtin/include ../tests/include/alt-dummy
+EXCLUDE                = ../tf-psa-crypto/drivers/builtin/include/mbedtls/build_info.h
 FILE_PATTERNS          = *.h
 RECURSIVE              = YES
 EXCLUDE_SYMLINKS       = YES

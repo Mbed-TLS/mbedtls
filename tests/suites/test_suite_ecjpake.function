@@ -102,6 +102,7 @@ cleanup:
 void ecjpake_invalid_param()
 {
     mbedtls_ecjpake_context ctx;
+    mbedtls_ecjpake_init(&ctx);
     unsigned char buf[42] = { 0 };
     size_t const len = sizeof(buf);
     mbedtls_ecjpake_role invalid_role = (mbedtls_ecjpake_role) 42;
@@ -109,8 +110,6 @@ void ecjpake_invalid_param()
     mbedtls_ecp_group_id valid_group = MBEDTLS_ECP_DP_SECP256R1;
 
     MD_PSA_INIT();
-
-    mbedtls_ecjpake_init(&ctx);
 
     TEST_EQUAL(MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
                mbedtls_ecjpake_setup(&ctx,
@@ -139,13 +138,13 @@ exit:
 void read_bad_md(data_t *msg)
 {
     mbedtls_ecjpake_context corrupt_ctx;
+    mbedtls_ecjpake_init(&corrupt_ctx);
     const unsigned char *pw = NULL;
     const size_t pw_len = 0;
     int any_role = MBEDTLS_ECJPAKE_CLIENT;
 
     MD_PSA_INIT();
 
-    mbedtls_ecjpake_init(&corrupt_ctx);
     TEST_ASSERT(mbedtls_ecjpake_setup(&corrupt_ctx, any_role,
                                       MBEDTLS_MD_SHA256, MBEDTLS_ECP_DP_SECP256R1, pw,
                                       pw_len) == 0);
@@ -164,12 +163,11 @@ exit:
 void read_round_one(int role, data_t *msg, int ref_ret)
 {
     mbedtls_ecjpake_context ctx;
+    mbedtls_ecjpake_init(&ctx);
     const unsigned char *pw = NULL;
     const size_t pw_len = 0;
 
     MD_PSA_INIT();
-
-    mbedtls_ecjpake_init(&ctx);
 
     TEST_ASSERT(mbedtls_ecjpake_setup(&ctx, role,
                                       MBEDTLS_MD_SHA256, MBEDTLS_ECP_DP_SECP256R1, pw,
@@ -187,12 +185,11 @@ exit:
 void read_round_two_cli(data_t *msg, int ref_ret)
 {
     mbedtls_ecjpake_context ctx;
+    mbedtls_ecjpake_init(&ctx);
     const unsigned char *pw = NULL;
     const size_t pw_len = 0;
 
     MD_PSA_INIT();
-
-    mbedtls_ecjpake_init(&ctx);
 
     TEST_ASSERT(mbedtls_ecjpake_setup(&ctx, MBEDTLS_ECJPAKE_CLIENT,
                                       MBEDTLS_MD_SHA256, MBEDTLS_ECP_DP_SECP256R1, pw,
@@ -216,12 +213,11 @@ exit:
 void read_round_two_srv(data_t *msg, int ref_ret)
 {
     mbedtls_ecjpake_context ctx;
+    mbedtls_ecjpake_init(&ctx);
     const unsigned char *pw = NULL;
     const size_t pw_len = 0;
 
     MD_PSA_INIT();
-
-    mbedtls_ecjpake_init(&ctx);
 
     TEST_ASSERT(mbedtls_ecjpake_setup(&ctx, MBEDTLS_ECJPAKE_SERVER,
                                       MBEDTLS_MD_SHA256, MBEDTLS_ECP_DP_SECP256R1, pw,

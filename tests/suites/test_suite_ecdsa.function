@@ -196,12 +196,11 @@ void ecdsa_det_test_vectors(int id, char *d_str, int md_alg, data_t *hash,
 {
     mbedtls_ecp_group grp;
     mbedtls_mpi d, r, s, r_check, s_check;
-
-    MD_PSA_INIT();
-
     mbedtls_ecp_group_init(&grp);
     mbedtls_mpi_init(&d); mbedtls_mpi_init(&r); mbedtls_mpi_init(&s);
     mbedtls_mpi_init(&r_check); mbedtls_mpi_init(&s_check);
+
+    MD_PSA_INIT();
 
     TEST_ASSERT(mbedtls_ecp_group_load(&grp, id) == 0);
     TEST_ASSERT(mbedtls_test_read_mpi(&d, d_str) == 0);
@@ -235,12 +234,12 @@ void ecdsa_write_read_zero(int id)
     unsigned char sig[200];
     size_t sig_len, i;
 
-    MD_PSA_INIT();
-
     mbedtls_ecdsa_init(&ctx);
     memset(&rnd_info, 0x00, sizeof(mbedtls_test_rnd_pseudo_info));
     memset(hash, 0, sizeof(hash));
     memset(sig, 0x2a, sizeof(sig));
+
+    MD_PSA_INIT();
 
     /* generate signing key */
     TEST_ASSERT(mbedtls_ecdsa_genkey(&ctx, id,
@@ -300,12 +299,12 @@ void ecdsa_write_read_random(int id)
     unsigned char sig[200];
     size_t sig_len, i;
 
-    MD_PSA_INIT();
-
     mbedtls_ecdsa_init(&ctx);
     memset(&rnd_info, 0x00, sizeof(mbedtls_test_rnd_pseudo_info));
     memset(hash, 0, sizeof(hash));
     memset(sig, 0x2a, sizeof(sig));
+
+    MD_PSA_INIT();
 
     /* prepare material for signature */
     TEST_ASSERT(mbedtls_test_rnd_pseudo_rand(&rnd_info,
@@ -436,11 +435,11 @@ void ecdsa_write_restart(int id, char *d_str, int md_alg,
     unsigned char sig[MBEDTLS_ECDSA_MAX_LEN];
     size_t slen;
 
-    MD_PSA_INIT();
-
     mbedtls_ecdsa_restart_init(&rs_ctx);
     mbedtls_ecdsa_init(&ctx);
     memset(sig, 0, sizeof(sig));
+
+    MD_PSA_INIT();
 
     TEST_ASSERT(mbedtls_ecp_group_load(&ctx.grp, id) == 0);
     TEST_ASSERT(mbedtls_test_read_mpi(&ctx.d, d_str) == 0);

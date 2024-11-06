@@ -114,10 +114,10 @@ static int pk_can_ecdsa(const mbedtls_pk_context *ctx)
 void pk_parse_keyfile_rsa(char *key_file, char *password, int result)
 {
     mbedtls_pk_context ctx;
+    mbedtls_pk_init(&ctx);
     int res;
     char *pwd = password;
 
-    mbedtls_pk_init(&ctx);
     MD_PSA_INIT();
 
     if (strcmp(pwd, "NULL") == 0) {
@@ -161,9 +161,9 @@ exit:
 void pk_parse_public_keyfile_rsa(char *key_file, int result)
 {
     mbedtls_pk_context ctx;
+    mbedtls_pk_init(&ctx);
     int res;
 
-    mbedtls_pk_init(&ctx);
     MD_PSA_INIT();
 
     res = mbedtls_pk_parse_public_keyfile(&ctx, key_file);

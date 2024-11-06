@@ -473,6 +473,7 @@ class DomainData:
         return [symbol for symbol in self.all_config_symbols
                 if re.match(regexp, symbol)]
 
+    # pylint: disable=too-many-locals
     def __init__(self, options, conf):
         """Gather data about the library and establish a list of domains to test."""
         build_command = [options.make_command, 'CFLAGS=-Werror -O2']

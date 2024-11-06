@@ -44,7 +44,7 @@ def run_all_demos(quiet=False):
 
     Return True if all demos passed and False if a demo fails.
     """
-    all_demos = glob.glob('programs/*/*_demo.sh')
+    all_demos = glob.glob('tf-psa-crypto/programs/*/*_demo.sh')
     if not all_demos:
         # Keep the message on one line. pylint: disable=line-too-long
         raise Exception('No demos found. run_demos needs to operate from the Mbed TLS toplevel directory.')

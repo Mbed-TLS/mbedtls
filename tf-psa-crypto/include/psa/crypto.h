@@ -4360,8 +4360,9 @@ typedef struct psa_verify_hash_interruptible_operation_s psa_verify_hash_interru
  *                              time. The only guarantee is that lower values
  *                              for \p max_ops means functions will block for a
  *                              lesser maximum amount of time. The functions
- *                              \c psa_sign_interruptible_get_num_ops() and
- *                              \c psa_verify_interruptible_get_num_ops() are
+ *                              \c psa_sign_interruptible_get_num_ops(),
+ *                              \c psa_verify_interruptible_get_num_ops() and
+ *                              \c psa_generate_key_iop_get_num_ops() are
  *                              provided to help with tuning this value.
  *
  * \note                        This value defaults to

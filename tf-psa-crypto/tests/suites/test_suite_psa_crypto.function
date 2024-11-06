@@ -10096,6 +10096,7 @@ void generate_key(int type_arg,
     psa_status_t expected_status = expected_status_arg;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_key_attributes_t got_attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_generate_key_iop_t operation = PSA_GENERATE_KEY_IOP_INIT;
 
     PSA_ASSERT(psa_crypto_init());
 
@@ -10111,21 +10112,46 @@ void generate_key(int type_arg,
         TEST_ASSUME(status != PSA_ERROR_INSUFFICIENT_MEMORY);
     }
     TEST_EQUAL(status, expected_status);
-    if (expected_status != PSA_SUCCESS) {
-        goto exit;
+    if (expected_status == PSA_SUCCESS) {
+        /* Test the key information */
+        PSA_ASSERT(psa_get_key_attributes(key, &got_attributes));
+        TEST_EQUAL(psa_get_key_type(&got_attributes), type);
+        TEST_EQUAL(psa_get_key_bits(&got_attributes), bits);
+
+        /* Do something with the key according to its type and permitted usage. */
+        TEST_EQUAL(mbedtls_test_psa_exercise_key(key, usage, alg, 0), 1);
     }
 
-    /* Test the key information */
-    PSA_ASSERT(psa_get_key_attributes(key, &got_attributes));
-    TEST_EQUAL(psa_get_key_type(&got_attributes), type);
-    TEST_EQUAL(psa_get_key_bits(&got_attributes), bits);
+    /* Adjust expected_status for interruptible key generation.
+     * Interruptible key generation is only supported for ECC key pairs and even
+     * for those only when MBEDTLS_ECP_RESTARTABLE is on.
+     */
 
-    /* Do something with the key according to its type and permitted usage. */
-    if (!mbedtls_test_psa_exercise_key(key, usage, alg, 0)) {
-        goto exit;
+    if (!PSA_KEY_TYPE_IS_ECC(type)) {
+        expected_status = PSA_ERROR_NOT_SUPPORTED;
     }
+
+#if !defined(MBEDTLS_ECP_RESTARTABLE)
+    expected_status = PSA_ERROR_NOT_SUPPORTED;
+#endif
+
+    status = psa_generate_key_iop_setup(&operation, &attributes);
+    TEST_EQUAL(status, expected_status);
+
+    /* Test that calling setup 2 time consecutively fails */
+#if defined(MBEDTLS_ECP_RESTARTABLE)
+    status = psa_generate_key_iop_setup(&operation, &attributes);
+    TEST_EQUAL(status, PSA_ERROR_BAD_STATE);
+#endif
+
+    PSA_ASSERT(psa_generate_key_iop_abort(&operation));
+
+    /* Test that after calling abort operation is reset to it's fresh state */
+    status = psa_generate_key_iop_setup(&operation, &attributes);
+    TEST_EQUAL(status, expected_status);
 
 exit:
+    psa_generate_key_iop_abort(&operation);
     /*
      * Key attributes may have been returned by psa_get_key_attributes()
      * thus reset them as required.
@@ -10134,6 +10160,21 @@ exit:
 
     psa_destroy_key(key);
     PSA_DONE();
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void generate_key_iop_init()
+{
+    psa_generate_key_iop_t init = PSA_GENERATE_KEY_IOP_INIT;
+    psa_generate_key_iop_t func = psa_generate_key_iop_init();
+    psa_generate_key_iop_t zero;
+
+    memset(&zero, 0, sizeof(zero));
+
+    PSA_ASSERT(psa_generate_key_iop_abort(&init));
+    PSA_ASSERT(psa_generate_key_iop_abort(&func));
+    PSA_ASSERT(psa_generate_key_iop_abort(&zero));
 }
 /* END_CASE */
 

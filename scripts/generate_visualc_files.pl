@@ -25,6 +25,8 @@ my $programs_dir = 'programs';
 my $mbedtls_header_dir = 'include/mbedtls';
 my $psa_header_dir = 'include/psa';
 my $source_dir = 'library';
+my $tls_test_source_dir = 'tests/src';
+my $tls_test_header_dir = 'tests/include/test';
 my $test_source_dir = 'framework/tests/src';
 my $test_header_dir = 'framework/tests/include/test';
 my $test_drivers_header_dir = 'framework/tests/include/test/drivers';
@@ -104,8 +106,10 @@ sub check_dirs {
         && -d $psa_header_dir
         && -d $source_dir
         && -d $test_source_dir
+        && -d $tls_test_source_dir
         && -d $test_drivers_source_dir
         && -d $test_header_dir
+        && -d $tls_test_header_dir
         && -d $test_drivers_header_dir
         && -d $programs_dir;
 }
@@ -259,6 +263,7 @@ sub main {
                        $mbedtls_header_dir,
                        $psa_header_dir,
                        $test_header_dir,
+                       $tls_test_header_dir,
                        $test_drivers_header_dir,
                        $source_dir,
                        @thirdparty_header_dirs,
@@ -267,6 +272,7 @@ sub main {
     my @source_dirs = (
                        $source_dir,
                        $test_source_dir,
+                       $tls_test_source_dir,
                        $test_drivers_source_dir,
                        @thirdparty_source_dirs,
                       );

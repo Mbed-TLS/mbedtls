@@ -21,10 +21,10 @@ void mbedtls_md_list()
     const int *md_type_ptr;
     const mbedtls_md_info_t *info;
     mbedtls_md_context_t ctx;
+    mbedtls_md_init(&ctx);
     unsigned char out[MBEDTLS_MD_MAX_SIZE] = { 0 };
 
     MD_PSA_INIT();
-    mbedtls_md_init(&ctx);
 
     /*
      * Test that mbedtls_md_list() only returns valid MDs.
@@ -87,13 +87,13 @@ void md_to_from_psa()
 void md_null_args()
 {
     mbedtls_md_context_t ctx;
+    mbedtls_md_init(&ctx);
 #if defined(MBEDTLS_MD_C)
     const mbedtls_md_info_t *info = mbedtls_md_info_from_type(*(mbedtls_md_list()));
 #endif
     unsigned char buf[1] = { 0 };
 
     MD_PSA_INIT();
-    mbedtls_md_init(&ctx);
 
     TEST_EQUAL(0, mbedtls_md_get_size(NULL));
 #if defined(MBEDTLS_MD_C)
@@ -245,11 +245,10 @@ void md_text_multi(int md_type, char *text_src_string,
 
     const mbedtls_md_info_t *md_info = NULL;
     mbedtls_md_context_t ctx, ctx_copy;
-
-    MD_PSA_INIT();
-
     mbedtls_md_init(&ctx);
     mbedtls_md_init(&ctx_copy);
+
+    MD_PSA_INIT();
 
     halfway = src_len / 2;
 
@@ -291,12 +290,11 @@ void md_hex_multi(int md_type, data_t *src_str, data_t *hash)
     unsigned char output[MBEDTLS_MD_MAX_SIZE] = { 0 };
     const mbedtls_md_info_t *md_info = NULL;
     mbedtls_md_context_t ctx, ctx_copy;
+    mbedtls_md_init(&ctx);
+    mbedtls_md_init(&ctx_copy);
     int halfway;
 
     MD_PSA_INIT();
-
-    mbedtls_md_init(&ctx);
-    mbedtls_md_init(&ctx_copy);
 
     md_info = mbedtls_md_info_from_type(md_type);
     TEST_ASSERT(md_info != NULL);
@@ -363,11 +361,10 @@ void md_hmac_multi(int md_type, int trunc_size, data_t *key_str,
     unsigned char output[MBEDTLS_MD_MAX_SIZE] = { 0 };
     const mbedtls_md_info_t *md_info = NULL;
     mbedtls_md_context_t ctx;
+    mbedtls_md_init(&ctx);
     int halfway;
 
     MD_PSA_INIT();
-
-    mbedtls_md_init(&ctx);
 
     md_info = mbedtls_md_info_from_type(md_type);
     TEST_ASSERT(md_info != NULL);

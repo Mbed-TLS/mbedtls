@@ -41,14 +41,14 @@ void hmac_drbg_entropy_usage(int md_alg)
     size_t default_entropy_len;
     size_t expected_consumed_entropy = 0;
 
-    MD_PSA_INIT();
-
     mbedtls_hmac_drbg_init(&ctx);
     memset(buf, 0, sizeof(buf));
     memset(out, 0, sizeof(out));
 
     entropy.len = sizeof(buf);
     entropy.p = buf;
+
+    MD_PSA_INIT();
 
     md_info = mbedtls_md_info_from_type(md_alg);
     TEST_ASSERT(md_info != NULL);
@@ -129,10 +129,9 @@ void hmac_drbg_seed_file(int md_alg, char *path, int ret)
 {
     const mbedtls_md_info_t *md_info;
     mbedtls_hmac_drbg_context ctx;
+    mbedtls_hmac_drbg_init(&ctx);
 
     MD_PSA_INIT();
-
-    mbedtls_hmac_drbg_init(&ctx);
 
     md_info = mbedtls_md_info_from_type(md_alg);
     TEST_ASSERT(md_info != NULL);
@@ -159,11 +158,11 @@ void hmac_drbg_buf(int md_alg)
     mbedtls_hmac_drbg_context ctx;
     size_t i;
 
-    MD_PSA_INIT();
-
     mbedtls_hmac_drbg_init(&ctx);
     memset(buf, 0, sizeof(buf));
     memset(out, 0, sizeof(out));
+
+    MD_PSA_INIT();
 
     md_info = mbedtls_md_info_from_type(md_alg);
     TEST_ASSERT(md_info != NULL);
@@ -194,12 +193,12 @@ void hmac_drbg_no_reseed(int md_alg, data_t *entropy,
     const mbedtls_md_info_t *md_info;
     mbedtls_hmac_drbg_context ctx;
 
-    MD_PSA_INIT();
-
     mbedtls_hmac_drbg_init(&ctx);
 
     p_entropy.p = entropy->x;
     p_entropy.len = entropy->len;
+
+    MD_PSA_INIT();
 
     md_info = mbedtls_md_info_from_type(md_alg);
     TEST_ASSERT(md_info != NULL);
@@ -244,12 +243,12 @@ void hmac_drbg_nopr(int md_alg, data_t *entropy, data_t *custom,
     const mbedtls_md_info_t *md_info;
     mbedtls_hmac_drbg_context ctx;
 
-    MD_PSA_INIT();
-
     mbedtls_hmac_drbg_init(&ctx);
 
     p_entropy.p = entropy->x;
     p_entropy.len = entropy->len;
+
+    MD_PSA_INIT();
 
     md_info = mbedtls_md_info_from_type(md_alg);
     TEST_ASSERT(md_info != NULL);
@@ -279,12 +278,12 @@ void hmac_drbg_pr(int md_alg, data_t *entropy, data_t *custom,
     const mbedtls_md_info_t *md_info;
     mbedtls_hmac_drbg_context ctx;
 
-    MD_PSA_INIT();
-
     mbedtls_hmac_drbg_init(&ctx);
 
     p_entropy.p = entropy->x;
     p_entropy.len = entropy->len;
+
+    MD_PSA_INIT();
 
     md_info = mbedtls_md_info_from_type(md_alg);
     TEST_ASSERT(md_info != NULL);

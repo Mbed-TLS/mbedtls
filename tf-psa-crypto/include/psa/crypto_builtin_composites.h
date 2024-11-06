@@ -243,7 +243,7 @@ typedef struct {
 } mbedtls_psa_key_agreement_interruptible_operation_t;
 
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_ECDH) && defined(MBEDTLS_ECP_RESTARTABLE)
-#define MBEDTLS_PSA_KEY_AGREEMENT_IOP_INIT { MBEDTLS_ECDH_CTX_INIT, 0 }
+#define MBEDTLS_PSA_KEY_AGREEMENT_IOP_INIT { MBEDTLS_ECDH_CONTEXT_INIT, 0 }
 #else
 #define MBEDTLS_PSA_KEY_AGREEMENT_IOP_INIT { 0 }
 #endif

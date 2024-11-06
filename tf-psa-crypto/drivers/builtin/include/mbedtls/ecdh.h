@@ -96,14 +96,14 @@ typedef struct mbedtls_ecdh_context_mbed {
 #endif
 
 #if defined(MBEDTLS_ECP_RESTARTABLE)
-#define MBEDTLS_ECDH_CTX_MBED_INIT { MBEDTLS_ECP_GROUP_INIT, MBEDTLS_MPI_INIT, \
-                                     MBEDTLS_ECP_POINT_INIT, \
-                                     MBEDTLS_ECP_POINT_INIT, MBEDTLS_MPI_INIT, \
-                                     MBEDTLS_ECP_RESTART_INIT }
+#define MBEDTLS_ECDH_CONTEXT_MBED_INIT { MBEDTLS_ECP_GROUP_INIT, MBEDTLS_MPI_INIT, \
+                                         MBEDTLS_ECP_POINT_INIT, \
+                                         MBEDTLS_ECP_POINT_INIT, MBEDTLS_MPI_INIT, \
+                                         MBEDTLS_ECP_RESTART_INIT }
 #else
-#define MBEDTLS_ECDH_CTX_MBED_INIT { MBEDTLS_ECP_GROUP_INIT, MBEDTLS_MPI_INIT, \
-                                     MBEDTLS_ECP_POINT_INIT, \
-                                     MBEDTLS_ECP_POINT_INIT, MBEDTLS_MPI_INIT }
+#define MBEDTLS_ECDH_CONTEXT_MBED_INIT { MBEDTLS_ECP_GROUP_INIT, MBEDTLS_MPI_INIT, \
+                                         MBEDTLS_ECP_POINT_INIT, \
+                                         MBEDTLS_ECP_POINT_INIT, MBEDTLS_MPI_INIT }
 #endif
 
 /**
@@ -154,31 +154,41 @@ mbedtls_ecdh_context;
 
 #if defined(MBEDTLS_ECDH_LEGACY_CONTEXT)
 #if defined(MBEDTLS_ECP_RESTARTABLE)
-#define MBEDTLS_ECDH_CTX_INIT { MBEDTLS_ECP_GROUP_INIT, MBEDTLS_MPI_INIT, MBEDTLS_ECP_POINT_INIT, \
-                                MBEDTLS_ECP_POINT_INIT, MBEDTLS_MPI_INIT, 0, MBEDTLS_ECP_POINT_INIT, \
-                                MBEDTLS_ECP_POINT_INIT, MBEDTLS_MPI_INIT, 0, \
-                                MBEDTLS_ECP_RESTART_INIT }
+#define MBEDTLS_ECDH_CONTEXT_INIT { MBEDTLS_ECP_GROUP_INIT, MBEDTLS_MPI_INIT, \
+                                    MBEDTLS_ECP_POINT_INIT, \
+                                    MBEDTLS_ECP_POINT_INIT, MBEDTLS_MPI_INIT, \
+                                    MBEDTLS_ECP_PF_UNCOMPRESSED, \
+                                    MBEDTLS_ECP_POINT_INIT, MBEDTLS_ECP_POINT_INIT, \
+                                    MBEDTLS_MPI_INIT, 0, \
+                                    MBEDTLS_ECP_RESTART_INIT }
 #else
-#define MBEDTLS_ECDH_CTX_INIT { MBEDTLS_ECP_GROUP_INIT, MBEDTLS_MPI_INIT, MBEDTLS_ECP_POINT_INIT, \
-                                MBEDTLS_ECP_POINT_INIT, MBEDTLS_MPI_INIT, 0, MBEDTLS_ECP_POINT_INIT, \
-                                MBEDTLS_ECP_POINT_INIT, MBEDTLS_MPI_INIT }
+#define MBEDTLS_ECDH_CONTEXT_INIT { MBEDTLS_ECP_GROUP_INIT, MBEDTLS_MPI_INIT, \
+                                    MBEDTLS_ECP_POINT_INIT, \
+                                    MBEDTLS_ECP_POINT_INIT, MBEDTLS_MPI_INIT, \
+                                    MBEDTLS_ECP_PF_UNCOMPRESSED, \
+                                    MBEDTLS_ECP_POINT_INIT, MBEDTLS_ECP_POINT_INIT, \
+                                    MBEDTLS_MPI_INIT }
 #endif /* MBEDTLS_ECP_RESTARTABLE */
 #else
 #if !defined(MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED)
 #if defined(MBEDTLS_ECP_RESTARTABLE)
-#define MBEDTLS_ECDH_CTX_INIT { 0, MBEDTLS_ECP_DP_NONE, MBEDTLS_ECDH_VARIANT_NONE, \
-                                MBEDTLS_ECDH_CTX_MBED_INIT, 0 }
+#define MBEDTLS_ECDH_CONTEXT_INIT { MBEDTLS_ECP_PF_UNCOMPRESSED, MBEDTLS_ECP_DP_NONE, \
+                                    MBEDTLS_ECDH_VARIANT_NONE, \
+                                    { .mbed_ecdh = MBEDTLS_ECDH_CONTEXT_MBED_INIT }, 0 }
 #else
-#define MBEDTLS_ECDH_CTX_INIT { 0, MBEDTLS_ECP_DP_NONE, MBEDTLS_ECDH_VARIANT_NONE, \
-                                MBEDTLS_ECDH_CTX_MBED_INIT }
+#define MBEDTLS_ECDH_CONTEXT_INIT { MBEDTLS_ECP_PF_UNCOMPRESSED, MBEDTLS_ECP_DP_NONE, \
+                                    MBEDTLS_ECDH_VARIANT_NONE, \
+                                    { .mbed_ecdh = MBEDTLS_ECDH_CONTEXT_MBED_INIT } }
 #endif /* MBEDTLS_ECP_RESTARTABLE */
 #else
 #if defined(MBEDTLS_ECP_RESTARTABLE)
-#define MBEDTLS_ECDH_CTX_INIT { 0, MBEDTLS_ECP_DP_NONE, MBEDTLS_ECDH_VARIANT_NONE, \
-                                MBEDTLS_ECDH_CTX_EVEREST_INIT, 0 }
+#define MBEDTLS_ECDH_CONTEXT_INIT { MBEDTLS_ECP_PF_UNCOMPRESSED, MBEDTLS_ECP_DP_NONE, \
+                                    MBEDTLS_ECDH_VARIANT_NONE, \
+                                    { .everest_ecdh = MBEDTLS_ECDH_CONTEXT_EVEREST_INIT }, 0 }
 #else
-#define MBEDTLS_ECDH_CTX_INIT { 0, MBEDTLS_ECP_DP_NONE, MBEDTLS_ECDH_VARIANT_NONE, \
-                                MBEDTLS_ECDH_CTX_EVEREST_INIT }
+#define MBEDTLS_ECDH_CONTEXT_INIT { MBEDTLS_ECP_PF_UNCOMPRESSED, MBEDTLS_ECP_DP_NONE, \
+                                    MBEDTLS_ECDH_VARIANT_NONE, \
+                                    { .everest_ecdh = MBEDTLS_ECDH_CONTEXT_EVEREST_INIT } }
 #endif /* MBEDTLS_ECP_RESTARTABLE */
 #endif /* !MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED */
 #endif /* MBEDTLS_ECDH_LEGACY_CONTEXT */

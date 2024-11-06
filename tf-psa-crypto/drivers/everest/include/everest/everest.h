@@ -41,7 +41,7 @@ typedef struct {
     mbedtls_x25519_context ctx;
 } mbedtls_ecdh_context_everest;
 
-#define MBEDTLS_ECDH_CTX_EVEREST_INIT {MBEDTLS_X25519_CTX_INIT}
+#define MBEDTLS_ECDH_CONTEXT_EVEREST_INIT {MBEDTLS_X25519_CONTEXT_INIT}
 
 /**
  * \brief           This function sets up the ECDH context with the information

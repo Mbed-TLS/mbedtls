@@ -28,6 +28,8 @@ my $psa_header_dir = 'tf-psa-crypto/include/psa';
 my $tls_source_dir = 'library';
 my $crypto_core_source_dir = 'tf-psa-crypto/core';
 my $crypto_source_dir = 'tf-psa-crypto/drivers/builtin/src';
+my $tls_test_source_dir = 'tests/src';
+my $tls_test_header_dir = 'tests/include/test';
 my $test_source_dir = 'framework/tests/src';
 my $test_header_dir = 'framework/tests/include/test';
 my $test_drivers_header_dir = 'framework/tests/include/test/drivers';
@@ -114,8 +116,10 @@ sub check_dirs {
         && -d $crypto_core_source_dir
         && -d $crypto_source_dir
         && -d $test_source_dir
+        && -d $tls_test_source_dir
         && -d $test_drivers_source_dir
         && -d $test_header_dir
+        && -d $tls_test_header_dir
         && -d $test_drivers_header_dir
         && -d $programs_dir;
 }
@@ -270,6 +274,7 @@ sub main {
                        $drivers_builtin_header_dir,
                        $psa_header_dir,
                        $test_header_dir,
+                       $tls_test_header_dir,
                        $test_drivers_header_dir,
                        $tls_source_dir,
                        $crypto_core_source_dir,
@@ -282,6 +287,7 @@ sub main {
                        $crypto_core_source_dir,
                        $crypto_source_dir,
                        $test_source_dir,
+                       $tls_test_source_dir,
                        $test_drivers_source_dir,
                        @thirdparty_source_dirs,
                       );

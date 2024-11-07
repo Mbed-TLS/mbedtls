@@ -109,11 +109,12 @@
 # means that components can assume that the working directory is in a
 # cleaned-up state, and don't need to perform the cleanup themselves.
 # * Run `make clean`.
-# * Restore `include/mbedtls/mbedtls_config.h` from a backup made before running
-#   the component.
-# * Check out `Makefile`, `library/Makefile`, `programs/Makefile`,
-#   `tests/Makefile` and `programs/fuzz/Makefile` from git.
-#   This cleans up after an in-tree use of CMake.
+# * Restore the various config files (potentially modified by config.py) from
+#   a backup made when starting the script.
+# * If in Mbed TLS, restore the various `Makefile`s (potentially modified by
+#   in-tree use of CMake) from a backup made when starting the script. (Note:
+#   if the files look generated when starting the script, they will be
+#   restored from the git index before making the backup.)
 
 
 ################################################################
@@ -156,8 +157,8 @@ pre_check_environment () {
 # Must be called before pre_initialize_variables which sets ALL_COMPONENTS.
 pre_load_components () {
     # Include the components from components.sh
-    test_script_dir="${0%/*}"
-    for file in "$test_script_dir"/components-*.sh; do
+    # Use a path relative to the current directory, aka project's root.
+    for file in tests/scripts/components-*.sh; do
         source $file
     done
 }
@@ -165,6 +166,7 @@ pre_load_components () {
 pre_initialize_variables () {
     if in_mbedtls_repo; then
         CONFIG_H='include/mbedtls/mbedtls_config.h'
+        CONFIG_TEST_DRIVER_H='tests/include/test/drivers/config_test_driver.h'
         if [ -d tf-psa-crypto ]; then
             CRYPTO_CONFIG_H='tf-psa-crypto/include/psa/crypto_config.h'
             PSA_CORE_PATH='tf-psa-crypto/core'
@@ -176,20 +178,21 @@ pre_initialize_variables () {
             PSA_CORE_PATH=''
             BUILTIN_SRC_PATH=''
         fi
+        config_files="$CONFIG_H $CRYPTO_CONFIG_H $CONFIG_TEST_DRIVER_H"
     else
-        CONFIG_H='drivers/builtin/include/mbedtls/mbedtls_config.h'
         CRYPTO_CONFIG_H='include/psa/crypto_config.h'
         PSA_CORE_PATH='core'
         BUILTIN_SRC_PATH='drivers/builtin/src'
+
+        config_files="$CRYPTO_CONFIG_H"
     fi
-    CONFIG_TEST_DRIVER_H='tests/include/test/drivers/config_test_driver.h'
 
     # Files that are clobbered by some jobs will be backed up. Use a different
     # suffix from auxiliary scripts so that all.sh and auxiliary scripts can
     # independently decide when to remove the backup file.
     backup_suffix='.all.bak'
     # Files clobbered by config.py
-    files_to_back_up="$CONFIG_H $CRYPTO_CONFIG_H $CONFIG_TEST_DRIVER_H"
+    files_to_back_up="$config_files"
     if in_mbedtls_repo; then
         # Files clobbered by in-tree cmake
         files_to_back_up="$files_to_back_up Makefile library/Makefile programs/Makefile tests/Makefile programs/fuzz/Makefile"
@@ -623,7 +626,7 @@ pre_parse_command_line () {
 pre_check_git () {
     if [ $FORCE -eq 1 ]; then
         rm -rf "$OUT_OF_SOURCE_DIR"
-        git checkout-index -f -q $CONFIG_H
+        git checkout-index -f -q $config_files
         cleanup
     else
 
@@ -634,12 +637,14 @@ pre_check_git () {
             exit 1
         fi
 
-        if ! git diff --quiet "$CONFIG_H"; then
-            err_msg "Warning - the configuration file '$CONFIG_H' has been edited. "
-            echo "You can either delete or preserve your work, or force the test by rerunning the"
-            echo "script as: $0 --force"
-            exit 1
-        fi
+        for config in $config_files; do
+            if ! git diff --quiet "$config"; then
+                err_msg "Warning - the configuration file '$config' has been edited. "
+                echo "You can either delete or preserve your work, or force the test by rerunning the"
+                echo "script as: $0 --force"
+                exit 1
+            fi
+        done
     fi
 }
 
@@ -866,7 +871,8 @@ pre_check_tools () {
             set "$@" ARMC6_CC="$ARMC6_CC" RUN_ARMCC=1;;
         *) set "$@" RUN_ARMCC=0;;
     esac
-    "$@" scripts/output_env.sh
+    # Use a path relative to the currently-sourced file.
+    "$@" "${BASH_SOURCE%/*}"/../../scripts/output_env.sh
 }
 
 pre_generate_files() {
@@ -881,8 +887,8 @@ pre_generate_files() {
 }
 
 pre_load_helpers () {
-    # The path is going to change when this is moved to the framework
-    test_script_dir="${0%/*}"
+    # Use a path relative to the currently-sourced file.
+    test_script_dir="${BASH_SOURCE%/*}"
     source "$test_script_dir"/all-helpers.sh
 }
 

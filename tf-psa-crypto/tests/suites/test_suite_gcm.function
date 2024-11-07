@@ -627,14 +627,10 @@ void gcm_encrypt_input_output_buffer_overlap(int cipher_id, data_t *key_str,
      * Therefore we must ensure we round up to the nearest 128-bits/16-bytes.
      */
     buffer_len = src_str->len;
-    if (buffer_len % 16 != 0) {
+    if (buffer_len % 16 != 0 || buffer_len == 0) {
         buffer_len += (16 - (buffer_len % 16));
     }
     TEST_CALLOC(buffer, buffer_len);
-    if (buffer == NULL) {
-        TEST_FAIL("Could not allocate memory for input output buffer overlap");
-        goto exit;
-    }
     memcpy(buffer, src_str->x, src_str->len);
 
     memset(tag_output, 0x00, 16);
@@ -662,9 +658,7 @@ void gcm_encrypt_input_output_buffer_overlap(int cipher_id, data_t *key_str,
     }
 
 exit:
-    if (buffer != NULL) {
-        free(buffer);
-    }
+    mbedtls_free(buffer);
     mbedtls_gcm_free(&ctx);
     BLOCK_CIPHER_PSA_DONE();
 }
@@ -692,14 +686,10 @@ void gcm_decrypt_input_output_buffer_overlap(int cipher_id, data_t *key_str,
      * Therefore we must ensure we round up to the nearest 128-bits/16-bytes.
      */
     buffer_len = src_str->len;
-    if (buffer_len % 16 != 0) {
+    if (buffer_len % 16 != 0 || buffer_len == 0) {
         buffer_len += (16 - (buffer_len % 16));
     }
     TEST_CALLOC(buffer, buffer_len);
-    if (buffer == NULL) {
-        TEST_FAIL("Could not allocate memory for input output buffer overlap");
-        goto exit;
-    }
     memcpy(buffer, src_str->x, src_str->len);
 
     TEST_ASSERT(mbedtls_gcm_setkey(&ctx, cipher_id, key_str->x, key_str->len * 8) == init_result);
@@ -736,9 +726,7 @@ void gcm_decrypt_input_output_buffer_overlap(int cipher_id, data_t *key_str,
     }
 
 exit:
-    if (buffer != NULL) {
-        free(buffer);
-    }
+    mbedtls_free(buffer);
     mbedtls_gcm_free(&ctx);
     BLOCK_CIPHER_PSA_DONE();
 

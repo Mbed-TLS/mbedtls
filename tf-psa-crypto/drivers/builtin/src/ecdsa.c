@@ -547,7 +547,7 @@ muladd:
     MBEDTLS_MPI_CHK(mbedtls_ecp_muladd_restartable(grp,
                                                    &R, pu1, &grp->G, pu2, Q, ECDSA_RS_ECP));
 
-    if (mbedtls_ecp_is_zero(&R)) {
+    if (mbedtls_ecp_is_zero_ext(grp, &R)) {
         ret = MBEDTLS_ERR_ECP_VERIFY_FAILED;
         goto cleanup;
     }

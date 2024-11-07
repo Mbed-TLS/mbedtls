@@ -170,27 +170,15 @@ mbedtls_ecdh_context;
                                     MBEDTLS_MPI_INIT }
 #endif /* MBEDTLS_ECP_RESTARTABLE */
 #else
-#if !defined(MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED)
 #if defined(MBEDTLS_ECP_RESTARTABLE)
 #define MBEDTLS_ECDH_CONTEXT_INIT { MBEDTLS_ECP_PF_UNCOMPRESSED, MBEDTLS_ECP_DP_NONE, \
                                     MBEDTLS_ECDH_VARIANT_NONE, \
-                                    { .mbed_ecdh = MBEDTLS_ECDH_CONTEXT_MBED_INIT }, 0 }
+                                    { MBEDTLS_ECDH_CONTEXT_MBED_INIT }, 0 }
 #else
 #define MBEDTLS_ECDH_CONTEXT_INIT { MBEDTLS_ECP_PF_UNCOMPRESSED, MBEDTLS_ECP_DP_NONE, \
                                     MBEDTLS_ECDH_VARIANT_NONE, \
-                                    { .mbed_ecdh = MBEDTLS_ECDH_CONTEXT_MBED_INIT } }
+                                    { MBEDTLS_ECDH_CONTEXT_MBED_INIT } }
 #endif /* MBEDTLS_ECP_RESTARTABLE */
-#else
-#if defined(MBEDTLS_ECP_RESTARTABLE)
-#define MBEDTLS_ECDH_CONTEXT_INIT { MBEDTLS_ECP_PF_UNCOMPRESSED, MBEDTLS_ECP_DP_NONE, \
-                                    MBEDTLS_ECDH_VARIANT_NONE, \
-                                    { .everest_ecdh = MBEDTLS_ECDH_CONTEXT_EVEREST_INIT }, 0 }
-#else
-#define MBEDTLS_ECDH_CONTEXT_INIT { MBEDTLS_ECP_PF_UNCOMPRESSED, MBEDTLS_ECP_DP_NONE, \
-                                    MBEDTLS_ECDH_VARIANT_NONE, \
-                                    { .everest_ecdh = MBEDTLS_ECDH_CONTEXT_EVEREST_INIT } }
-#endif /* MBEDTLS_ECP_RESTARTABLE */
-#endif /* !MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED */
 #endif /* MBEDTLS_ECDH_LEGACY_CONTEXT */
 
 /**

@@ -184,7 +184,7 @@ component_build_cmake_custom_config_file () {
     cp tf-psa-crypto/include/psa/crypto_config.h $OUT_OF_SOURCE_DIR/full_crypto_config.h
     cd "$OUT_OF_SOURCE_DIR"
     echo '#error "cmake -DMBEDTLS_CONFIG_FILE is not working."' > "$MBEDTLS_ROOT_DIR/$CONFIG_H"
-    cmake -DGEN_FILES=OFF -DMBEDTLS_CONFIG_FILE=full_config.h "$MBEDTLS_ROOT_DIR"
+    cmake -DGEN_FILES=OFF -DMBEDTLS_CONFIG_FILE=full_config.h -DMBEDTLS_PSA_CRYPTO_CONFIG_FILE=../full_crypto_config.h "$MBEDTLS_ROOT_DIR"
     make
 
     msg "build: cmake with -DMBEDTLS_CONFIG_FILE + -DMBEDTLS_USER_CONFIG_FILE"
@@ -192,7 +192,7 @@ component_build_cmake_custom_config_file () {
     # that nothing else depends on).
     echo '#undef MBEDTLS_SSL_ALL_ALERT_MESSAGES' >user_config.h
 
-    cmake -DGEN_FILES=OFF -DMBEDTLS_CONFIG_FILE=full_config.h -DMBEDTLS_USER_CONFIG_FILE=user_config.h "$MBEDTLS_ROOT_DIR"
+    cmake -DGEN_FILES=OFF -DMBEDTLS_CONFIG_FILE=full_config.h -DMBEDTLS_USER_CONFIG_FILE=user_config.h -DMBEDTLS_PSA_CRYPTO_CONFIG_FILE=../full_crypto_config.h "$MBEDTLS_ROOT_DIR"
     make
     not programs/test/query_compile_time_config MBEDTLS_SSL_ALL_ALERT_MESSAGES
 

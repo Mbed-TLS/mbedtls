@@ -23,8 +23,6 @@
  * See README.txt for usage instructions.
  */
 
-#define MBEDTLS_PSA_CRYPTO_CONFIG_FILE "../configs/crypto-config-ccm-psk-tls1_2.h"
-
 /* Mbed TLS modules */
 #define MBEDTLS_NET_C
 #define MBEDTLS_SSL_CLI_C

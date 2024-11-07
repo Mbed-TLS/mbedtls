@@ -21,8 +21,6 @@
  * See README.txt for usage instructions.
  */
 
-#define MBEDTLS_PSA_CRYPTO_CONFIG_FILE "../configs/crypto-config-thread.h"
-
 /* Mbed TLS feature support */
 #define MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED
 #define MBEDTLS_SSL_MAX_FRAGMENT_LENGTH

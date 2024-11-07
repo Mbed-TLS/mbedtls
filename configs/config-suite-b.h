@@ -21,8 +21,6 @@
  * See README.txt for usage instructions.
  */
 
-#define MBEDTLS_PSA_CRYPTO_CONFIG_FILE "../configs/crypto-config-suite-b.h"
-
 /* Mbed TLS feature support */
 #define MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
 #define MBEDTLS_SSL_PROTO_TLS1_2

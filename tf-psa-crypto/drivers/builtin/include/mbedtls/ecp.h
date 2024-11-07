@@ -21,6 +21,7 @@
 
 #ifndef MBEDTLS_ECP_H
 #define MBEDTLS_ECP_H
+#include "mbedtls/platform_util.h"
 #include "mbedtls/private_access.h"
 
 #include "mbedtls/build_info.h"
@@ -69,6 +70,10 @@
     defined(MBEDTLS_ECP_DP_CURVE448_ENABLED)
 #define MBEDTLS_ECP_MONTGOMERY_ENABLED
 #endif
+#if defined(MBEDTLS_ECP_DP_ED25519_ENABLED) || \
+    defined(MBEDTLS_ECP_DP_ED448_ENABLED)
+#define MBEDTLS_ECP_EDWARDS_ENABLED
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -114,12 +119,14 @@ typedef enum {
     MBEDTLS_ECP_DP_SECP224K1,      /*!< Domain parameters for 224-bit "Koblitz" curve. */
     MBEDTLS_ECP_DP_SECP256K1,      /*!< Domain parameters for 256-bit "Koblitz" curve. */
     MBEDTLS_ECP_DP_CURVE448,       /*!< Domain parameters for Curve448. */
+    MBEDTLS_ECP_DP_ED25519,        /*!< Domain parameters for Ed25519. */
+    MBEDTLS_ECP_DP_ED448,          /*!< Domain parameters for Ed448. */
 } mbedtls_ecp_group_id;
 
 /**
  * The number of supported curves, plus one for #MBEDTLS_ECP_DP_NONE.
  */
-#define MBEDTLS_ECP_DP_MAX     14
+#define MBEDTLS_ECP_DP_MAX     16
 
 /*
  * Curve types
@@ -128,6 +135,7 @@ typedef enum {
     MBEDTLS_ECP_TYPE_NONE = 0,
     MBEDTLS_ECP_TYPE_SHORT_WEIERSTRASS,    /* y^2 = x^3 + a x + b      */
     MBEDTLS_ECP_TYPE_MONTGOMERY,           /* y^2 = x^3 + a x^2 + x    */
+    MBEDTLS_ECP_TYPE_EDWARDS,              /* a x^2 + y^2 = 1 + d x^2 y^2 */
 } mbedtls_ecp_curve_type;
 
 /**
@@ -242,10 +250,10 @@ typedef struct mbedtls_ecp_group {
     /* End of public fields */
 
     unsigned int MBEDTLS_PRIVATE(h);             /*!< \internal 1 if the constants are static. */
-    int(*MBEDTLS_PRIVATE(modp))(mbedtls_mpi *);  /*!< The function for fast pseudo-reduction
-                                                    mod \p P (see above).*/
-    int(*MBEDTLS_PRIVATE(t_pre))(mbedtls_ecp_point *, void *);   /*!< Unused. */
-    int(*MBEDTLS_PRIVATE(t_post))(mbedtls_ecp_point *, void *);  /*!< Unused. */
+    int(*MBEDTLS_PRIVATE(modp))(mbedtls_mpi *);   /*!< The function for fast pseudo-reduction
+                                                     mod \p P (see above).*/
+    int(*MBEDTLS_PRIVATE(t_pre))(mbedtls_ecp_point *, void *);    /*!< Unused. */
+    int(*MBEDTLS_PRIVATE(t_post))(mbedtls_ecp_point *, void *);   /*!< Unused. */
     void *MBEDTLS_PRIVATE(t_data);               /*!< Unused. */
     mbedtls_ecp_point *MBEDTLS_PRIVATE(T);       /*!< Pre-computed points for ecp_mul_comb(). */
     size_t MBEDTLS_PRIVATE(T_size);              /*!< The number of dynamic allocated pre-computed points. */
@@ -317,6 +325,8 @@ mbedtls_ecp_group;
 #define MBEDTLS_ECP_MAX_BITS 521
 #elif defined(MBEDTLS_ECP_DP_BP512R1_ENABLED)
 #define MBEDTLS_ECP_MAX_BITS 512
+#elif defined(MBEDTLS_ECP_DP_ED448_ENABLED)
+#define MBEDTLS_ECP_MAX_BITS 456
 #elif defined(MBEDTLS_ECP_DP_CURVE448_ENABLED)
 #define MBEDTLS_ECP_MAX_BITS 448
 #elif defined(MBEDTLS_ECP_DP_BP384R1_ENABLED)
@@ -328,6 +338,8 @@ mbedtls_ecp_group;
 #elif defined(MBEDTLS_ECP_DP_SECP256K1_ENABLED)
 #define MBEDTLS_ECP_MAX_BITS 256
 #elif defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED)
+#define MBEDTLS_ECP_MAX_BITS 256
+#elif defined(MBEDTLS_ECP_DP_ED25519_ENABLED)
 #define MBEDTLS_ECP_MAX_BITS 256
 #elif defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED)
 #define MBEDTLS_ECP_MAX_BITS 255
@@ -688,8 +700,15 @@ int mbedtls_ecp_copy(mbedtls_ecp_point *P, const mbedtls_ecp_point *Q);
 int mbedtls_ecp_group_copy(mbedtls_ecp_group *dst,
                            const mbedtls_ecp_group *src);
 
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
 /**
  * \brief           This function sets a point to the point at infinity.
+ *
+ * \note            This does not work for Edwards curves and will silently
+ *                  set the point to a wrong value in that case.
+ *
+ * \deprecated      This function is deprecated and has been replaced by
+ *                  \c mbedtls_ecp_set_zero_ext().
  *
  * \param pt        The point to set. This must be initialized.
  *
@@ -697,10 +716,32 @@ int mbedtls_ecp_group_copy(mbedtls_ecp_group *dst,
  * \return          #MBEDTLS_ERR_MPI_ALLOC_FAILED on memory-allocation failure.
  * \return          Another negative error code on other kinds of failure.
  */
-int mbedtls_ecp_set_zero(mbedtls_ecp_point *pt);
+int MBEDTLS_DEPRECATED mbedtls_ecp_set_zero(mbedtls_ecp_point *pt);
+#endif /* MBEDTLS_DEPRECATED_REMOVED */
 
 /**
+ * \brief           This function sets a point to the point at infinity.
+ *
+ * \param grp       The ECP group to use.
+ *                  This must be initialized and have group parameters
+ *                  set, for example through mbedtls_ecp_group_load().
+ * \param pt        The point to set. This must be initialized.
+ *
+ * \return          \c 0 on success.
+ * \return          #MBEDTLS_ERR_MPI_ALLOC_FAILED on memory-allocation failure.
+ * \return          Another negative error code on other kinds of failure.
+ */
+int mbedtls_ecp_set_zero_ext(const mbedtls_ecp_group *grp, mbedtls_ecp_point *pt);
+
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
+/**
  * \brief           This function checks if a point is the point at infinity.
+ *
+ * \note            This does not work for Edwards curves and will return a
+ *                  wrong result in that case.
+ *
+ * \deprecated      This function is deprecated and has been replaced by
+ *                  \c mbedtls_ecp_is_zero_ext().
  *
  * \param pt        The point to test. This must be initialized.
  *
@@ -708,7 +749,22 @@ int mbedtls_ecp_set_zero(mbedtls_ecp_point *pt);
  * \return          \c 0 if the point is non-zero.
  * \return          A negative error code on failure.
  */
-int mbedtls_ecp_is_zero(mbedtls_ecp_point *pt);
+int MBEDTLS_DEPRECATED mbedtls_ecp_is_zero(mbedtls_ecp_point *pt);
+#endif /* MBEDTLS_DEPRECATED_REMOVED */
+
+/**
+ * \brief           This function checks if a point is the point at infinity.
+ *
+ * \param grp       The ECP group to use.
+ *                  This must be initialized and have group parameters
+ *                  set, for example through mbedtls_ecp_group_load().
+ * \param pt        The point to test. This must be initialized.
+ *
+ * \return          \c 1 if the point is zero.
+ * \return          \c 0 if the point is non-zero.
+ * \return          A negative error code on failure.
+ */
+int mbedtls_ecp_is_zero_ext(const mbedtls_ecp_group *grp, mbedtls_ecp_point *pt);
 
 /**
  * \brief           This function compares two points.
@@ -740,6 +796,38 @@ int mbedtls_ecp_point_cmp(const mbedtls_ecp_point *P,
 int mbedtls_ecp_point_read_string(mbedtls_ecp_point *P, int radix,
                                   const char *x, const char *y);
 
+
+/**
+ * \brief           This function encodes an Edwards point to an \c mpi.
+ *
+ * \param grp       The group to which the point should belong.
+ *                  This must be initialized and have group parameters
+ *                  set, for example through mbedtls_ecp_group_load().
+ * \param q         The encoded point.
+ * \param pt        The Edwards point.
+ *
+ * \return          \c 0 on success.
+ * \return          An \c MBEDTLS_ERR_MPI_XXX error code on failure.
+ */
+int mbedtls_ecp_point_encode(const mbedtls_ecp_group *grp,
+                             mbedtls_mpi *q,
+                             const mbedtls_ecp_point *pt);
+
+/**
+ * \brief           This function decodes an Edwards point from an \c mpi.
+ *
+ * \param grp       The group to which the point should belong.
+ *                  This must be initialized and have group parameters
+ *                  set, for example through mbedtls_ecp_group_load().
+ * \param pt        The decoded Edwards point.
+ * \param q         The encoded point.
+ *
+ * \return          \c 0 on success.
+ * \return          An \c MBEDTLS_ERR_MPI_XXX error code on failure.
+ */
+int mbedtls_ecp_point_decode(const mbedtls_ecp_group *grp,
+                             mbedtls_ecp_point *pt,
+                             const mbedtls_mpi *q);
 /**
  * \brief           This function exports a point into unsigned binary data.
  *
@@ -998,7 +1086,7 @@ int mbedtls_ecp_mul_restartable(mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
                                 int (*f_rng)(void *, unsigned char *, size_t), void *p_rng,
                                 mbedtls_ecp_restart_ctx *rs_ctx);
 
-#if defined(MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED)
+#if defined(MBEDTLS_ECP_EDWARDS_ENABLED) || defined(MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED)
 /**
  * \brief           This function checks if domain parameter A of the curve is
  *                  \c -3.
@@ -1028,9 +1116,9 @@ static inline int mbedtls_ecp_group_a_is_minus_3(const mbedtls_ecp_group *grp)
  * \note            In contrast to mbedtls_ecp_mul(), this function does not
  *                  guarantee a constant execution flow and timing.
  *
- * \note            This function is only defined for short Weierstrass curves.
- *                  It may not be included in builds without any short
- *                  Weierstrass curve.
+ * \note            This function is only defined for Edwards and short
+ *                  Weierstrass curves. It may not be included in builds
+ *                  without any Edwards or short Weierstrass curve.
  *
  * \param grp       The ECP group to use.
  *                  This must be initialized and have group parameters
@@ -1051,7 +1139,7 @@ static inline int mbedtls_ecp_group_a_is_minus_3(const mbedtls_ecp_group *grp)
  *                  keys.
  * \return          #MBEDTLS_ERR_MPI_ALLOC_FAILED on memory-allocation failure.
  * \return          #MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE if \p grp does not
- *                  designate a short Weierstrass curve.
+ *                  designate a Edwards or short Weierstrass curve.
  * \return          Another negative error code on other kinds of failure.
  */
 int mbedtls_ecp_muladd(mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
@@ -1069,9 +1157,9 @@ int mbedtls_ecp_muladd(mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
  *                  but it can return early and restart according to the limit
  *                  set with \c mbedtls_ecp_set_max_ops() to reduce blocking.
  *
- * \note            This function is only defined for short Weierstrass curves.
- *                  It may not be included in builds without any short
- *                  Weierstrass curve.
+ * \note            This function is only defined for Edwards and short
+ *                  Weierstrass curves. It may not be included in builds
+ *                  without any Edwards or short Weierstrass curve.
  *
  * \param grp       The ECP group to use.
  *                  This must be initialized and have group parameters
@@ -1093,7 +1181,7 @@ int mbedtls_ecp_muladd(mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
  *                  keys.
  * \return          #MBEDTLS_ERR_MPI_ALLOC_FAILED on memory-allocation failure.
  * \return          #MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE if \p grp does not
- *                  designate a short Weierstrass curve.
+ *                  designate a Edwards or short Weierstrass curve.
  * \return          #MBEDTLS_ERR_ECP_IN_PROGRESS if maximum number of
  *                  operations was reached: see \c mbedtls_ecp_set_max_ops().
  * \return          Another negative error code on other kinds of failure.
@@ -1103,7 +1191,7 @@ int mbedtls_ecp_muladd_restartable(
     const mbedtls_mpi *m, const mbedtls_ecp_point *P,
     const mbedtls_mpi *n, const mbedtls_ecp_point *Q,
     mbedtls_ecp_restart_ctx *rs_ctx);
-#endif /* MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED */
+#endif /* MBEDTLS_ECP_EDWARDS_ENABLED || MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED */
 
 /**
  * \brief           This function checks that a point is a valid public key
@@ -1176,6 +1264,53 @@ int mbedtls_ecp_gen_privkey(const mbedtls_ecp_group *grp,
                             mbedtls_mpi *d,
                             int (*f_rng)(void *, unsigned char *, size_t),
                             void *p_rng);
+
+#if defined(MBEDTLS_ECP_EDWARDS_ENABLED)
+/**
+ * \brief           This function expands a secret on the Edwards curve.
+ *
+ * \param grp       The ECP group that contains curve information.
+ *                  This must be initialized and have group parameters
+ *                  set, for example through mbedtls_ecp_group_load().
+ *
+ * \param d         The destination MPI (secret part).
+ *                  This must be initialized.
+ * \param q         The destination first expansion. This must not be \c NULL.
+ * \param prefix    The destination second expansion. This can be \c NULL.
+ *
+ * \return          \c 0 on success.
+ * \return          An \c MBEDTLS_ERR_ECP_XXX or \c MBEDTLS_MPI_XXX error code
+ *                  on failure.
+ */
+int mbedtls_ecp_expand_edwards(mbedtls_ecp_group *grp,
+                               const mbedtls_mpi *d, mbedtls_mpi *q,
+                               mbedtls_mpi *prefix);
+
+/**
+ * \brief           This function obtains a point on the Edwards curve.
+ *
+ * \param grp       The ECP group that contains curve information.
+ *                  This must be initialized and have group parameters
+ *                  set, for example through mbedtls_ecp_group_load().
+ *
+ * \param Q         The destination public point.
+ *                  This must be initialized.
+ * \param d         The secret MPI (secret part).
+ *
+ * \param f_rng     The RNG function. This must not be \c NULL.
+ * \param p_rng     The RNG context to be passed to \p f_rng. This may
+ *                  be \c NULL if \p f_rng doesn't need a context argument.
+ *
+ * \return          \c 0 on success.
+ * \return          An \c MBEDTLS_ERR_ECP_XXX or \c MBEDTLS_MPI_XXX error code
+ *                  on failure.
+ */
+int mbedtls_ecp_point_edwards(mbedtls_ecp_group *grp,
+                              mbedtls_ecp_point *Q,
+                              const mbedtls_mpi *d,
+                              int (*f_rng)(void *, unsigned char *, size_t),
+                              void *p_rng);
+#endif
 
 /**
  * \brief           This function generates a keypair with a configurable base

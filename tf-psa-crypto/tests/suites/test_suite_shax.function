@@ -305,6 +305,36 @@ exit:
 }
 /* END_CASE */
 
+/* BEGIN_CASE depends_on:MBEDTLS_SHA3_C */
+void shake_multi(int type,
+                 data_t *input1, data_t *input2,
+                 data_t *output1, data_t *output2)
+{
+    mbedtls_sha3_context ctx;
+    unsigned char *output = NULL;
+
+    mbedtls_sha3_init(&ctx);
+    output = mbedtls_calloc(1, MAX(output1->len, output2->len));
+    TEST_ASSERT(output != NULL);
+
+    TEST_ASSERT(mbedtls_sha3_starts(&ctx, type) == 0);
+
+    TEST_ASSERT(mbedtls_sha3_update(&ctx, input1->x, input1->len) == 0);
+    TEST_ASSERT(mbedtls_sha3_update(&ctx, NULL, 0) == 0);
+    TEST_ASSERT(mbedtls_sha3_update(&ctx, input2->x, input2->len) == 0);
+
+    TEST_ASSERT(mbedtls_sha3_finish(&ctx, output, output1->len) == 0);
+    ASSERT_COMPARE(output, output1->len, output1->x, output1->len);
+    TEST_ASSERT(mbedtls_sha3_finish(&ctx, NULL, 0) == 0);
+    TEST_ASSERT(mbedtls_sha3_finish(&ctx, output, output2->len) == 0);
+    ASSERT_COMPARE(output, output2->len, output2->x, output2->len);
+
+exit:
+    mbedtls_free(output);
+    mbedtls_sha3_free(&ctx);
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:MBEDTLS_SHA3_C:MBEDTLS_SELF_TEST */
 void sha3_selftest()
 {

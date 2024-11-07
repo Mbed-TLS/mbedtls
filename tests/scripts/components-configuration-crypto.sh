@@ -2685,7 +2685,7 @@ component_build_psa_alt_headers () {
 
     # Generate alternative versions of the substitutable headers with the
     # same content except different include guards.
-    make -C tests include/alt-extra/psa/crypto_platform_alt.h include/alt-extra/psa/crypto_struct_alt.h
+    make -C tests ../framework/tests/include/alt-extra/psa/crypto_platform_alt.h ../framework/tests/include/alt-extra/psa/crypto_struct_alt.h
 
     # Build the library and some programs.
     # Don't build the fuzzers to avoid having to go through hoops to set

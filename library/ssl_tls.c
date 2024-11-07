@@ -7016,11 +7016,6 @@ static int ssl_compute_master(mbedtls_ssl_handshake_params *handshake,
              * Other secret is stored in premaster, where first 2 bytes hold the
              * length of the other key.
              */
-            case MBEDTLS_KEY_EXCHANGE_RSA_PSK:
-                /* For RSA-PSK other key length is always 48 bytes. */
-                other_secret_len = 48;
-                other_secret = handshake->premaster + 2;
-                break;
             case MBEDTLS_KEY_EXCHANGE_ECDHE_PSK:
             case MBEDTLS_KEY_EXCHANGE_DHE_PSK:
                 other_secret_len = MBEDTLS_GET_UINT16_BE(handshake->premaster, 0);
@@ -7357,21 +7352,6 @@ int mbedtls_ssl_psk_derive_premaster(mbedtls_ssl_context *ssl, mbedtls_key_excha
         p += psk_len;
     } else
 #endif /* MBEDTLS_KEY_EXCHANGE_PSK_ENABLED */
-#if defined(MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED)
-    if (key_ex == MBEDTLS_KEY_EXCHANGE_RSA_PSK) {
-        /*
-         * other_secret already set by the ClientKeyExchange message,
-         * and is 48 bytes long
-         */
-        if (end - p < 2) {
-            return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
-        }
-
-        *p++ = 0;
-        *p++ = 48;
-        p += 48;
-    } else
-#endif /* MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED */
 #if defined(MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED)
     if (key_ex == MBEDTLS_KEY_EXCHANGE_DHE_PSK) {
         int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
@@ -7835,10 +7815,6 @@ static int ssl_parse_certificate_coordinate(mbedtls_ssl_context *ssl,
 
 #if defined(MBEDTLS_SSL_SRV_C)
     if (ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER) {
-        if (ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_RSA_PSK) {
-            return SSL_CERTIFICATE_SKIP;
-        }
-
         if (authmode == MBEDTLS_SSL_VERIFY_NONE) {
             ssl->session_negotiate->verify_result =
                 MBEDTLS_X509_BADCERT_SKIP_VERIFY;
@@ -9685,7 +9661,6 @@ int mbedtls_ssl_check_cert_usage(const mbedtls_x509_crt *cert,
         /* TLS 1.2 server part of the key exchange */
         switch (ciphersuite->key_exchange) {
             case MBEDTLS_KEY_EXCHANGE_RSA:
-            case MBEDTLS_KEY_EXCHANGE_RSA_PSK:
                 usage = MBEDTLS_X509_KU_KEY_ENCIPHERMENT;
                 break;
 

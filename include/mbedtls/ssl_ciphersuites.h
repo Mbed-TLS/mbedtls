@@ -29,7 +29,6 @@ extern "C" {
 
 #define MBEDTLS_TLS_PSK_WITH_NULL_SHA                    0x2C   /**< Weak! */
 #define MBEDTLS_TLS_DHE_PSK_WITH_NULL_SHA                0x2D   /**< Weak! */
-#define MBEDTLS_TLS_RSA_PSK_WITH_NULL_SHA                0x2E   /**< Weak! */
 #define MBEDTLS_TLS_RSA_WITH_AES_128_CBC_SHA             0x2F
 
 #define MBEDTLS_TLS_DHE_RSA_WITH_AES_128_CBC_SHA         0x33
@@ -55,9 +54,6 @@ extern "C" {
 #define MBEDTLS_TLS_DHE_PSK_WITH_AES_128_CBC_SHA         0x90
 #define MBEDTLS_TLS_DHE_PSK_WITH_AES_256_CBC_SHA         0x91
 
-#define MBEDTLS_TLS_RSA_PSK_WITH_AES_128_CBC_SHA         0x94
-#define MBEDTLS_TLS_RSA_PSK_WITH_AES_256_CBC_SHA         0x95
-
 #define MBEDTLS_TLS_RSA_WITH_AES_128_GCM_SHA256          0x9C   /**< TLS 1.2 */
 #define MBEDTLS_TLS_RSA_WITH_AES_256_GCM_SHA384          0x9D   /**< TLS 1.2 */
 #define MBEDTLS_TLS_DHE_RSA_WITH_AES_128_GCM_SHA256      0x9E   /**< TLS 1.2 */
@@ -67,8 +63,6 @@ extern "C" {
 #define MBEDTLS_TLS_PSK_WITH_AES_256_GCM_SHA384          0xA9   /**< TLS 1.2 */
 #define MBEDTLS_TLS_DHE_PSK_WITH_AES_128_GCM_SHA256      0xAA   /**< TLS 1.2 */
 #define MBEDTLS_TLS_DHE_PSK_WITH_AES_256_GCM_SHA384      0xAB   /**< TLS 1.2 */
-#define MBEDTLS_TLS_RSA_PSK_WITH_AES_128_GCM_SHA256      0xAC   /**< TLS 1.2 */
-#define MBEDTLS_TLS_RSA_PSK_WITH_AES_256_GCM_SHA384      0xAD   /**< TLS 1.2 */
 
 #define MBEDTLS_TLS_PSK_WITH_AES_128_CBC_SHA256          0xAE
 #define MBEDTLS_TLS_PSK_WITH_AES_256_CBC_SHA384          0xAF
@@ -79,11 +73,6 @@ extern "C" {
 #define MBEDTLS_TLS_DHE_PSK_WITH_AES_256_CBC_SHA384      0xB3
 #define MBEDTLS_TLS_DHE_PSK_WITH_NULL_SHA256             0xB4   /**< Weak! */
 #define MBEDTLS_TLS_DHE_PSK_WITH_NULL_SHA384             0xB5   /**< Weak! */
-
-#define MBEDTLS_TLS_RSA_PSK_WITH_AES_128_CBC_SHA256      0xB6
-#define MBEDTLS_TLS_RSA_PSK_WITH_AES_256_CBC_SHA384      0xB7
-#define MBEDTLS_TLS_RSA_PSK_WITH_NULL_SHA256             0xB8   /**< Weak! */
-#define MBEDTLS_TLS_RSA_PSK_WITH_NULL_SHA384             0xB9   /**< Weak! */
 
 #define MBEDTLS_TLS_RSA_WITH_CAMELLIA_128_CBC_SHA256     0xBA   /**< TLS 1.2 */
 #define MBEDTLS_TLS_DHE_RSA_WITH_CAMELLIA_128_CBC_SHA256 0xBE   /**< TLS 1.2 */
@@ -161,14 +150,10 @@ extern "C" {
 #define MBEDTLS_TLS_PSK_WITH_ARIA_256_CBC_SHA384         0xC065 /**< TLS 1.2 */
 #define MBEDTLS_TLS_DHE_PSK_WITH_ARIA_128_CBC_SHA256     0xC066 /**< TLS 1.2 */
 #define MBEDTLS_TLS_DHE_PSK_WITH_ARIA_256_CBC_SHA384     0xC067 /**< TLS 1.2 */
-#define MBEDTLS_TLS_RSA_PSK_WITH_ARIA_128_CBC_SHA256     0xC068 /**< TLS 1.2 */
-#define MBEDTLS_TLS_RSA_PSK_WITH_ARIA_256_CBC_SHA384     0xC069 /**< TLS 1.2 */
 #define MBEDTLS_TLS_PSK_WITH_ARIA_128_GCM_SHA256         0xC06A /**< TLS 1.2 */
 #define MBEDTLS_TLS_PSK_WITH_ARIA_256_GCM_SHA384         0xC06B /**< TLS 1.2 */
 #define MBEDTLS_TLS_DHE_PSK_WITH_ARIA_128_GCM_SHA256     0xC06C /**< TLS 1.2 */
 #define MBEDTLS_TLS_DHE_PSK_WITH_ARIA_256_GCM_SHA384     0xC06D /**< TLS 1.2 */
-#define MBEDTLS_TLS_RSA_PSK_WITH_ARIA_128_GCM_SHA256     0xC06E /**< TLS 1.2 */
-#define MBEDTLS_TLS_RSA_PSK_WITH_ARIA_256_GCM_SHA384     0xC06F /**< TLS 1.2 */
 #define MBEDTLS_TLS_ECDHE_PSK_WITH_ARIA_128_CBC_SHA256   0xC070 /**< TLS 1.2 */
 #define MBEDTLS_TLS_ECDHE_PSK_WITH_ARIA_256_CBC_SHA384   0xC071 /**< TLS 1.2 */
 
@@ -198,15 +183,11 @@ extern "C" {
 #define MBEDTLS_TLS_PSK_WITH_CAMELLIA_256_GCM_SHA384       0xC08F /**< TLS 1.2 */
 #define MBEDTLS_TLS_DHE_PSK_WITH_CAMELLIA_128_GCM_SHA256   0xC090 /**< TLS 1.2 */
 #define MBEDTLS_TLS_DHE_PSK_WITH_CAMELLIA_256_GCM_SHA384   0xC091 /**< TLS 1.2 */
-#define MBEDTLS_TLS_RSA_PSK_WITH_CAMELLIA_128_GCM_SHA256   0xC092 /**< TLS 1.2 */
-#define MBEDTLS_TLS_RSA_PSK_WITH_CAMELLIA_256_GCM_SHA384   0xC093 /**< TLS 1.2 */
 
 #define MBEDTLS_TLS_PSK_WITH_CAMELLIA_128_CBC_SHA256       0xC094
 #define MBEDTLS_TLS_PSK_WITH_CAMELLIA_256_CBC_SHA384       0xC095
 #define MBEDTLS_TLS_DHE_PSK_WITH_CAMELLIA_128_CBC_SHA256   0xC096
 #define MBEDTLS_TLS_DHE_PSK_WITH_CAMELLIA_256_CBC_SHA384   0xC097
-#define MBEDTLS_TLS_RSA_PSK_WITH_CAMELLIA_128_CBC_SHA256   0xC098
-#define MBEDTLS_TLS_RSA_PSK_WITH_CAMELLIA_256_CBC_SHA384   0xC099
 #define MBEDTLS_TLS_ECDHE_PSK_WITH_CAMELLIA_128_CBC_SHA256 0xC09A
 #define MBEDTLS_TLS_ECDHE_PSK_WITH_CAMELLIA_256_CBC_SHA384 0xC09B
 
@@ -242,7 +223,6 @@ extern "C" {
 #define MBEDTLS_TLS_PSK_WITH_CHACHA20_POLY1305_SHA256         0xCCAB /**< TLS 1.2 */
 #define MBEDTLS_TLS_ECDHE_PSK_WITH_CHACHA20_POLY1305_SHA256   0xCCAC /**< TLS 1.2 */
 #define MBEDTLS_TLS_DHE_PSK_WITH_CHACHA20_POLY1305_SHA256     0xCCAD /**< TLS 1.2 */
-#define MBEDTLS_TLS_RSA_PSK_WITH_CHACHA20_POLY1305_SHA256     0xCCAE /**< TLS 1.2 */
 
 /* RFC 8446, Appendix B.4 */
 #define MBEDTLS_TLS1_3_AES_128_GCM_SHA256                     0x1301 /**< TLS 1.3 */
@@ -262,7 +242,6 @@ typedef enum {
     MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA,
     MBEDTLS_KEY_EXCHANGE_PSK,
     MBEDTLS_KEY_EXCHANGE_DHE_PSK,
-    MBEDTLS_KEY_EXCHANGE_RSA_PSK,
     MBEDTLS_KEY_EXCHANGE_ECDHE_PSK,
     MBEDTLS_KEY_EXCHANGE_ECDH_RSA,
     MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA,
@@ -274,7 +253,6 @@ typedef enum {
     defined(MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED)       || \
     defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED)     || \
     defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)   || \
-    defined(MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED)       || \
     defined(MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED)      || \
     defined(MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED)
 #define MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED
@@ -294,19 +272,14 @@ typedef enum {
 
 /* Key exchanges allowing client certificate requests.
  *
- * Note: that's almost the same as MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED
- * above, except RSA-PSK uses a server certificate but no client cert.
- *
- * Note: this difference is specific to TLS 1.2, as with TLS 1.3, things are
- * more symmetrical: client certs and server certs are either both allowed
- * (Ephemeral mode) or both disallowed (PSK and PKS-Ephemeral modes).
+ * This is now the same as MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED,
+ * and the two macros could be unified.
+ * Until Mbed TLS 3.x, the two sets were different because
+ * MBEDTLS_KEY_EXCHANGE_CERT_REQ_ALLOWED_ENABLED covers
+ * MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED plus RSA-PSK.
+ * But RSA-PSK was removed in Mbed TLS 4.0.
  */
-#if defined(MBEDTLS_KEY_EXCHANGE_RSA_ENABLED)           ||       \
-    defined(MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED)       ||       \
-    defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED)     ||       \
-    defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)   ||       \
-    defined(MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED)    ||       \
-    defined(MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED)
+#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
 #define MBEDTLS_KEY_EXCHANGE_CERT_REQ_ALLOWED_ENABLED
 #endif
 
@@ -339,7 +312,6 @@ typedef enum {
 /* Key exchanges that don't involve ephemeral keys */
 #if defined(MBEDTLS_KEY_EXCHANGE_RSA_ENABLED)           || \
     defined(MBEDTLS_KEY_EXCHANGE_PSK_ENABLED)           || \
-    defined(MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED)       || \
     defined(MBEDTLS_KEY_EXCHANGE_SOME_ECDH_ENABLED)
 #define MBEDTLS_KEY_EXCHANGE_SOME_NON_PFS_ENABLED
 #endif
@@ -356,7 +328,6 @@ typedef enum {
 
 /* Key exchanges using a PSK */
 #if defined(MBEDTLS_KEY_EXCHANGE_PSK_ENABLED)           || \
-    defined(MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED)       || \
     defined(MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED)       || \
     defined(MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED)
 #define MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED

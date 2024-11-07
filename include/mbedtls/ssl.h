@@ -673,9 +673,6 @@ union mbedtls_ssl_premaster_secret {
     unsigned char _pms_dhe_psk[4 + MBEDTLS_MPI_MAX_SIZE
                                + MBEDTLS_PSK_MAX_LEN];         /* RFC 4279 3 */
 #endif
-#if defined(MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED)
-    unsigned char _pms_rsa_psk[52 + MBEDTLS_PSK_MAX_LEN];      /* RFC 4279 4 */
-#endif
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED)
     unsigned char _pms_ecdhe_psk[4 + MBEDTLS_ECP_MAX_BYTES
                                  + MBEDTLS_PSK_MAX_LEN];       /* RFC 5489 2 */

@@ -312,7 +312,6 @@ TLS1_2_KEY_EXCHANGES_WITH_CERT="MBEDTLS_KEY_EXCHANGE_RSA_ENABLED \
                                 MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED \
                                 MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED \
                                 MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED \
-                                MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED \
                                 MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED \
                                 MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED"
 
@@ -322,8 +321,7 @@ TLS1_2_KEY_EXCHANGES_WITH_ECDSA_CERT="MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED \
 TLS1_2_KEY_EXCHANGES_WITH_CERT_WO_ECDH="MBEDTLS_KEY_EXCHANGE_RSA_ENABLED \
                                        MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED \
                                        MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED \
-                                       MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED \
-                                       MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED"
+                                       MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED"
 
 requires_certificate_authentication () {
     if is_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
@@ -584,7 +582,7 @@ adapt_cmd_for_psk () {
 # with a pre-shared key, skip it. If the test looks like it's already using
 # a pre-shared key, do nothing.
 #
-# This code does not consider builds with ECDHE-PSK or RSA-PSK.
+# This code does not consider builds with ECDHE-PSK.
 #
 # Inputs:
 # * $CLI_CMD, $SRV_CMD, $PXY_CMD: client/server/proxy commands.
@@ -2534,22 +2532,6 @@ run_test    "Opaque key for server authentication: DHE-RSA" \
             -c "Ciphersuite is TLS-DHE-RSA" \
             -s "key types: Opaque, none" \
             -s "Ciphersuite is TLS-DHE-RSA" \
-            -S "error" \
-            -C "error"
-
-requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
-requires_config_enabled MBEDTLS_RSA_C
-requires_hash_alg SHA_256
-run_test    "Opaque key for server authentication: RSA-PSK" \
-            "$P_SRV debug_level=1 key_opaque=1 key_opaque_algs=rsa-decrypt,none \
-             psk=73776f726466697368 psk_identity=foo" \
-            "$P_CLI force_version=tls12 force_ciphersuite=TLS-RSA-PSK-WITH-AES-128-CBC-SHA256 \
-             psk=73776f726466697368 psk_identity=foo" \
-            0 \
-            -c "Verifying peer X.509 certificate... ok" \
-            -c "Ciphersuite is TLS-RSA-PSK-" \
-            -s "key types: Opaque, Opaque" \
-            -s "Ciphersuite is TLS-RSA-PSK-" \
             -S "error" \
             -C "error"
 
@@ -8584,50 +8566,6 @@ run_test    "PSK callback: opaque psk on client, no callback, SHA-384, EMS" \
             -S "SSL - Unknown identity received" \
             -S "SSL - Verification of the message MAC failed"
 
-run_test    "PSK callback: opaque rsa-psk on client, no callback" \
-            "$P_SRV extended_ms=0 debug_level=1 psk=73776f726466697368 psk_identity=foo" \
-            "$P_CLI extended_ms=0 debug_level=1 min_version=tls12 force_ciphersuite=TLS-RSA-PSK-WITH-AES-128-CBC-SHA256 \
-            psk_identity=foo psk=73776f726466697368 psk_opaque=1" \
-            0 \
-            -C "session hash for extended master secret"\
-            -S "session hash for extended master secret"\
-            -S "SSL - The handshake negotiation failed" \
-            -S "SSL - Unknown identity received" \
-            -S "SSL - Verification of the message MAC failed"
-
-run_test    "PSK callback: opaque rsa-psk on client, no callback, SHA-384" \
-            "$P_SRV extended_ms=0 debug_level=1 psk=73776f726466697368 psk_identity=foo" \
-            "$P_CLI extended_ms=0 debug_level=1 min_version=tls12 force_ciphersuite=TLS-RSA-PSK-WITH-AES-256-CBC-SHA384 \
-            psk_identity=foo psk=73776f726466697368 psk_opaque=1" \
-            0 \
-            -C "session hash for extended master secret"\
-            -S "session hash for extended master secret"\
-            -S "SSL - The handshake negotiation failed" \
-            -S "SSL - Unknown identity received" \
-            -S "SSL - Verification of the message MAC failed"
-
-run_test    "PSK callback: opaque rsa-psk on client, no callback, EMS" \
-            "$P_SRV extended_ms=1 debug_level=3 psk=73776f726466697368 psk_identity=foo" \
-            "$P_CLI extended_ms=1 debug_level=3 min_version=tls12 force_ciphersuite=TLS-RSA-PSK-WITH-AES-128-CBC-SHA \
-            psk_identity=foo psk=73776f726466697368 psk_opaque=1" \
-            0 \
-            -c "session hash for extended master secret"\
-            -s "session hash for extended master secret"\
-            -S "SSL - The handshake negotiation failed" \
-            -S "SSL - Unknown identity received" \
-            -S "SSL - Verification of the message MAC failed"
-
-run_test    "PSK callback: opaque rsa-psk on client, no callback, SHA-384, EMS" \
-            "$P_SRV extended_ms=1 debug_level=3 psk=73776f726466697368 psk_identity=foo" \
-            "$P_CLI extended_ms=1 debug_level=3 min_version=tls12 force_ciphersuite=TLS-RSA-PSK-WITH-AES-256-CBC-SHA384 \
-            psk_identity=foo psk=73776f726466697368 psk_opaque=1" \
-            0 \
-            -c "session hash for extended master secret"\
-            -s "session hash for extended master secret"\
-            -S "SSL - The handshake negotiation failed" \
-            -S "SSL - Unknown identity received" \
-            -S "SSL - Verification of the message MAC failed"
-
 run_test    "PSK callback: opaque ecdhe-psk on client, no callback" \
             "$P_SRV extended_ms=0 debug_level=1 psk=73776f726466697368 psk_identity=foo" \
             "$P_CLI extended_ms=0 debug_level=1 min_version=tls12 force_ciphersuite=TLS-ECDHE-PSK-WITH-AES-128-CBC-SHA256 \
@@ -8754,52 +8692,6 @@ run_test    "PSK callback: raw psk on client, static opaque on server, no callba
             "$P_SRV debug_level=3 psk=73776f726466697368 psk_identity=foo psk_opaque=1 min_version=tls12 \
             force_ciphersuite=TLS-PSK-WITH-AES-256-CBC-SHA384 extended_ms=1" \
             "$P_CLI debug_level=3 min_version=tls12 force_ciphersuite=TLS-PSK-WITH-AES-256-CBC-SHA384 \
-            psk_identity=foo psk=73776f726466697368 extended_ms=1" \
-            0 \
-            -c "session hash for extended master secret"\
-            -s "session hash for extended master secret"\
-            -S "SSL - The handshake negotiation failed" \
-            -S "SSL - Unknown identity received" \
-            -S "SSL - Verification of the message MAC failed"
-
-run_test    "PSK callback: raw rsa-psk on client, static opaque on server, no callback" \
-            "$P_SRV extended_ms=0 debug_level=5 psk=73776f726466697368 psk_identity=foo psk_opaque=1 min_version=tls12 force_ciphersuite=TLS-RSA-PSK-WITH-AES-128-CBC-SHA" \
-            "$P_CLI extended_ms=0 debug_level=5 min_version=tls12 force_ciphersuite=TLS-RSA-PSK-WITH-AES-128-CBC-SHA \
-            psk_identity=foo psk=73776f726466697368" \
-            0 \
-            -C "session hash for extended master secret"\
-            -S "session hash for extended master secret"\
-            -S "SSL - The handshake negotiation failed" \
-            -S "SSL - Unknown identity received" \
-            -S "SSL - Verification of the message MAC failed"
-
-run_test    "PSK callback: raw rsa-psk on client, static opaque on server, no callback, SHA-384" \
-            "$P_SRV extended_ms=0 debug_level=1 psk=73776f726466697368 psk_identity=foo psk_opaque=1 min_version=tls12 force_ciphersuite=TLS-RSA-PSK-WITH-AES-256-CBC-SHA384" \
-            "$P_CLI extended_ms=0 debug_level=1 min_version=tls12 force_ciphersuite=TLS-RSA-PSK-WITH-AES-256-CBC-SHA384 \
-            psk_identity=foo psk=73776f726466697368" \
-            0 \
-            -C "session hash for extended master secret"\
-            -S "session hash for extended master secret"\
-            -S "SSL - The handshake negotiation failed" \
-            -S "SSL - Unknown identity received" \
-            -S "SSL - Verification of the message MAC failed"
-
-run_test    "PSK callback: raw rsa-psk on client, static opaque on server, no callback, EMS" \
-            "$P_SRV debug_level=3 psk=73776f726466697368 psk_identity=foo psk_opaque=1 min_version=tls12 \
-            force_ciphersuite=TLS-RSA-PSK-WITH-AES-128-CBC-SHA extended_ms=1" \
-            "$P_CLI debug_level=3 min_version=tls12 force_ciphersuite=TLS-RSA-PSK-WITH-AES-128-CBC-SHA \
-            psk_identity=foo psk=73776f726466697368 extended_ms=1" \
-            0 \
-            -c "session hash for extended master secret"\
-            -s "session hash for extended master secret"\
-            -S "SSL - The handshake negotiation failed" \
-            -S "SSL - Unknown identity received" \
-            -S "SSL - Verification of the message MAC failed"
-
-run_test    "PSK callback: raw rsa-psk on client, static opaque on server, no callback, EMS, SHA384" \
-            "$P_SRV debug_level=3 psk=73776f726466697368 psk_identity=foo psk_opaque=1 min_version=tls12 \
-            force_ciphersuite=TLS-RSA-PSK-WITH-AES-256-CBC-SHA384 extended_ms=1" \
-            "$P_CLI debug_level=3 min_version=tls12 force_ciphersuite=TLS-RSA-PSK-WITH-AES-256-CBC-SHA384 \
             psk_identity=foo psk=73776f726466697368 extended_ms=1" \
             0 \
             -c "session hash for extended master secret"\
@@ -8938,52 +8830,6 @@ run_test    "PSK callback: raw psk on client, no static PSK on server, opaque PS
             "$P_SRV debug_level=3 psk_list=abc,dead,def,beef psk_list_opaque=1 min_version=tls12 \
             force_ciphersuite=TLS-PSK-WITH-AES-256-CBC-SHA384 extended_ms=1" \
             "$P_CLI debug_level=3 min_version=tls12 force_ciphersuite=TLS-PSK-WITH-AES-256-CBC-SHA384 \
-            psk_identity=abc psk=dead extended_ms=1" \
-            0 \
-            -c "session hash for extended master secret"\
-            -s "session hash for extended master secret"\
-            -S "SSL - The handshake negotiation failed" \
-            -S "SSL - Unknown identity received" \
-            -S "SSL - Verification of the message MAC failed"
-
-run_test    "PSK callback: raw rsa-psk on client, no static RSA-PSK on server, opaque RSA-PSK from callback" \
-            "$P_SRV extended_ms=0 debug_level=3 psk_list=abc,dead,def,beef psk_list_opaque=1 min_version=tls12 force_ciphersuite=TLS-RSA-PSK-WITH-AES-128-CBC-SHA" \
-            "$P_CLI extended_ms=0 debug_level=3 min_version=tls12 force_ciphersuite=TLS-RSA-PSK-WITH-AES-128-CBC-SHA \
-            psk_identity=def psk=beef" \
-            0 \
-            -C "session hash for extended master secret"\
-            -S "session hash for extended master secret"\
-            -S "SSL - The handshake negotiation failed" \
-            -S "SSL - Unknown identity received" \
-            -S "SSL - Verification of the message MAC failed"
-
-run_test    "PSK callback: raw rsa-psk on client, no static RSA-PSK on server, opaque RSA-PSK from callback, SHA-384" \
-            "$P_SRV extended_ms=0 debug_level=3 psk_list=abc,dead,def,beef psk_list_opaque=1 min_version=tls12 force_ciphersuite=TLS-RSA-PSK-WITH-AES-256-CBC-SHA384" \
-            "$P_CLI extended_ms=0 debug_level=3 min_version=tls12 force_ciphersuite=TLS-RSA-PSK-WITH-AES-256-CBC-SHA384 \
-            psk_identity=def psk=beef" \
-            0 \
-            -C "session hash for extended master secret"\
-            -S "session hash for extended master secret"\
-            -S "SSL - The handshake negotiation failed" \
-            -S "SSL - Unknown identity received" \
-            -S "SSL - Verification of the message MAC failed"
-
-run_test    "PSK callback: raw rsa-psk on client, no static RSA-PSK on server, opaque RSA-PSK from callback, EMS" \
-            "$P_SRV debug_level=3 psk_list=abc,dead,def,beef psk_list_opaque=1 min_version=tls12 \
-            force_ciphersuite=TLS-RSA-PSK-WITH-AES-128-CBC-SHA extended_ms=1" \
-            "$P_CLI debug_level=3 min_version=tls12 force_ciphersuite=TLS-RSA-PSK-WITH-AES-128-CBC-SHA \
-            psk_identity=abc psk=dead extended_ms=1" \
-            0 \
-            -c "session hash for extended master secret"\
-            -s "session hash for extended master secret"\
-            -S "SSL - The handshake negotiation failed" \
-            -S "SSL - Unknown identity received" \
-            -S "SSL - Verification of the message MAC failed"
-
-run_test    "PSK callback: raw rsa-psk on client, no static RSA-PSK on server, opaque RSA-PSK from callback, EMS, SHA384" \
-            "$P_SRV debug_level=3 psk_list=abc,dead,def,beef psk_list_opaque=1 min_version=tls12 \
-            force_ciphersuite=TLS-RSA-PSK-WITH-AES-256-CBC-SHA384 extended_ms=1" \
-            "$P_CLI debug_level=3 min_version=tls12 force_ciphersuite=TLS-RSA-PSK-WITH-AES-256-CBC-SHA384 \
             psk_identity=abc psk=dead extended_ms=1" \
             0 \
             -c "session hash for extended master secret"\
@@ -9990,27 +9836,6 @@ run_test    "SSL async private: decrypt, delay=1" \
             "$P_SRV \
              async_operations=d async_private_delay1=1 async_private_delay2=1" \
             "$P_CLI force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA" \
-            0 \
-            -s "Async decrypt callback: using key slot " \
-            -s "Async resume (slot [0-9]): call 0 more times." \
-            -s "Async resume (slot [0-9]): decrypt done, status=0"
-
-requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
-run_test    "SSL async private: decrypt RSA-PSK, delay=0" \
-            "$P_SRV psk=73776f726466697368 \
-             async_operations=d async_private_delay1=0 async_private_delay2=0" \
-            "$P_CLI psk=73776f726466697368 \
-             force_ciphersuite=TLS-RSA-PSK-WITH-AES-128-CBC-SHA256" \
-            0 \
-            -s "Async decrypt callback: using key slot " \
-            -s "Async resume (slot [0-9]): decrypt done, status=0"
-
-requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
-run_test    "SSL async private: decrypt RSA-PSK, delay=1" \
-            "$P_SRV psk=73776f726466697368 \
-             async_operations=d async_private_delay1=1 async_private_delay2=1" \
-            "$P_CLI psk=73776f726466697368 \
-             force_ciphersuite=TLS-RSA-PSK-WITH-AES-128-CBC-SHA256" \
             0 \
             -s "Async decrypt callback: using key slot " \
             -s "Async resume (slot [0-9]): call 0 more times." \

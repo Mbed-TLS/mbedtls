@@ -2020,13 +2020,6 @@
  *   this input may be an output of `psa_raw_key_agreement()` passed with
  *   psa_key_derivation_input_bytes(), or an equivalent input passed with
  *   psa_key_derivation_input_bytes() or psa_key_derivation_input_key().
- * - for a RSA-PSK cipher suite (RFC 4279, Section 4), the other secret
- *   should be the 48-byte client challenge (the PreMasterSecret of
- *   (RFC 5246, Section 7.4.7.1)) concatenation of the TLS version and
- *   a 46-byte random string chosen by the client. On the server, this is
- *   typically an output of psa_asymmetric_decrypt() using
- *   PSA_ALG_RSA_PKCS1V15_CRYPT, passed to the key derivation operation
- *   with `psa_key_derivation_input_bytes()`.
  *
  * For example, `PSA_ALG_TLS12_PSK_TO_MS(PSA_ALG_SHA_256)` represents the
  * TLS-1.2 PSK to MasterSecret derivation PRF using HMAC-SHA-256.

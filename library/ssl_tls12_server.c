@@ -3414,8 +3414,7 @@ static int ssl_parse_client_dh_public(mbedtls_ssl_context *ssl, unsigned char **
 #endif /* MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED ||
           MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED */
 
-#if defined(MBEDTLS_KEY_EXCHANGE_RSA_ENABLED) ||                           \
-    defined(MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED)
+#if defined(MBEDTLS_KEY_EXCHANGE_RSA_ENABLED)
 
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
 MBEDTLS_CHECK_RETURN_CRITICAL
@@ -3601,8 +3600,7 @@ static int ssl_parse_encrypted_pms(mbedtls_ssl_context *ssl,
 
     return 0;
 }
-#endif /* MBEDTLS_KEY_EXCHANGE_RSA_ENABLED ||
-          MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED */
+#endif /* MBEDTLS_KEY_EXCHANGE_RSA_ENABLED */
 
 #if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
 MBEDTLS_CHECK_RETURN_CRITICAL
@@ -3671,10 +3669,8 @@ static int ssl_parse_client_key_exchange(mbedtls_ssl_context *ssl)
     MBEDTLS_SSL_DEBUG_MSG(2, ("=> parse client key exchange"));
 
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE) && \
-    (defined(MBEDTLS_KEY_EXCHANGE_RSA_ENABLED) || \
-    defined(MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED))
-    if ((ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_RSA_PSK ||
-         ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_RSA) &&
+    defined(MBEDTLS_KEY_EXCHANGE_RSA_ENABLED)
+    if (ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_RSA &&
         (ssl->handshake->async_in_progress != 0)) {
         /* We've already read a record and there is an asynchronous
          * operation in progress to decrypt it. So skip reading the
@@ -3842,39 +3838,6 @@ static int ssl_parse_client_key_exchange(mbedtls_ssl_context *ssl)
 #endif /* !MBEDTLS_USE_PSA_CRYPTO */
     } else
 #endif /* MBEDTLS_KEY_EXCHANGE_PSK_ENABLED */
-#if defined(MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED)
-    if (ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_RSA_PSK) {
-#if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
-        if (ssl->handshake->async_in_progress != 0) {
-            /* There is an asynchronous operation in progress to
-             * decrypt the encrypted premaster secret, so skip
-             * directly to resuming this operation. */
-            MBEDTLS_SSL_DEBUG_MSG(3, ("PSK identity already parsed"));
-            /* Update p to skip the PSK identity. ssl_parse_encrypted_pms
-             * won't actually use it, but maintain p anyway for robustness. */
-            p += ssl->conf->psk_identity_len + 2;
-        } else
-#endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
-        if ((ret = ssl_parse_client_psk_identity(ssl, &p, end)) != 0) {
-            MBEDTLS_SSL_DEBUG_RET(1, ("ssl_parse_client_psk_identity"), ret);
-            return ret;
-        }
-
-        if ((ret = ssl_parse_encrypted_pms(ssl, p, end, 2)) != 0) {
-            MBEDTLS_SSL_DEBUG_RET(1, ("ssl_parse_encrypted_pms"), ret);
-            return ret;
-        }
-
-#if !defined(MBEDTLS_USE_PSA_CRYPTO)
-        if ((ret = mbedtls_ssl_psk_derive_premaster(ssl,
-                                                    (mbedtls_key_exchange_type_t) ciphersuite_info->
-                                                    key_exchange)) != 0) {
-            MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_psk_derive_premaster", ret);
-            return ret;
-        }
-#endif /* !MBEDTLS_USE_PSA_CRYPTO */
-    } else
-#endif /* MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED */
 #if defined(MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED)
     if (ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_DHE_PSK) {
         if ((ret = ssl_parse_client_psk_identity(ssl, &p, end)) != 0) {

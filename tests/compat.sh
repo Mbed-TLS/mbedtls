@@ -369,10 +369,6 @@ add_common_ciphersuites()
 # Based on client's naming convention, all ciphersuite names will be
 # translated into another naming format before sent to the client.
 #
-# NOTE: for some reason RSA-PSK doesn't work with OpenSSL,
-# so RSA-PSK ciphersuites need to go in other sections, see
-# https://github.com/Mbed-TLS/mbedtls/issues/1419
-#
 # ChachaPoly suites are here rather than in "common", as they were added in
 # GnuTLS in 3.5.0 and the CI only has 3.4.x so far.
 add_openssl_ciphersuites()
@@ -514,18 +510,6 @@ add_gnutls_ciphersuites()
                 TLS_PSK_WITH_CAMELLIA_256_GCM_SHA384        \
                 TLS_PSK_WITH_NULL_SHA256                    \
                 TLS_PSK_WITH_NULL_SHA384                    \
-                TLS_RSA_PSK_WITH_AES_128_CBC_SHA            \
-                TLS_RSA_PSK_WITH_AES_128_CBC_SHA256         \
-                TLS_RSA_PSK_WITH_AES_128_GCM_SHA256         \
-                TLS_RSA_PSK_WITH_AES_256_CBC_SHA            \
-                TLS_RSA_PSK_WITH_AES_256_CBC_SHA384         \
-                TLS_RSA_PSK_WITH_AES_256_GCM_SHA384         \
-                TLS_RSA_PSK_WITH_CAMELLIA_128_CBC_SHA256    \
-                TLS_RSA_PSK_WITH_CAMELLIA_128_GCM_SHA256    \
-                TLS_RSA_PSK_WITH_CAMELLIA_256_CBC_SHA384    \
-                TLS_RSA_PSK_WITH_CAMELLIA_256_GCM_SHA384    \
-                TLS_RSA_PSK_WITH_NULL_SHA256                \
-                TLS_RSA_PSK_WITH_NULL_SHA384                \
                 "
             ;;
     esac
@@ -579,12 +563,6 @@ add_mbedtls_ciphersuites()
                 TLS_PSK_WITH_ARIA_128_CBC_SHA256                \
                 TLS_PSK_WITH_ARIA_256_CBC_SHA384                \
                 TLS_PSK_WITH_NULL_SHA                           \
-                TLS_RSA_PSK_WITH_ARIA_128_CBC_SHA256            \
-                TLS_RSA_PSK_WITH_ARIA_128_GCM_SHA256            \
-                TLS_RSA_PSK_WITH_ARIA_256_CBC_SHA384            \
-                TLS_RSA_PSK_WITH_ARIA_256_GCM_SHA384            \
-                TLS_RSA_PSK_WITH_CHACHA20_POLY1305_SHA256       \
-                TLS_RSA_PSK_WITH_NULL_SHA                       \
                 "
             ;;
     esac
@@ -642,7 +620,7 @@ setup_arguments()
     M_SERVER_ARGS="server_port=$PORT server_addr=0.0.0.0 force_version=$MODE"
     O_SERVER_ARGS="-accept $PORT -cipher ALL,COMPLEMENTOFALL -$O_MODE"
     G_SERVER_ARGS="-p $PORT --http $G_MODE"
-    G_SERVER_PRIO="NORMAL:${G_PRIO_CCM}+NULL:+MD5:+PSK:+DHE-PSK:+ECDHE-PSK:+SHA256:+SHA384:+RSA-PSK:-VERS-TLS-ALL:$G_PRIO_MODE"
+    G_SERVER_PRIO="NORMAL:${G_PRIO_CCM}+NULL:+MD5:+PSK:+DHE-PSK:+ECDHE-PSK:+SHA256:+SHA384:-VERS-TLS-ALL:$G_PRIO_MODE"
 
     # The default prime for `openssl s_server` depends on the version:
     # * OpenSSL <= 1.0.2a: 512-bit
@@ -751,11 +729,9 @@ setup_arguments()
             ;;
 
         "PSK")
-            # give RSA-PSK-capable server a RSA cert
-            # (should be a separate type, but harder to close with openssl)
-            M_SERVER_ARGS="$M_SERVER_ARGS psk=6162636465666768696a6b6c6d6e6f70 ca_file=none crt_file=$DATA_FILES_PATH/server2-sha256.crt key_file=$DATA_FILES_PATH/server2.key"
+            M_SERVER_ARGS="$M_SERVER_ARGS psk=6162636465666768696a6b6c6d6e6f70 ca_file=none"
             O_SERVER_ARGS="$O_SERVER_ARGS -psk 6162636465666768696a6b6c6d6e6f70 -nocert"
-            G_SERVER_ARGS="$G_SERVER_ARGS --x509certfile $DATA_FILES_PATH/server2-sha256.crt --x509keyfile $DATA_FILES_PATH/server2.key --pskpasswd $DATA_FILES_PATH/passwd.psk"
+            G_SERVER_ARGS="$G_SERVER_ARGS --pskpasswd $DATA_FILES_PATH/passwd.psk"
 
             M_CLIENT_ARGS="$M_CLIENT_ARGS psk=6162636465666768696a6b6c6d6e6f70 crt_file=none key_file=none"
             O_CLIENT_ARGS="$O_CLIENT_ARGS -psk 6162636465666768696a6b6c6d6e6f70"

@@ -22,13 +22,7 @@ EOF
     exit
 fi
 
-in_mbedtls_repo () {
-    test -d include -a -d library -a -d programs -a -d tests
-}
-
-in_tf_psa_crypto_repo () {
-    test -d include -a -d core -a -d drivers -a -d programs -a -d tests
-}
+. framework/scripts/project_detection.sh
 
 if in_mbedtls_repo; then
     if [ -d tf-psa-crypto ]; then

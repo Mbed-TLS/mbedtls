@@ -181,7 +181,7 @@ ifdef RECORD_PSA_STATUS_COVERAGE_LOG
 # Explicitly depend on this header because on a clean copy of the source tree,
 # it doesn't exist yet and must be generated as part of the build, and
 # therefore the wildcard enumeration above doesn't include it.
-TEST_OBJS_DEPS += include/test/instrument_record_status.h
+TEST_OBJS_DEPS += ../framework/tests/include/test/instrument_record_status.h
 endif
 TEST_OBJS_DEPS += src/test_certs.h ../framework/tests/src/test_keys.h
 
@@ -365,7 +365,7 @@ libtestdriver1.a:
 	cp ./libtestdriver1/library/libmbedcrypto.a ../library/libtestdriver1.a
 
 ifdef RECORD_PSA_STATUS_COVERAGE_LOG
-include/test/instrument_record_status.h: ../tf-psa-crypto/include/psa/crypto.h Makefile
+../framework/tests/include/test/instrument_record_status.h: ../tf-psa-crypto/include/psa/crypto.h Makefile
 	echo "  Gen  $@"
 	sed <../tf-psa-crypto/include/psa/crypto.h >$@ -n 's/^psa_status_t \([A-Za-z0-9_]*\)(.*/#define \1(...) RECORD_STATUS("\1", \1(__VA_ARGS__))/p'
 endif

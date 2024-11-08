@@ -13,7 +13,6 @@ target_include_directories(${everest_target}
          $<INSTALL_INTERFACE:include>
   PRIVATE include/everest
           include/everest/kremlib
-          ${MBEDTLS_DIR}/library
           ${TF_PSA_CRYPTO_DIR}/core)
 set_config_files_compile_definitions(${everest_target})
 

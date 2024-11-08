@@ -13,8 +13,7 @@ target_include_directories(${p256m_target}
          $<BUILD_INTERFACE:${TF_PSA_CRYPTO_DIR}/drivers/builtin/include>
          $<BUILD_INTERFACE:${TF_PSA_CRYPTO_DIR}/drivers/everest/include>
          $<INSTALL_INTERFACE:include>
-  PRIVATE ${MBEDTLS_DIR}/library/
-          ${TF_PSA_CRYPTO_DIR}/core)
+  PRIVATE ${TF_PSA_CRYPTO_DIR}/core)
 set_config_files_compile_definitions(${p256m_target})
 
 if(INSTALL_TF_PSA_CRYPTO_HEADERS)

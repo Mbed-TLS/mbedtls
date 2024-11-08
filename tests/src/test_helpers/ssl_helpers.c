@@ -2039,6 +2039,9 @@ int mbedtls_test_ssl_do_handshake_with_endpoints(
 
     int ret = -1;
 
+    mbedtls_platform_zeroize(server_ep, sizeof(mbedtls_test_ssl_endpoint));
+    mbedtls_platform_zeroize(client_ep, sizeof(mbedtls_test_ssl_endpoint));
+
     mbedtls_test_init_handshake_options(options);
     options->server_min_version = proto;
     options->client_min_version = proto;

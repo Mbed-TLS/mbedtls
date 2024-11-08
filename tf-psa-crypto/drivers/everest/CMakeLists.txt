@@ -8,7 +8,6 @@ add_library(${everest_target}
 set_base_compile_options(${everest_target})
 target_include_directories(${everest_target}
   PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-         $<BUILD_INTERFACE:${MBEDTLS_DIR}/include>
          $<BUILD_INTERFACE:${TF_PSA_CRYPTO_DIR}/include>
          $<BUILD_INTERFACE:${TF_PSA_CRYPTO_DIR}/drivers/builtin/include>
          $<INSTALL_INTERFACE:include>

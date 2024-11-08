@@ -431,7 +431,6 @@ if(ENABLE_TESTING OR ENABLE_PROGRAMS)
     target_include_directories(tf_psa_crypto_test
         PRIVATE ${TF_PSA_CRYPTO_FRAMEWORK_DIR}/tests/include
         PRIVATE tests/include
-        PRIVATE ${MBEDTLS_DIR}/include
         PRIVATE include
         PRIVATE drivers/builtin/include
         PRIVATE drivers/everest/include

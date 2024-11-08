@@ -56,6 +56,8 @@ from typing import Union
 import scripts_path # pylint: disable=unused-import
 import config
 from mbedtls_framework import c_build_helper
+from mbedtls_framework import crypto_knowledge
+from mbedtls_framework import psa_information
 
 class Colors: # pylint: disable=too-few-public-methods
     """Minimalistic support for colored output.
@@ -241,22 +243,22 @@ and subsequent commands are tests that cannot run if the build failed).'''
 # This file includes a copy because it changes rarely and it would be a pain
 # to extract automatically.
 REVERSE_DEPENDENCIES = {
-    'MBEDTLS_AES_C': ['MBEDTLS_CTR_DRBG_C',
-                      'MBEDTLS_NIST_KW_C',
-                      'PSA_WANT_KEY_TYPE_AES',
-                      'PSA_WANT_ALG_PBKDF2_AES_CMAC_PRF_128'],
-    'MBEDTLS_ARIA_C': ['PSA_WANT_KEY_TYPE_ARIA'],
-    'MBEDTLS_CAMELLIA_C': ['PSA_WANT_KEY_TYPE_CAMELLIA'],
-    'MBEDTLS_CCM_C': ['PSA_WANT_ALG_CCM',
-                      'PSA_WANT_ALG_CCM_STAR_NO_TAG'],
-    'MBEDTLS_CHACHA20_C': ['MBEDTLS_CHACHAPOLY_C',
-                           'PSA_WANT_KEY_TYPE_CHACHA20',
-                           'PSA_WANT_ALG_CHACHA20_POLY1305',
-                           'PSA_WANT_ALG_STREAM_CIPHER'],
-    'MBEDTLS_CMAC_C': ['PSA_WANT_ALG_CMAC',
-                       'PSA_WANT_ALG_PBKDF2_AES_CMAC_PRF_128'],
-    'MBEDTLS_DES_C': ['PSA_WANT_KEY_TYPE_DES'],
-    'MBEDTLS_GCM_C': ['PSA_WANT_ALG_GCM'],
+    'PSA_WANT_KEY_TYPE_AES': ['PSA_WANT_ALG_PBKDF2_AES_CMAC_PRF_128',
+                              'MBEDTLS_CTR_DRBG_C',
+                              'MBEDTLS_NIST_KW_C',
+                              'MBEDTLS_AES_C'],
+    'PSA_WANT_KEY_TYPE_ARIA': ['MBEDTLS_ARIA_C'],
+    'PSA_WANT_KEY_TYPE_CAMELLIA': ['MBEDTLS_CAMELLIA_C'],
+    'PSA_WANT_KEY_TYPE_CHACHA20': ['PSA_WANT_ALG_CHACHA20_POLY1305',
+                                   'PSA_WANT_ALG_STREAM_CIPHER',
+                                   'MBEDTLS_CHACHA20_C',
+                                   'MBEDTLS_CHACHAPOLY_C'],
+    'PSA_WANT_KEY_TYPE_DES': ['MBEDTLS_DES_C'],
+    'PSA_WANT_ALG_CCM': ['PSA_WANT_ALG_CCM_STAR_NO_TAG',
+                         'MBEDTLS_CCM_C'],
+    'PSA_WANT_ALG_CMAC': ['PSA_WANT_ALG_PBKDF2_AES_CMAC_PRF_128',
+                          'MBEDTLS_CMAC_C'],
+    'PSA_WANT_ALG_GCM': ['MBEDTLS_GCM_C'],
 
     'MBEDTLS_CIPHER_MODE_CBC': ['PSA_WANT_ALG_CBC_PKCS7',
                                 'PSA_WANT_ALG_CBC_NO_PADDING'],
@@ -362,20 +364,20 @@ EXCLUSIVE_GROUPS = {
     'MBEDTLS_ECP_DP_CURVE25519_ENABLED': ['-MBEDTLS_ECDSA_C',
                                           '-MBEDTLS_ECDSA_DETERMINISTIC',
                                           '-MBEDTLS_ECJPAKE_C'],
-    'MBEDTLS_ARIA_C': ['-MBEDTLS_CMAC_C',
-                       '-MBEDTLS_CCM_C',
-                       '-MBEDTLS_GCM_C',
-                       '-MBEDTLS_SSL_TICKET_C',
-                       '-MBEDTLS_SSL_CONTEXT_SERIALIZATION'],
-    'MBEDTLS_CAMELLIA_C': ['-MBEDTLS_CMAC_C'],
-    'MBEDTLS_CHACHA20_C': ['-MBEDTLS_CMAC_C',
-                           '-MBEDTLS_CCM_C',
-                           '-MBEDTLS_GCM_C',
-                           '-PSA_WANT_ALG_ECB_NO_PADDING'],
-    'MBEDTLS_DES_C': ['-MBEDTLS_CCM_C',
-                      '-MBEDTLS_GCM_C',
-                      '-MBEDTLS_SSL_TICKET_C',
-                      '-MBEDTLS_SSL_CONTEXT_SERIALIZATION'],
+    'PSA_WANT_KEY_TYPE_ARIA': ['-PSA_WANT_ALG_CMAC',
+                               '-PSA_WANT_ALG_CCM',
+                               '-PSA_WANT_ALG_GCM',
+                               '-MBEDTLS_SSL_TICKET_C',
+                               '-MBEDTLS_SSL_CONTEXT_SERIALIZATION'],
+    'PSA_WANT_KEY_TYPE_CAMELLIA': ['-PSA_WANT_ALG_CMAC'],
+    'PSA_WANT_KEY_TYPE_CHACHA20': ['-PSA_WANT_ALG_CMAC',
+                                   '-PSA_WANT_ALG_CCM',
+                                   '-PSA_WANT_ALG_GCM',
+                                   '-PSA_WANT_ALG_ECB_NO_PADDING'],
+    'PSA_WANT_KEY_TYPE_DES': ['-PSA_WANT_ALG_CCM',
+                              '-PSA_WANT_ALG_GCM',
+                              '-MBEDTLS_SSL_TICKET_C',
+                              '-MBEDTLS_SSL_CONTEXT_SERIALIZATION'],
 }
 def handle_exclusive_groups(config_settings, symbol):
     """For every symbol tested in an exclusive group check if there are other
@@ -463,20 +465,6 @@ Both parent class __init__ calls are performed in any order and
 each call adds respective jobs. The job array initialization is done once in
 BaseDomain, before the parent __init__ calls."""
 
-class CipherInfo: # pylint: disable=too-few-public-methods
-    """Collect data about cipher.h."""
-    def __init__(self):
-        self.base_symbols = set()
-        if os.path.isdir('tf-psa-crypto'):
-            cipher_h_path = 'tf-psa-crypto/drivers/builtin/include/mbedtls/cipher.h'
-        else:
-            cipher_h_path = 'include/mbedtls/cipher.h'
-        with open(cipher_h_path, encoding="utf-8") as fh:
-            for line in fh:
-                m = re.match(r' *MBEDTLS_CIPHER_ID_(\w+),', line)
-                if m and m.group(1) not in ['NONE', 'NULL', '3DES']:
-                    self.base_symbols.add('MBEDTLS_' + m.group(1) + '_C')
-
 class DomainData:
     """A container for domains and jobs, used to structurize testing."""
     def config_symbols_matching(self, regexp):
@@ -484,28 +472,44 @@ class DomainData:
         return [symbol for symbol in self.all_config_symbols
                 if re.match(regexp, symbol)]
 
+    # pylint: disable=too-many-locals
     def __init__(self, options, conf):
         """Gather data about the library and establish a list of domains to test."""
         build_command = [options.make_command, 'CFLAGS=-Werror -O2']
         build_and_test = [build_command, [options.make_command, 'test']]
         self.all_config_symbols = set(conf.settings.keys())
+        psa_info = psa_information.Information().constructors
+        algs = {crypto_knowledge.Algorithm(alg): symbol
+                for alg, symbol in ((alg, psa_information.psa_want_symbol(alg))
+                                    for alg in psa_info.algorithms)
+                if symbol in self.all_config_symbols}
+        cipher_algs = {alg
+                       for alg in algs
+                       if alg.can_do(crypto_knowledge.AlgorithmCategory.CIPHER)}
+        key_types = {crypto_knowledge.KeyType(expr): symbol
+                     for key_type in psa_info.key_types
+                     for expr, symbol in ((expr, psa_information.psa_want_symbol(key_type))
+                                          for expr in psa_info.generate_expressions([key_type]))
+                     if symbol in self.all_config_symbols}
+
         # Find hash modules by name.
         hash_symbols = self.config_symbols_matching(r'MBEDTLS_(MD|RIPEMD|SHA)[0-9]+_C\Z')
         # Find elliptic curve enabling macros by name.
         curve_symbols = self.config_symbols_matching(r'MBEDTLS_ECP_DP_\w+_ENABLED\Z')
         # Find key exchange enabling macros by name.
         key_exchange_symbols = self.config_symbols_matching(r'MBEDTLS_KEY_EXCHANGE_\w+_ENABLED\Z')
-        # Find cipher IDs (block permutations and stream ciphers --- chaining
-        # and padding modes are exercised separately) information by parsing
-        # cipher.h, as the information is not readily available in mbedtls_config.h.
-        cipher_info = CipherInfo()
+
+        # Find cipher key types
+        cipher_key_types = {symbol
+                            for key_type, symbol in key_types.items()
+                            for alg in cipher_algs
+                            if key_type.can_do(alg)}
         # Find block cipher chaining and padding mode enabling macros by name.
         cipher_chaining_symbols = self.config_symbols_matching(r'MBEDTLS_CIPHER_MODE_\w+\Z')
         cipher_padding_symbols = self.config_symbols_matching(r'MBEDTLS_CIPHER_PADDING_\w+\Z')
         self.domains = {
-            # Cipher IDs, chaining modes and padding modes. Run the test suites.
-            'cipher_id': ExclusiveDomain(cipher_info.base_symbols,
-                                         build_and_test),
+            # Cipher key types
+            'cipher_id': ExclusiveDomain(cipher_key_types, build_and_test),
             'cipher_chaining': ExclusiveDomain(cipher_chaining_symbols,
                                                build_and_test),
             'cipher_padding': ExclusiveDomain(cipher_padding_symbols,

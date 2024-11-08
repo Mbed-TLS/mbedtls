@@ -50,6 +50,7 @@ my @include_directories = qw(
     3rdparty/everest/include/everest
     3rdparty/everest/include/everest/vs2013
     3rdparty/everest/include/everest/kremlib
+    tests/include
     framework/tests/include
 );
 my $include_directories = join(';', map {"../../$_"} @include_directories);

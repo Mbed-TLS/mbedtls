@@ -55,6 +55,7 @@ my @include_directories = qw(
     tf-psa-crypto/drivers/everest/include/everest
     tf-psa-crypto/drivers/everest/include/everest/vs2013
     tf-psa-crypto/drivers/everest/include/everest/kremlib
+    tests/include
     framework/tests/include
 );
 my $include_directories = join(';', map {"../../$_"} @include_directories);

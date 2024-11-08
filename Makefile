@@ -207,8 +207,8 @@ C_SOURCE_FILES = $(wildcard \
 	include/*/*.h \
 	library/*.[hc] \
 	programs/*/*.[hc] \
-	tests/include/*/*.h tests/include/*/*/*.h \
-	tests/src/*.c tests/src/*/*.c \
+	framework/tests/include/*/*.h framework/tests/include/*/*/*.h \
+	framework/tests/src/*.c framework/tests/src/*/*.c \
 	tests/suites/*.function \
 )
 # Exuberant-ctags invocation. Other ctags implementations may require different options.
@@ -222,5 +222,5 @@ GPATH GRTAGS GSYMS GTAGS: $(C_SOURCE_FILES)
 	ls $(C_SOURCE_FILES) | gtags -f - --gtagsconf .globalrc
 cscope: cscope.in.out cscope.po.out cscope.out
 cscope.in.out cscope.po.out cscope.out: $(C_SOURCE_FILES)
-	cscope -bq -u -Iinclude -Ilibrary $(patsubst %,-I%,$(wildcard 3rdparty/*/include)) -Itests/include $(C_SOURCE_FILES)
+	cscope -bq -u -Iinclude -Ilibrary $(patsubst %,-I%,$(wildcard 3rdparty/*/include)) -Iframework/tests/include $(C_SOURCE_FILES)
 .PHONY: cscope global

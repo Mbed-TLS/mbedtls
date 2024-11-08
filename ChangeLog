@@ -2610,9 +2610,9 @@ Changes
      fit into the record buffer. Previously, such extensions were silently
      dropped. As a consequence, the TLS handshake now fails when the output
      buffer is not large enough to hold the ClientHello.
-   * The unit tests now rely on header files in tests/include/test and source
-     files in tests/src. When building with make or cmake, the files in
-     tests/src are compiled and the resulting object linked into each test
+   * The unit tests now rely on header files in framework/tests/include/test and source
+     files in framework/tests/src. When building with make or cmake, the files in
+     framework/tests/src are compiled and the resulting object linked into each test
      executable.
    * The ECP module, enabled by `MBEDTLS_ECP_C`, now depends on
      `MBEDTLS_CTR_DRBG_C` or `MBEDTLS_HMAC_DRBG_C` for some side-channel

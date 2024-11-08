@@ -132,7 +132,7 @@ check framework/scripts/generate_bignum_tests.py $(framework/scripts/generate_bi
 check framework/scripts/generate_config_tests.py $(framework/scripts/generate_config_tests.py --list)
 check framework/scripts/generate_ecp_tests.py $(framework/scripts/generate_ecp_tests.py --list)
 check framework/scripts/generate_psa_tests.py $(framework/scripts/generate_psa_tests.py --list)
-check framework/scripts/generate_test_keys.py tests/src/test_keys.h
+check framework/scripts/generate_test_keys.py framework/tests/src/test_keys.h
 check scripts/generate_driver_wrappers.py $library_dir/psa_crypto_driver_wrappers.h $library_dir/psa_crypto_driver_wrappers_no_static.c
 
 # Additional checks for Mbed TLS only
@@ -152,4 +152,4 @@ fi
 # Generated files that are present in the repository even in the development
 # branch. (This is intended to be temporary, until the generator scripts are
 # fully reviewed and the build scripts support a generated header file.)
-check framework/scripts/generate_psa_wrappers.py tests/include/test/psa_test_wrappers.h tests/src/psa_test_wrappers.c
+check framework/scripts/generate_psa_wrappers.py framework/tests/include/test/psa_test_wrappers.h framework/tests/src/psa_test_wrappers.c

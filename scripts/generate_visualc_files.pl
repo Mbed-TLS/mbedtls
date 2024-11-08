@@ -25,10 +25,10 @@ my $programs_dir = 'programs';
 my $mbedtls_header_dir = 'include/mbedtls';
 my $psa_header_dir = 'include/psa';
 my $source_dir = 'library';
-my $test_source_dir = 'tests/src';
-my $test_header_dir = 'tests/include/test';
-my $test_drivers_header_dir = 'tests/include/test/drivers';
-my $test_drivers_source_dir = 'tests/src/drivers';
+my $test_source_dir = 'framework/tests/src';
+my $test_header_dir = 'framework/tests/include/test';
+my $test_drivers_header_dir = 'framework/tests/include/test/drivers';
+my $test_drivers_source_dir = 'framework/tests/src/drivers';
 
 my @thirdparty_header_dirs = qw(
     3rdparty/everest/include/everest
@@ -48,7 +48,7 @@ my @include_directories = qw(
     3rdparty/everest/include/everest
     3rdparty/everest/include/everest/vs2013
     3rdparty/everest/include/everest/kremlib
-    tests/include
+    framework/tests/include
 );
 my $include_directories = join(';', map {"../../$_"} @include_directories);
 

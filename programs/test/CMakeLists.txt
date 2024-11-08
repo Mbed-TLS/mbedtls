@@ -76,7 +76,7 @@ foreach(exe IN LISTS executables_libs executables_mbedcrypto)
     endif()
     add_executable(${exe} ${exe}.c $<TARGET_OBJECTS:mbedtls_test>
         ${extra_sources})
-    target_include_directories(${exe} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../tests/include)
+    target_include_directories(${exe} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../framework/tests/include)
     target_include_directories(${exe} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../library)
     if(exe STREQUAL "query_compile_time_config")
         target_include_directories(${exe} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})

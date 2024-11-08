@@ -261,7 +261,7 @@ static void mutex_lock_not_initialized(const char *name)
     mbedtls_threading_mutex_t mutex;
     memset(&mutex, 0, sizeof(mutex));
     /* This mutex usage error is detected by our test framework's mutex usage
-     * verification framework. See tests/src/threading_helpers.c. Other
+     * verification framework. See framework/tests/src/threading_helpers.c. Other
      * threading implementations (e.g. pthread without our instrumentation)
      * might consider this normal usage. */
     TEST_ASSERT(mbedtls_mutex_lock(&mutex) == 0);
@@ -277,7 +277,7 @@ static void mutex_unlock_not_initialized(const char *name)
     mbedtls_threading_mutex_t mutex;
     memset(&mutex, 0, sizeof(mutex));
     /* This mutex usage error is detected by our test framework's mutex usage
-     * verification framework. See tests/src/threading_helpers.c. Other
+     * verification framework. See framework/tests/src/threading_helpers.c. Other
      * threading implementations (e.g. pthread without our instrumentation)
      * might consider this normal usage. */
     TEST_ASSERT(mbedtls_mutex_unlock(&mutex) == 0);
@@ -293,7 +293,7 @@ static void mutex_free_not_initialized(const char *name)
     mbedtls_threading_mutex_t mutex;
     memset(&mutex, 0, sizeof(mutex));
     /* This mutex usage error is detected by our test framework's mutex usage
-     * verification framework. See tests/src/threading_helpers.c. Other
+     * verification framework. See framework/tests/src/threading_helpers.c. Other
      * threading implementations (e.g. pthread without our instrumentation)
      * might consider this normal usage. */
     mbedtls_mutex_free(&mutex);
@@ -307,7 +307,7 @@ static void mutex_double_init(const char *name)
     mbedtls_threading_mutex_t mutex;
     mbedtls_mutex_init(&mutex);
     /* This mutex usage error is detected by our test framework's mutex usage
-     * verification framework. See tests/src/threading_helpers.c. Other
+     * verification framework. See framework/tests/src/threading_helpers.c. Other
      * threading implementations (e.g. pthread without our instrumentation)
      * might consider this normal usage. */
     mbedtls_mutex_init(&mutex);
@@ -323,7 +323,7 @@ static void mutex_double_free(const char *name)
     mbedtls_mutex_init(&mutex);
     mbedtls_mutex_free(&mutex);
     /* This mutex usage error is detected by our test framework's mutex usage
-     * verification framework. See tests/src/threading_helpers.c. Other
+     * verification framework. See framework/tests/src/threading_helpers.c. Other
      * threading implementations (e.g. pthread without our instrumentation)
      * might consider this normal usage. */
     mbedtls_mutex_free(&mutex);
@@ -338,7 +338,7 @@ static void mutex_leak(const char *name)
     mbedtls_mutex_init(&mutex);
 #endif
     /* This mutex usage error is detected by our test framework's mutex usage
-     * verification framework. See tests/src/threading_helpers.c. Other
+     * verification framework. See framework/tests/src/threading_helpers.c. Other
      * threading implementations (e.g. pthread without our instrumentation)
      * might consider this normal usage. */
 }
@@ -361,7 +361,7 @@ typedef struct {
      * - "msan": triggers MSan (Memory Sanitizer).
      * - "pthread": requires MBEDTLS_THREADING_PTHREAD and MBEDTLS_TEST_HOOKS,
      *   which enables MBEDTLS_TEST_MUTEX_USAGE internally in the test
-     *   framework (see tests/src/threading_helpers.c).
+     *   framework (see framework/tests/src/threading_helpers.c).
      */
     const char *platform;
 

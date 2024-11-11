@@ -95,6 +95,17 @@ typedef struct mbedtls_ecdh_context_mbed {
 } mbedtls_ecdh_context_mbed;
 #endif
 
+#if defined(MBEDTLS_ECP_RESTARTABLE)
+#define MBEDTLS_ECDH_CONTEXT_MBED_INIT { MBEDTLS_ECP_GROUP_INIT, MBEDTLS_MPI_INIT, \
+                                         MBEDTLS_ECP_POINT_INIT, \
+                                         MBEDTLS_ECP_POINT_INIT, MBEDTLS_MPI_INIT, \
+                                         MBEDTLS_ECP_RESTART_INIT }
+#else
+#define MBEDTLS_ECDH_CONTEXT_MBED_INIT { MBEDTLS_ECP_GROUP_INIT, MBEDTLS_MPI_INIT, \
+                                         MBEDTLS_ECP_POINT_INIT, \
+                                         MBEDTLS_ECP_POINT_INIT, MBEDTLS_MPI_INIT }
+#endif
+
 /**
  *
  * \warning         Performing multiple operations concurrently on the same
@@ -140,6 +151,35 @@ typedef struct mbedtls_ecdh_context {
 #endif /* MBEDTLS_ECDH_LEGACY_CONTEXT */
 }
 mbedtls_ecdh_context;
+
+#if defined(MBEDTLS_ECDH_LEGACY_CONTEXT)
+#if defined(MBEDTLS_ECP_RESTARTABLE)
+#define MBEDTLS_ECDH_CONTEXT_INIT { MBEDTLS_ECP_GROUP_INIT, MBEDTLS_MPI_INIT, \
+                                    MBEDTLS_ECP_POINT_INIT, \
+                                    MBEDTLS_ECP_POINT_INIT, MBEDTLS_MPI_INIT, \
+                                    MBEDTLS_ECP_PF_UNCOMPRESSED, \
+                                    MBEDTLS_ECP_POINT_INIT, MBEDTLS_ECP_POINT_INIT, \
+                                    MBEDTLS_MPI_INIT, 0, \
+                                    MBEDTLS_ECP_RESTART_INIT }
+#else
+#define MBEDTLS_ECDH_CONTEXT_INIT { MBEDTLS_ECP_GROUP_INIT, MBEDTLS_MPI_INIT, \
+                                    MBEDTLS_ECP_POINT_INIT, \
+                                    MBEDTLS_ECP_POINT_INIT, MBEDTLS_MPI_INIT, \
+                                    MBEDTLS_ECP_PF_UNCOMPRESSED, \
+                                    MBEDTLS_ECP_POINT_INIT, MBEDTLS_ECP_POINT_INIT, \
+                                    MBEDTLS_MPI_INIT }
+#endif /* MBEDTLS_ECP_RESTARTABLE */
+#else
+#if defined(MBEDTLS_ECP_RESTARTABLE)
+#define MBEDTLS_ECDH_CONTEXT_INIT { MBEDTLS_ECP_PF_UNCOMPRESSED, MBEDTLS_ECP_DP_NONE, \
+                                    MBEDTLS_ECDH_VARIANT_NONE, \
+                                    { MBEDTLS_ECDH_CONTEXT_MBED_INIT }, 0 }
+#else
+#define MBEDTLS_ECDH_CONTEXT_INIT { MBEDTLS_ECP_PF_UNCOMPRESSED, MBEDTLS_ECP_DP_NONE, \
+                                    MBEDTLS_ECDH_VARIANT_NONE, \
+                                    { MBEDTLS_ECDH_CONTEXT_MBED_INIT } }
+#endif /* MBEDTLS_ECP_RESTARTABLE */
+#endif /* MBEDTLS_ECDH_LEGACY_CONTEXT */
 
 /**
  * \brief          Return the ECP group for provided context.

@@ -475,13 +475,13 @@ psa_status_t mbedtls_test_wrap_psa_key_agreement_iop_abort(
 
 psa_status_t mbedtls_test_wrap_psa_key_agreement_iop_complete(
     psa_key_agreement_iop_t *arg0_operation,
-    psa_key_id_t *arg1_key);
+    mbedtls_svc_key_id_t *arg1_key);
 #define psa_key_agreement_iop_complete(arg0_operation, arg1_key) \
     mbedtls_test_wrap_psa_key_agreement_iop_complete(arg0_operation, arg1_key)
 
 psa_status_t mbedtls_test_wrap_psa_key_agreement_iop_setup(
     psa_key_agreement_iop_t *arg0_operation,
-    psa_key_id_t arg1_private_key,
+    mbedtls_svc_key_id_t arg1_private_key,
     const uint8_t *arg2_peer_key,
     size_t arg3_peer_key_length,
     psa_algorithm_t arg4_alg,

@@ -1234,6 +1234,37 @@ static void interruptible_signverify_get_minmax_completes(uint32_t max_ops,
         *max_completes = 1;
     }
 }
+
+/*  ECP need to block for a minimum number of operations even if max_ops is set to a
+    lower value. This functions calculates this minimum value given the curve size
+    and the window size. */
+static uint32_t interruptible_key_agreement_get_min_num_ops(size_t key_bits)
+{
+    /* Those values are taken from documentation of mbedtls_ecp_set_max_ops()
+       in ecp.h. Those values can change at any time. */
+    switch (key_bits) {
+        case 256:
+        {
+            const uint32_t min_values[5] = { 208, 208, 160, 136, 124 }; // P-256
+            return min_values[6 - MBEDTLS_ECP_WINDOW_SIZE];
+            break;
+        }
+        case 384:
+        {
+            const uint32_t min_values[5] = { 682, 416, 320, 272, 248 }; // P-384
+            return min_values[6 - MBEDTLS_ECP_WINDOW_SIZE];
+            break;
+        }
+        case 512:
+        case 521:
+        {
+            const uint32_t min_values[5] = { 1364, 832, 640, 544, 496 }; // P-521
+            return min_values[6 - MBEDTLS_ECP_WINDOW_SIZE];
+            break;
+        }
+    }
+    return 0;
+}
 #endif /* MBEDTLS_ECP_RESTARTABLE */
 
 #if defined(PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_GENERATE) && defined(MBEDTLS_ASN1_PARSE_C)
@@ -9825,6 +9856,116 @@ exit:
     PSA_DONE();
 }
 /* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_ECP_RESTARTABLE */
+void key_agreement_interruptible(int alg_arg,
+                                 int our_key_type_arg, data_t *our_key_data,
+                                 data_t *peer_key_data,
+                                 data_t *expected_output, int max_ops_arg)
+{
+    mbedtls_svc_key_id_t our_key = MBEDTLS_SVC_KEY_ID_INIT;
+    mbedtls_svc_key_id_t output_key = MBEDTLS_SVC_KEY_ID_INIT;
+    psa_algorithm_t alg = alg_arg;
+    psa_key_type_t our_key_type = our_key_type_arg;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_key_attributes_t shared_secret_attributes = PSA_KEY_ATTRIBUTES_INIT;
+    unsigned char *output = NULL;
+    size_t output_length = ~0;
+    size_t key_bits;
+    uint32_t max_ops = max_ops_arg;
+    uint32_t num_ops = 0;
+    uint32_t min_num_ops = 0;
+    size_t num_ops_prior = 0;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
+
+    psa_key_agreement_iop_t operation = psa_key_agreement_iop_init();
+
+    PSA_ASSERT(psa_crypto_init());
+
+    psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_DERIVE | PSA_KEY_USAGE_EXPORT);
+    psa_set_key_algorithm(&attributes, alg);
+    psa_set_key_type(&attributes, our_key_type);
+    PSA_ASSERT(psa_import_key(&attributes,
+                              our_key_data->x, our_key_data->len,
+                              &our_key));
+
+    PSA_ASSERT(psa_get_key_attributes(our_key, &attributes));
+    key_bits = psa_get_key_bits(&attributes);
+
+    psa_set_key_type(&shared_secret_attributes, PSA_KEY_TYPE_DERIVE);
+    psa_set_key_usage_flags(&shared_secret_attributes, PSA_KEY_USAGE_DERIVE | PSA_KEY_USAGE_EXPORT);
+
+    /* Validate size macros */
+    TEST_LE_U(expected_output->len,
+              PSA_RAW_KEY_AGREEMENT_OUTPUT_SIZE(our_key_type, key_bits));
+    TEST_LE_U(PSA_RAW_KEY_AGREEMENT_OUTPUT_SIZE(our_key_type, key_bits),
+              PSA_RAW_KEY_AGREEMENT_OUTPUT_MAX_SIZE);
+
+    psa_interruptible_set_max_ops(max_ops);
+
+    TEST_CALLOC(output, expected_output->len);
+
+    num_ops_prior = psa_key_agreement_iop_get_num_ops(&operation);
+    TEST_EQUAL(num_ops_prior, 0);
+
+    PSA_ASSERT(psa_key_agreement_iop_setup(&operation, our_key, peer_key_data->x,
+                                           peer_key_data->len, alg, &shared_secret_attributes));
+
+    num_ops_prior = psa_key_agreement_iop_get_num_ops(&operation);
+    /* psa_key_agreement_iop_setup() takes a number of ops because it calls
+       mbedtls_ecp_check_pubkey() */
+    TEST_EQUAL(num_ops_prior, MBEDTLS_ECP_OPS_CHK);
+
+    min_num_ops = interruptible_key_agreement_get_min_num_ops(key_bits);
+
+    do {
+
+        status = psa_key_agreement_iop_complete(&operation, &output_key);
+
+        if (status == PSA_SUCCESS || status == PSA_OPERATION_INCOMPLETE) {
+            /* Ensure that each operation finished in less than or equal
+               maximum number of operations specefied unless the maximum
+               number of operations was less than the minium possible for
+               the curve size. */
+            num_ops = psa_key_agreement_iop_get_num_ops(&operation);
+            if (max_ops <= min_num_ops) {
+                TEST_LE_U(num_ops - num_ops_prior, min_num_ops);
+            } else {
+                TEST_LE_U(num_ops - num_ops_prior, max_ops);
+            }
+
+            num_ops_prior = num_ops;
+
+            /* Ensure calling get_num_ops() twice still returns the same
+             * number of ops as previously reported. */
+            num_ops = psa_key_agreement_iop_get_num_ops(&operation);
+
+            TEST_EQUAL(num_ops, num_ops_prior);
+        }
+    } while (status == PSA_OPERATION_INCOMPLETE);
+
+    TEST_EQUAL(status, PSA_SUCCESS);
+
+    PSA_ASSERT(psa_export_key(output_key, output, expected_output->len, &output_length));
+
+    TEST_MEMORY_COMPARE(output, output_length,
+                        expected_output->x, expected_output->len);
+
+    PSA_ASSERT(psa_key_agreement_iop_abort(&operation));
+
+    num_ops = psa_key_agreement_iop_get_num_ops(&operation);
+    TEST_EQUAL(num_ops, 0);
+
+exit:
+    psa_destroy_key(our_key);
+    psa_destroy_key(output_key);
+    mbedtls_free(output);
+    PSA_DONE();
+}
+
+/* END_CASE */
+
 
 /* BEGIN_CASE */
 void key_agreement_capacity(int alg_arg,

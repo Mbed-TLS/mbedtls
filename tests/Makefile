@@ -310,7 +310,6 @@ test: check
 define libtestdriver1_rewrite :=
 	s!^(\s*#\s*include\s*[\"<])mbedtls/build_info.h!$${1}libtestdriver1/include/mbedtls/build_info.h!; \
 	s!^(\s*#\s*include\s*[\"<])mbedtls/mbedtls_config.h!$${1}libtestdriver1/include/mbedtls/mbedtls_config.h!; \
-	s!^(\s*#\s*include\s*[\"<])mbedtls/config_adjust_legacy_crypto.h!$${1}libtestdriver1/include/mbedtls/config_adjust_legacy_crypto.h!; \
 	s!^(\s*#\s*include\s*[\"<])mbedtls/config_adjust_x509.h!$${1}libtestdriver1/include/mbedtls/config_adjust_x509.h!; \
 	s!^(\s*#\s*include\s*[\"<])mbedtls/config_adjust_ssl.h!$${1}libtestdriver1/include/mbedtls/config_adjust_ssl.h!; \
 	s!^(\s*#\s*include\s*[\"<])mbedtls/check_config.h!$${1}libtestdriver1/include/mbedtls/check_config.h!; \

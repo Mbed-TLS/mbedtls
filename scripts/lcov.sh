@@ -28,9 +28,11 @@ EOF
 # Copyright The Mbed TLS Contributors
 # SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
 
+# This script must be invoked from the project's root.
+
 set -eu
 
-. ../framework/scripts/project_detection.sh
+. framework/scripts/project_detection.sh
 
 # Collect stats and build a HTML report.
 lcov_library_report () {

@@ -403,11 +403,11 @@ def turn_off_dependencies(config_settings, exclude=None):
     # Recursively determine the excludable dependencies
     excludes = set()
     if exclude:
-        rev_excludes = set(REVERSE_DEPENDENCIES.get(exclude, []))
-        while rev_excludes:
-            dep = rev_excludes.pop()
+        revdep = set(REVERSE_DEPENDENCIES.get(exclude, []))
+        while revdep:
+            dep = revdep.pop()
             excludes.add(dep)
-            rev_excludes.update(set(REVERSE_DEPENDENCIES.get(dep, [])) - excludes)
+            revdep.update(set(REVERSE_DEPENDENCIES.get(dep, [])) - excludes)
 
     for key, value in sorted(config_settings.items()):
         if value is not False:

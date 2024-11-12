@@ -28,10 +28,6 @@
 #if defined(MBEDTLS_LMS_C)
 #include <mbedtls/lms.h>
 #endif
-#if defined(MBEDTLS_SSL_TLS_C) && \
-    (defined(MBEDTLS_USE_PSA_CRYPTO) || defined(MBEDTLS_SSL_PROTO_TLS1_3))
-#include <mbedtls/ssl.h>
-#endif
 #if defined(PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY) ||    \
     defined(PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC)
 #include <mbedtls/rsa.h>
@@ -76,20 +72,6 @@ const mbedtls_error_pair_t psa_to_lms_errors[] =
     { PSA_SUCCESS,                     0 },
     { PSA_ERROR_BUFFER_TOO_SMALL,      MBEDTLS_ERR_LMS_BUFFER_TOO_SMALL },
     { PSA_ERROR_INVALID_ARGUMENT,      MBEDTLS_ERR_LMS_BAD_INPUT_DATA }
-};
-#endif
-
-#if defined(MBEDTLS_SSL_TLS_C) && \
-    (defined(MBEDTLS_USE_PSA_CRYPTO) || defined(MBEDTLS_SSL_PROTO_TLS1_3))
-const mbedtls_error_pair_t psa_to_ssl_errors[] =
-{
-    { PSA_SUCCESS,                     0 },
-    { PSA_ERROR_INSUFFICIENT_MEMORY,   MBEDTLS_ERR_SSL_ALLOC_FAILED },
-    { PSA_ERROR_NOT_SUPPORTED,         MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE },
-    { PSA_ERROR_INVALID_SIGNATURE,     MBEDTLS_ERR_SSL_INVALID_MAC },
-    { PSA_ERROR_INVALID_ARGUMENT,      MBEDTLS_ERR_SSL_BAD_INPUT_DATA },
-    { PSA_ERROR_BAD_STATE,             MBEDTLS_ERR_SSL_INTERNAL_ERROR },
-    { PSA_ERROR_BUFFER_TOO_SMALL,      MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL }
 };
 #endif
 

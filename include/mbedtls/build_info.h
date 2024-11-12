@@ -184,5 +184,6 @@
 #define MBEDTLS_CONFIG_IS_FINALIZED
 
 #include "mbedtls/check_config.h"
+#include "tf-psa-crypto/check_config.h"
 
 #endif /* MBEDTLS_BUILD_INFO_H */

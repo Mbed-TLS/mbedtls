@@ -186,7 +186,6 @@ OBJS_CRYPTO= \
 	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/sha512.o \
 	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/sha3.o \
 	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/threading.o \
-	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/timing.o \
 	     # This line is intentionally left blank
 
 THIRDPARTY_DIR := $(MBEDTLS_PATH)/tf-psa-crypto/drivers
@@ -227,6 +226,7 @@ OBJS_TLS= \
 	  ssl_tls13_client.o \
 	  ssl_tls13_server.o \
 	  ssl_tls13_generic.o \
+	  timing.o \
 	  version.o \
 	  version_features.o \
 	  # This line is intentionally left blank

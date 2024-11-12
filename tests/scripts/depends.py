@@ -397,11 +397,11 @@ def turn_off_dependencies(config_settings, exclude=None):
     An option O is turned off if config_settings[O] is False.
     Handle the dependencies recursively.
 
-    If 'exclude' is a symbol, do not process it's dependencies. It is usefull when
-    two symbol has dependencies is common but need to be switched separately.
+    If 'exclude' is a symbol, ensure its dependencies are not turned off while dependencies
+    of other settings are turned off.
     """
 
-    # Recursively determine the excludable dependencies
+    # Determine recursively the settings that should not be turned off for the sake of 'exclude'.
     excludes = set()
     if exclude:
         revdep = set(REVERSE_DEPENDENCIES.get(exclude, []))
@@ -415,7 +415,7 @@ def turn_off_dependencies(config_settings, exclude=None):
             continue
 
         # Save the processed settings to handle cross referencies.
-        # Mark the excluded dependencies as already processed to skip it.
+        # Start with set of settings that we do not want to turn off.
         history = excludes.copy()
         revdep = set(REVERSE_DEPENDENCIES.get(key, [])) - excludes
         while revdep:

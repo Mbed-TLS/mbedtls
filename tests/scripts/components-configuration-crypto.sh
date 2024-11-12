@@ -160,6 +160,9 @@ component_test_default_psa_crypto_client_without_crypto_provider () {
     scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1_3
     scripts/config.py set MBEDTLS_PSA_CRYPTO_CLIENT
     scripts/config.py unset MBEDTLS_LMS_C
+    # Test hooks may rely on functions defined in test helpers, which would
+    # not be built here, leading to a spurious undefined symbol.
+    scripts/config.py unset MBEDTLS_TEST_HOOKS
 
     make
 
@@ -181,6 +184,9 @@ component_build_full_psa_crypto_client_without_crypto_provider () {
     # Dynamic secure element support is a deprecated feature and it is not
     # available when CRYPTO_C and PSA_CRYPTO_STORAGE_C are disabled.
     scripts/config.py unset MBEDTLS_PSA_CRYPTO_SE_C
+    # Test hooks may rely on functions defined in test helpers, which would
+    # not be built here, leading to a spurious undefined symbol.
+    scripts/config.py unset MBEDTLS_TEST_HOOKS
 
     # Since there is no crypto provider in this build it is not possible to
     # build all the test executables and progrems due to missing PSA functions

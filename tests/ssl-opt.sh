@@ -1957,7 +1957,13 @@ run_test_export_keying_material() {
     unset EXPORTED_KEY1
     unset EXPORTED_KEY2
     TLS_VERSION="$1"
-    run_test    "TLS $TLS_VERSION: Export keying material" \
+
+    case $TLS_VERSION in
+        tls12) TLS_VERSION_PRINT="TLS 1.2";;
+        tls13) TLS_VERSION_PRINT="TLS 1.3";;
+    esac
+
+    run_test    "$TLS_VERSION_PRINT: Export keying material" \
                 "$P_SRV debug_level=4 force_version=$TLS_VERSION exp_label=test-label" \
                 "$P_CLI debug_level=4 force_version=$TLS_VERSION exp_label=test-label" \
                 0 \
@@ -1971,7 +1977,13 @@ run_test_export_keying_material_openssl_compat() {
     unset EXPORTED_KEY1
     unset EXPORTED_KEY2
     TLS_VERSION="$1"
-    run_test    "TLS $TLS_VERSION: Export keying material (OpenSSL compatibility)" \
+
+    case TLS_VERSION in
+        tls12) TLS_VERSION_PRINT="TLS 1.2";;
+        tls13) TLS_VERSION_PRINT="TLS 1.3";;
+    esac
+
+    run_test    "$TLS_VERSION_PRINT: Export keying material (OpenSSL compatibility)" \
                 "$P_SRV debug_level=4 force_version=$TLS_VERSION exp_label=test-label" \
                 "$O_CLI -keymatexport=test-label" \
                 0 \

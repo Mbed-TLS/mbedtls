@@ -8192,12 +8192,15 @@ psa_status_t psa_generate_key_iop_complete(
     }
 
     status = mbedtls_psa_generate_key_iop_complete(&operation->ctx, key_data,
-                                                   MBEDTLS_ECP_MAX_BYTES, &key_len);
+                                                   sizeof(key_data), &key_len);
     if (status != PSA_SUCCESS) {
         goto exit;
     }
 
-    status = psa_import_key(&operation->attributes, key_data, key_len, key);
+    status = psa_import_key(&operation->attributes,
+                            key_data + (sizeof(key_data) - key_len),
+                            key_len,
+                            key);
 
 exit:
     if (status != PSA_OPERATION_INCOMPLETE) {

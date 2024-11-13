@@ -634,11 +634,13 @@ psa_status_t mbedtls_psa_generate_key_iop_complete(
 
     operation->num_ops = 1;
 
-    *key_len = operation->ecp.d.n * sizeof(mbedtls_mpi_uint);
+    *key_len = PSA_BITS_TO_BYTES(operation->ecp.grp.nbits);
+
     if (*key_len > key_output_size) {
         return PSA_ERROR_BUFFER_TOO_SMALL;
     }
-    memcpy(key_output, operation->ecp.d.p, *key_len);
+
+    mbedtls_mpi_write_binary(&operation->ecp.d, key_output, key_output_size);
 
     return mbedtls_to_psa_error(status);
 }

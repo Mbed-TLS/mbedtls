@@ -3638,6 +3638,7 @@ handshake:
                                                  opt.exp_label, strlen(opt.exp_label),
                                                  NULL, 0, 0);
         if (ret != 0) {
+            mbedtls_free(exported_key);
             goto exit;
         }
         mbedtls_printf("Exporting key of length %d with label \"%s\": 0x",
@@ -3648,6 +3649,7 @@ handshake:
         }
         mbedtls_printf("\n\n");
         fflush(stdout);
+        mbedtls_free(exported_key);
     }
 #endif /* defined(MBEDTLS_SSL_KEYING_MATERIAL_EXPORT) */
 

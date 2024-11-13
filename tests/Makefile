@@ -267,7 +267,7 @@ ifndef WINDOWS
 	rm -rf $(CRYPTO_BINARIES) ../tf-psa-crypto/tests/*.c ../tf-psa-crypto/tests/*.datax
 	rm -f src/*.o src/test_helpers/*.o src/libmbed*
 	rm -f ../framework/tests/src/*.o ../framework/tests/src/drivers/*.o
-	rm -f include/test/instrument_record_status.h
+	rm -f ../framework/tests/include/test/instrument_record_status.h
 	rm -f ../framework/tests/include/alt-extra/*/*_alt.h
 	rm -rf libtestdriver1
 	rm -rf libpsaclient libpsaserver
@@ -284,7 +284,7 @@ else
 	if exist src/libmbed* del /Q /F src/libmbed*
 	if exist ../framework/tests/src/*.o del /Q /F ../framework/tests/src/*.o
 	if exist ../framework/tests/src/drivers/*.o del /Q /F ../framework/tests/src/drivers/*.o
-	if exist include/test/instrument_record_status.h del /Q /F include/test/instrument_record_status.h
+	if exist ../framework/tests/include/test/instrument_record_status.h del /Q /F ../framework/tests/include/test/instrument_record_status.h
 endif
 
 # Test suites caught by SKIP_TEST_SUITES are built but not executed.

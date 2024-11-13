@@ -627,7 +627,7 @@ void gcm_encrypt_input_output_buffer_overlap(int cipher_id, data_t *key_str,
      * Therefore we must ensure we round up to the nearest 128-bits/16-bytes.
      */
     buffer_len = src_str->len;
-    if (buffer_len % 16 != 0) {
+    if (buffer_len % 16 != 0 || buffer_len == 0) {
         buffer_len += (16 - (buffer_len % 16));
     }
     TEST_CALLOC(buffer, buffer_len);
@@ -686,7 +686,7 @@ void gcm_decrypt_input_output_buffer_overlap(int cipher_id, data_t *key_str,
      * Therefore we must ensure we round up to the nearest 128-bits/16-bytes.
      */
     buffer_len = src_str->len;
-    if (buffer_len % 16 != 0) {
+    if (buffer_len % 16 != 0 || buffer_len == 0) {
         buffer_len += (16 - (buffer_len % 16));
     }
     TEST_CALLOC(buffer, buffer_len);

@@ -144,6 +144,17 @@ psa_status_t mbedtls_psa_ecp_generate_key(
     uint8_t *key_buffer, size_t key_buffer_size, size_t *key_buffer_length);
 
 /**
+ * \brief Get the total number of ops that a key generation operation has taken
+ *        Since it's start.
+ *
+ * \param[in] operation                 The \c mbedtls_psa_generate_key_iop_t to use.
+ *                                      This must be initialized first.
+ * \return Total number of operations.
+ */
+uint32_t mbedtls_psa_generate_key_iop_get_num_ops(
+    mbedtls_psa_generate_key_iop_t *operation);
+
+/**
  * \brief Setup a new interruptible key generation operation.
  *
  *  \param[in] operation                 The \c mbedtls_psa_generate_key_iop_t to use.

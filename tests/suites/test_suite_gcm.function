@@ -314,7 +314,7 @@ void gcm_encrypt_input_output_buffer_overlap(int cipher_id, data_t *key_str,
     }
     TEST_CALLOC(buffer, buffer_len);
     memcpy(buffer, src_str->x, src_str->len);
-    
+
     memset(tag_output, 0x00, 16);
 
     TEST_ASSERT(mbedtls_gcm_setkey(&ctx, cipher_id, key_str->x, key_str->len * 8) == init_result);

@@ -8184,7 +8184,7 @@ psa_status_t psa_generate_key_iop_complete(
 {
 #if defined(MBEDTLS_ECP_RESTARTABLE)
     psa_status_t status;
-    uint8_t key_data[MBEDTLS_ECP_MAX_BYTES] = { 0 };
+    uint8_t key_data[MBEDTLS_ECP_MAX_MPI] = { 0 };
     size_t key_len = 0;
 
     if (operation->id == 0 || operation->error_occurred) {
@@ -8210,7 +8210,7 @@ exit:
         psa_generate_key_iop_abort_internal(operation);
     }
 
-    mbedtls_platform_zeroize(key_data, MBEDTLS_ECP_MAX_BYTES);
+    mbedtls_platform_zeroize(key_data, sizeof(key_data));
     return status;
 #else
     (void) operation;

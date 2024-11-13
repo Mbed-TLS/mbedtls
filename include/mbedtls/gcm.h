@@ -170,9 +170,11 @@ int mbedtls_gcm_crypt_and_tag(mbedtls_gcm_context *ctx,
  * \brief           This function performs a GCM authenticated decryption of a
  *                  buffer.
  *
- * \note            For decryption, the output buffer cannot be the same as
- *                  input buffer. If the buffers overlap, the output buffer
- *                  must trail at least 8 Bytes behind the input buffer.
+ * \note            The output buffer \p output can be the same as the input
+ *                  buffer \p input. If \p output is greater than \p input, they
+ *                  cannot overlap. Implementations which require
+ *                  MBEDTLS_GCM_ALT to be enabled may not provide support for
+ *                  overlapping buffers.
  *
  * \param ctx       The GCM context. This must be initialized.
  * \param length    The length of the ciphertext to decrypt, which is also
@@ -245,8 +247,8 @@ int mbedtls_gcm_starts(mbedtls_gcm_context *ctx,
  * \note            The output buffer \p output can be the same as the input
  *                  buffer \p input. If \p output is greater than \p input, they
  *                  cannot overlap. Implementations which require
- *                  MBEDTLS_GCM_ALT //no-check-names to be enabled may not
- *                  provide support for overlapping buffers. *
+ *                  MBEDTLS_GCM_ALT to be enabled may not provide support for
+ *                  overlapping buffers.
  *
  * \param ctx       The GCM context. This must be initialized.
  * \param length    The length of the input data. This must be a multiple of

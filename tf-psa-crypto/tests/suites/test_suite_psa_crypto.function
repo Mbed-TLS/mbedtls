@@ -10099,6 +10099,9 @@ void generate_key(int type_arg,
     psa_key_attributes_t got_attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_key_attributes_t iop_attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_generate_key_iop_t operation = PSA_GENERATE_KEY_IOP_INIT;
+    size_t num_ops_prior = 0;
+    size_t num_ops = 0;
+
 
     PSA_ASSERT(psa_crypto_init());
 
@@ -10162,8 +10165,20 @@ void generate_key(int type_arg,
         goto exit;
     }
 
+    num_ops_prior = psa_generate_key_iop_get_num_ops(&operation);
+    TEST_EQUAL(num_ops_prior, 0);
+
     do {
         status = psa_generate_key_iop_complete(&operation, &iop_key);
+
+        if (status == PSA_SUCCESS || status == PSA_OPERATION_INCOMPLETE) {
+            num_ops = psa_generate_key_iop_get_num_ops(&operation);
+
+            TEST_ASSERT(num_ops > num_ops_prior);
+
+            num_ops_prior = num_ops;
+        }
+
     } while (status == PSA_OPERATION_INCOMPLETE);
 
     TEST_EQUAL(status, PSA_SUCCESS);
@@ -10177,6 +10192,10 @@ void generate_key(int type_arg,
     /* Test calling complete() 2 times consecutively will fail. */
     status = psa_generate_key_iop_complete(&operation, &iop_key);
     TEST_EQUAL(status, PSA_ERROR_BAD_STATE);
+
+    TEST_EQUAL(psa_generate_key_iop_abort(&operation), PSA_SUCCESS);
+    num_ops = psa_generate_key_iop_get_num_ops(&operation);
+    TEST_EQUAL(num_ops, 0);
 
 exit:
     psa_generate_key_iop_abort(&operation);

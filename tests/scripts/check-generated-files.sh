@@ -145,6 +145,8 @@ if [ -d tf-psa-crypto ]; then
     check ../framework/scripts/generate_ecp_tests.py $(../framework/scripts/generate_ecp_tests.py --list)
     check ../framework/scripts/generate_psa_tests.py $(../framework/scripts/generate_psa_tests.py --list)
     cd ..
+    check tf-psa-crypto/scripts/generate_driver_wrappers.py ${crypto_core_dir}/psa_crypto_driver_wrappers.h \
+                                                            ${crypto_core_dir}/psa_crypto_driver_wrappers_no_static.c
     check framework/scripts/generate_config_tests.py tests/suites/test_suite_config.mbedtls_boolean.data
 else
     check framework/scripts/generate_bignum_tests.py $(framework/scripts/generate_bignum_tests.py --list)
@@ -155,12 +157,12 @@ else
     fi
     check framework/scripts/generate_ecp_tests.py $(framework/scripts/generate_ecp_tests.py --list)
     check framework/scripts/generate_psa_tests.py $(framework/scripts/generate_psa_tests.py --list)
+    check scripts/generate_driver_wrappers.py ${crypto_core_dir}/psa_crypto_driver_wrappers.h \
+                                              ${crypto_core_dir}/psa_crypto_driver_wrappers_no_static.c
 fi
 
 check scripts/generate_psa_constants.py programs/psa/psa_constant_names_generated.c
 check framework/scripts/generate_test_keys.py framework/tests/src/test_keys.h
-check scripts/generate_driver_wrappers.py ${crypto_core_dir}/psa_crypto_driver_wrappers.h \
-                                          ${crypto_core_dir}/psa_crypto_driver_wrappers_no_static.c
 
 # Additional checks for Mbed TLS only
 if in_mbedtls_repo; then

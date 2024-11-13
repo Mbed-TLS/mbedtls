@@ -10158,6 +10158,10 @@ void generate_key(int type_arg,
     status = psa_generate_key_iop_setup(&operation, &attributes);
     TEST_EQUAL(status, expected_status);
 
+    if (expected_status != PSA_SUCCESS) {
+        goto exit;
+    }
+
     do {
         status = psa_generate_key_iop_complete(&operation, &iop_key);
     } while (status == PSA_OPERATION_INCOMPLETE);

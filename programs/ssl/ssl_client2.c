@@ -2583,7 +2583,7 @@ usage:
 
 #if defined(MBEDTLS_SSL_KEYING_MATERIAL_EXPORT)
     if (opt.exp_label != NULL && opt.exp_len > 0) {
-        unsigned char *exported_key = calloc((size_t) opt.exp_len, sizeof(unsigned int));
+        unsigned char *exported_key = mbedtls_calloc((size_t) opt.exp_len, sizeof(unsigned char));
         if (exported_key == NULL) {
             mbedtls_printf("Could not allocate %d bytes\n", opt.exp_len);
             ret = 3;

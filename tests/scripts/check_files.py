@@ -367,13 +367,9 @@ class LicenseIssueTracker(LineIssueTracker):
 
     heading = "License issue:"
 
-    TF_PSA_CRYPTO_PATH = "tf-psa-crypto/"
-    if build_tree.looks_like_tf_psa_crypto_root(os.getcwd()):
-        TF_PSA_CRYPTO_PATH = ""
-
     LICENSE_EXEMPTION_RE_LIST = [
         # Exempt third-party drivers which may be under a different license
-        TF_PSA_CRYPTO_PATH + r'drivers/(?=(everest)/.*)',
+        r'(tf-psa-crypto/)?drivers/(?=(everest)/.*)',
         # Documentation explaining the license may have accidental
         # false positives.
         r'(ChangeLog|LICENSE|framework\/LICENSE|[-0-9A-Z_a-z]+\.md)\Z',
@@ -476,7 +472,7 @@ class IntegrityChecker:
         """Instantiate the sanity checker.
         Check files under the current directory.
         Write a report of issues to log_file."""
-        if (not build_tree.looks_like_root(os.getcwd())):
+        if not build_tree.looks_like_root(os.getcwd()):
             raise Exception("This script must be run from Mbed TLS or TF-PSA-Crypto root")
         self.logger = None
         self.setup_logger(log_file)

@@ -38,7 +38,7 @@ foreach(exe IN LISTS executables)
             ${CMAKE_CURRENT_SOURCE_DIR}/../test/query_config.h
             ${CMAKE_CURRENT_BINARY_DIR}/../test/query_config.c)
     endif()
-    add_executable(${exe} ${exe}.c $<TARGET_OBJECTS:mbedtls_test>
+    add_executable(${exe} ${exe}.c $<TARGET_OBJECTS:tf_psa_crypto_test>
         ${extra_sources})
     set_base_compile_options(${exe})
     target_link_libraries(${exe} ${libs} ${CMAKE_THREAD_LIBS_INIT})
@@ -53,7 +53,7 @@ foreach(exe IN LISTS executables)
 endforeach()
 
 if(THREADS_FOUND)
-    add_executable(ssl_pthread_server ssl_pthread_server.c $<TARGET_OBJECTS:mbedtls_test>)
+    add_executable(ssl_pthread_server ssl_pthread_server.c $<TARGET_OBJECTS:tf_psa_crypto_test>)
     set_base_compile_options(ssl_pthread_server)
     target_include_directories(ssl_pthread_server PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../tests/include)
     target_link_libraries(ssl_pthread_server ${libs} ${CMAKE_THREAD_LIBS_INIT})

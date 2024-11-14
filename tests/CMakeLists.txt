@@ -154,7 +154,7 @@ function(add_test_suite suite_name)
     )
 
     add_executable(test_suite_${data_name} test_suite_${data_name}.c
-                   $<TARGET_OBJECTS:mbedtls_test>
+                   $<TARGET_OBJECTS:tf_psa_crypto_test>
                    $<TARGET_OBJECTS:mbedtls_test_helpers>)
     set_base_compile_options(test_suite_${data_name})
     target_compile_options(test_suite_${data_name} PRIVATE ${TEST_C_FLAGS})

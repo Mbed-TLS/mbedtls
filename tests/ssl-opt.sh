@@ -1978,14 +1978,14 @@ run_test_export_keying_material_openssl_compat() {
     unset EXPORTED_KEY2
     TLS_VERSION="$1"
 
-    case TLS_VERSION in
-        tls12) TLS_VERSION_PRINT="TLS 1.2";;
-        tls13) TLS_VERSION_PRINT="TLS 1.3";;
+    case $TLS_VERSION in
+        tls12) TLS_VERSION_PRINT="TLS 1.2"; OPENSSL_CLIENT="$O_CLI";;
+        tls13) TLS_VERSION_PRINT="TLS 1.3"; OPENSSL_CLIENT="$O_NEXT_CLI";;
     esac
 
     run_test    "$TLS_VERSION_PRINT: Export keying material (OpenSSL compatibility)" \
                 "$P_SRV debug_level=4 force_version=$TLS_VERSION exp_label=test-label" \
-                "$O_CLI -keymatexport test-label" \
+                "$OPENSSL_CLIENT -keymatexport test-label" \
                 0 \
                 -s "Exporting key of length 20 with label \".*\": 0x" \
                 -c "Keying material exporter:" \
@@ -3026,6 +3026,11 @@ run_test_export_keying_material_openssl_compat tls12
 requires_config_enabled MBEDTLS_SSL_KEYING_MATERIAL_EXPORT
 requires_protocol_version tls13
 run_test_export_keying_material tls13
+
+requires_config_enabled MBEDTLS_SSL_KEYING_MATERIAL_EXPORT
+requires_protocol_version tls13
+requires_openssl_next
+run_test_export_keying_material_openssl_compat tls13
 
 rm -f context_srv.txt
 rm -f context_cli.txt

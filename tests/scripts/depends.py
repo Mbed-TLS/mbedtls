@@ -260,15 +260,19 @@ REVERSE_DEPENDENCIES = {
                           'MBEDTLS_CMAC_C'],
     'PSA_WANT_ALG_GCM': ['MBEDTLS_GCM_C'],
 
-    'MBEDTLS_CIPHER_MODE_CBC': ['PSA_WANT_ALG_CBC_PKCS7',
-                                'PSA_WANT_ALG_CBC_NO_PADDING'],
-    'MBEDTLS_CIPHER_MODE_CFB': ['PSA_WANT_ALG_CFB'],
-    'MBEDTLS_CIPHER_MODE_CTR': ['PSA_WANT_ALG_CTR'],
-    'MBEDTLS_CIPHER_MODE_OFB': ['PSA_WANT_ALG_OFB'],
+    'PSA_WANT_ALG_CBC_NO_PADDING': ['MBEDTLS_CIPHER_MODE_CBC'],
+    'PSA_WANT_ALG_CBC_PKCS7': ['MBEDTLS_CIPHER_MODE_CBC'],
+    'PSA_WANT_ALG_CFB': ['MBEDTLS_CIPHER_MODE_CFB'],
+    'PSA_WANT_ALG_CTR': ['MBEDTLS_CIPHER_MODE_CTR'],
+    'PSA_WANT_ALG_OFB': ['MBEDTLS_CIPHER_MODE_OFB'],
+    'PSA_WANT_ALG_XTS': ['MBEDTLS_CIPHER_MODE_XTS'],
 
     'MBEDTLS_CIPHER_PADDING_PKCS7': ['MBEDTLS_PKCS5_C',
                                      'MBEDTLS_PKCS12_C',
                                      'PSA_WANT_ALG_CBC_PKCS7'],
+    'MBEDTLS_CIPHER_PADDING_ONE_AND_ZEROS': ['MBEDTLS_CIPHER_MODE_CBC'],
+    'MBEDTLS_CIPHER_PADDING_ZEROS': ['MBEDTLS_CIPHER_MODE_CBC'],
+    'MBEDTLS_CIPHER_PADDING_ZEROS_AND_LEN': ['MBEDTLS_CIPHER_MODE_CBC'],
 
     'MBEDTLS_ECP_DP_BP256R1_ENABLED': ['PSA_WANT_ECC_BRAINPOOL_P_R1_256'],
     'MBEDTLS_ECP_DP_BP384R1_ENABLED': ['PSA_WANT_ECC_BRAINPOOL_P_R1_384'],
@@ -387,19 +391,33 @@ defines to be altered. """
         dep = dep[1:]
         config_settings[dep] = not unset
 
-def turn_off_dependencies(config_settings):
+def turn_off_dependencies(config_settings, exclude=None):
     """For every option turned off config_settings, also turn off what depends on it.
 
     An option O is turned off if config_settings[O] is False.
     Handle the dependencies recursively.
+
+    If 'exclude' is a symbol, ensure its dependencies are not turned off while dependencies
+    of other settings are turned off.
     """
+
+    # Determine recursively the settings that should not be turned off for the sake of 'exclude'.
+    excludes = set()
+    if exclude:
+        revdep = set(REVERSE_DEPENDENCIES.get(exclude, []))
+        while revdep:
+            dep = revdep.pop()
+            excludes.add(dep)
+            revdep.update(set(REVERSE_DEPENDENCIES.get(dep, [])) - excludes)
+
     for key, value in sorted(config_settings.items()):
         if value is not False:
             continue
 
-        # Save the processed settings to handle cross referencies
-        revdep = set(REVERSE_DEPENDENCIES.get(key, []))
-        history = set()
+        # Save the processed settings to handle cross referencies.
+        # Start with set of settings that we do not want to turn off.
+        history = excludes.copy()
+        revdep = set(REVERSE_DEPENDENCIES.get(key, [])) - excludes
         while revdep:
             dep = revdep.pop()
             history.add(dep)
@@ -435,7 +453,7 @@ would match this regular expression."""
             config_settings = base_config_settings.copy()
             config_settings[symbol] = True
             handle_exclusive_groups(config_settings, symbol)
-            turn_off_dependencies(config_settings)
+            turn_off_dependencies(config_settings, symbol)
             job = Job(description, config_settings, commands)
             self.jobs.append(job)
 
@@ -504,14 +522,23 @@ class DomainData:
                             for key_type, symbol in key_types.items()
                             for alg in cipher_algs
                             if key_type.can_do(alg)}
-        # Find block cipher chaining and padding mode enabling macros by name.
-        cipher_chaining_symbols = self.config_symbols_matching(r'MBEDTLS_CIPHER_MODE_\w+\Z')
+
+        # Get cipher modes
+        cipher_chaining_symbols = {algs[cipher_alg] for cipher_alg in cipher_algs}
+
+        # Find block padding mode enabling macros by name.
         cipher_padding_symbols = self.config_symbols_matching(r'MBEDTLS_CIPHER_PADDING_\w+\Z')
+
         self.domains = {
             # Cipher key types
             'cipher_id': ExclusiveDomain(cipher_key_types, build_and_test),
+
+            # XTS is not yet supported via the PSA API.
+            # See https://github.com/Mbed-TLS/mbedtls/issues/6384
             'cipher_chaining': ExclusiveDomain(cipher_chaining_symbols,
-                                               build_and_test),
+                                               build_and_test,
+                                               exclude=r'PSA_WANT_ALG_XTS'),
+
             'cipher_padding': ExclusiveDomain(cipher_padding_symbols,
                                               build_and_test),
             # Elliptic curves. Run the test suites.

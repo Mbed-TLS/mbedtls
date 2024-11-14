@@ -330,7 +330,7 @@ endfunction(set_msvc_base_compile_options)
 
 function(set_config_files_compile_definitions target)
     # Pass-through MBEDTLS_CONFIG_FILE, MBEDTLS_USER_CONFIG_FILE,
-    # MBEDTLS_PSA_CRYPTO_CONFIG_FILE and MBEDTLS_PSA_CRYPTO_USER_CONFIG_FILE
+    # TF_PSA_CRYPTO_CONFIG_FILE and TF_PSA_CRYPTO_USER_CONFIG_FILE
     if(MBEDTLS_CONFIG_FILE)
         target_compile_definitions(${target}
             PUBLIC MBEDTLS_CONFIG_FILE="${MBEDTLS_CONFIG_FILE}")
@@ -339,13 +339,13 @@ function(set_config_files_compile_definitions target)
         target_compile_definitions(${target}
             PUBLIC MBEDTLS_USER_CONFIG_FILE="${MBEDTLS_USER_CONFIG_FILE}")
     endif()
-    if(MBEDTLS_PSA_CRYPTO_CONFIG_FILE)
+    if(TF_PSA_CRYPTO_CONFIG_FILE)
         target_compile_definitions(${target}
-            PUBLIC MBEDTLS_PSA_CRYPTO_CONFIG_FILE="${MBEDTLS_PSA_CRYPTO_CONFIG_FILE}")
+            PUBLIC MBEDTLS_PSA_CRYPTO_CONFIG_FILE="${TF_PSA_CRYPTO_CONFIG_FILE}")
     endif()
-    if(MBEDTLS_PSA_CRYPTO_USER_CONFIG_FILE)
+    if(TF_PSA_CRYPTO_USER_CONFIG_FILE)
         target_compile_definitions(${target}
-            PUBLIC MBEDTLS_PSA_CRYPTO_USER_CONFIG_FILE="${MBEDTLS_PSA_CRYPTO_USER_CONFIG_FILE}")
+            PUBLIC MBEDTLS_PSA_CRYPTO_USER_CONFIG_FILE="${TF_PSA_CRYPTO_USER_CONFIG_FILE}")
     endif()
 endfunction(set_config_files_compile_definitions)
 

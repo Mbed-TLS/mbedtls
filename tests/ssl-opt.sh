@@ -3212,8 +3212,8 @@ requires_protocol_version tls13
 run_test_export_keying_material tls13
 
 requires_config_enabled MBEDTLS_SSL_KEYING_MATERIAL_EXPORT
-requires_protocol_version tls13
-requires_openssl_next
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_openssl_tls1_3_with_compatible_ephemeral
 run_test_export_keying_material_openssl_compat tls13
 
 rm -f context_srv.txt

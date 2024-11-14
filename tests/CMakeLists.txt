@@ -1,6 +1,5 @@
 set(libs
     ${mbedtls_target}
-    ${everest_target}
     ${CMAKE_THREAD_LIBS_INIT}
 )
 

@@ -442,6 +442,7 @@ if(ENABLE_TESTING OR ENABLE_PROGRAMS)
         PRIVATE ${MBEDTLS_DIR}/include
         PRIVATE include
         PRIVATE drivers/builtin/include
+        PRIVATE drivers/everest/include
         PRIVATE core
         PRIVATE drivers/builtin/src)
     # Request C11, needed for memory poisoning tests

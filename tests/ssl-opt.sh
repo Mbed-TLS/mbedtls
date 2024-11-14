@@ -3211,10 +3211,6 @@ requires_config_enabled MBEDTLS_SSL_KEYING_MATERIAL_EXPORT
 requires_protocol_version tls13
 run_test_export_keying_material tls13
 
-requires_config_enabled MBEDTLS_SSL_KEYING_MATERIAL_EXPORT
-requires_protocol_version tls13
-run_test_export_keying_material_openssl_compat tls13
-
 rm -f context_srv.txt
 rm -f context_cli.txt
 

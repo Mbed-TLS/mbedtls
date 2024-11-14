@@ -633,7 +633,7 @@ psa_status_t mbedtls_test_wrap_psa_generate_key_iop_abort(
 /* Wrapper for psa_generate_key_iop_complete */
 psa_status_t mbedtls_test_wrap_psa_generate_key_iop_complete(
     psa_generate_key_iop_t *arg0_operation,
-    psa_key_id_t *arg1_key)
+    mbedtls_svc_key_id_t *arg1_key)
 {
     psa_status_t status = (psa_generate_key_iop_complete)(arg0_operation, arg1_key);
     return status;

@@ -8348,7 +8348,7 @@ exit:
 
 psa_status_t psa_generate_key_iop_complete(
     psa_generate_key_iop_t *operation,
-    psa_key_id_t *key)
+    mbedtls_svc_key_id_t *key)
 {
     (void) operation;
     (void) key;

@@ -2029,7 +2029,7 @@ run_test_export_keying_material_openssl_compat() {
 
     run_test    "$TLS_VERSION_PRINT: Export keying material (OpenSSL compatibility)" \
                 "$P_SRV debug_level=4 force_version=$TLS_VERSION exp_label=test-label" \
-                "$O_CLI -keymatexport=test-label" \
+                "$O_CLI -keymatexport test-label" \
                 0 \
                 -s "Exporting key of length 20 with label \".*\": 0x" \
                 -c "Keying material exporter:" \

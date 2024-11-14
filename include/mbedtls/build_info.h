@@ -131,13 +131,13 @@
 #endif
 
 /* PSA crypto configuration */
-#if defined(MBEDTLS_PSA_CRYPTO_CONFIG_FILE)
-#include MBEDTLS_PSA_CRYPTO_CONFIG_FILE
+#if defined(TF_PSA_CRYPTO_CONFIG_FILE)
+#include TF_PSA_CRYPTO_CONFIG_FILE
 #else
 #include "psa/crypto_config.h"
 #endif
-#if defined(MBEDTLS_PSA_CRYPTO_USER_CONFIG_FILE)
-#include MBEDTLS_PSA_CRYPTO_USER_CONFIG_FILE
+#if defined(TF_PSA_CRYPTO_USER_CONFIG_FILE)
+#include TF_PSA_CRYPTO_USER_CONFIG_FILE
 #endif
 
 /* Indicate that all configuration files have been read.

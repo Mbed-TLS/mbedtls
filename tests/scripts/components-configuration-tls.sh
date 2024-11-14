@@ -22,7 +22,7 @@ component_test_config_suite_b () {
     # whether they're on or off. So, disable cmake's (over-sensitive here)
     # dependency resolution for generated files and just rely on them being
     # present (thanks to pre_generate_files) by turning GEN_FILES off.
-    CC=$ASAN_CC cmake -D GEN_FILES=Off -DMBEDTLS_CONFIG_FILE="$MBEDTLS_CONFIG" -DMBEDTLS_PSA_CRYPTO_CONFIG_FILE="$CRYPTO_CONFIG" -D CMAKE_BUILD_TYPE:String=Asan .
+    CC=$ASAN_CC cmake -D GEN_FILES=Off -DMBEDTLS_CONFIG_FILE="$MBEDTLS_CONFIG" -DTF_PSA_CRYPTO_CONFIG_FILE="$CRYPTO_CONFIG" -D CMAKE_BUILD_TYPE:String=Asan .
     make
 
     msg "test: configs/config-suite-b.h - unit tests"
@@ -170,7 +170,7 @@ component_test_config_thread () {
     # whether they're on or off. So, disable cmake's (over-sensitive here)
     # dependency resolution for generated files and just rely on them being
     # present (thanks to pre_generate_files) by turning GEN_FILES off.
-    CC=$ASAN_CC cmake -D GEN_FILES=Off -DMBEDTLS_CONFIG_FILE="$MBEDTLS_CONFIG" -DMBEDTLS_PSA_CRYPTO_CONFIG_FILE="$CRYPTO_CONFIG" -D CMAKE_BUILD_TYPE:String=Asan .
+    CC=$ASAN_CC cmake -D GEN_FILES=Off -DMBEDTLS_CONFIG_FILE="$MBEDTLS_CONFIG" -DTF_PSA_CRYPTO_CONFIG_FILE="$CRYPTO_CONFIG" -D CMAKE_BUILD_TYPE:String=Asan .
     make
 
     msg "test: configs/config-thread.h - unit tests"
@@ -193,7 +193,7 @@ component_test_tls1_2_ccm_psk () {
     # whether they're on or off. So, disable cmake's (over-sensitive here)
     # dependency resolution for generated files and just rely on them being
     # present (thanks to pre_generate_files) by turning GEN_FILES off.
-    CC=$ASAN_CC cmake -D GEN_FILES=Off -DMBEDTLS_CONFIG_FILE="$MBEDTLS_CONFIG" -DMBEDTLS_PSA_CRYPTO_CONFIG_FILE="$CRYPTO_CONFIG" -D CMAKE_BUILD_TYPE:String=Asan .
+    CC=$ASAN_CC cmake -D GEN_FILES=Off -DMBEDTLS_CONFIG_FILE="$MBEDTLS_CONFIG" -DTF_PSA_CRYPTO_CONFIG_FILE="$CRYPTO_CONFIG" -D CMAKE_BUILD_TYPE:String=Asan .
     make
 
     msg "test: configs/config-ccm-psk-tls1_2.h - unit tests"
@@ -216,7 +216,7 @@ component_test_tls1_2_ccm_psk_dtls () {
     # whether they're on or off. So, disable cmake's (over-sensitive here)
     # dependency resolution for generated files and just rely on them being
     # present (thanks to pre_generate_files) by turning GEN_FILES off.
-    CC=$ASAN_CC cmake -D GEN_FILES=Off -DMBEDTLS_CONFIG_FILE="$MBEDTLS_CONFIG" -DMBEDTLS_PSA_CRYPTO_CONFIG_FILE="$CRYPTO_CONFIG" -D CMAKE_BUILD_TYPE:String=Asan .
+    CC=$ASAN_CC cmake -D GEN_FILES=Off -DMBEDTLS_CONFIG_FILE="$MBEDTLS_CONFIG" -DTF_PSA_CRYPTO_CONFIG_FILE="$CRYPTO_CONFIG" -D CMAKE_BUILD_TYPE:String=Asan .
     make
 
     msg "test: configs/config-ccm-psk-dtls1_2.h - unit tests"

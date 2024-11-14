@@ -270,7 +270,7 @@ component_test_psa_inject_entropy () {
     scripts/config.py unset MBEDTLS_PLATFORM_NV_SEED_ALT
     scripts/config.py unset MBEDTLS_PLATFORM_STD_NV_SEED_READ
     scripts/config.py unset MBEDTLS_PLATFORM_STD_NV_SEED_WRITE
-    make CC=$ASAN_CC CFLAGS="$ASAN_CFLAGS '-DMBEDTLS_PSA_CRYPTO_USER_CONFIG_FILE=\"../tests/configs/user-config-for-test.h\"'" LDFLAGS="$ASAN_CFLAGS"
+    make CC=$ASAN_CC CFLAGS="$ASAN_CFLAGS '-DTF_PSA_CRYPTO_USER_CONFIG_FILE=\"../tests/configs/user-config-for-test.h\"'" LDFLAGS="$ASAN_CFLAGS"
 
     msg "test: full + MBEDTLS_PSA_INJECT_ENTROPY"
     make test
@@ -422,7 +422,7 @@ component_test_config_symmetric_only () {
     # whether they're on or off. So, disable cmake's (over-sensitive here)
     # dependency resolution for generated files and just rely on them being
     # present (thanks to pre_generate_files) by turning GEN_FILES off.
-    CC=$ASAN_CC cmake -D GEN_FILES=Off -DMBEDTLS_CONFIG_FILE="$MBEDTLS_CONFIG" -DMBEDTLS_PSA_CRYPTO_CONFIG_FILE="$CRYPTO_CONFIG" -D CMAKE_BUILD_TYPE:String=Asan .
+    CC=$ASAN_CC cmake -D GEN_FILES=Off -DMBEDTLS_CONFIG_FILE="$MBEDTLS_CONFIG" -DTF_PSA_CRYPTO_CONFIG_FILE="$CRYPTO_CONFIG" -D CMAKE_BUILD_TYPE:String=Asan .
     make
 
     msg "test: configs/config-symmetric-only.h - unit tests"
@@ -1405,7 +1405,7 @@ component_test_tfm_config_as_is () {
     msg "build: configs/config-tfm.h"
     MBEDTLS_CONFIG="configs/config-tfm.h"
     CRYPTO_CONFIG="configs/ext/crypto_config_profile_medium.h"
-    CC=$ASAN_CC cmake -DMBEDTLS_CONFIG_FILE="$MBEDTLS_CONFIG" -DMBEDTLS_PSA_CRYPTO_CONFIG_FILE="$CRYPTO_CONFIG" -D CMAKE_BUILD_TYPE:String=Asan .
+    CC=$ASAN_CC cmake -DMBEDTLS_CONFIG_FILE="$MBEDTLS_CONFIG" -DTF_PSA_CRYPTO_CONFIG_FILE="$CRYPTO_CONFIG" -D CMAKE_BUILD_TYPE:String=Asan .
     make
 
     msg "test: configs/config-tfm.h - unit tests"
@@ -2650,22 +2650,22 @@ component_test_psa_crypto_drivers () {
 }
 
 component_build_psa_config_file () {
-    msg "build: make with MBEDTLS_PSA_CRYPTO_CONFIG_FILE" # ~40s
+    msg "build: make with TF_PSA_CRYPTO_CONFIG_FILE" # ~40s
     cp "$CRYPTO_CONFIG_H" psa_test_config.h
-    echo '#error "MBEDTLS_PSA_CRYPTO_CONFIG_FILE is not working"' >"$CRYPTO_CONFIG_H"
-    make CFLAGS="-I '$PWD' -DMBEDTLS_PSA_CRYPTO_CONFIG_FILE='\"psa_test_config.h\"'"
+    echo '#error "TF_PSA_CRYPTO_CONFIG_FILE is not working"' >"$CRYPTO_CONFIG_H"
+    make CFLAGS="-I '$PWD' -DTF_PSA_CRYPTO_CONFIG_FILE='\"psa_test_config.h\"'"
     # Make sure this feature is enabled. We'll disable it in the next phase.
     programs/test/query_compile_time_config MBEDTLS_CMAC_C
     make clean
 
-    msg "build: make with MBEDTLS_PSA_CRYPTO_CONFIG_FILE + MBEDTLS_PSA_CRYPTO_USER_CONFIG_FILE" # ~40s
+    msg "build: make with TF_PSA_CRYPTO_CONFIG_FILE + TF_PSA_CRYPTO_USER_CONFIG_FILE" # ~40s
     # In the user config, disable one feature and its dependencies, which will
     # reflect on the mbedtls configuration so we can query it with
     # query_compile_time_config.
     echo '#undef PSA_WANT_ALG_CMAC' >psa_user_config.h
     echo '#undef PSA_WANT_ALG_PBKDF2_AES_CMAC_PRF_128' >> psa_user_config.h
     echo '#undef MBEDTLS_CMAC_C' >> psa_user_config.h
-    make CFLAGS="-I '$PWD' -DMBEDTLS_PSA_CRYPTO_CONFIG_FILE='\"psa_test_config.h\"' -DMBEDTLS_PSA_CRYPTO_USER_CONFIG_FILE='\"psa_user_config.h\"'"
+    make CFLAGS="-I '$PWD' -DTF_PSA_CRYPTO_CONFIG_FILE='\"psa_test_config.h\"' -DTF_PSA_CRYPTO_USER_CONFIG_FILE='\"psa_user_config.h\"'"
     not programs/test/query_compile_time_config MBEDTLS_CMAC_C
 
     rm -f psa_test_config.h psa_user_config.h

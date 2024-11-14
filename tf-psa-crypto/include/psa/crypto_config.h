@@ -608,7 +608,7 @@
 //#define MBEDTLS_IGNORE_RETURN( result ) ((void) !(result))
 
 /**
- * \def MBEDTLS_PSA_CRYPTO_CONFIG_FILE
+ * \def TF_PSA_CRYPTO_CONFIG_FILE
  *
  * If defined, this is a header which will be included instead of
  * `"psa/crypto_config.h"`.
@@ -623,13 +623,13 @@
  * The value of this symbol is typically a path in double quotes, either
  * absolute or relative to a directory on the include search path.
  */
-//#define MBEDTLS_PSA_CRYPTO_CONFIG_FILE "psa/crypto_config.h"
+//#define TF_PSA_CRYPTO_CONFIG_FILE "psa/crypto_config.h"
 
 /**
- * \def MBEDTLS_PSA_CRYPTO_USER_CONFIG_FILE
+ * \def TF_PSA_CRYPTO_USER_CONFIG_FILE
  *
  * If defined, this is a header which will be included after
- * `"psa/crypto_config.h"` or #MBEDTLS_PSA_CRYPTO_CONFIG_FILE.
+ * `"psa/crypto_config.h"` or #TF_PSA_CRYPTO_CONFIG_FILE.
  * This allows you to modify the default configuration, including the ability
  * to undefine options that are enabled by default.
  *
@@ -640,7 +640,7 @@
  * The value of this symbol is typically a path in double quotes, either
  * absolute or relative to a directory on the include search path.
  */
-//#define MBEDTLS_PSA_CRYPTO_USER_CONFIG_FILE "/dev/null"
+//#define TF_PSA_CRYPTO_USER_CONFIG_FILE "/dev/null"
 
 /**
  * \def MBEDTLS_SELF_TEST

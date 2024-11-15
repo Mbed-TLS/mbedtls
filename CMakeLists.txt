@@ -100,14 +100,6 @@ option(USE_SHARED_MBEDTLS_LIBRARY "Build Mbed TLS shared library." OFF)
 option(LINK_WITH_PTHREAD "Explicitly link Mbed TLS library to pthread." OFF)
 option(LINK_WITH_TRUSTED_STORAGE "Explicitly link Mbed TLS library to trusted_storage." OFF)
 
-set(tfpsacrypto_target "${MBEDTLS_TARGET_PREFIX}tfpsacrypto")
-if (USE_STATIC_MBEDTLS_LIBRARY)
-    set(tfpsacrypto_static_target ${tfpsacrypto_target})
-endif()
-if(USE_STATIC_MBEDTLS_LIBRARY AND USE_SHARED_MBEDTLS_LIBRARY)
-    string(APPEND tfpsacrypto_static_target "_static")
-endif()
-
 # Warning string - created as a list for compatibility with CMake 2.8
 set(CTR_DRBG_128_BIT_KEY_WARN_L1 "****  WARNING!  MBEDTLS_CTR_DRBG_USE_128_BIT_KEY defined!\n")
 set(CTR_DRBG_128_BIT_KEY_WARN_L2 "****  Using 128-bit keys for CTR_DRBG limits the security of generated\n")
@@ -375,16 +367,24 @@ set(USE_STATIC_TF_PSA_CRYPTO_LIBRARY ${USE_STATIC_MBEDTLS_LIBRARY} CACHE BOOL ""
 set(USE_SHARED_TF_PSA_CRYPTO_LIBRARY ${USE_SHARED_MBEDTLS_LIBRARY} CACHE BOOL "")
 add_subdirectory(tf-psa-crypto)
 
+set(tfpsacrypto_target "${TF_PSA_CRYPTO_TARGET_PREFIX}tfpsacrypto")
+if (USE_STATIC_MBEDTLS_LIBRARY)
+    set(tfpsacrypto_static_target ${tfpsacrypto_target})
+endif()
+if(USE_STATIC_MBEDTLS_LIBRARY AND USE_SHARED_MBEDTLS_LIBRARY)
+    string(APPEND tfpsacrypto_static_target "_static")
+endif()
+
 set(tf_psa_crypto_library_targets
-    ${MBEDTLS_TARGET_PREFIX}tfpsacrypto
-    ${MBEDTLS_TARGET_PREFIX}builtin
-    ${MBEDTLS_TARGET_PREFIX}everest
-    ${MBEDTLS_TARGET_PREFIX}p256m)
+    ${TF_PSA_CRYPTO_TARGET_PREFIX}tfpsacrypto
+    ${TF_PSA_CRYPTO_TARGET_PREFIX}builtin
+    ${TF_PSA_CRYPTO_TARGET_PREFIX}everest
+    ${TF_PSA_CRYPTO_TARGET_PREFIX}p256m)
 
 if(USE_STATIC_MBEDTLS_LIBRARY AND USE_SHARED_MBEDTLS_LIBRARY)
     list(APPEND tf_psa_crypto_library_targets
-         ${MBEDTLS_TARGET_PREFIX}tfpsacrypto_static
-         ${MBEDTLS_TARGET_PREFIX}builtin_static)
+         ${TF_PSA_CRYPTO_TARGET_PREFIX}tfpsacrypto_static
+         ${TF_PSA_CRYPTO_TARGET_PREFIX}builtin_static)
 endif()
 
 foreach(target IN LISTS tf_psa_crypto_library_targets)

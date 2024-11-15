@@ -5545,6 +5545,44 @@ psa_status_t psa_generate_key_iop_abort(
 
 /**@}*/
 
+/**
+ *  \defgroup interruptible_export_public_key Interruptible public-key export
+ * @{
+ */
+
+/**
+ *  The type of the state data structure for interruptible key generation
+ *  operations.
+ *
+ *  Before calling any function on an interruptible key generation object, the
+ *  application must initialize it by any of the following means:
+ * - Set the structure to all-bits-zero, for example:
+ * \code
+ * psa_export_public_key_iop_t operation;
+ * memset(&operation, 0, sizeof(operation));
+ * \endcode
+ * - Initialize the structure to logical zero values, for example:
+ * \code
+ * static psa_export_public_key_iop_t operation;
+ * \endcode
+ * - Initialize the structure to the initializer #PSA_EXPORT_PUBLIC_KEY_IOP_INIT,
+ *   for example:
+ * \code
+ * psa_export_public_key_iop_t operation = PSA_EXPORT_PUBLIC_KEY_IOP_INIT;
+ * \endcode
+ * - Assign the result of the function psa_generate_key_iop_init() to the
+ *   structure, for example:
+ * \code
+ * psa_export_public_key_iop_t operation;
+ * operation = psa_export_public_key_iop_init();
+ * \endcode
+ *
+ * This is an implementation-defined \c struct. Applications should not
+ * make any assumptions about the content of this structure.
+ * Implementation details can change in future versions without notice.
+ */
+typedef struct psa_export_public_key_iop_s psa_export_public_key_iop_t;
+
 #ifdef __cplusplus
 }
 #endif

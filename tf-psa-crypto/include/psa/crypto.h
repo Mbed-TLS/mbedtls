@@ -5607,6 +5607,83 @@ typedef struct psa_export_public_key_iop_s psa_export_public_key_iop_t;
  */
 uint32_t psa_export_public_key_iop_get_num_ops(psa_export_public_key_iop_t *operation);
 
+/**
+ * \brief                       Start an interruptible operation to export a
+ *                              public key or the public part of a key pair in
+ *                              binary format.
+
+ *
+ * \see                         \c psa_export_public_key_iop_complete()
+ *
+ * \warning                     This is a beta API, and thus subject to change
+ *                              at any point. It is not bound by the usual
+ *                              interface stability promises.
+ *
+ * \note                        This function combined with
+ *                              \c psa_export_public_key_iop_complete() is equivalent
+ *                              to \c psa_export_public_key() but
+ *                               \c psa_export_public_key_iop_complete() can return
+ *                              early and resume according to the limit set with
+ *                              \c psa_interruptible_set_max_ops() to reduce the
+ *                              maximum time spent in a function.
+ *
+ * \note                        Users should call
+ *                              \c psa_export_public_key_iop_complete() repeatedly
+ *                              on the same operation object after a successful
+ *                              call to this function until
+ *                              \c psa_export_public_key_iop_complete() either returns
+ *                              #PSA_SUCCESS or an error.
+ *                              \c psa_export_public_key_iop_complete() will return
+ *                              #PSA_OPERATION_INCOMPLETE if there is more work
+ *                              to do. Alternatively users can call
+ *                              \c psa_export_public_key_iop_abort() at any point
+ *                              if they no longer want the result.
+ *
+ *  \note                       This function clears the number of ops completed
+ *                              as part of the operation. Please ensure you copy
+ *                              this value via
+ *                              \c psa_export_public_key_iop_get_num_ops() if
+ *                              required before calling.
+ *
+ * \note                        If this function returns an error status, the
+ *                              operation enters an error state and must be
+ *                              aborted by calling
+ *                              \c psa_export_public_key_iop_abort().
+ *
+ * \param[in, out] operation    The \c psa_export_public_key_iop_t to use.
+ *                              This must be initialized as per the
+ *                              documentation for
+ *                              \c psa_export_public_key_iop_t, and be inactive.
+ *
+ * \param[in]      key          Identifier of the key to export.
+ *
+ * \retval #PSA_SUCCESS
+ *          The operation started successfully.
+ *          Call \c psa_export_public_key_iop_complete() with the same context to
+ *          complete the operation.
+ * \retval #PSA_ERROR_INVALID_HANDLE
+ *          \c key is not a valid key identifier.
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         The key is neither a public key nor a key pair.
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ *         The following conditions can result in this error:
+ *          * The key's storage location does not support export of the key.
+ *          * The implementation does not support export of keys with this key type.
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The following conditions can result in this error:
+ *         * The library has not been previously initialized by
+ *           \c psa_crypto_init().
+ *         * The operation state is not valid: it must be inactive.
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
+ * \retval #PSA_ERROR_STORAGE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_DATA_CORRUPT \emptydescription
+ * \retval #PSA_ERROR_DATA_INVALID \emptydescription
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
+ */
+psa_status_t psa_export_public_key_iop_setup(psa_export_public_key_iop_t *operation,
+                                             psa_key_id_t key);
+
 #ifdef __cplusplus
 }
 #endif

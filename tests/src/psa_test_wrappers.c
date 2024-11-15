@@ -595,6 +595,40 @@ psa_status_t mbedtls_test_wrap_psa_export_public_key(
     return status;
 }
 
+/* Wrapper for psa_export_public_key_iop_abort */
+psa_status_t mbedtls_test_wrap_psa_export_public_key_iop_abort(
+    psa_export_public_key_iop_t *arg0_operation)
+{
+    psa_status_t status = (psa_export_public_key_iop_abort)(arg0_operation);
+    return status;
+}
+
+/* Wrapper for psa_export_public_key_iop_complete */
+psa_status_t mbedtls_test_wrap_psa_export_public_key_iop_complete(
+    psa_export_public_key_iop_t *arg0_operation,
+    uint8_t *arg1_data,
+    size_t arg2_data_size,
+    size_t *arg3_data_length)
+{
+#if !defined(MBEDTLS_PSA_ASSUME_EXCLUSIVE_BUFFERS)
+    MBEDTLS_TEST_MEMORY_POISON(arg1_data, arg2_data_size);
+#endif /* !defined(MBEDTLS_PSA_ASSUME_EXCLUSIVE_BUFFERS) */
+    psa_status_t status = (psa_export_public_key_iop_complete)(arg0_operation, arg1_data, arg2_data_size, arg3_data_length);
+#if !defined(MBEDTLS_PSA_ASSUME_EXCLUSIVE_BUFFERS)
+    MBEDTLS_TEST_MEMORY_UNPOISON(arg1_data, arg2_data_size);
+#endif /* !defined(MBEDTLS_PSA_ASSUME_EXCLUSIVE_BUFFERS) */
+    return status;
+}
+
+/* Wrapper for psa_export_public_key_iop_setup */
+psa_status_t mbedtls_test_wrap_psa_export_public_key_iop_setup(
+    psa_export_public_key_iop_t *arg0_operation,
+    psa_key_id_t arg1_key)
+{
+    psa_status_t status = (psa_export_public_key_iop_setup)(arg0_operation, arg1_key);
+    return status;
+}
+
 /* Wrapper for psa_generate_key */
 psa_status_t mbedtls_test_wrap_psa_generate_key(
     const psa_key_attributes_t *arg0_attributes,

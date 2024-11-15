@@ -156,7 +156,7 @@ if(USE_STATIC_MBEDTLS_LIBRARY)
     set_base_compile_options(${mbedx509_static_target})
     target_compile_options(${mbedx509_static_target} PRIVATE ${LIBS_C_FLAGS})
     set_target_properties(${mbedx509_static_target} PROPERTIES OUTPUT_NAME mbedx509)
-    target_link_libraries(${mbedx509_static_target} PUBLIC ${libs} ${mbedcrypto_static_target})
+    target_link_libraries(${mbedx509_static_target} PUBLIC ${libs} ${tfpsacrypto_static_target})
 
     add_library(${mbedtls_static_target} STATIC ${src_tls})
     set_base_compile_options(${mbedtls_static_target})
@@ -170,7 +170,7 @@ if(USE_SHARED_MBEDTLS_LIBRARY)
     set_base_compile_options(${mbedx509_target})
     target_compile_options(${mbedx509_target} PRIVATE ${LIBS_C_FLAGS})
     set_target_properties(${mbedx509_target} PROPERTIES VERSION 4.0.0 SOVERSION 7)
-    target_link_libraries(${mbedx509_target} PUBLIC ${libs} ${mbedcrypto_target})
+    target_link_libraries(${mbedx509_target} PUBLIC ${libs} ${tfpsacrypto_target})
 
     add_library(${mbedtls_target} SHARED ${src_tls})
     set_base_compile_options(${mbedtls_target})
@@ -192,15 +192,7 @@ foreach(target IN LISTS target_libraries)
         PRIVATE ${MBEDTLS_DIR}/library/
                 ${MBEDTLS_DIR}/tf-psa-crypto/core
                 ${MBEDTLS_DIR}/tf-psa-crypto/drivers/builtin/src)
-    # Pass-through MBEDTLS_CONFIG_FILE and MBEDTLS_USER_CONFIG_FILE
-    if(MBEDTLS_CONFIG_FILE)
-        target_compile_definitions(${target}
-            PUBLIC MBEDTLS_CONFIG_FILE="${MBEDTLS_CONFIG_FILE}")
-    endif()
-    if(MBEDTLS_USER_CONFIG_FILE)
-        target_compile_definitions(${target}
-            PUBLIC MBEDTLS_USER_CONFIG_FILE="${MBEDTLS_USER_CONFIG_FILE}")
-    endif()
+    set_config_files_compile_definitions(${target})
     install(
         TARGETS ${target}
         EXPORT MbedTLSTargets
@@ -216,3 +208,27 @@ add_custom_target(${lib_target} DEPENDS ${mbedx509_target} ${mbedtls_target})
 if(USE_STATIC_MBEDTLS_LIBRARY AND USE_SHARED_MBEDTLS_LIBRARY)
     add_dependencies(${lib_target} ${mbedx509_static_target} ${mbedtls_static_target})
 endif()
+
+foreach(target IN LISTS tf_psa_crypto_library_targets)
+    get_target_property(target_type ${target} TYPE)
+    if (target_type STREQUAL STATIC_LIBRARY)
+        add_custom_command(
+            TARGET ${mbedtls_target}
+            POST_BUILD
+            COMMAND ${CMAKE_COMMAND}
+            ARGS -E copy $<TARGET_FILE:${target}> ${CMAKE_BINARY_DIR}/library)
+    else()
+        add_custom_command(
+            TARGET ${mbedtls_target}
+            POST_BUILD
+            COMMAND ${CMAKE_COMMAND}
+            ARGS -E copy $<TARGET_FILE:${target}>
+            ${CMAKE_BINARY_DIR}/library/$<TARGET_FILE_NAME:${target}>)
+        add_custom_command(
+            TARGET ${mbedtls_target}
+            POST_BUILD
+            COMMAND ${CMAKE_COMMAND}
+            ARGS -E copy $<TARGET_LINKER_FILE:${target}>
+            ${CMAKE_BINARY_DIR}/library/$<TARGET_LINKER_FILE_NAME:${target}>)
+    endif()
+endforeach(target)

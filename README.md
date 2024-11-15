@@ -40,7 +40,7 @@ There are currently three active build systems used within Mbed TLS releases:
 
 The main systems used for development are CMake and GNU Make. Those systems are always complete and up-to-date. The others should reflect all changes present in the CMake and Make build system, although features may not be ported there automatically.
 
-The Make and CMake build systems create three libraries: libmbedcrypto, libmbedx509, and libmbedtls. Note that libmbedtls depends on libmbedx509 and libmbedcrypto, and libmbedx509 depends on libmbedcrypto. As a result, some linkers will expect flags to be in a specific order, for example the GNU linker wants `-lmbedtls -lmbedx509 -lmbedcrypto`.
+The Make and CMake build systems create three libraries: libmbedcrypto/libtfpsacrypto, libmbedx509, and libmbedtls. Note that libmbedtls depends on libmbedx509 and libmbedcrypto/libtfpsacrypto, and libmbedx509 depends on libmbedcrypto/libtfpsacrypto. As a result, some linkers will expect flags to be in a specific order, for example the GNU linker wants `-lmbedtls -lmbedx509 -lmbedcrypto`.
 
 ### Tool versions
 
@@ -200,7 +200,7 @@ CMake projects. You can include Mbed TLS's CMake targets yourself with:
 If prompted, set `MbedTLS_DIR` to `${YOUR_MBEDTLS_INSTALL_DIR}/cmake`. This
 creates the following targets:
 
-- `MbedTLS::mbedcrypto` (Crypto library)
+- `MbedTLS::tfpsacrypto` (Crypto library)
 - `MbedTLS::mbedtls` (TLS library)
 - `MbedTLS::mbedx509` (X509 library)
 
@@ -210,7 +210,7 @@ You can then use these directly through `target_link_libraries()`:
 
     target_link_libraries(xyz
         PUBLIC MbedTLS::mbedtls
-               MbedTLS::mbedcrypto
+               MbedTLS::tfpsacrypto
                MbedTLS::mbedx509)
 
 This will link the Mbed TLS libraries to your library or application, and add

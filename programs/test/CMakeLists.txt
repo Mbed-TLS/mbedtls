@@ -34,7 +34,7 @@ if(TEST_CPP)
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../include
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../tf-psa-crypto/include
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../tf-psa-crypto/drivers/builtin/include)
-    target_link_libraries(cpp_dummy_build ${mbedcrypto_target} ${CMAKE_THREAD_LIBS_INIT})
+    target_link_libraries(cpp_dummy_build ${tfpsacrypto_target} ${CMAKE_THREAD_LIBS_INIT})
 endif()
 
 if(USE_SHARED_MBEDTLS_LIBRARY AND
@@ -82,7 +82,7 @@ foreach(exe IN LISTS executables_libs executables_mbedcrypto)
             ${CMAKE_CURRENT_SOURCE_DIR}/query_config.h
             ${CMAKE_CURRENT_BINARY_DIR}/query_config.c)
     endif()
-    add_executable(${exe} ${exe}.c $<TARGET_OBJECTS:mbedtls_test>
+    add_executable(${exe} ${exe}.c $<TARGET_OBJECTS:tf_psa_crypto_test>
         ${extra_sources})
     set_base_compile_options(${exe})
     target_include_directories(${exe}
@@ -102,7 +102,7 @@ foreach(exe IN LISTS executables_libs executables_mbedcrypto)
     if (${exe_index} GREATER -1)
         target_link_libraries(${exe} ${libs} ${CMAKE_THREAD_LIBS_INIT})
     else()
-        target_link_libraries(${exe} ${mbedcrypto_target} ${CMAKE_THREAD_LIBS_INIT})
+        target_link_libraries(${exe} ${tfpsacrypto_target} ${CMAKE_THREAD_LIBS_INIT})
     endif()
 endforeach()
 

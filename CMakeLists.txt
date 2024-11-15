@@ -13,7 +13,7 @@
 # - MBEDTLS_TARGET_PREFIX: CMake targets are designed to be alterable by calling
 #   CMake in order to avoid target name clashes, via the use of
 #   MBEDTLS_TARGET_PREFIX. The value of this variable is prefixed to the
-#   mbedtls, mbedx509, mbedcrypto and apidoc targets.
+#   mbedtls, mbedx509, tfpsacrypto and mbedtls-apidoc targets.
 #
 
 # We specify a minimum requirement of 3.10.2, but for now use 3.5.1 here
@@ -99,14 +99,6 @@ option(USE_STATIC_MBEDTLS_LIBRARY "Build Mbed TLS static library." ON)
 option(USE_SHARED_MBEDTLS_LIBRARY "Build Mbed TLS shared library." OFF)
 option(LINK_WITH_PTHREAD "Explicitly link Mbed TLS library to pthread." OFF)
 option(LINK_WITH_TRUSTED_STORAGE "Explicitly link Mbed TLS library to trusted_storage." OFF)
-
-set(mbedcrypto_target "${MBEDTLS_TARGET_PREFIX}mbedcrypto")
-if (USE_STATIC_MBEDTLS_LIBRARY)
-    set(mbedcrypto_static_target ${mbedcrypto_target})
-endif()
-if(USE_STATIC_MBEDTLS_LIBRARY AND USE_SHARED_MBEDTLS_LIBRARY)
-    string(APPEND mbedcrypto_static_target "_static")
-endif()
 
 # Warning string - created as a list for compatibility with CMake 2.8
 set(CTR_DRBG_128_BIT_KEY_WARN_L1 "****  WARNING!  MBEDTLS_CTR_DRBG_USE_128_BIT_KEY defined!\n")
@@ -328,6 +320,27 @@ function(set_msvc_base_compile_options target)
     endif(MBEDTLS_FATAL_WARNINGS)
 endfunction(set_msvc_base_compile_options)
 
+function(set_config_files_compile_definitions target)
+    # Pass-through MBEDTLS_CONFIG_FILE, MBEDTLS_USER_CONFIG_FILE,
+    # TF_PSA_CRYPTO_CONFIG_FILE and TF_PSA_CRYPTO_USER_CONFIG_FILE
+    if(MBEDTLS_CONFIG_FILE)
+        target_compile_definitions(${target}
+            PUBLIC MBEDTLS_CONFIG_FILE="${MBEDTLS_CONFIG_FILE}")
+    endif()
+    if(MBEDTLS_USER_CONFIG_FILE)
+        target_compile_definitions(${target}
+            PUBLIC MBEDTLS_USER_CONFIG_FILE="${MBEDTLS_USER_CONFIG_FILE}")
+    endif()
+    if(TF_PSA_CRYPTO_CONFIG_FILE)
+        target_compile_definitions(${target}
+            PUBLIC MBEDTLS_PSA_CRYPTO_CONFIG_FILE="${TF_PSA_CRYPTO_CONFIG_FILE}")
+    endif()
+    if(TF_PSA_CRYPTO_USER_CONFIG_FILE)
+        target_compile_definitions(${target}
+            PUBLIC MBEDTLS_PSA_CRYPTO_USER_CONFIG_FILE="${TF_PSA_CRYPTO_USER_CONFIG_FILE}")
+    endif()
+endfunction(set_config_files_compile_definitions)
+
 if(CMAKE_BUILD_TYPE STREQUAL "Check" AND TEST_CPP)
     set(CMAKE_CXX_STANDARD 11)
     set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -348,7 +361,37 @@ add_subdirectory(framework)
 
 add_subdirectory(include)
 
+set(TF_PSA_CRYPTO_TARGET_PREFIX ${MBEDTLS_TARGET_PREFIX} CACHE STRING "")
+set(TF_PSA_CRYPTO_FATAL_WARNINGS ${MBEDTLS_FATAL_WARNINGS} CACHE BOOL "")
+set(USE_STATIC_TF_PSA_CRYPTO_LIBRARY ${USE_STATIC_MBEDTLS_LIBRARY} CACHE BOOL "")
+set(USE_SHARED_TF_PSA_CRYPTO_LIBRARY ${USE_SHARED_MBEDTLS_LIBRARY} CACHE BOOL "")
 add_subdirectory(tf-psa-crypto)
+
+set(tfpsacrypto_target "${TF_PSA_CRYPTO_TARGET_PREFIX}tfpsacrypto")
+if (USE_STATIC_MBEDTLS_LIBRARY)
+    set(tfpsacrypto_static_target ${tfpsacrypto_target})
+endif()
+if(USE_STATIC_MBEDTLS_LIBRARY AND USE_SHARED_MBEDTLS_LIBRARY)
+    string(APPEND tfpsacrypto_static_target "_static")
+endif()
+
+set(tf_psa_crypto_library_targets
+    ${TF_PSA_CRYPTO_TARGET_PREFIX}tfpsacrypto
+    ${TF_PSA_CRYPTO_TARGET_PREFIX}builtin
+    ${TF_PSA_CRYPTO_TARGET_PREFIX}everest
+    ${TF_PSA_CRYPTO_TARGET_PREFIX}p256m)
+
+if(USE_STATIC_MBEDTLS_LIBRARY AND USE_SHARED_MBEDTLS_LIBRARY)
+    list(APPEND tf_psa_crypto_library_targets
+         ${TF_PSA_CRYPTO_TARGET_PREFIX}tfpsacrypto_static
+         ${TF_PSA_CRYPTO_TARGET_PREFIX}builtin_static)
+endif()
+
+foreach(target IN LISTS tf_psa_crypto_library_targets)
+    if(NOT TARGET ${target})
+        message(FATAL_ERROR "TF-PSA-Crypto target ${target} does not exist.")
+    endif()
+endforeach(target)
 
 add_subdirectory(library)
 
@@ -359,7 +402,7 @@ add_subdirectory(pkgconfig)
 # and programs. This shared test code is compiled and linked to test suites and
 # programs objects as a set of compiled objects. The compiled objects are NOT
 # built into a library that the test suite and program objects would link
-# against as they link against the mbedcrypto, mbedx509 and mbedtls libraries.
+# against as they link against the tfpsacrypto, mbedx509 and mbedtls libraries.
 # The reason is that such library is expected to have mutual dependencies with
 # the aforementioned libraries and that there is as of today no portable way of
 # handling such dependencies (only toolchain specific solutions).
@@ -369,54 +412,6 @@ add_subdirectory(pkgconfig)
 # to define the test executables.
 #
 if(ENABLE_TESTING OR ENABLE_PROGRAMS)
-    file(GLOB MBEDTLS_TEST_FILES
-         ${CMAKE_CURRENT_SOURCE_DIR}/tests/src/*.c
-         ${CMAKE_CURRENT_SOURCE_DIR}/tests/src/drivers/*.c)
-    add_library(mbedtls_test OBJECT ${MBEDTLS_TEST_FILES})
-    set_base_compile_options(mbedtls_test)
-    if(GEN_FILES)
-        add_custom_command(
-            OUTPUT
-                ${CMAKE_CURRENT_SOURCE_DIR}/tests/src/test_keys.h
-            WORKING_DIRECTORY
-                ${CMAKE_CURRENT_SOURCE_DIR}/tests
-            COMMAND
-                "${MBEDTLS_PYTHON_EXECUTABLE}"
-                "${MBEDTLS_FRAMEWORK_DIR}/scripts/generate_test_keys.py"
-                "--output"
-                "${CMAKE_CURRENT_SOURCE_DIR}/tests/src/test_keys.h"
-            DEPENDS
-                ${MBEDTLS_FRAMEWORK_DIR}/scripts/generate_test_keys.py
-        )
-        add_custom_target(test_keys_header DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/tests/src/test_keys.h)
-        add_custom_command(
-            OUTPUT
-                ${CMAKE_CURRENT_SOURCE_DIR}/tests/src/test_certs.h
-            WORKING_DIRECTORY
-                ${CMAKE_CURRENT_SOURCE_DIR}/tests
-            COMMAND
-                "${MBEDTLS_PYTHON_EXECUTABLE}"
-                "${MBEDTLS_FRAMEWORK_DIR}/scripts/generate_test_cert_macros.py"
-                "--output"
-                "${CMAKE_CURRENT_SOURCE_DIR}/tests/src/test_certs.h"
-            DEPENDS
-                ${MBEDTLS_FRAMEWORK_DIR}/scripts/generate_test_cert_macros.py
-        )
-        add_custom_target(test_certs_header DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/tests/src/test_certs.h)
-        add_dependencies(mbedtls_test test_keys_header test_certs_header)
-    endif()
-    target_include_directories(mbedtls_test
-        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tests/include
-        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include
-        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tf-psa-crypto/include
-        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tf-psa-crypto/drivers/builtin/include
-        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tf-psa-crypto/drivers/everest/include
-        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/library
-        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tf-psa-crypto/core
-        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tf-psa-crypto/drivers/builtin/src)
-    # Request C11, needed for memory poisoning tests
-    set_target_properties(mbedtls_test PROPERTIES C_STANDARD 11)
-
     file(GLOB MBEDTLS_TEST_HELPER_FILES
          ${CMAKE_CURRENT_SOURCE_DIR}/tests/src/test_helpers/*.c)
     add_library(mbedtls_test_helpers OBJECT ${MBEDTLS_TEST_HELPER_FILES})
@@ -431,19 +426,7 @@ if(ENABLE_TESTING OR ENABLE_PROGRAMS)
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tf-psa-crypto/drivers/builtin/src
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tf-psa-crypto/drivers/everest/include)
 
-    # Pass-through MBEDTLS_CONFIG_FILE and MBEDTLS_USER_CONFIG_FILE
-    if(MBEDTLS_CONFIG_FILE)
-        target_compile_definitions(mbedtls_test
-            PUBLIC MBEDTLS_CONFIG_FILE="${MBEDTLS_CONFIG_FILE}")
-        target_compile_definitions(mbedtls_test_helpers
-            PUBLIC MBEDTLS_CONFIG_FILE="${MBEDTLS_CONFIG_FILE}")
-    endif()
-    if(MBEDTLS_USER_CONFIG_FILE)
-        target_compile_definitions(mbedtls_test
-            PUBLIC MBEDTLS_USER_CONFIG_FILE="${MBEDTLS_USER_CONFIG_FILE}")
-        target_compile_definitions(mbedtls_test_helpers
-            PUBLIC MBEDTLS_USER_CONFIG_FILE="${MBEDTLS_USER_CONFIG_FILE}")
-    endif()
+    set_config_files_compile_definitions(mbedtls_test_helpers)
 endif()
 
 if(ENABLE_PROGRAMS)
@@ -453,7 +436,7 @@ if(ENABLE_PROGRAMS)
     add_subdirectory(programs)
 endif()
 
-ADD_CUSTOM_TARGET(${MBEDTLS_TARGET_PREFIX}apidoc
+ADD_CUSTOM_TARGET(${MBEDTLS_TARGET_PREFIX}mbedtls-apidoc
     COMMAND doxygen mbedtls.doxyfile
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/doxygen)
 
@@ -463,8 +446,7 @@ if(ENABLE_TESTING)
     add_subdirectory(tests)
 
     # additional convenience targets for Unix only
-    if(UNIX)
-
+    if(UNIX AND (NOT MBEDTLS_AS_SUBPROJECT))
         # For coverage testing:
         # 1. Build with:
         #         cmake -D CMAKE_BUILD_TYPE=Coverage /path/to/source && make
@@ -483,7 +465,7 @@ if(ENABLE_TESTING)
             COMMAND rm -f memcheck.log
             COMMAND mv DartConfiguration.tcl.bak DartConfiguration.tcl
         )
-    endif(UNIX)
+    endif()
 
     # Make scripts needed for testing available in an out-of-source build.
     if (NOT ${CMAKE_CURRENT_BINARY_DIR} STREQUAL ${CMAKE_CURRENT_SOURCE_DIR})

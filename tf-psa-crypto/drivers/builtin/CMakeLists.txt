@@ -69,7 +69,7 @@ endif(USE_STATIC_TF_PSA_CRYPTO_LIBRARY)
 if(USE_SHARED_TF_PSA_CRYPTO_LIBRARY)
     add_library(${builtin_target} SHARED ${src_builtin})
     set_base_compile_options(${builtin_target})
-    target_compile_options(${builtin_static_target} PRIVATE ${LIBS_C_FLAGS})
+    target_compile_options(${builtin_target} PRIVATE ${LIBS_C_FLAGS})
     target_link_libraries(${builtin_target} PUBLIC ${libs})
     if(TARGET ${everest_target})
         target_link_libraries(${builtin_target} PUBLIC ${everest_target})
@@ -87,19 +87,7 @@ foreach (target IN LISTS target_libraries)
              $<BUILD_INTERFACE:${MBEDTLS_DIR}/include>
              $<BUILD_INTERFACE:${TF_PSA_CRYPTO_DIR}/include>
       PRIVATE ${TF_PSA_CRYPTO_DIR}/core)
-
-    # Pass-through MBEDTLS_CONFIG_FILE and MBEDTLS_USER_CONFIG_FILE
-    # This must be duplicated from library/CMakeLists.txt because
-    # everest is not directly linked against any mbedtls targets
-    # so does not inherit the compile definitions.
-    if(MBEDTLS_CONFIG_FILE)
-        target_compile_definitions(${target}
-            PUBLIC MBEDTLS_CONFIG_FILE="${MBEDTLS_CONFIG_FILE}")
-    endif()
-    if(MBEDTLS_USER_CONFIG_FILE)
-        target_compile_definitions(${target}
-            PUBLIC MBEDTLS_USER_CONFIG_FILE="${MBEDTLS_USER_CONFIG_FILE}")
-    endif()
+    set_config_files_compile_definitions(${target})
 
     if(INSTALL_TF_PSA_CRYPTO_HEADERS)
 
@@ -113,7 +101,12 @@ foreach (target IN LISTS target_libraries)
     endif(INSTALL_TF_PSA_CRYPTO_HEADERS)
 
     install(TARGETS ${target}
-    EXPORT MbedTLSTargets
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ)
+      EXPORT MbedTLSTargets
+      DESTINATION ${CMAKE_INSTALL_LIBDIR}
+      PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ)
+
+    install(TARGETS ${target}
+      EXPORT TF-PSA-CryptoTargets
+      DESTINATION ${CMAKE_INSTALL_LIBDIR}
+      PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ)
 endforeach(target)

@@ -531,7 +531,7 @@ psa_key_agreement_iop_init(void)
 }
 
 /**
- * \brief The context for PSA interruptible key agreement.
+ * \brief The context for PSA interruptible key generation.
  */
 struct psa_generate_key_iop_s {
 #if defined(MBEDTLS_PSA_CRYPTO_CLIENT) && !defined(MBEDTLS_PSA_CRYPTO_C)

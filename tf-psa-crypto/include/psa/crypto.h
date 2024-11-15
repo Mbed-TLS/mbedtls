@@ -5274,7 +5274,7 @@ psa_status_t psa_key_agreement_iop_abort(
  *   \endcode
  * - Initialize the structure to the initializer #PSA_GENERATE_KEY_IOP_INIT,
  *   for example:
- * - \code
+ *   \code
  *   psa_generate_key_iop_t operation = PSA_GENERATE_KEY_IOP_INIT;
  *   \endcode
  * - Assign the result of the function psa_generate_key_iop_init() to the
@@ -5302,7 +5302,6 @@ typedef struct psa_generate_key_iop_s psa_generate_key_iop_t;
  * \warning                     This is a beta API, and thus subject to change
  *                              at any point. It is not bound by the usual
  *                              interface stability promises.
- *
  *                              This is a helper provided to help you tune the
  *                              value passed to \c
  *                              psa_interruptible_set_max_ops().
@@ -5497,7 +5496,7 @@ psa_status_t psa_generate_key_iop_setup(
  *         The following conditions can result in this error:
  *         * The library has not been previously initialized by
  *           \c psa_crypto_init().
- *         * The operation state is not valid: it must be inactive.
+ *         * The operation state is not valid: it must be active.
  */
 psa_status_t psa_generate_key_iop_complete(
     psa_generate_key_iop_t *operation,
@@ -5528,7 +5527,7 @@ psa_status_t psa_generate_key_iop_complete(
  *                              psa_generate_key_iop_abort() after the
  *                              operation has already been terminated by a call
  *                              to \c psa_generate_key_iop_abort() or
- *                              psa_generate_key_iop_complete() is safe.
+ *                              \c psa_generate_key_iop_complete() is safe.
  *
  * \param[in,out] operation     The \c psa_key_agreement_iop_t to use
  *

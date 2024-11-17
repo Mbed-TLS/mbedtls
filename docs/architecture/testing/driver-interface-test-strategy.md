@@ -16,7 +16,7 @@ Drivers exposing this interface need to be registered at compile time by declari
 
 #### Dynamic secure element driver interface
 
-The dynamic secure element driver interface (SE interface for short) is defined by [`psa/crypto_se_driver.h`](../../../include/psa/crypto_se_driver.h). This is an interface between Mbed TLS and one or more third-party drivers.
+The dynamic secure element driver interface (SE interface for short) is defined by [`psa/crypto_se_driver.h`](../../../tf-psa-crypto/include/psa/crypto_se_driver.h). This is an interface between Mbed TLS and one or more third-party drivers.
 
 The SE interface consists of one function provided by Mbed TLS (`psa_register_se_driver`) and many functions that drivers must implement. To make a driver usable by Mbed TLS, the initialization code must call `psa_register_se_driver` with a structure that describes the driver. The structure mostly contains function pointers, pointing to the driver's methods. All calls to a driver function are triggered by a call to a PSA crypto API function.
 
@@ -280,7 +280,7 @@ The following entry points are declared (transparent only):
 The transparent driver fully implements the declared entry points, and can use
 any backend: internal or libtestdriver1.
 
-This familly is not part of the opaque driver as it doesn't use keys.
+This family is not part of the opaque driver as it doesn't use keys.
 
 #### Message authentication codes (MAC)
 
@@ -461,7 +461,7 @@ config.
 The test suite is focused on driver usage (mostly by checking the expected
 number of hits) but also does some validation of the results: for
 deterministic algorithms, known-answers tests are used, and for the rest, some
-consistency checks are done (more or less detailled depending on the algorithm
+consistency checks are done (more or less detailed depending on the algorithm
 and build configuration).
 
 #### Configurations coverage
@@ -542,7 +542,7 @@ we need to make sure it exercises all the cases that need to be tested. In the
 future, this file should be generated in order to ensure exhaustiveness.
 
 In the meantime, one way to observe (lack of) completeness is to look at line
-coverage in test driver implementaitons - this doesn't reveal all gaps, but it
+coverage in test driver implementations - this doesn't reveal all gaps, but it
 does reveal cases where we thought about something when writing the test
 driver, but not when writing test functions/data.
 

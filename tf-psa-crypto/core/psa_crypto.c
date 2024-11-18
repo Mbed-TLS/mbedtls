@@ -7737,7 +7737,7 @@ static psa_status_t validate_key_agreement_params(const psa_key_attributes_t *at
     psa_key_type_t key_type;
 
     if (!PSA_ALG_IS_RAW_KEY_AGREEMENT(alg)) {
-        return PSA_ERROR_INVALID_ARGUMENT;
+        return PSA_ERROR_NOT_SUPPORTED;
     }
 
     key_type = psa_get_key_type(attributes);
@@ -8348,7 +8348,7 @@ exit:
 
 psa_status_t psa_generate_key_iop_complete(
     psa_generate_key_iop_t *operation,
-    psa_key_id_t *key)
+    mbedtls_svc_key_id_t *key)
 {
     (void) operation;
     (void) key;

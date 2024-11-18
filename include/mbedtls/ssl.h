@@ -5800,7 +5800,9 @@ int  mbedtls_ssl_tls_prf(const mbedtls_tls_prf_types prf,
  *       this distinction. If use_context is 0 and TLS 1.3 is used, context and
  *       context_len are ignored and a 0-length context is used.
  *
- * \return            0 on success. An SSL specific error on failure.
+ * \return            0 on success.
+ * \return            MBEDTLS_ERR_SSL_BAD_INPUT_DATA if the handshake is not yet completed.
+ * \return            An SSL-specific error on failure.
  */
 int mbedtls_ssl_export_keying_material(mbedtls_ssl_context *ssl,
                                        uint8_t *out, const size_t key_len,

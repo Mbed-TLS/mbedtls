@@ -5731,9 +5731,6 @@ psa_status_t psa_export_public_key_iop_setup(psa_export_public_key_iop_t *operat
  *                               * \c PSA_EXPORT_PUBLIC_KEY_MAX_SIZE evaluates to the maximum
  *                                 output size of any supported public key or public part
  *                                 of a key pair.
- *                               * \c PSA_EXPORT_ASYMMETRIC_KEY_MAX_SIZE evaluates
- *                                 to the maximum output size of any supported public
- *                                 key or key pair.
  *
  * \param[out] data_length      On success, the number of bytes that make up the key data.
  *
@@ -5748,9 +5745,7 @@ psa_status_t psa_export_public_key_iop_setup(psa_export_public_key_iop_t *operat
  * \retval #PSA_ERROR_BUFFER_TOO_SMALL
  *          The size of the data buffer is too small.
  *          \c PSA_EXPORT_PUBLIC_KEY_OUTPUT_SIZE(),
- *          \c PSA_EXPORT_PUBLIC_KEY_MAX_SIZE, or
- *          \c PSA_EXPORT_ASYMMETRIC_KEY_MAX_SIZE can be used to determine a
- *          sufficient buffer size.
+ *          \c PSA_EXPORT_PUBLIC_KEY_MAX_SIZE.
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE \emptydescription
  * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription

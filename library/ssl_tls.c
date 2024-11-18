@@ -9023,6 +9023,7 @@ int mbedtls_ssl_export_keying_material(mbedtls_ssl_context *ssl,
                                        const int use_context)
 {
     if (!mbedtls_ssl_is_handshake_over(ssl)) {
+        /* TODO: Change this to a more appropriate error code when one is available. */
         return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
     }
 

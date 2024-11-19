@@ -642,8 +642,6 @@ int mbedtls_cipher_setup(mbedtls_cipher_context_t *ctx,
  *                      Please use psa_aead_xxx() / psa_cipher_xxx() directly
  *                      instead.
  *
- * \note                See #MBEDTLS_USE_PSA_CRYPTO for information on PSA.
- *
  * \param ctx           The context to initialize. May not be \c NULL.
  * \param cipher_info   The cipher to use.
  * \param taglen        For AEAD ciphers, the length in bytes of the

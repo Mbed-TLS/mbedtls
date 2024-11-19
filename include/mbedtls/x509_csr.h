@@ -79,9 +79,8 @@ mbedtls_x509write_csr;
  *                 ignored, unless the critical flag is set, in which case
  *                 the CSR is rejected.
  *
- * \note           If #MBEDTLS_USE_PSA_CRYPTO is enabled, the PSA crypto
- *                 subsystem must have been initialized by calling
- *                 psa_crypto_init() before calling this function.
+ * \note           The PSA crypto subsystem must have been initialized by
+ *                 calling psa_crypto_init() before calling this function.
  *
  * \param csr      CSR context to fill
  * \param buf      buffer holding the CRL data
@@ -135,9 +134,8 @@ typedef int (*mbedtls_x509_csr_ext_cb_t)(void *p_ctx,
  *                 the result of the callback function decides whether
  *                 CSR is rejected.
  *
- * \note           If #MBEDTLS_USE_PSA_CRYPTO is enabled, the PSA crypto
- *                 subsystem must have been initialized by calling
- *                 psa_crypto_init() before calling this function.
+ * \note           The PSA crypto subsystem must have been initialized by
+ *                 calling psa_crypto_init() before calling this function.
  *
  * \param csr      CSR context to fill
  * \param buf      buffer holding the CRL data
@@ -158,9 +156,8 @@ int mbedtls_x509_csr_parse_der_with_ext_cb(mbedtls_x509_csr *csr,
  *
  * \note           See notes for \c mbedtls_x509_csr_parse_der()
  *
- * \note           If #MBEDTLS_USE_PSA_CRYPTO is enabled, the PSA crypto
- *                 subsystem must have been initialized by calling
- *                 psa_crypto_init() before calling this function.
+ * \note           The PSA crypto subsystem must have been initialized by
+ *                 calling psa_crypto_init() before calling this function.
  *
  * \param csr      CSR context to fill
  * \param buf      buffer holding the CRL data

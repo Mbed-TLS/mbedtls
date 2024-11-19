@@ -212,12 +212,12 @@ desired.)
 The renaming process for `libtestdriver1` is implemented as a few Perl regexes
 applied to a copy of the library code, see the `libtestdriver1.a` target in
 `tests/Makefile`. Another modification that's done to this copy is appending
-`framework/tests/include/test/drivers/crypto_config_test_driver_extension.h` to
-`psa/crypto_config.h`. This file reverses the `ACCEL`/`BUILTIN` macros so that
-`libtestdriver1` includes as built-in what the main `libmbedcrypto.a` will
-have accelerated; see that file's initial comment for details. See also
-`helper_libtestdriver1_` functions and the preceding comment in `all.sh` for
-how libtestdriver is used in practice.
+`tests/configs/crypto_config_test_driver_extension.h` to `psa/crypto_config.h`.
+This file reverses the `ACCEL`/`BUILTIN` macros so that `libtestdriver1`
+includes as built-in what the main `libmbedcrypto.a` will have accelerated;
+see that file's initial comment for details. See also `helper_libtestdriver1_`
+functions and the preceding comment in `all.sh` for how libtestdriver is used
+in practice.
 
 This general framework needs specific code for each family of operations. At a
 given point in time, not all operations have the same level of support. The

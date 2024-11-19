@@ -389,7 +389,7 @@ typedef enum {
 #endif
 
 /* The handshake params structure has a set of fields called xxdh_psa which are used:
- * - by TLS 1.2 with `USE_PSA` to do ECDH or ECDHE;
+ * - by TLS 1.2 to do ECDH or ECDHE;
  * - by TLS 1.3 to do ECDHE or FFDHE.
  * The following macros can be used to guard their declaration and use.
  */

@@ -254,7 +254,7 @@ LOCAL_CRYPTO_CFLAGS = $(patsubst -I./include, -I../../tests/include, $(patsubst 
 LOCAL_CRYPTO_LDFLAGS = $(patsubst -L../library, -L../../library, \
                        $(patsubst -L../tests/%, -L../../tests/%, \
                        $(patsubst ./src/%,../../tests/src/%, \
-					   $(patsubst ../framework/tests/src/%,../../framework/tests/src/%, \
+                       $(patsubst ../framework/tests/src/%,../../framework/tests/src/%, \
 					   $(LOCAL_LDFLAGS)))))
 $(CRYPTO_BINARIES): %$(EXEXT): %.c $(MBEDLIBS) $(TEST_OBJS_DEPS) $(MBEDTLS_TEST_OBJS)
 	echo "  CC   $<"

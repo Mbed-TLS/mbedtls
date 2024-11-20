@@ -10350,6 +10350,68 @@ void generate_key_iop_init()
 /* END_CASE */
 
 /* BEGIN_CASE */
+void export_public_key(
+    int type_arg,
+    int bits_arg,
+    int usage_arg,
+    int alg_arg,
+    int expected_status_arg)
+{
+    mbedtls_svc_key_id_t iop_key = MBEDTLS_SVC_KEY_ID_INIT;
+    psa_key_type_t type = type_arg;
+    psa_key_usage_t usage = usage_arg;
+    size_t bits = bits_arg;
+    psa_algorithm_t alg = alg_arg;
+    psa_status_t expected_status = expected_status_arg;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_export_public_key_iop_t export_key_operation = PSA_EXPORT_PUBLIC_KEY_IOP_INIT;
+    psa_status_t status;
+
+    PSA_ASSERT(psa_crypto_init());
+
+    psa_set_key_usage_flags(&attributes, usage);
+    psa_set_key_algorithm(&attributes, alg);
+    psa_set_key_type(&attributes, type);
+    psa_set_key_bits(&attributes, bits);
+
+    /* Adjust expected_status for interruptible export public-key.
+     * Interruptible export public-key is only supported for ECC key pairs and even
+     * for those only when MBEDTLS_ECP_RESTARTABLE is on.
+     */
+    if (!PSA_KEY_TYPE_IS_ECC(type)) {
+        expected_status = PSA_ERROR_NOT_SUPPORTED;
+    }
+
+#if !defined(MBEDTLS_ECP_RESTARTABLE)
+    expected_status = PSA_ERROR_NOT_SUPPORTED;
+#endif
+
+    status = psa_generate_key(&attributes, &iop_key);
+    TEST_EQUAL(status, PSA_SUCCESS);
+
+    status = psa_export_public_key_iop_setup(&export_key_operation, iop_key);
+    TEST_EQUAL(status, expected_status);
+
+#if defined(MBEDTLS_ECP_RESTARTABLE)
+    /* Test calling setup() 2 times consecutively will fail. */
+    status = psa_export_public_key_iop_setup(&export_key_operation, iop_key);
+    TEST_EQUAL(status, PSA_ERROR_BAD_STATE);
+#endif
+
+    TEST_EQUAL(psa_export_public_key_iop_abort(&export_key_operation), PSA_SUCCESS);
+
+    /* Test that after calling abort operation is reset to it's fresh state */
+    status = psa_export_public_key_iop_setup(&export_key_operation, iop_key);
+    TEST_EQUAL(status, expected_status);
+
+exit:
+    psa_export_public_key_iop_abort(&export_key_operation);
+    psa_destroy_key(iop_key);
+    PSA_DONE();
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
 void generate_key_custom(int type_arg,
                          int bits_arg,
                          int usage_arg,

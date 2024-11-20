@@ -10412,6 +10412,21 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
+void export_public_key_iop_init()
+{
+    psa_export_public_key_iop_t init = PSA_EXPORT_PUBLIC_KEY_IOP_INIT;
+    psa_export_public_key_iop_t fun = psa_export_public_key_iop_init();
+    psa_export_public_key_iop_t zero;
+
+    memset(&zero, 0, sizeof(zero));
+
+    PSA_ASSERT(psa_export_public_key_iop_abort(&init));
+    PSA_ASSERT(psa_export_public_key_iop_abort(&fun));
+    PSA_ASSERT(psa_export_public_key_iop_abort(&zero));
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
 void generate_key_custom(int type_arg,
                          int bits_arg,
                          int usage_arg,

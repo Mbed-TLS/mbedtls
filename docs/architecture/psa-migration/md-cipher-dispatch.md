@@ -3,7 +3,7 @@ PSA migration strategy for hashes and ciphers
 
 ## Introduction
 
-This document discusses a migration strategy for code that is not subject to `MBEDTLS_USE_PSA_CRYPTO`, is currently using legacy cryptography APIs, and should transition to PSA, without a major version change.
+This document discusses a migration strategy for code that is currently using legacy cryptography APIs, and should transition to PSA, without a major version change.
 
 ### Relationship with the main strategy document
 
@@ -82,9 +82,9 @@ It is not a goal at this stage to make more code directly call `psa_xxx` functio
 
 ### Scope analysis
 
-#### Limitations of `MBEDTLS_USE_PSA_CRYPTO`
+#### Limitations of the use of PSA Crypto
 
-The option `MBEDTLS_USE_PSA_CRYPTO` causes parts of the library to call the PSA API instead of legacy APIs for cryptographic calculations. `MBEDTLS_USE_PSA_CRYPTO` only applies to `pk.h`, X.509 and TLS. When this option is enabled, applications must call `psa_crypto_init()` before calling any of the functions in these modules.
+Parts of the library call the PSA API instead of legacy APIs for cryptographic calculations. This only applies to `pk.h`, X.509 and TLS. Applications must call `psa_crypto_init()` before calling any of the functions in these modules.
 
 In this work, we want two things:
 
@@ -98,14 +98,13 @@ We can classify code that implements or uses cryptographic mechanisms into sever
 * Software implementations of primitive cryptographic mechanisms. These are not expected to change.
 * Software implementations of constructed cryptographic mechanisms (e.g. HMAC, CTR_DRBG, RSA (calling a hash for PSS/OAEP, and needing to know the hash length in PKCS1v1.5 sign/verify), …). These need to keep working whenever a legacy implementation of the auxiliary mechanism is available, regardless of whether a PSA implementation is also available.
 * Code implementing the PSA crypto interface. This is not expected to change, except perhaps to expose some internal functionality to overhauled glue code.
-* Code that's subject to `MBEDTLS_USE_PSA_CRYPTO`: `pk.h`, X.509, TLS (excluding parts specific TLS 1.3).
-* Code that always uses PSA for crypto: TLS 1.3 (except things common with 1.2), LMS.
+* Code that uses PSA for crypto: `pk.h`, X.509, TLS, TLS 1.3, LMS.
 
 For the purposes of this work, three domains emerge:
 
 * **Legacy domain**: does not interact with PSA. Implementations of hashes, of cipher primitives, of arithmetic.
-* **Mixed domain**: does not currently use PSA, but should [when possible](#why-psa-is-not-always-possible). This consists of the constructed cryptographic primitives (except LMS), as well as pk, X.509 and TLS when `MBEDTLS_USE_PSA_CRYPTO` is disabled.
-* **PSA domain**: includes pk, X.509 and TLS when `MBEDTLS_USE_PSA_CRYPTO` is enabled. Also TLS 1.3, LMS.
+* **Mixed domain**: does not currently use PSA, but should [when possible](#why-psa-is-not-always-possible). This consists of the constructed cryptographic primitives (except LMS)
+* **PSA domain**: includes pk, X.509 and TLS. Also TLS 1.3, LMS.
 
 #### Non-use-PSA modules
 
@@ -198,7 +197,7 @@ Here are some reasons why calling `psa_xxx()` to perform a hash or cipher calcul
 
 #### Indirect knowledge
 
-Consider for example the code in `rsa.c` to perform an RSA-PSS signature. It needs to calculate a hash. If `mbedtls_rsa_rsassa_pss_sign()` is called directly by application code, it is supposed to call the built-in implementation: calling a PSA accelerator would be a behavior change, acceptable only if this does not add a risk of failure or performance degradation ([PSA is impossible or undesirable in some circumstances](#why-psa-is-not-always-possible)). Note that this holds regardless of the state of `MBEDTLS_USE_PSA_CRYPTO`, since `rsa.h` is outside the scope of `MBEDTLS_USE_PSA_CRYPTO`. On the other hand, if `mbedtls_rsa_rsassa_pss_sign()` is called from X.509 code, it should use PSA to calculate hashes. It doesn't, currently, which is [bug \#6497](https://github.com/Mbed-TLS/mbedtls/issues/6497).
+Consider for example the code in `rsa.c` to perform an RSA-PSS signature. It needs to calculate a hash. If `mbedtls_rsa_rsassa_pss_sign()` is called directly by application code, it is supposed to call the built-in implementation: calling a PSA accelerator would be a behavior change, acceptable only if this does not add a risk of failure or performance degradation ([PSA is impossible or undesirable in some circumstances](#why-psa-is-not-always-possible)). On the other hand, if `mbedtls_rsa_rsassa_pss_sign()` is called from X.509 code, it should use PSA to calculate hashes. It doesn't, currently, which is [bug \#6497](https://github.com/Mbed-TLS/mbedtls/issues/6497).
 
 Generally speaking, modules in the mixed domain:
 
@@ -244,7 +243,7 @@ RSA knows which hash algorithm to use based on a parameter of type `mbedtls_md_t
 
 A natural solution is to double up the encoding of hashes in `mbedtls_md_type_t`. Pass `MBEDTLS_MD_SHA256` and `md` will dispatch to the legacy code, pass a new constant `MBEDTLS_MD_SHA256_USE_PSA` and `md` will dispatch through PSA.
 
-This maximally preserves backward compatibility, but then no non-PSA code benefits from PSA accelerators, and there's little potential for removing the software implementation.
+This maximally preserves backward compatibility, but then there's little potential for removing the software implementation.
 
 #### Availability of hashes in RSA-PSS
 
@@ -321,17 +320,9 @@ These problems are easily solvable.
 
 This section documents things that we chose to temporarily exclude from the scope in the 3.x branch (which will eventually be in scope again after 4.0) as well as things we chose to prioritize if we don't have time to support everything.
 
-#### Don't support PK, X.509 and TLS without `MBEDTLS_USE_PSA_CRYPTO`
-
-We do not need to support driver-only hashes and ciphers in PK. X.509 and TLS without `MBEDTLS_USE_PSA_CRYPTO`. Users who want to take full advantage of drivers will need to enabled this macro.
-
-Note that this applies to TLS 1.3 as well, as some uses of hashes and all uses of ciphers there are common with TLS 1.2, hence governed by `MBEDTLS_USE_PSA_CRYPTO`, see [this macro's extended documentation](../../docs/use-psa-crypto.html).
-
-This will go away naturally in 4.0 when this macros is not longer an option (because it's always on).
-
 #### Don't support for `MBEDTLS_PSA_CRYPTO_CLIENT` without `MBEDTLS_PSA_CRYPTO_C`
 
-We generally don't really support builds with `MBEDTLS_PSA_CRYPTO_CLIENT` without `MBEDTLS_PSA_CRYPTO_C`. For example, both `MBEDTLS_USE_PSA_CRYPTO` and `MBEDTLS_SSL_PROTO_TLS1_3` require `MBEDTLS_PSA_CRYPTO_C`, while in principle they should only require `MBEDTLS_PSA_CRYPTO_CLIENT`.
+We generally don't really support builds with `MBEDTLS_PSA_CRYPTO_CLIENT` without `MBEDTLS_PSA_CRYPTO_C`. For example,  `MBEDTLS_SSL_PROTO_TLS1_3` require `MBEDTLS_PSA_CRYPTO_C`, while in principle they should only require `MBEDTLS_PSA_CRYPTO_CLIENT`.
 
 Considering this existing restriction which we do not plan to lift before 4.0, it is acceptable driver-only hashes and cipher support to have the same restriction in 3.x.
 
@@ -555,7 +546,7 @@ PSA has its own HMAC implementation. In builds with both `MBEDTLS_MD_C` and `PSA
 
 ### Improving support for `MBEDTLS_PSA_CRYPTO_CLIENT`
 
-So far, MD light only dispatches to PSA if an algorithm is available via `MBEDTLS_PSA_CRYPTO_C`, not if it's available via `MBEDTLS_PSA_CRYPTO_CLIENT`. This is acceptable because `MBEDTLS_USE_PSA_CRYPTO` requires `MBEDTLS_PSA_CRYPTO_C`, hence mixed-domain code never invokes PSA.
+So far, MD light only dispatches to PSA if an algorithm is available via `MBEDTLS_PSA_CRYPTO_C`, not if it's available via `MBEDTLS_PSA_CRYPTO_CLIENT`.
 
 The architecture can be extended to support `MBEDTLS_PSA_CRYPTO_CLIENT` with a little extra work. Here is an overview of the task breakdown, which should be fleshed up after we've done the first [migration](#migration-to-md-light):
 

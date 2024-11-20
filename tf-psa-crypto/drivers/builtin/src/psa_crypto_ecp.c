@@ -641,7 +641,7 @@ psa_status_t mbedtls_psa_generate_key_iop_complete(
 
     operation->num_ops = 1;
 
-    mbedtls_mpi_write_binary(&operation->ecp.d, key_output, key_output_size);
+    status = mbedtls_mpi_write_binary(&operation->ecp.d, key_output, key_output_size);
 
     return mbedtls_to_psa_error(status);
 }

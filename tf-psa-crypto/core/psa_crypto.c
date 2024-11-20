@@ -1762,9 +1762,19 @@ psa_status_t psa_export_public_key_iop_complete(psa_export_public_key_iop_t *ope
 
 psa_status_t psa_export_public_key_iop_abort(psa_export_public_key_iop_t *operation)
 {
-    (void) operation;
+#if defined(MBEDTLS_ECP_RESTARTABLE)
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    return PSA_ERROR_NOT_SUPPORTED;
+    status = psa_export_public_key_iop_abort_internal(operation);
+
+    operation->num_ops = 0;
+    operation->error_occurred = 0;
+
+    return status;
+#else
+    (void) operation;
+    return PSA_SUCCESS;
+#endif
 }
 
 /** Validate that a key policy is internally well-formed.
@@ -8509,7 +8519,6 @@ psa_status_t psa_generate_key_iop_abort(
     return PSA_SUCCESS;
 #endif
 }
-
 
 /****************************************************************/
 /* Module setup */

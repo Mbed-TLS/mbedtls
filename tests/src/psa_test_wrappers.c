@@ -623,7 +623,7 @@ psa_status_t mbedtls_test_wrap_psa_export_public_key_iop_complete(
 /* Wrapper for psa_export_public_key_iop_setup */
 psa_status_t mbedtls_test_wrap_psa_export_public_key_iop_setup(
     psa_export_public_key_iop_t *arg0_operation,
-    psa_key_id_t arg1_key)
+    mbedtls_svc_key_id_t arg1_key)
 {
     psa_status_t status = (psa_export_public_key_iop_setup)(arg0_operation, arg1_key);
     return status;

@@ -5241,8 +5241,6 @@ psa_status_t psa_key_agreement_iop_complete(
  *
  * \retval #PSA_SUCCESS
  *          The operation was aborted successfully.
- *
- * \retval #PSA_ERROR_NOT_SUPPORTED \emptydescription
  * \retval #PSA_ERROR_BAD_STATE
  *          The library has not been previously initialized by
  *          \c psa_crypto_init().
@@ -5533,8 +5531,6 @@ psa_status_t psa_generate_key_iop_complete(
  *
  * \retval #PSA_SUCCESS
  *          The operation was aborted successfully.
- *
- * \retval #PSA_ERROR_NOT_SUPPORTED \emptydescription
  * \retval #PSA_ERROR_BAD_STATE
  *          The library has not been previously initialized by
  *          \c psa_crypto_init().
@@ -5793,8 +5789,6 @@ psa_status_t psa_export_public_key_iop_complete(psa_export_public_key_iop_t *ope
  *
  * \retval #PSA_SUCCESS
  *          The operation was aborted successfully.
- *
- * \retval #PSA_ERROR_NOT_SUPPORTED \emptydescription
  * \retval #PSA_ERROR_BAD_STATE
  *          The library has not been previously initialized by
  *          \c psa_crypto_init().

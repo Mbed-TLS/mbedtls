@@ -24,6 +24,7 @@ WARNING_CXXFLAGS ?= -Wall -Wextra -Wformat=2 -Wno-format-nonliteral -std=c++11 -
 LDFLAGS ?=
 
 LOCAL_CFLAGS = $(WARNING_CFLAGS) -I$(MBEDTLS_TEST_PATH)/include \
+               -I$(MBEDTLS_PATH)/framework/tests/include \
                -I$(MBEDTLS_PATH)/include -I$(MBEDTLS_PATH)/tf-psa-crypto/include \
                -I$(MBEDTLS_PATH)/tf-psa-crypto/drivers/builtin/include \
                -D_FILE_OFFSET_BITS=64
@@ -150,18 +151,19 @@ endif
 
 # Auxiliary modules used by tests and some sample programs
 MBEDTLS_CORE_TEST_OBJS := $(patsubst %.c,%.o,$(wildcard \
-    ${MBEDTLS_TEST_PATH}/src/*.c \
-    ${MBEDTLS_TEST_PATH}/src/drivers/*.c \
+    ${MBEDTLS_PATH}/framework/tests/src/*.c \
+    ${MBEDTLS_PATH}/framework/tests/src/drivers/*.c \
   ))
 # Ignore PSA stubs when building for the client side of PSASIM (i.e.
 # CRYPTO_CLIENT && !CRYPTO_C) otherwise there will be functions duplicates.
 ifdef PSASIM
 MBEDTLS_CORE_TEST_OBJS := $(filter-out \
-    ${MBEDTLS_TEST_PATH}/src/psa_crypto_stubs.o, $(MBEDTLS_CORE_TEST_OBJS)\
+    ${MBEDTLS_PATH}/framework/tests/src/psa_crypto_stubs.o, $(MBEDTLS_CORE_TEST_OBJS)\
   )
 endif
 # Additional auxiliary modules for TLS testing
 MBEDTLS_TLS_TEST_OBJS = $(patsubst %.c,%.o,$(wildcard \
+    ${MBEDTLS_TEST_PATH}/src/*.c \
     ${MBEDTLS_TEST_PATH}/src/test_helpers/*.c \
   ))
 

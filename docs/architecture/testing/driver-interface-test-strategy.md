@@ -132,8 +132,8 @@ The driver interface includes a fallback mechanism so that a driver can reject a
 
 We have test drivers that are enabled by `PSA_CRYPTO_DRIVER_TEST` (not present
 in the usual config files, must be defined on the command line or in a custom
-config file). Those test drivers are implemented in `tests/src/drivers/*.c`
-and their API is declared in `tests/include/test/drivers/*.h`.
+config file). Those test drivers are implemented in `framework/tests/src/drivers/*.c`
+and their API is declared in `framework/tests/include/test/drivers/*.h`.
 
 We have two test driver registered: `mbedtls_test_opaque_driver` and
 `mbedtls_test_transparent_driver`. These are described in
@@ -212,7 +212,7 @@ desired.)
 The renaming process for `libtestdriver1` is implemented as a few Perl regexes
 applied to a copy of the library code, see the `libtestdriver1.a` target in
 `tests/Makefile`. Another modification that's done to this copy is appending
-`tests/include/test/drivers/crypto_config_test_driver_extension.h` to
+`framework/tests/include/test/drivers/crypto_config_test_driver_extension.h` to
 `psa/crypto_config.h`. This file reverses the `ACCEL`/`BUILTIN` macros so that
 `libtestdriver1` includes as built-in what the main `libmbedcrypto.a` will
 have accelerated; see that file's initial comment for details. See also

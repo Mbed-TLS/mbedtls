@@ -86,7 +86,7 @@ foreach(exe IN LISTS executables_libs executables_mbedcrypto)
         ${extra_sources})
     set_base_compile_options(${exe})
     target_include_directories(${exe}
-        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../tests/include)
+        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../framework/tests/include)
     target_include_directories(${exe}
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../library
                 ${CMAKE_CURRENT_SOURCE_DIR}/../../tf-psa-crypto/core)

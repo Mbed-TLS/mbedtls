@@ -164,7 +164,7 @@ else
 fi
 
 check scripts/generate_psa_constants.py programs/psa/psa_constant_names_generated.c
-check framework/scripts/generate_test_keys.py tests/src/test_keys.h
+check framework/scripts/generate_test_keys.py framework/tests/src/test_keys.h
 check scripts/generate_driver_wrappers.py ${crypto_core_dir}/psa_crypto_driver_wrappers.h \
                                           ${crypto_core_dir}/psa_crypto_driver_wrappers_no_static.c
 

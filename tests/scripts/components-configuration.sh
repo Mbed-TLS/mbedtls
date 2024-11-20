@@ -219,7 +219,7 @@ component_test_full_deprecated_warning () {
 component_build_baremetal () {
   msg "build: make, baremetal config"
   scripts/config.py baremetal
-  make CFLAGS="-O1 -Werror -I$PWD/tests/include/baremetal-override/"
+  make CFLAGS="-O1 -Werror -I$PWD/framework/tests/include/baremetal-override/"
 }
 
 support_build_baremetal () {
@@ -238,11 +238,11 @@ component_build_tfm () {
     cp configs/config-tfm.h "$CONFIG_H"
 
     msg "build: TF-M config, clang, armv7-m thumb2"
-    make lib CC="clang" CFLAGS="--target=arm-linux-gnueabihf -march=armv7-m -mthumb -Os -std=c99 -Werror -Wall -Wextra -Wwrite-strings -Wpointer-arith -Wimplicit-fallthrough -Wshadow -Wvla -Wformat=2 -Wno-format-nonliteral -Wshadow -Wasm-operand-widths -Wunused -I../tests/include/spe"
+    make lib CC="clang" CFLAGS="--target=arm-linux-gnueabihf -march=armv7-m -mthumb -Os -std=c99 -Werror -Wall -Wextra -Wwrite-strings -Wpointer-arith -Wimplicit-fallthrough -Wshadow -Wvla -Wformat=2 -Wno-format-nonliteral -Wshadow -Wasm-operand-widths -Wunused -I../framework/tests/include/spe"
 
     msg "build: TF-M config, gcc native build"
     make clean
-    make lib CC="gcc" CFLAGS="-Os -std=c99 -Werror -Wall -Wextra -Wwrite-strings -Wpointer-arith -Wshadow -Wvla -Wformat=2 -Wno-format-nonliteral -Wshadow -Wformat-signedness -Wlogical-op -I../tests/include/spe"
+    make lib CC="gcc" CFLAGS="-Os -std=c99 -Werror -Wall -Wextra -Wwrite-strings -Wpointer-arith -Wshadow -Wvla -Wformat=2 -Wno-format-nonliteral -Wshadow -Wformat-signedness -Wlogical-op -I../framework/tests/include/spe"
 }
 
 component_test_malloc_0_null () {

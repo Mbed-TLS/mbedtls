@@ -57,7 +57,7 @@ endif
 GENERATED_CRYPTO_DATA_FILES += $(GENERATED_PSA_DATA_FILES)
 
 GENERATED_FILES = $(GENERATED_DATA_FILES) $(GENERATED_CRYPTO_DATA_FILES)
-GENERATED_FILES += src/test_keys.h src/test_certs.h
+GENERATED_FILES += ../framework/tests/src/test_keys.h src/test_certs.h
 
 # Generated files needed to (fully) run ssl-opt.sh
 .PHONY: ssl-opt
@@ -172,7 +172,7 @@ src/test_certs.h: ../framework/scripts/generate_test_cert_macros.py \
 	echo "  Gen   $@"
 	$(PYTHON) ../framework/scripts/generate_test_cert_macros.py --output $@
 
-src/test_keys.h: ../framework/scripts/generate_test_keys.py
+../framework/tests/src/test_keys.h: ../framework/scripts/generate_test_keys.py
 	echo "  Gen   $@"
 	$(PYTHON) ../framework/scripts/generate_test_keys.py --output $@
 
@@ -181,16 +181,21 @@ ifdef RECORD_PSA_STATUS_COVERAGE_LOG
 # Explicitly depend on this header because on a clean copy of the source tree,
 # it doesn't exist yet and must be generated as part of the build, and
 # therefore the wildcard enumeration above doesn't include it.
-TEST_OBJS_DEPS += include/test/instrument_record_status.h
+TEST_OBJS_DEPS += ../framework/tests/include/test/instrument_record_status.h
 endif
-TEST_OBJS_DEPS += src/test_certs.h src/test_keys.h
+TEST_OBJS_DEPS += src/test_certs.h ../framework/tests/src/test_keys.h
 
-# Rule to compile common test C files in src folder
-src/%.o : src/%.c $(TEST_OBJS_DEPS)
+# Rule to compile common test C files in framework
+../framework/tests/src/%.o : ../framework/tests/src/%.c $(TEST_OBJS_DEPS)
 	echo "  CC    $<"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) -o $@ -c $<
 
-src/drivers/%.o : src/drivers/%.c
+../framework/tests/src/drivers/%.o : ../framework/tests/src/drivers/%.c
+	echo "  CC    $<"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) -o $@ -c $<
+
+# Rule to compile common test C files in src folder
+src/%.o : src/%.c $(TEST_OBJS_DEPS)
 	echo "  CC    $<"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) -o $@ -c $<
 
@@ -248,7 +253,9 @@ $(BINARIES): %$(EXEXT): %.c $(MBEDLIBS) $(TEST_OBJS_DEPS) $(MBEDTLS_TEST_OBJS)
 LOCAL_CRYPTO_CFLAGS = $(patsubst -I./include, -I../../tests/include, $(patsubst -I../%,-I../../%, $(LOCAL_CFLAGS)))
 LOCAL_CRYPTO_LDFLAGS = $(patsubst -L../library, -L../../library, \
                        $(patsubst -L../tests/%, -L../../tests/%, \
-                       $(patsubst ./src/%,../../tests/src/%, $(LOCAL_LDFLAGS))))
+                       $(patsubst ./src/%,../../tests/src/%, \
+                       $(patsubst ../framework/tests/src/%,../../framework/tests/src/%, \
+					   $(LOCAL_LDFLAGS)))))
 $(CRYPTO_BINARIES): %$(EXEXT): %.c $(MBEDLIBS) $(TEST_OBJS_DEPS) $(MBEDTLS_TEST_OBJS)
 	echo "  CC   $<"
 	cd ../tf-psa-crypto/tests && $(CC) $(LOCAL_CRYPTO_CFLAGS) $(CFLAGS) $(subst $(EXEXT),,$(@F)).c $(LOCAL_CRYPTO_LDFLAGS) $(LDFLAGS) -o $(@F)
@@ -258,9 +265,10 @@ ifndef WINDOWS
 	$(MAKE) -C psa-client-server/psasim clean
 	rm -rf $(BINARIES) *.c *.datax
 	rm -rf $(CRYPTO_BINARIES) ../tf-psa-crypto/tests/*.c ../tf-psa-crypto/tests/*.datax
-	rm -f src/*.o src/drivers/*.o src/test_helpers/*.o src/libmbed*
-	rm -f include/test/instrument_record_status.h
-	rm -f include/alt-extra/*/*_alt.h
+	rm -f src/*.o src/test_helpers/*.o src/libmbed*
+	rm -f ../framework/tests/src/*.o ../framework/tests/src/drivers/*.o
+	rm -f ../framework/tests/include/test/instrument_record_status.h
+	rm -f ../framework/tests/include/alt-extra/*/*_alt.h
 	rm -rf libtestdriver1
 	rm -rf libpsaclient libpsaserver
 	rm -f ../library/libtestdriver1.a
@@ -272,10 +280,11 @@ else
 	if exist ../tf-psa-crypto/tests/*.exe del /Q /F ../tf-psa-crypto/tests/*.exe
 	if exist ../tf-psa-crypto/tests/*.datax del /Q /F ../tf-psa-crypto/tests/*.datax
 	if exist src/*.o del /Q /F src/*.o
-	if exist src/drivers/*.o del /Q /F src/drivers/*.o
 	if exist src/test_helpers/*.o del /Q /F src/test_helpers/*.o
 	if exist src/libmbed* del /Q /F src/libmbed*
-	if exist include/test/instrument_record_status.h del /Q /F include/test/instrument_record_status.h
+	if exist ../framework/tests/src/*.o del /Q /F ../framework/tests/src/*.o
+	if exist ../framework/tests/src/drivers/*.o del /Q /F ../framework/tests/src/drivers/*.o
+	if exist ../framework/tests/include/test/instrument_record_status.h del /Q /F ../framework/tests/include/test/instrument_record_status.h
 endif
 
 # Test suites caught by SKIP_TEST_SUITES are built but not executed.
@@ -285,11 +294,11 @@ check: $(BINARIES) $(CRYPTO_BINARIES)
 test: check
 
 # Generate variants of some headers for testing
-include/alt-extra/%_alt.h: ../include/%.h
+../framework/tests/include/alt-extra/%_alt.h: ../include/%.h
 	perl -p -e 's/^(# *(define|ifndef) +\w+_)H\b/$${1}ALT_H/' $< >$@
-include/alt-extra/%_alt.h: ../tf-psa-crypto/include/%.h
+../framework/tests/include/alt-extra/%_alt.h: ../tf-psa-crypto/include/%.h
 	perl -p -e 's/^(# *(define|ifndef) +\w+_)H\b/$${1}ALT_H/' $< >$@
-include/alt-extra/%_alt.h: ../tf-psa-crypto/drivers/builtin/include/%.h
+../framework/tests/include/alt-extra/%_alt.h: ../tf-psa-crypto/drivers/builtin/include/%.h
 	perl -p -e 's/^(# *(define|ifndef) +\w+_)H\b/$${1}ALT_H/' $< >$@
 
 # Generate test library
@@ -330,16 +339,16 @@ libtestdriver1.a:
 	cp -Rf ../scripts ./libtestdriver1
 
 	# Set the test driver base (minimal) configuration.
-	cp ./include/test/drivers/config_test_driver.h ./libtestdriver1/include/mbedtls/mbedtls_config.h
+	cp ../framework/tests/include/test/drivers/config_test_driver.h ./libtestdriver1/include/mbedtls/mbedtls_config.h
 
 	# Set the PSA cryptography configuration for the test library.
 	# It is set from the copied include/psa/crypto_config.h of the Mbed TLS
         # library the test library is intended to be linked with extended by
-        # ./include/test/drivers/crypto_config_test_driver_extension.h to
+        # ../framework/tests/include/test/drivers/crypto_config_test_driver_extension.h to
         # mirror the PSA_ACCEL_* macros.
 	mv ./libtestdriver1/tf-psa-crypto/include/psa/crypto_config.h ./libtestdriver1/tf-psa-crypto/include/psa/crypto_config.h.bak
 	head -n -1 ./libtestdriver1/tf-psa-crypto/include/psa/crypto_config.h.bak > ./libtestdriver1/tf-psa-crypto/include/psa/crypto_config.h
-	cat ./include/test/drivers/crypto_config_test_driver_extension.h >> ./libtestdriver1/tf-psa-crypto/include/psa/crypto_config.h
+	cat ../framework/tests/include/test/drivers/crypto_config_test_driver_extension.h >> ./libtestdriver1/tf-psa-crypto/include/psa/crypto_config.h
 	echo "#endif /* PSA_CRYPTO_CONFIG_H */" >> ./libtestdriver1/tf-psa-crypto/include/psa/crypto_config.h
 
 	# Prefix MBEDTLS_* PSA_* symbols with LIBTESTDRIVER1_ as well as
@@ -356,7 +365,7 @@ libtestdriver1.a:
 	cp ./libtestdriver1/library/libmbedcrypto.a ../library/libtestdriver1.a
 
 ifdef RECORD_PSA_STATUS_COVERAGE_LOG
-include/test/instrument_record_status.h: ../tf-psa-crypto/include/psa/crypto.h Makefile
+../framework/tests/include/test/instrument_record_status.h: ../tf-psa-crypto/include/psa/crypto.h Makefile
 	echo "  Gen  $@"
 	sed <../tf-psa-crypto/include/psa/crypto.h >$@ -n 's/^psa_status_t \([A-Za-z0-9_]*\)(.*/#define \1(...) RECORD_STATUS("\1", \1(__VA_ARGS__))/p'
 endif

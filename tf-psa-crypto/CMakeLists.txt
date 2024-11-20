@@ -401,25 +401,26 @@ add_subdirectory(pkgconfig)
 #
 if(ENABLE_TESTING OR ENABLE_PROGRAMS)
     file(GLOB MBEDTLS_TEST_FILES
-         ${MBEDTLS_DIR}/tests/src/*.c
-         ${MBEDTLS_DIR}/tests/src/drivers/*.c)
+         ${MBEDTLS_FRAMEWORK_DIR}/tests/src/*.c
+         ${MBEDTLS_FRAMEWORK_DIR}/tests/src/drivers/*.c
+         ${MBEDTLS_DIR}/tests/src/*.c)
     add_library(tf_psa_crypto_test OBJECT ${MBEDTLS_TEST_FILES})
     set_base_compile_options(tf_psa_crypto_test)
     if(GEN_FILES)
         add_custom_command(
             OUTPUT
-                ${MBEDTLS_DIR}/tests/src/test_keys.h
+                ${MBEDTLS_FRAMEWORK_DIR}/tests/src/test_keys.h
             WORKING_DIRECTORY
                 ${MBEDTLS_DIR}/tests
             COMMAND
                 "${TF_PSA_CRYPTO_PYTHON_EXECUTABLE}"
                 "${MBEDTLS_FRAMEWORK_DIR}/scripts/generate_test_keys.py"
                 "--output"
-                "${MBEDTLS_DIR}/tests/src/test_keys.h"
+                "${MBEDTLS_FRAMEWORK_DIR}/tests/src/test_keys.h"
             DEPENDS
                 ${MBEDTLS_FRAMEWORK_DIR}/scripts/generate_test_keys.py
         )
-        add_custom_target(tf_psa_crypto_test_keys_header DEPENDS ${MBEDTLS_DIR}/tests/src/test_keys.h)
+        add_custom_target(tf_psa_crypto_test_keys_header DEPENDS ${MBEDTLS_FRAMEWORK_DIR}/tests/src/test_keys.h)
 
         add_custom_command(
             OUTPUT
@@ -438,6 +439,7 @@ if(ENABLE_TESTING OR ENABLE_PROGRAMS)
         add_dependencies(tf_psa_crypto_test tf_psa_crypto_test_keys_header tf_psa_crypto_test_certs_header)
     endif()
     target_include_directories(tf_psa_crypto_test
+        PRIVATE ${MBEDTLS_FRAMEWORK_DIR}/tests/include
         PRIVATE ${MBEDTLS_DIR}/tests/include
         PRIVATE ${MBEDTLS_DIR}/include
         PRIVATE include

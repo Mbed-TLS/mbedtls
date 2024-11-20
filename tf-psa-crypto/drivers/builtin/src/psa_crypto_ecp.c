@@ -679,6 +679,16 @@ exit:
     return status;
 }
 
+psa_status_t mbedtls_psa_ecp_export_public_key_iop_abort(
+    mbedtls_psa_export_public_key_iop_operation_t *operation)
+{
+    mbedtls_ecp_keypair_free(operation->key);
+    mbedtls_free(operation->key);
+    mbedtls_ecp_restart_free(&operation->restart_ctx);
+    operation->num_ops = 0;
+    return PSA_SUCCESS;
+}
+
 #endif
 /****************************************************************/
 /* Interruptible ECC Key Agreement */

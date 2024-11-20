@@ -1665,6 +1665,23 @@ exit:
 /* Interruptible ECC Export Public-key */
 /****************************************************************/
 
+#if defined(MBEDTLS_ECP_RESTARTABLE)
+static psa_status_t psa_export_public_key_iop_abort_internal(psa_export_public_key_iop_t *operation)
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
+    if (operation->id == 0) {
+        return PSA_SUCCESS;
+    }
+
+    status = mbedtls_psa_ecp_export_public_key_iop_abort(&operation->ctx);
+
+    operation->id = 0;
+
+    return status;
+}
+#endif
+
 uint32_t psa_export_public_key_iop_get_num_ops(psa_export_public_key_iop_t *operation)
 {
     (void) operation;

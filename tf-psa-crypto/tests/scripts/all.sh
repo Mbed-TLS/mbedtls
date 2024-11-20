@@ -19,10 +19,12 @@ fi
 
 if [ -d ../include/mbedtls -a -d ../framework ]; then
     # Running inside an mbedtls checkout: get the framework from mbedtls.
-    source ../framework/scripts/all-core.sh
+    FRAMEWORK="$PWD/../framework"
 else
     # Running standalone: use our own framework.
-    source framework/scripts/all-core.sh
+    FRAMEWORK="$PWD/framework"
 fi
+
+source $FRAMEWORK/scripts/all-core.sh
 
 main "$@"

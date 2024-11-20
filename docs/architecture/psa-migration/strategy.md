@@ -12,11 +12,9 @@ G3. Allow isolation of short-term secrets (for example, TLS session keys).
 G4. Have a clean, unified API for Crypto (retire the legacy API).
 G5. Code size: compile out our implementation when a driver is available.
 
-As of Mbed TLS 3.2, most of (G1) and all of (G2) is implemented when
-`MBEDTLS_USE_PSA_CRYPTO` is enabled. For (G2) to take effect, the application
-needs to be changed to use new APIs. For a more detailed account of what's
-implemented, see `docs/use-psa-crypto.md`, where new APIs are about (G2), and
-internal changes implement (G1).
+As of Mbed TLS 3.2, most of (G1) and all of (G2) is implemented. For a more
+detailed account of what's implemented, see `docs/use-psa-crypto.md`, where new
+APIs are about (G2), and internal changes implement (G1).
 
 As of early 2023, work towards G5 is in progress: Mbed TLS 3.3 and 3.4 saw
 some improvements in this area, and more will be coming in future releases.
@@ -32,36 +30,8 @@ We currently have a few compile-time options that are relevant to the migration:
 
 - `MBEDTLS_PSA_CRYPTO_C` - enabled by default, controls the presence of the PSA
   Crypto APIs.
-- `MBEDTLS_USE_PSA_CRYPTO` - disabled by default (enabled in "full" config),
-  controls usage of PSA Crypto APIs to perform operations in X.509 and TLS
-(G1 above), as well as the availability of some new APIs (G2 above).
 - `PSA_CRYPTO_CONFIG` - disabled by default, supports builds with drivers and
   without the corresponding software implementation (G5 above).
-
-The reasons why `MBEDTLS_USE_PSA_CRYPTO` is optional and disabled by default
-are:
-- it's not fully compatible with `MBEDTLS_ECP_RESTARTABLE`: you can enable
-  both, but then you won't get the full effect of RESTARTBLE (see the
-documentation of this option in `mbedtls_config.h`);
-- to avoid a hard/default dependency of TLS, X.509 and PK on
-  `MBEDTLS_PSA_CRYPTO_C`, for backward compatibility reasons:
-  - When `MBEDTLS_PSA_CRYPTO_C` is enabled and used, applications need to call
-    `psa_crypto_init()` before TLS/X.509 uses PSA functions. (This prevents us
-from even enabling the option by default.)
-  - `MBEDTLS_PSA_CRYPTO_C` has a hard dependency on `MBEDTLS_ENTROPY_C ||
-    MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG` but it's
-    currently possible to compile TLS and X.509 without any of the options.
-    Also, we can't just auto-enable `MBEDTLS_ENTROPY_C` as it doesn't build
-    out of the box on all platforms, and even less
-    `MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG` as it requires a user-provided RNG
-    function.
-
-The downside of this approach is that until we are able to make
-`MBDEDTLS_USE_PSA_CRYPTO` non-optional (always enabled), we have to maintain
-two versions of some parts of the code: one using PSA, the other using the
-legacy APIs. However, see next section for strategies that can lower that
-cost. The rest of this section explains the reasons for the
-incompatibilities mentioned above.
 
 At the time of writing (early 2022) it is unclear what could be done about the
 backward compatibility issues, and in particular if the cost of implementing
@@ -83,26 +53,20 @@ added to PSA in Mbed TLS 3.4, but support for ECDH is not present yet.
 It will then require follow-up work to make use of the new PSA APIs in
 PK/X.509/TLS in all places where we currently allow restartable operations.
 
-### Backward compatibility issues with making `MBEDTLS_USE_PSA_CRYPTO` always on
+### Backward compatibility issues
 
-1. Existing applications may not be calling `psa_crypto_init()` before using
-   TLS, X.509 or PK. We can try to work around that by calling (the relevant
-part of) it ourselves under the hood as needed, but that would likely require
-splitting init between the parts that can fail and the parts that can't (see
-<https://github.com/ARM-software/psa-crypto-api/pull/536> for that).
-2. It's currently not possible to enable `MBEDTLS_PSA_CRYPTO_C` in
-   configurations that don't have `MBEDTLS_ENTROPY_C`, and we can't just
-auto-enable the latter, as it won't build or work out of the box on all
-platforms. There are two kinds of things we'd need to do if we want to work
-around that:
-   1. Make it possible to enable the parts of PSA Crypto that don't require an
-      RNG (typically, public key operations, symmetric crypto, some key
+It's currently not possible to enable `MBEDTLS_PSA_CRYPTO_C` in configurations
+that don't have `MBEDTLS_ENTROPY_C`, and we can't just auto-enable the latter,
+as it won't build or work out of the box on all platforms. There are two kinds
+of things we'd need to do if we want to work around that:
+1. Make it possible to enable the parts of PSA Crypto that don't require an
+   RNG (typically, public key operations, symmetric crypto, some key
 management functions (destroy etc)) in configurations that don't have
 `ENTROPY_C`. This requires going through the PSA code base to adjust
 dependencies. Risk: there may be annoying dependencies, some of which may be
 surprising.
-   2. For operations that require an RNG, provide an alternative function
-      accepting an explicit `f_rng` parameter (see #5238), that would be
+2. For operations that require an RNG, provide an alternative function
+   accepting an explicit `f_rng` parameter (see #5238), that would be
 available in entropy-less builds. (Then code using those functions still needs
 to have one version using it, for entropy-less builds, and one version using
 the standard function, for driver support in build with entropy.)
@@ -125,9 +89,8 @@ These abstraction layers typically provide, in addition to the API for crypto
 operations, types and numerical identifiers for algorithms (for
 example `mbedtls_cipher_mode_t` and its values). The
 current strategy is to keep using those identifiers in most of the code, in
-particular in existing structures and public APIs, even when
-`MBEDTLS_USE_PSA_CRYPTO` is enabled. (This is not an issue for G1, G2, G3
-above, and is only potentially relevant for G4.)
+particular in existing structures and public APIs. (This is not an issue for G1,
+G2, G3 above, and is only potentially relevant for G4.)
 
 The are multiple strategies that can be used regarding the place of those
 layers in the migration to PSA.
@@ -135,9 +98,8 @@ layers in the migration to PSA.
 Silently call to PSA from the abstraction layer
 -----------------------------------------------
 
-- Provide a new definition (conditionally on `USE_PSA_CRYPTO`) of wrapper
-  functions in the abstraction layer, that calls PSA instead of the legacy
-crypto API.
+- Provide a new definition of wrapper functions in the abstraction layer, that
+  calls PSA instead of the legacy crypto API.
 - Upside: changes contained to a single place, no need to change TLS or X.509
   code anywhere.
 - Downside: tricky to implement if the PSA implementation is currently done on
@@ -145,9 +107,8 @@ crypto API.
 
 This strategy is currently (early 2023) used for all operations in the PK
 layer; the MD layer uses a variant where it dispatches to PSA if a driver is
-available and the driver subsystem has been initialized, regardless of whether
-`USE_PSA_CRYPTO` is enabled; see `md-cipher-dispatch.md` in the same directory
-for details.
+available and the driver subsystem has been initialized; see
+`md-cipher-dispatch.md` in the same directory for details.
 
 This strategy is not very well suited to the Cipher layer, as the PSA
 implementation is currently done on top of that layer.
@@ -163,7 +124,7 @@ Replace calls for each operation
 --------------------------------
 
 - For every operation that's done through this layer in TLS or X.509, just
-  replace function call with calls to PSA (conditionally on `USE_PSA_CRYPTO`)
+  replace function call with calls to PSA.
 - Upside: conceptually simple, and if the PSA implementation is currently done
   on top of that layer, avoids concerns about dependency loops.
 - Upside: opens the door to building TLS/X.509 without that layer, saving some
@@ -220,8 +181,7 @@ Strategies currently (early 2022) used with each abstraction layer:
 - PK (for G1): silently call PSA
 - PK (for G2): opt-in use of PSA (new key type)
 - Cipher (G1): replace calls at each call site
-- MD (G1, X.509 and TLS): replace calls at each call site (depending on
-  `USE_PSA_CRYPTO`)
+- MD (G1, X.509 and TLS): replace calls at each call site
 - MD (G5): silently call PSA when a driver is available, see
   `md-cipher-dispatch.md`.
 
@@ -249,8 +209,8 @@ We can roughly divide the work needed to get there in the following steps:
 0. Have a working driver interface for the algorithms we want to replace.
 1. Have users of these algorithms call to PSA or an abstraction layer than can
    dispatch to PSA, but not the low-level legacy API, for all operations.
-(This is G1, and for PK, X.509 and TLS this is controlled by
-`MBEDTLS_USE_PSA_CRYPTO`.) This needs to be done in the library and tests.
+(This is G1, and for PK, X.509 and TLS.) This needs to be done in the library
+and tests.
 2. Have users of these algorithms not depend on the legacy API for information
    management (getting a size for a given algorithm, etc.)
 3. Adapt compile-time guards used to query availability of a given algorithm;
@@ -322,10 +282,8 @@ will check for `PSA_WANT_ALG_SHA_256`, while legacy-based code that wants to
 use SHA-256 will check for `MBEDTLS_SHA256_C` if using the `mbedtls_sha256`
 API, or for `MBEDTLS_MD_C && MBEDTLS_SHA256_C` if using the `mbedtls_md` API.
 
-Code that obeys `MBEDTLS_USE_PSA_CRYPTO` will want to use one of the two
-dependencies above depending on whether `MBEDTLS_USE_PSA_CRYPTO` is defined:
-if it is, the code want the algorithm available in PSA, otherwise, it wants it
-available via the legacy API(s) is it using (MD and/or low-level).
+PSA based code will want to use the algorithm available in PSA, otherwise, it
+wants it available via the legacy API(s) is it using (MD and/or low-level).
 
 As much as possible, we're trying to create for each algorithm a single new
 macro that can be used to express dependencies everywhere (except pure PSA
@@ -333,9 +291,8 @@ code that should always use `PSA_WANT`). For example, for hashes this is the
 `MBEDTLS_MD_CAN_xxx` family. For ECC algorithms, we have similar
 `MBEDTLS_PK_CAN_xxx` macros.
 
-Note that in order to achieve that goal, even for code that obeys
-`USE_PSA_CRYPTO`, it is useful to impose that all algorithms that are
-available via the legacy APIs are also available via PSA.
+Note that in order to achieve that goal, it is useful to impose that all
+algorithms that are available via the legacy APIs are also available via PSA.
 
 Executing step 3 will mostly consist of using the right dependency macros in
 the right places (once the previous steps are done).
@@ -347,8 +304,8 @@ supporting existing features in new types of builds, testing will not involve
 adding cases to the test suites, but instead adding new components in `all.sh`
 that build and run tests in newly-supported configurations. For example, if
 we're making some part of the library work with hashes provided only by
-drivers when `MBEDTLS_USE_PSA_CRYPTO` is defined, there should be a place in
-`all.sh` that builds and run tests in such a configuration.
+drivers, there should be a place in `all.sh` that builds and run tests in such a
+configuration.
 
 There is however a risk, especially in step 3 where we change how dependencies
 are expressed (sometimes in bulk), to get things wrong in a way that would
@@ -424,14 +381,13 @@ reducing the cost, and judgment calls may need to be made.
 Note: when it comes to holding public keys in the PK layer, depending on how
 the rest of the code is structured, it may be worth holding the key data in
 memory controlled by the PK layer as opposed to a PSA key slot, moving it to a
-slot only when needed (see current `ecdsa_verify_wrap` when
-`MBEDTLS_USE_PSA_CRYPTO` is defined)  For example, when parsing a large
-number, N, of X.509 certificates (for example the list of trusted roots), it
-might be undesirable to use N PSA key slots for their public keys as long as
-the certs are loaded. OTOH, this could also be addressed by merging the "X.509
-parsing on-demand" (#2478), and then the public key data would be held as
-bytes in the X.509 CRT structure, and only moved to a PK context / PSA slot
-when it's actually used.
+slot only when needed (see current `ecdsa_verify_wrap`)  For example, when
+parsing a large number, N, of X.509 certificates (for example the list of
+trusted roots), it might be undesirable to use N PSA key slots for their public
+keys as long as the certs are loaded. OTOH, this could also be addressed by
+merging the "X.509 parsing on-demand" (#2478), and then the public key data
+would be held as bytes in the X.509 CRT structure, and only moved to a PK
+context / PSA slot when it's actually used.
 
 Note: the PK layer actually consists of two relatively distinct parts: crypto
 operations, which will be covered by PSA, and parsing/writing (exporting)

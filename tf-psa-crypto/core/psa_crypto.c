@@ -4050,6 +4050,34 @@ uint32_t mbedtls_psa_verify_hash_get_num_ops(
         * defined( MBEDTLS_ECP_RESTARTABLE ) */
 }
 
+/* Detect supported interruptible sign/verify mechanisms precisely.
+ * This is not strictly needed: we could accept everything, and let the
+ * code fail later during complete() if the mechanism is unsupported
+ * (e.g. attempting deterministic ECDSA when only the randomized variant
+ * is available). But it's easier for applications and especially for our
+ * test code to detect all not-supported errors during start().
+ *
+ * Note that this function ignores the hash component. The core code
+ * is supposed to check the hash part by calling is_hash_supported().
+ */
+static inline int can_do_interruptible_sign_verify(psa_algorithm_t alg)
+{
+#if defined(MBEDTLS_ECP_RESTARTABLE)
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA)
+    if (PSA_ALG_IS_DETERMINISTIC_ECDSA(alg)) {
+        return 1;
+    }
+#endif
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA)
+    if (PSA_ALG_IS_RANDOMIZED_ECDSA(alg)) {
+        return 1;
+    }
+#endif
+#endif /* defined(MBEDTLS_ECP_RESTARTABLE) */
+    (void) alg;
+    return 0;
+}
+
 psa_status_t mbedtls_psa_sign_hash_start(
     mbedtls_psa_sign_hash_interruptible_operation_t *operation,
     const psa_key_attributes_t *attributes, const uint8_t *key_buffer,
@@ -4063,7 +4091,7 @@ psa_status_t mbedtls_psa_sign_hash_start(
         return PSA_ERROR_NOT_SUPPORTED;
     }
 
-    if (!PSA_ALG_IS_ECDSA(alg)) {
+    if (!can_do_interruptible_sign_verify(alg)) {
         return PSA_ERROR_NOT_SUPPORTED;
     }
 
@@ -4279,7 +4307,7 @@ psa_status_t mbedtls_psa_verify_hash_start(
         return PSA_ERROR_NOT_SUPPORTED;
     }
 
-    if (!PSA_ALG_IS_ECDSA(alg)) {
+    if (!can_do_interruptible_sign_verify(alg)) {
         return PSA_ERROR_NOT_SUPPORTED;
     }
 

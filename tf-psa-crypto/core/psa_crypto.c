@@ -8184,7 +8184,7 @@ psa_status_t psa_generate_key_iop_complete(
 {
 #if defined(MBEDTLS_ECP_RESTARTABLE)
     psa_status_t status;
-    uint8_t key_data[PSA_KEY_EXPORT_ECC_KEY_PAIR_MAX_SIZE(PSA_VENDOR_ECC_MAX_CURVE_BITS)] = { 0 };
+    uint8_t key_data[PSA_KEY_EXPORT_ECC_KEY_PAIR_MAX_SIZE(PSA_VENDOR_ECC_MAX_CURVE_BITS)+1] = { 0 };
     size_t key_len = 0;
 
     if (operation->id == 0 || operation->error_occurred) {

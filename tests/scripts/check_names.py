@@ -243,7 +243,7 @@ class CodeParser():
         ])
         all_macros["internal"] = self.parse_macros([
             "library/*.h",
-            "tests/include/test/drivers/*.h",
+            "framework/tests/include/test/drivers/*.h",
         ])
         all_macros["private"] = self.parse_macros([
             "library/*.c",

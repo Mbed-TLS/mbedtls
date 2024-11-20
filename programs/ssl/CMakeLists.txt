@@ -41,7 +41,8 @@ foreach(exe IN LISTS executables)
     add_executable(${exe} ${exe}.c $<TARGET_OBJECTS:mbedtls_test>
         ${extra_sources})
     target_link_libraries(${exe} ${libs} ${CMAKE_THREAD_LIBS_INIT})
-    target_include_directories(${exe} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../tests/include)
+    target_include_directories(${exe} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../framework/tests/include
+                                              ${CMAKE_CURRENT_SOURCE_DIR}/../../tests/include)
     if(exe STREQUAL "ssl_client2" OR exe STREQUAL "ssl_server2")
         if(GEN_FILES)
             add_dependencies(${exe} generate_query_config_c)
@@ -53,7 +54,8 @@ endforeach()
 
 if(THREADS_FOUND)
     add_executable(ssl_pthread_server ssl_pthread_server.c $<TARGET_OBJECTS:mbedtls_test>)
-    target_include_directories(ssl_pthread_server PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../tests/include)
+    target_include_directories(ssl_pthread_server PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../framework/tests/include
+                                                          ${CMAKE_CURRENT_SOURCE_DIR}/../../tests/include)
     target_link_libraries(ssl_pthread_server ${libs} ${CMAKE_THREAD_LIBS_INIT})
     list(APPEND executables ssl_pthread_server)
 endif(THREADS_FOUND)

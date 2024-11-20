@@ -5550,10 +5550,10 @@ psa_status_t psa_generate_key_iop_abort(
  */
 
 /**
- *  The type of the state data structure for interruptible key generation
+ *  The type of the state data structure for interruptible public-key export
  *  operations.
  *
- *  Before calling any function on an interruptible key generation object, the
+ *  Before calling any function on an interruptible export public-key object, the
  *  application must initialize it by any of the following means:
  * - Set the structure to all-bits-zero, for example:
  * \code
@@ -5569,7 +5569,7 @@ psa_status_t psa_generate_key_iop_abort(
  * \code
  * psa_export_public_key_iop_t operation = PSA_EXPORT_PUBLIC_KEY_IOP_INIT;
  * \endcode
- * - Assign the result of the function psa_generate_key_iop_init() to the
+ * - Assign the result of the function psa_export_public_key_iop_init() to the
  *   structure, for example:
  * \code
  * psa_export_public_key_iop_t operation;
@@ -5583,7 +5583,7 @@ psa_status_t psa_generate_key_iop_abort(
 typedef struct psa_export_public_key_iop_s psa_export_public_key_iop_t;
 
 /**
- * \brief                       Get the number of ops that a key generation
+ * \brief                       Get the number of ops that an export public-key
  *                              operation has taken so far. If the operation has
  *                              completed, then this will represent the number
  *                              of ops required for the entire operation. After

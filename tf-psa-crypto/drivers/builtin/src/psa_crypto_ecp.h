@@ -143,6 +143,67 @@ psa_status_t mbedtls_psa_ecp_generate_key(
     const psa_key_attributes_t *attributes,
     uint8_t *key_buffer, size_t key_buffer_size, size_t *key_buffer_length);
 
+/**
+ * \brief Setup a new interruptible key generation operation.
+ *
+ *  \param[in] operation                 The \c mbedtls_psa_generate_key_iop_t to use.
+ *                                       This must be initialized first.
+ *  \param[in] attributes                The desired attributes of the generated key.
+ *
+ *  \retval #PSA_SUCCESS
+ *         The operation started successfully - call \c mbedtls_psa_generate_key_iop_complete()
+ *         with the same operation to complete the operation.
+ * * \retval #PSA_ERROR_NOT_SUPPORTED
+ *           Either no internal interruptible operations are
+ *           currently supported, or the key attributes are not unsupported.
+ *  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ *         There was insufficient memory to load the key representation.
+ *
+ */
+psa_status_t mbedtls_psa_generate_key_iop_setup(
+    mbedtls_psa_generate_key_iop_t *operation,
+    const psa_key_attributes_t *attributes);
+
+/**
+ * \brief Continue and eventually complete a key generation operation.
+ *
+ * \note The signature of this function is that of a PSA driver
+ *       generate_key_complete entry point. This function behaves as a
+ *       generate_key_complete entry point as defined in the PSA driver
+ *       interface specification for transparent drivers.
+ *
+ * \param[in] operation                  The \c mbedtls_psa_generate_key_iop_t to use.
+ *                                       This must be initialized first and
+ *                                       had \c mbedtls_psa_generate_key_iop_setup()
+ *                                       called successfully.
+ * \param[out] key_output                The buffer to which the generated key
+ *                                       is to be written.
+ * \param[out] key_len                   On success, the number of bytes that make
+ *                                       up the returned key output.
+ * \retval #PSA_SUCCESS
+ *         The key was generated successfully.
+ * \retval #PSA_ERROR_INVALID_ARGUMENT \emptydescription
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
+ *
+ */
+psa_status_t mbedtls_psa_generate_key_iop_complete(
+    mbedtls_psa_generate_key_iop_t *operation,
+    uint8_t *key_output,
+    size_t key_output_size,
+    size_t *key_len);
+
+/**
+ * \brief Abort a key generation operation.
+ *
+ * \param[in] operation               The \c mbedtls_psa_generate_key_iop_t to abort.
+ *
+ * \retval #PSA_SUCCESS
+ *         The operation was aborted successfully.
+ *
+ */
+psa_status_t mbedtls_psa_generate_key_iop_abort(
+    mbedtls_psa_generate_key_iop_t *operation);
+
 /** Sign an already-calculated hash with ECDSA.
  *
  * \note The signature of this function is that of a PSA driver

@@ -8192,7 +8192,7 @@ psa_status_t psa_generate_key_iop_complete(
     }
 
     status = mbedtls_psa_ecp_generate_key_iop_complete(&operation->ctx, key_data,
-                                                   sizeof(key_data), &key_len);
+                                                       sizeof(key_data), &key_len);
     if (status != PSA_SUCCESS) {
         goto exit;
     }

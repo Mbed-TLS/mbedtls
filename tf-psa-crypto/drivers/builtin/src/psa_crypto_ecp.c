@@ -596,7 +596,7 @@ exit:
 
 #if defined(MBEDTLS_ECP_RESTARTABLE)
 
-psa_status_t mbedtls_psa_generate_key_iop_setup(
+psa_status_t mbedtls_psa_ecp_generate_key_iop_setup(
     mbedtls_psa_generate_key_iop_t *operation,
     const psa_key_attributes_t *attributes)
 {
@@ -617,7 +617,7 @@ psa_status_t mbedtls_psa_generate_key_iop_setup(
     return mbedtls_to_psa_error(status);
 }
 
-psa_status_t mbedtls_psa_generate_key_iop_complete(
+psa_status_t mbedtls_psa_ecp_generate_key_iop_complete(
     mbedtls_psa_generate_key_iop_t *operation,
     uint8_t *key_output,
     size_t key_output_size,
@@ -646,7 +646,7 @@ psa_status_t mbedtls_psa_generate_key_iop_complete(
     return mbedtls_to_psa_error(status);
 }
 
-psa_status_t mbedtls_psa_generate_key_iop_abort(
+psa_status_t mbedtls_psa_ecp_generate_key_iop_abort(
     mbedtls_psa_generate_key_iop_t *operation)
 {
     mbedtls_ecp_keypair_free(&operation->ecp);

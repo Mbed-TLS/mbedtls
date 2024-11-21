@@ -151,7 +151,7 @@ psa_status_t mbedtls_psa_ecp_generate_key(
  *  \param[in] attributes                The desired attributes of the generated key.
  *
  *  \retval #PSA_SUCCESS
- *         The operation started successfully - call \c mbedtls_psa_generate_key_iop_complete()
+ *         The operation started successfully - call \c mbedtls_psa_ecp_generate_key_iop_complete()
  *         with the same operation to complete the operation.
  * * \retval #PSA_ERROR_NOT_SUPPORTED
  *           Either no internal interruptible operations are
@@ -160,7 +160,7 @@ psa_status_t mbedtls_psa_ecp_generate_key(
  *         There was insufficient memory to load the key representation.
  *
  */
-psa_status_t mbedtls_psa_generate_key_iop_setup(
+psa_status_t mbedtls_psa_ecp_generate_key_iop_setup(
     mbedtls_psa_generate_key_iop_t *operation,
     const psa_key_attributes_t *attributes);
 
@@ -174,7 +174,7 @@ psa_status_t mbedtls_psa_generate_key_iop_setup(
  *
  * \param[in] operation                  The \c mbedtls_psa_generate_key_iop_t to use.
  *                                       This must be initialized first and
- *                                       had \c mbedtls_psa_generate_key_iop_setup()
+ *                                       had \c mbedtls_psa_ecp_generate_key_iop_setup()
  *                                       called successfully.
  * \param[out] key_output                The buffer to which the generated key
  *                                       is to be written.
@@ -186,7 +186,7 @@ psa_status_t mbedtls_psa_generate_key_iop_setup(
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
  *
  */
-psa_status_t mbedtls_psa_generate_key_iop_complete(
+psa_status_t mbedtls_psa_ecp_generate_key_iop_complete(
     mbedtls_psa_generate_key_iop_t *operation,
     uint8_t *key_output,
     size_t key_output_size,
@@ -201,7 +201,7 @@ psa_status_t mbedtls_psa_generate_key_iop_complete(
  *         The operation was aborted successfully.
  *
  */
-psa_status_t mbedtls_psa_generate_key_iop_abort(
+psa_status_t mbedtls_psa_ecp_generate_key_iop_abort(
     mbedtls_psa_generate_key_iop_t *operation);
 
 /** Sign an already-calculated hash with ECDSA.
@@ -236,6 +236,7 @@ psa_status_t mbedtls_psa_generate_key_iop_abort(
  * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
  * \retval #PSA_ERROR_INSUFFICIENT_ENTROPY \emptydescription
  */
+
 psa_status_t mbedtls_psa_ecdsa_sign_hash(
     const psa_key_attributes_t *attributes,
     const uint8_t *key_buffer, size_t key_buffer_size,

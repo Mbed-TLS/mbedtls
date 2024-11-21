@@ -8108,7 +8108,7 @@ static psa_status_t psa_generate_key_iop_abort_internal(
         return PSA_SUCCESS;
     }
 
-    status = mbedtls_psa_generate_key_iop_abort(&operation->ctx);
+    status = mbedtls_psa_ecp_generate_key_iop_abort(&operation->ctx);
 
     psa_reset_key_attributes(&operation->attributes);
 
@@ -8162,7 +8162,7 @@ psa_status_t psa_generate_key_iop_setup(
     /* We only support the builtin/Mbed TLS driver for now. */
     operation->id = PSA_CRYPTO_MBED_TLS_DRIVER_ID;
 
-    status = mbedtls_psa_generate_key_iop_setup(&operation->ctx, attributes);
+    status = mbedtls_psa_ecp_generate_key_iop_setup(&operation->ctx, attributes);
 
 exit:
     if (status != PSA_SUCCESS) {
@@ -8191,7 +8191,7 @@ psa_status_t psa_generate_key_iop_complete(
         return PSA_ERROR_BAD_STATE;
     }
 
-    status = mbedtls_psa_generate_key_iop_complete(&operation->ctx, key_data,
+    status = mbedtls_psa_ecp_generate_key_iop_complete(&operation->ctx, key_data,
                                                    sizeof(key_data), &key_len);
     if (status != PSA_SUCCESS) {
         goto exit;

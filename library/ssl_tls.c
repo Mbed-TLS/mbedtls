@@ -10124,13 +10124,13 @@ static int mbedtls_ssl_tls13_export_keying_material(mbedtls_ssl_context *ssl,
     const size_t hash_len = PSA_HASH_LENGTH(hash_alg);
     const unsigned char *secret = ssl->session->app_secrets.exporter_master_secret;
 
-    /* The length of the label must be at most 250 bytes to fit into the HkdfLabel
+    /* The length of the label must be at most 249 bytes to fit into the HkdfLabel
      * struct as defined in RFC 8446, Section 7.1.
      *
      * The length of the context is unlimited even though the context field in the
-     * struct can only hold up to 256 bytes. This is because we place a *hash* of
+     * struct can only hold up to 255 bytes. This is because we place a *hash* of
      * the context in the field. */
-    if (label_len > 250) {
+    if (label_len > 249) {
         return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
     }
 

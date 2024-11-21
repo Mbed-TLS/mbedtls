@@ -5241,8 +5241,6 @@ psa_status_t psa_key_agreement_iop_complete(
  *
  * \retval #PSA_SUCCESS
  *          The operation was aborted successfully.
- *
- * \retval #PSA_ERROR_NOT_SUPPORTED \emptydescription
  * \retval #PSA_ERROR_BAD_STATE
  *          The library has not been previously initialized by
  *          \c psa_crypto_init().
@@ -5274,7 +5272,7 @@ psa_status_t psa_key_agreement_iop_abort(
  *   \endcode
  * - Initialize the structure to the initializer #PSA_GENERATE_KEY_IOP_INIT,
  *   for example:
- * - \code
+ *   \code
  *   psa_generate_key_iop_t operation = PSA_GENERATE_KEY_IOP_INIT;
  *   \endcode
  * - Assign the result of the function psa_generate_key_iop_init() to the
@@ -5302,7 +5300,6 @@ typedef struct psa_generate_key_iop_s psa_generate_key_iop_t;
  * \warning                     This is a beta API, and thus subject to change
  *                              at any point. It is not bound by the usual
  *                              interface stability promises.
- *
  *                              This is a helper provided to help you tune the
  *                              value passed to \c
  *                              psa_interruptible_set_max_ops().
@@ -5497,7 +5494,7 @@ psa_status_t psa_generate_key_iop_setup(
  *         The following conditions can result in this error:
  *         * The library has not been previously initialized by
  *           \c psa_crypto_init().
- *         * The operation state is not valid: it must be inactive.
+ *         * The operation state is not valid: it must be active.
  */
 psa_status_t psa_generate_key_iop_complete(
     psa_generate_key_iop_t *operation,
@@ -5528,20 +5525,277 @@ psa_status_t psa_generate_key_iop_complete(
  *                              psa_generate_key_iop_abort() after the
  *                              operation has already been terminated by a call
  *                              to \c psa_generate_key_iop_abort() or
- *                              psa_generate_key_iop_complete() is safe.
+ *                              \c psa_generate_key_iop_complete() is safe.
  *
  * \param[in,out] operation     The \c psa_key_agreement_iop_t to use
  *
  * \retval #PSA_SUCCESS
  *          The operation was aborted successfully.
- *
- * \retval #PSA_ERROR_NOT_SUPPORTED \emptydescription
  * \retval #PSA_ERROR_BAD_STATE
  *          The library has not been previously initialized by
  *          \c psa_crypto_init().
  */
 psa_status_t psa_generate_key_iop_abort(
     psa_generate_key_iop_t *operation);
+
+/**@}*/
+
+/**
+ *  \defgroup interruptible_export_public_key Interruptible public-key export
+ * @{
+ */
+
+/**
+ *  The type of the state data structure for interruptible public-key export
+ *  operations.
+ *
+ *  Before calling any function on an interruptible export public-key object, the
+ *  application must initialize it by any of the following means:
+ * - Set the structure to all-bits-zero, for example:
+ * \code
+ * psa_export_public_key_iop_t operation;
+ * memset(&operation, 0, sizeof(operation));
+ * \endcode
+ * - Initialize the structure to logical zero values, for example:
+ * \code
+ * psa_export_public_key_iop_t operation = {0};
+ * \endcode
+ * - Initialize the structure to the initializer #PSA_EXPORT_PUBLIC_KEY_IOP_INIT,
+ *   for example:
+ * \code
+ * psa_export_public_key_iop_t operation = PSA_EXPORT_PUBLIC_KEY_IOP_INIT;
+ * \endcode
+ * - Assign the result of the function psa_export_public_key_iop_init() to the
+ *   structure, for example:
+ * \code
+ * psa_export_public_key_iop_t operation;
+ * operation = psa_export_public_key_iop_init();
+ * \endcode
+ *
+ * This is an implementation-defined \c struct. Applications should not
+ * make any assumptions about the content of this structure.
+ * Implementation details can change in future versions without notice.
+ */
+typedef struct psa_export_public_key_iop_s psa_export_public_key_iop_t;
+
+/**
+ * \brief                       Get the number of ops that an export public-key
+ *                              operation has taken so far. If the operation has
+ *                              completed, then this will represent the number
+ *                              of ops required for the entire operation. After
+ *                              initialization or calling
+ *                              \c psa_export_public_key_iop_abort() on the operation,
+ *                              a value of 0 will be returned.
+ *
+ * \warning                     This is a beta API, and thus subject to change
+ *                              at any point. It is not bound by the usual
+ *                              interface stability promises.
+ *                              This is a helper provided to help you tune the
+ *                              value passed to
+ *                              \c psa_interruptible_set_max_ops().
+ *
+ * \param operation             The \c psa_export_public_key_iop_t to use. This must
+ *                              be initialized first.
+ *
+ * \return                      Number of ops that the operation has taken so
+ *                              far.
+ */
+uint32_t psa_export_public_key_iop_get_num_ops(psa_export_public_key_iop_t *operation);
+
+/**
+ * \brief                       Start an interruptible operation to export a
+ *                              public key or the public part of a key pair in
+ *                              binary format.
+
+ *
+ * \see                         \c psa_export_public_key_iop_complete()
+ *
+ * \warning                     This is a beta API, and thus subject to change
+ *                              at any point. It is not bound by the usual
+ *                              interface stability promises.
+ *
+ * \note                        This function combined with
+ *                              \c psa_export_public_key_iop_complete() is equivalent
+ *                              to \c psa_export_public_key() but
+ *                               \c psa_export_public_key_iop_complete() can return
+ *                              early and resume according to the limit set with
+ *                              \c psa_interruptible_set_max_ops() to reduce the
+ *                              maximum time spent in a function.
+ *
+ * \note                        Users should call
+ *                              \c psa_export_public_key_iop_complete() repeatedly
+ *                              on the same operation object after a successful
+ *                              call to this function until
+ *                              \c psa_export_public_key_iop_complete() either returns
+ *                              #PSA_SUCCESS or an error.
+ *                              \c psa_export_public_key_iop_complete() will return
+ *                              #PSA_OPERATION_INCOMPLETE if there is more work
+ *                              to do. Alternatively users can call
+ *                              \c psa_export_public_key_iop_abort() at any point
+ *                              if they no longer want the result.
+ *
+ *  \note                       This function clears the number of ops completed
+ *                              as part of the operation. Please ensure you copy
+ *                              this value via
+ *                              \c psa_export_public_key_iop_get_num_ops() if
+ *                              required before calling.
+ *
+ * \note                        If this function returns an error status, the
+ *                              operation enters an error state and must be
+ *                              aborted by calling
+ *                              \c psa_export_public_key_iop_abort().
+ *
+ * \param[in, out] operation    The \c psa_export_public_key_iop_t to use.
+ *                              This must be initialized as per the
+ *                              documentation for
+ *                              \c psa_export_public_key_iop_t, and be inactive.
+ *
+ * \param[in]      key          Identifier of the key to export.
+ *
+ * \retval #PSA_SUCCESS
+ *          The operation started successfully.
+ *          Call \c psa_export_public_key_iop_complete() with the same context to
+ *          complete the operation.
+ * \retval #PSA_ERROR_INVALID_HANDLE
+ *          \c key is not a valid key identifier.
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         The key is neither a public key nor a key pair.
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ *         The following conditions can result in this error:
+ *          * The key's storage location does not support export of the key.
+ *          * The implementation does not support export of keys with this key type.
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The following conditions can result in this error:
+ *         * The library has not been previously initialized by
+ *           \c psa_crypto_init().
+ *         * The operation state is not valid: it must be inactive.
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
+ * \retval #PSA_ERROR_STORAGE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_DATA_CORRUPT \emptydescription
+ * \retval #PSA_ERROR_DATA_INVALID \emptydescription
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
+ */
+psa_status_t psa_export_public_key_iop_setup(psa_export_public_key_iop_t *operation,
+                                             psa_key_id_t key);
+
+/**
+ * \brief                       Continue and eventually complete the action of
+ *                              exporting a public key, in an interruptible
+ *                              manner.
+ * \see                         \c psa_export_public_key_iop_setup()
+ *
+ * \warning                     This is a beta API, and thus subject to change
+ *                              at any point. It is not bound by the usual
+ *                              interface stability promises.
+ *
+ * \note                        This function combined with
+ *                              \c psa_export_public_key_iop_setup() is equivalent to
+ *                              \c psa_export_public_key() but this
+ *                              function can return early and resume according
+ *                              to the limit set with
+ *                              \c psa_interruptible_set_max_ops() to reduce the
+ *                              maximum time spent in a function call.
+ *
+ * \note                        Users should call this function on the same
+ *                              operation object repeatedly whilst it returns
+ *                              #PSA_OPERATION_INCOMPLETE, stopping when it
+ *                              returns either #PSA_SUCCESS or an error.
+ *                              Alternatively users can call
+ *                              \c psa_export_public_key_iop_abort() at any
+ *                              point if they no longer want the result.
+ *
+ * \note                        When this function returns successfully, the
+ *                              operation becomes inactive. If this function
+ *                              returns an error status, the operation enters an
+ *                              error state and must be aborted by calling
+ *                              \c psa_export_public_key_iop_abort().
+ *
+ * \param[in, out] operation    The \c psa_export_public_key_iop_t to use.
+ *                              This must be initialized first, and have had
+ *                              \c psa_export_public_key_iop_setup() called
+ *                              with it first.
+ *
+ * \param[out] data             Buffer where the key data is to be written.
+ *
+ * \param[in] data_size         Size of the \c data buffer in bytes.
+ *                              This must be appropriate for the key:
+ *                               * The required output size is
+ *                                 \c PSA_EXPORT_PUBLIC_KEY_OUTPUT_SIZE(type, bits)
+ *                                 where type is the key type and bits is the key
+ *                                 size in bits.
+ *                               * \c PSA_EXPORT_PUBLIC_KEY_MAX_SIZE evaluates to the maximum
+ *                                 output size of any supported public key or public part
+ *                                 of a key pair.
+ *
+ * \param[out] data_length      On success, the number of bytes that make up the key data.
+ *
+ * \retval #PSA_SUCCESS
+ *         Success. The first (*\c data_length) bytes of data contain the exported
+           public key.
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The following conditions can result in this error:
+ *         * The library has not been previously initialized by
+ *           \c psa_crypto_init().
+ *         * The operation state is not valid: it must be active.
+ * \retval #PSA_ERROR_BUFFER_TOO_SMALL
+ *          The size of the data buffer is too small.
+ *          \c PSA_EXPORT_PUBLIC_KEY_OUTPUT_SIZE(),
+ *          \c PSA_EXPORT_PUBLIC_KEY_MAX_SIZE.
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
+ * \retval #PSA_ERROR_STORAGE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_DATA_CORRUPT \emptydescription
+ * \retval #PSA_ERROR_DATA_INVALID \emptydescription
+ * \retval #PSA_OPERATION_INCOMPLETE
+ *         Operation was interrupted due to the setting of
+ *         \c psa_interruptible_set_max_ops(). There is still work to be done.
+ *         Call this function again with the same operation object.
+ */
+psa_status_t psa_export_public_key_iop_complete(psa_export_public_key_iop_t *operation,
+                                                uint8_t *data,
+                                                size_t data_size,
+                                                size_t *data_length);
+
+/**
+ * \brief                       Abort an interruptible public-key export operation.
+ *
+ * \warning                     This is a beta API, and thus subject to change
+ *                              at any point. It is not bound by the usual
+ *                              interface stability promises.
+ *
+ * \note                        This function clears the number of ops completed
+ *                              as part of the operation. Please ensure you copy
+ *                              this value via
+ *                              \c psa_export_public_key_iop_get_num_ops() if
+ *                              required before calling.
+ *
+ * \note                        Aborting an operation frees all
+ *                              associated resources except for the operation
+ *                              structure itself. Once aborted, the operation
+ *                              object can be reused for another operation by
+ *                              calling \c psa_export_public_key_iop_setup() again.
+ *
+ * \note                        You may call this function any time after the
+ *                              operation object has been initialized.
+ *                              In particular, calling
+ *                              \c psa_export_public_key_iop_abort() after the
+ *                              operation has already been terminated by a call
+ *                              to \c psa_export_public_key_iop_abort() or
+ *                              \c psa_export_public_key_iop_complete() is safe.
+ *
+ * \param[in,out] operation     The \c psa_export_public_key_iop_t to use
+ *
+ * \retval #PSA_SUCCESS
+ *          The operation was aborted successfully.
+ * \retval #PSA_ERROR_BAD_STATE
+ *          The library has not been previously initialized by
+ *          \c psa_crypto_init().
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
+ *
+ */
+psa_status_t psa_export_public_key_iop_abort(psa_export_public_key_iop_t *operation);
 
 /**@}*/
 

@@ -1664,6 +1664,45 @@ exit:
     return (status == PSA_SUCCESS) ? unlock_status : status;
 }
 
+/****************************************************************/
+/* Interruptible ECC Export Public-key */
+/****************************************************************/
+
+uint32_t psa_export_public_key_iop_get_num_ops(psa_export_public_key_iop_t *operation)
+{
+    (void) operation;
+    return 0;
+}
+
+psa_status_t psa_export_public_key_iop_setup(psa_export_public_key_iop_t *operation,
+                                             psa_key_id_t key)
+{
+    (void) operation;
+    (void) key;
+
+    return PSA_ERROR_NOT_SUPPORTED;
+}
+
+psa_status_t psa_export_public_key_iop_complete(psa_export_public_key_iop_t *operation,
+                                                uint8_t *data,
+                                                size_t data_size,
+                                                size_t *data_length)
+{
+    (void) operation;
+    (void) data;
+    (void) data_size;
+    (void) data_length;
+
+    return PSA_ERROR_NOT_SUPPORTED;
+}
+
+psa_status_t psa_export_public_key_iop_abort(psa_export_public_key_iop_t *operation)
+{
+    (void) operation;
+
+    return PSA_ERROR_NOT_SUPPORTED;
+}
+
 /** Validate that a key policy is internally well-formed.
  *
  * This function only rejects invalid policies. It does not validate the

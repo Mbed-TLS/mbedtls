@@ -26,8 +26,6 @@
 
 #include "mbedtls/config_adjust_psa_superset_legacy.h"
 
-#if defined(MBEDTLS_PSA_CRYPTO_CONFIG)
-
 /* Require built-in implementations based on PSA requirements */
 
 /* We need this to have a complete list of requirements
@@ -42,18 +40,6 @@
 #include "mbedtls/config_adjust_test_accelerators.h"
 #endif
 #endif /* MBEDTLS_PSA_CRYPTO_C */
-
-#else /* MBEDTLS_PSA_CRYPTO_CONFIG */
-
-/* Infer PSA requirements from Mbed TLS capabilities */
-
-#include "mbedtls/config_adjust_psa_from_legacy.h"
-
-/* Hopefully the file above will have enabled keypair symbols in a consistent
- * way, but including this here fixes them if that wasn't the case. */
-#include "psa/crypto_adjust_config_key_pair_types.h"
-
-#endif /* MBEDTLS_PSA_CRYPTO_CONFIG */
 
 #include "psa/crypto_adjust_config_derived.h"
 

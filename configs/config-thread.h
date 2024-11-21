@@ -24,7 +24,6 @@
 #define MBEDTLS_PSA_CRYPTO_CONFIG_FILE "../configs/crypto-config-thread.h"
 
 #define MBEDTLS_PSA_CRYPTO_C
-#define MBEDTLS_PSA_CRYPTO_CONFIG
 #define MBEDTLS_USE_PSA_CRYPTO
 
 /* System support */

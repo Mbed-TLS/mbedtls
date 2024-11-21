@@ -108,7 +108,6 @@ component_test_psa_crypto_without_heap() {
     scripts/config.py unset-all "^MBEDTLS_"
     # Build the PSA core using the proper config file.
     scripts/config.py set MBEDTLS_PSA_CRYPTO_C
-    scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
     # Enable fully-static key slots in PSA core.
     scripts/config.py set MBEDTLS_PSA_STATIC_KEY_SLOTS
     # Prevent PSA core from creating a copy of input/output buffers.
@@ -139,7 +138,6 @@ component_test_psa_crypto_without_heap() {
 
 component_test_no_rsa_key_pair_generation () {
     msg "build: default config minus PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_GENERATE"
-    scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
     scripts/config.py unset MBEDTLS_GENPRIME
     scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_GENERATE
     make
@@ -452,7 +450,6 @@ component_test_everest () {
 
 component_test_everest_curve25519_only () {
     msg "build: Everest ECDH context, only Curve25519" # ~ 6 min
-    scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
     scripts/config.py set MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED
     scripts/config.py unset MBEDTLS_ECDSA_C
     scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_DETERMINISTIC_ECDSA
@@ -640,7 +637,7 @@ component_build_module_alt () {
 }
 
 component_test_psa_crypto_config_accel_ecdsa () {
-    msg "build: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated ECDSA"
+    msg "build: accelerated ECDSA"
 
     # Algorithms and key types to accelerate
     loc_accel_list="ALG_ECDSA ALG_DETERMINISTIC_ECDSA \
@@ -677,12 +674,12 @@ component_test_psa_crypto_config_accel_ecdsa () {
     # Run the tests
     # -------------
 
-    msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated ECDSA"
+    msg "test: accelerated ECDSA"
     make test
 }
 
 component_test_psa_crypto_config_accel_ecdh () {
-    msg "build: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated ECDH"
+    msg "build: accelerated ECDH"
 
     # Algorithms and key types to accelerate
     loc_accel_list="ALG_ECDH \
@@ -718,7 +715,7 @@ component_test_psa_crypto_config_accel_ecdh () {
     # Run the tests
     # -------------
 
-    msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated ECDH"
+    msg "test: accelerated ECDH"
     make test
 }
 
@@ -1072,7 +1069,7 @@ component_test_psa_crypto_config_accel_ecc_ecp_light_only () {
 
 # Keep in sync with component_test_psa_crypto_config_accel_ecc_ecp_light_only
 component_test_psa_crypto_config_reference_ecc_ecp_light_only () {
-    msg "build: MBEDTLS_PSA_CRYPTO_CONFIG with non-accelerated EC algs"
+    msg "build: non-accelerated EC algs"
 
     config_psa_crypto_config_ecp_light_only 0
 
@@ -1622,9 +1619,6 @@ component_test_new_psa_want_key_pair_symbol () {
     scripts/config.py unset MBEDTLS_RSA_C
     scripts/config.py unset MBEDTLS_X509_RSASSA_PSS_SUPPORT
 
-    # Enable PSA support
-    scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
-
     # Keep only PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC enabled in order to ensure
     # that proper translations is done in crypto_legacy.h.
     scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_IMPORT
@@ -1647,7 +1641,7 @@ component_test_new_psa_want_key_pair_symbol () {
 }
 
 component_test_psa_crypto_config_accel_hash () {
-    msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated hash"
+    msg "test: accelerated hash"
 
     loc_accel_list="ALG_MD5 ALG_RIPEMD160 ALG_SHA_1 \
                     ALG_SHA_224 ALG_SHA_256 ALG_SHA_384 ALG_SHA_512 \
@@ -1687,7 +1681,7 @@ component_test_psa_crypto_config_accel_hash () {
     # Run the tests
     # -------------
 
-    msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated hash"
+    msg "test: accelerated hash"
     make test
 }
 
@@ -1847,7 +1841,7 @@ component_test_psa_crypto_config_reference_hmac () {
 }
 
 component_test_psa_crypto_config_accel_des () {
-    msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated DES"
+    msg "test: accelerated DES"
 
     # Albeit this components aims at accelerating DES which should only support
     # CBC and ECB modes, we need to accelerate more than that otherwise DES_C
@@ -1889,12 +1883,12 @@ component_test_psa_crypto_config_accel_des () {
     # Run the tests
     # -------------
 
-    msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated DES"
+    msg "test: accelerated DES"
     make test
 }
 
 component_test_psa_crypto_config_accel_aead () {
-    msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated AEAD"
+    msg "test: accelerated AEAD"
 
     loc_accel_list="ALG_GCM ALG_CCM ALG_CHACHA20_POLY1305 \
                     KEY_TYPE_AES KEY_TYPE_CHACHA20 KEY_TYPE_ARIA KEY_TYPE_CAMELLIA"
@@ -1928,7 +1922,7 @@ component_test_psa_crypto_config_accel_aead () {
     # Run the tests
     # -------------
 
-    msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated AEAD"
+    msg "test: accelerated AEAD"
     make test
 }
 
@@ -2283,7 +2277,6 @@ component_build_aes_variations () {
     # MBEDTLS_BLOCK_CIPHER_NO_DECRYPT is incompatible with ECB in PSA, CBC/XTS/NIST_KW/DES,
     # manually set or unset those configurations to check
     # MBEDTLS_BLOCK_CIPHER_NO_DECRYPT with various combinations in aes.o.
-    scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
     scripts/config.py set MBEDTLS_BLOCK_CIPHER_NO_DECRYPT
     scripts/config.py unset MBEDTLS_CIPHER_MODE_XTS
     scripts/config.py unset MBEDTLS_NIST_KW_C
@@ -2311,7 +2304,6 @@ component_test_sha3_variations () {
          #define MBEDTLS_CTR_DRBG_C
          #define MBEDTLS_ENTROPY_C
          #define MBEDTLS_PSA_CRYPTO_C
-         #define MBEDTLS_PSA_CRYPTO_CONFIG
          #define MBEDTLS_SELF_TEST
 END
 
@@ -2504,7 +2496,6 @@ config_block_cipher_no_decrypt () {
 
     # Enable support for cryptographic mechanisms through the PSA API.
     # Note: XTS, KW are not yet supported via the PSA API in Mbed TLS.
-    scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
     scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CBC_NO_PADDING
     scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CBC_PKCS7
     scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_ECB_NO_PADDING
@@ -2659,7 +2650,6 @@ component_test_psa_crypto_drivers () {
 
 component_build_psa_config_file () {
     msg "build: make with MBEDTLS_PSA_CRYPTO_CONFIG_FILE" # ~40s
-    scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
     cp "$CRYPTO_CONFIG_H" psa_test_config.h
     echo '#error "MBEDTLS_PSA_CRYPTO_CONFIG_FILE is not working"' >"$CRYPTO_CONFIG_H"
     make CFLAGS="-I '$PWD' -DMBEDTLS_PSA_CRYPTO_CONFIG_FILE='\"psa_test_config.h\"'"

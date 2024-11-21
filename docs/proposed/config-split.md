@@ -347,7 +347,6 @@ PSA_WANT_\* macros as in current `crypto_config.h`.
 #define MBEDTLS_PKCS1_V15
 #define MBEDTLS_PKCS1_V21
 #define MBEDTLS_POLY1305_C
-//#define MBEDTLS_PSA_CRYPTO_CONFIG
 //#define MBEDTLS_PSA_CRYPTO_SE_C
 #define MBEDTLS_RIPEMD160_C
 #define MBEDTLS_RSA_C

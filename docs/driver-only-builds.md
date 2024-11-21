@@ -22,11 +22,6 @@ the following compile-time configuration options enabled:
   TLS use PSA Crypto. You need to enable this if you're using PK, X.509 or TLS
 and want them to have access to the algorithms provided by your driver. (See
 [the dedicated document](use-psa-crypto.md) for details.)
-- `MBEDTLS_PSA_CRYPTO_CONFIG` (disabled by default) - this enables
-  configuration of cryptographic algorithms using `PSA_WANT` macros in
-`include/psa/crypto_config.h`. See [Conditional inclusion of cryptographic
-mechanism through the PSA API in Mbed
-TLS](proposed/psa-conditional-inclusion-c.md) for details.
 
 In addition, for each mechanism you want provided only by your driver:
 

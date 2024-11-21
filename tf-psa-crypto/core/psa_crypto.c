@@ -11,10 +11,7 @@
 
 #if defined(MBEDTLS_PSA_CRYPTO_C)
 
-#if defined(MBEDTLS_PSA_CRYPTO_CONFIG)
 #include "check_crypto_config.h"
-#endif
-
 #include "psa/crypto.h"
 #include "psa/crypto_values.h"
 

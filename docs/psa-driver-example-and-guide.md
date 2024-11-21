@@ -142,7 +142,6 @@ This guide assumes you are building Mbed TLS from source alongside your project.
 
 The Mbed TLS build system includes the instructions needed to build p256-m. To build with and use p256-m, set the macro `MBEDTLS_PSA_P256M_DRIVER_ENABLED` using `config.py`, then build as usual using make/cmake. From the root of the `mbedtls/` directory, run:
 
-    python3 scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
     python3 scripts/config.py set MBEDTLS_PSA_P256M_DRIVER_ENABLED
     make
 

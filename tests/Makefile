@@ -281,16 +281,16 @@ libtestdriver1.a:
 	touch ./libtestdriver1/3rdparty/Makefile.inc
 
 	# Set the test driver base (minimal) configuration.
-	cp configs/config_test_driver.h ./libtestdriver1/include/mbedtls/mbedtls_config.h
+	cp ../framework/tests/include/test/drivers/config_test_driver.h ./libtestdriver1/include/mbedtls/mbedtls_config.h
 
 	# Set the PSA cryptography configuration for the test library.
 	# It is set from the copied include/psa/crypto_config.h of the Mbed TLS
         # library the test library is intended to be linked with extended by
-        # configs/crypto_config_test_driver_extension.h to mirror the PSA_ACCEL_*
-        # macros.
+        # ../framework/tests/include/test/drivers/crypto_config_test_driver_extension.h to
+        # mirror the PSA_ACCEL_* macros.
 	mv ./libtestdriver1/include/psa/crypto_config.h ./libtestdriver1/include/psa/crypto_config.h.bak
 	head -n -1 ./libtestdriver1/include/psa/crypto_config.h.bak > ./libtestdriver1/include/psa/crypto_config.h
-	cat configs/crypto_config_test_driver_extension.h >> ./libtestdriver1/include/psa/crypto_config.h
+	cat ../framework/tests/include/test/drivers/crypto_config_test_driver_extension.h >> ./libtestdriver1/include/psa/crypto_config.h
 	echo "#endif /* PSA_CRYPTO_CONFIG_H */" >> ./libtestdriver1/include/psa/crypto_config.h
 
 	# Prefix MBEDTLS_* PSA_* symbols with LIBTESTDRIVER1_ as well as

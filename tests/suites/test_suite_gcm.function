@@ -605,6 +605,134 @@ exit:
 }
 /* END_CASE */
 
+/* BEGIN_CASE */
+void gcm_encrypt_input_output_buffer_overlap(int cipher_id, data_t *key_str,
+                                             data_t *src_str, data_t *iv_str,
+                                             data_t *add_str, data_t *dst,
+                                             int tag_len_bits, data_t *tag,
+                                             int init_result)
+{
+    unsigned char *buffer = NULL;
+    size_t buffer_len;
+    unsigned char tag_output[16];
+    mbedtls_gcm_context ctx;
+    size_t tag_len = tag_len_bits / 8;
+    size_t n1;
+    size_t n1_add;
+
+    BLOCK_CIPHER_PSA_INIT();
+    mbedtls_gcm_init(&ctx);
+
+    /* GCM includes padding and therefore input length can be shorter than the output length
+     * Therefore we must ensure we round up to the nearest 128-bits/16-bytes.
+     */
+    buffer_len = src_str->len;
+    if (buffer_len % 16 != 0 || buffer_len == 0) {
+        buffer_len += (16 - (buffer_len % 16));
+    }
+    TEST_CALLOC(buffer, buffer_len);
+    memcpy(buffer, src_str->x, src_str->len);
+
+    memset(tag_output, 0x00, 16);
+
+    TEST_ASSERT(mbedtls_gcm_setkey(&ctx, cipher_id, key_str->x, key_str->len * 8) == init_result);
+    if (init_result == 0) {
+        TEST_ASSERT(mbedtls_gcm_crypt_and_tag(&ctx, MBEDTLS_GCM_ENCRYPT, src_str->len, iv_str->x,
+                                              iv_str->len, add_str->x, add_str->len, buffer,
+                                              buffer, tag_len, tag_output) == 0);
+
+        TEST_MEMORY_COMPARE(buffer, src_str->len, dst->x, dst->len);
+        TEST_MEMORY_COMPARE(tag_output, tag_len, tag->x, tag->len);
+
+        for (n1 = 0; n1 <= src_str->len; n1 += 1) {
+            for (n1_add = 0; n1_add <= add_str->len; n1_add += 1) {
+                mbedtls_test_set_step(n1 * 10000 + n1_add);
+                if (!check_multipart(&ctx, MBEDTLS_GCM_ENCRYPT,
+                                     iv_str, add_str, src_str,
+                                     dst, tag,
+                                     n1, n1_add)) {
+                    goto exit;
+                }
+            }
+        }
+    }
+
+exit:
+    mbedtls_free(buffer);
+    mbedtls_gcm_free(&ctx);
+    BLOCK_CIPHER_PSA_DONE();
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void gcm_decrypt_input_output_buffer_overlap(int cipher_id, data_t *key_str,
+                                             data_t *src_str, data_t *iv_str,
+                                             data_t *add_str, int tag_len_bits,
+                                             data_t *tag_str, char *result,
+                                             data_t *pt_result, int init_result)
+{
+    unsigned char *buffer = NULL;
+    size_t buffer_len;
+    mbedtls_gcm_context ctx;
+    int ret;
+    size_t tag_len = tag_len_bits / 8;
+    size_t n1;
+    size_t n1_add;
+
+    BLOCK_CIPHER_PSA_INIT();
+    mbedtls_gcm_init(&ctx);
+
+    /* GCM includes padding and therefore input length can be shorter than the output length
+     * Therefore we must ensure we round up to the nearest 128-bits/16-bytes.
+     */
+    buffer_len = src_str->len;
+    if (buffer_len % 16 != 0 || buffer_len == 0) {
+        buffer_len += (16 - (buffer_len % 16));
+    }
+    TEST_CALLOC(buffer, buffer_len);
+    memcpy(buffer, src_str->x, src_str->len);
+
+    TEST_ASSERT(mbedtls_gcm_setkey(&ctx, cipher_id, key_str->x, key_str->len * 8) == init_result);
+    if (init_result == 0) {
+        ret = mbedtls_gcm_auth_decrypt(&ctx,
+                                       src_str->len,
+                                       iv_str->x,
+                                       iv_str->len,
+                                       add_str->x,
+                                       add_str->len,
+                                       tag_str->x,
+                                       tag_len,
+                                       buffer,
+                                       buffer);
+
+        if (strcmp("FAIL", result) == 0) {
+            TEST_ASSERT(ret == MBEDTLS_ERR_GCM_AUTH_FAILED);
+        } else {
+            TEST_ASSERT(ret == 0);
+            TEST_MEMORY_COMPARE(buffer, src_str->len, pt_result->x, pt_result->len);
+
+            for (n1 = 0; n1 <= src_str->len; n1 += 1) {
+                for (n1_add = 0; n1_add <= add_str->len; n1_add += 1) {
+                    mbedtls_test_set_step(n1 * 10000 + n1_add);
+                    if (!check_multipart(&ctx, MBEDTLS_GCM_DECRYPT,
+                                         iv_str, add_str, src_str,
+                                         pt_result, tag_str,
+                                         n1, n1_add)) {
+                        goto exit;
+                    }
+                }
+            }
+        }
+    }
+
+exit:
+    mbedtls_free(buffer);
+    mbedtls_gcm_free(&ctx);
+    BLOCK_CIPHER_PSA_DONE();
+
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:MBEDTLS_SELF_TEST:MBEDTLS_CCM_GCM_CAN_AES */
 void gcm_selftest()
 {

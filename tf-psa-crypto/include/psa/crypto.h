@@ -5558,7 +5558,7 @@ psa_status_t psa_generate_key_iop_abort(
  * \endcode
  * - Initialize the structure to logical zero values, for example:
  * \code
- * static psa_export_public_key_iop_t operation;
+ * psa_export_public_key_iop_t operation = {0};
  * \endcode
  * - Initialize the structure to the initializer #PSA_EXPORT_PUBLIC_KEY_IOP_INIT,
  *   for example:

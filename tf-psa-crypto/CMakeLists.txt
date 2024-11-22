@@ -420,23 +420,9 @@ if(ENABLE_TESTING OR ENABLE_PROGRAMS)
             DEPENDS
                 ${MBEDTLS_FRAMEWORK_DIR}/scripts/generate_test_keys.py
         )
-        add_custom_target(tf_psa_crypto_test_keys_header DEPENDS ${MBEDTLS_FRAMEWORK_DIR}/tests/src/test_keys.h)
-
-        add_custom_command(
-            OUTPUT
-                ${MBEDTLS_DIR}/tests/src/test_certs.h
-            WORKING_DIRECTORY
-                ${MBEDTLS_DIR}/tests
-            COMMAND
-                "${TF_PSA_CRYPTO_PYTHON_EXECUTABLE}"
-                "${MBEDTLS_FRAMEWORK_DIR}/scripts/generate_test_cert_macros.py"
-                "--output"
-                "${MBEDTLS_DIR}/tests/src/test_certs.h"
-            DEPENDS
-                ${MBEDTLS_FRAMEWORK_DIR}/scripts/generate_test_cert_macros.py
-        )
-        add_custom_target(tf_psa_crypto_test_certs_header DEPENDS ${MBEDTLS_DIR}/tests/src/test_certs.h)
-        add_dependencies(tf_psa_crypto_test tf_psa_crypto_test_keys_header tf_psa_crypto_test_certs_header)
+        add_custom_target(tf_psa_crypto_test_keys_header
+            DEPENDS ${MBEDTLS_FRAMEWORK_DIR}/tests/src/test_keys.h)
+        add_dependencies(tf_psa_crypto_test tf_psa_crypto_test_keys_header)
     endif()
     target_include_directories(tf_psa_crypto_test
         PRIVATE ${MBEDTLS_FRAMEWORK_DIR}/tests/include

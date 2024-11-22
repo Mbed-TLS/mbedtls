@@ -150,11 +150,17 @@ else()
         set(TF_PSA_CRYPTO_PYTHON_EXECUTABLE ${PYTHON_EXECUTABLE})
     endif()
 endif()
-if(TF_PSA_CRYPTO_PYTHON_EXECUTABLE)
 
+if(TF_PSA_CRYPTO_PYTHON_EXECUTABLE)
     # If 128-bit keys are configured for CTR_DRBG, display an appropriate warning
-    execute_process(COMMAND ${TF_PSA_CRYPTO_PYTHON_EXECUTABLE} ${MBEDTLS_DIR}/scripts/config.py -f ${MBEDTLS_DIR}/include/mbedtls/mbedtls_config.h get MBEDTLS_CTR_DRBG_USE_128_BIT_KEY
-                        RESULT_VARIABLE result)
+    execute_process(
+        COMMAND
+            ${TF_PSA_CRYPTO_PYTHON_EXECUTABLE} ${TF_PSA_CRYPTO_DIR}/scripts/config.py
+            -f ${TF_PSA_CRYPTO_DIR}/include/psa/crypto_config.h
+            get MBEDTLS_CTR_DRBG_USE_128_BIT_KEY
+        RESULT_VARIABLE
+            result
+    )
     if(${result} EQUAL 0)
         message(WARNING ${CTR_DRBG_128_BIT_KEY_WARNING})
     endif()

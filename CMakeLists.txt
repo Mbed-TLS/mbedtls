@@ -413,6 +413,7 @@ add_subdirectory(pkgconfig)
 #
 if(ENABLE_TESTING OR ENABLE_PROGRAMS)
     file(GLOB MBEDTLS_TEST_HELPER_FILES
+         ${CMAKE_CURRENT_SOURCE_DIR}/tests/src/*.c
          ${CMAKE_CURRENT_SOURCE_DIR}/tests/src/test_helpers/*.c)
     add_library(mbedtls_test_helpers OBJECT ${MBEDTLS_TEST_HELPER_FILES})
     set_base_compile_options(mbedtls_test_helpers)

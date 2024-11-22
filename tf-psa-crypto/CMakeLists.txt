@@ -403,7 +403,6 @@ if(ENABLE_TESTING OR ENABLE_PROGRAMS)
     file(GLOB MBEDTLS_TEST_FILES
          ${MBEDTLS_FRAMEWORK_DIR}/tests/src/*.c
          ${MBEDTLS_FRAMEWORK_DIR}/tests/src/drivers/*.c
-         ${MBEDTLS_DIR}/tests/src/*.c
          ${TF_PSA_CRYPTO_DIR}/tests/src/*.c)
     add_library(tf_psa_crypto_test OBJECT ${MBEDTLS_TEST_FILES})
     set_base_compile_options(tf_psa_crypto_test)
@@ -427,7 +426,6 @@ if(ENABLE_TESTING OR ENABLE_PROGRAMS)
     endif()
     target_include_directories(tf_psa_crypto_test
         PRIVATE ${MBEDTLS_FRAMEWORK_DIR}/tests/include
-        PRIVATE ${MBEDTLS_DIR}/tests/include
         PRIVATE ${TF_PSA_CRYPTO_DIR}/tests/include
         PRIVATE ${MBEDTLS_DIR}/include
         PRIVATE include

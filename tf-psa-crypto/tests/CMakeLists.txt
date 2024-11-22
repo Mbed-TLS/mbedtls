@@ -303,7 +303,7 @@ function(add_test_suite suite_name)
     # files are automatically included because the library targets declare
     # them as PUBLIC.
     target_include_directories(test_suite_${data_name}
-        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../framework/tests/include
+        PRIVATE ${TF_PSA_CRYPTO_FRAMEWORK_DIR}/tests/include
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../library
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../core
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../drivers/builtin/src)

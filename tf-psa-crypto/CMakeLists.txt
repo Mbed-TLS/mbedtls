@@ -65,7 +65,7 @@ endif()
 # Set the project, Mbed TLS and framework root directory.
 set(TF_PSA_CRYPTO_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 set(MBEDTLS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/..)
-set(MBEDTLS_FRAMEWORK_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../framework)
+set(TF_PSA_CRYPTO_FRAMEWORK_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../framework)
 
 # Put the version numbers into relevant files
 set(version_number_files
@@ -376,8 +376,8 @@ if(CMAKE_BUILD_TYPE STREQUAL "Check" AND TEST_CPP)
     endif()
 endif()
 
-if (NOT EXISTS "${MBEDTLS_FRAMEWORK_DIR}/CMakeLists.txt")
-    message(FATAL_ERROR "${MBEDTLS_FRAMEWORK_DIR}/CMakeLists.txt not found. Run `git submodule update --init` from the source tree to fetch the submodule contents.")
+if (NOT EXISTS "${TF_PSA_CRYPTO_FRAMEWORK_DIR}/CMakeLists.txt")
+    message(FATAL_ERROR "${TF_PSA_CRYPTO_FRAMEWORK_DIR}/CMakeLists.txt not found. Run `git submodule update --init` from the source tree to fetch the submodule contents.")
 endif()
 
 add_subdirectory(include)
@@ -401,31 +401,31 @@ add_subdirectory(pkgconfig)
 #
 if(ENABLE_TESTING OR ENABLE_PROGRAMS)
     file(GLOB MBEDTLS_TEST_FILES
-         ${MBEDTLS_FRAMEWORK_DIR}/tests/src/*.c
-         ${MBEDTLS_FRAMEWORK_DIR}/tests/src/drivers/*.c
+         ${TF_PSA_CRYPTO_FRAMEWORK_DIR}/tests/src/*.c
+         ${TF_PSA_CRYPTO_FRAMEWORK_DIR}/tests/src/drivers/*.c
          ${TF_PSA_CRYPTO_DIR}/tests/src/*.c)
     add_library(tf_psa_crypto_test OBJECT ${MBEDTLS_TEST_FILES})
     set_base_compile_options(tf_psa_crypto_test)
     if(GEN_FILES)
         add_custom_command(
             OUTPUT
-                ${MBEDTLS_FRAMEWORK_DIR}/tests/src/test_keys.h
+                ${TF_PSA_CRYPTO_FRAMEWORK_DIR}/tests/src/test_keys.h
             WORKING_DIRECTORY
                 ${MBEDTLS_DIR}/tests
             COMMAND
                 "${TF_PSA_CRYPTO_PYTHON_EXECUTABLE}"
-                "${MBEDTLS_FRAMEWORK_DIR}/scripts/generate_test_keys.py"
+                "${TF_PSA_CRYPTO_FRAMEWORK_DIR}/scripts/generate_test_keys.py"
                 "--output"
-                "${MBEDTLS_FRAMEWORK_DIR}/tests/src/test_keys.h"
+                "${TF_PSA_CRYPTO_FRAMEWORK_DIR}/tests/src/test_keys.h"
             DEPENDS
-                ${MBEDTLS_FRAMEWORK_DIR}/scripts/generate_test_keys.py
+                ${TF_PSA_CRYPTO_FRAMEWORK_DIR}/scripts/generate_test_keys.py
         )
         add_custom_target(tf_psa_crypto_test_keys_header
-            DEPENDS ${MBEDTLS_FRAMEWORK_DIR}/tests/src/test_keys.h)
+            DEPENDS ${TF_PSA_CRYPTO_FRAMEWORK_DIR}/tests/src/test_keys.h)
         add_dependencies(tf_psa_crypto_test tf_psa_crypto_test_keys_header)
     endif()
     target_include_directories(tf_psa_crypto_test
-        PRIVATE ${MBEDTLS_FRAMEWORK_DIR}/tests/include
+        PRIVATE ${TF_PSA_CRYPTO_FRAMEWORK_DIR}/tests/include
         PRIVATE ${TF_PSA_CRYPTO_DIR}/tests/include
         PRIVATE ${MBEDTLS_DIR}/include
         PRIVATE include

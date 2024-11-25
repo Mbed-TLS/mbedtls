@@ -2796,6 +2796,16 @@ SSL TLS 1.3 Exporter
 depends_on:PSA_WANT_ALG_SHA_256
 ssl_tls13_exporter:PSA_ALG_SHA_256:"3fd93d4ffddc98e64b14dd107aedf8ee4add23f4510f58a4592d0b201bee56b4":"test":"context value":32:"83d0fac39f87c1b4fbcd261369f31149c535391a9199bd4c5daf89fe259c2e94"
 
+SSL TLS 1.3 Exporter, 0-byte label and context
+# Expected output taken from OpenSSL.
+depends_on:PSA_WANT_ALG_SHA_384
+ssl_tls13_exporter:PSA_ALG_SHA_384:"9f355772f34017927ecc81d16e653c7408f945e7f62dc632d3f59e6310ef49401e62a2e3be886e3f930d4bf6300ce30a":"":"":20:"18268580D7C6769194794A84B7A3EE35317DB88A"
+
+SSL TLS 1.3 Exporter, 249-byte label and 0-byte context
+# Expected output taken from OpenSSL.
+depends_on:PSA_WANT_ALG_SHA_384
+ssl_tls13_exporter:PSA_ALG_SHA_384:"c453aeae318ebae00617c430a0066cf586593a4b0150219107420798933cf9e6e4434337cccc2cae5429dc4f77401e39":"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef012345678":"":20:"259531766AAA10FBAB6BF2D11D23264B321743D9"
+
 SSL TLS 1.3 Key schedule: Early secrets derivation helper
 # Vector from RFC 8448
 depends_on:PSA_WANT_ALG_SHA_256

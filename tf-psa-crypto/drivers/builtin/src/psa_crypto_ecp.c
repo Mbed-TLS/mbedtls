@@ -600,7 +600,7 @@ psa_status_t mbedtls_psa_ecp_generate_key_iop_setup(
     mbedtls_psa_generate_key_iop_t *operation,
     const psa_key_attributes_t *attributes)
 {
-    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    int status = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
     mbedtls_ecp_keypair_init(&operation->ecp);
 
@@ -624,7 +624,7 @@ psa_status_t mbedtls_psa_ecp_generate_key_iop_complete(
     size_t *key_len)
 {
     *key_len = 0;
-    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    int status = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
     *key_len = PSA_BITS_TO_BYTES(operation->ecp.grp.nbits);
 

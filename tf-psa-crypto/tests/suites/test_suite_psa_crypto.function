@@ -10230,6 +10230,7 @@ void generate_key(int type_arg,
                   int is_large_key)
 {
     mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
+    mbedtls_svc_key_id_t iop_key = MBEDTLS_SVC_KEY_ID_INIT;
     psa_key_type_t type = type_arg;
     psa_key_usage_t usage = usage_arg;
     size_t bits = bits_arg;
@@ -10237,6 +10238,7 @@ void generate_key(int type_arg,
     psa_status_t expected_status = expected_status_arg;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_key_attributes_t got_attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_key_attributes_t iop_attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_generate_key_iop_t operation = PSA_GENERATE_KEY_IOP_INIT;
 
     PSA_ASSERT(psa_crypto_init());
@@ -10276,6 +10278,12 @@ void generate_key(int type_arg,
     expected_status = PSA_ERROR_NOT_SUPPORTED;
 #endif
 
+    /* Test calling complete() without calling setup() will fail. */
+    status = psa_generate_key_iop_complete(&operation, &iop_key);
+    TEST_EQUAL(status, PSA_ERROR_BAD_STATE);
+
+    psa_generate_key_iop_abort(&operation);
+
     status = psa_generate_key_iop_setup(&operation, &attributes);
     TEST_EQUAL(status, expected_status);
 
@@ -10291,6 +10299,26 @@ void generate_key(int type_arg,
     status = psa_generate_key_iop_setup(&operation, &attributes);
     TEST_EQUAL(status, expected_status);
 
+    if (expected_status != PSA_SUCCESS) {
+        goto exit;
+    }
+
+    do {
+        status = psa_generate_key_iop_complete(&operation, &iop_key);
+    } while (status == PSA_OPERATION_INCOMPLETE);
+
+    TEST_EQUAL(status, PSA_SUCCESS);
+
+    PSA_ASSERT(psa_get_key_attributes(iop_key, &iop_attributes));
+    TEST_EQUAL(psa_get_key_type(&iop_attributes), type);
+    TEST_EQUAL(psa_get_key_bits(&iop_attributes), bits);
+
+    TEST_EQUAL(mbedtls_test_psa_exercise_key(iop_key, usage, alg, 0), 1);
+
+    /* Test calling complete() 2 times consecutively will fail. */
+    status = psa_generate_key_iop_complete(&operation, &iop_key);
+    TEST_EQUAL(status, PSA_ERROR_BAD_STATE);
+
 exit:
     psa_generate_key_iop_abort(&operation);
     /*
@@ -10298,8 +10326,10 @@ exit:
      * thus reset them as required.
      */
     psa_reset_key_attributes(&got_attributes);
+    psa_reset_key_attributes(&iop_attributes);
 
     psa_destroy_key(key);
+    psa_destroy_key(iop_key);
     PSA_DONE();
 }
 /* END_CASE */

@@ -1714,18 +1714,23 @@ psa_status_t psa_export_public_key_iop_setup(psa_export_public_key_iop_t *operat
     }
 
     private_key_attributes = slot->attr;
-    if (status != PSA_SUCCESS) {
+
+    private_key_type = psa_get_key_type(&private_key_attributes);
+
+    if (!PSA_KEY_TYPE_IS_KEY_PAIR(private_key_type)) {
+        status = PSA_ERROR_INVALID_ARGUMENT;
         goto exit;
     }
 
-    private_key_type = psa_get_key_type(&private_key_attributes);
     if (!PSA_KEY_TYPE_IS_ECC_KEY_PAIR(private_key_type)) {
+        status = PSA_ERROR_NOT_SUPPORTED;
         goto exit;
     }
 
     key_size = PSA_EXPORT_KEY_OUTPUT_SIZE(private_key_type,
                                           psa_get_key_bits(&private_key_attributes));
     if (key_size == 0) {
+        status = PSA_ERROR_INVALID_ARGUMENT;
         goto exit;
     }
 

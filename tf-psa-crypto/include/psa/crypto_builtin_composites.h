@@ -261,7 +261,7 @@ typedef struct {
 } mbedtls_psa_export_public_key_iop_operation_t;
 
 #if defined(MBEDTLS_ECP_C) && defined(MBEDTLS_ECP_RESTARTABLE)
-#define MBEDTLS_PSA_EXPORT_PUBLIC_KEY_IOP_INIT { 0, MBEDTLS_ECP_RESTART_INIT, 0 }
+#define MBEDTLS_PSA_EXPORT_PUBLIC_KEY_IOP_INIT { NULL, MBEDTLS_ECP_RESTART_INIT, 0 }
 #else
 #define MBEDTLS_PSA_EXPORT_PUBLIC_KEY_IOP_INIT { 0 }
 #endif

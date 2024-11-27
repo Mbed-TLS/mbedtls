@@ -10,6 +10,7 @@
 
 # This script must be invoked from the project's root.
 
-source framework/scripts/all-core.sh
+FRAMEWORK="$PWD/framework"
+source $FRAMEWORK/scripts/all-core.sh
 
 main "$@"

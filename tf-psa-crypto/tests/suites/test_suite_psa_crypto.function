@@ -10350,7 +10350,7 @@ void generate_key_iop_init()
 /* END_CASE */
 
 /* BEGIN_CASE */
-void export_public_key(
+void iop_export_public_key(
     int type_arg,
     int bits_arg,
     int usage_arg,

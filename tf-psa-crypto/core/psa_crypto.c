@@ -1730,7 +1730,7 @@ psa_status_t psa_export_public_key_iop_setup(psa_export_public_key_iop_t *operat
     key_size = PSA_EXPORT_KEY_OUTPUT_SIZE(private_key_type,
                                           psa_get_key_bits(&private_key_attributes));
     if (key_size == 0) {
-        status = PSA_ERROR_INVALID_ARGUMENT;
+        status = PSA_ERROR_NOT_SUPPORTED;
         goto exit;
     }
 

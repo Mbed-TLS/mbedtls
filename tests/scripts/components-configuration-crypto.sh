@@ -2165,11 +2165,13 @@ component_test_aead_only_ccm () {
 component_test_ccm_aes_sha256 () {
     msg "build: CCM + AES + SHA256 configuration"
 
-    cp "$CONFIG_TEST_DRIVER_H" "$CONFIG_H"
-    cp configs/crypto-config-ccm-aes-sha256.h "$CRYPTO_CONFIG_H"
-
+    cp "tf-psa-crypto/tests/configs/config_test_driver.h" "$CONFIG_H"
+    head -n -1 configs/crypto-config-ccm-aes-sha256.h > "$CRYPTO_CONFIG_H"
+    echo "#define MBEDTLS_PSA_CRYPTO_C"  >> "$CRYPTO_CONFIG_H"
+    echo "#define MBEDTLS_CTR_DRBG_C" >> "$CRYPTO_CONFIG_H"
+    echo "#define MBEDTLS_ENTROPY_C" >> "$CRYPTO_CONFIG_H"
+    echo "#endif /* PSA_CRYPTO_CONFIG_H */" >> "$CRYPTO_CONFIG_H"
     make
-
     msg "test: CCM + AES + SHA256 configuration"
     make test
 }

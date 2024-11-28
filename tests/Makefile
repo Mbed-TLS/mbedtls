@@ -340,14 +340,20 @@ libtestdriver1.a:
 
 	# Set the test driver base (minimal) configuration.
 	cp ../tf-psa-crypto/tests/configs/config_test_driver.h ./libtestdriver1/include/mbedtls/mbedtls_config.h
+	cp ../tf-psa-crypto/tests/configs/crypto_config_test_driver.h ./libtestdriver1/tf-psa-crypto/include/psa/crypto_config.h
 
 	# Set the PSA cryptography configuration for the test library.
-	# It is set from the copied include/psa/crypto_config.h of the Mbed TLS
-        # library the test library is intended to be linked with extended by
-        # ../tf-psa-crypto/tests/configs/crypto_config_test_driver_extension.h
-        # to mirror the PSA_ACCEL_* macros.
+	# The configuration is created by joining the base
+	# ../tf-psa-crypto/tests/configs/crypto_config_test_driver.h,
+	# with the the library's PSA_WANT_* macros extracted from
+	# ./tf-psa-crypto/include/psa/crypto_config.h
+	# and then extended with entries of
+	# ../tf-psa-crypto/tests/configs/crypto_config_test_driver_extension.h
+	# to mirror the PSA_ACCEL_* macros.
+
 	mv ./libtestdriver1/tf-psa-crypto/include/psa/crypto_config.h ./libtestdriver1/tf-psa-crypto/include/psa/crypto_config.h.bak
 	head -n -1 ./libtestdriver1/tf-psa-crypto/include/psa/crypto_config.h.bak > ./libtestdriver1/tf-psa-crypto/include/psa/crypto_config.h
+	grep '^#define PSA_WANT_*' ../tf-psa-crypto/include/psa/crypto_config.h >> ./libtestdriver1/tf-psa-crypto/include/psa/crypto_config.h
 	cat ../tf-psa-crypto/tests/configs/crypto_config_test_driver_extension.h >> ./libtestdriver1/tf-psa-crypto/include/psa/crypto_config.h
 	echo "#endif /* PSA_CRYPTO_CONFIG_H */" >> ./libtestdriver1/tf-psa-crypto/include/psa/crypto_config.h
 

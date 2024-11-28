@@ -1534,8 +1534,8 @@ config_psa_crypto_accel_rsa () {
 
         # We need PEM parsing in the test library as well to support the import
         # of PEM encoded RSA keys.
-        scripts/config.py -f "$CONFIG_TEST_DRIVER_H" set MBEDTLS_PEM_PARSE_C
-        scripts/config.py -f "$CONFIG_TEST_DRIVER_H" set MBEDTLS_BASE64_C
+        scripts/config.py -c "$CONFIG_TEST_DRIVER_H" set MBEDTLS_PEM_PARSE_C
+        scripts/config.py -c "$CONFIG_TEST_DRIVER_H" set MBEDTLS_BASE64_C
     fi
 }
 

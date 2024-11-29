@@ -3,7 +3,7 @@
 """TF PSA Crypto configuration file manipulation library and tool
 
 Basic usage, to read the TF PSA Crypto configuration:
-    config = TfPSACryptoConfig()
+    config = TFPSACryptoConfig()
     if 'PSA_WANT_ALG_MD5' in config: print('MD5 is enabled')
 """
 
@@ -112,7 +112,7 @@ def full_adapter(name, value, active):
     return include_in_full(name)
 
 
-class TfPSACryptoConfigFile(config_common.ConfigFile):
+class TFPSACryptoConfigFile(config_common.ConfigFile):
     """Representation of a TF PSA Crypto configuration file."""
 
     _path_in_tree = 'tf-psa-crypto/include/psa/crypto_config.h'
@@ -127,7 +127,7 @@ class TfPSACryptoConfigFile(config_common.ConfigFile):
         super().__init__(self.default_path, 'Crypto', filename)
 
 
-class TfPSACryptoConfig(config_common.Config):
+class TFPSACryptoConfig(config_common.Config):
     """Representation of the TF PSA Crypto configuration.
 
     See the documentation of the `Config` class for methods to query
@@ -161,13 +161,13 @@ class TfPSACryptoConfig(config_common.Config):
         super().set(name, value)
 
 
-class TfPSACryptoConfigTool(config_common.ConfigTool):
+class TFPSACryptoConfigTool(config_common.ConfigTool):
     """Command line TF PSA Crypto config file manipulation tool."""
 
     def __init__(self):
-        super().__init__(TfPSACryptoConfigFile.default_path[0], single_config=False)
-        configfiles = [TfPSACryptoConfigFile(file) for file in self.args.file]
-        self.config = TfPSACryptoConfig(*configfiles)
+        super().__init__(TFPSACryptoConfigFile.default_path[0], single_config=False)
+        configfiles = [TFPSACryptoConfigFile(file) for file in self.args.file]
+        self.config = TFPSACryptoConfig(*configfiles)
 
     def custom_parser_options(self):
         """Adds TF PSA Crypto specific options for the parser."""
@@ -181,4 +181,4 @@ class TfPSACryptoConfigTool(config_common.ConfigTool):
 
 
 if __name__ == '__main__':
-    sys.exit(TfPSACryptoConfigTool().main())
+    sys.exit(TFPSACryptoConfigTool().main())

@@ -654,6 +654,41 @@ psa_status_t mbedtls_psa_ecp_generate_key_iop_abort(
     return PSA_SUCCESS;
 }
 
+psa_status_t mbedtls_psa_ecp_export_public_key_iop_setup(
+    mbedtls_psa_export_public_key_iop_operation_t *operation,
+    uint8_t *private_key,
+    size_t private_key_len,
+    const psa_key_attributes_t *private_key_attributes)
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
+    status = mbedtls_psa_ecp_load_representation(
+        psa_get_key_type(private_key_attributes),
+        psa_get_key_bits(private_key_attributes),
+        private_key,
+        private_key_len,
+        &operation->key);
+    if (status != PSA_SUCCESS) {
+        goto exit;
+    }
+
+    mbedtls_ecp_restart_init(&operation->restart_ctx);
+    operation->num_ops = 0;
+
+exit:
+    return status;
+}
+
+psa_status_t mbedtls_psa_ecp_export_public_key_iop_abort(
+    mbedtls_psa_export_public_key_iop_operation_t *operation)
+{
+    mbedtls_ecp_keypair_free(operation->key);
+    mbedtls_free(operation->key);
+    mbedtls_ecp_restart_free(&operation->restart_ctx);
+    operation->num_ops = 0;
+    return PSA_SUCCESS;
+}
+
 #endif
 /****************************************************************/
 /* Interruptible ECC Key Agreement */

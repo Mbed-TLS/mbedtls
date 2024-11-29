@@ -5677,7 +5677,7 @@ uint32_t psa_export_public_key_iop_get_num_ops(psa_export_public_key_iop_t *oper
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
  */
 psa_status_t psa_export_public_key_iop_setup(psa_export_public_key_iop_t *operation,
-                                             psa_key_id_t key);
+                                             mbedtls_svc_key_id_t key);
 
 /**
  * \brief                       Continue and eventually complete the action of

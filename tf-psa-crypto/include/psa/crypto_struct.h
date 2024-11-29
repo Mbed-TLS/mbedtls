@@ -584,15 +584,20 @@ struct psa_export_public_key_iop_s {
      * any driver (i.e. none of the driver contexts are active).
      */
     unsigned int MBEDTLS_PRIVATE(id);
+    mbedtls_psa_export_public_key_iop_operation_t MBEDTLS_PRIVATE(ctx);
+    unsigned int MBEDTLS_PRIVATE(error_occurred) : 1;
+    uint32_t MBEDTLS_PRIVATE(num_ops);
 #endif
 };
+
 #if defined(MBEDTLS_PSA_CRYPTO_CLIENT) && !defined(MBEDTLS_PSA_CRYPTO_C)
 #define PSA_EXPORT_PUBLIC_KEY_IOP_INIT { 0 }
 #else
-#define PSA_EXPORT_PUBLIC_KEY_IOP_INIT { 0 }
+#define PSA_EXPORT_PUBLIC_KEY_IOP_INIT { 0, MBEDTLS_PSA_EXPORT_PUBLIC_KEY_IOP_INIT, 0, 0 }
 #endif
 
-static inline struct psa_export_public_key_iop_s psa_export_public_key_iop_init(void)
+static inline struct psa_export_public_key_iop_s
+psa_export_public_key_iop_init(void)
 {
     const struct psa_export_public_key_iop_s v = PSA_EXPORT_PUBLIC_KEY_IOP_INIT;
 

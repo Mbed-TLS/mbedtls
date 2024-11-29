@@ -134,13 +134,13 @@ class TFPSACryptoConfig(config_common.Config):
     and modify the configuration.
     """
 
-    def __init__(self, *configfiles):
+    def __init__(self, filename):
         """Read the PSA crypto configuration files."""
 
         super().__init__()
-        self.configfiles.extend(configfiles)
+        configfile = TFPSACryptoConfigFile(filename)
+        self.configfiles.append(configfile)
         self.settings.update({name: config_common.Setting(configfile, active, name, value, section)
-                             for configfile in configfiles
                              for (active, name, value, section) in configfile.parse_file()})
 
     def set(self, name, value=None):
@@ -165,9 +165,8 @@ class TFPSACryptoConfigTool(config_common.ConfigTool):
     """Command line TF PSA Crypto config file manipulation tool."""
 
     def __init__(self):
-        super().__init__(TFPSACryptoConfigFile.default_path[0], single_config=False)
-        configfiles = [TFPSACryptoConfigFile(file) for file in self.args.file]
-        self.config = TFPSACryptoConfig(*configfiles)
+        super().__init__(TFPSACryptoConfigFile.default_path[0])
+        self.config = TFPSACryptoConfig(self.args.file)
 
     def custom_parser_options(self):
         """Adds TF PSA Crypto specific options for the parser."""

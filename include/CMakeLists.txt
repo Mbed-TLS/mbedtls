@@ -1,16 +1,15 @@
 option(INSTALL_MBEDTLS_HEADERS "Install Mbed TLS headers." ON)
 
 if(INSTALL_MBEDTLS_HEADERS)
-
     file(GLOB headers "mbedtls/*.h")
     file(GLOB psa_headers "psa/*.h")
 
     install(FILES ${headers}
-        DESTINATION include/mbedtls
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/mbedtls
         PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ)
 
     install(FILES ${psa_headers}
-        DESTINATION include/psa
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/psa
         PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ)
 
 endif(INSTALL_MBEDTLS_HEADERS)

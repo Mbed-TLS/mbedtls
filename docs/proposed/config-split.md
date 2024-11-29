@@ -114,6 +114,7 @@ section dedicated to non boolean configuration options anymore.
 #define MBEDTLS_HAVE_TIME
 #define MBEDTLS_HAVE_TIME_DATE
 //#define MBEDTLS_MEMORY_BACKTRACE
+//#define MBEDTLS_MEMORY_BUFFER_ALLOC_C
 //#define MBEDTLS_MEMORY_DEBUG
 #define MBEDTLS_PLATFORM_C
 //#define MBEDTLS_PLATFORM_EXIT_ALT
@@ -248,6 +249,8 @@ PSA_WANT_\* macros as in current `crypto_config.h`.
 #define MBEDTLS_PSA_CRYPTO_STORAGE_C
 //#define MBEDTLS_PSA_INJECT_ENTROPY
 #define MBEDTLS_PSA_ITS_FILE_C
+#define MBEDTLS_PSA_KEY_STORE_DYNAMIC
+//#define MBEDTLS_PSA_STATIC_KEY_SLOTS
 
 //#define MBEDTLS_ENTROPY_MAX_GATHER                128
 //#define MBEDTLS_ENTROPY_MAX_SOURCES                20
@@ -255,6 +258,7 @@ PSA_WANT_\* macros as in current `crypto_config.h`.
 //#define MBEDTLS_PSA_CRYPTO_PLATFORM_FILE "psa/crypto_platform_alt.h"
 //#define MBEDTLS_PSA_CRYPTO_STRUCT_FILE "psa/crypto_struct_alt.h"
 //#define MBEDTLS_PSA_KEY_SLOT_COUNT 32
+//#define MBEDTLS_PSA_STATIC_KEY_SLOT_BUFFER_SIZE       256
 ```
 
 #### SECTION Builtin drivers

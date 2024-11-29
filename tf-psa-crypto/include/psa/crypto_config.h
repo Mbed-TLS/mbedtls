@@ -155,6 +155,22 @@
  */
 
 /**
+ * \def MBEDTLS_MEMORY_BUFFER_ALLOC_C
+ *
+ * Enable the buffer allocator implementation that makes use of a (stack)
+ * based buffer to 'allocate' dynamic memory. (replaces calloc() and free()
+ * calls)
+ *
+ * Module:  library/memory_buffer_alloc.c
+ *
+ * Requires: MBEDTLS_PLATFORM_C
+ *           MBEDTLS_PLATFORM_MEMORY (to use it within Mbed TLS)
+ *
+ * Enable this module to enable the buffer memory allocator.
+ */
+//#define MBEDTLS_MEMORY_BUFFER_ALLOC_C
+
+/**
  * \def MBEDTLS_FS_IO
  *
  * Enable functions that use the filesystem.
@@ -1241,6 +1257,43 @@
  */
 #define MBEDTLS_PSA_ITS_FILE_C
 
+/**
+ * \def MBEDTLS_PSA_KEY_STORE_DYNAMIC
+ *
+ * Dynamically resize the PSA key store to accommodate any number of
+ * volatile keys (until the heap memory is exhausted).
+ *
+ * If this option is disabled, the key store has a fixed size
+ * #MBEDTLS_PSA_KEY_SLOT_COUNT for volatile keys and loaded persistent keys
+ * together.
+ *
+ * This option has no effect when #MBEDTLS_PSA_CRYPTO_C is disabled.
+ *
+ * Module:  library/psa_crypto.c
+ * Requires: MBEDTLS_PSA_CRYPTO_C
+ */
+#define MBEDTLS_PSA_KEY_STORE_DYNAMIC
+
+/**
+ * \def MBEDTLS_PSA_STATIC_KEY_SLOTS
+ *
+ * Statically preallocate memory to store keys' material in PSA instead
+ * of allocating it dynamically when required. This allows builds without a
+ * heap, if none of the enabled cryptographic implementations or other features
+ * require it.
+ * This feature affects both volatile and persistent keys which means that
+ * it's not possible to persistently store a key which is larger than
+ * #MBEDTLS_PSA_STATIC_KEY_SLOT_BUFFER_SIZE.
+ *
+ * \note This feature comes with a (potentially) higher RAM usage since:
+ *       - All the key slots are allocated no matter if they are used or not.
+ *       - Each key buffer's length is #MBEDTLS_PSA_STATIC_KEY_SLOT_BUFFER_SIZE bytes.
+ *
+ * Requires: MBEDTLS_PSA_CRYPTO_C
+ *
+ */
+//#define MBEDTLS_PSA_STATIC_KEY_SLOTS
+
 /* Entropy options */
 //#define MBEDTLS_ENTROPY_MAX_GATHER                128 /**< Maximum amount requested from entropy sources */
 //#define MBEDTLS_ENTROPY_MAX_SOURCES                20 /**< Maximum number of sources supported */
@@ -1312,6 +1365,19 @@
  * This option has no effect when #MBEDTLS_PSA_CRYPTO_C is disabled.
  */
 //#define MBEDTLS_PSA_KEY_SLOT_COUNT 32
+
+/**
+ * \def MBEDTLS_PSA_STATIC_KEY_SLOT_BUFFER_SIZE
+ *
+ * Define the size (in bytes) of each static key buffer when
+ * #MBEDTLS_PSA_STATIC_KEY_SLOTS is set. If not
+ * explicitly defined then it's automatically guessed from available PSA keys
+ * enabled in the build through PSA_WANT_xxx symbols.
+ * If required by the application this parameter can be set to higher values
+ * in order to store larger objects (ex: raw keys), but please note that this
+ * will increase RAM usage.
+ */
+//#define MBEDTLS_PSA_STATIC_KEY_SLOT_BUFFER_SIZE       256
 
 /** \} name SECTION: PSA core */
 

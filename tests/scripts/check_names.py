@@ -50,7 +50,7 @@ from mbedtls_framework import build_tree
 
 # Naming patterns to check against. These are defined outside the NameCheck
 # class for ease of modification.
-PUBLIC_MACRO_PATTERN = r"^(MBEDTLS|PSA)_[0-9A-Z_]*[0-9A-Z]$"
+PUBLIC_MACRO_PATTERN = r"^(MBEDTLS|PSA|TF_PSA)_[0-9A-Z_]*[0-9A-Z]$"
 INTERNAL_MACRO_PATTERN = r"^[0-9A-Za-z_]*[0-9A-Z]$"
 CONSTANTS_PATTERN = PUBLIC_MACRO_PATTERN
 IDENTIFIER_PATTERN = r"^(mbedtls|psa)_[0-9a-z_]*[0-9a-z]$"

@@ -124,7 +124,7 @@ class TFPSACryptoConfigFile(config_common.ConfigFile):
                                  _path_in_tree)]
 
     def __init__(self, filename=None):
-        super().__init__(self.default_path, 'Crypto', filename)
+        super().__init__(self.default_path, 'TF-PSA-Crypto', filename)
 
 
 class TFPSACryptoConfig(config_common.Config):

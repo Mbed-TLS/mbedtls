@@ -10174,6 +10174,12 @@ void generate_key(int type_arg,
         if (status == PSA_SUCCESS || status == PSA_OPERATION_INCOMPLETE) {
             num_ops = psa_generate_key_iop_get_num_ops(&operation);
 
+            /* Our implementation of key generation only generates the private key
+               which doesn't invlolve any ECC arithmetic operations so number of ops
+               is less than 1 but we round up to 1 to differentiate between num ops of
+               0 which means no work has been done this facilitates testing.
+               It is acceptable however for other implementations to set the number of
+               ops to zero. */
             TEST_LE_U(num_ops_prior + 1, num_ops);
 
             num_ops_prior = num_ops;

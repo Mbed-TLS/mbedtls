@@ -115,7 +115,7 @@ def full_adapter(name, value, active):
 class TFPSACryptoConfigFile(config_common.ConfigFile):
     """Representation of a TF PSA Crypto configuration file."""
 
-    _path_in_tree = 'tf-psa-crypto/include/psa/crypto_config.h'
+    _path_in_tree = 'include/psa/crypto_config.h'
     default_path = [_path_in_tree,
                     os.path.join(os.path.dirname(__file__),
                                  os.pardir,

@@ -613,8 +613,7 @@
  * If defined, this is a header which will be included instead of
  * `"psa/crypto_config.h"`.
  * This header file specifies which cryptographic mechanisms are available
- * through the PSA API when #MBEDTLS_PSA_CRYPTO_CONFIG is enabled, and
- * is not used when #MBEDTLS_PSA_CRYPTO_CONFIG is disabled.
+ * through the PSA API.
  *
  * This macro is expanded after an <tt>\#include</tt> directive. This is a popular but
  * non-standard feature of the C language, so this feature is only available

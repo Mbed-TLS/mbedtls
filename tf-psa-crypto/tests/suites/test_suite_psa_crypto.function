@@ -10174,7 +10174,7 @@ void generate_key(int type_arg,
         if (status == PSA_SUCCESS || status == PSA_OPERATION_INCOMPLETE) {
             num_ops = psa_generate_key_iop_get_num_ops(&operation);
 
-            TEST_ASSERT(num_ops > num_ops_prior);
+            TEST_LE_U(num_ops_prior + 1, num_ops);
 
             num_ops_prior = num_ops;
         }

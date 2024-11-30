@@ -489,7 +489,7 @@ int mbedtls_aesni_crypt_ecb(mbedtls_aes_context *ctx,
          "movdqu    %%xmm0, (%4)    \n\t" // export output
          :
          : "r" (ctx->nr), "r" (ctx->buf + ctx->rk_offset), "r" (mode), "r" (input), "r" (output)
-         : "memory", "cc", "xmm0", "xmm1");
+         : "memory", "cc", "xmm0", "xmm1", "0", "1");
 
 
     return 0;

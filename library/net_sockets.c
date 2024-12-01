@@ -529,8 +529,8 @@ void mbedtls_net_usleep(unsigned long usec)
 #else
     struct timeval tv;
     tv.tv_sec  = usec / 1000000;
-#if defined(__unix__) || defined(__unix) || \
-    (defined(__APPLE__) && defined(__MACH__))
+#if (defined(__unix__) || defined(__unix) || \
+    (defined(__APPLE__) && defined(__MACH__))) && !defined(__DJGPP__)
     tv.tv_usec = (suseconds_t) usec % 1000000;
 #else
     tv.tv_usec = usec % 1000000;

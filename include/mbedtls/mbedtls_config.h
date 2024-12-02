@@ -1556,8 +1556,6 @@
  *
  * Requires: PSA_WANT_ALG_SHA_256 or PSA_WANT_ALG_SHA_384
  *
- * \warning You must call psa_crypto_init() before doing any TLS operations.
- *
  * Comment this macro to disable support for TLS 1.2 / DTLS 1.2
  */
 #define MBEDTLS_SSL_PROTO_TLS1_2
@@ -1572,8 +1570,6 @@
  *
  * Requires: MBEDTLS_SSL_KEEP_PEER_CERTIFICATE
  * Requires: MBEDTLS_PSA_CRYPTO_C
- *
- * \warning You must call psa_crypto_init() before doing any TLS operations.
  *
  * Uncomment this macro to enable the support for TLS 1.3.
  */
@@ -3265,6 +3261,8 @@
  *
  * Requires: MBEDTLS_SSL_TLS_C
  *
+ * \warning You must call psa_crypto_init() before doing any TLS operations.
+ *
  * This module is required for SSL/TLS client support.
  */
 #define MBEDTLS_SSL_CLI_C
@@ -3278,6 +3276,8 @@
  * Caller:
  *
  * Requires: MBEDTLS_SSL_TLS_C
+ *
+ * \warning You must call psa_crypto_init() before doing any TLS operations.
  *
  * This module is required for SSL/TLS server support.
  */

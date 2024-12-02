@@ -22,13 +22,6 @@
 //#define MBEDTLS_CONFIG_VERSION 0x03000000
 
 /**
- * \name SECTION: System support
- *
- * This section sets system specific settings.
- * \{
- */
-
-/**
  * \name SECTION: Mbed TLS feature support
  *
  * This section sets support for features that are or are not needed

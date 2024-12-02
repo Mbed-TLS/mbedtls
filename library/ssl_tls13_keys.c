@@ -58,12 +58,8 @@ struct mbedtls_ssl_tls13_labels_struct const mbedtls_ssl_tls13_labels =
  * };
  *
  * Parameters:
- * - desired_length: Length of expanded key material
- *                   Even though the standard allows expansion to up to
- *                   2**16 Bytes, TLS 1.3 never uses expansion to more than
- *                   255 Bytes, so we require `desired_length` to be at most
- *                   255. This allows us to save a few Bytes of code by
- *                   hardcoding the writing of the high bytes.
+ * - desired_length: Length of expanded key material.
+ *                   As the type implies, this must be less than 2**16 bytes.
  * - (label, label_len): label + label length, without "tls13 " prefix
  *                       The label length MUST be less than or equal to
  *                       MBEDTLS_SSL_TLS1_3_HKDF_LABEL_MAX_LABEL_LEN.

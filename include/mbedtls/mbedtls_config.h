@@ -50,35 +50,6 @@
 //#define MBEDTLS_TIMING_ALT
 
 /**
- * \def MBEDTLS_CIPHER_NULL_CIPHER
- *
- * Enable NULL cipher.
- * Warning: Only do so when you know what you are doing. This allows for
- * encryption or channels without any security!
- *
- * To enable the following ciphersuites:
- *      MBEDTLS_TLS_ECDH_ECDSA_WITH_NULL_SHA
- *      MBEDTLS_TLS_ECDH_RSA_WITH_NULL_SHA
- *      MBEDTLS_TLS_ECDHE_ECDSA_WITH_NULL_SHA
- *      MBEDTLS_TLS_ECDHE_RSA_WITH_NULL_SHA
- *      MBEDTLS_TLS_ECDHE_PSK_WITH_NULL_SHA384
- *      MBEDTLS_TLS_ECDHE_PSK_WITH_NULL_SHA256
- *      MBEDTLS_TLS_ECDHE_PSK_WITH_NULL_SHA
- *      MBEDTLS_TLS_DHE_PSK_WITH_NULL_SHA384
- *      MBEDTLS_TLS_DHE_PSK_WITH_NULL_SHA256
- *      MBEDTLS_TLS_DHE_PSK_WITH_NULL_SHA
- *      MBEDTLS_TLS_RSA_WITH_NULL_SHA256
- *      MBEDTLS_TLS_RSA_WITH_NULL_SHA
- *      MBEDTLS_TLS_RSA_WITH_NULL_MD5
- *      MBEDTLS_TLS_PSK_WITH_NULL_SHA384
- *      MBEDTLS_TLS_PSK_WITH_NULL_SHA256
- *      MBEDTLS_TLS_PSK_WITH_NULL_SHA
- *
- * Uncomment this macro to enable the NULL cipher and ciphersuites
- */
-//#define MBEDTLS_CIPHER_NULL_CIPHER
-
-/**
  * \def MBEDTLS_KEY_EXCHANGE_PSK_ENABLED
  *
  * Enable the PSK based ciphersuite modes in SSL / TLS.

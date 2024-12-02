@@ -642,7 +642,9 @@
  * \note  When this option is enabled, restartable operations in PK, X.509
  *        and TLS (see above) are not using PSA. On the other hand, ECDH
  *        computations in TLS are using PSA, and are not restartable. These
- *        are temporary limitations that should be lifted in the future.
+ *        are temporary limitations that should be lifted in the future. (See
+ *        https://github.com/Mbed-TLS/mbedtls/issues/9784 and
+ *        https://github.com/Mbed-TLS/mbedtls/issues/9817)
  *
  * Requires: MBEDTLS_ECP_C
  *

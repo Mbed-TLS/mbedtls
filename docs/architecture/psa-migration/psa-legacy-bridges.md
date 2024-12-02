@@ -40,13 +40,13 @@ There is functionality that is tied to one API and is not directly available in 
 * Only PSA supports isolating cryptographic material in a secure service.
 * The legacy API has features that are not present (yet) in PSA, notably parsing and formatting asymmetric keys.
 
-The legacy API can partially leverage PSA features via `MBEDTLS_USE_PSA_CRYPTO`, but this has limited scope.
+The legacy API can partially leverage PSA features, but this has limited scope.
 
 In addition, many applications cannot be migrated in a single go. For large projects, it is impractical to rewrite a significant part of the code all at once. (For example, Mbed TLS itself will have taken more than 6 years to transition.) Projects that use one or more library in addition to Mbed TLS must follow the evolution of these libraries, each of which might have its own pace.
 
 ### Where mixing happens
 
-Mbed TLS can be, and normally is, built with support for both APIs. Therefore no special effort is necessary to allow an application to use both APIs.
+Mbed TLS is, built with support for both APIs. Therefore no special effort is necessary to allow an application to use both APIs.
 
 Special effort is necessary to use both APIs as part of the implementation of the same feature. From an informal analysis of typical application requirements, we identify four parts of the use of cryptography which can be provided by different APIs:
 
@@ -155,7 +155,6 @@ Reasons for first creating a legacy key object, where it's impossible or impract
 Reasons for needing a PSA key object:
 
 * Using the key with third-party interface that takes a PSA key identifier as input. (Mbed TLS itself has a few TLS functions that take PSA key identifiers, but as of Mbed TLS 3.5, it is always possible to use a legacy key instead.)
-* Benefiting from a PSA accelerator, or from PSA's world separation, even without `MBEDTLS_USE_PSA_CRYPTO`. (Not a priority scenario: we generally expect people to activate `MBEDTLS_USE_PSA_CRYPTO` at an early stage of their migration to PSA.)
 
 Gap: a way to create a PSA key object from an `mbedtls_pk_context`. This partially exists in the form of `mbedtls_pk_wrap_as_opaque`, but it is not fully satisfactory, for reasons that are detailed in “[API to create a PSA key from a PK context](#api-to-create-a-psa-key-from-a-pk-context)” below.
 
@@ -167,7 +166,6 @@ There is a function `mbedtls_pk_setup_opaque` that mostly does this. However, it
 
 * It creates a PK key of type `MBEDTLS_PK_OPAQUE` that wraps the PSA key. This is good enough in some scenarios, but not others. For example, it's ok for pkwrite, because we've upgraded the pkwrite code to handle `MBEDTLS_PK_OPAQUE`. That doesn't help users of third-party libraries that haven't yet been upgraded.
 * It ties the lifetime of the PK object to the PSA key, which is error-prone: if the PSA key is destroyed but the PK object isn't, there is no way to reliably detect any subsequent misuse of the PK object.
-* It is only available under `MBEDTLS_USE_PSA_CRYPTO`. This is not a priority concern, since we generally expect people to activate `MBEDTLS_USE_PSA_CRYPTO` at an early stage of their migration to PSA. However, this function is useful to use specific PSA keys in X.509/TLS regardless of whether X.509/TLS use the PSA API for all cryptographic operations, so this is a wart in the current API.
 
 It therefore appears that we need two ways to “convert” a PSA key to PK:
 
@@ -176,7 +174,7 @@ It therefore appears that we need two ways to “convert” a PSA key to PK:
 
 Gap: a way to copy a PSA key into a PK context. This can only be expected to work if the PSA key is exportable.
 
-After some discussion, have not identified anything we want to change in the behavior of `mbedtls_pk_setup_opaque`. We only want to generalize it to non-`MBEDTLS_USE_PSA_CRYPTO` and to document it better.
+After some discussion, have not identified anything we want to change in the behavior of `mbedtls_pk_setup_opaque`.
 
 #### Signature formats
 
@@ -319,7 +317,7 @@ Based on the [gap analysis](#using-a-psa-key-as-a-pk-context):
 
 [ACTION] [#8712](https://github.com/Mbed-TLS/mbedtls/issues/8712) Clarify the documentation of `mbedtls_pk_setup_opaque` regarding which algorithms the resulting key will perform with `mbedtls_pk_sign`, `mbedtls_pk_verify`, `mbedtls_pk_encrypt`, `mbedtls_pk_decrypt`.
 
-[ACTION] [#8710](https://github.com/Mbed-TLS/mbedtls/issues/8710) Provide `mbedtls_pk_setup_opaque` whenever `MBEDTLS_PSA_CRYPTO_CLIENT` is enabled, not just when `MBEDTLS_USE_PSA_CRYPTO` is enabled. This is nice-to-have, not critical. Update `use-psa-crypto.md` accordingly.
+[ACTION] [#8710](https://github.com/Mbed-TLS/mbedtls/issues/8710) Provide `mbedtls_pk_setup_opaque` whenever `MBEDTLS_PSA_CRYPTO_CLIENT` is enabled. This is nice-to-have, not critical. Update `use-psa-crypto.md` accordingly.
 
 [OPEN] What about `mbedtls_pk_sign_ext` and  `mbedtls_pk_verify_ext`?
 

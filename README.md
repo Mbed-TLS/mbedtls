@@ -295,7 +295,7 @@ Arm welcomes feedback on the design of the API. If you think something could be 
 Mbed TLS includes a reference implementation of the PSA Cryptography API.
 However, it does not aim to implement the whole specification; in particular it does not implement all the algorithms.
 
-The X.509 and TLS code can use PSA cryptography for most operations. To enable this support, activate the compilation option `MBEDTLS_USE_PSA_CRYPTO` in `mbedtls_config.h`. Note that TLS 1.3 uses PSA cryptography for most operations regardless of this option. See `docs/use-psa-crypto.md` for details.
+The X.509 and TLS code can use PSA cryptography for most operations. See `docs/use-psa-crypto.md` for details.
 
 ### PSA drivers
 

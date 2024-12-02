@@ -57,7 +57,12 @@ struct mbedtls_ssl_tls13_labels_struct const mbedtls_ssl_tls13_labels =
  *
  * Parameters:
  * - desired_length: Length of expanded key material.
- *                   As the type implies, this must be less than 2**16 bytes.
+ *                   The length field can hold numbers up to 2**16, but HKDF
+ *                   can only generate outputs of up to 255 * HASH_LEN bytes.
+ *                   It is the caller's responsibility to ensure that this
+ *                   limit is not exceeded. In TLS 1.3, SHA256 is the hash
+ *                   function with the smallest block size, so a length
+ *                   <= 255 * 32 = 8160 is always safe.
  * - (label, label_len): label + label length, without "tls13 " prefix
  *                       The label length MUST be less than or equal to
  *                       MBEDTLS_SSL_TLS1_3_HKDF_LABEL_MAX_LABEL_LEN.

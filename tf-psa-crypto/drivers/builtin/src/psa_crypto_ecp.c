@@ -596,6 +596,12 @@ exit:
 
 #if defined(MBEDTLS_ECP_RESTARTABLE)
 
+uint32_t mbedtls_psa_generate_key_iop_get_num_ops(
+    mbedtls_psa_generate_key_iop_t *operation)
+{
+    return operation->num_ops;
+}
+
 psa_status_t mbedtls_psa_ecp_generate_key_iop_setup(
     mbedtls_psa_generate_key_iop_t *operation,
     const psa_key_attributes_t *attributes)
@@ -639,6 +645,10 @@ psa_status_t mbedtls_psa_ecp_generate_key_iop_complete(
         return mbedtls_to_psa_error(status);
     }
 
+    /* Our implementation of key generation only generates the private key
+       which doesn't invlolve any ECC arithmetic operations so number of ops
+       is less than 1 but we round up to 1 to differentiate between num ops of
+       0 which means no work has been done this facilitates testing. */
     operation->num_ops = 1;
 
     status = mbedtls_mpi_write_binary(&operation->ecp.d, key_output, key_output_size);

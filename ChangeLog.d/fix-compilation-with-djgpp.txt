@@ -1,5 +1,2 @@
-Bugfix:
-  * DJGPP does not provide `suseconds_t`, but defines `__unix__`
-  * `net_sockets.c` uses it for `mbedtls_net_usleep()`
-  * This fix makes use of the alternate codepath w/o `suseconds_t` if `__DJGPP__` is defined
-
+Bugfix
+   * Fix compilation on MS-DOS DJGPP. Fixes #9813.

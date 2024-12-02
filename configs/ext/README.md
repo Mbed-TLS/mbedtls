@@ -21,5 +21,6 @@ In TF-M, they are distributed under a 3-Clause BSD license, as noted at the top 
 
 In Mbed TLS, with permission from the TF-M project, they are distributed under a dual [Apache-2.0](https://spdx.org/licenses/Apache-2.0.html) OR [GPL-2.0-or-later](https://spdx.org/licenses/GPL-2.0-or-later.html) license, with copyright assigned to The Mbed TLS Contributors.
 
-We only retain the note at the top of the files because we are taking the files verbatim, for ease of
-maintenance.
+We only retain the note at the top of the files because the intent is to take these files verbatim,
+for ease of maintenance. Currently however, they contain changes, showing how these configurations
+will need to be adapted for 4.0.

@@ -45,7 +45,6 @@
 #define PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_GENERATE 1
 
 #define MBEDTLS_PSA_CRYPTO_C
-#define MBEDTLS_USE_PSA_CRYPTO
 
 /* System support */
 #define MBEDTLS_HAVE_ASM

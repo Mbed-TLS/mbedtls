@@ -58,7 +58,6 @@
 #define MBEDTLS_SELF_TEST
 
 #define MBEDTLS_PSA_CRYPTO_C
-#define MBEDTLS_USE_PSA_CRYPTO
 
 /* System support */
 //#define MBEDTLS_HAVE_ASM

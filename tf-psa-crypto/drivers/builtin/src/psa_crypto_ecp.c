@@ -665,7 +665,7 @@ psa_status_t mbedtls_psa_ecp_generate_key_iop_abort(
 }
 
 psa_status_t mbedtls_psa_ecp_export_public_key_iop_setup(
-    mbedtls_psa_export_public_key_iop_operation_t *operation,
+    mbedtls_psa_export_public_key_iop_t *operation,
     uint8_t *private_key,
     size_t private_key_len,
     const psa_key_attributes_t *private_key_attributes)
@@ -690,7 +690,7 @@ exit:
 }
 
 psa_status_t mbedtls_psa_ecp_export_public_key_iop_complete(
-    mbedtls_psa_export_public_key_iop_operation_t *operation,
+    mbedtls_psa_export_public_key_iop_t *operation,
     uint8_t *pub_key,
     size_t pub_key_size,
     size_t *pub_key_len)
@@ -717,7 +717,7 @@ psa_status_t mbedtls_psa_ecp_export_public_key_iop_complete(
 }
 
 psa_status_t mbedtls_psa_ecp_export_public_key_iop_abort(
-    mbedtls_psa_export_public_key_iop_operation_t *operation)
+    mbedtls_psa_export_public_key_iop_t *operation)
 {
     mbedtls_ecp_keypair_free(operation->key);
     mbedtls_free(operation->key);

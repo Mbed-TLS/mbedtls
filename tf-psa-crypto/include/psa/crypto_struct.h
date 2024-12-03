@@ -584,7 +584,7 @@ struct psa_export_public_key_iop_s {
      * any driver (i.e. none of the driver contexts are active).
      */
     unsigned int MBEDTLS_PRIVATE(id);
-    mbedtls_psa_export_public_key_iop_operation_t MBEDTLS_PRIVATE(ctx);
+    mbedtls_psa_export_public_key_iop_t MBEDTLS_PRIVATE(ctx);
     unsigned int MBEDTLS_PRIVATE(error_occurred) : 1;
     uint32_t MBEDTLS_PRIVATE(num_ops);
 #endif

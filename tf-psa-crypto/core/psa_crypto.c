@@ -1757,12 +1757,33 @@ psa_status_t psa_export_public_key_iop_complete(psa_export_public_key_iop_t *ope
                                                 size_t data_size,
                                                 size_t *data_length)
 {
+#if defined(MBEDTLS_ECP_RESTARTABLE)
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
+    if (operation->id == 0 || operation->error_occurred) {
+        return PSA_ERROR_BAD_STATE;
+    }
+
+    status = mbedtls_psa_ecp_export_public_key_iop_complete(&operation->ctx, data, data_size,
+                                                            data_length);
+
+    if (status != PSA_OPERATION_INCOMPLETE) {
+        psa_export_public_key_iop_abort_internal(operation);
+
+        if (status != PSA_SUCCESS) {
+            operation->error_occurred = 1;
+        }
+    }
+
+    return status;
+#else
     (void) operation;
     (void) data;
     (void) data_size;
     (void) data_length;
 
-    return PSA_ERROR_NOT_SUPPORTED;
+    return PSA_ERROR_BAD_STATE;
+#endif
 }
 
 psa_status_t psa_export_public_key_iop_abort(psa_export_public_key_iop_t *operation)

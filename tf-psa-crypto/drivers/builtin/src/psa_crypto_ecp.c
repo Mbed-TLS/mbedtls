@@ -689,6 +689,33 @@ exit:
     return status;
 }
 
+psa_status_t mbedtls_psa_ecp_export_public_key_iop_complete(
+    mbedtls_psa_export_public_key_iop_operation_t *operation,
+    uint8_t *pub_key,
+    size_t pub_key_size,
+    size_t *pub_key_len)
+{
+    int status = 0;
+
+    if (mbedtls_ecp_is_zero(&operation->key->Q)) {
+        mbedtls_psa_interruptible_set_max_ops(psa_interruptible_get_max_ops());
+
+        status = mbedtls_ecp_mul_restartable(&operation->key->grp, &operation->key->Q,
+                                             &operation->key->d, &operation->key->grp.G,
+                                             mbedtls_psa_get_random, MBEDTLS_PSA_RANDOM_STATE,
+                                             &operation->restart_ctx);
+        operation->num_ops += operation->restart_ctx.ops_done;
+    }
+
+    if (status == 0) {
+        status = mbedtls_ecp_write_public_key((const mbedtls_ecp_keypair *) operation->key,
+                                              MBEDTLS_ECP_PF_UNCOMPRESSED, pub_key_len,
+                                              pub_key, pub_key_size);
+    }
+
+    return mbedtls_to_psa_error(status);
+}
+
 psa_status_t mbedtls_psa_ecp_export_public_key_iop_abort(
     mbedtls_psa_export_public_key_iop_operation_t *operation)
 {

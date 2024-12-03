@@ -10449,6 +10449,11 @@ void iop_export_public_key(
     psa_status_t expected_status = expected_status_arg;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_export_public_key_iop_t export_key_operation = PSA_EXPORT_PUBLIC_KEY_IOP_INIT;
+    uint8_t output[PSA_KEY_EXPORT_ECC_PUBLIC_KEY_MAX_SIZE(PSA_VENDOR_ECC_MAX_CURVE_BITS)] = { 0 };
+    size_t output_len = 0;
+    uint8_t refrence_output[PSA_KEY_EXPORT_ECC_PUBLIC_KEY_MAX_SIZE(PSA_VENDOR_ECC_MAX_CURVE_BITS)] =
+    { 0 };
+    size_t refrence_output_len = 0;
     psa_status_t status;
 
     PSA_ASSERT(psa_crypto_init());
@@ -10465,6 +10470,15 @@ void iop_export_public_key(
     status = psa_generate_key(&attributes, &iop_key);
     TEST_EQUAL(status, PSA_SUCCESS);
 
+    /* Test calling complete() without calling setup() will fail. */
+    status = psa_export_public_key_iop_complete(&export_key_operation,
+                                                output,
+                                                sizeof(output),
+                                                &output_len);
+    TEST_EQUAL(status, PSA_ERROR_BAD_STATE);
+
+    PSA_ASSERT(psa_export_public_key_iop_abort(&export_key_operation));
+
     status = psa_export_public_key_iop_setup(&export_key_operation, iop_key);
     TEST_EQUAL(status, expected_status);
 
@@ -10474,11 +10488,55 @@ void iop_export_public_key(
     TEST_EQUAL(status, PSA_ERROR_BAD_STATE);
 #endif
 
-    TEST_EQUAL(psa_export_public_key_iop_abort(&export_key_operation), PSA_SUCCESS);
+    PSA_ASSERT(psa_export_public_key_iop_abort(&export_key_operation));
 
     /* Test that after calling abort operation is reset to it's fresh state */
     status = psa_export_public_key_iop_setup(&export_key_operation, iop_key);
     TEST_EQUAL(status, expected_status);
+
+    if (expected_status != PSA_SUCCESS) {
+        expected_status = PSA_ERROR_BAD_STATE;
+    }
+
+    do {
+        status = psa_export_public_key_iop_complete(&export_key_operation,
+                                                    output,
+                                                    sizeof(output),
+                                                    &output_len);
+    } while (status == PSA_OPERATION_INCOMPLETE);
+    TEST_EQUAL(status, expected_status);
+
+    /* Test calling complete() 2 times consecutively will fail. */
+    status = psa_export_public_key_iop_complete(&export_key_operation,
+                                                output,
+                                                sizeof(output),
+                                                &output_len);
+    TEST_EQUAL(status, PSA_ERROR_BAD_STATE);
+
+    if (expected_status == PSA_SUCCESS) {
+        status = psa_export_public_key(iop_key,
+                                       refrence_output,
+                                       sizeof(refrence_output),
+                                       &refrence_output_len);
+        TEST_EQUAL(status, PSA_SUCCESS);
+
+        TEST_MEMORY_COMPARE(refrence_output, refrence_output_len, output, output_len);
+
+        /* Test psa_export_public_key_iop_complete() returns right error code when
+           output buffer is not enough. */
+        PSA_ASSERT(psa_export_public_key_iop_abort(&export_key_operation));
+
+        status = psa_export_public_key_iop_setup(&export_key_operation, iop_key);
+        TEST_EQUAL(status, PSA_SUCCESS);
+
+        do {
+            status = psa_export_public_key_iop_complete(&export_key_operation,
+                                                        output,
+                                                        refrence_output_len-1,
+                                                        &output_len);
+        } while (status == PSA_OPERATION_INCOMPLETE);
+        TEST_EQUAL(status, PSA_ERROR_BUFFER_TOO_SMALL);
+    }
 
 exit:
     psa_export_public_key_iop_abort(&export_key_operation);

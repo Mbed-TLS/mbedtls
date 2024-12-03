@@ -95,9 +95,8 @@ mbedtls_x509_crl;
 /**
  * \brief          Parse a DER-encoded CRL and append it to the chained list
  *
- * \note           If #MBEDTLS_USE_PSA_CRYPTO is enabled, the PSA crypto
- *                 subsystem must have been initialized by calling
- *                 psa_crypto_init() before calling this function.
+ * \note           The PSA crypto subsystem must have been initialized by
+ *                 calling psa_crypto_init() before calling this function.
  *
  * \param chain    points to the start of the chain
  * \param buf      buffer holding the CRL data in DER format
@@ -113,9 +112,8 @@ int mbedtls_x509_crl_parse_der(mbedtls_x509_crl *chain,
  *
  * \note           Multiple CRLs are accepted only if using PEM format
  *
- * \note           If #MBEDTLS_USE_PSA_CRYPTO is enabled, the PSA crypto
- *                 subsystem must have been initialized by calling
- *                 psa_crypto_init() before calling this function.
+ * \note           The PSA crypto subsystem must have been initialized by
+ *                 calling psa_crypto_init() before calling this function.
  *
  * \param chain    points to the start of the chain
  * \param buf      buffer holding the CRL data in PEM or DER format
@@ -132,9 +130,8 @@ int mbedtls_x509_crl_parse(mbedtls_x509_crl *chain, const unsigned char *buf, si
  *
  * \note           Multiple CRLs are accepted only if using PEM format
  *
- * \note           If #MBEDTLS_USE_PSA_CRYPTO is enabled, the PSA crypto
- *                 subsystem must have been initialized by calling
- *                 psa_crypto_init() before calling this function.
+ * \note           The PSA crypto subsystem must have been initialized by
+ *                 calling psa_crypto_init() before calling this function.
  *
  * \param chain    points to the start of the chain
  * \param path     filename to read the CRLs from (in PEM or DER encoding)

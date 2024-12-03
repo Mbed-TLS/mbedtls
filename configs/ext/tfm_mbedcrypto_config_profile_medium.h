@@ -520,8 +520,7 @@
  * Compared to the default implementation:
  *
  * - p256-m has a much smaller code size and RAM footprint.
- * - p256-m is only available via the PSA API. This includes the pk module
- *   when #MBEDTLS_USE_PSA_CRYPTO is enabled.
+ * - p256-m is only available via the PSA API. This includes the pk module.
  * - p256-m does not support deterministic ECDSA, EC-JPAKE, custom protocols
  *   over the core arithmetic, or deterministic derivation of keys.
  *
@@ -534,7 +533,6 @@
  * cryptographic mechanisms through the PSA API:
  * - #MBEDTLS_PSA_CRYPTO_C and #MBEDTLS_PSA_CRYPTO_CONFIG for PSA-based
  *   configuration;
- * - #MBEDTLS_USE_PSA_CRYPTO if you want to use p256-m from PK, X.509 or TLS;
  * - #PSA_WANT_ECC_SECP_R1_256;
  * - #PSA_WANT_ALG_ECDH and/or #PSA_WANT_ALG_ECDSA as needed;
  * - #PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY, #PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_BASIC,

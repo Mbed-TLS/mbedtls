@@ -88,20 +88,17 @@ typedef enum {
 typedef struct mbedtls_pk_rsassa_pss_options {
     /** The digest to use for MGF1 in PSS.
      *
-     * \note When #MBEDTLS_USE_PSA_CRYPTO is enabled and #MBEDTLS_RSA_C is
-     *       disabled, this must be equal to the \c md_alg argument passed
-     *       to mbedtls_pk_verify_ext(). In a future version of the library,
-     *       this constraint may apply whenever #MBEDTLS_USE_PSA_CRYPTO is
-     *       enabled regardless of the status of #MBEDTLS_RSA_C.
+     * \note When #MBEDTLS_RSA_C is disabled, this must be equal to the \c md_alg argument passed
+     *       to mbedtls_pk_verify_ext(). In a future version of the library, this constraint may
+     *       apply regardless of the status of #MBEDTLS_RSA_C.
      */
     mbedtls_md_type_t mgf1_hash_id;
 
     /** The expected length of the salt, in bytes. This may be
      * #MBEDTLS_RSA_SALT_LEN_ANY to accept any salt length.
      *
-     * \note When #MBEDTLS_USE_PSA_CRYPTO is enabled, only
-     *       #MBEDTLS_RSA_SALT_LEN_ANY is valid. Any other value may be
-     *       ignored (allowing any salt length).
+     * \note Only #MBEDTLS_RSA_SALT_LEN_ANY is valid. Any other value may be ignored (allowing any
+     *       salt length).
      */
     int expected_salt_len;
 
@@ -165,7 +162,8 @@ typedef struct mbedtls_pk_rsassa_pss_options {
  * which functions are used for various operations. The overall picture looks
  * like this:
  * - if USE_PSA is not defined and ECP_C is defined then use ecp_keypair data
- *   structure and legacy functions
+ *   structure and legacy functions. (MBEDTLS_USE_PSA_CRYPTO is always on and
+ *   although this codepath remains present, it never will be taken.)
  * - if USE_PSA is defined and
  *     - if ECP_C then use ecp_keypair structure, convert data to a PSA friendly
  *       format and use PSA functions
@@ -222,7 +220,7 @@ typedef struct mbedtls_pk_context {
     void *MBEDTLS_PRIVATE(pk_ctx);                        /**< Underlying public key context  */
     /* The following field is used to store the ID of a private key in the
      * following cases:
-     * - opaque key when MBEDTLS_USE_PSA_CRYPTO is defined
+     * - opaque key
      * - normal key when MBEDTLS_PK_USE_PSA_EC_DATA is defined. In this case:
      *    - the pk_ctx above is not not used to store the private key anymore.
      *      Actually that field not populated at all in this case because also
@@ -805,9 +803,9 @@ int mbedtls_pk_verify_restartable(mbedtls_pk_context *ctx,
  *
  * \note            If type is MBEDTLS_PK_RSASSA_PSS, then options must point
  *                  to a mbedtls_pk_rsassa_pss_options structure,
- *                  otherwise it must be NULL. Note that if
- *                  #MBEDTLS_USE_PSA_CRYPTO is defined, the salt length is not
- *                  verified as PSA_ALG_RSA_PSS_ANY_SALT is used.
+ *                  otherwise it must be NULL. Note that the salt length is not
+ *                  verified as contexes have PSA_ALG_RSA_PSS_ANY_SALT as default
+ *                  and that is the only valid value.
  */
 int mbedtls_pk_verify_ext(mbedtls_pk_type_t type, const void *options,
                           mbedtls_pk_context *ctx, mbedtls_md_type_t md_alg,
@@ -1075,9 +1073,8 @@ static inline mbedtls_ecp_keypair *mbedtls_pk_ec(const mbedtls_pk_context pk)
 /**
  * \brief           Parse a private key in PEM or DER format
  *
- * \note            If #MBEDTLS_USE_PSA_CRYPTO is enabled, the PSA crypto
- *                  subsystem must have been initialized by calling
- *                  psa_crypto_init() before calling this function.
+ * \note            The PSA crypto subsystem must have been initialized by
+ *                  calling psa_crypto_init() before calling this function.
  *
  * \param ctx       The PK context to fill. It must have been initialized
  *                  but not set up.
@@ -1115,9 +1112,8 @@ int mbedtls_pk_parse_key(mbedtls_pk_context *ctx,
 /**
  * \brief           Parse a public key in PEM or DER format
  *
- * \note            If #MBEDTLS_USE_PSA_CRYPTO is enabled, the PSA crypto
- *                  subsystem must have been initialized by calling
- *                  psa_crypto_init() before calling this function.
+ * \note            The PSA crypto subsystem must have been initialized by
+ *                  calling psa_crypto_init() before calling this function.
  *
  * \param ctx       The PK context to fill. It must have been initialized
  *                  but not set up.
@@ -1148,9 +1144,8 @@ int mbedtls_pk_parse_public_key(mbedtls_pk_context *ctx,
 /**
  * \brief           Load and parse a private key
  *
- * \note            If #MBEDTLS_USE_PSA_CRYPTO is enabled, the PSA crypto
- *                  subsystem must have been initialized by calling
- *                  psa_crypto_init() before calling this function.
+ * \note            The PSA crypto subsystem must have been initialized by
+ *                  calling psa_crypto_init() before calling this function.
  *
  * \param ctx       The PK context to fill. It must have been initialized
  *                  but not set up.

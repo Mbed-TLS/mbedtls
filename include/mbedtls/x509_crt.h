@@ -345,9 +345,8 @@ extern const mbedtls_x509_crt_profile mbedtls_x509_crt_profile_none;
  * \brief          Parse a single DER formatted certificate and add it
  *                 to the end of the provided chained list.
  *
- * \note           If #MBEDTLS_USE_PSA_CRYPTO is enabled, the PSA crypto
- *                 subsystem must have been initialized by calling
- *                 psa_crypto_init() before calling this function.
+ * \note           The PSA crypto subsystem must have been initialized by
+ *                 calling psa_crypto_init() before calling this function.
  *
  * \param chain    The pointer to the start of the CRT chain to attach to.
  *                 When parsing the first CRT in a chain, this should point
@@ -410,9 +409,8 @@ typedef int (*mbedtls_x509_crt_ext_cb_t)(void *p_ctx,
  * \brief            Parse a single DER formatted certificate and add it
  *                   to the end of the provided chained list.
  *
- * \note             If #MBEDTLS_USE_PSA_CRYPTO is enabled, the PSA crypto
- *                   subsystem must have been initialized by calling
- *                   psa_crypto_init() before calling this function.
+ * \note             The PSA crypto subsystem must have been initialized by
+ *                   calling psa_crypto_init() before calling this function.
  *
  * \param chain      The pointer to the start of the CRT chain to attach to.
  *                   When parsing the first CRT in a chain, this should point
@@ -464,9 +462,8 @@ int mbedtls_x509_crt_parse_der_with_ext_cb(mbedtls_x509_crt *chain,
  *                 temporary ownership of the CRT buffer until the CRT
  *                 is destroyed.
  *
- * \note           If #MBEDTLS_USE_PSA_CRYPTO is enabled, the PSA crypto
- *                 subsystem must have been initialized by calling
- *                 psa_crypto_init() before calling this function.
+ * \note           The PSA crypto subsystem must have been initialized by
+ *                 calling psa_crypto_init() before calling this function.
  *
  * \param chain    The pointer to the start of the CRT chain to attach to.
  *                 When parsing the first CRT in a chain, this should point
@@ -508,9 +505,8 @@ int mbedtls_x509_crt_parse_der_nocopy(mbedtls_x509_crt *chain,
  *                 long as the certificates are enclosed in the PEM specific
  *                 '-----{BEGIN/END} CERTIFICATE-----' delimiters.
  *
- * \note           If #MBEDTLS_USE_PSA_CRYPTO is enabled, the PSA crypto
- *                 subsystem must have been initialized by calling
- *                 psa_crypto_init() before calling this function.
+ * \note           The PSA crypto subsystem must have been initialized by
+ *                 calling psa_crypto_init() before calling this function.
  *
  * \param chain    The chain to which to add the parsed certificates.
  * \param buf      The buffer holding the certificate data in PEM or DER format.
@@ -536,9 +532,8 @@ int mbedtls_x509_crt_parse(mbedtls_x509_crt *chain, const unsigned char *buf, si
  *                 of failed certificates it encountered. If none complete
  *                 correctly, the first error is returned.
  *
- * \note           If #MBEDTLS_USE_PSA_CRYPTO is enabled, the PSA crypto
- *                 subsystem must have been initialized by calling
- *                 psa_crypto_init() before calling this function.
+ * \note           The PSA crypto subsystem must have been initialized by
+ *                 calling psa_crypto_init() before calling this function.
  *
  * \param chain    points to the start of the chain
  * \param path     filename to read the certificates from

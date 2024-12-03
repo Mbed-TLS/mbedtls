@@ -630,8 +630,6 @@
  * - Changes the behaviour of TLS 1.2 clients (not servers) when using the
  *   ECDHE-ECDSA key exchange (not other key exchanges) to make all ECC
  *   computations restartable:
- *   - ECDH operations from the key exchange, only for Short Weierstrass
- *     curves, only when MBEDTLS_USE_PSA_CRYPTO is not enabled.
  *   - verification of the server's key exchange signature;
  *   - verification of the server's certificate chain;
  *   - generation of the client's signature if client authentication is used,
@@ -641,11 +639,12 @@
  *        mbedtls_ssl_handshake(), can now return
  *        MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS.
  *
- * \note  When this option and MBEDTLS_USE_PSA_CRYPTO are both enabled,
- *        restartable operations in PK, X.509 and TLS (see above) are not
- *        using PSA. On the other hand, ECDH computations in TLS are using
- *        PSA, and are not restartable. These are temporary limitations that
- *        should be lifted in the future.
+ * \note  When this option is enabled, restartable operations in PK, X.509
+ *        and TLS (see above) are not using PSA. On the other hand, ECDH
+ *        computations in TLS are using PSA, and are not restartable. These
+ *        are temporary limitations that should be lifted in the future. (See
+ *        https://github.com/Mbed-TLS/mbedtls/issues/9784 and
+ *        https://github.com/Mbed-TLS/mbedtls/issues/9817)
  *
  * Requires: MBEDTLS_ECP_C
  *
@@ -729,7 +728,7 @@
  *
  * Enable the ECDHE-PSK based ciphersuite modes in SSL / TLS.
  *
- * Requires: MBEDTLS_ECDH_C or (MBEDTLS_USE_PSA_CRYPTO and PSA_WANT_ALG_ECDH)
+ * Requires: MBEDTLS_ECDH_C or PSA_WANT_ALG_ECDH
  *
  * This enables the following ciphersuites (if other requisites are
  * enabled as well):
@@ -804,7 +803,7 @@
  *
  * Enable the ECDHE-RSA based ciphersuite modes in SSL / TLS.
  *
- * Requires: MBEDTLS_ECDH_C or (MBEDTLS_USE_PSA_CRYPTO and PSA_WANT_ALG_ECDH)
+ * Requires: MBEDTLS_ECDH_C or PSA_WANT_ALG_ECDH
  *           MBEDTLS_RSA_C
  *           MBEDTLS_PKCS1_V15
  *           MBEDTLS_X509_CRT_PARSE_C
@@ -829,8 +828,8 @@
  *
  * Enable the ECDHE-ECDSA based ciphersuite modes in SSL / TLS.
  *
- * Requires: MBEDTLS_ECDH_C or (MBEDTLS_USE_PSA_CRYPTO and PSA_WANT_ALG_ECDH)
- *           MBEDTLS_ECDSA_C or (MBEDTLS_USE_PSA_CRYPTO and PSA_WANT_ALG_ECDSA)
+ * Requires: MBEDTLS_ECDH_C or PSA_WANT_ALG_ECDH
+ *           MBEDTLS_ECDSA_C or PSA_WANT_ALG_ECDSA
  *           MBEDTLS_X509_CRT_PARSE_C
  *
  * This enables the following ciphersuites (if other requisites are
@@ -853,8 +852,8 @@
  *
  * Enable the ECDH-ECDSA based ciphersuite modes in SSL / TLS.
  *
- * Requires: MBEDTLS_ECDH_C or (MBEDTLS_USE_PSA_CRYPTO and PSA_WANT_ALG_ECDH)
- *           MBEDTLS_ECDSA_C or (MBEDTLS_USE_PSA_CRYPTO and PSA_WANT_ALG_ECDSA)
+ * Requires: MBEDTLS_ECDH_C or PSA_WANT_ALG_ECDH
+ *           MBEDTLS_ECDSA_C or PSA_WANT_ALG_ECDSA
  *           MBEDTLS_X509_CRT_PARSE_C
  *
  * This enables the following ciphersuites (if other requisites are
@@ -877,7 +876,7 @@
  *
  * Enable the ECDH-RSA based ciphersuite modes in SSL / TLS.
  *
- * Requires: MBEDTLS_ECDH_C or (MBEDTLS_USE_PSA_CRYPTO and PSA_WANT_ALG_ECDH)
+ * Requires: MBEDTLS_ECDH_C or PSA_WANT_ALG_ECDH
  *           MBEDTLS_RSA_C
  *           MBEDTLS_X509_CRT_PARSE_C
  *
@@ -905,13 +904,9 @@
  * Thread v1.0.0 specification; incompatible changes to the specification
  * might still happen. For this reason, this is disabled by default.
  *
- * Requires: MBEDTLS_ECJPAKE_C or (MBEDTLS_USE_PSA_CRYPTO and PSA_WANT_ALG_JPAKE)
+ * Requires: MBEDTLS_ECJPAKE_C or PSA_WANT_ALG_JPAKE
  *           SHA-256 (via MBEDTLS_SHA256_C or a PSA driver)
  *           MBEDTLS_ECP_DP_SECP256R1_ENABLED
- *
- * \warning If SHA-256 is provided only by a PSA driver, you must call
- * psa_crypto_init() before the first handshake (even if
- * MBEDTLS_USE_PSA_CRYPTO is disabled).
  *
  * This enables the following ciphersuites (if other requisites are
  * enabled as well):
@@ -1229,8 +1224,7 @@
  * Compared to the default implementation:
  *
  * - p256-m has a much smaller code size and RAM footprint.
- * - p256-m is only available via the PSA API. This includes the pk module
- *   when #MBEDTLS_USE_PSA_CRYPTO is enabled.
+ * - p256-m is only available via the PSA API. This includes the pk module.
  * - p256-m does not support deterministic ECDSA, EC-JPAKE, custom protocols
  *   over the core arithmetic, or deterministic derivation of keys.
  *
@@ -1242,7 +1236,6 @@
  * MBEDTLS_xxx option. You do need to separately request support for the
  * cryptographic mechanisms through the PSA API:
  * - #MBEDTLS_PSA_CRYPTO_C for PSA-based configuration;
- * - #MBEDTLS_USE_PSA_CRYPTO if you want to use p256-m from PK, X.509 or TLS;
  * - #PSA_WANT_ECC_SECP_R1_256;
  * - #PSA_WANT_ALG_ECDH and/or #PSA_WANT_ALG_ECDSA as needed;
  * - #PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY, #PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_BASIC,
@@ -1563,15 +1556,7 @@
  *
  * Enable support for TLS 1.2 (and DTLS 1.2 if DTLS is enabled).
  *
- * Requires: Without MBEDTLS_USE_PSA_CRYPTO: MBEDTLS_MD_C and
- *              (MBEDTLS_SHA256_C or MBEDTLS_SHA384_C or
- *               SHA-256 or SHA-512 provided by a PSA driver)
- *           With MBEDTLS_USE_PSA_CRYPTO:
- *              PSA_WANT_ALG_SHA_256 or PSA_WANT_ALG_SHA_384
- *
- * \warning If building with MBEDTLS_USE_PSA_CRYPTO, or if the hash(es) used
- * are only provided by PSA drivers, you must call psa_crypto_init() before
- * doing any TLS operations.
+ * Requires: PSA_WANT_ALG_SHA_256 or PSA_WANT_ALG_SHA_384
  *
  * Comment this macro to disable support for TLS 1.2 / DTLS 1.2
  */
@@ -1587,15 +1572,6 @@
  *
  * Requires: MBEDTLS_SSL_KEEP_PEER_CERTIFICATE
  * Requires: MBEDTLS_PSA_CRYPTO_C
- *
- * \note TLS 1.3 uses PSA crypto for cryptographic operations that are
- *       directly performed by TLS 1.3 code. As a consequence, you must
- *       call psa_crypto_init() before the first TLS 1.3 handshake.
- *
- * \note Cryptographic operations performed indirectly via another module
- *       (X.509, PK) or by code shared with TLS 1.2 (record protection,
- *       running handshake hash) only use PSA crypto if
- *       #MBEDTLS_USE_PSA_CRYPTO is enabled.
  *
  * Uncomment this macro to enable the support for TLS 1.3.
  */
@@ -1643,7 +1619,7 @@
  * Requires: PSA_WANT_ALG_ECDH or PSA_WANT_ALG_FFDH
  *           MBEDTLS_X509_CRT_PARSE_C
  *           and at least one of:
- *               MBEDTLS_ECDSA_C or (MBEDTLS_USE_PSA_CRYPTO and PSA_WANT_ALG_ECDSA)
+ *               MBEDTLS_ECDSA_C or PSA_WANT_ALG_ECDSA
  *               MBEDTLS_PKCS1_V21
  *
  * Comment to disable support for the ephemeral key exchange mode in TLS 1.3.
@@ -2324,7 +2300,6 @@
  *          library/psa_crypto_mac.c
  *          library/ssl_ciphersuites.c
  *          library/ssl_msg.c
- *          library/ssl_ticket.c (unless MBEDTLS_USE_PSA_CRYPTO is enabled)
  * Auto-enabled by: MBEDTLS_PSA_CRYPTO_C depending on which ciphers are enabled
  *                  (see the documentation of that option for details).
  *
@@ -3288,6 +3263,8 @@
  *
  * Requires: MBEDTLS_SSL_TLS_C
  *
+ * \warning You must call psa_crypto_init() before doing any TLS operations.
+ *
  * This module is required for SSL/TLS client support.
  */
 #define MBEDTLS_SSL_CLI_C
@@ -3301,6 +3278,8 @@
  * Caller:
  *
  * Requires: MBEDTLS_SSL_TLS_C
+ *
+ * \warning You must call psa_crypto_init() before doing any TLS operations.
  *
  * This module is required for SSL/TLS server support.
  */
@@ -3389,11 +3368,9 @@
  *          library/x509_crt.c
  *          library/x509_csr.c
  *
- * Requires: MBEDTLS_ASN1_PARSE_C, MBEDTLS_BIGNUM_C, MBEDTLS_OID_C, MBEDTLS_PK_PARSE_C,
- *           (MBEDTLS_MD_C or MBEDTLS_USE_PSA_CRYPTO)
+ * Requires: MBEDTLS_ASN1_PARSE_C, MBEDTLS_BIGNUM_C, MBEDTLS_OID_C, MBEDTLS_PK_PARSE_C
  *
- * \warning If building with MBEDTLS_USE_PSA_CRYPTO, you must call
- * psa_crypto_init() before doing any X.509 operation.
+ * \warning You must call psa_crypto_init() before doing any X.509 operation.
  *
  * This module is required for the X.509 parsing modules.
  */
@@ -3451,10 +3428,8 @@
  * Module:  library/x509_create.c
  *
  * Requires: MBEDTLS_BIGNUM_C, MBEDTLS_OID_C, MBEDTLS_PK_PARSE_C,
- *           (MBEDTLS_MD_C or MBEDTLS_USE_PSA_CRYPTO)
  *
- * \warning If building with MBEDTLS_USE_PSA_CRYPTO, you must call
- * psa_crypto_init() before doing any X.509 create operation.
+ * \warning You must call psa_crypto_init() before doing any X.509 operation.
  *
  * This module is the basis for creating X.509 certificates and CSRs.
  */

@@ -222,6 +222,9 @@ static int test_operations_on_invalid_key(mbedtls_svc_key_id_t key)
 {
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     mbedtls_svc_key_id_t key_id = mbedtls_svc_key_id_make(1, 0x6964);
+#if defined(MBEDTLS_ECP_RESTARTABLE)
+    psa_export_public_key_iop_t export_key_iop = PSA_EXPORT_PUBLIC_KEY_IOP_INIT;
+#endif
     uint8_t buffer[1];
     size_t length;
     int ok = 0;
@@ -247,6 +250,11 @@ static int test_operations_on_invalid_key(mbedtls_svc_key_id_t key)
     TEST_EQUAL(psa_export_public_key(key,
                                      buffer, sizeof(buffer), &length),
                PSA_ERROR_INVALID_HANDLE);
+
+#if defined(MBEDTLS_ECP_RESTARTABLE)
+    TEST_EQUAL(psa_export_public_key_iop_setup(&export_key_iop, key),
+               PSA_ERROR_INVALID_HANDLE);
+#endif
 
     ok = 1;
 

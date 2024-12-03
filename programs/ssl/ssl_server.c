@@ -292,7 +292,7 @@ reset:
     fflush(stdout);
 
     len = snprintf((char *) buf, sizeof(buf), HTTP_RESPONSE,
-                  mbedtls_ssl_get_ciphersuite(&ssl));
+                   mbedtls_ssl_get_ciphersuite(&ssl));
 
     while ((ret = mbedtls_ssl_write(&ssl, buf, len)) <= 0) {
         if (ret == MBEDTLS_ERR_NET_CONN_RESET) {

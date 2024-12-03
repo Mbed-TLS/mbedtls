@@ -59,18 +59,18 @@ static void nss_keylog_export(void *p_expkey,
     ((void) tls_prf_type);
 
     len += snprintf(nss_keylog_line + len, sizeof(nss_keylog_line) - len,
-                   "%s", "CLIENT_RANDOM ");
+                    "%s", "CLIENT_RANDOM ");
 
     for (j = 0; j < client_random_len; j++) {
         len += snprintf(nss_keylog_line + len, sizeof(nss_keylog_line) - len,
-                       "%02x", client_random[j]);
+                        "%02x", client_random[j]);
     }
 
     len += snprintf(nss_keylog_line + len, sizeof(nss_keylog_line) - len, " ");
 
     for (j = 0; j < secret_len; j++) {
         len += snprintf(nss_keylog_line + len, sizeof(nss_keylog_line) - len,
-                       "%02x", secret[j]);
+                        "%02x", secret[j]);
     }
 
     len += snprintf(nss_keylog_line + len, sizeof(nss_keylog_line) - len, "\n");

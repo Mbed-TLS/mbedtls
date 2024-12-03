@@ -3919,7 +3919,7 @@ data_exchange:
     /* If the format of the response changes, make sure there is enough
      * room in buf (buf_content_size calculation above). */
     len = snprintf((char *) buf, sizeof(buf), HTTP_RESPONSE,
-                  mbedtls_ssl_get_ciphersuite(&ssl));
+                   mbedtls_ssl_get_ciphersuite(&ssl));
 
     /* Add padding to the response to reach opt.response_size in length */
     if (opt.response_size != DFL_RESPONSE_SIZE &&

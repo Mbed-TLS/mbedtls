@@ -326,7 +326,7 @@ int main(void)
         fflush(stdout);
 
         len = snprintf((char *) buf, sizeof(buf), HTTP_RESPONSE,
-                      mbedtls_ssl_get_ciphersuite(&ssl));
+                       mbedtls_ssl_get_ciphersuite(&ssl));
 
         while (cnt++ < 10) {
             while ((ret = mbedtls_ssl_write(&ssl, buf, len)) <= 0) {

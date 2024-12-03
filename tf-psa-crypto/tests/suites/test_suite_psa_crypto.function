@@ -1894,6 +1894,8 @@ void import_export_public_key(data_t *data,
     size_t export_size = expected_public_key->len + export_size_delta;
     size_t exported_length = INVALID_EXPORT_LENGTH;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_export_public_key_iop_t export_key_operation = PSA_EXPORT_PUBLIC_KEY_IOP_INIT;
+
 
     PSA_ASSERT(psa_crypto_init());
 
@@ -1925,6 +1927,55 @@ void import_export_public_key(data_t *data,
         TEST_MEMORY_COMPARE(expected_public_key->x, expected_public_key->len,
                             exported, exported_length);
     }
+
+    /* Adjust expected_status for interruptible export public-key.
+     * Interruptible export public-key is only supported for ECC key pairs and even
+     * for those only when MBEDTLS_ECP_RESTARTABLE is on.
+     */
+    if ((PSA_KEY_TYPE_IS_KEY_PAIR(type) || PSA_KEY_TYPE_IS_PUBLIC_KEY(type)) &&
+        !PSA_KEY_TYPE_IS_ECC(type)) {
+        expected_export_status = PSA_ERROR_NOT_SUPPORTED;
+    }
+
+#if !defined(MBEDTLS_ECP_RESTARTABLE)
+    expected_export_status = PSA_ERROR_NOT_SUPPORTED;
+#endif
+
+    if (PSA_KEY_LIFETIME_GET_LOCATION(psa_get_key_lifetime(&attributes)) !=
+        PSA_KEY_LOCATION_LOCAL_STORAGE) {
+        expected_export_status = PSA_ERROR_NOT_SUPPORTED;
+    }
+
+    status = psa_export_public_key_iop_setup(&export_key_operation, key);
+    TEST_EQUAL(status, expected_export_status);
+
+    if (status != PSA_SUCCESS) {
+        expected_export_status = PSA_ERROR_BAD_STATE;
+    }
+
+    do {
+        status = psa_export_public_key_iop_complete(&export_key_operation,
+                                                    exported,
+                                                    export_size,
+                                                    &exported_length);
+    } while (status == PSA_OPERATION_INCOMPLETE);
+    TEST_EQUAL(status, expected_export_status);
+
+    if (status == PSA_SUCCESS) {
+        psa_key_type_t public_type = PSA_KEY_TYPE_PUBLIC_KEY_OF_KEY_PAIR(type);
+        size_t bits;
+        PSA_ASSERT(psa_get_key_attributes(key, &attributes));
+        bits = psa_get_key_bits(&attributes);
+        TEST_LE_U(expected_public_key->len,
+                  PSA_EXPORT_KEY_OUTPUT_SIZE(public_type, bits));
+        TEST_LE_U(expected_public_key->len,
+                  PSA_EXPORT_PUBLIC_KEY_OUTPUT_SIZE(public_type, bits));
+        TEST_LE_U(expected_public_key->len,
+                  PSA_EXPORT_PUBLIC_KEY_MAX_SIZE);
+        TEST_MEMORY_COMPARE(expected_public_key->x, expected_public_key->len,
+                            exported, exported_length);
+    }
+
 exit:
     /*
      * Key attributes may have been returned by psa_get_key_attributes()

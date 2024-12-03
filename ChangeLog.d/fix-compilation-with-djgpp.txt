@@ -1,0 +1,2 @@
+Bugfix
+   * Fix compilation on MS-DOS DJGPP. Fixes #9813.

@@ -29,6 +29,13 @@
 #ifndef PSA_CRYPTO_CONFIG_H
 #define PSA_CRYPTO_CONFIG_H
 
+/**
+ * \name SECTION: SECTION Cryptographic mechanism selection (PSA API)
+ *
+ * This section sets PSA API settings.
+ * \{
+ */
+
 /*
  * CBC-MAC is not yet supported via the PSA API in Mbed TLS.
  */
@@ -146,6 +153,7 @@
 #define PSA_WANT_KEY_TYPE_DH_KEY_PAIR_EXPORT    1
 #define PSA_WANT_KEY_TYPE_DH_KEY_PAIR_GENERATE  1
 //#define PSA_WANT_KEY_TYPE_DH_KEY_PAIR_DERIVE    1 /* Not supported */
+/** \} name SECTION Cryptographic mechanism selection (PSA API) */
 
 /**
  * \name SECTION: Platform abstraction layer

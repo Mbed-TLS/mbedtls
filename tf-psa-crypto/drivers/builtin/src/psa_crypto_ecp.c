@@ -670,7 +670,7 @@ psa_status_t mbedtls_psa_ecp_export_public_key_iop_setup(
     size_t private_key_len,
     const psa_key_attributes_t *private_key_attributes)
 {
-    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    int status = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
     status = mbedtls_psa_ecp_load_representation(
         psa_get_key_type(private_key_attributes),

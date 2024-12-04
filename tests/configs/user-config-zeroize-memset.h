@@ -1,4 +1,4 @@
-/* mbedtls_config.h modifier that defines mbedtls_platform_zeroize() to be
+/* crypto_config.h modifier that defines mbedtls_platform_zeroize() to be
  * memset(), so that the compile can check arguments for us.
  * Used for testing.
  */

@@ -463,6 +463,8 @@ component_test_tls13_only () {
     msg "build: default config without MBEDTLS_SSL_PROTO_TLS1_2"
     scripts/config.py set MBEDTLS_SSL_EARLY_DATA
     scripts/config.py set MBEDTLS_SSL_RECORD_SIZE_LIMIT
+
+    scripts/config.py set MBEDTLS_TEST_HOOKS
     make CFLAGS="'-DMBEDTLS_USER_CONFIG_FILE=\"../tests/configs/tls13-only.h\"'"
 
     msg "test: TLS 1.3 only, all key exchange modes enabled"
@@ -482,6 +484,7 @@ component_test_tls13_only_psk () {
     scripts/config.py unset MBEDTLS_PKCS7_C
     scripts/config.py set   MBEDTLS_SSL_EARLY_DATA
 
+    scripts/config.py set MBEDTLS_TEST_HOOKS
     scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_ALG_ECDH
     scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_ALG_ECDSA
     scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_ALG_DETERMINISTIC_ECDSA
@@ -518,6 +521,8 @@ component_test_tls13_only_ephemeral () {
     scripts/config.py unset MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
     scripts/config.py unset MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
     scripts/config.py unset MBEDTLS_SSL_EARLY_DATA
+
+    scripts/config.py set MBEDTLS_TEST_HOOKS
     make CFLAGS="'-DMBEDTLS_USER_CONFIG_FILE=\"../tests/configs/tls13-only.h\"'"
 
     msg "test_suite_ssl: TLS 1.3 only, only ephemeral key exchange mode"
@@ -533,6 +538,7 @@ component_test_tls13_only_ephemeral_ffdh () {
     scripts/config.py unset MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
     scripts/config.py unset MBEDTLS_SSL_EARLY_DATA
 
+    scripts/config.py set MBEDTLS_TEST_HOOKS
     scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_ALG_ECDH
     # Note: The unset below is to be removed for Mbed TLS 4.0
     scripts/config.py unset MBEDTLS_ECDH_C
@@ -556,6 +562,7 @@ component_test_tls13_only_psk_ephemeral () {
     scripts/config.py unset MBEDTLS_PKCS7_C
     scripts/config.py set   MBEDTLS_SSL_EARLY_DATA
 
+    scripts/config.py set MBEDTLS_TEST_HOOKS
     scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_ALG_ECDSA
     scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_ALG_DETERMINISTIC_ECDSA
     scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_ALG_RSA_OAEP
@@ -583,6 +590,7 @@ component_test_tls13_only_psk_ephemeral_ffdh () {
     scripts/config.py unset MBEDTLS_PKCS7_C
     scripts/config.py set   MBEDTLS_SSL_EARLY_DATA
 
+    scripts/config.py set MBEDTLS_TEST_HOOKS
     scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_ALG_ECDH
     scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_ALG_ECDSA
     scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_ALG_DETERMINISTIC_ECDSA
@@ -611,6 +619,7 @@ component_test_tls13_only_psk_all () {
     scripts/config.py unset MBEDTLS_PKCS7_C
     scripts/config.py set   MBEDTLS_SSL_EARLY_DATA
 
+    scripts/config.py set MBEDTLS_TEST_HOOKS
     scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_ALG_ECDSA
     scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_ALG_DETERMINISTIC_ECDSA
     scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_ALG_RSA_OAEP
@@ -632,6 +641,8 @@ component_test_tls13_only_ephemeral_all () {
     msg "build: TLS 1.3 only from default, without PSK key exchange mode"
     scripts/config.py unset MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
     scripts/config.py set   MBEDTLS_SSL_EARLY_DATA
+
+    scripts/config.py set MBEDTLS_TEST_HOOKS
     make CFLAGS="'-DMBEDTLS_USER_CONFIG_FILE=\"../tests/configs/tls13-only.h\"'"
 
     msg "test_suite_ssl: TLS 1.3 only, ephemeral and PSK ephemeral key exchange modes"

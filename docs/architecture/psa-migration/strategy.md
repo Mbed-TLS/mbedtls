@@ -26,12 +26,12 @@ the preceding ones to be completed.
 Compile-time options
 ====================
 
-We currently have a few compile-time options that are relevant to the migration:
+We currently have one compile-time option that is relevant to the migration:
 
-- `MBEDTLS_PSA_CRYPTO_C` - enabled by default, controls the presence of the
-  implementation of PSA Crypto APIs.
-- `PSA_CRYPTO_CONFIG` - disabled by default, supports builds with drivers and
-  without the corresponding software implementation (G5 above).
+- `MBEDTLS_PSA_CRYPTO_C` - enabled by default, controls the presence of the PSA
+  Crypto APIs with their implementations. (Builds with only
+  `MBEDTLS_PSA_CRYPTO_CLIENT`, where PSA crypto APIs are present but
+  implemented via third-party code, are out of scope of this document.)
 
 At the time of writing (early 2022) it is unclear what could be done about the
 backward compatibility issues, and in particular if the cost of implementing

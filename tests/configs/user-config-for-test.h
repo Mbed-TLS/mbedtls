@@ -1,8 +1,8 @@
-/* MBEDTLS_USER_CONFIG_FILE for testing.
+/* TF_PSA_CRYPTO_USER_CONFIG_FILE for testing.
  * Only used for a few test configurations.
  *
  * Typical usage (note multiple levels of quoting):
- *     make CFLAGS="'-DMBEDTLS_USER_CONFIG_FILE=\"../tests/configs/user-config-for-test.h\"'"
+ *     make CFLAGS="'-DTF_PSA_CRYPTO_USER_CONFIG_FILE=\"../tests/configs/user-config-for-test.h\"'"
  */
 
 /*

@@ -55,4 +55,37 @@
 #define PSA_WANT_KEY_TYPE_DES                   1
 #define PSA_WANT_KEY_TYPE_HMAC                  1
 
+#define MBEDTLS_SELF_TEST
+
+#define MBEDTLS_PSA_CRYPTO_C
+
+/* System support */
+//#define MBEDTLS_HAVE_ASM
+#define MBEDTLS_HAVE_TIME
+#define MBEDTLS_HAVE_TIME_DATE
+
+#define MBEDTLS_FS_IO
+#define MBEDTLS_ENTROPY_NV_SEED
+
+/* Mbed TLS modules */
+#define MBEDTLS_ASN1_PARSE_C
+#define MBEDTLS_ASN1_WRITE_C
+#define MBEDTLS_BASE64_C
+#define MBEDTLS_CTR_DRBG_C
+#define MBEDTLS_ENTROPY_C
+#define MBEDTLS_ERROR_C
+#define MBEDTLS_HMAC_DRBG_C
+#define MBEDTLS_NIST_KW_C
+#define MBEDTLS_OID_C
+#define MBEDTLS_PEM_PARSE_C
+#define MBEDTLS_PEM_WRITE_C
+#define MBEDTLS_PKCS5_C
+#define MBEDTLS_PKCS12_C
+#define MBEDTLS_PLATFORM_C
+#define MBEDTLS_PSA_CRYPTO_SE_C
+#define MBEDTLS_PSA_CRYPTO_STORAGE_C
+#define MBEDTLS_PSA_ITS_FILE_C
+
+//#define MBEDTLS_THREADING_C
+
 #endif /* PSA_CRYPTO_CONFIG_H */

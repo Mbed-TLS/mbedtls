@@ -87,11 +87,6 @@ class CoverageTask(outcome_analysis.CoverageTask):
             re.compile(r'EC restart:.*no USE_PSA.*'),
         ],
         'test_suite_config.mbedtls_boolean': [
-            # https://github.com/Mbed-TLS/mbedtls/issues/9583
-            'Config: !MBEDTLS_ECP_NIST_OPTIM',
-            # We never test without the PSA client code. Should we?
-            # https://github.com/Mbed-TLS/TF-PSA-Crypto/issues/112
-            'Config: !MBEDTLS_PSA_CRYPTO_CLIENT',
             # Missing coverage of test configurations.
             # https://github.com/Mbed-TLS/mbedtls/issues/9585
             'Config: !MBEDTLS_SSL_DTLS_ANTI_REPLAY',
@@ -101,34 +96,6 @@ class CoverageTask(outcome_analysis.CoverageTask):
             # We don't run test_suite_config when we test this.
             # https://github.com/Mbed-TLS/mbedtls/issues/9586
             'Config: !MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED',
-            # We only test multithreading with pthreads.
-            # https://github.com/Mbed-TLS/mbedtls/issues/9584
-            'Config: !MBEDTLS_THREADING_PTHREAD',
-            # Built but not tested.
-            # https://github.com/Mbed-TLS/mbedtls/issues/9587
-            'Config: MBEDTLS_AES_USE_HARDWARE_ONLY',
-            # Untested platform-specific optimizations.
-            # https://github.com/Mbed-TLS/mbedtls/issues/9588
-            'Config: MBEDTLS_HAVE_SSE2',
-            # Obsolete configuration option, to be replaced by
-            # PSA entropy drivers.
-            # https://github.com/Mbed-TLS/mbedtls/issues/8150
-            'Config: MBEDTLS_NO_PLATFORM_ENTROPY',
-            # Untested aspect of the platform interface.
-            # https://github.com/Mbed-TLS/mbedtls/issues/9589
-            'Config: MBEDTLS_PLATFORM_NO_STD_FUNCTIONS',
-            # In a client-server build, test_suite_config runs in the
-            # client configuration, so it will never report
-            # MBEDTLS_PSA_CRYPTO_SPM as enabled. That's ok.
-            'Config: MBEDTLS_PSA_CRYPTO_SPM',
-            # We don't test on armv8 yet.
-            'Config: MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT',
-            'Config: MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY',
-            'Config: MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_ONLY',
-            'Config: MBEDTLS_SHA512_USE_A64_CRYPTO_ONLY',
-            # We don't run test_suite_config when we test this.
-            # https://github.com/Mbed-TLS/mbedtls/issues/9586
-            'Config: MBEDTLS_TEST_CONSTANT_FLOW_VALGRIND',
         ],
         'test_suite_config.psa_boolean': [
             # We don't test with HMAC disabled.
@@ -174,6 +141,39 @@ class CoverageTask(outcome_analysis.CoverageTask):
             'Config: PSA_WANT_KEY_TYPE_ECC_KEY_PAIR',
             'Config: PSA_WANT_KEY_TYPE_RSA_KEY_PAIR',
             'Config: PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_DERIVE',
+            # https://github.com/Mbed-TLS/mbedtls/issues/9583
+            'Config: !MBEDTLS_ECP_NIST_OPTIM',
+            # We never test without the PSA client code. Should we?
+            # https://github.com/Mbed-TLS/TF-PSA-Crypto/issues/112
+            'Config: !MBEDTLS_PSA_CRYPTO_CLIENT',
+                        # We only test multithreading with pthreads.
+            # https://github.com/Mbed-TLS/mbedtls/issues/9584
+            'Config: !MBEDTLS_THREADING_PTHREAD',
+            # Built but not tested.
+            # https://github.com/Mbed-TLS/mbedtls/issues/9587
+            'Config: MBEDTLS_AES_USE_HARDWARE_ONLY',
+            # Untested platform-specific optimizations.
+            # https://github.com/Mbed-TLS/mbedtls/issues/9588
+            'Config: MBEDTLS_HAVE_SSE2',
+            # Obsolete configuration option, to be replaced by
+            # PSA entropy drivers.
+            # https://github.com/Mbed-TLS/mbedtls/issues/8150
+            'Config: MBEDTLS_NO_PLATFORM_ENTROPY',
+            # Untested aspect of the platform interface.
+            # https://github.com/Mbed-TLS/mbedtls/issues/9589
+            'Config: MBEDTLS_PLATFORM_NO_STD_FUNCTIONS',
+            # In a client-server build, test_suite_config runs in the
+            # client configuration, so it will never report
+            # MBEDTLS_PSA_CRYPTO_SPM as enabled. That's ok.
+            'Config: MBEDTLS_PSA_CRYPTO_SPM',
+            # We don't test on armv8 yet.
+            'Config: MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT',
+            'Config: MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY',
+            'Config: MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_ONLY',
+            'Config: MBEDTLS_SHA512_USE_A64_CRYPTO_ONLY',
+            # We don't run test_suite_config when we test this.
+            # https://github.com/Mbed-TLS/mbedtls/issues/9586
+            'Config: MBEDTLS_TEST_CONSTANT_FLOW_VALGRIND',
         ],
         'test_suite_config.psa_combinations': [
             # We don't test this unusual, but sensible configuration.

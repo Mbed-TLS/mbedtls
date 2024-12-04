@@ -233,9 +233,11 @@ get_options "$@"
 # Read boolean configuration options from mbedtls_config.h for easy and quick
 # testing. Skip non-boolean options (with something other than spaces
 # and a comment after "#define SYMBOL"). The variable contains a
-# space-separated list of symbols.
+# space-separated list of symbols. The list should always be
+# terminated by a single whitespace character, otherwise the last entry
+# will not get matched by the parsing regex.
 if [ "$LIST_TESTS" -eq 0 ];then
-    CONFIGS_ENABLED=" $(echo `$P_QUERY -l` )"
+    CONFIGS_ENABLED=" $(echo `$P_QUERY -l` ) "
 else
     P_QUERY=":"
     CONFIGS_ENABLED=""

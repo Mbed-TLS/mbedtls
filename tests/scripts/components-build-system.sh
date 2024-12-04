@@ -167,6 +167,7 @@ support_test_cmake_as_package_install () {
 component_build_cmake_custom_config_file () {
     # Make a copy of config file to use for the in-tree test
     cp "$CONFIG_H" include/mbedtls_config_in_tree_copy.h
+    cp "$CRYPTO_CONFIG_H" include/mbedtls_crypto_config_in_tree_copy.h
 
     MBEDTLS_ROOT_DIR="$PWD"
     mkdir "$OUT_OF_SOURCE_DIR"
@@ -177,21 +178,27 @@ component_build_cmake_custom_config_file () {
     make
 
     msg "build: cmake with -DMBEDTLS_CONFIG_FILE"
-    scripts/config.py -w full_config.h full
+    cd "$MBEDTLS_ROOT_DIR"
+    scripts/config.py full
+    cp include/mbedtls/mbedtls_config.h $OUT_OF_SOURCE_DIR/full_config.h
+    cp tf-psa-crypto/include/psa/crypto_config.h $OUT_OF_SOURCE_DIR/full_crypto_config.h
+    cd "$OUT_OF_SOURCE_DIR"
     echo '#error "cmake -DMBEDTLS_CONFIG_FILE is not working."' > "$MBEDTLS_ROOT_DIR/$CONFIG_H"
-    cmake -DGEN_FILES=OFF -DMBEDTLS_CONFIG_FILE=full_config.h "$MBEDTLS_ROOT_DIR"
+    cmake -DGEN_FILES=OFF -DMBEDTLS_CONFIG_FILE=full_config.h -DTF_PSA_CRYPTO_CONFIG_FILE=full_crypto_config.h "$MBEDTLS_ROOT_DIR"
     make
 
-    msg "build: cmake with -DMBEDTLS_CONFIG_FILE + -DMBEDTLS_USER_CONFIG_FILE"
+    msg "build: cmake with -DMBEDTLS/TF_PSA_CRYPTO_CONFIG_FILE + -DMBEDTLS/TF_PSA_CRYPTO_USER_CONFIG_FILE"
     # In the user config, disable one feature (for simplicity, pick a feature
     # that nothing else depends on).
-    echo '#undef MBEDTLS_NIST_KW_C' >user_config.h
+    echo '#undef MBEDTLS_SSL_ALL_ALERT_MESSAGES' >user_config.h
+    echo '#undef MBEDTLS_NIST_KW_C' >crypto_user_config.h
 
-    cmake -DGEN_FILES=OFF -DMBEDTLS_CONFIG_FILE=full_config.h -DMBEDTLS_USER_CONFIG_FILE=user_config.h "$MBEDTLS_ROOT_DIR"
+    cmake -DGEN_FILES=OFF -DMBEDTLS_CONFIG_FILE=full_config.h -DMBEDTLS_USER_CONFIG_FILE=user_config.h -DTF_PSA_CRYPTO_CONFIG_FILE=full_crypto_config.h -DTF_PSA_CRYPTO_USER_CONFIG_FILE=crypto_user_config.h "$MBEDTLS_ROOT_DIR"
     make
+    not programs/test/query_compile_time_config MBEDTLS_SSL_ALL_ALERT_MESSAGES
     not programs/test/query_compile_time_config MBEDTLS_NIST_KW_C
 
-    rm -f user_config.h full_config.h
+    rm -f user_config.h full_config.h full_crypto_config.h
 
     cd "$MBEDTLS_ROOT_DIR"
     rm -rf "$OUT_OF_SOURCE_DIR"
@@ -200,24 +207,29 @@ component_build_cmake_custom_config_file () {
 
     # Restore config for the in-tree test
     mv include/mbedtls_config_in_tree_copy.h "$CONFIG_H"
+    mv include/mbedtls_crypto_config_in_tree_copy.h "$CRYPTO_CONFIG_H"
 
     # Build once to get the generated files (which need an intact config)
     cmake .
     make
 
     msg "build: cmake (in-tree) with -DMBEDTLS_CONFIG_FILE"
-    scripts/config.py -w full_config.h full
+    cp include/mbedtls/mbedtls_config.h full_config.h
+    cp tf-psa-crypto/include/psa/crypto_config.h full_crypto_config.h
+
     echo '#error "cmake -DMBEDTLS_CONFIG_FILE is not working."' > "$MBEDTLS_ROOT_DIR/$CONFIG_H"
-    cmake -DGEN_FILES=OFF -DMBEDTLS_CONFIG_FILE=full_config.h .
+    cmake -DGEN_FILES=OFF -DTF_PSA_CRYPTO_CONFIG_FILE=full_crypto_config.h -DMBEDTLS_CONFIG_FILE=full_config.h .
     make
 
-    msg "build: cmake (in-tree) with -DMBEDTLS_CONFIG_FILE + -DMBEDTLS_USER_CONFIG_FILE"
+    msg "build: cmake (in-tree) with -DMBEDTLS/TF_PSA_CRYPTO_CONFIG_FILE + -DMBEDTLS/TF_PSA_CRYPTO_USER_CONFIG_FILE"
     # In the user config, disable one feature (for simplicity, pick a feature
     # that nothing else depends on).
-    echo '#undef MBEDTLS_NIST_KW_C' >user_config.h
+    echo '#undef MBEDTLS_SSL_ALL_ALERT_MESSAGES' >user_config.h
+    echo '#undef MBEDTLS_NIST_KW_C' >crypto_user_config.h
 
-    cmake -DGEN_FILES=OFF -DMBEDTLS_CONFIG_FILE=full_config.h -DMBEDTLS_USER_CONFIG_FILE=user_config.h .
+    cmake -DGEN_FILES=OFF -DMBEDTLS_CONFIG_FILE=full_config.h -DMBEDTLS_USER_CONFIG_FILE=user_config.h -DTF_PSA_CRYPTO_CONFIG_FILE=full_crypto_config.h -DTF_PSA_CRYPTO_USER_CONFIG_FILE=crypto_user_config.h .
     make
+    not programs/test/query_compile_time_config MBEDTLS_SSL_ALL_ALERT_MESSAGES
     not programs/test/query_compile_time_config MBEDTLS_NIST_KW_C
 
     rm -f user_config.h full_config.h

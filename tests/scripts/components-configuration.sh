@@ -236,6 +236,7 @@ component_build_tfm () {
     # the configuration that works on mainstream platforms is in
     # configs/config-tfm.h, tested via test-ref-configs.pl.
     cp configs/config-tfm.h "$CONFIG_H"
+    cp configs/ext/crypto_config_profile_medium.h "$CRYPTO_CONFIG_H"
 
     msg "build: TF-M config, clang, armv7-m thumb2"
     make lib CC="clang" CFLAGS="--target=arm-linux-gnueabihf -march=armv7-m -mthumb -Os -std=c99 -Werror -Wall -Wextra -Wwrite-strings -Wpointer-arith -Wimplicit-fallthrough -Wshadow -Wvla -Wformat=2 -Wno-format-nonliteral -Wshadow -Wasm-operand-widths -Wunused -I../framework/tests/include/spe"
@@ -292,15 +293,15 @@ component_build_mbedtls_config_file () {
     echo '#error "MBEDTLS_CONFIG_FILE is not working"' >"$CONFIG_H"
     make CFLAGS="-I '$PWD' -DMBEDTLS_CONFIG_FILE='\"full_config.h\"'"
     # Make sure this feature is enabled. We'll disable it in the next phase.
-    programs/test/query_compile_time_config MBEDTLS_NIST_KW_C
+    programs/test/query_compile_time_config MBEDTLS_SSL_ALL_ALERT_MESSAGES
     make clean
 
     msg "build: make with MBEDTLS_CONFIG_FILE + MBEDTLS_USER_CONFIG_FILE"
     # In the user config, disable one feature (for simplicity, pick a feature
     # that nothing else depends on).
-    echo '#undef MBEDTLS_NIST_KW_C' >user_config.h
+    echo '#undef MBEDTLS_SSL_ALL_ALERT_MESSAGES' >user_config.h
     make CFLAGS="-I '$PWD' -DMBEDTLS_CONFIG_FILE='\"full_config.h\"' -DMBEDTLS_USER_CONFIG_FILE='\"user_config.h\"'"
-    not programs/test/query_compile_time_config MBEDTLS_NIST_KW_C
+    not programs/test/query_compile_time_config MBEDTLS_SSL_ALL_ALERT_MESSAGES
 
     rm -f user_config.h full_config.h
 }

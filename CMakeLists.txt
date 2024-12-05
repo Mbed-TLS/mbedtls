@@ -413,9 +413,30 @@ add_subdirectory(pkgconfig)
 #
 if(ENABLE_TESTING OR ENABLE_PROGRAMS)
     file(GLOB MBEDTLS_TEST_HELPER_FILES
+         ${CMAKE_CURRENT_SOURCE_DIR}/tests/src/*.c
          ${CMAKE_CURRENT_SOURCE_DIR}/tests/src/test_helpers/*.c)
     add_library(mbedtls_test_helpers OBJECT ${MBEDTLS_TEST_HELPER_FILES})
     set_base_compile_options(mbedtls_test_helpers)
+
+    if(GEN_FILES)
+        add_custom_command(
+            OUTPUT
+                ${MBEDTLS_DIR}/tests/src/test_certs.h
+            WORKING_DIRECTORY
+                ${MBEDTLS_DIR}/tests
+            COMMAND
+                "${MBEDTLS_PYTHON_EXECUTABLE}"
+                "${MBEDTLS_FRAMEWORK_DIR}/scripts/generate_test_cert_macros.py"
+                "--output"
+                "${MBEDTLS_DIR}/tests/src/test_certs.h"
+            DEPENDS
+                ${MBEDTLS_FRAMEWORK_DIR}/scripts/generate_test_cert_macros.py
+        )
+        add_custom_target(mbedtls_test_certs_header
+            DEPENDS ${MBEDTLS_DIR}/tests/src/test_certs.h)
+        add_dependencies(mbedtls_test_helpers mbedtls_test_certs_header)
+    endif()
+
     target_include_directories(mbedtls_test_helpers
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/framework/tests/include
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tests/include

@@ -46,7 +46,7 @@ int main(void)
 #include "mbedtls/ecdsa.h"
 #include "mbedtls/ecdh.h"
 
-#include "mbedtls/error.h"
+#include "mbedtls/error_common.h"
 
 /* *INDENT-OFF* */
 #ifndef asm

@@ -15,12 +15,12 @@ if(GEN_FILES)
             ${CMAKE_CURRENT_BINARY_DIR}/psa_crypto_driver_wrappers_no_static.c
         COMMAND
             ${TF_PSA_CRYPTO_PYTHON_EXECUTABLE}
-                ${MBEDTLS_DIR}/scripts/generate_driver_wrappers.py
+                ${TF_PSA_CRYPTO_DIR}/scripts/generate_driver_wrappers.py
                 ${CMAKE_CURRENT_BINARY_DIR}
         DEPENDS
-            ${MBEDTLS_DIR}/scripts/generate_driver_wrappers.py
-            ${MBEDTLS_DIR}/scripts/data_files/driver_templates/psa_crypto_driver_wrappers.h.jinja
-            ${MBEDTLS_DIR}/scripts/data_files/driver_templates/psa_crypto_driver_wrappers_no_static.c.jinja
+            ${TF_PSA_CRYPTO_DIR}/scripts/generate_driver_wrappers.py
+            ${TF_PSA_CRYPTO_DIR}/scripts/data_files/driver_templates/psa_crypto_driver_wrappers.h.jinja
+            ${TF_PSA_CRYPTO_DIR}/scripts/data_files/driver_templates/psa_crypto_driver_wrappers_no_static.c.jinja
     )
 else()
     link_to_source(psa_crypto_driver_wrappers.h)

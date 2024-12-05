@@ -186,7 +186,6 @@ OBJS_CRYPTO= \
 	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/sha512.o \
 	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/sha3.o \
 	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/threading.o \
-	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/timing.o \
 	     # This line is intentionally left blank
 
 THIRDPARTY_DIR := $(MBEDTLS_PATH)/tf-psa-crypto/drivers
@@ -227,6 +226,7 @@ OBJS_TLS= \
 	  ssl_tls13_client.o \
 	  ssl_tls13_server.o \
 	  ssl_tls13_generic.o \
+	  timing.o \
 	  version.o \
 	  version_features.o \
 	  # This line is intentionally left blank
@@ -389,12 +389,12 @@ version_features.c:
 GENERATED_WRAPPER_FILES = \
                     $(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto_driver_wrappers.h \
                     $(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto_driver_wrappers_no_static.c
-$(GENERATED_WRAPPER_FILES): ../scripts/generate_driver_wrappers.py
-$(GENERATED_WRAPPER_FILES): ../scripts/data_files/driver_templates/psa_crypto_driver_wrappers.h.jinja
-$(GENERATED_WRAPPER_FILES): ../scripts/data_files/driver_templates/psa_crypto_driver_wrappers_no_static.c.jinja
+$(GENERATED_WRAPPER_FILES): ../tf-psa-crypto/scripts/generate_driver_wrappers.py
+$(GENERATED_WRAPPER_FILES): ../tf-psa-crypto/scripts/data_files/driver_templates/psa_crypto_driver_wrappers.h.jinja
+$(GENERATED_WRAPPER_FILES): ../tf-psa-crypto/scripts/data_files/driver_templates/psa_crypto_driver_wrappers_no_static.c.jinja
 $(GENERATED_WRAPPER_FILES):
 	echo "  Gen   $(GENERATED_WRAPPER_FILES)"
-	$(PYTHON) ../scripts/generate_driver_wrappers.py $(TF_PSA_CRYPTO_CORE_PATH)
+	$(PYTHON) ../tf-psa-crypto/scripts/generate_driver_wrappers.py $(TF_PSA_CRYPTO_CORE_PATH)
 
 $(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto.o:$(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto_driver_wrappers.h
 

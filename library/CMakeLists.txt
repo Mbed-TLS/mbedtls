@@ -30,6 +30,7 @@ set(src_tls
     ssl_tls13_server.c
     ssl_tls13_client.c
     ssl_tls13_generic.c
+    timing.c
     version.c
     version_features.c
 )

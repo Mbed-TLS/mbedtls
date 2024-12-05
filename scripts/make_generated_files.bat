@@ -9,7 +9,7 @@
 @rem @@@@ library\** @@@@
 @rem psa_crypto_driver_wrappers.h needs to be generated prior to
 @rem generate_visualc_files.pl being invoked.
-python scripts\generate_driver_wrappers.py || exit /b 1
+python tf-psa-crypto\scripts\generate_driver_wrappers.py || exit /b 1
 perl scripts\generate_errors.pl || exit /b 1
 perl scripts\generate_query_config.pl || exit /b 1
 perl scripts\generate_features.pl || exit /b 1

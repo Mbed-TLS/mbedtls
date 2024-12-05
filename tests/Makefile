@@ -310,7 +310,6 @@ test: check
 define libtestdriver1_rewrite :=
 	s!^(\s*#\s*include\s*[\"<])mbedtls/build_info.h!$${1}libtestdriver1/include/mbedtls/build_info.h!; \
 	s!^(\s*#\s*include\s*[\"<])mbedtls/mbedtls_config.h!$${1}libtestdriver1/include/mbedtls/mbedtls_config.h!; \
-	s!^(\s*#\s*include\s*[\"<])mbedtls/config_adjust_legacy_crypto.h!$${1}libtestdriver1/include/mbedtls/config_adjust_legacy_crypto.h!; \
 	s!^(\s*#\s*include\s*[\"<])mbedtls/config_adjust_x509.h!$${1}libtestdriver1/include/mbedtls/config_adjust_x509.h!; \
 	s!^(\s*#\s*include\s*[\"<])mbedtls/config_adjust_ssl.h!$${1}libtestdriver1/include/mbedtls/config_adjust_ssl.h!; \
 	s!^(\s*#\s*include\s*[\"<])mbedtls/check_config.h!$${1}libtestdriver1/include/mbedtls/check_config.h!; \
@@ -333,10 +332,11 @@ libtestdriver1.a:
 	cp -Rf ../framework ./libtestdriver1
 	cp -Rf ../library ./libtestdriver1
 	cp -Rf ../include ./libtestdriver1
+	cp -Rf ../scripts ./libtestdriver1
 	cp -Rf ../tf-psa-crypto/core ./libtestdriver1/tf-psa-crypto
 	cp -Rf ../tf-psa-crypto/include ./libtestdriver1/tf-psa-crypto
 	cp -Rf ../tf-psa-crypto/drivers/builtin ./libtestdriver1/tf-psa-crypto/drivers
-	cp -Rf ../scripts ./libtestdriver1
+	cp -Rf ../tf-psa-crypto/scripts ./libtestdriver1/tf-psa-crypto
 
 	# Set the test driver base (minimal) configuration.
 	cp ../tf-psa-crypto/tests/configs/config_test_driver.h ./libtestdriver1/include/mbedtls/mbedtls_config.h

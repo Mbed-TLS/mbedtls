@@ -179,6 +179,8 @@ def main() -> int:
     args = parser.parse_args()
 
     project_root = os.path.abspath(args.project_root)
+    if build_tree.looks_like_mbedtls_root(project_root):
+        project_root = os.path.join(project_root, 'tf-psa-crypto')
 
     crypto_core_directory = build_tree.crypto_core_directory(project_root)
 

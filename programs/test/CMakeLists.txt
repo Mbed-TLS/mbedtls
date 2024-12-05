@@ -4,6 +4,7 @@ set(libs
 
 set(executables_libs
     metatest
+    query_compile_time_config
     query_included_headers
     selftest
     udp_proxy
@@ -13,7 +14,6 @@ add_dependencies(${ssl_opt_target} udp_proxy)
 
 set(executables_mbedcrypto
     benchmark
-    query_compile_time_config
     zeroize
 )
 add_dependencies(${programs_target} ${executables_mbedcrypto})

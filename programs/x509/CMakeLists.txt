@@ -20,6 +20,8 @@ foreach(exe IN LISTS executables)
 endforeach()
 
 target_link_libraries(cert_app ${mbedtls_target})
+# For mbedtls_timing_get_timer()
+target_link_libraries(load_roots ${mbedtls_target})
 
 install(TARGETS ${executables}
         DESTINATION "bin"

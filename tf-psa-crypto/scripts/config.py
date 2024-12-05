@@ -147,7 +147,7 @@ class TFPSACryptoConfigFile(config_common.ConfigFile):
                     os.path.join(os.path.dirname(__file__),
                                  os.pardir,
                                  _path_in_tree),
-                    os.path.join(os.path.dirname(os.path.abspath(os.path.dirname(__file__))),
+                    os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
                                  _path_in_tree)]
 
     def __init__(self, filename=None):

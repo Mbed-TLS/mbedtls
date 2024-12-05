@@ -323,13 +323,14 @@ endef
 libtestdriver1.a:
 	rm -Rf ./libtestdriver1
 	mkdir ./libtestdriver1
+	mkdir ./libtestdriver1/framework
 	mkdir ./libtestdriver1/tf-psa-crypto
 	mkdir ./libtestdriver1/tf-psa-crypto/drivers
 	mkdir ./libtestdriver1/tf-psa-crypto/drivers/everest
 	mkdir ./libtestdriver1/tf-psa-crypto/drivers/p256-m
 	touch ./libtestdriver1/tf-psa-crypto/drivers/everest/Makefile.inc
 	touch ./libtestdriver1/tf-psa-crypto/drivers/p256-m/Makefile.inc
-	cp -Rf ../framework ./libtestdriver1
+	cp -Rf ../framework/scripts ./libtestdriver1/framework
 	cp -Rf ../library ./libtestdriver1
 	cp -Rf ../include ./libtestdriver1
 	cp -Rf ../scripts ./libtestdriver1

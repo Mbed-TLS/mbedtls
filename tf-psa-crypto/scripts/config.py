@@ -134,7 +134,7 @@ class TFPSACryptoConfig(config_common.Config):
     and modify the configuration.
     """
 
-    def __init__(self, filename):
+    def __init__(self, filename=None):
         """Read the PSA crypto configuration files."""
 
         super().__init__()

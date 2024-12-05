@@ -397,7 +397,7 @@ class CombinedConfig(config_common.Config):
                               for configfile in [self.mbedtls_configfile, self.crypto_configfile]
                               for (active, name, value, section) in configfile.parse_file()})
 
-    _crypto_regexp = re.compile(r'$PSA_.*')
+    _crypto_regexp = re.compile(r'^PSA_.*')
     def _get_configfile(self, name=None):
         """Find a config type for a setting name"""
 

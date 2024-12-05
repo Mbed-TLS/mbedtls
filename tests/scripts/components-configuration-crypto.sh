@@ -2301,11 +2301,6 @@ component_test_sha3_variations () {
 
     # define minimal config sufficient to test SHA3
      cat > include/mbedtls/mbedtls_config.h << END
-         #define MBEDTLS_AES_C
-         #define MBEDTLS_CTR_DRBG_C
-         #define MBEDTLS_ENTROPY_C
-         #define MBEDTLS_PSA_CRYPTO_C
-         #define MBEDTLS_SELF_TEST
 END
 
     cat > tf-psa-crypto/include/psa/crypto_config.h << END
@@ -2314,6 +2309,11 @@ END
         #define PSA_WANT_ALG_SHA3_256  1
         #define PSA_WANT_ALG_SHA3_384  1
         #define PSA_WANT_ALG_SHA3_512  1
+        #define MBEDTLS_AES_C
+        #define MBEDTLS_CTR_DRBG_C
+        #define MBEDTLS_ENTROPY_C
+        #define MBEDTLS_PSA_CRYPTO_C
+        #define MBEDTLS_SELF_TEST
 END
 
     msg "all loops unrolled"

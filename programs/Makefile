@@ -61,6 +61,7 @@ APPS = \
 	psa/key_ladder_demo \
 	psa/psa_constant_names \
 	psa/psa_hash \
+	psa/psa_sign_verify \
 	random/gen_entropy \
 	random/gen_random_ctr_drbg \
 	ssl/dtls_client \
@@ -275,6 +276,10 @@ psa/psa_constant_names$(EXEXT): psa/psa_constant_names.c psa/psa_constant_names_
 psa/psa_hash$(EXEXT): psa/psa_hash.c $(DEP)
 	echo "  CC    psa/psa_hash.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) psa/psa_hash.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+
+psa/psa_sign_verify$(EXEXT): psa/psa_sign_verify.c $(DEP)
+	echo "  CC    psa/psa_sign_verify.c"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) psa/psa_sign_verify.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 random/gen_entropy$(EXEXT): random/gen_entropy.c $(DEP)
 	echo "  CC    random/gen_entropy.c"

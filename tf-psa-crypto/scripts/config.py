@@ -99,10 +99,34 @@ def is_boolean_setting(name, value):
         return True
     return False
 
+def is_seamless_alt(name):
+    """Whether the xxx_ALT symbol should be included in the full configuration.
+
+    Include alternative implementations of platform functions, which are
+    configurable function pointers that default to the built-in function.
+    This way we test that the function pointers exist and build correctly
+    without changing the behavior, and tests can verify that the function
+    pointers are used by modifying those pointers.
+
+    Exclude alternative implementations of library functions since they require
+    an implementation of the relevant functions and an xxx_alt.h header.
+    """
+    if name in (
+            'MBEDTLS_PLATFORM_GMTIME_R_ALT',
+            'MBEDTLS_PLATFORM_SETUP_TEARDOWN_ALT',
+            'MBEDTLS_PLATFORM_MS_TIME_ALT',
+            'MBEDTLS_PLATFORM_ZEROIZE_ALT',
+    ):
+        # Similar to non-platform xxx_ALT, requires platform_alt.h
+        return False
+    return name.startswith('MBEDTLS_PLATFORM_')
+
 def include_in_full(name):
     """Rules for symbols in the "full" configuration."""
     if name in EXCLUDE_FROM_FULL:
         return False
+    if name.endswith('_ALT'):
+        return is_seamless_alt(name)
     return True
 
 def full_adapter(name, value, active):

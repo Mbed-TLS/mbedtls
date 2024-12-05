@@ -77,7 +77,6 @@ EXCLUDE_FROM_FULL = frozenset([
     'MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT', # setting *_USE_ARMV8_A_CRYPTO is sufficient
     'MBEDTLS_TEST_CONSTANT_FLOW_MEMSAN', # build dependency (clang+memsan)
     'MBEDTLS_TEST_CONSTANT_FLOW_VALGRIND', # build dependency (valgrind headers)
-    'MBEDTLS_X509_REMOVE_INFO', # removes a feature
     *PSA_UNSUPPORTED_FEATURE,
     *PSA_DEPRECATED_FEATURE,
     *PSA_UNSTABLE_FEATURE

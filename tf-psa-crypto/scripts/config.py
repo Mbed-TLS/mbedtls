@@ -11,12 +11,15 @@ Basic usage, to read the TF PSA Crypto configuration:
 ## SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
 ##
 
+import re
 import os
 import sys
 
 import framework_scripts_path # pylint: disable=unused-import
 from mbedtls_framework import config_common
 
+
+PSA_SYMBOL_REGEXP = re.compile(r'^PSA_.*')
 
 PSA_UNSUPPORTED_FEATURE = frozenset([
     'PSA_WANT_ALG_CBC_MAC',
@@ -93,7 +96,7 @@ def is_boolean_setting(name, value):
     this might change to mean disabling them. Currently we just never set
     them to 0.)
     """
-    if name.startswith('PSA_WANT_'):
+    if re.match(PSA_SYMBOL_REGEXP, name):
         return True
     if not value:
         return True
@@ -179,7 +182,7 @@ class TFPSACryptoConfig(config_common.Config):
             self._get_configfile().templates.append((name, '', f'#define {name} '))
 
         # Default value for PSA macros is '1'
-        if name.startswith('PSA_') and not value:
+        if not value and re.match(PSA_SYMBOL_REGEXP, name):
             value = '1'
 
         super().set(name, value)

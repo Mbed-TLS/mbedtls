@@ -400,18 +400,16 @@ add_subdirectory(pkgconfig)
 # files to define the test executables.
 #
 if(ENABLE_TESTING OR ENABLE_PROGRAMS)
-    file(GLOB MBEDTLS_TEST_FILES
+    file(GLOB TF_PSA_CRYPTO_TEST_FILES
          ${TF_PSA_CRYPTO_FRAMEWORK_DIR}/tests/src/*.c
          ${TF_PSA_CRYPTO_FRAMEWORK_DIR}/tests/src/drivers/*.c
-         ${TF_PSA_CRYPTO_DIR}/tests/src/*.c)
-    add_library(tf_psa_crypto_test OBJECT ${MBEDTLS_TEST_FILES})
+         tests/src/*.c)
+    add_library(tf_psa_crypto_test OBJECT ${TF_PSA_CRYPTO_TEST_FILES})
     set_base_compile_options(tf_psa_crypto_test)
     if(GEN_FILES)
         add_custom_command(
             OUTPUT
                 ${TF_PSA_CRYPTO_FRAMEWORK_DIR}/tests/src/test_keys.h
-            WORKING_DIRECTORY
-                ${MBEDTLS_DIR}/tests
             COMMAND
                 "${TF_PSA_CRYPTO_PYTHON_EXECUTABLE}"
                 "${TF_PSA_CRYPTO_FRAMEWORK_DIR}/scripts/generate_test_keys.py"
@@ -426,7 +424,7 @@ if(ENABLE_TESTING OR ENABLE_PROGRAMS)
     endif()
     target_include_directories(tf_psa_crypto_test
         PRIVATE ${TF_PSA_CRYPTO_FRAMEWORK_DIR}/tests/include
-        PRIVATE ${TF_PSA_CRYPTO_DIR}/tests/include
+        PRIVATE tests/include
         PRIVATE ${MBEDTLS_DIR}/include
         PRIVATE include
         PRIVATE drivers/builtin/include

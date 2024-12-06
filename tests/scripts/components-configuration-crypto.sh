@@ -2167,6 +2167,8 @@ component_test_ccm_aes_sha256 () {
 
     # Setting a blank config disables everyhing in the library side.
     echo '#define MBEDTLS_CONFIG_H ' >"$CONFIG_H"
+    cp configs/crypto-config-ccm-aes-sha256.h "$CRYPTO_CONFIG_H"
+
     make
     msg "test: CCM + AES + SHA256 configuration"
     make test

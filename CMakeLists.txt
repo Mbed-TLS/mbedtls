@@ -412,6 +412,41 @@ add_subdirectory(pkgconfig)
 # to define the test executables.
 #
 if(ENABLE_TESTING OR ENABLE_PROGRAMS)
+    file(GLOB MBEDTLS_TEST_FILES
+         ${MBEDTLS_FRAMEWORK_DIR}/tests/src/*.c
+         ${MBEDTLS_FRAMEWORK_DIR}/tests/src/drivers/*.c)
+    add_library(mbedtls_test OBJECT ${MBEDTLS_TEST_FILES})
+    set_base_compile_options(mbedtls_test)
+    if(GEN_FILES)
+        add_custom_command(
+            OUTPUT
+                ${MBEDTLS_FRAMEWORK_DIR}/tests/src/test_keys.h
+            COMMAND
+                "${MBEDTLS_PYTHON_EXECUTABLE}"
+                "${MBEDTLS_FRAMEWORK_DIR}/scripts/generate_test_keys.py"
+                "--output"
+                "${MBEDTLS_FRAMEWORK_DIR}/tests/src/test_keys.h"
+            DEPENDS
+                ${MBEDTLS_FRAMEWORK_DIR}/scripts/generate_test_keys.py
+        )
+        add_custom_target(mbedtls_test_keys_header
+            DEPENDS ${MBEDTLS_FRAMEWORK_DIR}/tests/src/test_keys.h)
+        add_dependencies(mbedtls_test mbedtls_test_keys_header)
+    endif()
+    target_include_directories(mbedtls_test
+        PRIVATE ${MBEDTLS_FRAMEWORK_DIR}/tests/include
+        PRIVATE tests/include
+        PRIVATE include
+        PRIVATE tf-psa-crypto/include
+        PRIVATE tf-psa-crypto/drivers/builtin/include
+        PRIVATE tf-psa-crypto/drivers/everest/include
+        PRIVATE library
+        PRIVATE tf-psa-crypto/core
+        PRIVATE tf-psa-crypto/drivers/builtin/src)
+    # Request C11, needed for memory poisoning tests
+    set_target_properties(mbedtls_test PROPERTIES C_STANDARD 11)
+    set_config_files_compile_definitions(mbedtls_test)
+
     file(GLOB MBEDTLS_TEST_HELPER_FILES
          tests/src/*.c tests/src/test_helpers/*.c)
     add_library(mbedtls_test_helpers OBJECT ${MBEDTLS_TEST_HELPER_FILES})

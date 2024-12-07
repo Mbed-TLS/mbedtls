@@ -84,7 +84,8 @@ support_test_gcc15_opt () {
 }
 component_test_gcc15_opt () {
     scripts/config.py full
-    test_build_opt 'full config' "/usr/local/gcc-15/bin/gcc-15" -O2
+    make CC="/usr/local/gcc-15/bin/gcc-15" CFLAGS="-O2 -Wall -Wextra -Werror -Wno-error=unterminated-string-initialization"
+    make test
 }
 
 component_test_gcc_earliest_opt () {

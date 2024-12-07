@@ -72,6 +72,21 @@ support_test_gcc_latest_opt () {
     type "$GCC_LATEST" >/dev/null 2>/dev/null
 }
 
+# Non-regression for https://github.com/Mbed-TLS/mbedtls/issues/9814 :
+# test with GCC 15 (initially, a snapshot, since GCC 15 isn't released yet
+# at the time of writing).
+# Eventually, $GCC_LATEST will be GCC 15 or above, and we can remove this
+# separate component.
+# For the time being, we don't make $GCC_LATEST be GCC 15 on the CI
+# platform, because that would break branches where #9814 isn'f fixed yet.
+support_test_gcc15_opt () {
+    test -x /usr/local/gcc-15/bin/gcc-15
+}
+component_test_gcc15_opt () {
+    scripts/config.py full
+    test_build_opt 'full config' "/usr/local/gcc-15/bin/gcc-15" -O2
+}
+
 component_test_gcc_earliest_opt () {
     scripts/config.py full
     test_build_opt 'full config' "$GCC_EARLIEST" -O2

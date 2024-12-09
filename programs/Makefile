@@ -29,6 +29,9 @@ endif
 ## be declared by appending with `APPS += ...` afterwards.
 ## See the get_app_list function in scripts/generate_visualc_files.pl and
 ## make sure to check that it still works if you tweak the format here.
+##
+## Note: Variables cannot be used to define an apps path. This cannot be
+## substituted by the script generate_visualc_files.pl.
 APPS = \
 	aes/crypt_and_hash \
 	cipher/cipher_aead_demo \
@@ -55,12 +58,12 @@ APPS = \
 	pkey/rsa_sign_pss \
 	pkey/rsa_verify \
 	pkey/rsa_verify_pss \
-	psa/aead_demo \
-	psa/crypto_examples \
-	psa/hmac_demo \
-	psa/key_ladder_demo \
-	psa/psa_constant_names \
-	psa/psa_hash \
+	../tf-psa-crypto/programs/psa/aead_demo \
+	../tf-psa-crypto/programs/psa/crypto_examples \
+	../tf-psa-crypto/programs/psa/hmac_demo \
+	../tf-psa-crypto/programs/psa/key_ladder_demo \
+	../tf-psa-crypto/programs/psa/psa_constant_names \
+	../tf-psa-crypto/programs/psa/psa_hash \
 	random/gen_entropy \
 	random/gen_random_ctr_drbg \
 	ssl/dtls_client \
@@ -132,13 +135,13 @@ ${MBEDTLS_TEST_OBJS}:
 GENERATED_FILES = psa/psa_constant_names_generated.c test/query_config.c
 generated_files: $(GENERATED_FILES)
 
-psa/psa_constant_names_generated.c: $(gen_file_dep) ../scripts/generate_psa_constants.py
+../tf-psa-crypto/psa/psa_constant_names_generated.c: $(gen_file_dep) ../tf-psa-crypto/scripts/generate_psa_constants.py
 psa/psa_constant_names_generated.c: $(gen_file_dep) ../tf-psa-crypto/include/psa/crypto_values.h
 psa/psa_constant_names_generated.c: $(gen_file_dep) ../tf-psa-crypto/include/psa/crypto_extra.h
 psa/psa_constant_names_generated.c: $(gen_file_dep) ../tf-psa-crypto/tests/suites/test_suite_psa_crypto_metadata.data
 psa/psa_constant_names_generated.c:
 	echo "  Gen   $@"
-	$(PYTHON) ../scripts/generate_psa_constants.py
+	cd ../tf-psa-crypto; $(PYTHON) ./scripts/generate_psa_constants.py
 
 test/query_config.c: $(gen_file_dep) ../scripts/generate_query_config.pl
 ## The generated file only depends on the options that are present in mbedtls_config.h,
@@ -252,29 +255,29 @@ pkey/rsa_encrypt$(EXEXT): pkey/rsa_encrypt.c $(DEP)
 	echo "  CC    pkey/rsa_encrypt.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) pkey/rsa_encrypt.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
-psa/aead_demo$(EXEXT): psa/aead_demo.c $(DEP)
+../tf-psa-crypto/programs/psa/aead_demo$(EXEXT): ../tf-psa-crypto/programs/psa/aead_demo.c $(DEP)
 	echo "  CC    psa/aead_demo.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) psa/aead_demo.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) ../tf-psa-crypto/programs/psa/aead_demo.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
-psa/crypto_examples$(EXEXT): psa/crypto_examples.c $(DEP)
+../tf-psa-crypto/programs/psa/crypto_examples$(EXEXT): ../tf-psa-crypto/programs/psa/crypto_examples.c $(DEP)
 	echo "  CC    psa/crypto_examples.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) psa/crypto_examples.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) ../tf-psa-crypto/programs/psa/crypto_examples.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
-psa/hmac_demo$(EXEXT): psa/hmac_demo.c $(DEP)
+../tf-psa-crypto/programs/psa/hmac_demo$(EXEXT): ../tf-psa-crypto/programs/psa/hmac_demo.c $(DEP)
 	echo "  CC    psa/hmac_demo.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) psa/hmac_demo.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) ../tf-psa-crypto/programs/psa/hmac_demo.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
-psa/key_ladder_demo$(EXEXT): psa/key_ladder_demo.c $(DEP)
+../tf-psa-crypto/programs/psa/key_ladder_demo$(EXEXT): ../tf-psa-crypto/programs/psa/key_ladder_demo.c $(DEP)
 	echo "  CC    psa/key_ladder_demo.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) psa/key_ladder_demo.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) ../tf-psa-crypto/programs/psa/key_ladder_demo.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
-psa/psa_constant_names$(EXEXT): psa/psa_constant_names.c psa/psa_constant_names_generated.c $(DEP)
+../tf-psa-crypto/programs/psa/psa_constant_names$(EXEXT): ../tf-psa-crypto/programs/psa/psa_constant_names.c psa/psa_constant_names_generated.c $(DEP)
 	echo "  CC    psa/psa_constant_names.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) psa/psa_constant_names.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) ../tf-psa-crypto/programs/psa/psa_constant_names.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
-psa/psa_hash$(EXEXT): psa/psa_hash.c $(DEP)
+../tf-psa-crypto/programs/psa/psa_hash$(EXEXT): ../tf-psa-crypto/programs/psa/psa_hash.c $(DEP)
 	echo "  CC    psa/psa_hash.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) psa/psa_hash.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) ../tf-psa-crypto/programs/psa/psa_hash.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 random/gen_entropy$(EXEXT): random/gen_entropy.c $(DEP)
 	echo "  CC    random/gen_entropy.c"

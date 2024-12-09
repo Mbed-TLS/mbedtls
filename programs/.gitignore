@@ -33,12 +33,6 @@ pkey/rsa_sign
 pkey/rsa_sign_pss
 pkey/rsa_verify
 pkey/rsa_verify_pss
-psa/aead_demo
-psa/crypto_examples
-psa/hmac_demo
-psa/key_ladder_demo
-psa/psa_constant_names
-psa/psa_hash
 random/gen_entropy
 random/gen_random_ctr_drbg
 ssl/dtls_client
@@ -75,7 +69,6 @@ x509/req_app
 
 ###START_GENERATED_FILES###
 # Generated source files
-/psa/psa_constant_names_generated.c
 /test/query_config.c
 
 # Generated data files

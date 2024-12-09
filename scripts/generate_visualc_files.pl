@@ -21,7 +21,9 @@ my $vsx_main_file = "$vsx_dir/mbedTLS.$vsx_ext";
 my $vsx_sln_tpl_file = "scripts/data_files/vs2017-sln-template.sln";
 my $vsx_sln_file = "$vsx_dir/mbedTLS.sln";
 
-my $programs_dir = 'programs';
+my $mbedtls_programs_dir = "programs";
+my $tfpsacrypto_programs_dir = "tf-psa-crypto/programs";
+
 my $mbedtls_header_dir = 'include/mbedtls';
 my $drivers_builtin_header_dir = 'tf-psa-crypto/drivers/builtin/include/mbedtls';
 my $psa_header_dir = 'tf-psa-crypto/include/psa';
@@ -122,7 +124,8 @@ sub check_dirs {
         && -d $test_header_dir
         && -d $tls_test_header_dir
         && -d $test_drivers_header_dir
-        && -d $programs_dir;
+        && -d $mbedtls_programs_dir
+        && -d $tfpsacrypto_programs_dir;
 }
 
 sub slurp_file {

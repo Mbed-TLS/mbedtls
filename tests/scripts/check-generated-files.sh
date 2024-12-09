@@ -140,6 +140,7 @@ check()
 # directory in Mbed TLS that is not just a TF-PSA-Crypto submodule.
 if [ -d tf-psa-crypto ]; then
     cd tf-psa-crypto
+    check scripts/generate_psa_constants.py ./programs/psa/psa_constant_names_generated.c
     check ../framework/scripts/generate_bignum_tests.py $(../framework/scripts/generate_bignum_tests.py --list)
     check ../framework/scripts/generate_config_tests.py tests/suites/test_suite_config.psa_boolean.data
     check ../framework/scripts/generate_ecp_tests.py $(../framework/scripts/generate_ecp_tests.py --list)
@@ -161,7 +162,6 @@ else
                                               ${crypto_core_dir}/psa_crypto_driver_wrappers_no_static.c
 fi
 
-check scripts/generate_psa_constants.py programs/psa/psa_constant_names_generated.c
 check framework/scripts/generate_test_keys.py framework/tests/src/test_keys.h
 
 # Additional checks for Mbed TLS only

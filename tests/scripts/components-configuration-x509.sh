@@ -11,9 +11,9 @@
 
 component_test_no_x509_info () {
     msg "build: full + MBEDTLS_X509_REMOVE_INFO" # ~ 10s
-    scripts/config.pl full
-    scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # too slow for tests
-    scripts/config.pl set MBEDTLS_X509_REMOVE_INFO
+    scripts/config.py full
+    scripts/config.py unset MBEDTLS_MEMORY_BACKTRACE # too slow for tests
+    scripts/config.py set MBEDTLS_X509_REMOVE_INFO
     make CFLAGS='-Werror -O2'
 
     msg "test: full + MBEDTLS_X509_REMOVE_INFO" # ~ 10s

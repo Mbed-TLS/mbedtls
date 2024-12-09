@@ -1676,6 +1676,8 @@ static psa_status_t psa_export_public_key_iop_abort_internal(psa_export_public_k
 
     status = mbedtls_psa_ecp_export_public_key_iop_abort(&operation->ctx);
 
+    memset(&operation->ctx, 0, sizeof(operation->ctx));
+
     operation->id = 0;
 
     return status;
@@ -1694,9 +1696,8 @@ psa_status_t psa_export_public_key_iop_setup(psa_export_public_key_iop_t *operat
 #if defined(MBEDTLS_ECP_RESTARTABLE)
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_status_t unlock_status = PSA_ERROR_CORRUPTION_DETECTED;
-    size_t key_size = 0;
-    psa_key_attributes_t private_key_attributes;
-    psa_key_type_t private_key_type;
+    psa_key_attributes_t key_attributes;
+    psa_key_type_t key_type;
     psa_key_slot_t *slot = NULL;
 
     if (operation->id != 0 || operation->error_occurred) {
@@ -1713,31 +1714,22 @@ psa_status_t psa_export_public_key_iop_setup(psa_export_public_key_iop_t *operat
         goto exit;
     }
 
-    private_key_attributes = slot->attr;
+    key_attributes = slot->attr;
 
-    private_key_type = psa_get_key_type(&private_key_attributes);
+    key_type = psa_get_key_type(&key_attributes);
 
-    if (!PSA_KEY_TYPE_IS_KEY_PAIR(private_key_type) &&
-        !PSA_KEY_TYPE_IS_PUBLIC_KEY(private_key_type)) {
+    if (!PSA_KEY_TYPE_IS_ASYMMETRIC(key_type)) {
         status = PSA_ERROR_INVALID_ARGUMENT;
         goto exit;
     }
 
-    if (!PSA_KEY_TYPE_IS_ECC_KEY_PAIR(private_key_type) &&
-        !PSA_KEY_TYPE_IS_ECC_PUBLIC_KEY(private_key_type)) {
-        status = PSA_ERROR_NOT_SUPPORTED;
-        goto exit;
-    }
-
-    key_size = PSA_EXPORT_KEY_OUTPUT_SIZE(private_key_type,
-                                          psa_get_key_bits(&private_key_attributes));
-    if (key_size == 0) {
+    if (!PSA_KEY_TYPE_IS_ECC(key_type)) {
         status = PSA_ERROR_NOT_SUPPORTED;
         goto exit;
     }
 
     status = mbedtls_psa_ecp_export_public_key_iop_setup(&operation->ctx, slot->key.data,
-                                                         slot->key.bytes, &private_key_attributes);
+                                                         slot->key.bytes, &key_attributes);
 
 exit:
     unlock_status = psa_unregister_read_under_mutex(slot);

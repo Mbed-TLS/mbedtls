@@ -666,17 +666,17 @@ psa_status_t mbedtls_psa_ecp_generate_key_iop_abort(
 
 psa_status_t mbedtls_psa_ecp_export_public_key_iop_setup(
     mbedtls_psa_export_public_key_iop_t *operation,
-    uint8_t *private_key,
-    size_t private_key_len,
-    const psa_key_attributes_t *private_key_attributes)
+    uint8_t *key,
+    size_t key_len,
+    const psa_key_attributes_t *key_attributes)
 {
-    int status = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
     status = mbedtls_psa_ecp_load_representation(
-        psa_get_key_type(private_key_attributes),
-        psa_get_key_bits(private_key_attributes),
-        private_key,
-        private_key_len,
+        psa_get_key_type(key_attributes),
+        psa_get_key_bits(key_attributes),
+        key,
+        key_len,
         &operation->key);
     if (status != PSA_SUCCESS) {
         goto exit;
@@ -695,25 +695,25 @@ psa_status_t mbedtls_psa_ecp_export_public_key_iop_complete(
     size_t pub_key_size,
     size_t *pub_key_len)
 {
-    int status = 0;
+    int ret = 0;
 
     if (mbedtls_ecp_is_zero(&operation->key->Q)) {
         mbedtls_psa_interruptible_set_max_ops(psa_interruptible_get_max_ops());
 
-        status = mbedtls_ecp_mul_restartable(&operation->key->grp, &operation->key->Q,
-                                             &operation->key->d, &operation->key->grp.G,
-                                             mbedtls_psa_get_random, MBEDTLS_PSA_RANDOM_STATE,
-                                             &operation->restart_ctx);
+        ret = mbedtls_ecp_mul_restartable(&operation->key->grp, &operation->key->Q,
+                                          &operation->key->d, &operation->key->grp.G,
+                                          mbedtls_psa_get_random, MBEDTLS_PSA_RANDOM_STATE,
+                                          &operation->restart_ctx);
         operation->num_ops += operation->restart_ctx.ops_done;
     }
 
-    if (status == 0) {
-        status = mbedtls_ecp_write_public_key((const mbedtls_ecp_keypair *) operation->key,
-                                              MBEDTLS_ECP_PF_UNCOMPRESSED, pub_key_len,
-                                              pub_key, pub_key_size);
+    if (ret == 0) {
+        ret = mbedtls_ecp_write_public_key(operation->key,
+                                           MBEDTLS_ECP_PF_UNCOMPRESSED, pub_key_len,
+                                           pub_key, pub_key_size);
     }
 
-    return mbedtls_to_psa_error(status);
+    return mbedtls_to_psa_error(ret);
 }
 
 psa_status_t mbedtls_psa_ecp_export_public_key_iop_abort(

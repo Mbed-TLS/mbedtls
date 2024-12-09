@@ -409,17 +409,17 @@ if(ENABLE_TESTING OR ENABLE_PROGRAMS)
     if(GEN_FILES)
         add_custom_command(
             OUTPUT
-                ${TF_PSA_CRYPTO_FRAMEWORK_DIR}/tests/src/test_keys.h
+                ${TF_PSA_CRYPTO_FRAMEWORK_DIR}/tests/include/test/test_keys.h
             COMMAND
                 "${TF_PSA_CRYPTO_PYTHON_EXECUTABLE}"
                 "${TF_PSA_CRYPTO_FRAMEWORK_DIR}/scripts/generate_test_keys.py"
                 "--output"
-                "${TF_PSA_CRYPTO_FRAMEWORK_DIR}/tests/src/test_keys.h"
+                "${TF_PSA_CRYPTO_FRAMEWORK_DIR}/tests/include/test/test_keys.h"
             DEPENDS
                 ${TF_PSA_CRYPTO_FRAMEWORK_DIR}/scripts/generate_test_keys.py
         )
         add_custom_target(tf_psa_crypto_test_keys_header
-            DEPENDS ${TF_PSA_CRYPTO_FRAMEWORK_DIR}/tests/src/test_keys.h)
+            DEPENDS ${TF_PSA_CRYPTO_FRAMEWORK_DIR}/tests/include/test/test_keys.h)
         add_dependencies(tf_psa_crypto_test tf_psa_crypto_test_keys_header)
     endif()
     target_include_directories(tf_psa_crypto_test

@@ -163,7 +163,7 @@ else
                                               ${crypto_core_dir}/psa_crypto_driver_wrappers_no_static.c
 fi
 
-check framework/scripts/generate_test_keys.py framework/tests/src/test_keys.h
+check framework/scripts/generate_test_keys.py framework/tests/include/test/test_keys.h
 
 # Additional checks for Mbed TLS only
 if in_mbedtls_repo; then

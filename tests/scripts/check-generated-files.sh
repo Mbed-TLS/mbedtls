@@ -150,6 +150,7 @@ if [ -d tf-psa-crypto ]; then
                                                             ${crypto_core_dir}/psa_crypto_driver_wrappers_no_static.c
     check framework/scripts/generate_config_tests.py tests/suites/test_suite_config.mbedtls_boolean.data
 else
+    check scripts/generate_psa_constants.py ./programs/psa/psa_constant_names_generated.c
     check framework/scripts/generate_bignum_tests.py $(framework/scripts/generate_bignum_tests.py --list)
     if in_tf_psa_crypto_repo; then
         check framework/scripts/generate_config_tests.py tests/suites/test_suite_config.psa_boolean.data

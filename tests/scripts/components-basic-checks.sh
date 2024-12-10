@@ -11,7 +11,7 @@
 
 component_check_recursion () {
     msg "Check: recursion.pl" # < 1s
-    tests/scripts/recursion.pl library/*.c
+    ./framework/scripts/recursion.pl library/*.c
 }
 
 component_check_generated_files () {
@@ -36,7 +36,7 @@ component_check_generated_files () {
 
 component_check_doxy_blocks () {
     msg "Check: doxygen markup outside doxygen blocks" # < 1s
-    tests/scripts/check-doxy-blocks.pl
+    ./framework/scripts/check-doxy-blocks.pl
 }
 
 component_check_files () {
@@ -47,7 +47,7 @@ component_check_files () {
 component_check_changelog () {
     msg "Check: changelog entries" # < 1s
     rm -f ChangeLog.new
-    scripts/assemble_changelog.py -o ChangeLog.new
+    ./framework/scripts/assemble_changelog.py -o ChangeLog.new
     if [ -e ChangeLog.new ]; then
         # Show the diff for information. It isn't an error if the diff is
         # non-empty.
@@ -132,7 +132,7 @@ component_check_test_dependencies () {
 
 component_check_doxygen_warnings () {
     msg "Check: doxygen warnings (builds the documentation)" # ~ 3s
-    tests/scripts/doxygen.sh
+    ./framework/scripts/doxygen.sh
 }
 
 component_check_code_style () {
@@ -149,7 +149,7 @@ support_check_code_style () {
 
 component_check_python_files () {
     msg "Lint: Python scripts"
-    tests/scripts/check-python-files.sh
+    ./framework/scripts/check-python-files.sh
 }
 
 component_check_test_helpers () {

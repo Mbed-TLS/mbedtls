@@ -2437,6 +2437,58 @@ exit:
 /* Message digests */
 /****************************************************************/
 
+static int is_hash_supported(psa_algorithm_t alg)
+{
+    switch (alg) {
+#if defined(PSA_WANT_ALG_MD5)
+        case PSA_ALG_MD5:
+            return 1;
+#endif
+#if defined(PSA_WANT_ALG_RIPEMD160)
+        case PSA_ALG_RIPEMD160:
+            return 1;
+#endif
+#if defined(PSA_WANT_ALG_SHA_1)
+        case PSA_ALG_SHA_1:
+            return 1;
+#endif
+#if defined(PSA_WANT_ALG_SHA_224)
+        case PSA_ALG_SHA_224:
+            return 1;
+#endif
+#if defined(PSA_WANT_ALG_SHA_256)
+        case PSA_ALG_SHA_256:
+            return 1;
+#endif
+#if defined(PSA_WANT_ALG_SHA_384)
+        case PSA_ALG_SHA_384:
+            return 1;
+#endif
+#if defined(PSA_WANT_ALG_SHA_512)
+        case PSA_ALG_SHA_512:
+            return 1;
+#endif
+#if defined(PSA_WANT_ALG_SHA3_224)
+        case PSA_ALG_SHA3_224:
+            return 1;
+#endif
+#if defined(PSA_WANT_ALG_SHA3_256)
+        case PSA_ALG_SHA3_256:
+            return 1;
+#endif
+#if defined(PSA_WANT_ALG_SHA3_384)
+        case PSA_ALG_SHA3_384:
+            return 1;
+#endif
+#if defined(PSA_WANT_ALG_SHA3_512)
+        case PSA_ALG_SHA3_512:
+            return 1;
+#endif
+        default:
+            return 0;
+    }
+}
+
 psa_status_t psa_hash_abort(psa_hash_operation_t *operation)
 {
     /* Aborting a non-active operation is allowed */
@@ -3080,16 +3132,44 @@ static psa_status_t psa_sign_verify_check_alg(int input_is_message,
         if (!PSA_ALG_IS_SIGN_MESSAGE(alg)) {
             return PSA_ERROR_INVALID_ARGUMENT;
         }
+    }
 
-        if (PSA_ALG_IS_SIGN_HASH(alg)) {
-            if (!PSA_ALG_IS_HASH(PSA_ALG_SIGN_GET_HASH(alg))) {
-                return PSA_ERROR_INVALID_ARGUMENT;
-            }
-        }
-    } else {
-        if (!PSA_ALG_IS_SIGN_HASH(alg)) {
-            return PSA_ERROR_INVALID_ARGUMENT;
-        }
+    psa_algorithm_t hash_alg = 0;
+    if (PSA_ALG_IS_SIGN_HASH(alg)) {
+        hash_alg = PSA_ALG_SIGN_GET_HASH(alg);
+    }
+
+    /* Now hash_alg==0 if alg by itself doesn't need a hash.
+     * This is good enough for sign-hash, but a guaranteed failure for
+     * sign-message which needs to hash first for all algorithms
+     * supported at the moment. */
+
+    if (hash_alg == 0 && input_is_message) {
+        return PSA_ERROR_INVALID_ARGUMENT;
+    }
+    if (hash_alg == PSA_ALG_ANY_HASH) {
+        return PSA_ERROR_INVALID_ARGUMENT;
+    }
+    /* Give up immediately if the hash is not supported. This has
+     * several advantages:
+     * - For mechanisms that don't use the hash at all (e.g.
+     *   ECDSA verification, randomized ECDSA signature), without
+     *   this check, the operation would succeed even though it has
+     *   been given an invalid argument. This would not be insecure
+     *   since the hash was not necessary, but it would be weird.
+     * - For mechanisms that do use the hash, we avoid an error
+     *   deep inside the execution. In principle this doesn't matter,
+     *   but there is a little more risk of a bug in error handling
+     *   deep inside than in this preliminary check.
+     * - When calling a driver, the driver might be capable of using
+     *   a hash that the core doesn't support. This could potentially
+     *   result in a buffer overflow if the hash is larger than the
+     *   maximum hash size assumed by the core.
+     * - Returning a consistent error makes it possible to test
+     *   not-supported hashes in a consistent way.
+     */
+    if (hash_alg != 0 && !is_hash_supported(hash_alg)) {
+        return PSA_ERROR_NOT_SUPPORTED;
     }
 
     return PSA_SUCCESS;
@@ -3970,6 +4050,34 @@ uint32_t mbedtls_psa_verify_hash_get_num_ops(
         * defined( MBEDTLS_ECP_RESTARTABLE ) */
 }
 
+/* Detect supported interruptible sign/verify mechanisms precisely.
+ * This is not strictly needed: we could accept everything, and let the
+ * code fail later during complete() if the mechanism is unsupported
+ * (e.g. attempting deterministic ECDSA when only the randomized variant
+ * is available). But it's easier for applications and especially for our
+ * test code to detect all not-supported errors during start().
+ *
+ * Note that this function ignores the hash component. The core code
+ * is supposed to check the hash part by calling is_hash_supported().
+ */
+static inline int can_do_interruptible_sign_verify(psa_algorithm_t alg)
+{
+#if defined(MBEDTLS_ECP_RESTARTABLE)
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA)
+    if (PSA_ALG_IS_DETERMINISTIC_ECDSA(alg)) {
+        return 1;
+    }
+#endif
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA)
+    if (PSA_ALG_IS_RANDOMIZED_ECDSA(alg)) {
+        return 1;
+    }
+#endif
+#endif /* defined(MBEDTLS_ECP_RESTARTABLE) */
+    (void) alg;
+    return 0;
+}
+
 psa_status_t mbedtls_psa_sign_hash_start(
     mbedtls_psa_sign_hash_interruptible_operation_t *operation,
     const psa_key_attributes_t *attributes, const uint8_t *key_buffer,
@@ -3983,7 +4091,7 @@ psa_status_t mbedtls_psa_sign_hash_start(
         return PSA_ERROR_NOT_SUPPORTED;
     }
 
-    if (!PSA_ALG_IS_ECDSA(alg)) {
+    if (!can_do_interruptible_sign_verify(alg)) {
         return PSA_ERROR_NOT_SUPPORTED;
     }
 
@@ -4199,7 +4307,7 @@ psa_status_t mbedtls_psa_verify_hash_start(
         return PSA_ERROR_NOT_SUPPORTED;
     }
 
-    if (!PSA_ALG_IS_ECDSA(alg)) {
+    if (!can_do_interruptible_sign_verify(alg)) {
         return PSA_ERROR_NOT_SUPPORTED;
     }
 

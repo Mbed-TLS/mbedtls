@@ -575,12 +575,10 @@ psa_status_t mbedtls_to_psa_error(int ret)
  *                              input), in case the caller doesn't check the
  *                              return status properly.
  *
- * \param output_buffer         Pointer to buffer to wipe. May not be NULL
- *                              unless \p output_buffer_size is zero.
+ * \param output_buffer         Pointer to buffer to wipe. May be NULL.
  * \param status                Status of function called to generate
  *                              output_buffer originally
- * \param output_buffer_size    Size of output buffer. If zero, \p output_buffer
- *                              could be NULL.
+ * \param output_buffer_size    Size of output buffer.
  * \param output_buffer_length  Length of data written to output_buffer, must be
  *                              less than \p output_buffer_size
  */
@@ -589,9 +587,8 @@ static void psa_wipe_tag_output_buffer(uint8_t *output_buffer, psa_status_t stat
 {
     size_t offset = 0;
 
-    if (output_buffer_size == 0) {
-        /* If output_buffer_size is 0 then we have nothing to do. We must not
-           call memset because output_buffer may be NULL in this case */
+    if (output_buffer_size == 0  ||  output_buffer == NULL) {
+        /* In either case, we have nothing to do. */
         return;
     }
 
@@ -2897,9 +2894,7 @@ exit:
         operation->mac_size = 0;
     }
 
-    if (mac != NULL) {
-        psa_wipe_tag_output_buffer(mac, status, mac_size, *mac_length);
-    }
+    psa_wipe_tag_output_buffer(mac, status, mac_size, *mac_length);
 
     abort_status = psa_mac_abort(operation);
     LOCAL_OUTPUT_FREE(mac_external, mac);
@@ -3740,10 +3735,8 @@ psa_status_t psa_sign_hash_complete(
 
 exit:
 
-    if (signature != NULL) {
-        psa_wipe_tag_output_buffer(signature, status, signature_size,
-                                   *signature_length);
-    }
+    psa_wipe_tag_output_buffer(signature, status, signature_size,
+                               *signature_length);
 
     if (status != PSA_OPERATION_INCOMPLETE) {
         if (status != PSA_SUCCESS) {

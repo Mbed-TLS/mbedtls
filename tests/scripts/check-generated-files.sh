@@ -32,9 +32,11 @@ if in_mbedtls_repo; then
         crypto_core_dir='library'
         builtin_drivers_dir='library'
     fi
+    MBEDTLS_FRAMEWORK_DIR="$PWD/framework"
 elif in_tf_psa_crypto_repo; then
     crypto_core_dir='core'
     builtin_drivers_dir='drivers/builtin/src/'
+    MBEDTLS_FRAMEWORK_DIR="$PWD/../framework"
 else
     echo "Must be run from Mbed TLS root or TF-PSA-Crypto root" >&2
     exit 1
@@ -138,34 +140,36 @@ check()
 
 # The first case is temporary for the hybrid situation with a tf-psa-crypto
 # directory in Mbed TLS that is not just a TF-PSA-Crypto submodule.
-if [ -d tf-psa-crypto ]; then
-    cd tf-psa-crypto
+check_tf_psa_crypto()
+{
     check scripts/generate_psa_constants.py ./programs/psa/psa_constant_names_generated.c
-    check ../framework/scripts/generate_bignum_tests.py $(../framework/scripts/generate_bignum_tests.py --list)
-    check ../framework/scripts/generate_config_tests.py tests/suites/test_suite_config.psa_boolean.data
-    check ../framework/scripts/generate_ecp_tests.py $(../framework/scripts/generate_ecp_tests.py --list)
-    check ../framework/scripts/generate_psa_tests.py $(../framework/scripts/generate_psa_tests.py --list)
-    cd ..
-    check tf-psa-crypto/scripts/generate_driver_wrappers.py ${crypto_core_dir}/psa_crypto_driver_wrappers.h \
-                                                            ${crypto_core_dir}/psa_crypto_driver_wrappers_no_static.c
-    check framework/scripts/generate_config_tests.py tests/suites/test_suite_config.mbedtls_boolean.data
-else
+    check ${MBEDTLS_FRAMEWORK_DIR}/scripts/generate_bignum_tests.py $(${MBEDTLS_FRAMEWORK_DIR}/scripts/generate_bignum_tests.py --list)
+    check ${MBEDTLS_FRAMEWORK_DIR}/scripts/generate_config_tests.py tests/suites/test_suite_config.psa_boolean.data
+    check ${MBEDTLS_FRAMEWORK_DIR}/scripts/generate_ecp_tests.py $(${MBEDTLS_FRAMEWORK_DIR}/scripts/generate_ecp_tests.py --list)
+    check ${MBEDTLS_FRAMEWORK_DIR}/scripts/generate_psa_tests.py $(${MBEDTLS_FRAMEWORK_DIR}/scripts/generate_psa_tests.py --list)
+    check scripts/generate_driver_wrappers.py ${crypto_core_dir}/psa_crypto_driver_wrappers.h \
+                                              ${crypto_core_dir}/psa_crypto_driver_wrappers_no_static.c
+    check ${MBEDTLS_FRAMEWORK_DIR}/scripts/generate_config_tests.py tests/suites/test_suite_config.mbedtls_boolean.data
+    # Generated files that are present in the repository even in the development
+    # branch. (This is intended to be temporary, until the generator scripts are
+    # fully reviewed and the build scripts support a generated header file.)
+    check ${MBEDTLS_FRAMEWORK_DIR}/scripts/generate_psa_wrappers.py tests/include/test/psa_test_wrappers.h tests/src/psa_test_wrappers.c
+}
+
+check_mbedtls()
+{
+    # TF-PSA-Crypto does not exist run additional checks.
+    if [ ! -d tf-psa-crypto ]; then
     check framework/scripts/generate_bignum_tests.py $(framework/scripts/generate_bignum_tests.py --list)
-    if in_tf_psa_crypto_repo; then
-        check framework/scripts/generate_config_tests.py tests/suites/test_suite_config.psa_boolean.data
-    else
-        check framework/scripts/generate_config_tests.py tests/suites/test_suite_config.mbedtls_boolean.data
-    fi
+    check framework/scripts/generate_config_tests.py tests/suites/test_suite_config.mbedtls_boolean.data
     check framework/scripts/generate_ecp_tests.py $(framework/scripts/generate_ecp_tests.py --list)
     check framework/scripts/generate_psa_tests.py $(framework/scripts/generate_psa_tests.py --list)
     check scripts/generate_driver_wrappers.py ${crypto_core_dir}/psa_crypto_driver_wrappers.h \
                                               ${crypto_core_dir}/psa_crypto_driver_wrappers_no_static.c
-fi
+    fi
 
-check framework/scripts/generate_test_keys.py framework/tests/src/test_keys.h
-
-# Additional checks for Mbed TLS only
-if in_mbedtls_repo; then
+    check framework/scripts/generate_test_keys.py framework/tests/src/test_keys.h
+    # Additional checks for Mbed TLS only
     check scripts/generate_errors.pl library/error.c
     check scripts/generate_query_config.pl programs/test/query_config.c
     check scripts/generate_features.pl library/version_features.c
@@ -176,9 +180,10 @@ if in_mbedtls_repo; then
     # care about their content, but the files must exist. So it must run after
     # the step that creates or updates these files.
     check scripts/generate_visualc_files.pl visualc/VS2017
-fi
+}
 
-# Generated files that are present in the repository even in the development
-# branch. (This is intended to be temporary, until the generator scripts are
-# fully reviewed and the build scripts support a generated header file.)
-check framework/scripts/generate_psa_wrappers.py tf-psa-crypto/tests/include/test/psa_test_wrappers.h tf-psa-crypto/tests/src/psa_test_wrappers.c
+if in_mbedtls_repo; then
+    check_mbedtls
+else
+  check_tf_psa_crypto
+fi

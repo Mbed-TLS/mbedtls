@@ -94,6 +94,8 @@ visualc_files: $(VISUALC_FILES)
 # present before it runs. It doesn't matter if the files aren't up-to-date,
 # they just need to be present.
 $(VISUALC_FILES): | library/generated_files
+$(VISUALC_FILES): | programs/generated_files
+$(VISUALC_FILES): | tests/generated_files
 $(VISUALC_FILES): $(gen_file_dep) scripts/generate_visualc_files.pl
 $(VISUALC_FILES): $(gen_file_dep) scripts/data_files/vs2017-app-template.vcxproj
 $(VISUALC_FILES): $(gen_file_dep) scripts/data_files/vs2017-main-template.vcxproj

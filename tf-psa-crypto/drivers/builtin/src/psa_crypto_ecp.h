@@ -123,7 +123,7 @@ psa_status_t mbedtls_psa_ecp_export_public_key(
 /**
  * \brief Setup a new interruptible export public-key operation.
  *
- *  \param[in] operation                 The \c mbedtls_psa_export_public_key_iop_operation_t to use.
+ *  \param[in] operation                 The \c mbedtls_psa_export_public_key_iop_t to use.
  *                                       This must be initialized first.
  *  \param[in] private_key               pointer to private key.
  *  \param[in] private_key_len           size of \p private_key in bytes.
@@ -142,21 +142,46 @@ psa_status_t mbedtls_psa_ecp_export_public_key(
  *
  */
 psa_status_t mbedtls_psa_ecp_export_public_key_iop_setup(
-    mbedtls_psa_export_public_key_iop_operation_t *operation,
+    mbedtls_psa_export_public_key_iop_t *operation,
     uint8_t *private_key,
     size_t private_key_len,
     const psa_key_attributes_t *private_key_attributes);
 
+
+/**
+ * \brief Continue and eventually complete an export public-key operation.
+ *
+ * \param[in] operation                  The \c mbedtls_psa_export_public_key_iop_t to use.
+ *                                       This must be initialized first and
+ *                                       had \c mbedtls_psa_ecp_export_public_key_iop_setup()
+ *                                       called successfully.
+ * \param[out] pub_key                   Buffer where the public key data is to be written.
+ * \param[in]  pub_key_size              Size of the \p pub_key buffer in bytes.
+ * \param[out] pub_key_len               On success, the number of bytes that make up the public key data.
+ *
+ * \retval #PSA_SUCCESS
+ *         The key was exported successfully.
+ * \retval #PSA_ERROR_INVALID_ARGUMENT \emptydescription
+ * \retval #PSA_ERROR_BUFFER_TOO_SMALL \emptydescription
+ * \retval #PSA_ERROR_NOT_SUPPORTED \emptydescription
+ *
+ */
+psa_status_t mbedtls_psa_ecp_export_public_key_iop_complete(
+    mbedtls_psa_export_public_key_iop_t *operation,
+    uint8_t *pub_key,
+    size_t pub_key_size,
+    size_t *pub_key_len);
+
 /**
  * \brief Abort an interruptible export public-key operation.
  *
- * \param[in] operation               The \c mbedtls_psa_export_public_key_iop_operation_t to abort.
+ * \param[in] operation               The \c mbedtls_psa_export_public_key_iop_t to abort.
  *
  * \retval #PSA_SUCCESS
  *         The operation was aborted successfully.
  */
 psa_status_t mbedtls_psa_ecp_export_public_key_iop_abort(
-    mbedtls_psa_export_public_key_iop_operation_t *operation);
+    mbedtls_psa_export_public_key_iop_t *operation);
 
 /**
  * \brief Generate an ECP key.

@@ -177,7 +177,7 @@
 #define MBEDTLS_MD_ALG_FOR_TEST         MBEDTLS_MD_SHA512
 #endif
 
-#include <../src/test_keys.h>
+#include <test/test_keys.h>
 
 /* Define an RSA key size we know it's present in predefined_key[] array. */
 #define RSA_KEY_SIZE   1024

@@ -412,41 +412,71 @@ add_subdirectory(pkgconfig)
 # to define the test executables.
 #
 if(ENABLE_TESTING OR ENABLE_PROGRAMS)
-    file(GLOB MBEDTLS_TEST_HELPER_FILES
-         ${CMAKE_CURRENT_SOURCE_DIR}/tests/src/*.c
-         ${CMAKE_CURRENT_SOURCE_DIR}/tests/src/test_helpers/*.c)
-    add_library(mbedtls_test_helpers OBJECT ${MBEDTLS_TEST_HELPER_FILES})
-    set_base_compile_options(mbedtls_test_helpers)
-
+    file(GLOB MBEDTLS_TEST_FILES
+         ${MBEDTLS_FRAMEWORK_DIR}/tests/src/*.c
+         ${MBEDTLS_FRAMEWORK_DIR}/tests/src/drivers/*.c)
+    add_library(mbedtls_test OBJECT ${MBEDTLS_TEST_FILES})
+    set_base_compile_options(mbedtls_test)
     if(GEN_FILES)
         add_custom_command(
             OUTPUT
-                ${MBEDTLS_DIR}/tests/src/test_certs.h
-            WORKING_DIRECTORY
-                ${MBEDTLS_DIR}/tests
+                ${MBEDTLS_FRAMEWORK_DIR}/tests/src/test_keys.h
+            COMMAND
+                "${MBEDTLS_PYTHON_EXECUTABLE}"
+                "${MBEDTLS_FRAMEWORK_DIR}/scripts/generate_test_keys.py"
+                "--output"
+                "${MBEDTLS_FRAMEWORK_DIR}/tests/src/test_keys.h"
+            DEPENDS
+                ${MBEDTLS_FRAMEWORK_DIR}/scripts/generate_test_keys.py
+        )
+        add_custom_target(mbedtls_test_keys_header
+            DEPENDS ${MBEDTLS_FRAMEWORK_DIR}/tests/src/test_keys.h)
+        add_dependencies(mbedtls_test mbedtls_test_keys_header)
+    endif()
+    target_include_directories(mbedtls_test
+        PRIVATE ${MBEDTLS_FRAMEWORK_DIR}/tests/include
+        PRIVATE tests/include
+        PRIVATE include
+        PRIVATE tf-psa-crypto/include
+        PRIVATE tf-psa-crypto/drivers/builtin/include
+        PRIVATE tf-psa-crypto/drivers/everest/include
+        PRIVATE library
+        PRIVATE tf-psa-crypto/core
+        PRIVATE tf-psa-crypto/drivers/builtin/src)
+    # Request C11, needed for memory poisoning tests
+    set_target_properties(mbedtls_test PROPERTIES C_STANDARD 11)
+    set_config_files_compile_definitions(mbedtls_test)
+
+    file(GLOB MBEDTLS_TEST_HELPER_FILES
+         tests/src/*.c tests/src/test_helpers/*.c)
+    add_library(mbedtls_test_helpers OBJECT ${MBEDTLS_TEST_HELPER_FILES})
+    set_base_compile_options(mbedtls_test_helpers)
+    if(GEN_FILES)
+        add_custom_command(
+            OUTPUT
+                ${CMAKE_CURRENT_SOURCE_DIR}/tests/src/test_certs.h
             COMMAND
                 "${MBEDTLS_PYTHON_EXECUTABLE}"
                 "${MBEDTLS_FRAMEWORK_DIR}/scripts/generate_test_cert_macros.py"
                 "--output"
-                "${MBEDTLS_DIR}/tests/src/test_certs.h"
+                "${CMAKE_CURRENT_SOURCE_DIR}/tests/src/test_certs.h"
             DEPENDS
                 ${MBEDTLS_FRAMEWORK_DIR}/scripts/generate_test_cert_macros.py
         )
         add_custom_target(mbedtls_test_certs_header
-            DEPENDS ${MBEDTLS_DIR}/tests/src/test_certs.h)
+            DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/tests/src/test_certs.h)
         add_dependencies(mbedtls_test_helpers mbedtls_test_certs_header)
     endif()
-
     target_include_directories(mbedtls_test_helpers
-        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/framework/tests/include
-        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tests/include
-        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include
-        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tf-psa-crypto/include
-        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tf-psa-crypto/drivers/builtin/include
-        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/library
-        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tf-psa-crypto/core
-        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tf-psa-crypto/drivers/builtin/src
-        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tf-psa-crypto/drivers/everest/include)
+        PRIVATE ${MBEDTLS_FRAMEWORK_DIR}/tests/include
+        PRIVATE tests/include
+        PRIVATE include
+        PRIVATE tf-psa-crypto/include
+        PRIVATE tf-psa-crypto/drivers/builtin/include
+        PRIVATE library
+        PRIVATE tf-psa-crypto/core
+        PRIVATE tf-psa-crypto/drivers/builtin/src
+        PRIVATE tf-psa-crypto/drivers/everest/include)
 
     set_config_files_compile_definitions(mbedtls_test_helpers)
 endif()

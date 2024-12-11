@@ -82,7 +82,7 @@ foreach(exe IN LISTS executables_libs executables_mbedcrypto)
             ${CMAKE_CURRENT_SOURCE_DIR}/query_config.h
             ${CMAKE_CURRENT_BINARY_DIR}/query_config.c)
     endif()
-    add_executable(${exe} ${exe}.c $<TARGET_OBJECTS:tf_psa_crypto_test>
+    add_executable(${exe} ${exe}.c $<TARGET_OBJECTS:mbedtls_test>
         ${extra_sources})
     set_base_compile_options(${exe})
     target_include_directories(${exe}

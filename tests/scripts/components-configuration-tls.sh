@@ -13,16 +13,7 @@ component_test_config_suite_b () {
     msg "build: configs/config-suite-b.h"
     MBEDTLS_CONFIG="configs/config-suite-b.h"
     CRYPTO_CONFIG="configs/crypto-config-suite-b.h"
-    # test-ref-configs works by overwriting mbedtls_config.h; this makes cmake
-    # want to re-generate generated files that depend on it, quite correctly.
-    # However this doesn't work as the generation script expects a specific
-    # format for mbedtls_config.h, which the other files don't follow. Also,
-    # cmake can't know this, but re-generation is actually not necessary as
-    # the generated files only depend on the list of available options, not
-    # whether they're on or off. So, disable cmake's (over-sensitive here)
-    # dependency resolution for generated files and just rely on them being
-    # present (thanks to pre_generate_files) by turning GEN_FILES off.
-    CC=$ASAN_CC cmake -D GEN_FILES=Off -DMBEDTLS_CONFIG_FILE="$MBEDTLS_CONFIG" -DTF_PSA_CRYPTO_CONFIG_FILE="$CRYPTO_CONFIG" -D CMAKE_BUILD_TYPE:String=Asan .
+    CC=$ASAN_CC cmake -DMBEDTLS_CONFIG_FILE="$MBEDTLS_CONFIG" -DTF_PSA_CRYPTO_CONFIG_FILE="$CRYPTO_CONFIG" -D CMAKE_BUILD_TYPE:String=Asan .
     make
 
     msg "test: configs/config-suite-b.h - unit tests"
@@ -161,16 +152,7 @@ component_test_config_thread () {
     msg "build: configs/config-thread.h"
     MBEDTLS_CONFIG="configs/config-thread.h"
     CRYPTO_CONFIG="configs/crypto-config-thread.h"
-    # test-ref-configs works by overwriting mbedtls_config.h; this makes cmake
-    # want to re-generate generated files that depend on it, quite correctly.
-    # However this doesn't work as the generation script expects a specific
-    # format for mbedtls_config.h, which the other files don't follow. Also,
-    # cmake can't know this, but re-generation is actually not necessary as
-    # the generated files only depend on the list of available options, not
-    # whether they're on or off. So, disable cmake's (over-sensitive here)
-    # dependency resolution for generated files and just rely on them being
-    # present (thanks to pre_generate_files) by turning GEN_FILES off.
-    CC=$ASAN_CC cmake -D GEN_FILES=Off -DMBEDTLS_CONFIG_FILE="$MBEDTLS_CONFIG" -DTF_PSA_CRYPTO_CONFIG_FILE="$CRYPTO_CONFIG" -D CMAKE_BUILD_TYPE:String=Asan .
+    CC=$ASAN_CC cmake -DMBEDTLS_CONFIG_FILE="$MBEDTLS_CONFIG" -DTF_PSA_CRYPTO_CONFIG_FILE="$CRYPTO_CONFIG" -D CMAKE_BUILD_TYPE:String=Asan .
     make
 
     msg "test: configs/config-thread.h - unit tests"
@@ -184,16 +166,7 @@ component_test_tls1_2_ccm_psk () {
     msg "build: configs/config-ccm-psk-tls1_2.h"
     MBEDTLS_CONFIG="configs/config-ccm-psk-tls1_2.h"
     CRYPTO_CONFIG="configs/crypto-config-ccm-psk-tls1_2.h"
-    # test-ref-configs works by overwriting mbedtls_config.h; this makes cmake
-    # want to re-generate generated files that depend on it, quite correctly.
-    # However this doesn't work as the generation script expects a specific
-    # format for mbedtls_config.h, which the other files don't follow. Also,
-    # cmake can't know this, but re-generation is actually not necessary as
-    # the generated files only depend on the list of available options, not
-    # whether they're on or off. So, disable cmake's (over-sensitive here)
-    # dependency resolution for generated files and just rely on them being
-    # present (thanks to pre_generate_files) by turning GEN_FILES off.
-    CC=$ASAN_CC cmake -D GEN_FILES=Off -DMBEDTLS_CONFIG_FILE="$MBEDTLS_CONFIG" -DTF_PSA_CRYPTO_CONFIG_FILE="$CRYPTO_CONFIG" -D CMAKE_BUILD_TYPE:String=Asan .
+    CC=$ASAN_CC cmake -DMBEDTLS_CONFIG_FILE="$MBEDTLS_CONFIG" -DTF_PSA_CRYPTO_CONFIG_FILE="$CRYPTO_CONFIG" -D CMAKE_BUILD_TYPE:String=Asan .
     make
 
     msg "test: configs/config-ccm-psk-tls1_2.h - unit tests"
@@ -207,16 +180,7 @@ component_test_tls1_2_ccm_psk_dtls () {
     msg "build: configs/config-ccm-psk-dtls1_2.h"
     MBEDTLS_CONFIG="configs/config-ccm-psk-dtls1_2.h"
     CRYPTO_CONFIG="configs/crypto-config-ccm-psk-tls1_2.h"
-    # test-ref-configs works by overwriting mbedtls_config.h; this makes cmake
-    # want to re-generate generated files that depend on it, quite correctly.
-    # However this doesn't work as the generation script expects a specific
-    # format for mbedtls_config.h, which the other files don't follow. Also,
-    # cmake can't know this, but re-generation is actually not necessary as
-    # the generated files only depend on the list of available options, not
-    # whether they're on or off. So, disable cmake's (over-sensitive here)
-    # dependency resolution for generated files and just rely on them being
-    # present (thanks to pre_generate_files) by turning GEN_FILES off.
-    CC=$ASAN_CC cmake -D GEN_FILES=Off -DMBEDTLS_CONFIG_FILE="$MBEDTLS_CONFIG" -DTF_PSA_CRYPTO_CONFIG_FILE="$CRYPTO_CONFIG" -D CMAKE_BUILD_TYPE:String=Asan .
+    CC=$ASAN_CC cmake -DMBEDTLS_CONFIG_FILE="$MBEDTLS_CONFIG" -DTF_PSA_CRYPTO_CONFIG_FILE="$CRYPTO_CONFIG" -D CMAKE_BUILD_TYPE:String=Asan .
     make
 
     msg "test: configs/config-ccm-psk-dtls1_2.h - unit tests"
@@ -463,6 +427,8 @@ component_test_tls13_only () {
     msg "build: default config without MBEDTLS_SSL_PROTO_TLS1_2"
     scripts/config.py set MBEDTLS_SSL_EARLY_DATA
     scripts/config.py set MBEDTLS_SSL_RECORD_SIZE_LIMIT
+
+    scripts/config.py set MBEDTLS_TEST_HOOKS
     make CFLAGS="'-DMBEDTLS_USER_CONFIG_FILE=\"../tests/configs/tls13-only.h\"'"
 
     msg "test: TLS 1.3 only, all key exchange modes enabled"
@@ -482,6 +448,7 @@ component_test_tls13_only_psk () {
     scripts/config.py unset MBEDTLS_PKCS7_C
     scripts/config.py set   MBEDTLS_SSL_EARLY_DATA
 
+    scripts/config.py set MBEDTLS_TEST_HOOKS
     scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_ALG_ECDH
     scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_ALG_ECDSA
     scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_ALG_DETERMINISTIC_ECDSA
@@ -518,6 +485,8 @@ component_test_tls13_only_ephemeral () {
     scripts/config.py unset MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
     scripts/config.py unset MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
     scripts/config.py unset MBEDTLS_SSL_EARLY_DATA
+
+    scripts/config.py set MBEDTLS_TEST_HOOKS
     make CFLAGS="'-DMBEDTLS_USER_CONFIG_FILE=\"../tests/configs/tls13-only.h\"'"
 
     msg "test_suite_ssl: TLS 1.3 only, only ephemeral key exchange mode"
@@ -533,6 +502,7 @@ component_test_tls13_only_ephemeral_ffdh () {
     scripts/config.py unset MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
     scripts/config.py unset MBEDTLS_SSL_EARLY_DATA
 
+    scripts/config.py set MBEDTLS_TEST_HOOKS
     scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_ALG_ECDH
     # Note: The unset below is to be removed for Mbed TLS 4.0
     scripts/config.py unset MBEDTLS_ECDH_C
@@ -556,6 +526,7 @@ component_test_tls13_only_psk_ephemeral () {
     scripts/config.py unset MBEDTLS_PKCS7_C
     scripts/config.py set   MBEDTLS_SSL_EARLY_DATA
 
+    scripts/config.py set MBEDTLS_TEST_HOOKS
     scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_ALG_ECDSA
     scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_ALG_DETERMINISTIC_ECDSA
     scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_ALG_RSA_OAEP
@@ -583,6 +554,7 @@ component_test_tls13_only_psk_ephemeral_ffdh () {
     scripts/config.py unset MBEDTLS_PKCS7_C
     scripts/config.py set   MBEDTLS_SSL_EARLY_DATA
 
+    scripts/config.py set MBEDTLS_TEST_HOOKS
     scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_ALG_ECDH
     scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_ALG_ECDSA
     scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_ALG_DETERMINISTIC_ECDSA
@@ -611,6 +583,7 @@ component_test_tls13_only_psk_all () {
     scripts/config.py unset MBEDTLS_PKCS7_C
     scripts/config.py set   MBEDTLS_SSL_EARLY_DATA
 
+    scripts/config.py set MBEDTLS_TEST_HOOKS
     scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_ALG_ECDSA
     scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_ALG_DETERMINISTIC_ECDSA
     scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_ALG_RSA_OAEP
@@ -632,6 +605,8 @@ component_test_tls13_only_ephemeral_all () {
     msg "build: TLS 1.3 only from default, without PSK key exchange mode"
     scripts/config.py unset MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
     scripts/config.py set   MBEDTLS_SSL_EARLY_DATA
+
+    scripts/config.py set MBEDTLS_TEST_HOOKS
     make CFLAGS="'-DMBEDTLS_USER_CONFIG_FILE=\"../tests/configs/tls13-only.h\"'"
 
     msg "test_suite_ssl: TLS 1.3 only, ephemeral and PSK ephemeral key exchange modes"

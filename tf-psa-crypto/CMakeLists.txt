@@ -428,6 +428,12 @@ if(ENABLE_TESTING OR ENABLE_PROGRAMS)
             DEPENDS ${TF_PSA_CRYPTO_FRAMEWORK_DIR}/tests/include/test/test_keys.h)
         add_dependencies(tf_psa_crypto_test tf_psa_crypto_test_keys_header)
     endif()
+
+    file(WRITE
+        ${CMAKE_CURRENT_BINARY_DIR}/tests/seedfile
+        "This is a seedfile that contains 64 bytes ......................"
+    )
+
     target_include_directories(tf_psa_crypto_test
         PRIVATE ${TF_PSA_CRYPTO_FRAMEWORK_DIR}/tests/include
         PRIVATE tests/include

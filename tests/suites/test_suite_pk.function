@@ -181,7 +181,7 @@
 #define MBEDTLS_MD_ALG_FOR_TEST         MBEDTLS_MD_SHA512
 #endif
 
-#include <../src/test_keys.h>
+#include <test/test_keys.h>
 
 /* Define an RSA key size we know it's present in predefined_key[] array. */
 #define RSA_KEY_SIZE   1024
@@ -243,7 +243,7 @@ static psa_status_t pk_psa_import_key(const unsigned char *key_data, size_t key_
 
 /** Setup the provided PK context.
  *
- * Predefined keys used for the setup are taken from "test/src/test_keys.h"
+ * Predefined keys used for the setup are taken from <test/test_keys.h>
  * which is automatically generated using "framework/scripts/generate_test_keys.py".
  *
  * \param pk               The PK object to fill. It must  have been initialized

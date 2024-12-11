@@ -126,7 +126,7 @@ check framework/scripts/generate_bignum_tests.py $(framework/scripts/generate_bi
 check framework/scripts/generate_config_tests.py $(framework/scripts/generate_config_tests.py --list)
 check framework/scripts/generate_ecp_tests.py $(framework/scripts/generate_ecp_tests.py --list)
 check framework/scripts/generate_psa_tests.py $(framework/scripts/generate_psa_tests.py --list)
-check framework/scripts/generate_test_keys.py framework/tests/src/test_keys.h
+check framework/scripts/generate_test_keys.py framework/tests/include/test/test_keys.h
 check scripts/generate_driver_wrappers.py $library_dir/psa_crypto_driver_wrappers.h $library_dir/psa_crypto_driver_wrappers_no_static.c
 
 # Additional checks for Mbed TLS only

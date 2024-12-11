@@ -31,3 +31,14 @@ component_test_tf_psa_crypto_cmake_as_subdirectory () {
     make
     ./cmake_subproject
 }
+
+component_tf_psa_crypto_check_generated_files () {
+    msg "Check: check-generated-files, files generated with cmake" # 2s
+    cmake -D CMAKE_BUILD_TYPE:String=Check -D GEN_FILES=ON "$TF_PSA_CRYPTO_ROOT_DIR"
+    tests/scripts/check-generated-files.sh
+
+    msg "Check: check-generated-files -u, files present" # 2s
+    tests/scripts/check-generated-files.sh -u
+    # Check that the generated files are considered up to date.
+    tests/scripts/check-generated-files.sh
+}

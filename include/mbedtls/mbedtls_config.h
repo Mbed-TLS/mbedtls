@@ -89,8 +89,8 @@
 /**
  * \name SECTION: General configuration options
  *
- * This section sets configuration options
- * that do not belong in any of the other categories.
+ * This section contains Mbed TLS build settings that are not associated
+ * with a particular module.
  * \{
  */
 
@@ -186,7 +186,8 @@
 /**
  * \name SECTION: TLS feature selection
  *
- * This section sets TLS options.
+ * This section sets support for features that are or are not needed
+ * within the modules that are enabled.
  * \{
  */
 
@@ -1147,20 +1148,16 @@
  */
 //#define MBEDTLS_SSL_TLS1_3_TICKET_AGE_TOLERANCE 6000
 
+/**
+ * \def MBEDTLS_SSL_TLS1_3_TICKET_NONCE_LENGTH
+ *
+ * Size in bytes of a ticket nonce. This is not used in TLS 1.2.
+ *
+ * This must be less than 256.
+ */
+//#define MBEDTLS_SSL_TLS1_3_TICKET_NONCE_LENGTH 32
+
 /** \} name SECTION: TLS feature selection */
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 /**
  * \name SECTION: X.509 feature selection
@@ -1336,69 +1333,3 @@
 //#define MBEDTLS_X509_MAX_INTERMEDIATE_CA   8   /**< Maximum number of intermediate CAs in a verification chain. */
 
 /** \} name SECTION: X.509 feature selection */
-
-/**
- * \name SECTION: Mbed TLS feature support
- *
- * This section sets support for features that are or are not needed
- * within the modules that are enabled.
- * \{
- */
-
-/** \} name SECTION: Mbed TLS feature support */
-
-/**
- * \name SECTION: Mbed TLS modules
- *
- * This section enables or disables entire modules in Mbed TLS
- * \{
- */
-
-/** \} name SECTION: Mbed TLS modules */
-
-/**
- * \name SECTION: General configuration options
- *
- * This section contains Mbed TLS build settings that are not associated
- * with a particular module.
- *
- * \{
- */
-
-
-
-/** \} name SECTION: General configuration options */
-
-/**
- * \name SECTION: Module configuration options
- *
- * This section allows for the setting of module specific sizes and
- * configuration options. The default values are already present in the
- * relevant header files and should suffice for the regular use cases.
- *
- * Our advice is to enable options and change their values here
- * only if you have a good reason and know the consequences.
- * \{
- */
-/* The Doxygen documentation here is used when a user comments out a
- * setting and runs doxygen themselves. On the other hand, when we typeset
- * the full documentation including disabled settings, the documentation
- * in specific modules' header files is used if present. When editing this
- * file, make sure that each option is documented in exactly one place,
- * plus optionally a same-line Doxygen comment here if there is a Doxygen
- * comment in the specific module. */
-
-/* SSL Cache options */
-
-
-
-/* SSL options */
-
-
-
-
-
-
-
-/* X509 options */
-/** \} name SECTION: Module configuration options */

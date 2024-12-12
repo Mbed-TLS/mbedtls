@@ -31,3 +31,12 @@ component_test_tf_psa_crypto_cmake_as_subdirectory () {
     make
     ./cmake_subproject
 }
+
+component_test_tf_psa_crypto_cmake_as_package_install () {
+    msg "build: cmake 'as-installed-package' build"
+    cd programs/test/cmake_package_install
+    # Note: Explicitly generate files as these are turned off in releases
+    cmake .
+    make
+    ./cmake_package_install
+}

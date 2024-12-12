@@ -150,11 +150,17 @@ else()
         set(TF_PSA_CRYPTO_PYTHON_EXECUTABLE ${PYTHON_EXECUTABLE})
     endif()
 endif()
-if(TF_PSA_CRYPTO_PYTHON_EXECUTABLE)
 
+if(TF_PSA_CRYPTO_PYTHON_EXECUTABLE)
     # If 128-bit keys are configured for CTR_DRBG, display an appropriate warning
-    execute_process(COMMAND ${TF_PSA_CRYPTO_PYTHON_EXECUTABLE} ${MBEDTLS_DIR}/scripts/config.py -f ${MBEDTLS_DIR}/include/mbedtls/mbedtls_config.h get MBEDTLS_CTR_DRBG_USE_128_BIT_KEY
-                        RESULT_VARIABLE result)
+    execute_process(
+        COMMAND
+            ${TF_PSA_CRYPTO_PYTHON_EXECUTABLE} ${TF_PSA_CRYPTO_DIR}/scripts/config.py
+            -f ${TF_PSA_CRYPTO_DIR}/include/psa/crypto_config.h
+            get MBEDTLS_CTR_DRBG_USE_128_BIT_KEY
+        RESULT_VARIABLE
+            result
+    )
     if(${result} EQUAL 0)
         message(WARNING ${CTR_DRBG_128_BIT_KEY_WARNING})
     endif()
@@ -422,10 +428,15 @@ if(ENABLE_TESTING OR ENABLE_PROGRAMS)
             DEPENDS ${TF_PSA_CRYPTO_FRAMEWORK_DIR}/tests/include/test/test_keys.h)
         add_dependencies(tf_psa_crypto_test tf_psa_crypto_test_keys_header)
     endif()
+
+    file(WRITE
+        ${CMAKE_CURRENT_BINARY_DIR}/tests/seedfile
+        "This is a seedfile that contains 64 bytes ......................"
+    )
+
     target_include_directories(tf_psa_crypto_test
         PRIVATE ${TF_PSA_CRYPTO_FRAMEWORK_DIR}/tests/include
         PRIVATE tests/include
-        PRIVATE ${MBEDTLS_DIR}/include
         PRIVATE include
         PRIVATE drivers/builtin/include
         PRIVATE drivers/everest/include

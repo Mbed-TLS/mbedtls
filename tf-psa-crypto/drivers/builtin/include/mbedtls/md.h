@@ -17,7 +17,7 @@
 
 #include <stddef.h>
 
-#include "mbedtls/build_info.h"
+#include "tf-psa-crypto/build_info.h"
 #include "mbedtls/platform_util.h"
 
 /** The selected feature is not available. */

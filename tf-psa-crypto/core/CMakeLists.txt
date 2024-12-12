@@ -132,8 +132,7 @@ foreach(target IN LISTS target_libraries)
     # ${MBEDTLS_DIR}/include/ as we still need it. Include private header files
     # from core/ and drivers/builtin/src/.
     target_include_directories(${target}
-        PUBLIC $<BUILD_INTERFACE:${MBEDTLS_DIR}/include/>
-               $<BUILD_INTERFACE:${TF_PSA_CRYPTO_DIR}/include/>
+        PUBLIC $<BUILD_INTERFACE:${TF_PSA_CRYPTO_DIR}/include/>
                $<BUILD_INTERFACE:${TF_PSA_CRYPTO_DIR}/drivers/builtin/include/>
                $<INSTALL_INTERFACE:include/>
         PRIVATE ${TF_PSA_CRYPTO_DIR}/core

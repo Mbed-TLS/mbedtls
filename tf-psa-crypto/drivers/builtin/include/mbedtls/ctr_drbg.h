@@ -30,7 +30,7 @@
 #define MBEDTLS_CTR_DRBG_H
 #include "mbedtls/private_access.h"
 
-#include "mbedtls/build_info.h"
+#include "tf-psa-crypto/build_info.h"
 
 /* The CTR_DRBG implementation can either directly call the low-level AES
  * module (gated by MBEDTLS_AES_C) or call the PSA API to perform AES

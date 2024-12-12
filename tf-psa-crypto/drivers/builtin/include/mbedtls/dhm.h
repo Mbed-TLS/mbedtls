@@ -52,7 +52,7 @@
 #define MBEDTLS_DHM_H
 #include "mbedtls/private_access.h"
 
-#include "mbedtls/build_info.h"
+#include "tf-psa-crypto/build_info.h"
 #include "mbedtls/bignum.h"
 
 /*

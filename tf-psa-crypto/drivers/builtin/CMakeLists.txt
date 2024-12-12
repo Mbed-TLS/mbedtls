@@ -84,7 +84,6 @@ foreach (target IN LISTS target_libraries)
     target_include_directories(${target}
       PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-             $<BUILD_INTERFACE:${MBEDTLS_DIR}/include>
              $<BUILD_INTERFACE:${TF_PSA_CRYPTO_DIR}/include>
       PRIVATE ${TF_PSA_CRYPTO_DIR}/core)
     set_config_files_compile_definitions(${target})

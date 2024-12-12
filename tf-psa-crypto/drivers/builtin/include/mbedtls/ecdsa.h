@@ -19,7 +19,7 @@
 #define MBEDTLS_ECDSA_H
 #include "mbedtls/private_access.h"
 
-#include "mbedtls/build_info.h"
+#include "tf-psa-crypto/build_info.h"
 
 #include "mbedtls/ecp.h"
 #include "mbedtls/md.h"

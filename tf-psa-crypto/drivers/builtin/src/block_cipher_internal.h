@@ -11,7 +11,7 @@
 #ifndef MBEDTLS_BLOCK_CIPHER_INTERNAL_H
 #define MBEDTLS_BLOCK_CIPHER_INTERNAL_H
 
-#include "mbedtls/build_info.h"
+#include "tf-psa-crypto/build_info.h"
 
 #include "mbedtls/cipher.h"
 

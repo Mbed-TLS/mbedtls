@@ -14,6 +14,8 @@
 #ifndef MBEDTLS_BUILD_INFO_H
 #define MBEDTLS_BUILD_INFO_H
 
+#include "tf-psa-crypto/build_info.h"
+
 /*
  * This set of compile-time defines can be used to determine the version number
  * of the Mbed TLS library used. Run-time variables for the same can be found in
@@ -37,70 +39,6 @@
 #define MBEDTLS_VERSION_STRING         "4.0.0"
 #define MBEDTLS_VERSION_STRING_FULL    "Mbed TLS 4.0.0"
 
-/* Macros for build-time platform detection */
-
-#if !defined(MBEDTLS_ARCH_IS_ARM64) && \
-    (defined(__aarch64__) || defined(_M_ARM64) || defined(_M_ARM64EC))
-#define MBEDTLS_ARCH_IS_ARM64
-#endif
-
-#if !defined(MBEDTLS_ARCH_IS_ARM32) && \
-    (defined(__arm__) || defined(_M_ARM) || \
-    defined(_M_ARMT) || defined(__thumb__) || defined(__thumb2__))
-#define MBEDTLS_ARCH_IS_ARM32
-#endif
-
-#if !defined(MBEDTLS_ARCH_IS_X64) && \
-    (defined(__amd64__) || defined(__x86_64__) || \
-    ((defined(_M_X64) || defined(_M_AMD64)) && !defined(_M_ARM64EC)))
-#define MBEDTLS_ARCH_IS_X64
-#endif
-
-#if !defined(MBEDTLS_ARCH_IS_X86) && \
-    (defined(__i386__) || defined(_X86_) || \
-    (defined(_M_IX86) && !defined(_M_I86)))
-#define MBEDTLS_ARCH_IS_X86
-#endif
-
-#if !defined(MBEDTLS_PLATFORM_IS_WINDOWS_ON_ARM64) && \
-    (defined(_M_ARM64) || defined(_M_ARM64EC))
-#define MBEDTLS_PLATFORM_IS_WINDOWS_ON_ARM64
-#endif
-
-/* This is defined if the architecture is Armv8-A, or higher */
-#if !defined(MBEDTLS_ARCH_IS_ARMV8_A)
-#if defined(__ARM_ARCH) && defined(__ARM_ARCH_PROFILE)
-#if (__ARM_ARCH >= 8) && (__ARM_ARCH_PROFILE == 'A')
-/* GCC, clang, armclang and IAR */
-#define MBEDTLS_ARCH_IS_ARMV8_A
-#endif
-#elif defined(__ARM_ARCH_8A)
-/* Alternative defined by clang */
-#define MBEDTLS_ARCH_IS_ARMV8_A
-#elif defined(_M_ARM64) || defined(_M_ARM64EC)
-/* MSVC ARM64 is at least Armv8.0-A */
-#define MBEDTLS_ARCH_IS_ARMV8_A
-#endif
-#endif
-
-#if defined(__GNUC__) && !defined(__ARMCC_VERSION) && !defined(__clang__) \
-    && !defined(__llvm__) && !defined(__INTEL_COMPILER)
-/* Defined if the compiler really is gcc and not clang, etc */
-#define MBEDTLS_COMPILER_IS_GCC
-#define MBEDTLS_GCC_VERSION \
-    (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)
-#endif
-
-#if defined(_MSC_VER) && !defined(_CRT_SECURE_NO_DEPRECATE)
-#define _CRT_SECURE_NO_DEPRECATE 1
-#endif
-
-/* Define `inline` on some non-C99-compliant compilers. */
-#if (defined(__ARMCC_VERSION) || defined(_MSC_VER)) && \
-    !defined(inline) && !defined(__cplusplus)
-#define inline __inline
-#endif
-
 #if defined(MBEDTLS_CONFIG_FILES_READ)
 #error "Something went wrong: MBEDTLS_CONFIG_FILES_READ defined before reading the config files!"
 #endif
@@ -108,7 +46,7 @@
 #error "Something went wrong: MBEDTLS_CONFIG_IS_FINALIZED defined before reading the config files!"
 #endif
 
-/* X.509, TLS and non-PSA crypto configuration */
+/* X.509 and TLS configuration */
 #if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/mbedtls_config.h"
 #else
@@ -130,47 +68,11 @@
 #include MBEDTLS_USER_CONFIG_FILE
 #endif
 
-/* PSA crypto configuration */
-#if defined(TF_PSA_CRYPTO_CONFIG_FILE)
-#include TF_PSA_CRYPTO_CONFIG_FILE
-#else
-#include "psa/crypto_config.h"
-#endif
-#if defined(TF_PSA_CRYPTO_USER_CONFIG_FILE)
-#include TF_PSA_CRYPTO_USER_CONFIG_FILE
-#endif
-
 /* Indicate that all configuration files have been read.
  * It is now time to adjust the configuration (follow through on dependencies,
  * make PSA and legacy crypto consistent, etc.).
  */
 #define MBEDTLS_CONFIG_FILES_READ
-
-/* Auto-enable MBEDTLS_CTR_DRBG_USE_128_BIT_KEY if
- * MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH and MBEDTLS_CTR_DRBG_C defined
- * to ensure a 128-bit key size in CTR_DRBG.
- */
-#if defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH) && defined(MBEDTLS_CTR_DRBG_C)
-#define MBEDTLS_CTR_DRBG_USE_128_BIT_KEY
-#endif
-
-/* Auto-enable MBEDTLS_MD_C if needed by a module that didn't require it
- * in a previous release, to ensure backwards compatibility.
- */
-#if defined(MBEDTLS_PKCS5_C)
-#define MBEDTLS_MD_C
-#endif
-
-/* PSA crypto specific configuration options
- * - If config_psa.h reads a configuration option in preprocessor directive,
- *   this symbol should be set before its inclusion. (e.g. MBEDTLS_MD_C)
- * - If config_psa.h writes a configuration option in conditional directive,
- *   this symbol should be consulted after its inclusion.
- *   (e.g. MBEDTLS_MD_LIGHT)
- */
-#include "mbedtls/config_psa.h"
-
-#include "mbedtls/config_adjust_legacy_crypto.h"
 
 #include "mbedtls/config_adjust_x509.h"
 

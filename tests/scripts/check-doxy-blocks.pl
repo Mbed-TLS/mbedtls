@@ -16,7 +16,8 @@ use strict;
 use File::Basename;
 
 # C/header files in the following directories will be checked
-my @directories = qw(include/mbedtls library doxygen/input);
+my @mbedtls_directories = qw(include/mbedtls library doxygen/input);
+my @tf_psa_crypto_directories = qw(include/psa drivers core doxygen/input);
 
 # very naive pattern to find directives:
 # everything with a backslach except '\0' and backslash at EOL
@@ -53,13 +54,18 @@ sub check_dir {
     }
 }
 
+open my $project_file, "scripts/project_name.txt" or die "This script must be run from Mbed TLS or TF-PSA-Crypto root directory";
+my $project = <$project_file>;
+my @directories;
+
+if ($project eq "TF-PSA-Crypto") {
+    @directories = @tf_psa_crypto_directories
+} elsif ($project eq "Mbed TLS") {
+    @directories = @mbedtls_directories
+}
 # Check that the script is being run from the project's root directory.
 for my $dir (@directories) {
-    if (! -d $dir) {
-        die "This script must be run from the Mbed TLS root directory";
-    } else {
-        check_dir($dir)
-    }
+    check_dir($dir)
 }
 
 exit $exit_code;

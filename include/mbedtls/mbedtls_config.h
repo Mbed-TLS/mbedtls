@@ -22,6 +22,43 @@
 //#define MBEDTLS_CONFIG_VERSION 0x03000000
 
 /**
+ * \name SECTION: Platform abstraction layer
+ *
+ * This section sets platform specific settings.
+ * \{
+ */
+
+/** \} name SECTION: Platform abstraction layer */
+
+/**
+ * \name SECTION: General configuration options
+ *
+ * This section sets configuration options
+ * that do not belong in any of the other categories.
+ * \{
+ */
+
+/** \} name SECTION: General configuration options */
+
+/**
+ * \name SECTION: TLS feature selection
+ *
+ * This section sets TLS options.
+ * \{
+ */
+
+/** \} name SECTION: TLS feature selection */
+
+/**
+ * \name SECTION: X.509 feature selection
+ *
+ * This section sets Certificate related options.
+ * \{
+ */
+
+/** \} name SECTION: X.509 feature selection */
+
+/**
  * \name SECTION: Mbed TLS feature support
  *
  * This section sets support for features that are or are not needed

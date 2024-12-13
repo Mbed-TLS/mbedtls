@@ -7,9 +7,10 @@
 
 # Abort on errors (and uninitialised variables)
 set -eu
+. $MBEDTLS_FRAMEWORK_DIR/scripts/project_detection.sh
 
-if [ -d library -a -d include -a -d tests ]; then :; else
-    echo "Must be run from Mbed TLS root" >&2
+if in_mbedtls_repo | in_tf_psa_crypto_repo then :; else
+    echo "Must be run from Mbed TLS root or TF-PSA-Crypto root" >&2
     exit 1
 fi
 

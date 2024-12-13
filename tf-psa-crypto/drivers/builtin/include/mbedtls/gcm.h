@@ -317,6 +317,11 @@ int mbedtls_gcm_update(mbedtls_gcm_context *ctx,
  *                  It wraps up the GCM stream, and generates the
  *                  tag. The tag can have a maximum length of 16 Bytes.
  *
+ * \warning         To verify the tag, call this function, then use
+ *                  mbedtls_ct_memcmp() to compare the actual tag
+ *                  with the expected tag. Do not use memcmp():
+ *                  that would be vulnerable to timing attacks.
+ *
  * \param ctx       The GCM context. This must be initialized.
  * \param tag       The buffer for holding the tag. This must be a writable
  *                  buffer of at least \p tag_len Bytes.

@@ -987,6 +987,9 @@ int mbedtls_cipher_finish(mbedtls_cipher_context_t *ctx,
  *                      Currently supported with GCM and ChaCha20+Poly1305.
  *                      This must be called after mbedtls_cipher_finish().
  *
+ * \warning             When decrypting, call mbedtls_cipher_check_tag()
+ *                      instead of this function.
+ *
  * \param ctx           The generic cipher context. This must be initialized,
  *                      bound to a key, and have just completed a cipher
  *                      operation through mbedtls_cipher_finish() the tag for

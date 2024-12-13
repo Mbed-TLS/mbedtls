@@ -165,6 +165,11 @@ int mbedtls_cipher_cmac_reset(mbedtls_cipher_context_t *ctx);
  *                      The CMAC result is calculated as
  *                      output = generic CMAC(cmac key, input buffer).
  *
+ * \warning             To verify a MAC, call this function, then use
+ *                      mbedtls_ct_memcmp() to compare the actual MAC
+ *                      with the expected MAC. Do not use memcmp():
+ *                      that would be vulnerable to timing attacks.
+ *
  * \param cipher_info   The cipher information.
  * \param key           The CMAC key.
  * \param keylen        The length of the CMAC key in bits.

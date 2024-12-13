@@ -40,6 +40,10 @@ typedef enum {
     MBEDTLS_SHA3_256, /*!< SHA3-256 */
     MBEDTLS_SHA3_384, /*!< SHA3-384 */
     MBEDTLS_SHA3_512, /*!< SHA3-512 */
+    MBEDTLS_SHA3_SHAKE128, /*!< SHA3-SHAKE128 */
+    MBEDTLS_SHA3_SHAKE256, /*!< SHA3-SHAKE256 */
+    MBEDTLS_SHA3_CSHAKE128, /*!< SHA3-CSHAKE128 */
+    MBEDTLS_SHA3_CSHAKE256, /*!< SHA3-CSHAKE256 */
 } mbedtls_sha3_id;
 
 /**
@@ -52,6 +56,8 @@ typedef struct {
     uint32_t MBEDTLS_PRIVATE(index);
     uint16_t MBEDTLS_PRIVATE(olen);
     uint16_t MBEDTLS_PRIVATE(max_block_size);
+    uint8_t MBEDTLS_PRIVATE(finished);
+    mbedtls_sha3_id MBEDTLS_PRIVATE(id);
 }
 mbedtls_sha3_context;
 
@@ -93,14 +99,60 @@ void mbedtls_sha3_clone(mbedtls_sha3_context *dst,
 int mbedtls_sha3_starts(mbedtls_sha3_context *ctx, mbedtls_sha3_id id);
 
 /**
+ * \brief          This function starts a SHA-3 checksum
+ *                 calculation with function-name and customization strings.
+ *
+ * \param ctx      The context to use. This must be initialized.
+ * \param id       The id of the SHA-3 family. It can be \c MBEDTLS_SHA3_CSHAKE128 or
+ *                 \c MBEDTLS_SHA3_CSHAKE256.
+ * \param name     The function-name string.
+ * \param name_len The length of \c name in bytes (not counting any terminating \c NUL character).
+ * \param custom   The customization string.
+ * \param custom_len The length of \c custom in bytes (not counting any terminating \c NUL character).
+ *
+ * \return         \c 0 on success.
+ * \return         A negative error code on failure.
+ *
+ * \note           If no name and no custom strings are provided (are \c NULL),
+ *                 it is equivalent to mbedtls_sha3_starts().
+ */
+int mbedtls_sha3_starts_cshake(mbedtls_sha3_context *ctx,
+                               mbedtls_sha3_id id,
+                               const char *name, size_t name_len,
+                               const char *custom, size_t custom_len);
+
+/**
+ * \brief          This function starts a SHA-3 checksum calculation for KMAC
+ *                 with key and customization strings.
+ *
+ * \param ctx      The context to use. This must be initialized.
+ * \param id       The id of the SHA-3 family. It must be \c MBEDTLS_SHA3_CSHAKE128 or
+ *                 \c MBEDTLS_SHA3_CSHAKE256.
+ * \param key      The key buffer.
+ * \param key_len  The length of \c key in bytes.
+ * \param custom   The customization string.
+ * \param custom_len The length of \c custom in bytes (not counting any terminating \c NUL character).
+ *
+ * \return         \c 0 on success.
+ * \return         A negative error code on failure.
+ *
+ * \note           If no name and no custom strings are provided (are \c NULL),
+ *                 it is equivalent to mbedtls_sha3_starts().
+ */
+int mbedtls_sha3_starts_kmac(mbedtls_sha3_context *ctx,
+                             mbedtls_sha3_id id,
+                             const uint8_t *key, size_t key_len,
+                             const char *custom, size_t custom_len);
+
+/**
  * \brief          This function feeds an input buffer into an ongoing
  *                 SHA-3 checksum calculation.
  *
  * \param ctx      The SHA-3 context. This must be initialized
  *                 and have a hash operation started.
  * \param input    The buffer holding the data. This must be a readable
- *                 buffer of length \p ilen Bytes.
- * \param ilen     The length of the input data in Bytes.
+ *                 buffer of length \p ilen bytes.
+ * \param ilen     The length of the input data in bytes.
  *
  * \return         \c 0 on success.
  * \return         A negative error code on failure.
@@ -118,14 +170,33 @@ int mbedtls_sha3_update(mbedtls_sha3_context *ctx,
  * \param output   The SHA-3 checksum result.
  *                 This must be a writable buffer of length \c olen bytes.
  * \param olen     Defines the length of output buffer (in bytes). For SHA-3 224, SHA-3 256,
- *                 SHA-3 384 and SHA-3 512 \c olen must equal to 28, 32, 48 and 64,
- *                 respectively.
+ *                 SHA-3 384 and SHA-3 512 \c olen must be at least 28, 32, 48 or 64 bytes,
+ *                 respectively. For SHAKE128, SHAKE256, CSHAKE128 and CSHAKE256 the buffer
+ *                 will be filled up to \c olen bytes.
  *
  * \return         \c 0 on success.
  * \return         A negative error code on failure.
  */
 int mbedtls_sha3_finish(mbedtls_sha3_context *ctx,
                         uint8_t *output, size_t olen);
+
+/**
+ * \brief          This function finishes the SHA-3 KMAC operation, and writes
+ *                 the result to the output buffer.
+ *
+ * \param ctx      The SHA-3 context. This must be initialized
+ *                 and have a hash operation started.
+ * \param output   The SHA-3 checksum result.
+ *                 This must be a writable buffer of length \c olen bytes.
+ * \param olen     Defines the length of output buffer (in bytes). For CSHAKE128 and CSHAKE256
+ *                 the buffer will be filled up to \c olen bytes.
+ * \param xof      \c 1 performs KMAC XOF operation or \c 0 does not perform XOF.
+ *
+ * \return         \c 0 on success.
+ * \return         A negative error code on failure.
+ */
+int mbedtls_sha3_finish_kmac(mbedtls_sha3_context *ctx,
+                             uint8_t *output, size_t olen, int xof);
 
 /**
  * \brief          This function calculates the SHA-3
@@ -139,13 +210,14 @@ int mbedtls_sha3_finish(mbedtls_sha3_context *ctx,
  *
  * \param id       The id of the SHA-3 family.
  * \param input    The buffer holding the data. This must be a readable
- *                 buffer of length \p ilen Bytes.
- * \param ilen     The length of the input data in Bytes.
+ *                 buffer of length \p ilen bytes.
+ * \param ilen     The length of the input data in bytes.
  * \param output   The SHA-3 checksum result.
  *                 This must be a writable buffer of length \c olen bytes.
  * \param olen     Defines the length of output buffer (in bytes). For SHA-3 224, SHA-3 256,
- *                 SHA-3 384 and SHA-3 512 \c olen must equal to 28, 32, 48 and 64,
- *                 respectively.
+ *                 SHA-3 384 and SHA-3 512 \c olen must be at least 28, 32, 48 or 64 bytes,
+ *                 respectively. For SHAKE128 and SHAKE256, the buffer will be filled up to
+ *                 \c olen bytes.
  *
  * \return         \c 0 on success.
  * \return         A negative error code on failure.
@@ -154,6 +226,79 @@ int mbedtls_sha3(mbedtls_sha3_id id, const uint8_t *input,
                  size_t ilen,
                  uint8_t *output,
                  size_t olen);
+
+/**
+ * \brief          This function calculates the SHA-3
+ *                 checksum of a buffer with function-name and customization
+ *                 strings.
+ *
+ *                 The function allocates the context, performs the
+ *                 calculation, and frees the context.
+ *
+ *                 The SHA-3 result is calculated as
+ *                 output = SHA-3(id, name || customization || input buffer, d).
+ *
+ * \param id       The id of the SHA-3 family. It can be \c MBEDTLS_SHA3_CSHAKE128 or
+ *                 \c MBEDTLS_SHA3_CSHAKE256.
+ * \param input    The buffer holding the data. This must be a readable
+ *                 buffer of length \p ilen bytes.
+ * \param ilen     The length of the input data in bytes.
+ * \param name     The function-name string.
+ * \param name_len The length of \c name in bytes (not counting any terminating \c NUL character).
+ * \param custom   The customization string.
+ * \param custom_len The length of \c custom in bytes (not counting any terminating \c NUL character).
+ * \param output   The SHA-3 checksum result.
+ *                 This must be a writable buffer of length \c olen bytes.
+ * \param olen     Defines the length of output buffer (in bytes). For CSHAKE128 and
+ *                 CSHAKE256 the buffer will be filled up to \c olen bytes.
+ *
+ * \return         \c 0 on success.
+ * \return         A negative error code on failure.
+ *
+ * \note           If no name and no custom strings are provided (are \c NULL),
+ *                 it is equivalent to mbedtls_sha3().
+ */
+int mbedtls_sha3_cshake(mbedtls_sha3_id id, const uint8_t *input,
+                        size_t ilen, const char *name, size_t name_len,
+                        const char *custom, size_t custom_len,
+                        uint8_t *output, size_t olen);
+
+/**
+ * \brief          This function calculates the SHA-3 KMAC
+ *                 checksum of a buffer with a key and customization
+ *                 strings.
+ *
+ *                 The function allocates the context, performs the
+ *                 calculation, and frees the context.
+ *
+ *                 The SHA-3 result is calculated as
+ *                 output = SHA-3(id, key || customization || input buffer, d).
+ *
+ * \param id       The id of the SHA-3 family. It must be \c MBEDTLS_SHA3_CSHAKE128 or
+ *                 \c MBEDTLS_SHA3_CSHAKE256.
+ * \param input    The buffer holding the data. This must be a readable
+ *                 buffer of length \p ilen bytes.
+ * \param ilen     The length of the input data in bytes.
+ * \param key      The key buffer.
+ * \param key_len  The length of \c key in bytes.
+ * \param custom   The customization string. It must be zero-terminated.
+ * \param custom_len The length of \c custom in Bytes.
+ * \param output   The SHA-3 checksum result.
+ *                 This must be a writable buffer of length \c olen bytes.
+ * \param olen     Defines the length of output buffer (in bytes). For CSHAKE128 and
+ *                 CSHAKE256 the buffer will be filled up to \c olen bytes.
+ * \param xof      Performs KMAC XOF operation.
+ *
+ * \return         \c 0 on success.
+ * \return         A negative error code on failure.
+ *
+ * \note           If no name and no custom strings are provided (are \c NULL),
+ *                 it is equivalent to mbedtls_sha3().
+ */
+int mbedtls_sha3_kmac(mbedtls_sha3_id id, const uint8_t *input,
+                      size_t ilen, const uint8_t *key, size_t key_len,
+                      const char *custom, size_t custom_len,
+                      uint8_t *output, size_t olen, int xof);
 
 #if defined(MBEDTLS_SELF_TEST)
 /**

@@ -1,0 +1,5 @@
+Bugfix
+   * Fix missing constraints on the AES-NI inline assembly which is used on
+     GCC-like compilers when building AES for generic x86_64 targets. This
+     may have resulted in incorrect code with some compilers, depending on
+     optimizations. Fixes #9819.

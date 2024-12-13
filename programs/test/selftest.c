@@ -316,12 +316,18 @@ const selftest_t selftests[] =
 #endif
 #if defined(MBEDTLS_CHACHA20_C)
     { "chacha20", mbedtls_chacha20_self_test },
+#if !defined(MBEDTLS_CHACHA20_ALT)
+    { "xchacha20", mbedtls_xchacha20_self_test },
+#endif
 #endif
 #if defined(MBEDTLS_POLY1305_C)
     { "poly1305", mbedtls_poly1305_self_test },
 #endif
 #if defined(MBEDTLS_CHACHAPOLY_C)
     { "chacha20-poly1305", mbedtls_chachapoly_self_test },
+#if !defined(MBEDTLS_CHACHAPOLY_ALT)
+    { "xchacha20-poly1305", mbedtls_xchachapoly_self_test },
+#endif
 #endif
 #if defined(MBEDTLS_BASE64_C)
     { "base64", mbedtls_base64_self_test },

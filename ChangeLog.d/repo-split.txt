@@ -1,0 +1,5 @@
+Changes
+   * Move the crypto part of the library (content of tf-psa-crypto directory)
+     from the Mbed TLS to the TF-PSA-Crypto repository. The crypto code and
+     tests development will now occur in TF-PSA-Crypto, which Mbed TLS
+     references as a Git submodule.

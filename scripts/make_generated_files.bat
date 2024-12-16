@@ -30,5 +30,6 @@ python framework\scripts\generate_config_tests.py --directory tf-psa-crypto\test
 python framework\scripts\generate_ecp_tests.py --directory tf-psa-crypto\tests\suites || exit /b 1
 python framework\scripts\generate_psa_tests.py --directory tf-psa-crypto\tests\suites || exit /b 1
 python framework\scripts\generate_test_keys.py --output framework\tests\include\test\test_keys.h || exit /b 1
+python tf-psa-crypto\framework\scripts\generate_test_keys.py --output tf-psa-crypto\framework\tests\include\test\test_keys.h || exit /b 1
 python framework\scripts\generate_test_cert_macros.py --output tests\src\test_certs.h || exit /b 1
 python framework\scripts\generate_tls13_compat_tests.py || exit /b 1

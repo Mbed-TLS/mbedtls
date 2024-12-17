@@ -226,7 +226,7 @@ The PSA Crypto API may use accelerator drivers. In this case any options control
 
 In the Mbed TLS legacy interface, you can replace some cryptographic primitives and modes by an alternative implementation, by enabling configuration options of the form `MBEDTLS_xxx_ALT` and linking with your own implementation of the affected function or module. Alternative implementations remain supported in Mbed TLS 3.x even if the application code uses the PSA API. However, they will be removed from the next version of the library.
 
-The corresponding PSA feature is accelerator drivers. To implement an accelerator driver, see the [PSA cryptoprocessor driver example and guide](https://github.com/Mbed-TLS/mbedtls/blob/development/docs/psa-driver-example-and-guide.md). In an application that uses both the legacy interface and the PSA interface for the same mechanism, only some algorithms support calling a PSA driver from the legacy interface. See the [Guide to driver-only builds](https://github.com/Mbed-TLS/mbedtls/blob/development/docs/driver-only-builds.md) for more information.
+The corresponding PSA feature is accelerator drivers. To implement an accelerator driver, see the [PSA cryptoprocessor driver example and guide](https://github.com/Mbed-TLS/TF-PSA-Crypto/blob/development/docs/psa-driver-example-and-guide.md). In an application that uses both the legacy interface and the PSA interface for the same mechanism, only some algorithms support calling a PSA driver from the legacy interface. See the [Guide to driver-only builds](https://github.com/Mbed-TLS/TF-PSA-Crypto/blob/development/docs/driver-only-builds.md) for more information.
 
 ### Self-tests
 
@@ -1276,7 +1276,7 @@ The PSA API is a cryptography API, not an arithmetic API. As a consequence, ther
 
 #### RSA-ALT interface
 
-Implementers of the RSA-ALT interface (`MBEDTLS_PK_RSA_ALT` pk type, `mbedtls_pk_setup_rsa_alt` setup function) should migrate to the [PSA cryptoprocessor driver interface](https://github.com/Mbed-TLS/mbedtls/blob/development/docs/psa-driver-example-and-guide.md).
+Implementers of the RSA-ALT interface (`MBEDTLS_PK_RSA_ALT` pk type, `mbedtls_pk_setup_rsa_alt` setup function) should migrate to the [PSA cryptoprocessor driver interface](https://github.com/Mbed-TLS/TF-PSA-Crypto/blob/development/docs/psa-driver-example-and-guide.md).
 
 * If the purpose of the ALT interface is acceleration only: use the accelerator driver interface. This is fully transparent to application code.
 * If the purpose of the ALT interface is to isolate the private key in a high-security environment: use the opaque driver interface. This is mostly transparent to user code. Code that uses a key via its key identifier does not need to know whether the key is transparent (equivalent of `MBEDTLS_PK_RSA`) or opaque (equivalent of `MBEDTLS_PK_RSA_ALT`). When creating a key, it will be transparent by default; to create an opaque key, call [`psa_set_key_lifetime`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__attributes/#group__attributes_1gac03ccf09ca6d36cc3d5b43f8303db6f7) to set the key's location to the chosen location value for the driver, e.g.

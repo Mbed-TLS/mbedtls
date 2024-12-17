@@ -1,7 +1,8 @@
 This document lists current limitations of the PSA Crypto API (as of version
 1.1) that may impact our ability to (1) use it for all crypto operations in
 TLS and X.509 and (2) support isolation of all long-term secrets in TLS (that
-is, goals G1 and G2 in [strategy.md](strategy.md) in the same directory).
+is, goals G1 and G2 in
+[strategy.md](https://github.com/Mbed-TLS/mbedtls/blob/mbedtls-3.6/docs/architecture/psa-migration/strategy.md)).
 
 This is supposed to be a complete list, based on a exhaustive review of crypto
 operations done in TLS and X.509 code, but of course it's still possible that

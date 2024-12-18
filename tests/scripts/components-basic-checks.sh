@@ -137,7 +137,7 @@ component_check_doxygen_warnings () {
 
 component_check_code_style () {
     msg "Check C code style"
-    ./scripts/code_style.py
+    ./framework/scripts/code_style.py
 }
 
 support_check_code_style () {

@@ -41,7 +41,7 @@ component_check_doxy_blocks () {
 
 component_check_files () {
     msg "Check: file sanity checks (permissions, encodings)" # < 1s
-    tests/scripts/check_files.py
+    framework/scripts/check_files.py
 }
 
 component_check_changelog () {
@@ -137,7 +137,7 @@ component_check_doxygen_warnings () {
 
 component_check_code_style () {
     msg "Check C code style"
-    ./scripts/code_style.py
+    ./framework/scripts/code_style.py
 }
 
 support_check_code_style () {

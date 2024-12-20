@@ -43,7 +43,7 @@ component_check_doxy_blocks () {
 
 component_check_files () {
     msg "Check: file sanity checks (permissions, encodings)" # < 1s
-    tests/scripts/check_files.py
+    framework/scripts/check_files.py
 }
 
 component_check_changelog () {

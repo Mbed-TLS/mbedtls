@@ -315,7 +315,7 @@ if(LIB_INSTALL_DIR)
 endif()
 
 if (NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/framework/CMakeLists.txt")
-    if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/.git/")
+    if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/.git")
         message(FATAL_ERROR "${CMAKE_CURRENT_SOURCE_DIR}CMakeLists.txt not found (and does appear to be a git checkout). Run `git submodule update --init` from the source tree to fetch the submodule contents.")
     else ()
         message(FATAL_ERROR "${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.txt not found (and does not appear to be a git checkout). Please ensure you have downloaded the right archive from the release page on GitHub.")

@@ -33,8 +33,6 @@ endif
 ## Note: Variables cannot be used to define an apps path. This cannot be
 ## substituted by the script generate_visualc_files.pl.
 APPS = \
-	aes/crypt_and_hash \
-	cipher/cipher_aead_demo \
 	hash/generic_sum \
 	hash/hello \
 	hash/md_hmac_demo \
@@ -154,14 +152,6 @@ test/query_config.c: $(gen_file_dep) ../scripts/data_files/query_config.fmt
 test/query_config.c:
 	echo "  Gen   $@"
 	$(PERL) ../scripts/generate_query_config.pl
-
-aes/crypt_and_hash$(EXEXT): aes/crypt_and_hash.c $(DEP)
-	echo "  CC    aes/crypt_and_hash.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) aes/crypt_and_hash.c $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-cipher/cipher_aead_demo$(EXEXT): cipher/cipher_aead_demo.c $(DEP)
-	echo "  CC    cipher/cipher_aead_demo.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) cipher/cipher_aead_demo.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 hash/generic_sum$(EXEXT): hash/generic_sum.c $(DEP)
 	echo "  CC    hash/generic_sum.c"

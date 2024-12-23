@@ -5,8 +5,6 @@
 *.sln
 *.vcxproj
 
-aes/crypt_and_hash
-cipher/cipher_aead_demo
 hash/generic_sum
 hash/hello
 hash/md_hmac_demo

@@ -198,16 +198,6 @@ class CoverageTask(outcome_analysis.CoverageTask):
             # https://github.com/Mbed-TLS/mbedtls/issues/9592
             re.compile(r'.*ECDSA.*only deterministic supported'),
         ],
-        'test_suite_psa_crypto_generate_key.generated': [
-            # Ignore mechanisms that are not implemented, except
-            # for public keys for which we always test that
-            # psa_generate_key() returns PSA_ERROR_INVALID_ARGUMENT
-            # regardless of whether the specific key type is supported.
-            _has_word_re((mech
-                          for mech in _PSA_MECHANISMS_NOT_IMPLEMENTED
-                          if not mech.startswith('ECC_PUB')),
-                         exclude=r'ECC_PUB'),
-        ],
         'test_suite_psa_crypto_metadata': [
             # Algorithms declared but not supported.
             # https://github.com/Mbed-TLS/mbedtls/issues/9579
@@ -221,10 +211,6 @@ class CoverageTask(outcome_analysis.CoverageTask):
             'MAC: CBC_MAC-AES-256',
         ],
         'test_suite_psa_crypto_not_supported.generated': [
-            # It is a bug that not-supported test cases aren't getting
-            # run for never-implemented key types.
-            # https://github.com/Mbed-TLS/mbedtls/issues/7915
-            PSA_MECHANISM_NOT_IMPLEMENTED_SEARCH_RE,
             # We never test with DH key support disabled but support
             # for a DH group enabled. The dependencies of these test
             # cases don't really make sense.
@@ -262,12 +248,6 @@ class CoverageTask(outcome_analysis.CoverageTask):
             # We don't test this unusual, but sensible configuration.
             # https://github.com/Mbed-TLS/mbedtls/issues/9592
             'PSA sign DETERMINISTIC_ECDSA(SHA_256): !ECDSA but DETERMINISTIC_ECDSA with ECC_KEY_PAIR(SECP_R1)', #pylint: disable=line-too-long
-        ],
-        'test_suite_psa_crypto_storage_format.current': [
-            PSA_MECHANISM_NOT_IMPLEMENTED_SEARCH_RE,
-        ],
-        'test_suite_psa_crypto_storage_format.v0': [
-            PSA_MECHANISM_NOT_IMPLEMENTED_SEARCH_RE,
         ],
         'tls13-misc': [
             # Disabled due to OpenSSL bug.

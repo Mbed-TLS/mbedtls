@@ -48,8 +48,6 @@ def realfull_adapter(_name, _value, _active):
     return True
 
 PSA_UNSUPPORTED_FEATURE = frozenset([
-    'PSA_WANT_ALG_CBC_MAC',
-    'PSA_WANT_ALG_XTS',
     'PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_DERIVE',
     'PSA_WANT_KEY_TYPE_DH_KEY_PAIR_DERIVE'
 ])
@@ -59,13 +57,8 @@ PSA_DEPRECATED_FEATURE = frozenset([
     'PSA_WANT_KEY_TYPE_RSA_KEY_PAIR'
 ])
 
-PSA_UNSTABLE_FEATURE = frozenset([
-    'PSA_WANT_ECC_SECP_K1_224'
-])
-
 EXCLUDE_FROM_CRYPTO = PSA_UNSUPPORTED_FEATURE | \
-                      PSA_DEPRECATED_FEATURE | \
-                      PSA_UNSTABLE_FEATURE
+                      PSA_DEPRECATED_FEATURE
 
 # The goal of the full configuration is to have everything that can be tested
 # together. This includes deprecated or insecure options. It excludes:
@@ -357,8 +350,6 @@ class CryptoConfig(config_common.Config):
 
         if name in PSA_UNSUPPORTED_FEATURE:
             raise ValueError(f'Feature is unsupported: \'{name}\'')
-        if name in PSA_UNSTABLE_FEATURE:
-            raise ValueError(f'Feature is unstable: \'{name}\'')
 
         if name not in self.settings:
             self._get_configfile().templates.append((name, '', '#define ' + name + ' '))

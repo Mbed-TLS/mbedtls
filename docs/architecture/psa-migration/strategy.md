@@ -36,7 +36,9 @@ Compile-time options
 We currently have a few compile-time options that are relevant to the migration:
 
 - `MBEDTLS_PSA_CRYPTO_C` - enabled by default, controls the presence of the PSA
-  Crypto APIs.
+  Crypto APIs with their implementations. (Builds with only
+  `MBEDTLS_PSA_CRYPTO_CLIENT`, where PSA crypto APIs are present but
+  implemented via third-party code, are out of scope of this document.)
 - `MBEDTLS_USE_PSA_CRYPTO` - disabled by default (enabled in "full" config),
   controls usage of PSA Crypto APIs to perform operations in X.509 and TLS
 (G1 above), as well as the availability of some new APIs (G2 above).

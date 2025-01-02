@@ -278,9 +278,11 @@ The same holds for the associated algorithm:
 removing builtin support (i.e. `MBEDTLS_DHM_C`).
 
 Note that the PSA API only supports FFDH with RFC 7919 groups, whereas the
-Mbed TLS legacy API supports custom groups. As a consequence, the TLS layer
-of Mbed TLS only supports DHE cipher suites if built-in FFDH
+Mbed TLS legacy API supports custom groups. As a consequence, the TLS 1.2
+layer of Mbed TLS only supports DHE cipher suites if built-in FFDH
 (`MBEDTLS_DHM_C`) is present, even when `MBEDTLS_USE_PSA_CRYPTO` is enabled.
+(The TLS 1.3 layer uses PSA, and this is not a limitation because the
+protocol does not allow custom FFDH groups.)
 
 RSA
 ---

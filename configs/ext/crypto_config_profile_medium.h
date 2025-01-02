@@ -198,12 +198,6 @@
 //#define PSA_WANT_ECC_MONTGOMERY_255             1
 //#define PSA_WANT_ECC_MONTGOMERY_448             1
 //#define PSA_WANT_ECC_SECP_K1_192                1
-/*
- * SECP224K1 is buggy via the PSA API in Mbed TLS
- * (https://github.com/Mbed-TLS/mbedtls/issues/3541). Thus, do not enable it by
- * default.
- */
-//#define PSA_WANT_ECC_SECP_K1_224                1
 //#define PSA_WANT_ECC_SECP_K1_256                1
 //#define PSA_WANT_ECC_SECP_R1_192                1
 //#define PSA_WANT_ECC_SECP_R1_224                1

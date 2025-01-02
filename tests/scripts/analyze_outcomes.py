@@ -132,8 +132,6 @@ class CoverageTask(outcome_analysis.CoverageTask):
             'Config: PSA_WANT_ALG_CBC_MAC',
             # Algorithm declared but not supported.
             'Config: PSA_WANT_ALG_XTS',
-            # Family declared but not supported.
-            'Config: PSA_WANT_ECC_SECP_K1_224',
             # More granularity of key pair type enablement macros
             # than we care to test.
             # https://github.com/Mbed-TLS/mbedtls/issues/9590

@@ -518,11 +518,6 @@ static const struct {
 #else
     { MBEDTLS_SSL_IANA_TLS_GROUP_SECP224R1, "secp224r1", 0 },
 #endif
-#if defined(MBEDTLS_ECP_DP_SECP224K1_ENABLED) || defined(PSA_WANT_ECC_SECP_K1_224)
-    { MBEDTLS_SSL_IANA_TLS_GROUP_SECP224K1, "secp224k1", 1 },
-#else
-    { MBEDTLS_SSL_IANA_TLS_GROUP_SECP224K1, "secp224k1", 0 },
-#endif
 #if defined(MBEDTLS_ECP_DP_SECP192R1_ENABLED) || defined(PSA_WANT_ECC_SECP_R1_192)
     { MBEDTLS_SSL_IANA_TLS_GROUP_SECP192R1, "secp192r1", 1 },
 #else

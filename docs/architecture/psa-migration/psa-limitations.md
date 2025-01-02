@@ -1,7 +1,8 @@
 This document lists current limitations of the PSA Crypto API (as of version
 1.1) that may impact our ability to (1) use it for all crypto operations in
 TLS and X.509 and (2) support isolation of all long-term secrets in TLS (that
-is, goals G1 and G2 in [strategy.md](strategy.md) in the same directory).
+is, goals G1 and G2 in
+[strategy.md](https://github.com/Mbed-TLS/mbedtls/blob/mbedtls-3.6/docs/architecture/psa-migration/strategy.md)).
 
 This is supposed to be a complete list, based on a exhaustive review of crypto
 operations done in TLS and X.509 code, but of course it's still possible that
@@ -21,11 +22,11 @@ TLS have not yet been adapted to take advantage of the new PSA APIs. See:
 - <https://github.com/Mbed-TLS/mbedtls/issues/7293>;
 - <https://github.com/Mbed-TLS/mbedtls/issues/7294>.
 
-Currently, when `MBEDTLS_USE_PSA_CRYPTO` and `MBEDTLS_ECP_RESTARTABLE` are
-both enabled, some operations that should be restartable are not (ECDH in TLS
-1.2 clients using ECDHE-ECDSA), as they are using PSA instead, and some
-operations that should use PSA do not (signature generation & verification) as
-they use the legacy API instead, in order to get restartable behaviour.
+Currently, when `MBEDTLS_ECP_RESTARTABLE` is enabled, some operations that
+should be restartable are not (ECDH in TLS 1.2 clients using ECDHE-ECDSA), as
+they are using PSA instead, and some operations that should use PSA do not
+(signature generation & verification) as they use the legacy API instead, in
+order to get restartable behaviour.
 
 Things that are in the API but not implemented yet
 --------------------------------------------------

@@ -295,8 +295,6 @@ Arm welcomes feedback on the design of the API. If you think something could be 
 Mbed TLS includes a reference implementation of the PSA Cryptography API.
 However, it does not aim to implement the whole specification; in particular it does not implement all the algorithms.
 
-The X.509 and TLS code can use PSA cryptography for most operations. To enable this support, activate the compilation option `MBEDTLS_USE_PSA_CRYPTO` in `mbedtls_config.h`. Note that TLS 1.3 uses PSA cryptography for most operations regardless of this option. See `docs/use-psa-crypto.md` for details.
-
 ### PSA drivers
 
 Mbed TLS supports drivers for cryptographic accelerators, secure elements and random generators. This is work in progress. Please note that the driver interfaces are not fully stable yet and may change without notice. We intend to preserve backward compatibility for application code (using the PSA Crypto API), but the code of the drivers may have to change in future minor releases of Mbed TLS.

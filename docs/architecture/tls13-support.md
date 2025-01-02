@@ -126,7 +126,6 @@ Support description
   | MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED     | n/a     |
   |                                          |         |
   | MBEDTLS_PSA_CRYPTO_C                     | no (1)  |
-  | MBEDTLS_USE_PSA_CRYPTO                   | yes     |
 
   (1) These options must remain in their default state of enabled.
   (2) See the TLS 1.3 specific build options section below.

@@ -290,7 +290,6 @@ PSA_WANT_\* macros as in current `crypto_config.h`.
 //#define MBEDTLS_SHA512_SMALLER
 //#define MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT
 //#define MBEDTLS_SHA512_USE_A64_CRYPTO_ONLY
-//#define MBEDTLS_USE_PSA_CRYPTO
 
 //#define MBEDTLS_ECP_FIXED_POINT_OPTIM      1
 //#define MBEDTLS_ECP_WINDOW_SIZE            4

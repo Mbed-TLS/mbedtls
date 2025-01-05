@@ -1,0 +1,9 @@
+Changes
+   * Add version suffix for cmake and pkg-config files (#8723). This allows
+     to install major versions of MbedTLS simultaneously.
+     Dependent packages should use `find_package(MbedTLS 3 [REQUIRED])` and
+     `MbedTLS::<component>` in order to use requested libraries.
+     Packages that relies on pkg-config output, should use
+     `pkg-config --libs --cflags (mbedtls3|mbedx5093|mbedx5093)` output in
+     order to discover actual library names and include paths.
+

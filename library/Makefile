@@ -374,7 +374,7 @@ ssl_debug_helpers_generated.c:
 	echo "  Gen   $@"
 	$(PYTHON) ../framework/scripts/generate_ssl_debug_helpers.py --mbedtls-root .. .
 
-version_features.c: $(gen_file_dep) ../scripts/generate_features.pl
+version_features.c: $(gen_file_dep) ../framework/scripts/generate_features.pl
 version_features.c: $(gen_file_dep) ../scripts/data_files/version_features.fmt
 ## The generated file only depends on the options that are present in mbedtls_config.h,
 ## not on which options are set. To avoid regenerating this file all the time
@@ -384,7 +384,7 @@ version_features.c: $(gen_file_dep) ../scripts/data_files/version_features.fmt
 #version_features.c: ../include/mbedtls/mbedtls_config.h
 version_features.c:
 	echo "  Gen   $@"
-	$(PERL) ../scripts/generate_features.pl
+	$(PERL) ../framework/scripts/generate_features.pl
 
 GENERATED_WRAPPER_FILES = \
                     $(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto_driver_wrappers.h \

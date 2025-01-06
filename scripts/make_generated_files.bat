@@ -11,8 +11,8 @@
 @rem generate_visualc_files.pl being invoked.
 python tf-psa-crypto\scripts\generate_driver_wrappers.py || exit /b 1
 perl scripts\generate_errors.pl || exit /b 1
-perl scripts\generate_query_config.pl || exit /b 1
-perl scripts\generate_features.pl || exit /b 1
+perl framework\scripts\generate_query_config.pl || exit /b 1
+perl framework\scripts\generate_features.pl || exit /b 1
 python framework\scripts\generate_ssl_debug_helpers.py || exit /b 1
 
 @rem @@@@ Build @@@@

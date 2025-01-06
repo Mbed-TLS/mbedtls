@@ -3,10 +3,6 @@ Mbed TLS sample programs
 
 This subdirectory mostly contains sample programs that illustrate specific features of the library, as well as a few test and support programs.
 
-## Symmetric cryptography (AES) examples
-
-* [`aes/crypt_and_hash.c`](aes/crypt_and_hash.c): file encryption and authentication, demonstrating the generic cipher interface and the generic hash interface.
-
 ## Hash (digest) examples
 
 * [`hash/generic_sum.c`](hash/generic_sum.c): file hash calculator and verifier, demonstrating the message digest (`md`) interface.

@@ -5,6 +5,10 @@
  *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
+/* This program uses the legacy crypto API. It should be migrated to the
+ * PSA API. Until then, enable legacy crypto API functions. */
+#define MBEDTLS_ALLOW_PRIVATE_ACCESS
+
 #include "mbedtls/build_info.h"
 
 #include "mbedtls/platform.h"

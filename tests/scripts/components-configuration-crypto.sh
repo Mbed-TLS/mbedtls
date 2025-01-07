@@ -478,20 +478,6 @@ are_empty_libraries () {
   ! nm "$@" 2>/dev/null | grep -v ':$' | grep .
 }
 
-component_build_crypto_default () {
-  msg "build: make, crypto only"
-  scripts/config.py crypto
-  make CFLAGS='-O1 -Werror'
-  are_empty_libraries library/libmbedx509.* library/libmbedtls.*
-}
-
-component_build_crypto_full () {
-  msg "build: make, crypto only, full config"
-  scripts/config.py crypto_full
-  make CFLAGS='-O1 -Werror'
-  are_empty_libraries library/libmbedx509.* library/libmbedtls.*
-}
-
 component_test_crypto_for_psa_service () {
   msg "build: make, config for PSA crypto service"
   scripts/config.py crypto
@@ -583,49 +569,6 @@ component_test_psa_crypto_config_ffdh_2048_only () {
 
     msg "ssl-opt: full config - only DH 2048"
     tests/ssl-opt.sh -f "ffdh"
-}
-
-component_build_no_pk_rsa_alt_support () {
-    msg "build: !MBEDTLS_PK_RSA_ALT_SUPPORT" # ~30s
-
-    scripts/config.py full
-    scripts/config.py unset MBEDTLS_PK_RSA_ALT_SUPPORT
-    scripts/config.py set MBEDTLS_RSA_C
-    scripts/config.py set MBEDTLS_X509_CRT_WRITE_C
-
-    # Only compile - this is primarily to test for compile issues
-    make CFLAGS='-Werror -Wall -Wextra -I../tests/include/alt-dummy'
-}
-
-component_build_module_alt () {
-    msg "build: MBEDTLS_XXX_ALT" # ~30s
-    scripts/config.py full
-
-    # Disable options that are incompatible with some ALT implementations:
-    # aesni.c references mbedtls_aes_context fields directly.
-    scripts/config.py unset MBEDTLS_AESNI_C
-    scripts/config.py unset MBEDTLS_AESCE_C
-    # MBEDTLS_ECP_RESTARTABLE is documented as incompatible.
-    scripts/config.py unset MBEDTLS_ECP_RESTARTABLE
-    # You can only have one threading implementation: alt or pthread, not both.
-    scripts/config.py unset MBEDTLS_THREADING_PTHREAD
-    # The SpecifiedECDomain parsing code accesses mbedtls_ecp_group fields
-    # directly and assumes the implementation works with partial groups.
-    scripts/config.py unset MBEDTLS_PK_PARSE_EC_EXTENDED
-    # MBEDTLS_SHA256_*ALT can't be used with MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_*
-    scripts/config.py unset MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_IF_PRESENT
-    scripts/config.py unset MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_ONLY
-    # MBEDTLS_SHA512_*ALT can't be used with MBEDTLS_SHA512_USE_A64_CRYPTO_*
-    scripts/config.py unset MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT
-    scripts/config.py unset MBEDTLS_SHA512_USE_A64_CRYPTO_ONLY
-
-    # Enable all MBEDTLS_XXX_ALT for whole modules. Do not enable
-    # MBEDTLS_XXX_YYY_ALT which are for single functions.
-    scripts/config.py set-all 'MBEDTLS_([A-Z0-9]*|NIST_KW)_ALT'
-
-    # We can only compile, not link, since we don't have any implementations
-    # suitable for testing with the dummy alt headers.
-    make CFLAGS='-Werror -Wall -Wextra -I../tests/include/alt-dummy' lib
 }
 
 component_test_psa_crypto_config_accel_ecdsa () {
@@ -2597,15 +2540,6 @@ component_test_ctr_drbg_aes_128_sha_256 () {
     make
 
     msg "test: full + MBEDTLS_CTR_DRBG_USE_128_BIT_KEY + MBEDTLS_ENTROPY_FORCE_SHA256 (ASan build)"
-    make test
-}
-
-component_test_se_default () {
-    msg "build: default config + MBEDTLS_PSA_CRYPTO_SE_C"
-    scripts/config.py set MBEDTLS_PSA_CRYPTO_SE_C
-    make CC=clang CFLAGS="$ASAN_CFLAGS -Os" LDFLAGS="$ASAN_CFLAGS"
-
-    msg "test: default config + MBEDTLS_PSA_CRYPTO_SE_C"
     make test
 }
 

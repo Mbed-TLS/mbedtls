@@ -132,8 +132,8 @@ check scripts/generate_driver_wrappers.py $library_dir/psa_crypto_driver_wrapper
 # Additional checks for Mbed TLS only
 if in_mbedtls_repo; then
     check scripts/generate_errors.pl library/error.c
-    check scripts/generate_query_config.pl programs/test/query_config.c
-    check scripts/generate_features.pl library/version_features.c
+    check framework/scripts/generate_query_config.pl programs/test/query_config.c
+    check framework/scripts/generate_features.pl library/version_features.c
     check framework/scripts/generate_ssl_debug_helpers.py library/ssl_debug_helpers_generated.c
     check framework/scripts/generate_tls13_compat_tests.py tests/opt-testcases/tls13-compat.sh
     check framework/scripts/generate_test_cert_macros.py tests/src/test_certs.h

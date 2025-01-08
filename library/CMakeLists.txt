@@ -151,12 +151,12 @@ if(GEN_FILES)
             ${CMAKE_CURRENT_BINARY_DIR}/version_features.c
         COMMAND
             ${PERL_EXECUTABLE}
-                ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/generate_features.pl
+                ${CMAKE_CURRENT_SOURCE_DIR}/../framework/scripts/generate_features.pl
                 ${CMAKE_CURRENT_SOURCE_DIR}/../include/mbedtls
                 ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/data_files
                 ${CMAKE_CURRENT_BINARY_DIR}/version_features.c
         DEPENDS
-            ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/generate_features.pl
+            ${CMAKE_CURRENT_SOURCE_DIR}/../framework/scripts/generate_features.pl
             ${CMAKE_CURRENT_SOURCE_DIR}/../include/mbedtls/mbedtls_config.h
             ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/data_files/version_features.fmt
     )

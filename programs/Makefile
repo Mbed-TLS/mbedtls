@@ -140,7 +140,7 @@ psa/psa_constant_names_generated.c:
 	echo "  Gen   $@"
 	$(PYTHON) ../scripts/generate_psa_constants.py
 
-test/query_config.c: $(gen_file_dep) ../scripts/generate_query_config.pl
+test/query_config.c: $(gen_file_dep) ../framework/scripts/generate_query_config.pl
 ## The generated file only depends on the options that are present in mbedtls_config.h,
 ## not on which options are set. To avoid regenerating this file all the time
 ## when switching between configurations, don't declare mbedtls_config.h as a
@@ -150,7 +150,7 @@ test/query_config.c: $(gen_file_dep) ../scripts/generate_query_config.pl
 test/query_config.c: $(gen_file_dep) ../scripts/data_files/query_config.fmt
 test/query_config.c:
 	echo "  Gen   $@"
-	$(PERL) ../scripts/generate_query_config.pl
+	$(PERL) ../framework/scripts/generate_query_config.pl
 
 aes/crypt_and_hash$(EXEXT): aes/crypt_and_hash.c $(DEP)
 	echo "  CC    aes/crypt_and_hash.c"

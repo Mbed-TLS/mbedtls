@@ -127,14 +127,6 @@
 #endif
 #endif
 
-#if defined(PSA_WANT_ECC_SECP_K1_224)
-#if defined(MBEDTLS_PSA_ACCEL_ECC_SECP_K1_224)
-#undef MBEDTLS_PSA_ACCEL_ECC_SECP_K1_224
-#else
-#define MBEDTLS_PSA_ACCEL_ECC_SECP_K1_224 1
-#endif
-#endif
-
 #if defined(PSA_WANT_ECC_SECP_K1_256)
 #if defined(MBEDTLS_PSA_ACCEL_ECC_SECP_K1_256)
 #undef MBEDTLS_PSA_ACCEL_ECC_SECP_K1_256
@@ -367,14 +359,6 @@
 #endif
 #endif
 
-#if defined(PSA_WANT_ALG_XTS)
-#if defined(MBEDTLS_PSA_ACCEL_ALG_XTS)
-#undef MBEDTLS_PSA_ACCEL_ALG_XTS
-#else
-#define MBEDTLS_PSA_ACCEL_ALG_XTS 1
-#endif
-#endif
-
 #if defined(PSA_WANT_ALG_CHACHA20_POLY1305)
 #if defined(MBEDTLS_PSA_ACCEL_ALG_CHACHA20_POLY1305)
 #undef MBEDTLS_PSA_ACCEL_ALG_CHACHA20_POLY1305
@@ -597,14 +581,6 @@
 #undef MBEDTLS_PSA_ACCEL_ALG_CCM_STAR_NO_TAG
 #else
 #define MBEDTLS_PSA_ACCEL_ALG_CCM_STAR_NO_TAG 1
-#endif
-#endif
-
-#if defined(PSA_WANT_ALG_CBC_MAC)
-#if defined(MBEDTLS_PSA_ACCEL_ALG_CBC_MAC)
-#undef MBEDTLS_PSA_ACCEL_ALG_CBC_MAC
-#else
-#define MBEDTLS_PSA_ACCEL_ALG_CBC_MAC 1
 #endif
 #endif
 

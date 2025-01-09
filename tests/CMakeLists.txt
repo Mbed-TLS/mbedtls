@@ -156,6 +156,7 @@ if(GEN_FILES)
             ${CMAKE_CURRENT_SOURCE_DIR}/../framework/scripts/mbedtls_framework/macro_collector.py
             ${CMAKE_CURRENT_SOURCE_DIR}/../framework/scripts/mbedtls_framework/psa_information.py
             ${CMAKE_CURRENT_SOURCE_DIR}/../framework/scripts/mbedtls_framework/psa_storage.py
+            ${CMAKE_CURRENT_SOURCE_DIR}/../framework/scripts/mbedtls_framework/psa_test_case.py
             ${CMAKE_CURRENT_SOURCE_DIR}/../framework/scripts/mbedtls_framework/test_case.py
             ${CMAKE_CURRENT_SOURCE_DIR}/../framework/scripts/mbedtls_framework/test_data_generation.py
             ${CMAKE_CURRENT_SOURCE_DIR}/../include/psa/crypto_config.h

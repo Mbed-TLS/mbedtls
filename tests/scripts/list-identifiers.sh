@@ -49,6 +49,6 @@ iteration of list-identifiers.sh, of which only the --internal option remains in
 use. It is a thin wrapper around list_internal_identifiers.py.
 
 check-names.sh, which used to depend on this script, has been replaced with
-check_names.py and is now self-complete.
+framework/scripts/check_names.py and is now self-complete.
 EOF
 fi

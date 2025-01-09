@@ -49,11 +49,14 @@ tests: mbedtls_test
 mbedtls_test:
 	$(MAKE) -C tests mbedtls_test
 
-library/%:
+.PHONY: FORCE
+FORCE:
+
+library/%: FORCE
 	$(MAKE) -C library $*
-programs/%:
+programs/%: FORCE
 	$(MAKE) -C programs $*
-tests/%:
+tests/%: FORCE
 	$(MAKE) -C tests $*
 
 .PHONY: generated_files

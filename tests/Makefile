@@ -127,6 +127,7 @@ generated_psa_test_data: ../framework/scripts/mbedtls_framework/crypto_knowledge
 generated_psa_test_data: ../framework/scripts/mbedtls_framework/macro_collector.py
 generated_psa_test_data: ../framework/scripts/mbedtls_framework/psa_information.py
 generated_psa_test_data: ../framework/scripts/mbedtls_framework/psa_storage.py
+generated_psa_test_data: ../framework/scripts/mbedtls_framework/psa_test_case.py
 generated_psa_test_data: ../framework/scripts/mbedtls_framework/test_case.py
 generated_psa_test_data: ../framework/scripts/mbedtls_framework/test_data_generation.py
 ## The generated file only depends on the options that are present in

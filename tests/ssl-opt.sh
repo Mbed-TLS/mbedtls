@@ -2690,13 +2690,6 @@ requires_config_enabled PSA_WANT_ECC_BRAINPOOL_P_R1_256
 run_test_psa_force_curve "brainpoolP256r1"
 requires_config_enabled PSA_WANT_ECC_SECP_R1_224
 run_test_psa_force_curve "secp224r1"
-## SECP224K1 is buggy via the PSA API
-## (https://github.com/Mbed-TLS/mbedtls/issues/3541),
-## so it is disabled in PSA even when it's enabled in Mbed TLS.
-## The proper dependency would be on PSA_WANT_ECC_SECP_K1_224 but
-## dependencies on PSA symbols in ssl-opt.sh are not implemented yet.
-#requires_config_enabled PSA_WANT_ECC_SECP_K1_224
-#run_test_psa_force_curve "secp224k1"
 requires_config_enabled PSA_WANT_ECC_SECP_R1_192
 run_test_psa_force_curve "secp192r1"
 requires_config_enabled PSA_WANT_ECC_SECP_K1_192

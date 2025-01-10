@@ -67,6 +67,9 @@ typedef struct mbedtls_x509_crt {
     mbedtls_x509_buf subject_key_id;    /**< Optional X.509 v3 extension subject key identifier. */
     mbedtls_x509_authority authority_key_id;    /**< Optional X.509 v3 extension authority key identifier. */
 
+    mbedtls_x509_sequence name_constraints_incl;    /**< Optional list of raw entries of Name Constraints extension (currently only dNSName and OtherName are listed). */
+    mbedtls_x509_sequence name_constraints_excl;    /**< Optional list of raw entries of Name Constraints extension (currently only dNSName and OtherName are listed). */
+
     mbedtls_x509_sequence certificate_policies; /**< Optional list of certificate policies (Only anyPolicy is printed and enforced, however the rest of the policies are still listed). */
 
     int MBEDTLS_PRIVATE(ext_types);              /**< Bit string containing detected and parsed extensions */

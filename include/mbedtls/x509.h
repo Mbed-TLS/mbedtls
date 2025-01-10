@@ -134,6 +134,9 @@
 #define MBEDTLS_X509_SAN_IP_ADDRESS                      7
 #define MBEDTLS_X509_SAN_REGISTERED_ID                   8
 
+#define MBEDTLS_X509_NAME_CONST_INCL                     0
+#define MBEDTLS_X509_NAME_CONST_EXCL                     1
+
 /*
  * X.509 v3 Key Usage Extension flags
  * Reminder: update mbedtls_x509_info_key_usage() when adding new flags.
@@ -277,6 +280,9 @@ typedef struct mbedtls_x509_san_other_name {
             mbedtls_x509_buf val;               /**< The named value. */
         }
         hardware_module_name;
+        /** Raw source value for non-constructed types.
+         */
+        mbedtls_x509_buf raw;
     }
     value;
 }

@@ -514,20 +514,7 @@ class DomainData:
         hash_symbols = self.config_symbols_matching(r'MBEDTLS_(MD|RIPEMD|SHA)[0-9]+_C\Z')
 
         # Find elliptic curve enabling macros
-        # Mapping is needed for PSA_WANT_ECC_SECP_K1_224 because it actually uses 225 bits.
-        key_type_mapping = {('PSA_ECC_FAMILY_SECP_K1', '225'): ('PSA_ECC_FAMILY_SECP_K1', '224')}
-        def get_symbol_from_key_type(key_type_family, bit_size):
-            (family_name, corrected_bit_size) = key_type_mapping.get((key_type_family, bit_size),
-                                                                     (key_type_family, bit_size))
-            symbol = psa_information.finish_family_dependency(family_name, corrected_bit_size)
-            return psa_information.psa_want_symbol(symbol)
-
-        curve_symbols = {symbol
-                         for symbol in (get_symbol_from_key_type(key_type.family_name, bit_size)
-                                        for key_type in key_types
-                                        if key_type.family_name in psa_info.ecc_curves
-                                        for bit_size in key_type.sizes_to_test())
-                         if symbol in self.all_config_symbols}
+        curve_symbols = self.config_symbols_matching(r'PSA_WANT_ECC_\w+\Z')
 
         # Find key exchange enabling macros by name.
         key_exchange_symbols = self.config_symbols_matching(r'MBEDTLS_KEY_EXCHANGE_\w+_ENABLED\Z')

@@ -1,0 +1,5 @@
+Features
+   * Decode Name Constraints extension.
+   * Show info for Name Constraints for a certificate.
+   * Handle Other Name type of General Name as opaque data.
+   * Show info for BundleEID Other Name for a certificate.

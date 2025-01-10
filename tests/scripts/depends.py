@@ -287,7 +287,6 @@ REVERSE_DEPENDENCIES = {
     'PSA_WANT_ECC_SECP_R1_512': ['MBEDTLS_ECP_DP_SECP512R1_ENABLED'],
     'PSA_WANT_ECC_SECP_R1_521': ['MBEDTLS_ECP_DP_SECP521R1_ENABLED'],
     'PSA_WANT_ECC_SECP_K1_192': ['MBEDTLS_ECP_DP_SECP192K1_ENABLED'],
-    'PSA_WANT_ECC_SECP_K1_224': ['MBEDTLS_ECP_DP_SECP224K1_ENABLED'],
     'PSA_WANT_ECC_SECP_K1_256': ['MBEDTLS_ECP_DP_SECP256K1_ENABLED'],
 
     'MBEDTLS_ECDSA_C': ['MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED',
@@ -545,11 +544,8 @@ class DomainData:
                                               build_and_test),
 
             # Elliptic curves. Run the test suites.
-            # The SECP_K1_224 is not stable via the PSA API.
-            # See https://github.com/Mbed-TLS/mbedtls/issues/3541
-            'curves': ExclusiveDomain(curve_symbols,
-                                      build_and_test,
-                                      exclude=r'PSA_WANT_ECC_SECP_K1_224'),
+            'curves': ExclusiveDomain(curve_symbols, build_and_test),
+
             # Hash algorithms. Excluding exclusive domains of MD, RIPEMD, SHA1,
             # SHA224 and SHA384 because MBEDTLS_ENTROPY_C is extensively used
             # across various modules, but it depends on either SHA256 or SHA512.

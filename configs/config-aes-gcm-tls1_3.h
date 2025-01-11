@@ -44,8 +44,7 @@
  * save ROM and a few bytes of RAM by specifying our own ciphersuite list
  */
 #define MBEDTLS_SSL_CIPHERSUITES \
-		MBEDTLS_TLS1_3_AES_128_GCM_SHA256, \
-		MBEDTLS_TLS1_3_AES_256_GCM_SHA384
+		MBEDTLS_TLS1_3_AES_128_GCM_SHA256
 
 /*
  * You should adjust this to the exact number of sources you're using: default

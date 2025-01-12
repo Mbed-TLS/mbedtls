@@ -766,7 +766,7 @@ void x509_set_extension_length_check()
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_X509_USE_C */
+/* BEGIN_CASE depends_on:MBEDTLS_X509_CREATE_C */
 void oid_from_numeric_string(char *oid_str, int error_ret,
                              data_t *exp_oid_buf)
 {

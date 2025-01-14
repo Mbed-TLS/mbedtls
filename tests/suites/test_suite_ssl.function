@@ -3059,7 +3059,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_DEPRECATED_REMOVED */
+/* BEGIN_CASE */
 void conf_group()
 {
     uint16_t iana_tls_group_list[] = { MBEDTLS_SSL_IANA_TLS_GROUP_SECP192R1,

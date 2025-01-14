@@ -1,5 +1,5 @@
 /**
- * \file crypto-config-symmetric-only.h
+ * \file crypto-config-suite-b.h
  *
  * \brief \brief Minimal crypto configuration for
  * TLS NSA Suite B Profile (RFC 6460).

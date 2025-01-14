@@ -115,7 +115,11 @@ component_test_cmake_as_package () {
     make
     ./cmake_package
     if [[ "$OSTYPE" == linux* ]]; then
-        PKG_CONFIG_PATH="${build_variant_dir}/mbedtls/pkgconfig" ${root_dir}/tests/scripts/pkgconfig.sh
+        PKG_CONFIG_PATH="${build_variant_dir}/mbedtls/pkgconfig" \
+        ${root_dir}/framework/scripts/pkgconfig.sh \
+        mbedtls mbedx509 mbedcrypto
+        # These are the EXPECTED package names. Renaming these could break
+        # consumers of pkg-config, consider carefully.
     fi
 }
 
@@ -212,4 +216,3 @@ component_build_cmake_programs_no_testing () {
 support_build_cmake_programs_no_testing () {
     support_test_cmake_out_of_source
 }
-

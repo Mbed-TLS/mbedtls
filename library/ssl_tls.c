@@ -6119,7 +6119,7 @@ unsigned char mbedtls_ssl_hash_from_md_alg(int md)
  */
 int mbedtls_ssl_check_curve_tls_id(const mbedtls_ssl_context *ssl, uint16_t tls_id)
 {
-    const uint16_t *group_list = mbedtls_ssl_get_groups(ssl);
+    const uint16_t *group_list = ssl->conf->group_list;
 
     if (group_list == NULL) {
         return -1;

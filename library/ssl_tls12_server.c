@@ -2966,7 +2966,7 @@ static int ssl_prepare_server_key_exchange(mbedtls_ssl_context *ssl,
          * } ServerECDHParams;
          */
         uint16_t *curr_tls_id = ssl->handshake->curves_tls_id;
-        const uint16_t *group_list = mbedtls_ssl_get_groups(ssl);
+        const uint16_t *group_list = ssl->conf->group_list;
         int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
         size_t len = 0;
 

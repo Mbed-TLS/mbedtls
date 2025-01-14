@@ -222,7 +222,7 @@ static int ssl_write_supported_groups_ext(mbedtls_ssl_context *ssl,
     unsigned char *p = buf;
     unsigned char *named_group_list; /* Start of named_group_list */
     size_t named_group_list_len;     /* Length of named_group_list */
-    const uint16_t *group_list = mbedtls_ssl_get_groups(ssl);
+    const uint16_t *group_list = ssl->conf->group_list;
 
     *out_len = 0;
 

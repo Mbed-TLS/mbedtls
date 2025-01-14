@@ -216,7 +216,7 @@ static int ssl_tls13_get_default_group_id(mbedtls_ssl_context *ssl,
 
 
 #if defined(PSA_WANT_ALG_ECDH) || defined(PSA_WANT_ALG_FFDH)
-    const uint16_t *group_list = mbedtls_ssl_get_groups(ssl);
+    const uint16_t *group_list = ssl->conf->group_list;
     /* Pick first available ECDHE group compatible with TLS 1.3 */
     if (group_list == NULL) {
         return MBEDTLS_ERR_SSL_BAD_CONFIG;
@@ -382,7 +382,7 @@ static int ssl_tls13_parse_hrr_key_share_ext(mbedtls_ssl_context *ssl,
     int selected_group;
     int found = 0;
 
-    const uint16_t *group_list = mbedtls_ssl_get_groups(ssl);
+    const uint16_t *group_list = ssl->conf->group_list;
     if (group_list == NULL) {
         return MBEDTLS_ERR_SSL_BAD_CONFIG;
     }

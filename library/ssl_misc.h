@@ -2268,16 +2268,6 @@ int mbedtls_ssl_get_handshake_transcript(mbedtls_ssl_context *ssl,
                                          size_t *olen);
 
 /*
- * Return supported groups.
- *
- * In future, invocations can be changed to ssl->conf->group_list.
- */
-static inline const void *mbedtls_ssl_get_groups(const mbedtls_ssl_context *ssl)
-{
-    return ssl->conf->group_list;
-}
-
-/*
  * Helper functions for NamedGroup.
  */
 static inline int mbedtls_ssl_tls12_named_group_is_ecdhe(uint16_t named_group)
@@ -2319,7 +2309,7 @@ static inline int mbedtls_ssl_tls13_named_group_is_ffdh(uint16_t named_group)
 static inline int mbedtls_ssl_named_group_is_offered(
     const mbedtls_ssl_context *ssl, uint16_t named_group)
 {
-    const uint16_t *group_list = mbedtls_ssl_get_groups(ssl);
+    const uint16_t *group_list = ssl->conf->group_list;
 
     if (group_list == NULL) {
         return 0;

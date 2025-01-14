@@ -2735,25 +2735,6 @@ void mbedtls_ssl_conf_sig_algs(mbedtls_ssl_config *conf,
 }
 #endif /* MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED */
 
-#if defined(MBEDTLS_ECP_C)
-#if !defined(MBEDTLS_DEPRECATED_REMOVED)
-/*
- * Set the allowed elliptic curves
- *
- * mbedtls_ssl_setup() takes the provided list
- * and translates it to a list of IANA TLS group identifiers,
- * stored in ssl->handshake->group_list.
- *
- */
-void mbedtls_ssl_conf_curves(mbedtls_ssl_config *conf,
-                             const mbedtls_ecp_group_id *curve_list)
-{
-    conf->curve_list = curve_list;
-    conf->group_list = NULL;
-}
-#endif /* MBEDTLS_DEPRECATED_REMOVED */
-#endif /* MBEDTLS_ECP_C */
-
 /*
  * Set the allowed groups
  */
@@ -5594,7 +5575,7 @@ void mbedtls_ssl_config_init(mbedtls_ssl_config *conf)
 /* The selection should be the same as mbedtls_x509_crt_profile_default in
  * x509_crt.c, plus Montgomery curves for ECDHE. Here, the order matters:
  * curves with a lower resource usage come first.
- * See the documentation of mbedtls_ssl_conf_curves() for what we promise
+ * See the documentation of mbedtls_ssl_conf_groups() for what we promise
  * about this list.
  */
 static const uint16_t ssl_preset_default_groups[] = {

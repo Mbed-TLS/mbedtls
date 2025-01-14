@@ -3813,54 +3813,6 @@ void mbedtls_ssl_conf_dhm_min_bitlen(mbedtls_ssl_config *conf,
                                      unsigned int bitlen);
 #endif /* MBEDTLS_DHM_C && MBEDTLS_SSL_CLI_C */
 
-#if defined(MBEDTLS_ECP_C)
-#if !defined(MBEDTLS_DEPRECATED_REMOVED)
-/**
- * \brief          Set the allowed curves in order of preference.
- *
- *                 On server: this only affects selection of the ECDHE curve;
- *                 the curves used for ECDH and ECDSA are determined by the
- *                 list of available certificates instead.
- *
- *                 On client: this affects the list of curves offered for any
- *                 use. The server can override our preference order.
- *
- *                 Both sides: limits the set of curves accepted for use in
- *                 ECDHE and in the peer's end-entity certificate.
- *
- * \deprecated     Superseded by mbedtls_ssl_conf_groups().
- *
- * \note           This has no influence on which curves are allowed inside the
- *                 certificate chains, see \c mbedtls_ssl_conf_cert_profile()
- *                 for that. For the end-entity certificate however, the key
- *                 will be accepted only if it is allowed both by this list
- *                 and by the cert profile.
- *
- * \note           This list should be ordered by decreasing preference
- *                 (preferred curve first).
- *
- * \note           The default list is the same set of curves that
- *                 #mbedtls_x509_crt_profile_default allows, plus
- *                 ECDHE-only curves selected according to the same criteria.
- *                 The order favors curves with the lowest resource usage.
- *
- * \note           New minor versions of Mbed TLS may extend this list,
- *                 for example if new curves are added to the library.
- *                 New minor versions of Mbed TLS will not remove items
- *                 from this list unless serious security concerns require it.
- *                 New minor versions of Mbed TLS may change the order in
- *                 keeping with the general principle of favoring the lowest
- *                 resource usage.
- *
- * \param conf     SSL configuration
- * \param curves   Ordered list of allowed curves,
- *                 terminated by MBEDTLS_ECP_DP_NONE.
- */
-void MBEDTLS_DEPRECATED mbedtls_ssl_conf_curves(mbedtls_ssl_config *conf,
-                                                const mbedtls_ecp_group_id *curves);
-#endif /* MBEDTLS_DEPRECATED_REMOVED */
-#endif /* MBEDTLS_ECP_C */
-
 /**
  * \brief          Set the allowed groups in order of preference.
  *
@@ -3871,13 +3823,6 @@ void MBEDTLS_DEPRECATED mbedtls_ssl_conf_curves(mbedtls_ssl_config *conf,
  *
  *                 Both sides: limits the set of groups accepted for use in
  *                 key sharing.
- *
- * \note           This function replaces the deprecated mbedtls_ssl_conf_curves(),
- *                 which only allows ECP curves to be configured.
- *
- * \note           The most recent invocation of either mbedtls_ssl_conf_curves()
- *                 or mbedtls_ssl_conf_groups() nullifies all previous invocations
- *                 of both.
  *
  * \note           This list should be ordered by decreasing preference
  *                 (preferred group first).

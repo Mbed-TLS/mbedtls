@@ -286,11 +286,7 @@ class CryptoConfigFile(config_common.ConfigFile):
     # Temporary, while Mbed TLS does not just rely on the TF-PSA-Crypto
     # build system to build its crypto library. When it does, the
     # condition can just be removed.
-    _path_in_tree = ('include/psa/crypto_config.h'
-                     if not os.path.isdir(os.path.join(os.path.dirname(__file__),
-                                                       os.pardir,
-                                                       'tf-psa-crypto')) else
-                     'tf-psa-crypto/include/psa/crypto_config.h')
+    _path_in_tree = 'include/psa/crypto_config.h'
     default_path = [_path_in_tree,
                     os.path.join(os.path.dirname(__file__),
                                  os.pardir,

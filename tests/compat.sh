@@ -620,7 +620,7 @@ setup_arguments()
     M_SERVER_ARGS="server_port=$PORT server_addr=0.0.0.0 force_version=$MODE"
     O_SERVER_ARGS="-accept $PORT -cipher ALL,COMPLEMENTOFALL -$O_MODE"
     G_SERVER_ARGS="-p $PORT --http $G_MODE"
-    G_SERVER_PRIO="NORMAL:${G_PRIO_CCM}+NULL:+MD5:+PSK:+DHE-PSK:+ECDHE-PSK:+SHA256:+SHA384:-VERS-TLS-ALL:$G_PRIO_MODE"
+    G_SERVER_PRIO="NORMAL:${G_PRIO_CCM}+NULL:+MD5:+PSK:+ECDHE-PSK:+SHA256:+SHA384:-VERS-TLS-ALL:$G_PRIO_MODE"
 
     # The default prime for `openssl s_server` depends on the version:
     # * OpenSSL <= 1.0.2a: 512-bit

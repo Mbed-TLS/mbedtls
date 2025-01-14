@@ -116,7 +116,7 @@ component_test_cmake_as_package () {
     ./cmake_package
     if [[ "$OSTYPE" == linux* ]]; then
         PKG_CONFIG_PATH="${build_variant_dir}/mbedtls/pkgconfig" \
-        ${root_dir}/tests/scripts/pkgconfig.sh \
+        ${root_dir}/framework/scripts/pkgconfig.sh \
         mbedtls mbedx509 mbedcrypto
         # These are the EXPECTED package names. Renaming these could break
         # consumers of pkg-config, consider carefully.
@@ -137,7 +137,7 @@ component_test_tf_psa_crypto_cmake_as_package () {
     ./cmake_package
     if [[ "$OSTYPE" == linux* ]]; then
         PKG_CONFIG_PATH="${build_variant_dir}/tf-psa-crypto/pkgconfig" \
-        ${root_dir}/tests/scripts/pkgconfig.sh \
+        ${root_dir}/framework/scripts/pkgconfig.sh \
         tfpsacrypto
         # This is the EXPECTED package name. Renaming it could break consumers
         # of pkg-config, consider carefully.

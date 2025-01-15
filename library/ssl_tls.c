@@ -7025,7 +7025,6 @@ static int ssl_compute_master(mbedtls_ssl_handshake_params *handshake,
              * length of the other key.
              */
             case MBEDTLS_KEY_EXCHANGE_ECDHE_PSK:
-            case MBEDTLS_KEY_EXCHANGE_DHE_PSK:
                 other_secret_len = MBEDTLS_GET_UINT16_BE(handshake->premaster, 0);
                 other_secret = handshake->premaster + 2;
                 break;
@@ -7326,14 +7325,9 @@ int mbedtls_ssl_psk_derive_premaster(mbedtls_ssl_context *ssl, mbedtls_key_excha
         /*
          * This should never happen because the existence of a PSK is always
          * checked before calling this function.
-         *
-         * The exception is opaque DHE-PSK. For DHE-PSK fill premaster with
-         * the shared secret without PSK.
          */
-        if (key_ex != MBEDTLS_KEY_EXCHANGE_DHE_PSK) {
-            MBEDTLS_SSL_DEBUG_MSG(1, ("should never happen"));
-            return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
-        }
+        MBEDTLS_SSL_DEBUG_MSG(1, ("should never happen"));
+        return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
     }
 
     /*
@@ -7360,24 +7354,6 @@ int mbedtls_ssl_psk_derive_premaster(mbedtls_ssl_context *ssl, mbedtls_key_excha
         p += psk_len;
     } else
 #endif /* MBEDTLS_KEY_EXCHANGE_PSK_ENABLED */
-#if defined(MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED)
-    if (key_ex == MBEDTLS_KEY_EXCHANGE_DHE_PSK) {
-        int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-        size_t len;
-
-        /* Write length only when we know the actual value */
-        if ((ret = mbedtls_dhm_calc_secret(&ssl->handshake->dhm_ctx,
-                                           p + 2, (size_t) (end - (p + 2)), &len,
-                                           ssl->conf->f_rng, ssl->conf->p_rng)) != 0) {
-            MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_dhm_calc_secret", ret);
-            return ret;
-        }
-        MBEDTLS_PUT_UINT16_BE(len, p, 0);
-        p += 2 + len;
-
-        MBEDTLS_SSL_DEBUG_MPI(3, "DHM: K ", &ssl->handshake->dhm_ctx.K);
-    } else
-#endif /* MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED */
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED)
     if (key_ex == MBEDTLS_KEY_EXCHANGE_ECDHE_PSK) {
         int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
@@ -9686,7 +9662,6 @@ int mbedtls_ssl_check_cert_usage(const mbedtls_x509_crt *cert,
             /* Don't use default: we want warnings when adding new values */
             case MBEDTLS_KEY_EXCHANGE_NONE:
             case MBEDTLS_KEY_EXCHANGE_PSK:
-            case MBEDTLS_KEY_EXCHANGE_DHE_PSK:
             case MBEDTLS_KEY_EXCHANGE_ECDHE_PSK:
             case MBEDTLS_KEY_EXCHANGE_ECJPAKE:
                 usage = 0;

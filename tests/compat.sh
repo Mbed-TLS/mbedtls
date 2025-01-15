@@ -406,9 +406,6 @@ add_openssl_ciphersuites()
 
         "PSK")
             CIPHERS="$CIPHERS                                   \
-                TLS_DHE_PSK_WITH_ARIA_128_GCM_SHA256            \
-                TLS_DHE_PSK_WITH_ARIA_256_GCM_SHA384            \
-                TLS_DHE_PSK_WITH_CHACHA20_POLY1305_SHA256       \
                 TLS_ECDHE_PSK_WITH_CHACHA20_POLY1305_SHA256     \
                 TLS_PSK_WITH_ARIA_128_GCM_SHA256                \
                 TLS_PSK_WITH_ARIA_256_GCM_SHA384                \
@@ -472,22 +469,6 @@ add_gnutls_ciphersuites()
 
         "PSK")
             CIPHERS="$CIPHERS                               \
-                TLS_DHE_PSK_WITH_AES_128_CBC_SHA            \
-                TLS_DHE_PSK_WITH_AES_128_CBC_SHA256         \
-                TLS_DHE_PSK_WITH_AES_128_CCM                \
-                TLS_DHE_PSK_WITH_AES_128_CCM_8              \
-                TLS_DHE_PSK_WITH_AES_128_GCM_SHA256         \
-                TLS_DHE_PSK_WITH_AES_256_CBC_SHA            \
-                TLS_DHE_PSK_WITH_AES_256_CBC_SHA384         \
-                TLS_DHE_PSK_WITH_AES_256_CCM                \
-                TLS_DHE_PSK_WITH_AES_256_CCM_8              \
-                TLS_DHE_PSK_WITH_AES_256_GCM_SHA384         \
-                TLS_DHE_PSK_WITH_CAMELLIA_128_CBC_SHA256    \
-                TLS_DHE_PSK_WITH_CAMELLIA_128_GCM_SHA256    \
-                TLS_DHE_PSK_WITH_CAMELLIA_256_CBC_SHA384    \
-                TLS_DHE_PSK_WITH_CAMELLIA_256_GCM_SHA384    \
-                TLS_DHE_PSK_WITH_NULL_SHA256                \
-                TLS_DHE_PSK_WITH_NULL_SHA384                \
                 TLS_ECDHE_PSK_WITH_AES_128_CBC_SHA          \
                 TLS_ECDHE_PSK_WITH_AES_128_CBC_SHA256       \
                 TLS_ECDHE_PSK_WITH_AES_256_CBC_SHA          \
@@ -554,9 +535,6 @@ add_mbedtls_ciphersuites()
         "PSK")
             # *PSK_NULL_SHA suites supported by GnuTLS 3.3.5 but not 3.2.15
             M_CIPHERS="$M_CIPHERS                               \
-                TLS_DHE_PSK_WITH_ARIA_128_CBC_SHA256            \
-                TLS_DHE_PSK_WITH_ARIA_256_CBC_SHA384            \
-                TLS_DHE_PSK_WITH_NULL_SHA                       \
                 TLS_ECDHE_PSK_WITH_ARIA_128_CBC_SHA256          \
                 TLS_ECDHE_PSK_WITH_ARIA_256_CBC_SHA384          \
                 TLS_ECDHE_PSK_WITH_NULL_SHA                     \

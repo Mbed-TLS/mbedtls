@@ -207,36 +207,6 @@
 #define MBEDTLS_DEBUG_C
 
 /**
- * \def MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED
- *
- * Enable the DHE-PSK based ciphersuite modes in SSL / TLS.
- *
- * Requires: MBEDTLS_DHM_C
- *
- * This enables the following ciphersuites (if other requisites are
- * enabled as well):
- *      MBEDTLS_TLS_DHE_PSK_WITH_AES_256_GCM_SHA384
- *      MBEDTLS_TLS_DHE_PSK_WITH_AES_256_CBC_SHA384
- *      MBEDTLS_TLS_DHE_PSK_WITH_AES_256_CBC_SHA
- *      MBEDTLS_TLS_DHE_PSK_WITH_CAMELLIA_256_GCM_SHA384
- *      MBEDTLS_TLS_DHE_PSK_WITH_CAMELLIA_256_CBC_SHA384
- *      MBEDTLS_TLS_DHE_PSK_WITH_AES_128_GCM_SHA256
- *      MBEDTLS_TLS_DHE_PSK_WITH_AES_128_CBC_SHA256
- *      MBEDTLS_TLS_DHE_PSK_WITH_AES_128_CBC_SHA
- *      MBEDTLS_TLS_DHE_PSK_WITH_CAMELLIA_128_GCM_SHA256
- *      MBEDTLS_TLS_DHE_PSK_WITH_CAMELLIA_128_CBC_SHA256
- *
- * \warning    Using DHE constitutes a security risk as it
- *             is not possible to validate custom DH parameters.
- *             If possible, it is recommended users should consider
- *             preferring other methods of key exchange.
- *             See dhm.h for more details.
- *
- */
-#define MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED
-
-
-/**
  * \def MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED
  *
  * Enable the DHE-RSA based ciphersuite modes in SSL / TLS.

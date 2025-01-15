@@ -493,17 +493,10 @@ class DriverVSReference_ecc_ffdh_no_bignum(outcome_analysis.DriverVSReference):
         'psa_crypto_ecp',
     ]
     IGNORED_TESTS = {
-        'ssl-opt': [
-            # DHE support in TLS 1.2 requires built-in MBEDTLS_DHM_C
-            # (because it needs custom groups, which PSA does not
-            # provide), even with MBEDTLS_USE_PSA_CRYPTO.
-            re.compile(r'PSK callback:.*\bdhe-psk\b.*'),
-        ],
         'test_suite_config': [
             re.compile(r'.*\bMBEDTLS_BIGNUM_C\b.*'),
             re.compile(r'.*\bMBEDTLS_DHM_C\b.*'),
             re.compile(r'.*\bMBEDTLS_(ECDH|ECDSA|ECJPAKE|ECP)_.*'),
-            re.compile(r'.*\bMBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED\b.*'),
             re.compile(r'.*\bMBEDTLS_PK_PARSE_EC_COMPRESSED\b.*'),
         ],
         'test_suite_platform': [

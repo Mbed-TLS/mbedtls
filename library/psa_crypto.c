@@ -3969,8 +3969,12 @@ psa_status_t mbedtls_psa_sign_hash_start(
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     size_t required_hash_length;
 
-    if (!PSA_KEY_TYPE_IS_ECC(attributes->type)) {
+    if (!PSA_KEY_TYPE_IS_ECC_KEY_PAIR(attributes->type)) {
         return PSA_ERROR_NOT_SUPPORTED;
+    }
+    psa_ecc_family_t curve = PSA_KEY_TYPE_ECC_GET_FAMILY(attributes->type);
+    if (!PSA_ECC_FAMILY_IS_WEIERSTRASS(curve)) {
+        return PSA_ERROR_INVALID_ARGUMENT;
     }
 
     if (!can_do_interruptible_sign_verify(alg)) {
@@ -4187,6 +4191,10 @@ psa_status_t mbedtls_psa_verify_hash_start(
 
     if (!PSA_KEY_TYPE_IS_ECC(attributes->type)) {
         return PSA_ERROR_NOT_SUPPORTED;
+    }
+    psa_ecc_family_t curve = PSA_KEY_TYPE_ECC_GET_FAMILY(attributes->type);
+    if (!PSA_ECC_FAMILY_IS_WEIERSTRASS(curve)) {
+        return PSA_ERROR_INVALID_ARGUMENT;
     }
 
     if (!can_do_interruptible_sign_verify(alg)) {

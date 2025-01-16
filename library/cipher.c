@@ -14,6 +14,7 @@
 #if defined(MBEDTLS_CIPHER_C)
 
 #include "mbedtls/cipher.h"
+#include "cipher_invasive.h"
 #include "cipher_wrap.h"
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
@@ -838,8 +839,9 @@ static void add_pkcs_padding(unsigned char *output, size_t output_len,
     }
 }
 
-static int get_pkcs_padding(unsigned char *input, size_t input_len,
-                            size_t *data_len)
+MBEDTLS_STATIC_TESTABLE int get_pkcs_padding(unsigned char *input,
+                                             size_t input_len,
+                                             size_t *data_len)
 {
     size_t i, pad_idx;
     unsigned char padding_len;

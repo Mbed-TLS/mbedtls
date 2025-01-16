@@ -146,7 +146,7 @@ def detect_arch() -> str:
         sys.exit(1)
 
 TFM_MEDIUM_CONFIG_H = 'configs/ext/tfm_mbedcrypto_config_profile_medium.h'
-TFM_MEDIUM_CRYPTO_CONFIG_H = 'configs/ext/crypto_config_profile_medium.h'
+TFM_MEDIUM_CRYPTO_CONFIG_H = 'tf-psa-crypto/configs/ext/crypto_config_profile_medium.h'
 
 CONFIG_H = 'include/mbedtls/mbedtls_config.h'
 CRYPTO_CONFIG_H = 'tf-psa-crypto/include/psa/crypto_config.h'

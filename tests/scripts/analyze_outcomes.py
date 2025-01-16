@@ -196,6 +196,12 @@ class CoverageTask(outcome_analysis.CoverageTask):
             # key type disabled. Those dependencies don't really make sense.
             # https://github.com/Mbed-TLS/mbedtls/issues/9573
             re.compile(r'.* !HMAC with HMAC'),
+            # We don't test with ECDH disabled but the key type enabled.
+            # https://github.com/Mbed-TLS/TF-PSA-Crypto/issues/161
+            re.compile(r'PSA key_agreement.* !ECDH with ECC_KEY_PAIR\(.*'),
+            # We don't test with FFDH disabled but the key type enabled.
+            # https://github.com/Mbed-TLS/TF-PSA-Crypto/issues/160
+            re.compile(r'PSA key_agreement.* !FFDH with DH_KEY_PAIR\(.*'),
         ],
         'test_suite_psa_crypto_op_fail.misc': [
             # We don't test this unusual, but sensible configuration.

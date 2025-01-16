@@ -92,30 +92,6 @@ int mbedtls_x509write_crt_set_issuer_name(mbedtls_x509write_cert *ctx,
     return mbedtls_x509_string_to_names(&ctx->issuer, issuer_name);
 }
 
-#if defined(MBEDTLS_BIGNUM_C) && !defined(MBEDTLS_DEPRECATED_REMOVED)
-int mbedtls_x509write_crt_set_serial(mbedtls_x509write_cert *ctx,
-                                     const mbedtls_mpi *serial)
-{
-    int ret;
-    size_t tmp_len;
-
-    /* Ensure that the MPI value fits into the buffer */
-    tmp_len = mbedtls_mpi_size(serial);
-    if (tmp_len > MBEDTLS_X509_RFC5280_MAX_SERIAL_LEN) {
-        return MBEDTLS_ERR_X509_BAD_INPUT_DATA;
-    }
-
-    ctx->serial_len = tmp_len;
-
-    ret = mbedtls_mpi_write_binary(serial, ctx->serial, tmp_len);
-    if (ret < 0) {
-        return ret;
-    }
-
-    return 0;
-}
-#endif // MBEDTLS_BIGNUM_C && !MBEDTLS_DEPRECATED_REMOVED
-
 int mbedtls_x509write_crt_set_serial_raw(mbedtls_x509write_cert *ctx,
                                          unsigned char *serial, size_t serial_len)
 {

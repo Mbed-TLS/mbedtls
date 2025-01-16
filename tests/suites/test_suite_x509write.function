@@ -471,14 +471,8 @@ void x509_crt_check(char *subject_key_file, char *subject_pwd,
         mbedtls_x509write_crt_set_version(&crt, ver);
     }
 
-#if defined(MBEDTLS_TEST_DEPRECATED) && defined(MBEDTLS_BIGNUM_C)
-    TEST_ASSERT(mbedtls_mpi_read_binary(&serial_mpi, serial_arg->x,
-                                        serial_arg->len) == 0);
-    TEST_ASSERT(mbedtls_x509write_crt_set_serial(&crt, &serial_mpi) == 0);
-#else
     TEST_ASSERT(mbedtls_x509write_crt_set_serial_raw(&crt, serial_arg->x,
                                                      serial_arg->len) == 0);
-#endif
     TEST_ASSERT(mbedtls_x509write_crt_set_validity(&crt, not_before,
                                                    not_after) == 0);
     mbedtls_x509write_crt_set_md_alg(&crt, md_type);
@@ -664,13 +658,6 @@ void x509_set_serial_check()
 
     USE_PSA_INIT();
     memset(invalid_serial, 0x01, sizeof(invalid_serial));
-
-#if defined(MBEDTLS_TEST_DEPRECATED) && defined(MBEDTLS_BIGNUM_C)
-    TEST_EQUAL(mbedtls_mpi_read_binary(&serial_mpi, invalid_serial,
-                                       sizeof(invalid_serial)), 0);
-    TEST_EQUAL(mbedtls_x509write_crt_set_serial(&ctx, &serial_mpi),
-               MBEDTLS_ERR_X509_BAD_INPUT_DATA);
-#endif
 
     TEST_EQUAL(mbedtls_x509write_crt_set_serial_raw(&ctx, invalid_serial,
                                                     sizeof(invalid_serial)),

@@ -1764,7 +1764,6 @@
 #define MBEDTLS_SSL_KEEP_PEER_CERTIFICATE
 
 /**
-/*
  * \def MBEDTLS_SSL_KEYING_MATERIAL_EXPORT
  *
  * When this option is enabled, the client and server can extract additional

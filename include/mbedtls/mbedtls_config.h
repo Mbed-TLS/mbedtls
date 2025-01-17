@@ -737,7 +737,7 @@
  */
 //#define MBEDTLS_SSL_RECORD_SIZE_LIMIT
 
-/*
+/**
  * \def MBEDTLS_SSL_KEYING_MATERIAL_EXPORT
  *
  * When this option is enabled, the client and server can extract additional

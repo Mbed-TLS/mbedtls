@@ -471,6 +471,7 @@ class ExclusiveDomain(BaseDomain): # pylint: disable=too-few-public-methods
             if exclude and re.match(exclude, symbol):
                 continue
 
+            # Determine mutually exlusive symbol groups
             matched = False
             if mutual_exclusion:
                 for group in mutual_exclusion:
@@ -480,6 +481,7 @@ class ExclusiveDomain(BaseDomain): # pylint: disable=too-few-public-methods
             if not matched:
                 single_symbols.add(symbol)
 
+        # Individual symbol handling
         for symbol in single_symbols:
             config_settings = base_config_settings.copy()
             config_settings[symbol] = True
@@ -490,6 +492,7 @@ class ExclusiveDomain(BaseDomain): # pylint: disable=too-few-public-methods
             job = Job(description, config_settings, commands)
             self.jobs.append(job)
 
+        # Handle mutually exclusive symbols
         for gsymbols in grouped_symbols.values():
             config_settings = base_config_settings.copy()
             config_settings.update({symbol: True for symbol in gsymbols})
@@ -634,7 +637,7 @@ class DomainData:
             # across various modules, but it depends on either SHA256 or SHA512.
             # As a consequence an "exclusive" test of anything other than SHA256
             # or SHA512 with MBEDTLS_ENTROPY_C enabled is not possible.
-            # Note for update: when MBEDTLS_SHA3_C is removed the mutual_exclusion
+            # TODO: when MBEDTLS_SHA3_C is removed the mutual_exclusion
             # argument must be removed.
             'hashes': DualDomain(hash_symbols, build_and_test,
                                  exclude=r'PSA_WANT_ALG_(?!SHA_(256|512))',

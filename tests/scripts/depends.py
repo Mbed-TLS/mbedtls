@@ -534,6 +534,7 @@ class ComplementaryDomain(BaseDomain): # pylint: disable=too-few-public-methods
 
         # Handle mutually exclusive symbols.
         # These symbols have its own job and excluded from the individual symbol handling.
+        grouped_symbols = set()
         if mutual_exclusion:
             for group in mutual_exclusion:
                 config_settings = {symbol: False
@@ -544,10 +545,10 @@ class ComplementaryDomain(BaseDomain): # pylint: disable=too-few-public-methods
                 alter_names = {'!' + symbol for symbol in config_settings.keys()}
                 job = Job(description, config_settings, commands, alter_names)
                 self.jobs.append(job)
-                valid_symbols -= config_settings.keys()
+                grouped_symbols.update(config_settings.keys())
 
         # Individual symbol handling
-        for symbol in valid_symbols:
+        for symbol in valid_symbols - grouped_symbols:
             description = '!' + symbol
             config_settings = {symbol: False}
             turn_off_dependencies(config_settings)

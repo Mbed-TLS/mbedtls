@@ -464,7 +464,7 @@ class ExclusiveDomain(BaseDomain): # pylint: disable=too-few-public-methods
         super().__init__(symbols, commands, exclude, mutual_exclusion)
         base_config_settings = {}
         single_symbols = set()
-        groupped_symbols = {}
+        grouped_symbols = {}
         for symbol in symbols:
             base_config_settings[symbol] = False
 
@@ -476,7 +476,7 @@ class ExclusiveDomain(BaseDomain): # pylint: disable=too-few-public-methods
                 for group in mutual_exclusion:
                     if re.match(group, symbol):
                         matched = True
-                        groupped_symbols.get(group, set()).add(symbol)
+                        grouped_symbols.get(group, set()).add(symbol)
             if not matched:
                 single_symbols.add(symbol)
 
@@ -490,11 +490,11 @@ class ExclusiveDomain(BaseDomain): # pylint: disable=too-few-public-methods
             job = Job(description, config_settings, commands)
             self.jobs.append(job)
 
-        for gsymbols in groupped_symbols.values():
+        for gsymbols in grouped_symbols.values():
             config_settings = base_config_settings.copy()
             config_settings.update({symbol: True for symbol in gsymbols})
             description = '(' + ' '.join(gsymbols) + ')'
-            alter_names = groupped_symbols
+            alter_names = grouped_symbols
 
             for symbol in gsymbols:
                 handle_exclusive_groups(config_settings, symbol)

@@ -3298,15 +3298,14 @@ int mbedtls_ssl_prepare_handshake_record(mbedtls_ssl_context *ssl)
     {
         int ret;
         const size_t hs_remain = ssl->in_hslen - ssl->in_hsfraglen;
-        const size_t msg_hslen = (hs_remain <= ssl->in_msglen ? hs_remain : ssl->in_msglen);
-
         MBEDTLS_SSL_DEBUG_MSG(3,
                               ("handshake fragment: %" MBEDTLS_PRINTF_SIZET " .. %"
                                MBEDTLS_PRINTF_SIZET " of %"
                                MBEDTLS_PRINTF_SIZET " msglen %" MBEDTLS_PRINTF_SIZET,
-                               ssl->in_hsfraglen, ssl->in_hsfraglen + msg_hslen,
+                               ssl->in_hsfraglen,
+                               ssl->in_hsfraglen +
+                               (hs_remain <= ssl->in_msglen ? hs_remain : ssl->in_msglen),
                                ssl->in_hslen, ssl->in_msglen));
-        (void) msg_hslen;
         if (ssl->in_msglen < hs_remain) {
             ssl->in_hsfraglen += ssl->in_msglen;
             ssl->in_hdr = ssl->in_msg + ssl->in_msglen;
@@ -5424,7 +5423,7 @@ void mbedtls_ssl_reset_in_pointers(mbedtls_ssl_context *ssl)
     if (ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM) {
         ssl->in_hdr = ssl->in_buf;
     } else
-#endif
+#endif  /* MBEDTLS_SSL_PROTO_DTLS */
     {
         ssl->in_hdr = ssl->in_buf + MBEDTLS_SSL_SEQUENCE_NUMBER_LEN;
     }

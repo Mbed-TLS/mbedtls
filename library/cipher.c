@@ -851,10 +851,6 @@ MBEDTLS_STATIC_TESTABLE int get_pkcs_padding(unsigned char *input,
     }
 
     padding_len = input[input_len - 1];
-    if (padding_len == 0 || padding_len > input_len) {
-        return MBEDTLS_ERR_CIPHER_INVALID_PADDING;
-    }
-    *data_len = input_len - padding_len;
 
     mbedtls_ct_condition_t bad = mbedtls_ct_uint_gt(padding_len, input_len);
     bad = mbedtls_ct_bool_or(bad, mbedtls_ct_uint_eq(padding_len, 0));
@@ -867,6 +863,9 @@ MBEDTLS_STATIC_TESTABLE int get_pkcs_padding(unsigned char *input,
         mbedtls_ct_condition_t different  = mbedtls_ct_uint_ne(input[i], padding_len);
         bad = mbedtls_ct_bool_or(bad, mbedtls_ct_bool_and(in_padding, different));
     }
+
+    /* If the padding is invalid, set the output length to 0 */
+    *data_len = mbedtls_ct_if(bad, 0, input_len - padding_len);
 
     return mbedtls_ct_error_if_else_0(bad, MBEDTLS_ERR_CIPHER_INVALID_PADDING);
 }

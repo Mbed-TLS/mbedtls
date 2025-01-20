@@ -672,7 +672,6 @@ component_test_psa_crypto_config_accel_ffdh () {
     scripts/config.py unset MBEDTLS_DHM_C
 
     # Disable things that depend on it
-    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED
     scripts/config.py unset MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED
 
     # Build
@@ -702,7 +701,6 @@ component_test_psa_crypto_config_reference_ffdh () {
     helper_libtestdriver1_adjust_config "full"
 
     # Disable things that are not supported
-    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED
     scripts/config.py unset MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED
     make
 
@@ -1187,14 +1185,12 @@ config_psa_crypto_config_accel_ecc_ffdh_no_bignum () {
         scripts/config.py -f "$CRYPTO_CONFIG_H" unset-all "PSA_WANT_KEY_TYPE_DH_[0-9A-Z_a-z]*"
         scripts/config.py -f "$CRYPTO_CONFIG_H" unset-all "PSA_WANT_DH_RFC7919_[0-9]*"
         scripts/config.py unset MBEDTLS_DHM_C
-        scripts/config.py unset MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED
         scripts/config.py unset MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED
     else
         # When testing ECC and DH instead, we disable DHM and depending key
         # exchanges only in the accelerated build
         if [ "$driver_only" -eq 1 ]; then
             scripts/config.py unset MBEDTLS_DHM_C
-            scripts/config.py unset MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED
             scripts/config.py unset MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED
         fi
     fi

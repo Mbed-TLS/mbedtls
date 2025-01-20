@@ -943,28 +943,6 @@ void mbedtls_x509write_crt_init(mbedtls_x509write_cert *ctx);
  */
 void mbedtls_x509write_crt_set_version(mbedtls_x509write_cert *ctx, int version);
 
-#if defined(MBEDTLS_BIGNUM_C) && !defined(MBEDTLS_DEPRECATED_REMOVED)
-/**
- * \brief           Set the serial number for a Certificate.
- *
- * \deprecated      This function is deprecated and will be removed in a
- *                  future version of the library. Please use
- *                  mbedtls_x509write_crt_set_serial_raw() instead.
- *
- * \note            Even though the MBEDTLS_BIGNUM_C guard looks redundant since
- *                  X509 depends on PK and PK depends on BIGNUM, this emphasizes
- *                  a direct dependency between X509 and BIGNUM which is going
- *                  to be deprecated in the future.
- *
- * \param ctx       CRT context to use
- * \param serial    serial number to set
- *
- * \return          0 if successful
- */
-int MBEDTLS_DEPRECATED mbedtls_x509write_crt_set_serial(
-    mbedtls_x509write_cert *ctx, const mbedtls_mpi *serial);
-#endif // MBEDTLS_BIGNUM_C && !MBEDTLS_DEPRECATED_REMOVED
-
 /**
  * \brief           Set the serial number for a Certificate.
  *

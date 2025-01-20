@@ -2276,23 +2276,6 @@ run_test    "Opaque key for client authentication: ECDHE-RSA" \
             -S "error" \
             -C "error"
 
-requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
-requires_config_enabled MBEDTLS_RSA_C
-requires_hash_alg SHA_256
-run_test    "Opaque key for client authentication: DHE-RSA" \
-            "$P_SRV force_version=tls12 auth_mode=required crt_file=$DATA_FILES_PATH/server2-sha256.crt \
-             key_file=$DATA_FILES_PATH/server2.key" \
-            "$P_CLI key_opaque=1 crt_file=$DATA_FILES_PATH/server2-sha256.crt \
-             key_file=$DATA_FILES_PATH/server2.key force_ciphersuite=TLS-DHE-RSA-WITH-AES-128-CBC-SHA \
-             key_opaque_algs=rsa-sign-pkcs1,none" \
-            0 \
-            -c "key type: Opaque" \
-            -c "Ciphersuite is TLS-DHE-RSA" \
-            -s "Verifying peer X.509 certificate... ok" \
-            -s "Ciphersuite is TLS-DHE-RSA" \
-            -S "error" \
-            -C "error"
-
 # Test using an EC opaque private key for server authentication
 requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
 requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
@@ -2524,21 +2507,6 @@ run_test    "Opaque key for server authentication: ECDHE-RSA" \
 requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
 requires_config_enabled MBEDTLS_RSA_C
 requires_hash_alg SHA_256
-run_test    "Opaque key for server authentication: DHE-RSA" \
-            "$P_SRV key_opaque=1 crt_file=$DATA_FILES_PATH/server2-sha256.crt \
-             key_file=$DATA_FILES_PATH/server2.key key_opaque_algs=rsa-sign-pkcs1,none" \
-            "$P_CLI force_version=tls12 force_ciphersuite=TLS-DHE-RSA-WITH-AES-128-CBC-SHA" \
-            0 \
-            -c "Verifying peer X.509 certificate... ok" \
-            -c "Ciphersuite is TLS-DHE-RSA" \
-            -s "key types: Opaque, none" \
-            -s "Ciphersuite is TLS-DHE-RSA" \
-            -S "error" \
-            -C "error"
-
-requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
-requires_config_enabled MBEDTLS_RSA_C
-requires_hash_alg SHA_256
 run_test    "Opaque key for server authentication: RSA-" \
             "$P_SRV debug_level=3 key_opaque=1 key_opaque_algs=rsa-decrypt,none " \
             "$P_CLI force_version=tls12 force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA256" \
@@ -2643,26 +2611,6 @@ run_test    "Opaque key for client/server authentication: ECDHE-RSA" \
             -s "Ciphersuite is TLS-ECDHE-RSA" \
             -S "error" \
             -C "error"
-
-requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
-requires_config_enabled MBEDTLS_RSA_C
-requires_hash_alg SHA_256
-run_test    "Opaque key for client/server authentication: DHE-RSA" \
-            "$P_SRV auth_mode=required key_opaque=1 crt_file=$DATA_FILES_PATH/server2-sha256.crt \
-             key_file=$DATA_FILES_PATH/server2.key  key_opaque_algs=rsa-sign-pkcs1,none" \
-            "$P_CLI key_opaque=1 crt_file=$DATA_FILES_PATH/server2-sha256.crt \
-             key_file=$DATA_FILES_PATH/server2.key  key_opaque_algs=rsa-sign-pkcs1,none \
-             force_ciphersuite=TLS-DHE-RSA-WITH-AES-128-CBC-SHA" \
-            0 \
-            -c "key type: Opaque" \
-            -c "Verifying peer X.509 certificate... ok" \
-            -c "Ciphersuite is TLS-DHE-RSA" \
-            -s "key types: Opaque, none" \
-            -s "Verifying peer X.509 certificate... ok" \
-            -s "Ciphersuite is TLS-DHE-RSA" \
-            -S "error" \
-            -C "error"
-
 
 # Test ciphersuites which we expect to be fully supported by PSA Crypto
 # and check that we don't fall back to Mbed TLS' internal crypto primitives.

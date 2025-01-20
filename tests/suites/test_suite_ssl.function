@@ -2761,10 +2761,11 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:!MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_PKCS1_V15:MBEDTLS_RSA_C:MBEDTLS_SSL_HAVE_AES:MBEDTLS_ECP_HAVE_SECP384R1:MBEDTLS_DEBUG_C:MBEDTLS_SSL_MAX_FRAGMENT_LENGTH:MBEDTLS_SSL_HAVE_CBC:MBEDTLS_MD_CAN_SHA256:MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED */
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:!MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_PKCS1_V15:MBEDTLS_RSA_C:MBEDTLS_SSL_HAVE_AES:MBEDTLS_ECP_HAVE_SECP384R1:MBEDTLS_DEBUG_C:MBEDTLS_SSL_MAX_FRAGMENT_LENGTH:MBEDTLS_SSL_HAVE_CBC */
 void handshake_fragmentation(int mfl,
                              int expected_srv_hs_fragmentation,
-                             int expected_cli_hs_fragmentation)
+                             int expected_cli_hs_fragmentation,
+                             char *ciphersuite)
 {
     mbedtls_test_handshake_test_options options;
     mbedtls_test_ssl_log_pattern srv_pattern, cli_pattern;
@@ -2778,7 +2779,7 @@ void handshake_fragmentation(int mfl,
     options.expected_negotiated_version = MBEDTLS_SSL_VERSION_TLS1_2;
     options.mfl = mfl;
     /* Set cipher to one using CBC so that record splitting can be tested */
-    options.cipher = "TLS-DHE-RSA-WITH-AES-256-CBC-SHA256";
+    options.cipher = ciphersuite;
     options.srv_auth_mode = MBEDTLS_SSL_VERIFY_REQUIRED;
     options.srv_log_obj = &srv_pattern;
     options.cli_log_obj = &cli_pattern;

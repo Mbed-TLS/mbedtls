@@ -2553,11 +2553,12 @@ run_test    "Opaque key for server authentication: RSA-" \
 requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
 requires_config_enabled MBEDTLS_RSA_C
 requires_hash_alg SHA_256
-run_test    "Opaque key for server authentication: DHE-RSA, PSS instead of PKCS1" \
+requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED
+run_test    "Opaque key for server authentication: ECDHE-RSA, PSS instead of PKCS1" \
             "$P_SRV auth_mode=required key_opaque=1 crt_file=$DATA_FILES_PATH/server2-sha256.crt \
              key_file=$DATA_FILES_PATH/server2.key key_opaque_algs=rsa-sign-pss,none debug_level=1" \
             "$P_CLI crt_file=$DATA_FILES_PATH/server2-sha256.crt \
-             key_file=$DATA_FILES_PATH/server2.key force_ciphersuite=TLS-DHE-RSA-WITH-AES-128-CBC-SHA" \
+             key_file=$DATA_FILES_PATH/server2.key force_ciphersuite=TLS-ECDHE-RSA-WITH-AES-128-CBC-SHA" \
             1 \
             -s "key types: Opaque, none" \
             -s "got ciphersuites in common, but none of them usable" \
@@ -2586,20 +2587,21 @@ run_test    "Opaque keys for server authentication: RSA keys with different algs
 
 requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
 requires_config_enabled MBEDTLS_RSA_C
+requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED
 requires_hash_alg SHA_384
 requires_config_disabled MBEDTLS_X509_REMOVE_INFO
-run_test    "Opaque keys for server authentication: EC + RSA, force DHE-RSA" \
+run_test    "Opaque keys for server authentication: EC + RSA, force ECDHE-RSA" \
             "$P_SRV auth_mode=required key_opaque=1 crt_file=$DATA_FILES_PATH/server5.crt \
              key_file=$DATA_FILES_PATH/server5.key key_opaque_algs=ecdsa-sign,none \
              crt_file2=$DATA_FILES_PATH/server4.crt \
              key_file2=$DATA_FILES_PATH/server4.key key_opaque_algs2=rsa-sign-pkcs1,none" \
-            "$P_CLI force_ciphersuite=TLS-DHE-RSA-WITH-AES-128-CBC-SHA" \
+            "$P_CLI force_ciphersuite=TLS-ECDHE-RSA-WITH-AES-128-CBC-SHA" \
             0 \
             -c "Verifying peer X.509 certificate... ok" \
-            -c "Ciphersuite is TLS-DHE-RSA" \
+            -c "Ciphersuite is TLS-ECDHE-RSA" \
             -c "CN=Polarssl Test EC CA" \
             -s "key types: Opaque, Opaque" \
-            -s "Ciphersuite is TLS-DHE-RSA" \
+            -s "Ciphersuite is TLS-ECDHE-RSA" \
             -S "error" \
             -C "error"
 
@@ -7843,11 +7845,11 @@ run_test    "keyUsage cli 1.2: DigitalSignature+KeyEncipherment, RSA: OK" \
             -C "Processing of the Certificate handshake message failed" \
             -c "Ciphersuite is TLS-"
 
-run_test    "keyUsage cli 1.2: DigitalSignature+KeyEncipherment, DHE-RSA: OK" \
+run_test    "keyUsage cli 1.2: DigitalSignature+KeyEncipherment, ECDHE-RSA: OK" \
             "$O_SRV -tls1_2 -key $DATA_FILES_PATH/server2.key \
              -cert $DATA_FILES_PATH/server2.ku-ds_ke.crt" \
             "$P_CLI debug_level=1 \
-             force_ciphersuite=TLS-DHE-RSA-WITH-AES-128-CBC-SHA" \
+             force_ciphersuite=TLS-ECDHE-RSA-WITH-AES-128-CBC-SHA" \
             0 \
             -C "bad certificate (usage extensions)" \
             -C "Processing of the Certificate handshake message failed" \
@@ -7863,11 +7865,11 @@ run_test    "keyUsage cli 1.2: KeyEncipherment, RSA: OK" \
             -C "Processing of the Certificate handshake message failed" \
             -c "Ciphersuite is TLS-"
 
-run_test    "keyUsage cli 1.2: KeyEncipherment, DHE-RSA: fail (hard)" \
+run_test    "keyUsage cli 1.2: KeyEncipherment, ECDHE-RSA: fail (hard)" \
             "$O_SRV -tls1_2 -key $DATA_FILES_PATH/server2.key \
              -cert $DATA_FILES_PATH/server2.ku-ke.crt" \
             "$P_CLI debug_level=3 \
-             force_ciphersuite=TLS-DHE-RSA-WITH-AES-128-CBC-SHA" \
+             force_ciphersuite=TLS-ECDHE-RSA-WITH-AES-128-CBC-SHA" \
             1 \
             -c "bad certificate (usage extensions)" \
             -c "Processing of the Certificate handshake message failed" \
@@ -7876,11 +7878,11 @@ run_test    "keyUsage cli 1.2: KeyEncipherment, DHE-RSA: fail (hard)" \
             -c "! Usage does not match the keyUsage extension"
             # MBEDTLS_X509_BADCERT_KEY_USAGE -> MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT
 
-run_test    "keyUsage cli 1.2: KeyEncipherment, DHE-RSA: fail (soft)" \
+run_test    "keyUsage cli 1.2: KeyEncipherment, ECDHE-RSA: fail (soft)" \
             "$O_SRV -tls1_2 -key $DATA_FILES_PATH/server2.key \
              -cert $DATA_FILES_PATH/server2.ku-ke.crt" \
             "$P_CLI debug_level=3 auth_mode=optional \
-             force_ciphersuite=TLS-DHE-RSA-WITH-AES-128-CBC-SHA" \
+             force_ciphersuite=TLS-ECDHE-RSA-WITH-AES-128-CBC-SHA" \
             0 \
             -c "bad certificate (usage extensions)" \
             -C "Processing of the Certificate handshake message failed" \
@@ -7888,11 +7890,11 @@ run_test    "keyUsage cli 1.2: KeyEncipherment, DHE-RSA: fail (soft)" \
             -C "send alert level=2 message=43" \
             -c "! Usage does not match the keyUsage extension"
 
-run_test    "keyUsage cli 1.2: DigitalSignature, DHE-RSA: OK" \
+run_test    "keyUsage cli 1.2: DigitalSignature, ECDHE-RSA: OK" \
             "$O_SRV -tls1_2 -key $DATA_FILES_PATH/server2.key \
              -cert $DATA_FILES_PATH/server2.ku-ds.crt" \
             "$P_CLI debug_level=1 \
-             force_ciphersuite=TLS-DHE-RSA-WITH-AES-128-CBC-SHA" \
+             force_ciphersuite=TLS-ECDHE-RSA-WITH-AES-128-CBC-SHA" \
             0 \
             -C "bad certificate (usage extensions)" \
             -C "Processing of the Certificate handshake message failed" \

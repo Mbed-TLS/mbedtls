@@ -33,41 +33,6 @@ class CoverageTask(outcome_analysis.CoverageTask):
                           r'.*\b(?:' + r'|'.join(words) + r')\b.*',
                           re.DOTALL)
 
-    # generate_psa_tests.py generates test cases involving cryptographic
-    # mechanisms (key types, families, algorithms) that are declared but
-    # not implemented. Until we improve the Python scripts, ignore those
-    # test cases in the analysis.
-    # https://github.com/Mbed-TLS/mbedtls/issues/9572
-    _PSA_MECHANISMS_NOT_IMPLEMENTED = [
-        r'CBC_MAC',
-        r'DETERMINISTIC_DSA',
-        r'DET_DSA',
-        r'DSA',
-        r'ECC_KEY_PAIR\(BRAINPOOL_P_R1\) (?:160|192|224|320)-bit',
-        r'ECC_KEY_PAIR\(SECP_K1\) 225-bit',
-        r'ECC_PAIR\(BP_R1\) (?:160|192|224|320)-bit',
-        r'ECC_PAIR\(SECP_K1\) 225-bit',
-        r'ECC_PUBLIC_KEY\(BRAINPOOL_P_R1\) (?:160|192|224|320)-bit',
-        r'ECC_PUBLIC_KEY\(SECP_K1\) 225-bit',
-        r'ECC_PUB\(BP_R1\) (?:160|192|224|320)-bit',
-        r'ECC_PUB\(SECP_K1\) 225-bit',
-        r'ED25519PH',
-        r'ED448PH',
-        r'PEPPER',
-        r'PURE_EDDSA',
-        r'SECP_R2',
-        r'SECT_K1',
-        r'SECT_R1',
-        r'SECT_R2',
-        r'SHAKE256_512',
-        r'SHA_512_224',
-        r'SHA_512_256',
-        r'TWISTED_EDWARDS',
-        r'XTS',
-    ]
-    PSA_MECHANISM_NOT_IMPLEMENTED_SEARCH_RE = \
-        _has_word_re(_PSA_MECHANISMS_NOT_IMPLEMENTED)
-
     IGNORED_TESTS = {
         'ssl-opt': [
             # We don't run ssl-opt.sh with Valgrind on the CI because
@@ -224,18 +189,6 @@ class CoverageTask(outcome_analysis.CoverageTask):
             'PSA import DH_PUBLIC_KEY(RFC7919) 2048-bit group not supported',
         ],
         'test_suite_psa_crypto_op_fail.generated': [
-            # Ignore mechanisms that are not implemented, except
-            # for test cases that assume the mechanism is not supported.
-            _has_word_re(_PSA_MECHANISMS_NOT_IMPLEMENTED,
-                         exclude=(r'.*: !(?:' +
-                                  r'|'.join(_PSA_MECHANISMS_NOT_IMPLEMENTED) +
-                                  r')\b')),
-            # Incorrect dependency generation. To be fixed as part of the
-            # resolution of https://github.com/Mbed-TLS/mbedtls/issues/9167
-            # by forward-porting the commit
-            # "PSA test case generation: dependency inference class: operation fail"
-            # from https://github.com/Mbed-TLS/mbedtls/pull/9025 .
-            re.compile(r'.* with (?:DH|ECC)_(?:KEY_PAIR|PUBLIC_KEY)\(.*'),
             # We don't test this unusual, but sensible configuration.
             # https://github.com/Mbed-TLS/mbedtls/issues/9592
             re.compile(r'.*: !ECDSA but DETERMINISTIC_ECDSA with ECC_.*'),
@@ -243,6 +196,12 @@ class CoverageTask(outcome_analysis.CoverageTask):
             # key type disabled. Those dependencies don't really make sense.
             # https://github.com/Mbed-TLS/mbedtls/issues/9573
             re.compile(r'.* !HMAC with HMAC'),
+            # We don't test with ECDH disabled but the key type enabled.
+            # https://github.com/Mbed-TLS/TF-PSA-Crypto/issues/161
+            re.compile(r'PSA key_agreement.* !ECDH with ECC_KEY_PAIR\(.*'),
+            # We don't test with FFDH disabled but the key type enabled.
+            # https://github.com/Mbed-TLS/TF-PSA-Crypto/issues/160
+            re.compile(r'PSA key_agreement.* !FFDH with DH_KEY_PAIR\(.*'),
         ],
         'test_suite_psa_crypto_op_fail.misc': [
             # We don't test this unusual, but sensible configuration.

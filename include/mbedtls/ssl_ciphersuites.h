@@ -323,11 +323,6 @@ typedef enum {
 #define MBEDTLS_KEY_EXCHANGE_SOME_ECDH_OR_ECDHE_ANY_ENABLED
 #endif
 
-/* TLS 1.2 XXDH key exchanges: ECDH or ECDHE */
-#if defined(MBEDTLS_KEY_EXCHANGE_SOME_ECDH_OR_ECDHE_1_2_ENABLED)
-#define MBEDTLS_KEY_EXCHANGE_SOME_XXDH_1_2_ENABLED
-#endif
-
 /* The handshake params structure has a set of fields called xxdh_psa which are used:
  * - by TLS 1.2 to do ECDH or ECDHE;
  * - by TLS 1.3 to do ECDHE or FFDHE.

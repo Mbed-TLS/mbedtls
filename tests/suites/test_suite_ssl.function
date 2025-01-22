@@ -3071,8 +3071,9 @@ void conf_group()
     mbedtls_ssl_config_init(&conf);
 
     mbedtls_ssl_conf_rng(&conf, mbedtls_test_random, NULL);
-    mbedtls_ssl_conf_max_tls_version(&conf, MBEDTLS_SSL_VERSION_TLS1_2);
-    mbedtls_ssl_conf_min_tls_version(&conf, MBEDTLS_SSL_VERSION_TLS1_2);
+    mbedtls_ssl_config_defaults(&conf, MBEDTLS_SSL_IS_CLIENT,
+                                MBEDTLS_SSL_TRANSPORT_STREAM,
+                                MBEDTLS_SSL_PRESET_DEFAULT);
 
     mbedtls_ssl_conf_groups(&conf, iana_tls_group_list);
 

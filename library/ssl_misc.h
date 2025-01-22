@@ -37,11 +37,6 @@
 #include "mbedtls/sha512.h"
 #endif
 
-#if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED) && \
-    !defined(MBEDTLS_USE_PSA_CRYPTO)
-#include "mbedtls/ecjpake.h"
-#endif
-
 #include "mbedtls/pk.h"
 #include "ssl_ciphersuites_internal.h"
 #include "x509_internal.h"
@@ -770,12 +765,6 @@ struct mbedtls_ssl_handshake_params {
 #if defined(MBEDTLS_DHM_C)
     mbedtls_dhm_context dhm_ctx;                /*!<  DHM key exchange        */
 #endif
-
-#if !defined(MBEDTLS_USE_PSA_CRYPTO) && \
-    defined(MBEDTLS_KEY_EXCHANGE_SOME_ECDH_OR_ECDHE_1_2_ENABLED)
-    mbedtls_ecdh_context ecdh_ctx;              /*!<  ECDH key exchange       */
-#endif /* !MBEDTLS_USE_PSA_CRYPTO &&
-          MBEDTLS_KEY_EXCHANGE_SOME_ECDH_OR_ECDHE_1_2_ENABLED */
 
 #if defined(MBEDTLS_KEY_EXCHANGE_SOME_XXDH_PSA_ANY_ENABLED)
     psa_key_type_t xxdh_psa_type;
@@ -2604,8 +2593,7 @@ static inline MBEDTLS_DEPRECATED int psa_ssl_status_to_mbedtls(psa_status_t stat
 }
 #endif /* !MBEDTLS_DEPRECATED_REMOVED */
 
-#if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED) && \
-    defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
 
 typedef enum {
     MBEDTLS_ECJPAKE_ROUND_ONE,
@@ -2648,7 +2636,7 @@ int mbedtls_psa_ecjpake_write_round(
     size_t len, size_t *olen,
     mbedtls_ecjpake_rounds_t round);
 
-#endif //MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED && MBEDTLS_USE_PSA_CRYPTO
+#endif /* MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED */
 
 /**
  * \brief       TLS record protection modes

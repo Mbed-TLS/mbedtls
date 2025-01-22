@@ -22,11 +22,9 @@
 #include "mbedtls/pem.h"
 #endif /* MBEDTLS_PEM_WRITE_C */
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
 #include "psa/crypto.h"
 #include "mbedtls/psa_util.h"
 #include "md_psa.h"
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 #define CHECK_OVERFLOW_ADD(a, b) \
     do                         \

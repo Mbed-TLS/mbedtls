@@ -20,11 +20,9 @@
 #include "mbedtls/oid.h"
 #include "mbedtls/platform_util.h"
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
 #include "psa/crypto.h"
 #include "psa_util_internal.h"
 #include "mbedtls/psa_util.h"
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 #include <string.h>
 #include <stdlib.h>
@@ -145,10 +143,8 @@ static int x509write_csr_der_internal(mbedtls_x509write_csr *ctx,
     size_t pub_len = 0, sig_and_oid_len = 0, sig_len;
     size_t len = 0;
     mbedtls_pk_type_t pk_alg;
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
     size_t hash_len;
     psa_algorithm_t hash_alg = mbedtls_md_psa_alg_from_type(ctx->md_alg);
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
     /* Write the CSR backwards starting from the end of buf */
     c = buf + size;
@@ -213,7 +209,6 @@ static int x509write_csr_der_internal(mbedtls_x509write_csr *ctx,
      * Sign the written CSR data into the sig buffer
      * Note: hash errors can happen only after an internal error
      */
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
     if (psa_hash_compute(hash_alg,
                          c,
                          len,
@@ -222,12 +217,6 @@ static int x509write_csr_der_internal(mbedtls_x509write_csr *ctx,
                          &hash_len) != PSA_SUCCESS) {
         return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
     }
-#else /* MBEDTLS_USE_PSA_CRYPTO */
-    ret = mbedtls_md(mbedtls_md_info_from_type(ctx->md_alg), c, len, hash);
-    if (ret != 0) {
-        return ret;
-    }
-#endif
     if ((ret = mbedtls_pk_sign(ctx->key, ctx->md_alg, hash, 0,
                                sig, sig_size, &sig_len,
                                f_rng, p_rng)) != 0) {

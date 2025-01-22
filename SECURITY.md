@@ -135,3 +135,17 @@ Guide](docs/architecture/alternative-implementations.md) for more information.
 - Use cryptographic mechanisms that are not based on block ciphers. In
   particular, for authenticated encryption, use ChaCha20/Poly1305 instead of
   block cipher modes. For random generation, use HMAC\_DRBG instead of CTR\_DRBG.
+
+#### Formatting of X.509 certificates and certificate signing requests
+
+When parsing X.509 certificates and certificate signing requests (CSRs),
+Mbed TLS does not check that they are strictly compliant with X.509 and other
+relevant standards. In the case of signed certificates, the signing party is
+assumed to have performed this validation (and the certificate is trusted to
+be correctly formatted as long as the signature is correct).
+Similarly, CSRs are implicitly trusted by Mbed TLS to be standards-compliant.
+
+**Warning!** Mbed TLS must not be used to sign untrusted CSRs unless extra
+validation is performed separately to ensure that they are compliant to the
+relevant specifications. This makes Mbed TLS on its own unsuitable use in a
+Certificate Authority (CA).

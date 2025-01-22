@@ -143,7 +143,7 @@ find_package(Threads)
 # If this is the root project add longer list of available CMAKE_BUILD_TYPE values
 if(NOT MBEDTLS_AS_SUBPROJECT)
     set(CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE}
-        CACHE STRING "Choose the type of build: None Debug Release Coverage ASan ASanDbg MemSan MemSanDbg Check CheckFull TSan TSanDbg"
+        CACHE STRING "Choose the type of build: None Debug Release Coverage ASan ASanDbg CFMemSan CFMemSanDbg MemSan MemSanDbg Check CheckFull TSan TSanDbg"
         FORCE)
 endif()
 
@@ -286,10 +286,23 @@ function(set_clang_base_compile_options target)
     set_target_properties(${target} PROPERTIES LINK_FLAGS_ASAN "-fsanitize=address -fsanitize=undefined")
     target_compile_options(${target} PRIVATE $<$<CONFIG:ASanDbg>:-fsanitize=address -fno-common -fsanitize=undefined -fno-sanitize-recover=all -O1 -g3 -fno-omit-frame-pointer -fno-optimize-sibling-calls>)
     set_target_properties(${target} PROPERTIES LINK_FLAGS_ASANDBG "-fsanitize=address -fsanitize=undefined")
+
+    set(sanitize_memory_debug_flags "-O1 -g3 -fno-omit-frame-pointer -fno-optimize-sibling-calls -fsanitize-memory-track-origins=2")
     target_compile_options(${target} PRIVATE $<$<CONFIG:MemSan>:-fsanitize=memory>)
     set_target_properties(${target} PROPERTIES LINK_FLAGS_MEMSAN "-fsanitize=memory")
-    target_compile_options(${target} PRIVATE $<$<CONFIG:MemSanDbg>:-fsanitize=memory -O1 -g3 -fno-omit-frame-pointer -fno-optimize-sibling-calls -fsanitize-memory-track-origins=2>)
+    target_compile_options(${target} PRIVATE $<$<CONFIG:MemSanDbg>:-fsanitize=memory ${sanitize_memory_debug_flags}>)
     set_target_properties(${target} PROPERTIES LINK_FLAGS_MEMSANDBG "-fsanitize=memory")
+
+    set(cf_sanitize_memory_flags -fsanitize=memory -DMBEDTLS_TEST_CONSTANT_FLOW_MEMSAN)
+    if(CMAKE_C_COMPILER_VERSION VERSION_GREATER 16.0.0)
+        set(cf_sanitize_memory_flags ${cf_sanitize_memory_flags} -fno-sanitize-memory-param-retval)
+    endif()
+    string(REPLACE ";" " " cf_sanitize_memory_flags_joined "${cf_sanitize_memory_flags}")
+    target_compile_options(${target} PRIVATE $<$<CONFIG:CFMemSan>:${cf_sanitize_memory_flags}>)
+    set_target_properties(${target} PROPERTIES LINK_FLAGS_CFMEMSAN "${cf_sanitize_memory_flags_joined}")
+    target_compile_options(${target} PRIVATE $<$<CONFIG:CFMemSanDbg>:${cf_sanitize_memory_flags} ${sanitize_memory_debug_flags}>)
+    set_target_properties(${target} PROPERTIES LINK_FLAGS_CFMEMSANDBG "${cf_sanitize_memory_flags_joined}")
+
     target_compile_options(${target} PRIVATE $<$<CONFIG:TSan>:-fsanitize=thread -O3>)
     set_target_properties(${target} PROPERTIES LINK_FLAGS_TSAN "-fsanitize=thread")
     target_compile_options(${target} PRIVATE $<$<CONFIG:TSanDbg>:-fsanitize=thread -O1 -g3 -fno-omit-frame-pointer -fno-optimize-sibling-calls>)

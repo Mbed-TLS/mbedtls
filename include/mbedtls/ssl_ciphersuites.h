@@ -365,8 +365,7 @@ typedef enum {
  * - by TLS 1.3 to do ECDHE or FFDHE.
  * The following macros can be used to guard their declaration and use.
  */
-#if defined(MBEDTLS_KEY_EXCHANGE_SOME_ECDH_OR_ECDHE_1_2_ENABLED) && \
-    defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_KEY_EXCHANGE_SOME_ECDH_OR_ECDHE_1_2_ENABLED)
 #define MBEDTLS_KEY_EXCHANGE_SOME_XXDH_PSA_1_2_ENABLED
 #endif
 #if defined(MBEDTLS_KEY_EXCHANGE_SOME_XXDH_PSA_1_2_ENABLED) || \

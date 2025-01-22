@@ -2804,57 +2804,6 @@ static int ssl_prepare_server_key_exchange(mbedtls_ssl_context *ssl,
 #endif /* MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED */
 
     /*
-     * - DHE key exchanges
-     */
-#if defined(MBEDTLS_KEY_EXCHANGE_SOME_DHE_ENABLED)
-    if (mbedtls_ssl_ciphersuite_uses_dhe(ciphersuite_info)) {
-        int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-        size_t len = 0;
-
-        if (ssl->conf->dhm_P.p == NULL || ssl->conf->dhm_G.p == NULL) {
-            MBEDTLS_SSL_DEBUG_MSG(1, ("no DH parameters set"));
-            return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
-        }
-
-        /*
-         * Ephemeral DH parameters:
-         *
-         * struct {
-         *     opaque dh_p<1..2^16-1>;
-         *     opaque dh_g<1..2^16-1>;
-         *     opaque dh_Ys<1..2^16-1>;
-         * } ServerDHParams;
-         */
-        if ((ret = mbedtls_dhm_set_group(&ssl->handshake->dhm_ctx,
-                                         &ssl->conf->dhm_P,
-                                         &ssl->conf->dhm_G)) != 0) {
-            MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_dhm_set_group", ret);
-            return ret;
-        }
-
-        if ((ret = mbedtls_dhm_make_params(
-                 &ssl->handshake->dhm_ctx,
-                 (int) mbedtls_dhm_get_len(&ssl->handshake->dhm_ctx),
-                 ssl->out_msg + ssl->out_msglen, &len,
-                 ssl->conf->f_rng, ssl->conf->p_rng)) != 0) {
-            MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_dhm_make_params", ret);
-            return ret;
-        }
-
-#if defined(MBEDTLS_KEY_EXCHANGE_WITH_SERVER_SIGNATURE_ENABLED)
-        dig_signed = ssl->out_msg + ssl->out_msglen;
-#endif
-
-        ssl->out_msglen += len;
-
-        MBEDTLS_SSL_DEBUG_MPI(3, "DHM: X ", &ssl->handshake->dhm_ctx.X);
-        MBEDTLS_SSL_DEBUG_MPI(3, "DHM: P ", &ssl->handshake->dhm_ctx.P);
-        MBEDTLS_SSL_DEBUG_MPI(3, "DHM: G ", &ssl->handshake->dhm_ctx.G);
-        MBEDTLS_SSL_DEBUG_MPI(3, "DHM: GX", &ssl->handshake->dhm_ctx.GX);
-    }
-#endif /* MBEDTLS_KEY_EXCHANGE_SOME_DHE_ENABLED */
-
-    /*
      * - ECDHE key exchanges
      */
 #if defined(MBEDTLS_KEY_EXCHANGE_SOME_ECDHE_ENABLED)

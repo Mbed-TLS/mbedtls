@@ -18,9 +18,10 @@
 
 #if defined(MBEDTLS_TEST_HOOKS) && defined(MBEDTLS_CIPHER_C)
 
-MBEDTLS_STATIC_TESTABLE int get_pkcs_padding(unsigned char *input,
-                                             size_t input_len,
-                                             size_t *data_len);
+MBEDTLS_STATIC_TESTABLE
+int get_pkcs_padding(unsigned char *input, //no-check-names
+                     size_t input_len,
+                     size_t *data_len);
 
 #endif
 

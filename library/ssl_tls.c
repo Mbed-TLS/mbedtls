@@ -8791,7 +8791,6 @@ int mbedtls_ssl_check_cert_usage(const mbedtls_x509_crt *cert,
                 usage = MBEDTLS_X509_KU_KEY_ENCIPHERMENT;
                 break;
 
-            case MBEDTLS_KEY_EXCHANGE_DHE_RSA:
             case MBEDTLS_KEY_EXCHANGE_ECDHE_RSA:
             case MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA:
                 usage = MBEDTLS_X509_KU_DIGITAL_SIGNATURE;

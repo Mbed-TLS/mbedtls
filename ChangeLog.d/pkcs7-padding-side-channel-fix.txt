@@ -1,0 +1,4 @@
+Security
+   * Fix a timing side channel in the implementation of PKCS#7 padding
+     which would allow an attacker who can request decryption of arbitrary
+     ciphertexts to recover the last byte of each block of the plaintext.

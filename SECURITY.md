@@ -147,8 +147,8 @@ Similarly, CSRs are implicitly trusted by Mbed TLS to be standards-compliant.
 
 **Warning!** Mbed TLS must not be used to sign untrusted CSRs unless extra
 validation is performed separately to ensure that they are compliant to the
-relevant specifications. This makes Mbed TLS on its own unsuitable use in a
-Certificate Authority (CA).
+relevant specifications. This makes Mbed TLS on its own unsuitable for use in
+a Certificate Authority (CA).
 
 However, Mbed TLS aims to protect against memory corruption and other
 undefined behavior when parsing certificates and CSRs. If a CSR or signed

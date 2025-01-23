@@ -170,6 +170,10 @@ X509 CRT information, ECDSA Certificate unsupported policy
 depends_on:MBEDTLS_PEM_PARSE_C:PSA_HAVE_ALG_SOME_ECDSA:PSA_WANT_ECC_SECP_R1_384:PSA_WANT_ALG_SHA_256
 x509_cert_info:"../framework/data_files/parse_input/test-ca-unsupported_policy_ec.crt":"cert. version     \: 3\nserial number     \: 00\nissuer name       \: C=NL, O=PolarSSL, CN=Polarssl Test EC CA\nsubject name      \: C=NL, O=PolarSSL, CN=Polarssl Test EC CA\nissued  on        \: 2019-04-28 13\:00\:19\nexpires on        \: 2029-04-28 13\:00\:19\nsigned using      \: ECDSA with SHA256\nEC key size       \: 384 bits\nbasic constraints \: CA=true\ncertificate policies \: ???\n"
 
+X509 CRT information, ECDSA Certificate name constraints with DNSName
+depends_on:MBEDTLS_PEM_PARSE_C:PSA_HAVE_ALG_SOME_ECDSA:PSA_WANT_ECC_SECP_R1_384:PSA_WANT_ALG_SHA_256
+x509_cert_info:"../framework/data_files/parse_input/test-ca-name_constraints_dns_ec.crt":"cert. version     \: 3\nserial number     \: 00\nissuer name       \: C=NL, O=PolarSSL, CN=Polarssl Test EC CA\nsubject name      \: C=NL, O=PolarSSL, CN=Polarssl Test EC CA\nissued  on        \: 2025-01-10 16\:45\:33\nexpires on        \: 2035-01-11 16\:45\:33\nsigned using      \: ECDSA with SHA256\nEC key size       \: 384 bits\nbasic constraints \: CA=true\nname constraints  \:\n  permitted \:\n    dNSName \: .example.com\n  excluded  \:\n    dNSName \: .bad.example.com\n"
+
 X509 CRT information, Key Usage + Extended Key Usage
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:PSA_WANT_ALG_SHA_256
 x509_cert_info:"../framework/data_files/parse_input/server1.ext_ku.crt":"cert. version     \: 3\nserial number     \: 21\nissuer name       \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name      \: C=NL, O=PolarSSL, CN=PolarSSL Server 1\nissued  on        \: 2014-04-01 14\:44\:43\nexpires on        \: 2024-03-29 14\:44\:43\nsigned using      \: RSA with SHA-256\nRSA key size      \: 2048 bits\nbasic constraints \: CA=false\nkey usage         \: Digital Signature, Non Repudiation, Key Encipherment\next key usage     \: TLS Web Server Authentication\n"
@@ -197,6 +201,10 @@ x509_cert_info:"../framework/data_files/server5-tricky-ip-san.crt.der":"cert. ve
 X509 SAN parsing otherName
 depends_on:PSA_HAVE_ALG_SOME_ECDSA:PSA_WANT_ECC_SECP_R1_256:PSA_WANT_ALG_SHA_256
 x509_parse_san:"../framework/data_files/parse_input/server5-othername.crt.der":"type \: 0\notherName \: hardware module name \: hardware type \: 1.3.6.1.4.1.17.3, hardware serial number \: 313233343536\n":0
+
+X509 SAN parsing BP EID otherName
+depends_on:PSA_HAVE_ALG_SOME_ECDSA:PSA_WANT_ECC_SECP_R1_256:PSA_WANT_ALG_SHA_256
+x509_parse_san:"../framework/data_files/parse_input/server5-bp_eid.crt.der":"type \: 0\notherName \: BundleEID \: ipn\:977000.100.0\n":0
 
 X509 SAN parsing binary otherName
 depends_on:PSA_HAVE_ALG_SOME_ECDSA:PSA_WANT_ECC_SECP_R1_256:PSA_WANT_ALG_SHA_256
@@ -228,7 +236,7 @@ x509_parse_san:"../framework/data_files/parse_input/server4.crt":"":0
 
 X509 SAN parsing, unsupported otherName name
 depends_on:PSA_HAVE_ALG_SOME_ECDSA:PSA_WANT_ECC_SECP_R1_256:PSA_WANT_ALG_SHA_256
-x509_parse_san:"../framework/data_files/parse_input/server5-unsupported_othername.crt.der":"":0
+x509_parse_san:"../framework/data_files/parse_input/server5-unsupported_othername.crt.der":"type \: 0\notherName \: raw \: type-id \: 1.2.3.4 value \: 736F6D65206F74686572206964656E746966696572\n":0
 
 X509 SAN parsing rfc822Name
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:PSA_WANT_ALG_SHA_256

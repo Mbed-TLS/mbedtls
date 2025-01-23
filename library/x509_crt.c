@@ -579,6 +579,190 @@ static int x509_get_ext_key_usage(unsigned char **p,
 }
 
 /*
+      GeneralSubtrees ::= SEQUENCE SIZE (1..MAX) OF GeneralSubtree
+
+      GeneralSubtree ::= SEQUENCE {
+           base                    GeneralName,
+           minimum         [0]     BaseDistance DEFAULT 0,
+           maximum         [1]     BaseDistance OPTIONAL }
+
+      BaseDistance ::= INTEGER (0..MAX)
+ */
+static int x509_get_general_subtrees( unsigned char **p,
+                                      const unsigned char *end,
+                                      mbedtls_x509_sequence *general_names )
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    size_t len, tag_len;
+    const unsigned char *item_end;
+    mbedtls_asn1_sequence *cur = general_names;
+
+    while( *p < end )
+    {
+        /* Sequence within the GeneralSubtree */
+        if( ( ret = mbedtls_asn1_get_tag( p, end, &len,
+                MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) ) != 0 )
+            return( MBEDTLS_ERROR_ADD( MBEDTLS_ERR_X509_INVALID_EXTENSIONS, ret ) );
+        item_end = *p + len;
+
+        mbedtls_x509_subject_alternative_name dummy_san_buf;
+        mbedtls_x509_buf tmp_san_buf;
+        memset(&dummy_san_buf, 0, sizeof(dummy_san_buf));
+
+        tmp_san_buf.tag = **p;
+        (*p)++;
+
+        if ((ret = mbedtls_asn1_get_len(p, end, &tag_len)) != 0) {
+            return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS, ret);
+        }
+
+        tmp_san_buf.p = *p;
+        tmp_san_buf.len = tag_len;
+
+        if ((tmp_san_buf.tag & MBEDTLS_ASN1_TAG_CLASS_MASK) !=
+            MBEDTLS_ASN1_CONTEXT_SPECIFIC) {
+            return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS,
+                                     MBEDTLS_ERR_ASN1_UNEXPECTED_TAG);
+        }
+
+        /*
+         * Check that the GeneralName is structured correctly.
+         */
+        ret = mbedtls_x509_parse_subject_alt_name(&tmp_san_buf, &dummy_san_buf);
+        /*
+         * In case the extension is malformed, return an error,
+         * and clear the allocated sequences.
+         */
+        if (ret != 0 && ret != MBEDTLS_ERR_X509_FEATURE_UNAVAILABLE) {
+            mbedtls_x509_sequence *seq_cur = general_names->next;
+            mbedtls_x509_sequence *seq_prv;
+            while (seq_cur != NULL) {
+                seq_prv = seq_cur;
+                seq_cur = seq_cur->next;
+                mbedtls_platform_zeroize(seq_prv,
+                                         sizeof(mbedtls_x509_sequence));
+                mbedtls_free(seq_prv);
+            }
+            general_names->next = NULL;
+            return ret;
+        }
+
+        /* Allocate and assign next pointer */
+        if (cur->buf.p != NULL) {
+            if (cur->next != NULL) {
+                return MBEDTLS_ERR_X509_INVALID_EXTENSIONS;
+            }
+
+            cur->next = mbedtls_calloc(1, sizeof(mbedtls_asn1_sequence));
+
+            if (cur->next == NULL) {
+                return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS,
+                                         MBEDTLS_ERR_ASN1_ALLOC_FAILED);
+            }
+
+            cur = cur->next;
+        }
+
+        cur->buf = tmp_san_buf;
+        *p += tmp_san_buf.len;
+
+        // Require that minimum and maximum distance are not present
+        if (*p != item_end) {
+            return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS,
+                                     MBEDTLS_ERR_ASN1_UNEXPECTED_TAG);
+        }
+    }
+
+    /* Set final sequence entry's next pointer to NULL */
+    cur->next = NULL;
+
+    if( *p != end )
+        return( MBEDTLS_ERROR_ADD( MBEDTLS_ERR_X509_INVALID_EXTENSIONS,
+                MBEDTLS_ERR_ASN1_LENGTH_MISMATCH ) );
+
+    return( 0 );
+}
+
+/*
+      NameConstraints ::= SEQUENCE {
+           permittedSubtrees       [0]     GeneralSubtrees OPTIONAL,
+           excludedSubtrees        [1]     GeneralSubtrees OPTIONAL }
+ */
+static int x509_get_name_constraints( unsigned char **p,
+                                      const unsigned char *end,
+                                      mbedtls_x509_sequence *include,
+                                      mbedtls_x509_sequence *exclude )
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    size_t len;
+    const unsigned char *end_subtree;
+
+    if ((ret = mbedtls_asn1_get_tag(p, end, &len,
+                                    MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE)) != 0) {
+        return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS, ret);
+    }
+
+    if (*p + len != end) {
+        return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS,
+                                 MBEDTLS_ERR_ASN1_LENGTH_MISMATCH);
+    }
+
+    if (*p < end) {
+        const unsigned tag = **p;
+        if ((tag & MBEDTLS_ASN1_TAG_CLASS_MASK) !=
+            MBEDTLS_ASN1_CONTEXT_SPECIFIC) {
+            return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS,
+                                     MBEDTLS_ERR_ASN1_UNEXPECTED_TAG);
+        }
+
+        /*
+         * permittedSubtrees
+         */
+        if ((tag & MBEDTLS_ASN1_TAG_VALUE_MASK) == MBEDTLS_X509_NAME_CONST_INCL) {
+            (*p)++;
+            if ((ret = mbedtls_asn1_get_len(p, end, &len)) != 0) {
+                return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS, ret);
+            }
+
+            end_subtree = *p + len;
+            if ((ret = x509_get_general_subtrees(p, end_subtree, include))) {
+                return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS, ret);
+            }
+        }
+    }
+
+    if (*p < end) {
+        const unsigned tag = **p;
+        if ((tag & MBEDTLS_ASN1_TAG_CLASS_MASK) !=
+            MBEDTLS_ASN1_CONTEXT_SPECIFIC) {
+            return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS,
+                                     MBEDTLS_ERR_ASN1_UNEXPECTED_TAG);
+        }
+
+        /*
+         * excludedSubtrees
+         */
+        if ((tag & MBEDTLS_ASN1_TAG_VALUE_MASK) == MBEDTLS_X509_NAME_CONST_EXCL) {
+            (*p)++;
+            if ((ret = mbedtls_asn1_get_len(p, end, &len)) != 0) {
+                return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS, ret);
+            }
+
+            end_subtree = *p + len;
+            if( (ret = x509_get_general_subtrees(p, end_subtree, exclude))) {
+                return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS, ret);
+            }
+        }
+    }
+
+    if( *p != end )
+        return( MBEDTLS_ERROR_ADD( MBEDTLS_ERR_X509_INVALID_EXTENSIONS,
+                MBEDTLS_ERR_ASN1_LENGTH_MISMATCH ) );
+
+    return( 0 );
+}
+
+/*
  * SubjectKeyIdentifier ::= KeyIdentifier
  *
  * KeyIdentifier ::= OCTET STRING
@@ -966,6 +1150,14 @@ static int x509_get_crt_ext(unsigned char **p,
                                                       &crt->ca_istrue, &crt->max_pathlen)) != 0) {
                     return ret;
                 }
+                break;
+
+            case MBEDTLS_X509_EXT_NAME_CONSTRAINTS:
+                /* Parse name constraints */
+                if ((ret = x509_get_name_constraints( p, end_ext_octet,
+                        &crt->name_constraints_incl,
+                        &crt->name_constraints_excl)) != 0 )
+                    return( ret );
                 break;
 
             case MBEDTLS_X509_EXT_KEY_USAGE:
@@ -1867,6 +2059,31 @@ int mbedtls_x509_crt_info(char *buf, size_t size, const char *prefix,
         if ((ret = x509_info_ext_key_usage(&p, &n,
                                            &crt->ext_key_usage)) != 0) {
             return ret;
+        }
+    }
+
+    if (crt->ext_types & MBEDTLS_X509_EXT_NAME_CONSTRAINTS) {
+        ret = mbedtls_snprintf(p, n, "\n%sname constraints  :", prefix);
+        MBEDTLS_X509_SAFE_SNPRINTF;
+
+        if (crt->name_constraints_incl.buf.p) {
+            ret = mbedtls_snprintf(p, n, "\n%s  permitted :", prefix);
+            MBEDTLS_X509_SAFE_SNPRINTF;
+            if ((ret = mbedtls_x509_info_subject_alt_name(&p, &n,
+                                                          &crt->name_constraints_incl,
+                                                          prefix)) != 0) {
+                return ret;
+            }
+        }
+
+        if (crt->name_constraints_excl.buf.p) {
+            ret = mbedtls_snprintf(p, n, "\n%s  excluded  :", prefix);
+            MBEDTLS_X509_SAFE_SNPRINTF;
+            if ((ret = mbedtls_x509_info_subject_alt_name(&p, &n,
+                                                          &crt->name_constraints_excl,
+                                                          prefix)) != 0) {
+                return ret;
+            }
         }
     }
 
@@ -3241,6 +3458,8 @@ void mbedtls_x509_crt_free(mbedtls_x509_crt *crt)
         mbedtls_asn1_free_named_data_list_shallow(cert_cur->subject.next);
         mbedtls_asn1_sequence_free(cert_cur->ext_key_usage.next);
         mbedtls_asn1_sequence_free(cert_cur->subject_alt_names.next);
+        mbedtls_asn1_sequence_free(cert_cur->name_constraints_incl.next);
+        mbedtls_asn1_sequence_free(cert_cur->name_constraints_excl.next);
         mbedtls_asn1_sequence_free(cert_cur->certificate_policies.next);
         mbedtls_asn1_sequence_free(cert_cur->authority_key_id.authorityCertIssuer.next);
 

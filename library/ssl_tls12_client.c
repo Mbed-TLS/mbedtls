@@ -809,15 +809,6 @@ static int ssl_parse_supported_point_formats_ext(mbedtls_ssl_context *ssl,
     while (list_size > 0) {
         if (p[0] == MBEDTLS_ECP_PF_UNCOMPRESSED ||
             p[0] == MBEDTLS_ECP_PF_COMPRESSED) {
-#if !defined(MBEDTLS_USE_PSA_CRYPTO) && \
-            defined(MBEDTLS_KEY_EXCHANGE_SOME_ECDH_OR_ECDHE_1_2_ENABLED)
-            ssl->handshake->ecdh_ctx.point_format = p[0];
-#endif /* !MBEDTLS_USE_PSA_CRYPTO && MBEDTLS_KEY_EXCHANGE_SOME_ECDH_OR_ECDHE_1_2_ENABLED */
-#if !defined(MBEDTLS_USE_PSA_CRYPTO) &&                             \
-            defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
-            mbedtls_ecjpake_set_point_format(&ssl->handshake->ecjpake_ctx,
-                                             p[0]);
-#endif /* !MBEDTLS_USE_PSA_CRYPTO && MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED */
             MBEDTLS_SSL_DEBUG_MSG(4, ("point format selected: %d", p[0]));
             return 0;
         }
@@ -2672,8 +2663,7 @@ static int ssl_write_client_key_exchange(mbedtls_ssl_context *ssl)
           MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED ||
           MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED ||
           MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED */
-#if defined(MBEDTLS_USE_PSA_CRYPTO) &&                           \
-    defined(MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED)
+#if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED)
     if (ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDHE_PSK) {
         psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
         psa_status_t destruction_status = PSA_ERROR_CORRUPTION_DETECTED;
@@ -2796,8 +2786,7 @@ static int ssl_write_client_key_exchange(mbedtls_ssl_context *ssl)
         MBEDTLS_PUT_UINT16_BE(zlen, pms, 0);
         pms += zlen_size + zlen;
     } else
-#endif /* MBEDTLS_USE_PSA_CRYPTO &&
-          MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED */
+#endif /* MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED */
 #if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
     if (mbedtls_ssl_ciphersuite_uses_psk(ciphersuite_info)) {
         /*
@@ -2832,26 +2821,6 @@ static int ssl_write_client_key_exchange(mbedtls_ssl_context *ssl)
             content_len = 0;
         } else
 #endif
-#if !defined(MBEDTLS_USE_PSA_CRYPTO) &&                             \
-        defined(MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED)
-        if (ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDHE_PSK) {
-            /*
-             * ClientECDiffieHellmanPublic public;
-             */
-            ret = mbedtls_ecdh_make_public(&ssl->handshake->ecdh_ctx,
-                                           &content_len,
-                                           &ssl->out_msg[header_len],
-                                           MBEDTLS_SSL_OUT_CONTENT_LEN - header_len,
-                                           ssl->conf->f_rng, ssl->conf->p_rng);
-            if (ret != 0) {
-                MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ecdh_make_public", ret);
-                return ret;
-            }
-
-            MBEDTLS_SSL_DEBUG_ECDH(3, &ssl->handshake->ecdh_ctx,
-                                   MBEDTLS_DEBUG_ECDH_Q);
-        } else
-#endif /* !MBEDTLS_USE_PSA_CRYPTO && MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED */
         {
             MBEDTLS_SSL_DEBUG_MSG(1, ("should never happen"));
             return MBEDTLS_ERR_SSL_INTERNAL_ERROR;

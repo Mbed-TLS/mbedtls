@@ -914,10 +914,6 @@ static void ssl_handshake_params_init(mbedtls_ssl_handshake_params *handshake)
 #if defined(MBEDTLS_DHM_C)
     mbedtls_dhm_init(&handshake->dhm_ctx);
 #endif
-#if !defined(MBEDTLS_USE_PSA_CRYPTO) && \
-    defined(MBEDTLS_KEY_EXCHANGE_SOME_ECDH_OR_ECDHE_1_2_ENABLED)
-    mbedtls_ecdh_init(&handshake->ecdh_ctx);
-#endif
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
     handshake->psa_pake_ctx = psa_pake_operation_init();
     handshake->psa_pake_password = MBEDTLS_SVC_KEY_ID_INIT;
@@ -4544,10 +4540,6 @@ void mbedtls_ssl_handshake_free(mbedtls_ssl_context *ssl)
 #if defined(MBEDTLS_DHM_C)
     mbedtls_dhm_free(&handshake->dhm_ctx);
 #endif
-#if !defined(MBEDTLS_USE_PSA_CRYPTO) && \
-    defined(MBEDTLS_KEY_EXCHANGE_SOME_ECDH_OR_ECDHE_1_2_ENABLED)
-    mbedtls_ecdh_free(&handshake->ecdh_ctx);
-#endif
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
     psa_pake_abort(&handshake->psa_pake_ctx);
@@ -6474,8 +6466,7 @@ static int ssl_compute_master(mbedtls_ssl_handshake_params *handshake,
 
 #if !defined(MBEDTLS_DEBUG_C) &&                    \
     !defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET) && \
-    !(defined(MBEDTLS_USE_PSA_CRYPTO) &&            \
-    defined(MBEDTLS_KEY_EXCHANGE_PSK_ENABLED))
+    !defined(MBEDTLS_KEY_EXCHANGE_PSK_ENABLED)
     ssl = NULL; /* make sure we don't use it except for those cases */
     (void) ssl;
 #endif
@@ -6499,8 +6490,7 @@ static int ssl_compute_master(mbedtls_ssl_handshake_params *handshake,
     }
 #endif /* MBEDTLS_SSL_EXTENDED_MASTER_SECRET */
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO) &&                   \
-    defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
+#if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
     if (mbedtls_ssl_ciphersuite_uses_psk(handshake->ciphersuite_info) == 1) {
         /* Perform PSK-to-MS expansion in a single step. */
         psa_status_t status;
@@ -6563,8 +6553,7 @@ static int ssl_compute_master(mbedtls_ssl_handshake_params *handshake,
     } else
 #endif
     {
-#if defined(MBEDTLS_USE_PSA_CRYPTO) &&                              \
-        defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
+#if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
         if (handshake->ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECJPAKE) {
             psa_status_t status;
             psa_algorithm_t alg = PSA_ALG_TLS12_ECJPAKE_TO_PMS;
@@ -6763,94 +6752,6 @@ int ssl_calc_verify_tls_sha384(const mbedtls_ssl_context *ssl,
                                    hash, hlen);
 }
 #endif /* PSA_WANT_ALG_SHA_384 */
-
-#if !defined(MBEDTLS_USE_PSA_CRYPTO) &&                      \
-    defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
-int mbedtls_ssl_psk_derive_premaster(mbedtls_ssl_context *ssl, mbedtls_key_exchange_type_t key_ex)
-{
-    unsigned char *p = ssl->handshake->premaster;
-    unsigned char *end = p + sizeof(ssl->handshake->premaster);
-    const unsigned char *psk = NULL;
-    size_t psk_len = 0;
-    int psk_ret = mbedtls_ssl_get_psk(ssl, &psk, &psk_len);
-
-    if (psk_ret == MBEDTLS_ERR_SSL_PRIVATE_KEY_REQUIRED) {
-        /*
-         * This should never happen because the existence of a PSK is always
-         * checked before calling this function.
-         */
-        MBEDTLS_SSL_DEBUG_MSG(1, ("should never happen"));
-        return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
-    }
-
-    /*
-     * PMS = struct {
-     *     opaque other_secret<0..2^16-1>;
-     *     opaque psk<0..2^16-1>;
-     * };
-     * with "other_secret" depending on the particular key exchange
-     */
-#if defined(MBEDTLS_KEY_EXCHANGE_PSK_ENABLED)
-    if (key_ex == MBEDTLS_KEY_EXCHANGE_PSK) {
-        if (end - p < 2) {
-            return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
-        }
-
-        MBEDTLS_PUT_UINT16_BE(psk_len, p, 0);
-        p += 2;
-
-        if (end < p || (size_t) (end - p) < psk_len) {
-            return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
-        }
-
-        memset(p, 0, psk_len);
-        p += psk_len;
-    } else
-#endif /* MBEDTLS_KEY_EXCHANGE_PSK_ENABLED */
-#if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED)
-    if (key_ex == MBEDTLS_KEY_EXCHANGE_ECDHE_PSK) {
-        int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-        size_t zlen;
-
-        if ((ret = mbedtls_ecdh_calc_secret(&ssl->handshake->ecdh_ctx, &zlen,
-                                            p + 2, (size_t) (end - (p + 2)),
-                                            ssl->conf->f_rng, ssl->conf->p_rng)) != 0) {
-            MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ecdh_calc_secret", ret);
-            return ret;
-        }
-
-        MBEDTLS_PUT_UINT16_BE(zlen, p, 0);
-        p += 2 + zlen;
-
-        MBEDTLS_SSL_DEBUG_ECDH(3, &ssl->handshake->ecdh_ctx,
-                               MBEDTLS_DEBUG_ECDH_Z);
-    } else
-#endif /* MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED */
-    {
-        MBEDTLS_SSL_DEBUG_MSG(1, ("should never happen"));
-        return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
-    }
-
-    /* opaque psk<0..2^16-1>; */
-    if (end - p < 2) {
-        return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
-    }
-
-    MBEDTLS_PUT_UINT16_BE(psk_len, p, 0);
-    p += 2;
-
-    if (end < p || (size_t) (end - p) < psk_len) {
-        return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
-    }
-
-    memcpy(p, psk, psk_len);
-    p += psk_len;
-
-    ssl->handshake->pmslen = (size_t) (p - ssl->handshake->premaster);
-
-    return 0;
-}
-#endif /* !MBEDTLS_USE_PSA_CRYPTO && MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */
 
 #if defined(MBEDTLS_SSL_SRV_C) && defined(MBEDTLS_SSL_RENEGOTIATION)
 MBEDTLS_CHECK_RETURN_CRITICAL
@@ -8240,8 +8141,7 @@ end:
     return ret;
 }
 
-#if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED) && \
-    defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
 int mbedtls_psa_ecjpake_read_round(
     psa_pake_operation_t *pake_ctx,
     const unsigned char *buf,
@@ -8325,7 +8225,7 @@ int mbedtls_psa_ecjpake_write_round(
 
     return 0;
 }
-#endif //MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED && MBEDTLS_USE_PSA_CRYPTO
+#endif /* MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED */
 
 int mbedtls_ssl_get_key_exchange_md_tls1_2(mbedtls_ssl_context *ssl,
                                            unsigned char *hash, size_t *hashlen,

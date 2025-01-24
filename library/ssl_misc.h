@@ -2867,12 +2867,9 @@ int mbedtls_ssl_tls13_finalize_client_hello(mbedtls_ssl_context *ssl);
  * max_data_len. In particular, this function always reads exactly \p
  * max_data_len bytes from \p data.
  *
- * \param ctx               The HMAC context. It must have keys configured
- *                          with mbedtls_md_hmac_starts() and use one of the
- *                          following hashes: SHA-384, SHA-256, SHA-1 or MD-5.
- *                          It is reset using mbedtls_md_hmac_reset() after
- *                          the computation is complete to prepare for the
- *                          next computation.
+ * \param key               The HMAC key.
+ * \param mac_alg           The hash algorithm.
+ *                          Must be one of SHA-384, SHA-256, SHA-1 or MD-5.
  * \param add_data          The first part of the message whose HMAC is being
  *                          calculated. This must point to a readable buffer
  *                          of \p add_data_len bytes.

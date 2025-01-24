@@ -5,3 +5,7 @@ API changes
      Mbed TLS error codes..
      This will not affect most applications since in both cases, the
      error values are between -32767 and -1 as before.
+
+Removals
+   * Remove mbedtls_low_level_sterr() and mbedtls_high_level_strerr(),
+     since these concepts no longer exists. There is just mbedtls_strerror().

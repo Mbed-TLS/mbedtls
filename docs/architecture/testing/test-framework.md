@@ -59,6 +59,8 @@ The outcome file has 6 fields:
 * **Platform**: a description of the build platform, e.g. `Linux-x86_64`. This is normally `uname -sm` with punctuation tweaked, as set through the environment variable `MBEDTLS_TEST_PLATFORM` in `all.sh`.
 * **Configuration**: a unique description of all build-time settings, including the library configuration (`mbedtls_config.h`, `crypto_config.h`) as well as compiler and linker flags. This defaults to the component name in `all.sh`, but should be made unique in components that build more than one configuration.
 * **Test suite**: generally, this is the base name of the file containing the test case. This includes:
+    * `all.sh` components: `all.sh` (we do not keep track of which file a component is defined in). The “test case” column contains the component name.
+    * Build steps: `make` (a build target often involves multiple makefiles, so this is not traced to a specific makefile). The “test case” column contains the target.
     * Unit test suites: `test_suite_xxx` (base name of the `.data` file, without the `.data` extension).
     * TLS tests (`tests/ssl-opt.sh`): either `ssl-opt` or the name of a file in `tests/opt-testcases` without the `.sh` extension.
     * TLS compatibility (`tests/compat.sh`): `compat`.

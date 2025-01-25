@@ -1403,7 +1403,7 @@ component_test_tfm_config_no_p256m () {
     sed -i '/PROFILE_M_PSA_CRYPTO_CONFIG_H/i #undef MBEDTLS_PSA_P256M_DRIVER_ENABLED' "$CRYPTO_CONFIG_H"
 
     msg "build: TF-M config without p256m"
-    make CFLAGS='-Werror -Wall -Wextra -I../framework/tests/include/spe' tests
+    make CFLAGS='-Werror -Wall -Wextra -I../framework/tests/include/spe'
 
     # Check that p256m was not built
     not grep p256_ecdsa_ library/libmbedcrypto.a

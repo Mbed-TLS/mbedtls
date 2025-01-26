@@ -3219,7 +3219,8 @@ static uint32_t ssl_get_hs_total_len(mbedtls_ssl_context const *ssl)
 
 int mbedtls_ssl_prepare_handshake_record(mbedtls_ssl_context *ssl)
 {
-    if (ssl->in_msglen < mbedtls_ssl_hs_hdr_len(ssl)) {
+    /* First handshake fragment must at least include the header. */
+    if (ssl->in_msglen < mbedtls_ssl_hs_hdr_len(ssl) && ssl->in_hslen == 0) {
         MBEDTLS_SSL_DEBUG_MSG(1, ("handshake message too short: %" MBEDTLS_PRINTF_SIZET,
                                   ssl->in_msglen));
         return MBEDTLS_ERR_SSL_INVALID_RECORD;

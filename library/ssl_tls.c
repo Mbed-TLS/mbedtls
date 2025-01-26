@@ -1419,7 +1419,8 @@ int mbedtls_ssl_setup(mbedtls_ssl_context *ssl,
         goto error;
     }
 
-    mbedtls_ssl_reset_in_out_pointers(ssl);
+    mbedtls_ssl_reset_in_pointers(ssl);
+    mbedtls_ssl_reset_out_pointers(ssl);
 
 #if defined(MBEDTLS_SSL_DTLS_SRTP)
     memset(&ssl->dtls_srtp_info, 0, sizeof(ssl->dtls_srtp_info));
@@ -1484,7 +1485,8 @@ void mbedtls_ssl_session_reset_msg_layer(mbedtls_ssl_context *ssl,
     /* Cancel any possibly running timer */
     mbedtls_ssl_set_timer(ssl, 0);
 
-    mbedtls_ssl_reset_in_out_pointers(ssl);
+    mbedtls_ssl_reset_in_pointers(ssl);
+    mbedtls_ssl_reset_out_pointers(ssl);
 
     /* Reset incoming message parsing */
     ssl->in_offt    = NULL;

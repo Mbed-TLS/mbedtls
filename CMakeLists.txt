@@ -76,6 +76,12 @@ else()
 endif()
 
 option(DISABLE_PACKAGE_CONFIG_AND_INSTALL "Disable package configuration, target export and installation" ${MBEDTLS_AS_SUBPROJECT})
+option(ENABLE_SLOTTED_VERSION "Enable slotted installation in order to install multiple versions of Mbed TLS" OFF)
+
+set(VERSION_SUFFIX "")
+if(ENABLE_SLOTTED_VERSION)
+    set(VERSION_SUFFIX "-${PROJECT_VERSION_MAJOR}")
+endif()
 
 if (CMAKE_C_SIMULATE_ID)
     set(COMPILER_ID ${CMAKE_C_SIMULATE_ID})

@@ -512,7 +512,9 @@ class DomainData:
         hash_symbols = self.config_symbols_matching(r'MBEDTLS_(MD|RIPEMD|SHA)[0-9]+_C\Z')
 
         # Find elliptic curve enabling macros
-        curve_symbols = self.config_symbols_matching(r'PSA_WANT_ECC_\w+\Z')
+        # MBEDTLS_ECP_DP_SECP224K1_ENABLED added to disable it for all curves
+        curve_symbols = self.config_symbols_matching(r'PSA_WANT_ECC_\w+\Z|'
+                                                     r'MBEDTLS_ECP_DP_SECP224K1_ENABLED')
 
         # Find key exchange enabling macros by name.
         key_exchange_symbols = self.config_symbols_matching(r'MBEDTLS_KEY_EXCHANGE_\w+_ENABLED\Z')
@@ -543,7 +545,8 @@ class DomainData:
                                               build_and_test),
 
             # Elliptic curves. Run the test suites.
-            'curves': ExclusiveDomain(curve_symbols, build_and_test),
+            'curves': ExclusiveDomain(curve_symbols, build_and_test,
+                                      exclude=r'MBEDTLS_ECP_DP_SECP224K1_ENABLED'),
 
             # Hash algorithms. Excluding exclusive domains of MD, RIPEMD, SHA1,
             # SHA224 and SHA384 because MBEDTLS_ENTROPY_C is extensively used

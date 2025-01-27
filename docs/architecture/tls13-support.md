@@ -115,7 +115,6 @@ Support description
   | MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED     | no      |
   |                                          |         |
   | MBEDTLS_KEY_EXCHANGE_PSK_ENABLED         | n/a (2) |
-  | MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED     | n/a     |
   | MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED   | n/a     |
   | MBEDTLS_KEY_EXCHANGE_RSA_ENABLED         | n/a     |
   | MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED     | n/a     |

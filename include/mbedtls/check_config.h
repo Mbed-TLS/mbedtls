@@ -69,10 +69,6 @@
 #error "MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED defined, but not all prerequisites"
 #endif
 
-#if defined(MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED) && !defined(MBEDTLS_DHM_C)
-#error "MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED defined, but not all prerequisites"
-#endif
-
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED) &&                     \
     !defined(MBEDTLS_CAN_ECDH)
 #error "MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED defined, but not all prerequisites"
@@ -180,7 +176,6 @@
       defined(MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED) ||                     \
       defined(MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED) ||                   \
       defined(MBEDTLS_KEY_EXCHANGE_PSK_ENABLED) ||                          \
-      defined(MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED) ||                      \
       defined(MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED) ||                    \
       defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED) )
 #error "One or more versions of the TLS protocol are enabled " \

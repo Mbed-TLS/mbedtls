@@ -2887,19 +2887,16 @@ static int ssl_prepare_server_key_exchange(mbedtls_ssl_context *ssl,
 #endif /* MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED */
 
     /*
-     * For (EC)DHE key exchanges with PSK, parameters are prefixed by support
+     * For ECDHE key exchanges with PSK, parameters are prefixed by support
      * identity hint (RFC 4279, Sec. 3). Until someone needs this feature,
      * we use empty support identity hints here.
      **/
-#if defined(MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED)   || \
-    defined(MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED)
-    if (ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_DHE_PSK ||
-        ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDHE_PSK) {
+#if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED)
+    if (ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDHE_PSK) {
         ssl->out_msg[ssl->out_msglen++] = 0x00;
         ssl->out_msg[ssl->out_msglen++] = 0x00;
     }
-#endif /* MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED ||
-          MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED */
+#endif /* MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED */
 
     /*
      * - DHE key exchanges
@@ -3375,8 +3372,7 @@ static int ssl_write_server_hello_done(mbedtls_ssl_context *ssl)
     return 0;
 }
 
-#if defined(MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED) ||                       \
-    defined(MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED)
+#if defined(MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED)
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_parse_client_dh_public(mbedtls_ssl_context *ssl, unsigned char **p,
                                       const unsigned char *end)
@@ -3411,8 +3407,7 @@ static int ssl_parse_client_dh_public(mbedtls_ssl_context *ssl, unsigned char **
 
     return ret;
 }
-#endif /* MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED ||
-          MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED */
+#endif /* MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED */
 
 #if defined(MBEDTLS_KEY_EXCHANGE_RSA_ENABLED)
 
@@ -3838,48 +3833,6 @@ static int ssl_parse_client_key_exchange(mbedtls_ssl_context *ssl)
 #endif /* !MBEDTLS_USE_PSA_CRYPTO */
     } else
 #endif /* MBEDTLS_KEY_EXCHANGE_PSK_ENABLED */
-#if defined(MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED)
-    if (ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_DHE_PSK) {
-        if ((ret = ssl_parse_client_psk_identity(ssl, &p, end)) != 0) {
-            MBEDTLS_SSL_DEBUG_RET(1, ("ssl_parse_client_psk_identity"), ret);
-            return ret;
-        }
-        if ((ret = ssl_parse_client_dh_public(ssl, &p, end)) != 0) {
-            MBEDTLS_SSL_DEBUG_RET(1, ("ssl_parse_client_dh_public"), ret);
-            return ret;
-        }
-
-        if (p != end) {
-            MBEDTLS_SSL_DEBUG_MSG(1, ("bad client key exchange"));
-            return MBEDTLS_ERR_SSL_DECODE_ERROR;
-        }
-
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-        unsigned char *pms = ssl->handshake->premaster;
-        unsigned char *pms_end = pms + sizeof(ssl->handshake->premaster);
-        size_t pms_len;
-
-        /* Write length only when we know the actual value */
-        if ((ret = mbedtls_dhm_calc_secret(&ssl->handshake->dhm_ctx,
-                                           pms + 2, pms_end - (pms + 2), &pms_len,
-                                           ssl->conf->f_rng, ssl->conf->p_rng)) != 0) {
-            MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_dhm_calc_secret", ret);
-            return ret;
-        }
-        MBEDTLS_PUT_UINT16_BE(pms_len, pms, 0);
-        pms += 2 + pms_len;
-
-        MBEDTLS_SSL_DEBUG_MPI(3, "DHM: K ", &ssl->handshake->dhm_ctx.K);
-#else
-        if ((ret = mbedtls_ssl_psk_derive_premaster(ssl,
-                                                    (mbedtls_key_exchange_type_t) ciphersuite_info->
-                                                    key_exchange)) != 0) {
-            MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_psk_derive_premaster", ret);
-            return ret;
-        }
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
-    } else
-#endif /* MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED */
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED)
     if (ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDHE_PSK) {
 #if defined(MBEDTLS_USE_PSA_CRYPTO)

@@ -2268,30 +2268,6 @@ int mbedtls_ssl_get_handshake_transcript(mbedtls_ssl_context *ssl,
                                          size_t *olen);
 
 /*
- * Return supported groups.
- *
- * In future, invocations can be changed to ssl->conf->group_list
- * when mbedtls_ssl_conf_curves() is deleted.
- *
- * ssl->handshake->group_list is either a translation of curve_list to IANA TLS group
- * identifiers when mbedtls_ssl_conf_curves() has been used, or a pointer to
- * ssl->conf->group_list when mbedtls_ssl_conf_groups() has been more recently invoked.
- *
- */
-static inline const void *mbedtls_ssl_get_groups(const mbedtls_ssl_context *ssl)
-{
-    #if defined(MBEDTLS_DEPRECATED_REMOVED) || !defined(MBEDTLS_ECP_C)
-    return ssl->conf->group_list;
-    #else
-    if ((ssl->handshake != NULL) && (ssl->handshake->group_list != NULL)) {
-        return ssl->handshake->group_list;
-    } else {
-        return ssl->conf->group_list;
-    }
-    #endif
-}
-
-/*
  * Helper functions for NamedGroup.
  */
 static inline int mbedtls_ssl_tls12_named_group_is_ecdhe(uint16_t named_group)
@@ -2333,7 +2309,7 @@ static inline int mbedtls_ssl_tls13_named_group_is_ffdh(uint16_t named_group)
 static inline int mbedtls_ssl_named_group_is_offered(
     const mbedtls_ssl_context *ssl, uint16_t named_group)
 {
-    const uint16_t *group_list = mbedtls_ssl_get_groups(ssl);
+    const uint16_t *group_list = ssl->conf->group_list;
 
     if (group_list == NULL) {
         return 0;

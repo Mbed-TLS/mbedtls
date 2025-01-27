@@ -388,10 +388,6 @@ class DriverVSReference_ecp_light_only(outcome_analysis.DriverVSReference):
             re.compile(r'ECP point multiplication .*'),
             re.compile(r'ECP test vectors .*'),
         ],
-        'test_suite_ssl': [
-            # This deprecated function is only present when ECP_C is On.
-            'Test configuration of groups for DHE through mbedtls_ssl_conf_curves()',
-        ],
     }
 
 class DriverVSReference_no_ecp_at_all(outcome_analysis.DriverVSReference):
@@ -427,10 +423,6 @@ class DriverVSReference_no_ecp_at_all(outcome_analysis.DriverVSReference):
             # while checking driver's coverage.
             re.compile(r'Parse EC Key .*compressed\)'),
             re.compile(r'Parse Public EC Key .*compressed\)'),
-        ],
-        # See ecp_light_only
-        'test_suite_ssl': [
-            'Test configuration of groups for DHE through mbedtls_ssl_conf_curves()',
         ],
     }
 
@@ -474,10 +466,6 @@ class DriverVSReference_ecc_no_bignum(outcome_analysis.DriverVSReference):
         ],
         'test_suite_debug': [
             re.compile(r'Debug print mbedtls_mpi.*'),
-        ],
-        # See ecp_light_only
-        'test_suite_ssl': [
-            'Test configuration of groups for DHE through mbedtls_ssl_conf_curves()',
         ],
     }
 
@@ -529,10 +517,6 @@ class DriverVSReference_ecc_ffdh_no_bignum(outcome_analysis.DriverVSReference):
         ],
         'test_suite_debug': [
             re.compile(r'Debug print mbedtls_mpi.*'),
-        ],
-        # See ecp_light_only
-        'test_suite_ssl': [
-            'Test configuration of groups for DHE through mbedtls_ssl_conf_curves()',
         ],
     }
 

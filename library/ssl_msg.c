@@ -3040,6 +3040,9 @@ int mbedtls_ssl_prepare_handshake_record(mbedtls_ssl_context *ssl)
     } else
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
     {
+        if (ssl->in_hsfraglen > ssl->in_hslen) {
+            return MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+        }
         int ret;
         const size_t hs_remain = ssl->in_hslen - ssl->in_hsfraglen;
         MBEDTLS_SSL_DEBUG_MSG(3,

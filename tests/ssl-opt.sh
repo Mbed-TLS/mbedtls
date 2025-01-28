@@ -14459,87 +14459,156 @@ run_test    "TLS 1.2 ClientHello indicating support for deflate compression meth
 
 # Handshake defragmentation testing
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-run_test    "Hanshake defragmentation (512)" \
-            "$O_SRV -max_send_frag 512 " \
+run_test    "Client Hanshake defragmentation (512)" \
+            "$O_NEXT_SRV -max_send_frag 512 " \
             "$P_CLI debug_level=4 " \
             0 \
             -c "received ServerHello message" \
             -c "<= handshake" \
+            -c "handshake fragment: "
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-run_test    "Hanshake defragmentation (513)" \
-            "$O_SRV -max_send_frag 513 " \
+run_test    "Client Hanshake defragmentation (513)" \
+            "$O_NEXT_SRV -max_send_frag 513 " \
             "$P_CLI debug_level=4 " \
             0 \
             -c "received ServerHello message" \
             -c "<= handshake" \
+            -c "handshake fragment: "
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-run_test    "Hanshake defragmentation (256)" \
-            "$O_SRV -mtu 32 -split_send_frag 256 " \
+run_test    "Client Hanshake defragmentation (256)" \
+            "$O_NEXT_SRV -mtu 32 -split_send_frag 256 " \
             "$P_CLI debug_level=4 " \
             0 \
             -c "received ServerHello message" \
             -c "<= handshake" \
+            -c "handshake fragment: "
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-run_test    "Hanshake defragmentation (128)" \
-            "$O_SRV -mtu 32 -split_send_frag 128 " \
+run_test    "Client Hanshake defragmentation (128)" \
+            "$O_NEXT_SRV -mtu 32 -split_send_frag 128 " \
             "$P_CLI debug_level=4 " \
             0 \
             -c "received ServerHello message" \
             -c "<= handshake" \
+            -c "handshake fragment: "
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-run_test    "Hanshake defragmentation (64)" \
-            "$O_SRV -mtu 32 -split_send_frag 64 " \
+run_test    "Client Hanshake defragmentation (64)" \
+            "$O_NEXT_SRV -mtu 32 -split_send_frag 64 " \
             "$P_CLI debug_level=4 " \
             0 \
             -c "received ServerHello message" \
             -c "<= handshake" \
+            -c "handshake fragment: "
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-run_test    "Hanshake defragmentation (36)" \
-            "$O_SRV -mtu 32 -split_send_frag 36 " \
+run_test    "Client Hanshake defragmentation (36)" \
+            "$O_NEXT_SRV -mtu 32 -split_send_frag 36 " \
             "$P_CLI debug_level=4 " \
             0 \
             -c "received ServerHello message" \
             -c "<= handshake" \
+            -c "handshake fragment: "
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-run_test    "Hanshake defragmentation (32)" \
-            "$O_SRV -mtu 32 -split_send_frag 32 " \
+run_test    "Client Hanshake defragmentation (32)" \
+            "$O_NEXT_SRV -mtu 32 -split_send_frag 32 " \
             "$P_CLI debug_level=4 " \
             0 \
             -c "received ServerHello message" \
             -c "<= handshake" \
+            -c "handshake fragment: "
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-run_test    "Hanshake defragmentation (16)" \
-            "$O_SRV -mtu 32 -split_send_frag 16 " \
+run_test    "Client Hanshake defragmentation (16)" \
+            "$O_NEXT_SRV -mtu 32 -split_send_frag 16 " \
             "$P_CLI debug_level=4 " \
             0 \
             -c "received ServerHello message" \
             -c "<= handshake" \
+            -c "handshake fragment: "
 
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-run_test    "Hanshake defragmentation (13)" \
-            "$O_SRV -mtu 32 -split_send_frag 13 " \
+run_test    "Client Hanshake defragmentation (13)" \
+            "$O_NEXT_SRV -mtu 32 -split_send_frag 13 " \
             "$P_CLI debug_level=4 " \
             0 \
             -c "received ServerHello message" \
             -c "<= handshake" \
+            -c "handshake fragment: "
 
-
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-run_test    "Hanshake defragmentation (5)" \
-            "$O_SRV -mtu 32 -split_send_frag 5 " \
+run_test    "Client Hanshake defragmentation (5)" \
+            "$O_NEXT_SRV -mtu 32 -split_send_frag 5 " \
             "$P_CLI debug_level=4 " \
             0 \
             -c "received ServerHello message" \
             -c "<= handshake" \
+            -c "handshake fragment: "
+
+run_test    "Server Hanshake defragmentation (512)" \
+            "$P_SRV debug_level=4 " \
+            "$O_NEXT_CLI -max_send_frag 512 " \
+            0 \
+            -s "<= handshake" \
+            -s "handshake fragment: "
+
+run_test    "Server Hanshake defragmentation (513)" \
+            "$P_SRV debug_level=4 " \
+            "$O_NEXT_CLI -max_send_frag 513 " \
+            0 \
+            -s "<= handshake" \
+            -s "handshake fragment: "
+
+run_test    "Server Hanshake defragmentation (256)" \
+            "$P_SRV debug_level=4 " \
+            "$O_NEXT_CLI -mtu 32 -split_send_frag 256 " \
+            0 \
+            -s "<= handshake" \
+            -s "handshake fragment: "
+
+run_test    "Server Hanshake defragmentation (128)" \
+            "$P_SRV debug_level=4 " \
+            "$O_NEXT_CLI -mtu 32 -split_send_frag 128 " \
+            0 \
+            -s "<= handshake" \
+            -s "handshake fragment: "
+
+run_test    "Server Hanshake defragmentation (64)" \
+            "$P_SRV debug_level=4 " \
+            "$O_NEXT_CLI -mtu 32 -split_send_frag 64 " \
+            0 \
+            -s "<= handshake" \
+            -s "handshake fragment: "
+
+run_test    "Server Hanshake defragmentation (36)" \
+            "$P_SRV debug_level=4 " \
+            "$O_NEXT_CLI -mtu 32 -split_send_frag 36 " \
+            0 \
+            -s "<= handshake" \
+            -s "handshake fragment: "
+
+run_test    "Server Hanshake defragmentation (32)" \
+            "$P_SRV debug_level=4 " \
+            "$O_NEXT_CLI -mtu 32 -split_send_frag 32 " \
+            0 \
+            -s "<= handshake" \
+            -s "handshake fragment: "
+
+run_test    "Server Hanshake defragmentation (16)" \
+            "$P_SRV debug_level=4 " \
+            "$O_NEXT_CLI -mtu 32 -split_send_frag 16 " \
+            0 \
+            -s "<= handshake" \
+            -s "handshake fragment: "
+
+run_test    "Server Hanshake defragmentation (13)" \
+            "$P_SRV debug_level=4 " \
+            "$O_NEXT_CLI -mtu 32 -split_send_frag 13 " \
+            0 \
+            -s "<= handshake" \
+            -s "handshake fragment: "
+
+run_test    "Server Hanshake defragmentation (5)" \
+            "$P_SRV debug_level=4 " \
+            "$O_NEXT_CLI -mtu 32 -split_send_frag 5 " \
+            0 \
+            -s "<= handshake" \
+            -s "handshake fragment: "
 
 # Test heap memory usage after handshake
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2

@@ -274,21 +274,19 @@ REVERSE_DEPENDENCIES = {
     'MBEDTLS_CIPHER_PADDING_ZEROS': ['MBEDTLS_CIPHER_MODE_CBC'],
     'MBEDTLS_CIPHER_PADDING_ZEROS_AND_LEN': ['MBEDTLS_CIPHER_MODE_CBC'],
 
-    'MBEDTLS_ECP_DP_BP256R1_ENABLED': ['PSA_WANT_ECC_BRAINPOOL_P_R1_256'],
-    'MBEDTLS_ECP_DP_BP384R1_ENABLED': ['PSA_WANT_ECC_BRAINPOOL_P_R1_384'],
-    'MBEDTLS_ECP_DP_BP512R1_ENABLED': ['PSA_WANT_ECC_BRAINPOOL_P_R1_512'],
-    'MBEDTLS_ECP_DP_CURVE25519_ENABLED': ['PSA_WANT_ECC_MONTGOMERY_255'],
-    'MBEDTLS_ECP_DP_CURVE448_ENABLED': ['PSA_WANT_ECC_MONTGOMERY_448'],
-    'MBEDTLS_ECP_DP_SECP192R1_ENABLED': ['PSA_WANT_ECC_SECP_R1_192'],
-    'MBEDTLS_ECP_DP_SECP224R1_ENABLED': ['PSA_WANT_ECC_SECP_R1_224'],
-    'MBEDTLS_ECP_DP_SECP256R1_ENABLED': ['PSA_WANT_ECC_SECP_R1_256',
-                                         'PSA_WANT_ALG_JPAKE',
-                                         'MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED'],
-    'MBEDTLS_ECP_DP_SECP384R1_ENABLED': ['PSA_WANT_ECC_SECP_R1_384'],
-    'MBEDTLS_ECP_DP_SECP512R1_ENABLED': ['PSA_WANT_ECC_SECP_R1_512'],
-    'MBEDTLS_ECP_DP_SECP521R1_ENABLED': ['PSA_WANT_ECC_SECP_R1_521'],
-    'MBEDTLS_ECP_DP_SECP192K1_ENABLED': ['PSA_WANT_ECC_SECP_K1_192'],
-    'MBEDTLS_ECP_DP_SECP256K1_ENABLED': ['PSA_WANT_ECC_SECP_K1_256'],
+    'PSA_WANT_ECC_BRAINPOOL_P_R1_256': ['MBEDTLS_ECP_DP_BP256R1_ENABLED'],
+    'PSA_WANT_ECC_BRAINPOOL_P_R1_384': ['MBEDTLS_ECP_DP_BP384R1_ENABLED'],
+    'PSA_WANT_ECC_BRAINPOOL_P_R1_512': ['MBEDTLS_ECP_DP_BP512R1_ENABLED'],
+    'PSA_WANT_ECC_MONTGOMERY_255': ['MBEDTLS_ECP_DP_CURVE25519_ENABLED'],
+    'PSA_WANT_ECC_MONTGOMERY_448': ['MBEDTLS_ECP_DP_CURVE448_ENABLED'],
+    'PSA_WANT_ECC_SECP_R1_192': ['MBEDTLS_ECP_DP_SECP192R1_ENABLED'],
+    'PSA_WANT_ECC_SECP_R1_224': ['MBEDTLS_ECP_DP_SECP224R1_ENABLED'],
+    'PSA_WANT_ECC_SECP_R1_256': ['MBEDTLS_ECJPAKE_C',
+                                 'MBEDTLS_ECP_DP_SECP256R1_ENABLED'],
+    'PSA_WANT_ECC_SECP_R1_384': ['MBEDTLS_ECP_DP_SECP384R1_ENABLED'],
+    'PSA_WANT_ECC_SECP_R1_521': ['MBEDTLS_ECP_DP_SECP521R1_ENABLED'],
+    'PSA_WANT_ECC_SECP_K1_192': ['MBEDTLS_ECP_DP_SECP192K1_ENABLED'],
+    'PSA_WANT_ECC_SECP_K1_256': ['MBEDTLS_ECP_DP_SECP256K1_ENABLED'],
 
     'MBEDTLS_ECDSA_C': ['MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED',
                         'MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED',
@@ -362,12 +360,12 @@ REVERSE_DEPENDENCIES = {
 EXCLUSIVE_GROUPS = {
     'MBEDTLS_SHA512_C': ['-MBEDTLS_SSL_COOKIE_C',
                          '-MBEDTLS_SSL_TLS_C'],
-    'MBEDTLS_ECP_DP_CURVE448_ENABLED': ['-MBEDTLS_ECDSA_C',
-                                        '-MBEDTLS_ECDSA_DETERMINISTIC',
-                                        '-MBEDTLS_ECJPAKE_C',],
-    'MBEDTLS_ECP_DP_CURVE25519_ENABLED': ['-MBEDTLS_ECDSA_C',
-                                          '-MBEDTLS_ECDSA_DETERMINISTIC',
-                                          '-MBEDTLS_ECJPAKE_C'],
+    'PSA_WANT_ECC_MONTGOMERY_448': ['-MBEDTLS_ECDSA_C',
+                                    '-MBEDTLS_ECDSA_DETERMINISTIC',
+                                    '-MBEDTLS_ECJPAKE_C',],
+    'PSA_WANT_ECC_MONTGOMERY_255': ['-MBEDTLS_ECDSA_C',
+                                    '-MBEDTLS_ECDSA_DETERMINISTIC',
+                                    '-MBEDTLS_ECJPAKE_C'],
     'PSA_WANT_KEY_TYPE_ARIA': ['-PSA_WANT_ALG_CMAC',
                                '-PSA_WANT_ALG_CCM',
                                '-PSA_WANT_ALG_GCM',
@@ -512,8 +510,12 @@ class DomainData:
 
         # Find hash modules by name.
         hash_symbols = self.config_symbols_matching(r'MBEDTLS_(MD|RIPEMD|SHA)[0-9]+_C\Z')
-        # Find elliptic curve enabling macros by name.
-        curve_symbols = self.config_symbols_matching(r'MBEDTLS_ECP_DP_\w+_ENABLED\Z')
+
+        # Find elliptic curve enabling macros
+        # MBEDTLS_ECP_DP_SECP224K1_ENABLED added to disable it for all curves
+        curve_symbols = self.config_symbols_matching(r'PSA_WANT_ECC_\w+\Z|'
+                                                     r'MBEDTLS_ECP_DP_SECP224K1_ENABLED')
+
         # Find key exchange enabling macros by name.
         key_exchange_symbols = self.config_symbols_matching(r'MBEDTLS_KEY_EXCHANGE_\w+_ENABLED\Z')
 
@@ -541,8 +543,11 @@ class DomainData:
 
             'cipher_padding': ExclusiveDomain(cipher_padding_symbols,
                                               build_and_test),
+
             # Elliptic curves. Run the test suites.
-            'curves': ExclusiveDomain(curve_symbols, build_and_test),
+            'curves': ExclusiveDomain(curve_symbols, build_and_test,
+                                      exclude=r'MBEDTLS_ECP_DP_SECP224K1_ENABLED'),
+
             # Hash algorithms. Excluding exclusive domains of MD, RIPEMD, SHA1,
             # SHA224 and SHA384 because MBEDTLS_ENTROPY_C is extensively used
             # across various modules, but it depends on either SHA256 or SHA512.

@@ -14459,6 +14459,7 @@ run_test    "TLS 1.2 ClientHello indicating support for deflate compression meth
 
 # Handshake defragmentation testing
 
+requires_openssl_tls1_3
 run_test    "Client Handshake defragmentation (512)" \
             "$O_NEXT_SRV -max_send_frag 512 " \
             "$P_CLI debug_level=4 " \
@@ -14466,6 +14467,7 @@ run_test    "Client Handshake defragmentation (512)" \
             -c "<= handshake" \
             -c "handshake fragment: "
 
+requires_openssl_tls1_3
 run_test    "Client Handshake defragmentation (513)" \
             "$O_NEXT_SRV -max_send_frag 513 " \
             "$P_CLI debug_level=4 " \
@@ -14473,6 +14475,7 @@ run_test    "Client Handshake defragmentation (513)" \
             -c "<= handshake" \
             -c "handshake fragment: "
 
+requires_openssl_tls1_3
 run_test    "Client Handshake defragmentation (256)" \
             "$O_NEXT_SRV -mtu 32 -split_send_frag 256 " \
             "$P_CLI debug_level=4 " \
@@ -14480,6 +14483,7 @@ run_test    "Client Handshake defragmentation (256)" \
             -c "<= handshake" \
             -c "handshake fragment: "
 
+requires_openssl_tls1_3
 run_test    "Client Handshake defragmentation (128)" \
             "$O_NEXT_SRV -mtu 32 -split_send_frag 128 " \
             "$P_CLI debug_level=4 " \
@@ -14487,6 +14491,7 @@ run_test    "Client Handshake defragmentation (128)" \
             -c "<= handshake" \
             -c "handshake fragment: "
 
+requires_openssl_tls1_3
 run_test    "Client Handshake defragmentation (64)" \
             "$O_NEXT_SRV -mtu 32 -split_send_frag 64 " \
             "$P_CLI debug_level=4 " \
@@ -14494,6 +14499,7 @@ run_test    "Client Handshake defragmentation (64)" \
             -c "<= handshake" \
             -c "handshake fragment: "
 
+requires_openssl_tls1_3
 run_test    "Client Handshake defragmentation (36)" \
             "$O_NEXT_SRV -mtu 32 -split_send_frag 36 " \
             "$P_CLI debug_level=4 " \
@@ -14501,6 +14507,7 @@ run_test    "Client Handshake defragmentation (36)" \
             -c "<= handshake" \
             -c "handshake fragment: "
 
+requires_openssl_tls1_3
 run_test    "Client Handshake defragmentation (32)" \
             "$O_NEXT_SRV -mtu 32 -split_send_frag 32 " \
             "$P_CLI debug_level=4 " \
@@ -14508,6 +14515,7 @@ run_test    "Client Handshake defragmentation (32)" \
             -c "<= handshake" \
             -c "handshake fragment: "
 
+requires_openssl_tls1_3
 run_test    "Client Handshake defragmentation (16)" \
             "$O_NEXT_SRV -mtu 32 -split_send_frag 16 " \
             "$P_CLI debug_level=4 " \
@@ -14515,7 +14523,7 @@ run_test    "Client Handshake defragmentation (16)" \
             -c "<= handshake" \
             -c "handshake fragment: "
 
-
+requires_openssl_tls1_3
 run_test    "Client Handshake defragmentation (13)" \
             "$O_NEXT_SRV -mtu 32 -split_send_frag 13 " \
             "$P_CLI debug_level=4 " \
@@ -14523,6 +14531,7 @@ run_test    "Client Handshake defragmentation (13)" \
             -c "<= handshake" \
             -c "handshake fragment: "
 
+requires_openssl_tls1_3
 run_test    "Client Handshake defragmentation (5)" \
             "$O_NEXT_SRV -mtu 32 -split_send_frag 5 " \
             "$P_CLI debug_level=4 " \
@@ -14530,6 +14539,7 @@ run_test    "Client Handshake defragmentation (5)" \
             -c "<= handshake" \
             -c "handshake fragment: "
 
+requires_openssl_tls1_3
 run_test    "Server Handshake defragmentation (512)" \
             "$P_SRV debug_level=4 " \
             "$O_NEXT_CLI -max_send_frag 512 " \
@@ -14537,6 +14547,7 @@ run_test    "Server Handshake defragmentation (512)" \
             -s "<= handshake" \
             -s "handshake fragment: "
 
+requires_openssl_tls1_3
 run_test    "Server Handshake defragmentation (513)" \
             "$P_SRV debug_level=4 " \
             "$O_NEXT_CLI -max_send_frag 513 " \
@@ -14544,6 +14555,7 @@ run_test    "Server Handshake defragmentation (513)" \
             -s "<= handshake" \
             -s "handshake fragment: "
 
+requires_openssl_tls1_3
 run_test    "Server Handshake defragmentation (256)" \
             "$P_SRV debug_level=4 " \
             "$O_NEXT_CLI -mtu 32 -split_send_frag 256 " \
@@ -14551,6 +14563,7 @@ run_test    "Server Handshake defragmentation (256)" \
             -s "<= handshake" \
             -s "handshake fragment: "
 
+requires_openssl_tls1_3
 run_test    "Server Handshake defragmentation (128)" \
             "$P_SRV debug_level=4 " \
             "$O_NEXT_CLI -mtu 32 -split_send_frag 128 " \
@@ -14558,6 +14571,7 @@ run_test    "Server Handshake defragmentation (128)" \
             -s "<= handshake" \
             -s "handshake fragment: "
 
+requires_openssl_tls1_3
 run_test    "Server Handshake defragmentation (64)" \
             "$P_SRV debug_level=4 " \
             "$O_NEXT_CLI -mtu 32 -split_send_frag 64 " \
@@ -14565,6 +14579,7 @@ run_test    "Server Handshake defragmentation (64)" \
             -s "<= handshake" \
             -s "handshake fragment: "
 
+requires_openssl_tls1_3
 run_test    "Server Handshake defragmentation (36)" \
             "$P_SRV debug_level=4 " \
             "$O_NEXT_CLI -mtu 32 -split_send_frag 36 " \
@@ -14572,6 +14587,7 @@ run_test    "Server Handshake defragmentation (36)" \
             -s "<= handshake" \
             -s "handshake fragment: "
 
+requires_openssl_tls1_3
 run_test    "Server Handshake defragmentation (32)" \
             "$P_SRV debug_level=4 " \
             "$O_NEXT_CLI -mtu 32 -split_send_frag 32 " \
@@ -14579,6 +14595,7 @@ run_test    "Server Handshake defragmentation (32)" \
             -s "<= handshake" \
             -s "handshake fragment: "
 
+requires_openssl_tls1_3
 run_test    "Server Handshake defragmentation (16)" \
             "$P_SRV debug_level=4 " \
             "$O_NEXT_CLI -mtu 32 -split_send_frag 16 " \
@@ -14586,6 +14603,7 @@ run_test    "Server Handshake defragmentation (16)" \
             -s "<= handshake" \
             -s "handshake fragment: "
 
+requires_openssl_tls1_3
 run_test    "Server Handshake defragmentation (13)" \
             "$P_SRV debug_level=4 " \
             "$O_NEXT_CLI -mtu 32 -split_send_frag 13 " \
@@ -14593,6 +14611,7 @@ run_test    "Server Handshake defragmentation (13)" \
             -s "<= handshake" \
             -s "handshake fragment: "
 
+requires_openssl_tls1_3
 run_test    "Server Handshake defragmentation (5)" \
             "$P_SRV debug_level=4 " \
             "$O_NEXT_CLI -mtu 32 -split_send_frag 5 " \

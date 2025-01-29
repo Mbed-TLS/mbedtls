@@ -16,9 +16,7 @@
 #include "mbedtls/ssl_ciphersuites.h"
 #include "mbedtls/ssl.h"
 #include "ssl_misc.h"
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
 #include "mbedtls/psa_util.h"
-#endif
 
 #include <string.h>
 
@@ -1543,7 +1541,6 @@ int mbedtls_ssl_get_ciphersuite_id(const char *ciphersuite_name)
 
 size_t mbedtls_ssl_ciphersuite_get_cipher_key_bitlen(const mbedtls_ssl_ciphersuite_t *info)
 {
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_key_type_t key_type;
     psa_algorithm_t alg;
@@ -1558,12 +1555,6 @@ size_t mbedtls_ssl_ciphersuite_get_cipher_key_bitlen(const mbedtls_ssl_ciphersui
     }
 
     return key_bits;
-#else
-    const mbedtls_cipher_info_t * const cipher_info =
-        mbedtls_cipher_info_from_type((mbedtls_cipher_type_t) info->cipher);
-
-    return mbedtls_cipher_info_get_key_bitlen(cipher_info);
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
 }
 
 #if defined(MBEDTLS_PK_C)
@@ -1587,7 +1578,6 @@ mbedtls_pk_type_t mbedtls_ssl_get_ciphersuite_sig_pk_alg(const mbedtls_ssl_ciphe
     }
 }
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
 psa_algorithm_t mbedtls_ssl_get_ciphersuite_sig_pk_psa_alg(const mbedtls_ssl_ciphersuite_t *info)
 {
     switch (info->key_exchange) {
@@ -1628,7 +1618,6 @@ psa_key_usage_t mbedtls_ssl_get_ciphersuite_sig_pk_psa_usage(const mbedtls_ssl_c
             return 0;
     }
 }
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 mbedtls_pk_type_t mbedtls_ssl_get_ciphersuite_sig_alg(const mbedtls_ssl_ciphersuite_t *info)
 {

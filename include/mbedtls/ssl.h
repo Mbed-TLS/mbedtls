@@ -1572,14 +1572,12 @@ struct mbedtls_ssl_config {
 
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_PSK_ENABLED)
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
     mbedtls_svc_key_id_t MBEDTLS_PRIVATE(psk_opaque); /*!< PSA key slot holding opaque PSK. This field
                                                        *   should only be set via
                                                        *   mbedtls_ssl_conf_psk_opaque().
                                                        *   If either no PSK or a raw PSK have been
                                                        *   configured, this has value \c 0.
                                                        */
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
     unsigned char *MBEDTLS_PRIVATE(psk);      /*!< The raw pre-shared key. This field should
                                                *   only be set via mbedtls_ssl_conf_psk().
                                                *   If either no PSK or an opaque PSK
@@ -3628,7 +3626,6 @@ int mbedtls_ssl_conf_psk(mbedtls_ssl_config *conf,
                          const unsigned char *psk, size_t psk_len,
                          const unsigned char *psk_identity, size_t psk_identity_len);
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
 /**
  * \brief          Configure one or more opaque pre-shared keys (PSKs) and
  *                 their identities to be used in PSK-based ciphersuites.
@@ -3670,7 +3667,6 @@ int mbedtls_ssl_conf_psk_opaque(mbedtls_ssl_config *conf,
                                 mbedtls_svc_key_id_t psk,
                                 const unsigned char *psk_identity,
                                 size_t psk_identity_len);
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 /**
  * \brief          Set the pre-shared Key (PSK) for the current handshake.
@@ -3691,7 +3687,6 @@ int mbedtls_ssl_conf_psk_opaque(mbedtls_ssl_config *conf,
 int mbedtls_ssl_set_hs_psk(mbedtls_ssl_context *ssl,
                            const unsigned char *psk, size_t psk_len);
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
 /**
  * \brief          Set an opaque pre-shared Key (PSK) for the current handshake.
  *
@@ -3714,7 +3709,6 @@ int mbedtls_ssl_set_hs_psk(mbedtls_ssl_context *ssl,
  */
 int mbedtls_ssl_set_hs_psk_opaque(mbedtls_ssl_context *ssl,
                                   mbedtls_svc_key_id_t psk);
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 #if defined(MBEDTLS_SSL_SRV_C)
 /**

@@ -14542,7 +14542,7 @@ run_test    "Client Handshake defragmentation (5)" \
 requires_openssl_tls1_3
 run_test    "Server Handshake defragmentation (512)" \
             "$P_SRV debug_level=4 " \
-            "$O_NEXT_CLI -max_send_frag 512 " \
+            "$O_NEXT_CLI -max_send_frag 512 -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key" \
             0 \
             -s "<= handshake" \
             -s "handshake fragment: "
@@ -14550,7 +14550,7 @@ run_test    "Server Handshake defragmentation (512)" \
 requires_openssl_tls1_3
 run_test    "Server Handshake defragmentation (513)" \
             "$P_SRV debug_level=4 " \
-            "$O_NEXT_CLI -max_send_frag 513 " \
+            "$O_NEXT_CLI -max_send_frag 513 -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key" \
             0 \
             -s "<= handshake" \
             -s "handshake fragment: "
@@ -14558,7 +14558,7 @@ run_test    "Server Handshake defragmentation (513)" \
 requires_openssl_tls1_3
 run_test    "Server Handshake defragmentation (256)" \
             "$P_SRV debug_level=4 " \
-            "$O_NEXT_CLI -mtu 32 -split_send_frag 256 " \
+            "$O_NEXT_CLI -mtu 32 -split_send_frag 256 -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key" \
             0 \
             -s "<= handshake" \
             -s "handshake fragment: "
@@ -14566,7 +14566,7 @@ run_test    "Server Handshake defragmentation (256)" \
 requires_openssl_tls1_3
 run_test    "Server Handshake defragmentation (128)" \
             "$P_SRV debug_level=4 " \
-            "$O_NEXT_CLI -mtu 32 -split_send_frag 128 " \
+            "$O_NEXT_CLI -mtu 32 -split_send_frag 128 -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key" \
             0 \
             -s "<= handshake" \
             -s "handshake fragment: "
@@ -14574,7 +14574,7 @@ run_test    "Server Handshake defragmentation (128)" \
 requires_openssl_tls1_3
 run_test    "Server Handshake defragmentation (64)" \
             "$P_SRV debug_level=4 " \
-            "$O_NEXT_CLI -mtu 32 -split_send_frag 64 " \
+            "$O_NEXT_CLI -mtu 32 -split_send_frag 64 -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key" \
             0 \
             -s "<= handshake" \
             -s "handshake fragment: "
@@ -14582,7 +14582,7 @@ run_test    "Server Handshake defragmentation (64)" \
 requires_openssl_tls1_3
 run_test    "Server Handshake defragmentation (36)" \
             "$P_SRV debug_level=4 " \
-            "$O_NEXT_CLI -mtu 32 -split_send_frag 36 " \
+            "$O_NEXT_CLI -mtu 32 -split_send_frag 36 -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key" \
             0 \
             -s "<= handshake" \
             -s "handshake fragment: "
@@ -14590,7 +14590,7 @@ run_test    "Server Handshake defragmentation (36)" \
 requires_openssl_tls1_3
 run_test    "Server Handshake defragmentation (32)" \
             "$P_SRV debug_level=4 " \
-            "$O_NEXT_CLI -mtu 32 -split_send_frag 32 " \
+            "$O_NEXT_CLI -mtu 32 -split_send_frag 32 -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key" \
             0 \
             -s "<= handshake" \
             -s "handshake fragment: "
@@ -14598,7 +14598,7 @@ run_test    "Server Handshake defragmentation (32)" \
 requires_openssl_tls1_3
 run_test    "Server Handshake defragmentation (16)" \
             "$P_SRV debug_level=4 " \
-            "$O_NEXT_CLI -mtu 32 -split_send_frag 16 " \
+            "$O_NEXT_CLI -mtu 32 -split_send_frag 16 -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key" \
             0 \
             -s "<= handshake" \
             -s "handshake fragment: "
@@ -14606,7 +14606,7 @@ run_test    "Server Handshake defragmentation (16)" \
 requires_openssl_tls1_3
 run_test    "Server Handshake defragmentation (13)" \
             "$P_SRV debug_level=4 " \
-            "$O_NEXT_CLI -mtu 32 -split_send_frag 13 " \
+            "$O_NEXT_CLI -mtu 32 -split_send_frag 13 -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key" \
             0 \
             -s "<= handshake" \
             -s "handshake fragment: "
@@ -14614,7 +14614,7 @@ run_test    "Server Handshake defragmentation (13)" \
 requires_openssl_tls1_3
 run_test    "Server Handshake defragmentation (5)" \
             "$P_SRV debug_level=4 " \
-            "$O_NEXT_CLI -mtu 32 -split_send_frag 5 " \
+            "$O_NEXT_CLI -mtu 32 -split_send_frag 5 -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key" \
             0 \
             -s "<= handshake" \
             -s "handshake fragment: "

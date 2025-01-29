@@ -115,7 +115,9 @@ int main(void)
 #define DFL_DUMMY_TICKET        0
 #define DFL_TICKET_ROTATE       0
 #define DFL_TICKET_TIMEOUT      86400
-#define DFL_TICKET_AEAD         MBEDTLS_CIPHER_AES_256_GCM
+#define DFL_TICKET_ALG          PSA_ALG_GCM
+#define DFL_TICKET_KEY_TYPE     PSA_KEY_TYPE_AES
+#define DFL_TICKET_KEY_BITS     256
 #define DFL_CACHE_MAX           -1
 #define DFL_CACHE_TIMEOUT       -1
 #define DFL_CACHE_REMOVE        0
@@ -661,7 +663,9 @@ struct options {
     int dummy_ticket;           /* enable / disable dummy ticket generator  */
     int ticket_rotate;          /* session ticket rotate (code coverage)    */
     int ticket_timeout;         /* session ticket lifetime                  */
-    int ticket_aead;            /* session ticket protection                */
+    int ticket_alg;             /* session ticket algorithm                 */
+    int ticket_key_type;        /* session ticket key type                  */
+    int ticket_key_bits;        /* session ticket key size in bits          */
     int cache_max;              /* max number of session cache entries      */
 #if defined(MBEDTLS_HAVE_TIME)
     int cache_timeout;          /* expiration delay of session cache entries*/
@@ -1472,38 +1476,71 @@ static int dummy_ticket_parse(void *p_ticket, mbedtls_ssl_session *session,
 
 static int parse_cipher(char *buf)
 {
+    int rc = 0;
     if (strcmp(buf, "AES-128-CCM")) {
-        return MBEDTLS_CIPHER_AES_128_CCM;
+        opt.ticket_alg = PSA_ALG_CCM;
+        opt.ticket_key_type = PSA_KEY_TYPE_AES;
+        opt.ticket_key_bits = 128;
     } else if (strcmp(buf, "AES-128-GCM")) {
-        return MBEDTLS_CIPHER_AES_128_GCM;
+        opt.ticket_alg = PSA_ALG_GCM;
+        opt.ticket_key_type = PSA_KEY_TYPE_AES;
+        opt.ticket_key_bits = 128;
     } else if (strcmp(buf, "AES-192-CCM")) {
-        return MBEDTLS_CIPHER_AES_192_CCM;
+        opt.ticket_alg = PSA_ALG_CCM;
+        opt.ticket_key_type = PSA_KEY_TYPE_AES;
+        opt.ticket_key_bits = 192;
     } else if (strcmp(buf, "AES-192-GCM")) {
-        return MBEDTLS_CIPHER_AES_192_GCM;
+        opt.ticket_alg = PSA_ALG_CCM;
+        opt.ticket_key_type = PSA_KEY_TYPE_AES;
+        opt.ticket_key_bits = 192;
     } else if (strcmp(buf, "AES-256-CCM")) {
-        return MBEDTLS_CIPHER_AES_256_CCM;
+        opt.ticket_alg = PSA_ALG_CCM;
+        opt.ticket_key_type = PSA_KEY_TYPE_AES;
+        opt.ticket_key_bits = 128;
     } else if (strcmp(buf, "ARIA-128-CCM")) {
-        return MBEDTLS_CIPHER_ARIA_128_CCM;
+        opt.ticket_alg = PSA_ALG_CCM;
+        opt.ticket_key_type = PSA_KEY_TYPE_ARIA;
+        opt.ticket_key_bits = 128;
     } else if (strcmp(buf, "ARIA-128-GCM")) {
-        return MBEDTLS_CIPHER_ARIA_128_GCM;
+        opt.ticket_alg = PSA_ALG_GCM;
+        opt.ticket_key_type = PSA_KEY_TYPE_ARIA;
+        opt.ticket_key_bits = 128;
     } else if (strcmp(buf, "ARIA-192-CCM")) {
-        return MBEDTLS_CIPHER_ARIA_192_CCM;
+        opt.ticket_alg = PSA_ALG_CCM;
+        opt.ticket_key_type = PSA_KEY_TYPE_ARIA;
+        opt.ticket_key_bits = 192;
     } else if (strcmp(buf, "ARIA-192-GCM")) {
-        return MBEDTLS_CIPHER_ARIA_192_GCM;
+        opt.ticket_alg = PSA_ALG_CCM;
+        opt.ticket_key_type = PSA_KEY_TYPE_ARIA;
+        opt.ticket_key_bits = 192;
     } else if (strcmp(buf, "ARIA-256-CCM")) {
-        return MBEDTLS_CIPHER_ARIA_256_CCM;
+        opt.ticket_alg = PSA_ALG_CCM;
+        opt.ticket_key_type = PSA_KEY_TYPE_ARIA;
+        opt.ticket_key_bits = 256;
     } else if (strcmp(buf, "ARIA-256-GCM")) {
-        return MBEDTLS_CIPHER_ARIA_256_GCM;
+        opt.ticket_alg = PSA_ALG_GCM;
+        opt.ticket_key_type = PSA_KEY_TYPE_ARIA;
+        opt.ticket_key_bits = 256;
     } else if (strcmp(buf, "CAMELLIA-128-CCM")) {
-        return MBEDTLS_CIPHER_CAMELLIA_128_CCM;
+        opt.ticket_alg = PSA_ALG_CCM;
+        opt.ticket_key_type = PSA_KEY_TYPE_CAMELLIA;
+        opt.ticket_key_bits = 128;
     } else if (strcmp(buf, "CAMELLIA-192-CCM")) {
-        return MBEDTLS_CIPHER_CAMELLIA_192_CCM;
+        opt.ticket_alg = PSA_ALG_CCM;
+        opt.ticket_key_type = PSA_KEY_TYPE_CAMELLIA;
+        opt.ticket_key_bits = 192;
     } else if (strcmp(buf, "CAMELLIA-256-CCM")) {
-        return MBEDTLS_CIPHER_CAMELLIA_256_CCM;
+        opt.ticket_alg = PSA_ALG_CCM;
+        opt.ticket_key_type = PSA_KEY_TYPE_CAMELLIA;
+        opt.ticket_key_bits = 256;
     } else if (strcmp(buf, "CHACHA20-POLY1305")) {
-        return MBEDTLS_CIPHER_CHACHA20_POLY1305;
+        opt.ticket_alg = PSA_ALG_CHACHA20_POLY1305;
+        opt.ticket_key_type = PSA_KEY_TYPE_CHACHA20;
+        opt.ticket_key_bits = 256;
+    } else {
+        rc = -1;
     }
-    return MBEDTLS_CIPHER_NONE;
+    return rc;
 }
 
 int main(int argc, char *argv[])
@@ -1740,7 +1777,9 @@ int main(int argc, char *argv[])
     opt.dummy_ticket        = DFL_DUMMY_TICKET;
     opt.ticket_rotate       = DFL_TICKET_ROTATE;
     opt.ticket_timeout      = DFL_TICKET_TIMEOUT;
-    opt.ticket_aead         = DFL_TICKET_AEAD;
+    opt.ticket_alg          = DFL_TICKET_ALG;
+    opt.ticket_key_type     = DFL_TICKET_KEY_TYPE;
+    opt.ticket_key_bits     = DFL_TICKET_KEY_BITS;
     opt.cache_max           = DFL_CACHE_MAX;
 #if defined(MBEDTLS_HAVE_TIME)
     opt.cache_timeout       = DFL_CACHE_TIMEOUT;
@@ -2191,9 +2230,7 @@ usage:
                 goto usage;
             }
         } else if (strcmp(p, "ticket_aead") == 0) {
-            opt.ticket_aead = parse_cipher(q);
-
-            if (opt.ticket_aead == MBEDTLS_CIPHER_NONE) {
+            if (parse_cipher(q) != 0) {
                 goto usage;
             }
         } else if (strcmp(p, "cache_max") == 0) {
@@ -2963,8 +3000,11 @@ usage:
 #endif /* MBEDTLS_HAVE_TIME */
         {
             if ((ret = mbedtls_ssl_ticket_setup(&ticket_ctx,
-                                                rng_get, &rng,
-                                                opt.ticket_aead,
+                                                rng_get,
+                                                &rng,
+                                                opt.ticket_alg,
+                                                opt.ticket_key_type,
+                                                opt.ticket_key_bits,
                                                 opt.ticket_timeout)) != 0) {
                 mbedtls_printf(
                     " failed\n  ! mbedtls_ssl_ticket_setup returned %d\n\n",

@@ -186,19 +186,10 @@ int mbedtls_ssl_ticket_rotate(mbedtls_ssl_ticket_context *ctx,
  */
 int mbedtls_ssl_ticket_setup(mbedtls_ssl_ticket_context *ctx,
                              int (*f_rng)(void *, unsigned char *, size_t), void *p_rng,
-                             mbedtls_cipher_type_t cipher,
+                             psa_algorithm_t alg, psa_key_type_t key_type, psa_key_bits_t key_bits,
                              uint32_t lifetime)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    size_t key_bits;
-
-    psa_algorithm_t alg;
-    psa_key_type_t key_type;
-
-    if (mbedtls_ssl_cipher_to_psa(cipher, TICKET_AUTH_TAG_BYTES,
-                                  &alg, &key_type, &key_bits) != PSA_SUCCESS) {
-        return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
-    }
 
     if (PSA_ALG_IS_AEAD(alg) == 0) {
         return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;

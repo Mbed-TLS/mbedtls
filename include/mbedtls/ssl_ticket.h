@@ -20,7 +20,6 @@
  */
 
 #include "mbedtls/ssl.h"
-#include "mbedtls/cipher.h"
 
 #if defined(MBEDTLS_HAVE_TIME)
 #include "mbedtls/platform_time.h"
@@ -93,8 +92,12 @@ void mbedtls_ssl_ticket_init(mbedtls_ssl_ticket_context *ctx);
  * \param ctx       Context to be set up
  * \param f_rng     RNG callback function (mandatory)
  * \param p_rng     RNG callback context
- * \param cipher    AEAD cipher to use for ticket protection.
- *                  Recommended value: MBEDTLS_CIPHER_AES_256_GCM.
+ * \param alg       Cryptographic algorithm to use recomended value
+ *                  PSA_ALG_GCM from include/psa/crypto_values.h.
+ * \param key_type  Cryptographic key type to use recomended value
+ *                  PSA_KEY_TYPE_AES from include/psa/crypto_values.h.
+ * \param key_bits  Cryptographic key type to use recomended value
+ *                  PSA_KEY_TYPE_AES from include/psa/crypto_values.h.
  * \param lifetime  Tickets lifetime in seconds
  *                  Recommended value: 86400 (one day).
  *
@@ -117,7 +120,7 @@ void mbedtls_ssl_ticket_init(mbedtls_ssl_ticket_context *ctx);
  */
 int mbedtls_ssl_ticket_setup(mbedtls_ssl_ticket_context *ctx,
                              int (*f_rng)(void *, unsigned char *, size_t), void *p_rng,
-                             mbedtls_cipher_type_t cipher,
+                             psa_algorithm_t alg, psa_key_type_t key_type, psa_key_bits_t key_bits,
                              uint32_t lifetime);
 
 /**

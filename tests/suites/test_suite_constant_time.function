@@ -14,6 +14,8 @@
 
 #include <test/constant_flow.h>
 
+#include <mbedtls/platform_util.h>
+
 /* Which kind of smoke test cf_instrumentation will do. */
 typedef enum {
     CF_INSTRUMENTATION_NOP,

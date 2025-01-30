@@ -14475,6 +14475,9 @@ run_test    "Client Handshake defragmentation (513)" \
             -c "<= handshake" \
             -c "handshake fragment: "
 
+# OpenSSL does not allow max_send_frag to be less than 512
+# so we use split_send_frag instead for tests lower than 512 below.
+
 requires_openssl_tls1_3
 run_test    "Client Handshake defragmentation (256)" \
             "$O_NEXT_SRV -split_send_frag 256 " \

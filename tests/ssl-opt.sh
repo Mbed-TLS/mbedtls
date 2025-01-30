@@ -310,7 +310,6 @@ requires_any_configs_disabled() {
 }
 
 TLS1_2_KEY_EXCHANGES_WITH_CERT="MBEDTLS_KEY_EXCHANGE_RSA_ENABLED \
-                                MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED \
                                 MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED \
                                 MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED \
                                 MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED \
@@ -320,7 +319,6 @@ TLS1_2_KEY_EXCHANGES_WITH_ECDSA_CERT="MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED \
                                       MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED"
 
 TLS1_2_KEY_EXCHANGES_WITH_CERT_WO_ECDH="MBEDTLS_KEY_EXCHANGE_RSA_ENABLED \
-                                       MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED \
                                        MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED \
                                        MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED"
 
@@ -7732,12 +7730,12 @@ run_test    "ALPN: both, no common" \
 # In 4.0 this will probably go away as all TLS 1.2 key exchanges will use
 # signatures too, following the removal of RSA #8170 and static ECDH #9201.
 
-run_test    "keyUsage srv 1.2: RSA, digitalSignature -> (EC)DHE-RSA" \
+run_test    "keyUsage srv 1.2: RSA, digitalSignature -> ECDHE-RSA" \
             "$P_SRV force_version=tls12 key_file=$DATA_FILES_PATH/server2.key \
              crt_file=$DATA_FILES_PATH/server2.ku-ds.crt" \
             "$P_CLI" \
             0 \
-            -c "Ciphersuite is TLS-[EC]*DHE-RSA-WITH-"
+            -c "Ciphersuite is TLS-ECDHE-RSA-WITH-"
 
 run_test    "keyUsage srv 1.2: RSA, keyEncipherment -> RSA" \
             "$P_SRV force_version=tls12 key_file=$DATA_FILES_PATH/server2.key \
@@ -8940,7 +8938,7 @@ requires_config_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED
 requires_gnutls
 run_test    "ClientHello without extensions: PSK" \
             "$P_SRV force_version=tls12 debug_level=3 psk=73776f726466697368" \
-            "$G_CLI --priority=NORMAL:+PSK:-RSA:-DHE-RSA:%NO_EXTENSIONS:%DISABLE_SAFE_RENEGOTIATION --pskusername=Client_identity --pskkey=73776f726466697368 localhost" \
+            "$G_CLI --priority=NORMAL:+PSK:-RSA:%NO_EXTENSIONS:%DISABLE_SAFE_RENEGOTIATION --pskusername=Client_identity --pskkey=73776f726466697368 localhost" \
             0 \
             -s "Ciphersuite is .*-PSK-.*" \
             -S "Ciphersuite is .*-EC.*" \

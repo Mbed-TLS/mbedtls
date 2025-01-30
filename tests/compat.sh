@@ -320,14 +320,6 @@ add_common_ciphersuites()
 
         "RSA")
             CIPHERS="$CIPHERS                           \
-                TLS_DHE_RSA_WITH_AES_128_CBC_SHA        \
-                TLS_DHE_RSA_WITH_AES_128_CBC_SHA256     \
-                TLS_DHE_RSA_WITH_AES_128_GCM_SHA256     \
-                TLS_DHE_RSA_WITH_AES_256_CBC_SHA        \
-                TLS_DHE_RSA_WITH_AES_256_CBC_SHA256     \
-                TLS_DHE_RSA_WITH_AES_256_GCM_SHA384     \
-                TLS_DHE_RSA_WITH_CAMELLIA_128_CBC_SHA   \
-                TLS_DHE_RSA_WITH_CAMELLIA_256_CBC_SHA   \
                 TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA      \
                 TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256   \
                 TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256   \
@@ -393,9 +385,6 @@ add_openssl_ciphersuites()
 
         "RSA")
             CIPHERS="$CIPHERS                                   \
-                TLS_DHE_RSA_WITH_ARIA_128_GCM_SHA256            \
-                TLS_DHE_RSA_WITH_ARIA_256_GCM_SHA384            \
-                TLS_DHE_RSA_WITH_CHACHA20_POLY1305_SHA256       \
                 TLS_ECDHE_RSA_WITH_ARIA_128_GCM_SHA256          \
                 TLS_ECDHE_RSA_WITH_ARIA_256_GCM_SHA384          \
                 TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256     \
@@ -444,14 +433,6 @@ add_gnutls_ciphersuites()
 
         "RSA")
             CIPHERS="$CIPHERS                               \
-                TLS_DHE_RSA_WITH_AES_128_CCM                \
-                TLS_DHE_RSA_WITH_AES_128_CCM_8              \
-                TLS_DHE_RSA_WITH_AES_256_CCM                \
-                TLS_DHE_RSA_WITH_AES_256_CCM_8              \
-                TLS_DHE_RSA_WITH_CAMELLIA_128_CBC_SHA256    \
-                TLS_DHE_RSA_WITH_CAMELLIA_128_GCM_SHA256    \
-                TLS_DHE_RSA_WITH_CAMELLIA_256_CBC_SHA256    \
-                TLS_DHE_RSA_WITH_CAMELLIA_256_GCM_SHA384    \
                 TLS_ECDHE_RSA_WITH_CAMELLIA_128_CBC_SHA256  \
                 TLS_ECDHE_RSA_WITH_CAMELLIA_128_GCM_SHA256  \
                 TLS_ECDHE_RSA_WITH_CAMELLIA_256_CBC_SHA384  \
@@ -523,8 +504,6 @@ add_mbedtls_ciphersuites()
 
         "RSA")
             M_CIPHERS="$M_CIPHERS                               \
-                TLS_DHE_RSA_WITH_ARIA_128_CBC_SHA256            \
-                TLS_DHE_RSA_WITH_ARIA_256_CBC_SHA384            \
                 TLS_ECDHE_RSA_WITH_ARIA_128_CBC_SHA256          \
                 TLS_ECDHE_RSA_WITH_ARIA_256_CBC_SHA384          \
                 TLS_RSA_WITH_ARIA_128_CBC_SHA256                \

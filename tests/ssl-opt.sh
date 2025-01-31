@@ -13875,6 +13875,7 @@ run_test    "TLS 1.2 ClientHello indicating support for deflate compression meth
 # Handshake defragmentation testing
 
 requires_openssl_tls1_3
+requires_certificate_authentication
 run_test    "Client Handshake defragmentation (512)" \
             "$O_NEXT_SRV -max_send_frag 512 " \
             "$P_CLI debug_level=4 " \
@@ -13883,6 +13884,7 @@ run_test    "Client Handshake defragmentation (512)" \
             -c "handshake fragment: "
 
 requires_openssl_tls1_3
+requires_certificate_authentication
 run_test    "Client Handshake defragmentation (513)" \
             "$O_NEXT_SRV -max_send_frag 513 " \
             "$P_CLI debug_level=4 " \

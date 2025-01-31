@@ -13894,6 +13894,7 @@ run_test    "Client Handshake defragmentation (513)" \
 # so we use split_send_frag instead for tests lower than 512 below.
 
 requires_openssl_tls1_3
+requires_certificate_authentication
 run_test    "Client Handshake defragmentation (256)" \
             "$O_NEXT_SRV -split_send_frag 256 " \
             "$P_CLI debug_level=4 " \
@@ -13902,6 +13903,7 @@ run_test    "Client Handshake defragmentation (256)" \
             -c "handshake fragment: "
 
 requires_openssl_tls1_3
+requires_certificate_authentication
 run_test    "Client Handshake defragmentation (128)" \
             "$O_NEXT_SRV -split_send_frag 128 " \
             "$P_CLI debug_level=4 " \
@@ -13910,6 +13912,7 @@ run_test    "Client Handshake defragmentation (128)" \
             -c "handshake fragment: "
 
 requires_openssl_tls1_3
+requires_certificate_authentication
 run_test    "Client Handshake defragmentation (64)" \
             "$O_NEXT_SRV -split_send_frag 64 " \
             "$P_CLI debug_level=4 " \
@@ -13918,6 +13921,7 @@ run_test    "Client Handshake defragmentation (64)" \
             -c "handshake fragment: "
 
 requires_openssl_tls1_3
+requires_certificate_authentication
 run_test    "Client Handshake defragmentation (36)" \
             "$O_NEXT_SRV -split_send_frag 36 " \
             "$P_CLI debug_level=4 " \
@@ -13926,6 +13930,7 @@ run_test    "Client Handshake defragmentation (36)" \
             -c "handshake fragment: "
 
 requires_openssl_tls1_3
+requires_certificate_authentication
 run_test    "Client Handshake defragmentation (32)" \
             "$O_NEXT_SRV -split_send_frag 32 " \
             "$P_CLI debug_level=4 " \
@@ -13934,6 +13939,7 @@ run_test    "Client Handshake defragmentation (32)" \
             -c "handshake fragment: "
 
 requires_openssl_tls1_3
+requires_certificate_authentication
 run_test    "Client Handshake defragmentation (16)" \
             "$O_NEXT_SRV -split_send_frag 16 " \
             "$P_CLI debug_level=4 " \
@@ -13942,6 +13948,7 @@ run_test    "Client Handshake defragmentation (16)" \
             -c "handshake fragment: "
 
 requires_openssl_tls1_3
+requires_certificate_authentication
 run_test    "Client Handshake defragmentation (13)" \
             "$O_NEXT_SRV -split_send_frag 13 " \
             "$P_CLI debug_level=4 " \
@@ -13950,6 +13957,7 @@ run_test    "Client Handshake defragmentation (13)" \
             -c "handshake fragment: "
 
 requires_openssl_tls1_3
+requires_certificate_authentication
 run_test    "Client Handshake defragmentation (5)" \
             "$O_NEXT_SRV -split_send_frag 5 " \
             "$P_CLI debug_level=4 " \
@@ -13958,6 +13966,7 @@ run_test    "Client Handshake defragmentation (5)" \
             -c "handshake fragment: "
 
 requires_openssl_tls1_3
+requires_certificate_authentication
 run_test    "Server Handshake defragmentation (512)" \
             "$P_SRV debug_level=4 auth_mode=required" \
             "$O_NEXT_CLI -max_send_frag 512 -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key" \
@@ -13966,6 +13975,7 @@ run_test    "Server Handshake defragmentation (512)" \
             -s "handshake fragment: "
 
 requires_openssl_tls1_3
+requires_certificate_authentication
 run_test    "Server Handshake defragmentation (513)" \
             "$P_SRV debug_level=4 auth_mode=required" \
             "$O_NEXT_CLI -max_send_frag 513 -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key" \
@@ -13974,6 +13984,7 @@ run_test    "Server Handshake defragmentation (513)" \
             -s "handshake fragment: "
 
 requires_openssl_tls1_3
+requires_certificate_authentication
 run_test    "Server Handshake defragmentation (256)" \
             "$P_SRV debug_level=4 auth_mode=required" \
             "$O_NEXT_CLI -split_send_frag 256 -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key" \
@@ -13982,6 +13993,7 @@ run_test    "Server Handshake defragmentation (256)" \
             -s "handshake fragment: "
 
 requires_openssl_tls1_3
+requires_certificate_authentication
 run_test    "Server Handshake defragmentation (128)" \
             "$P_SRV debug_level=4 auth_mode=required" \
             "$O_NEXT_CLI -split_send_frag 128 -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key" \
@@ -13990,6 +14002,7 @@ run_test    "Server Handshake defragmentation (128)" \
             -s "handshake fragment: "
 
 requires_openssl_tls1_3
+requires_certificate_authentication
 run_test    "Server Handshake defragmentation (64)" \
             "$P_SRV debug_level=4 auth_mode=required" \
             "$O_NEXT_CLI -split_send_frag 64 -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key" \
@@ -13998,6 +14011,7 @@ run_test    "Server Handshake defragmentation (64)" \
             -s "handshake fragment: "
 
 requires_openssl_tls1_3
+requires_certificate_authentication
 run_test    "Server Handshake defragmentation (36)" \
             "$P_SRV debug_level=4 auth_mode=required" \
             "$O_NEXT_CLI -split_send_frag 36 -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key" \
@@ -14006,6 +14020,7 @@ run_test    "Server Handshake defragmentation (36)" \
             -s "handshake fragment: "
 
 requires_openssl_tls1_3
+requires_certificate_authentication
 run_test    "Server Handshake defragmentation (32)" \
             "$P_SRV debug_level=4 auth_mode=required" \
             "$O_NEXT_CLI -split_send_frag 32 -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key" \
@@ -14014,6 +14029,7 @@ run_test    "Server Handshake defragmentation (32)" \
             -s "handshake fragment: "
 
 requires_openssl_tls1_3
+requires_certificate_authentication
 run_test    "Server Handshake defragmentation (16)" \
             "$P_SRV debug_level=4 auth_mode=required" \
             "$O_NEXT_CLI -split_send_frag 16 -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key" \
@@ -14022,6 +14038,7 @@ run_test    "Server Handshake defragmentation (16)" \
             -s "handshake fragment: "
 
 requires_openssl_tls1_3
+requires_certificate_authentication
 run_test    "Server Handshake defragmentation (13)" \
             "$P_SRV debug_level=4 auth_mode=required" \
             "$O_NEXT_CLI -split_send_frag 13 -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key" \
@@ -14030,6 +14047,7 @@ run_test    "Server Handshake defragmentation (13)" \
             -s "handshake fragment: "
 
 requires_openssl_tls1_3
+requires_certificate_authentication
 run_test    "Server Handshake defragmentation (5)" \
             "$P_SRV debug_level=4 auth_mode=required" \
             "$O_NEXT_CLI -split_send_frag 5 -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key" \

@@ -349,7 +349,7 @@ static void handle_buffer_resizing(mbedtls_ssl_context *ssl, int downsizing,
     size_t hshdr_in = 0;
     if (ssl->in_buf != NULL) {
         written_in = ssl->in_msg - ssl->in_buf;
-        iv_offset_in = ssl->in_iv - ssl->in_buf;
+        iv_offset_in = ssl->in_ext->in_iv - ssl->in_buf;
         len_offset_in = ssl->in_len - ssl->in_buf;
         hdr_in = ssl->in_hdr - ssl->in_buf;
         if (ssl->in_hshdr != NULL) {
@@ -398,7 +398,7 @@ static void handle_buffer_resizing(mbedtls_ssl_context *ssl, int downsizing,
 
         ssl->in_msg = ssl->in_buf + written_in;
         ssl->in_len = ssl->in_buf + len_offset_in;
-        ssl->in_iv = ssl->in_buf + iv_offset_in;
+        ssl->in_ext->in_iv = ssl->in_buf + iv_offset_in;
         if (ssl->in_hshdr != NULL) {
             ssl->in_hshdr = ssl->in_buf + hshdr_in;
         }
@@ -1459,7 +1459,7 @@ error:
     ssl->in_hdr = NULL;
     ssl->in_ctr = NULL;
     ssl->in_len = NULL;
-    ssl->in_iv = NULL;
+    ssl->in_ext->in_iv = NULL;
     ssl->in_msg = NULL;
 
     ssl->out_hdr = NULL;

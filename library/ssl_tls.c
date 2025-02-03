@@ -1409,6 +1409,14 @@ int mbedtls_ssl_setup(mbedtls_ssl_context *ssl,
         ret = MBEDTLS_ERR_SSL_ALLOC_FAILED;
         goto error;
     }
+    ssl->in_ext = mbedtls_calloc(1, sizeof(mbedtls_ssl_context_in_ext));
+    if (ssl->in_ext == NULL) {
+        MBEDTLS_SSL_DEBUG_MSG(1,
+                              ("alloc(%" MBEDTLS_PRINTF_SIZET " bytes) failed",
+                               sizeof(mbedtls_ssl_context_in_ext)));
+        ret = MBEDTLS_ERR_SSL_ALLOC_FAILED;
+        goto error;
+    }
 
 #if defined(MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH)
     ssl->out_buf_len = out_buf_len;
@@ -1435,6 +1443,7 @@ int mbedtls_ssl_setup(mbedtls_ssl_context *ssl,
 
 error:
     mbedtls_free(ssl->in_buf);
+    mbedtls_free(ssl->in_ext);
     mbedtls_free(ssl->out_buf);
 
     ssl->conf = NULL;
@@ -1444,6 +1453,7 @@ error:
     ssl->out_buf_len = 0;
 #endif
     ssl->in_buf = NULL;
+    ssl->in_ext = NULL;
     ssl->out_buf = NULL;
 
     ssl->in_hdr = NULL;
@@ -5555,6 +5565,11 @@ void mbedtls_ssl_free(mbedtls_ssl_context *ssl)
 
         mbedtls_zeroize_and_free(ssl->in_buf, in_buf_len);
         ssl->in_buf = NULL;
+    }
+
+    if (ssl->in_ext != NULL) {
+        mbedtls_free(ssl->in_ext);
+        ssl->in_ext = NULL;
     }
 
     if (ssl->transform) {

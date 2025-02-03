@@ -3229,8 +3229,8 @@ int mbedtls_ssl_prepare_handshake_record(mbedtls_ssl_context *ssl)
 
     if (ssl->in_hslen == 0) {
         ssl->in_hslen = mbedtls_ssl_hs_hdr_len(ssl) + ssl_get_hs_total_len(ssl);
-        ssl->in_hsfraglen = 0;
-        ssl->in_hshdr = ssl->in_hdr;
+        ssl->in_ext->in_hsfraglen = 0;
+        ssl->in_ext->in_hshdr = ssl->in_hdr;
     }
 
     MBEDTLS_SSL_DEBUG_MSG(3, ("handshake message: msglen ="
@@ -3298,35 +3298,35 @@ int mbedtls_ssl_prepare_handshake_record(mbedtls_ssl_context *ssl)
     } else
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
     {
-        if (ssl->in_hsfraglen > ssl->in_hslen) {
+        if (ssl->in_ext->in_hsfraglen > ssl->in_hslen) {
             return MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
         }
         int ret;
-        const size_t hs_remain = ssl->in_hslen - ssl->in_hsfraglen;
+        const size_t hs_remain = ssl->in_hslen - ssl->in_ext->in_hsfraglen;
         MBEDTLS_SSL_DEBUG_MSG(3,
                               ("handshake fragment: %" MBEDTLS_PRINTF_SIZET " .. %"
                                MBEDTLS_PRINTF_SIZET " of %"
                                MBEDTLS_PRINTF_SIZET " msglen %" MBEDTLS_PRINTF_SIZET,
-                               ssl->in_hsfraglen,
-                               ssl->in_hsfraglen +
+                               ssl->in_ext->in_hsfraglen,
+                               ssl->in_ext->in_hsfraglen +
                                (hs_remain <= ssl->in_msglen ? hs_remain : ssl->in_msglen),
                                ssl->in_hslen, ssl->in_msglen));
         if (ssl->in_msglen < hs_remain) {
-            ssl->in_hsfraglen += ssl->in_msglen;
+            ssl->in_ext->in_hsfraglen += ssl->in_msglen;
             ssl->in_hdr = ssl->in_msg + ssl->in_msglen;
             ssl->in_msglen = 0;
             mbedtls_ssl_update_in_pointers(ssl);
             return MBEDTLS_ERR_SSL_CONTINUE_PROCESSING;
         }
-        if (ssl->in_hshdr != ssl->in_hdr) {
+        if (ssl->in_ext->in_hshdr != ssl->in_hdr) {
             /*
-             * At ssl->in_hshdr we have a sequence of records that cover the next handshake
+             * At ssl->in_ext->in_hshdr we have a sequence of records that cover the next handshake
              * record, each with its own record header that we need to remove.
              * Note that the reassembled record size may not equal the size of the message,
              * there maybe bytes from the next message following it.
              */
             size_t merged_rec_len = 0;
-            unsigned char *p = ssl->in_hshdr, *q = NULL;
+            unsigned char *p = ssl->in_ext->in_hshdr, *q = NULL;
             do {
                 mbedtls_record rec;
                 ret = ssl_parse_record_header(ssl, p, mbedtls_ssl_in_hdr_len(ssl), &rec);
@@ -3342,13 +3342,13 @@ int mbedtls_ssl_prepare_handshake_record(mbedtls_ssl_context *ssl)
                     q = p;
                 }
             } while (merged_rec_len < ssl->in_hslen);
-            ssl->in_hdr = ssl->in_hshdr;
+            ssl->in_hdr = ssl->in_ext->in_hshdr;
             mbedtls_ssl_update_in_pointers(ssl);
             ssl->in_msglen = merged_rec_len;
             /* Adjust message length. */
             MBEDTLS_PUT_UINT16_BE(merged_rec_len, ssl->in_len, 0);
-            ssl->in_hsfraglen = 0;
-            ssl->in_hshdr = NULL;
+            ssl->in_ext->in_hsfraglen = 0;
+            ssl->in_ext->in_hshdr = NULL;
             MBEDTLS_SSL_DEBUG_BUF(4, "reassembled record",
                                   ssl->in_hdr, mbedtls_ssl_in_hdr_len(ssl) + merged_rec_len);
         }
@@ -4696,13 +4696,13 @@ static int ssl_consume_current_message(mbedtls_ssl_context *ssl)
             return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
         }
 
-        if (ssl->in_hsfraglen != 0) {
+        if (ssl->in_ext->in_hsfraglen != 0) {
             /* Not all handshake fragments have arrived, do not consume. */
             MBEDTLS_SSL_DEBUG_MSG(3,
                                   ("waiting for more fragments (%" MBEDTLS_PRINTF_SIZET " of %"
                                    MBEDTLS_PRINTF_SIZET ", %" MBEDTLS_PRINTF_SIZET " left)",
-                                   ssl->in_hsfraglen, ssl->in_hslen,
-                                   ssl->in_hslen - ssl->in_hsfraglen));
+                                   ssl->in_ext->in_hsfraglen, ssl->in_hslen,
+                                   ssl->in_hslen - ssl->in_ext->in_hsfraglen));
             return 0;
         }
 

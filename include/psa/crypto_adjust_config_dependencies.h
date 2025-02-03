@@ -48,4 +48,18 @@
 #define PSA_WANT_ALG_CMAC 1
 #endif
 
+/* When at least one block cipher (AES, ARIA, Camellia) is accelerated, the
+ * builtin implementation of GCM/CCM calls into legacy gcm/ccm modules first
+ * and then into block_cipher module. The latter will
+ * then dispatch to PSA again to encypt data using block ciphers in ECB mode,
+ * which means we need PSA_WANT_ALG_ECB_NO_PADDING to allow this.
+ */
+#if ((defined(PSA_WANT_ALG_GCM) && !defined(MBEDTLS_PSA_ACCEL_ALG_GCM)) || \
+     (defined(PSA_WANT_ALG_CCM) && !defined(MBEDTLS_PSA_ACCEL_ALG_CCM))) && \
+    (defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_AES) || \
+     defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ARIA) || \
+     defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_CAMELLIA))
+#define PSA_WANT_ALG_ECB_NO_PADDING 1
+#endif
+
 #endif /* PSA_CRYPTO_ADJUST_CONFIG_DEPENDENCIES_H */

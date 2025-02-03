@@ -92,12 +92,9 @@ void mbedtls_ssl_ticket_init(mbedtls_ssl_ticket_context *ctx);
  * \param ctx       Context to be set up
  * \param f_rng     RNG callback function (mandatory)
  * \param p_rng     RNG callback context
- * \param alg       Cryptographic algorithm to use recomended value
- *                  PSA_ALG_GCM from include/psa/crypto_values.h.
- * \param key_type  Cryptographic key type to use recomended value
- *                  PSA_KEY_TYPE_AES from include/psa/crypto_values.h.
- * \param key_bits  Cryptographic key type to use recomended value
- *                  PSA_KEY_TYPE_AES from include/psa/crypto_values.h.
+ * \param alg       AEAD cipher to use for ticket protection.
+ * \param key_type  Cryptographic key type to use.
+ * \param key_bits  Cryptographic key size to use in bits.
  * \param lifetime  Tickets lifetime in seconds
  *                  Recommended value: 86400 (one day).
  *

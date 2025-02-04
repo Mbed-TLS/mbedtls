@@ -16,7 +16,13 @@
 #include "crypto_platform.h"
 #endif
 
+/* The file "crypto_struct.h" contains definitions for
+ * implementation-specific structs that are declared above. */
+#if defined(MBEDTLS_PSA_CRYPTO_STRUCT_FILE)
+#include MBEDTLS_PSA_CRYPTO_STRUCT_FILE
+#else
 #include "crypto_struct.h"
+#endif
 
 #include <stddef.h>
 
@@ -4963,14 +4969,6 @@ psa_status_t psa_verify_hash_abort(
 /* The file "crypto_sizes.h" contains definitions for size calculation
  * macros whose definitions are implementation-specific. */
 #include "crypto_sizes.h"
-
-/* The file "crypto_struct.h" contains definitions for
- * implementation-specific structs that are declared above. */
-#if defined(MBEDTLS_PSA_CRYPTO_STRUCT_FILE)
-#include MBEDTLS_PSA_CRYPTO_STRUCT_FILE
-#else
-#include "crypto_struct.h"
-#endif
 
 /* The file "crypto_extra.h" contains vendor-specific definitions. This
  * can include vendor-defined algorithms, extra functions, etc. */

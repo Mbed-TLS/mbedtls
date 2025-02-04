@@ -20,6 +20,7 @@
 
 #include "psa/crypto.h"
 #include "psa_util_internal.h"
+extern const mbedtls_error_pair_t psa_to_ssl_errors[7];
 
 #if defined(PSA_WANT_ALG_MD5)
 #include "mbedtls/md5.h"

@@ -409,6 +409,11 @@ uint32_t mbedtls_ssl_get_extension_mask(unsigned int extension_type);
 #define MBEDTLS_CLIENT_HELLO_RANDOM_LEN 32
 #define MBEDTLS_SERVER_HELLO_RANDOM_LEN 32
 
+static inline mbedtls_ssl_context_in_ext *mbedtls_ssl_get_in_ext(const mbedtls_ssl_context *ssl)
+{
+    return (mbedtls_ssl_context_in_ext *) ssl->in_ext;
+}
+
 #if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
 /**
  * \brief          Return the maximum fragment length (payload, in bytes) for

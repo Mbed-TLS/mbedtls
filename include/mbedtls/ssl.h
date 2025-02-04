@@ -1805,7 +1805,7 @@ struct mbedtls_ssl_context {
                                                   *   (the end is marked by in_len).   */
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
     unsigned char *MBEDTLS_PRIVATE(in_len);      /*!< two-bytes message length field   */
-    mbedtls_ssl_context_in_ext *MBEDTLS_PRIVATE(in_ext); /*!< extension structure      */
+    unsigned char *MBEDTLS_PRIVATE(in_ext);      /*!< extension structure (ABI compat) */
     unsigned char *MBEDTLS_PRIVATE(in_msg);      /*!< message contents (in_iv+ivlen)   */
     unsigned char *MBEDTLS_PRIVATE(in_offt);     /*!< read offset in application data  */
 

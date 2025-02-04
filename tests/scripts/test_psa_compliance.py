@@ -30,7 +30,7 @@ from mbedtls_framework import build_tree
 EXPECTED_FAILURES = {} # type: dict
 
 PSA_ARCH_TESTS_REPO = 'https://github.com/ARM-software/psa-arch-tests.git'
-PSA_ARCH_TESTS_REF = 'v23.06_API1.5_ADAC_EAC'
+PSA_ARCH_TESTS_REF = 'v24.10_API1.7_CRYPTO_PAKE'
 
 #pylint: disable=too-many-branches,too-many-statements,too-many-locals
 def main(library_build_dir: str):

@@ -412,7 +412,7 @@ component_test_full_no_ccm_star_no_tag () {
 component_test_config_symmetric_only () {
     msg "build: configs/config-symmetric-only.h"
     MBEDTLS_CONFIG="configs/config-symmetric-only.h"
-    CRYPTO_CONFIG="configs/crypto-config-symmetric-only.h"
+    CRYPTO_CONFIG="tf-psa-crypto/configs/crypto-config-symmetric-only.h"
     CC=$ASAN_CC cmake -DMBEDTLS_CONFIG_FILE="$MBEDTLS_CONFIG" -DTF_PSA_CRYPTO_CONFIG_FILE="$CRYPTO_CONFIG" -D CMAKE_BUILD_TYPE:String=Asan .
     make
 
@@ -1334,7 +1334,7 @@ component_test_psa_crypto_config_reference_ecc_ffdh_no_bignum () {
 component_test_tfm_config_as_is () {
     msg "build: configs/config-tfm.h"
     MBEDTLS_CONFIG="configs/config-tfm.h"
-    CRYPTO_CONFIG="configs/ext/crypto_config_profile_medium.h"
+    CRYPTO_CONFIG="tf-psa-crypto/configs/ext/crypto_config_profile_medium.h"
     CC=$ASAN_CC cmake -DMBEDTLS_CONFIG_FILE="$MBEDTLS_CONFIG" -DTF_PSA_CRYPTO_CONFIG_FILE="$CRYPTO_CONFIG" -D CMAKE_BUILD_TYPE:String=Asan .
     make
 
@@ -1348,7 +1348,7 @@ component_test_tfm_config_as_is () {
 common_tfm_config () {
     # Enable TF-M config
     cp configs/config-tfm.h "$CONFIG_H"
-    cp configs/ext/crypto_config_profile_medium.h "$CRYPTO_CONFIG_H"
+    cp tf-psa-crypto/configs/ext/crypto_config_profile_medium.h "$CRYPTO_CONFIG_H"
 
     # Config adjustment for better test coverage in our environment.
     # This is not needed just to build and pass tests.
@@ -2097,7 +2097,7 @@ component_test_ccm_aes_sha256 () {
 
     # Setting a blank config disables everyhing in the library side.
     echo '#define MBEDTLS_CONFIG_H ' >"$CONFIG_H"
-    cp configs/crypto-config-ccm-aes-sha256.h "$CRYPTO_CONFIG_H"
+    cp tf-psa-crypto/configs/crypto-config-ccm-aes-sha256.h "$CRYPTO_CONFIG_H"
 
     make
     msg "test: CCM + AES + SHA256 configuration"

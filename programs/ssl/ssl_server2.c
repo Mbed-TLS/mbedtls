@@ -1476,7 +1476,7 @@ static int dummy_ticket_parse(void *p_ticket, mbedtls_ssl_session *session,
 
 static int parse_cipher(char *buf)
 {
-    int rc = 0;
+    int ret = 0;
     if (strcmp(buf, "AES-128-CCM")) {
         opt.ticket_alg = PSA_ALG_CCM;
         opt.ticket_key_type = PSA_KEY_TYPE_AES;
@@ -1490,13 +1490,13 @@ static int parse_cipher(char *buf)
         opt.ticket_key_type = PSA_KEY_TYPE_AES;
         opt.ticket_key_bits = 192;
     } else if (strcmp(buf, "AES-192-GCM")) {
-        opt.ticket_alg = PSA_ALG_CCM;
+        opt.ticket_alg = PSA_ALG_GCM;
         opt.ticket_key_type = PSA_KEY_TYPE_AES;
         opt.ticket_key_bits = 192;
     } else if (strcmp(buf, "AES-256-CCM")) {
         opt.ticket_alg = PSA_ALG_CCM;
         opt.ticket_key_type = PSA_KEY_TYPE_AES;
-        opt.ticket_key_bits = 128;
+        opt.ticket_key_bits = 256;
     } else if (strcmp(buf, "ARIA-128-CCM")) {
         opt.ticket_alg = PSA_ALG_CCM;
         opt.ticket_key_type = PSA_KEY_TYPE_ARIA;
@@ -1510,7 +1510,7 @@ static int parse_cipher(char *buf)
         opt.ticket_key_type = PSA_KEY_TYPE_ARIA;
         opt.ticket_key_bits = 192;
     } else if (strcmp(buf, "ARIA-192-GCM")) {
-        opt.ticket_alg = PSA_ALG_CCM;
+        opt.ticket_alg = PSA_ALG_GCM;
         opt.ticket_key_type = PSA_KEY_TYPE_ARIA;
         opt.ticket_key_bits = 192;
     } else if (strcmp(buf, "ARIA-256-CCM")) {
@@ -1538,9 +1538,9 @@ static int parse_cipher(char *buf)
         opt.ticket_key_type = PSA_KEY_TYPE_CHACHA20;
         opt.ticket_key_bits = 256;
     } else {
-        rc = -1;
+        ret = -1;
     }
-    return rc;
+    return ret;
 }
 
 int main(int argc, char *argv[])

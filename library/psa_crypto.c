@@ -5645,6 +5645,17 @@ psa_status_t psa_aead_abort(psa_aead_operation_t *operation)
 #if defined(BUILTIN_ALG_ANY_HKDF) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PRF) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS)
+
+/** Internal helper to set up an HMAC operation with a key passed directly.
+ *
+ * \param[in,out] operation     A MAC operation object. It does not need to
+ *                              be initialized.
+ * \param hash_alg              The hash algorithm used for HMAC.
+ * \param hmac_key              The HMAC key.
+ * \param hmac_key_length       Length of \p hmac_key in bytes.
+ *
+ * \return A PSA status code.
+ */
 static psa_status_t psa_key_derivation_start_hmac(
     psa_mac_operation_t *operation,
     psa_algorithm_t hash_alg,
@@ -5656,6 +5667,14 @@ static psa_status_t psa_key_derivation_start_hmac(
     psa_set_key_type(&attributes, PSA_KEY_TYPE_HMAC);
     psa_set_key_bits(&attributes, PSA_BYTES_TO_BITS(hmac_key_length));
     psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_SIGN_HASH);
+
+    /* Make sure the whole the operation is zeroed.
+     * It isn't enough to require the caller to initialize operation to
+     * PSA_MAC_OPERATION_INIT, since one field is a union and initializing
+     * a union does not necessarily initialize all of its members.
+     * psa_mac_setup() would could handle PSA_MAC_OPERATION_INIT, but here we
+     * bypass it and call lower-level functions directly. */
+    memset(operation, 0, sizeof(*operation));
 
     operation->is_sign = 1;
     operation->mac_size = PSA_HASH_LENGTH(hash_alg);
@@ -5881,7 +5900,7 @@ static psa_status_t psa_key_derivation_tls12_prf_generate_next_block(
 {
     psa_algorithm_t hash_alg = PSA_ALG_HKDF_GET_HASH(alg);
     uint8_t hash_length = PSA_HASH_LENGTH(hash_alg);
-    psa_mac_operation_t hmac = PSA_MAC_OPERATION_INIT;
+    psa_mac_operation_t hmac;
     size_t hmac_output_length;
     psa_status_t status, cleanup_status;
 
@@ -6082,7 +6101,14 @@ static psa_status_t psa_key_derivation_pbkdf2_generate_block(
     psa_key_attributes_t *attributes)
 {
     psa_status_t status;
-    psa_mac_operation_t mac_operation = PSA_MAC_OPERATION_INIT;
+    psa_mac_operation_t mac_operation;
+    /* Make sure the whole the operation is zeroed.
+     * PSA_MAC_OPERATION_INIT does not necessarily do it fully,
+     * since one field is a union and initializing a union does not
+     * necessarily initialize all of its members.
+     * psa_mac_setup() would do it, but here we bypass it and call
+     * lower-level functions directly. */
+    memset(&mac_operation, 0, sizeof(mac_operation));
     size_t mac_output_length;
     uint8_t U_i[PSA_MAC_MAX_SIZE];
     uint8_t *U_accumulator = pbkdf2->output_block;

@@ -5585,7 +5585,7 @@ psa_status_t psa_aead_abort(psa_aead_operation_t *operation)
 }
 
 /****************************************************************/
-/* Generators */
+/* Key derivation: output generation */
 /****************************************************************/
 
 #if defined(BUILTIN_ALG_ANY_HKDF) || \
@@ -6667,7 +6667,7 @@ psa_status_t psa_key_derivation_output_key(
 
 
 /****************************************************************/
-/* Key derivation */
+/* Key derivation: operation management */
 /****************************************************************/
 
 #if defined(AT_LEAST_ONE_BUILTIN_KDF)
@@ -8222,6 +8222,8 @@ psa_status_t psa_generate_key(const psa_key_attributes_t *attributes,
                                    key);
 }
 
+
+
 /****************************************************************/
 /* Module setup */
 /****************************************************************/
@@ -8496,6 +8498,12 @@ exit:
 
     return status;
 }
+
+
+
+/****************************************************************/
+/* PAKE */
+/****************************************************************/
 
 #if defined(PSA_WANT_ALG_SOME_PAKE)
 psa_status_t psa_crypto_driver_pake_get_password_len(

@@ -14165,8 +14165,8 @@ run_test    "Client Handshake defragmentation (512)" \
             "$O_NEXT_SRV -max_send_frag 512 " \
             "$P_CLI debug_level=4 " \
             0 \
-            -c "<= handshake" \
-            -c "handshake fragment: "
+            -c "reassembled record" \
+            -c "waiting for more fragments (512 [0-9]\\+, [0-9]\\+ left)"
 
 requires_openssl_tls1_3
 requires_certificate_authentication
@@ -14174,8 +14174,8 @@ run_test    "Client Handshake defragmentation (513)" \
             "$O_NEXT_SRV -max_send_frag 513 " \
             "$P_CLI debug_level=4 " \
             0 \
-            -c "<= handshake" \
-            -c "handshake fragment: "
+            -c "reassembled record" \
+            -c "waiting for more fragments (513 [0-9]\\+, [0-9]\\+ left)"
 
 # OpenSSL does not allow max_send_frag to be less than 512
 # so we use split_send_frag instead for tests lower than 512 below.
@@ -14190,8 +14190,8 @@ run_test    "Client Handshake defragmentation (256)" \
             "$O_NEXT_SRV -split_send_frag 256 " \
             "$P_CLI debug_level=4 " \
             0 \
-            -c "<= handshake" \
-            -c "handshake fragment: "
+            -c "reassembled record" \
+            -c "waiting for more fragments (256 of [0-9]\\+, [0-9]\\+ left)"
 
 requires_openssl_tls1_3
 requires_certificate_authentication
@@ -14200,8 +14200,8 @@ run_test    "Client Handshake defragmentation (128)" \
             "$O_NEXT_SRV -split_send_frag 128 " \
             "$P_CLI debug_level=4 " \
             0 \
-            -c "<= handshake" \
-            -c "handshake fragment: "
+            -c "reassembled record" \
+            -c "waiting for more fragments (128 [0-9]\\+, [0-9]\\+ left)"
 
 requires_openssl_tls1_3
 requires_certificate_authentication
@@ -14210,8 +14210,8 @@ run_test    "Client Handshake defragmentation (64)" \
             "$O_NEXT_SRV -split_send_frag 64 " \
             "$P_CLI debug_level=4 " \
             0 \
-            -c "<= handshake" \
-            -c "handshake fragment: "
+            -c "reassembled record" \
+            -c "waiting for more fragments (64 [0-9]\\+, [0-9]\\+ left)"
 
 requires_openssl_tls1_3
 requires_certificate_authentication
@@ -14220,8 +14220,8 @@ run_test    "Client Handshake defragmentation (36)" \
             "$O_NEXT_SRV -split_send_frag 36 " \
             "$P_CLI debug_level=4 " \
             0 \
-            -c "<= handshake" \
-            -c "handshake fragment: "
+            -c "reassembled record" \
+            -c "waiting for more fragments (36 [0-9]\\+, [0-9]\\+ left)"
 
 requires_openssl_tls1_3
 requires_certificate_authentication
@@ -14230,8 +14230,8 @@ run_test    "Client Handshake defragmentation (32)" \
             "$O_NEXT_SRV -split_send_frag 32 " \
             "$P_CLI debug_level=4 " \
             0 \
-            -c "<= handshake" \
-            -c "handshake fragment: "
+            -c "reassembled record" \
+            -c "waiting for more fragments (32 [0-9]\\+, [0-9]\\+ left)"
 
 requires_openssl_tls1_3
 requires_certificate_authentication
@@ -14240,8 +14240,8 @@ run_test    "Client Handshake defragmentation (16)" \
             "$O_NEXT_SRV -split_send_frag 16 " \
             "$P_CLI debug_level=4 " \
             0 \
-            -c "<= handshake" \
-            -c "handshake fragment: "
+            -c "reassembled record" \
+            -c "waiting for more fragments (16 [0-9]\\+, [0-9]\\+ left)"
 
 requires_openssl_tls1_3
 requires_certificate_authentication
@@ -14250,8 +14250,8 @@ run_test    "Client Handshake defragmentation (13)" \
             "$O_NEXT_SRV -split_send_frag 13 " \
             "$P_CLI debug_level=4 " \
             0 \
-            -c "<= handshake" \
-            -c "handshake fragment: "
+            -c "reassembled record" \
+            -c "waiting for more fragments (13 [0-9]\\+, [0-9]\\+ left)"
 
 requires_openssl_tls1_3
 requires_certificate_authentication
@@ -14260,8 +14260,8 @@ run_test    "Client Handshake defragmentation (5)" \
             "$O_NEXT_SRV -split_send_frag 5 " \
             "$P_CLI debug_level=4 " \
             0 \
-            -c "<= handshake" \
-            -c "handshake fragment: "
+            -c "reassembled record" \
+            -c "waiting for more fragments (5 [0-9]\\+, [0-9]\\+ left)"
 
 requires_openssl_tls1_3
 requires_certificate_authentication
@@ -14269,8 +14269,8 @@ run_test    "Server Handshake defragmentation (512)" \
             "$P_SRV debug_level=4 auth_mode=required" \
             "$O_NEXT_CLI -max_send_frag 512 -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key" \
             0 \
-            -s "<= handshake" \
-            -s "handshake fragment: "
+            -s "reassembled record" \
+            -s "waiting for more fragments (512 [0-9]\\+, [0-9]\\+ left)"
 
 requires_openssl_tls1_3
 requires_certificate_authentication
@@ -14278,8 +14278,8 @@ run_test    "Server Handshake defragmentation (513)" \
             "$P_SRV debug_level=4 auth_mode=required" \
             "$O_NEXT_CLI -max_send_frag 513 -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key" \
             0 \
-            -s "<= handshake" \
-            -s "handshake fragment: "
+            -s "reassembled record" \
+            -s "waiting for more fragments (513 [0-9]\\+, [0-9]\\+ left)"
 
 requires_openssl_tls1_3
 requires_certificate_authentication
@@ -14288,8 +14288,8 @@ run_test    "Server Handshake defragmentation (256)" \
             "$P_SRV debug_level=4 auth_mode=required" \
             "$O_NEXT_CLI -split_send_frag 256 -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key" \
             0 \
-            -s "<= handshake" \
-            -s "handshake fragment: "
+            -s "reassembled record" \
+            -s "waiting for more fragments (256 [0-9]\\+, [0-9]\\+ left)"
 
 requires_openssl_tls1_3
 requires_certificate_authentication
@@ -14298,8 +14298,8 @@ run_test    "Server Handshake defragmentation (128)" \
             "$P_SRV debug_level=4 auth_mode=required" \
             "$O_NEXT_CLI -split_send_frag 128 -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key" \
             0 \
-            -s "<= handshake" \
-            -s "handshake fragment: "
+            -s "reassembled record" \
+            -s "waiting for more fragments (128 [0-9]\\+, [0-9]\\+ left)"
 
 requires_openssl_tls1_3
 requires_certificate_authentication
@@ -14308,8 +14308,8 @@ run_test    "Server Handshake defragmentation (64)" \
             "$P_SRV debug_level=4 auth_mode=required" \
             "$O_NEXT_CLI -split_send_frag 64 -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key" \
             0 \
-            -s "<= handshake" \
-            -s "handshake fragment: "
+            -s "reassembled record" \
+            -s "waiting for more fragments (64 [0-9]\\+, [0-9]\\+ left)"
 
 requires_openssl_tls1_3
 requires_certificate_authentication
@@ -14318,8 +14318,8 @@ run_test    "Server Handshake defragmentation (36)" \
             "$P_SRV debug_level=4 auth_mode=required" \
             "$O_NEXT_CLI -split_send_frag 36 -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key" \
             0 \
-            -s "<= handshake" \
-            -s "handshake fragment: "
+            -s "reassembled record" \
+            -s "waiting for more fragments (36 [0-9]\\+, [0-9]\\+ left)"
 
 requires_openssl_tls1_3
 requires_certificate_authentication
@@ -14328,8 +14328,8 @@ run_test    "Server Handshake defragmentation (32)" \
             "$P_SRV debug_level=4 auth_mode=required" \
             "$O_NEXT_CLI -split_send_frag 32 -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key" \
             0 \
-            -s "<= handshake" \
-            -s "handshake fragment: "
+            -s "reassembled record" \
+            -s "waiting for more fragments (32 [0-9]\\+, [0-9]\\+ left)"
 
 requires_openssl_tls1_3
 requires_certificate_authentication
@@ -14338,8 +14338,8 @@ run_test    "Server Handshake defragmentation (16)" \
             "$P_SRV debug_level=4 auth_mode=required" \
             "$O_NEXT_CLI -split_send_frag 16 -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key" \
             0 \
-            -s "<= handshake" \
-            -s "handshake fragment: "
+            -s "reassembled record" \
+            -s "waiting for more fragments (16 [0-9]\\+, [0-9]\\+ left)"
 
 requires_openssl_tls1_3
 requires_certificate_authentication
@@ -14348,8 +14348,8 @@ run_test    "Server Handshake defragmentation (13)" \
             "$P_SRV debug_level=4 auth_mode=required" \
             "$O_NEXT_CLI -split_send_frag 13 -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key" \
             0 \
-            -s "<= handshake" \
-            -s "handshake fragment: "
+            -s "reassembled record" \
+            -s "waiting for more fragments (12 [0-9]\\+, [0-9]\\+ left)"
 
 requires_openssl_tls1_3
 requires_certificate_authentication
@@ -14358,8 +14358,8 @@ run_test    "Server Handshake defragmentation (5)" \
             "$P_SRV debug_level=4 auth_mode=required" \
             "$O_NEXT_CLI -split_send_frag 5 -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key" \
             0 \
-            -s "<= handshake" \
-            -s "handshake fragment: "
+            -s "reassembled record" \
+            -s "waiting for more fragments (5 [0-9]\\+, [0-9]\\+ left)"
 
 # Test heap memory usage after handshake
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2

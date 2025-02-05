@@ -131,10 +131,13 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size)
 #endif
 #if defined(MBEDTLS_SSL_SESSION_TICKETS) && defined(MBEDTLS_SSL_TICKET_C)
     if (options & 0x4) {
-        if (mbedtls_ssl_ticket_setup(&ticket_ctx,
-                                     dummy_random, &ctr_drbg,
-                                     MBEDTLS_CIPHER_AES_256_GCM,
-                                     86400) != 0) {
+        if (mbedtls_ssl_ticket_setup(&ticket_ctx, //context
+                                     dummy_random, //f_rng
+                                     &ctr_drbg, //p_rng
+                                     PSA_ALG_GCM, //alg
+                                     PSA_KEY_TYPE_AES, //key_type
+                                     256, //key_bits
+                                     86400) != 0) { //lifetime
             goto exit;
         }
 

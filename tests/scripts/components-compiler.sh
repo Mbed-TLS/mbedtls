@@ -79,12 +79,21 @@ support_test_gcc_latest_opt () {
 # separate component.
 # For the time being, we don't make $GCC_LATEST be GCC 15 on the CI
 # platform, because that would break branches where #9814 isn'f fixed yet.
-support_test_gcc15_opt () {
+support_test_gcc15_drivers_opt () {
     test -x /usr/local/gcc-15/bin/gcc-15
 }
-component_test_gcc15_opt () {
+component_test_gcc15_drivers_opt () {
+    msg "build: GCC 15: full + test drivers dispatching to builtins"
     scripts/config.py full
-    make CC="/usr/local/gcc-15/bin/gcc-15" CFLAGS="-O2 -Wall -Wextra -Werror -Wno-error=unterminated-string-initialization"
+    scripts/config.py unset MBEDTLS_PSA_CRYPTO_CONFIG
+    loc_cflags="$ASAN_CFLAGS -DPSA_CRYPTO_DRIVER_TEST_ALL"
+    loc_cflags="${loc_cflags} '-DMBEDTLS_USER_CONFIG_FILE=\"../tests/configs/user-config-for-test.h\"'"
+    loc_cflags="${loc_cflags} -I../framework/tests/include -O2"
+    loc_cflags="${loc_cflags} -Wno-error=unterminated-string-initialization"
+
+    make CC=/usr/local/gcc-15/bin/gcc-15 CFLAGS="${loc_cflags}" LDFLAGS="$ASAN_CFLAGS"
+
+    msg "test: GCC 15: full + test drivers dispatching to builtins"
     make test
 }
 

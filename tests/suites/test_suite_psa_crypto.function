@@ -2917,13 +2917,15 @@ void hash_operation_init()
      * Clang 5 complains when `-Wmissing-field-initializers` is used, even
      * though it's OK by the C standard. We could test for this, but we'd need
      * to suppress the Clang warning for the test. */
-    psa_hash_operation_t func = psa_hash_operation_init_short();
-    psa_hash_operation_t init = psa_hash_operation_init_short();
+    psa_hash_operation_t short_wrapper = psa_hash_operation_init_short();
+    psa_hash_operation_t func = psa_hash_operation_init();
+    psa_hash_operation_t init = PSA_HASH_OPERATION_INIT;
     psa_hash_operation_t zero;
-
     memset(&zero, 0, sizeof(zero));
 
     /* A freshly-initialized hash operation should not be usable. */
+    TEST_EQUAL(psa_hash_update(&short_wrapper, input, sizeof(input)),
+               PSA_ERROR_BAD_STATE);
     TEST_EQUAL(psa_hash_update(&func, input, sizeof(input)),
                PSA_ERROR_BAD_STATE);
     TEST_EQUAL(psa_hash_update(&init, input, sizeof(input)),
@@ -2932,6 +2934,7 @@ void hash_operation_init()
                PSA_ERROR_BAD_STATE);
 
     /* A default hash operation should be abortable without error. */
+    PSA_ASSERT(psa_hash_abort(&short_wrapper));
     PSA_ASSERT(psa_hash_abort(&func));
     PSA_ASSERT(psa_hash_abort(&init));
     PSA_ASSERT(psa_hash_abort(&zero));
@@ -3437,13 +3440,16 @@ void mac_operation_init()
      * Clang 5 complains when `-Wmissing-field-initializers` is used, even
      * though it's OK by the C standard. We could test for this, but we'd need
      * to suppress the Clang warning for the test. */
-    psa_mac_operation_t func = psa_mac_operation_init_short();
-    psa_mac_operation_t init = psa_mac_operation_init_short();
+    psa_mac_operation_t short_wrapper = psa_mac_operation_init_short();
+    psa_mac_operation_t func = psa_mac_operation_init();
+    psa_mac_operation_t init = PSA_MAC_OPERATION_INIT;
     psa_mac_operation_t zero;
-
     memset(&zero, 0, sizeof(zero));
 
     /* A freshly-initialized MAC operation should not be usable. */
+    TEST_EQUAL(psa_mac_update(&short_wrapper,
+                              input, sizeof(input)),
+               PSA_ERROR_BAD_STATE);
     TEST_EQUAL(psa_mac_update(&func,
                               input, sizeof(input)),
                PSA_ERROR_BAD_STATE);
@@ -3455,6 +3461,7 @@ void mac_operation_init()
                PSA_ERROR_BAD_STATE);
 
     /* A default MAC operation should be abortable without error. */
+    PSA_ASSERT(psa_mac_abort(&short_wrapper));
     PSA_ASSERT(psa_mac_abort(&func));
     PSA_ASSERT(psa_mac_abort(&init));
     PSA_ASSERT(psa_mac_abort(&zero));
@@ -3862,13 +3869,18 @@ void cipher_operation_init()
      * Clang 5 complains when `-Wmissing-field-initializers` is used, even
      * though it's OK by the C standard. We could test for this, but we'd need
      * to suppress the Clang warning for the test. */
-    psa_cipher_operation_t func = psa_cipher_operation_init_short();
-    psa_cipher_operation_t init = psa_cipher_operation_init_short();
+    psa_cipher_operation_t short_wrapper = psa_cipher_operation_init_short();
+    psa_cipher_operation_t func = psa_cipher_operation_init();
+    psa_cipher_operation_t init = PSA_CIPHER_OPERATION_INIT;
     psa_cipher_operation_t zero;
-
     memset(&zero, 0, sizeof(zero));
 
     /* A freshly-initialized cipher operation should not be usable. */
+    TEST_EQUAL(psa_cipher_update(&short_wrapper,
+                                 input, sizeof(input),
+                                 output, sizeof(output),
+                                 &output_length),
+               PSA_ERROR_BAD_STATE);
     TEST_EQUAL(psa_cipher_update(&func,
                                  input, sizeof(input),
                                  output, sizeof(output),
@@ -3886,6 +3898,7 @@ void cipher_operation_init()
                PSA_ERROR_BAD_STATE);
 
     /* A default cipher operation should be abortable without error. */
+    PSA_ASSERT(psa_cipher_abort(&short_wrapper));
     PSA_ASSERT(psa_cipher_abort(&func));
     PSA_ASSERT(psa_cipher_abort(&init));
     PSA_ASSERT(psa_cipher_abort(&zero));
@@ -8736,13 +8749,15 @@ void key_derivation_init()
      * though it's OK by the C standard. We could test for this, but we'd need
      * to suppress the Clang warning for the test. */
     size_t capacity;
-    psa_key_derivation_operation_t func = psa_key_derivation_operation_init_short();
-    psa_key_derivation_operation_t init = psa_key_derivation_operation_init_short();
+    psa_key_derivation_operation_t short_wrapper = psa_key_derivation_operation_init_short();
+    psa_key_derivation_operation_t func = psa_key_derivation_operation_init();
+    psa_key_derivation_operation_t init = PSA_KEY_DERIVATION_OPERATION_INIT;
     psa_key_derivation_operation_t zero;
-
     memset(&zero, 0, sizeof(zero));
 
     /* A default operation should not be able to report its capacity. */
+    TEST_EQUAL(psa_key_derivation_get_capacity(&short_wrapper, &capacity),
+               PSA_ERROR_BAD_STATE);
     TEST_EQUAL(psa_key_derivation_get_capacity(&func, &capacity),
                PSA_ERROR_BAD_STATE);
     TEST_EQUAL(psa_key_derivation_get_capacity(&init, &capacity),
@@ -8751,6 +8766,7 @@ void key_derivation_init()
                PSA_ERROR_BAD_STATE);
 
     /* A default operation should be abortable without error. */
+    PSA_ASSERT(psa_key_derivation_abort(&short_wrapper));
     PSA_ASSERT(psa_key_derivation_abort(&func));
     PSA_ASSERT(psa_key_derivation_abort(&init));
     PSA_ASSERT(psa_key_derivation_abort(&zero));

@@ -14462,7 +14462,7 @@ run_test    "TLS 1.2 ClientHello indicating support for deflate compression meth
 requires_openssl_3_x
 requires_openssl_tls1_3
 requires_certificate_authentication
-run_test    "Client Handshake defragmentation (512)" \
+run_test    "Handshake defragmentation on client: len=512, TLS 1.3" \
             "$O_NEXT_SRV -max_send_frag 512 " \
             "$P_CLI debug_level=4 " \
             0 \
@@ -14473,7 +14473,7 @@ run_test    "Client Handshake defragmentation (512)" \
 requires_openssl_3_x
 requires_openssl_tls1_3
 requires_certificate_authentication
-run_test    "Client Handshake defragmentation (513)" \
+run_test    "Handshake defragmentation on client: len=513, TLS 1.3" \
             "$O_NEXT_SRV -max_send_frag 513 " \
             "$P_CLI debug_level=4 " \
             0 \
@@ -14491,7 +14491,7 @@ requires_openssl_3_x
 requires_openssl_tls1_3
 requires_certificate_authentication
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-run_test    "Client Handshake defragmentation (256)" \
+run_test    "Handshake defragmentation on client: len=256, TLS 1.3" \
             "$O_NEXT_SRV -split_send_frag 256 " \
             "$P_CLI debug_level=4 " \
             0 \
@@ -14503,7 +14503,7 @@ requires_openssl_3_x
 requires_openssl_tls1_3
 requires_certificate_authentication
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-run_test    "Client Handshake defragmentation (128)" \
+run_test    "Handshake defragmentation on client: len=128, TLS 1.3" \
             "$O_NEXT_SRV -split_send_frag 128 " \
             "$P_CLI debug_level=4 " \
             0 \
@@ -14515,7 +14515,7 @@ requires_openssl_3_x
 requires_openssl_tls1_3
 requires_certificate_authentication
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-run_test    "Client Handshake defragmentation (64)" \
+run_test    "Handshake defragmentation on client: len=64, TLS 1.3" \
             "$O_NEXT_SRV -split_send_frag 64 " \
             "$P_CLI debug_level=4 " \
             0 \
@@ -14527,7 +14527,7 @@ requires_openssl_3_x
 requires_openssl_tls1_3
 requires_certificate_authentication
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-run_test    "Client Handshake defragmentation (36)" \
+run_test    "Handshake defragmentation on client: len=36, TLS 1.3" \
             "$O_NEXT_SRV -split_send_frag 36 " \
             "$P_CLI debug_level=4 " \
             0 \
@@ -14539,7 +14539,7 @@ requires_openssl_3_x
 requires_openssl_tls1_3
 requires_certificate_authentication
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-run_test    "Client Handshake defragmentation (32)" \
+run_test    "Handshake defragmentation on client: len=32, TLS 1.3" \
             "$O_NEXT_SRV -split_send_frag 32 " \
             "$P_CLI debug_level=4 " \
             0 \
@@ -14551,7 +14551,7 @@ requires_openssl_3_x
 requires_openssl_tls1_3
 requires_certificate_authentication
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-run_test    "Client Handshake defragmentation (16)" \
+run_test    "Handshake defragmentation on client: len=14, TLS 1.3" \
             "$O_NEXT_SRV -split_send_frag 16 " \
             "$P_CLI debug_level=4 " \
             0 \
@@ -14563,7 +14563,7 @@ requires_openssl_3_x
 requires_openssl_tls1_3
 requires_certificate_authentication
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-run_test    "Client Handshake defragmentation (13)" \
+run_test    "Handshake defragmentation on client: len=13, TLS 1.3" \
             "$O_NEXT_SRV -split_send_frag 13 " \
             "$P_CLI debug_level=4 " \
             0 \
@@ -14575,7 +14575,7 @@ requires_openssl_3_x
 requires_openssl_tls1_3
 requires_certificate_authentication
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-run_test    "Client Handshake defragmentation (5)" \
+run_test    "Handshake defragmentation on client: len=5, TLS 1.3" \
             "$O_NEXT_SRV -split_send_frag 5 " \
             "$P_CLI debug_level=4 " \
             0 \
@@ -14586,7 +14586,7 @@ run_test    "Client Handshake defragmentation (5)" \
 requires_openssl_3_x
 requires_openssl_tls1_3
 requires_certificate_authentication
-run_test    "Server Handshake defragmentation (512)" \
+run_test    "Handshake defragmentation on server: len=512, TLS 1.3" \
             "$P_SRV debug_level=4 auth_mode=required" \
             "$O_NEXT_CLI -max_send_frag 512 -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key" \
             0 \
@@ -14597,7 +14597,7 @@ run_test    "Server Handshake defragmentation (512)" \
 requires_openssl_3_x
 requires_openssl_tls1_3
 requires_certificate_authentication
-run_test    "Server Handshake defragmentation (513)" \
+run_test    "Handshake defragmentation on server: len=513, TLS 1.3" \
             "$P_SRV debug_level=4 auth_mode=required" \
             "$O_NEXT_CLI -max_send_frag 513 -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key" \
             0 \
@@ -14609,7 +14609,7 @@ requires_openssl_3_x
 requires_openssl_tls1_3
 requires_certificate_authentication
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-run_test    "Server Handshake defragmentation (256)" \
+run_test    "Handshake defragmentation on server: len=256, TLS 1.3" \
             "$P_SRV debug_level=4 auth_mode=required" \
             "$O_NEXT_CLI -split_send_frag 256 -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key" \
             0 \
@@ -14621,7 +14621,7 @@ requires_openssl_3_x
 requires_openssl_tls1_3
 requires_certificate_authentication
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-run_test    "Server Handshake defragmentation (128)" \
+run_test    "Handshake defragmentation on server: len=128, TLS 1.3" \
             "$P_SRV debug_level=4 auth_mode=required" \
             "$O_NEXT_CLI -split_send_frag 128 -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key" \
             0 \
@@ -14633,7 +14633,7 @@ requires_openssl_3_x
 requires_openssl_tls1_3
 requires_certificate_authentication
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-run_test    "Server Handshake defragmentation (64)" \
+run_test    "Handshake defragmentation on server: len=64, TLS 1.3" \
             "$P_SRV debug_level=4 auth_mode=required" \
             "$O_NEXT_CLI -split_send_frag 64 -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key" \
             0 \
@@ -14645,7 +14645,7 @@ requires_openssl_3_x
 requires_openssl_tls1_3
 requires_certificate_authentication
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-run_test    "Server Handshake defragmentation (36)" \
+run_test    "Handshake defragmentation on server: len=36, TLS 1.3" \
             "$P_SRV debug_level=4 auth_mode=required" \
             "$O_NEXT_CLI -split_send_frag 36 -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key" \
             0 \
@@ -14657,7 +14657,7 @@ requires_openssl_3_x
 requires_openssl_tls1_3
 requires_certificate_authentication
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-run_test    "Server Handshake defragmentation (32)" \
+run_test    "Handshake defragmentation on server: len=32, TLS 1.3" \
             "$P_SRV debug_level=4 auth_mode=required" \
             "$O_NEXT_CLI -split_send_frag 32 -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key" \
             0 \
@@ -14669,7 +14669,7 @@ requires_openssl_3_x
 requires_openssl_tls1_3
 requires_certificate_authentication
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-run_test    "Server Handshake defragmentation (16)" \
+run_test    "Handshake defragmentation on server: len=16, TLS 1.3" \
             "$P_SRV debug_level=4 auth_mode=required" \
             "$O_NEXT_CLI -split_send_frag 16 -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key" \
             0 \
@@ -14681,7 +14681,7 @@ requires_openssl_3_x
 requires_openssl_tls1_3
 requires_certificate_authentication
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-run_test    "Server Handshake defragmentation (13)" \
+run_test    "Handshake defragmentation on server: len=13, TLS 1.3" \
             "$P_SRV debug_level=4 auth_mode=required" \
             "$O_NEXT_CLI -split_send_frag 13 -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key" \
             0 \
@@ -14693,7 +14693,7 @@ requires_openssl_3_x
 requires_openssl_tls1_3
 requires_certificate_authentication
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-run_test    "Server Handshake defragmentation (5)" \
+run_test    "Handshake defragmentation on server: len=5, TLS 1.3" \
             "$P_SRV debug_level=4 auth_mode=required" \
             "$O_NEXT_CLI -split_send_frag 5 -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key" \
             0 \

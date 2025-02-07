@@ -14459,6 +14459,7 @@ run_test    "TLS 1.2 ClientHello indicating support for deflate compression meth
 
 # Handshake defragmentation testing
 
+requires_openssl_3_x
 requires_openssl_tls1_3
 requires_certificate_authentication
 run_test    "Client Handshake defragmentation (512)" \
@@ -14466,8 +14467,10 @@ run_test    "Client Handshake defragmentation (512)" \
             "$P_CLI debug_level=4 " \
             0 \
             -c "reassembled record" \
-            -c "waiting for more fragments (512 [0-9]\\+, [0-9]\\+ left)"
+            -c "handshake fragment: 0 \\.\\. 512 of [0-9]\\+ msglen 512" \
+            -c "waiting for more fragments (512 of [0-9]\\+"
 
+requires_openssl_3_x
 requires_openssl_tls1_3
 requires_certificate_authentication
 run_test    "Client Handshake defragmentation (513)" \
@@ -14475,7 +14478,8 @@ run_test    "Client Handshake defragmentation (513)" \
             "$P_CLI debug_level=4 " \
             0 \
             -c "reassembled record" \
-            -c "waiting for more fragments (513 [0-9]\\+, [0-9]\\+ left)"
+            -c "handshake fragment: 0 \\.\\. 513 of [0-9]\\+ msglen 513" \
+            -c "waiting for more fragments (513 of [0-9]\\+"
 
 # OpenSSL does not allow max_send_frag to be less than 512
 # so we use split_send_frag instead for tests lower than 512 below.
@@ -14483,6 +14487,7 @@ run_test    "Client Handshake defragmentation (513)" \
 # There is an issue with OpenSSL when fragmenting with values less
 # than 512 bytes in TLS 1.2 so we require TLS 1.3 with these values.
 
+requires_openssl_3_x
 requires_openssl_tls1_3
 requires_certificate_authentication
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
@@ -14491,8 +14496,10 @@ run_test    "Client Handshake defragmentation (256)" \
             "$P_CLI debug_level=4 " \
             0 \
             -c "reassembled record" \
-            -c "waiting for more fragments (256 of [0-9]\\+, [0-9]\\+ left)"
+            -c "handshake fragment: 0 \\.\\. 256 of [0-9]\\+ msglen 256" \
+            -c "waiting for more fragments (256 of [0-9]\\+"
 
+requires_openssl_3_x
 requires_openssl_tls1_3
 requires_certificate_authentication
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
@@ -14501,8 +14508,10 @@ run_test    "Client Handshake defragmentation (128)" \
             "$P_CLI debug_level=4 " \
             0 \
             -c "reassembled record" \
-            -c "waiting for more fragments (128 [0-9]\\+, [0-9]\\+ left)"
+            -c "handshake fragment: 0 \\.\\. 128 of [0-9]\\+ msglen 128" \
+            -c "waiting for more fragments (128"
 
+requires_openssl_3_x
 requires_openssl_tls1_3
 requires_certificate_authentication
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
@@ -14511,8 +14520,10 @@ run_test    "Client Handshake defragmentation (64)" \
             "$P_CLI debug_level=4 " \
             0 \
             -c "reassembled record" \
-            -c "waiting for more fragments (64 [0-9]\\+, [0-9]\\+ left)"
+            -c "handshake fragment: 0 \\.\\. 64 of [0-9]\\+ msglen 64" \
+            -c "waiting for more fragments (64"
 
+requires_openssl_3_x
 requires_openssl_tls1_3
 requires_certificate_authentication
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
@@ -14521,8 +14532,10 @@ run_test    "Client Handshake defragmentation (36)" \
             "$P_CLI debug_level=4 " \
             0 \
             -c "reassembled record" \
-            -c "waiting for more fragments (36 [0-9]\\+, [0-9]\\+ left)"
+            -c "handshake fragment: 0 \\.\\. 36 of [0-9]\\+ msglen 36" \
+            -c "waiting for more fragments (36"
 
+requires_openssl_3_x
 requires_openssl_tls1_3
 requires_certificate_authentication
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
@@ -14531,8 +14544,10 @@ run_test    "Client Handshake defragmentation (32)" \
             "$P_CLI debug_level=4 " \
             0 \
             -c "reassembled record" \
-            -c "waiting for more fragments (32 [0-9]\\+, [0-9]\\+ left)"
+            -c "handshake fragment: 0 \\.\\. 32 of [0-9]\\+ msglen 32" \
+            -c "waiting for more fragments (32"
 
+requires_openssl_3_x
 requires_openssl_tls1_3
 requires_certificate_authentication
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
@@ -14541,8 +14556,10 @@ run_test    "Client Handshake defragmentation (16)" \
             "$P_CLI debug_level=4 " \
             0 \
             -c "reassembled record" \
-            -c "waiting for more fragments (16 [0-9]\\+, [0-9]\\+ left)"
+            -c "handshake fragment: 0 \\.\\. 16 of [0-9]\\+ msglen 16" \
+            -c "waiting for more fragments (16"
 
+requires_openssl_3_x
 requires_openssl_tls1_3
 requires_certificate_authentication
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
@@ -14551,8 +14568,10 @@ run_test    "Client Handshake defragmentation (13)" \
             "$P_CLI debug_level=4 " \
             0 \
             -c "reassembled record" \
-            -c "waiting for more fragments (13 [0-9]\\+, [0-9]\\+ left)"
+            -c "handshake fragment: 0 \\.\\. 13 of [0-9]\\+ msglen 13" \
+            -c "waiting for more fragments (13"
 
+requires_openssl_3_x
 requires_openssl_tls1_3
 requires_certificate_authentication
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
@@ -14561,8 +14580,10 @@ run_test    "Client Handshake defragmentation (5)" \
             "$P_CLI debug_level=4 " \
             0 \
             -c "reassembled record" \
-            -c "waiting for more fragments (5 [0-9]\\+, [0-9]\\+ left)"
+            -c "handshake fragment: 0 \\.\\. 5 of [0-9]\\+ msglen 5" \
+            -c "waiting for more fragments (5"
 
+requires_openssl_3_x
 requires_openssl_tls1_3
 requires_certificate_authentication
 run_test    "Server Handshake defragmentation (512)" \
@@ -14570,8 +14591,10 @@ run_test    "Server Handshake defragmentation (512)" \
             "$O_NEXT_CLI -max_send_frag 512 -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key" \
             0 \
             -s "reassembled record" \
-            -s "waiting for more fragments (512 [0-9]\\+, [0-9]\\+ left)"
+            -s "handshake fragment: 0 \\.\\. 512 of [0-9]\\+ msglen 512" \
+            -s "waiting for more fragments (512"
 
+requires_openssl_3_x
 requires_openssl_tls1_3
 requires_certificate_authentication
 run_test    "Server Handshake defragmentation (513)" \
@@ -14579,8 +14602,10 @@ run_test    "Server Handshake defragmentation (513)" \
             "$O_NEXT_CLI -max_send_frag 513 -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key" \
             0 \
             -s "reassembled record" \
-            -s "waiting for more fragments (513 [0-9]\\+, [0-9]\\+ left)"
+            -s "handshake fragment: 0 \\.\\. 513 of [0-9]\\+ msglen 513" \
+            -s "waiting for more fragments (513"
 
+requires_openssl_3_x
 requires_openssl_tls1_3
 requires_certificate_authentication
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
@@ -14589,8 +14614,10 @@ run_test    "Server Handshake defragmentation (256)" \
             "$O_NEXT_CLI -split_send_frag 256 -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key" \
             0 \
             -s "reassembled record" \
-            -s "waiting for more fragments (256 [0-9]\\+, [0-9]\\+ left)"
+            -s "handshake fragment: 0 \\.\\. 256 of [0-9]\\+ msglen 256" \
+            -s "waiting for more fragments (256"
 
+requires_openssl_3_x
 requires_openssl_tls1_3
 requires_certificate_authentication
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
@@ -14599,8 +14626,10 @@ run_test    "Server Handshake defragmentation (128)" \
             "$O_NEXT_CLI -split_send_frag 128 -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key" \
             0 \
             -s "reassembled record" \
-            -s "waiting for more fragments (128 [0-9]\\+, [0-9]\\+ left)"
+            -s "handshake fragment: 0 \\.\\. 128 of [0-9]\\+ msglen 128" \
+            -s "waiting for more fragments (128"
 
+requires_openssl_3_x
 requires_openssl_tls1_3
 requires_certificate_authentication
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
@@ -14609,8 +14638,10 @@ run_test    "Server Handshake defragmentation (64)" \
             "$O_NEXT_CLI -split_send_frag 64 -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key" \
             0 \
             -s "reassembled record" \
-            -s "waiting for more fragments (64 [0-9]\\+, [0-9]\\+ left)"
+            -s "handshake fragment: 0 \\.\\. 64 of [0-9]\\+ msglen 64" \
+            -s "waiting for more fragments (64"
 
+requires_openssl_3_x
 requires_openssl_tls1_3
 requires_certificate_authentication
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
@@ -14619,8 +14650,10 @@ run_test    "Server Handshake defragmentation (36)" \
             "$O_NEXT_CLI -split_send_frag 36 -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key" \
             0 \
             -s "reassembled record" \
-            -s "waiting for more fragments (36 [0-9]\\+, [0-9]\\+ left)"
+            -s "handshake fragment: 0 \\.\\. 36 of [0-9]\\+ msglen 36" \
+            -s "waiting for more fragments (36"
 
+requires_openssl_3_x
 requires_openssl_tls1_3
 requires_certificate_authentication
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
@@ -14629,8 +14662,10 @@ run_test    "Server Handshake defragmentation (32)" \
             "$O_NEXT_CLI -split_send_frag 32 -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key" \
             0 \
             -s "reassembled record" \
-            -s "waiting for more fragments (32 [0-9]\\+, [0-9]\\+ left)"
+            -s "handshake fragment: 0 \\.\\. 32 of [0-9]\\+ msglen 32" \
+            -s "waiting for more fragments (32"
 
+requires_openssl_3_x
 requires_openssl_tls1_3
 requires_certificate_authentication
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
@@ -14639,8 +14674,10 @@ run_test    "Server Handshake defragmentation (16)" \
             "$O_NEXT_CLI -split_send_frag 16 -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key" \
             0 \
             -s "reassembled record" \
-            -s "waiting for more fragments (16 [0-9]\\+, [0-9]\\+ left)"
+            -s "handshake fragment: 0 \\.\\. 16 of [0-9]\\+ msglen 16" \
+            -s "waiting for more fragments (16"
 
+requires_openssl_3_x
 requires_openssl_tls1_3
 requires_certificate_authentication
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
@@ -14649,8 +14686,10 @@ run_test    "Server Handshake defragmentation (13)" \
             "$O_NEXT_CLI -split_send_frag 13 -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key" \
             0 \
             -s "reassembled record" \
-            -s "waiting for more fragments (12 [0-9]\\+, [0-9]\\+ left)"
+            -s "handshake fragment: 0 \\.\\. 13 of [0-9]\\+ msglen 13" \
+            -s "waiting for more fragments (13"
 
+requires_openssl_3_x
 requires_openssl_tls1_3
 requires_certificate_authentication
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
@@ -14659,7 +14698,8 @@ run_test    "Server Handshake defragmentation (5)" \
             "$O_NEXT_CLI -split_send_frag 5 -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key" \
             0 \
             -s "reassembled record" \
-            -s "waiting for more fragments (5 [0-9]\\+, [0-9]\\+ left)"
+            -s "handshake fragment: 0 \\.\\. 5 of [0-9]\\+ msglen 5" \
+            -s "waiting for more fragments (5"
 
 # Test heap memory usage after handshake
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2

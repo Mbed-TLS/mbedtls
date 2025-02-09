@@ -1618,46 +1618,6 @@ static int ssl_parse_server_hello(mbedtls_ssl_context *ssl)
     return 0;
 }
 
-#if defined(MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED)
-MBEDTLS_CHECK_RETURN_CRITICAL
-static int ssl_parse_server_dh_params(mbedtls_ssl_context *ssl,
-                                      unsigned char **p,
-                                      unsigned char *end)
-{
-    int ret = MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE;
-    size_t dhm_actual_bitlen;
-
-    /*
-     * Ephemeral DH parameters:
-     *
-     * struct {
-     *     opaque dh_p<1..2^16-1>;
-     *     opaque dh_g<1..2^16-1>;
-     *     opaque dh_Ys<1..2^16-1>;
-     * } ServerDHParams;
-     */
-    if ((ret = mbedtls_dhm_read_params(&ssl->handshake->dhm_ctx,
-                                       p, end)) != 0) {
-        MBEDTLS_SSL_DEBUG_RET(2, ("mbedtls_dhm_read_params"), ret);
-        return ret;
-    }
-
-    dhm_actual_bitlen = mbedtls_dhm_get_bitlen(&ssl->handshake->dhm_ctx);
-    if (dhm_actual_bitlen < ssl->conf->dhm_min_bitlen) {
-        MBEDTLS_SSL_DEBUG_MSG(1, ("DHM prime too short: %" MBEDTLS_PRINTF_SIZET " < %u",
-                                  dhm_actual_bitlen,
-                                  ssl->conf->dhm_min_bitlen));
-        return MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE;
-    }
-
-    MBEDTLS_SSL_DEBUG_MPI(3, "DHM: P ", &ssl->handshake->dhm_ctx.P);
-    MBEDTLS_SSL_DEBUG_MPI(3, "DHM: G ", &ssl->handshake->dhm_ctx.G);
-    MBEDTLS_SSL_DEBUG_MPI(3, "DHM: GY", &ssl->handshake->dhm_ctx.GY);
-
-    return ret;
-}
-#endif /* MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED */
-
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED)   ||   \
     defined(MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED)   ||   \
     defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)
@@ -2047,18 +2007,6 @@ start_processing:
         ; /* nothing more to do */
     } else
 #endif /* MBEDTLS_KEY_EXCHANGE_PSK_ENABLED */
-#if defined(MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED)
-    if (ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_DHE_RSA) {
-        if (ssl_parse_server_dh_params(ssl, &p, end) != 0) {
-            MBEDTLS_SSL_DEBUG_MSG(1, ("bad server key exchange message"));
-            mbedtls_ssl_send_alert_message(
-                ssl,
-                MBEDTLS_SSL_ALERT_LEVEL_FATAL,
-                MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER);
-            return MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER;
-        }
-    } else
-#endif /* MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED */
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED) ||     \
     defined(MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED) ||     \
     defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)
@@ -2545,40 +2493,6 @@ static int ssl_write_client_key_exchange(mbedtls_ssl_context *ssl)
 
     MBEDTLS_SSL_DEBUG_MSG(2, ("=> write client key exchange"));
 
-#if defined(MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED)
-    if (ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_DHE_RSA) {
-        /*
-         * DHM key exchange -- send G^X mod P
-         */
-        content_len = mbedtls_dhm_get_len(&ssl->handshake->dhm_ctx);
-
-        MBEDTLS_PUT_UINT16_BE(content_len, ssl->out_msg, 4);
-        header_len = 6;
-
-        ret = mbedtls_dhm_make_public(&ssl->handshake->dhm_ctx,
-                                      (int) mbedtls_dhm_get_len(&ssl->handshake->dhm_ctx),
-                                      &ssl->out_msg[header_len], content_len,
-                                      ssl->conf->f_rng, ssl->conf->p_rng);
-        if (ret != 0) {
-            MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_dhm_make_public", ret);
-            return ret;
-        }
-
-        MBEDTLS_SSL_DEBUG_MPI(3, "DHM: X ", &ssl->handshake->dhm_ctx.X);
-        MBEDTLS_SSL_DEBUG_MPI(3, "DHM: GX", &ssl->handshake->dhm_ctx.GX);
-
-        if ((ret = mbedtls_dhm_calc_secret(&ssl->handshake->dhm_ctx,
-                                           ssl->handshake->premaster,
-                                           MBEDTLS_PREMASTER_SIZE,
-                                           &ssl->handshake->pmslen,
-                                           ssl->conf->f_rng, ssl->conf->p_rng)) != 0) {
-            MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_dhm_calc_secret", ret);
-            return ret;
-        }
-
-        MBEDTLS_SSL_DEBUG_MPI(3, "DHM: K ", &ssl->handshake->dhm_ctx.K);
-    } else
-#endif /* MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED */
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED) ||                     \
     defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED) ||                   \
     defined(MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED) ||                      \

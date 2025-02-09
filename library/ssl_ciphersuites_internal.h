@@ -26,7 +26,6 @@ int mbedtls_ssl_ciphersuite_uses_psk(const mbedtls_ssl_ciphersuite_t *info);
 static inline int mbedtls_ssl_ciphersuite_has_pfs(const mbedtls_ssl_ciphersuite_t *info)
 {
     switch (info->MBEDTLS_PRIVATE(key_exchange)) {
-        case MBEDTLS_KEY_EXCHANGE_DHE_RSA:
         case MBEDTLS_KEY_EXCHANGE_ECDHE_RSA:
         case MBEDTLS_KEY_EXCHANGE_ECDHE_PSK:
         case MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA:
@@ -73,7 +72,6 @@ static inline int mbedtls_ssl_ciphersuite_cert_req_allowed(const mbedtls_ssl_cip
 {
     switch (info->MBEDTLS_PRIVATE(key_exchange)) {
         case MBEDTLS_KEY_EXCHANGE_RSA:
-        case MBEDTLS_KEY_EXCHANGE_DHE_RSA:
         case MBEDTLS_KEY_EXCHANGE_ECDH_RSA:
         case MBEDTLS_KEY_EXCHANGE_ECDHE_RSA:
         case MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA:
@@ -89,7 +87,6 @@ static inline int mbedtls_ssl_ciphersuite_uses_srv_cert(const mbedtls_ssl_cipher
 {
     switch (info->MBEDTLS_PRIVATE(key_exchange)) {
         case MBEDTLS_KEY_EXCHANGE_RSA:
-        case MBEDTLS_KEY_EXCHANGE_DHE_RSA:
         case MBEDTLS_KEY_EXCHANGE_ECDH_RSA:
         case MBEDTLS_KEY_EXCHANGE_ECDHE_RSA:
         case MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA:
@@ -100,19 +97,6 @@ static inline int mbedtls_ssl_ciphersuite_uses_srv_cert(const mbedtls_ssl_cipher
             return 0;
     }
 }
-
-#if defined(MBEDTLS_KEY_EXCHANGE_SOME_DHE_ENABLED)
-static inline int mbedtls_ssl_ciphersuite_uses_dhe(const mbedtls_ssl_ciphersuite_t *info)
-{
-    switch (info->MBEDTLS_PRIVATE(key_exchange)) {
-        case MBEDTLS_KEY_EXCHANGE_DHE_RSA:
-            return 1;
-
-        default:
-            return 0;
-    }
-}
-#endif /* MBEDTLS_KEY_EXCHANGE_SOME_DHE_ENABLED) */
 
 #if defined(MBEDTLS_KEY_EXCHANGE_SOME_ECDHE_ENABLED)
 static inline int mbedtls_ssl_ciphersuite_uses_ecdhe(const mbedtls_ssl_ciphersuite_t *info)
@@ -134,7 +118,6 @@ static inline int mbedtls_ssl_ciphersuite_uses_server_signature(
     const mbedtls_ssl_ciphersuite_t *info)
 {
     switch (info->MBEDTLS_PRIVATE(key_exchange)) {
-        case MBEDTLS_KEY_EXCHANGE_DHE_RSA:
         case MBEDTLS_KEY_EXCHANGE_ECDHE_RSA:
         case MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA:
             return 1;

@@ -417,7 +417,6 @@ depends_on:PSA_WANT_KEY_TYPE_AES:PSA_WANT_ALG_CBC_NO_PADDING:MBEDTLS_RSA_C:PSA_W
 handshake_psk_cipher:"TLS-PSK-WITH-AES-128-CBC-SHA":MBEDTLS_PK_RSA:"abc123":1
 
 DTLS Handshake with serialization, tls1_2
-depends_on:MBEDTLS_RSA_C:PSA_WANT_ECC_SECP_R1_384:MBEDTLS_SSL_PROTO_DTLS
 handshake_serialization
 
 DTLS Handshake fragmentation, MFL=512

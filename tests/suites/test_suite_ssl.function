@@ -5013,3 +5013,75 @@ exit:
     PSA_DONE();
 }
 /* END_CASE */
+
+/* BEGIN_CASE */
+void inject_client_content_on_the_wire(int state, data_t *hello, char *log_pattern,
+                                       int expected_ret)
+{
+    /* This function allows us to inject content at a specific state
+     * in the handshake, or when it's completed. The content is injected
+     * on the mock TCP socket, as if we were an active network attacker.
+     *
+     * This function is suitable to inject:
+     * - crafted records, at any point;
+     * - valid records that contain crafted handshake messages, but only
+     *   when the traffic is still unprotected (for TLS 1.2 that's most of the
+     *   handshake, for TLS 1.3 that's only the Hello messages);
+     * - handshake messages that are fragmented in a specific way,
+     *   under the same conditions as above.
+     */
+    enum { BUFFSIZE = 16384 };
+    mbedtls_test_ssl_endpoint server, client;
+    mbedtls_platform_zeroize(&server, sizeof(server));
+    mbedtls_platform_zeroize(&client, sizeof(client));
+    mbedtls_test_handshake_test_options options;
+    mbedtls_test_init_handshake_options(&options);
+    mbedtls_test_ssl_log_pattern srv_pattern;
+    memset(&srv_pattern, 0, sizeof(srv_pattern));
+    int ret = -1;
+
+    PSA_INIT();
+
+    srv_pattern.pattern = log_pattern;
+    options.srv_log_obj = &srv_pattern;
+    options.srv_log_fun = mbedtls_test_ssl_log_analyzer;
+    mbedtls_debug_set_threshold(3);
+
+    ret = mbedtls_test_ssl_endpoint_init(&server, MBEDTLS_SSL_IS_SERVER,
+                                         &options, NULL, NULL, NULL);
+    TEST_EQUAL(ret,  0);
+
+    ret = mbedtls_test_ssl_endpoint_init(&client, MBEDTLS_SSL_IS_CLIENT,
+                                         &options, NULL, NULL, NULL);
+    TEST_EQUAL(ret,  0);
+
+    ret = mbedtls_test_mock_socket_connect(&server.socket, &client.socket,
+                                           BUFFSIZE);
+    TEST_EQUAL(ret,  0);
+
+    /* Make the server move to the required state */
+    ret = mbedtls_test_move_handshake_to_state(&client.ssl, &server.ssl, state);
+    TEST_EQUAL(ret, 0);
+
+    /* Send the crafted message */
+    ret = mbedtls_test_mock_tcp_send_b(&client.socket, hello->x, hello->len);
+    TEST_ASSERT(ret >= 0 && (size_t) ret == hello->len);
+
+    /* Have the server process it.
+     * Need the loop because a server that support 1.3 and 1.2
+     * will process a 1.2 ClientHello in two steps.
+     */
+    do {
+        ret = mbedtls_ssl_handshake_step(&server.ssl);
+    } while (ret == 0 && server.ssl.state == state);
+    TEST_EQUAL(ret,  expected_ret);
+    TEST_EQUAL(srv_pattern.counter, 1);
+
+exit:
+    mbedtls_test_free_handshake_options(&options);
+    mbedtls_test_ssl_endpoint_free(&server, NULL);
+    mbedtls_test_ssl_endpoint_free(&client, NULL);
+    mbedtls_debug_set_threshold(0);
+    PSA_DONE();
+}
+/* END_CASE */

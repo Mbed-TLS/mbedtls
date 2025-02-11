@@ -3445,3 +3445,32 @@ tls13_srv_max_early_data_size:TEST_EARLY_DATA_HRR:3:3
 
 TLS 1.3 srv, max early data size, HRR, 98, wsz=49
 tls13_srv_max_early_data_size:TEST_EARLY_DATA_HRR:97:0
+
+# 1.2 minimal ClientHello breakdown:
+# 160303rlrl - record header, 2-byte record contents len
+# 01hlhlhl - handshake header, 3-byte handshake message len
+# 0303 - protocol version: 1.2
+# 0123456789abcdef (repeated, 4 times total) - 32-byte "random"
+# 00 - session ID (empty)
+# 0002cvcv - ciphersuite list: 2-byte len + list of 2-byte values (see below)
+# 0100 - compression methods: 1-byte len then "null" (only legal value now)
+# [then end, or extensions]
+# elel - 2-byte extensions length
+# ...
+#
+# Note: currently our TLS "1.3 or 1.2" code requires extension length to be
+# present even it it's 0. This is not strictly compliant but doesn't matter
+# much in practice as these days everyone wants to use signature_algorithms
+# (for hashes better than SHA-1), secure_renego (even if you have renego
+# disabled), and most people want either ECC or PSK related extensions.
+#
+# Note: cccc is currently not assigned, so can be used get a consistent
+# "no matching ciphersuite" behaviour regardless of the configuration.
+# 002f is MBEDTLS_TLS_RSA_WITH_AES_128_CBC_SHA, MTI in 1.2, but removed in 4.0.
+Inject ClientHello - TLS 1.2 good (for reference)
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_KEY_EXCHANGE_RSA_ENABLED:MBEDTLS_SSL_HAVE_AES:MBEDTLS_MD_CAN_SHA1:MBEDTLS_SSL_HAVE_CBC
+inject_client_content_on_the_wire:MBEDTLS_SSL_CLIENT_HELLO:"160303002f0100002b03030123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef000002002f01000000":"<= parse client hello":0
+
+Inject ClientHello - TLS 1.2 unknown ciphersuite (for reference)
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2
+inject_client_content_on_the_wire:MBEDTLS_SSL_CLIENT_HELLO:"160303002f0100002b03030123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef000002cccc01000000":"got no ciphersuites in common":MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE

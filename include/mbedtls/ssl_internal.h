@@ -1214,6 +1214,18 @@ static inline size_t mbedtls_ssl_hs_hdr_len(const mbedtls_ssl_context *ssl)
     return 4;
 }
 
+#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
+/** Get the host name from the SSL context.
+ *
+ * \param[in]   ssl     SSL context
+ *
+ * \return The \p hostname pointer from the SSL context.
+ *         \c NULL if mbedtls_ssl_set_hostname() has never been called on
+ *         \p ssl or if it was last called with \p NULL.
+ */
+const char *mbedtls_ssl_get_hostname_pointer(const mbedtls_ssl_context *ssl);
+#endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION */
+
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
 void mbedtls_ssl_send_flight_completed(mbedtls_ssl_context *ssl);
 void mbedtls_ssl_recv_flight_completed(mbedtls_ssl_context *ssl);

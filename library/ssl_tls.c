@@ -39,6 +39,47 @@
 #endif
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
+
+#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
+/** Whether mbedtls_ssl_set_hostname() has been called.
+ *
+ * \param[in]   ssl     SSL context
+ *
+ * \return \c 1 if mbedtls_ssl_set_hostname() has been called on \p ssl
+ *         (including `mbedtls_ssl_set_hostname(ssl, NULL)`),
+ *         otherwise \c 0.
+ */
+static int mbedtls_ssl_has_set_hostname_been_called(
+    const mbedtls_ssl_context *ssl)
+{
+    /* We can't tell the difference between the case where
+     * mbedtls_ssl_set_hostname() has not been called at all, and
+     * the case where it was last called with NULL. For the time
+     * being, we assume the latter, i.e. we behave as if there had
+     * been an implicit call to mbedtls_ssl_set_hostname(ssl, NULL). */
+    return ssl->hostname != NULL;
+}
+#endif
+
+/* Micro-optimization: don't export this function if it isn't needed outside
+ * of this source file. */
+#if !defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
+static
+#endif
+const char *mbedtls_ssl_get_hostname_pointer(const mbedtls_ssl_context *ssl)
+{
+    return ssl->hostname;
+}
+
+static void mbedtls_ssl_free_hostname(mbedtls_ssl_context *ssl)
+{
+    if (ssl->hostname != NULL) {
+        mbedtls_platform_zeroize(ssl->hostname, strlen(ssl->hostname));
+        mbedtls_free(ssl->hostname);
+    }
+    ssl->hostname = NULL;
+}
+
 int mbedtls_ssl_set_hostname(mbedtls_ssl_context *ssl, const char *hostname)
 {
     /* Initialize to suppress unnecessary compiler warning */
@@ -56,11 +97,7 @@ int mbedtls_ssl_set_hostname(mbedtls_ssl_context *ssl, const char *hostname)
 
     /* Now it's clear that we will overwrite the old hostname,
      * so we can free it safely */
-
-    if (ssl->hostname != NULL) {
-        mbedtls_platform_zeroize(ssl->hostname, strlen(ssl->hostname));
-        mbedtls_free(ssl->hostname);
-    }
+    mbedtls_ssl_free_hostname(ssl);
 
     /* Passing NULL as hostname shall clear the old one */
 
@@ -2564,13 +2601,27 @@ static int ssl_parse_certificate_coordinate(mbedtls_ssl_context *ssl,
     return SSL_CERTIFICATE_EXPECTED;
 }
 
+static int get_hostname_for_verification(mbedtls_ssl_context *ssl,
+                                         const char **hostname)
+{
+    if (!mbedtls_ssl_has_set_hostname_been_called(ssl)) {
+        MBEDTLS_SSL_DEBUG_MSG(1, ("Certificate verification without having set hostname"));
+    }
+
+    *hostname = mbedtls_ssl_get_hostname_pointer(ssl);
+    if (*hostname == NULL) {
+        MBEDTLS_SSL_DEBUG_MSG(2, ("Certificate verification without CN verification"));
+    }
+
+    return 0;
+}
+
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_parse_certificate_verify(mbedtls_ssl_context *ssl,
                                         int authmode,
                                         mbedtls_x509_crt *chain,
                                         void *rs_ctx)
 {
-    int ret = 0;
     const mbedtls_ssl_ciphersuite_t *ciphersuite_info =
         ssl->handshake->ciphersuite_info;
     int have_ca_chain = 0;
@@ -2592,6 +2643,13 @@ static int ssl_parse_certificate_verify(mbedtls_ssl_context *ssl,
         p_vrfy = ssl->conf->p_vrfy;
     }
 
+    const char *hostname = "";
+    int ret = get_hostname_for_verification(ssl, &hostname);
+    if (ret != 0) {
+        MBEDTLS_SSL_DEBUG_RET(1, "get_hostname_for_verification", ret);
+        return ret;
+    }
+
     /*
      * Main check: verify certificate
      */
@@ -2606,7 +2664,7 @@ static int ssl_parse_certificate_verify(mbedtls_ssl_context *ssl,
             ssl->conf->f_ca_cb,
             ssl->conf->p_ca_cb,
             ssl->conf->cert_profile,
-            ssl->hostname,
+            hostname,
             &ssl->session_negotiate->verify_result,
             f_vrfy, p_vrfy);
     } else
@@ -2634,7 +2692,7 @@ static int ssl_parse_certificate_verify(mbedtls_ssl_context *ssl,
             chain,
             ca_chain, ca_crl,
             ssl->conf->cert_profile,
-            ssl->hostname,
+            hostname,
             &ssl->session_negotiate->verify_result,
             f_vrfy, p_vrfy, rs_ctx);
     }
@@ -6816,10 +6874,7 @@ void mbedtls_ssl_free(mbedtls_ssl_context *ssl)
     }
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
-    if (ssl->hostname != NULL) {
-        mbedtls_platform_zeroize(ssl->hostname, strlen(ssl->hostname));
-        mbedtls_free(ssl->hostname);
-    }
+    mbedtls_ssl_free_hostname(ssl);
 #endif
 
 #if defined(MBEDTLS_SSL_HW_RECORD_ACCEL)

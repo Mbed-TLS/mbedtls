@@ -2899,6 +2899,18 @@ int mbedtls_ssl_tls13_write_binders_of_pre_shared_key_ext(
     unsigned char *buf, unsigned char *end);
 #endif /* MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_PSK_ENABLED */
 
+#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
+/** Get the host name from the SSL context.
+ *
+ * \param[in]   ssl     SSL context
+ *
+ * \return The \p hostname pointer from the SSL context.
+ *         \c NULL if mbedtls_ssl_set_hostname() has never been called on
+ *         \p ssl or if it was last called with \p NULL.
+ */
+const char *mbedtls_ssl_get_hostname_pointer(const mbedtls_ssl_context *ssl);
+#endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION */
+
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3) && \
     defined(MBEDTLS_SSL_SESSION_TICKETS) && \
     defined(MBEDTLS_SSL_SERVER_NAME_INDICATION) && \

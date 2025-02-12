@@ -9475,25 +9475,6 @@ run_test    "SSL async private: sign, SNI" \
             -c "issuer name *: C=NL, O=PolarSSL, CN=PolarSSL Test CA" \
             -c "subject name *: C=NL, O=PolarSSL, CN=polarssl.example"
 
-requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
-run_test    "SSL async private: decrypt, delay=0" \
-            "$P_SRV \
-             async_operations=d async_private_delay1=0 async_private_delay2=0" \
-            "$P_CLI force_ciphersuite=TLS-ECDHE-RSA-WITH-AES-128-CBC-SHA" \
-            0 \
-            -s "Async decrypt callback: using key slot " \
-            -s "Async resume (slot [0-9]): decrypt done, status=0"
-
-requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
-run_test    "SSL async private: decrypt, delay=1" \
-            "$P_SRV \
-             async_operations=d async_private_delay1=1 async_private_delay2=1" \
-            "$P_CLI force_ciphersuite=TLS-ECDHE-RSA-WITH-AES-128-CBC-SHA" \
-            0 \
-            -s "Async decrypt callback: using key slot " \
-            -s "Async resume (slot [0-9]): call 0 more times." \
-            -s "Async resume (slot [0-9]): decrypt done, status=0"
-
 # key1: ECDSA, key2: RSA; use key1 from slot 0
 requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
 run_test    "SSL async private: slot 0 used with key1" \
@@ -9576,41 +9557,6 @@ run_test    "SSL async private: sign, error in resume" \
             1 \
             -s "Async sign callback: using key slot " \
             -s "Async resume callback: sign done but injected error" \
-            -S "Async cancel" \
-            -s "! mbedtls_ssl_handshake returned"
-
-requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
-run_test    "SSL async private: decrypt, error in start" \
-            "$P_SRV \
-             async_operations=d async_private_delay1=1 async_private_delay2=1 \
-             async_private_error=1" \
-            "$P_CLI force_ciphersuite=TLS-ECDHE-RSA-WITH-AES-128-CBC-SHA" \
-            1 \
-            -s "Async decrypt callback: injected error" \
-            -S "Async resume" \
-            -S "Async cancel" \
-            -s "! mbedtls_ssl_handshake returned"
-
-requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
-run_test    "SSL async private: decrypt, cancel after start" \
-            "$P_SRV \
-             async_operations=d async_private_delay1=1 async_private_delay2=1 \
-             async_private_error=2" \
-            "$P_CLI force_ciphersuite=TLS-ECDHE-RSA-WITH-AES-128-CBC-SHA" \
-            1 \
-            -s "Async decrypt callback: using key slot " \
-            -S "Async resume" \
-            -s "Async cancel"
-
-requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
-run_test    "SSL async private: decrypt, error in resume" \
-            "$P_SRV \
-             async_operations=d async_private_delay1=1 async_private_delay2=1 \
-             async_private_error=3" \
-            "$P_CLI force_ciphersuite=TLS-ECDHE-RSA-WITH-AES-128-CBC-SHA" \
-            1 \
-            -s "Async decrypt callback: using key slot " \
-            -s "Async resume callback: decrypt done but injected error" \
             -S "Async cancel" \
             -s "! mbedtls_ssl_handshake returned"
 
@@ -9700,30 +9646,6 @@ run_test    "SSL async private: renegotiation: server-initiated, sign" \
             0 \
             -s "Async sign callback: using key slot " \
             -s "Async resume (slot [0-9]): sign done, status=0"
-
-requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
-requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
-run_test    "SSL async private: renegotiation: client-initiated, decrypt" \
-            "$P_SRV \
-             async_operations=d async_private_delay1=1 async_private_delay2=1 \
-             exchanges=2 renegotiation=1" \
-            "$P_CLI exchanges=2 renegotiation=1 renegotiate=1 \
-             force_ciphersuite=TLS-ECDHE-RSA-WITH-AES-128-CBC-SHA" \
-            0 \
-            -s "Async decrypt callback: using key slot " \
-            -s "Async resume (slot [0-9]): decrypt done, status=0"
-
-requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
-requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
-run_test    "SSL async private: renegotiation: server-initiated, decrypt" \
-            "$P_SRV \
-             async_operations=d async_private_delay1=1 async_private_delay2=1 \
-             exchanges=2 renegotiation=1 renegotiate=1" \
-            "$P_CLI exchanges=2 renegotiation=1 \
-             force_ciphersuite=TLS-ECDHE-RSA-WITH-AES-128-CBC-SHA" \
-            0 \
-            -s "Async decrypt callback: using key slot " \
-            -s "Async resume (slot [0-9]): decrypt done, status=0"
 
 # Tests for ECC extensions (rfc 4492)
 

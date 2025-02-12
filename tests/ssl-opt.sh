@@ -4650,6 +4650,145 @@ run_test    "Authentication: server goodcert, client required, no trusted CA" \
             -c "! mbedtls_ssl_handshake returned" \
             -c "SSL - No CA Chain is set, but required to operate"
 
+# The next few tests check what happens if the server has a valid certificate
+# that does not match its name (impersonation).
+
+run_test "Authentication: hostname match, client required" \
+         "$P_SRV" \
+         "$P_CLI auth_mode=required server_name=localhost debug_level=1" \
+         0 \
+         -C "does not match with the expected CN" \
+         -C "x509_verify_cert() returned -" \
+         -C "! mbedtls_ssl_handshake returned" \
+         -C "X509 - Certificate verification failed"
+
+run_test "Authentication: hostname mismatch (wrong), client required" \
+         "$P_SRV" \
+         "$P_CLI auth_mode=required server_name=wrong-name debug_level=1" \
+         1 \
+         -c "does not match with the expected CN" \
+         -c "x509_verify_cert() returned -" \
+         -c "! mbedtls_ssl_handshake returned" \
+         -c "X509 - Certificate verification failed"
+
+run_test "Authentication: hostname mismatch (empty), client required" \
+         "$P_SRV" \
+         "$P_CLI auth_mode=required server_name= debug_level=1" \
+         1 \
+         -c "does not match with the expected CN" \
+         -c "x509_verify_cert() returned -" \
+         -c "! mbedtls_ssl_handshake returned" \
+         -c "X509 - Certificate verification failed"
+
+run_test "Authentication: hostname mismatch (truncated), client required" \
+         "$P_SRV" \
+         "$P_CLI auth_mode=required server_name=localhos debug_level=1" \
+         1 \
+         -c "does not match with the expected CN" \
+         -c "x509_verify_cert() returned -" \
+         -c "! mbedtls_ssl_handshake returned" \
+         -c "X509 - Certificate verification failed"
+
+run_test "Authentication: hostname mismatch (last char), client required" \
+         "$P_SRV" \
+         "$P_CLI auth_mode=required server_name=localhoss debug_level=1" \
+         1 \
+         -c "does not match with the expected CN" \
+         -c "x509_verify_cert() returned -" \
+         -c "! mbedtls_ssl_handshake returned" \
+         -c "X509 - Certificate verification failed"
+
+run_test "Authentication: hostname mismatch (trailing), client required" \
+         "$P_SRV" \
+         "$P_CLI auth_mode=required server_name=localhostt debug_level=1" \
+         1 \
+         -c "does not match with the expected CN" \
+         -c "x509_verify_cert() returned -" \
+         -c "! mbedtls_ssl_handshake returned" \
+         -c "X509 - Certificate verification failed"
+
+run_test "Authentication: hostname mismatch, client optional" \
+         "$P_SRV" \
+         "$P_CLI auth_mode=optional server_name=wrong-name debug_level=1" \
+         0 \
+         -c "does not match with the expected CN" \
+         -c "x509_verify_cert() returned -" \
+         -C "X509 - Certificate verification failed"
+
+run_test "Authentication: hostname mismatch, client none" \
+         "$P_SRV" \
+         "$P_CLI auth_mode=none server_name=wrong-name debug_level=1" \
+         0 \
+         -C "does not match with the expected CN" \
+         -C "x509_verify_cert() returned -" \
+         -C "X509 - Certificate verification failed"
+
+run_test "Authentication: hostname null, client required" \
+         "$P_SRV" \
+         "$P_CLI auth_mode=required set_hostname=NULL debug_level=1" \
+         0 \
+         -C "does not match with the expected CN" \
+         -C "x509_verify_cert() returned -" \
+         -C "! mbedtls_ssl_handshake returned" \
+         -C "X509 - Certificate verification failed"
+
+run_test "Authentication: hostname null, client optional" \
+         "$P_SRV" \
+         "$P_CLI auth_mode=optional set_hostname=NULL debug_level=1" \
+         0 \
+         -C "does not match with the expected CN" \
+         -C "x509_verify_cert() returned -" \
+         -C "X509 - Certificate verification failed"
+
+run_test "Authentication: hostname null, client none" \
+         "$P_SRV" \
+         "$P_CLI auth_mode=none set_hostname=NULL debug_level=1" \
+         0 \
+         -C "does not match with the expected CN" \
+         -C "x509_verify_cert() returned -" \
+         -C "X509 - Certificate verification failed"
+
+run_test "Authentication: hostname unset, client required" \
+         "$P_SRV" \
+         "$P_CLI auth_mode=required set_hostname=no debug_level=1" \
+         0 \
+         -C "does not match with the expected CN" \
+         -C "x509_verify_cert() returned -" \
+         -C "! mbedtls_ssl_handshake returned" \
+         -C "X509 - Certificate verification failed"
+
+run_test "Authentication: hostname unset, client optional" \
+         "$P_SRV" \
+         "$P_CLI auth_mode=optional set_hostname=no debug_level=1" \
+         0 \
+         -C "does not match with the expected CN" \
+         -C "x509_verify_cert() returned -" \
+         -C "X509 - Certificate verification failed"
+
+run_test "Authentication: hostname unset, client none" \
+         "$P_SRV" \
+         "$P_CLI auth_mode=none set_hostname=no debug_level=1" \
+         0 \
+         -C "does not match with the expected CN" \
+         -C "x509_verify_cert() returned -" \
+         -C "X509 - Certificate verification failed"
+
+run_test "Authentication: hostname unset, client default, server picks cert" \
+         "$P_SRV force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-CCM-8" \
+         "$P_CLI psk=73776f726466697368 psk_identity=foo set_hostname=no debug_level=1" \
+         0 \
+         -C "does not match with the expected CN" \
+         -C "x509_verify_cert() returned -" \
+         -C "X509 - Certificate verification failed"
+
+run_test "Authentication: hostname unset, client default, server picks PSK" \
+         "$P_SRV force_ciphersuite=TLS-PSK-WITH-AES-128-CCM-8 psk=73776f726466697368 psk_identity=foo" \
+         "$P_CLI psk=73776f726466697368 psk_identity=foo set_hostname=no debug_level=1" \
+         0 \
+         -C "does not match with the expected CN" \
+         -C "x509_verify_cert() returned -" \
+         -C "X509 - Certificate verification failed"
+
 # The purpose of the next two tests is to test the client's behaviour when receiving a server
 # certificate with an unsupported elliptic curve. This should usually not happen because
 # the client informs the server about the supported curves - it does, though, in the

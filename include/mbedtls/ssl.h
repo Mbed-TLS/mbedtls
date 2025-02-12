@@ -1403,8 +1403,14 @@ struct mbedtls_ssl_context {
      * User settings
      */
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
-    char *hostname;             /*!< expected peer CN for verification
-                                     (and SNI if available)                 */
+    /** Expected peer CN for verification.
+     *
+     * Also used on clients for SNI.
+     *
+     * If this is \p NULL, the peer name verification is skipped, and
+     * the server_name extension is not sent.
+     */
+    char *hostname;
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
 #if defined(MBEDTLS_SSL_ALPN)

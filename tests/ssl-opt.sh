@@ -13711,13 +13711,31 @@ run_test    "TLS 1.2 ClientHello indicating support for deflate compression meth
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_certificate_authentication
-run_test    "Handshake defragmentation on server: len=32, TLS 1.2 ClientHello" \
+run_test    "Handshake defragmentation on server: len=32, TLS 1.2 ClientHello (unsupported)" \
             "$P_SRV debug_level=4 force_version=tls12 auth_mode=required" \
             "$O_NEXT_CLI -tls1_2 -split_send_frag 32 -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key" \
             1 \
             -s "The SSL configuration is tls12 only" \
             -s "bad client hello message" \
             -s "SSL - A message could not be parsed due to a syntactic error"
+
+# Test Server Buffer resizing with fragmented handshake on TLS1.2
+requires_openssl_3_x
+requires_protocol_version tls12
+requires_certificate_authentication
+requires_config_enabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
+requires_config_enabled MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH
+requires_max_content_len 1025
+run_test    "Handshake defragmentation on server with buffer resizing: len=256, MFL=1024" \
+            "$P_SRV debug_level=4 auth_mode=required" \
+            "$O_NEXT_CLI -tls1_2 -split_send_frag 256 -maxfraglen 1024 -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key" \
+            0 \
+            -s "Reallocating in_buf" \
+            -s "Reallocating out_buf" \
+            -s "reassembled record" \
+            -s "initial handshake fragment: 256, 0..256 of [0-9]\\+" \
+            -s "Prepare: waiting for more handshake fragments 256/[0-9]\\+" \
+            -s "Consume: waiting for more handshake fragments 256/[0-9]\\+"
 
 # Test heap memory usage after handshake
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2

@@ -1,7 +1,7 @@
 /**
  * \file certs.h
  *
- * \brief Sample certificates and DHM parameters for testing
+ * \brief Sample certificates for testing
  */
 /*
  *  Copyright The Mbed TLS Contributors

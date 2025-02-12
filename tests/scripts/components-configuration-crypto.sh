@@ -668,9 +668,6 @@ component_test_psa_crypto_config_accel_ffdh () {
     # start with full (USE_PSA and TLS 1.3)
     helper_libtestdriver1_adjust_config "full"
 
-    # Disable the module that's accelerated
-    scripts/config.py unset MBEDTLS_DHM_C
-
     # Build
     # -----
 
@@ -679,7 +676,7 @@ component_test_psa_crypto_config_accel_ffdh () {
     helper_libtestdriver1_make_main "$loc_accel_list"
 
     # Make sure this was not re-enabled by accident (additive config)
-    not grep mbedtls_dhm_ ${BUILTIN_SRC_PATH}/dhm.o
+    not grep mbedtls_psa_ffdh_key_agreement ${BUILTIN_SRC_PATH}/psa_crypto_ffdh.o
 
     # Run the tests
     # -------------
@@ -1178,12 +1175,6 @@ config_psa_crypto_config_accel_ecc_ffdh_no_bignum () {
         scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_FFDH
         scripts/config.py -f "$CRYPTO_CONFIG_H" unset-all "PSA_WANT_KEY_TYPE_DH_[0-9A-Z_a-z]*"
         scripts/config.py -f "$CRYPTO_CONFIG_H" unset-all "PSA_WANT_DH_RFC7919_[0-9]*"
-        scripts/config.py unset MBEDTLS_DHM_C
-    else
-        # When testing ECC and DH instead, we disable DHM.
-        if [ "$driver_only" -eq 1 ]; then
-            scripts/config.py unset MBEDTLS_DHM_C
-        fi
     fi
 
     # Restartable feature is not yet supported by PSA. Once it will in
@@ -1255,16 +1246,15 @@ common_test_psa_crypto_config_accel_ecc_ffdh_no_bignum () {
     not grep mbedtls_ecdsa_ ${BUILTIN_SRC_PATH}/ecdsa.o
     not grep mbedtls_ecdh_ ${BUILTIN_SRC_PATH}/ecdh.o
     not grep mbedtls_ecjpake_ ${BUILTIN_SRC_PATH}/ecjpake.o
-    # Also ensure that ECP, RSA, [DHM] or BIGNUM modules were not re-enabled
+    # Also ensure that ECP, RSA or BIGNUM modules were not re-enabled
     not grep mbedtls_ecp_ ${BUILTIN_SRC_PATH}/ecp.o
     not grep mbedtls_rsa_ ${BUILTIN_SRC_PATH}/rsa.o
     not grep mbedtls_mpi_ ${BUILTIN_SRC_PATH}/bignum.o
-    not grep mbedtls_dhm_ ${BUILTIN_SRC_PATH}/dhm.o
 
     # Run the tests
     # -------------
 
-    msg "test suites: full + accelerated $accel_text algs + USE_PSA - $removed_text - DHM - BIGNUM"
+    msg "test suites: full + accelerated $accel_text algs + USE_PSA - $removed_text - BIGNUM"
 
     make test
 
@@ -1362,10 +1352,9 @@ component_test_tfm_config_p256m_driver_accel_ec () {
     not grep mbedtls_ecdsa_ ${BUILTIN_SRC_PATH}/ecdsa.o
     not grep mbedtls_ecdh_ ${BUILTIN_SRC_PATH}/ecdh.o
     not grep mbedtls_ecjpake_ ${BUILTIN_SRC_PATH}/ecjpake.o
-    # Also ensure that ECP, RSA, DHM or BIGNUM modules were not re-enabled
+    # Also ensure that ECP, RSA or BIGNUM modules were not re-enabled
     not grep mbedtls_ecp_ ${BUILTIN_SRC_PATH}/ecp.o
     not grep mbedtls_rsa_ ${BUILTIN_SRC_PATH}/rsa.o
-    not grep mbedtls_dhm_ ${BUILTIN_SRC_PATH}/dhm.o
     not grep mbedtls_mpi_ ${BUILTIN_SRC_PATH}/bignum.o
     # Check that p256m was built
     grep -q p256_ecdsa_ library/libmbedcrypto.a

@@ -34,7 +34,6 @@
 #include "mbedtls/ctr_drbg.h"
 #include "mbedtls/debug.h"
 #include "mbedtls/des.h"
-#include "mbedtls/dhm.h"
 #include "mbedtls/ecdh.h"
 #include "mbedtls/ecdsa.h"
 #include "mbedtls/ecjpake.h"

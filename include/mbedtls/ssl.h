@@ -1409,6 +1409,10 @@ struct mbedtls_ssl_context {
      *
      * If this is \p NULL, the peer name verification is skipped, and
      * the server_name extension is not sent.
+     *
+     * This can be a special value to indicate that mbedtls_ssl_set_hostname()
+     * has been called with \p NULL, as opposed to never having been called.
+     * See mbedtls_ssl_get_hostname_pointer().
      */
     char *hostname;
 #endif /* MBEDTLS_X509_CRT_PARSE_C */

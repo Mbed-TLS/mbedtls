@@ -41,9 +41,7 @@ APPS = \
 	hash/generic_sum \
 	hash/hello \
 	hash/md_hmac_demo \
-	pkey/dh_client \
 	pkey/dh_genprime \
-	pkey/dh_server \
 	pkey/ecdh_curve25519 \
 	pkey/ecdsa \
 	pkey/gen_key \
@@ -177,17 +175,9 @@ hash/md_hmac_demo$(EXEXT): hash/md_hmac_demo.c $(DEP)
 	echo "  CC    hash/md_hmac_demo.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) hash/md_hmac_demo.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
-pkey/dh_client$(EXEXT): pkey/dh_client.c $(DEP)
-	echo "  CC    pkey/dh_client.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) pkey/dh_client.c   $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
 pkey/dh_genprime$(EXEXT): pkey/dh_genprime.c $(DEP)
 	echo "  CC    pkey/dh_genprime.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) pkey/dh_genprime.c $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-pkey/dh_server$(EXEXT): pkey/dh_server.c $(DEP)
-	echo "  CC    pkey/dh_server.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) pkey/dh_server.c   $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 pkey/ecdh_curve25519$(EXEXT): pkey/ecdh_curve25519.c $(DEP)
 	echo "  CC    pkey/ecdh_curve25519.c"

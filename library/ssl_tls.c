@@ -2758,6 +2758,12 @@ void mbedtls_ssl_conf_groups(mbedtls_ssl_config *conf,
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
 
+/* A magic value for `ssl->hostname` indicating that
+ * mbedtls_ssl_set_hostname() has been called with `NULL`.
+ * If mbedtls_ssl_set_hostname() has never been called on `ssl`, then
+ * `ssl->hostname == NULL`. */
+static const char *const ssl_hostname_skip_cn_verification = "";
+
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
 /** Whether mbedtls_ssl_set_hostname() has been called.
  *
@@ -2770,11 +2776,6 @@ void mbedtls_ssl_conf_groups(mbedtls_ssl_config *conf,
 static int mbedtls_ssl_has_set_hostname_been_called(
     const mbedtls_ssl_context *ssl)
 {
-    /* We can't tell the difference between the case where
-     * mbedtls_ssl_set_hostname() has not been called at all, and
-     * the case where it was last called with NULL. For the time
-     * being, we assume the latter, i.e. we behave as if there had
-     * been an implicit call to mbedtls_ssl_set_hostname(ssl, NULL). */
     return ssl->hostname != NULL;
 }
 #endif
@@ -2786,12 +2787,16 @@ static
 #endif
 const char *mbedtls_ssl_get_hostname_pointer(const mbedtls_ssl_context *ssl)
 {
+    if (ssl->hostname == ssl_hostname_skip_cn_verification) {
+        return NULL;
+    }
     return ssl->hostname;
 }
 
 static void mbedtls_ssl_free_hostname(mbedtls_ssl_context *ssl)
 {
-    if (ssl->hostname != NULL) {
+    if (ssl->hostname != NULL &&
+        ssl->hostname != ssl_hostname_skip_cn_verification) {
         mbedtls_zeroize_and_free(ssl->hostname, strlen(ssl->hostname));
     }
     ssl->hostname = NULL;
@@ -2816,13 +2821,19 @@ int mbedtls_ssl_set_hostname(mbedtls_ssl_context *ssl, const char *hostname)
      * so we can free it safely */
     mbedtls_ssl_free_hostname(ssl);
 
-    /* Passing NULL as hostname shall clear the old one */
-
     if (hostname == NULL) {
-        ssl->hostname = NULL;
+        /* Passing NULL as hostname clears the old one, but leaves a
+         * special marker to indicate that mbedtls_ssl_set_hostname()
+         * has been called. */
+        /* ssl->hostname should be const, but isn't. We won't actually
+         * write to the buffer, so it's ok to cast away the const. */
+        ssl->hostname = (char *) ssl_hostname_skip_cn_verification;
     } else {
         ssl->hostname = mbedtls_calloc(1, hostname_len + 1);
         if (ssl->hostname == NULL) {
+            /* mbedtls_ssl_set_hostname() has been called, but unsuccessfully.
+             * Leave ssl->hostname in the same state as if the function had
+             * not been called, i.e. a null pointer. */
             return MBEDTLS_ERR_SSL_ALLOC_FAILED;
         }
 

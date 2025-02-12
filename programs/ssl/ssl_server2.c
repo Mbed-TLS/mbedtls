@@ -58,7 +58,6 @@ int main(void)
 #endif
 
 #include "mbedtls/pk.h"
-#include "mbedtls/dhm.h"
 
 /* Size of memory to be allocated for the heap, when using the library's memory
  * management and MBEDTLS_MEMORY_BUFFER_ALLOC_C is enabled. */
@@ -127,7 +126,6 @@ int main(void)
 #define DFL_EARLY_DATA          -1
 #define DFL_MAX_EARLY_DATA_SIZE ((uint32_t) -1)
 #define DFL_SIG_ALGS            NULL
-#define DFL_DHM_FILE            NULL
 #define DFL_TRANSPORT           MBEDTLS_SSL_TRANSPORT_STREAM
 #define DFL_COOKIES             1
 #define DFL_ANTI_REPLAY         -1
@@ -192,9 +190,7 @@ int main(void)
     "                        note: if neither crt_file/key_file nor crt_file2/key_file2 are used,\n" \
     "                              preloaded certificate(s) and key(s) are used if available\n" \
     "    key_pwd2=%%s         Password for key specified by key_file2 argument\n" \
-    "                        default: none\n" \
-    "    dhm_file=%%s        File containing Diffie-Hellman parameters\n" \
-    "                       default: preloaded parameters\n"
+    "                        default: none\n"
 #else
 #define USAGE_IO \
     "\n"                                                    \
@@ -675,7 +671,6 @@ struct options {
     const char *groups;         /* list of supported groups                 */
     const char *sig_algs;       /* supported TLS 1.3 signature algorithms   */
     const char *alpn_string;    /* ALPN supported protocols                 */
-    const char *dhm_file;       /* the file with the DH parameters          */
     int extended_ms;            /* allow negotiation of extended MS?        */
     int etm;                    /* allow negotiation of encrypt-then-MAC?   */
     int transport;              /* TLS or DTLS?                             */
@@ -1590,9 +1585,6 @@ int main(int argc, char *argv[])
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
     ssl_async_key_context_t ssl_async_keys;
 #endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
-#if defined(MBEDTLS_DHM_C) && defined(MBEDTLS_FS_IO)
-    mbedtls_dhm_context dhm;
-#endif
 #if defined(MBEDTLS_SSL_CACHE_C)
     mbedtls_ssl_cache_context cache;
 #endif
@@ -1680,9 +1672,6 @@ int main(int argc, char *argv[])
 #endif
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
     memset(&ssl_async_keys, 0, sizeof(ssl_async_keys));
-#endif
-#if defined(MBEDTLS_DHM_C) && defined(MBEDTLS_FS_IO)
-    mbedtls_dhm_init(&dhm);
 #endif
 #if defined(MBEDTLS_SSL_CACHE_C)
     mbedtls_ssl_cache_init(&cache);
@@ -1793,7 +1782,6 @@ int main(int argc, char *argv[])
     opt.max_early_data_size = DFL_MAX_EARLY_DATA_SIZE;
 #endif
     opt.sig_algs            = DFL_SIG_ALGS;
-    opt.dhm_file            = DFL_DHM_FILE;
     opt.transport           = DFL_TRANSPORT;
     opt.cookies             = DFL_COOKIES;
     opt.anti_replay         = DFL_ANTI_REPLAY;
@@ -1943,8 +1931,6 @@ usage:
             opt.key_file2 = q;
         } else if (strcmp(p, "key_pwd2") == 0) {
             opt.key_pwd2 = q;
-        } else if (strcmp(p, "dhm_file") == 0) {
-            opt.dhm_file = q;
         }
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
         else if (strcmp(p, "async_operations") == 0) {
@@ -2787,21 +2773,6 @@ usage:
                    key_cert_init2 ? mbedtls_pk_get_name(&pkey2) : "none");
 #endif /* MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED */
 
-#if defined(MBEDTLS_DHM_C) && defined(MBEDTLS_FS_IO)
-    if (opt.dhm_file != NULL) {
-        mbedtls_printf("  . Loading DHM parameters...");
-        fflush(stdout);
-
-        if ((ret = mbedtls_dhm_parse_dhmfile(&dhm, opt.dhm_file)) != 0) {
-            mbedtls_printf(" failed\n  ! mbedtls_dhm_parse_dhmfile returned -0x%04X\n\n",
-                           (unsigned int) -ret);
-            goto exit;
-        }
-
-        mbedtls_printf(" ok\n");
-    }
-#endif
-
 #if defined(SNI_OPTION)
     if (opt.sni != NULL) {
         mbedtls_printf("  . Setting up SNI information...");
@@ -3266,22 +3237,6 @@ usage:
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
         mbedtls_ssl_conf_psk_cb(&conf, psk_callback, psk_info);
-    }
-#endif
-
-#if defined(MBEDTLS_DHM_C)
-    /*
-     * Use different group than default DHM group
-     */
-#if defined(MBEDTLS_FS_IO)
-    if (opt.dhm_file != NULL) {
-        ret = mbedtls_ssl_conf_dh_param_ctx(&conf, &dhm);
-    }
-#endif
-    if (ret != 0) {
-        mbedtls_printf("  failed\n  mbedtls_ssl_conf_dh_param returned -0x%04X\n\n",
-                       (unsigned int) -ret);
-        goto exit;
     }
 #endif
 
@@ -4282,10 +4237,6 @@ exit:
     psa_destroy_key(key_slot);
     psa_destroy_key(key_slot2);
 #endif
-#endif
-
-#if defined(MBEDTLS_DHM_C) && defined(MBEDTLS_FS_IO)
-    mbedtls_dhm_free(&dhm);
 #endif
 
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE)

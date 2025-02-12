@@ -71,7 +71,6 @@ int main(void)
 #define DFL_MFL_CODE            MBEDTLS_SSL_MAX_FRAG_LEN_NONE
 #define DFL_TRUNC_HMAC          -1
 #define DFL_RECSPLIT            -1
-#define DFL_DHMLEN              -1
 #define DFL_RECONNECT           0
 #define DFL_RECO_SERVER_NAME    NULL
 #define DFL_RECO_DELAY          0
@@ -233,13 +232,6 @@ int main(void)
 #else
 #define USAGE_MAX_FRAG_LEN ""
 #endif /* MBEDTLS_SSL_MAX_FRAGMENT_LENGTH */
-
-#if defined(MBEDTLS_DHM_C)
-#define USAGE_DHMLEN \
-    "    dhmlen=%%d           default: (library default: 1024 bits)\n"
-#else
-#define USAGE_DHMLEN
-#endif
 
 #if defined(MBEDTLS_SSL_ALPN)
 #define USAGE_ALPN \
@@ -433,7 +425,6 @@ int main(void)
     USAGE_GROUPS                                            \
     USAGE_SIG_ALGS                                          \
     USAGE_EARLY_DATA                                        \
-    USAGE_DHMLEN                                            \
     USAGE_KEY_OPAQUE_ALGS                                   \
     "\n"
 
@@ -508,7 +499,6 @@ struct options {
     unsigned char mfl_code;     /* code for maximum fragment length         */
     int trunc_hmac;             /* negotiate truncated hmac or not          */
     int recsplit;               /* enable record splitting?                 */
-    int dhmlen;                 /* minimum DHM params len in bits           */
     int reconnect;              /* attempt to resume session                */
     const char *reco_server_name;     /* hostname of the server (re-connect)     */
     int reco_delay;             /* delay in seconds before resuming session */
@@ -956,7 +946,6 @@ int main(int argc, char *argv[])
     opt.mfl_code            = DFL_MFL_CODE;
     opt.trunc_hmac          = DFL_TRUNC_HMAC;
     opt.recsplit            = DFL_RECSPLIT;
-    opt.dhmlen              = DFL_DHMLEN;
     opt.reconnect           = DFL_RECONNECT;
     opt.reco_server_name    = DFL_RECO_SERVER_NAME;
     opt.reco_delay          = DFL_RECO_DELAY;
@@ -1386,11 +1375,6 @@ usage:
         } else if (strcmp(p, "recsplit") == 0) {
             opt.recsplit = atoi(q);
             if (opt.recsplit < 0 || opt.recsplit > 1) {
-                goto usage;
-            }
-        } else if (strcmp(p, "dhmlen") == 0) {
-            opt.dhmlen = atoi(q);
-            if (opt.dhmlen < 0) {
                 goto usage;
             }
         } else if (strcmp(p, "query_config") == 0) {
@@ -1895,12 +1879,6 @@ usage:
 #if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
     if (opt.etm != DFL_ETM) {
         mbedtls_ssl_conf_encrypt_then_mac(&conf, opt.etm);
-    }
-#endif
-
-#if defined(MBEDTLS_DHM_C)
-    if (opt.dhmlen != DFL_DHMLEN) {
-        mbedtls_ssl_conf_dhm_min_bitlen(&conf, opt.dhmlen);
     }
 #endif
 

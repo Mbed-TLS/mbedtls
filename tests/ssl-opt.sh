@@ -14495,6 +14495,24 @@ run_test    "Handshake defragmentation on server: len=5, TLS 1.3" \
             -s "handshake fragment: 0 \\.\\. 5 of [0-9]\\+ msglen 5" \
             -s "waiting for more fragments (5"
 
+# Test Server Buffer resizing with fragmented handshake on TLS1.2
+# TODO investigate a a GNUTLS version for  -maxfraglen 512
+requires_openssl_3_x
+requires_protocol_version tls12
+requires_certificate_authentication
+requires_config_enabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
+requires_config_enabled MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH
+requires_max_content_len 1025
+run_test    "Handshake defragmentation on Server with buffer resizing: len=256, MFL=1024" \
+            "$P_SRV debug_level=4 auth_mode=required" \
+            "$O_NEXT_CLI -tls1_2 -split_send_frag 256 -split_send_frag 256 -maxfraglen 1024 -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key" \
+            0 \
+            -s "Reallocating in_buf" \
+            -s "Reallocating out_buf" \
+            -s "reassembled record" \
+            -s "handshake fragment: 0 \\.\\. 256 of [0-9]\\+ msglen 256" \
+            -s "waiting for more fragments (256"
+
 # Test heap memory usage after handshake
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_MEMORY_DEBUG

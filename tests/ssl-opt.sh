@@ -14513,6 +14513,24 @@ run_test    "Handshake defragmentation on Server with buffer resizing: len=256, 
             -s "handshake fragment: 0 \\.\\. 256 of [0-9]\\+ msglen 256" \
             -s "waiting for more fragments (256"
 
+# Test Client initialised renegotiation with fragmented handshake on TLS1.2
+requires_openssl_3_x
+requires_protocol_version tls12
+requires_certificate_authentication
+requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
+run_test    "Handshake defragmentation with client-initiated renegotation: len=256" \
+            "$P_SRV debug_level=4 exchanges=2 renegotiation=1 auth_mode=required" \
+            "echo 'R' | $OPENSSL_NEXT s_client -tls1_2 -split_send_frag 256 -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key -connect 127.0.0.1:+$SRV_PORT" \
+            0 \
+            -s "received TLS_EMPTY_RENEGOTIATION_INFO" \
+            -s "found renegotiation extension" \
+            -s "server hello, secure renegotiation extension" \
+            -s "=> renegotiate" \
+            -S "write hello request" \
+            -s "reassembled record" \
+            -s "handshake fragment: 0 \\.\\. 256 of [0-9]\\+ msglen 256" \
+            -s "waiting for more fragments (256"
+
 # Test heap memory usage after handshake
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_MEMORY_DEBUG

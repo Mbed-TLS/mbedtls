@@ -6049,12 +6049,13 @@ run_test "Authentication: hostname null, client none" \
 run_test "Authentication: hostname unset, client required" \
          "$P_SRV" \
          "$P_CLI auth_mode=required set_hostname=no debug_level=2" \
-         0 \
+         1 \
          -C "does not match with the expected CN" \
          -c "Certificate verification without having set hostname" \
-         -c "Certificate verification without CN verification" \
+         -C "Certificate verification without CN verification" \
+         -c "get_hostname_for_verification() returned -" \
          -C "x509_verify_cert() returned -" \
-         -C "! mbedtls_ssl_handshake returned" \
+         -c "! mbedtls_ssl_handshake returned" \
          -C "X509 - Certificate verification failed"
 
 run_test "Authentication: hostname unset, client optional" \
@@ -6080,10 +6081,11 @@ run_test "Authentication: hostname unset, client none" \
 run_test "Authentication: hostname unset, client default, server picks cert, 1.2" \
          "$P_SRV force_version=tls12 force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-CCM-8" \
          "$P_CLI psk=73776f726466697368 psk_identity=foo set_hostname=no debug_level=2" \
-         0 \
+         1 \
          -C "does not match with the expected CN" \
          -c "Certificate verification without having set hostname" \
-         -c "Certificate verification without CN verification" \
+         -C "Certificate verification without CN verification" \
+         -c "get_hostname_for_verification() returned -" \
          -C "x509_verify_cert() returned -" \
          -C "X509 - Certificate verification failed"
 
@@ -6091,10 +6093,11 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test "Authentication: hostname unset, client default, server picks cert, 1.3" \
          "$P_SRV force_version=tls13 tls13_kex_modes=ephemeral" \
          "$P_CLI psk=73776f726466697368 psk_identity=foo set_hostname=no debug_level=2" \
-         0 \
+         1 \
          -C "does not match with the expected CN" \
          -c "Certificate verification without having set hostname" \
-         -c "Certificate verification without CN verification" \
+         -C "Certificate verification without CN verification" \
+         -c "get_hostname_for_verification() returned -" \
          -C "x509_verify_cert() returned -" \
          -C "X509 - Certificate verification failed"
 

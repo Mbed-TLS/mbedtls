@@ -9835,6 +9835,12 @@ static int get_hostname_for_verification(mbedtls_ssl_context *ssl,
 {
     if (!mbedtls_ssl_has_set_hostname_been_called(ssl)) {
         MBEDTLS_SSL_DEBUG_MSG(1, ("Certificate verification without having set hostname"));
+#if !defined(MBEDTLS_SSL_CLI_ALLOW_WEAK_CERTIFICATE_VERIFICATION_WITHOUT_HOSTNAME)
+        if (mbedtls_ssl_conf_get_endpoint(ssl->conf) == MBEDTLS_SSL_IS_CLIENT &&
+            ssl->conf->authmode == MBEDTLS_SSL_VERIFY_REQUIRED) {
+            return MBEDTLS_ERR_SSL_CERTIFICATE_VERIFICATION_WITHOUT_HOSTNAME;
+        }
+#endif
     }
 
     *hostname = mbedtls_ssl_get_hostname_pointer(ssl);

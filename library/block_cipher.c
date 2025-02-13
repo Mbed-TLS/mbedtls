@@ -93,13 +93,22 @@ int mbedtls_block_cipher_setup(mbedtls_block_cipher_context_t *ctx,
 
 #if defined(MBEDTLS_BLOCK_CIPHER_SOME_PSA)
     psa_key_type_t psa_key_type = psa_key_type_from_block_cipher_id(ctx->id);
-    if (psa_key_type != PSA_KEY_TYPE_NONE &&
-        psa_can_do_cipher(psa_key_type, PSA_ALG_ECB_NO_PADDING)) {
-        ctx->engine = MBEDTLS_BLOCK_CIPHER_ENGINE_PSA;
-        return 0;
+    if (psa_key_type != PSA_KEY_TYPE_NONE) {
+#if defined(MBEDTLS_PSA_CRYPTO_C)
+        if (psa_can_do_cipher(psa_key_type, PSA_ALG_ECB_NO_PADDING)) {
+            ctx->engine = MBEDTLS_BLOCK_CIPHER_ENGINE_PSA;
+            return 0;
+        }
+#else /* MBEDTLS_PSA_CRYPTO_CLIENT */
+        psa_cipher_operation_t operation = PSA_CIPHER_OPERATION_INIT;
+        if (psa_cipher_abort(&operation) == PSA_SUCCESS) {
+            ctx->engine = MBEDTLS_BLOCK_CIPHER_ENGINE_PSA;
+            return 0;
+        }
+#endif /* MBEDTLS_PSA_CRYPTO_C */
     }
     ctx->engine = MBEDTLS_BLOCK_CIPHER_ENGINE_LEGACY;
-#endif
+#endif /* MBEDTLS_BLOCK_CIPHER_SOME_PSA */
 
     switch (ctx->id) {
 #if defined(MBEDTLS_AES_C)

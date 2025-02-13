@@ -197,6 +197,9 @@
  *   #MBEDTLS_SSL_VERIFY_REQUIRED (default).
  * - Certificate authentication is enabled.
  * - The client does not call mbedtls_ssl_set_hostname().
+ * - The configuration option
+ *   #MBEDTLS_SSL_CLI_ALLOW_WEAK_CERTIFICATE_VERIFICATION_WITHOUT_HOSTNAME
+ *   is not enabled.
  */
 #define MBEDTLS_ERR_SSL_CERTIFICATE_VERIFICATION_WITHOUT_HOSTNAME  -0x5D80
 

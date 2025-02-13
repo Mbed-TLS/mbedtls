@@ -4758,13 +4758,28 @@ run_test "Authentication: hostname null, client none" \
          -C "x509_verify_cert() returned -" \
          -C "X509 - Certificate verification failed"
 
-run_test "Authentication: hostname unset, client required" \
+requires_config_disabled MBEDTLS_SSL_CLI_ALLOW_WEAK_CERTIFICATE_VERIFICATION_WITHOUT_HOSTNAME
+run_test "Authentication: hostname unset, client required, secure config" \
+         "$P_SRV" \
+         "$P_CLI auth_mode=required set_hostname=no debug_level=2" \
+         1 \
+         -C "does not match with the expected CN" \
+         -c "Certificate verification without having set hostname" \
+         -C "Certificate verification without CN verification" \
+         -c "get_hostname_for_verification() returned -" \
+         -C "x509_verify_cert() returned -" \
+         -c "! mbedtls_ssl_handshake returned" \
+         -C "X509 - Certificate verification failed"
+
+requires_config_enabled MBEDTLS_SSL_CLI_ALLOW_WEAK_CERTIFICATE_VERIFICATION_WITHOUT_HOSTNAME
+run_test "Authentication: hostname unset, client required, historical config" \
          "$P_SRV" \
          "$P_CLI auth_mode=required set_hostname=no debug_level=2" \
          0 \
          -C "does not match with the expected CN" \
          -c "Certificate verification without having set hostname" \
          -c "Certificate verification without CN verification" \
+         -C "get_hostname_for_verification() returned -" \
          -C "x509_verify_cert() returned -" \
          -C "! mbedtls_ssl_handshake returned" \
          -C "X509 - Certificate verification failed"
@@ -4789,13 +4804,27 @@ run_test "Authentication: hostname unset, client none" \
          -C "x509_verify_cert() returned -" \
          -C "X509 - Certificate verification failed"
 
-run_test "Authentication: hostname unset, client default, server picks cert" \
+requires_config_disabled MBEDTLS_SSL_CLI_ALLOW_WEAK_CERTIFICATE_VERIFICATION_WITHOUT_HOSTNAME
+run_test "Authentication: hostname unset, client default, secure config, server picks cert" \
+         "$P_SRV force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-CCM-8" \
+         "$P_CLI psk=73776f726466697368 psk_identity=foo set_hostname=no debug_level=2" \
+         1 \
+         -C "does not match with the expected CN" \
+         -c "Certificate verification without having set hostname" \
+         -C "Certificate verification without CN verification" \
+         -c "get_hostname_for_verification() returned -" \
+         -C "x509_verify_cert() returned -" \
+         -C "X509 - Certificate verification failed"
+
+requires_config_enabled MBEDTLS_SSL_CLI_ALLOW_WEAK_CERTIFICATE_VERIFICATION_WITHOUT_HOSTNAME
+run_test "Authentication: hostname unset, client default, historical config, server picks cert" \
          "$P_SRV force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-CCM-8" \
          "$P_CLI psk=73776f726466697368 psk_identity=foo set_hostname=no debug_level=2" \
          0 \
          -C "does not match with the expected CN" \
          -c "Certificate verification without having set hostname" \
          -c "Certificate verification without CN verification" \
+         -C "get_hostname_for_verification() returned -" \
          -C "x509_verify_cert() returned -" \
          -C "X509 - Certificate verification failed"
 

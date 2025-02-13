@@ -4664,6 +4664,18 @@ run_test "Authentication: hostname match, client required" \
          -C "! mbedtls_ssl_handshake returned" \
          -C "X509 - Certificate verification failed"
 
+run_test "Authentication: hostname match, client required, CA callback" \
+         "$P_SRV" \
+         "$P_CLI auth_mode=required server_name=localhost debug_level=3 ca_callback=1" \
+         0 \
+         -C "does not match with the expected CN" \
+         -C "Certificate verification without having set hostname" \
+         -C "Certificate verification without CN verification" \
+         -c "use CA callback for X.509 CRT verification" \
+         -C "x509_verify_cert() returned -" \
+         -C "! mbedtls_ssl_handshake returned" \
+         -C "X509 - Certificate verification failed"
+
 run_test "Authentication: hostname mismatch (wrong), client required" \
          "$P_SRV" \
          "$P_CLI auth_mode=required server_name=wrong-name debug_level=1" \
@@ -4780,6 +4792,34 @@ run_test "Authentication: hostname unset, client required, historical config" \
          -c "Certificate verification without having set hostname" \
          -c "Certificate verification without CN verification" \
          -C "get_hostname_for_verification() returned -" \
+         -C "x509_verify_cert() returned -" \
+         -C "! mbedtls_ssl_handshake returned" \
+         -C "X509 - Certificate verification failed"
+
+requires_config_disabled MBEDTLS_SSL_CLI_ALLOW_WEAK_CERTIFICATE_VERIFICATION_WITHOUT_HOSTNAME
+run_test "Authentication: hostname unset, client required, secure config, CA callback" \
+         "$P_SRV" \
+         "$P_CLI auth_mode=required set_hostname=no debug_level=3 ca_callback=1" \
+         1 \
+         -C "does not match with the expected CN" \
+         -c "Certificate verification without having set hostname" \
+         -C "Certificate verification without CN verification" \
+         -c "get_hostname_for_verification() returned -" \
+         -C "use CA callback for X.509 CRT verification" \
+         -C "x509_verify_cert() returned -" \
+         -c "! mbedtls_ssl_handshake returned" \
+         -C "X509 - Certificate verification failed"
+
+requires_config_enabled MBEDTLS_SSL_CLI_ALLOW_WEAK_CERTIFICATE_VERIFICATION_WITHOUT_HOSTNAME
+run_test "Authentication: hostname unset, client required, historical config, CA callback" \
+         "$P_SRV" \
+         "$P_CLI auth_mode=required set_hostname=no debug_level=3 ca_callback=1" \
+         0 \
+         -C "does not match with the expected CN" \
+         -c "Certificate verification without having set hostname" \
+         -c "Certificate verification without CN verification" \
+         -C "get_hostname_for_verification() returned -" \
+         -c "use CA callback for X.509 CRT verification" \
          -C "x509_verify_cert() returned -" \
          -C "! mbedtls_ssl_handshake returned" \
          -C "X509 - Certificate verification failed"

@@ -106,10 +106,12 @@ void block_cipher_psa_dynamic_dispatch(int cipher_type, int pre_psa_ret, int pos
     /* Before PSA crypto init */
     TEST_EQUAL(pre_psa_ret, mbedtls_block_cipher_setup(&ctx, cipher_type));
 
-#if defined(MBEDTLS_BLOCK_CIPHER_SOME_PSA)
+#if defined(MBEDTLS_BLOCK_CIPHER_SOME_LEGACY)
     TEST_EQUAL(ctx.engine, MBEDTLS_BLOCK_CIPHER_ENGINE_LEGACY);
 #endif
 
+    /* PSA dispatching can only be tested when CRYPTO_C is enabled. */
+#if defined(MBEDTLS_PSA_CRYPTO_C)
     mbedtls_block_cipher_free(&ctx);
 
     /* Now initilize PSA Crypto */
@@ -120,7 +122,8 @@ void block_cipher_psa_dynamic_dispatch(int cipher_type, int pre_psa_ret, int pos
     TEST_EQUAL(0, mbedtls_block_cipher_setup(&ctx, cipher_type));
 #if defined(MBEDTLS_BLOCK_CIPHER_SOME_PSA)
     TEST_EQUAL(ctx.engine, post_psa_engine);
-#endif
+#endif /* MBEDTLS_BLOCK_CIPHER_SOME_PSA */
+#endif /* MBEDTLS_PSA_CRYPTO_C */
 
 exit:
     mbedtls_block_cipher_free(&ctx);

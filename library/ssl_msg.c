@@ -2972,7 +2972,6 @@ int mbedtls_ssl_prepare_handshake_record(mbedtls_ssl_context *ssl)
     if (ssl->in_hslen == 0) {
         ssl->in_hslen = mbedtls_ssl_hs_hdr_len(ssl) + ssl_get_hs_total_len(ssl);
         ssl->in_hsfraglen = 0;
-        ssl->in_hshdr = ssl->in_hdr;
     }
 
     MBEDTLS_SSL_DEBUG_MSG(3, ("handshake message: msglen ="
@@ -3039,10 +3038,7 @@ int mbedtls_ssl_prepare_handshake_record(mbedtls_ssl_context *ssl)
         }
     } else
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
-    {
-        if (ssl->in_hsfraglen > ssl->in_hslen) {
-            return MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-        }
+    if (ssl->in_hsfraglen <= ssl->in_hslen) {
         int ret;
         const size_t hs_remain = ssl->in_hslen - ssl->in_hsfraglen;
         MBEDTLS_SSL_DEBUG_MSG(3,
@@ -3060,15 +3056,16 @@ int mbedtls_ssl_prepare_handshake_record(mbedtls_ssl_context *ssl)
             mbedtls_ssl_update_in_pointers(ssl);
             return MBEDTLS_ERR_SSL_CONTINUE_PROCESSING;
         }
-        if (ssl->in_hshdr != ssl->in_hdr) {
+        if (ssl->in_hsfraglen > 0) {
             /*
-             * At ssl->in_hshdr we have a sequence of records that cover the next handshake
+             * At in_first_hdr we have a sequence of records that cover the next handshake
              * record, each with its own record header that we need to remove.
              * Note that the reassembled record size may not equal the size of the message,
-             * there maybe bytes from the next message following it.
+             * there may be more messages after it, complete or partial.
              */
+            unsigned char *in_first_hdr = ssl->in_buf + MBEDTLS_SSL_SEQUENCE_NUMBER_LEN;
+            unsigned char *p = in_first_hdr, *q = NULL;
             size_t merged_rec_len = 0;
-            unsigned char *p = ssl->in_hshdr, *q = NULL;
             do {
                 mbedtls_record rec;
                 ret = ssl_parse_record_header(ssl, p, mbedtls_ssl_in_hdr_len(ssl), &rec);
@@ -3084,16 +3081,17 @@ int mbedtls_ssl_prepare_handshake_record(mbedtls_ssl_context *ssl)
                     q = p;
                 }
             } while (merged_rec_len < ssl->in_hslen);
-            ssl->in_hdr = ssl->in_hshdr;
+            ssl->in_hdr = in_first_hdr;
             mbedtls_ssl_update_in_pointers(ssl);
             ssl->in_msglen = merged_rec_len;
             /* Adjust message length. */
             MBEDTLS_PUT_UINT16_BE(merged_rec_len, ssl->in_len, 0);
             ssl->in_hsfraglen = 0;
-            ssl->in_hshdr = NULL;
             MBEDTLS_SSL_DEBUG_BUF(4, "reassembled record",
                                   ssl->in_hdr, mbedtls_ssl_in_hdr_len(ssl) + merged_rec_len);
         }
+    } else {
+        return MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     }
 
     return 0;

@@ -126,7 +126,7 @@ check framework/scripts/generate_bignum_tests.py $(framework/scripts/generate_bi
 check framework/scripts/generate_config_tests.py $(framework/scripts/generate_config_tests.py --list)
 check framework/scripts/generate_ecp_tests.py $(framework/scripts/generate_ecp_tests.py --list)
 check framework/scripts/generate_psa_tests.py $(framework/scripts/generate_psa_tests.py --list)
-check framework/scripts/generate_test_keys.py framework/tests/include/test/test_keys.h
+check framework/scripts/generate_test_keys.py tests/include/test/test_keys.h
 check scripts/generate_driver_wrappers.py $library_dir/psa_crypto_driver_wrappers.h $library_dir/psa_crypto_driver_wrappers_no_static.c
 
 # Additional checks for Mbed TLS only
@@ -137,7 +137,7 @@ if in_mbedtls_repo; then
     check framework/scripts/generate_ssl_debug_helpers.py library/ssl_debug_helpers_generated.c
     check framework/scripts/generate_tls_handshake_tests.py tests/opt-testcases/handshake-generated.sh
     check framework/scripts/generate_tls13_compat_tests.py tests/opt-testcases/tls13-compat.sh
-    check framework/scripts/generate_test_cert_macros.py tests/src/test_certs.h
+    check framework/scripts/generate_test_cert_macros.py tests/include/test/test_certs.h
     # generate_visualc_files enumerates source files (library/*.c). It doesn't
     # care about their content, but the files must exist. So it must run after
     # the step that creates or updates these files.

@@ -64,9 +64,9 @@ endif
 GENERATED_CRYPTO_DATA_FILES += $(GENERATED_PSA_DATA_FILES)
 
 GENERATED_FILES = $(GENERATED_DATA_FILES) $(GENERATED_CRYPTO_DATA_FILES)
-GENERATED_FILES += ../framework/tests/include/test/test_keys.h \
-                   ../tf-psa-crypto/framework/tests/include/test/test_keys.h \
-                   src/test_certs.h
+GENERATED_FILES += include/test/test_keys.h \
+                   ../tf-psa-crypto/tests/include/test/test_keys.h \
+                   include/test/test_certs.h
 
 # Generated files needed to (fully) run ssl-opt.sh
 .PHONY: ssl-opt
@@ -184,16 +184,16 @@ all: $(BINARIES) $(CRYPTO_BINARIES)
 
 mbedtls_test: $(MBEDTLS_TEST_OBJS)
 
-src/test_certs.h: ../framework/scripts/generate_test_cert_macros.py \
+include/test/test_certs.h: ../framework/scripts/generate_test_cert_macros.py \
 				  $($(PYTHON) ../framework/scripts/generate_test_cert_macros.py --list-dependencies)
 	echo "  Gen   $@"
 	$(PYTHON) ../framework/scripts/generate_test_cert_macros.py --output $@
 
-../framework/tests/include/test/test_keys.h: ../framework/scripts/generate_test_keys.py
+include/test/test_keys.h: ../framework/scripts/generate_test_keys.py
 	echo "  Gen   $@"
 	$(PYTHON) ../framework/scripts/generate_test_keys.py --output $@
 
-../tf-psa-crypto/framework/tests/include/test/test_keys.h: ../tf-psa-crypto/framework/scripts/generate_test_keys.py
+../tf-psa-crypto/tests/include/test/test_keys.h: ../tf-psa-crypto/framework/scripts/generate_test_keys.py
 	echo "  Gen   $@"
 	$(PYTHON) ../tf-psa-crypto/framework/scripts/generate_test_keys.py --output $@
 
@@ -204,8 +204,8 @@ ifdef RECORD_PSA_STATUS_COVERAGE_LOG
 # therefore the wildcard enumeration above doesn't include it.
 TEST_OBJS_DEPS += ../framework/tests/include/test/instrument_record_status.h
 endif
-TEST_OBJS_DEPS += src/test_certs.h ../framework/tests/include/test/test_keys.h \
-                  ../tf-psa-crypto/framework/tests/include/test/test_keys.h
+TEST_OBJS_DEPS += include/test/test_certs.h include/test/test_keys.h \
+                  ../tf-psa-crypto/tests/include/test/test_keys.h
 
 # Rule to compile common test C files in framework
 ../framework/tests/src/%.o : ../framework/tests/src/%.c $(TEST_OBJS_DEPS)

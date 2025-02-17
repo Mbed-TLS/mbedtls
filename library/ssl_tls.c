@@ -1488,9 +1488,14 @@ void mbedtls_ssl_session_reset_msg_layer(mbedtls_ssl_context *ssl,
     ssl->in_msgtype = 0;
     ssl->in_msglen  = 0;
     ssl->in_hslen   = 0;
-    ssl->badmac_seen_or_in_hsfraglen = 0;
     ssl->keep_current_message = 0;
     ssl->transform_in  = NULL;
+
+    /* TLS: reset in_hsfraglen, which is part of message parsing.
+     * DTLS: on a client reconnect, don't reset badmac_seen. */
+    if (!partial) {
+        ssl->badmac_seen_or_in_hsfraglen = 0;
+    }
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     ssl->next_record_offset = 0;

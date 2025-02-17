@@ -2041,6 +2041,14 @@ void mbedtls_ssl_init(mbedtls_ssl_context *ssl);
  *                 Calling mbedtls_ssl_setup again is not supported, even
  *                 if no session is active.
  *
+ * \warning        After setting up a client context, if certificate-based
+ *                 authentication is enabled, you should call
+ *                 mbedtls_ssl_set_hostname() to specifiy the expected
+ *                 name of the server. Without this, in most scenarios,
+ *                 the TLS connection is insecure. See
+ *                 #MBEDTLS_ERR_SSL_CERTIFICATE_VERIFICATION_WITHOUT_HOSTNAME
+ *                 for more information.
+ *
  * \note           If #MBEDTLS_USE_PSA_CRYPTO is enabled, the PSA crypto
  *                 subsystem must have been initialized by calling
  *                 psa_crypto_init() before calling this function.

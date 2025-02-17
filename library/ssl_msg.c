@@ -5032,10 +5032,12 @@ static int ssl_get_next_record(mbedtls_ssl_context *ssl)
                     return ret;
                 }
 
-                if (ssl->conf->badmac_limit != 0 &&
-                    ++ssl->badmac_seen >= ssl->conf->badmac_limit) {
-                    MBEDTLS_SSL_DEBUG_MSG(1, ("too many records with bad MAC"));
-                    return MBEDTLS_ERR_SSL_INVALID_MAC;
+                if (ssl->conf->badmac_limit != 0) {
+                    ++ssl->badmac_seen;
+                    if (ssl->badmac_seen >= ssl->conf->badmac_limit) {
+                        MBEDTLS_SSL_DEBUG_MSG(1, ("too many records with bad MAC"));
+                        return MBEDTLS_ERR_SSL_INVALID_MAC;
+                    }
                 }
 
                 /* As above, invalid records cause

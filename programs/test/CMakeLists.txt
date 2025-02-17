@@ -13,7 +13,6 @@ add_dependencies(${programs_target} ${executables_libs})
 add_dependencies(${ssl_opt_target} udp_proxy)
 
 set(executables_mbedcrypto
-    benchmark
     zeroize
 )
 add_dependencies(${programs_target} ${executables_mbedcrypto})

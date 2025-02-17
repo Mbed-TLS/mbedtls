@@ -90,8 +90,6 @@ In addition to providing options for testing client-side features, the `ssl_clie
 
 ## Test utilities
 
-* [`test/benchmark.c`](test/benchmark.c): benchmark for cryptographic algorithms.
-
 * [`test/selftest.c`](test/selftest.c): runs the self-test function in each library module.
 
 * [`test/udp_proxy.c`](test/udp_proxy.c): a UDP proxy that can inject certain failures (delay, duplicate, drop). Useful for testing DTLS.
@@ -115,4 +113,3 @@ In addition to providing options for testing client-side features, the `ssl_clie
 * [`x509/crl_app.c`](x509/crl_app.c): loads and dumps a certificate revocation list (CRL).
 
 * [`x509/req_app.c`](x509/req_app.c): loads and dumps a certificate signing request (CSR).
-

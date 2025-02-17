@@ -1488,7 +1488,7 @@ void mbedtls_ssl_session_reset_msg_layer(mbedtls_ssl_context *ssl,
     ssl->in_msgtype = 0;
     ssl->in_msglen  = 0;
     ssl->in_hslen   = 0;
-    ssl->in_hsfraglen = 0;
+    ssl->badmac_seen_or_in_hsfraglen = 0;
     ssl->keep_current_message = 0;
     ssl->transform_in  = NULL;
 

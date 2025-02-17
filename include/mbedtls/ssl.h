@@ -2015,6 +2015,17 @@ void mbedtls_ssl_init(mbedtls_ssl_context *ssl);
  * \note           The PSA crypto subsystem must have been initialized by
  *                 calling psa_crypto_init() before calling this function.
  *
+ * \note           After setting up a client context, if certificate-based
+ *                 authentication is enabled, you should call
+ *                 mbedtls_ssl_set_hostname() to specifiy the expected
+ *                 name of the server. Otherwise, if server authentication
+ *                 is required (which is the case by default) and the
+ *                 selected key exchange involves a certificate (i.e. is not
+ *                 based on a pre-shared key), the certificate authentication
+ *                 will fail. See
+ *                 #MBEDTLS_ERR_SSL_CERTIFICATE_VERIFICATION_WITHOUT_HOSTNAME
+ *                 for more information.
+ *
  * \param ssl      SSL context
  * \param conf     SSL configuration to use
  *

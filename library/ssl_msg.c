@@ -25,6 +25,7 @@
 #include "constant_time_internal.h"
 #include "mbedtls/constant_time.h"
 
+#include <limits.h>
 #include <string.h>
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
@@ -3300,15 +3301,22 @@ int mbedtls_ssl_prepare_handshake_record(mbedtls_ssl_context *ssl)
         int ret;
         const size_t hs_remain = ssl->in_hslen - ssl->in_hsfraglen;
         MBEDTLS_SSL_DEBUG_MSG(3,
-                              ("handshake fragment: %" MBEDTLS_PRINTF_SIZET " .. %"
+                              ("handshake fragment: %u .. %"
                                MBEDTLS_PRINTF_SIZET " of %"
                                MBEDTLS_PRINTF_SIZET " msglen %" MBEDTLS_PRINTF_SIZET,
                                ssl->in_hsfraglen,
-                               ssl->in_hsfraglen +
+                               (size_t) ssl->in_hsfraglen +
                                (hs_remain <= ssl->in_msglen ? hs_remain : ssl->in_msglen),
                                ssl->in_hslen, ssl->in_msglen));
         if (ssl->in_msglen < hs_remain) {
-            ssl->in_hsfraglen += ssl->in_msglen;
+            /* ssl->in_msglen is a 25-bit value since it is the sum of the
+             * header length plus the payload length, the header length is 4
+             * and the payload length was received on the wire encoded as
+             * 3 octets. We don't support 16-bit platforms; more specifically,
+             * we assume that both unsigned and size_t are at least 32 bits.
+             * Therefore there is no possible integer overflow here.
+             */
+            ssl->in_hsfraglen += (unsigned) ssl->in_msglen;
             ssl->in_hdr = ssl->in_msg + ssl->in_msglen;
             ssl->in_msglen = 0;
             mbedtls_ssl_update_in_pointers(ssl);
@@ -4697,7 +4705,7 @@ static int ssl_consume_current_message(mbedtls_ssl_context *ssl)
         if (ssl->in_hsfraglen != 0) {
             /* Not all handshake fragments have arrived, do not consume. */
             MBEDTLS_SSL_DEBUG_MSG(3,
-                                  ("waiting for more fragments (%" MBEDTLS_PRINTF_SIZET " of %"
+                                  ("waiting for more fragments (%u of %"
                                    MBEDTLS_PRINTF_SIZET ", %" MBEDTLS_PRINTF_SIZET " left)",
                                    ssl->in_hsfraglen, ssl->in_hslen,
                                    ssl->in_hslen - ssl->in_hsfraglen));

@@ -1727,7 +1727,7 @@ struct mbedtls_ssl_context {
     /** Multipurpose field.
      *
      * - DTLS: records with a bad MAC received.
-     * - TLS: accumulated length of handshake fragments (up to ::in_hslen).
+     * - TLS: accumulated length of handshake fragments (up to \c in_hslen).
      *
      * This field is multipurpose in order to preserve the ABI in the
      * Mbed TLS 3.6 LTS branch. Until 3.6.2, it was only used in DTLS

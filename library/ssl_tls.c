@@ -5021,7 +5021,7 @@ static const unsigned char ssl_serialized_context_header[] = {
  *  uint8 in_cid<0..2^8-1>      // Connection ID: expected incoming value
  *  uint8 out_cid<0..2^8-1>     // Connection ID: outgoing value to use
  *  // fields from ssl_context
- *  uint32 badmac_seen;         // DTLS: number of records with failing MAC
+ *  uint32 badmac_seen_or_in_hsfraglen;         // DTLS: number of records with failing MAC
  *  uint64 in_window_top;       // DTLS: last validated record seq_num
  *  uint64 in_window;           // DTLS: bitmask for replay protection
  *  uint8 disable_datagram_packing; // DTLS: only one record per datagram
@@ -5163,7 +5163,7 @@ int mbedtls_ssl_context_save(mbedtls_ssl_context *ssl,
      */
     used += 4;
     if (used <= buf_len) {
-        MBEDTLS_PUT_UINT32_BE(ssl->badmac_seen, p, 0);
+        MBEDTLS_PUT_UINT32_BE(ssl->badmac_seen_or_in_hsfraglen, p, 0);
         p += 4;
     }
 
@@ -5393,7 +5393,7 @@ static int ssl_context_load(mbedtls_ssl_context *ssl,
         return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
     }
 
-    ssl->badmac_seen = MBEDTLS_GET_UINT32_BE(p, 0);
+    ssl->badmac_seen_or_in_hsfraglen = MBEDTLS_GET_UINT32_BE(p, 0);
     p += 4;
 
 #if defined(MBEDTLS_SSL_DTLS_ANTI_REPLAY)

@@ -14458,6 +14458,15 @@ run_test    "TLS 1.2 ClientHello indicating support for deflate compression meth
             -s "dumping .client hello, compression. (2 bytes)"
 
 # Handshake defragmentation testing
+requires_openssl_3_x
+requires_protocol_version tls13
+requires_certificate_authentication
+run_test    "Handshake defragmentation on client (no fragmentation, for reference)" \
+            "$O_NEXT_SRV" \
+            "$P_CLI debug_level=4 " \
+            0 \
+            -C "reassembled record" \
+            -C "waiting for more fragments"
 
 requires_openssl_3_x
 requires_protocol_version tls13
@@ -14684,6 +14693,16 @@ run_test    "Handshake defragmentation on client: len=5, TLS 1.2" \
             -c "reassembled record" \
             -c "handshake fragment: 0 \\.\\. 5 of [0-9]\\+ msglen 5" \
             -c "waiting for more fragments (5"
+
+requires_openssl_3_x
+requires_protocol_version tls13
+requires_certificate_authentication
+run_test    "Handshake defragmentation on server (no fragmentation, for reference)." \
+            "$P_SRV debug_level=4 auth_mode=required" \
+            "$O_NEXT_CLI -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key" \
+            0 \
+            -C "reassembled record" \
+            -C "waiting for more fragments"
 
 requires_openssl_3_x
 requires_protocol_version tls13

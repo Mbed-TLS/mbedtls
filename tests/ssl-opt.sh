@@ -14458,6 +14458,11 @@ run_test    "TLS 1.2 ClientHello indicating support for deflate compression meth
             -s "dumping .client hello, compression. (2 bytes)"
 
 # Handshake defragmentation testing
+
+# To warrant that the handhake messages are large enough and need to be split
+# into fragments, the tests require certificate authentication. The party in control
+# of the fragmentation operations is OpenSSL and will always use server5.crt (548 Bytes)
+# either from O_NEXT_SRV or test data.
 requires_openssl_3_x
 requires_protocol_version tls13
 requires_certificate_authentication
@@ -14511,12 +14516,6 @@ run_test    "Handshake defragmentation on client: len=513, TLS 1.2" \
             -c "reassembled record" \
             -c "handshake fragment: 0 \\.\\. 513 of [0-9]\\+ msglen 513" \
             -c "waiting for more fragments (513 of [0-9]\\+"
-
-# OpenSSL does not allow max_send_frag to be less than 512
-# so we use split_send_frag instead for tests lower than 512 below.
-
-# There is an issue with OpenSSL when fragmenting with values less
-# than 512 bytes in TLS 1.2 so we require TLS 1.3 with these values.
 
 requires_openssl_3_x
 requires_protocol_version tls13
@@ -14978,11 +14977,13 @@ run_test    "Handshake defragmentation on server: len=3, TLS 1.3" \
             -s "handshake message too short: 3" \
             -s "SSL - An invalid SSL record was received"
 
+# Server-side ClientHello degfragmentation is only supported for MBEDTLS_SSL_PROTO_TLS1_3. For TLS 1.2 testing
+# the server should suport both protocols and downgrade to client-requested TL1.2 after proccessing the ClientHello.
 requires_openssl_3_x
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_certificate_authentication
-run_test    "Handshake defragmentation on server: len=3, TLS 1.3" \
+run_test    "Handshake defragmentation on server: len=3, TLS 1.3 -> 1.2" \
             "$P_SRV debug_level=4 auth_mode=required" \
             "$O_NEXT_CLI -tls1_2 -split_send_frag 3 -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key" \
             1 \

@@ -14109,6 +14109,27 @@ run_test    "Handshake defragmentation on client: len=5, TLS 1.2" \
             -c "handshake fragment: 0 \\.\\. 5 of [0-9]\\+ msglen 5" \
             -c "waiting for more fragments (5"
 
+requires_openssl_3_x
+requires_protocol_version tls13
+requires_certificate_authentication
+run_test    "Handshake defragmentation on client: len=3, TLS 1.3" \
+            "$O_NEXT_SRV -tls1_3 -split_send_frag 3 " \
+            "$P_CLI debug_level=4 " \
+            1 \
+            -c "=> ssl_tls13_process_server_hello" \
+            -c "handshake message too short: 3" \
+            -c "SSL - An invalid SSL record was received"
+
+requires_openssl_3_x
+requires_protocol_version tls12
+requires_certificate_authentication
+run_test    "Handshake defragmentation on client: len=3, TLS 1.2" \
+            "$O_NEXT_SRV -tls1_2 -split_send_frag 3 " \
+            "$P_CLI debug_level=4 " \
+            1 \
+            -c "handshake message too short: 3" \
+            -c "SSL - An invalid SSL record was received"
+
 requires_protocol_version tls13
 requires_certificate_authentication
 run_test    "Handshake defragmentation on server (no fragmentation, for reference)." \
@@ -14360,6 +14381,41 @@ run_test    "Handshake defragmentation on server: len=4, TLS 1.2" \
             -s "reassembled record" \
             -s "handshake fragment: 0 \\.\\. 4 of [0-9]\\+ msglen 4" \
             -s "waiting for more fragments (4"
+
+requires_openssl_3_x
+requires_protocol_version tls13
+requires_certificate_authentication
+run_test    "Handshake defragmentation on server: len=3, TLS 1.3" \
+            "$P_SRV debug_level=4 auth_mode=required" \
+            "$O_NEXT_CLI -tls1_3 -split_send_frag 3 -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key" \
+            1 \
+            -s "<= parse client hello" \
+            -s "handshake message too short: 3" \
+            -s "SSL - An invalid SSL record was received"
+
+requires_openssl_3_x
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_certificate_authentication
+run_test    "Handshake defragmentation on server: len=3, TLS 1.3" \
+            "$P_SRV debug_level=4 auth_mode=required" \
+            "$O_NEXT_CLI -tls1_2 -split_send_frag 3 -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key" \
+            1 \
+            -s "<= parse client hello" \
+            -s "handshake message too short: 3" \
+            -s "SSL - An invalid SSL record was received"
+
+requires_openssl_3_x
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_certificate_authentication
+run_test    "Handshake defragmentation on server: len=32, TLS 1.2" \
+            "$P_SRV debug_level=4 force_version=tls12 auth_mode=required" \
+            "$O_NEXT_CLI -tls1_2 -split_send_frag 32 -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key" \
+            1 \
+            -s "The SSL configuration is tls12 only" \
+            -s "bad client hello message" \
+            -s "SSL - A message could not be parsed due to a syntactic error"
 
 # Test heap memory usage after handshake
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2

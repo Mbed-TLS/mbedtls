@@ -743,6 +743,13 @@ static void print_deserialized_ssl_session(const uint8_t *ssl, uint32_t len,
  *  uint8 alpn_chosen_len;
  *  uint8 alpn_chosen<0..2^8-1> // ALPN: negotiated application protocol
  *
+ * Note: In the mbedtls_ssl_context structure, badmac_seen is called
+ * badmac_seen_or_in_hsfraglen since Mbed TLS 3.6.2. The field contains
+ * the badmac_seen value in DTLS, and a handshake parsing intermediate
+ * value in non-DTLS TLS. The value is only meaningful for DTLS and should
+ * not be saved in non-DTLS TLS, so in this program, the context info file
+ * filed remains badmac_seen.
+ *
  * /p ssl   pointer to serialized session
  * /p len   number of bytes in the buffer
  */

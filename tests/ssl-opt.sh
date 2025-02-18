@@ -14694,7 +14694,6 @@ run_test    "Handshake defragmentation on client: len=5, TLS 1.2" \
             -c "handshake fragment: 0 \\.\\. 5 of [0-9]\\+ msglen 5" \
             -c "waiting for more fragments (5"
 
-requires_openssl_3_x
 requires_protocol_version tls13
 requires_certificate_authentication
 run_test    "Handshake defragmentation on server (no fragmentation, for reference)." \
@@ -14924,6 +14923,28 @@ run_test    "Handshake defragmentation on server: len=5, TLS 1.2" \
             -s "reassembled record" \
             -s "handshake fragment: 0 \\.\\. 5 of [0-9]\\+ msglen 5" \
             -s "waiting for more fragments (5"
+
+requires_protocol_version tls13
+requires_certificate_authentication
+run_test    "Handshake defragmentation on server: len=4, TLS 1.3" \
+            "$P_SRV debug_level=4 auth_mode=required" \
+            "$O_NEXT_CLI -tls1_3 -split_send_frag 4 -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key" \
+            0 \
+            -s "reassembled record" \
+            -s "handshake fragment: 0 \\.\\. 4 of [0-9]\\+ msglen 4" \
+            -s "waiting for more fragments (4"
+
+requires_openssl_3_x
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_certificate_authentication
+run_test    "Handshake defragmentation on server: len=4, TLS 1.2" \
+            "$P_SRV debug_level=4 auth_mode=required" \
+            "$O_NEXT_CLI -tls1_2 -split_send_frag 4 -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key" \
+            0 \
+            -s "reassembled record" \
+            -s "handshake fragment: 0 \\.\\. 4 of [0-9]\\+ msglen 4" \
+            -s "waiting for more fragments (4"
 
 # Test heap memory usage after handshake
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2

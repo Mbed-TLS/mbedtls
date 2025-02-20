@@ -354,7 +354,7 @@ detect_required_features() {
     esac
 
     case " $1 " in
-        *[-_\ =]tickets=[^0]*)
+        *[-_\ =]tickets=[!0]*)
             requires_config_enabled MBEDTLS_SSL_TICKET_C;;
     esac
     case " $1 " in
@@ -437,10 +437,10 @@ maybe_adapt_for_psk() {
 }
 
 case " $CONFIGS_ENABLED " in
-    *\ MBEDTLS_KEY_EXCHANGE_[^P]*) PSK_ONLY="NO";;
-    *\ MBEDTLS_KEY_EXCHANGE_P[^S]*) PSK_ONLY="NO";;
-    *\ MBEDTLS_KEY_EXCHANGE_PS[^K]*) PSK_ONLY="NO";;
-    *\ MBEDTLS_KEY_EXCHANGE_PSK[^_]*) PSK_ONLY="NO";;
+    *\ MBEDTLS_KEY_EXCHANGE_[!P]*) PSK_ONLY="NO";;
+    *\ MBEDTLS_KEY_EXCHANGE_P[!S]*) PSK_ONLY="NO";;
+    *\ MBEDTLS_KEY_EXCHANGE_PS[!K]*) PSK_ONLY="NO";;
+    *\ MBEDTLS_KEY_EXCHANGE_PSK[!_]*) PSK_ONLY="NO";;
     *\ MBEDTLS_KEY_EXCHANGE_PSK_ENABLED\ *) PSK_ONLY="YES";;
     *) PSK_ONLY="NO";;
 esac

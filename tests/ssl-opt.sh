@@ -14477,7 +14477,7 @@ requires_openssl_3_x
 requires_protocol_version tls13
 requires_certificate_authentication
 run_test    "Handshake defragmentation on client: len=512, TLS 1.3" \
-            "$O_NEXT_SRV -tls1_3 -max_send_frag 512 " \
+            "$O_NEXT_SRV -tls1_3 -split_send_frag 512 " \
             "$P_CLI debug_level=4 " \
             0 \
             -c "reassembled record" \
@@ -14488,7 +14488,7 @@ requires_openssl_3_x
 requires_protocol_version tls12
 requires_certificate_authentication
 run_test    "Handshake defragmentation on client: len=512, TLS 1.2" \
-            "$O_NEXT_SRV -tls1_2 -max_send_frag 512 " \
+            "$O_NEXT_SRV -tls1_2 -split_send_frag 512 " \
             "$P_CLI debug_level=4 " \
             0 \
             -c "reassembled record" \
@@ -14499,7 +14499,7 @@ requires_openssl_3_x
 requires_protocol_version tls13
 requires_certificate_authentication
 run_test    "Handshake defragmentation on client: len=513, TLS 1.3" \
-            "$O_NEXT_SRV -tls1_3 -max_send_frag 513 " \
+            "$O_NEXT_SRV -tls1_3 -split_send_frag 513 " \
             "$P_CLI debug_level=4 " \
             0 \
             -c "reassembled record" \
@@ -14510,7 +14510,7 @@ requires_openssl_3_x
 requires_protocol_version tls12
 requires_certificate_authentication
 run_test    "Handshake defragmentation on client: len=513, TLS 1.2" \
-            "$O_NEXT_SRV -tls1_2 -max_send_frag 513 " \
+            "$O_NEXT_SRV -tls1_2 -split_send_frag 513 " \
             "$P_CLI debug_level=4 " \
             0 \
             -c "reassembled record" \
@@ -14750,7 +14750,7 @@ requires_protocol_version tls13
 requires_certificate_authentication
 run_test    "Handshake defragmentation on server: len=512, TLS 1.3" \
             "$P_SRV debug_level=4 auth_mode=required" \
-            "$O_NEXT_CLI -tls1_3 -max_send_frag 512 -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key" \
+            "$O_NEXT_CLI -tls1_3 -split_send_frag 512 -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key" \
             0 \
             -s "reassembled record" \
             -s "handshake fragment: 0 \\.\\. 512 of [0-9]\\+ msglen 512" \
@@ -14761,7 +14761,7 @@ requires_protocol_version tls12
 requires_certificate_authentication
 run_test    "Handshake defragmentation on server: len=512, TLS 1.2" \
             "$P_SRV debug_level=4 auth_mode=required" \
-            "$O_NEXT_CLI -tls1_2 -max_send_frag 512 -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key" \
+            "$O_NEXT_CLI -tls1_2 -split_send_frag 512 -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key" \
             0 \
             -s "reassembled record" \
             -s "handshake fragment: 0 \\.\\. 512 of [0-9]\\+ msglen 512" \
@@ -14772,7 +14772,7 @@ requires_protocol_version tls13
 requires_certificate_authentication
 run_test    "Handshake defragmentation on server: len=513, TLS 1.3" \
             "$P_SRV debug_level=4 auth_mode=required" \
-            "$O_NEXT_CLI -tls1_3 -max_send_frag 513 -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key" \
+            "$O_NEXT_CLI -tls1_3 -split_send_frag 513 -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key" \
             0 \
             -s "reassembled record" \
             -s "handshake fragment: 0 \\.\\. 513 of [0-9]\\+ msglen 513" \
@@ -14783,7 +14783,7 @@ requires_protocol_version tls12
 requires_certificate_authentication
 run_test    "Handshake defragmentation on server: len=513, TLS 1.2" \
             "$P_SRV debug_level=4 auth_mode=required" \
-            "$O_NEXT_CLI -tls1_2 -max_send_frag 513 -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key" \
+            "$O_NEXT_CLI -tls1_2 -split_send_frag 513 -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key" \
             0 \
             -s "reassembled record" \
             -s "handshake fragment: 0 \\.\\. 513 of [0-9]\\+ msglen 513" \

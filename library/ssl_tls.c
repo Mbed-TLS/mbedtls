@@ -38,6 +38,49 @@
 #include "mbedtls/oid.h"
 #endif
 
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
+int mbedtls_ssl_set_hostname(mbedtls_ssl_context *ssl, const char *hostname)
+{
+    /* Initialize to suppress unnecessary compiler warning */
+    size_t hostname_len = 0;
+
+    /* Check if new hostname is valid before
+     * making any change to current one */
+    if (hostname != NULL) {
+        hostname_len = strlen(hostname);
+
+        if (hostname_len > MBEDTLS_SSL_MAX_HOST_NAME_LEN) {
+            return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
+        }
+    }
+
+    /* Now it's clear that we will overwrite the old hostname,
+     * so we can free it safely */
+
+    if (ssl->hostname != NULL) {
+        mbedtls_platform_zeroize(ssl->hostname, strlen(ssl->hostname));
+        mbedtls_free(ssl->hostname);
+    }
+
+    /* Passing NULL as hostname shall clear the old one */
+
+    if (hostname == NULL) {
+        ssl->hostname = NULL;
+    } else {
+        ssl->hostname = mbedtls_calloc(1, hostname_len + 1);
+        if (ssl->hostname == NULL) {
+            return MBEDTLS_ERR_SSL_ALLOC_FAILED;
+        }
+
+        memcpy(ssl->hostname, hostname, hostname_len);
+
+        ssl->hostname[hostname_len] = '\0';
+    }
+
+    return 0;
+}
+#endif /* MBEDTLS_X509_CRT_PARSE_C */
+
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
 
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
@@ -4616,49 +4659,6 @@ void mbedtls_ssl_conf_curves(mbedtls_ssl_config *conf,
     conf->curve_list = curve_list;
 }
 #endif /* MBEDTLS_ECP_C */
-
-#if defined(MBEDTLS_X509_CRT_PARSE_C)
-int mbedtls_ssl_set_hostname(mbedtls_ssl_context *ssl, const char *hostname)
-{
-    /* Initialize to suppress unnecessary compiler warning */
-    size_t hostname_len = 0;
-
-    /* Check if new hostname is valid before
-     * making any change to current one */
-    if (hostname != NULL) {
-        hostname_len = strlen(hostname);
-
-        if (hostname_len > MBEDTLS_SSL_MAX_HOST_NAME_LEN) {
-            return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
-        }
-    }
-
-    /* Now it's clear that we will overwrite the old hostname,
-     * so we can free it safely */
-
-    if (ssl->hostname != NULL) {
-        mbedtls_platform_zeroize(ssl->hostname, strlen(ssl->hostname));
-        mbedtls_free(ssl->hostname);
-    }
-
-    /* Passing NULL as hostname shall clear the old one */
-
-    if (hostname == NULL) {
-        ssl->hostname = NULL;
-    } else {
-        ssl->hostname = mbedtls_calloc(1, hostname_len + 1);
-        if (ssl->hostname == NULL) {
-            return MBEDTLS_ERR_SSL_ALLOC_FAILED;
-        }
-
-        memcpy(ssl->hostname, hostname, hostname_len);
-
-        ssl->hostname[hostname_len] = '\0';
-    }
-
-    return 0;
-}
-#endif /* MBEDTLS_X509_CRT_PARSE_C */
 
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
 void mbedtls_ssl_conf_sni(mbedtls_ssl_config *conf,

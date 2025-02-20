@@ -475,7 +475,7 @@ detect_required_features() {
     esac
 
     case " $CMD_LINE " in
-        *[-_\ =]tickets=[^0]*)
+        *[-_\ =]tickets=[!0]*)
             requires_config_enabled MBEDTLS_SSL_TICKET_C;;
     esac
     case " $CMD_LINE " in

@@ -13894,9 +13894,13 @@ run_test    "Handshake defragmentation on client: len=512, TLS 1.3" \
             -c "handshake fragment: 0 \\.\\. 512 of [0-9]\\+ msglen 512" \
             -c "waiting for more fragments (512 of [0-9]\\+"
 
+# Since the removal of the DHE-RSA key exchange, the default openssl server
+# certificate does not match what is provided by the testing client. Those
+# use-cases are out of scope for defregmentation testing, and should be skipped.
 requires_openssl_3_x
 requires_protocol_version tls12
 requires_certificate_authentication
+requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
 run_test    "Handshake defragmentation on client: len=512, TLS 1.2" \
             "$O_NEXT_SRV -tls1_2 -max_send_frag 512 " \
             "$P_CLI debug_level=4 " \
@@ -13919,6 +13923,7 @@ run_test    "Handshake defragmentation on client: len=513, TLS 1.3" \
 requires_openssl_3_x
 requires_protocol_version tls12
 requires_certificate_authentication
+requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
 run_test    "Handshake defragmentation on client: len=513, TLS 1.2" \
             "$O_NEXT_SRV -tls1_2 -max_send_frag 513 " \
             "$P_CLI debug_level=4 " \
@@ -13947,6 +13952,7 @@ run_test    "Handshake defragmentation on client: len=256, TLS 1.3" \
 requires_openssl_3_x
 requires_protocol_version tls12
 requires_certificate_authentication
+requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
 run_test    "Handshake defragmentation on client: len=256, TLS 1.2" \
             "$O_NEXT_SRV -tls1_2 -split_send_frag 256 " \
             "$P_CLI debug_level=4 " \
@@ -13969,6 +13975,7 @@ run_test    "Handshake defragmentation on client: len=128, TLS 1.3" \
 requires_openssl_3_x
 requires_protocol_version tls12
 requires_certificate_authentication
+requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
 run_test    "Handshake defragmentation on client: len=128, TLS 1.2" \
             "$O_NEXT_SRV -tls1_2 -split_send_frag 128 " \
             "$P_CLI debug_level=4 " \
@@ -13991,6 +13998,7 @@ run_test    "Handshake defragmentation on client: len=64, TLS 1.3" \
 requires_openssl_3_x
 requires_protocol_version tls12
 requires_certificate_authentication
+requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
 run_test    "Handshake defragmentation on client: len=64, TLS 1.2" \
             "$O_NEXT_SRV -tls1_2 -split_send_frag 64 " \
             "$P_CLI debug_level=4 " \
@@ -14013,6 +14021,7 @@ run_test    "Handshake defragmentation on client: len=36, TLS 1.3" \
 requires_openssl_3_x
 requires_protocol_version tls12
 requires_certificate_authentication
+requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
 run_test    "Handshake defragmentation on client: len=36, TLS 1.2" \
             "$O_NEXT_SRV -tls1_2 -split_send_frag 36 " \
             "$P_CLI debug_level=4 " \
@@ -14035,6 +14044,7 @@ run_test    "Handshake defragmentation on client: len=32, TLS 1.3" \
 requires_openssl_3_x
 requires_protocol_version tls12
 requires_certificate_authentication
+requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
 run_test    "Handshake defragmentation on client: len=32, TLS 1.2" \
             "$O_NEXT_SRV -tls1_2 -split_send_frag 32 " \
             "$P_CLI debug_level=4 " \
@@ -14057,6 +14067,7 @@ run_test    "Handshake defragmentation on client: len=14, TLS 1.3" \
 requires_openssl_3_x
 requires_protocol_version tls12
 requires_certificate_authentication
+requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
 run_test    "Handshake defragmentation on client: len=14, TLS 1.2" \
             "$O_NEXT_SRV -tls1_2 -split_send_frag 16 " \
             "$P_CLI debug_level=4 " \
@@ -14123,6 +14134,7 @@ run_test    "Handshake defragmentation on client: len=3, TLS 1.3" \
 requires_openssl_3_x
 requires_protocol_version tls12
 requires_certificate_authentication
+requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
 run_test    "Handshake defragmentation on client: len=3, TLS 1.2" \
             "$O_NEXT_SRV -tls1_2 -split_send_frag 3 " \
             "$P_CLI debug_level=4 " \

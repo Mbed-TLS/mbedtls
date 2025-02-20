@@ -2529,12 +2529,7 @@ void mbedtls_ssl_conf_groups(mbedtls_ssl_config *conf,
 static int mbedtls_ssl_has_set_hostname_been_called(
     const mbedtls_ssl_context *ssl)
 {
-    /* We can't tell the difference between the case where
-     * mbedtls_ssl_set_hostname() has not been called at all, and
-     * the case where it was last called with NULL. For the time
-     * being, we assume the latter, i.e. we behave as if there had
-     * been an implicit call to mbedtls_ssl_set_hostname(ssl, NULL). */
-    return ssl->hostname != NULL;
+    return (ssl->flags & MBEDTLS_SSL_CONTEXT_FLAG_HOSTNAME_SET) != 0;
 }
 #endif
 
@@ -2579,6 +2574,8 @@ int mbedtls_ssl_set_hostname(mbedtls_ssl_context *ssl, const char *hostname)
 
         ssl->hostname[hostname_len] = '\0';
     }
+
+    ssl->flags |= MBEDTLS_SSL_CONTEXT_FLAG_HOSTNAME_SET;
 
     return 0;
 }

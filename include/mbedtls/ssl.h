@@ -1671,6 +1671,8 @@ struct mbedtls_ssl_context {
     int MBEDTLS_PRIVATE(state);                  /*!< SSL handshake: current state     */
 
     /** Mask of `MBEDTLS_SSL_CONTEXT_FLAG_XXX`.
+     * See `mbedtls_ssl_context_flags_t` in ssl_misc.h.
+     *
      * This field is not saved by mbedtls_ssl_session_save().
      */
     uint32_t MBEDTLS_PRIVATE(flags);

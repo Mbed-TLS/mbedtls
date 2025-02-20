@@ -51,6 +51,12 @@ extern const mbedtls_error_pair_t psa_to_ssl_errors[7];
 #define MBEDTLS_SSL_ECP_RESTARTABLE_ENABLED
 #endif
 
+/** Flag values for mbedtls_ssl_context::flags. */
+typedef enum {
+    /** Set if mbedtls_ssl_set_hostname() has been called. */
+    MBEDTLS_SSL_CONTEXT_FLAG_HOSTNAME_SET = 1,
+} mbedtls_ssl_context_flags_t;
+
 #define MBEDTLS_SSL_INITIAL_HANDSHAKE           0
 #define MBEDTLS_SSL_RENEGOTIATION_IN_PROGRESS   1   /* In progress */
 #define MBEDTLS_SSL_RENEGOTIATION_DONE          2   /* Done or aborted */

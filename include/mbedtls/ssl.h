@@ -1449,7 +1449,10 @@ struct mbedtls_ssl_context {
      *  \p hostname argument.
      * - A special value to indicate that mbedtls_ssl_set_hostname()
      *   was called with \p NULL (as opposed to never having been called).
-     *   See `mbedtls_ssl_get_hostname_pointer()` in `ssl_tls.c`.
+     *
+     * If you need to obtain the value passed to
+     * mbedtls_ssl_set_hostname() even if it may have been called with
+     * \p NULL, call mbedtls_ssl_get_hostname_pointer().
      *
      * If this field contains the value \p NULL and the configuration option
      * #MBEDTLS_SSL_CLI_ALLOW_WEAK_CERTIFICATE_VERIFICATION_WITHOUT_HOSTNAME

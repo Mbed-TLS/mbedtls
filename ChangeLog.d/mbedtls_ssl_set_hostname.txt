@@ -8,6 +8,9 @@ Default behavior changes
      call mbedtls_ssl_set_hostname() with NULL as the hostname, or
      enable the new compile-time option
      MBEDTLS_SSL_CLI_ALLOW_WEAK_CERTIFICATE_VERIFICATION_WITHOUT_HOSTNAME.
+     The content of ssl->hostname after mbedtls_ssl_set_hostname(ssl, NULL)
+     has changed, see the documentation of the hostname field in the
+     mbedtls_ssl_context struct type for details.
 
 Security
    * Note that TLS clients should generally call mbedtls_ssl_set_hostname()

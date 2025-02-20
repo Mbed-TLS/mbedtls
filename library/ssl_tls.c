@@ -62,11 +62,6 @@ static int mbedtls_ssl_has_set_hostname_been_called(
 }
 #endif
 
-/* Micro-optimization: don't export this function if it isn't needed outside
- * of this source file. */
-#if !defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
-static
-#endif
 const char *mbedtls_ssl_get_hostname_pointer(const mbedtls_ssl_context *ssl)
 {
     if (ssl->hostname == ssl_hostname_skip_cn_verification) {

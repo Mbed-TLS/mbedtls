@@ -14630,7 +14630,7 @@ run_test    "Handshake defragmentation on client: len=32, TLS 1.2" \
 requires_openssl_3_x
 requires_protocol_version tls13
 requires_certificate_authentication
-run_test    "Handshake defragmentation on client: len=14, TLS 1.3" \
+run_test    "Handshake defragmentation on client: len=16, TLS 1.3" \
             "$O_NEXT_SRV -tls1_3 -split_send_frag 16 " \
             "$P_CLI debug_level=4 " \
             0 \
@@ -14641,7 +14641,7 @@ run_test    "Handshake defragmentation on client: len=14, TLS 1.3" \
 requires_openssl_3_x
 requires_protocol_version tls12
 requires_certificate_authentication
-run_test    "Handshake defragmentation on client: len=14, TLS 1.2" \
+run_test    "Handshake defragmentation on client: len=16, TLS 1.2" \
             "$O_NEXT_SRV -tls1_2 -split_send_frag 16 " \
             "$P_CLI debug_level=4 " \
             0 \
@@ -14692,6 +14692,28 @@ run_test    "Handshake defragmentation on client: len=5, TLS 1.2" \
             -c "reassembled record" \
             -c "handshake fragment: 0 \\.\\. 5 of [0-9]\\+ msglen 5" \
             -c "waiting for more fragments (5"
+
+requires_openssl_3_x
+requires_protocol_version tls13
+requires_certificate_authentication
+run_test    "Handshake defragmentation on client: len=4, TLS 1.3" \
+            "$O_NEXT_SRV -tls1_3 -split_send_frag 4 " \
+            "$P_CLI debug_level=4 " \
+            0 \
+            -c "reassembled record" \
+            -c "handshake fragment: 0 \\.\\. 4 of [0-9]\\+ msglen 4" \
+            -c "waiting for more fragments (4"
+
+requires_openssl_3_x
+requires_protocol_version tls12
+requires_certificate_authentication
+run_test    "Handshake defragmentation on client: len=4, TLS 1.2" \
+            "$O_NEXT_SRV -tls1_2 -split_send_frag 4 " \
+            "$P_CLI debug_level=4 " \
+            0 \
+            -c "reassembled record" \
+            -c "handshake fragment: 0 \\.\\. 4 of [0-9]\\+ msglen 4" \
+            -c "waiting for more fragments (4"
 
 requires_openssl_3_x
 requires_protocol_version tls13
@@ -14783,12 +14805,11 @@ requires_protocol_version tls12
 requires_certificate_authentication
 run_test    "Handshake defragmentation on server: len=256, TLS 1.2" \
             "$P_SRV debug_level=4 auth_mode=required" \
-            "$O_NEXT_CLI -tls1_3 -split_send_frag 256 -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key" \
+            "$O_NEXT_CLI -tls1_2 -split_send_frag 256 -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key" \
             0 \
             -s "reassembled record" \
             -s "handshake fragment: 0 \\.\\. 256 of [0-9]\\+ msglen 256" \
             -s "waiting for more fragments (256"
-
 
 requires_openssl_3_x
 requires_protocol_version tls13
@@ -14801,8 +14822,11 @@ run_test    "Handshake defragmentation on server: len=128, TLS 1.3" \
             -s "handshake fragment: 0 \\.\\. 128 of [0-9]\\+ msglen 128" \
             -s "waiting for more fragments (128"
 
+# Server-side ClientHello degfragmentation is only supported for MBEDTLS_SSL_PROTO_TLS1_3. For TLS 1.2 testing
+# the server should suport both protocols and downgrade to client-requested TL1.2 after proccessing the ClientHello.
 requires_openssl_3_x
-requires_protocol_version tls12
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_certificate_authentication
 run_test    "Handshake defragmentation on server: len=128, TLS 1.2" \
             "$P_SRV debug_level=4 auth_mode=required" \
@@ -14824,7 +14848,8 @@ run_test    "Handshake defragmentation on server: len=64, TLS 1.3" \
             -s "waiting for more fragments (64"
 
 requires_openssl_3_x
-requires_protocol_version tls12
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_certificate_authentication
 run_test    "Handshake defragmentation on server: len=64, TLS 1.2" \
             "$P_SRV debug_level=4 auth_mode=required" \
@@ -14846,7 +14871,8 @@ run_test    "Handshake defragmentation on server: len=36, TLS 1.3" \
             -s "waiting for more fragments (36"
 
 requires_openssl_3_x
-requires_protocol_version tls12
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_certificate_authentication
 run_test    "Handshake defragmentation on server: len=36, TLS 1.2" \
             "$P_SRV debug_level=4 auth_mode=required" \
@@ -14868,7 +14894,8 @@ run_test    "Handshake defragmentation on server: len=32, TLS 1.3" \
             -s "waiting for more fragments (32"
 
 requires_openssl_3_x
-requires_protocol_version tls12
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_certificate_authentication
 run_test    "Handshake defragmentation on server: len=32, TLS 1.2" \
             "$P_SRV debug_level=4 auth_mode=required" \
@@ -14890,7 +14917,8 @@ run_test    "Handshake defragmentation on server: len=16, TLS 1.3" \
             -s "waiting for more fragments (16"
 
 requires_openssl_3_x
-requires_protocol_version tls12
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_certificate_authentication
 run_test    "Handshake defragmentation on server: len=16, TLS 1.2" \
             "$P_SRV debug_level=4 auth_mode=required" \
@@ -14912,7 +14940,8 @@ run_test    "Handshake defragmentation on server: len=13, TLS 1.3" \
             -s "waiting for more fragments (13"
 
 requires_openssl_3_x
-requires_protocol_version tls12
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_certificate_authentication
 run_test    "Handshake defragmentation on server: len=13, TLS 1.2" \
             "$P_SRV debug_level=4 auth_mode=required" \
@@ -14934,7 +14963,8 @@ run_test    "Handshake defragmentation on server: len=5, TLS 1.3" \
             -s "waiting for more fragments (5"
 
 requires_openssl_3_x
-requires_protocol_version tls12
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_certificate_authentication
 run_test    "Handshake defragmentation on server: len=5, TLS 1.2" \
             "$P_SRV debug_level=4 auth_mode=required" \
@@ -14944,6 +14974,7 @@ run_test    "Handshake defragmentation on server: len=5, TLS 1.2" \
             -s "handshake fragment: 0 \\.\\. 5 of [0-9]\\+ msglen 5" \
             -s "waiting for more fragments (5"
 
+requires_openssl_3_x
 requires_protocol_version tls13
 requires_certificate_authentication
 run_test    "Handshake defragmentation on server: len=4, TLS 1.3" \
@@ -14977,8 +15008,6 @@ run_test    "Handshake defragmentation on server: len=3, TLS 1.3" \
             -s "handshake message too short: 3" \
             -s "SSL - An invalid SSL record was received"
 
-# Server-side ClientHello degfragmentation is only supported for MBEDTLS_SSL_PROTO_TLS1_3. For TLS 1.2 testing
-# the server should suport both protocols and downgrade to client-requested TL1.2 after proccessing the ClientHello.
 requires_openssl_3_x
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
@@ -14995,7 +15024,7 @@ requires_openssl_3_x
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_certificate_authentication
-run_test    "Handshake defragmentation on server: len=32, TLS 1.2" \
+run_test    "Handshake defragmentation on server: len=32, TLS 1.2 -> 1.2" \
             "$P_SRV debug_level=4 force_version=tls12 auth_mode=required" \
             "$O_NEXT_CLI -tls1_2 -split_send_frag 32 -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key" \
             1 \

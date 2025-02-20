@@ -3189,6 +3189,16 @@ void mbedtls_ssl_conf_sig_hashes(mbedtls_ssl_config *conf,
  *
  * \note           Maximum hostname length #MBEDTLS_SSL_MAX_HOST_NAME_LEN.
  *
+ * \note           If the hostname is \c NULL on a client, then the server
+ *                 is not authenticated: it only needs to have a valid
+ *                 certificate, not a certificate matching its name.
+ *                 Therefore you should always call this function on a client,
+ *                 unless the connection is set up to only allow
+ *                 pre-shared keys, or in scenarios where server
+ *                 impersonation is not a concern. See the documentation of
+ *                 #MBEDTLS_ERR_SSL_CERTIFICATE_VERIFICATION_WITHOUT_HOSTNAME
+ *                 for more details.
+ *
  * \return         0 if successful, #MBEDTLS_ERR_SSL_ALLOC_FAILED on
  *                 allocation failure, #MBEDTLS_ERR_SSL_BAD_INPUT_DATA on
  *                 too long input hostname.

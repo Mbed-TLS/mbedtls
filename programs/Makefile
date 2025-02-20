@@ -36,28 +36,10 @@ LOCAL_CFLAGS += -I$(FRAMEWORK)/tests/programs
 ## Note: Variables cannot be used to define an apps path. This cannot be
 ## substituted by the script generate_visualc_files.pl.
 APPS = \
-	aes/crypt_and_hash \
-	cipher/cipher_aead_demo \
-	hash/generic_sum \
-	hash/hello \
-	hash/md_hmac_demo \
-	pkey/dh_genprime \
-	pkey/ecdh_curve25519 \
-	pkey/ecdsa \
 	pkey/gen_key \
-	pkey/key_app \
-	pkey/key_app_writer \
-	pkey/mpi_demo \
-	pkey/pk_decrypt \
-	pkey/pk_encrypt \
 	pkey/pk_sign \
 	pkey/pk_verify \
-	pkey/rsa_decrypt \
-	pkey/rsa_encrypt \
-	pkey/rsa_genkey \
-	pkey/rsa_sign \
 	pkey/rsa_sign_pss \
-	pkey/rsa_verify \
 	pkey/rsa_verify_pss \
 	../tf-psa-crypto/programs/psa/aead_demo \
 	../tf-psa-crypto/programs/psa/crypto_examples \
@@ -65,8 +47,6 @@ APPS = \
 	../tf-psa-crypto/programs/psa/key_ladder_demo \
 	../tf-psa-crypto/programs/psa/psa_constant_names \
 	../tf-psa-crypto/programs/psa/psa_hash \
-	random/gen_entropy \
-	random/gen_random_ctr_drbg \
 	ssl/dtls_client \
 	ssl/dtls_server \
 	ssl/mini_client \
@@ -155,61 +135,9 @@ test/query_config.c:
 	echo "  Gen   $@"
 	$(PERL) ../scripts/generate_query_config.pl
 
-aes/crypt_and_hash$(EXEXT): aes/crypt_and_hash.c $(DEP)
-	echo "  CC    aes/crypt_and_hash.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) aes/crypt_and_hash.c $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-cipher/cipher_aead_demo$(EXEXT): cipher/cipher_aead_demo.c $(DEP)
-	echo "  CC    cipher/cipher_aead_demo.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) cipher/cipher_aead_demo.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-hash/generic_sum$(EXEXT): hash/generic_sum.c $(DEP)
-	echo "  CC    hash/generic_sum.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) hash/generic_sum.c $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-hash/hello$(EXEXT): hash/hello.c $(DEP)
-	echo "  CC    hash/hello.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) hash/hello.c       $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-hash/md_hmac_demo$(EXEXT): hash/md_hmac_demo.c $(DEP)
-	echo "  CC    hash/md_hmac_demo.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) hash/md_hmac_demo.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-pkey/dh_genprime$(EXEXT): pkey/dh_genprime.c $(DEP)
-	echo "  CC    pkey/dh_genprime.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) pkey/dh_genprime.c $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-pkey/ecdh_curve25519$(EXEXT): pkey/ecdh_curve25519.c $(DEP)
-	echo "  CC    pkey/ecdh_curve25519.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) pkey/ecdh_curve25519.c   $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-pkey/ecdsa$(EXEXT): pkey/ecdsa.c $(DEP)
-	echo "  CC    pkey/ecdsa.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) pkey/ecdsa.c       $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
 pkey/gen_key$(EXEXT): pkey/gen_key.c $(DEP)
 	echo "  CC    pkey/gen_key.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) pkey/gen_key.c   $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-pkey/key_app$(EXEXT): pkey/key_app.c $(DEP)
-	echo "  CC    pkey/key_app.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) pkey/key_app.c   $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-pkey/key_app_writer$(EXEXT): pkey/key_app_writer.c $(DEP)
-	echo "  CC    pkey/key_app_writer.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) pkey/key_app_writer.c   $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-pkey/mpi_demo$(EXEXT): pkey/mpi_demo.c $(DEP)
-	echo "  CC    pkey/mpi_demo.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) pkey/mpi_demo.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-pkey/pk_decrypt$(EXEXT): pkey/pk_decrypt.c $(DEP)
-	echo "  CC    pkey/pk_decrypt.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) pkey/pk_decrypt.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-pkey/pk_encrypt$(EXEXT): pkey/pk_encrypt.c $(DEP)
-	echo "  CC    pkey/pk_encrypt.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) pkey/pk_encrypt.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 pkey/pk_sign$(EXEXT): pkey/pk_sign.c $(DEP)
 	echo "  CC    pkey/pk_sign.c"
@@ -219,18 +147,6 @@ pkey/pk_verify$(EXEXT): pkey/pk_verify.c $(DEP)
 	echo "  CC    pkey/pk_verify.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) pkey/pk_verify.c  $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
-pkey/rsa_genkey$(EXEXT): pkey/rsa_genkey.c $(DEP)
-	echo "  CC    pkey/rsa_genkey.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) pkey/rsa_genkey.c  $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-pkey/rsa_sign$(EXEXT): pkey/rsa_sign.c $(DEP)
-	echo "  CC    pkey/rsa_sign.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) pkey/rsa_sign.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-pkey/rsa_verify$(EXEXT): pkey/rsa_verify.c $(DEP)
-	echo "  CC    pkey/rsa_verify.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) pkey/rsa_verify.c  $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
 pkey/rsa_sign_pss$(EXEXT): pkey/rsa_sign_pss.c $(DEP)
 	echo "  CC    pkey/rsa_sign_pss.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) pkey/rsa_sign_pss.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
@@ -238,14 +154,6 @@ pkey/rsa_sign_pss$(EXEXT): pkey/rsa_sign_pss.c $(DEP)
 pkey/rsa_verify_pss$(EXEXT): pkey/rsa_verify_pss.c $(DEP)
 	echo "  CC    pkey/rsa_verify_pss.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) pkey/rsa_verify_pss.c  $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-pkey/rsa_decrypt$(EXEXT): pkey/rsa_decrypt.c $(DEP)
-	echo "  CC    pkey/rsa_decrypt.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) pkey/rsa_decrypt.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-pkey/rsa_encrypt$(EXEXT): pkey/rsa_encrypt.c $(DEP)
-	echo "  CC    pkey/rsa_encrypt.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) pkey/rsa_encrypt.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 ../tf-psa-crypto/programs/psa/aead_demo$(EXEXT): ../tf-psa-crypto/programs/psa/aead_demo.c $(DEP)
 	echo "  CC    psa/aead_demo.c"
@@ -270,14 +178,6 @@ pkey/rsa_encrypt$(EXEXT): pkey/rsa_encrypt.c $(DEP)
 ../tf-psa-crypto/programs/psa/psa_hash$(EXEXT): ../tf-psa-crypto/programs/psa/psa_hash.c $(DEP)
 	echo "  CC    psa/psa_hash.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) ../tf-psa-crypto/programs/psa/psa_hash.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-random/gen_entropy$(EXEXT): random/gen_entropy.c $(DEP)
-	echo "  CC    random/gen_entropy.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) random/gen_entropy.c $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-random/gen_random_ctr_drbg$(EXEXT): random/gen_random_ctr_drbg.c $(DEP)
-	echo "  CC    random/gen_random_ctr_drbg.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) random/gen_random_ctr_drbg.c $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 ssl/dtls_client$(EXEXT): ssl/dtls_client.c $(DEP)
 	echo "  CC    ssl/dtls_client.c"

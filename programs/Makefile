@@ -79,7 +79,6 @@ APPS = \
 	ssl/ssl_mail_client \
 	ssl/ssl_server \
 	ssl/ssl_server2 \
-	test/benchmark \
 	test/metatest \
 	test/query_compile_time_config \
 	test/query_included_headers \
@@ -344,10 +343,6 @@ ssl/ssl_mail_client$(EXEXT): ssl/ssl_mail_client.c $(DEP)
 ssl/mini_client$(EXEXT): ssl/mini_client.c $(DEP)
 	echo "  CC    ssl/mini_client.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) ssl/mini_client.c   $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-test/benchmark$(EXEXT): test/benchmark.c $(DEP)
-	echo "  CC    test/benchmark.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) test/benchmark.c   $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 test/cpp_dummy_build.cpp: test/generate_cpp_dummy_build.sh
 	echo "  Gen   test/cpp_dummy_build.cpp"

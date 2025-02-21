@@ -519,8 +519,8 @@ int mbedtls_x509_csr_parse_file(mbedtls_x509_csr *csr, const char *path)
 #endif /* MBEDTLS_FS_IO */
 
 #if !defined(MBEDTLS_X509_REMOVE_INFO)
-#define BEFORE_COLON    14
-#define BC              "14"
+#define MBEDTLS_BEFORE_COLON       14
+#define MBEDTLS_BEFORE_COLON_STR   "14"
 /*
  * Return an informational string about the CSR.
  */
@@ -530,7 +530,7 @@ int mbedtls_x509_csr_info(char *buf, size_t size, const char *prefix,
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t n;
     char *p;
-    char key_size_str[BEFORE_COLON];
+    char key_size_str[MBEDTLS_BEFORE_COLON];
 
     p = buf;
     n = size;
@@ -551,13 +551,13 @@ int mbedtls_x509_csr_info(char *buf, size_t size, const char *prefix,
                                     csr->sig_opts);
     MBEDTLS_X509_SAFE_SNPRINTF;
 
-    if ((ret = mbedtls_x509_key_size_helper(key_size_str, BEFORE_COLON,
+    if ((ret = mbedtls_x509_key_size_helper(key_size_str, MBEDTLS_BEFORE_COLON,
                                             mbedtls_pk_get_name(&csr->pk))) != 0) {
         return ret;
     }
 
-    ret = mbedtls_snprintf(p, n, "\n%s%-" BC "s: %d bits\n", prefix, key_size_str,
-                           (int) mbedtls_pk_get_bitlen(&csr->pk));
+    ret = mbedtls_snprintf(p, n, "\n%s%-" MBEDTLS_BEFORE_COLON_STR "s: %d bits\n",
+                           prefix, key_size_str, (int) mbedtls_pk_get_bitlen(&csr->pk));
     MBEDTLS_X509_SAFE_SNPRINTF;
 
     /*

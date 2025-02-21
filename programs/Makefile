@@ -1,4 +1,5 @@
 MBEDTLS_TEST_PATH = ../tests
+FRAMEWORK = ${MBEDTLS_PATH}/framework
 include ../scripts/common.make
 
 ifeq ($(shell uname -s),Linux)
@@ -23,6 +24,8 @@ BUILD_DLOPEN = y
 else
 BUILD_DLOPEN =
 endif
+
+LOCAL_CFLAGS += -I$(FRAMEWORK)/tests/programs
 
 ## The following assignment is the list of base names of applications that
 ## will be built on Windows. Extra Linux/Unix/POSIX-only applications can
@@ -298,7 +301,7 @@ ssl/ssl_client1$(EXEXT): ssl/ssl_client1.c $(DEP)
 
 SSL_TEST_OBJECTS = test/query_config.o ssl/ssl_test_lib.o
 SSL_TEST_DEPS = $(SSL_TEST_OBJECTS) \
-		test/query_config.h \
+		$(FRAMEWORK)/tests/programs/query_config.h \
 		ssl/ssl_test_lib.h \
 		ssl/ssl_test_common_source.c \
 		$(DEP)
@@ -319,7 +322,7 @@ ssl/ssl_server2$(EXEXT): ssl/ssl_server2.c $(SSL_TEST_DEPS)
 	echo "  CC    ssl/ssl_server2.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) ssl/ssl_server2.c $(SSL_TEST_OBJECTS) $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
-ssl/ssl_context_info$(EXEXT): ssl/ssl_context_info.c test/query_config.o test/query_config.h $(DEP)
+ssl/ssl_context_info$(EXEXT): ssl/ssl_context_info.c test/query_config.o $(FRAMEWORK)/tests/programs/query_config.h $(DEP)
 	echo "  CC    ssl/ssl_context_info.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) ssl/ssl_context_info.c test/query_config.o $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
@@ -360,17 +363,17 @@ test/dlopen$(EXEXT): test/dlopen.c $(DEP)
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) test/dlopen.c $(LDFLAGS) $(DLOPEN_LDFLAGS) -o $@
 endif
 
-test/metatest$(EXEXT): test/metatest.c $(DEP)
-	echo "  CC    test/metatest.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) -I ../library test/metatest.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+test/metatest$(EXEXT): $(FRAMEWORK)/tests/programs/metatest.c $(DEP)
+	echo "  CC    $(FRAMEWORK)/tests/programs/metatest.c"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) -I ../library $(FRAMEWORK)/tests/programs/metatest.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
-test/query_config.o: test/query_config.c test/query_config.h $(DEP)
-	echo "  CC    test/query_config.c"
+test/query_config.o: test/query_config.c $(FRAMEWORK)/tests/programs/query_config.h $(DEP)
+	echo "  CC    $(FRAMEWORK)/tests/programs/query_config.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) -c test/query_config.c -o $@
 
-test/query_included_headers$(EXEXT): test/query_included_headers.c $(DEP)
-	echo "  CC    test/query_included_headers.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) test/query_included_headers.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+test/query_included_headers$(EXEXT): $(FRAMEWORK)/tests/programs/query_included_headers.c $(DEP)
+	echo "  CC    $(FRAMEWORK)/tests/programs/query_included_headers.c"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $(FRAMEWORK)/tests/programs/query_included_headers.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 test/selftest$(EXEXT): test/selftest.c $(DEP)
 	echo "  CC    test/selftest.c"
@@ -380,13 +383,13 @@ test/udp_proxy$(EXEXT): test/udp_proxy.c $(DEP)
 	echo "  CC    test/udp_proxy.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) test/udp_proxy.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
-test/zeroize$(EXEXT): test/zeroize.c $(DEP)
-	echo "  CC    test/zeroize.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) test/zeroize.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+test/zeroize$(EXEXT): $(FRAMEWORK)/tests/programs/zeroize.c $(DEP)
+	echo "  CC    $(FRAMEWORK)/tests/programs/zeroize.c"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $(FRAMEWORK)/tests/programs/zeroize.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
-test/query_compile_time_config$(EXEXT): test/query_compile_time_config.c test/query_config.o test/query_config.h $(DEP)
-	echo "  CC    test/query_compile_time_config.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) test/query_compile_time_config.c test/query_config.o $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+test/query_compile_time_config$(EXEXT): $(FRAMEWORK)/tests/programs/query_compile_time_config.c test/query_config.o $(FRAMEWORK)/tests/programs/query_config.h $(DEP)
+	echo "  CC    $(FRAMEWORK)/tests/programs/query_compile_time_config.c"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $(FRAMEWORK)/tests/programs/query_compile_time_config.c test/query_config.o $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 util/pem2der$(EXEXT): util/pem2der.c $(DEP)
 	echo "  CC    util/pem2der.c"

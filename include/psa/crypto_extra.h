@@ -595,15 +595,18 @@ psa_status_t mbedtls_psa_platform_get_builtin_key(
  * @{
  */
 
-/**
- * Tell if PSA is ready for this hash.
+/** Check if PSA is capable of handling the specified hash algorithm.
  *
- * \note            For now, only checks the state of the driver subsystem,
- *                  not the algorithm. Might do more in the future.
+ * This means that PSA core was built with the corresponding PSA_WANT_ALG_xxx
+ * set and that psa_crypto_init has already been called.
  *
- * \param hash_alg  The hash algorithm (ignored for now).
+ * \note When using Mbed TLS version of PSA core (i.e. MBEDTLS_PSA_CRYPTO_C is
+ *       set) for now this function only checks the state of the driver
+ *       subsystem, not the algorithm. This might be improved in the future.
  *
- * \return 1 if the driver subsytem is ready, 0 otherwise.
+ * \param hash_alg  The hash algorithm.
+ *
+ * \return 1 if the PSA can handle \p hash_alg, 0 otherwise.
  */
 int psa_can_do_hash(psa_algorithm_t hash_alg);
 

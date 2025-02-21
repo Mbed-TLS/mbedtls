@@ -583,6 +583,32 @@ psa_status_t mbedtls_psa_platform_get_builtin_key(
 
 /** @} */
 
+/** \defgroup psa_crypto_client Functions defined by a client provider
+ *
+ * The functions in this group are meant to be implemented by providers of
+ * the PSA Crypto client interface. They are provided by the library when
+ * #MBEDTLS_PSA_CRYPTO_C is enabled.
+ *
+ * \note All functions in this group are experimental, as using
+ *       alternative client interface providers is experimental.
+ *
+ * @{
+ */
+
+/**
+ * Tell if PSA is ready for this hash.
+ *
+ * \note            For now, only checks the state of the driver subsystem,
+ *                  not the algorithm. Might do more in the future.
+ *
+ * \param hash_alg  The hash algorithm (ignored for now).
+ *
+ * \return 1 if the driver subsytem is ready, 0 otherwise.
+ */
+int psa_can_do_hash(psa_algorithm_t hash_alg);
+
+/**@}*/
+
 /** \addtogroup crypto_types
  * @{
  */

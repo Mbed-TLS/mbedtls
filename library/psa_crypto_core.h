@@ -25,18 +25,6 @@
 #endif
 
 /**
- * Tell if PSA is ready for this hash.
- *
- * \note            For now, only checks the state of the driver subsystem,
- *                  not the algorithm. Might do more in the future.
- *
- * \param hash_alg  The hash algorithm (ignored for now).
- *
- * \return 1 if the driver subsytem is ready, 0 otherwise.
- */
-int psa_can_do_hash(psa_algorithm_t hash_alg);
-
-/**
  * Tell if PSA is ready for this cipher.
  *
  * \note            For now, only checks the state of the driver subsystem,

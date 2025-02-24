@@ -5014,7 +5014,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:MBEDTLS_DEBUG_C */
 void inject_client_content_on_the_wire(int pk_alg,
                                        int state, data_t *data,
                                        char *log_pattern, int expected_ret)

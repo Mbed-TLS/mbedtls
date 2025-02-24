@@ -1,0 +1,5 @@
+Bugfix
+   * Support re-assembly of fragmented handshake messages in TLS, as mandated
+     by the spec. Lack of support was causing handshake failures with some
+     servers, especially with TLS 1.3 in practice (though both protocol
+     version could be affected in principle, and both are fixed now).

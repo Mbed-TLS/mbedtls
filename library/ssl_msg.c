@@ -3127,8 +3127,8 @@ int mbedtls_ssl_prepare_handshake_record(mbedtls_ssl_context *ssl)
                                    MBEDTLS_PRINTF_SIZET " from %p to %p (buf=%p len=%"
                                    MBEDTLS_PRINTF_SIZET ")",
                                    ssl->in_msglen,
-                                   ssl->in_msg, payload_end,
-                                   ssl->in_buf, in_buf_len));
+                                   (void *) ssl->in_msg, (void *) payload_end,
+                                   (void *) ssl->in_buf, in_buf_len));
             return MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
         }
         memmove(payload_end, ssl->in_msg, ssl->in_msglen);

@@ -201,8 +201,7 @@ typedef enum {
 } mbedtls_key_exchange_type_t;
 
 /* Key exchanges using a certificate */
-#if defined(MBEDTLS_KEY_EXCHANGE_RSA_ENABLED)           || \
-    defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED)     || \
+#if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED)     || \
     defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)   || \
     defined(MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED)      || \
     defined(MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED)
@@ -260,8 +259,7 @@ typedef enum {
 #endif
 
 /* Key exchanges that don't involve ephemeral keys */
-#if defined(MBEDTLS_KEY_EXCHANGE_RSA_ENABLED)           || \
-    defined(MBEDTLS_KEY_EXCHANGE_PSK_ENABLED)           || \
+#if defined(MBEDTLS_KEY_EXCHANGE_PSK_ENABLED)           || \
     defined(MBEDTLS_KEY_EXCHANGE_SOME_ECDH_ENABLED)
 #define MBEDTLS_KEY_EXCHANGE_SOME_NON_PFS_ENABLED
 #endif

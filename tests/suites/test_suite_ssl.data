@@ -613,39 +613,51 @@ DTLS serialization with MFL=4096
 resize_buffers_serialize_mfl:MBEDTLS_SSL_MAX_FRAG_LEN_4096
 
 DTLS no legacy renegotiation with MFL=512
+depends_on:MBEDTLS_PKCS1_V15:MBEDTLS_CAN_HANDLE_RSA_TEST_KEY
 resize_buffers_renegotiate_mfl:MBEDTLS_SSL_MAX_FRAG_LEN_512:MBEDTLS_SSL_LEGACY_NO_RENEGOTIATION:""
 
 DTLS no legacy renegotiation with MFL=1024
+depends_on:MBEDTLS_PKCS1_V15:MBEDTLS_CAN_HANDLE_RSA_TEST_KEY
 resize_buffers_renegotiate_mfl:MBEDTLS_SSL_MAX_FRAG_LEN_1024:MBEDTLS_SSL_LEGACY_NO_RENEGOTIATION:""
 
 DTLS no legacy renegotiation with MFL=2048
+depends_on:MBEDTLS_PKCS1_V15:MBEDTLS_CAN_HANDLE_RSA_TEST_KEY
 resize_buffers_renegotiate_mfl:MBEDTLS_SSL_MAX_FRAG_LEN_2048:MBEDTLS_SSL_LEGACY_NO_RENEGOTIATION:""
 
 DTLS no legacy renegotiation with MFL=4096
+depends_on:MBEDTLS_PKCS1_V15:MBEDTLS_CAN_HANDLE_RSA_TEST_KEY
 resize_buffers_renegotiate_mfl:MBEDTLS_SSL_MAX_FRAG_LEN_4096:MBEDTLS_SSL_LEGACY_NO_RENEGOTIATION:""
 
 DTLS legacy allow renegotiation with MFL=512
+depends_on:MBEDTLS_PKCS1_V15:MBEDTLS_CAN_HANDLE_RSA_TEST_KEY
 resize_buffers_renegotiate_mfl:MBEDTLS_SSL_MAX_FRAG_LEN_512:MBEDTLS_SSL_LEGACY_ALLOW_RENEGOTIATION:""
 
 DTLS legacy allow renegotiation with MFL=1024
+depends_on:MBEDTLS_PKCS1_V15:MBEDTLS_CAN_HANDLE_RSA_TEST_KEY
 resize_buffers_renegotiate_mfl:MBEDTLS_SSL_MAX_FRAG_LEN_1024:MBEDTLS_SSL_LEGACY_ALLOW_RENEGOTIATION:""
 
 DTLS legacy allow renegotiation with MFL=2048
+depends_on:MBEDTLS_PKCS1_V15:MBEDTLS_CAN_HANDLE_RSA_TEST_KEY
 resize_buffers_renegotiate_mfl:MBEDTLS_SSL_MAX_FRAG_LEN_2048:MBEDTLS_SSL_LEGACY_ALLOW_RENEGOTIATION:""
 
 DTLS legacy allow renegotiation with MFL=4096
+depends_on:MBEDTLS_PKCS1_V15:MBEDTLS_CAN_HANDLE_RSA_TEST_KEY
 resize_buffers_renegotiate_mfl:MBEDTLS_SSL_MAX_FRAG_LEN_4096:MBEDTLS_SSL_LEGACY_ALLOW_RENEGOTIATION:""
 
 DTLS legacy break handshake renegotiation with MFL=512
+depends_on:MBEDTLS_PKCS1_V15:MBEDTLS_CAN_HANDLE_RSA_TEST_KEY
 resize_buffers_renegotiate_mfl:MBEDTLS_SSL_MAX_FRAG_LEN_512:MBEDTLS_SSL_LEGACY_BREAK_HANDSHAKE:""
 
 DTLS legacy break handshake renegotiation with MFL=1024
+depends_on:MBEDTLS_PKCS1_V15:MBEDTLS_CAN_HANDLE_RSA_TEST_KEY
 resize_buffers_renegotiate_mfl:MBEDTLS_SSL_MAX_FRAG_LEN_1024:MBEDTLS_SSL_LEGACY_BREAK_HANDSHAKE:""
 
 DTLS legacy break handshake renegotiation with MFL=2048
+depends_on:MBEDTLS_PKCS1_V15:MBEDTLS_CAN_HANDLE_RSA_TEST_KEY
 resize_buffers_renegotiate_mfl:MBEDTLS_SSL_MAX_FRAG_LEN_2048:MBEDTLS_SSL_LEGACY_BREAK_HANDSHAKE:""
 
 DTLS legacy break handshake renegotiation with MFL=4096
+depends_on:MBEDTLS_PKCS1_V15:MBEDTLS_CAN_HANDLE_RSA_TEST_KEY
 resize_buffers_renegotiate_mfl:MBEDTLS_SSL_MAX_FRAG_LEN_4096:MBEDTLS_SSL_LEGACY_BREAK_HANDSHAKE:""
 
 DTLS no legacy renegotiation with MFL=512, ECDHE-RSA-WITH-AES-256-GCM-SHA384

@@ -2825,7 +2825,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:MBEDTLS_PKCS1_V15:MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_RSA_C:PSA_WANT_ECC_SECP_R1_384:PSA_WANT_ALG_SHA_256 */
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH:MBEDTLS_SSL_PROTO_TLS1_2:PSA_WANT_ECC_SECP_R1_384:PSA_WANT_ALG_SHA_256 */
 void resize_buffers(int mfl, int renegotiation, int legacy_renegotiation,
                     int serialize, int dtls, char *cipher)
 {
@@ -2842,6 +2842,12 @@ void resize_buffers(int mfl, int renegotiation, int legacy_renegotiation,
         options.expected_negotiated_version = MBEDTLS_SSL_VERSION_TLS1_2;
     }
     options.resize_buffers = 1;
+
+    const mbedtls_ssl_ciphersuite_t *ciphersuite =
+        mbedtls_ssl_ciphersuite_from_string(cipher);
+    if (ciphersuite != NULL) {
+        options.pk_alg = mbedtls_ssl_get_ciphersuite_sig_pk_alg(ciphersuite);
+    }
 
     mbedtls_test_ssl_perform_handshake(&options);
 
@@ -2862,7 +2868,7 @@ void resize_buffers_serialize_mfl(int mfl)
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:!MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_PKCS1_V15:MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH:MBEDTLS_SSL_RENEGOTIATION:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_RSA_C:PSA_WANT_ECC_SECP_R1_384:PSA_WANT_ALG_SHA_256:MBEDTLS_CAN_HANDLE_RSA_TEST_KEY */
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:!MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH:MBEDTLS_SSL_RENEGOTIATION:MBEDTLS_SSL_PROTO_TLS1_2:PSA_WANT_ECC_SECP_R1_384:PSA_WANT_ALG_SHA_256 */
 void resize_buffers_renegotiate_mfl(int mfl, int legacy_renegotiation,
                                     char *cipher)
 {

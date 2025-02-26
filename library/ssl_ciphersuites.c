@@ -1220,7 +1220,6 @@ size_t mbedtls_ssl_ciphersuite_get_cipher_key_bitlen(const mbedtls_ssl_ciphersui
 mbedtls_pk_type_t mbedtls_ssl_get_ciphersuite_sig_pk_alg(const mbedtls_ssl_ciphersuite_t *info)
 {
     switch (info->key_exchange) {
-        case MBEDTLS_KEY_EXCHANGE_RSA:
         case MBEDTLS_KEY_EXCHANGE_ECDHE_RSA:
             return MBEDTLS_PK_RSA;
 
@@ -1239,8 +1238,6 @@ mbedtls_pk_type_t mbedtls_ssl_get_ciphersuite_sig_pk_alg(const mbedtls_ssl_ciphe
 psa_algorithm_t mbedtls_ssl_get_ciphersuite_sig_pk_psa_alg(const mbedtls_ssl_ciphersuite_t *info)
 {
     switch (info->key_exchange) {
-        case MBEDTLS_KEY_EXCHANGE_RSA:
-            return PSA_ALG_RSA_PKCS1V15_CRYPT;
         case MBEDTLS_KEY_EXCHANGE_ECDHE_RSA:
             return PSA_ALG_RSA_PKCS1V15_SIGN(
                 mbedtls_md_psa_alg_from_type((mbedtls_md_type_t) info->mac));
@@ -1260,8 +1257,6 @@ psa_algorithm_t mbedtls_ssl_get_ciphersuite_sig_pk_psa_alg(const mbedtls_ssl_cip
 psa_key_usage_t mbedtls_ssl_get_ciphersuite_sig_pk_psa_usage(const mbedtls_ssl_ciphersuite_t *info)
 {
     switch (info->key_exchange) {
-        case MBEDTLS_KEY_EXCHANGE_RSA:
-            return PSA_KEY_USAGE_DECRYPT;
         case MBEDTLS_KEY_EXCHANGE_ECDHE_RSA:
         case MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA:
             return PSA_KEY_USAGE_SIGN_HASH;

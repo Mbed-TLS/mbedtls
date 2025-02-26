@@ -8708,10 +8708,6 @@ int mbedtls_ssl_check_cert_usage(const mbedtls_x509_crt *cert,
         recv_endpoint == MBEDTLS_SSL_IS_CLIENT) {
         /* TLS 1.2 server part of the key exchange */
         switch (ciphersuite->key_exchange) {
-            case MBEDTLS_KEY_EXCHANGE_RSA:
-                usage = MBEDTLS_X509_KU_KEY_ENCIPHERMENT;
-                break;
-
             case MBEDTLS_KEY_EXCHANGE_ECDHE_RSA:
             case MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA:
                 usage = MBEDTLS_X509_KU_DIGITAL_SIGNATURE;

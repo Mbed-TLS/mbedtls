@@ -14118,7 +14118,6 @@ run_test    "Handshake defragmentation on client: len=4, TLS 1.2" \
             -c "waiting for more fragments (4"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_certificate_authentication
 run_test    "Handshake defragmentation on client: len=3, TLS 1.3" \
             "$O_NEXT_SRV -tls1_3 -split_send_frag 3 " \
             "$P_CLI debug_level=4 " \
@@ -14128,8 +14127,6 @@ run_test    "Handshake defragmentation on client: len=3, TLS 1.3" \
             -c "SSL - An invalid SSL record was received"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_certificate_authentication
-requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
 run_test    "Handshake defragmentation on client: len=3, TLS 1.2" \
             "$O_NEXT_SRV -tls1_2 -split_send_frag 3 " \
             "$P_CLI debug_level=4 " \
@@ -14397,7 +14394,6 @@ run_test    "Handshake defragmentation on server: len=3, TLS 1.3 ClientHello -> 
             -s "SSL - An invalid SSL record was received"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_certificate_authentication
 run_test    "Handshake defragmentation on server: len=32, TLS 1.2 ClientHello" \
             "$P_SRV debug_level=4 force_version=tls12 auth_mode=required" \

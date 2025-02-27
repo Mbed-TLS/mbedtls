@@ -277,6 +277,10 @@ component_full_without_ecdhe_ecdsa_and_tls13 () {
                                              MBEDTLS_SSL_PROTO_TLS1_3"
 }
 
+component_full_without_tls13 () {
+    build_full_minus_something_and_test_tls "MBEDTLS_SSL_PROTO_TLS1_3"
+}
+
 component_build_no_ssl_srv () {
     msg "build: full config except SSL server, make, gcc" # ~ 30s
     scripts/config.py full

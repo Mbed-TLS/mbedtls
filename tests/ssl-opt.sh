@@ -13877,7 +13877,6 @@ run_test    "TLS 1.2 ClientHello indicating support for deflate compression meth
 # To guarantee that the handhake messages are large enough and need to be split
 # into fragments, the tests require certificate authentication. The party in control
 # of the fragmentation operations is OpenSSL and will always use server5.crt (548 Bytes).
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_certificate_authentication
 run_test    "Handshake defragmentation on client (no fragmentation, for reference)" \
             "$O_NEXT_SRV" \
@@ -14138,14 +14137,13 @@ run_test    "Handshake defragmentation on client: len=3, TLS 1.2" \
             -c "handshake message too short: 3" \
             -c "SSL - An invalid SSL record was received"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_certificate_authentication
 run_test    "Handshake defragmentation on server (no fragmentation, for reference)." \
             "$P_SRV debug_level=4 auth_mode=required" \
             "$O_NEXT_CLI -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key" \
             0 \
-            -C "reassembled record" \
-            -C "waiting for more fragments"
+            -S "reassembled record" \
+            -S "waiting for more fragments"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_certificate_authentication

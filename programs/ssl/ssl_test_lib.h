@@ -202,7 +202,6 @@ int rng_get(void *p_rng, unsigned char *output, size_t output_len);
  *                      Coma-separated pair of values among the following:
  *                      - "rsa-sign-pkcs1"
  *                      - "rsa-sign-pss"
- *                      - "rsa-decrypt"
  *                      - "ecdsa-sign"
  *                      - "ecdh"
  *                      - "none" (only acceptable for the second value).

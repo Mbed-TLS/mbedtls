@@ -999,71 +999,6 @@ typedef int mbedtls_ssl_async_sign_t(mbedtls_ssl_context *ssl,
                                      mbedtls_md_type_t md_alg,
                                      const unsigned char *hash,
                                      size_t hash_len);
-
-/**
- * \brief           Callback type: start external decryption operation.
- *
- *                  This callback is called during an SSL handshake to start
- *                  an RSA decryption operation using an
- *                  external processor. The parameter \p cert contains
- *                  the public key; it is up to the callback function to
- *                  determine how to access the associated private key.
- *
- *                  This function typically sends or enqueues a request, and
- *                  does not wait for the operation to complete. This allows
- *                  the handshake step to be non-blocking.
- *
- *                  The parameters \p ssl and \p cert are guaranteed to remain
- *                  valid throughout the handshake. On the other hand, this
- *                  function must save the contents of \p input if the value
- *                  is needed for later processing, because the \p input buffer
- *                  is no longer valid after this function returns.
- *
- *                  This function may call mbedtls_ssl_set_async_operation_data()
- *                  to store an operation context for later retrieval
- *                  by the resume or cancel callback.
- *
- * \warning         RSA decryption as used in TLS is subject to a potential
- *                  timing side channel attack first discovered by Bleichenbacher
- *                  in 1998. This attack can be remotely exploitable
- *                  in practice. To avoid this attack, you must ensure that
- *                  if the callback performs an RSA decryption, the time it
- *                  takes to execute and return the result does not depend
- *                  on whether the RSA decryption succeeded or reported
- *                  invalid padding.
- *
- * \param ssl             The SSL connection instance. It should not be
- *                        modified other than via
- *                        mbedtls_ssl_set_async_operation_data().
- * \param cert            Certificate containing the public key.
- *                        In simple cases, this is one of the pointers passed to
- *                        mbedtls_ssl_conf_own_cert() when configuring the SSL
- *                        connection. However, if other callbacks are used, this
- *                        property may not hold. For example, if an SNI callback
- *                        is registered with mbedtls_ssl_conf_sni(), then
- *                        this callback determines what certificate is used.
- * \param input           Buffer containing the input ciphertext. This buffer
- *                        is no longer valid when the function returns.
- * \param input_len       Size of the \p input buffer in bytes.
- *
- * \return          0 if the operation was started successfully and the SSL
- *                  stack should call the resume callback immediately.
- * \return          #MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS if the operation
- *                  was started successfully and the SSL stack should return
- *                  immediately without calling the resume callback yet.
- * \return          #MBEDTLS_ERR_SSL_HW_ACCEL_FALLTHROUGH if the external
- *                  processor does not support this key. The SSL stack will
- *                  use the private key object instead.
- * \return          Any other error indicates a fatal failure and is
- *                  propagated up the call chain. The callback should
- *                  use \c MBEDTLS_ERR_PK_xxx error codes, and <b>must not</b>
- *                  use \c MBEDTLS_ERR_SSL_xxx error codes except as
- *                  directed in the documentation of this callback.
- */
-typedef int mbedtls_ssl_async_decrypt_t(mbedtls_ssl_context *ssl,
-                                        mbedtls_x509_crt *cert,
-                                        const unsigned char *input,
-                                        size_t input_len);
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
 /**
@@ -1071,8 +1006,7 @@ typedef int mbedtls_ssl_async_decrypt_t(mbedtls_ssl_context *ssl,
  *
  *                  This callback is called during an SSL handshake to resume
  *                  an external operation started by the
- *                  ::mbedtls_ssl_async_sign_t or
- *                  ::mbedtls_ssl_async_decrypt_t callback.
+ *                  ::mbedtls_ssl_async_sign_t callback.
  *
  *                  This function typically checks the status of a pending
  *                  request or causes the request queue to make progress, and
@@ -1538,7 +1472,6 @@ struct mbedtls_ssl_config {
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
     mbedtls_ssl_async_sign_t *MBEDTLS_PRIVATE(f_async_sign_start); /*!< start asynchronous signature operation */
-    mbedtls_ssl_async_decrypt_t *MBEDTLS_PRIVATE(f_async_decrypt_start); /*!< start asynchronous decryption operation */
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
     mbedtls_ssl_async_resume_t *MBEDTLS_PRIVATE(f_async_resume); /*!< resume asynchronous operation */
     mbedtls_ssl_async_cancel_t *MBEDTLS_PRIVATE(f_async_cancel); /*!< cancel asynchronous operation */
@@ -2854,17 +2787,10 @@ static inline uintptr_t mbedtls_ssl_get_user_data_n(
  *                          external processor does not support any signature
  *                          operation; in this case the private key object
  *                          associated with the certificate will be used.
- * \param f_async_decrypt   Callback to start a decryption operation. See
- *                          the description of ::mbedtls_ssl_async_decrypt_t
- *                          for more information. This may be \c NULL if the
- *                          external processor does not support any decryption
- *                          operation; in this case the private key object
- *                          associated with the certificate will be used.
  * \param f_async_resume    Callback to resume an asynchronous operation. See
  *                          the description of ::mbedtls_ssl_async_resume_t
  *                          for more information. This may not be \c NULL unless
- *                          \p f_async_sign and \p f_async_decrypt are both
- *                          \c NULL.
+ *                          \p f_async_sign is \c NULL.
  * \param f_async_cancel    Callback to cancel an asynchronous operation. See
  *                          the description of ::mbedtls_ssl_async_cancel_t
  *                          for more information. This may be \c NULL if
@@ -2876,7 +2802,6 @@ static inline uintptr_t mbedtls_ssl_get_user_data_n(
  */
 void mbedtls_ssl_conf_async_private_cb(mbedtls_ssl_config *conf,
                                        mbedtls_ssl_async_sign_t *f_async_sign,
-                                       mbedtls_ssl_async_decrypt_t *f_async_decrypt,
                                        mbedtls_ssl_async_resume_t *f_async_resume,
                                        mbedtls_ssl_async_cancel_t *f_async_cancel,
                                        void *config_data);

@@ -693,7 +693,6 @@ static int ssl_pick_cert(mbedtls_ssl_context *ssl,
         int key_type_matches = 0;
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
         key_type_matches = ((ssl->conf->f_async_sign_start != NULL ||
-                             ssl->conf->f_async_decrypt_start != NULL ||
                              mbedtls_pk_can_do_ext(cur->key, pk_alg, pk_usage)) &&
                             mbedtls_pk_can_do_ext(&cur->cert->pk, pk_alg, pk_usage));
 #else

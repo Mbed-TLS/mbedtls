@@ -2737,13 +2737,11 @@ void mbedtls_ssl_set_export_keys_cb(mbedtls_ssl_context *ssl,
 void mbedtls_ssl_conf_async_private_cb(
     mbedtls_ssl_config *conf,
     mbedtls_ssl_async_sign_t *f_async_sign,
-    mbedtls_ssl_async_decrypt_t *f_async_decrypt,
     mbedtls_ssl_async_resume_t *f_async_resume,
     mbedtls_ssl_async_cancel_t *f_async_cancel,
     void *async_config_data)
 {
     conf->f_async_sign_start = f_async_sign;
-    conf->f_async_decrypt_start = f_async_decrypt;
     conf->f_async_resume = f_async_resume;
     conf->f_async_cancel = f_async_cancel;
     conf->p_async_config_data = async_config_data;

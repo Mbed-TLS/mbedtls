@@ -14118,6 +14118,7 @@ run_test    "Handshake defragmentation on client: len=4, TLS 1.2" \
             -c "waiting for more fragments (4"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_certificate_authentication
 run_test    "Handshake defragmentation on client: len=3, TLS 1.3" \
             "$O_NEXT_SRV -tls1_3 -split_send_frag 3 " \
             "$P_CLI debug_level=4 " \

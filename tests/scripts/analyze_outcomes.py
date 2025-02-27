@@ -50,6 +50,11 @@ class CoverageTask(outcome_analysis.CoverageTask):
             # TLS doesn't use restartable ECDH yet.
             # https://github.com/Mbed-TLS/mbedtls/issues/7294
             re.compile(r'EC restart:.*no USE_PSA.*'),
+            # Temporary disable Handshake defragmentation tests until mbedtls
+            # pr #10011 has been merged.
+            'Handshake defragmentation on client: len=4, TLS 1.2',
+            'Handshake defragmentation on client: len=5, TLS 1.2',
+            'Handshake defragmentation on client: len=13, TLS 1.2'
         ],
         'test_suite_config.mbedtls_boolean': [
             # Missing coverage of test configurations.

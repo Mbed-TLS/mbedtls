@@ -2982,6 +2982,14 @@ int mbedtls_ssl_prepare_handshake_record(mbedtls_ssl_context *ssl)
                               MBEDTLS_PRINTF_SIZET,
                               ssl->in_msglen, ssl->in_msg[0], ssl->in_hslen));
 
+    if (ssl->transform_in != NULL) {
+        MBEDTLS_SSL_DEBUG_MSG(4, ("decrypted handshake message:"
+                                  " iv-buf=%d hdr-buf=%d hdr-buf=%d",
+                                  (int) (ssl->in_iv - ssl->in_buf),
+                                  (int) (ssl->in_hdr - ssl->in_buf),
+                                  (int) (ssl->in_msg - ssl->in_buf)));
+    }
+
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     if (ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM) {
         int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;

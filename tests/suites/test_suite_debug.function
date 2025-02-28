@@ -9,6 +9,7 @@ struct buffer_data {
     char *ptr;
 };
 
+#if defined(MBEDTLS_SSL_TLS_C)
 static void string_debug(void *data, int level, const char *file, int line, const char *str)
 {
     struct buffer_data *buffer = (struct buffer_data *) data;
@@ -44,14 +45,15 @@ static void string_debug(void *data, int level, const char *file, int line, cons
 
     buffer->ptr = p;
 }
+#endif /* MBEDTLS_SSL_TLS_C */
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
- * depends_on:MBEDTLS_DEBUG_C:MBEDTLS_SSL_TLS_C
+ * depends_on:MBEDTLS_DEBUG_C
  * END_DEPENDENCIES
  */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_TLS_C */
 void debug_print_msg_threshold(int threshold, int level, char *file,
                                int line, char *result_str)
 {
@@ -89,7 +91,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_TLS_C */
 void mbedtls_debug_print_ret(char *file, int line, char *text, int value,
                              char *result_str)
 {
@@ -124,7 +126,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_TLS_C */
 void mbedtls_debug_print_buf(char *file, int line, char *text,
                              data_t *data, char *result_str)
 {
@@ -159,7 +161,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_FS_IO:MBEDTLS_X509_CRT_PARSE_C:!MBEDTLS_X509_REMOVE_INFO */
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_TLS_C:MBEDTLS_FS_IO:MBEDTLS_X509_CRT_PARSE_C:!MBEDTLS_X509_REMOVE_INFO */
 void mbedtls_debug_print_crt(char *crt_file, char *file, int line,
                              char *prefix, char *result_str)
 {
@@ -199,7 +201,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_BIGNUM_C */
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_TLS_C:MBEDTLS_BIGNUM_C */
 void mbedtls_debug_print_mpi(char *value, char *file, int line,
                              char *prefix, char *result_str)
 {

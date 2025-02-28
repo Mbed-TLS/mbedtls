@@ -460,6 +460,7 @@ class DriverVSReference_ecc_no_bignum(outcome_analysis.DriverVSReference):
         ],
         'test_suite_asn1parse': [
             'INTEGER too large for mpi',
+            re.compile(r'Parse integer raw,.*'),
         ],
         'test_suite_asn1write': [
             re.compile(r'ASN.1 Write mpi.*'),
@@ -504,6 +505,7 @@ class DriverVSReference_ecc_ffdh_no_bignum(outcome_analysis.DriverVSReference):
         ],
         'test_suite_asn1parse': [
             'INTEGER too large for mpi',
+            re.compile(r'Parse integer raw,.*'),
         ],
         'test_suite_asn1write': [
             re.compile(r'ASN.1 Write mpi.*'),

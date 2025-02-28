@@ -53,6 +53,34 @@ static void string_debug(void *data, int level, const char *file, int line, cons
  * END_DEPENDENCIES
  */
 
+/* BEGIN_CASE */
+void printf_int_expr(intmax_t smuggle_format_expr, /* TODO: teach test framework about string expressions */
+                     intmax_t sizeof_x, intmax_t x, char *result)
+{
+    const char *format = (char *) ((uintptr_t) smuggle_format_expr);
+    char *output = NULL;
+    const size_t n = strlen(result);
+
+    /* Nominal case: buffer just large enough */
+    TEST_CALLOC(output, n + 1);
+    if ((size_t) sizeof_x <= sizeof(int)) { // Any smaller integers would be promoted to an int due to calling a vararg function
+        TEST_EQUAL(n, mbedtls_snprintf(output, n + 1, format, (int) x));
+    } else if (sizeof_x == sizeof(long)) {
+        TEST_EQUAL(n, mbedtls_snprintf(output, n + 1, format, (long) x));
+    } else if (sizeof_x == sizeof(long long)) {
+        TEST_EQUAL(n, mbedtls_snprintf(output, n + 1, format, (long long) x));
+    } else {
+        TEST_FAIL(
+            "sizeof_x <= sizeof(int) || sizeof_x == sizeof(long) || sizeof_x == sizeof(long long)");
+    }
+    TEST_MEMORY_COMPARE(result, n + 1, output, n + 1);
+
+exit:
+    mbedtls_free(output);
+    output = NULL;
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:MBEDTLS_SSL_TLS_C */
 void debug_print_msg_threshold(int threshold, int level, char *file,
                                int line, char *result_str)

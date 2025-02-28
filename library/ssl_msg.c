@@ -3320,6 +3320,9 @@ int mbedtls_ssl_prepare_handshake_record(mbedtls_ssl_context *ssl)
             ssl->in_hdr = ssl->in_msg + ssl->in_msglen;
             ssl->in_msglen = 0;
             mbedtls_ssl_update_in_pointers(ssl);
+            MBEDTLS_SSL_DEBUG_MSG(3, ("Prepare: waiting for more handshake fragments "
+                                      "%u/%" MBEDTLS_PRINTF_SIZET,
+                                      ssl->badmac_seen_or_in_hsfraglen, ssl->in_hslen));
             return MBEDTLS_ERR_SSL_CONTINUE_PROCESSING;
         }
         if (ssl->badmac_seen_or_in_hsfraglen > 0) {
@@ -4704,11 +4707,9 @@ static int ssl_consume_current_message(mbedtls_ssl_context *ssl)
 
         if (ssl->badmac_seen_or_in_hsfraglen != 0) {
             /* Not all handshake fragments have arrived, do not consume. */
-            MBEDTLS_SSL_DEBUG_MSG(3,
-                                  ("waiting for more fragments (%u of %"
-                                   MBEDTLS_PRINTF_SIZET ", %" MBEDTLS_PRINTF_SIZET " left)",
-                                   ssl->badmac_seen_or_in_hsfraglen, ssl->in_hslen,
-                                   ssl->in_hslen - ssl->badmac_seen_or_in_hsfraglen));
+            MBEDTLS_SSL_DEBUG_MSG(3, ("Consume: waiting for more handshake fragments "
+                                      "%u/%" MBEDTLS_PRINTF_SIZET,
+                                      ssl->badmac_seen_or_in_hsfraglen, ssl->in_hslen));
             return 0;
         }
 

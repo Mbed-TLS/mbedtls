@@ -3308,70 +3308,118 @@ int mbedtls_ssl_prepare_handshake_record(mbedtls_ssl_context *ssl)
         }
     } else
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
-    if (ssl->badmac_seen_or_in_hsfraglen <= ssl->in_hslen) {
-        int ret;
-        const size_t hs_remain = ssl->in_hslen - ssl->badmac_seen_or_in_hsfraglen;
-        MBEDTLS_SSL_DEBUG_MSG(3,
-                              ("handshake fragment: %" MBEDTLS_PRINTF_SIZET
-                               ", %u..%u of %" MBEDTLS_PRINTF_SIZET,
-                               ssl->in_msglen,
-                               ssl->badmac_seen_or_in_hsfraglen,
-                               ssl->badmac_seen_or_in_hsfraglen +
-                               (unsigned) ssl->in_msglen,
-                               ssl->in_hslen));
-        if (ssl->in_msglen < hs_remain) {
-            /* ssl->in_msglen is a 25-bit value since it is the sum of the
-             * header length plus the payload length, the header length is 4
-             * and the payload length was received on the wire encoded as
-             * 3 octets. We don't support 16-bit platforms; more specifically,
-             * we assume that both unsigned and size_t are at least 32 bits.
-             * Therefore there is no possible integer overflow here.
-             */
-            ssl->badmac_seen_or_in_hsfraglen += (unsigned) ssl->in_msglen;
-            ssl->in_hdr = ssl->in_msg + ssl->in_msglen;
-            ssl->in_msglen = 0;
-            mbedtls_ssl_update_in_pointers(ssl);
+    {
+        unsigned char *const reassembled_record_start =
+            ssl->in_buf + MBEDTLS_SSL_SEQUENCE_NUMBER_LEN;
+        unsigned char *const payload_start =
+            reassembled_record_start + mbedtls_ssl_in_hdr_len(ssl);
+        unsigned char *payload_end = payload_start + ssl->badmac_seen_or_in_hsfraglen;
+
+        if (ssl->badmac_seen_or_in_hsfraglen != 0) {
+            /* We already had a handshake fragment. Prepare to append
+             * to the initial segment. */
+            MBEDTLS_SSL_DEBUG_MSG(3,
+                                  ("subsequent handshake fragment: %" MBEDTLS_PRINTF_SIZET
+                                   ", %u..%u of %" MBEDTLS_PRINTF_SIZET,
+                                   ssl->in_msglen,
+                                   ssl->badmac_seen_or_in_hsfraglen,
+                                   ssl->badmac_seen_or_in_hsfraglen +
+                                   (unsigned) ssl->in_msglen,
+                                   ssl->in_hslen));
+
+            const size_t hs_remain = ssl->in_hslen - ssl->badmac_seen_or_in_hsfraglen;
+            if (ssl->in_msglen > hs_remain) {
+                MBEDTLS_SSL_DEBUG_MSG(1, ("Handshake fragment too long: %"
+                                          MBEDTLS_PRINTF_SIZET " but only %"
+                                          MBEDTLS_PRINTF_SIZET " of %"
+                                          MBEDTLS_PRINTF_SIZET " remain",
+                                          ssl->in_msglen,
+                                          hs_remain,
+                                          ssl->in_hslen));
+                return MBEDTLS_ERR_SSL_INVALID_RECORD;
+            }
+        } else if (ssl->in_msglen == ssl->in_hslen) {
+            /* This is the sole fragment. */
+            /* Emit a log message in the same format as when there are
+             * multiple fragments, for ease of matching. */
+            MBEDTLS_SSL_DEBUG_MSG(3,
+                                  ("sole handshake fragment: %" MBEDTLS_PRINTF_SIZET
+                                   ", %u..%u of %" MBEDTLS_PRINTF_SIZET,
+                                   ssl->in_msglen,
+                                   ssl->badmac_seen_or_in_hsfraglen,
+                                   ssl->badmac_seen_or_in_hsfraglen +
+                                   (unsigned) ssl->in_msglen,
+                                   ssl->in_hslen));
+        } else {
+            /* This is the first fragment of many. */
+            MBEDTLS_SSL_DEBUG_MSG(3,
+                                  ("initial handshake fragment: %" MBEDTLS_PRINTF_SIZET
+                                   ", %u..%u of %" MBEDTLS_PRINTF_SIZET,
+                                   ssl->in_msglen,
+                                   ssl->badmac_seen_or_in_hsfraglen,
+                                   ssl->badmac_seen_or_in_hsfraglen +
+                                   (unsigned) ssl->in_msglen,
+                                   ssl->in_hslen));
+        }
+
+        /* Move the received handshake fragment to have the whole message
+         * (at least the part received so far) in a single segment at a
+         * known offset in the input buffer.
+         * - When receiving a non-initial handshake fragment, append it to
+         *   the initial segment.
+         * - Even the initial handshake fragment is moved, if it was
+         *   encrypted with an explicit IV: decryption leaves the payload
+         *   after the explicit IV, but here we move it to start where the
+         *   IV was.
+         */
+#if defined(MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH)
+        size_t const in_buf_len = ssl->in_buf_len;
+#else
+        size_t const in_buf_len = MBEDTLS_SSL_IN_BUFFER_LEN;
+#endif
+        if (payload_end + ssl->badmac_seen_or_in_hsfraglen > ssl->in_buf + in_buf_len) {
+            MBEDTLS_SSL_DEBUG_MSG(1,
+                                  ("Shouldn't happen: no room to move handshake fragment %"
+                                   MBEDTLS_PRINTF_SIZET " from %p to %p (buf=%p len=%"
+                                   MBEDTLS_PRINTF_SIZET ")",
+                                   ssl->in_msglen,
+                                   ssl->in_msg, payload_end,
+                                   ssl->in_buf, in_buf_len));
+            return MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+        }
+        memmove(payload_end, ssl->in_msg, ssl->in_msglen);
+
+        ssl->badmac_seen_or_in_hsfraglen += ssl->in_msglen;
+        payload_end += ssl->in_msglen;
+
+        if (ssl->badmac_seen_or_in_hsfraglen < ssl->in_hslen) {
             MBEDTLS_SSL_DEBUG_MSG(3, ("Prepare: waiting for more handshake fragments "
                                       "%u/%" MBEDTLS_PRINTF_SIZET,
                                       ssl->badmac_seen_or_in_hsfraglen, ssl->in_hslen));
-            return MBEDTLS_ERR_SSL_CONTINUE_PROCESSING;
-        }
-        if (ssl->badmac_seen_or_in_hsfraglen > 0) {
-            /*
-             * At in_first_hdr we have a sequence of records that cover the next handshake
-             * record, each with its own record header that we need to remove.
-             * Note that the reassembled record size may not equal the size of the message,
-             * there may be more messages after it, complete or partial.
-             */
-            unsigned char *in_first_hdr = ssl->in_buf + MBEDTLS_SSL_SEQUENCE_NUMBER_LEN;
-            unsigned char *p = in_first_hdr, *q = NULL;
-            size_t merged_rec_len = 0;
-            do {
-                mbedtls_record rec;
-                ret = ssl_parse_record_header(ssl, p, mbedtls_ssl_in_hdr_len(ssl), &rec);
-                if (ret != 0) {
-                    return ret;
-                }
-                merged_rec_len += rec.data_len;
-                p = rec.buf + rec.buf_len;
-                if (q != NULL) {
-                    memmove(q, rec.buf + rec.data_offset, rec.data_len);
-                    q += rec.data_len;
-                } else {
-                    q = p;
-                }
-            } while (merged_rec_len < ssl->in_hslen);
-            ssl->in_hdr = in_first_hdr;
+            ssl->in_hdr = payload_end;
+            ssl->in_msglen = 0;
             mbedtls_ssl_update_in_pointers(ssl);
-            ssl->in_msglen = merged_rec_len;
-            /* Adjust message length. */
-            MBEDTLS_PUT_UINT16_BE(merged_rec_len, ssl->in_len, 0);
+            return MBEDTLS_ERR_SSL_CONTINUE_PROCESSING;
+        } else {
+            ssl->in_msglen = ssl->badmac_seen_or_in_hsfraglen;
             ssl->badmac_seen_or_in_hsfraglen = 0;
+            ssl->in_hdr = reassembled_record_start;
+            mbedtls_ssl_update_in_pointers(ssl);
+
+            /* Update the record length in the fully reassembled record */
+            if (ssl->in_msglen > 0xffff) {
+                MBEDTLS_SSL_DEBUG_MSG(1,
+                                      ("Shouldn't happen: in_msglen=%"
+                                       MBEDTLS_PRINTF_SIZET " > 0xffff",
+                                       ssl->in_msglen));
+                return MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+            }
+            MBEDTLS_PUT_UINT16_BE(ssl->in_msglen, ssl->in_len, 0);
+
             MBEDTLS_SSL_DEBUG_BUF(4, "reassembled record",
-                                  ssl->in_hdr, mbedtls_ssl_in_hdr_len(ssl) + merged_rec_len);
+                                  ssl->in_hdr,
+                                  mbedtls_ssl_in_hdr_len(ssl) + ssl->in_msglen);
         }
-    } else {
-        return MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     }
 
     return 0;

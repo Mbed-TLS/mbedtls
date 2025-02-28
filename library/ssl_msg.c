@@ -3221,16 +3221,19 @@ static uint32_t ssl_get_hs_total_len(mbedtls_ssl_context const *ssl)
 
 int mbedtls_ssl_prepare_handshake_record(mbedtls_ssl_context *ssl)
 {
-    /* First handshake fragment must at least include the header. */
-    if (ssl->in_msglen < mbedtls_ssl_hs_hdr_len(ssl) && ssl->in_hslen == 0) {
-        MBEDTLS_SSL_DEBUG_MSG(1, ("handshake message too short: %" MBEDTLS_PRINTF_SIZET,
-                                  ssl->in_msglen));
-        return MBEDTLS_ERR_SSL_INVALID_RECORD;
-    }
+    if (ssl->badmac_seen_or_in_hsfraglen == 0) {
+        /* The handshake message must at least include the header.
+         * We may not have the full message yet in case of fragmentation.
+         * To simplify the code, we insist on having the header (and in
+         * particular the handshake message length) in the first
+         * fragment. */
+        if (ssl->in_msglen < mbedtls_ssl_hs_hdr_len(ssl)) {
+            MBEDTLS_SSL_DEBUG_MSG(1, ("handshake message too short: %" MBEDTLS_PRINTF_SIZET,
+                                      ssl->in_msglen));
+            return MBEDTLS_ERR_SSL_INVALID_RECORD;
+        }
 
-    if (ssl->in_hslen == 0) {
         ssl->in_hslen = mbedtls_ssl_hs_hdr_len(ssl) + ssl_get_hs_total_len(ssl);
-        ssl->badmac_seen_or_in_hsfraglen = 0;
     }
 
     MBEDTLS_SSL_DEBUG_MSG(3, ("handshake message: msglen ="

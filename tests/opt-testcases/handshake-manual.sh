@@ -1,7 +1,6 @@
 # To guarantee that the handhake messages are large enough and need to be split
 # into fragments, the tests require certificate authentication. The party in control
 # of the fragmentation operations is OpenSSL and will always use server5.crt (548 Bytes).
-requires_certificate_authentication
 run_test    "Handshake defragmentation on client: no fragmentation, for reference" \
             "$O_NEXT_SRV" \
             "$P_CLI debug_level=4" \
@@ -191,6 +190,7 @@ run_test    "Handshake defragmentation on client: len=13, TLS 1.3" \
 skip_next_test
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_certificate_authentication
+requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
 run_test    "Handshake defragmentation on client: len=13, TLS 1.2" \
             "$O_NEXT_SRV -tls1_2 -split_send_frag 13" \
             "$P_CLI debug_level=4" \
@@ -212,6 +212,7 @@ run_test    "Handshake defragmentation on client: len=5, TLS 1.3" \
 skip_next_test
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_certificate_authentication
+requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
 run_test    "Handshake defragmentation on client: len=5, TLS 1.2" \
             "$O_NEXT_SRV -tls1_2 -split_send_frag 5" \
             "$P_CLI debug_level=4" \
@@ -233,6 +234,7 @@ run_test    "Handshake defragmentation on client: len=4, TLS 1.3" \
 skip_next_test
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_certificate_authentication
+requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
 run_test    "Handshake defragmentation on client: len=4, TLS 1.2" \
             "$O_NEXT_SRV -tls1_2 -split_send_frag 4" \
             "$P_CLI debug_level=4" \
@@ -242,7 +244,6 @@ run_test    "Handshake defragmentation on client: len=4, TLS 1.2" \
             -c "waiting for more fragments (4 of"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_certificate_authentication
 run_test    "Handshake defragmentation on client: len=3, TLS 1.3" \
             "$O_NEXT_SRV -tls1_3 -split_send_frag 3" \
             "$P_CLI debug_level=4" \
@@ -259,7 +260,6 @@ run_test    "Handshake defragmentation on client: len=3, TLS 1.2" \
             -c "handshake message too short: 3" \
             -c "SSL - An invalid SSL record was received"
 
-requires_certificate_authentication
 run_test    "Handshake defragmentation on server: no fragmentation, for reference" \
             "$P_SRV debug_level=4 auth_mode=required" \
             "$O_NEXT_CLI -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key" \
@@ -498,7 +498,6 @@ run_test    "Handshake defragmentation on server: len=4, TLS 1.2  TLS 1.3 Client
             -s "waiting for more fragments (4 of"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_certificate_authentication
 run_test    "Handshake defragmentation on server: len=3, TLS 1.3" \
             "$P_SRV debug_level=4 auth_mode=required" \
             "$O_NEXT_CLI -tls1_3 -split_send_frag 3 -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key" \
@@ -509,7 +508,6 @@ run_test    "Handshake defragmentation on server: len=3, TLS 1.3" \
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_certificate_authentication
 run_test    "Handshake defragmentation on server: len=3, TLS 1.2  TLS 1.3 ClientHello -> 1.2 Handshake" \
             "$P_SRV debug_level=4 auth_mode=required" \
             "$O_NEXT_CLI -tls1_2 -split_send_frag 3 -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key" \

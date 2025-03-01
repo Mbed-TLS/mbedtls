@@ -4,7 +4,7 @@
 requires_certificate_authentication
 run_test    "Handshake defragmentation on client (no fragmentation, for reference)" \
             "$O_NEXT_SRV" \
-            "$P_CLI debug_level=4 " \
+            "$P_CLI debug_level=4" \
             0 \
             -C "reassembled record" \
             -C "waiting for more fragments"
@@ -12,8 +12,8 @@ run_test    "Handshake defragmentation on client (no fragmentation, for referenc
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_certificate_authentication
 run_test    "Handshake defragmentation on client: len=512, TLS 1.3" \
-            "$O_NEXT_SRV -tls1_3 -split_send_frag 512 " \
-            "$P_CLI debug_level=4 " \
+            "$O_NEXT_SRV -tls1_3 -split_send_frag 512" \
+            "$P_CLI debug_level=4" \
             0 \
             -c "reassembled record" \
             -c "handshake fragment: 0 \\.\\. 512 of [0-9]\\+ msglen 512" \
@@ -22,8 +22,8 @@ run_test    "Handshake defragmentation on client: len=512, TLS 1.3" \
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_certificate_authentication
 run_test    "Handshake defragmentation on client: len=512, TLS 1.2" \
-            "$O_NEXT_SRV -tls1_2 -split_send_frag 512 " \
-            "$P_CLI debug_level=4 " \
+            "$O_NEXT_SRV -tls1_2 -split_send_frag 512" \
+            "$P_CLI debug_level=4" \
             0 \
             -c "reassembled record" \
             -c "handshake fragment: 0 \\.\\. 512 of [0-9]\\+ msglen 512" \
@@ -32,8 +32,8 @@ run_test    "Handshake defragmentation on client: len=512, TLS 1.2" \
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_certificate_authentication
 run_test    "Handshake defragmentation on client: len=513, TLS 1.3" \
-            "$O_NEXT_SRV -tls1_3 -split_send_frag 513 " \
-            "$P_CLI debug_level=4 " \
+            "$O_NEXT_SRV -tls1_3 -split_send_frag 513" \
+            "$P_CLI debug_level=4" \
             0 \
             -c "reassembled record" \
             -c "handshake fragment: 0 \\.\\. 513 of [0-9]\\+ msglen 513" \
@@ -42,8 +42,8 @@ run_test    "Handshake defragmentation on client: len=513, TLS 1.3" \
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_certificate_authentication
 run_test    "Handshake defragmentation on client: len=513, TLS 1.2" \
-            "$O_NEXT_SRV -tls1_2 -split_send_frag 513 " \
-            "$P_CLI debug_level=4 " \
+            "$O_NEXT_SRV -tls1_2 -split_send_frag 513" \
+            "$P_CLI debug_level=4" \
             0 \
             -c "reassembled record" \
             -c "handshake fragment: 0 \\.\\. 513 of [0-9]\\+ msglen 513" \
@@ -52,8 +52,8 @@ run_test    "Handshake defragmentation on client: len=513, TLS 1.2" \
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_certificate_authentication
 run_test    "Handshake defragmentation on client: len=256, TLS 1.3" \
-            "$O_NEXT_SRV -tls1_3 -split_send_frag 256 " \
-            "$P_CLI debug_level=4 " \
+            "$O_NEXT_SRV -tls1_3 -split_send_frag 256" \
+            "$P_CLI debug_level=4" \
             0 \
             -c "reassembled record" \
             -c "handshake fragment: 0 \\.\\. 256 of [0-9]\\+ msglen 256" \
@@ -62,8 +62,8 @@ run_test    "Handshake defragmentation on client: len=256, TLS 1.3" \
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_certificate_authentication
 run_test    "Handshake defragmentation on client: len=256, TLS 1.2" \
-            "$O_NEXT_SRV -tls1_2 -split_send_frag 256 " \
-            "$P_CLI debug_level=4 " \
+            "$O_NEXT_SRV -tls1_2 -split_send_frag 256" \
+            "$P_CLI debug_level=4" \
             0 \
             -c "reassembled record" \
             -c "handshake fragment: 0 \\.\\. 256 of [0-9]\\+ msglen 256" \
@@ -72,8 +72,8 @@ run_test    "Handshake defragmentation on client: len=256, TLS 1.2" \
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_certificate_authentication
 run_test    "Handshake defragmentation on client: len=128, TLS 1.3" \
-            "$O_NEXT_SRV -tls1_3 -split_send_frag 128 " \
-            "$P_CLI debug_level=4 " \
+            "$O_NEXT_SRV -tls1_3 -split_send_frag 128" \
+            "$P_CLI debug_level=4" \
             0 \
             -c "reassembled record" \
             -c "handshake fragment: 0 \\.\\. 128 of [0-9]\\+ msglen 128" \
@@ -82,8 +82,8 @@ run_test    "Handshake defragmentation on client: len=128, TLS 1.3" \
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_certificate_authentication
 run_test    "Handshake defragmentation on client: len=128, TLS 1.2" \
-            "$O_NEXT_SRV -tls1_2 -split_send_frag 128 " \
-            "$P_CLI debug_level=4 " \
+            "$O_NEXT_SRV -tls1_2 -split_send_frag 128" \
+            "$P_CLI debug_level=4" \
             0 \
             -c "reassembled record" \
             -c "handshake fragment: 0 \\.\\. 128 of [0-9]\\+ msglen 128" \
@@ -92,8 +92,8 @@ run_test    "Handshake defragmentation on client: len=128, TLS 1.2" \
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_certificate_authentication
 run_test    "Handshake defragmentation on client: len=64, TLS 1.3" \
-            "$O_NEXT_SRV -tls1_3 -split_send_frag 64 " \
-            "$P_CLI debug_level=4 " \
+            "$O_NEXT_SRV -tls1_3 -split_send_frag 64" \
+            "$P_CLI debug_level=4" \
             0 \
             -c "reassembled record" \
             -c "handshake fragment: 0 \\.\\. 64 of [0-9]\\+ msglen 64" \
@@ -102,8 +102,8 @@ run_test    "Handshake defragmentation on client: len=64, TLS 1.3" \
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_certificate_authentication
 run_test    "Handshake defragmentation on client: len=64, TLS 1.2" \
-            "$O_NEXT_SRV -tls1_2 -split_send_frag 64 " \
-            "$P_CLI debug_level=4 " \
+            "$O_NEXT_SRV -tls1_2 -split_send_frag 64" \
+            "$P_CLI debug_level=4" \
             0 \
             -c "reassembled record" \
             -c "handshake fragment: 0 \\.\\. 64 of [0-9]\\+ msglen 64" \
@@ -112,8 +112,8 @@ run_test    "Handshake defragmentation on client: len=64, TLS 1.2" \
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_certificate_authentication
 run_test    "Handshake defragmentation on client: len=36, TLS 1.3" \
-            "$O_NEXT_SRV -tls1_3 -split_send_frag 36 " \
-            "$P_CLI debug_level=4 " \
+            "$O_NEXT_SRV -tls1_3 -split_send_frag 36" \
+            "$P_CLI debug_level=4" \
             0 \
             -c "reassembled record" \
             -c "handshake fragment: 0 \\.\\. 36 of [0-9]\\+ msglen 36" \
@@ -122,8 +122,8 @@ run_test    "Handshake defragmentation on client: len=36, TLS 1.3" \
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_certificate_authentication
 run_test    "Handshake defragmentation on client: len=36, TLS 1.2" \
-            "$O_NEXT_SRV -tls1_2 -split_send_frag 36 " \
-            "$P_CLI debug_level=4 " \
+            "$O_NEXT_SRV -tls1_2 -split_send_frag 36" \
+            "$P_CLI debug_level=4" \
             0 \
             -c "reassembled record" \
             -c "handshake fragment: 0 \\.\\. 36 of [0-9]\\+ msglen 36" \
@@ -132,8 +132,8 @@ run_test    "Handshake defragmentation on client: len=36, TLS 1.2" \
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_certificate_authentication
 run_test    "Handshake defragmentation on client: len=32, TLS 1.3" \
-            "$O_NEXT_SRV -tls1_3 -split_send_frag 32 " \
-            "$P_CLI debug_level=4 " \
+            "$O_NEXT_SRV -tls1_3 -split_send_frag 32" \
+            "$P_CLI debug_level=4" \
             0 \
             -c "reassembled record" \
             -c "handshake fragment: 0 \\.\\. 32 of [0-9]\\+ msglen 32" \
@@ -142,8 +142,8 @@ run_test    "Handshake defragmentation on client: len=32, TLS 1.3" \
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_certificate_authentication
 run_test    "Handshake defragmentation on client: len=32, TLS 1.2" \
-            "$O_NEXT_SRV -tls1_2 -split_send_frag 32 " \
-            "$P_CLI debug_level=4 " \
+            "$O_NEXT_SRV -tls1_2 -split_send_frag 32" \
+            "$P_CLI debug_level=4" \
             0 \
             -c "reassembled record" \
             -c "handshake fragment: 0 \\.\\. 32 of [0-9]\\+ msglen 32" \
@@ -152,8 +152,8 @@ run_test    "Handshake defragmentation on client: len=32, TLS 1.2" \
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_certificate_authentication
 run_test    "Handshake defragmentation on client: len=16, TLS 1.3" \
-            "$O_NEXT_SRV -tls1_3 -split_send_frag 16 " \
-            "$P_CLI debug_level=4 " \
+            "$O_NEXT_SRV -tls1_3 -split_send_frag 16" \
+            "$P_CLI debug_level=4" \
             0 \
             -c "reassembled record" \
             -c "handshake fragment: 0 \\.\\. 16 of [0-9]\\+ msglen 16" \
@@ -162,8 +162,8 @@ run_test    "Handshake defragmentation on client: len=16, TLS 1.3" \
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_certificate_authentication
 run_test    "Handshake defragmentation on client: len=16, TLS 1.2" \
-            "$O_NEXT_SRV -tls1_2 -split_send_frag 16 " \
-            "$P_CLI debug_level=4 " \
+            "$O_NEXT_SRV -tls1_2 -split_send_frag 16" \
+            "$P_CLI debug_level=4" \
             0 \
             -c "reassembled record" \
             -c "handshake fragment: 0 \\.\\. 16 of [0-9]\\+ msglen 16" \
@@ -172,8 +172,8 @@ run_test    "Handshake defragmentation on client: len=16, TLS 1.2" \
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_certificate_authentication
 run_test    "Handshake defragmentation on client: len=13, TLS 1.3" \
-            "$O_NEXT_SRV -tls1_3 -split_send_frag 13 " \
-            "$P_CLI debug_level=4 " \
+            "$O_NEXT_SRV -tls1_3 -split_send_frag 13" \
+            "$P_CLI debug_level=4" \
             0 \
             -c "reassembled record" \
             -c "handshake fragment: 0 \\.\\. 13 of [0-9]\\+ msglen 13" \
@@ -183,8 +183,8 @@ skip_next_test
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_certificate_authentication
 run_test    "Handshake defragmentation on client: len=13, TLS 1.2" \
-            "$O_NEXT_SRV -tls1_2 -split_send_frag 13 " \
-            "$P_CLI debug_level=4 " \
+            "$O_NEXT_SRV -tls1_2 -split_send_frag 13" \
+            "$P_CLI debug_level=4" \
             0 \
             -c "reassembled record" \
             -c "handshake fragment: 0 \\.\\. 13 of [0-9]\\+ msglen 13" \
@@ -193,8 +193,8 @@ run_test    "Handshake defragmentation on client: len=13, TLS 1.2" \
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_certificate_authentication
 run_test    "Handshake defragmentation on client: len=5, TLS 1.3" \
-            "$O_NEXT_SRV -tls1_3 -split_send_frag 5 " \
-            "$P_CLI debug_level=4 " \
+            "$O_NEXT_SRV -tls1_3 -split_send_frag 5" \
+            "$P_CLI debug_level=4" \
             0 \
             -c "reassembled record" \
             -c "handshake fragment: 0 \\.\\. 5 of [0-9]\\+ msglen 5" \
@@ -204,8 +204,8 @@ skip_next_test
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_certificate_authentication
 run_test    "Handshake defragmentation on client: len=5, TLS 1.2" \
-            "$O_NEXT_SRV -tls1_2 -split_send_frag 5 " \
-            "$P_CLI debug_level=4 " \
+            "$O_NEXT_SRV -tls1_2 -split_send_frag 5" \
+            "$P_CLI debug_level=4" \
             0 \
             -c "reassembled record" \
             -c "handshake fragment: 0 \\.\\. 5 of [0-9]\\+ msglen 5" \
@@ -214,8 +214,8 @@ run_test    "Handshake defragmentation on client: len=5, TLS 1.2" \
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_certificate_authentication
 run_test    "Handshake defragmentation on client: len=4, TLS 1.3" \
-            "$O_NEXT_SRV -tls1_3 -split_send_frag 4 " \
-            "$P_CLI debug_level=4 " \
+            "$O_NEXT_SRV -tls1_3 -split_send_frag 4" \
+            "$P_CLI debug_level=4" \
             0 \
             -c "reassembled record" \
             -c "handshake fragment: 0 \\.\\. 4 of [0-9]\\+ msglen 4" \
@@ -225,8 +225,8 @@ skip_next_test
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_certificate_authentication
 run_test    "Handshake defragmentation on client: len=4, TLS 1.2" \
-            "$O_NEXT_SRV -tls1_2 -split_send_frag 4 " \
-            "$P_CLI debug_level=4 " \
+            "$O_NEXT_SRV -tls1_2 -split_send_frag 4" \
+            "$P_CLI debug_level=4" \
             0 \
             -c "reassembled record" \
             -c "handshake fragment: 0 \\.\\. 4 of [0-9]\\+ msglen 4" \
@@ -235,8 +235,8 @@ run_test    "Handshake defragmentation on client: len=4, TLS 1.2" \
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_certificate_authentication
 run_test    "Handshake defragmentation on client: len=3, TLS 1.3" \
-            "$O_NEXT_SRV -tls1_3 -split_send_frag 3 " \
-            "$P_CLI debug_level=4 " \
+            "$O_NEXT_SRV -tls1_3 -split_send_frag 3" \
+            "$P_CLI debug_level=4" \
             1 \
             -c "=> ssl_tls13_process_server_hello" \
             -c "handshake message too short: 3" \
@@ -244,8 +244,8 @@ run_test    "Handshake defragmentation on client: len=3, TLS 1.3" \
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Handshake defragmentation on client: len=3, TLS 1.2" \
-            "$O_NEXT_SRV -tls1_2 -split_send_frag 3 " \
-            "$P_CLI debug_level=4 " \
+            "$O_NEXT_SRV -tls1_2 -split_send_frag 3" \
+            "$P_CLI debug_level=4" \
             1 \
             -c "handshake message too short: 3" \
             -c "SSL - An invalid SSL record was received"

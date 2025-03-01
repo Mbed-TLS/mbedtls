@@ -4,6 +4,15 @@
 #include "mbedtls/pk.h"
 #include <test/ssl_helpers.h>
 
+// Use a macro instead of sizeof(mbedtls_ms_time_t) because the expression store
+// doesn't exclude entries based on depends_on headers, which would cause failures
+// in builds without MBEDTLS_HAVE_TIME
+#if defined(MBEDTLS_PLATFORM_MS_TIME_TYPE_MACRO)
+#   define MBEDTLS_MS_TIME_SIZE sizeof(MBEDTLS_PLATFORM_MS_TIME_TYPE_MACRO)
+#else
+#   define MBEDTLS_MS_TIME_SIZE sizeof(int64_t)
+#endif
+
 struct buffer_data {
     char buf[2000];
     char *ptr;

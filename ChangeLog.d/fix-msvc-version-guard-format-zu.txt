@@ -3,3 +3,6 @@ Bugfix
      occurred whenever SSL debugging was enabled on a copy of Mbed TLS built
      with Visual Studio 2013.
      Fixes #10017.
+   * Remove Everest Visual Studio 2010 compatibility headers, which could
+     interfere with standard CRT headers in certain situations, eg. when
+     building Mbed TLS with the .sln file shipped with the project.

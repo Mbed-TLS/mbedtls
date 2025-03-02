@@ -4,6 +4,11 @@
 #include "mbedtls/pk.h"
 #include <test/ssl_helpers.h>
 
+#if defined(_WIN32)
+#   include <stdlib.h>
+#   include <crtdbg.h>
+#endif
+
 // Use a macro instead of sizeof(mbedtls_ms_time_t) because the expression store
 // doesn't exclude entries based on depends_on headers, which would cause failures
 // in builds without MBEDTLS_HAVE_TIME
@@ -55,6 +60,23 @@ static void string_debug(void *data, int level, const char *file, int line, cons
     buffer->ptr = p;
 }
 #endif /* MBEDTLS_SSL_TLS_C */
+
+#if defined(_WIN32)
+static void noop_invalid_parameter_handler(
+    const wchar_t *expression,
+    const wchar_t *function,
+    const wchar_t *file,
+    unsigned int line,
+    uintptr_t pReserved)
+{
+    (void) expression;
+    (void) function;
+    (void) file;
+    (void) line;
+    (void) pReserved;
+}
+#endif /* _WIN32 */
+
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -66,6 +88,17 @@ static void string_debug(void *data, int level, const char *file, int line, cons
 void printf_int_expr(intmax_t smuggle_format_expr, /* TODO: teach test framework about string expressions */
                      intmax_t sizeof_x, intmax_t x, char *result)
 {
+#if defined(_WIN32)
+    /* Windows treats any invalid format specifiers passsed to the CRT as fatal assertion failures.
+       Disable this behaviour temporarily, so the rest of the test cases can complete. */
+    _invalid_parameter_handler saved_handler =
+        _set_invalid_parameter_handler(noop_invalid_parameter_handler);
+
+    // Disable assertion pop-up window in Debug builds
+    int saved_report_mode = _CrtSetReportMode(_CRT_ASSERT, _CRTDBG_REPORT_MODE);
+    _CrtSetReportMode(_CRT_ASSERT, _CRTDBG_MODE_DEBUG);
+#endif
+
     const char *format = (char *) ((uintptr_t) smuggle_format_expr);
     char *output = NULL;
     const size_t n = strlen(result);
@@ -87,6 +120,13 @@ void printf_int_expr(intmax_t smuggle_format_expr, /* TODO: teach test framework
 exit:
     mbedtls_free(output);
     output = NULL;
+
+#if defined(_WIN32)
+    // Restore default Windows behaviour
+    _set_invalid_parameter_handler(saved_handler);
+    _CrtSetReportMode(_CRT_ASSERT, saved_report_mode);
+    (void) saved_report_mode;
+#endif
 }
 /* END_CASE */
 

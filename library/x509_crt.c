@@ -1743,15 +1743,15 @@ static int x509_info_cert_policies(char **buf, size_t *size,
 /*
  * Return an informational string about the certificate.
  */
-#define BEFORE_COLON    18
-#define BC              "18"
+#define MBEDTLS_BEFORE_COLON        18
+#define MBEDTLS_BEFORE_COLON_STR    "18"
 int mbedtls_x509_crt_info(char *buf, size_t size, const char *prefix,
                           const mbedtls_x509_crt *crt)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t n;
     char *p;
-    char key_size_str[BEFORE_COLON];
+    char key_size_str[MBEDTLS_BEFORE_COLON];
 
     p = buf;
     n = size;
@@ -1805,13 +1805,13 @@ int mbedtls_x509_crt_info(char *buf, size_t size, const char *prefix,
     MBEDTLS_X509_SAFE_SNPRINTF;
 
     /* Key size */
-    if ((ret = mbedtls_x509_key_size_helper(key_size_str, BEFORE_COLON,
+    if ((ret = mbedtls_x509_key_size_helper(key_size_str, MBEDTLS_BEFORE_COLON,
                                             mbedtls_pk_get_name(&crt->pk))) != 0) {
         return ret;
     }
 
-    ret = mbedtls_snprintf(p, n, "\n%s%-" BC "s: %d bits", prefix, key_size_str,
-                           (int) mbedtls_pk_get_bitlen(&crt->pk));
+    ret = mbedtls_snprintf(p, n, "\n%s%-" MBEDTLS_BEFORE_COLON_STR "s: %d bits",
+                           prefix, key_size_str, (int) mbedtls_pk_get_bitlen(&crt->pk));
     MBEDTLS_X509_SAFE_SNPRINTF;
 
     /*

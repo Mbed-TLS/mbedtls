@@ -3301,13 +3301,13 @@ int mbedtls_ssl_prepare_handshake_record(mbedtls_ssl_context *ssl)
         int ret;
         const size_t hs_remain = ssl->in_hslen - ssl->badmac_seen_or_in_hsfraglen;
         MBEDTLS_SSL_DEBUG_MSG(3,
-                              ("handshake fragment: %u .. %"
-                               MBEDTLS_PRINTF_SIZET " of %"
-                               MBEDTLS_PRINTF_SIZET " msglen %" MBEDTLS_PRINTF_SIZET,
+                              ("handshake fragment: %" MBEDTLS_PRINTF_SIZET
+                               ", %u..%u of %" MBEDTLS_PRINTF_SIZET,
+                               ssl->in_msglen,
                                ssl->badmac_seen_or_in_hsfraglen,
-                               (size_t) ssl->badmac_seen_or_in_hsfraglen +
-                               (hs_remain <= ssl->in_msglen ? hs_remain : ssl->in_msglen),
-                               ssl->in_hslen, ssl->in_msglen));
+                               ssl->badmac_seen_or_in_hsfraglen +
+                               (unsigned) ssl->in_msglen,
+                               ssl->in_hslen));
         if (ssl->in_msglen < hs_remain) {
             /* ssl->in_msglen is a 25-bit value since it is the sum of the
              * header length plus the payload length, the header length is 4

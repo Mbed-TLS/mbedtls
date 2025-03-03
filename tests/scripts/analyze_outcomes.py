@@ -34,6 +34,13 @@ class CoverageTask(outcome_analysis.CoverageTask):
                           re.DOTALL)
 
     IGNORED_TESTS = {
+        'handshake-generated': [
+            # Temporary disable Handshake defragmentation tests until mbedtls
+            # pr #10011 has been merged.
+            'Handshake defragmentation on client: len=4, TLS 1.2',
+            'Handshake defragmentation on client: len=5, TLS 1.2',
+            'Handshake defragmentation on client: len=13, TLS 1.2'
+        ],
         'ssl-opt': [
             # We don't run ssl-opt.sh with Valgrind on the CI because
             # it's extremely slow. We don't intend to change this.
@@ -53,11 +60,6 @@ class CoverageTask(outcome_analysis.CoverageTask):
             # https://github.com/Mbed-TLS/mbedtls/issues/9581
             'Opaque key for server authentication: invalid key: decrypt with ECC key, no async',
             'Opaque key for server authentication: invalid key: ecdh with RSA key, no async',
-            # Temporary disable Handshake defragmentation tests until mbedtls
-            # pr #10011 has been merged.
-            'Handshake defragmentation on client: len=4, TLS 1.2',
-            'Handshake defragmentation on client: len=5, TLS 1.2',
-            'Handshake defragmentation on client: len=13, TLS 1.2'
         ],
         'test_suite_config.mbedtls_boolean': [
             # We never test with CBC/PKCS5/PKCS12 enabled but

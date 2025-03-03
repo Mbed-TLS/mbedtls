@@ -1107,11 +1107,13 @@ sub get_functions
                 my $ret_name = "";
                 $ret_name = "status" if $ret_type eq "psa_status_t";
                 $ret_name = "value" if $ret_type eq "uint32_t";
+                $ret_name = "value" if $ret_type eq "int";
                 $ret_name = "(void)" if $ret_type eq "void";
                 die("ret_name for $ret_type?") unless length($ret_name);
                 my $ret_default = "";
                 $ret_default = "PSA_ERROR_CORRUPTION_DETECTED" if $ret_type eq "psa_status_t";
                 $ret_default = "0" if $ret_type eq "uint32_t";
+                $ret_default = "0" if $ret_type eq "int";
                 $ret_default = "(void)" if $ret_type eq "void";
                 die("ret_default for $ret_type?") unless length($ret_default);
 

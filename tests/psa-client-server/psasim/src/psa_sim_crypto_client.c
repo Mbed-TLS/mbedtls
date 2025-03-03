@@ -1544,6 +1544,68 @@ fail:
 }
 
 
+int psa_can_do_hash(
+    psa_algorithm_t hash_alg
+    )
+{
+    uint8_t *ser_params = NULL;
+    uint8_t *ser_result = NULL;
+    size_t result_length;
+    int value = 0;
+
+    size_t needed =
+        psasim_serialise_begin_needs() +
+        psasim_serialise_psa_algorithm_t_needs(hash_alg);
+
+    ser_params = malloc(needed);
+    if (ser_params == NULL) {
+        goto fail;
+    }
+
+    uint8_t *pos = ser_params;
+    size_t remaining = needed;
+    int ok;
+    ok = psasim_serialise_begin(&pos, &remaining);
+    if (!ok) {
+        goto fail;
+    }
+    ok = psasim_serialise_psa_algorithm_t(
+        &pos, &remaining,
+        hash_alg);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psa_crypto_call(PSA_CAN_DO_HASH,
+                         ser_params, (size_t) (pos - ser_params), &ser_result, &result_length);
+    if (!ok) {
+        printf("PSA_CAN_DO_HASH server call failed\n");
+        goto fail;
+    }
+
+    uint8_t *rpos = ser_result;
+    size_t rremain = result_length;
+
+    ok = psasim_deserialise_begin(&rpos, &rremain);
+    if (!ok) {
+        goto fail;
+    }
+
+    ok = psasim_deserialise_int(
+        &rpos, &rremain,
+        &value);
+    if (!ok) {
+        goto fail;
+    }
+
+fail:
+    free(ser_params);
+    free(ser_result);
+
+    return value;
+}
+
+
 psa_status_t psa_cipher_abort(
     psa_cipher_operation_t *operation
     )

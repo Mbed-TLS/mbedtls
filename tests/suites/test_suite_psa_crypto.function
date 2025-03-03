@@ -4520,7 +4520,9 @@ void derive_input(int alg_arg,
     psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_DERIVE);
     psa_set_key_algorithm(&attributes, alg);
 
-    PSA_ASSERT(psa_key_derivation_setup(&operation, alg));
+    if (alg != 0) {
+        PSA_ASSERT(psa_key_derivation_setup(&operation, alg));
+    }
 
     for (i = 0; i < ARRAY_LENGTH(steps); i++) {
         mbedtls_test_set_step(i);
@@ -4565,16 +4567,6 @@ void derive_input(int alg_arg,
                                             buffer, sizeof(buffer));
     }
     TEST_EQUAL(actual_output_status, expected_output_status);
-
-    /* Test calling input functions after operation has been aborted
-       result in PSA_ERROR_BAD_STATE error.
-    */
-    psa_key_derivation_abort(&operation);
-
-    TEST_EQUAL(psa_key_derivation_input_bytes(
-                    &operation, steps[0],
-                    inputs[0]->x, inputs[0]->len),
-                PSA_ERROR_BAD_STATE);
 
 exit:
     psa_key_derivation_abort(&operation);

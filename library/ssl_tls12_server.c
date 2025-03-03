@@ -654,6 +654,7 @@ static int ssl_check_key_curve(mbedtls_pk_context *pk,
  * Try picking a certificate for this ciphersuite,
  * return 0 on success and -1 on failure.
  */
+#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_pick_cert(mbedtls_ssl_context *ssl,
                          const mbedtls_ssl_ciphersuite_t *ciphersuite_info)
@@ -744,6 +745,8 @@ static int ssl_pick_cert(mbedtls_ssl_context *ssl,
 
     return -1;
 }
+#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
+
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
 /*
@@ -806,6 +809,8 @@ static int ssl_ciphersuite_match(mbedtls_ssl_context *ssl, int suite_id,
     }
 #endif
 
+#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
+
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
     /*
      * Final check: if ciphersuite requires us to have a
@@ -821,7 +826,6 @@ static int ssl_ciphersuite_match(mbedtls_ssl_context *ssl, int suite_id,
     }
 #endif
 
-#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
     /* If the ciphersuite requires signing, check whether
      * a suitable hash algorithm is present. */
     sig_type = mbedtls_ssl_get_ciphersuite_sig_alg(suite_info);

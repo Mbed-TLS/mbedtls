@@ -4752,7 +4752,7 @@ static psa_status_t psa_key_derivation_input_internal(
     psa_algorithm_t kdf_alg = psa_key_derivation_get_kdf_alg(operation);
 
     if (kdf_alg == 0) {
-       /* This is a blank or aborted operation. */
+        /* This is a blank or aborted operation. */
         status = PSA_ERROR_BAD_STATE;
         goto exit;
     }

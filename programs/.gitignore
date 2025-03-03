@@ -46,7 +46,6 @@ ssl/ssl_mail_client
 ssl/ssl_pthread_server
 ssl/ssl_server
 ssl/ssl_server2
-test/benchmark
 test/cpp_dummy_build
 test/cpp_dummy_build.cpp
 test/dlopen

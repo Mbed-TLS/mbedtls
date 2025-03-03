@@ -53,7 +53,7 @@ This subdirectory mostly contains sample programs that illustrate specific featu
 
 ## Random number generator (RNG) examples
 
-* [`random/gen_entropy.c`](random/gen_entropy.c): shows how to use the default entropy sources to generate random data.  
+* [`random/gen_entropy.c`](random/gen_entropy.c): shows how to use the default entropy sources to generate random data.
   Note: most applications should only use the entropy generator to seed a cryptographic pseudorandom generator, as illustrated by `random/gen_random_ctr_drbg.c`.
 
 * [`random/gen_random_ctr_drbg.c`](random/gen_random_ctr_drbg.c): shows how to use the default entropy sources to seed a pseudorandom generator, and how to use the resulting random generator to generate random data.
@@ -90,13 +90,11 @@ In addition to providing options for testing client-side features, the `ssl_clie
 
 ## Test utilities
 
-* [`test/benchmark.c`](test/benchmark.c): benchmark for cryptographic algorithms.
-
 * [`test/selftest.c`](test/selftest.c): runs the self-test function in each library module.
 
 * [`test/udp_proxy.c`](test/udp_proxy.c): a UDP proxy that can inject certain failures (delay, duplicate, drop). Useful for testing DTLS.
 
-* [`test/zeroize.c`](test/zeroize.c): a test program for `mbedtls_platform_zeroize`, used by [`tests/scripts/test_zeroize.gdb`](tests/scripts/test_zeroize.gdb).
+* [`test/zeroize.c`](../framework/tests/programs/zeroize.c): a test program for `mbedtls_platform_zeroize`, used by [`test_zeroize.gdb`](../framework/tests/programs/test_zeroize.gdb).
 
 ## Development utilities
 
@@ -115,4 +113,3 @@ In addition to providing options for testing client-side features, the `ssl_clie
 * [`x509/crl_app.c`](x509/crl_app.c): loads and dumps a certificate revocation list (CRL).
 
 * [`x509/req_app.c`](x509/req_app.c): loads and dumps a certificate signing request (CSR).
-

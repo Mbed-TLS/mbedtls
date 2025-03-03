@@ -13,7 +13,6 @@ add_dependencies(${programs_target} ${executables_libs})
 add_dependencies(${ssl_opt_target} udp_proxy)
 
 set(executables_mbedcrypto
-    benchmark
     zeroize
 )
 add_dependencies(${programs_target} ${executables_mbedcrypto})
@@ -76,17 +75,24 @@ else()
 endif()
 
 foreach(exe IN LISTS executables_libs executables_mbedcrypto)
+    set(source ${exe}.c)
     set(extra_sources "")
+    if(NOT EXISTS ${source} AND
+       EXISTS ${MBEDTLS_FRAMEWORK_DIR}/tests/programs/${source})
+         set(source ${MBEDTLS_FRAMEWORK_DIR}/tests/programs/${source})
+    endif()
+
     if(exe STREQUAL "query_compile_time_config")
         list(APPEND extra_sources
-            ${CMAKE_CURRENT_SOURCE_DIR}/query_config.h
+            ${MBEDTLS_FRAMEWORK_DIR}/tests/programs/query_config.h
             ${CMAKE_CURRENT_BINARY_DIR}/query_config.c)
     endif()
-    add_executable(${exe} ${exe}.c $<TARGET_OBJECTS:mbedtls_test>
+    add_executable(${exe} ${source} $<TARGET_OBJECTS:mbedtls_test>
         ${extra_sources})
     set_base_compile_options(${exe})
     target_include_directories(${exe}
-        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../framework/tests/include)
+        PRIVATE ${MBEDTLS_FRAMEWORK_DIR}/tests/include
+                ${MBEDTLS_FRAMEWORK_DIR}/tests/programs)
     target_include_directories(${exe}
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../library
                 ${CMAKE_CURRENT_SOURCE_DIR}/../../tf-psa-crypto/core)

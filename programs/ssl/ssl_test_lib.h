@@ -66,7 +66,7 @@
 
 #include <test/helpers.h>
 
-#include "../test/query_config.h"
+#include "query_config.h"
 
 #define ALPN_LIST_SIZE    10
 #define GROUP_LIST_SIZE   25

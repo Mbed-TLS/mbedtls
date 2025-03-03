@@ -114,7 +114,7 @@ component_build_zeroize_checks () {
     scripts/config.py full
 
     # Only compile - we're looking for sizeof-pointer-memaccess warnings
-    make CFLAGS="'-DTF_PSA_CRYPTO_USER_CONFIG_FILE=\"../tests/configs/user-config-zeroize-memset.h\"' -DMBEDTLS_TEST_DEFINES_ZEROIZE -Werror -Wsizeof-pointer-memaccess"
+    make CFLAGS="'-DTF_PSA_CRYPTO_USER_CONFIG_FILE=\"$TF_PSA_CRYPTO_ROOT_DIR/tests/configs/user-config-zeroize-memset.h\"' -DMBEDTLS_TEST_DEFINES_ZEROIZE -Werror -Wsizeof-pointer-memaccess"
 }
 
 component_test_zeroize () {
@@ -136,7 +136,7 @@ component_test_zeroize () {
         for compiler in clang gcc; do
             msg "test: $compiler $optimization_flag, mbedtls_platform_zeroize()"
             make programs CC="$compiler" DEBUG=1 CFLAGS="$optimization_flag"
-            gdb -ex "$gdb_disable_aslr" -x tests/scripts/test_zeroize.gdb -nw -batch -nx 2>&1 | tee test_zeroize.log
+            gdb -ex "$gdb_disable_aslr" -x $FRAMEWORK/tests/programs/test_zeroize.gdb -nw -batch -nx 2>&1 | tee test_zeroize.log
             grep "The buffer was correctly zeroized" test_zeroize.log
             not grep -i "error" test_zeroize.log
             rm -f test_zeroize.log

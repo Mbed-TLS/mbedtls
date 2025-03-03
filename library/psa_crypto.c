@@ -7488,6 +7488,12 @@ static psa_status_t psa_key_derivation_input_internal(
     psa_status_t status;
     psa_algorithm_t kdf_alg = psa_key_derivation_get_kdf_alg(operation);
 
+    if (kdf_alg == 0) {
+       /* This is a blank or aborted operation. */
+        status = PSA_ERROR_BAD_STATE;
+        goto exit;
+    }
+
     status = psa_key_derivation_check_input_type(step, key_type);
     if (status != PSA_SUCCESS) {
         goto exit;
@@ -7546,6 +7552,12 @@ static psa_status_t psa_key_derivation_input_integer_internal(
     psa_status_t status;
     psa_algorithm_t kdf_alg = psa_key_derivation_get_kdf_alg(operation);
 
+    if (kdf_alg == 0) {
+        /* This is a blank or aborted operation. */
+        status = PSA_ERROR_BAD_STATE;
+        goto exit;
+    }
+
 #if defined(PSA_HAVE_SOFT_PBKDF2)
     if (PSA_ALG_IS_PBKDF2(kdf_alg)) {
         status = psa_pbkdf2_set_input_cost(
@@ -7559,6 +7571,7 @@ static psa_status_t psa_key_derivation_input_integer_internal(
         status = PSA_ERROR_INVALID_ARGUMENT;
     }
 
+exit:
     if (status != PSA_SUCCESS) {
         psa_key_derivation_abort(operation);
     }

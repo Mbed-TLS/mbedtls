@@ -1696,6 +1696,42 @@ int psasim_deserialise_psa_generate_key_iop_t(uint8_t **pos,
     return 1;
 }
 
+size_t psasim_serialise_psa_export_public_key_iop_t_needs(
+    psa_export_public_key_iop_t value)
+{
+    return sizeof(value);
+}
+
+int psasim_serialise_psa_export_public_key_iop_t(uint8_t **pos,
+                                                 size_t *remaining,
+                                                 psa_export_public_key_iop_t value)
+{
+    if (*remaining < sizeof(value)) {
+        return 0;
+    }
+
+    memcpy(*pos, &value, sizeof(value));
+    *pos += sizeof(value);
+
+    return 1;
+}
+
+int psasim_deserialise_psa_export_public_key_iop_t(uint8_t **pos,
+                                                   size_t *remaining,
+                                                   psa_export_public_key_iop_t *value)
+{
+    if (*remaining < sizeof(*value)) {
+        return 0;
+    }
+
+    memcpy(value, *pos, sizeof(*value));
+
+    *pos += sizeof(*value);
+    *remaining -= sizeof(*value);
+
+    return 1;
+}
+
 void psa_sim_serialize_reset(void)
 {
     memset(hash_operation_handles, 0,

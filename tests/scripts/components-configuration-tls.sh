@@ -242,8 +242,8 @@ component_test_small_mbedtls_ssl_dtls_max_buffering () {
     tests/ssl-opt.sh -f "DTLS reordering: Buffer encrypted Finished message, drop for fragmented NewSessionTicket"
 }
 
-# Common helper for component_full_without_ecdhe_ecdsa() and
-# component_full_without_ecdhe_ecdsa_and_tls13() which:
+# Common helper for component_full_without_ecdhe_ecdsa(),
+# component_full_without_ecdhe_ecdsa_and_tls13() and component_full_without_tls13 which:
 # - starts from the "full" configuration minus the list of symbols passed in
 #   as 1st parameter
 # - build

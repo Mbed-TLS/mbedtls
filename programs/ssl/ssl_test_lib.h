@@ -243,8 +243,8 @@ int key_opaque_set_alg_usage(const char *alg1, const char *alg2,
  * - free the provided PK context and re-initilize it as an opaque PK context
  *   wrapping the PSA key imported in the above step.
  *
- * \param[in/out] pk    On input the non-opaque PK context which contains the
- *                      key to be wrapped. On output the re-initialized PK
+ * \param[in,out] pk    On input, the non-opaque PK context which contains the
+ *                      key to be wrapped. On output, the re-initialized PK
  *                      context which represents the opaque version of the one
  *                      provided as input.
  * \param[in] psa_alg   The primary algorithm that will be associated to the

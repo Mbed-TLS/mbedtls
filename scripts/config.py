@@ -229,6 +229,7 @@ def crypto_adapter(adapter):
 
 DEPRECATED = frozenset([
     'MBEDTLS_PSA_CRYPTO_SE_C',
+    'MBEDTLS_SSL_CLI_ALLOW_WEAK_CERTIFICATE_VERIFICATION_WITHOUT_HOSTNAME',
 ])
 def no_deprecated_adapter(adapter):
     """Modify an adapter to disable deprecated symbols.

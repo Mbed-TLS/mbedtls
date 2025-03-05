@@ -2757,6 +2757,51 @@ void mbedtls_ssl_conf_groups(mbedtls_ssl_config *conf,
 }
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
+
+/* A magic value for `ssl->hostname` indicating that
+ * mbedtls_ssl_set_hostname() has been called with `NULL`.
+ * If mbedtls_ssl_set_hostname() has never been called on `ssl`, then
+ * `ssl->hostname == NULL`. */
+static const char *const ssl_hostname_skip_cn_verification = "";
+
+#if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
+/** Whether mbedtls_ssl_set_hostname() has been called.
+ *
+ * \param[in]   ssl     SSL context
+ *
+ * \return \c 1 if mbedtls_ssl_set_hostname() has been called on \p ssl
+ *         (including `mbedtls_ssl_set_hostname(ssl, NULL)`),
+ *         otherwise \c 0.
+ */
+static int mbedtls_ssl_has_set_hostname_been_called(
+    const mbedtls_ssl_context *ssl)
+{
+    return ssl->hostname != NULL;
+}
+#endif
+
+/* Micro-optimization: don't export this function if it isn't needed outside
+ * of this source file. */
+#if !defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
+static
+#endif
+const char *mbedtls_ssl_get_hostname_pointer(const mbedtls_ssl_context *ssl)
+{
+    if (ssl->hostname == ssl_hostname_skip_cn_verification) {
+        return NULL;
+    }
+    return ssl->hostname;
+}
+
+static void mbedtls_ssl_free_hostname(mbedtls_ssl_context *ssl)
+{
+    if (ssl->hostname != NULL &&
+        ssl->hostname != ssl_hostname_skip_cn_verification) {
+        mbedtls_zeroize_and_free(ssl->hostname, strlen(ssl->hostname));
+    }
+    ssl->hostname = NULL;
+}
+
 int mbedtls_ssl_set_hostname(mbedtls_ssl_context *ssl, const char *hostname)
 {
     /* Initialize to suppress unnecessary compiler warning */
@@ -2774,18 +2819,21 @@ int mbedtls_ssl_set_hostname(mbedtls_ssl_context *ssl, const char *hostname)
 
     /* Now it's clear that we will overwrite the old hostname,
      * so we can free it safely */
-
-    if (ssl->hostname != NULL) {
-        mbedtls_zeroize_and_free(ssl->hostname, strlen(ssl->hostname));
-    }
-
-    /* Passing NULL as hostname shall clear the old one */
+    mbedtls_ssl_free_hostname(ssl);
 
     if (hostname == NULL) {
-        ssl->hostname = NULL;
+        /* Passing NULL as hostname clears the old one, but leaves a
+         * special marker to indicate that mbedtls_ssl_set_hostname()
+         * has been called. */
+        /* ssl->hostname should be const, but isn't. We won't actually
+         * write to the buffer, so it's ok to cast away the const. */
+        ssl->hostname = (char *) ssl_hostname_skip_cn_verification;
     } else {
         ssl->hostname = mbedtls_calloc(1, hostname_len + 1);
         if (ssl->hostname == NULL) {
+            /* mbedtls_ssl_set_hostname() has been called, but unsuccessfully.
+             * Leave ssl->hostname in the same state as if the function had
+             * not been called, i.e. a null pointer. */
             return MBEDTLS_ERR_SSL_ALLOC_FAILED;
         }
 
@@ -5571,9 +5619,7 @@ void mbedtls_ssl_free(mbedtls_ssl_context *ssl)
     }
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
-    if (ssl->hostname != NULL) {
-        mbedtls_zeroize_and_free(ssl->hostname, strlen(ssl->hostname));
-    }
+    mbedtls_ssl_free_hostname(ssl);
 #endif
 
 #if defined(MBEDTLS_SSL_DTLS_HELLO_VERIFY) && defined(MBEDTLS_SSL_SRV_C)
@@ -9784,6 +9830,27 @@ int mbedtls_ssl_check_cert_usage(const mbedtls_x509_crt *cert,
     return ret;
 }
 
+static int get_hostname_for_verification(mbedtls_ssl_context *ssl,
+                                         const char **hostname)
+{
+    if (!mbedtls_ssl_has_set_hostname_been_called(ssl)) {
+        MBEDTLS_SSL_DEBUG_MSG(1, ("Certificate verification without having set hostname"));
+#if !defined(MBEDTLS_SSL_CLI_ALLOW_WEAK_CERTIFICATE_VERIFICATION_WITHOUT_HOSTNAME)
+        if (mbedtls_ssl_conf_get_endpoint(ssl->conf) == MBEDTLS_SSL_IS_CLIENT &&
+            ssl->conf->authmode == MBEDTLS_SSL_VERIFY_REQUIRED) {
+            return MBEDTLS_ERR_SSL_CERTIFICATE_VERIFICATION_WITHOUT_HOSTNAME;
+        }
+#endif
+    }
+
+    *hostname = mbedtls_ssl_get_hostname_pointer(ssl);
+    if (*hostname == NULL) {
+        MBEDTLS_SSL_DEBUG_MSG(2, ("Certificate verification without CN verification"));
+    }
+
+    return 0;
+}
+
 int mbedtls_ssl_verify_certificate(mbedtls_ssl_context *ssl,
                                    int authmode,
                                    mbedtls_x509_crt *chain,
@@ -9809,7 +9876,13 @@ int mbedtls_ssl_verify_certificate(mbedtls_ssl_context *ssl,
         p_vrfy = ssl->conf->p_vrfy;
     }
 
-    int ret = 0;
+    const char *hostname = "";
+    int ret = get_hostname_for_verification(ssl, &hostname);
+    if (ret != 0) {
+        MBEDTLS_SSL_DEBUG_RET(1, "get_hostname_for_verification", ret);
+        return ret;
+    }
+
     int have_ca_chain_or_callback = 0;
 #if defined(MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK)
     if (ssl->conf->f_ca_cb != NULL) {
@@ -9822,7 +9895,7 @@ int mbedtls_ssl_verify_certificate(mbedtls_ssl_context *ssl,
             ssl->conf->f_ca_cb,
             ssl->conf->p_ca_cb,
             ssl->conf->cert_profile,
-            ssl->hostname,
+            hostname,
             &ssl->session_negotiate->verify_result,
             f_vrfy, p_vrfy);
     } else
@@ -9849,7 +9922,7 @@ int mbedtls_ssl_verify_certificate(mbedtls_ssl_context *ssl,
             chain,
             ca_chain, ca_crl,
             ssl->conf->cert_profile,
-            ssl->hostname,
+            hostname,
             &ssl->session_negotiate->verify_result,
             f_vrfy, p_vrfy, rs_ctx);
     }

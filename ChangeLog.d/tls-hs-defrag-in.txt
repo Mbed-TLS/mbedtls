@@ -1,12 +1,7 @@
 Bugfix
-   * Support re-assembly of fragmented handshake messages in TLS, as mandated
-     by the spec. Lack of support was causing handshake failures with some
-     servers, especially with TLS 1.3 in practice (though both protocol
-     version could be affected in principle, and both are fixed now).
-     The initial fragment for each handshake message must be at least 4 bytes.
-
-     Server-side, defragmentation of the ClientHello message is only
-     supported if the server accepts TLS 1.3 (regardless of whether the
-     ClientHello is 1.3 or 1.2). That is, servers configured (either
-     at compile time or at runtime) to only accept TLS 1.2 will
-     still fail the handshake if the ClientHello message is fragmented.
+   * Support re-assembly of fragmented handshake messages in TLS (both
+     1.2 and 1.3). The lack of support was causing handshake failures with
+     some servers, especially with TLS 1.3 in practice. There are a few
+     limitations, notably a fragmented ClientHello is only supported when
+     TLS 1.3 support is enabled. See the documentation of
+     mbedtls_ssl_conf_max_frag_len() for details.

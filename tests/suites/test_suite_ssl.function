@@ -5046,7 +5046,7 @@ void inject_client_content_on_the_wire(int pk_alg,
     srv_pattern.pattern = log_pattern;
     options.srv_log_obj = &srv_pattern;
     options.srv_log_fun = mbedtls_test_ssl_log_analyzer;
-    mbedtls_debug_set_threshold(5);
+    mbedtls_debug_set_threshold(1);
 
     options.pk_alg = pk_alg;
 
@@ -5078,7 +5078,11 @@ void inject_client_content_on_the_wire(int pk_alg,
         ret = mbedtls_ssl_handshake_step(&server.ssl);
     } while (ret == 0 && server.ssl.state == state);
     TEST_EQUAL(ret,  expected_ret);
-    TEST_EQUAL(srv_pattern.counter, 1);
+    /* If we're expected to suceeed and we do, that's enough.
+     * If we're expected to fail, also check it was in the expected way. */
+    if (expected_ret != 0) {
+        TEST_EQUAL(srv_pattern.counter, 1);
+    }
 
 exit:
     mbedtls_test_free_handshake_options(&options);
@@ -5123,7 +5127,7 @@ void send_large_fragmented_hello(int hs_len_int, int first_frag_content_len_int,
     srv_pattern.pattern = log_pattern;
     options.srv_log_obj = &srv_pattern;
     options.srv_log_fun = mbedtls_test_ssl_log_analyzer;
-    mbedtls_debug_set_threshold(5);
+    mbedtls_debug_set_threshold(1);
 
     // Does't really matter but we want to know to declare dependencies.
     options.pk_alg = MBEDTLS_PK_ECDSA;

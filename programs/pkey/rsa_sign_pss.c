@@ -86,8 +86,7 @@ int main(int argc, char *argv[])
     mbedtls_printf("\n  . Reading private key from '%s'", argv[1]);
     fflush(stdout);
 
-    if ((ret = mbedtls_pk_parse_keyfile(&pk, argv[1], "",
-                                        mbedtls_ctr_drbg_random, &ctr_drbg)) != 0) {
+    if ((ret = mbedtls_pk_parse_keyfile(&pk, argv[1], "")) != 0) {
         mbedtls_printf(" failed\n  ! Could not read key from '%s'\n", argv[1]);
         mbedtls_printf("  ! mbedtls_pk_parse_public_keyfile returned %d\n\n", ret);
         goto exit;
@@ -120,8 +119,7 @@ int main(int argc, char *argv[])
     }
 
     if ((ret = mbedtls_pk_sign(&pk, MBEDTLS_MD_SHA256, hash, 0,
-                               buf, sizeof(buf), &olen,
-                               mbedtls_ctr_drbg_random, &ctr_drbg)) != 0) {
+                               buf, sizeof(buf), &olen)) != 0) {
         mbedtls_printf(" failed\n  ! mbedtls_pk_sign returned %d\n\n", ret);
         goto exit;
     }

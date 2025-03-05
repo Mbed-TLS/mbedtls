@@ -379,8 +379,7 @@ int main(void)
 
     mbedtls_pk_init(&pkey);
     ret =  mbedtls_pk_parse_key(&pkey, (const unsigned char *) mbedtls_test_srv_key,
-                                mbedtls_test_srv_key_len, NULL, 0,
-                                mbedtls_ctr_drbg_random, &ctr_drbg);
+                                mbedtls_test_srv_key_len, NULL, 0);
     if (ret != 0) {
         mbedtls_printf(" failed\n  !  mbedtls_pk_parse_key returned %d\n\n", ret);
         goto exit;

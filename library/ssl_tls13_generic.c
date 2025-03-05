@@ -978,8 +978,7 @@ static int ssl_tls13_write_certificate_verify_body(mbedtls_ssl_context *ssl,
 
         if ((ret = mbedtls_pk_sign_ext(pk_type, own_key,
                                        md_alg, verify_hash, verify_hash_len,
-                                       p + 4, (size_t) (end - (p + 4)), &signature_len,
-                                       ssl->conf->f_rng, ssl->conf->p_rng)) != 0) {
+                                       p + 4, (size_t) (end - (p + 4)), &signature_len)) != 0) {
             MBEDTLS_SSL_DEBUG_MSG(2, ("CertificateVerify signature failed with %s",
                                       mbedtls_ssl_sig_alg_to_str(*sig_alg)));
             MBEDTLS_SSL_DEBUG_RET(2, "mbedtls_pk_sign_ext", ret);

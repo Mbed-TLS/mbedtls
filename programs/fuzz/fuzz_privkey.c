@@ -44,8 +44,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size)
         goto exit;
     }
 
-    ret = mbedtls_pk_parse_key(&pk, Data, Size, NULL, 0,
-                               dummy_random, &ctr_drbg);
+    ret = mbedtls_pk_parse_key(&pk, Data, Size, NULL, 0);
     if (ret == 0) {
 #if defined(MBEDTLS_RSA_C)
         if (mbedtls_pk_get_type(&pk) == MBEDTLS_PK_RSA) {

@@ -2827,7 +2827,7 @@ sign:
                                            ssl->out_msg + 6 + offset,
                                            out_buf_len - 6 - offset,
                                            &n,
-                                           ssl->conf->f_rng, ssl->conf->p_rng, rs_ctx)) != 0) {
+                                           rs_ctx)) != 0) {
         MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_pk_sign", ret);
 #if defined(MBEDTLS_SSL_ECP_RESTARTABLE_ENABLED)
         if (ret == MBEDTLS_ERR_ECP_IN_PROGRESS) {

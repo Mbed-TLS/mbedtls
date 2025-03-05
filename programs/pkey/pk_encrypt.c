@@ -105,8 +105,7 @@ int main(int argc, char *argv[])
     fflush(stdout);
 
     if ((ret = mbedtls_pk_encrypt(&pk, input, strlen(argv[2]),
-                                  buf, &olen, sizeof(buf),
-                                  mbedtls_ctr_drbg_random, &ctr_drbg)) != 0) {
+                                  buf, &olen, sizeof(buf))) != 0) {
         mbedtls_printf(" failed\n  ! mbedtls_pk_encrypt returned -0x%04x\n",
                        (unsigned int) -ret);
         goto exit;

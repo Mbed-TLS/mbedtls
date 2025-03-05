@@ -363,8 +363,7 @@ usage:
             goto exit;
         }
 
-        ret = mbedtls_pk_parse_keyfile(&key, opt.filename, NULL,
-                                       mbedtls_ctr_drbg_random, &ctr_drbg);
+        ret = mbedtls_pk_parse_keyfile(&key, opt.filename, NULL);
         if (ret != 0) {
             mbedtls_printf(" failed\n  !  mbedtls_pk_parse_keyfile returned -0x%04x",
                            (unsigned int) -ret);

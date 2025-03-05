@@ -165,9 +165,7 @@ int main(void)
                                 (const unsigned char *) mbedtls_test_srv_key,
                                 mbedtls_test_srv_key_len,
                                 NULL,
-                                0,
-                                mbedtls_ctr_drbg_random,
-                                &ctr_drbg);
+                                0);
     if (ret != 0) {
         printf(" failed\n  !  mbedtls_pk_parse_key returned %d\n\n", ret);
         goto exit;

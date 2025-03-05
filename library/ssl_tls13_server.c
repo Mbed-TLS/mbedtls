@@ -92,7 +92,7 @@ static void ssl_tls13_select_ciphersuite(
         return;
     }
 
-    MBEDTLS_SSL_DEBUG_MSG(2, ("No matched ciphersuite, psk_ciphersuite_id=%x, psk_hash_alg=%lx",
+    MBEDTLS_SSL_DEBUG_MSG(1, ("No matched ciphersuite, psk_ciphersuite_id=%x, psk_hash_alg=%lx",
                               (unsigned) psk_ciphersuite_id,
                               (unsigned long) psk_hash_alg));
 }

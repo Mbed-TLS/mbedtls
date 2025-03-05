@@ -2971,8 +2971,6 @@ usage:
 #endif /* MBEDTLS_HAVE_TIME */
         {
             if ((ret = mbedtls_ssl_ticket_setup(&ticket_ctx,
-                                                rng_get,
-                                                &rng,
                                                 opt.ticket_alg,
                                                 opt.ticket_key_type,
                                                 opt.ticket_key_bits,
@@ -3014,8 +3012,7 @@ usage:
     if (opt.transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM) {
 #if defined(MBEDTLS_SSL_COOKIE_C)
         if (opt.cookies > 0) {
-            if ((ret = mbedtls_ssl_cookie_setup(&cookie_ctx,
-                                                rng_get, &rng)) != 0) {
+            if ((ret = mbedtls_ssl_cookie_setup(&cookie_ctx)) != 0) {
                 mbedtls_printf(" failed\n  ! mbedtls_ssl_cookie_setup returned %d\n\n", ret);
                 goto exit;
             }

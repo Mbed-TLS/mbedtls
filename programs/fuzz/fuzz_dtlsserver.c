@@ -108,7 +108,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size)
     }
 #endif
 
-    if (mbedtls_ssl_cookie_setup(&cookie_ctx, dummy_random, &ctr_drbg) != 0) {
+    if (mbedtls_ssl_cookie_setup(&cookie_ctx) != 0) {
         goto exit;
     }
 

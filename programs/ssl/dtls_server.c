@@ -216,8 +216,7 @@ int main(void)
         goto exit;
     }
 
-    if ((ret = mbedtls_ssl_cookie_setup(&cookie_ctx,
-                                        mbedtls_ctr_drbg_random, &ctr_drbg)) != 0) {
+    if ((ret = mbedtls_ssl_cookie_setup(&cookie_ctx)) != 0) {
         printf(" failed\n  ! mbedtls_ssl_cookie_setup returned %d\n\n", ret);
         goto exit;
     }

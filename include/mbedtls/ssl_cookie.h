@@ -55,9 +55,7 @@ void mbedtls_ssl_cookie_init(mbedtls_ssl_cookie_ctx *ctx);
 /**
  * \brief          Setup cookie context (generate keys)
  */
-int mbedtls_ssl_cookie_setup(mbedtls_ssl_cookie_ctx *ctx,
-                             int (*f_rng)(void *, unsigned char *, size_t),
-                             void *p_rng);
+int mbedtls_ssl_cookie_setup(mbedtls_ssl_cookie_ctx *ctx);
 
 /**
  * \brief          Set expiration delay for cookies

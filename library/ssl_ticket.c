@@ -75,11 +75,15 @@ static int ssl_ticket_gen_key(mbedtls_ssl_ticket_context *ctx,
      */
     key->lifetime = ctx->ticket_lifetime;
 
-    if ((ret = ctx->f_rng(ctx->p_rng, key->name, sizeof(key->name))) != 0) {
+    if ((ret = psa_crypto_init()) != 0) {
         return ret;
     }
 
-    if ((ret = ctx->f_rng(ctx->p_rng, buf, sizeof(buf))) != 0) {
+    if ((ret = psa_generate_random(key->name, sizeof(key->name))) != 0) {
+        return ret;
+    }
+
+    if ((ret = psa_generate_random(buf, sizeof(buf))) != 0) {
         return ret;
     }
 
@@ -185,7 +189,6 @@ int mbedtls_ssl_ticket_rotate(mbedtls_ssl_ticket_context *ctx,
  * Setup context for actual use
  */
 int mbedtls_ssl_ticket_setup(mbedtls_ssl_ticket_context *ctx,
-                             int (*f_rng)(void *, unsigned char *, size_t), void *p_rng,
                              psa_algorithm_t alg, psa_key_type_t key_type, psa_key_bits_t key_bits,
                              uint32_t lifetime)
 {
@@ -198,9 +201,6 @@ int mbedtls_ssl_ticket_setup(mbedtls_ssl_ticket_context *ctx,
     if (key_bits > 8 * MAX_KEY_BYTES) {
         return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
     }
-
-    ctx->f_rng = f_rng;
-    ctx->p_rng = p_rng;
 
     ctx->ticket_lifetime = lifetime;
 
@@ -254,7 +254,7 @@ int mbedtls_ssl_ticket_write(void *p_ticket,
 
     *tlen = 0;
 
-    if (ctx == NULL || ctx->f_rng == NULL) {
+    if (ctx == NULL) {
         return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
     }
 
@@ -278,7 +278,11 @@ int mbedtls_ssl_ticket_write(void *p_ticket,
 
     memcpy(key_name, key->name, TICKET_KEY_NAME_BYTES);
 
-    if ((ret = ctx->f_rng(ctx->p_rng, iv, TICKET_IV_BYTES)) != 0) {
+    if ((ret = psa_crypto_init()) != 0) {
+        goto cleanup;
+    }
+
+    if ((ret = psa_generate_random(iv, TICKET_IV_BYTES)) != 0) {
         goto cleanup;
     }
 
@@ -355,7 +359,7 @@ int mbedtls_ssl_ticket_parse(void *p_ticket,
 
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    if (ctx == NULL || ctx->f_rng == NULL) {
+    if (ctx == NULL) {
         return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
     }
 

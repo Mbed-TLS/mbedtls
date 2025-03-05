@@ -1780,6 +1780,9 @@ component_test_full_no_deprecated () {
 
     msg "test: make, full_no_deprecated config" # ~ 5s
     make test
+
+    msg "test: ssl-opt.sh authentication, full_no_deprecated config" # ~ 10s
+    tests/ssl-opt.sh -f 'Default\|Authentication'
 }
 
 component_test_full_no_deprecated_deprecated_warning () {

@@ -13776,6 +13776,37 @@ run_test    "Handshake defragmentation with client-initiated renegotiation: len=
             -s "Prepare: waiting for more handshake fragments 512/[0-9]\\+" \
             -s "Consume: waiting for more handshake fragments 512/[0-9]\\+" \
 
+# Test Server initiated renegotiation with fragmented handshake on TLS1.2
+requires_openssl_3_x
+requires_protocol_version tls12
+requires_certificate_authentication
+requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
+run_test    "Handshake defragmentation with server-initiated renegotiation: len=300" \
+            "$O_NEXT_SRV -tls1_2 -split_send_frag 300 -legacy_renegotiation -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key" \
+            "$P_CLI debug_level=3 renegotiation=1 request_page=/reneg" \
+            0 \
+            -c "initial handshake fragment: 300, 0..300 of [0-9]\\+" \
+            -c "Prepare: waiting for more handshake fragments 300/[0-9]\\+" \
+            -c "Consume: waiting for more handshake fragments 300/[0-9]\\+" \
+            -c "client hello, adding renegotiation extension" \
+            -c "found renegotiation extension" \
+            -c "=> renegotiate"
+
+requires_openssl_3_x
+requires_protocol_version tls12
+requires_certificate_authentication
+requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
+run_test    "Handshake defragmentation with server-initiated renegotiation: len=512" \
+            "$O_NEXT_SRV -tls1_2 -split_send_frag 512 -legacy_renegotiation -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key" \
+            "$P_CLI debug_level=3 renegotiation=1 request_page=/reneg" \
+            0 \
+            -c "initial handshake fragment: 512, 0..512 of [0-9]\\+" \
+            -c "Prepare: waiting for more handshake fragments 512/[0-9]\\+" \
+            -c "Consume: waiting for more handshake fragments 512/[0-9]\\+" \
+            -c "client hello, adding renegotiation extension" \
+            -c "found renegotiation extension" \
+            -c "=> renegotiate"
+
 # Test heap memory usage after handshake
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_MEMORY_DEBUG

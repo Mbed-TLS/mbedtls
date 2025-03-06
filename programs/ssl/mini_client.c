@@ -187,8 +187,6 @@ int main(void)
         goto exit;
     }
 
-    mbedtls_ssl_conf_rng(&conf, mbedtls_ctr_drbg_random, &ctr_drbg);
-
 #if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
     mbedtls_ssl_conf_psk(&conf, psk, sizeof(psk),
                          (const unsigned char *) psk_id, sizeof(psk_id) - 1);

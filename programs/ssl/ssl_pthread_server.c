@@ -401,7 +401,6 @@ int main(void)
         goto exit;
     }
 
-    mbedtls_ssl_conf_rng(&conf, mbedtls_ctr_drbg_random, &ctr_drbg);
     mbedtls_ssl_conf_dbg(&conf, my_mutexed_debug, stdout);
 
     /* mbedtls_ssl_cache_get() and mbedtls_ssl_cache_set() are thread-safe if

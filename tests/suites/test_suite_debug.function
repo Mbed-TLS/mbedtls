@@ -156,7 +156,6 @@ void debug_print_msg_threshold(int threshold, int level, char *file,
                                            MBEDTLS_SSL_TRANSPORT_STREAM,
                                            MBEDTLS_SSL_PRESET_DEFAULT),
                0);
-    mbedtls_ssl_conf_rng(&conf, mbedtls_test_random, NULL);
     mbedtls_ssl_conf_dbg(&conf, string_debug, &buffer);
 
     TEST_ASSERT(mbedtls_ssl_setup(&ssl, &conf) == 0);
@@ -194,7 +193,6 @@ void mbedtls_debug_print_ret(char *file, int line, char *text, int value,
                                            MBEDTLS_SSL_TRANSPORT_STREAM,
                                            MBEDTLS_SSL_PRESET_DEFAULT),
                0);
-    mbedtls_ssl_conf_rng(&conf, mbedtls_test_random, NULL);
     mbedtls_ssl_conf_dbg(&conf, string_debug, &buffer);
 
     TEST_ASSERT(mbedtls_ssl_setup(&ssl, &conf) == 0);
@@ -229,7 +227,6 @@ void mbedtls_debug_print_buf(char *file, int line, char *text,
                                            MBEDTLS_SSL_TRANSPORT_STREAM,
                                            MBEDTLS_SSL_PRESET_DEFAULT),
                0);
-    mbedtls_ssl_conf_rng(&conf, mbedtls_test_random, NULL);
     mbedtls_ssl_conf_dbg(&conf, string_debug, &buffer);
 
     TEST_ASSERT(mbedtls_ssl_setup(&ssl, &conf) == 0);
@@ -267,7 +264,6 @@ void mbedtls_debug_print_crt(char *crt_file, char *file, int line,
                                            MBEDTLS_SSL_TRANSPORT_STREAM,
                                            MBEDTLS_SSL_PRESET_DEFAULT),
                0);
-    mbedtls_ssl_conf_rng(&conf, mbedtls_test_random, NULL);
     mbedtls_ssl_conf_dbg(&conf, string_debug, &buffer);
 
     TEST_ASSERT(mbedtls_ssl_setup(&ssl, &conf) == 0);
@@ -306,7 +302,6 @@ void mbedtls_debug_print_mpi(char *value, char *file, int line,
                                            MBEDTLS_SSL_TRANSPORT_STREAM,
                                            MBEDTLS_SSL_PRESET_DEFAULT),
                0);
-    mbedtls_ssl_conf_rng(&conf, mbedtls_test_random, NULL);
     mbedtls_ssl_conf_dbg(&conf, string_debug, &buffer);
 
     TEST_ASSERT(mbedtls_ssl_setup(&ssl, &conf) == 0);

@@ -767,7 +767,6 @@ int mbedtls_test_ssl_endpoint_init(
 
     mbedtls_ssl_init(&(ep->ssl));
     mbedtls_ssl_config_init(&(ep->conf));
-    mbedtls_ssl_conf_rng(&(ep->conf), mbedtls_test_random, NULL);
 
     TEST_ASSERT(mbedtls_ssl_conf_get_user_data_p(&ep->conf) == NULL);
     TEST_EQUAL(mbedtls_ssl_conf_get_user_data_n(&ep->conf), 0);

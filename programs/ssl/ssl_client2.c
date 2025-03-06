@@ -1906,7 +1906,6 @@ usage:
 #endif
 #endif  /* MBEDTLS_HAVE_TIME */
     }
-    mbedtls_ssl_conf_rng(&conf, rng_get, &rng);
     mbedtls_ssl_conf_dbg(&conf, my_debug, stdout);
 
     mbedtls_ssl_conf_read_timeout(&conf, opt.read_timeout);

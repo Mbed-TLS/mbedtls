@@ -142,7 +142,6 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size)
     // mbedtls_ssl_conf_cert_profile, mbedtls_ssl_conf_sig_hashes
 
     srand(1);
-    mbedtls_ssl_conf_rng(&conf, dummy_random, &ctr_drbg);
 
     if (mbedtls_ssl_setup(&ssl, &conf) != 0) {
         goto exit;

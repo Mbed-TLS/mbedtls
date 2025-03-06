@@ -2061,17 +2061,6 @@ void mbedtls_ssl_conf_verify(mbedtls_ssl_config *conf,
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
 /**
- * \brief          Set the random number generator callback
- *
- * \param conf     SSL configuration
- * \param f_rng    RNG function (mandatory)
- * \param p_rng    RNG parameter
- */
-void mbedtls_ssl_conf_rng(mbedtls_ssl_config *conf,
-                          int (*f_rng)(void *, unsigned char *, size_t),
-                          void *p_rng);
-
-/**
  * \brief          Set the debug callback
  *
  *                 The callback has the following argument:

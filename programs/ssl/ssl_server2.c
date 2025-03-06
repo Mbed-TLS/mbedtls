@@ -2925,7 +2925,6 @@ usage:
 #endif
 #endif  /* MBEDTLS_HAVE_TIME */
     }
-    mbedtls_ssl_conf_rng(&conf, rng_get, &rng);
     mbedtls_ssl_conf_dbg(&conf, my_debug, stdout);
 
 #if defined(MBEDTLS_SSL_CACHE_C)

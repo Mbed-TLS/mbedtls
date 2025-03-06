@@ -1526,14 +1526,6 @@ void mbedtls_ssl_conf_verify(mbedtls_ssl_config *conf,
 }
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
-void mbedtls_ssl_conf_rng(mbedtls_ssl_config *conf,
-                          int (*f_rng)(void *, unsigned char *, size_t),
-                          void *p_rng)
-{
-    conf->f_rng      = f_rng;
-    conf->p_rng      = p_rng;
-}
-
 void mbedtls_ssl_conf_dbg(mbedtls_ssl_config *conf,
                           void (*f_dbg)(void *, int, const char *, int, const char *),
                           void  *p_dbg)

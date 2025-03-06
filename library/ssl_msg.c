@@ -3323,6 +3323,7 @@ int mbedtls_ssl_prepare_handshake_record(mbedtls_ssl_context *ssl)
          * care of consuming the next handshake message. */
         const size_t hs_this_fragment_len =
             ssl->in_msglen > hs_remain ? hs_remain : ssl->in_msglen;
+        (void) hs_this_fragment_len;
 
         MBEDTLS_SSL_DEBUG_MSG(3,
                               ("%s handshake fragment: %" MBEDTLS_PRINTF_SIZET
@@ -3393,6 +3394,7 @@ int mbedtls_ssl_prepare_handshake_record(mbedtls_ssl_context *ssl)
             MBEDTLS_PUT_UINT16_BE(ssl->in_msglen, ssl->in_len, 0);
 
             size_t record_len = mbedtls_ssl_in_hdr_len(ssl) + ssl->in_msglen;
+            (void) record_len;
             MBEDTLS_SSL_DEBUG_BUF(4, "reassembled record",
                                   ssl->in_hdr, record_len);
             if (ssl->in_hslen < ssl->in_msglen) {

@@ -6316,7 +6316,7 @@ static psa_status_t psa_generate_derived_ecc_key_weierstrass_helper(
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     size_t m;
-    size_t m_bytes;
+    size_t m_bytes = 0;
 
     mbedtls_mpi_init(&k);
     mbedtls_mpi_init(&diff_N_2);

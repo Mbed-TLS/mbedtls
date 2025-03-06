@@ -3065,43 +3065,20 @@ int mbedtls_ssl_prepare_handshake_record(mbedtls_ssl_context *ssl)
         const size_t hs_this_fragment_len =
             ssl->in_msglen > hs_remain ? hs_remain : ssl->in_msglen;
 
-        if (ssl->in_hsfraglen != 0) {
-            /* We already had a handshake fragment. Prepare to append
-             * to the initial segment. */
-            MBEDTLS_SSL_DEBUG_MSG(3,
-                                  ("subsequent handshake fragment: %" MBEDTLS_PRINTF_SIZET
-                                   ", %" MBEDTLS_PRINTF_SIZET
-                                   "..%" MBEDTLS_PRINTF_SIZET
-                                   " of %" MBEDTLS_PRINTF_SIZET,
-                                   ssl->in_msglen,
-                                   ssl->in_hsfraglen,
-                                   ssl->in_hsfraglen + hs_this_fragment_len,
-                                   ssl->in_hslen));
-        } else if (hs_this_fragment_len == ssl->in_hslen) {
-            /* This is the sole fragment. */
-            /* Emit a log message in the same format as when there are
-             * multiple fragments, for ease of matching. */
-            MBEDTLS_SSL_DEBUG_MSG(3,
-                                  ("sole handshake fragment: %" MBEDTLS_PRINTF_SIZET
-                                   ", %" MBEDTLS_PRINTF_SIZET
-                                   "..%" MBEDTLS_PRINTF_SIZET
-                                   " of %" MBEDTLS_PRINTF_SIZET,
-                                   ssl->in_msglen,
-                                   ssl->in_hsfraglen,
-                                   ssl->in_hsfraglen + hs_this_fragment_len,
-                                   ssl->in_hslen));
-        } else {
-            /* This is the first fragment of many. */
-            MBEDTLS_SSL_DEBUG_MSG(3,
-                                  ("initial handshake fragment: %" MBEDTLS_PRINTF_SIZET
-                                   ", %" MBEDTLS_PRINTF_SIZET
-                                   "..%" MBEDTLS_PRINTF_SIZET
-                                   " of %" MBEDTLS_PRINTF_SIZET,
-                                   ssl->in_msglen,
-                                   ssl->in_hsfraglen,
-                                   ssl->in_hsfraglen + hs_this_fragment_len,
-                                   ssl->in_hslen));
-        }
+        MBEDTLS_SSL_DEBUG_MSG(3,
+                              ("%s handshake fragment: %" MBEDTLS_PRINTF_SIZET
+                               ", %" MBEDTLS_PRINTF_SIZET
+                               "..%" MBEDTLS_PRINTF_SIZET
+                               " of %" MBEDTLS_PRINTF_SIZET,
+                               (ssl->in_hsfraglen != 0 ?
+                                "subsequent" :
+                                hs_this_fragment_len == ssl->in_hslen ?
+                                "sole" :
+                                "initial"),
+                               ssl->in_msglen,
+                               ssl->in_hsfraglen,
+                               ssl->in_hsfraglen + hs_this_fragment_len,
+                               ssl->in_hslen));
 
         /* Move the received handshake fragment to have the whole message
          * (at least the part received so far) in a single segment at a

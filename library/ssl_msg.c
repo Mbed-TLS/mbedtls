@@ -3398,8 +3398,7 @@ int mbedtls_ssl_prepare_handshake_record(mbedtls_ssl_context *ssl)
             if (ssl->in_hslen < ssl->in_msglen) {
                 MBEDTLS_SSL_DEBUG_MSG(3,
                                       ("More handshake messages in the record: "
-                                       "%" MBEDTLS_PRINTF_SIZET " + "
-                                       "%" MBEDTLS_PRINTF_SIZET,
+                                       "%" MBEDTLS_PRINTF_SIZET " + %" MBEDTLS_PRINTF_SIZET,
                                        ssl->in_hslen,
                                        ssl->in_msglen - ssl->in_hslen));
             }

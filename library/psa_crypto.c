@@ -6171,16 +6171,22 @@ psa_status_t psa_crypto_local_input_alloc(const uint8_t *input, size_t input_len
     return PSA_SUCCESS;
 
 error:
-    mbedtls_free(local_input->buffer);
-    local_input->buffer = NULL;
+    if (local_input->buffer != NULL) {
+        mbedtls_platform_zeroize(local_input->buffer, local_input->length);
+        mbedtls_free(local_input->buffer);
+        local_input->buffer = NULL;
+    }
     local_input->length = 0;
     return status;
 }
 
 void psa_crypto_local_input_free(psa_crypto_local_input_t *local_input)
 {
-    mbedtls_free(local_input->buffer);
-    local_input->buffer = NULL;
+    if (local_input->buffer != NULL) {
+        mbedtls_platform_zeroize(local_input->buffer, local_input->length);
+        mbedtls_free(local_input->buffer);
+        local_input->buffer = NULL;
+    }
     local_input->length = 0;
 }
 
@@ -6223,8 +6229,11 @@ psa_status_t psa_crypto_local_output_free(psa_crypto_local_output_t *local_outpu
         return status;
     }
 
-    mbedtls_free(local_output->buffer);
-    local_output->buffer = NULL;
+    if (local_output->buffer != NULL) {
+        mbedtls_platform_zeroize(local_output->buffer, local_output->length);
+        mbedtls_free(local_output->buffer);
+        local_output->buffer = NULL;
+    }
     local_output->length = 0;
 
     return PSA_SUCCESS;

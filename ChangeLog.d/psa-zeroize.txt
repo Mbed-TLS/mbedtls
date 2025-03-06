@@ -1,2 +1,4 @@
 Security
+   * Zeroize a temporary heap buffer used in psa_key_derivation_output_key()
+     when deriving an ECC key pair.
    * Zeroize temporary heap buffers used in PSA operations.

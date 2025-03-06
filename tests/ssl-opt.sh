@@ -13807,6 +13807,22 @@ run_test    "Handshake defragmentation with server-initiated renegotiation: len=
             -c "found renegotiation extension" \
             -c "=> renegotiate"
 
+# Mock negative test to demonstrate the failure with n-bit sized fragments, where ClientHello < n.
+requires_openssl_3_x
+requires_protocol_version tls12
+requires_certificate_authentication
+requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
+run_test    "Handshake defragmentation mock with server-initiated renegotation: len=256 renego_delay=default(16)" \
+            "$O_NEXT_SRV -tls1_2 -split_send_frag 256 -legacy_renegotiation -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key" \
+            "$P_CLI debug_level=3 renegotiation=1 request_page=/reneg" \
+            1 \
+            -c "initial handshake fragment: 256, 0..256 of [0-9]\\+" \
+            -c "Prepare: waiting for more handshake fragments 256/[0-9]\\+" \
+            -c "Consume: waiting for more handshake fragments 256/[0-9]\\+" \
+            -c "client hello, adding renegotiation extension" \
+            -c "found renegotiation extension" \
+            -c "renegotiation requested, but not honored by server"
+
 # Test heap memory usage after handshake
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_MEMORY_DEBUG

@@ -3078,6 +3078,9 @@ void recombine_server_first_flight(int version,
 #if defined(MBEDTLS_DEBUG_C)
     mbedtls_test_ssl_log_pattern cli_pattern = { .pattern = client_log };
     mbedtls_test_ssl_log_pattern srv_pattern = { .pattern = server_log };
+#else
+    (void) client_log;
+    (void) server_log;
 #endif
     int ret = 0;
 
@@ -3091,8 +3094,6 @@ void recombine_server_first_flight(int version,
 #if defined(MBEDTLS_DEBUG_C)
     client_options.cli_log_obj = &cli_pattern;
     client_options.cli_log_fun = mbedtls_test_ssl_log_analyzer;
-#else
-    (void) cli_pattern;
 #endif
     TEST_EQUAL(mbedtls_test_ssl_endpoint_init(&client, MBEDTLS_SSL_IS_CLIENT,
                                               &client_options, NULL, NULL,
@@ -3107,8 +3108,6 @@ void recombine_server_first_flight(int version,
 #if defined(MBEDTLS_DEBUG_C)
     server_options.srv_log_obj = &srv_pattern;
     server_options.srv_log_fun = mbedtls_test_ssl_log_analyzer;
-#else
-    (void) srv_pattern;
 #endif
     TEST_EQUAL(mbedtls_test_ssl_endpoint_init(&server, MBEDTLS_SSL_IS_SERVER,
                                               &server_options, NULL, NULL,

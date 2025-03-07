@@ -1,0 +1,26 @@
+Recombine server flight 1: TLS 1.2, nominal
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2
+recombine_server_first_flight:MBEDTLS_SSL_VERSION_TLS1_2:RECOMBINE_NOMINAL:0:"<= handshake wrapup":"<= handshake wrapup":MBEDTLS_SSL_HANDSHAKE_OVER:0
+
+Recombine server flight 1: TLS 1.3, nominal
+depends_on:MBEDTLS_SSL_PROTO_TLS1_3
+recombine_server_first_flight:MBEDTLS_SSL_VERSION_TLS1_3:RECOMBINE_NOMINAL:0:"<= handshake wrapup":"<= handshake wrapup":MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET_FLUSH:0
+
+Recombine server flight 1: TLS 1.2, coalesce 2
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2
+recombine_server_first_flight:MBEDTLS_SSL_VERSION_TLS1_2:RECOMBINE_COALESCE:2:"<= handshake wrapup":"<= handshake wrapup":MBEDTLS_SSL_HANDSHAKE_OVER:0
+
+Recombine server flight 1: TLS 1.2, coalesce 3
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2
+recombine_server_first_flight:MBEDTLS_SSL_VERSION_TLS1_2:RECOMBINE_COALESCE:3:"<= handshake wrapup":"<= handshake wrapup":MBEDTLS_SSL_HANDSHAKE_OVER:0
+
+Recombine server flight 1: TLS 1.2, coalesce all
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2
+recombine_server_first_flight:MBEDTLS_SSL_VERSION_TLS1_2:RECOMBINE_COALESCE:INT_MAX:"<= handshake wrapup":"<= handshake wrapup":MBEDTLS_SSL_HANDSHAKE_OVER:0
+
+# TLS 1.3 has a single non-encrypted handshake record, so this doesn't
+# actually perform any coalescing. Run the test case anyway, but this does
+# very little beyond exercising the test code itself a little.
+Recombine server flight 1: TLS 1.3, coalesce all
+depends_on:MBEDTLS_SSL_PROTO_TLS1_3
+recombine_server_first_flight:MBEDTLS_SSL_VERSION_TLS1_3:RECOMBINE_COALESCE:INT_MAX:"<= handshake wrapup":"<= handshake wrapup":MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET_FLUSH:0

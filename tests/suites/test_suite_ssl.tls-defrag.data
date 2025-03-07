@@ -159,23 +159,34 @@ Inject ClientHello - TLS 1.3 fragmented 4 + invalid type + 72 rejected
 depends_on:MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED:MBEDTLS_SSL_HAVE_AES:MBEDTLS_MD_CAN_SHA256:MBEDTLS_SSL_HAVE_GCM:MBEDTLS_ECP_HAVE_SECP256R1:MBEDTLS_ECP_HAVE_SECP384R1:MBEDTLS_PK_CAN_ECDSA_SIGN:MBEDTLS_PK_CAN_ECDSA_VERIFY
 inject_client_content_on_the_wire:MBEDTLS_PK_ECDSA:MBEDTLS_SSL_CLIENT_HELLO:"1603030004010000481003030002015a160303004803030123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef00000213010100001d000a000400020017002b0003020304000d000400020403003300020000":"unknown record type":MBEDTLS_ERR_SSL_INVALID_RECORD
 
-Send large fragmented ClientHello: 4 bytes too large
-send_large_fragmented_hello:MBEDTLS_SSL_IN_CONTENT_LEN:0:"requesting more data than fits":MBEDTLS_ERR_SSL_BAD_INPUT_DATA
+# The buffer is actually larger than IN_CONTENT_LEN as we leave room for
+# record protection overhead (IV, MAC/tag, padding (up to 256 bytes)), CID...
+# The maximum size for an unencrypted (and without CID with is DTLS only)
+# handshake message we can hold in the buffer is
+#   MBEDTLS_SSL_IN_BUFFER_LEN - MBEDTLS_SSL_HEADER_LEN - 4
+# (the 4 is for the handshake header).
+# However, due to overhead, fragmented messages need to be 5 bytes shorter in
+# order to actually fit (leave room for an extra record header).
+Send large fragmented ClientHello: reassembled 1 byte larger than the buffer
+send_large_fragmented_hello:MBEDTLS_SSL_IN_BUFFER_LEN - MBEDTLS_SSL_HEADER_LEN - 3:0:"requesting more data than fits":MBEDTLS_ERR_SSL_BAD_INPUT_DATA
 
-Send large fragmented ClientHello: 1 byte too large
-send_large_fragmented_hello:MBEDTLS_SSL_IN_CONTENT_LEN - 3:0:"requesting more data than fits":MBEDTLS_ERR_SSL_BAD_INPUT_DATA
+Send large fragmented ClientHello: would just fit except for overhead
+send_large_fragmented_hello:MBEDTLS_SSL_IN_BUFFER_LEN - MBEDTLS_SSL_HEADER_LEN - 4:0:"requesting more data than fits":MBEDTLS_ERR_SSL_BAD_INPUT_DATA
 
-Send large fragmented ClientHello: would fit without overhead #1
-send_large_fragmented_hello:MBEDTLS_SSL_IN_CONTENT_LEN - 4:0:"requesting more data than fits":MBEDTLS_ERR_SSL_BAD_INPUT_DATA
+Send large fragmented ClientHello: would fit except for overhead (1)
+send_large_fragmented_hello:MBEDTLS_SSL_IN_BUFFER_LEN - MBEDTLS_SSL_HEADER_LEN - 5:0:"requesting more data than fits":MBEDTLS_ERR_SSL_BAD_INPUT_DATA
 
-Send large fragmented ClientHello: would fit without overhead #2
-send_large_fragmented_hello:MBEDTLS_SSL_IN_CONTENT_LEN - 4:1:"requesting more data than fits":MBEDTLS_ERR_SSL_BAD_INPUT_DATA
+Send large fragmented ClientHello: would fit except for overhead (2)
+send_large_fragmented_hello:MBEDTLS_SSL_IN_BUFFER_LEN - MBEDTLS_SSL_HEADER_LEN - 6:0:"requesting more data than fits":MBEDTLS_ERR_SSL_BAD_INPUT_DATA
 
-Send large fragmented ClientHello: would fit without overhead #3
-send_large_fragmented_hello:MBEDTLS_SSL_IN_CONTENT_LEN - 4:2:"requesting more data than fits":MBEDTLS_ERR_SSL_BAD_INPUT_DATA
+Send large fragmented ClientHello: would fit except for overhead (3)
+send_large_fragmented_hello:MBEDTLS_SSL_IN_BUFFER_LEN - MBEDTLS_SSL_HEADER_LEN - 7:0:"requesting more data than fits":MBEDTLS_ERR_SSL_BAD_INPUT_DATA
 
-Send large fragmented ClientHello: would fit without overhead #4
-send_large_fragmented_hello:MBEDTLS_SSL_IN_CONTENT_LEN - 4:3:"requesting more data than fits":MBEDTLS_ERR_SSL_BAD_INPUT_DATA
+Send large fragmented ClientHello: would fit except for overhead (4)
+send_large_fragmented_hello:MBEDTLS_SSL_IN_BUFFER_LEN - MBEDTLS_SSL_HEADER_LEN - 8:0:"requesting more data than fits":MBEDTLS_ERR_SSL_BAD_INPUT_DATA
 
-Send large fragmented ClientHello: would fit without overhead #5
-send_large_fragmented_hello:MBEDTLS_SSL_IN_CONTENT_LEN - 4:4:"requesting more data than fits":MBEDTLS_ERR_SSL_BAD_INPUT_DATA
+# Since we're sending dummy contents (all 0x2a) for the ClientHello,
+# the first thing that's going to fail is the version check. The fact that we
+# got around to checking it confirms reassembly completed sucessfully.
+Send large fragmented ClientHello: just fits
+send_large_fragmented_hello:MBEDTLS_SSL_IN_BUFFER_LEN - MBEDTLS_SSL_HEADER_LEN - 9:0:"Unsupported version of TLS":MBEDTLS_ERR_SSL_BAD_PROTOCOL_VERSION

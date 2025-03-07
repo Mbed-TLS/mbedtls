@@ -108,7 +108,7 @@
  *
  * This module provides debugging functions.
  */
-#if (defined(__MINGW32__) && __USE_MINGW_ANSI_STDIO == 0) || (defined(_MSC_VER) && _MSC_VER < 1900)
+#if defined(__MINGW32__) || (defined(_MSC_VER) && _MSC_VER < 1900)
    #include <inttypes.h>
    #define MBEDTLS_PRINTF_SIZET     PRIuPTR
    #define MBEDTLS_PRINTF_LONGLONG  "I64d"

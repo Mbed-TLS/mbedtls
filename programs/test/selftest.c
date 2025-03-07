@@ -10,7 +10,6 @@
 #include "mbedtls/entropy.h"
 #include "mbedtls/hmac_drbg.h"
 #include "mbedtls/ctr_drbg.h"
-#include "mbedtls/dhm.h"
 #include "mbedtls/gcm.h"
 #include "mbedtls/ccm.h"
 #include "mbedtls/cmac.h"
@@ -349,9 +348,6 @@ const selftest_t selftests[] =
 #endif
 #if defined(MBEDTLS_ECJPAKE_C)
     { "ecjpake", mbedtls_ecjpake_self_test },
-#endif
-#if defined(MBEDTLS_DHM_C)
-    { "dhm", mbedtls_dhm_self_test },
 #endif
 #if defined(MBEDTLS_ENTROPY_C)
     { "entropy", mbedtls_entropy_self_test_wrapper },

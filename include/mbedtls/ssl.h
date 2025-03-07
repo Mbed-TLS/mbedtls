@@ -24,10 +24,6 @@
 #include "mbedtls/x509_crl.h"
 #endif
 
-#if defined(MBEDTLS_DHM_C)
-#include "mbedtls/dhm.h"
-#endif
-
 #include "mbedtls/md.h"
 
 #if defined(MBEDTLS_KEY_EXCHANGE_SOME_ECDH_OR_ECDHE_ANY_ENABLED)
@@ -1562,11 +1558,6 @@ struct mbedtls_ssl_config {
 
     const uint16_t *MBEDTLS_PRIVATE(group_list);     /*!< allowed IANA NamedGroups */
 
-#if defined(MBEDTLS_DHM_C)
-    mbedtls_mpi MBEDTLS_PRIVATE(dhm_P);              /*!< prime modulus for DHM              */
-    mbedtls_mpi MBEDTLS_PRIVATE(dhm_G);              /*!< generator for DHM                  */
-#endif
-
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_PSK_ENABLED)
 
     mbedtls_svc_key_id_t MBEDTLS_PRIVATE(psk_opaque); /*!< PSA key slot holding opaque PSK. This field
@@ -1641,10 +1632,6 @@ struct mbedtls_ssl_config {
 #endif
 
     unsigned int MBEDTLS_PRIVATE(badmac_limit);      /*!< limit of records with a bad MAC    */
-
-#if defined(MBEDTLS_DHM_C) && defined(MBEDTLS_SSL_CLI_C)
-    unsigned int MBEDTLS_PRIVATE(dhm_min_bitlen);    /*!< min. bit length of the DHM prime   */
-#endif
 
     /** User data pointer or handle.
      *
@@ -3752,49 +3739,6 @@ void mbedtls_ssl_conf_psk_cb(mbedtls_ssl_config *conf,
                              void *p_psk);
 #endif /* MBEDTLS_SSL_SRV_C */
 #endif /* MBEDTLS_SSL_HANDSHAKE_WITH_PSK_ENABLED */
-
-#if defined(MBEDTLS_DHM_C) && defined(MBEDTLS_SSL_SRV_C)
-/**
- * \brief          Set the Diffie-Hellman public P and G values
- *                 from big-endian binary presentations.
- *                 (Default values: MBEDTLS_DHM_RFC3526_MODP_2048_[PG]_BIN)
- *
- * \param conf     SSL configuration
- * \param dhm_P    Diffie-Hellman-Merkle modulus in big-endian binary form
- * \param P_len    Length of DHM modulus
- * \param dhm_G    Diffie-Hellman-Merkle generator in big-endian binary form
- * \param G_len    Length of DHM generator
- *
- * \return         0 if successful
- */
-int mbedtls_ssl_conf_dh_param_bin(mbedtls_ssl_config *conf,
-                                  const unsigned char *dhm_P, size_t P_len,
-                                  const unsigned char *dhm_G,  size_t G_len);
-
-/**
- * \brief          Set the Diffie-Hellman public P and G values,
- *                 read from existing context (server-side only)
- *
- * \param conf     SSL configuration
- * \param dhm_ctx  Diffie-Hellman-Merkle context
- *
- * \return         0 if successful
- */
-int mbedtls_ssl_conf_dh_param_ctx(mbedtls_ssl_config *conf, mbedtls_dhm_context *dhm_ctx);
-#endif /* MBEDTLS_DHM_C && defined(MBEDTLS_SSL_SRV_C) */
-
-#if defined(MBEDTLS_DHM_C) && defined(MBEDTLS_SSL_CLI_C)
-/**
- * \brief          Set the minimum length for Diffie-Hellman parameters.
- *                 (Client-side only.)
- *                 (Default: 1024 bits.)
- *
- * \param conf     SSL configuration
- * \param bitlen   Minimum bit length of the DHM prime
- */
-void mbedtls_ssl_conf_dhm_min_bitlen(mbedtls_ssl_config *conf,
-                                     unsigned int bitlen);
-#endif /* MBEDTLS_DHM_C && MBEDTLS_SSL_CLI_C */
 
 /**
  * \brief          Set the allowed groups in order of preference.

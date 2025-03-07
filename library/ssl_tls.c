@@ -911,9 +911,6 @@ static void ssl_handshake_params_init(mbedtls_ssl_handshake_params *handshake)
 
     handshake->update_checksum = ssl_update_checksum_start;
 
-#if defined(MBEDTLS_DHM_C)
-    mbedtls_dhm_init(&handshake->dhm_ctx);
-#endif
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
     handshake->psa_pake_ctx = psa_pake_operation_init();
     handshake->psa_pake_password = MBEDTLS_SVC_KEY_ID_INIT;
@@ -2430,57 +2427,6 @@ psa_status_t mbedtls_ssl_cipher_to_psa(mbedtls_cipher_type_t mbedtls_cipher_type
 
     return PSA_SUCCESS;
 }
-
-#if defined(MBEDTLS_DHM_C) && defined(MBEDTLS_SSL_SRV_C)
-int mbedtls_ssl_conf_dh_param_bin(mbedtls_ssl_config *conf,
-                                  const unsigned char *dhm_P, size_t P_len,
-                                  const unsigned char *dhm_G, size_t G_len)
-{
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-
-    mbedtls_mpi_free(&conf->dhm_P);
-    mbedtls_mpi_free(&conf->dhm_G);
-
-    if ((ret = mbedtls_mpi_read_binary(&conf->dhm_P, dhm_P, P_len)) != 0 ||
-        (ret = mbedtls_mpi_read_binary(&conf->dhm_G, dhm_G, G_len)) != 0) {
-        mbedtls_mpi_free(&conf->dhm_P);
-        mbedtls_mpi_free(&conf->dhm_G);
-        return ret;
-    }
-
-    return 0;
-}
-
-int mbedtls_ssl_conf_dh_param_ctx(mbedtls_ssl_config *conf, mbedtls_dhm_context *dhm_ctx)
-{
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-
-    mbedtls_mpi_free(&conf->dhm_P);
-    mbedtls_mpi_free(&conf->dhm_G);
-
-    if ((ret = mbedtls_dhm_get_value(dhm_ctx, MBEDTLS_DHM_PARAM_P,
-                                     &conf->dhm_P)) != 0 ||
-        (ret = mbedtls_dhm_get_value(dhm_ctx, MBEDTLS_DHM_PARAM_G,
-                                     &conf->dhm_G)) != 0) {
-        mbedtls_mpi_free(&conf->dhm_P);
-        mbedtls_mpi_free(&conf->dhm_G);
-        return ret;
-    }
-
-    return 0;
-}
-#endif /* MBEDTLS_DHM_C && MBEDTLS_SSL_SRV_C */
-
-#if defined(MBEDTLS_DHM_C) && defined(MBEDTLS_SSL_CLI_C)
-/*
- * Set the minimum length for Diffie-Hellman parameters
- */
-void mbedtls_ssl_conf_dhm_min_bitlen(mbedtls_ssl_config *conf,
-                                     unsigned int bitlen)
-{
-    conf->dhm_min_bitlen = bitlen;
-}
-#endif /* MBEDTLS_DHM_C && MBEDTLS_SSL_CLI_C */
 
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
 #if !defined(MBEDTLS_DEPRECATED_REMOVED) && defined(MBEDTLS_SSL_PROTO_TLS1_2)
@@ -4537,10 +4483,6 @@ void mbedtls_ssl_handshake_free(mbedtls_ssl_context *ssl)
     psa_hash_abort(&handshake->fin_sha384_psa);
 #endif
 
-#if defined(MBEDTLS_DHM_C)
-    mbedtls_dhm_free(&handshake->dhm_ctx);
-#endif
-
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
     psa_pake_abort(&handshake->psa_pake_ctx);
     /*
@@ -5551,10 +5493,6 @@ static int ssl_check_no_sig_alg_duplication(const uint16_t *sig_algs)
 int mbedtls_ssl_config_defaults(mbedtls_ssl_config *conf,
                                 int endpoint, int transport, int preset)
 {
-#if defined(MBEDTLS_DHM_C) && defined(MBEDTLS_SSL_SRV_C)
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-#endif
-
 #if defined(MBEDTLS_DEBUG_C) && defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
     if (ssl_check_no_sig_alg_duplication(ssl_preset_suiteb_sig_algs)) {
         mbedtls_printf("ssl_preset_suiteb_sig_algs has duplicated entries\n");
@@ -5627,21 +5565,6 @@ int mbedtls_ssl_config_defaults(mbedtls_ssl_config *conf,
     conf->renego_max_records = MBEDTLS_SSL_RENEGO_MAX_RECORDS_DEFAULT;
     memset(conf->renego_period,     0x00, 2);
     memset(conf->renego_period + 2, 0xFF, 6);
-#endif
-
-#if defined(MBEDTLS_DHM_C) && defined(MBEDTLS_SSL_SRV_C)
-    if (endpoint == MBEDTLS_SSL_IS_SERVER) {
-        const unsigned char dhm_p[] =
-            MBEDTLS_DHM_RFC3526_MODP_2048_P_BIN;
-        const unsigned char dhm_g[] =
-            MBEDTLS_DHM_RFC3526_MODP_2048_G_BIN;
-
-        if ((ret = mbedtls_ssl_conf_dh_param_bin(conf,
-                                                 dhm_p, sizeof(dhm_p),
-                                                 dhm_g, sizeof(dhm_g))) != 0) {
-            return ret;
-        }
-    }
 #endif
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
@@ -5733,10 +5656,6 @@ int mbedtls_ssl_config_defaults(mbedtls_ssl_config *conf,
 #endif /* MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED */
 
             conf->group_list = ssl_preset_default_groups;
-
-#if defined(MBEDTLS_DHM_C) && defined(MBEDTLS_SSL_CLI_C)
-            conf->dhm_min_bitlen = 1024;
-#endif
     }
 
     return 0;
@@ -5750,11 +5669,6 @@ void mbedtls_ssl_config_free(mbedtls_ssl_config *conf)
     if (conf == NULL) {
         return;
     }
-
-#if defined(MBEDTLS_DHM_C)
-    mbedtls_mpi_free(&conf->dhm_P);
-    mbedtls_mpi_free(&conf->dhm_G);
-#endif
 
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_PSK_ENABLED)
     if (!mbedtls_svc_key_id_is_null(conf->psk_opaque)) {

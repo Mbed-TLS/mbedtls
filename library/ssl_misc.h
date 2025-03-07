@@ -763,10 +763,6 @@ struct mbedtls_ssl_handshake_params {
     const uint16_t *sig_algs;
 #endif
 
-#if defined(MBEDTLS_DHM_C)
-    mbedtls_dhm_context dhm_ctx;                /*!<  DHM key exchange        */
-#endif
-
 #if defined(MBEDTLS_KEY_EXCHANGE_SOME_XXDH_PSA_ANY_ENABLED)
     psa_key_type_t xxdh_psa_type;
     size_t xxdh_psa_bits;

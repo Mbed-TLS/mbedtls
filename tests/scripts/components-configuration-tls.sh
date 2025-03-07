@@ -469,7 +469,6 @@ component_test_tls13_only_psk () {
     scripts/config.py unset MBEDTLS_ECDH_C
     scripts/config.py unset MBEDTLS_ECDSA_C
     scripts/config.py unset MBEDTLS_PKCS1_V21
-    scripts/config.py unset MBEDTLS_DHM_C
 
     make CFLAGS="'-DMBEDTLS_USER_CONFIG_FILE=\"../tests/configs/tls13-only.h\"'"
 

@@ -474,7 +474,7 @@ class DriverVSReference_ecc_ffdh_no_bignum(outcome_analysis.DriverVSReference):
     DRIVER = 'test_psa_crypto_config_accel_ecc_ffdh_no_bignum'
     IGNORED_SUITES = [
         # Modules replaced by drivers
-        'ecp', 'ecdsa', 'ecdh', 'ecjpake', 'dhm',
+        'ecp', 'ecdsa', 'ecdh', 'ecjpake',
         'bignum_core', 'bignum_random', 'bignum_mod', 'bignum_mod_raw',
         'bignum.generated', 'bignum.misc',
         # Unit tests for the built-in implementation
@@ -483,7 +483,6 @@ class DriverVSReference_ecc_ffdh_no_bignum(outcome_analysis.DriverVSReference):
     IGNORED_TESTS = {
         'test_suite_config': [
             re.compile(r'.*\bMBEDTLS_BIGNUM_C\b.*'),
-            re.compile(r'.*\bMBEDTLS_DHM_C\b.*'),
             re.compile(r'.*\bMBEDTLS_(ECDH|ECDSA|ECJPAKE|ECP)_.*'),
             re.compile(r'.*\bMBEDTLS_PK_PARSE_EC_COMPRESSED\b.*'),
         ],
@@ -516,11 +515,7 @@ class DriverVSReference_ecc_ffdh_no_bignum(outcome_analysis.DriverVSReference):
 class DriverVSReference_ffdh_alg(outcome_analysis.DriverVSReference):
     REFERENCE = 'test_psa_crypto_config_reference_ffdh'
     DRIVER = 'test_psa_crypto_config_accel_ffdh'
-    IGNORED_SUITES = ['dhm']
     IGNORED_TESTS = {
-        'test_suite_config': [
-            re.compile(r'.*\bMBEDTLS_DHM_C\b.*'),
-        ],
         'test_suite_platform': [
             # Incompatible with sanitizers (e.g. ASan). If the driver
             # component uses a sanitizer but the reference component

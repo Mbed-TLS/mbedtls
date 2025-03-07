@@ -11,9 +11,18 @@
 
 use warnings;
 use strict;
+use Getopt::Long;
 use Digest::MD5 'md5_hex';
 
+# Declare variables for options
 my $vsx_dir = "visualc/VS2017";
+my $list = 0; # Default off
+
+GetOptions(
+    "directory=s" => \$vsx_dir, # Target directory
+    "list"        => \$list     # Only list generated files
+) or die "Invalid options\n";
+
 my $vsx_ext = "vcxproj";
 my $vsx_app_tpl_file = "scripts/data_files/vs2017-app-template.$vsx_ext";
 my $vsx_main_tpl_file = "scripts/data_files/vs2017-main-template.$vsx_ext";
@@ -280,7 +289,9 @@ sub main {
 
     # Remove old files to ensure that, for example, project files from deleted
     # apps are not kept
-    del_vsx_files();
+    if (not $list) {
+        del_vsx_files();
+    }
 
     my @app_list = get_app_list();
     my @header_dirs = (
@@ -313,13 +324,22 @@ sub main {
     map { s!/!\\!g } @headers;
     map { s!/!\\!g } @sources;
 
-    gen_app_files( @app_list );
+    if ($list) {
+        foreach my $app (@app_list) {
+            $app =~ s/.*\///;
+            print "$vsx_dir/$app.$vsx_ext\n";
+        }
+        print "$vsx_main_file\n";
+        print "$vsx_sln_file\n";
+    } else {
+        gen_app_files( @app_list );
 
-    gen_main_file( \@headers, \@sources,
-                   $vsx_hdr_tpl, $vsx_src_tpl,
-                   $vsx_main_tpl_file, $vsx_main_file );
+        gen_main_file( \@headers, \@sources,
+                       $vsx_hdr_tpl, $vsx_src_tpl,
+                       $vsx_main_tpl_file, $vsx_main_file );
 
-    gen_vsx_solution( @app_list );
+        gen_vsx_solution( @app_list );
+    }
 
     return 0;
 }

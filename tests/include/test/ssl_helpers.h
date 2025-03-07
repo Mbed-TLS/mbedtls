@@ -476,6 +476,18 @@ void mbedtls_test_ssl_endpoint_free(
  * /p second_ssl is used as second endpoint and their sockets have to be
  * connected before calling this function.
  *
+ * For example, to perform a full handshake:
+ * ```
+ * mbedtls_test_move_handshake_to_state(
+ *                       &server.ssl, &client.ssl,
+ *                       MBEDTLS_SSL_HANDSHAKE_OVER);
+ * mbedtls_test_move_handshake_to_state(
+ *                       &client.ssl, &client.ssl,
+ *                       MBEDTLS_SSL_HANDSHAKE_OVER);
+ * ```
+ * Note that you need both calls to reach the handshake-over state on
+ * both sides.
+ *
  * \retval  0 on success, otherwise error code.
  */
 int mbedtls_test_move_handshake_to_state(mbedtls_ssl_context *ssl,

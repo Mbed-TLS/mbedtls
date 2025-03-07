@@ -190,3 +190,10 @@ send_large_fragmented_hello:MBEDTLS_SSL_IN_BUFFER_LEN - MBEDTLS_SSL_HEADER_LEN -
 # got around to checking it confirms reassembly completed sucessfully.
 Send large fragmented ClientHello: just fits
 send_large_fragmented_hello:MBEDTLS_SSL_IN_BUFFER_LEN - MBEDTLS_SSL_HEADER_LEN - 9:0:"Unsupported version of TLS":MBEDTLS_ERR_SSL_BAD_PROTOCOL_VERSION
+
+# We're generating a virtual record header for the reassembled HS message,
+# which requires that the length fits in two bytes. Of course we won't get
+# there because if the length doesn't fit in two bytes then the message won't
+# fit in the buffer, but still add a test just in case.
+Send large fragmented ClientHello: length doesn't fit in two bytes
+send_large_fragmented_hello:0x10000:0:"requesting more data than fits":MBEDTLS_ERR_SSL_BAD_INPUT_DATA

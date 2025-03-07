@@ -3971,6 +3971,7 @@ static int ssl_parse_record_header(mbedtls_ssl_context const *ssl,
     rec->buf_len = rec->data_offset + rec->data_len;
 
     if (rec->data_len == 0) {
+        MBEDTLS_SSL_DEBUG_MSG(1, ("rejecting empty record"));
         return MBEDTLS_ERR_SSL_INVALID_RECORD;
     }
 

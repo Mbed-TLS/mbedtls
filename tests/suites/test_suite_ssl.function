@@ -65,8 +65,99 @@ exit:
 
 typedef enum {
     RECOMBINE_NOMINAL,          /* param: ignored */
+    RECOMBINE_SPLIT_FIRST,      /* param: offset of split (<=0 means from end) */
+    RECOMBINE_INSERT_EMPTY,     /* param: offset (<0 means from end) */
     RECOMBINE_COALESCE,         /* param: min number of records */
+    RECOMBINE_COALESCE_SPLIT_ONCE, /* param: offset of split (<=0 means from end) */
+    RECOMBINE_COALESCE_SPLIT_ENDS, /* the hairiest one? param: offset, must be >0 */
 } recombine_records_instruction_t;
+
+/* Split the first record into two pieces of lengths offset and
+ * record_length-offset. If offset is zero or negative, count from the end of
+ * the record. */
+static int recombine_split_first_record(mbedtls_test_ssl_buffer *buf,
+                                        int offset)
+{
+    const size_t header_length = 5;
+    TEST_LE_U(header_length, buf->content_length);
+    size_t record_length = MBEDTLS_GET_UINT16_BE(buf->buffer, header_length - 2);
+
+    if (offset > 0) {
+        TEST_LE_S(offset, record_length);
+    } else {
+        TEST_LE_S(-offset, record_length);
+        offset = record_length + offset;
+    }
+
+    /* Check that we have room to insert a record header */
+    TEST_LE_U(buf->content_length + header_length, buf->capacity);
+
+    /* Make room for a record header */
+    size_t new_record_start = header_length + offset;
+    size_t new_content_start = new_record_start + header_length;
+    memmove(buf->buffer + new_content_start,
+            buf->buffer + new_record_start,
+            buf->content_length - new_record_start);
+    buf->content_length += header_length;
+
+    /* Construct a header for the new record based on the existing one */
+    memcpy(buf->buffer + new_record_start, buf->buffer, header_length);
+    MBEDTLS_PUT_UINT16_BE(record_length - offset,
+                          buf->buffer, new_content_start - 2);
+
+    /* Adjust the length of the first record */
+    MBEDTLS_PUT_UINT16_BE(offset, buf->buffer, header_length - 2);
+
+    return 0;
+
+exit:
+    return -1;
+}
+
+/* Insert an empty record at the given offset. If offset is negative,
+ * count from the end of the first record. */
+static int recombine_insert_empty_record(mbedtls_test_ssl_buffer *buf,
+                                         int offset)
+{
+    const size_t header_length = 5;
+    TEST_LE_U(header_length, buf->content_length);
+    size_t record_length = MBEDTLS_GET_UINT16_BE(buf->buffer, header_length - 2);
+
+    if (offset >= 0) {
+        TEST_LE_S(offset, record_length);
+    } else {
+        TEST_LE_S(-offset, record_length);
+        offset = record_length + offset;
+    }
+
+    /* Check that we have room to insert two record headers */
+    TEST_LE_U(buf->content_length + 2 * header_length, buf->capacity);
+
+    /* Make room for an empty record and a record header */
+    size_t empty_record_start = header_length + offset;
+    size_t empty_content_start = empty_record_start + header_length;
+    size_t tail_record_start = empty_content_start;
+    size_t tail_content_start = tail_record_start + header_length;
+    memmove(buf->buffer + tail_content_start,
+            buf->buffer + tail_record_start,
+            buf->content_length - tail_record_start);
+    buf->content_length += 2 * header_length;
+
+    /* Construct headers for the new records based on the existing one */
+    memcpy(buf->buffer + empty_record_start, buf->buffer, header_length);
+    MBEDTLS_PUT_UINT16_BE(0, buf->buffer, empty_content_start - 2);
+    memcpy(buf->buffer + tail_record_start, buf->buffer, header_length);
+    MBEDTLS_PUT_UINT16_BE(record_length - offset,
+                          buf->buffer, tail_content_start - 2);
+
+    /* Adjust the length of the first record */
+    MBEDTLS_PUT_UINT16_BE(offset, buf->buffer, header_length - 2);
+
+    return 0;
+
+exit:
+    return -1;
+}
 
 /* Coalesce TLS handshake records.
  * DTLS is not supported.
@@ -136,6 +227,16 @@ static int recombine_records(mbedtls_test_ssl_endpoint *server,
         case RECOMBINE_NOMINAL:
             break;
 
+        case RECOMBINE_SPLIT_FIRST:
+            ret = recombine_split_first_record(buf, param);
+            TEST_LE_S(0, ret);
+            break;
+
+        case RECOMBINE_INSERT_EMPTY:
+            ret = recombine_insert_empty_record(buf, param);
+            TEST_LE_S(0, ret);
+            break;
+
         case RECOMBINE_COALESCE:
             ret = recombine_coalesce_handshake_records(buf, param);
             if (param == INT_MAX) {
@@ -143,6 +244,27 @@ static int recombine_records(mbedtls_test_ssl_endpoint *server,
             } else {
                 TEST_EQUAL(ret, param);
             }
+            break;
+
+        case RECOMBINE_COALESCE_SPLIT_ONCE:
+            ret = recombine_coalesce_handshake_records(buf, INT_MAX);
+            /* Require at least two coalesced records, otherwise this
+             * doesn't lead to a meaningful test (use
+             * RECOMBINE_SPLIT_FIRST instead). */
+            TEST_LE_S(2, ret);
+            ret = recombine_split_first_record(buf, param);
+            TEST_LE_S(0, ret);
+            break;
+
+        case RECOMBINE_COALESCE_SPLIT_ENDS:
+            ret = recombine_coalesce_handshake_records(buf, INT_MAX);
+            /* Accept a single record, which will be split at both ends */
+            TEST_LE_S(1, ret);
+            TEST_LE_S(1, param);
+            ret = recombine_split_first_record(buf, -param);
+            TEST_LE_S(0, ret);
+            ret = recombine_split_first_record(buf, param);
+            TEST_LE_S(0, ret);
             break;
 
         default:

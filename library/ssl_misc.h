@@ -1351,7 +1351,7 @@ static inline void mbedtls_ssl_handshake_set_state(mbedtls_ssl_context *ssl,
 {
     MBEDTLS_SSL_DEBUG_MSG(3, ("handshake state: %d (%s) -> %d (%s)",
                               ssl->state, mbedtls_ssl_states_str(ssl->state),
-                              state, mbedtls_ssl_states_str(state)));
+                              (int) state, mbedtls_ssl_states_str(state)));
     ssl->state = (int) state;
 }
 

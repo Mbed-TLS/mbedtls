@@ -34,13 +34,6 @@ class CoverageTask(outcome_analysis.CoverageTask):
                           re.DOTALL)
 
     IGNORED_TESTS = {
-        'handshake-generated': [
-            # Temporary disable Handshake defragmentation tests until mbedtls
-            # pr #10011 has been merged.
-            'Handshake defragmentation on client: len=4, TLS 1.2',
-            'Handshake defragmentation on client: len=5, TLS 1.2',
-            'Handshake defragmentation on client: len=13, TLS 1.2'
-        ],
         'ssl-opt': [
             # We don't run ssl-opt.sh with Valgrind on the CI because
             # it's extremely slow. We don't intend to change this.

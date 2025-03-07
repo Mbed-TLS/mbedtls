@@ -3023,8 +3023,10 @@ void recombine_server_first_flight(int version,
                                    int goal_state, int expected_ret)
 {
     enum { BUFFSIZE = 17000 };
-    mbedtls_test_ssl_endpoint client = { 0 };
-    mbedtls_test_ssl_endpoint server = { 0 };
+    mbedtls_test_ssl_endpoint client;
+    memset(&client, 0, sizeof(client));
+    mbedtls_test_ssl_endpoint server;
+    memset(&server, 0, sizeof(server));
     mbedtls_test_handshake_test_options client_options;
     mbedtls_test_init_handshake_options(&client_options);
     mbedtls_test_handshake_test_options server_options;

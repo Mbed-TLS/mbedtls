@@ -3129,7 +3129,7 @@ int mbedtls_ssl_prepare_handshake_record(mbedtls_ssl_context *ssl)
             /* Update the record length in the fully reassembled record */
             if (ssl->in_msglen > 0xffff) {
                 MBEDTLS_SSL_DEBUG_MSG(1,
-                                      ("Shouldn't happen: in_hslen=%"
+                                      ("Shouldn't happen: in_msglen=%"
                                        MBEDTLS_PRINTF_SIZET " > 0xffff",
                                        ssl->in_msglen));
                 return MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;

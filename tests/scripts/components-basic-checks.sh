@@ -17,20 +17,38 @@ component_check_recursion () {
 }
 
 component_check_generated_files () {
-    msg "Check: check-generated-files, files generated with make" # 2s
+    msg "Check make_generated_files.py consistency"
+    make neat
+    $FRAMEWORK/scripts/make_generated_files.py
+    $FRAMEWORK/scripts/make_generated_files.py --check
+    make neat
+
+    msg "Check files generated with make"
+    MBEDTLS_ROOT_DIR="$PWD"
     make generated_files
-    tests/scripts/check-generated-files.sh
+    $FRAMEWORK/scripts/make_generated_files.py --check
 
-    msg "Check: check-generated-files -u, files present" # 2s
-    tests/scripts/check-generated-files.sh -u
-    # Check that the generated files are considered up to date.
-    tests/scripts/check-generated-files.sh
+    cd tf-psa-crypto
+    ./framework/scripts/make_generated_files.py --check
 
-    msg "Check: check-generated-files -u, files absent" # 2s
-    command make neat
-    tests/scripts/check-generated-files.sh -u
-    # Check that the generated files are considered up to date.
-    tests/scripts/check-generated-files.sh
+    msg "Check files generated with cmake"
+    cd "$MBEDTLS_ROOT_DIR"
+    mkdir "$OUT_OF_SOURCE_DIR"
+    cd "$OUT_OF_SOURCE_DIR"
+    cmake -D GEN_FILES=ON "$MBEDTLS_ROOT_DIR"
+    make
+    cd "$MBEDTLS_ROOT_DIR"
+
+    # Files for MS Visual Studio are not generated with cmake thus copy the
+    # ones generated with make to pacify make_generated_files.py check.
+    # Files for MS Visual Studio are rather on their way out thus not adding
+    # support for them with cmake.
+    cp -Rf visualc "$OUT_OF_SOURCE_DIR"
+
+    $FRAMEWORK/scripts/make_generated_files.py --root "$OUT_OF_SOURCE_DIR" --check
+
+    cd tf-psa-crypto
+    ./framework/scripts/make_generated_files.py --root "$OUT_OF_SOURCE_DIR/tf-psa-crypto" --check
 
     # This component ends with the generated files present in the source tree.
     # This is necessary for subsequent components!

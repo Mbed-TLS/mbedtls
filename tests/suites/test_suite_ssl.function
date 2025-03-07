@@ -2875,8 +2875,9 @@ void resize_buffers_serialize_mfl(int mfl)
 #else
                 mbedtls_ssl_get_mode_from_ciphersuite(ciphersuite);
 #endif
-            if (mode == MBEDTLS_SSL_MODE_AEAD)
+            if (mode == MBEDTLS_SSL_MODE_AEAD) {
                 break;
+            }
         }
 
         i++;

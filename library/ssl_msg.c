@@ -801,9 +801,7 @@ static void ssl_build_record_nonce(unsigned char *dst_iv,
 
 int mbedtls_ssl_encrypt_buf(mbedtls_ssl_context *ssl,
                             mbedtls_ssl_transform *transform,
-                            mbedtls_record *rec,
-                            int (*f_rng)(void *, unsigned char *, size_t),
-                            void *p_rng)
+                            mbedtls_record *rec)
 {
     mbedtls_ssl_mode_t ssl_mode;
     int auth_done = 0;
@@ -1140,10 +1138,6 @@ hmac_failed_etm_disabled:
          * Prepend per-record IV for block cipher in TLS v1.2 as per
          * Method 1 (6.2.3.2. in RFC4346 and RFC5246)
          */
-        if (f_rng == NULL) {
-            MBEDTLS_SSL_DEBUG_MSG(1, ("No PRNG provided to encrypt_record routine"));
-            return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
-        }
 
         if (rec->data_offset < transform->ivlen) {
             MBEDTLS_SSL_DEBUG_MSG(1, ("Buffer provided for encrypted record not large enough"));
@@ -1153,7 +1147,7 @@ hmac_failed_etm_disabled:
         /*
          * Generate IV
          */
-        ret = f_rng(p_rng, transform->iv_enc, transform->ivlen);
+        ret = psa_generate_random(transform->iv_enc, transform->ivlen);
         if (ret != 0) {
             return ret;
         }
@@ -2725,8 +2719,7 @@ int mbedtls_ssl_write_record(mbedtls_ssl_context *ssl, int force_flush)
             rec.cid_len = 0;
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 
-            if ((ret = mbedtls_ssl_encrypt_buf(ssl, ssl->transform_out, &rec,
-                                               ssl->conf->f_rng, ssl->conf->p_rng)) != 0) {
+            if ((ret = mbedtls_ssl_encrypt_buf(ssl, ssl->transform_out, &rec)) != 0) {
                 MBEDTLS_SSL_DEBUG_RET(1, "ssl_encrypt_buf", ret);
                 return ret;
             }

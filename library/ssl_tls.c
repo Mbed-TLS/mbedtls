@@ -1223,11 +1223,6 @@ static int ssl_conf_check(const mbedtls_ssl_context *ssl)
         return ret;
     }
 
-    if (ssl->conf->f_rng == NULL) {
-        MBEDTLS_SSL_DEBUG_MSG(1, ("no RNG provided"));
-        return MBEDTLS_ERR_SSL_NO_RNG;
-    }
-
     /* Space for further checks */
 
     return 0;
@@ -1249,6 +1244,7 @@ int mbedtls_ssl_setup(mbedtls_ssl_context *ssl,
     if ((ret = ssl_conf_check(ssl)) != 0) {
         return ret;
     }
+
     ssl->tls_version = ssl->conf->max_tls_version;
 
     /*
@@ -1286,6 +1282,10 @@ int mbedtls_ssl_setup(mbedtls_ssl_context *ssl,
 #endif
 
     if ((ret = ssl_handshake_init(ssl)) != 0) {
+        goto error;
+    }
+
+    if((ret = psa_crypto_init()) != 0) {
         goto error;
     }
 

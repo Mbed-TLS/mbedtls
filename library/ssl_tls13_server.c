@@ -1996,7 +1996,7 @@ static int ssl_tls13_prepare_server_hello(mbedtls_ssl_context *ssl)
     unsigned char *server_randbytes =
         ssl->handshake->randbytes + MBEDTLS_CLIENT_HELLO_RANDOM_LEN;
 
-    if ((ret = ssl->conf->f_rng(ssl->conf->p_rng, server_randbytes,
+    if ((ret = psa_generate_random(server_randbytes,
                                 MBEDTLS_SERVER_HELLO_RANDOM_LEN)) != 0) {
         MBEDTLS_SSL_DEBUG_RET(1, "f_rng", ret);
         return ret;
@@ -3172,8 +3172,7 @@ static int ssl_tls13_prepare_new_session_ticket(mbedtls_ssl_context *ssl,
 #endif
 
     /* Generate ticket_age_add */
-    if ((ret = ssl->conf->f_rng(ssl->conf->p_rng,
-                                (unsigned char *) &session->ticket_age_add,
+    if ((ret = psa_generate_random((unsigned char *) &session->ticket_age_add,
                                 sizeof(session->ticket_age_add)) != 0)) {
         MBEDTLS_SSL_DEBUG_RET(1, "generate_ticket_age_add", ret);
         return ret;
@@ -3182,7 +3181,7 @@ static int ssl_tls13_prepare_new_session_ticket(mbedtls_ssl_context *ssl,
                               (unsigned int) session->ticket_age_add));
 
     /* Generate ticket_nonce */
-    ret = ssl->conf->f_rng(ssl->conf->p_rng, ticket_nonce, ticket_nonce_size);
+    ret = psa_generate_random(ticket_nonce, ticket_nonce_size);
     if (ret != 0) {
         MBEDTLS_SSL_DEBUG_RET(1, "generate_ticket_nonce", ret);
         return ret;

@@ -1340,8 +1340,7 @@ void ssl_crypt_record(int cipher_type, int hash_id,
         rec_backup = rec;
 
         /* Encrypt record */
-        ret = mbedtls_ssl_encrypt_buf(&ssl, t_enc, &rec,
-                                      mbedtls_test_rnd_std_rand, NULL);
+        ret = mbedtls_ssl_encrypt_buf(&ssl, t_enc, &rec);
         TEST_ASSERT(ret == 0 || ret == MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL);
         if (ret != 0) {
             continue;
@@ -1494,8 +1493,7 @@ void ssl_crypt_record_small(int cipher_type, int hash_id,
             rec_backup = rec;
 
             /* Encrypt record */
-            ret = mbedtls_ssl_encrypt_buf(&ssl, t_enc, &rec,
-                                          mbedtls_test_rnd_std_rand, NULL);
+            ret = mbedtls_ssl_encrypt_buf(&ssl, t_enc, &rec);
 
             if (ret == MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL) {
                 /* It's ok if the output buffer is too small. We do insist
@@ -1948,8 +1946,7 @@ void ssl_tls13_record_protection(int ciphersuite,
     memset(&rec.ctr[0], 0, 8);
     rec.ctr[7] = ctr;
 
-    TEST_ASSERT(mbedtls_ssl_encrypt_buf(NULL, &transform_send, &rec,
-                                        NULL, NULL) == 0);
+    TEST_ASSERT(mbedtls_ssl_encrypt_buf(NULL, &transform_send, &rec) == 0);
 
     if (padding_used == MBEDTLS_SSL_CID_TLS1_3_PADDING_GRANULARITY) {
         TEST_MEMORY_COMPARE(rec.buf + rec.data_offset, rec.data_len,

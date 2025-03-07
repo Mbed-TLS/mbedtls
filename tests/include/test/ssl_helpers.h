@@ -70,6 +70,13 @@
     defined(MBEDTLS_KEY_EXCHANGE_RSA_ENABLED)
 #define MBEDTLS_CAN_HANDLE_RSA_TEST_KEY
 #endif
+
+#if defined(PSA_WANT_ALG_GCM) || \
+    defined(PSA_WANT_ALG_CCM) || \
+    defined(PSA_WANT_ALG_CHACHA20_POLY1305)
+#define MBEDTLS_TEST_HAS_AEAD_ALG
+#endif
+
 enum {
 #define MBEDTLS_SSL_TLS1_3_LABEL(name, string)          \
     tls13_label_ ## name,

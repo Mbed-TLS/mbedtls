@@ -115,6 +115,8 @@ typedef enum {
     RECOMBINE_COALESCE_SPLIT_ENDS, /* the hairiest one? param: offset, must be >0 */
 } recombine_records_instruction_t;
 
+#if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
+
 /* Split the first record into two pieces of lengths offset and
  * record_length-offset. If offset is zero or negative, count from the end of
  * the record. */
@@ -319,6 +321,8 @@ static int recombine_records(mbedtls_test_ssl_endpoint *server,
 exit:
     return 0;
 }
+
+#endif /* MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED */
 
 /* END_HEADER */
 
@@ -3054,7 +3058,9 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* This test case doesn't actually depend on certificates,
+ * but our helper code for mbedtls_test_ssl_endpoint does. */
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED */
 void recombine_server_first_flight(int version,
                                    int instruction, int param,
                                    char *client_log, char *server_log,

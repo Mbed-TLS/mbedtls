@@ -3175,10 +3175,6 @@ void recombine_server_first_flight(int version,
     TEST_EQUAL(mbedtls_test_ssl_endpoint_init(&client, MBEDTLS_SSL_IS_CLIENT,
                                               &client_options, NULL, NULL,
                                               NULL), 0);
-#if defined(MBEDTLS_DEBUG_C)
-    mbedtls_ssl_conf_dbg(&client.conf, client_options.cli_log_fun,
-                         client_options.cli_log_obj);
-#endif
 
     server_options.server_min_version = version;
     server_options.server_max_version = version;
@@ -3189,10 +3185,6 @@ void recombine_server_first_flight(int version,
     TEST_EQUAL(mbedtls_test_ssl_endpoint_init(&server, MBEDTLS_SSL_IS_SERVER,
                                               &server_options, NULL, NULL,
                                               NULL), 0);
-#if defined(MBEDTLS_DEBUG_C)
-    mbedtls_ssl_conf_dbg(&server.conf, server_options.srv_log_fun,
-                         server_options.srv_log_obj);
-#endif
 
     TEST_EQUAL(mbedtls_test_mock_socket_connect(&client.socket,
                                                 &server.socket,

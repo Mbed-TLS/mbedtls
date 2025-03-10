@@ -159,4 +159,4 @@ recombine_server_first_flight:MBEDTLS_SSL_VERSION_TLS1_2:RECOMBINE_COALESCE_SPLI
 
 Recombine server flight 1: TLS 1.2, coalesce and split at both ends
 depends_on:MBEDTLS_SSL_PROTO_TLS1_2
-recombine_server_first_flight:MBEDTLS_SSL_VERSION_TLS1_2:RECOMBINE_COALESCE_SPLIT_ENDS:5:"subsequent handshake fragment\: 5,":"<= handshake wrapup":MBEDTLS_SSL_HANDSHAKE_OVER:0
+recombine_server_first_flight:MBEDTLS_SSL_VERSION_TLS1_2:RECOMBINE_COALESCE_SPLIT_BOTH_ENDS:5:"subsequent handshake fragment\: 5,":"<= handshake wrapup":MBEDTLS_SSL_HANDSHAKE_OVER:0

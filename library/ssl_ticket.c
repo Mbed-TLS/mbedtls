@@ -75,10 +75,6 @@ static int ssl_ticket_gen_key(mbedtls_ssl_ticket_context *ctx,
      */
     key->lifetime = ctx->ticket_lifetime;
 
-    if ((ret = psa_crypto_init()) != 0) {
-        return ret;
-    }
-
     if ((ret = psa_generate_random(key->name, sizeof(key->name))) != 0) {
         return ret;
     }
@@ -277,10 +273,6 @@ int mbedtls_ssl_ticket_write(void *p_ticket,
     *ticket_lifetime = key->lifetime;
 
     memcpy(key_name, key->name, TICKET_KEY_NAME_BYTES);
-
-    if ((ret = psa_crypto_init()) != 0) {
-        goto cleanup;
-    }
 
     if ((ret = psa_generate_random(iv, TICKET_IV_BYTES)) != 0) {
         goto cleanup;

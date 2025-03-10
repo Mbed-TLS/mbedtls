@@ -179,8 +179,21 @@ typedef struct mbedtls_test_message_socket_context {
     mbedtls_test_mock_socket *socket;
 } mbedtls_test_message_socket_context;
 
-#if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
 
+
+
+/* The mbedtls_test_ssl_endpoint_xxx tooling currently compiles in PSK-only
+ * builds, but does not reach the end of the handshake.
+ *
+ * https://github.com/Mbed-TLS/mbedtls/issues/10048
+ */
+#if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
+#define MBEDTLS_TEST_SSL_ENDPOINT
+#endif
+
+#if defined(MBEDTLS_TEST_SSL_ENDPOINT)
+
+#if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
 /*
  * Structure with endpoint's certificates for SSL communication tests.
  */
@@ -189,6 +202,7 @@ typedef struct mbedtls_test_ssl_endpoint_certificate {
     mbedtls_x509_crt *cert;
     mbedtls_pk_context *pkey;
 } mbedtls_test_ssl_endpoint_certificate;
+#endif /* MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED */
 
 /*
  * Endpoint structure for SSL communication tests.
@@ -198,10 +212,14 @@ typedef struct mbedtls_test_ssl_endpoint {
     mbedtls_ssl_context ssl;
     mbedtls_ssl_config conf;
     mbedtls_test_mock_socket socket;
+#if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
     mbedtls_test_ssl_endpoint_certificate cert;
+#endif
 } mbedtls_test_ssl_endpoint;
 
-#endif /* MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED */
+#endif /* MBEDTLS_TEST_SSL_ENDPOINT */
+
+
 
 /*
  * Random number generator aimed for TLS unitary tests. Its main purpose is to
@@ -424,8 +442,9 @@ int mbedtls_test_mock_tcp_send_msg(void *ctx,
 int mbedtls_test_mock_tcp_recv_msg(void *ctx,
                                    unsigned char *buf, size_t buf_len);
 
-#if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
+#if defined(MBEDTLS_TEST_SSL_ENDPOINT)
 
+#if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
 /*
  * Initializes \p ep_cert structure and assigns it to endpoint
  * represented by \p ep.
@@ -436,6 +455,7 @@ int mbedtls_test_ssl_endpoint_certificate_init(mbedtls_test_ssl_endpoint *ep,
                                                int pk_alg,
                                                int opaque_alg, int opaque_alg2,
                                                int opaque_usage);
+#endif /* MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED */
 
 /*
  * Initializes \p ep structure. It is important to call

@@ -1753,12 +1753,11 @@ static psa_status_t mbedtls_ssl_set_hs_ecjpake_password_common(
     size_t user_len = 0;
     const uint8_t *peer = NULL;
     size_t peer_len = 0;
-    psa_pake_cs_set_algorithm(&cipher_suite, PSA_ALG_JPAKE);
+    psa_pake_cs_set_algorithm(&cipher_suite, PSA_ALG_JPAKE(PSA_ALG_SHA_256));
     psa_pake_cs_set_primitive(&cipher_suite,
                               PSA_PAKE_PRIMITIVE(PSA_PAKE_PRIMITIVE_TYPE_ECC,
                                                  PSA_ECC_FAMILY_SECP_R1,
                                                  256));
-    psa_pake_cs_set_hash(&cipher_suite, PSA_ALG_SHA_256);
 
     status = psa_pake_setup(&ssl->handshake->psa_pake_ctx, pwd, &cipher_suite);
     if (status != PSA_SUCCESS) {
@@ -1809,7 +1808,7 @@ int mbedtls_ssl_set_hs_ecjpake_password(mbedtls_ssl_context *ssl,
     }
 
     psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_DERIVE);
-    psa_set_key_algorithm(&attributes, PSA_ALG_JPAKE);
+    psa_set_key_algorithm(&attributes, PSA_ALG_JPAKE_BASE);
     psa_set_key_type(&attributes, PSA_KEY_TYPE_PASSWORD);
 
     status = psa_import_key(&attributes, pw, pw_len,

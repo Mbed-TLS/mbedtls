@@ -482,7 +482,7 @@ void mbedtls_test_ssl_endpoint_free(
  *                       &server.ssl, &client.ssl,
  *                       MBEDTLS_SSL_HANDSHAKE_OVER);
  * mbedtls_test_move_handshake_to_state(
- *                       &client.ssl, &client.ssl,
+ *                       &client.ssl, &server.ssl,
  *                       MBEDTLS_SSL_HANDSHAKE_OVER);
  * ```
  * Note that you need both calls to reach the handshake-over state on

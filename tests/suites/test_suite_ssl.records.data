@@ -67,6 +67,14 @@ Recombine server flight 1: TLS 1.3, split first at 1 (bad)
 depends_on:MBEDTLS_SSL_PROTO_TLS1_3
 recombine_server_first_flight:MBEDTLS_SSL_VERSION_TLS1_3:RECOMBINE_SPLIT_FIRST:1:"handshake message too short\: 1":"":MBEDTLS_SSL_SERVER_HELLO:MBEDTLS_ERR_SSL_INVALID_RECORD
 
+Recombine server flight 1: TLS 1.2, truncate at 4 (bad)
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2
+recombine_server_first_flight:MBEDTLS_SSL_VERSION_TLS1_2:RECOMBINE_TRUNCATE_FIRST:4:"initial handshake fragment\: 4, 0..4 of":"":MBEDTLS_SSL_SERVER_HELLO:MBEDTLS_ERR_SSL_WANT_READ
+
+Recombine server flight 1: TLS 1.3, truncate at 4 (bad)
+depends_on:MBEDTLS_SSL_PROTO_TLS1_3
+recombine_server_first_flight:MBEDTLS_SSL_VERSION_TLS1_3:RECOMBINE_TRUNCATE_FIRST:4:"initial handshake fragment\: 4, 0..4 of":"":MBEDTLS_SSL_SERVER_HELLO:MBEDTLS_ERR_SSL_WANT_READ
+
 Recombine server flight 1: TLS 1.2, insert empty record after first (bad)
 depends_on:MBEDTLS_SSL_PROTO_TLS1_2
 recombine_server_first_flight:MBEDTLS_SSL_VERSION_TLS1_2:RECOMBINE_SPLIT_FIRST:0:"rejecting empty record":"":MBEDTLS_SSL_SERVER_CERTIFICATE:MBEDTLS_ERR_SSL_INVALID_RECORD

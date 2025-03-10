@@ -69,9 +69,9 @@ typedef enum {
     RECOMBINE_TRUNCATE_FIRST,   /* param: offset of truncation (<=0 means from end) */
     RECOMBINE_INSERT_EMPTY,     /* param: offset (<0 means from end) */
     RECOMBINE_INSERT_RECORD,    /* param: record type */
-    RECOMBINE_COALESCE,         /* param: min number of records */
+    RECOMBINE_COALESCE,         /* param: number of records (INT_MAX=all) */
     RECOMBINE_COALESCE_SPLIT_ONCE, /* param: offset of split (<=0 means from end) */
-    RECOMBINE_COALESCE_SPLIT_ENDS, /* the hairiest one? param: offset, must be >0 */
+    RECOMBINE_COALESCE_SPLIT_BOTH_ENDS, /* param: offset, must be >0 */
 } recombine_records_instruction_t;
 
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
@@ -229,6 +229,10 @@ exit:
  * DTLS is not supported.
  * Encrypted or authenticated handshake records are not supported.
  * Assume the buffer content is a valid sequence of records.
+ *
+ * Coalesce only the first max records, or all the records if there are
+ * fewer than max.
+ * Return the number of coalesced records, or -1 on error.
  */
 static int recombine_coalesce_handshake_records(mbedtls_test_ssl_buffer *buf,
                                                 int max)
@@ -318,6 +322,9 @@ static int recombine_records(mbedtls_test_ssl_endpoint *server,
 
         case RECOMBINE_COALESCE:
             ret = recombine_coalesce_handshake_records(buf, param);
+            /* If param != INT_MAX, enforce that there were that many
+             * records to coalesce. In particular, 1 < param < INT_MAX
+             * ensures that library will see some coalesced records. */
             if (param == INT_MAX) {
                 TEST_LE_S(1, ret);
             } else {
@@ -335,7 +342,7 @@ static int recombine_records(mbedtls_test_ssl_endpoint *server,
             TEST_LE_S(0, ret);
             break;
 
-        case RECOMBINE_COALESCE_SPLIT_ENDS:
+        case RECOMBINE_COALESCE_SPLIT_BOTH_ENDS:
             ret = recombine_coalesce_handshake_records(buf, INT_MAX);
             /* Accept a single record, which will be split at both ends */
             TEST_LE_S(1, ret);
@@ -3105,6 +3112,12 @@ void recombine_server_first_flight(int version,
                                    char *client_log, char *server_log,
                                    int goal_state, int expected_ret)
 {
+    /* Make sure we have a buffer that's large enough for the longest
+     * data that the library might ever send, plus a bit extra so that
+     * we can inject more content. The library won't ever send more than
+     * 2^14 bytes of handshake messages, so we round that up. In practice
+     * we could surely get away with a much smaller buffer. The main
+     * variable part is the server certificate. */
     enum { BUFFSIZE = 17000 };
     mbedtls_test_ssl_endpoint client;
     memset(&client, 0, sizeof(client));

@@ -66,6 +66,7 @@ exit:
 typedef enum {
     RECOMBINE_NOMINAL,          /* param: ignored */
     RECOMBINE_SPLIT_FIRST,      /* param: offset of split (<=0 means from end) */
+    RECOMBINE_TRUNCATE_FIRST,   /* param: offset of truncation (<=0 means from end) */
     RECOMBINE_INSERT_EMPTY,     /* param: offset (<0 means from end) */
     RECOMBINE_INSERT_RECORD,    /* param: record type */
     RECOMBINE_COALESCE,         /* param: min number of records */
@@ -110,6 +111,39 @@ static int recombine_split_first_record(mbedtls_test_ssl_buffer *buf,
 
     /* Adjust the length of the first record */
     MBEDTLS_PUT_UINT16_BE(offset, buf->buffer, header_length - 2);
+
+    return 0;
+
+exit:
+    return -1;
+}
+
+/* Truncate the first record, keeping only the first offset bytes.
+ * If offset is zero or negative, count from the end of the record.
+ * Remove the subsequent records.
+ */
+static int recombine_truncate_first_record(mbedtls_test_ssl_buffer *buf,
+                                           int offset)
+{
+    const size_t header_length = 5;
+    TEST_LE_U(header_length, buf->content_length);
+    size_t record_length = MBEDTLS_GET_UINT16_BE(buf->buffer, header_length - 2);
+
+    if (offset > 0) {
+        TEST_LE_S(offset, record_length);
+    } else {
+        TEST_LE_S(-offset, record_length);
+        offset = record_length + offset;
+    }
+
+    /* Adjust the length of the first record */
+    MBEDTLS_PUT_UINT16_BE(offset, buf->buffer, header_length - 2);
+
+    /* Wipe the rest */
+    size_t truncated_end = header_length + offset;
+    memset(buf->buffer + truncated_end, '!',
+           buf->content_length - truncated_end);
+    buf->content_length = truncated_end;
 
     return 0;
 
@@ -261,6 +295,11 @@ static int recombine_records(mbedtls_test_ssl_endpoint *server,
 
         case RECOMBINE_SPLIT_FIRST:
             ret = recombine_split_first_record(buf, param);
+            TEST_LE_S(0, ret);
+            break;
+
+        case RECOMBINE_TRUNCATE_FIRST:
+            ret = recombine_truncate_first_record(buf, param);
             TEST_LE_S(0, ret);
             break;
 
@@ -3166,6 +3205,14 @@ void recombine_server_first_flight(int version,
 
     /* Server: parse the first flight from the client
      * and emit the second flight from the server */
+    if (instruction == RECOMBINE_TRUNCATE_FIRST) {
+        /* Close without a notification. The case of closing with a
+         * notification is tested via RECOMBINE_INSERT_RECORD to insert
+         * an alert record (which we reject, making the client SSL
+         * context become invalid). */
+        mbedtls_test_mock_socket_close(&server.socket);
+        goto goal_reached;
+    }
     while (ret == 0 && !mbedtls_ssl_is_handshake_over(&server.ssl)) {
         mbedtls_test_set_step(1000 + server.ssl.state);
         ret = mbedtls_ssl_handshake_step(&server.ssl);

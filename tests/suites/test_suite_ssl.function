@@ -110,6 +110,7 @@ typedef enum {
     RECOMBINE_NOMINAL,          /* param: ignored */
     RECOMBINE_SPLIT_FIRST,      /* param: offset of split (<=0 means from end) */
     RECOMBINE_INSERT_EMPTY,     /* param: offset (<0 means from end) */
+    RECOMBINE_INSERT_RECORD,    /* param: record type */
     RECOMBINE_COALESCE,         /* param: min number of records */
     RECOMBINE_COALESCE_SPLIT_ONCE, /* param: offset of split (<=0 means from end) */
     RECOMBINE_COALESCE_SPLIT_ENDS, /* the hairiest one? param: offset, must be >0 */
@@ -161,8 +162,9 @@ exit:
 
 /* Insert an empty record at the given offset. If offset is negative,
  * count from the end of the first record. */
-static int recombine_insert_empty_record(mbedtls_test_ssl_buffer *buf,
-                                         int offset)
+static int recombine_insert_record(mbedtls_test_ssl_buffer *buf,
+                                   int offset,
+                                   uint8_t inserted_record_type)
 {
     const size_t header_length = 5;
     TEST_LE_U(header_length, buf->content_length);
@@ -175,22 +177,50 @@ static int recombine_insert_empty_record(mbedtls_test_ssl_buffer *buf,
         offset = record_length + offset;
     }
 
-    /* Check that we have room to insert two record headers */
-    TEST_LE_U(buf->content_length + 2 * header_length, buf->capacity);
+    uint8_t inserted_content[42] = { 0 };
+    size_t inserted_content_length = 0;
+    switch (inserted_record_type) {
+        case MBEDTLS_SSL_MSG_ALERT:
+            inserted_content[0] = MBEDTLS_SSL_ALERT_LEVEL_WARNING;
+            inserted_content[1] = MBEDTLS_SSL_ALERT_MSG_NO_RENEGOTIATION;
+            inserted_content_length = 2;
+            break;
+        case MBEDTLS_SSL_MSG_CHANGE_CIPHER_SPEC:
+            inserted_content[0] = 0x01;
+            inserted_content_length = 1;
+            break;
+        case MBEDTLS_SSL_MSG_APPLICATION_DATA:
+            inserted_content_length = sizeof(inserted_content);
+            break;
+        default:
+            /* Leave the content empty */
+            break;
+    }
+
+    /* Check that we have room to insert two record headers plus the new
+     * content. */
+    TEST_LE_U(buf->content_length + 2 * header_length + inserted_content_length,
+              buf->capacity);
 
     /* Make room for an empty record and a record header */
-    size_t empty_record_start = header_length + offset;
-    size_t empty_content_start = empty_record_start + header_length;
-    size_t tail_record_start = empty_content_start;
+    size_t inserted_record_start = header_length + offset;
+    size_t inserted_content_start = inserted_record_start + header_length;
+    size_t tail_record_start = inserted_content_start + inserted_content_length;
     size_t tail_content_start = tail_record_start + header_length;
     memmove(buf->buffer + tail_content_start,
             buf->buffer + tail_record_start,
             buf->content_length - tail_record_start);
     buf->content_length += 2 * header_length;
 
-    /* Construct headers for the new records based on the existing one */
-    memcpy(buf->buffer + empty_record_start, buf->buffer, header_length);
-    MBEDTLS_PUT_UINT16_BE(0, buf->buffer, empty_content_start - 2);
+    /* Construct the inserted record based on the existing one */
+    memcpy(buf->buffer + inserted_record_start, buf->buffer, header_length);
+    buf->buffer[inserted_record_start] = inserted_record_type;
+    MBEDTLS_PUT_UINT16_BE(inserted_content_length,
+                          buf->buffer, inserted_content_start - 2);
+    memcpy(buf->buffer + inserted_content_start,
+           inserted_content, inserted_content_length);
+
+    /* Construct header for the last fragment based on the existing one */
     memcpy(buf->buffer + tail_record_start, buf->buffer, header_length);
     MBEDTLS_PUT_UINT16_BE(record_length - offset,
                           buf->buffer, tail_content_start - 2);
@@ -278,7 +308,15 @@ static int recombine_records(mbedtls_test_ssl_endpoint *server,
             break;
 
         case RECOMBINE_INSERT_EMPTY:
-            ret = recombine_insert_empty_record(buf, param);
+            /* Insert an empty handshake record. */
+            ret = recombine_insert_record(buf, param, MBEDTLS_SSL_MSG_HANDSHAKE);
+            TEST_LE_S(0, ret);
+            break;
+
+        case RECOMBINE_INSERT_RECORD:
+            /* Insert an extra record at a position where splitting
+             * would be ok. */
+            ret = recombine_insert_record(buf, 5, param);
             TEST_LE_S(0, ret);
             break;
 

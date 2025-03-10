@@ -827,8 +827,6 @@ int mbedtls_ssl_encrypt_buf(mbedtls_ssl_context *ssl,
      * for CBC transformations in TLS 1.2. */
 #if !(defined(MBEDTLS_SSL_SOME_SUITES_USE_CBC) && \
     defined(MBEDTLS_SSL_PROTO_TLS1_2))
-    ((void) f_rng);
-    ((void) p_rng);
 #endif
 
     MBEDTLS_SSL_DEBUG_MSG(2, ("=> encrypt buf"));

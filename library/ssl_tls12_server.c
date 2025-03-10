@@ -2133,7 +2133,7 @@ static int ssl_write_server_hello(mbedtls_ssl_context *ssl)
     MBEDTLS_SSL_DEBUG_MSG(3, ("server hello, current time: %" MBEDTLS_PRINTF_LONGLONG,
                               (long long) t));
 #else
-    if ((ret = psa_generate_random(ssl->conf->p_rng, p, 4)) != 0) {
+    if ((ret = psa_generate_random(p, 4)) != 0) {
         return ret;
     }
 
@@ -2166,7 +2166,6 @@ static int ssl_write_server_hello(mbedtls_ssl_context *ssl)
     } else
 #endif
     {
-	    
         if ((ret = psa_generate_random(p, 8)) != 0) {
             return ret;
         }

@@ -162,7 +162,6 @@ EXCLUDE_FROM_BAREMETAL = frozenset([
     'MBEDTLS_PLATFORM_FPRINTF_ALT', # requires FILE* from stdio.h
     'MBEDTLS_PLATFORM_NV_SEED_ALT', # requires a filesystem and ENTROPY_NV_SEED
     'MBEDTLS_PLATFORM_TIME_ALT', # requires a clock and HAVE_TIME
-    'MBEDTLS_PSA_CRYPTO_SE_C', # requires a filesystem and PSA_CRYPTO_STORAGE_C
     'MBEDTLS_PSA_CRYPTO_STORAGE_C', # requires a filesystem
     'MBEDTLS_PSA_ITS_FILE_C', # requires a filesystem
     'MBEDTLS_THREADING_C', # requires a threading interface
@@ -238,7 +237,6 @@ def crypto_adapter(adapter):
     return continuation
 
 DEPRECATED = frozenset([
-    'MBEDTLS_PSA_CRYPTO_SE_C',
     *PSA_DEPRECATED_FEATURE
 ])
 def no_deprecated_adapter(adapter):

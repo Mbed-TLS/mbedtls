@@ -5070,7 +5070,7 @@ void inject_client_content_on_the_wire(int pk_alg,
     srv_pattern.pattern = log_pattern;
     options.srv_log_obj = &srv_pattern;
     options.srv_log_fun = mbedtls_test_ssl_log_analyzer;
-    mbedtls_debug_set_threshold(1);
+    mbedtls_debug_set_threshold(3);
 
     options.pk_alg = pk_alg;
 
@@ -5102,9 +5102,7 @@ void inject_client_content_on_the_wire(int pk_alg,
         ret = mbedtls_ssl_handshake_step(&server.ssl);
     } while (ret == 0 && server.ssl.state == state);
     TEST_EQUAL(ret,  expected_ret);
-    if (strlen(log_pattern) != 0) {
-        TEST_EQUAL(srv_pattern.counter, 1);
-    }
+    TEST_ASSERT(srv_pattern.counter >= 1);
 
 exit:
     mbedtls_test_free_handshake_options(&options);

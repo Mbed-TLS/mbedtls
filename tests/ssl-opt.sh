@@ -14528,6 +14528,43 @@ run_test    "Handshake defragmentation with client-initiated renegotiation: len=
             -s "Prepare: waiting for more handshake fragments 256/[0-9]\\+" \
             -s "Consume: waiting for more handshake fragments 256/[0-9]\\+" \
 
+requires_openssl_3_x
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_certificate_authentication
+requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
+run_test    "Handshake defragmentation with client-initiated renegotiation: len=128" \
+            "$P_SRV debug_level=4 exchanges=2 renegotiation=1 auth_mode=required" \
+            "$O_NEXT_CLI_RENEGOTIATE -tls1_2 -split_send_frag 128 -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key -connect 127.0.0.1:+$SRV_PORT" \
+            0 \
+            -s "received TLS_EMPTY_RENEGOTIATION_INFO" \
+            -s "found renegotiation extension" \
+            -s "server hello, secure renegotiation extension" \
+            -s "=> renegotiate" \
+            -S "write hello request" \
+            -s "reassembled record" \
+            -s "initial handshake fragment: 128, 0..128 of [0-9]\\+" \
+            -s "Prepare: waiting for more handshake fragments 128/[0-9]\\+" \
+            -s "Consume: waiting for more handshake fragments 128/[0-9]\\+" \
+
+requires_openssl_3_x
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
+run_test    "Handshake defragmentation with client-initiated renegotiation: len=4" \
+            "$P_SRV debug_level=4 exchanges=2 renegotiation=1 auth_mode=required" \
+            "$O_NEXT_CLI_RENEGOTIATE -tls1_2 -split_send_frag 4 -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key -connect 127.0.0.1:+$SRV_PORT" \
+            0 \
+            -s "received TLS_EMPTY_RENEGOTIATION_INFO" \
+            -s "found renegotiation extension" \
+            -s "server hello, secure renegotiation extension" \
+            -s "=> renegotiate" \
+            -S "write hello request" \
+            -s "reassembled record" \
+            -s "initial handshake fragment: 4, 0..4 of [0-9]\\+" \
+            -s "Prepare: waiting for more handshake fragments 4/[0-9]\\+" \
+            -s "Consume: waiting for more handshake fragments 4/[0-9]\\+" \
+
 # Test server-initiated renegotiation with fragmented handshake on TLS1.2
 requires_openssl_3_x
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2

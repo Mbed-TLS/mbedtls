@@ -14480,7 +14480,7 @@ requires_certificate_authentication
 requires_config_enabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
 requires_config_enabled MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH
 requires_max_content_len 1025
-run_test    "Handshake defragmentation on server with buffer resizing: len=256, MFL=1024" \
+run_test    "Handshake defragmentation on server: len=256, buffer resizing with MFL=1024" \
             "$P_SRV debug_level=4 auth_mode=required" \
             "$O_NEXT_CLI -tls1_2 -split_send_frag 256 -maxfraglen 1024 -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key" \
             0 \
@@ -14496,7 +14496,7 @@ requires_openssl_3_x
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_certificate_authentication
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
-run_test    "Handshake defragmentation with client-initiated renegotiation: len=512" \
+run_test    "Handshake defragmentation on server: len=512, client-initiated renegotation" \
             "$P_SRV debug_level=4 exchanges=2 renegotiation=1 auth_mode=required" \
             "$O_NEXT_CLI_RENEGOTIATE -tls1_2 -split_send_frag 512 -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key -connect 127.0.0.1:+$SRV_PORT" \
             0 \
@@ -14514,7 +14514,7 @@ requires_openssl_3_x
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_certificate_authentication
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
-run_test    "Handshake defragmentation with client-initiated renegotiation: len=256" \
+run_test    "Handshake defragmentation on server: len=256, client-initiated renegotation" \
             "$P_SRV debug_level=4 exchanges=2 renegotiation=1 auth_mode=required" \
             "$O_NEXT_CLI_RENEGOTIATE -tls1_2 -split_send_frag 256 -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key -connect 127.0.0.1:+$SRV_PORT" \
             0 \
@@ -14533,7 +14533,7 @@ requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_certificate_authentication
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
-run_test    "Handshake defragmentation with client-initiated renegotiation: len=128" \
+run_test    "Handshake defragmentation on server: len=128, client-initiated renegotation" \
             "$P_SRV debug_level=4 exchanges=2 renegotiation=1 auth_mode=required" \
             "$O_NEXT_CLI_RENEGOTIATE -tls1_2 -split_send_frag 128 -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key -connect 127.0.0.1:+$SRV_PORT" \
             0 \
@@ -14551,7 +14551,7 @@ requires_openssl_3_x
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
-run_test    "Handshake defragmentation with client-initiated renegotiation: len=4" \
+run_test    "Handshake defragmentation on server: len=4, client-initiated renegotation" \
             "$P_SRV debug_level=4 exchanges=2 renegotiation=1 auth_mode=required" \
             "$O_NEXT_CLI_RENEGOTIATE -tls1_2 -split_send_frag 4 -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key -connect 127.0.0.1:+$SRV_PORT" \
             0 \
@@ -14570,7 +14570,7 @@ requires_openssl_3_x
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_certificate_authentication
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
-run_test    "Handshake defragmentation with server-initiated renegotiation: len=512" \
+run_test    "Handshake defragmentation on client: len=512, server-initiated renegotation" \
             "$O_NEXT_SRV -tls1_2 -split_send_frag 512 -legacy_renegotiation -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key" \
             "$P_CLI debug_level=3 renegotiation=1 request_page=/reneg" \
             0 \
@@ -14592,7 +14592,7 @@ requires_openssl_3_x
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_certificate_authentication
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
-run_test    "Handshake defragmentation with server-initiated renegotiation: len=256" \
+run_test    "Handshake defragmentation on client: len=256, server-initiated renegotation" \
             "$O_NEXT_SRV -tls1_2 -split_send_frag 256 -legacy_renegotiation -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key" \
             "$P_CLI debug_level=3 renegotiation=1 renego_delay=32 request_page=/reneg" \
             0 \

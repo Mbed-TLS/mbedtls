@@ -14473,7 +14473,7 @@ run_test    "Handshake defragmentation on server: len=32, TLS 1.2 ClientHello (u
             -s "bad client hello message" \
             -s "SSL - A message could not be parsed due to a syntactic error"
 
-# Test Server Buffer resizing with fragmented handshake on TLS1.2
+# Test server-side buffer resizing with fragmented handshake on TLS1.2
 requires_openssl_3_x
 requires_protocol_version tls12
 requires_certificate_authentication
@@ -14491,7 +14491,7 @@ run_test    "Handshake defragmentation on server with buffer resizing: len=256, 
             -s "Prepare: waiting for more handshake fragments 256/[0-9]\\+" \
             -s "Consume: waiting for more handshake fragments 256/[0-9]\\+"
 
-# Test Client initiated renegotiation with fragmented handshake on TLS1.2
+# Test client-initiated renegotiation with fragmented handshake on TLS1.2
 requires_openssl_3_x
 requires_protocol_version tls12
 requires_certificate_authentication
@@ -14528,7 +14528,13 @@ run_test    "Handshake defragmentation with client-initiated renegotiation: len=
             -s "Prepare: waiting for more handshake fragments 512/[0-9]\\+" \
             -s "Consume: waiting for more handshake fragments 512/[0-9]\\+" \
 
-# Test Server initiated renegotiation with fragmented handshake on TLS1.2
+# Test server-initiated renegotiation with fragmented handshake on TLS1.2
+# Note: The /reneg endpoint serves as a directive for OpenSSL's s_server
+# to initiate a handshake renegotiation.
+# Note: Adjusting the renegotiation delay beyond the library's default value
+# of 16 is necessary, as it sets the maximum record depth to match it.
+# Splitting messages during the renegotiation process requires a deeper
+# stack to accommodate the increased processing complexity.
 requires_openssl_3_x
 requires_protocol_version tls12
 requires_certificate_authentication

@@ -4862,8 +4862,6 @@ int mbedtls_ssl_get_session(const mbedtls_ssl_context *ssl,
  *                   that #MBEDTLS_SSL_PROTO_TLS1_3 enabled, and the
  *                   accepted versions have not been restricted with
  *                   mbedtls_ssl_conf_max_tls_version() or the like).
- *                 - A ClientHello message that initiates a renegotiation
- *                   must not be fragmented.
  *                 - The first fragment of a handshake message must be
  *                   at least 4 bytes long.
  *                 - Non-handshake records must not be interleaved between

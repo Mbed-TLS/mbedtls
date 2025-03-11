@@ -5078,9 +5078,7 @@ void inject_client_content_on_the_wire(int pk_alg,
         ret = mbedtls_ssl_handshake_step(&server.ssl);
     } while (ret == 0 && server.ssl.state == state);
     TEST_EQUAL(ret,  expected_ret);
-    /* If we're expected to suceeed and we do, that's enough.
-     * If we're expected to fail, also check it was in the expected way. */
-    if (expected_ret != 0) {
+    if (strlen(log_pattern) != 0) {
         TEST_EQUAL(srv_pattern.counter, 1);
     }
 

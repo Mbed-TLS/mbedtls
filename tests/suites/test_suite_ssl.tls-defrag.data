@@ -177,7 +177,7 @@ inject_client_content_on_the_wire:MBEDTLS_PK_ECDSA:MBEDTLS_SSL_CLIENT_HELLO:"160
 
 # The buffer is actually larger than IN_CONTENT_LEN as we leave room for
 # record protection overhead (IV, MAC/tag, padding (up to 256 bytes)), CID...
-# The maximum size for an unencrypted (and without CID with is DTLS only)
+# The maximum size for an unencrypted (and without CID which is DTLS only)
 # handshake message we can hold in the buffer is
 #   MBEDTLS_SSL_IN_BUFFER_LEN - MBEDTLS_SSL_HEADER_LEN - 4
 # (the 4 is for the handshake header).

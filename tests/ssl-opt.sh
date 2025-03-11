@@ -14475,7 +14475,6 @@ run_test    "Handshake defragmentation on server: len=32, TLS 1.2 ClientHello (u
 
 # Test server-side buffer resizing with fragmented handshake on TLS1.2
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_certificate_authentication
 requires_config_enabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
 requires_config_enabled MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH
 requires_max_content_len 1025
@@ -14492,7 +14491,6 @@ run_test    "Handshake defragmentation on server: len=256, buffer resizing with 
 
 # Test client-initiated renegotiation with fragmented handshake on TLS1.2
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_certificate_authentication
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "Handshake defragmentation on server: len=512, client-initiated renegotation" \
             "$P_SRV debug_level=4 exchanges=2 renegotiation=1 auth_mode=required" \
@@ -14509,7 +14507,6 @@ run_test    "Handshake defragmentation on server: len=512, client-initiated rene
             -s "Consume: waiting for more handshake fragments 512/" \
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_certificate_authentication
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "Handshake defragmentation on server: len=256, client-initiated renegotation" \
             "$P_SRV debug_level=4 exchanges=2 renegotiation=1 auth_mode=required" \
@@ -14527,7 +14524,6 @@ run_test    "Handshake defragmentation on server: len=256, client-initiated rene
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_certificate_authentication
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "Handshake defragmentation on server: len=128, client-initiated renegotation" \
             "$P_SRV debug_level=4 exchanges=2 renegotiation=1 auth_mode=required" \
@@ -14562,7 +14558,6 @@ run_test    "Handshake defragmentation on server: len=4, client-initiated renego
 
 # Test server-initiated renegotiation with fragmented handshake on TLS1.2
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_certificate_authentication
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "Handshake defragmentation on client: len=512, server-initiated renegotation" \
             "$O_NEXT_SRV -tls1_2 -split_send_frag 512 -legacy_renegotiation -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key" \
@@ -14583,7 +14578,6 @@ run_test    "Handshake defragmentation on client: len=512, server-initiated rene
 # Splitting messages during the renegotiation process requires a deeper
 # stack to accommodate the increased processing complexity.
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_certificate_authentication
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "Handshake defragmentation on client: len=256, server-initiated renegotation" \
             "$O_NEXT_SRV -tls1_2 -split_send_frag 256 -legacy_renegotiation -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key" \

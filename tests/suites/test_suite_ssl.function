@@ -5068,7 +5068,7 @@ void inject_client_content_on_the_wire(int pk_alg,
 
     /* Send the crafted message */
     ret = mbedtls_test_mock_tcp_send_b(&client.socket, data->x, data->len);
-    TEST_ASSERT(ret >= 0 && (size_t) ret == data->len);
+    TEST_EQUAL(ret, (int) data->len);
 
     /* Have the server process it.
      * Need the loop because a server that support 1.3 and 1.2

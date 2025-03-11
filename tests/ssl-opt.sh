@@ -13722,7 +13722,6 @@ run_test    "Handshake defragmentation on server: len=32, TLS 1.2 ClientHello (u
             -s "SSL - A message could not be parsed due to a syntactic error"
 
 # Test server-side buffer resizing with fragmented handshake on TLS1.2
-requires_openssl_3_x
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_certificate_authentication
 requires_config_enabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
@@ -13740,7 +13739,6 @@ run_test    "Handshake defragmentation on server: len=256, buffer resizing with 
             -s "Consume: waiting for more handshake fragments 256/"
 
 # Test client-initiated renegotiation with fragmented handshake on TLS1.2
-requires_openssl_3_x
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_certificate_authentication
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
@@ -13758,7 +13756,6 @@ run_test    "Handshake defragmentation on server: len=512, client-initiated rene
             -s "Prepare: waiting for more handshake fragments 512/" \
             -s "Consume: waiting for more handshake fragments 512/" \
 
-requires_openssl_3_x
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_certificate_authentication
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
@@ -13776,7 +13773,6 @@ run_test    "Handshake defragmentation on server: len=256, client-initiated rene
             -s "Prepare: waiting for more handshake fragments 256/" \
             -s "Consume: waiting for more handshake fragments 256/" \
 
-requires_openssl_3_x
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_certificate_authentication
@@ -13795,7 +13791,6 @@ run_test    "Handshake defragmentation on server: len=128, client-initiated rene
             -s "Prepare: waiting for more handshake fragments 128/" \
             -s "Consume: waiting for more handshake fragments 128/" \
 
-requires_openssl_3_x
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
@@ -13814,7 +13809,6 @@ run_test    "Handshake defragmentation on server: len=4, client-initiated renego
             -s "Consume: waiting for more handshake fragments 4/" \
 
 # Test server-initiated renegotiation with fragmented handshake on TLS1.2
-requires_openssl_3_x
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_certificate_authentication
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
@@ -13836,7 +13830,6 @@ run_test    "Handshake defragmentation on client: len=512, server-initiated rene
 # of 16 is necessary, as it sets the maximum record depth to match it.
 # Splitting messages during the renegotiation process requires a deeper
 # stack to accommodate the increased processing complexity.
-requires_openssl_3_x
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_certificate_authentication
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION

@@ -13735,9 +13735,9 @@ run_test    "Handshake defragmentation on server with buffer resizing: len=256, 
             -s "Reallocating in_buf" \
             -s "Reallocating out_buf" \
             -s "reassembled record" \
-            -s "initial handshake fragment: 256, 0..256 of [0-9]\\+" \
-            -s "Prepare: waiting for more handshake fragments 256/[0-9]\\+" \
-            -s "Consume: waiting for more handshake fragments 256/[0-9]\\+"
+            -s "initial handshake fragment: 256, 0\\.\\.256 of [0-9]\\+" \
+            -s "Prepare: waiting for more handshake fragments 256/" \
+            -s "Consume: waiting for more handshake fragments 256/"
 
 # Test client-initiated renegotiation with fragmented handshake on TLS1.2
 requires_openssl_3_x
@@ -13754,9 +13754,9 @@ run_test    "Handshake defragmentation with client-initiated renegotiation: len=
             -s "=> renegotiate" \
             -S "write hello request" \
             -s "reassembled record" \
-            -s "initial handshake fragment: 512, 0..512 of [0-9]\\+" \
-            -s "Prepare: waiting for more handshake fragments 512/[0-9]\\+" \
-            -s "Consume: waiting for more handshake fragments 512/[0-9]\\+" \
+            -s "initial handshake fragment: 512, 0\\.\\.512 of [0-9]\\+" \
+            -s "Prepare: waiting for more handshake fragments 512/" \
+            -s "Consume: waiting for more handshake fragments 512/" \
 
 requires_openssl_3_x
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
@@ -13772,9 +13772,9 @@ run_test    "Handshake defragmentation with client-initiated renegotiation: len=
             -s "=> renegotiate" \
             -S "write hello request" \
             -s "reassembled record" \
-            -s "initial handshake fragment: 256, 0..256 of [0-9]\\+" \
-            -s "Prepare: waiting for more handshake fragments 256/[0-9]\\+" \
-            -s "Consume: waiting for more handshake fragments 256/[0-9]\\+" \
+            -s "initial handshake fragment: 256, 0\\.\\.256 of [0-9]\\+" \
+            -s "Prepare: waiting for more handshake fragments 256/" \
+            -s "Consume: waiting for more handshake fragments 256/" \
 
 requires_openssl_3_x
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
@@ -13791,9 +13791,9 @@ run_test    "Handshake defragmentation with client-initiated renegotiation: len=
             -s "=> renegotiate" \
             -S "write hello request" \
             -s "reassembled record" \
-            -s "initial handshake fragment: 128, 0..128 of [0-9]\\+" \
-            -s "Prepare: waiting for more handshake fragments 128/[0-9]\\+" \
-            -s "Consume: waiting for more handshake fragments 128/[0-9]\\+" \
+            -s "initial handshake fragment: 128, 0\\.\\.128 of [0-9]\\+" \
+            -s "Prepare: waiting for more handshake fragments 128/" \
+            -s "Consume: waiting for more handshake fragments 128/" \
 
 requires_openssl_3_x
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
@@ -13809,9 +13809,9 @@ run_test    "Handshake defragmentation with client-initiated renegotiation: len=
             -s "=> renegotiate" \
             -S "write hello request" \
             -s "reassembled record" \
-            -s "initial handshake fragment: 4, 0..4 of [0-9]\\+" \
-            -s "Prepare: waiting for more handshake fragments 4/[0-9]\\+" \
-            -s "Consume: waiting for more handshake fragments 4/[0-9]\\+" \
+            -s "initial handshake fragment: 4, 0\\.\\.4 of [0-9]\\+" \
+            -s "Prepare: waiting for more handshake fragments 4/" \
+            -s "Consume: waiting for more handshake fragments 4/" \
 
 # Test server-initiated renegotiation with fragmented handshake on TLS1.2
 requires_openssl_3_x
@@ -13822,9 +13822,9 @@ run_test    "Handshake defragmentation with server-initiated renegotiation: len=
             "$O_NEXT_SRV -tls1_2 -split_send_frag 512 -legacy_renegotiation -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key" \
             "$P_CLI debug_level=3 renegotiation=1 request_page=/reneg" \
             0 \
-            -c "initial handshake fragment: 512, 0..512 of [0-9]\\+" \
-            -c "Prepare: waiting for more handshake fragments 512/[0-9]\\+" \
-            -c "Consume: waiting for more handshake fragments 512/[0-9]\\+" \
+            -c "initial handshake fragment: 512, 0\\.\\.512 of [0-9]\\+" \
+            -c "Prepare: waiting for more handshake fragments 512/" \
+            -c "Consume: waiting for more handshake fragments 512/" \
             -c "client hello, adding renegotiation extension" \
             -c "found renegotiation extension" \
             -c "=> renegotiate"
@@ -13844,9 +13844,9 @@ run_test    "Handshake defragmentation with server-initiated renegotiation: len=
             "$O_NEXT_SRV -tls1_2 -split_send_frag 256 -legacy_renegotiation -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key" \
             "$P_CLI debug_level=3 renegotiation=1 renego_delay=32 request_page=/reneg" \
             0 \
-            -c "initial handshake fragment: 256, 0..256 of [0-9]\\+" \
-            -c "Prepare: waiting for more handshake fragments 256/[0-9]\\+" \
-            -c "Consume: waiting for more handshake fragments 256/[0-9]\\+" \
+            -c "initial handshake fragment: 256, 0\\.\\.256 of [0-9]\\+" \
+            -c "Prepare: waiting for more handshake fragments 256/" \
+            -c "Consume: waiting for more handshake fragments 256/" \
             -c "client hello, adding renegotiation extension" \
             -c "found renegotiation extension" \
             -c "=> renegotiate"

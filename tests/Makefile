@@ -25,16 +25,23 @@ $(error "$(PYTHON) ../framework/scripts/generate_bignum_tests.py --list" failed)
 endif
 GENERATED_CRYPTO_DATA_FILES += $(GENERATED_BIGNUM_DATA_FILES)
 
-GENERATED_CONFIG_DATA_FILES_RAW := $(patsubst tests/%,%,$(shell \
+GENERATED_MBEDTLS_CONFIG_DATA_FILES := $(patsubst tests/%,%,$(shell \
 	$(PYTHON) ../framework/scripts/generate_config_tests.py --list || \
 	echo FAILED \
 ))
-ifeq ($(GENERATED_CONFIG_DATA_FILES),FAILED)
+ifeq ($(GENERATED_MBEDTLS_CONFIG_DATA_FILES),FAILED)
 $(error "$(PYTHON) ../framework/scripts/generate_config_tests.py --list" failed)
 endif
-GENERATED_MBEDTLS_CONFIG_DATA_FILES := $(foreach file,$(GENERATED_CONFIG_DATA_FILES_RAW),$(if $(findstring mbedtls,$(file)),$(file),))
-GENERATED_PSA_CONFIG_DATA_FILES := $(foreach file,$(GENERATED_CONFIG_DATA_FILES_RAW),$(if $(findstring psa,$(file)),$(addprefix ../tf-psa-crypto/tests/,$(file)),))
-GENERATED_CONFIG_DATA_FILES := $(GENERATED_MBEDTLS_CONFIG_DATA_FILES)$(GENERATED_PSA_CONFIG_DATA_FILES)
+
+GENERATED_PSA_CONFIG_DATA_FILES := $(addprefix ../tf-psa-crypto/,$(shell \
+	$(PYTHON) ../tf-psa-crypto/framework/scripts/generate_config_tests.py --list || \
+	echo FAILED \
+))
+ifeq ($(GENERATED_PSA_CONFIG_DATA_FILES),FAILED)
+$(error "$(PYTHON) ../tf-psa-crypto/framework/scripts/generate_config_tests.py --list" failed)
+endif
+
+GENERATED_CONFIG_DATA_FILES := $(GENERATED_MBEDTLS_CONFIG_DATA_FILES) $(GENERATED_PSA_CONFIG_DATA_FILES)
 GENERATED_DATA_FILES += $(GENERATED_MBEDTLS_CONFIG_DATA_FILES)
 GENERATED_CRYPTO_DATA_FILES += $(GENERATED_PSA_CONFIG_DATA_FILES)
 
@@ -112,8 +119,8 @@ generated_config_test_data: ../framework/scripts/mbedtls_framework/test_case.py
 generated_config_test_data: ../framework/scripts/mbedtls_framework/test_data_generation.py
 generated_config_test_data:
 	echo "  Gen   $(GENERATED_CONFIG_DATA_FILES)"
-	$(PYTHON) ../framework/scripts/generate_config_tests.py $(GENERATED_MBEDTLS_CONFIG_DATA_FILES)
-	$(PYTHON) ../framework/scripts/generate_config_tests.py --directory ../tf-psa-crypto/tests/suites $(GENERATED_PSA_CONFIG_DATA_FILES)
+	$(PYTHON) ../framework/scripts/generate_config_tests.py
+	cd ../tf-psa-crypto && $(PYTHON) ./framework/scripts/generate_config_tests.py
 .SECONDARY: generated_config_test_data
 
 $(GENERATED_ECP_DATA_FILES): $(gen_file_dep) generated_ecp_test_data

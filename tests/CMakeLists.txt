@@ -19,15 +19,9 @@ execute_process(
     WORKING_DIRECTORY
         ${CMAKE_CURRENT_SOURCE_DIR}/..
     OUTPUT_VARIABLE
-        base_config_generated_data_files_raw)
+        base_config_generated_data_files)
 string(REGEX REPLACE "[^;]*/" ""
-       base_config_generated_data_files_raw "${base_config_generated_data_files_raw}")
-# Can be replace by list(FILTER ...) when CI CMake version is >=3.6
-foreach(file ${base_config_generated_data_files_raw})
-    if(${file} MATCHES "mbedtls")
-        list(APPEND base_config_generated_data_files ${file})
-    endif()
-endforeach()
+       base_config_generated_data_files "${base_config_generated_data_files}")
 
 # Derive generated file paths in the build directory. The generated data
 # files go into the suites/ subdirectory.
@@ -50,7 +44,6 @@ if(GEN_FILES)
             ${MBEDTLS_PYTHON_EXECUTABLE}
             ${MBEDTLS_FRAMEWORK_DIR}/scripts/generate_config_tests.py
             --directory ${CMAKE_CURRENT_BINARY_DIR}/suites
-            ${config_generated_data_files}
         DEPENDS
             ${MBEDTLS_FRAMEWORK_DIR}/scripts/generate_config_tests.py
             # Do not declare the configuration files as dependencies: they

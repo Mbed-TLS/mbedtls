@@ -141,10 +141,10 @@ check()
 if [ -d tf-psa-crypto ]; then
     cd tf-psa-crypto
     check scripts/generate_psa_constants.py ./programs/psa/psa_constant_names_generated.c
-    check ../framework/scripts/generate_bignum_tests.py $(../framework/scripts/generate_bignum_tests.py --list)
-    check ../framework/scripts/generate_config_tests.py tests/suites/test_suite_config.psa_boolean.data
-    check ../framework/scripts/generate_ecp_tests.py $(../framework/scripts/generate_ecp_tests.py --list)
-    check ../framework/scripts/generate_psa_tests.py $(../framework/scripts/generate_psa_tests.py --list)
+    check framework/scripts/generate_bignum_tests.py $(framework/scripts/generate_bignum_tests.py --list)
+    check framework/scripts/generate_config_tests.py $(framework/scripts/generate_config_tests.py --list)
+    check framework/scripts/generate_ecp_tests.py $(framework/scripts/generate_ecp_tests.py --list)
+    check framework/scripts/generate_psa_tests.py $(framework/scripts/generate_psa_tests.py --list)
     cd ..
     # Generated files that are present in the repository even in the development
     # branch. (This is intended to be temporary, until the generator scripts are

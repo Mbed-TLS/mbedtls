@@ -4,5 +4,6 @@ Bugfix
      with Visual Studio 2013 or MinGW.
      Fixes #10017.
    * Remove Everest Visual Studio 2010 compatibility headers, which could
-     interfere with standard CRT headers in certain situations, eg. when
-     building Mbed TLS with the .sln file shipped with the project.
+     shadow standard CRT headers inttypes.h and stdbool.h with incomplete
+     implementatios if placed on the include path, eg. when building Mbed TLS
+     with the .sln file shipped with the project.

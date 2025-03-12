@@ -8357,6 +8357,7 @@ int mbedtls_ssl_write_finished(mbedtls_ssl_context *ssl)
     ret = ssl->handshake->calc_finished(ssl, ssl->out_msg + 4, ssl->conf->endpoint);
     if (ret != 0) {
         MBEDTLS_SSL_DEBUG_RET(1, "calc_finished", ret);
+        return ret;
     }
 
     /*
@@ -8470,6 +8471,7 @@ int mbedtls_ssl_parse_finished(mbedtls_ssl_context *ssl)
     ret = ssl->handshake->calc_finished(ssl, buf, ssl->conf->endpoint ^ 1);
     if (ret != 0) {
         MBEDTLS_SSL_DEBUG_RET(1, "calc_finished", ret);
+        return ret;
     }
 
     if ((ret = mbedtls_ssl_read_record(ssl, 1)) != 0) {

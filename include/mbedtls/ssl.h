@@ -4984,8 +4984,10 @@ int mbedtls_ssl_get_session(const mbedtls_ssl_context *ssl,
  *                 be the case even if TLS 1.3 is offered but eventually
  *                 not selected).
  *
- * \note           Defragmentation of incoming handshake messages in TLS
- *                 is supported with some limitations:
+ * \note           In TLS, reception of fragmented handshake messages is
+ *                 supported with some limitations (those limitations do
+ *                 not apply to DTLS, where defragmentation is fully
+ *                 supported):
  *                 - On an Mbed TLS server that only accepts TLS 1.2,
  *                   the initial ClientHello message must not be fragmented.
  *                   A TLS 1.2 ClientHello may be fragmented if the server
@@ -4993,7 +4995,6 @@ int mbedtls_ssl_get_session(const mbedtls_ssl_context *ssl,
  *                   that #MBEDTLS_SSL_PROTO_TLS1_3 enabled, and the
  *                   accepted versions have not been restricted with
  *                   mbedtls_ssl_conf_max_tls_version() or the like).
- *                   This limitation does not apply to DTLS.
  *                 - The first fragment of a handshake message must be
  *                   at least 4 bytes long.
  *                 - Non-handshake records must not be interleaved between

@@ -467,7 +467,8 @@ struct mbedtls_ssl_handshake_params {
 
     void (*update_checksum)(mbedtls_ssl_context *, const unsigned char *, size_t);
     void (*calc_verify)(const mbedtls_ssl_context *, unsigned char *, size_t *);
-    void (*calc_finished)(mbedtls_ssl_context *, unsigned char *, int);
+    MBEDTLS_CHECK_RETURN_CRITICAL
+    int (*calc_finished)(mbedtls_ssl_context *, unsigned char *, int);
     mbedtls_ssl_tls_prf_cb *tls_prf;
 
 #if defined(MBEDTLS_DHM_C)

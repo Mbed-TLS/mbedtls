@@ -624,9 +624,7 @@ exit:
 }
 #endif /* MBEDTLS_SSL_PROTO_TLS1) || MBEDTLS_SSL_PROTO_TLS1_1 */
 
-#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-
 static int mbedtls_ssl_md_error_from_psa(psa_status_t status)
 {
     switch (status) {
@@ -641,6 +639,10 @@ static int mbedtls_ssl_md_error_from_psa(psa_status_t status)
             return MBEDTLS_ERR_MD_HW_ACCEL_FAILED;
     }
 }
+#endif
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
 
 static psa_status_t setup_psa_key_derivation(psa_key_derivation_operation_t *derivation,
                                              psa_key_id_t key,

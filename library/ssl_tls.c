@@ -627,6 +627,21 @@ exit:
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 
+static int mbedtls_ssl_md_error_from_psa(psa_status_t status)
+{
+    switch (status) {
+        case PSA_ERROR_NOT_SUPPORTED:
+            return MBEDTLS_ERR_MD_FEATURE_UNAVAILABLE;
+        case PSA_ERROR_BAD_STATE: /* Intentional fallthrough */
+        case PSA_ERROR_BUFFER_TOO_SMALL:
+            return MBEDTLS_ERR_MD_BAD_INPUT_DATA;
+        case PSA_ERROR_INSUFFICIENT_MEMORY:
+            return MBEDTLS_ERR_MD_ALLOC_FAILED;
+        default:
+            return MBEDTLS_ERR_MD_HW_ACCEL_FAILED;
+    }
+}
+
 static psa_status_t setup_psa_key_derivation(psa_key_derivation_operation_t *derivation,
                                              psa_key_id_t key,
                                              psa_algorithm_t alg,
@@ -3318,13 +3333,13 @@ static int ssl_calc_finished_tls_sha256(
     status = psa_hash_clone(&ssl->handshake->fin_sha256_psa, &sha256_psa);
     if (status != PSA_SUCCESS) {
         MBEDTLS_SSL_DEBUG_MSG(2, ("PSA hash clone failed"));
-        return status;
+        return mbedtls_ssl_md_error_from_psa(status);
     }
 
     status = psa_hash_finish(&sha256_psa, padbuf, sizeof(padbuf), &hash_size);
     if (status != PSA_SUCCESS) {
         MBEDTLS_SSL_DEBUG_MSG(2, ("PSA hash finish failed"));
-        return status;
+        return mbedtls_ssl_md_error_from_psa(status);
     }
     MBEDTLS_SSL_DEBUG_BUF(3, "PSA calculated padbuf", padbuf, 32);
 #else
@@ -3396,13 +3411,13 @@ static int ssl_calc_finished_tls_sha384(
     status = psa_hash_clone(&ssl->handshake->fin_sha384_psa, &sha384_psa);
     if (status != PSA_SUCCESS) {
         MBEDTLS_SSL_DEBUG_MSG(2, ("PSA hash clone failed"));
-        return status;
+        return mbedtls_ssl_md_error_from_psa(status);
     }
 
     status = psa_hash_finish(&sha384_psa, padbuf, sizeof(padbuf), &hash_size);
     if (status != PSA_SUCCESS) {
         MBEDTLS_SSL_DEBUG_MSG(2, ("PSA hash finish failed"));
-        return status;
+        return mbedtls_ssl_md_error_from_psa(status);
     }
     MBEDTLS_SSL_DEBUG_BUF(3, "PSA calculated padbuf", padbuf, 48);
 #else
@@ -7643,17 +7658,8 @@ exit:
     if (status != PSA_SUCCESS) {
         mbedtls_ssl_send_alert_message(ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
                                        MBEDTLS_SSL_ALERT_MSG_INTERNAL_ERROR);
-        switch (status) {
-            case PSA_ERROR_NOT_SUPPORTED:
-                return MBEDTLS_ERR_MD_FEATURE_UNAVAILABLE;
-            case PSA_ERROR_BAD_STATE: /* Intentional fallthrough */
-            case PSA_ERROR_BUFFER_TOO_SMALL:
-                return MBEDTLS_ERR_MD_BAD_INPUT_DATA;
-            case PSA_ERROR_INSUFFICIENT_MEMORY:
-                return MBEDTLS_ERR_MD_ALLOC_FAILED;
-            default:
-                return MBEDTLS_ERR_MD_HW_ACCEL_FAILED;
-        }
+
+        return mbedtls_ssl_md_error_from_psa(status);
     }
     return 0;
 }

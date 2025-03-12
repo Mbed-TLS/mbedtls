@@ -14,6 +14,18 @@
 typedef int64_t mbedtls_ms_time_t;
 #endif
 
+typedef enum {
+    PRINTF_SIZET,
+    PRINTF_LONGLONG,
+    PRINTF_MS_TIME,
+} printf_format_indicator_t;
+
+const char *const printf_formats[] = {
+    [PRINTF_SIZET]    = "%" MBEDTLS_PRINTF_SIZET,
+    [PRINTF_LONGLONG] = "%" MBEDTLS_PRINTF_LONGLONG,
+    [PRINTF_MS_TIME]  = "%" MBEDTLS_PRINTF_MS_TIME,
+};
+
 struct buffer_data {
     char buf[2000];
     char *ptr;
@@ -81,8 +93,7 @@ static void noop_invalid_parameter_handler(
  */
 
 /* BEGIN_CASE */
-void printf_int_expr(intmax_t smuggle_format_expr, /* TODO: teach test framework about string expressions */
-                     intmax_t sizeof_x, intmax_t x, char *result)
+void printf_int_expr(int format_indicator, intmax_t sizeof_x, intmax_t x, char *result)
 {
 #if defined(_WIN32)
     /* Windows treats any invalid format specifiers passsed to the CRT as fatal assertion failures.
@@ -95,7 +106,7 @@ void printf_int_expr(intmax_t smuggle_format_expr, /* TODO: teach test framework
     _CrtSetReportMode(_CRT_ASSERT, _CRTDBG_MODE_DEBUG);
 #endif
 
-    const char *format = (char *) ((uintptr_t) smuggle_format_expr);
+    const char *format = printf_formats[format_indicator];
     char *output = NULL;
     const size_t n = strlen(result);
 

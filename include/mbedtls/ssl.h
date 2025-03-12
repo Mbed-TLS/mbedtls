@@ -4360,6 +4360,10 @@ void mbedtls_ssl_conf_cert_req_ca_list(mbedtls_ssl_config *conf,
  *                 with \c mbedtls_ssl_read()), not handshake messages.
  *                 With DTLS, this affects both ApplicationData and handshake.
  *
+ * \note           Defragmentation of TLS handshake messages is supported
+ *                 with some limitations. See the documentation of
+ *                 mbedtls_ssl_handshake() for details.
+ *
  * \note           This sets the maximum length for a record's payload,
  *                 excluding record overhead that will be added to it, see
  *                 \c mbedtls_ssl_get_record_expansion().
@@ -4848,6 +4852,24 @@ int mbedtls_ssl_get_session(const mbedtls_ssl_context *ssl,
  *                 in which case the datagram of the underlying transport that is
  *                 currently being processed might or might not contain further
  *                 DTLS records.
+ *
+ * \note           In TLS, reception of fragmented handshake messages is
+ *                 supported with some limitations (those limitations do
+ *                 not apply to DTLS, where defragmentation is fully
+ *                 supported):
+ *                 - On an Mbed TLS server that only accepts TLS 1.2,
+ *                   the initial ClientHello message must not be fragmented.
+ *                   A TLS 1.2 ClientHello may be fragmented if the server
+ *                   also accepts TLS 1.3 connections (meaning
+ *                   that #MBEDTLS_SSL_PROTO_TLS1_3 enabled, and the
+ *                   accepted versions have not been restricted with
+ *                   mbedtls_ssl_conf_max_tls_version() or the like).
+ *                 - The first fragment of a handshake message must be
+ *                   at least 4 bytes long.
+ *                 - Non-handshake records must not be interleaved between
+ *                   the fragments of a handshake message. (This is permitted
+ *                   in TLS 1.2 but not in TLS 1.3, but Mbed TLS rejects it
+ *                   even in TLS 1.2.)
  *
  * \note           The PSA crypto subsystem must have been initialized by
  *                 calling psa_crypto_init() before calling this function.

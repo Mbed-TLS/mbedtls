@@ -14556,6 +14556,20 @@ run_test    "Handshake defragmentation on server: len=4, client-initiated renego
             -s "Prepare: waiting for more handshake fragments 4/" \
             -s "Consume: waiting for more handshake fragments 4/" \
 
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
+run_test    "Handshake defragmentation on server: len=4, client-initiated server-rejected renegotation" \
+            "$P_SRV debug_level=4 exchanges=2 renegotiation=0 auth_mode=required" \
+            "$O_NEXT_CLI_RENEGOTIATE -tls1_2 -split_send_frag 4 -connect 127.0.0.1:+$SRV_PORT" \
+            1 \
+            -s "received TLS_EMPTY_RENEGOTIATION_INFO" \
+            -s "refusing renegotiation, sending alert" \
+            -s "server hello, secure renegotiation extension" \
+            -s "initial handshake fragment: 4, 0\\.\\.4 of [0-9]\\+" \
+            -s "Prepare: waiting for more handshake fragments 4/" \
+            -s "Consume: waiting for more handshake fragments 4/" \
+
 # Test server-initiated renegotiation with fragmented handshake on TLS1.2
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION

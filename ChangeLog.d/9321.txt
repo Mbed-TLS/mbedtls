@@ -1,0 +1,3 @@
+Changes
+   * Use the new `PSA_ALG_XXX` related macros for JPAKE instead of old macros,
+     which do not conform to the standard PAKE interface

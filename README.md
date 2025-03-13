@@ -299,7 +299,7 @@ However, it does not aim to implement the whole specification; in particular it 
 
 Mbed TLS supports drivers for cryptographic accelerators, secure elements and random generators. This is work in progress. Please note that the driver interfaces are not fully stable yet and may change without notice. We intend to preserve backward compatibility for application code (using the PSA Crypto API), but the code of the drivers may have to change in future minor releases of Mbed TLS.
 
-Please see the [PSA driver example and guide](docs/psa-driver-example-and-guide.md) for information on writing a driver.
+Please see the [PSA driver example and guide](https://github.com/Mbed-TLS/TF-PSA-Crypto/blob/development/docs/psa-driver-example-and-guide.md) for information on writing a driver.
 
 License
 -------

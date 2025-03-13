@@ -57,6 +57,24 @@ if(GEN_FILES)
             # change too often in ways that don't affect the result
             # ((un)commenting some options).
     )
+
+    add_custom_command(
+        OUTPUT
+            ${CMAKE_CURRENT_SOURCE_DIR}/opt-testcases/handshake-generated.sh
+        WORKING_DIRECTORY
+            ${CMAKE_CURRENT_SOURCE_DIR}/..
+        COMMAND
+            "${MBEDTLS_PYTHON_EXECUTABLE}"
+            "${CMAKE_CURRENT_SOURCE_DIR}/../framework/scripts/generate_tls_handshake_tests.py"
+        DEPENDS
+            ${CMAKE_CURRENT_SOURCE_DIR}/../framework/scripts/mbedtls_framework/tls_test_case.py
+            ${CMAKE_CURRENT_SOURCE_DIR}/../framework/scripts/generate_tls_handshake_tests.py
+    )
+    add_custom_target(handshake-generated.sh
+        DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/opt-testcases/handshake-generated.sh)
+    set_target_properties(handshake-generated.sh PROPERTIES EXCLUDE_FROM_ALL NO)
+    add_dependencies(${ssl_opt_target} handshake-generated.sh)
+
     add_custom_command(
         OUTPUT
             ${CMAKE_CURRENT_SOURCE_DIR}/opt-testcases/tls13-compat.sh

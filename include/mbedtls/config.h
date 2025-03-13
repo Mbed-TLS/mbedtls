@@ -2290,6 +2290,10 @@
  * That is, the APIs enabled by this option are not covered by the usual
  * promises of API stability.
  *
+ * \warning In multithreaded applications, you must also enable
+ * #MBEDTLS_THREADING_C, unless only one thread ever calls PSA functions
+ * (`psa_xxx()`), including indirect calls through SSL/TLS, X.509 or PK.
+ *
  * Requires: MBEDTLS_PSA_CRYPTO_C.
  *
  * Uncomment this to enable internal use of PSA Crypto and new associated APIs.
@@ -3389,6 +3393,14 @@
  *
  * Enable the Platform Security Architecture cryptography API.
  *
+ * \note In multithreaded applications, you must enable #MBEDTLS_THREADING_C,
+ *       unless only one thread ever calls `psa_xxx()` functions.
+ *       That includes indirect calls, such as:
+ *       - indirect calls from PK, X.509 or SSL functions when
+ *         #MBEDTLS_USE_PSA_CRYPTO is enabled;
+ *       - any other call to a function that requires calling psa_crypto_init()
+ *         beforehand.
+ *
  * Module:  library/psa_crypto.c
  *
  * Requires: either MBEDTLS_CTR_DRBG_C and MBEDTLS_ENTROPY_C,
@@ -3605,11 +3617,29 @@
 /**
  * \def MBEDTLS_THREADING_C
  *
- * Enable the threading abstraction layer.
- * By default Mbed TLS assumes it is used in a non-threaded environment or that
- * contexts are not shared between threads. If you do intend to use contexts
+ * Traditionally, Mbed TLS assumes it is used in a non-threaded environment or
+ * that contexts are not shared between threads. If you do intend to use contexts
  * between threads, you will need to enable this layer to prevent race
- * conditions. See also our Knowledge Base article about threading:
+ * conditions.
+ *
+ * The PSA subsystem has an implicit shared context. Therefore, you must
+ * enable this option if more than one thread may use any part of
+ * Mbed TLS that is implemented on top of the PSA subsystem.
+ *
+ * You must enable this option in multithreaded applications where more than
+ * one thread performs any of the following operations:
+ *
+ * - Any call to a PSA function (`psa_xxx()`).
+ * - Any call to a TLS, X.509 or PK function (`mbedtls_ssl_xxx()`,
+ *   `mbedtls_x509_xxx()`, `mbedtls_pkcs7_xxx()`, `mbedtls_pk_xxx()`)
+ *   if `MBEDTLS_USE_PSA_CRYPTO` is enabled (regardless of whether individual
+ *   TLS, X.509 or PK contexts are shared between threads).
+ * - Any use of a cryptographic context if the same context is used in
+ *   multiple threads.
+ * - Any call to a function where the documentation specifies that
+ *   psa_crypto_init() must be called prior to that function.
+ *
+ * See also our Knowledge Base article about threading:
  * https://mbed-tls.readthedocs.io/en/latest/kb/development/thread-safety-and-multi-threading
  *
  * Module:  library/threading.c

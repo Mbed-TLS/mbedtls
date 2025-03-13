@@ -4524,7 +4524,9 @@ void derive_input(int alg_arg,
     psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_DERIVE);
     psa_set_key_algorithm(&attributes, alg);
 
-    PSA_ASSERT(psa_key_derivation_setup(&operation, alg));
+    if (alg != PSA_ALG_NONE) {
+        PSA_ASSERT(psa_key_derivation_setup(&operation, alg));
+    }
 
     for (i = 0; i < ARRAY_LENGTH(steps); i++) {
         mbedtls_test_set_step(i);

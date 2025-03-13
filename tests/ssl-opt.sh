@@ -13840,11 +13840,12 @@ run_test    "Handshake defragmentation on client: len=512, server-initiated rene
 # number of records received before renegotiation is completed.
 # By fragmenting records and thereby increasing their quantity,
 # the default threshold can be reached more quickly.
+# Setting it to -1 disables that policy's enforment.
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "Handshake defragmentation on client: len=256, server-initiated renegotation" \
             "$O_NEXT_SRV -tls1_2 -split_send_frag 256 -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key" \
-            "$P_CLI debug_level=3 renegotiation=1 renego_delay=32 request_page=/reneg" \
+            "$P_CLI debug_level=3 renegotiation=1 renego_delay=-1 request_page=/reneg" \
             0 \
             -c "initial handshake fragment: 256, 0\\.\\.256 of [0-9]\\+" \
             -c "Prepare: waiting for more handshake fragments 256/" \

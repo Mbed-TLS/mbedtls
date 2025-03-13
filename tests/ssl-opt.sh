@@ -13835,10 +13835,11 @@ run_test    "Handshake defragmentation on client: len=512, server-initiated rene
 
 # Note: The /reneg endpoint serves as a directive for OpenSSL's s_server
 # to initiate a handshake renegotiation.
-# Note: Adjusting the renegotiation delay beyond the library's default value
-# of 16 is necessary, as it sets the maximum record depth to match it.
-# Splitting messages during the renegotiation process requires a deeper
-# stack to accommodate the increased processing complexity.
+# Note: Adjusting the renegotiation delay beyond the library's default
+# value of 16 is necessary. This parameter defines the maximum
+# number of records received before renegotiation is completed.
+# By fragmenting records and thereby increasing their quantity,
+# the default threshold can be reached more quickly.
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "Handshake defragmentation on client: len=256, server-initiated renegotation" \

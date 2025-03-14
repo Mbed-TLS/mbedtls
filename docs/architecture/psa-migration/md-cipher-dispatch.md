@@ -17,36 +17,44 @@ A difference between the original strategy and the current one is that in this w
 
 #### Backward compatibility user story
 
-As a developer of an application that uses Mbed TLS's interfaces (including legacy crypto),  
-I want Mbed TLS to preserve backward compatibility,  
+As a developer of an application that uses Mbed TLS's interfaces (including legacy crypto),
+I want Mbed TLS to preserve backward compatibility,
 so that my code keeps working in new minor versions of Mbed TLS.
 
 #### Interface design user story
 
-As a developer of library code that uses Mbed TLS to perform cryptographic operations,  
-I want to know which functions to call and which feature macros to check,  
+As a developer of library code that uses Mbed TLS to perform cryptographic operations,
+I want to know which functions to call and which feature macros to check,
 so that my code works in all Mbed TLS configurations.
 
 Note: this is the same problem we face in X.509 and TLS.
 
 #### Hardware accelerator vendor user stories
 
-As a vendor of a platform with hardware acceleration for some crypto,  
-I want to build Mbed TLS in a way that uses my hardware wherever relevant,  
+As a vendor of a platform with hardware acceleration for some crypto,
+I want to build Mbed TLS in a way that uses my hardware wherever relevant,
 so that my customers maximally benefit from my hardware.
 
-As a vendor of a platform with hardware acceleration for some crypto,  
-I want to build Mbed TLS without software that replicates what my hardware does,  
+As a vendor of a platform with hardware acceleration for some crypto,
+I want to build Mbed TLS without software that replicates what my hardware does,
 to minimize the code size.
+
+#### Integrators of Mbed TLS alongside a PSA Crypto provider
+
+I have a platform where the PSA Crypto is already provided "externally" from
+Mbed TLS (ex: through TF-M in Zephyr) and I would like Mbed TLS to make use
+of it whenever possible in order to benefit from higher performances (if some
+hardware acceleration is supported in the provider) and/or higher isolation/security
+(if the PSA provider is running in a completetly separated/inaccessible context).
 
 #### Maintainer user stories
 
-As a maintainer of Mbed TLS,  
-I want to have clear rules for when to use which interface,  
+As a maintainer of Mbed TLS,
+I want to have clear rules for when to use which interface,
 to avoid bugs in “unusual” configurations.
 
-As a maintainer of Mbed TLS,  
-I want to avoid duplicating code,  
+As a maintainer of Mbed TLS,
+I want to avoid duplicating code,
 because this is inefficient and error-prone.
 
 ### Use PSA more
@@ -55,8 +63,8 @@ In the long term, all code using cryptography should use PSA interfaces, to bene
 
 The goal of this work is to arrange for more non-PSA interfaces to use PSA interfaces under the hood, without breaking code in the cases where this doesn't work. Using PSA interfaces has two benefits:
 
-* Where a PSA driver is available, it likely has better performance, and sometimes better security, than the built-in software implementation.
-* In many scenarios, where a PSA driver is available, this allows removing the software implementation altogether.
+* Where a PSA driver/provider is available, it likely has better performance, and sometimes better security, than the built-in software implementation.
+* In many scenarios, where a PSA driver/provider is available, this allows removing the software implementation altogether.
 * We may be able to get rid of some redundancies, for example the duplication between the implementations of HMAC in `md.c` and in `psa_crypto_mac.c`, and HKDF in `hkdf.c` and `psa_crypto.c`.
 
 ### Correct dependencies
@@ -72,7 +80,6 @@ All documented behavior must be preserved, except for interfaces currently descr
 The following configuration options are described as experimental, and are likely to change at least marginally:
 
 * `MBEDTLS_PSA_CRYPTO_CLIENT`: “This interface is experimental and may change or be removed without notice.” In practice we don't want to remove this, but we may constrain how it's used.
-* `MBEDTLS_PSA_CRYPTO_DRIVERS`: “This interface is experimental. We intend to maintain backward compatibility with application code that relies on drivers, but the driver interfaces may change without notice.” In practice, this may mean constraints not only on how to write drivers, but also on how to integrate drivers into code that is platform code more than application code.
 * `MBEDTLS_PSA_CRYPTO_CONFIG`: “This feature is still experimental and is not ready for production since it is not completed.” We may want to change this, for example, to automatically enable more mechanisms (although this wouldn't be considered a backward compatibility break anyway, since we don't promise that you will not get a feature if you don't enable its `PSA_WANT_xxx`).
 
 ### Non-goals
@@ -190,7 +197,7 @@ Note: PSA cipher is built on Cipher, but PSA AEAD directly calls the underlying 
 
 Here are some reasons why calling `psa_xxx()` to perform a hash or cipher calculation might not be desirable in some circumstances, explaining why the application would arrange to call the legacy software implementation instead.
 
-* `MBEDTLS_PSA_CRYPTO_C` is disabled.
+* `MBEDTLS_PSA_CRYPTO_CLIENT` is disabled.
 * There is a PSA driver which has not been initialized (this happens in `psa_crypto_init()`).
 * For ciphers, the keystore is not initialized yet, and Mbed TLS uses a custom implementation of PSA ITS where the file system is not accessible yet (because something else needs to happen first, and the application takes care that it happens before it calls `psa_crypto_init()`). A possible workaround may be to dispatch to the internal functions that are called after the keystore lookup, rather than to the PSA API functions (but this is incompatible with `MBEDTLS_PSA_CRYPTO_CLIENT`).
 * The requested mechanism is enabled in the legacy interface but not in the PSA interface. This was not really intended, but is possible, for example, if you enable `MBEDTLS_MD5_C` for PEM decoding with PBKDF1 but don't want `PSA_ALG_WANT_MD5` because it isn't supported for `PSA_ALG_RSA_PSS` and `PSA_ALG_DETERMINISTIC_ECDSA`.
@@ -208,7 +215,7 @@ Generally speaking, modules in the mixed domain:
 
 #### Non-support guarantees: requirements
 
-Generally speaking, just because some feature is not enabled in `mbedtls_config.h` or `psa_config.h` doesn't guarantee that it won't be enabled in the build. We can enable additional features through `build_info.h`.
+Generally speaking, just because some feature is not enabled in `mbedtls_config.h` or `crypto_config.h` doesn't guarantee that it won't be enabled in the build. We can enable additional features through `build_info.h` and other header files included there (`*adjust*.h`).
 
 If `PSA_WANT_xxx` is disabled, this should guarantee that attempting xxx through the PSA API will fail. This is generally guaranteed by the test suite `test_suite_psa_crypto_not_supported` with automatically enumerated test cases, so it would be inconvenient to carve out an exception.
 
@@ -331,13 +338,9 @@ Note that this applies to TLS 1.3 as well, as some uses of hashes and all uses o
 
 This will go away naturally in 4.0 when this macros is not longer an option (because it's always on).
 
-#### Don't support for `MBEDTLS_PSA_CRYPTO_CLIENT` without `MBEDTLS_PSA_CRYPTO_C`
+#### Support for `MBEDTLS_PSA_CRYPTO_CLIENT` without `MBEDTLS_PSA_CRYPTO_C`
 
 We generally don't really support builds with `MBEDTLS_PSA_CRYPTO_CLIENT` without `MBEDTLS_PSA_CRYPTO_C`. For example, both `MBEDTLS_USE_PSA_CRYPTO` and `MBEDTLS_SSL_PROTO_TLS1_3` require `MBEDTLS_PSA_CRYPTO_C`, while in principle they should only require `MBEDTLS_PSA_CRYPTO_CLIENT`.
-
-Considering this existing restriction which we do not plan to lift before 4.0, it is acceptable driver-only hashes and cipher support to have the same restriction in 3.x.
-
-It is however desirable for the design to keep support for `MBEDTLS_PSA_CRYPTO_CLIENT` in mind, in order to avoid making it more difficult to add in the future.
 
 #### For cipher: prioritize constrained devices and modern TLS
 
@@ -420,8 +423,9 @@ Unlike the full MD, MD light does not support null pointers as `mbedtls_md_conte
 
 For each hash algorithm, `md.h` defines a macro `MBEDTLS_MD_CAN_xxx` whenever the corresponding hash is available through MD light. These macros are only defined when `MBEDTLS_MD_LIGHT` is enabled. Per “[Availability of hashes](#availability-of-hashes)”, `MBEDTLS_MD_CAN_xxx` is enabled if:
 
-* the corresponding `MBEDTLS_xxx_C` is defined; or
-* one of `MBEDTLS_PSA_CRYPTO_C` or `MBEDTLS_PSA_CRYPTO_CLIENT` is enabled, and the corresponding `PSA_WANT_ALG_xxx` is enabled.
+* the corresponding `MBEDTLS_xxx_C` is defined.
+* `MBEDTLS_PSA_CRYPTO_C` is enabled and the corresponding `PSA_WANT_ALG_xxx` and `MBEDTLS_PSA_ACCEL_ALG_xxx` are enabled. This enables driver acceleration support.
+* `MBEDTLS_PSA_CRYPTO_CLIENT` is enabled the corresponding `PSA_WANT_ALG_xxx` is enabled. Then the Mbed TLS library must be linked against the PSA Crypto provider one which will eventually handle all PSA calls.
 
 Note that some algorithms have different spellings in legacy and PSA. Since MD is a legacy interface, we'll use the legacy names. Thus, for example:
 
@@ -440,7 +444,7 @@ for now this is out of scope.
 
 #### MD light internal support macros
 
-* If at least one hash has a PSA driver, define `MBEDTLS_MD_SOME_PSA`.
+* If at least one hash has a PSA driver or support in PSA Crypto provider, define `MBEDTLS_MD_SOME_PSA`.
 * If at least one hash has a legacy implementation, defined `MBEDTLS_MD_SOME_LEGACY`.
 
 #### Support for PSA in the MD context
@@ -488,15 +492,24 @@ static inline psa_algorithm_t psa_alg_of_md_info(
 
 #### Determination of PSA support at runtime
 
+Mbed TLS defines internal symbols `MBEDTLS_MD_xxx_VIA_PSA` which are used to check if the `xxx` hash algorithm is supported in PSA. They are enabled when:
+
+* `MBEDTLS_PSA_CRYPTO_C && MBEDTLS_PSA_ACCEL_ALG_xxx`, i.e. when the PSA Crypto core is built with Mbed TLS and the `xxx` is accelerated through a driver.
+* `MBEDTLS_PSA_CRYPTO_CLIENT && PSA_WANT_ALG_xxx`, i.e. there is a PSA Crypto provider/server which supports `xxx` hash algorithm.
+
+MD internally uses the following private function to determine if PSA can be used at runtime or not:
+
 ```
-int psa_can_do_hash(psa_algorithm_t hash_alg);
+static int md_can_use_psa(const mbedtls_md_info_t *info)
 ```
 
-The job of this private function is to return 1 if `hash_alg` can be performed through PSA now, and 0 otherwise. It is only defined on algorithms that are enabled via PSA.
+Internally this function does the following:
 
-As a starting point, return 1 if PSA crypto's driver subsystem has been initialized.
+* First of all it converts the `mbedtls_md_info_t` to `psa_algorithm_t`. The result of this conversion is based on the `MBEDTLS_MD_xxx_VIA_PSA` symbols: if an algorithm does not have the corresponding `MBEDTLS_MD_xxx_VIA_PSA` enabled, then `md_can_use_psa` will return false.
 
-Usage note: for algorithms that are not enabled via PSA, calling `psa_can_do_hash` is generally safe: whether it returns 0 or 1, you can call a PSA hash function on the algorithm and it will return `PSA_ERROR_NOT_SUPPORTED`.
+* `int psa_can_do_hash(psa_algorithm_t hash_alg)` is then used to further checking if the PSA Crypto core has been initialized or not. If so then `md_can_use_psa` will finally succeed, otherwise it will fail.
+
+To be noted that in client/server builds (i.e. `MBEDTLS_PSA_CRYPTO_CLIENT && !MBEDTLS_PSA_CRYPTO_C`) the implementer of the client interface is expected to provide psa_can_do_hash().
 
 #### Support for PSA dispatch in hash operations
 
@@ -506,7 +519,7 @@ If given an established context, use its `engine` field.
 
 If given an algorithm as an `mbedtls_md_type_t type` (possibly being the `type` field of a `const mbedtls_md_info_t *`):
 
-* If there is a PSA accelerator for this hash and `psa_can_do_hash(alg)`, call the corresponding PSA function, and if applicable set the engine to `MBEDTLS_MD_ENGINE_PSA`. (Skip this is `MBEDTLS_MD_SOME_PSA` is not defined.)
+* If there is a PSA accelerator/provider for this hash and `md_can_use_psa` succeeds, call the corresponding PSA function, and if applicable set the engine to `MBEDTLS_MD_ENGINE_PSA`. (Skip this is `MBEDTLS_MD_SOME_PSA` is not defined.)
 * Otherwise dispatch to the legacy module based on the type as currently done. (Skip this is `MBEDTLS_MD_SOME_LEGACY` is not defined.)
 * If no dispatch is possible, return `MBEDTLS_ERR_MD_FEATURE_UNAVAILABLE`.
 
@@ -522,7 +535,7 @@ As discussed in [“Implications between legacy availability and PSA availabilit
 
 > If an algorithm has a legacy implementation, it is also available through PSA.
 
-When `MBEDTLS_PSA_CRYPTO_CONFIG` is disabled, this is already the case. When is enabled, we will now make it so as well. Change `include/mbedtls/config_psa.h` accordingly.
+When `MBEDTLS_PSA_CRYPTO_CONFIG` is disabled, this is already the case. When is enabled, `include/config_adjust_psa_superset_legacy.h` will ensure that PSA configuration is always a superset of what's enabled in legacy.
 
 ### MD light optimizations
 
@@ -556,15 +569,6 @@ Work in progress on this conversion is at https://github.com/gilles-peskine-arm/
 #### Unify HMAC with PSA
 
 PSA has its own HMAC implementation. In builds with both `MBEDTLS_MD_C` and `PSA_WANT_ALG_HMAC` not fully provided by drivers, we should have a single implementation. Replace the one in `md.h` by calls to the PSA driver interface. This will also give mixed-domain modules access to HMAC accelerated directly by a PSA driver (eliminating the need to a HMAC interface in software if all supported hashes have an accelerator that includes HMAC support).
-
-### Improving support for `MBEDTLS_PSA_CRYPTO_CLIENT`
-
-So far, MD light only dispatches to PSA if an algorithm is available via `MBEDTLS_PSA_CRYPTO_C`, not if it's available via `MBEDTLS_PSA_CRYPTO_CLIENT`. This is acceptable because `MBEDTLS_USE_PSA_CRYPTO` requires `MBEDTLS_PSA_CRYPTO_C`, hence mixed-domain code never invokes PSA.
-
-The architecture can be extended to support `MBEDTLS_PSA_CRYPTO_CLIENT` with a little extra work. Here is an overview of the task breakdown, which should be fleshed up after we've done the first [migration](#migration-to-md-light):
-
-* Compile-time dependencies: instead of checking `defined(MBEDTLS_PSA_CRYPTO_C)`, check `defined(MBEDTLS_PSA_CRYPTO_C) || defined(MBEDTLS_PSA_CRYPTO_CLIENT)`.
-* Implementers of `MBEDTLS_PSA_CRYPTO_CLIENT` will need to provide `psa_can_do_hash()` (or a more general function `psa_can_do`) alongside `psa_crypto_init()`. Note that at this point, it will become a public interface, hence we won't be able to change it at a whim.
 
 ### Internal "block cipher" abstraction (previously known as "Cipher light")
 

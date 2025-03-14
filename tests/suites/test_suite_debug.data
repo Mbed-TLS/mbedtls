@@ -1,3 +1,12 @@
+printf "%" MBEDTLS_PRINTF_SIZET, 0
+printf_int_expr:PRINTF_SIZET:sizeof(size_t):0:"0"
+
+printf "%" MBEDTLS_PRINTF_LONGLONG, 0
+printf_int_expr:PRINTF_LONGLONG:sizeof(long long):0:"0"
+
+printf "%" MBEDTLS_PRINTF_MS_TIME, 0
+printf_int_expr:PRINTF_MS_TIME:sizeof(mbedtls_ms_time_t):0:"0"
+
 Debug print msg (threshold 1, level 0)
 debug_print_msg_threshold:1:0:"MyFile":999:"MyFile(0999)\: Text message, 2 == 2\n"
 

@@ -22,6 +22,7 @@ my $vsx_sln_tpl_file = "scripts/data_files/vs2017-sln-template.sln";
 my $vsx_sln_file = "$vsx_dir/mbedTLS.sln";
 
 my $programs_dir = 'programs';
+my $framework_programs_dir = 'framework/tests/programs';
 my $mbedtls_header_dir = 'include/mbedtls';
 my $psa_header_dir = 'include/psa';
 my $source_dir = 'library';
@@ -52,6 +53,7 @@ my @include_directories = qw(
     3rdparty/everest/include/everest/kremlib
     tests/include
     framework/tests/include
+    framework/tests/programs
 );
 my $include_directories = join(';', map {"../../$_"} @include_directories);
 
@@ -112,7 +114,8 @@ sub check_dirs {
         && -d $test_header_dir
         && -d $tls_test_header_dir
         && -d $test_drivers_header_dir
-        && -d $programs_dir;
+        && -d $programs_dir
+        && -d $framework_programs_dir;
 }
 
 sub slurp_file {
@@ -151,7 +154,14 @@ sub gen_app {
     (my $appname = $path) =~ s/.*\\//;
     my $is_test_app = ($path =~ m/^test\\/);
 
-    my $srcs = "<ClCompile Include=\"..\\..\\programs\\$path.c\" \/>";
+    my $srcs;
+    if( $appname eq "metatest" or $appname eq "query_compile_time_config" or
+        $appname eq "query_included_headers" or $appname eq "zeroize" ) {
+        $srcs = "<ClCompile Include=\"..\\..\\framework\\tests\\programs\\$appname.c\" \/>";
+    } else {
+        $srcs = "<ClCompile Include=\"..\\..\\programs\\$path.c\" \/>";
+    }
+
     if( $appname eq "ssl_client2" or $appname eq "ssl_server2" or
         $appname eq "query_compile_time_config" ) {
         $srcs .= "\n    <ClCompile Include=\"..\\..\\programs\\test\\query_config.c\" \/>";
@@ -267,6 +277,7 @@ sub main {
                        $tls_test_header_dir,
                        $test_drivers_header_dir,
                        $source_dir,
+                       $framework_programs_dir,
                        @thirdparty_header_dirs,
                       );
     my @headers = (map { <$_/*.h> } @header_dirs);

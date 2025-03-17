@@ -28,7 +28,7 @@ component_check_generated_files () {
     make generated_files
     $FRAMEWORK/scripts/make_generated_files.py --check
 
-    cd tf-psa-crypto
+    cd $TF_PSA_CRYPTO_ROOT_DIR
     ./framework/scripts/make_generated_files.py --check
 
     msg "Check files generated with cmake"
@@ -47,7 +47,7 @@ component_check_generated_files () {
 
     $FRAMEWORK/scripts/make_generated_files.py --root "$OUT_OF_SOURCE_DIR" --check
 
-    cd tf-psa-crypto
+    cd $TF_PSA_CRYPTO_ROOT_DIR
     ./framework/scripts/make_generated_files.py --root "$OUT_OF_SOURCE_DIR/tf-psa-crypto" --check
 
     # This component ends with the generated files present in the source tree.

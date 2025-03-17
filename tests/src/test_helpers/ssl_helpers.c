@@ -28,9 +28,22 @@ void mbedtls_test_ssl_log_analyzer(void *ctx, int level,
 {
     mbedtls_test_ssl_log_pattern *p = (mbedtls_test_ssl_log_pattern *) ctx;
 
+/* Change 0 to 1 for debugging of test cases that use this function. */
+#if 0
+    const char *q, *basename;
+    /* Extract basename from file */
+    for (q = basename = file; *q != '\0'; q++) {
+        if (*q == '/' || *q == '\\') {
+            basename = q + 1;
+        }
+    }
+    printf("%s:%04d: |%d| %s",
+           basename, line, level, str);
+#else
     (void) level;
     (void) line;
     (void) file;
+#endif
 
     if (NULL != p &&
         NULL != p->pattern &&

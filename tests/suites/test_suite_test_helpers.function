@@ -15,7 +15,7 @@
 /* Test that poison+unpoison leaves the memory accessible. */
 /* We can't test that poisoning makes the memory inaccessible:
  * there's no sane way to catch an Asan/Valgrind complaint.
- * That negative testing is done in programs/test/metatest.c. */
+ * That negative testing is done in framework/tests/programs/metatest.c. */
 void memory_poison_unpoison(int align, int size)
 {
     unsigned char *buf = NULL;

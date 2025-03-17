@@ -275,7 +275,7 @@ This section lists some strategies that are currently used for invasive testing,
 
 Goal: test that `mbedtls_platform_zeroize` does wipe the memory buffer.
 
-Solution ([debugger](#debugger-based-testing)): implemented in `tests/scripts/test_zeroize.gdb`.
+Solution ([debugger](#debugger-based-testing)): implemented in `framework/tests/programs/test_zeroize.gdb`.
 
 Rationale: this cannot be tested by adding C code, because the danger is that the compiler optimizes the zeroization away, and any C code that observes the zeroization would cause the compiler not to optimize it away.
 

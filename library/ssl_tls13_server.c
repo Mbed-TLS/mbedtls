@@ -1998,7 +1998,7 @@ static int ssl_tls13_prepare_server_hello(mbedtls_ssl_context *ssl)
 
     if ((ret = psa_generate_random(server_randbytes,
                                 MBEDTLS_SERVER_HELLO_RANDOM_LEN)) != 0) {
-        MBEDTLS_SSL_DEBUG_RET(1, "f_rng", ret);
+        MBEDTLS_SSL_DEBUG_RET(1, "psa_generate_random", ret);
         return ret;
     }
 

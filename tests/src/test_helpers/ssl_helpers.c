@@ -70,7 +70,7 @@ void mbedtls_test_init_handshake_options(
     opts->server_min_version = MBEDTLS_SSL_VERSION_UNKNOWN;
     opts->server_max_version = MBEDTLS_SSL_VERSION_UNKNOWN;
     opts->expected_negotiated_version = MBEDTLS_SSL_VERSION_TLS1_3;
-    opts->pk_alg = MBEDTLS_PK_RSA;
+    opts->pk_alg = MBEDTLS_PK_NONE;
     opts->srv_auth_mode = MBEDTLS_SSL_VERIFY_NONE;
     opts->mfl = MBEDTLS_SSL_MAX_FRAG_LEN_NONE;
     opts->cli_msg_len = 100;
@@ -894,11 +894,21 @@ int mbedtls_test_ssl_endpoint_init(
 #endif /* MBEDTLS_DEBUG_C */
 
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
-    ret = mbedtls_test_ssl_endpoint_certificate_init(ep, options->pk_alg,
-                                                     options->opaque_alg,
-                                                     options->opaque_alg2,
-                                                     options->opaque_usage);
-    TEST_EQUAL(ret, 0);
+    if (options->pk_alg == MBEDTLS_PK_NONE) {
+#if defined(MBEDTLS_TEST_SSL_ENDPOINT_DEFAULT_CERT_ECDSA)
+        options->pk_alg = MBEDTLS_PK_ECDSA;
+#elif defined(MBEDTLS_TEST_SSL_ENDPOINT_DEFAULT_CERT_RSA)
+        options->pk_alg = MBEDTLS_PK_RSA;
+#endif
+    }
+    if (options->pk_alg != MBEDTLS_PK_NONE) {
+        ret = mbedtls_test_ssl_endpoint_certificate_init(ep, options->pk_alg,
+                                                         options->opaque_alg,
+                                                         options->opaque_alg2,
+                                                         options->opaque_usage);
+        TEST_EQUAL(ret, 0);
+    }
+#endif
 
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_PSK_ENABLED)
     const char *const psk_identity = "Client_identity";

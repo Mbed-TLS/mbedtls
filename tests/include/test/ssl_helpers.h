@@ -180,6 +180,22 @@ typedef struct mbedtls_test_message_socket_context {
 } mbedtls_test_message_socket_context;
 
 
+/* Does it work when mbedtls_test_ssl_endpoint_init() loads its default
+ * certificates? */
+#if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
+#  if defined(MBEDTLS_RSA_C) && defined(MBEDTLS_MD_CAN_SHA256)
+#    define MBEDTLS_TEST_SSL_ENDPOINT_DEFAULT_CERT_RSA
+#    define MBEDTLS_TEST_SSL_ENDPOINT_DEFAULT_CERTS
+#  endif
+
+/* The ECDSA certificate has a secp256r1 key, and is signed with a
+ * secp384r1 keys, so both curves are needed. */
+#  if defined(MBEDTLS_PK_CAN_ECDSA_SIGN) && defined(MBEDTLS_MD_CAN_SHA256) && \
+    defined(MBEDTLS_ECP_HAVE_SECP384R1) && defined(MBEDTLS_ECP_HAVE_SECP256R1)
+#    define MBEDTLS_TEST_SSL_ENDPOINT_DEFAULT_CERT_ECDSA
+#    define MBEDTLS_TEST_SSL_ENDPOINT_DEFAULT_CERTS
+#  endif
+#endif
 
 
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)

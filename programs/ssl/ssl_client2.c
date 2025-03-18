@@ -75,6 +75,7 @@ int main(void)
 #define DFL_RECO_SERVER_NAME    NULL
 #define DFL_RECO_DELAY          0
 #define DFL_RECO_MODE           1
+#define DFL_RENEGO_DELAY        -2
 #define DFL_CID_ENABLED         0
 #define DFL_CID_VALUE           ""
 #define DFL_CID_ENABLED_RENEGO  -1
@@ -298,7 +299,8 @@ int main(void)
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
 #define USAGE_RENEGO \
     "    renegotiation=%%d    default: 0 (disabled)\n"      \
-    "    renegotiate=%%d      default: 0 (disabled)\n"
+    "    renegotiate=%%d      default: 0 (disabled)\n"      \
+    "    renego_delay=%%d     default: -2 (library default)\n"
 #else
 #define USAGE_RENEGO ""
 #endif
@@ -938,6 +940,7 @@ int main(int argc, char *argv[])
     opt.renegotiation       = DFL_RENEGOTIATION;
     opt.allow_legacy        = DFL_ALLOW_LEGACY;
     opt.renegotiate         = DFL_RENEGOTIATE;
+    opt.renego_delay        = DFL_RENEGO_DELAY;
     opt.exchanges           = DFL_EXCHANGES;
     opt.min_version         = DFL_MIN_VERSION;
     opt.max_version         = DFL_MAX_VERSION;
@@ -1172,6 +1175,8 @@ usage:
                     break;
                 default: goto usage;
             }
+        } else if (strcmp(p, "renego_delay") == 0) {
+            opt.renego_delay = (atoi(q));
         } else if (strcmp(p, "renegotiate") == 0) {
             opt.renegotiate = atoi(q);
             if (opt.renegotiate < 0 || opt.renegotiate > 1) {
@@ -1923,6 +1928,9 @@ usage:
     }
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
     mbedtls_ssl_conf_renegotiation(&conf, opt.renegotiation);
+    if (opt.renego_delay != DFL_RENEGO_DELAY) {
+        mbedtls_ssl_conf_renegotiation_enforced(&conf, opt.renego_delay);
+    }
 #endif
 
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
@@ -2467,6 +2475,8 @@ usage:
         }
         mbedtls_printf(" ok\n");
     }
+
+
 #endif /* MBEDTLS_SSL_RENEGOTIATION */
 
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)

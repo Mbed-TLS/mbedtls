@@ -412,7 +412,9 @@ const char *mbedtls_test_cas[] = {
 #if defined(MBEDTLS_RSA_C) && defined(MBEDTLS_MD_CAN_SHA256)
     mbedtls_test_ca_crt_rsa_sha256,
 #endif
-#if defined(MBEDTLS_PK_CAN_ECDSA_SOME)
+#if defined(MBEDTLS_PK_CAN_ECDSA_SOME) && \
+    defined(MBEDTLS_ECP_HAVE_SECP384R1) && \
+    defined(MBEDTLS_MD_CAN_SHA256)
     mbedtls_test_ca_crt_ec,
 #endif
     NULL
@@ -424,7 +426,9 @@ const size_t mbedtls_test_cas_len[] = {
 #if defined(MBEDTLS_RSA_C) && defined(MBEDTLS_MD_CAN_SHA256)
     sizeof(mbedtls_test_ca_crt_rsa_sha256),
 #endif
-#if defined(MBEDTLS_PK_CAN_ECDSA_SOME)
+#if defined(MBEDTLS_PK_CAN_ECDSA_SOME) && \
+    defined(MBEDTLS_ECP_HAVE_SECP384R1) && \
+    defined(MBEDTLS_MD_CAN_SHA256)
     sizeof(mbedtls_test_ca_crt_ec),
 #endif
     0
@@ -440,7 +444,9 @@ const unsigned char *mbedtls_test_cas_der[] = {
     mbedtls_test_ca_crt_rsa_sha1_der,
 #endif /* MBEDTLS_MD_CAN_SHA1 */
 #endif /* MBEDTLS_RSA_C */
-#if defined(MBEDTLS_PK_CAN_ECDSA_SOME)
+#if defined(MBEDTLS_PK_CAN_ECDSA_SOME) && \
+    defined(MBEDTLS_ECP_HAVE_SECP384R1) && \
+    defined(MBEDTLS_MD_CAN_SHA256)
     mbedtls_test_ca_crt_ec_der,
 #endif /* MBEDTLS_PK_CAN_ECDSA_SOME */
     NULL
@@ -455,7 +461,9 @@ const size_t mbedtls_test_cas_der_len[] = {
     sizeof(mbedtls_test_ca_crt_rsa_sha1_der),
 #endif /* MBEDTLS_MD_CAN_SHA1 */
 #endif /* MBEDTLS_RSA_C */
-#if defined(MBEDTLS_PK_CAN_ECDSA_SOME)
+#if defined(MBEDTLS_PK_CAN_ECDSA_SOME) && \
+    defined(MBEDTLS_ECP_HAVE_SECP384R1) && \
+    defined(MBEDTLS_MD_CAN_SHA256)
     sizeof(mbedtls_test_ca_crt_ec_der),
 #endif /* MBEDTLS_PK_CAN_ECDSA_SOME */
     0

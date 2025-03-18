@@ -1,6 +1,6 @@
 Mbed TLS ChangeLog (Sorted per branch, date)
 
-= Mbed TLS x.x.x branch released xxxx-xx-xx
+= Mbed TLS 3.6.3 branch released 2025-03-24
 
 Default behavior changes
    * In TLS clients, if mbedtls_ssl_set_hostname() has not been called,

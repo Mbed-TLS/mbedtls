@@ -1285,10 +1285,6 @@ int mbedtls_ssl_setup(mbedtls_ssl_context *ssl,
         goto error;
     }
 
-    if((ret = psa_crypto_init()) != 0) {
-        goto error;
-    }
-
     return 0;
 
 error:

@@ -1,6 +1,0 @@
-Security
-   * Fix a vulnerability in the TLS 1.2 handshake. If memory allocation failed
-     or there was a cryptographic hardware failure when calculating the
-     Finished message, it could be calculated incorrectly. This would break
-     the security guarantees of the TLS handshake.
-     CVE-2025-27810

@@ -726,7 +726,7 @@ static int ssl_generate_random(mbedtls_ssl_context *ssl)
     }
 
     ret = psa_generate_random(randbytes + gmt_unix_time_len,
-                           MBEDTLS_CLIENT_HELLO_RANDOM_LEN - gmt_unix_time_len);
+                              MBEDTLS_CLIENT_HELLO_RANDOM_LEN - gmt_unix_time_len);
     return ret;
 }
 
@@ -868,7 +868,7 @@ static int ssl_prepare_client_hello(mbedtls_ssl_context *ssl)
         if (session_id_len > 0) {
 
             ret = psa_generate_random(session_negotiate->id,
-                                   session_id_len);
+                                      session_id_len);
             if (ret != 0) {
                 MBEDTLS_SSL_DEBUG_RET(1, "creating session id failed", ret);
                 return ret;

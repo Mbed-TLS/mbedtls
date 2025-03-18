@@ -1997,7 +1997,7 @@ static int ssl_tls13_prepare_server_hello(mbedtls_ssl_context *ssl)
         ssl->handshake->randbytes + MBEDTLS_CLIENT_HELLO_RANDOM_LEN;
 
     if ((ret = psa_generate_random(server_randbytes,
-                                MBEDTLS_SERVER_HELLO_RANDOM_LEN)) != 0) {
+                                   MBEDTLS_SERVER_HELLO_RANDOM_LEN)) != 0) {
         MBEDTLS_SSL_DEBUG_RET(1, "psa_generate_random", ret);
         return ret;
     }
@@ -3173,7 +3173,7 @@ static int ssl_tls13_prepare_new_session_ticket(mbedtls_ssl_context *ssl,
 
     /* Generate ticket_age_add */
     if ((ret = psa_generate_random((unsigned char *) &session->ticket_age_add,
-                                sizeof(session->ticket_age_add)) != 0)) {
+                                   sizeof(session->ticket_age_add)) != 0)) {
         MBEDTLS_SSL_DEBUG_RET(1, "generate_ticket_age_add", ret);
         return ret;
     }

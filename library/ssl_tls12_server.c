@@ -2198,7 +2198,7 @@ static int ssl_write_server_hello(mbedtls_ssl_context *ssl)
         {
             ssl->session_negotiate->id_len = n = 32;
             if ((ret = psa_generate_random(ssl->session_negotiate->id,
-                                        n)) != 0) {
+                                           n)) != 0) {
                 return ret;
             }
         }

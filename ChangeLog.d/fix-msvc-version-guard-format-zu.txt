@@ -1,9 +1,0 @@
-Bugfix
-   * Fix definition of MBEDTLS_PRINTF_SIZET to prevent runtime crashes that
-     occurred whenever SSL debugging was enabled on a copy of Mbed TLS built
-     with Visual Studio 2013 or MinGW.
-     Fixes #10017.
-   * Remove Everest Visual Studio 2010 compatibility headers, which could
-     shadow standard CRT headers inttypes.h and stdbool.h with incomplete
-     implementatios if placed on the include path, eg. when building Mbed TLS
-     with the .sln file shipped with the project.

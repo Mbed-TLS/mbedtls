@@ -1,2 +1,0 @@
-Security
-   * Zeroize temporary heap buffers used in PSA operations.

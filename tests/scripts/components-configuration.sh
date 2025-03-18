@@ -175,6 +175,9 @@ component_test_full_no_deprecated () {
 
     msg "test: ensure that X509 has no direct dependency on BIGNUM_C"
     not grep mbedtls_mpi library/libmbedx509.a
+
+    msg "test: ssl-opt.sh authentication, full_no_deprecated config" # ~ 10s
+    tests/ssl-opt.sh -f 'Default\|Authentication'
 }
 
 component_test_full_no_deprecated_deprecated_warning () {

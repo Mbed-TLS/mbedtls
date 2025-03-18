@@ -747,8 +747,6 @@ exit:
 
 #endif  /* MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED */
 
-#if defined(MBEDTLS_TEST_SSL_ENDPOINT)
-
 int mbedtls_test_ssl_endpoint_init(
     mbedtls_test_ssl_endpoint *ep, int endpoint_type,
     mbedtls_test_handshake_test_options *options,
@@ -976,8 +974,6 @@ int mbedtls_test_move_handshake_to_state(mbedtls_ssl_context *ssl,
 
     return (max_steps >= 0) ? ret : -1;
 }
-
-#endif /* MBEDTLS_TEST_SSL_ENDPOINT */
 
 /*
  * Write application data. Increase write counter if necessary.

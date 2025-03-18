@@ -182,17 +182,6 @@ typedef struct mbedtls_test_message_socket_context {
 
 
 
-/* The mbedtls_test_ssl_endpoint_xxx tooling currently compiles in PSK-only
- * builds, but does not reach the end of the handshake.
- *
- * https://github.com/Mbed-TLS/mbedtls/issues/10048
- */
-#if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
-#define MBEDTLS_TEST_SSL_ENDPOINT
-#endif
-
-#if defined(MBEDTLS_TEST_SSL_ENDPOINT)
-
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
 /*
  * Structure with endpoint's certificates for SSL communication tests.
@@ -216,8 +205,6 @@ typedef struct mbedtls_test_ssl_endpoint {
     mbedtls_test_ssl_endpoint_certificate cert;
 #endif
 } mbedtls_test_ssl_endpoint;
-
-#endif /* MBEDTLS_TEST_SSL_ENDPOINT */
 
 
 
@@ -442,7 +429,7 @@ int mbedtls_test_mock_tcp_send_msg(void *ctx,
 int mbedtls_test_mock_tcp_recv_msg(void *ctx,
                                    unsigned char *buf, size_t buf_len);
 
-#if defined(MBEDTLS_TEST_SSL_ENDPOINT)
+
 
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
 /*
@@ -508,8 +495,6 @@ void mbedtls_test_ssl_endpoint_free(
 int mbedtls_test_move_handshake_to_state(mbedtls_ssl_context *ssl,
                                          mbedtls_ssl_context *second_ssl,
                                          int state);
-
-#endif /* MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED */
 
 /*
  * Helper function setting up inverse record transformations

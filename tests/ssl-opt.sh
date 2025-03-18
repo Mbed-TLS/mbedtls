@@ -13819,6 +13819,15 @@ run_test    "Handshake defragmentation on server: len=4, client-initiated server
             -s "Consume: waiting for more handshake fragments 4/" \
 
 # Test server-initiated renegotiation with fragmented handshake on TLS1.2
+
+# Note: The /reneg endpoint serves as a directive for OpenSSL's s_server
+# to initiate a handshake renegotiation.
+# Note: Adjusting the renegotiation delay beyond the library's default
+# value of 16 is necessary. This parameter defines the maximum
+# number of records received before renegotiation is completed.
+# By fragmenting records and thereby increasing their quantity,
+# the default threshold can be reached more quickly.
+# Setting it to -1 disables that policy's enforment.
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "Handshake defragmentation on client: len=512, server-initiated renegotiation" \
@@ -13832,15 +13841,6 @@ run_test    "Handshake defragmentation on client: len=512, server-initiated rene
             -c "found renegotiation extension" \
             -c "=> renegotiate"
 
-
-# Note: The /reneg endpoint serves as a directive for OpenSSL's s_server
-# to initiate a handshake renegotiation.
-# Note: Adjusting the renegotiation delay beyond the library's default
-# value of 16 is necessary. This parameter defines the maximum
-# number of records received before renegotiation is completed.
-# By fragmenting records and thereby increasing their quantity,
-# the default threshold can be reached more quickly.
-# Setting it to -1 disables that policy's enforment.
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "Handshake defragmentation on client: len=256, server-initiated renegotiation" \
@@ -13850,6 +13850,32 @@ run_test    "Handshake defragmentation on client: len=256, server-initiated rene
             -c "initial handshake fragment: 256, 0\\.\\.256 of [0-9]\\+" \
             -c "Prepare: waiting for more handshake fragments 256/" \
             -c "Consume: waiting for more handshake fragments 256/" \
+            -c "client hello, adding renegotiation extension" \
+            -c "found renegotiation extension" \
+            -c "=> renegotiate"
+
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
+run_test    "Handshake defragmentation on client: len=128, server-initiated renegotiation" \
+            "$O_NEXT_SRV -tls1_2 -split_send_frag 128 -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key" \
+            "$P_CLI debug_level=3 renegotiation=1 renego_delay=-1 request_page=/reneg" \
+            0 \
+            -c "initial handshake fragment: 128, 0\\.\\.128 of [0-9]\\+" \
+            -c "Prepare: waiting for more handshake fragments 128/" \
+            -c "Consume: waiting for more handshake fragments 128/" \
+            -c "client hello, adding renegotiation extension" \
+            -c "found renegotiation extension" \
+            -c "=> renegotiate"
+
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
+run_test    "Handshake defragmentation on client: len=4, server-initiated renegotiation" \
+            "$O_NEXT_SRV -tls1_2 -split_send_frag 4 -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key" \
+            "$P_CLI debug_level=3 renegotiation=1 renego_delay=-1 request_page=/reneg" \
+            0 \
+            -c "initial handshake fragment: 4, 0\\.\\.4 of [0-9]\\+" \
+            -c "Prepare: waiting for more handshake fragments 4/" \
+            -c "Consume: waiting for more handshake fragments 4/" \
             -c "client hello, adding renegotiation extension" \
             -c "found renegotiation extension" \
             -c "=> renegotiate"

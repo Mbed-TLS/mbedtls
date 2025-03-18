@@ -3135,6 +3135,27 @@ void recombine_server_first_flight(int version,
     mbedtls_debug_set_threshold(3);
 #endif
 
+#if defined(MBEDTLS_SSL_HANDSHAKE_WITH_PSK_ENABLED)
+    int want_psk = 0;
+    /* In TLS 1.2, we can set a PSK even if it isn't needed. */
+    if (version <= MBEDTLS_SSL_VERSION_TLS1_2) {
+        want_psk = 1;
+    }
+    /* In TLS 1.3, only set a PSK if needed.
+     * https://github.com/Mbed-TLS/mbedtls/issues/10071
+     */
+#if !defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED)
+    if (version == MBEDTLS_SSL_VERSION_TLS1_3) {
+        want_psk = 1;
+    }
+#endif
+    data_t psk = {.x = (unsigned char *) "swordfish", .len = 9};
+    if (want_psk) {
+        client_options.psk_str = &psk;
+        server_options.psk_str = &psk;
+    }
+#endif
+
     client_options.client_min_version = version;
     client_options.client_max_version = version;
 #if defined(MBEDTLS_DEBUG_C)
@@ -3176,7 +3197,15 @@ void recombine_server_first_flight(int version,
     }
     TEST_EQUAL(ret, MBEDTLS_ERR_SSL_WANT_READ);
     ret = 0;
-    TEST_EQUAL(server.ssl.state, MBEDTLS_SSL_SERVER_HELLO_DONE + 1);
+#if defined(MBEDTLS_TEST_SSL_ENDPOINT_DEFAULT_CERTS)
+    TEST_EQUAL(server.ssl.state, MBEDTLS_SSL_CLIENT_CERTIFICATE);
+#else
+    if (version >= MBEDTLS_SSL_VERSION_TLS1_3) {
+        TEST_EQUAL(server.ssl.state, MBEDTLS_SSL_CLIENT_FINISHED);
+    } else {
+        TEST_EQUAL(server.ssl.state, MBEDTLS_SSL_CLIENT_KEY_EXCHANGE);
+    }
+#endif
 
     /* Recombine the first flight from the server */
     TEST_ASSERT(recombine_records(&server, instruction, param));

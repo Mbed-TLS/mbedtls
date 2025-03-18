@@ -179,6 +179,37 @@ typedef struct mbedtls_test_message_socket_context {
     mbedtls_test_mock_socket *socket;
 } mbedtls_test_message_socket_context;
 
+/* The complicated logic here ensure that it is possible to make a TLS 1.3
+ * connection in all the configurations that we test. */
+#if defined(MBEDTLS_TEST_AT_LEAST_ONE_TLS1_3_CIPHERSUITE)
+#  if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
+/* When certificates are enabled but can't be used for TLS 1.3, the code to
+ * construct a TLS 1.3 ClientHello is a bit picky and can error out. See
+ * mbedtls_ssl_sig_alg_is_supported() and
+ * https://github.com/Mbed-TLS/mbedtls/issues/10070
+ */
+#    if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED)
+#      if defined(MBEDTLS_PKCS1_V15) || defined(MBEDTLS_PKCS1_V21)
+#        define MBEDTLS_TEST_SSL_ENDPOINT_TLS1_3_RUNTIME_EPHEMERAL
+#      endif
+#      if defined(MBEDTLS_PK_CAN_ECDSA_SIGN) && \
+    (defined(PSA_WANT_ALG_SHA_256) && defined(PSA_WANT_ECC_SECP_R1_256) || \
+    (defined(PSA_WANT_ALG_SHA_384) && defined(PSA_WANT_ECC_SECP_R1_384)) || \
+    (defined(PSA_WANT_ALG_SHA_512) && defined(PSA_WANT_ECC_SECP_R1_521)))
+#        define MBEDTLS_TEST_SSL_ENDPOINT_TLS1_3_RUNTIME_EPHEMERAL
+#      endif
+#    endif
+#  elif defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_PSK_ENABLED)
+/* SHA-256 is required for PSK in TLS 1.3. Note that this applies as soon
+ * as the SSL configuration has a PSK set, even if the PSK isn't actually
+ * used.
+ * https://github.com/Mbed-TLS/mbedtls/issues/10071
+ */
+#    if defined(PSA_WANT_ALG_SHA_256)
+#      define MBEDTLS_TEST_SSL_ENDPOINT_TLS1_3_RUNTIME_PSK
+#    endif
+#  endif
+#endif
 
 /* Does it work when mbedtls_test_ssl_endpoint_init() loads its default
  * certificates? */
@@ -197,6 +228,29 @@ typedef struct mbedtls_test_message_socket_context {
 #  endif
 #endif
 
+/* Does the default setup for mbedtls_test_ssl_endpoint_init() work
+ * when forcing TLS 1.3? */
+#if defined(MBEDTLS_TEST_SSL_ENDPOINT_TLS1_3_RUNTIME_EPHEMERAL)
+#  define MBEDTLS_TEST_SSL_ENDPOINT_TLS1_3_RUNTIME
+#  if defined(MBEDTLS_TEST_SSL_ENDPOINT_DEFAULT_CERTS)
+#    define MBEDTLS_TEST_SSL_ENDPOINT_TLS1_3
+#  endif
+#endif
+#if defined(MBEDTLS_TEST_SSL_ENDPOINT_TLS1_3_RUNTIME_PSK)
+#  define MBEDTLS_TEST_SSL_ENDPOINT_TLS1_3_RUNTIME
+#  define MBEDTLS_TEST_SSL_ENDPOINT_TLS1_3
+#endif
+
+/* Does the default setup for mbedtls_test_ssl_endpoint_init() work
+ * when forcing TLS 1.2? */
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
+#  if defined(MBEDTLS_TEST_SSL_ENDPOINT_DEFAULT_CERTS)
+#    define MBEDTLS_TEST_SSL_ENDPOINT_TLS1_2
+#  endif
+#  if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
+#    define MBEDTLS_TEST_SSL_ENDPOINT_TLS1_2
+#  endif
+#endif
 
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
 /*

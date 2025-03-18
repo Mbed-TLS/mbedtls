@@ -77,6 +77,12 @@ else()
 endif()
 
 option(DISABLE_PACKAGE_CONFIG_AND_INSTALL "Disable package configuration, target export and installation" ${MBEDTLS_AS_SUBPROJECT})
+option(ENABLE_SLOTTED_VERSION "Enable slotted installation in order to install multiple versions of Mbed TLS" OFF)
+
+set(VERSION_SUFFIX "")
+if(ENABLE_SLOTTED_VERSION)
+    set(VERSION_SUFFIX "-${PROJECT_VERSION_MAJOR}")
+endif()
 
 if (CMAKE_C_SIMULATE_ID)
     set(COMPILER_ID ${CMAKE_C_SIMULATE_ID})
@@ -479,7 +485,7 @@ if(NOT DISABLE_PACKAGE_CONFIG_AND_INSTALL)
     install(
         FILES "${CMAKE_CURRENT_BINARY_DIR}/cmake/MbedTLSConfig.cmake"
               "${CMAKE_CURRENT_BINARY_DIR}/cmake/MbedTLSConfigVersion.cmake"
-        DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/MbedTLS")
+        DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/MbedTLS-${PROJECT_VERSION_MAJOR}")
 
     export(
         EXPORT MbedTLSTargets
@@ -489,7 +495,7 @@ if(NOT DISABLE_PACKAGE_CONFIG_AND_INSTALL)
     install(
         EXPORT MbedTLSTargets
         NAMESPACE MbedTLS::
-        DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/MbedTLS"
+        DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/MbedTLS-${PROJECT_VERSION_MAJOR}"
         FILE "MbedTLSTargets.cmake")
 
     if(CMAKE_VERSION VERSION_GREATER 3.15 OR CMAKE_VERSION VERSION_EQUAL 3.15)

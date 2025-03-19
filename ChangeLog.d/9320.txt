@@ -1,0 +1,3 @@
+Changes
+   * Accommodate the altered `psa_pake_setup()` signature, use it instead of
+     `psa_pake_set_password_key()`, which was removed

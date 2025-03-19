@@ -261,21 +261,6 @@ component_test_psa_external_rng_use_psa_crypto () {
     tests/ssl-opt.sh -f 'Default\|opaque'
 }
 
-component_test_psa_inject_entropy () {
-    msg "build: full + MBEDTLS_PSA_INJECT_ENTROPY"
-    scripts/config.py full
-    scripts/config.py set MBEDTLS_PSA_INJECT_ENTROPY
-    scripts/config.py set MBEDTLS_ENTROPY_NV_SEED
-    scripts/config.py set MBEDTLS_NO_DEFAULT_ENTROPY_SOURCES
-    scripts/config.py unset MBEDTLS_PLATFORM_NV_SEED_ALT
-    scripts/config.py unset MBEDTLS_PLATFORM_STD_NV_SEED_READ
-    scripts/config.py unset MBEDTLS_PLATFORM_STD_NV_SEED_WRITE
-    make CC=$ASAN_CC CFLAGS="$ASAN_CFLAGS '-DTF_PSA_CRYPTO_USER_CONFIG_FILE=\"../tests/configs/user-config-for-test.h\"'" LDFLAGS="$ASAN_CFLAGS"
-
-    msg "test: full + MBEDTLS_PSA_INJECT_ENTROPY"
-    make test
-}
-
 component_full_no_pkparse_pkwrite () {
     msg "build: full without pkparse and pkwrite"
 

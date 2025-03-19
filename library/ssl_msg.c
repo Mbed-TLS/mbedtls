@@ -823,12 +823,6 @@ int mbedtls_ssl_encrypt_buf(mbedtls_ssl_context *ssl,
     ((void) ssl);
 #endif
 
-    /* The PRNG is used for dynamic IV generation that's used
-     * for CBC transformations in TLS 1.2. */
-#if !(defined(MBEDTLS_SSL_SOME_SUITES_USE_CBC) && \
-    defined(MBEDTLS_SSL_PROTO_TLS1_2))
-#endif
-
     MBEDTLS_SSL_DEBUG_MSG(2, ("=> encrypt buf"));
 
     if (transform == NULL) {

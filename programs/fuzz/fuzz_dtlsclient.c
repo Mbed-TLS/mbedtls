@@ -68,7 +68,6 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size)
     }
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
-    srand(1);
     if (mbedtls_ctr_drbg_seed(&ctr_drbg, dummy_entropy, &entropy,
                               (const unsigned char *) pers, strlen(pers)) != 0) {
         goto exit;

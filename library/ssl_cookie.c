@@ -81,16 +81,12 @@ void mbedtls_ssl_cookie_free(mbedtls_ssl_cookie_ctx *ctx)
     mbedtls_platform_zeroize(ctx, sizeof(mbedtls_ssl_cookie_ctx));
 }
 
-int mbedtls_ssl_cookie_setup(mbedtls_ssl_cookie_ctx *ctx,
-                             int (*f_rng)(void *, unsigned char *, size_t),
-                             void *p_rng)
+int mbedtls_ssl_cookie_setup(mbedtls_ssl_cookie_ctx *ctx)
 {
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_algorithm_t alg;
 
-    (void) f_rng;
-    (void) p_rng;
 
     alg = mbedtls_md_psa_alg_from_type(COOKIE_MD);
     if (alg == 0) {

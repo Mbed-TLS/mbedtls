@@ -68,8 +68,6 @@ typedef struct mbedtls_ssl_ticket_context {
     uint32_t MBEDTLS_PRIVATE(ticket_lifetime);       /*!< lifetime of tickets in seconds     */
 
     /** Callback for getting (pseudo-)random numbers                        */
-    int(*MBEDTLS_PRIVATE(f_rng))(void *, unsigned char *, size_t);
-    void *MBEDTLS_PRIVATE(p_rng);                    /*!< context for the RNG function       */
 
 #if defined(MBEDTLS_THREADING_C)
     mbedtls_threading_mutex_t MBEDTLS_PRIVATE(mutex);
@@ -90,8 +88,6 @@ void mbedtls_ssl_ticket_init(mbedtls_ssl_ticket_context *ctx);
  * \brief           Prepare context to be actually used
  *
  * \param ctx       Context to be set up
- * \param f_rng     RNG callback function (mandatory)
- * \param p_rng     RNG callback context
  * \param alg       AEAD cipher to use for ticket protection.
  * \param key_type  Cryptographic key type to use.
  * \param key_bits  Cryptographic key size to use in bits.
@@ -116,7 +112,6 @@ void mbedtls_ssl_ticket_init(mbedtls_ssl_ticket_context *ctx);
  *                  or a specific MBEDTLS_ERR_XXX error code
  */
 int mbedtls_ssl_ticket_setup(mbedtls_ssl_ticket_context *ctx,
-                             int (*f_rng)(void *, unsigned char *, size_t), void *p_rng,
                              psa_algorithm_t alg, psa_key_type_t key_type, psa_key_bits_t key_bits,
                              uint32_t lifetime);
 

@@ -2449,7 +2449,7 @@ requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 run_test    "TLS 1.3 opaque key: 2 keys on server, suitable algorithm found" \
-            "$P_SRV debug_level=4 auth_mode=required key_opaque=1 key_opaque_algs2=rsa-sign-pkcs1,none key_opaque_algs=rsa-sign-pkcs1,rsa-sign-pss" \
+            "$P_SRV debug_level=4 auth_mode=required key_opaque=1 key_opaque_algs2=ecdsa-sign,none key_opaque_algs=rsa-sign-pkcs1,rsa-sign-pss" \
             "$P_CLI debug_level=4 key_opaque=1 key_opaque_algs=rsa-sign-pkcs1,rsa-sign-pss" \
             0 \
             -c "key type: Opaque" \

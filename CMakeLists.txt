@@ -140,28 +140,30 @@ set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
 set(THREADS_PREFER_PTHREAD_FLAG TRUE)
 find_package(Threads)
 
-# Define the build types that are available
-set(MBEDTLS_ALLOWED_BUILDTYPES None Debug Release Coverage ASan ASanDbg MemSan MemSanDbg Check CheckFull TSan TSanDbg)
-
-# Inform about the currently possible build types
-message(STATUS "MBEDTLS : Possible CMAKE_BUILD_TYPE Values : ${MBEDTLS_ALLOWED_BUILDTYPES}")
-
-# Set the CMake default build type to Release if it is not defined and we are the root project
+# handle default CMAKE_BUILD_TYPE values if we are a root project
 # If MBEDTLS is not the root project we let the parent project handle the CMAKE_BUILD_TYPE
-if((NOT DEFINED CMAKE_BUILD_TYPE OR CMAKE_BUILD_TYPE STREQUAL "") AND (NOT MBEDTLS_AS_SUBPROJECT))
-    set(CMAKE_BUILD_TYPE "Release")
-endif ()
-# If the value of CMAKE_BUILD_TYPE is defined then validate it and exit fatally if it is invalid
-if(NOT CMAKE_BUILD_TYPE IN_LIST MBEDTLS_ALLOWED_BUILDTYPES)
-    message(FATAL_ERROR "MBEDTLS : CMAKE_BUILD_TYPE must be one of: ${MBEDTLS_ALLOWED_BUILDTYPES}")
-else ()
-    # set the valid build type value in the cache only if we are not a submodule else we let the parent project handle it
-    if(NOT MBEDTLS_AS_SUBPROJECT)
+if(NOT MBEDTLS_AS_SUBPROJECT)
+    # Define the build types that are available
+    set(MBEDTLS_ALLOWED_BUILDTYPES None Debug Release Coverage ASan ASanDbg MemSan MemSanDbg Check CheckFull TSan TSanDbg)
+
+    # Inform about the currently possible build types
+    message(STATUS "MBEDTLS : Possible CMAKE_BUILD_TYPE Values : ${MBEDTLS_ALLOWED_BUILDTYPES}")
+
+    # Set the CMake default build type to Release if it is not defined and we are the root project
+    if(NOT DEFINED CMAKE_BUILD_TYPE OR CMAKE_BUILD_TYPE STREQUAL "")
+        set(CMAKE_BUILD_TYPE "Release")
+    endif ()
+    # If the value of CMAKE_BUILD_TYPE is defined then validate it and exit fatally if it is invalid
+    if(NOT CMAKE_BUILD_TYPE IN_LIST MBEDTLS_ALLOWED_BUILDTYPES)
+        message(FATAL_ERROR "MBEDTLS : CMAKE_BUILD_TYPE must be one of: ${MBEDTLS_ALLOWED_BUILDTYPES}")
+    else ()
+        # set the valid build type value in the cache only if we are not a submodule else we let the parent project handle it
         set(CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE}
                 CACHE STRING "Choose the type of build: ${MBEDTLS_ALLOWED_BUILDTYPES}"
                 FORCE)
-    endif ()
-endif()
+    endif()
+endif ()
+
 
 # Inform about the currently selected build type
 message(STATUS "MBEDTLS : CMAKE_BUILD_TYPE set to ${CMAKE_BUILD_TYPE}")

@@ -63,6 +63,45 @@ exit:
 }
 #endif
 
+#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED) && \
+    defined(MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH) && \
+    defined(MBEDTLS_SSL_PROTO_TLS1_2) && \
+    defined(PSA_WANT_ECC_SECP_R1_384) && \
+    defined(PSA_WANT_ALG_SHA_256)
+/*
+ * Test function to perform a handshake using the mfl extension and with
+ * setting the resize buffer option.
+ */
+static void resize_buffers(int mfl, int renegotiation, int legacy_renegotiation,
+                           int serialize, int dtls, char *cipher)
+{
+    mbedtls_test_handshake_test_options options;
+    mbedtls_test_init_handshake_options(&options);
+
+    options.mfl = mfl;
+    options.cipher = cipher;
+    options.renegotiate = renegotiation;
+    options.legacy_renegotiation = legacy_renegotiation;
+    options.serialize = serialize;
+    options.dtls = dtls;
+    if (dtls) {
+        options.expected_negotiated_version = MBEDTLS_SSL_VERSION_TLS1_2;
+    }
+    options.resize_buffers = 1;
+
+    const mbedtls_ssl_ciphersuite_t *ciphersuite =
+        mbedtls_ssl_ciphersuite_from_string(cipher);
+    if (ciphersuite != NULL) {
+        options.pk_alg = mbedtls_ssl_get_ciphersuite_sig_pk_alg(ciphersuite);
+    }
+
+    mbedtls_test_ssl_perform_handshake(&options);
+
+    mbedtls_test_free_handshake_options(&options);
+}
+
+#endif
+
 #if defined(PSA_WANT_ALG_GCM) || defined(PSA_WANT_ALG_CHACHA20_POLY1305)
 #define TEST_GCM_OR_CHACHAPOLY_ENABLED
 #endif
@@ -2825,40 +2864,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH:MBEDTLS_SSL_PROTO_TLS1_2:PSA_WANT_ECC_SECP_R1_384:PSA_WANT_ALG_SHA_256 */
-void resize_buffers(int mfl, int renegotiation, int legacy_renegotiation,
-                    int serialize, int dtls, char *cipher)
-{
-    mbedtls_test_handshake_test_options options;
-    mbedtls_test_init_handshake_options(&options);
-
-    options.mfl = mfl;
-    options.cipher = cipher;
-    options.renegotiate = renegotiation;
-    options.legacy_renegotiation = legacy_renegotiation;
-    options.serialize = serialize;
-    options.dtls = dtls;
-    if (dtls) {
-        options.expected_negotiated_version = MBEDTLS_SSL_VERSION_TLS1_2;
-    }
-    options.resize_buffers = 1;
-
-    const mbedtls_ssl_ciphersuite_t *ciphersuite =
-        mbedtls_ssl_ciphersuite_from_string(cipher);
-    if (ciphersuite != NULL) {
-        options.pk_alg = mbedtls_ssl_get_ciphersuite_sig_pk_alg(ciphersuite);
-    }
-
-    mbedtls_test_ssl_perform_handshake(&options);
-
-    /* The goto below is used to avoid an "unused label" warning.*/
-    goto exit;
-exit:
-    mbedtls_test_free_handshake_options(&options);
-}
-/* END_CASE */
-
-/* BEGIN_CASE depends_on:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH:MBEDTLS_SSL_CONTEXT_SERIALIZATION:MBEDTLS_SSL_PROTO_TLS1_2:PSA_WANT_ECC_SECP_R1_384:MBEDTLS_SSL_PROTO_DTLS:PSA_WANT_ALG_SHA_256:MBEDTLS_TEST_HAS_AEAD_ALG:MBEDTLS_CAN_HANDLE_RSA_TEST_KEY */
+/* BEGIN_CASE depends_on:MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED:MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH:MBEDTLS_SSL_CONTEXT_SERIALIZATION:MBEDTLS_SSL_PROTO_TLS1_2:PSA_WANT_ECC_SECP_R1_384:MBEDTLS_SSL_PROTO_DTLS:PSA_WANT_ALG_SHA_256:MBEDTLS_TEST_HAS_AEAD_ALG */
 void resize_buffers_serialize_mfl(int mfl)
 {
     /* Choose an AEAD ciphersuite */
@@ -2885,16 +2891,16 @@ void resize_buffers_serialize_mfl(int mfl)
 
     TEST_ASSERT(ciphersuite != NULL);
 
-    test_resize_buffers(mfl, 0, MBEDTLS_SSL_LEGACY_NO_RENEGOTIATION, 1, 1,
-                        (char *) ciphersuite->name);
+    resize_buffers(mfl, 0, MBEDTLS_SSL_LEGACY_NO_RENEGOTIATION, 1, 1,
+                   (char *) ciphersuite->name);
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH:MBEDTLS_SSL_RENEGOTIATION:MBEDTLS_SSL_PROTO_TLS1_2:PSA_WANT_ECC_SECP_R1_384:PSA_WANT_ALG_SHA_256 */
+/* BEGIN_CASE depends_on:MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED:MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH:MBEDTLS_SSL_RENEGOTIATION:MBEDTLS_SSL_PROTO_TLS1_2:PSA_WANT_ECC_SECP_R1_384:PSA_WANT_ALG_SHA_256 */
 void resize_buffers_renegotiate_mfl(int mfl, int legacy_renegotiation,
                                     char *cipher)
 {
-    test_resize_buffers(mfl, 1, legacy_renegotiation, 0, 1, cipher);
+    resize_buffers(mfl, 1, legacy_renegotiation, 0, 1, cipher);
     /* The goto below is used to avoid an "unused label" warning.*/
     goto exit;
 }

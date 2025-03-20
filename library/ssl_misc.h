@@ -985,7 +985,6 @@ struct mbedtls_ssl_handshake_params {
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
     /** Asynchronous operation context. This field is meant for use by the
      * asynchronous operation callbacks (mbedtls_ssl_config::f_async_sign_start,
-     * mbedtls_ssl_config::f_async_decrypt_start,
      * mbedtls_ssl_config::f_async_resume, mbedtls_ssl_config::f_async_cancel).
      * The library does not use it internally. */
     void *user_async_ctx;

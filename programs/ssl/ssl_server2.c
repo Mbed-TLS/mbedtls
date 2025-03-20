@@ -210,7 +210,7 @@ int main(void)
 
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
 #define USAGE_SSL_ASYNC \
-    "    async_operations=%%c...   d=decrypt, s=sign (default: -=off)\n" \
+    "    async_operations=%%c...   s=sign (default: -=off)\n" \
     "    async_private_delay1=%%d  Asynchronous delay for key_file or preloaded key\n" \
     "    async_private_delay2=%%d  Asynchronous delay for key_file2 and sni\n" \
     "                              default: -1 (not asynchronous)\n" \
@@ -478,13 +478,13 @@ int main(void)
     "    key_opaque_algs=%%s  Allowed opaque key 1 algorithms.\n"                      \
     "                        comma-separated pair of values among the following:\n"    \
     "                        rsa-sign-pkcs1, rsa-sign-pss, rsa-sign-pss-sha256,\n"     \
-    "                        rsa-sign-pss-sha384, rsa-sign-pss-sha512, rsa-decrypt,\n" \
+    "                        rsa-sign-pss-sha384, rsa-sign-pss-sha512,\n"              \
     "                        ecdsa-sign, ecdh, none (only acceptable for\n"            \
     "                        the second value).\n"                                     \
     "    key_opaque_algs2=%%s Allowed opaque key 2 algorithms.\n"                      \
     "                        comma-separated pair of values among the following:\n"    \
     "                        rsa-sign-pkcs1, rsa-sign-pss, rsa-sign-pss-sha256,\n"     \
-    "                        rsa-sign-pss-sha384, rsa-sign-pss-sha512, rsa-decrypt,\n" \
+    "                        rsa-sign-pss-sha384, rsa-sign-pss-sha512,\n"              \
     "                        ecdsa-sign, ecdh, none (only acceptable for\n"            \
     "                        the second value).\n"
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
@@ -1227,16 +1227,6 @@ static int ssl_async_sign(mbedtls_ssl_context *ssl,
                            hash, hash_len);
 }
 
-static int ssl_async_decrypt(mbedtls_ssl_context *ssl,
-                             mbedtls_x509_crt *cert,
-                             const unsigned char *input,
-                             size_t input_len)
-{
-    return ssl_async_start(ssl, cert,
-                           ASYNC_OP_DECRYPT, MBEDTLS_MD_NONE,
-                           input, input_len);
-}
-
 static int ssl_async_resume(mbedtls_ssl_context *ssl,
                             unsigned char *output,
                             size_t *output_len,
@@ -1257,12 +1247,6 @@ static int ssl_async_resume(mbedtls_ssl_context *ssl,
     }
 
     switch (ctx->operation_type) {
-        case ASYNC_OP_DECRYPT:
-            ret = mbedtls_pk_decrypt(key_slot->pk,
-                                     ctx->input, ctx->input_len,
-                                     output, output_len, output_size,
-                                     config_data->f_rng, config_data->p_rng);
-            break;
         case ASYNC_OP_SIGN:
             ret = mbedtls_pk_sign(key_slot->pk,
                                   ctx->md_alg,
@@ -3118,13 +3102,9 @@ usage:
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
     if (opt.async_operations[0] != '-') {
         mbedtls_ssl_async_sign_t *sign = NULL;
-        mbedtls_ssl_async_decrypt_t *decrypt = NULL;
         const char *r;
         for (r = opt.async_operations; *r; r++) {
             switch (*r) {
-                case 'd':
-                    decrypt = ssl_async_decrypt;
-                    break;
                 case 's':
                     sign = ssl_async_sign;
                     break;
@@ -3137,7 +3117,6 @@ usage:
         ssl_async_keys.p_rng = &rng;
         mbedtls_ssl_conf_async_private_cb(&conf,
                                           sign,
-                                          decrypt,
                                           ssl_async_resume,
                                           ssl_async_cancel,
                                           &ssl_async_keys);

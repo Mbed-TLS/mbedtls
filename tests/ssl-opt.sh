@@ -311,8 +311,7 @@ requires_any_configs_disabled() {
     SKIP_NEXT="YES"
 }
 
-TLS1_2_KEY_EXCHANGES_WITH_CERT="MBEDTLS_KEY_EXCHANGE_RSA_ENABLED \
-                                MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED \
+TLS1_2_KEY_EXCHANGES_WITH_CERT="MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED \
                                 MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED \
                                 MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED \
                                 MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED"
@@ -320,9 +319,8 @@ TLS1_2_KEY_EXCHANGES_WITH_CERT="MBEDTLS_KEY_EXCHANGE_RSA_ENABLED \
 TLS1_2_KEY_EXCHANGES_WITH_ECDSA_CERT="MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED \
                                       MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED"
 
-TLS1_2_KEY_EXCHANGES_WITH_CERT_WO_ECDH="MBEDTLS_KEY_EXCHANGE_RSA_ENABLED \
-                                       MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED \
-                                       MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED"
+TLS1_2_KEY_EXCHANGES_WITH_CERT_WO_ECDH="MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED \
+                                        MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED"
 
 requires_certificate_authentication () {
     if is_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
@@ -2308,20 +2306,6 @@ run_test    "Opaque key for server authentication: ECDH-" \
             -C "error"
 
 requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
-requires_config_disabled MBEDTLS_SSL_ASYNC_PRIVATE
-requires_hash_alg SHA_256
-run_test    "Opaque key for server authentication: invalid key: decrypt with ECC key, no async" \
-            "$P_SRV key_opaque=1 crt_file=$DATA_FILES_PATH/server5.crt \
-             key_file=$DATA_FILES_PATH/server5.key key_opaque_algs=rsa-decrypt,none \
-             debug_level=1" \
-            "$P_CLI force_version=tls12" \
-            1 \
-            -s "key types: Opaque, none" \
-            -s "error" \
-            -c "error" \
-            -c "Public key type mismatch"
-
-requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
 requires_config_enabled MBEDTLS_ECDSA_C
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_disabled MBEDTLS_SSL_ASYNC_PRIVATE
@@ -2336,20 +2320,6 @@ run_test    "Opaque key for server authentication: invalid key: ecdh with RSA ke
             -s "error" \
             -c "error" \
             -c "Public key type mismatch"
-
-requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
-requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
-requires_hash_alg SHA_256
-run_test    "Opaque key for server authentication: invalid alg: decrypt with ECC key, async" \
-            "$P_SRV key_opaque=1 crt_file=$DATA_FILES_PATH/server5.crt \
-             key_file=$DATA_FILES_PATH/server5.key key_opaque_algs=rsa-decrypt,none \
-             debug_level=1" \
-            "$P_CLI force_version=tls12" \
-            1 \
-            -s "key types: Opaque, none" \
-            -s "got ciphersuites in common, but none of them usable" \
-            -s "error" \
-            -c "error"
 
 requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
 requires_config_enabled MBEDTLS_RSA_C
@@ -2439,8 +2409,8 @@ requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 run_test    "TLS 1.3 opaque key: no suitable algorithm found" \
-            "$P_SRV debug_level=4 auth_mode=required key_opaque=1 key_opaque_algs=rsa-decrypt,none" \
-            "$P_CLI debug_level=4 key_opaque=1 key_opaque_algs=rsa-decrypt,rsa-sign-pss" \
+            "$P_SRV debug_level=4 auth_mode=required key_opaque=1 key_opaque_algs=rsa-sign-pkcs1,none" \
+            "$P_CLI debug_level=4 key_opaque=1 key_opaque_algs=rsa-sign-pkcs1,rsa-sign-pss" \
             1 \
             -c "key type: Opaque" \
             -s "key types: Opaque, Opaque" \
@@ -2452,8 +2422,8 @@ requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 run_test    "TLS 1.3 opaque key: suitable algorithm found" \
-            "$P_SRV debug_level=4 auth_mode=required key_opaque=1 key_opaque_algs=rsa-decrypt,rsa-sign-pss" \
-            "$P_CLI debug_level=4 key_opaque=1 key_opaque_algs=rsa-decrypt,rsa-sign-pss" \
+            "$P_SRV debug_level=4 auth_mode=required key_opaque=1 key_opaque_algs=rsa-sign-pkcs1,rsa-sign-pss" \
+            "$P_CLI debug_level=4 key_opaque=1 key_opaque_algs=rsa-sign-pkcs1,rsa-sign-pss" \
             0 \
             -c "key type: Opaque" \
             -s "key types: Opaque, Opaque" \
@@ -2479,8 +2449,8 @@ requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 run_test    "TLS 1.3 opaque key: 2 keys on server, suitable algorithm found" \
-            "$P_SRV debug_level=4 auth_mode=required key_opaque=1 key_opaque_algs2=ecdsa-sign,none key_opaque_algs=rsa-decrypt,rsa-sign-pss" \
-            "$P_CLI debug_level=4 key_opaque=1 key_opaque_algs=rsa-decrypt,rsa-sign-pss" \
+            "$P_SRV debug_level=4 auth_mode=required key_opaque=1 key_opaque_algs2=ecdsa-sign,none key_opaque_algs=rsa-sign-pkcs1,rsa-sign-pss" \
+            "$P_CLI debug_level=4 key_opaque=1 key_opaque_algs=rsa-sign-pkcs1,rsa-sign-pss" \
             0 \
             -c "key type: Opaque" \
             -s "key types: Opaque, Opaque" \
@@ -7725,12 +7695,12 @@ run_test    "keyUsage srv 1.2: RSA, digitalSignature -> ECDHE-RSA" \
             0 \
             -c "Ciphersuite is TLS-ECDHE-RSA-WITH-"
 
-run_test    "keyUsage srv 1.2: RSA, keyEncipherment -> RSA" \
+run_test    "keyUsage srv 1.2: RSA, keyEncipherment -> fail" \
             "$P_SRV force_version=tls12 key_file=$DATA_FILES_PATH/server2.key \
              crt_file=$DATA_FILES_PATH/server2.ku-ke.crt" \
             "$P_CLI" \
-            0 \
-            -c "Ciphersuite is TLS-RSA-WITH-"
+            1 \
+            -C "Ciphersuite is "
 
 run_test    "keyUsage srv 1.2: RSA, keyAgreement -> fail" \
             "$P_SRV force_version=tls12 key_file=$DATA_FILES_PATH/server2.key \
@@ -8861,17 +8831,6 @@ run_test    "ECJPAKE: working, DTLS, nolog" \
             0
 
 # Test for ClientHello without extensions
-
-# Without extensions, ECC is impossible (no curve negotiation).
-requires_config_enabled MBEDTLS_RSA_C
-requires_gnutls
-run_test    "ClientHello without extensions: RSA" \
-            "$P_SRV force_version=tls12 debug_level=3" \
-            "$G_CLI --priority=NORMAL:%NO_EXTENSIONS:%DISABLE_SAFE_RENEGOTIATION localhost" \
-            0 \
-            -s "Ciphersuite is .*-RSA-WITH-.*" \
-            -S "Ciphersuite is .*-EC.*" \
-            -s "dumping 'client hello extensions' (0 bytes)"
 
 requires_config_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED
 requires_gnutls

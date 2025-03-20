@@ -1,0 +1,3 @@
+features
+   * add handling for default CMAKE_BUILD_TYPE
+   * add validation for appropriate CMAKE_BUILD_TYPE values

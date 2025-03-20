@@ -165,7 +165,7 @@ if(NOT MBEDTLS_AS_SUBPROJECT)
 else ()
     # If we are a subproject then we warn if build type is not compatible with our project
     if(NOT CMAKE_BUILD_TYPE IN_LIST MBEDTLS_ALLOWED_BUILDTYPES)
-        message(WARNING "**** WARNING : MBEDTLS is being configured as a CMake Subdirectory without setting a proper build type. This may lead to unpredictable CMAKE optimizations"")
+        message(WARNING "**** WARNING : MBEDTLS is being configured as a CMake Subdirectory without setting a proper build type. This may lead to unpredictable CMAKE optimizations")
         message(WARNING "**** WARNING : MBEDTLS : CMAKE_BUILD_TYPE must be one of: ${MBEDTLS_ALLOWED_BUILDTYPES}")
     endif ()
 endif ()

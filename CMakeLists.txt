@@ -159,14 +159,17 @@ message(STATUS "MBEDTLS : Possible CMAKE_BUILD_TYPE Values : ${MBEDTLS_ALLOWED_B
 
 # Set the CMake default build type to Release if it is not defined
 if(NOT DEFINED CMAKE_BUILD_TYPE OR CMAKE_BUILD_TYPE STREQUAL "")
-    set(CMAKE_BUILD_TYPE "Release"
-            CACHE STRING "Choose the type of build: ${MBEDTLS_ALLOWED_BUILDTYPES_ACTIVE}"
-            FORCE)
+    set(CMAKE_BUILD_TYPE "Release")
 endif ()
 
 # If the value of CMAKE_BUILD_TYPE is defined then validate it and exit fatally if it is invalid
 if(NOT CMAKE_BUILD_TYPE IN_LIST MBEDTLS_ALLOWED_BUILDTYPES_ACTIVE)
     message(FATAL_ERROR "MBEDTLS : CMAKE_BUILD_TYPE must be one of: ${MBEDTLS_ALLOWED_BUILDTYPES_ACTIVE}")
+else ()
+    # set the valid build type value in the cache
+    set(CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE}
+            CACHE STRING "Choose the type of build: ${MBEDTLS_ALLOWED_BUILDTYPES_ACTIVE}"
+            FORCE)
 endif()
 
 # Inform about the currently selected build type

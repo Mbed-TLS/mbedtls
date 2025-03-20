@@ -1,0 +1,12 @@
+bin/*
+*.o
+*.so
+test/psa_ff_bootstrap.c
+test/psa_manifest/*
+test/client
+test/partition
+cscope.out
+*.orig
+*.swp
+*.DS_Store
+*psa_ff_bootstrap_*

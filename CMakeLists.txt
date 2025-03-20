@@ -140,12 +140,38 @@ set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
 set(THREADS_PREFER_PTHREAD_FLAG TRUE)
 find_package(Threads)
 
-# If this is the root project add longer list of available CMAKE_BUILD_TYPE values
-if(NOT MBEDTLS_AS_SUBPROJECT)
-    set(CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE}
-        CACHE STRING "Choose the type of build: None Debug Release Coverage ASan ASanDbg MemSan MemSanDbg Check CheckFull TSan TSanDbg"
-        FORCE)
+# Handle default CMAKE_BUILD_TYPE configuration according to how the project is built
+
+# Define the build types that are available whether the project is built as root or as a submodule
+set(MBEDTLS_ALLOWED_BUILDTYPES_MINIMAL None Debug Release)
+# Define the default build types for a standard root project build containing the extended CMAKE_BUILD_TYPE values
+set(MBEDTLS_ALLOWED_BUILDTYPES_FULL ${MBEDTLS_ALLOWED_BUILDTYPES_MINIMAL} Coverage ASan ASanDbg MemSan MemSanDbg Check CheckFull TSan TSanDbg)
+
+# Define the active build types and default to the full set of build types
+set(MBEDTLS_ALLOWED_BUILDTYPES_ACTIVE ${MBEDTLS_ALLOWED_BUILDTYPES_FULL})
+
+# Set the possible build type values according to whether or not MBEDTLS is the root project
+if(MBEDTLS_AS_SUBPROJECT)
+    set(MBEDTLS_ALLOWED_BUILDTYPES_ACTIVE ${MBEDTLS_ALLOWED_BUILDTYPES_MINIMAL})
+endif ()
+# Inform about the currently possible build types
+message(STATUS "MBEDTLS : Possible CMAKE_BUILD_TYPE Values : ${MBEDTLS_ALLOWED_BUILDTYPES_ACTIVE}")
+
+# Set the CMake default build type to Release if it is not defined
+if(NOT DEFINED CMAKE_BUILD_TYPE OR CMAKE_BUILD_TYPE STREQUAL "")
+    set(CMAKE_BUILD_TYPE "Release"
+            CACHE STRING "Choose the type of build: ${MBEDTLS_ALLOWED_BUILDTYPES_ACTIVE}"
+            FORCE)
+endif ()
+
+# If the value of CMAKE_BUILD_TYPE is defined then validate it and exit fatally if it is invalid
+if(NOT CMAKE_BUILD_TYPE IN_LIST MBEDTLS_ALLOWED_BUILDTYPES_ACTIVE)
+    message(FATAL_ERROR "MBEDTLS : CMAKE_BUILD_TYPE must be one of: ${MBEDTLS_ALLOWED_BUILDTYPES_ACTIVE}")
 endif()
+
+# Inform about the currently selected build type
+message(STATUS "MBEDTLS : CMAKE_BUILD_TYPE set to ${CMAKE_BUILD_TYPE}")
+
 
 # Make MBEDTLS_CONFIG_FILE and MBEDTLS_USER_CONFIG_FILE into PATHs
 set(MBEDTLS_CONFIG_FILE "" CACHE FILEPATH "Mbed TLS config file (overrides default).")

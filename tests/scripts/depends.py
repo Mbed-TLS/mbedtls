@@ -350,6 +350,7 @@ REVERSE_DEPENDENCIES = {
                         'PSA_WANT_ALG_SHA3_256',
                         'PSA_WANT_ALG_SHA3_384',
                         'PSA_WANT_ALG_SHA3_512'],
+    'PSA_WANT_ALG_ECB_NO_PADDING' : ['MBEDTLS_NIST_KW_C'],
 }
 
 # If an option is tested in an exclusive test, alter the following defines.

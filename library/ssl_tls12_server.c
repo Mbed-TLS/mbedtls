@@ -654,6 +654,7 @@ static int ssl_check_key_curve(mbedtls_pk_context *pk,
  * Try picking a certificate for this ciphersuite,
  * return 0 on success and -1 on failure.
  */
+#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_pick_cert(mbedtls_ssl_context *ssl,
                          const mbedtls_ssl_ciphersuite_t *ciphersuite_info)
@@ -693,7 +694,6 @@ static int ssl_pick_cert(mbedtls_ssl_context *ssl,
         int key_type_matches = 0;
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
         key_type_matches = ((ssl->conf->f_async_sign_start != NULL ||
-                             ssl->conf->f_async_decrypt_start != NULL ||
                              mbedtls_pk_can_do_ext(cur->key, pk_alg, pk_usage)) &&
                             mbedtls_pk_can_do_ext(&cur->cert->pk, pk_alg, pk_usage));
 #else
@@ -745,6 +745,8 @@ static int ssl_pick_cert(mbedtls_ssl_context *ssl,
 
     return -1;
 }
+#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
+
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
 /*
@@ -807,6 +809,8 @@ static int ssl_ciphersuite_match(mbedtls_ssl_context *ssl, int suite_id,
     }
 #endif
 
+#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
+
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
     /*
      * Final check: if ciphersuite requires us to have a
@@ -822,7 +826,6 @@ static int ssl_ciphersuite_match(mbedtls_ssl_context *ssl, int suite_id,
     }
 #endif
 
-#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
     /* If the ciphersuite requires signing, check whether
      * a suitable hash algorithm is present. */
     sig_type = mbedtls_ssl_get_ciphersuite_sig_alg(suite_info);
@@ -3181,194 +3184,6 @@ static int ssl_write_server_hello_done(mbedtls_ssl_context *ssl)
     return 0;
 }
 
-#if defined(MBEDTLS_KEY_EXCHANGE_RSA_ENABLED)
-
-#if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
-MBEDTLS_CHECK_RETURN_CRITICAL
-static int ssl_resume_decrypt_pms(mbedtls_ssl_context *ssl,
-                                  unsigned char *peer_pms,
-                                  size_t *peer_pmslen,
-                                  size_t peer_pmssize)
-{
-    int ret = ssl->conf->f_async_resume(ssl,
-                                        peer_pms, peer_pmslen, peer_pmssize);
-    if (ret != MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS) {
-        ssl->handshake->async_in_progress = 0;
-        mbedtls_ssl_set_async_operation_data(ssl, NULL);
-    }
-    MBEDTLS_SSL_DEBUG_RET(2, "ssl_decrypt_encrypted_pms", ret);
-    return ret;
-}
-#endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
-
-MBEDTLS_CHECK_RETURN_CRITICAL
-static int ssl_decrypt_encrypted_pms(mbedtls_ssl_context *ssl,
-                                     const unsigned char *p,
-                                     const unsigned char *end,
-                                     unsigned char *peer_pms,
-                                     size_t *peer_pmslen,
-                                     size_t peer_pmssize)
-{
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-
-    mbedtls_x509_crt *own_cert = mbedtls_ssl_own_cert(ssl);
-    if (own_cert == NULL) {
-        MBEDTLS_SSL_DEBUG_MSG(1, ("got no local certificate"));
-        return MBEDTLS_ERR_SSL_NO_CLIENT_CERTIFICATE;
-    }
-    mbedtls_pk_context *public_key = &own_cert->pk;
-    mbedtls_pk_context *private_key = mbedtls_ssl_own_key(ssl);
-    size_t len = mbedtls_pk_get_len(public_key);
-
-#if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
-    /* If we have already started decoding the message and there is an ongoing
-     * decryption operation, resume signing. */
-    if (ssl->handshake->async_in_progress != 0) {
-        MBEDTLS_SSL_DEBUG_MSG(2, ("resuming decryption operation"));
-        return ssl_resume_decrypt_pms(ssl,
-                                      peer_pms, peer_pmslen, peer_pmssize);
-    }
-#endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
-
-    /*
-     * Prepare to decrypt the premaster using own private RSA key
-     */
-    if (p + 2 > end) {
-        MBEDTLS_SSL_DEBUG_MSG(1, ("bad client key exchange message"));
-        return MBEDTLS_ERR_SSL_DECODE_ERROR;
-    }
-    if (*p++ != MBEDTLS_BYTE_1(len) ||
-        *p++ != MBEDTLS_BYTE_0(len)) {
-        MBEDTLS_SSL_DEBUG_MSG(1, ("bad client key exchange message"));
-        return MBEDTLS_ERR_SSL_DECODE_ERROR;
-    }
-
-    if (p + len != end) {
-        MBEDTLS_SSL_DEBUG_MSG(1, ("bad client key exchange message"));
-        return MBEDTLS_ERR_SSL_DECODE_ERROR;
-    }
-
-    /*
-     * Decrypt the premaster secret
-     */
-#if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
-    if (ssl->conf->f_async_decrypt_start != NULL) {
-        ret = ssl->conf->f_async_decrypt_start(ssl,
-                                               mbedtls_ssl_own_cert(ssl),
-                                               p, len);
-        switch (ret) {
-            case MBEDTLS_ERR_SSL_HW_ACCEL_FALLTHROUGH:
-                /* act as if f_async_decrypt_start was null */
-                break;
-            case 0:
-                ssl->handshake->async_in_progress = 1;
-                return ssl_resume_decrypt_pms(ssl,
-                                              peer_pms,
-                                              peer_pmslen,
-                                              peer_pmssize);
-            case MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS:
-                ssl->handshake->async_in_progress = 1;
-                return MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS;
-            default:
-                MBEDTLS_SSL_DEBUG_RET(1, "f_async_decrypt_start", ret);
-                return ret;
-        }
-    }
-#endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
-
-    if (!mbedtls_pk_can_do(private_key, MBEDTLS_PK_RSA)) {
-        MBEDTLS_SSL_DEBUG_MSG(1, ("got no RSA private key"));
-        return MBEDTLS_ERR_SSL_PRIVATE_KEY_REQUIRED;
-    }
-
-    ret = mbedtls_pk_decrypt(private_key, p, len,
-                             peer_pms, peer_pmslen, peer_pmssize,
-                             ssl->conf->f_rng, ssl->conf->p_rng);
-    return ret;
-}
-
-MBEDTLS_CHECK_RETURN_CRITICAL
-static int ssl_parse_encrypted_pms(mbedtls_ssl_context *ssl,
-                                   const unsigned char *p,
-                                   const unsigned char *end,
-                                   size_t pms_offset)
-{
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    unsigned char *pms = ssl->handshake->premaster + pms_offset;
-    unsigned char ver[2];
-    unsigned char fake_pms[48], peer_pms[48];
-    size_t peer_pmslen;
-    mbedtls_ct_condition_t diff;
-
-    /* In case of a failure in decryption, the decryption may write less than
-     * 2 bytes of output, but we always read the first two bytes. It doesn't
-     * matter in the end because diff will be nonzero in that case due to
-     * ret being nonzero, and we only care whether diff is 0.
-     * But do initialize peer_pms and peer_pmslen for robustness anyway. This
-     * also makes memory analyzers happy (don't access uninitialized memory,
-     * even if it's an unsigned char). */
-    peer_pms[0] = peer_pms[1] = ~0;
-    peer_pmslen = 0;
-
-    ret = ssl_decrypt_encrypted_pms(ssl, p, end,
-                                    peer_pms,
-                                    &peer_pmslen,
-                                    sizeof(peer_pms));
-
-#if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
-    if (ret == MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS) {
-        return ret;
-    }
-#endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
-
-    mbedtls_ssl_write_version(ver, ssl->conf->transport,
-                              ssl->session_negotiate->tls_version);
-
-    /* Avoid data-dependent branches while checking for invalid
-     * padding, to protect against timing-based Bleichenbacher-type
-     * attacks. */
-    diff = mbedtls_ct_bool(ret);
-    diff = mbedtls_ct_bool_or(diff, mbedtls_ct_uint_ne(peer_pmslen, 48));
-    diff = mbedtls_ct_bool_or(diff, mbedtls_ct_uint_ne(peer_pms[0], ver[0]));
-    diff = mbedtls_ct_bool_or(diff, mbedtls_ct_uint_ne(peer_pms[1], ver[1]));
-
-    /*
-     * Protection against Bleichenbacher's attack: invalid PKCS#1 v1.5 padding
-     * must not cause the connection to end immediately; instead, send a
-     * bad_record_mac later in the handshake.
-     * To protect against timing-based variants of the attack, we must
-     * not have any branch that depends on whether the decryption was
-     * successful. In particular, always generate the fake premaster secret,
-     * regardless of whether it will ultimately influence the output or not.
-     */
-    ret = ssl->conf->f_rng(ssl->conf->p_rng, fake_pms, sizeof(fake_pms));
-    if (ret != 0) {
-        /* It's ok to abort on an RNG failure, since this does not reveal
-         * anything about the RSA decryption. */
-        return ret;
-    }
-
-#if defined(MBEDTLS_SSL_DEBUG_ALL)
-    if (diff != MBEDTLS_CT_FALSE) {
-        MBEDTLS_SSL_DEBUG_MSG(1, ("bad client key exchange message"));
-    }
-#endif
-
-    if (sizeof(ssl->handshake->premaster) < pms_offset ||
-        sizeof(ssl->handshake->premaster) - pms_offset < 48) {
-        MBEDTLS_SSL_DEBUG_MSG(1, ("should never happen"));
-        return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
-    }
-    ssl->handshake->pmslen = 48;
-
-    /* Set pms to either the true or the fake PMS, without
-     * data-dependent branches. */
-    mbedtls_ct_memcpy_if(diff, pms, fake_pms, peer_pms, ssl->handshake->pmslen);
-
-    return 0;
-}
-#endif /* MBEDTLS_KEY_EXCHANGE_RSA_ENABLED */
-
 #if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_parse_client_psk_identity(mbedtls_ssl_context *ssl, unsigned char **p,
@@ -3435,16 +3250,6 @@ static int ssl_parse_client_key_exchange(mbedtls_ssl_context *ssl)
 
     MBEDTLS_SSL_DEBUG_MSG(2, ("=> parse client key exchange"));
 
-#if defined(MBEDTLS_SSL_ASYNC_PRIVATE) && \
-    defined(MBEDTLS_KEY_EXCHANGE_RSA_ENABLED)
-    if (ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_RSA &&
-        (ssl->handshake->async_in_progress != 0)) {
-        /* We've already read a record and there is an asynchronous
-         * operation in progress to decrypt it. So skip reading the
-         * record. */
-        MBEDTLS_SSL_DEBUG_MSG(3, ("will resume decryption of previously-read record"));
-    } else
-#endif
     if ((ret = mbedtls_ssl_read_record(ssl, 1)) != 0) {
         MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_read_record", ret);
         return ret;
@@ -3635,14 +3440,6 @@ static int ssl_parse_client_key_exchange(mbedtls_ssl_context *ssl)
 
     } else
 #endif /* MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED */
-#if defined(MBEDTLS_KEY_EXCHANGE_RSA_ENABLED)
-    if (ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_RSA) {
-        if ((ret = ssl_parse_encrypted_pms(ssl, p, end, 0)) != 0) {
-            MBEDTLS_SSL_DEBUG_RET(1, ("ssl_parse_parse_encrypted_pms_secret"), ret);
-            return ret;
-        }
-    } else
-#endif /* MBEDTLS_KEY_EXCHANGE_RSA_ENABLED */
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
     if (ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECJPAKE) {
         if ((ret = mbedtls_psa_ecjpake_read_round(

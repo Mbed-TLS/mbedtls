@@ -241,16 +241,6 @@ run_test "Default configuration, client" \
          -u "basic constraints.* CA=false$" \
          -n "bytes left to analyze from context"
 
-run_test "Ciphersuite TLS-RSA-WITH-AES-256-CCM-8, server" \
-         "srv_ciphersuite.txt" \
-         -n "ERROR" \
-         -u "ciphersuite.* TLS-RSA-WITH-AES-256-CCM-8$" \
-
-run_test "Ciphersuite TLS-RSA-WITH-AES-256-CCM-8, client" \
-         "cli_ciphersuite.txt" \
-         -n "ERROR" \
-         -u "ciphersuite.* TLS-RSA-WITH-AES-256-CCM-8$" \
-
 run_test "No packing, server" \
          "srv_no_packing.txt" \
          -n "ERROR" \

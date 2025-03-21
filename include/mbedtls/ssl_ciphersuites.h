@@ -24,27 +24,10 @@ extern "C" {
 /*
  * Supported ciphersuites (Official IANA names)
  */
-#define MBEDTLS_TLS_RSA_WITH_NULL_MD5                    0x01   /**< Weak! */
-#define MBEDTLS_TLS_RSA_WITH_NULL_SHA                    0x02   /**< Weak! */
-
 #define MBEDTLS_TLS_PSK_WITH_NULL_SHA                    0x2C   /**< Weak! */
-#define MBEDTLS_TLS_RSA_WITH_AES_128_CBC_SHA             0x2F
-
-#define MBEDTLS_TLS_RSA_WITH_AES_256_CBC_SHA             0x35
-
-#define MBEDTLS_TLS_RSA_WITH_NULL_SHA256                 0x3B   /**< Weak! */
-#define MBEDTLS_TLS_RSA_WITH_AES_128_CBC_SHA256          0x3C   /**< TLS 1.2 */
-#define MBEDTLS_TLS_RSA_WITH_AES_256_CBC_SHA256          0x3D   /**< TLS 1.2 */
-
-#define MBEDTLS_TLS_RSA_WITH_CAMELLIA_128_CBC_SHA        0x41
-
-#define MBEDTLS_TLS_RSA_WITH_CAMELLIA_256_CBC_SHA        0x84
 
 #define MBEDTLS_TLS_PSK_WITH_AES_128_CBC_SHA             0x8C
 #define MBEDTLS_TLS_PSK_WITH_AES_256_CBC_SHA             0x8D
-
-#define MBEDTLS_TLS_RSA_WITH_AES_128_GCM_SHA256          0x9C   /**< TLS 1.2 */
-#define MBEDTLS_TLS_RSA_WITH_AES_256_GCM_SHA384          0x9D   /**< TLS 1.2 */
 
 #define MBEDTLS_TLS_PSK_WITH_AES_128_GCM_SHA256          0xA8   /**< TLS 1.2 */
 #define MBEDTLS_TLS_PSK_WITH_AES_256_GCM_SHA384          0xA9   /**< TLS 1.2 */
@@ -53,10 +36,6 @@ extern "C" {
 #define MBEDTLS_TLS_PSK_WITH_AES_256_CBC_SHA384          0xAF
 #define MBEDTLS_TLS_PSK_WITH_NULL_SHA256                 0xB0   /**< Weak! */
 #define MBEDTLS_TLS_PSK_WITH_NULL_SHA384                 0xB1   /**< Weak! */
-
-#define MBEDTLS_TLS_RSA_WITH_CAMELLIA_128_CBC_SHA256     0xBA   /**< TLS 1.2 */
-
-#define MBEDTLS_TLS_RSA_WITH_CAMELLIA_256_CBC_SHA256     0xC0   /**< TLS 1.2 */
 
 #define MBEDTLS_TLS_ECDH_ECDSA_WITH_NULL_SHA             0xC001 /**< Weak! */
 #define MBEDTLS_TLS_ECDH_ECDSA_WITH_AES_128_CBC_SHA      0xC004
@@ -100,8 +79,6 @@ extern "C" {
 #define MBEDTLS_TLS_ECDHE_PSK_WITH_NULL_SHA256           0xC03A
 #define MBEDTLS_TLS_ECDHE_PSK_WITH_NULL_SHA384           0xC03B
 
-#define MBEDTLS_TLS_RSA_WITH_ARIA_128_CBC_SHA256         0xC03C /**< TLS 1.2 */
-#define MBEDTLS_TLS_RSA_WITH_ARIA_256_CBC_SHA384         0xC03D /**< TLS 1.2 */
 #define MBEDTLS_TLS_ECDHE_ECDSA_WITH_ARIA_128_CBC_SHA256 0xC048 /**< TLS 1.2 */
 #define MBEDTLS_TLS_ECDHE_ECDSA_WITH_ARIA_256_CBC_SHA384 0xC049 /**< TLS 1.2 */
 #define MBEDTLS_TLS_ECDH_ECDSA_WITH_ARIA_128_CBC_SHA256  0xC04A /**< TLS 1.2 */
@@ -110,8 +87,6 @@ extern "C" {
 #define MBEDTLS_TLS_ECDHE_RSA_WITH_ARIA_256_CBC_SHA384   0xC04D /**< TLS 1.2 */
 #define MBEDTLS_TLS_ECDH_RSA_WITH_ARIA_128_CBC_SHA256    0xC04E /**< TLS 1.2 */
 #define MBEDTLS_TLS_ECDH_RSA_WITH_ARIA_256_CBC_SHA384    0xC04F /**< TLS 1.2 */
-#define MBEDTLS_TLS_RSA_WITH_ARIA_128_GCM_SHA256         0xC050 /**< TLS 1.2 */
-#define MBEDTLS_TLS_RSA_WITH_ARIA_256_GCM_SHA384         0xC051 /**< TLS 1.2 */
 #define MBEDTLS_TLS_ECDHE_ECDSA_WITH_ARIA_128_GCM_SHA256 0xC05C /**< TLS 1.2 */
 #define MBEDTLS_TLS_ECDHE_ECDSA_WITH_ARIA_256_GCM_SHA384 0xC05D /**< TLS 1.2 */
 #define MBEDTLS_TLS_ECDH_ECDSA_WITH_ARIA_128_GCM_SHA256  0xC05E /**< TLS 1.2 */
@@ -136,8 +111,6 @@ extern "C" {
 #define MBEDTLS_TLS_ECDH_RSA_WITH_CAMELLIA_128_CBC_SHA256    0xC078
 #define MBEDTLS_TLS_ECDH_RSA_WITH_CAMELLIA_256_CBC_SHA384    0xC079
 
-#define MBEDTLS_TLS_RSA_WITH_CAMELLIA_128_GCM_SHA256         0xC07A /**< TLS 1.2 */
-#define MBEDTLS_TLS_RSA_WITH_CAMELLIA_256_GCM_SHA384         0xC07B /**< TLS 1.2 */
 #define MBEDTLS_TLS_ECDHE_ECDSA_WITH_CAMELLIA_128_GCM_SHA256 0xC086 /**< TLS 1.2 */
 #define MBEDTLS_TLS_ECDHE_ECDSA_WITH_CAMELLIA_256_GCM_SHA384 0xC087 /**< TLS 1.2 */
 #define MBEDTLS_TLS_ECDH_ECDSA_WITH_CAMELLIA_128_GCM_SHA256  0xC088 /**< TLS 1.2 */
@@ -155,10 +128,6 @@ extern "C" {
 #define MBEDTLS_TLS_ECDHE_PSK_WITH_CAMELLIA_128_CBC_SHA256 0xC09A
 #define MBEDTLS_TLS_ECDHE_PSK_WITH_CAMELLIA_256_CBC_SHA384 0xC09B
 
-#define MBEDTLS_TLS_RSA_WITH_AES_128_CCM                0xC09C  /**< TLS 1.2 */
-#define MBEDTLS_TLS_RSA_WITH_AES_256_CCM                0xC09D  /**< TLS 1.2 */
-#define MBEDTLS_TLS_RSA_WITH_AES_128_CCM_8              0xC0A0  /**< TLS 1.2 */
-#define MBEDTLS_TLS_RSA_WITH_AES_256_CCM_8              0xC0A1  /**< TLS 1.2 */
 #define MBEDTLS_TLS_PSK_WITH_AES_128_CCM                0xC0A4  /**< TLS 1.2 */
 #define MBEDTLS_TLS_PSK_WITH_AES_256_CCM                0xC0A5  /**< TLS 1.2 */
 #define MBEDTLS_TLS_PSK_WITH_AES_128_CCM_8              0xC0A8  /**< TLS 1.2 */
@@ -190,7 +159,6 @@ extern "C" {
  */
 typedef enum {
     MBEDTLS_KEY_EXCHANGE_NONE = 0,
-    MBEDTLS_KEY_EXCHANGE_RSA,
     MBEDTLS_KEY_EXCHANGE_ECDHE_RSA,
     MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA,
     MBEDTLS_KEY_EXCHANGE_PSK,
@@ -201,8 +169,7 @@ typedef enum {
 } mbedtls_key_exchange_type_t;
 
 /* Key exchanges using a certificate */
-#if defined(MBEDTLS_KEY_EXCHANGE_RSA_ENABLED)           || \
-    defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED)     || \
+#if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED)     || \
     defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)   || \
     defined(MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED)      || \
     defined(MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED)
@@ -260,8 +227,7 @@ typedef enum {
 #endif
 
 /* Key exchanges that don't involve ephemeral keys */
-#if defined(MBEDTLS_KEY_EXCHANGE_RSA_ENABLED)           || \
-    defined(MBEDTLS_KEY_EXCHANGE_PSK_ENABLED)           || \
+#if defined(MBEDTLS_KEY_EXCHANGE_PSK_ENABLED)           || \
     defined(MBEDTLS_KEY_EXCHANGE_SOME_ECDH_ENABLED)
 #define MBEDTLS_KEY_EXCHANGE_SOME_NON_PFS_ENABLED
 #endif

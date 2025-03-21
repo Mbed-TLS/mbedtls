@@ -1732,83 +1732,6 @@ static int ssl_parse_server_psk_hint(mbedtls_ssl_context *ssl,
 }
 #endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */
 
-#if defined(MBEDTLS_KEY_EXCHANGE_RSA_ENABLED)
-/*
- * Generate a pre-master secret and encrypt it with the server's RSA key
- */
-MBEDTLS_CHECK_RETURN_CRITICAL
-static int ssl_write_encrypted_pms(mbedtls_ssl_context *ssl,
-                                   size_t offset, size_t *olen,
-                                   size_t pms_offset)
-{
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    size_t len_bytes = 2;
-    unsigned char *p = ssl->handshake->premaster + pms_offset;
-    mbedtls_pk_context *peer_pk;
-
-    if (offset + len_bytes > MBEDTLS_SSL_OUT_CONTENT_LEN) {
-        MBEDTLS_SSL_DEBUG_MSG(1, ("buffer too small for encrypted pms"));
-        return MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL;
-    }
-
-    /*
-     * Generate (part of) the pre-master as
-     *  struct {
-     *      ProtocolVersion client_version;
-     *      opaque random[46];
-     *  } PreMasterSecret;
-     */
-    mbedtls_ssl_write_version(p, ssl->conf->transport,
-                              MBEDTLS_SSL_VERSION_TLS1_2);
-
-    if ((ret = ssl->conf->f_rng(ssl->conf->p_rng, p + 2, 46)) != 0) {
-        MBEDTLS_SSL_DEBUG_RET(1, "f_rng", ret);
-        return ret;
-    }
-
-    ssl->handshake->pmslen = 48;
-
-#if !defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
-    peer_pk = &ssl->handshake->peer_pubkey;
-#else /* !MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
-    if (ssl->session_negotiate->peer_cert == NULL) {
-        /* Should never happen */
-        MBEDTLS_SSL_DEBUG_MSG(1, ("should never happen"));
-        return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
-    }
-    peer_pk = &ssl->session_negotiate->peer_cert->pk;
-#endif /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
-
-    /*
-     * Now write it out, encrypted
-     */
-    if (!mbedtls_pk_can_do(peer_pk, MBEDTLS_PK_RSA)) {
-        MBEDTLS_SSL_DEBUG_MSG(1, ("certificate key type mismatch"));
-        return MBEDTLS_ERR_SSL_PK_TYPE_MISMATCH;
-    }
-
-    if ((ret = mbedtls_pk_encrypt(peer_pk,
-                                  p, ssl->handshake->pmslen,
-                                  ssl->out_msg + offset + len_bytes, olen,
-                                  MBEDTLS_SSL_OUT_CONTENT_LEN - offset - len_bytes,
-                                  ssl->conf->f_rng, ssl->conf->p_rng)) != 0) {
-        MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_rsa_pkcs1_encrypt", ret);
-        return ret;
-    }
-
-    if (len_bytes == 2) {
-        MBEDTLS_PUT_UINT16_BE(*olen, ssl->out_msg, offset);
-        *olen += 2;
-    }
-
-#if !defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
-    /* We don't need the peer's public key anymore. Free it. */
-    mbedtls_pk_free(peer_pk);
-#endif /* !MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
-    return 0;
-}
-#endif /* MBEDTLS_KEY_EXCHANGE_RSA_ENABLED */
-
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED) || \
     defined(MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED)
 MBEDTLS_CHECK_RETURN_CRITICAL
@@ -1901,16 +1824,6 @@ static int ssl_parse_server_key_exchange(mbedtls_ssl_context *ssl)
     unsigned char *p = NULL, *end = NULL;
 
     MBEDTLS_SSL_DEBUG_MSG(2, ("=> parse server key exchange"));
-
-#if defined(MBEDTLS_KEY_EXCHANGE_RSA_ENABLED)
-    if (ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_RSA) {
-        MBEDTLS_SSL_DEBUG_MSG(2, ("<= skip parse server key exchange"));
-        ssl->state++;
-        return 0;
-    }
-    ((void) p);
-    ((void) end);
-#endif
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED) || \
     defined(MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED)
@@ -2742,15 +2655,6 @@ static int ssl_write_client_key_exchange(mbedtls_ssl_context *ssl)
 
     } else
 #endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */
-#if defined(MBEDTLS_KEY_EXCHANGE_RSA_ENABLED)
-    if (ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_RSA) {
-        header_len = 4;
-        if ((ret = ssl_write_encrypted_pms(ssl, header_len,
-                                           &content_len, 0)) != 0) {
-            return ret;
-        }
-    } else
-#endif /* MBEDTLS_KEY_EXCHANGE_RSA_ENABLED */
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
     if (ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECJPAKE) {
         header_len = 4;
@@ -2768,7 +2672,7 @@ static int ssl_write_client_key_exchange(mbedtls_ssl_context *ssl)
             return ret;
         }
     } else
-#endif /* MBEDTLS_KEY_EXCHANGE_RSA_ENABLED */
+#endif /* MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED */
     {
         ((void) ciphersuite_info);
         MBEDTLS_SSL_DEBUG_MSG(1, ("should never happen"));

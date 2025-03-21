@@ -315,7 +315,6 @@ REVERSE_DEPENDENCIES = {
                           'PSA_WANT_ALG_RSA_OAEP',
                           'PSA_WANT_ALG_RSA_PSS'],
     'MBEDTLS_PKCS1_V15': ['MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED',
-                          'MBEDTLS_KEY_EXCHANGE_RSA_ENABLED',
                           'PSA_WANT_ALG_RSA_PKCS1V15_CRYPT',
                           'PSA_WANT_ALG_RSA_PKCS1V15_SIGN'],
     'MBEDTLS_RSA_C': ['MBEDTLS_PKCS1_V15',

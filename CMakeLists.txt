@@ -170,6 +170,12 @@ else ()
     endif ()
 endif ()
 
+# validate that MemSan Build Configuration is run only with clang
+
+if((CMAKE_BUILD_TYPE STREQUAL "MemSan") AND (NOT CMAKE_COMPILER_IS_CLANG))
+    message(FATAL_ERROR "MBEDTLS : CMAKE_BUILD_TYPE MemSan can only be configured with the clang compiler instead we are using ${COMPILER_ID}")
+endif ()
+
 
 # Inform about the currently selected build type
 message(STATUS "MBEDTLS : CMAKE_BUILD_TYPE set to ${CMAKE_BUILD_TYPE}")

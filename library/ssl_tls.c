@@ -4462,7 +4462,7 @@ void mbedtls_ssl_handshake_free(mbedtls_ssl_context *ssl)
 #endif /* MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED */
 
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
-    if (ssl->conf != NULL && ssl->conf->f_async_cancel != NULL && handshake->async_in_progress != 0) {
+    if(ssl->conf->f_async_cancel != NULL && handshake->async_in_progress != 0) {
         ssl->conf->f_async_cancel(ssl);
         handshake->async_in_progress = 0;
     }

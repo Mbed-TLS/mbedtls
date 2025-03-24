@@ -31,6 +31,8 @@
 /* First include Mbed TLS headers to get the Mbed TLS configuration and
  * platform definitions that we'll use in this program. Also include
  * standard C headers for functions we'll use here. */
+#define MBEDTLS_DECLARE_PRIVATE_IDENTIFIERS
+
 #include "mbedtls/build_info.h"
 
 #include "mbedtls/cipher.h"

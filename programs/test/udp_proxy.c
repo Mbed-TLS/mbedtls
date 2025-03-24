@@ -12,6 +12,8 @@
  */
 
 
+#define MBEDTLS_DECLARE_PRIVATE_IDENTIFIERS
+
 #include "mbedtls/build_info.h"
 
 #if defined(MBEDTLS_PLATFORM_C)

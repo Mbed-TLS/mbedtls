@@ -7,6 +7,8 @@
 
 #if defined(_WIN32_WCE)
 
+#define MBEDTLS_DECLARE_PRIVATE_IDENTIFIERS
+
 #include <windows.h>
 
 extern int main(int, const char **);

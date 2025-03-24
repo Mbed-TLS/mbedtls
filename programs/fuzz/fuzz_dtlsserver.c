@@ -1,3 +1,5 @@
+#define MBEDTLS_DECLARE_PRIVATE_IDENTIFIERS
+
 #include <string.h>
 #include <stdlib.h>
 #include <stdint.h>

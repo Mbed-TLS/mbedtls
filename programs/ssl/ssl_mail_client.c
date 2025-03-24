@@ -11,6 +11,8 @@
 
 #define _POSIX_C_SOURCE 200112L
 #define _XOPEN_SOURCE 600
+#define MBEDTLS_DECLARE_PRIVATE_IDENTIFIERS
+
 
 #include "mbedtls/build_info.h"
 

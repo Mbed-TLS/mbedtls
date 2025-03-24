@@ -64,6 +64,7 @@ int main(void)
 #define DFL_ARC4                -1
 #define DFL_SHA1                -1
 #define DFL_AUTH_MODE           -1
+#define DFL_SET_HOSTNAME        1
 #define DFL_MFL_CODE            MBEDTLS_SSL_MAX_FRAG_LEN_NONE
 #define DFL_TRUNC_HMAC          -1
 #define DFL_RECSPLIT            -1
@@ -380,6 +381,9 @@ int main(void)
 #define USAGE2 \
     "    auth_mode=%%s        default: (library default: none)\n" \
     "                        options: none, optional, required\n" \
+    "    set_hostname=%%s     call mbedtls_ssl_set_hostname()?" \
+    "                        options: no, server_name, NULL\n" \
+    "                        default: server_name (but ignored if certs disabled)\n"  \
     USAGE_IO                                                \
     USAGE_KEY_OPAQUE                                        \
     USAGE_CA_CALLBACK                                       \
@@ -473,6 +477,8 @@ struct options {
     int arc4;                   /* flag for arc4 suites support             */
     int allow_sha1;             /* flag for SHA-1 support                   */
     int auth_mode;              /* verify mode for connection               */
+    int set_hostname;           /* call mbedtls_ssl_set_hostname()?         */
+                                /* 0=no, 1=yes, -1=NULL */
     unsigned char mfl_code;     /* code for maximum fragment length         */
     int trunc_hmac;             /* negotiate truncated hmac or not          */
     int recsplit;               /* enable record splitting?                 */
@@ -796,6 +802,7 @@ int main(int argc, char *argv[])
     opt.arc4                = DFL_ARC4;
     opt.allow_sha1          = DFL_SHA1;
     opt.auth_mode           = DFL_AUTH_MODE;
+    opt.set_hostname        = DFL_SET_HOSTNAME;
     opt.mfl_code            = DFL_MFL_CODE;
     opt.trunc_hmac          = DFL_TRUNC_HMAC;
     opt.recsplit            = DFL_RECSPLIT;
@@ -1145,6 +1152,16 @@ usage:
                 opt.auth_mode = MBEDTLS_SSL_VERIFY_OPTIONAL;
             } else if (strcmp(q, "required") == 0) {
                 opt.auth_mode = MBEDTLS_SSL_VERIFY_REQUIRED;
+            } else {
+                goto usage;
+            }
+        } else if (strcmp(p, "set_hostname") == 0) {
+            if (strcmp(q, "no") == 0) {
+                opt.set_hostname = 0;
+            } else if (strcmp(q, "server_name") == 0) {
+                opt.set_hostname = 1;
+            } else if (strcmp(q, "NULL") == 0) {
+                opt.set_hostname = -1;
             } else {
                 goto usage;
             }
@@ -1893,10 +1910,24 @@ usage:
     }
 
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
-    if ((ret = mbedtls_ssl_set_hostname(&ssl, opt.server_name)) != 0) {
-        mbedtls_printf(" failed\n  ! mbedtls_ssl_set_hostname returned %d\n\n",
-                       ret);
-        goto exit;
+    switch (opt.set_hostname) {
+        case -1:
+            if ((ret = mbedtls_ssl_set_hostname(&ssl, NULL)) != 0) {
+                mbedtls_printf(" failed\n  ! mbedtls_ssl_set_hostname returned %d\n\n",
+                               ret);
+                goto exit;
+            }
+            break;
+        case 0:
+            /* Skip the call */
+            break;
+        default:
+            if ((ret = mbedtls_ssl_set_hostname(&ssl, opt.server_name)) != 0) {
+                mbedtls_printf(" failed\n  ! mbedtls_ssl_set_hostname returned %d\n\n",
+                               ret);
+                goto exit;
+            }
+            break;
     }
 #endif
 

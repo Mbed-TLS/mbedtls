@@ -1,3 +1,0 @@
-Bugfix
-   * Fix issue where psa_key_derivation_input_integer() is not detecting
-     bad state after an operation has been aborted.

@@ -143,7 +143,7 @@ set(MBEDTLS_ALLOWED_BUILDTYPES None Debug Release Coverage ASan ASanDbg MemSan M
 
 if(NOT MBEDTLS_AS_SUBPROJECT)
     # Inform about the currently possible build types
-    message(STATUS "MBEDTLS : Possible CMAKE_BUILD_TYPE Values : ${MBEDTLS_ALLOWED_BUILDTYPES}")
+    message(STATUS "${PROJECT_NAME} : Possible CMAKE_BUILD_TYPE Values : ${MBEDTLS_ALLOWED_BUILDTYPES}")
 
     # Set the CMake default build type to Release if it is not defined and we are the root project
     if(NOT DEFINED CMAKE_BUILD_TYPE OR CMAKE_BUILD_TYPE STREQUAL "")
@@ -151,7 +151,7 @@ if(NOT MBEDTLS_AS_SUBPROJECT)
     endif ()
     # If the value of CMAKE_BUILD_TYPE is defined then validate it and exit fatally if it is invalid
     if(NOT CMAKE_BUILD_TYPE IN_LIST MBEDTLS_ALLOWED_BUILDTYPES)
-        message(FATAL_ERROR "MBEDTLS : CMAKE_BUILD_TYPE must be one of: ${MBEDTLS_ALLOWED_BUILDTYPES}")
+        message(FATAL_ERROR "${PROJECT_NAME} : CMAKE_BUILD_TYPE must be one of: ${MBEDTLS_ALLOWED_BUILDTYPES}")
     else ()
         # set the valid build type value in the cache only if we are not a subproject
         set(CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE}
@@ -161,20 +161,20 @@ if(NOT MBEDTLS_AS_SUBPROJECT)
 else ()
     # If we are a subproject then we warn if build type is not compatible with our project
     if(NOT CMAKE_BUILD_TYPE IN_LIST MBEDTLS_ALLOWED_BUILDTYPES)
-        message(WARNING "**** WARNING : MBEDTLS is being configured as a CMake Subdirectory without setting a proper build type. This may lead to unpredictable CMAKE optimizations")
-        message(WARNING "**** WARNING : MBEDTLS : CMAKE_BUILD_TYPE must be one of: ${MBEDTLS_ALLOWED_BUILDTYPES}")
+        message(WARNING "**** WARNING : ${PROJECT_NAME} is being configured as a CMake Subdirectory without setting a proper build type. This may lead to unpredictable CMAKE optimizations")
+        message(WARNING "**** WARNING : ${PROJECT_NAME} : CMAKE_BUILD_TYPE must be one of: ${MBEDTLS_ALLOWED_BUILDTYPES}")
     endif ()
 endif ()
 
 # validate that MemSan Build Configuration is run only with clang
 
 if((CMAKE_BUILD_TYPE STREQUAL "MemSan") AND (NOT CMAKE_COMPILER_IS_CLANG))
-    message(FATAL_ERROR "MBEDTLS : CMAKE_BUILD_TYPE MemSan can only be configured with the clang compiler instead we are using ${COMPILER_ID}")
+    message(FATAL_ERROR "${PROJECT_NAME} : CMAKE_BUILD_TYPE MemSan can only be configured with the clang compiler instead we are using ${COMPILER_ID}")
 endif ()
 
 
 # Inform about the currently selected build type
-message(STATUS "MBEDTLS : CMAKE_BUILD_TYPE set to ${CMAKE_BUILD_TYPE}")
+message(STATUS "${PROJECT_NAME} : CMAKE_BUILD_TYPE set to ${CMAKE_BUILD_TYPE}")
 
 
 # Make MBEDTLS_CONFIG_FILE and MBEDTLS_USER_CONFIG_FILE into PATHs

@@ -1622,6 +1622,46 @@
  */
 //#define MBEDTLS_SSL_ASYNC_PRIVATE
 
+/** \def MBEDTLS_SSL_CLI_ALLOW_WEAK_CERTIFICATE_VERIFICATION_WITHOUT_HOSTNAME
+ *
+ * In TLS clients, when a client authenticates a server through its
+ * certificate, the client normally checks three things:
+ * - the certificate chain must be valid;
+ * - the chain must start from a trusted CA;
+ * - the certificate must cover the server name that is expected by the client.
+ *
+ * Omitting any of these checks is generally insecure, and can allow a
+ * malicious server to impersonate a legitimate server.
+ *
+ * The third check may be safely skipped in some unusual scenarios,
+ * such as networks where eavesdropping is a risk but not active attacks,
+ * or a private PKI where the client equally trusts all servers that are
+ * accredited by the root CA.
+ *
+ * You should call mbedtls_ssl_set_hostname() with the expected server name
+ * before starting a TLS handshake on a client (unless the client is
+ * set up to only use PSK-based authentication, which does not rely on the
+ * host name). This configuration option controls what happens if a TLS client
+ * is configured with the authentication mode #MBEDTLS_SSL_VERIFY_REQUIRED
+ * (default), certificate authentication is enabled and the client does not
+ * call mbedtls_ssl_set_hostname():
+ *
+ * - If this option is unset (default), the connection attempt is aborted
+ *   with the error #MBEDTLS_ERR_SSL_CERTIFICATE_VERIFICATION_WITHOUT_HOSTNAME.
+ * - If this option is set, the TLS library does not check the server name
+ *   that the certificate is valid for. This is the historical behavior
+ *   of Mbed TLS, but may be insecure as explained above.
+ *
+ * Enable this option for strict backward compatibility if you have
+ * determined that it is secure in the scenario where you are using
+ * Mbed TLS.
+ *
+ * \deprecated This option exists only for backward compatibility and will
+ *             be removed in the next major version of Mbed TLS.
+ *
+ */
+//#define MBEDTLS_SSL_CLI_ALLOW_WEAK_CERTIFICATE_VERIFICATION_WITHOUT_HOSTNAME
+
 /**
  * \def MBEDTLS_SSL_CONTEXT_SERIALIZATION
  *

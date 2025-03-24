@@ -20,7 +20,7 @@ if(INSTALL_MBEDTLS_HEADERS)
 
     file(GLOB headers "mbedtls/*.h")
 
-    # if the override is defined remove the default mbedtls_config.h, validity checks for the override are conducted above
+    # if the override is defined remove the default mbedtls_config.h and add custom header, validity checks for the override are conducted above
     if(MBEDTLS_CONFIG_FILE)
         list(REMOVE_ITEM headers "${CMAKE_CURRENT_SOURCE_DIR}/mbedtls/mbedtls_config.h")
         list(APPEND headers ${MBEDTLS_CONFIG_FILE})

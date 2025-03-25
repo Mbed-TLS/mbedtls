@@ -1,3 +1,5 @@
+#define MBEDTLS_DECLARE_PRIVATE_IDENTIFIERS
+
 #include <stdint.h>
 #include "mbedtls/x509_crt.h"
 #include "common.h"

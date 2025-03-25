@@ -10,6 +10,7 @@
  * set before mbedtls_config.h, which pulls in glibc's features.h indirectly.
  * Harmless on other platforms. */
 #define _POSIX_C_SOURCE 200112L
+#define MBEDTLS_DECLARE_PRIVATE_IDENTIFIERS
 
 #include "mbedtls/build_info.h"
 

@@ -20,7 +20,7 @@
 
 HEADER_INCLUDED
 
-const char *mbedtls_high_level_strerr(int error_code)
+static const char *mbedtls_high_level_strerr(int error_code)
 {
     int high_level_error_code;
 
@@ -43,7 +43,7 @@ const char *mbedtls_high_level_strerr(int error_code)
     return NULL;
 }
 
-const char *mbedtls_low_level_strerr(int error_code)
+static const char *mbedtls_low_level_strerr(int error_code)
 {
     int low_level_error_code;
 

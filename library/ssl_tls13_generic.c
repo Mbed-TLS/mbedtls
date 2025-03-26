@@ -45,6 +45,9 @@ const uint8_t mbedtls_ssl_tls13_hello_retry_request_magic[
   0xC2, 0xA2, 0x11, 0x16, 0x7A, 0xBB, 0x8C, 0x5E,
   0x07, 0x9E, 0x09, 0xE2, 0xC8, 0xA8, 0x33, 0x9C };
 
+const uint64_t mbedtls_ssl_tls13_downgrade_magic_tls12 = 0x444F574E47524401;
+const uint64_t mbedtls_ssl_tls13_downgrade_magic_tls11 = 0x444F574E47524400;
+
 int mbedtls_ssl_tls13_fetch_handshake_msg(mbedtls_ssl_context *ssl,
                                           unsigned hs_type,
                                           unsigned char **buf,

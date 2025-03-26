@@ -1851,6 +1851,9 @@ static inline int mbedtls_ssl_conf_is_hybrid_tls12_tls13(const mbedtls_ssl_confi
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
 extern const uint8_t mbedtls_ssl_tls13_hello_retry_request_magic[
     MBEDTLS_SERVER_HELLO_RANDOM_LEN];
+extern const uint64_t mbedtls_ssl_tls13_downgrade_magic_tls12;
+extern const uint64_t mbedtls_ssl_tls13_downgrade_magic_tls11;
+
 MBEDTLS_CHECK_RETURN_CRITICAL
 int mbedtls_ssl_tls13_process_finished_message(mbedtls_ssl_context *ssl);
 MBEDTLS_CHECK_RETURN_CRITICAL

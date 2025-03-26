@@ -3144,7 +3144,7 @@ exit:
 
 /* This test case doesn't actually depend on certificates,
  * but our helper code for mbedtls_test_ssl_endpoint does. */
-/* BEGIN_CASE depends_on:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED */
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:PSA_WANT_ALG_SHA_256:PSA_WANT_ECC_SECP_R1_256:PSA_WANT_ECC_SECP_R1_384:PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_IMPORT:PSA_WANT_ALG_ECDSA_ANY */
 void recombine_server_first_flight(int version,
                                    int instruction, int param,
                                    char *client_log, char *server_log,
@@ -3178,6 +3178,10 @@ void recombine_server_first_flight(int version,
 #if defined(MBEDTLS_DEBUG_C)
     mbedtls_debug_set_threshold(3);
 #endif
+
+    // Does't really matter but we want to know to declare dependencies.
+    client_options.pk_alg = MBEDTLS_PK_ECDSA;
+    server_options.pk_alg = MBEDTLS_PK_ECDSA;
 
     client_options.client_min_version = version;
     client_options.client_max_version = version;

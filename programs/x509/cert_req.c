@@ -109,9 +109,7 @@ struct options {
     mbedtls_md_type_t md_alg;         /* Hash algorithm used for signature.       */
 } opt;
 
-static int write_certificate_request(mbedtls_x509write_csr *req, const char *output_file,
-                                     int (*f_rng)(void *, unsigned char *, size_t),
-                                     void *p_rng)
+static int write_certificate_request(mbedtls_x509write_csr *req, const char *output_file)
 {
     int ret;
     FILE *f;
@@ -119,7 +117,7 @@ static int write_certificate_request(mbedtls_x509write_csr *req, const char *out
     size_t len = 0;
 
     memset(output_buf, 0, 4096);
-    if ((ret = mbedtls_x509write_csr_pem(req, output_buf, 4096, f_rng, p_rng)) < 0) {
+    if ((ret = mbedtls_x509write_csr_pem(req, output_buf, 4096)) < 0) {
         return ret;
     }
 
@@ -454,8 +452,7 @@ usage:
     mbedtls_printf("  . Loading the private key ...");
     fflush(stdout);
 
-    ret = mbedtls_pk_parse_keyfile(&key, opt.filename, opt.password,
-                                   mbedtls_ctr_drbg_random, &ctr_drbg);
+    ret = mbedtls_pk_parse_keyfile(&key, opt.filename, opt.password);
 
     if (ret != 0) {
         mbedtls_printf(" failed\n  !  mbedtls_pk_parse_keyfile returned %d", ret);
@@ -472,8 +469,7 @@ usage:
     mbedtls_printf("  . Writing the certificate request ...");
     fflush(stdout);
 
-    if ((ret = write_certificate_request(&req, opt.output_file,
-                                         mbedtls_ctr_drbg_random, &ctr_drbg)) != 0) {
+    if ((ret = write_certificate_request(&req, opt.output_file)) != 0) {
         mbedtls_printf(" failed\n  !  write_certificate_request %d", ret);
         goto exit;
     }

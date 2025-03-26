@@ -89,8 +89,7 @@ int main(int argc, char *argv[])
     mbedtls_printf("\n  . Reading private key from '%s'", argv[1]);
     fflush(stdout);
 
-    if ((ret = mbedtls_pk_parse_keyfile(&pk, argv[1], "",
-                                        mbedtls_ctr_drbg_random, &ctr_drbg)) != 0) {
+    if ((ret = mbedtls_pk_parse_keyfile(&pk, argv[1], "")) != 0) {
         mbedtls_printf(" failed\n  ! mbedtls_pk_parse_keyfile returned -0x%04x\n",
                        (unsigned int) -ret);
         goto exit;
@@ -119,8 +118,7 @@ int main(int argc, char *argv[])
     mbedtls_printf("\n  . Decrypting the encrypted data");
     fflush(stdout);
 
-    if ((ret = mbedtls_pk_decrypt(&pk, buf, i, result, &olen, sizeof(result),
-                                  mbedtls_ctr_drbg_random, &ctr_drbg)) != 0) {
+    if ((ret = mbedtls_pk_decrypt(&pk, buf, i, result, &olen, sizeof(result))) != 0) {
         mbedtls_printf(" failed\n  ! mbedtls_pk_decrypt returned -0x%04x\n",
                        (unsigned int) -ret);
         goto exit;

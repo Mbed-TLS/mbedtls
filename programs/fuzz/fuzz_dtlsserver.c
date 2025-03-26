@@ -82,8 +82,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size)
             return 1;
         }
         if (mbedtls_pk_parse_key(&pkey, (const unsigned char *) mbedtls_test_srv_key,
-                                 mbedtls_test_srv_key_len, NULL, 0,
-                                 dummy_random, &ctr_drbg) != 0) {
+                                 mbedtls_test_srv_key_len, NULL, 0) != 0) {
             return 1;
         }
 #endif

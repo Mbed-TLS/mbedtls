@@ -824,7 +824,7 @@ static sni_entry *sni_parse(char *sni_string)
         mbedtls_pk_init(new->key);
 
         if (mbedtls_x509_crt_parse_file(new->cert, crt_file) != 0 ||
-            mbedtls_pk_parse_keyfile(new->key, key_file, "", rng_get, &rng) != 0) {
+            mbedtls_pk_parse_keyfile(new->key, key_file, "") != 0) {
             goto error;
         }
 
@@ -1175,8 +1175,7 @@ static int ssl_async_start(mbedtls_ssl_context *ssl,
      * public key. */
     for (slot = 0; slot < config_data->slots_used; slot++) {
         if (mbedtls_pk_check_pair(&cert->pk,
-                                  config_data->slots[slot].pk,
-                                  rng_get, &rng) == 0) {
+                                  config_data->slots[slot].pk) == 0) {
             break;
         }
     }
@@ -1247,12 +1246,16 @@ static int ssl_async_resume(mbedtls_ssl_context *ssl,
     }
 
     switch (ctx->operation_type) {
+        case ASYNC_OP_DECRYPT:
+            ret = mbedtls_pk_decrypt(key_slot->pk,
+                                     ctx->input, ctx->input_len,
+                                     output, output_len, output_size);
+            break;
         case ASYNC_OP_SIGN:
             ret = mbedtls_pk_sign(key_slot->pk,
                                   ctx->md_alg,
                                   ctx->input, ctx->input_len,
-                                  output, output_size, output_len,
-                                  config_data->f_rng, config_data->p_rng);
+                                  output, output_size, output_len);
             break;
         default:
             mbedtls_printf(
@@ -2637,7 +2640,7 @@ usage:
     if (strlen(opt.key_file) && strcmp(opt.key_file, "none") != 0) {
         key_cert_init++;
         if ((ret = mbedtls_pk_parse_keyfile(&pkey, opt.key_file,
-                                            opt.key_pwd, rng_get, &rng)) != 0) {
+                                            opt.key_pwd)) != 0) {
             mbedtls_printf(" failed\n  !  mbedtls_pk_parse_keyfile returned -0x%x\n\n",
                            (unsigned int) -ret);
             goto exit;
@@ -2659,7 +2662,7 @@ usage:
     if (strlen(opt.key_file2) && strcmp(opt.key_file2, "none") != 0) {
         key_cert_init2++;
         if ((ret = mbedtls_pk_parse_keyfile(&pkey2, opt.key_file2,
-                                            opt.key_pwd2, rng_get, &rng)) != 0) {
+                                            opt.key_pwd2)) != 0) {
             mbedtls_printf(" failed\n  !  mbedtls_pk_parse_keyfile(2) returned -0x%x\n\n",
                            (unsigned int) -ret);
             goto exit;
@@ -2686,8 +2689,7 @@ usage:
         }
         if ((ret = mbedtls_pk_parse_key(&pkey,
                                         (const unsigned char *) mbedtls_test_srv_key_rsa,
-                                        mbedtls_test_srv_key_rsa_len, NULL, 0,
-                                        rng_get, &rng)) != 0) {
+                                        mbedtls_test_srv_key_rsa_len, NULL, 0)) != 0) {
             mbedtls_printf(" failed\n  !  mbedtls_pk_parse_key returned -0x%x\n\n",
                            (unsigned int) -ret);
             goto exit;
@@ -2704,8 +2706,7 @@ usage:
         }
         if ((ret = mbedtls_pk_parse_key(&pkey2,
                                         (const unsigned char *) mbedtls_test_srv_key_ec,
-                                        mbedtls_test_srv_key_ec_len, NULL, 0,
-                                        rng_get, &rng)) != 0) {
+                                        mbedtls_test_srv_key_ec_len, NULL, 0)) != 0) {
             mbedtls_printf(" failed\n  !  pk_parse_key2 returned -0x%x\n\n",
                            (unsigned int) -ret);
             goto exit;

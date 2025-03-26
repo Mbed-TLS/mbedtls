@@ -248,8 +248,7 @@ usage:
             goto cleanup;
         }
 
-        ret = mbedtls_pk_parse_keyfile(&pk, opt.filename, opt.password,
-                                       mbedtls_ctr_drbg_random, &ctr_drbg);
+        ret = mbedtls_pk_parse_keyfile(&pk, opt.filename, opt.password);
 
         if (ret != 0) {
             mbedtls_printf(" failed\n  !  mbedtls_pk_parse_keyfile returned -0x%04x\n",

@@ -131,9 +131,7 @@ int mbedtls_x509write_csr_set_ns_cert_type(mbedtls_x509write_csr *ctx,
 static int x509write_csr_der_internal(mbedtls_x509write_csr *ctx,
                                       unsigned char *buf,
                                       size_t size,
-                                      unsigned char *sig, size_t sig_size,
-                                      int (*f_rng)(void *, unsigned char *, size_t),
-                                      void *p_rng)
+                                      unsigned char *sig, size_t sig_size)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     const char *sig_oid;
@@ -218,8 +216,7 @@ static int x509write_csr_der_internal(mbedtls_x509write_csr *ctx,
         return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
     }
     if ((ret = mbedtls_pk_sign(ctx->key, ctx->md_alg, hash, 0,
-                               sig, sig_size, &sig_len,
-                               f_rng, p_rng)) != 0) {
+                               sig, sig_size, &sig_len)) != 0) {
         return ret;
     }
 
@@ -274,9 +271,7 @@ static int x509write_csr_der_internal(mbedtls_x509write_csr *ctx,
 }
 
 int mbedtls_x509write_csr_der(mbedtls_x509write_csr *ctx, unsigned char *buf,
-                              size_t size,
-                              int (*f_rng)(void *, unsigned char *, size_t),
-                              void *p_rng)
+                              size_t size)
 {
     int ret;
     unsigned char *sig;
@@ -286,8 +281,7 @@ int mbedtls_x509write_csr_der(mbedtls_x509write_csr *ctx, unsigned char *buf,
     }
 
     ret = x509write_csr_der_internal(ctx, buf, size,
-                                     sig, MBEDTLS_PK_SIGNATURE_MAX_SIZE,
-                                     f_rng, p_rng);
+                                     sig, MBEDTLS_PK_SIGNATURE_MAX_SIZE);
 
     mbedtls_free(sig);
 
@@ -298,15 +292,12 @@ int mbedtls_x509write_csr_der(mbedtls_x509write_csr *ctx, unsigned char *buf,
 #define PEM_END_CSR             "-----END CERTIFICATE REQUEST-----\n"
 
 #if defined(MBEDTLS_PEM_WRITE_C)
-int mbedtls_x509write_csr_pem(mbedtls_x509write_csr *ctx, unsigned char *buf, size_t size,
-                              int (*f_rng)(void *, unsigned char *, size_t),
-                              void *p_rng)
+int mbedtls_x509write_csr_pem(mbedtls_x509write_csr *ctx, unsigned char *buf, size_t size)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t olen = 0;
 
-    if ((ret = mbedtls_x509write_csr_der(ctx, buf, size,
-                                         f_rng, p_rng)) < 0) {
+    if ((ret = mbedtls_x509write_csr_der(ctx, buf, size)) < 0) {
         return ret;
     }
 

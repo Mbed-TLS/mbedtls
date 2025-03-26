@@ -206,9 +206,7 @@ struct options {
     int format;                 /* format                               */
 } opt;
 
-static int write_certificate(mbedtls_x509write_cert *crt, const char *output_file,
-                             int (*f_rng)(void *, unsigned char *, size_t),
-                             void *p_rng)
+static int write_certificate(mbedtls_x509write_cert *crt, const char *output_file)
 {
     int ret;
     FILE *f;
@@ -218,8 +216,7 @@ static int write_certificate(mbedtls_x509write_cert *crt, const char *output_fil
 
     memset(output_buf, 0, 4096);
     if (opt.format == FORMAT_DER) {
-        ret = mbedtls_x509write_crt_der(crt, output_buf, 4096,
-                                        f_rng, p_rng);
+        ret = mbedtls_x509write_crt_der(crt, output_buf, 4096);
         if (ret < 0) {
             return ret;
         }
@@ -227,8 +224,7 @@ static int write_certificate(mbedtls_x509write_cert *crt, const char *output_fil
         len = ret;
         output_start = output_buf + 4096 - len;
     } else {
-        ret = mbedtls_x509write_crt_pem(crt, output_buf, 4096,
-                                        f_rng, p_rng);
+        ret = mbedtls_x509write_crt_pem(crt, output_buf, 4096);
         if (ret < 0) {
             return ret;
         }
@@ -780,7 +776,7 @@ usage:
         fflush(stdout);
 
         ret = mbedtls_pk_parse_keyfile(&loaded_subject_key, opt.subject_key,
-                                       opt.subject_pwd, mbedtls_ctr_drbg_random, &ctr_drbg);
+                                       opt.subject_pwd);
         if (ret != 0) {
             mbedtls_strerror(ret, buf, sizeof(buf));
             mbedtls_printf(" failed\n  !  mbedtls_pk_parse_keyfile "
@@ -795,7 +791,7 @@ usage:
     fflush(stdout);
 
     ret = mbedtls_pk_parse_keyfile(&loaded_issuer_key, opt.issuer_key,
-                                   opt.issuer_pwd, mbedtls_ctr_drbg_random, &ctr_drbg);
+                                   opt.issuer_pwd);
     if (ret != 0) {
         mbedtls_strerror(ret, buf, sizeof(buf));
         mbedtls_printf(" failed\n  !  mbedtls_pk_parse_keyfile "
@@ -806,8 +802,7 @@ usage:
     // Check if key and issuer certificate match
     //
     if (strlen(opt.issuer_crt)) {
-        if (mbedtls_pk_check_pair(&issuer_crt.pk, issuer_key,
-                                  mbedtls_ctr_drbg_random, &ctr_drbg) != 0) {
+        if (mbedtls_pk_check_pair(&issuer_crt.pk, issuer_key) != 0) {
             mbedtls_printf(" failed\n  !  issuer_key does not match "
                            "issuer certificate\n\n");
             goto exit;
@@ -984,8 +979,7 @@ usage:
     mbedtls_printf("  . Writing the certificate...");
     fflush(stdout);
 
-    if ((ret = write_certificate(&crt, opt.output_file,
-                                 mbedtls_ctr_drbg_random, &ctr_drbg)) != 0) {
+    if ((ret = write_certificate(&crt, opt.output_file)) != 0) {
         mbedtls_strerror(ret, buf, sizeof(buf));
         mbedtls_printf(" failed\n  !  write_certificate -0x%04x - %s\n\n",
                        (unsigned int) -ret, buf);

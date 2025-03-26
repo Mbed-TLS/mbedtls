@@ -379,9 +379,7 @@ static int x509_write_time(unsigned char **p, unsigned char *start,
 }
 
 int mbedtls_x509write_crt_der(mbedtls_x509write_cert *ctx,
-                              unsigned char *buf, size_t size,
-                              int (*f_rng)(void *, unsigned char *, size_t),
-                              void *p_rng)
+                              unsigned char *buf, size_t size)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     const char *sig_oid;
@@ -571,8 +569,7 @@ int mbedtls_x509write_crt_der(mbedtls_x509write_cert *ctx,
 
 
     if ((ret = mbedtls_pk_sign(ctx->issuer_key, ctx->md_alg,
-                               hash, hash_length, sig, sizeof(sig), &sig_len,
-                               f_rng, p_rng)) != 0) {
+                               hash, hash_length, sig, sizeof(sig), &sig_len)) != 0) {
         return ret;
     }
 
@@ -614,15 +611,12 @@ int mbedtls_x509write_crt_der(mbedtls_x509write_cert *ctx,
 
 #if defined(MBEDTLS_PEM_WRITE_C)
 int mbedtls_x509write_crt_pem(mbedtls_x509write_cert *crt,
-                              unsigned char *buf, size_t size,
-                              int (*f_rng)(void *, unsigned char *, size_t),
-                              void *p_rng)
+                              unsigned char *buf, size_t size)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t olen;
 
-    if ((ret = mbedtls_x509write_crt_der(crt, buf, size,
-                                         f_rng, p_rng)) < 0) {
+    if ((ret = mbedtls_x509write_crt_der(crt, buf, size)) < 0) {
         return ret;
     }
 

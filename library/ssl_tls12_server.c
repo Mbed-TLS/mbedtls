@@ -3035,9 +3035,7 @@ curve_matching_done:
                                    md_alg, hash, hashlen,
                                    ssl->out_msg + ssl->out_msglen + 2,
                                    out_buf_len - ssl->out_msglen - 2,
-                                   signature_len,
-                                   ssl->conf->f_rng,
-                                   ssl->conf->p_rng)) != 0) {
+                                   signature_len)) != 0) {
             MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_pk_sign", ret);
             return ret;
         }

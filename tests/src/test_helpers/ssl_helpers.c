@@ -652,8 +652,7 @@ int mbedtls_test_ssl_endpoint_certificate_init(mbedtls_test_ssl_endpoint *ep,
             ret = mbedtls_pk_parse_key(
                 cert->pkey,
                 (const unsigned char *) mbedtls_test_srv_key_rsa_der,
-                mbedtls_test_srv_key_rsa_der_len, NULL, 0,
-                mbedtls_test_rnd_std_rand, NULL);
+                mbedtls_test_srv_key_rsa_der_len, NULL, 0);
             TEST_ASSERT(ret == 0);
         } else {
             ret = mbedtls_x509_crt_parse(
@@ -665,8 +664,7 @@ int mbedtls_test_ssl_endpoint_certificate_init(mbedtls_test_ssl_endpoint *ep,
             ret = mbedtls_pk_parse_key(
                 cert->pkey,
                 (const unsigned char *) mbedtls_test_srv_key_ec_der,
-                mbedtls_test_srv_key_ec_der_len, NULL, 0,
-                mbedtls_test_rnd_std_rand, NULL);
+                mbedtls_test_srv_key_ec_der_len, NULL, 0);
             TEST_ASSERT(ret == 0);
         }
     } else {
@@ -680,8 +678,7 @@ int mbedtls_test_ssl_endpoint_certificate_init(mbedtls_test_ssl_endpoint *ep,
             ret = mbedtls_pk_parse_key(
                 cert->pkey,
                 (const unsigned char *) mbedtls_test_cli_key_rsa_der,
-                mbedtls_test_cli_key_rsa_der_len, NULL, 0,
-                mbedtls_test_rnd_std_rand, NULL);
+                mbedtls_test_cli_key_rsa_der_len, NULL, 0);
             TEST_ASSERT(ret == 0);
         } else {
             ret = mbedtls_x509_crt_parse(
@@ -693,8 +690,7 @@ int mbedtls_test_ssl_endpoint_certificate_init(mbedtls_test_ssl_endpoint *ep,
             ret = mbedtls_pk_parse_key(
                 cert->pkey,
                 (const unsigned char *) mbedtls_test_cli_key_ec_der,
-                mbedtls_test_cli_key_ec_der_len, NULL, 0,
-                mbedtls_test_rnd_std_rand, NULL);
+                mbedtls_test_cli_key_ec_der_len, NULL, 0);
             TEST_ASSERT(ret == 0);
         }
     }

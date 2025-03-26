@@ -113,7 +113,6 @@ OBJS_CRYPTO= \
 	     $(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto.o \
 	     $(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto_client.o \
 	     $(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto_driver_wrappers_no_static.o \
-	     $(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto_se.o \
 	     $(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto_slot_management.o \
 	     $(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto_storage.o \
 	     $(TF_PSA_CRYPTO_CORE_PATH)/psa_its_file.o \

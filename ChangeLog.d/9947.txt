@@ -1,2 +1,2 @@
 Bugfix
-   * fix issue with cmake -DMBEDTLS_CONFIG_FILE override not installing the specified header
+   * fix -DMBEDTLS_CONFIG_FILE override not installing the specified header

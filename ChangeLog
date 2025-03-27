@@ -35,6 +35,7 @@ Security
      The library will now prevent the handshake and return
      MBEDTLS_ERR_SSL_CERTIFICATE_VERIFICATION_WITHOUT_HOSTNAME
      if mbedtls_ssl_set_hostname() has not been called.
+     Reported by Daniel Stenberg.
      CVE-2025-27809
    * Zeroize a temporary heap buffer used in psa_key_derivation_output_key()
      when deriving an ECC key pair.

@@ -11,9 +11,18 @@
 
 use warnings;
 use strict;
+use Getopt::Long;
 use Digest::MD5 'md5_hex';
 
+# Declare variables for options
 my $vsx_dir = "visualc/VS2017";
+my $list = 0; # Default off
+
+GetOptions(
+    "directory=s" => \$vsx_dir, # Target directory
+    "list"        => \$list     # Only list generated files
+) or die "Invalid options\n";
+
 my $vsx_ext = "vcxproj";
 my $vsx_app_tpl_file = "scripts/data_files/vs2017-app-template.$vsx_ext";
 my $vsx_main_tpl_file = "scripts/data_files/vs2017-main-template.$vsx_ext";
@@ -33,6 +42,8 @@ my $crypto_core_source_dir = 'tf-psa-crypto/core';
 my $crypto_source_dir = 'tf-psa-crypto/drivers/builtin/src';
 my $tls_test_source_dir = 'tests/src';
 my $tls_test_header_dir = 'tests/include/test';
+my $crypto_test_source_dir = 'tf-psa-crypto/tests/src';
+my $crypto_test_header_dir = 'tf-psa-crypto/tests/include/test';
 my $test_source_dir = 'framework/tests/src';
 my $test_header_dir = 'framework/tests/include/test';
 my $test_drivers_header_dir = 'framework/tests/include/test/drivers';
@@ -59,6 +70,7 @@ my @include_directories = qw(
     tf-psa-crypto/drivers/everest/include/everest/vs2013
     tf-psa-crypto/drivers/everest/include/everest/kremlib
     tests/include
+    tf-psa-crypto/tests/include
     framework/tests/include
     framework/tests/programs
 );
@@ -122,9 +134,11 @@ sub check_dirs {
         && -d $crypto_source_dir
         && -d $test_source_dir
         && -d $tls_test_source_dir
+        && -d $crypto_test_source_dir
         && -d $test_drivers_source_dir
         && -d $test_header_dir
         && -d $tls_test_header_dir
+        && -d $crypto_test_header_dir
         && -d $test_drivers_header_dir
         && -d $mbedtls_programs_dir
         && -d $framework_programs_dir
@@ -280,7 +294,9 @@ sub main {
 
     # Remove old files to ensure that, for example, project files from deleted
     # apps are not kept
-    del_vsx_files();
+    if (not $list) {
+        del_vsx_files();
+    }
 
     my @app_list = get_app_list();
     my @header_dirs = (
@@ -289,6 +305,7 @@ sub main {
                        $psa_header_dir,
                        $test_header_dir,
                        $tls_test_header_dir,
+                       $crypto_test_header_dir,
                        $test_drivers_header_dir,
                        $tls_source_dir,
                        $crypto_core_source_dir,
@@ -303,6 +320,7 @@ sub main {
                        $crypto_source_dir,
                        $test_source_dir,
                        $tls_test_source_dir,
+                       $crypto_test_source_dir,
                        $test_drivers_source_dir,
                        @thirdparty_source_dirs,
                       );
@@ -313,13 +331,22 @@ sub main {
     map { s!/!\\!g } @headers;
     map { s!/!\\!g } @sources;
 
-    gen_app_files( @app_list );
+    if ($list) {
+        foreach my $app (@app_list) {
+            $app =~ s/.*\///;
+            print "$vsx_dir/$app.$vsx_ext\n";
+        }
+        print "$vsx_main_file\n";
+        print "$vsx_sln_file\n";
+    } else {
+        gen_app_files( @app_list );
 
-    gen_main_file( \@headers, \@sources,
-                   $vsx_hdr_tpl, $vsx_src_tpl,
-                   $vsx_main_tpl_file, $vsx_main_file );
+        gen_main_file( \@headers, \@sources,
+                       $vsx_hdr_tpl, $vsx_src_tpl,
+                       $vsx_main_tpl_file, $vsx_main_file );
 
-    gen_vsx_solution( @app_list );
+        gen_vsx_solution( @app_list );
+    }
 
     return 0;
 }

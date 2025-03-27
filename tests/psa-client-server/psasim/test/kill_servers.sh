@@ -8,7 +8,7 @@ set -e
 pkill psa_server || true
 
 # Remove temporary files
-rm -f psa_notify_*
+rm -f psasim-shm
 
 # Remove all IPCs
 # Not just ipcrm -all=msg as it is not supported on macOS.

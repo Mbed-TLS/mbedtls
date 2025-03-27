@@ -1,21 +1,8 @@
 set(executables_mbedcrypto
-    dh_genprime
-    ecdh_curve25519
-    ecdsa
     gen_key
-    key_app
-    key_app_writer
-    mpi_demo
-    pk_encrypt
-    pk_decrypt
     pk_sign
     pk_verify
-    rsa_decrypt
-    rsa_encrypt
-    rsa_genkey
-    rsa_sign
     rsa_sign_pss
-    rsa_verify
     rsa_verify_pss
 )
 add_dependencies(${programs_target} ${executables_mbedcrypto})

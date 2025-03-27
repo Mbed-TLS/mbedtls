@@ -2133,14 +2133,14 @@ static int ssl_write_server_hello(mbedtls_ssl_context *ssl)
     MBEDTLS_SSL_DEBUG_MSG(3, ("server hello, current time: %" MBEDTLS_PRINTF_LONGLONG,
                               (long long) t));
 #else
-    if ((ret = ssl->conf->f_rng(ssl->conf->p_rng, p, 4)) != 0) {
+    if ((ret = psa_generate_random(p, 4)) != 0) {
         return ret;
     }
 
     p += 4;
 #endif /* MBEDTLS_HAVE_TIME */
 
-    if ((ret = ssl->conf->f_rng(ssl->conf->p_rng, p, 20)) != 0) {
+    if ((ret = psa_generate_random(p, 20)) != 0) {
         return ret;
     }
     p += 20;
@@ -2166,7 +2166,7 @@ static int ssl_write_server_hello(mbedtls_ssl_context *ssl)
     } else
 #endif
     {
-        if ((ret = ssl->conf->f_rng(ssl->conf->p_rng, p, 8)) != 0) {
+        if ((ret = psa_generate_random(p, 8)) != 0) {
             return ret;
         }
     }
@@ -2197,8 +2197,8 @@ static int ssl_write_server_hello(mbedtls_ssl_context *ssl)
 #endif /* MBEDTLS_SSL_SESSION_TICKETS */
         {
             ssl->session_negotiate->id_len = n = 32;
-            if ((ret = ssl->conf->f_rng(ssl->conf->p_rng, ssl->session_negotiate->id,
-                                        n)) != 0) {
+            if ((ret = psa_generate_random(ssl->session_negotiate->id,
+                                           n)) != 0) {
                 return ret;
             }
         }

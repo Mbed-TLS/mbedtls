@@ -1721,9 +1721,7 @@ void mbedtls_ssl_transform_init(mbedtls_ssl_transform *transform);
 MBEDTLS_CHECK_RETURN_CRITICAL
 int mbedtls_ssl_encrypt_buf(mbedtls_ssl_context *ssl,
                             mbedtls_ssl_transform *transform,
-                            mbedtls_record *rec,
-                            int (*f_rng)(void *, unsigned char *, size_t),
-                            void *p_rng);
+                            mbedtls_record *rec);
 MBEDTLS_CHECK_RETURN_CRITICAL
 int mbedtls_ssl_decrypt_buf(mbedtls_ssl_context const *ssl,
                             mbedtls_ssl_transform *transform,

@@ -1405,10 +1405,6 @@ struct mbedtls_ssl_config {
     void(*MBEDTLS_PRIVATE(f_dbg))(void *, int, const char *, int, const char *);
     void *MBEDTLS_PRIVATE(p_dbg);                    /*!< context for the debug function     */
 
-    /** Callback for getting (pseudo-)random numbers                        */
-    int(*MBEDTLS_PRIVATE(f_rng))(void *, unsigned char *, size_t);
-    void *MBEDTLS_PRIVATE(p_rng);                    /*!< context for the RNG function       */
-
     /** Callback to retrieve a session from the cache                       */
     mbedtls_ssl_cache_get_t *MBEDTLS_PRIVATE(f_get_cache);
     /** Callback to store a session into the cache                          */
@@ -2059,17 +2055,6 @@ void mbedtls_ssl_conf_verify(mbedtls_ssl_config *conf,
                              int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *),
                              void *p_vrfy);
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
-
-/**
- * \brief          Set the random number generator callback
- *
- * \param conf     SSL configuration
- * \param f_rng    RNG function (mandatory)
- * \param p_rng    RNG parameter
- */
-void mbedtls_ssl_conf_rng(mbedtls_ssl_config *conf,
-                          int (*f_rng)(void *, unsigned char *, size_t),
-                          void *p_rng);
 
 /**
  * \brief          Set the debug callback

@@ -1223,11 +1223,6 @@ static int ssl_conf_check(const mbedtls_ssl_context *ssl)
         return ret;
     }
 
-    if (ssl->conf->f_rng == NULL) {
-        MBEDTLS_SSL_DEBUG_MSG(1, ("no RNG provided"));
-        return MBEDTLS_ERR_SSL_NO_RNG;
-    }
-
     /* Space for further checks */
 
     return 0;
@@ -1525,14 +1520,6 @@ void mbedtls_ssl_conf_verify(mbedtls_ssl_config *conf,
     conf->p_vrfy      = p_vrfy;
 }
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
-
-void mbedtls_ssl_conf_rng(mbedtls_ssl_config *conf,
-                          int (*f_rng)(void *, unsigned char *, size_t),
-                          void *p_rng)
-{
-    conf->f_rng      = f_rng;
-    conf->p_rng      = p_rng;
-}
 
 void mbedtls_ssl_conf_dbg(mbedtls_ssl_config *conf,
                           void (*f_dbg)(void *, int, const char *, int, const char *),
@@ -4479,6 +4466,7 @@ void mbedtls_ssl_handshake_free(mbedtls_ssl_context *ssl)
         ssl->conf->f_async_cancel(ssl);
         handshake->async_in_progress = 0;
     }
+
 #endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
 
 #if defined(PSA_WANT_ALG_SHA_256)

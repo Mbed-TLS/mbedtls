@@ -27,7 +27,6 @@ my @skip_functions = (
     'mbedtls_psa_crypto_free', # redefined rather than wrapped
     'mbedtls_psa_external_get_random', # not in the default config, uses unsupported type
     'mbedtls_psa_get_stats', # uses unsupported type
-    'mbedtls_psa_inject_entropy', # not in the default config, generally not for client use anyway
     'mbedtls_psa_platform_get_builtin_key', # not in the default config, uses unsupported type
     'psa_get_key_slot_number', # not in the default config, uses unsupported type
     'psa_key_derivation_verify_bytes', # not implemented yet

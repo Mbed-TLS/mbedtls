@@ -81,6 +81,7 @@
 /* Error space gap */
 /**
  * Received NewSessionTicket Post Handshake Message.
+ *
  * This error code is experimental and may be changed or removed without notice.
  */
 #define MBEDTLS_ERR_SSL_RECEIVED_NEW_SESSION_TICKET       -0x7B00
@@ -88,6 +89,7 @@
 #define MBEDTLS_ERR_SSL_CANNOT_READ_EARLY_DATA            -0x7B80
 /**
  * Early data has been received as part of an on-going handshake.
+ *
  * This error code can be returned only on server side if and only if early
  * data has been enabled by means of the mbedtls_ssl_conf_early_data() API.
  * This error code can then be returned by mbedtls_ssl_handshake(),

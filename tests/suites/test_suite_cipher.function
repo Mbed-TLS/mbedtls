@@ -1274,7 +1274,6 @@ void get_pkcs_padding(data_t *decrypted_block, int exp_ret, int exp_len)
     TEST_CF_SECRET(decrypted_block->x, decrypted_block->len);
     ret = mbedtls_get_pkcs_padding(decrypted_block->x, decrypted_block->len,
                                    &calculated_len);
-    TEST_CF_PUBLIC(decrypted_block->x, decrypted_block->len);
 
     TEST_EQUAL(ret, exp_ret);
     if (exp_ret == 0) {

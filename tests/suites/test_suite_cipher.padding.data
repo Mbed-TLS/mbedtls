@@ -224,6 +224,9 @@ get_pkcs_padding:"00112233445566778899AABBCCDDEE01":0:15
 Constant-time PKCS7 padding, valid #2
 get_pkcs_padding:"00112233445566778899AA0505050505":0:11
 
+Constant-time PKCS7 padding, valid #3
+get_pkcs_padding:"10101010101010101010101010101010":0:0
+
 Constant-time PKCS7 padding, invalid zero
 get_pkcs_padding:"00112233445566778899AABBCCDDEE00":MBEDTLS_ERR_CIPHER_INVALID_PADDING:0
 

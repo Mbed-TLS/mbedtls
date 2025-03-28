@@ -5229,6 +5229,7 @@ exit:
     mbedtls_debug_set_threshold(0);
     mbedtls_free(first_frag);
     PSA_DONE();
+}
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_SSL_KEYING_MATERIAL_EXPORT:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:PSA_WANT_ECC_SECP_R1_384:PSA_WANT_ALG_SHA_256 */

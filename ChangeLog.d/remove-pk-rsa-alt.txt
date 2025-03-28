@@ -1,2 +1,0 @@
-API changes
-   * Remove MBEDTLS_PK_RSA_ALT from the system.

@@ -839,6 +839,11 @@ static void add_pkcs_padding(unsigned char *output, size_t output_len,
     }
 }
 
+/*
+ * Get the length of the PKCS7 padding.
+ *
+ * Note: input_len must be the block size of the cipher.
+ */
 MBEDTLS_STATIC_TESTABLE int mbedtls_get_pkcs_padding(unsigned char *input,
                                                      size_t input_len,
                                                      size_t *data_len)

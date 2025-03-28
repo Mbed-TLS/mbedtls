@@ -74,7 +74,14 @@ typedef enum {
     RECOMBINE_COALESCE_SPLIT_BOTH_ENDS, /* param: offset, must be >0 */
 } recombine_records_instruction_t;
 
-#if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
+/* Keep this in sync with the recombine_server_first_flight()
+ * See comment there. */
+#if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED) && \
+    defined(PSA_WANT_ALG_SHA_256) && \
+    defined(PSA_WANT_ECC_SECP_R1_256) && \
+    defined(PSA_WANT_ECC_SECP_R1_384) && \
+    defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_IMPORT) && \
+    defined(PSA_WANT_ALG_ECDSA_ANY)
 
 /* Split the first record into two pieces of lengths offset and
  * record_length-offset. If offset is zero or negative, count from the end of
@@ -363,7 +370,7 @@ exit:
     return 0;
 }
 
-#endif /* MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED */
+#endif /* MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED etc */
 
 /* END_HEADER */
 
@@ -3105,7 +3112,11 @@ exit:
 /* END_CASE */
 
 /* This test case doesn't actually depend on certificates,
- * but our helper code for mbedtls_test_ssl_endpoint does. */
+ * but our helper code for mbedtls_test_ssl_endpoint does.
+ * Also, it needs specific hashes, algs and curves for the
+ * hardcoded test certificates. In principle both RSA and ECDSA
+ * can be used, but we hardcode ECDSA in order to avoid having
+ * to express dependencies like "RSA or ECDSA with those curves". */
 /* BEGIN_CASE depends_on:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:PSA_WANT_ALG_SHA_256:PSA_WANT_ECC_SECP_R1_256:PSA_WANT_ECC_SECP_R1_384:PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_IMPORT:PSA_WANT_ALG_ECDSA_ANY */
 void recombine_server_first_flight(int version,
                                    int instruction, int param,

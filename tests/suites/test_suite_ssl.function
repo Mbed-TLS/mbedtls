@@ -77,11 +77,11 @@ typedef enum {
 /* Keep this in sync with the recombine_server_first_flight()
  * See comment there. */
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED) && \
-    defined(PSA_WANT_ALG_SHA_256) && \
-    defined(PSA_WANT_ECC_SECP_R1_256) && \
-    defined(PSA_WANT_ECC_SECP_R1_384) && \
-    defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_IMPORT) && \
-    defined(PSA_WANT_ALG_ECDSA_ANY)
+    defined(MBEDTLS_MD_CAN_SHA256) && \
+    defined(MBEDTLS_ECP_HAVE_SECP256R1) && \
+    defined(MBEDTLS_ECP_HAVE_SECP384R1) && \
+    defined(MBEDTLS_PK_CAN_ECDSA_SIGN) && \
+    defined(MBEDTLS_PK_CAN_ECDSA_VERIFY)
 
 /* Split the first record into two pieces of lengths offset and
  * record_length-offset. If offset is zero or negative, count from the end of
@@ -3117,7 +3117,7 @@ exit:
  * hardcoded test certificates. In principle both RSA and ECDSA
  * can be used, but we hardcode ECDSA in order to avoid having
  * to express dependencies like "RSA or ECDSA with those curves". */
-/* BEGIN_CASE depends_on:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:PSA_WANT_ALG_SHA_256:PSA_WANT_ECC_SECP_R1_256:PSA_WANT_ECC_SECP_R1_384:PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_IMPORT:PSA_WANT_ALG_ECDSA_ANY */
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:MBEDTLS_MD_CAN_SHA256:MBEDTLS_ECP_HAVE_SECP256R1:MBEDTLS_ECP_HAVE_SECP384R1:MBEDTLS_PK_CAN_ECDSA_SIGN:MBEDTLS_PK_CAN_ECDSA_VERIFY */
 void recombine_server_first_flight(int version,
                                    int instruction, int param,
                                    char *client_log, char *server_log,

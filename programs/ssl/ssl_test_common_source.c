@@ -316,7 +316,6 @@ uint16_t ssl_sig_algs_for_test[] = {
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
-#if defined(MBEDTLS_X509_CRT_PARSE_C)
 /** Functionally equivalent to mbedtls_x509_crt_verify_info, see that function
  *  for more info.
  */
@@ -351,7 +350,6 @@ static int x509_crt_verify_info(char *buf, size_t size, const char *prefix,
     return (int) (size - n);
 #endif /* MBEDTLS_X509_REMOVE_INFO */
 }
-#endif /* MBEDTLS_X509_CRT_PARSE_C */
 
 static void mbedtls_print_supported_sig_algs(void)
 {

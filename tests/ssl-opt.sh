@@ -476,6 +476,11 @@ detect_required_features() {
     esac
 
     case " $CMD_LINE " in
+        *\ ca_callback=1\ *)
+            requires_config_enabled MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK;;
+    esac
+
+    case " $CMD_LINE " in
         *"programs/ssl/dtls_client "*|\
         *"programs/ssl/ssl_client1 "*)
             requires_config_enabled MBEDTLS_CTR_DRBG_C
@@ -2217,7 +2222,6 @@ run_test    "TLS: password protected server key, two certificates" \
             "$P_CLI" \
             0
 
-requires_config_enabled MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK
 run_test    "CA callback on client" \
             "$P_SRV debug_level=3" \
             "$P_CLI ca_callback=1 debug_level=3 " \
@@ -2226,7 +2230,6 @@ run_test    "CA callback on client" \
             -S "error" \
             -C "error"
 
-requires_config_enabled MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK
 requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
 requires_hash_alg SHA_256
 run_test    "CA callback on server" \
@@ -5893,6 +5896,215 @@ run_test    "Authentication: server goodcert, client none, no trusted CA (1.2)" 
             -C "X509 - Certificate verification failed" \
             -C "SSL - No CA Chain is set, but required to operate"
 
+# The next few tests check what happens if the server has a valid certificate
+# that does not match its name (impersonation).
+
+run_test "Authentication: hostname match, client required" \
+         "$P_SRV" \
+         "$P_CLI auth_mode=required server_name=localhost debug_level=2" \
+         0 \
+         -C "does not match with the expected CN" \
+         -C "Certificate verification without having set hostname" \
+         -C "Certificate verification without CN verification" \
+         -C "x509_verify_cert() returned -" \
+         -C "! mbedtls_ssl_handshake returned" \
+         -C "X509 - Certificate verification failed"
+
+run_test "Authentication: hostname match, client required, CA callback" \
+         "$P_SRV" \
+         "$P_CLI auth_mode=required server_name=localhost debug_level=3 ca_callback=1" \
+         0 \
+         -C "does not match with the expected CN" \
+         -C "Certificate verification without having set hostname" \
+         -C "Certificate verification without CN verification" \
+         -c "use CA callback for X.509 CRT verification" \
+         -C "x509_verify_cert() returned -" \
+         -C "! mbedtls_ssl_handshake returned" \
+         -C "X509 - Certificate verification failed"
+
+run_test "Authentication: hostname mismatch (wrong), client required" \
+         "$P_SRV" \
+         "$P_CLI auth_mode=required server_name=wrong-name debug_level=1" \
+         1 \
+         -c "does not match with the expected CN" \
+         -c "x509_verify_cert() returned -" \
+         -c "! mbedtls_ssl_handshake returned" \
+         -c "X509 - Certificate verification failed"
+
+run_test "Authentication: hostname mismatch (empty), client required" \
+         "$P_SRV" \
+         "$P_CLI auth_mode=required server_name= debug_level=1" \
+         1 \
+         -c "does not match with the expected CN" \
+         -c "x509_verify_cert() returned -" \
+         -c "! mbedtls_ssl_handshake returned" \
+         -c "X509 - Certificate verification failed"
+
+run_test "Authentication: hostname mismatch (truncated), client required" \
+         "$P_SRV" \
+         "$P_CLI auth_mode=required server_name=localhos debug_level=1" \
+         1 \
+         -c "does not match with the expected CN" \
+         -c "x509_verify_cert() returned -" \
+         -c "! mbedtls_ssl_handshake returned" \
+         -c "X509 - Certificate verification failed"
+
+run_test "Authentication: hostname mismatch (last char), client required" \
+         "$P_SRV" \
+         "$P_CLI auth_mode=required server_name=localhoss debug_level=1" \
+         1 \
+         -c "does not match with the expected CN" \
+         -c "x509_verify_cert() returned -" \
+         -c "! mbedtls_ssl_handshake returned" \
+         -c "X509 - Certificate verification failed"
+
+run_test "Authentication: hostname mismatch (trailing), client required" \
+         "$P_SRV" \
+         "$P_CLI auth_mode=required server_name=localhostt debug_level=1" \
+         1 \
+         -c "does not match with the expected CN" \
+         -c "x509_verify_cert() returned -" \
+         -c "! mbedtls_ssl_handshake returned" \
+         -c "X509 - Certificate verification failed"
+
+run_test "Authentication: hostname mismatch, client optional" \
+         "$P_SRV" \
+         "$P_CLI auth_mode=optional server_name=wrong-name debug_level=2" \
+         0 \
+         -c "does not match with the expected CN" \
+         -c "x509_verify_cert() returned -" \
+         -C "X509 - Certificate verification failed"
+
+run_test "Authentication: hostname mismatch, client none" \
+         "$P_SRV" \
+         "$P_CLI auth_mode=none server_name=wrong-name debug_level=2" \
+         0 \
+         -C "does not match with the expected CN" \
+         -C "Certificate verification without having set hostname" \
+         -C "Certificate verification without CN verification" \
+         -C "x509_verify_cert() returned -" \
+         -C "X509 - Certificate verification failed"
+
+run_test "Authentication: hostname null, client required" \
+         "$P_SRV" \
+         "$P_CLI auth_mode=required set_hostname=NULL debug_level=2" \
+         0 \
+         -C "does not match with the expected CN" \
+         -C "Certificate verification without having set hostname" \
+         -c "Certificate verification without CN verification" \
+         -C "x509_verify_cert() returned -" \
+         -C "! mbedtls_ssl_handshake returned" \
+         -C "X509 - Certificate verification failed"
+
+run_test "Authentication: hostname null, client optional" \
+         "$P_SRV" \
+         "$P_CLI auth_mode=optional set_hostname=NULL debug_level=2" \
+         0 \
+         -C "does not match with the expected CN" \
+         -C "Certificate verification without having set hostname" \
+         -c "Certificate verification without CN verification" \
+         -C "x509_verify_cert() returned -" \
+         -C "X509 - Certificate verification failed"
+
+run_test "Authentication: hostname null, client none" \
+         "$P_SRV" \
+         "$P_CLI auth_mode=none set_hostname=NULL debug_level=2" \
+         0 \
+         -C "does not match with the expected CN" \
+         -C "Certificate verification without having set hostname" \
+         -C "Certificate verification without CN verification" \
+         -C "x509_verify_cert() returned -" \
+         -C "X509 - Certificate verification failed"
+
+run_test "Authentication: hostname unset, client required" \
+         "$P_SRV" \
+         "$P_CLI auth_mode=required set_hostname=no debug_level=2" \
+         1 \
+         -C "does not match with the expected CN" \
+         -c "Certificate verification without having set hostname" \
+         -C "Certificate verification without CN verification" \
+         -c "get_hostname_for_verification() returned -" \
+         -C "x509_verify_cert() returned -" \
+         -c "! mbedtls_ssl_handshake returned" \
+         -C "X509 - Certificate verification failed"
+
+run_test "Authentication: hostname unset, client required, CA callback" \
+         "$P_SRV" \
+         "$P_CLI auth_mode=required set_hostname=no debug_level=3 ca_callback=1" \
+         1 \
+         -C "does not match with the expected CN" \
+         -c "Certificate verification without having set hostname" \
+         -C "Certificate verification without CN verification" \
+         -c "get_hostname_for_verification() returned -" \
+         -C "use CA callback for X.509 CRT verification" \
+         -C "x509_verify_cert() returned -" \
+         -c "! mbedtls_ssl_handshake returned" \
+         -C "X509 - Certificate verification failed"
+
+run_test "Authentication: hostname unset, client optional" \
+         "$P_SRV" \
+         "$P_CLI auth_mode=optional set_hostname=no debug_level=2" \
+         0 \
+         -C "does not match with the expected CN" \
+         -c "Certificate verification without having set hostname" \
+         -c "Certificate verification without CN verification" \
+         -C "x509_verify_cert() returned -" \
+         -C "X509 - Certificate verification failed"
+
+run_test "Authentication: hostname unset, client none" \
+         "$P_SRV" \
+         "$P_CLI auth_mode=none set_hostname=no debug_level=2" \
+         0 \
+         -C "does not match with the expected CN" \
+         -C "Certificate verification without having set hostname" \
+         -C "Certificate verification without CN verification" \
+         -C "x509_verify_cert() returned -" \
+         -C "X509 - Certificate verification failed"
+
+run_test "Authentication: hostname unset, client default, server picks cert, 1.2" \
+         "$P_SRV force_version=tls12 force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-CCM-8" \
+         "$P_CLI psk=73776f726466697368 psk_identity=foo set_hostname=no debug_level=2" \
+         1 \
+         -C "does not match with the expected CN" \
+         -c "Certificate verification without having set hostname" \
+         -C "Certificate verification without CN verification" \
+         -c "get_hostname_for_verification() returned -" \
+         -C "x509_verify_cert() returned -" \
+         -C "X509 - Certificate verification failed"
+
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+run_test "Authentication: hostname unset, client default, server picks cert, 1.3" \
+         "$P_SRV force_version=tls13 tls13_kex_modes=ephemeral" \
+         "$P_CLI psk=73776f726466697368 psk_identity=foo set_hostname=no debug_level=2" \
+         1 \
+         -C "does not match with the expected CN" \
+         -c "Certificate verification without having set hostname" \
+         -C "Certificate verification without CN verification" \
+         -c "get_hostname_for_verification() returned -" \
+         -C "x509_verify_cert() returned -" \
+         -C "X509 - Certificate verification failed"
+
+run_test "Authentication: hostname unset, client default, server picks PSK, 1.2" \
+         "$P_SRV force_version=tls12 force_ciphersuite=TLS-PSK-WITH-AES-128-CCM-8 psk=73776f726466697368 psk_identity=foo" \
+         "$P_CLI psk=73776f726466697368 psk_identity=foo set_hostname=no debug_level=2" \
+         0 \
+         -C "does not match with the expected CN" \
+         -C "Certificate verification without having set hostname" \
+         -C "Certificate verification without CN verification" \
+         -C "x509_verify_cert() returned -" \
+         -C "X509 - Certificate verification failed"
+
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
+run_test "Authentication: hostname unset, client default, server picks PSK, 1.3" \
+         "$P_SRV force_version=tls13 tls13_kex_modes=psk psk=73776f726466697368 psk_identity=foo" \
+         "$P_CLI psk=73776f726466697368 psk_identity=foo set_hostname=no debug_level=2" \
+         0 \
+         -C "does not match with the expected CN" \
+         -C "Certificate verification without having set hostname" \
+         -C "Certificate verification without CN verification" \
+         -C "x509_verify_cert() returned -" \
+         -C "X509 - Certificate verification failed"
+
 # The purpose of the next two tests is to test the client's behaviour when receiving a server
 # certificate with an unsupported elliptic curve. This should usually not happen because
 # the client informs the server about the supported curves - it does, though, in the
@@ -6237,7 +6449,6 @@ run_test    "Authentication: send alt hs DN hints in CertificateRequest" \
 # Tests for auth_mode, using CA callback, these are duplicated from the authentication tests
 # When updating these tests, modify the matching authentication tests accordingly
 
-requires_config_enabled MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK
 run_test    "Authentication, CA callback: server badcert, client required" \
             "$P_SRV crt_file=$DATA_FILES_PATH/server5-badsign.crt \
              key_file=$DATA_FILES_PATH/server5.key" \
@@ -6249,7 +6460,6 @@ run_test    "Authentication, CA callback: server badcert, client required" \
             -c "! mbedtls_ssl_handshake returned" \
             -c "X509 - Certificate verification failed"
 
-requires_config_enabled MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK
 run_test    "Authentication, CA callback: server badcert, client optional" \
             "$P_SRV crt_file=$DATA_FILES_PATH/server5-badsign.crt \
              key_file=$DATA_FILES_PATH/server5.key" \
@@ -6261,7 +6471,6 @@ run_test    "Authentication, CA callback: server badcert, client optional" \
             -C "! mbedtls_ssl_handshake returned" \
             -C "X509 - Certificate verification failed"
 
-requires_config_enabled MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK
 run_test    "Authentication, CA callback: server badcert, client none" \
             "$P_SRV crt_file=$DATA_FILES_PATH/server5-badsign.crt \
              key_file=$DATA_FILES_PATH/server5.key" \
@@ -6280,7 +6489,6 @@ run_test    "Authentication, CA callback: server badcert, client none" \
 # occasion (to be fixed). If that bug's fixed, the test needs to be altered to use a
 # different means to have the server ignoring the client's supported curve list.
 
-requires_config_enabled MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK
 run_test    "Authentication, CA callback: server ECDH p256v1, client required, p256v1 unsupported" \
             "$P_SRV debug_level=1 key_file=$DATA_FILES_PATH/server5.key \
              crt_file=$DATA_FILES_PATH/server5.ku-ka.crt" \
@@ -6291,7 +6499,6 @@ run_test    "Authentication, CA callback: server ECDH p256v1, client required, p
             -c "! Certificate verification flags" \
             -C "bad server certificate (ECDH curve)" # Expect failure at earlier verification stage
 
-requires_config_enabled MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK
 run_test    "Authentication, CA callback: server ECDH p256v1, client optional, p256v1 unsupported" \
             "$P_SRV debug_level=1 key_file=$DATA_FILES_PATH/server5.key \
              crt_file=$DATA_FILES_PATH/server5.ku-ka.crt" \
@@ -6302,7 +6509,6 @@ run_test    "Authentication, CA callback: server ECDH p256v1, client optional, p
             -c "! Certificate verification flags"\
             -c "bad server certificate (ECDH curve)" # Expect failure only at ECDH params check
 
-requires_config_enabled MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK
 requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
 run_test    "Authentication, CA callback: client SHA384, server required" \
             "$P_SRV ca_callback=1 debug_level=3 auth_mode=required" \
@@ -6314,7 +6520,6 @@ run_test    "Authentication, CA callback: client SHA384, server required" \
             -c "Supported Signature Algorithm found: 04 " \
             -c "Supported Signature Algorithm found: 05 "
 
-requires_config_enabled MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK
 requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
 run_test    "Authentication, CA callback: client SHA256, server required" \
             "$P_SRV ca_callback=1 debug_level=3 auth_mode=required" \
@@ -6326,7 +6531,6 @@ run_test    "Authentication, CA callback: client SHA256, server required" \
             -c "Supported Signature Algorithm found: 04 " \
             -c "Supported Signature Algorithm found: 05 "
 
-requires_config_enabled MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK
 run_test    "Authentication, CA callback: client badcert, server required" \
             "$P_SRV ca_callback=1 debug_level=3 auth_mode=required" \
             "$P_CLI debug_level=3 crt_file=$DATA_FILES_PATH/server5-badsign.crt \
@@ -6348,7 +6552,6 @@ run_test    "Authentication, CA callback: client badcert, server required" \
 # detect that its write end of the connection is closed and abort
 # before reading the alert message.
 
-requires_config_enabled MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK
 run_test    "Authentication, CA callback: client cert not trusted, server required" \
             "$P_SRV ca_callback=1 debug_level=3 auth_mode=required" \
             "$P_CLI debug_level=3 crt_file=$DATA_FILES_PATH/server5-selfsigned.crt \
@@ -6366,7 +6569,6 @@ run_test    "Authentication, CA callback: client cert not trusted, server requir
             -s "! mbedtls_ssl_handshake returned" \
             -s "X509 - Certificate verification failed"
 
-requires_config_enabled MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK
 run_test    "Authentication, CA callback: client badcert, server optional" \
             "$P_SRV ca_callback=1 debug_level=3 auth_mode=optional" \
             "$P_CLI debug_level=3 crt_file=$DATA_FILES_PATH/server5-badsign.crt \
@@ -6387,7 +6589,6 @@ run_test    "Authentication, CA callback: client badcert, server optional" \
 
 requires_config_value_equals "MBEDTLS_X509_MAX_INTERMEDIATE_CA" $MAX_IM_CA
 requires_full_size_output_buffer
-requires_config_enabled MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK
 run_test    "Authentication, CA callback: server max_int chain, client default" \
             "$P_SRV crt_file=$DATA_FILES_PATH/dir-maxpath/c09.pem \
                     key_file=$DATA_FILES_PATH/dir-maxpath/09.key" \
@@ -6398,7 +6599,6 @@ run_test    "Authentication, CA callback: server max_int chain, client default" 
 
 requires_config_value_equals "MBEDTLS_X509_MAX_INTERMEDIATE_CA" $MAX_IM_CA
 requires_full_size_output_buffer
-requires_config_enabled MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK
 run_test    "Authentication, CA callback: server max_int+1 chain, client default" \
             "$P_SRV crt_file=$DATA_FILES_PATH/dir-maxpath/c10.pem \
                     key_file=$DATA_FILES_PATH/dir-maxpath/10.key" \
@@ -6409,7 +6609,6 @@ run_test    "Authentication, CA callback: server max_int+1 chain, client default
 
 requires_config_value_equals "MBEDTLS_X509_MAX_INTERMEDIATE_CA" $MAX_IM_CA
 requires_full_size_output_buffer
-requires_config_enabled MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK
 run_test    "Authentication, CA callback: server max_int+1 chain, client optional" \
             "$P_SRV crt_file=$DATA_FILES_PATH/dir-maxpath/c10.pem \
                     key_file=$DATA_FILES_PATH/dir-maxpath/10.key" \
@@ -6421,7 +6620,6 @@ run_test    "Authentication, CA callback: server max_int+1 chain, client optiona
 
 requires_config_value_equals "MBEDTLS_X509_MAX_INTERMEDIATE_CA" $MAX_IM_CA
 requires_full_size_output_buffer
-requires_config_enabled MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK
 run_test    "Authentication, CA callback: client max_int+1 chain, server optional" \
             "$P_SRV ca_callback=1 debug_level=3 ca_file=$DATA_FILES_PATH/dir-maxpath/00.crt auth_mode=optional" \
             "$P_CLI crt_file=$DATA_FILES_PATH/dir-maxpath/c10.pem \
@@ -6432,7 +6630,6 @@ run_test    "Authentication, CA callback: client max_int+1 chain, server optiona
 
 requires_config_value_equals "MBEDTLS_X509_MAX_INTERMEDIATE_CA" $MAX_IM_CA
 requires_full_size_output_buffer
-requires_config_enabled MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK
 run_test    "Authentication, CA callback: client max_int+1 chain, server required" \
             "$P_SRV ca_callback=1 debug_level=3 ca_file=$DATA_FILES_PATH/dir-maxpath/00.crt auth_mode=required" \
             "$P_CLI crt_file=$DATA_FILES_PATH/dir-maxpath/c10.pem \
@@ -6443,7 +6640,6 @@ run_test    "Authentication, CA callback: client max_int+1 chain, server require
 
 requires_config_value_equals "MBEDTLS_X509_MAX_INTERMEDIATE_CA" $MAX_IM_CA
 requires_full_size_output_buffer
-requires_config_enabled MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK
 run_test    "Authentication, CA callback: client max_int chain, server required" \
             "$P_SRV ca_callback=1 debug_level=3 ca_file=$DATA_FILES_PATH/dir-maxpath/00.crt auth_mode=required" \
             "$P_CLI crt_file=$DATA_FILES_PATH/dir-maxpath/c09.pem \

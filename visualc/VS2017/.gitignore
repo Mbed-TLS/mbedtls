@@ -1,4 +1,4 @@
-# Files that may be left over from check-generated-files.sh
+# Files that may be left over from make_generated-files.py --check
 /*.bak
 
 # Visual Studio artifacts

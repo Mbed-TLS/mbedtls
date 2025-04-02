@@ -79,7 +79,7 @@ Any of the following methods are available to generate the configuration-indepen
 * If not cross-compiling, running `make` with any target, or just `make`, will automatically generate required files.
 * On non-Windows systems, when not cross-compiling, CMake will generate the required files automatically.
 * Run `make generated_files` to generate all the configuration-independent files.
-* On Unix/POSIX systems, run `tests/scripts/check-generated-files.sh -u` to generate all the configuration-independent files.
+* On Unix/POSIX systems, run `framework/scripts/make_generated_files.py` to generate all the configuration-independent files.
 * On Windows, run `scripts\make_generated_files.bat` to generate all the configuration-independent files.
 
 ### Make

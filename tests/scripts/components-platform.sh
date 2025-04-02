@@ -120,15 +120,17 @@ component_test_aesni () { # ~ 60s
     msg "AES tests, test intrinsics"
     make clean
     make CC=gcc CFLAGS='-Werror -Wall -Wextra -mpclmul -msse2 -maes'
-    # check that we built intrinsics - this should be used by default when supported by the compiler
-    ./programs/test/selftest aes | grep "AESNI code" | grep -q "intrinsics"
+    # check that the intrinsics implementation is in use - this should be used by default when
+    # supported by the compiler
+    ./tf-psa-crypto/programs/test/which_aes | grep -q "AESNI INTRINSICS"
 
     # test the asm implementation
     msg "AES tests, test assembly"
     make clean
     make CC=gcc CFLAGS='-Werror -Wall -Wextra -mno-pclmul -mno-sse2 -mno-aes'
-    # check that we built assembly - this should be built if the compiler does not support intrinsics
-    ./programs/test/selftest aes | grep "AESNI code" | grep -q "assembly"
+    # check that the assembly implementation is in use - this should be used if the compiler
+    # does not support intrinsics
+    ./tf-psa-crypto/programs/test/which_aes | grep -q "AESNI ASSEMBLY"
 
     # test the plain C implementation
     scripts/config.py unset MBEDTLS_AESNI_C
@@ -137,20 +139,17 @@ component_test_aesni () { # ~ 60s
     make clean
     make CC=gcc CFLAGS='-O2 -Werror'
     # check that there is no AESNI code present
-    ./programs/test/selftest aes | not grep -q "AESNI code"
-    not grep -q "AES note: using AESNI" ./programs/test/selftest
-    grep -q "AES note: built-in implementation." ./programs/test/selftest
+    not grep -q mbedtls_aesni_has_support ./tf-psa-crypto/programs/test/which_aes
+    # check that the built-in software implementation is in use
+    ./tf-psa-crypto/programs/test/which_aes | grep -q "SOFTWARE"
 
-    # test the intrinsics implementation
+    # test the AESNI implementation
     scripts/config.py set MBEDTLS_AESNI_C
     scripts/config.py set MBEDTLS_AES_USE_HARDWARE_ONLY
     msg "AES tests, test AESNI only"
     make clean
     make CC=gcc CFLAGS='-Werror -Wall -Wextra -mpclmul -msse2 -maes'
-    ./programs/test/selftest aes | grep -q "AES note: using AESNI"
-    ./programs/test/selftest aes | not grep -q "AES note: built-in implementation."
-    grep -q "AES note: using AESNI" ./programs/test/selftest
-    not grep -q "AES note: built-in implementation." ./programs/test/selftest
+    ./tf-psa-crypto/programs/test/which_aes | grep -q "AESNI"
 }
 
 support_test_aesni_m32 () {
@@ -172,21 +171,15 @@ component_test_aesni_m32 () { # ~ 60s
     make clean
     make CC=gcc CFLAGS='-m32 -Werror -Wall -Wextra' LDFLAGS='-m32'
     # check that we built intrinsics - this should be used by default when supported by the compiler
-    ./programs/test/selftest aes | grep "AESNI code" | grep -q "intrinsics"
-    grep -q "AES note: using AESNI" ./programs/test/selftest
-    grep -q "AES note: built-in implementation." ./programs/test/selftest
-    grep -q mbedtls_aesni_has_support ./programs/test/selftest
+    ./tf-psa-crypto/programs/test/which_aes | grep -q "AESNI INTRINSICS"
+    grep -q mbedtls_aesni_has_support ./tf-psa-crypto/programs/test/which_aes
 
     scripts/config.py set MBEDTLS_AESNI_C
     scripts/config.py set MBEDTLS_AES_USE_HARDWARE_ONLY
     msg "AES tests, test AESNI only"
     make clean
     make CC=gcc CFLAGS='-m32 -Werror -Wall -Wextra -mpclmul -msse2 -maes' LDFLAGS='-m32'
-    ./programs/test/selftest aes | grep -q "AES note: using AESNI"
-    ./programs/test/selftest aes | not grep -q "AES note: built-in implementation."
-    grep -q "AES note: using AESNI" ./programs/test/selftest
-    not grep -q "AES note: built-in implementation." ./programs/test/selftest
-    not grep -q mbedtls_aesni_has_support ./programs/test/selftest
+    ./tf-psa-crypto/programs/test/which_aes | grep -q "AESNI"
 }
 
 support_test_aesni_m32_clang () {
@@ -205,10 +198,8 @@ component_test_aesni_m32_clang () {
     make clean
     make CC=clang CFLAGS='-m32 -Werror -Wall -Wextra' LDFLAGS='-m32'
     # check that we built intrinsics - this should be used by default when supported by the compiler
-    ./programs/test/selftest aes | grep "AESNI code" | grep -q "intrinsics"
-    grep -q "AES note: using AESNI" ./programs/test/selftest
-    grep -q "AES note: built-in implementation." ./programs/test/selftest
-    grep -q mbedtls_aesni_has_support ./programs/test/selftest
+    ./tf-psa-crypto/programs/test/which_aes | grep -q "AESNI INTRINSICS"
+    grep -q mbedtls_aesni_has_support ./tf-psa-crypto/programs/test/which_aes
 }
 
 support_build_aes_armce () {

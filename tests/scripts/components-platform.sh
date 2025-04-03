@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # components-platform.sh
 #
 # Copyright The Mbed TLS Contributors

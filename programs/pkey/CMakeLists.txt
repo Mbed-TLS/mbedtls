@@ -2,8 +2,6 @@ set(executables_mbedcrypto
     gen_key
     pk_sign
     pk_verify
-    rsa_sign_pss
-    rsa_verify_pss
 )
 add_dependencies(${programs_target} ${executables_mbedcrypto})
 

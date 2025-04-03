@@ -47,6 +47,7 @@ APPS = \
 	../tf-psa-crypto/programs/psa/key_ladder_demo \
 	../tf-psa-crypto/programs/psa/psa_constant_names \
 	../tf-psa-crypto/programs/psa/psa_hash \
+	../tf-psa-crypto/programs/test/which_aes \
 	ssl/dtls_client \
 	ssl/dtls_server \
 	ssl/mini_client \
@@ -178,6 +179,10 @@ pkey/rsa_verify_pss$(EXEXT): pkey/rsa_verify_pss.c $(DEP)
 ../tf-psa-crypto/programs/psa/psa_hash$(EXEXT): ../tf-psa-crypto/programs/psa/psa_hash.c $(DEP)
 	echo "  CC    psa/psa_hash.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) ../tf-psa-crypto/programs/psa/psa_hash.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+
+../tf-psa-crypto/programs/test/which_aes$(EXEXT): ../tf-psa-crypto/programs/test/which_aes.c $(DEP)
+	echo "  CC    test/which_aes.c"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) ../tf-psa-crypto/programs/test/which_aes.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 ssl/dtls_client$(EXEXT): ssl/dtls_client.c $(DEP)
 	echo "  CC    ssl/dtls_client.c"

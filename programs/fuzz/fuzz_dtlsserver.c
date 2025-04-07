@@ -3,7 +3,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdint.h>
-#include "common.h"
+#include "fuzz_common.h"
 #include "mbedtls/ssl.h"
 #include "test/certs.h"
 #if defined(MBEDTLS_SSL_PROTO_DTLS)

@@ -7,7 +7,7 @@ assignees: ''
 
 ---
 
-NOTE: if the bug you are reporting has or may have security implications,
+**WARNING:** if the bug you are reporting has or may have security implications,
 we ask that you report it privately to
 <mbed-tls-security@lists.trustedfirmware.org>
 so that we can prepare and release a fix before publishing the details.
@@ -31,10 +31,10 @@ Additional environment information:
 
 ### Actual behavior
 
-NOTE: if the actual behaviour evokes memory corruption (like a crash or an error
+**WARNING:* if the actual behaviour suggests memory corruption (like a crash or an error
 from a memory checker), then the bug should be assumed to have security
 implications (until proven otherwise), and we ask what you report it privately,
-see the note at the some of this template.
+see the note at the top of this template.
 
 
 ### Steps to reproduce

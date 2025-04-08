@@ -13,6 +13,7 @@ LOCAL_CFLAGS += -I$(MBEDTLS_PATH)/tf-psa-crypto/programs/fuzz/
 
 # A test application is built for each fuzz_*.c file.
 APPS = $(basename $(wildcard fuzz_*.c))
+APPS += $(basename $(wildcard (MBEDTLS_PATH)/tf-psa-crypto/programs/fuzz/fuzz_*.c))
 
 # Construct executable name by adding OS specific suffix $(EXEXT).
 BINARIES := $(addsuffix $(EXEXT),$(APPS))
@@ -30,13 +31,13 @@ C_FILES := $(addsuffix .c,$(APPS))
 
 
 ifdef FUZZINGENGINE
-$(BINARIES): %$(EXEXT): %.o $(MBEDTLS_PATH)/tf-psa-crypto/programs/fuzz/common.o $(DEP)
-	echo " $(CC) $(MBEDTLS_PATH)/tf-psa-crypto/programs/fuzz/common.o $< $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@"
-	$(CXX) $(MBEDTLS_PATH)/tf-psa-crypto/programs/fuzz/common.o $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+$(BINARIES): %$(EXEXT): %.o $(MBEDTLS_PATH)/tf-psa-crypto/programs/fuzz/fuzz_common.o $(DEP)
+	echo " $(CC) $(MBEDTLS_PATH)/tf-psa-crypto/programs/fuzz/fuzz_common.c $< $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@"
+	$(CXX) $(MBEDTLS_PATH)/tf-psa-crypto/programs/fuzz/fuzz_common.c $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 else
-$(BINARIES): %$(EXEXT): %.o $(MBEDTLS_PATH)/tf-psa-crypto/programs/fuzz/common.o onefile.o $(DEP)
-	echo " $(CC) $(MBEDTLS_PATH)/tf-psa-crypto/programs/fuzz/common.o onefile.o $< $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@"
-	$(CC) $(MBEDTLS_PATH)/tf-psa-crypto/programs/fuzz/common.o onefile.o $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+$(BINARIES): %$(EXEXT): %.o $(MBEDTLS_PATH)/tf-psa-crypto/programs/fuzz/fuzz_common.o $(MBEDTLS_PATH)/tf-psa-crypto/programs/fuzz/onefile.o $(DEP)
+	echo " $(CC) $(MBEDTLS_PATH)/tf-psa-crypto/programs/fuzz/fuzz_common.o $(MBEDTLS_PATH)/tf-psa-crypto/programs/fuzz/onefile.o $< $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@"
+	$(CC) $(MBEDTLS_PATH)/tf-psa-crypto/programs/fuzz/fuzz_common.o $(MBEDTLS_PATH)/tf-psa-crypto/programs/fuzz/onefile.o $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 endif
 
 clean:

@@ -611,6 +611,7 @@ int mbedtls_test_ssl_endpoint_certificate_init(mbedtls_test_ssl_endpoint *ep,
 {
     int i = 0;
     int ret = -1;
+    int ok = 0;
     mbedtls_test_ssl_endpoint_certificate *cert = NULL;
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     mbedtls_svc_key_id_t key_slot = MBEDTLS_SVC_KEY_ID_INIT;
@@ -733,7 +734,13 @@ int mbedtls_test_ssl_endpoint_certificate_init(mbedtls_test_ssl_endpoint *ep,
                                     cert->pkey);
     TEST_ASSERT(ret == 0);
 
+    ok = 1;
+
 exit:
+    if (ret == 0 && !ok) {
+        /* Exiting due to a test assertion that isn't ret == 0 */
+        ret = -1;
+    }
     if (ret != 0) {
         test_ssl_endpoint_certificate_free(ep);
     }
@@ -902,7 +909,13 @@ int mbedtls_test_ssl_endpoint_init(
     TEST_EQUAL(mbedtls_ssl_get_user_data_n(&ep->ssl), user_data_n);
     mbedtls_ssl_set_user_data_p(&ep->ssl, ep);
 
+    return 0;
+
 exit:
+    if (ret == 0) {
+        /* Exiting due to a test assertion that isn't ret == 0 */
+        ret = -1;
+    }
     return ret;
 }
 
@@ -2542,6 +2555,7 @@ int mbedtls_test_get_tls13_ticket(
     mbedtls_ssl_session *session)
 {
     int ret = -1;
+    int ok = 0;
     unsigned char buf[64];
     mbedtls_test_ssl_endpoint client_ep, server_ep;
 
@@ -2578,10 +2592,16 @@ int mbedtls_test_get_tls13_ticket(
     ret = mbedtls_ssl_get_session(&(client_ep.ssl), session);
     TEST_EQUAL(ret, 0);
 
+    ok = 1;
+
 exit:
     mbedtls_test_ssl_endpoint_free(&client_ep, NULL);
     mbedtls_test_ssl_endpoint_free(&server_ep, NULL);
 
+    if (ret == 0 && !ok) {
+        /* Exiting due to a test assertion that isn't ret == 0 */
+        ret = -1;
+    }
     return ret;
 }
 #endif /* MBEDTLS_SSL_CLI_C && MBEDTLS_SSL_SRV_C &&

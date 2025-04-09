@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 
 # Perl code that is executed to transform each original line from a library
 # source file into the corresponding line in the test driver copy of the

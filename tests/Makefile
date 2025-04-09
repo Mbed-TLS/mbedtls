@@ -365,12 +365,12 @@ libtestdriver1.a:
 	# Prefix MBEDTLS_* PSA_* symbols with LIBTESTDRIVER1_ as well as
 	# mbedtls_* psa_* symbols with libtestdriver1_ to avoid symbol clash
 	# when this test driver library is linked with the Mbed TLS library.
-	perl -i ./libtestdriver1_rewrite.pl ./libtestdriver1/library/*.[ch]
-	perl -i ./libtestdriver1_rewrite.pl ./libtestdriver1/include/*/*.h
-	perl -i ./libtestdriver1_rewrite.pl ./libtestdriver1/tf-psa-crypto/core/*.[ch]
-	perl -i ./libtestdriver1_rewrite.pl ./libtestdriver1/tf-psa-crypto/include/*/*.h
-	perl -i ./libtestdriver1_rewrite.pl ./libtestdriver1/tf-psa-crypto/drivers/builtin/include/*/*.h
-	perl -i ./libtestdriver1_rewrite.pl ./libtestdriver1/tf-psa-crypto/drivers/builtin/src/*.[ch]
+	perl -i ./scripts/libtestdriver1_rewrite.pl ./libtestdriver1/library/*.[ch]
+	perl -i ./scripts/libtestdriver1_rewrite.pl ./libtestdriver1/include/*/*.h
+	perl -i ./scripts/libtestdriver1_rewrite.pl ./libtestdriver1/tf-psa-crypto/core/*.[ch]
+	perl -i ./scripts/libtestdriver1_rewrite.pl ./libtestdriver1/tf-psa-crypto/include/*/*.h
+	perl -i ./scripts/libtestdriver1_rewrite.pl ./libtestdriver1/tf-psa-crypto/drivers/builtin/include/*/*.h
+	perl -i ./scripts/libtestdriver1_rewrite.pl ./libtestdriver1/tf-psa-crypto/drivers/builtin/src/*.[ch]
 
 	$(MAKE) -C ./libtestdriver1/library CFLAGS="-I../../ $(CFLAGS)" LDFLAGS="$(LDFLAGS)" libmbedcrypto.a
 	cp ./libtestdriver1/library/libmbedcrypto.a ../library/libtestdriver1.a

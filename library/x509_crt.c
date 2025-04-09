@@ -1015,7 +1015,7 @@ static int x509_get_crt_ext(unsigned char **p,
                 }
                 break;
 
-            case MBEDTLS_OID_X509_EXT_CERTIFICATE_POLICIES:
+            case MBEDTLS_X509_EXT_CERTIFICATE_POLICIES:
                 /* Parse certificate policies type */
                 if ((ret = x509_get_certificate_policies(p, end_ext_octet,
                                                          &crt->certificate_policies)) != 0) {
@@ -1868,7 +1868,7 @@ int mbedtls_x509_crt_info(char *buf, size_t size, const char *prefix,
         }
     }
 
-    if (crt->ext_types & MBEDTLS_OID_X509_EXT_CERTIFICATE_POLICIES) {
+    if (crt->ext_types & MBEDTLS_X509_EXT_CERTIFICATE_POLICIES) {
         ret = mbedtls_snprintf(p, n, "\n%scertificate policies : ", prefix);
         MBEDTLS_X509_SAFE_SNPRINTF;
 

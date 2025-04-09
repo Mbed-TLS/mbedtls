@@ -23,26 +23,6 @@
 #endif
 
 /*
- * X.509 extension types (internal, arbitrary values for bitsets)
- */
-#define MBEDTLS_OID_X509_EXT_AUTHORITY_KEY_IDENTIFIER    (1 << 0)
-#define MBEDTLS_OID_X509_EXT_SUBJECT_KEY_IDENTIFIER      (1 << 1)
-#define MBEDTLS_OID_X509_EXT_KEY_USAGE                   (1 << 2)
-#define MBEDTLS_OID_X509_EXT_CERTIFICATE_POLICIES        (1 << 3)
-#define MBEDTLS_OID_X509_EXT_POLICY_MAPPINGS             (1 << 4)
-#define MBEDTLS_OID_X509_EXT_SUBJECT_ALT_NAME            (1 << 5)
-#define MBEDTLS_OID_X509_EXT_ISSUER_ALT_NAME             (1 << 6)
-#define MBEDTLS_OID_X509_EXT_SUBJECT_DIRECTORY_ATTRS     (1 << 7)
-#define MBEDTLS_OID_X509_EXT_BASIC_CONSTRAINTS           (1 << 8)
-#define MBEDTLS_OID_X509_EXT_NAME_CONSTRAINTS            (1 << 9)
-#define MBEDTLS_OID_X509_EXT_POLICY_CONSTRAINTS          (1 << 10)
-#define MBEDTLS_OID_X509_EXT_EXTENDED_KEY_USAGE          (1 << 11)
-#define MBEDTLS_OID_X509_EXT_CRL_DISTRIBUTION_POINTS     (1 << 12)
-#define MBEDTLS_OID_X509_EXT_INIHIBIT_ANYPOLICY          (1 << 13)
-#define MBEDTLS_OID_X509_EXT_FRESHEST_CRL                (1 << 14)
-#define MBEDTLS_OID_X509_EXT_NS_CERT_TYPE                (1 << 16)
-
-/*
  * Maximum number of OID components allowed
  */
 #define MBEDTLS_OID_MAX_COMPONENTS              128

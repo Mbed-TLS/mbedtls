@@ -14,7 +14,23 @@
 #if defined(MBEDTLS_X509_USE_C) || defined(MBEDTLS_X509_CREATE_C)
 
 #include "mbedtls/oid.h"
+
+#if !defined(MBEDTLS_X509_REMOVE_INFO)
+#define OID_INFO_STRINGS
+#endif
+
 #include "oid_definition_helpers.h"
+
+/*
+ * Macro to generate mbedtls_oid_descriptor_t
+ */
+#if defined(OID_INFO_STRINGS)
+#define OID_DESCRIPTOR(s, name, description)  { ADD_LEN(s), name, description }
+#define NULL_OID_DESCRIPTOR                   { NULL, 0, NULL, NULL }
+#else
+#define OID_DESCRIPTOR(s, name, description)  { ADD_LEN(s) }
+#define NULL_OID_DESCRIPTOR                   { NULL, 0 }
+#endif /* OID_INFO_STRINGS */
 
 /*
  * For X520 attribute types

@@ -1,3 +1,0 @@
-Changes
-   * Use the new `PSA_ALG_XXX` related macros for JPAKE to be conformant to
-     the PSA API 1.2 PAKE extension

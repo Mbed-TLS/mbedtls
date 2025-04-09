@@ -35,22 +35,22 @@ OID get Ext Key Usage wrong oid - id-ce-authorityKeyIdentifier
 oid_get_extended_key_usage:"551D23":""
 
 OID get x509 extension - id-ce-basicConstraints
-oid_get_x509_extension:"551D13":MBEDTLS_OID_X509_EXT_BASIC_CONSTRAINTS
+oid_get_x509_extension:"551D13":MBEDTLS_X509_EXT_BASIC_CONSTRAINTS
 
 OID get x509 extension - id-ce-keyUsage
-oid_get_x509_extension:"551D0F":MBEDTLS_OID_X509_EXT_KEY_USAGE
+oid_get_x509_extension:"551D0F":MBEDTLS_X509_EXT_KEY_USAGE
 
 OID get x509 extension - id-ce-extKeyUsage
-oid_get_x509_extension:"551D25":MBEDTLS_OID_X509_EXT_EXTENDED_KEY_USAGE
+oid_get_x509_extension:"551D25":MBEDTLS_X509_EXT_EXTENDED_KEY_USAGE
 
 OID get x509 extension - id-ce-subjectAltName
-oid_get_x509_extension:"551D11":MBEDTLS_OID_X509_EXT_SUBJECT_ALT_NAME
+oid_get_x509_extension:"551D11":MBEDTLS_X509_EXT_SUBJECT_ALT_NAME
 
 OID get x509 extension - id-netscape-certtype
-oid_get_x509_extension:"6086480186F8420101":MBEDTLS_OID_X509_EXT_NS_CERT_TYPE
+oid_get_x509_extension:"6086480186F8420101":MBEDTLS_X509_EXT_NS_CERT_TYPE
 
 OID get x509 extension - id-ce-certificatePolicies
-oid_get_x509_extension:"551D20":MBEDTLS_OID_X509_EXT_CERTIFICATE_POLICIES
+oid_get_x509_extension:"551D20":MBEDTLS_X509_EXT_CERTIFICATE_POLICIES
 
 OID get x509 extension - invalid oid
 oid_get_x509_extension:"5533445566":0

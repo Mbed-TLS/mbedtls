@@ -138,8 +138,9 @@ component_test_aesni () { # ~ 60s
     msg "AES tests, plain C"
     make clean
     make CC=gcc CFLAGS='-O2 -Werror'
-    # check that there is no AESNI code present
-    not grep -q mbedtls_aesni_has_support ./tf-psa-crypto/programs/test/which_aes
+    # check that the plain C implementation is present and the AESNI one is not
+    grep -q mbedtls_internal_aes_encrypt ./tf-psa-crypto/drivers/builtin/src/aes.o
+    not grep -q mbedtls_aesni_crypt_ecb ./tf-psa-crypto/drivers/builtin/src/aesni.o
     # check that the built-in software implementation is in use
     ./tf-psa-crypto/programs/test/which_aes | grep -q "SOFTWARE"
 
@@ -149,6 +150,9 @@ component_test_aesni () { # ~ 60s
     msg "AES tests, test AESNI only"
     make clean
     make CC=gcc CFLAGS='-Werror -Wall -Wextra -mpclmul -msse2 -maes'
+    # check that the AESNI implementation is present and the plain C one is not
+    grep -q mbedtls_aesni_crypt_ecb ./tf-psa-crypto/drivers/builtin/src/aesni.o
+    not grep -q mbedtls_internal_aes_encrypt ./tf-psa-crypto/drivers/builtin/src/aes.o
     ./tf-psa-crypto/programs/test/which_aes | grep -q "AESNI"
 }
 
@@ -172,6 +176,9 @@ component_test_aesni_m32 () { # ~ 60s
     make CC=gcc CFLAGS='-m32 -Werror -Wall -Wextra' LDFLAGS='-m32'
     # check that we built intrinsics - this should be used by default when supported by the compiler
     ./tf-psa-crypto/programs/test/which_aes | grep -q "AESNI INTRINSICS"
+    # check that both the AESNI and plain C implementations are present
+    grep -q mbedtls_aesni_crypt_ecb ./tf-psa-crypto/drivers/builtin/src/aesni.o
+    grep -q mbedtls_internal_aes_encrypt ./tf-psa-crypto/drivers/builtin/src/aes.o
     grep -q mbedtls_aesni_has_support ./tf-psa-crypto/programs/test/which_aes
 
     scripts/config.py set MBEDTLS_AESNI_C
@@ -180,6 +187,10 @@ component_test_aesni_m32 () { # ~ 60s
     make clean
     make CC=gcc CFLAGS='-m32 -Werror -Wall -Wextra -mpclmul -msse2 -maes' LDFLAGS='-m32'
     ./tf-psa-crypto/programs/test/which_aes | grep -q "AESNI"
+    # check that the AESNI implementation is present and the plain C one is not
+    grep -q mbedtls_aesni_crypt_ecb ./tf-psa-crypto/drivers/builtin/src/aesni.o
+    not grep -q mbedtls_internal_aes_encrypt ./tf-psa-crypto/drivers/builtin/src/aes.o
+    not grep -q mbedtls_aesni_has_support ./tf-psa-crypto/programs/test/which_aes
 }
 
 support_test_aesni_m32_clang () {
@@ -199,6 +210,9 @@ component_test_aesni_m32_clang () {
     make CC=clang CFLAGS='-m32 -Werror -Wall -Wextra' LDFLAGS='-m32'
     # check that we built intrinsics - this should be used by default when supported by the compiler
     ./tf-psa-crypto/programs/test/which_aes | grep -q "AESNI INTRINSICS"
+    # check that both the AESNI and plain C implementations are present
+    grep -q mbedtls_aesni_crypt_ecb ./tf-psa-crypto/drivers/builtin/src/aesni.o
+    grep -q mbedtls_internal_aes_encrypt ./tf-psa-crypto/drivers/builtin/src/aes.o
     grep -q mbedtls_aesni_has_support ./tf-psa-crypto/programs/test/which_aes
 }
 

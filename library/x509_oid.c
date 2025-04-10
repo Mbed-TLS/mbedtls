@@ -35,6 +35,7 @@
 /*
  * For X520 attribute types
  */
+#if defined(MBEDTLS_X509_USE_C)
 typedef struct {
     mbedtls_oid_descriptor_t    descriptor;
     const char          *short_name;
@@ -149,7 +150,9 @@ FN_OID_GET_ATTR1(mbedtls_oid_get_attr_short_name,
                  x520_attr,
                  const char *,
                  short_name)
+#endif /* MBEDTLS_X509_USE_C */
 
+#if defined(MBEDTLS_X509_USE_C)
 /*
  * For X509 extensions
  */
@@ -214,8 +217,9 @@ static const oid_x509_ext_t oid_x509_ext[] =
 
 FN_OID_TYPED_FROM_ASN1(oid_x509_ext_t, x509_ext, oid_x509_ext)
 FN_OID_GET_ATTR1(mbedtls_oid_get_x509_ext_type, oid_x509_ext_t, x509_ext, int, ext_type)
+#endif /* MBEDTLS_X509_USE_C */
 
-#if 1 /* OID_INFO_STRINGS */
+#if defined(MBEDTLS_X509_USE_C) && !defined(MBEDTLS_X509_REMOVE_INFO)
 static const mbedtls_oid_descriptor_t oid_ext_key_usage[] =
 {
     OID_DESCRIPTOR(MBEDTLS_OID_SERVER_AUTH,
@@ -253,7 +257,7 @@ FN_OID_GET_ATTR1(mbedtls_oid_get_certificate_policies,
                  certificate_policies,
                  const char *,
                  description)
-#endif /* OID_INFO_STRINGS */
+#endif /* MBEDTLS_X509_USE_C && !MBEDTLS_X509_REMOVE_INFO */
 
 /*
  * For SignatureAlgorithmIdentifier
@@ -360,14 +364,15 @@ static const oid_sig_alg_t oid_sig_alg[] =
 
 FN_OID_TYPED_FROM_ASN1(oid_sig_alg_t, sig_alg, oid_sig_alg)
 
-#if 1 /* OID_INFO_STRINGS */
+#if !defined(MBEDTLS_X509_REMOVE_INFO)
 FN_OID_GET_DESCRIPTOR_ATTR1(mbedtls_oid_get_sig_alg_desc,
                             oid_sig_alg_t,
                             sig_alg,
                             const char *,
                             description)
-#endif /* OID_INFO_STRINGS */
+#endif /* !MBEDTLS_X509_REMOVE_INFO */
 
+#if defined(MBEDTLS_X509_USE_C)
 FN_OID_GET_ATTR2(mbedtls_oid_get_sig_alg,
                  oid_sig_alg_t,
                  sig_alg,
@@ -375,6 +380,8 @@ FN_OID_GET_ATTR2(mbedtls_oid_get_sig_alg,
                  md_alg,
                  mbedtls_pk_type_t,
                  pk_alg)
+#endif
+#if defined(MBEDTLS_X509_CREATE_C)
 FN_OID_GET_OID_BY_ATTR2(mbedtls_oid_get_oid_by_sig_alg,
                         oid_sig_alg_t,
                         oid_sig_alg,
@@ -382,5 +389,6 @@ FN_OID_GET_OID_BY_ATTR2(mbedtls_oid_get_oid_by_sig_alg,
                         pk_alg,
                         mbedtls_md_type_t,
                         md_alg)
+#endif
 
 #endif /* defined(MBEDTLS_X509_USE_C) || defined(MBEDTLS_X509_CREATE_C) */

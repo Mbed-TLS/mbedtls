@@ -83,7 +83,7 @@ int mbedtls_oid_get_x509_ext_type(const mbedtls_asn1_buf *oid, int *ext_type);
  */
 int mbedtls_oid_get_attr_short_name(const mbedtls_asn1_buf *oid, const char **short_name);
 
-#if 1 /* OID_INFO_STRINGS */
+#if !defined(MBEDTLS_X509_REMOVE_INFO)
 /**
  * \brief          Translate Extended Key Usage OID into description
  *
@@ -93,7 +93,7 @@ int mbedtls_oid_get_attr_short_name(const mbedtls_asn1_buf *oid, const char **sh
  * \return         0 if successful, or MBEDTLS_ERR_OID_NOT_FOUND
  */
 int mbedtls_oid_get_extended_key_usage(const mbedtls_asn1_buf *oid, const char **desc);
-#endif /* OID_INFO_STRINGS */
+#endif /* !MBEDTLS_X509_REMOVE_INFO */
 
 /**
  * \brief          Translate certificate policies OID into description

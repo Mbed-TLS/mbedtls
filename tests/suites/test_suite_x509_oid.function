@@ -7,7 +7,7 @@
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
- * depends_on:MBEDTLS_OID_C
+ * depends_on:MBEDTLS_X509_USE_C
  * END_DEPENDENCIES
  */
 

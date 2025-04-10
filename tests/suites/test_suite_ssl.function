@@ -158,7 +158,7 @@ exit:
     return -1;
 }
 
-/* Insert an empty record at the given offset. If offset is negative,
+/* Insert a (dummy) record at the given offset. If offset is negative,
  * count from the end of the first record. */
 static int recombine_insert_record(mbedtls_test_ssl_buffer *buf,
                                    int offset,
@@ -3213,6 +3213,8 @@ void recombine_server_first_flight(int version,
         }
     }
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
+    /* A default TLS 1.3 handshake has only 1 flight from the server,
+     * while the default (non-resumption) 1.2 handshake has two. */
     if (version >= MBEDTLS_SSL_VERSION_TLS1_3 &&
         goal_state >= MBEDTLS_SSL_HANDSHAKE_OVER) {
         TEST_EQUAL(ret, 0);

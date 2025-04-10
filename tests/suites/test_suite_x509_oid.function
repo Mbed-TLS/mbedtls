@@ -32,7 +32,7 @@ void oid_get_certificate_policies(data_t *oid, char *result_str)
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:!MBEDTLS_X509_REMOVE_INFO */
 void oid_get_extended_key_usage(data_t *oid, char *result_str)
 {
     mbedtls_asn1_buf asn1_buf = { 0, 0, NULL };

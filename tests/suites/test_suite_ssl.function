@@ -243,14 +243,14 @@ static int recombine_insert_record(mbedtls_test_ssl_buffer *buf,
     TEST_LE_U(buf->content_length + 2 * header_length + inserted_content_length,
               buf->capacity);
 
-    /* Make room for an empty record and a record header */
+    /* Make room for the inserted record and a record header for the fragment */
     size_t inserted_record_start = header_length + offset;
     size_t inserted_content_start = inserted_record_start + header_length;
     size_t tail_record_start = inserted_content_start + inserted_content_length;
     size_t tail_content_start = tail_record_start + header_length;
     memmove(buf->buffer + tail_content_start,
-            buf->buffer + tail_record_start,
-            buf->content_length - tail_record_start);
+            buf->buffer + inserted_record_start,
+            buf->content_length - inserted_record_start);
     buf->content_length += 2 * header_length;
 
     /* Construct the inserted record based on the existing one */

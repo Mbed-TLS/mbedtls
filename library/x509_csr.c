@@ -407,8 +407,7 @@ static int mbedtls_x509_csr_parse_der_internal(mbedtls_x509_csr *csr,
     }
 
     if ((ret = mbedtls_x509_get_sig_alg(&csr->sig_oid, &sig_params,
-                                        &csr->sig_md, &csr->sig_pk,
-                                        &csr->sig_opts)) != 0) {
+                                        &csr->sig_md, &csr->sig_pk)) != 0) {
         mbedtls_x509_csr_free(csr);
         return MBEDTLS_ERR_X509_UNKNOWN_SIG_ALG;
     }
@@ -620,10 +619,6 @@ void mbedtls_x509_csr_free(mbedtls_x509_csr *csr)
     }
 
     mbedtls_pk_free(&csr->pk);
-
-#if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT)
-    mbedtls_free(csr->sig_opts);
-#endif
 
     mbedtls_asn1_free_named_data_list_shallow(csr->subject.next);
     mbedtls_asn1_sequence_free(csr->subject_alt_names.next);

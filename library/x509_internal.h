@@ -35,8 +35,7 @@ int mbedtls_x509_get_rsassa_pss_params(const mbedtls_x509_buf *params,
 #endif
 int mbedtls_x509_get_sig(unsigned char **p, const unsigned char *end, mbedtls_x509_buf *sig);
 int mbedtls_x509_get_sig_alg(const mbedtls_x509_buf *sig_oid, const mbedtls_x509_buf *sig_params,
-                             mbedtls_md_type_t *md_alg, mbedtls_pk_type_t *pk_alg,
-                             void **sig_opts);
+                             mbedtls_md_type_t *md_alg, mbedtls_pk_type_t *pk_alg);
 int mbedtls_x509_get_time(unsigned char **p, const unsigned char *end,
                           mbedtls_x509_time *t);
 int mbedtls_x509_get_serial(unsigned char **p, const unsigned char *end,

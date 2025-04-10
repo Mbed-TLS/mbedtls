@@ -1163,8 +1163,7 @@ static int x509_crt_parse_der_core(mbedtls_x509_crt *crt,
     crt->version++;
 
     if ((ret = mbedtls_x509_get_sig_alg(&crt->sig_oid, &sig_params1,
-                                        &crt->sig_md, &crt->sig_pk,
-                                        &crt->sig_opts)) != 0) {
+                                        &crt->sig_md, &crt->sig_pk)) != 0) {
         mbedtls_x509_crt_free(crt);
         return ret;
     }
@@ -3202,10 +3201,6 @@ void mbedtls_x509_crt_free(mbedtls_x509_crt *crt)
 
     while (cert_cur != NULL) {
         mbedtls_pk_free(&cert_cur->pk);
-
-#if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT)
-        mbedtls_free(cert_cur->sig_opts);
-#endif
 
         mbedtls_asn1_free_named_data_list_shallow(cert_cur->issuer.next);
         mbedtls_asn1_free_named_data_list_shallow(cert_cur->subject.next);

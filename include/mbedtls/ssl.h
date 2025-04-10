@@ -987,20 +987,10 @@ typedef int mbedtls_ssl_cache_set_t(void *data,
  *                  to store an operation context for later retrieval
  *                  by the resume or cancel callback.
  *
- * \note            For RSA signatures, this function must produce output
- *                  that is consistent with PKCS#1 v1.5 in the same way as
- *                  mbedtls_rsa_pkcs1_sign(). Before the private key operation,
- *                  apply the padding steps described in RFC 8017, section 9.2
- *                  "EMSA-PKCS1-v1_5" as follows.
- *                  - If \p md_alg is #MBEDTLS_MD_NONE, apply the PKCS#1 v1.5
- *                    encoding, treating \p hash as the DigestInfo to be
- *                    padded. In other words, apply EMSA-PKCS1-v1_5 starting
- *                    from step 3, with `T = hash` and `tLen = hash_len`.
- *                  - If `md_alg != MBEDTLS_MD_NONE`, apply the PKCS#1 v1.5
- *                    encoding, treating \p hash as the hash to be encoded and
- *                    padded. In other words, apply EMSA-PKCS1-v1_5 starting
- *                    from step 2, with `digestAlgorithm` obtained by calling
- *                    mbedtls_oid_get_oid_by_md() on \p md_alg.
+ * \note            For an RSA key, this function must produce a PKCS#1v1.5
+ *                  signature in the standard format (like
+ *                  #PSA_ALG_RSA_PKCS1V15_SIGN). \c md_alg is guaranteed to be
+ *                  a hash that is supported by the library.
  *
  * \note            For ECDSA signatures, the output format is the DER encoding
  *                  `Ecdsa-Sig-Value` defined in

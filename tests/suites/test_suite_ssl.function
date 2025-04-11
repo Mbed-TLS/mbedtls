@@ -106,6 +106,315 @@ static void resize_buffers(int mfl, int renegotiation, int legacy_renegotiation,
 #define TEST_GCM_OR_CHACHAPOLY_ENABLED
 #endif
 
+typedef enum {
+    RECOMBINE_NOMINAL,          /* param: ignored */
+    RECOMBINE_SPLIT_FIRST,      /* param: offset of split (<=0 means from end) */
+    RECOMBINE_TRUNCATE_FIRST,   /* param: offset of truncation (<=0 means from end) */
+    RECOMBINE_INSERT_EMPTY,     /* param: offset (<0 means from end) */
+    RECOMBINE_INSERT_RECORD,    /* param: record type */
+    RECOMBINE_COALESCE,         /* param: number of records (INT_MAX=all) */
+    RECOMBINE_COALESCE_SPLIT_ONCE, /* param: offset of split (<=0 means from end) */
+    RECOMBINE_COALESCE_SPLIT_BOTH_ENDS, /* param: offset, must be >0 */
+} recombine_records_instruction_t;
+
+/* Keep this in sync with the recombine_server_first_flight()
+ * See comment there. */
+#if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED) && \
+    defined(PSA_WANT_ALG_SHA_256) && \
+    defined(PSA_WANT_ECC_SECP_R1_256) && \
+    defined(PSA_WANT_ECC_SECP_R1_384) && \
+    defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_IMPORT) && \
+    defined(PSA_WANT_ALG_ECDSA_ANY)
+
+/* Split the first record into two pieces of lengths offset and
+ * record_length-offset. If offset is zero or negative, count from the end of
+ * the record. */
+static int recombine_split_first_record(mbedtls_test_ssl_buffer *buf,
+                                        int offset)
+{
+    const size_t header_length = 5;
+    TEST_LE_U(header_length, buf->content_length);
+    size_t record_length = MBEDTLS_GET_UINT16_BE(buf->buffer, header_length - 2);
+
+    if (offset > 0) {
+        TEST_LE_S(offset, record_length);
+    } else {
+        TEST_LE_S(-offset, record_length);
+        offset = record_length + offset;
+    }
+
+    /* Check that we have room to insert a record header */
+    TEST_LE_U(buf->content_length + header_length, buf->capacity);
+
+    /* Make room for a record header */
+    size_t new_record_start = header_length + offset;
+    size_t new_content_start = new_record_start + header_length;
+    memmove(buf->buffer + new_content_start,
+            buf->buffer + new_record_start,
+            buf->content_length - new_record_start);
+    buf->content_length += header_length;
+
+    /* Construct a header for the new record based on the existing one */
+    memcpy(buf->buffer + new_record_start, buf->buffer, header_length);
+    MBEDTLS_PUT_UINT16_BE(record_length - offset,
+                          buf->buffer, new_content_start - 2);
+
+    /* Adjust the length of the first record */
+    MBEDTLS_PUT_UINT16_BE(offset, buf->buffer, header_length - 2);
+
+    return 0;
+
+exit:
+    return -1;
+}
+
+/* Truncate the first record, keeping only the first offset bytes.
+ * If offset is zero or negative, count from the end of the record.
+ * Remove the subsequent records.
+ */
+static int recombine_truncate_first_record(mbedtls_test_ssl_buffer *buf,
+                                           int offset)
+{
+    const size_t header_length = 5;
+    TEST_LE_U(header_length, buf->content_length);
+    size_t record_length = MBEDTLS_GET_UINT16_BE(buf->buffer, header_length - 2);
+
+    if (offset > 0) {
+        TEST_LE_S(offset, record_length);
+    } else {
+        TEST_LE_S(-offset, record_length);
+        offset = record_length + offset;
+    }
+
+    /* Adjust the length of the first record */
+    MBEDTLS_PUT_UINT16_BE(offset, buf->buffer, header_length - 2);
+
+    /* Wipe the rest */
+    size_t truncated_end = header_length + offset;
+    memset(buf->buffer + truncated_end, '!',
+           buf->content_length - truncated_end);
+    buf->content_length = truncated_end;
+
+    return 0;
+
+exit:
+    return -1;
+}
+
+/* Insert a (dummy) record at the given offset. If offset is negative,
+ * count from the end of the first record. */
+static int recombine_insert_record(mbedtls_test_ssl_buffer *buf,
+                                   int offset,
+                                   uint8_t inserted_record_type)
+{
+    const size_t header_length = 5;
+    TEST_LE_U(header_length, buf->content_length);
+    size_t record_length = MBEDTLS_GET_UINT16_BE(buf->buffer, header_length - 2);
+
+    if (offset >= 0) {
+        TEST_LE_S(offset, record_length);
+    } else {
+        TEST_LE_S(-offset, record_length);
+        offset = record_length + offset;
+    }
+
+    uint8_t inserted_content[42] = { 0 };
+    size_t inserted_content_length = 0;
+    switch (inserted_record_type) {
+        case MBEDTLS_SSL_MSG_ALERT:
+            inserted_content[0] = MBEDTLS_SSL_ALERT_LEVEL_WARNING;
+            inserted_content[1] = MBEDTLS_SSL_ALERT_MSG_NO_RENEGOTIATION;
+            inserted_content_length = 2;
+            break;
+        case MBEDTLS_SSL_MSG_CHANGE_CIPHER_SPEC:
+            inserted_content[0] = 0x01;
+            inserted_content_length = 1;
+            break;
+        case MBEDTLS_SSL_MSG_APPLICATION_DATA:
+            inserted_content_length = sizeof(inserted_content);
+            break;
+        default:
+            /* Leave the content empty */
+            break;
+    }
+
+    /* Check that we have room to insert two record headers plus the new
+     * content. */
+    TEST_LE_U(buf->content_length + 2 * header_length + inserted_content_length,
+              buf->capacity);
+
+    /* Make room for the inserted record and a record header for the fragment */
+    size_t inserted_record_start = header_length + offset;
+    size_t inserted_content_start = inserted_record_start + header_length;
+    size_t tail_record_start = inserted_content_start + inserted_content_length;
+    size_t tail_content_start = tail_record_start + header_length;
+    memmove(buf->buffer + tail_content_start,
+            buf->buffer + inserted_record_start,
+            buf->content_length - inserted_record_start);
+    buf->content_length += 2 * header_length;
+
+    /* Construct the inserted record based on the existing one */
+    memcpy(buf->buffer + inserted_record_start, buf->buffer, header_length);
+    buf->buffer[inserted_record_start] = inserted_record_type;
+    MBEDTLS_PUT_UINT16_BE(inserted_content_length,
+                          buf->buffer, inserted_content_start - 2);
+    memcpy(buf->buffer + inserted_content_start,
+           inserted_content, inserted_content_length);
+
+    /* Construct header for the last fragment based on the existing one */
+    memcpy(buf->buffer + tail_record_start, buf->buffer, header_length);
+    MBEDTLS_PUT_UINT16_BE(record_length - offset,
+                          buf->buffer, tail_content_start - 2);
+
+    /* Adjust the length of the first record */
+    MBEDTLS_PUT_UINT16_BE(offset, buf->buffer, header_length - 2);
+
+    return 0;
+
+exit:
+    return -1;
+}
+
+/* Coalesce TLS handshake records.
+ * DTLS is not supported.
+ * Encrypted or authenticated handshake records are not supported.
+ * Assume the buffer content is a valid sequence of records.
+ *
+ * Coalesce only the first max records, or all the records if there are
+ * fewer than max.
+ * Return the number of coalesced records, or -1 on error.
+ */
+static int recombine_coalesce_handshake_records(mbedtls_test_ssl_buffer *buf,
+                                                int max)
+{
+    const size_t header_length = 5;
+    TEST_LE_U(header_length, buf->content_length);
+    if (buf->buffer[0] != MBEDTLS_SSL_MSG_HANDSHAKE) {
+        return 0;
+    }
+
+    size_t record_length = MBEDTLS_GET_UINT16_BE(buf->buffer, header_length - 2);
+    TEST_LE_U(header_length + record_length, buf->content_length);
+
+    int count;
+    for (count = 1; count < max; count++) {
+        size_t next_start = header_length + record_length;
+        if (next_start >= buf->content_length) {
+            /* We've already reached the last record. */
+            break;
+        }
+
+        TEST_LE_U(next_start + header_length, buf->content_length);
+        if (buf->buffer[next_start] != MBEDTLS_SSL_MSG_HANDSHAKE) {
+            /* There's another record, but it isn't a handshake record. */
+            break;
+        }
+        size_t next_length =
+            MBEDTLS_GET_UINT16_BE(buf->buffer, next_start + header_length - 2);
+        TEST_LE_U(next_start + header_length + next_length, buf->content_length);
+
+        /* Erase the next record header */
+        memmove(buf->buffer + next_start,
+                buf->buffer + next_start + header_length,
+                buf->content_length - next_start);
+        buf->content_length -= header_length;
+        /* Update the first record length */
+        record_length += next_length;
+        TEST_LE_U(record_length, 0xffff);
+        MBEDTLS_PUT_UINT16_BE(record_length, buf->buffer, header_length - 2);
+    }
+
+    return count;
+
+exit:
+    return -1;
+}
+
+static int recombine_records(mbedtls_test_ssl_endpoint *server,
+                             recombine_records_instruction_t instruction,
+                             int param)
+{
+    mbedtls_test_ssl_buffer *buf = server->socket.output;
+    int ret;
+
+    /* buf is a circular buffer. For simplicity, this code assumes that
+     * the data is located at the beginning. This should be ok since
+     * this function is only meant to be used on the first flight
+     * emitted by a server. */
+    TEST_EQUAL(buf->start, 0);
+
+    switch (instruction) {
+        case RECOMBINE_NOMINAL:
+            break;
+
+        case RECOMBINE_SPLIT_FIRST:
+            ret = recombine_split_first_record(buf, param);
+            TEST_LE_S(0, ret);
+            break;
+
+        case RECOMBINE_TRUNCATE_FIRST:
+            ret = recombine_truncate_first_record(buf, param);
+            TEST_LE_S(0, ret);
+            break;
+
+        case RECOMBINE_INSERT_EMPTY:
+            /* Insert an empty handshake record. */
+            ret = recombine_insert_record(buf, param, MBEDTLS_SSL_MSG_HANDSHAKE);
+            TEST_LE_S(0, ret);
+            break;
+
+        case RECOMBINE_INSERT_RECORD:
+            /* Insert an extra record at a position where splitting
+             * would be ok. */
+            ret = recombine_insert_record(buf, 5, param);
+            TEST_LE_S(0, ret);
+            break;
+
+        case RECOMBINE_COALESCE:
+            ret = recombine_coalesce_handshake_records(buf, param);
+            /* If param != INT_MAX, enforce that there were that many
+             * records to coalesce. In particular, 1 < param < INT_MAX
+             * ensures that library will see some coalesced records. */
+            if (param == INT_MAX) {
+                TEST_LE_S(1, ret);
+            } else {
+                TEST_EQUAL(ret, param);
+            }
+            break;
+
+        case RECOMBINE_COALESCE_SPLIT_ONCE:
+            ret = recombine_coalesce_handshake_records(buf, INT_MAX);
+            /* Require at least two coalesced records, otherwise this
+             * doesn't lead to a meaningful test (use
+             * RECOMBINE_SPLIT_FIRST instead). */
+            TEST_LE_S(2, ret);
+            ret = recombine_split_first_record(buf, param);
+            TEST_LE_S(0, ret);
+            break;
+
+        case RECOMBINE_COALESCE_SPLIT_BOTH_ENDS:
+            ret = recombine_coalesce_handshake_records(buf, INT_MAX);
+            /* Accept a single record, which will be split at both ends */
+            TEST_LE_S(1, ret);
+            TEST_LE_S(1, param);
+            ret = recombine_split_first_record(buf, -param);
+            TEST_LE_S(0, ret);
+            ret = recombine_split_first_record(buf, param);
+            TEST_LE_S(0, ret);
+            break;
+
+        default:
+            TEST_FAIL("Instructions not understood");
+    }
+
+    return 1;
+
+exit:
+    return 0;
+}
+
+#endif /* MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED etc */
+
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -2837,6 +3146,165 @@ void handshake_fragmentation(int mfl,
 
 exit:
     mbedtls_test_free_handshake_options(&options);
+}
+/* END_CASE */
+
+/* This test case doesn't actually depend on certificates,
+ * but our helper code for mbedtls_test_ssl_endpoint does.
+ * Also, it needs specific hashes, algs and curves for the
+ * hardcoded test certificates. In principle both RSA and ECDSA
+ * can be used, but we hardcode ECDSA in order to avoid having
+ * to express dependencies like "RSA or ECDSA with those curves". */
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:PSA_WANT_ALG_SHA_256:PSA_WANT_ECC_SECP_R1_256:PSA_WANT_ECC_SECP_R1_384:PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_IMPORT:PSA_WANT_ALG_ECDSA_ANY */
+void recombine_server_first_flight(int version,
+                                   int instruction, int param,
+                                   char *client_log, char *server_log,
+                                   int goal_state, int expected_ret)
+{
+    /* Make sure we have a buffer that's large enough for the longest
+     * data that the library might ever send, plus a bit extra so that
+     * we can inject more content. The library won't ever send more than
+     * 2^14 bytes of handshake messages, so we round that up. In practice
+     * we could surely get away with a much smaller buffer. The main
+     * variable part is the server certificate. */
+    enum { BUFFSIZE = 17000 };
+    mbedtls_test_ssl_endpoint client;
+    memset(&client, 0, sizeof(client));
+    mbedtls_test_ssl_endpoint server;
+    memset(&server, 0, sizeof(server));
+    mbedtls_test_handshake_test_options client_options;
+    mbedtls_test_init_handshake_options(&client_options);
+    mbedtls_test_handshake_test_options server_options;
+    mbedtls_test_init_handshake_options(&server_options);
+#if defined(MBEDTLS_DEBUG_C)
+    mbedtls_test_ssl_log_pattern cli_pattern = { .pattern = client_log };
+    mbedtls_test_ssl_log_pattern srv_pattern = { .pattern = server_log };
+#else
+    (void) client_log;
+    (void) server_log;
+#endif
+    int ret = 0;
+
+    MD_OR_USE_PSA_INIT();
+#if defined(MBEDTLS_DEBUG_C)
+    mbedtls_debug_set_threshold(3);
+#endif
+
+    // Does't really matter but we want to know to declare dependencies.
+    client_options.pk_alg = MBEDTLS_PK_ECDSA;
+    server_options.pk_alg = MBEDTLS_PK_ECDSA;
+
+    client_options.client_min_version = version;
+    client_options.client_max_version = version;
+#if defined(MBEDTLS_DEBUG_C)
+    client_options.cli_log_obj = &cli_pattern;
+    client_options.cli_log_fun = mbedtls_test_ssl_log_analyzer;
+#endif
+    TEST_EQUAL(mbedtls_test_ssl_endpoint_init(&client, MBEDTLS_SSL_IS_CLIENT,
+                                              &client_options, NULL, NULL,
+                                              NULL), 0);
+
+    server_options.server_min_version = version;
+    server_options.server_max_version = version;
+#if defined(MBEDTLS_DEBUG_C)
+    server_options.srv_log_obj = &srv_pattern;
+    server_options.srv_log_fun = mbedtls_test_ssl_log_analyzer;
+#endif
+    TEST_EQUAL(mbedtls_test_ssl_endpoint_init(&server, MBEDTLS_SSL_IS_SERVER,
+                                              &server_options, NULL, NULL,
+                                              NULL), 0);
+
+    TEST_EQUAL(mbedtls_test_mock_socket_connect(&client.socket,
+                                                &server.socket,
+                                                BUFFSIZE), 0);
+
+    /* Client: emit the first flight from the client */
+    while (ret == 0) {
+        mbedtls_test_set_step(client.ssl.state);
+        ret = mbedtls_ssl_handshake_step(&client.ssl);
+    }
+    TEST_EQUAL(ret, MBEDTLS_ERR_SSL_WANT_READ);
+    ret = 0;
+    TEST_EQUAL(client.ssl.state, MBEDTLS_SSL_SERVER_HELLO);
+
+    /* Server: parse the first flight from the client
+     * and emit the first flight from the server */
+    while (ret == 0) {
+        mbedtls_test_set_step(1000 + server.ssl.state);
+        ret = mbedtls_ssl_handshake_step(&server.ssl);
+    }
+    TEST_EQUAL(ret, MBEDTLS_ERR_SSL_WANT_READ);
+    ret = 0;
+    TEST_EQUAL(server.ssl.state, MBEDTLS_SSL_SERVER_HELLO_DONE + 1);
+
+    /* Recombine the first flight from the server */
+    TEST_ASSERT(recombine_records(&server, instruction, param));
+
+    /* Client: parse the first flight from the server
+     * and emit the second flight from the client */
+    while (ret == 0 && !mbedtls_ssl_is_handshake_over(&client.ssl)) {
+        mbedtls_test_set_step(client.ssl.state);
+        ret = mbedtls_ssl_handshake_step(&client.ssl);
+        if (client.ssl.state == goal_state && ret != 0) {
+            TEST_EQUAL(ret, expected_ret);
+            goto goal_reached;
+        }
+    }
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
+    /* A default TLS 1.3 handshake has only 1 flight from the server,
+     * while the default (non-resumption) 1.2 handshake has two. */
+    if (version >= MBEDTLS_SSL_VERSION_TLS1_3 &&
+        goal_state >= MBEDTLS_SSL_HANDSHAKE_OVER) {
+        TEST_EQUAL(ret, 0);
+    } else
+#endif
+    {
+        TEST_EQUAL(ret, MBEDTLS_ERR_SSL_WANT_READ);
+    }
+    ret = 0;
+
+    /* Server: parse the first flight from the client
+     * and emit the second flight from the server */
+    if (instruction == RECOMBINE_TRUNCATE_FIRST) {
+        /* Close without a notification. The case of closing with a
+         * notification is tested via RECOMBINE_INSERT_RECORD to insert
+         * an alert record (which we reject, making the client SSL
+         * context become invalid). */
+        mbedtls_test_mock_socket_close(&server.socket);
+        goto goal_reached;
+    }
+    while (ret == 0 && !mbedtls_ssl_is_handshake_over(&server.ssl)) {
+        mbedtls_test_set_step(1000 + server.ssl.state);
+        ret = mbedtls_ssl_handshake_step(&server.ssl);
+    }
+    TEST_EQUAL(ret, 0);
+
+    /* Client: parse the second flight from the server */
+    while (ret == 0 && !mbedtls_ssl_is_handshake_over(&client.ssl)) {
+        mbedtls_test_set_step(client.ssl.state);
+        ret = mbedtls_ssl_handshake_step(&client.ssl);
+    }
+    if (client.ssl.state == goal_state) {
+        TEST_EQUAL(ret, expected_ret);
+    } else {
+        TEST_EQUAL(ret, 0);
+    }
+
+goal_reached:
+#if defined(MBEDTLS_DEBUG_C)
+    TEST_ASSERT(cli_pattern.counter >= 1);
+    TEST_ASSERT(srv_pattern.counter >= 1);
+#endif
+
+exit:
+    mbedtls_test_ssl_endpoint_free(&client, NULL);
+    mbedtls_test_ssl_endpoint_free(&server, NULL);
+    mbedtls_test_free_handshake_options(&client_options);
+    mbedtls_test_free_handshake_options(&server_options);
+    MD_OR_USE_PSA_DONE();
+#if defined(MBEDTLS_DEBUG_C)
+    mbedtls_debug_set_threshold(0);
+#endif
 }
 /* END_CASE */
 

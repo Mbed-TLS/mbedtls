@@ -33,8 +33,8 @@ C_FILES := $(addsuffix .c,$(APPS))
 
 ifdef FUZZINGENGINE
 $(BINARIES): %$(EXEXT): %.o $(MBEDTLS_PATH)/tf-psa-crypto/programs/fuzz/fuzz_common.o $(DEP)
-	echo " $(CC) $(MBEDTLS_PATH)/tf-psa-crypto/programs/fuzz/fuzz_common.c $< $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@"
-	$(CXX) $(MBEDTLS_PATH)/tf-psa-crypto/programs/fuzz/fuzz_common.c $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	echo " $(CC) $(MBEDTLS_PATH)/tf-psa-crypto/programs/fuzz/fuzz_common.o $< $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@"
+	$(CXX) $(MBEDTLS_PATH)/tf-psa-crypto/programs/fuzz/fuzz_common.o $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 else
 $(BINARIES): %$(EXEXT): %.o $(MBEDTLS_PATH)/tf-psa-crypto/programs/fuzz/fuzz_common.o $(MBEDTLS_PATH)/tf-psa-crypto/programs/fuzz/onefile.o $(DEP)
 	echo " $(CC) $(MBEDTLS_PATH)/tf-psa-crypto/programs/fuzz/fuzz_common.o $(MBEDTLS_PATH)/tf-psa-crypto/programs/fuzz/onefile.o $< $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@"

@@ -16,6 +16,9 @@
 #include "mbedtls/error.h"
 
 #include "mbedtls/ssl.h"
+#include "mbedtls/debug.h"
+#include "debug_internal.h"
+
 #include "mbedtls/cipher.h"
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO) || defined(MBEDTLS_SSL_PROTO_TLS1_3)
@@ -1333,10 +1336,28 @@ int mbedtls_ssl_handshake_client_step(mbedtls_ssl_context *ssl);
 MBEDTLS_CHECK_RETURN_CRITICAL
 int mbedtls_ssl_handshake_server_step(mbedtls_ssl_context *ssl);
 void mbedtls_ssl_handshake_wrapup(mbedtls_ssl_context *ssl);
+
+#if defined(MBEDTLS_DEBUG_C)
+/* Declared in "ssl_debug_helpers.h". We can't include this file from
+ * "ssl_misc.h" because it includes "ssl_misc.h" because it needs some
+ * type definitions. TODO: split the type definitions and the helper
+ * functions into different headers.
+ */
+const char *mbedtls_ssl_states_str(mbedtls_ssl_states state);
+#endif
+
 static inline void mbedtls_ssl_handshake_set_state(mbedtls_ssl_context *ssl,
                                                    mbedtls_ssl_states state)
 {
+    MBEDTLS_SSL_DEBUG_MSG(3, ("handshake state: %d (%s) -> %d (%s)",
+                              ssl->state, mbedtls_ssl_states_str(ssl->state),
+                              (int) state, mbedtls_ssl_states_str(state)));
     ssl->state = (int) state;
+}
+
+static inline void mbedtls_ssl_handshake_increment_state(mbedtls_ssl_context *ssl)
+{
+    mbedtls_ssl_handshake_set_state(ssl, ssl->state + 1);
 }
 
 MBEDTLS_CHECK_RETURN_CRITICAL

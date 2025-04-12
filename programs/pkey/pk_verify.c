@@ -7,7 +7,7 @@
 
 #define MBEDTLS_DECLARE_PRIVATE_IDENTIFIERS
 
-#include "mbedtls/build_info.h"
+#include "tf-psa-crypto/build_info.h"
 
 #include "mbedtls/platform.h"
 /* md.h is included this early since MD_CAN_XXX macros are defined there. */

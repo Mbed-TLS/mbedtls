@@ -44,7 +44,9 @@ endif
 clean:
 ifndef WINDOWS
 	rm -rf $(BINARIES) *.o
+	rm -rf $(MBEDTLS_PATH)/tf-psa-crypto/programs/fuzz/*.o
 else
 	if exist *.o del /Q /F *.o
 	if exist *.exe del /Q /F *.exe
+	rm -rf $(MBEDTLS_PATH)/tf-psa-crypto/programs/fuzz/*.o
 endif

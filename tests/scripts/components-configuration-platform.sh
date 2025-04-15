@@ -26,7 +26,7 @@ component_build_no_sockets () {
     msg "build: full config except net_sockets.c, make, gcc -std=c99 -pedantic" # ~ 30s
     scripts/config.py full
     scripts/config.py unset MBEDTLS_NET_C # getaddrinfo() undeclared, etc.
-    scripts/config.py set MBEDTLS_NO_PLATFORM_ENTROPY # uses syscall() on GNU/Linux
+    scripts/config.py set MBEDTLS_PLATFORM_GET_ENTROPY_ALT # prevent syscall() on GNU/Linux
     make CC=gcc CFLAGS='-Werror -Wall -Wextra -O1 -std=c99 -pedantic' lib
 }
 
@@ -106,6 +106,3 @@ component_test_no_64bit_multiplication () {
     msg "test: MBEDTLS_NO_64BIT_MULTIPLICATION native" # ~ 10s
     make test
 }
-
-
-

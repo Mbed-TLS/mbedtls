@@ -211,7 +211,7 @@ static int run_test_snprintf(void)
  * back.
  */
 #if defined(MBEDTLS_SELF_TEST) && defined(MBEDTLS_ENTROPY_C)
-#if defined(MBEDTLS_ENTROPY_NV_SEED) && !defined(MBEDTLS_NO_PLATFORM_ENTROPY)
+#if defined(MBEDTLS_ENTROPY_NV_SEED) && !defined(MBEDTLS_PLATFORM_GET_ENTROPY_ALT)
 static void create_entropy_seed_file(void)
 {
     int result;
@@ -244,7 +244,7 @@ static void create_entropy_seed_file(void)
 
 static int mbedtls_entropy_self_test_wrapper(int verbose)
 {
-#if defined(MBEDTLS_ENTROPY_NV_SEED) && !defined(MBEDTLS_NO_PLATFORM_ENTROPY)
+#if defined(MBEDTLS_ENTROPY_NV_SEED) && !defined(MBEDTLS_PLATFORM_GET_ENTROPY_ALT)
     create_entropy_seed_file();
 #endif
     return mbedtls_entropy_self_test(verbose);

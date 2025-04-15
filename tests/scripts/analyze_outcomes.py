@@ -121,7 +121,6 @@ class CoverageTask(outcome_analysis.CoverageTask):
             # Obsolete configuration options, to be replaced by
             # PSA entropy drivers.
             # https://github.com/Mbed-TLS/mbedtls/issues/8150
-            'Config: MBEDTLS_NO_PLATFORM_ENTROPY',
             'Config: MBEDTLS_NO_DEFAULT_ENTROPY_SOURCES',
             # Untested aspect of the platform interface.
             # https://github.com/Mbed-TLS/mbedtls/issues/9589

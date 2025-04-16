@@ -109,14 +109,10 @@ def main():
                         help='Run "make clean" before regenerating the log file)')
     parser.add_argument('--log-file', metavar='FILE',
                         default=DEFAULT_STATUS_LOG_FILE,
-                        help='Log file location (default: {})'.format(
-                            DEFAULT_STATUS_LOG_FILE
-                        ))
+                        help='Log file location (default: %(default)s)')
     parser.add_argument('--psa-constant-names', metavar='PROGRAM',
                         default=DEFAULT_PSA_CONSTANT_NAMES,
-                        help='Path to psa_constant_names (default: {})'.format(
-                            DEFAULT_PSA_CONSTANT_NAMES
-                        ))
+                        help='Path to psa_constant_names (default: %(default)s)')
     parser.add_argument('--use-existing-log', '-e',
                         action='store_true',
                         help='Don\'t regenerate the log file if it exists')

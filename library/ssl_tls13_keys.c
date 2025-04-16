@@ -1881,6 +1881,7 @@ int mbedtls_ssl_tls13_export_handshake_psk(mbedtls_ssl_context *ssl,
 }
 #endif /* MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_PSK_ENABLED */
 
+#if defined(MBEDTLS_SSL_KEYING_MATERIAL_EXPORT)
 int mbedtls_ssl_tls13_exporter(const psa_algorithm_t hash_alg,
                                const unsigned char *secret, const size_t secret_len,
                                const unsigned char *label, const size_t label_len,
@@ -1911,5 +1912,6 @@ exit:
     mbedtls_platform_zeroize(hkdf_secret, sizeof(hkdf_secret));
     return ret;
 }
+#endif /* defined(MBEDTLS_SSL_KEYING_MATERIAL_EXPORT) */
 
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 */

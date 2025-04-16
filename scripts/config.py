@@ -367,7 +367,7 @@ class MbedTLSConfigTool(config_common.ConfigTool):
         self.parser.add_argument(
             '--cryptofile', '-c',
             help="""Crypto file to read (and modify if requested). Default: {}."""
-            .format(CryptoConfigFile.default_path))
+            .format(str(CryptoConfigFile.default_path).replace('%', '%%')))
 
         self.add_adapter(
             'baremetal', baremetal_adapter,

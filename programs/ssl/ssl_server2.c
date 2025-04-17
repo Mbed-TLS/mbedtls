@@ -71,6 +71,8 @@ int main(void)
 #define DFL_NBIO                0
 #define DFL_EVENT               0
 #define DFL_READ_TIMEOUT        0
+#define DFL_EXP_LABEL           NULL
+#define DFL_EXP_LEN             20
 #define DFL_CA_FILE             ""
 #define DFL_CA_PATH             ""
 #define DFL_CRT_FILE            ""
@@ -476,6 +478,16 @@ int main(void)
 #define USAGE_SERIALIZATION ""
 #endif
 
+#if defined(MBEDTLS_SSL_KEYING_MATERIAL_EXPORT)
+#define USAGE_EXPORT \
+    "    exp_label=%%s       Label to input into TLS-Exporter\n" \
+    "                         default: None (don't try to export a key)\n" \
+    "    exp_len=%%d         Length of key to extract from TLS-Exporter \n" \
+    "                         default: 20\n"
+#else
+#define USAGE_EXPORT ""
+#endif
+
 #define USAGE_KEY_OPAQUE_ALGS \
     "    key_opaque_algs=%%s  Allowed opaque key 1 algorithms.\n"                      \
     "                        comma-separated pair of values among the following:\n"    \
@@ -583,6 +595,7 @@ int main(void)
     "                                otherwise. The expansion of the macro\n" \
     "                                is printed if it is defined\n"           \
     USAGE_SERIALIZATION                                                       \
+    USAGE_EXPORT                                                              \
     "\n"
 
 #define PUT_UINT64_BE(out_be, in_le, i)                                   \
@@ -610,6 +623,8 @@ struct options {
     int nbio;                   /* should I/O be blocking?                  */
     int event;                  /* loop or event-driven IO? level or edge triggered? */
     uint32_t read_timeout;      /* timeout on mbedtls_ssl_read() in milliseconds    */
+    const char *exp_label;      /* label to input into mbedtls_ssl_export_keying_material() */
+    int exp_len;                /* Length of key to export using mbedtls_ssl_export_keying_material() */
     int response_size;          /* pad response with header to requested size */
     uint16_t buffer_size;       /* IO buffer size */
     const char *ca_file;        /* the file with the CA certificate(s)      */
@@ -1699,6 +1714,8 @@ int main(int argc, char *argv[])
     opt.cid_val             = DFL_CID_VALUE;
     opt.cid_val_renego      = DFL_CID_VALUE_RENEGO;
     opt.read_timeout        = DFL_READ_TIMEOUT;
+    opt.exp_label           = DFL_EXP_LABEL;
+    opt.exp_len             = DFL_EXP_LEN;
     opt.ca_file             = DFL_CA_FILE;
     opt.ca_path             = DFL_CA_PATH;
     opt.crt_file            = DFL_CRT_FILE;
@@ -1877,6 +1894,10 @@ usage:
             }
         } else if (strcmp(p, "read_timeout") == 0) {
             opt.read_timeout = atoi(q);
+        } else if (strcmp(p, "exp_label") == 0) {
+            opt.exp_label = q;
+        } else if (strcmp(p, "exp_len") == 0) {
+            opt.exp_len = atoi(q);
         } else if (strcmp(p, "buffer_size") == 0) {
             opt.buffer_size = atoi(q);
             if (opt.buffer_size < 1) {
@@ -3641,6 +3662,33 @@ handshake:
         }
         mbedtls_printf("\n");
     }
+
+#if defined(MBEDTLS_SSL_KEYING_MATERIAL_EXPORT)
+    if (opt.exp_label != NULL && opt.exp_len > 0) {
+        unsigned char *exported_key = mbedtls_calloc((size_t) opt.exp_len, sizeof(unsigned char));
+        if (exported_key == NULL) {
+            mbedtls_printf("Could not allocate %d bytes\n", opt.exp_len);
+            ret = 3;
+            goto exit;
+        }
+        ret = mbedtls_ssl_export_keying_material(&ssl, exported_key, (size_t) opt.exp_len,
+                                                 opt.exp_label, strlen(opt.exp_label),
+                                                 NULL, 0, 0);
+        if (ret != 0) {
+            mbedtls_free(exported_key);
+            goto exit;
+        }
+        mbedtls_printf("Exporting key of length %d with label \"%s\": 0x",
+                       opt.exp_len,
+                       opt.exp_label);
+        for (i = 0; i < opt.exp_len; i++) {
+            mbedtls_printf("%02X", exported_key[i]);
+        }
+        mbedtls_printf("\n\n");
+        fflush(stdout);
+        mbedtls_free(exported_key);
+    }
+#endif /* defined(MBEDTLS_SSL_KEYING_MATERIAL_EXPORT) */
 
 #if defined(MBEDTLS_SSL_DTLS_SRTP)
     else if (opt.use_srtp != 0) {

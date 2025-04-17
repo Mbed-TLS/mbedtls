@@ -2038,6 +2038,63 @@ exit:
 #endif /* MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED */
 
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
+int mbedtls_test_ssl_do_handshake_with_endpoints(
+    mbedtls_test_ssl_endpoint *server_ep,
+    mbedtls_test_ssl_endpoint *client_ep,
+    mbedtls_test_handshake_test_options *options,
+    mbedtls_ssl_protocol_version proto)
+{
+    enum { BUFFSIZE = 1024 };
+
+    int ret = -1;
+
+    mbedtls_platform_zeroize(server_ep, sizeof(mbedtls_test_ssl_endpoint));
+    mbedtls_platform_zeroize(client_ep, sizeof(mbedtls_test_ssl_endpoint));
+
+    mbedtls_test_init_handshake_options(options);
+    options->server_min_version = proto;
+    options->client_min_version = proto;
+    options->server_max_version = proto;
+    options->client_max_version = proto;
+
+    ret = mbedtls_test_ssl_endpoint_init(client_ep, MBEDTLS_SSL_IS_CLIENT, options,
+                                         NULL, NULL, NULL);
+    if (ret != 0) {
+        return ret;
+    }
+    ret = mbedtls_test_ssl_endpoint_init(server_ep, MBEDTLS_SSL_IS_SERVER, options,
+                                         NULL, NULL, NULL);
+    if (ret != 0) {
+        return ret;
+    }
+
+    ret = mbedtls_test_mock_socket_connect(&client_ep->socket, &server_ep->socket, BUFFSIZE);
+    if (ret != 0) {
+        return ret;
+    }
+
+    ret = mbedtls_test_move_handshake_to_state(&server_ep->ssl,
+                                               &client_ep->ssl,
+                                               MBEDTLS_SSL_HANDSHAKE_OVER);
+    if (ret != 0 && ret != MBEDTLS_ERR_SSL_WANT_READ && ret != MBEDTLS_ERR_SSL_WANT_WRITE) {
+        return ret;
+    }
+    ret = mbedtls_test_move_handshake_to_state(&client_ep->ssl,
+                                               &server_ep->ssl,
+                                               MBEDTLS_SSL_HANDSHAKE_OVER);
+    if (ret != 0 && ret != MBEDTLS_ERR_SSL_WANT_READ && ret != MBEDTLS_ERR_SSL_WANT_WRITE) {
+        return ret;
+    }
+    if (!mbedtls_ssl_is_handshake_over(&client_ep->ssl) ||
+        !mbedtls_ssl_is_handshake_over(&server_ep->ssl)) {
+        return -1;
+    }
+
+    return 0;
+}
+#endif /* defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED) */
+
+#if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
 void mbedtls_test_ssl_perform_handshake(
     mbedtls_test_handshake_test_options *options)
 {

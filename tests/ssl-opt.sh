@@ -1230,6 +1230,26 @@ check_server_hello_time() {
     fi
 }
 
+# Extract the exported key from the output.
+get_exported_key() {
+    OUTPUT="$1"
+    EXPORTED_KEY1=$(sed -n '/Exporting key of length 20 with label ".*": /s/.*: //p' $OUTPUT)
+}
+
+# Check that the exported key from the output matches the one obtained in get_exported_key().
+check_exported_key() {
+    OUTPUT="$1"
+    EXPORTED_KEY2=$(sed -n '/Exporting key of length 20 with label ".*": /s/.*: //p' $OUTPUT)
+    test "$EXPORTED_KEY1" = "$EXPORTED_KEY2"
+}
+
+# Check that the exported key from the output matches the one obtained in get_exported_key().
+check_exported_key_openssl() {
+    OUTPUT="$1"
+    EXPORTED_KEY2=0x$(sed -n '/Keying material: /s/.*: //p' $OUTPUT)
+    test "$EXPORTED_KEY1" = "$EXPORTED_KEY2"
+}
+
 # Get handshake memory usage from server or client output and put it into the variable specified by the first argument
 handshake_memory_get() {
     OUTPUT_VARIABLE="$1"
@@ -1975,6 +1995,46 @@ run_tests_memory_after_handshake()
 
     SKIP_NEXT="$SKIP_THIS_TESTS"
     run_test_memory_after_handshake_with_mfl 512 "$MEMORY_USAGE_MFL_16K"
+}
+
+run_test_export_keying_material() {
+    unset EXPORTED_KEY1
+    unset EXPORTED_KEY2
+    TLS_VERSION="$1"
+
+    case $TLS_VERSION in
+        tls12) TLS_VERSION_PRINT="TLS 1.2";;
+        tls13) TLS_VERSION_PRINT="TLS 1.3";;
+    esac
+
+    run_test    "$TLS_VERSION_PRINT: Export keying material" \
+                "$P_SRV debug_level=4 force_version=$TLS_VERSION exp_label=test-label" \
+                "$P_CLI debug_level=4 force_version=$TLS_VERSION exp_label=test-label" \
+                0 \
+                -s "Exporting key of length 20 with label \".*\": 0x" \
+                -c "Exporting key of length 20 with label \".*\": 0x" \
+                -f get_exported_key \
+                -F check_exported_key
+}
+
+run_test_export_keying_material_openssl_compat() {
+    unset EXPORTED_KEY1
+    unset EXPORTED_KEY2
+    TLS_VERSION="$1"
+
+    case $TLS_VERSION in
+        tls12) TLS_VERSION_PRINT="TLS 1.2"; OPENSSL_CLIENT="$O_CLI";;
+        tls13) TLS_VERSION_PRINT="TLS 1.3"; OPENSSL_CLIENT="$O_NEXT_CLI";;
+    esac
+
+    run_test    "$TLS_VERSION_PRINT: Export keying material (OpenSSL compatibility)" \
+                "$P_SRV debug_level=4 force_version=$TLS_VERSION exp_label=test-label" \
+                "$OPENSSL_CLIENT -keymatexport test-label" \
+                0 \
+                -s "Exporting key of length 20 with label \".*\": 0x" \
+                -c "Keying material exporter:" \
+                -F get_exported_key \
+                -f check_exported_key_openssl
 }
 
 cleanup() {
@@ -3138,6 +3198,24 @@ run_test    "Saving the serialized context to a file" \
             0 \
             -s "Save serialized context to a file... ok" \
             -c "Save serialized context to a file... ok"
+
+requires_config_enabled MBEDTLS_SSL_KEYING_MATERIAL_EXPORT
+requires_protocol_version tls12
+run_test_export_keying_material tls12
+
+requires_config_enabled MBEDTLS_SSL_KEYING_MATERIAL_EXPORT
+requires_protocol_version tls12
+run_test_export_keying_material_openssl_compat tls12
+
+requires_config_enabled MBEDTLS_SSL_KEYING_MATERIAL_EXPORT
+requires_protocol_version tls13
+run_test_export_keying_material tls13
+
+requires_config_enabled MBEDTLS_SSL_KEYING_MATERIAL_EXPORT
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_openssl_tls1_3_with_compatible_ephemeral
+run_test_export_keying_material_openssl_compat tls13
+
 rm -f context_srv.txt
 rm -f context_cli.txt
 

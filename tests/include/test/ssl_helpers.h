@@ -602,6 +602,14 @@ int mbedtls_test_ssl_exchange_data(
     int msg_len_2, const int expected_fragments_2);
 
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
+int mbedtls_test_ssl_do_handshake_with_endpoints(
+    mbedtls_test_ssl_endpoint *server_ep,
+    mbedtls_test_ssl_endpoint *client_ep,
+    mbedtls_test_handshake_test_options *options,
+    mbedtls_ssl_protocol_version proto);
+#endif /* defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED) */
+
+#if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
 void mbedtls_test_ssl_perform_handshake(
     mbedtls_test_handshake_test_options *options);
 #endif /* MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED */

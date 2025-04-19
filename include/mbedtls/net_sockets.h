@@ -76,18 +76,22 @@ extern "C" {
 /**
  * Wrapper type for sockets.
  *
- * Currently backed by just a file descriptor, but might be more in the future
+ * Currently backed by just a file descriptor or a socket handle, but might be more in the future
  * (eg two file descriptors for combined IPv4 + IPv6 support, or additional
  * structures for hand-made UDP demultiplexing).
  */
 typedef struct mbedtls_net_context {
-    /** The underlying file descriptor.
+    /** The underlying file descriptor or socket handle.
      *
      * This field is only guaranteed to be present on POSIX/Unix-like platforms.
      * On other platforms, it may have a different type, have a different
      * meaning, or be absent altogether.
      */
+#ifdef _MSC_VER
+    SOCKET fd;
+#else
     int fd;
+#endif
 }
 mbedtls_net_context;
 

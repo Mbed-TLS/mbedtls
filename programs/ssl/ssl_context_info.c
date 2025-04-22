@@ -553,18 +553,7 @@ static void print_deserialized_ssl_session(const uint8_t *ssl, uint32_t len,
 
         printf("\tciphersuite    : %s\n", mbedtls_ssl_ciphersuite_get_name(ciphersuite_info));
         printf("\tcipher flags   : 0x%02X\n", ciphersuite_info->MBEDTLS_PRIVATE(flags));
-
-#if defined(MBEDTLS_CIPHER_C)
-        const mbedtls_cipher_info_t *cipher_info;
-        cipher_info = mbedtls_cipher_info_from_type(ciphersuite_info->MBEDTLS_PRIVATE(cipher));
-        if (cipher_info == NULL) {
-            printf_err("Cannot find cipher info\n");
-        } else {
-            printf("\tcipher         : %s\n", mbedtls_cipher_info_get_name(cipher_info));
-        }
-#else /* MBEDTLS_CIPHER_C */
         printf("\tcipher type     : %d\n", ciphersuite_info->MBEDTLS_PRIVATE(cipher));
-#endif /* MBEDTLS_CIPHER_C */
 
 #if defined(MBEDTLS_MD_C)
         md_info = mbedtls_md_info_from_type(ciphersuite_info->MBEDTLS_PRIVATE(mac));

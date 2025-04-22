@@ -132,7 +132,8 @@ component_test_full_cmake_gcc_asan_new_bignum () {
 component_test_full_cmake_clang () {
     msg "build: cmake, full config, clang" # ~ 50s
     scripts/config.py full
-    CC=clang CXX=clang cmake -D CMAKE_BUILD_TYPE:String=Release -D ENABLE_TESTING=On -D TEST_CPP=1 .
+    CC=clang CXX=clang++ cmake -D CMAKE_BUILD_TYPE:String=Release \
+                               -D ENABLE_TESTING=On -D TEST_CPP=1 .
     make
 
     msg "test: main suites (full config, clang)" # ~ 5s

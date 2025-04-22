@@ -280,6 +280,10 @@ component_test_no_platform () {
     scripts/config.py unset MBEDTLS_PSA_CRYPTO_STORAGE_C
     scripts/config.py unset MBEDTLS_PSA_ITS_FILE_C
     scripts/config.py unset MBEDTLS_ENTROPY_NV_SEED
+    # Use the test alternative implementation of mbedtls_platform_get_entropy()
+    # which is provided in "framework/tests/src/fake_external_rng_for_test.c"
+    # since the default one is excluded in this scenario.
+    scripts/config.py set MBEDTLS_PLATFORM_GET_ENTROPY_ALT
     # Note, _DEFAULT_SOURCE needs to be defined for platforms using glibc version >2.19,
     # to re-enable platform integration features otherwise disabled in C99 builds
     make CC=gcc CFLAGS='-Werror -Wall -Wextra -std=c99 -pedantic -Os -D_DEFAULT_SOURCE' lib programs

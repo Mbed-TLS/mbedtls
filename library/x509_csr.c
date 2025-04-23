@@ -546,8 +546,7 @@ int mbedtls_x509_csr_info(char *buf, size_t size, const char *prefix,
     ret = mbedtls_snprintf(p, n, "\n%ssigned using  : ", prefix);
     MBEDTLS_X509_SAFE_SNPRINTF;
 
-    ret = mbedtls_x509_sig_alg_gets(p, n, &csr->sig_oid, csr->sig_pk, csr->sig_md,
-                                    csr->sig_opts);
+    ret = mbedtls_x509_sig_alg_gets(p, n, &csr->sig_oid, csr->sig_pk, csr->sig_md);
     MBEDTLS_X509_SAFE_SNPRINTF;
 
     if ((ret = mbedtls_x509_key_size_helper(key_size_str, MBEDTLS_BEFORE_COLON,

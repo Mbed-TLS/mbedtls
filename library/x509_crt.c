@@ -1799,8 +1799,7 @@ int mbedtls_x509_crt_info(char *buf, size_t size, const char *prefix,
     ret = mbedtls_snprintf(p, n, "\n%ssigned using      : ", prefix);
     MBEDTLS_X509_SAFE_SNPRINTF;
 
-    ret = mbedtls_x509_sig_alg_gets(p, n, &crt->sig_oid, crt->sig_pk,
-                                    crt->sig_md, crt->sig_opts);
+    ret = mbedtls_x509_sig_alg_gets(p, n, &crt->sig_oid, crt->sig_pk, crt->sig_md);
     MBEDTLS_X509_SAFE_SNPRINTF;
 
     /* Key size */

@@ -1557,7 +1557,7 @@ component_test_psa_crypto_config_accel_hash () {
     scripts/config.py unset MBEDTLS_SHA256_C
     scripts/config.py unset MBEDTLS_SHA384_C
     scripts/config.py unset MBEDTLS_SHA512_C
-    scripts/config.py unset MBEDTLS_SHA3_C
+    scripts/config.py unset-all 'PSA_WANT_ALG_SHA3_*'
 
     # Build
     # -----
@@ -1597,7 +1597,7 @@ config_psa_crypto_hash_use_psa () {
         scripts/config.py unset MBEDTLS_SHA384_C
         scripts/config.py unset MBEDTLS_SHA512_C
         scripts/config.py unset MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT
-        scripts/config.py unset MBEDTLS_SHA3_C
+        scripts/config.py unset-all 'PSA_WANT_ALG_SHA3_*'
     fi
 }
 
@@ -1680,6 +1680,7 @@ config_psa_crypto_hmac_use_psa () {
         # Disable also the builtin hashes since they are supported by the driver
         # and MD module is able to perform PSA dispathing.
         scripts/config.py unset-all MBEDTLS_SHA
+        scripts/config.py unset-all 'PSA_WANT_ALG_SHA3_*'
         scripts/config.py unset MBEDTLS_MD5_C
         scripts/config.py unset MBEDTLS_RIPEMD160_C
     fi

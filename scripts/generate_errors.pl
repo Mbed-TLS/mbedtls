@@ -238,8 +238,8 @@ if ($hl_old_define[0] ne "")
 }
 
 $error_format =~ s/HEADER_INCLUDED\n/$headers/g;
-$error_format =~ s/LOW_LEVEL_CODE_CHECKS\n/$ll_code_check/g;
-$error_format =~ s/HIGH_LEVEL_CODE_CHECKS\n/$hl_code_check/g;
+$error_format =~ s/ *LOW_LEVEL_CODE_CHECKS\n/$ll_code_check/g;
+$error_format =~ s/ *HIGH_LEVEL_CODE_CHECKS\n/$hl_code_check/g;
 
 open(ERROR_FILE, ">$error_file") or die "Opening destination file '$error_file': $!";
 print ERROR_FILE $error_format;

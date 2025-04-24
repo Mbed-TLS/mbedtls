@@ -33,7 +33,7 @@ static const char *mbedtls_high_level_strerr(int error_code)
 
     switch (high_level_error_code) {
     /* Begin Auto-Generated Code. */
-    HIGH_LEVEL_CODE_CHECKS
+HIGH_LEVEL_CODE_CHECKS
         /* End Auto-Generated Code. */
 
         default:
@@ -56,7 +56,7 @@ static const char *mbedtls_low_level_strerr(int error_code)
 
     switch (low_level_error_code) {
     /* Begin Auto-Generated Code. */
-    LOW_LEVEL_CODE_CHECKS
+LOW_LEVEL_CODE_CHECKS
         /* End Auto-Generated Code. */
 
         default:

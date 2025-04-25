@@ -22,12 +22,23 @@ class MbedtlsTestConfigChecks(unittest_config_checks.TestConfigChecks):
         'tf-psa-crypto/drivers/builtin/include',
     ]
 
+    def test_crypto_config_read(self) -> None:
+        """Check that crypto_config.h is read in crypto."""
+        self.bad_case('#error witness',
+                      None,
+                      error='witness')
+
+    def test_mbedtls_config_read(self) -> None:
+        """Check that mbedtls_config.h is read in crypto."""
+        self.bad_case(''
+                      '#error witness',
+                      error='witness')
+
     @unittest.skip("At this time, mbedtls does not go through crypto's check_config.h.")
-    def test_crypto_no_fs_io(self) -> None:
+    def test_crypto_undef_MBEDTLS_FS_IO(self) -> None:
         """A sample error expected from crypto's check_config.h."""
         self.bad_case('#undef MBEDTLS_FS_IO',
-                      None,
-                      error=('MBEDTLS_PSA_ITS_FILE_C'))
+                      error='MBEDTLS_PSA_ITS_FILE_C')
 
     def test_mbedtls_no_session_tickets_for_early_data(self) -> None:
         """An error expected from mbedtls_check_config.h based on the TLS configuration."""
@@ -36,7 +47,7 @@ class MbedtlsTestConfigChecks(unittest_config_checks.TestConfigChecks):
                       #define MBEDTLS_SSL_EARLY_DATA
                       #undef MBEDTLS_SSL_SESSION_TICKETS
                       ''',
-                      error=('MBEDTLS_SSL_EARLY_DATA'))
+                      error='MBEDTLS_SSL_EARLY_DATA')
 
     def test_mbedtls_no_ecdsa(self) -> None:
         """An error expected from mbedtls_check_config.h based on crypto+TLS configuration."""
@@ -52,8 +63,17 @@ class MbedtlsTestConfigChecks(unittest_config_checks.TestConfigChecks):
                       #error PSA_WANT_ALG_DETERMINSTIC_ECDSA unexpected
                       #endif
                       ''',
-                      error=('MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED'))
+                      error='MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED')
 
+    def test_mbedtls_define_MBEDTLS_KEY_EXCHANGE_RSA_ENABLED(self) -> None:
+        """Error when setting a removed option."""
+        self.bad_case('#define MBEDTLS_KEY_EXCHANGE_RSA_ENABLED',
+                      error='MBEDTLS_KEY_EXCHANGE_RSA_ENABLED was removed')
+
+    def test_mbedtls_exempt_define_MBEDTLS_KEY_EXCHANGE_RSA_ENABLED(self) -> None:
+        """Bypassed error when setting a removed option."""
+        self.good_case('#define MBEDTLS_KEY_EXCHANGE_RSA_ENABLED',
+                       extra_options=['-DMBEDTLS_CONFIG_CHECK_BYPASS'])
 
     def test_define_MBEDTLS_MD5_C_redundant(self) -> None:
         """Error when redundantly setting a subproject internal option."""

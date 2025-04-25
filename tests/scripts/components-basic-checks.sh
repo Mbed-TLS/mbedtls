@@ -123,4 +123,7 @@ component_check_test_helpers () {
 
     msg "unit test: translate_ciphers.py"
     python3 -m unittest framework/scripts/translate_ciphers.py 2>&1
+
+    msg "unit test: generate_config_checks.py"
+    tests/scripts/test_config_checks.py 2>&1
 }

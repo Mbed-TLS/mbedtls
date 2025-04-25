@@ -11,8 +11,6 @@ hash/sha2sum
 pkey/gen_key
 pkey/pk_sign
 pkey/pk_verify
-pkey/rsa_sign_pss
-pkey/rsa_verify_pss
 ssl/dtls_client
 ssl/dtls_server
 ssl/mini_client

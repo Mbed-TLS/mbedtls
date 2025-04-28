@@ -547,21 +547,13 @@ static void print_deserialized_ssl_session(const uint8_t *ssl, uint32_t len,
     if (ciphersuite_info == NULL) {
         printf_err("Cannot find ciphersuite info\n");
     } else {
-#if defined(MBEDTLS_MD_C)
-        const mbedtls_md_info_t *md_info;
-#endif
 
         printf("\tciphersuite    : %s\n", mbedtls_ssl_ciphersuite_get_name(ciphersuite_info));
         printf("\tcipher flags   : 0x%02X\n", ciphersuite_info->MBEDTLS_PRIVATE(flags));
         printf("\tcipher type     : %d\n", ciphersuite_info->MBEDTLS_PRIVATE(cipher));
 
 #if defined(MBEDTLS_MD_C)
-        md_info = mbedtls_md_info_from_type(ciphersuite_info->MBEDTLS_PRIVATE(mac));
-        if (md_info == NULL) {
-            printf_err("Cannot find Message-Digest info\n");
-        } else {
-            printf("\tMessage-Digest : %s\n", mbedtls_md_get_name(md_info));
-        }
+        printf("\tMessage-Digest : %d\n", ciphersuite_info->MBEDTLS_PRIVATE(mac));  
 #endif /* MBEDTLS_MD_C */
     }
 

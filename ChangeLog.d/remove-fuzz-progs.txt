@@ -1,0 +1,2 @@
+Removals
+   * Remove fuzz_privkey and fuzz_pubkey.

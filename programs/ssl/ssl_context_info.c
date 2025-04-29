@@ -553,7 +553,7 @@ static void print_deserialized_ssl_session(const uint8_t *ssl, uint32_t len,
         printf("\tcipher type     : %d\n", ciphersuite_info->MBEDTLS_PRIVATE(cipher));
 
 #if defined(MBEDTLS_MD_C)
-        printf("\tMessage-Digest : %d\n", ciphersuite_info->MBEDTLS_PRIVATE(mac));  
+        printf("\tMessage-Digest : %d\n", ciphersuite_info->MBEDTLS_PRIVATE(mac));
 #endif /* MBEDTLS_MD_C */
     }
 

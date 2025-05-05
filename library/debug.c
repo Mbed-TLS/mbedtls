@@ -189,7 +189,7 @@ void mbedtls_debug_print_ecp(const mbedtls_ssl_context *ssl, int level,
 }
 #endif /* MBEDTLS_ECP_LIGHT */
 
-#if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
+#if defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
 static void mbedtls_debug_print_ec_coord(const mbedtls_ssl_context *ssl, int level,
                                          const char *file, int line, const char *text,
                                          const unsigned char *buf, size_t len)
@@ -259,7 +259,7 @@ void mbedtls_debug_print_psa_ec(const mbedtls_ssl_context *ssl, int level,
     mbedtls_snprintf(str, sizeof(str), "%s(Y)", text);
     mbedtls_debug_print_ec_coord(ssl, level, file, line, str, coord_start, coord_len);
 }
-#endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
+#endif /* PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY */
 
 #if defined(MBEDTLS_BIGNUM_C)
 void mbedtls_debug_print_mpi(const mbedtls_ssl_context *ssl, int level,
@@ -342,16 +342,11 @@ static void debug_print_pk(const mbedtls_ssl_context *ssl, int level,
             mbedtls_debug_print_mpi(ssl, level, file, line, name, items[i].value);
         } else
 #endif /* MBEDTLS_RSA_C */
-#if defined(MBEDTLS_ECP_LIGHT)
-        if (items[i].type == MBEDTLS_PK_DEBUG_ECP) {
-            mbedtls_debug_print_ecp(ssl, level, file, line, name, items[i].value);
-        } else
-#endif /* MBEDTLS_ECP_LIGHT */
-#if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
+#if defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
         if (items[i].type == MBEDTLS_PK_DEBUG_PSA_EC) {
             mbedtls_debug_print_psa_ec(ssl, level, file, line, name, items[i].value);
         } else
-#endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
+#endif /* PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY */
         { debug_send_line(ssl, level, file, line,
                           "should not happen\n"); }
     }

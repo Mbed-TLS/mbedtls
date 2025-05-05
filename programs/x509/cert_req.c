@@ -495,6 +495,23 @@ exit:
 #endif
     }
 
+    cur = opt.san_list;
+    while (cur != NULL) {
+        mbedtls_x509_san_list *next = cur->next;
+        /* Note: mbedtls_x509_free_subject_alt_name() is not what we want here.
+         * It's the right thing for entries that were parsed from a certificate,
+         * where pointers are to the raw certificate, but here all the
+         * pointers were allocated while parsing from a user-provided string. */
+        if (cur->node.type == MBEDTLS_X509_SAN_DIRECTORY_NAME) {
+            mbedtls_x509_name dn = cur->node.san.directory_name;
+            mbedtls_free(dn.oid.p);
+            mbedtls_free(dn.val.p);
+            mbedtls_asn1_free_named_data_list(&dn.next);
+        }
+        mbedtls_free(cur);
+        cur = next;
+    }
+
     mbedtls_x509write_csr_free(&req);
     mbedtls_pk_free(&key);
     mbedtls_ctr_drbg_free(&ctr_drbg);

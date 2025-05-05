@@ -150,7 +150,6 @@ int main(int argc, char *argv[])
     mbedtls_ctr_drbg_context ctr_drbg;
     const char *pers = "csr example app";
     mbedtls_x509_san_list *cur, *prev;
-    mbedtls_asn1_named_data *ext_san_dirname = NULL;
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
     uint8_t ip[4] = { 0 };
 #endif
@@ -274,7 +273,12 @@ usage:
                     cur->node.san.unstructured_name.len = sizeof(ip);
                 } else if (strcmp(q, "DN") == 0) {
                     cur->node.type = MBEDTLS_X509_SAN_DIRECTORY_NAME;
-                    if ((ret = mbedtls_x509_string_to_names(&ext_san_dirname,
+                    /* Work around an API mismatch between string_to_names() and
+                     * mbedtls_x509_subject_alternative_name, which holds an
+                     * actual mbedtls_x509_name while a pointer to one would be
+                     * more convenient here. */
+                    mbedtls_asn1_named_data *tmp_san_dirname = NULL;
+                    if ((ret = mbedtls_x509_string_to_names(&tmp_san_dirname,
                                                             subtype_value)) != 0) {
                         mbedtls_strerror(ret, buf, sizeof(buf));
                         mbedtls_printf(
@@ -283,7 +287,9 @@ usage:
                             (unsigned int) -ret, buf);
                         goto exit;
                     }
-                    cur->node.san.directory_name = *ext_san_dirname;
+                    cur->node.san.directory_name = *tmp_san_dirname;
+                    mbedtls_free(tmp_san_dirname);
+                    tmp_san_dirname = NULL;
                 } else {
                     mbedtls_free(cur);
                     goto usage;
@@ -490,7 +496,6 @@ exit:
     }
 
     mbedtls_x509write_csr_free(&req);
-    mbedtls_asn1_free_named_data_list(&ext_san_dirname);
     mbedtls_pk_free(&key);
     mbedtls_ctr_drbg_free(&ctr_drbg);
     mbedtls_entropy_free(&entropy);

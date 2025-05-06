@@ -6,6 +6,10 @@
 #include "mbedtls/gcm.h"
 #endif
 
+#include "cipher_invasive.h"
+
+#include "test/constant_flow.h"
+
 #if defined(MBEDTLS_CIPHER_HAVE_SOME_AEAD_VIA_LEGACY_OR_USE_PSA) || defined(MBEDTLS_NIST_KW_C)
 #define MBEDTLS_CIPHER_AUTH_CRYPT
 #endif
@@ -1258,5 +1262,22 @@ void check_set_padding(int cipher_id)
 exit:
     mbedtls_cipher_free(&ctx);
     mbedtls_free(key);
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_TEST_HOOKS */
+void get_pkcs_padding(data_t *decrypted_block, int exp_ret, int exp_len)
+{
+    int ret;
+    size_t calculated_len;
+
+    TEST_CF_SECRET(decrypted_block->x, decrypted_block->len);
+    ret = mbedtls_get_pkcs_padding(decrypted_block->x, decrypted_block->len,
+                                   &calculated_len);
+
+    TEST_EQUAL(ret, exp_ret);
+    if (exp_ret == 0) {
+        TEST_EQUAL(calculated_len, exp_len);
+    }
 }
 /* END_CASE */

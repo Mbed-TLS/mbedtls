@@ -73,8 +73,12 @@ EOF
 
     cat <<'EOF'
 
+#include <iostream>
+
 int main()
 {
+    std::cout << "CPP dummy build\n";
+
     mbedtls_platform_context *ctx = NULL;
     mbedtls_platform_setup(ctx);
     mbedtls_printf("CPP Build test passed\n");

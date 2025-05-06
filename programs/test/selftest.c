@@ -211,11 +211,18 @@ static int run_test_snprintf(void)
  * back.
  */
 #if defined(MBEDTLS_SELF_TEST) && defined(MBEDTLS_ENTROPY_C)
-#if defined(MBEDTLS_ENTROPY_NV_SEED) && !defined(MBEDTLS_NO_PLATFORM_ENTROPY)
+#if defined(MBEDTLS_ENTROPY_NV_SEED) && !defined(MBEDTLS_PLATFORM_GET_ENTROPY_ALT)
+static void dummy_entropy(unsigned char *output, size_t output_size)
+{
+    srand(1);
+    for (size_t i = 0; i < output_size; i++) {
+        output[i] = rand();
+    }
+}
+
 static void create_entropy_seed_file(void)
 {
     int result;
-    size_t output_len = 0;
     unsigned char seed_value[MBEDTLS_ENTROPY_BLOCK_SIZE];
 
     /* Attempt to read the entropy seed file. If this fails - attempt to write
@@ -226,25 +233,14 @@ static void create_entropy_seed_file(void)
         return;
     }
 
-    result = mbedtls_platform_entropy_poll(NULL,
-                                           seed_value,
-                                           MBEDTLS_ENTROPY_BLOCK_SIZE,
-                                           &output_len);
-    if (0 != result) {
-        return;
-    }
-
-    if (MBEDTLS_ENTROPY_BLOCK_SIZE != output_len) {
-        return;
-    }
-
+    dummy_entropy(seed_value, MBEDTLS_ENTROPY_BLOCK_SIZE);
     mbedtls_platform_std_nv_seed_write(seed_value, MBEDTLS_ENTROPY_BLOCK_SIZE);
 }
 #endif
 
 static int mbedtls_entropy_self_test_wrapper(int verbose)
 {
-#if defined(MBEDTLS_ENTROPY_NV_SEED) && !defined(MBEDTLS_NO_PLATFORM_ENTROPY)
+#if defined(MBEDTLS_ENTROPY_NV_SEED) && !defined(MBEDTLS_PLATFORM_GET_ENTROPY_ALT)
     create_entropy_seed_file();
 #endif
     return mbedtls_entropy_self_test(verbose);

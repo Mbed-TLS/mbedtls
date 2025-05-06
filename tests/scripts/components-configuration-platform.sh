@@ -20,6 +20,20 @@ component_build_no_std_function () {
     make
 }
 
+component_test_platform_get_entropy_alt()
+{
+    msg "build: default config + MBEDTLS_PLATFORM_GET_ENTROPY_ALT"
+    # Use hardware polling as the only source for entropy
+    scripts/config.py set MBEDTLS_PLATFORM_GET_ENTROPY_ALT
+    scripts/config.py unset MBEDTLS_ENTROPY_NV_SEED
+
+    make
+
+    # Run all the tests
+    msg "test: default config + MBEDTLS_PLATFORM_GET_ENTROPY_ALT"
+    make test
+}
+
 component_build_no_sockets () {
     # Note, C99 compliance can also be tested with the sockets support disabled,
     # as that requires a POSIX platform (which isn't the same as C99).

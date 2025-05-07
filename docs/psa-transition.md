@@ -115,6 +115,7 @@ Note that a key consumes a key store entry, which is distinct from heap memory, 
 | `check_config.h` | N/A | No public APIs (internal support header) |
 | `cipher.h` | `mbedtls_cipher_` | [Symmetric encryption](#symmetric-encryption) |
 | `cmac.h` | `mbedtls_cipher_cmac_` | [Hashes and MAC](#hashes-and-mac), [MAC calculation](#mac-calculation) |
+| `compat-2.x.h` | various | None (transitional APIs) |
 | `config_psa.h` | N/A | No public APIs (internal support header) |
 | `constant_time.h` | `mbedtls_ct_` | [Constant-time functions](#constant-time-functions) |
 | `ctr_drbg.h` | `mbedtls_ctr_drbg_` | [Random generation interface](#random-generation-interface), [Deterministic pseudorandom generation](#deterministic-pseudorandom-generation) |

@@ -11,6 +11,7 @@
 
 #include "mbedtls/asn1write.h"
 #include "mbedtls/error.h"
+#include "mbedtls/oid.h"
 #include "x509_oid.h"
 
 #include <string.h>

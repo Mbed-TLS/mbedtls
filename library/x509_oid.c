@@ -66,7 +66,7 @@
     int FN_NAME(const mbedtls_asn1_buf *oid, ATTR1_TYPE * ATTR1)                  \
     {                                                                       \
         const TYPE_T *data = oid_ ## TYPE_NAME ## _from_asn1(oid);        \
-        if (data == NULL) return MBEDTLS_ERR_OID_NOT_FOUND;            \
+        if (data == NULL) return MBEDTLS_ERR_X509_UNKNOWN_OID;            \
         *ATTR1 = data->descriptor.ATTR1;                                    \
         return 0;                                                        \
     }
@@ -80,7 +80,7 @@
     int FN_NAME(const mbedtls_asn1_buf *oid, ATTR1_TYPE * ATTR1)                  \
     {                                                                       \
         const TYPE_T *data = oid_ ## TYPE_NAME ## _from_asn1(oid);        \
-        if (data == NULL) return MBEDTLS_ERR_OID_NOT_FOUND;            \
+        if (data == NULL) return MBEDTLS_ERR_X509_UNKNOWN_OID;            \
         *ATTR1 = data->ATTR1;                                               \
         return 0;                                                        \
     }
@@ -95,7 +95,7 @@
                 ATTR2_TYPE * ATTR2)              \
     {                                                                           \
         const TYPE_T *data = oid_ ## TYPE_NAME ## _from_asn1(oid);            \
-        if (data == NULL) return MBEDTLS_ERR_OID_NOT_FOUND;                 \
+        if (data == NULL) return MBEDTLS_ERR_X509_UNKNOWN_OID;                 \
         *(ATTR1) = data->ATTR1;                                                 \
         *(ATTR2) = data->ATTR2;                                                 \
         return 0;                                                            \
@@ -117,7 +117,7 @@
             }                                                                   \
             cur++;                                                              \
         }                                                                       \
-        return MBEDTLS_ERR_OID_NOT_FOUND;                                    \
+        return MBEDTLS_ERR_X509_UNKNOWN_OID;                                    \
     }
 
 /*
@@ -138,7 +138,7 @@
             }                                                                   \
             cur++;                                                              \
         }                                                                       \
-        return MBEDTLS_ERR_OID_NOT_FOUND;                                   \
+        return MBEDTLS_ERR_X509_UNKNOWN_OID;                                   \
     }
 
 /*

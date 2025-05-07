@@ -83,13 +83,11 @@ void rng_init(rng_context_t *rng)
 
 int rng_seed(rng_context_t *rng, int reproducible, const char *pers)
 {
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
     if (reproducible) {
         mbedtls_fprintf(stderr,
-                        "MBEDTLS_USE_PSA_CRYPTO does not support reproducible mode.\n");
+                        "reproducible mode is not supported.\n");
         return -1;
     }
-#endif
 #if defined(MBEDTLS_TEST_USE_PSA_CRYPTO_RNG)
     /* The PSA crypto RNG does its own seeding. */
     (void) rng;
@@ -217,7 +215,6 @@ int key_opaque_alg_parse(const char *arg, const char **alg1, const char **alg2)
     return 0;
 }
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
 int key_opaque_set_alg_usage(const char *alg1, const char *alg2,
                              psa_algorithm_t *psa_alg1,
                              psa_algorithm_t *psa_alg2,
@@ -301,7 +298,6 @@ int pk_wrap_as_opaque(mbedtls_pk_context *pk, psa_algorithm_t psa_alg, psa_algor
     return 0;
 }
 #endif /* MBEDTLS_PK_C */
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 #if defined(MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK)
 int ca_callback(void *data, mbedtls_x509_crt const *child,

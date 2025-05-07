@@ -1,5 +1,5 @@
 /**
- * \file oid.c
+ * \file x509_oid.c
  *
  * \brief Object Identifier (OID) database
  *

@@ -2737,7 +2737,7 @@ X509 OID numstring #2 (buffer just fits)
 x509_oid_numstr:"2b06010505070301":"1.3.6.1.5.5.7.3.1":18:17
 
 X509 OID numstring #3 (buffer too small)
-x509_oid_numstr:"2b06010505070301":"1.3.6.1.5.5.7.3.1":17:MBEDTLS_ERR_OID_BUF_TOO_SMALL
+x509_oid_numstr:"2b06010505070301":"1.3.6.1.5.5.7.3.1":17:PSA_ERROR_BUFFER_TOO_SMALL
 
 X509 OID numstring #4 (larger number)
 x509_oid_numstr:"2a864886f70d":"1.2.840.113549":15:14

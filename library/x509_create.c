@@ -314,7 +314,7 @@ static int oid_subidentifier_encode_into(unsigned char **p,
     size_t num_bytes = oid_subidentifier_num_bytes(value);
 
     if ((size_t) (bound - *p) < num_bytes) {
-        return MBEDTLS_ERR_OID_BUF_TOO_SMALL;
+        return PSA_ERROR_BUFFER_TOO_SMALL;
     }
     (*p)[num_bytes - 1] = (unsigned char) (value & 0x7f);
     value >>= 7;

@@ -849,7 +849,7 @@ int mbedtls_oid_get_numeric_string(char *buf, size_t size,
                 ret = mbedtls_snprintf(p, n, ".%u", value);
             }
             if (ret < 2 || (size_t) ret >= n) {
-                return MBEDTLS_ERR_OID_BUF_TOO_SMALL;
+                return PSA_ERROR_BUFFER_TOO_SMALL;
             }
             n -= (size_t) ret;
             p += ret;
@@ -912,7 +912,7 @@ int mbedtls_x509_dn_gets(char *buf, size_t size, const mbedtls_x509_name *dn)
                 p += ret;
                 ret = mbedtls_snprintf(p, n, "=");
                 print_hexstring = 1;
-            } else if (ret == MBEDTLS_ERR_OID_BUF_TOO_SMALL) {
+            } else if (ret == PSA_ERROR_BUFFER_TOO_SMALL) {
                 return MBEDTLS_ERR_X509_BUFFER_TOO_SMALL;
             } else {
                 ret = mbedtls_snprintf(p, n, "\?\?=");

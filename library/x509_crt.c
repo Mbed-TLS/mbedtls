@@ -23,7 +23,7 @@
 
 #include "mbedtls/x509_crt.h"
 #include "mbedtls/error.h"
-#include "mbedtls/oid.h"
+#include "x509_oid.h"
 #include "mbedtls/platform_util.h"
 
 #include <string.h>

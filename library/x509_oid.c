@@ -11,7 +11,7 @@
 
 #if defined(MBEDTLS_OID_C)
 
-#include "mbedtls/oid.h"
+#include "x509_oid.h"
 #include "mbedtls/rsa.h"
 #include "mbedtls/error_common.h"
 #include "mbedtls/pk.h"

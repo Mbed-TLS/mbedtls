@@ -498,7 +498,7 @@ size_t mbedtls_x509_crt_parse_cn_inet_pton(const char *cn, void *dst);
  * \param oid       OID to translate
  *
  * \return          Length of the string written (excluding final NULL) or
- *                  MBEDTLS_ERR_OID_BUF_TOO_SMALL in case of error
+ *                  PSA_ERROR_BUFFER_TOO_SMALL in case of error
  */
 int mbedtls_oid_get_numeric_string(char *buf, size_t size, const mbedtls_asn1_buf *oid);
 

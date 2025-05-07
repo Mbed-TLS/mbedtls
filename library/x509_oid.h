@@ -21,8 +21,6 @@
 
 /** OID is not found. */
 #define MBEDTLS_ERR_OID_NOT_FOUND                         -0x002E
-/** output buffer is too small */
-#define MBEDTLS_ERR_OID_BUF_TOO_SMALL                     -0x000B
 
 /*
  * Maximum number of OID components allowed

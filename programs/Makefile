@@ -1,4 +1,5 @@
 MBEDTLS_TEST_PATH = ../tests
+FRAMEWORK = ${MBEDTLS_PATH}/framework
 include ../scripts/common.make
 
 ifeq ($(shell uname -s),Linux)
@@ -24,6 +25,8 @@ else
 BUILD_DLOPEN =
 endif
 
+LOCAL_CFLAGS += -I$(FRAMEWORK)/tests/programs
+
 ## The following assignment is the list of base names of applications that
 ## will be built on Windows. Extra Linux/Unix/POSIX-only applications can
 ## be declared by appending with `APPS += ...` afterwards.
@@ -33,30 +36,10 @@ endif
 ## Note: Variables cannot be used to define an apps path. This cannot be
 ## substituted by the script generate_visualc_files.pl.
 APPS = \
-	aes/crypt_and_hash \
-	cipher/cipher_aead_demo \
-	hash/generic_sum \
-	hash/hello \
-	hash/md_hmac_demo \
-	pkey/dh_client \
-	pkey/dh_genprime \
-	pkey/dh_server \
-	pkey/ecdh_curve25519 \
-	pkey/ecdsa \
 	pkey/gen_key \
-	pkey/key_app \
-	pkey/key_app_writer \
-	pkey/mpi_demo \
-	pkey/pk_decrypt \
-	pkey/pk_encrypt \
 	pkey/pk_sign \
 	pkey/pk_verify \
-	pkey/rsa_decrypt \
-	pkey/rsa_encrypt \
-	pkey/rsa_genkey \
-	pkey/rsa_sign \
 	pkey/rsa_sign_pss \
-	pkey/rsa_verify \
 	pkey/rsa_verify_pss \
 	../tf-psa-crypto/programs/psa/aead_demo \
 	../tf-psa-crypto/programs/psa/crypto_examples \
@@ -64,8 +47,7 @@ APPS = \
 	../tf-psa-crypto/programs/psa/key_ladder_demo \
 	../tf-psa-crypto/programs/psa/psa_constant_names \
 	../tf-psa-crypto/programs/psa/psa_hash \
-	random/gen_entropy \
-	random/gen_random_ctr_drbg \
+	../tf-psa-crypto/programs/test/which_aes \
 	ssl/dtls_client \
 	ssl/dtls_server \
 	ssl/mini_client \
@@ -76,7 +58,6 @@ APPS = \
 	ssl/ssl_mail_client \
 	ssl/ssl_server \
 	ssl/ssl_server2 \
-	test/benchmark \
 	test/metatest \
 	test/query_compile_time_config \
 	test/query_included_headers \
@@ -155,69 +136,9 @@ test/query_config.c:
 	echo "  Gen   $@"
 	$(PERL) ../scripts/generate_query_config.pl
 
-aes/crypt_and_hash$(EXEXT): aes/crypt_and_hash.c $(DEP)
-	echo "  CC    aes/crypt_and_hash.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) aes/crypt_and_hash.c $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-cipher/cipher_aead_demo$(EXEXT): cipher/cipher_aead_demo.c $(DEP)
-	echo "  CC    cipher/cipher_aead_demo.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) cipher/cipher_aead_demo.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-hash/generic_sum$(EXEXT): hash/generic_sum.c $(DEP)
-	echo "  CC    hash/generic_sum.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) hash/generic_sum.c $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-hash/hello$(EXEXT): hash/hello.c $(DEP)
-	echo "  CC    hash/hello.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) hash/hello.c       $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-hash/md_hmac_demo$(EXEXT): hash/md_hmac_demo.c $(DEP)
-	echo "  CC    hash/md_hmac_demo.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) hash/md_hmac_demo.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-pkey/dh_client$(EXEXT): pkey/dh_client.c $(DEP)
-	echo "  CC    pkey/dh_client.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) pkey/dh_client.c   $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-pkey/dh_genprime$(EXEXT): pkey/dh_genprime.c $(DEP)
-	echo "  CC    pkey/dh_genprime.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) pkey/dh_genprime.c $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-pkey/dh_server$(EXEXT): pkey/dh_server.c $(DEP)
-	echo "  CC    pkey/dh_server.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) pkey/dh_server.c   $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-pkey/ecdh_curve25519$(EXEXT): pkey/ecdh_curve25519.c $(DEP)
-	echo "  CC    pkey/ecdh_curve25519.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) pkey/ecdh_curve25519.c   $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-pkey/ecdsa$(EXEXT): pkey/ecdsa.c $(DEP)
-	echo "  CC    pkey/ecdsa.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) pkey/ecdsa.c       $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
 pkey/gen_key$(EXEXT): pkey/gen_key.c $(DEP)
 	echo "  CC    pkey/gen_key.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) pkey/gen_key.c   $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-pkey/key_app$(EXEXT): pkey/key_app.c $(DEP)
-	echo "  CC    pkey/key_app.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) pkey/key_app.c   $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-pkey/key_app_writer$(EXEXT): pkey/key_app_writer.c $(DEP)
-	echo "  CC    pkey/key_app_writer.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) pkey/key_app_writer.c   $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-pkey/mpi_demo$(EXEXT): pkey/mpi_demo.c $(DEP)
-	echo "  CC    pkey/mpi_demo.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) pkey/mpi_demo.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-pkey/pk_decrypt$(EXEXT): pkey/pk_decrypt.c $(DEP)
-	echo "  CC    pkey/pk_decrypt.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) pkey/pk_decrypt.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-pkey/pk_encrypt$(EXEXT): pkey/pk_encrypt.c $(DEP)
-	echo "  CC    pkey/pk_encrypt.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) pkey/pk_encrypt.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 pkey/pk_sign$(EXEXT): pkey/pk_sign.c $(DEP)
 	echo "  CC    pkey/pk_sign.c"
@@ -227,18 +148,6 @@ pkey/pk_verify$(EXEXT): pkey/pk_verify.c $(DEP)
 	echo "  CC    pkey/pk_verify.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) pkey/pk_verify.c  $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
-pkey/rsa_genkey$(EXEXT): pkey/rsa_genkey.c $(DEP)
-	echo "  CC    pkey/rsa_genkey.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) pkey/rsa_genkey.c  $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-pkey/rsa_sign$(EXEXT): pkey/rsa_sign.c $(DEP)
-	echo "  CC    pkey/rsa_sign.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) pkey/rsa_sign.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-pkey/rsa_verify$(EXEXT): pkey/rsa_verify.c $(DEP)
-	echo "  CC    pkey/rsa_verify.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) pkey/rsa_verify.c  $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
 pkey/rsa_sign_pss$(EXEXT): pkey/rsa_sign_pss.c $(DEP)
 	echo "  CC    pkey/rsa_sign_pss.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) pkey/rsa_sign_pss.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
@@ -246,14 +155,6 @@ pkey/rsa_sign_pss$(EXEXT): pkey/rsa_sign_pss.c $(DEP)
 pkey/rsa_verify_pss$(EXEXT): pkey/rsa_verify_pss.c $(DEP)
 	echo "  CC    pkey/rsa_verify_pss.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) pkey/rsa_verify_pss.c  $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-pkey/rsa_decrypt$(EXEXT): pkey/rsa_decrypt.c $(DEP)
-	echo "  CC    pkey/rsa_decrypt.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) pkey/rsa_decrypt.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-pkey/rsa_encrypt$(EXEXT): pkey/rsa_encrypt.c $(DEP)
-	echo "  CC    pkey/rsa_encrypt.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) pkey/rsa_encrypt.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 ../tf-psa-crypto/programs/psa/aead_demo$(EXEXT): ../tf-psa-crypto/programs/psa/aead_demo.c $(DEP)
 	echo "  CC    psa/aead_demo.c"
@@ -279,13 +180,9 @@ pkey/rsa_encrypt$(EXEXT): pkey/rsa_encrypt.c $(DEP)
 	echo "  CC    psa/psa_hash.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) ../tf-psa-crypto/programs/psa/psa_hash.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
-random/gen_entropy$(EXEXT): random/gen_entropy.c $(DEP)
-	echo "  CC    random/gen_entropy.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) random/gen_entropy.c $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-random/gen_random_ctr_drbg$(EXEXT): random/gen_random_ctr_drbg.c $(DEP)
-	echo "  CC    random/gen_random_ctr_drbg.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) random/gen_random_ctr_drbg.c $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+../tf-psa-crypto/programs/test/which_aes$(EXEXT): ../tf-psa-crypto/programs/test/which_aes.c $(DEP)
+	echo "  CC    test/which_aes.c"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) ../tf-psa-crypto/programs/test/which_aes.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 ssl/dtls_client$(EXEXT): ssl/dtls_client.c $(DEP)
 	echo "  CC    ssl/dtls_client.c"
@@ -301,7 +198,7 @@ ssl/ssl_client1$(EXEXT): ssl/ssl_client1.c $(DEP)
 
 SSL_TEST_OBJECTS = test/query_config.o ssl/ssl_test_lib.o
 SSL_TEST_DEPS = $(SSL_TEST_OBJECTS) \
-		test/query_config.h \
+		$(FRAMEWORK)/tests/programs/query_config.h \
 		ssl/ssl_test_lib.h \
 		ssl/ssl_test_common_source.c \
 		$(DEP)
@@ -322,7 +219,7 @@ ssl/ssl_server2$(EXEXT): ssl/ssl_server2.c $(SSL_TEST_DEPS)
 	echo "  CC    ssl/ssl_server2.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) ssl/ssl_server2.c $(SSL_TEST_OBJECTS) $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
-ssl/ssl_context_info$(EXEXT): ssl/ssl_context_info.c test/query_config.o test/query_config.h $(DEP)
+ssl/ssl_context_info$(EXEXT): ssl/ssl_context_info.c test/query_config.o $(FRAMEWORK)/tests/programs/query_config.h $(DEP)
 	echo "  CC    ssl/ssl_context_info.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) ssl/ssl_context_info.c test/query_config.o $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
@@ -342,10 +239,6 @@ ssl/mini_client$(EXEXT): ssl/mini_client.c $(DEP)
 	echo "  CC    ssl/mini_client.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) ssl/mini_client.c   $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
-test/benchmark$(EXEXT): test/benchmark.c $(DEP)
-	echo "  CC    test/benchmark.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) test/benchmark.c   $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
 test/cpp_dummy_build.cpp: test/generate_cpp_dummy_build.sh
 	echo "  Gen   test/cpp_dummy_build.cpp"
 	test/generate_cpp_dummy_build.sh
@@ -363,17 +256,17 @@ test/dlopen$(EXEXT): test/dlopen.c $(DEP)
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) test/dlopen.c $(LDFLAGS) $(DLOPEN_LDFLAGS) -o $@
 endif
 
-test/metatest$(EXEXT): test/metatest.c $(DEP)
-	echo "  CC    test/metatest.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) -I../library -I../tf-psa-crypto/core test/metatest.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+test/metatest$(EXEXT): $(FRAMEWORK)/tests/programs/metatest.c $(DEP)
+	echo "  CC    $(FRAMEWORK)/tests/programs/metatest.c"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) -I../library -I../tf-psa-crypto/core $(FRAMEWORK)/tests/programs/metatest.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
-test/query_config.o: test/query_config.c test/query_config.h $(DEP)
+test/query_config.o: test/query_config.c $(FRAMEWORK)/tests/programs/query_config.h $(DEP)
 	echo "  CC    test/query_config.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) -c test/query_config.c -o $@
 
-test/query_included_headers$(EXEXT): test/query_included_headers.c $(DEP)
-	echo "  CC    test/query_included_headers.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) test/query_included_headers.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+test/query_included_headers$(EXEXT): $(FRAMEWORK)/tests/programs/query_included_headers.c $(DEP)
+	echo "  CC    $(FRAMEWORK)/tests/programs/query_included_headers.c"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $(FRAMEWORK)/tests/programs/query_included_headers.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 test/selftest$(EXEXT): test/selftest.c $(DEP)
 	echo "  CC    test/selftest.c"
@@ -383,13 +276,13 @@ test/udp_proxy$(EXEXT): test/udp_proxy.c $(DEP)
 	echo "  CC    test/udp_proxy.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) test/udp_proxy.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
-test/zeroize$(EXEXT): test/zeroize.c $(DEP)
-	echo "  CC    test/zeroize.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) test/zeroize.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+test/zeroize$(EXEXT): $(FRAMEWORK)/tests/programs/zeroize.c $(DEP)
+	echo "  CC    $(FRAMEWORK)/tests/programs/zeroize.c"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $(FRAMEWORK)/tests/programs/zeroize.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
-test/query_compile_time_config$(EXEXT): test/query_compile_time_config.c test/query_config.o test/query_config.h $(DEP)
-	echo "  CC    test/query_compile_time_config.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) test/query_compile_time_config.c test/query_config.o $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+test/query_compile_time_config$(EXEXT): $(FRAMEWORK)/tests/programs/query_compile_time_config.c test/query_config.o $(FRAMEWORK)/tests/programs/query_config.h $(DEP)
+	echo "  CC    $(FRAMEWORK)/tests/programs/query_compile_time_config.c"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $(FRAMEWORK)/tests/programs/query_compile_time_config.c test/query_config.o $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 util/pem2der$(EXEXT): util/pem2der.c $(DEP)
 	echo "  CC    util/pem2der.c"

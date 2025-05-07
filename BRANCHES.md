@@ -11,7 +11,6 @@ At any point in time, we have a number of maintained branches, currently consist
   as well as all the new features and bug fixes and security fixes.
 - One or more long-time support (LTS) branches: these only get bug fixes and
   security fixes. Currently, the supported LTS branches are:
-- [`mbedtls-2.28`](https://github.com/Mbed-TLS/mbedtls/tree/mbedtls-2.28).
 - [`mbedtls-3.6`](https://github.com/Mbed-TLS/mbedtls/tree/mbedtls-3.6).
 
 We retain a number of historical branches, whose names are prefixed by `archive/`,
@@ -108,8 +107,5 @@ The following branches are currently maintained:
 - [`mbedtls-3.6`](https://github.com/Mbed-TLS/mbedtls/tree/mbedtls-3.6)
  maintained until March 2027, see
   <https://github.com/Mbed-TLS/mbedtls/releases/tag/v3.6.0>.
-- [`mbedtls-2.28`](https://github.com/Mbed-TLS/mbedtls/tree/mbedtls-2.28)
- maintained until the end of 2024, see
-  <https://github.com/Mbed-TLS/mbedtls/releases/tag/v2.28.8>.
 
 Users are urged to always use the latest version of a maintained branch.

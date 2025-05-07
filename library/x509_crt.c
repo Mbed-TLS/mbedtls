@@ -32,11 +32,9 @@
 #include "mbedtls/pem.h"
 #endif
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
 #include "psa/crypto.h"
 #include "psa_util_internal.h"
 #include "mbedtls/psa_util.h"
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
 #include "pk_internal.h"
 
 #include "mbedtls/platform.h"
@@ -1745,15 +1743,15 @@ static int x509_info_cert_policies(char **buf, size_t *size,
 /*
  * Return an informational string about the certificate.
  */
-#define BEFORE_COLON    18
-#define BC              "18"
+#define MBEDTLS_BEFORE_COLON        18
+#define MBEDTLS_BEFORE_COLON_STR    "18"
 int mbedtls_x509_crt_info(char *buf, size_t size, const char *prefix,
                           const mbedtls_x509_crt *crt)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t n;
     char *p;
-    char key_size_str[BEFORE_COLON];
+    char key_size_str[MBEDTLS_BEFORE_COLON];
 
     p = buf;
     n = size;
@@ -1807,13 +1805,13 @@ int mbedtls_x509_crt_info(char *buf, size_t size, const char *prefix,
     MBEDTLS_X509_SAFE_SNPRINTF;
 
     /* Key size */
-    if ((ret = mbedtls_x509_key_size_helper(key_size_str, BEFORE_COLON,
+    if ((ret = mbedtls_x509_key_size_helper(key_size_str, MBEDTLS_BEFORE_COLON,
                                             mbedtls_pk_get_name(&crt->pk))) != 0) {
         return ret;
     }
 
-    ret = mbedtls_snprintf(p, n, "\n%s%-" BC "s: %d bits", prefix, key_size_str,
-                           (int) mbedtls_pk_get_bitlen(&crt->pk));
+    ret = mbedtls_snprintf(p, n, "\n%s%-" MBEDTLS_BEFORE_COLON_STR "s: %d bits",
+                           prefix, key_size_str, (int) mbedtls_pk_get_bitlen(&crt->pk));
     MBEDTLS_X509_SAFE_SNPRINTF;
 
     /*
@@ -2013,11 +2011,7 @@ static int x509_crt_verifycrl(mbedtls_x509_crt *crt, mbedtls_x509_crt *ca,
 {
     int flags = 0;
     unsigned char hash[MBEDTLS_MD_MAX_SIZE];
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
     psa_algorithm_t psa_algorithm;
-#else
-    const mbedtls_md_info_t *md_info;
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
     size_t hash_length;
 
     if (ca == NULL) {
@@ -2051,7 +2045,6 @@ static int x509_crt_verifycrl(mbedtls_x509_crt *crt, mbedtls_x509_crt *ca,
             flags |= MBEDTLS_X509_BADCRL_BAD_PK;
         }
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
         psa_algorithm = mbedtls_md_psa_alg_from_type(crl_list->sig_md);
         if (psa_hash_compute(psa_algorithm,
                              crl_list->tbs.p,
@@ -2063,18 +2056,6 @@ static int x509_crt_verifycrl(mbedtls_x509_crt *crt, mbedtls_x509_crt *ca,
             flags |= MBEDTLS_X509_BADCRL_NOT_TRUSTED;
             break;
         }
-#else
-        md_info = mbedtls_md_info_from_type(crl_list->sig_md);
-        hash_length = mbedtls_md_get_size(md_info);
-        if (mbedtls_md(md_info,
-                       crl_list->tbs.p,
-                       crl_list->tbs.len,
-                       hash) != 0) {
-            /* Note: this can't happen except after an internal error */
-            flags |= MBEDTLS_X509_BADCRL_NOT_TRUSTED;
-            break;
-        }
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
         if (x509_profile_check_key(profile, &ca->pk) != 0) {
             flags |= MBEDTLS_X509_BADCERT_BAD_KEY;
@@ -2126,16 +2107,6 @@ static int x509_crt_check_signature(const mbedtls_x509_crt *child,
 {
     size_t hash_len;
     unsigned char hash[MBEDTLS_MD_MAX_SIZE];
-#if !defined(MBEDTLS_USE_PSA_CRYPTO)
-    const mbedtls_md_info_t *md_info;
-    md_info = mbedtls_md_info_from_type(child->sig_md);
-    hash_len = mbedtls_md_get_size(md_info);
-
-    /* Note: hash errors can happen only after an internal error */
-    if (mbedtls_md(md_info, child->tbs.p, child->tbs.len, hash) != 0) {
-        return -1;
-    }
-#else
     psa_algorithm_t hash_alg = mbedtls_md_psa_alg_from_type(child->sig_md);
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
@@ -2149,7 +2120,6 @@ static int x509_crt_check_signature(const mbedtls_x509_crt *child,
         return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
     }
 
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
     /* Skip expensive computation on obvious mismatch */
     if (!mbedtls_pk_can_do(&parent->pk, child->sig_pk)) {
         return -1;

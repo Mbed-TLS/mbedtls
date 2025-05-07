@@ -19,15 +19,9 @@ execute_process(
     WORKING_DIRECTORY
         ${CMAKE_CURRENT_SOURCE_DIR}/..
     OUTPUT_VARIABLE
-        base_config_generated_data_files_raw)
+        base_config_generated_data_files)
 string(REGEX REPLACE "[^;]*/" ""
-       base_config_generated_data_files_raw "${base_config_generated_data_files_raw}")
-# Can be replace by list(FILTER ...) when CI CMake version is >=3.6
-foreach(file ${base_config_generated_data_files_raw})
-    if(${file} MATCHES "mbedtls")
-        list(APPEND base_config_generated_data_files ${file})
-    endif()
-endforeach()
+       base_config_generated_data_files "${base_config_generated_data_files}")
 
 # Derive generated file paths in the build directory. The generated data
 # files go into the suites/ subdirectory.
@@ -50,13 +44,30 @@ if(GEN_FILES)
             ${MBEDTLS_PYTHON_EXECUTABLE}
             ${MBEDTLS_FRAMEWORK_DIR}/scripts/generate_config_tests.py
             --directory ${CMAKE_CURRENT_BINARY_DIR}/suites
-            ${config_generated_data_files}
         DEPENDS
             ${MBEDTLS_FRAMEWORK_DIR}/scripts/generate_config_tests.py
             # Do not declare the configuration files as dependencies: they
             # change too often in ways that don't affect the result
             # ((un)commenting some options).
     )
+
+    add_custom_command(
+        OUTPUT
+            ${CMAKE_CURRENT_SOURCE_DIR}/opt-testcases/handshake-generated.sh
+        WORKING_DIRECTORY
+            ${CMAKE_CURRENT_SOURCE_DIR}/..
+        COMMAND
+            "${MBEDTLS_PYTHON_EXECUTABLE}"
+            "${CMAKE_CURRENT_SOURCE_DIR}/../framework/scripts/generate_tls_handshake_tests.py"
+        DEPENDS
+            ${CMAKE_CURRENT_SOURCE_DIR}/../framework/scripts/mbedtls_framework/tls_test_case.py
+            ${CMAKE_CURRENT_SOURCE_DIR}/../framework/scripts/generate_tls_handshake_tests.py
+    )
+    add_custom_target(handshake-generated.sh
+        DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/opt-testcases/handshake-generated.sh)
+    set_target_properties(handshake-generated.sh PROPERTIES EXCLUDE_FROM_ALL NO)
+    add_dependencies(${ssl_opt_target} handshake-generated.sh)
+
     add_custom_command(
         OUTPUT
             ${CMAKE_CURRENT_SOURCE_DIR}/opt-testcases/tls13-compat.sh
@@ -165,6 +176,7 @@ function(add_test_suite suite_name)
     # files are automatically included because the library targets declare
     # them as PUBLIC.
     target_include_directories(test_suite_${data_name}
+        PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/include
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../framework/tests/include
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../library

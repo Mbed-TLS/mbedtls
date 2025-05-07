@@ -1,3 +1,5 @@
+#define MBEDTLS_DECLARE_PRIVATE_IDENTIFIERS
+
 #include <stdint.h>
 #include "mbedtls/pkcs7.h"
 #include "common.h"

@@ -5,10 +5,10 @@
 # Required
 version: 2
 
-# Include the framework submodule in the build
+# Include all submodules in the build
 submodules:
-  include:
-  - framework
+  include: all
+  recursive: true
 
 # Set the version of Python and other tools you might need
 build:
@@ -17,7 +17,7 @@ build:
     python: "3.9"
   jobs:
     pre_build:
-    - ./scripts/apidoc_full.sh
+    - ./framework/scripts/apidoc_full.sh
     - breathe-apidoc -o docs/api apidoc/xml
     post_build:
     - |

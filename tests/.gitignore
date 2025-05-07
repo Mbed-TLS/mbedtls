@@ -18,9 +18,10 @@
 
 ###START_GENERATED_FILES###
 # Generated source files
+/opt-testcases/handshake-generated.sh
 /opt-testcases/tls13-compat.sh
 /suites/*.generated.data
 /suites/test_suite_config.mbedtls_boolean.data
-/src/test_keys.h
-/src/test_certs.h
+/include/test/test_keys.h
+/include/test/test_certs.h
 ###END_GENERATED_FILES###

@@ -43,7 +43,6 @@
     defined(MBEDTLS_PSA_ACCEL_ECC_MONTGOMERY_255) || \
     defined(MBEDTLS_PSA_ACCEL_ECC_MONTGOMERY_448) || \
     defined(MBEDTLS_PSA_ACCEL_ECC_SECP_K1_192) || \
-    defined(MBEDTLS_PSA_ACCEL_ECC_SECP_K1_224) || \
     defined(MBEDTLS_PSA_ACCEL_ECC_SECP_K1_256) || \
     defined(MBEDTLS_PSA_ACCEL_ECC_SECP_R1_192) || \
     defined(MBEDTLS_PSA_ACCEL_ECC_SECP_R1_224) || \
@@ -70,19 +69,9 @@
 #error "MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED defined, but not all prerequisites"
 #endif
 
-#if defined(MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED) && !defined(MBEDTLS_DHM_C)
-#error "MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED defined, but not all prerequisites"
-#endif
-
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED) &&                     \
     !defined(MBEDTLS_CAN_ECDH)
 #error "MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED defined, but not all prerequisites"
-#endif
-
-#if defined(MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED) &&                   \
-    ( !defined(MBEDTLS_DHM_C) || !defined(MBEDTLS_RSA_C) ||           \
-      !defined(MBEDTLS_X509_CRT_PARSE_C) || !defined(MBEDTLS_PKCS1_V15) )
-#error "MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED defined, but not all prerequisites"
 #endif
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED) &&                 \
@@ -98,26 +87,12 @@
 #error "MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED defined, but not all prerequisites"
 #endif
 
-#if defined(MBEDTLS_KEY_EXCHANGE_RSA_ENABLED) &&                       \
-    ( !defined(MBEDTLS_RSA_C) || !defined(MBEDTLS_X509_CRT_PARSE_C) || \
-      !defined(MBEDTLS_PKCS1_V15) )
-#error "MBEDTLS_KEY_EXCHANGE_RSA_ENABLED defined, but not all prerequisites"
-#endif
-
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED) &&    \
     ( !defined(PSA_WANT_ALG_JPAKE) ||                   \
       !defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_BASIC) || \
       !defined(PSA_WANT_ECC_SECP_R1_256) )
 #error "MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED defined, but not all prerequisites"
 #endif
-#else /* MBEDTLS_USE_PSA_CRYPTO */
-#if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED) &&    \
-    ( !defined(MBEDTLS_ECJPAKE_C) ||                    \
-      !defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED) )
-#error "MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED defined, but not all prerequisites"
-#endif
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 /* Use of EC J-PAKE in TLS requires SHA-256. */
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED) &&                    \
@@ -174,18 +149,20 @@
 #endif
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2) &&                                    \
-    !(defined(MBEDTLS_KEY_EXCHANGE_RSA_ENABLED) ||                          \
-      defined(MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED) ||                      \
-      defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED) ||                    \
+    !(defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED) ||                    \
       defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED) ||                  \
       defined(MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED) ||                     \
       defined(MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED) ||                   \
       defined(MBEDTLS_KEY_EXCHANGE_PSK_ENABLED) ||                          \
-      defined(MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED) ||                      \
       defined(MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED) ||                    \
       defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED) )
 #error "One or more versions of the TLS protocol are enabled " \
         "but no key exchange methods defined with MBEDTLS_KEY_EXCHANGE_xxxx"
+#endif
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2) && \
+    !(defined(PSA_WANT_ALG_SHA_1) || defined(PSA_WANT_ALG_SHA_256) || defined(PSA_WANT_ALG_SHA_512))
+#error "MBEDTLS_SSL_PROTO_TLS1_2 defined, but not all prerequisites"
 #endif
 
 #if defined(MBEDTLS_SSL_EARLY_DATA) && \
@@ -213,11 +190,6 @@
 
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE) && !defined(MBEDTLS_X509_CRT_PARSE_C)
 #error "MBEDTLS_SSL_ASYNC_PRIVATE defined, but not all prerequisites"
-#endif
-
-#if defined(MBEDTLS_SSL_TLS_C) && !(defined(MBEDTLS_CIPHER_C) || \
-    defined(MBEDTLS_USE_PSA_CRYPTO))
-#error "MBEDTLS_SSL_TLS_C defined, but not all prerequisites"
 #endif
 
 /* TLS 1.2 and 1.3 require SHA-256 or SHA-384 (running handshake hash) */
@@ -294,11 +266,6 @@
 #error "MBEDTLS_SSL_RENEGOTIATION defined, but not all prerequisites"
 #endif
 
-#if defined(MBEDTLS_SSL_TICKET_C) && ( !defined(MBEDTLS_CIPHER_C) && \
-                                       !defined(MBEDTLS_USE_PSA_CRYPTO) )
-#error "MBEDTLS_SSL_TICKET_C defined, but not all prerequisites"
-#endif
-
 #if defined(MBEDTLS_SSL_TICKET_C) && \
     !( defined(PSA_WANT_ALG_CCM) || defined(PSA_WANT_ALG_GCM) || \
     defined(PSA_WANT_ALG_CHACHA20_POLY1305) )
@@ -321,15 +288,13 @@
 
 #if defined(MBEDTLS_X509_USE_C) && \
     (!defined(MBEDTLS_OID_C) || !defined(MBEDTLS_ASN1_PARSE_C) ||   \
-    !defined(MBEDTLS_PK_PARSE_C) ||                                 \
-    ( !defined(MBEDTLS_MD_C) && !defined(MBEDTLS_USE_PSA_CRYPTO) ) )
+    !defined(MBEDTLS_PK_PARSE_C))
 #error "MBEDTLS_X509_USE_C defined, but not all prerequisites"
 #endif
 
 #if defined(MBEDTLS_X509_CREATE_C) && \
     (!defined(MBEDTLS_OID_C) || !defined(MBEDTLS_ASN1_WRITE_C) ||      \
-    !defined(MBEDTLS_PK_PARSE_C) ||                                    \
-    ( !defined(MBEDTLS_MD_C) && !defined(MBEDTLS_USE_PSA_CRYPTO) ) )
+    !defined(MBEDTLS_PK_PARSE_C))
 #error "MBEDTLS_X509_CREATE_C defined, but not all prerequisites"
 #endif
 

@@ -111,9 +111,8 @@ component_test_tsan () {
     scripts/config.py set MBEDTLS_THREADING_PTHREAD
     # Self-tests do not currently use multiple threads.
     scripts/config.py unset MBEDTLS_SELF_TEST
-
-    # The deprecated MBEDTLS_PSA_CRYPTO_SE_C interface is not thread safe.
-    scripts/config.py unset MBEDTLS_PSA_CRYPTO_SE_C
+    # Interruptible ECC tests are not thread safe
+    scripts/config.py unset MBEDTLS_ECP_RESTARTABLE
 
     CC=clang cmake -D CMAKE_BUILD_TYPE:String=TSan .
     make
@@ -187,4 +186,3 @@ component_release_test_valgrind_psa () {
     msg "test: main suites, Valgrind (full config)"
     make memcheck
 }
-

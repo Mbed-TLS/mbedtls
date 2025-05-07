@@ -115,10 +115,7 @@ Support description
   | MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED     | no      |
   |                                          |         |
   | MBEDTLS_KEY_EXCHANGE_PSK_ENABLED         | n/a (2) |
-  | MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED     | n/a     |
   | MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED   | n/a     |
-  | MBEDTLS_KEY_EXCHANGE_RSA_ENABLED         | n/a     |
-  | MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED     | n/a     |
   | MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED   | n/a     |
   | MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED | n/a     |
   | MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED  | n/a     |
@@ -126,7 +123,6 @@ Support description
   | MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED     | n/a     |
   |                                          |         |
   | MBEDTLS_PSA_CRYPTO_C                     | no (1)  |
-  | MBEDTLS_USE_PSA_CRYPTO                   | yes     |
 
   (1) These options must remain in their default state of enabled.
   (2) See the TLS 1.3 specific build options section below.

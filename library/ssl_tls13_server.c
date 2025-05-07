@@ -91,7 +91,7 @@ static void ssl_tls13_select_ciphersuite(
         return;
     }
 
-    MBEDTLS_SSL_DEBUG_MSG(2, ("No matched ciphersuite, psk_ciphersuite_id=%x, psk_hash_alg=%lx",
+    MBEDTLS_SSL_DEBUG_MSG(1, ("No matched ciphersuite, psk_ciphersuite_id=%x, psk_hash_alg=%lx",
                               (unsigned) psk_ciphersuite_id,
                               (unsigned long) psk_hash_alg));
 }
@@ -435,9 +435,7 @@ static int ssl_tls13_offered_psks_check_binder_match(
                                               psk, psk_len, psk_type,
                                               transcript,
                                               server_computed_binder);
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
     mbedtls_free((void *) psk);
-#endif
     if (ret != 0) {
         MBEDTLS_SSL_DEBUG_MSG(1, ("PSK binder calculation failed."));
         return MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE;
@@ -739,11 +737,7 @@ static int ssl_tls13_write_server_pre_shared_key_ext(mbedtls_ssl_context *ssl,
     *olen = 0;
 
     int not_using_psk = 0;
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
     not_using_psk = (mbedtls_svc_key_id_is_null(ssl->handshake->psk_opaque));
-#else
-    not_using_psk = (ssl->handshake->psk == NULL);
-#endif
     if (not_using_psk) {
         /* We shouldn't have called this extension writer unless we've
          * chosen to use a PSK. */
@@ -1078,7 +1072,6 @@ static int ssl_tls13_key_exchange_is_ephemeral_available(mbedtls_ssl_context *ss
 #if defined(MBEDTLS_X509_CRT_PARSE_C) && \
     defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED)
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
 static psa_algorithm_t ssl_tls13_iana_sig_alg_to_psa_alg(uint16_t sig_alg)
 {
     switch (sig_alg) {
@@ -1104,7 +1097,6 @@ static psa_algorithm_t ssl_tls13_iana_sig_alg_to_psa_alg(uint16_t sig_alg)
             return PSA_ALG_NONE;
     }
 }
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 /*
  * Pick best ( private key, certificate chain ) pair based on the signature
@@ -1139,9 +1131,7 @@ static int ssl_tls13_pick_key_cert(mbedtls_ssl_context *ssl)
 
         for (key_cert = key_cert_list; key_cert != NULL;
              key_cert = key_cert->next) {
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
             psa_algorithm_t psa_alg = PSA_ALG_NONE;
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
             MBEDTLS_SSL_DEBUG_CRT(3, "certificate (chain) candidate",
                                   key_cert->cert);
@@ -1165,17 +1155,13 @@ static int ssl_tls13_pick_key_cert(mbedtls_ssl_context *ssl)
                                    "check signature algorithm %s [%04x]",
                                    mbedtls_ssl_sig_alg_to_str(*sig_alg),
                                    *sig_alg));
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
             psa_alg = ssl_tls13_iana_sig_alg_to_psa_alg(*sig_alg);
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
             if (mbedtls_ssl_tls13_check_sig_alg_cert_key_match(
                     *sig_alg, &key_cert->cert->pk)
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
                 && psa_alg != PSA_ALG_NONE &&
                 mbedtls_pk_can_do_ext(&key_cert->cert->pk, psa_alg,
                                       PSA_KEY_USAGE_SIGN_HASH) == 1
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
                 ) {
                 ssl->handshake->key_cert = key_cert;
                 MBEDTLS_SSL_DEBUG_MSG(3,
@@ -1379,6 +1365,7 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
     }
 
     if (ret == 0) {
+        MBEDTLS_SSL_DEBUG_MSG(2, ("no supported_versions extension"));
         return SSL_CLIENT_HELLO_TLS1_2;
     }
 
@@ -1400,6 +1387,7 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
          * the TLS version to negotiate.
          */
         if (MBEDTLS_SSL_VERSION_TLS1_2 == ret) {
+            MBEDTLS_SSL_DEBUG_MSG(2, ("supported_versions without 1.3"));
             return SSL_CLIENT_HELLO_TLS1_2;
         }
     }
@@ -1978,6 +1966,7 @@ static int ssl_tls13_process_client_hello(mbedtls_ssl_context *ssl)
         }
         ssl->keep_current_message = 1;
         ssl->tls_version = MBEDTLS_SSL_VERSION_TLS1_2;
+        MBEDTLS_SSL_DEBUG_MSG(1, ("non-1.3 ClientHello left for later processing"));
         return 0;
     }
 
@@ -2007,9 +1996,9 @@ static int ssl_tls13_prepare_server_hello(mbedtls_ssl_context *ssl)
     unsigned char *server_randbytes =
         ssl->handshake->randbytes + MBEDTLS_CLIENT_HELLO_RANDOM_LEN;
 
-    if ((ret = ssl->conf->f_rng(ssl->conf->p_rng, server_randbytes,
-                                MBEDTLS_SERVER_HELLO_RANDOM_LEN)) != 0) {
-        MBEDTLS_SSL_DEBUG_RET(1, "f_rng", ret);
+    if ((ret = psa_generate_random(server_randbytes,
+                                   MBEDTLS_SERVER_HELLO_RANDOM_LEN)) != 0) {
+        MBEDTLS_SSL_DEBUG_RET(1, "psa_generate_random", ret);
         return ret;
     }
 
@@ -3183,9 +3172,8 @@ static int ssl_tls13_prepare_new_session_ticket(mbedtls_ssl_context *ssl,
 #endif
 
     /* Generate ticket_age_add */
-    if ((ret = ssl->conf->f_rng(ssl->conf->p_rng,
-                                (unsigned char *) &session->ticket_age_add,
-                                sizeof(session->ticket_age_add)) != 0)) {
+    if ((ret = psa_generate_random((unsigned char *) &session->ticket_age_add,
+                                   sizeof(session->ticket_age_add)) != 0)) {
         MBEDTLS_SSL_DEBUG_RET(1, "generate_ticket_age_add", ret);
         return ret;
     }
@@ -3193,7 +3181,7 @@ static int ssl_tls13_prepare_new_session_ticket(mbedtls_ssl_context *ssl,
                               (unsigned int) session->ticket_age_add));
 
     /* Generate ticket_nonce */
-    ret = ssl->conf->f_rng(ssl->conf->p_rng, ticket_nonce, ticket_nonce_size);
+    ret = psa_generate_random(ticket_nonce, ticket_nonce_size);
     if (ret != 0) {
         MBEDTLS_SSL_DEBUG_RET(1, "generate_ticket_nonce", ret);
         return ret;

@@ -337,17 +337,12 @@ void mbedtls_x509write_csr_free(mbedtls_x509write_csr *ctx);
  * \param ctx       CSR to write away
  * \param buf       buffer to write to
  * \param size      size of the buffer
- * \param f_rng     RNG function. This must not be \c NULL.
- * \param p_rng     RNG parameter
  *
  * \return          length of data written if successful, or a specific
  *                  error code
  *
- * \note            \p f_rng is used for the signature operation.
  */
-int mbedtls_x509write_csr_der(mbedtls_x509write_csr *ctx, unsigned char *buf, size_t size,
-                              int (*f_rng)(void *, unsigned char *, size_t),
-                              void *p_rng);
+int mbedtls_x509write_csr_der(mbedtls_x509write_csr *ctx, unsigned char *buf, size_t size);
 
 #if defined(MBEDTLS_PEM_WRITE_C)
 /**
@@ -357,16 +352,11 @@ int mbedtls_x509write_csr_der(mbedtls_x509write_csr *ctx, unsigned char *buf, si
  * \param ctx       CSR to write away
  * \param buf       buffer to write to
  * \param size      size of the buffer
- * \param f_rng     RNG function. This must not be \c NULL.
- * \param p_rng     RNG parameter
  *
  * \return          0 if successful, or a specific error code
  *
- * \note            \p f_rng is used for the signature operation.
  */
-int mbedtls_x509write_csr_pem(mbedtls_x509write_csr *ctx, unsigned char *buf, size_t size,
-                              int (*f_rng)(void *, unsigned char *, size_t),
-                              void *p_rng);
+int mbedtls_x509write_csr_pem(mbedtls_x509write_csr *ctx, unsigned char *buf, size_t size);
 #endif /* MBEDTLS_PEM_WRITE_C */
 #endif /* MBEDTLS_X509_CSR_WRITE_C */
 

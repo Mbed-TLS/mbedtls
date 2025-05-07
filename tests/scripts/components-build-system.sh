@@ -13,7 +13,7 @@ component_test_make_shared () {
     msg "build/test: make shared" # ~ 40s
     make SHARED=1 TEST_CPP=1 all check
     ldd programs/util/strerror | grep libmbedcrypto
-    programs/test/dlopen_demo.sh
+    $FRAMEWORK/tests/programs/dlopen_demo.sh
 }
 
 component_test_cmake_shared () {
@@ -22,7 +22,7 @@ component_test_cmake_shared () {
     make
     ldd programs/util/strerror | grep libtfpsacrypto
     make test
-    programs/test/dlopen_demo.sh
+    $FRAMEWORK/tests/programs/dlopen_demo.sh
 }
 
 support_test_cmake_out_of_source () {
@@ -65,7 +65,9 @@ component_test_cmake_out_of_source () {
     mkdir "$OUT_OF_SOURCE_DIR"
     cd "$OUT_OF_SOURCE_DIR"
     # Note: Explicitly generate files as these are turned off in releases
-    cmake -D CMAKE_BUILD_TYPE:String=Check -D GEN_FILES=ON -D TEST_CPP=1 "$MBEDTLS_ROOT_DIR"
+    # Note: Use Clang compiler also for C++ (C uses it by default)
+    CXX=clang++ cmake -D CMAKE_BUILD_TYPE:String=Check -D GEN_FILES=ON \
+                      -D TEST_CPP=1 "$MBEDTLS_ROOT_DIR"
     make
 
     msg "test: cmake 'out-of-source' build"
@@ -116,31 +118,10 @@ component_test_cmake_as_package () {
     ./cmake_package
     if [[ "$OSTYPE" == linux* ]]; then
         PKG_CONFIG_PATH="${build_variant_dir}/mbedtls/pkgconfig" \
-        ${root_dir}/tests/scripts/pkgconfig.sh \
+        ${root_dir}/framework/scripts/pkgconfig.sh \
         mbedtls mbedx509 mbedcrypto
         # These are the EXPECTED package names. Renaming these could break
         # consumers of pkg-config, consider carefully.
-    fi
-}
-
-component_test_tf_psa_crypto_cmake_as_package () {
-    # Remove existing generated files so that we use the ones CMake
-    # generates
-    make neat
-
-    msg "build: cmake 'as-package' build"
-    root_dir="$(pwd)"
-    cd tf-psa-crypto/programs/test/cmake_package
-    build_variant_dir="$(pwd)"
-    cmake .
-    make
-    ./cmake_package
-    if [[ "$OSTYPE" == linux* ]]; then
-        PKG_CONFIG_PATH="${build_variant_dir}/tf-psa-crypto/pkgconfig" \
-        ${root_dir}/tests/scripts/pkgconfig.sh \
-        tfpsacrypto
-        # This is the EXPECTED package name. Renaming it could break consumers
-        # of pkg-config, consider carefully.
     fi
 }
 

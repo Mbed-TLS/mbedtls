@@ -943,28 +943,6 @@ void mbedtls_x509write_crt_init(mbedtls_x509write_cert *ctx);
  */
 void mbedtls_x509write_crt_set_version(mbedtls_x509write_cert *ctx, int version);
 
-#if defined(MBEDTLS_BIGNUM_C) && !defined(MBEDTLS_DEPRECATED_REMOVED)
-/**
- * \brief           Set the serial number for a Certificate.
- *
- * \deprecated      This function is deprecated and will be removed in a
- *                  future version of the library. Please use
- *                  mbedtls_x509write_crt_set_serial_raw() instead.
- *
- * \note            Even though the MBEDTLS_BIGNUM_C guard looks redundant since
- *                  X509 depends on PK and PK depends on BIGNUM, this emphasizes
- *                  a direct dependency between X509 and BIGNUM which is going
- *                  to be deprecated in the future.
- *
- * \param ctx       CRT context to use
- * \param serial    serial number to set
- *
- * \return          0 if successful
- */
-int MBEDTLS_DEPRECATED mbedtls_x509write_crt_set_serial(
-    mbedtls_x509write_cert *ctx, const mbedtls_mpi *serial);
-#endif // MBEDTLS_BIGNUM_C && !MBEDTLS_DEPRECATED_REMOVED
-
 /**
  * \brief           Set the serial number for a Certificate.
  *
@@ -1162,17 +1140,11 @@ void mbedtls_x509write_crt_free(mbedtls_x509write_cert *ctx);
  * \param ctx       certificate to write away
  * \param buf       buffer to write to
  * \param size      size of the buffer
- * \param f_rng     RNG function. This must not be \c NULL.
- * \param p_rng     RNG parameter
  *
  * \return          length of data written if successful, or a specific
  *                  error code
- *
- * \note            \p f_rng is used for the signature operation.
  */
-int mbedtls_x509write_crt_der(mbedtls_x509write_cert *ctx, unsigned char *buf, size_t size,
-                              int (*f_rng)(void *, unsigned char *, size_t),
-                              void *p_rng);
+int mbedtls_x509write_crt_der(mbedtls_x509write_cert *ctx, unsigned char *buf, size_t size);
 
 #if defined(MBEDTLS_PEM_WRITE_C)
 /**
@@ -1181,16 +1153,11 @@ int mbedtls_x509write_crt_der(mbedtls_x509write_cert *ctx, unsigned char *buf, s
  * \param ctx       certificate to write away
  * \param buf       buffer to write to
  * \param size      size of the buffer
- * \param f_rng     RNG function. This must not be \c NULL.
- * \param p_rng     RNG parameter
  *
  * \return          0 if successful, or a specific error code
  *
- * \note            \p f_rng is used for the signature operation.
  */
-int mbedtls_x509write_crt_pem(mbedtls_x509write_cert *ctx, unsigned char *buf, size_t size,
-                              int (*f_rng)(void *, unsigned char *, size_t),
-                              void *p_rng);
+int mbedtls_x509write_crt_pem(mbedtls_x509write_cert *ctx, unsigned char *buf, size_t size);
 #endif /* MBEDTLS_PEM_WRITE_C */
 #endif /* MBEDTLS_X509_CRT_WRITE_C */
 

@@ -60,13 +60,8 @@ PSA_DEPRECATED_FEATURE = frozenset([
     'PSA_WANT_KEY_TYPE_RSA_KEY_PAIR'
 ])
 
-PSA_UNSTABLE_FEATURE = frozenset([
-    'PSA_WANT_ECC_SECP_K1_224'
-])
-
 EXCLUDE_FROM_CRYPTO = PSA_UNSUPPORTED_FEATURE | \
-                      PSA_DEPRECATED_FEATURE | \
-                      PSA_UNSTABLE_FEATURE
+                      PSA_DEPRECATED_FEATURE
 
 # The goal of the full configuration is to have everything that can be tested
 # together. This includes deprecated or insecure options. It excludes:
@@ -93,7 +88,6 @@ EXCLUDE_FROM_FULL = frozenset([
     'MBEDTLS_MEMORY_DEBUG', # depends on MEMORY_BUFFER_ALLOC_C
     'MBEDTLS_NO_64BIT_MULTIPLICATION', # influences anything that uses bignum
     'MBEDTLS_NO_DEFAULT_ENTROPY_SOURCES', # removes a feature
-    'MBEDTLS_NO_PLATFORM_ENTROPY', # removes a feature
     'MBEDTLS_NO_UDBL_DIVISION', # influences anything that uses bignum
     'MBEDTLS_PSA_P256M_DRIVER_ENABLED', # influences SECP256R1 KeyGen/ECDH/ECDSA
     'MBEDTLS_PLATFORM_NO_STD_FUNCTIONS', # removes a feature
@@ -101,7 +95,6 @@ EXCLUDE_FROM_FULL = frozenset([
     'MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG', # behavior change + build dependency
     'MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER', # interface and behavior change
     'MBEDTLS_PSA_CRYPTO_SPM', # platform dependency (PSA SPM)
-    'MBEDTLS_PSA_INJECT_ENTROPY', # conflicts with platform entropy sources
     'MBEDTLS_RSA_NO_CRT', # influences the use of RSA in X.509 and TLS
     'MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY', # interacts with *_USE_A64_CRYPTO_IF_PRESENT
     'MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_ONLY', # interacts with *_USE_ARMV8_A_CRYPTO_IF_PRESENT
@@ -114,7 +107,6 @@ EXCLUDE_FROM_FULL = frozenset([
     'MBEDTLS_PSA_STATIC_KEY_SLOT_BUFFER_SIZE', # only relevant for embedded devices
     *PSA_UNSUPPORTED_FEATURE,
     *PSA_DEPRECATED_FEATURE,
-    *PSA_UNSTABLE_FEATURE
 ])
 
 def is_seamless_alt(name):
@@ -130,6 +122,7 @@ def is_seamless_alt(name):
     an implementation of the relevant functions and an xxx_alt.h header.
     """
     if name in (
+            'MBEDTLS_PLATFORM_GET_ENTROPY_ALT',
             'MBEDTLS_PLATFORM_GMTIME_R_ALT',
             'MBEDTLS_PLATFORM_SETUP_TEARDOWN_ALT',
             'MBEDTLS_PLATFORM_MS_TIME_ALT',
@@ -168,7 +161,6 @@ EXCLUDE_FROM_BAREMETAL = frozenset([
     'MBEDTLS_PLATFORM_FPRINTF_ALT', # requires FILE* from stdio.h
     'MBEDTLS_PLATFORM_NV_SEED_ALT', # requires a filesystem and ENTROPY_NV_SEED
     'MBEDTLS_PLATFORM_TIME_ALT', # requires a clock and HAVE_TIME
-    'MBEDTLS_PSA_CRYPTO_SE_C', # requires a filesystem and PSA_CRYPTO_STORAGE_C
     'MBEDTLS_PSA_CRYPTO_STORAGE_C', # requires a filesystem
     'MBEDTLS_PSA_ITS_FILE_C', # requires a filesystem
     'MBEDTLS_THREADING_C', # requires a threading interface
@@ -189,7 +181,7 @@ def baremetal_adapter(name, value, active):
     """Config adapter for "baremetal"."""
     if not is_boolean_setting(name, value):
         return active
-    if name == 'MBEDTLS_NO_PLATFORM_ENTROPY':
+    if name == 'MBEDTLS_PLATFORM_GET_ENTROPY_ALT':
         # No OS-provided entropy source
         return True
     return include_in_full(name) and keep_in_baremetal(name)
@@ -244,7 +236,6 @@ def crypto_adapter(adapter):
     return continuation
 
 DEPRECATED = frozenset([
-    'MBEDTLS_PSA_CRYPTO_SE_C',
     *PSA_DEPRECATED_FEATURE
 ])
 def no_deprecated_adapter(adapter):
@@ -367,8 +358,6 @@ class CryptoConfig(config_common.Config):
 
         if name in PSA_UNSUPPORTED_FEATURE:
             raise ValueError(f'Feature is unsupported: \'{name}\'')
-        if name in PSA_UNSTABLE_FEATURE:
-            raise ValueError(f'Feature is unstable: \'{name}\'')
 
         if name not in self.settings:
             self._get_configfile().templates.append((name, '', '#define ' + name + ' '))
@@ -417,8 +406,6 @@ class CombinedConfig(config_common.Config):
         if configfile == self.crypto_configfile:
             if name in PSA_UNSUPPORTED_FEATURE:
                 raise ValueError(f'Feature is unsupported: \'{name}\'')
-            if name in PSA_UNSTABLE_FEATURE:
-                raise ValueError(f'Feature is unstable: \'{name}\'')
 
             # The default value in the crypto config is '1'
             if not value and re.match(self._crypto_regexp, name):

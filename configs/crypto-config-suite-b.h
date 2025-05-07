@@ -1,5 +1,5 @@
 /**
- * \file crypto-config-symmetric-only.h
+ * \file crypto-config-suite-b.h
  *
  * \brief \brief Minimal crypto configuration for
  * TLS NSA Suite B Profile (RFC 6460).
@@ -49,6 +49,7 @@
 #define MBEDTLS_ASN1_WRITE_C
 #define MBEDTLS_CTR_DRBG_C
 #define MBEDTLS_ENTROPY_C
+#define MBEDTLS_PLATFORM_C
 #define MBEDTLS_OID_C
 #define MBEDTLS_PK_C
 #define MBEDTLS_PK_PARSE_C

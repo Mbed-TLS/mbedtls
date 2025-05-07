@@ -16,7 +16,7 @@ support_build_tfm_armcc () {
 component_build_tfm_armcc () {
     # test the TF-M configuration can build cleanly with various warning flags enabled
     cp configs/config-tfm.h "$CONFIG_H"
-    cp configs/ext/crypto_config_profile_medium.h "$CRYPTO_CONFIG_H"
+    cp tf-psa-crypto/configs/ext/crypto_config_profile_medium.h "$CRYPTO_CONFIG_H"
 
     msg "build: TF-M config, armclang armv7-m thumb2"
     helper_armc6_build_test "--target=arm-arm-none-eabi -march=armv7-m -mthumb -Os -std=c99 -Werror -Wall -Wextra -Wwrite-strings -Wpointer-arith -Wimplicit-fallthrough -Wshadow -Wvla -Wformat=2 -Wno-format-nonliteral -Wshadow -Wasm-operand-widths -Wunused -I../framework/tests/include/spe"
@@ -114,7 +114,7 @@ component_build_zeroize_checks () {
     scripts/config.py full
 
     # Only compile - we're looking for sizeof-pointer-memaccess warnings
-    make CFLAGS="'-DTF_PSA_CRYPTO_USER_CONFIG_FILE=\"../tests/configs/user-config-zeroize-memset.h\"' -DMBEDTLS_TEST_DEFINES_ZEROIZE -Werror -Wsizeof-pointer-memaccess"
+    make CFLAGS="'-DTF_PSA_CRYPTO_USER_CONFIG_FILE=\"$TF_PSA_CRYPTO_ROOT_DIR/tests/configs/user-config-zeroize-memset.h\"' -DMBEDTLS_TEST_DEFINES_ZEROIZE -Werror -Wsizeof-pointer-memaccess"
 }
 
 component_test_zeroize () {
@@ -136,7 +136,7 @@ component_test_zeroize () {
         for compiler in clang gcc; do
             msg "test: $compiler $optimization_flag, mbedtls_platform_zeroize()"
             make programs CC="$compiler" DEBUG=1 CFLAGS="$optimization_flag"
-            gdb -ex "$gdb_disable_aslr" -x tests/scripts/test_zeroize.gdb -nw -batch -nx 2>&1 | tee test_zeroize.log
+            gdb -ex "$gdb_disable_aslr" -x $FRAMEWORK/tests/programs/test_zeroize.gdb -nw -batch -nx 2>&1 | tee test_zeroize.log
             grep "The buffer was correctly zeroized" test_zeroize.log
             not grep -i "error" test_zeroize.log
             rm -f test_zeroize.log

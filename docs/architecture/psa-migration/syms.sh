@@ -11,7 +11,7 @@
 #
 # Usage:
 # - build the library with debug symbols and the config you're interested in
-#   (default, full minus MBEDTLS_USE_PSA_CRYPTO, full, etc.)
+#   (default, full, etc.)
 # - launch this script with 1 or more arguments depending on the analysis' goal:
 #     - if only 1 argument is used (which is the name of the used config,
 #       ex: full), then the analysis is done on libmbedx509 and libmbedtls

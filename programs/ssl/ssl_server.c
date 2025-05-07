@@ -5,6 +5,8 @@
  *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
+#define MBEDTLS_DECLARE_PRIVATE_IDENTIFIERS
+
 #include "mbedtls/build_info.h"
 
 #include "mbedtls/platform.h"
@@ -142,8 +144,7 @@ int main(void)
     }
 
     ret =  mbedtls_pk_parse_key(&pkey, (const unsigned char *) mbedtls_test_srv_key,
-                                mbedtls_test_srv_key_len, NULL, 0,
-                                mbedtls_ctr_drbg_random, &ctr_drbg);
+                                mbedtls_test_srv_key_len, NULL, 0);
     if (ret != 0) {
         mbedtls_printf(" failed\n  !  mbedtls_pk_parse_key returned %d\n\n", ret);
         goto exit;
@@ -178,7 +179,6 @@ int main(void)
         goto exit;
     }
 
-    mbedtls_ssl_conf_rng(&conf, mbedtls_ctr_drbg_random, &ctr_drbg);
     mbedtls_ssl_conf_dbg(&conf, my_debug, stdout);
 
 #if defined(MBEDTLS_SSL_CACHE_C)

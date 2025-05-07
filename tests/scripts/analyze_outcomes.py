@@ -33,41 +33,6 @@ class CoverageTask(outcome_analysis.CoverageTask):
                           r'.*\b(?:' + r'|'.join(words) + r')\b.*',
                           re.DOTALL)
 
-    # generate_psa_tests.py generates test cases involving cryptographic
-    # mechanisms (key types, families, algorithms) that are declared but
-    # not implemented. Until we improve the Python scripts, ignore those
-    # test cases in the analysis.
-    # https://github.com/Mbed-TLS/mbedtls/issues/9572
-    _PSA_MECHANISMS_NOT_IMPLEMENTED = [
-        r'CBC_MAC',
-        r'DETERMINISTIC_DSA',
-        r'DET_DSA',
-        r'DSA',
-        r'ECC_KEY_PAIR\(BRAINPOOL_P_R1\) (?:160|192|224|320)-bit',
-        r'ECC_KEY_PAIR\(SECP_K1\) 225-bit',
-        r'ECC_PAIR\(BP_R1\) (?:160|192|224|320)-bit',
-        r'ECC_PAIR\(SECP_K1\) 225-bit',
-        r'ECC_PUBLIC_KEY\(BRAINPOOL_P_R1\) (?:160|192|224|320)-bit',
-        r'ECC_PUBLIC_KEY\(SECP_K1\) 225-bit',
-        r'ECC_PUB\(BP_R1\) (?:160|192|224|320)-bit',
-        r'ECC_PUB\(SECP_K1\) 225-bit',
-        r'ED25519PH',
-        r'ED448PH',
-        r'PEPPER',
-        r'PURE_EDDSA',
-        r'SECP_R2',
-        r'SECT_K1',
-        r'SECT_R1',
-        r'SECT_R2',
-        r'SHAKE256_512',
-        r'SHA_512_224',
-        r'SHA_512_256',
-        r'TWISTED_EDWARDS',
-        r'XTS',
-    ]
-    PSA_MECHANISM_NOT_IMPLEMENTED_SEARCH_RE = \
-        _has_word_re(_PSA_MECHANISMS_NOT_IMPLEMENTED)
-
     IGNORED_TESTS = {
         'ssl-opt': [
             # We don't run ssl-opt.sh with Valgrind on the CI because
@@ -132,8 +97,6 @@ class CoverageTask(outcome_analysis.CoverageTask):
             'Config: PSA_WANT_ALG_CBC_MAC',
             # Algorithm declared but not supported.
             'Config: PSA_WANT_ALG_XTS',
-            # Family declared but not supported.
-            'Config: PSA_WANT_ECC_SECP_K1_224',
             # More granularity of key pair type enablement macros
             # than we care to test.
             # https://github.com/Mbed-TLS/mbedtls/issues/9590
@@ -155,10 +118,10 @@ class CoverageTask(outcome_analysis.CoverageTask):
             # Untested platform-specific optimizations.
             # https://github.com/Mbed-TLS/mbedtls/issues/9588
             'Config: MBEDTLS_HAVE_SSE2',
-            # Obsolete configuration option, to be replaced by
+            # Obsolete configuration options, to be replaced by
             # PSA entropy drivers.
             # https://github.com/Mbed-TLS/mbedtls/issues/8150
-            'Config: MBEDTLS_NO_PLATFORM_ENTROPY',
+            'Config: MBEDTLS_NO_DEFAULT_ENTROPY_SOURCES',
             # Untested aspect of the platform interface.
             # https://github.com/Mbed-TLS/mbedtls/issues/9589
             'Config: MBEDTLS_PLATFORM_NO_STD_FUNCTIONS',
@@ -200,16 +163,6 @@ class CoverageTask(outcome_analysis.CoverageTask):
             # https://github.com/Mbed-TLS/mbedtls/issues/9592
             re.compile(r'.*ECDSA.*only deterministic supported'),
         ],
-        'test_suite_psa_crypto_generate_key.generated': [
-            # Ignore mechanisms that are not implemented, except
-            # for public keys for which we always test that
-            # psa_generate_key() returns PSA_ERROR_INVALID_ARGUMENT
-            # regardless of whether the specific key type is supported.
-            _has_word_re((mech
-                          for mech in _PSA_MECHANISMS_NOT_IMPLEMENTED
-                          if not mech.startswith('ECC_PUB')),
-                         exclude=r'ECC_PUB'),
-        ],
         'test_suite_psa_crypto_metadata': [
             # Algorithms declared but not supported.
             # https://github.com/Mbed-TLS/mbedtls/issues/9579
@@ -223,10 +176,6 @@ class CoverageTask(outcome_analysis.CoverageTask):
             'MAC: CBC_MAC-AES-256',
         ],
         'test_suite_psa_crypto_not_supported.generated': [
-            # It is a bug that not-supported test cases aren't getting
-            # run for never-implemented key types.
-            # https://github.com/Mbed-TLS/mbedtls/issues/7915
-            PSA_MECHANISM_NOT_IMPLEMENTED_SEARCH_RE,
             # We never test with DH key support disabled but support
             # for a DH group enabled. The dependencies of these test
             # cases don't really make sense.
@@ -240,18 +189,6 @@ class CoverageTask(outcome_analysis.CoverageTask):
             'PSA import DH_PUBLIC_KEY(RFC7919) 2048-bit group not supported',
         ],
         'test_suite_psa_crypto_op_fail.generated': [
-            # Ignore mechanisms that are not implemented, except
-            # for test cases that assume the mechanism is not supported.
-            _has_word_re(_PSA_MECHANISMS_NOT_IMPLEMENTED,
-                         exclude=(r'.*: !(?:' +
-                                  r'|'.join(_PSA_MECHANISMS_NOT_IMPLEMENTED) +
-                                  r')\b')),
-            # Incorrect dependency generation. To be fixed as part of the
-            # resolution of https://github.com/Mbed-TLS/mbedtls/issues/9167
-            # by forward-porting the commit
-            # "PSA test case generation: dependency inference class: operation fail"
-            # from https://github.com/Mbed-TLS/mbedtls/pull/9025 .
-            re.compile(r'.* with (?:DH|ECC)_(?:KEY_PAIR|PUBLIC_KEY)\(.*'),
             # We don't test this unusual, but sensible configuration.
             # https://github.com/Mbed-TLS/mbedtls/issues/9592
             re.compile(r'.*: !ECDSA but DETERMINISTIC_ECDSA with ECC_.*'),
@@ -259,17 +196,17 @@ class CoverageTask(outcome_analysis.CoverageTask):
             # key type disabled. Those dependencies don't really make sense.
             # https://github.com/Mbed-TLS/mbedtls/issues/9573
             re.compile(r'.* !HMAC with HMAC'),
+            # We don't test with ECDH disabled but the key type enabled.
+            # https://github.com/Mbed-TLS/TF-PSA-Crypto/issues/161
+            re.compile(r'PSA key_agreement.* !ECDH with ECC_KEY_PAIR\(.*'),
+            # We don't test with FFDH disabled but the key type enabled.
+            # https://github.com/Mbed-TLS/TF-PSA-Crypto/issues/160
+            re.compile(r'PSA key_agreement.* !FFDH with DH_KEY_PAIR\(.*'),
         ],
         'test_suite_psa_crypto_op_fail.misc': [
             # We don't test this unusual, but sensible configuration.
             # https://github.com/Mbed-TLS/mbedtls/issues/9592
             'PSA sign DETERMINISTIC_ECDSA(SHA_256): !ECDSA but DETERMINISTIC_ECDSA with ECC_KEY_PAIR(SECP_R1)', #pylint: disable=line-too-long
-        ],
-        'test_suite_psa_crypto_storage_format.current': [
-            PSA_MECHANISM_NOT_IMPLEMENTED_SEARCH_RE,
-        ],
-        'test_suite_psa_crypto_storage_format.v0': [
-            PSA_MECHANISM_NOT_IMPLEMENTED_SEARCH_RE,
         ],
         'tls13-misc': [
             # Disabled due to OpenSSL bug.
@@ -451,10 +388,6 @@ class DriverVSReference_ecp_light_only(outcome_analysis.DriverVSReference):
             re.compile(r'ECP point multiplication .*'),
             re.compile(r'ECP test vectors .*'),
         ],
-        'test_suite_ssl': [
-            # This deprecated function is only present when ECP_C is On.
-            'Test configuration of groups for DHE through mbedtls_ssl_conf_curves()',
-        ],
     }
 
 class DriverVSReference_no_ecp_at_all(outcome_analysis.DriverVSReference):
@@ -490,10 +423,6 @@ class DriverVSReference_no_ecp_at_all(outcome_analysis.DriverVSReference):
             # while checking driver's coverage.
             re.compile(r'Parse EC Key .*compressed\)'),
             re.compile(r'Parse Public EC Key .*compressed\)'),
-        ],
-        # See ecp_light_only
-        'test_suite_ssl': [
-            'Test configuration of groups for DHE through mbedtls_ssl_conf_curves()',
         ],
     }
 
@@ -538,10 +467,6 @@ class DriverVSReference_ecc_no_bignum(outcome_analysis.DriverVSReference):
         'test_suite_debug': [
             re.compile(r'Debug print mbedtls_mpi.*'),
         ],
-        # See ecp_light_only
-        'test_suite_ssl': [
-            'Test configuration of groups for DHE through mbedtls_ssl_conf_curves()',
-        ],
     }
 
 class DriverVSReference_ecc_ffdh_no_bignum(outcome_analysis.DriverVSReference):
@@ -549,24 +474,16 @@ class DriverVSReference_ecc_ffdh_no_bignum(outcome_analysis.DriverVSReference):
     DRIVER = 'test_psa_crypto_config_accel_ecc_ffdh_no_bignum'
     IGNORED_SUITES = [
         # Modules replaced by drivers
-        'ecp', 'ecdsa', 'ecdh', 'ecjpake', 'dhm',
+        'ecp', 'ecdsa', 'ecdh', 'ecjpake',
         'bignum_core', 'bignum_random', 'bignum_mod', 'bignum_mod_raw',
         'bignum.generated', 'bignum.misc',
         # Unit tests for the built-in implementation
         'psa_crypto_ecp',
     ]
     IGNORED_TESTS = {
-        'ssl-opt': [
-            # DHE support in TLS 1.2 requires built-in MBEDTLS_DHM_C
-            # (because it needs custom groups, which PSA does not
-            # provide), even with MBEDTLS_USE_PSA_CRYPTO.
-            re.compile(r'PSK callback:.*\bdhe-psk\b.*'),
-        ],
         'test_suite_config': [
             re.compile(r'.*\bMBEDTLS_BIGNUM_C\b.*'),
-            re.compile(r'.*\bMBEDTLS_DHM_C\b.*'),
             re.compile(r'.*\bMBEDTLS_(ECDH|ECDSA|ECJPAKE|ECP)_.*'),
-            re.compile(r'.*\bMBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED\b.*'),
             re.compile(r'.*\bMBEDTLS_PK_PARSE_EC_COMPRESSED\b.*'),
         ],
         'test_suite_platform': [
@@ -593,20 +510,12 @@ class DriverVSReference_ecc_ffdh_no_bignum(outcome_analysis.DriverVSReference):
         'test_suite_debug': [
             re.compile(r'Debug print mbedtls_mpi.*'),
         ],
-        # See ecp_light_only
-        'test_suite_ssl': [
-            'Test configuration of groups for DHE through mbedtls_ssl_conf_curves()',
-        ],
     }
 
 class DriverVSReference_ffdh_alg(outcome_analysis.DriverVSReference):
     REFERENCE = 'test_psa_crypto_config_reference_ffdh'
     DRIVER = 'test_psa_crypto_config_accel_ffdh'
-    IGNORED_SUITES = ['dhm']
     IGNORED_TESTS = {
-        'test_suite_config': [
-            re.compile(r'.*\bMBEDTLS_DHM_C\b.*'),
-        ],
         'test_suite_platform': [
             # Incompatible with sanitizers (e.g. ASan). If the driver
             # component uses a sanitizer but the reference component

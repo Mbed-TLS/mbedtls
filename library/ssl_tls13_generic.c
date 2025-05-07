@@ -518,7 +518,7 @@ int mbedtls_ssl_tls13_parse_certificate(mbedtls_ssl_context *ssl,
         switch (ret) {
             case 0: /*ok*/
                 break;
-            case MBEDTLS_ERR_X509_UNKNOWN_SIG_ALG + MBEDTLS_ERR_OID_NOT_FOUND:
+            case MBEDTLS_ERR_OID_NOT_FOUND:
                 /* Ignore certificate with an unknown algorithm: maybe a
                    prior certificate was already trusted. */
                 break;
@@ -978,8 +978,7 @@ static int ssl_tls13_write_certificate_verify_body(mbedtls_ssl_context *ssl,
 
         if ((ret = mbedtls_pk_sign_ext(pk_type, own_key,
                                        md_alg, verify_hash, verify_hash_len,
-                                       p + 4, (size_t) (end - (p + 4)), &signature_len,
-                                       ssl->conf->f_rng, ssl->conf->p_rng)) != 0) {
+                                       p + 4, (size_t) (end - (p + 4)), &signature_len)) != 0) {
             MBEDTLS_SSL_DEBUG_MSG(2, ("CertificateVerify signature failed with %s",
                                       mbedtls_ssl_sig_alg_to_str(*sig_alg)));
             MBEDTLS_SSL_DEBUG_RET(2, "mbedtls_pk_sign_ext", ret);

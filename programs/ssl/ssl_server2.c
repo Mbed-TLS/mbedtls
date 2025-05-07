@@ -58,7 +58,6 @@ int main(void)
 #endif
 
 #include "mbedtls/pk.h"
-#include "mbedtls/dhm.h"
 
 /* Size of memory to be allocated for the heap, when using the library's memory
  * management and MBEDTLS_MEMORY_BUFFER_ALLOC_C is enabled. */
@@ -71,6 +70,8 @@ int main(void)
 #define DFL_NBIO                0
 #define DFL_EVENT               0
 #define DFL_READ_TIMEOUT        0
+#define DFL_EXP_LABEL           NULL
+#define DFL_EXP_LEN             20
 #define DFL_CA_FILE             ""
 #define DFL_CA_PATH             ""
 #define DFL_CRT_FILE            ""
@@ -115,7 +116,9 @@ int main(void)
 #define DFL_DUMMY_TICKET        0
 #define DFL_TICKET_ROTATE       0
 #define DFL_TICKET_TIMEOUT      86400
-#define DFL_TICKET_AEAD         MBEDTLS_CIPHER_AES_256_GCM
+#define DFL_TICKET_ALG          PSA_ALG_GCM
+#define DFL_TICKET_KEY_TYPE     PSA_KEY_TYPE_AES
+#define DFL_TICKET_KEY_BITS     256
 #define DFL_CACHE_MAX           -1
 #define DFL_CACHE_TIMEOUT       -1
 #define DFL_CACHE_REMOVE        0
@@ -125,7 +128,6 @@ int main(void)
 #define DFL_EARLY_DATA          -1
 #define DFL_MAX_EARLY_DATA_SIZE ((uint32_t) -1)
 #define DFL_SIG_ALGS            NULL
-#define DFL_DHM_FILE            NULL
 #define DFL_TRANSPORT           MBEDTLS_SSL_TRANSPORT_STREAM
 #define DFL_COOKIES             1
 #define DFL_ANTI_REPLAY         -1
@@ -190,9 +192,7 @@ int main(void)
     "                        note: if neither crt_file/key_file nor crt_file2/key_file2 are used,\n" \
     "                              preloaded certificate(s) and key(s) are used if available\n" \
     "    key_pwd2=%%s         Password for key specified by key_file2 argument\n" \
-    "                        default: none\n" \
-    "    dhm_file=%%s        File containing Diffie-Hellman parameters\n" \
-    "                       default: preloaded parameters\n"
+    "                        default: none\n"
 #else
 #define USAGE_IO \
     "\n"                                                    \
@@ -212,7 +212,7 @@ int main(void)
 
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
 #define USAGE_SSL_ASYNC \
-    "    async_operations=%%c...   d=decrypt, s=sign (default: -=off)\n" \
+    "    async_operations=%%c...   s=sign (default: -=off)\n" \
     "    async_private_delay1=%%d  Asynchronous delay for key_file or preloaded key\n" \
     "    async_private_delay2=%%d  Asynchronous delay for key_file2 and sni\n" \
     "                              default: -1 (not asynchronous)\n" \
@@ -476,17 +476,27 @@ int main(void)
 #define USAGE_SERIALIZATION ""
 #endif
 
+#if defined(MBEDTLS_SSL_KEYING_MATERIAL_EXPORT)
+#define USAGE_EXPORT \
+    "    exp_label=%%s       Label to input into TLS-Exporter\n" \
+    "                         default: None (don't try to export a key)\n" \
+    "    exp_len=%%d         Length of key to extract from TLS-Exporter \n" \
+    "                         default: 20\n"
+#else
+#define USAGE_EXPORT ""
+#endif
+
 #define USAGE_KEY_OPAQUE_ALGS \
     "    key_opaque_algs=%%s  Allowed opaque key 1 algorithms.\n"                      \
     "                        comma-separated pair of values among the following:\n"    \
     "                        rsa-sign-pkcs1, rsa-sign-pss, rsa-sign-pss-sha256,\n"     \
-    "                        rsa-sign-pss-sha384, rsa-sign-pss-sha512, rsa-decrypt,\n" \
+    "                        rsa-sign-pss-sha384, rsa-sign-pss-sha512,\n"              \
     "                        ecdsa-sign, ecdh, none (only acceptable for\n"            \
     "                        the second value).\n"                                     \
     "    key_opaque_algs2=%%s Allowed opaque key 2 algorithms.\n"                      \
     "                        comma-separated pair of values among the following:\n"    \
     "                        rsa-sign-pkcs1, rsa-sign-pss, rsa-sign-pss-sha256,\n"     \
-    "                        rsa-sign-pss-sha384, rsa-sign-pss-sha512, rsa-decrypt,\n" \
+    "                        rsa-sign-pss-sha384, rsa-sign-pss-sha512,\n"              \
     "                        ecdsa-sign, ecdh, none (only acceptable for\n"            \
     "                        the second value).\n"
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
@@ -583,6 +593,7 @@ int main(void)
     "                                otherwise. The expansion of the macro\n" \
     "                                is printed if it is defined\n"           \
     USAGE_SERIALIZATION                                                       \
+    USAGE_EXPORT                                                              \
     "\n"
 
 #define PUT_UINT64_BE(out_be, in_le, i)                                   \
@@ -610,6 +621,8 @@ struct options {
     int nbio;                   /* should I/O be blocking?                  */
     int event;                  /* loop or event-driven IO? level or edge triggered? */
     uint32_t read_timeout;      /* timeout on mbedtls_ssl_read() in milliseconds    */
+    const char *exp_label;      /* label to input into mbedtls_ssl_export_keying_material() */
+    int exp_len;                /* Length of key to export using mbedtls_ssl_export_keying_material() */
     int response_size;          /* pad response with header to requested size */
     uint16_t buffer_size;       /* IO buffer size */
     const char *ca_file;        /* the file with the CA certificate(s)      */
@@ -661,7 +674,9 @@ struct options {
     int dummy_ticket;           /* enable / disable dummy ticket generator  */
     int ticket_rotate;          /* session ticket rotate (code coverage)    */
     int ticket_timeout;         /* session ticket lifetime                  */
-    int ticket_aead;            /* session ticket protection                */
+    int ticket_alg;             /* session ticket algorithm                 */
+    int ticket_key_type;        /* session ticket key type                  */
+    int ticket_key_bits;        /* session ticket key size in bits          */
     int cache_max;              /* max number of session cache entries      */
 #if defined(MBEDTLS_HAVE_TIME)
     int cache_timeout;          /* expiration delay of session cache entries*/
@@ -671,7 +686,6 @@ struct options {
     const char *groups;         /* list of supported groups                 */
     const char *sig_algs;       /* supported TLS 1.3 signature algorithms   */
     const char *alpn_string;    /* ALPN supported protocols                 */
-    const char *dhm_file;       /* the file with the DH parameters          */
     int extended_ms;            /* allow negotiation of extended MS?        */
     int etm;                    /* allow negotiation of encrypt-then-MAC?   */
     int transport;              /* TLS or DTLS?                             */
@@ -825,7 +839,7 @@ static sni_entry *sni_parse(char *sni_string)
         mbedtls_pk_init(new->key);
 
         if (mbedtls_x509_crt_parse_file(new->cert, crt_file) != 0 ||
-            mbedtls_pk_parse_keyfile(new->key, key_file, "", rng_get, &rng) != 0) {
+            mbedtls_pk_parse_keyfile(new->key, key_file, "") != 0) {
             goto error;
         }
 
@@ -1176,8 +1190,7 @@ static int ssl_async_start(mbedtls_ssl_context *ssl,
      * public key. */
     for (slot = 0; slot < config_data->slots_used; slot++) {
         if (mbedtls_pk_check_pair(&cert->pk,
-                                  config_data->slots[slot].pk,
-                                  rng_get, &rng) == 0) {
+                                  config_data->slots[slot].pk) == 0) {
             break;
         }
     }
@@ -1228,16 +1241,6 @@ static int ssl_async_sign(mbedtls_ssl_context *ssl,
                            hash, hash_len);
 }
 
-static int ssl_async_decrypt(mbedtls_ssl_context *ssl,
-                             mbedtls_x509_crt *cert,
-                             const unsigned char *input,
-                             size_t input_len)
-{
-    return ssl_async_start(ssl, cert,
-                           ASYNC_OP_DECRYPT, MBEDTLS_MD_NONE,
-                           input, input_len);
-}
-
 static int ssl_async_resume(mbedtls_ssl_context *ssl,
                             unsigned char *output,
                             size_t *output_len,
@@ -1261,15 +1264,13 @@ static int ssl_async_resume(mbedtls_ssl_context *ssl,
         case ASYNC_OP_DECRYPT:
             ret = mbedtls_pk_decrypt(key_slot->pk,
                                      ctx->input, ctx->input_len,
-                                     output, output_len, output_size,
-                                     config_data->f_rng, config_data->p_rng);
+                                     output, output_len, output_size);
             break;
         case ASYNC_OP_SIGN:
             ret = mbedtls_pk_sign(key_slot->pk,
                                   ctx->md_alg,
                                   ctx->input, ctx->input_len,
-                                  output, output_size, output_len,
-                                  config_data->f_rng, config_data->p_rng);
+                                  output, output_size, output_len);
             break;
         default:
             mbedtls_printf(
@@ -1472,38 +1473,71 @@ static int dummy_ticket_parse(void *p_ticket, mbedtls_ssl_session *session,
 
 static int parse_cipher(char *buf)
 {
+    int ret = 0;
     if (strcmp(buf, "AES-128-CCM")) {
-        return MBEDTLS_CIPHER_AES_128_CCM;
+        opt.ticket_alg = PSA_ALG_CCM;
+        opt.ticket_key_type = PSA_KEY_TYPE_AES;
+        opt.ticket_key_bits = 128;
     } else if (strcmp(buf, "AES-128-GCM")) {
-        return MBEDTLS_CIPHER_AES_128_GCM;
+        opt.ticket_alg = PSA_ALG_GCM;
+        opt.ticket_key_type = PSA_KEY_TYPE_AES;
+        opt.ticket_key_bits = 128;
     } else if (strcmp(buf, "AES-192-CCM")) {
-        return MBEDTLS_CIPHER_AES_192_CCM;
+        opt.ticket_alg = PSA_ALG_CCM;
+        opt.ticket_key_type = PSA_KEY_TYPE_AES;
+        opt.ticket_key_bits = 192;
     } else if (strcmp(buf, "AES-192-GCM")) {
-        return MBEDTLS_CIPHER_AES_192_GCM;
+        opt.ticket_alg = PSA_ALG_GCM;
+        opt.ticket_key_type = PSA_KEY_TYPE_AES;
+        opt.ticket_key_bits = 192;
     } else if (strcmp(buf, "AES-256-CCM")) {
-        return MBEDTLS_CIPHER_AES_256_CCM;
+        opt.ticket_alg = PSA_ALG_CCM;
+        opt.ticket_key_type = PSA_KEY_TYPE_AES;
+        opt.ticket_key_bits = 256;
     } else if (strcmp(buf, "ARIA-128-CCM")) {
-        return MBEDTLS_CIPHER_ARIA_128_CCM;
+        opt.ticket_alg = PSA_ALG_CCM;
+        opt.ticket_key_type = PSA_KEY_TYPE_ARIA;
+        opt.ticket_key_bits = 128;
     } else if (strcmp(buf, "ARIA-128-GCM")) {
-        return MBEDTLS_CIPHER_ARIA_128_GCM;
+        opt.ticket_alg = PSA_ALG_GCM;
+        opt.ticket_key_type = PSA_KEY_TYPE_ARIA;
+        opt.ticket_key_bits = 128;
     } else if (strcmp(buf, "ARIA-192-CCM")) {
-        return MBEDTLS_CIPHER_ARIA_192_CCM;
+        opt.ticket_alg = PSA_ALG_CCM;
+        opt.ticket_key_type = PSA_KEY_TYPE_ARIA;
+        opt.ticket_key_bits = 192;
     } else if (strcmp(buf, "ARIA-192-GCM")) {
-        return MBEDTLS_CIPHER_ARIA_192_GCM;
+        opt.ticket_alg = PSA_ALG_GCM;
+        opt.ticket_key_type = PSA_KEY_TYPE_ARIA;
+        opt.ticket_key_bits = 192;
     } else if (strcmp(buf, "ARIA-256-CCM")) {
-        return MBEDTLS_CIPHER_ARIA_256_CCM;
+        opt.ticket_alg = PSA_ALG_CCM;
+        opt.ticket_key_type = PSA_KEY_TYPE_ARIA;
+        opt.ticket_key_bits = 256;
     } else if (strcmp(buf, "ARIA-256-GCM")) {
-        return MBEDTLS_CIPHER_ARIA_256_GCM;
+        opt.ticket_alg = PSA_ALG_GCM;
+        opt.ticket_key_type = PSA_KEY_TYPE_ARIA;
+        opt.ticket_key_bits = 256;
     } else if (strcmp(buf, "CAMELLIA-128-CCM")) {
-        return MBEDTLS_CIPHER_CAMELLIA_128_CCM;
+        opt.ticket_alg = PSA_ALG_CCM;
+        opt.ticket_key_type = PSA_KEY_TYPE_CAMELLIA;
+        opt.ticket_key_bits = 128;
     } else if (strcmp(buf, "CAMELLIA-192-CCM")) {
-        return MBEDTLS_CIPHER_CAMELLIA_192_CCM;
+        opt.ticket_alg = PSA_ALG_CCM;
+        opt.ticket_key_type = PSA_KEY_TYPE_CAMELLIA;
+        opt.ticket_key_bits = 192;
     } else if (strcmp(buf, "CAMELLIA-256-CCM")) {
-        return MBEDTLS_CIPHER_CAMELLIA_256_CCM;
+        opt.ticket_alg = PSA_ALG_CCM;
+        opt.ticket_key_type = PSA_KEY_TYPE_CAMELLIA;
+        opt.ticket_key_bits = 256;
     } else if (strcmp(buf, "CHACHA20-POLY1305")) {
-        return MBEDTLS_CIPHER_CHACHA20_POLY1305;
+        opt.ticket_alg = PSA_ALG_CHACHA20_POLY1305;
+        opt.ticket_key_type = PSA_KEY_TYPE_CHACHA20;
+        opt.ticket_key_bits = 256;
+    } else {
+        ret = -1;
     }
-    return MBEDTLS_CIPHER_NONE;
+    return ret;
 }
 
 int main(int argc, char *argv[])
@@ -1553,9 +1587,6 @@ int main(int argc, char *argv[])
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
     ssl_async_key_context_t ssl_async_keys;
 #endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
-#if defined(MBEDTLS_DHM_C) && defined(MBEDTLS_FS_IO)
-    mbedtls_dhm_context dhm;
-#endif
 #if defined(MBEDTLS_SSL_CACHE_C)
     mbedtls_ssl_cache_context cache;
 #endif
@@ -1644,9 +1675,6 @@ int main(int argc, char *argv[])
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
     memset(&ssl_async_keys, 0, sizeof(ssl_async_keys));
 #endif
-#if defined(MBEDTLS_DHM_C) && defined(MBEDTLS_FS_IO)
-    mbedtls_dhm_init(&dhm);
-#endif
 #if defined(MBEDTLS_SSL_CACHE_C)
     mbedtls_ssl_cache_init(&cache);
 #endif
@@ -1691,6 +1719,8 @@ int main(int argc, char *argv[])
     opt.cid_val             = DFL_CID_VALUE;
     opt.cid_val_renego      = DFL_CID_VALUE_RENEGO;
     opt.read_timeout        = DFL_READ_TIMEOUT;
+    opt.exp_label           = DFL_EXP_LABEL;
+    opt.exp_len             = DFL_EXP_LEN;
     opt.ca_file             = DFL_CA_FILE;
     opt.ca_path             = DFL_CA_PATH;
     opt.crt_file            = DFL_CRT_FILE;
@@ -1740,7 +1770,9 @@ int main(int argc, char *argv[])
     opt.dummy_ticket        = DFL_DUMMY_TICKET;
     opt.ticket_rotate       = DFL_TICKET_ROTATE;
     opt.ticket_timeout      = DFL_TICKET_TIMEOUT;
-    opt.ticket_aead         = DFL_TICKET_AEAD;
+    opt.ticket_alg          = DFL_TICKET_ALG;
+    opt.ticket_key_type     = DFL_TICKET_KEY_TYPE;
+    opt.ticket_key_bits     = DFL_TICKET_KEY_BITS;
     opt.cache_max           = DFL_CACHE_MAX;
 #if defined(MBEDTLS_HAVE_TIME)
     opt.cache_timeout       = DFL_CACHE_TIMEOUT;
@@ -1754,7 +1786,6 @@ int main(int argc, char *argv[])
     opt.max_early_data_size = DFL_MAX_EARLY_DATA_SIZE;
 #endif
     opt.sig_algs            = DFL_SIG_ALGS;
-    opt.dhm_file            = DFL_DHM_FILE;
     opt.transport           = DFL_TRANSPORT;
     opt.cookies             = DFL_COOKIES;
     opt.anti_replay         = DFL_ANTI_REPLAY;
@@ -1869,6 +1900,10 @@ usage:
             }
         } else if (strcmp(p, "read_timeout") == 0) {
             opt.read_timeout = atoi(q);
+        } else if (strcmp(p, "exp_label") == 0) {
+            opt.exp_label = q;
+        } else if (strcmp(p, "exp_len") == 0) {
+            opt.exp_len = atoi(q);
         } else if (strcmp(p, "buffer_size") == 0) {
             opt.buffer_size = atoi(q);
             if (opt.buffer_size < 1) {
@@ -1904,8 +1939,6 @@ usage:
             opt.key_file2 = q;
         } else if (strcmp(p, "key_pwd2") == 0) {
             opt.key_pwd2 = q;
-        } else if (strcmp(p, "dhm_file") == 0) {
-            opt.dhm_file = q;
         }
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
         else if (strcmp(p, "async_operations") == 0) {
@@ -2191,9 +2224,7 @@ usage:
                 goto usage;
             }
         } else if (strcmp(p, "ticket_aead") == 0) {
-            opt.ticket_aead = parse_cipher(q);
-
-            if (opt.ticket_aead == MBEDTLS_CIPHER_NONE) {
+            if (parse_cipher(q) != 0) {
                 goto usage;
             }
         } else if (strcmp(p, "cache_max") == 0) {
@@ -2630,7 +2661,7 @@ usage:
     if (strlen(opt.key_file) && strcmp(opt.key_file, "none") != 0) {
         key_cert_init++;
         if ((ret = mbedtls_pk_parse_keyfile(&pkey, opt.key_file,
-                                            opt.key_pwd, rng_get, &rng)) != 0) {
+                                            opt.key_pwd)) != 0) {
             mbedtls_printf(" failed\n  !  mbedtls_pk_parse_keyfile returned -0x%x\n\n",
                            (unsigned int) -ret);
             goto exit;
@@ -2652,7 +2683,7 @@ usage:
     if (strlen(opt.key_file2) && strcmp(opt.key_file2, "none") != 0) {
         key_cert_init2++;
         if ((ret = mbedtls_pk_parse_keyfile(&pkey2, opt.key_file2,
-                                            opt.key_pwd2, rng_get, &rng)) != 0) {
+                                            opt.key_pwd2)) != 0) {
             mbedtls_printf(" failed\n  !  mbedtls_pk_parse_keyfile(2) returned -0x%x\n\n",
                            (unsigned int) -ret);
             goto exit;
@@ -2679,8 +2710,7 @@ usage:
         }
         if ((ret = mbedtls_pk_parse_key(&pkey,
                                         (const unsigned char *) mbedtls_test_srv_key_rsa,
-                                        mbedtls_test_srv_key_rsa_len, NULL, 0,
-                                        rng_get, &rng)) != 0) {
+                                        mbedtls_test_srv_key_rsa_len, NULL, 0)) != 0) {
             mbedtls_printf(" failed\n  !  mbedtls_pk_parse_key returned -0x%x\n\n",
                            (unsigned int) -ret);
             goto exit;
@@ -2697,8 +2727,7 @@ usage:
         }
         if ((ret = mbedtls_pk_parse_key(&pkey2,
                                         (const unsigned char *) mbedtls_test_srv_key_ec,
-                                        mbedtls_test_srv_key_ec_len, NULL, 0,
-                                        rng_get, &rng)) != 0) {
+                                        mbedtls_test_srv_key_ec_len, NULL, 0)) != 0) {
             mbedtls_printf(" failed\n  !  pk_parse_key2 returned -0x%x\n\n",
                            (unsigned int) -ret);
             goto exit;
@@ -2749,21 +2778,6 @@ usage:
                    key_cert_init ? mbedtls_pk_get_name(&pkey) : "none",
                    key_cert_init2 ? mbedtls_pk_get_name(&pkey2) : "none");
 #endif /* MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED */
-
-#if defined(MBEDTLS_DHM_C) && defined(MBEDTLS_FS_IO)
-    if (opt.dhm_file != NULL) {
-        mbedtls_printf("  . Loading DHM parameters...");
-        fflush(stdout);
-
-        if ((ret = mbedtls_dhm_parse_dhmfile(&dhm, opt.dhm_file)) != 0) {
-            mbedtls_printf(" failed\n  ! mbedtls_dhm_parse_dhmfile returned -0x%04X\n\n",
-                           (unsigned int) -ret);
-            goto exit;
-        }
-
-        mbedtls_printf(" ok\n");
-    }
-#endif
 
 #if defined(SNI_OPTION)
     if (opt.sni != NULL) {
@@ -2932,7 +2946,6 @@ usage:
 #endif
 #endif  /* MBEDTLS_HAVE_TIME */
     }
-    mbedtls_ssl_conf_rng(&conf, rng_get, &rng);
     mbedtls_ssl_conf_dbg(&conf, my_debug, stdout);
 
 #if defined(MBEDTLS_SSL_CACHE_C)
@@ -2963,8 +2976,9 @@ usage:
 #endif /* MBEDTLS_HAVE_TIME */
         {
             if ((ret = mbedtls_ssl_ticket_setup(&ticket_ctx,
-                                                rng_get, &rng,
-                                                opt.ticket_aead,
+                                                opt.ticket_alg,
+                                                opt.ticket_key_type,
+                                                opt.ticket_key_bits,
                                                 opt.ticket_timeout)) != 0) {
                 mbedtls_printf(
                     " failed\n  ! mbedtls_ssl_ticket_setup returned %d\n\n",
@@ -3003,8 +3017,7 @@ usage:
     if (opt.transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM) {
 #if defined(MBEDTLS_SSL_COOKIE_C)
         if (opt.cookies > 0) {
-            if ((ret = mbedtls_ssl_cookie_setup(&cookie_ctx,
-                                                rng_get, &rng)) != 0) {
+            if ((ret = mbedtls_ssl_cookie_setup(&cookie_ctx)) != 0) {
                 mbedtls_printf(" failed\n  ! mbedtls_ssl_cookie_setup returned %d\n\n", ret);
                 goto exit;
             }
@@ -3110,13 +3123,9 @@ usage:
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
     if (opt.async_operations[0] != '-') {
         mbedtls_ssl_async_sign_t *sign = NULL;
-        mbedtls_ssl_async_decrypt_t *decrypt = NULL;
         const char *r;
         for (r = opt.async_operations; *r; r++) {
             switch (*r) {
-                case 'd':
-                    decrypt = ssl_async_decrypt;
-                    break;
                 case 's':
                     sign = ssl_async_sign;
                     break;
@@ -3129,7 +3138,6 @@ usage:
         ssl_async_keys.p_rng = &rng;
         mbedtls_ssl_conf_async_private_cb(&conf,
                                           sign,
-                                          decrypt,
                                           ssl_async_resume,
                                           ssl_async_cancel,
                                           &ssl_async_keys);
@@ -3226,22 +3234,6 @@ usage:
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
         mbedtls_ssl_conf_psk_cb(&conf, psk_callback, psk_info);
-    }
-#endif
-
-#if defined(MBEDTLS_DHM_C)
-    /*
-     * Use different group than default DHM group
-     */
-#if defined(MBEDTLS_FS_IO)
-    if (opt.dhm_file != NULL) {
-        ret = mbedtls_ssl_conf_dh_param_ctx(&conf, &dhm);
-    }
-#endif
-    if (ret != 0) {
-        mbedtls_printf("  failed\n  mbedtls_ssl_conf_dh_param returned -0x%04X\n\n",
-                       (unsigned int) -ret);
-        goto exit;
     }
 #endif
 
@@ -3633,6 +3625,33 @@ handshake:
         }
         mbedtls_printf("\n");
     }
+
+#if defined(MBEDTLS_SSL_KEYING_MATERIAL_EXPORT)
+    if (opt.exp_label != NULL && opt.exp_len > 0) {
+        unsigned char *exported_key = mbedtls_calloc((size_t) opt.exp_len, sizeof(unsigned char));
+        if (exported_key == NULL) {
+            mbedtls_printf("Could not allocate %d bytes\n", opt.exp_len);
+            ret = 3;
+            goto exit;
+        }
+        ret = mbedtls_ssl_export_keying_material(&ssl, exported_key, (size_t) opt.exp_len,
+                                                 opt.exp_label, strlen(opt.exp_label),
+                                                 NULL, 0, 0);
+        if (ret != 0) {
+            mbedtls_free(exported_key);
+            goto exit;
+        }
+        mbedtls_printf("Exporting key of length %d with label \"%s\": 0x",
+                       opt.exp_len,
+                       opt.exp_label);
+        for (i = 0; i < opt.exp_len; i++) {
+            mbedtls_printf("%02X", exported_key[i]);
+        }
+        mbedtls_printf("\n\n");
+        fflush(stdout);
+        mbedtls_free(exported_key);
+    }
+#endif /* defined(MBEDTLS_SSL_KEYING_MATERIAL_EXPORT) */
 
 #if defined(MBEDTLS_SSL_DTLS_SRTP)
     else if (opt.use_srtp != 0) {
@@ -4242,10 +4261,6 @@ exit:
     psa_destroy_key(key_slot);
     psa_destroy_key(key_slot2);
 #endif
-#endif
-
-#if defined(MBEDTLS_DHM_C) && defined(MBEDTLS_FS_IO)
-    mbedtls_dhm_free(&dhm);
 #endif
 
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE)

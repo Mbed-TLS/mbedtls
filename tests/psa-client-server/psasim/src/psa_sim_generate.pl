@@ -27,9 +27,7 @@ my @skip_functions = (
     'mbedtls_psa_crypto_free', # redefined rather than wrapped
     'mbedtls_psa_external_get_random', # not in the default config, uses unsupported type
     'mbedtls_psa_get_stats', # uses unsupported type
-    'mbedtls_psa_inject_entropy', # not in the default config, generally not for client use anyway
     'mbedtls_psa_platform_get_builtin_key', # not in the default config, uses unsupported type
-    'mbedtls_psa_register_se_key', # not in the default config, generally not for client use anyway
     'psa_get_key_slot_number', # not in the default config, uses unsupported type
     'psa_key_derivation_verify_bytes', # not implemented yet
     'psa_key_derivation_verify_key', # not implemented yet
@@ -1107,11 +1105,13 @@ sub get_functions
                 my $ret_name = "";
                 $ret_name = "status" if $ret_type eq "psa_status_t";
                 $ret_name = "value" if $ret_type eq "uint32_t";
+                $ret_name = "value" if $ret_type eq "int";
                 $ret_name = "(void)" if $ret_type eq "void";
                 die("ret_name for $ret_type?") unless length($ret_name);
                 my $ret_default = "";
                 $ret_default = "PSA_ERROR_CORRUPTION_DETECTED" if $ret_type eq "psa_status_t";
                 $ret_default = "0" if $ret_type eq "uint32_t";
+                $ret_default = "0" if $ret_type eq "int";
                 $ret_default = "(void)" if $ret_type eq "void";
                 die("ret_default for $ret_type?") unless length($ret_default);
 

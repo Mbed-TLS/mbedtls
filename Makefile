@@ -6,7 +6,7 @@ ifneq (,$(filter-out lib library/%,$(or $(MAKECMDGOALS),all)))
     ifeq (,$(wildcard framework/exported.make))
         # Use the define keyword to get a multi-line message.
         # GNU make appends ".  Stop.", so tweak the ending of our message accordingly.
-        ifeq (,$(wildcard .git))
+        ifneq (,$(wildcard .git))
             define error_message
 ${MBEDTLS_PATH}/framework/exported.make not found (and does appear to be a git checkout). Run `git submodule update --init` from the source tree to fetch the submodule contents.
 This is a fatal error
@@ -49,11 +49,14 @@ tests: mbedtls_test
 mbedtls_test:
 	$(MAKE) -C tests mbedtls_test
 
-library/%:
+.PHONY: FORCE
+FORCE:
+
+library/%: FORCE
 	$(MAKE) -C library $*
-programs/%:
+programs/%: FORCE
 	$(MAKE) -C programs $*
-tests/%:
+tests/%: FORCE
 	$(MAKE) -C tests $*
 
 .PHONY: generated_files

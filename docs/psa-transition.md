@@ -50,8 +50,6 @@ Then use the [summary of API modules](#summary-of-api-modules), the table of con
 
 To make the PSA API available, make sure that the configuration option [`MBEDTLS_PSA_CRYPTO_C`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/file/mbedtls__config_8h/#c.MBEDTLS_PSA_CRYPTO_C) is enabled. (It is enabled in the default configuration.)
 
-You should probably enable [`MBEDTLS_USE_PSA_CRYPTO`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/file/mbedtls__config_8h/#mbedtls__config_8h_1a70fd7b97d5f11170546583f2095942a6) as well (it is disabled by default). This option causes the PK, X.509 and TLS modules to use PSA crypto under the hood.
-
 By default, the PSA crypto API offers a similar set of cryptographic mechanisms as those offered by the legacy API (configured by `MBEDTLS_XXX` macros). The PSA crypto API also has its own configuration mechanism; see “[Cryptographic mechanism availability](#cryptographic-mechanism-availability)”.
 
 ### Header files
@@ -228,7 +226,7 @@ The PSA Crypto API may use accelerator drivers. In this case any options control
 
 In the Mbed TLS legacy interface, you can replace some cryptographic primitives and modes by an alternative implementation, by enabling configuration options of the form `MBEDTLS_xxx_ALT` and linking with your own implementation of the affected function or module. Alternative implementations remain supported in Mbed TLS 3.x even if the application code uses the PSA API. However, they will be removed from the next version of the library.
 
-The corresponding PSA feature is accelerator drivers. To implement an accelerator driver, see the [PSA cryptoprocessor driver example and guide](https://github.com/Mbed-TLS/mbedtls/blob/development/docs/psa-driver-example-and-guide.md). In an application that uses both the legacy interface and the PSA interface for the same mechanism, only some algorithms support calling a PSA driver from the legacy interface. See the [Guide to driver-only builds](https://github.com/Mbed-TLS/mbedtls/blob/development/docs/driver-only-builds.md) for more information.
+The corresponding PSA feature is accelerator drivers. To implement an accelerator driver, see the [PSA cryptoprocessor driver example and guide](https://github.com/Mbed-TLS/TF-PSA-Crypto/blob/development/docs/psa-driver-example-and-guide.md). In an application that uses both the legacy interface and the PSA interface for the same mechanism, only some algorithms support calling a PSA driver from the legacy interface. See the [Guide to driver-only builds](https://github.com/Mbed-TLS/TF-PSA-Crypto/blob/development/docs/driver-only-builds.md) for more information.
 
 ### Self-tests
 
@@ -908,7 +906,7 @@ This section discusses how to use a PSA key in a context that requires a PK obje
 
 * [`mbedtls_pk_copy_from_psa`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/file/pk_8h/#pk_8h_1ab8e88836fd9ee344ffe630c40447bd08) copies a PSA key into a PK object. The PSA key must be exportable. The PK object remains valid even if the PSA key is destroyed.
 * [`mbedtls_pk_copy_public_from_psa`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/file/pk_8h/#pk_8h_1a2a50247a528889c12ea0ddddb8b15a4e) copies the public part of a PSA key into a PK object. The PK object remains valid even if the PSA key is destroyed.
-* [`mbedtls_pk_setup_opaque`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/file/pk_8h/#pk_8h_1a4c04ac22ab9c1ae09cc29438c308bf05) sets up a PK object that wraps the PSA key. This functionality is only available when `MBEDTLS_USE_PSA_CRYPTO` is enabled. The PK object has the type `MBEDTLS_PK_OPAQUE` regardless of whether the key is an RSA or ECC key. The PK object can only be used as permitted by the PSA key's policy. The PK object contains a reference to the PSA key identifier, therefore PSA key must not be destroyed as long as the PK object remains alive.
+* [`mbedtls_pk_setup_opaque`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/file/pk_8h/#pk_8h_1a4c04ac22ab9c1ae09cc29438c308bf05) sets up a PK object that wraps the PSA key. The PK object has the type `MBEDTLS_PK_OPAQUE` regardless of whether the key is an RSA or ECC key. The PK object can only be used as permitted by the PSA key's policy. The PK object contains a reference to the PSA key identifier, therefore PSA key must not be destroyed as long as the PK object remains alive.
 
 Here is some sample code illustrating how to use the PK module to format a PSA public key or the public key of a PSA key pair.
 ```
@@ -1278,7 +1276,7 @@ The PSA API is a cryptography API, not an arithmetic API. As a consequence, ther
 
 #### RSA-ALT interface
 
-Implementers of the RSA-ALT interface (`MBEDTLS_PK_RSA_ALT` pk type, `mbedtls_pk_setup_rsa_alt` setup function) should migrate to the [PSA cryptoprocessor driver interface](https://github.com/Mbed-TLS/mbedtls/blob/development/docs/psa-driver-example-and-guide.md).
+Implementers of the RSA-ALT interface (`MBEDTLS_PK_RSA_ALT` pk type, `mbedtls_pk_setup_rsa_alt` setup function) should migrate to the [PSA cryptoprocessor driver interface](https://github.com/Mbed-TLS/TF-PSA-Crypto/blob/development/docs/psa-driver-example-and-guide.md).
 
 * If the purpose of the ALT interface is acceleration only: use the accelerator driver interface. This is fully transparent to application code.
 * If the purpose of the ALT interface is to isolate the private key in a high-security environment: use the opaque driver interface. This is mostly transparent to user code. Code that uses a key via its key identifier does not need to know whether the key is transparent (equivalent of `MBEDTLS_PK_RSA`) or opaque (equivalent of `MBEDTLS_PK_RSA_ALT`). When creating a key, it will be transparent by default; to create an opaque key, call [`psa_set_key_lifetime`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__attributes/#group__attributes_1gac03ccf09ca6d36cc3d5b43f8303db6f7) to set the key's location to the chosen location value for the driver, e.g.

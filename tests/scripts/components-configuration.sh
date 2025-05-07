@@ -132,7 +132,8 @@ component_test_full_cmake_gcc_asan_new_bignum () {
 component_test_full_cmake_clang () {
     msg "build: cmake, full config, clang" # ~ 50s
     scripts/config.py full
-    CC=clang CXX=clang cmake -D CMAKE_BUILD_TYPE:String=Release -D ENABLE_TESTING=On -D TEST_CPP=1 .
+    CC=clang CXX=clang++ cmake -D CMAKE_BUILD_TYPE:String=Release \
+                               -D ENABLE_TESTING=On -D TEST_CPP=1 .
     make
 
     msg "test: main suites (full config, clang)" # ~ 5s
@@ -148,7 +149,7 @@ component_test_full_cmake_clang () {
     tests/scripts/run_demos.py
 
     msg "test: psa_constant_names (full config, clang)" # ~ 1s
-    tests/scripts/test_psa_constant_names.py
+    $FRAMEWORK/scripts/test_psa_constant_names.py
 
     msg "test: ssl-opt.sh default, ECJPAKE, SSL async (full config)" # ~ 1s
     tests/ssl-opt.sh -f 'Default\|ECJPAKE\|SSL async private'
@@ -236,7 +237,7 @@ component_build_tfm () {
     # the configuration that works on mainstream platforms is in
     # configs/config-tfm.h, tested via test-ref-configs.pl.
     cp configs/config-tfm.h "$CONFIG_H"
-    cp configs/ext/crypto_config_profile_medium.h "$CRYPTO_CONFIG_H"
+    cp tf-psa-crypto/configs/ext/crypto_config_profile_medium.h "$CRYPTO_CONFIG_H"
 
     msg "build: TF-M config, clang, armv7-m thumb2"
     make lib CC="clang" CFLAGS="--target=arm-linux-gnueabihf -march=armv7-m -mthumb -Os -std=c99 -Werror -Wall -Wextra -Wwrite-strings -Wpointer-arith -Wimplicit-fallthrough -Wshadow -Wvla -Wformat=2 -Wno-format-nonliteral -Wshadow -Wasm-operand-widths -Wunused -I../framework/tests/include/spe"
@@ -277,10 +278,13 @@ component_test_no_platform () {
     scripts/config.py unset MBEDTLS_PLATFORM_C
     scripts/config.py unset MBEDTLS_NET_C
     scripts/config.py unset MBEDTLS_FS_IO
-    scripts/config.py unset MBEDTLS_PSA_CRYPTO_SE_C
     scripts/config.py unset MBEDTLS_PSA_CRYPTO_STORAGE_C
     scripts/config.py unset MBEDTLS_PSA_ITS_FILE_C
     scripts/config.py unset MBEDTLS_ENTROPY_NV_SEED
+    # Use the test alternative implementation of mbedtls_platform_get_entropy()
+    # which is provided in "framework/tests/src/fake_external_rng_for_test.c"
+    # since the default one is excluded in this scenario.
+    scripts/config.py set MBEDTLS_PLATFORM_GET_ENTROPY_ALT
     # Note, _DEFAULT_SOURCE needs to be defined for platforms using glibc version >2.19,
     # to re-enable platform integration features otherwise disabled in C99 builds
     make CC=gcc CFLAGS='-Werror -Wall -Wextra -std=c99 -pedantic -Os -D_DEFAULT_SOURCE' lib programs

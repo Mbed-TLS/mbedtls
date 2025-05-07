@@ -52,6 +52,12 @@ EOF
         esac
     done
 
+    if [ -d "tf-psa-crypto/include/mbedtls" ]; then
+        for header in tf-psa-crypto/include/mbedtls/*.h; do
+            echo "#include \"${header#tf-psa-crypto/include/}\""
+        done
+    fi
+
     for header in tf-psa-crypto/include/psa/*.h; do
         case ${header#tf-psa-crypto/include/} in
             psa/crypto_config.h) :;; # not meant for direct inclusion
@@ -67,8 +73,12 @@ EOF
 
     cat <<'EOF'
 
+#include <iostream>
+
 int main()
 {
+    std::cout << "CPP dummy build\n";
+
     mbedtls_platform_context *ctx = NULL;
     mbedtls_platform_setup(ctx);
     mbedtls_printf("CPP Build test passed\n");

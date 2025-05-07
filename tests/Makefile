@@ -25,16 +25,23 @@ $(error "$(PYTHON) ../framework/scripts/generate_bignum_tests.py --list" failed)
 endif
 GENERATED_CRYPTO_DATA_FILES += $(GENERATED_BIGNUM_DATA_FILES)
 
-GENERATED_CONFIG_DATA_FILES_RAW := $(patsubst tests/%,%,$(shell \
+GENERATED_MBEDTLS_CONFIG_DATA_FILES := $(patsubst tests/%,%,$(shell \
 	$(PYTHON) ../framework/scripts/generate_config_tests.py --list || \
 	echo FAILED \
 ))
-ifeq ($(GENERATED_CONFIG_DATA_FILES),FAILED)
+ifeq ($(GENERATED_MBEDTLS_CONFIG_DATA_FILES),FAILED)
 $(error "$(PYTHON) ../framework/scripts/generate_config_tests.py --list" failed)
 endif
-GENERATED_MBEDTLS_CONFIG_DATA_FILES := $(foreach file,$(GENERATED_CONFIG_DATA_FILES_RAW),$(if $(findstring mbedtls,$(file)),$(file),))
-GENERATED_PSA_CONFIG_DATA_FILES := $(foreach file,$(GENERATED_CONFIG_DATA_FILES_RAW),$(if $(findstring psa,$(file)),$(addprefix ../tf-psa-crypto/tests/,$(file)),))
-GENERATED_CONFIG_DATA_FILES := $(GENERATED_MBEDTLS_CONFIG_DATA_FILES)$(GENERATED_PSA_CONFIG_DATA_FILES)
+
+GENERATED_PSA_CONFIG_DATA_FILES := $(addprefix ../tf-psa-crypto/,$(shell \
+	$(PYTHON) ../tf-psa-crypto/framework/scripts/generate_config_tests.py --list || \
+	echo FAILED \
+))
+ifeq ($(GENERATED_PSA_CONFIG_DATA_FILES),FAILED)
+$(error "$(PYTHON) ../tf-psa-crypto/framework/scripts/generate_config_tests.py --list" failed)
+endif
+
+GENERATED_CONFIG_DATA_FILES := $(GENERATED_MBEDTLS_CONFIG_DATA_FILES) $(GENERATED_PSA_CONFIG_DATA_FILES)
 GENERATED_DATA_FILES += $(GENERATED_MBEDTLS_CONFIG_DATA_FILES)
 GENERATED_CRYPTO_DATA_FILES += $(GENERATED_PSA_CONFIG_DATA_FILES)
 
@@ -57,10 +64,19 @@ endif
 GENERATED_CRYPTO_DATA_FILES += $(GENERATED_PSA_DATA_FILES)
 
 GENERATED_FILES = $(GENERATED_DATA_FILES) $(GENERATED_CRYPTO_DATA_FILES)
-GENERATED_FILES += ../framework/tests/include/test/test_keys.h src/test_certs.h
+GENERATED_FILES += include/test/test_keys.h \
+                   ../tf-psa-crypto/tests/include/test/test_keys.h \
+                   include/test/test_certs.h
 
 # Generated files needed to (fully) run ssl-opt.sh
 .PHONY: ssl-opt
+
+opt-testcases/handshake-generated.sh: ../framework/scripts/mbedtls_framework/tls_test_case.py
+opt-testcases/handshake-generated.sh: ../framework/scripts/generate_tls_handshake_tests.py
+	echo "  Gen   $@"
+	$(PYTHON) ../framework/scripts/generate_tls_handshake_tests.py -o $@
+GENERATED_FILES += opt-testcases/handshake-generated.sh
+ssl-opt: opt-testcases/handshake-generated.sh
 
 opt-testcases/tls13-compat.sh: ../framework/scripts/generate_tls13_compat_tests.py
 	echo "  Gen   $@"
@@ -103,8 +119,8 @@ generated_config_test_data: ../framework/scripts/mbedtls_framework/test_case.py
 generated_config_test_data: ../framework/scripts/mbedtls_framework/test_data_generation.py
 generated_config_test_data:
 	echo "  Gen   $(GENERATED_CONFIG_DATA_FILES)"
-	$(PYTHON) ../framework/scripts/generate_config_tests.py $(GENERATED_MBEDTLS_CONFIG_DATA_FILES)
-	$(PYTHON) ../framework/scripts/generate_config_tests.py --directory ../tf-psa-crypto/tests/suites $(GENERATED_PSA_CONFIG_DATA_FILES)
+	$(PYTHON) ../framework/scripts/generate_config_tests.py
+	cd ../tf-psa-crypto && $(PYTHON) ./framework/scripts/generate_config_tests.py
 .SECONDARY: generated_config_test_data
 
 $(GENERATED_ECP_DATA_FILES): $(gen_file_dep) generated_ecp_test_data
@@ -125,6 +141,7 @@ generated_psa_test_data: ../framework/scripts/mbedtls_framework/crypto_knowledge
 generated_psa_test_data: ../framework/scripts/mbedtls_framework/macro_collector.py
 generated_psa_test_data: ../framework/scripts/mbedtls_framework/psa_information.py
 generated_psa_test_data: ../framework/scripts/mbedtls_framework/psa_storage.py
+generated_psa_test_data: ../framework/scripts/mbedtls_framework/psa_test_case.py
 generated_psa_test_data: ../framework/scripts/mbedtls_framework/test_case.py
 generated_psa_test_data: ../framework/scripts/mbedtls_framework/test_data_generation.py
 ## The generated file only depends on the options that are present in
@@ -167,14 +184,18 @@ all: $(BINARIES) $(CRYPTO_BINARIES)
 
 mbedtls_test: $(MBEDTLS_TEST_OBJS)
 
-src/test_certs.h: ../framework/scripts/generate_test_cert_macros.py \
+include/test/test_certs.h: ../framework/scripts/generate_test_cert_macros.py \
 				  $($(PYTHON) ../framework/scripts/generate_test_cert_macros.py --list-dependencies)
 	echo "  Gen   $@"
 	$(PYTHON) ../framework/scripts/generate_test_cert_macros.py --output $@
 
-../framework/tests/include/test/test_keys.h: ../framework/scripts/generate_test_keys.py
+include/test/test_keys.h: ../framework/scripts/generate_test_keys.py
 	echo "  Gen   $@"
 	$(PYTHON) ../framework/scripts/generate_test_keys.py --output $@
+
+../tf-psa-crypto/tests/include/test/test_keys.h: ../tf-psa-crypto/framework/scripts/generate_test_keys.py
+	echo "  Gen   $@"
+	$(PYTHON) ../tf-psa-crypto/framework/scripts/generate_test_keys.py --output $@
 
 TEST_OBJS_DEPS = $(wildcard include/test/*.h include/test/*/*.h)
 ifdef RECORD_PSA_STATUS_COVERAGE_LOG
@@ -183,7 +204,8 @@ ifdef RECORD_PSA_STATUS_COVERAGE_LOG
 # therefore the wildcard enumeration above doesn't include it.
 TEST_OBJS_DEPS += ../framework/tests/include/test/instrument_record_status.h
 endif
-TEST_OBJS_DEPS += src/test_certs.h ../framework/tests/include/test/test_keys.h
+TEST_OBJS_DEPS += include/test/test_certs.h include/test/test_keys.h \
+                  ../tf-psa-crypto/tests/include/test/test_keys.h
 
 # Rule to compile common test C files in framework
 ../framework/tests/src/%.o : ../framework/tests/src/%.c $(TEST_OBJS_DEPS)
@@ -302,25 +324,6 @@ test: check
 	perl -p -e 's/^(# *(define|ifndef) +\w+_)H\b/$${1}ALT_H/' $< >$@
 
 # Generate test library
-
-# Perl code that is executed to transform each original line from a library
-# source file into the corresponding line in the test driver copy of the
-# library. Add a LIBTESTDRIVER1_/libtestdriver1_ to mbedtls_xxx and psa_xxx
-# symbols.
-define libtestdriver1_rewrite :=
-	s!^(\s*#\s*include\s*[\"<])mbedtls/build_info.h!$${1}libtestdriver1/include/mbedtls/build_info.h!; \
-	s!^(\s*#\s*include\s*[\"<])mbedtls/mbedtls_config.h!$${1}libtestdriver1/include/mbedtls/mbedtls_config.h!; \
-	s!^(\s*#\s*include\s*[\"<])mbedtls/config_adjust_x509.h!$${1}libtestdriver1/include/mbedtls/config_adjust_x509.h!; \
-	s!^(\s*#\s*include\s*[\"<])mbedtls/config_adjust_ssl.h!$${1}libtestdriver1/include/mbedtls/config_adjust_ssl.h!; \
-	s!^(\s*#\s*include\s*[\"<])mbedtls/check_config.h!$${1}libtestdriver1/include/mbedtls/check_config.h!; \
-	s!^(\s*#\s*include\s*[\"<])mbedtls/!$${1}libtestdriver1/tf-psa-crypto/drivers/builtin/include/mbedtls/!; \
-	s!^(\s*#\s*include\s*[\"<])psa/!$${1}libtestdriver1/tf-psa-crypto/include/psa/!; \
-	s!^(\s*#\s*include\s*[\"<])tf-psa-crypto/!$${1}libtestdriver1/tf-psa-crypto/include/tf-psa-crypto/!; \
-	next if /^\s*#\s*include/; \
-	s/\b(?=MBEDTLS_|PSA_|TF_PSA_CRYPTO_)/LIBTESTDRIVER1_/g; \
-	s/\b(?=mbedtls_|psa_|tf_psa_crypto_)/libtestdriver1_/g;
-endef
-
 libtestdriver1.a:
 	rm -Rf ./libtestdriver1
 	mkdir ./libtestdriver1
@@ -362,12 +365,12 @@ libtestdriver1.a:
 	# Prefix MBEDTLS_* PSA_* symbols with LIBTESTDRIVER1_ as well as
 	# mbedtls_* psa_* symbols with libtestdriver1_ to avoid symbol clash
 	# when this test driver library is linked with the Mbed TLS library.
-	perl -pi -e '$(libtestdriver1_rewrite)' ./libtestdriver1/library/*.[ch]
-	perl -pi -e '$(libtestdriver1_rewrite)' ./libtestdriver1/include/*/*.h
-	perl -pi -e '$(libtestdriver1_rewrite)' ./libtestdriver1/tf-psa-crypto/core/*.[ch]
-	perl -pi -e '$(libtestdriver1_rewrite)' ./libtestdriver1/tf-psa-crypto/include/*/*.h
-	perl -pi -e '$(libtestdriver1_rewrite)' ./libtestdriver1/tf-psa-crypto/drivers/builtin/include/*/*.h
-	perl -pi -e '$(libtestdriver1_rewrite)' ./libtestdriver1/tf-psa-crypto/drivers/builtin/src/*.[ch]
+	perl -i ./scripts/libtestdriver1_rewrite.pl ./libtestdriver1/library/*.[ch]
+	perl -i ./scripts/libtestdriver1_rewrite.pl ./libtestdriver1/include/*/*.h
+	perl -i ./scripts/libtestdriver1_rewrite.pl ./libtestdriver1/tf-psa-crypto/core/*.[ch]
+	perl -i ./scripts/libtestdriver1_rewrite.pl ./libtestdriver1/tf-psa-crypto/include/*/*.h
+	perl -i ./scripts/libtestdriver1_rewrite.pl ./libtestdriver1/tf-psa-crypto/drivers/builtin/include/*/*.h
+	perl -i ./scripts/libtestdriver1_rewrite.pl ./libtestdriver1/tf-psa-crypto/drivers/builtin/src/*.[ch]
 
 	$(MAKE) -C ./libtestdriver1/library CFLAGS="-I../../ $(CFLAGS)" LDFLAGS="$(LDFLAGS)" libmbedcrypto.a
 	cp ./libtestdriver1/library/libmbedcrypto.a ../library/libtestdriver1.a

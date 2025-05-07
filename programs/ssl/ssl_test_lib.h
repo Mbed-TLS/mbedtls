@@ -66,7 +66,7 @@
 
 #include <test/helpers.h>
 
-#include "../test/query_config.h"
+#include "query_config.h"
 
 #define ALPN_LIST_SIZE    10
 #define GROUP_LIST_SIZE   25
@@ -202,7 +202,6 @@ int rng_get(void *p_rng, unsigned char *output, size_t output_len);
  *                      Coma-separated pair of values among the following:
  *                      - "rsa-sign-pkcs1"
  *                      - "rsa-sign-pss"
- *                      - "rsa-decrypt"
  *                      - "ecdsa-sign"
  *                      - "ecdh"
  *                      - "none" (only acceptable for the second value).
@@ -243,8 +242,8 @@ int key_opaque_set_alg_usage(const char *alg1, const char *alg2,
  * - free the provided PK context and re-initilize it as an opaque PK context
  *   wrapping the PSA key imported in the above step.
  *
- * \param[in/out] pk    On input the non-opaque PK context which contains the
- *                      key to be wrapped. On output the re-initialized PK
+ * \param[in,out] pk    On input, the non-opaque PK context which contains the
+ *                      key to be wrapped. On output, the re-initialized PK
  *                      context which represents the opaque version of the one
  *                      provided as input.
  * \param[in] psa_alg   The primary algorithm that will be associated to the

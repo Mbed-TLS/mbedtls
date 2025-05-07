@@ -480,7 +480,7 @@ static int pkcs7_get_signed_data(unsigned char *buf, size_t buflen,
         return ret;
     }
 
-    ret = mbedtls_oid_get_md_alg(&signed_data->digest_alg_identifiers, &md_alg);
+    ret = mbedtls_x509_oid_get_md_alg(&signed_data->digest_alg_identifiers, &md_alg);
     if (ret != 0) {
         return MBEDTLS_ERR_PKCS7_INVALID_ALG;
     }
@@ -659,7 +659,7 @@ static int mbedtls_pkcs7_data_or_hash_verify(mbedtls_pkcs7 *pkcs7,
         return MBEDTLS_ERR_PKCS7_CERT_DATE_INVALID;
     }
 
-    ret = mbedtls_oid_get_md_alg(&pkcs7->signed_data.digest_alg_identifiers, &md_alg);
+    ret = mbedtls_x509_oid_get_md_alg(&pkcs7->signed_data.digest_alg_identifiers, &md_alg);
     if (ret != 0) {
         return ret;
     }

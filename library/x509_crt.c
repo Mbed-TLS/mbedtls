@@ -926,7 +926,7 @@ static int x509_get_crt_ext(unsigned char **p,
         /*
          * Detect supported extensions
          */
-        ret = mbedtls_oid_get_x509_ext_type(&extn_oid, &ext_type);
+        ret = mbedtls_x509_oid_get_x509_ext_type(&extn_oid, &ext_type);
 
         if (ret != 0) {
             /* Give the callback (if any) a chance to handle the extension */
@@ -1692,7 +1692,7 @@ static int x509_info_ext_key_usage(char **buf, size_t *size,
     const char *sep = "";
 
     while (cur != NULL) {
-        if (mbedtls_oid_get_extended_key_usage(&cur->buf, &desc) != 0) {
+        if (mbedtls_x509_oid_get_extended_key_usage(&cur->buf, &desc) != 0) {
             desc = "???";
         }
 
@@ -1721,7 +1721,7 @@ static int x509_info_cert_policies(char **buf, size_t *size,
     const char *sep = "";
 
     while (cur != NULL) {
-        if (mbedtls_oid_get_certificate_policies(&cur->buf, &desc) != 0) {
+        if (mbedtls_x509_oid_get_certificate_policies(&cur->buf, &desc) != 0) {
             desc = "???";
         }
 

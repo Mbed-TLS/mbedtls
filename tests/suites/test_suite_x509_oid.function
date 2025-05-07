@@ -21,7 +21,7 @@ void oid_get_certificate_policies(data_t *oid, char *result_str)
     asn1_buf.p = oid->x;
     asn1_buf.len = oid->len;
 
-    ret = mbedtls_oid_get_certificate_policies(&asn1_buf, &desc);
+    ret = mbedtls_x509_oid_get_certificate_policies(&asn1_buf, &desc);
     if (strlen(result_str) == 0) {
         TEST_ASSERT(ret == MBEDTLS_ERR_OID_NOT_FOUND);
     } else {
@@ -42,7 +42,7 @@ void oid_get_extended_key_usage(data_t *oid, char *result_str)
     asn1_buf.p = oid->x;
     asn1_buf.len = oid->len;
 
-    ret = mbedtls_oid_get_extended_key_usage(&asn1_buf, &desc);
+    ret = mbedtls_x509_oid_get_extended_key_usage(&asn1_buf, &desc);
     if (strlen(result_str) == 0) {
         TEST_ASSERT(ret == MBEDTLS_ERR_OID_NOT_FOUND);
     } else {
@@ -63,7 +63,7 @@ void oid_get_x509_extension(data_t *oid, int exp_type)
     ext_oid.p = oid->x;
     ext_oid.len = oid->len;
 
-    ret = mbedtls_oid_get_x509_ext_type(&ext_oid, &ext_type);
+    ret = mbedtls_x509_oid_get_x509_ext_type(&ext_oid, &ext_type);
     if (exp_type == 0) {
         TEST_ASSERT(ret == MBEDTLS_ERR_OID_NOT_FOUND);
     } else {
@@ -84,7 +84,7 @@ void oid_get_md_alg_id(data_t *oid, int exp_md_id)
     md_oid.p = oid->x;
     md_oid.len = oid->len;
 
-    ret = mbedtls_oid_get_md_alg(&md_oid, &md_id);
+    ret = mbedtls_x509_oid_get_md_alg(&md_oid, &md_id);
 
     if (exp_md_id < 0) {
         TEST_ASSERT(ret == MBEDTLS_ERR_OID_NOT_FOUND);
@@ -97,7 +97,7 @@ void oid_get_md_alg_id(data_t *oid, int exp_md_id)
 /* END_CASE */
 
 /* BEGIN_CASE */
-void mbedtls_oid_get_md_hmac(data_t *oid, int exp_md_id)
+void mbedtls_x509_oid_get_md_hmac(data_t *oid, int exp_md_id)
 {
     mbedtls_asn1_buf md_oid = { 0, 0, NULL };
     int ret;
@@ -107,7 +107,7 @@ void mbedtls_oid_get_md_hmac(data_t *oid, int exp_md_id)
     md_oid.p = oid->x;
     md_oid.len = oid->len;
 
-    ret = mbedtls_oid_get_md_hmac(&md_oid, &md_id);
+    ret = mbedtls_x509_oid_get_md_hmac(&md_oid, &md_id);
 
     if (exp_md_id < 0) {
         TEST_ASSERT(ret == MBEDTLS_ERR_OID_NOT_FOUND);

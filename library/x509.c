@@ -314,7 +314,7 @@ int mbedtls_x509_get_rsassa_pss_params(const mbedtls_x509_buf *params,
         /* Only MFG1 is recognised for now */
         if (MBEDTLS_OID_CMP(MBEDTLS_OID_MGF1, &alg_id) != 0) {
             return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_FEATURE_UNAVAILABLE,
-                                     MBEDTLS_ERR_OID_NOT_FOUND);
+                                     MBEDTLS_ERR_X509_UNKNOWN_OID);
         }
 
         /* Parse HashAlgorithm */

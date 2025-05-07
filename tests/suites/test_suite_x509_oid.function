@@ -23,7 +23,7 @@ void oid_get_certificate_policies(data_t *oid, char *result_str)
 
     ret = mbedtls_x509_oid_get_certificate_policies(&asn1_buf, &desc);
     if (strlen(result_str) == 0) {
-        TEST_ASSERT(ret == MBEDTLS_ERR_OID_NOT_FOUND);
+        TEST_ASSERT(ret == MBEDTLS_ERR_X509_UNKNOWN_OID);
     } else {
         TEST_ASSERT(ret == 0);
         TEST_ASSERT(strcmp((char *) desc, result_str) == 0);
@@ -44,7 +44,7 @@ void oid_get_extended_key_usage(data_t *oid, char *result_str)
 
     ret = mbedtls_x509_oid_get_extended_key_usage(&asn1_buf, &desc);
     if (strlen(result_str) == 0) {
-        TEST_ASSERT(ret == MBEDTLS_ERR_OID_NOT_FOUND);
+        TEST_ASSERT(ret == MBEDTLS_ERR_X509_UNKNOWN_OID);
     } else {
         TEST_ASSERT(ret == 0);
         TEST_ASSERT(strcmp((char *) desc, result_str) == 0);
@@ -65,7 +65,7 @@ void oid_get_x509_extension(data_t *oid, int exp_type)
 
     ret = mbedtls_x509_oid_get_x509_ext_type(&ext_oid, &ext_type);
     if (exp_type == 0) {
-        TEST_ASSERT(ret == MBEDTLS_ERR_OID_NOT_FOUND);
+        TEST_ASSERT(ret == MBEDTLS_ERR_X509_UNKNOWN_OID);
     } else {
         TEST_ASSERT(ret == 0);
         TEST_ASSERT(ext_type == exp_type);
@@ -87,7 +87,7 @@ void oid_get_md_alg_id(data_t *oid, int exp_md_id)
     ret = mbedtls_x509_oid_get_md_alg(&md_oid, &md_id);
 
     if (exp_md_id < 0) {
-        TEST_ASSERT(ret == MBEDTLS_ERR_OID_NOT_FOUND);
+        TEST_ASSERT(ret == MBEDTLS_ERR_X509_UNKNOWN_OID);
         TEST_ASSERT(md_id == 0);
     } else {
         TEST_ASSERT(ret == 0);

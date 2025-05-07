@@ -407,8 +407,7 @@ static int mbedtls_x509_csr_parse_der_internal(mbedtls_x509_csr *csr,
     }
 
     if ((ret = mbedtls_x509_get_sig_alg(&csr->sig_oid, &sig_params,
-                                        &csr->sig_md, &csr->sig_pk,
-                                        &csr->sig_opts)) != 0) {
+                                        &csr->sig_md, &csr->sig_pk)) != 0) {
         mbedtls_x509_csr_free(csr);
         return MBEDTLS_ERR_X509_UNKNOWN_SIG_ALG;
     }
@@ -547,8 +546,7 @@ int mbedtls_x509_csr_info(char *buf, size_t size, const char *prefix,
     ret = mbedtls_snprintf(p, n, "\n%ssigned using  : ", prefix);
     MBEDTLS_X509_SAFE_SNPRINTF;
 
-    ret = mbedtls_x509_sig_alg_gets(p, n, &csr->sig_oid, csr->sig_pk, csr->sig_md,
-                                    csr->sig_opts);
+    ret = mbedtls_x509_sig_alg_gets(p, n, &csr->sig_oid, csr->sig_pk, csr->sig_md);
     MBEDTLS_X509_SAFE_SNPRINTF;
 
     if ((ret = mbedtls_x509_key_size_helper(key_size_str, MBEDTLS_BEFORE_COLON,
@@ -620,10 +618,6 @@ void mbedtls_x509_csr_free(mbedtls_x509_csr *csr)
     }
 
     mbedtls_pk_free(&csr->pk);
-
-#if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT)
-    mbedtls_free(csr->sig_opts);
-#endif
 
     mbedtls_asn1_free_named_data_list_shallow(csr->subject.next);
     mbedtls_asn1_sequence_free(csr->subject_alt_names.next);

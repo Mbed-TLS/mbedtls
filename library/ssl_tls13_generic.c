@@ -227,11 +227,6 @@ static int ssl_tls13_parse_certificate_verify(mbedtls_ssl_context *ssl,
     unsigned char verify_hash[PSA_HASH_MAX_SIZE];
     size_t verify_hash_len;
 
-    void const *options = NULL;
-#if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT)
-    mbedtls_pk_rsassa_pss_options rsassa_pss_options;
-#endif /* MBEDTLS_X509_RSASSA_PSS_SUPPORT */
-
     /*
      * struct {
      *     SignatureScheme algorithm;
@@ -304,16 +299,8 @@ static int ssl_tls13_parse_certificate_verify(mbedtls_ssl_context *ssl,
     }
 
     MBEDTLS_SSL_DEBUG_BUF(3, "verify hash", verify_hash, verify_hash_len);
-#if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT)
-    if (sig_alg == MBEDTLS_PK_RSASSA_PSS) {
-        rsassa_pss_options.mgf1_hash_id = md_alg;
 
-        rsassa_pss_options.expected_salt_len = PSA_HASH_LENGTH(hash_alg);
-        options = (const void *) &rsassa_pss_options;
-    }
-#endif /* MBEDTLS_X509_RSASSA_PSS_SUPPORT */
-
-    if ((ret = mbedtls_pk_verify_ext(sig_alg, options,
+    if ((ret = mbedtls_pk_verify_ext(sig_alg, NULL,
                                      &ssl->session_negotiate->peer_cert->pk,
                                      md_alg, verify_hash, verify_hash_len,
                                      p, signature_len)) == 0) {

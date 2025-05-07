@@ -11,16 +11,10 @@
 #define MBEDTLS_X509_OID_H
 #include "mbedtls/private_access.h"
 
-#include "tf-psa-crypto/build_info.h"
-
 #include "mbedtls/asn1.h"
 #include "mbedtls/pk.h"
 
 #include <stddef.h>
-
-#if defined(MBEDTLS_CIPHER_C)
-#include "mbedtls/cipher.h"
-#endif
 
 #include "mbedtls/md.h"
 
@@ -504,76 +498,6 @@ int mbedtls_x509_oid_get_x509_ext_type(const mbedtls_asn1_buf *oid, int *ext_typ
 int mbedtls_x509_oid_get_attr_short_name(const mbedtls_asn1_buf *oid, const char **short_name);
 
 /**
- * \brief          Translate PublicKeyAlgorithm OID into pk_type
- *
- * \param oid      OID to use
- * \param pk_alg   place to store public key algorithm
- *
- * \return         0 if successful, or MBEDTLS_ERR_OID_NOT_FOUND
- */
-int mbedtls_x509_oid_get_pk_alg(const mbedtls_asn1_buf *oid, mbedtls_pk_type_t *pk_alg);
-
-/**
- * \brief          Translate pk_type into PublicKeyAlgorithm OID
- *
- * \param pk_alg   Public key type to look for
- * \param oid      place to store ASN.1 OID string pointer
- * \param olen     length of the OID
- *
- * \return         0 if successful, or MBEDTLS_ERR_OID_NOT_FOUND
- */
-int mbedtls_x509_oid_get_oid_by_pk_alg(mbedtls_pk_type_t pk_alg,
-                                       const char **oid, size_t *olen);
-
-#if defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
-/**
- * \brief          Translate NamedCurve OID into an EC group identifier
- *
- * \param oid      OID to use
- * \param grp_id   place to store group id
- *
- * \return         0 if successful, or MBEDTLS_ERR_OID_NOT_FOUND
- */
-int mbedtls_x509_oid_get_ec_grp(const mbedtls_asn1_buf *oid, mbedtls_ecp_group_id *grp_id);
-
-/**
- * \brief          Translate EC group identifier into NamedCurve OID
- *
- * \param grp_id   EC group identifier
- * \param oid      place to store ASN.1 OID string pointer
- * \param olen     length of the OID
- *
- * \return         0 if successful, or MBEDTLS_ERR_OID_NOT_FOUND
- */
-int mbedtls_x509_oid_get_oid_by_ec_grp(mbedtls_ecp_group_id grp_id,
-                                       const char **oid, size_t *olen);
-
-/**
- * \brief          Translate AlgorithmIdentifier OID into an EC group identifier,
- *                 for curves that are directly encoded at this level
- *
- * \param oid      OID to use
- * \param grp_id   place to store group id
- *
- * \return         0 if successful, or MBEDTLS_ERR_OID_NOT_FOUND
- */
-int mbedtls_x509_oid_get_ec_grp_algid(const mbedtls_asn1_buf *oid, mbedtls_ecp_group_id *grp_id);
-
-/**
- * \brief          Translate EC group identifier into AlgorithmIdentifier OID,
- *                 for curves that are directly encoded at this level
- *
- * \param grp_id   EC group identifier
- * \param oid      place to store ASN.1 OID string pointer
- * \param olen     length of the OID
- *
- * \return         0 if successful, or MBEDTLS_ERR_OID_NOT_FOUND
- */
-int mbedtls_x509_oid_get_oid_by_ec_grp_algid(mbedtls_ecp_group_id grp_id,
-                                             const char **oid, size_t *olen);
-#endif /* PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY */
-
-/**
  * \brief          Translate SignatureAlgorithm OID into md_type and pk_type
  *
  * \param oid      OID to use
@@ -609,16 +533,6 @@ int mbedtls_x509_oid_get_oid_by_sig_alg(mbedtls_pk_type_t pk_alg, mbedtls_md_typ
                                         const char **oid, size_t *olen);
 
 /**
- * \brief          Translate hmac algorithm OID into md_type
- *
- * \param oid      OID to use
- * \param md_hmac  place to store message hmac algorithm
- *
- * \return         0 if successful, or MBEDTLS_ERR_OID_NOT_FOUND
- */
-int mbedtls_x509_oid_get_md_hmac(const mbedtls_asn1_buf *oid, mbedtls_md_type_t *md_hmac);
-
-/**
  * \brief          Translate hash algorithm OID into md_type
  *
  * \param oid      OID to use
@@ -649,44 +563,6 @@ int mbedtls_x509_oid_get_extended_key_usage(const mbedtls_asn1_buf *oid, const c
  * \return         0 if successful, or MBEDTLS_ERR_OID_NOT_FOUND
  */
 int mbedtls_x509_oid_get_certificate_policies(const mbedtls_asn1_buf *oid, const char **desc);
-
-/**
- * \brief          Translate md_type into hash algorithm OID
- *
- * \param md_alg   message digest algorithm
- * \param oid      place to store ASN.1 OID string pointer
- * \param olen     length of the OID
- *
- * \return         0 if successful, or MBEDTLS_ERR_OID_NOT_FOUND
- */
-int mbedtls_x509_oid_get_oid_by_md(mbedtls_md_type_t md_alg, const char **oid, size_t *olen);
-
-#if defined(MBEDTLS_CIPHER_C)
-/**
- * \brief          Translate encryption algorithm OID into cipher_type
- *
- * \param oid           OID to use
- * \param cipher_alg    place to store cipher algorithm
- *
- * \return         0 if successful, or MBEDTLS_ERR_OID_NOT_FOUND
- */
-int mbedtls_x509_oid_get_cipher_alg(const mbedtls_asn1_buf *oid, mbedtls_cipher_type_t *cipher_alg);
-
-#if defined(MBEDTLS_PKCS12_C)
-/**
- * \brief          Translate PKCS#12 PBE algorithm OID into md_type and
- *                 cipher_type
- *
- * \param oid           OID to use
- * \param md_alg        place to store message digest algorithm
- * \param cipher_alg    place to store cipher algorithm
- *
- * \return         0 if successful, or MBEDTLS_ERR_OID_NOT_FOUND
- */
-int mbedtls_x509_oid_get_pkcs12_pbe_alg(const mbedtls_asn1_buf *oid, mbedtls_md_type_t *md_alg,
-                                        mbedtls_cipher_type_t *cipher_alg);
-#endif /* MBEDTLS_PKCS12_C */
-#endif /* MBEDTLS_CIPHER_C */
 
 #ifdef __cplusplus
 }

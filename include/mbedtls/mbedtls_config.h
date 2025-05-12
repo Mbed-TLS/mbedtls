@@ -1100,7 +1100,7 @@
  *
  * Module:  library/pkcs7.c
  *
- * Requires: MBEDTLS_ASN1_PARSE_C, MBEDTLS_OID_C, MBEDTLS_PK_PARSE_C,
+ * Requires: MBEDTLS_ASN1_PARSE_C, MBEDTLS_PK_PARSE_C,
  *           MBEDTLS_X509_CRT_PARSE_C MBEDTLS_X509_CRL_PARSE_C,
  *           MBEDTLS_BIGNUM_C, MBEDTLS_MD_C
  *
@@ -1115,7 +1115,7 @@
  *
  * Module:  library/x509_create.c
  *
- * Requires: MBEDTLS_BIGNUM_C, MBEDTLS_OID_C, MBEDTLS_PK_PARSE_C,
+ * Requires: MBEDTLS_BIGNUM_C, MBEDTLS_PK_PARSE_C,
  *
  * \warning You must call psa_crypto_init() before doing any X.509 operation.
  *
@@ -1247,7 +1247,7 @@
  *          library/x509_crt.c
  *          library/x509_csr.c
  *
- * Requires: MBEDTLS_ASN1_PARSE_C, MBEDTLS_BIGNUM_C, MBEDTLS_OID_C, MBEDTLS_PK_PARSE_C
+ * Requires: MBEDTLS_ASN1_PARSE_C, MBEDTLS_BIGNUM_C, MBEDTLS_PK_PARSE_C
  *
  * \warning You must call psa_crypto_init() before doing any X.509 operation.
  *

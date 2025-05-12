@@ -40,6 +40,8 @@ typedef struct {
 #endif
 } mbedtls_x509_oid_descriptor_t;
 
+#if defined(MBEDTLS_X509_CRT_PARSE_C) || defined(MBEDTLS_X509_CSR_PARSE_C)
+#define MBEDTLS_X509_OID_HAVE_GET_X509_EXT_TYPE
 /**
  * \brief          Translate an X.509 extension OID into local values
  *
@@ -49,7 +51,9 @@ typedef struct {
  * \return         0 if successful, or MBEDTLS_ERR_X509_UNKNOWN_OID
  */
 int mbedtls_x509_oid_get_x509_ext_type(const mbedtls_asn1_buf *oid, int *ext_type);
+#endif /* MBEDTLS_X509_OID_HAVE_GET_X509_EXT_TYPE */
 
+#if defined(MBEDTLS_X509_USE_C)
 /**
  * \brief          Translate an X.509 attribute type OID into the short name
  *                 (e.g. the OID for an X520 Common Name into "CN")
@@ -60,7 +64,9 @@ int mbedtls_x509_oid_get_x509_ext_type(const mbedtls_asn1_buf *oid, int *ext_typ
  * \return         0 if successful, or MBEDTLS_ERR_X509_UNKNOWN_OID
  */
 int mbedtls_x509_oid_get_attr_short_name(const mbedtls_asn1_buf *oid, const char **short_name);
+#endif /* MBEDTLS_X509_USE_C */
 
+#if defined(MBEDTLS_X509_USE_C)
 /**
  * \brief          Translate SignatureAlgorithm OID into md_type and pk_type
  *
@@ -73,6 +79,7 @@ int mbedtls_x509_oid_get_attr_short_name(const mbedtls_asn1_buf *oid, const char
 int mbedtls_x509_oid_get_sig_alg(const mbedtls_asn1_buf *oid,
                                  mbedtls_md_type_t *md_alg, mbedtls_pk_type_t *pk_alg);
 
+#if !defined(MBEDTLS_X509_REMOVE_INFO)
 /**
  * \brief          Translate SignatureAlgorithm OID into description
  *
@@ -82,7 +89,10 @@ int mbedtls_x509_oid_get_sig_alg(const mbedtls_asn1_buf *oid,
  * \return         0 if successful, or MBEDTLS_ERR_X509_UNKNOWN_OID
  */
 int mbedtls_x509_oid_get_sig_alg_desc(const mbedtls_asn1_buf *oid, const char **desc);
+#endif /* !MBEDTLS_X509_REMOVE_INFO */
+#endif /* MBEDTLS_X509_USE_C */
 
+#if defined(MBEDTLS_X509_CRT_WRITE_C) || defined(MBEDTLS_X509_CSR_WRITE_C)
 /**
  * \brief          Translate md_type and pk_type into SignatureAlgorithm OID
  *
@@ -95,7 +105,11 @@ int mbedtls_x509_oid_get_sig_alg_desc(const mbedtls_asn1_buf *oid, const char **
  */
 int mbedtls_x509_oid_get_oid_by_sig_alg(mbedtls_pk_type_t pk_alg, mbedtls_md_type_t md_alg,
                                         const char **oid, size_t *olen);
+#endif /* MBEDTLS_X509_CRT_WRITE_C || MBEDTLS_X509_CSR_WRITE_C */
 
+#if (defined(MBEDTLS_X509_USE_C) && defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT)) || \
+    defined(MBEDTLS_PKCS7_C)
+#define MBEDTLS_X509_OID_HAVE_GET_MD_ALG
 /**
  * \brief          Translate hash algorithm OID into md_type
  *
@@ -105,8 +119,9 @@ int mbedtls_x509_oid_get_oid_by_sig_alg(mbedtls_pk_type_t pk_alg, mbedtls_md_typ
  * \return         0 if successful, or MBEDTLS_ERR_X509_UNKNOWN_OID
  */
 int mbedtls_x509_oid_get_md_alg(const mbedtls_asn1_buf *oid, mbedtls_md_type_t *md_alg);
+#endif /* MBEDTLS_X509_OID_HAVE_GET_MD_ALG */
 
-#if !defined(MBEDTLS_X509_REMOVE_INFO)
+#if defined(MBEDTLS_X509_CRT_PARSE_C) && !defined(MBEDTLS_X509_REMOVE_INFO)
 /**
  * \brief          Translate Extended Key Usage OID into description
  *
@@ -116,7 +131,6 @@ int mbedtls_x509_oid_get_md_alg(const mbedtls_asn1_buf *oid, mbedtls_md_type_t *
  * \return         0 if successful, or MBEDTLS_ERR_X509_UNKNOWN_OID
  */
 int mbedtls_x509_oid_get_extended_key_usage(const mbedtls_asn1_buf *oid, const char **desc);
-#endif
 
 /**
  * \brief          Translate certificate policies OID into description
@@ -127,6 +141,7 @@ int mbedtls_x509_oid_get_extended_key_usage(const mbedtls_asn1_buf *oid, const c
  * \return         0 if successful, or MBEDTLS_ERR_X509_UNKNOWN_OID
  */
 int mbedtls_x509_oid_get_certificate_policies(const mbedtls_asn1_buf *oid, const char **desc);
+#endif /* MBEDTLS_X509_CRT_PARSE_C && !MBEDTLS_X509_REMOVE_INFO */
 
 #ifdef __cplusplus
 }

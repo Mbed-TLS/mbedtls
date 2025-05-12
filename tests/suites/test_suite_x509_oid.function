@@ -5,12 +5,7 @@
 #include "string.h"
 /* END_HEADER */
 
-/* BEGIN_DEPENDENCIES
- * depends_on:MBEDTLS_OID_C:!MBEDTLS_X509_REMOVE_INFO
- * END_DEPENDENCIES
- */
-
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C:!MBEDTLS_X509_REMOVE_INFO */
 void oid_get_certificate_policies(data_t *oid, char *result_str)
 {
     mbedtls_asn1_buf asn1_buf = { 0, 0, NULL };
@@ -31,7 +26,7 @@ void oid_get_certificate_policies(data_t *oid, char *result_str)
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C:!MBEDTLS_X509_REMOVE_INFO */
 void oid_get_extended_key_usage(data_t *oid, char *result_str)
 {
     mbedtls_asn1_buf asn1_buf = { 0, 0, NULL };
@@ -52,7 +47,7 @@ void oid_get_extended_key_usage(data_t *oid, char *result_str)
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:MBEDTLS_X509_OID_HAVE_GET_X509_EXT_TYPE */
 void oid_get_x509_extension(data_t *oid, int exp_type)
 {
     mbedtls_asn1_buf ext_oid = { 0, 0, NULL };
@@ -73,7 +68,7 @@ void oid_get_x509_extension(data_t *oid, int exp_type)
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:MBEDTLS_X509_OID_HAVE_GET_MD_ALG */
 void oid_get_md_alg_id(data_t *oid, int exp_md_id)
 {
     mbedtls_asn1_buf md_oid = { 0, 0, NULL };

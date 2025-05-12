@@ -25,9 +25,8 @@ while (<>) {
     # included in files via #include mbedtls/<file>.h, so when expanding to the
     # full path make sure that files in include/mbedtls are not expanded
     # to driver/builtin/include/mbedtls.
-    if ( $public_files_regex ) {
-        s!^(\s*#\s*include\s*[\"<])mbedtls/($public_files_regex)!${1}libtestdriver1/tf-psa-crypto/include/mbedtls/${2}!;
-    }
+    s!^(\s*#\s*include\s*[\"<])mbedtls/($public_files_regex)!${1}libtestdriver1/tf-psa-crypto/include/mbedtls/${2}!;
+
     s!^(\s*#\s*include\s*[\"<])mbedtls/!${1}libtestdriver1/tf-psa-crypto/drivers/builtin/include/mbedtls/!;
     s!^(\s*#\s*include\s*[\"<])psa/!${1}libtestdriver1/tf-psa-crypto/include/psa/!;
     s!^(\s*#\s*include\s*[\"<])tf-psa-crypto/!${1}libtestdriver1/tf-psa-crypto/include/tf-psa-crypto/!;

@@ -489,6 +489,7 @@ size_t mbedtls_x509_crt_parse_cn_inet_pton(const char *cn, void *dst);
         p += (size_t) ret;                                  \
     } while (0)
 
+#if defined(MBEDTLS_X509_USE_C)
 /**
  * \brief           Translate an ASN.1 OID into its numeric representation
  *                  (e.g. "\x2A\x86\x48\x86\xF7\x0D" into "1.2.840.113549")
@@ -501,7 +502,9 @@ size_t mbedtls_x509_crt_parse_cn_inet_pton(const char *cn, void *dst);
  *                  PSA_ERROR_BUFFER_TOO_SMALL in case of error
  */
 int mbedtls_oid_get_numeric_string(char *buf, size_t size, const mbedtls_asn1_buf *oid);
+#endif /* MBEDTLS_X509_USE_C */
 
+#if defined(MBEDTLS_X509_CREATE_C)
 /**
  * \brief           Translate a string containing a dotted-decimal
  *                  representation of an ASN.1 OID into its encoded form
@@ -520,6 +523,7 @@ int mbedtls_oid_get_numeric_string(char *buf, size_t size, const mbedtls_asn1_bu
  *                  allocate oid->buf
  */
 int mbedtls_oid_from_numeric_string(mbedtls_asn1_buf *oid, const char *oid_str, size_t size);
+#endif /* MBEDTLS_X509_CREATE_C */
 
 #ifdef __cplusplus
 }

@@ -9,7 +9,10 @@
 
 #include "x509_internal.h"
 
-#if defined(MBEDTLS_OID_C)
+/* Each group of tables and functions has its own dependencies, but
+ * don't even bother to define helper macros if X.509 is completely
+ * disabled. */
+#if defined(MBEDTLS_X509_USE_C) || defined(MBEDTLS_X509_CREATE_C)
 
 #include "mbedtls/oid.h"
 #include "x509_oid.h"
@@ -145,6 +148,7 @@
 /*
  * For X520 attribute types
  */
+#if defined(MBEDTLS_X509_USE_C)
 typedef struct {
     mbedtls_x509_oid_descriptor_t    descriptor;
     const char          *short_name;
@@ -259,10 +263,12 @@ FN_OID_GET_ATTR1(mbedtls_x509_oid_get_attr_short_name,
                  x520_attr,
                  const char *,
                  short_name)
+#endif /* MBEDTLS_X509_USE_C */
 
 /*
  * For X509 extensions
  */
+#if defined(MBEDTLS_X509_OID_HAVE_GET_X509_EXT_TYPE)
 typedef struct {
     mbedtls_x509_oid_descriptor_t    descriptor;
     int                 ext_type;
@@ -324,8 +330,9 @@ static const oid_x509_ext_t oid_x509_ext[] =
 
 FN_OID_TYPED_FROM_ASN1(oid_x509_ext_t, x509_ext, oid_x509_ext)
 FN_OID_GET_ATTR1(mbedtls_x509_oid_get_x509_ext_type, oid_x509_ext_t, x509_ext, int, ext_type)
+#endif /* MBEDTLS_X509_CRT_PARSE_C || MBEDTLS_X509_CSR_PARSE_C */
 
-#if !defined(MBEDTLS_X509_REMOVE_INFO)
+#if defined(MBEDTLS_X509_CRT_PARSE_C) && !defined(MBEDTLS_X509_REMOVE_INFO)
 static const mbedtls_x509_oid_descriptor_t oid_ext_key_usage[] =
 {
     OID_DESCRIPTOR(MBEDTLS_OID_SERVER_AUTH,
@@ -364,11 +371,13 @@ FN_OID_GET_ATTR1(mbedtls_x509_oid_get_certificate_policies,
                  certificate_policies,
                  const char *,
                  description)
-#endif /* MBEDTLS_X509_REMOVE_INFO */
+#endif /* MBEDTLS_X509_CRT_PARSE_C && !MBEDTLS_X509_REMOVE_INFO */
 
 /*
  * For SignatureAlgorithmIdentifier
  */
+#if defined(MBEDTLS_X509_USE_C) || \
+    defined(MBEDTLS_X509_CRT_WRITE_C) || defined(MBEDTLS_X509_CSR_WRITE_C)
 typedef struct {
     mbedtls_x509_oid_descriptor_t    descriptor;
     mbedtls_md_type_t           md_alg;
@@ -471,14 +480,15 @@ static const oid_sig_alg_t oid_sig_alg[] =
 
 FN_OID_TYPED_FROM_ASN1(oid_sig_alg_t, sig_alg, oid_sig_alg)
 
-#if !defined(MBEDTLS_X509_REMOVE_INFO)
+#if defined(MBEDTLS_X509_USE_C) && !defined(MBEDTLS_X509_REMOVE_INFO)
 FN_OID_GET_DESCRIPTOR_ATTR1(mbedtls_x509_oid_get_sig_alg_desc,
                             oid_sig_alg_t,
                             sig_alg,
                             const char *,
                             description)
-#endif
+#endif /* MBEDTLS_X509_USE_C && !MBEDTLS_X509_REMOVE_INFO */
 
+#if defined(MBEDTLS_X509_USE_C)
 FN_OID_GET_ATTR2(mbedtls_x509_oid_get_sig_alg,
                  oid_sig_alg_t,
                  sig_alg,
@@ -486,6 +496,8 @@ FN_OID_GET_ATTR2(mbedtls_x509_oid_get_sig_alg,
                  md_alg,
                  mbedtls_pk_type_t,
                  pk_alg)
+#endif /* MBEDTLS_X509_USE_C */
+#if defined(MBEDTLS_X509_CRT_WRITE_C) || defined(MBEDTLS_X509_CSR_WRITE_C)
 FN_OID_GET_OID_BY_ATTR2(mbedtls_x509_oid_get_oid_by_sig_alg,
                         oid_sig_alg_t,
                         oid_sig_alg,
@@ -493,10 +505,17 @@ FN_OID_GET_OID_BY_ATTR2(mbedtls_x509_oid_get_oid_by_sig_alg,
                         pk_alg,
                         mbedtls_md_type_t,
                         md_alg)
+#endif /* MBEDTLS_X509_CRT_WRITE_C || MBEDTLS_X509_CSR_WRITE_C */
 
+#endif /* MBEDTLS_X509_USE_C || MBEDTLS_X509_CRT_WRITE_C || MBEDTLS_X509_CSR_WRITE_C */
+
+#if defined(MBEDTLS_X509_OID_HAVE_GET_MD_ALG)
 /*
  * For digestAlgorithm
  */
+/* The table of digest OIDs is duplicated in TF-PSA-Crypto (which uses it to
+ * look up the OID for a hash algorithm in RSA PKCS#1v1.5 signature and
+ * verification). */
 typedef struct {
     mbedtls_x509_oid_descriptor_t    descriptor;
     mbedtls_md_type_t           md_alg;
@@ -579,4 +598,6 @@ static const oid_md_alg_t oid_md_alg[] =
 FN_OID_TYPED_FROM_ASN1(oid_md_alg_t, md_alg, oid_md_alg)
 FN_OID_GET_ATTR1(mbedtls_x509_oid_get_md_alg, oid_md_alg_t, md_alg, mbedtls_md_type_t, md_alg)
 
-#endif /* MBEDTLS_OID_C */
+#endif /* (MBEDTLS_X509_USE_C && MBEDTLS_X509_RSASSA_PSS_SUPPORT) || MBEDTLS_PKCS7_C */
+
+#endif /* some X.509 is enabled */

@@ -1504,7 +1504,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_X509_USE_C:!MBEDTLS_X509_REMOVE_INFO */
+/* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C:!MBEDTLS_X509_REMOVE_INFO */
 void x509_oid_desc(data_t *buf, char *ref_desc)
 {
     mbedtls_x509_buf oid;

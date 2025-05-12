@@ -52,11 +52,9 @@ EOF
         esac
     done
 
-    if [ -d "tf-psa-crypto/include/mbedtls" ]; then
-        for header in tf-psa-crypto/include/mbedtls/*.h; do
-            echo "#include \"${header#tf-psa-crypto/include/}\""
-        done
-    fi
+    for header in tf-psa-crypto/include/mbedtls/*.h; do
+        echo "#include \"${header#tf-psa-crypto/include/}\""
+    done
 
     for header in tf-psa-crypto/include/psa/*.h; do
         case ${header#tf-psa-crypto/include/} in

@@ -5672,7 +5672,7 @@ static psa_status_t psa_key_derivation_start_hmac(
      * It isn't enough to require the caller to initialize operation to
      * PSA_MAC_OPERATION_INIT, since one field is a union and initializing
      * a union does not necessarily initialize all of its members.
-     * psa_mac_setup() would could handle PSA_MAC_OPERATION_INIT, but here we
+     * psa_mac_setup() would handle PSA_MAC_OPERATION_INIT, but here we
      * bypass it and call lower-level functions directly. */
     memset(operation, 0, sizeof(*operation));
 

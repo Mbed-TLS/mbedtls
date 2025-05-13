@@ -465,7 +465,7 @@ psa_status_t mbedtls_psa_mac_compute(
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     mbedtls_psa_mac_operation_t operation = MBEDTLS_PSA_MAC_OPERATION_INIT;
-    /* Make sure the whole the operation is zeroed.
+    /* Make sure the whole operation is zeroed.
      * PSA_MAC_OPERATION_INIT does not necessarily do it fully,
      * since one field is a union and initializing a union does not
      * necessarily initialize all of its members.

@@ -167,26 +167,23 @@
  *
  * Comments refer to the status for using certificates. Status can be
  * different for writing certificates or reading CRLs or CSRs.
- *
- * Those are defined in oid.h as oid.c needs them in a data structure. Since
- * these were previously defined here, let's have aliases for compatibility.
  */
-#define MBEDTLS_X509_EXT_AUTHORITY_KEY_IDENTIFIER MBEDTLS_OID_X509_EXT_AUTHORITY_KEY_IDENTIFIER
-#define MBEDTLS_X509_EXT_SUBJECT_KEY_IDENTIFIER   MBEDTLS_OID_X509_EXT_SUBJECT_KEY_IDENTIFIER
-#define MBEDTLS_X509_EXT_KEY_USAGE                MBEDTLS_OID_X509_EXT_KEY_USAGE
-#define MBEDTLS_X509_EXT_CERTIFICATE_POLICIES     MBEDTLS_OID_X509_EXT_CERTIFICATE_POLICIES
-#define MBEDTLS_X509_EXT_POLICY_MAPPINGS          MBEDTLS_OID_X509_EXT_POLICY_MAPPINGS
-#define MBEDTLS_X509_EXT_SUBJECT_ALT_NAME         MBEDTLS_OID_X509_EXT_SUBJECT_ALT_NAME         /* Supported (DNS) */
-#define MBEDTLS_X509_EXT_ISSUER_ALT_NAME          MBEDTLS_OID_X509_EXT_ISSUER_ALT_NAME
-#define MBEDTLS_X509_EXT_SUBJECT_DIRECTORY_ATTRS  MBEDTLS_OID_X509_EXT_SUBJECT_DIRECTORY_ATTRS
-#define MBEDTLS_X509_EXT_BASIC_CONSTRAINTS        MBEDTLS_OID_X509_EXT_BASIC_CONSTRAINTS        /* Supported */
-#define MBEDTLS_X509_EXT_NAME_CONSTRAINTS         MBEDTLS_OID_X509_EXT_NAME_CONSTRAINTS
-#define MBEDTLS_X509_EXT_POLICY_CONSTRAINTS       MBEDTLS_OID_X509_EXT_POLICY_CONSTRAINTS
-#define MBEDTLS_X509_EXT_EXTENDED_KEY_USAGE       MBEDTLS_OID_X509_EXT_EXTENDED_KEY_USAGE
-#define MBEDTLS_X509_EXT_CRL_DISTRIBUTION_POINTS  MBEDTLS_OID_X509_EXT_CRL_DISTRIBUTION_POINTS
-#define MBEDTLS_X509_EXT_INIHIBIT_ANYPOLICY       MBEDTLS_OID_X509_EXT_INIHIBIT_ANYPOLICY
-#define MBEDTLS_X509_EXT_FRESHEST_CRL             MBEDTLS_OID_X509_EXT_FRESHEST_CRL
-#define MBEDTLS_X509_EXT_NS_CERT_TYPE             MBEDTLS_OID_X509_EXT_NS_CERT_TYPE
+#define MBEDTLS_X509_EXT_AUTHORITY_KEY_IDENTIFIER (1 << 0)
+#define MBEDTLS_X509_EXT_SUBJECT_KEY_IDENTIFIER   (1 << 1)
+#define MBEDTLS_X509_EXT_KEY_USAGE                (1 << 2)
+#define MBEDTLS_X509_EXT_CERTIFICATE_POLICIES     (1 << 3)
+#define MBEDTLS_X509_EXT_POLICY_MAPPINGS          (1 << 4)
+#define MBEDTLS_X509_EXT_SUBJECT_ALT_NAME         (1 << 5)  /* Supported (DNS) */
+#define MBEDTLS_X509_EXT_ISSUER_ALT_NAME          (1 << 6)
+#define MBEDTLS_X509_EXT_SUBJECT_DIRECTORY_ATTRS  (1 << 7)
+#define MBEDTLS_X509_EXT_BASIC_CONSTRAINTS        (1 << 8)  /* Supported */
+#define MBEDTLS_X509_EXT_NAME_CONSTRAINTS         (1 << 9)
+#define MBEDTLS_X509_EXT_POLICY_CONSTRAINTS       (1 << 10)
+#define MBEDTLS_X509_EXT_EXTENDED_KEY_USAGE       (1 << 11)
+#define MBEDTLS_X509_EXT_CRL_DISTRIBUTION_POINTS  (1 << 12)
+#define MBEDTLS_X509_EXT_INIHIBIT_ANYPOLICY       (1 << 13)
+#define MBEDTLS_X509_EXT_FRESHEST_CRL             (1 << 14)
+#define MBEDTLS_X509_EXT_NS_CERT_TYPE             (1 << 16)
 
 /*
  * Storage format identifiers
@@ -491,38 +488,6 @@ size_t mbedtls_x509_crt_parse_cn_inet_pton(const char *cn, void *dst);
         n -= (size_t) ret;                                  \
         p += (size_t) ret;                                  \
     } while (0)
-
-/**
- * \brief           Translate an ASN.1 OID into its numeric representation
- *                  (e.g. "\x2A\x86\x48\x86\xF7\x0D" into "1.2.840.113549")
- *
- * \param buf       buffer to put representation in
- * \param size      size of the buffer
- * \param oid       OID to translate
- *
- * \return          Length of the string written (excluding final NULL) or
- *                  MBEDTLS_ERR_OID_BUF_TOO_SMALL in case of error
- */
-int mbedtls_oid_get_numeric_string(char *buf, size_t size, const mbedtls_asn1_buf *oid);
-
-/**
- * \brief           Translate a string containing a dotted-decimal
- *                  representation of an ASN.1 OID into its encoded form
- *                  (e.g. "1.2.840.113549" into "\x2A\x86\x48\x86\xF7\x0D").
- *                  On success, this function allocates oid->buf from the
- *                  heap. It must be freed by the caller using mbedtls_free().
- *
- * \param oid       #mbedtls_asn1_buf to populate with the DER-encoded OID
- * \param oid_str   string representation of the OID to parse
- * \param size      length of the OID string, not including any null terminator
- *
- * \return          0 if successful
- * \return          #MBEDTLS_ERR_ASN1_INVALID_DATA if \p oid_str does not
- *                  represent a valid OID
- * \return          #MBEDTLS_ERR_ASN1_ALLOC_FAILED if the function fails to
- *                  allocate oid->buf
- */
-int mbedtls_oid_from_numeric_string(mbedtls_asn1_buf *oid, const char *oid_str, size_t size);
 
 #ifdef __cplusplus
 }

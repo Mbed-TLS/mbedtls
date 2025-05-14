@@ -5,6 +5,7 @@
 #include "x509_internal.h"
 #include "mbedtls/pem.h"
 #include "mbedtls/oid.h"
+#include "x509_oid.h"
 #include "mbedtls/rsa.h"
 #include "mbedtls/asn1.h"
 #include "mbedtls/asn1write.h"
@@ -703,7 +704,7 @@ void x509_set_extension_length_check()
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_X509_USE_C */
+/* BEGIN_CASE depends_on:MBEDTLS_X509_CREATE_C */
 void oid_from_numeric_string(char *oid_str, int error_ret,
                              data_t *exp_oid_buf)
 {

@@ -83,6 +83,17 @@ if(GEN_FILES)
             ${CMAKE_CURRENT_SOURCE_DIR}/../framework/scripts/generate_ssl_debug_helpers.py
             ${tls_error_headers}
     )
+
+    add_custom_target(${MBEDTLS_TARGET_PREFIX}mbedx509_generated_files_target
+        DEPENDS
+            ${CMAKE_CURRENT_BINARY_DIR}/error.c
+    )
+
+    add_custom_target(${MBEDTLS_TARGET_PREFIX}mbedtls_generated_files_target
+        DEPENDS
+            ${CMAKE_CURRENT_BINARY_DIR}/ssl_debug_helpers_generated.c
+            ${CMAKE_CURRENT_BINARY_DIR}/version_features.c
+    )
 endif()
 
 if(CMAKE_COMPILER_IS_GNUCC)
@@ -160,6 +171,13 @@ if(USE_STATIC_MBEDTLS_LIBRARY)
     target_compile_options(${mbedtls_static_target} PRIVATE ${LIBS_C_FLAGS})
     set_target_properties(${mbedtls_static_target} PROPERTIES OUTPUT_NAME mbedtls)
     target_link_libraries(${mbedtls_static_target} PUBLIC ${libs} ${mbedx509_static_target})
+
+    if(GEN_FILES)
+        add_dependencies(${mbedx509_static_target}
+            ${MBEDTLS_TARGET_PREFIX}mbedx509_generated_files_target)
+        add_dependencies(${mbedtls_static_target}
+            ${MBEDTLS_TARGET_PREFIX}mbedtls_generated_files_target)
+    endif()
 endif(USE_STATIC_MBEDTLS_LIBRARY)
 
 if(USE_SHARED_MBEDTLS_LIBRARY)
@@ -174,6 +192,13 @@ if(USE_SHARED_MBEDTLS_LIBRARY)
     target_compile_options(${mbedtls_target} PRIVATE ${LIBS_C_FLAGS})
     set_target_properties(${mbedtls_target} PROPERTIES VERSION 4.0.0 SOVERSION 21)
     target_link_libraries(${mbedtls_target} PUBLIC ${libs} ${mbedx509_target})
+
+    if(GEN_FILES)
+        add_dependencies(${mbedx509_target}
+            ${MBEDTLS_TARGET_PREFIX}mbedx509_generated_files_target)
+        add_dependencies(${mbedtls_target}
+            ${MBEDTLS_TARGET_PREFIX}mbedtls_generated_files_target)
+    endif()
 endif(USE_SHARED_MBEDTLS_LIBRARY)
 
 foreach(target IN LISTS target_libraries)

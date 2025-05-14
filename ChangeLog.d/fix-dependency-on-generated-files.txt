@@ -1,0 +1,4 @@
+Bugfix
+    * Fix potential CMake parallel build failure due to missing dependencies.
+      The `mbedcrypto` and `mbedtls` libraries were missing dependencies on
+      generated files.

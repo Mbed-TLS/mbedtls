@@ -330,7 +330,7 @@ static const oid_x509_ext_t oid_x509_ext[] =
 
 FN_OID_TYPED_FROM_ASN1(oid_x509_ext_t, x509_ext, oid_x509_ext)
 FN_OID_GET_ATTR1(mbedtls_x509_oid_get_x509_ext_type, oid_x509_ext_t, x509_ext, int, ext_type)
-#endif /* MBEDTLS_X509_CRT_PARSE_C || MBEDTLS_X509_CSR_PARSE_C */
+#endif /* MBEDTLS_X509_OID_HAVE_GET_X509_EXT_TYPE */
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C) && !defined(MBEDTLS_X509_REMOVE_INFO)
 static const mbedtls_x509_oid_descriptor_t oid_ext_key_usage[] =
@@ -598,6 +598,6 @@ static const oid_md_alg_t oid_md_alg[] =
 FN_OID_TYPED_FROM_ASN1(oid_md_alg_t, md_alg, oid_md_alg)
 FN_OID_GET_ATTR1(mbedtls_x509_oid_get_md_alg, oid_md_alg_t, md_alg, mbedtls_md_type_t, md_alg)
 
-#endif /* (MBEDTLS_X509_USE_C && MBEDTLS_X509_RSASSA_PSS_SUPPORT) || MBEDTLS_PKCS7_C */
+#endif /* MBEDTLS_X509_OID_HAVE_GET_MD_ALG */
 
 #endif /* some X.509 is enabled */

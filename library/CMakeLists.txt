@@ -187,13 +187,6 @@ if(GEN_FILES)
             ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/data_files/driver_templates/psa_crypto_driver_wrappers.h.jinja
             ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/data_files/driver_templates/psa_crypto_driver_wrappers_no_static.c.jinja
     )
-
-
-else()
-    link_to_source(error.c)
-    link_to_source(version_features.c)
-    link_to_source(ssl_debug_helpers_generated.c)
-    link_to_source(psa_crypto_driver_wrappers_no_static.c)
 endif()
 
 if(CMAKE_COMPILER_IS_GNUCC)

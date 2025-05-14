@@ -84,10 +84,6 @@ if(GEN_FILES)
             ${CMAKE_CURRENT_SOURCE_DIR}/../framework/scripts/generate_ssl_debug_helpers.py
             ${tls_error_headers}
     )
-else()
-    link_to_source(error.c)
-    link_to_source(version_features.c)
-    link_to_source(ssl_debug_helpers_generated.c)
 endif()
 
 if(CMAKE_COMPILER_IS_GNUCC)

@@ -93,10 +93,7 @@ component_test_gcc15_drivers_opt () {
     scripts/config.py full
     loc_cflags="$ASAN_CFLAGS -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_CONFIG_ADJUST_TEST_ACCELERATORS"
     loc_cflags="${loc_cflags} -I../framework/tests/include -O2"
-    # Until https://github.com/Mbed-TLS/mbedtls/issues/9814 is fixed,
-    # disable the new problematic optimization.
-    loc_cflags="${loc_cflags} -fzero-init-padding-bits=unions"
-    # Also allow a warning that we don't yet comply to.
+    # Allow a warning that we don't yet comply to.
     # https://github.com/Mbed-TLS/mbedtls/issues/9944
     loc_cflags="${loc_cflags} -Wno-error=unterminated-string-initialization"
 

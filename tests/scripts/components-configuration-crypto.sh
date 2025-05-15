@@ -1680,6 +1680,7 @@ config_psa_crypto_hmac_use_psa () {
         # Disable also the builtin hashes since they are supported by the driver
         # and MD module is able to perform PSA dispathing.
         scripts/config.py unset-all MBEDTLS_SHA
+        scripts/config.py unset-all PSA_WANT_ALG_SHA3_*
         scripts/config.py unset MBEDTLS_MD5_C
         scripts/config.py unset MBEDTLS_RIPEMD160_C
     fi

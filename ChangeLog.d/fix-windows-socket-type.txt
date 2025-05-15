@@ -1,0 +1,4 @@
+Bugfix
+   * Fix bugs related to incorrectly using Unix-like file
+     descriptors as socket handles on Windows.
+     Resolves #10097

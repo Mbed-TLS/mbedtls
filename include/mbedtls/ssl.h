@@ -2255,6 +2255,10 @@ void mbedtls_ssl_conf_verify(mbedtls_ssl_config *conf,
 /**
  * \brief          Set the random number generator callback
  *
+ * \note           The callback with its parameter must remain valid as
+ *                 long as there is an SSL context that uses the
+ *                 SSL configuration.
+ *
  * \param conf     SSL configuration
  * \param f_rng    RNG function (mandatory)
  * \param p_rng    RNG parameter

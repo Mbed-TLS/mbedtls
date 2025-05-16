@@ -98,7 +98,9 @@ void mbedtls_ssl_ticket_init(mbedtls_ssl_ticket_context *ctx);
  *
  * \param ctx       Context to be set up
  * \param f_rng     RNG callback function (mandatory)
- * \param p_rng     RNG callback context
+ * \param p_rng     RNG callback context.
+ *                  Note that the RNG callback must remain valid
+ *                  until the ticket context is freed.
  * \param cipher    AEAD cipher to use for ticket protection.
  *                  Recommended value: MBEDTLS_CIPHER_AES_256_GCM.
  * \param lifetime  Tickets lifetime in seconds

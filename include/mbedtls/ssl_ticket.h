@@ -122,7 +122,7 @@ void mbedtls_ssl_ticket_init(mbedtls_ssl_ticket_context *ctx);
  *                  or a specific MBEDTLS_ERR_XXX error code
  */
 int mbedtls_ssl_ticket_setup(mbedtls_ssl_ticket_context *ctx,
-                             int (*f_rng)(void *, unsigned char *, size_t), void *p_rng,
+                             mbedtls_f_rng_t *f_rng, void *p_rng,
                              mbedtls_cipher_type_t cipher,
                              uint32_t lifetime);
 

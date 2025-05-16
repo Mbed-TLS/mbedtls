@@ -2260,7 +2260,7 @@ void mbedtls_ssl_conf_verify(mbedtls_ssl_config *conf,
  * \param p_rng    RNG parameter
  */
 void mbedtls_ssl_conf_rng(mbedtls_ssl_config *conf,
-                          int (*f_rng)(void *, unsigned char *, size_t),
+                          mbedtls_f_rng_t *f_rng,
                           void *p_rng);
 
 /**

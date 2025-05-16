@@ -150,7 +150,8 @@ int mbedtls_ecdsa_can_do(mbedtls_ecp_group_id gid);
  *                  buffer of length \p blen Bytes. It may be \c NULL if
  *                  \p blen is zero.
  * \param blen      The length of \p buf in Bytes.
- * \param f_rng     The RNG function. This must not be \c NULL.
+ * \param f_rng     The RNG function, used both to generate the ECDSA nonce
+ *                  and for blinding. This must not be \c NULL.
  * \param p_rng     The RNG context to be passed to \p f_rng. This may be
  *                  \c NULL if \p f_rng doesn't need a context parameter.
  *
@@ -247,7 +248,8 @@ int mbedtls_ecdsa_sign_det_ext(mbedtls_ecp_group *grp, mbedtls_mpi *r,
  *                      buffer of length \p blen Bytes. It may be \c NULL if
  *                      \p blen is zero.
  * \param blen          The length of \p buf in Bytes.
- * \param f_rng         The RNG function. This must not be \c NULL.
+ * \param f_rng         The RNG function used to generate the ECDSA nonce.
+ *                      This must not be \c NULL.
  * \param p_rng         The RNG context to be passed to \p f_rng. This may be
  *                      \c NULL if \p f_rng doesn't need a context parameter.
  * \param f_rng_blind   The RNG function used for blinding. This must not be
@@ -458,10 +460,10 @@ int mbedtls_ecdsa_verify_restartable(mbedtls_ecp_group *grp,
  * \param sig_size  The size of the \p sig buffer in bytes.
  * \param slen      The address at which to store the actual length of
  *                  the signature written. Must not be \c NULL.
- * \param f_rng     The RNG function. This must not be \c NULL if
- *                  #MBEDTLS_ECDSA_DETERMINISTIC is unset. Otherwise,
- *                  it is used only for blinding and may be set to \c NULL, but
- *                  doing so is DEPRECATED.
+ * \param f_rng     The RNG function. This is used for blinding.
+ *                  If #MBEDTLS_ECDSA_DETERMINISTIC is unset, this is also
+ *                  used to generate the ECDSA nonce.
+ *                  This must not be \c NULL.
  * \param p_rng     The RNG context to be passed to \p f_rng. This may be
  *                  \c NULL if \p f_rng is \c NULL or doesn't use a context.
  *
@@ -501,9 +503,10 @@ int mbedtls_ecdsa_write_signature(mbedtls_ecdsa_context *ctx,
  * \param sig_size  The size of the \p sig buffer in bytes.
  * \param slen      The address at which to store the actual length of
  *                  the signature written. Must not be \c NULL.
- * \param f_rng     The RNG function. This must not be \c NULL if
- *                  #MBEDTLS_ECDSA_DETERMINISTIC is unset. Otherwise,
- *                  it is unused and may be set to \c NULL.
+ * \param f_rng     The RNG function. This is used for blinding.
+ *                  If #MBEDTLS_ECDSA_DETERMINISTIC is unset, this is also
+ *                  used to generate the ECDSA nonce.
+ *                  This must not be \c NULL.
  * \param p_rng     The RNG context to be passed to \p f_rng. This may be
  *                  \c NULL if \p f_rng is \c NULL or doesn't use a context.
  * \param rs_ctx    The restart context to use. This may be \c NULL to disable

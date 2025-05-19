@@ -276,7 +276,10 @@ usage:
                     /* Work around an API mismatch between string_to_names() and
                      * mbedtls_x509_subject_alternative_name, which holds an
                      * actual mbedtls_x509_name while a pointer to one would be
-                     * more convenient here. */
+                     * more convenient here. (Note mbedtls_x509_name and
+                     * mbedtls_asn1_named_data are synonymous, again
+                     * string_to_names() uses one while
+                     * cur->node.san.directory_name is nominally the other.) */
                     mbedtls_asn1_named_data *tmp_san_dirname = NULL;
                     if ((ret = mbedtls_x509_string_to_names(&tmp_san_dirname,
                                                             subtype_value)) != 0) {

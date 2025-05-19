@@ -9412,10 +9412,10 @@ run_test    "EC restart: TLS, default" \
              key_file=$DATA_FILES_PATH/server5.key crt_file=$DATA_FILES_PATH/server5.crt  \
              debug_level=1" \
             0 \
-            -C "x509_verify_cert.*4b00" \
-            -C "mbedtls_pk_verify.*4b00" \
-            -C "mbedtls_ecdh_make_public.*4b00" \
-            -C "mbedtls_pk_sign.*4b00"
+            -C "x509_verify_cert.*\(4b00\|-248\)" \
+            -C "mbedtls_pk_verify.*\(4b00\|-248\)" \
+            -C "mbedtls_ecdh_make_public.*\(4b00\|-248\)" \
+            -C "mbedtls_pk_sign.*\(4b00\|-248\)"
 
 requires_config_enabled MBEDTLS_ECP_RESTARTABLE
 requires_config_enabled MBEDTLS_ECP_DP_SECP256R1_ENABLED
@@ -9425,10 +9425,10 @@ run_test    "EC restart: TLS, max_ops=0" \
              key_file=$DATA_FILES_PATH/server5.key crt_file=$DATA_FILES_PATH/server5.crt  \
              debug_level=1 ec_max_ops=0" \
             0 \
-            -C "x509_verify_cert.*4b00" \
-            -C "mbedtls_pk_verify.*4b00" \
-            -C "mbedtls_ecdh_make_public.*4b00" \
-            -C "mbedtls_pk_sign.*4b00"
+            -C "x509_verify_cert.*\(4b00\|-248\)" \
+            -C "mbedtls_pk_verify.*\(4b00\|-248\)" \
+            -C "mbedtls_ecdh_make_public.*\(4b00\|-248\)" \
+            -C "mbedtls_pk_sign.*\(4b00\|-248\)"
 
 requires_config_enabled MBEDTLS_ECP_RESTARTABLE
 requires_config_enabled MBEDTLS_ECP_DP_SECP256R1_ENABLED
@@ -9438,10 +9438,10 @@ run_test    "EC restart: TLS, max_ops=65535" \
              key_file=$DATA_FILES_PATH/server5.key crt_file=$DATA_FILES_PATH/server5.crt  \
              debug_level=1 ec_max_ops=65535" \
             0 \
-            -C "x509_verify_cert.*4b00" \
-            -C "mbedtls_pk_verify.*4b00" \
-            -C "mbedtls_ecdh_make_public.*4b00" \
-            -C "mbedtls_pk_sign.*4b00"
+            -C "x509_verify_cert.*\(4b00\|-248\)" \
+            -C "mbedtls_pk_verify.*\(4b00\|-248\)" \
+            -C "mbedtls_ecdh_make_public.*\(4b00\|-248\)" \
+            -C "mbedtls_pk_sign.*\(4b00\|-248\)"
 
 # The following test cases for restartable ECDH come in two variants:
 # * The "(USE_PSA)" variant expects the current behavior, which is the behavior
@@ -9466,10 +9466,10 @@ run_test    "EC restart: TLS, max_ops=1000 (no USE_PSA)" \
              key_file=$DATA_FILES_PATH/server5.key crt_file=$DATA_FILES_PATH/server5.crt  \
              debug_level=1 ec_max_ops=1000" \
             0 \
-            -c "x509_verify_cert.*4b00" \
-            -c "mbedtls_pk_verify.*4b00" \
-            -c "mbedtls_ecdh_make_public.*4b00" \
-            -c "mbedtls_pk_sign.*4b00"
+            -c "x509_verify_cert.*\(4b00\|-248\)" \
+            -c "mbedtls_pk_verify.*\(4b00\|-248\)" \
+            -c "mbedtls_ecdh_make_public.*\(4b00\|-248\)" \
+            -c "mbedtls_pk_sign.*\(4b00\|-248\)"
 
 # With USE_PSA enabled we expect only partial restartable behaviour:
 # everything except ECDH (where TLS calls PSA directly).
@@ -9481,10 +9481,10 @@ run_test    "EC restart: TLS, max_ops=1000 (USE_PSA)" \
              key_file=$DATA_FILES_PATH/server5.key crt_file=$DATA_FILES_PATH/server5.crt  \
              debug_level=1 ec_max_ops=1000" \
             0 \
-            -c "x509_verify_cert.*4b00" \
-            -c "mbedtls_pk_verify.*4b00" \
-            -C "mbedtls_ecdh_make_public.*4b00" \
-            -c "mbedtls_pk_sign.*4b00"
+            -c "x509_verify_cert.*\(4b00\|-248\)" \
+            -c "mbedtls_pk_verify.*\(4b00\|-248\)" \
+            -C "mbedtls_ecdh_make_public.*\(4b00\|-248\)" \
+            -c "mbedtls_pk_sign.*\(4b00\|-248\)"
 
 # This works the same with & without USE_PSA as we never get to ECDH:
 # we abort as soon as we determined the cert is bad.
@@ -9498,10 +9498,10 @@ run_test    "EC restart: TLS, max_ops=1000, badsign" \
              key_file=$DATA_FILES_PATH/server5.key crt_file=$DATA_FILES_PATH/server5.crt  \
              debug_level=1 ec_max_ops=1000" \
             1 \
-            -c "x509_verify_cert.*4b00" \
-            -C "mbedtls_pk_verify.*4b00" \
-            -C "mbedtls_ecdh_make_public.*4b00" \
-            -C "mbedtls_pk_sign.*4b00" \
+            -c "x509_verify_cert.*\(4b00\|-248\)" \
+            -C "mbedtls_pk_verify.*\(4b00\|-248\)" \
+            -C "mbedtls_ecdh_make_public.*\(4b00\|-248\)" \
+            -C "mbedtls_pk_sign.*\(4b00\|-248\)" \
             -c "! The certificate is not correctly signed by the trusted CA" \
             -c "! mbedtls_ssl_handshake returned" \
             -c "X509 - Certificate verification failed"
@@ -9518,10 +9518,10 @@ run_test    "EC restart: TLS, max_ops=1000, auth_mode=optional badsign (no USE_P
              key_file=$DATA_FILES_PATH/server5.key crt_file=$DATA_FILES_PATH/server5.crt  \
              debug_level=1 ec_max_ops=1000 auth_mode=optional" \
             0 \
-            -c "x509_verify_cert.*4b00" \
-            -c "mbedtls_pk_verify.*4b00" \
-            -c "mbedtls_ecdh_make_public.*4b00" \
-            -c "mbedtls_pk_sign.*4b00" \
+            -c "x509_verify_cert.*\(4b00\|-248\)" \
+            -c "mbedtls_pk_verify.*\(4b00\|-248\)" \
+            -c "mbedtls_ecdh_make_public.*\(4b00\|-248\)" \
+            -c "mbedtls_pk_sign.*\(4b00\|-248\)" \
             -c "! The certificate is not correctly signed by the trusted CA" \
             -C "! mbedtls_ssl_handshake returned" \
             -C "X509 - Certificate verification failed"
@@ -9538,10 +9538,10 @@ run_test    "EC restart: TLS, max_ops=1000, auth_mode=optional badsign (USE_PSA)
              key_file=$DATA_FILES_PATH/server5.key crt_file=$DATA_FILES_PATH/server5.crt  \
              debug_level=1 ec_max_ops=1000 auth_mode=optional" \
             0 \
-            -c "x509_verify_cert.*4b00" \
-            -c "mbedtls_pk_verify.*4b00" \
-            -C "mbedtls_ecdh_make_public.*4b00" \
-            -c "mbedtls_pk_sign.*4b00" \
+            -c "x509_verify_cert.*\(4b00\|-248\)" \
+            -c "mbedtls_pk_verify.*\(4b00\|-248\)" \
+            -C "mbedtls_ecdh_make_public.*\(4b00\|-248\)" \
+            -c "mbedtls_pk_sign.*\(4b00\|-248\)" \
             -c "! The certificate is not correctly signed by the trusted CA" \
             -C "! mbedtls_ssl_handshake returned" \
             -C "X509 - Certificate verification failed"
@@ -9558,10 +9558,10 @@ run_test    "EC restart: TLS, max_ops=1000, auth_mode=none badsign (no USE_PSA)"
              key_file=$DATA_FILES_PATH/server5.key crt_file=$DATA_FILES_PATH/server5.crt  \
              debug_level=1 ec_max_ops=1000 auth_mode=none" \
             0 \
-            -C "x509_verify_cert.*4b00" \
-            -c "mbedtls_pk_verify.*4b00" \
-            -c "mbedtls_ecdh_make_public.*4b00" \
-            -c "mbedtls_pk_sign.*4b00" \
+            -C "x509_verify_cert.*\(4b00\|-248\)" \
+            -c "mbedtls_pk_verify.*\(4b00\|-248\)" \
+            -c "mbedtls_ecdh_make_public.*\(4b00\|-248\)" \
+            -c "mbedtls_pk_sign.*\(4b00\|-248\)" \
             -C "! The certificate is not correctly signed by the trusted CA" \
             -C "! mbedtls_ssl_handshake returned" \
             -C "X509 - Certificate verification failed"
@@ -9578,10 +9578,10 @@ run_test    "EC restart: TLS, max_ops=1000, auth_mode=none badsign (USE_PSA)" \
              key_file=$DATA_FILES_PATH/server5.key crt_file=$DATA_FILES_PATH/server5.crt  \
              debug_level=1 ec_max_ops=1000 auth_mode=none" \
             0 \
-            -C "x509_verify_cert.*4b00" \
-            -c "mbedtls_pk_verify.*4b00" \
-            -C "mbedtls_ecdh_make_public.*4b00" \
-            -c "mbedtls_pk_sign.*4b00" \
+            -C "x509_verify_cert.*\(4b00\|-248\)" \
+            -c "mbedtls_pk_verify.*\(4b00\|-248\)" \
+            -C "mbedtls_ecdh_make_public.*\(4b00\|-248\)" \
+            -c "mbedtls_pk_sign.*\(4b00\|-248\)" \
             -C "! The certificate is not correctly signed by the trusted CA" \
             -C "! mbedtls_ssl_handshake returned" \
             -C "X509 - Certificate verification failed"
@@ -9596,10 +9596,10 @@ run_test    "EC restart: DTLS, max_ops=1000 (no USE_PSA)" \
              key_file=$DATA_FILES_PATH/server5.key crt_file=$DATA_FILES_PATH/server5.crt  \
              dtls=1 debug_level=1 ec_max_ops=1000" \
             0 \
-            -c "x509_verify_cert.*4b00" \
-            -c "mbedtls_pk_verify.*4b00" \
-            -c "mbedtls_ecdh_make_public.*4b00" \
-            -c "mbedtls_pk_sign.*4b00"
+            -c "x509_verify_cert.*\(4b00\|-248\)" \
+            -c "mbedtls_pk_verify.*\(4b00\|-248\)" \
+            -c "mbedtls_ecdh_make_public.*\(4b00\|-248\)" \
+            -c "mbedtls_pk_sign.*\(4b00\|-248\)"
 
 # With USE_PSA enabled we expect only partial restartable behaviour:
 # everything except ECDH (where TLS calls PSA directly).
@@ -9611,10 +9611,10 @@ run_test    "EC restart: DTLS, max_ops=1000 (USE_PSA)" \
              key_file=$DATA_FILES_PATH/server5.key crt_file=$DATA_FILES_PATH/server5.crt  \
              dtls=1 debug_level=1 ec_max_ops=1000" \
             0 \
-            -c "x509_verify_cert.*4b00" \
-            -c "mbedtls_pk_verify.*4b00" \
-            -C "mbedtls_ecdh_make_public.*4b00" \
-            -c "mbedtls_pk_sign.*4b00"
+            -c "x509_verify_cert.*\(4b00\|-248\)" \
+            -c "mbedtls_pk_verify.*\(4b00\|-248\)" \
+            -C "mbedtls_ecdh_make_public.*\(4b00\|-248\)" \
+            -c "mbedtls_pk_sign.*\(4b00\|-248\)"
 
 # With USE_PSA disabled we expect full restartable behaviour.
 requires_config_enabled MBEDTLS_ECP_RESTARTABLE
@@ -9625,10 +9625,10 @@ run_test    "EC restart: TLS, max_ops=1000 no client auth (no USE_PSA)" \
             "$P_CLI force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-GCM-SHA256 \
              debug_level=1 ec_max_ops=1000" \
             0 \
-            -c "x509_verify_cert.*4b00" \
-            -c "mbedtls_pk_verify.*4b00" \
-            -c "mbedtls_ecdh_make_public.*4b00" \
-            -C "mbedtls_pk_sign.*4b00"
+            -c "x509_verify_cert.*\(4b00\|-248\)" \
+            -c "mbedtls_pk_verify.*\(4b00\|-248\)" \
+            -c "mbedtls_ecdh_make_public.*\(4b00\|-248\)" \
+            -C "mbedtls_pk_sign.*\(4b00\|-248\)"
 
 
 # With USE_PSA enabled we expect only partial restartable behaviour:
@@ -9640,10 +9640,10 @@ run_test    "EC restart: TLS, max_ops=1000 no client auth (USE_PSA)" \
             "$P_CLI force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-GCM-SHA256 \
              debug_level=1 ec_max_ops=1000" \
             0 \
-            -c "x509_verify_cert.*4b00" \
-            -c "mbedtls_pk_verify.*4b00" \
-            -C "mbedtls_ecdh_make_public.*4b00" \
-            -C "mbedtls_pk_sign.*4b00"
+            -c "x509_verify_cert.*\(4b00\|-248\)" \
+            -c "mbedtls_pk_verify.*\(4b00\|-248\)" \
+            -C "mbedtls_ecdh_make_public.*\(4b00\|-248\)" \
+            -C "mbedtls_pk_sign.*\(4b00\|-248\)"
 
 # Restartable is only for ECDHE-ECDSA, with another ciphersuite we expect no
 # restartable behaviour at all (not even client auth).
@@ -9657,10 +9657,10 @@ run_test    "EC restart: TLS, max_ops=1000, ECDHE-RSA" \
              key_file=$DATA_FILES_PATH/server5.key crt_file=$DATA_FILES_PATH/server5.crt  \
              debug_level=1 ec_max_ops=1000" \
             0 \
-            -C "x509_verify_cert.*4b00" \
-            -C "mbedtls_pk_verify.*4b00" \
-            -C "mbedtls_ecdh_make_public.*4b00" \
-            -C "mbedtls_pk_sign.*4b00"
+            -C "x509_verify_cert.*\(4b00\|-248\)" \
+            -C "mbedtls_pk_verify.*\(4b00\|-248\)" \
+            -C "mbedtls_ecdh_make_public.*\(4b00\|-248\)" \
+            -C "mbedtls_pk_sign.*\(4b00\|-248\)"
 
 # Tests of asynchronous private key support in SSL
 

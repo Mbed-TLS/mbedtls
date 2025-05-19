@@ -13,6 +13,6 @@ Security
 
 Changes
    * The function mbedtls_x509_string_to_names() now requires its head argument
-     to point to NULL on entry. This make it likely that existing risky uses of
+     to point to NULL on entry. This makes it likely that existing risky uses of
      this function (see the entry in the Security section) will be detected and
      fixed.

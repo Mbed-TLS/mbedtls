@@ -1140,7 +1140,6 @@ static int ssl_async_set_key(ssl_async_key_context_t *ctx,
 
 typedef enum {
     ASYNC_OP_SIGN,
-    ASYNC_OP_DECRYPT,
 } ssl_async_operation_type_t;
 
 typedef struct {
@@ -1160,7 +1159,6 @@ typedef struct {
 static const char *const ssl_async_operation_names[] =
 {
     "sign",
-    "decrypt",
 };
 
 static int ssl_async_start(mbedtls_ssl_context *ssl,
@@ -1261,11 +1259,6 @@ static int ssl_async_resume(mbedtls_ssl_context *ssl,
     }
 
     switch (ctx->operation_type) {
-        case ASYNC_OP_DECRYPT:
-            ret = mbedtls_pk_decrypt(key_slot->pk,
-                                     ctx->input, ctx->input_len,
-                                     output, output_len, output_size);
-            break;
         case ASYNC_OP_SIGN:
             ret = mbedtls_pk_sign(key_slot->pk,
                                   ctx->md_alg,

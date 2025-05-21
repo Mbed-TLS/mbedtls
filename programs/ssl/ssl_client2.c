@@ -2172,7 +2172,11 @@ usage:
 
 #if defined(MBEDTLS_ECP_RESTARTABLE)
     if (opt.ec_max_ops != DFL_EC_MAX_OPS) {
-        mbedtls_ecp_set_max_ops(opt.ec_max_ops);
+#if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
+    psa_interruptible_set_max_ops(opt.ec_max_ops);
+#else
+    mbedtls_ecp_set_max_ops(opt.ec_max_ops);
+#endif
     }
 #endif
 

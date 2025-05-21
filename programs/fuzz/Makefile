@@ -13,8 +13,8 @@ LOCAL_CFLAGS += -I$(MBEDTLS_PATH)/tf-psa-crypto/programs/fuzz/
 
 # A test application is built for each fuzz_*.c file.
 APPS = $(basename $(wildcard fuzz_*.c))
-APPS += $(basename $(wildcard $(MBEDTLS_PATH)/tf-psa-crypto/programs/fuzz/fuzz_privkey.c))
-APPS += $(basename $(wildcard $(MBEDTLS_PATH)/tf-psa-crypto/programs/fuzz/fuzz_pubkey.c))
+APPS += $(basename $(MBEDTLS_PATH)/tf-psa-crypto/programs/fuzz/fuzz_privkey.c)
+APPS += $(basename $(MBEDTLS_PATH)/tf-psa-crypto/programs/fuzz/fuzz_pubkey.c)
 
 # Construct executable name by adding OS specific suffix $(EXEXT).
 BINARIES := $(addsuffix $(EXEXT),$(APPS))

@@ -48,5 +48,5 @@ ifndef WINDOWS
 else
 	if exist *.o del /Q /F *.o
 	if exist *.exe del /Q /F *.exe
-	if exist $(MBEDTLS_PATH)/tf-psa-crypto/programs/fuzz/*.o del /Q /F $(MBEDTLS_PATH)/tf-psa-crypto/programs/fuzz/*.o
+	if exist $(MBEDTLS_PATH)\tf-psa-crypto\programs\fuzz\*.o del /Q /F $(MBEDTLS_PATH)\tf-psa-crypto\programs\fuzz\*.o
 endif

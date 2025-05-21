@@ -731,6 +731,11 @@ void mbedtls_x509_string_to_names(char *name, char *parsed_name,
     TEST_LE_S(1, ret);
     TEST_ASSERT(strcmp((char *) out, parsed_name) == 0);
 
+    /* Check that calling a 2nd time with the same param (now non-NULL)
+     * returns an error as expected. */
+    ret = mbedtls_x509_string_to_names(&names, name);
+    TEST_EQUAL(ret, MBEDTLS_ERR_X509_BAD_INPUT_DATA);
+
 exit:
     mbedtls_asn1_free_named_data_list(&names);
 

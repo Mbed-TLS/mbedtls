@@ -230,9 +230,9 @@ static void mbedtls_debug_print_ec_coord(const mbedtls_ssl_context *ssl, int lev
     }
 }
 
-void mbedtls_debug_print_psa_ec(const mbedtls_ssl_context *ssl, int level,
-                                const char *file, int line,
-                                const char *text, const mbedtls_pk_context *pk)
+static void mbedtls_debug_print_psa_ec(const mbedtls_ssl_context *ssl, int level,
+                                       const char *file, int line,
+                                       const char *text, const mbedtls_pk_context *pk)
 {
     char str[DEBUG_BUF_SIZE];
     const uint8_t *coord_start;

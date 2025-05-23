@@ -2525,12 +2525,6 @@ static int ssl_get_ecdh_params_from_cert(mbedtls_ssl_context *ssl)
     psa_key_attributes_t key_attributes = PSA_KEY_ATTRIBUTES_INIT;
     unsigned char buf[PSA_KEY_EXPORT_ECC_KEY_PAIR_MAX_SIZE(PSA_VENDOR_ECC_MAX_CURVE_BITS)];
     size_t key_len;
-#if !defined(MBEDTLS_PK_USE_PSA_EC_DATA)
-    uint16_t tls_id = 0;
-    psa_key_type_t key_type = PSA_KEY_TYPE_NONE;
-    mbedtls_ecp_group_id grp_id;
-    mbedtls_ecp_keypair *key;
-#endif /* !MBEDTLS_PK_USE_PSA_EC_DATA */
 
     pk = mbedtls_ssl_own_key(ssl);
 
@@ -2542,11 +2536,9 @@ static int ssl_get_ecdh_params_from_cert(mbedtls_ssl_context *ssl)
 
     switch (pk_type) {
         case MBEDTLS_PK_OPAQUE:
-#if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
         case MBEDTLS_PK_ECKEY:
         case MBEDTLS_PK_ECKEY_DH:
         case MBEDTLS_PK_ECDSA:
-#endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
             if (!mbedtls_pk_can_do(pk, MBEDTLS_PK_ECKEY)) {
                 return MBEDTLS_ERR_SSL_PK_TYPE_MISMATCH;
             }
@@ -2561,7 +2553,6 @@ static int ssl_get_ecdh_params_from_cert(mbedtls_ssl_context *ssl)
             ssl->handshake->xxdh_psa_type = psa_get_key_type(&key_attributes);
             ssl->handshake->xxdh_psa_bits = psa_get_key_bits(&key_attributes);
 
-#if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
             if (pk_type != MBEDTLS_PK_OPAQUE) {
                 /* PK_ECKEY[_DH] and PK_ECDSA instead as parsed from the PK
                  * module and only have ECDSA capabilities. Since we need
@@ -2594,7 +2585,6 @@ static int ssl_get_ecdh_params_from_cert(mbedtls_ssl_context *ssl)
                 ret = 0;
                 break;
             }
-#endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
 
             /* Opaque key is created by the user (externally from Mbed TLS)
              * so we assume it already has the right algorithm and flags
@@ -2604,53 +2594,6 @@ static int ssl_get_ecdh_params_from_cert(mbedtls_ssl_context *ssl)
             ret = 0;
             break;
 
-#if !defined(MBEDTLS_PK_USE_PSA_EC_DATA)
-        case MBEDTLS_PK_ECKEY:
-        case MBEDTLS_PK_ECKEY_DH:
-        case MBEDTLS_PK_ECDSA:
-            key = mbedtls_pk_ec_rw(*pk);
-            grp_id = mbedtls_pk_get_ec_group_id(pk);
-            if (grp_id == MBEDTLS_ECP_DP_NONE) {
-                return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
-            }
-            tls_id = mbedtls_ssl_get_tls_id_from_ecp_group_id(grp_id);
-            if (tls_id == 0) {
-                /* This elliptic curve is not supported */
-                return MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE;
-            }
-
-            /* If the above conversion to TLS ID was fine, then also this one will
-               be, so there is no need to check the return value here */
-            mbedtls_ssl_get_psa_curve_info_from_tls_id(tls_id, &key_type,
-                                                       &ssl->handshake->xxdh_psa_bits);
-
-            ssl->handshake->xxdh_psa_type = key_type;
-
-            key_attributes = psa_key_attributes_init();
-            psa_set_key_usage_flags(&key_attributes, PSA_KEY_USAGE_DERIVE);
-            psa_set_key_algorithm(&key_attributes, PSA_ALG_ECDH);
-            psa_set_key_type(&key_attributes,
-                             PSA_KEY_TYPE_ECC_KEY_PAIR(ssl->handshake->xxdh_psa_type));
-            psa_set_key_bits(&key_attributes, ssl->handshake->xxdh_psa_bits);
-
-            ret = mbedtls_ecp_write_key_ext(key, &key_len, buf, sizeof(buf));
-            if (ret != 0) {
-                mbedtls_platform_zeroize(buf, sizeof(buf));
-                break;
-            }
-
-            status = psa_import_key(&key_attributes, buf, key_len,
-                                    &ssl->handshake->xxdh_psa_privkey);
-            if (status != PSA_SUCCESS) {
-                ret = PSA_TO_MBEDTLS_ERR(status);
-                mbedtls_platform_zeroize(buf, sizeof(buf));
-                break;
-            }
-
-            mbedtls_platform_zeroize(buf, sizeof(buf));
-            ret = 0;
-            break;
-#endif /* !MBEDTLS_PK_USE_PSA_EC_DATA */
         default:
             ret = MBEDTLS_ERR_SSL_PK_TYPE_MISMATCH;
     }

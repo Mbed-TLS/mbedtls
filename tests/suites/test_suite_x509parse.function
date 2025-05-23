@@ -679,7 +679,11 @@ void x509_verify_restart(char *crt_file, char *ca_file,
     TEST_EQUAL(mbedtls_x509_crt_parse_file(&crt, crt_file), 0);
     TEST_EQUAL(mbedtls_x509_crt_parse_file(&ca, ca_file), 0);
 
+#if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
+    psa_interruptible_set_max_ops(max_ops);
+#else /* MBEDTLS_PK_USE_PSA_EC_DATA */
     mbedtls_ecp_set_max_ops(max_ops);
+#endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
 
     cnt_restart = 0;
     do {

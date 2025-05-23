@@ -51,11 +51,6 @@
 #endif /* MBEDTLS_X509_REMOVE_INFO */
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
-#if defined(MBEDTLS_ECDH_C)
-#define MBEDTLS_SSL_DEBUG_ECDH(level, ecdh, attr)               \
-    mbedtls_debug_printf_ecdh(ssl, level, __FILE__, __LINE__, ecdh, attr)
-#endif
-
 #else /* MBEDTLS_DEBUG_C */
 
 #define MBEDTLS_SSL_DEBUG_MSG(level, args)            do { } while (0)
@@ -64,7 +59,6 @@
 #define MBEDTLS_SSL_DEBUG_MPI(level, text, X)         do { } while (0)
 #define MBEDTLS_SSL_DEBUG_ECP(level, text, X)         do { } while (0)
 #define MBEDTLS_SSL_DEBUG_CRT(level, text, crt)       do { } while (0)
-#define MBEDTLS_SSL_DEBUG_ECDH(level, ecdh, attr)     do { } while (0)
 
 #endif /* MBEDTLS_DEBUG_C */
 

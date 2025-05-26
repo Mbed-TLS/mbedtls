@@ -187,15 +187,6 @@ typedef struct mbedtls_test_message_socket_context {
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
 
 /*
- * Structure with endpoint's certificates for SSL communication tests.
- */
-typedef struct mbedtls_test_ssl_endpoint_certificate {
-    mbedtls_x509_crt *ca_cert;
-    mbedtls_x509_crt *cert;
-    mbedtls_pk_context *pkey;
-} mbedtls_test_ssl_endpoint_certificate;
-
-/*
  * Endpoint structure for SSL communication tests.
  */
 typedef struct mbedtls_test_ssl_endpoint {
@@ -203,7 +194,11 @@ typedef struct mbedtls_test_ssl_endpoint {
     mbedtls_ssl_context ssl;
     mbedtls_ssl_config conf;
     mbedtls_test_mock_socket socket;
-    mbedtls_test_ssl_endpoint_certificate cert;
+
+    /* Objects owned by the endpoint */
+    mbedtls_x509_crt *ca_chain;
+    mbedtls_x509_crt *cert;
+    mbedtls_pk_context *pkey;
 } mbedtls_test_ssl_endpoint;
 
 #endif /* MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED */
@@ -432,8 +427,7 @@ int mbedtls_test_mock_tcp_recv_msg(void *ctx,
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
 
 /*
- * Initializes \p ep_cert structure and assigns it to endpoint
- * represented by \p ep.
+ * Load default CA certificates and endpoint keys into \p ep.
  *
  * \retval  0 on success, otherwise error code.
  */

@@ -579,28 +579,25 @@ int mbedtls_test_mock_tcp_recv_msg(void *ctx,
  */
 static void test_ssl_endpoint_certificate_free(mbedtls_test_ssl_endpoint *ep)
 {
-    mbedtls_test_ssl_endpoint_certificate *cert = &(ep->cert);
-    if (cert != NULL) {
-        if (cert->ca_cert != NULL) {
-            mbedtls_x509_crt_free(cert->ca_cert);
-            mbedtls_free(cert->ca_cert);
-            cert->ca_cert = NULL;
-        }
-        if (cert->cert != NULL) {
-            mbedtls_x509_crt_free(cert->cert);
-            mbedtls_free(cert->cert);
-            cert->cert = NULL;
-        }
-        if (cert->pkey != NULL) {
+    if (ep->ca_chain != NULL) {
+        mbedtls_x509_crt_free(ep->ca_chain);
+        mbedtls_free(ep->ca_chain);
+        ep->ca_chain = NULL;
+    }
+    if (ep->cert != NULL) {
+        mbedtls_x509_crt_free(ep->cert);
+        mbedtls_free(ep->cert);
+        ep->cert = NULL;
+    }
+    if (ep->pkey != NULL) {
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-            if (mbedtls_pk_get_type(cert->pkey) == MBEDTLS_PK_OPAQUE) {
-                psa_destroy_key(cert->pkey->priv_id);
-            }
-#endif
-            mbedtls_pk_free(cert->pkey);
-            mbedtls_free(cert->pkey);
-            cert->pkey = NULL;
+        if (mbedtls_pk_get_type(ep->pkey) == MBEDTLS_PK_OPAQUE) {
+            psa_destroy_key(ep->pkey->priv_id);
         }
+#endif
+        mbedtls_pk_free(ep->pkey);
+        mbedtls_free(ep->pkey);
+        ep->pkey = NULL;
     }
 }
 
@@ -612,7 +609,6 @@ int mbedtls_test_ssl_endpoint_certificate_init(mbedtls_test_ssl_endpoint *ep,
     int i = 0;
     int ret = -1;
     int ok = 0;
-    mbedtls_test_ssl_endpoint_certificate *cert = NULL;
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     mbedtls_svc_key_id_t key_slot = MBEDTLS_SVC_KEY_ID_INIT;
 #endif
@@ -621,20 +617,19 @@ int mbedtls_test_ssl_endpoint_certificate_init(mbedtls_test_ssl_endpoint *ep,
         return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
     }
 
-    cert = &(ep->cert);
-    TEST_CALLOC(cert->ca_cert, 1);
-    TEST_CALLOC(cert->cert, 1);
-    TEST_CALLOC(cert->pkey, 1);
+    TEST_CALLOC(ep->ca_chain, 1);
+    TEST_CALLOC(ep->cert, 1);
+    TEST_CALLOC(ep->pkey, 1);
 
-    mbedtls_x509_crt_init(cert->ca_cert);
-    mbedtls_x509_crt_init(cert->cert);
-    mbedtls_pk_init(cert->pkey);
+    mbedtls_x509_crt_init(ep->ca_chain);
+    mbedtls_x509_crt_init(ep->cert);
+    mbedtls_pk_init(ep->pkey);
 
     /* Load the trusted CA */
 
     for (i = 0; mbedtls_test_cas_der[i] != NULL; i++) {
         ret = mbedtls_x509_crt_parse_der(
-            cert->ca_cert,
+            ep->ca_chain,
             (const unsigned char *) mbedtls_test_cas_der[i],
             mbedtls_test_cas_der_len[i]);
         TEST_EQUAL(ret, 0);
@@ -645,25 +640,25 @@ int mbedtls_test_ssl_endpoint_certificate_init(mbedtls_test_ssl_endpoint *ep,
     if (ep->conf.endpoint == MBEDTLS_SSL_IS_SERVER) {
         if (pk_alg == MBEDTLS_PK_RSA) {
             ret = mbedtls_x509_crt_parse(
-                cert->cert,
+                ep->cert,
                 (const unsigned char *) mbedtls_test_srv_crt_rsa_sha256_der,
                 mbedtls_test_srv_crt_rsa_sha256_der_len);
             TEST_EQUAL(ret, 0);
 
             ret = mbedtls_pk_parse_key(
-                cert->pkey,
+                ep->pkey,
                 (const unsigned char *) mbedtls_test_srv_key_rsa_der,
                 mbedtls_test_srv_key_rsa_der_len, NULL, 0);
             TEST_EQUAL(ret, 0);
         } else {
             ret = mbedtls_x509_crt_parse(
-                cert->cert,
+                ep->cert,
                 (const unsigned char *) mbedtls_test_srv_crt_ec_der,
                 mbedtls_test_srv_crt_ec_der_len);
             TEST_EQUAL(ret, 0);
 
             ret = mbedtls_pk_parse_key(
-                cert->pkey,
+                ep->pkey,
                 (const unsigned char *) mbedtls_test_srv_key_ec_der,
                 mbedtls_test_srv_key_ec_der_len, NULL, 0);
             TEST_EQUAL(ret, 0);
@@ -671,25 +666,25 @@ int mbedtls_test_ssl_endpoint_certificate_init(mbedtls_test_ssl_endpoint *ep,
     } else {
         if (pk_alg == MBEDTLS_PK_RSA) {
             ret = mbedtls_x509_crt_parse(
-                cert->cert,
+                ep->cert,
                 (const unsigned char *) mbedtls_test_cli_crt_rsa_der,
                 mbedtls_test_cli_crt_rsa_der_len);
             TEST_EQUAL(ret, 0);
 
             ret = mbedtls_pk_parse_key(
-                cert->pkey,
+                ep->pkey,
                 (const unsigned char *) mbedtls_test_cli_key_rsa_der,
                 mbedtls_test_cli_key_rsa_der_len, NULL, 0);
             TEST_EQUAL(ret, 0);
         } else {
             ret = mbedtls_x509_crt_parse(
-                cert->cert,
+                ep->cert,
                 (const unsigned char *) mbedtls_test_cli_crt_ec_der,
                 mbedtls_test_cli_crt_ec_len);
             TEST_EQUAL(ret, 0);
 
             ret = mbedtls_pk_parse_key(
-                cert->pkey,
+                ep->pkey,
                 (const unsigned char *) mbedtls_test_cli_key_ec_der,
                 mbedtls_test_cli_key_ec_der_len, NULL, 0);
             TEST_EQUAL(ret, 0);
@@ -700,7 +695,7 @@ int mbedtls_test_ssl_endpoint_certificate_init(mbedtls_test_ssl_endpoint *ep,
     if (opaque_alg != 0) {
         psa_key_attributes_t key_attr = PSA_KEY_ATTRIBUTES_INIT;
         /* Use a fake key usage to get a successful initial guess for the PSA attributes. */
-        TEST_EQUAL(mbedtls_pk_get_psa_attributes(cert->pkey, PSA_KEY_USAGE_SIGN_HASH,
+        TEST_EQUAL(mbedtls_pk_get_psa_attributes(ep->pkey, PSA_KEY_USAGE_SIGN_HASH,
                                                  &key_attr), 0);
         /* Then manually usage, alg and alg2 as requested by the test. */
         psa_set_key_usage_flags(&key_attr, opaque_usage);
@@ -708,10 +703,10 @@ int mbedtls_test_ssl_endpoint_certificate_init(mbedtls_test_ssl_endpoint *ep,
         if (opaque_alg2 != PSA_ALG_NONE) {
             psa_set_key_enrollment_algorithm(&key_attr, opaque_alg2);
         }
-        TEST_EQUAL(mbedtls_pk_import_into_psa(cert->pkey, &key_attr, &key_slot), 0);
-        mbedtls_pk_free(cert->pkey);
-        mbedtls_pk_init(cert->pkey);
-        TEST_EQUAL(mbedtls_pk_setup_opaque(cert->pkey, key_slot), 0);
+        TEST_EQUAL(mbedtls_pk_import_into_psa(ep->pkey, &key_attr, &key_slot), 0);
+        mbedtls_pk_free(ep->pkey);
+        mbedtls_pk_init(ep->pkey);
+        TEST_EQUAL(mbedtls_pk_setup_opaque(ep->pkey, key_slot), 0);
     }
 #else
     (void) opaque_alg;
@@ -719,10 +714,10 @@ int mbedtls_test_ssl_endpoint_certificate_init(mbedtls_test_ssl_endpoint *ep,
     (void) opaque_usage;
 #endif
 
-    mbedtls_ssl_conf_ca_chain(&(ep->conf), cert->ca_cert, NULL);
+    mbedtls_ssl_conf_ca_chain(&(ep->conf), ep->ca_chain, NULL);
 
-    ret = mbedtls_ssl_conf_own_cert(&(ep->conf), cert->cert,
-                                    cert->pkey);
+    ret = mbedtls_ssl_conf_own_cert(&(ep->conf), ep->cert,
+                                    ep->pkey);
     TEST_EQUAL(ret, 0);
     TEST_ASSERT(ep->conf.key_cert != NULL);
 
@@ -730,8 +725,8 @@ int mbedtls_test_ssl_endpoint_certificate_init(mbedtls_test_ssl_endpoint *ep,
     TEST_EQUAL(ret, 0);
     TEST_ASSERT(ep->conf.key_cert == NULL);
 
-    ret = mbedtls_ssl_conf_own_cert(&(ep->conf), cert->cert,
-                                    cert->pkey);
+    ret = mbedtls_ssl_conf_own_cert(&(ep->conf), ep->cert,
+                                    ep->pkey);
     TEST_EQUAL(ret, 0);
 
     ok = 1;

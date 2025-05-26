@@ -1,0 +1,12 @@
+Security
+   * Fix a bug in mbedtls_asn1_store_named_data() where it would sometimes leave
+     an item in the output list in an inconsistent state with val.p == NULL but
+     val.len > 0. This impacts applications that call this function directly,
+     or indirectly via mbedtls_x509_string_to_names() or one of the
+     mbedtls_x509write_{crt,csr}_set_{subject,issuer}_name() functions. The
+     inconsistent state of the output could then cause a NULL dereference either
+     inside the same call to mbedtls_x509_string_to_names(), or in subsequent
+     users of the output structure, such as mbedtls_x509_write_names(). This
+     only affects applications that create (as opposed to consume) X.509
+     certificates, CSRs or CRLS, or that call mbedtls_asn1_store_named_data()
+     directly. Found by Linh Le and Ngan Nguyen from Calif.

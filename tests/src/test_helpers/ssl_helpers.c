@@ -2108,6 +2108,85 @@ int mbedtls_test_ssl_do_handshake_with_endpoints(
 #endif /* defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED) */
 
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
+
+#if defined(MBEDTLS_SSL_RENEGOTIATION)
+static int test_renegotiation(const mbedtls_test_handshake_test_options *options,
+                              mbedtls_test_ssl_endpoint *client,
+                              mbedtls_test_ssl_endpoint *server)
+{
+    int ok = 0;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+
+    (void) options; // only used in some configurations
+
+    /* Start test with renegotiation */
+    TEST_EQUAL(server->ssl.renego_status,
+               MBEDTLS_SSL_INITIAL_HANDSHAKE);
+    TEST_EQUAL(client->ssl.renego_status,
+               MBEDTLS_SSL_INITIAL_HANDSHAKE);
+
+    /* After calling this function for the server, it only sends a handshake
+     * request. All renegotiation should happen during data exchanging */
+    TEST_EQUAL(mbedtls_ssl_renegotiate(&(server->ssl)), 0);
+    TEST_EQUAL(server->ssl.renego_status,
+               MBEDTLS_SSL_RENEGOTIATION_PENDING);
+    TEST_EQUAL(client->ssl.renego_status,
+               MBEDTLS_SSL_INITIAL_HANDSHAKE);
+
+    TEST_EQUAL(exchange_data(&(client->ssl), &(server->ssl)), 0);
+    TEST_EQUAL(server->ssl.renego_status,
+               MBEDTLS_SSL_RENEGOTIATION_DONE);
+    TEST_EQUAL(client->ssl.renego_status,
+               MBEDTLS_SSL_RENEGOTIATION_DONE);
+
+    /* After calling mbedtls_ssl_renegotiate for the client,
+     * all renegotiation should happen inside this function.
+     * However in this test, we cannot perform simultaneous communication
+     * between client and server so this function will return waiting error
+     * on the socket. All rest of renegotiation should happen
+     * during data exchanging */
+    ret = mbedtls_ssl_renegotiate(&(client->ssl));
+#if defined(MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH)
+    if (options->resize_buffers != 0) {
+        /* Ensure that the buffer sizes are appropriate before resizes */
+        TEST_EQUAL(client->ssl.out_buf_len, MBEDTLS_SSL_OUT_BUFFER_LEN);
+        TEST_EQUAL(client->ssl.in_buf_len, MBEDTLS_SSL_IN_BUFFER_LEN);
+    }
+#endif
+    TEST_ASSERT(ret == 0 ||
+                ret == MBEDTLS_ERR_SSL_WANT_READ ||
+                ret == MBEDTLS_ERR_SSL_WANT_WRITE);
+    TEST_EQUAL(server->ssl.renego_status,
+               MBEDTLS_SSL_RENEGOTIATION_DONE);
+    TEST_EQUAL(client->ssl.renego_status,
+               MBEDTLS_SSL_RENEGOTIATION_IN_PROGRESS);
+
+    TEST_EQUAL(exchange_data(&(client->ssl), &(server->ssl)), 0);
+    TEST_EQUAL(server->ssl.renego_status,
+               MBEDTLS_SSL_RENEGOTIATION_DONE);
+    TEST_EQUAL(client->ssl.renego_status,
+               MBEDTLS_SSL_RENEGOTIATION_DONE);
+#if defined(MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH)
+    /* Validate buffer sizes after renegotiation */
+    if (options->resize_buffers != 0) {
+        TEST_EQUAL(client->ssl.out_buf_len,
+                   mbedtls_ssl_get_output_buflen(&client->ssl));
+        TEST_EQUAL(client->ssl.in_buf_len,
+                   mbedtls_ssl_get_input_buflen(&client->ssl));
+        TEST_EQUAL(server->ssl.out_buf_len,
+                   mbedtls_ssl_get_output_buflen(&server->ssl));
+        TEST_EQUAL(server->ssl.in_buf_len,
+                   mbedtls_ssl_get_input_buflen(&server->ssl));
+    }
+#endif /* MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH */
+
+    ok = 1;
+
+exit:
+    return ok;
+}
+#endif /* MBEDTLS_SSL_RENEGOTIATION */
+
 void mbedtls_test_ssl_perform_handshake(
     const mbedtls_test_handshake_test_options *options)
 {
@@ -2124,9 +2203,6 @@ void mbedtls_test_ssl_perform_handshake(
 #if defined(MBEDTLS_SSL_CONTEXT_SERIALIZATION)
     unsigned char *context_buf = NULL;
     size_t context_buf_len;
-#endif
-#if defined(MBEDTLS_SSL_RENEGOTIATION)
-    int ret = -1;
 #endif
     int expected_handshake_result = options->expected_handshake_result;
 
@@ -2344,66 +2420,7 @@ void mbedtls_test_ssl_perform_handshake(
 
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
     if (options->renegotiate) {
-        /* Start test with renegotiation */
-        TEST_EQUAL(server->ssl.renego_status,
-                   MBEDTLS_SSL_INITIAL_HANDSHAKE);
-        TEST_EQUAL(client->ssl.renego_status,
-                   MBEDTLS_SSL_INITIAL_HANDSHAKE);
-
-        /* After calling this function for the server, it only sends a handshake
-         * request. All renegotiation should happen during data exchanging */
-        TEST_EQUAL(mbedtls_ssl_renegotiate(&(server->ssl)), 0);
-        TEST_EQUAL(server->ssl.renego_status,
-                   MBEDTLS_SSL_RENEGOTIATION_PENDING);
-        TEST_EQUAL(client->ssl.renego_status,
-                   MBEDTLS_SSL_INITIAL_HANDSHAKE);
-
-        TEST_EQUAL(exchange_data(&(client->ssl), &(server->ssl)), 0);
-        TEST_EQUAL(server->ssl.renego_status,
-                   MBEDTLS_SSL_RENEGOTIATION_DONE);
-        TEST_EQUAL(client->ssl.renego_status,
-                   MBEDTLS_SSL_RENEGOTIATION_DONE);
-
-        /* After calling mbedtls_ssl_renegotiate for the client,
-         * all renegotiation should happen inside this function.
-         * However in this test, we cannot perform simultaneous communication
-         * between client and server so this function will return waiting error
-         * on the socket. All rest of renegotiation should happen
-         * during data exchanging */
-        ret = mbedtls_ssl_renegotiate(&(client->ssl));
-#if defined(MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH)
-        if (options->resize_buffers != 0) {
-            /* Ensure that the buffer sizes are appropriate before resizes */
-            TEST_EQUAL(client->ssl.out_buf_len, MBEDTLS_SSL_OUT_BUFFER_LEN);
-            TEST_EQUAL(client->ssl.in_buf_len, MBEDTLS_SSL_IN_BUFFER_LEN);
-        }
-#endif
-        TEST_ASSERT(ret == 0 ||
-                    ret == MBEDTLS_ERR_SSL_WANT_READ ||
-                    ret == MBEDTLS_ERR_SSL_WANT_WRITE);
-        TEST_EQUAL(server->ssl.renego_status,
-                   MBEDTLS_SSL_RENEGOTIATION_DONE);
-        TEST_EQUAL(client->ssl.renego_status,
-                   MBEDTLS_SSL_RENEGOTIATION_IN_PROGRESS);
-
-        TEST_EQUAL(exchange_data(&(client->ssl), &(server->ssl)), 0);
-        TEST_EQUAL(server->ssl.renego_status,
-                   MBEDTLS_SSL_RENEGOTIATION_DONE);
-        TEST_EQUAL(client->ssl.renego_status,
-                   MBEDTLS_SSL_RENEGOTIATION_DONE);
-#if defined(MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH)
-        /* Validate buffer sizes after renegotiation */
-        if (options->resize_buffers != 0) {
-            TEST_EQUAL(client->ssl.out_buf_len,
-                       mbedtls_ssl_get_output_buflen(&client->ssl));
-            TEST_EQUAL(client->ssl.in_buf_len,
-                       mbedtls_ssl_get_input_buflen(&client->ssl));
-            TEST_EQUAL(server->ssl.out_buf_len,
-                       mbedtls_ssl_get_output_buflen(&server->ssl));
-            TEST_EQUAL(server->ssl.in_buf_len,
-                       mbedtls_ssl_get_input_buflen(&server->ssl));
-        }
-#endif /* MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH */
+        TEST_ASSERT(test_renegotiation(options, client, server));
     }
 #endif /* MBEDTLS_SSL_RENEGOTIATION */
 

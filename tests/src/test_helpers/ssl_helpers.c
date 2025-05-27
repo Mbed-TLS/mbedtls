@@ -2187,6 +2187,83 @@ exit:
 }
 #endif /* MBEDTLS_SSL_RENEGOTIATION */
 
+#if defined(MBEDTLS_SSL_CONTEXT_SERIALIZATION)
+static int test_serialization(const mbedtls_test_handshake_test_options *options,
+                              mbedtls_test_ssl_endpoint *client,
+                              mbedtls_test_ssl_endpoint *server)
+{
+    int ok = 0;
+    unsigned char *context_buf = NULL;
+    size_t context_buf_len;
+
+    TEST_EQUAL(options->dtls, 1);
+
+    TEST_EQUAL(mbedtls_ssl_context_save(&(server->ssl), NULL,
+                                        0, &context_buf_len),
+               MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL);
+
+    context_buf = mbedtls_calloc(1, context_buf_len);
+    TEST_ASSERT(context_buf != NULL);
+
+    TEST_EQUAL(mbedtls_ssl_context_save(&(server->ssl), context_buf,
+                                        context_buf_len,
+                                        &context_buf_len),
+               0);
+
+    mbedtls_ssl_free(&(server->ssl));
+    mbedtls_ssl_init(&(server->ssl));
+
+    TEST_EQUAL(mbedtls_ssl_setup(&(server->ssl), &(server->conf)), 0);
+
+    mbedtls_ssl_set_bio(&(server->ssl), &server->dtls_context,
+                        mbedtls_test_mock_tcp_send_msg,
+                        mbedtls_test_mock_tcp_recv_msg,
+                        NULL);
+
+    mbedtls_ssl_set_user_data_p(&server->ssl, server);
+
+#if defined(MBEDTLS_TIMING_C)
+    mbedtls_ssl_set_timer_cb(&server->ssl, &server->timer,
+                             mbedtls_timing_set_delay,
+                             mbedtls_timing_get_delay);
+#endif
+#if defined(MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH)
+    if (options->resize_buffers != 0) {
+        /* Ensure that the buffer sizes are appropriate before resizes */
+        TEST_EQUAL(server->ssl.out_buf_len, MBEDTLS_SSL_OUT_BUFFER_LEN);
+        TEST_EQUAL(server->ssl.in_buf_len, MBEDTLS_SSL_IN_BUFFER_LEN);
+    }
+#endif
+    TEST_EQUAL(mbedtls_ssl_context_load(&(server->ssl), context_buf,
+                                        context_buf_len), 0);
+
+#if defined(MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH)
+    /* Validate buffer sizes after context deserialization */
+    if (options->resize_buffers != 0) {
+        TEST_EQUAL(server->ssl.out_buf_len,
+                   mbedtls_ssl_get_output_buflen(&server->ssl));
+        TEST_EQUAL(server->ssl.in_buf_len,
+                   mbedtls_ssl_get_input_buflen(&server->ssl));
+    }
+#endif
+    /* Retest writing/reading */
+    if (options->cli_msg_len != 0 || options->srv_msg_len != 0) {
+        TEST_EQUAL(mbedtls_test_ssl_exchange_data(
+                       &(client->ssl), options->cli_msg_len,
+                       options->expected_cli_fragments,
+                       &(server->ssl), options->srv_msg_len,
+                       options->expected_srv_fragments),
+                   0);
+    }
+
+    ok = 1;
+
+exit:
+    mbedtls_free(context_buf);
+    return ok;
+}
+#endif /* MBEDTLS_SSL_CONTEXT_SERIALIZATION */
+
 void mbedtls_test_ssl_perform_handshake(
     const mbedtls_test_handshake_test_options *options)
 {
@@ -2199,10 +2276,6 @@ void mbedtls_test_ssl_perform_handshake(
     mbedtls_test_ssl_endpoint *const server = &server_struct;
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_PSK_ENABLED)
     const char *psk_identity = "foo";
-#endif
-#if defined(MBEDTLS_SSL_CONTEXT_SERIALIZATION)
-    unsigned char *context_buf = NULL;
-    size_t context_buf_len;
 #endif
     int expected_handshake_result = options->expected_handshake_result;
 
@@ -2356,65 +2429,7 @@ void mbedtls_test_ssl_perform_handshake(
     }
 #if defined(MBEDTLS_SSL_CONTEXT_SERIALIZATION)
     if (options->serialize == 1) {
-        TEST_EQUAL(options->dtls, 1);
-
-        TEST_EQUAL(mbedtls_ssl_context_save(&(server->ssl), NULL,
-                                            0, &context_buf_len),
-                   MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL);
-
-        context_buf = mbedtls_calloc(1, context_buf_len);
-        TEST_ASSERT(context_buf != NULL);
-
-        TEST_EQUAL(mbedtls_ssl_context_save(&(server->ssl), context_buf,
-                                            context_buf_len,
-                                            &context_buf_len),
-                   0);
-
-        mbedtls_ssl_free(&(server->ssl));
-        mbedtls_ssl_init(&(server->ssl));
-
-        TEST_EQUAL(mbedtls_ssl_setup(&(server->ssl), &(server->conf)), 0);
-
-        mbedtls_ssl_set_bio(&(server->ssl), &server->dtls_context,
-                            mbedtls_test_mock_tcp_send_msg,
-                            mbedtls_test_mock_tcp_recv_msg,
-                            NULL);
-
-        mbedtls_ssl_set_user_data_p(&server->ssl, server);
-
-#if defined(MBEDTLS_TIMING_C)
-        mbedtls_ssl_set_timer_cb(&server->ssl, &server->timer,
-                                 mbedtls_timing_set_delay,
-                                 mbedtls_timing_get_delay);
-#endif
-#if defined(MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH)
-        if (options->resize_buffers != 0) {
-            /* Ensure that the buffer sizes are appropriate before resizes */
-            TEST_EQUAL(server->ssl.out_buf_len, MBEDTLS_SSL_OUT_BUFFER_LEN);
-            TEST_EQUAL(server->ssl.in_buf_len, MBEDTLS_SSL_IN_BUFFER_LEN);
-        }
-#endif
-        TEST_EQUAL(mbedtls_ssl_context_load(&(server->ssl), context_buf,
-                                            context_buf_len), 0);
-
-#if defined(MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH)
-        /* Validate buffer sizes after context deserialization */
-        if (options->resize_buffers != 0) {
-            TEST_EQUAL(server->ssl.out_buf_len,
-                       mbedtls_ssl_get_output_buflen(&server->ssl));
-            TEST_EQUAL(server->ssl.in_buf_len,
-                       mbedtls_ssl_get_input_buflen(&server->ssl));
-        }
-#endif
-        /* Retest writing/reading */
-        if (options->cli_msg_len != 0 || options->srv_msg_len != 0) {
-            TEST_EQUAL(mbedtls_test_ssl_exchange_data(
-                           &(client->ssl), options->cli_msg_len,
-                           options->expected_cli_fragments,
-                           &(server->ssl), options->srv_msg_len,
-                           options->expected_srv_fragments),
-                       0);
-        }
+        TEST_ASSERT(test_serialization(options, client, server));
     }
 #endif /* MBEDTLS_SSL_CONTEXT_SERIALIZATION */
 
@@ -2435,11 +2450,6 @@ exit:
 #if defined(MBEDTLS_DEBUG_C)
     if (options->cli_log_fun || options->srv_log_fun) {
         mbedtls_debug_set_threshold(0);
-    }
-#endif
-#if defined(MBEDTLS_SSL_CONTEXT_SERIALIZATION)
-    if (context_buf != NULL) {
-        mbedtls_free(context_buf);
     }
 #endif
     MD_OR_USE_PSA_DONE();

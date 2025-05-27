@@ -348,10 +348,6 @@ REVERSE_DEPENDENCIES = {
     'MBEDTLS_SHA512_C': ['MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT',
                          'MBEDTLS_SHA512_USE_A64_CRYPTO_ONLY',
                          'PSA_WANT_ALG_SHA_512'],
-    'MBEDTLS_SHA3_C' : ['PSA_WANT_ALG_SHA3_224',
-                        'PSA_WANT_ALG_SHA3_256',
-                        'PSA_WANT_ALG_SHA3_384',
-                        'PSA_WANT_ALG_SHA3_512'],
     'PSA_WANT_ALG_ECB_NO_PADDING' : ['MBEDTLS_NIST_KW_C'],
 }
 

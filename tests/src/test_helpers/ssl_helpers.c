@@ -736,15 +736,8 @@ exit:
 
 int mbedtls_test_ssl_endpoint_init(
     mbedtls_test_ssl_endpoint *ep, int endpoint_type,
-    const mbedtls_test_handshake_test_options *options,
-    mbedtls_test_message_socket_context *dtls_context,
-    mbedtls_test_ssl_message_queue *input_queue,
-    mbedtls_test_ssl_message_queue *output_queue)
+    const mbedtls_test_handshake_test_options *options)
 {
-    (void) dtls_context; // no longer used
-    (void) input_queue; // no longer used
-    (void) output_queue; // no longer used
-
     int ret = -1;
     uintptr_t user_data_n;
 
@@ -904,11 +897,8 @@ exit:
 }
 
 void mbedtls_test_ssl_endpoint_free(
-    mbedtls_test_ssl_endpoint *ep,
-    mbedtls_test_message_socket_context *context)
+    mbedtls_test_ssl_endpoint *ep)
 {
-    (void) context; // no longer used
-
     mbedtls_ssl_free(&(ep->ssl));
     mbedtls_ssl_config_free(&(ep->conf));
 
@@ -2082,13 +2072,11 @@ int mbedtls_test_ssl_do_handshake_with_endpoints(
     options->server_max_version = proto;
     options->client_max_version = proto;
 
-    ret = mbedtls_test_ssl_endpoint_init(client_ep, MBEDTLS_SSL_IS_CLIENT, options,
-                                         NULL, NULL, NULL);
+    ret = mbedtls_test_ssl_endpoint_init(client_ep, MBEDTLS_SSL_IS_CLIENT, options);
     if (ret != 0) {
         return ret;
     }
-    ret = mbedtls_test_ssl_endpoint_init(server_ep, MBEDTLS_SSL_IS_SERVER, options,
-                                         NULL, NULL, NULL);
+    ret = mbedtls_test_ssl_endpoint_init(server_ep, MBEDTLS_SSL_IS_SERVER, options);
     if (ret != 0) {
         return ret;
     }
@@ -2151,13 +2139,11 @@ void mbedtls_test_ssl_perform_handshake(
     if (options->dtls != 0) {
         TEST_EQUAL(mbedtls_test_ssl_endpoint_init(&client,
                                                   MBEDTLS_SSL_IS_CLIENT,
-                                                  options, NULL, NULL,
-                                                  NULL), 0);
+                                                  options), 0);
     } else {
         TEST_EQUAL(mbedtls_test_ssl_endpoint_init(&client,
                                                   MBEDTLS_SSL_IS_CLIENT,
-                                                  options, NULL, NULL,
-                                                  NULL), 0);
+                                                  options), 0);
     }
 
     TEST_ASSERT(set_ciphersuite(&client, options->cipher));
@@ -2166,13 +2152,11 @@ void mbedtls_test_ssl_perform_handshake(
     if (options->dtls != 0) {
         TEST_EQUAL(mbedtls_test_ssl_endpoint_init(&server,
                                                   MBEDTLS_SSL_IS_SERVER,
-                                                  options, NULL, NULL,
-                                                  NULL), 0);
+                                                  options), 0);
     } else {
         TEST_EQUAL(mbedtls_test_ssl_endpoint_init(&server,
                                                   MBEDTLS_SSL_IS_SERVER,
-                                                  options, NULL, NULL,
-                                                  NULL), 0);
+                                                  options), 0);
     }
 
     mbedtls_ssl_conf_authmode(&server.conf, options->srv_auth_mode);
@@ -2440,8 +2424,8 @@ void mbedtls_test_ssl_perform_handshake(
     TEST_ASSERT(mbedtls_ssl_get_user_data_p(&server.ssl) == &server);
 
 exit:
-    mbedtls_test_ssl_endpoint_free(&client, NULL);
-    mbedtls_test_ssl_endpoint_free(&server, NULL);
+    mbedtls_test_ssl_endpoint_free(&client);
+    mbedtls_test_ssl_endpoint_free(&server);
 #if defined(MBEDTLS_DEBUG_C)
     if (options->cli_log_fun || options->srv_log_fun) {
         mbedtls_debug_set_threshold(0);
@@ -2615,11 +2599,11 @@ int mbedtls_test_get_tls13_ticket(
     mbedtls_platform_zeroize(&server_ep, sizeof(server_ep));
 
     ret = mbedtls_test_ssl_endpoint_init(&client_ep, MBEDTLS_SSL_IS_CLIENT,
-                                         client_options, NULL, NULL, NULL);
+                                         client_options);
     TEST_EQUAL(ret, 0);
 
     ret = mbedtls_test_ssl_endpoint_init(&server_ep, MBEDTLS_SSL_IS_SERVER,
-                                         server_options, NULL, NULL, NULL);
+                                         server_options);
     TEST_EQUAL(ret, 0);
 
     mbedtls_ssl_conf_session_tickets_cb(&server_ep.conf,
@@ -2647,8 +2631,8 @@ int mbedtls_test_get_tls13_ticket(
     ok = 1;
 
 exit:
-    mbedtls_test_ssl_endpoint_free(&client_ep, NULL);
-    mbedtls_test_ssl_endpoint_free(&server_ep, NULL);
+    mbedtls_test_ssl_endpoint_free(&client_ep);
+    mbedtls_test_ssl_endpoint_free(&server_ep);
 
     if (ret == 0 && !ok) {
         /* Exiting due to a test assertion that isn't ret == 0 */

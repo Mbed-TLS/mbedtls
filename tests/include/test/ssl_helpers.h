@@ -458,25 +458,17 @@ int mbedtls_test_ssl_endpoint_certificate_init(mbedtls_test_ssl_endpoint *ep,
  * MBEDTLS_SSL_IS_CLIENT.
  * \p pk_alg the algorithm to use, currently only MBEDTLS_PK_RSA and
  * MBEDTLS_PK_ECDSA are supported.
- * \p dtls_context - in case of DTLS - this is the context handling metadata.
- * \p input_queue - used only in case of DTLS.
- * \p output_queue - used only in case of DTLS.
  *
  * \retval  0 on success, otherwise error code.
  */
 int mbedtls_test_ssl_endpoint_init(
     mbedtls_test_ssl_endpoint *ep, int endpoint_type,
-    const mbedtls_test_handshake_test_options *options,
-    mbedtls_test_message_socket_context *dtls_context,
-    mbedtls_test_ssl_message_queue *input_queue,
-    mbedtls_test_ssl_message_queue *output_queue);
+    const mbedtls_test_handshake_test_options *options);
 
 /*
  * Deinitializes endpoint represented by \p ep.
  */
-void mbedtls_test_ssl_endpoint_free(
-    mbedtls_test_ssl_endpoint *ep,
-    mbedtls_test_message_socket_context *context);
+void mbedtls_test_ssl_endpoint_free(mbedtls_test_ssl_endpoint *ep);
 
 /* Join a DTLS client with a DTLS server.
  *

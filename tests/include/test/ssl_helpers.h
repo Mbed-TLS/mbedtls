@@ -450,6 +450,9 @@ int mbedtls_test_ssl_endpoint_certificate_init(mbedtls_test_ssl_endpoint *ep,
  * `mbedtls_test_ssl_endpoint_free()` after calling this function
  * even if it fails.
  *
+ * \note For DTLS, after calling this function on both endpoints,
+ *       call mbedtls_test_ssl_dtls_join_endpoints().
+ *
  * \p endpoint_type must be set as MBEDTLS_SSL_IS_SERVER or
  * MBEDTLS_SSL_IS_CLIENT.
  * \p pk_alg the algorithm to use, currently only MBEDTLS_PK_RSA and
@@ -473,6 +476,21 @@ int mbedtls_test_ssl_endpoint_init(
 void mbedtls_test_ssl_endpoint_free(
     mbedtls_test_ssl_endpoint *ep,
     mbedtls_test_message_socket_context *context);
+
+/* Join a DTLS client with a DTLS server.
+ *
+ * You must call this function after setting up the endpoint objects
+ * and before starting a DTLS handshake.
+ *
+ * \param client    The client. It must have been set up with
+ *                  mbedtls_test_ssl_endpoint_init().
+ * \param server    The server. It must have been set up with
+ *                  mbedtls_test_ssl_endpoint_init().
+ *
+ * \retval  0 on success, otherwise error code.
+ */
+int mbedtls_test_ssl_dtls_join_endpoints(mbedtls_test_ssl_endpoint *client,
+                                         mbedtls_test_ssl_endpoint *server);
 
 /*
  * This function moves ssl handshake from \p ssl to prescribed \p state.

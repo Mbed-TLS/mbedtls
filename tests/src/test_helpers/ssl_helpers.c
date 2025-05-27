@@ -933,6 +933,19 @@ void mbedtls_test_ssl_endpoint_free(
     }
 }
 
+int mbedtls_test_ssl_dtls_join_endpoints(mbedtls_test_ssl_endpoint *client,
+                                         mbedtls_test_ssl_endpoint *server)
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+
+    /* Nothing to do yet. */
+    (void) client;
+    (void) server;
+    ret = 0;
+
+    return ret;
+}
+
 int mbedtls_test_move_handshake_to_state(mbedtls_ssl_context *ssl,
                                          mbedtls_ssl_context *second_ssl,
                                          int state)
@@ -2168,6 +2181,10 @@ void mbedtls_test_ssl_perform_handshake(
     }
 
     mbedtls_ssl_conf_authmode(&server.conf, options->srv_auth_mode);
+
+    if (options->dtls) {
+        TEST_EQUAL(mbedtls_test_ssl_dtls_join_endpoints(&client, &server), 0);
+    }
 
 #if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
     TEST_EQUAL(mbedtls_ssl_conf_max_frag_len(&(server.conf),

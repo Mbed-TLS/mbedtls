@@ -914,10 +914,12 @@ void mbedtls_test_ssl_endpoint_free(
     mbedtls_test_ssl_endpoint *ep,
     mbedtls_test_message_socket_context *context)
 {
-    test_ssl_endpoint_certificate_free(ep);
-
     mbedtls_ssl_free(&(ep->ssl));
     mbedtls_ssl_config_free(&(ep->conf));
+
+    mbedtls_free(ep->ciphersuites);
+    ep->ciphersuites = NULL;
+    test_ssl_endpoint_certificate_free(ep);
 
     if (context != NULL) {
         mbedtls_test_message_socket_close(context);
@@ -1053,31 +1055,38 @@ exit:
 }
 
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
-static void set_ciphersuite(mbedtls_ssl_config *conf, const char *cipher,
-                            int *forced_ciphersuite)
+static int set_ciphersuite(mbedtls_test_ssl_endpoint *ep,
+                           const char *cipher)
 {
-    const mbedtls_ssl_ciphersuite_t *ciphersuite_info;
-    forced_ciphersuite[0] = mbedtls_ssl_get_ciphersuite_id(cipher);
-    forced_ciphersuite[1] = 0;
+    if (cipher == NULL || cipher[0] == 0) {
+        return 1;
+    }
 
-    ciphersuite_info =
-        mbedtls_ssl_ciphersuite_from_id(forced_ciphersuite[0]);
+    int ok = 0;
+
+    TEST_CALLOC(ep->ciphersuites, 2);
+    ep->ciphersuites[0] = mbedtls_ssl_get_ciphersuite_id(cipher);
+    ep->ciphersuites[1] = 0;
+
+    const mbedtls_ssl_ciphersuite_t *ciphersuite_info =
+        mbedtls_ssl_ciphersuite_from_id(ep->ciphersuites[0]);
 
     TEST_ASSERT(ciphersuite_info != NULL);
-    TEST_ASSERT(ciphersuite_info->min_tls_version <= conf->max_tls_version);
-    TEST_ASSERT(ciphersuite_info->max_tls_version >= conf->min_tls_version);
+    TEST_ASSERT(ciphersuite_info->min_tls_version <= ep->conf.max_tls_version);
+    TEST_ASSERT(ciphersuite_info->max_tls_version >= ep->conf.min_tls_version);
 
-    if (conf->max_tls_version > ciphersuite_info->max_tls_version) {
-        conf->max_tls_version = (mbedtls_ssl_protocol_version) ciphersuite_info->max_tls_version;
+    if (ep->conf.max_tls_version > ciphersuite_info->max_tls_version) {
+        ep->conf.max_tls_version = (mbedtls_ssl_protocol_version) ciphersuite_info->max_tls_version;
     }
-    if (conf->min_tls_version < ciphersuite_info->min_tls_version) {
-        conf->min_tls_version = (mbedtls_ssl_protocol_version) ciphersuite_info->min_tls_version;
+    if (ep->conf.min_tls_version < ciphersuite_info->min_tls_version) {
+        ep->conf.min_tls_version = (mbedtls_ssl_protocol_version) ciphersuite_info->min_tls_version;
     }
 
-    mbedtls_ssl_conf_ciphersuites(conf, forced_ciphersuite);
+    mbedtls_ssl_conf_ciphersuites(&ep->conf, ep->ciphersuites);
+    ok = 1;
 
 exit:
-    return;
+    return ok;
 }
 #endif /* MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED */
 
@@ -2098,8 +2107,6 @@ int mbedtls_test_ssl_do_handshake_with_endpoints(
 void mbedtls_test_ssl_perform_handshake(
     mbedtls_test_handshake_test_options *options)
 {
-    /* forced_ciphersuite needs to last until the end of the handshake */
-    int forced_ciphersuite[2];
     enum { BUFFSIZE = 17000 };
     mbedtls_test_ssl_endpoint client, server;
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_PSK_ENABLED)
@@ -2142,9 +2149,7 @@ void mbedtls_test_ssl_perform_handshake(
                                                   NULL), 0);
     }
 
-    if (strlen(options->cipher) > 0) {
-        set_ciphersuite(&client.conf, options->cipher, forced_ciphersuite);
-    }
+    TEST_ASSERT(set_ciphersuite(&client, options->cipher));
 
     /* Server side */
     if (options->dtls != 0) {

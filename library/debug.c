@@ -168,9 +168,9 @@ void mbedtls_debug_print_buf(const mbedtls_ssl_context *ssl, int level,
 }
 
 #if defined(MBEDTLS_ECP_LIGHT)
-void mbedtls_debug_print_ecp(const mbedtls_ssl_context *ssl, int level,
-                             const char *file, int line,
-                             const char *text, const mbedtls_ecp_point *X)
+static void mbedtls_debug_print_ecp(const mbedtls_ssl_context *ssl, int level,
+                                    const char *file, int line,
+                                    const char *text, const mbedtls_ecp_point *X)
 {
     char str[DEBUG_BUF_SIZE];
 

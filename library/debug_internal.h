@@ -93,28 +93,6 @@ void mbedtls_debug_print_mpi(const mbedtls_ssl_context *ssl, int level,
                              const char *text, const mbedtls_mpi *X);
 #endif
 
-#if defined(MBEDTLS_ECP_LIGHT)
-/**
- * \brief   Print an ECP point to the debug output. This function is always
- *          used through the MBEDTLS_SSL_DEBUG_ECP() macro, which supplies the
- *          ssl context, file and line number parameters.
- *
- * \param ssl       SSL context
- * \param level     error level of the debug message
- * \param file      file the error has occurred in
- * \param line      line number the error has occurred in
- * \param text      a name or label for the ECP point being output. Normally the
- *                  variable name
- * \param X         the ECP point
- *
- * \attention       This function is intended for INTERNAL usage within the
- *                  library only.
- */
-void mbedtls_debug_print_ecp(const mbedtls_ssl_context *ssl, int level,
-                             const char *file, int line,
-                             const char *text, const mbedtls_ecp_point *X);
-#endif
-
 #if defined(MBEDTLS_X509_CRT_PARSE_C) && !defined(MBEDTLS_X509_REMOVE_INFO)
 /**
  * \brief   Print a X.509 certificate structure to the debug output. This

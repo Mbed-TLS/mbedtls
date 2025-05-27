@@ -457,7 +457,7 @@ int mbedtls_test_ssl_endpoint_certificate_init(mbedtls_test_ssl_endpoint *ep,
  */
 int mbedtls_test_ssl_endpoint_init(
     mbedtls_test_ssl_endpoint *ep, int endpoint_type,
-    mbedtls_test_handshake_test_options *options,
+    const mbedtls_test_handshake_test_options *options,
     mbedtls_test_message_socket_context *dtls_context,
     mbedtls_test_ssl_message_queue *input_queue,
     mbedtls_test_ssl_message_queue *output_queue);
@@ -609,7 +609,7 @@ int mbedtls_test_ssl_do_handshake_with_endpoints(
 
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
 void mbedtls_test_ssl_perform_handshake(
-    mbedtls_test_handshake_test_options *options);
+    const mbedtls_test_handshake_test_options *options);
 #endif /* MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED */
 
 #if defined(MBEDTLS_TEST_HOOKS)

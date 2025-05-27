@@ -167,6 +167,58 @@ void mbedtls_debug_print_buf(const mbedtls_ssl_context *ssl, int level,
     }
 }
 
+#if defined(MBEDTLS_BIGNUM_C)
+void mbedtls_debug_print_mpi(const mbedtls_ssl_context *ssl, int level,
+                             const char *file, int line,
+                             const char *text, const mbedtls_mpi *X)
+{
+    char str[DEBUG_BUF_SIZE];
+    size_t bitlen;
+    size_t idx = 0;
+
+    if (NULL == ssl              ||
+        NULL == ssl->conf        ||
+        NULL == ssl->conf->f_dbg ||
+        NULL == X                ||
+        level > debug_threshold) {
+        return;
+    }
+
+    bitlen = mbedtls_mpi_bitlen(X);
+
+    mbedtls_snprintf(str, sizeof(str), "value of '%s' (%u bits) is:\n",
+                     text, (unsigned) bitlen);
+    debug_send_line(ssl, level, file, line, str);
+
+    if (bitlen == 0) {
+        str[0] = ' '; str[1] = '0'; str[2] = '0';
+        idx = 3;
+    } else {
+        int n;
+        for (n = (int) ((bitlen - 1) / 8); n >= 0; n--) {
+            size_t limb_offset = n / sizeof(mbedtls_mpi_uint);
+            size_t offset_in_limb = n % sizeof(mbedtls_mpi_uint);
+            unsigned char octet =
+                (X->p[limb_offset] >> (offset_in_limb * 8)) & 0xff;
+            mbedtls_snprintf(str + idx, sizeof(str) - idx, " %02x", octet);
+            idx += 3;
+            /* Wrap lines after 16 octets that each take 3 columns */
+            if (idx >= 3 * 16) {
+                mbedtls_snprintf(str + idx, sizeof(str) - idx, "\n");
+                debug_send_line(ssl, level, file, line, str);
+                idx = 0;
+            }
+        }
+    }
+
+    if (idx != 0) {
+        mbedtls_snprintf(str + idx, sizeof(str) - idx, "\n");
+        debug_send_line(ssl, level, file, line, str);
+    }
+}
+#endif /* MBEDTLS_BIGNUM_C */
+
+#if defined(MBEDTLS_X509_CRT_PARSE_C) && !defined(MBEDTLS_X509_REMOVE_INFO)
 #if defined(MBEDTLS_ECP_LIGHT)
 static void mbedtls_debug_print_ecp(const mbedtls_ssl_context *ssl, int level,
                                     const char *file, int line,
@@ -261,58 +313,6 @@ static void mbedtls_debug_print_psa_ec(const mbedtls_ssl_context *ssl, int level
 }
 #endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
 
-#if defined(MBEDTLS_BIGNUM_C)
-void mbedtls_debug_print_mpi(const mbedtls_ssl_context *ssl, int level,
-                             const char *file, int line,
-                             const char *text, const mbedtls_mpi *X)
-{
-    char str[DEBUG_BUF_SIZE];
-    size_t bitlen;
-    size_t idx = 0;
-
-    if (NULL == ssl              ||
-        NULL == ssl->conf        ||
-        NULL == ssl->conf->f_dbg ||
-        NULL == X                ||
-        level > debug_threshold) {
-        return;
-    }
-
-    bitlen = mbedtls_mpi_bitlen(X);
-
-    mbedtls_snprintf(str, sizeof(str), "value of '%s' (%u bits) is:\n",
-                     text, (unsigned) bitlen);
-    debug_send_line(ssl, level, file, line, str);
-
-    if (bitlen == 0) {
-        str[0] = ' '; str[1] = '0'; str[2] = '0';
-        idx = 3;
-    } else {
-        int n;
-        for (n = (int) ((bitlen - 1) / 8); n >= 0; n--) {
-            size_t limb_offset = n / sizeof(mbedtls_mpi_uint);
-            size_t offset_in_limb = n % sizeof(mbedtls_mpi_uint);
-            unsigned char octet =
-                (X->p[limb_offset] >> (offset_in_limb * 8)) & 0xff;
-            mbedtls_snprintf(str + idx, sizeof(str) - idx, " %02x", octet);
-            idx += 3;
-            /* Wrap lines after 16 octets that each take 3 columns */
-            if (idx >= 3 * 16) {
-                mbedtls_snprintf(str + idx, sizeof(str) - idx, "\n");
-                debug_send_line(ssl, level, file, line, str);
-                idx = 0;
-            }
-        }
-    }
-
-    if (idx != 0) {
-        mbedtls_snprintf(str + idx, sizeof(str) - idx, "\n");
-        debug_send_line(ssl, level, file, line, str);
-    }
-}
-#endif /* MBEDTLS_BIGNUM_C */
-
-#if defined(MBEDTLS_X509_CRT_PARSE_C) && !defined(MBEDTLS_X509_REMOVE_INFO)
 static void debug_print_pk(const mbedtls_ssl_context *ssl, int level,
                            const char *file, int line,
                            const char *text, const mbedtls_pk_context *pk)

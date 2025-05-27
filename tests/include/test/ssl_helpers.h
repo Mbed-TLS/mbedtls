@@ -194,6 +194,9 @@ typedef struct mbedtls_test_ssl_endpoint {
     mbedtls_ssl_context ssl;
     mbedtls_ssl_config conf;
     mbedtls_test_mock_socket socket;
+#if defined(MBEDTLS_TIMING_C)
+    mbedtls_timing_delay_context timer;
+#endif
 
     /* Objects owned by the endpoint */
     mbedtls_x509_crt *ca_chain;

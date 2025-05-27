@@ -2136,29 +2136,15 @@ void mbedtls_test_ssl_perform_handshake(
 #endif
 
     /* Client side */
-    if (options->dtls != 0) {
-        TEST_EQUAL(mbedtls_test_ssl_endpoint_init(&client,
-                                                  MBEDTLS_SSL_IS_CLIENT,
-                                                  options), 0);
-    } else {
-        TEST_EQUAL(mbedtls_test_ssl_endpoint_init(&client,
-                                                  MBEDTLS_SSL_IS_CLIENT,
-                                                  options), 0);
-    }
-
+    TEST_EQUAL(mbedtls_test_ssl_endpoint_init(&client,
+                                              MBEDTLS_SSL_IS_CLIENT,
+                                              options), 0);
     TEST_ASSERT(set_ciphersuite(&client, options->cipher));
 
     /* Server side */
-    if (options->dtls != 0) {
-        TEST_EQUAL(mbedtls_test_ssl_endpoint_init(&server,
-                                                  MBEDTLS_SSL_IS_SERVER,
-                                                  options), 0);
-    } else {
-        TEST_EQUAL(mbedtls_test_ssl_endpoint_init(&server,
-                                                  MBEDTLS_SSL_IS_SERVER,
-                                                  options), 0);
-    }
-
+    TEST_EQUAL(mbedtls_test_ssl_endpoint_init(&server,
+                                              MBEDTLS_SSL_IS_SERVER,
+                                              options), 0);
     mbedtls_ssl_conf_authmode(&server.conf, options->srv_auth_mode);
 
     if (options->dtls) {

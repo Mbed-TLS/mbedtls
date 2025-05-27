@@ -194,6 +194,11 @@ typedef struct mbedtls_test_ssl_endpoint {
     mbedtls_ssl_context ssl;
     mbedtls_ssl_config conf;
     mbedtls_test_mock_socket socket;
+
+    /* Objects only used by DTLS.
+     * They should be guarded by MBEDTLS_SSL_PROTO_DTLS, but
+     * currently aren't because some code accesses them without guards. */
+    mbedtls_test_message_socket_context dtls_context;
 #if defined(MBEDTLS_TIMING_C)
     mbedtls_timing_delay_context timer;
 #endif

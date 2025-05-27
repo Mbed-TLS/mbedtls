@@ -741,10 +741,12 @@ int mbedtls_test_ssl_endpoint_init(
     mbedtls_test_ssl_message_queue *input_queue,
     mbedtls_test_ssl_message_queue *output_queue)
 {
+    (void) dtls_context; // no longer used
+
     int ret = -1;
     uintptr_t user_data_n;
 
-    if (dtls_context != NULL &&
+    if (options->dtls &&
         (input_queue == NULL || output_queue == NULL)) {
         return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
 
@@ -760,6 +762,7 @@ int mbedtls_test_ssl_endpoint_init(
 
     mbedtls_ssl_init(&(ep->ssl));
     mbedtls_ssl_config_init(&(ep->conf));
+    mbedtls_test_message_socket_init(&ep->dtls_context);
 
     TEST_ASSERT(mbedtls_ssl_conf_get_user_data_p(&ep->conf) == NULL);
     TEST_EQUAL(mbedtls_ssl_conf_get_user_data_n(&ep->conf), 0);
@@ -772,17 +775,17 @@ int mbedtls_test_ssl_endpoint_init(
     mbedtls_ssl_conf_set_user_data_n(&ep->conf, user_data_n);
     mbedtls_ssl_set_user_data_n(&ep->ssl, user_data_n);
 
-    if (dtls_context != NULL) {
+    if (options->dtls) {
         TEST_EQUAL(mbedtls_test_message_socket_setup(input_queue, output_queue,
                                                      100, &(ep->socket),
-                                                     dtls_context), 0);
+                                                     &ep->dtls_context), 0);
     } else {
         mbedtls_test_mock_socket_init(&(ep->socket));
     }
 
     /* Non-blocking callbacks without timeout */
-    if (dtls_context != NULL) {
-        mbedtls_ssl_set_bio(&(ep->ssl), dtls_context,
+    if (options->dtls) {
+        mbedtls_ssl_set_bio(&(ep->ssl), &ep->dtls_context,
                             mbedtls_test_mock_tcp_send_msg,
                             mbedtls_test_mock_tcp_recv_msg,
                             NULL);
@@ -799,7 +802,7 @@ int mbedtls_test_ssl_endpoint_init(
     }
 
     ret = mbedtls_ssl_config_defaults(&(ep->conf), endpoint_type,
-                                      (dtls_context != NULL) ?
+                                      options->dtls ?
                                       MBEDTLS_SSL_TRANSPORT_DATAGRAM :
                                       MBEDTLS_SSL_TRANSPORT_STREAM,
                                       MBEDTLS_SSL_PRESET_DEFAULT);
@@ -867,7 +870,7 @@ int mbedtls_test_ssl_endpoint_init(
     }
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS) && defined(MBEDTLS_SSL_SRV_C)
-    if (endpoint_type == MBEDTLS_SSL_IS_SERVER && dtls_context != NULL) {
+    if (endpoint_type == MBEDTLS_SSL_IS_SERVER && options->dtls) {
         mbedtls_ssl_conf_dtls_cookies(&(ep->conf), NULL, NULL, NULL);
     }
 #endif
@@ -914,6 +917,8 @@ void mbedtls_test_ssl_endpoint_free(
     mbedtls_test_ssl_endpoint *ep,
     mbedtls_test_message_socket_context *context)
 {
+    (void) context; // no longer used
+
     mbedtls_ssl_free(&(ep->ssl));
     mbedtls_ssl_config_free(&(ep->conf));
 
@@ -921,8 +926,8 @@ void mbedtls_test_ssl_endpoint_free(
     ep->ciphersuites = NULL;
     test_ssl_endpoint_certificate_free(ep);
 
-    if (context != NULL) {
-        mbedtls_test_message_socket_close(context);
+    if (ep->dtls_context.socket != NULL) {
+        mbedtls_test_message_socket_close(&ep->dtls_context);
     } else {
         mbedtls_test_mock_socket_close(&(ep->socket));
     }
@@ -2125,9 +2130,6 @@ void mbedtls_test_ssl_perform_handshake(
     mbedtls_platform_zeroize(&client, sizeof(client));
     mbedtls_platform_zeroize(&server, sizeof(server));
     mbedtls_test_ssl_message_queue server_queue, client_queue;
-    mbedtls_test_message_socket_context server_context, client_context;
-    mbedtls_test_message_socket_init(&server_context);
-    mbedtls_test_message_socket_init(&client_context);
 
 #if defined(MBEDTLS_DEBUG_C)
     if (options->cli_log_fun || options->srv_log_fun) {
@@ -2139,7 +2141,7 @@ void mbedtls_test_ssl_perform_handshake(
     if (options->dtls != 0) {
         TEST_EQUAL(mbedtls_test_ssl_endpoint_init(&client,
                                                   MBEDTLS_SSL_IS_CLIENT,
-                                                  options, &client_context,
+                                                  options, NULL,
                                                   &client_queue,
                                                   &server_queue), 0);
     } else {
@@ -2155,7 +2157,7 @@ void mbedtls_test_ssl_perform_handshake(
     if (options->dtls != 0) {
         TEST_EQUAL(mbedtls_test_ssl_endpoint_init(&server,
                                                   MBEDTLS_SSL_IS_SERVER,
-                                                  options, &server_context,
+                                                  options, NULL,
                                                   &server_queue,
                                                   &client_queue), 0);
     } else {
@@ -2312,7 +2314,7 @@ void mbedtls_test_ssl_perform_handshake(
 
         TEST_EQUAL(mbedtls_ssl_setup(&(server.ssl), &(server.conf)), 0);
 
-        mbedtls_ssl_set_bio(&(server.ssl), &server_context,
+        mbedtls_ssl_set_bio(&(server.ssl), &server.dtls_context,
                             mbedtls_test_mock_tcp_send_msg,
                             mbedtls_test_mock_tcp_recv_msg,
                             NULL);
@@ -2426,10 +2428,8 @@ void mbedtls_test_ssl_perform_handshake(
     TEST_ASSERT(mbedtls_ssl_get_user_data_p(&server.ssl) == &server);
 
 exit:
-    mbedtls_test_ssl_endpoint_free(&client,
-                                   options->dtls != 0 ? &client_context : NULL);
-    mbedtls_test_ssl_endpoint_free(&server,
-                                   options->dtls != 0 ? &server_context : NULL);
+    mbedtls_test_ssl_endpoint_free(&client, NULL);
+    mbedtls_test_ssl_endpoint_free(&server, NULL);
 #if defined(MBEDTLS_DEBUG_C)
     if (options->cli_log_fun || options->srv_log_fun) {
         mbedtls_debug_set_threshold(0);

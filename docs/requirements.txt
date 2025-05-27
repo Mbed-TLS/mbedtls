@@ -27,7 +27,7 @@ imagesize==1.4.1
     # via sphinx
 importlib-metadata==8.0.0
     # via sphinx
-jinja2==3.1.4
+jinja2==3.1.6
     # via sphinx
 markdown-it-py==3.0.0
     # via rich

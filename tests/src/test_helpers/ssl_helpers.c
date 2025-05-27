@@ -742,15 +742,11 @@ int mbedtls_test_ssl_endpoint_init(
     mbedtls_test_ssl_message_queue *output_queue)
 {
     (void) dtls_context; // no longer used
+    (void) input_queue; // no longer used
+    (void) output_queue; // no longer used
 
     int ret = -1;
     uintptr_t user_data_n;
-
-    if (options->dtls &&
-        (input_queue == NULL || output_queue == NULL)) {
-        return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
-
-    }
 
     if (ep == NULL) {
         return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
@@ -775,13 +771,7 @@ int mbedtls_test_ssl_endpoint_init(
     mbedtls_ssl_conf_set_user_data_n(&ep->conf, user_data_n);
     mbedtls_ssl_set_user_data_n(&ep->ssl, user_data_n);
 
-    if (options->dtls) {
-        TEST_EQUAL(mbedtls_test_message_socket_setup(input_queue, output_queue,
-                                                     100, &(ep->socket),
-                                                     &ep->dtls_context), 0);
-    } else {
-        mbedtls_test_mock_socket_init(&(ep->socket));
-    }
+    mbedtls_test_mock_socket_init(&(ep->socket));
 
     /* Non-blocking callbacks without timeout */
     if (options->dtls) {
@@ -938,11 +928,19 @@ int mbedtls_test_ssl_dtls_join_endpoints(mbedtls_test_ssl_endpoint *client,
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
-    /* Nothing to do yet. */
-    (void) client;
-    (void) server;
-    ret = 0;
+    ret = mbedtls_test_message_socket_setup(&client->queue_input,
+                                            &server->queue_input,
+                                            100, &(client->socket),
+                                            &client->dtls_context);
+    TEST_EQUAL(ret, 0);
 
+    ret = mbedtls_test_message_socket_setup(&server->queue_input,
+                                            &client->queue_input,
+                                            100, &(server->socket),
+                                            &server->dtls_context);
+    TEST_EQUAL(ret, 0);
+
+exit:
     return ret;
 }
 
@@ -2142,7 +2140,6 @@ void mbedtls_test_ssl_perform_handshake(
     MD_OR_USE_PSA_INIT();
     mbedtls_platform_zeroize(&client, sizeof(client));
     mbedtls_platform_zeroize(&server, sizeof(server));
-    mbedtls_test_ssl_message_queue server_queue, client_queue;
 
 #if defined(MBEDTLS_DEBUG_C)
     if (options->cli_log_fun || options->srv_log_fun) {
@@ -2154,9 +2151,8 @@ void mbedtls_test_ssl_perform_handshake(
     if (options->dtls != 0) {
         TEST_EQUAL(mbedtls_test_ssl_endpoint_init(&client,
                                                   MBEDTLS_SSL_IS_CLIENT,
-                                                  options, NULL,
-                                                  &client_queue,
-                                                  &server_queue), 0);
+                                                  options, NULL, NULL,
+                                                  NULL), 0);
     } else {
         TEST_EQUAL(mbedtls_test_ssl_endpoint_init(&client,
                                                   MBEDTLS_SSL_IS_CLIENT,
@@ -2170,9 +2166,8 @@ void mbedtls_test_ssl_perform_handshake(
     if (options->dtls != 0) {
         TEST_EQUAL(mbedtls_test_ssl_endpoint_init(&server,
                                                   MBEDTLS_SSL_IS_SERVER,
-                                                  options, NULL,
-                                                  &server_queue,
-                                                  &client_queue), 0);
+                                                  options, NULL, NULL,
+                                                  NULL), 0);
     } else {
         TEST_EQUAL(mbedtls_test_ssl_endpoint_init(&server,
                                                   MBEDTLS_SSL_IS_SERVER,

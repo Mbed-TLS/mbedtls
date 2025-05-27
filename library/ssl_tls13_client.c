@@ -158,7 +158,7 @@ static int ssl_tls13_parse_alpn_ext(mbedtls_ssl_context *ssl,
 
     /* Check that the server chosen protocol was in our list and save it */
     MBEDTLS_SSL_CHK_BUF_READ_PTR(p, protocol_name_list_end, protocol_name_len);
-    for (const char **alpn = ssl->conf->alpn_list; *alpn != NULL; alpn++) {
+    for (const char *const *alpn = ssl->conf->alpn_list; *alpn != NULL; alpn++) {
         if (protocol_name_len == strlen(*alpn) &&
             memcmp(p, *alpn, protocol_name_len) == 0) {
             ssl->alpn_chosen = *alpn;

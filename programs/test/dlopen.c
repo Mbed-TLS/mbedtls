@@ -50,8 +50,15 @@ int main(void)
 #if defined(MBEDTLS_SSL_TLS_C)
     void *tls_so = dlopen(TLS_SO_FILENAME, RTLD_NOW);
     CHECK_DLERROR("dlopen", TLS_SO_FILENAME);
+#pragma GCC diagnostic push
+    /* dlsym() returns an object pointer which is meant to be used as a
+     * function pointer. This has undefined behavior in standard C, so
+     * "gcc -std=c99 -pedantic" complains about it, but it is perfectly
+     * fine on platforms that have dlsym(). */
+#pragma GCC diagnostic ignored "-Wpedantic"
     const int *(*ssl_list_ciphersuites)(void) =
         dlsym(tls_so, "mbedtls_ssl_list_ciphersuites");
+#pragma GCC diagnostic pop
     CHECK_DLERROR("dlsym", "mbedtls_ssl_list_ciphersuites");
     const int *ciphersuites = ssl_list_ciphersuites();
     for (n = 0; ciphersuites[n] != 0; n++) {/* nothing to do, we're just counting */
@@ -85,9 +92,15 @@ int main(void)
         CHECK_DLERROR("dlopen", TFPSACRYPTO_SO_FILENAME);
         crypto_so_filename = TFPSACRYPTO_SO_FILENAME;
     }
-
+#pragma GCC diagnostic push
+    /* dlsym() returns an object pointer which is meant to be used as a
+     * function pointer. This has undefined behavior in standard C, so
+     * "gcc -std=c99 -pedantic" complains about it, but it is perfectly
+     * fine on platforms that have dlsym(). */
+#pragma GCC diagnostic ignored "-Wpedantic"
     const int *(*md_list)(void) =
         dlsym(crypto_so, "mbedtls_md_list");
+#pragma GCC diagnostic pop
     CHECK_DLERROR("dlsym", "mbedtls_md_list");
     const int *mds = md_list();
     for (n = 0; mds[n] != 0; n++) {/* nothing to do, we're just counting */

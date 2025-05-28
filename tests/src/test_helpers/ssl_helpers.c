@@ -572,7 +572,59 @@ int mbedtls_test_mock_tcp_recv_msg(void *ctx,
     return (msg_len > INT_MAX) ? INT_MAX : (int) msg_len;
 }
 
+
+#if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED) && \
+    defined(MBEDTLS_SSL_HANDSHAKE_WITH_PSK_ENABLED)  && \
+    defined(MBEDTLS_SSL_SRV_C)
+static int psk_dummy_callback(void *p_info, mbedtls_ssl_context *ssl,
+                              const unsigned char *name, size_t name_len)
+{
+    (void) p_info;
+    (void) ssl;
+    (void) name;
+    (void) name_len;
+
+    return 0;
+}
+#endif /* MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED &&
+          MBEDTLS_SSL_HANDSHAKE_WITH_PSK_ENABLED  &&
+          MBEDTLS_SSL_SRV_C */
+
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
+
+static int set_ciphersuite(mbedtls_test_ssl_endpoint *ep,
+                           const char *cipher)
+{
+    if (cipher == NULL || cipher[0] == 0) {
+        return 1;
+    }
+
+    int ok = 0;
+
+    TEST_CALLOC(ep->ciphersuites, 2);
+    ep->ciphersuites[0] = mbedtls_ssl_get_ciphersuite_id(cipher);
+    ep->ciphersuites[1] = 0;
+
+    const mbedtls_ssl_ciphersuite_t *ciphersuite_info =
+        mbedtls_ssl_ciphersuite_from_id(ep->ciphersuites[0]);
+
+    TEST_ASSERT(ciphersuite_info != NULL);
+    TEST_ASSERT(ciphersuite_info->min_tls_version <= ep->conf.max_tls_version);
+    TEST_ASSERT(ciphersuite_info->max_tls_version >= ep->conf.min_tls_version);
+
+    if (ep->conf.max_tls_version > ciphersuite_info->max_tls_version) {
+        ep->conf.max_tls_version = (mbedtls_ssl_protocol_version) ciphersuite_info->max_tls_version;
+    }
+    if (ep->conf.min_tls_version < ciphersuite_info->min_tls_version) {
+        ep->conf.min_tls_version = (mbedtls_ssl_protocol_version) ciphersuite_info->min_tls_version;
+    }
+
+    mbedtls_ssl_conf_ciphersuites(&ep->conf, ep->ciphersuites);
+    ok = 1;
+
+exit:
+    return ok;
+}
 
 /*
  * Deinitializes certificates from endpoint represented by \p ep.
@@ -740,6 +792,9 @@ int mbedtls_test_ssl_endpoint_init(
 {
     int ret = -1;
     uintptr_t user_data_n;
+#if defined(MBEDTLS_SSL_HANDSHAKE_WITH_PSK_ENABLED)
+    const char *psk_identity = "foo";
+#endif
 
     if (ep == NULL) {
         return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
@@ -813,6 +868,10 @@ int mbedtls_test_ssl_endpoint_init(
         }
     }
 
+    if (MBEDTLS_SSL_IS_CLIENT == endpoint_type) {
+        TEST_ASSERT(set_ciphersuite(ep, options->cipher));
+    }
+
     if (options->group_list != NULL) {
         mbedtls_ssl_conf_groups(&(ep->conf), options->group_list);
     }
@@ -828,6 +887,7 @@ int mbedtls_test_ssl_endpoint_init(
                                              options->max_early_data_size);
     }
 #endif
+
 #if defined(MBEDTLS_SSL_ALPN)
     /* check that alpn_list contains at least one valid entry */
     if (options->alpn_list[0] != NULL) {
@@ -836,6 +896,15 @@ int mbedtls_test_ssl_endpoint_init(
 #endif
 #endif
 
+#if defined(MBEDTLS_SSL_RENEGOTIATION)
+    if (options->renegotiate) {
+        mbedtls_ssl_conf_renegotiation(&ep->conf,
+                                       MBEDTLS_SSL_RENEGOTIATION_ENABLED);
+        mbedtls_ssl_conf_legacy_renegotiation(&ep->conf,
+                                              options->legacy_renegotiation);
+    }
+#endif /* MBEDTLS_SSL_RENEGOTIATION */
+
 #if defined(MBEDTLS_SSL_CACHE_C) && defined(MBEDTLS_SSL_SRV_C)
     if (endpoint_type == MBEDTLS_SSL_IS_SERVER && options->cache != NULL) {
         mbedtls_ssl_conf_session_cache(&(ep->conf), options->cache,
@@ -843,6 +912,14 @@ int mbedtls_test_ssl_endpoint_init(
                                        mbedtls_ssl_cache_set);
     }
 #endif
+
+#if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
+    TEST_EQUAL(mbedtls_ssl_conf_max_frag_len(&ep->conf,
+                                             (unsigned char) options->mfl),
+               0);
+#else
+    TEST_EQUAL(MBEDTLS_SSL_MAX_FRAG_LEN_NONE, options->mfl);
+#endif /* MBEDTLS_SSL_MAX_FRAGMENT_LENGTH */
 
     ret = mbedtls_ssl_setup(&(ep->ssl), &(ep->conf));
     TEST_EQUAL(ret, 0);
@@ -880,6 +957,21 @@ int mbedtls_test_ssl_endpoint_init(
                                                      options->opaque_alg2,
                                                      options->opaque_usage);
     TEST_EQUAL(ret, 0);
+
+#if defined(MBEDTLS_SSL_HANDSHAKE_WITH_PSK_ENABLED)
+    if (options->psk_str != NULL && options->psk_str->len > 0) {
+        TEST_EQUAL(mbedtls_ssl_conf_psk(
+                       &ep->conf, options->psk_str->x,
+                       options->psk_str->len,
+                       (const unsigned char *) psk_identity,
+                       strlen(psk_identity)), 0);
+#if defined(MBEDTLS_SSL_SRV_C)
+        if (MBEDTLS_SSL_IS_SERVER == endpoint_type) {
+            mbedtls_ssl_conf_psk_cb(&ep->conf, psk_dummy_callback, NULL);
+        }
+#endif
+    }
+#endif
 
     TEST_EQUAL(mbedtls_ssl_conf_get_user_data_n(&ep->conf), user_data_n);
     mbedtls_ssl_conf_set_user_data_p(&ep->conf, ep);
@@ -1059,59 +1151,6 @@ exit:
     /* Some of the tests failed */
     return -1;
 }
-
-#if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
-static int set_ciphersuite(mbedtls_test_ssl_endpoint *ep,
-                           const char *cipher)
-{
-    if (cipher == NULL || cipher[0] == 0) {
-        return 1;
-    }
-
-    int ok = 0;
-
-    TEST_CALLOC(ep->ciphersuites, 2);
-    ep->ciphersuites[0] = mbedtls_ssl_get_ciphersuite_id(cipher);
-    ep->ciphersuites[1] = 0;
-
-    const mbedtls_ssl_ciphersuite_t *ciphersuite_info =
-        mbedtls_ssl_ciphersuite_from_id(ep->ciphersuites[0]);
-
-    TEST_ASSERT(ciphersuite_info != NULL);
-    TEST_ASSERT(ciphersuite_info->min_tls_version <= ep->conf.max_tls_version);
-    TEST_ASSERT(ciphersuite_info->max_tls_version >= ep->conf.min_tls_version);
-
-    if (ep->conf.max_tls_version > ciphersuite_info->max_tls_version) {
-        ep->conf.max_tls_version = (mbedtls_ssl_protocol_version) ciphersuite_info->max_tls_version;
-    }
-    if (ep->conf.min_tls_version < ciphersuite_info->min_tls_version) {
-        ep->conf.min_tls_version = (mbedtls_ssl_protocol_version) ciphersuite_info->min_tls_version;
-    }
-
-    mbedtls_ssl_conf_ciphersuites(&ep->conf, ep->ciphersuites);
-    ok = 1;
-
-exit:
-    return ok;
-}
-#endif /* MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED */
-
-#if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED) && \
-    defined(MBEDTLS_SSL_HANDSHAKE_WITH_PSK_ENABLED)  && \
-    defined(MBEDTLS_SSL_SRV_C)
-static int psk_dummy_callback(void *p_info, mbedtls_ssl_context *ssl,
-                              const unsigned char *name, size_t name_len)
-{
-    (void) p_info;
-    (void) ssl;
-    (void) name;
-    (void) name_len;
-
-    return 0;
-}
-#endif /* MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED &&
-          MBEDTLS_SSL_HANDSHAKE_WITH_PSK_ENABLED  &&
-          MBEDTLS_SSL_SRV_C */
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2) && \
     defined(PSA_WANT_ALG_CBC_NO_PADDING) && defined(PSA_WANT_KEY_TYPE_AES)
@@ -2383,9 +2422,6 @@ void mbedtls_test_ssl_perform_handshake(
     mbedtls_test_ssl_endpoint server_struct;
     memset(&server_struct, 0, sizeof(server_struct));
     mbedtls_test_ssl_endpoint *const server = &server_struct;
-#if defined(MBEDTLS_SSL_HANDSHAKE_WITH_PSK_ENABLED)
-    const char *psk_identity = "foo";
-#endif
 
     MD_OR_USE_PSA_INIT();
 
@@ -2399,7 +2435,6 @@ void mbedtls_test_ssl_perform_handshake(
     TEST_EQUAL(mbedtls_test_ssl_endpoint_init(client,
                                               MBEDTLS_SSL_IS_CLIENT,
                                               options), 0);
-    TEST_ASSERT(set_ciphersuite(client, options->cipher));
 
     /* Server side */
     TEST_EQUAL(mbedtls_test_ssl_endpoint_init(server,
@@ -2410,49 +2445,6 @@ void mbedtls_test_ssl_perform_handshake(
     if (options->dtls) {
         TEST_EQUAL(mbedtls_test_ssl_dtls_join_endpoints(client, server), 0);
     }
-
-#if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
-    TEST_EQUAL(mbedtls_ssl_conf_max_frag_len(&(server->conf),
-                                             (unsigned char) options->mfl),
-               0);
-    TEST_EQUAL(mbedtls_ssl_conf_max_frag_len(&(client->conf),
-                                             (unsigned char) options->mfl),
-               0);
-#else
-    TEST_EQUAL(MBEDTLS_SSL_MAX_FRAG_LEN_NONE, options->mfl);
-#endif /* MBEDTLS_SSL_MAX_FRAGMENT_LENGTH */
-
-#if defined(MBEDTLS_SSL_HANDSHAKE_WITH_PSK_ENABLED)
-    if (options->psk_str != NULL && options->psk_str->len > 0) {
-        TEST_EQUAL(mbedtls_ssl_conf_psk(
-                       &client->conf, options->psk_str->x,
-                       options->psk_str->len,
-                       (const unsigned char *) psk_identity,
-                       strlen(psk_identity)), 0);
-
-        TEST_EQUAL(mbedtls_ssl_conf_psk(
-                       &server->conf, options->psk_str->x,
-                       options->psk_str->len,
-                       (const unsigned char *) psk_identity,
-                       strlen(psk_identity)), 0);
-#if defined(MBEDTLS_SSL_SRV_C)
-        mbedtls_ssl_conf_psk_cb(&server->conf, psk_dummy_callback, NULL);
-#endif
-    }
-#endif
-#if defined(MBEDTLS_SSL_RENEGOTIATION)
-    if (options->renegotiate) {
-        mbedtls_ssl_conf_renegotiation(&(server->conf),
-                                       MBEDTLS_SSL_RENEGOTIATION_ENABLED);
-        mbedtls_ssl_conf_renegotiation(&(client->conf),
-                                       MBEDTLS_SSL_RENEGOTIATION_ENABLED);
-
-        mbedtls_ssl_conf_legacy_renegotiation(&(server->conf),
-                                              options->legacy_renegotiation);
-        mbedtls_ssl_conf_legacy_renegotiation(&(client->conf),
-                                              options->legacy_renegotiation);
-    }
-#endif /* MBEDTLS_SSL_RENEGOTIATION */
 
     TEST_ASSERT(mbedtls_test_ssl_perform_connection(options, client, server));
 

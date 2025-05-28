@@ -3043,6 +3043,7 @@ void handshake_ciphersuite_select(char *cipher, int pk_alg, data_t *psk_str,
     options.opaque_alg = psa_alg;
     options.opaque_alg2 = psa_alg2;
     options.opaque_usage = psa_usage;
+    options.srv_auth_mode = MBEDTLS_SSL_VERIFY_NONE;
     options.expected_handshake_result = expected_handshake_result;
     options.expected_ciphersuite = expected_ciphersuite;
 

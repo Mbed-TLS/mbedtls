@@ -2534,10 +2534,11 @@ void mbedtls_ssl_conf_sni(mbedtls_ssl_config *conf,
 #endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION */
 
 #if defined(MBEDTLS_SSL_ALPN)
-int mbedtls_ssl_conf_alpn_protocols(mbedtls_ssl_config *conf, const char **protos)
+int mbedtls_ssl_conf_alpn_protocols(mbedtls_ssl_config *conf,
+                                    const char *const *protos)
 {
     size_t cur_len, tot_len;
-    const char **p;
+    const char *const *p;
 
     /*
      * RFC 7301 3.1: "Empty strings MUST NOT be included and byte strings
@@ -5111,7 +5112,7 @@ static int ssl_context_load(mbedtls_ssl_context *ssl,
 #if defined(MBEDTLS_SSL_ALPN)
     {
         uint8_t alpn_len;
-        const char **cur;
+        const char *const *cur;
 
         if ((size_t) (end - p) < 1) {
             return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
@@ -8547,7 +8548,7 @@ int mbedtls_ssl_parse_alpn_ext(mbedtls_ssl_context *ssl,
     }
 
     /* Use our order of preference */
-    for (const char **alpn = ssl->conf->alpn_list; *alpn != NULL; alpn++) {
+    for (const char *const *alpn = ssl->conf->alpn_list; *alpn != NULL; alpn++) {
         size_t const alpn_len = strlen(*alpn);
         p = protocol_name_list;
         while (p < protocol_name_list_end) {

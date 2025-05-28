@@ -869,7 +869,7 @@ static int ssl_parse_alpn_ext(mbedtls_ssl_context *ssl,
                               const unsigned char *buf, size_t len)
 {
     size_t list_len, name_len;
-    const char **p;
+    const char *const *p;
 
     /* If we didn't send it, the server shouldn't send it */
     if (ssl->conf->alpn_list == NULL) {

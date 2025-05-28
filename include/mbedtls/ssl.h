@@ -1569,7 +1569,7 @@ struct mbedtls_ssl_config {
 #endif /* MBEDTLS_SSL_EARLY_DATA */
 
 #if defined(MBEDTLS_SSL_ALPN)
-    const char **MBEDTLS_PRIVATE(alpn_list);         /*!< ordered list of protocols          */
+    const char *const *MBEDTLS_PRIVATE(alpn_list); /*!< ordered list of protocols */
 #endif
 
 #if defined(MBEDTLS_SSL_DTLS_SRTP)
@@ -4011,7 +4011,8 @@ int mbedtls_ssl_set_hs_ecjpake_password_opaque(mbedtls_ssl_context *ssl,
  *
  * \return         0 on success, or MBEDTLS_ERR_SSL_BAD_INPUT_DATA.
  */
-int mbedtls_ssl_conf_alpn_protocols(mbedtls_ssl_config *conf, const char **protos);
+int mbedtls_ssl_conf_alpn_protocols(mbedtls_ssl_config *conf,
+                                    const char *const *protos);
 
 /**
  * \brief          Get the name of the negotiated Application Layer Protocol.

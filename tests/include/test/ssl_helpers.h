@@ -103,9 +103,6 @@ typedef struct mbedtls_test_handshake_test_options {
     int expected_handshake_result;
     int expected_ciphersuite;
     int pk_alg;
-    int opaque_alg;
-    int opaque_alg2;
-    int opaque_usage;
     data_t *psk_str;
     int dtls;
     int srv_auth_mode;
@@ -442,9 +439,27 @@ int mbedtls_test_mock_tcp_recv_msg(void *ctx,
  * \retval  0 on success, otherwise error code.
  */
 int mbedtls_test_ssl_endpoint_certificate_init(mbedtls_test_ssl_endpoint *ep,
-                                               int pk_alg,
-                                               int opaque_alg, int opaque_alg2,
-                                               int opaque_usage);
+                                               int pk_alg);
+
+/** Make the endpoint's private key opaque.
+ *
+ * Call this function after mbedtls_test_ssl_endpoint_certificate_init()
+ * (including indirect calls by mbedtls_test_ssl_endpoint_init()) to
+ * replace the endpoint key by an opaque key with the same material.
+ *
+ * \param ep            The endpoint to set up. It must already have a key
+ *                      and certificate set.
+ * \param opaque_alg    The algorithm to declare in the PSA key policy.
+ * \param opaque_alg2   The enrollment algorithm to declare in the PSA
+ *                      key policy.
+ * \param opaque_usage  The usage flags to declare in the PSA key policy.
+ *
+ * \return  0 on success. On error, this function marks the test as failed
+ *          and returns a negative error code.
+ */
+int mbedtls_test_ssl_endpoint_make_key_opaque(mbedtls_test_ssl_endpoint *ep,
+                                              int opaque_alg, int opaque_alg2,
+                                              int opaque_usage);
 
 /*
  * Initializes \p ep structure. It is important to call

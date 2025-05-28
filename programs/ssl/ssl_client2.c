@@ -2059,7 +2059,7 @@ usage:
             psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
 
             psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_DERIVE);
-            psa_set_key_algorithm(&attributes, PSA_ALG_JPAKE_BASE);
+            psa_set_key_algorithm(&attributes, PSA_ALG_JPAKE(PSA_ALG_SHA_256));
             psa_set_key_type(&attributes, PSA_KEY_TYPE_PASSWORD);
 
             status = psa_import_key(&attributes,

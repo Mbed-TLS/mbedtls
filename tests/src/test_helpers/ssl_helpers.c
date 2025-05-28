@@ -2016,15 +2016,23 @@ static int exchange_data(mbedtls_ssl_context *ssl_1,
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
 static int check_ssl_version(
     mbedtls_ssl_protocol_version expected_negotiated_version,
-    const mbedtls_ssl_context *ssl)
+    const mbedtls_ssl_context *client,
+    const mbedtls_ssl_context *server)
 {
-    const char *version_string = mbedtls_ssl_get_version(ssl);
+    /* First check that both sides have chosen the same version.
+     * If so, we can make more sanity checks just on one side.
+     * If not, something is deeply wrong. */
+    TEST_EQUAL(client->tls_version, server->tls_version);
+
+    /* Make further checks on the client to validate that the
+     * reported data about the version is correct. */
+    const char *version_string = mbedtls_ssl_get_version(client);
     mbedtls_ssl_protocol_version version_number =
-        mbedtls_ssl_get_version_number(ssl);
+        mbedtls_ssl_get_version_number(client);
 
-    TEST_EQUAL(ssl->tls_version, expected_negotiated_version);
+    TEST_EQUAL(client->tls_version, expected_negotiated_version);
 
-    if (ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM) {
+    if (client->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM) {
         TEST_EQUAL(version_string[0], 'D');
         ++version_string;
     }
@@ -2383,18 +2391,11 @@ void mbedtls_test_ssl_perform_handshake(
                0);
 
     TEST_EQUAL(mbedtls_ssl_is_handshake_over(&server->ssl), 1);
-    /* Check that both sides have negotiated the expected version. */
-    mbedtls_test_set_step(0);
-    if (!check_ssl_version(options->expected_negotiated_version,
-                           &client->ssl)) {
-        goto exit;
-    }
 
-    mbedtls_test_set_step(1);
-    if (!check_ssl_version(options->expected_negotiated_version,
-                           &server->ssl)) {
-        goto exit;
-    }
+    /* Check that both sides have negotiated the expected version. */
+    TEST_ASSERT(check_ssl_version(options->expected_negotiated_version,
+                                  &client->ssl,
+                                  &server->ssl));
 
     if (options->expected_ciphersuite != 0) {
         TEST_EQUAL(server->ssl.session->ciphersuite,

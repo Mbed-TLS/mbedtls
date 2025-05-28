@@ -624,6 +624,49 @@ int mbedtls_test_ssl_do_handshake_with_endpoints(
 #endif /* defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED) */
 
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
+/** Perform an SSL handshake and exchange data over the connection.
+ *
+ * This function also handles cases where the handshake is expected to fail.
+ *
+ * If the handshake succeeds as expected, this function validates that
+ * connection parameters are as expected, exchanges data over the
+ * connection, and exercises some optional protocol features if they
+ * are enabled. See the code to see what features are validated and exercised.
+ *
+ * The handshake is expected to fail in the following cases:
+ * - If `options->expected_handshake_result != 0`.
+ * - If `options->expected_negotiated_version == MBEDTLS_SSL_VERSION_UNKNOWN`.
+ *
+ * \param[in] options   Options for the connection.
+ * \param client        The client endpoint. It must have been set up with
+ *                      mbedtls_test_ssl_endpoint_init() with \p options
+ *                      and #MBEDTLS_SSL_IS_CLIENT.
+ * \param server        The server endpoint. It must have been set up with
+ *                      mbedtls_test_ssl_endpoint_init() with \p options
+ *                      and #MBEDTLS_SSL_IS_CLIENT.
+ *
+ * \return              1 on success, 0 on failure. On failure, this function
+ *                      calls mbedtls_test_fail(), indicating the failure
+ *                      reason and location. The causes of failure are:
+ *                      - Inconsistent options or bad endpoint state.
+ *                      - Operational problem during the handshake.
+ *                      - The handshake was expected to pass, but failed.
+ *                      - The handshake was expected to fail, but passed or
+ *                        failed with a different result.
+ *                      - The handshake passed as expected, but some connection
+ *                        parameter (e.g. protocol version, cipher suite, ...)
+ *                        is not as expected.
+ *                      - The handshake passed as expected, but something
+ *                        went wrong when attempting to exchange data.
+ *                      - The handshake passed as expected, but something
+ *                        went wrong when exercising other features
+ *                        (e.g. renegotiation, serialization, ...).
+ */
+int mbedtls_test_ssl_perform_connection(
+    const mbedtls_test_handshake_test_options *options,
+    mbedtls_test_ssl_endpoint *client,
+    mbedtls_test_ssl_endpoint *server);
+
 void mbedtls_test_ssl_perform_handshake(
     const mbedtls_test_handshake_test_options *options);
 #endif /* MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED */

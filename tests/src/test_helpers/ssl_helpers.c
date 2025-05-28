@@ -2272,10 +2272,111 @@ exit:
 }
 #endif /* MBEDTLS_SSL_CONTEXT_SERIALIZATION */
 
+int mbedtls_test_ssl_perform_connection(
+    const mbedtls_test_handshake_test_options *options,
+    mbedtls_test_ssl_endpoint *client,
+    mbedtls_test_ssl_endpoint *server)
+{
+    enum { BUFFSIZE = 17000 };
+    int expected_handshake_result = options->expected_handshake_result;
+    int ok = 0;
+
+    TEST_EQUAL(mbedtls_test_mock_socket_connect(&(client->socket),
+                                                &(server->socket),
+                                                BUFFSIZE), 0);
+
+#if defined(MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH)
+    if (options->resize_buffers != 0) {
+        /* Ensure that the buffer sizes are appropriate before resizes */
+        TEST_EQUAL(client->ssl.out_buf_len, MBEDTLS_SSL_OUT_BUFFER_LEN);
+        TEST_EQUAL(client->ssl.in_buf_len, MBEDTLS_SSL_IN_BUFFER_LEN);
+        TEST_EQUAL(server->ssl.out_buf_len, MBEDTLS_SSL_OUT_BUFFER_LEN);
+        TEST_EQUAL(server->ssl.in_buf_len, MBEDTLS_SSL_IN_BUFFER_LEN);
+    }
+#endif
+
+    if (options->expected_negotiated_version == MBEDTLS_SSL_VERSION_UNKNOWN) {
+        expected_handshake_result = MBEDTLS_ERR_SSL_BAD_PROTOCOL_VERSION;
+    }
+
+    TEST_EQUAL(mbedtls_test_move_handshake_to_state(&(client->ssl),
+                                                    &(server->ssl),
+                                                    MBEDTLS_SSL_HANDSHAKE_OVER),
+               expected_handshake_result);
+
+    if (expected_handshake_result != 0) {
+        /* Connection will have failed by this point, skip to cleanup */
+        ok = 1;
+        goto exit;
+    }
+
+    TEST_EQUAL(mbedtls_ssl_is_handshake_over(&client->ssl), 1);
+
+    /* Make sure server state is moved to HANDSHAKE_OVER also. */
+    TEST_EQUAL(mbedtls_test_move_handshake_to_state(&(server->ssl),
+                                                    &(client->ssl),
+                                                    MBEDTLS_SSL_HANDSHAKE_OVER),
+               0);
+
+    TEST_EQUAL(mbedtls_ssl_is_handshake_over(&server->ssl), 1);
+
+    /* Check that both sides have negotiated the expected version. */
+    TEST_ASSERT(check_ssl_version(options->expected_negotiated_version,
+                                  &client->ssl,
+                                  &server->ssl));
+
+    if (options->expected_ciphersuite != 0) {
+        TEST_EQUAL(server->ssl.session->ciphersuite,
+                   options->expected_ciphersuite);
+    }
+
+#if defined(MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH)
+    if (options->resize_buffers != 0) {
+        /* A server, when using DTLS, might delay a buffer resize to happen
+         * after it receives a message, so we force it. */
+        TEST_EQUAL(exchange_data(&(client->ssl), &(server->ssl)), 0);
+
+        TEST_EQUAL(client->ssl.out_buf_len,
+                   mbedtls_ssl_get_output_buflen(&client->ssl));
+        TEST_EQUAL(client->ssl.in_buf_len,
+                   mbedtls_ssl_get_input_buflen(&client->ssl));
+        TEST_EQUAL(server->ssl.out_buf_len,
+                   mbedtls_ssl_get_output_buflen(&server->ssl));
+        TEST_EQUAL(server->ssl.in_buf_len,
+                   mbedtls_ssl_get_input_buflen(&server->ssl));
+    }
+#endif
+
+    if (options->cli_msg_len != 0 || options->srv_msg_len != 0) {
+        /* Start data exchanging test */
+        TEST_EQUAL(mbedtls_test_ssl_exchange_data(
+                       &(client->ssl), options->cli_msg_len,
+                       options->expected_cli_fragments,
+                       &(server->ssl), options->srv_msg_len,
+                       options->expected_srv_fragments),
+                   0);
+    }
+#if defined(MBEDTLS_SSL_CONTEXT_SERIALIZATION)
+    if (options->serialize == 1) {
+        TEST_ASSERT(test_serialization(options, client, server));
+    }
+#endif /* MBEDTLS_SSL_CONTEXT_SERIALIZATION */
+
+#if defined(MBEDTLS_SSL_RENEGOTIATION)
+    if (options->renegotiate) {
+        TEST_ASSERT(test_renegotiation(options, client, server));
+    }
+#endif /* MBEDTLS_SSL_RENEGOTIATION */
+
+    ok = 1;
+
+exit:
+    return ok;
+}
+
 void mbedtls_test_ssl_perform_handshake(
     const mbedtls_test_handshake_test_options *options)
 {
-    enum { BUFFSIZE = 17000 };
     mbedtls_test_ssl_endpoint client_struct;
     memset(&client_struct, 0, sizeof(client_struct));
     mbedtls_test_ssl_endpoint *const client = &client_struct;
@@ -2285,7 +2386,6 @@ void mbedtls_test_ssl_perform_handshake(
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_PSK_ENABLED)
     const char *psk_identity = "foo";
 #endif
-    int expected_handshake_result = options->expected_handshake_result;
 
     MD_OR_USE_PSA_INIT();
 
@@ -2354,91 +2454,7 @@ void mbedtls_test_ssl_perform_handshake(
     }
 #endif /* MBEDTLS_SSL_RENEGOTIATION */
 
-    TEST_EQUAL(mbedtls_test_mock_socket_connect(&(client->socket),
-                                                &(server->socket),
-                                                BUFFSIZE), 0);
-
-#if defined(MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH)
-    if (options->resize_buffers != 0) {
-        /* Ensure that the buffer sizes are appropriate before resizes */
-        TEST_EQUAL(client->ssl.out_buf_len, MBEDTLS_SSL_OUT_BUFFER_LEN);
-        TEST_EQUAL(client->ssl.in_buf_len, MBEDTLS_SSL_IN_BUFFER_LEN);
-        TEST_EQUAL(server->ssl.out_buf_len, MBEDTLS_SSL_OUT_BUFFER_LEN);
-        TEST_EQUAL(server->ssl.in_buf_len, MBEDTLS_SSL_IN_BUFFER_LEN);
-    }
-#endif
-
-    if (options->expected_negotiated_version == MBEDTLS_SSL_VERSION_UNKNOWN) {
-        expected_handshake_result = MBEDTLS_ERR_SSL_BAD_PROTOCOL_VERSION;
-    }
-
-    TEST_EQUAL(mbedtls_test_move_handshake_to_state(&(client->ssl),
-                                                    &(server->ssl),
-                                                    MBEDTLS_SSL_HANDSHAKE_OVER),
-               expected_handshake_result);
-
-    if (expected_handshake_result != 0) {
-        /* Connection will have failed by this point, skip to cleanup */
-        goto exit;
-    }
-
-    TEST_EQUAL(mbedtls_ssl_is_handshake_over(&client->ssl), 1);
-
-    /* Make sure server state is moved to HANDSHAKE_OVER also. */
-    TEST_EQUAL(mbedtls_test_move_handshake_to_state(&(server->ssl),
-                                                    &(client->ssl),
-                                                    MBEDTLS_SSL_HANDSHAKE_OVER),
-               0);
-
-    TEST_EQUAL(mbedtls_ssl_is_handshake_over(&server->ssl), 1);
-
-    /* Check that both sides have negotiated the expected version. */
-    TEST_ASSERT(check_ssl_version(options->expected_negotiated_version,
-                                  &client->ssl,
-                                  &server->ssl));
-
-    if (options->expected_ciphersuite != 0) {
-        TEST_EQUAL(server->ssl.session->ciphersuite,
-                   options->expected_ciphersuite);
-    }
-
-#if defined(MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH)
-    if (options->resize_buffers != 0) {
-        /* A server, when using DTLS, might delay a buffer resize to happen
-         * after it receives a message, so we force it. */
-        TEST_EQUAL(exchange_data(&(client->ssl), &(server->ssl)), 0);
-
-        TEST_EQUAL(client->ssl.out_buf_len,
-                   mbedtls_ssl_get_output_buflen(&client->ssl));
-        TEST_EQUAL(client->ssl.in_buf_len,
-                   mbedtls_ssl_get_input_buflen(&client->ssl));
-        TEST_EQUAL(server->ssl.out_buf_len,
-                   mbedtls_ssl_get_output_buflen(&server->ssl));
-        TEST_EQUAL(server->ssl.in_buf_len,
-                   mbedtls_ssl_get_input_buflen(&server->ssl));
-    }
-#endif
-
-    if (options->cli_msg_len != 0 || options->srv_msg_len != 0) {
-        /* Start data exchanging test */
-        TEST_EQUAL(mbedtls_test_ssl_exchange_data(
-                       &(client->ssl), options->cli_msg_len,
-                       options->expected_cli_fragments,
-                       &(server->ssl), options->srv_msg_len,
-                       options->expected_srv_fragments),
-                   0);
-    }
-#if defined(MBEDTLS_SSL_CONTEXT_SERIALIZATION)
-    if (options->serialize == 1) {
-        TEST_ASSERT(test_serialization(options, client, server));
-    }
-#endif /* MBEDTLS_SSL_CONTEXT_SERIALIZATION */
-
-#if defined(MBEDTLS_SSL_RENEGOTIATION)
-    if (options->renegotiate) {
-        TEST_ASSERT(test_renegotiation(options, client, server));
-    }
-#endif /* MBEDTLS_SSL_RENEGOTIATION */
+    TEST_ASSERT(mbedtls_test_ssl_perform_connection(options, client, server));
 
     TEST_ASSERT(mbedtls_ssl_conf_get_user_data_p(&client->conf) == client);
     TEST_ASSERT(mbedtls_ssl_get_user_data_p(&client->ssl) == client);

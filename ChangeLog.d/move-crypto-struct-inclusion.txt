@@ -1,0 +1,3 @@
+Bugfix
+   * Resolved build issue with C++ projects using TF-PSA-Crypto when compiling
+     with the MSVC toolset v142 and earlier. Fixes mbedtls issue #7087.

@@ -388,6 +388,13 @@ class DriverVSReference_ecp_light_only(outcome_analysis.DriverVSReference):
             re.compile(r'ECP point multiplication .*'),
             re.compile(r'ECP test vectors .*'),
         ],
+        # When MBEDTLS_ECP_RESTARTABLE is set, these tests also use PSA interruptible
+        # operations to generate a key. However driver dispatching is not yet available
+        # for key generation, so these tests are performed when builtin support is
+        # available and skipped in driver only configuration.
+        'test_suite_psa_crypto': [
+            re.compile(r'PSA generate key: ECC, .*')
+        ]
     }
 
 class DriverVSReference_no_ecp_at_all(outcome_analysis.DriverVSReference):
@@ -424,6 +431,13 @@ class DriverVSReference_no_ecp_at_all(outcome_analysis.DriverVSReference):
             re.compile(r'Parse EC Key .*compressed\)'),
             re.compile(r'Parse Public EC Key .*compressed\)'),
         ],
+        # When MBEDTLS_ECP_RESTARTABLE is set, these tests also use PSA interruptible
+        # operations to generate a key. However driver dispatching is not yet available
+        # for key generation, so these tests are performed when builtin support is
+        # available and skipped in driver only configuration.
+        'test_suite_psa_crypto': [
+            re.compile(r'PSA generate key: ECC, .*')
+        ]
     }
 
 class DriverVSReference_ecc_no_bignum(outcome_analysis.DriverVSReference):
@@ -467,6 +481,13 @@ class DriverVSReference_ecc_no_bignum(outcome_analysis.DriverVSReference):
         'test_suite_debug': [
             re.compile(r'Debug print mbedtls_mpi.*'),
         ],
+        # When MBEDTLS_ECP_RESTARTABLE is set, these tests also use PSA interruptible
+        # operations to generate a key. However driver dispatching is not yet available
+        # for key generation, so these tests are performed when builtin support is
+        # available and skipped in driver only configuration.
+        'test_suite_psa_crypto': [
+            re.compile(r'PSA generate key: ECC, .*')
+        ]
     }
 
 class DriverVSReference_ecc_ffdh_no_bignum(outcome_analysis.DriverVSReference):
@@ -510,6 +531,13 @@ class DriverVSReference_ecc_ffdh_no_bignum(outcome_analysis.DriverVSReference):
         'test_suite_debug': [
             re.compile(r'Debug print mbedtls_mpi.*'),
         ],
+        # When MBEDTLS_ECP_RESTARTABLE is set, these tests also use PSA interruptible
+        # operations to generate a key. However driver dispatching is not yet available
+        # for key generation, so these tests are performed when builtin support is
+        # available and skipped in driver only configuration.
+        'test_suite_psa_crypto': [
+            re.compile(r'PSA generate key: ECC, .*')
+        ]
     }
 
 class DriverVSReference_ffdh_alg(outcome_analysis.DriverVSReference):
@@ -556,6 +584,13 @@ class DriverVSReference_tfm_config(outcome_analysis.DriverVSReference):
         'test_suite_random': [
             'PSA classic wrapper: ECDSA signature (SECP256R1)',
         ],
+        # When MBEDTLS_ECP_RESTARTABLE is set, these tests also use PSA interruptible
+        # operations to generate a key. However driver dispatching is not yet available
+        # for key generation, so these tests are performed when builtin support is
+        # available and skipped in driver only configuration.
+        'test_suite_psa_crypto': [
+            re.compile(r'PSA generate key: ECC, .*')
+        ]
     }
 
 class DriverVSReference_rsa(outcome_analysis.DriverVSReference):

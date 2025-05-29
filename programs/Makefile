@@ -39,8 +39,8 @@ APPS = \
 	pkey/gen_key \
 	pkey/pk_sign \
 	pkey/pk_verify \
-	pkey/rsa_sign_pss \
-	pkey/rsa_verify_pss \
+	../tf-psa-crypto/programs/pkey/rsa_sign_pss \
+	../tf-psa-crypto/programs/pkey/rsa_verify_pss \
 	../tf-psa-crypto/programs/psa/aead_demo \
 	../tf-psa-crypto/programs/psa/crypto_examples \
 	../tf-psa-crypto/programs/psa/hmac_demo \
@@ -148,13 +148,13 @@ pkey/pk_verify$(EXEXT): pkey/pk_verify.c $(DEP)
 	echo "  CC    pkey/pk_verify.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) pkey/pk_verify.c  $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
-pkey/rsa_sign_pss$(EXEXT): pkey/rsa_sign_pss.c $(DEP)
+../tf-psa-crypto/programs/pkey/rsa_sign_pss$(EXEXT): ../tf-psa-crypto/programs/pkey/rsa_sign_pss.c $(DEP)
 	echo "  CC    pkey/rsa_sign_pss.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) pkey/rsa_sign_pss.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) ../tf-psa-crypto/programs/pkey/rsa_sign_pss.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
-pkey/rsa_verify_pss$(EXEXT): pkey/rsa_verify_pss.c $(DEP)
+../tf-psa-crypto/programs/pkey/rsa_verify_pss$(EXEXT): ../tf-psa-crypto/programs/pkey/rsa_verify_pss.c $(DEP)
 	echo "  CC    pkey/rsa_verify_pss.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) pkey/rsa_verify_pss.c  $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) ../tf-psa-crypto/programs/pkey/rsa_verify_pss.c  $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 ../tf-psa-crypto/programs/psa/aead_demo$(EXEXT): ../tf-psa-crypto/programs/psa/aead_demo.c $(DEP)
 	echo "  CC    psa/aead_demo.c"

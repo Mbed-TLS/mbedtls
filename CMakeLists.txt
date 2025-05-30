@@ -378,6 +378,7 @@ endif()
 set(tf_psa_crypto_library_targets
     ${TF_PSA_CRYPTO_TARGET_PREFIX}tfpsacrypto
     ${TF_PSA_CRYPTO_TARGET_PREFIX}builtin
+    ${TF_PSA_CRYPTO_TARGET_PREFIX}everest
     ${TF_PSA_CRYPTO_TARGET_PREFIX}p256m)
 
 if(USE_STATIC_MBEDTLS_LIBRARY AND USE_SHARED_MBEDTLS_LIBRARY)
@@ -440,6 +441,7 @@ if(ENABLE_TESTING OR ENABLE_PROGRAMS)
         PRIVATE include
         PRIVATE tf-psa-crypto/include
         PRIVATE tf-psa-crypto/drivers/builtin/include
+        PRIVATE tf-psa-crypto/drivers/everest/include/tf-psa-crypto/private/
         PRIVATE library
         PRIVATE tf-psa-crypto/core
         PRIVATE tf-psa-crypto/drivers/builtin/src)
@@ -477,7 +479,8 @@ if(ENABLE_TESTING OR ENABLE_PROGRAMS)
         PRIVATE tf-psa-crypto/drivers/builtin/include
         PRIVATE library
         PRIVATE tf-psa-crypto/core
-        PRIVATE tf-psa-crypto/drivers/builtin/src)
+        PRIVATE tf-psa-crypto/drivers/builtin/src
+        PRIVATE tf-psa-crypto/drivers/everest/include/tf-psa-crypto/private/)
 
     set_config_files_compile_definitions(mbedtls_test_helpers)
 endif()

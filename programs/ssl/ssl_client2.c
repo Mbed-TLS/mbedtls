@@ -2172,6 +2172,7 @@ usage:
 
 #if defined(MBEDTLS_ECP_RESTARTABLE)
     if (opt.ec_max_ops != DFL_EC_MAX_OPS) {
+        psa_interruptible_set_max_ops(opt.ec_max_ops);
         mbedtls_ecp_set_max_ops(opt.ec_max_ops);
     }
 #endif

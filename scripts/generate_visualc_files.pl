@@ -50,7 +50,6 @@ my $test_drivers_header_dir = 'framework/tests/include/test/drivers';
 my $test_drivers_source_dir = 'framework/tests/src/drivers';
 
 my @thirdparty_header_dirs = qw(
-    tf-psa-crypto/drivers/everest/include/everest
 );
 my @thirdparty_source_dirs = qw(
     tf-psa-crypto/drivers/everest/library
@@ -65,10 +64,6 @@ my @include_directories = qw(
     include
     tf-psa-crypto/include
     tf-psa-crypto/drivers/builtin/include
-    tf-psa-crypto/drivers/everest/include/
-    tf-psa-crypto/drivers/everest/include/everest
-    tf-psa-crypto/drivers/everest/include/everest/vs2013
-    tf-psa-crypto/drivers/everest/include/everest/kremlib
     tests/include
     tf-psa-crypto/tests/include
     framework/tests/include

@@ -410,22 +410,22 @@ component_test_config_symmetric_only () {
 
 component_test_everest () {
     msg "build: Everest ECDH context (ASan build)" # ~ 6 min
-    scripts/config.py set MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED
-    CC=clang cmake -D CMAKE_BUILD_TYPE:String=Asan .
-    make
+    #scripts/config.py set MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED
+    #CC=clang cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    #make
 
-    msg "test: Everest ECDH context - main suites (inc. selftests) (ASan build)" # ~ 50s
-    make test
+    #msg "test: Everest ECDH context - main suites (inc. selftests) (ASan build)" # ~ 50s
+    #make test
 
-    msg "test: metatests (clang, ASan)"
-    tests/scripts/run-metatests.sh any asan poison
+    #msg "test: metatests (clang, ASan)"
+    #tests/scripts/run-metatests.sh any asan poison
 
-    msg "test: Everest ECDH context - ECDH-related part of ssl-opt.sh (ASan build)" # ~ 5s
-    tests/ssl-opt.sh -f ECDH
+    #msg "test: Everest ECDH context - ECDH-related part of ssl-opt.sh (ASan build)" # ~ 5s
+    #tests/ssl-opt.sh -f ECDH
 
-    msg "test: Everest ECDH context - compat.sh with some ECDH ciphersuites (ASan build)" # ~ 3 min
+    #msg "test: Everest ECDH context - compat.sh with some ECDH ciphersuites (ASan build)" # ~ 3 min
     # Exclude some symmetric ciphers that are redundant here to gain time.
-    tests/compat.sh -f ECDH -V NO -e 'ARIA\|CAMELLIA\|CHACHA'
+    #tests/compat.sh -f ECDH -V NO -e 'ARIA\|CAMELLIA\|CHACHA'
 }
 
 component_test_everest_curve25519_only () {

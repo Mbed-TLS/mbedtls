@@ -1827,7 +1827,7 @@ static psa_status_t mbedtls_ssl_set_hs_ecjpake_password_common(
                                                  256));
     psa_pake_cs_set_hash(&cipher_suite, PSA_ALG_SHA_256);
 
-    status = psa_pake_setup(&ssl->handshake->psa_pake_ctx, &cipher_suite);
+    status = psa_pake_setup(&ssl->handshake->psa_pake_ctx, pwd, &cipher_suite);
     if (status != PSA_SUCCESS) {
         return status;
     }
@@ -1850,11 +1850,6 @@ static psa_status_t mbedtls_ssl_set_hs_ecjpake_password_common(
     }
 
     status = psa_pake_set_peer(&ssl->handshake->psa_pake_ctx, peer, peer_len);
-    if (status != PSA_SUCCESS) {
-        return status;
-    }
-
-    status = psa_pake_set_password_key(&ssl->handshake->psa_pake_ctx, pwd);
     if (status != PSA_SUCCESS) {
         return status;
     }

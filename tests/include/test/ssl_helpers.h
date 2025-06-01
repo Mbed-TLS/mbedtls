@@ -194,6 +194,7 @@ typedef struct mbedtls_test_ssl_endpoint {
     mbedtls_ssl_context ssl;
     mbedtls_ssl_config conf;
     mbedtls_test_mock_socket socket;
+    uintptr_t user_data_cookie; /* A unique value associated with this endpoint */
 
     /* Objects only used by DTLS.
      * They should be guarded by MBEDTLS_SSL_PROTO_DTLS, but

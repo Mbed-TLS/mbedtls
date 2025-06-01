@@ -805,7 +805,6 @@ int mbedtls_test_ssl_endpoint_init(
     const mbedtls_test_handshake_test_options *options)
 {
     int ret = -1;
-    uintptr_t user_data_n;
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_PSK_ENABLED)
     const char *psk_identity = "foo";
 #endif
@@ -828,10 +827,10 @@ int mbedtls_test_ssl_endpoint_init(
     TEST_EQUAL(mbedtls_ssl_get_user_data_n(&ep->ssl), 0);
 
     (void) mbedtls_test_rnd_std_rand(NULL,
-                                     (void *) &user_data_n,
-                                     sizeof(user_data_n));
-    mbedtls_ssl_conf_set_user_data_n(&ep->conf, user_data_n);
-    mbedtls_ssl_set_user_data_n(&ep->ssl, user_data_n);
+                                     (void *) &ep->user_data_cookie,
+                                     sizeof(ep->user_data_cookie));
+    mbedtls_ssl_conf_set_user_data_n(&ep->conf, ep->user_data_cookie);
+    mbedtls_ssl_set_user_data_n(&ep->ssl, ep->user_data_cookie);
 
     mbedtls_test_mock_socket_init(&(ep->socket));
 
@@ -965,7 +964,8 @@ int mbedtls_test_ssl_endpoint_init(
     }
 #endif
 
-    TEST_EQUAL(mbedtls_ssl_conf_get_user_data_n(&ep->conf), user_data_n);
+    TEST_EQUAL(mbedtls_ssl_conf_get_user_data_n(&ep->conf),
+               ep->user_data_cookie);
     mbedtls_ssl_conf_set_user_data_p(&ep->conf, ep);
 
     /* We've finished the configuration. Now set up a context. */
@@ -996,7 +996,7 @@ int mbedtls_test_ssl_endpoint_init(
                             NULL);
     }
 
-    TEST_EQUAL(mbedtls_ssl_get_user_data_n(&ep->ssl), user_data_n);
+    TEST_EQUAL(mbedtls_ssl_get_user_data_n(&ep->ssl), ep->user_data_cookie);
     mbedtls_ssl_set_user_data_p(&ep->ssl, ep);
 
     return 0;

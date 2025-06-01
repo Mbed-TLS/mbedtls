@@ -447,18 +447,59 @@ int mbedtls_test_ssl_endpoint_certificate_init(mbedtls_test_ssl_endpoint *ep,
                                                int opaque_alg, int opaque_alg2,
                                                int opaque_usage);
 
-/*
- * Initializes \p ep structure. It is important to call
- * `mbedtls_test_ssl_endpoint_free()` after calling this function
- * even if it fails.
+/** Initialize the configuration in an SSL endpoint structure.
  *
- * \note For DTLS, after calling this function on both endpoints,
- *       call mbedtls_test_ssl_dtls_join_endpoints().
+ * \note You must call `mbedtls_test_ssl_endpoint_free()` after
+ * calling this function, even if it fails. This is necessary to
+ * free data that may have been stored in the endpoint structure.
  *
- * \p endpoint_type must be set as MBEDTLS_SSL_IS_SERVER or
- * MBEDTLS_SSL_IS_CLIENT.
- * \p pk_alg the algorithm to use, currently only MBEDTLS_PK_RSA and
- * MBEDTLS_PK_ECDSA are supported.
+ * \param[out] ep       The endpoint structure to configure.
+ * \param endpoint_type #MBEDTLS_SSL_IS_SERVER or #MBEDTLS_SSL_IS_CLIENT.
+ * \param[in] options   The options to use for configuring the endpoint
+ *                      structure.
+ *
+ * \retval  0 on success, otherwise error code.
+ */
+int mbedtls_test_ssl_endpoint_init_conf(
+    mbedtls_test_ssl_endpoint *ep, int endpoint_type,
+    const mbedtls_test_handshake_test_options *options);
+
+/** Initialize the session context in an endpoint structure.
+ *
+ * \note The endpoint structure must have been set up with
+ *       mbedtls_test_ssl_endpoint_init_conf() with the same \p options.
+ *       Between calling mbedtls_test_ssl_endpoint_init_conf() and
+ *       mbedtls_test_ssl_endpoint_init_ssl(), you may configure `ep->ssl`
+ *       further if you know what you're doing.
+ *
+ * \note You must call `mbedtls_test_ssl_endpoint_free()` after
+ * calling this function, even if it fails. This is necessary to
+ * free data that may have been stored in the endpoint structure.
+ *
+ * \param[out] ep       The endpoint structure to set up.
+ * \param[in] options   The options used for configuring the endpoint
+ *                      structure.
+ *
+ * \retval  0 on success, otherwise error code.
+ */
+int mbedtls_test_ssl_endpoint_init_ssl(
+    mbedtls_test_ssl_endpoint *ep,
+    const mbedtls_test_handshake_test_options *options);
+
+/** Initialize the configuration and a context in an SSL endpoint structure.
+ *
+ * This function is equivalent to calling
+ * mbedtls_test_ssl_endpoint_init_conf() followed by
+ * mbedtls_test_ssl_endpoint_init_ssl().
+ *
+ * \note You must call `mbedtls_test_ssl_endpoint_free()` after
+ * calling this function, even if it fails. This is necessary to
+ * free data that may have been stored in the endpoint structure.
+ *
+ * \param[out] ep       The endpoint structure to configure.
+ * \param endpoint_type #MBEDTLS_SSL_IS_SERVER or #MBEDTLS_SSL_IS_CLIENT.
+ * \param[in] options   The options to use for configuring the endpoint
+ *                      structure.
  *
  * \retval  0 on success, otherwise error code.
  */

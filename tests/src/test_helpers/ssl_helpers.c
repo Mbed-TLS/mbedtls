@@ -800,7 +800,7 @@ exit:
     return ret;
 }
 
-int mbedtls_test_ssl_endpoint_init(
+int mbedtls_test_ssl_endpoint_init_conf(
     mbedtls_test_ssl_endpoint *ep, int endpoint_type,
     const mbedtls_test_handshake_test_options *options)
 {
@@ -968,7 +968,22 @@ int mbedtls_test_ssl_endpoint_init(
                ep->user_data_cookie);
     mbedtls_ssl_conf_set_user_data_p(&ep->conf, ep);
 
-    /* We've finished the configuration. Now set up a context. */
+    return 0;
+
+exit:
+    if (ret == 0) {
+        /* Exiting due to a test assertion that isn't ret == 0 */
+        ret = -1;
+    }
+    return ret;
+}
+
+int mbedtls_test_ssl_endpoint_init_ssl(
+    mbedtls_test_ssl_endpoint *ep,
+    const mbedtls_test_handshake_test_options *options)
+{
+    int endpoint_type = mbedtls_ssl_conf_get_endpoint(&ep->conf);
+    int ret = -1;
 
     ret = mbedtls_ssl_setup(&(ep->ssl), &(ep->conf));
     TEST_EQUAL(ret, 0);
@@ -1006,6 +1021,18 @@ exit:
         /* Exiting due to a test assertion that isn't ret == 0 */
         ret = -1;
     }
+    return ret;
+}
+
+int mbedtls_test_ssl_endpoint_init(
+    mbedtls_test_ssl_endpoint *ep, int endpoint_type,
+    const mbedtls_test_handshake_test_options *options)
+{
+    int ret = mbedtls_test_ssl_endpoint_init_conf(ep, endpoint_type, options);
+    if (ret != 0) {
+        return ret;
+    }
+    ret = mbedtls_test_ssl_endpoint_init_ssl(ep, options);
     return ret;
 }
 

@@ -835,24 +835,6 @@ int mbedtls_test_ssl_endpoint_init(
 
     mbedtls_test_mock_socket_init(&(ep->socket));
 
-    /* Non-blocking callbacks without timeout */
-    if (options->dtls) {
-        mbedtls_ssl_set_bio(&(ep->ssl), &ep->dtls_context,
-                            mbedtls_test_mock_tcp_send_msg,
-                            mbedtls_test_mock_tcp_recv_msg,
-                            NULL);
-#if defined(MBEDTLS_TIMING_C)
-        mbedtls_ssl_set_timer_cb(&ep->ssl, &ep->timer,
-                                 mbedtls_timing_set_delay,
-                                 mbedtls_timing_get_delay);
-#endif
-    } else {
-        mbedtls_ssl_set_bio(&(ep->ssl), &(ep->socket),
-                            mbedtls_test_mock_tcp_send_nb,
-                            mbedtls_test_mock_tcp_recv_nb,
-                            NULL);
-    }
-
     ret = mbedtls_ssl_config_defaults(&(ep->conf), endpoint_type,
                                       options->dtls ?
                                       MBEDTLS_SSL_TRANSPORT_DATAGRAM :
@@ -939,14 +921,6 @@ int mbedtls_test_ssl_endpoint_init(
     TEST_EQUAL(MBEDTLS_SSL_MAX_FRAG_LEN_NONE, options->mfl);
 #endif /* MBEDTLS_SSL_MAX_FRAGMENT_LENGTH */
 
-    ret = mbedtls_ssl_setup(&(ep->ssl), &(ep->conf));
-    TEST_EQUAL(ret, 0);
-
-    if (MBEDTLS_SSL_IS_CLIENT == endpoint_type) {
-        ret = mbedtls_ssl_set_hostname(&(ep->ssl), "localhost");
-        TEST_EQUAL(ret, 0);
-    }
-
 #if defined(MBEDTLS_SSL_PROTO_DTLS) && defined(MBEDTLS_SSL_SRV_C)
     if (endpoint_type == MBEDTLS_SSL_IS_SERVER && options->dtls) {
         mbedtls_ssl_conf_dtls_cookies(&(ep->conf), NULL, NULL, NULL);
@@ -993,6 +967,35 @@ int mbedtls_test_ssl_endpoint_init(
 
     TEST_EQUAL(mbedtls_ssl_conf_get_user_data_n(&ep->conf), user_data_n);
     mbedtls_ssl_conf_set_user_data_p(&ep->conf, ep);
+
+    /* We've finished the configuration. Now set up a context. */
+
+    ret = mbedtls_ssl_setup(&(ep->ssl), &(ep->conf));
+    TEST_EQUAL(ret, 0);
+
+    if (MBEDTLS_SSL_IS_CLIENT == endpoint_type) {
+        ret = mbedtls_ssl_set_hostname(&(ep->ssl), "localhost");
+        TEST_EQUAL(ret, 0);
+    }
+
+    /* Non-blocking callbacks without timeout */
+    if (options->dtls) {
+        mbedtls_ssl_set_bio(&(ep->ssl), &ep->dtls_context,
+                            mbedtls_test_mock_tcp_send_msg,
+                            mbedtls_test_mock_tcp_recv_msg,
+                            NULL);
+#if defined(MBEDTLS_TIMING_C)
+        mbedtls_ssl_set_timer_cb(&ep->ssl, &ep->timer,
+                                 mbedtls_timing_set_delay,
+                                 mbedtls_timing_get_delay);
+#endif
+    } else {
+        mbedtls_ssl_set_bio(&(ep->ssl), &(ep->socket),
+                            mbedtls_test_mock_tcp_send_nb,
+                            mbedtls_test_mock_tcp_recv_nb,
+                            NULL);
+    }
+
     TEST_EQUAL(mbedtls_ssl_get_user_data_n(&ep->ssl), user_data_n);
     mbedtls_ssl_set_user_data_p(&ep->ssl, ep);
 

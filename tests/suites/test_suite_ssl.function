@@ -3051,13 +3051,30 @@ void handshake_ciphersuite_select(char *cipher, int pk_alg, data_t *psk_str,
     options.server_max_version = MBEDTLS_SSL_VERSION_TLS1_2;
     options.expected_negotiated_version = MBEDTLS_SSL_VERSION_TLS1_2;
 
-    mbedtls_test_ssl_perform_handshake(&options);
+    mbedtls_test_ssl_endpoint client;
+    memset(&client, 0, sizeof(client));
+    mbedtls_test_ssl_endpoint server;
+    memset(&server, 0, sizeof(server));
 
-    /* The goto below is used to avoid an "unused label" warning.*/
-    goto exit;
+    MD_OR_USE_PSA_INIT();
+
+    TEST_EQUAL(mbedtls_test_ssl_endpoint_init_conf(&client,
+                                                   MBEDTLS_SSL_IS_CLIENT,
+                                                   &options), 0);
+    TEST_EQUAL(mbedtls_test_ssl_endpoint_init_ssl(&client, &options), 0);
+
+    TEST_EQUAL(mbedtls_test_ssl_endpoint_init_conf(&server,
+                                                   MBEDTLS_SSL_IS_SERVER,
+                                                   &options), 0);
+    TEST_EQUAL(mbedtls_test_ssl_endpoint_init_ssl(&server, &options), 0);
+
+    TEST_ASSERT(mbedtls_test_ssl_perform_connection(&options, &client, &server));
 
 exit:
+    mbedtls_test_ssl_endpoint_free(&client);
+    mbedtls_test_ssl_endpoint_free(&server);
     mbedtls_test_free_handshake_options(&options);
+    MD_OR_USE_PSA_DONE();
 }
 /* END_CASE */
 

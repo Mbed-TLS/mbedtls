@@ -436,6 +436,36 @@ int mbedtls_test_mock_tcp_send_msg(void *ctx,
 int mbedtls_test_mock_tcp_recv_msg(void *ctx,
                                    unsigned char *buf, size_t buf_len);
 
+/** Load an RSA key-certificate pair accepted by the CA used for SSL tests.
+ *
+ * \param endpoint_type #MBEDTLS_SSL_IS_SERVER or #MBEDTLS_SSL_IS_CLIENT.
+ * \param[in,out] pkey  Pointer to the PK object for the private key.
+ *                      It must be initialized, but not set up.
+ * \param[in,out] cert  Pointer to the PK object for the certificate.
+ *                      It must be initialized, but not set up.
+ *
+ * \return              0 on success, a negative value on error.
+ *                      This function marks the test as failed on error.
+ */
+int mbedtls_test_cert_load_rsa(int endpoint_type,
+                               mbedtls_pk_context *pkey,
+                               mbedtls_x509_crt *cert);
+
+/** Load an ECC key-certificate pair accepted by the CA used for SSL tests.
+ *
+ * \param endpoint_type #MBEDTLS_SSL_IS_SERVER or #MBEDTLS_SSL_IS_CLIENT.
+ * \param[in,out] pkey  Pointer to the PK object for the private key.
+ *                      It must be initialized, but not set up.
+ * \param[in,out] cert  Pointer to the PK object for the certificate.
+ *                      It must be initialized, but not set up.
+ *
+ * \return              0 on success, a negative value on error.
+ *                      This function marks the test as failed on error.
+ */
+int mbedtls_test_cert_load_ecc(int endpoint_type,
+                               mbedtls_pk_context *pkey,
+                               mbedtls_x509_crt *cert);
+
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
 
 /*

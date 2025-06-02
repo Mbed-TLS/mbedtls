@@ -651,28 +651,30 @@ static void test_ssl_endpoint_certificate_free(mbedtls_test_ssl_endpoint *ep)
 #endif
 }
 
-static int load_endpoint_rsa(mbedtls_test_ssl_endpoint *ep)
+int mbedtls_test_cert_load_rsa(int endpoint_type,
+                               mbedtls_pk_context *pkey,
+                               mbedtls_x509_crt *cert)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    if (ep->conf.endpoint == MBEDTLS_SSL_IS_SERVER) {
+    if (endpoint_type == MBEDTLS_SSL_IS_SERVER) {
         ret = mbedtls_x509_crt_parse(
-            ep->cert,
+            cert,
             (const unsigned char *) mbedtls_test_srv_crt_rsa_sha256_der,
             mbedtls_test_srv_crt_rsa_sha256_der_len);
         TEST_EQUAL(ret, 0);
         ret = mbedtls_pk_parse_key(
-            ep->pkey,
+            pkey,
             (const unsigned char *) mbedtls_test_srv_key_rsa_der,
             mbedtls_test_srv_key_rsa_der_len, NULL, 0);
         TEST_EQUAL(ret, 0);
     } else {
         ret = mbedtls_x509_crt_parse(
-            ep->cert,
+            cert,
             (const unsigned char *) mbedtls_test_cli_crt_rsa_der,
             mbedtls_test_cli_crt_rsa_der_len);
         TEST_EQUAL(ret, 0);
         ret = mbedtls_pk_parse_key(
-            ep->pkey,
+            pkey,
             (const unsigned char *) mbedtls_test_cli_key_rsa_der,
             mbedtls_test_cli_key_rsa_der_len, NULL, 0);
         TEST_EQUAL(ret, 0);
@@ -682,28 +684,30 @@ exit:
     return ret;
 }
 
-static int load_endpoint_ecc(mbedtls_test_ssl_endpoint *ep)
+int mbedtls_test_cert_load_ecc(int endpoint_type,
+                               mbedtls_pk_context *pkey,
+                               mbedtls_x509_crt *cert)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    if (ep->conf.endpoint == MBEDTLS_SSL_IS_SERVER) {
+    if (endpoint_type == MBEDTLS_SSL_IS_SERVER) {
         ret = mbedtls_x509_crt_parse(
-            ep->cert,
+            cert,
             (const unsigned char *) mbedtls_test_srv_crt_ec_der,
             mbedtls_test_srv_crt_ec_der_len);
         TEST_EQUAL(ret, 0);
         ret = mbedtls_pk_parse_key(
-            ep->pkey,
+            pkey,
             (const unsigned char *) mbedtls_test_srv_key_ec_der,
             mbedtls_test_srv_key_ec_der_len, NULL, 0);
         TEST_EQUAL(ret, 0);
     } else {
         ret = mbedtls_x509_crt_parse(
-            ep->cert,
+            cert,
             (const unsigned char *) mbedtls_test_cli_crt_ec_der,
             mbedtls_test_cli_crt_ec_len);
         TEST_EQUAL(ret, 0);
         ret = mbedtls_pk_parse_key(
-            ep->pkey,
+            pkey,
             (const unsigned char *) mbedtls_test_cli_key_ec_der,
             mbedtls_test_cli_key_ec_der_len, NULL, 0);
         TEST_EQUAL(ret, 0);
@@ -750,9 +754,11 @@ int mbedtls_test_ssl_endpoint_certificate_init(mbedtls_test_ssl_endpoint *ep,
     /* Load own certificate and private key */
 
     if (pk_alg == MBEDTLS_PK_RSA) {
-        TEST_EQUAL(load_endpoint_rsa(ep), 0);
+        TEST_EQUAL(mbedtls_test_cert_load_rsa(ep->conf.endpoint,
+                                              ep->pkey, ep->cert), 0);
     } else {
-        TEST_EQUAL(load_endpoint_ecc(ep), 0);
+        TEST_EQUAL(mbedtls_test_cert_load_ecc(ep->conf.endpoint,
+                                              ep->pkey, ep->cert), 0);
     }
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)

@@ -751,14 +751,21 @@ int mbedtls_test_ssl_endpoint_certificate_init(mbedtls_test_ssl_endpoint *ep,
         TEST_EQUAL(ret, 0);
     }
 
+    mbedtls_ssl_conf_ca_chain(&(ep->conf), ep->ca_chain, NULL);
+
     /* Load own certificate and private key */
 
     if (pk_alg == MBEDTLS_PK_RSA) {
         TEST_EQUAL(mbedtls_test_cert_load_rsa(ep->conf.endpoint,
                                               ep->pkey, ep->cert), 0);
-    } else {
+    } else if (pk_alg == MBEDTLS_PK_ECDSA) {
         TEST_EQUAL(mbedtls_test_cert_load_ecc(ep->conf.endpoint,
                                               ep->pkey, ep->cert), 0);
+    } else {
+        /* Don't configure a key and certificate */
+        TEST_EQUAL(pk_alg, MBEDTLS_PK_NONE);
+        ok = 1;
+        goto exit;
     }
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
@@ -785,8 +792,6 @@ int mbedtls_test_ssl_endpoint_certificate_init(mbedtls_test_ssl_endpoint *ep,
     (void) opaque_alg2;
     (void) opaque_usage;
 #endif
-
-    mbedtls_ssl_conf_ca_chain(&(ep->conf), ep->ca_chain, NULL);
 
     ret = mbedtls_ssl_conf_own_cert(&(ep->conf), ep->cert,
                                     ep->pkey);

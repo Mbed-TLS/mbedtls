@@ -468,8 +468,26 @@ int mbedtls_test_cert_load_ecc(int endpoint_type,
 
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
 
-/*
+/**
  * Load default CA certificates and endpoint keys into \p ep.
+ *
+ * \param[in,out] ep    The endpoint to configure. The parts of the
+ *                      endpoint structure itself and the SSL configuration
+ *                      related to keys and certificates must be in a
+ *                      freshly initialized state (all zero).
+ *                      The field `ep->conf->endpoint` must be set
+ *                      to indicate whether the endpoint is a client or
+ *                      a server.
+ * \param pk_alg        Which mechanism to use for the endpoint's key and
+ *                      certificate: #MBEDTLS_PK_RSA or #MBEDTLS_PK_ECDSA.
+ *                      This can be #MBEDTLS_PK_NONE to only configure
+ *                      CA certificates and not the endpoint key.
+ * \param opaque_alg    If nonzero, the endpoint key will be made opaque
+ *                      and given a PSA policy with this algorithm.
+ * \param opaque_alg2   The enrollment algorithm in the PSA key policy.
+ *                      This is unused if \p opaque_alg is zero.
+ * \param opaque_usage  The usage flags in the PSA key policy.
+ *                      This is unused if \p opaque_alg is zero.
  *
  * \retval  0 on success, otherwise error code.
  */

@@ -374,11 +374,15 @@ int mbedtls_lms_verify(const mbedtls_lms_public_t *ctx,
         return MBEDTLS_ERR_LMS_VERIFY_FAILED;
     }
 
-    create_merkle_leaf_value(
+    ret = create_merkle_leaf_value(
         &ctx->params,
         Kc_candidate_ots_pub_key,
         MERKLE_TREE_INTERNAL_NODE_AM(ctx->params.type) + q_leaf_identifier,
         Tc_candidate_root_node);
+
+    if (ret != 0) {
+        return MBEDTLS_ERR_LMS_VERIFY_FAILED;
+    }
 
     curr_node_id = MERKLE_TREE_INTERNAL_NODE_AM(ctx->params.type) +
                    q_leaf_identifier;
@@ -398,9 +402,11 @@ int mbedtls_lms_verify(const mbedtls_lms_public_t *ctx,
                          height * MBEDTLS_LMS_M_NODE_BYTES(ctx->params.type);
         }
 
-        create_merkle_internal_value(&ctx->params, left_node, right_node,
-                                     parent_node_id, Tc_candidate_root_node);
-
+        ret = create_merkle_internal_value(&ctx->params, left_node, right_node,
+                                           parent_node_id, Tc_candidate_root_node);
+        if (ret != 0) {
+            return MBEDTLS_ERR_LMS_VERIFY_FAILED;
+        }
         curr_node_id /= 2;
     }
 

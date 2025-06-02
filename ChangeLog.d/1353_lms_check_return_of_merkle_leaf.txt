@@ -1,0 +1,4 @@
+Security
+   * Fix a vulnerability in LMS verification through which an adversary could
+     get an invalid signature accepted if they could cause a hash accelerator
+     to fail. Found and reported by Linh Le and Ngan Nguyen from Calif.

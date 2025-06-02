@@ -210,6 +210,7 @@ typedef struct mbedtls_test_ssl_endpoint {
     mbedtls_x509_crt *ca_chain;
     mbedtls_x509_crt *cert;
     mbedtls_pk_context *pkey;
+    mbedtls_svc_key_id_t psa_key;
 } mbedtls_test_ssl_endpoint;
 
 #endif /* MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED */

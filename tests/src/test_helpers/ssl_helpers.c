@@ -642,15 +642,13 @@ static void test_ssl_endpoint_certificate_free(mbedtls_test_ssl_endpoint *ep)
         ep->cert = NULL;
     }
     if (ep->pkey != NULL) {
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-        if (mbedtls_pk_get_type(ep->pkey) == MBEDTLS_PK_OPAQUE) {
-            psa_destroy_key(ep->pkey->priv_id);
-        }
-#endif
         mbedtls_pk_free(ep->pkey);
         mbedtls_free(ep->pkey);
         ep->pkey = NULL;
     }
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    psa_destroy_key(ep->psa_key);
+#endif
 }
 
 static int load_endpoint_rsa(mbedtls_test_ssl_endpoint *ep)
@@ -724,7 +722,7 @@ int mbedtls_test_ssl_endpoint_certificate_init(mbedtls_test_ssl_endpoint *ep,
     int ret = -1;
     int ok = 0;
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    mbedtls_svc_key_id_t key_slot = MBEDTLS_SVC_KEY_ID_INIT;
+    mbedtls_svc_key_id_t *key_slot = &ep->psa_key;
 #endif
 
     if (ep == NULL) {
@@ -759,6 +757,8 @@ int mbedtls_test_ssl_endpoint_certificate_init(mbedtls_test_ssl_endpoint *ep,
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     if (opaque_alg != 0) {
+        TEST_ASSERT(mbedtls_svc_key_id_equal(*key_slot, MBEDTLS_SVC_KEY_ID_INIT));
+
         psa_key_attributes_t key_attr = PSA_KEY_ATTRIBUTES_INIT;
         /* Use a fake key usage to get a successful initial guess for the PSA attributes. */
         TEST_EQUAL(mbedtls_pk_get_psa_attributes(ep->pkey, PSA_KEY_USAGE_SIGN_HASH,
@@ -769,10 +769,10 @@ int mbedtls_test_ssl_endpoint_certificate_init(mbedtls_test_ssl_endpoint *ep,
         if (opaque_alg2 != PSA_ALG_NONE) {
             psa_set_key_enrollment_algorithm(&key_attr, opaque_alg2);
         }
-        TEST_EQUAL(mbedtls_pk_import_into_psa(ep->pkey, &key_attr, &key_slot), 0);
+        TEST_EQUAL(mbedtls_pk_import_into_psa(ep->pkey, &key_attr, key_slot), 0);
         mbedtls_pk_free(ep->pkey);
         mbedtls_pk_init(ep->pkey);
-        TEST_EQUAL(mbedtls_pk_setup_opaque(ep->pkey, key_slot), 0);
+        TEST_EQUAL(mbedtls_pk_setup_opaque(ep->pkey, *key_slot), 0);
     }
 #else
     (void) opaque_alg;

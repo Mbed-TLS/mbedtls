@@ -351,3 +351,15 @@ component_test_memory_buffer_allocator () {
     # MBEDTLS_MEMORY_BUFFER_ALLOC is slow. Skip tests that tend to time out.
     tests/ssl-opt.sh -e '^DTLS proxy'
 }
+
+# Temporary component for SHA3 config option removal
+# Must be removed when SHA3 removal is merged
+component_test_full_no_sha3 () {
+    msg "build: full config without SHA3"
+    scripts/config.py full
+    scripts/config.py unset-all PSA_WANT_ALG_SHA3_*
+    make
+
+    msg "test: full - PSA_WANT_ALG_SHA3_*"
+    make test
+}

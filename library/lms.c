@@ -242,6 +242,10 @@ int mbedtls_lms_import_public_key(mbedtls_lms_public_t *ctx,
     mbedtls_lms_algorithm_type_t type;
     mbedtls_lmots_algorithm_type_t otstype;
 
+    if (key_size < 4) {
+        return MBEDTLS_ERR_LMS_BAD_INPUT_DATA;
+    }
+
     type = (mbedtls_lms_algorithm_type_t) MBEDTLS_GET_UINT32_BE(key, PUBLIC_KEY_TYPE_OFFSET);
     if (type != MBEDTLS_LMS_SHA256_M32_H10) {
         return MBEDTLS_ERR_LMS_BAD_INPUT_DATA;

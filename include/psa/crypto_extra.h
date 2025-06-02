@@ -1071,7 +1071,7 @@ struct psa_crypto_driver_pake_inputs_s {
     uint8_t *MBEDTLS_PRIVATE(peer);
     size_t MBEDTLS_PRIVATE(peer_len);
     psa_key_attributes_t MBEDTLS_PRIVATE(attributes);
-    psa_pake_cipher_suite_t MBEDTLS_PRIVATE(cipher_suite);
+    struct psa_pake_cipher_suite_s MBEDTLS_PRIVATE(cipher_suite);
 };
 
 typedef enum psa_crypto_driver_pake_step {
@@ -1141,12 +1141,12 @@ struct psa_pake_operation_s {
     union {
         uint8_t MBEDTLS_PRIVATE(dummy);
 #if defined(PSA_WANT_ALG_JPAKE)
-        psa_jpake_computation_stage_t MBEDTLS_PRIVATE(jpake);
+        struct psa_jpake_computation_stage_s MBEDTLS_PRIVATE(jpake);
 #endif
     } MBEDTLS_PRIVATE(computation_stage);
     union {
         psa_driver_pake_context_t MBEDTLS_PRIVATE(ctx);
-        psa_crypto_driver_pake_inputs_t MBEDTLS_PRIVATE(inputs);
+        struct psa_crypto_driver_pake_inputs_s MBEDTLS_PRIVATE(inputs);
     } MBEDTLS_PRIVATE(data);
 #endif
 };

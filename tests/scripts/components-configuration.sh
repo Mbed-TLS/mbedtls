@@ -353,11 +353,12 @@ component_test_memory_buffer_allocator () {
 }
 
 # Temporary component for SHA3 config option removal
-# Must be removed when SHA3 removal is merged
+# Will be removed according to this issue:
+# https://github.com/Mbed-TLS/mbedtls/issues/10203
 component_test_full_no_sha3 () {
     msg "build: full config without SHA3"
     scripts/config.py full
-    scripts/config.py unset-all PSA_WANT_ALG_SHA3_*
+    scripts/config.py unset-all 'PSA_WANT_ALG_SHA3_*'
     make
 
     msg "test: full - PSA_WANT_ALG_SHA3_*"

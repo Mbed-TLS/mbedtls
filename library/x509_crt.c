@@ -24,6 +24,7 @@
 #include "mbedtls/x509_crt.h"
 #include "mbedtls/error.h"
 #include "mbedtls/oid.h"
+#include "x509_oid.h"
 #include "mbedtls/platform_util.h"
 
 #include <string.h>
@@ -926,7 +927,7 @@ static int x509_get_crt_ext(unsigned char **p,
         /*
          * Detect supported extensions
          */
-        ret = mbedtls_oid_get_x509_ext_type(&extn_oid, &ext_type);
+        ret = mbedtls_x509_oid_get_x509_ext_type(&extn_oid, &ext_type);
 
         if (ret != 0) {
             /* Give the callback (if any) a chance to handle the extension */
@@ -1015,7 +1016,7 @@ static int x509_get_crt_ext(unsigned char **p,
                 }
                 break;
 
-            case MBEDTLS_OID_X509_EXT_CERTIFICATE_POLICIES:
+            case MBEDTLS_X509_EXT_CERTIFICATE_POLICIES:
                 /* Parse certificate policies type */
                 if ((ret = x509_get_certificate_policies(p, end_ext_octet,
                                                          &crt->certificate_policies)) != 0) {
@@ -1692,7 +1693,7 @@ static int x509_info_ext_key_usage(char **buf, size_t *size,
     const char *sep = "";
 
     while (cur != NULL) {
-        if (mbedtls_oid_get_extended_key_usage(&cur->buf, &desc) != 0) {
+        if (mbedtls_x509_oid_get_extended_key_usage(&cur->buf, &desc) != 0) {
             desc = "???";
         }
 
@@ -1721,7 +1722,7 @@ static int x509_info_cert_policies(char **buf, size_t *size,
     const char *sep = "";
 
     while (cur != NULL) {
-        if (mbedtls_oid_get_certificate_policies(&cur->buf, &desc) != 0) {
+        if (mbedtls_x509_oid_get_certificate_policies(&cur->buf, &desc) != 0) {
             desc = "???";
         }
 
@@ -1866,7 +1867,7 @@ int mbedtls_x509_crt_info(char *buf, size_t size, const char *prefix,
         }
     }
 
-    if (crt->ext_types & MBEDTLS_OID_X509_EXT_CERTIFICATE_POLICIES) {
+    if (crt->ext_types & MBEDTLS_X509_EXT_CERTIFICATE_POLICIES) {
         ret = mbedtls_snprintf(p, n, "\n%scertificate policies : ", prefix);
         MBEDTLS_X509_SAFE_SNPRINTF;
 

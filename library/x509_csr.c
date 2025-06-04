@@ -22,6 +22,7 @@
 #include "mbedtls/x509_csr.h"
 #include "mbedtls/error.h"
 #include "mbedtls/oid.h"
+#include "x509_oid.h"
 #include "mbedtls/platform_util.h"
 
 #include <string.h>
@@ -114,7 +115,7 @@ static int x509_csr_parse_extensions(mbedtls_x509_csr *csr,
         /*
          * Detect supported extensions and skip unsupported extensions
          */
-        ret = mbedtls_oid_get_x509_ext_type(&extn_oid, &ext_type);
+        ret = mbedtls_x509_oid_get_x509_ext_type(&extn_oid, &ext_type);
 
         if (ret != 0) {
             /* Give the callback (if any) a chance to handle the extension */

@@ -19,6 +19,7 @@
 #include "mbedtls/asn1write.h"
 #include "mbedtls/error.h"
 #include "mbedtls/oid.h"
+#include "x509_oid.h"
 #include "mbedtls/platform.h"
 #include "mbedtls/platform_util.h"
 #include "mbedtls/md.h"
@@ -413,8 +414,8 @@ int mbedtls_x509write_crt_der(mbedtls_x509write_cert *ctx,
         return MBEDTLS_ERR_X509_INVALID_ALG;
     }
 
-    if ((ret = mbedtls_oid_get_oid_by_sig_alg(pk_alg, ctx->md_alg,
-                                              &sig_oid, &sig_oid_len)) != 0) {
+    if ((ret = mbedtls_x509_oid_get_oid_by_sig_alg(pk_alg, ctx->md_alg,
+                                                   &sig_oid, &sig_oid_len)) != 0) {
         return ret;
     }
 

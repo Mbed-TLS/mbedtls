@@ -287,14 +287,12 @@
 #endif
 
 #if defined(MBEDTLS_X509_USE_C) && \
-    (!defined(MBEDTLS_OID_C) || !defined(MBEDTLS_ASN1_PARSE_C) ||   \
-    !defined(MBEDTLS_PK_PARSE_C))
+    (!defined(MBEDTLS_ASN1_PARSE_C) || !defined(MBEDTLS_PK_PARSE_C))
 #error "MBEDTLS_X509_USE_C defined, but not all prerequisites"
 #endif
 
 #if defined(MBEDTLS_X509_CREATE_C) && \
-    (!defined(MBEDTLS_OID_C) || !defined(MBEDTLS_ASN1_WRITE_C) ||      \
-    !defined(MBEDTLS_PK_PARSE_C))
+    (!defined(MBEDTLS_ASN1_WRITE_C) || !defined(MBEDTLS_PK_PARSE_C))
 #error "MBEDTLS_X509_CREATE_C defined, but not all prerequisites"
 #endif
 
@@ -389,7 +387,7 @@
 #endif
 
 #if defined(MBEDTLS_PKCS7_C) && ( ( !defined(MBEDTLS_ASN1_PARSE_C) ) || \
-    ( !defined(MBEDTLS_OID_C) ) || ( !defined(MBEDTLS_PK_PARSE_C) ) || \
+    ( !defined(MBEDTLS_PK_PARSE_C) ) || \
     ( !defined(MBEDTLS_X509_CRT_PARSE_C) ) || \
     ( !defined(MBEDTLS_X509_CRL_PARSE_C) ) || \
     ( !defined(MBEDTLS_MD_C) ) )

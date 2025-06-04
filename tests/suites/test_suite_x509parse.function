@@ -7,6 +7,7 @@
 #include "x509_internal.h"
 #include "mbedtls/pem.h"
 #include "mbedtls/oid.h"
+#include "x509_oid.h"
 #include "mbedtls/base64.h"
 #include "mbedtls/error.h"
 #include "mbedtls/pk.h"
@@ -1010,8 +1011,8 @@ void mbedtls_x509_dn_get_next(char *name_str,
     parsed_cur = &parsed;
     len = 0;
     for (i = 0; parsed_cur != NULL; i++) {
-        TEST_EQUAL(mbedtls_oid_get_attr_short_name(&parsed_cur->oid,
-                                                   &short_name), 0);
+        TEST_EQUAL(mbedtls_x509_oid_get_attr_short_name(&parsed_cur->oid,
+                                                        &short_name), 0);
         len += mbedtls_snprintf((char *) out + len, out_size - len, "%s ", short_name);
         parsed_cur = mbedtls_x509_dn_get_next(parsed_cur);
     }
@@ -1503,7 +1504,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_X509_USE_C:!MBEDTLS_X509_REMOVE_INFO */
+/* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C:!MBEDTLS_X509_REMOVE_INFO */
 void x509_oid_desc(data_t *buf, char *ref_desc)
 {
     mbedtls_x509_buf oid;
@@ -1516,7 +1517,7 @@ void x509_oid_desc(data_t *buf, char *ref_desc)
     oid.p   = buf->x;
     oid.len   = buf->len;
 
-    ret = mbedtls_oid_get_extended_key_usage(&oid, &desc);
+    ret = mbedtls_x509_oid_get_extended_key_usage(&oid, &desc);
 
     if (strcmp(ref_desc, "notfound") == 0) {
         TEST_ASSERT(ret != 0);

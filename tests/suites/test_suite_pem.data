@@ -53,6 +53,10 @@ PEM read (malformed PEM AES-128-CBC)
 depends_on:MBEDTLS_MD_CAN_MD5:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC
 mbedtls_pem_read_buffer:"-----BEGIN EC PRIVATE KEY-----":"-----END EC PRIVATE KEY-----":"-----BEGIN EC PRIVATE KEY-----\nProc-Type\: 4,ENCRYPTED\nDEK-Info\: AES-128-CBC,AA94892A169FA426AA94892A169FA426\n\nMAAA\n-----END EC PRIVATE KEY-----":"pwd":MBEDTLS_ERR_AES_INVALID_INPUT_LENGTH:""
 
+PEM read (malformed PEM AES-128-CBC with fewer than 4 base64 chars)
+depends_on:MBEDTLS_MD_CAN_MD5:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC
+mbedtls_pem_read_buffer:"-----BEGIN EC PRIVATE KEY-----":"-----END EC PRIVATE KEY-----":"-----BEGIN EC PRIVATE KEY-----\nProc-Type\: 4,ENCRYPTED\nDEK-Info\: AES-128-CBC,7BA38DE00F67851E4207216809C3BB15\n\n8Q-----END EC PRIVATE KEY-----":"pwd":MBEDTLS_ERR_PEM_INVALID_DATA:""
+
 # The output sequence's length is not multiple of block size (16 bytes). This
 # proves that the pem_context->len value is properly updated based on the SEQUENCE
 # length read from the decoded ASN.1 data (i.e. extra padding, if any, is ignored).

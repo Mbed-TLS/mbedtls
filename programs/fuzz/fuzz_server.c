@@ -5,7 +5,7 @@
 #include "mbedtls/ctr_drbg.h"
 #include "mbedtls/ssl_ticket.h"
 #include "test/certs.h"
-#include "common.h"
+#include "fuzz_common.h"
 #include <string.h>
 #include <stdlib.h>
 #include <stdint.h>

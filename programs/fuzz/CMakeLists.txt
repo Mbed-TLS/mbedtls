@@ -31,7 +31,7 @@ foreach(exe IN LISTS executables_no_common_c executables_with_common_c)
         $<TARGET_OBJECTS:mbedtls_test_helpers>
         $<TARGET_OBJECTS:mbedtls_test>)
     if(NOT FUZZINGENGINE_LIB)
-        list(APPEND exe_sources ${MBEDTLS_DIR}/tf-psa-crypto/programs/fuzz/onefile.c)
+        list(APPEND exe_sources ${MBEDTLS_DIR}/tf-psa-crypto/programs/fuzz/fuzz_onefile.c)
     endif()
 
     # This emulates "if ( ... IN_LIST ... )" which becomes available in CMake 3.3

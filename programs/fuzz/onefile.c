@@ -3,7 +3,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include "fuzz_common.h"
+#include "common.h"
 
 /* This file doesn't use any Mbed TLS function, but grab mbedtls_config.h anyway
  * in case it contains platform-specific #defines related to malloc or

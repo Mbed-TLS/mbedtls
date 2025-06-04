@@ -4,7 +4,7 @@
 #include "mbedtls/entropy.h"
 #include "mbedtls/ctr_drbg.h"
 #include "test/certs.h"
-#include "fuzz_common.h"
+#include "common.h"
 #include <string.h>
 #include <stdlib.h>
 #include <stdint.h>

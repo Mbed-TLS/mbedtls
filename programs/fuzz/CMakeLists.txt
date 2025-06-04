@@ -37,7 +37,7 @@ foreach(exe IN LISTS executables_no_common_c executables_with_common_c)
     # This emulates "if ( ... IN_LIST ... )" which becomes available in CMake 3.3
     list(FIND executables_with_common_c ${exe} exe_index)
     if(${exe_index} GREATER -1)
-        list(APPEND exe_sources fuzz_common.c)
+        list(APPEND exe_sources common.c)
     endif()
 
     add_executable(${exe} ${exe_sources})

@@ -3,7 +3,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdint.h>
-#include "fuzz_common.h"
+#include "common.h"
 #include "mbedtls/ssl.h"
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
 #include "mbedtls/entropy.h"

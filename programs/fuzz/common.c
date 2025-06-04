@@ -1,6 +1,6 @@
 #define MBEDTLS_DECLARE_PRIVATE_IDENTIFIERS
 
-#include "fuzz_common.h"
+#include "common.h"
 #include <limits.h>
 #include <stdio.h>
 #include <string.h>

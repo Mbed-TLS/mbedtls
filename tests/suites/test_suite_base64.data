@@ -84,14 +84,14 @@ mbedtls_base64_decode:"zm masd":"":MBEDTLS_ERR_BASE64_INVALID_CHARACTER
 # output when dlen < 3, but actually outputs 2 bytes if given a
 # buffer of 3 bytes or more.
 
-Base64 decode: 1 digit, 0 equals (sloppily accepted)
-mbedtls_base64_decode:"Y":"!":0
+Base64 decode: 1 digit, 0 equals (bad)
+mbedtls_base64_decode:"Y":"":MBEDTLS_ERR_BASE64_INVALID_CHARACTER
 
-Base64 decode: 1 digit, 1 equals (sloppily accepted)
-mbedtls_base64_decode:"Y":"!":0
+Base64 decode: 1 digit, 1 equals (bad)
+mbedtls_base64_decode:"Y":"":MBEDTLS_ERR_BASE64_INVALID_CHARACTER
 
-Base64 decode: 1 digit, 2 equals (sloppily accepted)
-mbedtls_base64_decode:"Y==":"!":0
+Base64 decode: 1 digit, 2 equals (bad)
+mbedtls_base64_decode:"Y==":"":MBEDTLS_ERR_BASE64_INVALID_CHARACTER
 
 Base64 decode: 1 digit, 3 equals (bad)
 mbedtls_base64_decode:"Y===":"!":MBEDTLS_ERR_BASE64_INVALID_CHARACTER
@@ -132,14 +132,14 @@ mbedtls_base64_decode:"Y29t==":"com":0
 Base64 decode: 4 digits, 3 equals (bad)
 mbedtls_base64_decode:"Y29t===":"com":MBEDTLS_ERR_BASE64_INVALID_CHARACTER
 
-Base64 decode: 5 digits, 0 equals (sloppily accepted)
-mbedtls_base64_decode:"Y29tc":"com!":0
+Base64 decode: 5 digits, 0 equals (bad)
+mbedtls_base64_decode:"Y29tc":"":MBEDTLS_ERR_BASE64_INVALID_CHARACTER
 
-Base64 decode: 5 digits, 1 equals (sloppily accepted)
-mbedtls_base64_decode:"Y29tc=":"com!":0
+Base64 decode: 5 digits, 1 equals (bad)
+mbedtls_base64_decode:"Y29tc=":"":MBEDTLS_ERR_BASE64_INVALID_CHARACTER
 
-Base64 decode: 5 digits, 2 equals (sloppily accepted)
-mbedtls_base64_decode:"Y29tc==":"com!":0
+Base64 decode: 5 digits, 2 equals (bad)
+mbedtls_base64_decode:"Y29tc==":"":MBEDTLS_ERR_BASE64_INVALID_CHARACTER
 
 Base64 decode: 5 digits, 3 equals (bad)
 mbedtls_base64_decode:"Y29tc===":"com!":MBEDTLS_ERR_BASE64_INVALID_CHARACTER

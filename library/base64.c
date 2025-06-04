@@ -183,6 +183,12 @@ int mbedtls_base64_decode(unsigned char *dst, size_t dlen, size_t *olen,
         n++;
     }
 
+    /* In valid base64, the number of digits is always of the form
+     * 4n, 4n+2 or 4n+3. */
+    if ((n - equals) % 4 == 1) {
+        return MBEDTLS_ERR_BASE64_INVALID_CHARACTER;
+    }
+
     if (n == 0) {
         *olen = 0;
         return 0;

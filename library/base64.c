@@ -14,6 +14,7 @@
 #include "mbedtls/base64.h"
 #include "base64_internal.h"
 #include "constant_time_internal.h"
+#include "mbedtls/error.h"
 
 #include <stdint.h>
 
@@ -183,55 +184,57 @@ int mbedtls_base64_decode(unsigned char *dst, size_t dlen, size_t *olen,
         n++;
     }
 
-    /* In valid base64, the number of digits is always of the form
-     * 4n, 4n+2 or 4n+3. */
+    /* In valid base64, the number of digits (n-equals) is always of the form
+     * 4*k, 4*k+2 or *4k+3. Also, the number n of digits plus the number of
+     * equal signs at the end is always a multiple of 4. */
     if ((n - equals) % 4 == 1) {
         return MBEDTLS_ERR_BASE64_INVALID_CHARACTER;
     }
-
-    if (n == 0) {
-        *olen = 0;
-        return 0;
+    if (n % 4 != 0) {
+        return MBEDTLS_ERR_BASE64_INVALID_CHARACTER;
     }
 
-    /* The following expression is to calculate the following formula without
-     * risk of integer overflow in n:
-     *     n = ( ( n * 6 ) + 7 ) >> 3;
-     */
-    n = (6 * (n >> 3)) + ((6 * (n & 0x7) + 7) >> 3);
-    n -= equals;
+    /* We've determined that the input is valid, and that it contains
+     * n digits-plus-trailing-equal-signs, which means (n - equals) digits.
+     * Now set *olen to the exact length of the output. */
+    /* Each block of 4 digits in the input map to 3 bytes of output.
+     * The last block can have one or two equal signs, in which case
+     * there are that many fewer output bytes. */
+    *olen = (n / 4) * 3 - equals;
 
-    if (dst == NULL || dlen < n) {
-        *olen = n;
+    if ((*olen != 0 && dst == NULL) || dlen < *olen) {
         return MBEDTLS_ERR_BASE64_BUFFER_TOO_SMALL;
     }
 
-    equals = 0;
     for (x = 0, p = dst; i > 0; i--, src++) {
         if (*src == '\r' || *src == '\n' || *src == ' ') {
             continue;
         }
-
-        x = x << 6;
         if (*src == '=') {
-            ++equals;
-        } else {
-            x |= mbedtls_ct_base64_dec_value(*src);
+            /* We already know from the first loop that equal signs are
+             * only at the end. */
+            break;
         }
+        x = x << 6;
+        x |= mbedtls_ct_base64_dec_value(*src);
 
         if (++accumulated_digits == 4) {
             accumulated_digits = 0;
             *p++ = MBEDTLS_BYTE_2(x);
-            if (equals <= 1) {
-                *p++ = MBEDTLS_BYTE_1(x);
-            }
-            if (equals <= 0) {
-                *p++ = MBEDTLS_BYTE_0(x);
-            }
+            *p++ = MBEDTLS_BYTE_1(x);
+            *p++ = MBEDTLS_BYTE_0(x);
         }
     }
+    if (accumulated_digits == 3) {
+        *p++ = MBEDTLS_BYTE_2(x << 6);
+        *p++ = MBEDTLS_BYTE_1(x << 6);
+    } else if (accumulated_digits == 2) {
+        *p++ = MBEDTLS_BYTE_2(x << 12);
+    }
 
-    *olen = (size_t) (p - dst);
+    if (*olen != (size_t) (p - dst)) {
+        return MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    }
 
     return 0;
 }

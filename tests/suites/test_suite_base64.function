@@ -99,25 +99,12 @@ void mbedtls_base64_decode(char *src_string, char *dst_string, int result)
 
     TEST_CALLOC(dst, dst_size);
 
-    /* Validate broken behavior observed on Mbed TLS 3.6.3:
-     * some invalid inputs are accepted, and asking for the decoded length
-     * gives a figure that's longer than the decoded output.
-     * In the test data, trailing "!" characters in dst_string indicate
-     * padding that must be present in the output buffer length, but
-     * will not be present in the actual output when the output buffer
-     * is large enough.
-     */
-    size_t expected_dst_len = correct_dst_len;
-    while (expected_dst_len > 0 && dst_string[expected_dst_len - 1] == '!') {
-        --expected_dst_len;
-    }
-
     /* Test normal operation */
     TEST_EQUAL(mbedtls_base64_decode(dst, dst_size, &len,
                                      src, src_len),
                result);
     if (result == 0) {
-        TEST_MEMORY_COMPARE(dst_string, expected_dst_len, dst, len);
+        TEST_MEMORY_COMPARE(dst_string, correct_dst_len, dst, len);
     }
 
     /* Test an output buffer that's one byte too small */

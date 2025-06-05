@@ -2207,7 +2207,6 @@ END
         #define MBEDTLS_AES_C
         #define MBEDTLS_CTR_DRBG_C
         #define MBEDTLS_ENTROPY_C
-        #define MBEDTLS_PLATFORM_C
         #define MBEDTLS_PSA_CRYPTO_C
         #define MBEDTLS_SELF_TEST
 END

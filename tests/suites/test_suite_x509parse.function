@@ -1669,6 +1669,9 @@ void x509_crt_parse_subjectkeyid(char *file, data_t *subjectKeyId, int ref_ret)
     mbedtls_x509_crt crt;
 
     mbedtls_x509_crt_init(&crt);
+    /* X509 relies on PK under the hood and the latter can use PSA to store keys
+     * and perform operations so psa_crypto_init() must be called before. */
+    USE_PSA_INIT();
 
     TEST_EQUAL(mbedtls_x509_crt_parse_file(&crt, file), ref_ret);
 
@@ -1683,6 +1686,7 @@ void x509_crt_parse_subjectkeyid(char *file, data_t *subjectKeyId, int ref_ret)
 
 exit:
     mbedtls_x509_crt_free(&crt);
+    USE_PSA_DONE();
 }
 /* END_CASE */
 
@@ -1698,6 +1702,9 @@ void x509_crt_parse_authoritykeyid(char *file,
     char name_buf[128];
 
     mbedtls_x509_crt_init(&crt);
+    /* X509 relies on PK under the hood and the latter can use PSA to store keys
+     * and perform operations so psa_crypto_init() must be called before. */
+    USE_PSA_INIT();
 
     TEST_EQUAL(mbedtls_x509_crt_parse_file(&crt, file), ref_ret);
 
@@ -1749,6 +1756,7 @@ void x509_crt_parse_authoritykeyid(char *file,
 
 exit:
     mbedtls_x509_crt_free(&crt);
+    USE_PSA_DONE();
 }
 /* END_CASE */
 

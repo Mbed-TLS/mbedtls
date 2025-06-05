@@ -92,11 +92,16 @@ void mbedtls_base64_decode(char *src_string, char *dst_string, int result)
     size_t dst_size = correct_dst_len;
     size_t len;
 
+    /* Allocate exactly the size of the input, to ensure there's no buffer
+     * overread in builds with ASan. (src_string has at least one extra null
+     * character at the end.) */
     TEST_CALLOC(src, src_len);
     if (src_len != 0) {
         memcpy(src, src_string, src_len);
     }
 
+    /* Allocate exactly the size of the input, to ensure there's no buffer
+     * overflow in builds with ASan. */
     TEST_CALLOC(dst, dst_size);
 
     /* Test normal operation */

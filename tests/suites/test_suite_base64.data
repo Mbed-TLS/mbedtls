@@ -78,6 +78,8 @@ mbedtls_base64_decode:"zm masd":"":MBEDTLS_ERR_BASE64_INVALID_CHARACTER
 
 # The next few test cases validate systematically for short inputs that
 # we require the correct number of trailing equal signs.
+
+# 4k+1 digits is always wrong (wouldn't encode more bytes than 4k digits)
 Base64 decode: 1 digit, 0 equals (bad)
 mbedtls_base64_decode:"Y":"":MBEDTLS_ERR_BASE64_INVALID_CHARACTER
 
@@ -126,6 +128,7 @@ mbedtls_base64_decode:"Y29t==":"com":MBEDTLS_ERR_BASE64_INVALID_CHARACTER
 Base64 decode: 4 digits, 3 equals (bad)
 mbedtls_base64_decode:"Y29t===":"com":MBEDTLS_ERR_BASE64_INVALID_CHARACTER
 
+# 4k+1 digits is always wrong (wouldn't encode more bytes than 4k digits)
 Base64 decode: 5 digits, 0 equals (bad)
 mbedtls_base64_decode:"Y29tc":"":MBEDTLS_ERR_BASE64_INVALID_CHARACTER
 

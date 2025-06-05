@@ -1,0 +1,4 @@
+Bugfix
+   * Appease GCC 14.3's array bounds checker by inserting checks in mbedtls_xor
+     that bail before the byte-at-a-time loop when the array size is a constant
+     (using MBEDTLS_HAS_BUILTIN) and an exact multiple of the larger loop size.

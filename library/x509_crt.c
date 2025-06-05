@@ -2555,16 +2555,6 @@ static int x509_crt_verify_chain(
             *flags |= MBEDTLS_X509_BADCERT_BAD_PK;
         }
 
-        /* Special case: EE certs that are locally trusted */
-        if (ver_chain->len == 1 &&
-            x509_crt_check_ee_locally_trusted(child, trust_ca) == 0) {
-            return 0;
-        }
-
-#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
-find_parent:
-#endif
-
         /* Obtain list of potential trusted signers from CA callback,
          * or use statically provided list. */
 #if defined(MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK)
@@ -2586,6 +2576,16 @@ find_parent:
             ((void) p_ca_cb);
             cur_trust_ca = trust_ca;
         }
+
+        /* Special case: EE certs that are locally trusted */
+        if (ver_chain->len == 1 &&
+            x509_crt_check_ee_locally_trusted(child, cur_trust_ca) == 0) {
+            return 0;
+        }
+
+#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
+find_parent:
+#endif
 
         /* Look for a parent in trusted CAs or up the chain */
         ret = x509_crt_find_parent(child, cur_trust_ca, &parent,

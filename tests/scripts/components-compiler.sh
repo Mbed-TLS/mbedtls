@@ -72,6 +72,38 @@ support_test_gcc_latest_opt () {
     type "$GCC_LATEST" >/dev/null 2>/dev/null
 }
 
+# Prepare for a non-regression for https://github.com/Mbed-TLS/mbedtls/issues/9814 :
+# test with GCC 15.
+# Eventually, $GCC_LATEST will be GCC 15 or above, and we can remove this
+# separate component.
+# For the time being, we don't make $GCC_LATEST be GCC 15 on the CI
+# platform, because that would break branches where #9814 isn't fixed yet.
+support_test_gcc15_drivers_opt () {
+    if type gcc-15 >/dev/null 2>/dev/null; then
+        GCC_15=gcc-15
+    elif [ -x /usr/local/gcc-15/bin/gcc-15 ]; then
+        GCC_15=/usr/local/gcc-15/bin/gcc-15
+    else
+        return 1
+    fi
+}
+component_test_gcc15_drivers_opt () {
+    msg "build: GCC 15: full + test drivers dispatching to builtins"
+    scripts/config.py full
+    scripts/config.py unset MBEDTLS_PSA_CRYPTO_CONFIG
+    loc_cflags="$ASAN_CFLAGS -DPSA_CRYPTO_DRIVER_TEST_ALL"
+    loc_cflags="${loc_cflags} '-DMBEDTLS_USER_CONFIG_FILE=\"../tests/configs/user-config-for-test.h\"'"
+    loc_cflags="${loc_cflags} -I../framework/tests/include -O2"
+    # Allow a warning that we don't yet comply to.
+    # https://github.com/Mbed-TLS/mbedtls/issues/9944
+    loc_cflags="${loc_cflags} -Wno-error=unterminated-string-initialization"
+
+    make CC=$GCC_15 CFLAGS="${loc_cflags}" LDFLAGS="$ASAN_CFLAGS"
+
+    msg "test: GCC 15: full + test drivers dispatching to builtins"
+    make test
+}
+
 component_test_gcc_earliest_opt () {
     scripts/config.py full
     test_build_opt 'full config' "$GCC_EARLIEST" -O2

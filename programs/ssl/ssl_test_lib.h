@@ -14,8 +14,7 @@
 #include "mbedtls/md.h"
 
 #undef HAVE_RNG
-#if defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG) || \
-    defined(MBEDTLS_TEST_USE_PSA_CRYPTO_RNG)
+#if defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG)
 #define HAVE_RNG
 #elif defined(MBEDTLS_ENTROPY_C) && defined(MBEDTLS_CTR_DRBG_C)
 #define HAVE_RNG

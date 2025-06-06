@@ -1,5 +1,10 @@
 # Interesting combinations of low-level crypto options
 
+# Entropy: available in mbedtls_entropy_init(), thanks to NV seed, no platform sources, no custom source
+Config: entropy: NV seed only
+depends_on:!MBEDTLS_NO_DEFAULT_ENTROPY_SOURCES:MBEDTLS_ENTROPY_NV_SEED:MBEDTLS_NO_PLATFORM_ENTROPY:!MBEDTLS_ENTROPY_HARDWARE_ALT
+pass:
+
 Config: ECC: Weierstrass curves only
 depends_on:MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED:!MBEDTLS_ECP_MONTGOMERY_ENABLED
 pass:

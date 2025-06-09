@@ -66,7 +66,7 @@ component_release_test_valgrind_constant_flow_no_asm () {
     # - or alternatively, build with debug info and manually run the offending
     # test suite with valgrind --track-origins=yes, then check if the origin
     # was TEST_CF_SECRET() or something else.
-    msg "build: cmake release GCC, full config minus MBEDTLS_USE_PSA_CRYPTO, minus MBEDTLS_HAVE_ASM with constant flow testing"
+    msg "build: cmake release GCC, full config minus MBEDTLS_HAVE_ASM with constant flow testing"
     scripts/config.py full
     scripts/config.py set MBEDTLS_TEST_CONSTANT_FLOW_VALGRIND
     scripts/config.py unset MBEDTLS_AESNI_C
@@ -77,7 +77,7 @@ component_release_test_valgrind_constant_flow_no_asm () {
 
     # this only shows a summary of the results (how many of each type)
     # details are left in Testing/<date>/DynamicAnalysis.xml
-    msg "test: some suites (full minus MBEDTLS_USE_PSA_CRYPTO, minus MBEDTLS_HAVE_ASM, valgrind + constant flow)"
+    msg "test: some suites (full minus MBEDTLS_HAVE_ASM, valgrind + constant flow)"
     make memcheck
 }
 
@@ -150,7 +150,7 @@ component_test_memsan () {
 
 component_release_test_valgrind () {
     msg "build: Release (clang)"
-    # default config, in particular without MBEDTLS_USE_PSA_CRYPTO
+    # default config
     CC=clang cmake -D CMAKE_BUILD_TYPE:String=Release .
     make
 
@@ -178,7 +178,7 @@ component_release_test_valgrind () {
 
 component_release_test_valgrind_psa () {
     msg "build: Release, full (clang)"
-    # full config, in particular with MBEDTLS_USE_PSA_CRYPTO
+    # full config
     scripts/config.py full
     CC=clang cmake -D CMAKE_BUILD_TYPE:String=Release .
     make

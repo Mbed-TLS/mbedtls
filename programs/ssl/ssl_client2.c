@@ -1123,8 +1123,7 @@ usage:
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
         else if (strcmp(p, "psk") == 0) {
             opt.psk = q;
-        }
-        else if (strcmp(p, "psk_opaque") == 0) {
+        } else if (strcmp(p, "psk_opaque") == 0) {
             opt.psk_opaque = atoi(q);
         }
 #if defined(MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK)
@@ -1136,11 +1135,9 @@ usage:
             opt.psk_identity = q;
         } else if (strcmp(p, "ecjpake_pw") == 0) {
             opt.ecjpake_pw = q;
-        }
-        else if (strcmp(p, "ecjpake_pw_opaque") == 0) {
+        } else if (strcmp(p, "ecjpake_pw_opaque") == 0) {
             opt.ecjpake_pw_opaque = atoi(q);
-        }
-        else if (strcmp(p, "ec_max_ops") == 0) {
+        } else if (strcmp(p, "ec_max_ops") == 0) {
             opt.ec_max_ops = atoi(q);
         } else if (strcmp(p, "force_ciphersuite") == 0) {
             opt.force_ciphersuite[0] = mbedtls_ssl_get_ciphersuite_id(q);
@@ -2082,8 +2079,7 @@ usage:
                 goto exit;
             }
             mbedtls_printf("using opaque password\n");
-        } else
-        {
+        } else {
             if ((ret = mbedtls_ssl_set_hs_ecjpake_password(&ssl,
                                                            (const unsigned char *) opt.ecjpake_pw,
                                                            strlen(opt.ecjpake_pw))) != 0) {

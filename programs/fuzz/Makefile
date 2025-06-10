@@ -3,6 +3,8 @@ MBEDTLS_TEST_PATH:=../../tests
 MBEDTLS_PATH := ../..
 include ../../scripts/common.make
 
+PROGRAM_FUZZ_PATH:=$(MBEDTLS_PATH)/tf-psa-crypto/programs/fuzz/
+
 DEP=${MBEDLIBS}
 
 ifdef FUZZINGENGINE
@@ -32,13 +34,13 @@ C_FILES := $(addsuffix .c,$(APPS))
 
 
 ifdef FUZZINGENGINE
-$(BINARIES): %$(EXEXT): %.o $(MBEDTLS_PATH)/tf-psa-crypto/programs/fuzz/fuzz_common.o $(DEP)
-	echo " $(CC) $(MBEDTLS_PATH)/tf-psa-crypto/programs/fuzz/fuzz_common.o $< $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@"
-	$(CXX) $(MBEDTLS_PATH)/tf-psa-crypto/programs/fuzz/fuzz_common.o $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+$(BINARIES): %$(EXEXT): %.o $(PROGRAM_FUZZ_PATH)/fuzz_common.o $(DEP)
+	echo " $(PROGRAM_FUZZ_PATH)/fuzz_common.o $< $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@"
+	$(CXX) $(PROGRAM_FUZZ_PATH)/fuzz_common.o $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 else
-$(BINARIES): %$(EXEXT): %.o $(MBEDTLS_PATH)/tf-psa-crypto/programs/fuzz/fuzz_common.o $(MBEDTLS_PATH)/tf-psa-crypto/programs/fuzz/onefile.o $(DEP)
-	echo " $(CC) $(MBEDTLS_PATH)/tf-psa-crypto/programs/fuzz/fuzz_common.o $(MBEDTLS_PATH)/tf-psa-crypto/programs/fuzz/onefile.o $< $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@"
-	$(CC) $(MBEDTLS_PATH)/tf-psa-crypto/programs/fuzz/fuzz_common.o $(MBEDTLS_PATH)/tf-psa-crypto/programs/fuzz/onefile.o $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+$(BINARIES): %$(EXEXT): %.o $(PROGRAM_FUZZ_PATH)/fuzz_common.o $(MBEDTLS_PATH)/tf-psa-crypto/programs/fuzz/onefile.o $(DEP)
+	echo " $(CC) $(PROGRAM_FUZZ_PATH)/fuzz_common.o $(MBEDTLS_PATH)/tf-psa-crypto/programs/fuzz/onefile.o $< $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@"
+	$(CC) $(PROGRAM_FUZZ_PATH)/fuzz_common.o $(MBEDTLS_PATH)/tf-psa-crypto/programs/fuzz/onefile.o $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 endif
 
 clean:

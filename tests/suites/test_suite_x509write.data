@@ -273,7 +273,7 @@ X509 String to Names (repeated OID, middle is zero-length)
 mbedtls_x509_string_to_names:"CN=ab,CN=#0400,CN=ef":"CN=ef":0:0
 
 X509 String to Names (repeated OID, last is zero-length)
-mbedtls_x509_string_to_names:"CN=ab,CN=cd,CN=#0400":"CN=ef":0:0
+mbedtls_x509_string_to_names:"CN=ab,CN=cd,CN=#0400":"CN=#0000":0:MAY_FAIL_GET_NAME
 
 X509 Round trip test (Escaped characters)
 mbedtls_x509_string_to_names:"CN=Lu\\C4\\8Di\\C4\\87, O=Offspark, OU=PolarSSL":"CN=Lu\\C4\\8Di\\C4\\87, O=Offspark, OU=PolarSSL":0:0

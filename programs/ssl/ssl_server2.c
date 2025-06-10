@@ -1035,8 +1035,9 @@ static int psk_callback(void *p_info, mbedtls_ssl_context *ssl,
             memcmp(name, cur->name, name_len) == 0) {
             if (MBEDTLS_SVC_KEY_ID_GET_KEY_ID(cur->slot) != 0) {
                 return mbedtls_ssl_set_hs_psk_opaque(ssl, cur->slot);
-            } else
-            return mbedtls_ssl_set_hs_psk(ssl, cur->key, cur->key_len);
+            } else {
+                return mbedtls_ssl_set_hs_psk(ssl, cur->key, cur->key_len);
+	    }
         }
 
         cur = cur->next;
@@ -1936,8 +1937,7 @@ usage:
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
         else if (strcmp(p, "psk") == 0) {
             opt.psk = q;
-        }
-        else if (strcmp(p, "psk_opaque") == 0) {
+        } else if (strcmp(p, "psk_opaque") == 0) {
             opt.psk_opaque = atoi(q);
         } else if (strcmp(p, "psk_list_opaque") == 0) {
             opt.psk_list_opaque = atoi(q);
@@ -1953,8 +1953,7 @@ usage:
             opt.psk_list = q;
         } else if (strcmp(p, "ecjpake_pw") == 0) {
             opt.ecjpake_pw = q;
-        }
-        else if (strcmp(p, "ecjpake_pw_opaque") == 0) {
+        } else if (strcmp(p, "ecjpake_pw_opaque") == 0) {
             opt.ecjpake_pw_opaque = atoi(q);
         }
         else if (strcmp(p, "force_ciphersuite") == 0) {
@@ -3358,8 +3357,7 @@ reset:
                 goto exit;
             }
             mbedtls_printf("using opaque password\n");
-        } else
-        {
+        } else {
             if ((ret = mbedtls_ssl_set_hs_ecjpake_password(&ssl,
                                                            (const unsigned char *) opt.ecjpake_pw,
                                                            strlen(opt.ecjpake_pw))) != 0) {

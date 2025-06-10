@@ -551,8 +551,9 @@ void x509_crt_check(char *subject_key_file, char *subject_pwd,
     // go into the MBEDTLS_ERR_ASN1_BUF_TOO_SMALL error case
     if (issuer_key_type != MBEDTLS_PK_RSA) {
         der_len /= 2;
-    } else
-    der_len -= 1;
+    } else {
+        der_len -= 1;
+    }
 
     ret = mbedtls_x509write_crt_der(&crt, buf, (size_t) (der_len));
     TEST_ASSERT(ret == MBEDTLS_ERR_ASN1_BUF_TOO_SMALL);

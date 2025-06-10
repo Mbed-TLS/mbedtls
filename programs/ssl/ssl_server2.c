@@ -1037,7 +1037,7 @@ static int psk_callback(void *p_info, mbedtls_ssl_context *ssl,
                 return mbedtls_ssl_set_hs_psk_opaque(ssl, cur->slot);
             } else {
                 return mbedtls_ssl_set_hs_psk(ssl, cur->key, cur->key_len);
-	    }
+            }
         }
 
         cur = cur->next;
@@ -1955,8 +1955,7 @@ usage:
             opt.ecjpake_pw = q;
         } else if (strcmp(p, "ecjpake_pw_opaque") == 0) {
             opt.ecjpake_pw_opaque = atoi(q);
-        }
-        else if (strcmp(p, "force_ciphersuite") == 0) {
+        } else if (strcmp(p, "force_ciphersuite") == 0) {
             opt.force_ciphersuite[0] = mbedtls_ssl_get_ciphersuite_id(q);
 
             if (opt.force_ciphersuite[0] == 0) {

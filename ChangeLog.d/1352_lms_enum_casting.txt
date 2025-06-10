@@ -1,0 +1,6 @@
+Bugfix
+   * Fix a sloppy check in LMS public key import, which could lead to accepting
+     keys with a different LMS or LM-OTS types on some platforms. Specifically,
+     this could happen on platforms where enum types are smaller than 32 bits
+     and compiler optimization is enabled. Found and reported by Linh Le and
+     Ngan Nguyen from Calif.

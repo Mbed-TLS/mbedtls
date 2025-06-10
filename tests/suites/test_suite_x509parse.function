@@ -1126,6 +1126,14 @@ void x509parse_crt(data_t *buf, char *result_str, int result)
     ((void) result_str);
 #endif
 
+#if !defined(MBEDTLS_PK_USE_PSA_RSA_DATA)
+    /* Support for tf-psa-crypto repo before psa#308. Once that PR will be
+     * merged this conversion can be removed. */
+    if (result == MBEDTLS_ERR_PK_INVALID_PUBKEY) {
+        result = MBEDTLS_ERR_ASN1_UNEXPECTED_TAG;
+    }
+#endif /* MBEDTLS_PK_USE_PSA_RSA_DATA */
+
     mbedtls_x509_crt_init(&crt);
     USE_PSA_INIT();
 

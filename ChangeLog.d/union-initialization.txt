@@ -1,0 +1,15 @@
+Bugfix
+   * Fix failures of PSA multipart or interruptible operations when the
+     library or the application is built with a compiler where
+     "union foo x = {0}" does not initialize non-default members of the
+     union, such as GCC 15 and some versions of Clang 18. This affected MAC
+     multipart operations, MAC-based key derivation operations, interruptible
+     signature, interruptible verification, and potentially other operations
+     when using third-party drivers. This also affected one-shot MAC
+     operations using the built-in implementation. Fixes #9814.
+   * On entry to PSA driver entry points that set up a multipart operation
+     ("xxx_setup"), the operation object is supposed to be all-bits-zero.
+     This was sometimes not the case when an operation object is reused,
+     or with compilers where "union foo x = {0}" does not initialize
+     non-default members of the union. The PSA core now ensures that this
+     guarantee is met in all cases. Fixes #9975.

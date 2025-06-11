@@ -123,7 +123,11 @@ void mbedtls_base64_decode(char *src_string, char *dst_string, int result)
         TEST_EQUAL(correct_dst_len, len);
     }
 
-    /* Test an empty output buffer */
+    /* Test an empty output buffer. `mbedtls_base64_decode()` must return
+     * `BUFFER_TOO_SMALL` but report the correct output length.
+     * Skip this when dst_size==0 since that would be a valid call to
+     * `mbedtls_base64_decode()` which should return 0.
+     */
     if (result == 0 && dst_size != 0) {
         TEST_EQUAL(mbedtls_base64_decode(NULL, 0, &len,
                                          src, src_len),

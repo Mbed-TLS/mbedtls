@@ -195,13 +195,28 @@ int mbedtls_base64_decode(unsigned char *dst, size_t dlen, size_t *olen,
     }
 
     /* We've determined that the input is valid, and that it contains
-     * n digits-plus-trailing-equal-signs, which means (n - equals) digits.
-     * Now set *olen to the exact length of the output. */
-    /* Each block of 4 digits in the input map to 3 bytes of output.
-     * The last block can have one or two equal signs, in which case
-     * there are that many fewer output bytes. */
+     * exactly k blocks of digits-or-equals, with n = 4 * k,
+     * and equals only present at the end of the last block if at all.
+     * Now we can calculate the length of the output.
+     *
+     * Each block of 4 digits in the input map to 3 bytes of output.
+     * For the last block:
+     * - abcd (where abcd are digits) is a full 3-byte block;
+     * - abc= means 1 byte less than a full 3-byte block of output;
+     * - ab== means 2 bytes less than a full 3-byte block of output;
+     * - a==== and ==== is rejected above.
+     */
     *olen = (n / 4) * 3 - equals;
 
+    /* If the output buffer is too small, signal this and stop here.
+     * Also, as documented, stop here if `dst` is null, independently of
+     * `dlen`.
+     *
+     * There is an edge case when the output is empty: in this case,
+     * `dlen == 0` with `dst == NULL` is valid (on some platforms,
+     * `malloc(0)` returns `NULL`). Since the call is valid, we return
+     * 0 in this case.
+     */
     if ((*olen != 0 && dst == NULL) || dlen < *olen) {
         return MBEDTLS_ERR_BASE64_BUFFER_TOO_SMALL;
     }

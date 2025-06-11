@@ -3154,11 +3154,14 @@ void handshake_fragmentation(int mfl,
                              int expected_cli_hs_fragmentation)
 {
     mbedtls_test_handshake_test_options options;
-    mbedtls_test_ssl_log_pattern srv_pattern, cli_pattern;
 
-    srv_pattern.pattern = cli_pattern.pattern = "found fragmented DTLS handshake";
-    srv_pattern.counter = 0;
-    cli_pattern.counter = 0;
+    options.debug_threshold = 2;
+    if (expected_cli_hs_fragmentation) {
+        options.cli_log_pattern = "found fragmented DTLS handshakeC";
+    }
+    if (expected_srv_hs_fragmentation) {
+        options.srv_log_pattern = "found fragmented DTLS handshakeS";
+    }
 
     mbedtls_test_init_handshake_options(&options);
     options.dtls = 1;
@@ -3167,21 +3170,10 @@ void handshake_fragmentation(int mfl,
     /* Set cipher to one using CBC so that record splitting can be tested */
     options.cipher = "TLS-ECDHE-RSA-WITH-AES-256-CBC-SHA384";
     options.srv_auth_mode = MBEDTLS_SSL_VERIFY_REQUIRED;
-    options.srv_log_obj = &srv_pattern;
-    options.cli_log_obj = &cli_pattern;
-    options.srv_log_fun = mbedtls_test_ssl_log_analyzer;
-    options.cli_log_fun = mbedtls_test_ssl_log_analyzer;
 
     mbedtls_test_ssl_perform_handshake(&options);
-
-    /* Test if the server received a fragmented handshake */
-    if (expected_srv_hs_fragmentation) {
-        TEST_ASSERT(srv_pattern.counter >= 1);
-    }
-    /* Test if the client received a fragmented handshake */
-    if (expected_cli_hs_fragmentation) {
-        TEST_ASSERT(cli_pattern.counter >= 1);
-    }
+    /* The goto below is used to avoid an "unused label" warning.*/
+    goto exit;
 
 exit:
     mbedtls_test_free_handshake_options(&options);
@@ -3215,19 +3207,9 @@ void recombine_server_first_flight(int version,
     mbedtls_test_init_handshake_options(&client_options);
     mbedtls_test_handshake_test_options server_options;
     mbedtls_test_init_handshake_options(&server_options);
-#if defined(MBEDTLS_DEBUG_C)
-    mbedtls_test_ssl_log_pattern cli_pattern = { .pattern = client_log };
-    mbedtls_test_ssl_log_pattern srv_pattern = { .pattern = server_log };
-#else
-    (void) client_log;
-    (void) server_log;
-#endif
     int ret = 0;
 
     MD_OR_USE_PSA_INIT();
-#if defined(MBEDTLS_DEBUG_C)
-    mbedtls_debug_set_threshold(3);
-#endif
 
     // Does't really matter but we want to know to declare dependencies.
     client_options.pk_alg = MBEDTLS_PK_ECDSA;
@@ -3236,8 +3218,10 @@ void recombine_server_first_flight(int version,
     client_options.client_min_version = version;
     client_options.client_max_version = version;
 #if defined(MBEDTLS_DEBUG_C)
-    client_options.cli_log_obj = &cli_pattern;
-    client_options.cli_log_fun = mbedtls_test_ssl_log_analyzer;
+    client_options.cli_log_pattern = client_log;
+    client_options.debug_threshold = 3;
+#else
+    (void) client_log;
 #endif
     TEST_EQUAL(mbedtls_test_ssl_endpoint_init(&client, MBEDTLS_SSL_IS_CLIENT,
                                               &client_options), 0);
@@ -3245,8 +3229,10 @@ void recombine_server_first_flight(int version,
     server_options.server_min_version = version;
     server_options.server_max_version = version;
 #if defined(MBEDTLS_DEBUG_C)
-    server_options.srv_log_obj = &srv_pattern;
-    server_options.srv_log_fun = mbedtls_test_ssl_log_analyzer;
+    server_options.srv_log_pattern = server_log;
+    server_options.debug_threshold = 3;
+#else
+    (void) server_log;
 #endif
     TEST_EQUAL(mbedtls_test_ssl_endpoint_init(&server, MBEDTLS_SSL_IS_SERVER,
                                               &server_options), 0);
@@ -3329,8 +3315,10 @@ void recombine_server_first_flight(int version,
 
 goal_reached:
 #if defined(MBEDTLS_DEBUG_C)
-    TEST_ASSERT(cli_pattern.counter >= 1);
-    TEST_ASSERT(srv_pattern.counter >= 1);
+    if (*client_log) {
+        TEST_LE_U(1, client.log_pattern.counter);
+    }
+    TEST_LE_U(1, server.log_pattern.counter);
 #endif
 
 exit:
@@ -3339,9 +3327,6 @@ exit:
     mbedtls_test_free_handshake_options(&client_options);
     mbedtls_test_free_handshake_options(&server_options);
     MD_OR_USE_PSA_DONE();
-#if defined(MBEDTLS_DEBUG_C)
-    mbedtls_debug_set_threshold(0);
-#endif
 }
 /* END_CASE */
 
@@ -3593,15 +3578,12 @@ void force_bad_session_id_len()
     enum { BUFFSIZE = 1024 };
     mbedtls_test_handshake_test_options options;
     mbedtls_test_ssl_endpoint client, server;
-    mbedtls_test_ssl_log_pattern srv_pattern, cli_pattern;
     mbedtls_test_message_socket_context server_context, client_context;
 
-    srv_pattern.pattern = cli_pattern.pattern = "cache did not store session";
-    srv_pattern.counter = 0;
     mbedtls_test_init_handshake_options(&options);
-
-    options.srv_log_obj = &srv_pattern;
-    options.srv_log_fun = mbedtls_test_ssl_log_analyzer;
+    options.debug_threshold = 1;
+    options.cli_log_pattern = "cache did not store session";
+    options.srv_log_pattern = "cache did not store session";
 
     mbedtls_platform_zeroize(&client, sizeof(client));
     mbedtls_platform_zeroize(&server, sizeof(server));
@@ -3615,10 +3597,6 @@ void force_bad_session_id_len()
 
     TEST_EQUAL(mbedtls_test_ssl_endpoint_init(&server, MBEDTLS_SSL_IS_SERVER,
                                               &options), 0);
-
-    mbedtls_debug_set_threshold(1);
-    mbedtls_ssl_conf_dbg(&server.conf, options.srv_log_fun,
-                         options.srv_log_obj);
 
     TEST_EQUAL(mbedtls_test_mock_socket_connect(&(client.socket),
                                                 &(server.socket),
@@ -3641,12 +3619,12 @@ void force_bad_session_id_len()
     }
 
     /* Make sure that the cache did not store the session */
-    TEST_EQUAL(srv_pattern.counter, 1);
+    TEST_EQUAL(1, server.log_pattern.counter);
+
 exit:
     mbedtls_test_ssl_endpoint_free(&client);
     mbedtls_test_ssl_endpoint_free(&server);
     mbedtls_test_free_handshake_options(&options);
-    mbedtls_debug_set_threshold(0);
     MD_OR_USE_PSA_DONE();
 }
 /* END_CASE */
@@ -4196,7 +4174,6 @@ void tls13_read_early_data(int scenario)
     mbedtls_test_handshake_test_options client_options;
     mbedtls_test_handshake_test_options server_options;
     mbedtls_ssl_session saved_session;
-    mbedtls_test_ssl_log_pattern server_pattern = { NULL, 0 };
     uint16_t group_list[3] = {
         MBEDTLS_SSL_IANA_TLS_GROUP_SECP256R1,
         MBEDTLS_SSL_IANA_TLS_GROUP_SECP384R1,
@@ -4251,15 +4228,15 @@ void tls13_read_early_data(int scenario)
             break;
 
         case TEST_EARLY_DATA_SERVER_REJECTS:
-            mbedtls_debug_set_threshold(3);
-            server_pattern.pattern =
+            server_options.debug_threshold = 3;
+            server_options.srv_log_pattern =
                 "EarlyData: deprotect and discard app data records.";
             server_options.early_data = MBEDTLS_SSL_EARLY_DATA_DISABLED;
             break;
 
         case TEST_EARLY_DATA_HRR:
-            mbedtls_debug_set_threshold(3);
-            server_pattern.pattern =
+            server_options.debug_threshold = 3;
+            server_options.srv_log_pattern =
                 "EarlyData: Ignore application message before 2nd ClientHello";
             server_options.group_list = group_list + 1;
             break;
@@ -4276,16 +4253,16 @@ void tls13_read_early_data(int scenario)
             client_options.alpn_list[1] = NULL;
             server_options.alpn_list[0] = "ALPNExample2";
             server_options.alpn_list[1] = NULL;
-            mbedtls_debug_set_threshold(3);
-            server_pattern.pattern =
+            server_options.debug_threshold = 3;
+            server_options.srv_log_pattern =
                 "EarlyData: rejected, the selected ALPN is different "
                 "from the one associated with the pre-shared key.";
             break;
         case TEST_EARLY_DATA_NO_LATER_ALPN:
             client_options.alpn_list[0] = NULL;
             server_options.alpn_list[0] = NULL;
-            mbedtls_debug_set_threshold(3);
-            server_pattern.pattern =
+            server_options.debug_threshold = 3;
+            server_options.srv_log_pattern =
                 "EarlyData: rejected, the selected ALPN is different "
                 "from the one associated with the pre-shared key.";
             break;
@@ -4299,8 +4276,6 @@ void tls13_read_early_data(int scenario)
                                          &client_options);
     TEST_EQUAL(ret, 0);
 
-    server_options.srv_log_fun = mbedtls_test_ssl_log_analyzer;
-    server_options.srv_log_obj = &server_pattern;
     ret = mbedtls_test_ssl_endpoint_init(&server_ep, MBEDTLS_SSL_IS_SERVER,
                                          &server_options);
     TEST_EQUAL(ret, 0);
@@ -4365,7 +4340,7 @@ void tls13_read_early_data(int scenario)
 #endif
             TEST_EQUAL(ret, 0);
             TEST_EQUAL(server_ep.ssl.handshake->early_data_accepted, 0);
-            TEST_EQUAL(server_pattern.counter, 1);
+            TEST_EQUAL(server_ep.log_pattern.counter, 1);
             break;
 
         default:
@@ -4382,7 +4357,6 @@ exit:
     mbedtls_test_free_handshake_options(&client_options);
     mbedtls_test_free_handshake_options(&server_options);
     mbedtls_ssl_session_free(&saved_session);
-    mbedtls_debug_set_threshold(0);
     PSA_DONE();
 }
 /* END_CASE */
@@ -5270,13 +5244,11 @@ void tls13_srv_max_early_data_size(int scenario, int max_early_data_size_arg, in
     mbedtls_test_handshake_test_options client_options;
     mbedtls_test_handshake_test_options server_options;
     mbedtls_ssl_session saved_session;
-    mbedtls_test_ssl_log_pattern server_pattern = { NULL, 0 };
     uint16_t group_list[3] = {
         MBEDTLS_SSL_IANA_TLS_GROUP_SECP256R1,
         MBEDTLS_SSL_IANA_TLS_GROUP_SECP384R1,
         MBEDTLS_SSL_IANA_TLS_GROUP_NONE
     };
-    char pattern[128];
     unsigned char *buf_write = NULL;
     uint32_t write_size = (uint32_t) write_size_arg;
     unsigned char *buf_read = NULL;
@@ -5320,20 +5292,15 @@ void tls13_srv_max_early_data_size(int scenario, int max_early_data_size_arg, in
     /*
      * Prepare for handshake with the ticket.
      */
-    server_options.srv_log_fun = mbedtls_test_ssl_log_analyzer;
-    server_options.srv_log_obj = &server_pattern;
-    server_pattern.pattern = pattern;
-
     switch (scenario) {
         case TEST_EARLY_DATA_ACCEPTED:
             break;
 
         case TEST_EARLY_DATA_SERVER_REJECTS:
             server_options.early_data = MBEDTLS_SSL_EARLY_DATA_DISABLED;
-            ret = mbedtls_snprintf(pattern, sizeof(pattern),
-                                   "EarlyData: deprotect and discard app data records.");
-            TEST_ASSERT(ret < (int) sizeof(pattern));
-            mbedtls_debug_set_threshold(3);
+            server_options.debug_threshold = 3;
+            server_options.srv_log_pattern =
+                "EarlyData: deprotect and discard app data records.";
             break;
 
         case TEST_EARLY_DATA_HRR:
@@ -5342,11 +5309,9 @@ void tls13_srv_max_early_data_size(int scenario, int max_early_data_size_arg, in
              * mbedtls_test_get_tls13_ticket() forcing an HelloRetryRequest.
              */
             server_options.group_list = group_list + 1;
-            ret = mbedtls_snprintf(
-                pattern, sizeof(pattern),
-                "EarlyData: Ignore application message before 2nd ClientHello");
-            TEST_ASSERT(ret < (int) sizeof(pattern));
-            mbedtls_debug_set_threshold(3);
+            server_options.debug_threshold = 3;
+            server_options.srv_log_pattern =
+                "EarlyData: Ignore application message before 2nd ClientHello";
             break;
 
         default:
@@ -5478,8 +5443,8 @@ void tls13_srv_max_early_data_size(int scenario, int max_early_data_size_arg, in
 
                 TEST_EQUAL(ret, MBEDTLS_ERR_SSL_WANT_READ);
 
-                TEST_EQUAL(server_pattern.counter, 1);
-                server_pattern.counter = 0;
+                TEST_EQUAL(server_ep.log_pattern.counter, 1);
+                server_ep.log_pattern.counter = 0;
                 if (expanded_early_data_chunk_size == 0) {
                     expanded_early_data_chunk_size = server_ep.ssl.total_early_data_size;
                 }
@@ -5488,17 +5453,15 @@ void tls13_srv_max_early_data_size(int scenario, int max_early_data_size_arg, in
         TEST_LE_U(server_ep.ssl.total_early_data_size, max_early_data_size);
     } while (1);
 
-    mbedtls_debug_set_threshold(3);
     ret = write_early_data(&(client_ep.ssl), buf_write, write_size);
     TEST_EQUAL(ret, write_size);
 
-    ret = mbedtls_snprintf(pattern, sizeof(pattern),
-                           "EarlyData: Too much early data received");
-    TEST_ASSERT(ret < (int) sizeof(pattern));
+    server_ep.debug_threshold = 3;
+    server_ep.log_pattern.pattern = "EarlyData: Too much early data received";
 
     ret = mbedtls_ssl_handshake(&(server_ep.ssl));
     TEST_EQUAL(ret, MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE);
-    TEST_EQUAL(server_pattern.counter, 1);
+    TEST_EQUAL(server_ep.log_pattern.counter, 1);
 
 exit:
     mbedtls_test_ssl_endpoint_free(&client_ep);
@@ -5508,7 +5471,6 @@ exit:
     mbedtls_ssl_session_free(&saved_session);
     mbedtls_free(buf_write);
     mbedtls_free(buf_read);
-    mbedtls_debug_set_threshold(0);
     PSA_DONE();
 }
 /* END_CASE */
@@ -5536,16 +5498,12 @@ void inject_client_content_on_the_wire(int pk_alg,
     mbedtls_platform_zeroize(&client, sizeof(client));
     mbedtls_test_handshake_test_options options;
     mbedtls_test_init_handshake_options(&options);
-    mbedtls_test_ssl_log_pattern srv_pattern;
-    memset(&srv_pattern, 0, sizeof(srv_pattern));
     int ret = -1;
 
     PSA_INIT();
 
-    srv_pattern.pattern = log_pattern;
-    options.srv_log_obj = &srv_pattern;
-    options.srv_log_fun = mbedtls_test_ssl_log_analyzer;
-    mbedtls_debug_set_threshold(3);
+    options.debug_threshold = 3;
+    options.srv_log_pattern = log_pattern;
 
     options.pk_alg = pk_alg;
 
@@ -5577,13 +5535,12 @@ void inject_client_content_on_the_wire(int pk_alg,
         ret = mbedtls_ssl_handshake_step(&server.ssl);
     } while (ret == 0 && server.ssl.state == state);
     TEST_EQUAL(ret, expected_ret);
-    TEST_ASSERT(srv_pattern.counter >= 1);
+    TEST_LE_U(1, server.log_pattern.counter);
 
 exit:
     mbedtls_test_free_handshake_options(&options);
     mbedtls_test_ssl_endpoint_free(&server);
     mbedtls_test_ssl_endpoint_free(&client);
-    mbedtls_debug_set_threshold(0);
     PSA_DONE();
 }
 /* END_CASE */
@@ -5608,9 +5565,6 @@ void send_large_fragmented_hello(int hs_len_int, int first_frag_content_len_int,
     mbedtls_test_handshake_test_options options;
     mbedtls_test_init_handshake_options(&options);
 
-    mbedtls_test_ssl_log_pattern srv_pattern;
-    memset(&srv_pattern, 0, sizeof(srv_pattern));
-
     unsigned char *first_frag = NULL;
     int ret = -1;
 
@@ -5619,10 +5573,10 @@ void send_large_fragmented_hello(int hs_len_int, int first_frag_content_len_int,
 
     PSA_INIT();
 
-    srv_pattern.pattern = log_pattern;
-    options.srv_log_obj = &srv_pattern;
-    options.srv_log_fun = mbedtls_test_ssl_log_analyzer;
-    mbedtls_debug_set_threshold(1);
+#if defined(MBEDTLS_DEBUG_C)
+    options.debug_threshold = 1;
+    options.srv_log_pattern = log_pattern;
+#endif
 
     // Does't really matter but we want to know to declare dependencies.
     options.pk_alg = MBEDTLS_PK_ECDSA;
@@ -5691,13 +5645,14 @@ void send_large_fragmented_hello(int hs_len_int, int first_frag_content_len_int,
         }
     }
     TEST_EQUAL(ret, expected_ret);
-    TEST_EQUAL(srv_pattern.counter, 1);
+#if defined(MBEDTLS_DEBUG_C)
+    TEST_LE_U(1, server.log_pattern.counter);
+#endif
 
 exit:
     mbedtls_test_free_handshake_options(&options);
     mbedtls_test_ssl_endpoint_free(&server);
     mbedtls_test_ssl_endpoint_free(&client);
-    mbedtls_debug_set_threshold(0);
     mbedtls_free(first_frag);
     PSA_DONE();
 }

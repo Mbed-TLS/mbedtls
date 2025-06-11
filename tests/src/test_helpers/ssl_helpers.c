@@ -22,11 +22,22 @@ int mbedtls_test_random(void *p_rng, unsigned char *output, size_t output_len)
     return 0;
 }
 
-void mbedtls_test_ssl_log_analyzer(void *ctx, int level,
-                                   const char *file, int line,
-                                   const char *str)
+#if defined(MBEDTLS_DEBUG_C)
+static void ssl_log_analyzer(mbedtls_test_ssl_log_pattern *p,
+                             const char *str)
 {
-    mbedtls_test_ssl_log_pattern *p = (mbedtls_test_ssl_log_pattern *) ctx;
+    if (NULL != p &&
+        NULL != p->pattern &&
+        NULL != strstr(str, p->pattern)) {
+        p->counter++;
+    }
+}
+
+void mbedtls_test_ssl_debug_handler(void *ctx, int level,
+                                    const char *file, int line,
+                                    const char *msg)
+{
+    mbedtls_test_ssl_endpoint *ep = ctx;
 
 /* Change 0 to 1 for debugging of test cases that use this function. */
 #if 0
@@ -45,12 +56,15 @@ void mbedtls_test_ssl_log_analyzer(void *ctx, int level,
     (void) file;
 #endif
 
-    if (NULL != p &&
-        NULL != p->pattern &&
-        NULL != strstr(str, p->pattern)) {
-        p->counter++;
+    /* Stop before doing anything else if the debug level is beyond this
+     * endpoint's threshold. */
+    if (level > ep->debug_threshold) {
+        return;
     }
+
+    ssl_log_analyzer(&ep->log_pattern, msg);
 }
+#endif /* MBEDTLS_DEBUG_C */
 
 void mbedtls_test_init_handshake_options(
     mbedtls_test_handshake_test_options *opts)
@@ -828,6 +842,14 @@ int mbedtls_test_ssl_endpoint_init_conf(
 
     ep->name = (endpoint_type == MBEDTLS_SSL_IS_SERVER) ? "Server" : "Client";
 
+#if defined(MBEDTLS_DEBUG_C)
+    ep->debug_threshold = options->debug_threshold;
+    ep->log_pattern.counter = 0;
+    ep->log_pattern.pattern = (endpoint_type == MBEDTLS_SSL_IS_SERVER ?
+                               options->srv_log_pattern :
+                               options->cli_log_pattern);
+#endif /* MBEDTLS_DEBUG_C */
+
     mbedtls_ssl_init(&(ep->ssl));
     mbedtls_ssl_config_init(&(ep->conf));
     mbedtls_test_message_socket_init(&ep->dtls_context);
@@ -938,20 +960,7 @@ int mbedtls_test_ssl_endpoint_init_conf(
 #endif
 
 #if defined(MBEDTLS_DEBUG_C)
-#if defined(MBEDTLS_SSL_SRV_C)
-    if (endpoint_type == MBEDTLS_SSL_IS_SERVER &&
-        options->srv_log_fun != NULL) {
-        mbedtls_ssl_conf_dbg(&(ep->conf), options->srv_log_fun,
-                             options->srv_log_obj);
-    }
-#endif
-#if defined(MBEDTLS_SSL_CLI_C)
-    if (endpoint_type == MBEDTLS_SSL_IS_CLIENT &&
-        options->cli_log_fun != NULL) {
-        mbedtls_ssl_conf_dbg(&(ep->conf), options->cli_log_fun,
-                             options->cli_log_obj);
-    }
-#endif
+    mbedtls_ssl_conf_dbg(&(ep->conf), mbedtls_test_ssl_debug_handler, ep);
 #endif /* MBEDTLS_DEBUG_C */
 
     ret = mbedtls_test_ssl_endpoint_certificate_init(ep, options->pk_alg,
@@ -1025,6 +1034,24 @@ int mbedtls_test_ssl_endpoint_init_ssl(
     TEST_EQUAL(mbedtls_ssl_get_user_data_n(&ep->ssl), ep->user_data_cookie);
     mbedtls_ssl_set_user_data_p(&ep->ssl, ep);
 
+#if defined(MBEDTLS_DEBUG_C)
+    /* Hack alert: we set the debug threshold to the highest meaningful level.
+     * We do it unconditionally so that it's easy to obtain debug logs for
+     * unit tests, even if the tests themselves don't care about logs.
+     * This way, mbedtls_test_ssl_debug_handler() is always called.
+     *
+     * In particular, this is independent of options->debug_threshold,
+     * which indicates how much the test case cares about logs.
+     * It's the job of mbedtls_test_ssl_debug_handler() to do any further
+     * filtering of the log level.
+     *
+     * This is a dirty hack because the debug threshold is a global state,
+     * and we won't be able to restore it correctly. See also
+     * mbedtls_test_ssl_endpoint_free().
+     */
+    mbedtls_debug_set_threshold(4);
+#endif /* MBEDTLS_DEBUG_C */
+
     return 0;
 
 exit:
@@ -1062,6 +1089,18 @@ void mbedtls_test_ssl_endpoint_free(
     } else {
         mbedtls_test_mock_socket_close(&(ep->socket));
     }
+
+#if defined(MBEDTLS_DEBUG_C)
+    /* Hack alert: the debug threshold is a global state.
+     * mbedtls_test_ssl_endpoint_init_ssl() sets it, and here we restore
+     * it to its default value. This is correct in the typical case where
+     * a test function calls mbedtls_test_ssl_endpoint_init_ssl() (often
+     * indirectly), then does stuff, and finally calls
+     * mbedtls_test_ssl_endpoint_free() as part of its cleanup. In more
+     * complex workflows, the debug threshold may not be restored correctly.
+     */
+    mbedtls_debug_set_threshold(0);
+#endif /* MBEDTLS_DEBUG_C */
 }
 
 int mbedtls_test_ssl_dtls_join_endpoints(mbedtls_test_ssl_endpoint *client,
@@ -2484,12 +2523,6 @@ void mbedtls_test_ssl_perform_handshake(
 
     MD_OR_USE_PSA_INIT();
 
-#if defined(MBEDTLS_DEBUG_C)
-    if (options->cli_log_fun || options->srv_log_fun) {
-        mbedtls_debug_set_threshold(4);
-    }
-#endif
-
     /* Client side */
     TEST_EQUAL(mbedtls_test_ssl_endpoint_init(client,
                                               MBEDTLS_SSL_IS_CLIENT,
@@ -2511,14 +2544,18 @@ void mbedtls_test_ssl_perform_handshake(
     TEST_ASSERT(mbedtls_ssl_conf_get_user_data_p(&server->conf) == server);
     TEST_ASSERT(mbedtls_ssl_get_user_data_p(&server->ssl) == server);
 
+#if defined(MBEDTLS_DEBUG_C)
+    if (options->cli_log_pattern != NULL) {
+        TEST_LE_U(1, client->log_pattern.counter);
+    }
+    if (options->srv_log_pattern != NULL) {
+        TEST_LE_U(1, server->log_pattern.counter);
+    }
+#endif /* MBEDTLS_DEBUG_C */
+
 exit:
     mbedtls_test_ssl_endpoint_free(client);
     mbedtls_test_ssl_endpoint_free(server);
-#if defined(MBEDTLS_DEBUG_C)
-    if (options->cli_log_fun || options->srv_log_fun) {
-        mbedtls_debug_set_threshold(0);
-    }
-#endif
     MD_OR_USE_PSA_DONE();
 }
 #endif /* MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED */

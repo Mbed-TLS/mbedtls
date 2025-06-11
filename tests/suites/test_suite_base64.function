@@ -116,9 +116,8 @@ void mbedtls_base64_decode(char *src_string, char *dst_string, int result)
     if (result == 0 && dst_size != 0) {
         mbedtls_free(dst);
         dst = NULL;
-        dst_size -= 1;
-        TEST_CALLOC(dst, dst_size);
-        TEST_EQUAL(mbedtls_base64_decode(dst, dst_size, &len,
+        TEST_CALLOC(dst, dst_size - 1);
+        TEST_EQUAL(mbedtls_base64_decode(dst, dst_size - 1, &len,
                                          src, src_len),
                    MBEDTLS_ERR_BASE64_BUFFER_TOO_SMALL);
         TEST_EQUAL(correct_dst_len, len);

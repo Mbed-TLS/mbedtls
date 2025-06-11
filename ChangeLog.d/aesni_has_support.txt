@@ -13,3 +13,5 @@ Security
      the adversary to conduct timing attacks and potentially recover the
      key. In particular, this attacker model may be possible against an SGX
      enclave.
+     The same vulnerability affects GCM acceleration, which could allow
+     a similarly powerful adversary to craft GCM forgeries.

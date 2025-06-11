@@ -53,8 +53,8 @@ void mbedtls_test_ssl_debug_handler(void *ctx, int level,
                 basename = q + 1;
             }
         }
-        printf("%s:%04d: |%d| %s",
-               basename, line, level, msg);
+        printf("%s: %s:%04d: |%d| %s",
+               ep->name, basename, line, level, msg);
     }
 
     /* Stop before doing anything else if the debug level is beyond this

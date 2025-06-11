@@ -3480,7 +3480,8 @@ void mac_setup(int key_type_arg,
     psa_mac_operation_t operation = psa_mac_operation_init_short();
     psa_status_t status = PSA_ERROR_GENERIC_ERROR;
 #if defined(KNOWN_SUPPORTED_MAC_ALG)
-    const uint8_t smoke_test_key_data[16] = "kkkkkkkkkkkkkkkk";
+    /* We need to tell the compiler that we meant to leave out the null character. */
+    const uint8_t smoke_test_key_data[16] __attribute__ ((nonstring)) = "kkkkkkkkkkkkkkkk";
 #endif
 
     PSA_ASSERT(psa_crypto_init());
@@ -3917,7 +3918,8 @@ void cipher_setup(int key_type_arg,
     psa_cipher_operation_t operation = psa_cipher_operation_init_short();
     psa_status_t status;
 #if defined(KNOWN_SUPPORTED_CIPHER_ALG)
-    const uint8_t smoke_test_key_data[16] = "kkkkkkkkkkkkkkkk";
+    /* We need to tell the compiler that we meant to leave out the null character. */
+    const uint8_t smoke_test_key_data[16] __attribute__ ((nonstring)) = "kkkkkkkkkkkkkkkk";
 #endif
 
     PSA_ASSERT(psa_crypto_init());

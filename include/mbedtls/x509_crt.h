@@ -733,7 +733,7 @@ int mbedtls_x509_crt_verify_with_profile(mbedtls_x509_crt *crt,
  *                 to disable restartable ECC.
  *
  * \return         See \c mbedtls_crt_verify_with_profile(), or
- * \return         #MBEDTLS_ERR_ECP_IN_PROGRESS if maximum number of
+ * \return         #PSA_OPERATION_INCOMPLETE if maximum number of
  *                 operations was reached: see \c mbedtls_ecp_set_max_ops().
  */
 int mbedtls_x509_crt_verify_restartable(mbedtls_x509_crt *crt,

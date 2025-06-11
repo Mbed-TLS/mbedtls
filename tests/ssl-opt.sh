@@ -11693,7 +11693,7 @@ run_test    "DTLS reordering: Buffer out-of-order handshake message fragment on 
             0 \
             -c "Buffering HS message" \
             -c "found fragmented DTLS handshake message"\
-            -c "Next handshake message 1 not or only partially bufffered" \
+            -c "Next handshake message 1 not or only partially buffered" \
             -c "Next handshake message has been buffered - load"\
             -S "Buffering HS message" \
             -S "Next handshake message has been buffered - load"\

@@ -25,7 +25,8 @@ int psa_cipher_encrypt_decrypt_main(void)
     uint8_t original[BUFFER_SIZE] = { 0 };
     uint8_t encrypt[BUFFER_SIZE] = { 0 };
     uint8_t decrypt[BUFFER_SIZE] = { 0 };
-    const uint8_t key_bytes[32] = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+    /* We need to tell the compiler that we meant to leave out the null character. */
+    const uint8_t key_bytes[32] __attribute__ ((nonstring)) = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
     size_t encrypted_length;
     size_t decrypted_length;
 

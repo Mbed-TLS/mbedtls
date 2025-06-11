@@ -80,7 +80,8 @@ struct mbedtls_ssl_tls13_labels_struct const mbedtls_ssl_tls13_labels =
  *            the HkdfLabel structure on success.
  */
 
-static const char tls13_label_prefix[6] = "tls13 ";
+/* We need to tell the compiler that we meant to leave out the null character. */
+static const char tls13_label_prefix[6] __attribute__ ((nonstring)) = "tls13 ";
 
 #define SSL_TLS1_3_KEY_SCHEDULE_HKDF_LABEL_LEN(label_len, context_len) \
     (2                     /* expansion length           */ \

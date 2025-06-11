@@ -117,10 +117,11 @@ typedef struct mbedtls_test_handshake_test_options {
     int expected_srv_fragments;
     int renegotiate;
     int legacy_renegotiation;
-    void *srv_log_obj;
-    void *cli_log_obj;
-    void (*srv_log_fun)(void *, int, const char *, int, const char *);
-    void (*cli_log_fun)(void *, int, const char *, int, const char *);
+#if defined(MBEDTLS_DEBUG_C)
+    int debug_threshold;
+    const char *srv_log_pattern;
+    const char *cli_log_pattern;
+#endif
     int resize_buffers;
     int early_data;
     int max_early_data_size;
@@ -195,6 +196,10 @@ typedef struct mbedtls_test_ssl_endpoint {
     mbedtls_ssl_config conf;
     mbedtls_test_mock_socket socket;
     uintptr_t user_data_cookie; /* A unique value associated with this endpoint */
+#if defined(MBEDTLS_DEBUG_C)
+    mbedtls_test_ssl_log_pattern log_pattern;
+    int debug_threshold;
+#endif /* MBEDTLS_DEBUG_C */
 
     /* Objects only used by DTLS.
      * They should be guarded by MBEDTLS_SSL_PROTO_DTLS, but
@@ -221,14 +226,22 @@ typedef struct mbedtls_test_ssl_endpoint {
  */
 int mbedtls_test_random(void *p_rng, unsigned char *output, size_t output_len);
 
-/*
- * This function can be passed to mbedtls to receive output logs from it. In
- * this case, it will count the instances of a mbedtls_test_ssl_log_pattern
- * in the received logged messages.
+#if defined(MBEDTLS_DEBUG_C)
+/** Debug handler passed to mbedtls_ssl_conf_dbg().
+ *
+ * \p ctx is the #mbedtls_test_ssl_endpoint structure.
+ *
+ * \note This function is meant to be called unconditionally
+ *       (in particular, regardless of the log level).
+ *       It can optionally make logs available for debugging.
+ *       Inspection, e.g. through log patterns, is conditional on the
+ *       level being at least the `debug_threshold` configured in the
+ *       endpoint.
  */
-void mbedtls_test_ssl_log_analyzer(void *ctx, int level,
-                                   const char *file, int line,
-                                   const char *str);
+void mbedtls_test_ssl_debug_handler(void *ctx, int level,
+                                    const char *file, int line,
+                                    const char *msg);
+#endif /* MBEDTLS_DEBUG_C */
 
 void mbedtls_test_init_handshake_options(
     mbedtls_test_handshake_test_options *opts);

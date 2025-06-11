@@ -242,6 +242,13 @@ int mbedtls_test_random(void *p_rng, unsigned char *output, size_t output_len);
 void mbedtls_test_ssl_debug_handler(void *ctx, int level,
                                     const char *file, int line,
                                     const char *msg);
+
+/** Debug messages up to this level are printed to stdout.
+ *
+ * \note In unit tests, you need to run the test suite with `-v`,
+ *       otherwise stdout is suppressed.
+ */
+extern int mbedtls_test_ssl_debug_stdout_threshold;
 #endif /* MBEDTLS_DEBUG_C */
 
 void mbedtls_test_init_handshake_options(

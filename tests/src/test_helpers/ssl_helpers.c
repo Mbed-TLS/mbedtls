@@ -33,28 +33,29 @@ static void ssl_log_analyzer(mbedtls_test_ssl_log_pattern *p,
     }
 }
 
+/* Change this value to see debug logs on stdout. Note that you need to
+ * run the test suite with -v, otherwise stdout is suppressed.
+ * Don't forget to NOT commit the change!
+ */
+int mbedtls_test_ssl_debug_stdout_threshold = 0;
+
 void mbedtls_test_ssl_debug_handler(void *ctx, int level,
                                     const char *file, int line,
                                     const char *msg)
 {
     mbedtls_test_ssl_endpoint *ep = ctx;
 
-/* Change 0 to 1 for debugging of test cases that use this function. */
-#if 0
-    const char *q, *basename;
-    /* Extract basename from file */
-    for (q = basename = file; *q != '\0'; q++) {
-        if (*q == '/' || *q == '\\') {
-            basename = q + 1;
+    if (level <= mbedtls_test_ssl_debug_stdout_threshold) {
+        const char *q, *basename;
+        /* Extract basename from file */
+        for (q = basename = file; *q != '\0'; q++) {
+            if (*q == '/' || *q == '\\') {
+                basename = q + 1;
+            }
         }
+        printf("%s:%04d: |%d| %s",
+               basename, line, level, msg);
     }
-    printf("%s:%04d: |%d| %s",
-           basename, line, level, str);
-#else
-    (void) level;
-    (void) line;
-    (void) file;
-#endif
 
     /* Stop before doing anything else if the debug level is beyond this
      * endpoint's threshold. */

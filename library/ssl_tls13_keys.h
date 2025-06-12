@@ -42,7 +42,7 @@
 
 /* We need to tell the compiler that we meant to leave out the null character. */
 #define MBEDTLS_SSL_TLS1_3_LABEL(name, string)       \
-    const unsigned char name    [sizeof(string) - 1] __attribute__ ((nonstring));
+    const unsigned char name    [sizeof(string) - 1] MBEDTLS_ATTRIBUTE_UNTERMINATED_STRING;
 
 union mbedtls_ssl_tls13_labels_union {
     MBEDTLS_SSL_TLS1_3_LABEL_LIST

@@ -38,7 +38,7 @@ void ssl_decrypt_null(int hash_id)
                               MBEDTLS_SSL_TRANSPORT_STREAM,
                               version);
     /* We need to tell the compiler that we meant to leave out the null character. */
-    const char sample_plaintext[3] __attribute__ ((nonstring)) = "ABC";
+    const char sample_plaintext[3] MBEDTLS_ATTRIBUTE_UNTERMINATED_STRING = "ABC";
     mbedtls_ssl_context ssl;
     mbedtls_ssl_init(&ssl);
     uint8_t *buf = NULL;

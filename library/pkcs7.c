@@ -247,6 +247,97 @@ static void pkcs7_free_signer_info(mbedtls_pkcs7_signer_info *signer)
     signer->issuer.next = NULL;
 }
 
+static int pkcs7_get_authenticated_attributes(unsigned char **p, unsigned char *end_signer,
+                                              mbedtls_pkcs7_signer_info *signer)
+{
+    int ret;
+    unsigned char *end;
+    unsigned char *start_attr;
+    unsigned char *start_attr_type;
+    unsigned char *end_attr_value;
+    size_t attr_len;
+    size_t attr_type_len;
+    size_t attr_value_len;
+    size_t len;
+    int seen_content_type = 0;
+    int seen_message_digest = 0;
+
+    ret = mbedtls_asn1_get_tag(p, end_signer, &signer->auth_attributes_raw.len,
+                               MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_CONTEXT_SPECIFIC | 0);
+    if (ret == 0) {
+        /*
+         * Per RFC 2315 Section 9.3, if the authenticatedAttributes field is present, the
+         * message digest is computed on the DER encoding of the Attributes value.
+         * Canonically, the authenticatedAttributes tag would therefore be encoded as SET OF.
+         */
+        signer->auth_attributes_raw.tag = MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SET;
+        signer->auth_attributes_raw.p = *p;
+        end = *p + signer->auth_attributes_raw.len;
+
+        while (*p != end) {
+            if ((ret = mbedtls_asn1_get_tag(p, end, &attr_len, MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE)) != 0) {
+                return ret;
+            }
+            start_attr = *p;
+
+            if ((ret = mbedtls_asn1_get_tag(p, end, &attr_type_len, MBEDTLS_ASN1_OID)) != 0) {
+                return ret;
+            }
+            start_attr_type = *p;
+            *p += attr_type_len;
+
+            if ((ret = mbedtls_asn1_get_tag(p, end, &attr_value_len, MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SET)) != 0) {
+                return ret;
+            }
+            end_attr_value = *p + attr_value_len;
+
+            if (!MBEDTLS_OID_CMP_RAW(MBEDTLS_OID_PKCS9_CONTENT_TYPE, start_attr_type, attr_type_len)) {
+                if ((ret = mbedtls_asn1_get_tag(p, end_attr_value, &len, MBEDTLS_ASN1_OID)) != 0) {
+                    return ret;
+                }
+
+                if (MBEDTLS_OID_CMP_RAW(MBEDTLS_OID_PKCS7_DATA, *p, len)) {
+                    return MBEDTLS_ERR_PKCS7_INVALID_CONTENT_INFO;
+                }
+
+                *p += len;
+
+                if (*p != end_attr_value) {
+                    return MBEDTLS_ERR_PKCS7_BAD_INPUT_DATA;
+                }
+
+                seen_content_type = 1;
+            } else if (!MBEDTLS_OID_CMP_RAW(MBEDTLS_OID_PKCS9_MESSAGE_DIGEST, start_attr_type, attr_type_len)) {
+                if ((ret = mbedtls_asn1_get_tag(p, end, &len, MBEDTLS_ASN1_OCTET_STRING)) != 0) {
+                    return ret;
+                }
+
+                signer->auth_attributes.message_digest_raw.tag = MBEDTLS_ASN1_OCTET_STRING;
+                signer->auth_attributes.message_digest_raw.len = len;
+                signer->auth_attributes.message_digest_raw.p = *p;
+
+                *p += len;
+
+                if (*p != end_attr_value) {
+                    return MBEDTLS_ERR_PKCS7_BAD_INPUT_DATA;
+                }
+
+                seen_message_digest = 1;
+            } else {
+                /* Unknown attribute type, skip attribute. */
+                *p = start_attr + attr_len;
+            }
+        }
+
+        if (!seen_content_type || !seen_message_digest) {
+            return MBEDTLS_ERR_PKCS7_BAD_INPUT_DATA;
+        }
+    }
+
+    /* authenticatedAttributes are optional, don't fail if it's not present. */
+    return 0;
+}
+
 /**
  * SignerInfo ::= SEQUENCE {
  *      version Version;
@@ -260,8 +351,7 @@ static void pkcs7_free_signer_info(mbedtls_pkcs7_signer_info *signer)
  *              [1] IMPLICIT Attributes OPTIONAL,
  * Returns 0 if the signerInfo is valid.
  * Return negative error code for failure.
- * Structure must not contain vales for authenticatedAttributes
- * and unauthenticatedAttributes.
+ * Structure must not contain values for unauthenticatedAttributes.
  **/
 static int pkcs7_get_signer_info(unsigned char **p, unsigned char *end,
                                  mbedtls_pkcs7_signer_info *signer,
@@ -331,7 +421,11 @@ static int pkcs7_get_signer_info(unsigned char **p, unsigned char *end,
         goto out;
     }
 
-    /* Assume authenticatedAttributes is nonexistent */
+    ret = pkcs7_get_authenticated_attributes(p, end_signer, signer);
+    if (ret != 0) {
+        goto out;
+    }
+
     ret = pkcs7_get_digest_algorithm(p, end_signer, &signer->sig_alg_identifier);
     if (ret != 0) {
         goto out;

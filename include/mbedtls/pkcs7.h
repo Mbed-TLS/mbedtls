@@ -103,6 +103,14 @@ typedef enum {
 mbedtls_pkcs7_type;
 
 /**
+ * Structure holding PKCS #7 authenticated attributes
+ */
+typedef struct mbedtls_pkcs7_auth_attributes {
+    mbedtls_pkcs7_buf MBEDTLS_PRIVATE(message_digest_raw);
+}
+mbedtls_pkcs7_auth_attributes;
+
+/**
  * Structure holding PKCS #7 signer info
  */
 typedef struct mbedtls_pkcs7_signer_info {
@@ -110,6 +118,8 @@ typedef struct mbedtls_pkcs7_signer_info {
     mbedtls_x509_buf MBEDTLS_PRIVATE(serial);
     mbedtls_x509_name MBEDTLS_PRIVATE(issuer);
     mbedtls_x509_buf MBEDTLS_PRIVATE(issuer_raw);
+    struct mbedtls_pkcs7_auth_attributes MBEDTLS_PRIVATE(auth_attributes);
+    mbedtls_x509_buf MBEDTLS_PRIVATE(auth_attributes_raw);
     mbedtls_x509_buf MBEDTLS_PRIVATE(alg_identifier);
     mbedtls_x509_buf MBEDTLS_PRIVATE(sig_alg_identifier);
     mbedtls_x509_buf MBEDTLS_PRIVATE(sig);

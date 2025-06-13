@@ -82,9 +82,13 @@ foreach my $file (@files) {
         die "Description both before and after $name in $file\n"
           if defined($before) && defined($after);
         my $description = (defined($before) ? $before : $after);
-        $description =~ s/^\s+//;
+        # For error codes with long descriptions, keep only the first paragraph.
+        $description =~ s/\n[* ]*\n.*//s;
+        # Wrap lines and remove '* ' line prefix.
         $description =~ s/\n( *\*)? */ /g;
-        $description =~ s/\.?\s+$//;
+        # Remove leading and trailing whitespace. Also remove a trailing '.'.
+        $description =~ s/^\s+//;
+        $description =~ s/\.?\s*$//;
         push @matches, [$name, $value, $description];
         ++$found;
     }

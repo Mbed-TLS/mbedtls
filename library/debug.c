@@ -241,20 +241,20 @@ static void mbedtls_debug_print_ecp(const mbedtls_ssl_context *ssl, int level,
 }
 #endif /* MBEDTLS_ECP_LIGHT */
 
-#if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
+#if defined(MBEDTLS_PK_USE_PSA_EC_DATA) || defined(MBEDTLS_PK_USE_PSA_RSA_DATA)
 static void mbedtls_debug_print_ec_coord(const mbedtls_ssl_context *ssl, int level,
                                          const char *file, int line, const char *text,
                                          const unsigned char *buf, size_t len)
 {
     char str[DEBUG_BUF_SIZE];
-    size_t i, idx = 0;
+    size_t i, len_bytes = PSA_BITS_TO_BYTES(len), idx = 0;
 
     mbedtls_snprintf(str + idx, sizeof(str) - idx, "value of '%s' (%u bits) is:\n",
-                     text, (unsigned int) len * 8);
+                     text, (unsigned int) len);
 
     debug_send_line(ssl, level, file, line, str);
 
-    for (i = 0; i < len; i++) {
+    for (i = 0; i < len_bytes; i++) {
         if (i >= 4096) {
             break;
         }
@@ -272,16 +272,14 @@ static void mbedtls_debug_print_ec_coord(const mbedtls_ssl_context *ssl, int lev
                                 (unsigned int) buf[i]);
     }
 
-    if (len > 0) {
-        for (/* i = i */; i % 16 != 0; i++) {
-            idx += mbedtls_snprintf(str + idx, sizeof(str) - idx, "   ");
-        }
-
+    if (len_bytes > 0) {
         mbedtls_snprintf(str + idx, sizeof(str) - idx, "\n");
         debug_send_line(ssl, level, file, line, str);
     }
 }
+#endif /* MBEDTLS_PK_USE_PSA_EC_DATA || MBEDTLS_PK_USE_PSA_RSA_DATA */
 
+#if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
 static void mbedtls_debug_print_psa_ec(const mbedtls_ssl_context *ssl, int level,
                                        const char *file, int line,
                                        const char *text, const mbedtls_pk_context *pk)
@@ -304,14 +302,98 @@ static void mbedtls_debug_print_psa_ec(const mbedtls_ssl_context *ssl, int level
     /* X coordinate */
     coord_start = pk->pub_raw + 1;
     mbedtls_snprintf(str, sizeof(str), "%s(X)", text);
-    mbedtls_debug_print_ec_coord(ssl, level, file, line, str, coord_start, coord_len);
+    mbedtls_debug_print_ec_coord(ssl, level, file, line, str, coord_start, coord_len * 8);
 
     /* Y coordinate */
     coord_start = coord_start + coord_len;
     mbedtls_snprintf(str, sizeof(str), "%s(Y)", text);
-    mbedtls_debug_print_ec_coord(ssl, level, file, line, str, coord_start, coord_len);
+    mbedtls_debug_print_ec_coord(ssl, level, file, line, str, coord_start, coord_len * 8);
 }
 #endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
+
+#if defined(MBEDTLS_PK_USE_PSA_RSA_DATA)
+static size_t debug_count_valid_bits(unsigned char **buf, size_t len)
+{
+    size_t i, bits;
+
+    /* Ignore initial null bytes (if any). */
+    while ((len > 0) && (**buf == 0x00)) {
+        (*buf)++;
+        len--;
+    }
+
+    if (len == 0) {
+        return 0;
+    }
+
+    bits = len * 8;
+
+    /* Ignore initial null bits (if any). */
+    for (i = 7; i > 0; i--) {
+        if ((**buf & (0x1 << i)) != 0) {
+            break;
+        }
+        bits--;
+    }
+
+    return bits;
+}
+
+static void mbedtls_debug_print_psa_rsa(const mbedtls_ssl_context *ssl, int level,
+                                        const char *file, int line,
+                                        const char *text, const mbedtls_pk_context *pk)
+{
+    char str[DEBUG_BUF_SIZE];
+    unsigned char key_der[MBEDTLS_PK_MAX_RSA_PUBKEY_RAW_LEN];
+    unsigned char *start_cur;
+    unsigned char *end_cur;
+    size_t len, bits;
+    int ret;
+
+    if (pk->pub_raw_len > sizeof(key_der)) {
+        return;
+    }
+
+    memcpy(key_der, pk->pub_raw, pk->pub_raw_len);
+    start_cur = key_der;
+    end_cur = key_der + pk->pub_raw_len;
+
+    ret = mbedtls_asn1_get_tag(&start_cur, end_cur, &len,
+                               MBEDTLS_ASN1_SEQUENCE | MBEDTLS_ASN1_CONSTRUCTED);
+    if (ret != 0) {
+        return;
+    }
+
+    ret = mbedtls_asn1_get_tag(&start_cur, end_cur, &len, MBEDTLS_ASN1_INTEGER);
+    if (ret != 0) {
+        return;
+    }
+
+    bits = debug_count_valid_bits(&start_cur, len);
+    if (bits == 0) {
+        return;
+    }
+    len = PSA_BITS_TO_BYTES(bits);
+
+    mbedtls_snprintf(str, sizeof(str), "%s.N", text);
+    mbedtls_debug_print_ec_coord(ssl, level, file, line, str, start_cur, bits);
+
+    start_cur += len;
+
+    ret = mbedtls_asn1_get_tag(&start_cur, end_cur, &len, MBEDTLS_ASN1_INTEGER);
+    if (ret != 0) {
+        return;
+    }
+
+    bits = debug_count_valid_bits(&start_cur, len);
+    if (bits == 0) {
+        return;
+    }
+
+    mbedtls_snprintf(str, sizeof(str), "%s.E", text);
+    mbedtls_debug_print_ec_coord(ssl, level, file, line, str, start_cur, bits);
+}
+#endif /* MBEDTLS_PK_USE_PSA_RSA_DATA */
 
 static void debug_print_pk(const mbedtls_ssl_context *ssl, int level,
                            const char *file, int line,
@@ -342,6 +424,11 @@ static void debug_print_pk(const mbedtls_ssl_context *ssl, int level,
             mbedtls_debug_print_mpi(ssl, level, file, line, name, items[i].value);
         } else
 #endif /* MBEDTLS_RSA_C */
+#if defined(MBEDTLS_PK_USE_PSA_RSA_DATA)
+        if (items[i].type == MBEDTLS_PK_DEBUG_PSA_RSA) {
+            mbedtls_debug_print_psa_rsa(ssl, level, file, line, name, items[i].value);
+        } else
+#endif /* MBEDTLS_PK_USE_PSA_RSA_DATA */
 #if defined(MBEDTLS_ECP_LIGHT)
         if (items[i].type == MBEDTLS_PK_DEBUG_ECP) {
             mbedtls_debug_print_ecp(ssl, level, file, line, name, items[i].value);

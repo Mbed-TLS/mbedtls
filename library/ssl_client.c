@@ -141,7 +141,7 @@ static int ssl_write_alpn_ext(mbedtls_ssl_context *ssl,
      *     ProtocolName protocol_name_list<2..2^16-1>
      * } ProtocolNameList;
      */
-    for (const char **cur = ssl->conf->alpn_list; *cur != NULL; cur++) {
+    for (const char *const *cur = ssl->conf->alpn_list; *cur != NULL; cur++) {
         /*
          * mbedtls_ssl_conf_set_alpn_protocols() checked that the length of
          * protocol names is less than 255.

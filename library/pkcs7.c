@@ -722,6 +722,55 @@ out:
     return ret;
 }
 
+static int mbedtls_pkcs7_hash_authenticated_attributes(const mbedtls_md_info_t *md_info,
+                                                       const mbedtls_x509_buf *buf,
+                                                       unsigned char *output)
+{
+    int ret;
+    mbedtls_md_context_t md_ctx;
+
+    unsigned char asn1_tag_buf[1];
+    unsigned char asn1_length_buf[1 + sizeof(size_t)];
+    unsigned char *p = asn1_length_buf + sizeof(asn1_length_buf);
+    int asn1_length_buf_len;
+
+    mbedtls_md_init(&md_ctx);
+
+    if ((ret = mbedtls_md_setup(&md_ctx, md_info, 0)) != 0) {
+        goto exit;
+    }
+    if ((ret = mbedtls_md_starts(&md_ctx)) != 0) {
+        goto exit;
+    }
+
+    /*
+     * Per RFC 2315 9.3, the message digest is computed on the complete DER encoding
+     * of the Attributes value. We therefore need to hash the tag and the ASN.1 length
+     * on top of the actual buffer contents.
+     */
+    asn1_tag_buf[0] = buf->tag;
+    if ((ret = mbedtls_md_update(&md_ctx, asn1_tag_buf, sizeof(asn1_tag_buf))) != 0) {
+        goto exit;
+    }
+    if ((ret = asn1_length_buf_len = mbedtls_asn1_write_len(&p, asn1_length_buf, buf->len)) < 0) {
+        goto exit;
+    }
+    if ((ret = mbedtls_md_update(&md_ctx, p, asn1_length_buf_len)) != 0) {
+        goto exit;
+    }
+    if ((ret = mbedtls_md_update(&md_ctx, buf->p, buf->len)) != 0) {
+        goto exit;
+    }
+
+    if ((ret = mbedtls_md_finish(&md_ctx, output)) != 0) {
+        goto exit;
+    }
+
+exit:
+    mbedtls_md_free(&md_ctx);
+    return ret;
+}
+
 static int mbedtls_pkcs7_data_or_hash_verify(mbedtls_pkcs7 *pkcs7,
                                              const mbedtls_x509_crt *cert,
                                              const unsigned char *data,
@@ -788,9 +837,42 @@ static int mbedtls_pkcs7_data_or_hash_verify(mbedtls_pkcs7 *pkcs7,
      * failed to validate'.
      */
     for (signer = &pkcs7->signed_data.signers; signer; signer = signer->next) {
-        ret = mbedtls_pk_verify(&pk_cxt, md_alg, hash,
-                                mbedtls_md_get_size(md_info),
-                                signer->sig.p, signer->sig.len);
+        if (signer->auth_attributes_raw.p != NULL) {
+            unsigned char *signer_hash;
+
+            if (signer->auth_attributes.message_digest_raw.len != mbedtls_md_get_size(md_info) ||
+                memcmp(hash, signer->auth_attributes.message_digest_raw.p, mbedtls_md_get_size(md_info))) {
+                mbedtls_free(hash);
+                return MBEDTLS_ERR_PKCS7_VERIFY_FAIL;
+            }
+
+            signer_hash = mbedtls_calloc(mbedtls_md_get_size(md_info), 1);
+            if (signer_hash == NULL) {
+                mbedtls_free(hash);
+                return MBEDTLS_ERR_PKCS7_ALLOC_FAILED;
+            }
+
+            /* BEGIN must free signer_hash before jumping out */
+            ret = mbedtls_pkcs7_hash_authenticated_attributes(md_info,
+                                                              &signer->auth_attributes_raw,
+                                                              signer_hash);
+            if (ret != 0) {
+                mbedtls_free(signer_hash);
+                mbedtls_free(hash);
+                return MBEDTLS_ERR_PKCS7_VERIFY_FAIL;
+            }
+
+            ret = mbedtls_pk_verify(&pk_cxt, md_alg, signer_hash,
+                                    mbedtls_md_get_size(md_info),
+                                    signer->sig.p, signer->sig.len);
+
+            mbedtls_free(signer_hash);
+            /* END must free signer_hash before jumping out */
+        } else {
+            ret = mbedtls_pk_verify(&pk_cxt, md_alg, hash,
+                                    mbedtls_md_get_size(md_info),
+                                    signer->sig.p, signer->sig.len);
+        }
 
         if (ret == 0) {
             break;

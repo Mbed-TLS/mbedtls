@@ -170,6 +170,7 @@ static int pkcs7_get_certificates(unsigned char **p, unsigned char *end,
                                   mbedtls_x509_crt *certs)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    int nb_certs = 0;
     size_t len1 = 0;
     size_t len2 = 0;
     unsigned char *end_set, *end_cert, *start;
@@ -182,38 +183,27 @@ static int pkcs7_get_certificates(unsigned char **p, unsigned char *end,
     if (ret != 0) {
         return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PKCS7_INVALID_FORMAT, ret);
     }
-    start = *p;
     end_set = *p + len1;
 
-    ret = mbedtls_asn1_get_tag(p, end_set, &len2, MBEDTLS_ASN1_CONSTRUCTED
-                               | MBEDTLS_ASN1_SEQUENCE);
-    if (ret != 0) {
-        return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PKCS7_INVALID_CERT, ret);
-    }
+    do {
+        start = *p;
+        ret = mbedtls_asn1_get_tag(p, end_set, &len2, MBEDTLS_ASN1_CONSTRUCTED
+                                | MBEDTLS_ASN1_SEQUENCE);
+        if (ret != 0) {
+            return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PKCS7_INVALID_CERT, ret);
+        }
 
-    end_cert = *p + len2;
+        end_cert = *p + len2;
 
-    /*
-     * This is to verify that there is only one signer certificate. It seems it is
-     * not easy to differentiate between the chain vs different signer's certificate.
-     * So, we support only the root certificate and the single signer.
-     * The behaviour would be improved with addition of multiple signer support.
-     */
-    if (end_cert != end_set) {
-        return MBEDTLS_ERR_PKCS7_FEATURE_UNAVAILABLE;
-    }
+        if ((ret = mbedtls_x509_crt_parse_der(certs, start, end_cert - start)) < 0) {
+            return MBEDTLS_ERR_PKCS7_INVALID_CERT;
+        }
 
-    if ((ret = mbedtls_x509_crt_parse_der(certs, start, len1)) < 0) {
-        return MBEDTLS_ERR_PKCS7_INVALID_CERT;
-    }
+        *p = end_cert;
+        nb_certs++;
+    } while (end_cert != end_set);
 
-    *p = end_cert;
-
-    /*
-     * Since in this version we strictly support single certificate, and reaching
-     * here implies we have parsed successfully, we return 1.
-     */
-    return 1;
+    return nb_certs;
 }
 
 /**

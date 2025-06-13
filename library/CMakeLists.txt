@@ -157,13 +157,13 @@ if(USE_STATIC_MBEDTLS_LIBRARY)
     add_library(${mbedx509_static_target} STATIC ${src_x509})
     set_base_compile_options(${mbedx509_static_target})
     target_compile_options(${mbedx509_static_target} PRIVATE ${LIBS_C_FLAGS})
-    set_target_properties(${mbedx509_static_target} PROPERTIES OUTPUT_NAME mbedx509)
+    set_target_properties(${mbedx509_static_target} PROPERTIES OUTPUT_NAME mbedx509${VERSION_SUFFIX})
     target_link_libraries(${mbedx509_static_target} PUBLIC ${libs} ${tfpsacrypto_static_target})
 
     add_library(${mbedtls_static_target} STATIC ${src_tls})
     set_base_compile_options(${mbedtls_static_target})
     target_compile_options(${mbedtls_static_target} PRIVATE ${LIBS_C_FLAGS})
-    set_target_properties(${mbedtls_static_target} PROPERTIES OUTPUT_NAME mbedtls)
+    set_target_properties(${mbedtls_static_target} PROPERTIES OUTPUT_NAME mbedtls${VERSION_SUFFIX})
     target_link_libraries(${mbedtls_static_target} PUBLIC ${libs} ${mbedx509_static_target})
 endif(USE_STATIC_MBEDTLS_LIBRARY)
 
@@ -172,12 +172,14 @@ if(USE_SHARED_MBEDTLS_LIBRARY)
     set_base_compile_options(${mbedx509_target})
     target_compile_options(${mbedx509_target} PRIVATE ${LIBS_C_FLAGS})
     set_target_properties(${mbedx509_target} PROPERTIES VERSION 4.0.0 SOVERSION 7)
+    set_target_properties(${mbedx509_target} PROPERTIES OUTPUT_NAME mbedx509${VERSION_SUFFIX})
     target_link_libraries(${mbedx509_target} PUBLIC ${libs} ${tfpsacrypto_target})
 
     add_library(${mbedtls_target} SHARED ${src_tls})
     set_base_compile_options(${mbedtls_target})
     target_compile_options(${mbedtls_target} PRIVATE ${LIBS_C_FLAGS})
     set_target_properties(${mbedtls_target} PROPERTIES VERSION 4.0.0 SOVERSION 21)
+    set_target_properties(${mbedtls_target} PROPERTIES OUTPUT_NAME mbedtls${VERSION_SUFFIX})
     target_link_libraries(${mbedtls_target} PUBLIC ${libs} ${mbedx509_target})
 endif(USE_SHARED_MBEDTLS_LIBRARY)
 
@@ -201,7 +203,8 @@ foreach(target IN LISTS target_libraries)
         ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-        PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ)
+        INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+    )
 endforeach(target)
 
 set(lib_target "${MBEDTLS_TARGET_PREFIX}lib")

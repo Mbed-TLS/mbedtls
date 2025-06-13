@@ -377,8 +377,9 @@ void create_existent(int lifetime_arg, int owner_id_arg, int id_arg,
     mbedtls_svc_key_id_t returned_id = MBEDTLS_SVC_KEY_ID_INIT;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_key_type_t type1 = PSA_KEY_TYPE_RAW_DATA;
-    const uint8_t material1[5] = "a key";
-    const uint8_t material2[5] = "b key";
+    /* We need to tell the compiler that we meant to leave out the null character. */
+    const uint8_t material1[5] MBEDTLS_ATTRIBUTE_UNTERMINATED_STRING = "a key";
+    const uint8_t material2[5] MBEDTLS_ATTRIBUTE_UNTERMINATED_STRING = "b key";
     size_t bits1 = PSA_BYTES_TO_BITS(sizeof(material1));
     uint8_t reexported[sizeof(material1)];
     size_t reexported_length;
@@ -747,7 +748,7 @@ void invalid_handle(int handle_construction,
     psa_key_id_t key_id;
     psa_status_t close_status = close_status_arg;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-    uint8_t material[1] = "a";
+    uint8_t material[1] = { 'a' };
 
     PSA_ASSERT(psa_crypto_init());
 

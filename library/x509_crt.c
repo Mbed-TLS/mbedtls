@@ -2124,7 +2124,7 @@ static int x509_crt_check_signature(const mbedtls_x509_crt *child,
         return -1;
     }
 
-#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
+#if defined(MBEDTLS_ECP_RESTARTABLE)
     if (rs_ctx != NULL && child->sig_pk == MBEDTLS_PK_ECDSA) {
         return mbedtls_pk_verify_restartable(&parent->pk,
                                              child->sig_md, hash, hash_len,
@@ -2234,7 +2234,7 @@ static int x509_crt_find_parent_in(
     mbedtls_x509_crt *parent, *fallback_parent;
     int signature_is_good = 0, fallback_signature_is_good;
 
-#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
+#if defined(MBEDTLS_ECP_RESTARTABLE)
     /* did we have something in progress? */
     if (rs_ctx != NULL && rs_ctx->parent != NULL) {
         /* restore saved state */
@@ -2268,12 +2268,12 @@ static int x509_crt_find_parent_in(
         }
 
         /* Signature */
-#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
+#if defined(MBEDTLS_ECP_RESTARTABLE)
 check_signature:
 #endif
         ret = x509_crt_check_signature(child, parent, rs_ctx);
 
-#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
+#if defined(MBEDTLS_ECP_RESTARTABLE)
         if (rs_ctx != NULL && ret == MBEDTLS_ERR_ECP_IN_PROGRESS) {
             /* save state */
             rs_ctx->parent = parent;
@@ -2358,7 +2358,7 @@ static int x509_crt_find_parent(
 
     *parent_is_trusted = 1;
 
-#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
+#if defined(MBEDTLS_ECP_RESTARTABLE)
     /* restore then clear saved state if we have some stored */
     if (rs_ctx != NULL && rs_ctx->parent_is_trusted != -1) {
         *parent_is_trusted = rs_ctx->parent_is_trusted;
@@ -2374,7 +2374,7 @@ static int x509_crt_find_parent(
                                       *parent_is_trusted,
                                       path_cnt, self_cnt, rs_ctx, now);
 
-#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
+#if defined(MBEDTLS_ECP_RESTARTABLE)
         if (rs_ctx != NULL && ret == MBEDTLS_ERR_ECP_IN_PROGRESS) {
             /* save state */
             rs_ctx->parent_is_trusted = *parent_is_trusted;
@@ -2501,7 +2501,7 @@ static int x509_crt_verify_chain(
     }
 #endif
 
-#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
+#if defined(MBEDTLS_ECP_RESTARTABLE)
     /* resume if we had an operation in progress */
     if (rs_ctx != NULL && rs_ctx->in_progress == x509_crt_rs_find_parent) {
         /* restore saved state */
@@ -2515,7 +2515,7 @@ static int x509_crt_verify_chain(
 
         goto find_parent;
     }
-#endif /* MBEDTLS_ECDSA_C && MBEDTLS_ECP_RESTARTABLE */
+#endif /* MBEDTLS_ECP_RESTARTABLE */
 
     child = crt;
     self_cnt = 0;
@@ -2561,7 +2561,7 @@ static int x509_crt_verify_chain(
             return 0;
         }
 
-#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
+#if defined(MBEDTLS_ECP_RESTARTABLE)
 find_parent:
 #endif
 
@@ -2593,7 +2593,7 @@ find_parent:
                                    ver_chain->len - 1, self_cnt, rs_ctx,
                                    &now);
 
-#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
+#if defined(MBEDTLS_ECP_RESTARTABLE)
         if (rs_ctx != NULL && ret == MBEDTLS_ERR_ECP_IN_PROGRESS) {
             /* save state */
             rs_ctx->in_progress = x509_crt_rs_find_parent;
@@ -3087,7 +3087,7 @@ exit:
     ver_chain.trust_ca_cb_result = NULL;
 #endif /* MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK */
 
-#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
+#if defined(MBEDTLS_ECP_RESTARTABLE)
     if (rs_ctx != NULL && ret != MBEDTLS_ERR_ECP_IN_PROGRESS) {
         mbedtls_x509_crt_restart_free(rs_ctx);
     }
@@ -3223,7 +3223,7 @@ void mbedtls_x509_crt_free(mbedtls_x509_crt *crt)
     }
 }
 
-#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
+#if defined(MBEDTLS_ECP_RESTARTABLE)
 /*
  * Initialize a restart context
  */
@@ -3254,7 +3254,7 @@ void mbedtls_x509_crt_restart_free(mbedtls_x509_crt_restart_ctx *ctx)
     mbedtls_pk_restart_free(&ctx->pk);
     mbedtls_x509_crt_restart_init(ctx);
 }
-#endif /* MBEDTLS_ECDSA_C && MBEDTLS_ECP_RESTARTABLE */
+#endif /* MBEDTLS_ECP_RESTARTABLE */
 
 int mbedtls_x509_crt_get_ca_istrue(const mbedtls_x509_crt *crt)
 {

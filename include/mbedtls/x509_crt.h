@@ -272,7 +272,7 @@ typedef struct {
 #endif /* MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK */
 } mbedtls_x509_crt_verify_chain;
 
-#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
+#if defined(MBEDTLS_ECP_RESTARTABLE)
 
 /**
  * \brief       Context for resuming X.509 verify operations
@@ -299,12 +299,12 @@ typedef struct {
 
 } mbedtls_x509_crt_restart_ctx;
 
-#else /* MBEDTLS_ECDSA_C && MBEDTLS_ECP_RESTARTABLE */
+#else /* MBEDTLS_ECP_RESTARTABLE */
 
 /* Now we can declare functions that take a pointer to that */
 typedef void mbedtls_x509_crt_restart_ctx;
 
-#endif /* MBEDTLS_ECDSA_C && MBEDTLS_ECP_RESTARTABLE */
+#endif /* MBEDTLS_ECP_RESTARTABLE */
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
 /**
@@ -880,7 +880,7 @@ void mbedtls_x509_crt_init(mbedtls_x509_crt *crt);
  */
 void mbedtls_x509_crt_free(mbedtls_x509_crt *crt);
 
-#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
+#if defined(MBEDTLS_ECP_RESTARTABLE)
 /**
  * \brief           Initialize a restart context
  */
@@ -890,7 +890,7 @@ void mbedtls_x509_crt_restart_init(mbedtls_x509_crt_restart_ctx *ctx);
  * \brief           Free the components of a restart context
  */
 void mbedtls_x509_crt_restart_free(mbedtls_x509_crt_restart_ctx *ctx);
-#endif /* MBEDTLS_ECDSA_C && MBEDTLS_ECP_RESTARTABLE */
+#endif /* MBEDTLS_ECP_RESTARTABLE */
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
 /**

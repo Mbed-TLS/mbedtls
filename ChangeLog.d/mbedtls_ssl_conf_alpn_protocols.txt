@@ -1,0 +1,4 @@
+API changes
+   * The list passed to mbedtls_ssl_conf_alpn_protocols() is now declared
+     as having const elements, reflecting the fact that the library will
+     not modify it

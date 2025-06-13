@@ -1,0 +1,97 @@
+ssl_conf_own_cert: 1.2, reference RSA (good)
+depends_on:HAVE_RSA:MBEDTLS_SSL_PROTO_TLS1_2
+ssl_srv_pk_single:MBEDTLS_SSL_VERSION_TLS1_2:OWN_RSA_DEFAULT:0
+
+ssl_conf_own_cert: 1.3, reference RSA (good)
+depends_on:HAVE_RSA:MBEDTLS_SSL_PROTO_TLS1_3
+ssl_srv_pk_single:MBEDTLS_SSL_VERSION_TLS1_3:OWN_RSA_DEFAULT:0
+
+ssl_conf_own_cert: 1.2, reference ECC (good)
+depends_on:HAVE_ECC:MBEDTLS_SSL_PROTO_TLS1_2
+ssl_srv_pk_single:MBEDTLS_SSL_VERSION_TLS1_2:OWN_ECC_DEFAULT:0
+
+ssl_conf_own_cert: 1.3, reference ECC (good)
+depends_on:HAVE_ECC:MBEDTLS_SSL_PROTO_TLS1_3
+ssl_srv_pk_single:MBEDTLS_SSL_VERSION_TLS1_3:OWN_ECC_DEFAULT:0
+
+ssl_conf_own_cert: reference RSA, ECC (good)
+depends_on:HAVE_RSA:HAVE_ECC
+ssl_srv_pk_multi:OWN_RSA_DEFAULT:OWN_ECC_DEFAULT:OWN_SKIP:OWN_SKIP:0:0
+
+ssl_conf_own_cert: no key (bad)
+ssl_srv_pk_multi:OWN_SKIP:OWN_SKIP:OWN_SKIP:OWN_SKIP:MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE:MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE
+
+ssl_conf_own_cert: NULL resets RSA (bad)
+depends_on:HAVE_RSA
+ssl_srv_pk_multi:OWN_RSA_DEFAULT:OWN_ECC_DEFAULT:OWN_NULL:OWN_SKIP:MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE:MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE
+
+ssl_conf_own_cert: NULL resets ECC (bad)
+depends_on:HAVE_ECC
+ssl_srv_pk_multi:OWN_RSA_DEFAULT:OWN_ECC_DEFAULT:OWN_NULL:OWN_SKIP:MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE:MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE
+
+ssl_conf_own_cert: NULL resets RSA+ECC (bad)
+depends_on:HAVE_RSA:HAVE_ECC
+ssl_srv_pk_multi:OWN_RSA_DEFAULT:OWN_ECC_DEFAULT:OWN_NULL:OWN_SKIP:MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE:MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE
+
+ssl_conf_own_cert: 1.2, RSA PKCS#1v1.5 only as PK default (good)
+depends_on:HAVE_RSA:MBEDTLS_SSL_PROTO_TLS1_2
+ssl_srv_pk_single:MBEDTLS_SSL_VERSION_TLS1_2:OWN_RSA_PK_IMPORT:0
+
+ssl_conf_own_cert: 1.3, RSA PKCS#1v1.5 only as PK default (bad)
+depends_on:HAVE_RSA:MBEDTLS_SSL_PROTO_TLS1_3
+ssl_srv_pk_single:MBEDTLS_SSL_VERSION_TLS1_3:OWN_RSA_PK_IMPORT:MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE
+
+ssl_conf_own_cert: 1.2, RSA PKCS#1v1.5 only explicitly (good)
+depends_on:HAVE_RSA:MBEDTLS_SSL_PROTO_TLS1_2
+ssl_srv_pk_single:MBEDTLS_SSL_VERSION_TLS1_2:OWN_RSA_PKCS1V15:0
+
+ssl_conf_own_cert: 1.3, RSA PKCS#1v1.5 only explicitly (bad)
+depends_on:HAVE_RSA:MBEDTLS_SSL_PROTO_TLS1_3
+ssl_srv_pk_single:MBEDTLS_SSL_VERSION_TLS1_3:OWN_RSA_PKCS1V15:MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE
+
+ssl_conf_own_cert: 1.2, RSA PSS only (bad)
+depends_on:HAVE_RSA:MBEDTLS_SSL_PROTO_TLS1_2
+ssl_srv_pk_single:MBEDTLS_SSL_VERSION_TLS1_2:OWN_RSA_PSS:MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE
+
+ssl_conf_own_cert: 1.3, RSA PSS only (good)
+depends_on:HAVE_RSA:MBEDTLS_SSL_PROTO_TLS1_3
+ssl_srv_pk_single:MBEDTLS_SSL_VERSION_TLS1_3:OWN_RSA_PSS:0
+
+ssl_conf_own_cert: 1.2, RSA PSS_ANY_SALT only (bad)
+depends_on:HAVE_RSA:MBEDTLS_SSL_PROTO_TLS1_2
+ssl_srv_pk_single:MBEDTLS_SSL_VERSION_TLS1_2:OWN_RSA_PSS_ANY_SALT:MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE
+
+ssl_conf_own_cert: 1.3, RSA PSS_ANY_SALT only (good)
+depends_on:HAVE_RSA:MBEDTLS_SSL_PROTO_TLS1_3
+ssl_srv_pk_single:MBEDTLS_SSL_VERSION_TLS1_3:OWN_RSA_PSS_ANY_SALT:0
+
+# Failing due to a bug in TLS 1.2: it calls mbedtls_pk_sign() which
+# uses the key's primary algorithm rather than the algorithm required
+# by the protocol.
+# https://github.com/Mbed-TLS/mbedtls/issues/10208
+#ssl_conf_own_cert: 1.2, RSA single key with PSS+PKCS#1v1.5 (good)
+#depends_on:HAVE_RSA:MBEDTLS_SSL_PROTO_TLS1_2
+#ssl_srv_pk_single:MBEDTLS_SSL_VERSION_TLS1_2:OWN_RSA_PSS_PKCS1V15:0
+
+ssl_conf_own_cert: 1.3, RSA single key with PSS+PKCS#1v1.5 (good)
+depends_on:HAVE_RSA:MBEDTLS_SSL_PROTO_TLS1_3
+ssl_srv_pk_single:MBEDTLS_SSL_VERSION_TLS1_3:OWN_RSA_PSS_PKCS1V15:0
+
+ssl_conf_own_cert: 1.2, RSA single key with PKCS#1v1.5+PSS (good)
+depends_on:HAVE_RSA:MBEDTLS_SSL_PROTO_TLS1_2
+ssl_srv_pk_single:MBEDTLS_SSL_VERSION_TLS1_2:OWN_RSA_PKCS1V15_PSS:0
+
+ssl_conf_own_cert: 1.3, RSA single key with PKCS#1v1.5+PSS (good)
+depends_on:HAVE_RSA:MBEDTLS_SSL_PROTO_TLS1_3
+ssl_srv_pk_single:MBEDTLS_SSL_VERSION_TLS1_3:OWN_RSA_PKCS1V15_PSS:0
+
+# Failing due to a bug in TLS 1.2: it calls mbedtls_pk_sign() which
+# uses the key's primary algorithm rather than the algorithm required
+# by the protocol.
+#ssl_conf_own_cert: 1.2, RSA transparent with v2.1 padding (bad)
+#depends_on:HAVE_RSA:MBEDTLS_SSL_PROTO_TLS1_2
+#ssl_srv_pk_single:MBEDTLS_SSL_VERSION_TLS1_2:OWN_RSA_PKCS_V21:MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE
+
+ssl_conf_own_cert: 1.3, RSA transparent with v2.1 padding (good)
+depends_on:HAVE_RSA:MBEDTLS_SSL_PROTO_TLS1_3
+ssl_srv_pk_single:MBEDTLS_SSL_VERSION_TLS1_3:OWN_RSA_PKCS_V21:0

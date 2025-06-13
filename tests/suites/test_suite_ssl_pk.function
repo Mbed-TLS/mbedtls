@@ -1,0 +1,324 @@
+/* BEGIN_HEADER */
+#include "psa/crypto.h"
+#include "mbedtls/pk.h"
+#include "mbedtls/rsa.h"
+#include "mbedtls/x509_crt.h"
+#include "mbedtls/ssl.h"
+
+#include "test/ssl_helpers.h"
+
+/* Check that RSA is enabled and the test data from certs.c can be used
+ * in TLS. This is an approximation, which is good enough for all the
+ * configurations we test in continuous integration, but which can be
+ * wrong in corner cases.. */
+#if defined(PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_IMPORT)
+#  define HAVE_RSA
+#endif
+
+/* Check that ECDSA is enabled and the test data from certs.c can be used
+ * in TLS. This is an approximation, which is good enough for all the
+ * configurations we test in continuous integration, but which can be
+ * wrong in corner cases.. */
+#if defined(PSA_WANT_ALG_ECDSA) || defined(PSA_WANT_ALG_DETERMINISTIC_ECDSA)
+#  define HAVE_ECC
+#endif
+
+/* Check for a configuration where our SSL endpoint testing code is sure
+ * to work. */
+#if defined(MBEDTLS_SSL_CLI_C) && defined(MBEDTLS_SSL_SRV_C)
+#  if defined(PSA_WANT_ALG_ECDH)
+#    if defined(PSA_WANT_ALG_SHA_256) && defined(PSA_WANT_KEY_TYPE_AES)
+#      define SSL_TEST_ENDPOINTS_WORK
+#    endif
+#  endif
+#endif
+
+/** How to call mbedtls_ssl_conf_own_cert(). */
+typedef enum {
+    OWN_SKIP,                   /**< Don't call */
+    OWN_NULL,                   /**< Call with NULL, NULL */
+    OWN_RSA_DEFAULT,            /**< RSA, default key loading */
+    OWN_RSA_PK_IMPORT,          /**< RSA, opaque, default import from PK */
+    OWN_RSA_PKCS1V15,           /**< RSA, opaque, PKCS#1v1.5 */
+    OWN_RSA_PSS,                /**< RSA, opaque, PSS */
+    OWN_RSA_PSS_ANY_SALT,       /**< RSA, opaque, PSS_ANY_SALT */
+    OWN_RSA_PKCS1V15_PSS,       /**< RSA, opaque, PKCS#1v1.5+PSS */
+    OWN_RSA_PSS_PKCS1V15,       /**< RSA, opaque, PSS+PKCS#1v1.5 */
+    OWN_RSA_OAEP,               /**< RSA, opaque, OAEP */
+    OWN_RSA_PKCS_V21,           /**< RSA, MBEDTLS_RSA_PKCS_V21 */
+    OWN_ECC_DEFAULT,            /**< ECC, default key loading */
+} own_pk_cert_mode_t;
+
+static int set_own_policy(own_pk_cert_mode_t own_mode,
+                          psa_key_attributes_t *attributes)
+{
+    psa_set_key_usage_flags(attributes, PSA_KEY_USAGE_SIGN_HASH);
+
+    switch (own_mode) {
+        case OWN_RSA_PK_IMPORT:
+            /* Just keep the default algorithm */
+            break;
+        case OWN_RSA_PKCS1V15:
+            psa_set_key_algorithm(attributes,
+                                  PSA_ALG_RSA_PKCS1V15_SIGN(PSA_ALG_ANY_HASH));
+            break;
+        case OWN_RSA_PSS:
+            psa_set_key_algorithm(attributes,
+                                  PSA_ALG_RSA_PSS(PSA_ALG_ANY_HASH));
+            break;
+        case OWN_RSA_PSS_ANY_SALT:
+            psa_set_key_algorithm(attributes,
+                                  PSA_ALG_RSA_PSS(PSA_ALG_ANY_HASH));
+            break;
+        case OWN_RSA_PKCS1V15_PSS:
+            psa_set_key_algorithm(attributes,
+                                  PSA_ALG_RSA_PKCS1V15_SIGN(PSA_ALG_ANY_HASH));
+            psa_set_key_enrollment_algorithm(attributes,
+                                             PSA_ALG_RSA_PSS(PSA_ALG_ANY_HASH));
+            break;
+        case OWN_RSA_PSS_PKCS1V15:
+            psa_set_key_algorithm(attributes,
+                                  PSA_ALG_RSA_PSS(PSA_ALG_ANY_HASH));
+            psa_set_key_enrollment_algorithm(attributes,
+                                             PSA_ALG_RSA_PKCS1V15_SIGN(PSA_ALG_ANY_HASH));
+            break;
+        case OWN_RSA_OAEP:
+            psa_set_key_algorithm(attributes,
+                                  PSA_ALG_RSA_OAEP(PSA_ALG_SHA_256));
+            break;
+        default:
+            TEST_FAIL("Missing case for own_mode");
+            break;
+    }
+
+    return 1;
+
+exit:
+    return 0;
+}
+
+static int load_own_key(int own_mode,
+                        mbedtls_pk_context *own_pk,
+                        mbedtls_svc_key_id_t *psa_key,
+                        mbedtls_x509_crt *own_cert)
+{
+    int ok = 0;
+    mbedtls_pk_context tmp_pk;
+    mbedtls_pk_init(&tmp_pk);
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+
+    switch (own_mode) {
+        case OWN_RSA_DEFAULT:
+        case OWN_RSA_PKCS_V21:
+            TEST_EQUAL(mbedtls_test_cert_load_rsa(MBEDTLS_SSL_IS_SERVER,
+                                                  own_pk, own_cert),
+                       0);
+            if (own_mode == OWN_RSA_PKCS_V21) {
+                TEST_EQUAL(mbedtls_pk_get_type(own_pk), MBEDTLS_PK_RSA);
+                mbedtls_rsa_context *rsa = mbedtls_pk_rsa(*own_pk);
+                TEST_EQUAL(mbedtls_rsa_set_padding(rsa,
+                                                   MBEDTLS_RSA_PKCS_V21,
+                                                   MBEDTLS_MD_NONE), 0);
+            }
+            break;
+
+        case OWN_RSA_PK_IMPORT:
+        case OWN_RSA_PKCS1V15:
+        case OWN_RSA_PSS:
+        case OWN_RSA_PSS_ANY_SALT:
+        case OWN_RSA_PKCS1V15_PSS:
+        case OWN_RSA_PSS_PKCS1V15:
+        case OWN_RSA_OAEP:
+            TEST_EQUAL(mbedtls_test_cert_load_rsa(MBEDTLS_SSL_IS_SERVER,
+                                                  &tmp_pk, own_cert),
+                       0);
+            TEST_EQUAL(mbedtls_pk_get_psa_attributes(&tmp_pk,
+                                                     PSA_KEY_USAGE_SIGN_HASH,
+                                                     &attributes), 0);
+            /* Make the key opaque */
+            TEST_ASSERT(set_own_policy(own_mode, &attributes));
+            TEST_EQUAL(mbedtls_pk_import_into_psa(&tmp_pk, &attributes,
+                                                  psa_key), 0);
+            psa_reset_key_attributes(&attributes);
+            TEST_EQUAL(mbedtls_pk_setup_opaque(own_pk, *psa_key), 0);
+            break;
+
+        case OWN_ECC_DEFAULT:
+            TEST_EQUAL(mbedtls_test_cert_load_ecc(MBEDTLS_SSL_IS_SERVER,
+                                                  own_pk, own_cert),
+                       0);
+            break;
+
+        default:
+            TEST_FAIL("Missing case for own_mode");
+            break;
+    }
+
+    ok = 1;
+
+exit:
+    mbedtls_pk_free(&tmp_pk);
+    psa_reset_key_attributes(&attributes);
+    return ok;
+}
+
+static int connect_client(mbedtls_test_ssl_endpoint *server,
+                          mbedtls_ssl_protocol_version version,
+                          int expected_result)
+{
+    int ok = 0;
+    mbedtls_test_ssl_endpoint client;
+    memset(&client, 0, sizeof(client));
+    mbedtls_test_handshake_test_options client_options;
+    mbedtls_test_init_handshake_options(&client_options);
+
+    client_options.client_min_version = version;
+    client_options.client_max_version = version;
+    client_options.expected_negotiated_version = version;
+    client_options.expected_handshake_result = expected_result;
+
+    /* Connect to the server */
+    TEST_EQUAL(mbedtls_test_ssl_endpoint_init(&client, MBEDTLS_SSL_IS_CLIENT,
+                                              &client_options), 0);
+    TEST_ASSERT(mbedtls_test_ssl_perform_connection(&client_options,
+                                                    &client, server));
+
+    /* Prepare the server to handle a new client */
+    mbedtls_test_mock_socket_close(&server->socket);
+    TEST_EQUAL(mbedtls_ssl_session_reset(&server->ssl), 0);
+
+    ok = 1;
+
+exit:
+    mbedtls_test_ssl_endpoint_free(&client);
+    mbedtls_test_free_handshake_options(&client_options);
+    return ok;
+}
+
+/* END_HEADER */
+
+/* BEGIN_DEPENDENCIES
+ * depends_on:MBEDTLS_SSL_TLS_C
+ * END_DEPENDENCIES
+ */
+
+/* BEGIN_CASE depends_on:SSL_TEST_ENDPOINTS_WORK:MBEDTLS_X509_CRT_PARSE_C */
+void ssl_srv_pk_single(int version, int own_mode, int expected_ret)
+{
+    mbedtls_test_ssl_endpoint server;
+    memset(&server, 0, sizeof(server));
+    mbedtls_test_handshake_test_options server_options;
+    mbedtls_test_init_handshake_options(&server_options);
+
+    MD_OR_USE_PSA_INIT();
+
+    /* Prepare a server with mostly default settings, except that
+     * we keep full control over its key and certificate. */
+    server_options.pk_alg = MBEDTLS_PK_NONE;
+    server_options.srv_auth_mode = MBEDTLS_SSL_VERIFY_NONE;
+    TEST_EQUAL(mbedtls_test_ssl_endpoint_init_conf(&server,
+                                                   MBEDTLS_SSL_IS_SERVER,
+                                                   &server_options), 0);
+
+    TEST_ASSERT(load_own_key(own_mode,
+                             server.pkey,
+                             &server.psa_key,
+                             server.cert));
+    TEST_EQUAL(mbedtls_ssl_conf_own_cert(&server.conf,
+                                         server.cert,
+                                         server.pkey), 0);
+
+    TEST_EQUAL(mbedtls_test_ssl_endpoint_init_ssl(&server,
+                                                  &server_options), 0);
+
+    TEST_ASSERT(connect_client(&server, version, expected_ret));
+
+exit:
+    mbedtls_test_ssl_endpoint_free(&server);
+    mbedtls_test_free_handshake_options(&server_options);
+    MD_OR_USE_PSA_DONE();
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:SSL_TEST_ENDPOINTS_WORK:MBEDTLS_X509_CRT_PARSE_C */
+void ssl_srv_pk_multi(int own0, int own1, int own2, int own3,
+                      int expected_1_2_ret, int expected_1_3_ret)
+{
+#define PK_CERT_COUNT 4    /* same as the number of ownN parameters */
+    own_pk_cert_mode_t own_mode[PK_CERT_COUNT] = { own0, own1, own2, own3 };
+
+    mbedtls_test_ssl_endpoint server;
+    memset(&server, 0, sizeof(server));
+    mbedtls_test_handshake_test_options server_options;
+    mbedtls_test_init_handshake_options(&server_options);
+    mbedtls_pk_context own_pk[PK_CERT_COUNT];
+    mbedtls_x509_crt own_cert[PK_CERT_COUNT];
+    mbedtls_svc_key_id_t psa_key[PK_CERT_COUNT];
+    for (size_t i = 0; i < PK_CERT_COUNT; i++) {
+        mbedtls_pk_init(&own_pk[i]);
+        mbedtls_x509_crt_init(&own_cert[i]);
+        psa_key[i] = MBEDTLS_SVC_KEY_ID_INIT;
+    }
+
+    MD_OR_USE_PSA_INIT();
+
+    /* Prepare a server with mostly default settings, except that
+     * we keep full control over its key(s) and certificate(s). */
+    server_options.pk_alg = MBEDTLS_PK_NONE;
+    server_options.srv_auth_mode = MBEDTLS_SSL_VERIFY_NONE;
+    TEST_EQUAL(mbedtls_test_ssl_endpoint_init_conf(&server,
+                                                   MBEDTLS_SSL_IS_SERVER,
+                                                   &server_options), 0);
+
+    for (size_t i = 0; i < PK_CERT_COUNT; i++) {
+        mbedtls_test_set_step(i);
+        switch (own_mode[i]) {
+            case OWN_SKIP:
+                continue;
+
+            case OWN_NULL:
+                TEST_EQUAL(mbedtls_ssl_conf_own_cert(&server.conf,
+                                                     NULL, NULL), 0);
+                continue;
+
+            default:
+                TEST_ASSERT(load_own_key(own_mode[i],
+                                         &own_pk[i], &psa_key[i],
+                                         &own_cert[i]));
+                TEST_EQUAL(mbedtls_ssl_conf_own_cert(&server.conf,
+                                                     &own_cert[i],
+                                                     &own_pk[i]),
+                           0);
+        }
+    }
+
+    TEST_EQUAL(mbedtls_test_ssl_endpoint_init_ssl(&server,
+                                                  &server_options), 0);
+
+    /* Make a TLS 1.2 connection */
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
+    mbedtls_test_set_step(12);
+    TEST_ASSERT(connect_client(&server,
+                               MBEDTLS_SSL_VERSION_TLS1_2,
+                               expected_1_2_ret));
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
+
+    /* Make a TLS 1.3 connection with the same server configuration */
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
+    mbedtls_test_set_step(13);
+    TEST_ASSERT(connect_client(&server,
+                               MBEDTLS_SSL_VERSION_TLS1_3,
+                               expected_1_3_ret));
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
+
+exit:
+    mbedtls_test_ssl_endpoint_free(&server);
+    mbedtls_test_free_handshake_options(&server_options);
+    for (size_t i = 0; i < PK_CERT_COUNT; i++) {
+        mbedtls_pk_free(&own_pk[i]);
+        mbedtls_x509_crt_free(&own_cert[i]);
+        psa_destroy_key(psa_key[i]);
+    }
+    MD_OR_USE_PSA_DONE();
+}
+/* END_CASE */

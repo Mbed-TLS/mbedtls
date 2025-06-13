@@ -1,5 +1,3 @@
 Bugfix
-   * GCC 15 introduced the warning 'unterminated-string-initialization', which
-     complains if you initialize a string into an array without space for a
-     terminating null character. This is intentional in many parts of the
-     code, so suppress the warning in these places. Fixes #9944.
+   * Silence spurious -Wunterminated-string-initialization warnings introduced
+     by GCC 15. Fixes #9944.

@@ -11,7 +11,7 @@
 #include "mbedtls/x509_crt.h"
 #include "mbedtls/asn1write.h"
 #include "mbedtls/error.h"
-#include "mbedtls/private/oid.h"
+#include "mbedtls/oid.h"
 #include "mbedtls/platform.h"
 #include "mbedtls/platform_util.h"
 

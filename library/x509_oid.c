@@ -14,7 +14,7 @@
  * disabled. */
 #if defined(MBEDTLS_X509_USE_C) || defined(MBEDTLS_X509_CREATE_C)
 
-#include "mbedtls/private/oid.h"
+#include "mbedtls/oid.h"
 #include "x509_oid.h"
 
 #include <stdio.h>

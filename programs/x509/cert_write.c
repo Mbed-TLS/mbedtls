@@ -30,7 +30,7 @@ int main(void)
 
 #include "mbedtls/x509_crt.h"
 #include "mbedtls/x509_csr.h"
-#include "mbedtls/private/oid.h"
+#include "mbedtls/oid.h"
 #include "mbedtls/private/entropy.h"
 #include "mbedtls/private/ctr_drbg.h"
 #include "mbedtls/error.h"

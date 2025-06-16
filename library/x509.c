@@ -21,7 +21,7 @@
 
 #include "mbedtls/asn1.h"
 #include "mbedtls/error.h"
-#include "mbedtls/private/oid.h"
+#include "mbedtls/oid.h"
 #include "x509_oid.h"
 
 #include <limits.h>

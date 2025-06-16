@@ -9,7 +9,7 @@
 #include "mbedtls/asn1.h"
 #include "mbedtls/x509_crt.h"
 #include "mbedtls/x509_crl.h"
-#include "mbedtls/private/oid.h"
+#include "mbedtls/oid.h"
 #include "x509_oid.h"
 #include "mbedtls/error.h"
 

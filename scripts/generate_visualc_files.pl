@@ -49,9 +49,20 @@ my $test_header_dir = 'framework/tests/include/test';
 my $test_drivers_header_dir = 'framework/tests/include/test/drivers';
 my $test_drivers_source_dir = 'framework/tests/src/drivers';
 
-my @thirdparty_header_dirs = qw(
-    tf-psa-crypto/drivers/everest/include/tf-psa-crypto/private/everest
-);
+# This is a dirty patch to allow mbedtls#10091 to be merged without updating
+# tf-psa-crypto to psa#235. Once psa#235 will be merged, this dirty fix can
+# be removed.
+# The same holds also for @include_directories below.
+my @thirdparty_header_dirs;
+if (-d "tf-psa-crypto/drivers/everest/include/tf-psa-crypto/private/everest") {
+    @thirdparty_header_dirs = qw(
+        tf-psa-crypto/drivers/everest/include/tf-psa-crypto/private/everest
+    );
+} else {
+    @thirdparty_header_dirs = qw(
+        tf-psa-crypto/drivers/everest/include/everest
+    );
+}
 my @thirdparty_source_dirs = qw(
     tf-psa-crypto/drivers/everest/library
     tf-psa-crypto/drivers/everest/library/kremlib
@@ -61,19 +72,36 @@ my @thirdparty_source_dirs = qw(
 # Directories to add to the include path.
 # Order matters in case there are files with the same name in more than
 # one directory: the compiler will use the first match.
-my @include_directories = qw(
-    include
-    tf-psa-crypto/include
-    tf-psa-crypto/drivers/builtin/include
-    tf-psa-crypto/drivers/everest/include/tf-psa-crypto/private/
-    tf-psa-crypto/drivers/everest/include/tf-psa-crypto/private/everest
-    tf-psa-crypto/drivers/everest/include/tf-psa-crypto/private/everest/vs2013
-    tf-psa-crypto/drivers/everest/include/tf-psa-crypto/private/everest/kremlib
-    tests/include
-    tf-psa-crypto/tests/include
-    framework/tests/include
-    framework/tests/programs
-);
+my @include_directories;
+if (-d "tf-psa-crypto/drivers/everest/include/tf-psa-crypto/private/everest") {
+    @include_directories = qw(
+        include
+        tf-psa-crypto/include
+        tf-psa-crypto/drivers/builtin/include
+        tf-psa-crypto/drivers/everest/include/tf-psa-crypto/private/
+        tf-psa-crypto/drivers/everest/include/tf-psa-crypto/private/everest
+        tf-psa-crypto/drivers/everest/include/tf-psa-crypto/private/everest/vs2013
+        tf-psa-crypto/drivers/everest/include/tf-psa-crypto/private/everest/kremlib
+        tests/include
+        tf-psa-crypto/tests/include
+        framework/tests/include
+        framework/tests/programs
+    );
+} else {
+    @include_directories = qw(
+        include
+        tf-psa-crypto/include
+        tf-psa-crypto/drivers/builtin/include
+        tf-psa-crypto/drivers/everest/include/
+        tf-psa-crypto/drivers/everest/include/everest
+        tf-psa-crypto/drivers/everest/include/everest/vs2013
+        tf-psa-crypto/drivers/everest/include/everest/kremlib
+        tests/include
+        tf-psa-crypto/tests/include
+        framework/tests/include
+        framework/tests/programs
+    );
+}
 my $include_directories = join(';', map {"../../$_"} @include_directories);
 
 # Directories to add to the include path when building the libraries, but not

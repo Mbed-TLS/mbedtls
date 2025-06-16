@@ -14,8 +14,8 @@
 
 #include "mbedtls/build_info.h"
 
-#include "mbedtls/bignum.h"
-#include "mbedtls/ecp.h"
+#include "mbedtls/private/bignum.h"
+#include "mbedtls/private/ecp.h"
 
 #include "mbedtls/ssl_ciphersuites.h"
 
@@ -27,7 +27,7 @@
 #include "mbedtls/md.h"
 
 #if defined(MBEDTLS_KEY_EXCHANGE_SOME_ECDH_OR_ECDHE_ANY_ENABLED)
-#include "mbedtls/ecdh.h"
+#include "mbedtls/private/ecdh.h"
 #endif
 
 #if defined(MBEDTLS_HAVE_TIME)

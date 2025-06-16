@@ -19,26 +19,26 @@
 #include "mbedtls/debug.h"
 #include "debug_internal.h"
 
-#include "mbedtls/cipher.h"
+#include "mbedtls/private/cipher.h"
 
 #include "psa/crypto.h"
 #include "psa_util_internal.h"
 extern const mbedtls_error_pair_t psa_to_ssl_errors[7];
 
 #if defined(PSA_WANT_ALG_MD5)
-#include "mbedtls/md5.h"
+#include "mbedtls/private/md5.h"
 #endif
 
 #if defined(PSA_WANT_ALG_SHA_1)
-#include "mbedtls/sha1.h"
+#include "mbedtls/private/sha1.h"
 #endif
 
 #if defined(PSA_WANT_ALG_SHA_256)
-#include "mbedtls/sha256.h"
+#include "mbedtls/private/sha256.h"
 #endif
 
 #if defined(PSA_WANT_ALG_SHA_512)
-#include "mbedtls/sha512.h"
+#include "mbedtls/private/sha512.h"
 #endif
 
 #include "mbedtls/pk.h"

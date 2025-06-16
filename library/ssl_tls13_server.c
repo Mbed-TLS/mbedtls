@@ -13,7 +13,7 @@
 #include "mbedtls/error.h"
 #include "mbedtls/platform.h"
 #include "mbedtls/constant_time.h"
-#include "mbedtls/oid.h"
+#include "mbedtls/private/oid.h"
 #include "mbedtls/psa_util.h"
 
 #include "ssl_tls13_keys.h"

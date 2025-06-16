@@ -1,14 +1,14 @@
 /* BEGIN_HEADER */
-#include "mbedtls/bignum.h"
+#include "mbedtls/private/bignum.h"
 #include "mbedtls/pkcs7.h"
 #include "mbedtls/x509.h"
 #include "mbedtls/x509_crt.h"
 #include "mbedtls/x509_crl.h"
 #include "x509_internal.h"
-#include "mbedtls/oid.h"
+#include "mbedtls/private/oid.h"
 #include "sys/types.h"
 #include "sys/stat.h"
-#include "mbedtls/rsa.h"
+#include "mbedtls/private/rsa.h"
 #include "mbedtls/error.h"
 /* END_HEADER */
 

@@ -34,7 +34,7 @@ static int local_err_translation(psa_status_t status)
 #endif
 
 #if defined(MBEDTLS_ECP_C)
-#include "mbedtls/ecp.h"
+#include "mbedtls/private/ecp.h"
 #endif
 
 #if defined(MBEDTLS_HAVE_TIME)

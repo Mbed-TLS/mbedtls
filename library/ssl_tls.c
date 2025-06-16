@@ -34,7 +34,7 @@
 #include "psa/crypto.h"
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
-#include "mbedtls/oid.h"
+#include "mbedtls/private/oid.h"
 #endif
 
 /* Define local translating functions to save code size by not using too many

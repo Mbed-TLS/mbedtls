@@ -21,7 +21,7 @@
 
 #include "mbedtls/x509_csr.h"
 #include "mbedtls/error.h"
-#include "mbedtls/oid.h"
+#include "mbedtls/private/oid.h"
 #include "x509_oid.h"
 #include "mbedtls/platform_util.h"
 

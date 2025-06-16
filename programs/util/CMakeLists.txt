@@ -1,6 +1,6 @@
 set(libs
-    ${tfpsacrypto_target}
     ${mbedx509_target}
+    ${tfpsacrypto_target}
 )
 
 set(executables

@@ -38,4 +38,4 @@ find_package(MbedTLS REQUIRED)
 
 add_executable(cmake_package_install cmake_package_install.c)
 target_link_libraries(cmake_package_install
-    MbedTLS::tfpsacrypto MbedTLS::mbedtls MbedTLS::mbedx509)
+    MbedTLS::mbedtls MbedTLS::mbedx509 MbedTLS::tfpsacrypto)

@@ -1,5 +1,4 @@
 /**
-
  * \file psa/crypto_extra.h
  *
  * \brief PSA cryptography module: Mbed TLS vendor extensions

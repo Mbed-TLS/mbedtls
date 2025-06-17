@@ -1,0 +1,8 @@
+Bugfix
+   * Fix mbedtls_base64_decode() on inputs that did not have the correct
+     number of trailing equal signs, or had 4*k+1 digits. They were accepted
+     as long as they had at most two trailing equal signs. They are now
+     rejected. Furthermore, before, on inputs with too few equal signs, the
+     function reported the correct size in *olen when it returned
+     MBEDTLS_ERR_BASE64_BUFFER_TOO_SMALL, but truncated the output to the
+     last multiple of 3 bytes.

@@ -85,20 +85,67 @@ void mbedtls_base64_encode(char *src_string, char *dst_string,
 /* BEGIN_CASE */
 void mbedtls_base64_decode(char *src_string, char *dst_string, int result)
 {
-    unsigned char src_str[1000];
-    unsigned char dst_str[1000];
+    unsigned char *src = NULL;
+    size_t src_len = strlen(src_string);
+    unsigned char *dst = NULL;
+    size_t correct_dst_len = strlen(dst_string);
+    size_t dst_size = correct_dst_len;
     size_t len;
-    int res;
 
-    memset(src_str, 0x00, 1000);
-    memset(dst_str, 0x00, 1000);
-
-    strncpy((char *) src_str, src_string, sizeof(src_str) - 1);
-    res = mbedtls_base64_decode(dst_str, sizeof(dst_str), &len, src_str, strlen((char *) src_str));
-    TEST_ASSERT(res == result);
-    if (result == 0) {
-        TEST_ASSERT(strcmp((char *) dst_str, dst_string) == 0);
+    /* Allocate exactly the size of the input, to ensure there's no buffer
+     * overread in builds with ASan. (src_string has at least one extra null
+     * character at the end.) */
+    TEST_CALLOC(src, src_len);
+    if (src_len != 0) {
+        memcpy(src, src_string, src_len);
     }
+
+    /* Allocate exactly the size of the input, to ensure there's no buffer
+     * overflow in builds with ASan. */
+    TEST_CALLOC(dst, dst_size);
+
+    /* Test normal operation */
+    TEST_EQUAL(mbedtls_base64_decode(dst, dst_size, &len,
+                                     src, src_len),
+               result);
+    if (result == 0) {
+        TEST_MEMORY_COMPARE(dst_string, correct_dst_len, dst, len);
+    }
+
+    /* Test an output buffer that's one byte too small */
+    if (result == 0 && dst_size != 0) {
+        mbedtls_free(dst);
+        dst = NULL;
+        TEST_CALLOC(dst, dst_size - 1);
+        TEST_EQUAL(mbedtls_base64_decode(dst, dst_size - 1, &len,
+                                         src, src_len),
+                   MBEDTLS_ERR_BASE64_BUFFER_TOO_SMALL);
+        TEST_EQUAL(correct_dst_len, len);
+    }
+
+    /* Test an empty output buffer. `mbedtls_base64_decode()` must return
+     * `BUFFER_TOO_SMALL` but report the correct output length.
+     * Skip this when dst_size==0 since that would be a valid call to
+     * `mbedtls_base64_decode()` which should return 0.
+     */
+    if (result == 0 && dst_size != 0) {
+        TEST_EQUAL(mbedtls_base64_decode(NULL, 0, &len,
+                                         src, src_len),
+                   MBEDTLS_ERR_BASE64_BUFFER_TOO_SMALL);
+        TEST_EQUAL(correct_dst_len, len);
+    }
+
+    /* Test dst=NULL with dlen!=0 (explicitly documented as supported) */
+    if (result == 0 && dst_size != 0) {
+        TEST_EQUAL(mbedtls_base64_decode(NULL, 42, &len,
+                                         src, src_len),
+                   MBEDTLS_ERR_BASE64_BUFFER_TOO_SMALL);
+        TEST_EQUAL(correct_dst_len, len);
+    }
+
+exit:
+    mbedtls_free(src);
+    mbedtls_free(dst);
 }
 /* END_CASE */
 

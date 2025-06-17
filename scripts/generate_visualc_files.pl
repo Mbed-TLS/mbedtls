@@ -78,7 +78,7 @@ if (-d "tf-psa-crypto/drivers/everest/include/tf-psa-crypto/private/everest") {
         include
         tf-psa-crypto/include
         tf-psa-crypto/drivers/builtin/include
-        tf-psa-crypto/drivers/everest/include/tf-psa-crypto/private/
+        tf-psa-crypto/drivers/everest/include/
         tf-psa-crypto/drivers/everest/include/tf-psa-crypto/private/everest
         tf-psa-crypto/drivers/everest/include/tf-psa-crypto/private/everest/vs2013
         tf-psa-crypto/drivers/everest/include/tf-psa-crypto/private/everest/kremlib

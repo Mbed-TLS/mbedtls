@@ -434,14 +434,6 @@ if(ENABLE_TESTING OR ENABLE_PROGRAMS)
             DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/tests/include/test/test_keys.h)
         add_dependencies(mbedtls_test mbedtls_test_keys_header)
     endif()
-    # This is a dirty fix to allow mbedtls#10091 to be merged without psa#325.
-    # Once the latter will be merged, this can be simplified to just use
-    # the new path.
-    if(EXISTS "tf-psa-crypto/drivers/everest/include/tf-psa-crypto/private")
-        set(EVEREST_HEADERS_PATH "tf-psa-crypto/drivers/everest/include/tf-psa-crypto/private")
-    else()
-        set(EVEREST_HEADERS_PATH "tf-psa-crypto/drivers/everest/include")
-    endif()
     target_include_directories(mbedtls_test
         PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/tests/include
         PRIVATE ${MBEDTLS_FRAMEWORK_DIR}/tests/include
@@ -449,7 +441,7 @@ if(ENABLE_TESTING OR ENABLE_PROGRAMS)
         PRIVATE include
         PRIVATE tf-psa-crypto/include
         PRIVATE tf-psa-crypto/drivers/builtin/include
-        PRIVATE ${EVEREST_HEADERS_PATH}
+        PRIVATE tf-psa-crypto/drivers/everest/include/tf-psa-crypto/private/
         PRIVATE library
         PRIVATE tf-psa-crypto/core
         PRIVATE tf-psa-crypto/drivers/builtin/src)
@@ -488,7 +480,7 @@ if(ENABLE_TESTING OR ENABLE_PROGRAMS)
         PRIVATE library
         PRIVATE tf-psa-crypto/core
         PRIVATE tf-psa-crypto/drivers/builtin/src
-        PRIVATE ${EVEREST_HEADERS_PATH})
+        PRIVATE tf-psa-crypto/drivers/everest/include/tf-psa-crypto/private/)
 
     set_config_files_compile_definitions(mbedtls_test_helpers)
 endif()

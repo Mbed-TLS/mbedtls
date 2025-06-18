@@ -1,0 +1,5 @@
+Features
+   * Add support for PKCS#7 files with multiple certificates.
+   * Add support for PKCS#7 files with the following signed attributes:
+     - Content type.
+     - Message digest.

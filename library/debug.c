@@ -333,6 +333,13 @@ static void mbedtls_debug_print_psa_rsa(const mbedtls_ssl_context *ssl, int leve
     size_t len, bits;
     int ret;
 
+    if (NULL == ssl              ||
+        NULL == ssl->conf        ||
+        NULL == ssl->conf->f_dbg ||
+        level > debug_threshold) {
+        return;
+    }
+
     if (pk->pub_raw_len > sizeof(key_der)) {
         return;
     }

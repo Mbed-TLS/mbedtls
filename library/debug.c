@@ -341,6 +341,10 @@ static void mbedtls_debug_print_psa_rsa(const mbedtls_ssl_context *ssl, int leve
     }
 
     if (pk->pub_raw_len > sizeof(key_der)) {
+        snprintf(str, sizeof(str),
+                 "RSA public key too large: %" MBEDTLS_PRINTF_SIZET " > %" MBEDTLS_PRINTF_SIZET,
+                 pk->pub_raw_len, sizeof(key_der));
+        debug_send_line(ssl, level, file, line, str);
         return;
     }
 

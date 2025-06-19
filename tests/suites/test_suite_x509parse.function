@@ -1118,11 +1118,11 @@ exit:
 void x509parse_crt(data_t *buf, char *result_str, int result)
 {
     mbedtls_x509_crt   crt;
-    #if !defined(MBEDTLS_X509_REMOVE_INFO)
+#if !defined(MBEDTLS_X509_REMOVE_INFO)
     unsigned char output[2000] = { 0 };
-    #else
+#else
     ((void) result_str);
-    #endif
+#endif
     /* Pick an error which is not used in the test_suite_x509parse.data file. */
     int result_ext = MBEDTLS_ERR_ERROR_GENERIC_ERROR;
     int res;

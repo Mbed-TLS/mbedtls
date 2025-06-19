@@ -6,17 +6,15 @@
 #include "psa/crypto.h"
 /*
  * Temporary hack: psasim’s Makefile only does:
- *   -Itests/psa-client-server/psasim/include
- *   -I$(MBEDTLS_ROOT_PATH)/include
- *   -I$(MBEDTLS_ROOT_PATH)/tf-psa-crypto/include
- *   -I$(MBEDTLS_ROOT_PATH)/tf-psa-crypto/drivers/builtin/include
- *
+ *  -Itests/psa-client-server/psasim/include
+ *  -I$(MBEDTLS_ROOT_PATH)/include
+ *  -I$(MBEDTLS_ROOT_PATH)/tf-psa-crypto/include
+ *  -I$(MBEDTLS_ROOT_PATH)/tf-psa-crypto/drivers/builtin/include
  * None of those cover tf-psa-crypto/core, so we rely on the
  * “-I$(MBEDTLS_ROOT_PATH)/include” entry plus a parent-relative
  * include "../tf-psa-crypto/core/common.h" in order to pull in common.h here,
  * which in turn gets MBEDTLS_ATTRIBUTE_UNTERMINATED_STRING (to silence the
  * new GCC-15 unterminated-string-initialization warning).
- * 
  * See GitHub issue #10223 for the proper long-term fix.
  * https://github.com/Mbed-TLS/mbedtls/issues/10223
  */

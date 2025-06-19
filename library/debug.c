@@ -337,6 +337,8 @@ static void mbedtls_debug_print_psa_rsa(const mbedtls_ssl_context *ssl, int leve
     start_cur = key_der;
     end_cur = key_der + pk->pub_raw_len;
 
+    /* This integer parsing solution should be replaced with mbedtls_asn1_get_integer().
+     * See #10238. */
     ret = mbedtls_asn1_get_tag(&start_cur, end_cur, &len,
                                MBEDTLS_ASN1_SEQUENCE | MBEDTLS_ASN1_CONSTRUCTED);
     if (ret != 0) {

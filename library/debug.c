@@ -221,9 +221,9 @@ void mbedtls_debug_print_mpi(const mbedtls_ssl_context *ssl, int level,
 #if defined(MBEDTLS_X509_CRT_PARSE_C) && !defined(MBEDTLS_X509_REMOVE_INFO)
 
 #if defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY) || defined(MBEDTLS_PK_USE_PSA_RSA_DATA) //no-check-names
-static void mbedtls_debug_print_ec_coord(const mbedtls_ssl_context *ssl, int level,
-                                         const char *file, int line, const char *text,
-                                         const unsigned char *buf, size_t len)
+static void mbedtls_debug_print_integer(const mbedtls_ssl_context *ssl, int level,
+                                        const char *file, int line, const char *text,
+                                        const unsigned char *buf, size_t len)
 {
     char str[DEBUG_BUF_SIZE];
     size_t i, len_bytes = PSA_BITS_TO_BYTES(len), idx = 0;
@@ -281,12 +281,12 @@ static void mbedtls_debug_print_psa_ec(const mbedtls_ssl_context *ssl, int level
     /* X coordinate */
     coord_start = pk->pub_raw + 1;
     mbedtls_snprintf(str, sizeof(str), "%s(X)", text);
-    mbedtls_debug_print_ec_coord(ssl, level, file, line, str, coord_start, coord_len * 8);
+    mbedtls_debug_print_integer(ssl, level, file, line, str, coord_start, coord_len * 8);
 
     /* Y coordinate */
     coord_start = coord_start + coord_len;
     mbedtls_snprintf(str, sizeof(str), "%s(Y)", text);
-    mbedtls_debug_print_ec_coord(ssl, level, file, line, str, coord_start, coord_len * 8);
+    mbedtls_debug_print_integer(ssl, level, file, line, str, coord_start, coord_len * 8);
 }
 #endif /* PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY */
 
@@ -355,7 +355,7 @@ static void mbedtls_debug_print_psa_rsa(const mbedtls_ssl_context *ssl, int leve
     len = PSA_BITS_TO_BYTES(bits);
 
     mbedtls_snprintf(str, sizeof(str), "%s.N", text);
-    mbedtls_debug_print_ec_coord(ssl, level, file, line, str, start_cur, bits);
+    mbedtls_debug_print_integer(ssl, level, file, line, str, start_cur, bits);
 
     start_cur += len;
 
@@ -370,7 +370,7 @@ static void mbedtls_debug_print_psa_rsa(const mbedtls_ssl_context *ssl, int leve
     }
 
     mbedtls_snprintf(str, sizeof(str), "%s.E", text);
-    mbedtls_debug_print_ec_coord(ssl, level, file, line, str, start_cur, bits);
+    mbedtls_debug_print_integer(ssl, level, file, line, str, start_cur, bits);
 }
 #endif /* MBEDTLS_PK_USE_PSA_RSA_DATA */ //no-check-names
 

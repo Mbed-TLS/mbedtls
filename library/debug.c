@@ -224,13 +224,13 @@ void mbedtls_debug_print_mpi(const mbedtls_ssl_context *ssl, int level,
 #if defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY) || defined(MBEDTLS_PK_USE_PSA_RSA_DATA) //no-check-names
 static void mbedtls_debug_print_integer(const mbedtls_ssl_context *ssl, int level,
                                         const char *file, int line, const char *text,
-                                        const unsigned char *buf, size_t len)
+                                        const unsigned char *buf, size_t bitlen)
 {
     char str[DEBUG_BUF_SIZE];
-    size_t i, len_bytes = PSA_BITS_TO_BYTES(len), idx = 0;
+    size_t i, len_bytes = PSA_BITS_TO_BYTES(bitlen), idx = 0;
 
     mbedtls_snprintf(str + idx, sizeof(str) - idx, "value of '%s' (%u bits) is:\n",
-                     text, (unsigned int) len);
+                     text, (unsigned int) bitlen);
 
     debug_send_line(ssl, level, file, line, str);
 

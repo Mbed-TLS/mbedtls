@@ -376,15 +376,10 @@ if(USE_STATIC_MBEDTLS_LIBRARY AND USE_SHARED_MBEDTLS_LIBRARY)
 endif()
 
 set(tf_psa_crypto_library_targets
-    ${TF_PSA_CRYPTO_TARGET_PREFIX}tfpsacrypto
-    ${TF_PSA_CRYPTO_TARGET_PREFIX}builtin
-    ${TF_PSA_CRYPTO_TARGET_PREFIX}everest
-    ${TF_PSA_CRYPTO_TARGET_PREFIX}p256m)
+    ${TF_PSA_CRYPTO_TARGET_PREFIX}tfpsacrypto)
 
 if(USE_STATIC_MBEDTLS_LIBRARY AND USE_SHARED_MBEDTLS_LIBRARY)
-    list(APPEND tf_psa_crypto_library_targets
-         ${TF_PSA_CRYPTO_TARGET_PREFIX}tfpsacrypto_static
-         ${TF_PSA_CRYPTO_TARGET_PREFIX}builtin_static)
+    list(APPEND tf_psa_crypto_library_targets)
 endif()
 
 foreach(target IN LISTS tf_psa_crypto_library_targets)

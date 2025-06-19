@@ -56,6 +56,10 @@ int main(void)
 
 #if defined(_WIN32) && !defined(EFIX64) && !defined(EFI32)
 
+#if defined(_MSC_VER)
+#pragma warning(disable : 5105) // warning inside winbase.h in C11 mode
+#endif
+
 #include <windows.h>
 #include <process.h>
 

@@ -170,6 +170,7 @@ static int pkcs7_get_certificates(unsigned char **p, unsigned char *end,
                                   mbedtls_x509_crt *certs)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    int nb_certs = 0;
     size_t len1 = 0;
     size_t len2 = 0;
     unsigned char *end_set, *end_cert, *start;
@@ -182,38 +183,27 @@ static int pkcs7_get_certificates(unsigned char **p, unsigned char *end,
     if (ret != 0) {
         return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PKCS7_INVALID_FORMAT, ret);
     }
-    start = *p;
     end_set = *p + len1;
 
-    ret = mbedtls_asn1_get_tag(p, end_set, &len2, MBEDTLS_ASN1_CONSTRUCTED
-                               | MBEDTLS_ASN1_SEQUENCE);
-    if (ret != 0) {
-        return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PKCS7_INVALID_CERT, ret);
-    }
+    do {
+        start = *p;
+        ret = mbedtls_asn1_get_tag(p, end_set, &len2, MBEDTLS_ASN1_CONSTRUCTED
+                                | MBEDTLS_ASN1_SEQUENCE);
+        if (ret != 0) {
+            return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PKCS7_INVALID_CERT, ret);
+        }
 
-    end_cert = *p + len2;
+        end_cert = *p + len2;
 
-    /*
-     * This is to verify that there is only one signer certificate. It seems it is
-     * not easy to differentiate between the chain vs different signer's certificate.
-     * So, we support only the root certificate and the single signer.
-     * The behaviour would be improved with addition of multiple signer support.
-     */
-    if (end_cert != end_set) {
-        return MBEDTLS_ERR_PKCS7_FEATURE_UNAVAILABLE;
-    }
+        if ((ret = mbedtls_x509_crt_parse_der(certs, start, end_cert - start)) < 0) {
+            return MBEDTLS_ERR_PKCS7_INVALID_CERT;
+        }
 
-    if ((ret = mbedtls_x509_crt_parse_der(certs, start, len1)) < 0) {
-        return MBEDTLS_ERR_PKCS7_INVALID_CERT;
-    }
+        *p = end_cert;
+        nb_certs++;
+    } while (end_cert != end_set);
 
-    *p = end_cert;
-
-    /*
-     * Since in this version we strictly support single certificate, and reaching
-     * here implies we have parsed successfully, we return 1.
-     */
-    return 1;
+    return nb_certs;
 }
 
 /**
@@ -257,6 +247,97 @@ static void pkcs7_free_signer_info(mbedtls_pkcs7_signer_info *signer)
     signer->issuer.next = NULL;
 }
 
+static int pkcs7_get_authenticated_attributes(unsigned char **p, unsigned char *end_signer,
+                                              mbedtls_pkcs7_signer_info *signer)
+{
+    int ret;
+    unsigned char *end;
+    unsigned char *start_attr;
+    unsigned char *start_attr_type;
+    unsigned char *end_attr_value;
+    size_t attr_len;
+    size_t attr_type_len;
+    size_t attr_value_len;
+    size_t len;
+    int seen_content_type = 0;
+    int seen_message_digest = 0;
+
+    ret = mbedtls_asn1_get_tag(p, end_signer, &signer->auth_attributes_raw.len,
+                               MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_CONTEXT_SPECIFIC | 0);
+    if (ret == 0) {
+        /*
+         * Per RFC 2315 Section 9.3, if the authenticatedAttributes field is present, the
+         * message digest is computed on the DER encoding of the Attributes value.
+         * Canonically, the authenticatedAttributes tag would therefore be encoded as SET OF.
+         */
+        signer->auth_attributes_raw.tag = MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SET;
+        signer->auth_attributes_raw.p = *p;
+        end = *p + signer->auth_attributes_raw.len;
+
+        while (*p != end) {
+            if ((ret = mbedtls_asn1_get_tag(p, end, &attr_len, MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE)) != 0) {
+                return ret;
+            }
+            start_attr = *p;
+
+            if ((ret = mbedtls_asn1_get_tag(p, end, &attr_type_len, MBEDTLS_ASN1_OID)) != 0) {
+                return ret;
+            }
+            start_attr_type = *p;
+            *p += attr_type_len;
+
+            if ((ret = mbedtls_asn1_get_tag(p, end, &attr_value_len, MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SET)) != 0) {
+                return ret;
+            }
+            end_attr_value = *p + attr_value_len;
+
+            if (!MBEDTLS_OID_CMP_RAW(MBEDTLS_OID_PKCS9_CONTENT_TYPE, start_attr_type, attr_type_len)) {
+                if ((ret = mbedtls_asn1_get_tag(p, end_attr_value, &len, MBEDTLS_ASN1_OID)) != 0) {
+                    return ret;
+                }
+
+                if (MBEDTLS_OID_CMP_RAW(MBEDTLS_OID_PKCS7_DATA, *p, len)) {
+                    return MBEDTLS_ERR_PKCS7_INVALID_CONTENT_INFO;
+                }
+
+                *p += len;
+
+                if (*p != end_attr_value) {
+                    return MBEDTLS_ERR_PKCS7_BAD_INPUT_DATA;
+                }
+
+                seen_content_type = 1;
+            } else if (!MBEDTLS_OID_CMP_RAW(MBEDTLS_OID_PKCS9_MESSAGE_DIGEST, start_attr_type, attr_type_len)) {
+                if ((ret = mbedtls_asn1_get_tag(p, end, &len, MBEDTLS_ASN1_OCTET_STRING)) != 0) {
+                    return ret;
+                }
+
+                signer->auth_attributes.message_digest_raw.tag = MBEDTLS_ASN1_OCTET_STRING;
+                signer->auth_attributes.message_digest_raw.len = len;
+                signer->auth_attributes.message_digest_raw.p = *p;
+
+                *p += len;
+
+                if (*p != end_attr_value) {
+                    return MBEDTLS_ERR_PKCS7_BAD_INPUT_DATA;
+                }
+
+                seen_message_digest = 1;
+            } else {
+                /* Unknown attribute type, skip attribute. */
+                *p = start_attr + attr_len;
+            }
+        }
+
+        if (!seen_content_type || !seen_message_digest) {
+            return MBEDTLS_ERR_PKCS7_BAD_INPUT_DATA;
+        }
+    }
+
+    /* authenticatedAttributes are optional, don't fail if it's not present. */
+    return 0;
+}
+
 /**
  * SignerInfo ::= SEQUENCE {
  *      version Version;
@@ -270,8 +351,7 @@ static void pkcs7_free_signer_info(mbedtls_pkcs7_signer_info *signer)
  *              [1] IMPLICIT Attributes OPTIONAL,
  * Returns 0 if the signerInfo is valid.
  * Return negative error code for failure.
- * Structure must not contain vales for authenticatedAttributes
- * and unauthenticatedAttributes.
+ * Structure must not contain values for unauthenticatedAttributes.
  **/
 static int pkcs7_get_signer_info(unsigned char **p, unsigned char *end,
                                  mbedtls_pkcs7_signer_info *signer,
@@ -341,7 +421,11 @@ static int pkcs7_get_signer_info(unsigned char **p, unsigned char *end,
         goto out;
     }
 
-    /* Assume authenticatedAttributes is nonexistent */
+    ret = pkcs7_get_authenticated_attributes(p, end_signer, signer);
+    if (ret != 0) {
+        goto out;
+    }
+
     ret = pkcs7_get_digest_algorithm(p, end_signer, &signer->sig_alg_identifier);
     if (ret != 0) {
         goto out;
@@ -638,6 +722,55 @@ out:
     return ret;
 }
 
+static int mbedtls_pkcs7_hash_authenticated_attributes(const mbedtls_md_info_t *md_info,
+                                                       const mbedtls_x509_buf *buf,
+                                                       unsigned char *output)
+{
+    int ret;
+    mbedtls_md_context_t md_ctx;
+
+    unsigned char asn1_tag_buf[1];
+    unsigned char asn1_length_buf[1 + sizeof(size_t)];
+    unsigned char *p = asn1_length_buf + sizeof(asn1_length_buf);
+    int asn1_length_buf_len;
+
+    mbedtls_md_init(&md_ctx);
+
+    if ((ret = mbedtls_md_setup(&md_ctx, md_info, 0)) != 0) {
+        goto exit;
+    }
+    if ((ret = mbedtls_md_starts(&md_ctx)) != 0) {
+        goto exit;
+    }
+
+    /*
+     * Per RFC 2315 9.3, the message digest is computed on the complete DER encoding
+     * of the Attributes value. We therefore need to hash the tag and the ASN.1 length
+     * on top of the actual buffer contents.
+     */
+    asn1_tag_buf[0] = buf->tag;
+    if ((ret = mbedtls_md_update(&md_ctx, asn1_tag_buf, sizeof(asn1_tag_buf))) != 0) {
+        goto exit;
+    }
+    if ((ret = asn1_length_buf_len = mbedtls_asn1_write_len(&p, asn1_length_buf, buf->len)) < 0) {
+        goto exit;
+    }
+    if ((ret = mbedtls_md_update(&md_ctx, p, asn1_length_buf_len)) != 0) {
+        goto exit;
+    }
+    if ((ret = mbedtls_md_update(&md_ctx, buf->p, buf->len)) != 0) {
+        goto exit;
+    }
+
+    if ((ret = mbedtls_md_finish(&md_ctx, output)) != 0) {
+        goto exit;
+    }
+
+exit:
+    mbedtls_md_free(&md_ctx);
+    return ret;
+}
+
 static int mbedtls_pkcs7_data_or_hash_verify(mbedtls_pkcs7 *pkcs7,
                                              const mbedtls_x509_crt *cert,
                                              const unsigned char *data,
@@ -704,9 +837,42 @@ static int mbedtls_pkcs7_data_or_hash_verify(mbedtls_pkcs7 *pkcs7,
      * failed to validate'.
      */
     for (signer = &pkcs7->signed_data.signers; signer; signer = signer->next) {
-        ret = mbedtls_pk_verify(&pk_cxt, md_alg, hash,
-                                mbedtls_md_get_size(md_info),
-                                signer->sig.p, signer->sig.len);
+        if (signer->auth_attributes_raw.p != NULL) {
+            unsigned char *signer_hash;
+
+            if (signer->auth_attributes.message_digest_raw.len != mbedtls_md_get_size(md_info) ||
+                memcmp(hash, signer->auth_attributes.message_digest_raw.p, mbedtls_md_get_size(md_info))) {
+                mbedtls_free(hash);
+                return MBEDTLS_ERR_PKCS7_VERIFY_FAIL;
+            }
+
+            signer_hash = mbedtls_calloc(mbedtls_md_get_size(md_info), 1);
+            if (signer_hash == NULL) {
+                mbedtls_free(hash);
+                return MBEDTLS_ERR_PKCS7_ALLOC_FAILED;
+            }
+
+            /* BEGIN must free signer_hash before jumping out */
+            ret = mbedtls_pkcs7_hash_authenticated_attributes(md_info,
+                                                              &signer->auth_attributes_raw,
+                                                              signer_hash);
+            if (ret != 0) {
+                mbedtls_free(signer_hash);
+                mbedtls_free(hash);
+                return MBEDTLS_ERR_PKCS7_VERIFY_FAIL;
+            }
+
+            ret = mbedtls_pk_verify(&pk_cxt, md_alg, signer_hash,
+                                    mbedtls_md_get_size(md_info),
+                                    signer->sig.p, signer->sig.len);
+
+            mbedtls_free(signer_hash);
+            /* END must free signer_hash before jumping out */
+        } else {
+            ret = mbedtls_pk_verify(&pk_cxt, md_alg, hash,
+                                    mbedtls_md_get_size(md_info),
+                                    signer->sig.p, signer->sig.len);
+        }
 
         if (ret == 0) {
             break;

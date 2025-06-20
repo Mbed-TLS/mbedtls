@@ -4,6 +4,21 @@
  */
 
 #include "psa/crypto.h"
+/*
+ * Temporary hack: psasim’s Makefile only does:
+ *  -Itests/psa-client-server/psasim/include
+ *  -I$(MBEDTLS_ROOT_PATH)/include
+ *  -I$(MBEDTLS_ROOT_PATH)/tf-psa-crypto/include
+ *  -I$(MBEDTLS_ROOT_PATH)/tf-psa-crypto/drivers/builtin/include
+ * None of those cover tf-psa-crypto/core, so we rely on the
+ * “-I$(MBEDTLS_ROOT_PATH)/include” entry plus a parent-relative
+ * include "../tf-psa-crypto/core/common.h" in order to pull in common.h here,
+ * which in turn gets MBEDTLS_ATTRIBUTE_UNTERMINATED_STRING (to silence the
+ * new GCC-15 unterminated-string-initialization warning).
+ * See GitHub issue #10223 for the proper long-term fix.
+ * https://github.com/Mbed-TLS/mbedtls/issues/10223
+ */
+#include "../tf-psa-crypto/core/common.h"
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -25,7 +40,9 @@ int psa_aead_encrypt_decrypt_main(void)
     uint8_t encrypt[BUFFER_SIZE] = { 0 };
     uint8_t decrypt[BUFFER_SIZE] = { 0 };
     const uint8_t plaintext[] = "Hello World!";
-    const uint8_t key_bytes[32] = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+    /* We need to tell the compiler that we meant to leave out the null character. */
+    const uint8_t key_bytes[32] MBEDTLS_ATTRIBUTE_UNTERMINATED_STRING =
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
     uint8_t nonce[PSA_AEAD_NONCE_LENGTH(PSA_KEY_TYPE_AES, PSA_ALG_CCM)];
     size_t nonce_length = sizeof(nonce);
     size_t ciphertext_length;

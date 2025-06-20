@@ -109,82 +109,10 @@ DLEXT = dylib
 endif
 endif
 
-OBJS_CRYPTO= \
-	     $(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto.o \
-	     $(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto_client.o \
-	     $(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto_driver_wrappers_no_static.o \
-	     $(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto_slot_management.o \
-	     $(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto_storage.o \
-	     $(TF_PSA_CRYPTO_CORE_PATH)/psa_its_file.o \
-	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/aes.o \
-	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/aesni.o \
-	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/aesce.o \
-	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/aria.o \
-	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/asn1parse.o \
-	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/asn1write.o \
-	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/base64.o \
-	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/bignum.o \
-	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/bignum_core.o \
-	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/bignum_mod.o \
-	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/bignum_mod_raw.o \
-	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/block_cipher.o \
-	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/camellia.o \
-	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/ccm.o \
-	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/chacha20.o \
-	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/chachapoly.o \
-	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/cipher.o \
-	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/cipher_wrap.o \
-	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/cmac.o \
-	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/constant_time.o \
-	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/ctr_drbg.o \
-	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/des.o \
-	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/ecdh.o \
-	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/ecdsa.o \
-	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/ecjpake.o \
-	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/ecp.o \
-	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/ecp_curves.o \
-	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/ecp_curves_new.o \
-	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/entropy.o \
-	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/entropy_poll.o \
-	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/gcm.o \
-	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/hkdf.o \
-	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/hmac_drbg.o \
-	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/lmots.o \
-	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/lms.o \
-	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/md.o \
-	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/md5.o \
-	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/memory_buffer_alloc.o \
-	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/nist_kw.o \
-	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/oid.o \
-	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/pem.o \
-	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/pk.o \
-	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/pk_ecc.o \
-	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/pk_wrap.o \
-	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/pkcs12.o \
-	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/pkcs5.o \
-	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/pkparse.o \
-	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/pkwrite.o \
-	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/platform.o \
-	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/platform_util.o \
-	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/poly1305.o \
-	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/psa_crypto_aead.o \
-	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/psa_crypto_cipher.o \
-	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/psa_crypto_ecp.o \
-	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/psa_crypto_ffdh.o \
-	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/psa_crypto_hash.o \
-	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/psa_crypto_mac.o \
-	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/psa_crypto_pake.o \
-	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/psa_crypto_rsa.o \
-	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/psa_util.o \
-	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/ripemd160.o \
-	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/rsa.o \
-	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/rsa_alt_helpers.o \
-	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/sha1.o \
-	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/sha256.o \
-	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/sha512.o \
-	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/sha3.o \
-	     $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/threading.o \
-	     # This line is intentionally left blank
+OBJS_CRYPTO = $(patsubst %.c, %.o,$(wildcard $(TF_PSA_CRYPTO_CORE_PATH)/*.c $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/*.c))
+GENERATED_OBJS_CRYPTO = $(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto_driver_wrappers_no_static.o
+OBJS_CRYPTO := $(filter-out $(GENERATED_OBJS_CRYPTO),$(OBJS_CRYPTO))
+OBJS_CRYPTO += $(GENERATED_OBJS_CRYPTO)
 
 THIRDPARTY_DIR := $(MBEDTLS_PATH)/tf-psa-crypto/drivers
 include $(MBEDTLS_PATH)/tf-psa-crypto/drivers/everest/Makefile.inc

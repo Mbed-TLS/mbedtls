@@ -37,5 +37,11 @@ find_package(MbedTLS REQUIRED)
 #
 
 add_executable(cmake_package_install cmake_package_install.c)
+
+string(REGEX MATCH "GNU" CMAKE_COMPILER_IS_GNU "${CMAKE_C_COMPILER_ID}")
+if(CMAKE_COMPILER_IS_GNU)
+    target_compile_options(cmake_package_install PRIVATE -Wall -Werror)
+endif()
+
 target_link_libraries(cmake_package_install
     MbedTLS::mbedtls MbedTLS::mbedx509 MbedTLS::tfpsacrypto)

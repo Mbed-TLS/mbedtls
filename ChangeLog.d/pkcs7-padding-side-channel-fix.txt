@@ -1,0 +1,6 @@
+Security
+   * Fix a timing side channel in the implementation of PKCS#7 padding
+     which would allow an attacker who can request decryption of arbitrary
+     ciphertexts to recover the plaintext through a timing oracle attack.
+     Reported by Ka Lok Wu from Stony Brook University and Doria Tang from
+     The Chinese University of Hong Kong.

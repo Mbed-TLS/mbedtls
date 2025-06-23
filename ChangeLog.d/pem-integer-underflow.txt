@@ -1,0 +1,5 @@
+Security
+   * Fix an integer underflow that could occur when parsing malformed PEM
+     keys, which could be used by an attacker capable of feeding encrypted
+     PEM keys to a user. This could cause a crash or information disclosure.
+     Found and reported by Linh Le and Ngan Nguyen from Calif.

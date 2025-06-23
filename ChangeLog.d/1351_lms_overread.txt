@@ -1,0 +1,4 @@
+Security
+   * Fix a buffer overread in mbedtls_lms_import_public_key() when the input is
+     less than 3 bytes. Reported by Linh Le and Ngan Nguyen from Calif.
+     CVE-2025-49601

@@ -1,0 +1,5 @@
+Bugfix
+   * When calling mbedtls_asn1_write_raw_buffer() with NULL, 0 as the last two
+     arguments, undefined behaviour would be triggered, in the form of a call to
+     memcpy(..., NULL, 0). This was harmless in practice, but could trigger
+     complains from sanitizers or static analyzers.

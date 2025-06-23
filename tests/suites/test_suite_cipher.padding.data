@@ -217,3 +217,18 @@ check_padding:MBEDTLS_PADDING_NONE:"DABBAD0001":0:5
 
 Check no padding #3 (correct by definition)
 check_padding:MBEDTLS_PADDING_NONE:"":0:0
+
+Constant-time PKCS7 padding, valid #1
+get_pkcs_padding:"00112233445566778899AABBCCDDEE01":0:15
+
+Constant-time PKCS7 padding, valid #2
+get_pkcs_padding:"00112233445566778899AA0505050505":0:11
+
+Constant-time PKCS7 padding, valid #3
+get_pkcs_padding:"10101010101010101010101010101010":0:0
+
+Constant-time PKCS7 padding, invalid zero
+get_pkcs_padding:"00112233445566778899AABBCCDDEE00":MBEDTLS_ERR_CIPHER_INVALID_PADDING:0
+
+Constant-time PKCS7 padding, invalid > 16
+get_pkcs_padding:"00112233445566778899AABBCCDDEE11":MBEDTLS_ERR_CIPHER_INVALID_PADDING:0

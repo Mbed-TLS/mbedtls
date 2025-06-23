@@ -93,9 +93,6 @@ component_test_gcc15_drivers_opt () {
     scripts/config.py full
     loc_cflags="$ASAN_CFLAGS -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_CONFIG_ADJUST_TEST_ACCELERATORS"
     loc_cflags="${loc_cflags} -I../framework/tests/include -O2"
-    # Allow a warning that we don't yet comply to.
-    # https://github.com/Mbed-TLS/mbedtls/issues/9944
-    loc_cflags="${loc_cflags} -Wno-error=unterminated-string-initialization"
 
     make CC=$GCC_15 CFLAGS="${loc_cflags}" LDFLAGS="$ASAN_CFLAGS"
 

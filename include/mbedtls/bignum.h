@@ -1045,6 +1045,7 @@ int mbedtls_mpi_is_prime_ext(const mbedtls_mpi *X, int rounds,
 typedef enum {
     MBEDTLS_MPI_GEN_PRIME_FLAG_DH =      0x0001, /**< (X-1)/2 is prime too */
     MBEDTLS_MPI_GEN_PRIME_FLAG_LOW_ERR = 0x0002, /**< lower error rate from 2<sup>-80</sup> to 2<sup>-128</sup> */
+    MBEDTLS_MPI_GEN_PRIME_FLAG_3MOD4 =   0x0004, /**< generate a prime that's 3 mod 4 (ie, low bits are 11) */
 } mbedtls_mpi_gen_prime_flag_t;
 
 /**

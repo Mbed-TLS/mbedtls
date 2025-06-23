@@ -2304,7 +2304,12 @@ int mbedtls_mpi_gen_prime(mbedtls_mpi *X, size_t nbits, int flags,
         if (k > nbits) {
             MBEDTLS_MPI_CHK(mbedtls_mpi_shift_r(X, k - nbits));
         }
-        X->p[0] |= 1;
+
+        if ((flags & MBEDTLS_MPI_GEN_PRIME_FLAG_3MOD4) != 0) {
+            X->p[0] |= 3;
+        } else {
+            X->p[0] |= 1;
+        }
 
         if ((flags & MBEDTLS_MPI_GEN_PRIME_FLAG_DH) == 0) {
             ret = mbedtls_mpi_is_prime_ext(X, rounds, f_rng, p_rng);

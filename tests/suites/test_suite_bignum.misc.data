@@ -1873,6 +1873,10 @@ Test mbedtls_mpi_gen_prime (Larger)
 depends_on:MBEDTLS_GENPRIME
 mpi_gen_prime:128:0:0
 
+Test mbedtls_mpi_gen_prime (Lower error rate)
+depends_on:MBEDTLS_GENPRIME
+mpi_gen_prime:128:MBEDTLS_MPI_GEN_PRIME_FLAG_LOW_ERR:0
+
 Test mbedtls_mpi_gen_prime (Safe)
 depends_on:MBEDTLS_GENPRIME
 mpi_gen_prime:128:MBEDTLS_MPI_GEN_PRIME_FLAG_DH:0
@@ -1881,13 +1885,29 @@ Test mbedtls_mpi_gen_prime (Safe with lower error rate)
 depends_on:MBEDTLS_GENPRIME
 mpi_gen_prime:128:MBEDTLS_MPI_GEN_PRIME_FLAG_DH | MBEDTLS_MPI_GEN_PRIME_FLAG_LOW_ERR:0
 
-Test mbedtls_mpi_gen_prime standard RSA #1 (lower error rate)
+Test mbedtls_mpi_gen_prime (Safe with lower error rate and 3 mod 4)
 depends_on:MBEDTLS_GENPRIME
-mpi_gen_prime:1024:MBEDTLS_MPI_GEN_PRIME_FLAG_LOW_ERR:0
+mpi_gen_prime:128:MBEDTLS_MPI_GEN_PRIME_FLAG_DH | MBEDTLS_MPI_GEN_PRIME_FLAG_LOW_ERR | MBEDTLS_MPI_GEN_PRIME_FLAG_3MOD4:0
 
-Test mbedtls_mpi_gen_prime standard RSA #2 (lower error rate)
+Test mbedtls_mpi_gen_prime (3 mod 4)
 depends_on:MBEDTLS_GENPRIME
-mpi_gen_prime:1536:MBEDTLS_MPI_GEN_PRIME_FLAG_LOW_ERR:0
+mpi_gen_prime:128:MBEDTLS_MPI_GEN_PRIME_FLAG_3MOD4:0
+
+Test mbedtls_mpi_gen_prime (3 mod 4 with lower error rate)
+depends_on:MBEDTLS_GENPRIME
+mpi_gen_prime:128:MBEDTLS_MPI_GEN_PRIME_FLAG_3MOD4 | MBEDTLS_MPI_GEN_PRIME_FLAG_LOW_ERR:0
+
+Test mbedtls_mpi_gen_prime (3 mod 4 and safe)
+depends_on:MBEDTLS_GENPRIME
+mpi_gen_prime:128:MBEDTLS_MPI_GEN_PRIME_FLAG_3MOD4 | MBEDTLS_MPI_GEN_PRIME_FLAG_DH:0
+
+Test mbedtls_mpi_gen_prime standard RSA #1 (lower error rate, 3 mod 4)
+depends_on:MBEDTLS_GENPRIME
+mpi_gen_prime:1024:MBEDTLS_MPI_GEN_PRIME_FLAG_LOW_ERR | MBEDTLS_MPI_GEN_PRIME_FLAG_3MOD4:0
+
+Test mbedtls_mpi_gen_prime standard RSA #2 (lower error rate, 3 mod 4)
+depends_on:MBEDTLS_GENPRIME
+mpi_gen_prime:1536:MBEDTLS_MPI_GEN_PRIME_FLAG_LOW_ERR | MBEDTLS_MPI_GEN_PRIME_FLAG_3MOD4:0
 
 Test bit getting (Value bit 25)
 mpi_get_bit:"2faa127":25:1

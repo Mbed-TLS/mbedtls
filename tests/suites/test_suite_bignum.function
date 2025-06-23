@@ -1449,20 +1449,36 @@ void mpi_gen_prime(int bits, int flags, int ref_ret)
 
     mbedtls_mpi_init(&X);
 
-    my_ret = mbedtls_mpi_gen_prime(&X, bits, flags,
-                                   mbedtls_test_rnd_std_rand, NULL);
-    TEST_ASSERT(my_ret == ref_ret);
+    /* Since this is not deterministic, repeat a few times
+     * when expecting success. */
+    for (size_t i = 0; i < 8; i++) {
+        my_ret = mbedtls_mpi_gen_prime(&X, bits, flags,
+                                       mbedtls_test_rnd_std_rand, NULL);
+        TEST_ASSERT(my_ret == ref_ret);
 
-    if (ref_ret == 0) {
+        if (ref_ret != 0) {
+            /* no additional checks, no repeating */
+            break;
+        }
+
         size_t actual_bits = mbedtls_mpi_bitlen(&X);
 
-        TEST_ASSERT(actual_bits >= (size_t) bits);
-        TEST_ASSERT(actual_bits <= (size_t) bits + 1);
-        TEST_ASSERT(sign_is_valid(&X));
+        if (flags & MBEDTLS_MPI_GEN_PRIME_FLAG_DH) {
+            TEST_ASSERT(actual_bits >= (size_t) bits);
+            TEST_ASSERT(actual_bits <= (size_t) bits + 1);
+        } else {
+            TEST_EQUAL(actual_bits, (size_t) bits);
+        }
+        TEST_EQUAL(X.s, 1);
 
         TEST_ASSERT(mbedtls_mpi_is_prime_ext(&X, 40,
                                              mbedtls_test_rnd_std_rand,
                                              NULL) == 0);
+
+        if (flags & MBEDTLS_MPI_GEN_PRIME_FLAG_3MOD4) {
+            TEST_EQUAL(X.p[0] & 3, 3);
+        }
+
         if (flags & MBEDTLS_MPI_GEN_PRIME_FLAG_DH) {
             /* X = ( X - 1 ) / 2 */
             TEST_ASSERT(mbedtls_mpi_shift_r(&X, 1) == 0);

@@ -117,10 +117,11 @@ typedef struct mbedtls_test_handshake_test_options {
     int expected_srv_fragments;
     int renegotiate;
     int legacy_renegotiation;
-    void *srv_log_obj;
-    void *cli_log_obj;
-    void (*srv_log_fun)(void *, int, const char *, int, const char *);
-    void (*cli_log_fun)(void *, int, const char *, int, const char *);
+#if defined(MBEDTLS_DEBUG_C)
+    int debug_threshold;
+    const char *srv_log_pattern;
+    const char *cli_log_pattern;
+#endif
     int resize_buffers;
     int early_data;
     int max_early_data_size;
@@ -187,15 +188,6 @@ typedef struct mbedtls_test_message_socket_context {
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
 
 /*
- * Structure with endpoint's certificates for SSL communication tests.
- */
-typedef struct mbedtls_test_ssl_endpoint_certificate {
-    mbedtls_x509_crt *ca_cert;
-    mbedtls_x509_crt *cert;
-    mbedtls_pk_context *pkey;
-} mbedtls_test_ssl_endpoint_certificate;
-
-/*
  * Endpoint structure for SSL communication tests.
  */
 typedef struct mbedtls_test_ssl_endpoint {
@@ -203,7 +195,27 @@ typedef struct mbedtls_test_ssl_endpoint {
     mbedtls_ssl_context ssl;
     mbedtls_ssl_config conf;
     mbedtls_test_mock_socket socket;
-    mbedtls_test_ssl_endpoint_certificate cert;
+    uintptr_t user_data_cookie; /* A unique value associated with this endpoint */
+#if defined(MBEDTLS_DEBUG_C)
+    mbedtls_test_ssl_log_pattern log_pattern;
+    int debug_threshold;
+#endif /* MBEDTLS_DEBUG_C */
+
+    /* Objects only used by DTLS.
+     * They should be guarded by MBEDTLS_SSL_PROTO_DTLS, but
+     * currently aren't because some code accesses them without guards. */
+    mbedtls_test_message_socket_context dtls_context;
+#if defined(MBEDTLS_TIMING_C)
+    mbedtls_timing_delay_context timer;
+#endif
+
+    /* Objects owned by the endpoint */
+    int *ciphersuites;
+    mbedtls_test_ssl_message_queue queue_input;
+    mbedtls_x509_crt *ca_chain;
+    mbedtls_x509_crt *cert;
+    mbedtls_pk_context *pkey;
+    mbedtls_svc_key_id_t psa_key;
 } mbedtls_test_ssl_endpoint;
 
 #endif /* MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED */
@@ -215,14 +227,29 @@ typedef struct mbedtls_test_ssl_endpoint {
  */
 int mbedtls_test_random(void *p_rng, unsigned char *output, size_t output_len);
 
-/*
- * This function can be passed to mbedtls to receive output logs from it. In
- * this case, it will count the instances of a mbedtls_test_ssl_log_pattern
- * in the received logged messages.
+#if defined(MBEDTLS_DEBUG_C)
+/** Debug handler passed to mbedtls_ssl_conf_dbg().
+ *
+ * \p ctx is the #mbedtls_test_ssl_endpoint structure.
+ *
+ * \note This function is meant to be called unconditionally
+ *       (in particular, regardless of the log level).
+ *       It can optionally make logs available for debugging.
+ *       Inspection, e.g. through log patterns, is conditional on the
+ *       level being at least the `debug_threshold` configured in the
+ *       endpoint.
  */
-void mbedtls_test_ssl_log_analyzer(void *ctx, int level,
-                                   const char *file, int line,
-                                   const char *str);
+void mbedtls_test_ssl_debug_handler(void *ctx, int level,
+                                    const char *file, int line,
+                                    const char *msg);
+
+/** Debug messages up to this level are printed to stdout.
+ *
+ * \note In unit tests, you need to run the test suite with `-v`,
+ *       otherwise stdout is suppressed.
+ */
+extern int mbedtls_test_ssl_debug_stdout_threshold;
+#endif /* MBEDTLS_DEBUG_C */
 
 void mbedtls_test_init_handshake_options(
     mbedtls_test_handshake_test_options *opts);
@@ -429,11 +456,58 @@ int mbedtls_test_mock_tcp_send_msg(void *ctx,
 int mbedtls_test_mock_tcp_recv_msg(void *ctx,
                                    unsigned char *buf, size_t buf_len);
 
+/** Load an RSA key-certificate pair accepted by the CA used for SSL tests.
+ *
+ * \param endpoint_type #MBEDTLS_SSL_IS_SERVER or #MBEDTLS_SSL_IS_CLIENT.
+ * \param[in,out] pkey  Pointer to the PK object for the private key.
+ *                      It must be initialized, but not set up.
+ * \param[in,out] cert  Pointer to the PK object for the certificate.
+ *                      It must be initialized, but not set up.
+ *
+ * \return              0 on success, a negative value on error.
+ *                      This function marks the test as failed on error.
+ */
+int mbedtls_test_cert_load_rsa(int endpoint_type,
+                               mbedtls_pk_context *pkey,
+                               mbedtls_x509_crt *cert);
+
+/** Load an ECC key-certificate pair accepted by the CA used for SSL tests.
+ *
+ * \param endpoint_type #MBEDTLS_SSL_IS_SERVER or #MBEDTLS_SSL_IS_CLIENT.
+ * \param[in,out] pkey  Pointer to the PK object for the private key.
+ *                      It must be initialized, but not set up.
+ * \param[in,out] cert  Pointer to the PK object for the certificate.
+ *                      It must be initialized, but not set up.
+ *
+ * \return              0 on success, a negative value on error.
+ *                      This function marks the test as failed on error.
+ */
+int mbedtls_test_cert_load_ecc(int endpoint_type,
+                               mbedtls_pk_context *pkey,
+                               mbedtls_x509_crt *cert);
+
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
 
-/*
- * Initializes \p ep_cert structure and assigns it to endpoint
- * represented by \p ep.
+/**
+ * Load default CA certificates and endpoint keys into \p ep.
+ *
+ * \param[in,out] ep    The endpoint to configure. The parts of the
+ *                      endpoint structure itself and the SSL configuration
+ *                      related to keys and certificates must be in a
+ *                      freshly initialized state (all zero).
+ *                      The field `ep->conf->endpoint` must be set
+ *                      to indicate whether the endpoint is a client or
+ *                      a server.
+ * \param pk_alg        Which mechanism to use for the endpoint's key and
+ *                      certificate: #MBEDTLS_PK_RSA or #MBEDTLS_PK_ECDSA.
+ *                      This can be #MBEDTLS_PK_NONE to only configure
+ *                      CA certificates and not the endpoint key.
+ * \param opaque_alg    If nonzero, the endpoint key will be made opaque
+ *                      and given a PSA policy with this algorithm.
+ * \param opaque_alg2   The enrollment algorithm in the PSA key policy.
+ *                      This is unused if \p opaque_alg is zero.
+ * \param opaque_usage  The usage flags in the PSA key policy.
+ *                      This is unused if \p opaque_alg is zero.
  *
  * \retval  0 on success, otherwise error code.
  */
@@ -442,34 +516,85 @@ int mbedtls_test_ssl_endpoint_certificate_init(mbedtls_test_ssl_endpoint *ep,
                                                int opaque_alg, int opaque_alg2,
                                                int opaque_usage);
 
-/*
- * Initializes \p ep structure. It is important to call
- * `mbedtls_test_ssl_endpoint_free()` after calling this function
- * even if it fails.
+/** Initialize the configuration in an SSL endpoint structure.
  *
- * \p endpoint_type must be set as MBEDTLS_SSL_IS_SERVER or
- * MBEDTLS_SSL_IS_CLIENT.
- * \p pk_alg the algorithm to use, currently only MBEDTLS_PK_RSA and
- * MBEDTLS_PK_ECDSA are supported.
- * \p dtls_context - in case of DTLS - this is the context handling metadata.
- * \p input_queue - used only in case of DTLS.
- * \p output_queue - used only in case of DTLS.
+ * \note You must call `mbedtls_test_ssl_endpoint_free()` after
+ * calling this function, even if it fails. This is necessary to
+ * free data that may have been stored in the endpoint structure.
+ *
+ * \param[out] ep       The endpoint structure to configure.
+ * \param endpoint_type #MBEDTLS_SSL_IS_SERVER or #MBEDTLS_SSL_IS_CLIENT.
+ * \param[in] options   The options to use for configuring the endpoint
+ *                      structure.
+ *
+ * \retval  0 on success, otherwise error code.
+ */
+int mbedtls_test_ssl_endpoint_init_conf(
+    mbedtls_test_ssl_endpoint *ep, int endpoint_type,
+    const mbedtls_test_handshake_test_options *options);
+
+/** Initialize the session context in an endpoint structure.
+ *
+ * \note The endpoint structure must have been set up with
+ *       mbedtls_test_ssl_endpoint_init_conf() with the same \p options.
+ *       Between calling mbedtls_test_ssl_endpoint_init_conf() and
+ *       mbedtls_test_ssl_endpoint_init_ssl(), you may configure `ep->ssl`
+ *       further if you know what you're doing.
+ *
+ * \note You must call `mbedtls_test_ssl_endpoint_free()` after
+ * calling this function, even if it fails. This is necessary to
+ * free data that may have been stored in the endpoint structure.
+ *
+ * \param[out] ep       The endpoint structure to set up.
+ * \param[in] options   The options used for configuring the endpoint
+ *                      structure.
+ *
+ * \retval  0 on success, otherwise error code.
+ */
+int mbedtls_test_ssl_endpoint_init_ssl(
+    mbedtls_test_ssl_endpoint *ep,
+    const mbedtls_test_handshake_test_options *options);
+
+/** Initialize the configuration and a context in an SSL endpoint structure.
+ *
+ * This function is equivalent to calling
+ * mbedtls_test_ssl_endpoint_init_conf() followed by
+ * mbedtls_test_ssl_endpoint_init_ssl().
+ *
+ * \note You must call `mbedtls_test_ssl_endpoint_free()` after
+ * calling this function, even if it fails. This is necessary to
+ * free data that may have been stored in the endpoint structure.
+ *
+ * \param[out] ep       The endpoint structure to configure.
+ * \param endpoint_type #MBEDTLS_SSL_IS_SERVER or #MBEDTLS_SSL_IS_CLIENT.
+ * \param[in] options   The options to use for configuring the endpoint
+ *                      structure.
  *
  * \retval  0 on success, otherwise error code.
  */
 int mbedtls_test_ssl_endpoint_init(
     mbedtls_test_ssl_endpoint *ep, int endpoint_type,
-    mbedtls_test_handshake_test_options *options,
-    mbedtls_test_message_socket_context *dtls_context,
-    mbedtls_test_ssl_message_queue *input_queue,
-    mbedtls_test_ssl_message_queue *output_queue);
+    const mbedtls_test_handshake_test_options *options);
 
 /*
  * Deinitializes endpoint represented by \p ep.
  */
-void mbedtls_test_ssl_endpoint_free(
-    mbedtls_test_ssl_endpoint *ep,
-    mbedtls_test_message_socket_context *context);
+void mbedtls_test_ssl_endpoint_free(mbedtls_test_ssl_endpoint *ep);
+
+/* Join a DTLS client with a DTLS server.
+ *
+ * You must call this function after setting up the endpoint objects
+ * and before starting a DTLS handshake.
+ *
+ * \param client    The client. It must have been set up with
+ *                  mbedtls_test_ssl_endpoint_init().
+ * \param server    The server. It must have been set up with
+ *                  mbedtls_test_ssl_endpoint_init().
+ *
+ * \retval  0 on success, otherwise error code.
+ */
+int mbedtls_test_ssl_dtls_join_endpoints(mbedtls_test_ssl_endpoint *client,
+                                         mbedtls_test_ssl_endpoint *server);
 
 /*
  * This function moves ssl handshake from \p ssl to prescribed \p state.
@@ -610,8 +735,51 @@ int mbedtls_test_ssl_do_handshake_with_endpoints(
 #endif /* defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED) */
 
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
+/** Perform an SSL handshake and exchange data over the connection.
+ *
+ * This function also handles cases where the handshake is expected to fail.
+ *
+ * If the handshake succeeds as expected, this function validates that
+ * connection parameters are as expected, exchanges data over the
+ * connection, and exercises some optional protocol features if they
+ * are enabled. See the code to see what features are validated and exercised.
+ *
+ * The handshake is expected to fail in the following cases:
+ * - If `options->expected_handshake_result != 0`.
+ * - If `options->expected_negotiated_version == MBEDTLS_SSL_VERSION_UNKNOWN`.
+ *
+ * \param[in] options   Options for the connection.
+ * \param client        The client endpoint. It must have been set up with
+ *                      mbedtls_test_ssl_endpoint_init() with \p options
+ *                      and #MBEDTLS_SSL_IS_CLIENT.
+ * \param server        The server endpoint. It must have been set up with
+ *                      mbedtls_test_ssl_endpoint_init() with \p options
+ *                      and #MBEDTLS_SSL_IS_CLIENT.
+ *
+ * \return              1 on success, 0 on failure. On failure, this function
+ *                      calls mbedtls_test_fail(), indicating the failure
+ *                      reason and location. The causes of failure are:
+ *                      - Inconsistent options or bad endpoint state.
+ *                      - Operational problem during the handshake.
+ *                      - The handshake was expected to pass, but failed.
+ *                      - The handshake was expected to fail, but passed or
+ *                        failed with a different result.
+ *                      - The handshake passed as expected, but some connection
+ *                        parameter (e.g. protocol version, cipher suite, ...)
+ *                        is not as expected.
+ *                      - The handshake passed as expected, but something
+ *                        went wrong when attempting to exchange data.
+ *                      - The handshake passed as expected, but something
+ *                        went wrong when exercising other features
+ *                        (e.g. renegotiation, serialization, ...).
+ */
+int mbedtls_test_ssl_perform_connection(
+    const mbedtls_test_handshake_test_options *options,
+    mbedtls_test_ssl_endpoint *client,
+    mbedtls_test_ssl_endpoint *server);
+
 void mbedtls_test_ssl_perform_handshake(
-    mbedtls_test_handshake_test_options *options);
+    const mbedtls_test_handshake_test_options *options);
 #endif /* MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED */
 
 #if defined(MBEDTLS_TEST_HOOKS)

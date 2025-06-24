@@ -5966,7 +5966,9 @@ void ssl_tls_exporter_too_early(int proto, int check_server, int state)
     } else {
         ret = mbedtls_test_move_handshake_to_state(&client_ep.ssl, &server_ep.ssl, state);
     }
-    TEST_ASSERT(ret == 0 || ret == MBEDTLS_ERR_SSL_WANT_READ || MBEDTLS_ERR_SSL_WANT_WRITE);
+    if (ret != MBEDTLS_ERR_SSL_WANT_READ && ret != MBEDTLS_ERR_SSL_WANT_WRITE) {
+        TEST_EQUAL(ret, 0);
+    }
 
     char label[] = "test-label";
     uint8_t key_buffer[24] = { 0 };

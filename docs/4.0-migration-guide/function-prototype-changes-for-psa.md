@@ -1,10 +1,12 @@
-## RNG removal
+## High-level API tweaks for PSA
+
+A number of existing functions now take a different list of arguments, to migrate them to the PSA API.
 
 ### Public functions no longer take a RNG callback
 
 Functions that need randomness no longer take an RNG callback in the form of `f_rng, p_rng` arguments. Instead, they use the PSA Crypto random generator (accessible as `psa_generate_random()`). All software using the X.509 or SSL modules must call `psa_crypto_init()` before calling any of the functions listed here.
 
-### Changes in X.509
+### RNG removal in X.509
 
 The following function prototypes have been changed in `mbedtls/x509_crt.h`:
 
@@ -45,7 +47,7 @@ int mbedtls_x509write_csr_der(mbedtls_x509write_csr *ctx, unsigned char *buf, si
 int mbedtls_x509write_csr_pem(mbedtls_x509write_csr *ctx, unsigned char *buf, size_t size);
 ```
 
-### Changes in SSL
+### RNG removal in SSL
 
 The following function prototypes have been changed in `mbedtls/ssl.h`:
 

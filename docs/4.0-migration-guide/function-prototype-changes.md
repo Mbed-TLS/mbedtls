@@ -1,6 +1,6 @@
-## High-level API tweaks for PSA
+## Function prototype changes
 
-A number of existing functions now take a different list of arguments, to migrate them to the PSA API.
+A number of existing functions now take a different list of arguments, mostly to migrate them to the PSA API.
 
 ### Public functions no longer take a RNG callback
 

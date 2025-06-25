@@ -1120,15 +1120,29 @@ void x509parse_crt(data_t *buf, char *result_str, int result)
     mbedtls_x509_crt   crt;
 #if !defined(MBEDTLS_X509_REMOVE_INFO)
     unsigned char output[2000] = { 0 };
-    int res;
 #else
     ((void) result_str);
 #endif
+    /* Tests whose result is MBEDTLS_ERR_PK_INVALID_PUBKEY might return
+     * MBEDTLS_ERR_ASN1_UNEXPECTED_TAG until psa#308 is merged. This variable
+     * is therefore used for backward compatiblity and will be removed in
+     * mbedtls#10229. */
+    int result_back_comp = result;
+    int res;
+
+#if !defined(MBEDTLS_PK_USE_PSA_RSA_DATA)
+    /* Support for mbedtls#10213 before psa#308. Once psa#308 will be
+     * merged this dirty fix can be removed. */
+    if (result == MBEDTLS_ERR_PK_INVALID_PUBKEY) {
+        result_back_comp = MBEDTLS_ERR_ASN1_UNEXPECTED_TAG;
+    }
+#endif /* MBEDTLS_PK_USE_PSA_RSA_DATA */
 
     mbedtls_x509_crt_init(&crt);
     USE_PSA_INIT();
 
-    TEST_EQUAL(mbedtls_x509_crt_parse_der(&crt, buf->x, buf->len), result);
+    res = mbedtls_x509_crt_parse_der(&crt, buf->x, buf->len);
+    TEST_ASSERT((res == result) || (res == result_back_comp));
 #if !defined(MBEDTLS_X509_REMOVE_INFO)
     if ((result) == 0) {
         res = mbedtls_x509_crt_info((char *) output, 2000, "", &crt);
@@ -1143,7 +1157,8 @@ void x509parse_crt(data_t *buf, char *result_str, int result)
     mbedtls_x509_crt_free(&crt);
     mbedtls_x509_crt_init(&crt);
 
-    TEST_EQUAL(mbedtls_x509_crt_parse_der_nocopy(&crt, buf->x, buf->len), result);
+    res = mbedtls_x509_crt_parse_der_nocopy(&crt, buf->x, buf->len);
+    TEST_ASSERT((res == result) || (res == result_back_comp));
 #if !defined(MBEDTLS_X509_REMOVE_INFO)
     if ((result) == 0) {
         memset(output, 0, 2000);
@@ -1161,8 +1176,8 @@ void x509parse_crt(data_t *buf, char *result_str, int result)
     mbedtls_x509_crt_free(&crt);
     mbedtls_x509_crt_init(&crt);
 
-    TEST_EQUAL(mbedtls_x509_crt_parse_der_with_ext_cb(&crt, buf->x, buf->len, 0, NULL, NULL),
-               result);
+    res = mbedtls_x509_crt_parse_der_with_ext_cb(&crt, buf->x, buf->len, 0, NULL, NULL);
+    TEST_ASSERT((res == result) || (res == result_back_comp));
 #if !defined(MBEDTLS_X509_REMOVE_INFO)
     if ((result) == 0) {
         res = mbedtls_x509_crt_info((char *) output, 2000, "", &crt);
@@ -1178,8 +1193,8 @@ void x509parse_crt(data_t *buf, char *result_str, int result)
     mbedtls_x509_crt_free(&crt);
     mbedtls_x509_crt_init(&crt);
 
-    TEST_EQUAL(mbedtls_x509_crt_parse_der_with_ext_cb(&crt, buf->x, buf->len, 1, NULL, NULL),
-               result);
+    res = mbedtls_x509_crt_parse_der_with_ext_cb(&crt, buf->x, buf->len, 1, NULL, NULL);
+    TEST_ASSERT((res == result) || (res == result_back_comp));
 #if !defined(MBEDTLS_X509_REMOVE_INFO)
     if ((result) == 0) {
         res = mbedtls_x509_crt_info((char *) output, 2000, "", &crt);

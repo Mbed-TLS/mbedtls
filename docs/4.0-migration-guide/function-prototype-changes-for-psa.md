@@ -49,13 +49,7 @@ int mbedtls_x509write_csr_pem(mbedtls_x509write_csr *ctx, unsigned char *buf, si
 
 ### RNG removal in SSL
 
-The following function prototypes have been changed in `mbedtls/ssl.h`:
-
-```c
-int mbedtls_ssl_ticket_setup(mbedtls_ssl_ticket_context *ctx,
-                             int (*f_rng)(void *, unsigned char *, size_t), void *p_rng,
-                             psa_algorithm_t alg, psa_key_type_t key_type, psa_key_bits_t key_bits, uint32_t lifetime);
-```
+The following function prototype has been changed in `mbedtls/ssl_cookie.h`:
 
 ```c
 int mbedtls_ssl_cookie_setup(mbedtls_ssl_cookie_ctx *ctx,
@@ -64,11 +58,6 @@ int mbedtls_ssl_cookie_setup(mbedtls_ssl_cookie_ctx *ctx,
 ```
 
 to
-
-```c
-int mbedtls_ssl_ticket_setup(mbedtls_ssl_ticket_context *ctx,
-                             psa_algorithm_t alg, psa_key_type_t key_type, psa_key_bits_t key_bits, uint32_t lifetime);
-```
 
 ```c
 int mbedtls_ssl_cookie_setup(mbedtls_ssl_cookie_ctx *ctx);
@@ -114,3 +103,24 @@ mbedtls_ssl_ticket_context;
 ### Removal of `mbedtls_ssl_conf_rng`
 
 `mbedtls_ssl_conf_rng()` has been removed from the library. Its sole purpose was to configure the RNG used for TLS, but now the PSA Crypto random generator is used throughout the library.
+
+### Changes to mbedtls_ssl_ticket_setup
+
+In the arguments of the function `mbedtls_ssl_ticket_setup()`, the `mbedtls_cipher_type_t` argument specifying the AEAD mechanism for ticket protection has been replaced by an equivalent PSA description consisting of a key type, a size and an algorithm. Also, the function no longer takes RNG arguments.
+
+The prototype in `mbedtls/ssl_ticket.h` has changed from
+
+```c
+int mbedtls_ssl_ticket_setup(mbedtls_ssl_ticket_context *ctx,
+                             mbedtls_f_rng_t *f_rng, void *p_rng,
+                             mbedtls_cipher_type_t cipher,
+                             uint32_t lifetime);
+```
+
+to
+
+```c
+int mbedtls_ssl_ticket_setup(mbedtls_ssl_ticket_context *ctx,
+                             psa_algorithm_t alg, psa_key_type_t key_type, psa_key_bits_t key_bits,
+                             uint32_t lifetime);
+```

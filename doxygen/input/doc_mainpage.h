@@ -33,4 +33,20 @@
  * configuration header files mbedtls/mbedtls_config.h and
  * psa/crypto_config.h.
  *
+ * ## Private interfaces
+ *
+ * For technical reasons, the rendered documentation includes elements
+ * that are not considered part of the stable API. Private elements may
+ * be removed or may have their semantics changed in a future minor release
+ * without notice.
+ *
+ * The following elements are considered private:
+ *
+ * - Any header file whose path contains `/private`, and its contents
+ *   (unless re-exported and documented in another non-private header).
+ * - Any structure or union field whose name starts with `private_`.
+ * - Any preprocessor macro that is just listed with its automatically
+ *   rendered parameter list, value and location. Macros are part of
+ *   the API only if their documentation includes have custom text.
+ *
  */

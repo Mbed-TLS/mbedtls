@@ -2,32 +2,18 @@
 
 ### Public functions no longer take a RNG callback
 
-The `f_rng` and `p_rng` arguments have been removed from the X509 and SSL modules. All calls to `f_rng` have then been replaced by a call to `psa_generate_random` and all software utilising these modules will now require a call to `psa_crypto_init` prior to calling them.
+Functions that need randomness no longer take an RNG callback in the form of `f_rng, p_rng` arguments. Instead, they use the PSA Crypto random generator (accessible as `psa_generate_random()`). All software using the X.509 or SSL modules must call `psa_crypto_init()` before calling any of the functions listed here.
 
-### Changes in x509
+### Changes in X.509
 
-The following function calls have been changed in x509:
+The following function prototypes have been changed in `mbedtls/x509_crt.h`:
 
 ```c
 int mbedtls_x509write_crt_der(mbedtls_x509write_cert *ctx, unsigned char *buf, size_t size,
                               int (*f_rng)(void *, unsigned char *, size_t),
                               void *p_rng);
-```
 
-```c
 int mbedtls_x509write_crt_pem(mbedtls_x509write_cert *ctx, unsigned char *buf, size_t size,
-                              int (*f_rng)(void *, unsigned char *, size_t),
-                              void *p_rng);
-```
-
-```c
-int mbedtls_x509write_csr_der(mbedtls_x509write_csr *ctx, unsigned char *buf, size_t size,
-                              int (*f_rng)(void *, unsigned char *, size_t),
-                              void *p_rng);
-```
-
-```c
-int mbedtls_x509write_csr_pem(mbedtls_x509write_csr *ctx, unsigned char *buf, size_t size,
                               int (*f_rng)(void *, unsigned char *, size_t),
                               void *p_rng);
 ```
@@ -36,23 +22,32 @@ to
 
 ```c
 int mbedtls_x509write_crt_der(mbedtls_x509write_cert *ctx, unsigned char *buf, size_t size);
-```
 
-```c
 int mbedtls_x509write_crt_pem(mbedtls_x509write_cert *ctx, unsigned char *buf, size_t size);
 ```
 
+The following function prototypes have been changed in `mbedtls/x509_csr.h`:
 ```c
-int mbedtls_x509write_csr_der(mbedtls_x509write_csr *ctx, unsigned char *buf, size_t size);
+int mbedtls_x509write_csr_der(mbedtls_x509write_csr *ctx, unsigned char *buf, size_t size,
+                              int (*f_rng)(void *, unsigned char *, size_t),
+                              void *p_rng);
+
+int mbedtls_x509write_csr_pem(mbedtls_x509write_csr *ctx, unsigned char *buf, size_t size,
+                              int (*f_rng)(void *, unsigned char *, size_t),
+                              void *p_rng);
 ```
 
+to
+
 ```c
+int mbedtls_x509write_csr_der(mbedtls_x509write_csr *ctx, unsigned char *buf, size_t size);
+
 int mbedtls_x509write_csr_pem(mbedtls_x509write_csr *ctx, unsigned char *buf, size_t size);
 ```
 
 ### Changes in SSL
 
-The following function calls have been changed in SSL:
+The following function prototypes have been changed in `mbedtls/ssl.h`:
 
 ```c
 int mbedtls_ssl_ticket_setup(mbedtls_ssl_ticket_context *ctx,
@@ -116,4 +111,4 @@ mbedtls_ssl_ticket_context;
 
 ### Removal of `mbedtls_ssl_conf_rng`
 
-`mbedtls_ssl_conf_rng` has been removed from the library as its sole purpose is to configure RNG for ssl and this is no longer required.
+`mbedtls_ssl_conf_rng()` has been removed from the library. Its sole purpose was to configure the RNG used for TLS, but now the PSA Crypto random generator is used throughout the library.

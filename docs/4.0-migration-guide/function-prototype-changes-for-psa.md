@@ -63,43 +63,6 @@ to
 int mbedtls_ssl_cookie_setup(mbedtls_ssl_cookie_ctx *ctx);
 ```
 
-The following structs have also been changed in SSL
-
-```c
-typedef struct mbedtls_ssl_ticket_context {
-    mbedtls_ssl_ticket_key MBEDTLS_PRIVATE(keys)[2]; /*!< ticket protection keys             */
-    unsigned char MBEDTLS_PRIVATE(active);           /*!< index of the currently active key  */
-
-    uint32_t MBEDTLS_PRIVATE(ticket_lifetime);       /*!< lifetime of tickets in seconds     */
-
-    /** Callback for getting (pseudo-)random numbers                        */
-    int(*MBEDTLS_PRIVATE(f_rng))(void *, unsigned char *, size_t);
-    void *MBEDTLS_PRIVATE(p_rng);                    /*!< context for the RNG function       */
-
-#if defined(MBEDTLS_THREADING_C)
-    mbedtls_threading_mutex_t MBEDTLS_PRIVATE(mutex);
-#endif
-}
-mbedtls_ssl_ticket_context;
-```
-
-
-to
-
-```c
-typedef struct mbedtls_ssl_ticket_context {
-    mbedtls_ssl_ticket_key MBEDTLS_PRIVATE(keys)[2]; /*!< ticket protection keys             */
-    unsigned char MBEDTLS_PRIVATE(active);           /*!< index of the currently active key  */
-
-    uint32_t MBEDTLS_PRIVATE(ticket_lifetime);       /*!< lifetime of tickets in seconds     */
-
-#if defined(MBEDTLS_THREADING_C)
-    mbedtls_threading_mutex_t MBEDTLS_PRIVATE(mutex);
-#endif
-}
-mbedtls_ssl_ticket_context;
-```
-
 ### Removal of `mbedtls_ssl_conf_rng`
 
 `mbedtls_ssl_conf_rng()` has been removed from the library. Its sole purpose was to configure the RNG used for TLS, but now the PSA Crypto random generator is used throughout the library.

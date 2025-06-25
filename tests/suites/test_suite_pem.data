@@ -49,9 +49,21 @@ PEM read (malformed PEM DES-EDE3-CBC)
 depends_on:MBEDTLS_MD_CAN_MD5:MBEDTLS_DES_C:MBEDTLS_CIPHER_MODE_CBC
 mbedtls_pem_read_buffer:"-----BEGIN EC PRIVATE KEY-----":"-----END EC PRIVATE KEY-----":"-----BEGIN EC PRIVATE KEY-----\nProc-Type\: 4,ENCRYPTED\nDEK-Info\: DES-EDE3-CBC,AA94892A169FA426\n\nMAAA\n-----END EC PRIVATE KEY-----":"pwd":MBEDTLS_ERR_DES_INVALID_INPUT_LENGTH:""
 
-PEM read (malformed PEM AES-128-CBC)
+PEM read (malformed PEM AES-128-CBC: 3-byte ciphertext)
 depends_on:MBEDTLS_MD_CAN_MD5:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC
 mbedtls_pem_read_buffer:"-----BEGIN EC PRIVATE KEY-----":"-----END EC PRIVATE KEY-----":"-----BEGIN EC PRIVATE KEY-----\nProc-Type\: 4,ENCRYPTED\nDEK-Info\: AES-128-CBC,AA94892A169FA426AA94892A169FA426\n\nMAAA\n-----END EC PRIVATE KEY-----":"pwd":MBEDTLS_ERR_AES_INVALID_INPUT_LENGTH:""
+
+PEM read (malformed PEM AES-128-CBC: 1-byte ciphertext)
+depends_on:MBEDTLS_MD_CAN_MD5:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC
+mbedtls_pem_read_buffer:"-----BEGIN EC PRIVATE KEY-----":"-----END EC PRIVATE KEY-----":"-----BEGIN EC PRIVATE KEY-----\nProc-Type\: 4,ENCRYPTED\nDEK-Info\: AES-128-CBC,7BA38DE00F67851E4207216809C3BB15\n\n8Q==-----END EC PRIVATE KEY-----":"pwd":MBEDTLS_ERR_AES_INVALID_INPUT_LENGTH:""
+
+PEM read (malformed PEM AES-128-CBC: empty ciphertext)
+depends_on:MBEDTLS_MD_CAN_MD5:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC
+mbedtls_pem_read_buffer:"-----BEGIN EC PRIVATE KEY-----":"-----END EC PRIVATE KEY-----":"-----BEGIN EC PRIVATE KEY-----\nProc-Type\: 4,ENCRYPTED\nDEK-Info\: AES-128-CBC,7BA38DE00F67851E4207216809C3BB15\n\n-----END EC PRIVATE KEY-----":"pwd":MBEDTLS_ERR_PEM_BAD_INPUT_DATA:""
+
+PEM read (malformed PEM AES-128-CBC: base64 with missing equals)
+depends_on:MBEDTLS_MD_CAN_MD5:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC
+mbedtls_pem_read_buffer:"-----BEGIN EC PRIVATE KEY-----":"-----END EC PRIVATE KEY-----":"-----BEGIN EC PRIVATE KEY-----\nProc-Type\: 4,ENCRYPTED\nDEK-Info\: AES-128-CBC,7BA38DE00F67851E4207216809C3BB15\n\n8Q-----END EC PRIVATE KEY-----":"pwd":MBEDTLS_ERR_PEM_INVALID_DATA + MBEDTLS_ERR_BASE64_INVALID_CHARACTER:""
 
 # The output sequence's length is not multiple of block size (16 bytes). This
 # proves that the pem_context->len value is properly updated based on the SEQUENCE

@@ -4,7 +4,7 @@ The PSA API is now the only API for cryptographic primitives.
 
 ### Impact on application code
 
-The X.509, PKCS7 and SSL always use PSA for cryptography, with a few exceptions documented in the [PSA limitations](../architecture/psa-migration/psa-limitations.md) document. (These limitations are mostly transparent unless you want to leverage PSA accelerator drivers.) This corresponds to the behavior of Mbed TLS 3.x when `MBEDTLS_USE_PSA_CRYPTO` is enabled. In effect, `MBEDTLS_USE_PSA_CRYPTO` is now always enabled.
+The X.509, PKCS7 and SSL modules always use PSA for cryptography, with a few exceptions documented in the [PSA limitations](../architecture/psa-migration/psa-limitations.md) document. (These limitations are mostly transparent unless you want to leverage PSA accelerator drivers.) This corresponds to the behavior of Mbed TLS 3.x when `MBEDTLS_USE_PSA_CRYPTO` is enabled. In effect, `MBEDTLS_USE_PSA_CRYPTO` is now always enabled.
 
 `psa_crypto_init()` must be called before performing any cryptographic operation, including indirect requests such as parsing a key or certificate or starting a TLS handshake.
 

@@ -25,4 +25,4 @@ Many legacy error codes have been removed in favor of PSA error codes. Generally
 | `MBEDTLS_ERR_OID_BUF_TOO_SMALL` | `PSA_ERROR_BUFFER_TOO_SMALL`
 | `MBEDTLS_ERR_OID_NOT_FOUND` | `PSA_ERROR_NOT_SUPPORTED` |
 
-See also the corresponding section in the TF-PSA-Crypto migration guide, which lists errors from cryptography modules.
+See also the corresponding section in the TF-PSA-Crypto migration guide, which lists error codes from cryptography modules.

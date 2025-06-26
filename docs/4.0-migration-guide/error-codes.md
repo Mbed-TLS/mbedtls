@@ -18,11 +18,11 @@ As a consequence, the functions `mbedtls_low_level_sterr()` and `mbedtls_high_le
 
 Many legacy error codes have been removed in favor of PSA error codes. Generally, functions that returned a legacy error code in the table below in Mbed TLS 3.6 now return the PSA error code listed on the same row. Similarly, callbacks should apply the same changes to error code, unless there has been a relevant change to the callback's interface.
 
-| Legacy constant (Mbed TLS 3.6) | PSA constant (Mbed TLS 4.0, TF-PSA-Crypto 1.0) |
-| ------------------------------ | ---------------------------------------------- |
+| Legacy constant (Mbed TLS 3.6) | PSA constant (Mbed TLS 4.0) |
+| ------------------------------ | --------------------------- |
 | `MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED` | `PSA_ERROR_CORRUPTION_DETECTED` |
 | `MBEDTLS_ERR_ERROR_GENERIC_ERROR` | `PSA_ERROR_GENERIC_ERROR` |
-| `MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED` | `PSA_ERROR_NOT_SUPPORTED` |
-| `MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED` | `PSA_ERROR_HARDWARE_FAILURE` |
-| `MBEDTLS_ERR_ECP_IN_PROGRESS` | `PSA_OPERATION_INCOMPLETE` |
-| `MBEDTLS_ERR_RSA_VERIFY_FAILED` | `PSA_ERROR_INVALID_SIGNATURE` |
+| `MBEDTLS_ERR_OID_BUF_TOO_SMALL` | `PSA_ERROR_BUFFER_TOO_SMALL`
+| `MBEDTLS_ERR_OID_NOT_FOUND` | `PSA_ERROR_NOT_SUPPORTED` |
+
+See also the corresponding section in the TF-PSA-Crypto migration guide, which lists errors from cryptography modules.

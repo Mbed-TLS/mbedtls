@@ -1,4 +1,0 @@
-Removals
-   * Remove deprecated mbedtls_x509write_crt_set_serial(). The function was
-     already deprecated and superseeded by
-     mbedtls_x509write_crt_set_serial_raw().

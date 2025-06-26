@@ -1,3 +1,0 @@
-Bugfix
-   * Fix redefinition warnings when SECP192R1 and/or SECP192K1 are disabled.
-     Fixes #9029.

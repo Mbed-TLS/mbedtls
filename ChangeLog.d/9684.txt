@@ -1,2 +1,0 @@
-Removals
-   * Remove support for the DHE-PSK key exchange in TLS 1.2.

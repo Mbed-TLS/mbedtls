@@ -1,5 +1,0 @@
-API changes
-   * All API functions now use the PSA random generator psa_get_random()
-     internally. As a consequence, functions no longer take RNG parameters.
-     Please refer to the migration guide at :
-     tf-psa-crypto/docs/4.0-migration-guide.md.

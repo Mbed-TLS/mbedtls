@@ -94,9 +94,6 @@ component_test_gcc15_drivers_opt () {
     loc_cflags="$ASAN_CFLAGS -DPSA_CRYPTO_DRIVER_TEST_ALL"
     loc_cflags="${loc_cflags} '-DMBEDTLS_USER_CONFIG_FILE=\"../tests/configs/user-config-for-test.h\"'"
     loc_cflags="${loc_cflags} -I../framework/tests/include -O2"
-    # Allow a warning that we don't yet comply to.
-    # https://github.com/Mbed-TLS/mbedtls/issues/9944
-    loc_cflags="${loc_cflags} -Wno-error=unterminated-string-initialization"
 
     make CC=$GCC_15 CFLAGS="${loc_cflags}" LDFLAGS="$ASAN_CFLAGS"
 

@@ -12,7 +12,7 @@ All values returned by a function to indicate an error now have a defined consta
 
 Generally, functions that used to return the sum of two error codes now return the low-level code. However, as before, the exact error code returned in a given scenario can change without notice unless the condition is specifically described in the function's documentation and no other condition is applicable.
 
-As a consequence, the functions `mbedtls_low_level_sterr()` and `mbedtls_high_level_strerr()` no longer exist.
+As a consequence, the functions `mbedtls_low_level_strerr()` and `mbedtls_high_level_strerr()` no longer exist.
 
 ### Removed error code names
 

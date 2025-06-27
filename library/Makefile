@@ -82,7 +82,7 @@ endif
 endif
 
 SOEXT_TLS?=so.21
-SOEXT_X509?=so.7
+SOEXT_X509?=so.8
 SOEXT_CRYPTO?=so.16
 
 # Set AR_DASH= (empty string) to use an ar implementation that does not accept

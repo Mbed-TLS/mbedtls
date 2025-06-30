@@ -3,7 +3,7 @@ MBEDTLS_TEST_PATH:=../../tests
 MBEDTLS_PATH := ../..
 include ../../scripts/common.make
 
-PROGRAM_FUZZ_PATH:=$(MBEDTLS_PATH)/programs/fuzz/
+PROGRAM_FUZZ_PATH:=$(MBEDTLS_PATH)/programs/fuzz
 
 DEP=${MBEDLIBS}
 

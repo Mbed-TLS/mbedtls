@@ -25,7 +25,7 @@
  *
  * Some parts of the API are best explored from the “Topics” or
  * “Group list” section.
- * This is notable the case for the PSA Cryptography API.
+ * This is notably the case for the PSA Cryptography API.
  * Note that many parts of the API are not classified under a topic and
  * can only be seen through the file structure.
  *
@@ -47,6 +47,6 @@
  * - Any structure or union field whose name starts with `private_`.
  * - Any preprocessor macro that is just listed with its automatically
  *   rendered parameter list, value and location. Macros are part of
- *   the API only if their documentation includes have custom text.
+ *   the API only if their documentation has custom text.
  *
  */

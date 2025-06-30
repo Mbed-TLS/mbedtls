@@ -105,9 +105,9 @@ Note that a key consumes a key store entry, which is distinct from heap memory, 
 | ------ | --------------- | -------------- |
 | `aes.h` | `mbedtls_aes_` | [Symmetric encryption](#symmetric-encryption) |
 | `aria.h` | `mbedtls_aria_` | [Symmetric encryption](#symmetric-encryption) |
-| `asn1.h` | `mbedtls_asn1_` | No change ([PK support interface](#pk-format-support-interfaces)) |
-| `asn1write.h` | `mbedtls_asn1_write_` | No change ([PK support interface](#pk-format-support-interfaces)) |
-| `base64.h` | `mbedtls_base64_` | No change ([PK support interface](#pk-format-support-interfaces)) |
+| `asn1.h` | `mbedtls_asn1_` | No change ([PK format support interfaces](#pk-format-support-interfaces)) |
+| `asn1write.h` | `mbedtls_asn1_write_` | No change ([PK format support interfaces](#pk-format-support-interfaces)) |
+| `base64.h` | `mbedtls_base64_` | No change ([PK format support interfaces](#pk-format-support-interfaces)) |
 | `bignum.h` | `mbedtls_mpi_` | None (no low-level arithmetic) |
 | `build_info.h` | `MBEDTLS_` | No change (not a crypto API) |
 | `camellia.h` | `mbedtls_camellia_` | [Symmetric encryption](#symmetric-encryption) |
@@ -140,8 +140,8 @@ Note that a key consumes a key store entry, which is distinct from heap memory, 
 | `memory_buffer_alloc.h` | `mbedtls_memory_buffer_alloc_` | No change (not a crypto API) |
 | `net_sockets.h` | `mbedtls_net_` | No change (not a crypto API) |
 | `nist_kw.h` | `mbedtls_nist_kw_` | Migration path not yet defined |
-| `oid.h` | `mbedtls_oid_` | No change ([PK support interface](#pk-format-support-interfaces)) |
-| `pem.h` | `mbedtls_pem_` | No change ([PK support interface](#pk-format-support-interfaces)) |
+| `oid.h` | `mbedtls_oid_` | No change ([PK format support interfaces](#pk-format-support-interfaces)) |
+| `pem.h` | `mbedtls_pem_` | No change ([PK format support interfaces](#pk-format-support-interfaces)) |
 | `pk.h` | `mbedtls_pk_` | [Asymmetric cryptography](#asymmetric-cryptography) |
 | `pkcs5.h` | `mbedtls_pkcs5_` | [PKCS#5 module](#pkcs5-module) |
 | `pkcs7.h` | `mbedtls_pkcs7_` | No change (not a crypto API) |

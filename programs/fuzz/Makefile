@@ -32,7 +32,7 @@ C_FILES := $(addsuffix .c,$(APPS))
 
 
 ifdef FUZZINGENGINE
-$(BINARIES): %$(EXEXT): %.o $(PROGRAM_FUZZ_PATH)/ommon.o $(DEP)
+$(BINARIES): %$(EXEXT): %.o $(PROGRAM_FUZZ_PATH)/common.o $(DEP)
 	echo " $(PROGRAM_FUZZ_PATH)/common.o $< $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@"
 	$(CXX) $(PROGRAM_FUZZ_PATH)/common.o $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 else

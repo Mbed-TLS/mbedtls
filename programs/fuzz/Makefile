@@ -11,7 +11,7 @@ ifdef FUZZINGENGINE
 LOCAL_LDFLAGS += -lFuzzingEngine
 endif
 
-LOCAL_CFLAGS += -I$(PROGRAM_FUZZ_PATH)/fuzz/
+LOCAL_CFLAGS += -I$(PROGRAM_FUZZ_PATH)
 
 # A test application is built for each fuzz_*.c file.
 APPS = $(basename $(wildcard fuzz_*.c))

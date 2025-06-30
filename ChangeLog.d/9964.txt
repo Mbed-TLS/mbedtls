@@ -1,5 +1,5 @@
 Removals
-    * Removal of the following sample programs:
+   * Sample programs for the legacy crypto API have been removed.
           pkey/rsa_genkey.c
           pkey/pk_decrypt.c
           pkey/dh_genprime.c

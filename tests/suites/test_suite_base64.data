@@ -76,6 +76,107 @@ mbedtls_base64_decode:"zm=masd":"":MBEDTLS_ERR_BASE64_INVALID_CHARACTER
 Base64 decode (Space inside string)
 mbedtls_base64_decode:"zm masd":"":MBEDTLS_ERR_BASE64_INVALID_CHARACTER
 
+# The next few test cases validate systematically for short inputs that
+# we require the correct number of trailing equal signs.
+
+# 4k+1 digits is always wrong (wouldn't encode more bytes than 4k digits)
+Base64 decode: 1 digit, 0 equals (bad)
+mbedtls_base64_decode:"Y":"":MBEDTLS_ERR_BASE64_INVALID_CHARACTER
+
+Base64 decode: 1 digit, 1 equals (bad)
+mbedtls_base64_decode:"Y=":"":MBEDTLS_ERR_BASE64_INVALID_CHARACTER
+
+Base64 decode: 1 digit, 2 equals (bad)
+mbedtls_base64_decode:"Y==":"":MBEDTLS_ERR_BASE64_INVALID_CHARACTER
+
+Base64 decode: 1 digit, 3 equals (bad)
+mbedtls_base64_decode:"Y===":"":MBEDTLS_ERR_BASE64_INVALID_CHARACTER
+
+Base64 decode: 2 digits, 0 equals (bad)
+mbedtls_base64_decode:"Yw":"c":MBEDTLS_ERR_BASE64_INVALID_CHARACTER
+
+Base64 decode: 2 digits, 1 equals (bad)
+mbedtls_base64_decode:"Yw=":"c":MBEDTLS_ERR_BASE64_INVALID_CHARACTER
+
+Base64 decode: 2 digits, 2 equals (good)
+mbedtls_base64_decode:"Yw==":"c":0
+
+Base64 decode: 2 digits, 3 equals (bad)
+mbedtls_base64_decode:"Yw===":"c":MBEDTLS_ERR_BASE64_INVALID_CHARACTER
+
+Base64 decode: 3 digits, 0 equals (bad)
+mbedtls_base64_decode:"Y28":"co":MBEDTLS_ERR_BASE64_INVALID_CHARACTER
+
+Base64 decode: 3 digits, 1 equals (good)
+mbedtls_base64_decode:"Y28=":"co":0
+
+Base64 decode: 3 digits, 2 equals (bad)
+mbedtls_base64_decode:"Y28==":"co":MBEDTLS_ERR_BASE64_INVALID_CHARACTER
+
+Base64 decode: 3 digits, 3 equals (bad)
+mbedtls_base64_decode:"Y28===":"co":MBEDTLS_ERR_BASE64_INVALID_CHARACTER
+
+Base64 decode: 4 digits, 0 equals (good)
+mbedtls_base64_decode:"Y29t":"com":0
+
+Base64 decode: 4 digits, 1 equals (bad)
+mbedtls_base64_decode:"Y29t=":"com":MBEDTLS_ERR_BASE64_INVALID_CHARACTER
+
+Base64 decode: 4 digits, 2 equals (bad)
+mbedtls_base64_decode:"Y29t==":"com":MBEDTLS_ERR_BASE64_INVALID_CHARACTER
+
+Base64 decode: 4 digits, 3 equals (bad)
+mbedtls_base64_decode:"Y29t===":"com":MBEDTLS_ERR_BASE64_INVALID_CHARACTER
+
+# 4k+1 digits is always wrong (wouldn't encode more bytes than 4k digits)
+Base64 decode: 5 digits, 0 equals (bad)
+mbedtls_base64_decode:"Y29tc":"":MBEDTLS_ERR_BASE64_INVALID_CHARACTER
+
+Base64 decode: 5 digits, 1 equals (bad)
+mbedtls_base64_decode:"Y29tc=":"":MBEDTLS_ERR_BASE64_INVALID_CHARACTER
+
+Base64 decode: 5 digits, 2 equals (bad)
+mbedtls_base64_decode:"Y29tc==":"":MBEDTLS_ERR_BASE64_INVALID_CHARACTER
+
+Base64 decode: 5 digits, 3 equals (bad)
+mbedtls_base64_decode:"Y29tc===":"com":MBEDTLS_ERR_BASE64_INVALID_CHARACTER
+
+Base64 decode: 6 digits, 0 equals (bad)
+mbedtls_base64_decode:"Y29tcA":"comp":MBEDTLS_ERR_BASE64_INVALID_CHARACTER
+
+Base64 decode: 6 digits, 1 equals (bad)
+mbedtls_base64_decode:"Y29tcA=":"comp":MBEDTLS_ERR_BASE64_INVALID_CHARACTER
+
+Base64 decode: 6 digits, 2 equals (good)
+mbedtls_base64_decode:"Y29tcA==":"comp":0
+
+Base64 decode: 6 digits, 3 equals (bad)
+mbedtls_base64_decode:"Y29tcA===":"comp":MBEDTLS_ERR_BASE64_INVALID_CHARACTER
+
+Base64 decode: 7 digits, 0 equals (bad)
+mbedtls_base64_decode:"Y29tcG8":"compo":MBEDTLS_ERR_BASE64_INVALID_CHARACTER
+
+Base64 decode: 7 digits, 1 equals (good)
+mbedtls_base64_decode:"Y29tcG8=":"compo":0
+
+Base64 decode: 7 digits, 2 equals (bad)
+mbedtls_base64_decode:"Y29tcG8==":"compo":MBEDTLS_ERR_BASE64_INVALID_CHARACTER
+
+Base64 decode: 7 digits, 3 equals (bad)
+mbedtls_base64_decode:"Y29tcG8===":"compo":MBEDTLS_ERR_BASE64_INVALID_CHARACTER
+
+Base64 decode: 8 digits, 0 equals (good)
+mbedtls_base64_decode:"Y29tcG9z":"compos":0
+
+Base64 decode: 8 digits, 1 equals (bad)
+mbedtls_base64_decode:"Y29tcG9z=":"compos":MBEDTLS_ERR_BASE64_INVALID_CHARACTER
+
+Base64 decode: 8 digits, 2 equals (bad)
+mbedtls_base64_decode:"Y29tcG9z==":"compos":MBEDTLS_ERR_BASE64_INVALID_CHARACTER
+
+Base64 decode: 8 digits, 3 equals (bad)
+mbedtls_base64_decode:"Y29tcG9z===":"compos":MBEDTLS_ERR_BASE64_INVALID_CHARACTER
+
 Base64 decode "Zm9vYmFy" (no newline nor '\0' at end)
 base64_decode_hex_src:"5a6d3976596d4679":"foobar":0
 

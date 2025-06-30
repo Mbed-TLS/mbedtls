@@ -1,6 +1,0 @@
-Features
-   * Add the function mbedtls_ssl_export_keying_material() which allows the
-     client and server to extract additional shared symmetric keys from an SSL
-     session, according to the TLS-Exporter specification in RFC 8446 and 5705.
-     This requires MBEDTLS_SSL_KEYING_MATERIAL_EXPORT to be defined in
-     mbedtls_config.h.

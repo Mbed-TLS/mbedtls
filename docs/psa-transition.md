@@ -151,7 +151,7 @@ Note that a key consumes a key store entry, which is distinct from heap memory, 
 | `platform_util.h` | `mbedtls_platform_` | No change (not a crypto API) |
 | `poly1305.h` | `mbedtls_poly1305_` | None (but there is Chacha20-Poly1305 [AEAD](#symmetric-encryption)) |
 | `private_access.h` | N/A | No public APIs (internal support header) |
-| `psa_util.h` | N/A | No public APIs (internal support header) |
+| `psa_util.h` | various | No change (PSA bridge functions) |
 | `ripemd160.h` | `mbedtls_ripemd160_` | [Hashes and MAC](#hashes-and-mac) |
 | `rsa.h` | `mbedtls_rsa_` | [Asymmetric cryptography](#asymmetric-cryptography) |
 | `sha1.h` | `mbedtls_sha1_` | [Hashes and MAC](#hashes-and-mac) |
@@ -618,7 +618,7 @@ Applications currently using `mbedtls_pkcs5_pbkdf2_hmac` or `mbedtls_pkcs5_pbkdf
     2. [`PSA_KEY_DERIVATION_INPUT_SECRET`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__derivation/#group__derivation_1ga0ddfbe764baba995c402b1b0ef59392e) for the password.
 5. Call [`psa_key_derivation_output_bytes`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__key__derivation/#group__key__derivation_1ga06b7eb34a2fa88965f68e3d023fa12b9) to obtain the output of the derivation. You may call this function more than once to retrieve the output in successive chunks.
   Use [`psa_key_derivation_output_key`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__key__derivation/#group__key__derivation_1gada7a6e17222ea9e7a6be6864a00316e1) instead if you want to use a chunk as a PSA key.  
-  If you want to verify the output against an expected value (for authentication, rather than to derive key material), call [`psa_key_derivation_verify_bytes`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__key__derivation/#group__key__derivation_1gaf01520beb7ba932143ffe733b0795b08) or [`psa_key_derivation_verify_key`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__key__derivation/#group__key__derivation_1gac041714e34a94742e8ee006ac7dfea5a) instead of `psa_key_derivation_output_bytes`. (Note that the `verify` functions are not yet present in the 3.5 release of Mbed TLS. They are expected to be released in version 3.6.0.)
+  If you want to verify the output against an expected value (for authentication, rather than to derive key material), call [`psa_key_derivation_verify_bytes`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__key__derivation/#group__key__derivation_1gaf01520beb7ba932143ffe733b0795b08) or [`psa_key_derivation_verify_key`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__key__derivation/#group__key__derivation_1gac041714e34a94742e8ee006ac7dfea5a) instead of `psa_key_derivation_output_bytes`. (Available since Mbed TLS 3.6.0.)
 6. Call [`psa_key_derivation_abort`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__key__derivation/#group__key__derivation_1ga90fdd2716124d0bd258826184824675f) to free the resources associated with the key derivation object.
 
 The function `mbedtls_pkcs5_pbes2` is only intended as a support function to parse encrypted private keys in the PK module. It has no PSA equivalent.
@@ -842,7 +842,7 @@ This section explains how to use the `ecp.h` API to create an elliptic curve key
 
 You can use this, for example, to import an ECC key in the form of a compressed point by calling `mbedtls_ecp_point_read_binary` then following the process below.
 
-The following code snippet illustrates how to import a private key which is initially in an `mbedtls_ecp_keypair` object. (This includes `mbedtls_ecdsa_keypair` objects since that is just a type alias.) Error checks are omitted for simplicity. A future version of Mbed TLS [will provide a function to calculate the curve family](https://github.com/Mbed-TLS/mbedtls/issues/7764).
+The following code snippet illustrates how to import a private key which is initially in an `mbedtls_ecp_keypair` object. (This includes `mbedtls_ecdsa_keypair` objects since that is just a type alias.) Error checks are omitted for simplicity. `mbedtls_ecc_group_to_psa()` was discussed in “[Elliptic curve mechanism selection](#elliptic-curve-mechanism-selection)”.
 
 ```
 mbedtls_ecp_keypair ec;
@@ -852,7 +852,8 @@ mbedtls_ecp_keypair_init(&ec);
 unsigned char buf[PSA_BITS_TO_BYTES(PSA_VENDOR_ECC_MAX_CURVE_BITS)];
 size_t length;
 mbedtls_ecp_write_key_ext(&ec, &length, buf, sizeof(buf));
-psa_ecc_curve_t curve = ...; // need to determine the curve family manually
+size_t bits;
+psa_ecc_curve_t curve = mbedtls_ecc_group_to_psa(mbedtls_ecp_keypair_get_group_id(&ec), bits);
 psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
 psa_set_key_attributes(&attributes, PSA_KEY_TYPE_ECC_KEY_PAIR(curve));
 psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_... | ...);
@@ -974,7 +975,7 @@ Unlike the legacy API, where `mbedtls_pk_sign` and `mbedtls_ecdsa_write_signatur
 
 The legacy API includes an API for “restartable” ECC operations: the operation returns after doing partial computation, and can be resumed. This is intended for highly constrained devices where long cryptographic calculations need to be broken up to poll some inputs, where interrupt-based scheduling is not desired. The legacy API consists of the functions `mbedtls_pk_sign_restartable`, `mbedtls_pk_verify_restartable`, `mbedtls_ecdsa_sign_restartable`, `mbedtls_ecdsa_verify_restartable`, `mbedtls_ecdsa_write_signature_restartable`, `mbedtls_ecdsa_read_signature_restartable`, as well as several configuration and data manipulation functions.
 
-The PSA API offers similar functionality via “interruptible” public-key operations. As of Mbed TLS 3.5, it is only implemented for ECDSA, for the same curves as the legacy API. This will likely be extended to ECDH in the short term. At the time of writing, no extension is planned to other curves or other algorithms.
+The PSA API offers similar functionality via “interruptible” public-key operations. As of Mbed TLS 3.6, it is only implemented for ECDSA, for the same curves as the legacy API. This will likely be extended to ECDH in the short term. At the time of writing, no extension is planned to other curves or other algorithms.
 
 The flow of operations for an interruptible signature operation is as follows:
 
@@ -1234,7 +1235,7 @@ The bit-size used by the PSA API is the size of the private key. For most curves
 | Curve25519 | 253 | 255 | 256 | 255 |
 | Curve448 | 446 | 448 | 448 | 448 |
 
-There is no exact PSA equivalent of the type `mbedtls_ecp_curve_type` and the function `mbedtls_ecp_get_type`, but the curve family encodes the same information. `PSA_ECC_FAMILY_MONTGOMERY` is the only Montgomery family. All other families supported in Mbed TLS 3.4.0 are short Weierstrass families.
+There is no exact PSA equivalent of the type `mbedtls_ecp_curve_type` and the function `mbedtls_ecp_get_type`, but the curve family encodes the same information. `PSA_ECC_FAMILY_MONTGOMERY` is the only Montgomery family. All other families supported in Mbed TLS 3.6 are short Weierstrass families.
 
 There is no PSA equivalent for the following functionality:
 
@@ -1307,13 +1308,11 @@ A future version of Mbed TLS will support LMS keys and signatures through the PS
 
 ### PK format support interfaces
 
-The interfaces in `base64.h`, `asn1.h`, `asn1write.h`, `oid.h` and `pem.h` are intended to support X.509 and key file formats. They have no PSA equivalent since they are not directly about cryptography.
-
-In Mbed TLS 4.0, we are planning to keep the ASN.1 interfaces mostly unchanged. The evolution of Base64, OID and PEM as separate interfaces is still undecided at the time of writing.
+The interfaces in `base64.h`, `asn1.h`, `asn1write.h`, `oid.h` and `pem.h` are intended to support X.509 and key file formats. Since these APIs are not directly about cryptography, there is no PSA replacement in Mbed TLS 3.6 or in TF-PSA-Crypto 1.0.
 
 ## EC-JPAKE
 
-The PSA API exposes EC-JPAKE via the algorithm [`PSA_ALG_JPAKE`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/file/crypto__extra_8h/#c.PSA_ALG_JPAKE) and the PAKE API functions. At the time of writing, the PAKE API is still experimental, but it should offer the same functionality as the legacy `ecjpake.h`. Please consult the documentation of your version of Mbed TLS for more information.
+The PSA API exposes EC-JPAKE via the algorithm [`PSA_ALG_JPAKE`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/file/crypto__extra_8h/#c.PSA_ALG_JPAKE) and the PAKE API functions. Note that Mbed TLS 3.6 implements a beta version of the PAKE API, which is not fully compatible with the final API. TF-PSA-Crypto implements the official PSA Crypto PAKE API 1.2.
 
 Please note a few differences between the two APIs: the legacy API is geared towards the use of EC-JPAKE in TLS 1.2, whereas the PSA API is protocol-agnostic.
 

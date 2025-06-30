@@ -2,9 +2,9 @@
 
 ### Removal of obsolete key exchanges methods in (D)TLS 1.2
 
-Mbed TLS 4.0 no longer supports key exchange methods that rely on finite-field Diffie-Hellman (DHE) in TLS 1.2 and TLS 1.2. (Only ephemeral Diffie-Hellman was ever supported, Mbed TLS 3.x already did not support static Diffie-Hellman.) Finite-field Diffie-Hellman remains supported in TLS 1.3.
+Mbed TLS 4.0 no longer supports key exchange methods that rely on finite-field Diffie-Hellman (DHE) in TLS 1.2 and DTLS 1.2. (Only ephemeral Diffie-Hellman was ever supported, Mbed TLS 3.x already did not support static Diffie-Hellman.) Finite-field Diffie-Hellman remains supported in TLS 1.3.
 
-Mbed TLS 4.0 no longer supports key exchange methods that rely on RSA decryption (without forward secrecy). This affects TLS 1.2 and DTLS 1.2 (TLS 1.3 does not have key exchanges using RSA decryption).
+Mbed TLS 4.0 no longer supports key exchange methods that rely on RSA decryption (without forward secrecy). RSA signatures remain supported. This affects TLS 1.2 and DTLS 1.2 (TLS 1.3 does not have key exchanges using RSA decryption).
 
 That is, the following key exchange types are no longer supported:
 

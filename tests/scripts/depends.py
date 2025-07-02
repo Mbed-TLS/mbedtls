@@ -109,6 +109,8 @@ def set_config_option_value(conf, option, colors, value: Union[bool, str]):
 value can be either True/False (set/unset config option), or a string,
 which will make a symbol defined with a certain value."""
     if not option_exists(conf, option):
+        if value is False:
+            return True
         log_line('Symbol {} was not found in {}'.format(option, conf.filename), color=colors.red)
         return False
 

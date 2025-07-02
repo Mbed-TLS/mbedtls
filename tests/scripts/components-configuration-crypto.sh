@@ -426,6 +426,23 @@ component_test_psa_external_rng_use_psa_crypto () {
     tests/ssl-opt.sh -f 'Default\|opaque'
 }
 
+component_test_entropy_nv_seed_only () {
+    msg "build: full minus platform entropy (NV seed only)"
+    scripts/config.py full
+    scripts/config.py set MBEDTLS_NO_PLATFORM_ENTROPY
+    make CC=$ASAN_CC CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS"
+
+    msg "build: full minus platform entropy (NV seed only)"
+    make test
+
+    # Check that the library seems to refer to the seedfile, but not to
+    # platform entropy sources.
+    grep seedfile library/platform.o
+    not grep getrandom library/entropy*.o
+    not grep /dev/random library/entropy*.o
+    not grep /dev/.random library/entropy*.o
+}
+
 component_test_psa_inject_entropy () {
     msg "build: full + MBEDTLS_PSA_INJECT_ENTROPY"
     scripts/config.py full

@@ -170,7 +170,6 @@ class CoverageTask(outcome_analysis.CoverageTask):
             'Asymmetric signature: Ed448ph',
             'Asymmetric signature: pure EdDSA',
             'Cipher: XTS',
-            'MAC: CBC_MAC-3DES',
             'MAC: CBC_MAC-AES-128',
             'MAC: CBC_MAC-AES-192',
             'MAC: CBC_MAC-AES-256',
@@ -291,7 +290,7 @@ class DriverVSReference_cipher_aead_cmac(outcome_analysis.DriverVSReference):
     # Modules replaced by drivers.
     IGNORED_SUITES = [
         # low-level (block/stream) cipher modules
-        'aes', 'aria', 'camellia', 'des', 'chacha20',
+        'aes', 'aria', 'camellia', 'chacha20',
         # AEAD modes and CMAC
         'ccm', 'chachapoly', 'cmac', 'gcm',
         # The Cipher abstraction layer
@@ -299,7 +298,7 @@ class DriverVSReference_cipher_aead_cmac(outcome_analysis.DriverVSReference):
     ]
     IGNORED_TESTS = {
         'test_suite_config': [
-            re.compile(r'.*\bMBEDTLS_(AES|ARIA|CAMELLIA|CHACHA20|DES)_.*'),
+            re.compile(r'.*\bMBEDTLS_(AES|ARIA|CAMELLIA|CHACHA20)_.*'),
             re.compile(r'.*\bMBEDTLS_(CCM|CHACHAPOLY|CMAC|GCM)_.*'),
             re.compile(r'.*\bMBEDTLS_AES(\w+)_C\b.*'),
             re.compile(r'.*\bMBEDTLS_CIPHER_.*'),
@@ -307,7 +306,7 @@ class DriverVSReference_cipher_aead_cmac(outcome_analysis.DriverVSReference):
         # PEM decryption is not supported so far.
         # The rest of PEM (write, unencrypted read) works though.
         'test_suite_pem': [
-            re.compile(r'PEM read .*(AES|DES|\bencrypt).*'),
+            re.compile(r'PEM read .*(AES|\bencrypt).*'),
         ],
         'test_suite_platform': [
             # Incompatible with sanitizers (e.g. ASan). If the driver
@@ -315,7 +314,7 @@ class DriverVSReference_cipher_aead_cmac(outcome_analysis.DriverVSReference):
             # doesn't, we have a PASS vs SKIP mismatch.
             'Check mbedtls_calloc overallocation',
         ],
-        # Following tests depend on AES_C/DES_C but are not about
+        # Following tests depend on AES_C but are not about
         # them really, just need to know some error code is there.
         'test_suite_error': [
             'Low and high error',

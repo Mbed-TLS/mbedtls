@@ -62,6 +62,7 @@ APPS = \
 	test/query_compile_time_config \
 	test/query_included_headers \
 	test/selftest \
+	test/ssl_unit_test_debug \
 	test/udp_proxy \
 	test/zeroize \
 	util/pem2der \
@@ -271,6 +272,10 @@ test/query_included_headers$(EXEXT): $(FRAMEWORK)/tests/programs/query_included_
 test/selftest$(EXEXT): test/selftest.c $(DEP)
 	echo "  CC    test/selftest.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) test/selftest.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+
+test/ssl_unit_test_debug$(EXEXT): test/ssl_unit_test_debug.c $(DEP)
+	echo "  CC    test/selftest.c"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) -I../library -I../tf-psa-crypto/core -I../tf-psa-crypto/drivers/builtin/src test/ssl_unit_test_debug.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 test/udp_proxy$(EXEXT): test/udp_proxy.c $(DEP)
 	echo "  CC    test/udp_proxy.c"

@@ -2541,7 +2541,7 @@ component_build_psa_config_file () {
     echo '#error "TF_PSA_CRYPTO_CONFIG_FILE is not working"' >"$CRYPTO_CONFIG_H"
     make CFLAGS="-I '$PWD' -DTF_PSA_CRYPTO_CONFIG_FILE='\"psa_test_config.h\"'"
     # Make sure this feature is enabled. We'll disable it in the next phase.
-    programs/test/query_compile_time_config MBEDTLS_CMAC_C
+    programs/test/query_compile_time_config PSA_WANT_ALG_CMAC
     make clean
 
     msg "build: make with TF_PSA_CRYPTO_CONFIG_FILE + TF_PSA_CRYPTO_USER_CONFIG_FILE" # ~40s
@@ -2552,7 +2552,7 @@ component_build_psa_config_file () {
     echo '#undef PSA_WANT_ALG_PBKDF2_AES_CMAC_PRF_128' >> psa_user_config.h
     echo '#undef MBEDTLS_CMAC_C' >> psa_user_config.h
     make CFLAGS="-I '$PWD' -DTF_PSA_CRYPTO_CONFIG_FILE='\"psa_test_config.h\"' -DTF_PSA_CRYPTO_USER_CONFIG_FILE='\"psa_user_config.h\"'"
-    not programs/test/query_compile_time_config MBEDTLS_CMAC_C
+    not programs/test/query_compile_time_config PSA_WANT_ALG_CMAC
 
     rm -f psa_test_config.h psa_user_config.h
 }

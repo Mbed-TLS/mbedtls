@@ -40,7 +40,7 @@ static int x509_crt_verifycsr(const unsigned char *buf, size_t buflen)
 
     #pragma GCC diagnostic push
     #pragma GCC diagnostic warning "-Wenum-conversion"
-    if (mbedtls_pk_verify_ext((mbedtls_pk_sigalg_t)csr.sig_pk, NULL, &csr.pk,
+    if (mbedtls_pk_verify_ext((mbedtls_pk_sigalg_t) csr.sig_pk, NULL, &csr.pk,
                               csr.sig_md, hash, mbedtls_md_get_size_from_type(csr.sig_md),
                               csr.sig.p, csr.sig.len) != 0) {
     #pragma GCC diagnostic pop
@@ -459,12 +459,12 @@ void x509_crt_check(char *subject_key_file, char *subject_pwd,
             memset(exts, 0, sizeof(exts));
 
 #define SET_OID(x, oid)                \
-    do {                               \
-        x.len = MBEDTLS_OID_SIZE(oid); \
-        x.p   = (unsigned char *) oid;   \
-        x.tag = MBEDTLS_ASN1_OID;      \
-    }                                  \
-    while (0)
+        do {                               \
+            x.len = MBEDTLS_OID_SIZE(oid); \
+            x.p   = (unsigned char *) oid;   \
+            x.tag = MBEDTLS_ASN1_OID;      \
+        }                                  \
+        while (0)
 
             if (strcmp(ext_key_usage, "serverAuth") == 0) {
                 SET_OID(exts[0].buf, MBEDTLS_OID_SERVER_AUTH);

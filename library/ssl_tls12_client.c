@@ -2084,8 +2084,7 @@ start_processing:
         if (pk_alg == MBEDTLS_PK_RSASSA_PSS) {
             #pragma GCC diagnostic push
             #pragma GCC diagnostic warning "-Wenum-conversion"
-            ret = mbedtls_pk_verify_ext(pk_alg, NULL,
-            ret = mbedtls_pk_verify_ext((mbedtls_pk_sigalg_t)pk_alg, NULL,
+            ret = mbedtls_pk_verify_ext((mbedtls_pk_sigalg_t) pk_alg, NULL,
                                         peer_pk,
                                         md_alg, hash, hashlen,
                                         p, sig_len);

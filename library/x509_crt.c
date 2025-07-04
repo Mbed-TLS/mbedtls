@@ -1662,25 +1662,25 @@ cleanup:
 
 #if !defined(MBEDTLS_X509_REMOVE_INFO)
 #define PRINT_ITEM(i)                               \
-    do {                                            \
-        ret = mbedtls_snprintf(p, n, "%s" i, sep);  \
-        MBEDTLS_X509_SAFE_SNPRINTF;                 \
-        sep = ", ";                                 \
-    } while (0)
+        do {                                            \
+            ret = mbedtls_snprintf(p, n, "%s" i, sep);  \
+            MBEDTLS_X509_SAFE_SNPRINTF;                 \
+            sep = ", ";                                 \
+        } while (0)
 
 #define CERT_TYPE(type, name)          \
-    do {                               \
-        if (ns_cert_type & (type)) {   \
-            PRINT_ITEM(name);          \
-        }                              \
-    } while (0)
+        do {                               \
+            if (ns_cert_type & (type)) {   \
+                PRINT_ITEM(name);          \
+            }                              \
+        } while (0)
 
 #define KEY_USAGE(code, name)      \
-    do {                           \
-        if (key_usage & (code)) {  \
-            PRINT_ITEM(name);      \
-        }                          \
-    } while (0)
+        do {                           \
+            if (key_usage & (code)) {  \
+                PRINT_ITEM(name);      \
+            }                          \
+        } while (0)
 
 static int x509_info_ext_key_usage(char **buf, size_t *size,
                                    const mbedtls_x509_sequence *extended_key_usage)
@@ -2062,7 +2062,7 @@ static int x509_crt_verifycrl(mbedtls_x509_crt *crt, mbedtls_x509_crt *ca,
 
         #pragma GCC diagnostic push
         #pragma GCC diagnostic warning "-Wenum-conversion"
-        if (mbedtls_pk_verify_ext((mbedtls_pk_sigalg_t)crl_list->sig_pk, NULL, &ca->pk,
+        if (mbedtls_pk_verify_ext((mbedtls_pk_sigalg_t) crl_list->sig_pk, NULL, &ca->pk,
                                   crl_list->sig_md, hash, hash_length,
                                   crl_list->sig.p, crl_list->sig.len) != 0) {
         #pragma GCC diagnostic pop
@@ -2139,7 +2139,7 @@ static int x509_crt_check_signature(const mbedtls_x509_crt *child,
 
     #pragma GCC diagnostic push
     #pragma GCC diagnostic warning "-Wenum-conversion"
-    return mbedtls_pk_verify_ext((mbedtls_pk_sigalg_t)child->sig_pk, NULL, &parent->pk,
+    return mbedtls_pk_verify_ext((mbedtls_pk_sigalg_t) child->sig_pk, NULL, &parent->pk,
                                  child->sig_md, hash, hash_len,
                                  child->sig.p, child->sig.len);
     #pragma GCC diagnostic pop
@@ -2699,7 +2699,7 @@ find_parent:
 static int x509_inet_pton_ipv4(const char *src, void *dst);
 
 #define li_cton(c, n) \
-    (((n) = (c) - '0') <= 9 || (((n) = ((c)&0xdf) - 'A') <= 5 ? ((n) += 10) : 0))
+        (((n) = (c) - '0') <= 9 || (((n) = ((c)&0xdf) - 'A') <= 5 ? ((n) += 10) : 0))
 
 static int x509_inet_pton_ipv6(const char *src, void *dst)
 {

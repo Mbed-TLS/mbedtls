@@ -300,7 +300,7 @@ static int ssl_tls13_parse_certificate_verify(mbedtls_ssl_context *ssl,
 
     MBEDTLS_SSL_DEBUG_BUF(3, "verify hash", verify_hash, verify_hash_len);
 
-    if ((ret = mbedtls_pk_verify_new((mbedtls_pk_sigalg_t)sig_alg,
+    if ((ret = mbedtls_pk_verify_new((mbedtls_pk_sigalg_t) sig_alg,
                                      &ssl->session_negotiate->peer_cert->pk,
                                      md_alg, verify_hash, verify_hash_len,
                                      p, signature_len)) == 0) {
@@ -1144,7 +1144,8 @@ static int ssl_tls13_prepare_finished_message(mbedtls_ssl_context *ssl)
                                                   ssl->handshake->state_local.finished_out.digest,
                                                   sizeof(ssl->handshake->state_local.finished_out.
                                                          digest),
-                                                  &ssl->handshake->state_local.finished_out.digest_len,
+                                                  &ssl->handshake->state_local.finished_out.
+                                                  digest_len,
                                                   ssl->conf->endpoint);
 
     if (ret != 0) {

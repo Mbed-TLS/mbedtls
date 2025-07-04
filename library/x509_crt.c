@@ -1662,25 +1662,25 @@ cleanup:
 
 #if !defined(MBEDTLS_X509_REMOVE_INFO)
 #define PRINT_ITEM(i)                               \
-        do {                                            \
-            ret = mbedtls_snprintf(p, n, "%s" i, sep);  \
-            MBEDTLS_X509_SAFE_SNPRINTF;                 \
-            sep = ", ";                                 \
-        } while (0)
+    do {                                            \
+        ret = mbedtls_snprintf(p, n, "%s" i, sep);  \
+        MBEDTLS_X509_SAFE_SNPRINTF;                 \
+        sep = ", ";                                 \
+    } while (0)
 
 #define CERT_TYPE(type, name)          \
-        do {                               \
-            if (ns_cert_type & (type)) {   \
-                PRINT_ITEM(name);          \
-            }                              \
-        } while (0)
+    do {                               \
+        if (ns_cert_type & (type)) {   \
+            PRINT_ITEM(name);          \
+        }                              \
+    } while (0)
 
 #define KEY_USAGE(code, name)      \
-        do {                           \
-            if (key_usage & (code)) {  \
-                PRINT_ITEM(name);      \
-            }                          \
-        } while (0)
+    do {                           \
+        if (key_usage & (code)) {  \
+            PRINT_ITEM(name);      \
+        }                          \
+    } while (0)
 
 static int x509_info_ext_key_usage(char **buf, size_t *size,
                                    const mbedtls_x509_sequence *extended_key_usage)

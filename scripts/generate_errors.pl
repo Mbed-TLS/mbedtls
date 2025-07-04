@@ -36,7 +36,7 @@ if( @ARGV ) {
 my $error_format_file = $data_dir.'/error.fmt';
 
 my @low_level_modules = qw( AES ARIA ASN1 BASE64 BIGNUM
-                            CAMELLIA CCM CHACHA20 CHACHAPOLY CMAC CTR_DRBG DES
+                            CAMELLIA CCM CHACHA20 CHACHAPOLY CMAC CTR_DRBG
                             ENTROPY ERROR GCM HKDF HMAC_DRBG LMS MD5
                             NET PBKDF2 PLATFORM POLY1305 RIPEMD160
                             SHA1 SHA256 SHA512 SHA3 THREADING );

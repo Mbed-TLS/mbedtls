@@ -1,5 +1,5 @@
 /**
- * \file mbedtls/config_adjust_x509.h
+ * \file mbedtls/private/config_adjust_x509.h
  * \brief Adjust X.509 configuration
  *
  * This is an internal header. Do not include it directly.

@@ -1734,53 +1734,6 @@ component_test_psa_crypto_config_reference_hmac () {
     make test
 }
 
-component_test_psa_crypto_config_accel_des () {
-    msg "test: accelerated DES"
-
-    # Albeit this components aims at accelerating DES which should only support
-    # CBC and ECB modes, we need to accelerate more than that otherwise DES_C
-    # would automatically be re-enabled by "config_adjust_legacy_from_psa.c"
-    loc_accel_list="ALG_ECB_NO_PADDING ALG_CBC_NO_PADDING ALG_CBC_PKCS7 \
-                    ALG_CTR ALG_CFB ALG_OFB ALG_XTS ALG_CMAC \
-                    KEY_TYPE_DES"
-
-    # Note: we cannot accelerate all ciphers' key types otherwise we would also
-    # have to either disable CCM/GCM or accelerate them, but that's out of scope
-    # of this component. This limitation will be addressed by #8598.
-
-    # Configure
-    # ---------
-
-    # Start from the full config
-    helper_libtestdriver1_adjust_config "full"
-
-    # Disable the things that are being accelerated
-    scripts/config.py unset MBEDTLS_CIPHER_MODE_CBC
-    scripts/config.py unset MBEDTLS_CIPHER_PADDING_PKCS7
-    scripts/config.py unset MBEDTLS_CIPHER_MODE_CTR
-    scripts/config.py unset MBEDTLS_CIPHER_MODE_CFB
-    scripts/config.py unset MBEDTLS_CIPHER_MODE_OFB
-    scripts/config.py unset MBEDTLS_CIPHER_MODE_XTS
-    scripts/config.py unset MBEDTLS_DES_C
-    scripts/config.py unset MBEDTLS_CMAC_C
-
-    # Build
-    # -----
-
-    helper_libtestdriver1_make_drivers "$loc_accel_list"
-
-    helper_libtestdriver1_make_main "$loc_accel_list"
-
-    # Make sure this was not re-enabled by accident (additive config)
-    not grep mbedtls_des ${BUILTIN_SRC_PATH}/des.o
-
-    # Run the tests
-    # -------------
-
-    msg "test: accelerated DES"
-    make test
-}
-
 component_test_psa_crypto_config_accel_aead () {
     msg "test: accelerated AEAD"
 
@@ -1841,7 +1794,7 @@ component_test_psa_crypto_config_accel_cipher_aead_cmac () {
     loc_accel_list="ALG_ECB_NO_PADDING ALG_CBC_NO_PADDING ALG_CBC_PKCS7 ALG_CTR ALG_CFB \
                     ALG_OFB ALG_XTS ALG_STREAM_CIPHER ALG_CCM_STAR_NO_TAG \
                     ALG_GCM ALG_CCM ALG_CHACHA20_POLY1305 ALG_CMAC \
-                    KEY_TYPE_DES KEY_TYPE_AES KEY_TYPE_ARIA KEY_TYPE_CHACHA20 KEY_TYPE_CAMELLIA"
+                    KEY_TYPE_AES KEY_TYPE_ARIA KEY_TYPE_CHACHA20 KEY_TYPE_CAMELLIA"
 
     # Configure
     # ---------
@@ -1878,7 +1831,6 @@ component_test_psa_crypto_config_accel_cipher_aead_cmac () {
 
     # Make sure this was not re-enabled by accident (additive config)
     not grep mbedtls_cipher ${BUILTIN_SRC_PATH}/cipher.o
-    not grep mbedtls_des ${BUILTIN_SRC_PATH}/des.o
     not grep mbedtls_aes ${BUILTIN_SRC_PATH}/aes.o
     not grep mbedtls_aria ${BUILTIN_SRC_PATH}/aria.o
     not grep mbedtls_camellia ${BUILTIN_SRC_PATH}/camellia.o
@@ -2168,7 +2120,7 @@ component_build_aes_variations () {
     cd "$MBEDTLS_ROOT_DIR"
     msg "build: aes.o for all combinations of relevant config options + BLOCK_CIPHER_NO_DECRYPT"
 
-    # MBEDTLS_BLOCK_CIPHER_NO_DECRYPT is incompatible with ECB in PSA, CBC/XTS/NIST_KW/DES,
+    # MBEDTLS_BLOCK_CIPHER_NO_DECRYPT is incompatible with ECB in PSA, CBC/XTS/NIST_KW,
     # manually set or unset those configurations to check
     # MBEDTLS_BLOCK_CIPHER_NO_DECRYPT with various combinations in aes.o.
     scripts/config.py set MBEDTLS_BLOCK_CIPHER_NO_DECRYPT

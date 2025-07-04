@@ -21,7 +21,6 @@
 #include "mbedtls/sha256.h"
 #include "mbedtls/sha512.h"
 #include "mbedtls/sha3.h"
-#include "mbedtls/des.h"
 #include "mbedtls/aes.h"
 #include "mbedtls/camellia.h"
 #include "mbedtls/aria.h"
@@ -296,9 +295,6 @@ const selftest_t selftests[] =
     defined(PSA_WANT_ALG_SHA3_512)
     { "sha3", mbedtls_sha3_self_test },
 #endif
-#if defined(MBEDTLS_DES_C)
-    { "des", mbedtls_des_self_test },
-#endif
 #if defined(MBEDTLS_AES_C)
     { "aes", mbedtls_aes_self_test },
 #endif
@@ -448,7 +444,8 @@ int main(int argc, char *argv[])
             }                                                           \
         } else {                                                        \
             mbedtls_printf("Padding checks only implemented for types of size 2, 4 or 8" \
-                           " - cannot check type '" #TYPE "' of size %" MBEDTLS_PRINTF_SIZET "\n",       \
+                           " - cannot check type '" #TYPE "' of size %" MBEDTLS_PRINTF_SIZET \
+                           "\n",       \
                            sizeof(TYPE));                                       \
             mbedtls_exit(MBEDTLS_EXIT_FAILURE);                       \
         }                                                               \

@@ -21,7 +21,7 @@ API changes
      Mbed TLS error codes.
      This will not affect most applications since the error values are
      between -32767 and -1 as before.
-   * All API functions now use the PSA random generator psa_get_random()
+   * All API functions now use the PSA random generator psa_generate_random()
      internally. As a consequence, functions no longer take RNG parameters.
      Please refer to the migration guide at :
      tf-psa-crypto/docs/4.0-migration-guide.md.
@@ -62,7 +62,7 @@ Removals
      Fixes #8149.
    * Remove support for the RSA-PSK key exchange in TLS 1.2.
    * Remove deprecated mbedtls_x509write_crt_set_serial(). The function was
-     already deprecated and superseeded by
+     already deprecated and superseded by
      mbedtls_x509write_crt_set_serial_raw().
    * Remove the function mbedtls_ssl_conf_curves() which had been deprecated
      in favour of mbedtls_ssl_conf_groups() since Mbed TLS 3.1.
@@ -74,9 +74,9 @@ Removals
      - mbedtls_ssl_conf_dh_param_ctx
      - mbedtls_ssl_conf_dhm_min_bitlen
    * Remove support for the RSA key exchange in TLS 1.2.
-   * Remove mbedtls_low_level_sterr() and mbedtls_high_level_strerr(),
+   * Remove mbedtls_low_level_strerr() and mbedtls_high_level_strerr(),
      since these concepts no longer exists. There is just mbedtls_strerror().
-    * Removal of the following sample programs:
+   * Sample programs for the legacy crypto API have been removed.
           pkey/rsa_genkey.c
           pkey/pk_decrypt.c
           pkey/dh_genprime.c

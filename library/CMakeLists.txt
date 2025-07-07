@@ -171,7 +171,7 @@ if(USE_SHARED_MBEDTLS_LIBRARY)
     add_library(${mbedx509_target} SHARED ${src_x509})
     set_base_compile_options(${mbedx509_target})
     target_compile_options(${mbedx509_target} PRIVATE ${LIBS_C_FLAGS})
-    set_target_properties(${mbedx509_target} PROPERTIES VERSION 4.0.0 SOVERSION 7)
+    set_target_properties(${mbedx509_target} PROPERTIES VERSION 4.0.0 SOVERSION 8)
     target_link_libraries(${mbedx509_target} PUBLIC ${libs} ${tfpsacrypto_target})
 
     add_library(${mbedtls_target} SHARED ${src_tls})

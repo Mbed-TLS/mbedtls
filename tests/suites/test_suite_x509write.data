@@ -254,6 +254,27 @@ mbedtls_x509_string_to_names:"C=NL, O=Of\\CCspark, OU=PolarSSL":"C=NL, O=Of\\CCs
 X509 String to Names #20 (Reject empty AttributeValue)
 mbedtls_x509_string_to_names:"C=NL, O=, OU=PolarSSL":"":MBEDTLS_ERR_X509_INVALID_NAME:0
 
+# Note: the behaviour is incorrect, output from string->names->string should be
+# the same as the input, rather than just the last component, see
+# https://github.com/Mbed-TLS/mbedtls/issues/10189
+# Still including tests for the current incorrect behaviour because of the
+# variants below where we want to ensure at least that no memory corruption
+# happens (which would be a lot worse than just a functional bug).
+X509 String to Names (repeated OID)
+mbedtls_x509_string_to_names:"CN=ab,CN=cd,CN=ef":"CN=ef":0:0
+
+# Note: when a value starts with a # sign, it's treated as the hex encoding of
+# the DER encoding of the value. Here, 0400 is a zero-length OCTET STRING.
+# The tag actually doesn't matter for our purposes, only the length.
+X509 String to Names (repeated OID, 1st is zero-length)
+mbedtls_x509_string_to_names:"CN=#0400,CN=cd,CN=ef":"CN=ef":0:0
+
+X509 String to Names (repeated OID, middle is zero-length)
+mbedtls_x509_string_to_names:"CN=ab,CN=#0400,CN=ef":"CN=ef":0:0
+
+X509 String to Names (repeated OID, last is zero-length)
+mbedtls_x509_string_to_names:"CN=ab,CN=cd,CN=#0400":"CN=#0000":0:MAY_FAIL_GET_NAME
+
 X509 Round trip test (Escaped characters)
 mbedtls_x509_string_to_names:"CN=Lu\\C4\\8Di\\C4\\87, O=Offspark, OU=PolarSSL":"CN=Lu\\C4\\8Di\\C4\\87, O=Offspark, OU=PolarSSL":0:0
 

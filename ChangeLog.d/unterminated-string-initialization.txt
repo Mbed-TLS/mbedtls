@@ -1,3 +1,0 @@
-Bugfix
-   * Silence spurious -Wunterminated-string-initialization warnings introduced
-     by GCC 15. Fixes #9944.

@@ -52,6 +52,10 @@ close(FORMAT_FILE);
 
 my @files = glob qq("$crypto_include_dir/*.h");
 push(@files, glob qq("$tls_include_dir/*.h"));
+
+push(@files, glob qq("$crypto_include_dir/private/*.h"));
+push(@files, glob qq("$tls_include_dir/private/*.h"));
+
 my @necessary_include_files;
 my @matches;
 foreach my $file (@files) {
@@ -85,7 +89,7 @@ foreach my $file (@files) {
         $description =~ s/^\s+//;
         $description =~ s/\n( *\*)? */ /g;
         $description =~ s/\.?\s+$//;
-        push @matches, [$name, $value, $description];
+        push @matches, [$name, $value, $description, grep(/^.*private\/[^\/]+$/, $file)];
         ++$found;
     }
     if ($found) {
@@ -109,7 +113,7 @@ my %error_codes_seen;
 
 foreach my $match (@matches)
 {
-    my ($error_name, $error_code, $description) = @$match;
+    my ($error_name, $error_code, $description, $is_private_header) = @$match;
 
     die "Duplicated error code: $error_code ($error_name)\n"
         if( $error_codes_seen{$error_code}++ );
@@ -203,6 +207,11 @@ foreach my $match (@matches)
                               if ($include_name ne "");
         }
         ${$code_check} .= "\n";
+
+        if ($is_private_header) {
+            $include_name = "private/" . $include_name;
+        }
+
         $headers .= "\n#include \"mbedtls/${include_name}.h\"\n".
                     "#endif\n\n" if ($include_name ne "");
         ${$old_define_name}   = $define_name;

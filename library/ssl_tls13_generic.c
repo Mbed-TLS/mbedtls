@@ -300,7 +300,7 @@ static int ssl_tls13_parse_certificate_verify(mbedtls_ssl_context *ssl,
 
     MBEDTLS_SSL_DEBUG_BUF(3, "verify hash", verify_hash, verify_hash_len);
 
-    if ((ret = mbedtls_pk_verify_ext(sig_alg, NULL,
+    if ((ret = mbedtls_pk_verify_new(sig_alg,
                                      &ssl->session_negotiate->peer_cert->pk,
                                      md_alg, verify_hash, verify_hash_len,
                                      p, signature_len)) == 0) {

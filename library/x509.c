@@ -717,16 +717,16 @@ int mbedtls_x509_get_sig(unsigned char **p, const unsigned char *end, mbedtls_x5
  * Get signature algorithm from alg OID and optional parameters
  */
 int mbedtls_x509_get_sig_alg(const mbedtls_x509_buf *sig_oid, const mbedtls_x509_buf *sig_params,
-                             mbedtls_md_type_t *md_alg, mbedtls_pk_type_t *pk_alg)
+                             mbedtls_md_type_t *md_alg, mbedtls_pk_sigalg_t *pk_alg)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
-    if ((ret = mbedtls_x509_oid_get_sig_alg(sig_oid, md_alg, pk_alg)) != 0) {
+    if ((ret = mbedtls_x509_oid_get_sig_alg(sig_oid, md_alg, (mbedtls_pk_type_t*)pk_alg)) != 0) {
         return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_UNKNOWN_SIG_ALG, ret);
     }
 
 #if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT)
-    if (*pk_alg == MBEDTLS_PK_RSASSA_PSS) {
+    if (*pk_alg == MBEDTLS_PK_SIGALG_RSA_PSS) {
         mbedtls_md_type_t mgf1_hash_id;
         int expected_salt_len;
 
@@ -1039,7 +1039,7 @@ int mbedtls_x509_serial_gets(char *buf, size_t size, const mbedtls_x509_buf *ser
  * Helper for writing signature algorithms
  */
 int mbedtls_x509_sig_alg_gets(char *buf, size_t size, const mbedtls_x509_buf *sig_oid,
-                              mbedtls_pk_type_t pk_alg, mbedtls_md_type_t md_alg)
+                              mbedtls_pk_sigalg_t pk_alg, mbedtls_md_type_t md_alg)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     char *p = buf;
@@ -1055,7 +1055,7 @@ int mbedtls_x509_sig_alg_gets(char *buf, size_t size, const mbedtls_x509_buf *si
     MBEDTLS_X509_SAFE_SNPRINTF;
 
 #if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT)
-    if (pk_alg == MBEDTLS_PK_RSASSA_PSS) {
+    if (pk_alg == MBEDTLS_PK_SIGALG_RSA_PSS) {
         const char *name = md_type_to_string(md_alg);
         if (name != NULL) {
             ret = mbedtls_snprintf(p, n, " (%s)", name);

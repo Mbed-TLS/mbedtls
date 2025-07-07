@@ -587,7 +587,7 @@ int mbedtls_x509write_crt_der(mbedtls_x509write_cert *ctx,
     c2 = buf + size;
     MBEDTLS_ASN1_CHK_ADD(sig_and_oid_len, mbedtls_x509_write_sig(&c2, c,
                                                                  sig_oid, sig_oid_len,
-                                                                 sig, sig_len, pk_alg));
+                                                                 sig, sig_len, (mbedtls_pk_sigalg_t)pk_alg));
 
     /*
      * Memory layout after this step:

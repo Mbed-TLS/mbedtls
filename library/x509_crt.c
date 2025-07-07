@@ -188,9 +188,9 @@ static int x509_profile_check_md_alg(const mbedtls_x509_crt_profile *profile,
  * Return 0 if pk_alg is acceptable for this profile, -1 otherwise
  */
 static int x509_profile_check_pk_alg(const mbedtls_x509_crt_profile *profile,
-                                     mbedtls_pk_type_t pk_alg)
+                                     mbedtls_pk_sigalg_t pk_alg)
 {
-    if (pk_alg == MBEDTLS_PK_NONE) {
+    if (pk_alg == MBEDTLS_PK_SIGALG_NONE) {
         return -1;
     }
 
@@ -2121,7 +2121,7 @@ static int x509_crt_check_signature(const mbedtls_x509_crt *child,
     }
 
     /* Skip expensive computation on obvious mismatch */
-    if (!mbedtls_pk_can_do(&parent->pk, child->sig_pk)) {
+    if (!mbedtls_pk_can_do(&parent->pk, (mbedtls_pk_type_t) child->sig_pk)) {
         return -1;
     }
 
@@ -3057,7 +3057,7 @@ static int x509_crt_verify_restartable_ca_cb(mbedtls_x509_crt *crt,
     /* Check the type and size of the key */
     pk_type = mbedtls_pk_get_type(&crt->pk);
 
-    if (x509_profile_check_pk_alg(profile, pk_type) != 0) {
+    if (x509_profile_check_pk_alg(profile, (mbedtls_pk_sigalg_t)pk_type) != 0) {
         ee_flags |= MBEDTLS_X509_BADCERT_BAD_PK;
     }
 

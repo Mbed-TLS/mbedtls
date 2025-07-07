@@ -55,7 +55,7 @@ typedef struct mbedtls_x509_csr {
     mbedtls_x509_buf sig_oid;
     mbedtls_x509_buf MBEDTLS_PRIVATE(sig);
     mbedtls_md_type_t MBEDTLS_PRIVATE(sig_md);       /**< Internal representation of the MD algorithm of the signature algorithm, e.g. MBEDTLS_MD_SHA256 */
-    mbedtls_pk_type_t MBEDTLS_PRIVATE(sig_pk);       /**< Internal representation of the Public Key algorithm of the signature algorithm, e.g. MBEDTLS_PK_RSA */
+    mbedtls_pk_sigalg_t MBEDTLS_PRIVATE(sig_pk);       /**< Internal representation of the Public Key algorithm of the signature algorithm, e.g. MBEDTLS_PK_RSA */
 }
 mbedtls_x509_csr;
 

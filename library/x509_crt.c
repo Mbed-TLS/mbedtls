@@ -2060,7 +2060,7 @@ static int x509_crt_verifycrl(mbedtls_x509_crt *crt, mbedtls_x509_crt *ca,
             flags |= MBEDTLS_X509_BADCERT_BAD_KEY;
         }
 
-        if (mbedtls_pk_verify_ext(crl_list->sig_pk, NULL, &ca->pk,
+        if (mbedtls_pk_verify_new(crl_list->sig_pk, &ca->pk,
                                   crl_list->sig_md, hash, hash_length,
                                   crl_list->sig.p, crl_list->sig.len) != 0) {
             flags |= MBEDTLS_X509_BADCRL_NOT_TRUSTED;
@@ -2134,7 +2134,7 @@ static int x509_crt_check_signature(const mbedtls_x509_crt *child,
     (void) rs_ctx;
 #endif
 
-    return mbedtls_pk_verify_ext(child->sig_pk, NULL, &parent->pk,
+    return mbedtls_pk_verify_new(child->sig_pk, &parent->pk,
                                  child->sig_md, hash, hash_len,
                                  child->sig.p, child->sig.len);
 }

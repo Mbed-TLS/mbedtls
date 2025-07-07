@@ -1818,6 +1818,10 @@ component_test_psa_crypto_config_accel_cipher_aead_cmac () {
     scripts/config.py unset MBEDTLS_CHACHA20_C
     scripts/config.py unset MBEDTLS_CAMELLIA_C
 
+    # Disable DES, if it still exists.
+    # This can be removed once we remove DES from the library.
+    scripts/config.py unset PSA_WANT_KEY_TYPE_DES
+
     # Disable CIPHER_C entirely as all ciphers/AEADs are accelerated and PSA
     # does not depend on it.
     scripts/config.py unset MBEDTLS_CIPHER_C
@@ -1855,6 +1859,10 @@ component_test_psa_crypto_config_accel_cipher_aead_cmac () {
 component_test_psa_crypto_config_reference_cipher_aead_cmac () {
     msg "build: full config with non-accelerated cipher inc. AEAD and CMAC"
     common_psa_crypto_config_accel_cipher_aead_cmac
+
+    # Disable DES, if it still exists.
+    # This can be removed once we remove DES from the library.
+    scripts/config.py unset PSA_WANT_KEY_TYPE_DES
 
     make
 

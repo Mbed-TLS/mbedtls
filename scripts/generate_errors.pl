@@ -89,7 +89,7 @@ foreach my $file (@files) {
         $description =~ s/^\s+//;
         $description =~ s/\n( *\*)? */ /g;
         $description =~ s/\.?\s+$//;
-        push @matches, [$name, $value, $description, grep(/^.*private\/[^\/]+$/, $file)];
+        push @matches, [$name, $value, $description, scalar($file =~ /^.*private\/[^\/]+$/)];
         ++$found;
     }
     if ($found) {

@@ -515,11 +515,6 @@ component_test_depends_py_cipher_chaining () {
     tests/scripts/depends.py cipher_chaining
 }
 
-component_test_depends_py_cipher_padding () {
-    msg "test/build: depends.py cipher_padding (gcc)"
-    tests/scripts/depends.py cipher_padding
-}
-
 component_test_depends_py_curves () {
     msg "test/build: depends.py curves (gcc)"
     tests/scripts/depends.py curves

@@ -273,13 +273,6 @@ REVERSE_DEPENDENCIES = {
     'PSA_WANT_ALG_OFB': ['MBEDTLS_CIPHER_MODE_OFB'],
     'PSA_WANT_ALG_XTS': ['MBEDTLS_CIPHER_MODE_XTS'],
 
-    'MBEDTLS_CIPHER_PADDING_PKCS7': ['MBEDTLS_PKCS5_C',
-                                     'MBEDTLS_PKCS12_C',
-                                     'PSA_WANT_ALG_CBC_PKCS7'],
-    'MBEDTLS_CIPHER_PADDING_ONE_AND_ZEROS': ['MBEDTLS_CIPHER_MODE_CBC'],
-    'MBEDTLS_CIPHER_PADDING_ZEROS': ['MBEDTLS_CIPHER_MODE_CBC'],
-    'MBEDTLS_CIPHER_PADDING_ZEROS_AND_LEN': ['MBEDTLS_CIPHER_MODE_CBC'],
-
     'PSA_WANT_ECC_BRAINPOOL_P_R1_256': ['MBEDTLS_ECP_DP_BP256R1_ENABLED'],
     'PSA_WANT_ECC_BRAINPOOL_P_R1_384': ['MBEDTLS_ECP_DP_BP384R1_ENABLED'],
     'PSA_WANT_ECC_BRAINPOOL_P_R1_512': ['MBEDTLS_ECP_DP_BP512R1_ENABLED'],
@@ -531,9 +524,6 @@ class DomainData:
         # Get cipher modes
         cipher_chaining_symbols = {algs[cipher_alg] for cipher_alg in cipher_algs}
 
-        # Find block padding mode enabling macros by name.
-        cipher_padding_symbols = self.config_symbols_matching(r'MBEDTLS_CIPHER_PADDING_\w+\Z')
-
         self.domains = {
             # Cipher key types
             'cipher_id': ExclusiveDomain(cipher_key_types, build_and_test),
@@ -543,9 +533,6 @@ class DomainData:
             'cipher_chaining': ExclusiveDomain(cipher_chaining_symbols,
                                                build_and_test,
                                                exclude=r'PSA_WANT_ALG_XTS'),
-
-            'cipher_padding': ExclusiveDomain(cipher_padding_symbols,
-                                              build_and_test),
 
             # Elliptic curves. Run the test suites.
             'curves': ExclusiveDomain(curve_symbols, build_and_test),

@@ -2214,7 +2214,7 @@ component_build_aes_aesce_armcc () {
 
 component_test_aes_only_128_bit_keys () {
     msg "build: default config + AES_ONLY_128_BIT_KEY_LENGTH"
-    scripts/config.py set MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH
+    scripts/config.py set MBEDTLS_PSA_CRYPTO_RNG_STRENGTH 128
 
     make CFLAGS='-O2 -Werror -Wall -Wextra'
 
@@ -2224,7 +2224,7 @@ component_test_aes_only_128_bit_keys () {
 
 component_test_no_ctr_drbg_aes_only_128_bit_keys () {
     msg "build: default config + AES_ONLY_128_BIT_KEY_LENGTH - CTR_DRBG_C"
-    scripts/config.py set MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH
+    scripts/config.py set MBEDTLS_PSA_CRYPTO_RNG_STRENGTH 128
     scripts/config.py unset MBEDTLS_CTR_DRBG_C
 
     make CC=clang CFLAGS='-Werror -Wall -Wextra'
@@ -2235,7 +2235,7 @@ component_test_no_ctr_drbg_aes_only_128_bit_keys () {
 
 component_test_aes_only_128_bit_keys_have_builtins () {
     msg "build: default config + AES_ONLY_128_BIT_KEY_LENGTH - AESNI_C - AESCE_C"
-    scripts/config.py set MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH
+    scripts/config.py set MBEDTLS_PSA_CRYPTO_RNG_STRENGTH 128
     scripts/config.py unset MBEDTLS_AESNI_C
     scripts/config.py unset MBEDTLS_AESCE_C
 

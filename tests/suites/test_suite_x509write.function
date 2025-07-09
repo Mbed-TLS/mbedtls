@@ -40,7 +40,7 @@ static int x509_crt_verifycsr(const unsigned char *buf, size_t buflen)
 
     #pragma GCC diagnostic push
     #pragma GCC diagnostic warning "-Wenum-conversion"
-    if (mbedtls_pk_verify_ext(csr.sig_pk, NULL, &csr.pk,
+    if (mbedtls_pk_verify_ext((mbedtls_pk_sigalg_t)csr.sig_pk, NULL, &csr.pk,
                               csr.sig_md, hash, mbedtls_md_get_size_from_type(csr.sig_md),
                               csr.sig.p, csr.sig.len) != 0) {
     #pragma GCC diagnostic pop

@@ -302,7 +302,7 @@ static int ssl_tls13_parse_certificate_verify(mbedtls_ssl_context *ssl,
 
     #pragma GCC diagnostic push
     #pragma GCC diagnostic warning "-Wenum-conversion"
-    if ((ret = mbedtls_pk_verify_ext(sig_alg, NULL,
+    if ((ret = mbedtls_pk_verify_ext((mbedtls_pk_sigalg_t)sig_alg, NULL,
                                      &ssl->session_negotiate->peer_cert->pk,
                                      md_alg, verify_hash, verify_hash_len,
                                      p, signature_len)) == 0) {
@@ -968,7 +968,7 @@ static int ssl_tls13_write_certificate_verify_body(mbedtls_ssl_context *ssl,
 
         #pragma GCC diagnostic push
         #pragma GCC diagnostic warning "-Wenum-conversion"
-        if ((ret = mbedtls_pk_sign_ext(pk_type, own_key,
+        if ((ret = mbedtls_pk_sign_ext((mbedtls_pk_sigalg_t)pk_type, own_key,
                                        md_alg, verify_hash, verify_hash_len,
                                        p + 4, (size_t) (end - (p + 4)), &signature_len)) != 0) {
         #pragma GCC diagnostic pop

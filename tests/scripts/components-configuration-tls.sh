@@ -63,7 +63,7 @@ component_test_tls1_2_default_stream_cipher_only () {
     # Disable CBC. Note: When implemented, PSA_WANT_ALG_CBC_MAC will also need to be unset here to fully disable CBC
     scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CBC_NO_PADDING
     scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CBC_PKCS7
-    # Disable CBC-legacy (controlled by MBEDTLS_CIPHER_MODE_CBC plus at least one block cipher (AES, ARIA, Camellia, DES))
+    # Disable CBC-legacy (controlled by MBEDTLS_CIPHER_MODE_CBC plus at least one block cipher (AES, ARIA, Camellia))
     # Note: The unset below is to be removed for 4.0
     scripts/config.py unset MBEDTLS_CIPHER_MODE_CBC
     # Disable CBC-EtM (controlled by the same as CBC-legacy plus MBEDTLS_SSL_ENCRYPT_THEN_MAC)
@@ -96,7 +96,7 @@ component_test_tls1_2_default_cbc_legacy_cipher_only () {
     scripts/config.py unset MBEDTLS_CHACHAPOLY_C
     #Disable TLS 1.3 (as no AEAD)
     scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1_3
-    # Enable CBC-legacy (controlled by MBEDTLS_CIPHER_MODE_CBC plus at least one block cipher (AES, ARIA, Camellia, DES))
+    # Enable CBC-legacy (controlled by MBEDTLS_CIPHER_MODE_CBC plus at least one block cipher (AES, ARIA, Camellia))
     scripts/config.py -c $CRYPTO_CONFIG_H set PSA_WANT_ALG_CBC_NO_PADDING
     # Disable CBC-EtM (controlled by the same as CBC-legacy plus MBEDTLS_SSL_ENCRYPT_THEN_MAC)
     scripts/config.py unset MBEDTLS_SSL_ENCRYPT_THEN_MAC
@@ -129,7 +129,7 @@ component_test_tls1_2_default_cbc_legacy_cbc_etm_cipher_only () {
     scripts/config.py unset MBEDTLS_CHACHAPOLY_C
     #Disable TLS 1.3 (as no AEAD)
     scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1_3
-    # Enable CBC-legacy (controlled by MBEDTLS_CIPHER_MODE_CBC plus at least one block cipher (AES, ARIA, Camellia, DES))
+    # Enable CBC-legacy (controlled by MBEDTLS_CIPHER_MODE_CBC plus at least one block cipher (AES, ARIA, Camellia))
     scripts/config.py -c $CRYPTO_CONFIG_H set PSA_WANT_ALG_CBC_NO_PADDING
     # Enable CBC-EtM (controlled by the same as CBC-legacy plus MBEDTLS_SSL_ENCRYPT_THEN_MAC)
     scripts/config.py set MBEDTLS_SSL_ENCRYPT_THEN_MAC

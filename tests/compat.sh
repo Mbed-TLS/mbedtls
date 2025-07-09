@@ -599,11 +599,6 @@ setup_arguments()
         *) O_SUPPORT_STATIC_ECDH="NO";;
     esac
 
-    case $($OPENSSL ciphers ALL) in
-        *DES-CBC-*) O_SUPPORT_SINGLE_DES="YES";;
-        *) O_SUPPORT_SINGLE_DES="NO";;
-    esac
-
     # OpenSSL <1.0.2 doesn't support DTLS 1.2. Check if OpenSSL
     # supports -dtls1_2 from the s_server help. (The s_client
     # help isn't accurate as of 1.0.2g: it supports DTLS 1.2

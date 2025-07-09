@@ -1356,3 +1356,94 @@ exit:
     mbedtls_free(X);
 }
 /* END_CASE */
+
+/* BEGIN_CASE */
+void mpi_core_gcd_modinv_odd(char *input_A, char *input_N,
+                             char *input_exp_G, char *input_exp_I)
+{
+    mbedtls_mpi_uint *A = NULL;
+    size_t A_limbs = 0;
+    mbedtls_mpi_uint *N = NULL;
+    size_t N_limbs = 0;
+    mbedtls_mpi_uint *exp_G = NULL;
+    size_t exp_G_limbs = 0;
+    mbedtls_mpi_uint *exp_I = NULL;
+    size_t exp_I_limbs = 0;
+    mbedtls_mpi_uint *G = NULL, *I = NULL, *T = NULL;
+
+    /* Read test parameters into MPI structures */
+    TEST_EQUAL(0, mbedtls_test_read_mpi_core(&A, &A_limbs, input_A));
+    TEST_EQUAL(0, mbedtls_test_read_mpi_core(&N, &N_limbs, input_N));
+    TEST_EQUAL(0, mbedtls_test_read_mpi_core(&exp_G, &exp_G_limbs, input_exp_G));
+    const unsigned char got_I = strlen(input_exp_I) != 0;
+    if (got_I) {
+        TEST_EQUAL(0, mbedtls_test_read_mpi_core(&exp_I, &exp_I_limbs, input_exp_I));
+    }
+
+    /* The function under test wants this */
+    TEST_EQUAL(N[0] & 1, 1);
+    TEST_LE_U(A_limbs, N_limbs);
+    if (A_limbs == N_limbs) {
+        TEST_EQUAL(mbedtls_mpi_core_lt_ct(N, A, N_limbs), MBEDTLS_CT_FALSE);
+    }
+    /* Other things we want from test data, for our convenience */
+    TEST_EQUAL(exp_G_limbs, N_limbs);
+    if (got_I) {
+        TEST_EQUAL(exp_I_limbs, N_limbs);
+    }
+
+    const size_t limbs = N_limbs;
+    const size_t bytes = limbs * sizeof(mbedtls_mpi_uint);
+
+    TEST_CF_SECRET(A, A_limbs * sizeof(mbedtls_mpi_uint));
+    TEST_CF_SECRET(N, N_limbs * sizeof(mbedtls_mpi_uint));
+
+    /*
+     * Test GCD only (I == NULL)
+     */
+    TEST_CALLOC(G, N_limbs);
+    memset(G, 'G', bytes);
+
+    TEST_CALLOC(T, 4 * N_limbs);
+    memset(T, 'T', bytes);
+
+    mbedtls_mpi_core_gcd_modinv_odd(G, NULL, A, A_limbs, N, N_limbs, T);
+    TEST_CF_PUBLIC(G, bytes);
+    TEST_MEMORY_COMPARE(G, bytes, exp_G, bytes);
+
+    mbedtls_free(G);
+    G = NULL;
+    mbedtls_free(T);
+    T = NULL;
+
+    /*
+     * Test GCD + modinv
+     */
+    TEST_CALLOC(G, N_limbs);
+    memset(G, 'G', bytes);
+
+    TEST_CALLOC(I, N_limbs);
+    memset(I, 'I', bytes);
+
+    TEST_CALLOC(T, 5 * N_limbs);
+    memset(T, 'T', bytes);
+
+    mbedtls_mpi_core_gcd_modinv_odd(G, I, A, A_limbs, N, N_limbs, T);
+
+    TEST_CF_PUBLIC(G, bytes);
+    TEST_MEMORY_COMPARE(G, bytes, exp_G, bytes);
+    if (got_I) {
+        TEST_CF_PUBLIC(I, bytes);
+        TEST_MEMORY_COMPARE(I, bytes, exp_I, bytes);
+    }
+
+exit:
+    mbedtls_free(A);
+    mbedtls_free(N);
+    mbedtls_free(exp_G);
+    mbedtls_free(exp_I);
+    mbedtls_free(G);
+    mbedtls_free(I);
+    mbedtls_free(T);
+}
+/* END_CASE */

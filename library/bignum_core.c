@@ -1019,4 +1019,189 @@ void mbedtls_mpi_core_from_mont_rep(mbedtls_mpi_uint *X,
     mbedtls_mpi_core_montmul(X, A, &Rinv, 1, N, AN_limbs, mm, T);
 }
 
+/*
+ * Compute X = A - B mod N.
+ * Both A and B must be in [0, N) and so will the output.
+ */
+static void mpi_core_sub_mod(mbedtls_mpi_uint *X,
+                             const mbedtls_mpi_uint *A,
+                             const mbedtls_mpi_uint *B,
+                             const mbedtls_mpi_uint *N,
+                             size_t limbs)
+{
+    mbedtls_mpi_uint c = mbedtls_mpi_core_sub(X, A, B, limbs);
+    (void) mbedtls_mpi_core_add_if(X, N, limbs, (unsigned) c);
+}
+
+/*
+ * Divide X by 2 mod N in place, assuming N is odd.
+ * The input must be in [0, N) and so will the output.
+ */
+static void mpi_core_div2_mod_odd(mbedtls_mpi_uint *X,
+                                  const mbedtls_mpi_uint *N,
+                                  size_t limbs)
+{
+    /* If X is odd, add N to make it even before shifting. */
+    unsigned odd = (unsigned) X[0] & 1;
+    mbedtls_mpi_uint c = mbedtls_mpi_core_add_if(X, N, limbs, odd);
+    mbedtls_mpi_core_shift_r(X, limbs, 1);
+    X[limbs - 1] |= c << (biL - 1);
+}
+
+/*
+ * Constant-time GCD and modular inversion - odd modulus.
+ *
+ * Pre-conditions: see public documentation.
+ *
+ * See https://www.jstage.jst.go.jp/article/transinf/E106.D/9/E106.D_2022ICP0009/_pdf
+ * This is an adaptation of Alg 7 / Alg 8:
+ * - Alg 7 is readable but not constant-time, Alg 8 is constant-time but not
+ *   readable (and uses signed arithmetic). We mostly follow Alg 7 and make it
+ *   constant-time by using our usual primitives (conditional assign,
+ *   conditional swap) rather than re-inventing them. We only take a few
+ *   notations from Alg 8 for temporaries.
+ * - Compared to both, we skip the trick with pre_comm: I think this trick
+ *   complicates things for no benefit (see comment on the big I != NULL block
+ *   below for details).
+ */
+void mbedtls_mpi_core_gcd_modinv_odd(mbedtls_mpi_uint *G,
+                                     mbedtls_mpi_uint *I,
+                                     const mbedtls_mpi_uint *A,
+                                     size_t A_limbs,
+                                     const mbedtls_mpi_uint *N,
+                                     size_t N_limbs,
+                                     mbedtls_mpi_uint *T)
+{
+    /* Note: N is called p in the paper, but doesn't need to be prime, only odd.
+     */
+
+    /* GCD and modinv, names common to Alg 7 and Alg 8 */
+    mbedtls_mpi_uint *u = T + 0 * N_limbs;
+    mbedtls_mpi_uint *v = G;
+
+    /* GCD and modinv, my name (t1, t2 from Alg 7) */
+    mbedtls_mpi_uint *d = T + 1 * N_limbs;
+
+    /* GCD and modinv, names from Alg 8 (note: t1, t2 from Alg 7 are d above) */
+    mbedtls_mpi_uint *t1 = T + 2 * N_limbs;
+    mbedtls_mpi_uint *t2 = T + 3 * N_limbs;
+
+    /* modinv only, names common to Alg 7 and Alg 8 */
+    mbedtls_mpi_uint *q = I;
+    mbedtls_mpi_uint *r = I != NULL ? T + 4 * N_limbs : NULL;
+
+    /*
+     * Initial values:
+     * u, v = A, N
+     * q, r = 0, 1
+     */
+    memcpy(u, A, A_limbs * ciL);
+    memset((char *) u + A_limbs * ciL, 0, (N_limbs - A_limbs) * ciL);
+
+    memcpy(v, N, N_limbs * ciL);
+
+    if (I != NULL) {
+        memset(q, 0, N_limbs * ciL);
+
+        memset(r, 0, N_limbs * ciL);
+        r[0] = 1;
+    }
+
+    /*
+     * At each step, out of u, v, v - u we keep one, shift another, and discard
+     * the third, then update (u, v) with the ordered result.
+     * Then we mirror those actions with q, r, r - q mod N.
+     *
+     * Loop invariants:
+     *  u <= v                  (on entry: A <= N)
+     *  GCD(u, v) == GCD(A, N)  (on entry: trivial)
+     *  v = A * q mod N         (on entry: N = A * 0 mod N)
+     *  u = A * r mod N         (on entry: A = A * 1 mod N)
+     *  q, r in [0, N)          (on entry: 0, 1)
+     *
+     * On exit:
+     *  u = 0
+     *  v = GCD(A, N) = A * q mod N
+     *  if v == 1 then 1 = A * q mod N ie q is A's inverse mod N
+     *  r = 0
+     *
+     * The exit state is a fixed point of the loop's body.
+     * Alg 7 and Alg 8 use 2 * bitlen(N) iterations but Theorem 2 (above in the
+     * paper) says bitlen(A) + bitlen(N) is actually enough.
+     */
+    for (size_t i = 0; i < (A_limbs + N_limbs) * biL; i++) {
+        /* s, z in Alg 8 - use meaningful names instead */
+        mbedtls_ct_condition_t u_odd = mbedtls_ct_bool(u[0] & 1);
+        mbedtls_ct_condition_t v_odd = mbedtls_ct_bool(v[0] & 1);
+
+        /* Other conditions that will be useful below */
+        mbedtls_ct_condition_t u_odd_v_odd = mbedtls_ct_bool_and(u_odd, v_odd);
+        mbedtls_ct_condition_t v_even = mbedtls_ct_bool_not(v_odd);
+        mbedtls_ct_condition_t u_odd_v_even = mbedtls_ct_bool_and(u_odd, v_even);
+
+        /* This is called t1 in Alg 7 (no name in Alg 8).
+         * We know that u <= v so there is no carry */
+        (void) mbedtls_mpi_core_sub(d, v, u, N_limbs);
+
+        /* t1 (the thing that's kept) can be d (default) or u (if t2 is d) */
+        memcpy(t1, d, N_limbs * ciL);
+        mbedtls_mpi_core_cond_assign(t1, u, N_limbs, u_odd_v_odd);
+
+        /* t2 (the thing that's shifted) can be u (if even), or v (if even),
+         * or d (which is even if both u and v were odd) */
+        memcpy(t2, u, N_limbs * ciL);
+        mbedtls_mpi_core_cond_assign(t2, v, N_limbs, u_odd_v_even);
+        mbedtls_mpi_core_cond_assign(t2, d, N_limbs, u_odd_v_odd);
+
+        mbedtls_mpi_core_shift_r(t2, N_limbs, 1); // t2 is even
+
+        /* Update u, v and re-order them if needed */
+        memcpy(u, t1, N_limbs * ciL);
+        memcpy(v, t2, N_limbs * ciL);
+        mbedtls_ct_condition_t swap = mbedtls_mpi_core_lt_ct(v, u, N_limbs);
+        mbedtls_mpi_core_cond_swap(u, v, N_limbs, swap);
+
+        /* Now, if modinv was requested, do the same with q, r, but:
+         * - decisions still based on u and v (their initial values);
+         * - operations are now mod N;
+         * - we re-use t1, t2 for what the paper calls t3, t4 in Alg 8.
+         *
+         * Here we slightly diverge from the paper and instead do the obvious
+         * thing that preserves the invariants involving q and r: mirror
+         * operations on u and v, ie also divide by 2 here (mod N).
+         *
+         * The paper uses a trick where it replaces division by 2 with
+         * multiplication by 2 here, and compensates in the end by doing a
+         * final multiplication, which is probably intended as an optimisation.
+         *
+         * However I believe it's not actually an optimisation, since
+         * constant-time modular multiplication by 2 (left-shift + conditional
+         * subtract) is just as costly as constant-time modular division by 2
+         * (conditional add + right-shift). So, skip it and keep things simple.
+         */
+        if (I != NULL) {
+            /* This is called t2 in Alg 7 (no name in Alg 8). */
+            mpi_core_sub_mod(d, q, r, N, N_limbs);
+
+            /* t3 (the thing that's kept) */
+            memcpy(t1, d, N_limbs * ciL);
+            mbedtls_mpi_core_cond_assign(t1, r, N_limbs, u_odd_v_odd);
+
+            /* t4 (the thing that's shifted) */
+            memcpy(t2, r, N_limbs * ciL);
+            mbedtls_mpi_core_cond_assign(t2, q, N_limbs, u_odd_v_even);
+            mbedtls_mpi_core_cond_assign(t2, d, N_limbs, u_odd_v_odd);
+
+            mpi_core_div2_mod_odd(t2, N, N_limbs);
+
+            /* Update and possibly swap */
+            memcpy(r, t1, N_limbs * ciL);
+            memcpy(q, t2, N_limbs * ciL);
+            mbedtls_mpi_core_cond_swap(r, q, N_limbs, swap);
+        }
+    }
+
+    /* G and I already hold the correct values by virtue of being aliased */
+}
+
 #endif /* MBEDTLS_BIGNUM_C */

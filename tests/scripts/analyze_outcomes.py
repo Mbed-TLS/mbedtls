@@ -292,15 +292,15 @@ class DriverVSReference_cipher_aead_cmac(outcome_analysis.DriverVSReference):
     IGNORED_SUITES = [
         # low-level (block/stream) cipher modules
         'aes', 'aria', 'camellia', 'des', 'chacha20',
-        # AEAD modes and CMAC
-        'ccm', 'chachapoly', 'cmac', 'gcm',
+        # AEAD modes, CMAC and POLY1305
+        'ccm', 'chachapoly', 'cmac', 'gcm', 'poly1305',
         # The Cipher abstraction layer
         'cipher',
     ]
     IGNORED_TESTS = {
         'test_suite_config': [
             re.compile(r'.*\bMBEDTLS_(AES|ARIA|CAMELLIA|CHACHA20|DES)_.*'),
-            re.compile(r'.*\bMBEDTLS_(CCM|CHACHAPOLY|CMAC|GCM)_.*'),
+            re.compile(r'.*\bMBEDTLS_(CCM|CHACHAPOLY|CMAC|GCM|POLY1305)_.*'),
             re.compile(r'.*\bMBEDTLS_AES(\w+)_C\b.*'),
             re.compile(r'.*\bMBEDTLS_CIPHER_.*'),
         ],

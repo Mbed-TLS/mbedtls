@@ -1864,6 +1864,7 @@ component_test_psa_crypto_config_accel_cipher_aead_cmac () {
     scripts/config.py unset MBEDTLS_ARIA_C
     scripts/config.py unset MBEDTLS_CHACHA20_C
     scripts/config.py unset MBEDTLS_CAMELLIA_C
+    scripts/config.py unset MBEDTLS_POLY1305_C
 
     # Disable CIPHER_C entirely as all ciphers/AEADs are accelerated and PSA
     # does not depend on it.
@@ -1886,6 +1887,7 @@ component_test_psa_crypto_config_accel_cipher_aead_cmac () {
     not grep mbedtls_gcm ${BUILTIN_SRC_PATH}/gcm.o
     not grep mbedtls_chachapoly ${BUILTIN_SRC_PATH}/chachapoly.o
     not grep mbedtls_cmac ${BUILTIN_SRC_PATH}/cmac.o
+    not grep mbedtls_poly1305 ${BUILTIN_SRC_PATH}/poly1305.o
 
     # Run the tests
     # -------------

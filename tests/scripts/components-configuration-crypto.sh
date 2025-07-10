@@ -1894,7 +1894,8 @@ component_test_psa_crypto_config_accel_cipher_aead_cmac () {
     make test
 
     msg "ssl-opt: full config with accelerated cipher inc. AEAD and CMAC"
-    tests/ssl-opt.sh
+    # Exclude password-protected key tests — they require built-in CBC and AES.
+    tests/ssl-opt.sh -e "TLS: password protected"
 
     msg "compat.sh: full config with accelerated cipher inc. AEAD and CMAC"
     tests/compat.sh -V NO -p mbedTLS
@@ -1910,7 +1911,8 @@ component_test_psa_crypto_config_reference_cipher_aead_cmac () {
     make test
 
     msg "ssl-opt: full config with non-accelerated cipher inc. AEAD and CMAC"
-    tests/ssl-opt.sh
+    # Exclude password-protected key tests as in test_psa_crypto_config_accel_cipher_aead_cmac.
+    tests/ssl-opt.sh -e "TLS: password protected"
 
     msg "compat.sh: full config with non-accelerated cipher inc. AEAD and CMAC"
     tests/compat.sh -V NO -p mbedTLS

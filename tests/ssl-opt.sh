@@ -2245,9 +2245,10 @@ run_test    "key size: TLS-ECDHE-ECDSA-WITH-AES-128-CCM-8" \
 
 requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
 # server5.key.enc is in PEM format and AES-256-CBC crypted. Unfortunately PEM
-# module does not support PSA dispatching so we need builtin support.
-requires_config_enabled MBEDTLS_CIPHER_MODE_CBC
-requires_config_enabled MBEDTLS_AES_C
+# module does not support PSA dispatching so we need builtin support. With the
+# removal of the legacy cryptography configuration options, there is currently
+# no way to express this dependency. This test fails if run in a configuration
+# where the built-in implementation of CBC or AES is not present.
 requires_hash_alg MD5
 requires_hash_alg SHA_256
 run_test    "TLS: password protected client key" \
@@ -2257,9 +2258,10 @@ run_test    "TLS: password protected client key" \
 
 requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
 # server5.key.enc is in PEM format and AES-256-CBC crypted. Unfortunately PEM
-# module does not support PSA dispatching so we need builtin support.
-requires_config_enabled MBEDTLS_CIPHER_MODE_CBC
-requires_config_enabled MBEDTLS_AES_C
+# module does not support PSA dispatching so we need builtin support. With the
+# removal of the legacy cryptography configuration options, there is currently
+# no way to express this dependency. This test fails if run in a configuration
+# where the built-in implementation of CBC or AES is not present.
 requires_hash_alg MD5
 requires_hash_alg SHA_256
 run_test    "TLS: password protected server key" \
@@ -2270,9 +2272,10 @@ run_test    "TLS: password protected server key" \
 requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
 requires_config_enabled MBEDTLS_RSA_C
 # server5.key.enc is in PEM format and AES-256-CBC crypted. Unfortunately PEM
-# module does not support PSA dispatching so we need builtin support.
-requires_config_enabled MBEDTLS_CIPHER_MODE_CBC
-requires_config_enabled MBEDTLS_AES_C
+# module does not support PSA dispatching so we need builtin support. With the
+# removal of the legacy cryptography configuration options, there is currently
+# no way to express this dependency. This test fails if run in a configuration
+# where the built-in implementation of CBC or AES is not present.
 requires_hash_alg MD5
 requires_hash_alg SHA_256
 run_test    "TLS: password protected server key, two certificates" \

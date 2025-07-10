@@ -12,6 +12,7 @@
 
 #include "mbedtls/rsa.h"
 #include "mbedtls/bignum.h"
+#include "bignum_internal.h"
 #include "rsa_alt_helpers.h"
 
 /*
@@ -117,7 +118,7 @@ int mbedtls_rsa_deduce_primes(mbedtls_mpi const *N,
         MBEDTLS_MPI_CHK(mbedtls_mpi_lset(&K, primes[attempt]));
 
         /* Check if gcd(K,N) = 1 */
-        MBEDTLS_MPI_CHK(mbedtls_mpi_gcd(P, &K, N));
+        MBEDTLS_MPI_CHK(mbedtls_mpi_gcd_modinv_odd(P, NULL, &K, N));
         if (mbedtls_mpi_cmp_int(P, 1) != 0) {
             continue;
         }
@@ -136,7 +137,7 @@ int mbedtls_rsa_deduce_primes(mbedtls_mpi const *N,
             }
 
             MBEDTLS_MPI_CHK(mbedtls_mpi_add_int(&K, &K, 1));
-            MBEDTLS_MPI_CHK(mbedtls_mpi_gcd(P, &K, N));
+            MBEDTLS_MPI_CHK(mbedtls_mpi_gcd_modinv_odd(P, NULL, &K, N));
 
             if (mbedtls_mpi_cmp_int(P, 1) ==  1 &&
                 mbedtls_mpi_cmp_mpi(P, N) == -1) {

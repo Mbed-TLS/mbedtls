@@ -2589,3 +2589,18 @@ component_test_min_mpi_window_size () {
     msg "test: MBEDTLS_MPI_WINDOW_SIZE=1 - main suites (inc. selftests) (ASan build)" # ~ 10s
     make test
 }
+
+component_test_xts () {
+    # Component dedicated to run XTS unit test cases while XTS is not
+    # supported through the PSA API.
+    msg "build: Default + MBEDTLS_CIPHER_MODE_XTS"
+
+    echo "#define MBEDTLS_CIPHER_MODE_XTS" > psa_user_config.h
+    cmake -DTF_PSA_CRYPTO_USER_CONFIG_FILE="psa_user_config.h"
+    make
+
+    msg "test: Default + MBEDTLS_CIPHER_MODE_XTS"
+    make test
+
+    rm -f psa_user_config.h
+}

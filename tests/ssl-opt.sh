@@ -2201,8 +2201,7 @@ trap cleanup INT TERM HUP
 # - the expected parameters are selected
 requires_ciphersuite_enabled TLS-ECDHE-RSA-WITH-CHACHA20-POLY1305-SHA256
 requires_hash_alg SHA_512 # "signature_algorithm ext: 6"
-requires_any_configs_enabled MBEDTLS_ECP_DP_CURVE25519_ENABLED \
-                             PSA_WANT_ECC_MONTGOMERY_255
+requires_config_enabled PSA_WANT_ECC_MONTGOMERY_255
 run_test    "Default, TLS 1.2" \
             "$P_SRV debug_level=3" \
             "$P_CLI force_version=tls12" \
@@ -2685,8 +2684,7 @@ run_test    "Unique IV in GCM" \
             -U "IV used"
 
 # Test for correctness of sent single supported algorithm
-requires_any_configs_enabled MBEDTLS_ECP_DP_SECP256R1_ENABLED \
-                             PSA_WANT_ECC_SECP_R1_256
+requires_config_enabled PSA_WANT_ECC_SECP_R1_256
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
@@ -2701,8 +2699,7 @@ run_test    "Single supported algorithm sending: mbedtls client" \
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_SSL_SRV_C
-requires_any_configs_enabled MBEDTLS_ECP_DP_SECP256R1_ENABLED \
-                             PSA_WANT_ECC_SECP_R1_256
+requires_config_enabled PSA_WANT_ECC_SECP_R1_256
 requires_hash_alg SHA_256
 run_test    "Single supported algorithm sending: openssl client" \
             "$P_SRV sig_algs=ecdsa_secp256r1_sha256 auth_mode=required" \
@@ -9408,7 +9405,7 @@ run_test    "Large server packet TLS 1.3 AEAD shorter tag" \
 # Force the use of a curve that supports restartable ECC (secp256r1).
 
 requires_config_enabled MBEDTLS_ECP_RESTARTABLE
-requires_config_enabled MBEDTLS_ECP_DP_SECP256R1_ENABLED
+requires_config_enabled PSA_WANT_ECC_SECP_R1_256
 run_test    "EC restart: TLS, default" \
             "$P_SRV groups=secp256r1 auth_mode=required" \
             "$P_CLI force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-GCM-SHA256 \
@@ -9421,7 +9418,7 @@ run_test    "EC restart: TLS, default" \
             -C "mbedtls_pk_sign.*\(4b00\|-248\)"
 
 requires_config_enabled MBEDTLS_ECP_RESTARTABLE
-requires_config_enabled MBEDTLS_ECP_DP_SECP256R1_ENABLED
+requires_config_enabled PSA_WANT_ECC_SECP_R1_256
 run_test    "EC restart: TLS, max_ops=0" \
             "$P_SRV groups=secp256r1 auth_mode=required" \
             "$P_CLI force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-GCM-SHA256 \
@@ -9434,7 +9431,7 @@ run_test    "EC restart: TLS, max_ops=0" \
             -C "mbedtls_pk_sign.*\(4b00\|-248\)"
 
 requires_config_enabled MBEDTLS_ECP_RESTARTABLE
-requires_config_enabled MBEDTLS_ECP_DP_SECP256R1_ENABLED
+requires_config_enabled PSA_WANT_ECC_SECP_R1_256
 run_test    "EC restart: TLS, max_ops=65535" \
             "$P_SRV groups=secp256r1 auth_mode=required" \
             "$P_CLI force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-GCM-SHA256 \
@@ -9461,7 +9458,7 @@ run_test    "EC restart: TLS, max_ops=65535" \
 
 # With USE_PSA disabled we expect full restartable behaviour.
 requires_config_enabled MBEDTLS_ECP_RESTARTABLE
-requires_config_enabled MBEDTLS_ECP_DP_SECP256R1_ENABLED
+requires_config_enabled PSA_WANT_ECC_SECP_R1_256
 skip_next_test
 run_test    "EC restart: TLS, max_ops=1000 (no USE_PSA)" \
             "$P_SRV groups=secp256r1 auth_mode=required" \
@@ -9477,7 +9474,7 @@ run_test    "EC restart: TLS, max_ops=1000 (no USE_PSA)" \
 # With USE_PSA enabled we expect only partial restartable behaviour:
 # everything except ECDH (where TLS calls PSA directly).
 requires_config_enabled MBEDTLS_ECP_RESTARTABLE
-requires_config_enabled MBEDTLS_ECP_DP_SECP256R1_ENABLED
+requires_config_enabled PSA_WANT_ECC_SECP_R1_256
 run_test    "EC restart: TLS, max_ops=1000 (USE_PSA)" \
             "$P_SRV groups=secp256r1 auth_mode=required" \
             "$P_CLI force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-GCM-SHA256 \
@@ -9492,7 +9489,7 @@ run_test    "EC restart: TLS, max_ops=1000 (USE_PSA)" \
 # This works the same with & without USE_PSA as we never get to ECDH:
 # we abort as soon as we determined the cert is bad.
 requires_config_enabled MBEDTLS_ECP_RESTARTABLE
-requires_config_enabled MBEDTLS_ECP_DP_SECP256R1_ENABLED
+requires_config_enabled PSA_WANT_ECC_SECP_R1_256
 run_test    "EC restart: TLS, max_ops=1000, badsign" \
             "$P_SRV groups=secp256r1 auth_mode=required \
              crt_file=$DATA_FILES_PATH/server5-badsign.crt \
@@ -9511,7 +9508,7 @@ run_test    "EC restart: TLS, max_ops=1000, badsign" \
 
 # With USE_PSA disabled we expect full restartable behaviour.
 requires_config_enabled MBEDTLS_ECP_RESTARTABLE
-requires_config_enabled MBEDTLS_ECP_DP_SECP256R1_ENABLED
+requires_config_enabled PSA_WANT_ECC_SECP_R1_256
 skip_next_test
 run_test    "EC restart: TLS, max_ops=1000, auth_mode=optional badsign (no USE_PSA)" \
             "$P_SRV groups=secp256r1 auth_mode=required \
@@ -9532,7 +9529,7 @@ run_test    "EC restart: TLS, max_ops=1000, auth_mode=optional badsign (no USE_P
 # With USE_PSA enabled we expect only partial restartable behaviour:
 # everything except ECDH (where TLS calls PSA directly).
 requires_config_enabled MBEDTLS_ECP_RESTARTABLE
-requires_config_enabled MBEDTLS_ECP_DP_SECP256R1_ENABLED
+requires_config_enabled PSA_WANT_ECC_SECP_R1_256
 run_test    "EC restart: TLS, max_ops=1000, auth_mode=optional badsign (USE_PSA)" \
             "$P_SRV groups=secp256r1 auth_mode=required \
              crt_file=$DATA_FILES_PATH/server5-badsign.crt \
@@ -9551,7 +9548,7 @@ run_test    "EC restart: TLS, max_ops=1000, auth_mode=optional badsign (USE_PSA)
 
 # With USE_PSA disabled we expect full restartable behaviour.
 requires_config_enabled MBEDTLS_ECP_RESTARTABLE
-requires_config_enabled MBEDTLS_ECP_DP_SECP256R1_ENABLED
+requires_config_enabled PSA_WANT_ECC_SECP_R1_256
 skip_next_test
 run_test    "EC restart: TLS, max_ops=1000, auth_mode=none badsign (no USE_PSA)" \
             "$P_SRV groups=secp256r1 auth_mode=required \
@@ -9572,7 +9569,7 @@ run_test    "EC restart: TLS, max_ops=1000, auth_mode=none badsign (no USE_PSA)"
 # With USE_PSA enabled we expect only partial restartable behaviour:
 # everything except ECDH (where TLS calls PSA directly).
 requires_config_enabled MBEDTLS_ECP_RESTARTABLE
-requires_config_enabled MBEDTLS_ECP_DP_SECP256R1_ENABLED
+requires_config_enabled PSA_WANT_ECC_SECP_R1_256
 run_test    "EC restart: TLS, max_ops=1000, auth_mode=none badsign (USE_PSA)" \
             "$P_SRV groups=secp256r1 auth_mode=required \
              crt_file=$DATA_FILES_PATH/server5-badsign.crt \
@@ -9591,7 +9588,7 @@ run_test    "EC restart: TLS, max_ops=1000, auth_mode=none badsign (USE_PSA)" \
 
 # With USE_PSA disabled we expect full restartable behaviour.
 requires_config_enabled MBEDTLS_ECP_RESTARTABLE
-requires_config_enabled MBEDTLS_ECP_DP_SECP256R1_ENABLED
+requires_config_enabled PSA_WANT_ECC_SECP_R1_256
 skip_next_test
 run_test    "EC restart: DTLS, max_ops=1000 (no USE_PSA)" \
             "$P_SRV groups=secp256r1 auth_mode=required dtls=1" \
@@ -9607,7 +9604,7 @@ run_test    "EC restart: DTLS, max_ops=1000 (no USE_PSA)" \
 # With USE_PSA enabled we expect only partial restartable behaviour:
 # everything except ECDH (where TLS calls PSA directly).
 requires_config_enabled MBEDTLS_ECP_RESTARTABLE
-requires_config_enabled MBEDTLS_ECP_DP_SECP256R1_ENABLED
+requires_config_enabled PSA_WANT_ECC_SECP_R1_256
 run_test    "EC restart: DTLS, max_ops=1000 (USE_PSA)" \
             "$P_SRV groups=secp256r1 auth_mode=required dtls=1" \
             "$P_CLI force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-GCM-SHA256 \
@@ -9621,7 +9618,7 @@ run_test    "EC restart: DTLS, max_ops=1000 (USE_PSA)" \
 
 # With USE_PSA disabled we expect full restartable behaviour.
 requires_config_enabled MBEDTLS_ECP_RESTARTABLE
-requires_config_enabled MBEDTLS_ECP_DP_SECP256R1_ENABLED
+requires_config_enabled PSA_WANT_ECC_SECP_R1_256
 skip_next_test
 run_test    "EC restart: TLS, max_ops=1000 no client auth (no USE_PSA)" \
             "$P_SRV groups=secp256r1" \
@@ -9637,7 +9634,7 @@ run_test    "EC restart: TLS, max_ops=1000 no client auth (no USE_PSA)" \
 # With USE_PSA enabled we expect only partial restartable behaviour:
 # everything except ECDH (where TLS calls PSA directly).
 requires_config_enabled MBEDTLS_ECP_RESTARTABLE
-requires_config_enabled MBEDTLS_ECP_DP_SECP256R1_ENABLED
+requires_config_enabled PSA_WANT_ECC_SECP_R1_256
 run_test    "EC restart: TLS, max_ops=1000 no client auth (USE_PSA)" \
             "$P_SRV groups=secp256r1" \
             "$P_CLI force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-GCM-SHA256 \
@@ -9653,7 +9650,7 @@ run_test    "EC restart: TLS, max_ops=1000 no client auth (USE_PSA)" \
 # This is the same as "EC restart: TLS, max_ops=1000" except with ECDHE-RSA,
 # and all 4 assertions negated.
 requires_config_enabled MBEDTLS_ECP_RESTARTABLE
-requires_config_enabled MBEDTLS_ECP_DP_SECP256R1_ENABLED
+requires_config_enabled PSA_WANT_ECC_SECP_R1_256
 run_test    "EC restart: TLS, max_ops=1000, ECDHE-RSA" \
             "$P_SRV groups=secp256r1 auth_mode=required" \
             "$P_CLI force_ciphersuite=TLS-ECDHE-RSA-WITH-AES-128-GCM-SHA256 \

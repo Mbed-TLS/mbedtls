@@ -430,13 +430,6 @@ cleanup:
     return ret;
 }
 
-/*
- * Return the number of less significant zero-bits
- */
-size_t mbedtls_mpi_lsb(const mbedtls_mpi *X)
-{
-    size_t i;
-
 #if defined(__has_builtin)
 #if (MBEDTLS_MPI_UINT_MAX == UINT_MAX) && __has_builtin(__builtin_ctz)
     #define mbedtls_mpi_uint_ctz __builtin_ctz
@@ -447,22 +440,34 @@ size_t mbedtls_mpi_lsb(const mbedtls_mpi *X)
 #endif
 #endif
 
-#if defined(mbedtls_mpi_uint_ctz)
+#if !defined(mbedtls_mpi_uint_ctz)
+static size_t mbedtls_mpi_uint_ctz(mbedtls_mpi_uint x)
+{
+    size_t count = 0;
+    mbedtls_ct_condition_t done = MBEDTLS_CT_FALSE;
+
+    for (size_t i = 0; i < biL; i++) {
+        mbedtls_ct_condition_t non_zero = mbedtls_ct_bool((x >> i) & 1);
+        done = mbedtls_ct_bool_or(done, non_zero);
+        count = mbedtls_ct_size_if(done, count, i + 1);
+    }
+
+    return count;
+}
+#endif
+
+/*
+ * Return the number of less significant zero-bits
+ */
+size_t mbedtls_mpi_lsb(const mbedtls_mpi *X)
+{
+    size_t i;
+
     for (i = 0; i < X->n; i++) {
         if (X->p[i] != 0) {
             return i * biL + mbedtls_mpi_uint_ctz(X->p[i]);
         }
     }
-#else
-    size_t count = 0;
-    for (i = 0; i < X->n; i++) {
-        for (size_t j = 0; j < biL; j++, count++) {
-            if (((X->p[i] >> j) & 1) != 0) {
-                return count;
-            }
-        }
-    }
-#endif
 
     return 0;
 }

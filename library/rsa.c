@@ -1304,33 +1304,16 @@ static int rsa_prepare_blinding(mbedtls_rsa_context *ctx,
     }
 
     /* Unblinding value: Vf = random number, invertible mod N */
+    mbedtls_mpi_lset(&R, 0);
     do {
         if (count++ > 10) {
             ret = MBEDTLS_ERR_RSA_RNG_FAILED;
             goto cleanup;
         }
 
-        MBEDTLS_MPI_CHK(mbedtls_mpi_fill_random(&ctx->Vf, ctx->len - 1, f_rng, p_rng));
-
-        /* Compute Vf^-1 as R * (R Vf)^-1 to avoid leaks from inv_mod. */
-        MBEDTLS_MPI_CHK(mbedtls_mpi_fill_random(&R, ctx->len - 1, f_rng, p_rng));
-        MBEDTLS_MPI_CHK(mbedtls_mpi_mul_mpi(&ctx->Vi, &ctx->Vf, &R));
-        MBEDTLS_MPI_CHK(mbedtls_mpi_mod_mpi(&ctx->Vi, &ctx->Vi, &ctx->N));
-
-        /* At this point, Vi is invertible mod N if and only if both Vf and R
-         * are invertible mod N. If one of them isn't, we don't need to know
-         * which one, we just loop and choose new values for both of them.
-         * (Each iteration succeeds with overwhelming probability.) */
-        ret = mbedtls_mpi_inv_mod(&ctx->Vi, &ctx->Vi, &ctx->N);
-        if (ret != 0 && ret != MBEDTLS_ERR_MPI_NOT_ACCEPTABLE) {
-            goto cleanup;
-        }
-
-    } while (ret == MBEDTLS_ERR_MPI_NOT_ACCEPTABLE);
-
-    /* Finish the computation of Vf^-1 = R * (R Vf)^-1 */
-    MBEDTLS_MPI_CHK(mbedtls_mpi_mul_mpi(&ctx->Vi, &ctx->Vi, &R));
-    MBEDTLS_MPI_CHK(mbedtls_mpi_mod_mpi(&ctx->Vi, &ctx->Vi, &ctx->N));
+        MBEDTLS_MPI_CHK(mbedtls_mpi_random(&ctx->Vf, 1, &ctx->N, f_rng, p_rng));
+        MBEDTLS_MPI_CHK(mbedtls_mpi_gcd_modinv_odd(&R, &ctx->Vi, &ctx->Vf, &ctx->N));
+    } while (mbedtls_mpi_cmp_int(&R, 1) != 0);
 
     /* Blinding value: Vi = Vf^(-e) mod N
      * (Vi already contains Vf^-1 at this point) */

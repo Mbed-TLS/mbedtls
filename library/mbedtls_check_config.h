@@ -55,19 +55,6 @@
 #endif /* not all curves accelerated */
 #endif /* some curve accelerated */
 
-#if defined(MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED) &&                 \
-    ( !defined(MBEDTLS_CAN_ECDH) ||                                       \
-      !defined(PSA_HAVE_ALG_ECDSA_SIGN) ||                                \
-      !defined(MBEDTLS_X509_CRT_PARSE_C) )
-#error "MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED defined, but not all prerequisites"
-#endif
-
-#if defined(MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED) &&                 \
-    ( !defined(MBEDTLS_CAN_ECDH) || !defined(PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC) || \
-      !defined(MBEDTLS_X509_CRT_PARSE_C) )
-#error "MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED defined, but not all prerequisites"
-#endif
-
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED) &&                     \
     !defined(MBEDTLS_CAN_ECDH)
 #error "MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED defined, but not all prerequisites"
@@ -150,8 +137,6 @@
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2) &&                                    \
     !(defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED) ||                    \
       defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED) ||                  \
-      defined(MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED) ||                     \
-      defined(MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED) ||                   \
       defined(MBEDTLS_KEY_EXCHANGE_PSK_ENABLED) ||                          \
       defined(MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED) ||                    \
       defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED) )

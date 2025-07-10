@@ -2513,100 +2513,6 @@ static int ssl_write_certificate_request(mbedtls_ssl_context *ssl)
 }
 #endif /* MBEDTLS_KEY_EXCHANGE_CERT_REQ_ALLOWED_ENABLED */
 
-#if (defined(MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED) || \
-    defined(MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED))
-MBEDTLS_CHECK_RETURN_CRITICAL
-static int ssl_get_ecdh_params_from_cert(mbedtls_ssl_context *ssl)
-{
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
-    mbedtls_pk_context *pk;
-    mbedtls_pk_type_t pk_type;
-    psa_key_attributes_t key_attributes = PSA_KEY_ATTRIBUTES_INIT;
-    unsigned char buf[PSA_KEY_EXPORT_ECC_KEY_PAIR_MAX_SIZE(PSA_VENDOR_ECC_MAX_CURVE_BITS)];
-    size_t key_len;
-
-    pk = mbedtls_ssl_own_key(ssl);
-
-    if (pk == NULL) {
-        return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
-    }
-
-    pk_type = mbedtls_pk_get_type(pk);
-
-    switch (pk_type) {
-        case MBEDTLS_PK_OPAQUE:
-        case MBEDTLS_PK_ECKEY:
-        case MBEDTLS_PK_ECKEY_DH:
-        case MBEDTLS_PK_ECDSA:
-            if (!mbedtls_pk_can_do(pk, MBEDTLS_PK_ECKEY)) {
-                return MBEDTLS_ERR_SSL_PK_TYPE_MISMATCH;
-            }
-
-            /* Get the attributes of the key previously parsed by PK module in
-             * order to extract its type and length (in bits). */
-            status = psa_get_key_attributes(pk->priv_id, &key_attributes);
-            if (status != PSA_SUCCESS) {
-                ret = PSA_TO_MBEDTLS_ERR(status);
-                goto exit;
-            }
-            ssl->handshake->xxdh_psa_type = psa_get_key_type(&key_attributes);
-            ssl->handshake->xxdh_psa_bits = psa_get_key_bits(&key_attributes);
-
-            if (pk_type != MBEDTLS_PK_OPAQUE) {
-                /* PK_ECKEY[_DH] and PK_ECDSA instead as parsed from the PK
-                 * module and only have ECDSA capabilities. Since we need
-                 * them for ECDH later, we export and then re-import them with
-                 * proper flags and algorithm. Of course We also set key's type
-                 * and bits that we just got above. */
-                key_attributes = psa_key_attributes_init();
-                psa_set_key_usage_flags(&key_attributes, PSA_KEY_USAGE_DERIVE);
-                psa_set_key_algorithm(&key_attributes, PSA_ALG_ECDH);
-                psa_set_key_type(&key_attributes,
-                                 PSA_KEY_TYPE_ECC_KEY_PAIR(ssl->handshake->xxdh_psa_type));
-                psa_set_key_bits(&key_attributes, ssl->handshake->xxdh_psa_bits);
-
-                status = psa_export_key(pk->priv_id, buf, sizeof(buf), &key_len);
-                if (status != PSA_SUCCESS) {
-                    ret = PSA_TO_MBEDTLS_ERR(status);
-                    goto exit;
-                }
-                status = psa_import_key(&key_attributes, buf, key_len,
-                                        &ssl->handshake->xxdh_psa_privkey);
-                if (status != PSA_SUCCESS) {
-                    ret = PSA_TO_MBEDTLS_ERR(status);
-                    goto exit;
-                }
-
-                /* Set this key as owned by the TLS library: it will be its duty
-                 * to clear it exit. */
-                ssl->handshake->xxdh_psa_privkey_is_external = 0;
-
-                ret = 0;
-                break;
-            }
-
-            /* Opaque key is created by the user (externally from Mbed TLS)
-             * so we assume it already has the right algorithm and flags
-             * set. Just copy its ID as reference. */
-            ssl->handshake->xxdh_psa_privkey = pk->priv_id;
-            ssl->handshake->xxdh_psa_privkey_is_external = 1;
-            ret = 0;
-            break;
-
-        default:
-            ret = MBEDTLS_ERR_SSL_PK_TYPE_MISMATCH;
-    }
-
-exit:
-    psa_reset_key_attributes(&key_attributes);
-    mbedtls_platform_zeroize(buf, sizeof(buf));
-
-    return ret;
-}
-#endif /* MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED) ||
-          MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED */
-
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_SERVER_SIGNATURE_ENABLED) && \
     defined(MBEDTLS_SSL_ASYNC_PRIVATE)
 MBEDTLS_CHECK_RETURN_CRITICAL
@@ -3210,13 +3116,9 @@ static int ssl_parse_client_key_exchange(mbedtls_ssl_context *ssl)
     }
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED) ||                     \
-    defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED) ||                   \
-    defined(MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED) ||                      \
-    defined(MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED)
+    defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)
     if (ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDHE_RSA ||
-        ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA ||
-        ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDH_RSA ||
-        ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA) {
+        ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA) {
         size_t data_len = (size_t) (*p++);
         size_t buf_len = (size_t) (end - p);
         psa_status_t status = PSA_ERROR_GENERIC_ERROR;
@@ -3279,9 +3181,7 @@ static int ssl_parse_client_key_exchange(mbedtls_ssl_context *ssl)
         handshake->xxdh_psa_privkey = MBEDTLS_SVC_KEY_ID_INIT;
     } else
 #endif /* MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED ||
-          MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED ||
-          MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED ||
-          MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED */
+          MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED */
 #if defined(MBEDTLS_KEY_EXCHANGE_PSK_ENABLED)
     if (ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_PSK) {
         if ((ret = ssl_parse_client_psk_identity(ssl, &p, end)) != 0) {

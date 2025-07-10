@@ -212,7 +212,10 @@ int mbedtls_rsa_deduce_private_exponent(mbedtls_mpi const *P,
     MBEDTLS_MPI_CHK(mbedtls_mpi_mul_mpi(&K, &K, &L));
     MBEDTLS_MPI_CHK(mbedtls_mpi_div_mpi(&K, NULL, &K, D));
 
-    /* Compute modular inverse of E in LCM(P-1, Q-1) */
+    /* Compute modular inverse of E mod LCM(P-1, Q-1)
+     * This is FIPS 186-4 §B.3.1 criterion 3(b).
+     * This will return MBEDTLS_ERR_MPI_NOT_ACCEPTABLE if E is not coprime to
+     * (P-1)(Q-1), also validating FIPS 186-4 §B.3.1 criterion 2(a). */
     MBEDTLS_MPI_CHK(mbedtls_mpi_inv_mod(D, E, &K));
 
 cleanup:

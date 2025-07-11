@@ -22,8 +22,7 @@
 
 /* Define a local translating function to save code size by not using too many
  * arguments in each translating place. */
-#if defined(MBEDTLS_KEY_EXCHANGE_SOME_ECDH_ENABLED) || \
-    defined(MBEDTLS_KEY_EXCHANGE_SOME_ECDHE_ENABLED)
+#if defined(MBEDTLS_KEY_EXCHANGE_SOME_ECDHE_ENABLED)
 static int local_err_translation(psa_status_t status)
 {
     return psa_status_to_mbedtls(status, psa_to_ssl_errors,
@@ -2914,18 +2913,6 @@ static int ssl_write_server_key_exchange(mbedtls_ssl_context *ssl)
     /* Extract static ECDH parameters and abort if ServerKeyExchange
      * is not needed. */
     if (mbedtls_ssl_ciphersuite_no_pfs(ciphersuite_info)) {
-        /* For suites involving ECDH, extract DH parameters
-         * from certificate at this point. */
-#if defined(MBEDTLS_KEY_EXCHANGE_SOME_ECDH_ENABLED)
-        if (mbedtls_ssl_ciphersuite_uses_ecdh(ciphersuite_info)) {
-            ret = ssl_get_ecdh_params_from_cert(ssl);
-            if (ret != 0) {
-                MBEDTLS_SSL_DEBUG_RET(1, "ssl_get_ecdh_params_from_cert", ret);
-                return ret;
-            }
-        }
-#endif /* MBEDTLS_KEY_EXCHANGE_SOME_ECDH_ENABLED */
-
         /* Key exchanges not involving ephemeral keys don't use
          * ServerKeyExchange, so end here. */
         MBEDTLS_SSL_DEBUG_MSG(2, ("<= skip write server key exchange"));

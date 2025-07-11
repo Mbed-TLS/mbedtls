@@ -54,18 +54,6 @@ static inline int mbedtls_ssl_ciphersuite_no_pfs(const mbedtls_ssl_ciphersuite_t
 }
 #endif /* MBEDTLS_KEY_EXCHANGE_SOME_NON_PFS_ENABLED */
 
-#if defined(MBEDTLS_KEY_EXCHANGE_SOME_ECDH_ENABLED)
-static inline int mbedtls_ssl_ciphersuite_uses_ecdh(const mbedtls_ssl_ciphersuite_t *info)
-{
-    switch (info->MBEDTLS_PRIVATE(key_exchange)) {
-    return 1;
-
-        default:
-            return 0;
-    }
-}
-#endif /* MBEDTLS_KEY_EXCHANGE_SOME_ECDH_ENABLED */
-
 static inline int mbedtls_ssl_ciphersuite_cert_req_allowed(const mbedtls_ssl_ciphersuite_t *info)
 {
     switch (info->MBEDTLS_PRIVATE(key_exchange)) {

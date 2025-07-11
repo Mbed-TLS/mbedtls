@@ -217,8 +217,7 @@ typedef enum {
 #endif
 
 /* Key exchanges that don't involve ephemeral keys */
-#if defined(MBEDTLS_KEY_EXCHANGE_PSK_ENABLED)           || \
-    defined(MBEDTLS_KEY_EXCHANGE_SOME_ECDH_ENABLED)
+#if defined(MBEDTLS_KEY_EXCHANGE_PSK_ENABLED)
 #define MBEDTLS_KEY_EXCHANGE_SOME_NON_PFS_ENABLED
 #endif
 
@@ -244,8 +243,7 @@ typedef enum {
 #endif
 
 /* TLS 1.2 key exchanges using ECDH or ECDHE*/
-#if defined(MBEDTLS_KEY_EXCHANGE_SOME_ECDH_ENABLED) || \
-    defined(MBEDTLS_KEY_EXCHANGE_SOME_ECDHE_ENABLED)
+#if defined(MBEDTLS_KEY_EXCHANGE_SOME_ECDHE_ENABLED)
 #define MBEDTLS_KEY_EXCHANGE_SOME_ECDH_OR_ECDHE_1_2_ENABLED
 #endif
 

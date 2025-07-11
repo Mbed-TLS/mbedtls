@@ -2633,18 +2633,6 @@ void mbedtls_ssl_get_dtls_srtp_negotiation_result(const mbedtls_ssl_context *ssl
 }
 #endif /* MBEDTLS_SSL_DTLS_SRTP */
 
-#if !defined(MBEDTLS_DEPRECATED_REMOVED)
-void mbedtls_ssl_conf_max_version(mbedtls_ssl_config *conf, int major, int minor)
-{
-    conf->max_tls_version = (mbedtls_ssl_protocol_version) ((major << 8) | minor);
-}
-
-void mbedtls_ssl_conf_min_version(mbedtls_ssl_config *conf, int major, int minor)
-{
-    conf->min_tls_version = (mbedtls_ssl_protocol_version) ((major << 8) | minor);
-}
-#endif /* MBEDTLS_DEPRECATED_REMOVED */
-
 #if defined(MBEDTLS_SSL_SRV_C)
 void mbedtls_ssl_conf_cert_req_ca_list(mbedtls_ssl_config *conf,
                                        char cert_req_ca_list)

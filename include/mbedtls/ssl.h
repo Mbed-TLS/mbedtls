@@ -471,14 +471,6 @@
 /** \} name SECTION: Module settings */
 
 /*
- * Default to standard CID mode
- */
-#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID) && \
-    !defined(MBEDTLS_SSL_DTLS_CONNECTION_ID_COMPAT)
-#define MBEDTLS_SSL_DTLS_CONNECTION_ID_COMPAT 0
-#endif
-
-/*
  * Length of the verify data for secure renegotiation
  */
 #define MBEDTLS_SSL_VERIFY_DATA_MAX_LEN 12
@@ -649,11 +641,7 @@
 #define MBEDTLS_TLS_EXT_SIG_ALG_CERT                50 /* RFC 8446 TLS 1.3 */
 #define MBEDTLS_TLS_EXT_KEY_SHARE                   51 /* RFC 8446 TLS 1.3 */
 
-#if MBEDTLS_SSL_DTLS_CONNECTION_ID_COMPAT == 0
 #define MBEDTLS_TLS_EXT_CID                         54 /* RFC 9146 DTLS 1.2 CID */
-#else
-#define MBEDTLS_TLS_EXT_CID                        254 /* Pre-RFC 9146 DTLS 1.2 CID */
-#endif
 
 #define MBEDTLS_TLS_EXT_ECJPAKE_KKPP               256 /* experimental */
 

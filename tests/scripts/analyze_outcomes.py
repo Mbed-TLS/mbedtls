@@ -568,6 +568,10 @@ class DriverVSReference_rsa(outcome_analysis.DriverVSReference):
         'pk', 'pkwrite', 'pkparse'
     ]
     IGNORED_TESTS = {
+        'test_suite_bignum.misc': [
+            re.compile(r'.*\bmbedtls_mpi_is_prime.*'),
+            re.compile(r'.*\bmbedtls_mpi_gen_prime.*'),
+        ],
         'test_suite_config': [
             re.compile(r'.*\bMBEDTLS_(PKCS1|RSA)_.*'),
             re.compile(r'.*\bMBEDTLS_GENPRIME\b.*')

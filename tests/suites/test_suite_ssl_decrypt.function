@@ -36,7 +36,7 @@ void ssl_decrypt_stream(int cipher_type, int hash_id, int trunc_hmac)
         .cid = { 0 },
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
     };
-    const char sample_plaintext[3] = "ABC";
+    const char sample_plaintext[3] MBEDTLS_ATTRIBUTE_UNTERMINATED_STRING = "ABC";
     mbedtls_cipher_context_t cipher;
     mbedtls_cipher_init(&cipher);
     mbedtls_ssl_context ssl;

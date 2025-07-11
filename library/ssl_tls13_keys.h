@@ -7,6 +7,8 @@
 #if !defined(MBEDTLS_SSL_TLS1_3_KEYS_H)
 #define MBEDTLS_SSL_TLS1_3_KEYS_H
 
+#include "common.h"
+
 /* This requires MBEDTLS_SSL_TLS1_3_LABEL( idx, name, string ) to be defined at
  * the point of use. See e.g. the definition of mbedtls_ssl_tls1_3_labels_union
  * below. */
@@ -30,8 +32,9 @@
     MBEDTLS_SSL_TLS1_3_LABEL(res_binder, "res binder") \
     MBEDTLS_SSL_TLS1_3_LABEL(derived, "derived")
 
+/* We need to tell the compiler that we meant to leave out the null character. */
 #define MBEDTLS_SSL_TLS1_3_LABEL(name, string)       \
-    const unsigned char name    [sizeof(string) - 1];
+    const unsigned char name    [sizeof(string) - 1] MBEDTLS_ATTRIBUTE_UNTERMINATED_STRING;
 
 union mbedtls_ssl_tls1_3_labels_union {
     MBEDTLS_SSL_TLS1_3_LABEL_LIST

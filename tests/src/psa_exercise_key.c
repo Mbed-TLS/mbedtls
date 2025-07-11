@@ -7,6 +7,8 @@
  *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
+#include "common.h"
+
 #include <test/helpers.h>
 #include <test/macros.h>
 #include <test/psa_exercise_key.h>
@@ -150,7 +152,7 @@ static int exercise_cipher_key(mbedtls_svc_key_id_t key,
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_key_type_t key_type;
     const unsigned char plaintext[16] = "Hello, world...";
-    unsigned char ciphertext[32] = "(wabblewebblewibblewobblewubble)";
+    unsigned char ciphertext[32] MBEDTLS_ATTRIBUTE_UNTERMINATED_STRING = "(wabblewebblewibblewobblewubble)";
     size_t ciphertext_length = sizeof(ciphertext);
     unsigned char decrypted[sizeof(ciphertext)];
     size_t part_length;

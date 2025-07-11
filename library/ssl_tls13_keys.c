@@ -67,7 +67,7 @@ struct mbedtls_ssl_tls1_3_labels_struct const mbedtls_ssl_tls1_3_labels =
  *         the HkdfLabel structure on success.
  */
 
-static const char tls1_3_label_prefix[6] = "tls13 ";
+static const char tls1_3_label_prefix[6] MBEDTLS_ATTRIBUTE_UNTERMINATED_STRING = "tls13 ";
 
 #define SSL_TLS1_3_KEY_SCHEDULE_HKDF_LABEL_LEN(label_len, context_len) \
     (2                     /* expansion length           */ \

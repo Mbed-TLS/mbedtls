@@ -14,6 +14,7 @@
 #include <mbedtls/private/pk_private.h>
 #endif /* MBEDTLS_PK_HAVE_PRIVATE_HEADER */
 #include "mbedtls/psa_util.h"
+#pragma GCC diagnostic warning "-Wenum-conversion"
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO) && \
     defined(MBEDTLS_PEM_WRITE_C) && defined(MBEDTLS_X509_CSR_WRITE_C)

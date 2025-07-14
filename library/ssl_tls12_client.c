@@ -19,6 +19,7 @@
 
 #include "psa_util_internal.h"
 #include "psa/crypto.h"
+#pragma GCC diagnostic warning "-Wenum-conversion"
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED)
 /* Define a local translating function to save code size by not using too many
  * arguments in each translating place. */

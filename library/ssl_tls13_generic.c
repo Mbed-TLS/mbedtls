@@ -25,6 +25,7 @@
 
 #include "psa/crypto.h"
 #include "psa_util_internal.h"
+#pragma GCC diagnostic warning "-Wenum-conversion"
 
 #if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED)
 /* Define a local translating function to save code size by not using too many

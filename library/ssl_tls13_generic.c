@@ -306,7 +306,7 @@ static int ssl_tls13_parse_certificate_verify(mbedtls_ssl_context *ssl,
                                      p, signature_len)) == 0) {
         return 0;
     }
-    MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_pk_verify_ext", ret);
+    MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_pk_verify_new", ret);
 
 error:
     /* RFC 8446 section 4.4.3

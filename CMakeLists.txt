@@ -271,9 +271,6 @@ function(set_gnu_base_compile_options target)
     target_compile_options(${target} PRIVATE $<$<CONFIG:Check>:-Os>)
     target_compile_options(${target} PRIVATE $<$<CONFIG:CheckFull>:-Os -Wcast-qual>)
 
-    if(MBEDTLS_FATAL_WARNINGS)
-        target_compile_options(${target} PRIVATE -Werror)
-    endif(MBEDTLS_FATAL_WARNINGS)
 endfunction(set_gnu_base_compile_options)
 
 function(set_clang_base_compile_options target)
@@ -296,9 +293,6 @@ function(set_clang_base_compile_options target)
     set_target_properties(${target} PROPERTIES LINK_FLAGS_TSANDBG "-fsanitize=thread")
     target_compile_options(${target} PRIVATE $<$<CONFIG:Check>:-Os>)
 
-    if(MBEDTLS_FATAL_WARNINGS)
-        target_compile_options(${target} PRIVATE -Werror)
-    endif(MBEDTLS_FATAL_WARNINGS)
 endfunction(set_clang_base_compile_options)
 
 function(set_iar_base_compile_options target)
@@ -306,9 +300,6 @@ function(set_iar_base_compile_options target)
     target_compile_options(${target} PRIVATE $<$<CONFIG:Release>:-Ohz>)
     target_compile_options(${target} PRIVATE $<$<CONFIG:Debug>:--debug -On>)
 
-    if(MBEDTLS_FATAL_WARNINGS)
-        target_compile_options(${target} PRIVATE --warnings_are_errors)
-    endif(MBEDTLS_FATAL_WARNINGS)
 endfunction(set_iar_base_compile_options)
 
 function(set_msvc_base_compile_options target)

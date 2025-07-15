@@ -105,8 +105,7 @@ int main(void)
         dlsym(crypto_so, "psa_hash_compute");
 
 #pragma GCC diagnostic pop
-    /* Use psa_hash_compute from PSA Crypto API instead of deprecated mbedtls_md_list()
-     * to demonstrate runtime linking of libmbedcrypto / libtfpsacrypto */
+    /* Demonstrate hashing a message with PSA Crypto */
 
     CHECK_DLERROR("dlsym", "psa_crypto_init");
     CHECK_DLERROR("dlsym", "psa_hash_compute");

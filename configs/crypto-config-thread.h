@@ -60,6 +60,7 @@
 #define MBEDTLS_MD_C
 #define MBEDTLS_PK_C
 #define MBEDTLS_PK_PARSE_C
+#define MBEDTLS_PSA_BUILTIN_GET_ENTROPY
 
 /* Save RAM at the expense of ROM */
 #define MBEDTLS_AES_ROM_TABLES

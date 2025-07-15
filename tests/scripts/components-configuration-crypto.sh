@@ -2599,8 +2599,8 @@ component_test_xts () {
     cmake -DTF_PSA_CRYPTO_USER_CONFIG_FILE="psa_user_config.h"
     make
 
+    rm -f psa_user_config.h
+
     msg "test: Default + MBEDTLS_CIPHER_MODE_XTS"
     make test
-
-    rm -f psa_user_config.h
 }

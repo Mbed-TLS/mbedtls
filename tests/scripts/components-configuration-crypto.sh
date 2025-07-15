@@ -1429,6 +1429,7 @@ config_psa_crypto_accel_rsa () {
         scripts/config.py unset MBEDTLS_RSA_C
         scripts/config.py unset MBEDTLS_PKCS1_V15
         scripts/config.py unset MBEDTLS_PKCS1_V21
+        scripts/config.py unset MBEDTLS_GENPRIME
 
         # We need PEM parsing in the test library as well to support the import
         # of PEM encoded RSA keys.

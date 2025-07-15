@@ -62,6 +62,12 @@ class CoverageTask(outcome_analysis.CoverageTask):
             # https://github.com/Mbed-TLS/mbedtls/issues/9586
             'Config: !MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED',
         ],
+        'test_suite_config.crypto_combinations': [
+            # New thing in crypto. Not intended to be tested separately
+            # in mbedtls.
+            # https://github.com/Mbed-TLS/mbedtls/issues/10300
+            'Config: entropy: NV seed only',
+        ],
         'test_suite_config.psa_boolean': [
             # We don't test with HMAC disabled.
             # https://github.com/Mbed-TLS/mbedtls/issues/9591

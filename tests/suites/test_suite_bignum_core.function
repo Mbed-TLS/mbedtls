@@ -1416,6 +1416,38 @@ void mpi_core_gcd_modinv_odd(char *input_A, char *input_N,
     mbedtls_free(T);
     T = NULL;
 
+    /* GCD only, G aliased to N */
+    TEST_CALLOC(G, N_limbs);
+    memcpy(G, N, bytes);
+
+    TEST_CALLOC(T, 4 * N_limbs);
+    memset(T, 'T', bytes);
+
+    mbedtls_mpi_core_gcd_modinv_odd(G, NULL, A, A_limbs, G, N_limbs, T);
+    TEST_CF_PUBLIC(G, bytes);
+    TEST_MEMORY_COMPARE(G, bytes, exp_G, bytes);
+
+    mbedtls_free(G);
+    G = NULL;
+    mbedtls_free(T);
+    T = NULL;
+
+    /* GCD only, G aliased to A (hence A_limbs = N_limbs) */
+    TEST_CALLOC(G, N_limbs);
+    memcpy(G, A, A_limbs * sizeof(mbedtls_mpi_uint));
+
+    TEST_CALLOC(T, 4 * N_limbs);
+    memset(T, 'T', bytes);
+
+    mbedtls_mpi_core_gcd_modinv_odd(G, NULL, G, N_limbs, N, N_limbs, T);
+    TEST_CF_PUBLIC(G, bytes);
+    TEST_MEMORY_COMPARE(G, bytes, exp_G, bytes);
+
+    mbedtls_free(G);
+    G = NULL;
+    mbedtls_free(T);
+    T = NULL;
+
     /*
      * Test GCD + modinv
      */
@@ -1436,6 +1468,65 @@ void mpi_core_gcd_modinv_odd(char *input_A, char *input_N,
         TEST_CF_PUBLIC(I, bytes);
         TEST_MEMORY_COMPARE(I, bytes, exp_I, bytes);
     }
+
+    mbedtls_free(G);
+    G = NULL;
+    mbedtls_free(I);
+    I = NULL;
+    mbedtls_free(T);
+    T = NULL;
+
+    /* GCD + modinv, G aliased to A */
+    TEST_CALLOC(G, N_limbs);
+    memcpy(G, A, A_limbs * sizeof(mbedtls_mpi_uint));
+
+    TEST_CALLOC(I, N_limbs);
+    memset(I, 'I', bytes);
+
+    TEST_CALLOC(T, 5 * N_limbs);
+    memset(T, 'T', bytes);
+
+    mbedtls_mpi_core_gcd_modinv_odd(G, I, G, N_limbs, N, N_limbs, T);
+
+    TEST_CF_PUBLIC(G, bytes);
+    TEST_MEMORY_COMPARE(G, bytes, exp_G, bytes);
+    if (got_I) {
+        TEST_CF_PUBLIC(I, bytes);
+        TEST_MEMORY_COMPARE(I, bytes, exp_I, bytes);
+    }
+
+    mbedtls_free(G);
+    G = NULL;
+    mbedtls_free(I);
+    I = NULL;
+    mbedtls_free(T);
+    T = NULL;
+
+    /* GCD + modinv, I aliased to A */
+    TEST_CALLOC(G, N_limbs);
+    memset(G, 'G', bytes);
+
+    TEST_CALLOC(I, N_limbs);
+    memcpy(I, A, A_limbs * sizeof(mbedtls_mpi_uint));
+
+    TEST_CALLOC(T, 5 * N_limbs);
+    memset(T, 'T', bytes);
+
+    mbedtls_mpi_core_gcd_modinv_odd(G, I, I, N_limbs, N, N_limbs, T);
+
+    TEST_CF_PUBLIC(G, bytes);
+    TEST_MEMORY_COMPARE(G, bytes, exp_G, bytes);
+    if (got_I) {
+        TEST_CF_PUBLIC(I, bytes);
+        TEST_MEMORY_COMPARE(I, bytes, exp_I, bytes);
+    }
+
+    mbedtls_free(G);
+    G = NULL;
+    mbedtls_free(I);
+    I = NULL;
+    mbedtls_free(T);
+    T = NULL;
 
 exit:
     mbedtls_free(A);

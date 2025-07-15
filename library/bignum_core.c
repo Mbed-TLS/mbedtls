@@ -1094,11 +1094,19 @@ void mbedtls_mpi_core_gcd_modinv_odd(mbedtls_mpi_uint *G,
      * Initial values:
      * u, v = A, N
      * q, r = 0, 1
+     *
+     * We only write to G (aka v) after reading from inputs (A and N), which
+     * allows aliasing, except with N when I != NULL, as then we'll be operating
+     * mod N on q and r later - see the public documentation.
+     *
+     * Also avoid possible UB with memcpy when src == dst.
      */
     memcpy(u, A, A_limbs * ciL);
     memset((char *) u + A_limbs * ciL, 0, (N_limbs - A_limbs) * ciL);
 
-    memcpy(v, N, N_limbs * ciL);
+    if (v != N) {
+        memcpy(v, N, N_limbs * ciL);
+    }
 
     if (I != NULL) {
         memset(q, 0, N_limbs * ciL);

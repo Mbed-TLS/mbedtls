@@ -826,7 +826,9 @@ void mbedtls_mpi_core_from_mont_rep(mbedtls_mpi_uint *X,
  *
  * Requires N to be odd, and 0 <= A <= N.
  *
- * None of the parameters may alias or overlap another.
+ * When I == NULL (computing only the GCD), G may alias A or N.
+ * When I != NULL (computing the modular inverse), G or I may alias A
+ * but none of them may alias N (the modulus).
  *
  * \param[out]    G       The GCD of \p A and \p N.
  *                        Must have the same number of limbs as \p N.

@@ -9443,6 +9443,15 @@ run_test    "EC restart: TLS, max_ops=65535" \
             -C "mbedtls_ecdh_make_public.*\(4b00\|-248\)" \
             -C "mbedtls_pk_sign.*\(4b00\|-248\)"
 
+# The following test cases for restartable ECDH come in two variants:
+# * The "(USE_PSA)" variant expects the current behavior, which is the behavior
+#   from Mbed TLS 3.x when MBEDTLS_USE_PSA_CRYPTO is disabled. This tests
+#   the partial implementation where ECDH in TLS is not actually restartable.
+# * The "(no USE_PSA)" variant expects the desired behavior. These test
+#   cases cannot currently pass because the implementation of restartable ECC
+#   in TLS is partial: ECDH is not actually restartable. This is the behavior
+#   from Mbed TLS 3.x when MBEDTLS_USE_PSA_CRYPTO is enabled.
+#
 # As part of resolving https://github.com/Mbed-TLS/mbedtls/issues/7294,
 # we will remove the "(USE_PSA)" test cases and run the "(no USE_PSA)" test
 # cases.

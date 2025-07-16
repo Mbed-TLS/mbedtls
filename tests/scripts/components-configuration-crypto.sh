@@ -1429,6 +1429,7 @@ config_psa_crypto_accel_rsa () {
         scripts/config.py unset MBEDTLS_RSA_C
         scripts/config.py unset MBEDTLS_PKCS1_V15
         scripts/config.py unset MBEDTLS_PKCS1_V21
+        scripts/config.py unset MBEDTLS_GENPRIME
 
         # We need PEM parsing in the test library as well to support the import
         # of PEM encoded RSA keys.
@@ -1817,6 +1818,7 @@ component_test_psa_crypto_config_accel_cipher_aead_cmac () {
     scripts/config.py unset MBEDTLS_ARIA_C
     scripts/config.py unset MBEDTLS_CHACHA20_C
     scripts/config.py unset MBEDTLS_CAMELLIA_C
+    scripts/config.py unset MBEDTLS_POLY1305_C
 
     # Disable DES, if it still exists.
     # This can be removed once we remove DES from the library.
@@ -1842,6 +1844,7 @@ component_test_psa_crypto_config_accel_cipher_aead_cmac () {
     not grep mbedtls_gcm ${BUILTIN_SRC_PATH}/gcm.o
     not grep mbedtls_chachapoly ${BUILTIN_SRC_PATH}/chachapoly.o
     not grep mbedtls_cmac ${BUILTIN_SRC_PATH}/cmac.o
+    not grep mbedtls_poly1305 ${BUILTIN_SRC_PATH}/poly1305.o
 
     # Run the tests
     # -------------
@@ -1850,7 +1853,8 @@ component_test_psa_crypto_config_accel_cipher_aead_cmac () {
     make test
 
     msg "ssl-opt: full config with accelerated cipher inc. AEAD and CMAC"
-    tests/ssl-opt.sh
+    # Exclude password-protected key tests — they require built-in CBC and AES.
+    tests/ssl-opt.sh -e "TLS: password protected"
 
     msg "compat.sh: full config with accelerated cipher inc. AEAD and CMAC"
     tests/compat.sh -V NO -p mbedTLS
@@ -1870,7 +1874,8 @@ component_test_psa_crypto_config_reference_cipher_aead_cmac () {
     make test
 
     msg "ssl-opt: full config with non-accelerated cipher inc. AEAD and CMAC"
-    tests/ssl-opt.sh
+    # Exclude password-protected key tests as in test_psa_crypto_config_accel_cipher_aead_cmac.
+    tests/ssl-opt.sh -e "TLS: password protected"
 
     msg "compat.sh: full config with non-accelerated cipher inc. AEAD and CMAC"
     tests/compat.sh -V NO -p mbedTLS
@@ -2499,7 +2504,7 @@ component_build_psa_config_file () {
     echo '#error "TF_PSA_CRYPTO_CONFIG_FILE is not working"' >"$CRYPTO_CONFIG_H"
     make CFLAGS="-I '$PWD' -DTF_PSA_CRYPTO_CONFIG_FILE='\"psa_test_config.h\"'"
     # Make sure this feature is enabled. We'll disable it in the next phase.
-    programs/test/query_compile_time_config MBEDTLS_CMAC_C
+    programs/test/query_compile_time_config PSA_WANT_ALG_CMAC
     make clean
 
     msg "build: make with TF_PSA_CRYPTO_CONFIG_FILE + TF_PSA_CRYPTO_USER_CONFIG_FILE" # ~40s
@@ -2510,7 +2515,7 @@ component_build_psa_config_file () {
     echo '#undef PSA_WANT_ALG_PBKDF2_AES_CMAC_PRF_128' >> psa_user_config.h
     echo '#undef MBEDTLS_CMAC_C' >> psa_user_config.h
     make CFLAGS="-I '$PWD' -DTF_PSA_CRYPTO_CONFIG_FILE='\"psa_test_config.h\"' -DTF_PSA_CRYPTO_USER_CONFIG_FILE='\"psa_user_config.h\"'"
-    not programs/test/query_compile_time_config MBEDTLS_CMAC_C
+    not programs/test/query_compile_time_config PSA_WANT_ALG_CMAC
 
     rm -f psa_test_config.h psa_user_config.h
 }
@@ -2543,5 +2548,20 @@ component_test_min_mpi_window_size () {
     make
 
     msg "test: MBEDTLS_MPI_WINDOW_SIZE=1 - main suites (inc. selftests) (ASan build)" # ~ 10s
+    make test
+}
+
+component_test_xts () {
+    # Component dedicated to run XTS unit test cases while XTS is not
+    # supported through the PSA API.
+    msg "build: Default + MBEDTLS_CIPHER_MODE_XTS"
+
+    echo "#define MBEDTLS_CIPHER_MODE_XTS" > psa_user_config.h
+    cmake -DTF_PSA_CRYPTO_USER_CONFIG_FILE="psa_user_config.h"
+    make
+
+    rm -f psa_user_config.h
+
+    msg "test: Default + MBEDTLS_CIPHER_MODE_XTS"
     make test
 }

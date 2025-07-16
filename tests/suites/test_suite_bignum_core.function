@@ -1408,8 +1408,7 @@ void mpi_core_gcd_modinv_odd(char *input_A, char *input_N,
     TEST_LE_U(A_limbs, N_limbs);
     TEST_ASSERT(mpi_core_cmp(A, A_limbs, N, N_limbs) <= 0);
 
-    const size_t limbs = N_limbs;
-    const size_t bytes = limbs * sizeof(mbedtls_mpi_uint);
+    const size_t N_bytes = N_limbs * sizeof(mbedtls_mpi_uint);
 
     TEST_CF_SECRET(A, A_limbs * sizeof(mbedtls_mpi_uint));
     TEST_CF_SECRET(N, N_limbs * sizeof(mbedtls_mpi_uint));
@@ -1426,10 +1425,10 @@ void mpi_core_gcd_modinv_odd(char *input_A, char *input_N,
      * Test GCD only (I == NULL)
      */
     TEST_CALLOC(G, N_limbs);
-    memset(G, 'G', bytes);
+    memset(G, 'G', N_bytes);
 
     TEST_CALLOC(T, 4 * N_limbs);
-    memset(T, 'T', bytes);
+    memset(T, 'T', 4 * N_bytes);
 
     mbedtls_mpi_core_gcd_modinv_odd(G, NULL, A, A_limbs, N, N_limbs, T);
     TEST_EQUAL(mpi_core_cmp(G, N_limbs, exp_G, exp_G_limbs), 0);
@@ -1438,10 +1437,10 @@ void mpi_core_gcd_modinv_odd(char *input_A, char *input_N,
 
     /* GCD only, G aliased to N */
     TEST_CALLOC(G, N_limbs);
-    memcpy(G, N, bytes);
+    memcpy(G, N, N_bytes);
 
     TEST_CALLOC(T, 4 * N_limbs);
-    memset(T, 'T', bytes);
+    memset(T, 'T', 4 * N_bytes);
 
     mbedtls_mpi_core_gcd_modinv_odd(G, NULL, A, A_limbs, /* N */ G, N_limbs, T);
     TEST_EQUAL(mpi_core_cmp(G, N_limbs, exp_G, exp_G_limbs), 0);
@@ -1453,7 +1452,7 @@ void mpi_core_gcd_modinv_odd(char *input_A, char *input_N,
     memcpy(G, A, A_limbs * sizeof(mbedtls_mpi_uint));
 
     TEST_CALLOC(T, 4 * N_limbs);
-    memset(T, 'T', bytes);
+    memset(T, 'T', 4 * N_bytes);
 
     mbedtls_mpi_core_gcd_modinv_odd(G, NULL, /* A */ G, N_limbs, N, N_limbs, T);
     TEST_EQUAL(mpi_core_cmp(G, N_limbs, exp_G, exp_G_limbs), 0);
@@ -1464,13 +1463,13 @@ void mpi_core_gcd_modinv_odd(char *input_A, char *input_N,
      * Test GCD + modinv
      */
     TEST_CALLOC(G, N_limbs);
-    memset(G, 'G', bytes);
+    memset(G, 'G', N_bytes);
 
     TEST_CALLOC(I, N_limbs);
-    memset(I, 'I', bytes);
+    memset(I, 'I', N_bytes);
 
     TEST_CALLOC(T, 5 * N_limbs);
-    memset(T, 'T', bytes);
+    memset(T, 'T', 5 * N_bytes);
 
     mbedtls_mpi_core_gcd_modinv_odd(G, I, A, A_limbs, N, N_limbs, T);
 
@@ -1486,10 +1485,10 @@ void mpi_core_gcd_modinv_odd(char *input_A, char *input_N,
     memcpy(G, A, A_limbs * sizeof(mbedtls_mpi_uint));
 
     TEST_CALLOC(I, N_limbs);
-    memset(I, 'I', bytes);
+    memset(I, 'I', N_bytes);
 
     TEST_CALLOC(T, 5 * N_limbs);
-    memset(T, 'T', bytes);
+    memset(T, 'T', 5 * N_bytes);
 
     mbedtls_mpi_core_gcd_modinv_odd(G, I, /* A */ G, N_limbs, N, N_limbs, T);
 
@@ -1502,13 +1501,13 @@ void mpi_core_gcd_modinv_odd(char *input_A, char *input_N,
 
     /* GCD + modinv, I aliased to A */
     TEST_CALLOC(G, N_limbs);
-    memset(G, 'G', bytes);
+    memset(G, 'G', N_bytes);
 
     TEST_CALLOC(I, N_limbs);
     memcpy(I, A, A_limbs * sizeof(mbedtls_mpi_uint));
 
     TEST_CALLOC(T, 5 * N_limbs);
-    memset(T, 'T', bytes);
+    memset(T, 'T', 5 * N_bytes);
 
     mbedtls_mpi_core_gcd_modinv_odd(G, I, /* A */ I, N_limbs, N, N_limbs, T);
 

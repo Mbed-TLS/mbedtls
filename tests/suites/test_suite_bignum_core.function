@@ -148,6 +148,26 @@ exit:
     return ret;
 }
 
+/*
+ * Return -1 if A < B, +1 if A > B and 0 if A == B
+ */
+static int mpi_core_cmp(const mbedtls_mpi_uint *A, size_t A_limbs,
+                        const mbedtls_mpi_uint *B, size_t B_limbs)
+{
+    const mbedtls_mpi AA = {
+        .p = (mbedtls_mpi_uint *) A,
+        .s = 1,
+        .n = (unsigned short) A_limbs,
+    };
+    const mbedtls_mpi BB = {
+        .p = (mbedtls_mpi_uint *) B,
+        .s = 1,
+        .n = (unsigned short) B_limbs,
+    };
+
+    return mbedtls_mpi_cmp_mpi(&AA, &BB);
+}
+
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -1383,14 +1403,7 @@ void mpi_core_gcd_modinv_odd(char *input_A, char *input_N,
     /* The function under test wants this */
     TEST_EQUAL(N[0] & 1, 1);
     TEST_LE_U(A_limbs, N_limbs);
-    if (A_limbs == N_limbs) {
-        TEST_EQUAL(mbedtls_mpi_core_lt_ct(N, A, N_limbs), MBEDTLS_CT_FALSE);
-    }
-    /* Other things we want from test data, for our convenience */
-    TEST_EQUAL(exp_G_limbs, N_limbs);
-    if (got_I) {
-        TEST_EQUAL(exp_I_limbs, N_limbs);
-    }
+    TEST_ASSERT(mpi_core_cmp(A, A_limbs, N, N_limbs) <= 0);
 
     const size_t limbs = N_limbs;
     const size_t bytes = limbs * sizeof(mbedtls_mpi_uint);
@@ -1409,7 +1422,7 @@ void mpi_core_gcd_modinv_odd(char *input_A, char *input_N,
 
     mbedtls_mpi_core_gcd_modinv_odd(G, NULL, A, A_limbs, N, N_limbs, T);
     TEST_CF_PUBLIC(G, bytes);
-    TEST_MEMORY_COMPARE(G, bytes, exp_G, bytes);
+    TEST_EQUAL(mpi_core_cmp(G, N_limbs, exp_G, exp_G_limbs), 0);
 
     mbedtls_free(G);
     G = NULL;
@@ -1425,7 +1438,7 @@ void mpi_core_gcd_modinv_odd(char *input_A, char *input_N,
 
     mbedtls_mpi_core_gcd_modinv_odd(G, NULL, A, A_limbs, G, N_limbs, T);
     TEST_CF_PUBLIC(G, bytes);
-    TEST_MEMORY_COMPARE(G, bytes, exp_G, bytes);
+    TEST_EQUAL(mpi_core_cmp(G, N_limbs, exp_G, exp_G_limbs), 0);
 
     mbedtls_free(G);
     G = NULL;
@@ -1441,7 +1454,7 @@ void mpi_core_gcd_modinv_odd(char *input_A, char *input_N,
 
     mbedtls_mpi_core_gcd_modinv_odd(G, NULL, G, N_limbs, N, N_limbs, T);
     TEST_CF_PUBLIC(G, bytes);
-    TEST_MEMORY_COMPARE(G, bytes, exp_G, bytes);
+    TEST_EQUAL(mpi_core_cmp(G, N_limbs, exp_G, exp_G_limbs), 0);
 
     mbedtls_free(G);
     G = NULL;
@@ -1463,10 +1476,10 @@ void mpi_core_gcd_modinv_odd(char *input_A, char *input_N,
     mbedtls_mpi_core_gcd_modinv_odd(G, I, A, A_limbs, N, N_limbs, T);
 
     TEST_CF_PUBLIC(G, bytes);
-    TEST_MEMORY_COMPARE(G, bytes, exp_G, bytes);
+    TEST_EQUAL(mpi_core_cmp(G, N_limbs, exp_G, exp_G_limbs), 0);
     if (got_I) {
         TEST_CF_PUBLIC(I, bytes);
-        TEST_MEMORY_COMPARE(I, bytes, exp_I, bytes);
+        TEST_EQUAL(mpi_core_cmp(I, N_limbs, exp_I, exp_I_limbs), 0);
     }
 
     mbedtls_free(G);
@@ -1489,10 +1502,10 @@ void mpi_core_gcd_modinv_odd(char *input_A, char *input_N,
     mbedtls_mpi_core_gcd_modinv_odd(G, I, G, N_limbs, N, N_limbs, T);
 
     TEST_CF_PUBLIC(G, bytes);
-    TEST_MEMORY_COMPARE(G, bytes, exp_G, bytes);
+    TEST_EQUAL(mpi_core_cmp(G, N_limbs, exp_G, exp_G_limbs), 0);
     if (got_I) {
         TEST_CF_PUBLIC(I, bytes);
-        TEST_MEMORY_COMPARE(I, bytes, exp_I, bytes);
+        TEST_EQUAL(mpi_core_cmp(I, N_limbs, exp_I, exp_I_limbs), 0);
     }
 
     mbedtls_free(G);
@@ -1515,10 +1528,10 @@ void mpi_core_gcd_modinv_odd(char *input_A, char *input_N,
     mbedtls_mpi_core_gcd_modinv_odd(G, I, I, N_limbs, N, N_limbs, T);
 
     TEST_CF_PUBLIC(G, bytes);
-    TEST_MEMORY_COMPARE(G, bytes, exp_G, bytes);
+    TEST_EQUAL(mpi_core_cmp(G, N_limbs, exp_G, exp_G_limbs), 0);
     if (got_I) {
         TEST_CF_PUBLIC(I, bytes);
-        TEST_MEMORY_COMPARE(I, bytes, exp_I, bytes);
+        TEST_EQUAL(mpi_core_cmp(I, N_limbs, exp_I, exp_I_limbs), 0);
     }
 
     mbedtls_free(G);

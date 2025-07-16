@@ -525,7 +525,7 @@ CLZ: 100000 0: skip overly long input
 mpi_core_clz:100000:0
 
 GCD-modinv random 80-bit, non-trivial GCD -> no inverse
-mpi_core_gcd_modinv_odd:"e4518a1900fce698fa3":"1a84113636607520200d":"00000000000000000003":""
+mpi_core_gcd_modinv_odd:"e4518a1900fce698fa3":"1a84113636607520200d":"3":""
 
 GCD-modinv random 80-bit, trivial GCD -> inverse
-mpi_core_gcd_modinv_odd:"7f2405d6de7db80a7bc":"1a84113636607520200d":"00000000000000000001":"15f158844a59cd7a3ed2"
+mpi_core_gcd_modinv_odd:"7f2405d6de7db80a7bc":"1a84113636607520200d":"1":"15f158844a59cd7a3ed2"

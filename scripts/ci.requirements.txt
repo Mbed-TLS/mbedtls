@@ -17,7 +17,10 @@ mypy == 0.942
 
 # At the time of writing, only needed for tests/scripts/audit-validity-dates.py.
 # It needs >=35.0.0 for correct operation, and that requires Python >=3.6.
-cryptography >= 35.0.0
+# >=35.0.0 also requires Rust to build from source, which we are forced to do on
+# FreeBSD, since PyPI doesn't carry binary wheels for the BSDs.
+# Disable on FreeBSD until we get a Rust toolchain up and running on the CI.
+cryptography >= 35.0.0; platform_system != 'FreeBSD'
 
 # For building `framework/data_files/server9-bad-saltlen.crt` and check python
 # files.

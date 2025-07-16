@@ -1,0 +1,8 @@
+Removals
+   * Remove mbedtls_asn1_free_named_data, it has now been replaced with 
+     mbedtls_asn1_free_named_data_list or 
+     mbedtls_asn1_free_named_data_list_shallow
+   * Remove MBEDTLS_SSL_DTLS_CONNECTION_ID_COMPAT, now only the 
+     standard version is supported.
+   * Remove mbedtls_ssl_conf_max/min_version(), this has been replaced with 
+     mbedtls_ssl_conf_max/min_tls_version() 

@@ -55,5 +55,43 @@ class MbedtlsTestConfigChecks(unittest_config_checks.TestConfigChecks):
                       error=('MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED'))
 
 
+    def test_define_MBEDTLS_MD5_C_redundant(self) -> None:
+        """Error when redundantly setting a subproject internal option."""
+        self.bad_case('#define PSA_WANT_ALG_MD5 1',
+                      '#define MBEDTLS_MD5_C',
+                      error=r'MBEDTLS_MD5_C.* PSA_WANT_ALG_MD5 in psa/crypto_config\.h')
+
+    def test_define_MBEDTLS_MD5_C_added(self) -> None:
+        """Error when setting a subproject internal option that was disabled."""
+        self.bad_case('''
+                      #undef PSA_WANT_ALG_MD5
+                      #undef MBEDTLS_MD5_C
+                      ''',
+                      '#define MBEDTLS_MD5_C',
+                      error=r'MBEDTLS_MD5_C.* PSA_WANT_ALG_MD5 in psa/crypto_config\.h')
+
+    def test_define_MBEDTLS_BASE64_C_redundant(self) -> None:
+        """Ok to redundantly set a subproject option."""
+        self.good_case(None,
+                       '#define MBEDTLS_BASE64_C')
+
+    def test_define_MBEDTLS_BASE64_C_added(self) -> None:
+        """Error when setting a subproject option that was disabled."""
+        self.bad_case('''
+                      #undef MBEDTLS_BASE64_C
+                      #undef MBEDTLS_PEM_PARSE_C
+                      #undef MBEDTLS_PEM_WRITE_C
+                      ''',
+                      '#define MBEDTLS_BASE64_C',
+                      error=r'MBEDTLS_BASE64_C .*psa/crypto_config\.h')
+
+    @unittest.skip("Checks for #undef are not implemented yet.")
+    def test_define_MBEDTLS_BASE64_C_unset(self) -> None:
+        """Error when unsetting a subproject option that was enabled."""
+        self.bad_case(None,
+                      '#undef MBEDTLS_BASE64_C',
+                      error=r'MBEDTLS_BASE64_C .*psa/crypto_config\.h')
+
+
 if __name__ == '__main__':
     unittest.main()

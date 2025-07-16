@@ -284,15 +284,6 @@
  * Various constants
  */
 
-#if !defined(MBEDTLS_DEPRECATED_REMOVED)
-/* These are the high and low bytes of ProtocolVersion as defined by:
- * - RFC 5246: ProtocolVersion version = { 3, 3 };     // TLS v1.2
- * - RFC 8446: see section 4.2.1
- */
-#define MBEDTLS_SSL_MAJOR_VERSION_3             3
-#define MBEDTLS_SSL_MINOR_VERSION_3             3   /*!< TLS v1.2 */
-#define MBEDTLS_SSL_MINOR_VERSION_4             4   /*!< TLS v1.3 */
-#endif /* MBEDTLS_DEPRECATED_REMOVED */
 
 #define MBEDTLS_SSL_TRANSPORT_STREAM            0   /*!< TLS      */
 #define MBEDTLS_SSL_TRANSPORT_DATAGRAM          1   /*!< DTLS     */
@@ -1495,9 +1486,6 @@ struct mbedtls_ssl_config {
 
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
 
-#if !defined(MBEDTLS_DEPRECATED_REMOVED)
-    const int *MBEDTLS_PRIVATE(sig_hashes);         /*!< allowed signature hashes           */
-#endif
     const uint16_t *MBEDTLS_PRIVATE(sig_algs);      /*!< allowed signature algorithms       */
 #endif /* MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED */
 
@@ -3721,41 +3709,6 @@ void mbedtls_ssl_conf_groups(mbedtls_ssl_config *conf,
                              const uint16_t *groups);
 
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
-#if !defined(MBEDTLS_DEPRECATED_REMOVED) && defined(MBEDTLS_SSL_PROTO_TLS1_2)
-/**
- * \brief          Set the allowed hashes for signatures during the handshake.
- *
- * \note           This only affects which hashes are offered and can be used
- *                 for signatures during the handshake. Hashes for message
- *                 authentication and the TLS PRF are controlled by the
- *                 ciphersuite, see \c mbedtls_ssl_conf_ciphersuites(). Hashes
- *                 used for certificate signature are controlled by the
- *                 verification profile, see \c mbedtls_ssl_conf_cert_profile().
- *
- * \deprecated     Superseded by mbedtls_ssl_conf_sig_algs().
- *
- * \note           This list should be ordered by decreasing preference
- *                 (preferred hash first).
- *
- * \note           By default, all supported hashes whose length is at least
- *                 256 bits are allowed. This is the same set as the default
- *                 for certificate verification
- *                 (#mbedtls_x509_crt_profile_default).
- *                 The preference order is currently unspecified and may
- *                 change in future versions.
- *
- * \note           New minor versions of Mbed TLS may extend this list,
- *                 for example if new curves are added to the library.
- *                 New minor versions of Mbed TLS will not remove items
- *                 from this list unless serious security concerns require it.
- *
- * \param conf     SSL configuration
- * \param hashes   Ordered list of allowed signature hashes,
- *                 terminated by \c MBEDTLS_MD_NONE.
- */
-void MBEDTLS_DEPRECATED mbedtls_ssl_conf_sig_hashes(mbedtls_ssl_config *conf,
-                                                    const int *hashes);
-#endif /* !MBEDTLS_DEPRECATED_REMOVED && MBEDTLS_SSL_PROTO_TLS1_2 */
 
 /**
  * \brief          Configure allowed signature algorithms for use in TLS
@@ -4102,28 +4055,6 @@ void mbedtls_ssl_get_dtls_srtp_negotiation_result(const mbedtls_ssl_context *ssl
                                                   mbedtls_dtls_srtp_info *dtls_srtp_info);
 #endif /* MBEDTLS_SSL_DTLS_SRTP */
 
-#if !defined(MBEDTLS_DEPRECATED_REMOVED)
-/**
- * \brief          Set the maximum supported version sent from the client side
- *                 and/or accepted at the server side.
- *
- *                 See also the documentation of mbedtls_ssl_conf_min_version().
- *
- * \note           This ignores ciphersuites from higher versions.
- *
- * \note           This function is deprecated and has been replaced by
- *                 \c mbedtls_ssl_conf_max_tls_version().
- *
- * \param conf     SSL configuration
- * \param major    Major version number (#MBEDTLS_SSL_MAJOR_VERSION_3)
- * \param minor    Minor version number
- *                 (#MBEDTLS_SSL_MINOR_VERSION_3 for (D)TLS 1.2,
- *                 #MBEDTLS_SSL_MINOR_VERSION_4 for TLS 1.3)
- */
-void MBEDTLS_DEPRECATED mbedtls_ssl_conf_max_version(mbedtls_ssl_config *conf, int major,
-                                                     int minor);
-#endif /* MBEDTLS_DEPRECATED_REMOVED */
-
 /**
  * \brief          Set the maximum supported version sent from the client side
  *                 and/or accepted at the server side.
@@ -4141,45 +4072,6 @@ static inline void mbedtls_ssl_conf_max_tls_version(mbedtls_ssl_config *conf,
 {
     conf->MBEDTLS_PRIVATE(max_tls_version) = tls_version;
 }
-
-#if !defined(MBEDTLS_DEPRECATED_REMOVED)
-/**
- * \brief          Set the minimum accepted SSL/TLS protocol version
- *
- * \note           By default, all supported versions are accepted.
- *                 Future versions of the library may disable older
- *                 protocol versions by default if they become deprecated.
- *
- * \note           The following versions are supported (if enabled at
- *                 compile time):
- *                 - (D)TLS 1.2: \p major = #MBEDTLS_SSL_MAJOR_VERSION_3,
- *                   \p minor = #MBEDTLS_SSL_MINOR_VERSION_3
- *                 - TLS 1.3: \p major = #MBEDTLS_SSL_MAJOR_VERSION_3,
- *                   \p minor = #MBEDTLS_SSL_MINOR_VERSION_4
- *
- *                 Note that the numbers in the constant names are the
- *                 TLS internal protocol numbers, and the minor versions
- *                 differ by one from the human-readable versions!
- *
- * \note           Input outside of the SSL_MAX_XXXXX_VERSION and
- *                 SSL_MIN_XXXXX_VERSION range is ignored.
- *
- * \note           After the handshake, you can call
- *                 mbedtls_ssl_get_version_number() to see what version was
- *                 negotiated.
- *
- * \note           This function is deprecated and has been replaced by
- *                 \c mbedtls_ssl_conf_min_tls_version().
- *
- * \param conf     SSL configuration
- * \param major    Major version number (#MBEDTLS_SSL_MAJOR_VERSION_3)
- * \param minor    Minor version number
- *                 (#MBEDTLS_SSL_MINOR_VERSION_3 for (D)TLS 1.2,
- *                 #MBEDTLS_SSL_MINOR_VERSION_4 for TLS 1.3)
- */
-void MBEDTLS_DEPRECATED mbedtls_ssl_conf_min_version(mbedtls_ssl_config *conf, int major,
-                                                     int minor);
-#endif /* MBEDTLS_DEPRECATED_REMOVED */
 
 /**
  * \brief          Set the minimum supported version sent from the client side

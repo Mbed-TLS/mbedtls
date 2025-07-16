@@ -2060,12 +2060,9 @@ static int x509_crt_verifycrl(mbedtls_x509_crt *crt, mbedtls_x509_crt *ca,
             flags |= MBEDTLS_X509_BADCERT_BAD_KEY;
         }
 
-        #pragma GCC diagnostic push
-        #pragma GCC diagnostic warning "-Wenum-conversion"
         if (mbedtls_pk_verify_ext((mbedtls_pk_sigalg_t) crl_list->sig_pk, NULL, &ca->pk,
                                   crl_list->sig_md, hash, hash_length,
                                   crl_list->sig.p, crl_list->sig.len) != 0) {
-        #pragma GCC diagnostic pop
             flags |= MBEDTLS_X509_BADCRL_NOT_TRUSTED;
             break;
         }
@@ -2137,12 +2134,9 @@ static int x509_crt_check_signature(const mbedtls_x509_crt *child,
     (void) rs_ctx;
 #endif
 
-    #pragma GCC diagnostic push
-    #pragma GCC diagnostic warning "-Wenum-conversion"
     return mbedtls_pk_verify_ext((mbedtls_pk_sigalg_t) child->sig_pk, NULL, &parent->pk,
                                  child->sig_md, hash, hash_len,
                                  child->sig.p, child->sig.len);
-    #pragma GCC diagnostic pop
 }
 
 /*

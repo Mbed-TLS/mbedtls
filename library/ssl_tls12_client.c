@@ -2082,13 +2082,10 @@ start_processing:
 
 #if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT)
         if (pk_alg == MBEDTLS_PK_RSASSA_PSS) {
-            #pragma GCC diagnostic push
-            #pragma GCC diagnostic warning "-Wenum-conversion"
             ret = mbedtls_pk_verify_ext((mbedtls_pk_sigalg_t) pk_alg, NULL,
                                         peer_pk,
                                         md_alg, hash, hashlen,
                                         p, sig_len);
-            #pragma GCC diagnostic pop
         } else
 #endif /* MBEDTLS_X509_RSASSA_PSS_SUPPORT */
         ret = mbedtls_pk_verify_restartable(peer_pk,

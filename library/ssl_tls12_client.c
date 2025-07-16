@@ -19,7 +19,6 @@
 
 #include "psa_util_internal.h"
 #include "psa/crypto.h"
-#pragma GCC diagnostic warning "-Wenum-conversion"
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED)
 /* Define a local translating function to save code size by not using too many
  * arguments in each translating place. */
@@ -2086,6 +2085,7 @@ start_processing:
             ret = mbedtls_pk_verify_new(pk_alg, peer_pk,
                                         md_alg, hash, hashlen,
                                         p, sig_len);
+            #pragma GCC diagnostic pop
         } else
 #endif /* MBEDTLS_X509_RSASSA_PSS_SUPPORT */
         ret = mbedtls_pk_verify_restartable(peer_pk,

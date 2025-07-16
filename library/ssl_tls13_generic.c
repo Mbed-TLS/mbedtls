@@ -25,7 +25,6 @@
 
 #include "psa/crypto.h"
 #include "psa_util_internal.h"
-#pragma GCC diagnostic warning "-Wenum-conversion"
 
 #if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED)
 /* Define a local translating function to save code size by not using too many
@@ -964,9 +963,12 @@ static int ssl_tls13_write_certificate_verify_body(mbedtls_ssl_context *ssl,
 
         MBEDTLS_SSL_DEBUG_BUF(3, "verify hash", verify_hash, verify_hash_len);
 
+        #pragma GCC diagnostic push
+        #pragma GCC diagnostic warning "-Wenum-conversion"
         if ((ret = mbedtls_pk_sign_ext(pk_type, own_key,
                                        md_alg, verify_hash, verify_hash_len,
                                        p + 4, (size_t) (end - (p + 4)), &signature_len)) != 0) {
+        #pragma GCC diagnostic pop
             MBEDTLS_SSL_DEBUG_MSG(2, ("CertificateVerify signature failed with %s",
                                       mbedtls_ssl_sig_alg_to_str(*sig_alg)));
             MBEDTLS_SSL_DEBUG_RET(2, "mbedtls_pk_sign_ext", ret);

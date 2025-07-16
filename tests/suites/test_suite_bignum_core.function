@@ -154,6 +154,9 @@ exit:
 static int mpi_core_cmp(const mbedtls_mpi_uint *A, size_t A_limbs,
                         const mbedtls_mpi_uint *B, size_t B_limbs)
 {
+    TEST_CF_PUBLIC(A, A_limbs * sizeof(mbedtls_mpi_uint));
+    TEST_CF_PUBLIC(B, B_limbs * sizeof(mbedtls_mpi_uint));
+
     const mbedtls_mpi AA = {
         .p = (mbedtls_mpi_uint *) A,
         .s = 1,
@@ -1411,6 +1414,14 @@ void mpi_core_gcd_modinv_odd(char *input_A, char *input_N,
     TEST_CF_SECRET(A, A_limbs * sizeof(mbedtls_mpi_uint));
     TEST_CF_SECRET(N, N_limbs * sizeof(mbedtls_mpi_uint));
 
+#define FREE_G_I_T      \
+    mbedtls_free(G);    \
+    G = NULL;           \
+    mbedtls_free(I);    \
+    I = NULL;           \
+    mbedtls_free(T);    \
+    T = NULL
+
     /*
      * Test GCD only (I == NULL)
      */
@@ -1421,13 +1432,9 @@ void mpi_core_gcd_modinv_odd(char *input_A, char *input_N,
     memset(T, 'T', bytes);
 
     mbedtls_mpi_core_gcd_modinv_odd(G, NULL, A, A_limbs, N, N_limbs, T);
-    TEST_CF_PUBLIC(G, bytes);
     TEST_EQUAL(mpi_core_cmp(G, N_limbs, exp_G, exp_G_limbs), 0);
 
-    mbedtls_free(G);
-    G = NULL;
-    mbedtls_free(T);
-    T = NULL;
+    FREE_G_I_T;
 
     /* GCD only, G aliased to N */
     TEST_CALLOC(G, N_limbs);
@@ -1436,14 +1443,10 @@ void mpi_core_gcd_modinv_odd(char *input_A, char *input_N,
     TEST_CALLOC(T, 4 * N_limbs);
     memset(T, 'T', bytes);
 
-    mbedtls_mpi_core_gcd_modinv_odd(G, NULL, A, A_limbs, G, N_limbs, T);
-    TEST_CF_PUBLIC(G, bytes);
+    mbedtls_mpi_core_gcd_modinv_odd(G, NULL, A, A_limbs, /* N */ G, N_limbs, T);
     TEST_EQUAL(mpi_core_cmp(G, N_limbs, exp_G, exp_G_limbs), 0);
 
-    mbedtls_free(G);
-    G = NULL;
-    mbedtls_free(T);
-    T = NULL;
+    FREE_G_I_T;
 
     /* GCD only, G aliased to A (hence A_limbs = N_limbs) */
     TEST_CALLOC(G, N_limbs);
@@ -1452,14 +1455,10 @@ void mpi_core_gcd_modinv_odd(char *input_A, char *input_N,
     TEST_CALLOC(T, 4 * N_limbs);
     memset(T, 'T', bytes);
 
-    mbedtls_mpi_core_gcd_modinv_odd(G, NULL, G, N_limbs, N, N_limbs, T);
-    TEST_CF_PUBLIC(G, bytes);
+    mbedtls_mpi_core_gcd_modinv_odd(G, NULL, /* A */ G, N_limbs, N, N_limbs, T);
     TEST_EQUAL(mpi_core_cmp(G, N_limbs, exp_G, exp_G_limbs), 0);
 
-    mbedtls_free(G);
-    G = NULL;
-    mbedtls_free(T);
-    T = NULL;
+    FREE_G_I_T;
 
     /*
      * Test GCD + modinv
@@ -1475,19 +1474,12 @@ void mpi_core_gcd_modinv_odd(char *input_A, char *input_N,
 
     mbedtls_mpi_core_gcd_modinv_odd(G, I, A, A_limbs, N, N_limbs, T);
 
-    TEST_CF_PUBLIC(G, bytes);
     TEST_EQUAL(mpi_core_cmp(G, N_limbs, exp_G, exp_G_limbs), 0);
     if (got_I) {
-        TEST_CF_PUBLIC(I, bytes);
         TEST_EQUAL(mpi_core_cmp(I, N_limbs, exp_I, exp_I_limbs), 0);
     }
 
-    mbedtls_free(G);
-    G = NULL;
-    mbedtls_free(I);
-    I = NULL;
-    mbedtls_free(T);
-    T = NULL;
+    FREE_G_I_T;
 
     /* GCD + modinv, G aliased to A */
     TEST_CALLOC(G, N_limbs);
@@ -1499,21 +1491,14 @@ void mpi_core_gcd_modinv_odd(char *input_A, char *input_N,
     TEST_CALLOC(T, 5 * N_limbs);
     memset(T, 'T', bytes);
 
-    mbedtls_mpi_core_gcd_modinv_odd(G, I, G, N_limbs, N, N_limbs, T);
+    mbedtls_mpi_core_gcd_modinv_odd(G, I, /* A */ G, N_limbs, N, N_limbs, T);
 
-    TEST_CF_PUBLIC(G, bytes);
     TEST_EQUAL(mpi_core_cmp(G, N_limbs, exp_G, exp_G_limbs), 0);
     if (got_I) {
-        TEST_CF_PUBLIC(I, bytes);
         TEST_EQUAL(mpi_core_cmp(I, N_limbs, exp_I, exp_I_limbs), 0);
     }
 
-    mbedtls_free(G);
-    G = NULL;
-    mbedtls_free(I);
-    I = NULL;
-    mbedtls_free(T);
-    T = NULL;
+    FREE_G_I_T;
 
     /* GCD + modinv, I aliased to A */
     TEST_CALLOC(G, N_limbs);
@@ -1525,22 +1510,16 @@ void mpi_core_gcd_modinv_odd(char *input_A, char *input_N,
     TEST_CALLOC(T, 5 * N_limbs);
     memset(T, 'T', bytes);
 
-    mbedtls_mpi_core_gcd_modinv_odd(G, I, I, N_limbs, N, N_limbs, T);
+    mbedtls_mpi_core_gcd_modinv_odd(G, I, /* A */ I, N_limbs, N, N_limbs, T);
 
-    TEST_CF_PUBLIC(G, bytes);
     TEST_EQUAL(mpi_core_cmp(G, N_limbs, exp_G, exp_G_limbs), 0);
     if (got_I) {
-        TEST_CF_PUBLIC(I, bytes);
         TEST_EQUAL(mpi_core_cmp(I, N_limbs, exp_I, exp_I_limbs), 0);
     }
 
-    mbedtls_free(G);
-    G = NULL;
-    mbedtls_free(I);
-    I = NULL;
-    mbedtls_free(T);
-    T = NULL;
+    FREE_G_I_T;
 
+#undef FREE_G_I_T
 exit:
     mbedtls_free(A);
     mbedtls_free(N);

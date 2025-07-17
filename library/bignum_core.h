@@ -825,7 +825,9 @@ void mbedtls_mpi_core_from_mont_rep(mbedtls_mpi_uint *X,
 /** Compute GCD(A, N) and optionally the inverse of A mod N if it exists.
  *
  * Requires N to be odd, and 0 <= A <= N.
+ * When I != NULL, N (the modulus) must not be 1.
  *
+ * A and N may not alias each other.
  * When I == NULL (computing only the GCD), G may alias A or N.
  * When I != NULL (computing the modular inverse), G or I may alias A
  * but none of them may alias N (the modulus).

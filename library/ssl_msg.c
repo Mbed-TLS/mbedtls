@@ -712,21 +712,6 @@ static void ssl_extract_add_data_from_record(unsigned char *add_data,
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
 
     if (rec->cid_len != 0) {
-        // CID
-        memcpy(cur, rec->cid, rec->cid_len);
-        cur += rec->cid_len;
-
-        // cid_length
-        *cur = rec->cid_len;
-        cur++;
-
-        // length of inner plaintext
-        MBEDTLS_PUT_UINT16_BE(ad_len_field, cur, 0);
-        cur += 2;
-    } else
-#elif defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
-
-    if (rec->cid_len != 0) {
         // epoch + sequence number
         memcpy(cur, rec->ctr, sizeof(rec->ctr));
         cur += sizeof(rec->ctr);

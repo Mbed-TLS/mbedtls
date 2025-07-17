@@ -2420,16 +2420,6 @@ psa_status_t mbedtls_ssl_cipher_to_psa(mbedtls_cipher_type_t mbedtls_cipher_type
 }
 
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
-#if !defined(MBEDTLS_DEPRECATED_REMOVED) && defined(MBEDTLS_SSL_PROTO_TLS1_2)
-/*
- * Set allowed/preferred hashes for handshake signatures
- */
-void mbedtls_ssl_conf_sig_hashes(mbedtls_ssl_config *conf,
-                                 const int *hashes)
-{
-    conf->sig_hashes = hashes;
-}
-#endif /* !MBEDTLS_DEPRECATED_REMOVED && MBEDTLS_SSL_PROTO_TLS1_2 */
 
 /* Configure allowed signature algorithms for handshake */
 void mbedtls_ssl_conf_sig_algs(mbedtls_ssl_config *conf,

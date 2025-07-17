@@ -18,6 +18,7 @@
 #include "mbedtls/platform.h"
 
 #include "bignum_core.h"
+#include "bignum_core_invasive.h"
 #include "bn_mul.h"
 #include "constant_time_internal.h"
 
@@ -1037,9 +1038,10 @@ static void mpi_core_sub_mod(mbedtls_mpi_uint *X,
  * Divide X by 2 mod N in place, assuming N is odd.
  * The input must be in [0, N) and so will the output.
  */
-static void mpi_core_div2_mod_odd(mbedtls_mpi_uint *X,
-                                  const mbedtls_mpi_uint *N,
-                                  size_t limbs)
+MBEDTLS_STATIC_TESTABLE
+void mbedtls_mpi_core_div2_mod_odd(mbedtls_mpi_uint *X,
+                                   const mbedtls_mpi_uint *N,
+                                   size_t limbs)
 {
     /* If X is odd, add N to make it even before shifting. */
     unsigned odd = (unsigned) X[0] & 1;
@@ -1200,7 +1202,7 @@ void mbedtls_mpi_core_gcd_modinv_odd(mbedtls_mpi_uint *G,
             mbedtls_mpi_core_cond_assign(t2, q, N_limbs, u_odd_v_even);
             mbedtls_mpi_core_cond_assign(t2, d, N_limbs, u_odd_v_odd);
 
-            mpi_core_div2_mod_odd(t2, N, N_limbs);
+            mbedtls_mpi_core_div2_mod_odd(t2, N, N_limbs);
 
             /* Update and possibly swap */
             memcpy(r, t1, N_limbs * ciL);

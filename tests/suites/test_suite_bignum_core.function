@@ -2,6 +2,7 @@
 #include "mbedtls/bignum.h"
 #include "mbedtls/entropy.h"
 #include "bignum_core.h"
+#include "bignum_core_invasive.h"
 #include "constant_time_internal.h"
 #include "test/constant_flow.h"
 #include "test/bignum_codepath_check.h"
@@ -1527,5 +1528,38 @@ exit:
     mbedtls_free(G);
     mbedtls_free(I);
     mbedtls_free(T);
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_TEST_HOOKS */
+void mpi_core_div2_mod_odd(char *input_X, char *input_N, char *input_exp_X)
+{
+    mbedtls_mpi_uint *X = NULL;
+    size_t X_limbs = 0;
+    mbedtls_mpi_uint *N = NULL;
+    size_t N_limbs = 0;
+    mbedtls_mpi_uint *exp_X = NULL;
+    size_t exp_X_limbs = 0;
+
+    /* Read test parameters into MPI structures */
+    TEST_EQUAL(0, mbedtls_test_read_mpi_core(&X, &X_limbs, input_X));
+    TEST_EQUAL(0, mbedtls_test_read_mpi_core(&N, &N_limbs, input_N));
+    TEST_EQUAL(0, mbedtls_test_read_mpi_core(&exp_X, &exp_X_limbs, input_exp_X));
+
+    /* The function under test requires this */
+    TEST_EQUAL(X_limbs, N_limbs);
+
+    TEST_CF_SECRET(X, X_limbs * sizeof(mbedtls_mpi_uint));
+    TEST_CF_SECRET(N, N_limbs * sizeof(mbedtls_mpi_uint));
+
+    mbedtls_mpi_core_div2_mod_odd(X, N, N_limbs);
+
+    TEST_CF_PUBLIC(X, X_limbs * sizeof(mbedtls_mpi_uint));
+    TEST_EQUAL(0, mpi_core_cmp(X, X_limbs, exp_X, exp_X_limbs));
+
+exit:
+    mbedtls_free(X);
+    mbedtls_free(N);
+    mbedtls_free(exp_X);
 }
 /* END_CASE */

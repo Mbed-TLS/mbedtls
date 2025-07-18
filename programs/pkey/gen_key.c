@@ -25,6 +25,9 @@ int main(void)
 #else
 
 #include "mbedtls/pk.h"
+#if defined(MBEDTLS_PK_HAVE_PRIVATE_HEADER)
+#include <mbedtls/private/pk_private.h>
+#endif /* MBEDTLS_PK_HAVE_PRIVATE_HEADER */
 #include "mbedtls/ecdsa.h"
 #include "mbedtls/rsa.h"
 #include "mbedtls/entropy.h"

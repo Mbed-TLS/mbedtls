@@ -31,15 +31,9 @@
 
 #define MBEDTLS_CTR_DRBG_C
 #define MBEDTLS_ENTROPY_C
+#define MBEDTLS_PSA_BUILTIN_GET_ENTROPY
 
 /* Save RAM at the expense of ROM */
 #define MBEDTLS_AES_ROM_TABLES
-
-/*
- * You should adjust this to the exact number of sources you're using: default
- * is the "platform_entropy_poll" source, but you may want to add other ones
- * Minimum is 2 for the entropy test suite.
- */
-#define MBEDTLS_ENTROPY_MAX_SOURCES 2
 
 #endif /* PSA_CRYPTO_CONFIG_H */

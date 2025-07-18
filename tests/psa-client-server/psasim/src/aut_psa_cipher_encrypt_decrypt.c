@@ -4,7 +4,7 @@
  */
 
 #include "psa/crypto.h"
-#include "../tf-psa-crypto/core/common.h"
+#include "../tf-psa-crypto/core/tf_psa_crypto_common.h"
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>

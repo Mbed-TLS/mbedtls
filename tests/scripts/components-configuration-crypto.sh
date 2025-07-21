@@ -309,7 +309,6 @@ component_test_full_no_cipher () {
     msg "build: full no CIPHER"
 
     scripts/config.py full
-    scripts/config.py unset MBEDTLS_CIPHER_C
 
     # The built-in implementation of the following algs/key-types depends
     # on CIPHER_C so we disable them.
@@ -328,7 +327,6 @@ component_test_full_no_cipher () {
     scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_KEY_TYPE_DES
 
     # The following modules directly depends on CIPHER_C
-    scripts/config.py unset MBEDTLS_CMAC_C
     scripts/config.py unset MBEDTLS_NIST_KW_C
 
     make
@@ -478,7 +476,6 @@ component_test_crypto_for_psa_service () {
   scripts/config.py unset MBEDTLS_VERSION_FEATURES
   # Crypto stuff with no PSA interface
   scripts/config.py unset MBEDTLS_BASE64_C
-  # Keep MBEDTLS_CIPHER_C because psa_crypto_cipher, CCM and GCM need it.
   scripts/config.py unset MBEDTLS_HKDF_C # PSA's HKDF is independent
   # Keep MBEDTLS_MD_C because deterministic ECDSA needs it for HMAC_DRBG.
   scripts/config.py unset MBEDTLS_NIST_KW_C
@@ -1716,11 +1713,6 @@ component_test_psa_crypto_config_accel_aead () {
     # Start from full config
     helper_libtestdriver1_adjust_config "full"
 
-    # Disable things that are being accelerated
-    scripts/config.py unset MBEDTLS_GCM_C
-    scripts/config.py unset MBEDTLS_CCM_C
-    scripts/config.py unset MBEDTLS_CHACHAPOLY_C
-
     # Disable CCM_STAR_NO_TAG because this re-enables CCM_C.
     scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CCM_STAR_NO_TAG
 
@@ -1771,31 +1763,9 @@ component_test_psa_crypto_config_accel_cipher_aead_cmac () {
 
     common_psa_crypto_config_accel_cipher_aead_cmac
 
-    # Disable the things that are being accelerated
-    scripts/config.py unset MBEDTLS_CIPHER_MODE_CBC
-    scripts/config.py unset MBEDTLS_CIPHER_PADDING_PKCS7
-    scripts/config.py unset MBEDTLS_CIPHER_MODE_CTR
-    scripts/config.py unset MBEDTLS_CIPHER_MODE_CFB
-    scripts/config.py unset MBEDTLS_CIPHER_MODE_OFB
-    scripts/config.py unset MBEDTLS_CIPHER_MODE_XTS
-    scripts/config.py unset MBEDTLS_GCM_C
-    scripts/config.py unset MBEDTLS_CCM_C
-    scripts/config.py unset MBEDTLS_CHACHAPOLY_C
-    scripts/config.py unset MBEDTLS_CMAC_C
-    scripts/config.py unset MBEDTLS_DES_C
-    scripts/config.py unset MBEDTLS_AES_C
-    scripts/config.py unset MBEDTLS_ARIA_C
-    scripts/config.py unset MBEDTLS_CHACHA20_C
-    scripts/config.py unset MBEDTLS_CAMELLIA_C
-    scripts/config.py unset MBEDTLS_POLY1305_C
-
     # Disable DES, if it still exists.
     # This can be removed once we remove DES from the library.
     scripts/config.py unset PSA_WANT_KEY_TYPE_DES
-
-    # Disable CIPHER_C entirely as all ciphers/AEADs are accelerated and PSA
-    # does not depend on it.
-    scripts/config.py unset MBEDTLS_CIPHER_C
 
     # Build
     # -----
@@ -1855,14 +1825,6 @@ common_block_cipher_dispatch () {
 
     # Start from the full config
     helper_libtestdriver1_adjust_config "full"
-
-    if [ "$TEST_WITH_DRIVER" -eq 1 ]; then
-        # Disable key types that are accelerated (there is no legacy equivalent
-        # symbol for ECB)
-        scripts/config.py unset MBEDTLS_AES_C
-        scripts/config.py unset MBEDTLS_ARIA_C
-        scripts/config.py unset MBEDTLS_CAMELLIA_C
-    fi
 
     # Disable cipher's modes that, when not accelerated, cause
     # legacy key types to be re-enabled in "config_adjust_legacy_from_psa.h".
@@ -1968,7 +1930,6 @@ component_test_full_block_cipher_legacy_dispatch () {
 component_test_aead_chachapoly_disabled () {
     msg "build: full minus CHACHAPOLY"
     scripts/config.py full
-    scripts/config.py unset MBEDTLS_CHACHAPOLY_C
     scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CHACHA20_POLY1305
     make CC=$ASAN_CC CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS"
 
@@ -1979,8 +1940,6 @@ component_test_aead_chachapoly_disabled () {
 component_test_aead_only_ccm () {
     msg "build: full minus CHACHAPOLY and GCM"
     scripts/config.py full
-    scripts/config.py unset MBEDTLS_CHACHAPOLY_C
-    scripts/config.py unset MBEDTLS_GCM_C
     scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CHACHA20_POLY1305
     scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_GCM
     make CC=$ASAN_CC CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS"
@@ -2106,16 +2065,12 @@ component_build_aes_variations () {
     # manually set or unset those configurations to check
     # MBEDTLS_BLOCK_CIPHER_NO_DECRYPT with various combinations in aes.o.
     scripts/config.py set MBEDTLS_BLOCK_CIPHER_NO_DECRYPT
-    scripts/config.py unset MBEDTLS_CIPHER_MODE_XTS
     scripts/config.py unset MBEDTLS_NIST_KW_C
 
     scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CBC_NO_PADDING
     scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CBC_PKCS7
     scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_ALG_ECB_NO_PADDING
     scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_KEY_TYPE_DES
-    # Note: The two unsets below are to be removed for Mbed TLS 4.0
-    scripts/config.py unset MBEDTLS_CIPHER_MODE_CBC
-    scripts/config.py unset MBEDTLS_DES_C
 
     build_test_config_combos ${BUILTIN_SRC_PATH}/aes.o validate_aes_config_variations \
         "MBEDTLS_AES_ROM_TABLES" \
@@ -2319,7 +2274,6 @@ helper_block_cipher_no_decrypt_build_test () {
 # This is a configuration function used in component_test_block_cipher_no_decrypt_xxx:
 config_block_cipher_no_decrypt () {
     scripts/config.py set MBEDTLS_BLOCK_CIPHER_NO_DECRYPT
-    scripts/config.py unset MBEDTLS_CIPHER_MODE_XTS
     scripts/config.py unset MBEDTLS_NIST_KW_C
 
     # Enable support for cryptographic mechanisms through the PSA API.
@@ -2328,9 +2282,6 @@ config_block_cipher_no_decrypt () {
     scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CBC_PKCS7
     scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_ECB_NO_PADDING
     scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_KEY_TYPE_DES
-    # Note: The two unsets below are to be removed for Mbed TLS 4.0
-    scripts/config.py unset MBEDTLS_CIPHER_MODE_CBC
-    scripts/config.py unset MBEDTLS_DES_C
 }
 
 component_test_block_cipher_no_decrypt_aesni () {
@@ -2482,7 +2433,6 @@ component_build_psa_config_file () {
     # query_compile_time_config.
     echo '#undef PSA_WANT_ALG_CMAC' >psa_user_config.h
     echo '#undef PSA_WANT_ALG_PBKDF2_AES_CMAC_PRF_128' >> psa_user_config.h
-    echo '#undef MBEDTLS_CMAC_C' >> psa_user_config.h
     make CFLAGS="-I '$PWD' -DTF_PSA_CRYPTO_CONFIG_FILE='\"psa_test_config.h\"' -DTF_PSA_CRYPTO_USER_CONFIG_FILE='\"psa_user_config.h\"'"
     not programs/test/query_compile_time_config PSA_WANT_ALG_CMAC
 

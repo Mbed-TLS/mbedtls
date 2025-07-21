@@ -1550,15 +1550,6 @@ component_test_psa_crypto_config_accel_hash () {
     # Start from default config (no USE_PSA)
     helper_libtestdriver1_adjust_config "default"
 
-    # Disable the things that are being accelerated
-    scripts/config.py unset MBEDTLS_MD5_C
-    scripts/config.py unset MBEDTLS_RIPEMD160_C
-    scripts/config.py unset MBEDTLS_SHA1_C
-    scripts/config.py unset MBEDTLS_SHA224_C
-    scripts/config.py unset MBEDTLS_SHA256_C
-    scripts/config.py unset MBEDTLS_SHA384_C
-    scripts/config.py unset MBEDTLS_SHA512_C
-
     # Build
     # -----
 
@@ -1588,14 +1579,7 @@ config_psa_crypto_hash_use_psa () {
     helper_libtestdriver1_adjust_config "full"
     if [ "$driver_only" -eq 1 ]; then
         # disable the built-in implementation of hashes
-        scripts/config.py unset MBEDTLS_MD5_C
-        scripts/config.py unset MBEDTLS_RIPEMD160_C
-        scripts/config.py unset MBEDTLS_SHA1_C
-        scripts/config.py unset MBEDTLS_SHA224_C
-        scripts/config.py unset MBEDTLS_SHA256_C # see external RNG below
         scripts/config.py unset MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_IF_PRESENT
-        scripts/config.py unset MBEDTLS_SHA384_C
-        scripts/config.py unset MBEDTLS_SHA512_C
         scripts/config.py unset MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT
     fi
 }
@@ -1676,11 +1660,9 @@ config_psa_crypto_hmac_use_psa () {
         # Disable MD_C in order to disable the builtin support for HMAC. MD_LIGHT
         # is still enabled though (for ENTROPY_C among others).
         scripts/config.py unset MBEDTLS_MD_C
-        # Disable also the builtin hashes since they are supported by the driver
-        # and MD module is able to perform PSA dispathing.
+        # Also disable the configuration options that tune the builtin hashes,
+        # since those hashes are disabled.
         scripts/config.py unset-all MBEDTLS_SHA
-        scripts/config.py unset MBEDTLS_MD5_C
-        scripts/config.py unset MBEDTLS_RIPEMD160_C
     fi
 
     # Direct dependencies of MD_C. We disable them also in the reference

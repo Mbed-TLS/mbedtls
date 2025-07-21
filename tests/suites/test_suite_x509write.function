@@ -41,7 +41,7 @@ static int x509_crt_verifycsr(const unsigned char *buf, size_t buflen)
         goto cleanup;
     }
 
-    if (mbedtls_pk_verify_ext(csr.sig_pk, NULL, &csr.pk,
+    if (mbedtls_pk_verify_new(csr.sig_pk, &csr.pk,
                               csr.sig_md, hash, mbedtls_md_get_size_from_type(csr.sig_md),
                               csr.sig.p, csr.sig.len) != 0) {
         ret = MBEDTLS_ERR_X509_CERT_VERIFY_FAILED;

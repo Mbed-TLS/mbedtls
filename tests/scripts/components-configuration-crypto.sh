@@ -2091,7 +2091,7 @@ END
         #define PSA_WANT_ALG_SHA3_256  1
         #define PSA_WANT_ALG_SHA3_384  1
         #define PSA_WANT_ALG_SHA3_512  1
-        #define MBEDTLS_AES_C
+        #define PSA_WANT_KEY_TYPE_AES  1
         #define MBEDTLS_CTR_DRBG_C
         #define MBEDTLS_ENTROPY_C
         #define MBEDTLS_PSA_CRYPTO_C

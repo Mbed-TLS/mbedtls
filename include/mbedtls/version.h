@@ -60,7 +60,7 @@ void mbedtls_version_get_string_full(char *string);
  *                  support", "Mbed TLS modules" and "Mbed TLS feature
  *                  support" in mbedtls_config.h
  *
- * \param feature   The string for the define to check (e.g. "MBEDTLS_AES_C")
+ * \param feature   The string for the define to check (e.g. "MBEDTLS_SSL_SRV_C")
  *
  * \return          0 if the feature is present,
  *                  -1 if the feature is not present and

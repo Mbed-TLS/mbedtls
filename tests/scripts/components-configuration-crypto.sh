@@ -138,7 +138,6 @@ component_test_psa_crypto_without_heap() {
 
 component_test_no_rsa_key_pair_generation () {
     msg "build: default config minus PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_GENERATE"
-    scripts/config.py unset MBEDTLS_GENPRIME
     scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_GENERATE
     make
 
@@ -1148,9 +1147,6 @@ config_psa_crypto_config_accel_ecc_ffdh_no_bignum () {
     # on BIGNUM_C.
     scripts/config.py -f "$CRYPTO_CONFIG_H" unset-all "PSA_WANT_KEY_TYPE_RSA_[0-9A-Z_a-z]*"
     scripts/config.py -f "$CRYPTO_CONFIG_H" unset-all "PSA_WANT_ALG_RSA_[0-9A-Z_a-z]*"
-    scripts/config.py unset MBEDTLS_RSA_C
-    scripts/config.py unset MBEDTLS_PKCS1_V15
-    scripts/config.py unset MBEDTLS_PKCS1_V21
     scripts/config.py unset MBEDTLS_X509_RSASSA_PSS_SUPPORT
     # Also disable key exchanges that depend on RSA
     scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED
@@ -1425,12 +1421,6 @@ config_psa_crypto_accel_rsa () {
     helper_libtestdriver1_adjust_config "crypto_full"
 
     if [ "$driver_only" -eq 1 ]; then
-        # Remove RSA support and its dependencies
-        scripts/config.py unset MBEDTLS_RSA_C
-        scripts/config.py unset MBEDTLS_PKCS1_V15
-        scripts/config.py unset MBEDTLS_PKCS1_V21
-        scripts/config.py unset MBEDTLS_GENPRIME
-
         # We need PEM parsing in the test library as well to support the import
         # of PEM encoded RSA keys.
         scripts/config.py -c "$CONFIG_TEST_DRIVER_H" set MBEDTLS_PEM_PARSE_C
@@ -1494,7 +1484,7 @@ component_test_psa_crypto_config_reference_rsa_crypto () {
 # This is a temporary test to verify that full RSA support is present even when
 # only one single new symbols (PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC) is defined.
 component_test_new_psa_want_key_pair_symbol () {
-    msg "Build: crypto config - MBEDTLS_RSA_C + PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC"
+    msg "Build: crypto config - PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC"
 
     # Create a temporary output file unless there is already one set
     if [ "$MBEDTLS_TEST_OUTCOME_FILE" ]; then
@@ -1509,11 +1499,8 @@ component_test_new_psa_want_key_pair_symbol () {
     scripts/config.py crypto
 
     # Remove RSA support and its dependencies
-    scripts/config.py unset MBEDTLS_PKCS1_V15
-    scripts/config.py unset MBEDTLS_PKCS1_V21
     scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED
     scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED
-    scripts/config.py unset MBEDTLS_RSA_C
     scripts/config.py unset MBEDTLS_X509_RSASSA_PSS_SUPPORT
 
     # Keep only PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC enabled in order to ensure
@@ -1524,7 +1511,7 @@ component_test_new_psa_want_key_pair_symbol () {
 
     make
 
-    msg "Test: crypto config - MBEDTLS_RSA_C + PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC"
+    msg "Test: crypto config - PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC"
     make test
 
     # Parse only 1 relevant line from the outcome file, i.e. a test which is

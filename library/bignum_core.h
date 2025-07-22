@@ -824,13 +824,15 @@ void mbedtls_mpi_core_from_mont_rep(mbedtls_mpi_uint *X,
 
 /** Compute GCD(A, N) and optionally the inverse of A mod N if it exists.
  *
- * Requires N to be odd, and 0 <= A <= N.
- * When I != NULL, N (the modulus) must not be 1.
+ * Requires N to be odd, 0 <= A <= N and A_limbs <= N_limbs.
+ * When I != NULL, N (the modulus) must be greater than 1.
  *
  * A and N may not alias each other.
  * When I == NULL (computing only the GCD), G may alias A or N.
  * When I != NULL (computing the modular inverse), G or I may alias A
  * but none of them may alias N (the modulus).
+ *
+ * If any precondition is not met, output values are unspecified.
  *
  * \param[out]    G       The GCD of \p A and \p N.
  *                        Must have the same number of limbs as \p N.
@@ -843,7 +845,8 @@ void mbedtls_mpi_core_from_mont_rep(mbedtls_mpi_uint *X,
  * \param         A_limbs The number of limbs of \p A.
  *                        Must be less than or equal to \p N_limbs.
  * \param[in]     N       The 2nd operand of GCD and modulus for inversion.
- *                        Must be odd or the results are indeterminate.
+ *                        This value must be odd.
+ *                        If I != NULL this value must be greater than 1.
  * \param         N_limbs The number of limbs of \p N.
  * \param[in,out] T       Temporary storage of size at least 5 * N_limbs limbs,
  *                        or 4 * N_limbs if \p I is NULL (GCD only).

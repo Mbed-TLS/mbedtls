@@ -1,0 +1,5 @@
+Removals
+   * The header <mbedtls/check_config.h> no longer exists. Including it
+     from a custom config file was no longer needed since Mbed TLS 3.0,
+     and could lead to spurious errors. The checks that it performed are
+     now done automatically when building the library.

@@ -104,22 +104,7 @@ void my_debug(void *ctx, int level,
 mbedtls_time_t dummy_constant_time(mbedtls_time_t *time);
 #endif
 
-#if !defined(MBEDTLS_TEST_USE_PSA_CRYPTO_RNG)
-/* If MBEDTLS_TEST_USE_PSA_CRYPTO_RNG is defined, the SSL test programs will use
- * mbedtls_psa_get_random() rather than entropy+DRBG as a random generator.
- *
- * The constraints are:
- * - Without the entropy module, the PSA RNG is the only option.
- * - Without at least one of the DRBG modules, the PSA RNG is the only option.
- * - The PSA RNG does not support explicit seeding, so it is incompatible with
- *   the reproducible mode used by test programs.
- * - For good overall test coverage, there should be at least one configuration
- *   where the test programs use the PSA RNG while the PSA RNG is itself based
- *   on entropy+DRBG, and at least one configuration where the test programs
- *   do not use the PSA RNG even though it's there.
- */
 #define MBEDTLS_TEST_USE_PSA_CRYPTO_RNG
-#endif
 
 /** A context for random number generation (RNG).
  */

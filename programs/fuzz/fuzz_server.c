@@ -199,7 +199,7 @@ exit:
 #if defined(MBEDTLS_X509_CRT_PARSE_C) && defined(MBEDTLS_PEM_PARSE_C)
     mbedtls_x509_crt_free(&srvcert);
     mbedtls_pk_free(&pkey);
-#endif /* (MBEDTLS_X509_CRT_PARSE_C) && defined(MBEDTLS_PEM_PARSE_C) */
+#endif /* MBEDTLS_X509_CRT_PARSE_C MBEDTLS_PEM_PARSE_C */
     mbedtls_ssl_free(&ssl);
     mbedtls_psa_crypto_free();
 #else /* MBEDTLS_SSL_SRV_C && MBEDTLS_ENTROPY_C && MBEDTLS_CTR_DRBG_C */

@@ -1060,8 +1060,17 @@ void mbedtls_mpi_core_div2_mod_odd(mbedtls_mpi_uint *X,
  * - Alg 7 is readable but not constant-time, Alg 8 is constant-time but not
  *   readable (and uses signed arithmetic). We mostly follow Alg 7 and make it
  *   constant-time by using our usual primitives (conditional assign,
- *   conditional swap) rather than re-inventing them. We only take a few
- *   notations from Alg 8 for temporaries.
+ *   conditional swap) rather than re-creating them. See the comments in the
+ *   body of the paper (around tables 2) about how to make Alg 7 constant-time.
+ * - Both Alg 7 and Alg 8 have temporaries called t1, t2 which have different
+ *   meanings; we use the meaning from Alg 8 (see declarations below).
+ * - Compared to both, we re-order operations, grouping those related to
+ *   the inverse together. This saves temporaries (we can re-use d, t1, t2 from
+ *   the GCD part as they are no longer used) and improves readability
+ *   considering we make computation of the inverse optional.
+ * - Compared to Alg 7, we use an explicit conditional swap at the end, which is
+ *   closer to the use of the sort array in Alg 8 (or the max.min function in
+ *   Alg 6 and earlier).
  * - Compared to both, we skip the trick with pre_comm: I think this trick
  *   complicates things for no benefit (see comment on the big I != NULL block
  *   below for details).

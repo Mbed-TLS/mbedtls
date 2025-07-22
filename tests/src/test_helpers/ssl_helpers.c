@@ -11,6 +11,8 @@
 #include <test/ssl_helpers.h>
 #include "mbedtls/psa_util.h"
 
+#include <limits.h>
+
 #if defined(MBEDTLS_SSL_TLS_C)
 int mbedtls_test_random(void *p_rng, unsigned char *output, size_t output_len)
 {

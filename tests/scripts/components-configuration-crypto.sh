@@ -2426,14 +2426,14 @@ component_test_block_cipher_no_decrypt_aesce_armcc () {
 }
 
 component_test_ctr_drbg_aes_256_sha_256 () {
-    msg "build: full + MBEDTLS_ENTROPY_FORCE_SHA256 (ASan build)"
+    msg "build: full + MBEDTLS_PSA_CRYPTO_RNG_HASH MBEDTLS_SHA256_C (ASan build)"
     scripts/config.py full
     scripts/config.py unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
-    scripts/config.py set MBEDTLS_ENTROPY_FORCE_SHA256
+    scripts/config.py set MBEDTLS_PSA_CRYPTO_RNG_HASH MBEDTLS_SHA256_C
     CC=$ASAN_CC cmake -D CMAKE_BUILD_TYPE:String=Asan .
     make
 
-    msg "test: full + MBEDTLS_ENTROPY_FORCE_SHA256 (ASan build)"
+    msg "test: full + MBEDTLS_PSA_CRYPTO_RNG_HASH MBEDTLS_SHA256_C (ASan build)"
     make test
 }
 
@@ -2450,15 +2450,15 @@ component_test_ctr_drbg_aes_128_sha_512 () {
 }
 
 component_test_ctr_drbg_aes_128_sha_256 () {
-    msg "build: full + MBEDTLS_CTR_DRBG_USE_128_BIT_KEY + MBEDTLS_ENTROPY_FORCE_SHA256 (ASan build)"
+    msg "build: full + MBEDTLS_CTR_DRBG_USE_128_BIT_KEY + MBEDTLS_PSA_CRYPTO_RNG_HASH MBEDTLS_SHA256_C (ASan build)"
     scripts/config.py full
     scripts/config.py unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
     scripts/config.py set MBEDTLS_CTR_DRBG_USE_128_BIT_KEY
-    scripts/config.py set MBEDTLS_ENTROPY_FORCE_SHA256
+    scripts/config.py set MBEDTLS_PSA_CRYPTO_RNG_HASH MBEDTLS_SHA256_C
     CC=$ASAN_CC cmake -D CMAKE_BUILD_TYPE:String=Asan .
     make
 
-    msg "test: full + MBEDTLS_CTR_DRBG_USE_128_BIT_KEY + MBEDTLS_ENTROPY_FORCE_SHA256 (ASan build)"
+    msg "test: full + MBEDTLS_CTR_DRBG_USE_128_BIT_KEY + MBEDTLS_PSA_CRYPTO_RNG_HASH MBEDTLS_SHA256_C (ASan build)"
     make test
 }
 

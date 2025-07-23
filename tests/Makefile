@@ -332,7 +332,6 @@ libtestdriver1.a:
 	mkdir ./libtestdriver1/tf-psa-crypto/drivers
 	mkdir ./libtestdriver1/tf-psa-crypto/drivers/everest
 	mkdir ./libtestdriver1/tf-psa-crypto/drivers/p256-m
-#	mkdir -p ./libtestdriver1/tf-psa-crypto/drivers/builtin/include/mbedtls/private/
 	touch ./libtestdriver1/tf-psa-crypto/drivers/everest/Makefile.inc
 	touch ./libtestdriver1/tf-psa-crypto/drivers/p256-m/Makefile.inc
 	cp -Rf ../framework/scripts ./libtestdriver1/framework

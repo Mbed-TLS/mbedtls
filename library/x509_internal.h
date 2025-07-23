@@ -10,7 +10,7 @@
 #ifndef MBEDTLS_X509_INTERNAL_H
 #define MBEDTLS_X509_INTERNAL_H
 
-#include "common.h"
+#include "tf_psa_crypto_common.h"
 #include "mbedtls/build_info.h"
 #include "mbedtls/private_access.h"
 

@@ -1485,10 +1485,6 @@ struct mbedtls_ssl_config {
 #endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
 
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
-
-#if !defined(MBEDTLS_DEPRECATED_REMOVED)
-    const int *MBEDTLS_PRIVATE(sig_hashes);         /*!< allowed signature hashes           */
-#endif
     const uint16_t *MBEDTLS_PRIVATE(sig_algs);      /*!< allowed signature algorithms       */
 #endif /* MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED */
 

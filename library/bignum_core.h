@@ -832,7 +832,7 @@ void mbedtls_mpi_core_from_mont_rep(mbedtls_mpi_uint *X,
  * When I != NULL (computing the modular inverse), G or I may alias A
  * but none of them may alias N (the modulus).
  *
- * If any precondition is not met, output values are unspecified.
+ * If any of the above preconditions is not met, output values are unspecified.
  *
  * \param[out]    G       The GCD of \p A and \p N.
  *                        Must have the same number of limbs as \p N.

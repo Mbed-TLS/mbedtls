@@ -535,6 +535,9 @@ mpi_core_gcd_modinv_odd:"7f2405d6de7db80a7bc":"1a84113636607520200d":"1":"15f158
 GCD-modinv (almost) max iterations
 mpi_core_gcd_modinv_odd:"8000000000000000":"b26eb5721a2cb24c36acb4550b176671":"1":"77e1dd63583a6b3c8deefe7737862c89"
 
+GCD-modinv preconditions not met
+mpi_core_gcd_modinv_odd_preconditions:
+
 Div2 mod odd: even value
 mpi_core_div2_mod_odd:"4":"7":"2"
 

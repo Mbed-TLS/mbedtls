@@ -1531,6 +1531,110 @@ exit:
 }
 /* END_CASE */
 
+/* BEGIN_CASE */
+void mpi_core_gcd_modinv_odd_preconditions()
+{
+    /*
+     * The purpose of this test function is to ensure that the function doesn't
+     * crash (but just outputs garbage) when preconditions are not met.
+     */
+
+    mbedtls_mpi_uint two_limbs[2];
+    mbedtls_mpi_uint one_limb[1];
+    mbedtls_mpi_uint *G = NULL, *I = NULL, *T = NULL;
+
+    /* Large enough for all calls below */
+    TEST_CALLOC(G, 2);
+    TEST_CALLOC(I, 2);
+    TEST_CALLOC(T, 5 * 2);
+
+    /*
+     * Input values
+     */
+
+    /* N is not odd */
+    two_limbs[0] = 2;       // N = 2^n + 2
+    two_limbs[1] = 1;
+    one_limb[0] = 42;       // A = 42
+    mbedtls_mpi_core_gcd_modinv_odd(G, NULL, one_limb, 1, two_limbs, 2, T);
+    mbedtls_mpi_core_gcd_modinv_odd(G, I, one_limb, 1, two_limbs, 2, T);
+
+    /* A > N */
+    two_limbs[0] = 3;       // N = 3
+    two_limbs[1] = 0;
+    one_limb[0] = 42;       // A = 42
+    mbedtls_mpi_core_gcd_modinv_odd(G, NULL, one_limb, 1, two_limbs, 2, T);
+    mbedtls_mpi_core_gcd_modinv_odd(G, I, one_limb, 1, two_limbs, 2, T);
+
+    /* A_limbs > N_limbs (but A <= N) */
+    one_limb[0] = 5;        // N = 5
+    two_limbs[0] = 3;       // A = 3
+    two_limbs[1] = 0;
+    mbedtls_mpi_core_gcd_modinv_odd(G, NULL, two_limbs, 2, one_limb, 1, T);
+    mbedtls_mpi_core_gcd_modinv_odd(G, I, two_limbs, 2, one_limb, 1, T);
+
+    /* A_limbs > N_limbs (and A > N) */
+    one_limb[0] = 5;        // N = 5
+    two_limbs[0] = 7;       // A = 7
+    two_limbs[1] = 0;
+    mbedtls_mpi_core_gcd_modinv_odd(G, NULL, two_limbs, 2, one_limb, 1, T);
+    mbedtls_mpi_core_gcd_modinv_odd(G, I, two_limbs, 2, one_limb, 1, T);
+
+    /* I != NULL but N is 1 */
+    two_limbs[0] = 1;       // N = 1
+    two_limbs[1] = 0;
+    one_limb[0] = 1;        // A = 1
+    mbedtls_mpi_core_gcd_modinv_odd(G, I, two_limbs, 2, one_limb, 1, T);
+
+    /*
+     * Aliasing
+     */
+
+    /* Now use valid values for remaining tests */
+    two_limbs[0] = 1;       // N = 2^n + 1
+    two_limbs[1] = 1;
+    one_limb[0] = 42;       // A = 42
+
+    /* A aliased to N */
+    mbedtls_mpi_core_gcd_modinv_odd(G, NULL, two_limbs, 2, two_limbs, 2, T);
+    mbedtls_mpi_core_gcd_modinv_odd(G, I, two_limbs, 2, two_limbs, 2, T);
+
+    /* G aliased to A and N */
+    memcpy(G, two_limbs, 2 * sizeof(mbedtls_mpi_uint));
+    mbedtls_mpi_core_gcd_modinv_odd(G, NULL, G, 2, G, 2, T);
+    mbedtls_mpi_core_gcd_modinv_odd(G, I, G, 2, G, 2, T);
+
+    /* I != NULL, G aliased to N */
+    memcpy(G, two_limbs, 2 * sizeof(mbedtls_mpi_uint));
+    mbedtls_mpi_core_gcd_modinv_odd(G, I, two_limbs, 2, G, 2, T);
+
+    /* I != NULL, I aliased to N */
+    memcpy(I, two_limbs, 2 * sizeof(mbedtls_mpi_uint));
+    mbedtls_mpi_core_gcd_modinv_odd(G, I, two_limbs, 2, I, 2, T);
+
+    /* I aliased to A and N */
+    memcpy(I, two_limbs, 2 * sizeof(mbedtls_mpi_uint));
+    mbedtls_mpi_core_gcd_modinv_odd(G, I, I, 2, I, 2, T);
+
+    /*
+     * Not specific to this function
+     */
+
+    /* A_limbs = 0 */
+    mbedtls_mpi_core_gcd_modinv_odd(G, NULL, one_limb, 0, two_limbs, 2, T);
+    mbedtls_mpi_core_gcd_modinv_odd(G, I, one_limb, 0, two_limbs, 2, T);
+
+    /* A_limbs = N_limbs = 0 */
+    mbedtls_mpi_core_gcd_modinv_odd(G, NULL, one_limb, 0, two_limbs, 0, T);
+    mbedtls_mpi_core_gcd_modinv_odd(G, I, one_limb, 0, two_limbs, 0, T);
+
+exit:
+    mbedtls_free(G);
+    mbedtls_free(I);
+    mbedtls_free(T);
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:MBEDTLS_TEST_HOOKS */
 void mpi_core_div2_mod_odd(char *input_X, char *input_N, char *input_exp_X)
 {

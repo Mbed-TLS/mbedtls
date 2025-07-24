@@ -3,7 +3,7 @@ MBEDTLS_TEST_PATH:=../../tests
 MBEDTLS_PATH := ../..
 include ../../scripts/common.make
 
-PROGRAM_FUZZ_PATH:=$(MBEDTLS_PATH)/tf-psa-crypto/programs/fuzz/
+PROGRAM_FUZZ_PATH:=$(MBEDTLS_PATH)/tf-psa-crypto/programs/fuzz
 
 DEP=${MBEDLIBS}
 
@@ -35,7 +35,7 @@ C_FILES := $(addsuffix .c,$(APPS))
 
 ifdef FUZZINGENGINE
 $(BINARIES): %$(EXEXT): %.o $(PROGRAM_FUZZ_PATH)/fuzz_common.o $(DEP)
-	echo " $(PROGRAM_FUZZ_PATH)/fuzz_common.o $< $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@"
+	echo " $(CC) $(PROGRAM_FUZZ_PATH)/fuzz_common.o $< $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@"
 	$(CXX) $(PROGRAM_FUZZ_PATH)/fuzz_common.o $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 else
 $(BINARIES): %$(EXEXT): %.o $(PROGRAM_FUZZ_PATH)/fuzz_common.o $(PROGRAM_FUZZ_PATH)/fuzz_onefile.o $(DEP)

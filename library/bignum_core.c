@@ -1056,39 +1056,36 @@ void mbedtls_mpi_core_div2_mod_odd(mbedtls_mpi_uint *X,
  * Pre-conditions: see public documentation.
  *
  * See https://www.jstage.jst.go.jp/article/transinf/E106.D/9/E106.D_2022ICP0009/_pdf
- * This is a minor rewrite + adaptation from Algorithm 8: SICT-MI (p. 1403).
+ *
+ * The paper gives two computationally equivalent algorithms: Alg 7 (readable)
+ * and Alg 8 (constant-time). We use a third version that's hopefully both:
  *
  *  u, v = A, N  # N is called p in the paper but doesn't have to be prime
  *  q, r = 0, 1
  *  repeat bits(A_limbs + N_limbs) times:
- *      d = v - u
- *      t1 = (u and v both odd) ? u : d
- *      t2 = (u and v both odd) ? d : (u odd) ? v : u
+ *      d = v - u  # t1 in Alg 7
+ *      t1 = (u and v both odd) ? u : d  # t1 in Alg 8
+ *      t2 = (u and v both odd) ? d : (u odd) ? v : u  # t2 in Alg 8
  *      t2 >>= 1
- *      s = t1 <= t2
- *      u, v = (s) ? t1, t2 : t2, t1
+ *      swap = t1 > t2  # similar to s, z in Alg 8
+ *      u, v = (swap) ? t2, t1 : t1, t2
  *
- *      d = r - q mod N
- *      t1 = (u and v both odd) ? q : d  # t3 in the paper
- *      t2 = (u and v both odd) ? d : (u odd) ? r : q  # t4 in the paper
- *      t2 /= 2 mod N
- *      q, r = (s) ? t1, t2 : t2, t1
- *  return v, q
+ *      d = r - q mod N  # t2 in Alg 7
+ *      t1 = (u and v both odd) ? q : d  # t3 in Alg 8
+ *      t2 = (u and v both odd) ? d : (u odd) ? r : q  # t4 Alg 8
+ *      t2 /= 2 mod N  # see below (pre_com)
+ *      q, r = (swap) ? t2, t1 : t1, t2
+ *  return v, q  # v: GCD, see Alg 6; q: no mult by pre_com, see below
  *
  * The ternary operators in the above pseudo-code need to be realised in a
- * constant-time fashion. For t1-t4, The paper does it by using a mixture of bit
- * and (signed) arithmetic operations which is hardly readable; we'll use
- * conditional assign instead. We'll use conditional swap for the final update.
+ * constant-time fashion. We use conditional assign for t1, t2 and conditional
+ * swap for the final update. (Note: the similarity between branches of Alg 7
+ * are highlighted in tables 2 and 3 and the surrounding text.)
  *
- * Note: for insight about the complicated expressions for t1-t4 in Alg 8, it is
- * useful to look at Alg 7 (warning: different meanings for t1, t2, they're our
- * d above), table 2 and the surrounding text.
+ * Also, we re-order operations, grouping things related to the inverse, which
+ * facilitates making its computation optional, and requires fewer temporaries.
  *
- * The other minor rewrite compared to Alg 8 in the paper is we re-ordered
- * operations, grouping things related to the inverse, which facilitates making
- * its computation optional, and requires fewer temporaries.
- *
- * The only actual change from Alg 8 is dropping the trick with pre_comm,
+ * The only actual change from the paper is dropping the trick with pre_com,
  * which I think complicates things for no benefit.
  * See the comment on the big I != NULL block below for details.
  */
@@ -1207,8 +1204,8 @@ void mbedtls_mpi_core_gcd_modinv_odd(mbedtls_mpi_uint *G,
          * operations on u and v, ie also divide by 2 here (mod N).
          *
          * The paper uses a trick where it replaces division by 2 with
-         * multiplication by 2 here, and compensates in the end by doing a
-         * final multiplication, which is probably intended as an optimisation.
+         * multiplication by 2 here, and compensates in the end by multiplying
+         * by pre_com, which is probably intended as an optimisation.
          *
          * However I believe it's not actually an optimisation, since
          * constant-time modular multiplication by 2 (left-shift + conditional

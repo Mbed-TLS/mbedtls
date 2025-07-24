@@ -988,10 +988,13 @@ int mbedtls_mpi_gcd(mbedtls_mpi *G, const mbedtls_mpi *A,
  * \brief          Compute the modular inverse: X = A^-1 mod N
  *
  * \param X        The destination MPI. This must point to an initialized MPI.
+ *                 The value returned on success will be between [1, N-1].
  * \param A        The MPI to calculate the modular inverse of. This must point
- *                 to an initialized MPI.
+ *                 to an initialized MPI. This value can be negative, in which
+ *                 case a positive answer will still be returned in \p X.
  * \param N        The base of the modular inversion. This must point to an
- *                 initialized MPI.
+ *                 initialized MPI. If this points to the same MPI as \p X,
+ *                 then the value returned in \p X will be incorrect.
  *
  * \return         \c 0 if successful.
  * \return         #MBEDTLS_ERR_MPI_ALLOC_FAILED if a memory allocation failed.

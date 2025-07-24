@@ -78,7 +78,7 @@
 #endif
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2) && \
-    (defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C) || \
+    (defined(PSA_WANT_ALG_ECDH) || defined(PSA_WANT_ALG_ECDSA) || \
     defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED))
 #define MBEDTLS_SSL_TLS1_2_SOME_ECC
 #endif

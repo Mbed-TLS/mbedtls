@@ -25,10 +25,10 @@ use strict;
 
 my ($mbedtls_config_file, $psa_crypto_config_file, $query_config_format_file, $query_config_file);
 
-my $default_mbedtls_config_file = "./include/mbedtls/mbedtls_config.h";
-my $default_psa_crypto_config_file = "./tf-psa-crypto/include/psa/crypto_config.h";
-my $default_query_config_format_file = "./scripts/data_files/query_config.fmt";
-my $default_query_config_file = "./programs/test/query_config.c";
+my $default_mbedtls_config_file = "include/mbedtls/mbedtls_config.h";
+my $default_psa_crypto_config_file = "tf-psa-crypto/include/psa/crypto_config.h";
+my $default_query_config_format_file = "scripts/data_files/query_config.fmt";
+my $default_query_config_file = "programs/test/query_config.c";
 
 if( @ARGV ) {
     die "Invalid number of arguments - usage: $0 [MBED_TLS_CONFIG_FILE PSA_CRYPTO_CONFIG_FILE TEMPLATE_FILE OUTPUT_FILE]" if scalar @ARGV != 4;
@@ -49,6 +49,8 @@ if( @ARGV ) {
           or die "No arguments supplied, must be run from project root or a first-level subdirectory\n";
     }
 }
+-f 'include/mbedtls/build_info.h'
+  or die "$0: must be run from project root or a first-level subdirectory\n";
 
 # Excluded macros from the generated query_config.c. For example, macros that
 # have commas or function-like macros cannot be transformed into strings easily
@@ -64,6 +66,8 @@ my $excluded_re = join '|', @excluded;
 my $config_check = "";
 my $list_config = "";
 
+my %config_macro_names = ();
+
 for my $config_file ($mbedtls_config_file, $psa_crypto_config_file) {
 
     next unless defined($config_file);  # we might not have been given a PSA crypto config file
@@ -76,6 +80,8 @@ for my $config_file ($mbedtls_config_file, $psa_crypto_config_file) {
 
             # Skip over the macro if it is in the excluded list
             next if $name =~ /$excluded_re/;
+
+            $config_macro_names{$name} = 1;
 
             $config_check .= <<EOT;
 #if defined($name)
@@ -101,10 +107,53 @@ EOT
 }
 
 # Read the full format file into a string
-local $/;
-open(FORMAT_FILE, "<", $query_config_format_file) or die "Opening query config format file '$query_config_format_file': $!";
-my $query_config_format = <FORMAT_FILE>;
-close(FORMAT_FILE);
+my $query_config_format = do {
+    local $/;
+    open(FORMAT_FILE, "<", $query_config_format_file)
+      or die "Opening query config format file '$query_config_format_file': $!";
+    my $query_config_format = <FORMAT_FILE>;
+    close(FORMAT_FILE);
+    $query_config_format
+};
+
+# Check that the format file includes all headers that might define
+# config macros. This happens often to give a default value to
+# macros with a name. It also happens with defined-or-not macros,
+# although this is deprecated because it can cause a macro to seem to be
+# undefined if it's used in an "#if defined(...)" check without having
+# included the header that defines it.
+my @headers_in_format = $query_config_format =~ m/^ *# *include *["<]([^"<>\n]+)[">]/mg;
+my $headers_in_format_re = join('|', @headers_in_format);
+my @all_public_header_files = glob('
+    include/*/*.h
+    include/*/*/*.h
+    tf-psa-crypto/include/*/*.h
+    tf-psa-crypto/include/*/*/*.h
+    tf-psa-crypto/drivers/*/include/*/*.h
+    tf-psa-crypto/drivers/*/include/*/*/*.h
+');
+my $errors = 0;
+for my $header_file (@all_public_header_files) {
+    my $header_path = $header_file;
+    $header_path =~ s[(^|.*/)include/][];
+    next if $header_path =~ m[
+                              # Headers included by <PROJECT_NAME/build_info.h>
+                              ^mbedtls/mbedtls_config\.h$ |
+                              ^psa/crypto_config\.h$ |
+                              [/_]adjust[_.] |
+                              # Headers included directly by query_config.c
+                              ^($headers_in_format_re)$
+                             ]x;
+    open HEADER_FILE, '<', $header_file or die;
+    while (<HEADER_FILE>) {
+        if (/^ *# *define +(\w+)/ && $config_macro_names{$1}) {
+            print STDERR "$1 defined in $header_path which is not included\n";
+            ++$errors;
+        }
+    }
+    close HEADER_FILE;
+}
+exit 1 if $errors;
 
 # Replace the body of the query_config() function with the code we just wrote
 $query_config_format =~ s/CHECK_CONFIG/$config_check/g;

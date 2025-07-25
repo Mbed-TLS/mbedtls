@@ -286,7 +286,7 @@ void x509_csr_check_opaque(char *key_file, int md_type, int key_usage,
     TEST_EQUAL(mbedtls_pk_import_into_psa(&key, &key_attr, &key_id), 0);
     mbedtls_pk_free(&key);
     mbedtls_pk_init(&key);
-    TEST_EQUAL(mbedtls_pk_setup_opaque(&key, key_id), 0);
+    TEST_EQUAL(mbedtls_pk_wrap_psa(&key, key_id), 0);
 
     mbedtls_x509write_csr_set_md_alg(&req, md_type);
     mbedtls_x509write_csr_set_key(&req, &key);
@@ -417,7 +417,7 @@ void x509_crt_check(char *subject_key_file, char *subject_pwd,
         TEST_EQUAL(mbedtls_pk_import_into_psa(&issuer_key, &key_attr, &key_id), 0);
         mbedtls_pk_free(&issuer_key);
         mbedtls_pk_init(&issuer_key);
-        TEST_EQUAL(mbedtls_pk_setup_opaque(&issuer_key, key_id), 0);
+        TEST_EQUAL(mbedtls_pk_wrap_psa(&issuer_key, key_id), 0);
     }
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 

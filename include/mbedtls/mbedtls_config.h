@@ -255,7 +255,7 @@
  *
  * Requires: MBEDTLS_ECDH_C or PSA_WANT_ALG_ECDH
  *           MBEDTLS_RSA_C
- *           MBEDTLS_PKCS1_V15
+ *           PSA_WANT_ALG_RSA_PKCS1V15_SIGN
  *           MBEDTLS_X509_CRT_PARSE_C
  *
  * This enables the following ciphersuites (if other requisites are
@@ -331,7 +331,7 @@
  * might still happen. For this reason, this is disabled by default.
  *
  * Requires: MBEDTLS_ECJPAKE_C or PSA_WANT_ALG_JPAKE
- *           SHA-256 (via MBEDTLS_SHA256_C or a PSA driver)
+ *           PSA_WANT_ALG_SHA_256
  *           MBEDTLS_ECP_DP_SECP256R1_ENABLED
  *
  * This enables the following ciphersuites (if other requisites are
@@ -446,7 +446,7 @@
  * saved after the handshake to allow for more efficient serialization, so if
  * you don't need this feature you'll save RAM by disabling it.
  *
- * Requires: MBEDTLS_GCM_C or MBEDTLS_CCM_C or MBEDTLS_CHACHAPOLY_C
+ * Requires: PSA_WANT_ALG_GCM or PSA_WANT_ALG_CCM or PSA_WANT_ALG_CHACHA20_POLY1305
  *
  * Comment to disable the context serialization APIs.
  */
@@ -824,7 +824,7 @@
  * Module:  library/ssl_ticket.c
  * Caller:
  *
- * Requires: MBEDTLS_GCM_C || MBEDTLS_CCM_C || MBEDTLS_CHACHAPOLY_C
+ * Requires: PSA_WANT_ALG_GCM or PSA_WANT_ALG_CCM or PSA_WANT_ALG_CHACHA20_POLY1305
  */
 #define MBEDTLS_SSL_TICKET_C
 
@@ -859,7 +859,7 @@
  *           MBEDTLS_X509_CRT_PARSE_C
  *           and at least one of:
  *               MBEDTLS_ECDSA_C or PSA_WANT_ALG_ECDSA
- *               MBEDTLS_PKCS1_V21
+ *               PSA_WANT_ALG_RSA_PSS
  *
  * Comment to disable support for the ephemeral key exchange mode in TLS 1.3.
  * If MBEDTLS_SSL_PROTO_TLS1_3 is not enabled, this option does not have any
@@ -903,7 +903,7 @@
  * Caller:  library/ssl*_client.c
  *          library/ssl*_server.c
  *
- * Requires: MBEDTLS_CIPHER_C, MBEDTLS_MD_C
+ * Requires: PSA_WANT_ALG_SHA_256 or PSA_WANT_ALG_SHA_384
  *           and at least one of the MBEDTLS_SSL_PROTO_XXX defines
  *
  * This module is required for SSL/TLS.
@@ -1210,7 +1210,7 @@
  * Enable parsing and verification of X.509 certificates, CRLs and CSRS
  * signed with RSASSA-PSS (aka PKCS#1 v2.1).
  *
- * Requires: MBEDTLS_PKCS1_V21
+ * Requires: PSA_WANT_ALG_RSA_PSS
  *
  * Comment this macro to disallow using RSASSA-PSS in certificates.
  */

@@ -49,8 +49,6 @@ if( @ARGV ) {
           or die "No arguments supplied, must be run from project root or a first-level subdirectory\n";
     }
 }
--f 'include/mbedtls/build_info.h'
-  or die "$0: must be run from project root or a first-level subdirectory\n";
 
 # Excluded macros from the generated query_config.c. For example, macros that
 # have commas or function-like macros cannot be transformed into strings easily

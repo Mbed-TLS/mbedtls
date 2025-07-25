@@ -17,7 +17,9 @@
 #include <mbedtls/platform_time.h>
 #endif
 
+/* *INDENT-OFF* */
 INCLUDE_HEADERS
+/* *INDENT-ON* */
 
 /*
  * Helper macros to convert a macro or its expansion into a string

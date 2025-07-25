@@ -1616,18 +1616,6 @@ void mpi_core_gcd_modinv_odd_preconditions()
     memcpy(I, two_limbs, 2 * sizeof(mbedtls_mpi_uint));
     mbedtls_mpi_core_gcd_modinv_odd(G, I, I, 2, I, 2, T);
 
-    /*
-     * Not specific to this function
-     */
-
-    /* A_limbs = 0 */
-    mbedtls_mpi_core_gcd_modinv_odd(G, NULL, one_limb, 0, two_limbs, 2, T);
-    mbedtls_mpi_core_gcd_modinv_odd(G, I, one_limb, 0, two_limbs, 2, T);
-
-    /* A_limbs = N_limbs = 0 */
-    mbedtls_mpi_core_gcd_modinv_odd(G, NULL, one_limb, 0, two_limbs, 0, T);
-    mbedtls_mpi_core_gcd_modinv_odd(G, I, one_limb, 0, two_limbs, 0, T);
-
 exit:
     mbedtls_free(G);
     mbedtls_free(I);

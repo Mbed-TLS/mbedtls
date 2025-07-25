@@ -122,6 +122,7 @@ for my $root (@header_roots) {
     # Exclude some headers that are included by build_info.h and cannot
     # be included directly.
     push @header_files, grep {!m[
+            ^psa/crypto_(platform|struct)\.h$ | # have alt versions, included by psa/crypto.h anyway
             ^mbedtls/platform_time\.h$ | # errors without time.h
             _config\.h |
             [/_]adjust[/_]

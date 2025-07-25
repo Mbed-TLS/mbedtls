@@ -12,6 +12,11 @@
 #include "mbedtls/platform.h"
 #include <string.h>
 
+/* Work around https://github.com/Mbed-TLS/TF-PSA-Crypto/issues/393 */
+#if defined(MBEDTLS_HAVE_TIME)
+#include <mbedtls/platform_time.h>
+#endif
+
 INCLUDE_HEADERS
 
 /*

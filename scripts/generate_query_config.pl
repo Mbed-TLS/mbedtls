@@ -121,7 +121,11 @@ for my $root (@header_roots) {
     map {s!^\Q$root/!!} @paths;
     # Exclude some headers that are included by build_info.h and cannot
     # be included directly.
-    push @header_files, grep {!m!_config\.h|[/_]adjust[/_]!} @paths;
+    push @header_files, grep {!m[
+            ^mbedtls/platform_time\.h$ | # errors without time.h
+            _config\.h |
+            [/_]adjust[/_]
+        ]x} @paths;
 }
 my $include_headers = join('', map {"#include <$_>\n"} @header_files);
 

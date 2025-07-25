@@ -3,7 +3,7 @@ MBEDTLS_TEST_PATH:=../../tests
 MBEDTLS_PATH := ../..
 include ../../scripts/common.make
 
-PROGRAM_FUZZ_PATH:=$(MBEDTLS_PATH)/programs/fuzz
+PROGRAM_FUZZ_PATH:=$(MBEDTLS_PATH)/tf-psa-crypto/programs/fuzz
 
 DEP=${MBEDLIBS}
 
@@ -15,6 +15,8 @@ LOCAL_CFLAGS += -I$(PROGRAM_FUZZ_PATH)
 
 # A test application is built for each fuzz_*.c file.
 APPS = $(basename $(wildcard fuzz_*.c))
+APPS += $(basename $(PROGRAM_FUZZ_PATH)/fuzz_privkey.c)
+APPS += $(basename $(PROGRAM_FUZZ_PATH)/fuzz_pubkey.c)
 
 # Construct executable name by adding OS specific suffix $(EXEXT).
 BINARIES := $(addsuffix $(EXEXT),$(APPS))
@@ -32,13 +34,13 @@ C_FILES := $(addsuffix .c,$(APPS))
 
 
 ifdef FUZZINGENGINE
-$(BINARIES): %$(EXEXT): %.o $(PROGRAM_FUZZ_PATH)/common.o $(DEP)
-	echo " $(PROGRAM_FUZZ_PATH)/common.o $< $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@"
-	$(CXX) $(PROGRAM_FUZZ_PATH)/common.o $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+$(BINARIES): %$(EXEXT): %.o $(PROGRAM_FUZZ_PATH)/fuzz_common.o $(DEP)
+	echo " $(CC) $(PROGRAM_FUZZ_PATH)/fuzz_common.o $< $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@"
+	$(CXX) $(PROGRAM_FUZZ_PATH)/fuzz_common.o $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 else
-$(BINARIES): %$(EXEXT): %.o $(PROGRAM_FUZZ_PATH)/common.o $(PROGRAM_FUZZ_PATH)/onefile.o $(DEP)
-	echo " $(CC) $(PROGRAM_FUZZ_PATH)/common.o $(PROGRAM_FUZZ_PATH)/onefile.o $< $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@"
-	$(CC) $(PROGRAM_FUZZ_PATH)/common.o $(PROGRAM_FUZZ_PATH)/onefile.o $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+$(BINARIES): %$(EXEXT): %.o $(PROGRAM_FUZZ_PATH)/fuzz_common.o $(PROGRAM_FUZZ_PATH)/fuzz_onefile.o $(DEP)
+	echo " $(CC) $(PROGRAM_FUZZ_PATH)/fuzz_common.o $(PROGRAM_FUZZ_PATH)/fuzz_onefile.o $< $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@"
+	$(CC) $(PROGRAM_FUZZ_PATH)/fuzz_common.o $(PROGRAM_FUZZ_PATH)/fuzz_onefile.o $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 endif
 
 clean:

@@ -100,6 +100,29 @@ EOT
     close(CONFIG_FILE);
 }
 
+# We need to include all the headers with public APIs in case they
+# define a macro to its default value when that configuration is not
+# set in a header included by build_info.h (crypto_config.h,
+# mbedtls_config.h, *adjust*.h). Some module-specific macros are set
+# in that module's header. For simplicity, include all headers, with
+# some ad hoc knowledge of headers that are included by other headers
+# and should not be included directly. We don't include internal headers
+# because those should not define configurable macros.
+my @header_files = ();
+my @header_roots = qw(
+                         include
+                         tf-psa-crypto/include
+                         tf-psa-crypto/drivers/builtin/include
+                    );
+for my $root (@header_roots) {
+    my @paths = glob "$root/*/*.h $root/*/*/*.h";
+    map {s!^\Q$root/!!} @paths;
+    # Exclude some headers that are included by build_info.h and cannot
+    # be included directly.
+    push @header_files, grep {!m!_config\.h|[/_]adjust[/_]!} @paths;
+}
+my $include_headers = join('', map {"#include <$_>\n"} @header_files);
+
 # Read the full format file into a string
 local $/;
 open(FORMAT_FILE, "<", $query_config_format_file) or die "Opening query config format file '$query_config_format_file': $!";
@@ -107,6 +130,7 @@ my $query_config_format = <FORMAT_FILE>;
 close(FORMAT_FILE);
 
 # Replace the body of the query_config() function with the code we just wrote
+$query_config_format =~ s/INCLUDE_HEADERS/$include_headers/g;
 $query_config_format =~ s/CHECK_CONFIG/$config_check/g;
 $query_config_format =~ s/LIST_CONFIG/$list_config/g;
 

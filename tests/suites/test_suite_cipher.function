@@ -1475,8 +1475,8 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_CIPHER_MODE_CBC */
-void check_padding(int pad_mode, data_t *input, int ret, int dlen_check
-                   )
+void check_padding(int pad_mode, data_t *input,
+                   int expected_ret, int dlen_check)
 {
     mbedtls_cipher_info_t cipher_info;
     mbedtls_cipher_context_t ctx;
@@ -1489,10 +1489,20 @@ void check_padding(int pad_mode, data_t *input, int ret, int dlen_check
 
     TEST_ASSERT(0 == mbedtls_cipher_set_padding_mode(&ctx, pad_mode));
 
-
-    TEST_ASSERT(ret == ctx.get_padding(input->x, input->len, &dlen));
-    if (0 == ret) {
-        TEST_ASSERT(dlen == (size_t) dlen_check);
+    size_t invalid_padding = 42;
+    int ret = ctx.get_padding(input->x, input->len, &dlen, &invalid_padding);
+    switch (expected_ret) {
+        case 0:
+            TEST_EQUAL(ret, 0);
+            TEST_EQUAL(invalid_padding, 0);
+            TEST_EQUAL(dlen, dlen_check);
+            break;
+        case MBEDTLS_ERR_CIPHER_INVALID_PADDING:
+            TEST_EQUAL(ret, 0);
+            TEST_EQUAL(invalid_padding, SIZE_MAX);
+            break;
+        default:
+            TEST_EQUAL(ret, expected_ret);
     }
 }
 /* END_CASE */
@@ -1585,14 +1595,27 @@ void get_pkcs_padding(data_t *decrypted_block, int exp_ret, int exp_len)
 {
     int ret;
     size_t calculated_len;
+    size_t invalid_padding;
 
     TEST_CF_SECRET(decrypted_block->x, decrypted_block->len);
     ret = mbedtls_get_pkcs_padding(decrypted_block->x, decrypted_block->len,
-                                   &calculated_len);
+                                   &calculated_len, &invalid_padding);
 
-    TEST_EQUAL(ret, exp_ret);
-    if (exp_ret == 0) {
-        TEST_EQUAL(calculated_len, exp_len);
+    switch (exp_ret) {
+        case 0:
+            TEST_EQUAL(ret, 0);
+            TEST_EQUAL(invalid_padding, 0);
+            TEST_EQUAL(calculated_len, exp_len);
+            break;
+
+        case MBEDTLS_ERR_CIPHER_INVALID_PADDING:
+            TEST_EQUAL(ret, 0);
+            TEST_EQUAL(invalid_padding, ~(size_t) 0);
+            break;
+
+        default:
+            TEST_EQUAL(ret, exp_ret);
+            break;
     }
 }
 /* END_CASE */

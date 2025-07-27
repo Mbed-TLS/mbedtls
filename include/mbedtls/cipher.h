@@ -329,8 +329,15 @@ typedef struct mbedtls_cipher_context_t {
     /** Padding functions to use, if relevant for
      * the specific cipher mode.
      */
-    void(*MBEDTLS_PRIVATE(add_padding))(unsigned char *output, size_t olen, size_t data_len);
-    int(*MBEDTLS_PRIVATE(get_padding))(unsigned char *input, size_t ilen, size_t *data_len);
+    void(*MBEDTLS_PRIVATE(add_padding))(unsigned char *output, size_t olen,
+                                        size_t data_len);
+    /* Report invalid-padding condition through the output parameter
+     * invalid_padding. To minimize changes in Mbed TLS 3.6, where this
+     * declaration is in a public header, use the public type size_t
+     * rather than the internal type mbedtls_ct_condition_t. */
+    int(*MBEDTLS_PRIVATE(get_padding))(unsigned char *input, size_t ilen,
+                                       size_t *data_len,
+                                       size_t *invalid_padding);
 #endif
 
     /** Buffer for input that has not been processed yet. */

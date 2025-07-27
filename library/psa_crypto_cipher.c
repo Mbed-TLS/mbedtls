@@ -13,6 +13,7 @@
 #include "psa_crypto_cipher.h"
 #include "psa_crypto_core.h"
 #include "psa_crypto_random_impl.h"
+#include "constant_time_internal.h"
 
 #include "mbedtls/cipher.h"
 #include "mbedtls/error.h"
@@ -583,8 +584,9 @@ exit:
     mbedtls_platform_zeroize(temp_output_buffer,
                              sizeof(temp_output_buffer));
 
-    if (status == PSA_SUCCESS && invalid_padding) {
-        status = PSA_ERROR_INVALID_PADDING;
+    if (status == PSA_SUCCESS) {
+        status = mbedtls_ct_size_if_else_0(invalid_padding,
+                                           PSA_ERROR_INVALID_PADDING);
     }
     return status;
 }

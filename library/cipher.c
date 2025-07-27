@@ -1124,6 +1124,23 @@ int mbedtls_cipher_finish(mbedtls_cipher_context_t *ctx,
     return MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE;
 }
 
+int mbedtls_cipher_finish_padded(mbedtls_cipher_context_t *ctx,
+                                 unsigned char *output, size_t *olen,
+                                 size_t *invalid_padding)
+{
+    *invalid_padding = 0;
+    int ret = mbedtls_cipher_finish(ctx, output, olen);
+#if defined(MBEDTLS_CIPHER_PADDING_PKCS7) || \
+    defined(MBEDTLS_CIPHER_PADDING_ONE_AND_ZEROS) || \
+    defined(MBEDTLS_CIPHER_PADDING_ZEROS_AND_LEN)
+    if (ret == MBEDTLS_ERR_CIPHER_INVALID_PADDING) {
+        ret = 0;
+        *invalid_padding = SIZE_MAX;
+    }
+#endif
+    return ret;
+}
+
 #if defined(MBEDTLS_CIPHER_MODE_WITH_PADDING)
 int mbedtls_cipher_set_padding_mode(mbedtls_cipher_context_t *ctx,
                                     mbedtls_cipher_padding_t mode)

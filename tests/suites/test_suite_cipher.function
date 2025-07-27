@@ -1229,6 +1229,60 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_CIPHER_MODE_WITH_PADDING */
+void test_vec_crypt_cf(int cipher_id, int pad_mode, int operation, data_t *key,
+                       data_t *iv, data_t *input, data_t *result,
+                       int expected_finish_result, int use_psa)
+{
+    mbedtls_cipher_context_t ctx;
+    unsigned char output[32];
+    size_t outlen;
+
+    mbedtls_cipher_init(&ctx);
+
+    memset(output, 0x00, sizeof(output));
+
+    TEST_CF_SECRET(key->x, key->len);
+    TEST_CF_SECRET(input->x, input->len);
+
+    /* Prepare context */
+#if !defined(MBEDTLS_USE_PSA_CRYPTO) || !defined(MBEDTLS_TEST_DEPRECATED)
+    (void) use_psa;
+#else
+    if (use_psa == 1) {
+        PSA_ASSERT(psa_crypto_init());
+        TEST_ASSERT(0 == mbedtls_cipher_setup_psa(&ctx,
+                                                  mbedtls_cipher_info_from_type(cipher_id), 0));
+    } else
+#endif /* !MBEDTLS_USE_PSA_CRYPTO || !MBEDTLS_TEST_DEPRECATED*/
+    TEST_ASSERT(0 == mbedtls_cipher_setup(&ctx,
+                                          mbedtls_cipher_info_from_type(cipher_id)));
+
+    TEST_ASSERT(0 == mbedtls_cipher_setkey(&ctx, key->x, 8 * key->len, operation));
+    if (MBEDTLS_MODE_CBC == ctx.cipher_info->mode) {
+        TEST_ASSERT(0 == mbedtls_cipher_set_padding_mode(&ctx, pad_mode));
+    }
+
+    int actual_finish_result =
+        mbedtls_cipher_crypt(&ctx, iv->len ? iv->x : NULL, iv->len,
+                             input->x, input->len,
+                             output, &outlen);
+    TEST_EQUAL(expected_finish_result, actual_finish_result);
+
+    /* check plaintext only if everything went fine */
+    if (0 == expected_finish_result) {
+        TEST_CF_PUBLIC(output, sizeof(output));
+        TEST_MEMORY_COMPARE(output, outlen, result->x, result->len);
+    }
+
+exit:
+    mbedtls_cipher_free(&ctx);
+#if defined(MBEDTLS_USE_PSA_CRYPTO) && defined(MBEDTLS_TEST_DEPRECATED)
+    PSA_DONE();
+#endif /* MBEDTLS_USE_PSA_CRYPTO && MBEDTLS_TEST_DEPRECATED */
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_CIPHER_MODE_WITH_PADDING */
 void set_padding(int cipher_id, int pad_mode, int ret)
 {
     const mbedtls_cipher_info_t *cipher_info;

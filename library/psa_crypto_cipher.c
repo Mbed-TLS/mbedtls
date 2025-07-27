@@ -552,6 +552,7 @@ psa_status_t mbedtls_psa_cipher_finish(
 {
     psa_status_t status = PSA_ERROR_GENERIC_ERROR;
     uint8_t temp_output_buffer[MBEDTLS_MAX_BLOCK_LENGTH];
+    size_t invalid_padding = 0;
 
     if (operation->ctx.cipher.unprocessed_len != 0) {
         if (operation->alg == PSA_ALG_ECB_NO_PADDING ||
@@ -562,9 +563,10 @@ psa_status_t mbedtls_psa_cipher_finish(
     }
 
     status = mbedtls_to_psa_error(
-        mbedtls_cipher_finish(&operation->ctx.cipher,
-                              temp_output_buffer,
-                              output_length));
+        mbedtls_cipher_finish_padded(&operation->ctx.cipher,
+                                     temp_output_buffer,
+                                     output_length,
+                                     &invalid_padding));
     if (status != PSA_SUCCESS) {
         goto exit;
     }
@@ -581,6 +583,9 @@ exit:
     mbedtls_platform_zeroize(temp_output_buffer,
                              sizeof(temp_output_buffer));
 
+    if (status == PSA_SUCCESS && invalid_padding) {
+        status = PSA_ERROR_INVALID_PADDING;
+    }
     return status;
 }
 

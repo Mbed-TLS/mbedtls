@@ -1,0 +1,161 @@
+/* BEGIN_HEADER */
+/* Positive test cases for PSA crypto APIs that assert constant-time
+ * (more accurately constant-flow) behavior. */
+
+#include <psa/crypto.h>
+#include <test/constant_flow.h>
+
+/* Our software AES implementation is not constant-time. For constant-time
+ * testing involving AES, require a hardware-assisted AES that is
+ * constant-time.
+ *
+ * We assume that if the hardware-assisted version is available in the build,
+ * it will be available at runtime. The AES tests will fail if run on a
+ * processor without AESNI/AESCE.
+ */
+#include "aesce.h"
+#include "aesni.h"
+#if defined(MBEDTLS_AESCE_HAVE_CODE) || defined(MBEDTLS_AESNI_HAVE_CODE)
+#define HAVE_CONSTANT_TIME_AES
+#endif
+
+/* END_HEADER */
+
+/* BEGIN_DEPENDENCIES
+ * depends_on:MBEDTLS_PSA_CRYPTO_C
+ * END_DEPENDENCIES
+ */
+
+/* BEGIN_CASE */
+/* Known answer test for cipher multipart encryption.
+ * There is no known answer test for one-shot encryption because that
+ * uses a random IV. */
+void ct_cipher_encrypt(int alg_arg,
+                       int key_type_arg, const data_t *key_data,
+                       const data_t *iv,
+                       const data_t *plaintext,
+                       const data_t *expected_ciphertext)
+{
+    psa_key_type_t key_type = key_type_arg;
+    psa_algorithm_t alg = alg_arg;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
+    psa_cipher_operation_t operation = PSA_CIPHER_OPERATION_INIT;
+    unsigned char *output = NULL;
+    size_t output_size = PSA_CIPHER_ENCRYPT_OUTPUT_MAX_SIZE(plaintext->len);
+    size_t update_length = SIZE_MAX;
+    size_t finish_length = SIZE_MAX;
+
+    PSA_INIT();
+    TEST_CALLOC(output, output_size);
+    TEST_CF_SECRET(key_data->x, key_data->len);
+    TEST_CF_SECRET(plaintext->x, plaintext->len);
+    //TEST_ASSERT(key_data->x[0] != 42); // uncomment to trip constant-flow test
+
+    psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_ENCRYPT);
+    psa_set_key_algorithm(&attributes, alg);
+    psa_set_key_type(&attributes, key_type);
+    PSA_ASSERT(psa_import_key(&attributes, key_data->x, key_data->len, &key));
+
+    PSA_ASSERT(psa_cipher_encrypt_setup(&operation, key, alg));
+    PSA_ASSERT(psa_cipher_set_iv(&operation, iv->x, iv->len));
+    PSA_ASSERT(psa_cipher_update(&operation,
+                                 plaintext->x, plaintext->len,
+                                 output, output_size, &update_length));
+    TEST_LE_U(update_length, output_size);
+    PSA_ASSERT(psa_cipher_finish(&operation,
+                                 output + update_length,
+                                 output_size - update_length,
+                                 &finish_length));
+
+    TEST_CF_PUBLIC(output, output_size);
+    TEST_MEMORY_COMPARE(expected_ciphertext->x, expected_ciphertext->len,
+                        output, update_length + finish_length);
+
+exit:
+    mbedtls_free(output);
+    psa_cipher_abort(&operation);
+    psa_destroy_key(key);
+    PSA_DONE();
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+/* Known answer for cipher decryption (one-shot and multipart).
+ * Supports good cases and invalid padding cases. */
+void ct_cipher_decrypt(int alg_arg,
+                       int key_type_arg, const data_t *key_data,
+                       const data_t *iv,
+                       const data_t *ciphertext,
+                       const data_t *expected_plaintext,
+                       int expect_invalid_padding)
+{
+    psa_key_type_t key_type = key_type_arg;
+    psa_algorithm_t alg = alg_arg;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
+    psa_cipher_operation_t operation = PSA_CIPHER_OPERATION_INIT;
+    unsigned char *input = NULL;
+    unsigned char *output = NULL;
+    size_t output_size = PSA_CIPHER_DECRYPT_OUTPUT_MAX_SIZE(ciphertext->len);
+    size_t update_length = SIZE_MAX;
+    size_t finish_length = SIZE_MAX;
+    size_t output_length = SIZE_MAX;
+    psa_status_t status;
+
+    PSA_INIT();
+    TEST_CALLOC(output, output_size);
+    TEST_CF_SECRET(key_data->x, key_data->len);
+    TEST_CF_SECRET(ciphertext->x, ciphertext->len);
+    //TEST_ASSERT(key_data->x[0] != 42); // uncomment to trip constant-flow test
+
+    psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_DECRYPT);
+    psa_set_key_algorithm(&attributes, alg);
+    psa_set_key_type(&attributes, key_type);
+    PSA_ASSERT(psa_import_key(&attributes, key_data->x, key_data->len, &key));
+
+    PSA_ASSERT(psa_cipher_decrypt_setup(&operation, key, alg));
+    PSA_ASSERT(psa_cipher_set_iv(&operation, iv->x, iv->len));
+    PSA_ASSERT(psa_cipher_update(&operation,
+                                 ciphertext->x, ciphertext->len,
+                                 output, output_size, &update_length));
+    TEST_LE_U(update_length, output_size);
+    status = psa_cipher_finish(&operation,
+                               output + update_length,
+                               output_size - update_length,
+                               &finish_length);
+    TEST_CF_PUBLIC(output, output_size);
+
+    if (expect_invalid_padding) {
+        TEST_EQUAL(status, PSA_ERROR_INVALID_PADDING);
+    } else {
+        TEST_EQUAL(status, PSA_SUCCESS);
+        TEST_MEMORY_COMPARE(expected_plaintext->x, expected_plaintext->len,
+                            output, update_length + finish_length);
+    }
+
+    memset(output, 0, output_size);
+    TEST_CALLOC(input, iv->len + ciphertext->len);
+    memcpy(input, iv->x, iv->len);
+    memcpy(input + iv->len, ciphertext->x, ciphertext->len);
+    status = psa_cipher_decrypt(key, alg,
+                                input, iv->len + ciphertext->len,
+                                output, output_size, &output_length);
+    TEST_CF_PUBLIC(output, output_size);
+
+    if (expect_invalid_padding) {
+        TEST_EQUAL(status, PSA_ERROR_INVALID_PADDING);
+    } else {
+        TEST_EQUAL(status, PSA_SUCCESS);
+        TEST_MEMORY_COMPARE(expected_plaintext->x, expected_plaintext->len,
+                            output, output_length);
+    }
+
+exit:
+    mbedtls_free(input);
+    mbedtls_free(output);
+    psa_cipher_abort(&operation);
+    psa_destroy_key(key);
+    PSA_DONE();
+}
+/* END_CASE */

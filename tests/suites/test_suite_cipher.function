@@ -921,6 +921,7 @@ void decrypt_test_vec_cf(int cipher_id, int pad_mode, data_t *key,
     total_len += outlen;
     int actual_finish_result = mbedtls_cipher_finish(&ctx, output + outlen,
                                                      &outlen);
+    TEST_CF_PUBLIC(&outlen, sizeof(outlen));
     TEST_EQUAL(actual_finish_result, expected_finish_result);
     if (0 != expected_finish_result) {
         /* Check output parameter is set to the least-harmful value on error */
@@ -1083,6 +1084,7 @@ void decrypt_padded_test_vec_cf(int cipher_id, int pad_mode, data_t *key,
     int actual_finish_result =
         mbedtls_cipher_finish_padded(&ctx, output + outlen, &outlen,
                                      &invalid_padding);
+    TEST_CF_PUBLIC(&outlen, sizeof(outlen));
     switch (expected_finish_result) {
         case 0:
             TEST_EQUAL(actual_finish_result, 0);
@@ -1439,6 +1441,7 @@ void test_vec_crypt_cf(int cipher_id, int pad_mode, int operation, data_t *key,
         mbedtls_cipher_crypt(&ctx, iv->len ? iv->x : NULL, iv->len,
                              input->x, input->len,
                              output, &outlen);
+    TEST_CF_PUBLIC(&outlen, sizeof(outlen));
     TEST_EQUAL(expected_finish_result, actual_finish_result);
 
     /* check plaintext only if everything went fine */

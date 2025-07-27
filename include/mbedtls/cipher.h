@@ -991,6 +991,11 @@ int mbedtls_cipher_update(mbedtls_cipher_context_t *ctx,
  *                      buffer of at least block_size Bytes.
  * \param olen          The length of the data written to the \p output buffer.
  *                      This may not be \c NULL.
+ *                      Note that when decrypting in a mode with padding,
+ *                      the actual output length is sensitive and may be
+ *                      used to mount a padding oracle attack (see warning
+ *                      above), although less efficiently than through
+ *                      the invalid-padding condition.
  *
  * \return              \c 0 on success.
  * \return              #MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA on
@@ -1025,6 +1030,10 @@ int mbedtls_cipher_finish(mbedtls_cipher_context_t *ctx,
  *                      buffer of at least block_size Bytes.
  * \param[out] olen     The length of the data written to the \p output buffer.
  *                      This may not be \c NULL.
+ *                      Note that when decrypting in a mode with padding,
+ *                      the actual output length is sensitive and may be
+ *                      used to mount a padding oracle attack (see warning
+ *                      on mbedtls_cipher_finish()).
  * \param[out] invalid_padding
  *                      If this function returns \c 0 on decryption,
  *                      \p *invalid_padding is \c 0 if the ciphertext was

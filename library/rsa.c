@@ -1564,9 +1564,12 @@ int mbedtls_rsa_private(mbedtls_rsa_context *ctx,
      * of it, possibly through a side channel in padding verification.
      * We do the verification before unblinding, to reduce the risk of
      * leaking information about the input.
+     * We use the "unsafe" version of exponentiation, which leaks the
+     * public exponent, for a slight performance improvement.
      */
-    MBEDTLS_MPI_CHK(mbedtls_mpi_exp_mod(&check_result_blinded, &T, &ctx->E,
-                                        &ctx->N, &ctx->RN));
+    MBEDTLS_MPI_CHK(mbedtls_mpi_exp_mod_unsafe(&check_result_blinded,
+                                               &T, &ctx->E,
+                                               &ctx->N, &ctx->RN));
     if (mbedtls_mpi_cmp_mpi(&check_result_blinded, &input_blinded) != 0) {
         ret = MBEDTLS_ERR_RSA_VERIFY_FAILED;
         goto cleanup;

@@ -1554,7 +1554,17 @@ int mbedtls_rsa_private(mbedtls_rsa_context *ctx,
     MBEDTLS_MPI_CHK(mbedtls_mpi_add_mpi(&T, &TQ, &TP));
 #endif /* MBEDTLS_RSA_NO_CRT */
 
-    /* Verify the result to prevent glitching attacks. */
+    /* Verify the result to prevent a glitching attack: Arjen Lenstra,
+     * Memo on RSA signature generation in the presence of faults, 1996.
+     * https://infoscience.epfl.ch/record/164524/files/nscan20.PDF
+     *
+     * The attack is mostly on signature (the attacker needs to see
+     * the output), but could be relevant against decryption if the
+     * attacker gets to see the raw decryption result or maybe even part
+     * of it, possibly through a side channel in padding verification.
+     * We do the verification before unblinding, to reduce the risk of
+     * leaking information about the input.
+     */
     MBEDTLS_MPI_CHK(mbedtls_mpi_exp_mod(&check_result_blinded, &T, &ctx->E,
                                         &ctx->N, &ctx->RN));
     if (mbedtls_mpi_cmp_mpi(&check_result_blinded, &input_blinded) != 0) {

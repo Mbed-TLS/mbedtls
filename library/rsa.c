@@ -1554,6 +1554,7 @@ int mbedtls_rsa_private(mbedtls_rsa_context *ctx,
     MBEDTLS_MPI_CHK(mbedtls_mpi_add_mpi(&T, &TQ, &TP));
 #endif /* MBEDTLS_RSA_NO_CRT */
 
+#if !defined(MBEDTLS_RSA_NO_CRT)
     /* Verify the result to prevent a glitching attack: Arjen Lenstra,
      * Memo on RSA signature generation in the presence of faults, 1996.
      * https://infoscience.epfl.ch/record/164524/files/nscan20.PDF
@@ -1574,6 +1575,7 @@ int mbedtls_rsa_private(mbedtls_rsa_context *ctx,
         ret = MBEDTLS_ERR_RSA_VERIFY_FAILED;
         goto cleanup;
     }
+#endif
 
     /*
      * Unblind

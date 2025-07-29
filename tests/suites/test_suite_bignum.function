@@ -397,15 +397,16 @@ void mpi_gcd(char *input_X, char *input_Y,
     TEST_ASSERT(sign_is_valid(&Z));
     TEST_EQUAL(mbedtls_mpi_cmp_mpi(&Z, &A), 0);
 
-    mbedtls_mpi *Z_alias_X = &X;
-    TEST_EQUAL(mbedtls_mpi_gcd(Z_alias_X, &X, &Y), 0);
-    TEST_ASSERT(sign_is_valid(Z_alias_X));
-    TEST_EQUAL(mbedtls_mpi_cmp_mpi(Z_alias_X, &A), 0);
+    /* Test pointer aliasing where &Z == &X and &Z == &Y. */
+    TEST_EQUAL(mbedtls_test_read_mpi(&Z, input_X), 0);
+    TEST_EQUAL(mbedtls_mpi_gcd(&Z, /* X */ &Z, &Y), 0);
+    TEST_ASSERT(sign_is_valid(&Z));
+    TEST_EQUAL(mbedtls_mpi_cmp_mpi(&Z, &A), 0);
 
-    mbedtls_mpi *Z_alias_Y = &Y;
-    TEST_EQUAL(mbedtls_mpi_gcd(Z_alias_Y, &X, &Y), 0);
-    TEST_ASSERT(sign_is_valid(Z_alias_Y));
-    TEST_EQUAL(mbedtls_mpi_cmp_mpi(Z_alias_Y, &A), 0);
+    TEST_EQUAL(mbedtls_test_read_mpi(&Z, input_Y), 0);
+    TEST_EQUAL(mbedtls_mpi_gcd(&Z, &X, /* Y */ &Z), 0);
+    TEST_ASSERT(sign_is_valid(&Z));
+    TEST_EQUAL(mbedtls_mpi_cmp_mpi(&Z, &A), 0);
 
 
 exit:
@@ -1155,22 +1156,21 @@ void mpi_inv_mod(char *input_X, char *input_Y,
         TEST_EQUAL(mbedtls_mpi_cmp_mpi(&Z, &A), 0);
     }
 
-    mbedtls_mpi *Z_alias_X = &X;
-    res = mbedtls_mpi_inv_mod(Z_alias_X, &X, &Y);
+    /* Test pointer aliasing where &Z == &X and &Z == &Y. */
+    TEST_EQUAL(mbedtls_test_read_mpi(&Z, input_X), 0);
+    res = mbedtls_mpi_inv_mod(&Z, /* X */ &Z, &Y);
     TEST_EQUAL(res, div_result);
     if (res == 0) {
-        TEST_ASSERT(sign_is_valid(Z_alias_X));
-        TEST_EQUAL(mbedtls_mpi_cmp_mpi(Z_alias_X, &A), 0);
+        TEST_ASSERT(sign_is_valid(&Z));
+        TEST_EQUAL(mbedtls_mpi_cmp_mpi(&Z, &A), 0);
     }
 
-    /* When Z is an alias of Y, the answer returned in Z is normally incorrect. */
-    mbedtls_mpi *Z_alias_Y = &Y;
-    res = mbedtls_mpi_inv_mod(Z_alias_Y, &X, &Y);
+    TEST_EQUAL(mbedtls_test_read_mpi(&Z, input_Y), 0);
+    res = mbedtls_mpi_inv_mod(&Z, &X, /* Y */ &Z);
     TEST_EQUAL(res, div_result);
     if (res == 0) {
-        TEST_ASSERT(sign_is_valid(Z_alias_Y));
-        /* Testing if Z_alias_Y == &A is not useful as it is true sometimes, but is
-           often false. */
+        TEST_ASSERT(sign_is_valid(&Z));
+        TEST_EQUAL(mbedtls_mpi_cmp_mpi(&Z, &A), 0);
     }
 
 exit:

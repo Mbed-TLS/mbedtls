@@ -1531,8 +1531,26 @@ mpi_inv_mod:"":"":"0":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
 Test mbedtls_mpi_inv_mod: 0 (1 limb) mod 0 (1 limb)
 mpi_inv_mod:"00":"00":"0":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
 
+Test mbedtls_mpi_inv_mod: 0 (null) mod 0 (1 limb)
+mpi_inv_mod:"":"00":"0":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
+
+Test mbedtls_mpi_inv_mod: 0 (1 limb) mod 0 (null)
+mpi_inv_mod:"00":"":"0":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
+
 Test mbedtls_mpi_inv_mod: mod negative
 mpi_inv_mod:"3":"-b":"4":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
+
+Test mbedtls_mpi_inv_mod: negative mod negative
+mpi_inv_mod:"-3543a":"-f":"5":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
+
+Test mbedtls_mpi_inv_mod: 1 mod negative
+mpi_inv_mod:"1":"-f":"1":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
+
+Test mbedtls_mpi_inv_mod: 0 (null) mod negative
+mpi_inv_mod:"":"-f":"0":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
+
+Test mbedtls_mpi_inv_mod: 0 (1 limb) mod negative
+mpi_inv_mod:"00":"-f":"0":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
 
 Test mbedtls_mpi_inv_mod: 2^-1 mod 4
 mpi_inv_mod:"2":"4":"0":MBEDTLS_ERR_MPI_NOT_ACCEPTABLE

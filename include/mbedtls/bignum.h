@@ -974,6 +974,8 @@ int mbedtls_mpi_random(mbedtls_mpi *X,
  * \brief          Compute the greatest common divisor: G = gcd(A, B)
  *
  * \param G        The destination MPI. This must point to an initialized MPI.
+ *                 This will be positive unless \p B is 0, in which case \p A
+ *                 will be returned, where \p A could be negative.
  * \param A        The first operand. This must point to an initialized MPI.
  * \param B        The second operand. This must point to an initialized MPI.
  *

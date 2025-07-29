@@ -130,6 +130,9 @@ void x509_csr_check(char *key_file, char *cert_req_check_file, int md_type,
     mbedtls_x509write_csr req;
     unsigned char buf[4096];
     int ret;
+    unsigned char check_buf[4000];
+    FILE *f;
+    size_t olen = 0;
     size_t pem_len = 0, buf_index;
     int der_len = -1;
     const char *subject_name = "C=NL,O=PolarSSL,CN=PolarSSL Server 1";
@@ -209,10 +212,14 @@ void x509_csr_check(char *key_file, char *cert_req_check_file, int md_type,
         TEST_ASSERT(buf[buf_index] == 0);
     }
 
-    // When using PSA crypto, RNG isn't controllable, so cert_req_check_file can't be used
-    (void) cert_req_check_file;
-    buf[pem_len] = '\0';
-    TEST_ASSERT(x509_crt_verifycsr(buf, pem_len + 1) == 0);
+    f = fopen(cert_req_check_file, "r"); //open the file
+    TEST_ASSERT(f != NULL); //check the file has been opened.
+    olen = fread(check_buf, 1, sizeof(check_buf), f); // read the file
+    fclose(f); // close the file
+
+    TEST_ASSERT(olen >= pem_len - 1); 
+    TEST_ASSERT(memcmp(buf, check_buf, pem_len - 1) == 0); 
+
 
     der_len = mbedtls_x509write_csr_der(&req, buf, sizeof(buf));
     TEST_ASSERT(der_len >= 0);
@@ -221,10 +228,7 @@ void x509_csr_check(char *key_file, char *cert_req_check_file, int md_type,
         goto exit;
     }
 
-    // When using PSA crypto, RNG isn't controllable, result length isn't
-    // deterministic over multiple runs, removing a single byte isn't enough to
-    // go into the MBEDTLS_ERR_ASN1_BUF_TOO_SMALL error case
-    der_len /= 2;
+    der_len -= 1;
     ret = mbedtls_x509write_csr_der(&req, buf, (size_t) (der_len));
     TEST_ASSERT(ret == MBEDTLS_ERR_ASN1_BUF_TOO_SMALL);
 

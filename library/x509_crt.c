@@ -27,6 +27,7 @@
 #include "x509_oid.h"
 #include "mbedtls/platform_util.h"
 
+#include <limits.h>
 #include <string.h>
 
 #if defined(MBEDTLS_PEM_PARSE_C)

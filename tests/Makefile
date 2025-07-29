@@ -342,8 +342,6 @@ libtestdriver1.a:
 	cp -Rf ../tf-psa-crypto/include ./libtestdriver1/tf-psa-crypto
 	cp -Rf ../tf-psa-crypto/drivers/builtin ./libtestdriver1/tf-psa-crypto/drivers
 	cp -Rf ../tf-psa-crypto/scripts ./libtestdriver1/tf-psa-crypto
-	mkdir -p libtestdriver1/tf-psa-crypto/drivers/builtin/include/mbedtls/private/
-	cp -r libtestdriver1/tf-psa-crypto/include/mbedtls/private/pk_private.h libtestdriver1/tf-psa-crypto/drivers/builtin/include/mbedtls/private/pk_private.h
 
 	# Set the test driver base (minimal) configuration.
 	cp ../tf-psa-crypto/tests/configs/config_test_driver.h ./libtestdriver1/include/mbedtls/mbedtls_config.h

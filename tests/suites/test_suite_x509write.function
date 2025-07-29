@@ -217,8 +217,8 @@ void x509_csr_check(char *key_file, char *cert_req_check_file, int md_type,
     olen = fread(check_buf, 1, sizeof(check_buf), f); // read the file
     fclose(f); // close the file
 
-    TEST_ASSERT(olen >= pem_len - 1); 
-    TEST_ASSERT(memcmp(buf, check_buf, pem_len - 1) == 0); 
+    TEST_ASSERT(olen >= pem_len - 1);
+    TEST_ASSERT(memcmp(buf, check_buf, pem_len - 1) == 0);
 
 
     der_len = mbedtls_x509write_csr_der(&req, buf, sizeof(buf));

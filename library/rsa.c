@@ -2468,9 +2468,6 @@ int mbedtls_rsa_rsassa_pkcs1_v15_sign(mbedtls_rsa_context *ctx,
     }
 
     /* Private key operation
-     *
-     * In order to prevent Lenstra's attack, make the signature in a
-     * temporary buffer and check it before returning it.
      */
 
     sig_try = mbedtls_calloc(1, ctx->len);

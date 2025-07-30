@@ -1,0 +1,3 @@
+Removals
+   * Removed the programs/pkey directory. These will be moved to the
+     TF-PSA-Crypto repository later.

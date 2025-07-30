@@ -15,6 +15,10 @@ my @public_files = map { basename($_) } glob("../tf-psa-crypto/include/mbedtls/*
 
 my $public_files_regex = join('|', map { quotemeta($_) } @public_files);
 
+my @private_files = map { basename($_) } glob("../tf-psa-crypto/include/mbedtls/private/*.h");
+
+my $private_files_regex = join('|', map { quotemeta($_) } @private_files);
+
 while (<>) {
     s!^(\s*#\s*include\s*[\"<])mbedtls/build_info.h!${1}libtestdriver1/include/mbedtls/build_info.h!;
     s!^(\s*#\s*include\s*[\"<])mbedtls/mbedtls_config.h!${1}libtestdriver1/include/mbedtls/mbedtls_config.h!;
@@ -27,6 +31,9 @@ while (<>) {
     # to driver/builtin/include/mbedtls.
     if ( $public_files_regex ) {
         s!^(\s*#\s*include\s*[\"<])mbedtls/($public_files_regex)!${1}libtestdriver1/tf-psa-crypto/include/mbedtls/${2}!;
+    }
+    if ( $private_files_regex ) {
+        s!^(\s*#\s*include\s*[\"<])mbedtls/private/($private_files_regex)!${1}libtestdriver1/tf-psa-crypto/include/mbedtls/private/${2}!;
     }
     s!^(\s*#\s*include\s*[\"<])mbedtls/!${1}libtestdriver1/tf-psa-crypto/drivers/builtin/include/mbedtls/!;
     s!^(\s*#\s*include\s*[\"<])psa/!${1}libtestdriver1/tf-psa-crypto/include/psa/!;

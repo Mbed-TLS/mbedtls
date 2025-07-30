@@ -10,7 +10,7 @@
 #ifndef MBEDTLS_SSL_MISC_H
 #define MBEDTLS_SSL_MISC_H
 
-#include "common.h"
+#include "tf_psa_crypto_common.h"
 #include "mbedtls/build_info.h"
 
 #include "mbedtls/error.h"
@@ -2376,7 +2376,7 @@ static inline int mbedtls_ssl_tls13_sig_alg_for_cert_verify_is_supported(
 #endif /* PSA_WANT_ALG_SHA_512 && MBEDTLS_ECP_DP_SECP521R1_ENABLED */
 #endif /* PSA_HAVE_ALG_SOME_ECDSA */
 
-#if defined(MBEDTLS_PKCS1_V21)
+#if defined(PSA_WANT_ALG_RSA_PSS)
 #if defined(PSA_WANT_ALG_SHA_256)
         case MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA256:
             break;
@@ -2389,7 +2389,7 @@ static inline int mbedtls_ssl_tls13_sig_alg_for_cert_verify_is_supported(
         case MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA512:
             break;
 #endif /* PSA_WANT_ALG_SHA_512 */
-#endif /* MBEDTLS_PKCS1_V21 */
+#endif /* PSA_WANT_ALG_RSA_PSS */
         default:
             return 0;
     }
@@ -2401,7 +2401,7 @@ static inline int mbedtls_ssl_tls13_sig_alg_is_supported(
     const uint16_t sig_alg)
 {
     switch (sig_alg) {
-#if defined(MBEDTLS_PKCS1_V15)
+#if defined(PSA_WANT_ALG_RSA_PKCS1V15_SIGN)
 #if defined(PSA_WANT_ALG_SHA_256)
         case MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA256:
             break;
@@ -2414,7 +2414,7 @@ static inline int mbedtls_ssl_tls13_sig_alg_is_supported(
         case MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA512:
             break;
 #endif /* PSA_WANT_ALG_SHA_512 */
-#endif /* MBEDTLS_PKCS1_V15 */
+#endif /* PSA_WANT_ALG_RSA_PKCS1V15_SIGN */
         default:
             return mbedtls_ssl_tls13_sig_alg_for_cert_verify_is_supported(
                 sig_alg);
@@ -2455,7 +2455,7 @@ static inline int mbedtls_ssl_get_pk_type_and_md_alg_from_sig_alg(
     }
 
     switch (sig_alg) {
-#if defined(MBEDTLS_PKCS1_V21)
+#if defined(PSA_WANT_ALG_RSA_PSS)
 #if defined(PSA_WANT_ALG_SHA_256)
         case MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA256:
             *md_alg = MBEDTLS_MD_SHA256;
@@ -2474,7 +2474,7 @@ static inline int mbedtls_ssl_get_pk_type_and_md_alg_from_sig_alg(
             *pk_type = MBEDTLS_PK_RSASSA_PSS;
             break;
 #endif /* PSA_WANT_ALG_SHA_512 */
-#endif /* MBEDTLS_PKCS1_V21 */
+#endif /* PSA_WANT_ALG_RSA_PSS */
         default:
             return MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE;
     }

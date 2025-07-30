@@ -11,6 +11,8 @@
 #include <test/ssl_helpers.h>
 #include "mbedtls/psa_util.h"
 
+#include <limits.h>
+
 #if defined(MBEDTLS_SSL_TLS_C)
 int mbedtls_test_random(void *p_rng, unsigned char *output, size_t output_len)
 {
@@ -772,7 +774,7 @@ int mbedtls_test_ssl_endpoint_certificate_init(mbedtls_test_ssl_endpoint *ep,
         TEST_EQUAL(mbedtls_pk_import_into_psa(ep->pkey, &key_attr, &key_slot), 0);
         mbedtls_pk_free(ep->pkey);
         mbedtls_pk_init(ep->pkey);
-        TEST_EQUAL(mbedtls_pk_setup_opaque(ep->pkey, key_slot), 0);
+        TEST_EQUAL(mbedtls_pk_wrap_psa(ep->pkey, key_slot), 0);
     }
 #else
     (void) opaque_alg;

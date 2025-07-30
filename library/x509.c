@@ -24,6 +24,7 @@
 #include "mbedtls/oid.h"
 #include "x509_oid.h"
 
+#include <limits.h>
 #include <stdio.h>
 #include <string.h>
 

@@ -327,10 +327,6 @@ class DriverVSReference_cipher_aead_cmac(outcome_analysis.DriverVSReference):
             'Low and high error',
             'Single low error'
         ],
-        # Similar to test_suite_error above.
-        'test_suite_version': [
-            'Check for MBEDTLS_AES_C when already present',
-        ],
         # The en/decryption part of PKCS#12 is not supported so far.
         # The rest of PKCS#12 (key derivation) works though.
         'test_suite_pkcs12': [
@@ -658,10 +654,6 @@ class DriverVSReference_block_cipher_dispatch(outcome_analysis.DriverVSReference
             # really, just need to know some error code is there.
             'Single low error',
             'Low and high error',
-        ],
-        'test_suite_version': [
-            # Similar to test_suite_error above.
-            'Check for MBEDTLS_AES_C when already present',
         ],
         'test_suite_platform': [
             # Incompatible with sanitizers (e.g. ASan). If the driver

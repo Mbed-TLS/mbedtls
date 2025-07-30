@@ -293,7 +293,7 @@ int pk_wrap_as_opaque(mbedtls_pk_context *pk, psa_algorithm_t psa_alg, psa_algor
     }
     mbedtls_pk_free(pk);
     mbedtls_pk_init(pk);
-    ret = mbedtls_pk_setup_opaque(pk, *key_id);
+    ret = mbedtls_pk_wrap_psa(pk, *key_id);
     if (ret != 0) {
         return ret;
     }

@@ -11,6 +11,7 @@
 #define MBEDTLS_OID_H
 
 #include "mbedtls/build_info.h"
+#include "mbedtls/asn1.h"
 
 /*
  * Top level OID tuples

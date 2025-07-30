@@ -2448,7 +2448,7 @@ int mbedtls_rsa_rsassa_pkcs1_v15_sign(mbedtls_rsa_context *ctx,
                                       unsigned char *sig)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    unsigned char *sig_try = NULL, *verif = NULL;
+    unsigned char *sig_try = NULL;
 
     if ((md_alg != MBEDTLS_MD_NONE || hashlen != 0) && hash == NULL) {
         return MBEDTLS_ERR_RSA_BAD_INPUT_DATA;
@@ -2475,19 +2475,12 @@ int mbedtls_rsa_rsassa_pkcs1_v15_sign(mbedtls_rsa_context *ctx,
         return MBEDTLS_ERR_MPI_ALLOC_FAILED;
     }
 
-    verif = mbedtls_calloc(1, ctx->len);
-    if (verif == NULL) {
-        mbedtls_free(sig_try);
-        return MBEDTLS_ERR_MPI_ALLOC_FAILED;
-    }
-
     MBEDTLS_MPI_CHK(mbedtls_rsa_private(ctx, f_rng, p_rng, sig, sig_try));
 
     memcpy(sig, sig_try, ctx->len);
 
 cleanup:
     mbedtls_zeroize_and_free(sig_try, ctx->len);
-    mbedtls_zeroize_and_free(verif, ctx->len);
 
     if (ret != 0) {
         memset(sig, '!', ctx->len);

@@ -693,11 +693,11 @@ static int ssl_pick_cert(mbedtls_ssl_context *ssl,
         int key_type_matches = 0;
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
         key_type_matches = ((ssl->conf->f_async_sign_start != NULL ||
-                             mbedtls_pk_can_do_ext(cur->key, pk_alg, pk_usage)) &&
-                            mbedtls_pk_can_do_ext(&cur->cert->pk, pk_alg, pk_usage));
+                             mbedtls_pk_can_do_psa(cur->key, pk_alg, pk_usage)) &&
+                            mbedtls_pk_can_do_psa(&cur->cert->pk, pk_alg, pk_usage));
 #else
         key_type_matches = (
-            mbedtls_pk_can_do_ext(cur->key, pk_alg, pk_usage));
+            mbedtls_pk_can_do_psa(cur->key, pk_alg, pk_usage));
 #endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
         if (!key_type_matches) {
             MBEDTLS_SSL_DEBUG_MSG(3, ("certificate mismatch: key type"));

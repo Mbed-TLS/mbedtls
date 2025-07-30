@@ -1160,7 +1160,7 @@ static int ssl_tls13_pick_key_cert(mbedtls_ssl_context *ssl)
             if (mbedtls_ssl_tls13_check_sig_alg_cert_key_match(
                     *sig_alg, &key_cert->cert->pk)
                 && psa_alg != PSA_ALG_NONE &&
-                mbedtls_pk_can_do_ext(&key_cert->cert->pk, psa_alg,
+                mbedtls_pk_can_do_psa(&key_cert->cert->pk, psa_alg,
                                       PSA_KEY_USAGE_SIGN_HASH) == 1
                 ) {
                 ssl->handshake->key_cert = key_cert;

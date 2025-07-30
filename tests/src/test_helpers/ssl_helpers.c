@@ -644,11 +644,9 @@ static void test_ssl_endpoint_certificate_free(mbedtls_test_ssl_endpoint *ep)
         ep->cert = NULL;
     }
     if (ep->pkey != NULL) {
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
         if (mbedtls_pk_get_type(ep->pkey) == MBEDTLS_PK_OPAQUE) {
             psa_destroy_key(ep->pkey->priv_id);
         }
-#endif
         mbedtls_pk_free(ep->pkey);
         mbedtls_free(ep->pkey);
         ep->pkey = NULL;
@@ -725,9 +723,7 @@ int mbedtls_test_ssl_endpoint_certificate_init(mbedtls_test_ssl_endpoint *ep,
     int i = 0;
     int ret = -1;
     int ok = 0;
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
     mbedtls_svc_key_id_t key_slot = MBEDTLS_SVC_KEY_ID_INIT;
-#endif
 
     if (ep == NULL) {
         return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
@@ -759,7 +755,6 @@ int mbedtls_test_ssl_endpoint_certificate_init(mbedtls_test_ssl_endpoint *ep,
         TEST_EQUAL(load_endpoint_ecc(ep), 0);
     }
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
     if (opaque_alg != 0) {
         psa_key_attributes_t key_attr = PSA_KEY_ATTRIBUTES_INIT;
         /* Use a fake key usage to get a successful initial guess for the PSA attributes. */
@@ -776,11 +771,6 @@ int mbedtls_test_ssl_endpoint_certificate_init(mbedtls_test_ssl_endpoint *ep,
         mbedtls_pk_init(ep->pkey);
         TEST_EQUAL(mbedtls_pk_wrap_psa(ep->pkey, key_slot), 0);
     }
-#else
-    (void) opaque_alg;
-    (void) opaque_alg2;
-    (void) opaque_usage;
-#endif
 
     mbedtls_ssl_conf_ca_chain(&(ep->conf), ep->ca_chain, NULL);
 
@@ -1212,7 +1202,6 @@ int mbedtls_test_psa_cipher_encrypt_helper(mbedtls_ssl_transform *transform,
                                            unsigned char *output,
                                            size_t *olen)
 {
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_cipher_operation_t cipher_op = PSA_CIPHER_OPERATION_INIT;
     size_t part_len;
@@ -1246,10 +1235,6 @@ int mbedtls_test_psa_cipher_encrypt_helper(mbedtls_ssl_transform *transform,
 
     *olen += part_len;
     return 0;
-#else
-    return mbedtls_cipher_crypt(&transform->cipher_ctx_enc,
-                                iv, iv_len, input, ilen, output, olen);
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
 }
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 && PSA_WANT_ALG_CBC_NO_PADDING &&
           PSA_WANT_KEY_TYPE_AES */
@@ -1383,14 +1368,10 @@ int mbedtls_test_ssl_build_transforms(mbedtls_ssl_transform *t_in,
     size_t key_bits = 0;
     int ret = 0;
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
     psa_key_type_t key_type;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_algorithm_t alg;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
-#else
-    mbedtls_cipher_info_t const *cipher_info;
-#endif
 
     size_t keylen, maclen, ivlen = 0;
     unsigned char *key0 = NULL, *key1 = NULL;
@@ -1422,58 +1403,10 @@ int mbedtls_test_ssl_build_transforms(mbedtls_ssl_transform *t_in,
     memset(key0, 0x1, keylen);
     memset(key1, 0x2, keylen);
 
-#if !defined(MBEDTLS_USE_PSA_CRYPTO)
-    /* Pick cipher */
-    cipher_info = mbedtls_cipher_info_from_type((mbedtls_cipher_type_t) cipher_type);
-    CHK(cipher_info != NULL);
-    CHK(mbedtls_cipher_info_get_iv_size(cipher_info) <= 16);
-    CHK(mbedtls_cipher_info_get_key_bitlen(cipher_info) % 8 == 0);
-
-    /* Setup cipher contexts */
-    CHK(mbedtls_cipher_setup(&t_in->cipher_ctx_enc,  cipher_info) == 0);
-    CHK(mbedtls_cipher_setup(&t_in->cipher_ctx_dec,  cipher_info) == 0);
-    CHK(mbedtls_cipher_setup(&t_out->cipher_ctx_enc, cipher_info) == 0);
-    CHK(mbedtls_cipher_setup(&t_out->cipher_ctx_dec, cipher_info) == 0);
-
-#if defined(MBEDTLS_CIPHER_MODE_CBC)
-    if (cipher_mode == MBEDTLS_MODE_CBC) {
-        CHK(mbedtls_cipher_set_padding_mode(&t_in->cipher_ctx_enc,
-                                            MBEDTLS_PADDING_NONE) == 0);
-        CHK(mbedtls_cipher_set_padding_mode(&t_in->cipher_ctx_dec,
-                                            MBEDTLS_PADDING_NONE) == 0);
-        CHK(mbedtls_cipher_set_padding_mode(&t_out->cipher_ctx_enc,
-                                            MBEDTLS_PADDING_NONE) == 0);
-        CHK(mbedtls_cipher_set_padding_mode(&t_out->cipher_ctx_dec,
-                                            MBEDTLS_PADDING_NONE) == 0);
-    }
-#endif /* MBEDTLS_CIPHER_MODE_CBC */
-
-    CHK(mbedtls_cipher_setkey(&t_in->cipher_ctx_enc, key0,
-                              (keylen << 3 > INT_MAX) ? INT_MAX : (int) keylen << 3,
-                              MBEDTLS_ENCRYPT)
-        == 0);
-    CHK(mbedtls_cipher_setkey(&t_in->cipher_ctx_dec, key1,
-                              (keylen << 3 > INT_MAX) ? INT_MAX : (int) keylen << 3,
-                              MBEDTLS_DECRYPT)
-        == 0);
-    CHK(mbedtls_cipher_setkey(&t_out->cipher_ctx_enc, key1,
-                              (keylen << 3 > INT_MAX) ? INT_MAX : (int) keylen << 3,
-                              MBEDTLS_ENCRYPT)
-        == 0);
-    CHK(mbedtls_cipher_setkey(&t_out->cipher_ctx_dec, key0,
-                              (keylen << 3 > INT_MAX) ? INT_MAX : (int) keylen << 3,
-                              MBEDTLS_DECRYPT)
-        == 0);
-#endif /* !MBEDTLS_USE_PSA_CRYPTO */
-
     /* Setup MAC contexts */
 #if defined(MBEDTLS_SSL_SOME_SUITES_USE_MAC)
     if (cipher_mode == MBEDTLS_MODE_CBC ||
         cipher_mode == MBEDTLS_MODE_STREAM) {
-#if !defined(MBEDTLS_USE_PSA_CRYPTO)
-        mbedtls_md_info_t const *md_info = mbedtls_md_info_from_type((mbedtls_md_type_t) hash_id);
-        CHK(md_info != NULL);
-#endif
         maclen = mbedtls_md_get_size_from_type((mbedtls_md_type_t) hash_id);
         CHK(maclen != 0);
         /* Pick hash keys */
@@ -1482,7 +1415,6 @@ int mbedtls_test_ssl_build_transforms(mbedtls_ssl_transform *t_in,
         memset(md0, 0x5, maclen);
         memset(md1, 0x6, maclen);
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
         alg = mbedtls_md_psa_alg_from_type(hash_id);
 
         CHK(alg != 0);
@@ -1523,21 +1455,6 @@ int mbedtls_test_ssl_build_transforms(mbedtls_ssl_transform *t_in,
         CHK(psa_import_key(&attributes,
                            md0, maclen,
                            &t_out->psa_mac_dec) == PSA_SUCCESS);
-#else
-        CHK(mbedtls_md_setup(&t_out->md_ctx_enc, md_info, 1) == 0);
-        CHK(mbedtls_md_setup(&t_out->md_ctx_dec, md_info, 1) == 0);
-        CHK(mbedtls_md_setup(&t_in->md_ctx_enc,  md_info, 1) == 0);
-        CHK(mbedtls_md_setup(&t_in->md_ctx_dec,  md_info, 1) == 0);
-
-        CHK(mbedtls_md_hmac_starts(&t_in->md_ctx_enc,
-                                   md0, maclen) == 0);
-        CHK(mbedtls_md_hmac_starts(&t_in->md_ctx_dec,
-                                   md1, maclen) == 0);
-        CHK(mbedtls_md_hmac_starts(&t_out->md_ctx_enc,
-                                   md1, maclen) == 0);
-        CHK(mbedtls_md_hmac_starts(&t_out->md_ctx_dec,
-                                   md0, maclen) == 0);
-#endif
     }
 #else
     ((void) hash_id);
@@ -1657,7 +1574,6 @@ int mbedtls_test_ssl_build_transforms(mbedtls_ssl_transform *t_in,
     t_out->out_cid_len = (uint8_t) cid0_len;
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
     status = mbedtls_ssl_cipher_to_psa(cipher_type,
                                        t_in->taglen,
                                        &alg,
@@ -1720,7 +1636,6 @@ int mbedtls_test_ssl_build_transforms(mbedtls_ssl_transform *t_in,
             goto cleanup;
         }
     }
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 cleanup:
 
@@ -1737,9 +1652,7 @@ cleanup:
 int mbedtls_test_ssl_prepare_record_mac(mbedtls_record *record,
                                         mbedtls_ssl_transform *transform_out)
 {
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
     psa_mac_operation_t operation = PSA_MAC_OPERATION_INIT;
-#endif
 
     /* Serialized version of record header for MAC purposes */
     unsigned char add_data[13];
@@ -1751,7 +1664,6 @@ int mbedtls_test_ssl_prepare_record_mac(mbedtls_record *record,
     add_data[12] = (record->data_len >> 0) & 0xff;
 
     /* MAC with additional data */
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
     size_t sign_mac_length = 0;
     TEST_EQUAL(PSA_SUCCESS, psa_mac_sign_setup(&operation,
                                                transform_out->psa_mac_enc,
@@ -1767,26 +1679,13 @@ int mbedtls_test_ssl_prepare_record_mac(mbedtls_record *record,
     TEST_EQUAL(PSA_SUCCESS, psa_mac_sign_finish(&operation,
                                                 mac, sizeof(mac),
                                                 &sign_mac_length));
-#else
-    TEST_EQUAL(0, mbedtls_md_hmac_update(&transform_out->md_ctx_enc, add_data, 13));
-    TEST_EQUAL(0, mbedtls_md_hmac_update(&transform_out->md_ctx_enc,
-                                         record->buf + record->data_offset,
-                                         record->data_len));
-    /* Use a temporary buffer for the MAC, because with the truncated HMAC
-     * extension, there might not be enough room in the record for the
-     * full-length MAC. */
-    unsigned char mac[MBEDTLS_MD_MAX_SIZE];
-    TEST_EQUAL(0, mbedtls_md_hmac_finish(&transform_out->md_ctx_enc, mac));
-#endif
     memcpy(record->buf + record->data_offset + record->data_len, mac, transform_out->maclen);
     record->data_len += transform_out->maclen;
 
     return 0;
 
 exit:
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
     psa_mac_abort(&operation);
-#endif
     return -1;
 }
 #endif /* MBEDTLS_SSL_SOME_SUITES_USE_MAC */
@@ -1840,7 +1739,6 @@ int mbedtls_test_ssl_tls12_populate_session(mbedtls_ssl_session *session,
             return -1;
         }
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
         psa_algorithm_t psa_alg = mbedtls_md_psa_alg_from_type(
             MBEDTLS_SSL_PEER_CERT_DIGEST_DFL_TYPE);
         size_t hash_size = 0;
@@ -1851,12 +1749,6 @@ int mbedtls_test_ssl_tls12_populate_session(mbedtls_ssl_session *session,
             MBEDTLS_SSL_PEER_CERT_DIGEST_DFL_LEN,
             &hash_size);
         ret = PSA_TO_MBEDTLS_ERR(status);
-#else
-        ret = mbedtls_md(mbedtls_md_info_from_type(
-                             MBEDTLS_SSL_PEER_CERT_DIGEST_DFL_TYPE),
-                         tmp_crt.raw.p, tmp_crt.raw.len,
-                         session->peer_cert_digest);
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
         if (ret != 0) {
             return ret;
         }

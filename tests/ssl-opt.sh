@@ -433,14 +433,12 @@ requires_cipher_enabled() {
 # - $1 = command line (call to a TLS client or server program)
 # - $2 = client/server
 # - $3 = TLS version (TLS12 or TLS13)
-# - $4 = Use an external tool without ECDH support
-# - $5 = run test options
+# - $4 = run test options
 detect_required_features() {
     CMD_LINE=$1
     ROLE=$2
     TLS_VERSION=$3
-    EXT_WO_ECDH=$4
-    TEST_OPTIONS=${5:-}
+    TEST_OPTIONS=${4:-}
 
     case "$CMD_LINE" in
         *\ force_version=*)
@@ -522,24 +520,9 @@ detect_required_features() {
             else
                 # For TLS12 requirements are different between server and client
                 if [ "$ROLE" = "server" ]; then
-                    # If the server uses "server5*" certificates, then an ECDSA based
-                    # key exchange is required. However gnutls also does not
-                    # support ECDH, so this limit the choice to ECDHE-ECDSA
-                    if [ "$EXT_WO_ECDH" = "yes" ]; then
-                        requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
-                    else
-                        requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_ECDSA_CERT
-                    fi
+                    requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
                 elif [ "$ROLE" = "client" ]; then
-                    # On the client side it is enough to have any certificate
-                    # based authentication together with support for ECDSA.
-                    # Of course the GnuTLS limitation mentioned above applies
-                    # also here.
-                    if [ "$EXT_WO_ECDH" = "yes" ]; then
-                        requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT_WO_ECDH
-                    else
-                        requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
-                    fi
+                    requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT_WO_ECDH
                     requires_pk_alg "ECDSA"
                 fi
             fi
@@ -801,10 +784,6 @@ requires_openssl_tls1_3_with_ffdh() {
 # skip next test if openssl cannot handle ephemeral key exchange
 requires_openssl_tls1_3_with_compatible_ephemeral() {
     requires_openssl_next
-
-    if !(is_config_enabled "PSA_WANT_ALG_ECDH"); then
-        requires_openssl_tls1_3_with_ffdh
-    fi
 }
 
 # skip next test if tls1_3 is not available
@@ -1302,28 +1281,6 @@ is_gnutls() {
     esac
 }
 
-# Some external tools (gnutls or openssl) might not have support for static ECDH
-# and this limit the tests that can be run with them. This function checks server
-# and client command lines, given as input, to verify if the current test
-# is using one of these tools.
-use_ext_tool_without_ecdh_support() {
-    case "$1" in
-        *$GNUTLS_SERV*|\
-        *${GNUTLS_NEXT_SERV:-"gnutls-serv-dummy"}*|\
-        *${OPENSSL_NEXT:-"openssl-dummy"}*)
-                echo "yes"
-                return;;
-    esac
-    case "$2" in
-        *$GNUTLS_CLI*|\
-        *${GNUTLS_NEXT_CLI:-"gnutls-cli-dummy"}*|\
-        *${OPENSSL_NEXT:-"openssl-dummy"}*)
-                echo "yes"
-                return;;
-    esac
-    echo "no"
-}
-
 # Generate random psk_list argument for ssl_server2
 get_srv_psk_list ()
 {
@@ -1810,26 +1767,20 @@ run_test() {
         requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
     fi
 
-    # Check if we are trying to use an external tool which does not support ECDH
-    EXT_WO_ECDH=$(use_ext_tool_without_ecdh_support "$SRV_CMD" "$CLI_CMD")
 
     # Guess the TLS version which is going to be used.
     # Note that this detection is wrong in some cases, which causes unduly
     # skipped test cases in builds with TLS 1.3 but not TLS 1.2.
     # https://github.com/Mbed-TLS/mbedtls/issues/9560
-    if [ "$EXT_WO_ECDH" = "no" ]; then
-        TLS_VERSION=$(get_tls_version "$SRV_CMD" "$CLI_CMD")
-    else
-        TLS_VERSION="TLS12"
-    fi
+    TLS_VERSION="TLS12"
 
     # If we're in a PSK-only build and the test can be adapted to PSK, do that.
     maybe_adapt_for_psk "$@"
 
     # If the client or server requires certain features that can be detected
     # from their command-line arguments, check whether they're enabled.
-    detect_required_features "$SRV_CMD" "server" "$TLS_VERSION" "$EXT_WO_ECDH" "$@"
-    detect_required_features "$CLI_CMD" "client" "$TLS_VERSION" "$EXT_WO_ECDH" "$@"
+    detect_required_features "$SRV_CMD" "server" "$TLS_VERSION" "$@"
+    detect_required_features "$CLI_CMD" "client" "$TLS_VERSION" "$@"
 
     # should we skip?
     if [ "X$SKIP_NEXT" = "XYES" ]; then

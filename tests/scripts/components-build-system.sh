@@ -50,6 +50,8 @@ component_build_make_no_gen_files () {
     # GCC needs "as" in $PATH by default. To use GCC, we need to tell it where
     # to find the assembler. Or we can use clang which just works.
     CC="$(command -v clang)"
+    # For cleaning.
+    RM="$(command -v rm)"
 
     # Test the build with make.
     # Preferably we should also test with CMake. Note that a CMake test

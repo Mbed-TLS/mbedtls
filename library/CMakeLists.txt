@@ -73,6 +73,39 @@ if(GEN_FILES)
             ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/data_files/version_features.fmt
     )
 
+    execute_process(
+        COMMAND
+            ${MBEDTLS_PYTHON_EXECUTABLE}
+            ${MBEDTLS_DIR}/scripts/generate_config_checks.py
+            --list ""
+        WORKING_DIRECTORY
+            ${CMAKE_CURRENT_SOURCE_DIR}/..
+        OUTPUT_VARIABLE
+            MBEDTLS_GENERATED_CONFIG_CHECKS_HEADERS)
+    # Turn newline-terminated non-empty list into semicolon-separated list.
+    string(REPLACE "\n" ";"
+           MBEDTLS_GENERATED_CONFIG_CHECKS_HEADERS "${MBEDTLS_GENERATED_CONFIG_CHECKS_HEADERS}")
+    string(REGEX REPLACE ";\$" ""
+           MBEDTLS_GENERATED_CONFIG_CHECKS_HEADERS "${MBEDTLS_GENERATED_CONFIG_CHECKS_HEADERS}")
+    # Prepend the binary dir to all element of MBEDTLS_GENERATED_CONFIG_CHECKS_HEADERS,
+    # using features that exist in CMake 3.5.1.
+    string(REPLACE ";" ";${CMAKE_CURRENT_BINARY_DIR}/"
+           MBEDTLS_GENERATED_CONFIG_CHECKS_HEADERS
+           "${MBEDTLS_GENERATED_CONFIG_CHECKS_HEADERS}")
+    set(MBEDTLS_GENERATED_CONFIG_CHECKS_HEADERS
+        "${CMAKE_CURRENT_BINARY_DIR}/${MBEDTLS_GENERATED_CONFIG_CHECKS_HEADERS}")
+
+    add_custom_command(
+        OUTPUT ${MBEDTLS_GENERATED_CONFIG_CHECKS_HEADERS}
+        COMMAND
+            ${MBEDTLS_PYTHON_EXECUTABLE}
+                ${MBEDTLS_DIR}/scripts/generate_config_checks.py
+                ${CMAKE_CURRENT_BINARY_DIR}
+        DEPENDS
+            ${MBEDTLS_DIR}/scripts/generate_config_checks.py
+            ${MBEDTLS_FRAMEWORK_DIR}/scripts/mbedtls_framework/config_checks_generator.py
+    )
+
     add_custom_command(
         OUTPUT
             ${CMAKE_CURRENT_BINARY_DIR}/ssl_debug_helpers_generated.c
@@ -89,6 +122,7 @@ if(GEN_FILES)
     add_custom_target(${MBEDTLS_TARGET_PREFIX}mbedx509_generated_files_target
         DEPENDS
             ${CMAKE_CURRENT_BINARY_DIR}/error.c
+            ${MBEDTLS_GENERATED_CONFIG_CHECKS_HEADERS}
     )
 
     add_custom_target(${MBEDTLS_TARGET_PREFIX}mbedtls_generated_files_target

@@ -5,7 +5,12 @@ endif
 TF_PSA_CRYPTO_CORE_PATH = $(MBEDTLS_PATH)/tf-psa-crypto/core
 TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH = $(MBEDTLS_PATH)/tf-psa-crypto/drivers/builtin/src
 
+# List the generated files without running a script, so that this
+# works with no tooling dependencies when GEN_FILES is disabled.
 GENERATED_FILES := \
+	mbedtls_config_check_before.h \
+	mbedtls_config_check_final.h \
+	mbedtls_config_check_user.h \
 	error.c \
 	version_features.c \
 	ssl_debug_helpers_generated.c \
@@ -325,6 +330,14 @@ $(GENERATED_WRAPPER_FILES):
 	$(PYTHON) ../tf-psa-crypto/scripts/generate_driver_wrappers.py $(TF_PSA_CRYPTO_CORE_PATH)
 
 $(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto.o:$(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto_driver_wrappers.h
+
+GENERATED_CONFIG_CHECK_FILES = $(shell $(PYTHON) ../scripts/generate_config_checks.py --list .)
+$(GENERATED_CONFIG_CHECK_FILES): $(gen_file_dep) \
+	$(TF_PSA_CRYPTO_CORE_PATH)/../scripts/generate_config_checks.py \
+	../framework/scripts/mbedtls_framework/config_checks_generator.py
+$(GENERATED_CONFIG_CHECK_FILES):
+	echo "  Gen   $(GENERATED_CONFIG_CHECK_FILES)"
+	$(PYTHON) ../scripts/generate_config_checks.py
 
 clean:
 ifndef WINDOWS

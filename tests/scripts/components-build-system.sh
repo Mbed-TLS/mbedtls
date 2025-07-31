@@ -59,6 +59,19 @@ component_build_make_no_gen_files () {
     # even if it isn't on $PATH.
     msg "build: make lib with GEN_FILES off in minimal environment"
     env PATH=/no/such/directory "$(command -v make)" GEN_FILES= AR="$AR" CC="$CC" lib
+
+    msg "build: make -C library clean with GEN_FILES off in minimal environment"
+    env PATH=/no/such/directory "$(command -v make)" GEN_FILES= RM="$RM" -C library clean
+
+    msg "build: make lib with GEN_FILES off with generated files missing"
+    make neat
+    # Check that a sample generated file is absent
+    not test -f library/error.c
+    PERL="$(command -v perl)"
+    PYTHON="$(command -v python3)"
+    # We take whatever Python environment we're in. For a future improvement,
+    # make a venv with just scripts/basic.requirements.txt.
+    env PATH=/no/such/directory "$(command -v make)" GEN_FILES= AR="$AR" CC="$CC" PERL="$PERL" PYTHON="$PYTHON" lib
 }
 
 support_test_cmake_out_of_source () {

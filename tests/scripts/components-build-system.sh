@@ -25,6 +25,40 @@ component_test_cmake_shared () {
     $FRAMEWORK/tests/programs/dlopen_demo.sh
 }
 
+component_build_make_no_gen_files () {
+    msg "prepare for building in a minimal environment"
+
+    # Ensure that the generated files are present (should be a no-op
+    # since the all.sh infrastructure already does it).
+    make generated_files
+
+    # Arrange for the non-generated sources to be more recent than any
+    # generated file. This allows us to detect if the makefile tries
+    # to rebuild the generated files from their dependencies when it
+    # shouldn't.
+    # Wait 1 second so this test is effective even if the filesystem
+    # only has a granularity of 1 second for timestamps.
+    sleep 1
+    git ls-files -z | xargs -0 touch --
+
+    # Bypass "quiet" make wrapper
+    shopt -s extglob
+    PATH=${PATH//*([!:])\/quiet:/}
+
+    # Locate the minimum programs needed for the build: ${CC} and ${AR}.
+    AR="$(command -v ar)"
+    # GCC needs "as" in $PATH by default. To use GCC, we need to tell it where
+    # to find the assembler. Or we can use clang which just works.
+    CC="$(command -v clang)"
+
+    # Test the build with make.
+    # Preferably we should also test with CMake. Note that a CMake test
+    # would be harder to set up, because CMake will find e.g. /usr/bin/python
+    # even if it isn't on $PATH.
+    msg "build: make lib with GEN_FILES off in minimal environment"
+    env PATH=/no/such/directory "$(command -v make)" GEN_FILES= AR="$AR" CC="$CC" lib
+}
+
 support_test_cmake_out_of_source () {
     distrib_id=""
     distrib_ver=""

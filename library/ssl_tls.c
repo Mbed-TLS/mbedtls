@@ -1069,7 +1069,7 @@ static int ssl_handshake_init(mbedtls_ssl_context *ssl)
 
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
-        ssl->handshake->sig_algs_heap_allocated = 0;
+    ssl->handshake->sig_algs_heap_allocated = 0;
 #endif /* !MBEDTLS_DEPRECATED_REMOVED */
 #endif /* MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED */
     return 0;

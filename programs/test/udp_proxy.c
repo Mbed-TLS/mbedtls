@@ -854,12 +854,12 @@ accept:
     clear_pending();
     memset(held, 0, sizeof(held));
 
-    nb_fds = client_fd.fd;
-    if (nb_fds < server_fd.fd) {
-        nb_fds = server_fd.fd;
+    nb_fds = (int) client_fd.fd;
+    if (nb_fds < (int) server_fd.fd) {
+        nb_fds = (int) server_fd.fd;
     }
-    if (nb_fds < listen_fd.fd) {
-        nb_fds = listen_fd.fd;
+    if (nb_fds < (int) listen_fd.fd) {
+        nb_fds = (int) listen_fd.fd;
     }
     ++nb_fds;
 

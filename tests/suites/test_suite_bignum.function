@@ -1222,6 +1222,10 @@ void mpi_gcd_modinv_odd_both(char *input_A, char *input_N,
     /* Test pointer aliasing where &A == &N. This should fail. */
     res = mbedtls_mpi_gcd_modinv_odd(&G, &I, &A, /* N */ &A);
     TEST_EQUAL(res, MBEDTLS_ERR_MPI_BAD_INPUT_DATA);
+
+exit:
+    mbedtls_mpi_free(&G); mbedtls_mpi_free(&I); mbedtls_mpi_free(&A); mbedtls_mpi_free(&N);
+    mbedtls_mpi_free(&exp_G); mbedtls_mpi_free(&exp_I);
 }
 /* END_CASE */
 
@@ -1265,6 +1269,10 @@ void mpi_gcd_modinv_odd_only_gcd(char *input_A, char *input_N,
     /* Test pointer aliasing where &A == &N. This should fail. */
     res = mbedtls_mpi_gcd_modinv_odd(&G, NULL, &A, /* N */ &A);
     TEST_EQUAL(res, MBEDTLS_ERR_MPI_BAD_INPUT_DATA);
+
+exit:
+    mbedtls_mpi_free(&G); mbedtls_mpi_free(&A); mbedtls_mpi_free(&N);
+    mbedtls_mpi_free(&exp_G);
 }
 /* END_CASE */
 
@@ -1311,6 +1319,10 @@ void mpi_gcd_modinv_odd_only_modinv(char *input_A, char *input_N,
     /* Test pointer aliasing where &A == &N. This should fail. */
     res = mbedtls_mpi_gcd_modinv_odd(NULL, &I, &A, /* N */ &A);
     TEST_EQUAL(res, MBEDTLS_ERR_MPI_BAD_INPUT_DATA);
+
+exit:
+    mbedtls_mpi_free(&I); mbedtls_mpi_free(&A); mbedtls_mpi_free(&N);
+    mbedtls_mpi_free(&exp_I);
 }
 /* END_CASE */
 

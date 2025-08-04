@@ -115,7 +115,10 @@ OBJS_CRYPTO := $(filter-out $(GENERATED_OBJS_CRYPTO),$(OBJS_CRYPTO))
 OBJS_CRYPTO += $(GENERATED_OBJS_CRYPTO)
 
 THIRDPARTY_DIR := $(MBEDTLS_PATH)/tf-psa-crypto/drivers
+ifeq "$(MBEDTLS_PATH)/tf-psa-crypto/drivers/everest/Makefile.inc" \
+     "$(wildcard $(MBEDTLS_PATH)/tf-psa-crypto/drivers/everest/Makefile.inc)"
 include $(MBEDTLS_PATH)/tf-psa-crypto/drivers/everest/Makefile.inc
+endif
 include $(MBEDTLS_PATH)/tf-psa-crypto/drivers/p256-m/Makefile.inc
 LOCAL_CFLAGS+=$(THIRDPARTY_INCLUDES)
 OBJS_CRYPTO+=$(THIRDPARTY_CRYPTO_OBJECTS)

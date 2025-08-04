@@ -2310,11 +2310,7 @@ static inline int mbedtls_ssl_named_group_is_supported(uint16_t named_group)
 /*
  * Return supported signature algorithms.
  *
- * In future, invocations can be changed to ssl->conf->sig_algs when
- * mbedtls_ssl_conf_sig_hashes() is deleted.
- *
  * ssl->handshake->sig_algs is either a translation of sig_hashes to IANA TLS
- * signature algorithm identifiers when mbedtls_ssl_conf_sig_hashes() has been
  * used, or a pointer to ssl->conf->sig_algs when mbedtls_ssl_conf_sig_algs() has
  * been more recently invoked.
  *

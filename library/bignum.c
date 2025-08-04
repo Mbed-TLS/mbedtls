@@ -1751,6 +1751,7 @@ int mbedtls_mpi_gcd_modinv_odd(mbedtls_mpi *G,
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_mpi local_g;
+    mbedtls_mpi local_a;
     mbedtls_mpi_uint *T = NULL;
     const size_t T_factor = I != NULL ? 5 : 4;
 
@@ -1765,6 +1766,16 @@ int mbedtls_mpi_gcd_modinv_odd(mbedtls_mpi *G,
     /* Check aliasing requirements */
     if (A == N || G == I || (I != NULL && (I == N || G == N))) {
         return MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
+    }
+
+    mbedtls_mpi_init(&local_a);
+    /* If A is 0 (null), then A->p will be null, which is an issue when A->p is
+     * passed to mbedtls_mpi_core_gcd_modinv_odd below, so set A to 0 (1 limb)
+     * in this case. */
+    if (A->n == 0 && A->p == NULL) {
+        mbedtls_mpi_read_string(&local_a, 16, "00");
+    } else {
+        mbedtls_mpi_copy(&local_a, A);
     }
 
     mbedtls_mpi_init(&local_g);
@@ -1787,8 +1798,8 @@ int mbedtls_mpi_gcd_modinv_odd(mbedtls_mpi *G,
     }
 
     mbedtls_mpi_uint *Ip = I != NULL ? I->p : NULL;
-    size_t An = A->n <= N->n ? A->n : N->n;
-    mbedtls_mpi_core_gcd_modinv_odd(G->p, Ip, A->p, An, N->p, N->n, T);
+    size_t An = local_a.n <= N->n ? local_a.n : N->n;
+    mbedtls_mpi_core_gcd_modinv_odd(G->p, Ip, local_a.p, An, N->p, N->n, T);
 
     if (G->n > N->n) {
         memset(G->p + N->n, 0, ciL * (G->n - N->n));
@@ -1799,6 +1810,7 @@ int mbedtls_mpi_gcd_modinv_odd(mbedtls_mpi *G,
 
 cleanup:
     mbedtls_mpi_free(&local_g);
+    mbedtls_mpi_free(&local_a);
     mbedtls_free(T);
     return ret;
 }

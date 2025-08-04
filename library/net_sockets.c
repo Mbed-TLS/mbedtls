@@ -50,7 +50,7 @@
 #endif
 #endif /* _MSC_VER */
 
-#define ISINVALID(s) (INVALID_SOCKET==(s))
+#define ISINVALID(s) (INVALID_SOCKET == (s))
 
 #define read(fd, buf, len)      recv(fd, (char *) (buf), (int) (len), 0)
 #define write(fd, buf, len)     send(fd, (char *) (buf), (int) (len), 0)
@@ -83,7 +83,7 @@ static int wsa_init_done = 0;
 #define INVALID_SOCKET (-1)
 #endif
 #ifndef ISINVALID
-#define ISINVALID(s) (0>(s))
+#define ISINVALID(s) (0 > (s))
 #endif
 
 #endif /* WINSOCKETS */
@@ -185,7 +185,7 @@ int mbedtls_net_connect(mbedtls_net_context *ctx, const char *host,
     ret = MBEDTLS_ERR_NET_UNKNOWN_HOST;
     for (cur = addr_list; cur != NULL; cur = cur->ai_next) {
         ctx->fd = socket(cur->ai_family, cur->ai_socktype,
-                               cur->ai_protocol);
+                         cur->ai_protocol);
         if (ISINVALID(ctx->fd)) {
             ret = MBEDTLS_ERR_NET_SOCKET_FAILED;
             continue;
@@ -234,7 +234,7 @@ int mbedtls_net_bind(mbedtls_net_context *ctx, const char *bind_ip, const char *
     ret = MBEDTLS_ERR_NET_UNKNOWN_HOST;
     for (cur = addr_list; cur != NULL; cur = cur->ai_next) {
         ctx->fd = socket(cur->ai_family, cur->ai_socktype,
-                               cur->ai_protocol);
+                         cur->ai_protocol);
         if (ISINVALID(ctx->fd)) {
             ret = MBEDTLS_ERR_NET_SOCKET_FAILED;
             continue;
@@ -348,14 +348,14 @@ int mbedtls_net_accept(mbedtls_net_context *bind_ctx,
     if (type == SOCK_STREAM) {
         /* TCP: actual accept() */
         client_ctx->fd = accept(bind_ctx->fd,
-                                            (struct sockaddr *) &client_addr, &n);
+                                (struct sockaddr *) &client_addr, &n);
         ret = (SSIZE_T) client_ctx->fd;
     } else {
         /* UDP: wait for a message, but keep it in the queue */
         char buf[1] = { 0 };
 
         ret = (SSIZE_T) recvfrom(bind_ctx->fd, buf, sizeof(buf), MSG_PEEK,
-                             (struct sockaddr *) &client_addr, &n);
+                                 (struct sockaddr *) &client_addr, &n);
 
 #if defined(_WIN32)
         if (ret == SOCKET_ERROR &&
@@ -391,7 +391,7 @@ int mbedtls_net_accept(mbedtls_net_context *bind_ctx,
         if (getsockname(client_ctx->fd,
                         (struct sockaddr *) &local_addr, &n) != 0 ||
             ISINVALID(bind_ctx->fd = socket(local_addr.ss_family,
-                                         SOCK_DGRAM, IPPROTO_UDP)) ||
+                                            SOCK_DGRAM, IPPROTO_UDP)) ||
             setsockopt(bind_ctx->fd, SOL_SOCKET, SO_REUSEADDR,
                        (const char *) &one, sizeof(one)) != 0) {
             return MBEDTLS_ERR_NET_SOCKET_FAILED;

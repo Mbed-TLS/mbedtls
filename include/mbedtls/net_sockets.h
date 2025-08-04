@@ -87,7 +87,8 @@ typedef struct mbedtls_net_context {
      * On other platforms, it may have a different type, have a different
      * meaning, or be absent altogether.
      */
-#ifdef _MSC_VER
+#if (defined(_WIN32) || defined(_WIN32_WCE)) && \
+    !(defined(EFIX64) || defined(EFI32))
     SOCKET fd;
 #else
     int fd;

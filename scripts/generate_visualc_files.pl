@@ -123,6 +123,7 @@ exit( main() );
 
 sub check_dirs {
     foreach my $d (@thirdparty_header_dirs, @thirdparty_source_dirs) {
+        next if $d =~ m!/everest/!; # Allow the everest submodule to be missing
         if (not (-d $d)) { return 0; }
     }
     return -d $vsx_dir

@@ -1763,7 +1763,7 @@ int mbedtls_mpi_gcd_modinv_odd(mbedtls_mpi *G,
     }
 
     /* Check aliasing requirements */
-    if (A == N || (I != NULL && (I == N || G == N))) {
+    if (A == N || G == I || (I != NULL && (I == N || G == N))) {
         return MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
     }
 

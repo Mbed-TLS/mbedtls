@@ -51,9 +51,14 @@ int mbedtls_mpi_exp_mod_unsafe(mbedtls_mpi *X, const mbedtls_mpi *A,
  * \brief          Compute GCD(A, N) and/or A^-1 mod N if it exists,
  *                 in constant time.
  *
- * \warning        Requires N to be odd, and 0 <= A <= N.
+ * \warning        Requires N to be odd, and 0 <= A <= N, and N > 1 if
+ *                 I != NULL.
  *
- * \note           G and I must not alias each other but may alias A or N.
+ * \note           G and I must not alias each other.
+ *                 A and N must not alias each other.
+ *                 When I == NULL (computing only the GCD), G can alias A or N.
+ *                 When I != NULL (computing the modular inverse), G or I can
+ *                 alias A, but neither of them can alias N (the modulus).
  *
  * \param[out] G   The GCD of \p A and \p N.
  *                 This may be NULL, to only compute I.
@@ -67,6 +72,8 @@ int mbedtls_mpi_exp_mod_unsafe(mbedtls_mpi *X, const mbedtls_mpi *A,
  *
  * \return         \c 0 if successful.
  * \return         #MBEDTLS_ERR_MPI_ALLOC_FAILED if a memory allocation failed.
+ * \return         #MBEDTLS_ERR_MPI_BAD_INPUT_DATA if preconditions were not
+ *                 met.
  */
 int mbedtls_mpi_gcd_modinv_odd(mbedtls_mpi *G,
                                mbedtls_mpi *I,

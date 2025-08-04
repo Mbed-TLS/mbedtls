@@ -47,4 +47,30 @@ int mbedtls_mpi_exp_mod_unsafe(mbedtls_mpi *X, const mbedtls_mpi *A,
                                const mbedtls_mpi *E, const mbedtls_mpi *N,
                                mbedtls_mpi *prec_RR);
 
+/**
+ * \brief          Compute GCD(A, N) and/or A^-1 mod N if it exists,
+ *                 in constant time.
+ *
+ * \warning        Requires N to be odd, and 0 <= A <= N.
+ *
+ * \note           G and I must not alias each other but may alias A or N.
+ *
+ * \param[out] G   The GCD of \p A and \p N.
+ *                 This may be NULL, to only compute I.
+ * \param[out] I   The inverse of \p A modulo \p N if it exists (that is,
+ *                 if \p G above is 1 on exit); indeterminate otherwise.
+ *                 This may be NULL, to only compute G.
+ * \param[in] A    The 1st operand of GCD and number to invert.
+ *                 This value must be less than or equal to \p N.
+ * \param[in] N    The 2nd operand of GCD and modulus for inversion.
+ *                 Must be odd or the results are indeterminate.
+ *
+ * \return         \c 0 if successful.
+ * \return         #MBEDTLS_ERR_MPI_ALLOC_FAILED if a memory allocation failed.
+ */
+int mbedtls_mpi_gcd_modinv_odd(mbedtls_mpi *G,
+                               mbedtls_mpi *I,
+                               const mbedtls_mpi *A,
+                               const mbedtls_mpi *N);
+
 #endif /* bignum_internal.h */

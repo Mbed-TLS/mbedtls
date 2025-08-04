@@ -1743,6 +1743,66 @@ int mbedtls_mpi_exp_mod_unsafe(mbedtls_mpi *X, const mbedtls_mpi *A,
     return mbedtls_mpi_exp_mod_optionally_safe(X, A, E, MBEDTLS_MPI_IS_PUBLIC, N, prec_RR);
 }
 
+/* Constant-time GCD and/or modinv with odd modulus and A <= N */
+int mbedtls_mpi_gcd_modinv_odd(mbedtls_mpi *G,
+                               mbedtls_mpi *I,
+                               const mbedtls_mpi *A,
+                               const mbedtls_mpi *N)
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    mbedtls_mpi local_g;
+    mbedtls_mpi_uint *T = NULL;
+    const size_t T_factor = I != NULL ? 5 : 4;
+
+    /* Check requirements on A and N */
+    if (mbedtls_mpi_cmp_int(A, 0) < 0 ||
+        mbedtls_mpi_cmp_mpi(A, N) > 0 ||
+        mbedtls_mpi_get_bit(N, 0) != 1 ||
+        (I != NULL && mbedtls_mpi_cmp_int(N, 1) == 0)) {
+        return MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
+    }
+
+    /* Check aliasing requirements */
+    if (A == N || (I != NULL && (I == N || G == N))) {
+        return MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
+    }
+
+    mbedtls_mpi_init(&local_g);
+
+    if (G == NULL) {
+        G = &local_g;
+    }
+
+    MBEDTLS_MPI_CHK(mbedtls_mpi_grow(G, N->n));
+    G->s = 1;
+    if (I != NULL) {
+        MBEDTLS_MPI_CHK(mbedtls_mpi_grow(I, N->n));
+        I->s = 1;
+    }
+
+    T = mbedtls_calloc(sizeof(mbedtls_mpi_uint) * N->n, T_factor);
+    if (T == NULL) {
+        ret = MBEDTLS_ERR_MPI_ALLOC_FAILED;
+        goto cleanup;
+    }
+
+    mbedtls_mpi_uint *Ip = I != NULL ? I->p : NULL;
+    size_t An = A->n <= N->n ? A->n : N->n;
+    mbedtls_mpi_core_gcd_modinv_odd(G->p, Ip, A->p, An, N->p, N->n, T);
+
+    if (G->n > N->n) {
+        memset(G->p + N->n, 0, ciL * (G->n - N->n));
+    }
+    if (I != NULL && I->n > N->n) {
+        memset(I->p + N->n, 0, ciL * (I->n - N->n));
+    }
+
+cleanup:
+    mbedtls_mpi_free(&local_g);
+    mbedtls_free(T);
+    return ret;
+}
+
 /*
  * Greatest common divisor: G = gcd(A, B)  (HAC 14.54)
  */

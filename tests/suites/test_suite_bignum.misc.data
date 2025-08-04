@@ -1466,10 +1466,10 @@ Test GCD: 6, 0 (1 limb)
 mpi_gcd:"06":"00":"6"
 
 Test GCD: negative, 0 (null)
-mpi_gcd:"-50000":"":"-50000"
+mpi_gcd:"-50000":"":"50000"
 
 Test GCD: negative, 0 (1 limb)
-mpi_gcd:"-a782374b2ee927df28802745833a":"00":"-a782374b2ee927df28802745833a"
+mpi_gcd:"-a782374b2ee927df28802745833a":"00":"a782374b2ee927df28802745833a"
 
 Test GCD: 0 (null), negative
 mpi_gcd:"":"-50000":"50000"

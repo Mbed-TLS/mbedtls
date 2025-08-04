@@ -1834,17 +1834,18 @@ int mbedtls_mpi_gcd(mbedtls_mpi *G, const mbedtls_mpi *A, const mbedtls_mpi *B)
     MBEDTLS_MPI_CHK(mbedtls_mpi_copy(&TB, B));
     TA.s = TB.s = 1;
 
-    /* Handle special cases (that don't happen in crypto usage) */
-    if (mbedtls_mpi_core_check_zero_ct(A.p, A.n) == MBEDTLS_CT_FALSE) {
-        return mbedtls_mpi_copy(G, TB); // GCD(0, B) = abs(B)
-    }
-    if (mbedtls_mpi_core_check_zero_ct(B.p, B.n) == MBEDTLS_CT_FALSE) {
-        return mbedtls_mpi_copy(G, A); // GCD(A, 0) = A (for now)
-    }
-
-    /* Make the two values the same (non-zero) number of limbs */
+    /* Make the two values the same (non-zero) number of limbs.
+     * This is needed to use mbedtls_mpi_core functions below. */
     MBEDTLS_MPI_CHK(mbedtls_mpi_grow(&TA, TB.n != 0 ? TB.n : 1));
     MBEDTLS_MPI_CHK(mbedtls_mpi_grow(&TB, TA.n)); // non-zero from above
+
+    /* Handle special cases (that don't happen in crypto usage) */
+    if (mbedtls_mpi_core_check_zero_ct(TA.p, TA.n) == MBEDTLS_CT_FALSE) {
+        return mbedtls_mpi_copy(G, &TB); // GCD(0, B) = abs(B)
+    }
+    if (mbedtls_mpi_core_check_zero_ct(TB.p, TB.n) == MBEDTLS_CT_FALSE) {
+        return mbedtls_mpi_copy(G, &TA); // GCD(A, 0) = abs(A)
+    }
 
     const size_t za = mbedtls_mpi_lsb(&TA);
     const size_t zb = mbedtls_mpi_lsb(&TB);

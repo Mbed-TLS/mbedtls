@@ -263,7 +263,6 @@ REVERSE_DEPENDENCIES = {
     'PSA_WANT_ECC_MONTGOMERY_255': ['MBEDTLS_ECP_DP_CURVE25519_ENABLED'],
     'PSA_WANT_ECC_MONTGOMERY_448': ['MBEDTLS_ECP_DP_CURVE448_ENABLED'],
     'PSA_WANT_ECC_SECP_R1_192': ['MBEDTLS_ECP_DP_SECP192R1_ENABLED'],
-    'PSA_WANT_ECC_SECP_R1_224': ['MBEDTLS_ECP_DP_SECP224R1_ENABLED'],
     'PSA_WANT_ECC_SECP_R1_256': ['PSA_WANT_ALG_JPAKE',
                                  'MBEDTLS_ECP_DP_SECP256R1_ENABLED'],
     'PSA_WANT_ECC_SECP_R1_384': ['MBEDTLS_ECP_DP_SECP384R1_ENABLED'],
@@ -482,9 +481,7 @@ class DomainData:
                         if alg.can_do(crypto_knowledge.AlgorithmCategory.HASH)}
 
         # Find elliptic curve enabling macros by name.
-        # MBEDTLS_ECP_DP_SECP224K1_ENABLED added to disable it for all curves
-        curve_symbols = self.config_symbols_matching(r'PSA_WANT_ECC_\w+\Z|'
-                                                     r'MBEDTLS_ECP_DP_SECP224K1_ENABLED')
+        curve_symbols = self.config_symbols_matching(r'PSA_WANT_ECC_\w+\Z|')
 
         # Find key exchange enabling macros by name.
         key_exchange_symbols = self.config_symbols_matching(r'MBEDTLS_KEY_EXCHANGE_\w+_ENABLED\Z')

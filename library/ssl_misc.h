@@ -2309,11 +2309,6 @@ static inline int mbedtls_ssl_named_group_is_supported(uint16_t named_group)
 
 /*
  * Return supported signature algorithms.
- *
- * ssl->handshake->sig_algs is either a translation of sig_hashes to IANA TLS
- * used, or a pointer to ssl->conf->sig_algs when mbedtls_ssl_conf_sig_algs() has
- * been more recently invoked.
- *
  */
 static inline const void *mbedtls_ssl_get_sig_algs(
     const mbedtls_ssl_context *ssl)

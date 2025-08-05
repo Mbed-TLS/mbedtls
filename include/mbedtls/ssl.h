@@ -3366,7 +3366,7 @@ int mbedtls_ssl_conf_cid(mbedtls_ssl_config *conf, size_t len,
  *
  * \note           The restrictions are enforced for all certificates in the
  *                 chain. However, signatures in the handshake are not covered
- *                 by this setting but by \b mbedtls_ssl_conf_sig_hashes().
+ *                 by this setting but by \b mbedtls_ssl_conf_sig_algs().
  *
  * \param conf     SSL configuration
  * \param profile  Profile to use

@@ -48,14 +48,14 @@ int mbedtls_mpi_exp_mod_unsafe(mbedtls_mpi *X, const mbedtls_mpi *A,
                                mbedtls_mpi *prec_RR);
 
 /**
- * \brief          Compute GCD(A, N) and/or A^-1 mod N if it exists,
- *                 in constant time.
+ * \brief          A wrapper around a constant time function to compute
+ *                 GCD(A, N) and/or A^-1 mod N if it exists.
  *
- * \warning        Requires N to be odd, and 0 <= A <= N, and N > 1 if
- *                 I != NULL.
+ * \warning        Requires N to be odd, and 0 <= A <= N. Additionally, if
+ *                 I != NULL, requires N > 1.
+ *                 The wrapper part of this function is not constant time.
  *
- * \note           G and I must not alias each other.
- *                 A and N must not alias each other.
+ * \note           A and N must not alias each other.
  *                 When I == NULL (computing only the GCD), G can alias A or N.
  *                 When I != NULL (computing the modular inverse), G or I can
  *                 alias A, but neither of them can alias N (the modulus).

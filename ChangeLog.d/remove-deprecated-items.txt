@@ -3,8 +3,7 @@ Removals
      standard version (defined in RFC 9146) of DTLS connection ID is supported.
    * Remove mbedtls_ssl_conf_max/min_version(), this has been replaced with
      mbedtls_ssl_conf_max/min_tls_version()
-   * Remove ssl versions MBEDTLS_SSL_MAJOR_VERSION_3,
-     MBEDTLS_SSL_MINOR_VERSION_3 and MBEDTLS_SSL_MINOR_VERSION_4
+   * Removed the constants MBEDTLS_SSL_MAJOR_VERSION_3,
+     MBEDTLS_SSL_MINOR_VERSION_3 MBEDTLS_SSL_MINOR_VERSION_4, 
+     Remove mbedtls_ssl_conf_max_version and Remove mbedtls_ssl_conf_min_version.
    * Remove mbedtls_ssl_conf_sig_hashes
-   * Remove mbedtls_ssl_conf_max_version
-   * Remove mbedtls_ssl_conf_min_version

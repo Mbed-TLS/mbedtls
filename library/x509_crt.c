@@ -1663,25 +1663,25 @@ cleanup:
 
 #if !defined(MBEDTLS_X509_REMOVE_INFO)
 #define PRINT_ITEM(i)                               \
-        do {                                            \
-            ret = mbedtls_snprintf(p, n, "%s" i, sep);  \
-            MBEDTLS_X509_SAFE_SNPRINTF;                 \
-            sep = ", ";                                 \
-        } while (0)
+    do {                                            \
+        ret = mbedtls_snprintf(p, n, "%s" i, sep);  \
+        MBEDTLS_X509_SAFE_SNPRINTF;                 \
+        sep = ", ";                                 \
+    } while (0)
 
 #define CERT_TYPE(type, name)          \
-        do {                               \
-            if (ns_cert_type & (type)) {   \
-                PRINT_ITEM(name);          \
-            }                              \
-        } while (0)
+    do {                               \
+        if (ns_cert_type & (type)) {   \
+            PRINT_ITEM(name);          \
+        }                              \
+    } while (0)
 
 #define KEY_USAGE(code, name)      \
-        do {                           \
-            if (key_usage & (code)) {  \
-                PRINT_ITEM(name);      \
-            }                          \
-        } while (0)
+    do {                           \
+        if (key_usage & (code)) {  \
+            PRINT_ITEM(name);      \
+        }                          \
+    } while (0)
 
 static int x509_info_ext_key_usage(char **buf, size_t *size,
                                    const mbedtls_x509_sequence *extended_key_usage)
@@ -3057,7 +3057,7 @@ static int x509_crt_verify_restartable_ca_cb(mbedtls_x509_crt *crt,
     /* Check the type and size of the key */
     pk_type = mbedtls_pk_get_type(&crt->pk);
 
-    if (x509_profile_check_pk_alg(profile, (mbedtls_pk_sigalg_t)pk_type) != 0) {
+    if (x509_profile_check_pk_alg(profile, (mbedtls_pk_sigalg_t) pk_type) != 0) {
         ee_flags |= MBEDTLS_X509_BADCERT_BAD_PK;
     }
 

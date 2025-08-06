@@ -1219,17 +1219,21 @@ void mpi_gcd_modinv_odd_both(char *input_A, char *input_N,
     res = mbedtls_mpi_gcd_modinv_odd(&G, &I, &A, /* N */ &A);
     TEST_EQUAL(res, MBEDTLS_ERR_MPI_BAD_INPUT_DATA);
 
-    /* Test G & I initialized to large number with non-zero limbs. */
-    TEST_EQUAL(mbedtls_test_read_mpi(&G, "c7420eb50e52ce18795a1020896787ce18dcd6b0"), 0);
-    TEST_EQUAL(mbedtls_test_read_mpi(&I, "5702c227ee207cca33eb7a6151531b50541a47ef"), 0);
-    res = mbedtls_mpi_gcd_modinv_odd(&G, &I, &A, &N);
-    TEST_EQUAL(res, return_code);
-    if (res == 0) {
-        TEST_ASSERT(sign_is_valid(&G));
-        TEST_EQUAL(mbedtls_mpi_cmp_mpi(&G, &exp_G), 0);
-        if (has_inverse) {
-            TEST_ASSERT(sign_is_valid(&I));
-            TEST_EQUAL(mbedtls_mpi_cmp_mpi(&I, &exp_I), 0);
+    /* Test G & I initialized to a number with more limbs than N. */
+    if (N.n > 0) {
+        TEST_EQUAL(mbedtls_mpi_grow(&G, N.n * 2), 0);
+        memset(G.p, 0x2d, G.n * sizeof(mbedtls_mpi_uint));
+        TEST_EQUAL(mbedtls_mpi_grow(&I, N.n * 2), 0);
+        memset(I.p, 0x2f, I.n * sizeof(mbedtls_mpi_uint));
+        res = mbedtls_mpi_gcd_modinv_odd(&G, &I, &A, &N);
+        TEST_EQUAL(res, return_code);
+        if (res == 0) {
+            TEST_ASSERT(sign_is_valid(&G));
+            TEST_EQUAL(mbedtls_mpi_cmp_mpi(&G, &exp_G), 0);
+            if (has_inverse) {
+                TEST_ASSERT(sign_is_valid(&I));
+                TEST_EQUAL(mbedtls_mpi_cmp_mpi(&I, &exp_I), 0);
+            }
         }
     }
 
@@ -1280,13 +1284,16 @@ void mpi_gcd_modinv_odd_only_gcd(char *input_A, char *input_N,
     res = mbedtls_mpi_gcd_modinv_odd(&G, NULL, &A, /* N */ &A);
     TEST_EQUAL(res, MBEDTLS_ERR_MPI_BAD_INPUT_DATA);
 
-    /* Test G initialized to large number with non-zero limbs. */
-    TEST_EQUAL(mbedtls_test_read_mpi(&G, "8d81032aaa52fb4d29831c7ed183fffee9baf169"), 0);
-    res = mbedtls_mpi_gcd_modinv_odd(&G, NULL, &A, &N);
-    TEST_EQUAL(res, return_code);
-    if (res == 0) {
-        TEST_ASSERT(sign_is_valid(&G));
-        TEST_EQUAL(mbedtls_mpi_cmp_mpi(&G, &exp_G), 0);
+    /* Test G initialized to a number with more limbs than N. */
+    if (N.n > 0) {
+        TEST_EQUAL(mbedtls_mpi_grow(&G, N.n * 2), 0);
+        memset(G.p, 0x2b, G.n * sizeof(mbedtls_mpi_uint));
+        res = mbedtls_mpi_gcd_modinv_odd(&G, NULL, &A, &N);
+        TEST_EQUAL(res, return_code);
+        if (res == 0) {
+            TEST_ASSERT(sign_is_valid(&G));
+            TEST_EQUAL(mbedtls_mpi_cmp_mpi(&G, &exp_G), 0);
+        }
     }
 
 exit:
@@ -1337,13 +1344,16 @@ void mpi_gcd_modinv_odd_only_modinv(char *input_A, char *input_N,
     res = mbedtls_mpi_gcd_modinv_odd(NULL, &I, &A, /* N */ &A);
     TEST_EQUAL(res, MBEDTLS_ERR_MPI_BAD_INPUT_DATA);
 
-    /* Test I initialized to large number with non-zero limbs. */
-    TEST_EQUAL(mbedtls_test_read_mpi(&I, "bc0ccc030cb2d8b31e40e08fac727d2f4a8c9c1d"), 0);
-    res = mbedtls_mpi_gcd_modinv_odd(NULL, &I, &A, &N);
-    TEST_EQUAL(res, return_code);
-    if (res == 0 && has_inverse) {
-        TEST_ASSERT(sign_is_valid(&I));
-        TEST_EQUAL(mbedtls_mpi_cmp_mpi(&I, &exp_I), 0);
+    /* Test I initialized to a number with more limbs than N. */
+    if (N.n > 0) {
+        TEST_EQUAL(mbedtls_mpi_grow(&I, N.n * 2), 0);
+        memset(I.p, 0x29, I.n * sizeof(mbedtls_mpi_uint));
+        res = mbedtls_mpi_gcd_modinv_odd(NULL, &I, &A, &N);
+        TEST_EQUAL(res, return_code);
+        if (res == 0 && has_inverse) {
+            TEST_ASSERT(sign_is_valid(&I));
+            TEST_EQUAL(mbedtls_mpi_cmp_mpi(&I, &exp_I), 0);
+        }
     }
 
 exit:

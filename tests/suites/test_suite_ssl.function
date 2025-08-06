@@ -3538,6 +3538,8 @@ exit:
 void conf_group()
 {
     uint16_t iana_tls_group_list[] = { MBEDTLS_SSL_IANA_TLS_GROUP_SECP256R1,
+                                       MBEDTLS_SSL_IANA_TLS_GROUP_SECP384R1,
+                                       MBEDTLS_SSL_IANA_TLS_GROUP_SECP521R1,
                                        MBEDTLS_SSL_IANA_TLS_GROUP_NONE };
 
     mbedtls_ssl_config conf;

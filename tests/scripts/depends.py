@@ -257,6 +257,8 @@ REVERSE_DEPENDENCIES = {
     'PSA_WANT_ALG_CCM': ['PSA_WANT_ALG_CCM_STAR_NO_TAG'],
     'PSA_WANT_ALG_CMAC': ['PSA_WANT_ALG_PBKDF2_AES_CMAC_PRF_128'],
 
+    # These reverse dependencies can be removed as part of issue
+    # tf-psa-crypto#364.
     'PSA_WANT_ECC_BRAINPOOL_P_R1_256': ['MBEDTLS_ECP_DP_BP256R1_ENABLED'],
     'PSA_WANT_ECC_BRAINPOOL_P_R1_384': ['MBEDTLS_ECP_DP_BP384R1_ENABLED'],
     'PSA_WANT_ECC_BRAINPOOL_P_R1_512': ['MBEDTLS_ECP_DP_BP512R1_ENABLED'],
@@ -267,6 +269,14 @@ REVERSE_DEPENDENCIES = {
     'PSA_WANT_ECC_SECP_R1_384': ['MBEDTLS_ECP_DP_SECP384R1_ENABLED'],
     'PSA_WANT_ECC_SECP_R1_521': ['MBEDTLS_ECP_DP_SECP521R1_ENABLED'],
     'PSA_WANT_ECC_SECP_K1_256': ['MBEDTLS_ECP_DP_SECP256K1_ENABLED'],
+
+    # Support for secp224[k|r]1 was removed in tfpsacrypto#408 while
+    # secp192[k|r]1 were kept only for internal testing (hidden to the end
+    # user). We need to keep these reverse dependencies here until
+    # symbols are hidden/removed from crypto_config.h.
+    'PSA_WANT_ECC_SECP_R1_192': ['MBEDTLS_ECP_DP_SECP192R1_ENABLED'],
+    'PSA_WANT_ECC_SECP_R1_224': ['MBEDTLS_ECP_DP_SECP224R1_ENABLED'],
+    'PSA_WANT_ECC_SECP_K1_192': ['MBEDTLS_ECP_DP_SECP192K1_ENABLED'],
 
     'PSA_WANT_ALG_ECDSA': ['PSA_WANT_ALG_DETERMINISTIC_ECDSA',
                            'MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED',
@@ -479,7 +489,7 @@ class DomainData:
                         if alg.can_do(crypto_knowledge.AlgorithmCategory.HASH)}
 
         # Find elliptic curve enabling macros by name.
-        curve_symbols = self.config_symbols_matching(r'PSA_WANT_ECC_\w+\Z|')
+        curve_symbols = self.config_symbols_matching(r'PSA_WANT_ECC_\w+\Z')
 
         # Find key exchange enabling macros by name.
         key_exchange_symbols = self.config_symbols_matching(r'MBEDTLS_KEY_EXCHANGE_\w+_ENABLED\Z')

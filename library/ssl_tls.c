@@ -4379,9 +4379,6 @@ void mbedtls_ssl_handshake_free(mbedtls_ssl_context *ssl)
 
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
-    if (ssl->handshake->sig_algs_heap_allocated) {
-        mbedtls_free((void *) handshake->sig_algs);
-    }
     handshake->sig_algs = NULL;
 #endif /* MBEDTLS_DEPRECATED_REMOVED */
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)

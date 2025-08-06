@@ -416,7 +416,7 @@ int mbedtls_x509write_crt_der(mbedtls_x509write_cert *ctx,
         return MBEDTLS_ERR_X509_INVALID_ALG;
     }
 
-    if ((ret = mbedtls_x509_oid_get_oid_by_sig_alg(pk_alg, ctx->md_alg,
+    if ((ret = mbedtls_x509_oid_get_oid_by_sig_alg((mbedtls_pk_sigalg_t) pk_alg, ctx->md_alg,
                                                    &sig_oid, &sig_oid_len)) != 0) {
         return ret;
     }

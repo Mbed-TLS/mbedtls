@@ -1774,11 +1774,11 @@ int mbedtls_mpi_gcd_modinv_odd(mbedtls_mpi *G,
         G = &local_g;
     }
 
+    /* We can't modify the values of G or I before use in the main function,
+     * as they could be aliased to A or N. */
     MBEDTLS_MPI_CHK(mbedtls_mpi_grow(G, N->n));
-    G->s = 1;
     if (I != NULL) {
         MBEDTLS_MPI_CHK(mbedtls_mpi_grow(I, N->n));
-        I->s = 1;
     }
 
     T = mbedtls_calloc(sizeof(mbedtls_mpi_uint) * N->n, T_factor);
@@ -1787,15 +1787,18 @@ int mbedtls_mpi_gcd_modinv_odd(mbedtls_mpi *G,
         goto cleanup;
     }
 
-    /* We have to handle G and I carefully as they could be aliased
-     * to A or N. */
     mbedtls_mpi_uint *Ip = I != NULL ? I->p : NULL;
-    /* If A is 0 (null), then A->p would be null, which would be an issue if
-     * A->p was passed to mbedtls_mpi_core_gcd_modinv_odd below. */
+    /* If A is 0 (null), then A->p would be null, and A->n would be 0,
+     * which would be an issue if A->p and A->n were passed to
+     * mbedtls_mpi_core_gcd_modinv_odd below. */
     const mbedtls_mpi_uint *Ap = A->p != NULL ? A->p : &zero;
-    size_t An = A->p == NULL ? 0 : A->n;
-    An = A->n <= N->n ? A->n : N->n;
+    size_t An = A->n >= N->n ? N->n : A->p != NULL ? A->n : 1;
     mbedtls_mpi_core_gcd_modinv_odd(G->p, Ip, Ap, An, N->p, N->n, T);
+
+    G->s = 1;
+    if (I != NULL) {
+        I->s = 1;
+    }
 
     if (G->n > N->n) {
         memset(G->p + N->n, 0, ciL * (G->n - N->n));

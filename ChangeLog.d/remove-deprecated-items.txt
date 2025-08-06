@@ -7,5 +7,5 @@ Removals
      mbedtls_ssl_conf_max_tls_version() with MBEDTLS_SSL_VERSION_TLS1_y instead.
      Note that the new names of the new constants use the TLS protocol versions,
      unlike the old constants whose names are based on internal encodings.
-   * Remove mbedtls_ssl_conf_sig_hashes. Use mbedtls_ssl_conf_sig_algs()
+   * Remove mbedtls_ssl_conf_sig_hashes(). Use mbedtls_ssl_conf_sig_algs()
      instead.

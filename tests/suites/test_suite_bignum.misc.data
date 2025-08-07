@@ -1525,6 +1525,75 @@ mpi_gcd:"-9986dabb54d13cd9fe0d9da594a97e8372ab26ed98ff622b31b1ea42e3a265019039ac
 Base test mbedtls_mpi_inv_mod #1
 mpi_inv_mod:"3":"b":"4":0
 
+Base test mbedtls_mpi_inv_mod: 0 mod 3
+mpi_inv_mod:"0":"3":"":MBEDTLS_ERR_MPI_NOT_ACCEPTABLE
+
+Base test mbedtls_mpi_inv_mod: 1 mod 3
+mpi_inv_mod:"1":"3":"1":0
+
+Base test mbedtls_mpi_inv_mod: 2 mod 3
+mpi_inv_mod:"2":"3":"2":0
+
+Base test mbedtls_mpi_inv_mod: 3 mod 3
+mpi_inv_mod:"0":"3":"":MBEDTLS_ERR_MPI_NOT_ACCEPTABLE
+
+Base test mbedtls_mpi_inv_mod: 4 mod 3
+mpi_inv_mod:"4":"3":"1":0
+
+Base test mbedtls_mpi_inv_mod: 5 mod 3
+mpi_inv_mod:"5":"3":"2":0
+
+Base test mbedtls_mpi_inv_mod: -1 mod 3
+mpi_inv_mod:"-1":"3":"2":0
+
+Base test mbedtls_mpi_inv_mod: -2 mod 3
+mpi_inv_mod:"-2":"3":"1":0
+
+Base test mbedtls_mpi_inv_mod: -3 mod 3
+mpi_inv_mod:"-3":"3":"":MBEDTLS_ERR_MPI_NOT_ACCEPTABLE
+
+Base test mbedtls_mpi_inv_mod: -4 mod 3
+mpi_inv_mod:"-4":"3":"2":0
+
+Base test mbedtls_mpi_inv_mod: 0 mod 4
+mpi_inv_mod:"0":"4":"":MBEDTLS_ERR_MPI_NOT_ACCEPTABLE
+
+Base test mbedtls_mpi_inv_mod: 1 mod 4
+mpi_inv_mod:"1":"4":"1":0
+
+Base test mbedtls_mpi_inv_mod: 2 mod 4
+mpi_inv_mod:"2":"4":"":MBEDTLS_ERR_MPI_NOT_ACCEPTABLE
+
+Base test mbedtls_mpi_inv_mod: 3 mod 4
+mpi_inv_mod:"3":"4":"3":0
+
+Base test mbedtls_mpi_inv_mod: 4 mod 4
+mpi_inv_mod:"4":"4":"":MBEDTLS_ERR_MPI_NOT_ACCEPTABLE
+
+Base test mbedtls_mpi_inv_mod: 5 mod 4
+mpi_inv_mod:"5":"4":"1":0
+
+Base test mbedtls_mpi_inv_mod: 6 mod 4
+mpi_inv_mod:"6":"4":"":MBEDTLS_ERR_MPI_NOT_ACCEPTABLE
+
+Base test mbedtls_mpi_inv_mod: 7 mod 4
+mpi_inv_mod:"7":"4":"3":0
+
+Base test mbedtls_mpi_inv_mod: -1 mod 4
+mpi_inv_mod:"-1":"4":"3":0
+
+Base test mbedtls_mpi_inv_mod: -2 mod 4
+mpi_inv_mod:"-2":"4":"":MBEDTLS_ERR_MPI_NOT_ACCEPTABLE
+
+Base test mbedtls_mpi_inv_mod: -3 mod 4
+mpi_inv_mod:"-3":"4":"1":0
+
+Base test mbedtls_mpi_inv_mod: -4 mod 4
+mpi_inv_mod:"-4":"4":"":MBEDTLS_ERR_MPI_NOT_ACCEPTABLE
+
+Base test mbedtls_mpi_inv_mod: -5 mod 4
+mpi_inv_mod:"-5":"4":"3":0
+
 Test mbedtls_mpi_inv_mod: mod 0 (null)
 mpi_inv_mod:"3":"":"0":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
 

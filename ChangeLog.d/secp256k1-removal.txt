@@ -1,0 +1,3 @@
+Removals
+   * Support for secp192k1, secp192r1, secp224k1 and secp224r1 EC curves is
+     removed from TLS.

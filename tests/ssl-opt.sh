@@ -2659,12 +2659,6 @@ requires_config_enabled PSA_WANT_ECC_SECP_K1_256
 run_test_psa_force_curve "secp256k1"
 requires_config_enabled PSA_WANT_ECC_BRAINPOOL_P_R1_256
 run_test_psa_force_curve "brainpoolP256r1"
-requires_config_enabled PSA_WANT_ECC_SECP_R1_224
-run_test_psa_force_curve "secp224r1"
-requires_config_enabled PSA_WANT_ECC_SECP_R1_192
-run_test_psa_force_curve "secp192r1"
-requires_config_enabled PSA_WANT_ECC_SECP_K1_192
-run_test_psa_force_curve "secp192k1"
 
 # Test current time in ServerHello
 requires_config_enabled MBEDTLS_HAVE_TIME

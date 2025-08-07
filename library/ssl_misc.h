@@ -714,7 +714,6 @@ struct mbedtls_ssl_handshake_params {
 
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
     unsigned char group_list_heap_allocated;
-    unsigned char sig_algs_heap_allocated;
 #endif
 
 #if defined(MBEDTLS_SSL_ECP_RESTARTABLE_ENABLED)
@@ -2317,7 +2316,6 @@ static inline const void *mbedtls_ssl_get_sig_algs(
 
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
     if (ssl->handshake != NULL &&
-        ssl->handshake->sig_algs_heap_allocated == 1 &&
         ssl->handshake->sig_algs != NULL) {
         return ssl->handshake->sig_algs;
     }

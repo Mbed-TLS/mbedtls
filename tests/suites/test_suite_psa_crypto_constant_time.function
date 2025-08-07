@@ -19,6 +19,83 @@
 #define HAVE_CONSTANT_TIME_AES
 #endif
 
+static int ct_cipher_multipart(psa_cipher_operation_t *operation,
+                               const data_t *iv,
+                               const data_t *input,
+                               size_t output_size,
+                               const data_t *expected_output,
+                               psa_status_t expected_finish_status)
+{
+    unsigned char *output = NULL;
+    size_t update_length = SIZE_MAX;
+    size_t finish_length = SIZE_MAX;
+    psa_status_t status;
+    int ok = 0;
+
+    TEST_CALLOC(output, output_size);
+
+    PSA_ASSERT(psa_cipher_set_iv(operation, iv->x, iv->len));
+    status = psa_cipher_update(operation,
+                               input->x, input->len,
+                               output, output_size, &update_length);
+    if (expected_finish_status == PSA_ERROR_BUFFER_TOO_SMALL &&
+        status == PSA_ERROR_BUFFER_TOO_SMALL) {
+        /* The output buffer is already too small for update. That's ok. */
+        ok = 1;
+        goto exit;
+    } else {
+        PSA_ASSERT(status);
+    }
+    TEST_LE_U(update_length, output_size);
+    TEST_EQUAL(psa_cipher_finish(operation,
+                                 output + update_length,
+                                 output_size - update_length,
+                                 &finish_length),
+               expected_finish_status);
+
+    TEST_CF_PUBLIC(output, output_size);
+    if (expected_finish_status == PSA_SUCCESS) {
+        TEST_MEMORY_COMPARE(expected_output->x, expected_output->len,
+                            output, update_length + finish_length);
+    }
+    ok = 1;
+
+exit:
+    mbedtls_free(output);
+    psa_cipher_abort(operation);
+    return ok;
+}
+
+static int ct_cipher_decrypt_oneshot(mbedtls_svc_key_id_t key,
+                                     psa_algorithm_t alg,
+                                     const data_t *input,
+                                     size_t output_size,
+                                     const data_t *expected_output,
+                                     psa_status_t expected_status)
+{
+    unsigned char *output = NULL;
+    size_t output_length = SIZE_MAX;
+    int ok = 0;
+
+    TEST_CALLOC(output, output_size);
+
+    TEST_EQUAL(psa_cipher_decrypt(key, alg,
+                                  input->x, input->len,
+                                  output, output_size, &output_length),
+               expected_status);
+
+    TEST_CF_PUBLIC(output, output_size);
+    if (expected_status == PSA_SUCCESS) {
+        TEST_MEMORY_COMPARE(expected_output->x, expected_output->len,
+                            output, output_length);
+    }
+    ok = 1;
+
+exit:
+    mbedtls_free(output);
+    return ok;
+}
+
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -41,13 +118,8 @@ void ct_cipher_encrypt(int alg_arg,
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
     psa_cipher_operation_t operation = PSA_CIPHER_OPERATION_INIT;
-    unsigned char *output = NULL;
-    size_t output_size = PSA_CIPHER_ENCRYPT_OUTPUT_MAX_SIZE(plaintext->len);
-    size_t update_length = SIZE_MAX;
-    size_t finish_length = SIZE_MAX;
 
     PSA_INIT();
-    TEST_CALLOC(output, output_size);
     TEST_CF_SECRET(key_data->x, key_data->len);
     TEST_CF_SECRET(plaintext->x, plaintext->len);
     //TEST_ASSERT(key_data->x[0] != 42); // uncomment to trip constant-flow test
@@ -58,22 +130,14 @@ void ct_cipher_encrypt(int alg_arg,
     PSA_ASSERT(psa_import_key(&attributes, key_data->x, key_data->len, &key));
 
     PSA_ASSERT(psa_cipher_encrypt_setup(&operation, key, alg));
-    PSA_ASSERT(psa_cipher_set_iv(&operation, iv->x, iv->len));
-    PSA_ASSERT(psa_cipher_update(&operation,
-                                 plaintext->x, plaintext->len,
-                                 output, output_size, &update_length));
-    TEST_LE_U(update_length, output_size);
-    PSA_ASSERT(psa_cipher_finish(&operation,
-                                 output + update_length,
-                                 output_size - update_length,
-                                 &finish_length));
-
-    TEST_CF_PUBLIC(output, output_size);
-    TEST_MEMORY_COMPARE(expected_ciphertext->x, expected_ciphertext->len,
-                        output, update_length + finish_length);
+    if (!ct_cipher_multipart(&operation, iv, plaintext,
+                             PSA_CIPHER_ENCRYPT_OUTPUT_MAX_SIZE(plaintext->len),
+                             expected_ciphertext,
+                             PSA_SUCCESS)) {
+        goto exit;
+    }
 
 exit:
-    mbedtls_free(output);
     psa_cipher_abort(&operation);
     psa_destroy_key(key);
     PSA_DONE();
@@ -92,19 +156,16 @@ void ct_cipher_decrypt(int alg_arg,
 {
     psa_key_type_t key_type = key_type_arg;
     psa_algorithm_t alg = alg_arg;
+    size_t sufficient_output_size =
+        PSA_CIPHER_DECRYPT_OUTPUT_SIZE(key_type, alg, ciphertext->len);
+    psa_status_t expected_status =
+        expect_invalid_padding ? PSA_ERROR_INVALID_PADDING : PSA_SUCCESS;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
     psa_cipher_operation_t operation = PSA_CIPHER_OPERATION_INIT;
-    unsigned char *input = NULL;
-    unsigned char *output = NULL;
-    size_t output_size = PSA_CIPHER_DECRYPT_OUTPUT_MAX_SIZE(ciphertext->len);
-    size_t update_length = SIZE_MAX;
-    size_t finish_length = SIZE_MAX;
-    size_t output_length = SIZE_MAX;
-    psa_status_t status;
+    data_t input = { NULL, iv->len + ciphertext->len };
 
     PSA_INIT();
-    TEST_CALLOC(output, output_size);
     TEST_CF_SECRET(key_data->x, key_data->len);
     TEST_CF_SECRET(ciphertext->x, ciphertext->len);
     //TEST_ASSERT(key_data->x[0] != 42); // uncomment to trip constant-flow test
@@ -115,45 +176,25 @@ void ct_cipher_decrypt(int alg_arg,
     PSA_ASSERT(psa_import_key(&attributes, key_data->x, key_data->len, &key));
 
     PSA_ASSERT(psa_cipher_decrypt_setup(&operation, key, alg));
-    PSA_ASSERT(psa_cipher_set_iv(&operation, iv->x, iv->len));
-    PSA_ASSERT(psa_cipher_update(&operation,
-                                 ciphertext->x, ciphertext->len,
-                                 output, output_size, &update_length));
-    TEST_LE_U(update_length, output_size);
-    status = psa_cipher_finish(&operation,
-                               output + update_length,
-                               output_size - update_length,
-                               &finish_length);
-    TEST_CF_PUBLIC(output, output_size);
-
-    if (expect_invalid_padding) {
-        TEST_EQUAL(status, PSA_ERROR_INVALID_PADDING);
-    } else {
-        TEST_EQUAL(status, PSA_SUCCESS);
-        TEST_MEMORY_COMPARE(expected_plaintext->x, expected_plaintext->len,
-                            output, update_length + finish_length);
+    if (!ct_cipher_multipart(&operation, iv, ciphertext,
+                             PSA_CIPHER_DECRYPT_OUTPUT_MAX_SIZE(ciphertext->len),
+                             expected_plaintext,
+                             expected_status)) {
+        goto exit;
     }
 
-    memset(output, 0, output_size);
-    TEST_CALLOC(input, iv->len + ciphertext->len);
-    memcpy(input, iv->x, iv->len);
-    memcpy(input + iv->len, ciphertext->x, ciphertext->len);
-    status = psa_cipher_decrypt(key, alg,
-                                input, iv->len + ciphertext->len,
-                                output, output_size, &output_length);
-    TEST_CF_PUBLIC(output, output_size);
-
-    if (expect_invalid_padding) {
-        TEST_EQUAL(status, PSA_ERROR_INVALID_PADDING);
-    } else {
-        TEST_EQUAL(status, PSA_SUCCESS);
-        TEST_MEMORY_COMPARE(expected_plaintext->x, expected_plaintext->len,
-                            output, output_length);
+    TEST_CALLOC(input.x, input.len);
+    memcpy(input.x, iv->x, iv->len);
+    memcpy(input.x + iv->len, ciphertext->x, ciphertext->len);
+    if (!ct_cipher_decrypt_oneshot(key, alg, &input,
+                                   sufficient_output_size,
+                                   expected_plaintext,
+                                   expected_status)) {
+        goto exit;
     }
 
 exit:
-    mbedtls_free(input);
-    mbedtls_free(output);
+    mbedtls_free(input.x);
     psa_cipher_abort(&operation);
     psa_destroy_key(key);
     PSA_DONE();

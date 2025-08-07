@@ -4857,13 +4857,17 @@ psa_status_t psa_cipher_decrypt(mbedtls_svc_key_id_t key,
 
 exit:
     unlock_status = psa_unregister_read_under_mutex(slot);
-    if (status == PSA_SUCCESS) {
+    if (unlock_status != PSA_SUCCESS) {
         status = unlock_status;
     }
 
-    if (status != PSA_SUCCESS) {
-        *output_length = 0;
-    }
+    /* Set *output_length to 0 if status != PSA_SUCCESS, without
+     * leaking the value of status through a timing side channel
+     * (status == PSA_ERROR_INVALID_PADDING is sensitive when doing
+     * unpadded decryption, due to the risk of padding oracle attack). */
+    mbedtls_ct_condition_t success =
+        mbedtls_ct_bool_not(mbedtls_ct_bool(status));
+    *output_length = mbedtls_ct_size_if_else_0(success, *output_length);
 
     LOCAL_INPUT_FREE(input_external, input);
     LOCAL_OUTPUT_FREE(output_external, output);

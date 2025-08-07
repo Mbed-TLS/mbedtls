@@ -724,17 +724,21 @@ psa_status_t mbedtls_psa_cipher_decrypt(
         &operation,
         mbedtls_buffer_offset(output, accumulated_length),
         output_size - accumulated_length, &olength);
-    if (status != PSA_SUCCESS) {
-        goto exit;
-    }
 
     *output_length = accumulated_length + olength;
 
 exit:
-    if (status == PSA_SUCCESS) {
-        status = mbedtls_psa_cipher_abort(&operation);
-    } else {
-        mbedtls_psa_cipher_abort(&operation);
+    /* C99 doesn't allow a declaration to follow a label */;
+    psa_status_t abort_status = mbedtls_psa_cipher_abort(&operation);
+    /* Normally abort shouldn't fail unless the operation is in a bad
+     * state, in which case we'd expect finish to fail with the same error.
+     * So it doesn't matter much which call's error code we pick when both
+     * fail. However, in unauthenticated decryption specifically, the
+     * distinction between PSA_SUCCESS and PSA_ERROR_INVALID_PADDING is
+     * security-sensitive (risk of a padding oracle attack), so here we
+     * must not have a code path that depends on the value of status. */
+    if (abort_status != PSA_SUCCESS) {
+        status = abort_status;
     }
 
     return status;

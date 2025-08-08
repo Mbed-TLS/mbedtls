@@ -4368,15 +4368,6 @@ void mbedtls_ssl_handshake_free(mbedtls_ssl_context *ssl)
         return;
     }
 
-#if defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
-#if !defined(MBEDTLS_DEPRECATED_REMOVED)
-    if (ssl->handshake->group_list_heap_allocated) {
-        mbedtls_free((void *) handshake->group_list);
-    }
-    handshake->group_list = NULL;
-#endif /* MBEDTLS_DEPRECATED_REMOVED */
-#endif /* PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY */
-
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
     handshake->sig_algs = NULL;

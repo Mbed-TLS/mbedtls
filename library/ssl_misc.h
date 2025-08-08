@@ -712,10 +712,6 @@ struct mbedtls_ssl_handshake_params {
     unsigned char retransmit_state;     /*!<  Retransmission state           */
 #endif
 
-#if !defined(MBEDTLS_DEPRECATED_REMOVED)
-    unsigned char group_list_heap_allocated;
-#endif
-
 #if defined(MBEDTLS_SSL_ECP_RESTARTABLE_ENABLED)
     uint8_t ecrs_enabled;               /*!< Handshake supports EC restart? */
     enum { /* this complements ssl->state with info on intra-state operations */

@@ -667,6 +667,12 @@ class DriverVSReference_block_cipher_dispatch(outcome_analysis.DriverVSReference
             'CMAC null arguments',
             re.compile('CMAC.* (AES|ARIA|Camellia).*'),
         ],
+        'test_suite_cipher.constant_time': [
+            # Like with test_suite_cipher.aes and such, these tests call
+            # cipher_wrapper in a way that requires the block cipher to
+            # be built in.
+            re.compile('.*(AES|ARIA|CAMELLIA).*(encrypt|decrypt).*', re.I),
+        ],
         'test_suite_cipher.padding': [
             # Following tests require AES_C/CAMELLIA_C to be enabled,
             # but these are not available in the accelerated component.

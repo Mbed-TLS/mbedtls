@@ -1969,6 +1969,35 @@ int mbedtls_mpi_random(mbedtls_mpi *X,
 }
 
 /*
+ * Modular inverse: X = A^-1 mod N with N odd (and A any range)
+ */
+static int mbedtls_mpi_inv_mod_odd(mbedtls_mpi *X,
+                                   const mbedtls_mpi *A,
+                                   const mbedtls_mpi *N)
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    mbedtls_mpi T, G;
+
+    mbedtls_mpi_init(&T);
+    mbedtls_mpi_init(&G);
+
+    MBEDTLS_MPI_CHK(mbedtls_mpi_mod_mpi(&T, A, N));
+    MBEDTLS_MPI_CHK(mbedtls_mpi_gcd_modinv_odd(&G, &T, &T, N));
+    if (mbedtls_mpi_cmp_int(&G, 1) != 0) {
+        ret = MBEDTLS_ERR_MPI_NOT_ACCEPTABLE;
+        goto cleanup;
+    }
+
+    MBEDTLS_MPI_CHK(mbedtls_mpi_copy(X, &T));
+
+cleanup:
+    mbedtls_mpi_free(&T);
+    mbedtls_mpi_free(&G);
+
+    return ret;
+}
+
+/*
  * Modular inverse: X = A^-1 mod N  (HAC 14.61 / 14.64)
  */
 int mbedtls_mpi_inv_mod(mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi *N)
@@ -1978,6 +2007,10 @@ int mbedtls_mpi_inv_mod(mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi 
 
     if (mbedtls_mpi_cmp_int(N, 1) <= 0) {
         return MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
+    }
+
+    if (mbedtls_mpi_get_bit(N, 0) == 1) {
+        return mbedtls_mpi_inv_mod_odd(X, A, N);
     }
 
     mbedtls_mpi_init(&TA); mbedtls_mpi_init(&TU); mbedtls_mpi_init(&U1); mbedtls_mpi_init(&U2);

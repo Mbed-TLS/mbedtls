@@ -1998,6 +1998,54 @@ cleanup:
 }
 
 /*
+ * Compute X = A^-1 mod N with N even, A odd and 1 < A < N.
+ *
+ * This is not obvious because our constant-time modinv function only works with
+ * an odd modulus, and here the modulus is even. The idea is that computing a
+ * a^-1 mod b is really just computing the u coefficient in the Bézout relation
+ * a*u + b*v = 1 (assuming gcd(a,b) = 1, ie the inverse exists). But if we know
+ * one of u, v in this relation then the other is easy to find. So we can
+ * actually start by computing N^-1 mod A with gives us "the wrong half" of the
+ * Bézout relation, from which we'll deduce the interesting half A^-1 mod N.
+ *
+ * Return MBEDTLS_ERR_MPI_NOT_ACCEPTABLE if the inverse doesn't exist.
+ */
+static int mbedtls_mpi_inv_mod_even_in_range(mbedtls_mpi *X,
+                                             mbedtls_mpi const *A,
+                                             mbedtls_mpi const *N)
+{
+    int ret;
+    mbedtls_mpi I, G;
+
+    mbedtls_mpi_init(&I);
+    mbedtls_mpi_init(&G);
+
+    /* Set I = N^-1 mod A */
+    MBEDTLS_MPI_CHK(mbedtls_mpi_mod_mpi(&I, N, A));
+    MBEDTLS_MPI_CHK(mbedtls_mpi_gcd_modinv_odd(&G, &I, &I, A));
+    if (mbedtls_mpi_cmp_int(&G, 1) != 0) {
+        ret = MBEDTLS_ERR_MPI_NOT_ACCEPTABLE;
+        goto cleanup;
+    }
+
+    /* We know N * I = 1 + k * A for some k, which we can easily compute
+     * as k = (N*I - 1) / A (we know there will be no remainder). */
+    MBEDTLS_MPI_CHK(mbedtls_mpi_mul_mpi(&I, &I, N));
+    MBEDTLS_MPI_CHK(mbedtls_mpi_sub_int(&I, &I, 1));
+    MBEDTLS_MPI_CHK(mbedtls_mpi_div_mpi(&G, NULL, &I, A));
+
+    /* Now we have a Bézout relation N * (previous value of I) - G * A = 1,
+     * so A^-1 mod N is -G mod N, which is N - G.
+     * Note that 0 < k < N since 0 < I < A, so G (k) is already in range. */
+    MBEDTLS_MPI_CHK(mbedtls_mpi_sub_mpi(X, N, &G));
+
+cleanup:
+    mbedtls_mpi_free(&I);
+    mbedtls_mpi_free(&G);
+    return ret;
+}
+
+/*
  * Modular inverse: X = A^-1 mod N  (HAC 14.61 / 14.64)
  */
 int mbedtls_mpi_inv_mod(mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi *N)
@@ -2011,6 +2059,12 @@ int mbedtls_mpi_inv_mod(mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi 
 
     if (mbedtls_mpi_get_bit(N, 0) == 1) {
         return mbedtls_mpi_inv_mod_odd(X, A, N);
+    }
+
+    if (mbedtls_mpi_get_bit(A, 0) == 1 &&
+        mbedtls_mpi_cmp_int(A, 1) > 0 &&
+        mbedtls_mpi_cmp_mpi(A, N) < 0) {
+        return mbedtls_mpi_inv_mod_even_in_range(X, A, N);
     }
 
     mbedtls_mpi_init(&TA); mbedtls_mpi_init(&TU); mbedtls_mpi_init(&U1); mbedtls_mpi_init(&U2);

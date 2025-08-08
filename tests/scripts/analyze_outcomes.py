@@ -98,9 +98,6 @@ class CoverageTask(outcome_analysis.CoverageTask):
             'Config: MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY',
             'Config: MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_ONLY',
             'Config: MBEDTLS_SHA512_USE_A64_CRYPTO_ONLY',
-            # We don't run test_suite_config when we test this.
-            # https://github.com/Mbed-TLS/mbedtls/issues/9586
-            'Config: MBEDTLS_TEST_CONSTANT_FLOW_VALGRIND',
         ],
         'test_suite_config.psa_boolean': [
             # We don't test with HMAC disabled.

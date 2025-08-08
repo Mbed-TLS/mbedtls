@@ -7,6 +7,9 @@
 
 #ifndef MBEDTLS_PROGRAMS_SSL_SSL_TEST_LIB_H
 #define MBEDTLS_PROGRAMS_SSL_SSL_TEST_LIB_H
+#define MBEDTLS_DECLARE_PRIVATE_IDENTIFIERS
+
+#include "mbedtls/private/pk_private.h"
 
 #include "mbedtls/build_info.h"
 

@@ -1,0 +1,11 @@
+Removals
+   * Remove MBEDTLS_SSL_DTLS_CONNECTION_ID_COMPAT. Now only the
+     standard version (defined in RFC 9146) of DTLS connection ID is supported.
+   * Remove mbedtls_ssl_conf_min_version(), mbedtls_ssl_conf_max_version(), and
+     the associated constants MBEDTLS_SSL_MAJOR_VERSION_x and
+     MBEDTLS_SSL_MINOR_VERSION_y. Use mbedtls_ssl_conf_min_tls_version() and
+     mbedtls_ssl_conf_max_tls_version() with MBEDTLS_SSL_VERSION_TLS1_y instead.
+     Note that the new names of the new constants use the TLS protocol versions,
+     unlike the old constants whose names are based on internal encodings.
+   * Remove mbedtls_ssl_conf_sig_hashes(). Use mbedtls_ssl_conf_sig_algs()
+     instead.

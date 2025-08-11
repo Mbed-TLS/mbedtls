@@ -1066,73 +1066,6 @@ static int ssl_handshake_init(mbedtls_ssl_context *ssl)
         mbedtls_ssl_set_timer(ssl, 0);
     }
 #endif
-
-#if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
-#if !defined(MBEDTLS_DEPRECATED_REMOVED)
-#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
-    /* Heap allocate and translate sig_hashes from internal hash identifiers to
-       signature algorithms IANA identifiers.  */
-    if (mbedtls_ssl_conf_is_tls12_only(ssl->conf) &&
-        ssl->conf->sig_hashes != NULL) {
-        const int *md;
-        const int *sig_hashes = ssl->conf->sig_hashes;
-        size_t sig_algs_len = 0;
-        uint16_t *p;
-
-        MBEDTLS_STATIC_ASSERT(MBEDTLS_SSL_MAX_SIG_ALG_LIST_LEN
-                              <= (SIZE_MAX - (2 * sizeof(uint16_t))),
-                              "MBEDTLS_SSL_MAX_SIG_ALG_LIST_LEN too big");
-
-        for (md = sig_hashes; *md != MBEDTLS_MD_NONE; md++) {
-            if (mbedtls_ssl_hash_from_md_alg(*md) == MBEDTLS_SSL_HASH_NONE) {
-                continue;
-            }
-#if defined(MBEDTLS_KEY_EXCHANGE_ECDSA_CERT_REQ_ALLOWED_ENABLED)
-            sig_algs_len += sizeof(uint16_t);
-#endif
-
-#if defined(MBEDTLS_RSA_C)
-            sig_algs_len += sizeof(uint16_t);
-#endif
-            if (sig_algs_len > MBEDTLS_SSL_MAX_SIG_ALG_LIST_LEN) {
-                return MBEDTLS_ERR_SSL_BAD_CONFIG;
-            }
-        }
-
-        if (sig_algs_len < MBEDTLS_SSL_MIN_SIG_ALG_LIST_LEN) {
-            return MBEDTLS_ERR_SSL_BAD_CONFIG;
-        }
-
-        ssl->handshake->sig_algs = mbedtls_calloc(1, sig_algs_len +
-                                                  sizeof(uint16_t));
-        if (ssl->handshake->sig_algs == NULL) {
-            return MBEDTLS_ERR_SSL_ALLOC_FAILED;
-        }
-
-        p = (uint16_t *) ssl->handshake->sig_algs;
-        for (md = sig_hashes; *md != MBEDTLS_MD_NONE; md++) {
-            unsigned char hash = mbedtls_ssl_hash_from_md_alg(*md);
-            if (hash == MBEDTLS_SSL_HASH_NONE) {
-                continue;
-            }
-#if defined(MBEDTLS_KEY_EXCHANGE_ECDSA_CERT_REQ_ALLOWED_ENABLED)
-            *p = ((hash << 8) | MBEDTLS_SSL_SIG_ECDSA);
-            p++;
-#endif
-#if defined(MBEDTLS_RSA_C)
-            *p = ((hash << 8) | MBEDTLS_SSL_SIG_RSA);
-            p++;
-#endif
-        }
-        *p = MBEDTLS_TLS_SIG_NONE;
-        ssl->handshake->sig_algs_heap_allocated = 1;
-    } else
-#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
-    {
-        ssl->handshake->sig_algs_heap_allocated = 0;
-    }
-#endif /* !MBEDTLS_DEPRECATED_REMOVED */
-#endif /* MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED */
     return 0;
 }
 
@@ -2420,24 +2353,11 @@ psa_status_t mbedtls_ssl_cipher_to_psa(mbedtls_cipher_type_t mbedtls_cipher_type
 }
 
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
-#if !defined(MBEDTLS_DEPRECATED_REMOVED) && defined(MBEDTLS_SSL_PROTO_TLS1_2)
-/*
- * Set allowed/preferred hashes for handshake signatures
- */
-void mbedtls_ssl_conf_sig_hashes(mbedtls_ssl_config *conf,
-                                 const int *hashes)
-{
-    conf->sig_hashes = hashes;
-}
-#endif /* !MBEDTLS_DEPRECATED_REMOVED && MBEDTLS_SSL_PROTO_TLS1_2 */
 
 /* Configure allowed signature algorithms for handshake */
 void mbedtls_ssl_conf_sig_algs(mbedtls_ssl_config *conf,
                                const uint16_t *sig_algs)
 {
-#if !defined(MBEDTLS_DEPRECATED_REMOVED)
-    conf->sig_hashes = NULL;
-#endif /* !MBEDTLS_DEPRECATED_REMOVED */
     conf->sig_algs = sig_algs;
 }
 #endif /* MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED */
@@ -2632,18 +2552,6 @@ void mbedtls_ssl_get_dtls_srtp_negotiation_result(const mbedtls_ssl_context *ssl
     }
 }
 #endif /* MBEDTLS_SSL_DTLS_SRTP */
-
-#if !defined(MBEDTLS_DEPRECATED_REMOVED)
-void mbedtls_ssl_conf_max_version(mbedtls_ssl_config *conf, int major, int minor)
-{
-    conf->max_tls_version = (mbedtls_ssl_protocol_version) ((major << 8) | minor);
-}
-
-void mbedtls_ssl_conf_min_version(mbedtls_ssl_config *conf, int major, int minor)
-{
-    conf->min_tls_version = (mbedtls_ssl_protocol_version) ((major << 8) | minor);
-}
-#endif /* MBEDTLS_DEPRECATED_REMOVED */
 
 #if defined(MBEDTLS_SSL_SRV_C)
 void mbedtls_ssl_conf_cert_req_ca_list(mbedtls_ssl_config *conf,
@@ -4460,20 +4368,8 @@ void mbedtls_ssl_handshake_free(mbedtls_ssl_context *ssl)
         return;
     }
 
-#if defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
-#if !defined(MBEDTLS_DEPRECATED_REMOVED)
-    if (ssl->handshake->group_list_heap_allocated) {
-        mbedtls_free((void *) handshake->group_list);
-    }
-    handshake->group_list = NULL;
-#endif /* MBEDTLS_DEPRECATED_REMOVED */
-#endif /* PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY */
-
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
-    if (ssl->handshake->sig_algs_heap_allocated) {
-        mbedtls_free((void *) handshake->sig_algs);
-    }
     handshake->sig_algs = NULL;
 #endif /* MBEDTLS_DEPRECATED_REMOVED */
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)

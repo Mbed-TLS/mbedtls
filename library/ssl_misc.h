@@ -712,11 +712,6 @@ struct mbedtls_ssl_handshake_params {
     unsigned char retransmit_state;     /*!<  Retransmission state           */
 #endif
 
-#if !defined(MBEDTLS_DEPRECATED_REMOVED)
-    unsigned char group_list_heap_allocated;
-    unsigned char sig_algs_heap_allocated;
-#endif
-
 #if defined(MBEDTLS_SSL_ECP_RESTARTABLE_ENABLED)
     uint8_t ecrs_enabled;               /*!< Handshake supports EC restart? */
     enum { /* this complements ssl->state with info on intra-state operations */
@@ -2305,15 +2300,6 @@ static inline int mbedtls_ssl_named_group_is_supported(uint16_t named_group)
 
 /*
  * Return supported signature algorithms.
- *
- * In future, invocations can be changed to ssl->conf->sig_algs when
- * mbedtls_ssl_conf_sig_hashes() is deleted.
- *
- * ssl->handshake->sig_algs is either a translation of sig_hashes to IANA TLS
- * signature algorithm identifiers when mbedtls_ssl_conf_sig_hashes() has been
- * used, or a pointer to ssl->conf->sig_algs when mbedtls_ssl_conf_sig_algs() has
- * been more recently invoked.
- *
  */
 static inline const void *mbedtls_ssl_get_sig_algs(
     const mbedtls_ssl_context *ssl)
@@ -2322,7 +2308,6 @@ static inline const void *mbedtls_ssl_get_sig_algs(
 
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
     if (ssl->handshake != NULL &&
-        ssl->handshake->sig_algs_heap_allocated == 1 &&
         ssl->handshake->sig_algs != NULL) {
         return ssl->handshake->sig_algs;
     }

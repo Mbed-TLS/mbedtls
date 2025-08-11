@@ -553,16 +553,16 @@ component_test_psa_crypto_config_ffdh_2048_only () {
 component_test_psa_crypto_config_accel_ecdsa () {
     msg "build: accelerated ECDSA"
 
-    # Algorithms and key types to accelerate
-    loc_accel_list="ALG_ECDSA ALG_DETERMINISTIC_ECDSA \
-                    $(helper_get_psa_key_type_list "ECC") \
-                    $(helper_get_psa_curve_list)"
-
     # Configure
     # ---------
 
     # Start from default config + TLS 1.3
     helper_libtestdriver1_adjust_config "default"
+
+    # Algorithms and key types to accelerate
+    loc_accel_list="ALG_ECDSA ALG_DETERMINISTIC_ECDSA \
+                    $(helper_get_psa_key_type_list "ECC") \
+                    $(helper_get_psa_curve_list)"
 
     # Disable the module that's accelerated
     scripts/config.py unset MBEDTLS_ECDSA_C
@@ -595,16 +595,16 @@ component_test_psa_crypto_config_accel_ecdsa () {
 component_test_psa_crypto_config_accel_ecdh () {
     msg "build: accelerated ECDH"
 
-    # Algorithms and key types to accelerate
-    loc_accel_list="ALG_ECDH \
-                    $(helper_get_psa_key_type_list "ECC") \
-                    $(helper_get_psa_curve_list)"
-
     # Configure
     # ---------
 
     # Start from default config (no USE_PSA)
     helper_libtestdriver1_adjust_config "default"
+
+    # Algorithms and key types to accelerate
+    loc_accel_list="ALG_ECDH \
+                    $(helper_get_psa_key_type_list "ECC") \
+                    $(helper_get_psa_curve_list)"
 
     # Disable the module that's accelerated
     scripts/config.py unset MBEDTLS_ECDH_C
@@ -636,16 +636,16 @@ component_test_psa_crypto_config_accel_ecdh () {
 component_test_psa_crypto_config_accel_ffdh () {
     msg "build: full with accelerated FFDH"
 
-    # Algorithms and key types to accelerate
-    loc_accel_list="ALG_FFDH \
-                    $(helper_get_psa_key_type_list "DH") \
-                    $(helper_get_psa_dh_group_list)"
-
     # Configure
     # ---------
 
     # start with full (USE_PSA and TLS 1.3)
     helper_libtestdriver1_adjust_config "full"
+
+    # Algorithms and key types to accelerate
+    loc_accel_list="ALG_FFDH \
+                    $(helper_get_psa_key_type_list "DH") \
+                    $(helper_get_psa_dh_group_list)"
 
     # Build
     # -----
@@ -685,14 +685,14 @@ component_test_psa_crypto_config_reference_ffdh () {
 component_test_psa_crypto_config_accel_pake () {
     msg "build: full with accelerated PAKE"
 
-    loc_accel_list="ALG_JPAKE \
-                    $(helper_get_psa_key_type_list "ECC") \
-                    $(helper_get_psa_curve_list)"
-
     # Configure
     # ---------
 
     helper_libtestdriver1_adjust_config "full"
+
+    loc_accel_list="ALG_JPAKE \
+                    $(helper_get_psa_key_type_list "ECC") \
+                    $(helper_get_psa_curve_list)"
 
     # Make built-in fallback not available
     scripts/config.py unset MBEDTLS_ECJPAKE_C
@@ -718,6 +718,12 @@ component_test_psa_crypto_config_accel_pake () {
 component_test_psa_crypto_config_accel_ecc_some_key_types () {
     msg "build: full with accelerated EC algs and some key types"
 
+    # Configure
+    # ---------
+
+    # start with config full for maximum coverage (also enables USE_PSA)
+    helper_libtestdriver1_adjust_config "full"
+
     # Algorithms and key types to accelerate
     # For key types, use an explicitly list to omit GENERATE (and DERIVE)
     loc_accel_list="ALG_ECDSA ALG_DETERMINISTIC_ECDSA \
@@ -728,12 +734,6 @@ component_test_psa_crypto_config_accel_ecc_some_key_types () {
                     KEY_TYPE_ECC_KEY_PAIR_IMPORT \
                     KEY_TYPE_ECC_KEY_PAIR_EXPORT \
                     $(helper_get_psa_curve_list)"
-
-    # Configure
-    # ---------
-
-    # start with config full for maximum coverage (also enables USE_PSA)
-    helper_libtestdriver1_adjust_config "full"
 
     # Disable modules that are accelerated - some will be re-enabled
     scripts/config.py unset MBEDTLS_ECDSA_C
@@ -789,7 +789,26 @@ common_test_psa_crypto_config_accel_ecc_some_curves () {
 
     msg "build: crypto_full minus PK with accelerated EC algs and $desc curves"
 
-    # Note: Curves are handled in a special way by the libtestdriver machinery,
+    # Configure
+    # ---------
+
+    # Start with config crypto_full and remove PK_C:
+    # that's what's supported now, see docs/driver-only-builds.md.
+    helper_libtestdriver1_adjust_config "crypto_full"
+    scripts/config.py unset MBEDTLS_PK_C
+    scripts/config.py unset MBEDTLS_PK_PARSE_C
+    scripts/config.py unset MBEDTLS_PK_WRITE_C
+
+    # Disable modules that are accelerated - some will be re-enabled
+    scripts/config.py unset MBEDTLS_ECDSA_C
+    scripts/config.py unset MBEDTLS_ECDH_C
+    scripts/config.py unset MBEDTLS_ECJPAKE_C
+    scripts/config.py unset MBEDTLS_ECP_C
+
+    # Disable all curves - those that aren't accelerated should be re-enabled
+    helper_disable_builtin_curves
+
+        # Note: Curves are handled in a special way by the libtestdriver machinery,
     # so we only want to include them in the accel list when building the main
     # libraries, hence the use of a separate variable.
     # Note: the following loop is a modified version of
@@ -818,25 +837,6 @@ common_test_psa_crypto_config_accel_ecc_some_curves () {
                     ALG_JPAKE \
                     $(helper_get_psa_key_type_list "ECC") \
                     $loc_curve_list"
-
-    # Configure
-    # ---------
-
-    # Start with config crypto_full and remove PK_C:
-    # that's what's supported now, see docs/driver-only-builds.md.
-    helper_libtestdriver1_adjust_config "crypto_full"
-    scripts/config.py unset MBEDTLS_PK_C
-    scripts/config.py unset MBEDTLS_PK_PARSE_C
-    scripts/config.py unset MBEDTLS_PK_WRITE_C
-
-    # Disable modules that are accelerated - some will be re-enabled
-    scripts/config.py unset MBEDTLS_ECDSA_C
-    scripts/config.py unset MBEDTLS_ECDH_C
-    scripts/config.py unset MBEDTLS_ECJPAKE_C
-    scripts/config.py unset MBEDTLS_ECP_C
-
-    # Disable all curves - those that aren't accelerated should be re-enabled
-    helper_disable_builtin_curves
 
     # Restartable feature is not yet supported by PSA. Once it will in
     # the future, the following line could be removed (see issues
@@ -884,7 +884,11 @@ common_test_psa_crypto_config_accel_ecc_some_curves () {
     # -------------
 
     msg "test suites: crypto_full minus PK with accelerated EC algs and $desc curves"
-    make test
+    # make test
+    (
+        cd tf-psa-crypto/tests
+        ./test_suite_psa_crypto_driver_wrappers
+    )
 }
 
 component_test_psa_crypto_config_accel_ecc_weierstrass_curves () {
@@ -928,18 +932,18 @@ config_psa_crypto_config_ecp_light_only () {
 component_test_psa_crypto_config_accel_ecc_ecp_light_only () {
     msg "build: full with accelerated EC algs"
 
+    # Configure
+    # ---------
+
+    # Use the same config as reference, only without built-in EC algs
+    config_psa_crypto_config_ecp_light_only 1
+
     # Algorithms and key types to accelerate
     loc_accel_list="ALG_ECDSA ALG_DETERMINISTIC_ECDSA \
                     ALG_ECDH \
                     ALG_JPAKE \
                     $(helper_get_psa_key_type_list "ECC") \
                     $(helper_get_psa_curve_list)"
-
-    # Configure
-    # ---------
-
-    # Use the same config as reference, only without built-in EC algs
-    config_psa_crypto_config_ecp_light_only 1
 
     # Do not disable builtin curves because that support is required for:
     # - MBEDTLS_PK_PARSE_EC_EXTENDED
@@ -1032,13 +1036,6 @@ config_psa_crypto_no_ecp_at_all () {
 component_test_psa_crypto_config_accel_ecc_no_ecp_at_all () {
     msg "build: full + accelerated EC algs - ECP"
 
-    # Algorithms and key types to accelerate
-    loc_accel_list="ALG_ECDSA ALG_DETERMINISTIC_ECDSA \
-                    ALG_ECDH \
-                    ALG_JPAKE \
-                    $(helper_get_psa_key_type_list "ECC") \
-                    $(helper_get_psa_curve_list)"
-
     # Configure
     # ---------
 
@@ -1046,6 +1043,13 @@ component_test_psa_crypto_config_accel_ecc_no_ecp_at_all () {
     config_psa_crypto_no_ecp_at_all 1
     # Disable all the builtin curves. All the required algs are accelerated.
     helper_disable_builtin_curves
+
+    # Algorithms and key types to accelerate
+    loc_accel_list="ALG_ECDSA ALG_DETERMINISTIC_ECDSA \
+                    ALG_ECDH \
+                    ALG_JPAKE \
+                    $(helper_get_psa_key_type_list "ECC") \
+                    $(helper_get_psa_curve_list)"
 
     # Build
     # -----
@@ -1183,6 +1187,14 @@ common_test_psa_crypto_config_accel_ecc_ffdh_no_bignum () {
 
     msg "build: full + accelerated $accel_text algs + USE_PSA - $removed_text - BIGNUM"
 
+    # Configure
+    # ---------
+
+    # Set common configurations between library's and driver's builds
+    config_psa_crypto_config_accel_ecc_ffdh_no_bignum 1 "$test_target"
+    # Disable all the builtin curves. All the required algs are accelerated.
+    helper_disable_builtin_curves
+
     # By default we accelerate all EC keys/algs
     loc_accel_list="ALG_ECDSA ALG_DETERMINISTIC_ECDSA \
                     ALG_ECDH \
@@ -1196,14 +1208,6 @@ common_test_psa_crypto_config_accel_ecc_ffdh_no_bignum () {
                         $(helper_get_psa_key_type_list "DH") \
                         $(helper_get_psa_dh_group_list)"
     fi
-
-    # Configure
-    # ---------
-
-    # Set common configurations between library's and driver's builds
-    config_psa_crypto_config_accel_ecc_ffdh_no_bignum 1 "$test_target"
-    # Disable all the builtin curves. All the required algs are accelerated.
-    helper_disable_builtin_curves
 
     # Build
     # -----

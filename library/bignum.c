@@ -1841,10 +1841,12 @@ int mbedtls_mpi_gcd(mbedtls_mpi *G, const mbedtls_mpi *A, const mbedtls_mpi *B)
 
     /* Handle special cases (that don't happen in crypto usage) */
     if (mbedtls_mpi_core_check_zero_ct(TA.p, TA.n) == MBEDTLS_CT_FALSE) {
-        return mbedtls_mpi_copy(G, &TB); // GCD(0, B) = abs(B)
+        MBEDTLS_MPI_CHK(mbedtls_mpi_copy(G, &TB)); // GCD(0, B) = abs(B)
+        goto cleanup;
     }
     if (mbedtls_mpi_core_check_zero_ct(TB.p, TB.n) == MBEDTLS_CT_FALSE) {
-        return mbedtls_mpi_copy(G, &TA); // GCD(A, 0) = abs(A)
+        MBEDTLS_MPI_CHK(mbedtls_mpi_copy(G, &TA)); // GCD(A, 0) = abs(A)
+        goto cleanup;
     }
 
     const size_t za = mbedtls_mpi_lsb(&TA);

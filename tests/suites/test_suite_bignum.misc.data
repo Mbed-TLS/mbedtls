@@ -1594,6 +1594,60 @@ mpi_inv_mod:"00":"11":"":MBEDTLS_ERR_MPI_NOT_ACCEPTABLE
 Test mbedtls_mpi_inv_mod #1
 mpi_inv_mod:"aa4df5cb14b4c31237f98bd1faf527c283c2d0f3eec89718664ba33f9762907c":"fffbbd660b94412ae61ead9c2906a344116e316a256fd387874c6c675b1d587d":"8d6a5c1d7adeae3e94b9bcd2c47e0d46e778bc8804a2cc25c02d775dc3d05b0c":0
 
+GCD-modinv wrapper: working, A < N
+mpi_gcd_modinv_odd_both:"54a":"3999":"1":"30b5":0
+
+GCD-modinv wrapper: no mod inverse, A = N
+mpi_gcd_modinv_odd_both:"365":"365":"365":"no_inverse":0
+
+GCD-modinv wrapper: no mod inverse, A < N
+mpi_gcd_modinv_odd_both:"5a":"b9":"5":"no_inverse":0
+
+GCD-modinv wrapper: bad inputs, A > N
+mpi_gcd_modinv_odd_both:"3999":"54a":"":"":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
+
+GCD-modinv wrapper: bad inputs, A < 0
+mpi_gcd_modinv_odd_both:"-5":"54a":"":"":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
+
+GCD-modinv wrapper: bad inputs, N even
+mpi_gcd_modinv_odd_both:"89":"540":"":"":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
+
+GCD-modinv wrapper only gcd: working, A < N
+mpi_gcd_modinv_odd_only_gcd:"1de3":"31d9":"7":0
+
+GCD-modinv wrapper only gcd: working, A = N
+mpi_gcd_modinv_odd_only_gcd:"365":"365":"365":0
+
+GCD-modinv wrapper only gcd: working, no mod inverse, A < N
+mpi_gcd_modinv_odd_only_gcd:"19e":"a47f":"9":0
+
+GCD-modinv wrapper only gcd: bad inputs, A > N
+mpi_gcd_modinv_odd_only_gcd:"319d":"1de3":"":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
+
+GCD-modinv wrapper only gcd: bad inputs, A < 0
+mpi_gcd_modinv_odd_only_gcd:"-628ef":"991827f":"":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
+
+GCD-modinv wrapper only gcd: bad inputs, N even
+mpi_gcd_modinv_odd_only_gcd:"319d":"24":"":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
+
+GCD-modinv wrapper only modinv: working, A < N
+mpi_gcd_modinv_odd_only_modinv:"28c":"26f9":"84f":0
+
+GCD-modinv wrapper only modinv: no mod inverse, A = N
+mpi_gcd_modinv_odd_only_modinv:"365":"365":"no_inverse":0
+
+GCD-modinv wrapper only modinv: no mod inverse, A < N
+mpi_gcd_modinv_odd_only_modinv:"19e":"a47f":"no_inverse":0
+
+GCD-modinv wrapper only modinv: bad inputs, A > N
+mpi_gcd_modinv_odd_only_modinv:"26f9":"28c":"":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
+
+GCD-modinv wrapper only modinv: bad inputs, A < 0
+mpi_gcd_modinv_odd_only_modinv:"-992f":"1000002":"":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
+
+GCD-modinv wrapper only modinv: bad inputs, N even
+mpi_gcd_modinv_odd_only_modinv:"28c":"26f0":"":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
+
 Base test mbedtls_mpi_is_prime #1
 depends_on:MBEDTLS_GENPRIME
 mpi_is_prime:"0":MBEDTLS_ERR_MPI_NOT_ACCEPTABLE

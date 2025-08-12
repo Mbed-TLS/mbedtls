@@ -2340,24 +2340,6 @@ run_test    "Opaque keys for server authentication: EC keys with different algs,
 requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
 requires_hash_alg SHA_384
 requires_config_disabled MBEDTLS_X509_REMOVE_INFO
-run_test    "Opaque keys for server authentication: EC keys with different algs, force ECDH-ECDSA" \
-            "$P_SRV key_opaque=1 crt_file=$DATA_FILES_PATH/server7.crt \
-             key_file=$DATA_FILES_PATH/server7.key key_opaque_algs=ecdsa-sign,none \
-             crt_file2=$DATA_FILES_PATH/server5.crt key_file2=$DATA_FILES_PATH/server5.key \
-             key_opaque_algs2=ecdh,none debug_level=3" \
-            "$P_CLI force_version=tls12 force_ciphersuite=TLS-ECDH-ECDSA-WITH-CAMELLIA-256-CBC-SHA384" \
-            0 \
-            -c "Verifying peer X.509 certificate... ok" \
-            -c "Ciphersuite is TLS-ECDH-ECDSA" \
-            -c "CN=Polarssl Test EC CA" \
-            -s "key types: Opaque, Opaque" \
-            -s "Ciphersuite is TLS-ECDH-ECDSA" \
-            -S "error" \
-            -C "error"
-
-requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
-requires_hash_alg SHA_384
-requires_config_disabled MBEDTLS_X509_REMOVE_INFO
 run_test    "Opaque keys for server authentication: EC + RSA, force ECDHE-ECDSA" \
             "$P_SRV key_opaque=1 crt_file=$DATA_FILES_PATH/server5.crt \
              key_file=$DATA_FILES_PATH/server5.key key_opaque_algs=ecdsa-sign,none \

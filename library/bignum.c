@@ -2003,7 +2003,7 @@ cleanup:
  * This is not obvious because our constant-time modinv function only works with
  * an odd modulus, and here the modulus is even. The idea is that computing a
  * a^-1 mod b is really just computing the u coefficient in the Bézout relation
- * a*u + b*v = 1 (assuming gcd(a,b) = 1, ie the inverse exists). But if we know
+ * a*u + b*v = 1 (assuming gcd(a,b) = 1, i.e. the inverse exists). But if we know
  * one of u, v in this relation then the other is easy to find. So we can
  * actually start by computing N^-1 mod A with gives us "the wrong half" of the
  * Bézout relation, from which we'll deduce the interesting half A^-1 mod N.
@@ -2062,7 +2062,7 @@ static int mbedtls_mpi_inv_mod_even(mbedtls_mpi *X,
     /* Bring A in the range [0, N). */
     MBEDTLS_MPI_CHK(mbedtls_mpi_mod_mpi(&AA, A, N));
 
-    /* We know A >= 0 but the next functions wants A > 1 */
+    /* We know A >= 0 but the next function wants A > 1 */
     int cmp = mbedtls_mpi_cmp_int(&AA, 1);
     if (cmp < 0) { // AA == 0
         ret = MBEDTLS_ERR_MPI_NOT_ACCEPTABLE;
@@ -2100,7 +2100,7 @@ int mbedtls_mpi_inv_mod(mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi 
         return mbedtls_mpi_inv_mod_even(X, A, N);
     }
 
-    /* If A and N are both even, 2 divides they GCD, so no inverse. */
+    /* If A and N are both even, 2 divides their GCD, so no inverse. */
     return MBEDTLS_ERR_MPI_NOT_ACCEPTABLE;
 }
 

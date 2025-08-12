@@ -2014,7 +2014,7 @@ static int mbedtls_mpi_inv_mod_even_in_range(mbedtls_mpi *X,
                                              mbedtls_mpi const *A,
                                              mbedtls_mpi const *N)
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_mpi I, G;
 
     mbedtls_mpi_init(&I);
@@ -2054,7 +2054,7 @@ static int mbedtls_mpi_inv_mod_even(mbedtls_mpi *X,
                                     mbedtls_mpi const *A,
                                     mbedtls_mpi const *N)
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_mpi AA;
 
     mbedtls_mpi_init(&AA);

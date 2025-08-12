@@ -808,7 +808,7 @@ common_test_psa_crypto_config_accel_ecc_some_curves () {
     # Disable all curves - those that aren't accelerated should be re-enabled
     helper_disable_builtin_curves
 
-        # Note: Curves are handled in a special way by the libtestdriver machinery,
+    # Note: Curves are handled in a special way by the libtestdriver machinery,
     # so we only want to include them in the accel list when building the main
     # libraries, hence the use of a separate variable.
     # Note: the following loop is a modified version of
@@ -884,11 +884,7 @@ common_test_psa_crypto_config_accel_ecc_some_curves () {
     # -------------
 
     msg "test suites: crypto_full minus PK with accelerated EC algs and $desc curves"
-    # make test
-    (
-        cd tf-psa-crypto/tests
-        ./test_suite_psa_crypto_driver_wrappers
-    )
+    make test
 }
 
 component_test_psa_crypto_config_accel_ecc_weierstrass_curves () {

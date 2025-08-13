@@ -198,6 +198,10 @@ int mbedtls_rsa_deduce_private_exponent(mbedtls_mpi const *P,
         return MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
     }
 
+    if (mbedtls_mpi_get_bit(E, 0) != 1) {
+        return MBEDTLS_ERR_MPI_NOT_ACCEPTABLE;
+    }
+
     mbedtls_mpi_init(&K);
     mbedtls_mpi_init(&L);
 
@@ -216,7 +220,7 @@ int mbedtls_rsa_deduce_private_exponent(mbedtls_mpi const *P,
      * This is FIPS 186-4 §B.3.1 criterion 3(b).
      * This will return MBEDTLS_ERR_MPI_NOT_ACCEPTABLE if E is not coprime to
      * (P-1)(Q-1), also validating FIPS 186-4 §B.3.1 criterion 2(a). */
-    MBEDTLS_MPI_CHK(mbedtls_mpi_inv_mod(D, E, &K));
+    MBEDTLS_MPI_CHK(mbedtls_mpi_inv_mod_even_in_range(D, E, &K));
 
 cleanup:
 

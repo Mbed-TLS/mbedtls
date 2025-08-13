@@ -1963,9 +1963,9 @@ cleanup:
  *
  * Return MBEDTLS_ERR_MPI_NOT_ACCEPTABLE if the inverse doesn't exist.
  */
-static int mbedtls_mpi_inv_mod_even_in_range(mbedtls_mpi *X,
-                                             mbedtls_mpi const *A,
-                                             mbedtls_mpi const *N)
+int mbedtls_mpi_inv_mod_even_in_range(mbedtls_mpi *X,
+                                      mbedtls_mpi const *A,
+                                      mbedtls_mpi const *N)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_mpi I, G;

@@ -1849,9 +1849,9 @@ int mbedtls_mpi_gcd(mbedtls_mpi *G, const mbedtls_mpi *A, const mbedtls_mpi *B)
         goto cleanup;
     }
 
+    /* Make boths inputs odd by putting powers of 2 on the side */
     const size_t za = mbedtls_mpi_lsb(&TA);
     const size_t zb = mbedtls_mpi_lsb(&TB);
-
     MBEDTLS_MPI_CHK(mbedtls_mpi_shift_r(&TA, za));
     MBEDTLS_MPI_CHK(mbedtls_mpi_shift_r(&TB, zb));
 
@@ -1861,6 +1861,7 @@ int mbedtls_mpi_gcd(mbedtls_mpi *G, const mbedtls_mpi *A, const mbedtls_mpi *B)
 
     MBEDTLS_MPI_CHK(mbedtls_mpi_gcd_modinv_odd(G, NULL, &TA, &TB));
 
+    /* Re-inject the power of 2 we had previously put aside */
     size_t zg = za > zb ? zb : za; // zg = min(za, zb)
     MBEDTLS_MPI_CHK(mbedtls_mpi_shift_l(G, zg));
 

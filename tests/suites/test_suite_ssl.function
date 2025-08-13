@@ -3973,7 +3973,7 @@ void ssl_ecjpake_set_password(int use_opaque_arg)
 
         /* First try with an invalid usage */
         psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_SIGN_HASH);
-        psa_set_key_algorithm(&attributes, PSA_ALG_JPAKE);
+        psa_set_key_algorithm(&attributes, PSA_ALG_JPAKE(PSA_ALG_SHA_256));
         psa_set_key_type(&attributes, PSA_KEY_TYPE_PASSWORD);
 
         PSA_ASSERT(psa_import_key(&attributes, pwd_string,

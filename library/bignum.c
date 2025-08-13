@@ -1924,9 +1924,9 @@ int mbedtls_mpi_random(mbedtls_mpi *X,
 /*
  * Modular inverse: X = A^-1 mod N with N odd (and A any range)
  */
-static int mbedtls_mpi_inv_mod_odd(mbedtls_mpi *X,
-                                   const mbedtls_mpi *A,
-                                   const mbedtls_mpi *N)
+int mbedtls_mpi_inv_mod_odd(mbedtls_mpi *X,
+                            const mbedtls_mpi *A,
+                            const mbedtls_mpi *N)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_mpi T, G;

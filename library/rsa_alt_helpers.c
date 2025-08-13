@@ -245,7 +245,7 @@ int mbedtls_rsa_deduce_crt(const mbedtls_mpi *P, const mbedtls_mpi *Q,
 
     /* QP = Q^{-1} mod P */
     if (QP != NULL) {
-        MBEDTLS_MPI_CHK(mbedtls_mpi_inv_mod(QP, Q, P));
+        MBEDTLS_MPI_CHK(mbedtls_mpi_inv_mod_odd(QP, Q, P));
     }
 
 cleanup:

@@ -80,4 +80,22 @@ int mbedtls_mpi_gcd_modinv_odd(mbedtls_mpi *G,
                                const mbedtls_mpi *A,
                                const mbedtls_mpi *N);
 
+/**
+ * \brief          Modular inverse: X = A^-1 mod N with N odd
+ *
+ * \param[out] X   The inverse of \p A modulo \p N on success,
+ *                 indeterminate otherwise.
+ * \param[in] A    The number to invert.
+ * \param[in] N    The modulus. Must be odd and greater than 1.
+ *
+ * \return         \c 0 if successful.
+ * \return         #MBEDTLS_ERR_MPI_ALLOC_FAILED if a memory allocation failed.
+ * \return         #MBEDTLS_ERR_MPI_BAD_INPUT_DATA if preconditions were not
+ *                 met.
+ * \return         #MBEDTLS_ERR_MPI_NOT_ACCEPTABLE if A is not invertible mod N.
+ */
+int mbedtls_mpi_inv_mod_odd(mbedtls_mpi *X,
+                            const mbedtls_mpi *A,
+                            const mbedtls_mpi *N);
+
 #endif /* bignum_internal.h */

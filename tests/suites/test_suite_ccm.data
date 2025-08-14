@@ -13,10 +13,6 @@ CCM init #3 AES-224: bad key size
 depends_on:MBEDTLS_CCM_GCM_CAN_AES
 mbedtls_ccm_setkey:MBEDTLS_CIPHER_ID_AES:224:MBEDTLS_ERR_CCM_BAD_INPUT
 
-CCM init #4 DES: bad block size
-depends_on:MBEDTLS_DES_C
-mbedtls_ccm_setkey:MBEDTLS_CIPHER_ID_DES:128:MBEDTLS_ERR_CCM_BAD_INPUT
-
 CCM lengths #1 all OK
 ccm_lengths:5:10:5:8:0
 

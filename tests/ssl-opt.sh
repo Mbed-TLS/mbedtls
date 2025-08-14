@@ -786,7 +786,6 @@ requires_openssl_tls1_3_with_compatible_ephemeral() {
     if !(is_config_enabled "PSA_WANT_ALG_ECDH"); then
         requires_openssl_tls1_3_with_ffdh
     fi
-
 }
 
 # skip next test if tls1_3 is not available

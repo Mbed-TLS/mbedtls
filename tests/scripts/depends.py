@@ -316,11 +316,9 @@ REVERSE_DEPENDENCIES = {
         'MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED'],
 
     'PSA_WANT_ALG_SHA_224': ['MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED',
-                             'MBEDTLS_ENTROPY_FORCE_SHA256',
                              'MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_IF_PRESENT',
                              'MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_ONLY'],
     'PSA_WANT_ALG_SHA_256': ['MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED',
-                             'MBEDTLS_ENTROPY_FORCE_SHA256',
                              'MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_IF_PRESENT',
                              'MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_ONLY',
                              'MBEDTLS_LMS_C',

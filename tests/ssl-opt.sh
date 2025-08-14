@@ -782,6 +782,11 @@ requires_openssl_tls1_3_with_ffdh() {
 # skip next test if openssl cannot handle ephemeral key exchange
 requires_openssl_tls1_3_with_compatible_ephemeral() {
     requires_openssl_next
+
+    if !(is_config_enabled "PSA_WANT_ALG_ECDH"); then
+        requires_openssl_tls1_3_with_ffdh
+    fi
+
 }
 
 # skip next test if tls1_3 is not available

@@ -95,6 +95,11 @@ component_test_psa_crypto_without_heap() {
     scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_KEY_TYPE_DES
     # EC-JPAKE use calloc/free in PSA core
     scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_ALG_JPAKE
+    # Enable p192[k|r]1 curves which are disabled by default in tf-psa-crypto.
+    # This is required to get the proper test coverage otherwise there are
+    # tests in 'test_suite_psa_crypto_op_fail' that would never be executed.
+    scripts/config.py set PSA_WANT_ECC_SECP_K1_192
+    scripts/config.py set PSA_WANT_ECC_SECP_R1_192
 
     # Accelerate all PSA features (which are still enabled in CRYPTO_CONFIG_H).
     PSA_SYM_LIST=$(./scripts/config.py -c $CRYPTO_CONFIG_H get-all-enabled PSA_WANT)

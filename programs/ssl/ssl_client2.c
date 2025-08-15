@@ -6,7 +6,6 @@
  */
 
 #define MBEDTLS_ALLOW_PRIVATE_ACCESS
-#define MBEDTLS_DECLARE_PRIVATE_IDENTIFIERS
 
 #include "mbedtls/private/pk_private.h"
 

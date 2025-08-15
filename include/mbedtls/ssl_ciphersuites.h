@@ -185,7 +185,7 @@ typedef enum {
 #endif
 
 /* Key exchanges that don't involve ephemeral keys */
-#if defined(MBEDTLS_KEY_EXCHANGE_SOME_NON_PFS_ENABLED)
+#if defined(MBEDTLS_KEY_EXCHANGE_PSK_ENABLED)
 #define MBEDTLS_KEY_EXCHANGE_SOME_NON_PFS_ENABLED
 #endif
 

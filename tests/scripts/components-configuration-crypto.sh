@@ -431,7 +431,7 @@ component_test_everest () {
 }
 
 component_test_everest_curve25519_only () {
-    msg "build: Everest ECDH context, only Curve25519" # ~ 6 min
+    msg "build: Everest ECDHE context, only Curve25519" # ~ 6 min
     scripts/config.py set MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED
     scripts/config.py unset MBEDTLS_ECDSA_C
     scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_ALG_DETERMINISTIC_ECDSA

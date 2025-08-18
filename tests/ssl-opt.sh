@@ -2373,7 +2373,7 @@ run_test    "Opaque key for server authentication: ECDH-" \
             -C "error"
 
 requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
-requires_config_enabled MBEDTLS_ECDSA_C
+requires_config_enabled PSA_WANT_ALG_ECDSA
 requires_config_enabled PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC
 requires_config_disabled MBEDTLS_SSL_ASYNC_PRIVATE
 requires_hash_alg SHA_256

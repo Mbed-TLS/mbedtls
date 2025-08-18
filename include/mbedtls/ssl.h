@@ -44,7 +44,7 @@
 /** The requested feature is not available. */
 #define MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE               -0x7080
 /** Bad input parameters to function. */
-#define MBEDTLS_ERR_SSL_BAD_INPUT_DATA                    -0x7100
+#define MBEDTLS_ERR_SSL_BAD_INPUT_DATA                    PSA_ERROR_INVALID_ARGUMENT
 /** Verification of the message MAC failed. */
 #define MBEDTLS_ERR_SSL_INVALID_MAC                       -0x7180
 /** An invalid SSL record was received. */
@@ -105,7 +105,7 @@
 /** Cache entry not found */
 #define MBEDTLS_ERR_SSL_CACHE_ENTRY_NOT_FOUND             -0x7E80
 /** Memory allocation failed */
-#define MBEDTLS_ERR_SSL_ALLOC_FAILED                      -0x7F00
+#define MBEDTLS_ERR_SSL_ALLOC_FAILED                      PSA_ERROR_INSUFFICIENT_MEMORY
 /** Hardware acceleration function returned with error */
 #define MBEDTLS_ERR_SSL_HW_ACCEL_FAILED                   -0x7F80
 /** Hardware acceleration function skipped / left alone data */
@@ -129,7 +129,7 @@
 /** DTLS client must retry for hello verification */
 #define MBEDTLS_ERR_SSL_HELLO_VERIFY_REQUIRED             -0x6A80
 /** A buffer is too small to receive or write a message */
-#define MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL                  -0x6A00
+#define MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL                  PSA_ERROR_BUFFER_TOO_SMALL
 /* Error space gap */
 /** No data of requested type currently available on underlying transport. */
 #define MBEDTLS_ERR_SSL_WANT_READ                         -0x6900
@@ -1912,7 +1912,7 @@ void mbedtls_ssl_init(mbedtls_ssl_context *ssl);
  * \param ssl      SSL context
  * \param conf     SSL configuration to use
  *
- * \return         0 if successful, or MBEDTLS_ERR_SSL_ALLOC_FAILED if
+ * \return         0 if successful, or #PSA_ERROR_INSUFFICIENT_MEMORY if
  *                 memory allocation failed
  */
 int mbedtls_ssl_setup(mbedtls_ssl_context *ssl,
@@ -1924,7 +1924,7 @@ int mbedtls_ssl_setup(mbedtls_ssl_context *ssl,
  *                 pointers and data.
  *
  * \param ssl      SSL context
- * \return         0 if successful, or MBEDTLS_ERR_SSL_ALLOC_FAILED or
+ * \return         0 if successful, or #PSA_ERROR_INSUFFICIENT_MEMORY or
                    MBEDTLS_ERR_SSL_HW_ACCEL_FAILED
  */
 int mbedtls_ssl_session_reset(mbedtls_ssl_context *ssl);
@@ -2579,14 +2579,14 @@ void mbedtls_ssl_conf_session_tickets_cb(mbedtls_ssl_config *conf,
  *                              milliseconds.
  *
  * \return         0 on success,
- *                 MBEDTLS_ERR_SSL_BAD_INPUT_DATA if an input is not valid.
+ *                 #PSA_ERROR_INVALID_ARGUMENT if an input is not valid.
  */
 static inline int mbedtls_ssl_session_get_ticket_creation_time(
     mbedtls_ssl_session *session, mbedtls_ms_time_t *ticket_creation_time)
 {
     if (session == NULL || ticket_creation_time == NULL ||
         session->MBEDTLS_PRIVATE(endpoint) != MBEDTLS_SSL_IS_SERVER) {
-        return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
+        return PSA_ERROR_INVALID_ARGUMENT;
     }
 
     *ticket_creation_time = session->MBEDTLS_PRIVATE(ticket_creation_time);
@@ -2937,8 +2937,8 @@ void mbedtls_ssl_conf_dtls_cookies(mbedtls_ssl_config *conf,
  * \note           An internal copy is made, so the info buffer can be reused.
  *
  * \return         0 on success,
- *                 MBEDTLS_ERR_SSL_BAD_INPUT_DATA if used on client,
- *                 MBEDTLS_ERR_SSL_ALLOC_FAILED if out of memory.
+ *                 #PSA_ERROR_INVALID_ARGUMENT if used on client,
+ *                 #PSA_ERROR_INSUFFICIENT_MEMORY if out of memory.
  */
 int mbedtls_ssl_set_client_transport_id(mbedtls_ssl_context *ssl,
                                         const unsigned char *info,
@@ -3175,8 +3175,8 @@ int mbedtls_ssl_set_session(mbedtls_ssl_context *ssl, const mbedtls_ssl_session 
  * \param len      The size of the serialized data in bytes.
  *
  * \return         \c 0 if successful.
- * \return         #MBEDTLS_ERR_SSL_ALLOC_FAILED if memory allocation failed.
- * \return         #MBEDTLS_ERR_SSL_BAD_INPUT_DATA if input data is invalid.
+ * \return         #PSA_ERROR_INSUFFICIENT_MEMORY if memory allocation failed.
+ * \return         #PSA_ERROR_INVALID_ARGUMENT if input data is invalid.
  * \return         #MBEDTLS_ERR_SSL_VERSION_MISMATCH if the serialized data
  *                 was generated in a different version or configuration of
  *                 Mbed TLS.
@@ -3215,7 +3215,7 @@ int mbedtls_ssl_session_load(mbedtls_ssl_session *session,
  *                 tickets.
  *
  * \return         \c 0 if successful.
- * \return         #MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL if \p buf is too small.
+ * \return         #PSA_ERROR_BUFFER_TOO_SMALL if \p buf is too small.
  * \return         #MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE if the
  *                 MBEDTLS_SSL_SESSION_TICKETS configuration option is disabled
  *                 and the session is a TLS 1.3 session.
@@ -3348,7 +3348,7 @@ void mbedtls_ssl_conf_tls13_key_exchange_modes(mbedtls_ssl_config *conf,
  *                      record headers.
  *
  * \return              \c 0 on success.
- * \return              #MBEDTLS_ERR_SSL_BAD_INPUT_DATA if \p len
+ * \return              #PSA_ERROR_INVALID_ARGUMENT if \p len
  *                      is too large.
  */
 int mbedtls_ssl_conf_cid(mbedtls_ssl_config *conf, size_t len,
@@ -3495,7 +3495,7 @@ void mbedtls_ssl_conf_ca_cb(mbedtls_ssl_config *conf,
  * \param own_cert own public certificate chain
  * \param pk_key   own private key
  *
- * \return         0 on success or MBEDTLS_ERR_SSL_ALLOC_FAILED
+ * \return         0 on success or #PSA_ERROR_INSUFFICIENT_MEMORY
  */
 int mbedtls_ssl_conf_own_cert(mbedtls_ssl_config *conf,
                               mbedtls_x509_crt *own_cert,
@@ -3744,8 +3744,8 @@ void mbedtls_ssl_conf_sig_algs(mbedtls_ssl_config *conf,
  *                 #MBEDTLS_ERR_SSL_CERTIFICATE_VERIFICATION_WITHOUT_HOSTNAME
  *                 for more details.
  *
- * \return         0 if successful, #MBEDTLS_ERR_SSL_ALLOC_FAILED on
- *                 allocation failure, #MBEDTLS_ERR_SSL_BAD_INPUT_DATA on
+ * \return         0 if successful, #PSA_ERROR_INSUFFICIENT_MEMORY on
+ *                 allocation failure, #PSA_ERROR_INVALID_ARGUMENT on
  *                 too long input hostname.
  *
  *                 Hostname set to the one provided on success (cleared
@@ -3805,7 +3805,7 @@ const unsigned char *mbedtls_ssl_get_hs_sni(mbedtls_ssl_context *ssl,
  * \param own_cert own public certificate chain
  * \param pk_key   own private key
  *
- * \return         0 on success or MBEDTLS_ERR_SSL_ALLOC_FAILED
+ * \return         0 on success or #PSA_ERROR_INSUFFICIENT_MEMORY
  */
 int mbedtls_ssl_set_hs_own_cert(mbedtls_ssl_context *ssl,
                                 mbedtls_x509_crt *own_cert,
@@ -3934,7 +3934,7 @@ int mbedtls_ssl_set_hs_ecjpake_password_opaque(mbedtls_ssl_context *ssl,
  *                 the lifetime of the table must be at least as long as the
  *                 lifetime of the SSL configuration structure.
  *
- * \return         0 on success, or MBEDTLS_ERR_SSL_BAD_INPUT_DATA.
+ * \return         0 on success, or #PSA_ERROR_INVALID_ARGUMENT.
  */
 int mbedtls_ssl_conf_alpn_protocols(mbedtls_ssl_config *conf,
                                     const char *const *protos);
@@ -4001,7 +4001,7 @@ void mbedtls_ssl_conf_srtp_mki_value_supported(mbedtls_ssl_config *conf,
  *                          (excluding the terminating MBEDTLS_TLS_SRTP_UNSET).
  *
  * \return                  0 on success
- * \return                  #MBEDTLS_ERR_SSL_BAD_INPUT_DATA when the list of
+ * \return                  #PSA_ERROR_INVALID_ARGUMENT when the list of
  *                          protection profiles is incorrect.
  */
 int mbedtls_ssl_conf_dtls_srtp_protection_profiles
@@ -4021,7 +4021,7 @@ int mbedtls_ssl_conf_dtls_srtp_protection_profiles
  *                         is ignored.
  *
  * \return                 0 on success
- * \return                 #MBEDTLS_ERR_SSL_BAD_INPUT_DATA
+ * \return                 #PSA_ERROR_INVALID_ARGUMENT
  * \return                 #MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE
  */
 int mbedtls_ssl_dtls_srtp_set_mki_value(mbedtls_ssl_context *ssl,
@@ -4166,7 +4166,7 @@ void mbedtls_ssl_conf_cert_req_ca_list(mbedtls_ssl_config *conf,
  *                 MBEDTLS_SSL_MAX_FRAG_LEN_512,  MBEDTLS_SSL_MAX_FRAG_LEN_1024,
  *                 MBEDTLS_SSL_MAX_FRAG_LEN_2048, MBEDTLS_SSL_MAX_FRAG_LEN_4096)
  *
- * \return         0 if successful or MBEDTLS_ERR_SSL_BAD_INPUT_DATA
+ * \return         0 if successful or #PSA_ERROR_INVALID_ARGUMENT
  */
 int mbedtls_ssl_conf_max_frag_len(mbedtls_ssl_config *conf, unsigned char mfl_code);
 #endif /* MBEDTLS_SSL_MAX_FRAGMENT_LENGTH */
@@ -4892,7 +4892,7 @@ int mbedtls_ssl_read(mbedtls_ssl_context *ssl, unsigned char *buf, size_t len);
  *                 fragment length (either the built-in limit or the one set
  *                 or negotiated with the peer), then:
  *                 - with TLS, less bytes than requested are written.
- *                 - with DTLS, MBEDTLS_ERR_SSL_BAD_INPUT_DATA is returned.
+ *                 - with DTLS, #PSA_ERROR_INVALID_ARGUMENT is returned.
  *                 \c mbedtls_ssl_get_max_out_record_payload() may be used to
  *                 query the active maximum fragment length.
  *
@@ -4976,7 +4976,7 @@ int mbedtls_ssl_close_notify(mbedtls_ssl_context *ssl);
  * \param len      maximum number of bytes to read
  *
  * \return         The (positive) number of bytes read if successful.
- * \return         #MBEDTLS_ERR_SSL_BAD_INPUT_DATA if input data is invalid.
+ * \return         #PSA_ERROR_INVALID_ARGUMENT if input data is invalid.
  * \return         #MBEDTLS_ERR_SSL_CANNOT_READ_EARLY_DATA if it is not
  *                 possible to read early data for the SSL context \p ssl. Note
  *                 that this function is intended to be called for an SSL
@@ -5082,10 +5082,10 @@ int mbedtls_ssl_write_early_data(mbedtls_ssl_context *ssl,
  *
  * \param ssl      The SSL context to query
  *
- * \return         #MBEDTLS_ERR_SSL_BAD_INPUT_DATA if this function is called
+ * \return         #PSA_ERROR_INVALID_ARGUMENT if this function is called
  *                 from the server-side.
  *
- * \return         #MBEDTLS_ERR_SSL_BAD_INPUT_DATA if this function is called
+ * \return         #PSA_ERROR_INVALID_ARGUMENT if this function is called
  *                 prior to completion of the handshake.
  *
  * \return         #MBEDTLS_SSL_EARLY_DATA_STATUS_NOT_INDICATED if the client
@@ -5134,7 +5134,7 @@ void mbedtls_ssl_free(mbedtls_ssl_context *ssl);
  *
  * \note           This feature is currently only available under certain
  *                 conditions, see the documentation of the return value
- *                 #MBEDTLS_ERR_SSL_BAD_INPUT_DATA for details.
+ *                 #PSA_ERROR_INVALID_ARGUMENT for details.
  *
  * \note           When this function succeeds, it calls
  *                 mbedtls_ssl_session_reset() on \p ssl which as a result is
@@ -5159,15 +5159,15 @@ void mbedtls_ssl_free(mbedtls_ssl_context *ssl);
  *                 to determine the necessary size by calling this function
  *                 with \p buf set to \c NULL and \p buf_len to \c 0. However,
  *                 the value of \p olen is only guaranteed to be correct when
- *                 the function returns #MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL or
+ *                 the function returns #PSA_ERROR_BUFFER_TOO_SMALL or
  *                 \c 0. If the return value is different, then the value of
  *                 \p olen is undefined.
  *
  * \return         \c 0 if successful.
- * \return         #MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL if \p buf is too small.
- * \return         #MBEDTLS_ERR_SSL_ALLOC_FAILED if memory allocation failed
+ * \return         #PSA_ERROR_BUFFER_TOO_SMALL if \p buf is too small.
+ * \return         #PSA_ERROR_INSUFFICIENT_MEMORY if memory allocation failed
  *                 while resetting the context.
- * \return         #MBEDTLS_ERR_SSL_BAD_INPUT_DATA if a handshake is in
+ * \return         #PSA_ERROR_INVALID_ARGUMENT if a handshake is in
  *                 progress, or there is pending data for reading or sending,
  *                 or the connection does not use DTLS 1.2 with an AEAD
  *                 ciphersuite, or renegotiation is enabled.
@@ -5240,10 +5240,10 @@ int mbedtls_ssl_context_save(mbedtls_ssl_context *ssl,
  * \param len      The size of the serialized data in bytes.
  *
  * \return         \c 0 if successful.
- * \return         #MBEDTLS_ERR_SSL_ALLOC_FAILED if memory allocation failed.
+ * \return         #PSA_ERROR_INSUFFICIENT_MEMORY if memory allocation failed.
  * \return         #MBEDTLS_ERR_SSL_VERSION_MISMATCH if the serialized data
  *                 comes from a different Mbed TLS version or build.
- * \return         #MBEDTLS_ERR_SSL_BAD_INPUT_DATA if input data is invalid.
+ * \return         #PSA_ERROR_INVALID_ARGUMENT if input data is invalid.
  */
 int mbedtls_ssl_context_load(mbedtls_ssl_context *ssl,
                              const unsigned char *buf,
@@ -5352,7 +5352,7 @@ int  mbedtls_ssl_tls_prf(const mbedtls_tls_prf_types prf,
  *       context_len are ignored and a 0-length context is used.
  *
  * \return            0 on success.
- * \return            MBEDTLS_ERR_SSL_BAD_INPUT_DATA if the handshake is not yet completed.
+ * \return            #PSA_ERROR_INVALID_ARGUMENT if the handshake is not yet completed.
  * \return            An SSL-specific error on failure.
  */
 int mbedtls_ssl_export_keying_material(mbedtls_ssl_context *ssl,

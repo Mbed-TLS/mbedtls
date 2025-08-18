@@ -210,8 +210,8 @@ typedef enum {
 #define MBEDTLS_KEY_EXCHANGE_SOME_ECDHE_ENABLED
 #endif
 
-/* TLS 1.2 key exchanges using ECDHE*/
-#if defined(MBEDTLS_KEY_EXCHANGE_SOME_ECDH_OR_ECDHE_1_2_ENABLED)
+/* TLS 1.2 key exchanges using ECDH or ECDHE*/
+#if defined(MBEDTLS_KEY_EXCHANGE_SOME_ECDHE_ENABLED)
 #define MBEDTLS_KEY_EXCHANGE_SOME_ECDH_OR_ECDHE_1_2_ENABLED
 #endif
 

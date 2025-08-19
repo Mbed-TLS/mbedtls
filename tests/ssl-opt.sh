@@ -5839,7 +5839,7 @@ run_test    "Authentication: server badcert, client required" \
             -c "! The certificate is not correctly signed by the trusted CA" \
             -c "! mbedtls_ssl_handshake returned" \
             -c "send alert level=2 message=48" \
-            -c "X509 - Certificate verification failed"
+            -c "Last error was: \(-0x95\|-149\)"
             # MBEDTLS_X509_BADCERT_NOT_TRUSTED -> MBEDTLS_SSL_ALERT_MSG_UNKNOWN_CA
 # We don't check that the server receives the alert because it might
 # detect that its write end of the connection is closed and abort
@@ -5854,7 +5854,7 @@ run_test    "Authentication: server badcert, client required (1.2)" \
             -c "! The certificate is not correctly signed by the trusted CA" \
             -c "! mbedtls_ssl_handshake returned" \
             -c "send alert level=2 message=48" \
-            -c "X509 - Certificate verification failed"
+            -c "Last error was: \(-0x95\|-149\)"
             # MBEDTLS_X509_BADCERT_NOT_TRUSTED -> MBEDTLS_SSL_ALERT_MSG_UNKNOWN_CA
 
 run_test    "Authentication: server badcert, client optional" \
@@ -5866,7 +5866,7 @@ run_test    "Authentication: server badcert, client optional" \
             -c "! The certificate is not correctly signed by the trusted CA" \
             -C "! mbedtls_ssl_handshake returned" \
             -C "send alert level=2 message=48" \
-            -C "X509 - Certificate verification failed"
+            -C "Last error was: \(-0x95\|-149\)"
 
 run_test    "Authentication: server badcert, client optional (1.2)" \
             "$P_SRV crt_file=$DATA_FILES_PATH/server5-badsign.crt \
@@ -5877,7 +5877,7 @@ run_test    "Authentication: server badcert, client optional (1.2)" \
             -c "! The certificate is not correctly signed by the trusted CA" \
             -C "! mbedtls_ssl_handshake returned" \
             -C "send alert level=2 message=48" \
-            -C "X509 - Certificate verification failed"
+            -C "Last error was: \(-0x95\|-149\)"
 
 run_test    "Authentication: server badcert, client none" \
             "$P_SRV crt_file=$DATA_FILES_PATH/server5-badsign.crt \
@@ -5888,7 +5888,7 @@ run_test    "Authentication: server badcert, client none" \
             -C "! The certificate is not correctly signed by the trusted CA" \
             -C "! mbedtls_ssl_handshake returned" \
             -C "send alert level=2 message=48" \
-            -C "X509 - Certificate verification failed"
+            -C "Last error was: \(-0x95\|-149\)"
 
 run_test    "Authentication: server badcert, client none (1.2)" \
             "$P_SRV crt_file=$DATA_FILES_PATH/server5-badsign.crt \
@@ -5899,7 +5899,7 @@ run_test    "Authentication: server badcert, client none (1.2)" \
             -C "! The certificate is not correctly signed by the trusted CA" \
             -C "! mbedtls_ssl_handshake returned" \
             -C "send alert level=2 message=48" \
-            -C "X509 - Certificate verification failed"
+            -C "Last error was: \(-0x95\|-149\)"
 
 run_test    "Authentication: server goodcert, client required, no trusted CA" \
             "$P_SRV" \
@@ -5930,7 +5930,7 @@ run_test    "Authentication: server goodcert, client optional, no trusted CA" \
             -c "! The certificate is not correctly signed by the trusted CA" \
             -c "! Certificate verification flags"\
             -C "! mbedtls_ssl_handshake returned" \
-            -C "X509 - Certificate verification failed" \
+            -C "Last error was: \(-0x95\|-149\)" \
             -C "SSL - No CA Chain is set, but required to operate"
 
 requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
@@ -5942,7 +5942,7 @@ run_test    "Authentication: server goodcert, client optional, no trusted CA (1.
             -c "! The certificate is not correctly signed by the trusted CA" \
             -c "! Certificate verification flags"\
             -C "! mbedtls_ssl_handshake returned" \
-            -C "X509 - Certificate verification failed" \
+            -C "Last error was: \(-0x95\|-149\)" \
             -C "SSL - No CA Chain is set, but required to operate"
 
 run_test    "Authentication: server goodcert, client none, no trusted CA" \
@@ -5953,7 +5953,7 @@ run_test    "Authentication: server goodcert, client none, no trusted CA" \
             -C "! The certificate is not correctly signed by the trusted CA" \
             -C "! Certificate verification flags"\
             -C "! mbedtls_ssl_handshake returned" \
-            -C "X509 - Certificate verification failed" \
+            -C "Last error was: \(-0x95\|-149\)" \
             -C "SSL - No CA Chain is set, but required to operate"
 
 requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
@@ -5965,7 +5965,7 @@ run_test    "Authentication: server goodcert, client none, no trusted CA (1.2)" 
             -C "! The certificate is not correctly signed by the trusted CA" \
             -C "! Certificate verification flags"\
             -C "! mbedtls_ssl_handshake returned" \
-            -C "X509 - Certificate verification failed" \
+            -C "Last error was: \(-0x95\|-149\)" \
             -C "SSL - No CA Chain is set, but required to operate"
 
 # The next few tests check what happens if the server has a valid certificate
@@ -5980,7 +5980,7 @@ run_test "Authentication: hostname match, client required" \
          -C "Certificate verification without CN verification" \
          -C "x509_verify_cert() returned -" \
          -C "! mbedtls_ssl_handshake returned" \
-         -C "X509 - Certificate verification failed"
+         -C "Last error was: \(-0x95\|-149\)"
 
 run_test "Authentication: hostname match, client required, CA callback" \
          "$P_SRV" \
@@ -5992,7 +5992,7 @@ run_test "Authentication: hostname match, client required, CA callback" \
          -c "use CA callback for X.509 CRT verification" \
          -C "x509_verify_cert() returned -" \
          -C "! mbedtls_ssl_handshake returned" \
-         -C "X509 - Certificate verification failed"
+         -C "Last error was: \(-0x95\|-149\)"
 
 run_test "Authentication: hostname mismatch (wrong), client required" \
          "$P_SRV" \
@@ -6001,7 +6001,7 @@ run_test "Authentication: hostname mismatch (wrong), client required" \
          -c "does not match with the expected CN" \
          -c "x509_verify_cert() returned -" \
          -c "! mbedtls_ssl_handshake returned" \
-         -c "X509 - Certificate verification failed"
+         -c "Last error was: \(-0x95\|-149\)"
 
 run_test "Authentication: hostname mismatch (empty), client required" \
          "$P_SRV" \
@@ -6010,7 +6010,7 @@ run_test "Authentication: hostname mismatch (empty), client required" \
          -c "does not match with the expected CN" \
          -c "x509_verify_cert() returned -" \
          -c "! mbedtls_ssl_handshake returned" \
-         -c "X509 - Certificate verification failed"
+         -c "Last error was: \(-0x95\|-149\)"
 
 run_test "Authentication: hostname mismatch (truncated), client required" \
          "$P_SRV" \
@@ -6019,7 +6019,7 @@ run_test "Authentication: hostname mismatch (truncated), client required" \
          -c "does not match with the expected CN" \
          -c "x509_verify_cert() returned -" \
          -c "! mbedtls_ssl_handshake returned" \
-         -c "X509 - Certificate verification failed"
+         -c "Last error was: \(-0x95\|-149\)"
 
 run_test "Authentication: hostname mismatch (last char), client required" \
          "$P_SRV" \
@@ -6028,7 +6028,7 @@ run_test "Authentication: hostname mismatch (last char), client required" \
          -c "does not match with the expected CN" \
          -c "x509_verify_cert() returned -" \
          -c "! mbedtls_ssl_handshake returned" \
-         -c "X509 - Certificate verification failed"
+         -c "Last error was: \(-0x95\|-149\)"
 
 run_test "Authentication: hostname mismatch (trailing), client required" \
          "$P_SRV" \
@@ -6037,7 +6037,7 @@ run_test "Authentication: hostname mismatch (trailing), client required" \
          -c "does not match with the expected CN" \
          -c "x509_verify_cert() returned -" \
          -c "! mbedtls_ssl_handshake returned" \
-         -c "X509 - Certificate verification failed"
+         -c "Last error was: \(-0x95\|-149\)"
 
 run_test "Authentication: hostname mismatch, client optional" \
          "$P_SRV" \
@@ -6045,7 +6045,7 @@ run_test "Authentication: hostname mismatch, client optional" \
          0 \
          -c "does not match with the expected CN" \
          -c "x509_verify_cert() returned -" \
-         -C "X509 - Certificate verification failed"
+         -C "Last error was: \(-0x95\|-149\)"
 
 run_test "Authentication: hostname mismatch, client none" \
          "$P_SRV" \
@@ -6055,7 +6055,7 @@ run_test "Authentication: hostname mismatch, client none" \
          -C "Certificate verification without having set hostname" \
          -C "Certificate verification without CN verification" \
          -C "x509_verify_cert() returned -" \
-         -C "X509 - Certificate verification failed"
+         -C "Last error was: \(-0x95\|-149\)"
 
 run_test "Authentication: hostname null, client required" \
          "$P_SRV" \
@@ -6066,7 +6066,7 @@ run_test "Authentication: hostname null, client required" \
          -c "Certificate verification without CN verification" \
          -C "x509_verify_cert() returned -" \
          -C "! mbedtls_ssl_handshake returned" \
-         -C "X509 - Certificate verification failed"
+         -C "Last error was: \(-0x95\|-149\)"
 
 run_test "Authentication: hostname null, client optional" \
          "$P_SRV" \
@@ -6076,7 +6076,7 @@ run_test "Authentication: hostname null, client optional" \
          -C "Certificate verification without having set hostname" \
          -c "Certificate verification without CN verification" \
          -C "x509_verify_cert() returned -" \
-         -C "X509 - Certificate verification failed"
+         -C "Last error was: \(-0x95\|-149\)"
 
 run_test "Authentication: hostname null, client none" \
          "$P_SRV" \
@@ -6086,7 +6086,7 @@ run_test "Authentication: hostname null, client none" \
          -C "Certificate verification without having set hostname" \
          -C "Certificate verification without CN verification" \
          -C "x509_verify_cert() returned -" \
-         -C "X509 - Certificate verification failed"
+         -C "Last error was: \(-0x95\|-149\)"
 
 run_test "Authentication: hostname unset, client required" \
          "$P_SRV" \
@@ -6098,7 +6098,7 @@ run_test "Authentication: hostname unset, client required" \
          -c "get_hostname_for_verification() returned -" \
          -C "x509_verify_cert() returned -" \
          -c "! mbedtls_ssl_handshake returned" \
-         -C "X509 - Certificate verification failed"
+         -C "Last error was: \(-0x95\|-149\)"
 
 run_test "Authentication: hostname unset, client required, CA callback" \
          "$P_SRV" \
@@ -6111,7 +6111,7 @@ run_test "Authentication: hostname unset, client required, CA callback" \
          -C "use CA callback for X.509 CRT verification" \
          -C "x509_verify_cert() returned -" \
          -c "! mbedtls_ssl_handshake returned" \
-         -C "X509 - Certificate verification failed"
+         -C "Last error was: \(-0x95\|-149\)"
 
 run_test "Authentication: hostname unset, client optional" \
          "$P_SRV" \
@@ -6121,7 +6121,7 @@ run_test "Authentication: hostname unset, client optional" \
          -c "Certificate verification without having set hostname" \
          -c "Certificate verification without CN verification" \
          -C "x509_verify_cert() returned -" \
-         -C "X509 - Certificate verification failed"
+         -C "Last error was: \(-0x95\|-149\)"
 
 run_test "Authentication: hostname unset, client none" \
          "$P_SRV" \
@@ -6131,7 +6131,7 @@ run_test "Authentication: hostname unset, client none" \
          -C "Certificate verification without having set hostname" \
          -C "Certificate verification without CN verification" \
          -C "x509_verify_cert() returned -" \
-         -C "X509 - Certificate verification failed"
+         -C "Last error was: \(-0x95\|-149\)"
 
 run_test "Authentication: hostname unset, client default, server picks cert, 1.2" \
          "$P_SRV force_version=tls12 force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-CCM-8" \
@@ -6142,7 +6142,7 @@ run_test "Authentication: hostname unset, client default, server picks cert, 1.2
          -C "Certificate verification without CN verification" \
          -c "get_hostname_for_verification() returned -" \
          -C "x509_verify_cert() returned -" \
-         -C "X509 - Certificate verification failed"
+         -C "Last error was: \(-0x95\|-149\)"
 
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test "Authentication: hostname unset, client default, server picks cert, 1.3" \
@@ -6154,7 +6154,7 @@ run_test "Authentication: hostname unset, client default, server picks cert, 1.3
          -C "Certificate verification without CN verification" \
          -c "get_hostname_for_verification() returned -" \
          -C "x509_verify_cert() returned -" \
-         -C "X509 - Certificate verification failed"
+         -C "Last error was: \(-0x95\|-149\)"
 
 run_test "Authentication: hostname unset, client default, server picks PSK, 1.2" \
          "$P_SRV force_version=tls12 force_ciphersuite=TLS-PSK-WITH-AES-128-CCM-8 psk=73776f726466697368 psk_identity=foo" \
@@ -6164,7 +6164,7 @@ run_test "Authentication: hostname unset, client default, server picks PSK, 1.2"
          -C "Certificate verification without having set hostname" \
          -C "Certificate verification without CN verification" \
          -C "x509_verify_cert() returned -" \
-         -C "X509 - Certificate verification failed"
+         -C "Last error was: \(-0x95\|-149\)"
 
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 run_test "Authentication: hostname unset, client default, server picks PSK, 1.3" \
@@ -6175,7 +6175,7 @@ run_test "Authentication: hostname unset, client default, server picks PSK, 1.3"
          -C "Certificate verification without having set hostname" \
          -C "Certificate verification without CN verification" \
          -C "x509_verify_cert() returned -" \
-         -C "X509 - Certificate verification failed"
+         -C "Last error was: \(-0x95\|-149\)"
 
 # The purpose of the next two tests is to test the client's behaviour when receiving a server
 # certificate with an unsupported elliptic curve. This should usually not happen because
@@ -6252,7 +6252,7 @@ run_test    "Authentication: client badcert, server required" \
             -s "! The certificate is not correctly signed by the trusted CA" \
             -s "! mbedtls_ssl_handshake returned" \
             -s "send alert level=2 message=48" \
-            -s "X509 - Certificate verification failed"
+            -s "Last error was: \(-0x95\|-149\)"
 # We don't check that the client receives the alert because it might
 # detect that its write end of the connection is closed and abort
 # before reading the alert message.
@@ -6270,7 +6270,7 @@ run_test    "Authentication: client cert self-signed and trusted, server require
             -S "skip parse certificate verify" \
             -S "x509_verify_cert() returned" \
             -S "! The certificate is not correctly signed" \
-            -S "X509 - Certificate verification failed"
+            -S "Last error was: \(-0x95\|-149\)"
 
 run_test    "Authentication: client cert not trusted, server required" \
             "$P_SRV debug_level=3 auth_mode=required" \
@@ -6286,7 +6286,7 @@ run_test    "Authentication: client cert not trusted, server required" \
             -s "x509_verify_cert() returned" \
             -s "! The certificate is not correctly signed by the trusted CA" \
             -s "! mbedtls_ssl_handshake returned" \
-            -s "X509 - Certificate verification failed"
+            -s "Last error was: \(-0x95\|-149\)"
 
 run_test    "Authentication: client badcert, server optional" \
             "$P_SRV debug_level=3 auth_mode=optional" \
@@ -6303,7 +6303,7 @@ run_test    "Authentication: client badcert, server optional" \
             -s "! The certificate is not correctly signed by the trusted CA" \
             -S "! mbedtls_ssl_handshake returned" \
             -C "! mbedtls_ssl_handshake returned" \
-            -S "X509 - Certificate verification failed"
+            -S "Last error was: \(-0x95\|-149\)"
 
 run_test    "Authentication: client badcert, server none" \
             "$P_SRV debug_level=3 auth_mode=none" \
@@ -6320,7 +6320,7 @@ run_test    "Authentication: client badcert, server none" \
             -S "! The certificate is not correctly signed by the trusted CA" \
             -S "! mbedtls_ssl_handshake returned" \
             -C "! mbedtls_ssl_handshake returned" \
-            -S "X509 - Certificate verification failed"
+            -S "Last error was: \(-0x95\|-149\)"
 
 run_test    "Authentication: client no cert, server optional" \
             "$P_SRV debug_level=3 auth_mode=optional" \
@@ -6336,7 +6336,7 @@ run_test    "Authentication: client no cert, server optional" \
             -s "! Certificate was missing" \
             -S "! mbedtls_ssl_handshake returned" \
             -C "! mbedtls_ssl_handshake returned" \
-            -S "X509 - Certificate verification failed"
+            -S "Last error was: \(-0x95\|-149\)"
 
 requires_openssl_tls1_3_with_compatible_ephemeral
 run_test    "Authentication: openssl client no cert, server optional" \
@@ -6347,7 +6347,7 @@ run_test    "Authentication: openssl client no cert, server optional" \
             -s "skip parse certificate verify" \
             -s "! Certificate was missing" \
             -S "! mbedtls_ssl_handshake returned" \
-            -S "X509 - Certificate verification failed"
+            -S "Last error was: \(-0x95\|-149\)"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Authentication: client no cert, openssl server optional" \
@@ -6483,7 +6483,7 @@ run_test    "Authentication: send CA list in CertificateRequest, client self sig
             -s "! The certificate is not correctly signed by the trusted CA" \
             -s "! mbedtls_ssl_handshake returned" \
             -c "! mbedtls_ssl_handshake returned" \
-            -s "X509 - Certificate verification failed"
+            -s "Last error was: \(-0x95\|-149\)"
 
 requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
 run_test    "Authentication: send alt conf DN hints in CertificateRequest" \
@@ -6530,7 +6530,7 @@ run_test    "Authentication, CA callback: server badcert, client required" \
             -c "x509_verify_cert() returned" \
             -c "! The certificate is not correctly signed by the trusted CA" \
             -c "! mbedtls_ssl_handshake returned" \
-            -c "X509 - Certificate verification failed"
+            -c "Last error was: \(-0x95\|-149\)"
 
 run_test    "Authentication, CA callback: server badcert, client optional" \
             "$P_SRV crt_file=$DATA_FILES_PATH/server5-badsign.crt \
@@ -6541,7 +6541,7 @@ run_test    "Authentication, CA callback: server badcert, client optional" \
             -c "x509_verify_cert() returned" \
             -c "! The certificate is not correctly signed by the trusted CA" \
             -C "! mbedtls_ssl_handshake returned" \
-            -C "X509 - Certificate verification failed"
+            -C "Last error was: \(-0x95\|-149\)"
 
 run_test    "Authentication, CA callback: server badcert, client none" \
             "$P_SRV crt_file=$DATA_FILES_PATH/server5-badsign.crt \
@@ -6552,7 +6552,7 @@ run_test    "Authentication, CA callback: server badcert, client none" \
             -C "x509_verify_cert() returned" \
             -C "! The certificate is not correctly signed by the trusted CA" \
             -C "! mbedtls_ssl_handshake returned" \
-            -C "X509 - Certificate verification failed"
+            -C "Last error was: \(-0x95\|-149\)"
 
 # The purpose of the next two tests is to test the client's behaviour when receiving a server
 # certificate with an unsupported elliptic curve. This should usually not happen because
@@ -6619,7 +6619,7 @@ run_test    "Authentication, CA callback: client badcert, server required" \
             -s "! The certificate is not correctly signed by the trusted CA" \
             -s "! mbedtls_ssl_handshake returned" \
             -s "send alert level=2 message=48" \
-            -s "X509 - Certificate verification failed"
+            -s "Last error was: \(-0x95\|-149\)"
 # We don't check that the client receives the alert because it might
 # detect that its write end of the connection is closed and abort
 # before reading the alert message.
@@ -6639,7 +6639,7 @@ run_test    "Authentication, CA callback: client cert not trusted, server requir
             -s "x509_verify_cert() returned" \
             -s "! The certificate is not correctly signed by the trusted CA" \
             -s "! mbedtls_ssl_handshake returned" \
-            -s "X509 - Certificate verification failed"
+            -s "Last error was: \(-0x95\|-149\)"
 
 run_test    "Authentication, CA callback: client badcert, server optional" \
             "$P_SRV ca_callback=1 debug_level=3 auth_mode=optional" \
@@ -6657,7 +6657,7 @@ run_test    "Authentication, CA callback: client badcert, server optional" \
             -s "! The certificate is not correctly signed by the trusted CA" \
             -S "! mbedtls_ssl_handshake returned" \
             -C "! mbedtls_ssl_handshake returned" \
-            -S "X509 - Certificate verification failed"
+            -S "Last error was: \(-0x95\|-149\)"
 
 requires_config_value_equals "MBEDTLS_X509_MAX_INTERMEDIATE_CA" $MAX_IM_CA
 requires_full_size_output_buffer
@@ -9498,7 +9498,7 @@ run_test    "EC restart: TLS, max_ops=1000, badsign" \
             -C "mbedtls_pk_sign.*\(4b00\|-248\)" \
             -c "! The certificate is not correctly signed by the trusted CA" \
             -c "! mbedtls_ssl_handshake returned" \
-            -c "X509 - Certificate verification failed"
+            -c "Last error was: \(-0x95\|-149\)"
 
 # With USE_PSA disabled we expect full restartable behaviour.
 requires_config_enabled MBEDTLS_ECP_RESTARTABLE
@@ -9518,7 +9518,7 @@ run_test    "EC restart: TLS, max_ops=1000, auth_mode=optional badsign (no USE_P
             -c "mbedtls_pk_sign.*\(4b00\|-248\)" \
             -c "! The certificate is not correctly signed by the trusted CA" \
             -C "! mbedtls_ssl_handshake returned" \
-            -C "X509 - Certificate verification failed"
+            -C "Last error was: \(-0x95\|-149\)"
 
 # With USE_PSA enabled we expect only partial restartable behaviour:
 # everything except ECDH (where TLS calls PSA directly).
@@ -9538,7 +9538,7 @@ run_test    "EC restart: TLS, max_ops=1000, auth_mode=optional badsign (USE_PSA)
             -c "mbedtls_pk_sign.*\(4b00\|-248\)" \
             -c "! The certificate is not correctly signed by the trusted CA" \
             -C "! mbedtls_ssl_handshake returned" \
-            -C "X509 - Certificate verification failed"
+            -C "Last error was: \(-0x95\|-149\)"
 
 # With USE_PSA disabled we expect full restartable behaviour.
 requires_config_enabled MBEDTLS_ECP_RESTARTABLE
@@ -9558,7 +9558,7 @@ run_test    "EC restart: TLS, max_ops=1000, auth_mode=none badsign (no USE_PSA)"
             -c "mbedtls_pk_sign.*\(4b00\|-248\)" \
             -C "! The certificate is not correctly signed by the trusted CA" \
             -C "! mbedtls_ssl_handshake returned" \
-            -C "X509 - Certificate verification failed"
+            -C "Last error was: \(-0x95\|-149\)"
 
 # With USE_PSA enabled we expect only partial restartable behaviour:
 # everything except ECDH (where TLS calls PSA directly).
@@ -9578,7 +9578,7 @@ run_test    "EC restart: TLS, max_ops=1000, auth_mode=none badsign (USE_PSA)" \
             -c "mbedtls_pk_sign.*\(4b00\|-248\)" \
             -C "! The certificate is not correctly signed by the trusted CA" \
             -C "! mbedtls_ssl_handshake returned" \
-            -C "X509 - Certificate verification failed"
+            -C "Last error was: \(-0x95\|-149\)"
 
 # With USE_PSA disabled we expect full restartable behaviour.
 requires_config_enabled MBEDTLS_ECP_RESTARTABLE

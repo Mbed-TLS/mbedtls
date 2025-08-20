@@ -72,7 +72,13 @@ The following tools are required:
     Depending on your Python installation, you may need to invoke `python` instead of `python3`. To install the packages system-wide, omit the `--user` option.
 * A C compiler for the host platform, for some test data.
 
-If you are cross-compiling, you must set the `CC` environment variable to a C compiler for the host platform when generating the configuration-independent files.
+The scripts that generate the configuration-independent files will look for a host C compiler in the following places (in order of preference):
+
+1. The `HOSTCC` environment variable. This can be used if `CC` is pointing to a cross-compiler.
+2. The `CC` environment variable.
+3. An executable called `cc` in the current path.
+
+Note: If you have multiple toolchains installed, it is recommended to set `CC` or `HOSTCC` to the intended host compiler before generating the files.
 
 Any of the following methods are available to generate the configuration-independent files:
 

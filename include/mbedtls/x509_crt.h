@@ -956,7 +956,7 @@ void mbedtls_x509write_crt_set_version(mbedtls_x509write_cert *ctx, int version)
  *                  is too big (longer than MBEDTLS_X509_RFC5280_MAX_SERIAL_LEN)
  */
 int mbedtls_x509write_crt_set_serial_raw(mbedtls_x509write_cert *ctx,
-                                         unsigned char *serial, size_t serial_len);
+                                         const unsigned char *serial, size_t serial_len);
 
 /**
  * \brief           Set the validity period for a Certificate

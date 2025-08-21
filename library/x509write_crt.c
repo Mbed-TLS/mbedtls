@@ -94,7 +94,7 @@ int mbedtls_x509write_crt_set_issuer_name(mbedtls_x509write_cert *ctx,
 }
 
 int mbedtls_x509write_crt_set_serial_raw(mbedtls_x509write_cert *ctx,
-                                         unsigned char *serial, size_t serial_len)
+                                         const unsigned char *serial, size_t serial_len)
 {
     if (serial_len > MBEDTLS_X509_RFC5280_MAX_SERIAL_LEN) {
         return MBEDTLS_ERR_X509_BAD_INPUT_DATA;

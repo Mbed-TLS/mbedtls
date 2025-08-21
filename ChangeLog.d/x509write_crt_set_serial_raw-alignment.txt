@@ -1,3 +1,3 @@
 API changes
     * Change the serial argument of the mbedtls_x509write_crt_set_serial_raw
-      function so a const to align with the restof the API.
+      function to a const to align with the rest of the API.

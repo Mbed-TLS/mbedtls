@@ -885,23 +885,24 @@ int mbedtls_cipher_set_iv(mbedtls_cipher_context_t *ctx,
  *
  * \note          With non-AEAD ciphers, the order of calls for each message
  *                is as follows:
- *                1. mbedtls_cipher_set_iv() if the mode uses an IV/nonce.
- *                2. mbedtls_cipher_reset()
- *                3. mbedtls_cipher_update() one or more times
- *                4. mbedtls_cipher_finish() or mbedtls_cipher_finish_padded()
+ *                1. mbedtls_cipher_set_iv() if the mode uses an IV/nonce;
+ *                2. mbedtls_cipher_reset();
+ *                3. mbedtls_cipher_update() zero, one or more times;
+ *                4. mbedtls_cipher_finish_padded() (recommended for decryption
+ *                   if the mode uses padding) or mbedtls_cipher_finish().
  *                .
  *                This sequence can be repeated to encrypt or decrypt multiple
  *                messages with the same key.
  *
  * \note          With AEAD ciphers, the order of calls for each message
  *                is as follows:
- *                1. mbedtls_cipher_set_iv() if the mode uses an IV/nonce.
- *                2. mbedtls_cipher_reset()
- *                3. mbedtls_cipher_update_ad()
- *                4. mbedtls_cipher_update() one or more times
- *                5. mbedtls_cipher_finish() or mbedtls_cipher_finish_padded()
+ *                1. mbedtls_cipher_set_iv() if the mode uses an IV/nonce;
+ *                2. mbedtls_cipher_reset();
+ *                3. mbedtls_cipher_update_ad();
+ *                4. mbedtls_cipher_update() zero, one or more times;
+ *                5. mbedtls_cipher_finish() (or mbedtls_cipher_finish_padded());
  *                6. mbedtls_cipher_check_tag() (for decryption) or
- *                mbedtls_cipher_write_tag() (for encryption).
+ *                   mbedtls_cipher_write_tag() (for encryption).
  *                .
  *                This sequence can be repeated to encrypt or decrypt multiple
  *                messages with the same key.
@@ -982,7 +983,7 @@ int mbedtls_cipher_update(mbedtls_cipher_context_t *ctx,
  *                      Therefore applications that call this function for
  *                      decryption with a cipher that involves padding
  *                      should take care around error handling. Preferably,
- *                      such applicatios should use
+ *                      such applications should use
  *                      mbedtls_cipher_finish_padded() instead of this function.
  *
  * \param ctx           The generic cipher context. This must be initialized and
@@ -1061,7 +1062,8 @@ int mbedtls_cipher_finish_padded(mbedtls_cipher_context_t *ctx,
 /**
  * \brief               This function writes a tag for AEAD ciphers.
  *                      Currently supported with GCM and ChaCha20+Poly1305.
- *                      This must be called after mbedtls_cipher_finish().
+ *                      This must be called after mbedtls_cipher_finish()
+ *                      or mbedtls_cipher_finish_padded().
  *
  * \param ctx           The generic cipher context. This must be initialized,
  *                      bound to a key, and have just completed a cipher
@@ -1080,7 +1082,8 @@ int mbedtls_cipher_write_tag(mbedtls_cipher_context_t *ctx,
 /**
  * \brief               This function checks the tag for AEAD ciphers.
  *                      Currently supported with GCM and ChaCha20+Poly1305.
- *                      This must be called after mbedtls_cipher_finish().
+ *                      This must be called after mbedtls_cipher_finish()
+ *                      or mbedtls_cipher_finish_padded().
  *
  * \param ctx           The generic cipher context. This must be initialized.
  * \param tag           The buffer holding the tag. This must be a readable

@@ -554,10 +554,6 @@ psa_status_t mbedtls_psa_cipher_finish(
     psa_status_t status = PSA_ERROR_GENERIC_ERROR;
     size_t invalid_padding = 0;
 
-    uint8_t temp_output_buffer[MBEDTLS_MAX_BLOCK_LENGTH] = { 0 };
-    if (output_size > sizeof(temp_output_buffer)) {
-        output_size = sizeof(temp_output_buffer);
-    }
     /* We will copy output_size bytes from temp_output_buffer to the
      * output buffer. We can't use *output_length to determine how
      * much to copy because we must not leak that value through timing
@@ -565,7 +561,10 @@ psa_status_t mbedtls_psa_cipher_finish(
      * is not guaranteed to write beyond *output_length. To ensure we don't
      * leak the former content of the stack to the caller, wipe that
      * former content. */
-    memset(temp_output_buffer, 0, output_size);
+    uint8_t temp_output_buffer[MBEDTLS_MAX_BLOCK_LENGTH] = { 0 };
+    if (output_size > sizeof(temp_output_buffer)) {
+        output_size = sizeof(temp_output_buffer);
+    }
 
     if (operation->ctx.cipher.unprocessed_len != 0) {
         if (operation->alg == PSA_ALG_ECB_NO_PADDING ||

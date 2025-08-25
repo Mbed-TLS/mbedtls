@@ -485,6 +485,7 @@ detect_required_features() {
         *"programs/ssl/ssl_client1 "*)
             requires_config_enabled MBEDTLS_CTR_DRBG_C
             requires_config_enabled MBEDTLS_PSA_CRYPTO_C
+            requires_config_disabled MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG
             requires_config_enabled MBEDTLS_PEM_PARSE_C
             requires_config_enabled MBEDTLS_SSL_CLI_C
             requires_certificate_authentication
@@ -495,6 +496,7 @@ detect_required_features() {
         *"programs/ssl/ssl_server "*)
             requires_config_enabled MBEDTLS_CTR_DRBG_C
             requires_config_enabled MBEDTLS_PSA_CRYPTO_C
+            requires_config_disabled MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG
             requires_config_enabled MBEDTLS_PEM_PARSE_C
             requires_config_enabled MBEDTLS_SSL_SRV_C
             requires_certificate_authentication

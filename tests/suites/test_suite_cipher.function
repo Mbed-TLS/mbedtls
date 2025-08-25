@@ -873,6 +873,13 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
+/* Similar to decrypt_test_vec, but with constant-flow assertions.
+ * We use a separate test function so that we can run the functional tests
+ * in all configurations where the underlying cipher is enabled, and
+ * run the constant-flow tests only in configurations where the underlying
+ * cipher is constant-time. In particular, AES test cases need to depend
+ * on HAVE_CONSTANT_TIME_AES.
+ */
 void decrypt_test_vec_cf(int cipher_id, int pad_mode, data_t *key,
                          data_t *iv, data_t *cipher,
                          data_t *clear, data_t *ad, data_t *tag,
@@ -1033,6 +1040,13 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
+/* Similar to decrypt_padded_test_vec, but with constant-flow assertions.
+ * We use a separate test function so that we can run the functional tests
+ * in all configurations where the underlying cipher is enabled, and
+ * run the constant-flow tests only in configurations where the underlying
+ * cipher is constant-time. In particular, AES test cases need to depend
+ * on HAVE_CONSTANT_TIME_AES.
+ */
 void decrypt_padded_test_vec_cf(int cipher_id, int pad_mode, data_t *key,
                                 data_t *iv, data_t *cipher,
                                 data_t *clear, data_t *ad, data_t *tag,
@@ -1404,6 +1418,13 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_CIPHER_MODE_WITH_PADDING */
+/* Similar to test_vec_crypt, but with constant-flow assertions.
+ * We use a separate test function so that we can run the functional tests
+ * in all configurations where the underlying cipher is enabled, and
+ * run the constant-flow tests only in configurations where the underlying
+ * cipher is constant-time. In particular, AES test cases need to depend
+ * on HAVE_CONSTANT_TIME_AES.
+ */
 void test_vec_crypt_cf(int cipher_id, int pad_mode, int operation, data_t *key,
                        data_t *iv, data_t *input, data_t *result,
                        int expected_finish_result, int use_psa)

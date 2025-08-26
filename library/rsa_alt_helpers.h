@@ -90,7 +90,7 @@ int mbedtls_rsa_deduce_primes(mbedtls_mpi const *N, mbedtls_mpi const *E,
  * \param Q        Second prime factor of RSA modulus
  * \param E        RSA public exponent
  * \param D        Pointer to MPI holding the private exponent on success,
- *                 ie the modular inverse of E modulo LCM(P-1,Q-1).
+ *                 i.e. the modular inverse of E modulo LCM(P-1,Q-1).
  *
  * \return         \c 0 if successful.
  * \return         #MBEDTLS_ERR_MPI_ALLOC_FAILED if a memory allocation failed.

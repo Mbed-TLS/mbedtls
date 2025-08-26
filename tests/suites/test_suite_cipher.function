@@ -1010,7 +1010,7 @@ void decrypt_padded_test_vec(int cipher_id, int pad_mode, data_t *key,
             break;
         case MBEDTLS_ERR_CIPHER_INVALID_PADDING:
             TEST_EQUAL(actual_finish_result, 0);
-            TEST_EQUAL(invalid_padding, SIZE_MAX);
+            TEST_EQUAL(invalid_padding, ~(size_t) 0);
             break;
         default:
             TEST_EQUAL(actual_finish_result, expected_finish_result);
@@ -1106,7 +1106,7 @@ void decrypt_padded_test_vec_cf(int cipher_id, int pad_mode, data_t *key,
             break;
         case MBEDTLS_ERR_CIPHER_INVALID_PADDING:
             TEST_EQUAL(actual_finish_result, 0);
-            TEST_EQUAL(invalid_padding, SIZE_MAX);
+            TEST_EQUAL(invalid_padding, ~(size_t) 0);
             break;
         default:
             TEST_EQUAL(actual_finish_result, expected_finish_result);
@@ -1523,7 +1523,7 @@ void check_padding(int pad_mode, data_t *input,
             break;
         case MBEDTLS_ERR_CIPHER_INVALID_PADDING:
             TEST_EQUAL(ret, 0);
-            TEST_EQUAL(invalid_padding, SIZE_MAX);
+            TEST_EQUAL(invalid_padding, ~(size_t) 0);
             break;
         default:
             TEST_EQUAL(ret, expected_ret);

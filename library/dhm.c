@@ -345,9 +345,6 @@ static int dhm_update_blinding(mbedtls_dhm_context *ctx,
                                int (*f_rng)(void *, unsigned char *, size_t), void *p_rng)
 {
     int ret;
-    mbedtls_mpi R;
-
-    mbedtls_mpi_init(&R);
 
     /*
      * Don't use any blinding the first time a particular X is used,
@@ -382,13 +379,11 @@ static int dhm_update_blinding(mbedtls_dhm_context *ctx,
     /* Vi = random( 2, P-2 ) */
     MBEDTLS_MPI_CHK(dhm_random_below(&ctx->Vi, &ctx->P, f_rng, p_rng));
 
-    /* Vf = Vi^-X mod P */
+    /* Vf = Vi^-X = (Vi^-1)^X mod P */
     MBEDTLS_MPI_CHK(mbedtls_mpi_gcd_modinv_odd(NULL, &ctx->Vf, &ctx->Vi, &ctx->P));
     MBEDTLS_MPI_CHK(mbedtls_mpi_exp_mod(&ctx->Vf, &ctx->Vf, &ctx->X, &ctx->P, &ctx->RP));
 
 cleanup:
-    mbedtls_mpi_free(&R);
-
     return ret;
 }
 

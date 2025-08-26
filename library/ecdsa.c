@@ -252,7 +252,7 @@ int mbedtls_ecdsa_sign_restartable(mbedtls_ecp_group *grp,
     int ret, key_tries, sign_tries;
     int *p_sign_tries = &sign_tries, *p_key_tries = &key_tries;
     mbedtls_ecp_point R;
-    mbedtls_mpi k, e, t;
+    mbedtls_mpi k, e;
     mbedtls_mpi *pk = &k, *pr = r;
 
     /* Fail cleanly on curves such as Curve25519 that can't be used for ECDSA */
@@ -266,7 +266,7 @@ int mbedtls_ecdsa_sign_restartable(mbedtls_ecp_group *grp,
     }
 
     mbedtls_ecp_point_init(&R);
-    mbedtls_mpi_init(&k); mbedtls_mpi_init(&e); mbedtls_mpi_init(&t);
+    mbedtls_mpi_init(&k); mbedtls_mpi_init(&e);
 
     ECDSA_RS_ENTER(sig);
 
@@ -358,7 +358,7 @@ modn:
 
 cleanup:
     mbedtls_ecp_point_free(&R);
-    mbedtls_mpi_free(&k); mbedtls_mpi_free(&e); mbedtls_mpi_free(&t);
+    mbedtls_mpi_free(&k); mbedtls_mpi_free(&e);
 
     ECDSA_RS_LEAVE(sig);
 

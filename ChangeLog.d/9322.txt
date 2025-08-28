@@ -1,3 +1,0 @@
-Changes
-   * Use the new `psa_pake_get_shared_key()` function implemented in
-     tf-psa-crypto instead of the removed `psa_pake_get_implicit_key()`

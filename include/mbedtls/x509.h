@@ -58,7 +58,7 @@
 /** The date tag or value is invalid. */
 #define MBEDTLS_ERR_X509_INVALID_DATE                     -0x2400
 /** The signature tag or value invalid. */
-#define MBEDTLS_ERR_X509_INVALID_SIGNATURE                PSA_ERROR_INVALID_SIGNATURE
+#define MBEDTLS_ERR_X509_INVALID_SIGNATURE                -0x2480
 /** The extension tag or value is invalid. */
 #define MBEDTLS_ERR_X509_INVALID_EXTENSIONS               -0x2500
 /** CRT/CRL/CSR has an unsupported version number. */
@@ -68,11 +68,11 @@
 /** Signature algorithms do not match. (see \c ::mbedtls_x509_crt sig_oid) */
 #define MBEDTLS_ERR_X509_SIG_MISMATCH                     -0x2680
 /** Certificate verification failed, e.g. CRL, CA or signature check failed. */
-#define MBEDTLS_ERR_X509_CERT_VERIFY_FAILED               PSA_ERROR_INVALID_SIGNATURE
+#define MBEDTLS_ERR_X509_CERT_VERIFY_FAILED               -0x2700
 /** Format not recognized as DER or PEM. */
 #define MBEDTLS_ERR_X509_CERT_UNKNOWN_FORMAT              -0x2780
 /** Input invalid. */
-#define MBEDTLS_ERR_X509_BAD_INPUT_DATA                   PSA_ERROR_INVALID_ARGUMENT
+#define MBEDTLS_ERR_X509_BAD_INPUT_DATA                   -0x2800
 /** Allocation of memory failed. */
 #define MBEDTLS_ERR_X509_ALLOC_FAILED                     PSA_ERROR_INSUFFICIENT_MEMORY
 /** Read/write of file failed. */

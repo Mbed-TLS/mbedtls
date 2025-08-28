@@ -53,7 +53,7 @@
 #define MBEDTLS_ERR_PKCS7_INVALID_CONTENT_INFO             -0x5480  /**< The PKCS #7 content info is invalid or cannot be parsed. */
 #define MBEDTLS_ERR_PKCS7_INVALID_ALG                      -0x5500  /**< The algorithm tag or value is invalid or cannot be parsed. */
 #define MBEDTLS_ERR_PKCS7_INVALID_CERT                     -0x5580  /**< The certificate tag or value is invalid or cannot be parsed. */
-#define MBEDTLS_ERR_PKCS7_INVALID_SIGNATURE                PSA_ERROR_INVALID_SIGNATURE  /**< Error parsing the signature */
+#define MBEDTLS_ERR_PKCS7_INVALID_SIGNATURE                -0x5600  /**< Error parsing the signature */
 #define MBEDTLS_ERR_PKCS7_INVALID_SIGNER_INFO              -0x5680  /**< Error parsing the signer's info */
 #define MBEDTLS_ERR_PKCS7_BAD_INPUT_DATA                   PSA_ERROR_INVALID_ARGUMENT  /**< Input invalid. */
 #define MBEDTLS_ERR_PKCS7_ALLOC_FAILED                     PSA_ERROR_INSUFFICIENT_MEMORY  /**< Allocation of memory failed. */

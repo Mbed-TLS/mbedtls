@@ -610,7 +610,7 @@ int mbedtls_x509_crt_verify_info(char *buf, size_t size, const char *prefix,
  *                 other than fatal error, as a non-zero return code
  *                 immediately aborts the verification process. For fatal
  *                 errors, a specific error code should be used (different
- *                 from #PSA_ERROR_INVALID_SIGNATURE which should not
+ *                 from #MBEDTLS_ERR_X509_CERT_VERIFY_FAILED which should not
  *                 be returned at this point), or MBEDTLS_ERR_X509_FATAL_ERROR
  *                 can be used if no better code is available.
  *
@@ -653,7 +653,7 @@ int mbedtls_x509_crt_verify_info(char *buf, size_t size, const char *prefix,
  *
  * \return         \c 0 if the chain is valid with respect to the
  *                 passed CN, CAs, CRLs and security profile.
- * \return         #PSA_ERROR_INVALID_SIGNATURE in case the
+ * \return         #MBEDTLS_ERR_X509_CERT_VERIFY_FAILED in case the
  *                 certificate chain verification failed. In this case,
  *                 \c *flags will have one or more
  *                 \c MBEDTLS_X509_BADCERT_XXX or \c MBEDTLS_X509_BADCRL_XXX
@@ -694,7 +694,7 @@ int mbedtls_x509_crt_verify(mbedtls_x509_crt *crt,
  *
  * \return         \c 0 if the chain is valid with respect to the
  *                 passed CN, CAs, CRLs and security profile.
- * \return         #PSA_ERROR_INVALID_SIGNATURE in case the
+ * \return         #MBEDTLS_ERR_X509_CERT_VERIFY_FAILED in case the
  *                 certificate chain verification failed. In this case,
  *                 \c *flags will have one or more
  *                 \c MBEDTLS_X509_BADCERT_XXX or \c MBEDTLS_X509_BADCRL_XXX
@@ -826,7 +826,7 @@ int mbedtls_x509_crt_verify_with_ca_cb(mbedtls_x509_crt *crt,
  *                 that bit MAY be set.
  *
  * \return         0 is these uses of the certificate are allowed,
- *                 #PSA_ERROR_INVALID_ARGUMENT if the keyUsage extension
+ *                 #MBEDTLS_ERR_X509_BAD_INPUT_DATA if the keyUsage extension
  *                 is present but does not match the usage argument.
  *
  * \note           You should only call this function on leaf certificates, on
@@ -845,7 +845,7 @@ int mbedtls_x509_crt_check_key_usage(const mbedtls_x509_crt *crt,
  * \param usage_len Length of usage_oid (eg given by MBEDTLS_OID_SIZE()).
  *
  * \return          0 if this use of the certificate is allowed,
- *                  #PSA_ERROR_INVALID_ARGUMENT if not.
+ *                  #MBEDTLS_ERR_X509_BAD_INPUT_DATA if not.
  *
  * \note            Usually only makes sense on leaf certificates.
  */
@@ -952,7 +952,7 @@ void mbedtls_x509write_crt_set_version(mbedtls_x509write_cert *ctx, int version)
  *                     input buffer
  *
  * \return          0 if successful, or
- *                  #PSA_ERROR_INVALID_ARGUMENT if the provided input buffer
+ *                  #MBEDTLS_ERR_X509_BAD_INPUT_DATA if the provided input buffer
  *                  is too big (longer than MBEDTLS_X509_RFC5280_MAX_SERIAL_LEN)
  */
 int mbedtls_x509write_crt_set_serial_raw(mbedtls_x509write_cert *ctx,

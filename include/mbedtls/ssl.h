@@ -43,8 +43,6 @@
 #define MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS                -0x7000
 /** The requested feature is not available. */
 #define MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE               -0x7080
-/** Bad input parameters to function. */
-#define MBEDTLS_ERR_SSL_BAD_INPUT_DATA                    PSA_ERROR_INVALID_ARGUMENT
 /** Verification of the message MAC failed. */
 #define MBEDTLS_ERR_SSL_INVALID_MAC                       -0x7180
 /** An invalid SSL record was received. */
@@ -104,8 +102,6 @@
 /* Error space gap */
 /** Cache entry not found */
 #define MBEDTLS_ERR_SSL_CACHE_ENTRY_NOT_FOUND             -0x7E80
-/** Memory allocation failed */
-#define MBEDTLS_ERR_SSL_ALLOC_FAILED                      PSA_ERROR_INSUFFICIENT_MEMORY
 /** Hardware acceleration function returned with error */
 #define MBEDTLS_ERR_SSL_HW_ACCEL_FAILED                   -0x7F80
 /** Hardware acceleration function skipped / left alone data */
@@ -128,8 +124,6 @@
 #define MBEDTLS_ERR_SSL_WAITING_SERVER_HELLO_RENEGO       -0x6B00
 /** DTLS client must retry for hello verification */
 #define MBEDTLS_ERR_SSL_HELLO_VERIFY_REQUIRED             -0x6A80
-/** A buffer is too small to receive or write a message */
-#define MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL                  PSA_ERROR_BUFFER_TOO_SMALL
 /* Error space gap */
 /** No data of requested type currently available on underlying transport. */
 #define MBEDTLS_ERR_SSL_WANT_READ                         -0x6900

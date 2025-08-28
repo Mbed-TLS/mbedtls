@@ -55,9 +55,6 @@
 #define MBEDTLS_ERR_PKCS7_INVALID_CERT                     -0x5580  /**< The certificate tag or value is invalid or cannot be parsed. */
 #define MBEDTLS_ERR_PKCS7_INVALID_SIGNATURE                -0x5600  /**< Error parsing the signature */
 #define MBEDTLS_ERR_PKCS7_INVALID_SIGNER_INFO              -0x5680  /**< Error parsing the signer's info */
-#define MBEDTLS_ERR_PKCS7_BAD_INPUT_DATA                   PSA_ERROR_INVALID_ARGUMENT  /**< Input invalid. */
-#define MBEDTLS_ERR_PKCS7_ALLOC_FAILED                     PSA_ERROR_INSUFFICIENT_MEMORY  /**< Allocation of memory failed. */
-#define MBEDTLS_ERR_PKCS7_VERIFY_FAIL                      PSA_ERROR_INVALID_SIGNATURE  /**< Verification Failed */
 #define MBEDTLS_ERR_PKCS7_CERT_DATE_INVALID                -0x5880  /**< The PKCS #7 date issued/expired dates are invalid */
 /* \} name */
 

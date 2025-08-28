@@ -73,12 +73,8 @@
 #define MBEDTLS_ERR_X509_CERT_UNKNOWN_FORMAT              -0x2780
 /** Input invalid. */
 #define MBEDTLS_ERR_X509_BAD_INPUT_DATA                   -0x2800
-/** Allocation of memory failed. */
-#define MBEDTLS_ERR_X509_ALLOC_FAILED                     PSA_ERROR_INSUFFICIENT_MEMORY
 /** Read/write of file failed. */
 #define MBEDTLS_ERR_X509_FILE_IO_ERROR                    -0x2900
-/** Destination buffer is too small. */
-#define MBEDTLS_ERR_X509_BUFFER_TOO_SMALL                 PSA_ERROR_BUFFER_TOO_SMALL
 /** A fatal error occurred, eg the chain is too long or the vrfy callback failed. */
 #define MBEDTLS_ERR_X509_FATAL_ERROR                      -0x3000
 /** \} name X509 Error codes */

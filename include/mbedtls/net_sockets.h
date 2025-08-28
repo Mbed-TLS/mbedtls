@@ -52,8 +52,6 @@
 #define MBEDTLS_ERR_NET_CONN_RESET                        -0x0050
 /** Failed to get an IP address for the given hostname. */
 #define MBEDTLS_ERR_NET_UNKNOWN_HOST                      -0x0052
-/** Buffer is too small to hold the data. */
-#define MBEDTLS_ERR_NET_BUFFER_TOO_SMALL                  PSA_ERROR_BUFFER_TOO_SMALL
 /** The context is invalid, eg because it was free()ed. */
 #define MBEDTLS_ERR_NET_INVALID_CONTEXT                   -0x0045
 /** Polling the net context failed. */

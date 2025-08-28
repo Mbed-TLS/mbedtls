@@ -18,25 +18,20 @@ As a consequence, the functions `mbedtls_low_level_strerr()` and `mbedtls_high_l
 
 Many legacy error codes have been removed in favor of PSA error codes. Generally, functions that returned a legacy error code in the table below in Mbed TLS 3.6 now return the PSA error code listed on the same row. Similarly, callbacks should apply the same changes to error code, unless there has been a relevant change to the callback's interface.
 
-#### Specific error codes
-
-| Legacy constant (Mbed TLS 3.6) | PSA constant (Mbed TLS 4.0) |
-| ------------------------------ | --------------------------- |
+| Legacy constant (Mbed TLS 3.6)          | PSA constant (Mbed TLS 4.0) |
+|-----------------------------------------| --------------------------- |
 | `MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED` | `PSA_ERROR_CORRUPTION_DETECTED` |
-| `MBEDTLS_ERR_ERROR_GENERIC_ERROR` | `PSA_ERROR_GENERIC_ERROR` |
-| `MBEDTLS_ERR_OID_BUF_TOO_SMALL` | `PSA_ERROR_BUFFER_TOO_SMALL`
-| `MBEDTLS_ERR_OID_NOT_FOUND` | `PSA_ERROR_NOT_SUPPORTED` |
-
-#### General Replacements
-
-The module-specific error codes in the table below have been replaced with a single PSA error code. Here `xxx` corresponds to all modules (e.g. `X509` or `SSL`) with the specific error code.
-
-| Legacy constant (Mbed TLS 3.6)  | PSA constant (TF-PSA-Crypto 1.0) |
-|---------------------------------| ---------------------------------------------- |
-| `MBEDTLS_ERR_xxx_BAD_INPUT_DATA` | `PSA_ERROR_INVALID_ARGUMENT` |
-| `MBEDTLS_ERR_xxx_ALLOC_FAILED`  | `PSA_ERROR_INSUFFICIENT_MEMORY` |
-| `MBEDTLS_ERR_xxx_VERIFY_FAILED` | `PSA_ERROR_INVALID_SIGNATURE` |
-| `MBEDTLS_ERR_xxx_INVALID_SIGNATURE` | `PSA_ERROR_INVALID_SIGNATURE` |
-| `MBEDTLS_ERR_xxx_BUFFER_TOO_SMALL`     | `PSA_ERROR_BUFFER_TOO_SMALL` |
+| `MBEDTLS_ERR_ERROR_GENERIC_ERROR`       | `PSA_ERROR_GENERIC_ERROR` |
+| `MBEDTLS_ERR_OID_NOT_FOUND`             | `PSA_ERROR_NOT_SUPPORTED` |
+| `MBEDTLS_ERR_OID_BUF_TOO_SMALL`         | `PSA_ERROR_BUFFER_TOO_SMALL`|
+| `MBEDTLS_ERR_NET_BUFFER_TOO_SMALL`      | `PSA_ERROR_BUFFER_TOO_SMALL` |
+| `MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL`      | `PSA_ERROR_BUFFER_TOO_SMALL` |
+| `MBEDTLS_ERR_X509_BUFFER_TOO_SMALL`     | `PSA_ERROR_BUFFER_TOO_SMALL` |
+| `MBEDTLS_ERR_PKCS7_BAD_INPUT_DATA`      | `PSA_ERROR_INVALID_ARGUMENT` |
+| `MBEDTLS_ERR_SSL_BAD_INPUT_DATA`        | `PSA_ERROR_INVALID_ARGUMENT` |
+| `MBEDTLS_ERR_PKCS7_ALLOC_FAILED`        | `PSA_ERROR_INSUFFICIENT_MEMORY` |
+| `MBEDTLS_ERR_SSL_ALLOC_FAILED`          | `PSA_ERROR_INSUFFICIENT_MEMORY` |
+| `MBEDTLS_ERR_X509_ALLOC_FAILED`         | `PSA_ERROR_INSUFFICIENT_MEMORY` |
+| `MBEDTLS_ERR_PKCS7_VERIFY_FAILED`       | `PSA_ERROR_INVALID_SIGNATURE` |
 
 See also the corresponding section in the TF-PSA-Crypto migration guide, which lists error codes from cryptography modules.

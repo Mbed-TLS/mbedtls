@@ -15,7 +15,7 @@
 #include "mbedtls/ssl.h"
 
 #if defined(MBEDTLS_ECP_C)
-#include "mbedtls/ecp.h"
+#include "mbedtls/private/ecp.h"
 #endif
 
 #if defined(MBEDTLS_DEBUG_C)

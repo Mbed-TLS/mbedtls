@@ -11,7 +11,7 @@
 #define MBEDTLS_ERROR_H
 
 #include "mbedtls/build_info.h"
-#include "mbedtls/error_common.h"
+#include "mbedtls/private/error_common.h"
 
 #include <stddef.h>
 

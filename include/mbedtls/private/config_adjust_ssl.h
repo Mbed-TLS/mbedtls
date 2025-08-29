@@ -1,5 +1,5 @@
 /**
- * \file mbedtls/config_adjust_ssl.h
+ * \file mbedtls/private/config_adjust_ssl.h
  * \brief Adjust TLS configuration
  *
  * This is an internal header. Do not include it directly.

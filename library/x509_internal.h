@@ -19,7 +19,7 @@
 #include "pk_internal.h"
 
 #if defined(MBEDTLS_RSA_C)
-#include "mbedtls/rsa.h"
+#include "mbedtls/private/rsa.h"
 #endif
 
 int mbedtls_x509_get_name(unsigned char **p, const unsigned char *end,

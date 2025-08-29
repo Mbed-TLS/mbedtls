@@ -1,5 +1,5 @@
 /**
- * \file threadinginternal.h
+ * \file threading_internal.h
  *
  * \brief Threading interfaces used by the test framework
  */

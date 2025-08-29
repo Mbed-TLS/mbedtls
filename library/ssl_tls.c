@@ -6385,8 +6385,28 @@ static int ssl_compute_master(mbedtls_ssl_handshake_params *handshake,
                 return MBEDTLS_ERR_SSL_HW_ACCEL_FAILED;
             }
 
-            status = psa_pake_get_implicit_key(&handshake->psa_pake_ctx,
-                                               &derivation);
+            mbedtls_svc_key_id_t shared_key_id = MBEDTLS_SVC_KEY_ID_INIT;
+
+            psa_key_attributes_t shared_key_attributes = PSA_KEY_ATTRIBUTES_INIT;
+            psa_set_key_usage_flags(&shared_key_attributes, PSA_KEY_USAGE_DERIVE);
+            psa_set_key_algorithm(&shared_key_attributes, alg);
+            psa_set_key_type(&shared_key_attributes, PSA_KEY_TYPE_DERIVE);
+
+            status = psa_pake_get_shared_key(&handshake->psa_pake_ctx,
+                                             &shared_key_attributes,
+                                             &shared_key_id);
+
+            if (status != PSA_SUCCESS) {
+                psa_key_derivation_abort(&derivation);
+                return MBEDTLS_ERR_SSL_HW_ACCEL_FAILED;
+            }
+
+            status = psa_key_derivation_input_key(&derivation,
+                                                  PSA_KEY_DERIVATION_INPUT_SECRET,
+                                                  shared_key_id);
+
+            psa_destroy_key(shared_key_id);
+
             if (status != PSA_SUCCESS) {
                 psa_key_derivation_abort(&derivation);
                 return MBEDTLS_ERR_SSL_HW_ACCEL_FAILED;

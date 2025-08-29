@@ -41,8 +41,19 @@ component_build_make_no_gen_files () {
     sleep 1
     git ls-files -z | xargs -0 touch --
 
-    # Bypass "quiet" make wrapper
+    # The setup code of all.sh sets up a "quiet" wrapper for `make`.
+    # We want to bypass it and just use the normal make program,
+    # so that this test mimics a normal user's platform.
+    # And anyway we need to bypass it because it wouldn't work without bash
+    # and other tools in the $PATH.
+    # The wrapper is used because the setup code adds the
+    # `.../framework/scripts/quiet` directlry to the beginning of the $PATH.
+    # So here we remove that.
     shopt -s extglob
+    # Strip off all entries in $PATH that ends with `/quiet`. (This misses
+    # the very last element, but we know we'll never need to remove the last
+    # element, since we just want to remove the wrapper directory that comes
+    # before the normal programs.)
     PATH=${PATH//*([!:])\/quiet:/}
 
     # Locate the minimum programs needed for the build: ${CC} and ${AR}.

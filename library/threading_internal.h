@@ -22,7 +22,7 @@
  * Conventionally, this is the Mbed TLS version number when the
  * threading interface was last changed in a way that may impact the
  * test framework, with the lower byte incremented as necessary
- *if multiple changes happened between releases. */
+ * if multiple changes happened between releases. */
 #define MBEDTLS_THREADING_INTERNAL_VERSION 0x03060000
 
 #endif /* MBEDTLS_THREADING_INTERNAL_H */

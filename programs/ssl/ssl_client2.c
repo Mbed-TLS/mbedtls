@@ -7,6 +7,8 @@
 
 #define MBEDTLS_ALLOW_PRIVATE_ACCESS
 
+#include "mbedtls/private/pk_private.h"
+
 #include "ssl_test_lib.h"
 
 #include "test/psa_crypto_helpers.h"

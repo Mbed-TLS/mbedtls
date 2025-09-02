@@ -18,14 +18,14 @@ component_check_recursion () {
 
 component_check_generated_files () {
     msg "Check make_generated_files.py consistency"
-    make neat
+    $MAKE_COMMAND neat
     $FRAMEWORK/scripts/make_generated_files.py
     $FRAMEWORK/scripts/make_generated_files.py --check
-    make neat
+    $MAKE_COMMAND neat
 
     msg "Check files generated with make"
     MBEDTLS_ROOT_DIR="$PWD"
-    make generated_files
+    $MAKE_COMMAND generated_files
     $FRAMEWORK/scripts/make_generated_files.py --check
 
     cd $TF_PSA_CRYPTO_ROOT_DIR

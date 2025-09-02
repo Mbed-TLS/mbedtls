@@ -11,12 +11,12 @@
 
 component_test_default_out_of_box () {
     msg "build: make, default config (out-of-box)" # ~1min
-    make
+    $MAKE_COMMAND
     # Disable fancy stuff
     unset MBEDTLS_TEST_OUTCOME_FILE
 
     msg "test: main suites make, default config (out-of-box)" # ~10s
-    make test
+    $MAKE_COMMAND test
 
     msg "selftest: make, default config (out-of-box)" # ~10s
     programs/test/selftest
@@ -160,19 +160,19 @@ component_test_default_no_deprecated () {
     # configuration leaves something consistent.
     msg "build: make, default + MBEDTLS_DEPRECATED_REMOVED" # ~ 30s
     scripts/config.py set MBEDTLS_DEPRECATED_REMOVED
-    make CFLAGS='-O -Werror -Wall -Wextra'
+    $MAKE_COMMAND CFLAGS='-O -Werror -Wall -Wextra'
 
     msg "test: make, default + MBEDTLS_DEPRECATED_REMOVED" # ~ 5s
-    make test
+    $MAKE_COMMAND test
 }
 
 component_test_full_no_deprecated () {
     msg "build: make, full_no_deprecated config" # ~ 30s
     scripts/config.py full_no_deprecated
-    make CFLAGS='-O -Werror -Wall -Wextra'
+    $MAKE_COMMAND CFLAGS='-O -Werror -Wall -Wextra'
 
     msg "test: make, full_no_deprecated config" # ~ 5s
-    make test
+    $MAKE_COMMAND test
 
     msg "test: ensure that X509 has no direct dependency on BIGNUM_C"
     not grep mbedtls_mpi library/libmbedx509.a
@@ -186,10 +186,10 @@ component_test_full_no_deprecated_deprecated_warning () {
     scripts/config.py full_no_deprecated
     scripts/config.py unset MBEDTLS_DEPRECATED_REMOVED
     scripts/config.py set MBEDTLS_DEPRECATED_WARNING
-    make CFLAGS='-O -Werror -Wall -Wextra'
+    $MAKE_COMMAND CFLAGS='-O -Werror -Wall -Wextra'
 
     msg "test: make, full_no_deprecated config, MBEDTLS_DEPRECATED_WARNING" # ~ 5s
-    make test
+    $MAKE_COMMAND test
 }
 
 component_test_full_deprecated_warning () {
@@ -201,17 +201,17 @@ component_test_full_deprecated_warning () {
     # Expect warnings from '#warning' directives in check_config.h.
     # Note that gcc is required to allow the use of -Wno-error=cpp, which allows us to
     # display #warning messages without them being treated as errors.
-    make CC=gcc CFLAGS='-O -Werror -Wall -Wextra -Wno-error=cpp' lib programs
+    $MAKE_COMMAND CC=gcc CFLAGS='-O -Werror -Wall -Wextra -Wno-error=cpp' lib programs
 
     msg "build: make tests, full config + MBEDTLS_DEPRECATED_WARNING, expect warnings" # ~ 30s
     # Set MBEDTLS_TEST_DEPRECATED to enable tests for deprecated features.
     # By default those are disabled when MBEDTLS_DEPRECATED_WARNING is set.
     # Expect warnings from '#warning' directives in check_config.h and
     # from the use of deprecated functions in test suites.
-    make CC=gcc CFLAGS='-O -Werror -Wall -Wextra -Wno-error=deprecated-declarations -Wno-error=cpp -DMBEDTLS_TEST_DEPRECATED' tests
+    $MAKE_COMMAND CC=gcc CFLAGS='-O -Werror -Wall -Wextra -Wno-error=deprecated-declarations -Wno-error=cpp -DMBEDTLS_TEST_DEPRECATED' tests
 
     msg "test: full config + MBEDTLS_TEST_DEPRECATED" # ~ 30s
-    make test
+    $MAKE_COMMAND test
 
     msg "program demos: full config + MBEDTLS_TEST_DEPRECATED" # ~10s
     tests/scripts/run_demos.py
@@ -220,7 +220,7 @@ component_test_full_deprecated_warning () {
 component_build_baremetal () {
   msg "build: make, baremetal config"
   scripts/config.py baremetal
-  make CFLAGS="-O1 -Werror -I$PWD/framework/tests/include/baremetal-override/"
+  $MAKE_COMMAND CFLAGS="-O1 -Werror -I$PWD/framework/tests/include/baremetal-override/"
 }
 
 support_build_baremetal () {
@@ -240,20 +240,20 @@ component_build_tfm () {
     cp tf-psa-crypto/configs/ext/crypto_config_profile_medium.h "$CRYPTO_CONFIG_H"
 
     msg "build: TF-M config, clang, armv7-m thumb2"
-    make lib CC="clang" CFLAGS="--target=arm-linux-gnueabihf -march=armv7-m -mthumb -Os -std=c99 -Werror -Wall -Wextra -Wwrite-strings -Wpointer-arith -Wimplicit-fallthrough -Wshadow -Wvla -Wformat=2 -Wno-format-nonliteral -Wshadow -Wasm-operand-widths -Wunused -I../framework/tests/include/spe"
+    $MAKE_COMMAND lib CC="clang" CFLAGS="--target=arm-linux-gnueabihf -march=armv7-m -mthumb -Os -std=c99 -Werror -Wall -Wextra -Wwrite-strings -Wpointer-arith -Wimplicit-fallthrough -Wshadow -Wvla -Wformat=2 -Wno-format-nonliteral -Wshadow -Wasm-operand-widths -Wunused -I../framework/tests/include/spe"
 
     msg "build: TF-M config, gcc native build"
-    make clean
-    make lib CC="gcc" CFLAGS="-Os -std=c99 -Werror -Wall -Wextra -Wwrite-strings -Wpointer-arith -Wshadow -Wvla -Wformat=2 -Wno-format-nonliteral -Wshadow -Wformat-signedness -Wlogical-op -I../framework/tests/include/spe"
+    $MAKE_COMMAND clean
+    $MAKE_COMMAND lib CC="gcc" CFLAGS="-Os -std=c99 -Werror -Wall -Wextra -Wwrite-strings -Wpointer-arith -Wshadow -Wvla -Wformat=2 -Wno-format-nonliteral -Wshadow -Wformat-signedness -Wlogical-op -I../framework/tests/include/spe"
 }
 
 component_test_malloc_0_null () {
     msg "build: malloc(0) returns NULL (ASan+UBSan build)"
     scripts/config.py full
-    make CC=$ASAN_CC CFLAGS="'-DTF_PSA_CRYPTO_USER_CONFIG_FILE=\"$PWD/tests/configs/user-config-malloc-0-null.h\"' $ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS"
+    $MAKE_COMMAND CC=$ASAN_CC CFLAGS="'-DTF_PSA_CRYPTO_USER_CONFIG_FILE=\"$PWD/tests/configs/user-config-malloc-0-null.h\"' $ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS"
 
     msg "test: malloc(0) returns NULL (ASan+UBSan build)"
-    make test
+    $MAKE_COMMAND test
 
     msg "selftest: malloc(0) returns NULL (ASan+UBSan build)"
     # Just the calloc selftest. "make test" ran the others as part of the
@@ -288,24 +288,24 @@ component_test_no_platform () {
     scripts/config.py set MBEDTLS_PSA_DRIVER_GET_ENTROPY
     # Note, _DEFAULT_SOURCE needs to be defined for platforms using glibc version >2.19,
     # to re-enable platform integration features otherwise disabled in C99 builds
-    make CC=gcc CFLAGS='-Werror -Wall -Wextra -std=c99 -pedantic -Os -D_DEFAULT_SOURCE' lib programs
-    make CC=gcc CFLAGS='-Werror -Wall -Wextra -Os' test
+    $MAKE_COMMAND CC=gcc CFLAGS='-Werror -Wall -Wextra -std=c99 -pedantic -Os -D_DEFAULT_SOURCE' lib programs
+    $MAKE_COMMAND CC=gcc CFLAGS='-Werror -Wall -Wextra -Os' test
 }
 
 component_build_mbedtls_config_file () {
     msg "build: make with MBEDTLS_CONFIG_FILE" # ~40s
     scripts/config.py -w full_config.h full
     echo '#error "MBEDTLS_CONFIG_FILE is not working"' >"$CONFIG_H"
-    make CFLAGS="-I '$PWD' -DMBEDTLS_CONFIG_FILE='\"full_config.h\"'"
+    $MAKE_COMMAND CFLAGS="-I '$PWD' -DMBEDTLS_CONFIG_FILE='\"full_config.h\"'"
     # Make sure this feature is enabled. We'll disable it in the next phase.
     programs/test/query_compile_time_config MBEDTLS_SSL_ALL_ALERT_MESSAGES
-    make clean
+    $MAKE_COMMAND clean
 
     msg "build: make with MBEDTLS_CONFIG_FILE + MBEDTLS_USER_CONFIG_FILE"
     # In the user config, disable one feature (for simplicity, pick a feature
     # that nothing else depends on).
     echo '#undef MBEDTLS_SSL_ALL_ALERT_MESSAGES' >user_config.h
-    make CFLAGS="-I '$PWD' -DMBEDTLS_CONFIG_FILE='\"full_config.h\"' -DMBEDTLS_USER_CONFIG_FILE='\"user_config.h\"'"
+    $MAKE_COMMAND CFLAGS="-I '$PWD' -DMBEDTLS_CONFIG_FILE='\"full_config.h\"' -DMBEDTLS_USER_CONFIG_FILE='\"user_config.h\"'"
     not programs/test/query_compile_time_config MBEDTLS_SSL_ALL_ALERT_MESSAGES
 
     rm -f user_config.h full_config.h
@@ -319,10 +319,10 @@ component_test_no_strings () {
     scripts/config.py unset MBEDTLS_ERROR_C
     scripts/config.py set MBEDTLS_ERROR_STRERROR_DUMMY
     scripts/config.py unset MBEDTLS_VERSION_FEATURES
-    make CFLAGS='-Werror -Os'
+    $MAKE_COMMAND CFLAGS='-Werror -Os'
 
     msg "test: no strings" # ~ 10s
-    make test
+    $MAKE_COMMAND test
 }
 
 component_test_memory_buffer_allocator_backtrace () {

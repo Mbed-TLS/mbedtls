@@ -50,15 +50,15 @@ component_test_tls1_2_default_stream_cipher_only () {
     msg "build: default with only stream cipher use psa"
 
     # Disable AEAD (controlled by the presence of one of GCM_C, CCM_C, CHACHAPOLY_C)
-    scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CCM
-    scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CCM_STAR_NO_TAG
-    scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_ALG_GCM
-    scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CHACHA20_POLY1305
+    scripts/config.py unset PSA_WANT_ALG_CCM
+    scripts/config.py unset PSA_WANT_ALG_CCM_STAR_NO_TAG
+    scripts/config.py unset PSA_WANT_ALG_GCM
+    scripts/config.py unset PSA_WANT_ALG_CHACHA20_POLY1305
     #Disable TLS 1.3 (as no AEAD)
     scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1_3
     # Disable CBC. Note: When implemented, PSA_WANT_ALG_CBC_MAC will also need to be unset here to fully disable CBC
-    scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CBC_NO_PADDING
-    scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CBC_PKCS7
+    scripts/config.py unset PSA_WANT_ALG_CBC_NO_PADDING
+    scripts/config.py unset PSA_WANT_ALG_CBC_PKCS7
     # Disable CBC-EtM (controlled by the same as CBC-legacy plus MBEDTLS_SSL_ENCRYPT_THEN_MAC)
     scripts/config.py unset MBEDTLS_SSL_ENCRYPT_THEN_MAC
     # Enable stream (currently that's just the NULL pseudo-cipher (controlled by MBEDTLS_CIPHER_NULL_CIPHER))
@@ -79,14 +79,14 @@ component_test_tls1_2_default_cbc_legacy_cipher_only () {
     msg "build: default with only CBC-legacy cipher use psa"
 
     # Disable AEAD (controlled by the presence of one of GCM_C, CCM_C, CHACHAPOLY_C)
-    scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CCM
-    scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CCM_STAR_NO_TAG
-    scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_ALG_GCM
-    scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CHACHA20_POLY1305
+    scripts/config.py unset PSA_WANT_ALG_CCM
+    scripts/config.py unset PSA_WANT_ALG_CCM_STAR_NO_TAG
+    scripts/config.py unset PSA_WANT_ALG_GCM
+    scripts/config.py unset PSA_WANT_ALG_CHACHA20_POLY1305
     #Disable TLS 1.3 (as no AEAD)
     scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1_3
     # Enable CBC-legacy
-    scripts/config.py -c $CRYPTO_CONFIG_H set PSA_WANT_ALG_CBC_NO_PADDING
+    scripts/config.py set PSA_WANT_ALG_CBC_NO_PADDING
     # Disable CBC-EtM (controlled by the same as CBC-legacy plus MBEDTLS_SSL_ENCRYPT_THEN_MAC)
     scripts/config.py unset MBEDTLS_SSL_ENCRYPT_THEN_MAC
     # Disable stream (currently that's just the NULL pseudo-cipher (controlled by MBEDTLS_CIPHER_NULL_CIPHER))
@@ -108,14 +108,14 @@ component_test_tls1_2_default_cbc_legacy_cbc_etm_cipher_only () {
     msg "build: default with only CBC-legacy and CBC-EtM ciphers use psa"
 
     # Disable AEAD (controlled by the presence of one of GCM_C, CCM_C, CHACHAPOLY_C)
-    scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CCM
-    scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CCM_STAR_NO_TAG
-    scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_ALG_GCM
-    scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CHACHA20_POLY1305
+    scripts/config.py unset PSA_WANT_ALG_CCM
+    scripts/config.py unset PSA_WANT_ALG_CCM_STAR_NO_TAG
+    scripts/config.py unset PSA_WANT_ALG_GCM
+    scripts/config.py unset PSA_WANT_ALG_CHACHA20_POLY1305
     #Disable TLS 1.3 (as no AEAD)
     scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1_3
     # Enable CBC-legacy
-    scripts/config.py -c $CRYPTO_CONFIG_H set PSA_WANT_ALG_CBC_NO_PADDING
+    scripts/config.py set PSA_WANT_ALG_CBC_NO_PADDING
     # Enable CBC-EtM (controlled by the same as CBC-legacy plus MBEDTLS_SSL_ENCRYPT_THEN_MAC)
     scripts/config.py set MBEDTLS_SSL_ENCRYPT_THEN_MAC
     # Disable stream (currently that's just the NULL pseudo-cipher (controlled by MBEDTLS_CIPHER_NULL_CIPHER))
@@ -361,10 +361,10 @@ component_test_ssl_alloc_buffer_and_mfl () {
 
 component_test_when_no_ciphersuites_have_mac () {
     msg "build: when no ciphersuites have MAC"
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CBC_NO_PADDING
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CBC_PKCS7
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CMAC
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_PBKDF2_AES_CMAC_PRF_128
+    scripts/config.py unset PSA_WANT_ALG_CBC_NO_PADDING
+    scripts/config.py unset PSA_WANT_ALG_CBC_PKCS7
+    scripts/config.py unset PSA_WANT_ALG_CMAC
+    scripts/config.py unset PSA_WANT_ALG_PBKDF2_AES_CMAC_PRF_128
 
     scripts/config.py unset MBEDTLS_CIPHER_NULL_CIPHER
 
@@ -419,22 +419,22 @@ component_test_tls13_only_psk () {
     scripts/config.py set   MBEDTLS_SSL_EARLY_DATA
 
     scripts/config.py set MBEDTLS_TEST_HOOKS
-    scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_ALG_ECDH
-    scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_ALG_ECDSA
-    scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_ALG_DETERMINISTIC_ECDSA
-    scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_ALG_RSA_OAEP
-    scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_ALG_RSA_PSS
-    scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_ALG_FFDH
-    scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_KEY_TYPE_DH_PUBLIC_KEY
-    scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_KEY_TYPE_DH_KEY_PAIR_BASIC
-    scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_KEY_TYPE_DH_KEY_PAIR_IMPORT
-    scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_KEY_TYPE_DH_KEY_PAIR_EXPORT
-    scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_KEY_TYPE_DH_KEY_PAIR_GENERATE
-    scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_DH_RFC7919_2048
-    scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_DH_RFC7919_3072
-    scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_DH_RFC7919_4096
-    scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_DH_RFC7919_6144
-    scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_DH_RFC7919_8192
+    scripts/config.py unset PSA_WANT_ALG_ECDH
+    scripts/config.py unset PSA_WANT_ALG_ECDSA
+    scripts/config.py unset PSA_WANT_ALG_DETERMINISTIC_ECDSA
+    scripts/config.py unset PSA_WANT_ALG_RSA_OAEP
+    scripts/config.py unset PSA_WANT_ALG_RSA_PSS
+    scripts/config.py unset PSA_WANT_ALG_FFDH
+    scripts/config.py unset PSA_WANT_KEY_TYPE_DH_PUBLIC_KEY
+    scripts/config.py unset PSA_WANT_KEY_TYPE_DH_KEY_PAIR_BASIC
+    scripts/config.py unset PSA_WANT_KEY_TYPE_DH_KEY_PAIR_IMPORT
+    scripts/config.py unset PSA_WANT_KEY_TYPE_DH_KEY_PAIR_EXPORT
+    scripts/config.py unset PSA_WANT_KEY_TYPE_DH_KEY_PAIR_GENERATE
+    scripts/config.py unset PSA_WANT_DH_RFC7919_2048
+    scripts/config.py unset PSA_WANT_DH_RFC7919_3072
+    scripts/config.py unset PSA_WANT_DH_RFC7919_4096
+    scripts/config.py unset PSA_WANT_DH_RFC7919_6144
+    scripts/config.py unset PSA_WANT_DH_RFC7919_8192
     # Note: The four unsets below are to be removed for Mbed TLS 4.0
     scripts/config.py unset MBEDTLS_ECDH_C
     scripts/config.py unset MBEDTLS_ECDSA_C
@@ -471,7 +471,7 @@ component_test_tls13_only_ephemeral_ffdh () {
     scripts/config.py unset MBEDTLS_SSL_EARLY_DATA
 
     scripts/config.py set MBEDTLS_TEST_HOOKS
-    scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_ALG_ECDH
+    scripts/config.py unset PSA_WANT_ALG_ECDH
     # Note: The unset below is to be removed for Mbed TLS 4.0
     scripts/config.py unset MBEDTLS_ECDH_C
 
@@ -495,10 +495,10 @@ component_test_tls13_only_psk_ephemeral () {
     scripts/config.py set   MBEDTLS_SSL_EARLY_DATA
 
     scripts/config.py set MBEDTLS_TEST_HOOKS
-    scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_ALG_ECDSA
-    scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_ALG_DETERMINISTIC_ECDSA
-    scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_ALG_RSA_OAEP
-    scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_ALG_RSA_PSS
+    scripts/config.py unset PSA_WANT_ALG_ECDSA
+    scripts/config.py unset PSA_WANT_ALG_DETERMINISTIC_ECDSA
+    scripts/config.py unset PSA_WANT_ALG_RSA_OAEP
+    scripts/config.py unset PSA_WANT_ALG_RSA_PSS
     # Note: The two unsets below are to be removed for Mbed TLS 4.0
     scripts/config.py unset MBEDTLS_ECDSA_C
 
@@ -522,11 +522,11 @@ component_test_tls13_only_psk_ephemeral_ffdh () {
     scripts/config.py set   MBEDTLS_SSL_EARLY_DATA
 
     scripts/config.py set MBEDTLS_TEST_HOOKS
-    scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_ALG_ECDH
-    scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_ALG_ECDSA
-    scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_ALG_DETERMINISTIC_ECDSA
-    scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_ALG_RSA_OAEP
-    scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_ALG_RSA_PSS
+    scripts/config.py unset PSA_WANT_ALG_ECDH
+    scripts/config.py unset PSA_WANT_ALG_ECDSA
+    scripts/config.py unset PSA_WANT_ALG_DETERMINISTIC_ECDSA
+    scripts/config.py unset PSA_WANT_ALG_RSA_OAEP
+    scripts/config.py unset PSA_WANT_ALG_RSA_PSS
     # Note: The three unsets below are to be removed for Mbed TLS 4.0
     scripts/config.py unset MBEDTLS_ECDH_C
     scripts/config.py unset MBEDTLS_ECDSA_C
@@ -550,10 +550,10 @@ component_test_tls13_only_psk_all () {
     scripts/config.py set   MBEDTLS_SSL_EARLY_DATA
 
     scripts/config.py set MBEDTLS_TEST_HOOKS
-    scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_ALG_ECDSA
-    scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_ALG_DETERMINISTIC_ECDSA
-    scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_ALG_RSA_OAEP
-    scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_ALG_RSA_PSS
+    scripts/config.py unset PSA_WANT_ALG_ECDSA
+    scripts/config.py unset PSA_WANT_ALG_DETERMINISTIC_ECDSA
+    scripts/config.py unset PSA_WANT_ALG_RSA_OAEP
+    scripts/config.py unset PSA_WANT_ALG_RSA_PSS
     # Note: The two unsets below are to be removed for Mbed TLS 4.0
     scripts/config.py unset MBEDTLS_ECDSA_C
 

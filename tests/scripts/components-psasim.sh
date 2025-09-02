@@ -78,7 +78,7 @@ component_test_suite_with_psasim()
     msg "build client library"
     helper_psasim_config client
     # PAKE functions are still unsupported from PSASIM
-    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_JPAKE
+    scripts/config.py unset PSA_WANT_ALG_JPAKE
     scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED
     helper_psasim_build client
 

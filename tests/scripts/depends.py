@@ -515,10 +515,10 @@ class DomainData:
             'curves': ExclusiveDomain(curve_symbols, build_and_test),
 
             # Hash algorithms. Excluding exclusive domains of MD, RIPEMD, SHA1, SHA3*,
-            # SHA224 and SHA384 because MBEDTLS_ENTROPY_C is extensively used
+            # SHA224 and SHA384 because the built-in entropy module is extensively used
             # across various modules, but it depends on either SHA256 or SHA512.
             # As a consequence an "exclusive" test of anything other than SHA256
-            # or SHA512 with MBEDTLS_ENTROPY_C enabled is not possible.
+            # or SHA512 with the built-in entropy module enabled is not possible.
             'hashes': DualDomain(hash_symbols, build_and_test,
                                  exclude=r'PSA_WANT_ALG_(?!SHA_(256|512))'),
 

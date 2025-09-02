@@ -7,6 +7,7 @@ set(executables
     query_compile_time_config
     query_included_headers
     selftest
+    ssl_unit_test_debug
     udp_proxy
     zeroize
 )
@@ -84,6 +85,9 @@ foreach(exe IN LISTS executables)
             ${MBEDTLS_FRAMEWORK_DIR}/tests/programs/query_config.h
             ${CMAKE_CURRENT_BINARY_DIR}/query_config.c)
     endif()
+    if(exe STREQUAL "ssl_unit_test_debug")
+        list(APPEND extra_sources $<TARGET_OBJECTS:mbedtls_test_helpers>)
+    endif()
     add_executable(${exe} ${source} $<TARGET_OBJECTS:mbedtls_test>
         ${extra_sources})
     set_base_compile_options(${exe})
@@ -101,6 +105,12 @@ foreach(exe IN LISTS executables)
     set_target_properties(${exe} PROPERTIES C_STANDARD 11)
     target_link_libraries(${exe} ${libs} ${CMAKE_THREAD_LIBS_INIT})
 endforeach()
+
+target_include_directories(ssl_unit_test_debug
+    PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../framework/tests/include
+    PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../tests/include
+    PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../tf-psa-crypto/include
+    PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../tf-psa-crypto/drivers/builtin/include)
 
 install(TARGETS ${executables}
         DESTINATION "bin"

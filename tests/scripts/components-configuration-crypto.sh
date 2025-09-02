@@ -1356,7 +1356,7 @@ component_test_tfm_config_no_p256m () {
 
     # Disable P256M driver, which is on by default, so that analyze_outcomes
     # can compare this test with test_tfm_config_p256m_driver_accel_ec
-    sed -i '/PSA_CRYPTO_CONFIGS_EXT_CRYPTO_CONFIG_PROFILE_MEDIUM_H/i #undef MBEDTLS_PSA_P256M_DRIVER_ENABLED' "$CRYPTO_CONFIG_H"
+    sed -i '/MBEDTLS_PSA_P256M_DRIVER_ENABLED/d'  "$CRYPTO_CONFIG_H"
 
     msg "build: TF-M config without p256m"
     make CFLAGS='-Werror -Wall -Wextra -I../framework/tests/include/spe' tests

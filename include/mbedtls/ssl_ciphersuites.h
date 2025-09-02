@@ -198,7 +198,7 @@ typedef enum {
 #endif
 
 /* Key exchanges using a PSK */
-#if defined(MBEDTLS_KEY_EXCHANGE_PSK_ENABLED)           || \
+#if defined(MBEDTLS_KEY_EXCHANGE_SOME_NON_PFS_ENABLED)           || \
     defined(MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED)
 #define MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED
 #endif

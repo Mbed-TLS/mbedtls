@@ -124,10 +124,6 @@ class CoverageTask(outcome_analysis.CoverageTask):
             # Untested platform-specific optimizations.
             # https://github.com/Mbed-TLS/mbedtls/issues/9588
             'Config: MBEDTLS_HAVE_SSE2',
-            # Obsolete configuration options, to be replaced by
-            # PSA entropy drivers.
-            # https://github.com/Mbed-TLS/mbedtls/issues/8150
-            'Config: MBEDTLS_NO_DEFAULT_ENTROPY_SOURCES',
             # Obsolete config option that we are about to remove
             'Config: MBEDTLS_PLATFORM_GET_ENTROPY_ALT',
             # Untested aspect of the platform interface.

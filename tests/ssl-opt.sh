@@ -1774,7 +1774,7 @@ run_test() {
     # Note that this detection is wrong in some cases, which causes unduly
     # skipped test cases in builds with TLS 1.3 but not TLS 1.2.
     # https://github.com/Mbed-TLS/mbedtls/issues/9560
-    TLS_VERSION="TLS12"
+    TLS_VERSION=$(get_tls_version "$SRV_CMD" "$CLI_CMD")
 
     # If we're in a PSK-only build and the test can be adapted to PSK, do that.
     maybe_adapt_for_psk "$@"

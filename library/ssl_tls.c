@@ -1048,6 +1048,8 @@ void mbedtls_ssl_transform_init(mbedtls_ssl_transform *transform)
 void mbedtls_ssl_session_init(mbedtls_ssl_session *session)
 {
     memset(session, 0, sizeof(mbedtls_ssl_session));
+    /* Set verify_result to indicate failure by default. */
+    session->verify_result = 0xFFFFFFFF;
 }
 
 MBEDTLS_CHECK_RETURN_CRITICAL

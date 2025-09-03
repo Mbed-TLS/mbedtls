@@ -180,8 +180,10 @@ def baremetal_adapter(name, value, active):
     """Config adapter for "baremetal"."""
     if not is_boolean_setting(name, value):
         return active
-    if name == 'MBEDTLS_PLATFORM_GET_ENTROPY_ALT':
+    if name == 'MBEDTLS_PSA_BUILTIN_GET_ENTROPY':
         # No OS-provided entropy source
+        return False
+    if name == 'MBEDTLS_PSA_DRIVER_GET_ENTROPY':
         return True
     return include_in_full(name) and keep_in_baremetal(name)
 

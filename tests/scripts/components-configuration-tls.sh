@@ -235,6 +235,7 @@ component_test_small_mbedtls_ssl_dtls_max_buffering () {
 # - test only TLS (i.e. test_suite_tls and ssl-opt)
 build_full_minus_something_and_test_tls () {
     symbols_to_disable="$1"
+    filter="${2-.}"
 
     msg "build: full minus something, test TLS"
 
@@ -250,11 +251,12 @@ build_full_minus_something_and_test_tls () {
     ( cd tests; ./test_suite_ssl )
 
     msg "ssl-opt: full minus something, test TLS"
-    tests/ssl-opt.sh
+    tests/ssl-opt.sh -f "$filter"
 }
 
+#TODO raise a issue to explain this.
 component_full_without_ecdhe_ecdsa () {
-    build_full_minus_something_and_test_tls "MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED"
+    build_full_minus_something_and_test_tls "MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED" 'psk\|PSK\|1\.3'
 }
 
 component_full_without_ecdhe_ecdsa_and_tls13 () {

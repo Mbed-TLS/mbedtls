@@ -254,7 +254,7 @@ build_full_minus_something_and_test_tls () {
     tests/ssl-opt.sh -f "$filter"
 }
 
-#TODO raise a issue to explain this.
+#These tests are temporarily disabled due to an unknown dependency of static ecdh as described in https://github.com/Mbed-TLS/mbedtls/issues/10385.
 component_full_without_ecdhe_ecdsa () {
     build_full_minus_something_and_test_tls "MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED" 'psk\|PSK\|1\.3'
 }
@@ -466,6 +466,7 @@ component_test_tls13_only_ephemeral () {
     tests/ssl-opt.sh
 }
 
+#These tests are temporarily disabled due to an unknown dependency of static ecdh as described in https://github.com/Mbed-TLS/mbedtls/issues/10385.
 component_test_tls13_only_ephemeral_ffdh () {
     msg "build: TLS 1.3 only from default, only ephemeral ffdh key exchange mode"
     scripts/config.py unset MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED

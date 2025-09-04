@@ -483,7 +483,7 @@ component_test_tls13_only_ephemeral_ffdh () {
     cd tests; ./test_suite_ssl; cd ..
 
     msg "ssl-opt.sh: TLS 1.3 only, only ephemeral ffdh key exchange mode"
-    tests/ssl-opt.sh
+    tests/ssl-opt.sh -f "ffdh"
 }
 
 component_test_tls13_only_psk_ephemeral () {

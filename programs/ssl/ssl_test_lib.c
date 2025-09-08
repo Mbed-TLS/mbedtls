@@ -242,7 +242,7 @@ int key_opaque_set_alg_usage(const char *alg1, const char *alg2,
                 *psa_algs[i] = PSA_ALG_RSA_PSS(PSA_ALG_SHA_512);
                 *usage |= PSA_KEY_USAGE_SIGN_HASH;
             } else if (strcmp(algs[i], "ecdsa-sign") == 0) {
-                *psa_algs[i] = PSA_ALG_ECDSA(PSA_ALG_ANY_HASH);
+                *psa_algs[i] = MBEDTLS_PK_ALG_ECDSA(PSA_ALG_ANY_HASH);
                 *usage |= PSA_KEY_USAGE_SIGN_HASH;
             } else if (strcmp(algs[i], "ecdh") == 0) {
                 *psa_algs[i] = PSA_ALG_ECDH;
@@ -253,7 +253,7 @@ int key_opaque_set_alg_usage(const char *alg1, const char *alg2,
         }
     } else {
         if (key_type == MBEDTLS_PK_ECKEY) {
-            *psa_alg1 = PSA_ALG_ECDSA(PSA_ALG_ANY_HASH);
+            *psa_alg1 = MBEDTLS_PK_ALG_ECDSA(PSA_ALG_ANY_HASH);
             *psa_alg2 = PSA_ALG_ECDH;
             *usage = PSA_KEY_USAGE_SIGN_HASH | PSA_KEY_USAGE_DERIVE;
         } else if (key_type == MBEDTLS_PK_RSA) {

@@ -8148,7 +8148,7 @@ unsigned int mbedtls_ssl_tls12_get_preferred_hash_for_sig_alg(
 
                 if (sig_alg_received == MBEDTLS_SSL_SIG_ECDSA &&
                     !mbedtls_pk_can_do_psa(ssl->handshake->key_cert->key,
-                                           PSA_ALG_ECDSA(psa_hash_alg),
+                                           MBEDTLS_PK_ALG_ECDSA(psa_hash_alg),
                                            PSA_KEY_USAGE_SIGN_HASH)) {
                     continue;
                 }

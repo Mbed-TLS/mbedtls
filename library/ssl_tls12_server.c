@@ -2902,14 +2902,14 @@ static int ssl_write_server_key_exchange(mbedtls_ssl_context *ssl)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t signature_len = 0;
-#if defined(MBEDTLS_KEY_EXCHANGE_SOME_NON_PFS_ENABLED)
+#if defined(MBEDTLS_KEY_EXCHANGE_PSK_ENABLED)
     const mbedtls_ssl_ciphersuite_t *ciphersuite_info =
         ssl->handshake->ciphersuite_info;
-#endif /* MBEDTLS_KEY_EXCHANGE_SOME_NON_PFS_ENABLED */
+#endif /* MBEDTLS_KEY_EXCHANGE_PSK_ENABLED */
 
     MBEDTLS_SSL_DEBUG_MSG(2, ("=> write server key exchange"));
 
-#if defined(MBEDTLS_KEY_EXCHANGE_SOME_NON_PFS_ENABLED)
+#if defined(MBEDTLS_KEY_EXCHANGE_PSK_ENABLED)
     /* Extract static ECDH parameters and abort if ServerKeyExchange
      * is not needed. */
     if (mbedtls_ssl_ciphersuite_no_pfs(ciphersuite_info)) {
@@ -2919,7 +2919,7 @@ static int ssl_write_server_key_exchange(mbedtls_ssl_context *ssl)
         mbedtls_ssl_handshake_increment_state(ssl);
         return 0;
     }
-#endif /* MBEDTLS_KEY_EXCHANGE_SOME_NON_PFS_ENABLED */
+#endif /* MBEDTLS_KEY_EXCHANGE_PSK_ENABLED */
 
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_SERVER_SIGNATURE_ENABLED) && \
     defined(MBEDTLS_SSL_ASYNC_PRIVATE)

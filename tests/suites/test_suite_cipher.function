@@ -14,6 +14,20 @@
 #define MBEDTLS_CIPHER_AUTH_CRYPT
 #endif
 
+/* Our software AES implementation is not constant-time. For constant-time
+ * testing involving AES, require a hardware-assisted AES that is
+ * constant-time.
+ *
+ * We assume that if the hardware-assisted version is available in the build,
+ * it will be available at runtime. The AES tests will fail if run on a
+ * processor without AESNI/AESCE.
+ */
+#include "aesce.h"
+#include "aesni.h"
+#if defined(MBEDTLS_AESCE_HAVE_CODE) || defined(MBEDTLS_AESNI_HAVE_CODE)
+#define HAVE_CONSTANT_TIME_AES
+#endif
+
 /* Check the internal consistency of a cipher info structure, and
  * check it against mbedtls_cipher_info_from_xxx(). */
 static int check_cipher_info(mbedtls_cipher_type_t type,
@@ -858,6 +872,269 @@ exit:
 }
 /* END_CASE */
 
+/* BEGIN_CASE */
+/* Similar to decrypt_test_vec, but with constant-flow assertions.
+ * We use a separate test function so that we can run the functional tests
+ * in all configurations where the underlying cipher is enabled, and
+ * run the constant-flow tests only in configurations where the underlying
+ * cipher is constant-time. In particular, AES test cases need to depend
+ * on HAVE_CONSTANT_TIME_AES.
+ */
+void decrypt_test_vec_cf(int cipher_id, int pad_mode, data_t *key,
+                         data_t *iv, data_t *cipher,
+                         data_t *clear, data_t *ad, data_t *tag,
+                         int expected_finish_result, int tag_result)
+{
+    unsigned char output[265];
+    mbedtls_cipher_context_t ctx;
+    size_t outlen, total_len;
+
+    mbedtls_cipher_init(&ctx);
+
+    memset(output, 0x00, sizeof(output));
+
+#if !defined(MBEDTLS_GCM_C) && !defined(MBEDTLS_CHACHAPOLY_C)
+    ((void) ad);
+    ((void) tag);
+#endif
+
+    TEST_CF_SECRET(key->x, key->len);
+    TEST_CF_SECRET(cipher->x, cipher->len);
+
+    /* Prepare context */
+    TEST_ASSERT(0 == mbedtls_cipher_setup(&ctx,
+                                          mbedtls_cipher_info_from_type(cipher_id)));
+    TEST_ASSERT(0 == mbedtls_cipher_setkey(&ctx, key->x, 8 * key->len, MBEDTLS_DECRYPT));
+#if defined(MBEDTLS_CIPHER_MODE_WITH_PADDING)
+    if (pad_mode != -1) {
+        TEST_ASSERT(0 == mbedtls_cipher_set_padding_mode(&ctx, pad_mode));
+    }
+#else
+    (void) pad_mode;
+#endif /* MBEDTLS_CIPHER_MODE_WITH_PADDING */
+    TEST_ASSERT(0 == mbedtls_cipher_set_iv(&ctx, iv->x, iv->len));
+    TEST_ASSERT(0 == mbedtls_cipher_reset(&ctx));
+#if defined(MBEDTLS_GCM_C) || defined(MBEDTLS_CHACHAPOLY_C)
+    int expected = (ctx.cipher_info->mode == MBEDTLS_MODE_GCM ||
+                    ctx.cipher_info->type == MBEDTLS_CIPHER_CHACHA20_POLY1305) ?
+                   0 : MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE;
+
+    TEST_EQUAL(expected, mbedtls_cipher_update_ad(&ctx, ad->x, ad->len));
+#endif
+
+    /* decode buffer and check tag->x */
+    total_len = 0;
+    TEST_ASSERT(0 == mbedtls_cipher_update(&ctx, cipher->x, cipher->len, output, &outlen));
+    total_len += outlen;
+    int actual_finish_result = mbedtls_cipher_finish(&ctx, output + outlen,
+                                                     &outlen);
+    TEST_CF_PUBLIC(&outlen, sizeof(outlen));
+    TEST_EQUAL(actual_finish_result, expected_finish_result);
+    if (0 != expected_finish_result) {
+        /* Check output parameter is set to the least-harmful value on error */
+        TEST_ASSERT(0 == outlen);
+    }
+    total_len += outlen;
+#if defined(MBEDTLS_GCM_C) || defined(MBEDTLS_CHACHAPOLY_C)
+    int tag_expected = (ctx.cipher_info->mode == MBEDTLS_MODE_GCM ||
+                        ctx.cipher_info->type == MBEDTLS_CIPHER_CHACHA20_POLY1305) ?
+                       tag_result : MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE;
+
+    TEST_EQUAL(tag_expected, mbedtls_cipher_check_tag(&ctx, tag->x, tag->len));
+#endif
+
+    /* check plaintext only if everything went fine */
+    if (0 == expected_finish_result && 0 == tag_result) {
+        TEST_CF_PUBLIC(output, sizeof(output));
+        TEST_MEMORY_COMPARE(output, total_len, clear->x, clear->len);
+    }
+
+exit:
+    mbedtls_cipher_free(&ctx);
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void decrypt_padded_test_vec(int cipher_id, int pad_mode, data_t *key,
+                             data_t *iv, data_t *cipher,
+                             data_t *clear, data_t *ad, data_t *tag,
+                             int expected_finish_result, int tag_result)
+{
+    unsigned char output[265];
+    mbedtls_cipher_context_t ctx;
+    size_t outlen, total_len;
+
+    mbedtls_cipher_init(&ctx);
+
+    memset(output, 0x00, sizeof(output));
+
+#if !defined(MBEDTLS_GCM_C) && !defined(MBEDTLS_CHACHAPOLY_C)
+    ((void) ad);
+    ((void) tag);
+#endif
+
+    /* Prepare context */
+    TEST_ASSERT(0 == mbedtls_cipher_setup(&ctx,
+                                          mbedtls_cipher_info_from_type(cipher_id)));
+    TEST_ASSERT(0 == mbedtls_cipher_setkey(&ctx, key->x, 8 * key->len, MBEDTLS_DECRYPT));
+#if defined(MBEDTLS_CIPHER_MODE_WITH_PADDING)
+    if (pad_mode != -1) {
+        TEST_ASSERT(0 == mbedtls_cipher_set_padding_mode(&ctx, pad_mode));
+    }
+#else
+    (void) pad_mode;
+#endif /* MBEDTLS_CIPHER_MODE_WITH_PADDING */
+    TEST_ASSERT(0 == mbedtls_cipher_set_iv(&ctx, iv->x, iv->len));
+    TEST_ASSERT(0 == mbedtls_cipher_reset(&ctx));
+#if defined(MBEDTLS_GCM_C) || defined(MBEDTLS_CHACHAPOLY_C)
+    int expected = (ctx.cipher_info->mode == MBEDTLS_MODE_GCM ||
+                    ctx.cipher_info->type == MBEDTLS_CIPHER_CHACHA20_POLY1305) ?
+                   0 : MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE;
+
+    TEST_EQUAL(expected, mbedtls_cipher_update_ad(&ctx, ad->x, ad->len));
+#endif
+
+    /* decode buffer and check tag->x */
+    total_len = 0;
+    TEST_ASSERT(0 == mbedtls_cipher_update(&ctx, cipher->x, cipher->len, output, &outlen));
+    total_len += outlen;
+
+    size_t invalid_padding = 42;
+    int actual_finish_result =
+        mbedtls_cipher_finish_padded(&ctx, output + outlen, &outlen,
+                                     &invalid_padding);
+    switch (expected_finish_result) {
+        case 0:
+            TEST_EQUAL(actual_finish_result, 0);
+            TEST_EQUAL(invalid_padding, 0);
+            break;
+        case MBEDTLS_ERR_CIPHER_INVALID_PADDING:
+            TEST_EQUAL(actual_finish_result, 0);
+            TEST_EQUAL(invalid_padding, ~(size_t) 0);
+            break;
+        default:
+            TEST_EQUAL(actual_finish_result, expected_finish_result);
+            /* Check output parameter is set to the least-harmful value on error */
+            TEST_EQUAL(0, outlen);
+            break;
+    }
+    total_len += outlen;
+
+#if defined(MBEDTLS_GCM_C) || defined(MBEDTLS_CHACHAPOLY_C)
+    int tag_expected = (ctx.cipher_info->mode == MBEDTLS_MODE_GCM ||
+                        ctx.cipher_info->type == MBEDTLS_CIPHER_CHACHA20_POLY1305) ?
+                       tag_result : MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE;
+
+    TEST_EQUAL(tag_expected, mbedtls_cipher_check_tag(&ctx, tag->x, tag->len));
+#endif
+
+    /* check plaintext only if everything went fine */
+    if (0 == expected_finish_result && 0 == tag_result) {
+        TEST_ASSERT(total_len == clear->len);
+        TEST_ASSERT(0 == memcmp(output, clear->x, clear->len));
+    }
+
+exit:
+    mbedtls_cipher_free(&ctx);
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+/* Similar to decrypt_padded_test_vec, but with constant-flow assertions.
+ * We use a separate test function so that we can run the functional tests
+ * in all configurations where the underlying cipher is enabled, and
+ * run the constant-flow tests only in configurations where the underlying
+ * cipher is constant-time. In particular, AES test cases need to depend
+ * on HAVE_CONSTANT_TIME_AES.
+ */
+void decrypt_padded_test_vec_cf(int cipher_id, int pad_mode, data_t *key,
+                                data_t *iv, data_t *cipher,
+                                data_t *clear, data_t *ad, data_t *tag,
+                                int expected_finish_result, int tag_result)
+{
+    unsigned char output[265];
+    mbedtls_cipher_context_t ctx;
+    size_t outlen, total_len;
+
+    mbedtls_cipher_init(&ctx);
+
+    memset(output, 0x00, sizeof(output));
+
+#if !defined(MBEDTLS_GCM_C) && !defined(MBEDTLS_CHACHAPOLY_C)
+    ((void) ad);
+    ((void) tag);
+#endif
+
+    TEST_CF_SECRET(key->x, key->len);
+    TEST_CF_SECRET(cipher->x, cipher->len);
+
+    /* Prepare context */
+    TEST_ASSERT(0 == mbedtls_cipher_setup(&ctx,
+                                          mbedtls_cipher_info_from_type(cipher_id)));
+    TEST_ASSERT(0 == mbedtls_cipher_setkey(&ctx, key->x, 8 * key->len, MBEDTLS_DECRYPT));
+#if defined(MBEDTLS_CIPHER_MODE_WITH_PADDING)
+    if (pad_mode != -1) {
+        TEST_ASSERT(0 == mbedtls_cipher_set_padding_mode(&ctx, pad_mode));
+    }
+#else
+    (void) pad_mode;
+#endif /* MBEDTLS_CIPHER_MODE_WITH_PADDING */
+    TEST_ASSERT(0 == mbedtls_cipher_set_iv(&ctx, iv->x, iv->len));
+    TEST_ASSERT(0 == mbedtls_cipher_reset(&ctx));
+#if defined(MBEDTLS_GCM_C) || defined(MBEDTLS_CHACHAPOLY_C)
+    int expected = (ctx.cipher_info->mode == MBEDTLS_MODE_GCM ||
+                    ctx.cipher_info->type == MBEDTLS_CIPHER_CHACHA20_POLY1305) ?
+                   0 : MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE;
+
+    TEST_EQUAL(expected, mbedtls_cipher_update_ad(&ctx, ad->x, ad->len));
+#endif
+
+    /* decode buffer and check tag->x */
+    total_len = 0;
+    TEST_ASSERT(0 == mbedtls_cipher_update(&ctx, cipher->x, cipher->len, output, &outlen));
+    total_len += outlen;
+
+    size_t invalid_padding = 42;
+    int actual_finish_result =
+        mbedtls_cipher_finish_padded(&ctx, output + outlen, &outlen,
+                                     &invalid_padding);
+    TEST_CF_PUBLIC(&outlen, sizeof(outlen));
+    switch (expected_finish_result) {
+        case 0:
+            TEST_EQUAL(actual_finish_result, 0);
+            TEST_EQUAL(invalid_padding, 0);
+            break;
+        case MBEDTLS_ERR_CIPHER_INVALID_PADDING:
+            TEST_EQUAL(actual_finish_result, 0);
+            TEST_EQUAL(invalid_padding, ~(size_t) 0);
+            break;
+        default:
+            TEST_EQUAL(actual_finish_result, expected_finish_result);
+            /* Check output parameter is set to the least-harmful value on error */
+            TEST_EQUAL(0, outlen);
+            break;
+    }
+    total_len += outlen;
+
+#if defined(MBEDTLS_GCM_C) || defined(MBEDTLS_CHACHAPOLY_C)
+    int tag_expected = (ctx.cipher_info->mode == MBEDTLS_MODE_GCM ||
+                        ctx.cipher_info->type == MBEDTLS_CIPHER_CHACHA20_POLY1305) ?
+                       tag_result : MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE;
+
+    TEST_EQUAL(tag_expected, mbedtls_cipher_check_tag(&ctx, tag->x, tag->len));
+#endif
+
+    /* check plaintext only if everything went fine */
+    if (0 == expected_finish_result && 0 == tag_result) {
+        TEST_CF_PUBLIC(output, sizeof(output));
+        TEST_MEMORY_COMPARE(output, total_len, clear->x, clear->len);
+    }
+
+exit:
+    mbedtls_cipher_free(&ctx);
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:MBEDTLS_CIPHER_MODE_AEAD */
 void auth_crypt_tv(int cipher_id, data_t *key, data_t *iv,
                    data_t *ad, data_t *cipher, data_t *tag,
@@ -1141,6 +1418,68 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_CIPHER_MODE_WITH_PADDING */
+/* Similar to test_vec_crypt, but with constant-flow assertions.
+ * We use a separate test function so that we can run the functional tests
+ * in all configurations where the underlying cipher is enabled, and
+ * run the constant-flow tests only in configurations where the underlying
+ * cipher is constant-time. In particular, AES test cases need to depend
+ * on HAVE_CONSTANT_TIME_AES.
+ */
+void test_vec_crypt_cf(int cipher_id, int pad_mode, int operation, data_t *key,
+                       data_t *iv, data_t *input, data_t *result,
+                       int expected_finish_result, int use_psa)
+{
+    mbedtls_cipher_context_t ctx;
+    unsigned char output[32];
+    size_t outlen;
+
+    mbedtls_cipher_init(&ctx);
+
+    memset(output, 0x00, sizeof(output));
+
+    TEST_CF_SECRET(key->x, key->len);
+    TEST_CF_SECRET(input->x, input->len);
+
+    /* Prepare context */
+#if !defined(MBEDTLS_USE_PSA_CRYPTO) || !defined(MBEDTLS_TEST_DEPRECATED)
+    (void) use_psa;
+#else
+    if (use_psa == 1) {
+        PSA_ASSERT(psa_crypto_init());
+        TEST_ASSERT(0 == mbedtls_cipher_setup_psa(&ctx,
+                                                  mbedtls_cipher_info_from_type(cipher_id), 0));
+    } else
+#endif /* !MBEDTLS_USE_PSA_CRYPTO || !MBEDTLS_TEST_DEPRECATED*/
+    TEST_ASSERT(0 == mbedtls_cipher_setup(&ctx,
+                                          mbedtls_cipher_info_from_type(cipher_id)));
+
+    TEST_ASSERT(0 == mbedtls_cipher_setkey(&ctx, key->x, 8 * key->len, operation));
+    if (MBEDTLS_MODE_CBC == ctx.cipher_info->mode) {
+        TEST_ASSERT(0 == mbedtls_cipher_set_padding_mode(&ctx, pad_mode));
+    }
+
+    int actual_finish_result =
+        mbedtls_cipher_crypt(&ctx, iv->len ? iv->x : NULL, iv->len,
+                             input->x, input->len,
+                             output, &outlen);
+    TEST_CF_PUBLIC(&outlen, sizeof(outlen));
+    TEST_EQUAL(expected_finish_result, actual_finish_result);
+
+    /* check plaintext only if everything went fine */
+    if (0 == expected_finish_result) {
+        TEST_CF_PUBLIC(output, sizeof(output));
+        TEST_MEMORY_COMPARE(output, outlen, result->x, result->len);
+    }
+
+exit:
+    mbedtls_cipher_free(&ctx);
+#if defined(MBEDTLS_USE_PSA_CRYPTO) && defined(MBEDTLS_TEST_DEPRECATED)
+    PSA_DONE();
+#endif /* MBEDTLS_USE_PSA_CRYPTO && MBEDTLS_TEST_DEPRECATED */
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_CIPHER_MODE_WITH_PADDING */
 void set_padding(int cipher_id, int pad_mode, int ret)
 {
     const mbedtls_cipher_info_t *cipher_info;
@@ -1160,8 +1499,8 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_CIPHER_MODE_CBC */
-void check_padding(int pad_mode, data_t *input, int ret, int dlen_check
-                   )
+void check_padding(int pad_mode, data_t *input,
+                   int expected_ret, int dlen_check)
 {
     mbedtls_cipher_info_t cipher_info;
     mbedtls_cipher_context_t ctx;
@@ -1174,10 +1513,20 @@ void check_padding(int pad_mode, data_t *input, int ret, int dlen_check
 
     TEST_ASSERT(0 == mbedtls_cipher_set_padding_mode(&ctx, pad_mode));
 
-
-    TEST_ASSERT(ret == ctx.get_padding(input->x, input->len, &dlen));
-    if (0 == ret) {
-        TEST_ASSERT(dlen == (size_t) dlen_check);
+    size_t invalid_padding = 42;
+    int ret = ctx.get_padding(input->x, input->len, &dlen, &invalid_padding);
+    switch (expected_ret) {
+        case 0:
+            TEST_EQUAL(ret, 0);
+            TEST_EQUAL(invalid_padding, 0);
+            TEST_EQUAL(dlen, dlen_check);
+            break;
+        case MBEDTLS_ERR_CIPHER_INVALID_PADDING:
+            TEST_EQUAL(ret, 0);
+            TEST_EQUAL(invalid_padding, ~(size_t) 0);
+            break;
+        default:
+            TEST_EQUAL(ret, expected_ret);
     }
 }
 /* END_CASE */
@@ -1270,14 +1619,27 @@ void get_pkcs_padding(data_t *decrypted_block, int exp_ret, int exp_len)
 {
     int ret;
     size_t calculated_len;
+    size_t invalid_padding;
 
     TEST_CF_SECRET(decrypted_block->x, decrypted_block->len);
     ret = mbedtls_get_pkcs_padding(decrypted_block->x, decrypted_block->len,
-                                   &calculated_len);
+                                   &calculated_len, &invalid_padding);
 
-    TEST_EQUAL(ret, exp_ret);
-    if (exp_ret == 0) {
-        TEST_EQUAL(calculated_len, exp_len);
+    switch (exp_ret) {
+        case 0:
+            TEST_EQUAL(ret, 0);
+            TEST_EQUAL(invalid_padding, 0);
+            TEST_EQUAL(calculated_len, exp_len);
+            break;
+
+        case MBEDTLS_ERR_CIPHER_INVALID_PADDING:
+            TEST_EQUAL(ret, 0);
+            TEST_EQUAL(invalid_padding, ~(size_t) 0);
+            break;
+
+        default:
+            TEST_EQUAL(ret, exp_ret);
+            break;
     }
 }
 /* END_CASE */

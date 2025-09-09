@@ -1,0 +1,5 @@
+Removals
+   * Drop support for crypto alt interface. Removes MBEDTLS_XXX_ALT options
+     at the module and function level for crypto mechanisms only. The remaining
+     alt interfaces for platform, threading and timing are unchanged.
+     Fixes #8149.

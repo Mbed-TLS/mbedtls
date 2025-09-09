@@ -1,0 +1,6 @@
+Security
+   * Fix a stack buffer overflow in mbedtls_ecdsa_der_to_raw() and
+     mbedtls_ecdsa_raw_to_der() when the bits parameter is larger than the
+     largest supported curve. In some configurations with PSA disabled,
+     all values of bits are affected. This never happens in internal library
+     calls, but can affect applications that call these functions directly.

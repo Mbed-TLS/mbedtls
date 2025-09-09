@@ -1,0 +1,3 @@
+Bugfix
+   * Fix undefined behaviour (incrementing a NULL pointer by zero length) when
+     passing in zero length additional data to multipart AEAD.

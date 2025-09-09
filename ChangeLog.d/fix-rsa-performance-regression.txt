@@ -1,0 +1,3 @@
+Bugfix
+   * Fix unintended performance regression when using short RSA public keys.
+     Fixes #9232.

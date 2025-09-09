@@ -1,0 +1,3 @@
+Bugfix
+   * Fix invalid JSON schemas for driver descriptions used by
+     generate_driver_wrappers.py.

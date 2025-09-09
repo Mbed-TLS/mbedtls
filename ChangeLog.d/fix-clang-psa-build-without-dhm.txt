@@ -1,0 +1,3 @@
+Bugfix
+   * Fix Clang compilation error when MBEDTLS_USE_PSA_CRYPTO is enabled
+     but MBEDTLS_DHM_C is disabled. Reported by Michael Schuster in #9188.

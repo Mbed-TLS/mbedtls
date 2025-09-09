@@ -1,0 +1,7 @@
+Default behavior changes
+   * The `PSA_WANT_XXX` symbols as defined in
+     tf-psa-crypto/include/psa/crypto_config.h are now always used in the
+     configuration of the cryptographic mechanisms exposed by the PSA API.
+     This corresponds to the configuration behavior of Mbed TLS 3.x when
+     MBEDTLS_PSA_CRYPTO_CONFIG is enabled. In effect, MBEDTLS_PSA_CRYPTO_CONFIG
+     is now always enabled and the configuration option has been removed.

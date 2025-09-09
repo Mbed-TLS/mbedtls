@@ -1,0 +1,3 @@
+Features
+   * Add a new psa_key_agreement() PSA API to perform key agreement and return
+     an identifier for the newly created key.

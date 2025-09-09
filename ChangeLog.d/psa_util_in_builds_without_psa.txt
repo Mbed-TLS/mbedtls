@@ -1,0 +1,5 @@
+Bugfix
+   * When MBEDTLS_PSA_CRYPTO_C was disabled and MBEDTLS_ECDSA_C enabled,
+     some code was defining 0-size arrays, resulting in compilation errors.
+     Fixed by disabling the offending code in configurations without PSA
+     Crypto, where it never worked. Fixes #9311.

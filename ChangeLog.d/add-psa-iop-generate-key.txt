@@ -1,0 +1,3 @@
+Features
+   * Add an interruptible version of generate key to the PSA interface.
+     See psa_generate_key_iop_setup() and related functions.

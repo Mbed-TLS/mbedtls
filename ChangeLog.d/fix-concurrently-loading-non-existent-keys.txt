@@ -1,0 +1,4 @@
+Bugfix
+   * Fix rare concurrent access bug where attempting to operate on a
+     non-existent key while concurrently creating a new key could potentially
+     corrupt the key store.

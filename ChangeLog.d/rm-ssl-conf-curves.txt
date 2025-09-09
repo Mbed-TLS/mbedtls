@@ -1,0 +1,4 @@
+Removals
+   * Remove the function mbedtls_ssl_conf_curves() which had been deprecated
+     in favour of mbedtls_ssl_conf_groups() since Mbed TLS 3.1.
+

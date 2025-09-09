@@ -1,0 +1,4 @@
+Bugfix
+   * Fix the build when MBEDTLS_PSA_CRYPTO_CONFIG is enabled and the built-in
+     CMAC is enabled, but no built-in unauthenticated cipher is enabled.
+     Fixes #9209.

@@ -134,6 +134,8 @@ class CoverageTask(outcome_analysis.CoverageTask):
             # MBEDTLS_PSA_CRYPTO_SPM as enabled. That's ok.
             'Config: MBEDTLS_PSA_CRYPTO_SPM',
             # We don't test on armv8 yet.
+            'Config: MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT',
+            'Config: MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY',
             'Config: MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_ONLY',
             'Config: MBEDTLS_SHA512_USE_A64_CRYPTO_ONLY',
             # We don't run test_suite_config when we test this.

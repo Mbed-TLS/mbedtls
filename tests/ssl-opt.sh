@@ -2565,6 +2565,30 @@ run_test    "Unique IV in GCM" \
             -u "IV used" \
             -U "IV used"
 
+# Test for correctness of sent single supported algorithm
+requires_config_enabled PSA_WANT_ECC_SECP_R1_256
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_enabled MBEDTLS_SSL_SRV_C
+requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
+requires_pk_alg "ECDSA"
+requires_hash_alg SHA_256
+run_test    "Single supported algorithm sending: mbedtls client" \
+            "$P_SRV sig_algs=ecdsa_secp256r1_sha256 auth_mode=required" \
+            "$P_CLI force_version=tls12 sig_algs=ecdsa_secp256r1_sha256 debug_level=3" \
+            0 \
+            -c "Supported Signature Algorithm found: 04 03"
+
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_SRV_C
+requires_config_enabled PSA_WANT_ECC_SECP_R1_256
+requires_hash_alg SHA_256
+run_test    "Single supported algorithm sending: openssl client" \
+            "$P_SRV sig_algs=ecdsa_secp256r1_sha256 auth_mode=required" \
+            "$O_CLI -cert $DATA_FILES_PATH/server6.crt \
+                    -key $DATA_FILES_PATH/server6.key" \
+            0
+
 # Tests for certificate verification callback
 run_test    "Configuration-specific CRT verification callback" \
             "$P_SRV debug_level=3" \

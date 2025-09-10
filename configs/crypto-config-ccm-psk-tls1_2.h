@@ -30,7 +30,6 @@
 /* Other MBEDTLS_HAVE_XXX flags irrelevant for this configuration */
 
 #define MBEDTLS_CTR_DRBG_C
-#define MBEDTLS_ENTROPY_C
 #define MBEDTLS_PSA_BUILTIN_GET_ENTROPY
 
 /* Save RAM at the expense of ROM */

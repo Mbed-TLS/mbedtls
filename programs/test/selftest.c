@@ -210,7 +210,7 @@ static int run_test_snprintf(void)
  * back.
  */
 #if defined(MBEDTLS_SELF_TEST) && defined(MBEDTLS_ENTROPY_C)
-#if defined(MBEDTLS_ENTROPY_NV_SEED) && !defined(MBEDTLS_PLATFORM_GET_ENTROPY_ALT)
+#if defined(MBEDTLS_ENTROPY_NV_SEED) && !defined(MBEDTLS_PSA_DRIVER_GET_ENTROPY)
 static void dummy_entropy(unsigned char *output, size_t output_size)
 {
     srand(1);
@@ -239,7 +239,7 @@ static void create_entropy_seed_file(void)
 
 static int mbedtls_entropy_self_test_wrapper(int verbose)
 {
-#if defined(MBEDTLS_ENTROPY_NV_SEED) && !defined(MBEDTLS_PLATFORM_GET_ENTROPY_ALT)
+#if defined(MBEDTLS_ENTROPY_NV_SEED) && !defined(MBEDTLS_PSA_DRIVER_GET_ENTROPY)
     create_entropy_seed_file();
 #endif
     return mbedtls_entropy_self_test(verbose);

@@ -1492,6 +1492,7 @@ component_test_new_psa_want_key_pair_symbol () {
     scripts/config.py crypto
 
     # Remove RSA support and its dependencies
+    scripts/config.py unset MBEDTLS_PKCS1_V15
     scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED
     scripts/config.py unset MBEDTLS_X509_RSASSA_PSS_SUPPORT
 

@@ -2910,8 +2910,6 @@ static int ssl_write_server_key_exchange(mbedtls_ssl_context *ssl)
     MBEDTLS_SSL_DEBUG_MSG(2, ("=> write server key exchange"));
 
 #if defined(MBEDTLS_KEY_EXCHANGE_PSK_ENABLED)
-    /* Extract static ECDH parameters and abort if ServerKeyExchange
-     * is not needed. */
     if (mbedtls_ssl_ciphersuite_no_pfs(ciphersuite_info)) {
         /* Key exchanges not involving ephemeral keys don't use
          * ServerKeyExchange, so end here. */

@@ -21,14 +21,14 @@ set -eu
 CONFIG_H='include/mbedtls/mbedtls_config.h'
 CRYPTO_CONFIG_H='tf-psa-crypto/include/psa/crypto_config.h'
 
-if [ -r $CONFIG_H ]; then :; else
+if [ ! -r $CONFIG_H ]; then
     echo "$CONFIG_H not found" >&2
     echo "This script needs to be run from the root of" >&2
     echo "a git checkout or uncompressed tarball" >&2
     exit 1
 fi
 
-if [ -r $CRYPTO_CONFIG_H ]; then :; else
+if [ ! -r $CRYPTO_CONFIG_H ]; then
     echo "$CRYPTO_CONFIG_H not found" >&2
     echo "This script needs to be run from the root of" >&2
     echo "a git checkout or uncompressed tarball" >&2

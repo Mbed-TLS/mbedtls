@@ -192,6 +192,18 @@
  */
 
 /**
+ * \def MBEDTLS_SSL_NULL_CIPHERSUITES
+ *
+ * Enable ciphersuites without encryption.
+ *
+ * Warning: Only do so when you know what you are doing. This allows for
+ * channels without any encryption. All data are transmitted in clear.
+ *
+ * Uncomment this macro to enable the NULL ciphersuites
+ */
+//#define MBEDTLS_SSL_NULL_CIPHERSUITES
+
+/**
  * \def MBEDTLS_DEBUG_C
  *
  * Enable the debug functions.

@@ -279,7 +279,7 @@ uint32_t mbedtls_ssl_get_extension_mask(unsigned int extension_type);
 
 /* This macro determines whether a ciphersuite using a
  * stream cipher can be used. */
-#if defined(MBEDTLS_CIPHER_NULL_CIPHER)
+#if defined(MBEDTLS_SSL_NULL_CIPHERSUITES)
 #define MBEDTLS_SSL_SOME_SUITES_USE_STREAM
 #endif
 

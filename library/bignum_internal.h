@@ -63,7 +63,8 @@ int mbedtls_mpi_exp_mod_unsafe(mbedtls_mpi *X, const mbedtls_mpi *A,
  * \param[out] G   The GCD of \p A and \p N.
  *                 This may be NULL, to only compute I.
  * \param[out] I   The inverse of \p A modulo \p N if it exists (that is,
- *                 if \p G above is 1 on exit); indeterminate otherwise.
+ *                 if \p G above is 1 on exit), in the range [1, \p N);
+ *                 indeterminate otherwise.
  *                 This may be NULL, to only compute G.
  * \param[in] A    The 1st operand of GCD and number to invert.
  *                 This value must be less than or equal to \p N.
@@ -83,8 +84,8 @@ int mbedtls_mpi_gcd_modinv_odd(mbedtls_mpi *G,
 /**
  * \brief          Modular inverse: X = A^-1 mod N with N odd
  *
- * \param[out] X   The inverse of \p A modulo \p N on success,
- *                 indeterminate otherwise.
+ * \param[out] X   The inverse of \p A modulo \p N in the range [1, \p N)
+ *                 on success; indeterminate otherwise.
  * \param[in] A    The number to invert.
  * \param[in] N    The modulus. Must be odd and greater than 1.
  *
@@ -102,8 +103,8 @@ int mbedtls_mpi_inv_mod_odd(mbedtls_mpi *X,
  * \brief          Modular inverse: X = A^-1 mod N with N even,
  *                 A odd and 1 < A < N.
  *
- * \param[out] X   The inverse of \p A modulo \p N on success,
- *                 indeterminate otherwise.
+ * \param[out] X   The inverse of \p A modulo \p N in the range [1, \p N)
+ *                 on success; indeterminate otherwise.
  * \param[in] A    The number to invert. Must be odd, greated than 1
  *                 and less than \p N.
  * \param[in] N    The modulus. Must be even and greater than 1.

@@ -312,12 +312,7 @@ requires_any_configs_disabled() {
 }
 
 TLS1_2_KEY_EXCHANGES_WITH_CERT="MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED \
-                                MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED \
-                                MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED \
-                                MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED"
-
-TLS1_2_KEY_EXCHANGES_WITH_ECDSA_CERT="MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED \
-                                      MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED"
+                                MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED"
 
 TLS1_2_KEY_EXCHANGES_WITH_CERT_WO_ECDH="MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED \
                                         MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED"
@@ -436,14 +431,12 @@ requires_cipher_enabled() {
 # - $1 = command line (call to a TLS client or server program)
 # - $2 = client/server
 # - $3 = TLS version (TLS12 or TLS13)
-# - $4 = Use an external tool without ECDH support
-# - $5 = run test options
+# - $4 = run test options
 detect_required_features() {
     CMD_LINE=$1
     ROLE=$2
     TLS_VERSION=$3
-    EXT_WO_ECDH=$4
-    TEST_OPTIONS=${5:-}
+    TEST_OPTIONS=${4:-}
 
     case "$CMD_LINE" in
         *\ force_version=*)
@@ -525,24 +518,9 @@ detect_required_features() {
             else
                 # For TLS12 requirements are different between server and client
                 if [ "$ROLE" = "server" ]; then
-                    # If the server uses "server5*" certificates, then an ECDSA based
-                    # key exchange is required. However gnutls also does not
-                    # support ECDH, so this limit the choice to ECDHE-ECDSA
-                    if [ "$EXT_WO_ECDH" = "yes" ]; then
-                        requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
-                    else
-                        requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_ECDSA_CERT
-                    fi
+                    requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
                 elif [ "$ROLE" = "client" ]; then
-                    # On the client side it is enough to have any certificate
-                    # based authentication together with support for ECDSA.
-                    # Of course the GnuTLS limitation mentioned above applies
-                    # also here.
-                    if [ "$EXT_WO_ECDH" = "yes" ]; then
-                        requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT_WO_ECDH
-                    else
-                        requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
-                    fi
+                    requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT_WO_ECDH
                     requires_pk_alg "ECDSA"
                 fi
             fi
@@ -1305,28 +1283,6 @@ is_gnutls() {
     esac
 }
 
-# Some external tools (gnutls or openssl) might not have support for static ECDH
-# and this limit the tests that can be run with them. This function checks server
-# and client command lines, given as input, to verify if the current test
-# is using one of these tools.
-use_ext_tool_without_ecdh_support() {
-    case "$1" in
-        *$GNUTLS_SERV*|\
-        *${GNUTLS_NEXT_SERV:-"gnutls-serv-dummy"}*|\
-        *${OPENSSL_NEXT:-"openssl-dummy"}*)
-                echo "yes"
-                return;;
-    esac
-    case "$2" in
-        *$GNUTLS_CLI*|\
-        *${GNUTLS_NEXT_CLI:-"gnutls-cli-dummy"}*|\
-        *${OPENSSL_NEXT:-"openssl-dummy"}*)
-                echo "yes"
-                return;;
-    esac
-    echo "no"
-}
-
 # Generate random psk_list argument for ssl_server2
 get_srv_psk_list ()
 {
@@ -1813,26 +1769,20 @@ run_test() {
         requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
     fi
 
-    # Check if we are trying to use an external tool which does not support ECDH
-    EXT_WO_ECDH=$(use_ext_tool_without_ecdh_support "$SRV_CMD" "$CLI_CMD")
 
     # Guess the TLS version which is going to be used.
     # Note that this detection is wrong in some cases, which causes unduly
     # skipped test cases in builds with TLS 1.3 but not TLS 1.2.
     # https://github.com/Mbed-TLS/mbedtls/issues/9560
-    if [ "$EXT_WO_ECDH" = "no" ]; then
-        TLS_VERSION=$(get_tls_version "$SRV_CMD" "$CLI_CMD")
-    else
-        TLS_VERSION="TLS12"
-    fi
+    TLS_VERSION=$(get_tls_version "$SRV_CMD" "$CLI_CMD")
 
     # If we're in a PSK-only build and the test can be adapted to PSK, do that.
     maybe_adapt_for_psk "$@"
 
     # If the client or server requires certain features that can be detected
     # from their command-line arguments, check whether they're enabled.
-    detect_required_features "$SRV_CMD" "server" "$TLS_VERSION" "$EXT_WO_ECDH" "$@"
-    detect_required_features "$CLI_CMD" "client" "$TLS_VERSION" "$EXT_WO_ECDH" "$@"
+    detect_required_features "$SRV_CMD" "server" "$TLS_VERSION" "$@"
+    detect_required_features "$CLI_CMD" "client" "$TLS_VERSION" "$@"
 
     # should we skip?
     if [ "X$SKIP_NEXT" = "XYES" ]; then
@@ -2359,52 +2309,6 @@ run_test    "Opaque key for server authentication: ECDHE-ECDSA" \
 
 requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
 requires_hash_alg SHA_256
-run_test    "Opaque key for server authentication: ECDH-" \
-            "$P_SRV auth_mode=required key_opaque=1\
-             crt_file=$DATA_FILES_PATH/server5.ku-ka.crt\
-             key_file=$DATA_FILES_PATH/server5.key key_opaque_algs=ecdh,none" \
-            "$P_CLI force_version=tls12" \
-            0 \
-            -c "Verifying peer X.509 certificate... ok" \
-            -c "Ciphersuite is TLS-ECDH-" \
-            -s "key types: Opaque, none" \
-            -s "Ciphersuite is TLS-ECDH-" \
-            -S "error" \
-            -C "error"
-
-requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
-requires_config_enabled PSA_WANT_ALG_ECDSA
-requires_config_enabled PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC
-requires_config_disabled MBEDTLS_SSL_ASYNC_PRIVATE
-requires_hash_alg SHA_256
-run_test    "Opaque key for server authentication: invalid key: ecdh with RSA key, no async" \
-            "$P_SRV key_opaque=1 crt_file=$DATA_FILES_PATH/server2-sha256.crt \
-             key_file=$DATA_FILES_PATH/server2.key key_opaque_algs=ecdh,none \
-             debug_level=1" \
-            "$P_CLI force_version=tls12" \
-            1 \
-            -s "key types: Opaque, none" \
-            -s "error" \
-            -c "error" \
-            -c "Public key type mismatch"
-
-requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
-requires_config_enabled PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC
-requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
-requires_hash_alg SHA_256
-run_test    "Opaque key for server authentication: invalid alg: ecdh with RSA key, async" \
-            "$P_SRV key_opaque=1 crt_file=$DATA_FILES_PATH/server2-sha256.crt \
-             key_file=$DATA_FILES_PATH/server2.key key_opaque_algs=ecdh,none \
-             debug_level=1" \
-            "$P_CLI force_version=tls12" \
-            1 \
-            -s "key types: Opaque, none" \
-            -s "got ciphersuites in common, but none of them usable" \
-            -s "error" \
-            -c "error"
-
-requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
-requires_hash_alg SHA_256
 run_test    "Opaque key for server authentication: invalid alg: ECDHE-ECDSA with ecdh" \
             "$P_SRV key_opaque=1 crt_file=$DATA_FILES_PATH/server5.crt \
              key_file=$DATA_FILES_PATH/server5.key key_opaque_algs=ecdh,none \
@@ -2432,24 +2336,6 @@ run_test    "Opaque keys for server authentication: EC keys with different algs,
             -c "CN=Polarssl Test EC CA" \
             -s "key types: Opaque, Opaque" \
             -s "Ciphersuite is TLS-ECDHE-ECDSA" \
-            -S "error" \
-            -C "error"
-
-requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
-requires_hash_alg SHA_384
-requires_config_disabled MBEDTLS_X509_REMOVE_INFO
-run_test    "Opaque keys for server authentication: EC keys with different algs, force ECDH-ECDSA" \
-            "$P_SRV key_opaque=1 crt_file=$DATA_FILES_PATH/server7.crt \
-             key_file=$DATA_FILES_PATH/server7.key key_opaque_algs=ecdsa-sign,none \
-             crt_file2=$DATA_FILES_PATH/server5.crt key_file2=$DATA_FILES_PATH/server5.key \
-             key_opaque_algs2=ecdh,none debug_level=3" \
-            "$P_CLI force_version=tls12 force_ciphersuite=TLS-ECDH-ECDSA-WITH-CAMELLIA-256-CBC-SHA384" \
-            0 \
-            -c "Verifying peer X.509 certificate... ok" \
-            -c "Ciphersuite is TLS-ECDH-ECDSA" \
-            -c "CN=Polarssl Test EC CA" \
-            -s "key types: Opaque, Opaque" \
-            -s "Ciphersuite is TLS-ECDH-ECDSA" \
             -S "error" \
             -C "error"
 
@@ -6179,31 +6065,6 @@ run_test "Authentication: hostname unset, client default, server picks PSK, 1.3"
          -C "x509_verify_cert() returned -" \
          -C "X509 - Certificate verification failed"
 
-# The purpose of the next two tests is to test the client's behaviour when receiving a server
-# certificate with an unsupported elliptic curve. This should usually not happen because
-# the client informs the server about the supported curves - it does, though, in the
-# corner case of a static ECDH suite, because the server doesn't check the curve on that
-# occasion (to be fixed). If that bug's fixed, the test needs to be altered to use a
-# different means to have the server ignoring the client's supported curve list.
-
-run_test    "Authentication: server ECDH p256v1, client required, p256v1 unsupported" \
-            "$P_SRV debug_level=1 key_file=$DATA_FILES_PATH/server5.key \
-             crt_file=$DATA_FILES_PATH/server5.ku-ka.crt" \
-            "$P_CLI force_version=tls12 debug_level=3 auth_mode=required groups=secp521r1" \
-            1 \
-            -c "bad certificate (EC key curve)"\
-            -c "! Certificate verification flags"\
-            -C "bad server certificate (ECDH curve)" # Expect failure at earlier verification stage
-
-run_test    "Authentication: server ECDH p256v1, client optional, p256v1 unsupported" \
-            "$P_SRV debug_level=1 key_file=$DATA_FILES_PATH/server5.key \
-             crt_file=$DATA_FILES_PATH/server5.ku-ka.crt" \
-            "$P_CLI force_version=tls12 debug_level=3 auth_mode=optional groups=secp521r1" \
-            1 \
-            -c "bad certificate (EC key curve)"\
-            -c "! Certificate verification flags"\
-            -c "bad server certificate (ECDH curve)" # Expect failure only at ECDH params check
-
 requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
 run_test    "Authentication: client SHA256, server required" \
             "$P_SRV auth_mode=required" \
@@ -6555,33 +6416,6 @@ run_test    "Authentication, CA callback: server badcert, client none" \
             -C "! The certificate is not correctly signed by the trusted CA" \
             -C "! mbedtls_ssl_handshake returned" \
             -C "X509 - Certificate verification failed"
-
-# The purpose of the next two tests is to test the client's behaviour when receiving a server
-# certificate with an unsupported elliptic curve. This should usually not happen because
-# the client informs the server about the supported curves - it does, though, in the
-# corner case of a static ECDH suite, because the server doesn't check the curve on that
-# occasion (to be fixed). If that bug's fixed, the test needs to be altered to use a
-# different means to have the server ignoring the client's supported curve list.
-
-run_test    "Authentication, CA callback: server ECDH p256v1, client required, p256v1 unsupported" \
-            "$P_SRV debug_level=1 key_file=$DATA_FILES_PATH/server5.key \
-             crt_file=$DATA_FILES_PATH/server5.ku-ka.crt" \
-            "$P_CLI force_version=tls12 ca_callback=1 debug_level=3 auth_mode=required groups=secp521r1" \
-            1 \
-            -c "use CA callback for X.509 CRT verification" \
-            -c "bad certificate (EC key curve)" \
-            -c "! Certificate verification flags" \
-            -C "bad server certificate (ECDH curve)" # Expect failure at earlier verification stage
-
-run_test    "Authentication, CA callback: server ECDH p256v1, client optional, p256v1 unsupported" \
-            "$P_SRV debug_level=1 key_file=$DATA_FILES_PATH/server5.key \
-             crt_file=$DATA_FILES_PATH/server5.ku-ka.crt" \
-            "$P_CLI force_version=tls12 ca_callback=1 debug_level=3 auth_mode=optional groups=secp521r1" \
-            1 \
-            -c "use CA callback for X.509 CRT verification" \
-            -c "bad certificate (EC key curve)"\
-            -c "! Certificate verification flags"\
-            -c "bad server certificate (ECDH curve)" # Expect failure only at ECDH params check
 
 requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
 run_test    "Authentication, CA callback: client SHA384, server required" \
@@ -7986,14 +7820,6 @@ run_test    "keyUsage srv 1.2: ECC, digitalSignature -> ECDHE-ECDSA" \
             "$P_CLI" \
             0 \
             -c "Ciphersuite is TLS-ECDHE-ECDSA-WITH-"
-
-
-run_test    "keyUsage srv 1.2: ECC, keyAgreement -> ECDH-" \
-            "$P_SRV force_version=tls12 key_file=$DATA_FILES_PATH/server5.key \
-             crt_file=$DATA_FILES_PATH/server5.ku-ka.crt" \
-            "$P_CLI" \
-            0 \
-            -c "Ciphersuite is TLS-ECDH-"
 
 run_test    "keyUsage srv 1.2: ECC, keyEncipherment -> fail" \
             "$P_SRV force_version=tls12 key_file=$DATA_FILES_PATH/server5.key \

@@ -622,7 +622,7 @@ int psa_can_do_hash(psa_algorithm_t hash_alg);
  * \param key_type    The key type.
  * \param cipher_alg  The cipher algorithm.
  *
- * \return 1 if the PSA can handle \p hash_alg, 0 otherwise.
+ * \return 1 if the PSA can handle \p cipher_alg, 0 otherwise.
  */
 int psa_can_do_cipher(psa_key_type_t key_type, psa_algorithm_t cipher_alg);
 

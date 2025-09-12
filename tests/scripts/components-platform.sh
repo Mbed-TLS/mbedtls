@@ -297,9 +297,6 @@ component_build_sha_armce () {
         grep -E 'sha256[a-z0-9]+.32\s+[qv]' ${BUILTIN_SRC_PATH}/sha256.s
     scripts/config.py unset MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_ONLY
 
-
-    # test the deprecated form of the config option
-
     scripts/config.py set MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_IF_PRESENT
         msg "MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_IF_PRESENT clang, aarch64"
         make -B library/../${BUILTIN_SRC_PATH}/sha256.o library/../${BUILTIN_SRC_PATH}/sha256.s CC=clang CFLAGS="--target=aarch64-linux-gnu -march=armv8-a+crypto"

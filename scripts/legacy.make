@@ -62,7 +62,6 @@ tests/%: FORCE
 generated_files: library/generated_files
 generated_files: programs/generated_files
 generated_files: tests/generated_files
-generated_files: visualc_files
 
 # Set GEN_FILES to the empty string to disable dependencies on generated
 # source files. Then `make generated_files` will only build files that
@@ -86,26 +85,6 @@ else
 # re-generate it if it's present but older than its dependencies.
 gen_file_dep = |
 endif
-
-.PHONY: visualc_files
-VISUALC_FILES = visualc/VS2017/mbedTLS.sln visualc/VS2017/mbedTLS.vcxproj
-# TODO: $(app).vcxproj for each $(app) in programs/
-visualc_files: $(VISUALC_FILES)
-
-# Ensure that the .c files that generate_visualc_files.pl enumerates are
-# present before it runs. It doesn't matter if the files aren't up-to-date,
-# they just need to be present.
-$(VISUALC_FILES): | library/generated_files
-$(VISUALC_FILES): | programs/generated_files
-$(VISUALC_FILES): | tests/generated_files
-$(VISUALC_FILES): $(gen_file_dep) scripts/generate_visualc_files.pl
-$(VISUALC_FILES): $(gen_file_dep) scripts/data_files/vs2017-app-template.vcxproj
-$(VISUALC_FILES): $(gen_file_dep) scripts/data_files/vs2017-main-template.vcxproj
-$(VISUALC_FILES): $(gen_file_dep) scripts/data_files/vs2017-sln-template.sln
-# TODO: also the list of .c and .h source files, but not their content
-$(VISUALC_FILES):
-	echo "  Gen   $@ ..."
-	$(PERL) scripts/generate_visualc_files.pl
 
 ifndef WINDOWS
 install: no_test
@@ -159,12 +138,6 @@ neat: clean_more_on_top
 	$(MAKE) -C library neat
 	$(MAKE) -C programs neat
 	$(MAKE) -C tests neat
-ifndef WINDOWS
-	rm -f visualc/VS2017/*.vcxproj visualc/VS2017/mbedTLS.sln
-else
-	if exist visualc\VS2017\*.vcxproj del /Q /F visualc\VS2017\*.vcxproj
-	if exist visualc\VS2017\mbedTLS.sln del /Q /F visualc\VS2017\mbedTLS.sln
-endif
 
 ifndef PSASIM
 check: lib

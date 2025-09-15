@@ -39,12 +39,6 @@ component_check_generated_files () {
     make
     cd "$MBEDTLS_ROOT_DIR"
 
-    # Files for MS Visual Studio are not generated with cmake thus copy the
-    # ones generated with make to pacify make_generated_files.py check.
-    # Files for MS Visual Studio are rather on their way out thus not adding
-    # support for them with cmake.
-    cp -Rf visualc "$OUT_OF_SOURCE_DIR"
-
     $FRAMEWORK/scripts/make_generated_files.py --root "$OUT_OF_SOURCE_DIR" --check
 
     cd $TF_PSA_CRYPTO_ROOT_DIR

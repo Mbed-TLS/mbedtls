@@ -59,7 +59,7 @@ class MbedtlsTestConfigChecks(unittest_config_checks.TestConfigChecks):
         """Error when redundantly setting a subproject internal option."""
         self.bad_case('#define PSA_WANT_ALG_MD5 1',
                       '#define MBEDTLS_MD5_C',
-                      error=r'MBEDTLS_MD5_C.* PSA_WANT_ALG_MD5 in psa/crypto_config\.h')
+                      error=r'MBEDTLS_MD5_C is an internal macro')
 
     def test_define_MBEDTLS_MD5_C_added(self) -> None:
         """Error when setting a subproject internal option that was disabled."""
@@ -68,7 +68,7 @@ class MbedtlsTestConfigChecks(unittest_config_checks.TestConfigChecks):
                       #undef MBEDTLS_MD5_C
                       ''',
                       '#define MBEDTLS_MD5_C',
-                      error=r'MBEDTLS_MD5_C.* PSA_WANT_ALG_MD5 in psa/crypto_config\.h')
+                      error=r'MBEDTLS_MD5_C is an internal macro')
 
     def test_define_MBEDTLS_BASE64_C_redundant(self) -> None:
         """Ok to redundantly set a subproject option."""

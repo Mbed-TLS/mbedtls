@@ -3,9 +3,12 @@
 """Generate C preprocessor code to check for bad configurations.
 """
 
+from typing import Iterator
+
 import framework_scripts_path # pylint: disable=unused-import
 from mbedtls_framework.config_checks_generator import * \
     #pylint: disable=wildcard-import,unused-wildcard-import
+from mbedtls_framework import config_history
 
 class CryptoInternal(SubprojectInternal):
     SUBPROJECT = 'TF-PSA-Crypto'
@@ -13,16 +16,30 @@ class CryptoInternal(SubprojectInternal):
 class CryptoOption(SubprojectOption):
     SUBPROJECT = 'psa/crypto_config.h'
 
+def checkers_for_removed_options() -> Iterator[Checker]:
+    """Discover removed options. Yield corresponding checkers."""
+    history = config_history.ConfigHistory()
+    old_public = history.options('mbedtls', '3.6')
+    new_public = history.options('mbedtls', '4.0')
+    crypto_public = history.options('tfpsacrypto', '1.0')
+    crypto_internal = history.internal('tfpsacrypto', '1.0')
+    for option in sorted(old_public - new_public):
+        if option in crypto_public:
+            yield CryptoOption(option)
+        elif option in crypto_internal:
+            yield CryptoInternal(option)
+        else:
+            yield Removed(option, 'Mbed TLS 4.0')
+
+def all_checkers() -> Iterator[Checker]:
+    """Yield all checkers."""
+    yield from checkers_for_removed_options()
+
 MBEDTLS_CHECKS = BranchData(
     header_directory='library',
     header_prefix='mbedtls_',
     project_cpp_prefix='MBEDTLS',
-    checkers=[
-        CryptoInternal('MBEDTLS_MD5_C', 'PSA_WANT_ALG_MD5 in psa/crypto_config.h'),
-        CryptoOption('MBEDTLS_BASE64_C'),
-        Removed('MBEDTLS_KEY_EXCHANGE_RSA_ENABLED', 'Mbed TLS 4.0'),
-        Removed('MBEDTLS_PADLOCK_C', 'Mbed TLS 4.0'),
-    ],
+    checkers=list(all_checkers()),
 )
 
 if __name__ == '__main__':

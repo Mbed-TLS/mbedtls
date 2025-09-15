@@ -4,7 +4,7 @@
 
 Basic usage, to read the Mbed TLS configuration:
     config = CombinedConfigFile()
-    if 'MBEDTLS_RSA_C' in config: print('RSA is enabled')
+    if 'MBEDTLS_SSL_TLS_C' in config: print('TLS is enabled')
 """
 
 ## Copyright The Mbed TLS Contributors

@@ -266,7 +266,6 @@
  * Enable the ECDHE-RSA based ciphersuite modes in SSL / TLS.
  *
  * Requires: MBEDTLS_ECDH_C or PSA_WANT_ALG_ECDH
- *           MBEDTLS_RSA_C
  *           PSA_WANT_ALG_RSA_PKCS1V15_SIGN
  *           MBEDTLS_X509_CRT_PARSE_C
  *

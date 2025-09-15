@@ -728,9 +728,6 @@ component_test_psa_crypto_config_accel_ecc_some_key_types () {
                     KEY_TYPE_ECC_KEY_PAIR_EXPORT \
                     $(helper_get_psa_curve_list)"
 
-    # Disable modules that are accelerated - some will be re-enabled
-    scripts/config.py unset MBEDTLS_ECP_C
-
     # Disable all curves - those that aren't accelerated should be re-enabled
     helper_disable_builtin_curves
 
@@ -788,9 +785,6 @@ common_test_psa_crypto_config_accel_ecc_some_curves () {
     scripts/config.py unset MBEDTLS_PK_C
     scripts/config.py unset MBEDTLS_PK_PARSE_C
     scripts/config.py unset MBEDTLS_PK_WRITE_C
-
-    # Disable modules that are accelerated - some will be re-enabled
-    scripts/config.py unset MBEDTLS_ECP_C
 
     # Disable all curves - those that aren't accelerated should be re-enabled
     helper_disable_builtin_curves
@@ -897,10 +891,6 @@ config_psa_crypto_config_ecp_light_only () {
     driver_only="$1"
     # start with config full for maximum coverage (also enables USE_PSA)
     helper_libtestdriver1_adjust_config "full"
-    if [ "$driver_only" -eq 1 ]; then
-        # Disable modules that are accelerated
-        scripts/config.py unset MBEDTLS_ECP_C
-    fi
 
     # Restartable feature is not yet supported by PSA. Once it will in
     # the future, the following line could be removed (see issues
@@ -987,11 +977,6 @@ config_psa_crypto_no_ecp_at_all () {
     driver_only="$1"
     # start with full config for maximum coverage (also enables USE_PSA)
     helper_libtestdriver1_adjust_config "full"
-
-    if [ "$driver_only" -eq 1 ]; then
-        # Disable ECP module (entirely)
-        scripts/config.py unset MBEDTLS_ECP_C
-    fi
 
     # Disable all the features that auto-enable ECP_LIGHT (see build_info.h)
     scripts/config.py unset MBEDTLS_PK_PARSE_EC_EXTENDED
@@ -1100,8 +1085,6 @@ config_psa_crypto_config_accel_ecc_ffdh_no_bignum () {
     helper_libtestdriver1_adjust_config "full"
 
     if [ "$driver_only" -eq 1 ]; then
-        # Disable ECP module (entirely)
-        scripts/config.py unset MBEDTLS_ECP_C
         # Also disable bignum
         scripts/config.py unset MBEDTLS_BIGNUM_C
     fi

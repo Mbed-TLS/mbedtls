@@ -1,0 +1,5 @@
+API changes
+   * When building the library as a PSA client (MBEDTLS_PSA_CRYPTO_CLIENT
+     enabled and MBEDTLS_PSA_CRYPTO_C disabled), you need to provide the
+     function psa_can_do_cipher() in addition to psa_can_do_hash(). This
+     changed was made in Mbed TLS 3.6.0 but was not announced then.

@@ -293,7 +293,7 @@
  * Thread v1.0.0 specification; incompatible changes to the specification
  * might still happen. For this reason, this is disabled by default.
  *
- * Requires: MBEDTLS_ECJPAKE_C or PSA_WANT_ALG_JPAKE
+ * Requires: PSA_WANT_ALG_JPAKE
  *           PSA_WANT_ALG_SHA_256
  *           MBEDTLS_ECP_DP_SECP256R1_ENABLED
  *

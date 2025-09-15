@@ -43,7 +43,6 @@ class MbedtlsTestConfigChecks(unittest_config_checks.TestConfigChecks):
         self.bad_case('''
                       #undef PSA_WANT_ALG_ECDSA
                       #undef PSA_WANT_ALG_DETERMINISTIC_ECDSA
-                      #undef MBEDTLS_ECDSA_C
                       ''',
                       '''
                       #if defined(PSA_WANT_ALG_ECDSA)
@@ -51,9 +50,6 @@ class MbedtlsTestConfigChecks(unittest_config_checks.TestConfigChecks):
                       #endif
                       #if defined(PSA_WANT_ALG_DETERMINSTIC_ECDSA)
                       #error PSA_WANT_ALG_DETERMINSTIC_ECDSA unexpected
-                      #endif
-                      #if defined(MBEDTLS_ECDSA_C)
-                      #error MBEDTLS_ECDSA_C unexpected
                       #endif
                       ''',
                       error=('MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED'))

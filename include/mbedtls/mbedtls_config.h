@@ -224,7 +224,7 @@
  * Enable the ECDHE-ECDSA based ciphersuite modes in SSL / TLS.
  *
  * Requires: PSA_WANT_ALG_ECDH
- *           MBEDTLS_ECDSA_C or PSA_WANT_ALG_ECDSA
+ *           PSA_WANT_ALG_ECDSA
  *           MBEDTLS_X509_CRT_PARSE_C
  *
  * This enables the following ciphersuites (if other requisites are
@@ -799,7 +799,7 @@
  * Requires: PSA_WANT_ALG_ECDH or PSA_WANT_ALG_FFDH
  *           MBEDTLS_X509_CRT_PARSE_C
  *           and at least one of:
- *               MBEDTLS_ECDSA_C or PSA_WANT_ALG_ECDSA
+ *               PSA_WANT_ALG_ECDSA
  *               PSA_WANT_ALG_RSA_PSS
  *
  * Comment to disable support for the ephemeral key exchange mode in TLS 1.3.

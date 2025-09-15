@@ -433,7 +433,6 @@ component_test_everest () {
 component_test_everest_curve25519_only () {
     msg "build: Everest ECDH context, only Curve25519" # ~ 6 min
     scripts/config.py set MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED
-    scripts/config.py unset MBEDTLS_ECDSA_C
     scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_ALG_DETERMINISTIC_ECDSA
     scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_ALG_ECDSA
     scripts/config.py -c $CRYPTO_CONFIG_H set PSA_WANT_ALG_ECDH
@@ -568,9 +567,6 @@ component_test_psa_crypto_config_accel_ecdsa () {
     loc_accel_list="ALG_ECDSA ALG_DETERMINISTIC_ECDSA \
                     $(helper_get_psa_key_type_list "ECC") \
                     $(helper_get_psa_curve_list)"
-
-    # Disable the module that's accelerated
-    scripts/config.py unset MBEDTLS_ECDSA_C
 
     # Disable things that depend on it
     scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
@@ -735,7 +731,6 @@ component_test_psa_crypto_config_accel_ecc_some_key_types () {
                     $(helper_get_psa_curve_list)"
 
     # Disable modules that are accelerated - some will be re-enabled
-    scripts/config.py unset MBEDTLS_ECDSA_C
     scripts/config.py unset MBEDTLS_ECJPAKE_C
     scripts/config.py unset MBEDTLS_ECP_C
 
@@ -798,7 +793,6 @@ common_test_psa_crypto_config_accel_ecc_some_curves () {
     scripts/config.py unset MBEDTLS_PK_WRITE_C
 
     # Disable modules that are accelerated - some will be re-enabled
-    scripts/config.py unset MBEDTLS_ECDSA_C
     scripts/config.py unset MBEDTLS_ECJPAKE_C
     scripts/config.py unset MBEDTLS_ECP_C
 
@@ -909,7 +903,6 @@ config_psa_crypto_config_ecp_light_only () {
     helper_libtestdriver1_adjust_config "full"
     if [ "$driver_only" -eq 1 ]; then
         # Disable modules that are accelerated
-        scripts/config.py unset MBEDTLS_ECDSA_C
         scripts/config.py unset MBEDTLS_ECJPAKE_C
         scripts/config.py unset MBEDTLS_ECP_C
     fi
@@ -1002,7 +995,6 @@ config_psa_crypto_no_ecp_at_all () {
 
     if [ "$driver_only" -eq 1 ]; then
         # Disable modules that are accelerated
-        scripts/config.py unset MBEDTLS_ECDSA_C
         scripts/config.py unset MBEDTLS_ECJPAKE_C
         # Disable ECP module (entirely)
         scripts/config.py unset MBEDTLS_ECP_C
@@ -1116,7 +1108,6 @@ config_psa_crypto_config_accel_ecc_ffdh_no_bignum () {
 
     if [ "$driver_only" -eq 1 ]; then
         # Disable modules that are accelerated
-        scripts/config.py unset MBEDTLS_ECDSA_C
         scripts/config.py unset MBEDTLS_ECJPAKE_C
         # Disable ECP module (entirely)
         scripts/config.py unset MBEDTLS_ECP_C

@@ -433,17 +433,16 @@ component_test_everest () {
 component_test_everest_curve25519_only () {
     msg "build: Everest ECDH context, only Curve25519" # ~ 6 min
     scripts/config.py set MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED
-    scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_ALG_DETERMINISTIC_ECDSA
-    scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_ALG_ECDSA
-    scripts/config.py -c $CRYPTO_CONFIG_H set PSA_WANT_ALG_ECDH
+    scripts/config.py unset PSA_WANT_ALG_DETERMINISTIC_ECDSA
+    scripts/config.py unset PSA_WANT_ALG_ECDSA
+    scripts/config.py set PSA_WANT_ALG_ECDH
     scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED
     scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
-    scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_ALG_JPAKE
+    scripts/config.py unset PSA_WANT_ALG_JPAKE
 
     # Disable all curves
-    scripts/config.py unset-all "MBEDTLS_ECP_DP_[0-9A-Z_a-z]*_ENABLED"
-    scripts/config.py -c $CRYPTO_CONFIG_H unset-all "PSA_WANT_ECC_[0-9A-Z_a-z]*$"
-    scripts/config.py -c $CRYPTO_CONFIG_H set PSA_WANT_ECC_MONTGOMERY_255
+    scripts/config.py unset-all "PSA_WANT_ECC_[0-9A-Z_a-z]*$"
+    scripts/config.py set PSA_WANT_ECC_MONTGOMERY_255
 
     make CC=$ASAN_CC CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS"
 

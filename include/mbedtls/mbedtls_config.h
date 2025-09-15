@@ -295,7 +295,7 @@
  *
  * Requires: PSA_WANT_ALG_JPAKE
  *           PSA_WANT_ALG_SHA_256
- *           MBEDTLS_ECP_DP_SECP256R1_ENABLED
+ *           PSA_WANT_ECC_SECP_R1_256
  *
  * This enables the following ciphersuites (if other requisites are
  * enabled as well):

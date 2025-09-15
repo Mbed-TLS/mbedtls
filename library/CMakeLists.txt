@@ -77,23 +77,11 @@ if(GEN_FILES)
         COMMAND
             ${MBEDTLS_PYTHON_EXECUTABLE}
             ${MBEDTLS_DIR}/scripts/generate_config_checks.py
-            --list ""
+            --list-for-cmake "${CMAKE_CURRENT_BINARY_DIR}"
         WORKING_DIRECTORY
             ${CMAKE_CURRENT_SOURCE_DIR}/..
         OUTPUT_VARIABLE
             MBEDTLS_GENERATED_CONFIG_CHECKS_HEADERS)
-    # Turn newline-terminated non-empty list into semicolon-separated list.
-    string(REPLACE "\n" ";"
-           MBEDTLS_GENERATED_CONFIG_CHECKS_HEADERS "${MBEDTLS_GENERATED_CONFIG_CHECKS_HEADERS}")
-    string(REGEX REPLACE ";\$" ""
-           MBEDTLS_GENERATED_CONFIG_CHECKS_HEADERS "${MBEDTLS_GENERATED_CONFIG_CHECKS_HEADERS}")
-    # Prepend the binary dir to all element of MBEDTLS_GENERATED_CONFIG_CHECKS_HEADERS,
-    # using features that exist in CMake 3.5.1.
-    string(REPLACE ";" ";${CMAKE_CURRENT_BINARY_DIR}/"
-           MBEDTLS_GENERATED_CONFIG_CHECKS_HEADERS
-           "${MBEDTLS_GENERATED_CONFIG_CHECKS_HEADERS}")
-    set(MBEDTLS_GENERATED_CONFIG_CHECKS_HEADERS
-        "${CMAKE_CURRENT_BINARY_DIR}/${MBEDTLS_GENERATED_CONFIG_CHECKS_HEADERS}")
 
     add_custom_command(
         OUTPUT ${MBEDTLS_GENERATED_CONFIG_CHECKS_HEADERS}

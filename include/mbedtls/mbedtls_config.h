@@ -223,7 +223,7 @@
  *
  * Enable the ECDHE-ECDSA based ciphersuite modes in SSL / TLS.
  *
- * Requires: MBEDTLS_ECDH_C or PSA_WANT_ALG_ECDH
+ * Requires: PSA_WANT_ALG_ECDH
  *           MBEDTLS_ECDSA_C or PSA_WANT_ALG_ECDSA
  *           MBEDTLS_X509_CRT_PARSE_C
  *
@@ -247,7 +247,7 @@
  *
  * Enable the ECDHE-PSK based ciphersuite modes in SSL / TLS.
  *
- * Requires: MBEDTLS_ECDH_C or PSA_WANT_ALG_ECDH
+ * Requires: PSA_WANT_ALG_ECDH
  *
  * This enables the following ciphersuites (if other requisites are
  * enabled as well):
@@ -265,7 +265,7 @@
  *
  * Enable the ECDHE-RSA based ciphersuite modes in SSL / TLS.
  *
- * Requires: MBEDTLS_ECDH_C or PSA_WANT_ALG_ECDH
+ * Requires: PSA_WANT_ALG_ECDH
  *           PSA_WANT_ALG_RSA_PKCS1V15_SIGN
  *           MBEDTLS_X509_CRT_PARSE_C
  *

@@ -610,9 +610,6 @@ component_test_psa_crypto_config_accel_ecdh () {
                     $(helper_get_psa_key_type_list "ECC") \
                     $(helper_get_psa_curve_list)"
 
-    # Disable the module that's accelerated
-    scripts/config.py unset MBEDTLS_ECDH_C
-
     # Disable things that depend on it
     scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
     scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED
@@ -739,7 +736,6 @@ component_test_psa_crypto_config_accel_ecc_some_key_types () {
 
     # Disable modules that are accelerated - some will be re-enabled
     scripts/config.py unset MBEDTLS_ECDSA_C
-    scripts/config.py unset MBEDTLS_ECDH_C
     scripts/config.py unset MBEDTLS_ECJPAKE_C
     scripts/config.py unset MBEDTLS_ECP_C
 
@@ -803,7 +799,6 @@ common_test_psa_crypto_config_accel_ecc_some_curves () {
 
     # Disable modules that are accelerated - some will be re-enabled
     scripts/config.py unset MBEDTLS_ECDSA_C
-    scripts/config.py unset MBEDTLS_ECDH_C
     scripts/config.py unset MBEDTLS_ECJPAKE_C
     scripts/config.py unset MBEDTLS_ECP_C
 
@@ -915,7 +910,6 @@ config_psa_crypto_config_ecp_light_only () {
     if [ "$driver_only" -eq 1 ]; then
         # Disable modules that are accelerated
         scripts/config.py unset MBEDTLS_ECDSA_C
-        scripts/config.py unset MBEDTLS_ECDH_C
         scripts/config.py unset MBEDTLS_ECJPAKE_C
         scripts/config.py unset MBEDTLS_ECP_C
     fi
@@ -1009,7 +1003,6 @@ config_psa_crypto_no_ecp_at_all () {
     if [ "$driver_only" -eq 1 ]; then
         # Disable modules that are accelerated
         scripts/config.py unset MBEDTLS_ECDSA_C
-        scripts/config.py unset MBEDTLS_ECDH_C
         scripts/config.py unset MBEDTLS_ECJPAKE_C
         # Disable ECP module (entirely)
         scripts/config.py unset MBEDTLS_ECP_C
@@ -1124,7 +1117,6 @@ config_psa_crypto_config_accel_ecc_ffdh_no_bignum () {
     if [ "$driver_only" -eq 1 ]; then
         # Disable modules that are accelerated
         scripts/config.py unset MBEDTLS_ECDSA_C
-        scripts/config.py unset MBEDTLS_ECDH_C
         scripts/config.py unset MBEDTLS_ECJPAKE_C
         # Disable ECP module (entirely)
         scripts/config.py unset MBEDTLS_ECP_C

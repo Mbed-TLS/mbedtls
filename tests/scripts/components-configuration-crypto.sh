@@ -1083,11 +1083,6 @@ config_psa_crypto_config_accel_ecc_ffdh_no_bignum () {
     # start with full config for maximum coverage (also enables USE_PSA)
     helper_libtestdriver1_adjust_config "full"
 
-    if [ "$driver_only" -eq 1 ]; then
-        # Also disable bignum
-        scripts/config.py unset MBEDTLS_BIGNUM_C
-    fi
-
     # Disable all the features that auto-enable ECP_LIGHT (see build_info.h)
     scripts/config.py unset MBEDTLS_PK_PARSE_EC_EXTENDED
     scripts/config.py unset MBEDTLS_PK_PARSE_EC_COMPRESSED

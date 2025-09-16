@@ -2,4 +2,4 @@ Security
    * Fix a timing side channel in CBC-PKCS7 decryption that could
      allow an attacker who can submit chosen ciphertexts to recover
      some plaintexts through a timing-based padding oracle attack.
-     Credits to Beat Heeb from Oberon microsystems AG. CVE-TODO
+     Credits to Beat Heeb from Oberon microsystems AG. CVE-2025-59438

@@ -1076,11 +1076,11 @@ static psa_algorithm_t ssl_tls13_iana_sig_alg_to_psa_alg(uint16_t sig_alg)
 {
     switch (sig_alg) {
         case MBEDTLS_TLS1_3_SIG_ECDSA_SECP256R1_SHA256:
-            return PSA_ALG_ECDSA(PSA_ALG_SHA_256);
+            return MBEDTLS_PK_ALG_ECDSA(PSA_ALG_SHA_256);
         case MBEDTLS_TLS1_3_SIG_ECDSA_SECP384R1_SHA384:
-            return PSA_ALG_ECDSA(PSA_ALG_SHA_384);
+            return MBEDTLS_PK_ALG_ECDSA(PSA_ALG_SHA_384);
         case MBEDTLS_TLS1_3_SIG_ECDSA_SECP521R1_SHA512:
-            return PSA_ALG_ECDSA(PSA_ALG_SHA_512);
+            return MBEDTLS_PK_ALG_ECDSA(PSA_ALG_SHA_512);
         case MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA256:
             return PSA_ALG_RSA_PSS(PSA_ALG_SHA_256);
         case MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA384:
@@ -1160,8 +1160,8 @@ static int ssl_tls13_pick_key_cert(mbedtls_ssl_context *ssl)
             if (mbedtls_ssl_tls13_check_sig_alg_cert_key_match(
                     *sig_alg, &key_cert->cert->pk)
                 && psa_alg != PSA_ALG_NONE &&
-                mbedtls_pk_can_do_ext(&key_cert->cert->pk, psa_alg,
-                                      PSA_KEY_USAGE_SIGN_HASH) == 1
+                mbedtls_pk_can_do_psa(&key_cert->cert->pk, psa_alg,
+                                      PSA_KEY_USAGE_VERIFY_HASH) == 1
                 ) {
                 ssl->handshake->key_cert = key_cert;
                 MBEDTLS_SSL_DEBUG_MSG(3,

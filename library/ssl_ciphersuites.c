@@ -924,7 +924,7 @@ psa_algorithm_t mbedtls_ssl_get_ciphersuite_sig_pk_psa_alg(const mbedtls_ssl_cip
                 mbedtls_md_psa_alg_from_type((mbedtls_md_type_t) info->mac));
 
         case MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA:
-            return PSA_ALG_ECDSA(mbedtls_md_psa_alg_from_type((mbedtls_md_type_t) info->mac));
+            return MBEDTLS_PK_ALG_ECDSA(mbedtls_md_psa_alg_from_type((mbedtls_md_type_t) info->mac));
 
         default:
             return PSA_ALG_NONE;

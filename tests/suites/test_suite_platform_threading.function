@@ -1,0 +1,32 @@
+/* BEGIN_HEADER */
+/* Basic tests for the threading interface.
+ */
+
+#include "mbedtls/threading.h"
+
+#include "test/threading_helpers.h"
+
+/* END_HEADER */
+
+/* BEGIN_DEPENDENCIES
+ * depends_on:MBEDTLS_THREADING_C
+ * END_DEPENDENCIES
+ */
+
+/* BEGIN_CASE */
+void mutex_usage_nominal(int lock_cycles)
+{
+    mbedtls_threading_mutex_t mutex;
+
+    mbedtls_mutex_init(&mutex);
+
+    for (int i = 0; i < lock_cycles; i++) {
+        mbedtls_test_set_step(i);
+        TEST_EQUAL(mbedtls_mutex_lock(&mutex), 0);
+        TEST_EQUAL(mbedtls_mutex_unlock(&mutex), 0);
+    }
+
+exit:
+    mbedtls_mutex_free(&mutex);
+}
+/* END_CASE */

@@ -118,8 +118,6 @@ Support description
   | MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED   | n/a     |
   | MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED   | n/a     |
   | MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED | n/a     |
-  | MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED  | n/a     |
-  | MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED    | n/a     |
   | MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED     | n/a     |
   |                                          |         |
   | MBEDTLS_PSA_CRYPTO_C                     | no (1)  |

@@ -274,54 +274,6 @@
 #define MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED
 
 /**
- * \def MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED
- *
- * Enable the ECDH-ECDSA based ciphersuite modes in SSL / TLS.
- *
- * Requires: MBEDTLS_ECDH_C or PSA_WANT_ALG_ECDH
- *           MBEDTLS_ECDSA_C or PSA_WANT_ALG_ECDSA
- *           MBEDTLS_X509_CRT_PARSE_C
- *
- * This enables the following ciphersuites (if other requisites are
- * enabled as well):
- *      MBEDTLS_TLS_ECDH_ECDSA_WITH_AES_128_CBC_SHA
- *      MBEDTLS_TLS_ECDH_ECDSA_WITH_AES_256_CBC_SHA
- *      MBEDTLS_TLS_ECDH_ECDSA_WITH_AES_128_CBC_SHA256
- *      MBEDTLS_TLS_ECDH_ECDSA_WITH_AES_256_CBC_SHA384
- *      MBEDTLS_TLS_ECDH_ECDSA_WITH_AES_128_GCM_SHA256
- *      MBEDTLS_TLS_ECDH_ECDSA_WITH_AES_256_GCM_SHA384
- *      MBEDTLS_TLS_ECDH_ECDSA_WITH_CAMELLIA_128_CBC_SHA256
- *      MBEDTLS_TLS_ECDH_ECDSA_WITH_CAMELLIA_256_CBC_SHA384
- *      MBEDTLS_TLS_ECDH_ECDSA_WITH_CAMELLIA_128_GCM_SHA256
- *      MBEDTLS_TLS_ECDH_ECDSA_WITH_CAMELLIA_256_GCM_SHA384
- */
-#define MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED
-
-/**
- * \def MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED
- *
- * Enable the ECDH-RSA based ciphersuite modes in SSL / TLS.
- *
- * Requires: MBEDTLS_ECDH_C or PSA_WANT_ALG_ECDH
- *           MBEDTLS_RSA_C
- *           MBEDTLS_X509_CRT_PARSE_C
- *
- * This enables the following ciphersuites (if other requisites are
- * enabled as well):
- *      MBEDTLS_TLS_ECDH_RSA_WITH_AES_128_CBC_SHA
- *      MBEDTLS_TLS_ECDH_RSA_WITH_AES_256_CBC_SHA
- *      MBEDTLS_TLS_ECDH_RSA_WITH_AES_128_CBC_SHA256
- *      MBEDTLS_TLS_ECDH_RSA_WITH_AES_256_CBC_SHA384
- *      MBEDTLS_TLS_ECDH_RSA_WITH_AES_128_GCM_SHA256
- *      MBEDTLS_TLS_ECDH_RSA_WITH_AES_256_GCM_SHA384
- *      MBEDTLS_TLS_ECDH_RSA_WITH_CAMELLIA_128_CBC_SHA256
- *      MBEDTLS_TLS_ECDH_RSA_WITH_CAMELLIA_256_CBC_SHA384
- *      MBEDTLS_TLS_ECDH_RSA_WITH_CAMELLIA_128_GCM_SHA256
- *      MBEDTLS_TLS_ECDH_RSA_WITH_CAMELLIA_256_GCM_SHA384
- */
-#define MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED
-
-/**
  * \def MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED
  *
  * Enable the ECJPAKE based ciphersuite modes in SSL / TLS.
@@ -532,28 +484,6 @@
  * Uncomment to enable the Connection ID extension.
  */
 #define MBEDTLS_SSL_DTLS_CONNECTION_ID
-
-/**
- * \def MBEDTLS_SSL_DTLS_CONNECTION_ID_COMPAT
- *
- * Defines whether RFC 9146 (default) or the legacy version
- * (version draft-ietf-tls-dtls-connection-id-05,
- * https://tools.ietf.org/html/draft-ietf-tls-dtls-connection-id-05)
- * is used.
- *
- * Set the value to 0 for the standard version, and
- * 1 for the legacy draft version.
- *
- * \deprecated Support for the legacy version of the DTLS
- *             Connection ID feature is deprecated. Please
- *             switch to the standardized version defined
- *             in RFC 9146 enabled by utilizing
- *             MBEDTLS_SSL_DTLS_CONNECTION_ID without use
- *             of MBEDTLS_SSL_DTLS_CONNECTION_ID_COMPAT.
- *
- * Requires: MBEDTLS_SSL_DTLS_CONNECTION_ID
- */
-#define MBEDTLS_SSL_DTLS_CONNECTION_ID_COMPAT 0
 
 /**
  * \def MBEDTLS_SSL_DTLS_HELLO_VERIFY

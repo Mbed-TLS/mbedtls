@@ -15,7 +15,7 @@
 
 #include "mbedtls/x509.h"
 #include "mbedtls/x509_crl.h"
-#include "mbedtls/bignum.h"
+#include "mbedtls/private/bignum.h"
 
 /**
  * \addtogroup x509_module
@@ -81,7 +81,7 @@ typedef struct mbedtls_x509_crt {
 
     mbedtls_x509_buf MBEDTLS_PRIVATE(sig);               /**< Signature: hash of the tbs part signed with the private key. */
     mbedtls_md_type_t MBEDTLS_PRIVATE(sig_md);           /**< Internal representation of the MD algorithm of the signature algorithm, e.g. MBEDTLS_MD_SHA256 */
-    mbedtls_pk_type_t MBEDTLS_PRIVATE(sig_pk);           /**< Internal representation of the Public Key algorithm of the signature algorithm, e.g. MBEDTLS_PK_RSA */
+    mbedtls_pk_sigalg_t MBEDTLS_PRIVATE(sig_pk);           /**< Internal representation of the Public Key algorithm of the signature algorithm, e.g. MBEDTLS_PK_RSA */
 
     /** Next certificate in the linked list that constitutes the CA chain.
      * \p NULL indicates the end of the list.
@@ -234,7 +234,7 @@ mbedtls_x509write_cert;
  * \param ctx       Certificate context to use
  * \param san_list  List of SAN values
  *
- * \return          0 if successful, or MBEDTLS_ERR_X509_ALLOC_FAILED
+ * \return          0 if successful, or #PSA_ERROR_INSUFFICIENT_MEMORY
  *
  * \note            "dnsName", "uniformResourceIdentifier", "IP address",
  *                  "otherName", and "DirectoryName", as defined in RFC 5280,
@@ -610,7 +610,7 @@ int mbedtls_x509_crt_verify_info(char *buf, size_t size, const char *prefix,
  *                 other than fatal error, as a non-zero return code
  *                 immediately aborts the verification process. For fatal
  *                 errors, a specific error code should be used (different
- *                 from MBEDTLS_ERR_X509_CERT_VERIFY_FAILED which should not
+ *                 from #MBEDTLS_ERR_X509_CERT_VERIFY_FAILED which should not
  *                 be returned at this point), or MBEDTLS_ERR_X509_FATAL_ERROR
  *                 can be used if no better code is available.
  *
@@ -826,7 +826,7 @@ int mbedtls_x509_crt_verify_with_ca_cb(mbedtls_x509_crt *crt,
  *                 that bit MAY be set.
  *
  * \return         0 is these uses of the certificate are allowed,
- *                 MBEDTLS_ERR_X509_BAD_INPUT_DATA if the keyUsage extension
+ *                 #MBEDTLS_ERR_X509_BAD_INPUT_DATA if the keyUsage extension
  *                 is present but does not match the usage argument.
  *
  * \note           You should only call this function on leaf certificates, on
@@ -845,7 +845,7 @@ int mbedtls_x509_crt_check_key_usage(const mbedtls_x509_crt *crt,
  * \param usage_len Length of usage_oid (eg given by MBEDTLS_OID_SIZE()).
  *
  * \return          0 if this use of the certificate is allowed,
- *                  MBEDTLS_ERR_X509_BAD_INPUT_DATA if not.
+ *                  #MBEDTLS_ERR_X509_BAD_INPUT_DATA if not.
  *
  * \note            Usually only makes sense on leaf certificates.
  */
@@ -952,11 +952,11 @@ void mbedtls_x509write_crt_set_version(mbedtls_x509write_cert *ctx, int version)
  *                     input buffer
  *
  * \return          0 if successful, or
- *                  MBEDTLS_ERR_X509_BAD_INPUT_DATA if the provided input buffer
+ *                  #MBEDTLS_ERR_X509_BAD_INPUT_DATA if the provided input buffer
  *                  is too big (longer than MBEDTLS_X509_RFC5280_MAX_SERIAL_LEN)
  */
 int mbedtls_x509write_crt_set_serial_raw(mbedtls_x509write_cert *ctx,
-                                         unsigned char *serial, size_t serial_len);
+                                         const unsigned char *serial, size_t serial_len);
 
 /**
  * \brief           Set the validity period for a Certificate
@@ -1041,7 +1041,7 @@ void mbedtls_x509write_crt_set_md_alg(mbedtls_x509write_cert *ctx, mbedtls_md_ty
  * \param val       value of the extension OCTET STRING
  * \param val_len   length of the value data
  *
- * \return          0 if successful, or a MBEDTLS_ERR_X509_ALLOC_FAILED
+ * \return          0 if successful, or #PSA_ERROR_INSUFFICIENT_MEMORY
  */
 int mbedtls_x509write_crt_set_extension(mbedtls_x509write_cert *ctx,
                                         const char *oid, size_t oid_len,
@@ -1057,7 +1057,7 @@ int mbedtls_x509write_crt_set_extension(mbedtls_x509write_cert *ctx,
  *                      certificate (only for CA certificates, -1 is
  *                      unlimited)
  *
- * \return          0 if successful, or a MBEDTLS_ERR_X509_ALLOC_FAILED
+ * \return          0 if successful, or #PSA_ERROR_INSUFFICIENT_MEMORY
  */
 int mbedtls_x509write_crt_set_basic_constraints(mbedtls_x509write_cert *ctx,
                                                 int is_ca, int max_pathlen);
@@ -1070,7 +1070,7 @@ int mbedtls_x509write_crt_set_basic_constraints(mbedtls_x509write_cert *ctx,
  *
  * \param ctx       CRT context to use
  *
- * \return          0 if successful, or a MBEDTLS_ERR_X509_ALLOC_FAILED
+ * \return          0 if successful, or #PSA_ERROR_INSUFFICIENT_MEMORY
  */
 int mbedtls_x509write_crt_set_subject_key_identifier(mbedtls_x509write_cert *ctx);
 
@@ -1081,7 +1081,7 @@ int mbedtls_x509write_crt_set_subject_key_identifier(mbedtls_x509write_cert *ctx
  *
  * \param ctx       CRT context to use
  *
- * \return          0 if successful, or a MBEDTLS_ERR_X509_ALLOC_FAILED
+ * \return          0 if successful, or #PSA_ERROR_INSUFFICIENT_MEMORY
  */
 int mbedtls_x509write_crt_set_authority_key_identifier(mbedtls_x509write_cert *ctx);
 #endif /* PSA_WANT_ALG_SHA_1 */
@@ -1093,7 +1093,7 @@ int mbedtls_x509write_crt_set_authority_key_identifier(mbedtls_x509write_cert *c
  * \param ctx       CRT context to use
  * \param key_usage key usage flags to set
  *
- * \return          0 if successful, or MBEDTLS_ERR_X509_ALLOC_FAILED
+ * \return          0 if successful, or #PSA_ERROR_INSUFFICIENT_MEMORY
  */
 int mbedtls_x509write_crt_set_key_usage(mbedtls_x509write_cert *ctx,
                                         unsigned int key_usage);
@@ -1106,7 +1106,7 @@ int mbedtls_x509write_crt_set_key_usage(mbedtls_x509write_cert *ctx,
  * \param exts      extended key usage extensions to set, a sequence of
  *                  MBEDTLS_ASN1_OID objects
  *
- * \return          0 if successful, or MBEDTLS_ERR_X509_ALLOC_FAILED
+ * \return          0 if successful, or #PSA_ERROR_INSUFFICIENT_MEMORY
  */
 int mbedtls_x509write_crt_set_ext_key_usage(mbedtls_x509write_cert *ctx,
                                             const mbedtls_asn1_sequence *exts);
@@ -1118,7 +1118,7 @@ int mbedtls_x509write_crt_set_ext_key_usage(mbedtls_x509write_cert *ctx,
  * \param ctx           CRT context to use
  * \param ns_cert_type  Netscape Cert Type flags to set
  *
- * \return          0 if successful, or MBEDTLS_ERR_X509_ALLOC_FAILED
+ * \return          0 if successful, or #PSA_ERROR_INSUFFICIENT_MEMORY
  */
 int mbedtls_x509write_crt_set_ns_cert_type(mbedtls_x509write_cert *ctx,
                                            unsigned char ns_cert_type);

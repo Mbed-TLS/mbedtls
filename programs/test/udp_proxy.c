@@ -16,6 +16,7 @@
 
 #include "mbedtls/build_info.h"
 
+#include <limits.h>
 #if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
 #else

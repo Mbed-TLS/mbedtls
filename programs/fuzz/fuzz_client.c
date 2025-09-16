@@ -1,8 +1,8 @@
 #define MBEDTLS_DECLARE_PRIVATE_IDENTIFIERS
 
 #include "mbedtls/ssl.h"
-#include "mbedtls/entropy.h"
-#include "mbedtls/ctr_drbg.h"
+#include "mbedtls/private/entropy.h"
+#include "mbedtls/private/ctr_drbg.h"
 #include "test/certs.h"
 #include "fuzz_common.h"
 #include <string.h>
@@ -78,12 +78,10 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size)
     mbedtls_ctr_drbg_init(&ctr_drbg);
     mbedtls_entropy_init(&entropy);
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
     psa_status_t status = psa_crypto_init();
     if (status != PSA_SUCCESS) {
         goto exit;
     }
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
     if (mbedtls_ctr_drbg_seed(&ctr_drbg, dummy_entropy, &entropy,
                               (const unsigned char *) pers, strlen(pers)) != 0) {
@@ -139,7 +137,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size)
     }
 #endif
     //There may be other options to add :
-    // mbedtls_ssl_conf_cert_profile, mbedtls_ssl_conf_sig_hashes
+    // mbedtls_ssl_conf_cert_profile
 
     if (mbedtls_ssl_setup(&ssl, &conf) != 0) {
         goto exit;
@@ -179,9 +177,7 @@ exit:
     mbedtls_ctr_drbg_free(&ctr_drbg);
     mbedtls_ssl_config_free(&conf);
     mbedtls_ssl_free(&ssl);
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
     mbedtls_psa_crypto_free();
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 #else
     (void) Data;

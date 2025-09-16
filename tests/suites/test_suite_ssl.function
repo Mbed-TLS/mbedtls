@@ -3422,7 +3422,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_SSL_HANDSHAKE_WITH_PSK_ENABLED:MBEDTLS_USE_PSA_CRYPTO */
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_HANDSHAKE_WITH_PSK_ENABLED */
 void test_multiple_psks_opaque(int mode)
 {
     /*
@@ -3537,9 +3537,9 @@ exit:
 /* BEGIN_CASE */
 void conf_group()
 {
-    uint16_t iana_tls_group_list[] = { MBEDTLS_SSL_IANA_TLS_GROUP_SECP192R1,
-                                       MBEDTLS_SSL_IANA_TLS_GROUP_SECP224R1,
-                                       MBEDTLS_SSL_IANA_TLS_GROUP_SECP256R1,
+    uint16_t iana_tls_group_list[] = { MBEDTLS_SSL_IANA_TLS_GROUP_SECP256R1,
+                                       MBEDTLS_SSL_IANA_TLS_GROUP_SECP384R1,
+                                       MBEDTLS_SSL_IANA_TLS_GROUP_SECP521R1,
                                        MBEDTLS_SSL_IANA_TLS_GROUP_NONE };
 
     mbedtls_ssl_config conf;
@@ -3768,7 +3768,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_PSA_CRYPTO_C:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:MBEDTLS_USE_PSA_CRYPTO:MBEDTLS_PKCS1_V15:MBEDTLS_SSL_PROTO_TLS1_2:PSA_WANT_ECC_SECP_R1_256:MBEDTLS_RSA_C:PSA_WANT_ECC_SECP_R1_384:PSA_HAVE_ALG_SOME_ECDSA:PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_IMPORT */
+/* BEGIN_CASE depends_on:MBEDTLS_PSA_CRYPTO_C:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:MBEDTLS_PKCS1_V15:MBEDTLS_SSL_PROTO_TLS1_2:PSA_WANT_ECC_SECP_R1_256:MBEDTLS_RSA_C:PSA_WANT_ECC_SECP_R1_384:PSA_HAVE_ALG_SOME_ECDSA:PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_IMPORT */
 void raw_key_agreement_fail(int bad_server_ecdhe_key)
 {
     enum { BUFFSIZE = 17000 };
@@ -3941,11 +3941,7 @@ void ssl_ecjpake_set_password(int use_opaque_arg)
 {
     mbedtls_ssl_context ssl;
     mbedtls_ssl_config conf;
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
     mbedtls_svc_key_id_t pwd_slot = MBEDTLS_SVC_KEY_ID_INIT;
-#else   /* MBEDTLS_USE_PSA_CRYPTO */
-    (void) use_opaque_arg;
-#endif  /* MBEDTLS_USE_PSA_CRYPTO */
     unsigned char pwd_string[sizeof(ECJPAKE_TEST_PWD)] = "";
     size_t pwd_len = 0;
     int ret;
@@ -3971,14 +3967,13 @@ void ssl_ecjpake_set_password(int use_opaque_arg)
     pwd_len = strlen(ECJPAKE_TEST_PWD);
     memcpy(pwd_string, ECJPAKE_TEST_PWD, pwd_len);
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
     if (use_opaque_arg) {
         psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
         psa_key_attributes_t check_attributes = PSA_KEY_ATTRIBUTES_INIT;
 
         /* First try with an invalid usage */
         psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_SIGN_HASH);
-        psa_set_key_algorithm(&attributes, PSA_ALG_JPAKE);
+        psa_set_key_algorithm(&attributes, PSA_ALG_JPAKE(PSA_ALG_SHA_256));
         psa_set_key_type(&attributes, PSA_KEY_TYPE_PASSWORD);
 
         PSA_ASSERT(psa_import_key(&attributes, pwd_string,
@@ -3998,16 +3993,13 @@ void ssl_ecjpake_set_password(int use_opaque_arg)
         PSA_ASSERT(psa_import_key(&attributes, pwd_string,
                                   pwd_len, &pwd_slot));
     }
-#endif  /* MBEDTLS_USE_PSA_CRYPTO */
 
     /* final check which should work without errors */
     ECJPAKE_TEST_SET_PASSWORD(0);
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
     if (use_opaque_arg) {
         psa_destroy_key(pwd_slot);
     }
-#endif  /* MBEDTLS_USE_PSA_CRYPTO */
     mbedtls_ssl_free(&ssl);
     mbedtls_ssl_config_free(&conf);
 
@@ -4057,21 +4049,6 @@ void elliptic_curve_get_properties()
     TEST_AVAILABLE_ECC(26, MBEDTLS_ECP_DP_BP256R1, PSA_ECC_FAMILY_BRAINPOOL_P_R1, 256);
 #else
     TEST_UNAVAILABLE_ECC(26, MBEDTLS_ECP_DP_BP256R1, PSA_ECC_FAMILY_BRAINPOOL_P_R1, 256);
-#endif
-#if defined(PSA_WANT_ECC_SECP_R1_224)
-    TEST_AVAILABLE_ECC(21, MBEDTLS_ECP_DP_SECP224R1, PSA_ECC_FAMILY_SECP_R1, 224);
-#else
-    TEST_UNAVAILABLE_ECC(21, MBEDTLS_ECP_DP_SECP224R1, PSA_ECC_FAMILY_SECP_R1, 224);
-#endif
-#if defined(PSA_WANT_ECC_SECP_R1_192)
-    TEST_AVAILABLE_ECC(19, MBEDTLS_ECP_DP_SECP192R1, PSA_ECC_FAMILY_SECP_R1, 192);
-#else
-    TEST_UNAVAILABLE_ECC(19, MBEDTLS_ECP_DP_SECP192R1, PSA_ECC_FAMILY_SECP_R1, 192);
-#endif
-#if defined(PSA_WANT_ECC_SECP_K1_192)
-    TEST_AVAILABLE_ECC(18, MBEDTLS_ECP_DP_SECP192K1, PSA_ECC_FAMILY_SECP_K1, 192);
-#else
-    TEST_UNAVAILABLE_ECC(18, MBEDTLS_ECP_DP_SECP192K1, PSA_ECC_FAMILY_SECP_K1, 192);
 #endif
 #if defined(PSA_WANT_ECC_MONTGOMERY_255)
     TEST_AVAILABLE_ECC(29, MBEDTLS_ECP_DP_CURVE25519, PSA_ECC_FAMILY_MONTGOMERY, 255);

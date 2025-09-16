@@ -80,7 +80,7 @@ int mbedtls_x509_oid_get_attr_short_name(const mbedtls_asn1_buf *oid, const char
  * \return         0 if successful, or MBEDTLS_ERR_X509_UNKNOWN_OID
  */
 int mbedtls_x509_oid_get_sig_alg(const mbedtls_asn1_buf *oid,
-                                 mbedtls_md_type_t *md_alg, mbedtls_pk_type_t *pk_alg);
+                                 mbedtls_md_type_t *md_alg, mbedtls_pk_sigalg_t *pk_alg);
 
 #if !defined(MBEDTLS_X509_REMOVE_INFO)
 /**
@@ -106,7 +106,7 @@ int mbedtls_x509_oid_get_sig_alg_desc(const mbedtls_asn1_buf *oid, const char **
  *
  * \return         0 if successful, or MBEDTLS_ERR_X509_UNKNOWN_OID
  */
-int mbedtls_x509_oid_get_oid_by_sig_alg(mbedtls_pk_type_t pk_alg, mbedtls_md_type_t md_alg,
+int mbedtls_x509_oid_get_oid_by_sig_alg(mbedtls_pk_sigalg_t pk_alg, mbedtls_md_type_t md_alg,
                                         const char **oid, size_t *olen);
 #endif /* MBEDTLS_X509_CRT_WRITE_C || MBEDTLS_X509_CSR_WRITE_C */
 

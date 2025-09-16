@@ -27,6 +27,7 @@
 #include "x509_oid.h"
 #include "mbedtls/platform_util.h"
 
+#include <limits.h>
 #include <string.h>
 
 #if defined(MBEDTLS_PEM_PARSE_C)
@@ -187,9 +188,9 @@ static int x509_profile_check_md_alg(const mbedtls_x509_crt_profile *profile,
  * Return 0 if pk_alg is acceptable for this profile, -1 otherwise
  */
 static int x509_profile_check_pk_alg(const mbedtls_x509_crt_profile *profile,
-                                     mbedtls_pk_type_t pk_alg)
+                                     mbedtls_pk_sigalg_t pk_alg)
 {
-    if (pk_alg == MBEDTLS_PK_NONE) {
+    if (pk_alg == MBEDTLS_PK_SIGALG_NONE) {
         return -1;
     }
 
@@ -2060,7 +2061,7 @@ static int x509_crt_verifycrl(mbedtls_x509_crt *crt, mbedtls_x509_crt *ca,
             flags |= MBEDTLS_X509_BADCERT_BAD_KEY;
         }
 
-        if (mbedtls_pk_verify_new(crl_list->sig_pk, &ca->pk,
+        if (mbedtls_pk_verify_ext(crl_list->sig_pk, &ca->pk,
                                   crl_list->sig_md, hash, hash_length,
                                   crl_list->sig.p, crl_list->sig.len) != 0) {
             flags |= MBEDTLS_X509_BADCRL_NOT_TRUSTED;
@@ -2120,12 +2121,12 @@ static int x509_crt_check_signature(const mbedtls_x509_crt *child,
     }
 
     /* Skip expensive computation on obvious mismatch */
-    if (!mbedtls_pk_can_do(&parent->pk, child->sig_pk)) {
+    if (!mbedtls_pk_can_do(&parent->pk, (mbedtls_pk_type_t) child->sig_pk)) {
         return -1;
     }
 
 #if defined(MBEDTLS_ECP_RESTARTABLE)
-    if (rs_ctx != NULL && child->sig_pk == MBEDTLS_PK_ECDSA) {
+    if (rs_ctx != NULL && child->sig_pk == MBEDTLS_PK_SIGALG_ECDSA) {
         return mbedtls_pk_verify_restartable(&parent->pk,
                                              child->sig_md, hash, hash_len,
                                              child->sig.p, child->sig.len, &rs_ctx->pk);
@@ -2134,7 +2135,7 @@ static int x509_crt_check_signature(const mbedtls_x509_crt *child,
     (void) rs_ctx;
 #endif
 
-    return mbedtls_pk_verify_new(child->sig_pk, &parent->pk,
+    return mbedtls_pk_verify_ext(child->sig_pk, &parent->pk,
                                  child->sig_md, hash, hash_len,
                                  child->sig.p, child->sig.len);
 }
@@ -3056,7 +3057,7 @@ static int x509_crt_verify_restartable_ca_cb(mbedtls_x509_crt *crt,
     /* Check the type and size of the key */
     pk_type = mbedtls_pk_get_type(&crt->pk);
 
-    if (x509_profile_check_pk_alg(profile, pk_type) != 0) {
+    if (x509_profile_check_pk_alg(profile, (mbedtls_pk_sigalg_t) pk_type) != 0) {
         ee_flags |= MBEDTLS_X509_BADCERT_BAD_PK;
     }
 

@@ -1,0 +1,9 @@
+API changes
+   * Change the signature of the runtime version information methods that took
+     a char* as an argument to take zero arguments and return a const char*
+     instead. This aligns us with the interface used in TF PSA Crypto 1.0.
+     If you need to support linking against both Mbed TLS 3.x and 4.x, please
+     use the build-time version macros or mbedtls_version_get_number() to
+     determine the correct signature for mbedtls_version_get_string() and
+     mbedtls_version_get_string_full() before calling them.
+     Fixes issue #10308.

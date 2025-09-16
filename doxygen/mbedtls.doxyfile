@@ -8,6 +8,7 @@ EXTRACT_STATIC         = YES
 CASE_SENSE_NAMES       = NO
 INPUT                  = ../include input ../tf-psa-crypto/include ../tests/include/alt-dummy
 FILE_PATTERNS          = *.h
+EXCLUDE                = ../tf-psa-crypto/include/mbedtls/private
 RECURSIVE              = YES
 EXCLUDE_SYMLINKS       = YES
 SOURCE_BROWSER         = YES

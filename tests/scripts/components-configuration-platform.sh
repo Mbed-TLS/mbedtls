@@ -20,17 +20,18 @@ component_build_no_std_function () {
     make
 }
 
-component_test_platform_get_entropy_alt()
+component_test_psa_driver_get_entropy()
 {
-    msg "build: default config + MBEDTLS_PLATFORM_GET_ENTROPY_ALT"
+    msg "build: default - MBEDTLS_PSA_BUILTIN_GET_ENTROPY + MBEDTLS_PSA_DRIVER_GET_ENTROPY"
     # Use hardware polling as the only source for entropy
-    scripts/config.py set MBEDTLS_PLATFORM_GET_ENTROPY_ALT
+    scripts/config.py unset MBEDTLS_PSA_BUILTIN_GET_ENTROPY
     scripts/config.py unset MBEDTLS_ENTROPY_NV_SEED
+    scripts/config.py set MBEDTLS_PSA_DRIVER_GET_ENTROPY
 
     make
 
     # Run all the tests
-    msg "test: default config + MBEDTLS_PLATFORM_GET_ENTROPY_ALT"
+    msg "test: default - MBEDTLS_PSA_BUILTIN_GET_ENTROPY + MBEDTLS_PSA_DRIVER_GET_ENTROPY"
     make test
 }
 
@@ -40,7 +41,8 @@ component_build_no_sockets () {
     msg "build: full config except net_sockets.c, make, gcc -std=c99 -pedantic" # ~ 30s
     scripts/config.py full
     scripts/config.py unset MBEDTLS_NET_C # getaddrinfo() undeclared, etc.
-    scripts/config.py set MBEDTLS_PLATFORM_GET_ENTROPY_ALT # prevent syscall() on GNU/Linux
+    scripts/config.py unset MBEDTLS_PSA_BUILTIN_GET_ENTROPY # prevent syscall() on GNU/Linux
+    scripts/config.py set MBEDTLS_PSA_DRIVER_GET_ENTROPY
     make CC=gcc CFLAGS='-Werror -Wall -Wextra -O1 -std=c99 -pedantic' lib
 }
 

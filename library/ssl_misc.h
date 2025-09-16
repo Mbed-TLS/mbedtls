@@ -19,26 +19,26 @@
 #include "mbedtls/debug.h"
 #include "debug_internal.h"
 
-#include "mbedtls/cipher.h"
+#include "mbedtls/private/cipher.h"
 
 #include "psa/crypto.h"
 #include "psa_util_internal.h"
 extern const mbedtls_error_pair_t psa_to_ssl_errors[7];
 
 #if defined(PSA_WANT_ALG_MD5)
-#include "mbedtls/md5.h"
+#include "mbedtls/private/md5.h"
 #endif
 
 #if defined(PSA_WANT_ALG_SHA_1)
-#include "mbedtls/sha1.h"
+#include "mbedtls/private/sha1.h"
 #endif
 
 #if defined(PSA_WANT_ALG_SHA_256)
-#include "mbedtls/sha256.h"
+#include "mbedtls/private/sha256.h"
 #endif
 
 #if defined(PSA_WANT_ALG_SHA_512)
-#include "mbedtls/sha512.h"
+#include "mbedtls/private/sha512.h"
 #endif
 
 #include "mbedtls/pk.h"
@@ -710,11 +710,6 @@ struct mbedtls_ssl_handshake_params {
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     unsigned char retransmit_state;     /*!<  Retransmission state           */
-#endif
-
-#if !defined(MBEDTLS_DEPRECATED_REMOVED)
-    unsigned char group_list_heap_allocated;
-    unsigned char sig_algs_heap_allocated;
 #endif
 
 #if defined(MBEDTLS_SSL_ECP_RESTARTABLE_ENABLED)
@@ -2243,10 +2238,6 @@ static inline int mbedtls_ssl_tls12_named_group_is_ecdhe(uint16_t named_group)
            named_group == MBEDTLS_SSL_IANA_TLS_GROUP_BP512R1   ||
            named_group == MBEDTLS_SSL_IANA_TLS_GROUP_X448      ||
            /* Below deprecated curves should be removed with notice to users */
-           named_group == MBEDTLS_SSL_IANA_TLS_GROUP_SECP192K1 ||
-           named_group == MBEDTLS_SSL_IANA_TLS_GROUP_SECP192R1 ||
-           named_group == MBEDTLS_SSL_IANA_TLS_GROUP_SECP224K1 ||
-           named_group == MBEDTLS_SSL_IANA_TLS_GROUP_SECP224R1 ||
            named_group == MBEDTLS_SSL_IANA_TLS_GROUP_SECP256K1 ||
            named_group == MBEDTLS_SSL_IANA_TLS_GROUP_SECP256R1 ||
            named_group == MBEDTLS_SSL_IANA_TLS_GROUP_SECP384R1 ||
@@ -2309,15 +2300,6 @@ static inline int mbedtls_ssl_named_group_is_supported(uint16_t named_group)
 
 /*
  * Return supported signature algorithms.
- *
- * In future, invocations can be changed to ssl->conf->sig_algs when
- * mbedtls_ssl_conf_sig_hashes() is deleted.
- *
- * ssl->handshake->sig_algs is either a translation of sig_hashes to IANA TLS
- * signature algorithm identifiers when mbedtls_ssl_conf_sig_hashes() has been
- * used, or a pointer to ssl->conf->sig_algs when mbedtls_ssl_conf_sig_algs() has
- * been more recently invoked.
- *
  */
 static inline const void *mbedtls_ssl_get_sig_algs(
     const mbedtls_ssl_context *ssl)
@@ -2326,7 +2308,6 @@ static inline const void *mbedtls_ssl_get_sig_algs(
 
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
     if (ssl->handshake != NULL &&
-        ssl->handshake->sig_algs_heap_allocated == 1 &&
         ssl->handshake->sig_algs != NULL) {
         return ssl->handshake->sig_algs;
     }

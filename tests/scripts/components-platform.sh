@@ -297,33 +297,12 @@ component_build_sha_armce () {
         grep -E 'sha256[a-z0-9]+.32\s+[qv]' ${BUILTIN_SRC_PATH}/sha256.s
     scripts/config.py unset MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_ONLY
 
-
-    # test the deprecated form of the config option
-    scripts/config.py set MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY
-        msg "MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY clang, thumb"
-        make -B library/../${BUILTIN_SRC_PATH}/sha256.o library/../${BUILTIN_SRC_PATH}/sha256.s CC=clang CFLAGS="--target=arm-linux-gnueabihf -mcpu=cortex-a32+crypto -mthumb"
-        msg "MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY clang, test T32 crypto instructions built"
-        grep -E 'sha256[a-z0-9]+.32\s+[qv]' ${BUILTIN_SRC_PATH}/sha256.s
-    scripts/config.py unset MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY
-
     scripts/config.py set MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_IF_PRESENT
         msg "MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_IF_PRESENT clang, aarch64"
         make -B library/../${BUILTIN_SRC_PATH}/sha256.o library/../${BUILTIN_SRC_PATH}/sha256.s CC=clang CFLAGS="--target=aarch64-linux-gnu -march=armv8-a+crypto"
         msg "MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_IF_PRESENT clang, test aarch64 crypto instructions built"
         grep -E 'sha256[a-z0-9]+\s+[qv]' ${BUILTIN_SRC_PATH}/sha256.s
     scripts/config.py unset MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_IF_PRESENT
-
-
-    # test the deprecated form of the config option
-    scripts/config.py set MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT
-        msg "MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT clang, arm"
-        make -B library/../${BUILTIN_SRC_PATH}/sha256.o library/../${BUILTIN_SRC_PATH}/sha256.s CC=clang CFLAGS="--target=arm-linux-gnueabihf -mcpu=cortex-a72+crypto -marm -std=c99"
-
-        msg "MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT clang, thumb"
-        make -B library/../${BUILTIN_SRC_PATH}/sha256.o library/../${BUILTIN_SRC_PATH}/sha256.s CC=clang CFLAGS="--target=arm-linux-gnueabihf -mcpu=cortex-a32+crypto -mthumb"
-        msg "MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT clang, test T32 crypto instructions built"
-        grep -E 'sha256[a-z0-9]+.32\s+[qv]' ${BUILTIN_SRC_PATH}/sha256.s
-    scripts/config.py unset MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT
 
     # examine the disassembly for absence of SHA instructions
     msg "clang, test A32 crypto instructions not built"

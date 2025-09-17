@@ -4,7 +4,7 @@
 
 Basic usage, to read the Mbed TLS configuration:
     config = CombinedConfigFile()
-    if 'MBEDTLS_RSA_C' in config: print('RSA is enabled')
+    if 'MBEDTLS_SSL_TLS_C' in config: print('TLS is enabled')
 """
 
 ## Copyright The Mbed TLS Contributors
@@ -120,7 +120,6 @@ def is_seamless_alt(name):
     an implementation of the relevant functions and an xxx_alt.h header.
     """
     if name in (
-            'MBEDTLS_PLATFORM_GET_ENTROPY_ALT',
             'MBEDTLS_PLATFORM_GMTIME_R_ALT',
             'MBEDTLS_PLATFORM_SETUP_TEARDOWN_ALT',
             'MBEDTLS_PLATFORM_MS_TIME_ALT',

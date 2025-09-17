@@ -433,19 +433,16 @@ component_test_everest () {
 component_test_everest_curve25519_only () {
     msg "build: Everest ECDH context, only Curve25519" # ~ 6 min
     scripts/config.py set MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED
-    scripts/config.py unset MBEDTLS_ECDSA_C
-    scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_ALG_DETERMINISTIC_ECDSA
-    scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_ALG_ECDSA
-    scripts/config.py -c $CRYPTO_CONFIG_H set PSA_WANT_ALG_ECDH
+    scripts/config.py unset PSA_WANT_ALG_DETERMINISTIC_ECDSA
+    scripts/config.py unset PSA_WANT_ALG_ECDSA
+    scripts/config.py set PSA_WANT_ALG_ECDH
     scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED
     scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
-    scripts/config.py unset MBEDTLS_ECJPAKE_C
-    scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_ALG_JPAKE
+    scripts/config.py unset PSA_WANT_ALG_JPAKE
 
     # Disable all curves
-    scripts/config.py unset-all "MBEDTLS_ECP_DP_[0-9A-Z_a-z]*_ENABLED"
-    scripts/config.py -c $CRYPTO_CONFIG_H unset-all "PSA_WANT_ECC_[0-9A-Z_a-z]*$"
-    scripts/config.py -c $CRYPTO_CONFIG_H set PSA_WANT_ECC_MONTGOMERY_255
+    scripts/config.py unset-all "PSA_WANT_ECC_[0-9A-Z_a-z]*$"
+    scripts/config.py set PSA_WANT_ECC_MONTGOMERY_255
 
     make CC=$ASAN_CC CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS"
 
@@ -569,9 +566,6 @@ component_test_psa_crypto_config_accel_ecdsa () {
                     $(helper_get_psa_key_type_list "ECC") \
                     $(helper_get_psa_curve_list)"
 
-    # Disable the module that's accelerated
-    scripts/config.py unset MBEDTLS_ECDSA_C
-
     # Disable things that depend on it
     scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
 
@@ -609,9 +603,6 @@ component_test_psa_crypto_config_accel_ecdh () {
     loc_accel_list="ALG_ECDH \
                     $(helper_get_psa_key_type_list "ECC") \
                     $(helper_get_psa_curve_list)"
-
-    # Disable the module that's accelerated
-    scripts/config.py unset MBEDTLS_ECDH_C
 
     # Disable things that depend on it
     scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
@@ -697,7 +688,6 @@ component_test_psa_crypto_config_accel_pake () {
                     $(helper_get_psa_curve_list)"
 
     # Make built-in fallback not available
-    scripts/config.py unset MBEDTLS_ECJPAKE_C
     scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED
 
     # Build
@@ -736,12 +726,6 @@ component_test_psa_crypto_config_accel_ecc_some_key_types () {
                     KEY_TYPE_ECC_KEY_PAIR_IMPORT \
                     KEY_TYPE_ECC_KEY_PAIR_EXPORT \
                     $(helper_get_psa_curve_list)"
-
-    # Disable modules that are accelerated - some will be re-enabled
-    scripts/config.py unset MBEDTLS_ECDSA_C
-    scripts/config.py unset MBEDTLS_ECDH_C
-    scripts/config.py unset MBEDTLS_ECJPAKE_C
-    scripts/config.py unset MBEDTLS_ECP_C
 
     # Disable all curves - those that aren't accelerated should be re-enabled
     helper_disable_builtin_curves
@@ -800,12 +784,6 @@ common_test_psa_crypto_config_accel_ecc_some_curves () {
     scripts/config.py unset MBEDTLS_PK_C
     scripts/config.py unset MBEDTLS_PK_PARSE_C
     scripts/config.py unset MBEDTLS_PK_WRITE_C
-
-    # Disable modules that are accelerated - some will be re-enabled
-    scripts/config.py unset MBEDTLS_ECDSA_C
-    scripts/config.py unset MBEDTLS_ECDH_C
-    scripts/config.py unset MBEDTLS_ECJPAKE_C
-    scripts/config.py unset MBEDTLS_ECP_C
 
     # Disable all curves - those that aren't accelerated should be re-enabled
     helper_disable_builtin_curves
@@ -912,13 +890,6 @@ config_psa_crypto_config_ecp_light_only () {
     driver_only="$1"
     # start with config full for maximum coverage (also enables USE_PSA)
     helper_libtestdriver1_adjust_config "full"
-    if [ "$driver_only" -eq 1 ]; then
-        # Disable modules that are accelerated
-        scripts/config.py unset MBEDTLS_ECDSA_C
-        scripts/config.py unset MBEDTLS_ECDH_C
-        scripts/config.py unset MBEDTLS_ECJPAKE_C
-        scripts/config.py unset MBEDTLS_ECP_C
-    fi
 
     # Restartable feature is not yet supported by PSA. Once it will in
     # the future, the following line could be removed (see issues
@@ -1005,15 +976,6 @@ config_psa_crypto_no_ecp_at_all () {
     driver_only="$1"
     # start with full config for maximum coverage (also enables USE_PSA)
     helper_libtestdriver1_adjust_config "full"
-
-    if [ "$driver_only" -eq 1 ]; then
-        # Disable modules that are accelerated
-        scripts/config.py unset MBEDTLS_ECDSA_C
-        scripts/config.py unset MBEDTLS_ECDH_C
-        scripts/config.py unset MBEDTLS_ECJPAKE_C
-        # Disable ECP module (entirely)
-        scripts/config.py unset MBEDTLS_ECP_C
-    fi
 
     # Disable all the features that auto-enable ECP_LIGHT (see build_info.h)
     scripts/config.py unset MBEDTLS_PK_PARSE_EC_EXTENDED
@@ -1120,17 +1082,6 @@ config_psa_crypto_config_accel_ecc_ffdh_no_bignum () {
     test_target="$2"
     # start with full config for maximum coverage (also enables USE_PSA)
     helper_libtestdriver1_adjust_config "full"
-
-    if [ "$driver_only" -eq 1 ]; then
-        # Disable modules that are accelerated
-        scripts/config.py unset MBEDTLS_ECDSA_C
-        scripts/config.py unset MBEDTLS_ECDH_C
-        scripts/config.py unset MBEDTLS_ECJPAKE_C
-        # Disable ECP module (entirely)
-        scripts/config.py unset MBEDTLS_ECP_C
-        # Also disable bignum
-        scripts/config.py unset MBEDTLS_BIGNUM_C
-    fi
 
     # Disable all the features that auto-enable ECP_LIGHT (see build_info.h)
     scripts/config.py unset MBEDTLS_PK_PARSE_EC_EXTENDED
@@ -1491,8 +1442,7 @@ component_test_new_psa_want_key_pair_symbol () {
     # Start from crypto configuration
     scripts/config.py crypto
 
-    # Remove RSA support and its dependencies
-    scripts/config.py unset MBEDTLS_PKCS1_V15
+    # Remove RSA dependencies
     scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED
     scripts/config.py unset MBEDTLS_X509_RSASSA_PSS_SUPPORT
 

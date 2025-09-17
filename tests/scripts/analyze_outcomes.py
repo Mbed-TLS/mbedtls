@@ -124,8 +124,6 @@ class CoverageTask(outcome_analysis.CoverageTask):
             # Untested platform-specific optimizations.
             # https://github.com/Mbed-TLS/mbedtls/issues/9588
             'Config: MBEDTLS_HAVE_SSE2',
-            # Obsolete config option that we are about to remove
-            'Config: MBEDTLS_PLATFORM_GET_ENTROPY_ALT',
             # Untested aspect of the platform interface.
             # https://github.com/Mbed-TLS/mbedtls/issues/9589
             'Config: MBEDTLS_PLATFORM_NO_STD_FUNCTIONS',

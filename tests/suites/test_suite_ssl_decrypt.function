@@ -13,7 +13,7 @@
  * END_DEPENDENCIES
  */
 
-/* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_CIPHER_NULL_CIPHER */
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_SSL_NULL_CIPHERSUITES */
 void ssl_decrypt_null(int hash_id)
 {
     mbedtls_ssl_transform transform_in, transform_out;

@@ -73,9 +73,7 @@ void mbedtls_debug_print_buf(const mbedtls_ssl_context *ssl, int level,
 
 #if defined(MBEDTLS_BIGNUM_C)
 /**
- * \brief   Print a MPI variable to the debug output. This function is always
- *          used through the MBEDTLS_SSL_DEBUG_MPI() macro, which supplies the
- *          ssl context, file and line number parameters.
+ * \brief   Print a MPI variable to the debug output.
  *
  * \param ssl       SSL context
  * \param level     error level of the debug message

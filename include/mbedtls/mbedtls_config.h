@@ -19,7 +19,7 @@
  * It is equal to the #MBEDTLS_VERSION_NUMBER of the Mbed TLS version that
  * introduced the config format we want to be compatible with.
  */
-//#define MBEDTLS_CONFIG_VERSION 0x03000000
+//#define MBEDTLS_CONFIG_VERSION 0x04000000
 
 /**
  * \name SECTION: Platform abstraction layer

@@ -31,11 +31,9 @@
 #include "mbedtls/ssl_cache.h"
 #endif
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
 #define PSA_TO_MBEDTLS_ERR(status) PSA_TO_MBEDTLS_ERR_LIST(status, \
                                                            psa_to_ssl_errors, \
                                                            psa_generic_status_to_mbedtls)
-#endif
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
 #if defined(PSA_WANT_KEY_TYPE_AES)
@@ -751,18 +749,11 @@ int mbedtls_test_get_tls13_ticket(
 
 #define ECJPAKE_TEST_PWD        "bla"
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
 #define ECJPAKE_TEST_SET_PASSWORD(exp_ret_val)                            \
     ret = (use_opaque_arg) ?                                              \
           mbedtls_ssl_set_hs_ecjpake_password_opaque(&ssl, pwd_slot) :    \
           mbedtls_ssl_set_hs_ecjpake_password(&ssl, pwd_string, pwd_len); \
     TEST_EQUAL(ret, exp_ret_val)
-#else
-#define ECJPAKE_TEST_SET_PASSWORD(exp_ret_val)                            \
-    ret = mbedtls_ssl_set_hs_ecjpake_password(&ssl,                       \
-                                              pwd_string, pwd_len);       \
-    TEST_EQUAL(ret, exp_ret_val)
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 #define TEST_AVAILABLE_ECC(tls_id_, group_id_, psa_family_, psa_bits_)   \
     TEST_EQUAL(mbedtls_ssl_get_ecp_group_id_from_tls_id(tls_id_),        \

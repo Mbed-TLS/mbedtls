@@ -7,6 +7,12 @@ if(INSTALL_MBEDTLS_HEADERS)
     install(FILES ${headers}
         DESTINATION include/mbedtls
         PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ)
+
+    file(GLOB private_headers "mbedtls/private/*.h")
+
+    install(FILES ${private_headers}
+        DESTINATION include/mbedtls/private
+        PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ)
 endif(INSTALL_MBEDTLS_HEADERS)
 
 # Make mbedtls_config.h available in an out-of-source build. ssl-opt.sh requires it.

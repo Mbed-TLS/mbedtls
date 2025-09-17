@@ -74,9 +74,9 @@
  */
 #define MBEDTLS_CONFIG_FILES_READ
 
-#include "mbedtls/config_adjust_x509.h"
+#include "mbedtls/private/config_adjust_x509.h"
 
-#include "mbedtls/config_adjust_ssl.h"
+#include "mbedtls/private/config_adjust_ssl.h"
 
 /* Indicate that all configuration symbols are set,
  * even the ones that are calculated programmatically.
@@ -84,7 +84,5 @@
  * etc.).
  */
 #define MBEDTLS_CONFIG_IS_FINALIZED
-
-#include "mbedtls/check_config.h"
 
 #endif /* MBEDTLS_BUILD_INFO_H */

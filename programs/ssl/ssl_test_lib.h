@@ -8,15 +8,15 @@
 #ifndef MBEDTLS_PROGRAMS_SSL_SSL_TEST_LIB_H
 #define MBEDTLS_PROGRAMS_SSL_SSL_TEST_LIB_H
 
+#include "mbedtls/private/pk_private.h"
+
 #include "mbedtls/build_info.h"
 
 #include "mbedtls/platform.h"
 #include "mbedtls/md.h"
 
 #undef HAVE_RNG
-#if defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG) &&         \
-    (defined(MBEDTLS_USE_PSA_CRYPTO) ||                \
-    defined(MBEDTLS_TEST_USE_PSA_CRYPTO_RNG))
+#if defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG)
 #define HAVE_RNG
 #elif defined(MBEDTLS_ENTROPY_C) && defined(MBEDTLS_CTR_DRBG_C)
 #define HAVE_RNG
@@ -45,9 +45,9 @@
 #include "mbedtls/net_sockets.h"
 #include "mbedtls/ssl.h"
 #include "mbedtls/ssl_ciphersuites.h"
-#include "mbedtls/entropy.h"
-#include "mbedtls/ctr_drbg.h"
-#include "mbedtls/hmac_drbg.h"
+#include "mbedtls/private/entropy.h"
+#include "mbedtls/private/ctr_drbg.h"
+#include "mbedtls/private/hmac_drbg.h"
 #include "mbedtls/x509.h"
 #include "mbedtls/error.h"
 #include "mbedtls/debug.h"
@@ -55,10 +55,8 @@
 #include "mbedtls/base64.h"
 #include "test/certs.h"
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO) || defined(MBEDTLS_TEST_USE_PSA_CRYPTO_RNG)
 #include "psa/crypto.h"
 #include "mbedtls/psa_util.h"
-#endif
 
 #if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
 #include "mbedtls/memory_buffer_alloc.h"
@@ -108,30 +106,7 @@ void my_debug(void *ctx, int level,
 mbedtls_time_t dummy_constant_time(mbedtls_time_t *time);
 #endif
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO) && !defined(MBEDTLS_TEST_USE_PSA_CRYPTO_RNG)
-/* If MBEDTLS_TEST_USE_PSA_CRYPTO_RNG is defined, the SSL test programs will use
- * mbedtls_psa_get_random() rather than entropy+DRBG as a random generator.
- *
- * The constraints are:
- * - Without the entropy module, the PSA RNG is the only option.
- * - Without at least one of the DRBG modules, the PSA RNG is the only option.
- * - The PSA RNG does not support explicit seeding, so it is incompatible with
- *   the reproducible mode used by test programs.
- * - For good overall test coverage, there should be at least one configuration
- *   where the test programs use the PSA RNG while the PSA RNG is itself based
- *   on entropy+DRBG, and at least one configuration where the test programs
- *   do not use the PSA RNG even though it's there.
- *
- * A simple choice that meets the constraints is to use the PSA RNG whenever
- * MBEDTLS_USE_PSA_CRYPTO is enabled. There's no real technical reason the
- * choice to use the PSA RNG in the test programs and the choice to use
- * PSA crypto when TLS code needs crypto have to be tied together, but it
- * happens to be a good match. It's also a good match from an application
- * perspective: either PSA is preferred for TLS (both for crypto and for
- * random generation) or it isn't.
- */
 #define MBEDTLS_TEST_USE_PSA_CRYPTO_RNG
-#endif
 
 /** A context for random number generation (RNG).
  */
@@ -213,7 +188,6 @@ int rng_get(void *p_rng, unsigned char *output, size_t output_len);
  */
 int key_opaque_alg_parse(const char *arg, const char **alg1, const char **alg2);
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
 /** Parse given opaque key algorithms to obtain psa algs and usage
  *  that will be passed to mbedtls_pk_wrap_as_opaque().
  *
@@ -259,9 +233,8 @@ int key_opaque_set_alg_usage(const char *alg1, const char *alg2,
 int pk_wrap_as_opaque(mbedtls_pk_context *pk, psa_algorithm_t psa_alg, psa_algorithm_t psa_alg2,
                       psa_key_usage_t psa_usage, mbedtls_svc_key_id_t *key_id);
 #endif /* MBEDTLS_PK_C */
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO) && defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG)
+#if defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG)
 /* The test implementation of the PSA external RNG is insecure. When
  * MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG is enabled, before using any PSA crypto
  * function that makes use of an RNG, you must call

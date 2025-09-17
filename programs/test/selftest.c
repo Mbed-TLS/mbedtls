@@ -9,31 +9,31 @@
 
 #include "mbedtls/build_info.h"
 
-#include "mbedtls/entropy.h"
-#include "mbedtls/hmac_drbg.h"
-#include "mbedtls/ctr_drbg.h"
-#include "mbedtls/gcm.h"
-#include "mbedtls/ccm.h"
-#include "mbedtls/cmac.h"
-#include "mbedtls/md5.h"
-#include "mbedtls/ripemd160.h"
-#include "mbedtls/sha1.h"
-#include "mbedtls/sha256.h"
-#include "mbedtls/sha512.h"
-#include "mbedtls/sha3.h"
-#include "mbedtls/aes.h"
-#include "mbedtls/camellia.h"
-#include "mbedtls/aria.h"
-#include "mbedtls/chacha20.h"
-#include "mbedtls/poly1305.h"
-#include "mbedtls/chachapoly.h"
+#include "mbedtls/private/entropy.h"
+#include "mbedtls/private/hmac_drbg.h"
+#include "mbedtls/private/ctr_drbg.h"
+#include "mbedtls/private/gcm.h"
+#include "mbedtls/private/ccm.h"
+#include "mbedtls/private/cmac.h"
+#include "mbedtls/private/md5.h"
+#include "mbedtls/private/ripemd160.h"
+#include "mbedtls/private/sha1.h"
+#include "mbedtls/private/sha256.h"
+#include "mbedtls/private/sha512.h"
+#include "mbedtls/private/sha3.h"
+#include "mbedtls/private/aes.h"
+#include "mbedtls/private/camellia.h"
+#include "mbedtls/private/aria.h"
+#include "mbedtls/private/chacha20.h"
+#include "mbedtls/private/poly1305.h"
+#include "mbedtls/private/chachapoly.h"
 #include "mbedtls/base64.h"
-#include "mbedtls/bignum.h"
-#include "mbedtls/rsa.h"
+#include "mbedtls/private/bignum.h"
+#include "mbedtls/private/rsa.h"
 #include "mbedtls/x509.h"
-#include "mbedtls/pkcs5.h"
-#include "mbedtls/ecp.h"
-#include "mbedtls/ecjpake.h"
+#include "mbedtls/private/pkcs5.h"
+#include "mbedtls/private/ecp.h"
+#include "mbedtls/private/ecjpake.h"
 #include "mbedtls/timing.h"
 #include "mbedtls/nist_kw.h"
 #include "mbedtls/debug.h"
@@ -210,7 +210,7 @@ static int run_test_snprintf(void)
  * back.
  */
 #if defined(MBEDTLS_SELF_TEST) && defined(MBEDTLS_ENTROPY_C)
-#if defined(MBEDTLS_ENTROPY_NV_SEED) && !defined(MBEDTLS_PLATFORM_GET_ENTROPY_ALT)
+#if defined(MBEDTLS_ENTROPY_NV_SEED) && !defined(MBEDTLS_PSA_DRIVER_GET_ENTROPY)
 static void dummy_entropy(unsigned char *output, size_t output_size)
 {
     srand(1);
@@ -239,7 +239,7 @@ static void create_entropy_seed_file(void)
 
 static int mbedtls_entropy_self_test_wrapper(int verbose)
 {
-#if defined(MBEDTLS_ENTROPY_NV_SEED) && !defined(MBEDTLS_PLATFORM_GET_ENTROPY_ALT)
+#if defined(MBEDTLS_ENTROPY_NV_SEED) && !defined(MBEDTLS_PSA_DRIVER_GET_ENTROPY)
     create_entropy_seed_file();
 #endif
     return mbedtls_entropy_self_test(verbose);

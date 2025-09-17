@@ -56,6 +56,7 @@ if(GEN_FILES)
                 ${CMAKE_CURRENT_SOURCE_DIR}/../../tf-psa-crypto/include/psa/crypto_config.h
                 ${CMAKE_CURRENT_SOURCE_DIR}/../../scripts/data_files/query_config.fmt
                 ${CMAKE_CURRENT_BINARY_DIR}/query_config.c
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../..
         DEPENDS
             ${CMAKE_CURRENT_SOURCE_DIR}/../../scripts/generate_query_config.pl
             ${CMAKE_CURRENT_SOURCE_DIR}/../../include/mbedtls/mbedtls_config.h
@@ -100,6 +101,10 @@ foreach(exe IN LISTS executables)
     set_target_properties(${exe} PROPERTIES C_STANDARD 11)
     target_link_libraries(${exe} ${libs} ${CMAKE_THREAD_LIBS_INIT})
 endforeach()
+
+target_include_directories(metatest
+        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../tf-psa-crypto/drivers/builtin/include
+                ${CMAKE_CURRENT_SOURCE_DIR}/../../tf-psa-crypto/drivers/builtin/src)
 
 install(TARGETS ${executables}
         DESTINATION "bin"

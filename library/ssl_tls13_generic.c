@@ -963,7 +963,7 @@ static int ssl_tls13_write_certificate_verify_body(mbedtls_ssl_context *ssl,
 
         MBEDTLS_SSL_DEBUG_BUF(3, "verify hash", verify_hash, verify_hash_len);
 
-        if ((ret = mbedtls_pk_sign_ext(pk_type, own_key,
+        if ((ret = mbedtls_pk_sign_ext((mbedtls_pk_sigalg_t) pk_type, own_key,
                                        md_alg, verify_hash, verify_hash_len,
                                        p + 4, (size_t) (end - (p + 4)), &signature_len)) != 0) {
             MBEDTLS_SSL_DEBUG_MSG(2, ("CertificateVerify signature failed with %s",
@@ -1144,7 +1144,8 @@ static int ssl_tls13_prepare_finished_message(mbedtls_ssl_context *ssl)
                                                   ssl->handshake->state_local.finished_out.digest,
                                                   sizeof(ssl->handshake->state_local.finished_out.
                                                          digest),
-                                                  &ssl->handshake->state_local.finished_out.digest_len,
+                                                  &ssl->handshake->state_local.finished_out.
+                                                  digest_len,
                                                   ssl->conf->endpoint);
 
     if (ret != 0) {

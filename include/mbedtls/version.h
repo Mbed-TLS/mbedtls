@@ -32,23 +32,14 @@ extern "C" {
 unsigned int mbedtls_version_get_number(void);
 
 /**
- * Get the version string ("x.y.z").
- *
- * \param string    The string that will receive the value.
- *                  (Should be at least 9 bytes in size)
+ * Get a pointer to the version string ("x.y.z").
  */
-void mbedtls_version_get_string(char *string);
+const char *mbedtls_version_get_string(void);
 
 /**
- * Get the full version string ("Mbed TLS x.y.z").
- *
- * \param string    The string that will receive the value. The Mbed TLS version
- *                  string will use 18 bytes AT MOST including a terminating
- *                  null byte.
- *                  (So the buffer should be at least 18 bytes to receive this
- *                  version string).
+ * Get a pointer to the full version string ("Mbed TLS x.y.z").
  */
-void mbedtls_version_get_string_full(char *string);
+const char *mbedtls_version_get_string_full(void);
 
 /**
  * \brief           Check if support for a feature was compiled into this

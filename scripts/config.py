@@ -76,18 +76,15 @@ EXCLUDE_FROM_FULL = frozenset([
     'MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH', # interacts with CTR_DRBG_128_BIT_KEY
     'MBEDTLS_AES_USE_HARDWARE_ONLY', # hardware dependency
     'MBEDTLS_BLOCK_CIPHER_NO_DECRYPT', # incompatible with ECB in PSA, CBC/XTS/NIST_KW
-    'MBEDTLS_CTR_DRBG_USE_128_BIT_KEY', # interacts with ENTROPY_FORCE_SHA256
     'MBEDTLS_DEPRECATED_REMOVED', # conflicts with deprecated options
     'MBEDTLS_DEPRECATED_WARNING', # conflicts with deprecated options
     'MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED', # influences the use of ECDH in TLS
     'MBEDTLS_ECP_WITH_MPI_UINT', # disables the default ECP and is experimental
-    'MBEDTLS_ENTROPY_FORCE_SHA256', # interacts with CTR_DRBG_128_BIT_KEY
     'MBEDTLS_HAVE_SSE2', # hardware dependency
     'MBEDTLS_MEMORY_BACKTRACE', # depends on MEMORY_BUFFER_ALLOC_C
     'MBEDTLS_MEMORY_BUFFER_ALLOC_C', # makes sanitizers (e.g. ASan) less effective
     'MBEDTLS_MEMORY_DEBUG', # depends on MEMORY_BUFFER_ALLOC_C
     'MBEDTLS_NO_64BIT_MULTIPLICATION', # influences anything that uses bignum
-    'MBEDTLS_NO_DEFAULT_ENTROPY_SOURCES', # removes a feature
     'MBEDTLS_NO_UDBL_DIVISION', # influences anything that uses bignum
     'MBEDTLS_PSA_DRIVER_GET_ENTROPY', # incompatible with MBEDTLS_PSA_BUILTIN_GET_ENTROPY
     'MBEDTLS_PSA_P256M_DRIVER_ENABLED', # influences SECP256R1 KeyGen/ECDH/ECDSA
@@ -182,8 +179,10 @@ def baremetal_adapter(name, value, active):
     """Config adapter for "baremetal"."""
     if not is_boolean_setting(name, value):
         return active
-    if name == 'MBEDTLS_PLATFORM_GET_ENTROPY_ALT':
+    if name == 'MBEDTLS_PSA_BUILTIN_GET_ENTROPY':
         # No OS-provided entropy source
+        return False
+    if name == 'MBEDTLS_PSA_DRIVER_GET_ENTROPY':
         return True
     return include_in_full(name) and keep_in_baremetal(name)
 

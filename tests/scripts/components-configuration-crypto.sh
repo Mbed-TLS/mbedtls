@@ -82,22 +82,27 @@ component_test_psa_crypto_without_heap() {
     msg "crypto without heap: build libtestdriver1"
     # Disable PSA features that cannot be accelerated and whose builtin support
     # requires calloc/free.
-    scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_DERIVE
-    scripts/config.py -c $CRYPTO_CONFIG_H unset-all "^PSA_WANT_ALG_HKDF"
-    scripts/config.py -c $CRYPTO_CONFIG_H unset-all "^PSA_WANT_ALG_PBKDF2_"
-    scripts/config.py -c $CRYPTO_CONFIG_H unset-all "^PSA_WANT_ALG_TLS12_"
+    scripts/config.py unset PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_DERIVE
+    scripts/config.py unset-all "^PSA_WANT_ALG_HKDF"
+    scripts/config.py unset-all "^PSA_WANT_ALG_PBKDF2_"
+    scripts/config.py unset-all "^PSA_WANT_ALG_TLS12_"
     # RSA key support requires ASN1 parse/write support for testing, but ASN1
     # is disabled below.
-    scripts/config.py -c $CRYPTO_CONFIG_H unset-all "^PSA_WANT_KEY_TYPE_RSA_"
-    scripts/config.py -c $CRYPTO_CONFIG_H unset-all "^PSA_WANT_ALG_RSA_"
+    scripts/config.py unset-all "^PSA_WANT_KEY_TYPE_RSA_"
+    scripts/config.py unset-all "^PSA_WANT_ALG_RSA_"
     # DES requires built-in support for key generation (parity check) so it
     # cannot be accelerated
-    scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_KEY_TYPE_DES
+    scripts/config.py unset PSA_WANT_KEY_TYPE_DES
     # EC-JPAKE use calloc/free in PSA core
-    scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_ALG_JPAKE
+    scripts/config.py unset PSA_WANT_ALG_JPAKE
+    # Enable p192[k|r]1 curves which are disabled by default in tf-psa-crypto.
+    # This is required to get the proper test coverage otherwise there are
+    # tests in 'test_suite_psa_crypto_op_fail' that would never be executed.
+    scripts/config.py set PSA_WANT_ECC_SECP_K1_192
+    scripts/config.py set PSA_WANT_ECC_SECP_R1_192
 
     # Accelerate all PSA features (which are still enabled in CRYPTO_CONFIG_H).
-    PSA_SYM_LIST=$(./scripts/config.py -c $CRYPTO_CONFIG_H get-all-enabled PSA_WANT)
+    PSA_SYM_LIST=$(./scripts/config.py get-all-enabled PSA_WANT)
     loc_accel_list=$(echo $PSA_SYM_LIST | sed 's/PSA_WANT_//g')
 
     helper_libtestdriver1_adjust_config crypto
@@ -138,7 +143,7 @@ component_test_psa_crypto_without_heap() {
 
 component_test_no_rsa_key_pair_generation () {
     msg "build: default config minus PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_GENERATE"
-    scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_GENERATE
+    scripts/config.py unset PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_GENERATE
     make
 
     msg "test: default config minus PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_GENERATE"
@@ -205,7 +210,7 @@ component_test_no_hmac_drbg_use_psa () {
     msg "build: Full minus HMAC_DRBG, PSA crypto in TLS"
     scripts/config.py full
     scripts/config.py unset MBEDTLS_HMAC_DRBG_C
-    scripts/config.py unset MBEDTLS_ECDSA_DETERMINISTIC # requires HMAC_DRBG
+    scripts/config.py unset PSA_WANT_ALG_DETERMINISTIC_ECDSA # requires HMAC_DRBG
 
     CC=$ASAN_CC cmake -D CMAKE_BUILD_TYPE:String=Asan .
     make
@@ -231,12 +236,11 @@ component_test_psa_external_rng_no_drbg_use_psa () {
     msg "build: PSA_CRYPTO_EXTERNAL_RNG minus *_DRBG, PSA crypto in TLS"
     scripts/config.py full
     scripts/config.py set MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG
-    scripts/config.py unset MBEDTLS_ENTROPY_C
     scripts/config.py unset MBEDTLS_ENTROPY_NV_SEED
     scripts/config.py unset MBEDTLS_PLATFORM_NV_SEED_ALT
     scripts/config.py unset MBEDTLS_CTR_DRBG_C
     scripts/config.py unset MBEDTLS_HMAC_DRBG_C
-    scripts/config.py unset MBEDTLS_ECDSA_DETERMINISTIC # requires HMAC_DRBG
+    scripts/config.py unset PSA_WANT_ALG_DETERMINISTIC_ECDSA # Requires HMAC_DRBG
     make CC=$ASAN_CC CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS"
 
     msg "test: PSA_CRYPTO_EXTERNAL_RNG minus *_DRBG, PSA crypto - main suites"
@@ -247,16 +251,18 @@ component_test_psa_external_rng_no_drbg_use_psa () {
 }
 
 component_test_psa_external_rng_use_psa_crypto () {
-    msg "build: full + PSA_CRYPTO_EXTERNAL_RNG + USE_PSA_CRYPTO minus CTR_DRBG"
+    msg "build: full + PSA_CRYPTO_EXTERNAL_RNG + USE_PSA_CRYPTO minus CTR_DRBG/NV_SEED"
     scripts/config.py full
     scripts/config.py set MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG
     scripts/config.py unset MBEDTLS_CTR_DRBG_C
+    scripts/config.py unset MBEDTLS_ENTROPY_NV_SEED
+    scripts/config.py unset MBEDTLS_PLATFORM_NV_SEED_ALT
     make CC=$ASAN_CC CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS"
 
-    msg "test: full + PSA_CRYPTO_EXTERNAL_RNG + USE_PSA_CRYPTO minus CTR_DRBG"
+    msg "test: full + PSA_CRYPTO_EXTERNAL_RNG + USE_PSA_CRYPTO minus CTR_DRBG/NV_SEED"
     make test
 
-    msg "test: full + PSA_CRYPTO_EXTERNAL_RNG + USE_PSA_CRYPTO minus CTR_DRBG"
+    msg "test: full + PSA_CRYPTO_EXTERNAL_RNG + USE_PSA_CRYPTO minus CTR_DRBG/NV_SEED"
     tests/ssl-opt.sh -f 'Default\|opaque'
 }
 
@@ -288,8 +294,7 @@ component_test_crypto_full_md_light_only () {
     scripts/config.py unset MBEDTLS_HMAC_DRBG_C
     scripts/config.py unset MBEDTLS_PKCS7_C
     # Disable indirect dependencies of MD_C
-    scripts/config.py unset MBEDTLS_ECDSA_DETERMINISTIC # needs HMAC_DRBG
-    scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_ALG_DETERMINISTIC_ECDSA
+    scripts/config.py unset PSA_WANT_ALG_DETERMINISTIC_ECDSA
     # Disable things that would auto-enable MD_C
     scripts/config.py unset MBEDTLS_PKCS5_C
 
@@ -314,17 +319,17 @@ component_test_full_no_cipher () {
     # on CIPHER_C so we disable them.
     # This does not hold for KEY_TYPE_CHACHA20 and ALG_CHACHA20_POLY1305
     # so we keep them enabled.
-    scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CCM_STAR_NO_TAG
-    scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CMAC
-    scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CBC_NO_PADDING
-    scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CBC_PKCS7
-    scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CFB
-    scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CTR
-    scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_ALG_ECB_NO_PADDING
-    scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_ALG_OFB
-    scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_ALG_PBKDF2_AES_CMAC_PRF_128
-    scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_ALG_STREAM_CIPHER
-    scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_KEY_TYPE_DES
+    scripts/config.py unset PSA_WANT_ALG_CCM_STAR_NO_TAG
+    scripts/config.py unset PSA_WANT_ALG_CMAC
+    scripts/config.py unset PSA_WANT_ALG_CBC_NO_PADDING
+    scripts/config.py unset PSA_WANT_ALG_CBC_PKCS7
+    scripts/config.py unset PSA_WANT_ALG_CFB
+    scripts/config.py unset PSA_WANT_ALG_CTR
+    scripts/config.py unset PSA_WANT_ALG_ECB_NO_PADDING
+    scripts/config.py unset PSA_WANT_ALG_OFB
+    scripts/config.py unset PSA_WANT_ALG_PBKDF2_AES_CMAC_PRF_128
+    scripts/config.py unset PSA_WANT_ALG_STREAM_CIPHER
+    scripts/config.py unset PSA_WANT_KEY_TYPE_DES
 
     # The following modules directly depends on CIPHER_C
     scripts/config.py unset MBEDTLS_NIST_KW_C
@@ -352,7 +357,7 @@ component_test_full_no_ccm () {
     #
     # Note: also PSA_WANT_ALG_CCM_STAR_NO_TAG is enabled, but it does not cause
     # PSA_WANT_ALG_CCM to be re-enabled.
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CCM
+    scripts/config.py unset PSA_WANT_ALG_CCM
 
     make
 
@@ -373,17 +378,17 @@ component_test_full_no_ccm_star_no_tag () {
     #
     # Note: PSA_WANT_ALG_CCM is enabled, but it does not cause
     # PSA_WANT_ALG_CCM_STAR_NO_TAG to be re-enabled.
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CCM_STAR_NO_TAG
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_STREAM_CIPHER
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CTR
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CFB
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_OFB
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_ECB_NO_PADDING
+    scripts/config.py unset PSA_WANT_ALG_CCM_STAR_NO_TAG
+    scripts/config.py unset PSA_WANT_ALG_STREAM_CIPHER
+    scripts/config.py unset PSA_WANT_ALG_CTR
+    scripts/config.py unset PSA_WANT_ALG_CFB
+    scripts/config.py unset PSA_WANT_ALG_OFB
+    scripts/config.py unset PSA_WANT_ALG_ECB_NO_PADDING
     # NOTE unsettting PSA_WANT_ALG_ECB_NO_PADDING without unsetting NIST_KW_C will
     # mean PSA_WANT_ALG_ECB_NO_PADDING is re-enabled, so disabling it also.
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset MBEDTLS_NIST_KW_C
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CBC_NO_PADDING
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CBC_PKCS7
+    scripts/config.py unset MBEDTLS_NIST_KW_C
+    scripts/config.py unset PSA_WANT_ALG_CBC_NO_PADDING
+    scripts/config.py unset PSA_WANT_ALG_CBC_PKCS7
 
     make
 
@@ -536,10 +541,10 @@ component_test_psa_crypto_config_ffdh_2048_only () {
     scripts/config.py full
 
     # Disable all DH groups other than 2048.
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_DH_RFC7919_3072
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_DH_RFC7919_4096
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_DH_RFC7919_6144
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_DH_RFC7919_8192
+    scripts/config.py unset PSA_WANT_DH_RFC7919_3072
+    scripts/config.py unset PSA_WANT_DH_RFC7919_4096
+    scripts/config.py unset PSA_WANT_DH_RFC7919_6144
+    scripts/config.py unset PSA_WANT_DH_RFC7919_8192
 
     make CFLAGS="$ASAN_CFLAGS -Werror" LDFLAGS="$ASAN_CFLAGS"
 
@@ -553,23 +558,22 @@ component_test_psa_crypto_config_ffdh_2048_only () {
 component_test_psa_crypto_config_accel_ecdsa () {
     msg "build: accelerated ECDSA"
 
-    # Algorithms and key types to accelerate
-    loc_accel_list="ALG_ECDSA ALG_DETERMINISTIC_ECDSA \
-                    $(helper_get_psa_key_type_list "ECC") \
-                    $(helper_get_psa_curve_list)"
-
     # Configure
     # ---------
 
     # Start from default config + TLS 1.3
     helper_libtestdriver1_adjust_config "default"
 
+    # Algorithms and key types to accelerate
+    loc_accel_list="ALG_ECDSA ALG_DETERMINISTIC_ECDSA \
+                    $(helper_get_psa_key_type_list "ECC") \
+                    $(helper_get_psa_curve_list)"
+
     # Disable the module that's accelerated
     scripts/config.py unset MBEDTLS_ECDSA_C
 
     # Disable things that depend on it
     scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
-    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED
 
     # Build
     # -----
@@ -595,23 +599,21 @@ component_test_psa_crypto_config_accel_ecdsa () {
 component_test_psa_crypto_config_accel_ecdh () {
     msg "build: accelerated ECDH"
 
-    # Algorithms and key types to accelerate
-    loc_accel_list="ALG_ECDH \
-                    $(helper_get_psa_key_type_list "ECC") \
-                    $(helper_get_psa_curve_list)"
-
     # Configure
     # ---------
 
     # Start from default config (no USE_PSA)
     helper_libtestdriver1_adjust_config "default"
 
+    # Algorithms and key types to accelerate
+    loc_accel_list="ALG_ECDH \
+                    $(helper_get_psa_key_type_list "ECC") \
+                    $(helper_get_psa_curve_list)"
+
     # Disable the module that's accelerated
     scripts/config.py unset MBEDTLS_ECDH_C
 
     # Disable things that depend on it
-    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED
-    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED
     scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
     scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED
     scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
@@ -636,16 +638,16 @@ component_test_psa_crypto_config_accel_ecdh () {
 component_test_psa_crypto_config_accel_ffdh () {
     msg "build: full with accelerated FFDH"
 
-    # Algorithms and key types to accelerate
-    loc_accel_list="ALG_FFDH \
-                    $(helper_get_psa_key_type_list "DH") \
-                    $(helper_get_psa_dh_group_list)"
-
     # Configure
     # ---------
 
     # start with full (USE_PSA and TLS 1.3)
     helper_libtestdriver1_adjust_config "full"
+
+    # Algorithms and key types to accelerate
+    loc_accel_list="ALG_FFDH \
+                    $(helper_get_psa_key_type_list "DH") \
+                    $(helper_get_psa_dh_group_list)"
 
     # Build
     # -----
@@ -685,14 +687,14 @@ component_test_psa_crypto_config_reference_ffdh () {
 component_test_psa_crypto_config_accel_pake () {
     msg "build: full with accelerated PAKE"
 
-    loc_accel_list="ALG_JPAKE \
-                    $(helper_get_psa_key_type_list "ECC") \
-                    $(helper_get_psa_curve_list)"
-
     # Configure
     # ---------
 
     helper_libtestdriver1_adjust_config "full"
+
+    loc_accel_list="ALG_JPAKE \
+                    $(helper_get_psa_key_type_list "ECC") \
+                    $(helper_get_psa_curve_list)"
 
     # Make built-in fallback not available
     scripts/config.py unset MBEDTLS_ECJPAKE_C
@@ -718,6 +720,12 @@ component_test_psa_crypto_config_accel_pake () {
 component_test_psa_crypto_config_accel_ecc_some_key_types () {
     msg "build: full with accelerated EC algs and some key types"
 
+    # Configure
+    # ---------
+
+    # start with config full for maximum coverage (also enables USE_PSA)
+    helper_libtestdriver1_adjust_config "full"
+
     # Algorithms and key types to accelerate
     # For key types, use an explicitly list to omit GENERATE (and DERIVE)
     loc_accel_list="ALG_ECDSA ALG_DETERMINISTIC_ECDSA \
@@ -728,12 +736,6 @@ component_test_psa_crypto_config_accel_ecc_some_key_types () {
                     KEY_TYPE_ECC_KEY_PAIR_IMPORT \
                     KEY_TYPE_ECC_KEY_PAIR_EXPORT \
                     $(helper_get_psa_curve_list)"
-
-    # Configure
-    # ---------
-
-    # start with config full for maximum coverage (also enables USE_PSA)
-    helper_libtestdriver1_adjust_config "full"
 
     # Disable modules that are accelerated - some will be re-enabled
     scripts/config.py unset MBEDTLS_ECDSA_C
@@ -750,7 +752,7 @@ component_test_psa_crypto_config_accel_ecc_some_key_types () {
     scripts/config.py unset MBEDTLS_ECP_RESTARTABLE
 
     # this is not supported by the driver API yet
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_DERIVE
+    scripts/config.py unset PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_DERIVE
 
     # Build
     # -----
@@ -789,6 +791,25 @@ common_test_psa_crypto_config_accel_ecc_some_curves () {
 
     msg "build: crypto_full minus PK with accelerated EC algs and $desc curves"
 
+    # Configure
+    # ---------
+
+    # Start with config crypto_full and remove PK_C:
+    # that's what's supported now, see docs/driver-only-builds.md.
+    helper_libtestdriver1_adjust_config "crypto_full"
+    scripts/config.py unset MBEDTLS_PK_C
+    scripts/config.py unset MBEDTLS_PK_PARSE_C
+    scripts/config.py unset MBEDTLS_PK_WRITE_C
+
+    # Disable modules that are accelerated - some will be re-enabled
+    scripts/config.py unset MBEDTLS_ECDSA_C
+    scripts/config.py unset MBEDTLS_ECDH_C
+    scripts/config.py unset MBEDTLS_ECJPAKE_C
+    scripts/config.py unset MBEDTLS_ECP_C
+
+    # Disable all curves - those that aren't accelerated should be re-enabled
+    helper_disable_builtin_curves
+
     # Note: Curves are handled in a special way by the libtestdriver machinery,
     # so we only want to include them in the accel list when building the main
     # libraries, hence the use of a separate variable.
@@ -819,32 +840,13 @@ common_test_psa_crypto_config_accel_ecc_some_curves () {
                     $(helper_get_psa_key_type_list "ECC") \
                     $loc_curve_list"
 
-    # Configure
-    # ---------
-
-    # Start with config crypto_full and remove PK_C:
-    # that's what's supported now, see docs/driver-only-builds.md.
-    helper_libtestdriver1_adjust_config "crypto_full"
-    scripts/config.py unset MBEDTLS_PK_C
-    scripts/config.py unset MBEDTLS_PK_PARSE_C
-    scripts/config.py unset MBEDTLS_PK_WRITE_C
-
-    # Disable modules that are accelerated - some will be re-enabled
-    scripts/config.py unset MBEDTLS_ECDSA_C
-    scripts/config.py unset MBEDTLS_ECDH_C
-    scripts/config.py unset MBEDTLS_ECJPAKE_C
-    scripts/config.py unset MBEDTLS_ECP_C
-
-    # Disable all curves - those that aren't accelerated should be re-enabled
-    helper_disable_builtin_curves
-
     # Restartable feature is not yet supported by PSA. Once it will in
     # the future, the following line could be removed (see issues
     # 6061, 6332 and following ones)
     scripts/config.py unset MBEDTLS_ECP_RESTARTABLE
 
     # this is not supported by the driver API yet
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_DERIVE
+    scripts/config.py unset PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_DERIVE
 
     # Build
     # -----
@@ -929,18 +931,18 @@ config_psa_crypto_config_ecp_light_only () {
 component_test_psa_crypto_config_accel_ecc_ecp_light_only () {
     msg "build: full with accelerated EC algs"
 
+    # Configure
+    # ---------
+
+    # Use the same config as reference, only without built-in EC algs
+    config_psa_crypto_config_ecp_light_only 1
+
     # Algorithms and key types to accelerate
     loc_accel_list="ALG_ECDSA ALG_DETERMINISTIC_ECDSA \
                     ALG_ECDH \
                     ALG_JPAKE \
                     $(helper_get_psa_key_type_list "ECC") \
                     $(helper_get_psa_curve_list)"
-
-    # Configure
-    # ---------
-
-    # Use the same config as reference, only without built-in EC algs
-    config_psa_crypto_config_ecp_light_only 1
 
     # Do not disable builtin curves because that support is required for:
     # - MBEDTLS_PK_PARSE_EC_EXTENDED
@@ -1017,7 +1019,7 @@ config_psa_crypto_no_ecp_at_all () {
     # Disable all the features that auto-enable ECP_LIGHT (see build_info.h)
     scripts/config.py unset MBEDTLS_PK_PARSE_EC_EXTENDED
     scripts/config.py unset MBEDTLS_PK_PARSE_EC_COMPRESSED
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_DERIVE
+    scripts/config.py unset PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_DERIVE
 
     # Restartable feature is not yet supported by PSA. Once it will in
     # the future, the following line could be removed (see issues
@@ -1033,13 +1035,6 @@ config_psa_crypto_no_ecp_at_all () {
 component_test_psa_crypto_config_accel_ecc_no_ecp_at_all () {
     msg "build: full + accelerated EC algs - ECP"
 
-    # Algorithms and key types to accelerate
-    loc_accel_list="ALG_ECDSA ALG_DETERMINISTIC_ECDSA \
-                    ALG_ECDH \
-                    ALG_JPAKE \
-                    $(helper_get_psa_key_type_list "ECC") \
-                    $(helper_get_psa_curve_list)"
-
     # Configure
     # ---------
 
@@ -1047,6 +1042,13 @@ component_test_psa_crypto_config_accel_ecc_no_ecp_at_all () {
     config_psa_crypto_no_ecp_at_all 1
     # Disable all the builtin curves. All the required algs are accelerated.
     helper_disable_builtin_curves
+
+    # Algorithms and key types to accelerate
+    loc_accel_list="ALG_ECDSA ALG_DETERMINISTIC_ECDSA \
+                    ALG_ECDH \
+                    ALG_JPAKE \
+                    $(helper_get_psa_key_type_list "ECC") \
+                    $(helper_get_psa_curve_list)"
 
     # Build
     # -----
@@ -1134,23 +1136,22 @@ config_psa_crypto_config_accel_ecc_ffdh_no_bignum () {
     # Disable all the features that auto-enable ECP_LIGHT (see build_info.h)
     scripts/config.py unset MBEDTLS_PK_PARSE_EC_EXTENDED
     scripts/config.py unset MBEDTLS_PK_PARSE_EC_COMPRESSED
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_DERIVE
+    scripts/config.py unset PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_DERIVE
 
     # RSA support is intentionally disabled on this test because RSA_C depends
     # on BIGNUM_C.
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset-all "PSA_WANT_KEY_TYPE_RSA_[0-9A-Z_a-z]*"
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset-all "PSA_WANT_ALG_RSA_[0-9A-Z_a-z]*"
+    scripts/config.py unset-all "PSA_WANT_KEY_TYPE_RSA_[0-9A-Z_a-z]*"
+    scripts/config.py unset-all "PSA_WANT_ALG_RSA_[0-9A-Z_a-z]*"
     scripts/config.py unset MBEDTLS_X509_RSASSA_PSS_SUPPORT
     # Also disable key exchanges that depend on RSA
     scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED
-    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED
 
     if [ "$test_target" = "ECC" ]; then
         # When testing ECC only, we disable FFDH support, both from builtin and
         # PSA sides.
-        scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_FFDH
-        scripts/config.py -f "$CRYPTO_CONFIG_H" unset-all "PSA_WANT_KEY_TYPE_DH_[0-9A-Z_a-z]*"
-        scripts/config.py -f "$CRYPTO_CONFIG_H" unset-all "PSA_WANT_DH_RFC7919_[0-9]*"
+        scripts/config.py unset PSA_WANT_ALG_FFDH
+        scripts/config.py unset-all "PSA_WANT_KEY_TYPE_DH_[0-9A-Z_a-z]*"
+        scripts/config.py unset-all "PSA_WANT_DH_RFC7919_[0-9]*"
     fi
 
     # Restartable feature is not yet supported by PSA. Once it will in
@@ -1184,6 +1185,14 @@ common_test_psa_crypto_config_accel_ecc_ffdh_no_bignum () {
 
     msg "build: full + accelerated $accel_text algs + USE_PSA - $removed_text - BIGNUM"
 
+    # Configure
+    # ---------
+
+    # Set common configurations between library's and driver's builds
+    config_psa_crypto_config_accel_ecc_ffdh_no_bignum 1 "$test_target"
+    # Disable all the builtin curves. All the required algs are accelerated.
+    helper_disable_builtin_curves
+
     # By default we accelerate all EC keys/algs
     loc_accel_list="ALG_ECDSA ALG_DETERMINISTIC_ECDSA \
                     ALG_ECDH \
@@ -1197,14 +1206,6 @@ common_test_psa_crypto_config_accel_ecc_ffdh_no_bignum () {
                         $(helper_get_psa_key_type_list "DH") \
                         $(helper_get_psa_dh_group_list)"
     fi
-
-    # Configure
-    # ---------
-
-    # Set common configurations between library's and driver's builds
-    config_psa_crypto_config_accel_ecc_ffdh_no_bignum 1 "$test_target"
-    # Disable all the builtin curves. All the required algs are accelerated.
-    helper_disable_builtin_curves
 
     # Build
     # -----
@@ -1352,7 +1353,7 @@ component_test_tfm_config_no_p256m () {
 
     # Disable P256M driver, which is on by default, so that analyze_outcomes
     # can compare this test with test_tfm_config_p256m_driver_accel_ec
-    sed -i '/PROFILE_M_PSA_CRYPTO_CONFIG_H/i #undef MBEDTLS_PSA_P256M_DRIVER_ENABLED' "$CRYPTO_CONFIG_H"
+    scripts/config.py -f "$CRYPTO_CONFIG_H" unset MBEDTLS_PSA_P256M_DRIVER_ENABLED
 
     msg "build: TF-M config without p256m"
     make CFLAGS='-Werror -Wall -Wextra -I../framework/tests/include/spe' tests
@@ -1387,7 +1388,7 @@ build_and_test_psa_want_key_pair_partial () {
 
     # All the PSA_WANT_KEY_TYPE_xxx_KEY_PAIR_yyy are enabled by default in
     # crypto_config.h so we just disable the one we don't want.
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset "$disabled_psa_want"
+    scripts/config.py unset "$disabled_psa_want"
 
     make CC=$ASAN_CC CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS"
 
@@ -1492,15 +1493,15 @@ component_test_new_psa_want_key_pair_symbol () {
     scripts/config.py crypto
 
     # Remove RSA support and its dependencies
-    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED
+    scripts/config.py unset MBEDTLS_PKCS1_V15
     scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED
     scripts/config.py unset MBEDTLS_X509_RSASSA_PSS_SUPPORT
 
     # Keep only PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC enabled in order to ensure
     # that proper translations is done in crypto_legacy.h.
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_IMPORT
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_EXPORT
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_GENERATE
+    scripts/config.py unset PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_IMPORT
+    scripts/config.py unset PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_EXPORT
+    scripts/config.py unset PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_GENERATE
 
     make
 
@@ -1652,8 +1653,7 @@ config_psa_crypto_hmac_use_psa () {
     scripts/config.py unset MBEDTLS_HMAC_DRBG_C
     scripts/config.py unset MBEDTLS_HKDF_C
     # Dependencies of HMAC_DRBG
-    scripts/config.py unset MBEDTLS_ECDSA_DETERMINISTIC
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_DETERMINISTIC_ECDSA
+    scripts/config.py unset PSA_WANT_ALG_DETERMINISTIC_ECDSA
 }
 
 component_test_psa_crypto_config_accel_hmac () {
@@ -1710,7 +1710,7 @@ component_test_psa_crypto_config_accel_aead () {
     helper_libtestdriver1_adjust_config "full"
 
     # Disable CCM_STAR_NO_TAG because this re-enables CCM_C.
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CCM_STAR_NO_TAG
+    scripts/config.py unset PSA_WANT_ALG_CCM_STAR_NO_TAG
 
     # Build
     # -----
@@ -1826,14 +1826,14 @@ common_block_cipher_dispatch () {
     # legacy key types to be re-enabled in "config_adjust_legacy_from_psa.h".
     # Keep this also in the reference component in order to skip the same tests
     # that were skipped in the accelerated one.
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CTR
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CFB
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_OFB
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CBC_NO_PADDING
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CBC_PKCS7
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CMAC
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CCM_STAR_NO_TAG
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_PBKDF2_AES_CMAC_PRF_128
+    scripts/config.py unset PSA_WANT_ALG_CTR
+    scripts/config.py unset PSA_WANT_ALG_CFB
+    scripts/config.py unset PSA_WANT_ALG_OFB
+    scripts/config.py unset PSA_WANT_ALG_CBC_NO_PADDING
+    scripts/config.py unset PSA_WANT_ALG_CBC_PKCS7
+    scripts/config.py unset PSA_WANT_ALG_CMAC
+    scripts/config.py unset PSA_WANT_ALG_CCM_STAR_NO_TAG
+    scripts/config.py unset PSA_WANT_ALG_PBKDF2_AES_CMAC_PRF_128
 
     # Disable direct dependency on AES_C
     scripts/config.py unset MBEDTLS_NIST_KW_C
@@ -1926,7 +1926,7 @@ component_test_full_block_cipher_legacy_dispatch () {
 component_test_aead_chachapoly_disabled () {
     msg "build: full minus CHACHAPOLY"
     scripts/config.py full
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CHACHA20_POLY1305
+    scripts/config.py unset PSA_WANT_ALG_CHACHA20_POLY1305
     make CC=$ASAN_CC CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS"
 
     msg "test: full minus CHACHAPOLY"
@@ -1936,8 +1936,8 @@ component_test_aead_chachapoly_disabled () {
 component_test_aead_only_ccm () {
     msg "build: full minus CHACHAPOLY and GCM"
     scripts/config.py full
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CHACHA20_POLY1305
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_GCM
+    scripts/config.py unset PSA_WANT_ALG_CHACHA20_POLY1305
+    scripts/config.py unset PSA_WANT_ALG_GCM
     make CC=$ASAN_CC CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS"
 
     msg "test: full minus CHACHAPOLY and GCM"
@@ -2063,10 +2063,10 @@ component_build_aes_variations () {
     scripts/config.py set MBEDTLS_BLOCK_CIPHER_NO_DECRYPT
     scripts/config.py unset MBEDTLS_NIST_KW_C
 
-    scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CBC_NO_PADDING
-    scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CBC_PKCS7
-    scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_ALG_ECB_NO_PADDING
-    scripts/config.py -c $CRYPTO_CONFIG_H unset PSA_WANT_KEY_TYPE_DES
+    scripts/config.py unset PSA_WANT_ALG_CBC_NO_PADDING
+    scripts/config.py unset PSA_WANT_ALG_CBC_PKCS7
+    scripts/config.py unset PSA_WANT_ALG_ECB_NO_PADDING
+    scripts/config.py unset PSA_WANT_KEY_TYPE_DES
 
     build_test_config_combos ${BUILTIN_SRC_PATH}/aes.o validate_aes_config_variations \
         "MBEDTLS_AES_ROM_TABLES" \
@@ -2088,9 +2088,9 @@ END
         #define PSA_WANT_ALG_SHA3_384  1
         #define PSA_WANT_ALG_SHA3_512  1
         #define PSA_WANT_KEY_TYPE_AES  1
-        #define MBEDTLS_CTR_DRBG_C
-        #define MBEDTLS_ENTROPY_C
         #define MBEDTLS_PSA_CRYPTO_C
+        #define MBEDTLS_CTR_DRBG_C
+        #define MBEDTLS_PSA_BUILTIN_GET_ENTROPY
         #define MBEDTLS_SELF_TEST
 END
 
@@ -2140,6 +2140,7 @@ component_build_aes_aesce_armcc () {
 component_test_aes_only_128_bit_keys () {
     msg "build: default config + AES_ONLY_128_BIT_KEY_LENGTH"
     scripts/config.py set MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH
+    scripts/config.py set MBEDTLS_PSA_CRYPTO_RNG_STRENGTH 128
 
     make CFLAGS='-O2 -Werror -Wall -Wextra'
 
@@ -2150,6 +2151,7 @@ component_test_aes_only_128_bit_keys () {
 component_test_no_ctr_drbg_aes_only_128_bit_keys () {
     msg "build: default config + AES_ONLY_128_BIT_KEY_LENGTH - CTR_DRBG_C"
     scripts/config.py set MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH
+    scripts/config.py set MBEDTLS_PSA_CRYPTO_RNG_STRENGTH 128
     scripts/config.py unset MBEDTLS_CTR_DRBG_C
 
     make CC=clang CFLAGS='-Werror -Wall -Wextra'
@@ -2161,6 +2163,7 @@ component_test_no_ctr_drbg_aes_only_128_bit_keys () {
 component_test_aes_only_128_bit_keys_have_builtins () {
     msg "build: default config + AES_ONLY_128_BIT_KEY_LENGTH - AESNI_C - AESCE_C"
     scripts/config.py set MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH
+    scripts/config.py set MBEDTLS_PSA_CRYPTO_RNG_STRENGTH 128
     scripts/config.py unset MBEDTLS_AESNI_C
     scripts/config.py unset MBEDTLS_AESCE_C
 
@@ -2274,10 +2277,10 @@ config_block_cipher_no_decrypt () {
 
     # Enable support for cryptographic mechanisms through the PSA API.
     # Note: XTS, KW are not yet supported via the PSA API in Mbed TLS.
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CBC_NO_PADDING
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CBC_PKCS7
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_ECB_NO_PADDING
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_KEY_TYPE_DES
+    scripts/config.py unset PSA_WANT_ALG_CBC_NO_PADDING
+    scripts/config.py unset PSA_WANT_ALG_CBC_PKCS7
+    scripts/config.py unset PSA_WANT_ALG_ECB_NO_PADDING
+    scripts/config.py unset PSA_WANT_KEY_TYPE_DES
 }
 
 component_test_block_cipher_no_decrypt_aesni () {
@@ -2346,40 +2349,53 @@ component_test_block_cipher_no_decrypt_aesce_armcc () {
     not grep aesce_decrypt_block ${BUILTIN_SRC_PATH}/aesce.o
 }
 
-component_test_ctr_drbg_aes_256_sha_256 () {
-    msg "build: full + MBEDTLS_ENTROPY_FORCE_SHA256 (ASan build)"
+component_test_ctr_drbg_aes_256_sha_512 () {
+    msg "build: full + MBEDTLS_PSA_CRYPTO_RNG_HASH PSA_ALG_SHA_512 (ASan build)"
     scripts/config.py full
     scripts/config.py unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
-    scripts/config.py set MBEDTLS_ENTROPY_FORCE_SHA256
+    scripts/config.py set MBEDTLS_PSA_CRYPTO_RNG_HASH PSA_ALG_SHA_512
     CC=$ASAN_CC cmake -D CMAKE_BUILD_TYPE:String=Asan .
     make
 
-    msg "test: full + MBEDTLS_ENTROPY_FORCE_SHA256 (ASan build)"
+    msg "test: full + MBEDTLS_PSA_CRYPTO_RNG_HASH PSA_ALG_SHA_512 (ASan build)"
+    make test
+}
+
+component_test_ctr_drbg_aes_256_sha_256 () {
+    msg "build: full + MBEDTLS_PSA_CRYPTO_RNG_HASH PSA_ALG_SHA_256 (ASan build)"
+    scripts/config.py full
+    scripts/config.py unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
+    scripts/config.py set MBEDTLS_PSA_CRYPTO_RNG_HASH PSA_ALG_SHA_256
+    CC=$ASAN_CC cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    make
+
+    msg "test: full + MBEDTLS_PSA_CRYPTO_RNG_HASH PSA_ALG_SHA_256 (ASan build)"
     make test
 }
 
 component_test_ctr_drbg_aes_128_sha_512 () {
-    msg "build: full + MBEDTLS_CTR_DRBG_USE_128_BIT_KEY (ASan build)"
+    msg "build: full + set MBEDTLS_PSA_CRYPTO_RNG_STRENGTH 128 (ASan build)"
     scripts/config.py full
     scripts/config.py unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
-    scripts/config.py set MBEDTLS_CTR_DRBG_USE_128_BIT_KEY
+    scripts/config.py set MBEDTLS_PSA_CRYPTO_RNG_STRENGTH 128
+    scripts/config.py set MBEDTLS_PSA_CRYPTO_RNG_HASH PSA_ALG_SHA_512
     CC=$ASAN_CC cmake -D CMAKE_BUILD_TYPE:String=Asan .
     make
 
-    msg "test: full + MBEDTLS_CTR_DRBG_USE_128_BIT_KEY (ASan build)"
+    msg "test: full + set MBEDTLS_PSA_CRYPTO_RNG_STRENGTH 128 (ASan build)"
     make test
 }
 
 component_test_ctr_drbg_aes_128_sha_256 () {
-    msg "build: full + MBEDTLS_CTR_DRBG_USE_128_BIT_KEY + MBEDTLS_ENTROPY_FORCE_SHA256 (ASan build)"
+    msg "build: full + set MBEDTLS_PSA_CRYPTO_RNG_STRENGTH 128 + MBEDTLS_PSA_CRYPTO_RNG_HASH PSA_ALG_SHA_256 (ASan build)"
     scripts/config.py full
     scripts/config.py unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
-    scripts/config.py set MBEDTLS_CTR_DRBG_USE_128_BIT_KEY
-    scripts/config.py set MBEDTLS_ENTROPY_FORCE_SHA256
+    scripts/config.py set MBEDTLS_PSA_CRYPTO_RNG_STRENGTH 128
+    scripts/config.py set MBEDTLS_PSA_CRYPTO_RNG_HASH PSA_ALG_SHA_256
     CC=$ASAN_CC cmake -D CMAKE_BUILD_TYPE:String=Asan .
     make
 
-    msg "test: full + MBEDTLS_CTR_DRBG_USE_128_BIT_KEY + MBEDTLS_ENTROPY_FORCE_SHA256 (ASan build)"
+    msg "test: full + set MBEDTLS_PSA_CRYPTO_RNG_STRENGTH 128 + MBEDTLS_PSA_CRYPTO_RNG_HASH PSA_ALG_SHA_256 (ASan build)"
     make test
 }
 

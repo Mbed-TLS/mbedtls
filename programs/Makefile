@@ -36,11 +36,6 @@ LOCAL_CFLAGS += -I$(FRAMEWORK)/tests/programs
 ## Note: Variables cannot be used to define an apps path. This cannot be
 ## substituted by the script generate_visualc_files.pl.
 APPS = \
-	pkey/gen_key \
-	pkey/pk_sign \
-	pkey/pk_verify \
-	pkey/rsa_sign_pss \
-	pkey/rsa_verify_pss \
 	../tf-psa-crypto/programs/psa/aead_demo \
 	../tf-psa-crypto/programs/psa/crypto_examples \
 	../tf-psa-crypto/programs/psa/hmac_demo \
@@ -135,26 +130,6 @@ test/query_config.c: $(gen_file_dep) ../scripts/data_files/query_config.fmt
 test/query_config.c:
 	echo "  Gen   $@"
 	$(PERL) ../scripts/generate_query_config.pl
-
-pkey/gen_key$(EXEXT): pkey/gen_key.c $(DEP)
-	echo "  CC    pkey/gen_key.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) pkey/gen_key.c   $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-pkey/pk_sign$(EXEXT): pkey/pk_sign.c $(DEP)
-	echo "  CC    pkey/pk_sign.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) pkey/pk_sign.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-pkey/pk_verify$(EXEXT): pkey/pk_verify.c $(DEP)
-	echo "  CC    pkey/pk_verify.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) pkey/pk_verify.c  $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-pkey/rsa_sign_pss$(EXEXT): pkey/rsa_sign_pss.c $(DEP)
-	echo "  CC    pkey/rsa_sign_pss.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) pkey/rsa_sign_pss.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-pkey/rsa_verify_pss$(EXEXT): pkey/rsa_verify_pss.c $(DEP)
-	echo "  CC    pkey/rsa_verify_pss.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) pkey/rsa_verify_pss.c  $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 ../tf-psa-crypto/programs/psa/aead_demo$(EXEXT): ../tf-psa-crypto/programs/psa/aead_demo.c $(DEP)
 	echo "  CC    psa/aead_demo.c"
@@ -258,7 +233,7 @@ endif
 
 test/metatest$(EXEXT): $(FRAMEWORK)/tests/programs/metatest.c $(DEP)
 	echo "  CC    $(FRAMEWORK)/tests/programs/metatest.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) -I../library -I../tf-psa-crypto/core $(FRAMEWORK)/tests/programs/metatest.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) -I../library -I../tf-psa-crypto/core -I../tf-psa-crypto/drivers/builtin/include -I../tf-psa-crypto/drivers/builtin/src $(FRAMEWORK)/tests/programs/metatest.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 test/query_config.o: test/query_config.c $(FRAMEWORK)/tests/programs/query_config.h $(DEP)
 	echo "  CC    test/query_config.c"

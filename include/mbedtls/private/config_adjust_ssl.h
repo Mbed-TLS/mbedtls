@@ -1,5 +1,5 @@
 /**
- * \file mbedtls/config_adjust_ssl.h
+ * \file mbedtls/private/config_adjust_ssl.h
  * \brief Adjust TLS configuration
  *
  * This is an internal header. Do not include it directly.
@@ -51,7 +51,6 @@
 #if !defined(MBEDTLS_SSL_PROTO_DTLS)
 #undef MBEDTLS_SSL_DTLS_ANTI_REPLAY
 #undef MBEDTLS_SSL_DTLS_CONNECTION_ID
-#undef MBEDTLS_SSL_DTLS_CONNECTION_ID_COMPAT
 #undef MBEDTLS_SSL_DTLS_HELLO_VERIFY
 #undef MBEDTLS_SSL_DTLS_SRTP
 #undef MBEDTLS_SSL_DTLS_CLIENT_PORT_REUSE
@@ -65,8 +64,6 @@
 #undef MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
 #undef MBEDTLS_KEY_EXCHANGE_PSK_ENABLED
 #undef MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
-#undef MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED
-#undef MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED
 #undef MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED
 #endif
 
@@ -79,7 +76,7 @@
 #endif
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2) && \
-    (defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C) || \
+    (defined(PSA_WANT_ALG_ECDH) || defined(PSA_WANT_ALG_ECDSA) || \
     defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED))
 #define MBEDTLS_SSL_TLS1_2_SOME_ECC
 #endif

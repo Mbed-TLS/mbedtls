@@ -55,7 +55,7 @@ typedef struct mbedtls_x509_csr {
     mbedtls_x509_buf sig_oid;
     mbedtls_x509_buf MBEDTLS_PRIVATE(sig);
     mbedtls_md_type_t MBEDTLS_PRIVATE(sig_md);       /**< Internal representation of the MD algorithm of the signature algorithm, e.g. MBEDTLS_MD_SHA256 */
-    mbedtls_pk_type_t MBEDTLS_PRIVATE(sig_pk);       /**< Internal representation of the Public Key algorithm of the signature algorithm, e.g. MBEDTLS_PK_RSA */
+    mbedtls_pk_sigalg_t MBEDTLS_PRIVATE(sig_pk);       /**< Internal representation of the Public Key algorithm of the signature algorithm, e.g. MBEDTLS_PK_RSA */
 }
 mbedtls_x509_csr;
 
@@ -263,7 +263,7 @@ void mbedtls_x509write_csr_set_md_alg(mbedtls_x509write_csr *ctx, mbedtls_md_typ
  * \param ctx       CSR context to use
  * \param key_usage key usage flags to set
  *
- * \return          0 if successful, or MBEDTLS_ERR_X509_ALLOC_FAILED
+ * \return          0 if successful, or #PSA_ERROR_INSUFFICIENT_MEMORY
  *
  * \note            The <code>decipherOnly</code> flag from the Key Usage
  *                  extension is represented by bit 8 (i.e.
@@ -281,7 +281,7 @@ int mbedtls_x509write_csr_set_key_usage(mbedtls_x509write_csr *ctx, unsigned cha
  * \param ctx       CSR context to use
  * \param san_list  List of SAN values
  *
- * \return          0 if successful, or MBEDTLS_ERR_X509_ALLOC_FAILED
+ * \return          0 if successful, or #PSA_ERROR_INSUFFICIENT_MEMORY
  *
  * \note            Only "dnsName", "uniformResourceIdentifier" and "otherName",
  *                  as defined in RFC 5280, are supported.
@@ -296,7 +296,7 @@ int mbedtls_x509write_csr_set_subject_alternative_name(mbedtls_x509write_csr *ct
  * \param ctx           CSR context to use
  * \param ns_cert_type  Netscape Cert Type flags to set
  *
- * \return          0 if successful, or MBEDTLS_ERR_X509_ALLOC_FAILED
+ * \return          0 if successful, or #PSA_ERROR_INSUFFICIENT_MEMORY
  */
 int mbedtls_x509write_csr_set_ns_cert_type(mbedtls_x509write_csr *ctx,
                                            unsigned char ns_cert_type);
@@ -312,7 +312,7 @@ int mbedtls_x509write_csr_set_ns_cert_type(mbedtls_x509write_csr *ctx,
  * \param val       value of the extension OCTET STRING
  * \param val_len   length of the value data
  *
- * \return          0 if successful, or a MBEDTLS_ERR_X509_ALLOC_FAILED
+ * \return          0 if successful, or a #PSA_ERROR_INSUFFICIENT_MEMORY
  */
 int mbedtls_x509write_csr_set_extension(mbedtls_x509write_csr *ctx,
                                         const char *oid, size_t oid_len,

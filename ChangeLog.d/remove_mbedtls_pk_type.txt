@@ -1,0 +1,3 @@
+Removals
+   * Remove mbedtls_pk_type_t from the public interface and replace it with
+     mbedtls_pk_sigalg_t.

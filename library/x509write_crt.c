@@ -94,7 +94,7 @@ int mbedtls_x509write_crt_set_issuer_name(mbedtls_x509write_cert *ctx,
 }
 
 int mbedtls_x509write_crt_set_serial_raw(mbedtls_x509write_cert *ctx,
-                                         unsigned char *serial, size_t serial_len)
+                                         const unsigned char *serial, size_t serial_len)
 {
     if (serial_len > MBEDTLS_X509_RFC5280_MAX_SERIAL_LEN) {
         return MBEDTLS_ERR_X509_BAD_INPUT_DATA;
@@ -416,7 +416,7 @@ int mbedtls_x509write_crt_der(mbedtls_x509write_cert *ctx,
         return MBEDTLS_ERR_X509_INVALID_ALG;
     }
 
-    if ((ret = mbedtls_x509_oid_get_oid_by_sig_alg(pk_alg, ctx->md_alg,
+    if ((ret = mbedtls_x509_oid_get_oid_by_sig_alg((mbedtls_pk_sigalg_t) pk_alg, ctx->md_alg,
                                                    &sig_oid, &sig_oid_len)) != 0) {
         return ret;
     }
@@ -587,7 +587,8 @@ int mbedtls_x509write_crt_der(mbedtls_x509write_cert *ctx,
     c2 = buf + size;
     MBEDTLS_ASN1_CHK_ADD(sig_and_oid_len, mbedtls_x509_write_sig(&c2, c,
                                                                  sig_oid, sig_oid_len,
-                                                                 sig, sig_len, pk_alg));
+                                                                 sig, sig_len,
+                                                                 (mbedtls_pk_sigalg_t) pk_alg));
 
     /*
      * Memory layout after this step:

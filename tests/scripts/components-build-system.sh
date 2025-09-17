@@ -25,6 +25,66 @@ component_test_cmake_shared () {
     $FRAMEWORK/tests/programs/dlopen_demo.sh
 }
 
+component_build_make_no_gen_files () {
+    msg "prepare for building in a minimal environment"
+
+    # Ensure that the generated files are present (should be a no-op
+    # since the all.sh infrastructure already does it).
+    make generated_files
+
+    # Arrange for the non-generated sources to be more recent than any
+    # generated file. This allows us to detect if the makefile tries
+    # to rebuild the generated files from their dependencies when it
+    # shouldn't.
+    # Wait 1 second so this test is effective even if the filesystem
+    # only has a granularity of 1 second for timestamps.
+    sleep 1
+    git ls-files -z | xargs -0 touch --
+
+    # The setup code of all.sh sets up a "quiet" wrapper for `make`.
+    # We want to bypass it and just use the normal make program,
+    # so that this test mimics a normal user's platform.
+    # And anyway we need to bypass it because it wouldn't work without bash
+    # and other tools in the $PATH.
+    # The wrapper is used because the setup code adds the
+    # `.../framework/scripts/quiet` directlry to the beginning of the $PATH.
+    # So here we remove that.
+    shopt -s extglob
+    # Strip off all entries in $PATH that ends with `/quiet`. (This misses
+    # the very last element, but we know we'll never need to remove the last
+    # element, since we just want to remove the wrapper directory that comes
+    # before the normal programs.)
+    PATH=${PATH//*([!:])\/quiet:/}
+
+    # Locate the minimum programs needed for the build: ${CC} and ${AR}.
+    AR="$(command -v ar)"
+    # GCC needs "as" in $PATH by default. To use GCC, we need to tell it where
+    # to find the assembler. Or we can use clang which just works.
+    CC="$(command -v clang)"
+    # For cleaning.
+    RM="$(command -v rm)"
+
+    # Test the build with make.
+    # Preferably we should also test with CMake. Note that a CMake test
+    # would be harder to set up, because CMake will find e.g. /usr/bin/python
+    # even if it isn't on $PATH.
+    msg "build: make lib with GEN_FILES off in minimal environment"
+    env PATH=/no/such/directory "$(command -v make)" GEN_FILES= AR="$AR" CC="$CC" lib
+
+    msg "build: make -C library clean with GEN_FILES off in minimal environment"
+    env PATH=/no/such/directory "$(command -v make)" GEN_FILES= RM="$RM" -C library clean
+
+    msg "build: make lib with GEN_FILES off with generated files missing"
+    make neat
+    # Check that a sample generated file is absent
+    not test -f library/error.c
+    PERL="$(command -v perl)"
+    PYTHON="$(command -v python3)"
+    # We take whatever Python environment we're in. For a future improvement,
+    # make a venv with just scripts/basic.requirements.txt.
+    env PATH=/no/such/directory "$(command -v make)" GEN_FILES= AR="$AR" CC="$CC" PERL="$PERL" PYTHON="$PYTHON" lib
+}
+
 support_test_cmake_out_of_source () {
     distrib_id=""
     distrib_ver=""

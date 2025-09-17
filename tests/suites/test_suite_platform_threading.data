@@ -1,0 +1,8 @@
+Mutex usage: init, free
+mutex_usage_nominal:0
+
+Mutex usage: lock 1
+mutex_usage_nominal:1
+
+Mutex usage: lock 2
+mutex_usage_nominal:2

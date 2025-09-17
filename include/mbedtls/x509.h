@@ -16,10 +16,6 @@
 #include "mbedtls/asn1.h"
 #include "mbedtls/pk.h"
 
-#if defined(MBEDTLS_RSA_C)
-#include "mbedtls/private/rsa.h"
-#endif
-
 /**
  * \addtogroup x509_module
  * \{

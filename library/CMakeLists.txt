@@ -107,13 +107,13 @@ if(GEN_FILES)
             ${tls_error_headers}
     )
 
-    add_custom_target(${MBEDTLS_TARGET_PREFIX}mbedx509_generated_files_target
+    add_custom_target(${MBEDTLS_TARGET_PREFIX}libmbedx509_generated_files_target
         DEPENDS
             ${CMAKE_CURRENT_BINARY_DIR}/error.c
             ${MBEDTLS_GENERATED_CONFIG_CHECKS_HEADERS}
     )
 
-    add_custom_target(${MBEDTLS_TARGET_PREFIX}mbedtls_generated_files_target
+    add_custom_target(${MBEDTLS_TARGET_PREFIX}libmbedtls_generated_files_target
         DEPENDS
             ${CMAKE_CURRENT_BINARY_DIR}/ssl_debug_helpers_generated.c
             ${CMAKE_CURRENT_BINARY_DIR}/version_features.c
@@ -198,9 +198,9 @@ if(USE_STATIC_MBEDTLS_LIBRARY)
 
     if(GEN_FILES)
         add_dependencies(${mbedx509_static_target}
-            ${MBEDTLS_TARGET_PREFIX}mbedx509_generated_files_target)
+            ${MBEDTLS_TARGET_PREFIX}libmbedx509_generated_files_target)
         add_dependencies(${mbedtls_static_target}
-            ${MBEDTLS_TARGET_PREFIX}mbedtls_generated_files_target)
+            ${MBEDTLS_TARGET_PREFIX}libmbedtls_generated_files_target)
     endif()
 endif(USE_STATIC_MBEDTLS_LIBRARY)
 
@@ -219,9 +219,9 @@ if(USE_SHARED_MBEDTLS_LIBRARY)
 
     if(GEN_FILES)
         add_dependencies(${mbedx509_target}
-            ${MBEDTLS_TARGET_PREFIX}mbedx509_generated_files_target)
+            ${MBEDTLS_TARGET_PREFIX}libmbedx509_generated_files_target)
         add_dependencies(${mbedtls_target}
-            ${MBEDTLS_TARGET_PREFIX}mbedtls_generated_files_target)
+            ${MBEDTLS_TARGET_PREFIX}libmbedtls_generated_files_target)
     endif()
 endif(USE_SHARED_MBEDTLS_LIBRARY)
 

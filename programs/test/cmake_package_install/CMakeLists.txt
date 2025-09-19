@@ -17,6 +17,7 @@ execute_process(
         "-DENABLE_TESTING=NO"
         # Turn on generated files explicitly in case this is a release
         "-DGEN_FILES=ON"
+        "-DUSE_SHARED_MBEDTLS_LIBRARY=ON"
         "-DCMAKE_INSTALL_PREFIX=${MbedTLS_INSTALL_DIR}")
 
 execute_process(

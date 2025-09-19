@@ -16,6 +16,11 @@ class CryptoInternal(SubprojectInternal):
 class CryptoOption(SubprojectOption):
     SUBPROJECT = 'psa/crypto_config.h'
 
+ALWAYS_ENABLED_SINCE_4_0 = frozenset([
+    'MBEDTLS_PSA_CRYPTO_CONFIG',
+    'MBEDTLS_USE_PSA_CRYPTO',
+])
+
 def checkers_for_removed_options() -> Iterator[Checker]:
     """Discover removed options. Yield corresponding checkers."""
     history = config_history.ConfigHistory()
@@ -24,6 +29,8 @@ def checkers_for_removed_options() -> Iterator[Checker]:
     crypto_public = history.options('tfpsacrypto', '1.0')
     crypto_internal = history.internal('tfpsacrypto', '1.0')
     for option in sorted(old_public - new_public):
+        if option in ALWAYS_ENABLED_SINCE_4_0:
+            continue
         if option in crypto_public:
             yield CryptoOption(option)
         elif option in crypto_internal:

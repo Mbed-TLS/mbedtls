@@ -259,22 +259,49 @@ foreach(target IN LISTS tf_psa_crypto_library_targets)
     get_target_property(target_type ${target} TYPE)
     if (target_type STREQUAL STATIC_LIBRARY)
         add_custom_command(
-            TARGET ${mbedtls_target}
-            POST_BUILD
-            COMMAND ${CMAKE_COMMAND}
-            ARGS -E copy $<TARGET_FILE:${target}> ${CMAKE_BINARY_DIR}/library)
+            TARGET ${mbedtls_target} POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                    $<TARGET_FILE:${target}>
+                    $<TARGET_FILE_NAME:${target}>
+        )
     else()
+        # Copy the crypto shared library from tf-psa-crypto:
+        # - ".so.<VERSION>" on Unix
+        # - ".dylib" on macOS
+        # - ".dll" on Windows
+        # The full path to the file is given by $<TARGET_FILE:${target}>.
+        #
+        # On systems that use .so versioning, also create the symbolic links
+        # ".so.<SOVERSION>" and ".so", which correspond to
+        # $<TARGET_SONAME_FILE_NAME:${target}> and $<TARGET_LINKER_FILE_NAME:${target}>,
+        # respectively.
+        #
+        # On Windows, also copy the ".lib" file, whose full path is
+        # $<TARGET_LINKER_FILE:${target}>.
+
         add_custom_command(
-            TARGET ${mbedtls_target}
-            POST_BUILD
-            COMMAND ${CMAKE_COMMAND}
-            ARGS -E copy $<TARGET_FILE:${target}>
-            ${CMAKE_BINARY_DIR}/library/$<TARGET_FILE_NAME:${target}>)
-        add_custom_command(
-            TARGET ${mbedtls_target}
-            POST_BUILD
-            COMMAND ${CMAKE_COMMAND}
-            ARGS -E copy $<TARGET_LINKER_FILE:${target}>
-            ${CMAKE_BINARY_DIR}/library/$<TARGET_LINKER_FILE_NAME:${target}>)
+            TARGET ${mbedtls_target} POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                    $<TARGET_FILE:${target}>
+                    $<TARGET_FILE_NAME:${target}>
+        )
+        if(WIN32 AND NOT CYGWIN)
+            add_custom_command(
+                TARGET ${mbedtls_target} POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                        $<TARGET_LINKER_FILE:${target}>
+                        $<TARGET_LINKER_FILE_NAME:${target}>
+             )
+        else()
+            add_custom_command(
+              TARGET ${mbedtls_target} POST_BUILD
+              COMMAND ${CMAKE_COMMAND} -E create_symlink
+                      $<TARGET_FILE_NAME:${target}>
+                      $<TARGET_SONAME_FILE_NAME:${target}>
+              COMMAND ${CMAKE_COMMAND} -E create_symlink
+                      $<TARGET_SONAME_FILE_NAME:${target}>
+                      $<TARGET_LINKER_FILE_NAME:${target}>
+             )
+        endif()
     endif()
 endforeach(target)

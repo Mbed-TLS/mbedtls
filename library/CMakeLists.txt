@@ -263,6 +263,9 @@ foreach(target IN LISTS tf_psa_crypto_library_targets)
             COMMAND ${CMAKE_COMMAND} -E copy_if_different
                     $<TARGET_FILE:${target}>
                     $<TARGET_FILE_NAME:${target}>
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                    $<TARGET_FILE:${target}>
+                    "libmbedcrypto.a"
         )
     else()
         # Copy the crypto shared library from tf-psa-crypto:
@@ -278,20 +281,38 @@ foreach(target IN LISTS tf_psa_crypto_library_targets)
         #
         # On Windows, also copy the ".lib" file, whose full path is
         # $<TARGET_LINKER_FILE:${target}>.
-
+        #
+        # Provide also the crypto libraries under their historical names:
+        # "libmbedcrypto.*"
         add_custom_command(
             TARGET ${mbedtls_target} POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_if_different
                     $<TARGET_FILE:${target}>
                     $<TARGET_FILE_NAME:${target}>
         )
-        if(WIN32 AND NOT CYGWIN)
+        if(APPLE)
+            add_custom_command(
+                TARGET ${mbedtls_target} POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E create_symlink
+                $<TARGET_FILE_NAME:${target}>
+                libmbedcrypto.dylib
+        )
+        elseif(WIN32 AND NOT CYGWIN)
+            add_custom_command(
+                TARGET ${mbedtls_target} POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                        $<TARGET_FILE:${target}>
+                        libmbedcrypto.dll
+            )
             add_custom_command(
                 TARGET ${mbedtls_target} POST_BUILD
                 COMMAND ${CMAKE_COMMAND} -E copy_if_different
                         $<TARGET_LINKER_FILE:${target}>
                         $<TARGET_LINKER_FILE_NAME:${target}>
-             )
+                COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                        $<TARGET_LINKER_FILE:${target}>
+                        libmbedcrypto.lib
+            )
         else()
             add_custom_command(
               TARGET ${mbedtls_target} POST_BUILD
@@ -301,7 +322,16 @@ foreach(target IN LISTS tf_psa_crypto_library_targets)
               COMMAND ${CMAKE_COMMAND} -E create_symlink
                       $<TARGET_SONAME_FILE_NAME:${target}>
                       $<TARGET_LINKER_FILE_NAME:${target}>
-             )
+              COMMAND ${CMAKE_COMMAND} -E create_symlink
+                      $<TARGET_FILE_NAME:${target}>
+                      libmbedcrypto.so.${MBEDTLS_VERSION}
+              COMMAND ${CMAKE_COMMAND} -E create_symlink
+                      libmbedcrypto.so.${MBEDTLS_VERSION}
+                      libmbedcrypto.so.${MBEDTLS_CRYPTO_SOVERSION}
+              COMMAND ${CMAKE_COMMAND} -E create_symlink
+                      libmbedcrypto.so.${MBEDTLS_CRYPTO_SOVERSION}
+                      libmbedcrypto.so
+            )
         endif()
     endif()
 endforeach(target)

@@ -346,6 +346,8 @@ $(GENERATED_CONFIG_CHECK_FILES):
 	echo "  Gen   $(GENERATED_CONFIG_CHECK_FILES)"
 	$(PYTHON) ../scripts/generate_config_checks.py
 
+mbedtls_config.o: $(GENERATED_CONFIG_CHECK_FILES)
+
 TF_PSA_CRYPTO_GENERATED_CONFIG_CHECK_FILES = $(shell $(PYTHON) \
 	$(TF_PSA_CRYPTO_CORE_PATH)/../scripts/generate_config_checks.py \
 	--list $(TF_PSA_CRYPTO_CORE_PATH))

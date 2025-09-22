@@ -58,7 +58,9 @@ void invalid(int do_psa_init)
     TEST_EQUAL(0, mbedtls_block_cipher_setup(&ctx, VALID_CIPHER_ID));
 
     /* Bad parameters to setkey() */
-    TEST_EQUAL(BADKEY_ERROR,
+    int badkey_error = (do_psa_init ? MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA :
+                        BADKEY_ERROR);
+    TEST_EQUAL(badkey_error,
                mbedtls_block_cipher_setkey(&ctx, buf, 42));
 
 exit:

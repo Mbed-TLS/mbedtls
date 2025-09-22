@@ -356,6 +356,8 @@ $(TF_PSA_CRYPTO_GENERATED_CONFIG_CHECK_FILES):
 	echo "  Gen   $(TF_PSA_CRYPTO_GENERATED_CONFIG_CHECK_FILES)"
 	$(PYTHON) $(TF_PSA_CRYPTO_CORE_PATH)/../scripts/generate_config_checks.py
 
+$(TF_PSA_CRYPTO_CORE_PATH)/tf_psa_crypto_config.o: $(TF_PSA_CRYPTO_GENERATED_CONFIG_CHECK_FILES)
+
 clean:
 ifndef WINDOWS
 	rm -f *.o *.s libmbed*

@@ -2436,7 +2436,10 @@ component_test_xts () {
     # supported through the PSA API.
     msg "build: Default + MBEDTLS_CIPHER_MODE_XTS"
 
-    echo "#define MBEDTLS_CIPHER_MODE_XTS" > psa_user_config.h
+    cat <<'EOF' >psa_user_config.h
+#define MBEDTLS_CIPHER_MODE_XTS
+#define TF_PSA_CRYPTO_CONFIG_CHECK_BYPASS
+EOF
     cmake -DTF_PSA_CRYPTO_USER_CONFIG_FILE="psa_user_config.h"
     make
 

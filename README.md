@@ -10,7 +10,7 @@ Configuration
 
 Mbed TLS should build out of the box on most systems. Some platform specific options are available in the fully documented configuration file `include/mbedtls/mbedtls_config.h`, which is also the place where features can be selected. This file can be edited manually, or in a more programmatic way using the Python 3 script `scripts/config.py` (use `--help` for usage instructions).
 
-Compiler options can be set using conventional environment variables such as `CC` and `CFLAGS` when using the Make and CMake build system (see below).
+Compiler options can be set using conventional environment variables such as `CC` and `CFLAGS`.
 
 We provide some non-standard configurations focused on specific use cases in the `configs/` directory. You can read more about those in `configs/README.txt`
 
@@ -24,7 +24,9 @@ Documentation for the PSA Cryptography API is available [on GitHub](https://arm-
 To generate a local copy of the library documentation in HTML format, tailored to your compile-time configuration:
 
 1. Make sure that [Doxygen](http://www.doxygen.nl/) is installed.
-1. Run `make apidoc`.
+1. Run `mkdir /path/to/build_dir && cd /path/to/build_dir`
+1. Run `cmake /path/to/mbedtls/source`
+1. Run `make apidoc`
 1. Browse `apidoc/index.html` or `apidoc/modules.html`.
 
 For other sources of documentation, see the [SUPPORT](SUPPORT.md) document.
@@ -32,26 +34,17 @@ For other sources of documentation, see the [SUPPORT](SUPPORT.md) document.
 Compiling
 ---------
 
-There are currently three active build systems used within Mbed TLS releases:
-
--   GNU Make
--   CMake
--   Microsoft Visual Studio
-
-The main systems used for development are CMake and GNU Make. Those systems are always complete and up-to-date. The others should reflect all changes present in the CMake and Make build system, although features may not be ported there automatically.
-
-The Make and CMake build systems create three libraries: libmbedcrypto/libtfpsacrypto, libmbedx509, and libmbedtls. Note that libmbedtls depends on libmbedx509 and libmbedcrypto/libtfpsacrypto, and libmbedx509 depends on libmbedcrypto/libtfpsacrypto. As a result, some linkers will expect flags to be in a specific order, for example the GNU linker wants `-lmbedtls -lmbedx509 -lmbedcrypto`.
+We use CMake to configure and drive our build process. Three libraries are built: libtfpsacrypto, libmbedx509, and libmbedtls. Note that libmbedtls depends on libmbedx509 and libtfpsacrypto, and libmbedx509 depends on libtfpsacrypto. As a result, some linkers will expect flags to be in a specific order, for example the GNU linker wants `-lmbedtls -lmbedx509 -ltfpsacrypto`.
 
 ### Tool versions
 
-You need the following tools to build the library with the provided makefiles:
+You need the following tools to build the library:
 
-* GNU Make 3.82 or a build tool that CMake supports.
+* CMake 3.10.2 or later.
+* A build system that CMake supports.
 * A C99 toolchain (compiler, linker, archiver). We actively test with GCC 5.4, Clang 3.8, Arm Compiler 6, IAR 8 and Visual Studio 2017. More recent versions should work. Slightly older versions may work.
 * Python 3.8 to generate the test code. Python is also needed to integrate PSA drivers and to build the development branch (see next section).
 * Perl to run the tests, and to generate some source files in the development branch.
-* CMake 3.10.2 or later (if using CMake).
-* Microsoft Visual Studio 2017 or later (if using Visual Studio).
 * Doxygen 1.8.11 or later (if building the documentation; slightly older versions should work).
 
 ### Git usage
@@ -82,47 +75,12 @@ Note: If you have multiple toolchains installed, it is recommended to set `CC` o
 
 Any of the following methods are available to generate the configuration-independent files:
 
-* If not cross-compiling, running `make` with any target, or just `make`, will automatically generate required files.
-* On non-Windows systems, when not cross-compiling, CMake will generate the required files automatically.
-* Run `make generated_files` to generate all the configuration-independent files.
-* On Unix/POSIX systems, run `framework/scripts/make_generated_files.py` to generate all the configuration-independent files.
-* On Windows, run `scripts\make_generated_files.bat` to generate all the configuration-independent files.
-
-### Make
-
-We require GNU Make. To build the library and the sample programs, GNU Make and a C compiler are sufficient. Some of the more advanced build targets require some Unix/Linux tools.
-
-We intentionally only use a minimum of functionality in the makefiles in order to keep them as simple and independent of different toolchains as possible, to allow users to more easily move between different platforms. Users who need more features are recommended to use CMake.
-
-In order to build from the source code using GNU Make, just enter at the command line:
-
-    make
-
-In order to run the tests, enter:
-
-    make check
-
-The tests need Python to be built and Perl to be run. If you don't have one of them installed, you can skip building the tests with:
-
-    make no_test
-
-You'll still be able to run a much smaller set of tests with:
-
-    programs/test/selftest
-
-In order to build for a Windows platform, you should use `WINDOWS_BUILD=1` if the target is Windows but the build environment is Unix-like (for instance when cross-compiling, or compiling from an MSYS shell), and `WINDOWS=1` if the build environment is a Windows shell (for instance using mingw32-make) (in that case some targets will not be available).
-
-Setting the variable `SHARED` in your environment will build shared libraries in addition to the static libraries. Setting `DEBUG` gives you a debug build. You can override `CFLAGS` and `LDFLAGS` by setting them in your environment or on the make command line; compiler warning options may be overridden separately using `WARNING_CFLAGS`. Some directory-specific options (for example, `-I` directives) are still preserved.
-
-Please note that setting `CFLAGS` overrides its default value of `-O2` and setting `WARNING_CFLAGS` overrides its default value (starting with `-Wall -Wextra`), so if you just want to add some warning options to the default ones, you can do so by setting `CFLAGS=-O2 -Werror` for example. Setting `WARNING_CFLAGS` is useful when you want to get rid of its default content (for example because your compiler doesn't accept `-Wall` as an option). Directory-specific options cannot be overridden from the command line.
-
-Depending on your platform, you might run into some issues. Please check the Makefiles in `library/`, `programs/` and `tests/` for options to manually add or remove for specific platforms. You can also check [the Mbed TLS Knowledge Base](https://mbed-tls.readthedocs.io/en/latest/kb/) for articles on your platform or issue.
-
-In case you find that you need to do something else as well, please let us know what, so we can add it to the [Mbed TLS Knowledge Base](https://mbed-tls.readthedocs.io/en/latest/kb/).
+* On non-Windows systems, when not cross-compiling, CMake generates the required files automatically.
+* Run `framework/scripts/make_generated_files.py` to generate all the configuration-independent files.
 
 ### CMake
 
-In order to build the source using CMake in a separate directory (recommended), just enter at the command line:
+In order to build the libraries using CMake in a separate directory (recommended), just enter at the command line:
 
     mkdir /path/to/build_dir && cd /path/to/build_dir
     cmake /path/to/mbedtls_source
@@ -144,7 +102,7 @@ To configure CMake for building shared libraries, use:
 
     cmake -DUSE_SHARED_MBEDTLS_LIBRARY=On /path/to/mbedtls_source
 
-There are many different build modes available within the CMake buildsystem. Most of them are available for gcc and clang, though some are compiler-specific:
+There are many different build types available with CMake. Most of them are available for gcc and clang, though some are compiler-specific:
 
 -   `Release`. This generates the default code without any unnecessary information in the binary files.
 -   `Debug`. This generates debug information and disables optimization of the code.
@@ -155,7 +113,7 @@ There are many different build modes available within the CMake buildsystem. Mos
 -   `MemSanDbg`. Same as MemSan but slower, with debug information, better stack traces and origin tracking.
 -   `Check`. This activates the compiler warnings that depend on optimization and treats all warnings as errors.
 
-Switching build modes in CMake is simple. For debug mode, enter at the command line:
+Switching build types in CMake is simple. For debug mode, enter at the command line:
 
     cmake -D CMAKE_BUILD_TYPE=Debug /path/to/mbedtls_source
 
@@ -175,9 +133,10 @@ If you already invoked cmake and want to change those settings, you need to
 remove the build directory and create it again.
 
 Note that it is possible to build in-place; this will however overwrite the
-provided Makefiles (see `scripts/tmp_ignore_makefiles.sh` if you want to
-prevent `git status` from showing them as modified). In order to do so, from
-the Mbed TLS source directory, use:
+legacy Makefiles still used for testing purposes (see
+`scripts/tmp_ignore_makefiles.sh` if you want to prevent `git status` from
+showing them as modified). In order to do so, from the Mbed TLS source
+directory, use:
 
     cmake .
     make

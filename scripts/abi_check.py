@@ -233,8 +233,14 @@ class AbiChecker:
         my_environment["SHARED"] = "1"
         if os.path.exists(os.path.join(git_worktree_path, "crypto")):
             my_environment["USE_CRYPTO_SUBMODULE"] = "1"
+
+        if os.path.exists(os.path.join(git_worktree_path, "scripts", "legacy.make")):
+            command = [self.make_command, "-f", "scripts/legacy.make", "lib"]
+        else:
+            command = [self.make_command, "lib"]
+
         make_output = subprocess.check_output(
-            [self.make_command, "lib"],
+            command,
             env=my_environment,
             cwd=git_worktree_path,
             stderr=subprocess.STDOUT

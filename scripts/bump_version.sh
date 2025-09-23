@@ -143,6 +143,3 @@ scripts/generate_query_config.pl
 [ $VERBOSE ] && echo "Re-generating library/version_features.c"
 scripts/generate_features.pl
 
-[ $VERBOSE ] && echo "Re-generating visualc files"
-scripts/generate_visualc_files.pl
-

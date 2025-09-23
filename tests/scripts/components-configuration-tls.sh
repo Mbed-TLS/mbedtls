@@ -67,10 +67,10 @@ component_test_tls1_2_default_stream_cipher_only () {
     scripts/config.py unset MBEDTLS_SSL_CONTEXT_SERIALIZATION
     scripts/config.py unset MBEDTLS_SSL_TICKET_C
 
-    make
+    $MAKE_COMMAND
 
     msg "test: default with only stream cipher use psa"
-    make test
+    $MAKE_COMMAND test
 
     # Not running ssl-opt.sh because most tests require a non-NULL ciphersuite.
 }
@@ -95,10 +95,10 @@ component_test_tls1_2_default_cbc_legacy_cipher_only () {
     scripts/config.py unset MBEDTLS_SSL_CONTEXT_SERIALIZATION
     scripts/config.py unset MBEDTLS_SSL_TICKET_C
 
-    make
+    $MAKE_COMMAND
 
     msg "test: default with only CBC-legacy cipher use psa"
-    make test
+    $MAKE_COMMAND test
 
     msg "test: default with only CBC-legacy cipher use psa - ssl-opt.sh (subset)"
     tests/ssl-opt.sh -f "TLS 1.2"
@@ -124,10 +124,10 @@ component_test_tls1_2_default_cbc_legacy_cbc_etm_cipher_only () {
     scripts/config.py unset MBEDTLS_SSL_CONTEXT_SERIALIZATION
     scripts/config.py unset MBEDTLS_SSL_TICKET_C
 
-    make
+    $MAKE_COMMAND
 
     msg "test: default with only CBC-legacy and CBC-EtM ciphers use psa"
-    make test
+    $MAKE_COMMAND test
 
     msg "test: default with only CBC-legacy and CBC-EtM ciphers use psa - ssl-opt.sh (subset)"
     tests/ssl-opt.sh -f "TLS 1.2"
@@ -245,7 +245,7 @@ build_full_minus_something_and_test_tls () {
         scripts/config.py unset $sym
     done
 
-    make
+    $MAKE_COMMAND
 
     msg "test: full minus something, test TLS"
     ( cd tests; ./test_suite_ssl )
@@ -272,14 +272,14 @@ component_build_no_ssl_srv () {
     msg "build: full config except SSL server, make, gcc" # ~ 30s
     scripts/config.py full
     scripts/config.py unset MBEDTLS_SSL_SRV_C
-    make CC=gcc CFLAGS='-Werror -Wall -Wextra -O1 -Wmissing-prototypes'
+    $MAKE_COMMAND CC=gcc CFLAGS='-Werror -Wall -Wextra -O1 -Wmissing-prototypes'
 }
 
 component_build_no_ssl_cli () {
     msg "build: full config except SSL client, make, gcc" # ~ 30s
     scripts/config.py full
     scripts/config.py unset MBEDTLS_SSL_CLI_C
-    make CC=gcc CFLAGS='-Werror -Wall -Wextra -O1 -Wmissing-prototypes'
+    $MAKE_COMMAND CC=gcc CFLAGS='-Werror -Wall -Wextra -O1 -Wmissing-prototypes'
 }
 
 component_test_no_max_fragment_length () {
@@ -370,10 +370,10 @@ component_test_when_no_ciphersuites_have_mac () {
 
     scripts/config.py unset MBEDTLS_SSL_NULL_CIPHERSUITES
 
-    make
+    $MAKE_COMMAND
 
     msg "test: !MBEDTLS_SSL_SOME_SUITES_USE_MAC"
-    make test
+    $MAKE_COMMAND test
 
     msg "test ssl-opt.sh: !MBEDTLS_SSL_SOME_SUITES_USE_MAC"
     tests/ssl-opt.sh -f 'Default\|EtM' -e 'without EtM'
@@ -401,10 +401,10 @@ component_test_tls13_only () {
     scripts/config.py set MBEDTLS_SSL_RECORD_SIZE_LIMIT
 
     scripts/config.py set MBEDTLS_TEST_HOOKS
-    make CFLAGS="'-DMBEDTLS_USER_CONFIG_FILE=\"../tests/configs/tls13-only.h\"'"
+    $MAKE_COMMAND CFLAGS="'-DMBEDTLS_USER_CONFIG_FILE=\"../tests/configs/tls13-only.h\"'"
 
     msg "test: TLS 1.3 only, all key exchange modes enabled"
-    make test
+    $MAKE_COMMAND test
 
     msg "ssl-opt.sh: TLS 1.3 only, all key exchange modes enabled"
     tests/ssl-opt.sh
@@ -438,7 +438,7 @@ component_test_tls13_only_psk () {
     scripts/config.py unset PSA_WANT_DH_RFC7919_6144
     scripts/config.py unset PSA_WANT_DH_RFC7919_8192
 
-    make CFLAGS="'-DMBEDTLS_USER_CONFIG_FILE=\"../tests/configs/tls13-only.h\"'"
+    $MAKE_COMMAND CFLAGS="'-DMBEDTLS_USER_CONFIG_FILE=\"../tests/configs/tls13-only.h\"'"
 
     msg "test_suite_ssl: TLS 1.3 only, only PSK key exchange mode enabled"
     cd tests; ./test_suite_ssl; cd ..
@@ -454,7 +454,7 @@ component_test_tls13_only_ephemeral () {
     scripts/config.py unset MBEDTLS_SSL_EARLY_DATA
 
     scripts/config.py set MBEDTLS_TEST_HOOKS
-    make CFLAGS="'-DMBEDTLS_USER_CONFIG_FILE=\"../tests/configs/tls13-only.h\"'"
+    $MAKE_COMMAND CFLAGS="'-DMBEDTLS_USER_CONFIG_FILE=\"../tests/configs/tls13-only.h\"'"
 
     msg "test_suite_ssl: TLS 1.3 only, only ephemeral key exchange mode"
     cd tests; ./test_suite_ssl; cd ..
@@ -473,7 +473,7 @@ component_test_tls13_only_ephemeral_ffdh () {
     scripts/config.py set MBEDTLS_TEST_HOOKS
     scripts/config.py unset PSA_WANT_ALG_ECDH
 
-    make CFLAGS="'-DMBEDTLS_USER_CONFIG_FILE=\"../tests/configs/tls13-only.h\"'"
+    $MAKE_COMMAND CFLAGS="'-DMBEDTLS_USER_CONFIG_FILE=\"../tests/configs/tls13-only.h\"'"
 
     msg "test_suite_ssl: TLS 1.3 only, only ephemeral ffdh key exchange mode"
     cd tests; ./test_suite_ssl; cd ..
@@ -498,7 +498,7 @@ component_test_tls13_only_psk_ephemeral () {
     scripts/config.py unset PSA_WANT_ALG_RSA_OAEP
     scripts/config.py unset PSA_WANT_ALG_RSA_PSS
 
-    make CFLAGS="'-DMBEDTLS_USER_CONFIG_FILE=\"../tests/configs/tls13-only.h\"'"
+    $MAKE_COMMAND CFLAGS="'-DMBEDTLS_USER_CONFIG_FILE=\"../tests/configs/tls13-only.h\"'"
 
     msg "test_suite_ssl: TLS 1.3 only, only PSK ephemeral key exchange mode"
     cd tests; ./test_suite_ssl; cd ..
@@ -524,7 +524,7 @@ component_test_tls13_only_psk_ephemeral_ffdh () {
     scripts/config.py unset PSA_WANT_ALG_RSA_OAEP
     scripts/config.py unset PSA_WANT_ALG_RSA_PSS
 
-    make CFLAGS="'-DMBEDTLS_USER_CONFIG_FILE=\"../tests/configs/tls13-only.h\"'"
+    $MAKE_COMMAND CFLAGS="'-DMBEDTLS_USER_CONFIG_FILE=\"../tests/configs/tls13-only.h\"'"
 
     msg "test_suite_ssl: TLS 1.3 only, only PSK ephemeral ffdh key exchange mode"
     cd tests; ./test_suite_ssl; cd ..
@@ -548,7 +548,7 @@ component_test_tls13_only_psk_all () {
     scripts/config.py unset PSA_WANT_ALG_RSA_OAEP
     scripts/config.py unset PSA_WANT_ALG_RSA_PSS
 
-    make CFLAGS="'-DMBEDTLS_USER_CONFIG_FILE=\"../tests/configs/tls13-only.h\"'"
+    $MAKE_COMMAND CFLAGS="'-DMBEDTLS_USER_CONFIG_FILE=\"../tests/configs/tls13-only.h\"'"
 
     msg "test_suite_ssl: TLS 1.3 only, PSK and PSK ephemeral key exchange modes"
     cd tests; ./test_suite_ssl; cd ..
@@ -563,7 +563,7 @@ component_test_tls13_only_ephemeral_all () {
     scripts/config.py set   MBEDTLS_SSL_EARLY_DATA
 
     scripts/config.py set MBEDTLS_TEST_HOOKS
-    make CFLAGS="'-DMBEDTLS_USER_CONFIG_FILE=\"../tests/configs/tls13-only.h\"'"
+    $MAKE_COMMAND CFLAGS="'-DMBEDTLS_USER_CONFIG_FILE=\"../tests/configs/tls13-only.h\"'"
 
     msg "test_suite_ssl: TLS 1.3 only, ephemeral and PSK ephemeral key exchange modes"
     cd tests; ./test_suite_ssl; cd ..

@@ -83,7 +83,7 @@ component_test_suite_with_psasim()
     helper_psasim_build client
 
     msg "build test suites"
-    make PSASIM=1 CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS" tests
+    $MAKE_COMMAND PSASIM=1 CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS" tests
 
     helper_psasim_server start
 
@@ -93,7 +93,7 @@ component_test_suite_with_psasim()
     export SKIP_TEST_SUITES
 
     msg "run test suites"
-    make PSASIM=1 test
+    $MAKE_COMMAND PSASIM=1 test
 
     helper_psasim_server kill
 }

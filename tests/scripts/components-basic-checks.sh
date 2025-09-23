@@ -18,14 +18,14 @@ component_check_recursion () {
 
 component_check_generated_files () {
     msg "Check make_generated_files.py consistency"
-    make neat
+    $MAKE_COMMAND neat
     $FRAMEWORK/scripts/make_generated_files.py
     $FRAMEWORK/scripts/make_generated_files.py --check
-    make neat
+    $MAKE_COMMAND neat
 
     msg "Check files generated with make"
     MBEDTLS_ROOT_DIR="$PWD"
-    make generated_files
+    $MAKE_COMMAND generated_files
     $FRAMEWORK/scripts/make_generated_files.py --check
 
     cd $TF_PSA_CRYPTO_ROOT_DIR
@@ -38,12 +38,6 @@ component_check_generated_files () {
     cmake -D GEN_FILES=ON "$MBEDTLS_ROOT_DIR"
     make
     cd "$MBEDTLS_ROOT_DIR"
-
-    # Files for MS Visual Studio are not generated with cmake thus copy the
-    # ones generated with make to pacify make_generated_files.py check.
-    # Files for MS Visual Studio are rather on their way out thus not adding
-    # support for them with cmake.
-    cp -Rf visualc "$OUT_OF_SOURCE_DIR"
 
     $FRAMEWORK/scripts/make_generated_files.py --root "$OUT_OF_SOURCE_DIR" --check
 

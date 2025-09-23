@@ -439,8 +439,9 @@ class DomainData:
     # pylint: disable=too-many-locals
     def __init__(self, options, conf):
         """Gather data about the library and establish a list of domains to test."""
-        build_command = [options.make_command, 'CFLAGS=-Werror -O2']
-        build_and_test = [build_command, [options.make_command, 'test']]
+        build_command = [options.make_command, '-f', 'scripts/legacy.make', 'CFLAGS=-Werror -O2']
+        build_and_test = [build_command, [options.make_command, '-f',
+                                          'scripts/legacy.make', 'test']]
         self.all_config_symbols = set(conf.settings.keys())
         psa_info = psa_information.Information().constructors
         algs = {crypto_knowledge.Algorithm(alg): symbol
@@ -523,7 +524,7 @@ A name can either be the name of a domain or the name of one specific job."""
 
 def run(options, job, conf, colors=NO_COLORS):
     """Run the specified job (a Job instance)."""
-    subprocess.check_call([options.make_command, 'clean'])
+    subprocess.check_call([options.make_command, '-f', 'scripts/legacy.make', 'clean'])
     job.announce(colors, None)
     if not job.configure(conf, colors):
         job.announce(colors, False)

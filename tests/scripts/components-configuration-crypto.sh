@@ -47,7 +47,7 @@ component_test_crypto_with_static_key_slots() {
     scripts/config.py unset MBEDTLS_PSA_KEY_STORE_DYNAMIC
 
     msg "test: crypto full + MBEDTLS_PSA_STATIC_KEY_SLOTS"
-    make CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS" test
+    $MAKE_COMMAND CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS" test
 }
 
 # check_renamed_symbols HEADER LIB
@@ -67,7 +67,7 @@ component_build_psa_crypto_spm () {
     # We can only compile, not link, since our test and sample programs
     # aren't equipped for the modified names used when MBEDTLS_PSA_CRYPTO_SPM
     # is active.
-    make CC=gcc CFLAGS='-Werror -Wall -Wextra -I../framework/tests/include/spe' lib
+    $MAKE_COMMAND CC=gcc CFLAGS='-Werror -Wall -Wextra -I../framework/tests/include/spe' lib
 
     # Check that if a symbol is renamed by crypto_spe.h, the non-renamed
     # version is not present.
@@ -138,16 +138,16 @@ component_test_psa_crypto_without_heap() {
     helper_libtestdriver1_make_main "$loc_accel_list" tests
 
     msg "crypto without heap: test"
-    make test
+    $MAKE_COMMAND test
 }
 
 component_test_no_rsa_key_pair_generation () {
     msg "build: default config minus PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_GENERATE"
     scripts/config.py unset PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_GENERATE
-    make
+    $MAKE_COMMAND
 
     msg "test: default config minus PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_GENERATE"
-    make test
+    $MAKE_COMMAND test
 }
 
 component_test_no_pem_no_fs () {
@@ -241,10 +241,10 @@ component_test_psa_external_rng_no_drbg_use_psa () {
     scripts/config.py unset MBEDTLS_CTR_DRBG_C
     scripts/config.py unset MBEDTLS_HMAC_DRBG_C
     scripts/config.py unset PSA_WANT_ALG_DETERMINISTIC_ECDSA # Requires HMAC_DRBG
-    make CC=$ASAN_CC CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS"
+    $MAKE_COMMAND CC=$ASAN_CC CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS"
 
     msg "test: PSA_CRYPTO_EXTERNAL_RNG minus *_DRBG, PSA crypto - main suites"
-    make test
+    $MAKE_COMMAND test
 
     msg "test: PSA_CRYPTO_EXTERNAL_RNG minus *_DRBG, PSA crypto - ssl-opt.sh (subset)"
     tests/ssl-opt.sh -f 'Default\|opaque'
@@ -257,10 +257,10 @@ component_test_psa_external_rng_use_psa_crypto () {
     scripts/config.py unset MBEDTLS_CTR_DRBG_C
     scripts/config.py unset MBEDTLS_ENTROPY_NV_SEED
     scripts/config.py unset MBEDTLS_PLATFORM_NV_SEED_ALT
-    make CC=$ASAN_CC CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS"
+    $MAKE_COMMAND CC=$ASAN_CC CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS"
 
     msg "test: full + PSA_CRYPTO_EXTERNAL_RNG + USE_PSA_CRYPTO minus CTR_DRBG/NV_SEED"
-    make test
+    $MAKE_COMMAND test
 
     msg "test: full + PSA_CRYPTO_EXTERNAL_RNG + USE_PSA_CRYPTO minus CTR_DRBG/NV_SEED"
     tests/ssl-opt.sh -f 'Default\|opaque'
@@ -273,14 +273,14 @@ component_full_no_pkparse_pkwrite () {
     scripts/config.py unset MBEDTLS_PK_PARSE_C
     scripts/config.py unset MBEDTLS_PK_WRITE_C
 
-    make CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS"
+    $MAKE_COMMAND CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS"
 
     # Ensure that PK_[PARSE|WRITE]_C were not re-enabled accidentally (additive config).
     not grep mbedtls_pk_parse_key ${BUILTIN_SRC_PATH}/pkparse.o
     not grep mbedtls_pk_write_key_der ${BUILTIN_SRC_PATH}/pkwrite.o
 
     msg "test: full without pkparse and pkwrite"
-    make test
+    $MAKE_COMMAND test
 }
 
 component_test_crypto_full_md_light_only () {
@@ -300,14 +300,14 @@ component_test_crypto_full_md_light_only () {
 
     # Note: MD-light is auto-enabled in build_info.h by modules that need it,
     # which we haven't disabled, so no need to explicitly enable it.
-    make CC=$ASAN_CC CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS"
+    $MAKE_COMMAND CC=$ASAN_CC CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS"
 
     # Make sure we don't have the HMAC functions, but the hashing functions
     not grep mbedtls_md_hmac ${BUILTIN_SRC_PATH}/md.o
     grep mbedtls_md ${BUILTIN_SRC_PATH}/md.o
 
     msg "test: crypto_full with only the light subset of MD"
-    make test
+    $MAKE_COMMAND test
 }
 
 component_test_full_no_cipher () {
@@ -334,13 +334,13 @@ component_test_full_no_cipher () {
     # The following modules directly depends on CIPHER_C
     scripts/config.py unset MBEDTLS_NIST_KW_C
 
-    make
+    $MAKE_COMMAND
 
     # Ensure that CIPHER_C was not re-enabled
     not grep mbedtls_cipher_init ${BUILTIN_SRC_PATH}/cipher.o
 
     msg "test: full no CIPHER"
-    make test
+    $MAKE_COMMAND test
 }
 
 component_test_full_no_ccm () {
@@ -359,10 +359,10 @@ component_test_full_no_ccm () {
     # PSA_WANT_ALG_CCM to be re-enabled.
     scripts/config.py unset PSA_WANT_ALG_CCM
 
-    make
+    $MAKE_COMMAND
 
     msg "test: full no PSA_WANT_ALG_CCM"
-    make test
+    $MAKE_COMMAND test
 }
 
 component_test_full_no_ccm_star_no_tag () {
@@ -390,13 +390,13 @@ component_test_full_no_ccm_star_no_tag () {
     scripts/config.py unset PSA_WANT_ALG_CBC_NO_PADDING
     scripts/config.py unset PSA_WANT_ALG_CBC_PKCS7
 
-    make
+    $MAKE_COMMAND
 
     # Ensure MBEDTLS_PSA_BUILTIN_CIPHER was not enabled
     not grep mbedtls_psa_cipher ${PSA_CORE_PATH}/psa_crypto_cipher.o
 
     msg "test: full no PSA_WANT_ALG_CCM_STAR_NO_TAG"
-    make test
+    $MAKE_COMMAND test
 }
 
 component_test_config_symmetric_only () {
@@ -444,10 +444,10 @@ component_test_everest_curve25519_only () {
     scripts/config.py unset-all "PSA_WANT_ECC_[0-9A-Z_a-z]*$"
     scripts/config.py set PSA_WANT_ECC_MONTGOMERY_255
 
-    make CC=$ASAN_CC CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS"
+    $MAKE_COMMAND CC=$ASAN_CC CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS"
 
     msg "test: Everest ECDH context, only Curve25519" # ~ 50s
-    make test
+    $MAKE_COMMAND test
 }
 
 component_test_psa_collect_statuses () {
@@ -491,14 +491,14 @@ component_test_crypto_for_psa_service () {
   scripts/config.py unset MBEDTLS_PK_C
   scripts/config.py unset MBEDTLS_PK_PARSE_C
   scripts/config.py unset MBEDTLS_PK_WRITE_C
-  make CFLAGS='-O1 -Werror' all test
+  $MAKE_COMMAND CFLAGS='-O1 -Werror' all test
   are_empty_libraries library/libmbedx509.* library/libmbedtls.*
 }
 
 component_build_crypto_baremetal () {
   msg "build: make, crypto only, baremetal config"
   scripts/config.py crypto_baremetal
-  make CFLAGS="-O1 -Werror -I$PWD/framework/tests/include/baremetal-override/"
+  $MAKE_COMMAND CFLAGS="-O1 -Werror -I$PWD/framework/tests/include/baremetal-override/"
   are_empty_libraries library/libmbedx509.* library/libmbedtls.*
 }
 
@@ -543,10 +543,10 @@ component_test_psa_crypto_config_ffdh_2048_only () {
     scripts/config.py unset PSA_WANT_DH_RFC7919_6144
     scripts/config.py unset PSA_WANT_DH_RFC7919_8192
 
-    make CFLAGS="$ASAN_CFLAGS -Werror" LDFLAGS="$ASAN_CFLAGS"
+    $MAKE_COMMAND CFLAGS="$ASAN_CFLAGS -Werror" LDFLAGS="$ASAN_CFLAGS"
 
     msg "test: full config - only DH 2048"
-    make test
+    $MAKE_COMMAND test
 
     msg "ssl-opt: full config - only DH 2048"
     tests/ssl-opt.sh -f "ffdh"
@@ -587,7 +587,7 @@ component_test_psa_crypto_config_accel_ecdsa () {
     # -------------
 
     msg "test: accelerated ECDSA"
-    make test
+    $MAKE_COMMAND test
 }
 
 component_test_psa_crypto_config_accel_ecdh () {
@@ -623,7 +623,7 @@ component_test_psa_crypto_config_accel_ecdh () {
     # -------------
 
     msg "test: accelerated ECDH"
-    make test
+    $MAKE_COMMAND test
 }
 
 component_test_psa_crypto_config_accel_ffdh () {
@@ -654,7 +654,7 @@ component_test_psa_crypto_config_accel_ffdh () {
     # -------------
 
     msg "test: full with accelerated FFDH"
-    make test
+    $MAKE_COMMAND test
 
     msg "ssl-opt: full with accelerated FFDH alg"
     tests/ssl-opt.sh -f "ffdh"
@@ -666,10 +666,10 @@ component_test_psa_crypto_config_reference_ffdh () {
     # Start with full (USE_PSA and TLS 1.3)
     helper_libtestdriver1_adjust_config "full"
 
-    make
+    $MAKE_COMMAND
 
     msg "test suites: full with non-accelerated FFDH alg"
-    make test
+    $MAKE_COMMAND test
 
     msg "ssl-opt: full with non-accelerated FFDH alg"
     tests/ssl-opt.sh -f "ffdh"
@@ -704,7 +704,7 @@ component_test_psa_crypto_config_accel_pake () {
     # -------------
 
     msg "test: full with accelerated PAKE"
-    make test
+    $MAKE_COMMAND test
 }
 
 component_test_psa_crypto_config_accel_ecc_some_key_types () {
@@ -758,7 +758,7 @@ component_test_psa_crypto_config_accel_ecc_some_key_types () {
     # -------------
 
     msg "test suites: full with accelerated EC algs and some key types"
-    make test
+    $MAKE_COMMAND test
 }
 
 # Run tests with only (non-)Weierstrass accelerated
@@ -864,7 +864,7 @@ common_test_psa_crypto_config_accel_ecc_some_curves () {
     # -------------
 
     msg "test suites: crypto_full minus PK with accelerated EC algs and $desc curves"
-    make test
+    $MAKE_COMMAND test
 }
 
 component_test_psa_crypto_config_accel_ecc_weierstrass_curves () {
@@ -938,7 +938,7 @@ component_test_psa_crypto_config_accel_ecc_ecp_light_only () {
     # -------------
 
     msg "test suites: full with accelerated EC algs"
-    make test
+    $MAKE_COMMAND test
 
     msg "ssl-opt: full with accelerated EC algs"
     tests/ssl-opt.sh
@@ -950,10 +950,10 @@ component_test_psa_crypto_config_reference_ecc_ecp_light_only () {
 
     config_psa_crypto_config_ecp_light_only 0
 
-    make
+    $MAKE_COMMAND
 
     msg "test suites: full with non-accelerated EC algs"
-    make test
+    $MAKE_COMMAND test
 
     msg "ssl-opt: full with non-accelerated EC algs"
     tests/ssl-opt.sh
@@ -1034,7 +1034,7 @@ component_test_psa_crypto_config_accel_ecc_no_ecp_at_all () {
     # -------------
 
     msg "test: full + accelerated EC algs - ECP"
-    make test
+    $MAKE_COMMAND test
 
     msg "ssl-opt: full + accelerated EC algs - ECP"
     tests/ssl-opt.sh
@@ -1048,10 +1048,10 @@ component_test_psa_crypto_config_reference_ecc_no_ecp_at_all () {
 
     config_psa_crypto_no_ecp_at_all 0
 
-    make
+    $MAKE_COMMAND
 
     msg "test: full + non accelerated EC algs"
-    make test
+    $MAKE_COMMAND test
 
     msg "ssl-opt: full + non accelerated EC algs"
     tests/ssl-opt.sh
@@ -1183,7 +1183,7 @@ common_test_psa_crypto_config_accel_ecc_ffdh_no_bignum () {
 
     msg "test suites: full + accelerated $accel_text algs + USE_PSA - $removed_text - BIGNUM"
 
-    make test
+    $MAKE_COMMAND test
 
     msg "ssl-opt: full + accelerated $accel_text algs + USE_PSA - $removed_text - BIGNUM"
     tests/ssl-opt.sh
@@ -1214,10 +1214,10 @@ common_test_psa_crypto_config_reference_ecc_ffdh_no_bignum () {
 
     config_psa_crypto_config_accel_ecc_ffdh_no_bignum 0 "$test_target"
 
-    make
+    $MAKE_COMMAND
 
     msg "test suites: full + non accelerated EC algs + USE_PSA"
-    make test
+    $MAKE_COMMAND test
 
     msg "ssl-opt: full + non accelerated $accel_text algs + USE_PSA"
     tests/ssl-opt.sh
@@ -1273,7 +1273,7 @@ component_test_tfm_config_p256m_driver_accel_ec () {
     common_tfm_config
 
     # Build crypto library
-    make CC=$ASAN_CC CFLAGS="$ASAN_CFLAGS -I../framework/tests/include/spe" LDFLAGS="$ASAN_CFLAGS"
+    $MAKE_COMMAND CC=$ASAN_CC CFLAGS="$ASAN_CFLAGS -I../framework/tests/include/spe" LDFLAGS="$ASAN_CFLAGS"
 
     # Make sure any built-in EC alg was not re-enabled by accident (additive config)
     not grep mbedtls_ecdsa_ ${BUILTIN_SRC_PATH}/ecdsa.o
@@ -1292,7 +1292,7 @@ component_test_tfm_config_p256m_driver_accel_ec () {
 
     # Run the tests
     msg "test: TF-M config + p256m driver + accel ECDH(E)/ECDSA"
-    make test
+    $MAKE_COMMAND test
 }
 
 # Keep this in sync with component_test_tfm_config_p256m_driver_accel_ec() as
@@ -1306,7 +1306,7 @@ component_test_tfm_config_no_p256m () {
     scripts/config.py -f "$CRYPTO_CONFIG_H" unset MBEDTLS_PSA_P256M_DRIVER_ENABLED
 
     msg "build: TF-M config without p256m"
-    make CFLAGS='-Werror -Wall -Wextra -I../framework/tests/include/spe' tests
+    $MAKE_COMMAND CFLAGS='-Werror -Wall -Wextra -I../framework/tests/include/spe' tests
 
     # Check that p256m was not built
     not grep p256_ecdsa_ library/libmbedcrypto.a
@@ -1316,7 +1316,7 @@ component_test_tfm_config_no_p256m () {
     not grep mbedtls_cipher ${BUILTIN_SRC_PATH}/cipher.o
 
     msg "test: TF-M config without p256m"
-    make test
+    $MAKE_COMMAND test
 }
 
 # This is an helper used by:
@@ -1340,10 +1340,10 @@ build_and_test_psa_want_key_pair_partial () {
     # crypto_config.h so we just disable the one we don't want.
     scripts/config.py unset "$disabled_psa_want"
 
-    make CC=$ASAN_CC CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS"
+    $MAKE_COMMAND CC=$ASAN_CC CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS"
 
     msg "test: $base_config - ${disabled_psa_want}"
-    make test
+    $MAKE_COMMAND test
 }
 
 component_test_psa_ecc_key_pair_no_derive () {
@@ -1405,7 +1405,7 @@ component_test_psa_crypto_config_accel_rsa_crypto () {
     # -------------
 
     msg "test: crypto_full with accelerated RSA"
-    make test
+    $MAKE_COMMAND test
 }
 
 component_test_psa_crypto_config_reference_rsa_crypto () {
@@ -1417,12 +1417,12 @@ component_test_psa_crypto_config_reference_rsa_crypto () {
 
     # Build
     # -----
-    make
+    $MAKE_COMMAND
 
     # Run the tests
     # -------------
     msg "test: crypto_full with non-accelerated RSA"
-    make test
+    $MAKE_COMMAND test
 }
 
 # This is a temporary test to verify that full RSA support is present even when
@@ -1452,10 +1452,10 @@ component_test_new_psa_want_key_pair_symbol () {
     scripts/config.py unset PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_EXPORT
     scripts/config.py unset PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_GENERATE
 
-    make
+    $MAKE_COMMAND
 
     msg "Test: crypto config - PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC"
-    make test
+    $MAKE_COMMAND test
 
     # Parse only 1 relevant line from the outcome file, i.e. a test which is
     # performing RSA signature.
@@ -1499,7 +1499,7 @@ component_test_psa_crypto_config_accel_hash () {
     # -------------
 
     msg "test: accelerated hash"
-    make test
+    $MAKE_COMMAND test
 }
 
 # Auxiliary function to build config for hashes with and without drivers
@@ -1548,7 +1548,7 @@ component_test_psa_crypto_config_accel_hash_use_psa () {
     # -------------
 
     msg "test: full with accelerated hashes"
-    make test
+    $MAKE_COMMAND test
 
     # This is mostly useful so that we can later compare outcome files with
     # the reference config in analyze_outcomes.py, to check that the
@@ -1571,10 +1571,10 @@ component_test_psa_crypto_config_reference_hash_use_psa () {
 
     config_psa_crypto_hash_use_psa 0
 
-    make
+    $MAKE_COMMAND
 
     msg "test: full without accelerated hashes"
-    make test
+    $MAKE_COMMAND test
 
     msg "test: ssl-opt.sh, full without accelerated hashes"
     tests/ssl-opt.sh
@@ -1632,7 +1632,7 @@ component_test_psa_crypto_config_accel_hmac () {
     # -------------
 
     msg "test: full with accelerated hmac"
-    make test
+    $MAKE_COMMAND test
 }
 
 component_test_psa_crypto_config_reference_hmac () {
@@ -1640,10 +1640,10 @@ component_test_psa_crypto_config_reference_hmac () {
 
     config_psa_crypto_hmac_use_psa 0
 
-    make
+    $MAKE_COMMAND
 
     msg "test: full without accelerated hmac"
-    make test
+    $MAKE_COMMAND test
 }
 
 component_test_psa_crypto_config_accel_aead () {
@@ -1677,7 +1677,7 @@ component_test_psa_crypto_config_accel_aead () {
     # -------------
 
     msg "test: accelerated AEAD"
-    make test
+    $MAKE_COMMAND test
 }
 
 # This is a common configuration function used in:
@@ -1734,7 +1734,7 @@ component_test_psa_crypto_config_accel_cipher_aead_cmac () {
     # -------------
 
     msg "test: full config with accelerated cipher inc. AEAD and CMAC"
-    make test
+    $MAKE_COMMAND test
 
     msg "ssl-opt: full config with accelerated cipher inc. AEAD and CMAC"
     # Exclude password-protected key tests — they require built-in CBC and AES.
@@ -1752,10 +1752,10 @@ component_test_psa_crypto_config_reference_cipher_aead_cmac () {
     # This can be removed once we remove DES from the library.
     scripts/config.py unset PSA_WANT_KEY_TYPE_DES
 
-    make
+    $MAKE_COMMAND
 
     msg "test: full config with non-accelerated cipher inc. AEAD and CMAC"
-    make test
+    $MAKE_COMMAND test
 
     msg "ssl-opt: full config with non-accelerated cipher inc. AEAD and CMAC"
     # Exclude password-protected key tests as in test_psa_crypto_config_accel_cipher_aead_cmac.
@@ -1826,7 +1826,7 @@ component_test_full_block_cipher_psa_dispatch_static_keystore () {
     # -------------
 
     msg "test: full + PSA dispatch in block_cipher with static keystore"
-    make test
+    $MAKE_COMMAND test
 }
 
 component_test_full_block_cipher_psa_dispatch () {
@@ -1857,7 +1857,7 @@ component_test_full_block_cipher_psa_dispatch () {
     # -------------
 
     msg "test: full + PSA dispatch in block_cipher"
-    make test
+    $MAKE_COMMAND test
 }
 
 # This is the reference component of component_test_full_block_cipher_psa_dispatch
@@ -1866,20 +1866,20 @@ component_test_full_block_cipher_legacy_dispatch () {
 
     common_block_cipher_dispatch 0
 
-    make
+    $MAKE_COMMAND
 
     msg "test: full + legacy dispatch in block_cipher"
-    make test
+    $MAKE_COMMAND test
 }
 
 component_test_aead_chachapoly_disabled () {
     msg "build: full minus CHACHAPOLY"
     scripts/config.py full
     scripts/config.py unset PSA_WANT_ALG_CHACHA20_POLY1305
-    make CC=$ASAN_CC CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS"
+    $MAKE_COMMAND CC=$ASAN_CC CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS"
 
     msg "test: full minus CHACHAPOLY"
-    make test
+    $MAKE_COMMAND test
 }
 
 component_test_aead_only_ccm () {
@@ -1887,10 +1887,10 @@ component_test_aead_only_ccm () {
     scripts/config.py full
     scripts/config.py unset PSA_WANT_ALG_CHACHA20_POLY1305
     scripts/config.py unset PSA_WANT_ALG_GCM
-    make CC=$ASAN_CC CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS"
+    $MAKE_COMMAND CC=$ASAN_CC CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS"
 
     msg "test: full minus CHACHAPOLY and GCM"
-    make test
+    $MAKE_COMMAND test
 }
 
 component_test_ccm_aes_sha256 () {
@@ -1900,9 +1900,9 @@ component_test_ccm_aes_sha256 () {
     echo '#define MBEDTLS_CONFIG_H ' >"$CONFIG_H"
     cp tf-psa-crypto/configs/crypto-config-ccm-aes-sha256.h "$CRYPTO_CONFIG_H"
 
-    make
+    $MAKE_COMMAND
     msg "test: CCM + AES + SHA256 configuration"
-    make test
+    $MAKE_COMMAND test
 }
 
 # Test that the given .o file builds with all (valid) combinations of the given options.
@@ -2044,12 +2044,12 @@ END
 END
 
     msg "all loops unrolled"
-    make clean
+    $MAKE_COMMAND clean
     make -C tests ../tf-psa-crypto/tests/test_suite_shax CFLAGS="-DMBEDTLS_SHA3_THETA_UNROLL=1 -DMBEDTLS_SHA3_PI_UNROLL=1 -DMBEDTLS_SHA3_CHI_UNROLL=1 -DMBEDTLS_SHA3_RHO_UNROLL=1"
     ./tf-psa-crypto/tests/test_suite_shax
 
     msg "all loops rolled up"
-    make clean
+    $MAKE_COMMAND clean
     make -C tests ../tf-psa-crypto/tests/test_suite_shax CFLAGS="-DMBEDTLS_SHA3_THETA_UNROLL=0 -DMBEDTLS_SHA3_PI_UNROLL=0 -DMBEDTLS_SHA3_CHI_UNROLL=0 -DMBEDTLS_SHA3_RHO_UNROLL=0"
     ./tf-psa-crypto/tests/test_suite_shax
 }
@@ -2091,10 +2091,10 @@ component_test_aes_only_128_bit_keys () {
     scripts/config.py set MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH
     scripts/config.py set MBEDTLS_PSA_CRYPTO_RNG_STRENGTH 128
 
-    make CFLAGS='-O2 -Werror -Wall -Wextra'
+    $MAKE_COMMAND CFLAGS='-O2 -Werror -Wall -Wextra'
 
     msg "test: default config + AES_ONLY_128_BIT_KEY_LENGTH"
-    make test
+    $MAKE_COMMAND test
 }
 
 component_test_no_ctr_drbg_aes_only_128_bit_keys () {
@@ -2103,10 +2103,10 @@ component_test_no_ctr_drbg_aes_only_128_bit_keys () {
     scripts/config.py set MBEDTLS_PSA_CRYPTO_RNG_STRENGTH 128
     scripts/config.py unset MBEDTLS_CTR_DRBG_C
 
-    make CC=clang CFLAGS='-Werror -Wall -Wextra'
+    $MAKE_COMMAND CC=clang CFLAGS='-Werror -Wall -Wextra'
 
     msg "test: default config + AES_ONLY_128_BIT_KEY_LENGTH - CTR_DRBG_C"
-    make test
+    $MAKE_COMMAND test
 }
 
 component_test_aes_only_128_bit_keys_have_builtins () {
@@ -2116,10 +2116,10 @@ component_test_aes_only_128_bit_keys_have_builtins () {
     scripts/config.py unset MBEDTLS_AESNI_C
     scripts/config.py unset MBEDTLS_AESCE_C
 
-    make CFLAGS='-O2 -Werror -Wall -Wextra'
+    $MAKE_COMMAND CFLAGS='-O2 -Werror -Wall -Wextra'
 
     msg "test: default config + AES_ONLY_128_BIT_KEY_LENGTH - AESNI_C - AESCE_C"
-    make test
+    $MAKE_COMMAND test
 
     msg "selftest: default config + AES_ONLY_128_BIT_KEY_LENGTH - AESNI_C - AESCE_C"
     programs/test/selftest
@@ -2131,38 +2131,38 @@ component_test_gcm_largetable () {
     scripts/config.py unset MBEDTLS_AESNI_C
     scripts/config.py unset MBEDTLS_AESCE_C
 
-    make CFLAGS='-O2 -Werror -Wall -Wextra'
+    $MAKE_COMMAND CFLAGS='-O2 -Werror -Wall -Wextra'
 
     msg "test: default config - GCM_LARGE_TABLE - AESNI_C - AESCE_C"
-    make test
+    $MAKE_COMMAND test
 }
 
 component_test_aes_fewer_tables () {
     msg "build: default config with AES_FEWER_TABLES enabled"
     scripts/config.py set MBEDTLS_AES_FEWER_TABLES
-    make CFLAGS='-O2 -Werror -Wall -Wextra'
+    $MAKE_COMMAND CFLAGS='-O2 -Werror -Wall -Wextra'
 
     msg "test: AES_FEWER_TABLES"
-    make test
+    $MAKE_COMMAND test
 }
 
 component_test_aes_rom_tables () {
     msg "build: default config with AES_ROM_TABLES enabled"
     scripts/config.py set MBEDTLS_AES_ROM_TABLES
-    make CFLAGS='-O2 -Werror -Wall -Wextra'
+    $MAKE_COMMAND CFLAGS='-O2 -Werror -Wall -Wextra'
 
     msg "test: AES_ROM_TABLES"
-    make test
+    $MAKE_COMMAND test
 }
 
 component_test_aes_fewer_tables_and_rom_tables () {
     msg "build: default config with AES_ROM_TABLES and AES_FEWER_TABLES enabled"
     scripts/config.py set MBEDTLS_AES_FEWER_TABLES
     scripts/config.py set MBEDTLS_AES_ROM_TABLES
-    make CFLAGS='-O2 -Werror -Wall -Wextra'
+    $MAKE_COMMAND CFLAGS='-O2 -Werror -Wall -Wextra'
 
     msg "test: AES_FEWER_TABLES + AES_ROM_TABLES"
-    make test
+    $MAKE_COMMAND test
 }
 
 # helper for component_test_block_cipher_no_decrypt_aesni() which:
@@ -2200,8 +2200,8 @@ helper_block_cipher_no_decrypt_build_test () {
     [ -n "$unset_opts" ] && echo "Disabling: $unset_opts" && scripts/config.py unset-all $unset_opts
 
     msg "build: default config + BLOCK_CIPHER_NO_DECRYPT${set_opts:+ + $set_opts}${unset_opts:+ - $unset_opts} with $cflags${ldflags:+, $ldflags}"
-    make clean
-    make CFLAGS="-O2 $cflags" LDFLAGS="$ldflags"
+    $MAKE_COMMAND clean
+    $MAKE_COMMAND CFLAGS="-O2 $cflags" LDFLAGS="$ldflags"
 
     # Make sure we don't have mbedtls_xxx_setkey_dec in AES/ARIA/CAMELLIA
     not grep mbedtls_aes_setkey_dec ${BUILTIN_SRC_PATH}/aes.o
@@ -2213,7 +2213,7 @@ helper_block_cipher_no_decrypt_build_test () {
     not grep mbedtls_aesni_inverse_key ${BUILTIN_SRC_PATH}/aesni.o
 
     msg "test: default config + BLOCK_CIPHER_NO_DECRYPT${set_opts:+ + $set_opts}${unset_opts:+ - $unset_opts} with $cflags${ldflags:+, $ldflags}"
-    make test
+    $MAKE_COMMAND test
 
     msg "selftest: default config + BLOCK_CIPHER_NO_DECRYPT${set_opts:+ + $set_opts}${unset_opts:+ - $unset_opts} with $cflags${ldflags:+, $ldflags}"
     programs/test/selftest
@@ -2352,10 +2352,10 @@ component_test_full_static_keystore () {
     msg "build: full config - MBEDTLS_PSA_KEY_STORE_DYNAMIC"
     scripts/config.py full
     scripts/config.py unset MBEDTLS_PSA_KEY_STORE_DYNAMIC
-    make CC=clang CFLAGS="$ASAN_CFLAGS -Os" LDFLAGS="$ASAN_CFLAGS"
+    $MAKE_COMMAND CC=clang CFLAGS="$ASAN_CFLAGS -Os" LDFLAGS="$ASAN_CFLAGS"
 
     msg "test: full config - MBEDTLS_PSA_KEY_STORE_DYNAMIC"
-    make test
+    $MAKE_COMMAND test
 }
 
 component_test_psa_crypto_drivers () {
@@ -2373,20 +2373,20 @@ component_test_psa_crypto_drivers () {
     loc_cflags="$ASAN_CFLAGS -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_CONFIG_ADJUST_TEST_ACCELERATORS"
     loc_cflags="${loc_cflags} -I../framework/tests/include"
 
-    make CC=$ASAN_CC CFLAGS="${loc_cflags}" LDFLAGS="$ASAN_CFLAGS"
+    $MAKE_COMMAND CC=$ASAN_CC CFLAGS="${loc_cflags}" LDFLAGS="$ASAN_CFLAGS"
 
     msg "test: full + test drivers dispatching to builtins"
-    make test
+    $MAKE_COMMAND test
 }
 
 component_build_psa_config_file () {
     msg "build: make with TF_PSA_CRYPTO_CONFIG_FILE" # ~40s
     cp "$CRYPTO_CONFIG_H" psa_test_config.h
     echo '#error "TF_PSA_CRYPTO_CONFIG_FILE is not working"' >"$CRYPTO_CONFIG_H"
-    make CFLAGS="-I '$PWD' -DTF_PSA_CRYPTO_CONFIG_FILE='\"psa_test_config.h\"'"
+    $MAKE_COMMAND CFLAGS="-I '$PWD' -DTF_PSA_CRYPTO_CONFIG_FILE='\"psa_test_config.h\"'"
     # Make sure this feature is enabled. We'll disable it in the next phase.
     programs/test/query_compile_time_config PSA_WANT_ALG_CMAC
-    make clean
+    $MAKE_COMMAND clean
 
     msg "build: make with TF_PSA_CRYPTO_CONFIG_FILE + TF_PSA_CRYPTO_USER_CONFIG_FILE" # ~40s
     # In the user config, disable one feature and its dependencies, which will
@@ -2394,7 +2394,7 @@ component_build_psa_config_file () {
     # query_compile_time_config.
     echo '#undef PSA_WANT_ALG_CMAC' >psa_user_config.h
     echo '#undef PSA_WANT_ALG_PBKDF2_AES_CMAC_PRF_128' >> psa_user_config.h
-    make CFLAGS="-I '$PWD' -DTF_PSA_CRYPTO_CONFIG_FILE='\"psa_test_config.h\"' -DTF_PSA_CRYPTO_USER_CONFIG_FILE='\"psa_user_config.h\"'"
+    $MAKE_COMMAND CFLAGS="-I '$PWD' -DTF_PSA_CRYPTO_CONFIG_FILE='\"psa_test_config.h\"' -DTF_PSA_CRYPTO_USER_CONFIG_FILE='\"psa_user_config.h\"'"
     not programs/test/query_compile_time_config PSA_WANT_ALG_CMAC
 
     rm -f psa_test_config.h psa_user_config.h
@@ -2410,7 +2410,7 @@ component_build_psa_alt_headers () {
     # Build the library and some programs.
     # Don't build the fuzzers to avoid having to go through hoops to set
     # a correct include path for programs/fuzz/Makefile.
-    make CFLAGS="-I ../framework/tests/include/alt-extra -DMBEDTLS_PSA_CRYPTO_PLATFORM_FILE='\"psa/crypto_platform_alt.h\"' -DMBEDTLS_PSA_CRYPTO_STRUCT_FILE='\"psa/crypto_struct_alt.h\"'" lib
+    $MAKE_COMMAND CFLAGS="-I ../framework/tests/include/alt-extra -DMBEDTLS_PSA_CRYPTO_PLATFORM_FILE='\"psa/crypto_platform_alt.h\"' -DMBEDTLS_PSA_CRYPTO_STRUCT_FILE='\"psa/crypto_struct_alt.h\"'" lib
     make -C programs -o fuzz CFLAGS="-I ../framework/tests/include/alt-extra -DMBEDTLS_PSA_CRYPTO_PLATFORM_FILE='\"psa/crypto_platform_alt.h\"' -DMBEDTLS_PSA_CRYPTO_STRUCT_FILE='\"psa/crypto_struct_alt.h\"'"
 
     # Check that we're getting the alternative include guards and not the

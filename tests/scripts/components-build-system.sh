@@ -11,7 +11,7 @@
 
 component_test_make_shared () {
     msg "build/test: make shared" # ~ 40s
-    make SHARED=1 TEST_CPP=1 all check
+    $MAKE_COMMAND SHARED=1 TEST_CPP=1 all check
     ldd programs/util/strerror | grep libmbedcrypto
     $FRAMEWORK/tests/programs/dlopen_demo.sh
 }
@@ -58,7 +58,7 @@ support_test_cmake_out_of_source () {
 component_test_cmake_out_of_source () {
     # Remove existing generated files so that we use the ones cmake
     # generates
-    make neat
+    $MAKE_COMMAND neat
 
     msg "build: cmake 'out-of-source' build"
     MBEDTLS_ROOT_DIR="$PWD"
@@ -90,7 +90,7 @@ component_test_cmake_out_of_source () {
 component_test_cmake_as_subdirectory () {
     # Remove existing generated files so that we use the ones CMake
     # generates
-    make neat
+    $MAKE_COMMAND neat
 
     msg "build: cmake 'as-subdirectory' build"
     cd programs/test/cmake_subproject
@@ -107,7 +107,7 @@ support_test_cmake_as_subdirectory () {
 component_test_cmake_as_package () {
     # Remove existing generated files so that we use the ones CMake
     # generates
-    make neat
+    $MAKE_COMMAND neat
 
     msg "build: cmake 'as-package' build"
     root_dir="$(pwd)"
@@ -132,7 +132,7 @@ support_test_cmake_as_package () {
 component_test_cmake_as_package_install () {
     # Remove existing generated files so that we use the ones CMake
     # generates
-    make neat
+    $MAKE_COMMAND neat
 
     msg "build: cmake 'as-installed-package' build"
     cd programs/test/cmake_package_install

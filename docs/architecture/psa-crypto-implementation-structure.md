@@ -3,7 +3,7 @@ PSA Cryptography API implementation and PSA driver interface
 
 ## Introduction
 
-The [PSA Cryptography API specification](https://armmbed.github.io/mbed-crypto/psa/#application-programming-interface) defines an interface to cryptographic operations for which the Mbed TLS library provides a reference implementation. The PSA Cryptography API specification is complemented by the PSA driver interface specification which defines an interface for cryptoprocessor drivers.
+The [PSA Cryptography API specification](https://armmbed.github.io/mbed-crypto/psa/#application-programming-interface) defines an interface to cryptographic operations for which the Mbed TLS library provides a reference implementation (in the sense that it implements most features, and it is where new features are usually tried out). The PSA Cryptography API specification is complemented by the PSA driver interface specification which defines an interface for cryptoprocessor drivers.
 
 This document describes the high level organization of the Mbed TLS PSA Cryptography API implementation which is tightly related to the PSA driver interface.
 

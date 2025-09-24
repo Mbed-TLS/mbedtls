@@ -1,9 +1,7 @@
 README for Mbed TLS
 ===================
 
-Mbed TLS is a C library that implements cryptographic primitives, X.509 certificate manipulation and the SSL/TLS and DTLS protocols. Its small code footprint makes it suitable for embedded systems.
-
-Mbed TLS includes a reference implementation of the [PSA Cryptography API](#psa-cryptography-api). This is currently a preview for evaluation purposes only.
+Mbed TLS is a C library that implements cryptographic primitives (including the [PSA Cryptography API](#psa-cryptography-api)), X.509 certificate manipulation and the SSL/TLS and DTLS protocols. Its small code footprint makes it suitable for embedded systems.
 
 Configuration
 -------------
@@ -298,8 +296,7 @@ Arm welcomes feedback on the design of the API. If you think something could be 
 
 ### PSA implementation in Mbed TLS
 
-Mbed TLS includes a reference implementation of the PSA Cryptography API.
-However, it does not aim to implement the whole specification; in particular it does not implement all the algorithms.
+Mbed TLS includes an implementation of the PSA Cryptography API. It covers most, but not all algorithms.
 
 The X.509 and TLS code can use PSA cryptography for most operations. To enable this support, activate the compilation option `MBEDTLS_USE_PSA_CRYPTO` in `mbedtls_config.h`. Note that TLS 1.3 uses PSA cryptography for most operations regardless of this option. See `docs/use-psa-crypto.md` for details.
 

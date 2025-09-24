@@ -23,13 +23,13 @@ class MbedtlsTestConfigChecks(unittest_config_checks.TestConfigChecks):
     ]
 
     def test_crypto_config_read(self) -> None:
-        """Check that crypto_config.h is read in crypto."""
+        """Check that crypto_config.h is read in mbedtls."""
         self.bad_case('#error witness',
                       None,
                       error='witness')
 
     def test_mbedtls_config_read(self) -> None:
-        """Check that mbedtls_config.h is read in crypto."""
+        """Check that mbedtls_config.h is read in mbedtls."""
         self.bad_case(''
                       '#error witness',
                       error='witness')

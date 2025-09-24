@@ -85,9 +85,9 @@ doit()
         scripts/config.py --force -f ${CRYPTO_CONFIG_H} set MBEDTLS_PSA_DRIVER_GET_ENTROPY || true
     } >/dev/null 2>&1
 
-    make clean >/dev/null
+    make -f scripts/legacy.make clean >/dev/null
     CC=arm-none-eabi-gcc AR=arm-none-eabi-ar LD=arm-none-eabi-ld \
-        CFLAGS="$ARMGCC_FLAGS" make lib >/dev/null
+        CFLAGS="$ARMGCC_FLAGS" make -f scripts/legacy.make lib >/dev/null
 
     OUT="size-${NAME}.txt"
     arm-none-eabi-size -t library/libmbed*.a > "$OUT"

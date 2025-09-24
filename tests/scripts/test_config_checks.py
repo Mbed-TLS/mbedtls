@@ -112,6 +112,15 @@ class MbedtlsTestConfigChecks(unittest_config_checks.TestConfigChecks):
                       '#undef MBEDTLS_BASE64_C',
                       error=r'MBEDTLS_BASE64_C .*psa/crypto_config\.h')
 
+    def test_crypto_define_MBEDTLS_USE_PSA_CRYPTO(self) -> None:
+        """It's ok to set MBEDTLS_USE_PSA_CRYPTO (now effectively always on)."""
+        self.good_case('#define MBEDTLS_USE_PSA_CRYPTO')
+
+    def test_crypto_define_MBEDTLS_USE_PSA_CRYPTO(self) -> None:
+        """It's ok to set MBEDTLS_USE_PSA_CRYPTO (now effectively always on)."""
+        self.good_case(None,
+                       '#define MBEDTLS_USE_PSA_CRYPTO')
+
 
 if __name__ == '__main__':
     unittest.main()

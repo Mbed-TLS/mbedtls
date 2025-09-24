@@ -71,11 +71,10 @@ echo
 # Step 1 - Make and instrumented build for code coverage
 export CFLAGS=' --coverage -g3 -O0 '
 export LDFLAGS=' --coverage'
-make clean
+make -f scripts/legacy.make clean
 cp "$CONFIG_H" "$CONFIG_BAK"
 scripts/config.py full
-make
-
+make -f scripts/legacy.make
 
 # Step 2 - Execute the tests
 TEST_OUTPUT=out_${PPID}
@@ -119,7 +118,7 @@ echo
 # Step 3 - Process the coverage report
 cd ..
 {
-    make lcov
+    make -f scripts/legacy.make lcov
     echo SUCCESS
 } | tee tests/cov-$TEST_OUTPUT
 
@@ -237,7 +236,7 @@ rm -f "tests/basic-build-test-$$.ok"
     touch "basic-build-test-$$.ok"
 } | tee coverage-summary.txt
 
-make clean
+make -f scripts/legacy.make clean
 
 if [ -f "$CONFIG_BAK" ]; then
     mv "$CONFIG_BAK" "$CONFIG_H"

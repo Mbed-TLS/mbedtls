@@ -68,6 +68,7 @@ typedef struct mbedtls_x509write_csr {
     mbedtls_asn1_named_data *MBEDTLS_PRIVATE(subject);
     mbedtls_md_type_t MBEDTLS_PRIVATE(md_alg);
     mbedtls_asn1_named_data *MBEDTLS_PRIVATE(extensions);
+    mbedtls_asn1_named_data *MBEDTLS_PRIVATE(attributes);
 }
 mbedtls_x509write_csr;
 
@@ -322,6 +323,23 @@ int mbedtls_x509write_csr_set_extension(mbedtls_x509write_csr *ctx,
                                         const char *oid, size_t oid_len,
                                         int critical,
                                         const unsigned char *val, size_t val_len);
+
+/**
+ * \brief           Generic function to add to or replace an attribute in the
+ *                  CSR
+ *
+ * \param ctx       CSR context to use
+ * \param oid       OID of the extension
+ * \param oid_len   length of the OID
+ * \param val       value of the extension OCTET STRING
+ * \param val_len   length of the value data
+ * \param val_tag   der tag of the value data
+ *
+ * \return          0 if successful, or a #PSA_ERROR_INSUFFICIENT_MEMORY
+ */
+int mbedtls_x509write_csr_set_attribute(mbedtls_x509write_csr *ctx,
+                                        const char *oid, size_t oid_len,
+                                        const unsigned char *val, size_t val_len, const uint8_t val_tag);
 
 /**
  * \brief           Free the contents of a CSR context

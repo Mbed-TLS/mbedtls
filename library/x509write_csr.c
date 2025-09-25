@@ -47,6 +47,7 @@ void mbedtls_x509write_csr_free(mbedtls_x509write_csr *ctx)
 
     mbedtls_asn1_free_named_data_list(&ctx->subject);
     mbedtls_asn1_free_named_data_list(&ctx->extensions);
+    mbedtls_asn1_free_named_data_list(&ctx->attributes);
 
     mbedtls_platform_zeroize(ctx, sizeof(mbedtls_x509write_csr));
 }
@@ -75,6 +76,13 @@ int mbedtls_x509write_csr_set_extension(mbedtls_x509write_csr *ctx,
 {
     return mbedtls_x509_set_extension(&ctx->extensions, oid, oid_len,
                                       critical, val, val_len);
+}
+int mbedtls_x509write_csr_set_attribute(mbedtls_x509write_csr *ctx,
+                                        const char *oid, size_t oid_len,
+                                        const unsigned char *val, size_t val_len, const uint8_t val_tag)
+{
+    return mbedtls_x509_set_attribute(&ctx->attributes, oid, oid_len,
+                                      val, val_len, val_tag);
 }
 
 int mbedtls_x509write_csr_set_subject_alternative_name(mbedtls_x509write_csr *ctx,
@@ -176,6 +184,10 @@ static int x509write_csr_der_internal(mbedtls_x509write_csr *ctx,
                                  &c, buf,
                                  MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE));
     }
+
+    
+    MBEDTLS_ASN1_CHK_ADD(len, mbedtls_x509_write_attributes(&c, buf,
+                                                            ctx->attributes));
 
     MBEDTLS_ASN1_CHK_ADD(len, mbedtls_asn1_write_len(&c, buf, len));
     MBEDTLS_ASN1_CHK_ADD(len,

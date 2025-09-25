@@ -140,6 +140,26 @@ int mbedtls_x509write_csr_set_ns_cert_type(mbedtls_x509write_csr *ctx,
     return 0;
 }
 
+int mbedtls_x509write_csr_set_challenge_password(mbedtls_x509write_csr *ctx,
+                                                 char *chal_pw,
+                                                 size_t chal_pw_len,
+                                                 int printable)
+{
+    if (chal_pw_len == 0 || chal_pw == NULL) {
+        return MBEDTLS_ERR_X509_BAD_INPUT_DATA;
+    }
+
+    /* pkcs-9-ub-challengePassword INTEGER ::= pkcs-9-ub-pkcs9String */
+    if (chal_pw_len > MBEDTLS_X509_MAX_PKCS9_STR) {
+        return MBEDTLS_ERR_X509_BAD_INPUT_DATA;
+    }
+
+    mbedtls_x509write_csr_set_attribute(ctx,
+                                        MBEDTLS_OID_PKCS9_CSR_CHAL_PW, MBEDTLS_OID_SIZE ( MBEDTLS_OID_PKCS9_CSR_CHAL_PW ),
+                                        (unsigned char *)chal_pw, chal_pw_len,
+                                        (printable ? MBEDTLS_ASN1_PRINTABLE_STRING : MBEDTLS_ASN1_UTF8_STRING ));
+    return 0;
+}
 static int x509write_csr_der_internal(mbedtls_x509write_csr *ctx,
                                       unsigned char *buf,
                                       size_t size,
@@ -191,7 +211,6 @@ static int x509write_csr_der_internal(mbedtls_x509write_csr *ctx,
                                  MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE));
     }
 
-    
     MBEDTLS_ASN1_CHK_ADD(len, mbedtls_x509_write_attributes(&c, buf,
                                                             ctx->attributes));
 

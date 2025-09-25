@@ -41,7 +41,7 @@ Then use the [summary of API modules](#summary-of-api-modules), the table of con
 * Mbed TLS 2.15.0 (Nov 2018): first release with a draft implementation of the PSA API.
 * Mbed TLS 2.18.0 (Jun 2019): The PSA API is available in the default build.
 * Mbed TLS 3.1.0 (Dec 2021): TLS 1.3 support is the first major feature that requires the PSA API.
-* Mbed TLS 4.0.0 (2024?): X.509 and TLS require the PSA API. Removal of some legacy crypto APIs.
+* TF-PSA-Crypto 1.0.0 and Mbed TLS 4.0.0 (Oct 2025): Removal of most legacy crypto APIs. X.509 and TLS require the PSA API.
 * Mbed TLS 5.0.0 (??): Removal of the remaining non-PSA crypto APIs.
 
 ## General considerations

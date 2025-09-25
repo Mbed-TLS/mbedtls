@@ -197,6 +197,13 @@ class AbiChecker:
         """If the crypto submodule is present, initialize it.
         if version.crypto_revision exists, update it to that revision,
         otherwise update it to the default revision"""
+        submodule_output = subprocess.check_output(
+            [self.git_command, "submodule", "foreach", "--recursive",
+             'git worktree add --detach "{}/$displaypath" HEAD'.format(git_worktree_path)],
+            cwd=self.repo_path,
+            stderr=subprocess.STDOUT
+        )
+        self.log.debug(submodule_output.decode("utf-8"))
         update_output = subprocess.check_output(
             [self.git_command, "submodule", "update", "--init", '--recursive'],
             cwd=git_worktree_path,
@@ -378,6 +385,12 @@ class AbiChecker:
     def _cleanup_worktree(self, git_worktree_path):
         """Remove the specified git worktree."""
         shutil.rmtree(git_worktree_path)
+        submodule_output = subprocess.check_output(
+            [self.git_command, "submodule", "foreach", "--recursive", "git worktree prune"],
+            cwd=self.repo_path,
+            stderr=subprocess.STDOUT
+        )
+        self.log.debug(submodule_output.decode("utf-8"))
         worktree_output = subprocess.check_output(
             [self.git_command, "worktree", "prune"],
             cwd=self.repo_path,

@@ -118,6 +118,13 @@ if(GEN_FILES)
             ${CMAKE_CURRENT_BINARY_DIR}/ssl_debug_helpers_generated.c
             ${CMAKE_CURRENT_BINARY_DIR}/version_features.c
     )
+
+    # List generated headers as sources explicitly. Normally CMake finds
+    # headers by tracing include directives, but if that happens before the
+    # generated headers are generated, this process doesn't find them.
+    list(APPEND src_x509
+        ${MBEDTLS_GENERATED_CONFIG_CHECKS_HEADERS}
+    )
 endif()
 
 if(CMAKE_COMPILER_IS_GNUCC)
@@ -237,7 +244,9 @@ foreach(target IN LISTS target_libraries)
                $<INSTALL_INTERFACE:include/>
         PRIVATE ${MBEDTLS_DIR}/library/
                 ${MBEDTLS_DIR}/tf-psa-crypto/core
-                ${MBEDTLS_DIR}/tf-psa-crypto/drivers/builtin/src)
+                ${MBEDTLS_DIR}/tf-psa-crypto/drivers/builtin/src
+                # needed for generated headers
+                ${CMAKE_CURRENT_BINARY_DIR})
     set_config_files_compile_definitions(${target})
     install(
         TARGETS ${target}

@@ -68,6 +68,11 @@
 #include MBEDTLS_USER_CONFIG_FILE
 #endif
 
+/* For the sake of consistency checks in mbedtls_config.c */
+#if defined(MBEDTLS_INCLUDE_AFTER_RAW_CONFIG)
+#include MBEDTLS_INCLUDE_AFTER_RAW_CONFIG
+#endif
+
 /* Indicate that all configuration files have been read.
  * It is now time to adjust the configuration (follow through on dependencies,
  * make PSA and legacy crypto consistent, etc.).

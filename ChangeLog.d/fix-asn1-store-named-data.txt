@@ -1,0 +1,8 @@
+Security
+   * Fix a bug in tf-psa-crypto's mbedtls_asn1_store_named_data() where it
+     would sometimes leave an item in the output list in an inconsistent
+     state with val.p == NULL but val.len > 0. Affected functions used in X.509
+     would then dereference a NULL pointer. Applications that do not
+     call this function (directly, or indirectly through X.509 writing) are not
+     affected. Found by Linh Le and Ngan Nguyen from Calif.
+

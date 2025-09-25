@@ -1,0 +1,3 @@
+Removals
+   * Remove DES and 3DES and all it's references
+     as it is not longer allowed by NIST.

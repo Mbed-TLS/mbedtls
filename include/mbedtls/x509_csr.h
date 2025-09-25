@@ -338,6 +338,19 @@ int mbedtls_x509write_csr_set_attribute(mbedtls_x509write_csr *ctx,
                                         const unsigned char *val, size_t val_len, const uint8_t val_tag);
 
 /**
+ * \brief           Set a CSR challenge password
+ *
+ * \param ctx          CSR context to use
+ * \param chal_pw      challenge password OCTET STRING
+ * \param chal_pw_len  length of the challenge password data
+ * \param printable    tag as printable string (\c 1) or UTF8 string (\c 0)
+ *
+ * \return          0 if successful, or a MBEDTLS_ERR_X509_BAD_INPUT_DATA
+ */
+int mbedtls_x509write_csr_set_challenge_password(mbedtls_x509write_csr *ctx,
+                                                 char *chal_pw, size_t chal_pw_len,
+                                                 int printable);
+/**
  * \brief           Free the contents of a CSR context
  *
  * \param ctx       CSR context to free

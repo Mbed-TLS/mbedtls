@@ -232,6 +232,7 @@
 #define MBEDTLS_OID_PKCS7_DIGESTED_DATA               MBEDTLS_OID_PKCS7 "\x05" /**< Content type is Digested Data OBJECT IDENTIFIER ::= {pkcs-7 5} */
 #define MBEDTLS_OID_PKCS7_ENCRYPTED_DATA              MBEDTLS_OID_PKCS7 "\x06" /**< Content type is Encrypted Data OBJECT IDENTIFIER ::= {pkcs-7 6} */
 
+#define MBEDTLS_OID_PKCS9_CSR_CHAL_PW           MBEDTLS_OID_PKCS9 "\x07" /**< challenge password OBJECT IDENTIFIER ::= {pkcs-9 7 } */
 #define MBEDTLS_OID_PKCS9_CSR_EXT_REQ           MBEDTLS_OID_PKCS9 "\x0e" /**< extensionRequest OBJECT IDENTIFIER ::= {pkcs-9 14} */
 
 

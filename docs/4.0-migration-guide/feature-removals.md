@@ -140,3 +140,13 @@ mbedtls_ssl_conf_dh_param_bin()
 mbedtls_ssl_conf_dh_param_ctx()
 mbedtls_ssl_conf_dhm_min_bitlen()
 ```
+
+### Removal of elliptic curves
+
+Following their removal from the crypto library, elliptic curves of less than 250 bits (secp192r1, secp192k1, secp224r1, secp224k1) are no longer supported in certificates and in TLS.
+
+### Removal of deprecated functions
+
+The deprecated functions `mbedtls_ssl_conf_min_version()` and `mbedtls_ssl_conf_max_version()`, and the associated constants `MBEDTLS_SSL_MAJOR_VERSION_3`, `MBEDTLS_SSL_MINOR_VERSION_3` and `MBEDTLS_SSL_MINOR_VERSION_4` have been removed. Use `mbedtls_ssl_conf_min_tls_version()` and `mbedtls_ssl_conf_max_tls_version()` with `MBEDTLS_SSL_VERSION_TLS1_2` or `MBEDTLS_SSL_VERSION_TLS1_3` instead.
+
+The deprecated function `mbedtls_ssl_conf_sig_hashes()` has been removed. Use `mbedtls_ssl_conf_sig_algs()` instead.

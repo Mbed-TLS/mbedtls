@@ -32,3 +32,13 @@ TF-PSA-Crypto exposes its version through `<tf-psa-crypto/version.h>`, similar t
 ### Removal of `check_config.h`
 
 The header `mbedtls/check_config.h` is no longer present. Including it from user configuration files was already obsolete in Mbed TLS 3.x, since it enforces properties the configuration as adjusted by `mbedtls/build_info.h`, not properties that the user configuration is expected to meet.
+
+### Changes to TLS options
+
+#### Enabling null cipher suites
+
+The option to enable null cipher suites in TLS 1.2 has been renamed from `MBEDTLS_CIPHER_NULL_CIPHER` to `MBEDTLS_SSL_NULL_CIPHERSUITES`. It remains disabled in the default configuration.
+
+#### Removal of backward compatibility options
+
+The option `MBEDTLS_SSL_DTLS_CONNECTION_ID_COMPAT` has been removed. Only the version standardized in RFC 9146 is supported now.

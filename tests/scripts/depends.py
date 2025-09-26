@@ -30,11 +30,11 @@ The configuration building method can be one of the three following:
   direct dependencies, but rather non-trivial results of other configs missing. Then
   look for any unset symbols and handle their reverse dependencies.
   Examples of EXCLUSIVE_GROUPS usage:
-  - PSA_WANT_ALG_SHA_512 job turns off all hashes except SHA512. MBEDTLS_SSL_COOKIE_C
+  - PSA_WANT_ALG_SHA_512 job turns off all hashes except SHA512. MBEDTLS_SSL_DTLS_COOKIE_C
     requires either SHA256 or SHA384 to work, so it also has to be disabled.
     This is not a dependency on SHA512, but a result of an exclusive domain
     config building method. Relevant field:
-    'PSA_WANT_ALG_SHA_512': ['-MBEDTLS_SSL_COOKIE_C'],
+    'PSA_WANT_ALG_SHA_512': ['-MBEDTLS_SSL_DTLS_COOKIE_C'],
 
 - DualDomain - combination of the two above - both complementary and exclusive domain
   job generation code will be run. Currently only used for hashes.
@@ -308,7 +308,7 @@ REVERSE_DEPENDENCIES = {
 # These are not necessarily dependencies, but just minimal required changes
 # if a given define is the only one enabled from an exclusive group.
 EXCLUSIVE_GROUPS = {
-    'PSA_WANT_ALG_SHA_512': ['-MBEDTLS_SSL_COOKIE_C',
+    'PSA_WANT_ALG_SHA_512': ['-MBEDTLS_SSL_DTLS_COOKIE_C',
                              '-MBEDTLS_SSL_TLS_C'],
     'PSA_WANT_ECC_MONTGOMERY_448': ['-PSA_WANT_ALG_ECDSA',
                                     '-PSA_WANT_ALG_JPAKE',],

@@ -416,14 +416,14 @@
 #define MBEDTLS_SSL_CONTEXT_SERIALIZATION
 
 /**
- * \def MBEDTLS_SSL_COOKIE_C
+ * \def MBEDTLS_SSL_DTLS_COOKIE_C
  *
  * Enable basic implementation of DTLS cookies for hello verification.
  *
  * Module:  library/ssl_cookie.c
  * Caller:
  */
-#define MBEDTLS_SSL_COOKIE_C
+#define MBEDTLS_SSL_DTLS_COOKIE_C
 
 /**
  * \def MBEDTLS_SSL_DEBUG_ALL

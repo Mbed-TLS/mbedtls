@@ -41,7 +41,7 @@ int main(void)
 #include "mbedtls/ssl_ticket.h"
 #endif
 
-#if defined(MBEDTLS_SSL_COOKIE_C)
+#if defined(MBEDTLS_SSL_DTLS_COOKIE_C)
 #include "mbedtls/ssl_cookie.h"
 #endif
 
@@ -1530,7 +1530,7 @@ int main(int argc, char *argv[])
     const char *pers = "ssl_server2";
     unsigned char client_ip[16] = { 0 };
     size_t cliip_len;
-#if defined(MBEDTLS_SSL_COOKIE_C)
+#if defined(MBEDTLS_SSL_DTLS_COOKIE_C)
     mbedtls_ssl_cookie_ctx cookie_ctx;
 #endif
 
@@ -1651,7 +1651,7 @@ int main(int argc, char *argv[])
 #if defined(MBEDTLS_SSL_ALPN)
     memset((void *) alpn_list, 0, sizeof(alpn_list));
 #endif
-#if defined(MBEDTLS_SSL_COOKIE_C)
+#if defined(MBEDTLS_SSL_DTLS_COOKIE_C)
     mbedtls_ssl_cookie_init(&cookie_ctx);
 #endif
 
@@ -2963,7 +2963,7 @@ usage:
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     if (opt.transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM) {
-#if defined(MBEDTLS_SSL_COOKIE_C)
+#if defined(MBEDTLS_SSL_DTLS_COOKIE_C)
         if (opt.cookies > 0) {
             if ((ret = mbedtls_ssl_cookie_setup(&cookie_ctx)) != 0) {
                 mbedtls_printf(" failed\n  ! mbedtls_ssl_cookie_setup returned %d\n\n", ret);
@@ -2973,7 +2973,7 @@ usage:
             mbedtls_ssl_conf_dtls_cookies(&conf, mbedtls_ssl_cookie_write, mbedtls_ssl_cookie_check,
                                           &cookie_ctx);
         } else
-#endif /* MBEDTLS_SSL_COOKIE_C */
+#endif /* MBEDTLS_SSL_DTLS_COOKIE_C */
 #if defined(MBEDTLS_SSL_DTLS_HELLO_VERIFY)
         if (opt.cookies == 0) {
             mbedtls_ssl_conf_dtls_cookies(&conf, NULL, NULL, NULL);
@@ -4170,7 +4170,7 @@ exit:
 #if defined(MBEDTLS_SSL_SESSION_TICKETS) && defined(MBEDTLS_SSL_TICKET_C)
     mbedtls_ssl_ticket_free(&ticket_ctx);
 #endif
-#if defined(MBEDTLS_SSL_COOKIE_C)
+#if defined(MBEDTLS_SSL_DTLS_COOKIE_C)
     mbedtls_ssl_cookie_free(&cookie_ctx);
 #endif
 

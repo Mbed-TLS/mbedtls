@@ -11,7 +11,7 @@
 
 #include "ssl_misc.h"
 
-#if defined(MBEDTLS_SSL_COOKIE_C)
+#if defined(MBEDTLS_SSL_DTLS_COOKIE_C)
 
 #include "mbedtls/platform.h"
 
@@ -248,4 +248,4 @@ exit:
     }
     return ret;
 }
-#endif /* MBEDTLS_SSL_COOKIE_C */
+#endif /* MBEDTLS_SSL_DTLS_COOKIE_C */

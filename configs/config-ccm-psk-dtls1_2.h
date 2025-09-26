@@ -26,7 +26,7 @@
 /* Mbed TLS modules */
 #define MBEDTLS_NET_C
 #define MBEDTLS_SSL_CLI_C
-#define MBEDTLS_SSL_COOKIE_C
+#define MBEDTLS_SSL_DTLS_COOKIE_C
 #define MBEDTLS_SSL_SRV_C
 #define MBEDTLS_SSL_TLS_C
 #define MBEDTLS_TIMING_C

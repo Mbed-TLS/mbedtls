@@ -673,11 +673,11 @@ Once you have finished replacing the references to `mbedtls_ctr_drbg_random` (or
 
 Unless explicitly configured otherwise, the PSA random generator uses the default entropy sources configured through the legacy interface (`MBEDTLS_ENTROPY_xxx` symbols). Its set of sources is equivalent to an entropy object configured with `mbedtls_entropy_init`.
 
-A future version of Mbed TLS will include a PSA interface for configuring entropy sources. This is likely to replace the legacy interface in Mbed TLS 4.0.
+Note that the interface for configuring entropy sources will be overhauled in TF-PSA-Crypto 1.0.0.
 
 ### Deterministic pseudorandom generation
 
-The PSA API does not have a dedicated interface for pseudorandom generation. The [key derivation interface](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__key__derivation/) can serve a similar purpose in some applications, but it does not offer CTR\_DRBG or HMAC\_DRBG. If you need these algorithms, keep using `ctr_drbg.h` and `hmac_drbg.h`, but note that they may be removed from the public API in Mbed TLS 4.0.
+The PSA API does not have a dedicated interface for pseudorandom generation. The [key derivation interface](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__key__derivation/) can serve a similar purpose in some applications, but it does not offer CTR\_DRBG or HMAC\_DRBG. If you need these algorithms, keep using `ctr_drbg.h` and `hmac_drbg.h`, but note that they will be removed from the public API in TF-PSA-Crypto 1.0.0 (the successor of Mbed TLS 3.x), with a plan to add a PSA API in a future TF-PSA-Crypto version.
 
 ## Asymmetric cryptography
 
@@ -1244,7 +1244,7 @@ The PSA API for finite-field Diffie-Hellman only supports predefined groups. The
 
 #### Restartable key agreement
 
-Restartable key agreement (enabled by `mbedtls_ecdh_enable_restart`) is not yet available through the PSA API. It will be added under the name “interruptible key agreement” in a future version of the library, with an interface that's similar to the interruptible signature interface described in “[Restartable ECDSA signature](#restartable-ecdsa-signature)”.
+Restartable key agreement (enabled by `mbedtls_ecdh_enable_restart`) is not yet available through the PSA API. It will be added under the name “interruptible key agreement” in TF-PSA-Crypto 1.0.0, with an interface that's similar to the interruptible signature interface described in “[Restartable ECDSA signature](#restartable-ecdsa-signature)”.
 
 ### Additional information about Elliptic-curve cryptography
 
@@ -1331,7 +1331,7 @@ A PSA key object is immutable, so there is no need for an equivalent of `mbedtls
 
 ### LMS signatures
 
-A future version of Mbed TLS will support LMS keys and signatures through the PSA API (`psa_generate_key`, `psa_export_public_key`, `psa_import_key`, `psa_sign_hash`, `psa_verify_hash`, etc.). However, this is likely to happen after Mbed TLS 4.0, therefore the next major version of Mbed TLS will likely keep the existing `lms.h` interface.
+A future version of TF-PSA-Crypto (as a successor of Mbed TLS) will support LMS keys and signatures through the PSA API (`psa_generate_key`, `psa_export_public_key`, `psa_import_key`, `psa_sign_hash`, `psa_verify_hash`, etc.). However, the existing `lms.h` interface will be kept in TF-PSA-Crypto 1.x.
 
 ### PK format support interfaces
 

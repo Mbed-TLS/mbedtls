@@ -199,7 +199,7 @@ class AbiChecker:
         otherwise update it to the default revision"""
         submodule_output = subprocess.check_output(
             [self.git_command, "submodule", "foreach", "--recursive",
-             'git worktree add --detach "{}/$displaypath" HEAD'.format(git_worktree_path)],
+             f'git worktree add --detach "{git_worktree_path}/$displaypath" HEAD'],
             cwd=self.repo_path,
             stderr=subprocess.STDOUT
         )

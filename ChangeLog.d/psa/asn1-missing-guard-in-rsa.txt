@@ -1,3 +1,0 @@
-Bugfix
-   * MBEDTLS_ASN1_PARSE_C and MBEDTLS_ASN1_WRITE_C are now automatically enabled
-     as soon as MBEDTLS_RSA_C is enabled. Fixes #9041.

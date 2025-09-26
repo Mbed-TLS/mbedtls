@@ -56,10 +56,12 @@ By default, the PSA crypto API offers a similar set of cryptographic mechanisms 
 
 ### Header files
 
-Applications only need to include a single header file:
+Applications only need to include a single header file for all cryptographic mechanisms:
 ```
 #include <psa/crypto.h>
 ```
+
+Note that you may want to keep other crypto header files for functionality that is not provided by the PSA API, such as `<mbedtls/nist_kw.h>` for NIST KW/KWP (not yet exposed through PSA), `<mbedtls/pk.h>` for key pair and public key parsing and formatting, `<mbedtls/asn1.h>` for ASN.1 parsing, etc.
 
 ### General application layout
 
@@ -179,6 +181,8 @@ Note that a key consumes a key store entry, which is distinct from heap memory, 
 
 When the configuration option [`MBEDTLS_PSA_CRYPTO_CONFIG`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/file/mbedtls__config_8h/#mbedtls__config_8h_1a5aca5ddcffb586acad82f9aef26db056) is enabled, the cryptographic mechanisms available through the PSA API are determined by the contents of the header file `"psa/crypto_config.h"`. You can override the file location with the macro [`MBEDTLS_PSA_CRYPTO_CONFIG_FILE`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/file/mbedtls__config_8h/#mbedtls__config_8h_1a25f7e358caa101570cb9519705c2b873), and you can set [`MBEDTLS_PSA_CRYPTO_USER_CONFIG_FILE`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/file/mbedtls__config_8h/#mbedtls__config_8h_1abd1870cc0d2681183a3018a7247cb137) to the path of an additional file (similar to `MBEDTLS_CONFIG_FILE` and `MBEDTLS_USER_CONFIG_FILE` for legacy configuration symbols).
 
+#### General rules for `PSA_WANT_xxx`
+
 The availability of cryptographic mechanisms in the PSA API is based on a systematic pattern:
 
 * To make `PSA_ALG_aaa` available, enable `PSA_WANT_ALG_aaa`.
@@ -199,6 +203,8 @@ The availability of cryptographic mechanisms in the PSA API is based on a system
 
 Note that all `PSA_WANT_xxx` symbols must be set to a non-zero value. In particular, setting `PSA_WANT_xxx` to an empty value may not be handled consistently.
 
+#### A small `PSA_WANT` configuration example
+
 For example, the following configuration enables hashing with SHA-256, AEAD with AES-GCM, signature with deterministic ECDSA using SHA-256 on the curve secp256r1 using a randomly generated key as well as the corresponding verification, and ECDH key exchange on secp256r1 and Curve25519.
 
 ```
@@ -215,6 +221,24 @@ For example, the following configuration enables hashing with SHA-256, AEAD with
 #define PSA_WANT_ALG_DETERMINISTIC_ECDSA 1
 #define PSA_WANT_ALG_ECDH
 ```
+
+#### Automatically translating legacy configurations
+
+If you have a working configuration file with legacy configuration options, run the program
+
+```
+programs/test/query_compile_time_config -l
+```
+
+The lines with `PSA_WANT_...=1` should constitute a PSA configuration that is similar to your legacy configuration. You can translate this into `#define` line with the following bash/Linux/macOS shell snippet:
+
+```
+programs/test/query_compile_time_config -l | sed -n 's/^\(PSA_WANT_.*\)=1/#define \1/p'
+```
+
+Please review the result as the configuration may not be fully equivalent in all cases. It will generally provide at least the same features, but sometimes this translation results in more than desired.
+
+#### Implicit activation of crypto features
 
 If a mechanism is not enabled by `PSA_WANT_xxx`, Mbed TLS will normally not include it. This allows builds that use few features to have a small code size. However, this is not guaranteed: a mechanism that is not explicitly requested can be enabled because it is a dependency of another configuration option, because it is used internally, or because the granularity is not fine enough to distinguish between it and another mechanism that is requested.
 
@@ -240,7 +264,7 @@ There is currently [no PSA equivalent to the self-tests](https://github.com/Mbed
 
 ### Error messages
 
-At the time of writing, there is no equivalent to the error messages provided by `mbedtls_strerror`. However, you can use the companion program `programs/psa/psa_constant_names` to convert various numbers (`psa_status_t`, `psa_algorithm_t`, `psa_key_type_t`, `psa_ecc_family_t`, `psa_dh_family_t`, `psa_key_usage_t`) to a programmer-friendly representation. The conversion doesn't depend on the library configuration or the target platform, so you can use a native build of this program even if you cross-compile your application.
+There is no equivalent to the error messages provided by `mbedtls_strerror`. However, you can use the companion program `programs/psa/psa_constant_names` to convert various numbers (`psa_status_t`, `psa_algorithm_t`, `psa_key_type_t`, `psa_ecc_family_t`, `psa_dh_family_t`, `psa_key_usage_t`) to a programmer-friendly representation. The conversion doesn't depend on the library configuration or the target platform, so you can use a native build of this program even if you cross-compile your application.
 
 ```
 $ programs/psa/psa_constant_names error -138
@@ -443,7 +467,8 @@ The equivalent to `mbedtls_md_type_t` and `MBEDTLS_MD_XXX` constants is the type
 | `MBEDTLS_MD_SHA3_384`  | `PSA_ALG_SHA3_384`  |
 | `MBEDTLS_MD_SHA3_512`  | `PSA_ALG_SHA3_512`  |
 
-The following helper functions can be used to convert between the 2 types:
+The following helper functions from `<mbedtls/psa_util.h>` can be used to convert between the two types:
+
 - `mbedtls_md_psa_alg_from_type()` converts from legacy `mbedtls_md_type_t` to PSA's `psa_algorithm_t`.
 - `mbedtls_md_type_from_psa_alg()` converts from PSA's `psa_algorithm_t` to legacy `mbedtls_md_type_t`.
 
@@ -633,7 +658,7 @@ The functions `mbedtls_pkcs12_derivation` and `mbedtls_pkcs12_pbe` are only inte
 
 The PSA subsystem has an internal random generator. As a consequence, you do not need to instantiate one manually, so most applications using PSA crypto do not need the interfaces from `entropy.h`, `ctr_drbg.h` and `hmac_drbg.h`. See the next sections for remaining use cases for [entropy](#entropy-sources) and [DRBG](#deterministic-pseudorandom-generation).
 
-The PSA API uses its internal random generator to generate keys (`psa_generate_key`), nonces for encryption (`psa_cipher_generate_iv`, `psa_cipher_encrypt`, `psa_aead_generate_nonce`, `psa_aead_encrypt`, `psa_asymmetric_encrypt`), and other random material as needed. If you need random data for some other purposes, call [`psa_generate_random`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__random/#group__random_1ga1985eae417dfbccedf50d5fff54ea8c5).
+The PSA API uses its internal random generator to generate keys (`psa_generate_key`), nonces for encryption (`psa_cipher_generate_iv`, `psa_cipher_encrypt`, `psa_aead_generate_nonce`, `psa_aead_encrypt`, `psa_asymmetric_encrypt`), and other random material as needed. If you need random data for some other purposes, call [`psa_generate_random`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__random/#group__random_1ga1985eae417dfbccedf50d5fff54ea8c5) instead of `mbedtls_ctr_drbg_random` or `mbedtls_hmac_drbg_random`.
 
 If your application mixes uses of the PSA crypto API and the mbedtls API and you need to pass an RNG argument to a legacy or X.509/TLS function, include the header file `<mbedtls/psa_util.h>` and use:
 

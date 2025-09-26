@@ -1,0 +1,3 @@
+API changes
+    * Rename the option MBEDTLS_SSL_COOKIE_C to MBEDTLS_SSL_DTLS_COOKIE_C
+      to highlight the fact that it enables a DTLS feature.

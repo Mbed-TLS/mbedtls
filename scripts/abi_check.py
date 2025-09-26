@@ -204,11 +204,24 @@ class AbiChecker:
             stderr=subprocess.STDOUT
         )
         self.log.debug(submodule_output.decode("utf-8"))
-        update_output = subprocess.check_output(
-            [self.git_command, "submodule", "update", "--init", '--recursive'],
-            cwd=git_worktree_path,
-            stderr=subprocess.STDOUT
-        )
+
+        try:
+            # Try to update the submodules using local commits
+            # (Git will sometimes insist on fetching the remote without --no-fetch if the submodules are shallow clones)
+            update_output = subprocess.check_output(
+                [self.git_command, "submodule", "update", "--init", '--recursive', '--no-fetch'],
+                cwd=git_worktree_path,
+                stderr=subprocess.STDOUT
+            )
+        except subprocess.CalledProcessError as err:
+            self.log.debug(err.stdout.decode("utf-8"))
+
+            # Checkout with --no-fetch failed, falling back to fetching from origin
+            update_output = subprocess.check_output(
+                [self.git_command, "submodule", "update", "--init", '--recursive'],
+                cwd=git_worktree_path,
+                stderr=subprocess.STDOUT
+            )
         self.log.debug(update_output.decode("utf-8"))
         if not (os.path.exists(os.path.join(git_worktree_path, "crypto"))
                 and version.crypto_revision):

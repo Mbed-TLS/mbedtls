@@ -679,7 +679,7 @@ The PSA API does not have a dedicated interface for pseudorandom generation. The
 
 ## Asymmetric cryptography
 
-The PSA API supports RSA (see “[RSA mechanism selection](#rsa-mechanism-selection)”), elliptic curve cryptography (see “[ECC mechanism selection](#elliptic-curve-mechanism-selection)” and “[EC-JPAKE](#ec-jpake)”) and finite-field Diffie-Hellman (see “[Diffie-Hellman mechanism selection](#diffie-hellman-mechanism-selection)”).
+The PSA API supports the same algorithm families for asymmetric cryptography as the legacy API: RSA (see “[RSA mechanism selection](#rsa-mechanism-selection)”), elliptic curve cryptography (see “[ECC mechanism selection](#elliptic-curve-mechanism-selection)” and “[EC-JPAKE](#ec-jpake)”) and finite-field Diffie-Hellman (see “[Diffie-Hellman mechanism selection](#diffie-hellman-mechanism-selection)”).
 
 ### Key lifecycle for asymmetric cryptography
 
@@ -842,7 +842,7 @@ For such use cases:
     * `PSA_KEY_USAGE_ENCRYPT` for a key pair used for encryption.
 3. Optionally, tweak the attributes (this is rarely necessary). For example:
     * Call [`psa_set_key_usage_flags`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__attributes/#group__attributes_1ga42a65b3c4522ce9b67ea5ea7720e17de), [`psa_set_key_algorithm`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__attributes/#group__attributes_1gaeb8341ca52baa0279475ea3fd3bcdc98) and/or [`psa_set_key_enrollment_algorithm`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/file/crypto__extra_8h/#group__attributes_1gaffa134b74aa52aa3ed9397fcab4005aa) to change the key's policy (by default, it allows what can be done through the PK module).
-    · Call [`psa_set_key_id`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__attributes/#group__attributes_1gae48fcfdc72a23e7499957d7f54ff5a64) and perhaps [`psa_set_key_lifetime`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__attributes/#group__attributes_1gac03ccf09ca6d36cc3d5b43f8303db6f7) to create a PSA persistent key.
+    · Call [`psa_set_key_id`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__attributes/#group__attributes_1gae48fcfdc72a23e7499957d7f54ff5a64) and perhaps [`psa_set_key_lifetime`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__attributes/#group__attributes_1gac03ccf09ca6d36cc3d5b43f8303db6f7) if you wish to create a PSA persistent key.
 4. Call [`mbedtls_pk_import_into_psa`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/file/pk_8h/#pk_8h_1ad59835d14832daf0f4b4bd0a4555abb9) to import the key into the PSA key store.
 5. You can now free the PK object with `mbedtls_pk_free`.
 
@@ -981,7 +981,7 @@ The following subsections describe the PSA signature mechanisms that correspond 
 
 #### ECDSA signature
 
-**Note: in the PSA API, the format of an ECDSA signature is the raw fixed-size format. This is different from the legacy API** which uses the ASN.1 DER format for ECDSA signatures. To convert between the two formats, use [`mbedtls_ecdsa_raw_to_der`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/file/psa__util_8h/#group__psa__tls__helpers_1ga9295799b5437bdff8ce8abd524c5ef2e) or [`mbedtls_ecdsa_der_to_raw`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/file/psa__util_8h/#group__psa__tls__helpers_1ga33b3cf65d5992ccc724b7ee00186ae61).
+**Note: in the PSA API, the format of an ECDSA signature is the raw fixed-size format. This is different from the legacy API** which uses the ASN.1 DER format for ECDSA signatures. To convert between the two formats, use [`mbedtls_ecdsa_raw_to_der`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/file/psa__util_8h/#group__psa__tls__helpers_1ga9295799b5437bdff8ce8abd524c5ef2e) or [`mbedtls_ecdsa_der_to_raw`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/file/psa__util_8h/#group__psa__tls__helpers_1ga33b3cf65d5992ccc724b7ee00186ae61) from `<mbedtls/psa_util.h>`.
 
 <!-- The following are specific to the DER format and therefore have no PSA equivalent: MBEDTLS_ECDSA_MAX_SIG_LEN, MBEDTLS_ECDSA_MAX_LEN -->
 

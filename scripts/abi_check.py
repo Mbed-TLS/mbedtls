@@ -398,13 +398,14 @@ class AbiChecker:
         """Remove the specified git worktree."""
         shutil.rmtree(git_worktree_path)
         submodule_output = subprocess.check_output(
-            [self.git_command, "submodule", "foreach", "--recursive", "git worktree prune"],
+            [self.git_command, "submodule", "foreach", "--recursive",
+             f'git worktree remove "{git_worktree_path}/$displaypath"'],
             cwd=self.repo_path,
             stderr=subprocess.STDOUT
         )
         self.log.debug(submodule_output.decode("utf-8"))
         worktree_output = subprocess.check_output(
-            [self.git_command, "worktree", "prune"],
+            [self.git_command, "worktree", "remove", git_worktree_path],
             cwd=self.repo_path,
             stderr=subprocess.STDOUT
         )

@@ -1,0 +1,3 @@
+Bugfix
+   * Replace occurances of time_t with
+     mbedtls_time_t.

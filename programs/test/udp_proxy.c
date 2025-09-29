@@ -22,7 +22,6 @@
 #if defined(MBEDTLS_HAVE_TIME)
 #include <time.h>
 #define mbedtls_time            time
-#define mbedtls_time_t          time_t
 #endif
 #define mbedtls_printf          printf
 #define mbedtls_calloc          calloc

@@ -1,3 +1,4 @@
 Bugfix
-   * Replace occurances of time_t with
-     mbedtls_time_t.
+   * Fix a build error or incorrect TLS session
+     lifetime on platforms where mbedtls_time_t
+     is not time_t. Fixes #10236.

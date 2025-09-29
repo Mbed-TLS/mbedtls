@@ -238,7 +238,7 @@ programs/test/query_compile_time_config -l | sed -n 's/^\(PSA_WANT_.*\)=1/#defin
 
 Please review the result as the configuration may not be fully equivalent in all cases. It will generally provide at least the same features, but sometimes this translation results in more than desired.
 
-Note that this only generates the new selection of cryptographic mechanisms. You will also need to remove config lines that set legacy crypto options. Note also that TF-PSA-Crypto 1.0 has changed a few other options; see the [1.0 migration guide](1.0-migration-guide.md#configuration-of-tf-psa-crypto) for more information.
+Note that this only generates the new selection of cryptographic mechanisms. You will also need to remove config lines that set legacy crypto options.
 
 #### Implicit activation of crypto features
 

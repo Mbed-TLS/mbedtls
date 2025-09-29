@@ -12,6 +12,7 @@ That is, the following key exchange types are no longer supported:
 * RSA (i.e. cipher suites using only RSA decryption: cipher suites using RSA signatures remain supported);
 * DHE-PSK (except in TLS 1.3);
 * DHE-RSA (except in TLS 1.3).
+* static ECDH (ECDH-RSA and ECDH-ECDSA, as opposed to ephemeral ECDH (ECDHE) which remains supported).
 
 The full list of removed cipher suites is:
 
@@ -59,6 +60,36 @@ TLS-DHE-RSA-WITH-CAMELLIA-256-CBC-SHA
 TLS-DHE-RSA-WITH-CAMELLIA-256-CBC-SHA256
 TLS-DHE-RSA-WITH-CAMELLIA-256-GCM-SHA384
 TLS-DHE-RSA-WITH-CHACHA20-POLY1305-SHA256
+TLS-ECDH-ECDSA-WITH-AES-128-CBC-SHA
+TLS-ECDH-ECDSA-WITH-AES-128-CBC-SHA256
+TLS-ECDH-ECDSA-WITH-AES-128-GCM-SHA256
+TLS-ECDH-ECDSA-WITH-AES-256-CBC-SHA
+TLS-ECDH-ECDSA-WITH-AES-256-CBC-SHA384
+TLS-ECDH-ECDSA-WITH-AES-256-GCM-SHA384
+TLS-ECDH-ECDSA-WITH-ARIA-128-CBC-SHA256
+TLS-ECDH-ECDSA-WITH-ARIA-128-GCM-SHA256
+TLS-ECDH-ECDSA-WITH-ARIA-256-CBC-SHA384
+TLS-ECDH-ECDSA-WITH-ARIA-256-GCM-SHA384
+TLS-ECDH-ECDSA-WITH-CAMELLIA-128-CBC-SHA256
+TLS-ECDH-ECDSA-WITH-CAMELLIA-128-GCM-SHA256
+TLS-ECDH-ECDSA-WITH-CAMELLIA-256-CBC-SHA384
+TLS-ECDH-ECDSA-WITH-CAMELLIA-256-GCM-SHA384
+TLS-ECDH-ECDSA-WITH-NULL-SHA
+TLS-ECDH-RSA-WITH-AES-128-CBC-SHA
+TLS-ECDH-RSA-WITH-AES-128-CBC-SHA256
+TLS-ECDH-RSA-WITH-AES-128-GCM-SHA256
+TLS-ECDH-RSA-WITH-AES-256-CBC-SHA
+TLS-ECDH-RSA-WITH-AES-256-CBC-SHA384
+TLS-ECDH-RSA-WITH-AES-256-GCM-SHA384
+TLS-ECDH-RSA-WITH-ARIA-128-CBC-SHA256
+TLS-ECDH-RSA-WITH-ARIA-128-GCM-SHA256
+TLS-ECDH-RSA-WITH-ARIA-256-CBC-SHA384
+TLS-ECDH-RSA-WITH-ARIA-256-GCM-SHA384
+TLS-ECDH-RSA-WITH-CAMELLIA-128-CBC-SHA256
+TLS-ECDH-RSA-WITH-CAMELLIA-128-GCM-SHA256
+TLS-ECDH-RSA-WITH-CAMELLIA-256-CBC-SHA384
+TLS-ECDH-RSA-WITH-CAMELLIA-256-GCM-SHA384
+TLS-ECDH-RSA-WITH-NULL-SHA
 TLS-RSA-PSK-WITH-AES-128-CBC-SHA
 TLS-RSA-PSK-WITH-AES-128-CBC-SHA256
 TLS-RSA-PSK-WITH-AES-128-GCM-SHA256
@@ -109,3 +140,13 @@ mbedtls_ssl_conf_dh_param_bin()
 mbedtls_ssl_conf_dh_param_ctx()
 mbedtls_ssl_conf_dhm_min_bitlen()
 ```
+
+### Removal of elliptic curves
+
+Following their removal from the crypto library, elliptic curves of less than 250 bits (secp192r1, secp192k1, secp224r1, secp224k1) are no longer supported in certificates and in TLS.
+
+### Removal of deprecated functions
+
+The deprecated functions `mbedtls_ssl_conf_min_version()` and `mbedtls_ssl_conf_max_version()`, and the associated constants `MBEDTLS_SSL_MAJOR_VERSION_3`, `MBEDTLS_SSL_MINOR_VERSION_3` and `MBEDTLS_SSL_MINOR_VERSION_4` have been removed. Use `mbedtls_ssl_conf_min_tls_version()` and `mbedtls_ssl_conf_max_tls_version()` with `MBEDTLS_SSL_VERSION_TLS1_2` or `MBEDTLS_SSL_VERSION_TLS1_3` instead.
+
+The deprecated function `mbedtls_ssl_conf_sig_hashes()` has been removed. Use `mbedtls_ssl_conf_sig_algs()` instead.

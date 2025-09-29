@@ -1,2 +1,0 @@
-Removals
-   * Removed DES (including 3DES)

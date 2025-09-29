@@ -277,7 +277,7 @@ static void print_time(const uint64_t *time)
 {
 #if defined(MBEDTLS_HAVE_TIME)
     char buf[20];
-    struct tm *t = gmtime((mbedtls_time_t *) time);
+    struct tm *t = gmtime((time_t *) time);
     static const char format[] = "%Y-%m-%d %H:%M:%S";
     if (NULL != t) {
         strftime(buf, sizeof(buf), format, t);

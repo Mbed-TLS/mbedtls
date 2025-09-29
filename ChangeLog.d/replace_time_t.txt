@@ -1,0 +1,4 @@
+Bugfix
+   * Fix a build error or incorrect TLS session
+     lifetime on platforms where mbedtls_time_t
+     is not time_t. Fixes #10236.

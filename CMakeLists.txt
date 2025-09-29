@@ -37,15 +37,20 @@ cmake_policy(SET CMP0011 NEW)
 # is deprecated and will be removed in future versions.
 cmake_policy(SET CMP0012 NEW)
 
+set(MBEDTLS_VERSION 4.0.0)
+set(MBEDTLS_CRYPTO_SOVERSION 17)
+set(MBEDTLS_X509_SOVERSION 8)
+set(MBEDTLS_TLS_SOVERSION 22)
+
 if(TEST_CPP)
     project("Mbed TLS"
         LANGUAGES C CXX
-        VERSION 4.0.0
+        VERSION ${MBEDTLS_VERSION}
     )
 else()
     project("Mbed TLS"
         LANGUAGES C
-        VERSION 4.0.0
+        VERSION ${MBEDTLS_VERSION}
     )
 endif()
 

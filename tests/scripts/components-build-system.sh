@@ -138,6 +138,16 @@ component_test_cmake_as_package_install () {
     cd programs/test/cmake_package_install
     cmake .
     make
+
+    if ! cmp -s "mbedtls/lib/libtfpsacrypto.a" "mbedtls/lib/libmbedcrypto.a"; then
+        echo "Error: Crypto static libraries are different or one of them is missing/unreadable." >&2
+        exit 1
+    fi
+    if ! cmp -s "mbedtls/lib/libtfpsacrypto.so" "mbedtls/lib/libmbedcrypto.so"; then
+        echo "Error: Crypto shared libraries are different or one of them is missing/unreadable." >&2
+        exit 1
+    fi
+
     ./cmake_package_install
 }
 

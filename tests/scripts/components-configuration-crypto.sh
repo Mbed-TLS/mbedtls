@@ -100,6 +100,7 @@ component_test_psa_crypto_without_heap() {
     # tests in 'test_suite_psa_crypto_op_fail' that would never be executed.
     scripts/config.py set PSA_WANT_ECC_SECP_K1_192
     scripts/config.py set PSA_WANT_ECC_SECP_R1_192
+    scripts/config.py set TF_PSA_CRYPTO_ALLOW_REMOVED_MECHANISMS || true
 
     # Accelerate all PSA features (which are still enabled in CRYPTO_CONFIG_H).
     PSA_SYM_LIST=$(./scripts/config.py get-all-enabled PSA_WANT)

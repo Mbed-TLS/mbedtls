@@ -1742,7 +1742,6 @@ component_test_psa_crypto_config_reference_cipher_aead_cmac () {
     common_psa_crypto_config_accel_cipher_aead_cmac
 
     $MAKE_COMMAND
-    make
 
     msg "test: full config with non-accelerated cipher inc. AEAD and CMAC"
     $MAKE_COMMAND test

@@ -207,7 +207,8 @@ class AbiChecker:
 
         try:
             # Try to update the submodules using local commits
-            # (Git will sometimes insist on fetching the remote without --no-fetch if the submodules are shallow clones)
+            # (Git will sometimes insist on fetching the remote without --no-fetch
+            # if the submodules are shallow clones)
             update_output = subprocess.check_output(
                 [self.git_command, "submodule", "update", "--init", '--recursive', '--no-fetch'],
                 cwd=git_worktree_path,

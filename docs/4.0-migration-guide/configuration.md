@@ -25,7 +25,7 @@ Note that many options related to cryptography have changed; see the TF-PSA-Cryp
 
 ### Split of `build_info.h` and `version.h`
 
-TF-PSA-Crypto has a header file `<tf-psa-crypto/build_info.h>` which includes the configuration file and provides the adjusted configuration macros, similar to `<mbedtls/build_info.h>` in Mbed TLS. Generally, you should include a feature-specific header file rather than `build_info.h`.
+The header file `<mbedtls/build_info.h>`, which includes the configuration file and provides the adjusted configuration macros, now has an similar file `<tf-psa-crypto/build_info.h>` in TF-PSA-Crypto. The Mbed TLS header includes the TF-PSA-Crypto header, so including `<mbedtls/build_info.h>` remains sufficient to obtain information about the crypto configuration.
 
 TF-PSA-Crypto exposes its version through `<tf-psa-crypto/version.h>`, similar to `<mbedtls/version.h>` in Mbed TLS.
 

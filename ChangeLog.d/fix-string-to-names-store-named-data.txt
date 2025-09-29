@@ -6,3 +6,5 @@ Security
      users of the output structure, such as mbedtls_x509_write_names(). This
      only affects applications that create (as opposed to consume) X.509
      certificates, CSRs or CRLs. Found by Linh Le and Ngan Nguyen from Calif.
+     CVE-2025-48965
+

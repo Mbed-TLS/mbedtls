@@ -9,3 +9,4 @@ Security
      authentication anyway. Only TLS 1.3 servers were affected, and only with
      optional authentication (required would abort the handshake with a fatal
      alert).
+     CVE-2024-45159

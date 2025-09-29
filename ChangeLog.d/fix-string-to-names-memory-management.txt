@@ -10,6 +10,7 @@ Security
      were affected (use-after-free if the san string contains more than one DN).
      Code that does not call mbedtls_string_to_names() directly is not affected.
      Found by Linh Le and Ngan Nguyen from Calif.
+     CVE-2025-47917
 
 Changes
    * The function mbedtls_x509_string_to_names() now requires its head argument

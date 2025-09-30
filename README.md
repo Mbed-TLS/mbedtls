@@ -54,7 +54,7 @@ The source code of Mbed TLS includes some files that are automatically generated
 
 The following tools are required:
 
-* Perl, for some library source files and for Visual Studio build files.
+* Perl, for some library source files.
 * Python 3.8 and some Python packages, for some library source files, sample programs and test data. To install the necessary packages, run:
     ```
     python3 -m pip install --user -r scripts/basic.requirements.txt
@@ -184,14 +184,6 @@ its include directories to your target (transitively, in the case of `PUBLIC` or
 Mbed TLS supports being built as a CMake subproject. One can
 use `add_subdirectory()` from a parent CMake project to include Mbed TLS as a
 subproject.
-
-### Microsoft Visual Studio
-
-The build files for Microsoft Visual Studio are generated for Visual Studio 2017.
-
-The solution file `mbedTLS.sln` contains all the basic projects needed to build the library and all the programs. The files in tests are not generated and compiled, as these need Python and perl environments as well. However, the selftest program in `programs/test/` is still available.
-
-In the development branch of Mbed TLS, the Visual Studio solution files need to be generated first as described in [“Generated source files in the development branch”](#generated-source-files-in-the-development-branch).
 
 Example programs
 ----------------

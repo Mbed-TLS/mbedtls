@@ -1,0 +1,18 @@
+Default behavior changes
+   * In TLS clients, if mbedtls_ssl_set_hostname() has not been called,
+     mbedtls_ssl_handshake() now fails with
+     MBEDTLS_ERR_SSL_CERTIFICATE_VERIFICATION_WITHOUT_HOSTNAME
+     if certificate-based authentication of the server is attempted.
+     This is because authenticating a server without knowing what name
+     to expect is usually insecure.
+
+Security
+   * Note that TLS clients should generally call mbedtls_ssl_set_hostname()
+     if they use certificate authentication (i.e. not pre-shared keys).
+     Otherwise, in many scenarios, the server could be impersonated.
+     The library will now prevent the handshake and return
+     MBEDTLS_ERR_SSL_CERTIFICATE_VERIFICATION_WITHOUT_HOSTNAME
+     if mbedtls_ssl_set_hostname() has not been called.
+     Reported by Daniel Stenberg.
+     CVE-2025-27809
+

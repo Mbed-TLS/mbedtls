@@ -1,0 +1,3 @@
+Bugfix
+   * Fix TLS 1.3 client build and runtime when support for session tickets is
+     disabled (MBEDTLS_SSL_SESSION_TICKETS configuration option). Fixes #6395.

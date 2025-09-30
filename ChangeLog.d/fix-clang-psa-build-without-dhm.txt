@@ -1,0 +1,5 @@
+Bugfix
+   * Fix Clang compilation error when finite-field Diffie-Hellman is disabled.
+     Reported by Michael Schuster in #9188.
+
+

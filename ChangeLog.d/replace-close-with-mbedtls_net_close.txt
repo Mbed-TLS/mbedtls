@@ -1,0 +1,4 @@
+Bugfix
+   * Use 'mbedtls_net_close' instead of 'close' in 'mbedtls_net_bind'
+     and 'mbedtls_net_connect' to prevent possible double close fd
+     problems. Fixes #9711.

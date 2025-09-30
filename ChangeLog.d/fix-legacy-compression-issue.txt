@@ -1,0 +1,6 @@
+Bugfix
+   * Fixes an issue where some TLS 1.2 clients could not connect to an
+     Mbed TLS 3.6.0 server, due to incorrect handling of
+     legacy_compression_methods in the ClientHello.
+     fixes #8995, #9243.
+

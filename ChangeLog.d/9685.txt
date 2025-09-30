@@ -1,0 +1,2 @@
+Removals
+   * Remove support for the DHE-RSA key exchange in TLS 1.2.

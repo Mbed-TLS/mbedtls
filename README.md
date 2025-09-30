@@ -1,9 +1,8 @@
 README for Mbed TLS
 ===================
 
-Mbed TLS is a C library that implements cryptographic primitives, X.509 certificate manipulation and the SSL/TLS and DTLS protocols. Its small code footprint makes it suitable for embedded systems.
-
-Mbed TLS includes a reference implementation of the [PSA Cryptography API](#psa-cryptography-api). This is currently a preview for evaluation purposes only.
+Mbed TLS is a C library that implements X.509 certificate manipulation and the TLS and DTLS protocols. Its small code footprint makes it suitable for embedded systems.
+Mbed TLS includes the [TF-PSA-Crypto repository](https://github.com/Mbed-TLS/TF-PSA-Crypto) that provides an implementation of the [PSA Cryptography API](https://arm-software.github.io/psa-api).
 
 Configuration
 -------------
@@ -18,8 +17,6 @@ Documentation
 -------------
 
 The main Mbed TLS documentation is available via [ReadTheDocs](https://mbed-tls.readthedocs.io/).
-
-Documentation for the PSA Cryptography API is available [on GitHub](https://arm-software.github.io/psa-api/crypto/).
 
 To generate a local copy of the library documentation in HTML format, tailored to your compile-time configuration:
 
@@ -43,7 +40,7 @@ You need the following tools to build the library:
 * CMake 3.10.2 or later.
 * A build system that CMake supports.
 * A C99 toolchain (compiler, linker, archiver). We actively test with GCC 5.4, Clang 3.8, Arm Compiler 6, IAR 8 and Visual Studio 2017. More recent versions should work. Slightly older versions may work.
-* Python 3.8 to generate the test code. Python is also needed to integrate PSA drivers and to build the development branch (see next section).
+* Python 3.8 to generate the test code. Python is also needed to build the development branch (see next section).
 * Perl to run the tests, and to generate some source files in the development branch.
 * Doxygen 1.8.11 or later (if building the documentation; slightly older versions should work).
 
@@ -236,47 +233,10 @@ Mbed TLS is mostly written in portable C99; however, it has a few platform requi
 - Mixed-endian platforms are not supported.
 - SIZE_MAX must be at least as big as INT_MAX and UINT_MAX.
 
-PSA cryptography API
---------------------
-
-### PSA API
-
-Arm's [Platform Security Architecture (PSA)](https://developer.arm.com/architectures/security-architectures/platform-security-architecture) is a holistic set of threat models, security analyses, hardware and firmware architecture specifications, and an open source firmware reference implementation. PSA provides a recipe, based on industry best practice, that allows security to be consistently designed in, at both a hardware and firmware level.
-
-The [PSA cryptography API](https://arm-software.github.io/psa-api/crypto/) provides access to a set of cryptographic primitives. It has a dual purpose. First, it can be used in a PSA-compliant platform to build services, such as secure boot, secure storage and secure communication. Second, it can also be used independently of other PSA components on any platform.
-
-The design goals of the PSA cryptography API include:
-
-* The API distinguishes caller memory from internal memory, which allows the library to be implemented in an isolated space for additional security. Library calls can be implemented as direct function calls if isolation is not desired, and as remote procedure calls if isolation is desired.
-* The structure of internal data is hidden to the application, which allows substituting alternative implementations at build time or run time, for example, in order to take advantage of hardware accelerators.
-* All access to the keys happens through key identifiers, which allows support for external cryptoprocessors that is transparent to applications.
-* The interface to algorithms is generic, favoring algorithm agility.
-* The interface is designed to be easy to use and hard to accidentally misuse.
-
-Arm welcomes feedback on the design of the API. If you think something could be improved, please open an issue on our Github repository. Alternatively, if you prefer to provide your feedback privately, please email us at [`mbed-crypto@arm.com`](mailto:mbed-crypto@arm.com). All feedback received by email is treated confidentially.
-
-### PSA implementation in Mbed TLS
-
-Mbed TLS includes a reference implementation of the PSA Cryptography API.
-However, it does not aim to implement the whole specification; in particular it does not implement all the algorithms.
-
-### PSA drivers
-
-Mbed TLS supports drivers for cryptographic accelerators, secure elements and random generators. This is work in progress. Please note that the driver interfaces are not fully stable yet and may change without notice. We intend to preserve backward compatibility for application code (using the PSA Crypto API), but the code of the drivers may have to change in future minor releases of Mbed TLS.
-
-Please see the [PSA driver example and guide](https://github.com/Mbed-TLS/TF-PSA-Crypto/blob/development/docs/psa-driver-example-and-guide.md) for information on writing a driver.
-
 License
 -------
 
 Unless specifically indicated otherwise in a file, Mbed TLS files are provided under a dual [Apache-2.0](https://spdx.org/licenses/Apache-2.0.html) OR [GPL-2.0-or-later](https://spdx.org/licenses/GPL-2.0-or-later.html) license. See the [LICENSE](LICENSE) file for the full text of these licenses, and [the 'License and Copyright' section in the contributing guidelines](CONTRIBUTING.md#License-and-Copyright) for more information.
-
-### Third-party code included in Mbed TLS
-
-This project contains code from other projects. This code is located within the `tf-psa-crypto/drivers/` directory. The original license text is included within project subdirectories, where it differs from the normal Mbed TLS license, and/or in source files. The projects are listed below:
-
-* `drivers/everest/`: Files stem from [Project Everest](https://project-everest.github.io/) and are distributed under the Apache 2.0 license.
-* `drivers/p256-m/p256-m/`: Files have been taken from the [p256-m](https://github.com/mpg/p256-m) repository. The code in the original repository is distributed under the Apache 2.0 license. It is distributed in Mbed TLS under a dual Apache-2.0 OR GPL-2.0-or-later license with permission from the author.
 
 Contributing
 ------------

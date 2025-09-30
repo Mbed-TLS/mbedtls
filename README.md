@@ -6,12 +6,13 @@ Mbed TLS includes the [TF-PSA-Crypto repository](https://github.com/Mbed-TLS/TF-
 
 Configuration
 -------------
+Configuration options related to X.509 and TLS are available in `include/mbedtls/mbedtls_config.h`, while cryptography and platform options are located in the TF-PSA-Crypto configuration file `tf-psa-crypto/include/psa/crypto_config.h`.
 
-Mbed TLS should build out of the box on most systems. Some platform specific options are available in the fully documented configuration file `include/mbedtls/mbedtls_config.h`, which is also the place where features can be selected. This file can be edited manually, or in a more programmatic way using the Python 3 script `scripts/config.py` (use `--help` for usage instructions).
+With the default platform options, Mbed TLS should build out of the box on most systems.
 
-Compiler options can be set using conventional environment variables such as `CC` and `CFLAGS`.
+These configuration files can be edited manually, or programmatically using the Python 3 script scripts/config.py (run with --help for usage instructions).
 
-We provide some non-standard configurations focused on specific use cases in the `configs/` directory. You can read more about those in `configs/README.txt`
+We provide some non-standard configurations focused on specific use cases in the `configs/` directory. You can read more about those in `configs/README.txt`.
 
 Documentation
 -------------

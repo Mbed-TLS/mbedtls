@@ -35,14 +35,14 @@ We use CMake to configure and drive our build process. Three libraries are built
 
 ### Tool versions
 
-You need the following tools to build the library:
+You need the following tools to build the library from the main branch with the provided CMake files. Mbed TLS minimum tool version requirements are set based on the versions shipped in the latest or penultimate (depending on the release cadence) long-term support releases of major Linux distributions, namely at time of writing: Ubuntu 22.04, RHEL 9, and SLES 15 SP4.
 
-* CMake 3.10.2 or later.
+* CMake 3.20.4 or later.
 * A build system that CMake supports.
 * A C99 toolchain (compiler, linker, archiver). We actively test with GCC 5.4, Clang 3.8, Arm Compiler 6, IAR 8 and Visual Studio 2017. More recent versions should work. Slightly older versions may work.
 * Python 3.8 to generate the test code. Python is also needed to build the development branch (see next section).
 * Perl to run the tests, and to generate some source files in the development branch.
-* Doxygen 1.8.11 or later (if building the documentation; slightly older versions should work).
+* Doxygen 1.8.14 or later (if building the documentation; slightly older versions should work).
 
 ### Git usage
 
@@ -55,7 +55,7 @@ The source code of Mbed TLS includes some files that are automatically generated
 The following tools are required:
 
 * Perl, for some library source files.
-* Python 3.8 and some Python packages, for some library source files, sample programs and test data. To install the necessary packages, run:
+* Python 3 and some Python packages, for some library source files, sample programs and test data. To install the necessary packages, run:
     ```
     python3 -m pip install --user -r scripts/basic.requirements.txt
     ```

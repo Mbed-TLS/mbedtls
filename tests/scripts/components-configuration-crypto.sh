@@ -90,9 +90,6 @@ component_test_psa_crypto_without_heap() {
     # is disabled below.
     scripts/config.py unset-all "^PSA_WANT_KEY_TYPE_RSA_"
     scripts/config.py unset-all "^PSA_WANT_ALG_RSA_"
-    # DES requires built-in support for key generation (parity check) so it
-    # cannot be accelerated
-    scripts/config.py unset PSA_WANT_KEY_TYPE_DES
     # EC-JPAKE use calloc/free in PSA core
     scripts/config.py unset PSA_WANT_ALG_JPAKE
     # Enable p192[k|r]1 curves which are disabled by default in tf-psa-crypto.
@@ -330,7 +327,6 @@ component_test_full_no_cipher () {
     scripts/config.py unset PSA_WANT_ALG_OFB
     scripts/config.py unset PSA_WANT_ALG_PBKDF2_AES_CMAC_PRF_128
     scripts/config.py unset PSA_WANT_ALG_STREAM_CIPHER
-    scripts/config.py unset PSA_WANT_KEY_TYPE_DES
 
     # The following modules directly depends on CIPHER_C
     scripts/config.py unset MBEDTLS_NIST_KW_C
@@ -1709,10 +1705,6 @@ component_test_psa_crypto_config_accel_cipher_aead_cmac () {
 
     common_psa_crypto_config_accel_cipher_aead_cmac
 
-    # Disable DES, if it still exists.
-    # This can be removed once we remove DES from the library.
-    scripts/config.py unset PSA_WANT_KEY_TYPE_DES
-
     # Build
     # -----
 
@@ -1748,10 +1740,6 @@ component_test_psa_crypto_config_accel_cipher_aead_cmac () {
 component_test_psa_crypto_config_reference_cipher_aead_cmac () {
     msg "build: full config with non-accelerated cipher inc. AEAD and CMAC"
     common_psa_crypto_config_accel_cipher_aead_cmac
-
-    # Disable DES, if it still exists.
-    # This can be removed once we remove DES from the library.
-    scripts/config.py unset PSA_WANT_KEY_TYPE_DES
 
     $MAKE_COMMAND
 
@@ -2016,7 +2004,6 @@ component_build_aes_variations () {
     scripts/config.py unset PSA_WANT_ALG_CBC_NO_PADDING
     scripts/config.py unset PSA_WANT_ALG_CBC_PKCS7
     scripts/config.py unset PSA_WANT_ALG_ECB_NO_PADDING
-    scripts/config.py unset PSA_WANT_KEY_TYPE_DES
 
     build_test_config_combos ${BUILTIN_SRC_PATH}/aes.o validate_aes_config_variations \
         "MBEDTLS_AES_ROM_TABLES" \
@@ -2230,7 +2217,6 @@ config_block_cipher_no_decrypt () {
     scripts/config.py unset PSA_WANT_ALG_CBC_NO_PADDING
     scripts/config.py unset PSA_WANT_ALG_CBC_PKCS7
     scripts/config.py unset PSA_WANT_ALG_ECB_NO_PADDING
-    scripts/config.py unset PSA_WANT_KEY_TYPE_DES
 }
 
 component_test_block_cipher_no_decrypt_aesni () {

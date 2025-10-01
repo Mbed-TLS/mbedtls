@@ -324,10 +324,6 @@ EXCLUSIVE_GROUPS = {
                                    '-PSA_WANT_ALG_CCM',
                                    '-PSA_WANT_ALG_GCM',
                                    '-PSA_WANT_ALG_ECB_NO_PADDING'],
-    'PSA_WANT_KEY_TYPE_DES': ['-PSA_WANT_ALG_CCM',
-                              '-PSA_WANT_ALG_GCM',
-                              '-MBEDTLS_SSL_TICKET_C',
-                              '-MBEDTLS_SSL_CONTEXT_SERIALIZATION'],
 }
 def handle_exclusive_groups(config_settings, symbol):
     """For every symbol tested in an exclusive group check if there are other

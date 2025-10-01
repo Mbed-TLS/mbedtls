@@ -31,7 +31,7 @@ For other sources of documentation, see the [SUPPORT](SUPPORT.md) document.
 Compiling
 ---------
 
-We use CMake to configure and drive our build process. Three libraries are built: libtfpsacrypto, libmbedx509, and libmbedtls. Note that libmbedtls depends on libmbedx509 and libtfpsacrypto, and libmbedx509 depends on libtfpsacrypto. As a result, some linkers will expect flags to be in a specific order, for example the GNU linker wants `-lmbedtls -lmbedx509 -ltfpsacrypto`.
+We use CMake to configure and drive our build process. Three libraries are built: `libtfpsacrypto`, `libmbedx509`, and `libmbedtls`. Note that `libmbedtls` depends on `libmbedx509` and `libtfpsacrypto`, and `libmbedx509` depends on `libtfpsacrypto`. As a result, some linkers will expect flags to be in a specific order, for example the GNU linker wants `-lmbedtls -lmbedx509 -ltfpsacrypto`. The cryptographic library `libtfpsacrypto` is also provided under its legacy name, `libmbedcrypto`.
 
 ### Tool versions
 
@@ -106,9 +106,11 @@ There are many different build types available with CMake. Most of them are avai
 -   `Coverage`. This generates code coverage information in addition to debug information.
 -   `ASan`. This instruments the code with AddressSanitizer to check for memory errors. (This includes LeakSanitizer, with recent version of gcc and clang.) (With recent version of clang, this mode also instruments the code with UndefinedSanitizer to check for undefined behaviour.)
 -   `ASanDbg`. Same as ASan but slower, with debug information and better stack traces.
--   `MemSan`. This instruments the code with MemorySanitizer to check for uninitialised memory reads. Experimental, needs recent clang on Linux/x86\_64.
+-   `MemSan`. This instruments the code with MemorySanitizer to check for uninitialised memory reads.
 -   `MemSanDbg`. Same as MemSan but slower, with debug information, better stack traces and origin tracking.
 -   `Check`. This activates the compiler warnings that depend on optimization and treats all warnings as errors.
+-   `TSan`. This instruments the code with ThreadSanitizer to detect data races and other threading-related concurrency issues at runtime.
+-   `TSanDbg`. Same as TSan but slower, with debug information, better stack traces and origin tracking.
 
 Switching build types in CMake is simple. For debug mode, enter at the command line:
 

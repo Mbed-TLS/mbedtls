@@ -519,7 +519,7 @@ int mbedtls_x509_csr_parse_file(mbedtls_x509_csr *csr, const char *path)
 #endif /* MBEDTLS_FS_IO */
 
 #if !defined(MBEDTLS_X509_REMOVE_INFO)
-#define MBEDTLS_BEFORE_COLON       14
+#define MBEDTLS_BEFORE_COLON       32
 #define MBEDTLS_BEFORE_COLON_STR   "14"
 /*
  * Return an informational string about the CSR.
@@ -552,6 +552,7 @@ int mbedtls_x509_csr_info(char *buf, size_t size, const char *prefix,
 
     if ((ret = mbedtls_x509_key_size_helper(key_size_str, MBEDTLS_BEFORE_COLON,
                                             mbedtls_pk_get_name(&csr->pk))) != 0) {
+        assert(ret != MBEDTLS_ERR_X509_BUFFER_TOO_SMALL);
         return ret;
     }
 

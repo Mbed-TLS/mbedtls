@@ -22,9 +22,8 @@ The main Mbed TLS documentation is available via [ReadTheDocs](https://mbed-tls.
 To generate a local copy of the library documentation in HTML format, tailored to your compile-time configuration:
 
 1. Make sure that [Doxygen](http://www.doxygen.nl/) is installed.
-1. Run `mkdir /path/to/build_dir && cd /path/to/build_dir`
-1. Run `cmake /path/to/mbedtls/source`
-1. Run `make apidoc`
+1. Run `cmake -B /path/to/build_dir /path/to/mbedtls/source`
+1. Run `cmake --build /path/to/build_dir --target mbedtls-apidoc`
 1. Browse `apidoc/index.html` or `apidoc/modules.html`.
 
 For other sources of documentation, see the [SUPPORT](SUPPORT.md) document.

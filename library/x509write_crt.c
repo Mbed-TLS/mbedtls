@@ -571,8 +571,8 @@ int mbedtls_x509write_crt_der(mbedtls_x509write_cert *ctx,
     }
 
 
-    if ((ret = mbedtls_pk_sign(ctx->issuer_key, ctx->md_alg,
-                               hash, hash_length, sig, sizeof(sig), &sig_len)) != 0) {
+    if ((ret = mbedtls_pk_sign_restartable(ctx->issuer_key, ctx->md_alg,
+                               hash, hash_length, sig, sizeof(sig), &sig_len, NULL)) != 0) {
         return ret;
     }
 

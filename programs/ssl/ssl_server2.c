@@ -1243,10 +1243,10 @@ static int ssl_async_resume(mbedtls_ssl_context *ssl,
 
     switch (ctx->operation_type) {
         case ASYNC_OP_SIGN:
-            ret = mbedtls_pk_sign(key_slot->pk,
+            ret = mbedtls_pk_sign_restartable(key_slot->pk,
                                   ctx->md_alg,
                                   ctx->input, ctx->input_len,
-                                  output, output_size, output_len);
+                                  output, output_size, output_len, NULL);
             break;
         default:
             mbedtls_printf(

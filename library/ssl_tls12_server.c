@@ -2880,11 +2880,11 @@ curve_matching_done:
          * after the call to ssl_prepare_server_key_exchange.
          * ssl_write_server_key_exchange also takes care of incrementing
          * ssl->out_msglen. */
-        if ((ret = mbedtls_pk_sign(mbedtls_ssl_own_key(ssl),
+        if ((ret = mbedtls_pk_sign_restartable(mbedtls_ssl_own_key(ssl),
                                    md_alg, hash, hashlen,
                                    ssl->out_msg + ssl->out_msglen + 2,
                                    out_buf_len - ssl->out_msglen - 2,
-                                   signature_len)) != 0) {
+                                   signature_len, NULL)) != 0) {
             MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_pk_sign", ret);
             return ret;
         }

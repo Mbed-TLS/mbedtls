@@ -5028,7 +5028,7 @@ int mbedtls_ssl_write_change_cipher_spec(mbedtls_ssl_context *ssl)
 
     mbedtls_ssl_handshake_increment_state(ssl);
 
-    if ((ret = mbedtls_ssl_write_handshake_msg(ssl)) != 0) {
+    if ((ret = mbedtls_ssl_write_handshake_msg_ext(ssl, 1, 1)) != 0) {
         MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_write_handshake_msg", ret);
         return ret;
     }

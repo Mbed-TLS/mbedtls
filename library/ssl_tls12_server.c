@@ -2017,7 +2017,7 @@ static int ssl_write_hello_verify_request(mbedtls_ssl_context *ssl)
 
     mbedtls_ssl_handshake_set_state(ssl, MBEDTLS_SSL_SERVER_HELLO_VERIFY_REQUEST_SENT);
 
-    if ((ret = mbedtls_ssl_write_handshake_msg(ssl)) != 0) {
+    if ((ret = mbedtls_ssl_write_handshake_msg_ext(ssl, 1, 1)) != 0) {
         MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_write_handshake_msg", ret);
         return ret;
     }
@@ -2315,7 +2315,7 @@ static int ssl_write_server_hello(mbedtls_ssl_context *ssl)
     ssl->out_msgtype = MBEDTLS_SSL_MSG_HANDSHAKE;
     ssl->out_msg[0]  = MBEDTLS_SSL_HS_SERVER_HELLO;
 
-    ret = mbedtls_ssl_write_handshake_msg(ssl);
+    ret = mbedtls_ssl_write_handshake_msg_ext(ssl, 1, 1);
 
     MBEDTLS_SSL_DEBUG_MSG(2, ("<= write server hello"));
 
@@ -2505,7 +2505,7 @@ static int ssl_write_certificate_request(mbedtls_ssl_context *ssl)
     ssl->out_msg[0]  = MBEDTLS_SSL_HS_CERTIFICATE_REQUEST;
     MBEDTLS_PUT_UINT16_BE(total_dn_size, ssl->out_msg, 4 + ct_len + sa_len);
 
-    ret = mbedtls_ssl_write_handshake_msg(ssl);
+    ret = mbedtls_ssl_write_handshake_msg_ext(ssl, 1, 1);
 
     MBEDTLS_SSL_DEBUG_MSG(2, ("<= write certificate request"));
 
@@ -2971,7 +2971,7 @@ static int ssl_write_server_key_exchange(mbedtls_ssl_context *ssl)
 
     mbedtls_ssl_handshake_increment_state(ssl);
 
-    if ((ret = mbedtls_ssl_write_handshake_msg(ssl)) != 0) {
+    if ((ret = mbedtls_ssl_write_handshake_msg_ext(ssl, 1, 1)) != 0) {
         MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_write_handshake_msg", ret);
         return ret;
     }
@@ -2999,7 +2999,7 @@ static int ssl_write_server_hello_done(mbedtls_ssl_context *ssl)
     }
 #endif
 
-    if ((ret = mbedtls_ssl_write_handshake_msg(ssl)) != 0) {
+    if ((ret = mbedtls_ssl_write_handshake_msg_ext(ssl, 1, 1)) != 0) {
         MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_write_handshake_msg", ret);
         return ret;
     }
@@ -3521,7 +3521,7 @@ static int ssl_write_new_session_ticket(mbedtls_ssl_context *ssl)
      */
     ssl->handshake->new_session_ticket = 0;
 
-    if ((ret = mbedtls_ssl_write_handshake_msg(ssl)) != 0) {
+    if ((ret = mbedtls_ssl_write_handshake_msg_ext(ssl, 1, 1)) != 0) {
         MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_write_handshake_msg", ret);
         return ret;
     }

@@ -28,7 +28,8 @@ component_test_sw_inet_pton () {
 
     # MBEDTLS_TEST_HOOKS required for x509_crt_parse_cn_inet_pton
     scripts/config.py set MBEDTLS_TEST_HOOKS
-    make CFLAGS="-DMBEDTLS_TEST_SW_INET_PTON"
+    CC=$ASAN_CC CFLAGS="-DMBEDTLS_TEST_SW_INET_PTON" cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    make
 
     msg "test: default plus MBEDTLS_TEST_SW_INET_PTON"
     make test

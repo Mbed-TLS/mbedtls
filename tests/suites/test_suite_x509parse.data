@@ -1178,6 +1178,9 @@ x509_crt_parse_cn_inet_pton:"\:\:ffff\:1111.2.3.4":"":0
 X509 CRT parse CN: IPv6 invalid address IPv4-mapped #3
 x509_crt_parse_cn_inet_pton:"\:\:1.2.3.4\:ffff":"":0
 
+X509 CRT parse CN: IPv6 invalid address IPv4-mapped #4
+x509_crt_parse_cn_inet_pton:"1.2.3.4\:":"":0
+
 X509 CRT verification with ca callback: failure
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_MD_CAN_SHA1:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15:MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK
 x509_verify_ca_cb_failure:"../framework/data_files/server1.crt":"../framework/data_files/test-ca.crt":"NULL":MBEDTLS_ERR_X509_FATAL_ERROR

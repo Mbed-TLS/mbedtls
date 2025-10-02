@@ -3456,9 +3456,9 @@ static int ssl_parse_certificate_verify(mbedtls_ssl_context *ssl)
         }
     }
 
-    if ((ret = mbedtls_pk_verify(peer_pk,
+    if ((ret = mbedtls_pk_verify_restartable(peer_pk,
                                  md_alg, hash_start, hashlen,
-                                 ssl->in_msg + i, sig_len)) != 0) {
+                                 ssl->in_msg + i, sig_len, NULL)) != 0) {
         MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_pk_verify", ret);
         return ret;
     }

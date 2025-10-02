@@ -218,7 +218,7 @@ static int x509write_csr_der_internal(mbedtls_x509write_csr *ctx,
         return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
     }
     if ((ret = mbedtls_pk_sign_restartable(ctx->key, ctx->md_alg, hash, 0,
-                               sig, sig_size, &sig_len, NULL)) != 0) {
+                                           sig, sig_size, &sig_len, NULL)) != 0) {
         return ret;
     }
 

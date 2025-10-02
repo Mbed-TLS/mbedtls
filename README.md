@@ -10,7 +10,7 @@ Configuration options related to X.509 and TLS are available in `include/mbedtls
 
 With the default platform options, Mbed TLS should build out of the box on most systems.
 
-These configuration files can be edited manually, or programmatically using the Python 3 script scripts/config.py (run with --help for usage instructions).
+These configuration files can be edited manually, or programmatically using the Python 3 script `scripts/config.py` (run with --help for usage instructions).
 
 We provide some non-standard configurations focused on specific use cases in the `configs/` directory. You can read more about those in `configs/README.txt`.
 
@@ -38,7 +38,7 @@ We use CMake to configure and drive our build process. Three libraries are built
 You need the following tools to build the library from the main branch with the provided CMake files. Mbed TLS minimum tool version requirements are set based on the versions shipped in the latest or penultimate (depending on the release cadence) long-term support releases of major Linux distributions, namely at time of writing: Ubuntu 22.04, RHEL 9, and SLES 15 SP4.
 
 * CMake 3.20.4 or later.
-* A build system that CMake supports.
+* A build system like Make or Ninja for which CMake can generate build files.
 * A C99 toolchain (compiler, linker, archiver). We actively test with GCC 5.4, Clang 3.8, Arm Compiler 6, IAR 8 and Visual Studio 2017. More recent versions should work. Slightly older versions may work.
 * Python 3.8 to generate the test code. Python is also needed to build the development branch (see next section).
 * Perl to run the tests, and to generate some source files in the development branch.
@@ -138,7 +138,7 @@ showing them as modified). In order to do so, from the Mbed TLS source
 directory, use:
 
     cmake .
-    make
+    cmake --build .
 
 If you want to change `CC` or `CFLAGS` afterwards, you will need to remove the
 CMake cache. This can be done with the following command using GNU find:
@@ -148,10 +148,10 @@ CMake cache. This can be done with the following command using GNU find:
 You can now make the desired change:
 
     CC=your_cc cmake .
-    make
+    cmake --build .
 
 Regarding variables, also note that if you set CFLAGS when invoking cmake,
-your value of CFLAGS doesn't override the content provided by cmake (depending
+your value of CFLAGS doesn't override the content provided by CMake (depending
 on the build mode as seen above), it's merely prepended to it.
 
 #### Consuming Mbed TLS
@@ -196,13 +196,13 @@ Please note that the goal of these sample programs is to demonstrate specific fe
 Tests
 -----
 
-Mbed TLS includes an elaborate test suite in `tests/` that initially requires Python to generate the tests files (e.g. `test\_suite\_ssl.c`). These files are generated from a `function file` (e.g. `suites/test\_suite\_ssl.function`) and a `data file` (e.g. `suites/test\_suite\_ssl.data`). The `function file` contains the test functions. The `data file` contains the test cases, specified as parameters that will be passed to the test function.
+Mbed TLS includes an elaborate test suite in `tests/` that initially requires Python to generate the tests files (e.g. `test_suite_ssl.c`). These files are generated from a `function file` (e.g. `suites/test_suite_ssl.function`) and a `data file` (e.g. `suites/test_suite_ssl.data`). The `function file` contains the test functions. The `data file` contains the test cases, specified as parameters that will be passed to the test function.
 
 For machines with a Unix shell and OpenSSL (and optionally GnuTLS) installed, additional test scripts are available:
 
 -   `tests/ssl-opt.sh` runs integration tests for various TLS options (renegotiation, resumption, etc.) and tests interoperability of these options with other implementations.
 -   `tests/compat.sh` tests interoperability of every ciphersuite with other implementations.
--   `tests/scripts/depends.py` test builds in configurations with a single curve, key exchange, hash, cipher, or pkalg on.
+-   `tests/scripts/depends.py` tests builds in configurations with a single curve, key exchange, hash, cipher, or pkalg on.
 -   `tests/scripts/all.sh` runs a combination of the above tests, plus some more, with various build options (such as ASan, full `mbedtls_config.h`, etc).
 
 Instead of manually installing the required versions of all tools required for testing, it is possible to use the Docker images from our CI systems, as explained in [our testing infrastructure repository](https://github.com/Mbed-TLS/mbedtls-test/blob/main/README.md#quick-start).

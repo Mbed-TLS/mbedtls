@@ -1,0 +1,4 @@
+Features
+   * The new function mbedtls_cipher_finish_padded() is similar to
+     mbedtls_cipher_finish(), but makes it easier to process invalid-padding
+     conditions in constant time.

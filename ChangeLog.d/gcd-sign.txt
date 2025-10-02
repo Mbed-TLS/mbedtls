@@ -1,0 +1,5 @@
+Changes
+   * The function mbedtls_mpi_gcd() now always gives a non-negative output.
+     Previously the output was negative when B = 0 and A < 0, which was not
+     documented, and inconsistent as all other inputs resulted in a non-negative
+     output.

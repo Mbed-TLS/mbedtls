@@ -95,13 +95,9 @@ In order to run the tests, enter:
 
     ctest
 
-The test suites need Python to be built and Perl to be executed. If you don't have one of these installed, you'll want to disable the test suites with:
+The test suites need Python to be built. If you don't have Python installed, you'll want to disable the test suites with:
 
     cmake -DENABLE_TESTING=Off /path/to/mbedtls_source
-
-If you disabled the test suites, but kept the programs enabled, you can still run a much smaller set of tests with:
-
-    programs/test/selftest
 
 To configure CMake for building shared libraries, use:
 
@@ -137,7 +133,7 @@ for example:
     CC=your_cc cmake /path/to/mbedtls_source
 
 If you already invoked cmake and want to change those settings, you need to
-remove the build directory and create it again.
+invoke the configuration phase of CMake again with the new settings.
 
 Note that it is possible to build in-place; this will however overwrite the
 legacy Makefiles still used for testing purposes (see
@@ -164,17 +160,23 @@ on the build mode as seen above), it's merely prepended to it.
 
 #### Consuming Mbed TLS
 
-Mbed TLS provides a package config file for consumption as a dependency in other
-CMake projects. You can include Mbed TLS's CMake targets yourself with:
+Mbed TLS provides a CMake package configuration file for consumption as a
+dependency in other CMake projects. You can load its CMake targets with:
 
-    find_package(MbedTLS)
+    find_package(MbedTLS REQUIRED)
 
-If prompted, set `MbedTLS_DIR` to `${YOUR_MBEDTLS_INSTALL_DIR}/cmake`. This
-creates the following targets:
+You can help CMake find the package:
 
-- `MbedTLS::tfpsacrypto` (Crypto library)
-- `MbedTLS::mbedtls` (TLS library)
-- `MbedTLS::mbedx509` (X509 library)
+- By setting the variable `MbedTLS_DIR` to `${YOUR_MBEDTLS_BUILD_DIR}/cmake`,
+  as shown in `programs/test/cmake_package/CMakeLists.txt`, or
+- By adding the Mbed TLS installation prefix to `CMAKE_PREFIX_PATH`,
+  as shown in `programs/test/cmake_package_install/CMakeLists.txt`.
+
+After a successful `find_package(MbedTLS)`, the following imported targets are available:
+
+- `MbedTLS::tfpsacrypto`, the crypto library
+- `MbedTLS::mbedtls`, the TLS library
+- `MbedTLS::mbedx509`, the X.509 library
 
 You can then use these directly through `target_link_libraries()`:
 

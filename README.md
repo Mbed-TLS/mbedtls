@@ -46,7 +46,15 @@ You need the following tools to build the library from the main branch with the 
 
 ### Git usage
 
-The `development` branch and the `mbedtls-3.6` long-term support branch of Mbed TLS use a [Git submodule](https://git-scm.com/book/en/v2/Git-Tools-Submodules#_cloning_submodules) ([framework](https://github.com/Mbed-TLS/mbedtls-framework)). This is not needed to merely compile the library at a release tag. This is not needed to consume a release archive (zip or tar).
+The supported branches (see [`BRANCHES.md`](BRANCHES.md)) use [Git submodules](https://git-scm.com/book/en/v2/Git-Tools-Submodules#_cloning_submodules). They contain two submodules: the [framework](https://github.com/Mbed-TLS/mbedtls-framework) submodule and the [tf-psa-crypto](https://github.com/Mbed-TLS/TF-PSA-Crypto) submodule, except for the 3.6 LTS branch, which contains only the framework submodule. Release tags also use Git submodules.
+
+After cloning or checking out a branch or tag, run:
+    ```
+    git submodule update --init --recursive
+    ```
+ to initialize and update the submodules before building.
+
+However, the official source release tarballs (e.g. [mbedtls-4.0.0-beta.tar.bz2](https://github.com/Mbed-TLS/mbedtls/releases/download/mbedtls-4.0.0-beta/mbedtls-4.0.0-beta.tar.bz2)) include the contents of the submodules.
 
 ### Generated source files in the development branch
 

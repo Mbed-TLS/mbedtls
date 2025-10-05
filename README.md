@@ -41,7 +41,7 @@ You need the following tools to build the library from the main branch with the 
 
 * CMake 3.20.4 or later.
 * A build system like Make or Ninja for which CMake can generate build files.
-* A C99 toolchain (compiler, linker, archiver). We actively test with GCC 5.4, Clang 3.8, Arm Compiler 6, IAR 8, and Visual Studio 2017 Compiler. More recent versions should work. Slightly older versions may work.
+* A C99 toolchain (compiler, linker, archiver). We actively test with GCC 5.4, Clang 3.8, Arm Compiler 6, and Visual Studio 2017 Compiler. More recent versions should work. Slightly older versions may work.
 * Python 3.8 or later to generate the test code. Python is also needed to build the development branch (see next section).
 * Perl to run the tests, and to generate some source files in the development branch.
 * Doxygen 1.8.14 or later (if building the documentation; slightly older versions should work).

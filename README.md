@@ -39,7 +39,7 @@ We use CMake to configure and drive our build process. Three libraries are built
 
 You need the following tools to build the library from the main branch with the provided CMake files. Mbed TLS minimum tool version requirements are set based on the versions shipped in the latest or penultimate (depending on the release cadence) long-term support releases of major Linux distributions, namely at time of writing: Ubuntu 22.04, RHEL 9, and SLES 15 SP4.
 
-* CMake 3.20.4 or later.
+* CMake 3.20.2 or later.
 * A build system like Make or Ninja for which CMake can generate build files.
 * A C99 toolchain (compiler, linker, archiver). We actively test with GCC 5.4, Clang 3.8, Arm Compiler 6, and Visual Studio 2017 Compiler. More recent versions should work. Slightly older versions may work.
 * Python 3.8 or later to generate the test code. Python is also needed to build the development branch (see next section).

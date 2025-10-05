@@ -6,7 +6,7 @@ At any point in time, we have a number of maintained branches, currently consist
   this always contains the latest release, including all publicly available
   security fixes.
 - The [`development`](https://github.com/Mbed-TLS/mbedtls/tree/development) branch:
-  this is where the next minor version of Mbed TLS 4 is prepared. It contains
+  this is where the next minor version of Mbed TLS 4.x is prepared. It contains
   new features, bug fixes, and security fixes.
 - One or more long-time support (LTS) branches: these only get bug fixes and
   security fixes. Currently, the supported LTS branches are:

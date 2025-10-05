@@ -10,7 +10,7 @@ Configuration options related to X.509 and TLS are available in `include/mbedtls
 
 With the default platform options, Mbed TLS should build out of the box on most systems.
 
-These configuration files can be edited manually, or programmatically using the Python 3 script `scripts/config.py` (run with --help for usage instructions).
+These configuration files can be edited manually, or programmatically using the Python script `scripts/config.py` (run with --help for usage instructions).
 
 We provide some non-standard configurations focused on specific use cases in the `configs/` directory. You can read more about those in `configs/README.txt`.
 
@@ -41,8 +41,8 @@ You need the following tools to build the library from the main branch with the 
 
 * CMake 3.20.4 or later.
 * A build system like Make or Ninja for which CMake can generate build files.
-* A C99 toolchain (compiler, linker, archiver). We actively test with GCC 5.4, Clang 3.8, Arm Compiler 6, IAR 8 and Visual Studio 2017. More recent versions should work. Slightly older versions may work.
-* Python 3.8 to generate the test code. Python is also needed to build the development branch (see next section).
+* A C99 toolchain (compiler, linker, archiver). We actively test with GCC 5.4, Clang 3.8, Arm Compiler 6, IAR 8, and Visual Studio 2017 Compiler. More recent versions should work. Slightly older versions may work.
+* Python 3.8 or later to generate the test code. Python is also needed to build the development branch (see next section).
 * Perl to run the tests, and to generate some source files in the development branch.
 * Doxygen 1.8.14 or later (if building the documentation; slightly older versions should work).
 
@@ -69,7 +69,7 @@ The following tools are required:
     ```
     python3 -m pip install --user -r scripts/basic.requirements.txt
     ```
-    Depending on your Python installation, you may need to invoke `python` instead of `python3`. To install the packages system-wide, omit the `--user` option.
+    Depending on your Python installation, you may need to invoke `python` instead of `python3`. To install the packages system-wide or in a virtual environment, omit the `--user` option.
 * A C compiler for the host platform, for some test data.
 
 The scripts that generate the configuration-independent files will look for a host C compiler in the following places (in order of preference):

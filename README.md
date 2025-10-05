@@ -24,7 +24,9 @@ To generate a local copy of the library documentation in HTML format, tailored t
 1. Make sure that [Doxygen](http://www.doxygen.nl/) is installed.
 1. Run `cmake -B /path/to/build_dir /path/to/mbedtls/source`
 1. Run `cmake --build /path/to/build_dir --target mbedtls-apidoc`
-1. Browse `apidoc/index.html` or `apidoc/modules.html`.
+1. Open one of the main generated HTML files:
+   * `apidoc/index.html`
+   * `apidoc/modules.html` or `apidoc/topics.html`
 
 For other sources of documentation, see the [SUPPORT](SUPPORT.md) document.
 

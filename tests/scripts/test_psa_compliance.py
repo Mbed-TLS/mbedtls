@@ -3,7 +3,7 @@
 
 Clone the psa-arch-tests repo and check out the specified commit.
 The clone is stored at <repository-root>/psa-arch-tests.
-Check out the commit specified by the calling script and apply patches if needed.
+Check out the commit specified in this script and apply patches if needed.
 The patches are located at <repository-root>/scripts/data_files/psa-arch-tests/ .
 Compile the library and the compliance tests and run the test suite.
 

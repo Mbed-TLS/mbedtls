@@ -5936,3 +5936,28 @@ exit:
     MD_OR_USE_PSA_DONE();
 }
 /* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED */
+void verify_result_without_handshake(void)
+{
+    /* Test the result of verification before we perform a handshake. */
+    mbedtls_ssl_context ssl;
+    mbedtls_ssl_config conf;
+
+    mbedtls_ssl_init(&ssl);
+
+    TEST_EQUAL(mbedtls_ssl_config_defaults(&conf,
+                                           MBEDTLS_SSL_IS_CLIENT,
+                                           MBEDTLS_SSL_TRANSPORT_STREAM,
+                                           MBEDTLS_SSL_PRESET_DEFAULT), 0);
+
+    mbedtls_ssl_conf_authmode(&conf, MBEDTLS_SSL_VERIFY_OPTIONAL);
+    mbedtls_ssl_conf_ca_chain(&conf, NULL, NULL);
+
+    TEST_EQUAL(mbedtls_ssl_setup(&ssl, &conf), 0);
+
+    uint32_t verify_result = mbedtls_ssl_get_verify_result(&ssl);
+
+    TEST_EQUAL(verify_result, 0xFFFFFFFF);
+}
+/* END_CASE */

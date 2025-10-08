@@ -104,38 +104,62 @@ git submodule update --init --recursive
 ```
 
 #### Linking directly to a built library
-The Mbed TLS CMake build system still provides the cryptography libraries under their legacy name, `libmbedcrypto.<ext>`, so you can continue linking against them.
-The cryptography libraries are also now provided as `libtfpsacrypto.<ext>` like in the TF-PSA-Crypto repository.
 
-#### Linking through a CMake target of the cryptography library
+The Mbed TLS CMake build system still provides the cryptography libraries under their legacy name, `libmbedcrypto.<ext>`, so you can continue linking against them.
+These libraries are still located in the `library` directory within the build tree.
+
+The cryptography libraries are also now provided as `libtfpsacrypto.<ext>`, consistent with the naming used in the TF-PSA-Crypto repository.
+
+You may need to update include paths to the public header files, see [File and Directory Relocations](#file-and-directory-relocations) for details.
+
+#### Using Mbed TLS as a CMake subproject
+
 The base name of the CMake cryptography library target has been changed from `mbedcrypto` to `tfpsacrypto`.
-If no target prefix is specified through the MBEDTLS_TARGET_PREFIX option, the associated CMake target is thus now `tfpsacrypto`.
+If no target prefix is specified through the `MBEDTLS_TARGET_PREFIX` option, the associated CMake target is now `tfpsacrypto`, and you will need to update it in your CMake scripts.
+
+You can refer to the following example demonstrating how to consume Mbed TLS as a CMake subproject:
+- `programs/test/cmake_subproject`
+
+#### Using Mbed TLS as a CMake package
 
 The same renaming applies to the cryptography library targets declared as part of the Mbed TLS CMake package.
 When no global target prefix is defined, use `MbedTLS::tfpsacrypto` instead of `MbedTLS::mbedcrypto`.
 
-As an example, the following CMake code:
+For example, the following CMake code:
 ```
 find_package(MbedTLS REQUIRED)
 target_link_libraries(myapp PRIVATE MbedTLS::mbedtls MbedTLS::mbedx509 MbedTLS::mbedcrypto)
-
 ```
-would be updated to something like
+should be updated to:
 ```
 find_package(MbedTLS REQUIRED)
 target_link_libraries(myapp PRIVATE MbedTLS::mbedtls MbedTLS::mbedx509 MbedTLS::tfpsacrypto)
 ```
+You can also refer to the following example programs demonstrating how to consume Mbed TLS as a CMake package:
+- programs/test/cmake_package
+- programs/test/cmake_package_install
 
-For more information, see the CMake section of `README.md`.
-You can also refer to the following example programs demonstrating how to consume Mbed TLS via CMake:
-* `programs/test/cmake_subproject`
-* `programs/test/cmake_package`
-* `programs/test/cmake_package_install`.
+#### Using the Mbed TLS Crypto pkg-config file
 
-#### Using Mbed TLS Crypto pkg-config file
-The Mbed TLS CMake build system still provides the pkg-config file mbedcrypto.pc, so you can continue using it. Internally, it now references the `tfpsacrypto` library.
-A new pkg-config file, `tfpsacrypto.pc`, is also provided.
-Both `mbedcrypto.pc` and `tfpsacrypto.pc` are functionally equivalent, providing the same compiler and linker flags.
+The Mbed TLS CMake build system still provides the pkg-config file mbedcrypto.pc, so you can continue using it.
+Internally, it now references the tfpsacrypto library.
+
+A new pkg-config file, tfpsacrypto.pc, is also provided.
+Both mbedcrypto.pc and tfpsacrypto.pc are functionally equivalent, providing the same compiler and linker flags.
+
+#### Using Mbed TLS as an installed library
+
+The Mbed TLS CMake build system still installs the cryptography libraries under their legacy name, `libmbedcrypto.<ext>`, so you can continue linking against them.
+The cryptography library is also now provided as `libtfpsacrypto.<ext>`.
+
+Regarding the headers, the main change is the relocation of some headers to private directories.
+These headers are installed primarily to satisfy compiler dependencies.
+Others remain for historical reasons and may be cleaned up in later versions of the library.
+
+We strongly recommend not relying on the declarations in these headers, as they may be removed or modified without notice.
+See the section Private Declarations in the TF-PSA-Crypto 1.0 migration guide for more information.
+
+Finally, note the new include/tf-psa-crypto directory, which contains the TF-PSA-Crypto version and build-time configuration headers.
 
 ### Audience-Specific Notes
 

@@ -29,7 +29,23 @@ These changes reflect the move of cryptographic, cryptographic-adjacent, and pla
 (\*) The `library` and `include/mbedtls` directories still exist in Mbed TLS, but not contain only TLS and X.509 components.
 
 ### Configuration file split
-Cryptography and platform configuration options have been moved from `mbedtls_config.h` to `crypto_config.h`, which is now mandatory. See [Compile-time configuration](#compile-time-confiuration).
+Cryptography and platform configuration options have been moved from `include/mbedtls/mbedtls_config.h` to `tf-psa-crypto/include/psa/crypto_config.h`, which is now mandatory.
+See [Compile-time configuration](#compile-time-configuration).
+
+The header `include/mbedtls/mbedtls_config.h` still exists and now contains only the TLS and X.509 configuration options.
+
+If you use the Python script `scripts/config.py` to adjust your configuration, you do not need to modify your scripts to specify which configuration file to edit, the script automatically updates the correct file.
+
+There has been significant changes in the configuration options, primarily affecting cryptography.
+
+#### Cryptography configuration
+- See [psa-transition.md](https://github.com/Mbed-TLS/TF-PSA-Crypto/blob/development/docs/psa-transition.md#compile-time-configuration).
+- See also the following sections in the TF-PSA-Crypto 1.0 migration guide:
+  - *PSA as the Only Cryptography API* and its sub-section *Impact on the Library Configuration*
+  - *Random Number Generation Configuration*
+
+#### TLS configuration
+For details about TLS-related changes, see [Changes to TLS options](#changes-to-tls-options).
 
 ### Impact on some usages of the library
 

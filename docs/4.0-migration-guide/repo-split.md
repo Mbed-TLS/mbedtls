@@ -19,14 +19,14 @@ You should stay with Mbed TLS if you use TLS or X.509 functionality. You still h
 The following table summarizes the file and directory relocations resulting from the repository split between Mbed TLS and TF-PSA-Crypto.
 These changes reflect the move of cryptographic, cryptographic-adjacent, and platform components from Mbed TLS into the new TF-PSA-Crypto repository.
 
-| Original location                    | New location(s)                                                                      | Notes |
-|--------------------------------------|--------------------------------------------------------------------------------------|-------|
-| `library/`                           | `tf-psa-crypto/core/`<br>`tf-psa-crypto/drivers/builtin/src/`                        | Contains cryptographic, cryptographic-adjacent (e.g., ASN.1, Base64), and platform C modules and headers. |
-| `include/mbedtls/`                   | `tf-psa-crypto/include/mbedtls/`<br>`tf-psa-crypto/drivers/builtin/include/private/` | Public headers moved to `include/mbedtls`; now internal headers moved to `include/private`. |
-| `include/psa/`                       | `tf-psa-crypto/include/`                                                             | All PSA headers consolidated here. |
-| `3rdparty/everest/`<br>`3rdparty/p256-m/` | `tf-psa-crypto/drivers/`                                                        | Third-party crypto driver implementations. |
+| Original location                       | New location(s)                                                                      | Notes |
+|-----------------------------------------|--------------------------------------------------------------------------------------|-------|
+| `library/*`  (\*)                       | `tf-psa-crypto/core/`<br>`tf-psa-crypto/drivers/builtin/src/`                        | Contains cryptographic, cryptographic-adjacent (e.g., ASN.1, Base64), and platform C modules and headers. |
+| `include/mbedtls/*`  (\*)               | `tf-psa-crypto/include/mbedtls/`<br>`tf-psa-crypto/drivers/builtin/include/private/` | Public headers moved to `include/mbedtls`; now internal headers moved to `include/private`. |
+| `include/psa`                           | `tf-psa-crypto/include/psa`                                                          | All PSA headers consolidated here. |
+| `3rdparty/everest`<br>`3rdparty/p256-m` | `tf-psa-crypto/drivers/everest`<br>`tf-psa-crypto/drivers/p256-m`                    | Third-party crypto driver implementations. |
 
-If you use your own build system to build Mbed TLS libraries, you will need to adapt to the new tree.
+(\*) The `library` and `include/mbedtls` directories still exist in Mbed TLS, but not contain only TLS and X.509 components.
 
 ### Configuration file split
 Cryptography and platform configuration options have been moved from `mbedtls_config.h` to `crypto_config.h`, which is now mandatory. See [Compile-time configuration](#compile-time-confiuration).

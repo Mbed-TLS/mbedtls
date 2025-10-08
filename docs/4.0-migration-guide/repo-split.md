@@ -1,11 +1,10 @@
 ## CMake as the only build system
-CMake is now the only supported build system for Mbed TLS.
-Support for the legacy GNU Make and Microsoft Visual Studio project-based build systems has been removed.
+Mbed TLS now uses CMake exclusively to configure and drive its build process.
+Support for the GNU Make and Microsoft Visual Studio project-based build systems has been removed.
 
-The GNU Make build system is still used internally for testing, but it will be removed once all test components have been migrated to CMake.
-The previous .sln/.vcxproj files are no longer distributed or generated.
+The previous `.sln` and `.vcxproj` files are no longer distributed or generated.
 
-Builds must now be configured and executed through CMake. See `Compiling` section in README.md for initial build instructions.
+See the `Compiling` section in README.md for instructions on building the Mbed TLS libraries and tests with CMake.
 If you develop in Microsoft Visual Studio, you could either generate a Visual Studio solution using a CMake generator, or open the CMake project directly in Visual Studio.
 
 ## Repository split

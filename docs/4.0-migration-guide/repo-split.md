@@ -7,6 +7,54 @@ The previous `.sln` and `.vcxproj` files are no longer distributed or generated.
 See the `Compiling` section in README.md for instructions on building the Mbed TLS libraries and tests with CMake.
 If you develop in Microsoft Visual Studio, you could either generate a Visual Studio solution using a CMake generator, or open the CMake project directly in Visual Studio.
 
+### Translating Make commands to CMake
+
+With the removal of GNU Make support, all build, test, and installation operations must now be performed using CMake.
+This section provides a quick reference for translating common `make` commands into their CMake equivalents.
+
+#### Basic build workflow
+
+Run `cmake -S . -B build` once before building to configure the build and generate native build files (e.g., Makefiles) in the `build` directory.
+This sets up an out-of-tree build, which is recommended.
+
+| Make command   | CMake equivalent                               | Description                                                        |
+|----------------|------------------------------------------------|--------------------------------------------------------------------|
+| `make`         | `cmake --build build`                          | Build the libraries, programs, and tests in the `build` directory. |
+| `make test`    | `ctest --test-dir build`                       | Run the tests produced by the previous build. |
+| `make clean`   | `cmake --build build --target clean`           | Remove build artifacts produced by the previous build. |
+| `make install` | `cmake --install build --prefix build/install` | Install the built libraries, headers, and tests to `build/install`. |
+
+#### Building specific targets
+
+Unless otherwise specified, the CMake command in the table below should be preceded by a `cmake -S . -B build` call to configure the build and generate build files in the `build` directory.
+
+| Make command    | CMake equivalent                                                    | Description               |
+|-----------------|---------------------------------------------------------------------|---------------------------|
+| `make lib`      | `cmake --build build --target lib`                                  | Build only the libraries. |
+| `make tests`    | `cmake -S . -B build -DENABLE_PROGRAMS=Off && cmake --build build`  | Build test suites. |
+| `make programs` | `cmake --build build --target programs`                             | Build example programs. |
+| `make apidoc`   | `cmake --build build --target mbedtls-apidoc`                       | Build documentation. |
+
+Target names may differ slightly; use `cmake --build build --target help` to list all available CMake targets.
+
+There is no CMake equivalent for `make generated_files` or `make neat`.
+Generated files are automatically created in the build tree with `cmake --build build` and removed with `cmake --build build --target clean`.
+If you need to build the generated files in the source tree without involving CMake, you can call `framework/scripts/make_generated_files.py`.
+
+There is no CMake equivalent for `make uninstall`.
+To remove an installation, simply delete the directory specified as the installation prefix.
+
+#### Common build options
+
+| Make usage                 | CMake usage                                           | Description          |
+|----------------------------|-------------------------------------------------------|----------------------|
+| `make DEBUG=1`             | `cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug`        | Build in debug mode. |
+| `make SHARED=1`            | `cmake -S . -B build -DUSE_SHARED_MBEDTLS_LIBRARY=On` | Also build shared libraries. |
+| `make GEN_FILES=""`        | `cmake -S . -B build -DGEN_FILES=OFF`                 | Skip generating files (not a strict equivalent). |
+| `make DESTDIR=install_dir` | `cmake --install build --prefix install_dir`          | Specify installation path. |
+| `make CC=clang`            | `cmake -S . -B build -DCMAKE_C_COMPILER=clang`        | Set the compiler. |
+| `make CFLAGS='-O2 -Wall'`  | `cmake -S . -B build -DCMAKE_C_FLAGS="-O2 -Wall"`     | Set compiler flags. |
+
 ## Repository split
 In Mbed TLS 4.0, the project was split into two repositories:
 - [Mbed TLS](https://github.com/Mbed-TLS/mbedtls): provides TLS and X.509 functionality.

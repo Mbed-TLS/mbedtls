@@ -12,7 +12,7 @@ In Mbed TLS 4.0, the project was split into two repositories:
 - [Mbed TLS](https://github.com/Mbed-TLS/mbedtls): provides TLS and X.509 functionality.
 - [TF-PSA-Crypto](https://github.com/Mbed-TLS/TF-PSA-Crypto): provides the standalone cryptography library, implementing the PSA Cryptography API.
 Mbed TLS consumes TF-PSA-Crypto as a submodule.
-You should stay with Mbed TLS if you use TLS or X.509 functionality. You still have direct access to the PSA Cryptography API through the `tf-psa-crypto` submodule.
+You should stay with Mbed TLS if you use TLS or X.509 functionality. You still have direct access to the cryptography library.
 
 ### File and directory relocations
 
@@ -70,13 +70,12 @@ You can also refer to the following example programs demonstrating how to consum
 
 #### Using Mbed TLS Crypto pkg-config file
 The Mbed TLS CMake build system still provides the pkg-config file mbedcrypto.pc, so you can continue using it. Internally, it now references the `tfpsacrypto` library.
-A new pkg-config file, `tfpsacrypto.pc`, is also provided. 
+A new pkg-config file, `tfpsacrypto.pc`, is also provided.
 Both `mbedcrypto.pc` and `tfpsacrypto.pc` are functionally equivalent, providing the same compiler and linker flags.
 
 ### Audience-Specific Notes
 
 #### Application Developers using a distribution package
-You should stay with Mbed TLS if you use TLS or X.509 functionality.
 - See [Impact on usages of the library](#impact-on-some-usages-of-the-library) for the possible impacts on:
   - Linking against the cryptography library or CMake targets.
   - Use the updated `pkg-config` files (`mbedcrypto.pc` / `tfpsacrypto.pc`).

@@ -1,0 +1,5 @@
+Changes
+   * Harden mbedtls_ssl_get_verify_result() against misuse.
+     Return failure if the handshake has not yet been attempted. Previously
+     the result of verification was zero-initialized so the function would
+     return 0 (indicating success).

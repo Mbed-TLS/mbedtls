@@ -41,8 +41,7 @@ There is no CMake equivalent for `make generated_files` or `make neat`.
 Generated files are automatically created in the build tree with `cmake --build build` and removed with `cmake --build build --target clean`.
 If you need to build the generated files in the source tree without involving CMake, you can call `framework/scripts/make_generated_files.py`.
 
-There is no CMake equivalent for `make uninstall`.
-To remove an installation, simply delete the directory specified as the installation prefix.
+There is currently no equivalent for `make uninstall` in the Mbed TLS CMake build system.
 
 #### Common build options
 
@@ -74,7 +73,7 @@ These changes reflect the move of cryptographic, cryptographic-adjacent, and pla
 | `include/psa`                           | `tf-psa-crypto/include/psa`                                                          | All PSA headers consolidated here. |
 | `3rdparty/everest`<br>`3rdparty/p256-m` | `tf-psa-crypto/drivers/everest`<br>`tf-psa-crypto/drivers/p256-m`                    | Third-party crypto driver implementations. |
 
-(<sup>†</sup>) The `library` and `include/mbedtls` directories still exist in Mbed TLS, but not contain only TLS and X.509 components.
+(<sup>†</sup>) The `library` and `include/mbedtls` directories still exist in Mbed TLS, but now contain only TLS and X.509 components.
 
 ### Configuration file split
 Cryptography and platform configuration options have been moved from `include/mbedtls/mbedtls_config.h` to `tf-psa-crypto/include/psa/crypto_config.h`, which is now mandatory.
@@ -152,7 +151,7 @@ Both `mbedcrypto.pc` and `tfpsacrypto.pc` are functionally equivalent, providing
 The Mbed TLS CMake build system still installs the cryptography libraries under their legacy name, `libmbedcrypto.<ext>`, so you can continue linking against them.
 The cryptography library is also now provided as `libtfpsacrypto.<ext>`.
 
-Regarding the headers, the main change is the relocation of some headers to private directories.
+Regarding the headers, the main change is the relocation of some headers to subdirectories called `private`.
 These headers are installed primarily to satisfy compiler dependencies.
 Others remain for historical reasons and may be cleaned up in later versions of the library.
 

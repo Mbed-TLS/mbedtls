@@ -136,16 +136,16 @@ find_package(MbedTLS REQUIRED)
 target_link_libraries(myapp PRIVATE MbedTLS::mbedtls MbedTLS::mbedx509 MbedTLS::tfpsacrypto)
 ```
 You can also refer to the following example programs demonstrating how to consume Mbed TLS as a CMake package:
-- programs/test/cmake_package
-- programs/test/cmake_package_install
+- `programs/test/cmake_package`
+- `programs/test/cmake_package_install`
 
 #### Using the Mbed TLS Crypto pkg-config file
 
 The Mbed TLS CMake build system still provides the pkg-config file mbedcrypto.pc, so you can continue using it.
 Internally, it now references the tfpsacrypto library.
 
-A new pkg-config file, tfpsacrypto.pc, is also provided.
-Both mbedcrypto.pc and tfpsacrypto.pc are functionally equivalent, providing the same compiler and linker flags.
+A new pkg-config file, `tfpsacrypto.pc`, is also provided.
+Both `mbedcrypto.pc` and `tfpsacrypto.pc` are functionally equivalent, providing the same compiler and linker flags.
 
 #### Using Mbed TLS as an installed library
 
@@ -159,7 +159,7 @@ Others remain for historical reasons and may be cleaned up in later versions of 
 We strongly recommend not relying on the declarations in these headers, as they may be removed or modified without notice.
 See the section Private Declarations in the TF-PSA-Crypto 1.0 migration guide for more information.
 
-Finally, note the new include/tf-psa-crypto directory, which contains the TF-PSA-Crypto version and build-time configuration headers.
+Finally, note the new `include/tf-psa-crypto` directory, which contains the TF-PSA-Crypto version and build-time configuration headers.
 
 ### Audience-Specific Notes
 

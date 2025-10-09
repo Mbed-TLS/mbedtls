@@ -69,12 +69,12 @@ These changes reflect the move of cryptographic, cryptographic-adjacent, and pla
 
 | Original location                       | New location(s)                                                                      | Notes |
 |-----------------------------------------|--------------------------------------------------------------------------------------|-------|
-| `library/*`  (\*)                       | `tf-psa-crypto/core/`<br>`tf-psa-crypto/drivers/builtin/src/`                        | Contains cryptographic, cryptographic-adjacent (e.g., ASN.1, Base64), and platform C modules and headers. |
-| `include/mbedtls/*`  (\*)               | `tf-psa-crypto/include/mbedtls/`<br>`tf-psa-crypto/drivers/builtin/include/private/` | Public headers moved to `include/mbedtls`; now internal headers moved to `include/private`. |
+| `library/*`  (<sup>†</sup>)             | `tf-psa-crypto/core/`<br>`tf-psa-crypto/drivers/builtin/src/`                        | Contains cryptographic, cryptographic-adjacent (e.g., ASN.1, Base64), and platform C modules and headers. |
+| `include/mbedtls/*`  (<sup>†</sup>)     | `tf-psa-crypto/include/mbedtls/`<br>`tf-psa-crypto/drivers/builtin/include/private/` | Public headers moved to `include/mbedtls`; now internal headers moved to `include/private`. |
 | `include/psa`                           | `tf-psa-crypto/include/psa`                                                          | All PSA headers consolidated here. |
 | `3rdparty/everest`<br>`3rdparty/p256-m` | `tf-psa-crypto/drivers/everest`<br>`tf-psa-crypto/drivers/p256-m`                    | Third-party crypto driver implementations. |
 
-(\*) The `library` and `include/mbedtls` directories still exist in Mbed TLS, but not contain only TLS and X.509 components.
+(<sup>†</sup>) The `library` and `include/mbedtls` directories still exist in Mbed TLS, but not contain only TLS and X.509 components.
 
 ### Configuration file split
 Cryptography and platform configuration options have been moved from `include/mbedtls/mbedtls_config.h` to `tf-psa-crypto/include/psa/crypto_config.h`, which is now mandatory.

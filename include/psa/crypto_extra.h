@@ -767,7 +767,8 @@ int psa_can_do_cipher(psa_key_type_t key_type, psa_algorithm_t cipher_alg);
  *       - The only supported hash algorithm is SHA-256, i.e.
  *         `PSA_ALG_SHA_256`.
  *       - When using the built-in implementation, the user ID and the peer ID
- *         must be `"client"` (6-byte string) or `"server"` (6-byte string).
+ *         must be `"client"` (6-byte string) and `"server"` (6-byte string),
+ *         or the other way round.
  *         Third-party drivers may or may not have this limitation.
  *
  */

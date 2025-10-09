@@ -116,26 +116,35 @@ You may need to update include paths to the public header files, see [File and D
 
 #### Using Mbed TLS as a CMake subproject
 
-The base name of the CMake cryptography library target has been changed from `mbedcrypto` to `tfpsacrypto`.
-If no target prefix is specified through the `MBEDTLS_TARGET_PREFIX` option, the associated CMake target is now `tfpsacrypto`, and you will need to update it in your CMake scripts.
+The base name of the libraries are now `tfpsacrypto` (formely `mbedcrypto`), `mbedx509` and `mbedtls`.
+As before, these base names are also the names of CMake targets to build each library.
+If your CMake scripts reference a cryptography library target, you need to update its name accordingly.
+
+For example, the following CMake code:
+```
+target_link_libraries(mytarget PRIVATE mbedcrypto)
+```
+should be updated to:
+```
+target_link_libraries(mytarget PRIVATE tfpsacrypto)
+```
 
 You can refer to the following example demonstrating how to consume Mbed TLS as a CMake subproject:
 - `programs/test/cmake_subproject`
 
 #### Using Mbed TLS as a CMake package
 
-The same renaming applies to the cryptography library targets declared as part of the Mbed TLS CMake package.
-When no global target prefix is defined, use `MbedTLS::tfpsacrypto` instead of `MbedTLS::mbedcrypto`.
+The same renaming applies to the cryptography library targets declared as part of the Mbed TLS CMake package, use `MbedTLS::tfpsacrypto` instead of `MbedTLS::mbedcrypto`.
 
 For example, the following CMake code:
 ```
 find_package(MbedTLS REQUIRED)
-target_link_libraries(myapp PRIVATE MbedTLS::mbedtls MbedTLS::mbedx509 MbedTLS::mbedcrypto)
+target_link_libraries(myapp PRIVATE MbedTLS::mbedcrypto)
 ```
 should be updated to:
 ```
 find_package(MbedTLS REQUIRED)
-target_link_libraries(myapp PRIVATE MbedTLS::mbedtls MbedTLS::mbedx509 MbedTLS::tfpsacrypto)
+target_link_libraries(myapp PRIVATE MbedTLS::tfpsacrypto)
 ```
 You can also refer to the following example programs demonstrating how to consume Mbed TLS as a CMake package:
 - `programs/test/cmake_package`

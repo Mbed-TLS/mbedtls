@@ -45,6 +45,9 @@ There is currently no equivalent for `make uninstall` in the Mbed TLS CMake buil
 
 #### Common build options
 
+The following table illustrates the approximate CMake equivalents of common make commands.
+Most CMake examples show only the configuration step, others (like installation) correspond to different stages of the build process.
+
 | Make usage                 | CMake usage                                           | Description          |
 |----------------------------|-------------------------------------------------------|----------------------|
 | `make DEBUG=1`             | `cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug`        | Build in debug mode. |
@@ -83,7 +86,7 @@ The header `include/mbedtls/mbedtls_config.h` still exists and now contains only
 
 If you use the Python script `scripts/config.py` to adjust your configuration, you do not need to modify your scripts to specify which configuration file to edit, the script automatically updates the correct file.
 
-There has been significant changes in the configuration options, primarily affecting cryptography.
+There have been significant changes in the configuration options, primarily affecting cryptography.
 
 #### Cryptography configuration
 - See [psa-transition.md](https://github.com/Mbed-TLS/TF-PSA-Crypto/blob/development/docs/psa-transition.md#compile-time-configuration).
@@ -165,7 +168,8 @@ Finally, note the new `include/tf-psa-crypto` directory, which contains the TF-P
 #### Application Developers using a distribution package
 - See [Impact on usages of the library](#impact-on-some-usages-of-the-library) for the possible impacts on:
   - Linking against the cryptography library or CMake targets.
-  - Use the updated `pkg-config` files (`mbedcrypto.pc` / `tfpsacrypto.pc`).
+  - Using the Mbed TLS Crypto pkg-config file.
+  - Using Mbed TLS as an installed library
 
 ### Developer or package maintainers
 If you build or distribute Mbed TLS:
@@ -175,7 +179,8 @@ If you build or distribute Mbed TLS:
 - Review [File and directory relocations](#file-and-directory-relocations) for updated paths.
 - See [Impact on usages of the library](#impact-on-some-usages-of-the-library) for the possible impacts on:
   - Linking against the cryptography library or CMake targets.
-  - Use the updated `pkg-config` files (`mbedcrypto.pc` / `tfpsacrypto.pc`).
+  - Using the Mbed TLS Crypto pkg-config file (`mbedcrypto.pc` or `tfpsacrypto.pc`).
+  - Using Mbed TLS as an installed library
 - Configuration note: cryptography and platform options are now in `crypto_config.h` (see [Configuration file split](#configuration-file-split)).
 
 ### Platform Integrators

@@ -56,7 +56,7 @@ After cloning or checking out a branch or tag, run:
     ```
  to initialize and update the submodules before building.
 
-However, the official source release tarballs (e.g. [mbedtls-4.0.0-beta.tar.bz2](https://github.com/Mbed-TLS/mbedtls/releases/download/mbedtls-4.0.0-beta/mbedtls-4.0.0-beta.tar.bz2)) include the contents of the submodules.
+However, the official source release tarballs (e.g. [mbedtls-4.0.0.tar.bz2](https://github.com/Mbed-TLS/mbedtls/releases/download/mbedtls-4.0.0/mbedtls-4.0.0.tar.bz2)) include the contents of the submodules.
 
 ### Generated source files in the development branch
 

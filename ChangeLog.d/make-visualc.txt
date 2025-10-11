@@ -1,2 +1,0 @@
-Removals
-   * Drop support for the GNU Make and Microsoft Visual Studio build systems.

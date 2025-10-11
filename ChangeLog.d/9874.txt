@@ -1,5 +1,0 @@
-API changes
-   * Align the mbedtls_ssl_ticket_setup() function with the PSA Crypto API.
-     Instead of taking a mbedtls_cipher_type_t as an argument, this function
-     now takes 3 new arguments: a PSA algorithm, key type and key size, to
-     specify the AEAD for ticket protection.

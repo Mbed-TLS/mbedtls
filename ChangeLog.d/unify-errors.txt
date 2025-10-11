@@ -1,7 +1,0 @@
-API changes
-   * Make the following error codes aliases of their PSA equivalents, where
-     xxx is a module, e.g. X509 or SSL.
-     MBEDTLS_ERR_xxx_BAD_INPUT_DATA    -> PSA_ERROR_INVALID_ARGUMENT
-     MBEDTLS_ERR_xxx_ALLOC_FAILED      -> PSA_ERROR_INSUFFICIENT_MEMORY
-     MBEDTLS_ERR_xxx_BUFFER_TOO_SMALL  -> PSA_ERROR_BUFFER_TOO_SMALL
-     MBEDTLS_ERR_PKCS7_VERIFY_FAIL     -> PSA_ERROR_INVALID_SIGNATURE

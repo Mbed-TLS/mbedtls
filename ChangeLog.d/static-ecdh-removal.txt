@@ -1,3 +1,0 @@
-Removals
-   * Removed support for TLS 1.2 static ECDH key
-     exchanges (ECDH-ECDSA and ECDH-RSA).

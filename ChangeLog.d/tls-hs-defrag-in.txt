@@ -1,7 +1,0 @@
-Bugfix
-   * Support re-assembly of fragmented handshake messages in TLS (both
-     1.2 and 1.3). The lack of support was causing handshake failures with
-     some servers, especially with TLS 1.3 in practice. There are a few
-     limitations, notably a fragmented ClientHello is only supported when
-     TLS 1.3 support is enabled. See the documentation of
-     mbedtls_ssl_handshake() for details.

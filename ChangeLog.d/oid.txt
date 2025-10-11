@@ -1,8 +1,0 @@
-Removals
-   * The library no longer offers interfaces to look up values by OID
-     or OID by enum values.
-     The header <mbedtls/oid.h> now only defines functions to convert
-     between binary and dotted string OID representations, and macros
-     for OID strings that are relevant to X.509.
-     The compilation option MBEDTLS_OID_C no longer
-     exists. OID tables are included in the build automatically as needed.

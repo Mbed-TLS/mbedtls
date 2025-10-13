@@ -188,6 +188,7 @@ Security
      would then dereference a NULL pointer. Applications that do not
      call this function (directly, or indirectly through X.509 writing) are not
      affected. Found by Linh Le and Ngan Nguyen from Calif.
+     CVE-2025-48965
 
 Bugfix
    * Fix TLS 1.3 client build and runtime when support for session tickets is

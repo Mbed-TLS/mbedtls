@@ -1435,6 +1435,9 @@ mpi_gcd:"":"":"0"
 Test GCD: 0 (null), 0 (1 limb)
 mpi_gcd:"":"00":"0"
 
+Test GCD: 0 (1 limb), 0 (1 limb)
+mpi_gcd:"00":"00":"0"
+
 Test GCD: 0 (null), 3
 mpi_gcd:"":"03":"3"
 
@@ -1462,50 +1465,134 @@ mpi_gcd:"06":"":"6"
 Test GCD: 6, 0 (1 limb)
 mpi_gcd:"06":"00":"6"
 
-Test GCD: gcd=1, 0 < A < B
+Test GCD: negative, 0 (null)
+mpi_gcd:"-50000":"":"50000"
+
+Test GCD: negative, 0 (1 limb)
+mpi_gcd:"-a782374b2ee927df28802745833a":"00":"a782374b2ee927df28802745833a"
+
+Test GCD: 0 (null), negative
+mpi_gcd:"":"-50000":"50000"
+
+Test GCD: 0 (1 limb), negative
+mpi_gcd:"00":"-a782374b2ee927df28802745833a":"a782374b2ee927df28802745833a"
+
+Test GCD: gcd=1, A is odd, B is odd, 0 < A < B
 mpi_gcd:"109fe45714866e56fdd4ad9b6b686df27224afb7868cf4f0cbb794526932853cbf0beea61594166654d13cd9fe0d9da594a97ee20230f12fb5434de73fb4f8102725a01622b31b1ea42e3a265019039ac1df31869bd97930d792fb72cdaa971d8a8015af":"33ae3764fd06a00cdc3cba5c45dc79a9edb4e67e4d057cc74139d531c25190d111775fc4a0f4439b8b1930bbd766e7b46f170601f316c8a18ff8d5cb5ca5581f168345d101edb462b7d93b7c520ccb8fb276b447a63d869203cc11f67a1122dc4da034218de85e39":"1"
 
-Test GCD: gcd=1, 0 < B < A
+Test GCD: gcd=1, A is odd, B is odd, 0 < B < A
 mpi_gcd:"33ae3764fd06a00cdc3cba5c45dc79a9edb4e67e4d057cc74139d531c25190d111775fc4a0f4439b8b1930bbd766e7b46f170601f316c8a18ff8d5cb5ca5581f168345d101edb462b7d93b7c520ccb8fb276b447a63d869203cc11f67a1122dc4da034218de85e39":"109fe45714866e56fdd4ad9b6b686df27224afb7868cf4f0cbb794526932853cbf0beea61594166654d13cd9fe0d9da594a97ee20230f12fb5434de73fb4f8102725a01622b31b1ea42e3a265019039ac1df31869bd97930d792fb72cdaa971d8a8015af":"1"
 
-Test GCD: gcd=1, A > 0, B < 0
+Test GCD: gcd=1, A is odd, B is odd, A > 0, B < 0
 mpi_gcd:"109fe45714866e56fdd4ad9b6b686df27224afb7868cf4f0cbb794526932853cbf0beea61594166654d13cd9fe0d9da594a97ee20230f12fb5434de73fb4f8102725a01622b31b1ea42e3a265019039ac1df31869bd97930d792fb72cdaa971d8a8015af":"-33ae3764fd06a00cdc3cba5c45dc79a9edb4e67e4d057cc74139d531c25190d111775fc4a0f4439b8b1930bbd766e7b46f170601f316c8a18ff8d5cb5ca5581f168345d101edb462b7d93b7c520ccb8fb276b447a63d869203cc11f67a1122dc4da034218de85e39":"1"
 
-Test GCD: gcd=1, A < 0 < B, |A| < |B|
+Test GCD: gcd=1, A is odd, B is odd, A < 0 < B, |A| < |B|
 mpi_gcd:"-109fe45714866e56fdd4ad9b6b686df27224afb7868cf4f0cbb794526932853cbf0beea61594166654d13cd9fe0d9da594a97ee20230f12fb5434de73fb4f8102725a01622b31b1ea42e3a265019039ac1df31869bd97930d792fb72cdaa971d8a8015af":"33ae3764fd06a00cdc3cba5c45dc79a9edb4e67e4d057cc74139d531c25190d111775fc4a0f4439b8b1930bbd766e7b46f170601f316c8a18ff8d5cb5ca5581f168345d101edb462b7d93b7c520ccb8fb276b447a63d869203cc11f67a1122dc4da034218de85e39":"1"
 
-Test GCD: gcd=1, B < A < 0
+Test GCD: gcd=1, A is odd, B is odd, B < A < 0
 mpi_gcd:"-109fe45714866e56fdd4ad9b6b686df27224afb7868cf4f0cbb794526932853cbf0beea61594166654d13cd9fe0d9da594a97ee20230f12fb5434de73fb4f8102725a01622b31b1ea42e3a265019039ac1df31869bd97930d792fb72cdaa971d8a8015af":"-33ae3764fd06a00cdc3cba5c45dc79a9edb4e67e4d057cc74139d531c25190d111775fc4a0f4439b8b1930bbd766e7b46f170601f316c8a18ff8d5cb5ca5581f168345d101edb462b7d93b7c520ccb8fb276b447a63d869203cc11f67a1122dc4da034218de85e39":"1"
 
-Test GCD: gcd=2, 0 < A < B
+Test GCD: gcd=2, A is even, B is even, 0 < A < B
 mpi_gcd:"213fc8ae290cdcadfba95b36d6d0dbe4e4495f6f0d19e9e1976f28a4d2650a797e17dd4c2b282ccca9a279b3fc1b3b4b2952fdc40461e25f6a869bce7f69f0204e4b402c4566363d485c744ca032073583be630d37b2f261af25f6e59b552e3b15002b5e":"675c6ec9fa0d4019b87974b88bb8f353db69ccfc9a0af98e8273aa6384a321a222eebf8941e8873716326177aecdcf68de2e0c03e62d91431ff1ab96b94ab03e2d068ba203db68c56fb276f8a419971f64ed688f4c7b0d24079823ecf42245b89b4068431bd0bc72":"2"
 
-Test GCD: gcd=2, 0 < B < A
+Test GCD: gcd=2, A is even, B is even, 0 < B < A
 mpi_gcd:"675c6ec9fa0d4019b87974b88bb8f353db69ccfc9a0af98e8273aa6384a321a222eebf8941e8873716326177aecdcf68de2e0c03e62d91431ff1ab96b94ab03e2d068ba203db68c56fb276f8a419971f64ed688f4c7b0d24079823ecf42245b89b4068431bd0bc72":"213fc8ae290cdcadfba95b36d6d0dbe4e4495f6f0d19e9e1976f28a4d2650a797e17dd4c2b282ccca9a279b3fc1b3b4b2952fdc40461e25f6a869bce7f69f0204e4b402c4566363d485c744ca032073583be630d37b2f261af25f6e59b552e3b15002b5e":"2"
 
-Test GCD: gcd=3, 0 < A < B
+Test GCD: gcd=3, A is odd, B is odd, 0 < A < B
 mpi_gcd:"31dfad053d934b04f97e08d2423949d7566e0f2693a6ded26326bcf73b978fb63d23cbf240bc4332fe73b68dfa28d8f0bdfc7ca60692d38f1fc9e9b5bf1ee8307570e0426819515bec8aae72f04b0ad0459d9493d38c6b9286b8f25868ffc5589f80410d":"9b0aa62ef713e02694b62f14d1956cfdc91eb37ae7107655c3ad7f9546f4b27334661f4de2dccad2a14b92338634b71d4d451205d94459e4afea816215f0085d4389d17305c91d28278bb274f62662af17641cd6f2b893b60b6435e36e336894e8e09c64a9b91aab":"3"
 
-Test GCD: gcd=3, 0 < B < A
+Test GCD: gcd=3, A is odd, B is odd, 0 < B < A
 mpi_gcd:"9b0aa62ef713e02694b62f14d1956cfdc91eb37ae7107655c3ad7f9546f4b27334661f4de2dccad2a14b92338634b71d4d451205d94459e4afea816215f0085d4389d17305c91d28278bb274f62662af17641cd6f2b893b60b6435e36e336894e8e09c64a9b91aab":"31dfad053d934b04f97e08d2423949d7566e0f2693a6ded26326bcf73b978fb63d23cbf240bc4332fe73b68dfa28d8f0bdfc7ca60692d38f1fc9e9b5bf1ee8307570e0426819515bec8aae72f04b0ad0459d9493d38c6b9286b8f25868ffc5589f80410d":"3"
 
-Test GCD: gcd=4, 0 < A < B
+Test GCD: gcd=4, A is even, B is even, 0 < A < B
 mpi_gcd:"427f915c5219b95bf752b66dada1b7c9c892bede1a33d3c32ede5149a4ca14f2fc2fba98565059995344f367f836769652a5fb8808c3c4bed50d379cfed3e0409c9680588acc6c7a90b8e89940640e6b077cc61a6f65e4c35e4bedcb36aa5c762a0056bc":"ceb8dd93f41a803370f2e9711771e6a7b6d399f93415f31d04e754c70946434445dd7f1283d10e6e2c64c2ef5d9b9ed1bc5c1807cc5b22863fe3572d7295607c5a0d174407b6d18adf64edf148332e3ec9dad11e98f61a480f3047d9e8448b713680d08637a178e4":"4"
 
-Test GCD: gcd=4, 0 < B < A
+Test GCD: gcd=4, A is even, B is even, 0 < B < A
 mpi_gcd:"ceb8dd93f41a803370f2e9711771e6a7b6d399f93415f31d04e754c70946434445dd7f1283d10e6e2c64c2ef5d9b9ed1bc5c1807cc5b22863fe3572d7295607c5a0d174407b6d18adf64edf148332e3ec9dad11e98f61a480f3047d9e8448b713680d08637a178e4":"427f915c5219b95bf752b66dada1b7c9c892bede1a33d3c32ede5149a4ca14f2fc2fba98565059995344f367f836769652a5fb8808c3c4bed50d379cfed3e0409c9680588acc6c7a90b8e89940640e6b077cc61a6f65e4c35e4bedcb36aa5c762a0056bc":"4"
 
-Test GCD: gcd=6, 0 < A < B
+Test GCD: gcd=6, A is even, B is even, 0 < A < B
 mpi_gcd:"63bf5a0a7b269609f2fc11a4847293aeacdc1e4d274dbda4c64d79ee772f1f6c7a4797e481788665fce76d1bf451b1e17bf8f94c0d25a71e3f93d36b7e3dd060eae1c084d032a2b7d9155ce5e09615a08b3b2927a718d7250d71e4b0d1ff8ab13f00821a":"136154c5dee27c04d296c5e29a32ad9fb923d66f5ce20ecab875aff2a8de964e668cc3e9bc5b995a5429724670c696e3a9a8a240bb288b3c95fd502c42be010ba8713a2e60b923a504f1764e9ec4cc55e2ec839ade571276c16c86bc6dc66d129d1c138c953723556":"6"
 
-Test GCD: gcd=6, 0 < B < A
+Test GCD: gcd=6, A is even, B is even, 0 < B < A
 mpi_gcd:"136154c5dee27c04d296c5e29a32ad9fb923d66f5ce20ecab875aff2a8de964e668cc3e9bc5b995a5429724670c696e3a9a8a240bb288b3c95fd502c42be010ba8713a2e60b923a504f1764e9ec4cc55e2ec839ade571276c16c86bc6dc66d129d1c138c953723556":"63bf5a0a7b269609f2fc11a4847293aeacdc1e4d274dbda4c64d79ee772f1f6c7a4797e481788665fce76d1bf451b1e17bf8f94c0d25a71e3f93d36b7e3dd060eae1c084d032a2b7d9155ce5e09615a08b3b2927a718d7250d71e4b0d1ff8ab13f00821a":"6"
 
-Test GCD: 0 < A = B
+Test GCD: A is odd, B is odd, 0 < A = B
 mpi_gcd:"109fe45714866e56fdd4ad9b6b686df27224afb7868cf4f0cbb794526932853cbf0beea61594166654d13cd9fe0d9da594a97ee20230f12fb5434de73fb4f8102725a01622b31b1ea42e3a265019039ac1df31869bd97930d792fb72cdaa971d8a8015af":"109fe45714866e56fdd4ad9b6b686df27224afb7868cf4f0cbb794526932853cbf0beea61594166654d13cd9fe0d9da594a97ee20230f12fb5434de73fb4f8102725a01622b31b1ea42e3a265019039ac1df31869bd97930d792fb72cdaa971d8a8015af":"109fe45714866e56fdd4ad9b6b686df27224afb7868cf4f0cbb794526932853cbf0beea61594166654d13cd9fe0d9da594a97ee20230f12fb5434de73fb4f8102725a01622b31b1ea42e3a265019039ac1df31869bd97930d792fb72cdaa971d8a8015af"
+
+Test GCD: A is odd, B is odd, A = B < 0
+mpi_gcd:"-9986dabb54d13cd9fe0d9da594a97e8372ab26ed98ff622b31b1ea42e3a265019039ac1df31869bd97930d792fb72cdaa971d8a8015af":"-9986dabb54d13cd9fe0d9da594a97e8372ab26ed98ff622b31b1ea42e3a265019039ac1df31869bd97930d792fb72cdaa971d8a8015af":"9986dabb54d13cd9fe0d9da594a97e8372ab26ed98ff622b31b1ea42e3a265019039ac1df31869bd97930d792fb72cdaa971d8a8015af"
 
 Base test mbedtls_mpi_inv_mod #1
 mpi_inv_mod:"3":"b":"4":0
+
+Base test mbedtls_mpi_inv_mod: 0 mod 3
+mpi_inv_mod:"0":"3":"":MBEDTLS_ERR_MPI_NOT_ACCEPTABLE
+
+Base test mbedtls_mpi_inv_mod: 1 mod 3
+mpi_inv_mod:"1":"3":"1":0
+
+Base test mbedtls_mpi_inv_mod: 2 mod 3
+mpi_inv_mod:"2":"3":"2":0
+
+Base test mbedtls_mpi_inv_mod: 3 mod 3
+mpi_inv_mod:"0":"3":"":MBEDTLS_ERR_MPI_NOT_ACCEPTABLE
+
+Base test mbedtls_mpi_inv_mod: 4 mod 3
+mpi_inv_mod:"4":"3":"1":0
+
+Base test mbedtls_mpi_inv_mod: 5 mod 3
+mpi_inv_mod:"5":"3":"2":0
+
+Base test mbedtls_mpi_inv_mod: -1 mod 3
+mpi_inv_mod:"-1":"3":"2":0
+
+Base test mbedtls_mpi_inv_mod: -2 mod 3
+mpi_inv_mod:"-2":"3":"1":0
+
+Base test mbedtls_mpi_inv_mod: -3 mod 3
+mpi_inv_mod:"-3":"3":"":MBEDTLS_ERR_MPI_NOT_ACCEPTABLE
+
+Base test mbedtls_mpi_inv_mod: -4 mod 3
+mpi_inv_mod:"-4":"3":"2":0
+
+Base test mbedtls_mpi_inv_mod: 0 mod 4
+mpi_inv_mod:"0":"4":"":MBEDTLS_ERR_MPI_NOT_ACCEPTABLE
+
+Base test mbedtls_mpi_inv_mod: 1 mod 4
+mpi_inv_mod:"1":"4":"1":0
+
+Base test mbedtls_mpi_inv_mod: 2 mod 4
+mpi_inv_mod:"2":"4":"":MBEDTLS_ERR_MPI_NOT_ACCEPTABLE
+
+Base test mbedtls_mpi_inv_mod: 3 mod 4
+mpi_inv_mod:"3":"4":"3":0
+
+Base test mbedtls_mpi_inv_mod: 4 mod 4
+mpi_inv_mod:"4":"4":"":MBEDTLS_ERR_MPI_NOT_ACCEPTABLE
+
+Base test mbedtls_mpi_inv_mod: 5 mod 4
+mpi_inv_mod:"5":"4":"1":0
+
+Base test mbedtls_mpi_inv_mod: 6 mod 4
+mpi_inv_mod:"6":"4":"":MBEDTLS_ERR_MPI_NOT_ACCEPTABLE
+
+Base test mbedtls_mpi_inv_mod: 7 mod 4
+mpi_inv_mod:"7":"4":"3":0
+
+Base test mbedtls_mpi_inv_mod: -1 mod 4
+mpi_inv_mod:"-1":"4":"3":0
+
+Base test mbedtls_mpi_inv_mod: -2 mod 4
+mpi_inv_mod:"-2":"4":"":MBEDTLS_ERR_MPI_NOT_ACCEPTABLE
+
+Base test mbedtls_mpi_inv_mod: -3 mod 4
+mpi_inv_mod:"-3":"4":"1":0
+
+Base test mbedtls_mpi_inv_mod: -4 mod 4
+mpi_inv_mod:"-4":"4":"":MBEDTLS_ERR_MPI_NOT_ACCEPTABLE
+
+Base test mbedtls_mpi_inv_mod: -5 mod 4
+mpi_inv_mod:"-5":"4":"3":0
 
 Test mbedtls_mpi_inv_mod: mod 0 (null)
 mpi_inv_mod:"3":"":"0":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
@@ -1513,14 +1600,59 @@ mpi_inv_mod:"3":"":"0":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
 Test mbedtls_mpi_inv_mod: mod 0 (1 limb)
 mpi_inv_mod:"3":"0":"0":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
 
+Test mbedtls_mpi_inv_mod: 0 (null) mod positive
+mpi_inv_mod:"":"25":"0":MBEDTLS_ERR_MPI_NOT_ACCEPTABLE
+
+Test mbedtls_mpi_inv_mod: 0 (1 limb) mod positive
+mpi_inv_mod:"00":"25":"0":MBEDTLS_ERR_MPI_NOT_ACCEPTABLE
+
+Test mbedtls_mpi_inv_mod: 0 (null) mod 0 (null)
+mpi_inv_mod:"":"":"0":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
+
+Test mbedtls_mpi_inv_mod: 0 (1 limb) mod 0 (1 limb)
+mpi_inv_mod:"00":"00":"0":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
+
+Test mbedtls_mpi_inv_mod: 0 (null) mod 0 (1 limb)
+mpi_inv_mod:"":"00":"0":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
+
+Test mbedtls_mpi_inv_mod: 0 (1 limb) mod 0 (null)
+mpi_inv_mod:"00":"":"0":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
+
 Test mbedtls_mpi_inv_mod: mod negative
 mpi_inv_mod:"3":"-b":"4":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
+
+Test mbedtls_mpi_inv_mod: negative mod negative
+mpi_inv_mod:"-3543a":"-f":"5":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
+
+Test mbedtls_mpi_inv_mod: 1 mod negative
+mpi_inv_mod:"1":"-f":"1":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
+
+Test mbedtls_mpi_inv_mod: 0 (null) mod negative
+mpi_inv_mod:"":"-f":"0":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
+
+Test mbedtls_mpi_inv_mod: 0 (1 limb) mod negative
+mpi_inv_mod:"00":"-f":"0":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
 
 Test mbedtls_mpi_inv_mod: 2^-1 mod 4
 mpi_inv_mod:"2":"4":"0":MBEDTLS_ERR_MPI_NOT_ACCEPTABLE
 
 Test mbedtls_mpi_inv_mod: mod 1
 mpi_inv_mod:"3":"1":"0":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
+
+Test mbedtls_mpi_inv_mod: negative mod 1
+mpi_inv_mod:"-732487665ae082f75c44":"1":"0":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
+
+Test mbedtls_mpi_inv_mod: 1 mod 1
+mpi_inv_mod:"1":"1":"0":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
+
+Test mbedtls_mpi_inv_mod: larger positive mod 1
+mpi_inv_mod:"aaf97513ce987d99d9d934e":"1":"0":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
+
+Test mbedtls_mpi_inv_mod: 0 (null) mod 1
+mpi_inv_mod:"":"1":"0":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
+
+Test mbedtls_mpi_inv_mod: 0 (1 limb) mod 1
+mpi_inv_mod:"00":"1":"0":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
 
 Test mbedtls_mpi_inv_mod: 0 (null) ^-1
 mpi_inv_mod:"":"11":"":MBEDTLS_ERR_MPI_NOT_ACCEPTABLE
@@ -1530,6 +1662,60 @@ mpi_inv_mod:"00":"11":"":MBEDTLS_ERR_MPI_NOT_ACCEPTABLE
 
 Test mbedtls_mpi_inv_mod #1
 mpi_inv_mod:"aa4df5cb14b4c31237f98bd1faf527c283c2d0f3eec89718664ba33f9762907c":"fffbbd660b94412ae61ead9c2906a344116e316a256fd387874c6c675b1d587d":"8d6a5c1d7adeae3e94b9bcd2c47e0d46e778bc8804a2cc25c02d775dc3d05b0c":0
+
+GCD-modinv wrapper: working, A < N
+mpi_gcd_modinv_odd_both:"54a":"3999":"1":"30b5":0
+
+GCD-modinv wrapper: no mod inverse, A = N
+mpi_gcd_modinv_odd_both:"365":"365":"365":"no_inverse":0
+
+GCD-modinv wrapper: no mod inverse, A < N
+mpi_gcd_modinv_odd_both:"5a":"b9":"5":"no_inverse":0
+
+GCD-modinv wrapper: bad inputs, A > N
+mpi_gcd_modinv_odd_both:"3999":"54a":"":"":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
+
+GCD-modinv wrapper: bad inputs, A < 0
+mpi_gcd_modinv_odd_both:"-5":"54a":"":"":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
+
+GCD-modinv wrapper: bad inputs, N even
+mpi_gcd_modinv_odd_both:"89":"540":"":"":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
+
+GCD-modinv wrapper only gcd: working, A < N
+mpi_gcd_modinv_odd_only_gcd:"1de3":"31d9":"7":0
+
+GCD-modinv wrapper only gcd: working, A = N
+mpi_gcd_modinv_odd_only_gcd:"365":"365":"365":0
+
+GCD-modinv wrapper only gcd: working, no mod inverse, A < N
+mpi_gcd_modinv_odd_only_gcd:"19e":"a47f":"9":0
+
+GCD-modinv wrapper only gcd: bad inputs, A > N
+mpi_gcd_modinv_odd_only_gcd:"319d":"1de3":"":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
+
+GCD-modinv wrapper only gcd: bad inputs, A < 0
+mpi_gcd_modinv_odd_only_gcd:"-628ef":"991827f":"":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
+
+GCD-modinv wrapper only gcd: bad inputs, N even
+mpi_gcd_modinv_odd_only_gcd:"319d":"24":"":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
+
+GCD-modinv wrapper only modinv: working, A < N
+mpi_gcd_modinv_odd_only_modinv:"28c":"26f9":"84f":0
+
+GCD-modinv wrapper only modinv: no mod inverse, A = N
+mpi_gcd_modinv_odd_only_modinv:"365":"365":"no_inverse":0
+
+GCD-modinv wrapper only modinv: no mod inverse, A < N
+mpi_gcd_modinv_odd_only_modinv:"19e":"a47f":"no_inverse":0
+
+GCD-modinv wrapper only modinv: bad inputs, A > N
+mpi_gcd_modinv_odd_only_modinv:"26f9":"28c":"":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
+
+GCD-modinv wrapper only modinv: bad inputs, A < 0
+mpi_gcd_modinv_odd_only_modinv:"-992f":"1000002":"":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
+
+GCD-modinv wrapper only modinv: bad inputs, N even
+mpi_gcd_modinv_odd_only_modinv:"28c":"26f0":"":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
 
 Base test mbedtls_mpi_is_prime #1
 depends_on:MBEDTLS_GENPRIME

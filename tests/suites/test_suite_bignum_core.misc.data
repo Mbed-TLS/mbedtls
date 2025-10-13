@@ -523,3 +523,29 @@ mpi_core_clz:64:0
 
 CLZ: 100000 0: skip overly long input
 mpi_core_clz:100000:0
+
+GCD-modinv random 80-bit, non-trivial GCD -> no inverse
+mpi_core_gcd_modinv_odd:"e4518a1900fce698fa3":"1a84113636607520200d":"3":""
+
+GCD-modinv random 80-bit, trivial GCD -> inverse
+mpi_core_gcd_modinv_odd:"7f2405d6de7db80a7bc":"1a84113636607520200d":"1":"15f158844a59cd7a3ed2"
+
+# This data results in the gcd-modinv loop converging to its final state
+# only in the last iteration. See python script in commit message.
+GCD-modinv (almost) max iterations
+mpi_core_gcd_modinv_odd:"8000000000000000":"b26eb5721a2cb24c36acb4550b176671":"1":"77e1dd63583a6b3c8deefe7737862c89"
+
+GCD-modinv preconditions not met
+mpi_core_gcd_modinv_odd_preconditions:
+
+Div2 mod odd: even value
+mpi_core_div2_mod_odd:"4":"7":"2"
+
+Div2 mod odd: odd value, no carry
+mpi_core_div2_mod_odd:"5":"7":"6"
+
+Div2 mod odd: odd value with carry
+mpi_core_div2_mod_odd:"8000000000000001":"8000000000000003":"8000000000000002"
+
+Div2 mod odd: even value with top bit set
+mpi_core_div2_mod_odd:"8000000000000002":"8000000000000003":"4000000000000001"

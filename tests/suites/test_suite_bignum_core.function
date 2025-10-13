@@ -2,6 +2,7 @@
 #include "mbedtls/bignum.h"
 #include "mbedtls/entropy.h"
 #include "bignum_core.h"
+#include "bignum_core_invasive.h"
 #include "constant_time_internal.h"
 #include "test/constant_flow.h"
 #include "test/bignum_codepath_check.h"
@@ -146,6 +147,29 @@ static int mpi_core_verify_add_if(mbedtls_mpi_uint *A,
 
 exit:
     return ret;
+}
+
+/*
+ * Return -1 if A < B, +1 if A > B and 0 if A == B
+ */
+static int mpi_core_cmp(const mbedtls_mpi_uint *A, size_t A_limbs,
+                        const mbedtls_mpi_uint *B, size_t B_limbs)
+{
+    TEST_CF_PUBLIC(A, A_limbs * sizeof(mbedtls_mpi_uint));
+    TEST_CF_PUBLIC(B, B_limbs * sizeof(mbedtls_mpi_uint));
+
+    const mbedtls_mpi AA = {
+        .p = (mbedtls_mpi_uint *) A,
+        .s = 1,
+        .n = (unsigned short) A_limbs,
+    };
+    const mbedtls_mpi BB = {
+        .p = (mbedtls_mpi_uint *) B,
+        .s = 1,
+        .n = (unsigned short) B_limbs,
+    };
+
+    return mbedtls_mpi_cmp_mpi(&AA, &BB);
 }
 
 /* END_HEADER */
@@ -1354,5 +1378,287 @@ void mpi_core_check_zero_ct(char *input_X, int expected_is_zero)
 
 exit:
     mbedtls_free(X);
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void mpi_core_gcd_modinv_odd(char *input_A, char *input_N,
+                             char *input_exp_G, char *input_exp_I)
+{
+    mbedtls_mpi_uint *A = NULL;
+    size_t A_limbs = 0;
+    mbedtls_mpi_uint *N = NULL;
+    size_t N_limbs = 0;
+    mbedtls_mpi_uint *exp_G = NULL;
+    size_t exp_G_limbs = 0;
+    mbedtls_mpi_uint *exp_I = NULL;
+    size_t exp_I_limbs = 0;
+    mbedtls_mpi_uint *G = NULL, *I = NULL, *T = NULL;
+
+    /* Read test parameters into MPI structures */
+    TEST_EQUAL(0, mbedtls_test_read_mpi_core(&A, &A_limbs, input_A));
+    TEST_EQUAL(0, mbedtls_test_read_mpi_core(&N, &N_limbs, input_N));
+    TEST_EQUAL(0, mbedtls_test_read_mpi_core(&exp_G, &exp_G_limbs, input_exp_G));
+    const unsigned char got_I = strlen(input_exp_I) != 0;
+    if (got_I) {
+        TEST_EQUAL(0, mbedtls_test_read_mpi_core(&exp_I, &exp_I_limbs, input_exp_I));
+    }
+
+    /* The function under test wants this */
+    TEST_EQUAL(N[0] & 1, 1);
+    TEST_LE_U(A_limbs, N_limbs);
+    TEST_ASSERT(mpi_core_cmp(A, A_limbs, N, N_limbs) <= 0);
+
+    const size_t N_bytes = N_limbs * sizeof(mbedtls_mpi_uint);
+
+    TEST_CF_SECRET(A, A_limbs * sizeof(mbedtls_mpi_uint));
+    TEST_CF_SECRET(N, N_limbs * sizeof(mbedtls_mpi_uint));
+
+#define FREE_G_I_T      \
+    mbedtls_free(G);    \
+    G = NULL;           \
+    mbedtls_free(I);    \
+    I = NULL;           \
+    mbedtls_free(T);    \
+    T = NULL
+
+    /*
+     * Test GCD only (I == NULL)
+     */
+    TEST_CALLOC(G, N_limbs);
+    memset(G, 'G', N_bytes);
+
+    TEST_CALLOC(T, 4 * N_limbs);
+    memset(T, 'T', 4 * N_bytes);
+
+    mbedtls_mpi_core_gcd_modinv_odd(G, NULL, A, A_limbs, N, N_limbs, T);
+    TEST_EQUAL(mpi_core_cmp(G, N_limbs, exp_G, exp_G_limbs), 0);
+
+    FREE_G_I_T;
+
+    /* GCD only, G aliased to N */
+    TEST_CALLOC(G, N_limbs);
+    memcpy(G, N, N_bytes);
+
+    TEST_CALLOC(T, 4 * N_limbs);
+    memset(T, 'T', 4 * N_bytes);
+
+    mbedtls_mpi_core_gcd_modinv_odd(G, NULL, A, A_limbs, /* N */ G, N_limbs, T);
+    TEST_EQUAL(mpi_core_cmp(G, N_limbs, exp_G, exp_G_limbs), 0);
+
+    FREE_G_I_T;
+
+    /* GCD only, G aliased to A (hence A_limbs = N_limbs) */
+    TEST_CALLOC(G, N_limbs);
+    memcpy(G, A, A_limbs * sizeof(mbedtls_mpi_uint));
+
+    TEST_CALLOC(T, 4 * N_limbs);
+    memset(T, 'T', 4 * N_bytes);
+
+    mbedtls_mpi_core_gcd_modinv_odd(G, NULL, /* A */ G, N_limbs, N, N_limbs, T);
+    TEST_EQUAL(mpi_core_cmp(G, N_limbs, exp_G, exp_G_limbs), 0);
+
+    FREE_G_I_T;
+
+    /*
+     * Test GCD + modinv
+     */
+    TEST_CALLOC(G, N_limbs);
+    memset(G, 'G', N_bytes);
+
+    TEST_CALLOC(I, N_limbs);
+    memset(I, 'I', N_bytes);
+
+    TEST_CALLOC(T, 5 * N_limbs);
+    memset(T, 'T', 5 * N_bytes);
+
+    mbedtls_mpi_core_gcd_modinv_odd(G, I, A, A_limbs, N, N_limbs, T);
+
+    TEST_EQUAL(mpi_core_cmp(G, N_limbs, exp_G, exp_G_limbs), 0);
+    if (got_I) {
+        TEST_EQUAL(mpi_core_cmp(I, N_limbs, exp_I, exp_I_limbs), 0);
+    }
+
+    FREE_G_I_T;
+
+    /* GCD + modinv, G aliased to A */
+    TEST_CALLOC(G, N_limbs);
+    memcpy(G, A, A_limbs * sizeof(mbedtls_mpi_uint));
+
+    TEST_CALLOC(I, N_limbs);
+    memset(I, 'I', N_bytes);
+
+    TEST_CALLOC(T, 5 * N_limbs);
+    memset(T, 'T', 5 * N_bytes);
+
+    mbedtls_mpi_core_gcd_modinv_odd(G, I, /* A */ G, N_limbs, N, N_limbs, T);
+
+    TEST_EQUAL(mpi_core_cmp(G, N_limbs, exp_G, exp_G_limbs), 0);
+    if (got_I) {
+        TEST_EQUAL(mpi_core_cmp(I, N_limbs, exp_I, exp_I_limbs), 0);
+    }
+
+    FREE_G_I_T;
+
+    /* GCD + modinv, I aliased to A */
+    TEST_CALLOC(G, N_limbs);
+    memset(G, 'G', N_bytes);
+
+    TEST_CALLOC(I, N_limbs);
+    memcpy(I, A, A_limbs * sizeof(mbedtls_mpi_uint));
+
+    TEST_CALLOC(T, 5 * N_limbs);
+    memset(T, 'T', 5 * N_bytes);
+
+    mbedtls_mpi_core_gcd_modinv_odd(G, I, /* A */ I, N_limbs, N, N_limbs, T);
+
+    TEST_EQUAL(mpi_core_cmp(G, N_limbs, exp_G, exp_G_limbs), 0);
+    if (got_I) {
+        TEST_EQUAL(mpi_core_cmp(I, N_limbs, exp_I, exp_I_limbs), 0);
+    }
+
+    FREE_G_I_T;
+
+#undef FREE_G_I_T
+exit:
+    mbedtls_free(A);
+    mbedtls_free(N);
+    mbedtls_free(exp_G);
+    mbedtls_free(exp_I);
+    mbedtls_free(G);
+    mbedtls_free(I);
+    mbedtls_free(T);
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void mpi_core_gcd_modinv_odd_preconditions()
+{
+    /*
+     * The purpose of this test function is to ensure that the function doesn't
+     * crash (but just outputs garbage) when preconditions are not met.
+     */
+
+    mbedtls_mpi_uint A[1];
+    mbedtls_mpi_uint N[2];
+    mbedtls_mpi_uint AAA[3];
+    mbedtls_mpi_uint *G = NULL, *I = NULL, *TG = NULL, *TI = NULL;
+
+    /* We'll always use a two-limbs N */
+    TEST_CALLOC(G, 2);
+    TEST_CALLOC(I, 2);
+    TEST_CALLOC(TG, 4 * 2);  // For I == NULL
+    TEST_CALLOC(TI, 5 * 2);  // For I != NULL
+
+    /*
+     * Input values
+     */
+
+    /* N is not odd */
+    N[0] = 2;       // N = 2^n + 2
+    N[1] = 1;
+    A[0] = 42;      // A = 42
+    mbedtls_mpi_core_gcd_modinv_odd(G, NULL, A, 1, N, 2, TG);
+    mbedtls_mpi_core_gcd_modinv_odd(G, I, A, 1, N, 2, TI);
+
+    /* A > N */
+    N[0] = 3;       // N = 3
+    N[1] = 0;
+    A[0] = 42;      // A = 42
+    mbedtls_mpi_core_gcd_modinv_odd(G, NULL, A, 1, N, 2, TG);
+    mbedtls_mpi_core_gcd_modinv_odd(G, I, A, 1, N, 2, TI);
+
+    /* A_limbs > N_limbs (but A <= N) */
+    N[0] = 3;       // N = 3
+    N[1] = 0;
+    AAA[0] = 1;     // A = 1
+    AAA[1] = 0;
+    AAA[2] = 0;
+    mbedtls_mpi_core_gcd_modinv_odd(G, NULL, AAA, 3, N, 2, TG);
+    mbedtls_mpi_core_gcd_modinv_odd(G, I, AAA, 3, N, 2, TI);
+
+    /* A_limbs > N_limbs (and A > N) */
+    N[0] = 3;       // N = 3
+    N[1] = 0;
+    AAA[0] = 0;     // A = 2^2n
+    AAA[1] = 0;
+    AAA[2] = 1;
+    mbedtls_mpi_core_gcd_modinv_odd(G, NULL, AAA, 3, N, 2, TG);
+    mbedtls_mpi_core_gcd_modinv_odd(G, I, AAA, 3, N, 2, TI);
+
+    /* I != NULL but N is 1 */
+    N[0] = 1;       // N = 1
+    N[1] = 0;
+    A[0] = 1;       // A = 1
+    mbedtls_mpi_core_gcd_modinv_odd(G, I, N, 2, A, 1, TI);
+
+    /*
+     * Aliasing
+     */
+
+    /* Now use valid values for remaining tests */
+    N[0] = 1;       // N = 2^n + 1
+    N[1] = 1;
+    A[0] = 42;      // A = 42
+
+    /* A aliased to N */
+    mbedtls_mpi_core_gcd_modinv_odd(G, NULL, N, 2, N, 2, TG);
+    mbedtls_mpi_core_gcd_modinv_odd(G, I, N, 2, N, 2, TI);
+
+    /* G aliased to A and N */
+    memcpy(G, N, 2 * sizeof(mbedtls_mpi_uint));
+    mbedtls_mpi_core_gcd_modinv_odd(G, NULL, G, 2, G, 2, TG);
+    mbedtls_mpi_core_gcd_modinv_odd(G, I, G, 2, G, 2, TI);
+
+    /* I != NULL, G aliased to N */
+    memcpy(G, N, 2 * sizeof(mbedtls_mpi_uint));
+    mbedtls_mpi_core_gcd_modinv_odd(G, I, A, 1, G, 2, TI);
+
+    /* I != NULL, I aliased to N */
+    memcpy(I, N, 2 * sizeof(mbedtls_mpi_uint));
+    mbedtls_mpi_core_gcd_modinv_odd(G, I, A, 1, I, 2, TI);
+
+    /* I aliased to A and N */
+    memcpy(I, N, 2 * sizeof(mbedtls_mpi_uint));
+    mbedtls_mpi_core_gcd_modinv_odd(G, I, I, 2, I, 2, TI);
+
+exit:
+    mbedtls_free(G);
+    mbedtls_free(I);
+    mbedtls_free(TG);
+    mbedtls_free(TI);
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_TEST_HOOKS */
+void mpi_core_div2_mod_odd(char *input_X, char *input_N, char *input_exp_X)
+{
+    mbedtls_mpi_uint *X = NULL;
+    size_t X_limbs = 0;
+    mbedtls_mpi_uint *N = NULL;
+    size_t N_limbs = 0;
+    mbedtls_mpi_uint *exp_X = NULL;
+    size_t exp_X_limbs = 0;
+
+    /* Read test parameters into MPI structures */
+    TEST_EQUAL(0, mbedtls_test_read_mpi_core(&X, &X_limbs, input_X));
+    TEST_EQUAL(0, mbedtls_test_read_mpi_core(&N, &N_limbs, input_N));
+    TEST_EQUAL(0, mbedtls_test_read_mpi_core(&exp_X, &exp_X_limbs, input_exp_X));
+
+    /* The function under test requires this */
+    TEST_EQUAL(X_limbs, N_limbs);
+
+    TEST_CF_SECRET(X, X_limbs * sizeof(mbedtls_mpi_uint));
+    TEST_CF_SECRET(N, N_limbs * sizeof(mbedtls_mpi_uint));
+
+    mbedtls_mpi_core_div2_mod_odd(X, N, N_limbs);
+
+    TEST_CF_PUBLIC(X, X_limbs * sizeof(mbedtls_mpi_uint));
+    TEST_EQUAL(0, mpi_core_cmp(X, X_limbs, exp_X, exp_X_limbs));
+
+exit:
+    mbedtls_free(X);
+    mbedtls_free(N);
+    mbedtls_free(exp_X);
 }
 /* END_CASE */

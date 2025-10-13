@@ -390,12 +390,24 @@ void mpi_gcd(char *input_X, char *input_Y,
     mbedtls_mpi A, X, Y, Z;
     mbedtls_mpi_init(&A); mbedtls_mpi_init(&X); mbedtls_mpi_init(&Y); mbedtls_mpi_init(&Z);
 
-    TEST_ASSERT(mbedtls_test_read_mpi(&X, input_X) == 0);
-    TEST_ASSERT(mbedtls_test_read_mpi(&Y, input_Y) == 0);
-    TEST_ASSERT(mbedtls_test_read_mpi(&A, input_A) == 0);
-    TEST_ASSERT(mbedtls_mpi_gcd(&Z, &X, &Y) == 0);
+    TEST_EQUAL(mbedtls_test_read_mpi(&X, input_X), 0);
+    TEST_EQUAL(mbedtls_test_read_mpi(&Y, input_Y), 0);
+    TEST_EQUAL(mbedtls_test_read_mpi(&A, input_A), 0);
+    TEST_EQUAL(mbedtls_mpi_gcd(&Z, &X, &Y), 0);
     TEST_ASSERT(sign_is_valid(&Z));
-    TEST_ASSERT(mbedtls_mpi_cmp_mpi(&Z, &A) == 0);
+    TEST_EQUAL(mbedtls_mpi_cmp_mpi(&Z, &A), 0);
+
+    /* Test pointer aliasing where &Z == &X. */
+    TEST_EQUAL(mbedtls_test_read_mpi(&Z, input_X), 0);
+    TEST_EQUAL(mbedtls_mpi_gcd(&Z, /* X */ &Z, &Y), 0);
+    TEST_ASSERT(sign_is_valid(&Z));
+    TEST_EQUAL(mbedtls_mpi_cmp_mpi(&Z, &A), 0);
+
+    /* Test pointer aliasing where &Z == &Y. */
+    TEST_EQUAL(mbedtls_test_read_mpi(&Z, input_Y), 0);
+    TEST_EQUAL(mbedtls_mpi_gcd(&Z, &X, /* Y */ &Z), 0);
+    TEST_ASSERT(sign_is_valid(&Z));
+    TEST_EQUAL(mbedtls_mpi_cmp_mpi(&Z, &A), 0);
 
 exit:
     mbedtls_mpi_free(&A); mbedtls_mpi_free(&X); mbedtls_mpi_free(&Y); mbedtls_mpi_free(&Z);
@@ -1134,18 +1146,249 @@ void mpi_inv_mod(char *input_X, char *input_Y,
     int res;
     mbedtls_mpi_init(&X); mbedtls_mpi_init(&Y); mbedtls_mpi_init(&Z); mbedtls_mpi_init(&A);
 
-    TEST_ASSERT(mbedtls_test_read_mpi(&X, input_X) == 0);
-    TEST_ASSERT(mbedtls_test_read_mpi(&Y, input_Y) == 0);
-    TEST_ASSERT(mbedtls_test_read_mpi(&A, input_A) == 0);
+    TEST_EQUAL(mbedtls_test_read_mpi(&X, input_X), 0);
+    TEST_EQUAL(mbedtls_test_read_mpi(&Y, input_Y), 0);
+    TEST_EQUAL(mbedtls_test_read_mpi(&A, input_A), 0);
     res = mbedtls_mpi_inv_mod(&Z, &X, &Y);
-    TEST_ASSERT(res == div_result);
+    TEST_EQUAL(res, div_result);
     if (res == 0) {
         TEST_ASSERT(sign_is_valid(&Z));
-        TEST_ASSERT(mbedtls_mpi_cmp_mpi(&Z, &A) == 0);
+        TEST_EQUAL(mbedtls_mpi_cmp_mpi(&Z, &A), 0);
+    }
+
+    /* Test pointer aliasing where &Z == &X. */
+    TEST_EQUAL(mbedtls_test_read_mpi(&Z, input_X), 0);
+    res = mbedtls_mpi_inv_mod(&Z, /* X */ &Z, &Y);
+    TEST_EQUAL(res, div_result);
+    if (res == 0) {
+        TEST_ASSERT(sign_is_valid(&Z));
+        TEST_EQUAL(mbedtls_mpi_cmp_mpi(&Z, &A), 0);
+    }
+
+    /* Test pointer aliasing where &Z == &Y. */
+    TEST_EQUAL(mbedtls_test_read_mpi(&Z, input_Y), 0);
+    res = mbedtls_mpi_inv_mod(&Z, &X, /* Y */ &Z);
+    TEST_EQUAL(res, div_result);
+    if (res == 0) {
+        TEST_ASSERT(sign_is_valid(&Z));
+        TEST_EQUAL(mbedtls_mpi_cmp_mpi(&Z, &A), 0);
     }
 
 exit:
     mbedtls_mpi_free(&X); mbedtls_mpi_free(&Y); mbedtls_mpi_free(&Z); mbedtls_mpi_free(&A);
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void mpi_gcd_modinv_odd_both(char *input_A, char *input_N,
+                             char *result_G, char *result_I,
+                             int return_code)
+{
+    int has_inverse = strcmp(result_I, "no_inverse") ? 1 : 0;
+    mbedtls_mpi G, I, A, N, exp_G, exp_I;
+    int res;
+    mbedtls_mpi_init(&G); mbedtls_mpi_init(&I); mbedtls_mpi_init(&A); mbedtls_mpi_init(&N);
+    mbedtls_mpi_init(&exp_G); mbedtls_mpi_init(&exp_I);
+    TEST_EQUAL(mbedtls_test_read_mpi(&A, input_A), 0);
+    TEST_EQUAL(mbedtls_test_read_mpi(&N, input_N), 0);
+    TEST_EQUAL(mbedtls_test_read_mpi(&exp_G, result_G), 0);
+    /* If there is no inverse then the value returned in I will be
+     * indeterminate, and so not useful or possible to test. */
+    if (has_inverse) {
+        TEST_EQUAL(mbedtls_test_read_mpi(&exp_I, result_I), 0);
+    }
+
+    res = mbedtls_mpi_gcd_modinv_odd(&G, &I, &A, &N);
+    TEST_EQUAL(res, return_code);
+    if (res == 0) {
+        TEST_ASSERT(sign_is_valid(&G));
+        TEST_EQUAL(mbedtls_mpi_cmp_mpi(&G, &exp_G), 0);
+        if (has_inverse) {
+            TEST_ASSERT(sign_is_valid(&I));
+            TEST_EQUAL(mbedtls_mpi_cmp_mpi(&I, &exp_I), 0);
+        }
+    }
+
+    /* Test pointer aliasing where &G == &A. */
+    TEST_EQUAL(mbedtls_test_read_mpi(&G, input_A), 0);
+    res = mbedtls_mpi_gcd_modinv_odd(&G, &I, /* A */ &G, &N);
+    TEST_EQUAL(res, return_code);
+    if (res == 0) {
+        TEST_ASSERT(sign_is_valid(&G));
+        TEST_EQUAL(mbedtls_mpi_cmp_mpi(&G, &exp_G), 0);
+        if (has_inverse) {
+            TEST_ASSERT(sign_is_valid(&I));
+            TEST_EQUAL(mbedtls_mpi_cmp_mpi(&I, &exp_I), 0);
+        }
+    }
+
+    /* Test pointer aliasing where &G == &N. This should fail. */
+    TEST_EQUAL(mbedtls_test_read_mpi(&G, input_N), 0);
+    res = mbedtls_mpi_gcd_modinv_odd(&G, &I, &A, /* N */ &G);
+    TEST_EQUAL(res, MBEDTLS_ERR_MPI_BAD_INPUT_DATA);
+
+    /* Test pointer aliasing where &I == &A. */
+    TEST_EQUAL(mbedtls_test_read_mpi(&I, input_A), 0);
+    res = mbedtls_mpi_gcd_modinv_odd(&G, &I, /* A */ &I, &N);
+    TEST_EQUAL(res, return_code);
+    if (res == 0) {
+        TEST_ASSERT(sign_is_valid(&G));
+        TEST_EQUAL(mbedtls_mpi_cmp_mpi(&G, &exp_G), 0);
+        if (has_inverse) {
+            TEST_ASSERT(sign_is_valid(&I));
+            TEST_EQUAL(mbedtls_mpi_cmp_mpi(&I, &exp_I), 0);
+        }
+    }
+
+    /* Test pointer aliasing where &I == &N. This should fail. */
+    TEST_EQUAL(mbedtls_test_read_mpi(&I, input_N), 0);
+    res = mbedtls_mpi_gcd_modinv_odd(&G, &I, &A, /* N */ &I);
+    TEST_EQUAL(res, MBEDTLS_ERR_MPI_BAD_INPUT_DATA);
+
+    /* Test pointer aliasing where &A == &N. This should fail. */
+    res = mbedtls_mpi_gcd_modinv_odd(&G, &I, &A, /* N */ &A);
+    TEST_EQUAL(res, MBEDTLS_ERR_MPI_BAD_INPUT_DATA);
+
+    /* Test G & I initialized to a number with more limbs than N. */
+    if (N.n > 0) {
+        TEST_EQUAL(mbedtls_mpi_grow(&G, N.n * 2), 0);
+        memset(G.p, 0x2d, G.n * sizeof(mbedtls_mpi_uint));
+        TEST_EQUAL(mbedtls_mpi_grow(&I, N.n * 2), 0);
+        memset(I.p, 0x2f, I.n * sizeof(mbedtls_mpi_uint));
+        res = mbedtls_mpi_gcd_modinv_odd(&G, &I, &A, &N);
+        TEST_EQUAL(res, return_code);
+        if (res == 0) {
+            TEST_ASSERT(sign_is_valid(&G));
+            TEST_EQUAL(mbedtls_mpi_cmp_mpi(&G, &exp_G), 0);
+            if (has_inverse) {
+                TEST_ASSERT(sign_is_valid(&I));
+                TEST_EQUAL(mbedtls_mpi_cmp_mpi(&I, &exp_I), 0);
+            }
+        }
+    }
+
+exit:
+    mbedtls_mpi_free(&G); mbedtls_mpi_free(&I); mbedtls_mpi_free(&A); mbedtls_mpi_free(&N);
+    mbedtls_mpi_free(&exp_G); mbedtls_mpi_free(&exp_I);
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void mpi_gcd_modinv_odd_only_gcd(char *input_A, char *input_N,
+                                 char *result_G, int return_code)
+{
+    mbedtls_mpi G, A, N, exp_G;
+    int res;
+    mbedtls_mpi_init(&G); mbedtls_mpi_init(&A); mbedtls_mpi_init(&N);
+    mbedtls_mpi_init(&exp_G);
+    TEST_EQUAL(mbedtls_test_read_mpi(&A, input_A), 0);
+    TEST_EQUAL(mbedtls_test_read_mpi(&N, input_N), 0);
+    TEST_EQUAL(mbedtls_test_read_mpi(&exp_G, result_G), 0);
+
+    res = mbedtls_mpi_gcd_modinv_odd(&G, NULL, &A, &N);
+    TEST_EQUAL(res, return_code);
+    if (res == 0) {
+        TEST_ASSERT(sign_is_valid(&G));
+        TEST_EQUAL(mbedtls_mpi_cmp_mpi(&G, &exp_G), 0);
+    }
+
+    /* Test pointer aliasing where &G == &A. */
+    TEST_EQUAL(mbedtls_test_read_mpi(&G, input_A), 0);
+    res = mbedtls_mpi_gcd_modinv_odd(&G, NULL, /* A */ &G, &N);
+    TEST_EQUAL(res, return_code);
+    if (res == 0) {
+        TEST_ASSERT(sign_is_valid(&G));
+        TEST_EQUAL(mbedtls_mpi_cmp_mpi(&G, &exp_G), 0);
+    }
+
+    /* Test pointer aliasing where &G == &N. */
+    TEST_EQUAL(mbedtls_test_read_mpi(&G, input_N), 0);
+    res = mbedtls_mpi_gcd_modinv_odd(&G, NULL, &A, /* N */ &G);
+    TEST_EQUAL(res, return_code);
+    if (res == 0) {
+        TEST_ASSERT(sign_is_valid(&G));
+        TEST_EQUAL(mbedtls_mpi_cmp_mpi(&G, &exp_G), 0);
+    }
+
+    /* Test pointer aliasing where &A == &N. This should fail. */
+    res = mbedtls_mpi_gcd_modinv_odd(&G, NULL, &A, /* N */ &A);
+    TEST_EQUAL(res, MBEDTLS_ERR_MPI_BAD_INPUT_DATA);
+
+    /* Test G initialized to a number with more limbs than N. */
+    if (N.n > 0) {
+        TEST_EQUAL(mbedtls_mpi_grow(&G, N.n * 2), 0);
+        memset(G.p, 0x2b, G.n * sizeof(mbedtls_mpi_uint));
+        res = mbedtls_mpi_gcd_modinv_odd(&G, NULL, &A, &N);
+        TEST_EQUAL(res, return_code);
+        if (res == 0) {
+            TEST_ASSERT(sign_is_valid(&G));
+            TEST_EQUAL(mbedtls_mpi_cmp_mpi(&G, &exp_G), 0);
+        }
+    }
+
+exit:
+    mbedtls_mpi_free(&G); mbedtls_mpi_free(&A); mbedtls_mpi_free(&N);
+    mbedtls_mpi_free(&exp_G);
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void mpi_gcd_modinv_odd_only_modinv(char *input_A, char *input_N,
+                                    char *result_I, int return_code)
+{
+    int has_inverse = strcmp(result_I, "no_inverse") ? 1 : 0;
+    mbedtls_mpi I, A, N, exp_I;
+    int res;
+    mbedtls_mpi_init(&I); mbedtls_mpi_init(&A); mbedtls_mpi_init(&N);
+    mbedtls_mpi_init(&exp_I);
+    TEST_EQUAL(mbedtls_test_read_mpi(&A, input_A), 0);
+    TEST_EQUAL(mbedtls_test_read_mpi(&N, input_N), 0);
+    /* If there is no inverse then the value returned in I will be
+     * indeterminate, and so not useful or possible to test. */
+    if (has_inverse) {
+        TEST_EQUAL(mbedtls_test_read_mpi(&exp_I, result_I), 0);
+    }
+
+    res = mbedtls_mpi_gcd_modinv_odd(NULL, &I, &A, &N);
+    TEST_EQUAL(res, return_code);
+    if (res == 0 && has_inverse) {
+        TEST_ASSERT(sign_is_valid(&I));
+        TEST_EQUAL(mbedtls_mpi_cmp_mpi(&I, &exp_I), 0);
+    }
+
+    /* Test pointer aliasing where &I == &A. */
+    TEST_EQUAL(mbedtls_test_read_mpi(&I, input_A), 0);
+    res = mbedtls_mpi_gcd_modinv_odd(NULL, &I, /* A */ &I, &N);
+    TEST_EQUAL(res, return_code);
+    if (res == 0 && has_inverse) {
+        TEST_ASSERT(sign_is_valid(&I));
+        TEST_EQUAL(mbedtls_mpi_cmp_mpi(&I, &exp_I), 0);
+    }
+
+    /* Test pointer aliasing where &I == &N. This should fail. */
+    TEST_EQUAL(mbedtls_test_read_mpi(&I, input_N), 0);
+    res = mbedtls_mpi_gcd_modinv_odd(NULL, &I, &A, /* N */ &I);
+    TEST_EQUAL(res, MBEDTLS_ERR_MPI_BAD_INPUT_DATA);
+
+    /* Test pointer aliasing where &A == &N. This should fail. */
+    res = mbedtls_mpi_gcd_modinv_odd(NULL, &I, &A, /* N */ &A);
+    TEST_EQUAL(res, MBEDTLS_ERR_MPI_BAD_INPUT_DATA);
+
+    /* Test I initialized to a number with more limbs than N. */
+    if (N.n > 0) {
+        TEST_EQUAL(mbedtls_mpi_grow(&I, N.n * 2), 0);
+        memset(I.p, 0x29, I.n * sizeof(mbedtls_mpi_uint));
+        res = mbedtls_mpi_gcd_modinv_odd(NULL, &I, &A, &N);
+        TEST_EQUAL(res, return_code);
+        if (res == 0 && has_inverse) {
+            TEST_ASSERT(sign_is_valid(&I));
+            TEST_EQUAL(mbedtls_mpi_cmp_mpi(&I, &exp_I), 0);
+        }
+    }
+
+exit:
+    mbedtls_mpi_free(&I); mbedtls_mpi_free(&A); mbedtls_mpi_free(&N);
+    mbedtls_mpi_free(&exp_I);
 }
 /* END_CASE */
 

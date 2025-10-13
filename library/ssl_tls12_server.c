@@ -2880,11 +2880,11 @@ curve_matching_done:
          * after the call to ssl_prepare_server_key_exchange.
          * ssl_write_server_key_exchange also takes care of incrementing
          * ssl->out_msglen. */
-        if ((ret = mbedtls_pk_sign_restartable(mbedtls_ssl_own_key(ssl),
-                                               md_alg, hash, hashlen,
-                                               ssl->out_msg + ssl->out_msglen + 2,
-                                               out_buf_len - ssl->out_msglen - 2,
-                                               signature_len, NULL)) != 0) {
+        if ((ret = mbedtls_pk_sign_ext((mbedtls_pk_sigalg_t) sig_alg, mbedtls_ssl_own_key(ssl),
+                                   md_alg, hash, hashlen,
+                                   ssl->out_msg + ssl->out_msglen + 2,
+                                   out_buf_len - ssl->out_msglen - 2,
+                                   signature_len)) != 0) {
             MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_pk_sign", ret);
             return ret;
         }
@@ -3456,9 +3456,9 @@ static int ssl_parse_certificate_verify(mbedtls_ssl_context *ssl)
         }
     }
 
-    if ((ret = mbedtls_pk_verify_restartable(peer_pk,
-                                             md_alg, hash_start, hashlen,
-                                             ssl->in_msg + i, sig_len, NULL)) != 0) {
+    if ((ret = mbedtls_pk_verify_ext((mbedtls_pk_sigalg_t) pk_alg, peer_pk,
+                                 md_alg, hash_start, hashlen,
+                                 ssl->in_msg + i, sig_len)) != 0) {
         MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_pk_verify", ret);
         return ret;
     }

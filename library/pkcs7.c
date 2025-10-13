@@ -704,9 +704,9 @@ static int mbedtls_pkcs7_data_or_hash_verify(mbedtls_pkcs7 *pkcs7,
      * failed to validate'.
      */
     for (signer = &pkcs7->signed_data.signers; signer; signer = signer->next) {
-        ret = mbedtls_pk_verify_restartable(&pk_cxt, md_alg, hash,
-                                            mbedtls_md_get_size(md_info),
-                                            signer->sig.p, signer->sig.len, NULL);
+        ret = mbedtls_pk_verify_ext(MBEDTLS_PK_SIGALG_RSA_PKCS1V15, &pk_cxt, md_alg, hash,
+                                mbedtls_md_get_size(md_info),
+                                signer->sig.p, signer->sig.len);
 
         if (ret == 0) {
             break;

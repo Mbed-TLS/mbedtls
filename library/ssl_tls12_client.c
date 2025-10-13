@@ -1995,7 +1995,7 @@ start_processing:
 
 #if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT)
         if (pk_alg == MBEDTLS_PK_RSASSA_PSS) {
-            ret = mbedtls_pk_verify_new(pk_alg, peer_pk,
+            ret = mbedtls_pk_verify_ext((mbedtls_pk_sigalg_t) pk_alg, peer_pk,
                                         md_alg, hash, hashlen,
                                         p, sig_len);
         } else

@@ -318,9 +318,6 @@ void x509_crt_check(char *subject_key_file, char *subject_pwd,
     unsigned char check_buf[5000];
     unsigned char *p, *end;
     unsigned char tag, sz;
-#if defined(MBEDTLS_TEST_DEPRECATED) && defined(MBEDTLS_BIGNUM_C)
-    mbedtls_mpi serial_mpi;
-#endif
     int ret, before_tag, after_tag;
     size_t olen = 0, pem_len = 0, buf_index = 0;
     int der_len = -1;
@@ -373,9 +370,6 @@ void x509_crt_check(char *subject_key_file, char *subject_pwd,
     }
 
     memset(&rnd_info, 0x2a, sizeof(mbedtls_test_rnd_pseudo_info));
-#if defined(MBEDTLS_TEST_DEPRECATED) && defined(MBEDTLS_BIGNUM_C)
-    mbedtls_mpi_init(&serial_mpi);
-#endif
 
     mbedtls_pk_init(&subject_key);
     mbedtls_pk_init(&issuer_key);
@@ -561,9 +555,6 @@ exit:
     mbedtls_pk_free(&issuer_key_alt);
     mbedtls_pk_free(&subject_key);
     mbedtls_pk_free(&issuer_key);
-#if defined(MBEDTLS_TEST_DEPRECATED) && defined(MBEDTLS_BIGNUM_C)
-    mbedtls_mpi_free(&serial_mpi);
-#endif
     psa_destroy_key(key_id);
     MD_OR_USE_PSA_DONE();
 }
@@ -575,11 +566,6 @@ void x509_set_serial_check()
     mbedtls_x509write_cert ctx;
     uint8_t invalid_serial[MBEDTLS_X509_RFC5280_MAX_SERIAL_LEN + 1];
 
-#if defined(MBEDTLS_TEST_DEPRECATED) && defined(MBEDTLS_BIGNUM_C)
-    mbedtls_mpi serial_mpi;
-    mbedtls_mpi_init(&serial_mpi);
-#endif
-
     USE_PSA_INIT();
     memset(invalid_serial, 0x01, sizeof(invalid_serial));
 
@@ -588,11 +574,7 @@ void x509_set_serial_check()
                MBEDTLS_ERR_X509_BAD_INPUT_DATA);
 
 exit:
-#if defined(MBEDTLS_TEST_DEPRECATED) && defined(MBEDTLS_BIGNUM_C)
-    mbedtls_mpi_free(&serial_mpi);
-#else
     ;
-#endif
     USE_PSA_DONE();
 }
 /* END_CASE */

@@ -775,11 +775,6 @@ struct mbedtls_ssl_handshake_params {
     uint16_t received_sig_algs[MBEDTLS_RECEIVED_SIG_ALGS_SIZE];
 #endif
 
-#if !defined(MBEDTLS_DEPRECATED_REMOVED)
-    const uint16_t *group_list;
-    const uint16_t *sig_algs;
-#endif
-
 #if defined(MBEDTLS_KEY_EXCHANGE_SOME_XXDH_PSA_ANY_ENABLED)
     psa_key_type_t xxdh_psa_type;
     size_t xxdh_psa_bits;
@@ -2306,12 +2301,6 @@ static inline const void *mbedtls_ssl_get_sig_algs(
 {
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
 
-#if !defined(MBEDTLS_DEPRECATED_REMOVED)
-    if (ssl->handshake != NULL &&
-        ssl->handshake->sig_algs != NULL) {
-        return ssl->handshake->sig_algs;
-    }
-#endif
     return ssl->conf->sig_algs;
 
 #else /* MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED */
@@ -2575,37 +2564,6 @@ psa_status_t mbedtls_ssl_cipher_to_psa(mbedtls_cipher_type_t mbedtls_cipher_type
                                        psa_algorithm_t *alg,
                                        psa_key_type_t *key_type,
                                        size_t *key_size);
-
-#if !defined(MBEDTLS_DEPRECATED_REMOVED)
-/**
- * \brief       Convert given PSA status to mbedtls error code.
- *
- * \param  status      [in] given PSA status
- *
- * \return             corresponding mbedtls error code
- */
-static inline MBEDTLS_DEPRECATED int psa_ssl_status_to_mbedtls(psa_status_t status)
-{
-    switch (status) {
-        case PSA_SUCCESS:
-            return 0;
-        case PSA_ERROR_INSUFFICIENT_MEMORY:
-            return MBEDTLS_ERR_SSL_ALLOC_FAILED;
-        case PSA_ERROR_NOT_SUPPORTED:
-            return MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE;
-        case PSA_ERROR_INVALID_SIGNATURE:
-            return MBEDTLS_ERR_SSL_INVALID_MAC;
-        case PSA_ERROR_INVALID_ARGUMENT:
-            return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
-        case PSA_ERROR_BAD_STATE:
-            return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
-        case PSA_ERROR_BUFFER_TOO_SMALL:
-            return MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL;
-        default:
-            return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
-    }
-}
-#endif /* !MBEDTLS_DEPRECATED_REMOVED */
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
 

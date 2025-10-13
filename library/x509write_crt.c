@@ -572,7 +572,7 @@ int mbedtls_x509write_crt_der(mbedtls_x509write_cert *ctx,
 
 
     if ((ret = mbedtls_pk_sign_ext((mbedtls_pk_sigalg_t) pk_alg, ctx->issuer_key, ctx->md_alg,
-                               hash, hash_length, sig, sizeof(sig), &sig_len)) != 0) {
+                                   hash, hash_length, sig, sizeof(sig), &sig_len)) != 0) {
         return ret;
     }
 

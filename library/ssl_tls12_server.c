@@ -2018,7 +2018,7 @@ static int ssl_write_hello_verify_request(mbedtls_ssl_context *ssl)
     mbedtls_ssl_handshake_set_state(ssl, MBEDTLS_SSL_SERVER_HELLO_VERIFY_REQUEST_SENT);
 
     if ((ret = mbedtls_ssl_write_handshake_msg_ext(ssl, 1, 1)) != 0) {
-        MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_write_handshake_msg", ret);
+        MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_write_handshake_msg_ext", ret);
         return ret;
     }
 
@@ -2885,7 +2885,7 @@ curve_matching_done:
                                    ssl->out_msg + ssl->out_msglen + 2,
                                    out_buf_len - ssl->out_msglen - 2,
                                    signature_len)) != 0) {
-            MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_pk_sign", ret);
+            MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_pk_sign_ext", ret);
             return ret;
         }
     }
@@ -2972,7 +2972,7 @@ static int ssl_write_server_key_exchange(mbedtls_ssl_context *ssl)
     mbedtls_ssl_handshake_increment_state(ssl);
 
     if ((ret = mbedtls_ssl_write_handshake_msg_ext(ssl, 1, 1)) != 0) {
-        MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_write_handshake_msg", ret);
+        MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_write_handshake_msg_ext", ret);
         return ret;
     }
 
@@ -3000,7 +3000,7 @@ static int ssl_write_server_hello_done(mbedtls_ssl_context *ssl)
 #endif
 
     if ((ret = mbedtls_ssl_write_handshake_msg_ext(ssl, 1, 1)) != 0) {
-        MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_write_handshake_msg", ret);
+        MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_write_handshake_msg_ext", ret);
         return ret;
     }
 
@@ -3459,7 +3459,7 @@ static int ssl_parse_certificate_verify(mbedtls_ssl_context *ssl)
     if ((ret = mbedtls_pk_verify_ext((mbedtls_pk_sigalg_t) pk_alg, peer_pk,
                                  md_alg, hash_start, hashlen,
                                  ssl->in_msg + i, sig_len)) != 0) {
-        MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_pk_verify", ret);
+        MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_pk_verify_ext", ret);
         return ret;
     }
 
@@ -3522,7 +3522,7 @@ static int ssl_write_new_session_ticket(mbedtls_ssl_context *ssl)
     ssl->handshake->new_session_ticket = 0;
 
     if ((ret = mbedtls_ssl_write_handshake_msg_ext(ssl, 1, 1)) != 0) {
-        MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_write_handshake_msg", ret);
+        MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_write_handshake_msg_ext", ret);
         return ret;
     }
 

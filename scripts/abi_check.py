@@ -108,6 +108,11 @@ from mbedtls_framework import build_tree
 class AbiChecker:
     """API and ABI checker."""
 
+    EXIT_CODE_SUCCESS = 0
+    EXIT_CODE_BIT_ABI_ERROR = 1
+    EXIT_CODE_BIT_INVALID_ARGUMENTS = 2  # Matches argparse's convention
+    EXIT_CODE_BIT_STORAGE_ERROR = 4
+
     def __init__(self, old_version, new_version, configuration):
         """Instantiate the API/ABI checker.
 
@@ -558,14 +563,14 @@ class AbiChecker:
             for mbed_module in shared_modules:
                 if not self._is_library_compatible(mbed_module,
                                                    compatibility_report):
-                    compliance_return_code = 1
+                    compliance_return_code |= self.EXIT_CODE_BIT_ABI_ERROR
 
         if self.check_storage_tests:
             if not self._is_storage_format_compatible(
                     self.old_version.storage_tests,
                     self.new_version.storage_tests,
                     compatibility_report):
-                compliance_return_code = 1
+                compliance_return_code |= self.EXIT_CODE_BIT_STORAGE_ERROR
 
         for version in [self.old_version, self.new_version]:
             for mbed_module, mbed_module_dump in version.abi_dumps.items():

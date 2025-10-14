@@ -663,8 +663,7 @@ def run_main():
         )
         abi_args = parser.parse_args()
         if os.path.isfile(abi_args.report_dir):
-            print("Error: {} is not a directory".format(abi_args.report_dir))
-            parser.exit()
+            parser.error("{} is not a directory".format(abi_args.report_dir))
         old_version = SimpleNamespace(
             version="old",
             repository=abi_args.old_repo,

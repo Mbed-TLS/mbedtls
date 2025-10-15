@@ -690,6 +690,26 @@ union mbedtls_ssl_premaster_secret {
 #define MBEDTLS_SSL_KEEP_RANDBYTES
 #endif
 
+/* cipher.h exports the maximum IV, key and block length from
+ * all ciphers enabled in the config, regardless of whether those
+ * ciphers are actually usable in SSL/TLS. Notably, XTS is enabled
+ * in the default configuration and uses 64 Byte keys, but it is
+ * not used for record protection in SSL/TLS.
+ *
+ * In order to prevent unnecessary inflation of key structures,
+ * we introduce SSL-specific variants of the max-{key,block,IV}
+ * macros here which are meant to only take those ciphers into
+ * account which can be negotiated in SSL/TLS.
+ *
+ * Since the current definitions of MBEDTLS_MAX_{KEY|BLOCK|IV}_LENGTH
+ * in cipher.h are rough overapproximations of the real maxima, here
+ * we content ourselves with replicating those overapproximations
+ * for the maximum block and IV length, and excluding XTS from the
+ * computation of the maximum key length. */
+#define MBEDTLS_SSL_MAX_BLOCK_LENGTH 16
+#define MBEDTLS_SSL_MAX_IV_LENGTH    16
+#define MBEDTLS_SSL_MAX_KEY_LENGTH   32
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -860,6 +880,7 @@ typedef int mbedtls_ssl_get_timer_t(void *ctx);
 typedef struct mbedtls_ssl_session mbedtls_ssl_session;
 typedef struct mbedtls_ssl_context mbedtls_ssl_context;
 typedef struct mbedtls_ssl_config  mbedtls_ssl_config;
+typedef struct mbedtls_ssl_key_set mbedtls_ssl_key_set;
 
 /* Defined in library/ssl_misc.h */
 typedef struct mbedtls_ssl_transform mbedtls_ssl_transform;
@@ -1848,6 +1869,31 @@ struct mbedtls_ssl_context {
      *          does not currently restore the user data.
      */
     mbedtls_ssl_user_data_t MBEDTLS_PRIVATE(user_data);
+};
+
+/**
+ * \brief   The data structure holding the cryptographic material
+ *          (key and IV) used for record protection in TLS.
+ */
+struct mbedtls_ssl_key_set
+{
+    /*! The key for client-to-server records. */
+    unsigned char client_write_key[MBEDTLS_SSL_MAX_KEY_LENGTH];
+
+    /*! The key for server-to-client records. */
+    unsigned char server_write_key[MBEDTLS_SSL_MAX_KEY_LENGTH];
+
+    /*! The IV  for client-to-server records. */
+    unsigned char client_write_iv[MBEDTLS_SSL_MAX_IV_LENGTH];
+
+    /*! The IV  for server-to-client records. */
+    unsigned char server_write_iv[MBEDTLS_SSL_MAX_IV_LENGTH];
+
+    /*! The key length, in bytes. */
+    size_t key_len;
+
+    /*! The IV length, in bytes. */
+    size_t iv_len;
 };
 
 /**

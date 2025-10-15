@@ -9,6 +9,9 @@ This subdirectory mostly contains sample programs that illustrate specific featu
 
 * [`ssl/dtls_server.c`](ssl/dtls_server.c): a simple DTLS server program, which expects one datagram from the client and writes one datagram in response. This program supports DTLS cookies for hello verification.
 
+* [`ssl/ktls.c`](ssl/ktls.c): a demonstration of Kernel TLS (KTLS) integration.
+This program shows how to export TLS traffic keys from Mbed TLS and configure Kernel TLS for both transmit and receive paths, enabling zero-copy encryption and decryption at the kernel level.
+
 * [`ssl/mini_client.c`](ssl/mini_client.c): a minimalistic SSL client, which sends a short string and disconnects. This is primarily intended as a benchmark; for a better example of a typical TLS client, see `ssl/ssl_client1.c`.
 
 * [`ssl/ssl_client1.c`](ssl/ssl_client1.c): a simple HTTPS client that sends a fixed request and displays the response.

@@ -9,6 +9,7 @@ hash/md5sum
 hash/sha1sum
 hash/sha2sum
 ssl/dtls_client
+ssl/ktls
 ssl/dtls_server
 ssl/mini_client
 ssl/ssl_client1

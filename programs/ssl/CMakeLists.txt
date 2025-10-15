@@ -7,6 +7,7 @@ set(libs
 set(executables
     dtls_client
     dtls_server
+    ktls
     mini_client
     ssl_client1
     ssl_client2

@@ -5477,6 +5477,38 @@ int mbedtls_ssl_export_traffic_keys(const mbedtls_ssl_context *ssl,
                                     size_t secret_len,
                                     const unsigned char *randbytes,
                                     mbedtls_tls_prf_types tls_prf_type);
+
+/**
+ * \brief Retrieve the current inbound and outbound sequence numbers.
+ *
+ * This function provides direct access to the current record-layer
+ * sequence numbers for both inbound and outbound traffic. These
+ * sequence numbers are used in AEAD ciphers to compute the per-record
+ * nonce or implicit IV during encryption and decryption.
+ *
+ * \note              This function does **not** copy or modify any
+ *                    state; it only exposes internal pointers. The
+ *                    returned pointers are owned by the SSL context
+ *                    and remain valid as long as the context itself
+ *                    remains valid.
+ *
+ * \warning           The sequence numbers are internal to the TLS
+ *                    record layer. Modifying their contents directly
+ *                    will corrupt the session state and may result
+ *                    in data loss or connection failure. They are
+ *                    intended for read-only use (for example, to
+ *                    compute nonces when implementing custom KTLS
+ *                    send/recv paths).
+ *
+ * \param  ssl        [in] The SSL context.
+ * \param in_seq      [out] The address of a pointer to receive the inbound
+ *                    sequence number.
+ * \param out_seq     [out] The address of a pointer to receive the outbound
+ *                    sequence number.
+ */
+void mbedtls_ssl_get_sequence_numbers(const mbedtls_ssl_context *ssl,
+                                      const unsigned char **in_seq,
+                                      const unsigned char **out_seq);
 #ifdef __cplusplus
 }
 #endif

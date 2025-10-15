@@ -9144,6 +9144,17 @@ int mbedtls_ssl_export_traffic_keys(const mbedtls_ssl_context *ssl,
     return MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE;
 }
 
+/**
+ * \brief Retrieve the current inbound and outbound sequence numbers.
+ */
+inline void mbedtls_ssl_get_sequence_numbers(const mbedtls_ssl_context *ssl,
+                                             const unsigned char **in,
+                                             const unsigned char **out)
+{
+    *in  = ssl->in_ctr;
+    *out = ssl->cur_out_ctr;
+}
+
 #endif /* defined(MBEDTLS_SSL_KEYING_MATERIAL_EXPORT) */
 
 #endif /* MBEDTLS_SSL_TLS_C */

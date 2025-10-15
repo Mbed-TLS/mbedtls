@@ -1,3 +1,0 @@
-Removals
-   * Removed all public key sample programs from the programs/pkey
-     directory.

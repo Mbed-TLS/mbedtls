@@ -1,3 +1,0 @@
-Bugfix
-   * Fix potential CMake parallel build failure when building both the static
-     and shared libraries.

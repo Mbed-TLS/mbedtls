@@ -5405,6 +5405,78 @@ int mbedtls_ssl_export_keying_material(mbedtls_ssl_context *ssl,
                                        const unsigned char *context, const size_t context_len,
                                        const int use_context);
 #endif
+
+/**
+ * \brief Derive and export traffic keys and IVs for custom record-layer
+ *        handling.
+ *
+ * This function derives the symmetric traffic keys and initialization
+ * vectors (IVs) for both client and server sides, based on the TLS
+ * protocol version, negotiated ciphersuite, and provided secrets.
+ * Its primary purpose is to expose the keying material required to
+ * configure the Linux Kernel TLS (KTLS) interface, enabling zero-copy
+ * send/receive operations and kernel-level encryption.
+ *
+ * While it supports both TLS 1.2 and TLS 1.3, it is intended primarily
+ * for environments where TLS session state must be shared with the
+ * operating system, offloaded to a network stack, or used by a custom
+ * transport layer.
+ *
+ * \param      ssl          [in]  The SSL context.
+ * \param      keys         [out] The key set structure to be filled with
+ *                                the derived traffic keys and IVs.
+ * \param      cipher_type  [out] The selected cipher type.
+ * \param      secret       [in]  The input secret buffer.
+ * \param      secret_len   [in]  The length of the secret buffer.
+ * \param      randbytes    [in]  The concatenated client/server randoms
+ *                                (64 bytes total for TLS 1.2).
+ * \param      tls_prf_type [in]  The TLS PRF algorithm type to use for key
+ *                                derivation.
+ *
+ * \note              **TLS 1.2 Random Ordering:**
+ *                    The PRF derivation in TLS 1.2 requires both
+ *                    random values. In this implementation, they are
+ *                    concatenated as \c server_random ||
+ *                    client_random when passed to the exporter. The
+ *                    endpoint’s role (client or server) does not
+ *                    affect this order.
+ *
+ * \note              **TLS 1.3 Traffic Secret Ordering:**
+ *                    TLS 1.3 does not use client/server randoms for
+ *                    key derivation. Instead, the exporter receives
+ *                    two distinct secrets — the client and server
+ *                    application traffic secrets — which are
+ *                    concatenated as \c client_secret ||
+ *                    server_secret to derive the traffic keys. This
+ *                    concatenation ensures consistent key derivation
+ *                    regardless of endpoint role, matching the
+ *                    behavior expected by KTLS. The total secret
+ *                    length is the sum of both client and server
+ *                    traffic secret lengths.
+ *
+ * \note              For AEAD ciphers in TLS 1.2, only the static IV
+ *                    is derived here. The per-record nonce must later
+ *                    be computed by combining the static IV with the
+ *                    record sequence number, as performed internally
+ *                    by AEAD modes.
+ *
+ * \warning           The derived traffic keys and IVs are highly
+ *                    sensitive material. It is the caller’s
+ *                    responsibility to securely erase (\c zeroize)
+ *                    the contents of the \p keys structure once the
+ *                    keys are no longer needed.
+ *
+ * \return            \c 0 if successful.
+ * \return            An \c MBEDTLS_ERR_SSL_XXX error code on failure.
+ */
+
+int mbedtls_ssl_export_traffic_keys(const mbedtls_ssl_context *ssl,
+                                    struct mbedtls_ssl_key_set *keys,
+                                    mbedtls_cipher_type_t *cipher_type,
+                                    const unsigned char *secret,
+                                    size_t secret_len,
+                                    const unsigned char *randbytes,
+                                    mbedtls_tls_prf_types tls_prf_type);
 #ifdef __cplusplus
 }
 #endif

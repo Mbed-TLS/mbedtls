@@ -1,0 +1,20 @@
+Features
+   * Added `mbedtls_ssl_export_traffic_keys()` to derive and export traffic
+     keys and IVs for both TLS 1.2 and TLS 1.3 sessions. This enables
+     integration with Linux Kernel TLS (KTLS) by exposing the keying
+     material required for kernel-level record encryption and decryption.
+   * Added `mbedtls_ssl_get_sequence_numbers()` to retrieve the current
+     inbound and outbound record-layer sequence numbers, enabling
+     user-space KTLS implementations to construct per-record nonces.
+
+Changes
+   * Moved `struct mbedtls_ssl_key_set` to `ssl.h` to make it publicly
+     accessible for applications needing traffic key and IV information.
+   * Declared `ssl_tls13_get_cipher_key_info()` in `ssl_tls13_keys.h`
+     for use by external modules requiring cipher key and IV length
+     information.
+   * Added dedicated tests for `mbedtls_ssl_export_traffic_keys()`,
+     covering both TLS 1.2 and TLS 1.3 ciphersuites.
+   * Added a new `ssl/ktls.c` example demonstrating KTLS integration
+     with Mbed TLS, including traffic key export, sequence number
+     retrieval, and socket-level key installation.

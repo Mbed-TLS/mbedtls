@@ -33,9 +33,8 @@ extern "C" {
 #endif
 
 /* If the size of static key slots is not explicitly defined by the user, then
- * set it to the maximum between PSA_EXPORT_KEY_PAIR_OR_PUBLIC_MAX_SIZE,
- * PSA_CIPHER_MAX_KEY_LENGTH and PSA_MAC_MAX_SIZE.
- * See mbedtls_config.h for the definition. */
+ * try to guess it based on some of the most common the key types enabled in the build.
+ * See mbedtls_config.h for the definition of MBEDTLS_PSA_STATIC_KEY_SLOT_BUFFER_SIZE. */
 #if !defined(MBEDTLS_PSA_STATIC_KEY_SLOT_BUFFER_SIZE)
 
 #define MBEDTLS_PSA_STATIC_KEY_SLOT_BUFFER_SIZE 1
@@ -45,6 +44,7 @@ extern "C" {
 #define MBEDTLS_PSA_STATIC_KEY_SLOT_BUFFER_SIZE PSA_EXPORT_KEY_PAIR_OR_PUBLIC_MAX_SIZE
 #endif
 
+/* This covers ciphers, AEADs and CMAC. */
 #if PSA_CIPHER_MAX_KEY_LENGTH > MBEDTLS_PSA_STATIC_KEY_SLOT_BUFFER_SIZE
 #undef MBEDTLS_PSA_STATIC_KEY_SLOT_BUFFER_SIZE
 #define MBEDTLS_PSA_STATIC_KEY_SLOT_BUFFER_SIZE PSA_CIPHER_MAX_KEY_LENGTH
@@ -52,19 +52,12 @@ extern "C" {
 
 /* For HMAC, it's typical but not mandatory to use a key size that is equal to
  * the hash size. */
-#if PSA_WANT_ALG_HMAC
+#if defined(PSA_WANT_ALG_HMAC)
 #if PSA_HASH_MAX_SIZE > MBEDTLS_PSA_STATIC_KEY_SLOT_BUFFER_SIZE
 #undef MBEDTLS_PSA_STATIC_KEY_SLOT_BUFFER_SIZE
 #define MBEDTLS_PSA_STATIC_KEY_SLOT_BUFFER_SIZE PSA_HASH_MAX_SIZE
 #endif
 #endif /* PSA_WANT_ALG_HMAC */
-
-#if PSA_WANT_ALG_CMAC
-#if PSA_CIPHER_MAX_KEY_LENGTH > MBEDTLS_PSA_STATIC_KEY_SLOT_BUFFER_SIZE
-#undef MBEDTLS_PSA_STATIC_KEY_SLOT_BUFFER_SIZE
-#define MBEDTLS_PSA_STATIC_KEY_SLOT_BUFFER_SIZE PSA_CIPHER_MAX_KEY_LENGTH
-#endif
-#endif /* PSA_WANT_ALG_CMAC */
 
 #endif /* !MBEDTLS_PSA_STATIC_KEY_SLOT_BUFFER_SIZE*/
 

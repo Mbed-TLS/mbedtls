@@ -1,0 +1,4 @@
+Features
+   * The automatic computation of MBEDTLS_PSA_STATIC_KEY_SLOT_BUFFER_SIZE has
+     been improved to take into account the following key types:
+     asymmetric keys, ciphers, AEADs, CMAC and HMAC.

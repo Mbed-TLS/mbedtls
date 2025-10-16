@@ -1,0 +1,6 @@
+Bugfix
+   * Fix a problem in library/alignment.h where the Zephyr Project use
+     a pre-defined macro '__packed' which collides with the IAR keyword
+     '__packed', causing the typedefs of unaligned types to remain aligned.
+     Fixes mbedtls issue #10334
+

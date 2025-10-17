@@ -8998,6 +8998,163 @@ int mbedtls_ssl_export_keying_material(mbedtls_ssl_context *ssl,
     }
 }
 
+/**
+ * \brief Derive and export traffic keys and IVs for custom record-layer handling.
+ */
+int mbedtls_ssl_export_traffic_keys(const mbedtls_ssl_context *ssl,
+                                    struct mbedtls_ssl_key_set *keys,
+                                    mbedtls_cipher_type_t *cipher_type,
+                                    const unsigned char *secret,
+                                    size_t secret_len,
+                                    const unsigned char *randbytes,
+                                    mbedtls_tls_prf_types tls_prf_type)
+{
+    /* During handshake callback only 'session_negotiate' is valid.
+       After mbedtls_ssl_handshake() completes, 'session' becomes active. */
+    const mbedtls_ssl_session *session = ssl->session_negotiate ? ssl->session_negotiate : ssl->session;
+
+    if (session == NULL) {
+        return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
+    }
+
+    const int ciphersuite_id = mbedtls_ssl_session_get_ciphersuite_id(session);
+
+    if (ciphersuite_id == 0) {
+        return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
+    }
+
+    const mbedtls_ssl_ciphersuite_t *ciphersuite = mbedtls_ssl_ciphersuite_from_id(ciphersuite_id);
+
+    /* Map MbedTLS MAC type to PSA algorithm */
+    const psa_algorithm_t mac_alg = mbedtls_md_psa_alg_from_type((mbedtls_md_type_t)ciphersuite->mac);
+
+    if (mac_alg == PSA_ALG_NONE) {
+        MBEDTLS_SSL_DEBUG_MSG(1, ("mbedtls_md_psa_alg_from_type for %u not found", (unsigned)ciphersuite->mac));
+        return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
+    }
+
+    const mbedtls_ssl_protocol_version version_number = mbedtls_ssl_get_version_number(ssl);
+    psa_status_t                       status         = PSA_ERROR_CORRUPTION_DETECTED;
+
+    *cipher_type = (mbedtls_cipher_type_t)ciphersuite->cipher;
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
+    if (version_number == MBEDTLS_SSL_VERSION_TLS1_3) {
+        /* Determine key and IV lengths based on the ciphersuite */
+        status = ssl_tls13_get_cipher_key_info(ciphersuite, &keys->key_len, &keys->iv_len);
+
+        if (status == PSA_SUCCESS) {
+            const size_t         hash_len      = secret_len / 2;
+            const unsigned char *client_secret = secret;
+            const unsigned char *server_secret = secret + hash_len;
+
+            /* Derive TLS 1.3 traffic keys */
+            status = mbedtls_ssl_tls13_make_traffic_keys(mac_alg, client_secret, server_secret, hash_len, keys->key_len,
+                                                         keys->iv_len, keys);
+        }
+
+        return (status == PSA_SUCCESS) ? 0 : MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+    }
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
+    if (version_number == MBEDTLS_SSL_VERSION_TLS1_2) {
+        unsigned char   keyblk[256];
+        psa_key_type_t  key_type;
+        psa_algorithm_t alg;
+
+        /* Resolve cipher properties to PSA equivalents */
+        status = mbedtls_ssl_cipher_to_psa((mbedtls_cipher_type_t)ciphersuite->cipher,
+                                           ciphersuite->flags & MBEDTLS_CIPHERSUITE_SHORT_TAG ? 8 : 16, &alg, &key_type,
+                                           &keys->key_len);
+
+        if (status == PSA_SUCCESS) {
+            /* Get cipher mode */
+            const mbedtls_ssl_mode_t ssl_mode = mbedtls_ssl_get_mode_from_ciphersuite(
+#if defined(MBEDTLS_SSL_SOME_SUITES_USE_CBC_ETM)
+                session->encrypt_then_mac,
+#endif /* MBEDTLS_SSL_SOME_SUITES_USE_CBC_ETM */
+                ciphersuite);
+
+#if defined(MBEDTLS_SSL_HAVE_AEAD)
+            if (ssl_mode == MBEDTLS_SSL_MODE_AEAD) {
+                /*
+                 * AEAD ciphers require a fixed-size static IV; the full nonce is
+                 * formed later using the record sequence number.
+                 *
+                 * We deliberately export only the static portion of the IV here,
+                 * rather than constructing the full per-record nonce. The AEAD
+                 * record layer computes the final nonce dynamically using the
+                 * sequence number, ensuring uniqueness and preventing reuse.
+                 *
+                 * Embedding the full nonce at this stage would render the IV
+                 * values meaningless—since they could not be recomputed once the
+                 * sequence counter advances—and would deny the caller flexibility
+                 * to derive the nonce at any time.
+                 *
+                 * By exposing only the static IV, the user remains free to
+                 * calculate the final nonce as needed, typically by XORing or
+                 * concatenating the sequence number as defined in RFC 5116 and
+                 * RFC 8446 §5.3.
+                 */
+                keys->iv_len = (key_type == PSA_KEY_TYPE_CHACHA20) ? 12 : 4;
+            } else
+#endif /* MBEDTLS_SSL_HAVE_AEAD */
+
+#if defined(MBEDTLS_SSL_SOME_SUITES_USE_MAC)
+                if (ssl_mode == MBEDTLS_SSL_MODE_STREAM || ssl_mode == MBEDTLS_SSL_MODE_CBC ||
+                    ssl_mode == MBEDTLS_SSL_MODE_CBC_ETM) {
+                return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
+            } else
+#endif /* MBEDTLS_SSL_SOME_SUITES_USE_MAC */
+
+            {
+                MBEDTLS_SSL_DEBUG_MSG(1, ("should never happen"));
+                return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+            }
+
+            /* Expand master secret to key block */
+            status = mbedtls_ssl_tls_prf(tls_prf_type, secret, secret_len, "key expansion", randbytes, 64, keyblk,
+                                         sizeof(keyblk));
+
+            if (status == PSA_SUCCESS) {
+                keys->key_len = PSA_BITS_TO_BYTES(keys->key_len);
+
+                /* Partition expanded key block into secrets and IVs */
+                const unsigned char *key1 = keyblk;
+                const unsigned char *key2 = key1 + keys->key_len;
+                const unsigned char *iv1  = key2 + keys->key_len;
+                const unsigned char *iv2  = iv1 + keys->iv_len;
+
+                /* Copy derived values into output structure */
+                memcpy(keys->client_write_key, key1, keys->key_len);
+                memcpy(keys->server_write_key, key2, keys->key_len);
+                memcpy(keys->client_write_iv, iv1, keys->iv_len);
+                memcpy(keys->server_write_iv, iv2, keys->iv_len);
+            }
+
+            /* Clear sensitive material from stack */
+            mbedtls_platform_zeroize(keyblk, sizeof(keyblk));
+        }
+
+        return (status == PSA_SUCCESS) ? 0 : MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+    }
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
+
+    return MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE;
+}
+
+/**
+ * \brief Retrieve the current inbound and outbound sequence numbers.
+ */
+inline void mbedtls_ssl_get_sequence_numbers(const mbedtls_ssl_context *ssl,
+                                             const unsigned char **in,
+                                             const unsigned char **out)
+{
+    *in  = ssl->in_ctr;
+    *out = ssl->cur_out_ctr;
+}
+
 #endif /* defined(MBEDTLS_SSL_KEYING_MATERIAL_EXPORT) */
 
 #endif /* MBEDTLS_SSL_TLS_C */

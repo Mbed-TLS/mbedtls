@@ -690,6 +690,26 @@ union mbedtls_ssl_premaster_secret {
 #define MBEDTLS_SSL_KEEP_RANDBYTES
 #endif
 
+/* cipher.h exports the maximum IV, key and block length from
+ * all ciphers enabled in the config, regardless of whether those
+ * ciphers are actually usable in SSL/TLS. Notably, XTS is enabled
+ * in the default configuration and uses 64 Byte keys, but it is
+ * not used for record protection in SSL/TLS.
+ *
+ * In order to prevent unnecessary inflation of key structures,
+ * we introduce SSL-specific variants of the max-{key,block,IV}
+ * macros here which are meant to only take those ciphers into
+ * account which can be negotiated in SSL/TLS.
+ *
+ * Since the current definitions of MBEDTLS_MAX_{KEY|BLOCK|IV}_LENGTH
+ * in cipher.h are rough overapproximations of the real maxima, here
+ * we content ourselves with replicating those overapproximations
+ * for the maximum block and IV length, and excluding XTS from the
+ * computation of the maximum key length. */
+#define MBEDTLS_SSL_MAX_BLOCK_LENGTH 16
+#define MBEDTLS_SSL_MAX_IV_LENGTH    16
+#define MBEDTLS_SSL_MAX_KEY_LENGTH   32
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -860,6 +880,7 @@ typedef int mbedtls_ssl_get_timer_t(void *ctx);
 typedef struct mbedtls_ssl_session mbedtls_ssl_session;
 typedef struct mbedtls_ssl_context mbedtls_ssl_context;
 typedef struct mbedtls_ssl_config  mbedtls_ssl_config;
+typedef struct mbedtls_ssl_key_set mbedtls_ssl_key_set;
 
 /* Defined in library/ssl_misc.h */
 typedef struct mbedtls_ssl_transform mbedtls_ssl_transform;
@@ -1848,6 +1869,31 @@ struct mbedtls_ssl_context {
      *          does not currently restore the user data.
      */
     mbedtls_ssl_user_data_t MBEDTLS_PRIVATE(user_data);
+};
+
+/**
+ * \brief   The data structure holding the cryptographic material
+ *          (key and IV) used for record protection in TLS.
+ */
+struct mbedtls_ssl_key_set
+{
+    /*! The key for client-to-server records. */
+    unsigned char client_write_key[MBEDTLS_SSL_MAX_KEY_LENGTH];
+
+    /*! The key for server-to-client records. */
+    unsigned char server_write_key[MBEDTLS_SSL_MAX_KEY_LENGTH];
+
+    /*! The IV  for client-to-server records. */
+    unsigned char client_write_iv[MBEDTLS_SSL_MAX_IV_LENGTH];
+
+    /*! The IV  for server-to-client records. */
+    unsigned char server_write_iv[MBEDTLS_SSL_MAX_IV_LENGTH];
+
+    /*! The key length, in bytes. */
+    size_t key_len;
+
+    /*! The IV length, in bytes. */
+    size_t iv_len;
 };
 
 /**
@@ -5359,6 +5405,110 @@ int mbedtls_ssl_export_keying_material(mbedtls_ssl_context *ssl,
                                        const unsigned char *context, const size_t context_len,
                                        const int use_context);
 #endif
+
+/**
+ * \brief Derive and export traffic keys and IVs for custom record-layer
+ *        handling.
+ *
+ * This function derives the symmetric traffic keys and initialization
+ * vectors (IVs) for both client and server sides, based on the TLS
+ * protocol version, negotiated ciphersuite, and provided secrets.
+ * Its primary purpose is to expose the keying material required to
+ * configure the Linux Kernel TLS (KTLS) interface, enabling zero-copy
+ * send/receive operations and kernel-level encryption.
+ *
+ * While it supports both TLS 1.2 and TLS 1.3, it is intended primarily
+ * for environments where TLS session state must be shared with the
+ * operating system, offloaded to a network stack, or used by a custom
+ * transport layer.
+ *
+ * \param      ssl          [in]  The SSL context.
+ * \param      keys         [out] The key set structure to be filled with
+ *                                the derived traffic keys and IVs.
+ * \param      cipher_type  [out] The selected cipher type.
+ * \param      secret       [in]  The input secret buffer.
+ * \param      secret_len   [in]  The length of the secret buffer.
+ * \param      randbytes    [in]  The concatenated client/server randoms
+ *                                (64 bytes total for TLS 1.2).
+ * \param      tls_prf_type [in]  The TLS PRF algorithm type to use for key
+ *                                derivation.
+ *
+ * \note              **TLS 1.2 Random Ordering:**
+ *                    The PRF derivation in TLS 1.2 requires both
+ *                    random values. In this implementation, they are
+ *                    concatenated as \c server_random ||
+ *                    client_random when passed to the exporter. The
+ *                    endpoint’s role (client or server) does not
+ *                    affect this order.
+ *
+ * \note              **TLS 1.3 Traffic Secret Ordering:**
+ *                    TLS 1.3 does not use client/server randoms for
+ *                    key derivation. Instead, the exporter receives
+ *                    two distinct secrets — the client and server
+ *                    application traffic secrets — which are
+ *                    concatenated as \c client_secret ||
+ *                    server_secret to derive the traffic keys. This
+ *                    concatenation ensures consistent key derivation
+ *                    regardless of endpoint role, matching the
+ *                    behavior expected by KTLS. The total secret
+ *                    length is the sum of both client and server
+ *                    traffic secret lengths.
+ *
+ * \note              For AEAD ciphers in TLS 1.2, only the static IV
+ *                    is derived here. The per-record nonce must later
+ *                    be computed by combining the static IV with the
+ *                    record sequence number, as performed internally
+ *                    by AEAD modes.
+ *
+ * \warning           The derived traffic keys and IVs are highly
+ *                    sensitive material. It is the caller’s
+ *                    responsibility to securely erase (\c zeroize)
+ *                    the contents of the \p keys structure once the
+ *                    keys are no longer needed.
+ *
+ * \return            \c 0 if successful.
+ * \return            An \c MBEDTLS_ERR_SSL_XXX error code on failure.
+ */
+
+int mbedtls_ssl_export_traffic_keys(const mbedtls_ssl_context *ssl,
+                                    struct mbedtls_ssl_key_set *keys,
+                                    mbedtls_cipher_type_t *cipher_type,
+                                    const unsigned char *secret,
+                                    size_t secret_len,
+                                    const unsigned char *randbytes,
+                                    mbedtls_tls_prf_types tls_prf_type);
+
+/**
+ * \brief Retrieve the current inbound and outbound sequence numbers.
+ *
+ * This function provides direct access to the current record-layer
+ * sequence numbers for both inbound and outbound traffic. These
+ * sequence numbers are used in AEAD ciphers to compute the per-record
+ * nonce or implicit IV during encryption and decryption.
+ *
+ * \note              This function does **not** copy or modify any
+ *                    state; it only exposes internal pointers. The
+ *                    returned pointers are owned by the SSL context
+ *                    and remain valid as long as the context itself
+ *                    remains valid.
+ *
+ * \warning           The sequence numbers are internal to the TLS
+ *                    record layer. Modifying their contents directly
+ *                    will corrupt the session state and may result
+ *                    in data loss or connection failure. They are
+ *                    intended for read-only use (for example, to
+ *                    compute nonces when implementing custom KTLS
+ *                    send/recv paths).
+ *
+ * \param  ssl        [in] The SSL context.
+ * \param in_seq      [out] The address of a pointer to receive the inbound
+ *                    sequence number.
+ * \param out_seq     [out] The address of a pointer to receive the outbound
+ *                    sequence number.
+ */
+void mbedtls_ssl_get_sequence_numbers(const mbedtls_ssl_context *ssl,
+                                      const unsigned char **in_seq,
+                                      const unsigned char **out_seq);
 #ifdef __cplusplus
 }
 #endif

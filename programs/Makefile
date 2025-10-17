@@ -45,6 +45,7 @@ APPS = \
 	../tf-psa-crypto/programs/test/which_aes \
 	ssl/dtls_client \
 	ssl/dtls_server \
+	ssl/ktls \
 	ssl/mini_client \
 	ssl/ssl_client1 \
 	ssl/ssl_client2 \
@@ -166,6 +167,10 @@ ssl/dtls_client$(EXEXT): ssl/dtls_client.c $(DEP)
 ssl/dtls_server$(EXEXT): ssl/dtls_server.c $(DEP)
 	echo "  CC    ssl/dtls_server.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) ssl/dtls_server.c  $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+
+ssl/ktls$(EXEXT): ssl/ktls.c $(DEP)
+	echo "  CC    ssl/ktls.c"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) ssl/ktls.c  $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 ssl/ssl_client1$(EXEXT): ssl/ssl_client1.c $(DEP)
 	echo "  CC    ssl/ssl_client1.c"

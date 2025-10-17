@@ -5936,3 +5936,426 @@ exit:
     MD_OR_USE_PSA_DONE();
 }
 /* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_2 */
+void test_export_traffic_keys_tls_1_2(void)
+{
+    mbedtls_ssl_key_set   key_set;
+    mbedtls_ssl_context   ssl;
+    mbedtls_cipher_type_t cipher_type;
+    mbedtls_ssl_session   session;
+
+    USE_PSA_INIT();
+
+    mbedtls_ssl_init(&ssl);
+    mbedtls_ssl_session_init(&session);
+    ssl.session     = &session;
+    ssl.tls_version = MBEDTLS_SSL_VERSION_TLS1_2;
+
+    {
+        session.ciphersuite = MBEDTLS_TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256;
+
+        const mbedtls_tls_prf_types tls_prf_type = MBEDTLS_SSL_TLS_PRF_SHA256;
+
+        const size_t                secret_len           = 48;
+        const size_t                expected_key_len     = 32;
+        const size_t                expected_iv_len      = 12;
+        const mbedtls_cipher_type_t expected_cipher_type = MBEDTLS_CIPHER_CHACHA20_POLY1305;
+        cipher_type                                      = MBEDTLS_CIPHER_NONE;
+
+        const unsigned char secret[] = {112, 105, 147, 201, 72,  76,  51,  251, 243, 159, 11,  141, 137, 105, 63,  66,
+                                        135, 32,  111, 39,  93,  51,  231, 175, 12,  155, 63,  30,  54,  246, 102, 86,
+                                        30,  16,  157, 169, 236, 254, 71,  35,  50,  184, 175, 91,  119, 18,  106, 163};
+
+        const unsigned char randbytes[] = {
+            104, 239, 9,   103, 120, 47,  166, 196, 243, 146, 16,  174, 29, 142, 152, 164, 214, 88,  192, 9,   111, 8,
+            119, 97,  68,  79,  87,  78,  71,  82,  68,  1,   104, 239, 9,  103, 245, 80,  118, 222, 167, 210, 56,  238,
+            165, 66,  111, 113, 226, 111, 19,  1,   197, 145, 183, 203, 3,  50,  71,  5,   87,  235, 29,  249};
+
+        const unsigned char expected_server_key[] = {40,  9,   95,  97,  133, 89,  235, 94,  76,  94,  185,
+                                                     113, 228, 214, 113, 187, 196, 211, 184, 131, 227, 129,
+                                                     168, 159, 69,  237, 2,   99,  191, 220, 120, 106};
+        const unsigned char expected_client_key[] = {244, 235, 99,  119, 220, 51,  164, 111, 180, 170, 192,
+                                                     38,  167, 183, 172, 6,   50,  21,  151, 24,  154, 157,
+                                                     91,  46,  6,   252, 208, 118, 209, 116, 201, 31};
+        const unsigned char expected_server_iv[]  = {239, 17, 62, 69, 149, 174, 93, 34, 137, 193, 156, 233};
+        const unsigned char expected_client_iv[]  = {35, 2, 194, 106, 200, 254, 191, 158, 109, 99, 208, 77};
+
+        memset(&key_set, 0, sizeof(key_set));
+        int ret =
+            mbedtls_ssl_export_traffic_keys(&ssl, &key_set, &cipher_type, secret, secret_len, randbytes, tls_prf_type);
+
+        TEST_EQUAL(ret, 0);
+        TEST_EQUAL(cipher_type, expected_cipher_type);
+
+        TEST_MEMORY_COMPARE(key_set.server_write_key, key_set.key_len, expected_server_key, expected_key_len);
+        TEST_MEMORY_COMPARE(key_set.client_write_key, key_set.key_len, expected_client_key, expected_key_len);
+        TEST_MEMORY_COMPARE(key_set.server_write_iv, key_set.iv_len, expected_server_iv, expected_iv_len);
+        TEST_MEMORY_COMPARE(key_set.client_write_iv, key_set.iv_len, expected_client_iv, expected_iv_len);
+    }
+
+    {
+        session.ciphersuite = MBEDTLS_TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384;
+
+        const mbedtls_tls_prf_types tls_prf_type = MBEDTLS_SSL_TLS_PRF_SHA384;
+
+        const size_t                secret_len           = 48;
+        const size_t                expected_key_len     = 32;
+        const size_t                expected_iv_len      = 4;
+        const mbedtls_cipher_type_t expected_cipher_type = MBEDTLS_CIPHER_AES_256_GCM;
+        cipher_type                                      = MBEDTLS_CIPHER_NONE;
+
+        const unsigned char secret[] = {251, 193, 91,  147, 255, 124, 205, 53, 107, 173, 153, 78, 233, 183, 226, 87,
+                                        116, 66,  133, 152, 35,  34,  29,  31, 104, 29,  225, 97, 127, 70,  72,  70,
+                                        80,  155, 42,  96,  78,  168, 69,  9,  85,  106, 128, 33, 45,  224, 117, 223};
+
+        const unsigned char randbytes[] = {
+            104, 239, 9,   103, 28, 36, 104, 0,   181, 107, 60,  199, 125, 85,  64,  247, 126, 52,  81,  51,  170, 156,
+            166, 206, 68,  79,  87, 78, 71,  82,  68,  1,   104, 239, 9,   103, 172, 177, 26,  145, 104, 177, 153, 102,
+            195, 101, 135, 232, 42, 31, 144, 180, 251, 210, 178, 75,  163, 108, 10,  35,  102, 89,  246, 28};
+
+        const unsigned char expected_server_key[] = {187, 234, 138, 103, 92,  215, 48, 78,  213, 5,  87,
+                                                     157, 77,  142, 28,  25,  165, 45, 176, 184, 38, 89,
+                                                     238, 112, 140, 204, 182, 50,  29, 21,  105, 240};
+        const unsigned char expected_client_key[] = {160, 87,  54, 140, 29,  15,  34,  175, 21,  113, 119,
+                                                     188, 102, 79, 123, 244, 225, 224, 90,  14,  70,  123,
+                                                     74,  221, 57, 0,   222, 6,   129, 1,   185, 176};
+        const unsigned char expected_server_iv[]  = {191, 60, 67, 216};
+        const unsigned char expected_client_iv[]  = {45, 136, 133, 56};
+
+        memset(&key_set, 0, sizeof(key_set));
+        int ret =
+            mbedtls_ssl_export_traffic_keys(&ssl, &key_set, &cipher_type, secret, secret_len, randbytes, tls_prf_type);
+
+        TEST_EQUAL(ret, 0);
+        TEST_EQUAL(cipher_type, expected_cipher_type);
+
+        TEST_MEMORY_COMPARE(key_set.server_write_key, key_set.key_len, expected_server_key, expected_key_len);
+        TEST_MEMORY_COMPARE(key_set.client_write_key, key_set.key_len, expected_client_key, expected_key_len);
+        TEST_MEMORY_COMPARE(key_set.server_write_iv, key_set.iv_len, expected_server_iv, expected_iv_len);
+        TEST_MEMORY_COMPARE(key_set.client_write_iv, key_set.iv_len, expected_client_iv, expected_iv_len);
+    }
+
+    {
+        session.ciphersuite = MBEDTLS_TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256;
+
+        const mbedtls_tls_prf_types tls_prf_type = MBEDTLS_SSL_TLS_PRF_SHA256;
+
+        const size_t                secret_len           = 48;
+        const size_t                expected_key_len     = 16;
+        const size_t                expected_iv_len      = 4;
+        const mbedtls_cipher_type_t expected_cipher_type = MBEDTLS_CIPHER_AES_128_GCM;
+        cipher_type                                      = MBEDTLS_CIPHER_NONE;
+
+        const unsigned char secret[] = {89,  44,  241, 155, 32,  36,  250, 23, 38,  180, 213, 178, 92,  111, 220, 61,
+                                        220, 140, 217, 41,  246, 242, 156, 63, 178, 179, 125, 17,  66,  77,  6,   44,
+                                        236, 187, 64,  112, 104, 201, 193, 24, 102, 70,  214, 4,   147, 22,  117, 67};
+
+        const unsigned char randbytes[] = {
+            104, 239, 9,   103, 119, 154, 211, 249, 69,  209, 69,  99,  63,  166, 91, 140, 44, 164, 180, 101, 235, 62,
+            117, 149, 68,  79,  87,  78,  71,  82,  68,  1,   104, 239, 9,   103, 11, 58,  87, 201, 5,   146, 9,   254,
+            66,  227, 211, 31,  173, 59,  99,  53,  168, 227, 72,  227, 178, 50,  63, 249, 43, 11,  185, 174};
+
+        const unsigned char expected_server_key[] = {59,  157, 119, 219, 174, 221, 254, 233,
+                                                     152, 149, 68,  26,  152, 50,  81,  50};
+        const unsigned char expected_client_key[] = {190, 227, 211, 111, 60,  91,  138, 45,
+                                                     16,  175, 143, 212, 113, 133, 92,  112};
+        const unsigned char expected_server_iv[]  = {154, 166, 99, 205};
+        const unsigned char expected_client_iv[]  = {100, 7, 246, 47};
+
+        memset(&key_set, 0, sizeof(key_set));
+        int ret =
+            mbedtls_ssl_export_traffic_keys(&ssl, &key_set, &cipher_type, secret, secret_len, randbytes, tls_prf_type);
+
+        TEST_EQUAL(ret, 0);
+        TEST_EQUAL(cipher_type, expected_cipher_type);
+
+        TEST_MEMORY_COMPARE(key_set.server_write_key, key_set.key_len, expected_server_key, expected_key_len);
+        TEST_MEMORY_COMPARE(key_set.client_write_key, key_set.key_len, expected_client_key, expected_key_len);
+        TEST_MEMORY_COMPARE(key_set.server_write_iv, key_set.iv_len, expected_server_iv, expected_iv_len);
+        TEST_MEMORY_COMPARE(key_set.client_write_iv, key_set.iv_len, expected_client_iv, expected_iv_len);
+    }
+
+    {
+        session.ciphersuite = MBEDTLS_TLS_ECDHE_ECDSA_WITH_AES_128_CCM;
+
+        const mbedtls_tls_prf_types tls_prf_type = MBEDTLS_SSL_TLS_PRF_SHA256;
+
+        const size_t                secret_len           = 48;
+        const size_t                expected_key_len     = 16;
+        const size_t                expected_iv_len      = 4;
+        const mbedtls_cipher_type_t expected_cipher_type = MBEDTLS_CIPHER_AES_128_CCM;
+        cipher_type                                      = MBEDTLS_CIPHER_NONE;
+
+        const unsigned char secret[] = {148, 184, 235, 179, 139, 197, 225, 85,  105, 30,  121, 1,   77,  204, 43,  38,
+                                        184, 194, 106, 71,  121, 247, 107, 215, 13,  206, 139, 96,  171, 84,  165, 28,
+                                        27,  57,  165, 33,  142, 20,  33,  92,  7,   177, 70,  102, 137, 193, 8,   246};
+
+        const unsigned char randbytes[] = {
+            104, 239, 9,  103, 52,  127, 204, 66, 196, 4,   201, 15,  22,  212, 148, 40,  8,  133, 244, 58,  220, 31,
+            116, 100, 68, 79,  87,  78,  71,  82, 68,  1,   104, 239, 9,   103, 63,  253, 82, 129, 88,  173, 235, 155,
+            21,  167, 14, 124, 162, 17,  179, 28, 185, 222, 236, 183, 153, 235, 56,  24,  77, 210, 216, 53};
+
+        const unsigned char expected_server_key[] = {140, 73, 197, 206, 4,  226, 237, 172,
+                                                     43,  70, 222, 162, 23, 216, 95,  92};
+        const unsigned char expected_client_key[] = {42, 15,  104, 95, 13,  76,  111, 16,
+                                                     33, 224, 240, 28, 245, 199, 176, 34};
+        const unsigned char expected_server_iv[]  = {211, 27, 99, 229};
+        const unsigned char expected_client_iv[]  = {63, 102, 139, 99};
+
+        memset(&key_set, 0, sizeof(key_set));
+        int ret =
+            mbedtls_ssl_export_traffic_keys(&ssl, &key_set, &cipher_type, secret, secret_len, randbytes, tls_prf_type);
+
+        TEST_EQUAL(ret, 0);
+        TEST_EQUAL(cipher_type, expected_cipher_type);
+
+        TEST_MEMORY_COMPARE(key_set.server_write_key, key_set.key_len, expected_server_key, expected_key_len);
+        TEST_MEMORY_COMPARE(key_set.client_write_key, key_set.key_len, expected_client_key, expected_key_len);
+        TEST_MEMORY_COMPARE(key_set.server_write_iv, key_set.iv_len, expected_server_iv, expected_iv_len);
+        TEST_MEMORY_COMPARE(key_set.client_write_iv, key_set.iv_len, expected_client_iv, expected_iv_len);
+    }
+
+    {
+        session.ciphersuite = MBEDTLS_TLS_ECDHE_ECDSA_WITH_ARIA_128_GCM_SHA256;
+
+        const mbedtls_tls_prf_types tls_prf_type = MBEDTLS_SSL_TLS_PRF_SHA256;
+
+        const size_t                secret_len           = 48;
+        const size_t                expected_key_len     = 16;
+        const size_t                expected_iv_len      = 4;
+        const mbedtls_cipher_type_t expected_cipher_type = MBEDTLS_CIPHER_ARIA_128_GCM;
+        cipher_type                                      = MBEDTLS_CIPHER_NONE;
+
+        const unsigned char secret[] = {86, 37,  122, 100, 241, 79,  116, 184, 224, 101, 78,  4,   172, 210, 75,  46,
+                                        20, 210, 199, 179, 227, 233, 69,  12,  92,  141, 98,  46,  122, 166, 146, 74,
+                                        2,  42,  62,  170, 128, 177, 111, 182, 235, 166, 190, 153, 158, 99,  119, 83};
+
+        const unsigned char randbytes[] = {
+            104, 239, 9,  103, 31,  203, 112, 250, 131, 133, 129, 241, 51,  54,  130, 152, 144, 70,  109, 83, 86,  91,
+            69,  97,  68, 79,  87,  78,  71,  82,  68,  1,   104, 239, 9,   103, 149, 234, 65,  6,   53,  79, 255, 218,
+            232, 131, 35, 218, 105, 138, 33,  159, 21,  2,   113, 197, 164, 46,  158, 4,   115, 218, 11,  50};
+
+        const unsigned char expected_server_key[] = {72,  133, 252, 88,  46, 115, 132, 96,
+                                                     140, 75,  252, 126, 40, 173, 42,  64};
+        const unsigned char expected_client_key[] = {189, 7,   251, 84,  185, 79,  134, 77,
+                                                     153, 199, 207, 152, 134, 219, 154, 148};
+        const unsigned char expected_server_iv[]  = {121, 212, 219, 209};
+        const unsigned char expected_client_iv[]  = {34, 252, 102, 234};
+
+        memset(&key_set, 0, sizeof(key_set));
+        int ret =
+            mbedtls_ssl_export_traffic_keys(&ssl, &key_set, &cipher_type, secret, secret_len, randbytes, tls_prf_type);
+
+        TEST_EQUAL(ret, 0);
+        TEST_EQUAL(cipher_type, expected_cipher_type);
+
+        TEST_MEMORY_COMPARE(key_set.server_write_key, key_set.key_len, expected_server_key, expected_key_len);
+        TEST_MEMORY_COMPARE(key_set.client_write_key, key_set.key_len, expected_client_key, expected_key_len);
+        TEST_MEMORY_COMPARE(key_set.server_write_iv, key_set.iv_len, expected_server_iv, expected_iv_len);
+        TEST_MEMORY_COMPARE(key_set.client_write_iv, key_set.iv_len, expected_client_iv, expected_iv_len);
+    }
+
+    {
+        session.ciphersuite = MBEDTLS_TLS_ECDHE_ECDSA_WITH_ARIA_256_GCM_SHA384;
+
+        const mbedtls_tls_prf_types tls_prf_type = MBEDTLS_SSL_TLS_PRF_SHA384;
+
+        const size_t                secret_len           = 48;
+        const size_t                expected_key_len     = 32;
+        const size_t                expected_iv_len      = 4;
+        const mbedtls_cipher_type_t expected_cipher_type = MBEDTLS_CIPHER_ARIA_256_GCM;
+        cipher_type                                      = MBEDTLS_CIPHER_NONE;
+
+        const unsigned char secret[] = {36,  196, 199, 74,  200, 173, 97, 178, 101, 51,  220, 252, 103, 65,  233, 161,
+                                        245, 6,   24,  242, 128, 109, 52, 253, 158, 90,  12,  170, 237, 254, 64,  2,
+                                        220, 229, 111, 241, 175, 147, 37, 119, 236, 217, 39,  224, 109, 233, 113, 222};
+
+        const unsigned char randbytes[] = {
+            104, 239, 9,   103, 215, 165, 117, 79, 67, 243, 200, 73,  90,  238, 105, 202, 30,  244, 196, 233, 157, 61,
+            128, 116, 68,  79,  87,  78,  71,  82, 68, 1,   104, 239, 9,   103, 17,  93,  139, 98,  199, 40,  192, 74,
+            5,   191, 201, 197, 21,  117, 36,  94, 36, 136, 168, 36,  239, 143, 165, 41,  74,  188, 170, 153};
+
+        const unsigned char expected_server_key[] = {154, 105, 11,  241, 40, 205, 112, 144, 119, 57,  251,
+                                                     148, 2,   77,  248, 32, 46,  194, 55,  1,   236, 223,
+                                                     141, 12,  105, 126, 23, 245, 206, 11,  89,  152};
+        const unsigned char expected_client_key[] = {27,  142, 24,  235, 130, 118, 136, 127, 77, 67, 51,
+                                                     167, 218, 221, 191, 169, 252, 116, 147, 22, 13, 17,
+                                                     105, 162, 87,  103, 126, 49,  13,  190, 42, 75};
+        const unsigned char expected_server_iv[]  = {222, 16, 98, 107};
+        const unsigned char expected_client_iv[]  = {250, 24, 34, 51};
+
+        memset(&key_set, 0, sizeof(key_set));
+        int ret =
+            mbedtls_ssl_export_traffic_keys(&ssl, &key_set, &cipher_type, secret, secret_len, randbytes, tls_prf_type);
+
+        TEST_EQUAL(ret, 0);
+        TEST_EQUAL(cipher_type, expected_cipher_type);
+
+        TEST_MEMORY_COMPARE(key_set.server_write_key, key_set.key_len, expected_server_key, expected_key_len);
+        TEST_MEMORY_COMPARE(key_set.client_write_key, key_set.key_len, expected_client_key, expected_key_len);
+        TEST_MEMORY_COMPARE(key_set.server_write_iv, key_set.iv_len, expected_server_iv, expected_iv_len);
+        TEST_MEMORY_COMPARE(key_set.client_write_iv, key_set.iv_len, expected_client_iv, expected_iv_len);
+    }
+
+    USE_PSA_DONE();
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_3 */
+void test_export_traffic_keys_tls_1_3(void)
+{
+    mbedtls_ssl_key_set   key_set;
+    mbedtls_ssl_context   ssl;
+    mbedtls_cipher_type_t cipher_type;
+    mbedtls_ssl_session   session;
+
+    USE_PSA_INIT();
+
+    mbedtls_ssl_init(&ssl);
+    mbedtls_ssl_session_init(&session);
+    ssl.tls_version     = MBEDTLS_SSL_VERSION_UNKNOWN;
+    session.ciphersuite = 0;
+
+    {
+        int ret =
+            mbedtls_ssl_export_traffic_keys(&ssl, &key_set, &cipher_type, NULL, 0, NULL, MBEDTLS_SSL_TLS_PRF_NONE);
+
+        TEST_EQUAL(ret, MBEDTLS_ERR_SSL_BAD_INPUT_DATA);
+    }
+
+    ssl.session = &session;
+
+    {
+        int ret =
+            mbedtls_ssl_export_traffic_keys(&ssl, &key_set, &cipher_type, NULL, 0, NULL, MBEDTLS_SSL_TLS_PRF_NONE);
+
+        TEST_EQUAL(ret, MBEDTLS_ERR_SSL_BAD_INPUT_DATA);
+    }
+
+    ssl.tls_version     = MBEDTLS_SSL_VERSION_TLS1_3;
+
+    {
+        session.ciphersuite = MBEDTLS_TLS1_3_CHACHA20_POLY1305_SHA256;
+
+        const mbedtls_tls_prf_types tls_prf_type = MBEDTLS_SSL_TLS_PRF_NONE;
+
+        const size_t                secret_len           = 64;
+        const size_t                expected_key_len     = 32;
+        const size_t                expected_iv_len      = 12;
+        const mbedtls_cipher_type_t expected_cipher_type = MBEDTLS_CIPHER_CHACHA20_POLY1305;
+        cipher_type                                      = MBEDTLS_CIPHER_NONE;
+
+        const unsigned char secret[] = {64,  59,  29,  110, 233, 21,  144, 215, 31,  179, 10,  13,  2,   7,   7,   20,
+                                        148, 116, 241, 175, 81,  133, 200, 76,  89,  64,  173, 115, 162, 188, 233, 17,
+                                        137, 27,  115, 91,  224, 158, 26,  244, 224, 64,  89,  10,  34,  164, 228, 193,
+                                        233, 63,  188, 102, 88,  27,  201, 56,  14,  166, 169, 195, 222, 158, 55,  214};
+
+        const unsigned char expected_server_key[] = {80,  196, 54,  28,  207, 197, 129, 204, 73,  59, 192,
+                                                     57,  203, 188, 214, 94,  102, 14,  59,  147, 88, 231,
+                                                     239, 147, 52,  172, 41,  214, 215, 165, 13,  85};
+        const unsigned char expected_client_key[] = {243, 91, 84,  253, 235, 197, 244, 52,  43,  55, 241,
+                                                     48,  42, 166, 87,  226, 64,  129, 237, 218, 28, 183,
+                                                     206, 61, 112, 180, 99,  174, 198, 117, 136, 97};
+        const unsigned char expected_server_iv[]  = {15, 33, 207, 101, 231, 168, 231, 86, 111, 131, 94, 115};
+        const unsigned char expected_client_iv[]  = {40, 211, 47, 221, 106, 219, 128, 102, 103, 108, 226, 18};
+
+        memset(&key_set, 0, sizeof(key_set));
+        int ret =
+            mbedtls_ssl_export_traffic_keys(&ssl, &key_set, &cipher_type, secret, secret_len, NULL, tls_prf_type);
+
+        TEST_EQUAL(ret, 0);
+        TEST_EQUAL(cipher_type, expected_cipher_type);
+
+        TEST_MEMORY_COMPARE(key_set.server_write_key, key_set.key_len, expected_server_key, expected_key_len);
+        TEST_MEMORY_COMPARE(key_set.client_write_key, key_set.key_len, expected_client_key, expected_key_len);
+        TEST_MEMORY_COMPARE(key_set.server_write_iv, key_set.iv_len, expected_server_iv, expected_iv_len);
+        TEST_MEMORY_COMPARE(key_set.client_write_iv, key_set.iv_len, expected_client_iv, expected_iv_len);
+    }
+
+    ssl.session = NULL;
+    ssl.session_negotiate = &session;
+
+    {
+        session.ciphersuite = MBEDTLS_TLS1_3_AES_256_GCM_SHA384;
+
+        const mbedtls_tls_prf_types tls_prf_type = MBEDTLS_SSL_TLS_PRF_NONE;
+
+        const size_t                secret_len           = 96;
+        const size_t                expected_key_len     = 32;
+        const size_t                expected_iv_len      = 12;
+        const mbedtls_cipher_type_t expected_cipher_type = MBEDTLS_CIPHER_AES_256_GCM;
+        cipher_type                                      = MBEDTLS_CIPHER_NONE;
+
+        const unsigned char secret[] = {242, 205, 244, 158, 158, 29,  5,   222, 62,  194, 124, 137, 89,  120, 66,  226,
+                                        50,  34,  202, 239, 155, 151, 228, 28,  198, 88,  252, 118, 183, 225, 233, 72,
+                                        83,  156, 63,  214, 3,   111, 21,  246, 147, 176, 255, 12,  186, 190, 102, 172,
+                                        9,   98,  80,  141, 3,   166, 85,  96,  53,  119, 176, 124, 154, 75,  216, 177,
+                                        86,  211, 0,   83,  8,   97,  77,  1,   76,  222, 52,  193, 79,  46,  118, 247,
+                                        247, 239, 70,  239, 42,  47,  232, 94,  228, 240, 220, 120, 218, 220, 29,  187};
+
+        const unsigned char expected_server_key[] = {7,   165, 59,  66,  12,  220, 88,  180, 207, 39, 225,
+                                                     181, 121, 222, 231, 151, 2,   172, 115, 242, 9,  96,
+                                                     106, 102, 66,  235, 47,  171, 157, 40,  47,  124};
+
+        const unsigned char expected_client_key[] = {
+            23, 182, 251, 20,  99, 82,  44,  161, 112, 8,   253, 193, 228, 168, 255, 193,
+            84, 59,  115, 216, 93, 179, 127, 27,  204, 144, 82,  204, 155, 234, 235, 108,
+        };
+
+        const unsigned char expected_server_iv[] = {86, 139, 138, 15, 83, 177, 206, 18, 20, 13, 153, 13};
+        const unsigned char expected_client_iv[] = {243, 54, 158, 185, 195, 5, 122, 11, 88, 198, 64, 243};
+
+        memset(&key_set, 0, sizeof(key_set));
+        int ret = mbedtls_ssl_export_traffic_keys(&ssl, &key_set, &cipher_type, secret, secret_len, NULL, tls_prf_type);
+
+        TEST_EQUAL(ret, 0);
+        TEST_EQUAL(cipher_type, expected_cipher_type);
+
+        TEST_MEMORY_COMPARE(key_set.server_write_key, key_set.key_len, expected_server_key, expected_key_len);
+        TEST_MEMORY_COMPARE(key_set.client_write_key, key_set.key_len, expected_client_key, expected_key_len);
+        TEST_MEMORY_COMPARE(key_set.server_write_iv, key_set.iv_len, expected_server_iv, expected_iv_len);
+        TEST_MEMORY_COMPARE(key_set.client_write_iv, key_set.iv_len, expected_client_iv, expected_iv_len);
+    }
+
+    {
+        session.ciphersuite = MBEDTLS_TLS1_3_AES_128_GCM_SHA256;
+
+        const mbedtls_tls_prf_types tls_prf_type = MBEDTLS_SSL_TLS_PRF_NONE;
+
+        const size_t                secret_len           = 64;
+        const size_t                expected_key_len     = 16;
+        const size_t                expected_iv_len      = 12;
+        const mbedtls_cipher_type_t expected_cipher_type = MBEDTLS_CIPHER_AES_128_GCM;
+        cipher_type                                      = MBEDTLS_CIPHER_NONE;
+
+        const unsigned char secret[] = {169, 134, 220, 49,  95,  239, 131, 244, 252, 139, 64,  149, 234, 235, 185, 82,
+                                        243, 88,  143, 141, 82,  28,  135, 18,  196, 250, 245, 163, 190, 116, 164, 188,
+                                        80,  55,  17,  171, 125, 249, 80,  241, 155, 158, 213, 116, 68,  153, 219, 94,
+                                        92,  172, 58,  113, 122, 162, 215, 135, 37,  49,  35,  255, 79,  8,   222, 40};
+
+        const unsigned char expected_server_key[] = {204, 178, 149, 146, 252, 156, 245, 94,
+                                                     89,  40,  155, 46,  178, 111, 107, 219};
+
+        const unsigned char expected_client_key[] = {
+            159, 7, 2, 51, 111, 158, 159, 102, 84, 120, 6, 171, 210, 166, 238, 136,
+        };
+
+        const unsigned char expected_server_iv[] = {207, 226, 136, 162, 58, 86, 72, 199, 24, 135, 123, 170};
+        const unsigned char expected_client_iv[] = {11, 69, 197, 4, 63, 108, 140, 220, 2, 15, 6, 216};
+
+        memset(&key_set, 0, sizeof(key_set));
+        int ret = mbedtls_ssl_export_traffic_keys(&ssl, &key_set, &cipher_type, secret, secret_len, NULL, tls_prf_type);
+
+        TEST_EQUAL(ret, 0);
+        TEST_EQUAL(cipher_type, expected_cipher_type);
+
+        TEST_MEMORY_COMPARE(key_set.server_write_key, key_set.key_len, expected_server_key, expected_key_len);
+        TEST_MEMORY_COMPARE(key_set.client_write_key, key_set.key_len, expected_client_key, expected_key_len);
+        TEST_MEMORY_COMPARE(key_set.server_write_iv, key_set.iv_len, expected_server_iv, expected_iv_len);
+        TEST_MEMORY_COMPARE(key_set.client_write_iv, key_set.iv_len, expected_client_iv, expected_iv_len);
+    }
+
+    USE_PSA_DONE();
+}
+/* END_CASE */

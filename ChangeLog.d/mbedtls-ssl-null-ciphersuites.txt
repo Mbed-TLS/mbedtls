@@ -1,4 +1,0 @@
-API changes
-   * Add MBEDTLS_SSL_NULL_CIPHERSUITES configuration option. It enables
-     TLS 1.2 ciphersuites without encryption and is disabled by default.
-     This new option replaces MBEDTLS_CIPHER_NULL_CIPHER.

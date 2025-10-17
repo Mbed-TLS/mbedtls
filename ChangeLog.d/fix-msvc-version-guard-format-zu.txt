@@ -1,5 +1,0 @@
-Bugfix
-   * Fix definition of MBEDTLS_PRINTF_SIZET to prevent runtime crashes that
-     occurred whenever SSL debugging was enabled on a copy of Mbed TLS built
-     with Visual Studio 2013 or MinGW.
-     Fixes #10017.

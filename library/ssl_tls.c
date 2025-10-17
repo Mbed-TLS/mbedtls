@@ -4247,8 +4247,8 @@ static int ssl_write_hello_request(mbedtls_ssl_context *ssl)
     ssl->out_msgtype = MBEDTLS_SSL_MSG_HANDSHAKE;
     ssl->out_msg[0]  = MBEDTLS_SSL_HS_HELLO_REQUEST;
 
-    if ((ret = mbedtls_ssl_write_handshake_msg(ssl)) != 0) {
-        MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_write_handshake_msg", ret);
+    if ((ret = mbedtls_ssl_write_handshake_msg_ext(ssl, 1, 1)) != 0) {
+        MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_write_handshake_msg_ext", ret);
         return ret;
     }
 
@@ -6726,8 +6726,8 @@ int mbedtls_ssl_write_certificate(mbedtls_ssl_context *ssl)
 
     mbedtls_ssl_handshake_increment_state(ssl);
 
-    if ((ret = mbedtls_ssl_write_handshake_msg(ssl)) != 0) {
-        MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_write_handshake_msg", ret);
+    if ((ret = mbedtls_ssl_write_handshake_msg_ext(ssl, 1, 1)) != 0) {
+        MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_write_handshake_msg_ext", ret);
         return ret;
     }
 
@@ -7456,8 +7456,8 @@ int mbedtls_ssl_write_finished(mbedtls_ssl_context *ssl)
     }
 #endif
 
-    if ((ret = mbedtls_ssl_write_handshake_msg(ssl)) != 0) {
-        MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_write_handshake_msg", ret);
+    if ((ret = mbedtls_ssl_write_handshake_msg_ext(ssl, 1, 1)) != 0) {
+        MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_write_handshake_msg_ext", ret);
         return ret;
     }
 

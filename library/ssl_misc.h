@@ -1436,11 +1436,6 @@ MBEDTLS_CHECK_RETURN_CRITICAL
 int mbedtls_ssl_write_handshake_msg_ext(mbedtls_ssl_context *ssl,
                                         int update_checksum,
                                         int force_flush);
-static inline int mbedtls_ssl_write_handshake_msg(mbedtls_ssl_context *ssl)
-{
-    return mbedtls_ssl_write_handshake_msg_ext(ssl, 1 /* update checksum */, 1 /* force flush */);
-}
-
 /*
  * Write handshake message tail
  */

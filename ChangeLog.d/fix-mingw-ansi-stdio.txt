@@ -1,0 +1,4 @@
+Bugfix
+   * Fix a build failure with MinGW when the __USE_MINGW_ANSI_STDIO option
+     is set. This was caused by the wrong format specifier being used to
+     print long long values (MBEDTLS_PRINTF_LONGLONG).

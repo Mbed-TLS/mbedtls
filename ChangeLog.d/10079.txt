@@ -1,0 +1,5 @@
+Features
+   * add handling for default CMAKE_BUILD_TYPE
+   * validate CMAKE_BUILD_TYPE upon configuring as a root project
+   * warn about CMAKE_BUILD_TYPE validity if configured as sub-project
+   * Fail if we are a root project and the  build type is unrecognized

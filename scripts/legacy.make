@@ -154,9 +154,9 @@ ifndef WINDOWS
 # 2. Run the relevant tests for the part of the code you're interested in.
 #    For the reference coverage measurement, see
 #    tests/scripts/basic-build-test.sh
-# 3. Run scripts/lcov.sh to generate an HTML report.
+# 3. Run framework/scripts/lcov.sh to generate an HTML report.
 lcov:
-	scripts/lcov.sh
+	framework/scripts/lcov.sh
 
 apidoc:
 	mkdir -p apidoc

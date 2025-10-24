@@ -28,10 +28,6 @@
 
 #include "mbedtls/cipher.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 typedef enum {
     MBEDTLS_KW_MODE_KW = 0,
     MBEDTLS_KW_MODE_KWP = 1
@@ -55,6 +51,10 @@ typedef struct {
 #else  /* MBEDTLS_NIST_key wrapping_ALT */
 #include "nist_kw_alt.h"
 #endif /* MBEDTLS_NIST_KW_ALT */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * \brief           This function initializes the specified key wrapping context

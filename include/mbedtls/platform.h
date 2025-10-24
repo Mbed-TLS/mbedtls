@@ -33,10 +33,6 @@
 #include "mbedtls/platform_time.h"
 #endif
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /**
  * \name SECTION: Module settings
  *
@@ -128,6 +124,10 @@ extern "C" {
 #define MBEDTLS_PLATFORM_STD_FREE
 #endif
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /** \} name SECTION: Module settings */
 
 /*
@@ -143,8 +143,14 @@ extern "C" {
 #define mbedtls_free       MBEDTLS_PLATFORM_FREE_MACRO
 #define mbedtls_calloc     MBEDTLS_PLATFORM_CALLOC_MACRO
 #else
+#ifdef __cplusplus
+}
+#endif
 /* For size_t */
 #include <stddef.h>
+#ifdef __cplusplus
+extern "C" {
+#endif
 extern void *mbedtls_calloc(size_t n, size_t size);
 extern void mbedtls_free(void *ptr);
 
@@ -171,8 +177,14 @@ int mbedtls_platform_set_calloc_free(void *(*calloc_func)(size_t, size_t),
  * The function pointers for fprintf
  */
 #if defined(MBEDTLS_PLATFORM_FPRINTF_ALT)
+#ifdef __cplusplus
+}
+#endif
 /* We need FILE * */
 #include <stdio.h>
+#ifdef __cplusplus
+extern "C" {
+#endif
 extern int (*mbedtls_fprintf)(FILE *stream, const char *format, ...);
 
 /**
@@ -266,13 +278,25 @@ int mbedtls_platform_set_snprintf(int (*snprintf_func)(char *s, size_t n,
  *   the destination buffer is too short.
  */
 #if defined(MBEDTLS_PLATFORM_HAS_NON_CONFORMING_VSNPRINTF)
+#ifdef __cplusplus
+}
+#endif
 #include <stdarg.h>
+#ifdef __cplusplus
+extern "C" {
+#endif
 /* For Older Windows (inc. MSYS2), we provide our own fixed implementation */
 int mbedtls_platform_win32_vsnprintf(char *s, size_t n, const char *fmt, va_list arg);
 #endif
 
 #if defined(MBEDTLS_PLATFORM_VSNPRINTF_ALT)
+#ifdef __cplusplus
+}
+#endif
 #include <stdarg.h>
+#ifdef __cplusplus
+extern "C" {
+#endif
 extern int (*mbedtls_vsnprintf)(char *s, size_t n, const char *format, va_list arg);
 
 /**
@@ -297,7 +321,13 @@ int mbedtls_platform_set_vsnprintf(int (*vsnprintf_func)(char *s, size_t n,
  * The function pointers for setbuf
  */
 #if defined(MBEDTLS_PLATFORM_SETBUF_ALT)
+#ifdef __cplusplus
+}
+#endif
 #include <stdio.h>
+#ifdef __cplusplus
+extern "C" {
+#endif
 /**
  * \brief                  Function pointer to call for `setbuf()` functionality
  *                         (changing the internal buffering on stdio calls).
@@ -443,7 +473,13 @@ typedef struct mbedtls_platform_context {
 mbedtls_platform_context;
 
 #else
+#ifdef __cplusplus
+}
+#endif
 #include "platform_alt.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
 #endif /* !MBEDTLS_PLATFORM_SETUP_TEARDOWN_ALT */
 
 /**

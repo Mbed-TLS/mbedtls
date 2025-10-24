@@ -54,10 +54,6 @@
 /** Authenticated decryption failed. */
 #define MBEDTLS_ERR_CCM_AUTH_FAILED     -0x000F
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #if !defined(MBEDTLS_CCM_ALT)
 // Regular implementation
 //
@@ -97,6 +93,10 @@ mbedtls_ccm_context;
 #else  /* MBEDTLS_CCM_ALT */
 #include "ccm_alt.h"
 #endif /* MBEDTLS_CCM_ALT */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * \brief           This function initializes the specified CCM context,

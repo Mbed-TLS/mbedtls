@@ -38,10 +38,6 @@
 /** Invalid data input length. */
 #define MBEDTLS_ERR_ARIA_INVALID_INPUT_LENGTH -0x005E
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #if !defined(MBEDTLS_ARIA_ALT)
 // Regular implementation
 //
@@ -59,6 +55,10 @@ mbedtls_aria_context;
 #else  /* MBEDTLS_ARIA_ALT */
 #include "aria_alt.h"
 #endif /* MBEDTLS_ARIA_ALT */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * \brief          This function initializes the specified ARIA context.

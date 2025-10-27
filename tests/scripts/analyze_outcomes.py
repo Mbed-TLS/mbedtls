@@ -244,6 +244,12 @@ class DriverVSReference_hash(outcome_analysis.DriverVSReference):
             # doesn't, we have a PASS vs SKIP mismatch.
             'Check mbedtls_calloc overallocation',
         ],
+        'test_suite_psa_crypto_persistent_key': [
+            # When test driver is enabled some built-in keys already exist so
+            # the following tests cases are intentionally skipped. This limitation
+            # is not present in the reference case.
+            re.compile(r'Load key: owner=0 id=MBEDTLS_PSA_KEY_ID_BUILTIN_(MIN|MAX) \(bad id\)'),
+        ]
     }
 
 class DriverVSReference_hmac(outcome_analysis.DriverVSReference):
@@ -283,6 +289,12 @@ class DriverVSReference_hmac(outcome_analysis.DriverVSReference):
             # doesn't, we have a PASS vs SKIP mismatch.
             'Check mbedtls_calloc overallocation',
         ],
+        'test_suite_psa_crypto_persistent_key': [
+            # When test driver is enabled some built-in keys already exist so
+            # the following tests cases are intentionally skipped. This limitation
+            # is not present in the reference case.
+            re.compile(r'Load key: owner=0 id=MBEDTLS_PSA_KEY_ID_BUILTIN_(MIN|MAX) \(bad id\)'),
+        ]
     }
 
 class DriverVSReference_cipher_aead_cmac(outcome_analysis.DriverVSReference):
@@ -340,6 +352,16 @@ class DriverVSReference_cipher_aead_cmac(outcome_analysis.DriverVSReference):
             'Key ASN1 (Encrypted key PKCS5, trailing garbage data)',
             re.compile(r'Parse (RSA|EC) Key .*\(.* ([Ee]ncrypted|password).*\)'),
         ],
+        'test_suite_psa_crypto_persistent_key': [
+            # When test driver is enabled some built-in keys already exist so
+            # the following tests cases are intentionally skipped. This limitation
+            # is not present in the reference case.
+            re.compile(r'Load key: owner=0 id=MBEDTLS_PSA_KEY_ID_BUILTIN_(MIN|MAX) \(bad id\)'),
+            # In case of driver build the 1st volatile slot is being used by
+            # CTR-DRBG which is accelerated and cause the following test case
+            # to be skipped. This does not happen in the reference case.
+            'Load key: owner=0 id=PSA_KEY_ID_VOLATILE_MIN (bad id)',
+        ],
         # Encrypted keys are not supported so far.
         'ssl-opt': [
             'TLS: password protected server key',
@@ -384,6 +406,12 @@ class DriverVSReference_ecp_light_only(outcome_analysis.DriverVSReference):
             re.compile(r'ECP point multiplication .*'),
             re.compile(r'ECP test vectors .*'),
         ],
+        'test_suite_psa_crypto_persistent_key': [
+            # When test driver is enabled some built-in keys already exist so
+            # the following tests cases are intentionally skipped. This limitation
+            # is not present in the reference case.
+            re.compile(r'Load key: owner=0 id=MBEDTLS_PSA_KEY_ID_BUILTIN_(MIN|MAX) \(bad id\)'),
+        ]
     }
 
 class DriverVSReference_no_ecp_at_all(outcome_analysis.DriverVSReference):
@@ -420,6 +448,12 @@ class DriverVSReference_no_ecp_at_all(outcome_analysis.DriverVSReference):
             re.compile(r'Parse EC Key .*compressed\)'),
             re.compile(r'Parse Public EC Key .*compressed\)'),
         ],
+        'test_suite_psa_crypto_persistent_key': [
+            # When test driver is enabled some built-in keys already exist so
+            # the following tests cases are intentionally skipped. This limitation
+            # is not present in the reference case.
+            re.compile(r'Load key: owner=0 id=MBEDTLS_PSA_KEY_ID_BUILTIN_(MIN|MAX) \(bad id\)'),
+        ]
     }
 
 class DriverVSReference_ecc_no_bignum(outcome_analysis.DriverVSReference):
@@ -463,6 +497,12 @@ class DriverVSReference_ecc_no_bignum(outcome_analysis.DriverVSReference):
         'test_suite_debug': [
             re.compile(r'Debug print mbedtls_mpi.*'),
         ],
+        'test_suite_psa_crypto_persistent_key': [
+            # When test driver is enabled some built-in keys already exist so
+            # the following tests cases are intentionally skipped. This limitation
+            # is not present in the reference case.
+            re.compile(r'Load key: owner=0 id=MBEDTLS_PSA_KEY_ID_BUILTIN_(MIN|MAX) \(bad id\)'),
+        ]
     }
 
 class DriverVSReference_ecc_ffdh_no_bignum(outcome_analysis.DriverVSReference):
@@ -506,6 +546,12 @@ class DriverVSReference_ecc_ffdh_no_bignum(outcome_analysis.DriverVSReference):
         'test_suite_debug': [
             re.compile(r'Debug print mbedtls_mpi.*'),
         ],
+        'test_suite_psa_crypto_persistent_key': [
+            # When test driver is enabled some built-in keys already exist so
+            # the following tests cases are intentionally skipped. This limitation
+            # is not present in the reference case.
+            re.compile(r'Load key: owner=0 id=MBEDTLS_PSA_KEY_ID_BUILTIN_(MIN|MAX) \(bad id\)'),
+        ]
     }
 
 class DriverVSReference_ffdh_alg(outcome_analysis.DriverVSReference):
@@ -518,6 +564,12 @@ class DriverVSReference_ffdh_alg(outcome_analysis.DriverVSReference):
             # doesn't, we have a PASS vs SKIP mismatch.
             'Check mbedtls_calloc overallocation',
         ],
+        'test_suite_psa_crypto_persistent_key': [
+            # When test driver is enabled some built-in keys already exist so
+            # the following tests cases are intentionally skipped. This limitation
+            # is not present in the reference case.
+            re.compile(r'Load key: owner=0 id=MBEDTLS_PSA_KEY_ID_BUILTIN_(MIN|MAX) \(bad id\)'),
+        ]
     }
 
 class DriverVSReference_tfm_config(outcome_analysis.DriverVSReference):
@@ -595,6 +647,12 @@ class DriverVSReference_rsa(outcome_analysis.DriverVSReference):
             re.compile(r'PSA generate key custom: RSA, e=.*'),
             re.compile(r'PSA generate key ext: RSA, e=.*'),
         ],
+        'test_suite_psa_crypto_persistent_key': [
+            # When test driver is enabled some built-in keys already exist so
+            # the following tests cases are intentionally skipped. This limitation
+            # is not present in the reference case.
+            re.compile(r'Load key: owner=0 id=MBEDTLS_PSA_KEY_ID_BUILTIN_(MIN|MAX) \(bad id\)'),
+        ]
     }
 
 class DriverVSReference_block_cipher_dispatch(outcome_analysis.DriverVSReference):
@@ -655,6 +713,16 @@ class DriverVSReference_block_cipher_dispatch(outcome_analysis.DriverVSReference
             # doesn't, we have a PASS vs SKIP mismatch.
             'Check mbedtls_calloc overallocation',
         ],
+        'test_suite_psa_crypto_persistent_key': [
+            # When test driver is enabled some built-in keys already exist so
+            # the following tests cases are intentionally skipped. This limitation
+            # is not present in the reference case.
+            re.compile(r'Load key: owner=0 id=MBEDTLS_PSA_KEY_ID_BUILTIN_(MIN|MAX) \(bad id\)'),
+            # In case of driver build the 1st volatile slot is being used by
+            # CTR-DRBG which is accelerated and cause the following test case
+            # to be skipped. This does not happen in the reference case.
+            'Load key: owner=0 id=PSA_KEY_ID_VOLATILE_MIN (bad id)',
+        ]
     }
 
 #pylint: enable=invalid-name,missing-class-docstring

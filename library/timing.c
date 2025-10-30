@@ -38,7 +38,7 @@ struct _hr_time {
 #include <time.h>
 #include <sys/time.h>
 struct _hr_time {
-    struct timeval start;
+    clock_t start;
 };
 #endif /* _WIN32 && !EFIX64 && !EFI32 */
 
@@ -88,15 +88,11 @@ unsigned long mbedtls_timing_get_timer(struct mbedtls_timing_hr_time *val, int r
     struct _hr_time *t = (struct _hr_time *) val;
 
     if (reset) {
-        gettimeofday(&t->start, NULL);
+        t->start = clock();
         return 0;
     } else {
-        unsigned long delta;
-        struct timeval now;
-        gettimeofday(&now, NULL);
-        delta = (now.tv_sec  - t->start.tv_sec) * 1000ul
-                + (now.tv_usec - t->start.tv_usec) / 1000;
-        return delta;
+        clock_t now = clock();
+        return (now - t->start) / (CLOCKS_PER_SEC * 1000ul);
     }
 }
 

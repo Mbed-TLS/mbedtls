@@ -15,10 +15,6 @@
 
 #include <stdint.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #if !defined(MBEDTLS_TIMING_ALT)
 // Regular implementation
 //
@@ -42,6 +38,10 @@ typedef struct mbedtls_timing_delay_context {
 #else  /* MBEDTLS_TIMING_ALT */
 #include "timing_alt.h"
 #endif /* MBEDTLS_TIMING_ALT */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /* Internal use */
 unsigned long mbedtls_timing_get_timer(struct mbedtls_timing_hr_time *val, int reset);

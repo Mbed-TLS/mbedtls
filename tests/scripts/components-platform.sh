@@ -98,7 +98,7 @@ support_test_aesni () {
     # in component_test_aesni_m32.
     (gcc -v 2>&1 | grep Target | grep -q x86_64) &&
     [[ "$HOSTTYPE" == "x86_64" && "$OSTYPE" == "linux-gnu" ]] &&
-    (lscpu | grep -qw aes)
+    (lscpu | grep -qw aes) 2>/dev/null
 }
 
 component_test_aesni () { # ~ 60s
@@ -155,7 +155,7 @@ component_test_aesni () { # ~ 60s
 }
 
 support_test_aesni_m32 () {
-    support_test_m32_no_asm && (lscpu | grep -qw aes)
+    support_test_m32_no_asm && (lscpu | grep -qw aes) 2>/dev/null
 }
 
 component_test_aesni_m32 () { # ~ 60s

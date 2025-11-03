@@ -25,6 +25,7 @@ if(TEST_CPP)
     )
     add_executable(cpp_dummy_build "${cpp_dummy_build_cpp}")
     set_base_compile_options(cpp_dummy_build)
+    target_compile_options(cpp_dummy_build PRIVATE -fmodules)
     target_include_directories(cpp_dummy_build
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../include
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../tf-psa-crypto/include

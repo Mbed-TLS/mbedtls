@@ -15,13 +15,11 @@ support_test_aesni () {
     #
     # The name of this function is possibly slightly misleading, but needs to align
     # with the name of the corresponding test, component_test_aesni.
-    #
-    # In principle 32-bit x86 can support AESNI, but our implementation does not
-    # support 32-bit x86, so we check for x86-64.
-    # We can only grep /proc/cpuinfo on Linux, so this also checks for Linux
+    # We check only for 64-bit x86 here: 32-bit AESNI is tested separately
+    # in component_test_aesni_m32.
     (gcc -v 2>&1 | grep Target | grep -q x86_64) &&
-        [[ "$HOSTTYPE" == "x86_64" && "$OSTYPE" == "linux-gnu" ]] &&
-        (lscpu | grep -qw aes)
+    [[ "$HOSTTYPE" == "x86_64" && "$OSTYPE" == "linux-gnu" ]] &&
+    (lscpu | grep -qw aes)
 }
 
 component_test_aesni () { # ~ 60s

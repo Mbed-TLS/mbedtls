@@ -1,0 +1,2 @@
+Bugfix
+   * fix -DMBEDTLS_CONFIG_FILE override not installing the specified header

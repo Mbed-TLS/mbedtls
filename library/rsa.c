@@ -1035,6 +1035,100 @@ size_t mbedtls_rsa_get_len(const mbedtls_rsa_context *ctx)
 
 #if defined(MBEDTLS_GENPRIME)
 
+/* Part of the keypair generation routine, extracted for readability:
+ *
+ * check GCD( E, (P-1)*(Q-1) ) == 1 (FIPS 186-4 §B.3.1 criterion 2(a))
+ * compute D = E^-1 mod LCM(P-1, Q-1) (FIPS 186-4 §B.3.1 criterion 3(b))
+ *
+ * This is done in a single step as E^-1 mod LCM(P-1, Q-1) only exists
+ * if GCD( E, (P-1)*(Q-1) ) == 1 (which is equivalent to saying that
+ * E is coprime to LCM(P-1, Q-1), ie they have no prime factor in common).
+ *
+ * Input: a partial RSA context with only P, Q, E set.
+ * Output:
+ * - On success, D is set in the context, P, Q and E are unchanged.
+ * - On failure, P and Q may no longer hold their original values!
+ *   - If GCD( E, (P-1) * (Q-1) ) != 1 return MBEDTLS_ERR_MPI_NOT_ACCEPTABLE.
+ *   - On other errors (allocation etc) return a specific error code.
+ *
+ * Pre-conditions that must be ensured by the caller:
+ * - P > Q
+ * - P and Q have the same number of limbs
+ * - P and Q are both 3 mod 4
+ * - E is odd
+ */
+static int rsa_gen_key_check_e_compute_d(mbedtls_rsa_context *ctx)
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    mbedtls_mpi G, L;
+
+    mbedtls_mpi_init(&G);
+    mbedtls_mpi_init(&L);
+
+    /* Compute that before we shift P, even though we know it won't shrink */
+    const size_t p_limbs = ctx->P.n;
+    const size_t d_limbs = 2 * p_limbs;
+
+    /* Since we can only compute modular inverse with odd modulus,
+     * and clearly P-1 and Q-1 hence their LCM is even,
+     * we'll first work with (P-1)/2 and (Q-1)/2 and their LCM,
+     * which we know are odd since P and Q are both 3 mod 4.
+     *
+     * More specifically, since E is odd, we have
+     * GCD( E, (P-1) * (Q-1) ) = GCD( E, (P-1)/2 * (Q-1)/2) )
+     * and that is 1 if and only if GCD( E, LCM((P-1)/2, (Q-1)/2) ) == 1.
+     *
+     * Also, setting L2 = LCM((P-1)/2, (Q-1)/2)
+     * and L = LCM(P-1, Q-1), we have L = 2 * L2 with L2 odd.
+     * So by the CRT, it's enough to compute E^-1 mod L2 and mod 2.
+     * But we know that the inverse mod 2 is 1 so we don't have to compute it.
+     *
+     * If D2 is the inverse mod L2, then the inverse mod L is either
+     * D2 or D2 + L2 (those are the only two numbers mod L that are equal to D2
+     * mod L2) and more specifically it's the one that's odd (ie 1 mod 2).
+     *
+     * We compute as much as possible in place.
+     */
+
+    /* Temporarily replace P, Q by (P-1)/2, (Q-1)/2 */
+    MBEDTLS_MPI_CHK(mbedtls_mpi_shift_r(&ctx->P, 1));
+    MBEDTLS_MPI_CHK(mbedtls_mpi_shift_r(&ctx->Q, 1));
+
+    /* Use LCM(a, b) = a * b / GCD(a, b) to compute L2.
+     * For the GCD computation we use the fact that Q < P */
+    MBEDTLS_MPI_CHK(mbedtls_mpi_gcd_modinv_odd(&G, NULL, &ctx->Q, &ctx->P));
+    MBEDTLS_MPI_CHK(mbedtls_mpi_div_mpi(&L, NULL, &ctx->P, &G));
+    MBEDTLS_MPI_CHK(mbedtls_mpi_mul_mpi(&L, &L, &ctx->Q));
+
+    /* Compute GCD(E, L2) and E^-1 mod L2 */
+    MBEDTLS_MPI_CHK(mbedtls_mpi_gcd_modinv_odd(&G, &ctx->D, &ctx->E, &L));
+
+    /* Reject if GCD(E, L2) != 1 */
+    if (mbedtls_mpi_cmp_int(&G, 1) != 0) {
+        ret = MBEDTLS_ERR_MPI_NOT_ACCEPTABLE;
+        goto cleanup;
+    }
+
+    /* Now ctx->D holds D2. Update that to D.
+     * Note that D2 + L2 < L = LCM(P-1, Q-1) <= (P-1) * (Q-1) < P * Q */
+    MBEDTLS_MPI_CHK(mbedtls_mpi_grow(&ctx->D, d_limbs));
+    MBEDTLS_MPI_CHK(mbedtls_mpi_grow(&L, d_limbs));
+    unsigned d2_is_even = (ctx->D.p[0] & 1) ^ 1;
+    (void) mbedtls_mpi_core_add_if(ctx->D.p, L.p, d_limbs, d2_is_even);
+
+    /* Restore P,Q */
+    MBEDTLS_MPI_CHK(mbedtls_mpi_shift_l(&ctx->P, 1));
+    ctx->P.p[0] |= 1;
+    MBEDTLS_MPI_CHK(mbedtls_mpi_shift_l(&ctx->Q, 1));
+    ctx->Q.p[0] |= 1;
+
+cleanup:
+    mbedtls_mpi_free(&G);
+    mbedtls_mpi_free(&L);
+
+    return ret;
+}
+
 /*
  * Generate an RSA keypair
  *
@@ -1107,7 +1201,7 @@ int mbedtls_rsa_gen_key(mbedtls_rsa_context *ctx,
 
         /* Compute D = E^-1 mod LCM(P-1, Q-1) (FIPS 186-4 §B.3.1 criterion 3(b))
          * if it exists (FIPS 186-4 §B.3.1 criterion 2(a)) */
-        ret = mbedtls_rsa_deduce_private_exponent(&ctx->P, &ctx->Q, &ctx->E, &ctx->D);
+        ret = rsa_gen_key_check_e_compute_d(ctx);
         if (ret == MBEDTLS_ERR_MPI_NOT_ACCEPTABLE) {
             mbedtls_mpi_lset(&ctx->D, 0); /* needed for the next call */
             continue;

@@ -1048,7 +1048,15 @@ int mbedtls_rsa_gen_key(mbedtls_rsa_context *ctx,
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_mpi H;
-    int prime_quality = 0;
+    /* We require our primes to be 3 mod 4; this ensures that (P-1)/2 and
+     * (Q-1)/2 are odd, enabling use of constant-time modinv, see
+     * rsa_gen_key_check_e_compute_d().
+     * Forcing this is allowed by FIPS 186-5, Appendix A.1.3:
+     * "a, b (Optional parameters) Numbers from the set {1, 3, 5, 7} that may be
+     * used to add the further requirements p ≡ a mod 8, q ≡ b mod 8."
+     * (We're only forcing the low 2 bits while FIPS allows forcing 3.)
+     */
+    int gen_prime_flags = MBEDTLS_MPI_GEN_PRIME_FLAG_3MOD4;
 
     /*
      * If the modulus is 1024 bit long or shorter, then the security strength of
@@ -1056,7 +1064,7 @@ int mbedtls_rsa_gen_key(mbedtls_rsa_context *ctx,
      * rate of 2^-80 is sufficient.
      */
     if (nbits > 1024) {
-        prime_quality = MBEDTLS_MPI_GEN_PRIME_FLAG_LOW_ERR;
+        gen_prime_flags |= MBEDTLS_MPI_GEN_PRIME_FLAG_LOW_ERR;
     }
 
     mbedtls_mpi_init(&H);
@@ -1081,10 +1089,10 @@ int mbedtls_rsa_gen_key(mbedtls_rsa_context *ctx,
 
     do {
         MBEDTLS_MPI_CHK(mbedtls_mpi_gen_prime(&ctx->P, nbits >> 1,
-                                              prime_quality, f_rng, p_rng));
+                                              gen_prime_flags, f_rng, p_rng));
 
         MBEDTLS_MPI_CHK(mbedtls_mpi_gen_prime(&ctx->Q, nbits >> 1,
-                                              prime_quality, f_rng, p_rng));
+                                              gen_prime_flags, f_rng, p_rng));
 
         /* make sure the difference between p and q is not too small (FIPS 186-4 §B.3.3 step 5.4) */
         MBEDTLS_MPI_CHK(mbedtls_mpi_sub_mpi(&H, &ctx->P, &ctx->Q));

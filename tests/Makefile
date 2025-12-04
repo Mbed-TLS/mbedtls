@@ -17,11 +17,11 @@ LOCAL_CFLAGS += -Werror -DRECORD_PSA_STATUS_COVERAGE_LOG
 endif
 
 GENERATED_BIGNUM_DATA_FILES := $(addprefix ../tf-psa-crypto/,$(shell \
-	$(PYTHON) ../framework/scripts/generate_bignum_tests.py --list || \
+	$(PYTHON) ../tf-psa-crypto/framework/scripts/generate_bignum_tests.py --list || \
 	echo FAILED \
 ))
 ifeq ($(GENERATED_BIGNUM_DATA_FILES),FAILED)
-$(error "$(PYTHON) ../framework/scripts/generate_bignum_tests.py --list" failed)
+$(error "$(PYTHON) ../tf-psa-crypto/framework/scripts/generate_bignum_tests.py --list" failed)
 endif
 GENERATED_CRYPTO_DATA_FILES += $(GENERATED_BIGNUM_DATA_FILES)
 
@@ -46,20 +46,20 @@ GENERATED_DATA_FILES += $(GENERATED_MBEDTLS_CONFIG_DATA_FILES)
 GENERATED_CRYPTO_DATA_FILES += $(GENERATED_PSA_CONFIG_DATA_FILES)
 
 GENERATED_ECP_DATA_FILES := $(addprefix ../tf-psa-crypto/,$(shell \
-	$(PYTHON) ../framework/scripts/generate_ecp_tests.py --list || \
+	$(PYTHON) ../tf-psa-crypto/framework/scripts/generate_ecp_tests.py --list || \
 	echo FAILED \
 ))
 ifeq ($(GENERATED_ECP_DATA_FILES),FAILED)
-$(error "$(PYTHON) ../framework/scripts/generate_ecp_tests.py --list" failed)
+$(error "$(PYTHON) ../tf-psa-crypto/framework/scripts/generate_ecp_tests.py --list" failed)
 endif
 GENERATED_CRYPTO_DATA_FILES += $(GENERATED_ECP_DATA_FILES)
 
 GENERATED_PSA_DATA_FILES := $(addprefix ../tf-psa-crypto/,$(shell \
-	$(PYTHON) ../framework/scripts/generate_psa_tests.py --list || \
+	$(PYTHON) ../tf-psa-crypto/framework/scripts/generate_psa_tests.py --list || \
 	echo FAILED \
 ))
 ifeq ($(GENERATED_PSA_DATA_FILES),FAILED)
-$(error "$(PYTHON) ../framework/scripts/generate_psa_tests.py --list" failed)
+$(error "$(PYTHON) ../tf-psa-crypto/framework/scripts/generate_psa_tests.py --list" failed)
 endif
 GENERATED_CRYPTO_DATA_FILES += $(GENERATED_PSA_DATA_FILES)
 
@@ -94,16 +94,16 @@ generated_files: $(GENERATED_FILES)
 # Use an intermediate phony dependency so that parallel builds don't run
 # a separate instance of the recipe for each output file.
 $(GENERATED_BIGNUM_DATA_FILES): $(gen_file_dep) generated_bignum_test_data
-generated_bignum_test_data: ../framework/scripts/generate_bignum_tests.py
-generated_bignum_test_data: ../framework/scripts/mbedtls_framework/bignum_common.py
-generated_bignum_test_data: ../framework/scripts/mbedtls_framework/bignum_core.py
-generated_bignum_test_data: ../framework/scripts/mbedtls_framework/bignum_mod_raw.py
-generated_bignum_test_data: ../framework/scripts/mbedtls_framework/bignum_mod.py
-generated_bignum_test_data: ../framework/scripts/mbedtls_framework/test_case.py
-generated_bignum_test_data: ../framework/scripts/mbedtls_framework/test_data_generation.py
+generated_bignum_test_data: ../tf-psa-crypto/framework/scripts/generate_bignum_tests.py
+generated_bignum_test_data: ../tf-psa-crypto/framework/scripts/mbedtls_framework/bignum_common.py
+generated_bignum_test_data: ../tf-psa-crypto/framework/scripts/mbedtls_framework/bignum_core.py
+generated_bignum_test_data: ../tf-psa-crypto/framework/scripts/mbedtls_framework/bignum_mod_raw.py
+generated_bignum_test_data: ../tf-psa-crypto/framework/scripts/mbedtls_framework/bignum_mod.py
+generated_bignum_test_data: ../tf-psa-crypto/framework/scripts/mbedtls_framework/test_case.py
+generated_bignum_test_data: ../tf-psa-crypto/framework/scripts/mbedtls_framework/test_data_generation.py
 generated_bignum_test_data:
 	echo "  Gen   $(GENERATED_BIGNUM_DATA_FILES)"
-	$(PYTHON) ../framework/scripts/generate_bignum_tests.py --directory ../tf-psa-crypto/tests/suites
+	$(PYTHON) ../tf-psa-crypto/framework/scripts/generate_bignum_tests.py --directory ../tf-psa-crypto/tests/suites
 .SECONDARY: generated_bignum_test_data
 
 # We deliberately omit the configuration files (mbedtls_config.h,
@@ -124,26 +124,26 @@ generated_config_test_data:
 .SECONDARY: generated_config_test_data
 
 $(GENERATED_ECP_DATA_FILES): $(gen_file_dep) generated_ecp_test_data
-generated_ecp_test_data: ../framework/scripts/generate_ecp_tests.py
-generated_ecp_test_data: ../framework/scripts/mbedtls_framework/bignum_common.py
-generated_ecp_test_data: ../framework/scripts/mbedtls_framework/ecp.py
-generated_ecp_test_data: ../framework/scripts/mbedtls_framework/test_case.py
-generated_ecp_test_data: ../framework/scripts/mbedtls_framework/test_data_generation.py
+generated_ecp_test_data: ../tf-psa-crypto/framework/scripts/generate_ecp_tests.py
+generated_ecp_test_data: ../tf-psa-crypto/framework/scripts/mbedtls_framework/bignum_common.py
+generated_ecp_test_data: ../tf-psa-crypto/framework/scripts/mbedtls_framework/ecp.py
+generated_ecp_test_data: ../tf-psa-crypto/framework/scripts/mbedtls_framework/test_case.py
+generated_ecp_test_data: ../tf-psa-crypto/framework/scripts/mbedtls_framework/test_data_generation.py
 generated_ecp_test_data:
 	echo "  Gen   $(GENERATED_ECP_DATA_FILES)"
-	$(PYTHON) ../framework/scripts/generate_ecp_tests.py --directory ../tf-psa-crypto/tests/suites
+	$(PYTHON) ../tf-psa-crypto/framework/scripts/generate_ecp_tests.py --directory ../tf-psa-crypto/tests/suites
 .SECONDARY: generated_ecp_test_data
 
 $(GENERATED_PSA_DATA_FILES): $(gen_file_dep) generated_psa_test_data
-generated_psa_test_data: ../framework/scripts/generate_psa_tests.py
-generated_psa_test_data: ../framework/scripts/mbedtls_framework/crypto_data_tests.py
-generated_psa_test_data: ../framework/scripts/mbedtls_framework/crypto_knowledge.py
-generated_psa_test_data: ../framework/scripts/mbedtls_framework/macro_collector.py
-generated_psa_test_data: ../framework/scripts/mbedtls_framework/psa_information.py
-generated_psa_test_data: ../framework/scripts/mbedtls_framework/psa_storage.py
-generated_psa_test_data: ../framework/scripts/mbedtls_framework/psa_test_case.py
-generated_psa_test_data: ../framework/scripts/mbedtls_framework/test_case.py
-generated_psa_test_data: ../framework/scripts/mbedtls_framework/test_data_generation.py
+generated_psa_test_data: ../tf-psa-crypto/framework/scripts/generate_psa_tests.py
+generated_psa_test_data: ../tf-psa-crypto/framework/scripts/mbedtls_framework/crypto_data_tests.py
+generated_psa_test_data: ../tf-psa-crypto/framework/scripts/mbedtls_framework/crypto_knowledge.py
+generated_psa_test_data: ../tf-psa-crypto/framework/scripts/mbedtls_framework/macro_collector.py
+generated_psa_test_data: ../tf-psa-crypto/framework/scripts/mbedtls_framework/psa_information.py
+generated_psa_test_data: ../tf-psa-crypto/framework/scripts/mbedtls_framework/psa_storage.py
+generated_psa_test_data: ../tf-psa-crypto/framework/scripts/mbedtls_framework/psa_test_case.py
+generated_psa_test_data: ../tf-psa-crypto/framework/scripts/mbedtls_framework/test_case.py
+generated_psa_test_data: ../tf-psa-crypto/framework/scripts/mbedtls_framework/test_data_generation.py
 ## The generated file only depends on the options that are present in
 ## crypto_config.h, not on which options are set. To avoid regenerating this
 ## file all the time when switching between configurations, don't declare
@@ -155,7 +155,7 @@ generated_psa_test_data: ../tf-psa-crypto/include/psa/crypto_extra.h
 generated_psa_test_data: ../tf-psa-crypto/tests/suites/test_suite_psa_crypto_metadata.data
 generated_psa_test_data:
 	echo "  Gen   $(GENERATED_PSA_DATA_FILES) ..."
-	$(PYTHON) ../framework/scripts/generate_psa_tests.py --directory ../tf-psa-crypto/tests/suites
+	$(PYTHON) ../tf-psa-crypto/framework/scripts/generate_psa_tests.py --directory ../tf-psa-crypto/tests/suites
 .SECONDARY: generated_psa_test_data
 
 # A test application is built for each suites/test_suite_*.data file.
@@ -248,9 +248,9 @@ c: $(C_FILES)
 # the local case. In GNU Make >=3.82, the shortest match applies regardless
 # of the order in the makefile. In GNU Make <=3.81, the first matching rule
 # applies.
-../tf-psa-crypto/tests/%.c: ../tf-psa-crypto/tests/suites/$$(firstword $$(subst ., ,$$*)).function ../tf-psa-crypto/tests/suites/%.data ../framework/scripts/generate_test_code.py ../tf-psa-crypto/tests/suites/helpers.function ../tf-psa-crypto/tests/suites/main_test.function ../tf-psa-crypto/tests/suites/host_test.function
+../tf-psa-crypto/tests/%.c: ../tf-psa-crypto/tests/suites/$$(firstword $$(subst ., ,$$*)).function ../tf-psa-crypto/tests/suites/%.data ../tf-psa-crypto/framework/scripts/generate_test_code.py ../tf-psa-crypto/tests/suites/helpers.function ../tf-psa-crypto/tests/suites/main_test.function ../tf-psa-crypto/tests/suites/host_test.function
 	echo "  Gen   $@"
-	cd ../tf-psa-crypto/tests && $(PYTHON) ../../framework/scripts/generate_test_code.py -f suites/$(firstword $(subst ., ,$*)).function \
+	cd ../tf-psa-crypto/tests && $(PYTHON) ../../tf-psa-crypto/framework/scripts/generate_test_code.py -f suites/$(firstword $(subst ., ,$*)).function \
 		-d suites/$*.data \
 		-t suites/main_test.function \
 		-p suites/host_test.function \

@@ -24,19 +24,17 @@ GENERATED_FILES += \
 	$(TF_PSA_CRYPTO_CORE_PATH)/tf_psa_crypto_config_check_final.h \
 	$(TF_PSA_CRYPTO_CORE_PATH)/tf_psa_crypto_config_check_user.h
 
-ifneq ($(GENERATED_FILES),$(wildcard $(GENERATED_FILES)))
-    ifeq (,$(wildcard $(MBEDTLS_PATH)/framework/exported.make))
-        # Use the define keyword to get a multi-line message.
-        # GNU make appends ".  Stop.", so tweak the ending of our message accordingly.
-        define error_message
+ifeq (,$(wildcard $(MBEDTLS_PATH)/framework/exported.make))
+    # Use the define keyword to get a multi-line message.
+    # GNU make appends ".  Stop.", so tweak the ending of our message accordingly.
+    define error_message
 $(MBEDTLS_PATH)/framework/exported.make not found.
 Run `git submodule update --init` to fetch the submodule contents.
 This is a fatal error
-        endef
-        $(error $(error_message))
-    endif
-    include $(MBEDTLS_PATH)/framework/exported.make
+    endef
+    $(error $(error_message))
 endif
+include $(MBEDTLS_PATH)/framework/exported.make
 
 # Also see "include/mbedtls/mbedtls_config.h"
 

@@ -20,6 +20,8 @@ This is a fatal error
 endif
 include $(MBEDTLS_PATH)/framework/exported.make
 
+include $(MBEDTLS_PATH)/scripts/crypto.legacy.make
+
 TF_PSA_CRYPTO_CORE_PATH = $(MBEDTLS_PATH)/tf-psa-crypto/core
 TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH = $(MBEDTLS_PATH)/tf-psa-crypto/drivers/builtin/src
 

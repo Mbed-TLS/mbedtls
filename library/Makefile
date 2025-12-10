@@ -22,8 +22,8 @@ include $(MBEDTLS_PATH)/framework/exported.make
 
 include $(MBEDTLS_PATH)/scripts/crypto.legacy.make
 
-TF_PSA_CRYPTO_CORE_PATH = $(MBEDTLS_PATH)/tf-psa-crypto/core
-TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH = $(MBEDTLS_PATH)/tf-psa-crypto/drivers/builtin/src
+TF_PSA_CRYPTO_CORE_PATH = $(TF_PSA_CRYPTO_PATH)/core
+TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH = $(TF_PSA_CRYPTO_PATH)/drivers/builtin/src
 
 # List the generated files without running a script, so that this
 # works with no tooling dependencies when GEN_FILES is disabled.
@@ -48,14 +48,14 @@ CFLAGS	?= -O2
 WARNING_CFLAGS ?=  -Wall -Wextra -Wformat=2 -Wno-format-nonliteral
 LDFLAGS ?=
 
-# Include ../include, ../tf-psa-crypto/include and
-# ../tf-psa-crypto/drivers/builtin/include for public headers and .,
-# ../tf-psa-crypto/core and ../tf-psa-crypto/drivers/builtin/src for
+# Include ../include, $(TF_PSA_CRYPTO_PATH)/include and
+# $(TF_PSA_CRYPTO_PATH)/drivers/builtin/include for public headers and .,
+# $(TF_PSA_CRYPTO_PATH)/core and $(TF_PSA_CRYPTO_PATH)/drivers/builtin/src for
 # private headers.
-LOCAL_CFLAGS = $(WARNING_CFLAGS) -I. -I../tf-psa-crypto/core \
-               -I../tf-psa-crypto/drivers/builtin/src \
-               -I../include -I../tf-psa-crypto/include \
-               -I../tf-psa-crypto/drivers/builtin/include -D_FILE_OFFSET_BITS=64
+LOCAL_CFLAGS = $(WARNING_CFLAGS) -I. -I$(TF_PSA_CRYPTO_PATH)/core \
+               -I$(TF_PSA_CRYPTO_PATH)/drivers/builtin/src \
+               -I../include -I$(TF_PSA_CRYPTO_PATH)/include \
+               -I$(TF_PSA_CRYPTO_PATH)/drivers/builtin/include -D_FILE_OFFSET_BITS=64
 LOCAL_LDFLAGS =
 
 ifdef DEBUG
@@ -130,9 +130,9 @@ GENERATED_OBJS_CRYPTO = $(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto_driver_wrappers_no
 OBJS_CRYPTO := $(filter-out $(GENERATED_OBJS_CRYPTO),$(OBJS_CRYPTO))
 OBJS_CRYPTO += $(GENERATED_OBJS_CRYPTO)
 
-THIRDPARTY_DIR := $(MBEDTLS_PATH)/tf-psa-crypto/drivers
-include $(MBEDTLS_PATH)/tf-psa-crypto/drivers/everest/Makefile.inc
-include $(MBEDTLS_PATH)/tf-psa-crypto/drivers/p256-m/Makefile.inc
+THIRDPARTY_DIR := $(TF_PSA_CRYPTO_PATH)/drivers
+include $(TF_PSA_CRYPTO_PATH)/drivers/everest/Makefile.inc
+include $(TF_PSA_CRYPTO_PATH)/drivers/p256-m/Makefile.inc
 LOCAL_CFLAGS+=$(THIRDPARTY_INCLUDES)
 OBJS_CRYPTO+=$(THIRDPARTY_CRYPTO_OBJECTS)
 
@@ -181,7 +181,7 @@ OBJS_TLS= \
 
 static: libmbedcrypto.a libmbedx509.a libmbedtls.a
 	cd ../tests && echo "This is a seedfile that contains 64 bytes (65 on Windows)......" > seedfile
-	cd ../tf-psa-crypto/tests && echo "This is a seedfile that contains 64 bytes (65 on Windows)......" > seedfile
+	cd $(TF_PSA_CRYPTO_PATH)/tests && echo "This is a seedfile that contains 64 bytes (65 on Windows)......" > seedfile
 
 shared: libmbedcrypto.$(DLEXT) libmbedx509.$(DLEXT) libmbedtls.$(DLEXT)
 
@@ -327,12 +327,12 @@ version_features.c:
 GENERATED_WRAPPER_FILES = \
                     $(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto_driver_wrappers.h \
                     $(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto_driver_wrappers_no_static.c
-$(GENERATED_WRAPPER_FILES): ../tf-psa-crypto/scripts/generate_driver_wrappers.py
-$(GENERATED_WRAPPER_FILES): ../tf-psa-crypto/scripts/data_files/driver_templates/psa_crypto_driver_wrappers.h.jinja
-$(GENERATED_WRAPPER_FILES): ../tf-psa-crypto/scripts/data_files/driver_templates/psa_crypto_driver_wrappers_no_static.c.jinja
+$(GENERATED_WRAPPER_FILES): $(TF_PSA_CRYPTO_PATH)/scripts/generate_driver_wrappers.py
+$(GENERATED_WRAPPER_FILES): $(TF_PSA_CRYPTO_PATH)/scripts/data_files/driver_templates/psa_crypto_driver_wrappers.h.jinja
+$(GENERATED_WRAPPER_FILES): $(TF_PSA_CRYPTO_PATH)/scripts/data_files/driver_templates/psa_crypto_driver_wrappers_no_static.c.jinja
 $(GENERATED_WRAPPER_FILES):
 	echo "  Gen   $(GENERATED_WRAPPER_FILES)"
-	$(PYTHON) ../tf-psa-crypto/scripts/generate_driver_wrappers.py $(TF_PSA_CRYPTO_CORE_PATH)
+	$(PYTHON) $(TF_PSA_CRYPTO_PATH)/scripts/generate_driver_wrappers.py $(TF_PSA_CRYPTO_CORE_PATH)
 
 $(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto.o:$(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto_driver_wrappers.h
 

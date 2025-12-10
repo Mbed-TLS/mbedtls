@@ -2,6 +2,18 @@ ifndef MBEDTLS_PATH
 MBEDTLS_PATH := ..
 endif
 
+ifeq (,$(wildcard $(MBEDTLS_PATH)/framework/exported.make))
+    # Use the define keyword to get a multi-line message.
+    # GNU make appends ".  Stop.", so tweak the ending of our message accordingly.
+    define error_message
+$(MBEDTLS_PATH)/framework/exported.make not found.
+Run `git submodule update --init` to fetch the submodule contents.
+This is a fatal error
+    endef
+    $(error $(error_message))
+endif
+include $(MBEDTLS_PATH)/framework/exported.make
+
 TF_PSA_CRYPTO_CORE_PATH = $(MBEDTLS_PATH)/tf-psa-crypto/core
 TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH = $(MBEDTLS_PATH)/tf-psa-crypto/drivers/builtin/src
 
@@ -23,18 +35,6 @@ GENERATED_FILES += \
 	$(TF_PSA_CRYPTO_CORE_PATH)/tf_psa_crypto_config_check_before.h \
 	$(TF_PSA_CRYPTO_CORE_PATH)/tf_psa_crypto_config_check_final.h \
 	$(TF_PSA_CRYPTO_CORE_PATH)/tf_psa_crypto_config_check_user.h
-
-ifeq (,$(wildcard $(MBEDTLS_PATH)/framework/exported.make))
-    # Use the define keyword to get a multi-line message.
-    # GNU make appends ".  Stop.", so tweak the ending of our message accordingly.
-    define error_message
-$(MBEDTLS_PATH)/framework/exported.make not found.
-Run `git submodule update --init` to fetch the submodule contents.
-This is a fatal error
-    endef
-    $(error $(error_message))
-endif
-include $(MBEDTLS_PATH)/framework/exported.make
 
 # Also see "include/mbedtls/mbedtls_config.h"
 

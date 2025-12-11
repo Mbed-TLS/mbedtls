@@ -22,3 +22,6 @@ ifeq (,$(wildcard $(TF_PSA_CRYPTO_PATH)/core/psa_crypto.c))
   $(error $$(TF_PSA_CRYPTO_PATH)/core/psa_crypto.c not found)
 endif
 
+THIRDPARTY_DIR := $(TF_PSA_CRYPTO_PATH)/drivers
+include $(TF_PSA_CRYPTO_PATH)/drivers/everest/Makefile.inc
+include $(TF_PSA_CRYPTO_PATH)/drivers/p256-m/Makefile.inc

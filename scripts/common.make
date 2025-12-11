@@ -29,6 +29,7 @@ LOCAL_CFLAGS = $(WARNING_CFLAGS) -I$(MBEDTLS_TEST_PATH)/include \
                -I$(MBEDTLS_PATH)/framework/tests/include \
                -I$(MBEDTLS_PATH)/include -I$(TF_PSA_CRYPTO_PATH)/include \
                -I$(TF_PSA_CRYPTO_PATH)/drivers/builtin/include \
+               $(THIRDPARTY_INCLUDES) \
                -D_FILE_OFFSET_BITS=64
 LOCAL_CXXFLAGS = $(WARNING_CXXFLAGS) $(LOCAL_CFLAGS)
 
@@ -46,11 +47,6 @@ LOCAL_LDFLAGS = ${MBEDTLS_TEST_OBJS} 		\
 		-lmbedx509$(SHARED_SUFFIX)	\
 		-lmbedcrypto$(SHARED_SUFFIX)
 endif
-
-THIRDPARTY_DIR = $(TF_PSA_CRYPTO_PATH)/drivers
-include $(THIRDPARTY_DIR)/everest/Makefile.inc
-include $(THIRDPARTY_DIR)/p256-m/Makefile.inc
-LOCAL_CFLAGS+=$(THIRDPARTY_INCLUDES)
 
 ifdef PSASIM
 MBEDLIBS=$(PSASIM_PATH)/client_libs/libmbedcrypto.a \

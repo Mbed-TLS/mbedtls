@@ -55,7 +55,9 @@ LDFLAGS ?=
 LOCAL_CFLAGS = $(WARNING_CFLAGS) -I. -I$(TF_PSA_CRYPTO_PATH)/core \
                -I$(TF_PSA_CRYPTO_PATH)/drivers/builtin/src \
                -I../include -I$(TF_PSA_CRYPTO_PATH)/include \
-               -I$(TF_PSA_CRYPTO_PATH)/drivers/builtin/include -D_FILE_OFFSET_BITS=64
+               -I$(TF_PSA_CRYPTO_PATH)/drivers/builtin/include \
+	       $(THIRDPARTY_INCLUDES) \
+	       -D_FILE_OFFSET_BITS=64
 LOCAL_LDFLAGS =
 
 ifdef DEBUG
@@ -129,11 +131,6 @@ OBJS_CRYPTO = $(patsubst %.c, %.o,$(wildcard $(TF_PSA_CRYPTO_CORE_PATH)/*.c $(TF
 GENERATED_OBJS_CRYPTO = $(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto_driver_wrappers_no_static.o
 OBJS_CRYPTO := $(filter-out $(GENERATED_OBJS_CRYPTO),$(OBJS_CRYPTO))
 OBJS_CRYPTO += $(GENERATED_OBJS_CRYPTO)
-
-THIRDPARTY_DIR := $(TF_PSA_CRYPTO_PATH)/drivers
-include $(TF_PSA_CRYPTO_PATH)/drivers/everest/Makefile.inc
-include $(TF_PSA_CRYPTO_PATH)/drivers/p256-m/Makefile.inc
-LOCAL_CFLAGS+=$(THIRDPARTY_INCLUDES)
 OBJS_CRYPTO+=$(THIRDPARTY_CRYPTO_OBJECTS)
 
 OBJS_X509= \

@@ -18,9 +18,6 @@ This is a fatal error
 endif
 include $(MBEDTLS_PATH)/framework/exported.make
 
-TF_PSA_CRYPTO_CORE_PATH = $(TF_PSA_CRYPTO_PATH)/core
-TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH = $(TF_PSA_CRYPTO_PATH)/drivers/builtin/src
-
 CFLAGS	?= -O2
 WARNING_CFLAGS ?=  -Wall -Wextra -Wformat=2 -Wno-format-nonliteral
 LDFLAGS ?=
@@ -123,15 +120,6 @@ endif
 
 include $(MBEDTLS_PATH)/scripts/crypto.legacy.make
 
-# List the generated files from crypto that are needed in the build,
-# because we don't have the list in a consumable form.
-TF_PSA_CRYPTO_LIBRARY_GENERATED_FILES := \
-	$(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto_driver_wrappers.h \
-	$(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto_driver_wrappers_no_static.c \
-	$(TF_PSA_CRYPTO_CORE_PATH)/tf_psa_crypto_config_check_before.h \
-	$(TF_PSA_CRYPTO_CORE_PATH)/tf_psa_crypto_config_check_final.h \
-	$(TF_PSA_CRYPTO_CORE_PATH)/tf_psa_crypto_config_check_user.h
-
 # List the generated files without running a script, so that this
 # works with no tooling dependencies when GEN_FILES is disabled.
 GENERATED_FILES := \
@@ -142,12 +130,6 @@ GENERATED_FILES := \
 	version_features.c \
 	ssl_debug_helpers_generated.c \
 	$(TF_PSA_CRYPTO_LIBRARY_GENERATED_FILES)
-
-TF_PSA_CRYPTO_LIBRARY_OBJS := $(patsubst %.c, %.o,$(wildcard $(TF_PSA_CRYPTO_CORE_PATH)/*.c $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/*.c))
-TF_PSA_CRYPTO_LIBRARY_GENERATED_OBJS = $(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto_driver_wrappers_no_static.o
-TF_PSA_CRYPTO_LIBRARY_OBJS := $(filter-out $(TF_PSA_CRYPTO_LIBRARY_GENERATED_OBJS),$(TF_PSA_CRYPTO_LIBRARY_OBJS))
-TF_PSA_CRYPTO_LIBRARY_OBJS += $(TF_PSA_CRYPTO_LIBRARY_GENERATED_OBJS)
-TF_PSA_CRYPTO_LIBRARY_OBJS+=$(THIRDPARTY_CRYPTO_OBJECTS)
 
 OBJS_CRYPTO = $(TF_PSA_CRYPTO_LIBRARY_OBJS)
 
@@ -331,18 +313,6 @@ version_features.c:
 	echo "  Gen   $@"
 	$(PERL) ../scripts/generate_features.pl
 
-GENERATED_WRAPPER_FILES = \
-                    $(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto_driver_wrappers.h \
-                    $(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto_driver_wrappers_no_static.c
-$(GENERATED_WRAPPER_FILES): $(TF_PSA_CRYPTO_PATH)/scripts/generate_driver_wrappers.py
-$(GENERATED_WRAPPER_FILES): $(TF_PSA_CRYPTO_PATH)/scripts/data_files/driver_templates/psa_crypto_driver_wrappers.h.jinja
-$(GENERATED_WRAPPER_FILES): $(TF_PSA_CRYPTO_PATH)/scripts/data_files/driver_templates/psa_crypto_driver_wrappers_no_static.c.jinja
-$(GENERATED_WRAPPER_FILES):
-	echo "  Gen   $(GENERATED_WRAPPER_FILES)"
-	$(PYTHON) $(TF_PSA_CRYPTO_PATH)/scripts/generate_driver_wrappers.py $(TF_PSA_CRYPTO_CORE_PATH)
-
-$(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto.o:$(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto_driver_wrappers.h
-
 GENERATED_CONFIG_CHECK_FILES = $(shell $(PYTHON) ../scripts/generate_config_checks.py --list .)
 $(GENERATED_CONFIG_CHECK_FILES): $(gen_file_dep) \
 	../scripts/generate_config_checks.py \
@@ -352,18 +322,6 @@ $(GENERATED_CONFIG_CHECK_FILES):
 	$(PYTHON) ../scripts/generate_config_checks.py
 
 mbedtls_config.o: $(GENERATED_CONFIG_CHECK_FILES)
-
-TF_PSA_CRYPTO_GENERATED_CONFIG_CHECK_FILES = $(shell $(PYTHON) \
-	$(TF_PSA_CRYPTO_CORE_PATH)/../scripts/generate_config_checks.py \
-	--list $(TF_PSA_CRYPTO_CORE_PATH))
-$(TF_PSA_CRYPTO_GENERATED_CONFIG_CHECK_FILES): $(gen_file_dep) \
-	$(TF_PSA_CRYPTO_CORE_PATH)/../scripts/generate_config_checks.py \
-	../framework/scripts/mbedtls_framework/config_checks_generator.py
-$(TF_PSA_CRYPTO_GENERATED_CONFIG_CHECK_FILES):
-	echo "  Gen   $(TF_PSA_CRYPTO_GENERATED_CONFIG_CHECK_FILES)"
-	$(PYTHON) $(TF_PSA_CRYPTO_CORE_PATH)/../scripts/generate_config_checks.py
-
-$(TF_PSA_CRYPTO_CORE_PATH)/tf_psa_crypto_config.o: $(TF_PSA_CRYPTO_GENERATED_CONFIG_CHECK_FILES)
 
 clean:
 ifndef WINDOWS

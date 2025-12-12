@@ -18,10 +18,14 @@ else
   TF_PSA_CRYPTO_PATH := $(patsubst %/,%,$(dir $(patsubst %/,%,$(dir $(lastword $(MAKEFILE_LIST))))))/tf-psa-crypto
 endif
 
+# Sanity check: does $(TF_PSA_CRYPTO_PATH) look like TF-PSA-Crypto?
 ifeq (,$(wildcard $(TF_PSA_CRYPTO_PATH)/core/psa_crypto.c))
   $(error $$(TF_PSA_CRYPTO_PATH)/core/psa_crypto.c not found)
 endif
 
+# Include legacy makefiles from the former /3rdparty directories.
+# Since the move to TF-PSA-Crypto, they are subdirectories of drivers,
+# but we haven't unified their build system yet.
 THIRDPARTY_DIR := $(TF_PSA_CRYPTO_PATH)/drivers
 include $(TF_PSA_CRYPTO_PATH)/drivers/everest/Makefile.inc
 include $(TF_PSA_CRYPTO_PATH)/drivers/p256-m/Makefile.inc
@@ -102,12 +106,22 @@ TF_PSA_CRYPTO_LIBRARY_GENERATED_FILES := \
 TF_PSA_CRYPTO_PROGRAMS_GENERATED_FILES := \
 	$(TF_PSA_CRYPTO_PATH)/programs/psa/psa_constant_names_generated.c
 
-TF_PSA_CRYPTO_LIBRARY_OBJS := $(patsubst %.c, %.o,$(wildcard $(TF_PSA_CRYPTO_CORE_PATH)/*.c $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/*.c))
-TF_PSA_CRYPTO_LIBRARY_GENERATED_OBJS = $(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto_driver_wrappers_no_static.o
-TF_PSA_CRYPTO_LIBRARY_OBJS := $(filter-out $(TF_PSA_CRYPTO_LIBRARY_GENERATED_OBJS),$(TF_PSA_CRYPTO_LIBRARY_OBJS))
-TF_PSA_CRYPTO_LIBRARY_OBJS += $(TF_PSA_CRYPTO_LIBRARY_GENERATED_OBJS)
-TF_PSA_CRYPTO_LIBRARY_OBJS+=$(THIRDPARTY_CRYPTO_OBJECTS)
+TF_PSA_CRYPTO_LIBRARY_EXISTING_OBJS := $(patsubst %.c, %.o, $(wildcard \
+		$(TF_PSA_CRYPTO_CORE_PATH)/*.c \
+		$(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/*.c) \
+	)
+TF_PSA_CRYPTO_LIBRARY_GENERATED_OBJS := \
+	$(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto_driver_wrappers_no_static.o
+# List all the library objects, making sure that objects for generated C
+# files are listed exactly once, whether they were already present in the
+# source tree or not when the makefile was parsed.
+TF_PSA_CRYPTO_LIBRARY_OBJS := \
+	$(filter-out $(TF_PSA_CRYPTO_LIBRARY_GENERATED_OBJS),$(TF_PSA_CRYPTO_LIBRARY_EXISTING_OBJS)) \
+	$(TF_PSA_CRYPTO_LIBRARY_GENERATED_OBJS) \
+	$(THIRDPARTY_CRYPTO_OBJECTS)
 
+# How to generate the driver wrappers (dispatch code generated from a template)
+# in the library.
 GENERATED_WRAPPER_FILES = \
                     $(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto_driver_wrappers.h \
                     $(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto_driver_wrappers_no_static.c
@@ -120,6 +134,7 @@ $(GENERATED_WRAPPER_FILES):
 
 $(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto.o:$(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto_driver_wrappers.h
 
+# How to generate the config checks in the library.
 TF_PSA_CRYPTO_GENERATED_CONFIG_CHECK_FILES = $(shell $(PYTHON) \
 	$(TF_PSA_CRYPTO_CORE_PATH)/../scripts/generate_config_checks.py \
 	--list $(TF_PSA_CRYPTO_CORE_PATH))
@@ -132,6 +147,7 @@ $(TF_PSA_CRYPTO_GENERATED_CONFIG_CHECK_FILES):
 
 $(TF_PSA_CRYPTO_CORE_PATH)/tf_psa_crypto_config.o: $(TF_PSA_CRYPTO_GENERATED_CONFIG_CHECK_FILES)
 
+# How to generate part of the sample program psa_constant_names.
 $(TF_PSA_CRYPTO_PATH)/programs/psa/psa_constant_names_generated.c: $(gen_file_dep) $(TF_PSA_CRYPTO_PATH)/scripts/generate_psa_constants.py
 $(TF_PSA_CRYPTO_PATH)/programs/psa/psa_constant_names_generated.c: $(gen_file_dep) $(TF_PSA_CRYPTO_PATH)/include/psa/crypto_values.h
 $(TF_PSA_CRYPTO_PATH)/programs/psa/psa_constant_names_generated.c: $(gen_file_dep) $(TF_PSA_CRYPTO_PATH)/include/psa/crypto_extra.h
@@ -139,6 +155,9 @@ $(TF_PSA_CRYPTO_PATH)/programs/psa/psa_constant_names_generated.c: $(gen_file_de
 $(TF_PSA_CRYPTO_PATH)/programs/psa/psa_constant_names_generated.c:
 	echo "  Gen   $@"
 	cd $(TF_PSA_CRYPTO_PATH); $(PYTHON) ./scripts/generate_psa_constants.py
+
+# Generated test data files: we know what scripts generate them and how.
+# Obtain the list of files and provide build instructions.
 
 GENERATED_BIGNUM_DATA_FILES := $(addprefix $(TF_PSA_CRYPTO_PATH)/,$(shell \
 	$(PYTHON) ../framework/scripts/generate_bignum_tests.py --list || \
@@ -221,6 +240,8 @@ generated_psa_test_data:
 	$(PYTHON) ../framework/scripts/generate_psa_tests.py --directory $(TF_PSA_CRYPTO_PATH)/tests/suites
 .SECONDARY: generated_psa_test_data
 
+# The sample programs in TF-PSA-Crypto, excluding fuzzing programs which
+# are built differently.
 TF_PSA_CRYPTO_APPS := \
 	$(TF_PSA_CRYPTO_PATH)/programs/psa/aead_demo \
 	$(TF_PSA_CRYPTO_PATH)/programs/psa/crypto_examples \
@@ -229,7 +250,7 @@ TF_PSA_CRYPTO_APPS := \
 	$(TF_PSA_CRYPTO_PATH)/programs/psa/psa_constant_names \
 	$(TF_PSA_CRYPTO_PATH)/programs/psa/psa_hash \
 	$(TF_PSA_CRYPTO_PATH)/programs/test/which_aes \
-# End of APPS
+# End of TF_PSA_CRYPTO_APPS
 
 $(TF_PSA_CRYPTO_PATH)/programs/psa/aead_demo$(EXEXT): $(TF_PSA_CRYPTO_PATH)/programs/psa/aead_demo.c $(DEP)
 	echo "  CC    psa/aead_demo.c"

@@ -27,7 +27,7 @@ GENERATED_BIGNUM_DATA_FILES := $(addprefix $(TF_PSA_CRYPTO_PATH)/,$(shell \
 ifeq ($(GENERATED_BIGNUM_DATA_FILES),FAILED)
 $(error "$(PYTHON) ../framework/scripts/generate_bignum_tests.py --list" failed)
 endif
-GENERATED_CRYPTO_DATA_FILES += $(GENERATED_BIGNUM_DATA_FILES)
+TF_PSA_CRYPTO_TESTS_GENERATED_DATA_FILES += $(GENERATED_BIGNUM_DATA_FILES)
 
 GENERATED_MBEDTLS_CONFIG_DATA_FILES := $(patsubst tests/%,%,$(shell \
 	$(PYTHON) ../framework/scripts/generate_config_tests.py --list || \
@@ -47,7 +47,7 @@ endif
 
 GENERATED_CONFIG_DATA_FILES := $(GENERATED_MBEDTLS_CONFIG_DATA_FILES) $(GENERATED_PSA_CONFIG_DATA_FILES)
 GENERATED_DATA_FILES += $(GENERATED_MBEDTLS_CONFIG_DATA_FILES)
-GENERATED_CRYPTO_DATA_FILES += $(GENERATED_PSA_CONFIG_DATA_FILES)
+TF_PSA_CRYPTO_TESTS_GENERATED_DATA_FILES += $(GENERATED_PSA_CONFIG_DATA_FILES)
 
 GENERATED_ECP_DATA_FILES := $(addprefix $(TF_PSA_CRYPTO_PATH)/,$(shell \
 	$(PYTHON) ../framework/scripts/generate_ecp_tests.py --list || \
@@ -56,7 +56,7 @@ GENERATED_ECP_DATA_FILES := $(addprefix $(TF_PSA_CRYPTO_PATH)/,$(shell \
 ifeq ($(GENERATED_ECP_DATA_FILES),FAILED)
 $(error "$(PYTHON) ../framework/scripts/generate_ecp_tests.py --list" failed)
 endif
-GENERATED_CRYPTO_DATA_FILES += $(GENERATED_ECP_DATA_FILES)
+TF_PSA_CRYPTO_TESTS_GENERATED_DATA_FILES += $(GENERATED_ECP_DATA_FILES)
 
 GENERATED_PSA_DATA_FILES := $(addprefix $(TF_PSA_CRYPTO_PATH)/,$(shell \
 	$(PYTHON) ../framework/scripts/generate_psa_tests.py --list || \
@@ -65,9 +65,9 @@ GENERATED_PSA_DATA_FILES := $(addprefix $(TF_PSA_CRYPTO_PATH)/,$(shell \
 ifeq ($(GENERATED_PSA_DATA_FILES),FAILED)
 $(error "$(PYTHON) ../framework/scripts/generate_psa_tests.py --list" failed)
 endif
-GENERATED_CRYPTO_DATA_FILES += $(GENERATED_PSA_DATA_FILES)
+TF_PSA_CRYPTO_TESTS_GENERATED_DATA_FILES += $(GENERATED_PSA_DATA_FILES)
 
-GENERATED_FILES = $(GENERATED_DATA_FILES) $(GENERATED_CRYPTO_DATA_FILES)
+GENERATED_FILES = $(GENERATED_DATA_FILES) $(TF_PSA_CRYPTO_TESTS_GENERATED_DATA_FILES)
 GENERATED_FILES += include/test/test_keys.h \
                    $(TF_PSA_CRYPTO_PATH)/tests/include/test/test_keys.h \
                    include/test/test_certs.h
@@ -166,15 +166,15 @@ generated_psa_test_data:
 # Application name is same as .data file's base name and can be
 # constructed by stripping path 'suites/' and extension .data.
 DATA_FILES = $(filter-out $(GENERATED_DATA_FILES), $(wildcard suites/test_suite_*.data))
-CRYPTO_DATA_FILES = $(filter-out $(GENERATED_CRYPTO_DATA_FILES), $(wildcard $(TF_PSA_CRYPTO_PATH)/tests/suites/test_suite_*.data))
+TF_PSA_CRYPTO_TESTS_DATA_FILES = $(filter-out $(TF_PSA_CRYPTO_TESTS_GENERATED_DATA_FILES), $(wildcard $(TF_PSA_CRYPTO_PATH)/tests/suites/test_suite_*.data))
 
 # Make sure that generated data files are included even if they don't
 # exist yet when the makefile is parsed.
 DATA_FILES += $(GENERATED_DATA_FILES)
-CRYPTO_DATA_FILES += $(GENERATED_CRYPTO_DATA_FILES)
+TF_PSA_CRYPTO_TESTS_DATA_FILES += $(TF_PSA_CRYPTO_TESTS_GENERATED_DATA_FILES)
 
 APPS = $(basename $(subst suites/,,$(DATA_FILES)))
-CRYPTO_APPS = $(basename $(subst suites/,,$(CRYPTO_DATA_FILES)))
+CRYPTO_APPS = $(basename $(subst suites/,,$(TF_PSA_CRYPTO_TESTS_DATA_FILES)))
 
 # Construct executable name by adding OS specific suffix $(EXEXT).
 BINARIES := $(addsuffix $(EXEXT),$(APPS))

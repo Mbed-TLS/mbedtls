@@ -36,6 +36,16 @@ endif
 
 LOCAL_CFLAGS += -I$(FRAMEWORK)/tests/programs
 
+TF_PSA_CRYPTO_APPS := \
+	$(TF_PSA_CRYPTO_PATH)/programs/psa/aead_demo \
+	$(TF_PSA_CRYPTO_PATH)/programs/psa/crypto_examples \
+	$(TF_PSA_CRYPTO_PATH)/programs/psa/hmac_demo \
+	$(TF_PSA_CRYPTO_PATH)/programs/psa/key_ladder_demo \
+	$(TF_PSA_CRYPTO_PATH)/programs/psa/psa_constant_names \
+	$(TF_PSA_CRYPTO_PATH)/programs/psa/psa_hash \
+	$(TF_PSA_CRYPTO_PATH)/programs/test/which_aes \
+# End of APPS
+
 ## The following assignment is the list of base names of applications that
 ## will be built on Windows. Extra Linux/Unix/POSIX-only applications can
 ## be declared by appending with `APPS += ...` afterwards.
@@ -45,13 +55,7 @@ LOCAL_CFLAGS += -I$(FRAMEWORK)/tests/programs
 ## Note: Variables cannot be used to define an apps path. This cannot be
 ## substituted by the script generate_visualc_files.pl.
 APPS = \
-	$(TF_PSA_CRYPTO_PATH)/programs/psa/aead_demo \
-	$(TF_PSA_CRYPTO_PATH)/programs/psa/crypto_examples \
-	$(TF_PSA_CRYPTO_PATH)/programs/psa/hmac_demo \
-	$(TF_PSA_CRYPTO_PATH)/programs/psa/key_ladder_demo \
-	$(TF_PSA_CRYPTO_PATH)/programs/psa/psa_constant_names \
-	$(TF_PSA_CRYPTO_PATH)/programs/psa/psa_hash \
-	$(TF_PSA_CRYPTO_PATH)/programs/test/which_aes \
+	$(TF_PSA_CRYPTO_APPS) \
 	ssl/dtls_client \
 	ssl/dtls_server \
 	ssl/mini_client \
@@ -110,8 +114,13 @@ fuzz: ${MBEDLIBS} ${MBEDTLS_TEST_OBJS}
 ${MBEDTLS_TEST_OBJS}:
 	$(MAKE) -C ../tests mbedtls_test
 
+TF_PSA_CRYPTO_PROGRAMS_GENERATED_FILES := \
+	$(TF_PSA_CRYPTO_PATH)/programs/psa/psa_constant_names_generated.c
+
 .PHONY: generated_files
-GENERATED_FILES = $(TF_PSA_CRYPTO_PATH)/programs/psa/psa_constant_names_generated.c test/query_config.c
+GENERATED_FILES := \
+	test/query_config.c \
+	$(TF_PSA_CRYPTO_PROGRAMS_GENERATED_FILES)
 generated_files: $(GENERATED_FILES)
 
 $(TF_PSA_CRYPTO_PATH)/programs/psa/psa_constant_names_generated.c: $(gen_file_dep) $(TF_PSA_CRYPTO_PATH)/scripts/generate_psa_constants.py

@@ -25,6 +25,15 @@ include $(MBEDTLS_PATH)/scripts/crypto.legacy.make
 TF_PSA_CRYPTO_CORE_PATH = $(TF_PSA_CRYPTO_PATH)/core
 TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH = $(TF_PSA_CRYPTO_PATH)/drivers/builtin/src
 
+# List the generated files from crypto that are needed in the build,
+# because we don't have the list in a consumable form.
+TF_PSA_CRYPTO_LIBRARY_GENERATED_FILES := \
+	$(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto_driver_wrappers.h \
+	$(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto_driver_wrappers_no_static.c \
+	$(TF_PSA_CRYPTO_CORE_PATH)/tf_psa_crypto_config_check_before.h \
+	$(TF_PSA_CRYPTO_CORE_PATH)/tf_psa_crypto_config_check_final.h \
+	$(TF_PSA_CRYPTO_CORE_PATH)/tf_psa_crypto_config_check_user.h
+
 # List the generated files without running a script, so that this
 # works with no tooling dependencies when GEN_FILES is disabled.
 GENERATED_FILES := \
@@ -33,16 +42,8 @@ GENERATED_FILES := \
 	mbedtls_config_check_user.h \
 	error.c \
 	version_features.c \
-	ssl_debug_helpers_generated.c
-
-# Also list the generated files from crypto that are needed in the build,
-# because we don't have the list in a consumable form.
-GENERATED_FILES += \
-	$(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto_driver_wrappers.h \
-	$(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto_driver_wrappers_no_static.c \
-	$(TF_PSA_CRYPTO_CORE_PATH)/tf_psa_crypto_config_check_before.h \
-	$(TF_PSA_CRYPTO_CORE_PATH)/tf_psa_crypto_config_check_final.h \
-	$(TF_PSA_CRYPTO_CORE_PATH)/tf_psa_crypto_config_check_user.h
+	ssl_debug_helpers_generated.c \
+	$(TF_PSA_CRYPTO_LIBRARY_GENERATED_FILES)
 
 CFLAGS	?= -O2
 WARNING_CFLAGS ?=  -Wall -Wextra -Wformat=2 -Wno-format-nonliteral
@@ -124,11 +125,13 @@ DLEXT = dylib
 endif
 endif
 
-OBJS_CRYPTO = $(patsubst %.c, %.o,$(wildcard $(TF_PSA_CRYPTO_CORE_PATH)/*.c $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/*.c))
-GENERATED_OBJS_CRYPTO = $(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto_driver_wrappers_no_static.o
-OBJS_CRYPTO := $(filter-out $(GENERATED_OBJS_CRYPTO),$(OBJS_CRYPTO))
-OBJS_CRYPTO += $(GENERATED_OBJS_CRYPTO)
-OBJS_CRYPTO+=$(THIRDPARTY_CRYPTO_OBJECTS)
+TF_PSA_CRYPTO_LIBRARY_OBJS := $(patsubst %.c, %.o,$(wildcard $(TF_PSA_CRYPTO_CORE_PATH)/*.c $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/*.c))
+TF_PSA_CRYPTO_LIBRARY_GENERATED_OBJS = $(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto_driver_wrappers_no_static.o
+TF_PSA_CRYPTO_LIBRARY_OBJS := $(filter-out $(TF_PSA_CRYPTO_LIBRARY_GENERATED_OBJS),$(TF_PSA_CRYPTO_LIBRARY_OBJS))
+TF_PSA_CRYPTO_LIBRARY_OBJS += $(TF_PSA_CRYPTO_LIBRARY_GENERATED_OBJS)
+TF_PSA_CRYPTO_LIBRARY_OBJS+=$(THIRDPARTY_CRYPTO_OBJECTS)
+
+OBJS_CRYPTO = $(TF_PSA_CRYPTO_LIBRARY_OBJS)
 
 OBJS_X509= \
 	   mbedtls_config.o \

@@ -338,7 +338,7 @@ $(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto.o:$(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto_dr
 
 GENERATED_CONFIG_CHECK_FILES = $(shell $(PYTHON) ../scripts/generate_config_checks.py --list .)
 $(GENERATED_CONFIG_CHECK_FILES): $(gen_file_dep) \
-	$(TF_PSA_CRYPTO_CORE_PATH)/../scripts/generate_config_checks.py \
+	../scripts/generate_config_checks.py \
 	../framework/scripts/mbedtls_framework/config_checks_generator.py
 $(GENERATED_CONFIG_CHECK_FILES):
 	echo "  Gen   $(GENERATED_CONFIG_CHECK_FILES)"
@@ -350,7 +350,7 @@ TF_PSA_CRYPTO_GENERATED_CONFIG_CHECK_FILES = $(shell $(PYTHON) \
 	$(TF_PSA_CRYPTO_CORE_PATH)/../scripts/generate_config_checks.py \
 	--list $(TF_PSA_CRYPTO_CORE_PATH))
 $(TF_PSA_CRYPTO_GENERATED_CONFIG_CHECK_FILES): $(gen_file_dep) \
-	../scripts/generate_config_checks.py \
+	$(TF_PSA_CRYPTO_CORE_PATH)/../scripts/generate_config_checks.py \
 	../framework/scripts/mbedtls_framework/config_checks_generator.py
 $(TF_PSA_CRYPTO_GENERATED_CONFIG_CHECK_FILES):
 	echo "  Gen   $(TF_PSA_CRYPTO_GENERATED_CONFIG_CHECK_FILES)"

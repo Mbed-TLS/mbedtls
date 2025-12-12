@@ -1,4 +1,7 @@
 MBEDTLS_TEST_PATH = .
+
+all: mbedtls_binaries crypto_binaries
+
 include ../scripts/common.make
 
 # Set this to -v to see the details of failing test cases
@@ -180,7 +183,8 @@ CRYPTO_BINARIES := $(addsuffix $(EXEXT),$(CRYPTO_APPS))
 
 .PHONY: all check test clean
 
-all: $(BINARIES) $(CRYPTO_BINARIES)
+mbedtls_binaries: $(BINARIES)
+crypto_binaries: $(CRYPTO_BINARIES)
 
 mbedtls_test: $(MBEDTLS_TEST_OBJS)
 

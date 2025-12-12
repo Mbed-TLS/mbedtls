@@ -2,6 +2,12 @@ ifndef MBEDTLS_PATH
 MBEDTLS_PATH := ..
 endif
 
+ifndef SHARED
+all: static
+else
+all: shared static
+endif
+
 ifeq (,$(wildcard $(MBEDTLS_PATH)/framework/exported.make))
     # Use the define keyword to get a multi-line message.
     # GNU make appends ".  Stop.", so tweak the ending of our message accordingly.
@@ -172,12 +178,6 @@ OBJS_TLS= \
 .SILENT:
 
 .PHONY: all static shared clean
-
-ifndef SHARED
-all: static
-else
-all: shared static
-endif
 
 static: libmbedcrypto.a libmbedx509.a libmbedtls.a
 	cd ../tests && echo "This is a seedfile that contains 64 bytes (65 on Windows)......" > seedfile

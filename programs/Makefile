@@ -1,5 +1,14 @@
 MBEDTLS_TEST_PATH = ../tests
 FRAMEWORK = ${MBEDTLS_PATH}/framework
+
+all: binaries
+ifndef WINDOWS
+# APPS doesn't include the fuzzing programs, which aren't "normal"
+# sample or test programs, and don't build with MSVC which is
+# warning about fopen
+all: fuzz
+endif
+
 include ../scripts/common.make
 
 ifeq ($(shell uname -s),Linux)
@@ -87,13 +96,7 @@ EXES = $(patsubst %,%$(EXEXT),$(APPS))
 
 .PHONY: all clean list fuzz
 
-all: $(EXES)
-ifndef WINDOWS
-# APPS doesn't include the fuzzing programs, which aren't "normal"
-# sample or test programs, and don't build with MSVC which is
-# warning about fopen
-all: fuzz
-endif
+binaries: $(EXES)
 
 SSL_OPT_APPS = $(filter ssl/%,$(APPS))
 SSL_OPT_APPS += test/query_compile_time_config test/udp_proxy

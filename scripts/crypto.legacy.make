@@ -25,3 +25,16 @@ endif
 THIRDPARTY_DIR := $(TF_PSA_CRYPTO_PATH)/drivers
 include $(TF_PSA_CRYPTO_PATH)/drivers/everest/Makefile.inc
 include $(TF_PSA_CRYPTO_PATH)/drivers/p256-m/Makefile.inc
+
+# Directories with headers of public interfaces of TF-PSA-Crypto
+TF_PSA_CRYPTO_LIBRARY_PUBLIC_INCLUDE = \
+	-I$(TF_PSA_CRYPTO_PATH)/include \
+	-I$(TF_PSA_CRYPTO_PATH)/drivers/builtin/include \
+	$(THIRDPARTY_INCLUDES)
+
+# Directories with headers of internal interfaces of TF-PSA-Crypto
+# (currently consumed by Mbed TLS, eventually not so when we've finished
+# cleaning up)
+TF_PSA_CRYPTO_LIBRARY_PRIVATE_INCLUDE = \
+	-I$(TF_PSA_CRYPTO_PATH)/core \
+	-I$(TF_PSA_CRYPTO_PATH)/drivers/builtin/src

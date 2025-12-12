@@ -48,15 +48,12 @@ CFLAGS	?= -O2
 WARNING_CFLAGS ?=  -Wall -Wextra -Wformat=2 -Wno-format-nonliteral
 LDFLAGS ?=
 
-# Include ../include, $(TF_PSA_CRYPTO_PATH)/include and
-# $(TF_PSA_CRYPTO_PATH)/drivers/builtin/include for public headers and .,
-# $(TF_PSA_CRYPTO_PATH)/core and $(TF_PSA_CRYPTO_PATH)/drivers/builtin/src for
-# private headers.
-LOCAL_CFLAGS = $(WARNING_CFLAGS) -I. -I$(TF_PSA_CRYPTO_PATH)/core \
-               -I$(TF_PSA_CRYPTO_PATH)/drivers/builtin/src \
-               -I../include -I$(TF_PSA_CRYPTO_PATH)/include \
-               -I$(TF_PSA_CRYPTO_PATH)/drivers/builtin/include \
-	       $(THIRDPARTY_INCLUDES) \
+# For the time being, Mbed TLS uses non-public interfaces of TF-PSA-Crypto,
+# so we include both public and internal headers.
+LOCAL_CFLAGS = $(WARNING_CFLAGS) -I. \
+	       $(TF_PSA_CRYPTO_LIBRARY_PRIVATE_INCLUDE) \
+               -I../include \
+	       $(TF_PSA_CRYPTO_LIBRARY_PUBLIC_INCLUDE) \
 	       -D_FILE_OFFSET_BITS=64
 LOCAL_LDFLAGS =
 

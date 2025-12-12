@@ -27,9 +27,8 @@ LDFLAGS ?=
 
 LOCAL_CFLAGS = $(WARNING_CFLAGS) -I$(MBEDTLS_TEST_PATH)/include \
                -I$(MBEDTLS_PATH)/framework/tests/include \
-               -I$(MBEDTLS_PATH)/include -I$(TF_PSA_CRYPTO_PATH)/include \
-               -I$(TF_PSA_CRYPTO_PATH)/drivers/builtin/include \
-               $(THIRDPARTY_INCLUDES) \
+               -I$(MBEDTLS_PATH)/include \
+               $(TF_PSA_CRYPTO_LIBRARY_PUBLIC_INCLUDE) \
                -D_FILE_OFFSET_BITS=64
 LOCAL_CXXFLAGS = $(WARNING_CXXFLAGS) $(LOCAL_CFLAGS)
 

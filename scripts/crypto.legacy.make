@@ -99,6 +99,8 @@ TF_PSA_CRYPTO_LIBRARY_GENERATED_FILES := \
 	$(TF_PSA_CRYPTO_CORE_PATH)/tf_psa_crypto_config_check_before.h \
 	$(TF_PSA_CRYPTO_CORE_PATH)/tf_psa_crypto_config_check_final.h \
 	$(TF_PSA_CRYPTO_CORE_PATH)/tf_psa_crypto_config_check_user.h
+TF_PSA_CRYPTO_PROGRAMS_GENERATED_FILES := \
+	$(TF_PSA_CRYPTO_PATH)/programs/psa/psa_constant_names_generated.c
 
 TF_PSA_CRYPTO_LIBRARY_OBJS := $(patsubst %.c, %.o,$(wildcard $(TF_PSA_CRYPTO_CORE_PATH)/*.c $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/*.c))
 TF_PSA_CRYPTO_LIBRARY_GENERATED_OBJS = $(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto_driver_wrappers_no_static.o
@@ -129,3 +131,49 @@ $(TF_PSA_CRYPTO_GENERATED_CONFIG_CHECK_FILES):
 	$(PYTHON) $(TF_PSA_CRYPTO_CORE_PATH)/../scripts/generate_config_checks.py
 
 $(TF_PSA_CRYPTO_CORE_PATH)/tf_psa_crypto_config.o: $(TF_PSA_CRYPTO_GENERATED_CONFIG_CHECK_FILES)
+
+$(TF_PSA_CRYPTO_PATH)/programs/psa/psa_constant_names_generated.c: $(gen_file_dep) $(TF_PSA_CRYPTO_PATH)/scripts/generate_psa_constants.py
+$(TF_PSA_CRYPTO_PATH)/programs/psa/psa_constant_names_generated.c: $(gen_file_dep) $(TF_PSA_CRYPTO_PATH)/include/psa/crypto_values.h
+$(TF_PSA_CRYPTO_PATH)/programs/psa/psa_constant_names_generated.c: $(gen_file_dep) $(TF_PSA_CRYPTO_PATH)/include/psa/crypto_extra.h
+$(TF_PSA_CRYPTO_PATH)/programs/psa/psa_constant_names_generated.c: $(gen_file_dep) $(TF_PSA_CRYPTO_PATH)/tests/suites/test_suite_psa_crypto_metadata.data
+$(TF_PSA_CRYPTO_PATH)/programs/psa/psa_constant_names_generated.c:
+	echo "  Gen   $@"
+	cd $(TF_PSA_CRYPTO_PATH); $(PYTHON) ./scripts/generate_psa_constants.py
+
+TF_PSA_CRYPTO_APPS := \
+	$(TF_PSA_CRYPTO_PATH)/programs/psa/aead_demo \
+	$(TF_PSA_CRYPTO_PATH)/programs/psa/crypto_examples \
+	$(TF_PSA_CRYPTO_PATH)/programs/psa/hmac_demo \
+	$(TF_PSA_CRYPTO_PATH)/programs/psa/key_ladder_demo \
+	$(TF_PSA_CRYPTO_PATH)/programs/psa/psa_constant_names \
+	$(TF_PSA_CRYPTO_PATH)/programs/psa/psa_hash \
+	$(TF_PSA_CRYPTO_PATH)/programs/test/which_aes \
+# End of APPS
+
+$(TF_PSA_CRYPTO_PATH)/programs/psa/aead_demo$(EXEXT): $(TF_PSA_CRYPTO_PATH)/programs/psa/aead_demo.c $(DEP)
+	echo "  CC    psa/aead_demo.c"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $(TF_PSA_CRYPTO_PATH)/programs/psa/aead_demo.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+
+$(TF_PSA_CRYPTO_PATH)/programs/psa/crypto_examples$(EXEXT): $(TF_PSA_CRYPTO_PATH)/programs/psa/crypto_examples.c $(DEP)
+	echo "  CC    psa/crypto_examples.c"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $(TF_PSA_CRYPTO_PATH)/programs/psa/crypto_examples.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+
+$(TF_PSA_CRYPTO_PATH)/programs/psa/hmac_demo$(EXEXT): $(TF_PSA_CRYPTO_PATH)/programs/psa/hmac_demo.c $(DEP)
+	echo "  CC    psa/hmac_demo.c"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $(TF_PSA_CRYPTO_PATH)/programs/psa/hmac_demo.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+
+$(TF_PSA_CRYPTO_PATH)/programs/psa/key_ladder_demo$(EXEXT): $(TF_PSA_CRYPTO_PATH)/programs/psa/key_ladder_demo.c $(DEP)
+	echo "  CC    psa/key_ladder_demo.c"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $(TF_PSA_CRYPTO_PATH)/programs/psa/key_ladder_demo.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+
+$(TF_PSA_CRYPTO_PATH)/programs/psa/psa_constant_names$(EXEXT): $(TF_PSA_CRYPTO_PATH)/programs/psa/psa_constant_names.c $(TF_PSA_CRYPTO_PATH)/programs/psa/psa_constant_names_generated.c $(DEP)
+	echo "  CC    psa/psa_constant_names.c"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $(TF_PSA_CRYPTO_PATH)/programs/psa/psa_constant_names.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+
+$(TF_PSA_CRYPTO_PATH)/programs/psa/psa_hash$(EXEXT): $(TF_PSA_CRYPTO_PATH)/programs/psa/psa_hash.c $(DEP)
+	echo "  CC    psa/psa_hash.c"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $(TF_PSA_CRYPTO_PATH)/programs/psa/psa_hash.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+
+$(TF_PSA_CRYPTO_PATH)/programs/test/which_aes$(EXEXT): $(TF_PSA_CRYPTO_PATH)/programs/test/which_aes.c $(DEP)
+	echo "  CC    test/which_aes.c"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $(TF_PSA_CRYPTO_PATH)/programs/test/which_aes.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@

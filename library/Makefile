@@ -42,8 +42,6 @@ GENERATED_FILES += \
 	$(TF_PSA_CRYPTO_CORE_PATH)/tf_psa_crypto_config_check_final.h \
 	$(TF_PSA_CRYPTO_CORE_PATH)/tf_psa_crypto_config_check_user.h
 
-# Also see "include/mbedtls/mbedtls_config.h"
-
 CFLAGS	?= -O2
 WARNING_CFLAGS ?=  -Wall -Wextra -Wformat=2 -Wno-format-nonliteral
 LDFLAGS ?=

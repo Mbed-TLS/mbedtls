@@ -1,5 +1,3 @@
-# To compile on SunOS: add "-lsocket -lnsl" to LDFLAGS
-
 ifndef MBEDTLS_PATH
 MBEDTLS_PATH := ..
 endif
@@ -22,6 +20,8 @@ CFLAGS	?= -O2
 WARNING_CFLAGS ?= -Wall -Wextra -Wformat=2 -Wno-format-nonliteral
 WARNING_CXXFLAGS ?= -Wall -Wextra -Wformat=2 -Wno-format-nonliteral -std=c++11 -pedantic
 LDFLAGS ?=
+
+# To compile on SunOS: add "-lsocket -lnsl" to LDFLAGS
 
 LOCAL_CFLAGS = $(WARNING_CFLAGS) -I$(MBEDTLS_TEST_PATH)/include \
                -I$(MBEDTLS_PATH)/framework/tests/include \

@@ -95,6 +95,16 @@ $(strip $(shell
 ))
 endef
 
+# Ensure that `THREADING` is always defined. This lets us get a clean run
+# with `make --warn-undefined-variables` without making the conditionals
+# below more complex than they already are. At this stage, if `$(THREADING)`
+# is empty, it means we don't know yet whether the threading implementation
+# requires extra `LDFLAGS`. Once we've done the analysis, if `$(THREADING)`
+# is empty, it will mean that no extra `LDFLAGS` are required, either
+# because threading is disabled or because the threading implementation
+# doesn't require any extra `LDFLAGS`.
+THREADING ?=
+
 ifdef WINDOWS_BUILD
   DLEXT=dll
   EXEXT=.exe
@@ -107,7 +117,7 @@ else # Not building for Windows
   DLEXT ?= so
   EXEXT=
   SHARED_SUFFIX=
-  ifndef THREADING
+  ifeq ($(THREADING),)
     # Auto-detect configurations with pthread.
     # If the call to remove_enabled_options returns "control", the symbols
     # are confirmed set and we link with pthread.

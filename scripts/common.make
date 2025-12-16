@@ -71,23 +71,23 @@ ifdef WINDOWS
 WINDOWS_BUILD=1
 endif
 
-## Usage: $(call remove_enabled_options,PREPROCESSOR_INPUT)
+## Usage: $(call remove_enabled_options_crypto,PREPROCESSOR_INPUT)
 ## Remove the preprocessor symbols that are set in the current configuration
 ## from PREPROCESSOR_INPUT. Also normalize whitespace.
 ## Example:
-##   $(call remove_enabled_options,MBEDTLS_FOO MBEDTLS_BAR)
+##   $(call remove_enabled_options_crypto,MBEDTLS_FOO MBEDTLS_BAR)
 ## This expands to an empty string "" if MBEDTLS_FOO and MBEDTLS_BAR are both
-## enabled, to "MBEDTLS_FOO" if MBEDTLS_BAR is enabled but MBEDTLS_FOO is
-## disabled, etc.
+## enabled in the TF-PSA-Crypto configuration, to "MBEDTLS_FOO" if
+## MBEDTLS_BAR is enabled but MBEDTLS_FOO is disabled, etc.
 ##
 ## This only works with a Unix-like shell environment (Bourne/POSIX-style shell
 ## and standard commands) and a Unix-like compiler (supporting -E). In
 ## other environments, the output is likely to be empty.
-define remove_enabled_options
+define remove_enabled_options_crypto
 $(strip $(shell
   exec 2>/dev/null;
-  { echo '#include <mbedtls/build_info.h>'; echo $(1); } |
-  $(CC) $(LOCAL_CFLAGS) $(CFLAGS) -E - |
+  { echo '#include <tf-psa-crypto/build_info.h>'; echo $(1); } |
+  $(CC) $(TF_PSA_CRYPTO_LIBRARY_PUBLIC_INCLUDE) $(CFLAGS) -E - |
   tail -n 1
 ))
 endef
@@ -109,21 +109,24 @@ ifdef WINDOWS_BUILD
   ifdef SHARED
     SHARED_SUFFIX=.$(DLEXT)
   endif
-
 else # Not building for Windows
   DLEXT ?= so
   EXEXT=
   SHARED_SUFFIX=
+endif
+
+ifndef WINDOWS_BUILD
   ifeq ($(THREADING),)
     # Auto-detect configurations with pthread.
     # If the call to remove_enabled_options returns "control", the symbols
     # are confirmed set and we link with pthread.
     # If the auto-detection fails, the result of the call is empty and
     # we keep THREADING undefined.
-    ifeq (control,$(call remove_enabled_options,control MBEDTLS_THREADING_C MBEDTLS_THREADING_PTHREAD))
+    ifeq (control,$(call remove_enabled_options_crypto,control MBEDTLS_THREADING_C MBEDTLS_THREADING_PTHREAD))
       THREADING := pthread
     endif
   endif
+  #$(info THREADING = $(THREADING))
 
   ifeq ($(THREADING),pthread)
     LOCAL_LDFLAGS += -lpthread

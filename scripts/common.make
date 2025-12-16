@@ -1,3 +1,7 @@
+################################################################
+#### Variable definitions (more or less customizable on the command line)
+################################################################
+
 ifndef MBEDTLS_PATH
 MBEDTLS_PATH := ..
 endif
@@ -15,8 +19,6 @@ This is a fatal error
     $(error $(error_message))
 endif
 include $(MBEDTLS_PATH)/framework/exported.make
-
-include $(MBEDTLS_PATH)/scripts/crypto.legacy.make
 
 CFLAGS	?= -O2
 WARNING_CFLAGS ?= -Wall -Wextra -Wformat=2 -Wno-format-nonliteral
@@ -98,7 +100,13 @@ else
 gen_file_dep = |
 endif
 
+################################################################
+#### Build instructions
+################################################################
+
 default: all
+
+include $(MBEDTLS_PATH)/scripts/crypto.legacy.make
 
 $(MBEDLIBS):
 	$(MAKE) -C $(MBEDTLS_PATH)/library $(@F)

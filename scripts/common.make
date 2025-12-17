@@ -6,6 +6,8 @@ ifndef MBEDTLS_PATH
 MBEDTLS_PATH := ..
 endif
 
+FRAMEWORK = ${MBEDTLS_PATH}/framework
+
 PSASIM_PATH=$(MBEDTLS_PATH)/tests/psa-client-server/psasim
 
 ifeq (,$(wildcard $(MBEDTLS_PATH)/framework/exported.make))

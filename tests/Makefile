@@ -21,11 +21,11 @@ LOCAL_CFLAGS += -Werror -DRECORD_PSA_STATUS_COVERAGE_LOG
 endif
 
 GENERATED_MBEDTLS_CONFIG_DATA_FILES := $(patsubst tests/%,%,$(shell \
-	$(PYTHON) ../framework/scripts/generate_config_tests.py --list || \
+	$(PYTHON) $(FRAMEWORK)/scripts/generate_config_tests.py --list || \
 	echo FAILED \
 ))
 ifeq ($(GENERATED_MBEDTLS_CONFIG_DATA_FILES),FAILED)
-$(error "$(PYTHON) ../framework/scripts/generate_config_tests.py --list" failed)
+$(error "$(PYTHON) $(FRAMEWORK)/scripts/generate_config_tests.py --list" failed)
 endif
 
 GENERATED_PSA_CONFIG_DATA_FILES := $(addprefix $(TF_PSA_CRYPTO_PATH)/,$(shell \
@@ -48,16 +48,16 @@ GENERATED_FILES += include/test/test_keys.h \
 # Generated files needed to (fully) run ssl-opt.sh
 .PHONY: ssl-opt
 
-opt-testcases/handshake-generated.sh: ../framework/scripts/mbedtls_framework/tls_test_case.py
-opt-testcases/handshake-generated.sh: ../framework/scripts/generate_tls_handshake_tests.py
+opt-testcases/handshake-generated.sh: $(FRAMEWORK)/scripts/mbedtls_framework/tls_test_case.py
+opt-testcases/handshake-generated.sh: $(FRAMEWORK)/scripts/generate_tls_handshake_tests.py
 	echo "  Gen   $@"
-	$(PYTHON) ../framework/scripts/generate_tls_handshake_tests.py -o $@
+	$(PYTHON) $(FRAMEWORK)/scripts/generate_tls_handshake_tests.py -o $@
 GENERATED_FILES += opt-testcases/handshake-generated.sh
 ssl-opt: opt-testcases/handshake-generated.sh
 
-opt-testcases/tls13-compat.sh: ../framework/scripts/generate_tls13_compat_tests.py
+opt-testcases/tls13-compat.sh: $(FRAMEWORK)/scripts/generate_tls13_compat_tests.py
 	echo "  Gen   $@"
-	$(PYTHON) ../framework/scripts/generate_tls13_compat_tests.py -o $@
+	$(PYTHON) $(FRAMEWORK)/scripts/generate_tls13_compat_tests.py -o $@
 GENERATED_FILES += opt-testcases/tls13-compat.sh
 ssl-opt: opt-testcases/tls13-compat.sh
 
@@ -71,13 +71,13 @@ generated_files: $(GENERATED_FILES)
 # lines which do affect the output negatively (it will miss the
 # corresponding test cases).
 $(GENERATED_CONFIG_DATA_FILES): $(gen_file_dep) generated_config_test_data
-generated_config_test_data: ../framework/scripts/generate_config_tests.py
+generated_config_test_data: $(FRAMEWORK)/scripts/generate_config_tests.py
 generated_config_test_data: ../scripts/config.py
-generated_config_test_data: ../framework/scripts/mbedtls_framework/test_case.py
-generated_config_test_data: ../framework/scripts/mbedtls_framework/test_data_generation.py
+generated_config_test_data: $(FRAMEWORK)/scripts/mbedtls_framework/test_case.py
+generated_config_test_data: $(FRAMEWORK)/scripts/mbedtls_framework/test_data_generation.py
 generated_config_test_data:
 	echo "  Gen   $(GENERATED_CONFIG_DATA_FILES)"
-	$(PYTHON) ../framework/scripts/generate_config_tests.py
+	$(PYTHON) $(FRAMEWORK)/scripts/generate_config_tests.py
 	cd $(TF_PSA_CRYPTO_PATH) && $(PYTHON) ./framework/scripts/generate_config_tests.py
 .SECONDARY: generated_config_test_data
 
@@ -108,14 +108,14 @@ crypto_binaries: $(CRYPTO_BINARIES)
 
 mbedtls_test: $(MBEDTLS_TEST_OBJS)
 
-include/test/test_certs.h: ../framework/scripts/generate_test_cert_macros.py \
-				  $(shell $(PYTHON) ../framework/scripts/generate_test_cert_macros.py --list-dependencies)
+include/test/test_certs.h: $(FRAMEWORK)/scripts/generate_test_cert_macros.py \
+				  $(shell $(PYTHON) $(FRAMEWORK)/scripts/generate_test_cert_macros.py --list-dependencies)
 	echo "  Gen   $@"
-	$(PYTHON) ../framework/scripts/generate_test_cert_macros.py --output $@
+	$(PYTHON) $(FRAMEWORK)/scripts/generate_test_cert_macros.py --output $@
 
-include/test/test_keys.h: ../framework/scripts/generate_test_keys.py
+include/test/test_keys.h: $(FRAMEWORK)/scripts/generate_test_keys.py
 	echo "  Gen   $@"
-	$(PYTHON) ../framework/scripts/generate_test_keys.py --output $@
+	$(PYTHON) $(FRAMEWORK)/scripts/generate_test_keys.py --output $@
 
 $(TF_PSA_CRYPTO_PATH)/tests/include/test/test_keys.h: $(TF_PSA_CRYPTO_PATH)/framework/scripts/generate_test_keys.py
 	echo "  Gen   $@"
@@ -126,17 +126,17 @@ ifdef RECORD_PSA_STATUS_COVERAGE_LOG
 # Explicitly depend on this header because on a clean copy of the source tree,
 # it doesn't exist yet and must be generated as part of the build, and
 # therefore the wildcard enumeration above doesn't include it.
-TEST_OBJS_DEPS += ../framework/tests/include/test/instrument_record_status.h
+TEST_OBJS_DEPS += $(FRAMEWORK)/tests/include/test/instrument_record_status.h
 endif
 TEST_OBJS_DEPS += include/test/test_certs.h include/test/test_keys.h \
                   $(TF_PSA_CRYPTO_PATH)/tests/include/test/test_keys.h
 
 # Rule to compile common test C files in framework
-../framework/tests/src/%.o : ../framework/tests/src/%.c $(TEST_OBJS_DEPS)
+$(FRAMEWORK)/tests/src/%.o : $(FRAMEWORK)/tests/src/%.c $(TEST_OBJS_DEPS)
 	echo "  CC    $<"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) -o $@ -c $<
 
-../framework/tests/src/drivers/%.o : ../framework/tests/src/drivers/%.c
+$(FRAMEWORK)/tests/src/drivers/%.o : $(FRAMEWORK)/tests/src/drivers/%.c
 	echo "  CC    $<"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) -o $@ -c $<
 
@@ -172,9 +172,9 @@ c: $(C_FILES)
 # the local case. In GNU Make >=3.82, the shortest match applies regardless
 # of the order in the makefile. In GNU Make <=3.81, the first matching rule
 # applies.
-$(TF_PSA_CRYPTO_PATH)/tests/%.c: $(TF_PSA_CRYPTO_PATH)/tests/suites/$$(firstword $$(subst ., ,$$*)).function $(TF_PSA_CRYPTO_PATH)/tests/suites/%.data ../framework/scripts/generate_test_code.py $(TF_PSA_CRYPTO_PATH)/tests/suites/helpers.function $(TF_PSA_CRYPTO_PATH)/tests/suites/main_test.function $(TF_PSA_CRYPTO_PATH)/tests/suites/host_test.function
+$(TF_PSA_CRYPTO_PATH)/tests/%.c: $(TF_PSA_CRYPTO_PATH)/tests/suites/$$(firstword $$(subst ., ,$$*)).function $(TF_PSA_CRYPTO_PATH)/tests/suites/%.data $(FRAMEWORK)/scripts/generate_test_code.py $(TF_PSA_CRYPTO_PATH)/tests/suites/helpers.function $(TF_PSA_CRYPTO_PATH)/tests/suites/main_test.function $(TF_PSA_CRYPTO_PATH)/tests/suites/host_test.function
 	echo "  Gen   $@"
-	cd $(TF_PSA_CRYPTO_PATH)/tests && $(PYTHON) ../../framework/scripts/generate_test_code.py -f suites/$(firstword $(subst ., ,$*)).function \
+	cd $(TF_PSA_CRYPTO_PATH)/tests && $(PYTHON) ../$(FRAMEWORK)/scripts/generate_test_code.py -f suites/$(firstword $(subst ., ,$*)).function \
 		-d suites/$*.data \
 		-t suites/main_test.function \
 		-p suites/host_test.function \
@@ -182,9 +182,9 @@ $(TF_PSA_CRYPTO_PATH)/tests/%.c: $(TF_PSA_CRYPTO_PATH)/tests/suites/$$(firstword
 		--helpers-file suites/helpers.function \
 		-o .
 
-%.c: suites/$$(firstword $$(subst ., ,$$*)).function suites/%.data ../framework/scripts/generate_test_code.py $(TF_PSA_CRYPTO_PATH)/tests/suites/helpers.function $(TF_PSA_CRYPTO_PATH)/tests/suites/main_test.function $(TF_PSA_CRYPTO_PATH)/tests/suites/host_test.function
+%.c: suites/$$(firstword $$(subst ., ,$$*)).function suites/%.data $(FRAMEWORK)/scripts/generate_test_code.py $(TF_PSA_CRYPTO_PATH)/tests/suites/helpers.function $(TF_PSA_CRYPTO_PATH)/tests/suites/main_test.function $(TF_PSA_CRYPTO_PATH)/tests/suites/host_test.function
 	echo "  Gen   $@"
-	$(PYTHON) ../framework/scripts/generate_test_code.py -f suites/$(firstword $(subst ., ,$*)).function \
+	$(PYTHON) $(FRAMEWORK)/scripts/generate_test_code.py -f suites/$(firstword $(subst ., ,$*)).function \
 		-d suites/$*.data \
 		-t $(TF_PSA_CRYPTO_PATH)/tests/suites/main_test.function \
 		-p $(TF_PSA_CRYPTO_PATH)/tests/suites/host_test.function \
@@ -200,7 +200,7 @@ LOCAL_CRYPTO_CFLAGS = $(patsubst -I./include, -I../../tests/include, $(patsubst 
 LOCAL_CRYPTO_LDFLAGS = $(patsubst -L../library, -L../../library, \
                        $(patsubst -L../tests/%, -L../../tests/%, \
                        $(patsubst ./src/%,../../tests/src/%, \
-                       $(patsubst ../framework/tests/src/%,../../framework/tests/src/%, \
+                       $(patsubst $(FRAMEWORK)/tests/src/%,../$(FRAMEWORK)/tests/src/%, \
 					   $(LOCAL_LDFLAGS)))))
 $(CRYPTO_BINARIES): %$(EXEXT): %.c $(MBEDLIBS) $(TEST_OBJS_DEPS) $(MBEDTLS_TEST_OBJS)
 	echo "  CC   $<"
@@ -212,9 +212,9 @@ ifndef WINDOWS
 	rm -rf $(BINARIES) *.c *.datax
 	rm -rf $(CRYPTO_BINARIES) $(TF_PSA_CRYPTO_PATH)/tests/*.c $(TF_PSA_CRYPTO_PATH)/tests/*.datax
 	rm -f src/*.o src/test_helpers/*.o src/libmbed*
-	rm -f ../framework/tests/src/*.o ../framework/tests/src/drivers/*.o
-	rm -f ../framework/tests/include/test/instrument_record_status.h
-	rm -f ../framework/tests/include/alt-extra/*/*_alt.h
+	rm -f $(FRAMEWORK)/tests/src/*.o $(FRAMEWORK)/tests/src/drivers/*.o
+	rm -f $(FRAMEWORK)/tests/include/test/instrument_record_status.h
+	rm -f $(FRAMEWORK)/tests/include/alt-extra/*/*_alt.h
 	rm -rf libtestdriver1
 	rm -rf libpsaclient libpsaserver
 	rm -f ../library/libtestdriver1.a
@@ -228,9 +228,9 @@ else
 	if exist src/*.o del /Q /F src/*.o
 	if exist src/test_helpers/*.o del /Q /F src/test_helpers/*.o
 	if exist src/libmbed* del /Q /F src/libmbed*
-	if exist ../framework/tests/src/*.o del /Q /F ../framework/tests/src/*.o
-	if exist ../framework/tests/src/drivers/*.o del /Q /F ../framework/tests/src/drivers/*.o
-	if exist ../framework/tests/include/test/instrument_record_status.h del /Q /F ../framework/tests/include/test/instrument_record_status.h
+	if exist $(FRAMEWORK)/tests/src/*.o del /Q /F $(FRAMEWORK)/tests/src/*.o
+	if exist $(FRAMEWORK)/tests/src/drivers/*.o del /Q /F $(FRAMEWORK)/tests/src/drivers/*.o
+	if exist $(FRAMEWORK)/tests/include/test/instrument_record_status.h del /Q /F $(FRAMEWORK)/tests/include/test/instrument_record_status.h
 endif
 
 # Test suites caught by SKIP_TEST_SUITES are built but not executed.
@@ -240,11 +240,11 @@ check: $(BINARIES) $(CRYPTO_BINARIES)
 test: check
 
 # Generate variants of some headers for testing
-../framework/tests/include/alt-extra/%_alt.h: ../include/%.h
+$(FRAMEWORK)/tests/include/alt-extra/%_alt.h: ../include/%.h
 	perl -p -e 's/^(# *(define|ifndef) +\w+_)H\b/$${1}ALT_H/' $< >$@
-../framework/tests/include/alt-extra/%_alt.h: $(TF_PSA_CRYPTO_PATH)/include/%.h
+$(FRAMEWORK)/tests/include/alt-extra/%_alt.h: $(TF_PSA_CRYPTO_PATH)/include/%.h
 	perl -p -e 's/^(# *(define|ifndef) +\w+_)H\b/$${1}ALT_H/' $< >$@
-../framework/tests/include/alt-extra/%_alt.h: $(TF_PSA_CRYPTO_PATH)/drivers/builtin/include/%.h
+$(FRAMEWORK)/tests/include/alt-extra/%_alt.h: $(TF_PSA_CRYPTO_PATH)/drivers/builtin/include/%.h
 	perl -p -e 's/^(# *(define|ifndef) +\w+_)H\b/$${1}ALT_H/' $< >$@
 
 # Generate test library
@@ -258,7 +258,7 @@ libtestdriver1.a:
 	mkdir ./libtestdriver1/tf-psa-crypto/drivers/p256-m
 	touch ./libtestdriver1/tf-psa-crypto/drivers/everest/Makefile.inc
 	touch ./libtestdriver1/tf-psa-crypto/drivers/p256-m/Makefile.inc
-	cp -Rf ../framework/scripts ./libtestdriver1/framework
+	cp -Rf $(FRAMEWORK)/scripts ./libtestdriver1/framework
 	cp -Rf ../library ./libtestdriver1
 	cp -Rf ../include ./libtestdriver1
 	cp -Rf ../scripts ./libtestdriver1
@@ -302,7 +302,7 @@ libtestdriver1.a:
 	cp ./libtestdriver1/library/libmbedcrypto.a ../library/libtestdriver1.a
 
 ifdef RECORD_PSA_STATUS_COVERAGE_LOG
-../framework/tests/include/test/instrument_record_status.h: $(TF_PSA_CRYPTO_PATH)/include/psa/crypto.h Makefile
+$(FRAMEWORK)/tests/include/test/instrument_record_status.h: $(TF_PSA_CRYPTO_PATH)/include/psa/crypto.h Makefile
 	echo "  Gen  $@"
 	sed <$(TF_PSA_CRYPTO_PATH)/include/psa/crypto.h >$@ -n 's/^psa_status_t \([A-Za-z0-9_]*\)(.*/#define \1(...) RECORD_STATUS("\1", \1(__VA_ARGS__))/p'
 endif

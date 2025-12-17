@@ -1,5 +1,4 @@
 MBEDTLS_TEST_PATH = ../tests
-FRAMEWORK = ${MBEDTLS_PATH}/framework
 
 all: binaries
 ifndef WINDOWS

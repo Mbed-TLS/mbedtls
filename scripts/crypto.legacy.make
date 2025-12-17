@@ -23,6 +23,8 @@ ifeq (,$(wildcard $(TF_PSA_CRYPTO_PATH)/core/psa_crypto.c))
   $(error $$(TF_PSA_CRYPTO_PATH)/core/psa_crypto.c not found)
 endif
 
+FRAMEWORK ?= $(TF_PSA_CRYPTO_PATH)/framework
+
 # Depending on who is including this makefile, either
 # TF_PSA_CRYPTO_PROGRAMS_DEPENDENCIES should be defined or it shouldn't
 # matter. To make the failure explicit if it's expected but not defined,
@@ -152,7 +154,7 @@ TF_PSA_CRYPTO_GENERATED_CONFIG_CHECK_FILES = $(shell $(PYTHON) \
 	--list $(TF_PSA_CRYPTO_CORE_PATH))
 $(TF_PSA_CRYPTO_GENERATED_CONFIG_CHECK_FILES): $(gen_file_dep) \
 	$(TF_PSA_CRYPTO_CORE_PATH)/../scripts/generate_config_checks.py \
-	../framework/scripts/mbedtls_framework/config_checks_generator.py
+	$(FRAMEWORK)/scripts/mbedtls_framework/config_checks_generator.py
 $(TF_PSA_CRYPTO_GENERATED_CONFIG_CHECK_FILES):
 	echo "  Gen   $(TF_PSA_CRYPTO_GENERATED_CONFIG_CHECK_FILES)"
 	$(PYTHON) $(TF_PSA_CRYPTO_CORE_PATH)/../scripts/generate_config_checks.py
@@ -172,29 +174,29 @@ $(TF_PSA_CRYPTO_PATH)/programs/psa/psa_constant_names_generated.c:
 # Obtain the list of files and provide build instructions.
 
 GENERATED_BIGNUM_DATA_FILES := $(addprefix $(TF_PSA_CRYPTO_PATH)/,$(shell \
-	$(PYTHON) ../framework/scripts/generate_bignum_tests.py --list || \
+	$(PYTHON) $(FRAMEWORK)/scripts/generate_bignum_tests.py --list || \
 	echo FAILED \
 ))
 ifeq ($(GENERATED_BIGNUM_DATA_FILES),FAILED)
-$(error "$(PYTHON) ../framework/scripts/generate_bignum_tests.py --list" failed)
+$(error "$(PYTHON) $(FRAMEWORK)/scripts/generate_bignum_tests.py --list" failed)
 endif
 TF_PSA_CRYPTO_TESTS_GENERATED_DATA_FILES += $(GENERATED_BIGNUM_DATA_FILES)
 
 GENERATED_ECP_DATA_FILES := $(addprefix $(TF_PSA_CRYPTO_PATH)/,$(shell \
-	$(PYTHON) ../framework/scripts/generate_ecp_tests.py --list || \
+	$(PYTHON) $(FRAMEWORK)/scripts/generate_ecp_tests.py --list || \
 	echo FAILED \
 ))
 ifeq ($(GENERATED_ECP_DATA_FILES),FAILED)
-$(error "$(PYTHON) ../framework/scripts/generate_ecp_tests.py --list" failed)
+$(error "$(PYTHON) $(FRAMEWORK)/scripts/generate_ecp_tests.py --list" failed)
 endif
 TF_PSA_CRYPTO_TESTS_GENERATED_DATA_FILES += $(GENERATED_ECP_DATA_FILES)
 
 GENERATED_PSA_DATA_FILES := $(addprefix $(TF_PSA_CRYPTO_PATH)/,$(shell \
-	$(PYTHON) ../framework/scripts/generate_psa_tests.py --list || \
+	$(PYTHON) $(FRAMEWORK)/scripts/generate_psa_tests.py --list || \
 	echo FAILED \
 ))
 ifeq ($(GENERATED_PSA_DATA_FILES),FAILED)
-$(error "$(PYTHON) ../framework/scripts/generate_psa_tests.py --list" failed)
+$(error "$(PYTHON) $(FRAMEWORK)/scripts/generate_psa_tests.py --list" failed)
 endif
 TF_PSA_CRYPTO_TESTS_GENERATED_DATA_FILES += $(GENERATED_PSA_DATA_FILES)
 
@@ -205,39 +207,39 @@ TF_PSA_CRYPTO_TESTS_GENERATED_DATA_FILES += $(GENERATED_PSA_DATA_FILES)
 # Use an intermediate phony dependency so that parallel builds don't run
 # a separate instance of the recipe for each output file.
 $(GENERATED_BIGNUM_DATA_FILES): $(gen_file_dep) generated_bignum_test_data
-generated_bignum_test_data: ../framework/scripts/generate_bignum_tests.py
-generated_bignum_test_data: ../framework/scripts/mbedtls_framework/bignum_common.py
-generated_bignum_test_data: ../framework/scripts/mbedtls_framework/bignum_core.py
-generated_bignum_test_data: ../framework/scripts/mbedtls_framework/bignum_mod_raw.py
-generated_bignum_test_data: ../framework/scripts/mbedtls_framework/bignum_mod.py
-generated_bignum_test_data: ../framework/scripts/mbedtls_framework/test_case.py
-generated_bignum_test_data: ../framework/scripts/mbedtls_framework/test_data_generation.py
+generated_bignum_test_data: $(FRAMEWORK)/scripts/generate_bignum_tests.py
+generated_bignum_test_data: $(FRAMEWORK)/scripts/mbedtls_framework/bignum_common.py
+generated_bignum_test_data: $(FRAMEWORK)/scripts/mbedtls_framework/bignum_core.py
+generated_bignum_test_data: $(FRAMEWORK)/scripts/mbedtls_framework/bignum_mod_raw.py
+generated_bignum_test_data: $(FRAMEWORK)/scripts/mbedtls_framework/bignum_mod.py
+generated_bignum_test_data: $(FRAMEWORK)/scripts/mbedtls_framework/test_case.py
+generated_bignum_test_data: $(FRAMEWORK)/scripts/mbedtls_framework/test_data_generation.py
 generated_bignum_test_data:
 	echo "  Gen   $(GENERATED_BIGNUM_DATA_FILES)"
-	$(PYTHON) ../framework/scripts/generate_bignum_tests.py --directory $(TF_PSA_CRYPTO_PATH)/tests/suites
+	$(PYTHON) $(FRAMEWORK)/scripts/generate_bignum_tests.py --directory $(TF_PSA_CRYPTO_PATH)/tests/suites
 .SECONDARY: generated_bignum_test_data
 
 $(GENERATED_ECP_DATA_FILES): $(gen_file_dep) generated_ecp_test_data
-generated_ecp_test_data: ../framework/scripts/generate_ecp_tests.py
-generated_ecp_test_data: ../framework/scripts/mbedtls_framework/bignum_common.py
-generated_ecp_test_data: ../framework/scripts/mbedtls_framework/ecp.py
-generated_ecp_test_data: ../framework/scripts/mbedtls_framework/test_case.py
-generated_ecp_test_data: ../framework/scripts/mbedtls_framework/test_data_generation.py
+generated_ecp_test_data: $(FRAMEWORK)/scripts/generate_ecp_tests.py
+generated_ecp_test_data: $(FRAMEWORK)/scripts/mbedtls_framework/bignum_common.py
+generated_ecp_test_data: $(FRAMEWORK)/scripts/mbedtls_framework/ecp.py
+generated_ecp_test_data: $(FRAMEWORK)/scripts/mbedtls_framework/test_case.py
+generated_ecp_test_data: $(FRAMEWORK)/scripts/mbedtls_framework/test_data_generation.py
 generated_ecp_test_data:
 	echo "  Gen   $(GENERATED_ECP_DATA_FILES)"
-	$(PYTHON) ../framework/scripts/generate_ecp_tests.py --directory $(TF_PSA_CRYPTO_PATH)/tests/suites
+	$(PYTHON) $(FRAMEWORK)/scripts/generate_ecp_tests.py --directory $(TF_PSA_CRYPTO_PATH)/tests/suites
 .SECONDARY: generated_ecp_test_data
 
 $(GENERATED_PSA_DATA_FILES): $(gen_file_dep) generated_psa_test_data
-generated_psa_test_data: ../framework/scripts/generate_psa_tests.py
-generated_psa_test_data: ../framework/scripts/mbedtls_framework/crypto_data_tests.py
-generated_psa_test_data: ../framework/scripts/mbedtls_framework/crypto_knowledge.py
-generated_psa_test_data: ../framework/scripts/mbedtls_framework/macro_collector.py
-generated_psa_test_data: ../framework/scripts/mbedtls_framework/psa_information.py
-generated_psa_test_data: ../framework/scripts/mbedtls_framework/psa_storage.py
-generated_psa_test_data: ../framework/scripts/mbedtls_framework/psa_test_case.py
-generated_psa_test_data: ../framework/scripts/mbedtls_framework/test_case.py
-generated_psa_test_data: ../framework/scripts/mbedtls_framework/test_data_generation.py
+generated_psa_test_data: $(FRAMEWORK)/scripts/generate_psa_tests.py
+generated_psa_test_data: $(FRAMEWORK)/scripts/mbedtls_framework/crypto_data_tests.py
+generated_psa_test_data: $(FRAMEWORK)/scripts/mbedtls_framework/crypto_knowledge.py
+generated_psa_test_data: $(FRAMEWORK)/scripts/mbedtls_framework/macro_collector.py
+generated_psa_test_data: $(FRAMEWORK)/scripts/mbedtls_framework/psa_information.py
+generated_psa_test_data: $(FRAMEWORK)/scripts/mbedtls_framework/psa_storage.py
+generated_psa_test_data: $(FRAMEWORK)/scripts/mbedtls_framework/psa_test_case.py
+generated_psa_test_data: $(FRAMEWORK)/scripts/mbedtls_framework/test_case.py
+generated_psa_test_data: $(FRAMEWORK)/scripts/mbedtls_framework/test_data_generation.py
 ## The generated file only depends on the options that are present in
 ## crypto_config.h, not on which options are set. To avoid regenerating this
 ## file all the time when switching between configurations, don't declare
@@ -249,7 +251,7 @@ generated_psa_test_data: $(TF_PSA_CRYPTO_PATH)/include/psa/crypto_extra.h
 generated_psa_test_data: $(TF_PSA_CRYPTO_PATH)/tests/suites/test_suite_psa_crypto_metadata.data
 generated_psa_test_data:
 	echo "  Gen   $(GENERATED_PSA_DATA_FILES) ..."
-	$(PYTHON) ../framework/scripts/generate_psa_tests.py --directory $(TF_PSA_CRYPTO_PATH)/tests/suites
+	$(PYTHON) $(FRAMEWORK)/scripts/generate_psa_tests.py --directory $(TF_PSA_CRYPTO_PATH)/tests/suites
 .SECONDARY: generated_psa_test_data
 
 # The sample programs in TF-PSA-Crypto, excluding fuzzing programs which

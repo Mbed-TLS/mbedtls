@@ -68,6 +68,34 @@ ifdef DEBUG
 LOCAL_CFLAGS += -g3
 endif
 
+# Auxiliary modules used by tests and some sample programs
+MBEDTLS_CORE_TEST_OBJS := $(patsubst %.c,%.o,$(wildcard \
+    ${MBEDTLS_PATH}/framework/tests/src/*.c \
+    ${MBEDTLS_PATH}/framework/tests/src/drivers/*.c \
+  ))
+# Ignore PSA stubs when building for the client side of PSASIM (i.e.
+# CRYPTO_CLIENT && !CRYPTO_C) otherwise there will be functions duplicates.
+ifdef PSASIM
+MBEDTLS_CORE_TEST_OBJS := $(filter-out \
+    ${MBEDTLS_PATH}/framework/tests/src/psa_crypto_stubs.o, $(MBEDTLS_CORE_TEST_OBJS)\
+  )
+endif
+# Additional auxiliary modules for TLS testing
+MBEDTLS_TLS_TEST_OBJS = $(patsubst %.c,%.o,$(wildcard \
+    ${MBEDTLS_TEST_PATH}/src/*.c \
+    ${MBEDTLS_TEST_PATH}/src/test_helpers/*.c \
+  ))
+
+MBEDTLS_TEST_OBJS = $(MBEDTLS_CORE_TEST_OBJS) $(MBEDTLS_TLS_TEST_OBJS)
+
+# We link the crypto sample programs with all mbedtls libraries. It
+# doesn't really matter and it's what we've done historically.
+# Note that this is a recursively expanded variable, so it will use whatever
+# the value of LOCAL_LDFLAGS is when $(TF_PSA_CRYPTO_PROGRAMS_LDFLAGS)
+# is expanded.
+TF_PSA_CRYPTO_PROGRAMS_LDFLAGS = $(LOCAL_LDFLAGS)
+TF_PSA_CRYPTO_PROGRAMS_DEPENDENCIES = ${MBEDLIBS} ${MBEDTLS_TEST_OBJS}
+
 # if we're running on Windows, build for Windows
 ifdef WINDOWS
 WINDOWS_BUILD=1
@@ -117,23 +145,3 @@ ifndef WINDOWS
 else
 	for %f in ($(subst /,\,$(GENERATED_FILES))) if exist %f del /Q /F %f
 endif
-
-# Auxiliary modules used by tests and some sample programs
-MBEDTLS_CORE_TEST_OBJS := $(patsubst %.c,%.o,$(wildcard \
-    ${MBEDTLS_PATH}/framework/tests/src/*.c \
-    ${MBEDTLS_PATH}/framework/tests/src/drivers/*.c \
-  ))
-# Ignore PSA stubs when building for the client side of PSASIM (i.e.
-# CRYPTO_CLIENT && !CRYPTO_C) otherwise there will be functions duplicates.
-ifdef PSASIM
-MBEDTLS_CORE_TEST_OBJS := $(filter-out \
-    ${MBEDTLS_PATH}/framework/tests/src/psa_crypto_stubs.o, $(MBEDTLS_CORE_TEST_OBJS)\
-  )
-endif
-# Additional auxiliary modules for TLS testing
-MBEDTLS_TLS_TEST_OBJS = $(patsubst %.c,%.o,$(wildcard \
-    ${MBEDTLS_TEST_PATH}/src/*.c \
-    ${MBEDTLS_TEST_PATH}/src/test_helpers/*.c \
-  ))
-
-MBEDTLS_TEST_OBJS = $(MBEDTLS_CORE_TEST_OBJS) $(MBEDTLS_TLS_TEST_OBJS)

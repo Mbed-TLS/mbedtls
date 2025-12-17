@@ -23,6 +23,17 @@ ifeq (,$(wildcard $(TF_PSA_CRYPTO_PATH)/core/psa_crypto.c))
   $(error $$(TF_PSA_CRYPTO_PATH)/core/psa_crypto.c not found)
 endif
 
+# Depending on who is including this makefile, either
+# TF_PSA_CRYPTO_PROGRAMS_DEPENDENCIES should be defined or it shouldn't
+# matter. To make the failure explicit if it's expected but not defined,
+# make it an impossible dependency.
+TF_PSA_CRYPTO_PROGRAMS_DEPENDENCIES ?= TF_PSA_CRYPTO_PROGRAMS_DEPENDENCIES-is-not-defined
+# EXEXT (extension of compiled executables) and
+# TF_PSA_CRYPTO_PROGRAMS_DEPENDENCIES are used together.
+# It's not a big deal if EXEXT isn't defined when it should be.
+# Define it to avoid warnings from `make --warn-undefined-variables`.
+EXEXT ?=
+
 # Include legacy makefiles from the former /3rdparty directories.
 # Since the move to TF-PSA-Crypto, they are subdirectories of drivers,
 # but we haven't unified their build system yet.
@@ -89,6 +100,7 @@ ifndef WINDOWS_BUILD
 
   ifeq ($(THREADING),pthread)
     LOCAL_LDFLAGS += -lpthread
+    TF_PSA_CRYPTO_PROGRAMS_LDFLAGS += -lpthread
   endif
 endif
 
@@ -252,30 +264,30 @@ TF_PSA_CRYPTO_APPS := \
 	$(TF_PSA_CRYPTO_PATH)/programs/test/which_aes \
 # End of TF_PSA_CRYPTO_APPS
 
-$(TF_PSA_CRYPTO_PATH)/programs/psa/aead_demo$(EXEXT): $(TF_PSA_CRYPTO_PATH)/programs/psa/aead_demo.c $(DEP)
+$(TF_PSA_CRYPTO_PATH)/programs/psa/aead_demo$(EXEXT): $(TF_PSA_CRYPTO_PATH)/programs/psa/aead_demo.c $(TF_PSA_CRYPTO_PROGRAMS_DEPENDENCIES)
 	echo "  CC    psa/aead_demo.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $(TF_PSA_CRYPTO_PATH)/programs/psa/aead_demo.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $(TF_PSA_CRYPTO_PATH)/programs/psa/aead_demo.c    $(TF_PSA_CRYPTO_PROGRAMS_LDFLAGS) $(LDFLAGS) -o $@
 
-$(TF_PSA_CRYPTO_PATH)/programs/psa/crypto_examples$(EXEXT): $(TF_PSA_CRYPTO_PATH)/programs/psa/crypto_examples.c $(DEP)
+$(TF_PSA_CRYPTO_PATH)/programs/psa/crypto_examples$(EXEXT): $(TF_PSA_CRYPTO_PATH)/programs/psa/crypto_examples.c $(TF_PSA_CRYPTO_PROGRAMS_DEPENDENCIES)
 	echo "  CC    psa/crypto_examples.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $(TF_PSA_CRYPTO_PATH)/programs/psa/crypto_examples.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $(TF_PSA_CRYPTO_PATH)/programs/psa/crypto_examples.c    $(TF_PSA_CRYPTO_PROGRAMS_LDFLAGS) $(LDFLAGS) -o $@
 
-$(TF_PSA_CRYPTO_PATH)/programs/psa/hmac_demo$(EXEXT): $(TF_PSA_CRYPTO_PATH)/programs/psa/hmac_demo.c $(DEP)
+$(TF_PSA_CRYPTO_PATH)/programs/psa/hmac_demo$(EXEXT): $(TF_PSA_CRYPTO_PATH)/programs/psa/hmac_demo.c $(TF_PSA_CRYPTO_PROGRAMS_DEPENDENCIES)
 	echo "  CC    psa/hmac_demo.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $(TF_PSA_CRYPTO_PATH)/programs/psa/hmac_demo.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $(TF_PSA_CRYPTO_PATH)/programs/psa/hmac_demo.c    $(TF_PSA_CRYPTO_PROGRAMS_LDFLAGS) $(LDFLAGS) -o $@
 
-$(TF_PSA_CRYPTO_PATH)/programs/psa/key_ladder_demo$(EXEXT): $(TF_PSA_CRYPTO_PATH)/programs/psa/key_ladder_demo.c $(DEP)
+$(TF_PSA_CRYPTO_PATH)/programs/psa/key_ladder_demo$(EXEXT): $(TF_PSA_CRYPTO_PATH)/programs/psa/key_ladder_demo.c $(TF_PSA_CRYPTO_PROGRAMS_DEPENDENCIES)
 	echo "  CC    psa/key_ladder_demo.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $(TF_PSA_CRYPTO_PATH)/programs/psa/key_ladder_demo.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $(TF_PSA_CRYPTO_PATH)/programs/psa/key_ladder_demo.c    $(TF_PSA_CRYPTO_PROGRAMS_LDFLAGS) $(LDFLAGS) -o $@
 
-$(TF_PSA_CRYPTO_PATH)/programs/psa/psa_constant_names$(EXEXT): $(TF_PSA_CRYPTO_PATH)/programs/psa/psa_constant_names.c $(TF_PSA_CRYPTO_PATH)/programs/psa/psa_constant_names_generated.c $(DEP)
+$(TF_PSA_CRYPTO_PATH)/programs/psa/psa_constant_names$(EXEXT): $(TF_PSA_CRYPTO_PATH)/programs/psa/psa_constant_names.c $(TF_PSA_CRYPTO_PATH)/programs/psa/psa_constant_names_generated.c $(TF_PSA_CRYPTO_PROGRAMS_DEPENDENCIES)
 	echo "  CC    psa/psa_constant_names.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $(TF_PSA_CRYPTO_PATH)/programs/psa/psa_constant_names.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $(TF_PSA_CRYPTO_PATH)/programs/psa/psa_constant_names.c    $(TF_PSA_CRYPTO_PROGRAMS_LDFLAGS) $(LDFLAGS) -o $@
 
-$(TF_PSA_CRYPTO_PATH)/programs/psa/psa_hash$(EXEXT): $(TF_PSA_CRYPTO_PATH)/programs/psa/psa_hash.c $(DEP)
+$(TF_PSA_CRYPTO_PATH)/programs/psa/psa_hash$(EXEXT): $(TF_PSA_CRYPTO_PATH)/programs/psa/psa_hash.c $(TF_PSA_CRYPTO_PROGRAMS_DEPENDENCIES)
 	echo "  CC    psa/psa_hash.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $(TF_PSA_CRYPTO_PATH)/programs/psa/psa_hash.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $(TF_PSA_CRYPTO_PATH)/programs/psa/psa_hash.c    $(TF_PSA_CRYPTO_PROGRAMS_LDFLAGS) $(LDFLAGS) -o $@
 
-$(TF_PSA_CRYPTO_PATH)/programs/test/which_aes$(EXEXT): $(TF_PSA_CRYPTO_PATH)/programs/test/which_aes.c $(DEP)
+$(TF_PSA_CRYPTO_PATH)/programs/test/which_aes$(EXEXT): $(TF_PSA_CRYPTO_PATH)/programs/test/which_aes.c $(TF_PSA_CRYPTO_PROGRAMS_DEPENDENCIES)
 	echo "  CC    test/which_aes.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $(TF_PSA_CRYPTO_PATH)/programs/test/which_aes.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $(TF_PSA_CRYPTO_PATH)/programs/test/which_aes.c    $(TF_PSA_CRYPTO_PROGRAMS_LDFLAGS) $(LDFLAGS) -o $@

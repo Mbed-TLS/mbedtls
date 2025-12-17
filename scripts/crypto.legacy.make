@@ -38,3 +38,52 @@ TF_PSA_CRYPTO_LIBRARY_PUBLIC_INCLUDE = \
 TF_PSA_CRYPTO_LIBRARY_PRIVATE_INCLUDE = \
 	-I$(TF_PSA_CRYPTO_PATH)/core \
 	-I$(TF_PSA_CRYPTO_PATH)/drivers/builtin/src
+
+## Usage: $(call remove_enabled_options_crypto,PREPROCESSOR_INPUT)
+## Remove the preprocessor symbols that are set in the current configuration
+## from PREPROCESSOR_INPUT. Also normalize whitespace.
+## Example:
+##   $(call remove_enabled_options_crypto,MBEDTLS_FOO MBEDTLS_BAR)
+## This expands to an empty string "" if MBEDTLS_FOO and MBEDTLS_BAR are both
+## enabled in the TF-PSA-Crypto configuration, to "MBEDTLS_FOO" if
+## MBEDTLS_BAR is enabled but MBEDTLS_FOO is disabled, etc.
+##
+## This only works with a Unix-like shell environment (Bourne/POSIX-style shell
+## and standard commands) and a Unix-like compiler (supporting -E). In
+## other environments, the output is likely to be empty.
+define remove_enabled_options_crypto
+$(strip $(shell
+  exec 2>/dev/null;
+  { echo '#include <tf-psa-crypto/build_info.h>'; echo $(1); } |
+  $(CC) $(TF_PSA_CRYPTO_LIBRARY_PUBLIC_INCLUDE) $(CFLAGS) -E - |
+  tail -n 1
+))
+endef
+
+# Ensure that `THREADING` is always defined. This lets us get a clean run
+# with `make --warn-undefined-variables` without making the conditionals
+# below more complex than they already are. At this stage, if `$(THREADING)`
+# is empty, it means we don't know yet whether the threading implementation
+# requires extra `LDFLAGS`. Once we've done the analysis, if `$(THREADING)`
+# is empty, it will mean that no extra `LDFLAGS` are required, either
+# because threading is disabled or because the threading implementation
+# doesn't require any extra `LDFLAGS`.
+THREADING ?=
+
+ifndef WINDOWS_BUILD
+  ifeq ($(THREADING),)
+    # Auto-detect configurations with pthread.
+    # If the call to remove_enabled_options returns "control", the symbols
+    # are confirmed set and we link with pthread.
+    # If the auto-detection fails, the result of the call is empty and
+    # we keep THREADING undefined.
+    ifeq (control,$(call remove_enabled_options_crypto,control MBEDTLS_THREADING_C MBEDTLS_THREADING_PTHREAD))
+      THREADING := pthread
+    endif
+  endif
+  #$(info THREADING = $(THREADING))
+
+  ifeq ($(THREADING),pthread)
+    LOCAL_LDFLAGS += -lpthread
+  endif
+endif

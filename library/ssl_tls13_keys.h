@@ -485,6 +485,21 @@ int mbedtls_ssl_tls13_create_psk_binder(mbedtls_ssl_context *ssl,
                                         unsigned char *result);
 
 /**
+ * \brief              Retrieve key and IV lengths for a given TLS 1.3 cipher suite.
+ *
+ * \param ciphersuite_info   [in]  The cipher suite information structure.
+ * \param key_len            [out] The resulting key length in bytes.
+ * \param iv_len             [out] The resulting IV length in bytes (always 12 for TLS 1.3 AEAD ciphers).
+ *
+ * \return             \c 0 on success.
+ * \return             A negative error code on failure.
+ */
+MBEDTLS_CHECK_RETURN_CRITICAL
+int ssl_tls13_get_cipher_key_info(
+    const mbedtls_ssl_ciphersuite_t *ciphersuite_info,
+    size_t *key_len, size_t *iv_len);
+
+/**
  * \bref Setup an SSL transform structure representing the
  *       record protection mechanism used by TLS 1.3
  *

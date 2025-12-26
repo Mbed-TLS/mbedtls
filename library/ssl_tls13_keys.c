@@ -1042,7 +1042,7 @@ int mbedtls_ssl_tls13_populate_transform(
 }
 
 MBEDTLS_CHECK_RETURN_CRITICAL
-static int ssl_tls13_get_cipher_key_info(
+int ssl_tls13_get_cipher_key_info(
     const mbedtls_ssl_ciphersuite_t *ciphersuite_info,
     size_t *key_len, size_t *iv_len)
 {

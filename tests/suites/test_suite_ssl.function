@@ -6040,3 +6040,55 @@ exit:
     USE_PSA_DONE();
 }
 /* END_CASE */
+
+
+/* BEGIN_CASE */
+void test_export_traffic_keys(int tls_version,
+                              int ciphersuite,
+                              int expected_cipher_type,
+                              int tls_prf_type,
+                              data_t *secret,
+                              data_t *randbytes,
+                              data_t *expected_server_key,
+                              data_t *expected_client_key,
+                              data_t *expected_server_iv,
+                              data_t *expected_client_iv,
+                              int expected_ret)
+{
+    mbedtls_ssl_key_set   key_set;
+    mbedtls_ssl_context   ssl;
+    mbedtls_cipher_type_t cipher_type;
+    mbedtls_ssl_session   session;
+
+    USE_PSA_INIT();
+
+    cipher_type         = MBEDTLS_CIPHER_NONE;
+
+    mbedtls_ssl_session_init(&session);
+    session.ciphersuite = ciphersuite;
+
+    mbedtls_ssl_init(&ssl);
+    ssl.tls_version     = tls_version;
+    ssl.session         = &session;
+
+    memset(&key_set, 0, sizeof(key_set));
+
+    const int ret = mbedtls_ssl_export_traffic_keys(&ssl,
+                                                    &key_set,
+                                                    &cipher_type,
+                                                    secret->x,
+                                                    secret->len,
+                                                    randbytes->x,
+                                                    tls_prf_type);
+
+    TEST_EQUAL(ret, expected_ret);
+    TEST_EQUAL(cipher_type, expected_cipher_type);
+
+    TEST_MEMORY_COMPARE(key_set.server_write_key, key_set.key_len, expected_server_key->x, expected_server_key->len);
+    TEST_MEMORY_COMPARE(key_set.client_write_key, key_set.key_len, expected_client_key->x, expected_client_key->len);
+    TEST_MEMORY_COMPARE(key_set.server_write_iv, key_set.iv_len, expected_server_iv->x, expected_server_iv->len);
+    TEST_MEMORY_COMPARE(key_set.client_write_iv, key_set.iv_len, expected_client_iv->x, expected_client_iv->len);
+
+    USE_PSA_DONE();
+}
+/* END_CASE */

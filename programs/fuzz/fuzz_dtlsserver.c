@@ -7,8 +7,8 @@
 #include "mbedtls/ssl.h"
 #include "test/certs.h"
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
-#include "mbedtls/entropy.h"
-#include "mbedtls/ctr_drbg.h"
+#include "mbedtls/private/entropy.h"
+#include "mbedtls/private/ctr_drbg.h"
 #include "mbedtls/timing.h"
 #include "mbedtls/ssl_cookie.h"
 

@@ -54,7 +54,7 @@
 #endif
 
 #if defined(MBEDTLS_CONFIG_VERSION) && ( \
-    MBEDTLS_CONFIG_VERSION < 0x03000000 || \
+    MBEDTLS_CONFIG_VERSION < 0x04000000 || \
                              MBEDTLS_CONFIG_VERSION > MBEDTLS_VERSION_NUMBER)
 #error "Invalid config version, defined value of MBEDTLS_CONFIG_VERSION is unsupported"
 #endif
@@ -68,15 +68,20 @@
 #include MBEDTLS_USER_CONFIG_FILE
 #endif
 
+/* For the sake of consistency checks in mbedtls_config.c */
+#if defined(MBEDTLS_INCLUDE_AFTER_RAW_CONFIG)
+#include MBEDTLS_INCLUDE_AFTER_RAW_CONFIG
+#endif
+
 /* Indicate that all configuration files have been read.
  * It is now time to adjust the configuration (follow through on dependencies,
  * make PSA and legacy crypto consistent, etc.).
  */
 #define MBEDTLS_CONFIG_FILES_READ
 
-#include "mbedtls/config_adjust_x509.h"
+#include "mbedtls/private/config_adjust_x509.h"
 
-#include "mbedtls/config_adjust_ssl.h"
+#include "mbedtls/private/config_adjust_ssl.h"
 
 /* Indicate that all configuration symbols are set,
  * even the ones that are calculated programmatically.

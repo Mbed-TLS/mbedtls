@@ -390,12 +390,12 @@ int psa_crypto_call(int function,
 
 psa_status_t psa_crypto_init(void)
 {
-    char mbedtls_version[18];
+    const char *mbedtls_version;
     uint8_t *result = NULL;
     size_t result_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    mbedtls_version_get_string_full(mbedtls_version);
+    mbedtls_version = mbedtls_version_get_string_full();
     CLIENT_PRINT("%s", mbedtls_version);
 
     CLIENT_PRINT("My PID: %d", getpid());

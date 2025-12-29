@@ -38,19 +38,17 @@ void check_compiletime_version(char *version_str)
 void check_runtime_version(char *version_str)
 {
     char build_str[100];
-    char get_str[100];
+    const char *get_str;
     char build_str_full[100];
-    char get_str_full[100];
+    const char *get_str_full;
     unsigned int get_int;
 
     memset(build_str, 0, 100);
-    memset(get_str, 0, 100);
     memset(build_str_full, 0, 100);
-    memset(get_str_full, 0, 100);
 
     get_int = mbedtls_version_get_number();
-    mbedtls_version_get_string(get_str);
-    mbedtls_version_get_string_full(get_str_full);
+    get_str = mbedtls_version_get_string();
+    get_str_full = mbedtls_version_get_string_full();
 
     mbedtls_snprintf(build_str, 100, "%u.%u.%u",
                      (get_int >> 24) & 0xFF,

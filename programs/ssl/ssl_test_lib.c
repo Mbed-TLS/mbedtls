@@ -242,7 +242,7 @@ int key_opaque_set_alg_usage(const char *alg1, const char *alg2,
                 *psa_algs[i] = PSA_ALG_RSA_PSS(PSA_ALG_SHA_512);
                 *usage |= PSA_KEY_USAGE_SIGN_HASH;
             } else if (strcmp(algs[i], "ecdsa-sign") == 0) {
-                *psa_algs[i] = PSA_ALG_ECDSA(PSA_ALG_ANY_HASH);
+                *psa_algs[i] = MBEDTLS_PK_ALG_ECDSA(PSA_ALG_ANY_HASH);
                 *usage |= PSA_KEY_USAGE_SIGN_HASH;
             } else if (strcmp(algs[i], "ecdh") == 0) {
                 *psa_algs[i] = PSA_ALG_ECDH;
@@ -253,7 +253,7 @@ int key_opaque_set_alg_usage(const char *alg1, const char *alg2,
         }
     } else {
         if (key_type == MBEDTLS_PK_ECKEY) {
-            *psa_alg1 = PSA_ALG_ECDSA(PSA_ALG_ANY_HASH);
+            *psa_alg1 = MBEDTLS_PK_ALG_ECDSA(PSA_ALG_ANY_HASH);
             *psa_alg2 = PSA_ALG_ECDH;
             *usage = PSA_KEY_USAGE_SIGN_HASH | PSA_KEY_USAGE_DERIVE;
         } else if (key_type == MBEDTLS_PK_RSA) {
@@ -470,47 +470,47 @@ static const struct {
     uint8_t is_supported;
 } tls_id_group_name_table[] =
 {
-#if defined(MBEDTLS_ECP_DP_SECP521R1_ENABLED) || defined(PSA_WANT_ECC_SECP_R1_521)
+#if defined(PSA_WANT_ECC_SECP_R1_521)
     { MBEDTLS_SSL_IANA_TLS_GROUP_SECP521R1, "secp521r1", 1 },
 #else
     { MBEDTLS_SSL_IANA_TLS_GROUP_SECP521R1, "secp521r1", 0 },
 #endif
-#if defined(MBEDTLS_ECP_DP_BP512R1_ENABLED) || defined(PSA_WANT_ECC_BRAINPOOL_P_R1_512)
+#if defined(PSA_WANT_ECC_BRAINPOOL_P_R1_512)
     { MBEDTLS_SSL_IANA_TLS_GROUP_BP512R1, "brainpoolP512r1", 1 },
 #else
     { MBEDTLS_SSL_IANA_TLS_GROUP_BP512R1, "brainpoolP512r1", 0 },
 #endif
-#if defined(MBEDTLS_ECP_DP_SECP384R1_ENABLED) || defined(PSA_WANT_ECC_SECP_R1_384)
+#if defined(PSA_WANT_ECC_SECP_R1_384)
     { MBEDTLS_SSL_IANA_TLS_GROUP_SECP384R1, "secp384r1", 1 },
 #else
     { MBEDTLS_SSL_IANA_TLS_GROUP_SECP384R1, "secp384r1", 0 },
 #endif
-#if defined(MBEDTLS_ECP_DP_BP384R1_ENABLED) || defined(PSA_WANT_ECC_BRAINPOOL_P_R1_384)
+#if defined(PSA_WANT_ECC_BRAINPOOL_P_R1_384)
     { MBEDTLS_SSL_IANA_TLS_GROUP_BP384R1, "brainpoolP384r1", 1 },
 #else
     { MBEDTLS_SSL_IANA_TLS_GROUP_BP384R1, "brainpoolP384r1", 0 },
 #endif
-#if defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED) || defined(PSA_WANT_ECC_SECP_R1_256)
+#if defined(PSA_WANT_ECC_SECP_R1_256)
     { MBEDTLS_SSL_IANA_TLS_GROUP_SECP256R1, "secp256r1", 1 },
 #else
     { MBEDTLS_SSL_IANA_TLS_GROUP_SECP256R1, "secp256r1", 0 },
 #endif
-#if defined(MBEDTLS_ECP_DP_SECP256K1_ENABLED) || defined(PSA_WANT_ECC_SECP_K1_256)
+#if defined(PSA_WANT_ECC_SECP_K1_256)
     { MBEDTLS_SSL_IANA_TLS_GROUP_SECP256K1, "secp256k1", 1 },
 #else
     { MBEDTLS_SSL_IANA_TLS_GROUP_SECP256K1, "secp256k1", 0 },
 #endif
-#if defined(MBEDTLS_ECP_DP_BP256R1_ENABLED) || defined(PSA_WANT_ECC_BRAINPOOL_P_R1_256)
+#if defined(PSA_WANT_ECC_BRAINPOOL_P_R1_256)
     { MBEDTLS_SSL_IANA_TLS_GROUP_BP256R1, "brainpoolP256r1", 1 },
 #else
     { MBEDTLS_SSL_IANA_TLS_GROUP_BP256R1, "brainpoolP256r1", 0 },
 #endif
-#if defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED) || defined(PSA_WANT_ECC_MONTGOMERY_255)
+#if defined(PSA_WANT_ECC_MONTGOMERY_255)
     { MBEDTLS_SSL_IANA_TLS_GROUP_X25519, "x25519", 1 },
 #else
     { MBEDTLS_SSL_IANA_TLS_GROUP_X25519, "x25519", 0 },
 #endif
-#if defined(MBEDTLS_ECP_DP_CURVE448_ENABLED) || defined(PSA_WANT_ECC_MONTGOMERY_448)
+#if defined(PSA_WANT_ECC_MONTGOMERY_448)
     { MBEDTLS_SSL_IANA_TLS_GROUP_X448, "x448", 1 },
 #else
     { MBEDTLS_SSL_IANA_TLS_GROUP_X448, "x448", 0 },

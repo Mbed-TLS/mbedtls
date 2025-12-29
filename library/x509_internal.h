@@ -16,11 +16,8 @@
 
 #include "mbedtls/x509.h"
 #include "mbedtls/asn1.h"
-#include "pk_internal.h"
 
-#if defined(MBEDTLS_RSA_C)
-#include "mbedtls/rsa.h"
-#endif
+#include "pk_internal.h" // for a lot of things, including in SSL
 
 int mbedtls_x509_get_name(unsigned char **p, const unsigned char *end,
                           mbedtls_x509_name *cur);

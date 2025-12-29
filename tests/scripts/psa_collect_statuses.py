@@ -78,23 +78,25 @@ def collect_status_logs(options):
         os.remove(options.log_file)
     if not os.path.exists(options.log_file):
         if options.clean_before:
-            subprocess.check_call(['make', 'clean'],
+            subprocess.check_call(['make', '-f', 'scripts/legacy.make', 'clean'],
                                   cwd='tests',
                                   stdout=sys.stderr)
         with open(os.devnull, 'w') as devnull:
-            make_q_ret = subprocess.call(['make', '-q', 'lib', 'tests'],
+            make_q_ret = subprocess.call(['make', '-f', 'scripts/legacy.make',
+                                          '-q', 'lib', 'tests'],
                                          stdout=devnull, stderr=devnull)
         if make_q_ret != 0:
-            subprocess.check_call(['make', 'RECORD_PSA_STATUS_COVERAGE_LOG=1'],
+            subprocess.check_call(['make', '-f', 'scripts/legacy.make',
+                                   'RECORD_PSA_STATUS_COVERAGE_LOG=1'],
                                   stdout=sys.stderr)
             rebuilt = True
-        subprocess.check_call(['make', 'test'],
+        subprocess.check_call(['make', '-f', 'scripts/legacy.make', 'test'],
                               stdout=sys.stderr)
     data = Statuses()
     data.collect_log(options.log_file)
     data.get_constant_names(options.psa_constant_names)
     if rebuilt and options.clean_after:
-        subprocess.check_call(['make', 'clean'],
+        subprocess.check_call(['make', '-f', 'scripts/legacy.make', 'clean'],
                               cwd='tests',
                               stdout=sys.stderr)
     return data

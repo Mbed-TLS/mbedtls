@@ -26,7 +26,6 @@ endif
 .PHONY: all no_test programs lib tests install uninstall clean test check lcov apidoc apidoc_clean
 
 all: programs tests
-	$(MAKE) post_build
 
 no_test: programs
 
@@ -63,7 +62,6 @@ tests/%: FORCE
 generated_files: library/generated_files
 generated_files: programs/generated_files
 generated_files: tests/generated_files
-generated_files: visualc_files
 
 # Set GEN_FILES to the empty string to disable dependencies on generated
 # source files. Then `make generated_files` will only build files that
@@ -87,26 +85,6 @@ else
 # re-generate it if it's present but older than its dependencies.
 gen_file_dep = |
 endif
-
-.PHONY: visualc_files
-VISUALC_FILES = visualc/VS2017/mbedTLS.sln visualc/VS2017/mbedTLS.vcxproj
-# TODO: $(app).vcxproj for each $(app) in programs/
-visualc_files: $(VISUALC_FILES)
-
-# Ensure that the .c files that generate_visualc_files.pl enumerates are
-# present before it runs. It doesn't matter if the files aren't up-to-date,
-# they just need to be present.
-$(VISUALC_FILES): | library/generated_files
-$(VISUALC_FILES): | programs/generated_files
-$(VISUALC_FILES): | tests/generated_files
-$(VISUALC_FILES): $(gen_file_dep) scripts/generate_visualc_files.pl
-$(VISUALC_FILES): $(gen_file_dep) scripts/data_files/vs2017-app-template.vcxproj
-$(VISUALC_FILES): $(gen_file_dep) scripts/data_files/vs2017-main-template.vcxproj
-$(VISUALC_FILES): $(gen_file_dep) scripts/data_files/vs2017-sln-template.sln
-# TODO: also the list of .c and .h source files, but not their content
-$(VISUALC_FILES):
-	echo "  Gen   $@ ..."
-	$(PERL) scripts/generate_visualc_files.pl
 
 ifndef WINDOWS
 install: no_test
@@ -146,24 +124,6 @@ uninstall:
 	done
 endif
 
-
-WARNING_BORDER_LONG      =**********************************************************************************\n
-CTR_DRBG_128_BIT_KEY_WARN_L1=****  WARNING!  MBEDTLS_CTR_DRBG_USE_128_BIT_KEY defined!                      ****\n
-CTR_DRBG_128_BIT_KEY_WARN_L2=****  Using 128-bit keys for CTR_DRBG limits the security of generated         ****\n
-CTR_DRBG_128_BIT_KEY_WARN_L3=****  keys and operations that use random values generated to 128-bit security ****\n
-
-CTR_DRBG_128_BIT_KEY_WARNING=\n$(WARNING_BORDER_LONG)$(CTR_DRBG_128_BIT_KEY_WARN_L1)$(CTR_DRBG_128_BIT_KEY_WARN_L2)$(CTR_DRBG_128_BIT_KEY_WARN_L3)$(WARNING_BORDER_LONG)
-
-# Post build steps
-post_build:
-ifndef WINDOWS
-
-	# If 128-bit keys are configured for CTR_DRBG, display an appropriate warning
-	-scripts/config.py get MBEDTLS_CTR_DRBG_USE_128_BIT_KEY && ([ $$? -eq 0 ]) && \
-	    echo '$(CTR_DRBG_128_BIT_KEY_WARNING)'
-
-endif
-
 clean: clean_more_on_top
 	$(MAKE) -C library clean
 	$(MAKE) -C programs clean
@@ -178,12 +138,6 @@ neat: clean_more_on_top
 	$(MAKE) -C library neat
 	$(MAKE) -C programs neat
 	$(MAKE) -C tests neat
-ifndef WINDOWS
-	rm -f visualc/VS2017/*.vcxproj visualc/VS2017/mbedTLS.sln
-else
-	if exist visualc\VS2017\*.vcxproj del /Q /F visualc\VS2017\*.vcxproj
-	if exist visualc\VS2017\mbedTLS.sln del /Q /F visualc\VS2017\mbedTLS.sln
-endif
 
 ifndef PSASIM
 check: lib
@@ -200,9 +154,9 @@ ifndef WINDOWS
 # 2. Run the relevant tests for the part of the code you're interested in.
 #    For the reference coverage measurement, see
 #    tests/scripts/basic-build-test.sh
-# 3. Run scripts/lcov.sh to generate an HTML report.
+# 3. Run framework/scripts/lcov.sh to generate an HTML report.
 lcov:
-	scripts/lcov.sh
+	framework/scripts/lcov.sh
 
 apidoc:
 	mkdir -p apidoc

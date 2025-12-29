@@ -1,5 +1,5 @@
 /* BEGIN_HEADER */
-#include "mbedtls/bignum.h"
+#include "mbedtls/private/bignum.h"
 #include "mbedtls/x509.h"
 #include "mbedtls/x509_crt.h"
 #include "mbedtls/x509_crl.h"
@@ -655,7 +655,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_FS_IO:MBEDTLS_X509_CRT_PARSE_C:MBEDTLS_X509_CRL_PARSE_C:MBEDTLS_ECP_RESTARTABLE:MBEDTLS_ECDSA_C */
+/* BEGIN_CASE depends_on:MBEDTLS_FS_IO:MBEDTLS_X509_CRT_PARSE_C:MBEDTLS_X509_CRL_PARSE_C:MBEDTLS_ECP_RESTARTABLE:PSA_WANT_ALG_ECDSA */
 void x509_verify_restart(char *crt_file, char *ca_file,
                          int result, int flags_result,
                          int max_ops, int min_restart, int max_restart)
@@ -1132,14 +1132,6 @@ void x509parse_crt(data_t *buf, char *result_str, int result)
      * mbedtls#10229. */
     int result_back_comp = result;
     int res;
-
-#if !defined(MBEDTLS_PK_USE_PSA_RSA_DATA)
-    /* Support for mbedtls#10213 before psa#308. Once psa#308 will be
-     * merged this dirty fix can be removed. */
-    if (result == MBEDTLS_ERR_PK_INVALID_PUBKEY) {
-        result_back_comp = MBEDTLS_ERR_ASN1_UNEXPECTED_TAG;
-    }
-#endif /* MBEDTLS_PK_USE_PSA_RSA_DATA */
 
     mbedtls_x509_crt_init(&crt);
     USE_PSA_INIT();

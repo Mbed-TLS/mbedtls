@@ -220,8 +220,7 @@ void mbedtls_debug_print_mpi(const mbedtls_ssl_context *ssl, int level,
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C) && !defined(MBEDTLS_X509_REMOVE_INFO)
 
-/* no-check-names will be removed in mbedtls#10229. */
-#if defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY) || defined(MBEDTLS_PK_USE_PSA_RSA_DATA) //no-check-names
+#if defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY) || defined(PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY)
 static void mbedtls_debug_print_integer(const mbedtls_ssl_context *ssl, int level,
                                         const char *file, int line, const char *text,
                                         const unsigned char *buf, size_t bitlen)
@@ -257,8 +256,7 @@ static void mbedtls_debug_print_integer(const mbedtls_ssl_context *ssl, int leve
         debug_send_line(ssl, level, file, line, str);
     }
 }
-/* no-check-names will be removed in mbedtls#10229. */
-#endif /* PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY || MBEDTLS_PK_USE_PSA_RSA_DATA */ //no-check-names
+#endif /* PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY || PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY */
 
 #if defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
 static void mbedtls_debug_print_psa_ec(const mbedtls_ssl_context *ssl, int level,
@@ -292,8 +290,7 @@ static void mbedtls_debug_print_psa_ec(const mbedtls_ssl_context *ssl, int level
 }
 #endif /* PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY */
 
-/* no-check-names will be removed in mbedtls#10229. */
-#if defined(MBEDTLS_PK_USE_PSA_RSA_DATA) //no-check-names
+#if defined(PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY)
 static size_t debug_count_valid_bits(unsigned char **buf, size_t len)
 {
     size_t i, bits;
@@ -389,8 +386,7 @@ static void mbedtls_debug_print_psa_rsa(const mbedtls_ssl_context *ssl, int leve
     mbedtls_snprintf(str, sizeof(str), "%s.E", text);
     mbedtls_debug_print_integer(ssl, level, file, line, str, start_cur, bits);
 }
-/* no-check-names will be removed in mbedtls#10229. */
-#endif /* MBEDTLS_PK_USE_PSA_RSA_DATA */ //no-check-names
+#endif /* PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY */
 
 static void debug_print_pk(const mbedtls_ssl_context *ssl, int level,
                            const char *file, int line,
@@ -421,12 +417,11 @@ static void debug_print_pk(const mbedtls_ssl_context *ssl, int level,
             mbedtls_debug_print_mpi(ssl, level, file, line, name, items[i].value);
         } else
 #endif /* MBEDTLS_RSA_C */
-/* no-check-names will be removed in mbedtls#10229. */
-#if defined(MBEDTLS_PK_USE_PSA_RSA_DATA) //no-check-names
-        if (items[i].type == MBEDTLS_PK_DEBUG_PSA_RSA) { //no-check-names
+#if defined(PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY)
+        if (items[i].type == MBEDTLS_PK_DEBUG_PSA_RSA) {
             mbedtls_debug_print_psa_rsa(ssl, level, file, line, name, items[i].value);
         } else
-#endif /* MBEDTLS_PK_USE_PSA_RSA_DATA */ //no-check-names
+#endif /* PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY */
 #if defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
         if (items[i].type == MBEDTLS_PK_DEBUG_PSA_EC) {
             mbedtls_debug_print_psa_ec(ssl, level, file, line, name, items[i].value);

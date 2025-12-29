@@ -20,18 +20,19 @@ component_build_no_std_function () {
     make
 }
 
-component_test_platform_get_entropy_alt()
+component_test_psa_driver_get_entropy()
 {
-    msg "build: default config + MBEDTLS_PLATFORM_GET_ENTROPY_ALT"
+    msg "build: default - MBEDTLS_PSA_BUILTIN_GET_ENTROPY + MBEDTLS_PSA_DRIVER_GET_ENTROPY"
     # Use hardware polling as the only source for entropy
-    scripts/config.py set MBEDTLS_PLATFORM_GET_ENTROPY_ALT
+    scripts/config.py unset MBEDTLS_PSA_BUILTIN_GET_ENTROPY
     scripts/config.py unset MBEDTLS_ENTROPY_NV_SEED
+    scripts/config.py set MBEDTLS_PSA_DRIVER_GET_ENTROPY
 
-    make
+    $MAKE_COMMAND
 
     # Run all the tests
-    msg "test: default config + MBEDTLS_PLATFORM_GET_ENTROPY_ALT"
-    make test
+    msg "test: default - MBEDTLS_PSA_BUILTIN_GET_ENTROPY + MBEDTLS_PSA_DRIVER_GET_ENTROPY"
+    $MAKE_COMMAND test
 }
 
 component_build_no_sockets () {
@@ -40,8 +41,9 @@ component_build_no_sockets () {
     msg "build: full config except net_sockets.c, make, gcc -std=c99 -pedantic" # ~ 30s
     scripts/config.py full
     scripts/config.py unset MBEDTLS_NET_C # getaddrinfo() undeclared, etc.
-    scripts/config.py set MBEDTLS_PLATFORM_GET_ENTROPY_ALT # prevent syscall() on GNU/Linux
-    make CC=gcc CFLAGS='-Werror -Wall -Wextra -O1 -std=c99 -pedantic' lib
+    scripts/config.py unset MBEDTLS_PSA_BUILTIN_GET_ENTROPY # prevent syscall() on GNU/Linux
+    scripts/config.py set MBEDTLS_PSA_DRIVER_GET_ENTROPY
+    $MAKE_COMMAND CC=gcc CFLAGS='-Werror -Wall -Wextra -O1 -std=c99 -pedantic' lib
 }
 
 component_test_no_date_time () {
@@ -71,10 +73,10 @@ component_test_have_int32 () {
     scripts/config.py unset MBEDTLS_HAVE_ASM
     scripts/config.py unset MBEDTLS_AESNI_C
     scripts/config.py unset MBEDTLS_AESCE_C
-    make CC=gcc CFLAGS='-O2 -Werror -Wall -Wextra -DMBEDTLS_HAVE_INT32'
+    $MAKE_COMMAND CC=gcc CFLAGS='-O2 -Werror -Wall -Wextra -DMBEDTLS_HAVE_INT32'
 
     msg "test: gcc, force 32-bit bignum limbs"
-    make test
+    $MAKE_COMMAND test
 }
 
 component_test_have_int64 () {
@@ -82,10 +84,10 @@ component_test_have_int64 () {
     scripts/config.py unset MBEDTLS_HAVE_ASM
     scripts/config.py unset MBEDTLS_AESNI_C
     scripts/config.py unset MBEDTLS_AESCE_C
-    make CC=gcc CFLAGS='-O2 -Werror -Wall -Wextra -DMBEDTLS_HAVE_INT64'
+    $MAKE_COMMAND CC=gcc CFLAGS='-O2 -Werror -Wall -Wextra -DMBEDTLS_HAVE_INT64'
 
     msg "test: gcc, force 64-bit bignum limbs"
-    make test
+    $MAKE_COMMAND test
 }
 
 component_test_have_int32_cmake_new_bignum () {
@@ -95,28 +97,28 @@ component_test_have_int32_cmake_new_bignum () {
     scripts/config.py unset MBEDTLS_AESCE_C
     scripts/config.py set MBEDTLS_TEST_HOOKS
     scripts/config.py set MBEDTLS_ECP_WITH_MPI_UINT
-    make CC=gcc CFLAGS="$ASAN_CFLAGS -Werror -Wall -Wextra -DMBEDTLS_HAVE_INT32" LDFLAGS="$ASAN_CFLAGS"
+    $MAKE_COMMAND CC=gcc CFLAGS="$ASAN_CFLAGS -Werror -Wall -Wextra -DMBEDTLS_HAVE_INT32" LDFLAGS="$ASAN_CFLAGS"
 
     msg "test: gcc, force 32-bit bignum limbs, new bignum interface, test hooks (ASan build)"
-    make test
+    $MAKE_COMMAND test
 }
 
 component_test_no_udbl_division () {
     msg "build: MBEDTLS_NO_UDBL_DIVISION native" # ~ 10s
     scripts/config.py full
     scripts/config.py set MBEDTLS_NO_UDBL_DIVISION
-    make CFLAGS='-Werror -O1'
+    $MAKE_COMMAND CFLAGS='-Werror -O1'
 
     msg "test: MBEDTLS_NO_UDBL_DIVISION native" # ~ 10s
-    make test
+    $MAKE_COMMAND test
 }
 
 component_test_no_64bit_multiplication () {
     msg "build: MBEDTLS_NO_64BIT_MULTIPLICATION native" # ~ 10s
     scripts/config.py full
     scripts/config.py set MBEDTLS_NO_64BIT_MULTIPLICATION
-    make CFLAGS='-Werror -O1'
+    $MAKE_COMMAND CFLAGS='-Werror -O1'
 
     msg "test: MBEDTLS_NO_64BIT_MULTIPLICATION native" # ~ 10s
-    make test
+    $MAKE_COMMAND test
 }

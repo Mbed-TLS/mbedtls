@@ -42,9 +42,7 @@
     defined(MBEDTLS_PSA_ACCEL_ECC_BRAINPOOL_P_R1_512) || \
     defined(MBEDTLS_PSA_ACCEL_ECC_MONTGOMERY_255) || \
     defined(MBEDTLS_PSA_ACCEL_ECC_MONTGOMERY_448) || \
-    defined(MBEDTLS_PSA_ACCEL_ECC_SECP_K1_192) || \
     defined(MBEDTLS_PSA_ACCEL_ECC_SECP_K1_256) || \
-    defined(MBEDTLS_PSA_ACCEL_ECC_SECP_R1_192) || \
     defined(MBEDTLS_PSA_ACCEL_ECC_SECP_R1_256) || \
     defined(MBEDTLS_PSA_ACCEL_ECC_SECP_R1_384) || \
     defined(MBEDTLS_PSA_ACCEL_ECC_SECP_R1_521)
@@ -54,19 +52,6 @@
 #endif /* modules beyond what's supported */
 #endif /* not all curves accelerated */
 #endif /* some curve accelerated */
-
-#if defined(MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED) &&                 \
-    ( !defined(MBEDTLS_CAN_ECDH) ||                                       \
-      !defined(PSA_HAVE_ALG_ECDSA_SIGN) ||                                \
-      !defined(MBEDTLS_X509_CRT_PARSE_C) )
-#error "MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED defined, but not all prerequisites"
-#endif
-
-#if defined(MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED) &&                 \
-    ( !defined(MBEDTLS_CAN_ECDH) || !defined(PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC) || \
-      !defined(MBEDTLS_X509_CRT_PARSE_C) )
-#error "MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED defined, but not all prerequisites"
-#endif
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED) &&                     \
     !defined(MBEDTLS_CAN_ECDH)
@@ -150,8 +135,6 @@
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2) &&                                    \
     !(defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED) ||                    \
       defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED) ||                  \
-      defined(MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED) ||                     \
-      defined(MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED) ||                   \
       defined(MBEDTLS_KEY_EXCHANGE_PSK_ENABLED) ||                          \
       defined(MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED) ||                    \
       defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED) )

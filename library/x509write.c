@@ -24,7 +24,6 @@
 
 #include "psa/crypto.h"
 #include "mbedtls/psa_util.h"
-#include "md_psa.h"
 
 #define CHECK_OVERFLOW_ADD(a, b) \
     do                         \

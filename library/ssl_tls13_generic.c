@@ -18,13 +18,13 @@
 #include "mbedtls/constant_time.h"
 #include "psa/crypto.h"
 #include "mbedtls/psa_util.h"
+#include "mbedtls_utils.h"
 
 #include "ssl_tls13_invasive.h"
 #include "ssl_tls13_keys.h"
 #include "ssl_debug_helpers.h"
 
 #include "psa/crypto.h"
-#include "psa_util_internal.h"
 
 #if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED)
 /* Define a local translating function to save code size by not using too many
@@ -221,7 +221,7 @@ static int ssl_tls13_parse_certificate_verify(mbedtls_ssl_context *ssl,
     const unsigned char *p = buf;
     uint16_t algorithm;
     size_t signature_len;
-    mbedtls_pk_type_t sig_alg;
+    mbedtls_pk_sigalg_t sig_alg;
     mbedtls_md_type_t md_alg;
     psa_algorithm_t hash_alg = PSA_ALG_NONE;
     unsigned char verify_hash[PSA_HASH_MAX_SIZE];
@@ -261,7 +261,7 @@ static int ssl_tls13_parse_certificate_verify(mbedtls_ssl_context *ssl,
         goto error;
     }
 
-    if (mbedtls_ssl_get_pk_type_and_md_alg_from_sig_alg(
+    if (mbedtls_ssl_get_pk_sigalg_and_md_alg_from_sig_alg(
             algorithm, &sig_alg, &md_alg) != 0) {
         goto error;
     }
@@ -277,7 +277,9 @@ static int ssl_tls13_parse_certificate_verify(mbedtls_ssl_context *ssl,
     /*
      * Check the certificate's key type matches the signature alg
      */
-    if (!mbedtls_pk_can_do(&ssl->session_negotiate->peer_cert->pk, sig_alg)) {
+    if (!mbedtls_pk_can_do_psa(&ssl->session_negotiate->peer_cert->pk,
+                               mbedtls_psa_alg_from_pk_sigalg(sig_alg, hash_alg),
+                               PSA_KEY_USAGE_VERIFY_HASH)) {
         MBEDTLS_SSL_DEBUG_MSG(1, ("signature algorithm doesn't match cert key"));
         goto error;
     }
@@ -300,13 +302,13 @@ static int ssl_tls13_parse_certificate_verify(mbedtls_ssl_context *ssl,
 
     MBEDTLS_SSL_DEBUG_BUF(3, "verify hash", verify_hash, verify_hash_len);
 
-    if ((ret = mbedtls_pk_verify_new(sig_alg,
+    if ((ret = mbedtls_pk_verify_ext((mbedtls_pk_sigalg_t) sig_alg,
                                      &ssl->session_negotiate->peer_cert->pk,
                                      md_alg, verify_hash, verify_hash_len,
                                      p, signature_len)) == 0) {
         return 0;
     }
-    MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_pk_verify_new", ret);
+    MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_pk_verify_ext", ret);
 
 error:
     /* RFC 8446 section 4.4.3
@@ -927,7 +929,7 @@ static int ssl_tls13_write_certificate_verify_body(mbedtls_ssl_context *ssl,
 
     for (; *sig_alg != MBEDTLS_TLS1_3_SIG_NONE; sig_alg++) {
         psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
-        mbedtls_pk_type_t pk_type = MBEDTLS_PK_NONE;
+        mbedtls_pk_sigalg_t pk_type = MBEDTLS_PK_SIGALG_NONE;
         mbedtls_md_type_t md_alg = MBEDTLS_MD_NONE;
         psa_algorithm_t psa_algorithm = PSA_ALG_NONE;
         unsigned char verify_hash[PSA_HASH_MAX_SIZE];
@@ -945,7 +947,7 @@ static int ssl_tls13_write_certificate_verify_body(mbedtls_ssl_context *ssl,
             continue;
         }
 
-        if (mbedtls_ssl_get_pk_type_and_md_alg_from_sig_alg(
+        if (mbedtls_ssl_get_pk_sigalg_and_md_alg_from_sig_alg(
                 *sig_alg, &pk_type, &md_alg) != 0) {
             return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
         }

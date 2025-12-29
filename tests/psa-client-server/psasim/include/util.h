@@ -7,6 +7,8 @@
 
 #include "service.h"
 
+#include <stdio.h>
+
 #define PRINT(fmt, ...) \
     fprintf(stdout, fmt "\n", ##__VA_ARGS__)
 

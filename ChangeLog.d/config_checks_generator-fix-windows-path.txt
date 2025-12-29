@@ -1,0 +1,3 @@
+Bugfix
+   * Fix CMake failure on Windows because of a native directory separator.
+     Fixes #10502.

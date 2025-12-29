@@ -27,13 +27,13 @@ test_build_opt () {
     $cc --version
     for opt in "$@"; do
           msg "build/test: $cc $opt, $info" # ~ 30s
-          make CC="$cc" CFLAGS="$opt -std=c99 -pedantic -Wall -Wextra -Werror"
+          $MAKE_COMMAND CC="$cc" CFLAGS="$opt -std=c99 -pedantic -Wall -Wextra -Werror"
           # We're confident enough in compilers to not run _all_ the tests,
           # but at least run the unit tests. In particular, runs with
           # optimizations use inline assembly whereas runs with -O0
           # skip inline assembly.
-          make test # ~30s
-          make clean
+          $MAKE_COMMAND test # ~30s
+          $MAKE_COMMAND clean
     done
 }
 
@@ -94,10 +94,10 @@ component_test_gcc15_drivers_opt () {
     loc_cflags="$ASAN_CFLAGS -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_CONFIG_ADJUST_TEST_ACCELERATORS"
     loc_cflags="${loc_cflags} -I../framework/tests/include -O2"
 
-    make CC=$GCC_15 CFLAGS="${loc_cflags}" LDFLAGS="$ASAN_CFLAGS"
+    $MAKE_COMMAND CC=$GCC_15 CFLAGS="${loc_cflags}" LDFLAGS="$ASAN_CFLAGS"
 
     msg "test: GCC 15: full + test drivers dispatching to builtins"
-    make test
+    $MAKE_COMMAND test
 }
 
 component_test_gcc_earliest_opt () {
@@ -111,21 +111,21 @@ support_test_gcc_earliest_opt () {
 
 component_build_mingw () {
     msg "build: Windows cross build - mingw64, make (Link Library)" # ~ 30s
-    make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar CFLAGS='-Werror -Wall -Wextra -maes -msse2 -mpclmul' WINDOWS_BUILD=1 lib programs
+    $MAKE_COMMAND CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar CFLAGS='-Werror -Wall -Wextra -maes -msse2 -mpclmul' WINDOWS_BUILD=1 lib programs
 
     # note Make tests only builds the tests, but doesn't run them
-    make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar CFLAGS='-Werror -maes -msse2 -mpclmul' WINDOWS_BUILD=1 tests
-    make WINDOWS_BUILD=1 clean
+    $MAKE_COMMAND CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar CFLAGS='-Werror -maes -msse2 -mpclmul' WINDOWS_BUILD=1 tests
+    $MAKE_COMMAND WINDOWS_BUILD=1 clean
 
     msg "build: Windows cross build - mingw64, make (DLL)" # ~ 30s
-    make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar CFLAGS='-Werror -Wall -Wextra -maes -msse2 -mpclmul' WINDOWS_BUILD=1 SHARED=1 lib programs
-    make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar CFLAGS='-Werror -Wall -Wextra -maes -msse2 -mpclmul' WINDOWS_BUILD=1 SHARED=1 tests
-    make WINDOWS_BUILD=1 clean
+    $MAKE_COMMAND CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar CFLAGS='-Werror -Wall -Wextra -maes -msse2 -mpclmul' WINDOWS_BUILD=1 SHARED=1 lib programs
+    $MAKE_COMMAND CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar CFLAGS='-Werror -Wall -Wextra -maes -msse2 -mpclmul' WINDOWS_BUILD=1 SHARED=1 tests
+    $MAKE_COMMAND WINDOWS_BUILD=1 clean
 
     msg "build: Windows cross build - mingw64, make (Library only, default config without MBEDTLS_AESNI_C)" # ~ 30s
     ./scripts/config.py unset MBEDTLS_AESNI_C #
-    make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar CFLAGS='-Werror -Wall -Wextra' WINDOWS_BUILD=1 lib
-    make WINDOWS_BUILD=1 clean
+    $MAKE_COMMAND CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar CFLAGS='-Werror -Wall -Wextra' WINDOWS_BUILD=1 lib
+    $MAKE_COMMAND WINDOWS_BUILD=1 clean
 }
 
 support_build_mingw () {
@@ -141,7 +141,7 @@ component_build_zeroize_checks () {
     scripts/config.py full
 
     # Only compile - we're looking for sizeof-pointer-memaccess warnings
-    make CFLAGS="'-DTF_PSA_CRYPTO_USER_CONFIG_FILE=\"$TF_PSA_CRYPTO_ROOT_DIR/tests/configs/user-config-zeroize-memset.h\"' -DMBEDTLS_TEST_DEFINES_ZEROIZE -Werror -Wsizeof-pointer-memaccess"
+    $MAKE_COMMAND CFLAGS="'-DTF_PSA_CRYPTO_USER_CONFIG_FILE=\"$TF_PSA_CRYPTO_ROOT_DIR/tests/configs/user-config-zeroize-memset.h\"' -DMBEDTLS_TEST_DEFINES_ZEROIZE -Werror -Wsizeof-pointer-memaccess"
 }
 
 component_test_zeroize () {
@@ -162,12 +162,12 @@ component_test_zeroize () {
     for optimization_flag in -O2 -O3 -Ofast -Os; do
         for compiler in clang gcc; do
             msg "test: $compiler $optimization_flag, mbedtls_platform_zeroize()"
-            make programs CC="$compiler" DEBUG=1 CFLAGS="$optimization_flag"
+            $MAKE_COMMAND programs CC="$compiler" DEBUG=1 CFLAGS="$optimization_flag"
             gdb -ex "$gdb_disable_aslr" -x $FRAMEWORK/tests/programs/test_zeroize.gdb -nw -batch -nx 2>&1 | tee test_zeroize.log
             grep "The buffer was correctly zeroized" test_zeroize.log
             not grep -i "error" test_zeroize.log
             rm -f test_zeroize.log
-            make clean
+            $MAKE_COMMAND clean
         done
     done
 }

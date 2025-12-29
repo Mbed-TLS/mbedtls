@@ -4,7 +4,7 @@
 
 Basic usage, to read the Mbed TLS configuration:
     config = CombinedConfigFile()
-    if 'MBEDTLS_RSA_C' in config: print('RSA is enabled')
+    if 'MBEDTLS_SSL_TLS_C' in config: print('TLS is enabled')
 """
 
 ## Copyright The Mbed TLS Contributors
@@ -76,18 +76,15 @@ EXCLUDE_FROM_FULL = frozenset([
     'MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH', # interacts with CTR_DRBG_128_BIT_KEY
     'MBEDTLS_AES_USE_HARDWARE_ONLY', # hardware dependency
     'MBEDTLS_BLOCK_CIPHER_NO_DECRYPT', # incompatible with ECB in PSA, CBC/XTS/NIST_KW
-    'MBEDTLS_CTR_DRBG_USE_128_BIT_KEY', # interacts with ENTROPY_FORCE_SHA256
     'MBEDTLS_DEPRECATED_REMOVED', # conflicts with deprecated options
     'MBEDTLS_DEPRECATED_WARNING', # conflicts with deprecated options
     'MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED', # influences the use of ECDH in TLS
     'MBEDTLS_ECP_WITH_MPI_UINT', # disables the default ECP and is experimental
-    'MBEDTLS_ENTROPY_FORCE_SHA256', # interacts with CTR_DRBG_128_BIT_KEY
     'MBEDTLS_HAVE_SSE2', # hardware dependency
     'MBEDTLS_MEMORY_BACKTRACE', # depends on MEMORY_BUFFER_ALLOC_C
     'MBEDTLS_MEMORY_BUFFER_ALLOC_C', # makes sanitizers (e.g. ASan) less effective
     'MBEDTLS_MEMORY_DEBUG', # depends on MEMORY_BUFFER_ALLOC_C
     'MBEDTLS_NO_64BIT_MULTIPLICATION', # influences anything that uses bignum
-    'MBEDTLS_NO_DEFAULT_ENTROPY_SOURCES', # removes a feature
     'MBEDTLS_NO_UDBL_DIVISION', # influences anything that uses bignum
     'MBEDTLS_PSA_DRIVER_GET_ENTROPY', # incompatible with MBEDTLS_PSA_BUILTIN_GET_ENTROPY
     'MBEDTLS_PSA_P256M_DRIVER_ENABLED', # influences SECP256R1 KeyGen/ECDH/ECDSA
@@ -97,10 +94,8 @@ EXCLUDE_FROM_FULL = frozenset([
     'MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER', # interface and behavior change
     'MBEDTLS_PSA_CRYPTO_SPM', # platform dependency (PSA SPM)
     'MBEDTLS_RSA_NO_CRT', # influences the use of RSA in X.509 and TLS
-    'MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY', # interacts with *_USE_A64_CRYPTO_IF_PRESENT
     'MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_ONLY', # interacts with *_USE_ARMV8_A_CRYPTO_IF_PRESENT
     'MBEDTLS_SHA512_USE_A64_CRYPTO_ONLY', # interacts with *_USE_A64_CRYPTO_IF_PRESENT
-    'MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT', # setting *_USE_ARMV8_A_CRYPTO is sufficient
     'MBEDTLS_TEST_CONSTANT_FLOW_MEMSAN', # build dependency (clang+memsan)
     'MBEDTLS_TEST_CONSTANT_FLOW_VALGRIND', # build dependency (valgrind headers)
     'MBEDTLS_X509_REMOVE_INFO', # removes a feature
@@ -123,7 +118,6 @@ def is_seamless_alt(name):
     an implementation of the relevant functions and an xxx_alt.h header.
     """
     if name in (
-            'MBEDTLS_PLATFORM_GET_ENTROPY_ALT',
             'MBEDTLS_PLATFORM_GMTIME_R_ALT',
             'MBEDTLS_PLATFORM_SETUP_TEARDOWN_ALT',
             'MBEDTLS_PLATFORM_MS_TIME_ALT',
@@ -167,7 +161,6 @@ EXCLUDE_FROM_BAREMETAL = frozenset([
     'MBEDTLS_THREADING_C', # requires a threading interface
     'MBEDTLS_THREADING_PTHREAD', # requires pthread
     'MBEDTLS_TIMING_C', # requires a clock
-    'MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT', # requires an OS for runtime-detection
     'MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_IF_PRESENT', # requires an OS for runtime-detection
     'MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT', # requires an OS for runtime-detection
 ])
@@ -182,8 +175,10 @@ def baremetal_adapter(name, value, active):
     """Config adapter for "baremetal"."""
     if not is_boolean_setting(name, value):
         return active
-    if name == 'MBEDTLS_PLATFORM_GET_ENTROPY_ALT':
+    if name == 'MBEDTLS_PSA_BUILTIN_GET_ENTROPY':
         # No OS-provided entropy source
+        return False
+    if name == 'MBEDTLS_PSA_DRIVER_GET_ENTROPY':
         return True
     return include_in_full(name) and keep_in_baremetal(name)
 

@@ -37,15 +37,20 @@ cmake_policy(SET CMP0011 NEW)
 # is deprecated and will be removed in future versions.
 cmake_policy(SET CMP0012 NEW)
 
+set(MBEDTLS_VERSION 4.0.0)
+set(MBEDTLS_CRYPTO_SOVERSION 17)
+set(MBEDTLS_X509_SOVERSION 8)
+set(MBEDTLS_TLS_SOVERSION 22)
+
 if(TEST_CPP)
     project("Mbed TLS"
         LANGUAGES C CXX
-        VERSION 4.0.0
+        VERSION ${MBEDTLS_VERSION}
     )
 else()
     project("Mbed TLS"
         LANGUAGES C
-        VERSION 4.0.0
+        VERSION ${MBEDTLS_VERSION}
     )
 endif()
 
@@ -100,17 +105,6 @@ option(USE_SHARED_MBEDTLS_LIBRARY "Build Mbed TLS shared library." OFF)
 option(LINK_WITH_PTHREAD "Explicitly link Mbed TLS library to pthread." OFF)
 option(LINK_WITH_TRUSTED_STORAGE "Explicitly link Mbed TLS library to trusted_storage." OFF)
 
-# Warning string - created as a list for compatibility with CMake 2.8
-set(CTR_DRBG_128_BIT_KEY_WARN_L1 "****  WARNING!  MBEDTLS_CTR_DRBG_USE_128_BIT_KEY defined!\n")
-set(CTR_DRBG_128_BIT_KEY_WARN_L2 "****  Using 128-bit keys for CTR_DRBG limits the security of generated\n")
-set(CTR_DRBG_128_BIT_KEY_WARN_L3 "****  keys and operations that use random values generated to 128-bit security\n")
-
-set(CTR_DRBG_128_BIT_KEY_WARNING "${WARNING_BORDER}"
-                         "${CTR_DRBG_128_BIT_KEY_WARN_L1}"
-                         "${CTR_DRBG_128_BIT_KEY_WARN_L2}"
-                         "${CTR_DRBG_128_BIT_KEY_WARN_L3}"
-                         "${WARNING_BORDER}")
-
 # Python 3 is only needed here to check for configuration warnings.
 if(NOT CMAKE_VERSION VERSION_LESS 3.15.0)
     set(Python3_FIND_STRATEGY LOCATION)
@@ -123,16 +117,6 @@ else()
     if(PYTHONINTERP_FOUND)
         set(MBEDTLS_PYTHON_EXECUTABLE ${PYTHON_EXECUTABLE})
     endif()
-endif()
-if(MBEDTLS_PYTHON_EXECUTABLE)
-
-    # If 128-bit keys are configured for CTR_DRBG, display an appropriate warning
-    execute_process(COMMAND ${MBEDTLS_PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/scripts/config.py -f ${CMAKE_CURRENT_SOURCE_DIR}/include/mbedtls/mbedtls_config.h get MBEDTLS_CTR_DRBG_USE_128_BIT_KEY
-                        RESULT_VARIABLE result)
-    if(${result} EQUAL 0)
-        message(WARNING ${CTR_DRBG_128_BIT_KEY_WARNING})
-    endif()
-
 endif()
 
 # We now potentially need to link all executables against PThreads, if available
@@ -505,9 +489,9 @@ if(ENABLE_TESTING)
         # 2. Run the relevant tests for the part of the code you're interested in.
         #    For the reference coverage measurement, see
         #    tests/scripts/basic-build-test.sh
-        # 3. Run scripts/lcov.sh to generate an HTML report.
+        # 3. Run ${MBEDTLS_FRAMEWORK_DIR}/scripts/lcov.sh to generate an HTML report.
         ADD_CUSTOM_TARGET(lcov
-            COMMAND scripts/lcov.sh
+            COMMAND ${MBEDTLS_FRAMEWORK_DIR}/scripts/lcov.sh
         )
 
         ADD_CUSTOM_TARGET(memcheck
@@ -538,7 +522,7 @@ if(NOT DISABLE_PACKAGE_CONFIG_AND_INSTALL)
     write_basic_package_version_file(
         "cmake/MbedTLSConfigVersion.cmake"
             COMPATIBILITY SameMajorVersion
-            VERSION 4.0.0)
+            VERSION "${MBEDTLS_VERSION}")
 
     install(
         FILES "${CMAKE_CURRENT_BINARY_DIR}/cmake/MbedTLSConfig.cmake"

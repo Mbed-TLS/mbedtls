@@ -4,7 +4,7 @@ add_custom_target(${programs_target})
 if (NOT WIN32)
     add_subdirectory(fuzz)
 endif()
-add_subdirectory(pkey)
+
 add_subdirectory(ssl)
 add_subdirectory(test)
 add_subdirectory(util)

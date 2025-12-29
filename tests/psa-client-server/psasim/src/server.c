@@ -56,8 +56,7 @@ int psa_server_main(int argc, char *argv[])
     extern psa_status_t psa_crypto_close(void);
 
 #if defined(MBEDTLS_VERSION_C)
-    char mbedtls_version[18];
-    mbedtls_version_get_string_full(mbedtls_version);
+    const char *mbedtls_version = mbedtls_version_get_string_full();
     SERVER_PRINT("%s", mbedtls_version);
 #endif
 

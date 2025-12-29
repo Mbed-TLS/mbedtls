@@ -19,7 +19,7 @@
  * It is equal to the #MBEDTLS_VERSION_NUMBER of the Mbed TLS version that
  * introduced the config format we want to be compatible with.
  */
-//#define MBEDTLS_CONFIG_VERSION 0x03000000
+#define MBEDTLS_CONFIG_VERSION 0x04000000
 
 /**
  * \name SECTION: Platform abstraction layer
@@ -192,6 +192,18 @@
  */
 
 /**
+ * \def MBEDTLS_SSL_NULL_CIPHERSUITES
+ *
+ * Enable ciphersuites without encryption.
+ *
+ * Warning: Only do so when you know what you are doing. This allows for
+ * channels without any encryption. All data are transmitted in clear.
+ *
+ * Uncomment this macro to enable the NULL ciphersuites
+ */
+//#define MBEDTLS_SSL_NULL_CIPHERSUITES
+
+/**
  * \def MBEDTLS_DEBUG_C
  *
  * Enable the debug functions.
@@ -211,8 +223,8 @@
  *
  * Enable the ECDHE-ECDSA based ciphersuite modes in SSL / TLS.
  *
- * Requires: MBEDTLS_ECDH_C or PSA_WANT_ALG_ECDH
- *           MBEDTLS_ECDSA_C or PSA_WANT_ALG_ECDSA
+ * Requires: PSA_WANT_ALG_ECDH
+ *           PSA_WANT_ALG_ECDSA
  *           MBEDTLS_X509_CRT_PARSE_C
  *
  * This enables the following ciphersuites (if other requisites are
@@ -235,7 +247,7 @@
  *
  * Enable the ECDHE-PSK based ciphersuite modes in SSL / TLS.
  *
- * Requires: MBEDTLS_ECDH_C or PSA_WANT_ALG_ECDH
+ * Requires: PSA_WANT_ALG_ECDH
  *
  * This enables the following ciphersuites (if other requisites are
  * enabled as well):
@@ -253,8 +265,7 @@
  *
  * Enable the ECDHE-RSA based ciphersuite modes in SSL / TLS.
  *
- * Requires: MBEDTLS_ECDH_C or PSA_WANT_ALG_ECDH
- *           MBEDTLS_RSA_C
+ * Requires: PSA_WANT_ALG_ECDH
  *           PSA_WANT_ALG_RSA_PKCS1V15_SIGN
  *           MBEDTLS_X509_CRT_PARSE_C
  *
@@ -274,54 +285,6 @@
 #define MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED
 
 /**
- * \def MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED
- *
- * Enable the ECDH-ECDSA based ciphersuite modes in SSL / TLS.
- *
- * Requires: MBEDTLS_ECDH_C or PSA_WANT_ALG_ECDH
- *           MBEDTLS_ECDSA_C or PSA_WANT_ALG_ECDSA
- *           MBEDTLS_X509_CRT_PARSE_C
- *
- * This enables the following ciphersuites (if other requisites are
- * enabled as well):
- *      MBEDTLS_TLS_ECDH_ECDSA_WITH_AES_128_CBC_SHA
- *      MBEDTLS_TLS_ECDH_ECDSA_WITH_AES_256_CBC_SHA
- *      MBEDTLS_TLS_ECDH_ECDSA_WITH_AES_128_CBC_SHA256
- *      MBEDTLS_TLS_ECDH_ECDSA_WITH_AES_256_CBC_SHA384
- *      MBEDTLS_TLS_ECDH_ECDSA_WITH_AES_128_GCM_SHA256
- *      MBEDTLS_TLS_ECDH_ECDSA_WITH_AES_256_GCM_SHA384
- *      MBEDTLS_TLS_ECDH_ECDSA_WITH_CAMELLIA_128_CBC_SHA256
- *      MBEDTLS_TLS_ECDH_ECDSA_WITH_CAMELLIA_256_CBC_SHA384
- *      MBEDTLS_TLS_ECDH_ECDSA_WITH_CAMELLIA_128_GCM_SHA256
- *      MBEDTLS_TLS_ECDH_ECDSA_WITH_CAMELLIA_256_GCM_SHA384
- */
-#define MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED
-
-/**
- * \def MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED
- *
- * Enable the ECDH-RSA based ciphersuite modes in SSL / TLS.
- *
- * Requires: MBEDTLS_ECDH_C or PSA_WANT_ALG_ECDH
- *           MBEDTLS_RSA_C
- *           MBEDTLS_X509_CRT_PARSE_C
- *
- * This enables the following ciphersuites (if other requisites are
- * enabled as well):
- *      MBEDTLS_TLS_ECDH_RSA_WITH_AES_128_CBC_SHA
- *      MBEDTLS_TLS_ECDH_RSA_WITH_AES_256_CBC_SHA
- *      MBEDTLS_TLS_ECDH_RSA_WITH_AES_128_CBC_SHA256
- *      MBEDTLS_TLS_ECDH_RSA_WITH_AES_256_CBC_SHA384
- *      MBEDTLS_TLS_ECDH_RSA_WITH_AES_128_GCM_SHA256
- *      MBEDTLS_TLS_ECDH_RSA_WITH_AES_256_GCM_SHA384
- *      MBEDTLS_TLS_ECDH_RSA_WITH_CAMELLIA_128_CBC_SHA256
- *      MBEDTLS_TLS_ECDH_RSA_WITH_CAMELLIA_256_CBC_SHA384
- *      MBEDTLS_TLS_ECDH_RSA_WITH_CAMELLIA_128_GCM_SHA256
- *      MBEDTLS_TLS_ECDH_RSA_WITH_CAMELLIA_256_GCM_SHA384
- */
-#define MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED
-
-/**
  * \def MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED
  *
  * Enable the ECJPAKE based ciphersuite modes in SSL / TLS.
@@ -330,9 +293,9 @@
  * Thread v1.0.0 specification; incompatible changes to the specification
  * might still happen. For this reason, this is disabled by default.
  *
- * Requires: MBEDTLS_ECJPAKE_C or PSA_WANT_ALG_JPAKE
+ * Requires: PSA_WANT_ALG_JPAKE
  *           PSA_WANT_ALG_SHA_256
- *           MBEDTLS_ECP_DP_SECP256R1_ENABLED
+ *           PSA_WANT_ECC_SECP_R1_256
  *
  * This enables the following ciphersuites (if other requisites are
  * enabled as well):
@@ -836,7 +799,7 @@
  * Requires: PSA_WANT_ALG_ECDH or PSA_WANT_ALG_FFDH
  *           MBEDTLS_X509_CRT_PARSE_C
  *           and at least one of:
- *               MBEDTLS_ECDSA_C or PSA_WANT_ALG_ECDSA
+ *               PSA_WANT_ALG_ECDSA
  *               PSA_WANT_ALG_RSA_PSS
  *
  * Comment to disable support for the ephemeral key exchange mode in TLS 1.3.
@@ -1080,7 +1043,7 @@
  *
  * Requires: MBEDTLS_ASN1_PARSE_C, MBEDTLS_PK_PARSE_C,
  *           MBEDTLS_X509_CRT_PARSE_C MBEDTLS_X509_CRL_PARSE_C,
- *           MBEDTLS_BIGNUM_C, MBEDTLS_MD_C
+ *           MBEDTLS_MD_C
  *
  * This module is required for the PKCS #7 parsing modules.
  */
@@ -1093,7 +1056,7 @@
  *
  * Module:  library/x509_create.c
  *
- * Requires: MBEDTLS_BIGNUM_C, MBEDTLS_PK_PARSE_C,
+ * Requires: MBEDTLS_ASN1_WRITE_C, MBEDTLS_PK_PARSE_C
  *
  * \warning You must call psa_crypto_init() before doing any X.509 operation.
  *
@@ -1225,7 +1188,7 @@
  *          library/x509_crt.c
  *          library/x509_csr.c
  *
- * Requires: MBEDTLS_ASN1_PARSE_C, MBEDTLS_BIGNUM_C, MBEDTLS_PK_PARSE_C
+ * Requires: MBEDTLS_ASN1_PARSE_C, MBEDTLS_PK_PARSE_C
  *
  * \warning You must call psa_crypto_init() before doing any X.509 operation.
  *

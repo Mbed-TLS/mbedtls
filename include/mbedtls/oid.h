@@ -280,6 +280,74 @@
 int mbedtls_oid_get_numeric_string(char *buf, size_t size, const mbedtls_asn1_buf *oid);
 #endif /* MBEDTLS_X509_USE_C */
 
+#if defined(MBEDTLS_X509_USE_C)
+/**
+ * \brief          Translate an X.509 attribute type OID into the short name
+ *                 (e.g. the OID for an X520 Common Name into "CN")
+ *
+ * \param oid      OID to use
+ * \param short_name    place to store the string pointer
+ *
+ * \return         0 if successful, or MBEDTLS_ERR_X509_UNKNOWN_OID
+ */
+int mbedtls_x509_oid_get_attr_short_name(const mbedtls_asn1_buf *oid, const char **short_name);
+#endif /* MBEDTLS_X509_USE_C */
+
+#if defined(MBEDTLS_X509_USE_C)
+/**
+ * \brief          Translate SignatureAlgorithm OID into md_type and pk_type
+ *
+ * \param oid      OID to use
+ * \param md_alg   place to store message digest algorithm
+ * \param pk_alg   place to store public key algorithm
+ *
+ * \return         0 if successful, or MBEDTLS_ERR_X509_UNKNOWN_OID
+ */
+int mbedtls_x509_oid_get_sig_alg(const mbedtls_asn1_buf *oid,
+                                 mbedtls_md_type_t *md_alg, mbedtls_pk_sigalg_t *pk_alg);
+
+#if !defined(MBEDTLS_X509_REMOVE_INFO)
+/**
+ * \brief          Translate SignatureAlgorithm OID into description
+ *
+ * \param oid      OID to use
+ * \param desc     place to store string pointer
+ *
+ * \return         0 if successful, or MBEDTLS_ERR_X509_UNKNOWN_OID
+ */
+int mbedtls_x509_oid_get_sig_alg_desc(const mbedtls_asn1_buf *oid, const char **desc);
+#endif /* !MBEDTLS_X509_REMOVE_INFO */
+#endif /* MBEDTLS_X509_USE_C */
+
+#if defined(MBEDTLS_X509_CRT_WRITE_C) || defined(MBEDTLS_X509_CSR_WRITE_C)
+/**
+ * \brief          Translate md_type and pk_type into SignatureAlgorithm OID
+ *
+ * \param md_alg   message digest algorithm
+ * \param pk_alg   public key algorithm
+ * \param oid      place to store ASN.1 OID string pointer
+ * \param olen     length of the OID
+ *
+ * \return         0 if successful, or MBEDTLS_ERR_X509_UNKNOWN_OID
+ */
+int mbedtls_x509_oid_get_oid_by_sig_alg(mbedtls_pk_sigalg_t pk_alg, mbedtls_md_type_t md_alg,
+                                        const char **oid, size_t *olen);
+#endif /* MBEDTLS_X509_CRT_WRITE_C || MBEDTLS_X509_CSR_WRITE_C */
+
+#if (defined(MBEDTLS_X509_USE_C) && defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT)) || \
+    defined(MBEDTLS_PKCS7_C)
+#define MBEDTLS_X509_OID_HAVE_GET_MD_ALG
+/**
+ * \brief          Translate hash algorithm OID into md_type
+ *
+ * \param oid      OID to use
+ * \param md_alg   place to store message digest algorithm
+ *
+ * \return         0 if successful, or MBEDTLS_ERR_X509_UNKNOWN_OID
+ */
+int mbedtls_x509_oid_get_md_alg(const mbedtls_asn1_buf *oid, mbedtls_md_type_t *md_alg);
+#endif /* MBEDTLS_X509_OID_HAVE_GET_MD_ALG */
+
 #if defined(MBEDTLS_X509_CREATE_C)
 /**
  * \brief           Translate a string containing a dotted-decimal

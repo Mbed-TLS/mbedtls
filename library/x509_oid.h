@@ -42,6 +42,30 @@ typedef struct {
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C) || defined(MBEDTLS_X509_CSR_PARSE_C)
 #define MBEDTLS_X509_OID_HAVE_GET_X509_EXT_TYPE
+#if defined(MBEDTLS_X509_USE_C)
+/**
+ * \brief          Translate an X.509 attribute type OID into the short name
+ *                 (e.g. the OID for an X520 Common Name into "CN")
+ *
+ * \param oid      OID to use
+ * \param short_name    place to store the string pointer
+ *
+ * \return         0 if successful, or MBEDTLS_ERR_X509_UNKNOWN_OID
+ */
+int mbedtls_x509_oid_get_attr_short_name(const mbedtls_asn1_buf *oid, const char **short_name);
+#if !defined(MBEDTLS_X509_REMOVE_INFO)
+/**
+ * \brief          Translate SignatureAlgorithm OID into description
+ *
+ * \param oid      OID to use
+ * \param desc     place to store string pointer
+ *
+ * \return         0 if successful, or MBEDTLS_ERR_X509_UNKNOWN_OID
+ */
+int mbedtls_x509_oid_get_sig_alg_desc(const mbedtls_asn1_buf *oid, const char **desc);
+#endif /* !MBEDTLS_X509_REMOVE_INFO */
+#endif /* MBEDTLS_X509_USE_C */
+
 /**
  * \brief          Translate an X.509 extension OID into local values
  *

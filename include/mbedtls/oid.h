@@ -280,18 +280,6 @@
 int mbedtls_oid_get_numeric_string(char *buf, size_t size, const mbedtls_asn1_buf *oid);
 #endif /* MBEDTLS_X509_USE_C */
 
-#if defined(MBEDTLS_X509_USE_C)
-/**
- * \brief          Translate an X.509 attribute type OID into the short name
- *                 (e.g. the OID for an X520 Common Name into "CN")
- *
- * \param oid      OID to use
- * \param short_name    place to store the string pointer
- *
- * \return         0 if successful, or MBEDTLS_ERR_X509_UNKNOWN_OID
- */
-int mbedtls_x509_oid_get_attr_short_name(const mbedtls_asn1_buf *oid, const char **short_name);
-#endif /* MBEDTLS_X509_USE_C */
 
 #if defined(MBEDTLS_X509_USE_C)
 /**
@@ -305,18 +293,6 @@ int mbedtls_x509_oid_get_attr_short_name(const mbedtls_asn1_buf *oid, const char
  */
 int mbedtls_x509_oid_get_sig_alg(const mbedtls_asn1_buf *oid,
                                  mbedtls_md_type_t *md_alg, mbedtls_pk_sigalg_t *pk_alg);
-
-#if !defined(MBEDTLS_X509_REMOVE_INFO)
-/**
- * \brief          Translate SignatureAlgorithm OID into description
- *
- * \param oid      OID to use
- * \param desc     place to store string pointer
- *
- * \return         0 if successful, or MBEDTLS_ERR_X509_UNKNOWN_OID
- */
-int mbedtls_x509_oid_get_sig_alg_desc(const mbedtls_asn1_buf *oid, const char **desc);
-#endif /* !MBEDTLS_X509_REMOVE_INFO */
 #endif /* MBEDTLS_X509_USE_C */
 
 #if defined(MBEDTLS_X509_CRT_WRITE_C) || defined(MBEDTLS_X509_CSR_WRITE_C)

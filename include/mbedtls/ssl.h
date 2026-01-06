@@ -4622,7 +4622,7 @@ int mbedtls_ssl_get_session(const mbedtls_ssl_context *ssl,
  *                 mbedtls_ssl_conf_async_private_cb()) - in this case you
  *                 must call this function again when the operation is ready.
  * \return         #MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS if a cryptographic
- *                 operation is in progress (see mbedtls_ecp_set_max_ops()) -
+ *                 operation is in progress (see psa_interruptible_set_max_ops()) -
  *                 in this case you must call this function again to complete
  *                 the handshake when you're done attending other tasks.
  * \return         #MBEDTLS_ERR_SSL_HELLO_VERIFY_REQUIRED if DTLS is in use
@@ -4793,7 +4793,7 @@ int mbedtls_ssl_renegotiate(mbedtls_ssl_context *ssl);
  *                 mbedtls_ssl_conf_async_private_cb()) - in this case you
  *                 must call this function again when the operation is ready.
  * \return         #MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS if a cryptographic
- *                 operation is in progress (see mbedtls_ecp_set_max_ops()) -
+ *                 operation is in progress (see psa_interruptible_set_max_ops()) -
  *                 in this case you must call this function again to complete
  *                 the handshake when you're done attending other tasks.
  * \return         #MBEDTLS_ERR_SSL_CLIENT_RECONNECT if we're at the server
@@ -4878,7 +4878,7 @@ int mbedtls_ssl_read(mbedtls_ssl_context *ssl, unsigned char *buf, size_t len);
  *                 mbedtls_ssl_conf_async_private_cb()) - in this case you
  *                 must call this function again when the operation is ready.
  * \return         #MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS if a cryptographic
- *                 operation is in progress (see mbedtls_ecp_set_max_ops()) -
+ *                 operation is in progress (see psa_interruptible_set_max_ops()) -
  *                 in this case you must call this function again to complete
  *                 the handshake when you're done attending other tasks.
  * \return         #MBEDTLS_ERR_SSL_RECEIVED_EARLY_DATA if early data, as

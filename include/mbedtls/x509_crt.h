@@ -714,7 +714,7 @@ int mbedtls_x509_crt_verify_with_profile(mbedtls_x509_crt *crt,
  *
  * \note           Performs the same job as \c mbedtls_crt_verify_with_profile()
  *                 but can return early and restart according to the limit
- *                 set with \c mbedtls_ecp_set_max_ops() to reduce blocking.
+ *                 set with \c psa_interruptible_set_max_ops() to reduce blocking.
  *
  * \param crt      The certificate chain to be verified.
  * \param trust_ca The list of trusted CAs.
@@ -733,7 +733,7 @@ int mbedtls_x509_crt_verify_with_profile(mbedtls_x509_crt *crt,
  *
  * \return         See \c mbedtls_crt_verify_with_profile(), or
  * \return         #PSA_OPERATION_INCOMPLETE if maximum number of
- *                 operations was reached: see \c mbedtls_ecp_set_max_ops().
+ *                 operations was reached: see \c psa_interruptible_set_max_ops().
  */
 int mbedtls_x509_crt_verify_restartable(mbedtls_x509_crt *crt,
                                         mbedtls_x509_crt *trust_ca,

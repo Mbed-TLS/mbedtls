@@ -3,6 +3,7 @@
 #include "mbedtls/asn1.h"
 #include "mbedtls/asn1write.h"
 #include "string.h"
+#include "mbedtls/oid.h"
 /* END_HEADER */
 
 /* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C:!MBEDTLS_X509_REMOVE_INFO */

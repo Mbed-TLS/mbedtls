@@ -1744,7 +1744,7 @@ static int x509_info_cert_policies(char **buf, size_t *size,
 /*
  * Return an informational string about the certificate.
  */
-#define MBEDTLS_BEFORE_COLON        18
+#define MBEDTLS_BEFORE_COLON        32
 #define MBEDTLS_BEFORE_COLON_STR    "18"
 int mbedtls_x509_crt_info(char *buf, size_t size, const char *prefix,
                           const mbedtls_x509_crt *crt)
@@ -1807,6 +1807,7 @@ int mbedtls_x509_crt_info(char *buf, size_t size, const char *prefix,
     /* Key size */
     if ((ret = mbedtls_x509_key_size_helper(key_size_str, MBEDTLS_BEFORE_COLON,
                                             mbedtls_pk_get_name(&crt->pk))) != 0) {
+        assert(ret != MBEDTLS_ERR_X509_BUFFER_TOO_SMALL);
         return ret;
     }
 

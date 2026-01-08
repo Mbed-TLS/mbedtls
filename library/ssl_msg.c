@@ -3261,6 +3261,27 @@ int mbedtls_ssl_prepare_handshake_record(mbedtls_ssl_context *ssl)
             return MBEDTLS_ERR_SSL_INVALID_RECORD;
         }
 
+        /*
+         * When establishing the connection, the client may go through a series
+         * of ClientHello and HelloVerifyRequest requests and responses. The
+         * server does not keep any trace of these initial round trips as
+         * intended: minimum allocated ressources as long as the reachability
+         * of the client has not been confirmed. When receiving the "first
+         * ClientHello" from server perspective, we may thus need to adapt
+         * the next expected `message_seq` for the incoming and outgoing
+         * handshake messages.
+         */
+        if (ssl->in_msg[0] == MBEDTLS_SSL_HS_CLIENT_HELLO &&
+            ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER &&
+            ssl->state == MBEDTLS_SSL_CLIENT_HELLO
+#if defined(MBEDTLS_SSL_RENEGOTIATION)
+            && ssl->renego_status == MBEDTLS_SSL_INITIAL_HANDSHAKE
+#endif
+            ) {
+            ssl->handshake->in_msg_seq = recv_msg_seq;
+            ssl->handshake->out_msg_seq = recv_msg_seq;
+        }
+
         if (ssl->handshake != NULL &&
             ((mbedtls_ssl_is_handshake_over(ssl) == 0 &&
               recv_msg_seq != ssl->handshake->in_msg_seq) ||

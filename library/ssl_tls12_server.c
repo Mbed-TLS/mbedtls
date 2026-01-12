@@ -938,6 +938,9 @@ read_record_header:
         memcpy(&ssl->cur_out_ctr[2], ssl->in_ctr + 2,
                sizeof(ssl->cur_out_ctr) - 2);
 
+    /* Check for record replay and then update the window. This replicates what
+     * is done in `ssl_get_next_record()` when the record is not fetched through
+     * `mbedtls_ssl_read_record()`. */
 #if defined(MBEDTLS_SSL_DTLS_ANTI_REPLAY)
         if (mbedtls_ssl_dtls_replay_check(ssl) != 0) {
             MBEDTLS_SSL_DEBUG_MSG(1, ("replayed record, discarding"));

@@ -58,7 +58,7 @@ component_test_aesni () { # ~ 60s
     make clean
     make CC=gcc CFLAGS='-O2 -Werror'
     # check that there is no AESNI code present
-    ./programs/test/selftest aes | not grep -q "AESNI code"
+    ./programs/test/selftest aes | not grep -q "AESNI code" -
     not grep -q "AES note: using AESNI" ./programs/test/selftest
     grep -q "AES note: built-in implementation." ./programs/test/selftest
 
@@ -68,8 +68,8 @@ component_test_aesni () { # ~ 60s
     msg "AES tests, test AESNI only"
     make clean
     make CC=gcc CFLAGS='-Werror -Wall -Wextra -mpclmul -msse2 -maes'
-    ./programs/test/selftest aes | grep -q "AES note: using AESNI"
-    ./programs/test/selftest aes | not grep -q "AES note: built-in implementation."
+    ./programs/test/selftest aes | grep -q "AES note: using AESNI" -
+    ./programs/test/selftest aes | not grep -q "AES note: built-in implementation." -
     grep -q "AES note: using AESNI" ./programs/test/selftest
     not grep -q "AES note: built-in implementation." ./programs/test/selftest
 }
@@ -107,7 +107,7 @@ component_test_aesni_m32 () { # ~ 60s
     make clean
     make CC=gcc CFLAGS='-m32 -Werror -Wall -Wextra -mpclmul -msse2 -maes' LDFLAGS='-m32'
     ./programs/test/selftest aes | grep -q "AES note: using AESNI"
-    ./programs/test/selftest aes | not grep -q "AES note: built-in implementation."
+    ./programs/test/selftest aes | not grep -q "AES note: built-in implementation." -
     grep -q "AES note: using AESNI" ./programs/test/selftest
     not grep -q "AES note: built-in implementation." ./programs/test/selftest
     not grep -q "AES note: using VIA Padlock" ./programs/test/selftest

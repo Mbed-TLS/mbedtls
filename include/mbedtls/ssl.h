@@ -5567,8 +5567,8 @@ int mbedtls_ssl_export_keying_material(mbedtls_ssl_context *ssl,
 #endif
 
 /**
- * \brief Derive and export traffic keys and IVs for custom record-layer
- *        handling.
+ * \brief              Derive and export traffic keys and IVs for custom
+ *                     record-layer handling.
  *
  * This function derives the symmetric traffic keys and initialization
  * vectors (IVs) for both client and server sides, based on the TLS
@@ -5582,37 +5582,35 @@ int mbedtls_ssl_export_keying_material(mbedtls_ssl_context *ssl,
  * operating system, offloaded to a network stack, or used by a custom
  * transport layer.
  *
- * \param      ssl          [in]  The SSL context.
- * \param      keys         [out] The key set structure to be filled with
- *                                the derived traffic keys and IVs.
- * \param      cipher_type  [out] The selected cipher type.
- * \param      secret       [in]  The input secret buffer.
- * \param      secret_len   [in]  The length of the secret buffer.
- * \param      randbytes    [in]  The concatenated client/server randoms
- *                                (64 bytes total for TLS 1.2).
- * \param      tls_prf_type [in]  The TLS PRF algorithm type to use for key
- *                                derivation.
+ * \param[in]  ssl           The SSL context.
+ * \param[out] keys          The key set structure to be filled with the
+ *                           derived traffic keys and IVs.
+ * \param[out] cipher_type   The selected cipher type.
+ * \param[in]  secret        The input secret buffer.
+ * \param[in]  secret_len    The length of the secret buffer.
+ * \param[in]  randbytes     The concatenated client/server randoms (64
+ *                           bytes total for TLS 1.2).
+ * \param[in]  tls_prf_type  The TLS PRF algorithm type to use for key
+ *                           derivation.
  *
  * \note              **TLS 1.2 Random Ordering:**
  *                    The PRF derivation in TLS 1.2 requires both
  *                    random values. In this implementation, they are
- *                    concatenated as \c server_random ||
- *                    client_random when passed to the exporter. The
- *                    endpoint’s role (client or server) does not
- *                    affect this order.
+ *                    concatenated as \c server_random || client_random
+ *                    when passed to the exporter. The endpoint's role
+ *                    (client or server) does not affect this order.
  *
  * \note              **TLS 1.3 Traffic Secret Ordering:**
  *                    TLS 1.3 does not use client/server randoms for
  *                    key derivation. Instead, the exporter receives
- *                    two distinct secrets — the client and server
- *                    application traffic secrets — which are
- *                    concatenated as \c client_secret ||
- *                    server_secret to derive the traffic keys. This
- *                    concatenation ensures consistent key derivation
- *                    regardless of endpoint role, matching the
- *                    behavior expected by KTLS. The total secret
- *                    length is the sum of both client and server
- *                    traffic secret lengths.
+ *                    two distinct secrets - the client and server
+ *                    application traffic secrets - which are
+ *                    concatenated as \c client_secret || server_secret
+ *                    to derive the traffic keys. This concatenation
+ *                    ensures consistent key derivation regardless of
+ *                    endpoint role, matching the behavior expected
+ *                    by KTLS. The total secret length is the sum of
+ *                    both client and server traffic secret lengths.
  *
  * \note              For AEAD ciphers in TLS 1.2, only the static IV
  *                    is derived here. The per-record nonce must later
@@ -5629,7 +5627,6 @@ int mbedtls_ssl_export_keying_material(mbedtls_ssl_context *ssl,
  * \return            \c 0 if successful.
  * \return            An \c MBEDTLS_ERR_SSL_XXX error code on failure.
  */
-
 int mbedtls_ssl_export_traffic_keys(const mbedtls_ssl_context *ssl,
                                     struct mbedtls_ssl_key_set *keys,
                                     mbedtls_cipher_type_t *cipher_type,
@@ -5639,32 +5636,31 @@ int mbedtls_ssl_export_traffic_keys(const mbedtls_ssl_context *ssl,
                                     mbedtls_tls_prf_types tls_prf_type);
 
 /**
- * \brief Retrieve the current inbound and outbound sequence numbers.
+ * \brief              Retrieve the current inbound and outbound sequence
+ *                     numbers.
  *
  * This function provides direct access to the current record-layer
  * sequence numbers for both inbound and outbound traffic. These
  * sequence numbers are used in AEAD ciphers to compute the per-record
  * nonce or implicit IV during encryption and decryption.
  *
- * \note              This function does **not** copy or modify any
- *                    state; it only exposes internal pointers. The
- *                    returned pointers are owned by the SSL context
- *                    and remain valid as long as the context itself
- *                    remains valid.
+ * \note               This function does **not** copy or modify any state;
+ *                     it only exposes internal pointers. The returned
+ *                     pointers are owned by the SSL context and remain
+ *                     valid as long as the context itself remains valid.
  *
- * \warning           The sequence numbers are internal to the TLS
- *                    record layer. Modifying their contents directly
- *                    will corrupt the session state and may result
- *                    in data loss or connection failure. They are
- *                    intended for read-only use (for example, to
- *                    compute nonces when implementing custom KTLS
- *                    send/recv paths).
+ * \warning            The sequence numbers are internal to the TLS record
+ *                     layer. Modifying their contents directly will
+ *                     corrupt the session state and may result in data
+ *                     loss or connection failure. They are intended for
+ *                     read-only use (for example, to compute nonces
+ *                     when implementing custom KTLS send/recv paths).
  *
- * \param  ssl        [in] The SSL context.
- * \param in_seq      [out] The address of a pointer to receive the inbound
- *                    sequence number.
- * \param out_seq     [out] The address of a pointer to receive the outbound
- *                    sequence number.
+ * \param[in]  ssl      The SSL context.
+ * \param[out] in_seq   The address of a pointer to receive the inbound
+ *                     sequence number.
+ * \param[out] out_seq  The address of a pointer to receive the outbound
+ *                     sequence number.
  */
 void mbedtls_ssl_get_sequence_numbers(const mbedtls_ssl_context *ssl,
                                       const unsigned char **in_seq,

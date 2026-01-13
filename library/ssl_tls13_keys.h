@@ -483,22 +483,6 @@ int mbedtls_ssl_tls13_create_psk_binder(mbedtls_ssl_context *ssl,
                                         int psk_type,
                                         unsigned char const *transcript,
                                         unsigned char *result);
-
-/**
- * \brief             Retrieve key and IV lengths for a given TLS 1.3 cipher suite.
- *
- * \param[in]  ciphersuite_info   The cipher suite information structure.
- * \param[out] key_len            The resulting key length in bytes.
- * \param[out] iv_len             The resulting IV length in bytes
- *                                (always 12 for TLS 1.3 AEAD ciphers).
- *
- * \return     \c 0 on success.
- * \return     A negative error code on failure.
- */
-MBEDTLS_CHECK_RETURN_CRITICAL
-int ssl_tls13_get_cipher_key_info(const mbedtls_ssl_ciphersuite_t *ciphersuite_info,
-                                  size_t *key_len, size_t *iv_len);
-
 /**
  * \bref Setup an SSL transform structure representing the
  *       record protection mechanism used by TLS 1.3
@@ -677,6 +661,21 @@ int mbedtls_ssl_tls13_exporter(const psa_algorithm_t hash_alg,
                                const unsigned char *label, const size_t label_len,
                                const unsigned char *context_value, const size_t context_len,
                                uint8_t *out, const size_t out_len);
+
+/**
+ * \brief             Retrieve key and IV lengths for a given TLS 1.3 cipher suite.
+ *
+ * \param[in]  ciphersuite_info   The cipher suite information structure.
+ * \param[out] key_len            The resulting key length in bytes.
+ * \param[out] iv_len             The resulting IV length in bytes
+ *                                (always 12 for TLS 1.3 AEAD ciphers).
+ *
+ * \return     \c 0 on success.
+ * \return     A negative error code on failure.
+ */
+MBEDTLS_CHECK_RETURN_CRITICAL
+int ssl_tls13_get_cipher_key_info(const mbedtls_ssl_ciphersuite_t *ciphersuite_info,
+                                  size_t *key_len, size_t *iv_len);
 
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
 

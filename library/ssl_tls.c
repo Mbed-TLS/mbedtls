@@ -3286,13 +3286,6 @@ size_t mbedtls_ssl_get_output_max_frag_len(const mbedtls_ssl_context *ssl)
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
 size_t mbedtls_ssl_get_current_mtu(const mbedtls_ssl_context *ssl)
 {
-    /* Return unlimited mtu for client hello messages to avoid fragmentation. */
-    if (ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT &&
-        (ssl->state == MBEDTLS_SSL_CLIENT_HELLO ||
-         ssl->state == MBEDTLS_SSL_SERVER_HELLO)) {
-        return 0;
-    }
-
     if (ssl->handshake == NULL || ssl->handshake->mtu == 0) {
         return ssl->mtu;
     }

@@ -9971,6 +9971,51 @@ run_test    "DTLS reassembly: fragmentation, nbio, renego (gnutls server)" \
             -C "error" \
             -s "Extra-header:"
 
+requires_gnutls
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+run_test    "DTLS reassembly: no fragmentation (gnutls client)" \
+            "$P_SRV debug_level=2 dtls=1" \
+            "$G_NEXT_CLI -u --mtu 2048 --insecure 127.0.0.1" \
+            0 \
+            -S "found fragmented DTLS handshake message" \
+            -S "error"
+
+requires_gnutls
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+run_test    "DTLS reassembly: some fragmentation (gnutls client)" \
+            "$P_SRV debug_level=2 dtls=1 auth_mode=required" \
+            "$G_NEXT_CLI -u --mtu 256 --insecure 127.0.0.1 --x509certfile $DATA_FILES_PATH/server5.crt --x509keyfile $DATA_FILES_PATH/server5.key" \
+            0 \
+            -s "found fragmented DTLS handshake message" \
+            -s "Certificate handshake message has been buffered and reassembled" \
+            -S "error"
+
+# Set the MTU to 128 bytes. The minimum size of a DTLS 1.2 record
+# containing a ClientHello handshake message is 69 bytes, without any cookie,
+# ciphersuite, or extension. With an MTU of 128 bytes, the ClientHello handshake
+# message is therefore very likely to be fragmented in most library
+# configurations.
+requires_gnutls
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+run_test    "DTLS reassembly: more fragmentation (gnutls client)" \
+            "$P_SRV debug_level=2 dtls=1" \
+            "$G_NEXT_CLI -u --mtu 128 --insecure 127.0.0.1" \
+            0 \
+            -s "ClientHello handshake message has been buffered and reassembled" \
+            -S "error"
+
+requires_gnutls
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+run_test    "DTLS reassembly: more fragmentation, nbio (gnutls client)" \
+            "$P_SRV debug_level=2 dtls=1 nbio=2" \
+            "$G_NEXT_CLI -u --mtu 128 --insecure 127.0.0.1" \
+            0 \
+            -s "ClientHello handshake message has been buffered and reassembled" \
+            -S "error"
+
+# No fragmentation and renegotiation tests with GnuTLS client as the feature
+# does not work properly.
+
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "DTLS reassembly: no fragmentation (openssl server)" \
             "$O_SRV -dtls -mtu 2048" \
@@ -10000,6 +10045,37 @@ run_test    "DTLS reassembly: fragmentation, nbio (openssl server)" \
             -c "found fragmented DTLS handshake message" \
             -c "Certificate handshake message has been buffered and reassembled" \
             -C "error"
+
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+run_test    "DTLS reassembly: no fragmentation (openssl client)" \
+            "$P_SRV debug_level=2 dtls=1 auth_mode=required" \
+            "$O_NEXT_CLI -dtls -mtu 2048 -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key" \
+            0 \
+            -S "found fragmented DTLS handshake message" \
+            -S "error"
+
+# Minimum possible MTU for OpenSSL server: 256 bytes.
+# We expect the server Certificate handshake to be fragmented and verify that
+# this is the case. Depending on the configuration, other handshake messages may
+# also be fragmented like the ClientHello, ClientKeyExchange or
+# CertificateVerify messages.
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+run_test    "DTLS reassembly: some fragmentation (openssl client)" \
+            "$P_SRV debug_level=2 dtls=1 auth_mode=required" \
+            "$O_NEXT_CLI -dtls -mtu 256 -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key" \
+            0 \
+            -s "found fragmented DTLS handshake message" \
+            -s "Certificate handshake message has been buffered and reassembled" \
+            -S "error"
+
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+run_test    "DTLS reassembly: fragmentation, nbio (openssl client)" \
+            "$P_SRV debug_level=2 dtls=1 auth_mode=required nbio=2" \
+            "$O_NEXT_CLI -dtls -mtu 256 -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key" \
+            0 \
+            -s "found fragmented DTLS handshake message" \
+            -s "Certificate handshake message has been buffered and reassembled" \
+            -S "error"
 
 # Tests for sending fragmented handshake messages with DTLS
 #
@@ -11881,6 +11957,43 @@ run_test    "DTLS proxy: 3d, openssl server, fragmentation, nbio" \
             -c "HTTP/1.0 200 OK" \
             -c "Certificate handshake message has been buffered and reassembled"
 
+requires_openssl_next
+client_needs_more_time 6
+not_with_valgrind # risk of non-mbedtls peer timing out
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+run_test    "DTLS proxy: 3d, openssl client" \
+            -p "$P_PXY drop=5 delay=5 duplicate=5" \
+            "$P_SRV dgram_packing=0 dtls=1 hs_timeout=500-60000 tickets=0" \
+            "$O_NEXT_CLI -dtls1_2 -mtu 2048" \
+            0 \
+            -s "HTTP/1.0 200 OK"
+
+requires_openssl_next
+client_needs_more_time 8
+not_with_valgrind # risk of non-mbedtls peer timing out
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+run_test    "DTLS proxy: 3d, openssl client, fragmentation" \
+            -p "$P_PXY drop=5 delay=5 duplicate=5" \
+            "$P_SRV debug_level=2 dgram_packing=0 auth_mode=required dtls=1 hs_timeout=500-60000 tickets=0" \
+            "$O_NEXT_CLI -dtls1_2 -mtu 256 -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key" \
+            0 \
+            -s "HTTP/1.0 200 OK" \
+            -s "found fragmented DTLS handshake message" \
+            -s "Certificate handshake message has been buffered and reassembled"
+
+requires_openssl_next
+client_needs_more_time 8
+not_with_valgrind # risk of non-mbedtls peer timing out
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+run_test    "DTLS proxy: 3d, openssl client, fragmentation, nbio" \
+            -p "$P_PXY drop=5 delay=5 duplicate=5" \
+            "$P_SRV debug_level=2 dgram_packing=0 auth_mode=required dtls=1 hs_timeout=500-60000 nbio=2 tickets=0" \
+            "$O_NEXT_CLI -dtls1_2 -mtu 256 -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key" \
+            0 \
+            -s "HTTP/1.0 200 OK" \
+            -s "found fragmented DTLS handshake message" \
+            -s "Certificate handshake message has been buffered and reassembled"
+
 requires_gnutls
 client_needs_more_time 6
 not_with_valgrind # risk of non-mbedtls peer timing out
@@ -11918,6 +12031,44 @@ run_test    "DTLS proxy: 3d, gnutls server, fragmentation, nbio" \
             -s "Extra-header:" \
             -c "Extra-header:" \
             -c "Certificate handshake message has been buffered and reassembled"
+
+requires_gnutls
+client_needs_more_time 6
+not_with_valgrind # risk of non-mbedtls peer timing out
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+run_test    "DTLS proxy: 3d, gnutls client" \
+            -p "$P_PXY drop=5 delay=5 duplicate=5" \
+            "$P_SRV dgram_packing=0 dtls=1" \
+            "$G_NEXT_CLI -u --mtu 2048 --insecure 127.0.0.1" \
+            0 \
+            -s "HTTP/1.0 200 OK"
+
+# Set the MTU to 128 bytes. The ClientHello is not surely fragmented but very
+# likely. Do not set it to 56 bytes where we would be sure that the ClientHello
+# is fragmented as then experimentally the handshake fails too often.
+requires_gnutls
+client_needs_more_time 8
+not_with_valgrind # risk of non-mbedtls peer timing out
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+run_test    "DTLS proxy: 3d, gnutls client, fragmentation" \
+            -p "$P_PXY drop=5 delay=5 duplicate=5" \
+            "$P_SRV dgram_packing=0 dtls=1 debug_level=2" \
+            "$G_NEXT_CLI -u --mtu 128 --insecure 127.0.0.1" \
+            0 \
+            -s "HTTP/1.0 200 OK" \
+            -s "ClientHello handshake message has been buffered and reassembled"
+
+requires_gnutls
+client_needs_more_time 8
+not_with_valgrind # risk of non-mbedtls peer timing out
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+run_test    "DTLS proxy: 3d, gnutls client, fragmentation, nbio=2" \
+            -p "$P_PXY drop=5 delay=5 duplicate=5" \
+            "$P_SRV dgram_packing=0 dtls=1  debug_level=2 nbio=2" \
+            "$G_NEXT_CLI -u --mtu 128 --insecure 127.0.0.1" \
+            0 \
+            -s "HTTP/1.0 200 OK" \
+            -s "ClientHello handshake message has been buffered and reassembled"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "export keys functionality" \

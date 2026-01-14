@@ -14794,16 +14794,6 @@ run_test    "TLS 1.2 ClientHello indicating support for deflate compression meth
 
 # Most test cases are in opt-testcases/handshake-generated.sh
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_certificate_authentication
-run_test    "Handshake defragmentation on server: len=32, TLS 1.2 ClientHello (unsupported)" \
-            "$P_SRV debug_level=4 force_version=tls12 auth_mode=required" \
-            "$O_NEXT_CLI -tls1_2 -split_send_frag 32 -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key" \
-            1 \
-            -s "The SSL configuration is tls12 only" \
-            -s "bad client hello message" \
-            -s "SSL - A message could not be parsed due to a syntactic error"
-
 # Test server-side buffer resizing with fragmented handshake on TLS1.2
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH

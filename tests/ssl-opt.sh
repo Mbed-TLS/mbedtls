@@ -13826,7 +13826,6 @@ run_test    "Handshake defragmentation on server: len=256, client-initiated rene
             -s "Consume: waiting for more handshake fragments 256/" \
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "Handshake defragmentation on server: len=128, client-initiated renegotiation" \
             "$P_SRV debug_level=4 exchanges=2 renegotiation=1 auth_mode=required" \
@@ -13843,7 +13842,6 @@ run_test    "Handshake defragmentation on server: len=128, client-initiated rene
             -s "Consume: waiting for more handshake fragments 128/" \
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "Handshake defragmentation on server: len=4, client-initiated renegotiation" \
             "$P_SRV debug_level=4 exchanges=2 renegotiation=1 auth_mode=required" \
@@ -13860,7 +13858,6 @@ run_test    "Handshake defragmentation on server: len=4, client-initiated renego
             -s "Consume: waiting for more handshake fragments 4/" \
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "Handshake defragmentation on server: len=4, client-initiated server-rejected renegotiation" \
             "$P_SRV debug_level=4 exchanges=2 renegotiation=0 auth_mode=required" \

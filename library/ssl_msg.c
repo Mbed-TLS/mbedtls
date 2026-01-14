@@ -5504,6 +5504,11 @@ static int ssl_tls12_handle_hs_message_post_handshake(mbedtls_ssl_context *ssl)
             ssl->renego_status = MBEDTLS_SSL_RENEGOTIATION_PENDING;
         }
 #endif
+
+        /* Keep the ClientHello message for ssl_parse_client_hello() */
+        if (ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER) {
+            ssl->keep_current_message = 1;
+        }
         ret = mbedtls_ssl_start_renegotiation(ssl);
         if (ret != MBEDTLS_ERR_SSL_WAITING_SERVER_HELLO_RENEGO &&
             ret != 0) {

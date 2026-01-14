@@ -912,29 +912,22 @@ static int ssl_parse_client_hello(mbedtls_ssl_context *ssl)
 
     MBEDTLS_SSL_DEBUG_MSG(2, ("=> parse client hello"));
 
-    int renegotiating;
-
-#if defined(MBEDTLS_SSL_DTLS_ANTI_REPLAY)
-read_record_header:
-#endif
     /*
-     * If renegotiating, then the input was read with mbedtls_ssl_read_record(),
-     * otherwise read it ourselves manually in order to support SSLv2
-     * ClientHello, which doesn't use the same record layer format.
-     * Otherwise in a scenario of TLS 1.3/TLS 1.2 version negotiation, the
-     * ClientHello has been already fully fetched by the TLS 1.3 code and the
-     * flag ssl->keep_current_message is raised.
+     * Fetch the expected ClientHello handshake message. Do not ask
+     * mbedtls_ssl_read_record() to update the handshake digest, to align
+     * with cases where the ClientHello may already have been fetched in
+     * ssl_tls13_process_client_hello() or as a post-handshake message
+     * (renegotiation).
      */
-    renegotiating = 0;
-#if defined(MBEDTLS_SSL_RENEGOTIATION)
-    renegotiating = (ssl->renego_status != MBEDTLS_SSL_INITIAL_HANDSHAKE);
-#endif
-    if (!renegotiating && !ssl->keep_current_message) {
-        if ((ret = mbedtls_ssl_fetch_input(ssl, 5)) != 0) {
-            /* No alert on a read error. */
-            MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_fetch_input", ret);
-            return ret;
-        }
+    if ((ret = mbedtls_ssl_read_record(ssl, 0)) != 0) {
+        MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_read_record ", ret);
+        return ret;
+    }
+
+    ret = mbedtls_ssl_update_handshake_status(ssl);
+    if (0 != ret) {
+        MBEDTLS_SSL_DEBUG_RET(1, ("mbedtls_ssl_update_handshake_status"), ret);
+        return ret;
     }
 
     buf = ssl->in_hdr;
@@ -953,7 +946,8 @@ read_record_header:
     MBEDTLS_SSL_DEBUG_MSG(3, ("client hello, message type: %d",
                               buf[0]));
 
-    if (buf[0] != MBEDTLS_SSL_MSG_HANDSHAKE) {
+    if ((ssl->in_msgtype != MBEDTLS_SSL_MSG_HANDSHAKE) ||
+        (buf[0] != MBEDTLS_SSL_MSG_HANDSHAKE)) {
         MBEDTLS_SSL_DEBUG_MSG(1, ("bad client hello message"));
         return MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE;
     }
@@ -980,66 +974,11 @@ read_record_header:
 
         memcpy(&ssl->cur_out_ctr[2], ssl->in_ctr + 2,
                sizeof(ssl->cur_out_ctr) - 2);
-
-    /* Check for record replay and then update the window. This replicates what
-     * is done in `ssl_get_next_record()` when the record is not fetched through
-     * `mbedtls_ssl_read_record()`. */
-#if defined(MBEDTLS_SSL_DTLS_ANTI_REPLAY)
-        if (mbedtls_ssl_dtls_replay_check(ssl) != 0) {
-            MBEDTLS_SSL_DEBUG_MSG(1, ("replayed record, discarding"));
-            ssl->next_record_offset = 0;
-            ssl->in_left = 0;
-            goto read_record_header;
-        }
-
-        /* No MAC to check yet, so we can update right now */
-        mbedtls_ssl_dtls_replay_update(ssl);
-#endif
     }
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
 
-    msg_len = MBEDTLS_GET_UINT16_BE(ssl->in_len, 0);
-
-#if defined(MBEDTLS_SSL_RENEGOTIATION)
-    if (ssl->renego_status != MBEDTLS_SSL_INITIAL_HANDSHAKE) {
-        /* Set by mbedtls_ssl_read_record() */
-        msg_len = ssl->in_hslen;
-    } else
-#endif
-    {
-        if (ssl->keep_current_message) {
-            ssl->keep_current_message = 0;
-        } else {
-            if (msg_len > MBEDTLS_SSL_IN_CONTENT_LEN) {
-                MBEDTLS_SSL_DEBUG_MSG(1, ("bad client hello message"));
-                return MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER;
-            }
-
-            if ((ret = mbedtls_ssl_fetch_input(ssl,
-                                               mbedtls_ssl_in_hdr_len(ssl) + msg_len)) != 0) {
-                MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_fetch_input", ret);
-                return ret;
-            }
-
-            /* Done reading this record, get ready for the next one */
-#if defined(MBEDTLS_SSL_PROTO_DTLS)
-            if (ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM) {
-                ssl->next_record_offset = msg_len + mbedtls_ssl_in_hdr_len(ssl);
-            } else
-#endif
-            ssl->in_left = 0;
-        }
-    }
-
     buf = ssl->in_msg;
-
-    MBEDTLS_SSL_DEBUG_BUF(4, "record contents", buf, msg_len);
-
-    ret = ssl->handshake->update_checksum(ssl, buf, msg_len);
-    if (0 != ret) {
-        MBEDTLS_SSL_DEBUG_RET(1, ("update_checksum"), ret);
-        return ret;
-    }
+    msg_len = ssl->in_hslen;
 
     /*
      * Handshake layer:
@@ -1049,13 +988,6 @@ read_record_header:
      *     6  .   8   DTLS only: fragment offset
      *     9  .  11   DTLS only: fragment length
      */
-    if (msg_len < mbedtls_ssl_hs_hdr_len(ssl)) {
-        MBEDTLS_SSL_DEBUG_MSG(1, ("bad client hello message"));
-        return MBEDTLS_ERR_SSL_DECODE_ERROR;
-    }
-
-    MBEDTLS_SSL_DEBUG_MSG(3, ("client hello v3, handshake type: %d", buf[0]));
-
     if (buf[0] != MBEDTLS_SSL_HS_CLIENT_HELLO) {
         MBEDTLS_SSL_DEBUG_MSG(1, ("bad client hello message"));
         return MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE;
@@ -1085,24 +1017,6 @@ read_record_header:
             unsigned int cli_msg_seq = (unsigned int) MBEDTLS_GET_UINT16_BE(ssl->in_msg, 4);
             ssl->handshake->out_msg_seq = cli_msg_seq;
             ssl->handshake->in_msg_seq  = cli_msg_seq + 1;
-        }
-        {
-            /*
-             * For now we don't support fragmentation, so make sure
-             * fragment_offset == 0 and fragment_length == length
-             */
-            size_t fragment_offset, fragment_length, length;
-            fragment_offset = MBEDTLS_GET_UINT24_BE(ssl->in_msg, 6);
-            fragment_length = MBEDTLS_GET_UINT24_BE(ssl->in_msg, 9);
-            length = MBEDTLS_GET_UINT24_BE(ssl->in_msg, 1);
-            MBEDTLS_SSL_DEBUG_MSG(
-                4, ("fragment_offset=%u fragment_length=%u length=%u",
-                    (unsigned) fragment_offset, (unsigned) fragment_length,
-                    (unsigned) length));
-            if (fragment_offset != 0 || length != fragment_length) {
-                MBEDTLS_SSL_DEBUG_MSG(1, ("ClientHello fragmentation not supported"));
-                return MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE;
-            }
         }
     }
 #endif /* MBEDTLS_SSL_PROTO_DTLS */

@@ -88,7 +88,11 @@
 #           define MBEDTLS_POP_TARGET_PRAGMA
 #       endif
 #   elif defined(__clang__)
-#       pragma clang attribute push (__attribute__((target("aes"))), apply_to=function)
+#       if __clang_major__ < 7
+#           pragma clang attribute push (__attribute__((target("crypto"))), apply_to=function)
+#       else
+#           pragma clang attribute push (__attribute__((target("aes"))), apply_to=function)
+#       endif
 #       define MBEDTLS_POP_TARGET_PRAGMA
 #   elif defined(__GNUC__)
 #       pragma GCC push_options

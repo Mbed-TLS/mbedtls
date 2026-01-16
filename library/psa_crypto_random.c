@@ -13,9 +13,15 @@
 #include "psa_crypto_core.h"
 #include "psa_crypto_random.h"
 #include "psa_crypto_random_impl.h"
+#include "threading_internal.h"
 
 #if defined(MBEDTLS_PSA_INJECT_ENTROPY)
 #include "entropy_poll.h"
+#endif
+
+#if defined(MBEDTLS_PLATFORM_IS_UNIXLIKE)
+/* For getpid(), for fork protection */
+#include <unistd.h>
 #endif
 
 void psa_random_internal_init(mbedtls_psa_random_context_t *rng)
@@ -53,6 +59,9 @@ psa_status_t psa_random_internal_seed(mbedtls_psa_random_context_t *rng)
     const unsigned char drbg_seed[] = "PSA";
     int ret = mbedtls_psa_drbg_seed(&rng->drbg, &rng->entropy,
                                     drbg_seed, sizeof(drbg_seed) - 1);
+#if defined(MBEDTLS_PLATFORM_IS_UNIXLIKE)
+    rng->pid = getpid();
+#endif
     return mbedtls_to_psa_error(ret);
 }
 
@@ -60,6 +69,27 @@ psa_status_t psa_random_internal_generate(
     mbedtls_psa_random_context_t *rng,
     uint8_t *output, size_t output_size)
 {
+#if defined(MBEDTLS_PLATFORM_IS_UNIXLIKE)
+    intmax_t pid = getpid();
+    if (pid != rng->pid) {
+        /* This is a (grand...)child of the original process, but
+         * we inherited the RNG state from our parent. We must reseed! */
+#if defined(MBEDTLS_THREADING_C)
+        mbedtls_mutex_lock(&mbedtls_threading_psa_rngdata_mutex);
+#endif /* defined(MBEDTLS_THREADING_C) */
+        int ret = mbedtls_psa_drbg_reseed(&rng->drbg, NULL, 0);
+        if (ret == 0) {
+            rng->pid = pid;
+        }
+#if defined(MBEDTLS_THREADING_C)
+        mbedtls_mutex_unlock(&mbedtls_threading_psa_rngdata_mutex);
+#endif /* defined(MBEDTLS_THREADING_C) */
+        if (ret != 0) {
+            return mbedtls_to_psa_error(ret);
+        }
+    }
+#endif /* MBEDTLS_PLATFORM_IS_UNIXLIKE */
+
     while (output_size > 0) {
         size_t request_size =
             (output_size > MBEDTLS_PSA_RANDOM_MAX_REQUEST ?

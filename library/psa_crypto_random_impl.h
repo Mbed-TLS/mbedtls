@@ -100,6 +100,8 @@ static inline void mbedtls_psa_drbg_free(mbedtls_psa_drbg_context_t *p_rng)
 
 /** Seed the PSA DRBG.
  *
+ * \param drbg_ctx      The DRBG context to seed.
+ *                      It must be initialized but not active.
  * \param entropy       An entropy context to read the seed from.
  * \param custom        The personalization string.
  *                      This can be \c NULL, in which case the personalization
@@ -118,6 +120,28 @@ static inline int mbedtls_psa_drbg_seed(mbedtls_psa_drbg_context_t *drbg_ctx,
 #elif defined(MBEDTLS_HMAC_DRBG_C)
     const mbedtls_md_info_t *md_info = mbedtls_md_info_from_type(MBEDTLS_PSA_HMAC_DRBG_MD_TYPE);
     return mbedtls_hmac_drbg_seed(drbg_ctx, md_info, mbedtls_entropy_func, entropy, custom, len);
+#endif
+}
+
+/** Reseed the PSA DRBG.
+ *
+ * \param drbg_ctx      The DRBG context to reseed.
+ *                      It must be active.
+ * \param additional    Additional data to inject.
+ * \param len           The length of \p additional in bytes.
+ *                      This can be 0 to simply reseed from the entropy source.
+ *
+ * \return              \c 0 on success.
+ * \return              An Mbed TLS error code (\c MBEDTLS_ERR_xxx) on failure.
+ */
+static inline int mbedtls_psa_drbg_reseed(mbedtls_psa_drbg_context_t *drbg_ctx,
+                                          const unsigned char *additional,
+                                          size_t len)
+{
+#if defined(MBEDTLS_CTR_DRBG_C)
+    return mbedtls_ctr_drbg_reseed(drbg_ctx, additional, len);
+#elif defined(MBEDTLS_HMAC_DRBG_C)
+    return mbedtls_hmac_drbg_reseed(drbg_ctx, additional, len);
 #endif
 }
 

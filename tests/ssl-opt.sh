@@ -11371,6 +11371,37 @@ run_test    "DTLS fragmenting: both (MTU=512)" \
             -c "found fragmented DTLS handshake message" \
             -C "error"
 
+# Depending on the ciphersuite selected to encrypt the application data, the
+# maximum application data payload per record may be small with an MTU of 128.
+# For example, with TLS-ECDHE-ECDSA-WITH-AES-256-CBC-SHA384, this maximum is
+# 35 bytes. We therefore reduce the size of the client request and the server
+# response in this test.
+requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
+requires_max_content_len 2048
+run_test    "DTLS fragmenting: both (MTU=128)" \
+            -p "$P_PXY mtu=128" \
+            "$P_SRV dtls=1 debug_level=5 auth_mode=required \
+             crt_file=$DATA_FILES_PATH/server7_int-ca.crt \
+             key_file=$DATA_FILES_PATH/server7.key \
+             response_size=8 \
+             hs_timeout=2500-60000 \
+             mtu=128" \
+            "$P_CLI dtls=1 debug_level=2 \
+             crt_file=$DATA_FILES_PATH/server8_int-ca2.crt \
+             key_file=$DATA_FILES_PATH/server8.key \
+             request_size=8 \
+             hs_timeout=2500-60000 \
+             mtu=128" \
+            0 \
+            -s "found fragmented DTLS handshake message" \
+            -s "fragmenting Certificate handshake message" \
+            -s "fragmenting ServerKeyExchange handshake message" \
+            -c "found fragmented DTLS handshake message" \
+            -c "fragmenting ClientHello handshake message" \
+            -c "fragmenting Certificate handshake message" \
+            -c "fragmenting CertificateVerify handshake message" \
+            -C "error"
+
 # Test for automatic MTU reduction on repeated resend.
 # Forcing ciphersuite for this test to fit the MTU of 508 with full config.
 # The ratio of max/min timeout should ideally equal 4 to accept two
@@ -11747,13 +11778,28 @@ requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 requires_gnutls
 requires_max_content_len 2048
-run_test    "DTLS fragmenting: gnutls server, DTLS 1.2" \
+run_test    "DTLS fragmenting: MTU=512, gnutls server, DTLS 1.2" \
             "$G_SRV -u" \
             "$P_CLI dtls=1 debug_level=2 \
              crt_file=$DATA_FILES_PATH/server8_int-ca2.crt \
              key_file=$DATA_FILES_PATH/server8.key \
              mtu=512 force_version=dtls12" \
             0 \
+            -c "fragmenting Certificate handshake message" \
+            -C "error"
+
+requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
+requires_config_enabled MBEDTLS_RSA_C
+requires_gnutls
+requires_max_content_len 2048
+run_test    "DTLS fragmenting: MTU=128, gnutls server, DTLS 1.2" \
+            "$G_NEXT_SRV -u" \
+            "$P_CLI dtls=1 debug_level=2 \
+             crt_file=$DATA_FILES_PATH/server8_int-ca2.crt \
+             key_file=$DATA_FILES_PATH/server8.key \
+             mtu=128 force_version=dtls12" \
+            0 \
+            -c "fragmenting ClientHello handshake message" \
             -c "fragmenting Certificate handshake message" \
             -C "error"
 
@@ -11769,7 +11815,7 @@ requires_config_enabled MBEDTLS_RSA_C
 requires_gnutls
 requires_not_i686
 requires_max_content_len 2048
-run_test    "DTLS fragmenting: gnutls client, DTLS 1.2" \
+run_test    "DTLS fragmenting: MTU=512, gnutls client, DTLS 1.2" \
             "$P_SRV dtls=1 debug_level=2 \
              crt_file=$DATA_FILES_PATH/server7_int-ca.crt \
              key_file=$DATA_FILES_PATH/server7.key \
@@ -11781,7 +11827,7 @@ run_test    "DTLS fragmenting: gnutls client, DTLS 1.2" \
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 requires_max_content_len 2048
-run_test    "DTLS fragmenting: openssl server, DTLS 1.2" \
+run_test    "DTLS fragmenting: MTU=512, openssl server, DTLS 1.2" \
             "$O_SRV -dtls1_2 -verify 10" \
             "$P_CLI dtls=1 debug_level=2 \
              crt_file=$DATA_FILES_PATH/server8_int-ca2.crt \
@@ -11791,10 +11837,29 @@ run_test    "DTLS fragmenting: openssl server, DTLS 1.2" \
             -c "fragmenting Certificate handshake message" \
             -C "error"
 
+# Depending on the ciphersuite selected to encrypt the application data, the
+# maximum application data payload per record may be small with an MTU of 128.
+# For example, with TLS-ECDHE-ECDSA-WITH-AES-256-CBC-SHA384, this maximum is
+# 35 bytes. We therefore reduce the size of the client request in this test.
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 requires_max_content_len 2048
-run_test    "DTLS fragmenting: openssl client, DTLS 1.2" \
+run_test    "DTLS fragmenting: MTU=128, openssl server, DTLS 1.2" \
+            "$O_NEXT_SRV -dtls1_2 -verify 10" \
+            "$P_CLI dtls=1 debug_level=2 \
+             crt_file=$DATA_FILES_PATH/server8_int-ca2.crt \
+             key_file=$DATA_FILES_PATH/server8.key \
+             request_size=8 \
+             mtu=128 force_version=dtls12" \
+            0 \
+            -c "fragmenting ClientHello handshake message" \
+            -c "fragmenting Certificate handshake message" \
+            -C "error"
+
+requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
+requires_config_enabled MBEDTLS_RSA_C
+requires_max_content_len 2048
+run_test    "DTLS fragmenting: MTU=512, openssl client, DTLS 1.2" \
             "$P_SRV dtls=1 debug_level=2 \
              crt_file=$DATA_FILES_PATH/server7_int-ca.crt \
              key_file=$DATA_FILES_PATH/server7.key \
@@ -11812,7 +11877,7 @@ requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 client_needs_more_time 4
 requires_max_content_len 2048
-run_test    "DTLS fragmenting: 3d, gnutls server, DTLS 1.2" \
+run_test    "DTLS fragmenting: 3d, MTU=512, gnutls server, DTLS 1.2" \
             -p "$P_PXY drop=8 delay=8 duplicate=8" \
             "$G_NEXT_SRV -u" \
             "$P_CLI dgram_packing=0 dtls=1 debug_level=2 \
@@ -11826,9 +11891,26 @@ run_test    "DTLS fragmenting: 3d, gnutls server, DTLS 1.2" \
 requires_gnutls_next
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
+client_needs_more_time 6
+requires_max_content_len 2048
+run_test    "DTLS fragmenting: 3d, MTU=128, gnutls server, DTLS 1.2" \
+            -p "$P_PXY drop=8 delay=8 duplicate=8" \
+            "$G_NEXT_SRV -u" \
+            "$P_CLI dgram_packing=0 dtls=1 debug_level=2 \
+             crt_file=$DATA_FILES_PATH/server8_int-ca2.crt \
+             key_file=$DATA_FILES_PATH/server8.key \
+             hs_timeout=250-60000 mtu=128 force_version=dtls12" \
+            0 \
+            -c "fragmenting ClientHello handshake message" \
+            -c "fragmenting Certificate handshake message" \
+            -C "error"
+
+requires_gnutls_next
+requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
+requires_config_enabled MBEDTLS_RSA_C
 client_needs_more_time 4
 requires_max_content_len 2048
-run_test    "DTLS fragmenting: 3d, gnutls client, DTLS 1.2" \
+run_test    "DTLS fragmenting: 3d, MTU=512, gnutls client, DTLS 1.2" \
             -p "$P_PXY drop=8 delay=8 duplicate=8" \
             "$P_SRV dtls=1 debug_level=2 \
              crt_file=$DATA_FILES_PATH/server7_int-ca.crt \
@@ -11845,7 +11927,7 @@ requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 client_needs_more_time 4
 requires_max_content_len 2048
-run_test    "DTLS fragmenting: 3d, openssl server, DTLS 1.2" \
+run_test    "DTLS fragmenting: 3d, MTU=512, openssl server, DTLS 1.2" \
             -p "$P_PXY drop=8 delay=8 duplicate=8" \
             "$O_NEXT_SRV -dtls1_2 -verify 10" \
             "$P_CLI dtls=1 debug_level=2 \
@@ -11856,6 +11938,28 @@ run_test    "DTLS fragmenting: 3d, openssl server, DTLS 1.2" \
             -c "fragmenting Certificate handshake message" \
             -C "error"
 
+# Depending on the ciphersuite selected to encrypt the application data, the
+# maximum application data payload per record may be small with an MTU of 128.
+# For example, with TLS-ECDHE-ECDSA-WITH-AES-256-CBC-SHA384, this maximum is
+# 35 bytes. We therefore reduce the size of the client request in this test.
+requires_openssl_next
+requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
+requires_config_enabled MBEDTLS_RSA_C
+client_needs_more_time 4
+requires_max_content_len 2048
+run_test    "DTLS fragmenting: 3d, MTU=128, openssl server, DTLS 1.2" \
+            -p "$P_PXY drop=8 delay=8 duplicate=8" \
+            "$O_NEXT_SRV -dtls1_2 -verify 10" \
+            "$P_CLI dtls=1 debug_level=2 \
+             crt_file=$DATA_FILES_PATH/server8_int-ca2.crt \
+             key_file=$DATA_FILES_PATH/server8.key \
+             request_size=8 \
+             hs_timeout=250-60000 mtu=128 force_version=dtls12" \
+            0 \
+            -c "fragmenting ClientHello handshake message" \
+            -c "fragmenting Certificate handshake message" \
+            -C "error"
+
 ## the test below will time out with certain seed.
 ## The cause is an openssl bug (https://github.com/openssl/openssl/issues/18887)
 skip_next_test
@@ -11863,7 +11967,7 @@ requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 client_needs_more_time 4
 requires_max_content_len 2048
-run_test    "DTLS fragmenting: 3d, openssl client, DTLS 1.2" \
+run_test    "DTLS fragmenting: 3d, MTU=512, openssl client, DTLS 1.2" \
             -p "$P_PXY drop=8 delay=8 duplicate=8" \
             "$P_SRV dtls=1 debug_level=2 \
              crt_file=$DATA_FILES_PATH/server7_int-ca.crt \

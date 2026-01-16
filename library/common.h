@@ -27,6 +27,21 @@
 #define MBEDTLS_HAVE_NEON_INTRINSICS
 #endif
 
+/* Decide whether we're built for a Unix-like platform.
+ */
+#if defined(_WIN32)
+/* If Windows platform interfaces are available, we use them, even if
+ * a Unix-like might also to be available. */
+/* defined(_WIN32) ==> we can include <windows.h> */
+#elif defined(unix) || defined(__unix) || defined(__unix__) ||    \
+    (defined(__APPLE__) && defined(__MACH__)) ||                  \
+    defined(__HAIKU__) ||                                         \
+    defined(__midipix__) ||                                       \
+    /* Add other Unix-like platform indicators here ^^^^ */ 0
+/* defined(MBEDTLS_PLATFORM_IS_UNIXLIKE) ==> we can include <unistd.h> */
+#define MBEDTLS_PLATFORM_IS_UNIXLIKE
+#endif
+
 /** Helper to define a function as static except when building invasive tests.
  *
  * If a function is only used inside its own source file and should be

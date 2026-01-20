@@ -145,21 +145,25 @@ Policy](https://github.com/hacl-star/hacl-star/blob/main/SECURITY.md).)
 The Everest variant is only used when `MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED`
 configuration option is defined. This option is off by default.
 
-#### Formatting of X.509 certificates and certificate signing requests
+#### Formatting of X509 data
 
-When parsing X.509 certificates and certificate signing requests (CSRs),
+This section discusses limitations in how X.509 objects are processed. This
+applies to certificates, certificate signing requests (CSRs) and certificate
+revocation lists (CRLs).
+
 Mbed TLS does not check that they are strictly compliant with X.509 and other
-relevant standards. In the case of signed certificates, the signing party is
-assumed to have performed this validation (and the certificate is trusted to
-be correctly formatted as long as the signature is correct).
-Similarly, CSRs are implicitly trusted by Mbed TLS to be standards-compliant.
+relevant standards. In the case of signed certificates and signed CRLs, the
+signing party is assumed to have performed this validation (and the certificate
+or CRL is trusted to be correctly formatted as long as the signature is
+correct).  Similarly, CSRs are implicitly trusted by Mbed TLS to be
+standards-compliant.
 
-**Warning!** Mbed TLS must not be used to sign untrusted CSRs unless extra
-validation is performed separately to ensure that they are compliant to the
-relevant specifications. This makes Mbed TLS on its own unsuitable for use in
-a Certificate Authority (CA).
+**Warning!** Mbed TLS must not be used to sign untrusted CSRs or CRLs unless
+extra validation is performed separately to ensure that they are compliant to
+the relevant specifications. This makes Mbed TLS on its own unsuitable for use
+in a Certificate Authority (CA).
 
 However, Mbed TLS aims to protect against memory corruption and other
-undefined behavior when parsing certificates and CSRs. If a CSR or signed
+undefined behavior when parsing certificates, CSRs and CRLs. If a CSR or signed
 certificate causes undefined behavior when it is parsed by Mbed TLS, that
 is considered a security vulnerability.

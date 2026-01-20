@@ -1643,6 +1643,12 @@ check_test_failure() {
                     return
                 fi
                 ;;
+            "-v")
+                if ! ${PYTHON:-} ../framework/scripts/validate_ssl_logs.py "$CLI_OUT" "$SRV_OUT" $2; then
+                    fail "Validation failed on client and server output"
+                    return
+                fi
+                ;;
 
             *)
                 echo "Unknown test: $1" >&2

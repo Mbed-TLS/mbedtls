@@ -197,6 +197,29 @@ run_test    "Sample: ssl_fork_server, ssl_client2" \
             -S "error" \
             -C "error"
 
+two_clients () (
+    "$PROGRAMS_DIR/ssl_client2" "$@" &&
+    "$PROGRAMS_DIR/ssl_client2" "$@"
+)
+
+run_test    "Sample: ssl_fork_server, 2 successive clients, TLS 1.2" \
+            -P 4433 \
+            "server_with_own_seedfile $PROGRAMS_DIR/ssl_fork_server" \
+            "two_clients force_version=tls12 debug_level=3" \
+            0 \
+            -S "error" \
+            -C "error" \
+            -v 'distinct_server_random'
+
+run_test    "Sample: ssl_fork_server, 2 successive clients, TLS 1.3" \
+            -P 4433 \
+            "server_with_own_seedfile $PROGRAMS_DIR/ssl_fork_server" \
+            "two_clients force_version=tls13 debug_level=3" \
+            0 \
+            -S "error" \
+            -C "error" \
+            -v 'distinct_server_random'
+
 run_test    "Sample: ssl_client1 with ssl_fork_server" \
             -P 4433 \
             "server_with_own_seedfile $PROGRAMS_DIR/ssl_fork_server" \

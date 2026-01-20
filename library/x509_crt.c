@@ -2748,8 +2748,12 @@ static int x509_inet_pton_ipv6(const char *src, void *dst)
             if (*p == '\0') {
                 break;
             } else if (*p == '.') {
-                /* Don't accept IPv4 too early or late */
-                if ((nonzero_groups == 0 && zero_group_start == -1) ||
+                /* Don't accept IPv4 too early or late:
+                 * - The first 6 nonzero groups must be 16 bit pieces of address delimited by ':'
+                 * - This might be fully or partially represented with compressed syntax (a zero
+                 *   group "::")
+                 */
+                if ((nonzero_groups < 6 && zero_group_start == -1) ||
                     nonzero_groups >= 7) {
                     break;
                 }

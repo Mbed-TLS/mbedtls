@@ -202,7 +202,7 @@ two_clients () (
     "$PROGRAMS_DIR/ssl_client2" "$@"
 )
 
-run_test    "Sample: ssl_fork_server, 2 successive clients, TLS 1.2" \
+run_test    "Sample: ssl_fork_server, 2 successive clients, TLS 1.2: unique random" \
             -P 4433 \
             "server_with_own_seedfile $PROGRAMS_DIR/ssl_fork_server" \
             "two_clients force_version=tls12 debug_level=3" \
@@ -211,7 +211,7 @@ run_test    "Sample: ssl_fork_server, 2 successive clients, TLS 1.2" \
             -C "error" \
             -v 'distinct_server_random'
 
-run_test    "Sample: ssl_fork_server, 2 successive clients, TLS 1.3" \
+run_test    "Sample: ssl_fork_server, 2 successive clients, TLS 1.3: unique random" \
             -P 4433 \
             "server_with_own_seedfile $PROGRAMS_DIR/ssl_fork_server" \
             "two_clients force_version=tls13 debug_level=3" \
@@ -219,6 +219,36 @@ run_test    "Sample: ssl_fork_server, 2 successive clients, TLS 1.3" \
             -S "error" \
             -C "error" \
             -v 'distinct_server_random'
+
+# Pick ECDHE-RSA, not ECDHE-ECDSA, because ssl_fork_server only loads one key,
+# and it uses an RSA key if both RSA and ECDSA are available.
+run_test    "Sample: ssl_fork_server, 2 successive clients, TLS 1.2: unique ephemeral ECDHE" \
+            -P 4433 \
+            "server_with_own_seedfile $PROGRAMS_DIR/ssl_fork_server" \
+            "two_clients force_version=tls12 force_ciphersuite=TLS-ECDHE-RSA-WITH-AES-128-GCM-SHA256 debug_level=3" \
+            0 \
+            -S "error" \
+            -C "error" \
+            -v 'distinct_server_ephemeral'
+
+run_test    "Sample: ssl_fork_server, 2 successive clients, TLS 1.2: unique ephemeral DHE" \
+            -P 4433 \
+            "server_with_own_seedfile $PROGRAMS_DIR/ssl_fork_server" \
+            "two_clients force_version=tls12 force_ciphersuite=TLS-DHE-RSA-WITH-AES-128-CBC-SHA debug_level=3" \
+            0 \
+            -S "error" \
+            -C "error" \
+            -v 'distinct_server_ephemeral'
+
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+run_test    "Sample: ssl_fork_server, 2 successive clients, TLS 1.3: unique ephemeral" \
+            -P 4433 \
+            "server_with_own_seedfile $PROGRAMS_DIR/ssl_fork_server" \
+            "two_clients force_version=tls13 tls13_kex_modes=ephemeral debug_level=3" \
+            0 \
+            -S "error" \
+            -C "error" \
+            -v 'distinct_server_ephemeral'
 
 run_test    "Sample: ssl_client1 with ssl_fork_server" \
             -P 4433 \

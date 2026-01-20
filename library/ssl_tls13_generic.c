@@ -1485,6 +1485,10 @@ int mbedtls_ssl_tls13_read_public_xxdhe_share(mbedtls_ssl_context *ssl,
                                   sizeof(handshake->xxdh_psa_peerkey)));
         return MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE;
     }
+    MBEDTLS_SSL_DEBUG_BUF(3, (mbedtls_ssl_conf_get_endpoint(ssl->conf) == MBEDTLS_SSL_IS_CLIENT ?
+                              "server ephemeral public key" :
+                              "client ephemeral public key"),
+                          p, peerkey_len);
     memcpy(handshake->xxdh_psa_peerkey, p, peerkey_len);
     handshake->xxdh_psa_peerkey_len = peerkey_len;
 

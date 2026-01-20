@@ -1645,17 +1645,27 @@ static int ssl_parse_server_ecdh_params(mbedtls_ssl_context *ssl,
      *  5+      ECPoint contents
      */
     if (end - *p < 4) {
+        MBEDTLS_SSL_DEBUG_MSG(2,
+                              ("bad server key exchange message: too short (%u)",
+                               (unsigned) (end - *p)));
         return MBEDTLS_ERR_SSL_DECODE_ERROR;
     }
 
     /* First byte is curve_type; only named_curve is handled */
     if (*(*p)++ != MBEDTLS_ECP_TLS_NAMED_CURVE) {
+        MBEDTLS_SSL_DEBUG_MSG(2,
+                              ("bad server key exchange message: not named_curve (%u != %u)",
+                               (unsigned) (*p)[-1],
+                               (unsigned) MBEDTLS_ECP_TLS_NAMED_CURVE));
         return MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE;
     }
 
     /* Next two bytes are the namedcurve value */
     tls_id = MBEDTLS_GET_UINT16_BE(*p, 0);
     *p += 2;
+    MBEDTLS_SSL_DEBUG_MSG(3,
+                          ("server key exchange message: server picked ECDHE curve 0x%04x",
+                           (unsigned) tls_id));
 
     /* Check it's a curve we offered */
     if (mbedtls_ssl_check_curve_tls_id(ssl, tls_id) != 0) {
@@ -1676,13 +1686,23 @@ static int ssl_parse_server_ecdh_params(mbedtls_ssl_context *ssl,
     /* Keep a copy of the peer's public key */
     ecpoint_len = *(*p)++;
     if ((size_t) (end - *p) < ecpoint_len) {
+        MBEDTLS_SSL_DEBUG_MSG(2,
+                              ("bad server key exchange message: too short for point (%u < %u)",
+                               (unsigned) (end - *p),
+                               (unsigned) ecpoint_len));
         return MBEDTLS_ERR_SSL_DECODE_ERROR;
     }
 
     if (ecpoint_len > sizeof(handshake->xxdh_psa_peerkey)) {
+        MBEDTLS_SSL_DEBUG_MSG(2,
+                              ("bad server key exchange message: ecpoint_len too long "
+                               "(%" MBEDTLS_PRINTF_SIZET " > %" MBEDTLS_PRINTF_SIZET ")",
+                               ecpoint_len,
+                               sizeof(handshake->xxdh_psa_peerkey)));
         return MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE;
     }
 
+    MBEDTLS_SSL_DEBUG_BUF(3, "server ephemeral public key", *p, ecpoint_len);
     memcpy(handshake->xxdh_psa_peerkey, *p, ecpoint_len);
     handshake->xxdh_psa_peerkey_len = ecpoint_len;
     *p += ecpoint_len;

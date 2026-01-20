@@ -59,9 +59,9 @@ GENERATED_FILES += include/test/test_keys.h include/test/test_certs.h
 .PHONY: ssl-opt
 
 opt-testcases/handshake-generated.sh: ../framework/scripts/mbedtls_framework/tls_test_case.py
-opt-testcases/handshake-generated.sh: ../framework/scripts/generate_tls_handshake_tests.py
+opt-testcases/handshake-generated.sh: ../scripts/generate_tls_handshake_tests.py
 	echo "  Gen   $@"
-	$(PYTHON) ../framework/scripts/generate_tls_handshake_tests.py -o $@
+	$(PYTHON) ../scripts/generate_tls_handshake_tests.py -o $@
 GENERATED_FILES += opt-testcases/handshake-generated.sh
 ssl-opt: opt-testcases/handshake-generated.sh
 

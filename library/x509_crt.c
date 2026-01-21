@@ -2758,16 +2758,15 @@ static int x509_inet_pton_ipv6(const char *src, void *dst)
                     break;
                 }
 
-                /* Walk back to prior ':', then parse as IPv4-mapped */
-                int steps = 4;
+                /* Walk back to prior ':', then parse as IPv4-mapped.
+                 * At this point nonzero_groups == 6 or zero_group_start >= 0. Either way we have a
+                 * ':' before the current position and still inside the buffer. Thus it is safe to
+                 * search back for that ':' without any further checks.
+                 */
                 do {
                     p--;
-                    steps--;
-                } while (*p != ':' && steps > 0);
+                } while (*p != ':');
 
-                if (*p != ':') {
-                    break;
-                }
                 p++;
                 nonzero_groups--;
                 if (x509_inet_pton_ipv4((const char *) p,

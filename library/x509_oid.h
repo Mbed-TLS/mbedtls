@@ -42,6 +42,16 @@ typedef struct {
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C) || defined(MBEDTLS_X509_CSR_PARSE_C)
 #define MBEDTLS_X509_OID_HAVE_GET_X509_EXT_TYPE
+
+/**
+ * \brief          Translate an X.509 extension OID into local values
+ *
+ * \param oid      OID to use
+ * \param ext_type place to store the extension type
+ *
+ * \return         0 if successful, or MBEDTLS_ERR_X509_UNKNOWN_OID
+ */
+int mbedtls_x509_oid_get_x509_ext_type(const mbedtls_asn1_buf *oid, int *ext_type);
 #if defined(MBEDTLS_X509_USE_C)
 #if !defined(MBEDTLS_X509_REMOVE_INFO)
 /**
@@ -55,16 +65,6 @@ typedef struct {
 int mbedtls_x509_oid_get_sig_alg_desc(const mbedtls_asn1_buf *oid, const char **desc);
 #endif /* !MBEDTLS_X509_REMOVE_INFO */
 #endif /* MBEDTLS_X509_USE_C */
-
-/**
- * \brief          Translate an X.509 extension OID into local values
- *
- * \param oid      OID to use
- * \param ext_type place to store the extension type
- *
- * \return         0 if successful, or MBEDTLS_ERR_X509_UNKNOWN_OID
- */
-int mbedtls_x509_oid_get_x509_ext_type(const mbedtls_asn1_buf *oid, int *ext_type);
 #endif /* MBEDTLS_X509_OID_HAVE_GET_X509_EXT_TYPE */
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C) && !defined(MBEDTLS_X509_REMOVE_INFO)

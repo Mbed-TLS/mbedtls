@@ -915,25 +915,6 @@ static int ssl_parse_client_hello(mbedtls_ssl_context *ssl)
     MBEDTLS_SSL_DEBUG_MSG(3, ("client hello, protocol version: [%d:%d]",
                               buf[1], buf[2]));
 
-    /* For DTLS if this is the initial handshake, remember the client sequence
-     * number to use it in our next message (RFC 6347 4.2.1) */
-#if defined(MBEDTLS_SSL_PROTO_DTLS)
-    if (ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM
-#if defined(MBEDTLS_SSL_RENEGOTIATION)
-        && ssl->renego_status == MBEDTLS_SSL_INITIAL_HANDSHAKE
-#endif
-        ) {
-        /* Epoch should be 0 for initial handshakes */
-        if (ssl->in_ctr[0] != 0 || ssl->in_ctr[1] != 0) {
-            MBEDTLS_SSL_DEBUG_MSG(1, ("bad client hello message"));
-            return MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER;
-        }
-
-        memcpy(&ssl->cur_out_ctr[2], ssl->in_ctr + 2,
-               sizeof(ssl->cur_out_ctr) - 2);
-    }
-#endif /* MBEDTLS_SSL_PROTO_DTLS */
-
     buf = ssl->in_msg;
     msg_len = ssl->in_hslen;
 

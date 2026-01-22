@@ -930,34 +930,6 @@ static int ssl_parse_client_hello(mbedtls_ssl_context *ssl)
         return ret;
     }
 
-    buf = ssl->in_hdr;
-
-    MBEDTLS_SSL_DEBUG_BUF(4, "record header", buf, mbedtls_ssl_in_hdr_len(ssl));
-
-    /*
-     * TLS Client Hello
-     *
-     * Record layer:
-     *     0  .   0   message type
-     *     1  .   2   protocol version
-     *     3  .   11  DTLS: epoch + record sequence number
-     *     3  .   4   message length
-     */
-    MBEDTLS_SSL_DEBUG_MSG(3, ("client hello, message type: %d",
-                              buf[0]));
-
-    if ((ssl->in_msgtype != MBEDTLS_SSL_MSG_HANDSHAKE) ||
-        (buf[0] != MBEDTLS_SSL_MSG_HANDSHAKE)) {
-        MBEDTLS_SSL_DEBUG_MSG(1, ("bad client hello message"));
-        return MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE;
-    }
-
-    MBEDTLS_SSL_DEBUG_MSG(3, ("client hello, message len.: %d",
-                              MBEDTLS_GET_UINT16_BE(ssl->in_len, 0)));
-
-    MBEDTLS_SSL_DEBUG_MSG(3, ("client hello, protocol version: [%d:%d]",
-                              buf[1], buf[2]));
-
     buf = ssl->in_msg;
     msg_len = ssl->in_hslen;
 
@@ -969,7 +941,8 @@ static int ssl_parse_client_hello(mbedtls_ssl_context *ssl)
      *     6  .   8   DTLS only: fragment offset
      *     9  .  11   DTLS only: fragment length
      */
-    if (buf[0] != MBEDTLS_SSL_HS_CLIENT_HELLO) {
+    if ((ssl->in_msgtype != MBEDTLS_SSL_MSG_HANDSHAKE) ||
+        (buf[0] != MBEDTLS_SSL_HS_CLIENT_HELLO)) {
         MBEDTLS_SSL_DEBUG_MSG(1, ("bad client hello message"));
         return MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE;
     }

@@ -1716,6 +1716,35 @@ do_run_test_once() {
     fi
 }
 
+# In builds with an NV seed, and especially with _only_ an NV seed,
+# the fact that the client and the server use the same seedfile may be
+# disruptive. In particular, it could cause a buggy server to pass just
+# because the client has rewritten the seed file between connections.
+#
+# So when we're specificially testing randomness, make the server use
+# its own seedfile. The seedfile name is hardcoded as "seedfile", but
+# we can change the current directory. This is easy for the sample
+# programs that don't use external files (it would be harder for those that
+# are called with arguments referencing files under data_files/).
+server_with_own_seedfile () {
+    set -eu
+    test -d "$subdirectory_for_server_seedfile" || mkdir "$subdirectory_for_server_seedfile"
+    test -s "$subdirectory_for_server_seedfile/seedfile" || cp seedfile "$subdirectory_for_server_seedfile"
+    cd "$subdirectory_for_server_seedfile"
+    # Assume that the path to the program is a relative path, and
+    # that the directory is a simple subdirectory.
+    server="../$1"
+    shift
+    # This process must become the server process, otherwise
+    # wait_server_start won't notice when the server starts listening.
+    exec "$server" "$@"
+}
+
+# Directory for running a server with its own seedfile (see above).
+# Define the variable here so that it's always available, in particular
+# in cleanup(). But only create and populate the directory on demand.
+subdirectory_for_server_seedfile="tmp-ssl-opt-wd-$$"
+
 # Detect if the current test is going to use TLS 1.3 or TLS 1.2.
 # $1 and $2 contain the server and client command lines, respectively.
 #
@@ -2041,6 +2070,10 @@ cleanup() {
     rm -f $CLI_OUT $SRV_OUT $PXY_OUT $SESSION
     rm -f context_srv.txt
     rm -f context_cli.txt
+    if [ -d "$subdirectory_for_server_seedfile" ]; then
+        rm -f "$subdirectory_for_server_seedfile/seedfile"
+        rmdir "$subdirectory_for_server_seedfile"
+    fi
     test -n "${SRV_PID:-}" && kill $SRV_PID >/dev/null 2>&1
     test -n "${PXY_PID:-}" && kill $PXY_PID >/dev/null 2>&1
     test -n "${CLI_PID:-}" && kill $CLI_PID >/dev/null 2>&1

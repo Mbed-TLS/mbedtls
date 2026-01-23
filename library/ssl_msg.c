@@ -4873,14 +4873,9 @@ static int ssl_get_next_record(mbedtls_ssl_context *ssl)
     /* The record content type may change during decryption,
      * so re-read it. */
     ssl->in_msgtype = rec.type;
-    /* Also update the input buffer, because unfortunately
-     * the server-side ssl_parse_client_hello() reparses the
-     * record header when receiving a ClientHello initiating
-     * a renegotiation. */
-    ssl->in_hdr[0] = rec.type;
+
     ssl->in_msg    = rec.buf + rec.data_offset;
     ssl->in_msglen = rec.data_len;
-    MBEDTLS_PUT_UINT16_BE(rec.data_len, ssl->in_len, 0);
 
     return 0;
 }

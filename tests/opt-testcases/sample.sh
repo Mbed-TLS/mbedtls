@@ -187,7 +187,7 @@ run_test    "Sample: ssl_server, gnutls client, TLS 1.3" \
 
 run_test    "Sample: ssl_fork_server, ssl_client2" \
             -P 4433 \
-            "$PROGRAMS_DIR/ssl_fork_server" \
+            "server_with_own_seedfile $PROGRAMS_DIR/ssl_fork_server" \
             "$PROGRAMS_DIR/ssl_client2" \
             0 \
             -s "[1-9][0-9]* bytes read" \
@@ -199,7 +199,7 @@ run_test    "Sample: ssl_fork_server, ssl_client2" \
 
 run_test    "Sample: ssl_client1 with ssl_fork_server" \
             -P 4433 \
-            "$PROGRAMS_DIR/ssl_fork_server" \
+            "server_with_own_seedfile $PROGRAMS_DIR/ssl_fork_server" \
             "$PROGRAMS_DIR/ssl_client1" \
             0 \
             -s "[1-9][0-9]* bytes read" \

@@ -35,6 +35,30 @@ component_test_psa_driver_get_entropy()
     $MAKE_COMMAND test
 }
 
+component_test_entropy_nv_seed_only () {
+    msg "build: NV seed only (NV seed only)"
+    scripts/config.py full
+    scripts/config.py unset MBEDTLS_PSA_BUILTIN_GET_ENTROPY
+    scripts/config.py set MBEDTLS_ENTROPY_NO_SOURCES_OK
+
+    cmake -D CMAKE_BUILD_TYPE:String=Check .
+    make
+
+    # Check that the library seems to refer to the seedfile, but not to
+    # platform entropy sources.
+    grep seedfile tf-psa-crypto/platform/CMakeFiles/platform.dir/platform.c.o
+    not grep getrandom tf-psa-crypto/drivers/builtin/CMakeFiles/builtin.dir/src/entropy*.o platform/CMakeFiles/platform.dir/platform*.o
+    not grep /dev/random tf-psa-crypto/drivers/builtin/CMakeFiles/builtin.dir/src/entropy*.o platform/CMakeFiles/platform.dir/platform*.o
+    not grep /dev/.random tf-psa-crypto/drivers/builtin/CMakeFiles/builtin.dir/src/entropy*.o platform/CMakeFiles/platform.dir/platform*.o
+    not grep mbedtls_platform_get_entropy tf-psa-crypto/drivers/builtin/CMakeFiles/builtin.dir/src/entropy*.o platform/CMakeFiles/platform.dir/platform*.o
+
+    msg "test: NV seed only"
+    make test
+
+    msg "test: NV seed only - ssl-opt on sample programs"
+    tests/ssl-opt.sh -f 'Default\|Sample'
+}
+
 component_build_no_sockets () {
     # Note, C99 compliance can also be tested with the sockets support disabled,
     # as that requires a POSIX platform (which isn't the same as C99).

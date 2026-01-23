@@ -71,6 +71,35 @@
     defined(MBEDTLS_KEY_EXCHANGE_RSA_ENABLED)
 #define MBEDTLS_CAN_HANDLE_RSA_TEST_KEY
 #endif
+
+#if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED) && \
+    defined(MBEDTLS_ECP_DP_SECP384R1_ENABLED) && \
+    defined(MBEDTLS_SHA384_C)
+#define MBEDTLS_CAN_HANDLE_ECDSA_TEST_KEY
+#endif
+
+#if defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED)  || \
+    defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED)   || \
+    defined(MBEDTLS_ECP_DP_SECP384R1_ENABLED)   || \
+    defined(MBEDTLS_ECP_DP_CURVE448_ENABLED)    || \
+    defined(MBEDTLS_ECP_DP_SECP521R1_ENABLED)   || \
+    defined(MBEDTLS_ECP_DP_BP256R1_ENABLED)     || \
+    defined(MBEDTLS_ECP_DP_BP384R1_ENABLED)     || \
+    defined(MBEDTLS_ECP_DP_BP512R1_ENABLED)
+#define MBEDTLS_TEST_HAS_DEFAULT_EC_GROUP
+#endif
+
+/*
+ * To use the test keys we need PSA_WANT_ALG_SHA_256. Some test cases need an additional hash that
+ * can be used in modern TLS, but it doesn't matter which one.
+ */
+#if defined(MBEDTLS_SHA512_C)   || \
+    defined(MBEDTLS_SHA384_C)   || \
+    defined(MBEDTLS_SHA256)     || \
+    defined(MBEDTLS_SHA1_C)
+#define MBEDTLS_TEST_HAS_ADDITIONAL_HASH
+#endif
+
 enum {
 #define MBEDTLS_SSL_TLS1_3_LABEL(name, string)          \
     tls13_label_ ## name,

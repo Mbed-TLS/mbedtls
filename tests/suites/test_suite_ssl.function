@@ -5727,6 +5727,118 @@ exit:
 }
 /* END_CASE */
 
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:PSA_WANT_ALG_CHACHA20_POLY1305:PSA_WANT_ALG_SHA_256:MBEDTLS_TEST_HAS_ADDITIONAL_HASH:MBEDTLS_TEST_HAS_DEFAULT_EC_GROUP*/
+void send_invalid_sig_alg(int sig, int hash, int expected_ret)
+{
+    // This is a test about the client behaviour in case it receives a key exchange signed with a
+    // sig_alg it didn't specify in the client hello. The input specifies a target_sig_alg, which we
+    // make sure that the client does not offer but the server does. Then we make the server beleive
+    // that target_sig_alg is the only one the client offered.
+
+    // Remark: We need an additional hash algorithm offered, because if we don't have it, the server
+    // realises too early that there is no common ground and we don't get the chance to manipulate
+    // it. This is why we need MBEDTLS_TEST_HAS_ADDITIONAL_HASH in the requirements.
+
+    enum { BUFFSIZE = 16384 };
+    uint16_t *client_sig_algs = NULL;
+    mbedtls_test_ssl_endpoint server, client;
+    memset(&server, 0, sizeof(server));
+    memset(&client, 0, sizeof(client));
+    mbedtls_test_handshake_test_options options;
+    memset(&options, 0, sizeof(options));
+
+    uint16_t target_sig_alg = ((hash << 8) | sig);
+
+    mbedtls_test_init_handshake_options(&options);
+
+    // Make sure the server has credentals for target_sig_alg
+    if (sig == MBEDTLS_SSL_SIG_ECDSA) {
+        options.pk_alg = MBEDTLS_PK_ECDSA;
+    } else {
+        options.pk_alg = MBEDTLS_PK_RSA;
+    }
+
+    // Force a ciphersuite where target_sig_alg is relevant
+    if (sig == MBEDTLS_SSL_SIG_ECDSA) {
+        options.cipher = "TLS-ECDHE-ECDSA-WITH-CHACHA20-POLY1305-SHA256";
+    } else {
+        options.cipher = "TLS-ECDHE-RSA-WITH-CHACHA20-POLY1305-SHA256";
+    }
+
+    // Force TLS 1.2 as this test is a non-regression test for a bug in TLS 1.2 client and TLS 1.3
+    // behaviour in this regard is substantially different.
+    options.client_max_version = MBEDTLS_SSL_VERSION_TLS1_2;
+    options.server_max_version = MBEDTLS_SSL_VERSION_TLS1_2;
+
+    // Add loggers for easier debugging - we are not looking for any patterns.
+    // To turn on debug output, uncomment the threshold line and set the macro in
+    // the definition of mbedtls_test_ssl_log_analyzer().
+#if defined(MBEDTLS_DEBUG_C)
+    options.srv_log_obj = NULL;
+    options.srv_log_fun = mbedtls_test_ssl_log_analyzer;
+    options.cli_log_obj = NULL;
+    options.cli_log_fun = mbedtls_test_ssl_log_analyzer;
+    mbedtls_debug_set_threshold(3);
+#endif
+
+    int ret = -1;
+
+    PSA_INIT();
+
+    ret = mbedtls_test_ssl_endpoint_init(&client, MBEDTLS_SSL_IS_CLIENT,
+                                         &options, NULL, NULL, NULL);
+    TEST_EQUAL(ret, 0);
+
+    // Remove the target signature algorithm from the client's list
+    size_t client_sig_algs_len = 0;
+    while (client.conf.sig_algs[client_sig_algs_len++] != MBEDTLS_TLS1_3_SIG_NONE) {
+        ;
+    }
+    client_sig_algs_len--;
+
+    TEST_CALLOC(client_sig_algs, client_sig_algs_len);
+    size_t j = 0;
+    for (size_t i = 0; client.conf.sig_algs[i] != MBEDTLS_TLS1_3_SIG_NONE; i++) {
+        if (client.conf.sig_algs[i] != target_sig_alg) {
+            client_sig_algs[j++] = client.conf.sig_algs[i];
+        }
+    }
+    TEST_ASSERT(j < client_sig_algs_len);
+    client_sig_algs[j] = MBEDTLS_TLS1_3_SIG_NONE;
+    client.conf.sig_algs = client_sig_algs;
+
+    ret = mbedtls_test_ssl_endpoint_init(&server, MBEDTLS_SSL_IS_SERVER,
+                                         &options, NULL, NULL, NULL);
+    TEST_EQUAL(ret, 0);
+
+    ret = mbedtls_test_mock_socket_connect(&server.socket, &client.socket,
+                                           BUFFSIZE);
+    TEST_EQUAL(ret, 0);
+
+    // Move the connection to the point before the server sending the key exchange message
+    ret = mbedtls_test_move_handshake_to_state(&server.ssl, &client.ssl,
+                                               MBEDTLS_SSL_SERVER_KEY_EXCHANGE);
+    TEST_EQUAL(ret, 0);
+
+    // Make the server beleive that the only sig_alg the client accepts is target_sig_alg
+    server.ssl.handshake->received_sig_algs[0] = target_sig_alg;
+    server.ssl.handshake->received_sig_algs[1] = MBEDTLS_TLS1_3_SIG_NONE;
+
+    // Move the connection to a state where it is certain that the client has parsed the server key
+    // exchange
+    ret = mbedtls_test_move_handshake_to_state(&client.ssl, &server.ssl,
+                                               MBEDTLS_SSL_CERTIFICATE_REQUEST);
+    TEST_EQUAL(ret, expected_ret);
+
+exit:
+    mbedtls_test_free_handshake_options(&options);
+    mbedtls_test_ssl_endpoint_free(&server, NULL);
+    mbedtls_test_ssl_endpoint_free(&client, NULL);
+    mbedtls_free(client_sig_algs);
+    PSA_DONE();
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:MBEDTLS_SSL_KEYING_MATERIAL_EXPORT:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:PSA_WANT_ECC_SECP_R1_384:PSA_WANT_ALG_SHA_256 */
 void ssl_tls_exporter_consistent_result(int proto, int exported_key_length, int use_context)
 {

@@ -1,11 +1,45 @@
 printf "%" MBEDTLS_PRINTF_SIZET, 0
 printf_int_expr:PRINTF_SIZET:sizeof(size_t):0:"0"
 
+printf "%" MBEDTLS_PRINTF_SIZET, 1 byte
+printf_int_expr:PRINTF_SIZET:sizeof(size_t):42:"42"
+
+printf "%" MBEDTLS_PRINTF_SIZET, 4 bytes
+printf_int_expr:PRINTF_SIZET:sizeof(size_t):0xfedcba98:"4275878552"
+
+printf "%" MBEDTLS_PRINTF_SIZET, 8 bytes
+depends_on:SIZE_MAX>=0xffffffffffffffff
+printf_int_expr:PRINTF_SIZET:sizeof(size_t):0xfedcba9876543210:"18364758544493064720"
+
 printf "%" MBEDTLS_PRINTF_LONGLONG, 0
 printf_int_expr:PRINTF_LONGLONG:sizeof(long long):0:"0"
 
+printf "%" MBEDTLS_PRINTF_LONGLONG, 1 byte
+printf_int_expr:PRINTF_LONGLONG:sizeof(long long):42:"42"
+
+printf "%" MBEDTLS_PRINTF_LONGLONG, 4 bytes
+printf_int_expr:PRINTF_LONGLONG:sizeof(long long):0xfedcba98:"4275878552"
+
+printf "%" MBEDTLS_PRINTF_LONGLONG, 8 bytes
+printf_int_expr:PRINTF_LONGLONG:sizeof(long long):0x7edcba9876543210:"9141386507638288912"
+
+printf "%" MBEDTLS_PRINTF_LONGLONG, 8 bytes, negative
+printf_int_expr:PRINTF_LONGLONG:sizeof(long long):-0x7edcba9876543210:"-9141386507638288912"
+
 printf "%" MBEDTLS_PRINTF_MS_TIME, 0
 printf_int_expr:PRINTF_MS_TIME:sizeof(mbedtls_ms_time_t):0:"0"
+
+printf "%" MBEDTLS_PRINTF_MS_TIME, 1 byte
+printf_int_expr:PRINTF_MS_TIME:sizeof(mbedtls_ms_time_t):42:"42"
+
+printf "%" MBEDTLS_PRINTF_MS_TIME, 4 bytes
+printf_int_expr:PRINTF_MS_TIME:sizeof(mbedtls_ms_time_t):0xfedcba98:"4275878552"
+
+printf "%" MBEDTLS_PRINTF_MS_TIME, 8 bytes
+printf_int_expr:PRINTF_MS_TIME:sizeof(mbedtls_ms_time_t):0x7edcba9876543210:"9141386507638288912"
+
+printf "%" MBEDTLS_PRINTF_MS_TIME, 8 bytes, negative
+printf_int_expr:PRINTF_MS_TIME:sizeof(mbedtls_ms_time_t):-0x7edcba9876543210:"-9141386507638288912"
 
 Debug print msg (threshold 1, level 0)
 debug_print_msg_threshold:1:0:"MyFile":999:"MyFile(0999)\: Text message, 2 == 2\n"

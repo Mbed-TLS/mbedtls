@@ -88,13 +88,13 @@ typedef uint64_t __packed mbedtls_uint64_unaligned_t;
  #define UINT_UNALIGNED_STRUCT
 typedef struct {
     uint16_t x;
-} __attribute__((packed)) mbedtls_uint16_unaligned_t;
+} __attribute__((packed, may_alias)) mbedtls_uint16_unaligned_t;
 typedef struct {
     uint32_t x;
-} __attribute__((packed)) mbedtls_uint32_unaligned_t;
+} __attribute__((packed, may_alias)) mbedtls_uint32_unaligned_t;
 typedef struct {
     uint64_t x;
-} __attribute__((packed)) mbedtls_uint64_unaligned_t;
+} __attribute__((packed, may_alias)) mbedtls_uint64_unaligned_t;
  #endif
 
 /*

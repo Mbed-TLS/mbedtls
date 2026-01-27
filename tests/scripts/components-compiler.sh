@@ -200,9 +200,7 @@ component_test_tf_psa_crypto_optimized_alignment() {
     # assembly code.
     EXTRA_C_FLAGS="$EXTRA_C_FLAGS -g3"
 
-    cd $OUT_OF_SOURCE_DIR
-    cmake -DCMAKE_C_COMPILER=gcc -DCMAKE_C_FLAGS=" $EXTRA_C_FLAGS " "$TF_PSA_CRYPTO_ROOT_DIR"
-    make
+    make CC=gcc CFLAGS="$EXTRA_C_FLAGS"
 
     msg "test: verify alignment with O3 optimizations in GCC"
     make test

@@ -15,6 +15,7 @@
 #include <string.h>
 #include <stdlib.h>
 
+#if !defined(MBEDTLS_ALIGNMENT_DISABLE_EFFICENT_UNALIGNED_ACCESS)  //no-check-names
 /*
  * Define MBEDTLS_EFFICIENT_UNALIGNED_ACCESS for architectures where unaligned memory
  * accesses are known to be efficient.
@@ -35,7 +36,9 @@
  * device memory).
  */
 #define MBEDTLS_EFFICIENT_UNALIGNED_ACCESS
-#endif
+#endif /* __ARM_FEATURE_UNALIGNED || MBEDTLS_ARCH_IS_X86 || MBEDTLS_ARCH_IS_X64 ||
+        * MBEDTLS_PLATFORM_IS_WINDOWS_ON_ARM64 */
+#endif /* MBEDTLS_ALIGNMENT_DISABLE_EFFICENT_UNALIGNED_ACCESS */ //no-check-names
 
 #if defined(__IAR_SYSTEMS_ICC__) && \
     (defined(MBEDTLS_ARCH_IS_ARM64) || defined(MBEDTLS_ARCH_IS_ARM32) \

@@ -453,7 +453,7 @@ psa_status_t mbedtls_psa_inject_entropy(const uint8_t *seed,
 /**@}*/
 
 
-/** \defgroup psa_external_rng External random generator
+/** \defgroup psa_rng Random generator
  * @{
  */
 
@@ -501,6 +501,85 @@ psa_status_t mbedtls_psa_external_get_random(
     mbedtls_psa_external_random_context_t *context,
     uint8_t *output, size_t output_size, size_t *output_length);
 #endif /* MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
+
+/** Force a reseed of the PSA random generator.
+ *
+ * The entropy source(s) are the ones configured at compile time.
+ *
+ * The random generator is always seeded automatically before use, and
+ * it is reseeded as needed based on the configured policy, so most
+ * applications do not need to call this function.
+ *
+ * The main reason to call this function is in scenarios where the process
+ * state is cloned (i.e. duplicated) while the random generator is active.
+ * In such scenarios, you must call this function in every clone of
+ * the original process before performing any cryptographic operation
+ * other than ones that do not use randomness (e.g. hash calculation,
+ * signature verification). For example:
+ *
+ * - If the process is part of a live virtual machine that is cloned,
+ *   call this function after cloning so that the new instance has a
+ *   distinct random generator state.
+ * - If the process is part of a hibernated image that may be resumed
+ *   multiple times, call this function after resuming so that each
+ *   resumed instance has a distinct random generator state.
+ * - If the process is cloned through the fork() system call, the
+ *   library will detect it in most circumstances, so you generally do
+ *   not need to call this function. This detection is based on a
+ *   process ID (PID) change. You need to call this function in at least
+ *   the parent or the child process in cases where the library might not
+ *   observe a process ID change, such as:
+ *     - If the child forks another process before invoking the random
+ *       generator, but after the original process has died. In this case,
+ *       it is rare but possible for the grandchild to have the same PID
+ *       as the original process.
+ *     - When using the Linux clone() system call with the `CLONE_NEWPID`
+ *       flag to put the child process in its own PID namespace, and the
+ *       original process has PID 1.
+ *     - When the child is moved to a new or existing PID namespace before
+ *       any call to the PSA random generator, and the PID in the child's
+ *       namespace might match the PID of the original process.
+ *     - When using the Linux clone3() system call with a `set_tid` array
+ *       to force the PID of the new process.
+ *
+ * An additional consideration applies in configurations where there is no
+ * actual entropy source, only a nonvolatile seed (i.e.
+ * #MBEDTLS_ENTROPY_NV_SEED is enabled, #MBEDTLS_NO_PLATFORM_ENTROPY is
+ * enabled and #MBEDTLS_ENTROPY_HARDWARE_ALT is disabled).
+ * In such configurations, simply calling psa_random_reseed() in multiple
+ * cloned processes would result in the same random generator state in
+ * all the clones. To avoid this, in such configurations, you must pass
+ * a unique \p perso string in every clone.
+ *
+ * \note  This function has no effect when the compilation option
+ *        #MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG is enabled.
+ *
+ * \note  In client-server builds, this function may not be available
+ *        from clients, since the decision to reseed is generally based
+ *        on the server state.
+ *
+ * \param[in] perso     A personalization string, i.e. a byte string to
+ *                      inject into the random generator state in addition
+ *                      to entropy obtained from the normal source(s).
+ *                      In most cases, it is fine for \c perso to be
+ *                      empty. The main use case for a personalization
+ *                      string is when the random generator state is cloned,
+ *                      as described above, and there is no actual entropy
+ *                      source.
+ * \param perso_size    Length of \c perso in bytes.
+ *
+ * \retval #PSA_SUCCESS
+ *         The reseed succeeded.
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The PSA random generator is not active.
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ *         PSA uses an external random generator because the compilation
+ *         option #MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG is enabled. This
+ *         configuration does not support explicit reseeding.
+ * \retval #PSA_ERROR_INSUFFICIENT_ENTROPY
+ *         The entropy source failed.
+ */
+psa_status_t psa_random_reseed(const uint8_t *perso, size_t perso_size);
 
 /**@}*/
 

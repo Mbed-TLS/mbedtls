@@ -1,0 +1,3 @@
+Features
+   * Applications can use the new function psa_random_reseed() to
+     request an immediate reseed of the PSA random generator.

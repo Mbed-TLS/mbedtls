@@ -37,6 +37,7 @@ typedef struct {
     size_t *length_sequence;
     size_t step;
 } fake_entropy_state_t;
+
 static int fake_entropy_source(void *state_arg,
                                unsigned char *output, size_t len,
                                size_t *olen)
@@ -113,6 +114,39 @@ static void custom_entropy_init(mbedtls_entropy_context *ctx)
     }
 }
 
+static size_t fake_entropy_lengths[] = {
+    MBEDTLS_ENTROPY_BLOCK_SIZE,
+    MBEDTLS_ENTROPY_BLOCK_SIZE,
+    MBEDTLS_ENTROPY_BLOCK_SIZE,
+    MBEDTLS_ENTROPY_BLOCK_SIZE,
+    MBEDTLS_ENTROPY_BLOCK_SIZE,
+    MBEDTLS_ENTROPY_BLOCK_SIZE,
+};
+
+/** Initialize PSA with a deterministic RNG seed.
+ *
+ * \param max_entropy_queries   Maximum number of queries to the entropy source.
+ *                              Once this number has been reached, the
+ *                              entropy source will fail.
+ */
+static int psa_init_deterministic(size_t max_entropy_queries)
+{
+    TEST_LE_U(max_entropy_queries, ARRAY_LENGTH(fake_entropy_lengths));
+
+    fake_entropy_state.threshold = MBEDTLS_ENTROPY_BLOCK_SIZE;
+    fake_entropy_state.step = 0;
+    fake_entropy_state.max_steps = max_entropy_queries;
+    fake_entropy_state.length_sequence = fake_entropy_lengths;
+
+    custom_entropy_sources_mask = ENTROPY_SOURCE_FAKE;
+    PSA_ASSERT(mbedtls_psa_crypto_configure_entropy_sources(
+                   custom_entropy_init, mbedtls_entropy_free));
+    PSA_INIT();
+    return 1;
+
+exit:
+    return 0;
+}
 #endif /* !defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG) */
 
 /* Calculating the minimum allowed entropy size in bytes */
@@ -285,6 +319,130 @@ exit:
 }
 /* END_CASE */
 
+/* BEGIN_CASE depends_on:!MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
+void reseed_basic()
+{
+    uint8_t random[10];
+    const uint8_t perso[5] = { 'p', 'e', 'r', 's', 'o' };
+
+    TEST_EQUAL(psa_random_reseed(NULL, 0), PSA_ERROR_BAD_STATE);
+    TEST_EQUAL(psa_generate_random(random, sizeof(random)), PSA_ERROR_BAD_STATE);
+
+    PSA_INIT();
+
+    PSA_ASSERT(psa_random_reseed(NULL, 0));
+    PSA_ASSERT(psa_random_reseed(perso, sizeof(perso)));
+    PSA_ASSERT(psa_generate_random(random, sizeof(random)));
+
+    mbedtls_psa_crypto_free();
+
+    TEST_EQUAL(psa_random_reseed(NULL, 0), PSA_ERROR_BAD_STATE);
+    TEST_EQUAL(psa_generate_random(random, sizeof(random)), PSA_ERROR_BAD_STATE);
+
+exit:
+    PSA_DONE();
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:!MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
+/* Check that reseeding consumes entropy.
+ *
+ * For simplicity, this test function assumes that the DRBG has prediction
+ * resistance turned off, so the few RNG queries in this function don't
+ * trigger a reseed.
+ */
+void reseed_consumption()
+{
+    uint8_t random[10] = { 0 };
+
+    if (!psa_init_deterministic(3)) {
+        goto exit;
+    }
+
+    /* Explicit reseed, consumes 1 entropy block, 1 remaining */
+    PSA_ASSERT(psa_random_reseed(NULL, 0));
+    PSA_ASSERT(psa_generate_random(random, sizeof(random)));
+
+    /* Explicit reseed, consumes 1 entropy block, 0 remaining */
+    PSA_ASSERT(psa_random_reseed(NULL, 0));
+    PSA_ASSERT(psa_generate_random(random, sizeof(random)));
+
+    /* All entropy blocks are now consumed */
+    TEST_EQUAL(psa_random_reseed(NULL, 0), PSA_ERROR_INSUFFICIENT_ENTROPY);
+
+    /* The random generator is still fine after failing to reseed
+     * explicitly. Should it be? */
+    PSA_ASSERT(psa_generate_random(random, sizeof(random)));
+
+exit:
+    PSA_DONE();
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:!MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
+void reseed_uniqueness(data_t *perso1, data_t *perso2)
+{
+    uint8_t random0[10] = { 0 };
+    uint8_t random1[10] = { 0 };
+    uint8_t random2[10] = { 0 };
+    uint8_t random_again[10] = { 0 };
+
+    /* Reference: no reseed */
+    if (!psa_init_deterministic(3)) {
+        goto exit;
+    }
+    PSA_ASSERT(psa_generate_random(random0, sizeof(random0)));
+    mbedtls_psa_crypto_free();
+
+    /* Reference: no reseed, again */
+    if (!psa_init_deterministic(3)) {
+        goto exit;
+    }
+    PSA_ASSERT(psa_generate_random(random_again, sizeof(random_again)));
+    mbedtls_psa_crypto_free();
+    TEST_MEMORY_COMPARE(random0, sizeof(random0),
+                        random_again, sizeof(random_again));
+
+    /* Reseed with a personalization string */
+    if (!psa_init_deterministic(3)) {
+        goto exit;
+    }
+    PSA_ASSERT(psa_random_reseed(perso1->x, perso1->len));
+    PSA_ASSERT(psa_generate_random(random1, sizeof(random1)));
+    mbedtls_psa_crypto_free();
+    TEST_ASSERT(memcmp(random0, random1, sizeof(random1)) != 0);
+
+    /* Reseed with a personalization string (same or different) */
+    if (!psa_init_deterministic(3)) {
+        goto exit;
+    }
+    PSA_ASSERT(psa_random_reseed(perso2->x, perso2->len));
+    PSA_ASSERT(psa_generate_random(random2, sizeof(random2)));
+    mbedtls_psa_crypto_free();
+    if (perso1->len == perso2->len &&
+        memcmp(perso1->x, perso2->x, perso1->len) == 0) {
+        TEST_MEMORY_COMPARE(random1, sizeof(random1),
+                            random2, sizeof(random2));
+    } else {
+        TEST_ASSERT(memcmp(random1, random2, sizeof(random2)) != 0);
+    }
+
+    /* Reseed twice */
+    if (!psa_init_deterministic(3)) {
+        goto exit;
+    }
+    PSA_ASSERT(psa_random_reseed(perso1->x, perso1->len));
+    PSA_ASSERT(psa_random_reseed(perso1->x, perso1->len));
+    PSA_ASSERT(psa_generate_random(random2, sizeof(random2)));
+    mbedtls_psa_crypto_free();
+    TEST_ASSERT(memcmp(random0, random2, sizeof(random2)) != 0);
+    TEST_ASSERT(memcmp(random1, random2, sizeof(random2)) != 0);
+
+exit:
+    PSA_DONE();
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
 void external_rng_failure_generate()
 {
@@ -299,6 +457,8 @@ void external_rng_failure_generate()
     PSA_ASSERT(psa_generate_random(output, sizeof(output)));
     PSA_ASSERT(psa_generate_key(&attributes, &key));
     PSA_ASSERT(psa_destroy_key(key));
+
+    TEST_EQUAL(psa_random_reseed(NULL, 0), PSA_ERROR_NOT_SUPPORTED);
 
     mbedtls_test_disable_insecure_external_rng();
     TEST_EQUAL(PSA_ERROR_INSUFFICIENT_ENTROPY,

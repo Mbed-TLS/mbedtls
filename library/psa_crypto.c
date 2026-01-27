@@ -8001,6 +8001,28 @@ static psa_status_t mbedtls_psa_random_seed(mbedtls_psa_random_context_t *rng)
 #endif /* MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
 }
 
+psa_status_t psa_random_reseed(const uint8_t *perso, size_t perso_size)
+{
+    GUARD_MODULE_INITIALIZED;
+#if defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG)
+    (void) perso;
+    (void) perso_size;
+    return PSA_ERROR_NOT_SUPPORTED;
+#else /* MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_lock(&mbedtls_threading_psa_rngdata_mutex) != 0) {
+        return PSA_ERROR_SERVICE_FAILURE;
+    }
+#endif /* defined(MBEDTLS_THREADING_C) */
+    int ret = mbedtls_psa_drbg_reseed(&global_data.rng.drbg,
+                                      perso, perso_size);
+#if defined(MBEDTLS_THREADING_C)
+    mbedtls_mutex_unlock(&mbedtls_threading_psa_rngdata_mutex);
+#endif /* defined(MBEDTLS_THREADING_C) */
+    return mbedtls_to_psa_error(ret);
+#endif /* MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
+}
+
 psa_status_t psa_generate_random(uint8_t *output_external,
                                  size_t output_size)
 {

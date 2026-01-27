@@ -44,6 +44,27 @@ entropy_from_nv_seed:MBEDTLS_ENTROPY_BLOCK_SIZE - 1:PSA_ERROR_INSUFFICIENT_ENTRO
 NV seed only: just enough
 entropy_from_nv_seed:ENTROPY_MIN_NV_SEED_SIZE:PSA_SUCCESS
 
+Explicit reseed: basic tests
+reseed_basic:
+
+Explicit reseed: entropy consumption
+reseed_consumption:
+
+Explicit reseed: uniqueness tests (0 = 0)
+reseed_uniqueness:"":""
+
+Explicit reseed: uniqueness tests (0 != 5)
+reseed_uniqueness:"":"706572736f"
+
+Explicit reseed: uniqueness tests (5 = 5)
+reseed_uniqueness:"706572736f":"706572736f"
+
+Explicit reseed: uniqueness tests (5 != 5)
+reseed_uniqueness:"706572736f":"706572736e"
+
+Explicit reseed: uniqueness tests (5 != 10)
+reseed_uniqueness:"706572736f":"706572736f706572736f"
+
 PSA external RNG failure: generate random and key
 external_rng_failure_generate:
 

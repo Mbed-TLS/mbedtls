@@ -354,10 +354,20 @@ exit:
 void reseed_consumption()
 {
     uint8_t random[10] = { 0 };
+    const size_t max_get_entropy = 4;
 
-    if (!psa_init_deterministic(3)) {
+    if (!psa_init_deterministic(max_get_entropy)) {
         goto exit;
     }
+
+    /* Depending on the DRBG parameters, the initial seeding may
+     * consume entropy once or twice. Zero would be deeply unsettling
+     * (how can you initialize the RNG without entropy?). More than 2 would
+     * be ok, but the test code would need to be adapted. */
+    TEST_LE_U(1, fake_entropy_state.step);
+    TEST_LE_U(fake_entropy_state.step, 2);
+    /* Arrange to have exactly 2 entropy blocks remaining. */
+    fake_entropy_state.step = max_get_entropy - 2;
 
     /* Explicit reseed, consumes 1 entropy block, 1 remaining */
     PSA_ASSERT(psa_random_reseed(NULL, 0));
@@ -386,16 +396,19 @@ void reseed_uniqueness(data_t *perso1, data_t *perso2)
     uint8_t random1[10] = { 0 };
     uint8_t random2[10] = { 0 };
     uint8_t random_again[10] = { 0 };
+    /* Enough for 2 initial seeding + 2 reseed + 2 getrandom with
+     * prediction resistance */
+    size_t max_entropy_queries = 6;
 
     /* Reference: no reseed */
-    if (!psa_init_deterministic(3)) {
+    if (!psa_init_deterministic(max_entropy_queries)) {
         goto exit;
     }
     PSA_ASSERT(psa_generate_random(random0, sizeof(random0)));
     mbedtls_psa_crypto_free();
 
     /* Reference: no reseed, again */
-    if (!psa_init_deterministic(3)) {
+    if (!psa_init_deterministic(max_entropy_queries)) {
         goto exit;
     }
     PSA_ASSERT(psa_generate_random(random_again, sizeof(random_again)));
@@ -404,7 +417,7 @@ void reseed_uniqueness(data_t *perso1, data_t *perso2)
                         random_again, sizeof(random_again));
 
     /* Reseed with a personalization string */
-    if (!psa_init_deterministic(3)) {
+    if (!psa_init_deterministic(max_entropy_queries)) {
         goto exit;
     }
     PSA_ASSERT(psa_random_reseed(perso1->x, perso1->len));
@@ -413,7 +426,7 @@ void reseed_uniqueness(data_t *perso1, data_t *perso2)
     TEST_ASSERT(memcmp(random0, random1, sizeof(random1)) != 0);
 
     /* Reseed with a personalization string (same or different) */
-    if (!psa_init_deterministic(3)) {
+    if (!psa_init_deterministic(max_entropy_queries)) {
         goto exit;
     }
     PSA_ASSERT(psa_random_reseed(perso2->x, perso2->len));
@@ -428,7 +441,7 @@ void reseed_uniqueness(data_t *perso1, data_t *perso2)
     }
 
     /* Reseed twice */
-    if (!psa_init_deterministic(3)) {
+    if (!psa_init_deterministic(max_entropy_queries)) {
         goto exit;
     }
     PSA_ASSERT(psa_random_reseed(perso1->x, perso1->len));

@@ -3840,6 +3840,39 @@ exit:
     MD_OR_USE_PSA_DONE();
 }
 /* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_3 */
+void tls13_check_received_extension_duplicate()
+{
+    int ret;
+    mbedtls_ssl_context ssl;
+    mbedtls_ssl_handshake_params *handshake = NULL;
+
+    mbedtls_ssl_init(&ssl);
+
+    handshake = mbedtls_calloc(1, sizeof(*handshake));
+    TEST_ASSERT(handshake != NULL);
+
+    ssl.handshake = handshake;
+
+    /* Simulate that SERVERNAME was already seen, then reprocess it. */
+    handshake->received_extensions = MBEDTLS_SSL_EXT_MASK(SERVERNAME);
+
+    ret = mbedtls_ssl_tls13_check_received_extension(
+        &ssl, MBEDTLS_SSL_HS_CLIENT_HELLO,
+        MBEDTLS_TLS_EXT_SERVERNAME,
+        MBEDTLS_SSL_EXT_MASK(SERVERNAME));
+    TEST_EQUAL(ret, MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER);
+
+exit:
+    if (handshake != NULL) {
+        mbedtls_free(handshake);
+        ssl.handshake = NULL;
+    }
+    mbedtls_ssl_free(&ssl);
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:MBEDTLS_TEST_HOOKS:MBEDTLS_SSL_PROTO_TLS1_3:!MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_SSL_CLI_C:MBEDTLS_SSL_SRV_C:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:PSA_WANT_ECC_SECP_R1_384 */
 void tls13_server_certificate_msg_invalid_vector_len()
 {

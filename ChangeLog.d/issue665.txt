@@ -1,0 +1,6 @@
+Bugfix
+   * Fix a bug that caused GCM tag calculations to fail, so that data was
+     correctly encrypted but could not be authenticated. The bug was only
+     observed with GCC 10.0 to 14.2 inclusive, when compiling with -O3, and
+     running without AESNI or AESCE.
+     Fixes #665.

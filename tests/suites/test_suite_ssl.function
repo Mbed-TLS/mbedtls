@@ -6024,7 +6024,7 @@ void verify_result_without_handshake(void)
 
     uint32_t verify_result = mbedtls_ssl_get_verify_result(&ssl);
 
-    TEST_EQUAL(verify_result, MBEDTLS_X509_VERIFY_NOT_STARTED);
+    TEST_EQUAL(verify_result, 0xFFFFFFFF);
 
 exit:
     mbedtls_ssl_config_free(&conf);

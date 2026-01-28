@@ -207,10 +207,7 @@ mbedtls_x509_crt_profile;
                         "The CRL is signed with an unacceptable PK alg (eg RSA vs ECDSA).")   \
     X509_CRT_ERROR_INFO(MBEDTLS_X509_BADCRL_BAD_KEY,                                                    \
                         "MBEDTLS_X509_BADCRL_BAD_KEY",                                                  \
-                        "The CRL is signed with an unacceptable key (eg bad curve, RSA too short).")    \
-    X509_CRT_ERROR_INFO(MBEDTLS_X509_VERIFY_NOT_STARTED,                                                \
-                        "MBEDTLS_X509_VERIFY_NOT_STARTED",                                              \
-                        "No verification has yet been performed.")
+                        "The CRL is signed with an unacceptable key (eg bad curve, RSA too short).")
 
 /**
  * Container for writing a certificate (CRT)

@@ -350,6 +350,60 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:!MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
+void prediction_resistance_bad_state()
+{
+    uint8_t random[10];
+
+    /* RNG inactive before initialization */
+    TEST_EQUAL(psa_random_set_prediction_resistance(0), PSA_ERROR_BAD_STATE);
+    TEST_EQUAL(psa_random_set_prediction_resistance(1), PSA_ERROR_BAD_STATE);
+    TEST_EQUAL(psa_generate_random(random, sizeof(random)), PSA_ERROR_BAD_STATE);
+
+    PSA_INIT();
+
+    /* Good cases, as controls */
+    PSA_ASSERT(psa_generate_random(random, sizeof(random)));
+    PSA_ASSERT(psa_random_set_prediction_resistance(0));
+#if MBEDTLS_ENTROPY_TRUE_SOURCES > 0
+    PSA_ASSERT(psa_random_set_prediction_resistance(1));
+#endif
+
+    /* RNG inactive after shutdown */
+    mbedtls_psa_crypto_free();
+    TEST_EQUAL(psa_random_set_prediction_resistance(0), PSA_ERROR_BAD_STATE);
+    TEST_EQUAL(psa_random_set_prediction_resistance(1), PSA_ERROR_BAD_STATE);
+    TEST_EQUAL(psa_generate_random(random, sizeof(random)), PSA_ERROR_BAD_STATE);
+
+exit:
+    PSA_DONE();
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:!MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
+void prediction_resistance_bad_arguments()
+{
+    uint8_t random[10];
+
+    PSA_INIT();
+
+    TEST_EQUAL(psa_random_set_prediction_resistance(2), PSA_ERROR_INVALID_ARGUMENT);
+    TEST_EQUAL(psa_random_set_prediction_resistance(-1), PSA_ERROR_INVALID_ARGUMENT);
+
+    /* Good cases, as controls */
+    PSA_ASSERT(psa_generate_random(random, sizeof(random)));
+    PSA_ASSERT(psa_random_set_prediction_resistance(0));
+#if MBEDTLS_ENTROPY_TRUE_SOURCES > 0
+    PSA_ASSERT(psa_random_set_prediction_resistance(1));
+#else
+    TEST_EQUAL(psa_random_set_prediction_resistance(1), PSA_ERROR_NOT_SUPPORTED);
+#endif
+
+exit:
+    PSA_DONE();
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:!MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
 /* Check that reseeding consumes entropy.
  *
  * For simplicity, this test function assumes that the DRBG has prediction
@@ -412,6 +466,46 @@ void deplete_consumption()
 
     PSA_ASSERT(psa_generate_random(random, sizeof(random)));
     TEST_LE_U(2, fake_entropy_state.step);
+
+exit:
+    PSA_DONE();
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:!MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG:MBEDTLS_ENTROPY_HAVE_TRUE_SOURCES */
+void prediction_resistance_consumption()
+{
+    uint8_t random[10] = { 0 };
+
+    if (!psa_init_deterministic(4)) {
+        goto exit;
+    }
+
+    /* Depending on the DRBG parameters, the initial seeding may
+     * consume entropy once or twice. Reset to 1 to keep things simple. */
+    fake_entropy_state.step = 1;
+
+    /* Default: no prediction resistance */
+    /* (Note, we assume that prediction resistance is not effectively enabled
+     * at compile time by setting a very low reseed interval.) */
+    PSA_ASSERT(psa_generate_random(random, sizeof(random)));
+    TEST_EQUAL(fake_entropy_state.step, 1);
+
+    /* Explicitly enable prediction resistance */
+    PSA_ASSERT(psa_random_set_prediction_resistance(1));
+    TEST_EQUAL(fake_entropy_state.step, 1);
+    PSA_ASSERT(psa_generate_random(random, sizeof(random)));
+    TEST_EQUAL(fake_entropy_state.step, 2);
+    PSA_ASSERT(psa_generate_random(random, sizeof(random)));
+    TEST_EQUAL(fake_entropy_state.step, 3);
+
+    /* Explicitly disable prediction resistance */
+    PSA_ASSERT(psa_random_set_prediction_resistance(0));
+    TEST_EQUAL(fake_entropy_state.step, 3);
+    PSA_ASSERT(psa_generate_random(random, sizeof(random)));
+    TEST_EQUAL(fake_entropy_state.step, 3);
+    PSA_ASSERT(psa_generate_random(random, sizeof(random)));
+    TEST_EQUAL(fake_entropy_state.step, 3);
 
 exit:
     PSA_DONE();
@@ -502,6 +596,8 @@ void external_rng_failure_generate()
 
     TEST_EQUAL(psa_random_reseed(NULL, 0), PSA_ERROR_NOT_SUPPORTED);
     TEST_EQUAL(psa_random_deplete(), PSA_ERROR_NOT_SUPPORTED);
+    TEST_EQUAL(psa_random_set_prediction_resistance(0), PSA_ERROR_NOT_SUPPORTED);
+    TEST_EQUAL(psa_random_set_prediction_resistance(1), PSA_ERROR_NOT_SUPPORTED);
 
     mbedtls_test_disable_insecure_external_rng();
     TEST_EQUAL(PSA_ERROR_INSUFFICIENT_ENTROPY,

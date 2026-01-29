@@ -609,6 +609,51 @@ psa_status_t psa_random_reseed(const uint8_t *perso, size_t perso_size);
  */
 psa_status_t psa_random_deplete(void);
 
+/** Enable or disable prediction resistance in the PSA random generator.
+ *
+ * When prediction resistance is enabled, the random generator
+ * injects extra entropy before each request regardless of its size.
+ * As a consequence, a temporary compromise of the random generator
+ * state does not, by itself, compromise future steps.
+ * Furthermore, duplicating the random generator state (because the
+ * running application instance is cloned) is safe since it will
+ * not lead to identical random generator outputs in the clones.
+ *
+ * When prediction resistance is disabled, the random generator injects
+ * extra entropy periodically only as determined by
+ * #MBEDTLS_CTR_DRBG_RESEED_INTERVAL if #MBEDTLS_CTR_DRBG_C
+ * is enabled, or #MBEDTLS_HMAC_DRBG_RESEED_INTERVAL otherwise.
+ *
+ * Prediction resistance is disabled by default, although setting
+ * #MBEDTLS_CTR_DRBG_RESEED_INTERVAL or #MBEDTLS_HMAC_DRBG_RESEED_INTERVAL
+ * to \c 1 satisfies the prediction resistance property even when the
+ * option is disabled.
+ *
+ * \note This function has no effect when #MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG
+ *       is enabled.
+ *
+ * \note Prediction resistance cannot be enabled when the only entropy source
+ *       is a nonvolatile seed, since prediction resistance is effectively
+ *       impossible to achieve without actual entropy.
+ *
+ * \param enabled   \c 1 to enable prediction resistance.
+ *                  \c 0 to disable prediction resistance.
+ *
+ * \retval #PSA_SUCCESS
+ *         The PSA random generator is active, and prediction resistance
+ *         has been changed to the desired option.
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The PSA random generator is not active.
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         \p enabled is not valid.
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ *         PSA uses an external random generator because the compilation
+ *         option #MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG is enabled.
+ *         Or, the random generator only has a nonvolatile seed but no entropy
+ *         source, and prediction resistance has been requested.
+ */
+psa_status_t psa_random_set_prediction_resistance(unsigned enabled);
+
 /**@}*/
 
 /** \defgroup psa_builtin_keys Built-in keys

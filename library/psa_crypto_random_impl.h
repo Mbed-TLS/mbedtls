@@ -157,6 +157,27 @@ static inline void mbedtls_psa_drbg_deplete(mbedtls_psa_drbg_context_t *drbg_ctx
     drbg_ctx->reseed_counter = drbg_ctx->reseed_interval;
 }
 
+#if MBEDTLS_ENTROPY_TRUE_SOURCES > 0
+/** Set prediction resistance in the PSA DRBG.
+ *
+ * \note This function is not thread-safe.
+ *
+ * \param drbg_ctx      The DRBG context to reconfigure.
+ *                      It must be active.
+ * \param enabled       \c 1 to enable, or \c 0 to disable.
+ */
+static inline void mbedtls_psa_drbg_set_prediction_resistance(
+    mbedtls_psa_drbg_context_t *drbg_ctx,
+    unsigned enabled)
+{
+#if defined(MBEDTLS_CTR_DRBG_C)
+    mbedtls_ctr_drbg_set_prediction_resistance(drbg_ctx, enabled);
+#elif defined(MBEDTLS_HMAC_DRBG_C)
+    mbedtls_hmac_drbg_set_prediction_resistance(drbg_ctx, enabled);
+#endif
+}
+#endif /* MBEDTLS_ENTROPY_TRUE_SOURCES > 0 */
+
 #endif /* MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
 
 #endif /* PSA_CRYPTO_RANDOM_IMPL_H */

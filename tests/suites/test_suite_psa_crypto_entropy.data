@@ -53,6 +53,15 @@ reseed_consumption:
 Deplete: entropy consumption
 deplete_consumption:
 
+Prediction resistance: entropy consumption
+prediction_resistance_consumption:
+
+Prediction resistance: bad state
+prediction_resistance_bad_state:
+
+Prediction resistance: bad arguments
+prediction_resistance_bad_arguments:
+
 Explicit reseed: uniqueness tests (0 = 0)
 reseed_uniqueness:"":""
 

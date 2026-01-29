@@ -326,6 +326,7 @@ void reseed_basic()
     const uint8_t perso[5] = { 'p', 'e', 'r', 's', 'o' };
 
     TEST_EQUAL(psa_random_reseed(NULL, 0), PSA_ERROR_BAD_STATE);
+    TEST_EQUAL(psa_random_deplete(), PSA_ERROR_BAD_STATE);
     TEST_EQUAL(psa_generate_random(random, sizeof(random)), PSA_ERROR_BAD_STATE);
 
     PSA_INIT();
@@ -334,9 +335,13 @@ void reseed_basic()
     PSA_ASSERT(psa_random_reseed(perso, sizeof(perso)));
     PSA_ASSERT(psa_generate_random(random, sizeof(random)));
 
+    PSA_ASSERT(psa_random_deplete());
+    PSA_ASSERT(psa_generate_random(random, sizeof(random)));
+
     mbedtls_psa_crypto_free();
 
     TEST_EQUAL(psa_random_reseed(NULL, 0), PSA_ERROR_BAD_STATE);
+    TEST_EQUAL(psa_random_deplete(), PSA_ERROR_BAD_STATE);
     TEST_EQUAL(psa_generate_random(random, sizeof(random)), PSA_ERROR_BAD_STATE);
 
 exit:
@@ -383,6 +388,30 @@ void reseed_consumption()
     /* The random generator is still fine after failing to reseed
      * explicitly. Should it be? */
     PSA_ASSERT(psa_generate_random(random, sizeof(random)));
+
+exit:
+    PSA_DONE();
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:!MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
+void deplete_consumption()
+{
+    uint8_t random[10] = { 0 };
+
+    if (!psa_init_deterministic(4)) {
+        goto exit;
+    }
+
+    /* Depending on the DRBG parameters, the initial seeding may
+     * consume entropy once or twice. Reset to 1 to keep things simple. */
+    fake_entropy_state.step = 1;
+
+    PSA_ASSERT(psa_random_deplete());
+    TEST_EQUAL(fake_entropy_state.step, 1);
+
+    PSA_ASSERT(psa_generate_random(random, sizeof(random)));
+    TEST_LE_U(2, fake_entropy_state.step);
 
 exit:
     PSA_DONE();
@@ -472,6 +501,7 @@ void external_rng_failure_generate()
     PSA_ASSERT(psa_destroy_key(key));
 
     TEST_EQUAL(psa_random_reseed(NULL, 0), PSA_ERROR_NOT_SUPPORTED);
+    TEST_EQUAL(psa_random_deplete(), PSA_ERROR_NOT_SUPPORTED);
 
     mbedtls_test_disable_insecure_external_rng();
     TEST_EQUAL(PSA_ERROR_INSUFFICIENT_ENTROPY,

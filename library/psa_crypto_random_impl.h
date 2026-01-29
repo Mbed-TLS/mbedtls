@@ -145,6 +145,18 @@ static inline int mbedtls_psa_drbg_reseed(mbedtls_psa_drbg_context_t *drbg_ctx,
 #endif
 }
 
+/** Deplete the PSA DRBG, i.e. cause it to reseed the next time it is used.
+ *
+ * \note This function is not thread-safe.
+ *
+ * \param drbg_ctx      The DRBG context to deplete.
+ *                      It must be active.
+ */
+static inline void mbedtls_psa_drbg_deplete(mbedtls_psa_drbg_context_t *drbg_ctx)
+{
+    drbg_ctx->reseed_counter = drbg_ctx->reseed_interval;
+}
+
 #endif /* MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
 
 #endif /* PSA_CRYPTO_RANDOM_IMPL_H */

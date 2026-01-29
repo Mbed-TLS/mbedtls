@@ -581,6 +581,34 @@ psa_status_t mbedtls_psa_external_get_random(
  */
 psa_status_t psa_random_reseed(const uint8_t *perso, size_t perso_size);
 
+/** Force a reseed of the PSA random generator the next time it is used.
+ *
+ * The entropy source(s) are the ones configured at compile time.
+ *
+ * The random generator is always seeded automatically before use, and
+ * it is reseeded as needed based on the configured policy, so most
+ * applications do not need to call this function.
+ *
+ * This function has a similar purpose as psa_random_reseed(),
+ * but the reseed will happen the next time the random generator is used.
+ * This advantage of this function is that it does not fail unless the
+ * system is an unintended state, so it can be used in contexts where
+ * propagating errors is difficult.
+ *
+ * \note This function has no effect when #MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG
+ *       is enabled.
+ *
+ * \retval #PSA_SUCCESS
+ *         The reseed succeeded.
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The PSA random generator is not active.
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ *         PSA uses an external random generator because the compilation
+ *         option #MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG is enabled. This
+ *         configuration does not support explicit reseeding.
+ */
+psa_status_t psa_random_deplete(void);
+
 /**@}*/
 
 /** \defgroup psa_builtin_keys Built-in keys

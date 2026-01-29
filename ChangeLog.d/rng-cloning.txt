@@ -1,3 +1,4 @@
 Features
-   * Applications can use the new function psa_random_reseed() to
-     request an immediate reseed of the PSA random generator.
+   * Applications can use the new functions psa_random_reseed() to
+     request an immediate reseed of the PSA random generator, or
+     psa_random_deplete() to force a reseed on the next random generator call.

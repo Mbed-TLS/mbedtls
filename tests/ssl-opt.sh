@@ -11673,12 +11673,12 @@ requires_gnutls
 requires_max_content_len 2048
 run_test    "DTLS fragmenting: gnutls server, DTLS 1.2" \
             "$G_SRV -u" \
-            "$P_CLI dtls=1 debug_level=2 \
+            "$P_CLI dtls=1 debug_level=5 \
              crt_file=$DATA_FILES_PATH/server8_int-ca2.crt \
              key_file=$DATA_FILES_PATH/server8.key \
              mtu=512 force_version=dtls12" \
             0 \
-            -c "fragmenting handshake message" \
+            -c "fragmenting Certificate handshake message" \
             -C "error"
 
 # We use --insecure for the GnuTLS client because it expects
@@ -11700,7 +11700,7 @@ run_test    "DTLS fragmenting: gnutls client, DTLS 1.2" \
              mtu=512 force_version=dtls12" \
             "$G_CLI -u --insecure 127.0.0.1" \
             0 \
-            -s "fragmenting handshake message"
+            -s "fragmenting Certificate handshake message"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
@@ -11712,7 +11712,7 @@ run_test    "DTLS fragmenting: openssl server, DTLS 1.2" \
              key_file=$DATA_FILES_PATH/server8.key \
              mtu=512 force_version=dtls12" \
             0 \
-            -c "fragmenting handshake message" \
+            -c "fragmenting Certificate handshake message" \
             -C "error"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
@@ -11725,7 +11725,7 @@ run_test    "DTLS fragmenting: openssl client, DTLS 1.2" \
              mtu=512 force_version=dtls12" \
             "$O_CLI -dtls1_2" \
             0 \
-            -s "fragmenting handshake message"
+            -s "fragmenting Certificate handshake message"
 
 # interop tests for DTLS fragmentating with unreliable connection
 #
@@ -11744,7 +11744,7 @@ run_test    "DTLS fragmenting: 3d, gnutls server, DTLS 1.2" \
              key_file=$DATA_FILES_PATH/server8.key \
              hs_timeout=250-60000 mtu=512 force_version=dtls12" \
             0 \
-            -c "fragmenting handshake message" \
+            -c "fragmenting Certificate handshake message" \
             -C "error"
 
 requires_gnutls_next
@@ -11760,7 +11760,7 @@ run_test    "DTLS fragmenting: 3d, gnutls client, DTLS 1.2" \
              hs_timeout=250-60000 mtu=512 force_version=dtls12" \
            "$G_NEXT_CLI -u --insecure 127.0.0.1" \
             0 \
-            -s "fragmenting handshake message"
+            -s "fragmenting Certificate handshake message"
 
 ## The test below requires 1.1.1a or higher version of openssl, otherwise
 ## it might trigger a bug due to openssl server (https://github.com/openssl/openssl/issues/6902)
@@ -11777,7 +11777,7 @@ run_test    "DTLS fragmenting: 3d, openssl server, DTLS 1.2" \
              key_file=$DATA_FILES_PATH/server8.key \
              hs_timeout=250-60000 mtu=512 force_version=dtls12" \
             0 \
-            -c "fragmenting handshake message" \
+            -c "fragmenting Certificate handshake message" \
             -C "error"
 
 ## the test below will time out with certain seed.
@@ -11795,7 +11795,7 @@ run_test    "DTLS fragmenting: 3d, openssl client, DTLS 1.2" \
              hs_timeout=250-60000 mtu=512 force_version=dtls12" \
             "$O_CLI -dtls1_2" \
             0 \
-            -s "fragmenting handshake message"
+            -s "fragmenting Certificate handshake message"
 
 # Tests for DTLS-SRTP (RFC 5764)
 requires_config_enabled MBEDTLS_SSL_DTLS_SRTP

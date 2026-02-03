@@ -2619,7 +2619,8 @@ int mbedtls_ssl_flight_transmit(mbedtls_ssl_context *ssl)
                               max_hs_frag_len : rem_len;
 
             if (frag_off == 0 && cur_hs_frag_len != hs_len) {
-                MBEDTLS_SSL_DEBUG_MSG(2, ("fragmenting handshake message (%u > %u)",
+                MBEDTLS_SSL_DEBUG_MSG(2, ("fragmenting %s handshake message (%u > %u)",
+                                          mbedtls_ssl_get_hs_msg_name(cur->p[0]),
                                           (unsigned) cur_hs_frag_len,
                                           (unsigned) max_hs_frag_len));
             }

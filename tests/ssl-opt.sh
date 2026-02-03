@@ -10925,6 +10925,7 @@ run_test    "DTLS reassembly: some fragmentation (gnutls server)" \
             "$P_CLI dtls=1 debug_level=2" \
             0 \
             -c "found fragmented DTLS handshake message" \
+            -c "Certificate handshake message has been buffered and reassembled" \
             -C "error"
 
 requires_gnutls
@@ -10934,6 +10935,8 @@ run_test    "DTLS reassembly: more fragmentation (gnutls server)" \
             "$P_CLI dtls=1 debug_level=2" \
             0 \
             -c "found fragmented DTLS handshake message" \
+            -c "Certificate handshake message has been buffered and reassembled" \
+            -c "ServerKeyExchange handshake message has been buffered and reassembled" \
             -C "error"
 
 requires_gnutls
@@ -10943,6 +10946,8 @@ run_test    "DTLS reassembly: more fragmentation, nbio (gnutls server)" \
             "$P_CLI dtls=1 nbio=2 debug_level=2" \
             0 \
             -c "found fragmented DTLS handshake message" \
+            -c "Certificate handshake message has been buffered and reassembled" \
+            -c "ServerKeyExchange handshake message has been buffered and reassembled" \
             -C "error"
 
 requires_gnutls
@@ -10953,6 +10958,7 @@ run_test    "DTLS reassembly: fragmentation, renego (gnutls server)" \
             "$P_CLI debug_level=3 dtls=1 renegotiation=1 renegotiate=1" \
             0 \
             -c "found fragmented DTLS handshake message" \
+            -c "Certificate handshake message has been buffered and reassembled" \
             -c "client hello, adding renegotiation extension" \
             -c "found renegotiation extension" \
             -c "=> renegotiate" \
@@ -10968,6 +10974,7 @@ run_test    "DTLS reassembly: fragmentation, nbio, renego (gnutls server)" \
             "$P_CLI debug_level=3 nbio=2 dtls=1 renegotiation=1 renegotiate=1" \
             0 \
             -c "found fragmented DTLS handshake message" \
+            -c "Certificate handshake message has been buffered and reassembled" \
             -c "client hello, adding renegotiation extension" \
             -c "found renegotiation extension" \
             -c "=> renegotiate" \
@@ -10983,12 +10990,17 @@ run_test    "DTLS reassembly: no fragmentation (openssl server)" \
             -C "found fragmented DTLS handshake message" \
             -C "error"
 
+# Minimum possible MTU for OpenSSL server: 256 bytes.
+# We expect the server Certificate handshake to be fragmented and verify that
+# this is the case. Depending on the configuration, other handshake messages may
+# also be fragmented.
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "DTLS reassembly: fragmentation (openssl server)" \
             "$O_SRV -dtls -mtu 256" \
             "$P_CLI dtls=1 debug_level=2" \
             0 \
             -c "found fragmented DTLS handshake message" \
+            -c "Certificate handshake message has been buffered and reassembled" \
             -C "error"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
@@ -10997,6 +11009,7 @@ run_test    "DTLS reassembly: fragmentation, nbio (openssl server)" \
             "$P_CLI dtls=1 nbio=2 debug_level=2" \
             0 \
             -c "found fragmented DTLS handshake message" \
+            -c "Certificate handshake message has been buffered and reassembled" \
             -C "error"
 
 # Tests for sending fragmented handshake messages with DTLS

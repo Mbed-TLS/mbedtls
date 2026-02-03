@@ -289,11 +289,32 @@ psa_status_t mbedtls_psa_ffdh_key_agreement(
         goto cleanup;
     }
 
-    MBEDTLS_MPI_CHK(mbedtls_mpi_read_binary(&X, key_buffer,
-                                            key_buffer_size));
-
     MBEDTLS_MPI_CHK(mbedtls_mpi_read_binary(&GY, peer_key,
                                             peer_key_length));
+
+    /* RFC 7919 5.1: validate the peer's public key: 1 < GY < P-1
+     *
+     * Note: NIST SP 800-56Ar3 5.7.1.1 (2) has the check on the shared secret,
+     * but checking before is equivalent (unless our secret key is exactly
+     * (p-1)/2, which has negligible probability and can't be influenced by the
+     * adversary). Checking before is cleaner in terms of side channel analysis,
+     * as we haven't loaded our secret yet, so no worries about branches.
+     *
+     * Use X as a temporary, since we haven't loaded it yet.
+     */
+    MBEDTLS_MPI_CHK(mbedtls_mpi_sub_int(&X, &P, 1)); // x = p - 1
+    if (mbedtls_mpi_cmp_mpi(&GY, &X) >= 0) {
+        status = PSA_ERROR_INVALID_ARGUMENT;
+        goto cleanup;
+    }
+    MBEDTLS_MPI_CHK(mbedtls_mpi_lset(&X, 1)); // x = 1
+    if (mbedtls_mpi_cmp_mpi(&GY, &X) <= 0) {
+        status = PSA_ERROR_INVALID_ARGUMENT;
+        goto cleanup;
+    }
+
+    MBEDTLS_MPI_CHK(mbedtls_mpi_read_binary(&X, key_buffer,
+                                            key_buffer_size));
 
     /* Calculate shared secret public key: K = G^(XY) mod P = GY^X mod P */
     MBEDTLS_MPI_CHK(mbedtls_mpi_exp_mod(&K, &GY, &X, &P, NULL));

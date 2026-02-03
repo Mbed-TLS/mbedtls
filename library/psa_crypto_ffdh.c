@@ -267,14 +267,15 @@ psa_status_t mbedtls_psa_ffdh_key_agreement(
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     mbedtls_mpi P, X, GY, K;
-    const size_t calculated_shared_secret_size = peer_key_length;
+    const size_t calculated_shared_secret_size = key_buffer_size;
 
-    if (peer_key_length != key_buffer_size ||
-        calculated_shared_secret_size > shared_secret_size) {
-        return PSA_ERROR_INVALID_ARGUMENT;
+    /* This has been checked by the library, but keep a local check too. */
+    if (calculated_shared_secret_size > shared_secret_size) {
+        return PSA_ERROR_BUFFER_TOO_SMALL;
     }
 
-    if (!PSA_KEY_TYPE_IS_DH_KEY_PAIR(psa_get_key_type(attributes))) {
+    if (peer_key_length != key_buffer_size ||
+        !PSA_KEY_TYPE_IS_DH_KEY_PAIR(psa_get_key_type(attributes))) {
         return PSA_ERROR_INVALID_ARGUMENT;
     }
 

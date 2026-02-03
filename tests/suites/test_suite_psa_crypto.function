@@ -9797,7 +9797,8 @@ exit:
 void key_agreement_setup(int alg_arg,
                          int our_key_type_arg, int our_key_alg_arg,
                          data_t *our_key_data, data_t *peer_key_data,
-                         int expected_status_arg)
+                         int expected_status_setup_arg,
+                         int expected_status_keyag_arg)
 {
     mbedtls_svc_key_id_t our_key = MBEDTLS_SVC_KEY_ID_INIT;
     psa_algorithm_t alg = alg_arg;
@@ -9805,8 +9806,8 @@ void key_agreement_setup(int alg_arg,
     psa_key_type_t our_key_type = our_key_type_arg;
     psa_key_derivation_operation_t operation = psa_key_derivation_operation_init_short();
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-    psa_status_t expected_status = expected_status_arg;
-    psa_status_t status;
+    psa_status_t expected_status_setup = expected_status_setup_arg;
+    psa_status_t expected_status_keyag = expected_status_keyag_arg;
 
     PSA_ASSERT(psa_crypto_init());
 
@@ -9817,20 +9818,17 @@ void key_agreement_setup(int alg_arg,
                               our_key_data->x, our_key_data->len,
                               &our_key));
 
-    /* The tests currently include inputs that should fail at either step.
-     * Test cases that fail at the setup step should be changed to call
-     * key_derivation_setup instead, and this function should be renamed
-     * to key_agreement_fail. */
-    status = psa_key_derivation_setup(&operation, alg);
-    if (status == PSA_SUCCESS) {
-        TEST_EQUAL(psa_key_derivation_key_agreement(
-                       &operation, PSA_KEY_DERIVATION_INPUT_SECRET,
-                       our_key,
-                       peer_key_data->x, peer_key_data->len),
-                   expected_status);
-    } else {
-        TEST_ASSERT(status == expected_status);
+    TEST_EQUAL(psa_key_derivation_setup(&operation, alg),
+               expected_status_setup);
+    if (expected_status_setup != PSA_SUCCESS) {
+        goto exit;
     }
+
+    TEST_EQUAL(psa_key_derivation_key_agreement(
+                   &operation, PSA_KEY_DERIVATION_INPUT_SECRET,
+                   our_key,
+                   peer_key_data->x, peer_key_data->len),
+               expected_status_keyag);
 
 exit:
     psa_key_derivation_abort(&operation);

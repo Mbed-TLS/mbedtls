@@ -6026,6 +6026,16 @@ void verify_result_without_handshake(void)
 
     TEST_EQUAL(verify_result, 0xFFFFFFFF);
 
+    /* Set the verify result manually and check that session_free resets it. */
+
+    /* Set the verify result to 0. */
+    ssl.session_negotiate->verify_result = 0;
+
+    mbedtls_ssl_session_free(ssl.session_negotiate);
+
+    verify_result = mbedtls_ssl_get_verify_result(&ssl);
+    TEST_EQUAL(verify_result, 0xFFFFFFFF);
+
 exit:
     mbedtls_ssl_config_free(&conf);
     mbedtls_ssl_free(&ssl);

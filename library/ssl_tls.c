@@ -5005,6 +5005,9 @@ void mbedtls_ssl_session_free(mbedtls_ssl_session *session)
 #endif
 
     mbedtls_platform_zeroize(session, sizeof(mbedtls_ssl_session));
+
+    /* Set verify_result to -1u to indicate 'result not available'. */
+    session->verify_result = 0xFFFFFFFF;
 }
 
 #if defined(MBEDTLS_SSL_CONTEXT_SERIALIZATION)

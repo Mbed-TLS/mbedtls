@@ -71,29 +71,38 @@ static void pk_write_check_context(mbedtls_pk_context *key,
                                    unsigned char *check_buf, size_t check_buf_len)
 {
     unsigned char *buf = NULL;
-    size_t buf_len;
-    unsigned char *start_buf;
-    int expected_result;
+    int expected_error = is_der ?
+                         MBEDTLS_ERR_ASN1_BUF_TOO_SMALL :
+                         MBEDTLS_ERR_BASE64_BUFFER_TOO_SMALL;
 
-    TEST_CALLOC(buf, check_buf_len);
+    /* Test with:
+     * - buffer too small (all sizes)
+     * - buffer exactly the right size
+     * - buffer a bit larger - DER functions should write to the end of the
+     *   buffer, and we can only tell the difference with a larger buffer
+     */
+    for (size_t buf_size = 1; buf_size <= check_buf_len + 2; buf_size++) {
+        mbedtls_free(buf);
+        buf = NULL;
+        TEST_CALLOC(buf, buf_size);
 
-    start_buf = buf;
-    buf_len = check_buf_len;
-    if (is_der) {
-        expected_result = MBEDTLS_ERR_ASN1_BUF_TOO_SMALL;
-    } else {
-        expected_result = MBEDTLS_ERR_BASE64_BUFFER_TOO_SMALL;
-    }
-    /* Intentionally pass a wrong size for the provided output buffer and check
-     * that the writing functions fails as expected. */
-    for (size_t i = 1; i < buf_len; i++) {
-        TEST_EQUAL(pk_write_any_key(key, &start_buf, &i, is_public_key,
+        unsigned char *start_buf = buf;
+        size_t out_len = buf_size;
+        int expected_result = buf_size < check_buf_len ? expected_error : 0;
+        mbedtls_test_set_step(buf_size);
+
+        TEST_EQUAL(pk_write_any_key(key, &start_buf, &out_len, is_public_key,
                                     is_der), expected_result);
-    }
-    TEST_EQUAL(pk_write_any_key(key, &start_buf, &buf_len, is_public_key,
-                                is_der), 0);
 
-    TEST_MEMORY_COMPARE(start_buf, buf_len, check_buf, check_buf_len);
+        if (expected_result == 0) {
+            TEST_MEMORY_COMPARE(start_buf, out_len, check_buf, check_buf_len);
+
+            if (is_der) {
+                /* Data should be at the end of the buffer */
+                TEST_ASSERT(start_buf + out_len == buf + buf_size);
+            }
+        }
+    }
 
 exit:
     mbedtls_free(buf);

@@ -66,10 +66,11 @@ static int pk_write_any_key(mbedtls_pk_context *pk, unsigned char **p,
     return 0;
 }
 
-static void pk_write_check_context(mbedtls_pk_context *key,
-                                   int is_public_key, int is_der,
-                                   unsigned char *check_buf, size_t check_buf_len)
+static int pk_write_check_context(mbedtls_pk_context *key,
+                                  int is_public_key, int is_der,
+                                  unsigned char *check_buf, size_t check_buf_len)
 {
+    int ret = -1;
     unsigned char *buf = NULL;
     int expected_error = is_der ?
                          MBEDTLS_ERR_ASN1_BUF_TOO_SMALL :
@@ -104,8 +105,11 @@ static void pk_write_check_context(mbedtls_pk_context *key,
         }
     }
 
+    ret = 0;
+
 exit:
     mbedtls_free(buf);
+    return ret;
 }
 
 
@@ -147,8 +151,10 @@ static void pk_write_check_common(char *key_file, int is_public_key, int is_der)
                                             mbedtls_test_rnd_std_rand, NULL), 0);
     }
 
-    pk_write_check_context(&key, is_public_key, is_der,
-                           check_buf, check_buf_len);
+    if (pk_write_check_context(&key, is_public_key, is_der,
+                               check_buf, check_buf_len) != 0) {
+        goto exit;
+    }
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     /* Verify that pk_write works also for opaque private keys */
@@ -161,8 +167,10 @@ static void pk_write_check_common(char *key_file, int is_public_key, int is_der)
         mbedtls_pk_init(&key);
         TEST_EQUAL(mbedtls_pk_setup_opaque(&key, opaque_id), 0);
 
-        pk_write_check_context(&key, is_public_key, is_der,
-                               check_buf, check_buf_len);
+        if (pk_write_check_context(&key, is_public_key, is_der,
+                                   check_buf, check_buf_len) != 0) {
+            goto exit;
+        }
     }
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 

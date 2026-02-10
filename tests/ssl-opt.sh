@@ -9993,8 +9993,9 @@ run_test    "DTLS reassembly: some fragmentation (gnutls client)" \
 # Set the MTU to 128 bytes. The minimum size of a DTLS 1.2 record
 # containing a ClientHello handshake message is 69 bytes, without any cookie,
 # ciphersuite, or extension. With an MTU of 128 bytes, the ClientHello handshake
-# message is therefore very likely to be fragmented in most library
-# configurations.
+# message is therefore very likely to be fragmented, regardless of the
+# GnuTLS client version. For example, the ClientHello sent by the GnuTLS 3.7.2
+# client is 206 bytes in this test.
 requires_gnutls
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "DTLS reassembly: more fragmentation (gnutls client)" \
@@ -10055,10 +10056,11 @@ run_test    "DTLS reassembly: no fragmentation (openssl client)" \
             -S "error"
 
 # Minimum possible MTU for OpenSSL server: 256 bytes.
-# We expect the server Certificate handshake to be fragmented and verify that
-# this is the case. Depending on the configuration, other handshake messages may
-# also be fragmented like the ClientHello, ClientKeyExchange or
-# CertificateVerify messages.
+# We expect the client Certificate handshake message to be fragmented and
+# verify that this is the case. With OpenSSL 3.0.13, the ClientHello handshake
+# message is 224 bytes and also fragmented. However, it may not hold across
+# OpenSSL version updates. Therefore, we do not verify that the ClientHello is
+# reassembled by the server.
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "DTLS reassembly: some fragmentation (openssl client)" \
             "$P_SRV debug_level=2 dtls=1 auth_mode=required" \
@@ -12147,9 +12149,12 @@ run_test    "DTLS proxy: 3d, gnutls client" \
             0 \
             -s "HTTP/1.0 200 OK"
 
-# Set the MTU to 128 bytes. The ClientHello is not surely fragmented but very
-# likely. Do not set it to 56 bytes where we would be sure that the ClientHello
-# is fragmented as then experimentally the handshake fails too often.
+# Set the MTU to 128 bytes. The ClientHello is not guaranteed to be surely
+# fragmented but it is very likely. For example, the ClientHello sent by the
+# GnuTLS 3.7.2 client is 206 bytes in this test. We expect ClientHello
+# fragmentation to remain the case across GnuTLS version updates. Avoid using a
+# smaller MTU, as the smaller the MTU, the more likely the handshake is to fail
+# in this very unreliable connection emulation.
 requires_gnutls
 client_needs_more_time 8
 not_with_valgrind # risk of non-mbedtls peer timing out

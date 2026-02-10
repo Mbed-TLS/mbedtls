@@ -1299,7 +1299,7 @@ static int ssl_parse_client_hello(mbedtls_ssl_context *ssl)
             MBEDTLS_SSL_TLS12_SIG_AND_HASH_ALG(MBEDTLS_SSL_SIG_ECDSA,
                                                MBEDTLS_SSL_HASH_SHA1),
 #endif
-#if defined(MBEDTLS_RSA_C)
+#if defined(PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC)
             MBEDTLS_SSL_TLS12_SIG_AND_HASH_ALG(MBEDTLS_SSL_SIG_RSA,
                                                MBEDTLS_SSL_HASH_SHA1),
 #endif
@@ -2246,7 +2246,7 @@ static int ssl_write_certificate_request(mbedtls_ssl_context *ssl)
      */
     ct_len = 0;
 
-#if defined(MBEDTLS_RSA_C)
+#if defined(PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC)
     p[1 + ct_len++] = MBEDTLS_SSL_CERT_TYPE_RSA_SIGN;
 #endif
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDSA_CERT_REQ_ALLOWED_ENABLED)

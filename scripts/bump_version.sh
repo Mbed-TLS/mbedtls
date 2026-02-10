@@ -51,7 +51,7 @@ do
       echo -e "  --so-x509 <version>\tSO version to bump libmbedx509 to."
       echo -e "  --so-tls <version>\tSO version to bump libmbedtls to."
       echo -e "  -v|--verbose\t\tVerbose."
-      exit 1
+      exit 0
       ;;
     *)
       # print error

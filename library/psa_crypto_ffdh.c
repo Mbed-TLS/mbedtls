@@ -269,14 +269,14 @@ psa_status_t mbedtls_psa_ffdh_key_agreement(
     mbedtls_mpi P, X, GY, K;
     const size_t calculated_shared_secret_size = key_buffer_size;
 
-    /* This has been checked by the library, but keep a local check too. */
-    if (calculated_shared_secret_size > shared_secret_size) {
-        return PSA_ERROR_BUFFER_TOO_SMALL;
-    }
-
     if (peer_key_length != key_buffer_size ||
         !PSA_KEY_TYPE_IS_DH_KEY_PAIR(psa_get_key_type(attributes))) {
         return PSA_ERROR_INVALID_ARGUMENT;
+    }
+
+    /* This has been checked by the library, but keep a local check too. */
+    if (calculated_shared_secret_size > shared_secret_size) {
+        return PSA_ERROR_BUFFER_TOO_SMALL;
     }
 
     mbedtls_mpi_init(&P);

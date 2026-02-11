@@ -17,3 +17,9 @@ pylint == 2.4.4; platform_system == 'Linux'
 #   https://github.com/Mbed-TLS/mbedtls-framework/issues/50
 # mypy 0.942 is the version in Ubuntu 22.04.
 mypy == 0.942; platform_system == 'Linux'
+
+# More requirements for scripts in the framework that might not work in
+# older versions of Python. Note that requirements that are not available
+# in the oldest version of Python on our CI must be annodated with
+# "python >= ...".
+-r ../framework/util/requirements.txt

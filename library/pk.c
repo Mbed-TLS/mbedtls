@@ -43,6 +43,12 @@
 #include "mbedtls/platform.h" // for calloc/free
 #endif
 
+/* We know for ECC, pubkey are longer than privkeys, but double check */
+#define PK_MAX_EC_KEYPAIR_OR_PUBKEY_LENGTH  MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH
+#if MBEDTLS_PSA_MAX_EC_KEY_PAIR_LENGTH > PK_MAX_EC_KEYPAIR_OR_PUBKEY_LENGTH
+#undef PK_MAX_EC_KEYPAIR_OR_PUBKEY_LENGTH
+#define PK_MAX_EC_KEYPAIR_OR_PUBKEY_LENGTH  MBEDTLS_PSA_MAX_EC_KEY_PAIR_LENGTH
+#endif
 
 /*
  * Initialise a mbedtls_pk_context
@@ -633,7 +639,7 @@ static psa_status_t export_import_into_psa(mbedtls_svc_key_id_t old_key_id,
     unsigned char *key_buffer = NULL;
     size_t key_buffer_size = 0;
 #else
-    unsigned char key_buffer[MBEDTLS_PSA_MAX_EC_KEY_PAIR_LENGTH];
+    unsigned char key_buffer[PK_MAX_EC_KEYPAIR_OR_PUBKEY_LENGTH];
     const size_t key_buffer_size = sizeof(key_buffer);
 #endif
     size_t key_length = 0;
@@ -934,7 +940,7 @@ static int copy_from_psa(mbedtls_svc_key_id_t key_id,
     unsigned char *exp_key = NULL;
     size_t exp_key_size = 0;
 #else
-    unsigned char exp_key[MBEDTLS_PSA_MAX_EC_KEY_PAIR_LENGTH];
+    unsigned char exp_key[PK_MAX_EC_KEYPAIR_OR_PUBKEY_LENGTH];
     const size_t exp_key_size = sizeof(exp_key);
 #endif
     size_t exp_key_len;

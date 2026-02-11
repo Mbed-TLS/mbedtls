@@ -47,7 +47,7 @@ component_check_generated_files () {
     # This is necessary for subsequent components!
 
     msg "Check committed generated files"
-    tests/scripts/check_option_lists.py
+    tests/scripts/check_committed_generated_files.py
 }
 
 component_check_doxy_blocks () {

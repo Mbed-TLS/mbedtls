@@ -967,6 +967,13 @@ static int copy_from_psa(mbedtls_svc_key_id_t key_id,
     if (exp_key == NULL) {
         return MBEDTLS_ERR_PK_ALLOC_FAILED;
     }
+#else
+    /* In case we're passed non-ECC key (API misuse), return a sensible error
+     * now. Otherwise we might get BUFFER_TOO_SMALL when exporting below, which
+     * is unlikely to be helpful to the user as the buffer is internal. */
+    if (!PSA_KEY_TYPE_IS_ECC(key_type)) {
+        return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
+    }
 #endif
 
     if (public_only) {

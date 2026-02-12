@@ -35,26 +35,7 @@
 #include <limits.h>
 #include <stdint.h>
 
-/*
- * We're trying to statisfy two kinds of users:
- * - those who don't want to use the heap;
- * - those who can't afford large stack buffers.
- *
- * The current compromise is that if ECC is the only key type supported in PK,
- * then we export keys on the stack, and otherwise we use the heap.
- */
-#if !defined(MBEDTLS_RSA_C)
-#define PK_EXPORT_KEYS_ON_THE_STACK
-#endif
-
-#if defined(PK_EXPORT_KEYS_ON_THE_STACK)
-/* We know for ECC, pubkey are longer than privkeys, but double check */
-#define PK_EXPORT_KEY_STACK_BUFFER_SIZE  MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH
-#if MBEDTLS_PSA_MAX_EC_KEY_PAIR_LENGTH > PK_EXPORT_KEY_STACK_BUFFER_SIZE
-#undef PK_EXPORT_KEY_STACK_BUFFER_SIZE
-#define PK_EXPORT_KEY_STACK_BUFFER_SIZE  MBEDTLS_PSA_MAX_EC_KEY_PAIR_LENGTH
-#endif
-#else
+#if !defined(PK_EXPORT_KEYS_ON_THE_STACK)
 #include "mbedtls/platform.h" // for calloc/free
 #endif
 

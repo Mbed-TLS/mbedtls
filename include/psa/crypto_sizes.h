@@ -1038,9 +1038,15 @@
     PSA_KEY_EXPORT_FFDH_PUBLIC_KEY_MAX_SIZE(PSA_VENDOR_FFDH_MAX_KEY_BITS)
 #endif
 
-#define PSA_EXPORT_KEY_PAIR_OR_PUBLIC_MAX_SIZE \
+/* This is the name that was standardized in PSA Crypto v1.3 */
+#define PSA_EXPORT_ASYMMETRIC_KEY_MAX_SIZE \
     ((PSA_EXPORT_KEY_PAIR_MAX_SIZE > PSA_EXPORT_PUBLIC_KEY_MAX_SIZE) ? \
      PSA_EXPORT_KEY_PAIR_MAX_SIZE : PSA_EXPORT_PUBLIC_KEY_MAX_SIZE)
+
+/* This is our old custom name from before it was in the spec,
+ * keep it around in case users were relying on it. */
+#define PSA_EXPORT_KEY_PAIR_OR_PUBLIC_MAX_SIZE \
+    PSA_EXPORT_ASYMMETRIC_KEY_MAX_SIZE
 
 /** Sufficient output buffer size for psa_raw_key_agreement().
  *

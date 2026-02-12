@@ -601,6 +601,15 @@ int mbedtls_pk_get_psa_attributes(const mbedtls_pk_context *pk,
 
 #if defined(MBEDTLS_PSA_CRYPTO_CLIENT)
 #if defined(PK_HAVE_KEYS_LARGER_THAN_ECC)
+/*
+ * Size needed to export a key of a type supported by PK.
+ *
+ * Compared to PSA_EXPORT_KEY_OUTPUT_SIZE() this is better for code size:
+ * - using a macro in multiple places results in multiple copies of the code;
+ * - this function only handles key types supported in PK.
+ *
+ * Return 0 on unexpected types. Callers need to check for that value.
+ */
 static size_t pk_export_max_size(psa_key_type_t key_type, size_t bits)
 {
 #if defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
@@ -623,8 +632,7 @@ static size_t pk_export_max_size(psa_key_type_t key_type, size_t bits)
         return PSA_KEY_EXPORT_RSA_KEY_PAIR_MAX_SIZE(bits);
     }
 #endif
-    /* failsafe */
-    return PSA_EXPORT_KEY_PAIR_MAX_SIZE;
+    return 0;
 }
 #endif /* PK_HAVE_KEYS_LARGER_THAN_ECC */
 #endif /* MBEDTLS_PSA_CRYPTO_CLIENT */
@@ -644,6 +652,7 @@ static psa_status_t export_import_into_psa(mbedtls_svc_key_id_t old_key_id,
 #endif
     size_t key_length = 0;
 
+    /* We are exporting from a PK object, so we know key type is valid for PK */
 #if defined(PK_HAVE_KEYS_LARGER_THAN_ECC)
     key_buffer_size = pk_export_max_size(old_type, old_bits);
     key_buffer = mbedtls_calloc(1, key_buffer_size);
@@ -963,6 +972,9 @@ static int copy_from_psa(mbedtls_svc_key_id_t key_id,
 
 #if defined(PK_HAVE_KEYS_LARGER_THAN_ECC)
     exp_key_size = pk_export_max_size(key_type, key_bits);
+    if (exp_key_size == 0) {
+        return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
+    }
     exp_key = mbedtls_calloc(1, exp_key_size);
     if (exp_key == NULL) {
         return MBEDTLS_ERR_PK_ALLOC_FAILED;

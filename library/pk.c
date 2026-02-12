@@ -589,45 +589,6 @@ int mbedtls_pk_get_psa_attributes(const mbedtls_pk_context *pk,
     return 0;
 }
 
-#if defined(MBEDTLS_PSA_CRYPTO_CLIENT)
-#if !defined(PK_EXPORT_KEYS_ON_THE_STACK)
-/*
- * Size needed to export a key of a type supported by PK.
- *
- * Compared to PSA_EXPORT_KEY_OUTPUT_SIZE() this is better for code size:
- * - using a macro in multiple places results in multiple copies of the code;
- * - this function only handles key types supported in PK.
- *
- * WARNING: callers need to ensure the type is supported before calling this
- * function, possibly by calling is_valid_for_pk().
- */
-static size_t pk_export_max_size(psa_key_type_t key_type, size_t bits)
-{
-#if defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
-    if (PSA_KEY_TYPE_IS_ECC_PUBLIC_KEY(key_type)) {
-        return PSA_KEY_EXPORT_ECC_PUBLIC_KEY_MAX_SIZE(bits);
-    }
-#endif
-#if defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_BASIC)
-    if (PSA_KEY_TYPE_IS_ECC_KEY_PAIR(key_type)) {
-        return PSA_KEY_EXPORT_ECC_KEY_PAIR_MAX_SIZE(bits);
-    }
-#endif
-#if defined(PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY)
-    if (key_type == PSA_KEY_TYPE_RSA_PUBLIC_KEY) {
-        return PSA_KEY_EXPORT_RSA_PUBLIC_KEY_MAX_SIZE(bits);
-    }
-#endif
-#if defined(PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC)
-    if (key_type == PSA_KEY_TYPE_RSA_KEY_PAIR) {
-        return PSA_KEY_EXPORT_RSA_KEY_PAIR_MAX_SIZE(bits);
-    }
-#endif
-    return 0;
-}
-#endif /* PK_EXPORT_KEYS_ON_THE_STACK */
-#endif /* MBEDTLS_PSA_CRYPTO_CLIENT */
-
 #if defined(MBEDTLS_PK_USE_PSA_EC_DATA) || defined(MBEDTLS_USE_PSA_CRYPTO)
 static psa_status_t export_import_into_psa(mbedtls_svc_key_id_t old_key_id,
                                            psa_key_type_t old_type, size_t old_bits,
@@ -645,7 +606,7 @@ static psa_status_t export_import_into_psa(mbedtls_svc_key_id_t old_key_id,
 
     /* We are exporting from a PK object, so we know key type is valid for PK */
 #if !defined(PK_EXPORT_KEYS_ON_THE_STACK)
-    key_buffer_size = pk_export_max_size(old_type, old_bits);
+    key_buffer_size = PSA_EXPORT_KEY_OUTPUT_SIZE(old_type, old_bits);
     key_buffer = mbedtls_calloc(1, key_buffer_size);
     if (key_buffer == NULL) {
         return MBEDTLS_ERR_PK_ALLOC_FAILED;
@@ -982,7 +943,7 @@ static int copy_from_psa(mbedtls_svc_key_id_t key_id,
     key_bits = psa_get_key_bits(&key_attr);
 
 #if !defined(PK_EXPORT_KEYS_ON_THE_STACK)
-    exp_key_size = pk_export_max_size(key_type, key_bits);
+    exp_key_size = PSA_EXPORT_KEY_OUTPUT_SIZE(key_type, key_bits);
     exp_key = mbedtls_calloc(1, exp_key_size);
     if (exp_key == NULL) {
         return MBEDTLS_ERR_PK_ALLOC_FAILED;

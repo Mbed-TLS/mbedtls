@@ -103,8 +103,7 @@ foreach(exe IN LISTS executables)
 endforeach()
 
 target_include_directories(metatest
-        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../tf-psa-crypto/drivers/builtin/include
-                ${CMAKE_CURRENT_SOURCE_DIR}/../../tf-psa-crypto/drivers/builtin/src)
+        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../tf-psa-crypto/drivers/builtin/src)
 
 install(TARGETS ${executables}
         DESTINATION "bin"

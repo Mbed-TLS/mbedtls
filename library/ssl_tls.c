@@ -10121,7 +10121,7 @@ static int mbedtls_ssl_tls13_export_keying_material(mbedtls_ssl_context *ssl,
                                                     const size_t context_len)
 {
     const psa_algorithm_t psa_hash_alg = mbedtls_md_psa_alg_from_type(hash_alg);
-    const size_t hash_len = PSA_HASH_LENGTH(hash_alg);
+    const size_t hash_len = PSA_HASH_LENGTH(psa_hash_alg);
     const unsigned char *secret = ssl->session->app_secrets.exporter_master_secret;
 
     /* The length of the label must be at most 249 bytes to fit into the HkdfLabel

@@ -2288,8 +2288,8 @@ int mbedtls_ssl_set_hs_psk(mbedtls_ssl_context *ssl,
         return MBEDTLS_ERR_SSL_HW_ACCEL_FAILED;
     }
 
-    /* Since we're not using a certificate, set verify_result to skipped */
-    ssl->session_negotiate->verify_result = MBEDTLS_X509_BADCERT_SKIP_VERIFY;
+    /* Since we're not using a certificate, set verify_result to success */
+    ssl->session_negotiate->verify_result = 0;
 
     /* Allow calling psa_destroy_key() on psk remove */
     ssl->handshake->psk_opaque_is_internal = 1;
@@ -7937,7 +7937,7 @@ static int ssl_parse_certificate_coordinate(mbedtls_ssl_context *ssl,
         ssl->handshake->ciphersuite_info;
 
     if (!mbedtls_ssl_ciphersuite_uses_srv_cert(ciphersuite_info)) {
-        ssl->session_negotiate->verify_result = MBEDTLS_X509_BADCERT_SKIP_VERIFY;
+        ssl->session_negotiate->verify_result = 0;
         return SSL_CERTIFICATE_SKIP;
     }
 
@@ -9882,7 +9882,7 @@ int mbedtls_ssl_verify_certificate(mbedtls_ssl_context *ssl,
                                    void *rs_ctx)
 {
     if (authmode == MBEDTLS_SSL_VERIFY_NONE) {
-        ssl->session_negotiate->verify_result = MBEDTLS_X509_BADCERT_SKIP_VERIFY;
+        ssl->session_negotiate->verify_result = 0;
         return 0;
     }
 

@@ -97,8 +97,10 @@ void mbedtls_test_free_handshake_options(
     mbedtls_test_handshake_test_options *opts)
 {
 #if defined(MBEDTLS_SSL_CACHE_C)
-    mbedtls_ssl_cache_free(opts->cache);
-    mbedtls_free(opts->cache);
+    if (opts->cache != NULL) {
+        mbedtls_ssl_cache_free(opts->cache);
+        mbedtls_free(opts->cache);
+    }
 #else
     (void) opts;
 #endif

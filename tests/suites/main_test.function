@@ -23,6 +23,13 @@
 #endif
 #endif
 
+#if defined(__FreeBSD__)
+// for gettimeofday() (On FreeBSD, _POSIX_C_SOURCE isn't enough)
+#if !defined(_XOPEN_SOURCE)
+#define _XOPEN_SOURCE 500
+#endif
+#endif
+
 #include "mbedtls/build_info.h"
 
 /* Test code may use deprecated identifiers only if the preprocessor symbol

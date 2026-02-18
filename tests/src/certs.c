@@ -443,7 +443,7 @@ const unsigned char *mbedtls_test_cas_der[] = {
     mbedtls_test_ca_crt_rsa_sha1_der,
 #endif /* PSA_WANT_ALG_SHA_1 */
 #endif /* MBEDTLS_RSA_C */
-#if defined(PSA_HAVE_ALG_SOME_ECDSA)
+#if defined(PSA_HAVE_ALG_SOME_ECDSA) && defined(PSA_WANT_ECC_SECP_R1_384)
     mbedtls_test_ca_crt_ec_der,
 #endif /* PSA_HAVE_ALG_SOME_ECDSA */
     NULL

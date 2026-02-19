@@ -5982,17 +5982,18 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_SSL_CLI_C:MBEDTLS_SSL_SRV_C:MBEDTLS_TEST_HAS_TLS1_3_CHACHA20_POLY1305_SHA256:MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED:MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED:PSA_WANT_ALG_SHA_256:PSA_WANT_ECC_SECP_R1_256:PSA_WANT_ECC_SECP_R1_384:PSA_HAVE_ALG_ECDSA_VERIFY:MBEDTLS_SSL_SESSION_TICKETS */
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_SSL_CLI_C:MBEDTLS_SSL_SRV_C:MBEDTLS_TEST_HAS_TLS1_3_CHACHA20_POLY1305_SHA256:MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED:MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED:PSA_WANT_ALG_SHA_256:PSA_WANT_ECC_SECP_R1_256:PSA_WANT_ECC_SECP_R1_384:PSA_HAVE_ALG_ECDSA_VERIFY:MBEDTLS_SSL_SESSION_TICKETS:MBEDTLS_DEBUG_C */
 void tls13_hrr_then_tls12_second_client_hello()
 {
     int ret = -1;
-    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     mbedtls_test_ssl_endpoint client_ep, server_ep;
     memset(&client_ep, 0, sizeof(client_ep));
     memset(&server_ep, 0, sizeof(server_ep));
     mbedtls_test_handshake_test_options client_options;
     mbedtls_test_handshake_test_options server_options;
     mbedtls_ssl_session saved_session;
+    mbedtls_test_ssl_log_pattern server_pattern =
+    { "Non compliant 2nd ClientHello, TLS 1.2 version", 0 };
     uint16_t group_list[3] = {
         MBEDTLS_SSL_IANA_TLS_GROUP_SECP256R1,
         MBEDTLS_SSL_IANA_TLS_GROUP_SECP384R1,
@@ -6034,6 +6035,8 @@ void tls13_hrr_then_tls12_second_client_hello()
                                          &client_options);
     TEST_EQUAL(ret, 0);
 
+    server_options.srv_log_fun = mbedtls_test_ssl_log_analyzer;
+    server_options.srv_log_obj = &server_pattern;
     ret = mbedtls_test_ssl_endpoint_init(&server_ep, MBEDTLS_SSL_IS_SERVER,
                                          &server_options);
     TEST_EQUAL(ret, 0);
@@ -6075,16 +6078,8 @@ void tls13_hrr_then_tls12_second_client_hello()
     #endif
 
     /*
-     * Reset the client and tweak its configuration and context such as it
-     * resumes a TLS 1.2 session using an all-zeroes master secret as the
-     * server will when it receives the TLS 1.2 ClientHello.
-     * To be able to compute the Finished message the server will expect, we
-     * also initiate the handshake transcript by cloning the server current one.
-     * This transcript is the server's one after the call to
-     * `mbedtls_ssl_reset_transcript_for_hrr()`. It is computed only
-     * with the data of the first ClientHello thus a man-in-the-middle could
-     * compute it without having access to the server context. Here we use
-     * the server context just for convenience.
+     * Reset the client and force it to TLS 1.2 so that it sends a TLS 1.2
+     * ClientHello.
      */
 
     client_ep.ssl.tls_version = MBEDTLS_SSL_VERSION_TLS1_2;
@@ -6097,34 +6092,20 @@ void tls13_hrr_then_tls12_second_client_hello()
 
     ret = mbedtls_ssl_session_reset(&(client_ep.ssl));
 
-    client_ep.ssl.handshake->resume = 1;
-    client_ep.ssl.session_negotiate->tls_version = MBEDTLS_SSL_VERSION_TLS1_2;
-    memset(client_ep.ssl.session_negotiate->id, 0xa5,
-           sizeof(client_ep.ssl.session_negotiate->id));
-    client_ep.ssl.session_negotiate->id_len = sizeof(client_ep.ssl.session_negotiate->id);
-    client_ep.ssl.session_negotiate->ciphersuite =
-        MBEDTLS_TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256;
-
-    status = psa_hash_abort(&client_ep.ssl.handshake->fin_sha256_psa);
-    TEST_EQUAL(status, PSA_SUCCESS);
-
-    status = psa_hash_clone(&server_ep.ssl.handshake->fin_sha256_psa,
-                            &client_ep.ssl.handshake->fin_sha256_psa);
-    TEST_EQUAL(status, PSA_SUCCESS);
-
     /*
-     * Restart and complete the handshake.
+     * Restart and try to complete the handshake on server side which is
+     * expected to fail early.
      */
 
+    mbedtls_debug_set_threshold(1);
     ret = mbedtls_test_move_handshake_to_state(
         &(server_ep.ssl), &(client_ep.ssl),
         MBEDTLS_SSL_HANDSHAKE_OVER);
-    TEST_EQUAL(ret, 0);
+    TEST_EQUAL(ret, MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER);
 
-    ret = mbedtls_test_move_handshake_to_state(
-        &(client_ep.ssl), &(server_ep.ssl),
-        MBEDTLS_SSL_HANDSHAKE_OVER);
-    TEST_EQUAL(ret, 0);
+    TEST_EQUAL(server_pattern.counter, 1);
+    TEST_EQUAL(client_ep.ssl.state, MBEDTLS_SSL_SERVER_HELLO);
+    TEST_EQUAL(server_ep.ssl.state, MBEDTLS_SSL_CLIENT_HELLO);
 
 exit:
     mbedtls_test_ssl_endpoint_free(&client_ep);

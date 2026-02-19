@@ -1,0 +1,7 @@
+Bugfix
+   * Some functions in PK were using large buffers (around 2KB in the default
+     configuration) on the stack, which was a problem in environments with a
+     small stack. Those buffers are now allocated on the heap, except in
+     configurations where ECC is the only supported key type in PK, making PK
+     still independent of the heap in such configurations (if the ECC driver
+     itself is not using the heap). Fixes #476.

@@ -29,7 +29,10 @@
 
 /* Decide whether we're built for a Unix-like platform.
  */
-#if defined(_WIN32)
+#if defined(MBEDTLS_TEST_PLATFORM_IS_NOT_UNIXLIKE) //no-check-names
+/* We may be building on a Unix-like platform, but for test purposes,
+ * do not try to use Unix features. */
+#elif defined(_WIN32)
 /* If Windows platform interfaces are available, we use them, even if
  * a Unix-like might also to be available. */
 /* defined(_WIN32) ==> we can include <windows.h> */

@@ -14,6 +14,13 @@
 #include <time.h>
 #include <unistd.h>
 
+#else /* defined(MBEDTLS_PLATFORM_IS_UNIXLIKE) */
+
+/* Constants used in the test data need to be defined even if no test
+ * functions that use them are enabled. */
+#define CLOCK_REALTIME 0
+#define CLOCK_MONOTONIC 0
+
 #endif /* defined(MBEDTLS_PLATFORM_IS_UNIXLIKE) */
 
 /* END_HEADER */

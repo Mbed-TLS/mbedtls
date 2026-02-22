@@ -17,8 +17,12 @@
 #else /* defined(MBEDTLS_PLATFORM_IS_UNIXLIKE) */
 
 /* Constants used in the test data need to be defined even if no test
- * functions that use them are enabled. */
+ * functions that use them are enabled.
+ * Undefine the macros first in case a system header does define them
+ * even though we haven't recognized the platform as Unix-like. */
+#undef CLOCK_REALTIME
 #define CLOCK_REALTIME 0
+#undef CLOCK_MONOTONIC
 #define CLOCK_MONOTONIC 0
 
 #endif /* defined(MBEDTLS_PLATFORM_IS_UNIXLIKE) */

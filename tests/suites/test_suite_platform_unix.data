@@ -10,3 +10,7 @@ clock_gettime_available:CLOCK_REALTIME
 # CLOCK_BOOTTIME is available.
 clock_gettime(CLOCK_MONOTONIC) smoke test
 clock_gettime_available:CLOCK_MONOTONIC
+
+# Used in library/timing.c and programs/test/benchmark.c
+gettimeofday() smoke test
+gettimeofday_available:

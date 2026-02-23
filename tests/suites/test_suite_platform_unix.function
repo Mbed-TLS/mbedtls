@@ -13,6 +13,7 @@
 
 #include <time.h>
 #include <unistd.h>
+#include <sys/time.h>
 
 #else /* defined(MBEDTLS_PLATFORM_IS_UNIXLIKE) */
 
@@ -52,5 +53,16 @@ void clock_gettime_available(int clockid)
     int ret = clock_gettime(clockid, &ts);
     TEST_ASSERT_ERRNO(ret == 0);
     TEST_LE_S(1, ts.tv_sec);
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_PLATFORM_IS_UNIXLIKE */
+void gettimeofday_available()
+{
+    struct timeval tv = { 0, 0 };
+    memset(&tv, 0, sizeof(tv));
+    int ret = gettimeofday(&tv, NULL);
+    TEST_ASSERT_ERRNO(ret == 0);
+    TEST_LE_S(1, tv.tv_sec);
 }
 /* END_CASE */

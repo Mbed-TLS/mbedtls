@@ -39,6 +39,25 @@
 #include "mbedtls/platform.h" // for calloc/free
 #endif
 
+#define MBEDTLS_PK_MAX_EC_PUBKEY_RAW_LEN \
+    PSA_KEY_EXPORT_ECC_PUBLIC_KEY_MAX_SIZE(PSA_VENDOR_ECC_MAX_CURVE_BITS)
+
+#define MBEDTLS_PK_MAX_RSA_PUBKEY_RAW_LEN \
+    PSA_KEY_EXPORT_RSA_PUBLIC_KEY_MAX_SIZE(PSA_VENDOR_RSA_MAX_KEY_BITS)
+
+#define MBEDTLS_PK_MAX_PUBKEY_RAW_LEN 0
+#if (defined(MBEDTLS_ECP_C) || \
+    (defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY))) && \
+    MBEDTLS_PK_MAX_EC_PUBKEY_RAW_LEN > MBEDTLS_PK_MAX_PUBKEY_RAW_LEN
+#undef MBEDTLS_PK_MAX_PUBKEY_RAW_LEN
+#define MBEDTLS_PK_MAX_PUBKEY_RAW_LEN MBEDTLS_PK_MAX_EC_PUBKEY_RAW_LEN
+#endif
+#if (defined(MBEDTLS_RSA_C) || \
+    (defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY))) && \
+    MBEDTLS_PK_MAX_RSA_PUBKEY_RAW_LEN > MBEDTLS_PK_MAX_PUBKEY_RAW_LEN
+#undef MBEDTLS_PK_MAX_PUBKEY_RAW_LEN
+#define MBEDTLS_PK_MAX_PUBKEY_RAW_LEN MBEDTLS_PK_MAX_RSA_PUBKEY_RAW_LEN
+#endif
 
 /*
  * Initialise a mbedtls_pk_context
@@ -779,7 +798,7 @@ static int import_public_into_psa(const mbedtls_pk_context *pk,
 #if defined(MBEDTLS_RSA_C) ||                                           \
     (defined(MBEDTLS_PK_HAVE_ECC_KEYS) && !defined(MBEDTLS_PK_USE_PSA_EC_DATA)) || \
     defined(MBEDTLS_USE_PSA_CRYPTO)
-    unsigned char key_buffer[PSA_EXPORT_PUBLIC_KEY_MAX_SIZE];
+    unsigned char key_buffer[MBEDTLS_PK_MAX_PUBKEY_RAW_LEN];
 #endif
     unsigned char *key_data = NULL;
     size_t key_length = 0;

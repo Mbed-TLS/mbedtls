@@ -51,8 +51,11 @@
  *
  * The current compromise is that if ECC is the only key type supported in PK,
  * then we export keys on the stack, and otherwise we use the heap.
+ *
+ * RSA can either be used directly or indirectly via opaque keys if enabled.
  */
-#if !defined(MBEDTLS_RSA_C)
+#if !defined(MBEDTLS_RSA_C) && \
+    !(defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY))
 #define PK_EXPORT_KEYS_ON_THE_STACK
 #endif
 

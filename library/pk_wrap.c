@@ -1336,7 +1336,6 @@ static int rsa_alt_check_pair(mbedtls_pk_context *pub, mbedtls_pk_context *prv,
                               int (*f_rng)(void *, unsigned char *, size_t),
                               void *p_rng)
 {
-    unsigned char sig[MBEDTLS_MPI_MAX_SIZE];
     unsigned char hash[32];
     size_t sig_len = 0;
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
@@ -1345,21 +1344,29 @@ static int rsa_alt_check_pair(mbedtls_pk_context *pub, mbedtls_pk_context *prv,
         return MBEDTLS_ERR_RSA_KEY_CHECK_FAILED;
     }
 
+    size_t sig_size = (rsa_get_bitlen(pub) + 7) / 8;
+    unsigned char *sig = mbedtls_calloc(1, sig_size);
+    if (sig == NULL) {
+        return MBEDTLS_ERR_PK_ALLOC_FAILED;
+    }
+
     memset(hash, 0x2a, sizeof(hash));
 
     if ((ret = rsa_alt_sign_wrap(prv, MBEDTLS_MD_NONE,
                                  hash, sizeof(hash),
-                                 sig, sizeof(sig), &sig_len,
+                                 sig, sig_size, &sig_len,
                                  f_rng, p_rng)) != 0) {
-        return ret;
+        goto cleanup;
     }
 
     if (rsa_verify_wrap(pub, MBEDTLS_MD_NONE,
                         hash, sizeof(hash), sig, sig_len) != 0) {
-        return MBEDTLS_ERR_RSA_KEY_CHECK_FAILED;
+        ret = MBEDTLS_ERR_RSA_KEY_CHECK_FAILED;
     }
 
-    return 0;
+cleanup:
+    mbedtls_free(sig);
+    return ret;
 }
 #endif /* MBEDTLS_RSA_C */
 

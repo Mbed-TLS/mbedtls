@@ -39,6 +39,7 @@
 #include "mbedtls/platform.h" // for calloc/free
 #endif
 
+#if defined(MBEDTLS_PSA_CRYPTO_CLIENT)
 #define MBEDTLS_PK_MAX_EC_PUBKEY_RAW_LEN \
     PSA_KEY_EXPORT_ECC_PUBLIC_KEY_MAX_SIZE(PSA_VENDOR_ECC_MAX_CURVE_BITS)
 
@@ -58,6 +59,7 @@
 #undef MBEDTLS_PK_MAX_PUBKEY_RAW_LEN
 #define MBEDTLS_PK_MAX_PUBKEY_RAW_LEN MBEDTLS_PK_MAX_RSA_PUBKEY_RAW_LEN
 #endif
+#endif /* MBEDTLS_PSA_CRYPTO_CLIENT */
 
 /*
  * Initialise a mbedtls_pk_context

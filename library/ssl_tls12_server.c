@@ -881,12 +881,6 @@ static int ssl_parse_client_hello(mbedtls_ssl_context *ssl)
         return ret;
     }
 
-    ret = mbedtls_ssl_update_handshake_status(ssl);
-    if (0 != ret) {
-        MBEDTLS_SSL_DEBUG_RET(1, ("mbedtls_ssl_update_handshake_status"), ret);
-        return ret;
-    }
-
     buf = ssl->in_msg;
     msg_len = ssl->in_hslen;
 
@@ -1092,6 +1086,21 @@ static int ssl_parse_client_hello(mbedtls_ssl_context *ssl)
         ext_len = 0;
     }
 
+    /*
+     * Update the handshake checksum after performing preliminary
+     * validation of the ClientHello and before parsing its extensions.
+     *
+     * The checksum must be updated before parsing the extensions because
+     * ssl_parse_session_ticket_ext() may decrypt the ticket in place and
+     * therefore modify the ClientHello message. This occurs when using
+     * the Mbed TLS ssl_ticket.c implementation.
+     */
+    ret = mbedtls_ssl_update_handshake_status(ssl);
+    if (0 != ret) {
+        MBEDTLS_SSL_DEBUG_RET(1, ("mbedtls_ssl_update_handshake_status"), ret);
+        return ret;
+    }
+
     ext = buf + ext_offset + 2;
     MBEDTLS_SSL_DEBUG_BUF(3, "client hello extensions", ext, ext_len);
 
@@ -1233,7 +1242,11 @@ static int ssl_parse_client_hello(mbedtls_ssl_context *ssl)
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
             case MBEDTLS_TLS_EXT_SESSION_TICKET:
                 MBEDTLS_SSL_DEBUG_MSG(3, ("found session ticket extension"));
-
+                /*
+                 * If the Mbed TLS ssl_ticket.c implementation is used, the
+                 * ticket is decrypted in place. This modifies the ClientHello
+                 * message in the input buffer.
+                 */
                 ret = ssl_parse_session_ticket_ext(ssl, ext + 4, ext_size);
                 if (ret != 0) {
                     return ret;

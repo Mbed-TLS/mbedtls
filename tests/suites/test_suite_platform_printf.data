@@ -60,16 +60,19 @@ printf "%u", 0x80000000
 printf_integer:"%u":PRINTF_CAST_INT:-0x80000000:"2147483648"
 
 printf "%zx", 0x12345678
+depends_on:HAVE_C99_PRINTF
 printf_integer:"%zx":PRINTF_CAST_SIZE_T:0x12345678:"12345678"
 
 printf "%zu", 0x80000000
+depends_on:HAVE_C99_PRINTF
 printf_integer:"%zu":PRINTF_CAST_SIZE_T:0x80000000:"2147483648"
 
 printf "%zx", 0xffffffff
+depends_on:HAVE_C99_PRINTF
 printf_integer:"%zx":PRINTF_CAST_SIZE_T:0xffffffff:"ffffffff"
 
 printf "%zx", 0xffffffffffffffff
-depends_on:SIZE_T_AT_LEAST_64_BIT
+depends_on:HAVE_C99_PRINTF:SIZE_T_AT_LEAST_64_BIT
 printf_integer:"%zx":PRINTF_CAST_SIZE_T:0xffffffffffffffff:"ffffffffffffffff"
 
 printf "%lld", 0x7fffffffffffffff

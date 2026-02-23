@@ -19,6 +19,20 @@
 #define SIZE_T_AT_LEAST_64_BIT
 #endif
 
+/* Older Windows runtimes have a non-compliant printf family, e.g.
+ * it doesn't understand `%zu` to print a `size_t`. MSVC provides a
+ * C99-compliant printf family (at least enough for our purposes),
+ * since Visual Studio 2015. With MinGW, you get the non-compliant legacy
+ * printf by default, but can select the standard-compliant version
+ * at compile time. In the Mbed TLS 3.6 LTS, we use the default, so
+ * we can't rely on %z being understood. The debug module defines
+ * `MBEDTLS_PRINTF_SIZET` for that, and this is tested in test_suite_debug.
+ * Here we just skip the test cases that break the legacy Windows printf.
+ */
+#if !(defined(__MINGW32__))
+#define HAVE_C99_PRINTF
+#endif
+
 typedef enum {
     PRINTF_CAST_INT,
     PRINTF_CAST_UNSIGNED,

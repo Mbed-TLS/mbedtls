@@ -1,9 +1,9 @@
 Single low error
-depends_on:MBEDTLS_AES_C
-error_strerror:-0x0020:"AES - Invalid key length"
+depends_on:MBEDTLS_NET_C
+error_strerror:-0x0042:"NET - Failed to open a socket"
 
 Single high error
-depends_on:PSA_WANT_ALG_SHA_256:MBEDTLS_RSA_C:MBEDTLS_X509_CRT_PARSE_C
+depends_on:MBEDTLS_X509_CRT_PARSE_C
 error_strerror:-0x2280:"X509 - The serial tag or value is invalid"
 
 Non existing high error

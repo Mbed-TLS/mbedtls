@@ -906,3 +906,32 @@ exit:
     BLOCK_CIPHER_PSA_DONE();
 }
 /* END_CASE */
+
+/* BEGIN_CASE */
+void mbedtls_ccm_finish_boundary(int cipher_id, int mode,
+                                 int start_tag_len, int finish_tag_len,
+                                 int expected_finish_ret,
+                                 data_t *key, data_t *iv)
+{
+    mbedtls_ccm_context ctx;
+    unsigned char *tag = NULL;
+
+    mbedtls_ccm_init(&ctx);
+
+    BLOCK_CIPHER_PSA_INIT();
+    TEST_EQUAL(mbedtls_ccm_setkey(&ctx, cipher_id, key->x, key->len * 8), 0);
+    TEST_EQUAL(0, mbedtls_ccm_starts(&ctx, mode, iv->x, iv->len));
+
+    /* Use the caller-provided tag length during setup, then finish with a
+     * different tag length to exercise boundary handling/API complianece */
+    TEST_EQUAL(0, mbedtls_ccm_set_lengths(&ctx, 0, 0, (size_t) start_tag_len));
+
+    TEST_CALLOC(tag, finish_tag_len);
+    TEST_EQUAL(expected_finish_ret,
+               mbedtls_ccm_finish(&ctx, tag, finish_tag_len));
+exit:
+    mbedtls_free(tag);
+    mbedtls_ccm_free(&ctx);
+    BLOCK_CIPHER_PSA_DONE();
+}
+/* END_CASE */

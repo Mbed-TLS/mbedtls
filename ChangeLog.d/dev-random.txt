@@ -1,0 +1,4 @@
+Features
+   * The device for reading entropy on platforms without a dedicated system
+     call can now be configured with MBEDTLS_PLATFORM_DEV_RANDOM or
+     mbedtls_platform_dev_random.

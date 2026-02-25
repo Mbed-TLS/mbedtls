@@ -1204,6 +1204,20 @@
  * This is useful if your platform does not support
  * standards like the /dev/urandom or Windows CryptoAPI.
  *
+ * If you enable this macro, you will probably need to enable
+ * #MBEDTLS_ENTROPY_HARDWARE_ALT and provide a function
+ * mbedtls_hardware_poll().
+ *
+ * \note The default platform entropy function supports the following
+ *       sources:
+ *       - getrandom() on Linux (if syscall() is available at compile time);
+ *       - getrandom() on FreeBSD and DragonFlyBSD (if available at compile
+ *         time);
+ *       - `sysctl(KERN_ARND)` on FreeBSD and NetBSD;
+ *       - #MBEDTLS_PLATFORM_DEV_RANDOM on Unix-like platforms
+ *         (unless one of the above is used);
+ *       - BCryptGenRandom() on Windows.
+ *
  * Uncomment this macro to disable the built-in platform entropy functions.
  */
 //#define MBEDTLS_NO_PLATFORM_ENTROPY
@@ -4139,6 +4153,18 @@
 //#define MBEDTLS_PLATFORM_NV_SEED_WRITE_MACRO  mbedtls_platform_std_nv_seed_write /**< Default nv_seed_write function to use, can be undefined */
 //#define MBEDTLS_PLATFORM_MS_TIME_TYPE_MACRO   int64_t //#define MBEDTLS_PLATFORM_MS_TIME_TYPE_MACRO   int64_t /**< Default milliseconds time macro to use, can be undefined. MBEDTLS_HAVE_TIME must be enabled. It must be signed, and at least 64 bits. If it is changed from the default, MBEDTLS_PRINTF_MS_TIME must be updated to match.*/
 //#define MBEDTLS_PRINTF_MS_TIME    PRId64 /**< Default fmt for printf. That's avoid compiler warning if mbedtls_ms_time_t is redefined */
+
+/*** \def MBEDTLS_PLATFORM_DEV_RANDOM
+ *
+ * Path to a special file that returns cryptographic-quality random bytes
+ * when read. This is used by the default platform entropy source on
+ * non-Windows platforms unless a dedicated system call is available
+ * (see #MBEDTLS_NO_PLATFORM_ENTROPY).
+ *
+ * This is the default value of ::mbedtls_platform_dev_random, which
+ * can be changed at run time.
+ */
+//#define MBEDTLS_PLATFORM_DEV_RANDOM "/dev/urandom"
 
 /** \def MBEDTLS_CHECK_RETURN
  *

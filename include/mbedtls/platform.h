@@ -401,11 +401,10 @@ int mbedtls_platform_set_exit(void (*exit_func)(int status));
 #if defined(MBEDTLS_PLATFORM_HAVE_DEV_RANDOM)
 /**
  * Path to a special file that returns cryptographic-quality random bytes
- * when read. This is used by the default platform entropy source on
- * non-Windows platforms unless a dedicated system call is available
- * (see #MBEDTLS_NO_PLATFORM_ENTROPY).
+ * when read.
  *
  * The default value is #MBEDTLS_PLATFORM_DEV_RANDOM.
+ * See the documentation of this option for guidance.
  */
 extern const char *mbedtls_platform_dev_random;
 #endif

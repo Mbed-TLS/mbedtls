@@ -385,6 +385,31 @@ int mbedtls_platform_set_exit(void (*exit_func)(int status));
 #define MBEDTLS_EXIT_FAILURE 1
 #endif
 
+#if defined(MBEDTLS_ENTROPY_C) && \
+    !defined(MBEDTLS_NO_PLATFORM_ENTROPY) && \
+    !(defined(_WIN32) && !defined(EFIX64) && !defined(EFI32))
+/* Platforms where MBEDTLS_PLATFORM_DEV_RANDOM is used
+ * unless a dedicated system call is available both at
+ * compile time and at run time. */
+#define MBEDTLS_PLATFORM_HAVE_DEV_RANDOM
+#endif
+
+#if !defined(MBEDTLS_PLATFORM_DEV_RANDOM)
+#define MBEDTLS_PLATFORM_DEV_RANDOM "/dev/urandom"
+#endif
+
+#if defined(MBEDTLS_PLATFORM_HAVE_DEV_RANDOM)
+/**
+ * Path to a special file that returns cryptographic-quality random bytes
+ * when read. This is used by the default platform entropy source on
+ * non-Windows platforms unless a dedicated system call is available
+ * (see #MBEDTLS_NO_PLATFORM_ENTROPY).
+ *
+ * The default value is #MBEDTLS_PLATFORM_DEV_RANDOM.
+ */
+extern const char *mbedtls_platform_dev_random;
+#endif
+
 /*
  * The function pointers for reading from and writing a seed file to
  * Non-Volatile storage (NV) in a platform-independent way

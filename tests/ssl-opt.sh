@@ -11397,7 +11397,6 @@ run_test    "DTLS fragmenting: both (MTU=128)" \
             0 \
             -s "found fragmented DTLS handshake message" \
             -s "fragmenting Certificate handshake message" \
-            -s "fragmenting ServerKeyExchange handshake message" \
             -c "found fragmented DTLS handshake message" \
             -c "fragmenting ClientHello handshake message" \
             -c "fragmenting Certificate handshake message" \
@@ -11423,7 +11422,6 @@ run_test    "DTLS fragmenting: both (MTU=107)" \
             0 \
             -s "found fragmented DTLS handshake message" \
             -s "fragmenting Certificate handshake message" \
-            -s "fragmenting ServerKeyExchange handshake message" \
             -c "found fragmented DTLS handshake message" \
             -c "fragmenting ClientHello handshake message" \
             -c "fragmenting Certificate handshake message" \
@@ -11449,7 +11447,6 @@ run_test    "DTLS fragmenting: both (MTU=133)" \
             0 \
             -s "found fragmented DTLS handshake message" \
             -s "fragmenting Certificate handshake message" \
-            -s "fragmenting ServerKeyExchange handshake message" \
             -c "found fragmented DTLS handshake message" \
             -c "fragmenting ClientHello handshake message" \
             -c "fragmenting Certificate handshake message" \

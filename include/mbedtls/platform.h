@@ -395,7 +395,7 @@ int mbedtls_platform_set_exit(void (*exit_func)(int status));
 #endif
 
 #if !defined(MBEDTLS_PLATFORM_DEV_RANDOM)
-#define MBEDTLS_PLATFORM_DEV_RANDOM "/dev/urandom"
+#define MBEDTLS_PLATFORM_DEV_RANDOM "/dev/random"
 #endif
 
 #if defined(MBEDTLS_PLATFORM_HAVE_DEV_RANDOM)

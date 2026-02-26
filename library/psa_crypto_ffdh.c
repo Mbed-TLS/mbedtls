@@ -168,6 +168,10 @@ psa_status_t mbedtls_psa_ffdh_export_public_key(
     mbedtls_mpi_init(&X); mbedtls_mpi_init(&P);
 
     size_t key_len = PSA_BITS_TO_BYTES(attributes->bits);
+    if (key_len > data_size) {
+        status = PSA_ERROR_BUFFER_TOO_SMALL;
+        goto cleanup;
+    }
 
     status = mbedtls_psa_ffdh_set_prime_generator(key_len, &P, &G);
 

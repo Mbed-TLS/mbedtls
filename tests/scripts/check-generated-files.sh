@@ -126,6 +126,7 @@ check framework/scripts/generate_bignum_tests.py $(framework/scripts/generate_bi
 check framework/scripts/generate_config_tests.py $(framework/scripts/generate_config_tests.py --list)
 check framework/scripts/generate_ecp_tests.py $(framework/scripts/generate_ecp_tests.py --list)
 check framework/scripts/generate_psa_tests.py $(framework/scripts/generate_psa_tests.py --list)
+check framework/scripts/generate_psa_wrappers.py tests/include/test/psa_test_wrappers.h tests/src/psa_test_wrappers.c
 check framework/scripts/generate_test_keys.py tests/include/test/test_keys.h
 check scripts/generate_driver_wrappers.py $library_dir/psa_crypto_driver_wrappers.h $library_dir/psa_crypto_driver_wrappers_no_static.c
 
@@ -143,8 +144,3 @@ if in_mbedtls_repo; then
     # the step that creates or updates these files.
     check scripts/generate_visualc_files.pl visualc/VS2017
 fi
-
-# Generated files that are present in the repository even in the development
-# branch. (This is intended to be temporary, until the generator scripts are
-# fully reviewed and the build scripts support a generated header file.)
-check framework/scripts/generate_psa_wrappers.py tests/include/test/psa_test_wrappers.h tests/src/psa_test_wrappers.c

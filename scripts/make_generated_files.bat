@@ -23,6 +23,7 @@ python framework\scripts\generate_bignum_tests.py || exit /b 1
 python framework\scripts\generate_config_tests.py || exit /b 1
 python framework\scripts\generate_ecp_tests.py || exit /b 1
 python framework\scripts\generate_psa_tests.py || exit /b 1
+python framework\scripts\generate_psa_wrappers.py || exit /b 1
 python framework\scripts\generate_test_keys.py --output tests\include\test\test_keys.h || exit /b 1
 python framework\scripts\generate_test_cert_macros.py --output tests\include\test\test_certs.h || exit /b 1
 python scripts\generate_tls_handshake_tests.py || exit /b 1

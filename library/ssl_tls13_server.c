@@ -1776,6 +1776,11 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
         return MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER;
     }
 
+    if (handshake->key_exchange_mode !=
+        MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK) {
+        hrr_required = (no_usable_share_for_key_agreement != 0);
+    }
+
 #if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_PSK_ENABLED)
     if (handshake->key_exchange_mode &
         MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ALL) {
@@ -1786,16 +1791,11 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
                                   ((unsigned) psk.ciphersuite_info->id),
                                   psk.ciphersuite_info->name));
 
-        if (psk.type == MBEDTLS_SSL_TLS1_3_PSK_RESUMPTION) {
+        if (psk.type == MBEDTLS_SSL_TLS1_3_PSK_RESUMPTION && (!hrr_required)) {
             handshake->resume = 1;
         }
     }
 #endif
-
-    if (handshake->key_exchange_mode !=
-        MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK) {
-        hrr_required = (no_usable_share_for_key_agreement != 0);
-    }
 
     mbedtls_ssl_optimize_checksum(ssl, handshake->ciphersuite_info);
 

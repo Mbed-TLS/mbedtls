@@ -1,0 +1,4 @@
+Security
+   * Fix a NULL pointer dereference in mbedtls_x509_string_to_names() when
+     mbedtls_calloc() fails to allocate memory. This was caused by failing to
+     check whether mbedtls_calloc() returned NULL.

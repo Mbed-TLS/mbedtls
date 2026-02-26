@@ -14,16 +14,6 @@ component_check_recursion () {
     ./framework/scripts/recursion.pl library/*.c
 }
 
-support_check_generated_files () {
-    # Add requirements on the Python installation here for
-    # the sake of check_committed_generated_files.py in mbedtls.
-    #
-    # Check the Python version, not the presence of the package,
-    # because the CI runs `all.sh --list-components` outside of the
-    # venv that has our desired packages.
-    :
-}
-
 component_check_generated_files () {
     msg "Check make_generated_files.py consistency"
     $MAKE_COMMAND neat
@@ -55,7 +45,19 @@ component_check_generated_files () {
 
     # This component ends with the generated files present in the source tree.
     # This is necessary for subsequent components!
+}
 
+support_check_committed_generated_files () {
+    # Add requirements on the Python installation here for
+    # the sake of check_committed_generated_files.py in mbedtls.
+    #
+    # Check the Python version, not the presence of the package,
+    # because the CI runs `all.sh --list-components` outside of the
+    # venv that has our desired packages.
+    :
+}
+
+component_check_committed_generated_files () {
     msg "Check committed generated files"
     tests/scripts/check_committed_generated_files.py
 }

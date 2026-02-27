@@ -47,8 +47,7 @@
     PSA_KEY_EXPORT_RSA_PUBLIC_KEY_MAX_SIZE(PSA_VENDOR_RSA_MAX_KEY_BITS)
 
 #define MBEDTLS_PK_MAX_PUBKEY_RAW_LEN 0
-#if (defined(MBEDTLS_ECP_C) || \
-    (defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY))) && \
+#if defined(MBEDTLS_PK_HAVE_ECC_KEYS) && \
     MBEDTLS_PK_MAX_EC_PUBKEY_RAW_LEN > MBEDTLS_PK_MAX_PUBKEY_RAW_LEN
 #undef MBEDTLS_PK_MAX_PUBKEY_RAW_LEN
 #define MBEDTLS_PK_MAX_PUBKEY_RAW_LEN MBEDTLS_PK_MAX_EC_PUBKEY_RAW_LEN
@@ -720,8 +719,7 @@ static int import_pair_into_psa(const mbedtls_pk_context *pk,
                                                        key_data, key_length,
                                                        key_id));
 cleanup_rsa:
-            mbedtls_platform_zeroize(key_buffer, key_buffer_size);
-            mbedtls_free(key_buffer);
+            mbedtls_zeroize_and_free(key_buffer, key_buffer_size);
             return ret;
         }
 #endif /* MBEDTLS_RSA_C */
@@ -924,8 +922,7 @@ static int is_valid_for_pk(psa_key_type_t key_type)
     }
 #endif
 #if defined(MBEDTLS_RSA_C)
-    if (key_type == PSA_KEY_TYPE_RSA_PUBLIC_KEY ||
-        key_type == PSA_KEY_TYPE_RSA_KEY_PAIR) {
+    if (PSA_KEY_TYPE_IS_RSA(key_type)) {
         return 1;
     }
 #endif

@@ -255,16 +255,16 @@ libtestdriver1.a:
 	cp -Rf ../tf-psa-crypto/drivers/builtin ./libtestdriver1/tf-psa-crypto/drivers/builtin
 	if [ -d ../tf-psa-crypto/dispatch ]; then \
 	    cp -Rf ../tf-psa-crypto/dispatch ./libtestdriver1/tf-psa-crypto/dispatch; \
-        fi
+	fi
 	if [ -d ../tf-psa-crypto/extras ]; then \
 	    cp -Rf ../tf-psa-crypto/extras ./libtestdriver1/tf-psa-crypto/extras; \
-        fi
+	fi
 	if [ -d ../tf-psa-crypto/platform ]; then \
 	    cp -Rf ../tf-psa-crypto/platform ./libtestdriver1/tf-psa-crypto/platform; \
-        fi
+	fi
 	if [ -d ../tf-psa-crypto/utilities ]; then \
 	    cp -Rf ../tf-psa-crypto/utilities ./libtestdriver1/tf-psa-crypto/utilities; \
-        fi
+	fi
 	cp -Rf ../tf-psa-crypto/scripts ./libtestdriver1/tf-psa-crypto
 
 	# Set the test driver base (minimal) configuration.

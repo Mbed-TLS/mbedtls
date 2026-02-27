@@ -4177,8 +4177,8 @@
  *   devices without an interactive user.
  *
  * Thus you should change the value to `/dev/urandom` if your application
- * may be used on a device running Linux without a dedicated hardware
- * entropy source, and doesn't run early during or after boot.
+ * definitely won't be used on a device running Linux without a dedicated
+ * entropy source early during or after boot.
  *
  * This is the default value of ::mbedtls_platform_dev_random, which
  * can be changed at run time.

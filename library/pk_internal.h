@@ -53,6 +53,7 @@
  * then we export keys on the stack, and otherwise we use the heap.
  *
  * RSA can either be used directly or indirectly via opaque keys if enabled.
+ * (RSA_ALT is not relevant here as we can't export from such contexts.)
  */
 #if !defined(MBEDTLS_RSA_C) && \
     !(defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY))

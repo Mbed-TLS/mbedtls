@@ -1365,7 +1365,7 @@ static int rsa_alt_check_pair(mbedtls_pk_context *pub, mbedtls_pk_context *prv,
     }
 
 cleanup:
-    mbedtls_free(sig);
+    mbedtls_zeroize_and_free(sig, sig_size);
     return ret;
 }
 #endif /* MBEDTLS_RSA_C */

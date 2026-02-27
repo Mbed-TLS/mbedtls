@@ -13,10 +13,18 @@ Config: ECC: Montgomery curves only
 depends_on:!MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED:MBEDTLS_ECP_MONTGOMERY_ENABLED
 pass:
 
-Config: PK export keys on the stack (ECC is the only PK key type)
-depends_on:PK_EXPORT_KEYS_ON_THE_STACK
+Config: PK export keys on the stack (PK is ECC-only) (USE_PSA)
+depends_on:PK_EXPORT_KEYS_ON_THE_STACK:MBEDTLS_USE_PSA_CRYPTO
 pass:
 
-Config: PK export keys on the heap (ECC is not the only PK key type)
-depends_on:!PK_EXPORT_KEYS_ON_THE_STACK
+Config: PK export keys on the stack (PK is ECC-only) (!USE_PSA)
+depends_on:PK_EXPORT_KEYS_ON_THE_STACK:!MBEDTLS_USE_PSA_CRYPTO
+pass:
+
+Config: PK export keys on the heap (PK is not ECC-only) (USE_PSA)
+depends_on:!PK_EXPORT_KEYS_ON_THE_STACK:MBEDTLS_USE_PSA_CRYPTO
+pass:
+
+Config: PK export keys on the heap (PK is not ECC-only) (!USE_PSA)
+depends_on:!PK_EXPORT_KEYS_ON_THE_STACK:!MBEDTLS_USE_PSA_CRYPTO
 pass:

@@ -5619,7 +5619,7 @@ int mbedtls_ssl_export_keying_material(mbedtls_ssl_context *ssl,
  *                    by AEAD modes.
  *
  * \warning           The derived traffic keys and IVs are highly
- *                    sensitive material. It is the caller’s
+ *                    sensitive material. It is the caller's
  *                    responsibility to securely erase (\c zeroize)
  *                    the contents of the \p keys structure once the
  *                    keys are no longer needed.

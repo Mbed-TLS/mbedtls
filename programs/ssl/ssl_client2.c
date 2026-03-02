@@ -5,13 +5,7 @@
  *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
-#define MBEDTLS_ALLOW_PRIVATE_ACCESS
-
-#include "mbedtls/private/pk_private.h"
-
 #include "ssl_test_lib.h"
-
-#include "test/psa_crypto_helpers.h"
 
 #if defined(MBEDTLS_SSL_TEST_IMPOSSIBLE)
 int main(void)
@@ -26,6 +20,8 @@ int main(void)
     mbedtls_exit(0);
 }
 #else /* !MBEDTLS_SSL_TEST_IMPOSSIBLE && MBEDTLS_SSL_CLI_C */
+
+#include "test/psa_crypto_helpers.h"
 
 /* Size of memory to be allocated for the heap, when using the library's memory
  * management and MBEDTLS_MEMORY_BUFFER_ALLOC_C is enabled. */

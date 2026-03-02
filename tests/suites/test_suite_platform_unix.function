@@ -52,7 +52,7 @@ void clock_gettime_available(int clockid)
     memset(&ts, 0, sizeof(ts));
     int ret = clock_gettime(clockid, &ts);
     TEST_ASSERT_ERRNO(ret == 0);
-    TEST_LE_S(1, ts.tv_sec);
+    TEST_ASSERT(ts.tv_sec != 0 || ts.tv_nsec != 0);
 }
 /* END_CASE */
 

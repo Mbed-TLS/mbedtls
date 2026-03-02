@@ -33,6 +33,10 @@
  */
 #include "mbedtls_platform_requirements.h"
 
+/* From this point onwards, ensure we have the library configuration and
+ * the configuration-derived macros. */
+#include <mbedtls/build_info.h>
+
 /* Mbed TLS requires TF-PSA-Crypto internals. */
 #include "tf_psa_crypto_common.h"
 

@@ -488,6 +488,11 @@ int mbedtls_ccm_finish(mbedtls_ccm_context *ctx,
         return MBEDTLS_ERR_CCM_BAD_INPUT;
     }
 
+    if ((tag_len != 0 && (tag_len < 4 || tag_len > 16 || (tag_len & 1) != 0)) ||
+        (tag_len != ctx->tag_len)) {
+        return MBEDTLS_ERR_CCM_BAD_INPUT;
+    }
+
     /*
      * Authentication: reset counter and crypt/mask internal tag
      */

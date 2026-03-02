@@ -1,7 +1,19 @@
 /**
  * \file mbedtls_common.h
  *
- * \brief Utility macros for internal use in the library
+ * \brief Utility macros for internal use in the library.
+ *
+ * This file should be included as the first thing in all library C files
+ * (directly, or indirectly via x509_internal.h or ssl_misc.h).
+ * It must not be included by sample programs, since sample programs
+ * illustrate what you can do without the library sources.
+ * It may be included (often indirectly) by test code that isn't purely
+ * black-box testing.
+ *
+ * This file takes care of setting up requirements for platform headers.
+ * It includes the library configuration and derived macros.
+ * It additionally defines various utility macros and other definitions
+ * (but no function declarations).
  */
 /*
  *  Copyright The Mbed TLS Contributors

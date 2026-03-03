@@ -19,10 +19,6 @@ LOCAL_CFLAGS += $(TF_PSA_CRYPTO_LIBRARY_PRIVATE_INCLUDE)
 # on non-POSIX platforms.
 LOCAL_CFLAGS += -D_POSIX_C_SOURCE=200809L
 
-ifdef RECORD_PSA_STATUS_COVERAGE_LOG
-LOCAL_CFLAGS += -Werror -DRECORD_PSA_STATUS_COVERAGE_LOG
-endif
-
 GENERATED_MBEDTLS_CONFIG_DATA_FILES := $(patsubst tests/%,%,$(shell \
 	$(PYTHON) ../framework/scripts/generate_config_tests.py --list || \
 	echo FAILED \
@@ -110,12 +106,6 @@ include/test/test_keys.h: ../framework/scripts/generate_test_keys.py
 	$(PYTHON) ../framework/scripts/generate_test_keys.py --output $@
 
 TEST_OBJS_DEPS = $(wildcard include/test/*.h include/test/*/*.h)
-ifdef RECORD_PSA_STATUS_COVERAGE_LOG
-# Explicitly depend on this header because on a clean copy of the source tree,
-# it doesn't exist yet and must be generated as part of the build, and
-# therefore the wildcard enumeration above doesn't include it.
-TEST_OBJS_DEPS += ../framework/tests/include/test/instrument_record_status.h
-endif
 TEST_OBJS_DEPS += include/test/test_certs.h include/test/test_keys.h \
                   ../tf-psa-crypto/tests/include/test/test_keys.h
 
@@ -311,9 +301,3 @@ libtestdriver1.a:
 	fi
 	$(MAKE) -C ./libtestdriver1/library CFLAGS="-I../../ $(CFLAGS)" LDFLAGS="$(LDFLAGS)" libmbedcrypto.a
 	cp ./libtestdriver1/library/libmbedcrypto.a ../library/libtestdriver1.a
-
-ifdef RECORD_PSA_STATUS_COVERAGE_LOG
-../framework/tests/include/test/instrument_record_status.h: ../tf-psa-crypto/include/psa/crypto.h Makefile
-	echo "  Gen  $@"
-	sed <../tf-psa-crypto/include/psa/crypto.h >$@ -n 's/^psa_status_t \([A-Za-z0-9_]*\)(.*/#define \1(...) RECORD_STATUS("\1", \1(__VA_ARGS__))/p'
-endif

@@ -493,15 +493,6 @@ component_test_everest_curve25519_only () {
     ctest
 }
 
-component_test_psa_collect_statuses () {
-  msg "build+test: psa_collect_statuses" # ~30s
-  scripts/config.py full
-  tests/scripts/psa_collect_statuses.py
-  # Check that psa_crypto_init() succeeded at least once
-  grep -q '^0:psa_crypto_init:' tests/statuses.log
-  rm -f tests/statuses.log
-}
-
 # Check that the specified libraries exist and are empty.
 are_empty_libraries () {
   nm "$@" >/dev/null 2>/dev/null

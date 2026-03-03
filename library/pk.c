@@ -1245,7 +1245,7 @@ int mbedtls_pk_verify_ext(mbedtls_pk_type_t type, const void *options,
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     if (pss_opts->mgf1_hash_id == md_alg) {
-        unsigned char buf[MBEDTLS_PK_RSA_PUB_DER_MAX_BYTES];
+        unsigned char buf[PSA_KEY_EXPORT_RSA_PUBLIC_KEY_MAX_SIZE(PSA_VENDOR_RSA_MAX_KEY_BITS)];
         unsigned char *p;
         int key_len;
         size_t signature_length;

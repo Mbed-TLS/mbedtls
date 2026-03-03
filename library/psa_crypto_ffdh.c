@@ -298,6 +298,17 @@ psa_status_t mbedtls_psa_ffdh_key_agreement(
 
     /* RFC 7919 5.1: validate the peer's public key: 1 < GY < P-1
      *
+     * This check is sufficient to ensure GY is not of low order, because we're
+     * using a safe prime (that is, q = (p-1) / 2 is also prime), so the only
+     * group elements of low order are 1 and p-1. (Obviously we also want to
+     * exclude 0 that is not a group element, and values >= p as they are not
+     * residues mod p.)
+     *
+     * Note: we know we're using a safe prime because the only FFDH groups
+     * defined by the PSA spec are from RFC 7919 (since version 1.0) and RFC
+     * 3525 (since v1.4, not yet supported in tf-psa-crypto as of writing this
+     * comment), which both use safe primes.
+     *
      * Note: NIST SP 800-56Ar3 5.7.1.1 (2) has the check on the shared secret,
      * but checking before is equivalent (unless our secret key is exactly
      * (p-1)/2, which has negligible probability and can't be influenced by the

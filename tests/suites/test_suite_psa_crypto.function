@@ -9918,11 +9918,45 @@ void key_agreement(int alg_arg,
                                      bad_peer_key, bad_peer_key_len,
                                      output, expected_output->len,
                                      &output_length));
-    mbedtls_free(bad_peer_key);
-    bad_peer_key = NULL;
     mbedtls_free(output);
     output = NULL;
     output_length = ~0;
+    mbedtls_free(bad_peer_key);
+    bad_peer_key = NULL;
+
+    /* Input buffer (peer key) too large (leading 0) */
+    bad_peer_key_len = peer_key_data->len + 1;
+    TEST_CALLOC(bad_peer_key, bad_peer_key_len);
+    bad_peer_key[0] = 0x00;
+    memcpy(bad_peer_key + 1, peer_key_data->x, peer_key_data->len);
+    TEST_CALLOC(output, expected_output->len);
+    TEST_EQUAL(PSA_ERROR_INVALID_ARGUMENT,
+               psa_raw_key_agreement(alg, our_key,
+                                     bad_peer_key, bad_peer_key_len,
+                                     output, expected_output->len,
+                                     &output_length));
+    mbedtls_free(output);
+    output = NULL;
+    output_length = ~0;
+    mbedtls_free(bad_peer_key);
+    bad_peer_key = NULL;
+
+    /* Input buffer (peer key) too large (larger value) */
+    bad_peer_key_len = peer_key_data->len + 1;
+    TEST_CALLOC(bad_peer_key, bad_peer_key_len);
+    bad_peer_key[0] = 0x01;
+    memcpy(bad_peer_key + 1, peer_key_data->x, peer_key_data->len);
+    TEST_CALLOC(output, expected_output->len);
+    TEST_EQUAL(PSA_ERROR_INVALID_ARGUMENT,
+               psa_raw_key_agreement(alg, our_key,
+                                     bad_peer_key, bad_peer_key_len,
+                                     output, expected_output->len,
+                                     &output_length));
+    mbedtls_free(output);
+    output = NULL;
+    output_length = ~0;
+    mbedtls_free(bad_peer_key);
+    bad_peer_key = NULL;
 
     /* Output buffer too small */
     TEST_CALLOC(output, expected_output->len - 1);

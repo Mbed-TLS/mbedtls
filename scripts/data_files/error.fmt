@@ -1,11 +1,11 @@
-/*
+/* -*-c-*-
  *  Error message information
  *
  *  Copyright The Mbed TLS Contributors
  *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
-#include "tf_psa_crypto_common.h"
+#include "mbedtls_common.h"
 
 #include "mbedtls/error.h"
 

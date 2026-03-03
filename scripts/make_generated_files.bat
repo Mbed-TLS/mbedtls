@@ -12,4 +12,4 @@ python framework\scripts\make_generated_files.py || exit /b 1
 cd ..
 
 @rem @@@@ mbedtls @@@@
-python framework\scripts\make_generated_files.py || exit /b 1
+python scripts\make_generated_files.py || exit /b 1

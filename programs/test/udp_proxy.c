@@ -360,7 +360,9 @@ static unsigned elapsed_time(void)
         return 0;
     }
 
-    return mbedtls_timing_get_timer(&hires, 0);
+    /* Wraps after ~49.7 days (assuming 32-bit int).
+     * Don't run udp_proxy that long! */
+    return (unsigned) mbedtls_timing_get_timer(&hires, 0);
 }
 
 typedef struct {

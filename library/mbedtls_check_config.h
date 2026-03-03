@@ -142,11 +142,6 @@
         "but no key exchange methods defined with MBEDTLS_KEY_EXCHANGE_xxxx"
 #endif
 
-#if defined(MBEDTLS_SSL_PROTO_TLS1_2) && \
-    !(defined(PSA_WANT_ALG_SHA_1) || defined(PSA_WANT_ALG_SHA_256) || defined(PSA_WANT_ALG_SHA_512))
-#error "MBEDTLS_SSL_PROTO_TLS1_2 defined, but not all prerequisites"
-#endif
-
 #if defined(MBEDTLS_SSL_EARLY_DATA) && \
     ( !defined(MBEDTLS_SSL_SESSION_TICKETS) || \
       ( !defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED) && \
@@ -361,6 +356,11 @@
     ( !defined(MBEDTLS_X509_CRL_PARSE_C) ) || \
     ( !defined(MBEDTLS_MD_C) ) )
 #error  "MBEDTLS_PKCS7_C is defined, but not all prerequisites"
+#endif
+
+#if defined(MBEDTLS_TIMING_C) && \
+    !(defined(MBEDTLS_HAVE_TIME) || defined(MBEDTLS_TIMING_ALT))
+#error "MBEDTLS_TIMING_C requires either MBEDTLS_HAVE_TIME or MBEDTLS_TIMING_ALT"
 #endif
 
 /* *INDENT-ON* */

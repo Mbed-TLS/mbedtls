@@ -21,6 +21,30 @@
 /* DEBUG_BUF_SIZE must be at least 2 */
 #define DEBUG_BUF_SIZE      512
 
+/* Temporary hack: on MingW, do not honor the platform.h configuration
+ * for snprintf and vsnprintf. Instead, force the native functions,
+ * which are the standard ones, not the Windows legacy ones.
+ *
+ * This hack should be removed once TF-PSA-Crypto has been updated to
+ * use the standard printf family.
+ */
+#if defined(__MINGW32__)
+#undef mbedtls_snprintf
+#define mbedtls_snprintf snprintf
+#undef mbedtls_vsnprintf
+#define mbedtls_vsnprintf vsnprintf
+#endif
+
+int mbedtls_debug_snprintf(char *dest, size_t maxlen,
+                           const char *format, ...)
+{
+    va_list argp;
+    va_start(argp, format);
+    int ret = mbedtls_vsnprintf(dest, maxlen, format, argp);
+    va_end(argp);
+    return ret;
+}
+
 static int debug_threshold = 0;
 
 void mbedtls_debug_set_threshold(int threshold)

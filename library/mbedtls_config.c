@@ -6,6 +6,10 @@
  *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
+/* We are a special snowflake: we don't include "mbedtls_common.h",
+ * because that would pull <mbedtls/build_info.h> and we need to
+ * tune the way it works. */
+
 /* Apply the TF-PSA-Crypto configuration first. We need to do this
  * before <mbedtls/build_info.h>, because "mbedtls_config_check_before.h"
  * needs to run after the crypto config (including derived macros) is

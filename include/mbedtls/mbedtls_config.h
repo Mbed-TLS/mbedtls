@@ -63,22 +63,9 @@
 /**
  * \def MBEDTLS_TIMING_C
  *
- * Enable the semi-portable timing interface.
+ * Enable a timer interface used by some sample and test programs.
  *
- * \note The provided implementation only works on POSIX/Unix (including Linux,
- * BSD and OS X) and Windows. On other platforms, you can either disable that
- * module and provide your own implementations of the callbacks needed by
- * \c mbedtls_ssl_set_timer_cb() for DTLS, or leave it enabled and provide
- * your own implementation of the whole module by setting
- * \c MBEDTLS_TIMING_ALT in the current file.
- *
- * \note The timing module will include time.h on suitable platforms
- *       regardless of the setting of MBEDTLS_HAVE_TIME, unless
- *       MBEDTLS_TIMING_ALT is used. See timing.c for more information.
- *
- * \note See also our Knowledge Base article about porting to a new
- * environment:
- * https://mbed-tls.readthedocs.io/en/latest/kb/how-to/how-do-i-port-mbed-tls-to-a-new-environment-OS
+ * Requires: MBEDTLS_HAVE_TIME or MBEDTLS_TIMING_ALT
  *
  * Module:  library/timing.c
  */

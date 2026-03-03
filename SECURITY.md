@@ -19,6 +19,16 @@ Only the maintained branches, as listed in [`BRANCHES.md`](BRANCHES.md),
 get security fixes.
 Users are urged to always use the latest version of a maintained branch.
 
+## Use of TF-PSA-Crypto
+
+Note that Mbed TLS uses the cryptography API provided by TF-PSA-Crypto.
+Its
+[threat model](https://github.com/Mbed-TLS/TF-PSA-Crypto/blob/development/SECURITY.md#threat-model)
+applies to all cryptographic operations performed by Mbed TLS. In particular,
+users of Mbed TLS should note the considerations around
+[block ciphers](https://github.com/Mbed-TLS/TF-PSA-Crypto/blob/development/SECURITY.md#block-ciphers)
+since they apply to the block ciphers used in TLS.
+
 ## Threat model
 
 We classify attacks based on the capabilities of the attacker.

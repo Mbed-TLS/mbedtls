@@ -9873,6 +9873,8 @@ void key_agreement(int alg_arg,
     TEST_LE_U(PSA_RAW_KEY_AGREEMENT_OUTPUT_SIZE(our_key_type, key_bits),
               PSA_RAW_KEY_AGREEMENT_OUTPUT_MAX_SIZE);
 
+    /* Note: the case where we expect PSA_ERROR_BUFFER_TOO_SMALL is not covered
+     * by separate test data, but by additional code below in this function. */
     const size_t output_alloc_size = expected_status == PSA_SUCCESS ?
                                      expected_output->len :
                                      PSA_RAW_KEY_AGREEMENT_OUTPUT_SIZE(our_key_type, key_bits);

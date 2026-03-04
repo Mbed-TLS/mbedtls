@@ -524,23 +524,8 @@ psa_status_t mbedtls_psa_external_get_random(
  *   multiple times, call this function after resuming so that each
  *   resumed instance has a distinct random generator state.
  * - If the process is cloned through the fork() system call, the
- *   library will detect it in most circumstances, so you generally do
- *   not need to call this function. This detection is based on a
- *   process ID (PID) change. You need to call this function in at least
- *   the parent or the child process in cases where the library might not
- *   observe a process ID change, such as:
- *     - If the child forks another process before invoking the random
- *       generator, but after the original process has died. In this case,
- *       it is rare but possible for the grandchild to have the same PID
- *       as the original process.
- *     - When using the Linux clone() system call with the `CLONE_NEWPID`
- *       flag to put the child process in its own PID namespace, and the
- *       original process has PID 1.
- *     - When the child is moved to a new or existing PID namespace before
- *       any call to the PSA random generator, and the PID in the child's
- *       namespace might match the PID of the original process.
- *     - When using the Linux clone3() system call with a `set_tid` array
- *       to force the PID of the new process.
+ *   child process should call this function before using the random
+ *   generator.
  *
  * An additional consideration applies in configurations where there is no
  * actual entropy source, only a nonvolatile seed (i.e.

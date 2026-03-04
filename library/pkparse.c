@@ -112,7 +112,9 @@ static int pk_group_from_specified(const mbedtls_asn1_buf *params, mbedtls_ecp_g
     unsigned char *p = params->p;
     const unsigned char *const end = params->p + params->len;
     const unsigned char *end_field, *end_curve;
+    mbedtls_mpi tmp;
     size_t len;
+    size_t plen;
     int ver;
 
     /* SpecifiedECDomainVersion ::= INTEGER { 1, 2, 3 } */
@@ -192,6 +194,20 @@ static int pk_group_from_specified(const mbedtls_asn1_buf *params, mbedtls_ecp_g
         (ret = mbedtls_mpi_read_binary(&grp->A, p, len)) != 0) {
         return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PK_KEY_INVALID_FORMAT, ret);
     }
+    /*
+     * If A == -3 mod p, the group is stored with an empty A parameter,
+     * see mbedtls_ecp_group_a_is_minus_3
+     */
+    mbedtls_mpi_init(&tmp);
+    if((ret = mbedtls_mpi_sub_int(&tmp, &grp->P, 3)) != 0) {
+        mbedtls_mpi_free(&tmp);
+        return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PK_KEY_INVALID_FORMAT, ret);
+    }
+    if(mbedtls_mpi_cmp_mpi(&tmp, &grp->A) == 0) {
+        mbedtls_mpi_free(&grp->A);
+        mbedtls_mpi_init(&grp->A);
+    }
+    mbedtls_mpi_free(&tmp);
 
     p += len;
 
@@ -219,20 +235,30 @@ static int pk_group_from_specified(const mbedtls_asn1_buf *params, mbedtls_ecp_g
         return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PK_KEY_INVALID_FORMAT, ret);
     }
 
-    if ((ret = mbedtls_ecp_point_read_binary(grp, &grp->G,
-                                             (const unsigned char *) p, len)) != 0) {
+    /*
+     * We can't read the point using mbedtls_ecp_point_read_binary,
+     * as it recursively uses grp->G form to select the key format.
+     * Instead we manually parse the point.
+     */
+    plen = mbedtls_mpi_size(&grp->P);
+    if (len == 2 * plen + 1 && p[0] == 0x04) {
+        if (mbedtls_mpi_read_binary(&grp->G.X, p + 1, plen) != 0 ||
+            mbedtls_mpi_read_binary(&grp->G.Y, p + 1 + plen, plen) != 0 ||
+            mbedtls_mpi_lset(&grp->G.Z, 1) != 0) {
+            return MBEDTLS_ERR_PK_KEY_INVALID_FORMAT;
+        }
+    } else if (len == plen + 1 && (p[0] == 0x02 || p[0] == 0x03)) {
         /*
          * If we can't read the point because it's compressed, cheat by
          * reading only the X coordinate and the parity bit of Y.
          */
-        if (ret != MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE ||
-            (p[0] != 0x02 && p[0] != 0x03) ||
-            len != mbedtls_mpi_size(&grp->P) + 1 ||
-            mbedtls_mpi_read_binary(&grp->G.X, p + 1, len - 1) != 0 ||
+        if (mbedtls_mpi_read_binary(&grp->G.X, p + 1, plen) != 0 ||
             mbedtls_mpi_lset(&grp->G.Y, p[0] - 2) != 0 ||
             mbedtls_mpi_lset(&grp->G.Z, 1) != 0) {
             return MBEDTLS_ERR_PK_KEY_INVALID_FORMAT;
         }
+    } else {
+        return MBEDTLS_ERR_PK_KEY_INVALID_FORMAT;
     }
 
     p += len;

@@ -1,7 +1,3 @@
 Security
-   * Fix a buffer overflow in psa_export_public_key() for FFDH keys.
-     Previously we calculated the key length and wrote that much data to the
-     output buffer, regardless of the output buffer length. Fix this by always
-     checking that the key length is less than the output buffer length before
-     performing the copy and return PSA_ERROR_BUFFER_TOO_SMALL if the output
-     buffer is too small.
+   * Fix a buffer overflow in psa_export_public_key() for FFDH keys when the
+     output buffer is too small.

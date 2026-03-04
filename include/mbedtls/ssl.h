@@ -3668,6 +3668,146 @@ void mbedtls_ssl_conf_psk_cb(mbedtls_ssl_config *conf,
 #endif /* MBEDTLS_SSL_HANDSHAKE_WITH_PSK_ENABLED */
 
 /**
+ * This structure defines each entry of the macro #MBEDTLS_SSL_IANA_TLS_GROUPS_INFO.
+ *
+ * \note Future versions of the library might add new fields to this structure.
+ */
+typedef struct {
+    /** TLS-ID */
+    uint16_t tls_id;
+
+    /** Group name */
+    const char *group_name;
+
+    /** 1 if the group is supported; 0 otherwise */
+    uint8_t is_supported;
+} mbedtls_ssl_iana_tls_group_info_t;
+
+/* Helpers to check which PSA_WANT_xxx symbols are defined for groups. */
+#if defined(PSA_WANT_ECC_MONTGOMERY_255)
+#define MBEDTLS_SSL_HAVE_GROUP_X25519 1
+#else
+#define MBEDTLS_SSL_HAVE_GROUP_X25519 0
+#endif
+#if defined(PSA_WANT_ECC_SECP_R1_256)
+#define MBEDTLS_SSL_HAVE_GROUP_SECP256R1 1
+#else
+#define MBEDTLS_SSL_HAVE_GROUP_SECP256R1 0
+#endif
+#if defined(PSA_WANT_ECC_SECP_K1_256)
+#define MBEDTLS_SSL_HAVE_GROUP_SECP256K1 1
+#else
+#define MBEDTLS_SSL_HAVE_GROUP_SECP256K1 0
+#endif
+#if defined(PSA_WANT_ECC_SECP_R1_384)
+#define MBEDTLS_SSL_HAVE_GROUP_SECP384R1 1
+#else
+#define MBEDTLS_SSL_HAVE_GROUP_SECP384R1 0
+#endif
+#if defined(PSA_WANT_ECC_MONTGOMERY_448)
+#define MBEDTLS_SSL_HAVE_GROUP_X448 1
+#else
+#define MBEDTLS_SSL_HAVE_GROUP_X448 0
+#endif
+#if defined(PSA_WANT_ECC_SECP_R1_521)
+#define MBEDTLS_SSL_HAVE_GROUP_SECP521R1 1
+#else
+#define MBEDTLS_SSL_HAVE_GROUP_SECP521R1 0
+#endif
+#if defined(PSA_WANT_ECC_BRAINPOOL_P_R1_256)
+#define MBEDTLS_SSL_HAVE_GROUP_BP256R1 1
+#else
+#define MBEDTLS_SSL_HAVE_GROUP_BP256R1 0
+#endif
+#if defined(PSA_WANT_ECC_BRAINPOOL_P_R1_384)
+#define MBEDTLS_SSL_HAVE_GROUP_BP384R1 1
+#else
+#define MBEDTLS_SSL_HAVE_GROUP_BP384R1 0
+#endif
+#if defined(PSA_WANT_ECC_BRAINPOOL_P_R1_512)
+#define MBEDTLS_SSL_HAVE_GROUP_BP512R1 1
+#else
+#define MBEDTLS_SSL_HAVE_GROUP_BP512R1 0
+#endif
+#if defined(PSA_WANT_DH_RFC7919_2048)
+#define MBEDTLS_SSL_HAVE_GROUP_FFDHE2048 1
+#else
+#define MBEDTLS_SSL_HAVE_GROUP_FFDHE2048 0
+#endif
+#if defined(PSA_WANT_DH_RFC7919_3072)
+#define MBEDTLS_SSL_HAVE_GROUP_FFDHE3072 1
+#else
+#define MBEDTLS_SSL_HAVE_GROUP_FFDHE3072 0
+#endif
+#if defined(PSA_WANT_DH_RFC7919_4096)
+#define MBEDTLS_SSL_HAVE_GROUP_FFDHE4096 1
+#else
+#define MBEDTLS_SSL_HAVE_GROUP_FFDHE4096 0
+#endif
+#if defined(PSA_WANT_DH_RFC7919_6144)
+#define MBEDTLS_SSL_HAVE_GROUP_FFDHE6144 1
+#else
+#define MBEDTLS_SSL_HAVE_GROUP_FFDHE6144 0
+#endif
+#if defined(PSA_WANT_DH_RFC7919_8192)
+#define MBEDTLS_SSL_HAVE_GROUP_FFDHE8192 1
+#else
+#define MBEDTLS_SSL_HAVE_GROUP_FFDHE8192 0
+#endif
+
+/**
+ * Initializer for a list of known TLS 1.2 named elliptic curves and
+ * TLS 1.3 groups, with their names.
+ *
+ * Each entry is a structure of type #mbedtls_ssl_iana_tls_group_info_t.
+ * The last entry has `tls_id = 0` and `group_name = NULL`.
+ */
+#define MBEDTLS_SSL_IANA_TLS_GROUPS_INFO                                                           \
+    {                                                                                              \
+        { MBEDTLS_SSL_IANA_TLS_GROUP_X25519, "x25519", MBEDTLS_SSL_HAVE_GROUP_X25519 },            \
+        { MBEDTLS_SSL_IANA_TLS_GROUP_SECP256R1, "secp256r1", MBEDTLS_SSL_HAVE_GROUP_SECP256R1 },   \
+        { MBEDTLS_SSL_IANA_TLS_GROUP_SECP256K1, "secp256k1", MBEDTLS_SSL_HAVE_GROUP_SECP256K1 },   \
+        { MBEDTLS_SSL_IANA_TLS_GROUP_SECP384R1, "secp384r1", MBEDTLS_SSL_HAVE_GROUP_SECP384R1 },   \
+        { MBEDTLS_SSL_IANA_TLS_GROUP_X448, "x448", MBEDTLS_SSL_HAVE_GROUP_X448 },                  \
+        { MBEDTLS_SSL_IANA_TLS_GROUP_SECP521R1, "secp521r1", MBEDTLS_SSL_HAVE_GROUP_SECP521R1 },   \
+        { MBEDTLS_SSL_IANA_TLS_GROUP_BP256R1, "brainpoolP256r1", MBEDTLS_SSL_HAVE_GROUP_BP256R1 }, \
+        { MBEDTLS_SSL_IANA_TLS_GROUP_BP384R1, "brainpoolP384r1", MBEDTLS_SSL_HAVE_GROUP_BP384R1 }, \
+        { MBEDTLS_SSL_IANA_TLS_GROUP_BP512R1, "brainpoolP512r1", MBEDTLS_SSL_HAVE_GROUP_BP512R1 }, \
+        { MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE2048, "ffdhe2048", MBEDTLS_SSL_HAVE_GROUP_FFDHE2048 },   \
+        { MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE3072, "ffdhe3072", MBEDTLS_SSL_HAVE_GROUP_FFDHE3072 },   \
+        { MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE4096, "ffdhe4096", MBEDTLS_SSL_HAVE_GROUP_FFDHE4096 },   \
+        { MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE6144, "ffdhe6144", MBEDTLS_SSL_HAVE_GROUP_FFDHE6144 },   \
+        { MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE8192, "ffdhe8192", MBEDTLS_SSL_HAVE_GROUP_FFDHE8192 },   \
+        { MBEDTLS_SSL_IANA_TLS_GROUP_NONE, NULL, 1 }                                               \
+    }
+
+#if defined(MBEDTLS_DEBUG_C)
+/**
+ * List of known "TLS ID" <-> "group name".
+ * #MBEDTLS_SSL_IANA_TLS_GROUPS_INFO is used to initialized the list.
+ */
+extern mbedtls_ssl_iana_tls_group_info_t mbedtls_ssl_iana_tls_group_info[];
+#endif /* MBEDTLS_DEBUG_C */
+
+/**
+ * \brief       Return the list of supported groups (curves and finite fields).
+ *
+ * \note        The returned list is ordered in ascending order of resource
+ *              usage. This follows the same pattern of the default list being
+ *              used when mbedtls_ssl_conf_groups() is not called.
+ *
+ * \note        The returned list represents supported groups in the current build
+ *              configuration, not the one set by mbedtls_ssl_conf_groups().
+ *
+ * \note        The returned list is static so the user doesn't need to worry
+ *              about it being freed.
+ *
+ * \return      The list made of IANA NamedGroups IDs (MBEDTLS_SSL_IANA_TLS_GROUP_xxx)
+ *              and is terminated by #MBEDTLS_SSL_IANA_TLS_GROUP_NONE.
+ */
+const uint16_t *mbedtls_ssl_get_supported_group_list(void);
+
+/**
  * \brief          Set the allowed groups in order of preference.
  *
  *                 On server: This only affects the choice of key agreement mechanism
@@ -3691,6 +3831,10 @@ void mbedtls_ssl_conf_psk_cb(mbedtls_ssl_config *conf,
  *                 New minor versions of Mbed TLS may change the order in
  *                 keeping with the general principle of favoring the lowest
  *                 resource usage.
+ *
+ * \note           The list is not copied internally, only the reference to it
+ *                 is saved in \p conf. Do not free \p groups memory for the time
+ *                 in which \p conf is being used.
  *
  * \param conf     SSL configuration
  * \param groups   List of allowed groups ordered by preference, terminated by 0.

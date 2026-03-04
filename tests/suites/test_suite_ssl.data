@@ -3031,6 +3031,166 @@ ssl_serialize_session_load_buf_size:0:"":MBEDTLS_SSL_IS_SERVER:MBEDTLS_SSL_VERSI
 Test configuration of EC groups through mbedtls_ssl_conf_groups()
 conf_group:
 
+Get supported group list: x25519, positive
+depends_on:PSA_WANT_ECC_MONTGOMERY_255
+test_mbedtls_ssl_get_supported_group_list:MBEDTLS_SSL_IANA_TLS_GROUP_X25519:1
+
+Get supported group list: x25519, negative
+depends_on:!PSA_WANT_ECC_MONTGOMERY_255
+test_mbedtls_ssl_get_supported_group_list:MBEDTLS_SSL_IANA_TLS_GROUP_X25519:0
+
+Get supported group list: secp256r1, positive
+depends_on:PSA_WANT_ECC_SECP_R1_256
+test_mbedtls_ssl_get_supported_group_list:MBEDTLS_SSL_IANA_TLS_GROUP_SECP256R1:1
+
+Get supported group list: secp256r1, negative
+depends_on:!PSA_WANT_ECC_SECP_R1_256
+test_mbedtls_ssl_get_supported_group_list:MBEDTLS_SSL_IANA_TLS_GROUP_SECP256R1:0
+
+Get supported group list: secp384r1, positive
+depends_on:PSA_WANT_ECC_SECP_R1_384
+test_mbedtls_ssl_get_supported_group_list:MBEDTLS_SSL_IANA_TLS_GROUP_SECP384R1:1
+
+Get supported group list: secp384r1, negative
+depends_on:!PSA_WANT_ECC_SECP_R1_384
+test_mbedtls_ssl_get_supported_group_list:MBEDTLS_SSL_IANA_TLS_GROUP_SECP384R1:0
+
+Get supported group list: x448, positive
+depends_on:PSA_WANT_ECC_MONTGOMERY_448
+test_mbedtls_ssl_get_supported_group_list:MBEDTLS_SSL_IANA_TLS_GROUP_X448:1
+
+Get supported group list: x448, negative
+depends_on:!PSA_WANT_ECC_MONTGOMERY_448
+test_mbedtls_ssl_get_supported_group_list:MBEDTLS_SSL_IANA_TLS_GROUP_X448:0
+
+Get supported group list: secp521r1, positive
+depends_on:PSA_WANT_ECC_SECP_R1_521
+test_mbedtls_ssl_get_supported_group_list:MBEDTLS_SSL_IANA_TLS_GROUP_SECP521R1:1
+
+Get supported group list: secp521r1, negative
+depends_on:!PSA_WANT_ECC_SECP_R1_521
+test_mbedtls_ssl_get_supported_group_list:MBEDTLS_SSL_IANA_TLS_GROUP_SECP521R1:0
+
+Get supported group list: brainpool256r1, positive
+depends_on:PSA_WANT_ECC_BRAINPOOL_P_R1_256
+test_mbedtls_ssl_get_supported_group_list:MBEDTLS_SSL_IANA_TLS_GROUP_BP256R1:1
+
+Get supported group list: brainpool256r1, negative
+depends_on:!PSA_WANT_ECC_BRAINPOOL_P_R1_256
+test_mbedtls_ssl_get_supported_group_list:MBEDTLS_SSL_IANA_TLS_GROUP_BP256R1:0
+
+Get supported group list: brainpool384r1, positive
+depends_on:PSA_WANT_ECC_BRAINPOOL_P_R1_384
+test_mbedtls_ssl_get_supported_group_list:MBEDTLS_SSL_IANA_TLS_GROUP_BP384R1:1
+
+Get supported group list: brainpool384r1, negative
+depends_on:!PSA_WANT_ECC_BRAINPOOL_P_R1_384
+test_mbedtls_ssl_get_supported_group_list:MBEDTLS_SSL_IANA_TLS_GROUP_BP384R1:0
+
+Get supported group list: brainpool512r1, positive
+depends_on:PSA_WANT_ECC_BRAINPOOL_P_R1_512
+test_mbedtls_ssl_get_supported_group_list:MBEDTLS_SSL_IANA_TLS_GROUP_BP512R1:1
+
+Get supported group list: brainpool512r1, negative
+depends_on:!PSA_WANT_ECC_BRAINPOOL_P_R1_512
+test_mbedtls_ssl_get_supported_group_list:MBEDTLS_SSL_IANA_TLS_GROUP_BP512R1:0
+
+Get supported group list: ffdhe2048, positive
+depends_on:PSA_WANT_DH_RFC7919_2048
+test_mbedtls_ssl_get_supported_group_list:MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE2048:1
+
+Get supported group list: ffdhe2048, negative
+depends_on:!PSA_WANT_DH_RFC7919_2048
+test_mbedtls_ssl_get_supported_group_list:MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE2048:0
+
+Get supported group list: ffdhe3072, positive
+depends_on:PSA_WANT_DH_RFC7919_3072
+test_mbedtls_ssl_get_supported_group_list:MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE3072:1
+
+Get supported group list: ffdhe3072, negative
+depends_on:!PSA_WANT_DH_RFC7919_3072
+test_mbedtls_ssl_get_supported_group_list:MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE3072:0
+
+Get supported group list: ffdhe4096, positive
+depends_on:PSA_WANT_DH_RFC7919_4096
+test_mbedtls_ssl_get_supported_group_list:MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE4096:1
+
+Get supported group list: ffdhe4096, negative
+depends_on:!PSA_WANT_DH_RFC7919_4096
+test_mbedtls_ssl_get_supported_group_list:MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE4096:0
+
+Get supported group list: ffdhe6144, positive
+depends_on:PSA_WANT_DH_RFC7919_6144
+test_mbedtls_ssl_get_supported_group_list:MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE6144:1
+
+Get supported group list: ffdhe6144, negative
+depends_on:!PSA_WANT_DH_RFC7919_6144
+test_mbedtls_ssl_get_supported_group_list:MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE6144:0
+
+Get supported group list: ffdhe8192, positive
+depends_on:PSA_WANT_DH_RFC7919_8192
+test_mbedtls_ssl_get_supported_group_list:MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE8192:1
+
+Get supported group list: ffdhe8192, negative
+depends_on:!PSA_WANT_DH_RFC7919_8192
+test_mbedtls_ssl_get_supported_group_list:MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE8192:0
+
+TLS ID <-> group name: x25519
+depends_on:PSA_WANT_ECC_MONTGOMERY_255
+test_mbedtls_tls_id_group_name_table:MBEDTLS_SSL_IANA_TLS_GROUP_X25519:"x25519"
+
+TLS ID <-> group name: secp256r1
+depends_on:PSA_WANT_ECC_SECP_R1_256
+test_mbedtls_tls_id_group_name_table:MBEDTLS_SSL_IANA_TLS_GROUP_SECP256R1:"secp256r1"
+
+TLS ID <-> group name: secp256k1
+depends_on:PSA_WANT_ECC_SECP_K1_256
+test_mbedtls_tls_id_group_name_table:MBEDTLS_SSL_IANA_TLS_GROUP_SECP256K1:"secp256k1"
+
+TLS ID <-> group name: secp384r1
+depends_on:PSA_WANT_ECC_SECP_R1_384
+test_mbedtls_tls_id_group_name_table:MBEDTLS_SSL_IANA_TLS_GROUP_SECP384R1:"secp384r1"
+
+TLS ID <-> group name: x448
+depends_on:PSA_WANT_ECC_MONTGOMERY_448
+test_mbedtls_tls_id_group_name_table:MBEDTLS_SSL_IANA_TLS_GROUP_X448:"x448"
+
+TLS ID <-> group name: secp521r1
+depends_on:PSA_WANT_ECC_SECP_R1_521
+test_mbedtls_tls_id_group_name_table:MBEDTLS_SSL_IANA_TLS_GROUP_SECP521R1:"secp521r1"
+
+TLS ID <-> group name: brainpoolP256r1
+depends_on:PSA_WANT_ECC_BRAINPOOL_P_R1_256
+test_mbedtls_tls_id_group_name_table:MBEDTLS_SSL_IANA_TLS_GROUP_BP256R1:"brainpoolP256r1"
+
+TLS ID <-> group name: brainpoolP384r1
+depends_on:PSA_WANT_ECC_BRAINPOOL_P_R1_384
+test_mbedtls_tls_id_group_name_table:MBEDTLS_SSL_IANA_TLS_GROUP_BP384R1:"brainpoolP384r1"
+
+TLS ID <-> group name: brainpoolP512r1
+depends_on:PSA_WANT_ECC_BRAINPOOL_P_R1_512
+test_mbedtls_tls_id_group_name_table:MBEDTLS_SSL_IANA_TLS_GROUP_BP512R1:"brainpoolP512r1"
+
+TLS ID <-> group name: ffdhe2048
+depends_on:PSA_WANT_DH_RFC7919_2048
+test_mbedtls_tls_id_group_name_table:MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE2048:"ffdhe2048"
+
+TLS ID <-> group name: ffdhe3072
+depends_on:PSA_WANT_DH_RFC7919_3072
+test_mbedtls_tls_id_group_name_table:MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE3072:"ffdhe3072"
+
+TLS ID <-> group name: ffdhe4096
+depends_on:PSA_WANT_DH_RFC7919_4096
+test_mbedtls_tls_id_group_name_table:MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE4096:"ffdhe4096"
+
+TLS ID <-> group name: ffdhe6144
+depends_on:PSA_WANT_DH_RFC7919_6144
+test_mbedtls_tls_id_group_name_table:MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE6144:"ffdhe6144"
+
+TLS ID <-> group name: ffdhe8192
+depends_on:PSA_WANT_DH_RFC7919_8192
+test_mbedtls_tls_id_group_name_table:MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE8192:"ffdhe8192"
+
 Version config: valid client TLS 1.2 only
 depends_on:MBEDTLS_SSL_PROTO_TLS1_2
 conf_version:MBEDTLS_SSL_IS_CLIENT:MBEDTLS_SSL_TRANSPORT_STREAM:MBEDTLS_SSL_VERSION_TLS1_2:MBEDTLS_SSL_VERSION_TLS1_2:0

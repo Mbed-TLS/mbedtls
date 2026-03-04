@@ -3574,6 +3574,65 @@ exit:
 }
 /* END_CASE */
 
+/* BEGIN_CASE */
+void test_mbedtls_ssl_get_supported_group_list(int iana_group_id, int is_available)
+{
+    const uint16_t *list = mbedtls_ssl_get_supported_group_list();
+    int found = 0;
+
+    /* First: go through the list returned by mbedtls_ssl_get_supported_group_list() and
+     * check that the specified group ID is supported/unsupported as expected. */
+    for (int i = 0; list[i] != MBEDTLS_SSL_IANA_TLS_GROUP_NONE; i++) {
+        if (list[i] == iana_group_id) {
+            found = 1;
+            break;
+        }
+    }
+    TEST_EQUAL(found, is_available);
+
+    /* Second: check that supported/unsupported property for the specified group is also
+     * correctly set in the array initialized by MBEDTLS_SSL_IANA_TLS_GROUP_INFO. */
+    mbedtls_ssl_iana_tls_group_info_t group_info_table[] = MBEDTLS_SSL_IANA_TLS_GROUPS_INFO;
+    mbedtls_ssl_iana_tls_group_info_t *ptr;
+    for (ptr = &group_info_table[0]; ptr->tls_id != MBEDTLS_SSL_IANA_TLS_GROUP_NONE; ptr++) {
+        if (ptr->tls_id == iana_group_id) {
+            TEST_EQUAL(ptr->is_supported, is_available);
+        }
+    }
+
+exit:;
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void test_mbedtls_tls_id_group_name_table(int group_id, char *group_name)
+{
+    mbedtls_ssl_iana_tls_group_info_t test_table[] = MBEDTLS_SSL_IANA_TLS_GROUPS_INFO;
+    mbedtls_ssl_iana_tls_group_info_t *item;
+    const char *table_name = NULL;
+
+    /* Ensure that the list includes at least 1 valid entry. */
+    TEST_ASSERT(test_table[0].tls_id != MBEDTLS_SSL_IANA_TLS_GROUP_NONE);
+
+    for (item = &test_table[0]; item->tls_id != MBEDTLS_SSL_IANA_TLS_GROUP_NONE; item++) {
+        if (item->tls_id == group_id) {
+            table_name = item->group_name;
+        }
+    }
+
+    TEST_ASSERT(table_name != NULL);
+    TEST_MEMORY_COMPARE(table_name, strlen(table_name), group_name, strlen(group_name));
+
+#if defined(MBEDTLS_DEBUG_C)
+    const char *builtin_table_name = mbedtls_ssl_get_curve_name_from_tls_id(group_id);
+    TEST_MEMORY_COMPARE(builtin_table_name, strlen(builtin_table_name), group_name,
+                        strlen(group_name));
+#endif /* MBEDTLS_DEBUG_C */
+
+exit:;
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:MBEDTLS_SSL_SRV_C:MBEDTLS_SSL_CACHE_C:!MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_DEBUG_C:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:MBEDTLS_RSA_C:PSA_WANT_ECC_SECP_R1_384:MBEDTLS_PKCS1_V15:PSA_WANT_ALG_SHA_256 */
 void force_bad_session_id_len()
 {

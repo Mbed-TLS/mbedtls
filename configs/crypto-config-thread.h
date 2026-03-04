@@ -48,6 +48,7 @@
 
 /* System support */
 #define MBEDTLS_HAVE_ASM
+#define MBEDTLS_HAVE_TIME //Only used by test programs
 
 #define MBEDTLS_AES_ROM_TABLES
 #define MBEDTLS_ECP_NIST_OPTIM

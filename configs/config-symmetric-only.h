@@ -12,5 +12,5 @@
 #define MBEDTLS_ERROR_STRERROR_DUMMY
 #define MBEDTLS_VERSION_FEATURES
 
-#define MBEDTLS_TIMING_C
+#define MBEDTLS_TIMING_C //Only for benchmarking
 #define MBEDTLS_VERSION_C

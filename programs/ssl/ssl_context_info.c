@@ -5,6 +5,15 @@
  *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
+/* On Mingw-w64, force the use of a C99-compliant printf() and friends.
+ * This is necessary on older versions of Mingw and/or Windows runtimes
+ * where snprintf does not always zero-terminate the buffer, and does
+ * not support formats such as "%zu" for size_t and "%lld" for long long.
+ */
+#if !defined(__USE_MINGW_ANSI_STDIO)
+#define __USE_MINGW_ANSI_STDIO 1
+#endif
+
 #include "mbedtls/build_info.h"
 #include "mbedtls/debug.h"
 #include "mbedtls/platform.h"

@@ -5,8 +5,6 @@
  *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
-#define MBEDTLS_ALLOW_PRIVATE_ACCESS
-
 #include "ssl_test_lib.h"
 
 #if defined(MBEDTLS_SSL_TEST_IMPOSSIBLE)
@@ -3490,6 +3488,7 @@ handshake:
      * 5. Verify the client certificate
      */
     mbedtls_printf("  . Verifying peer X.509 certificate...");
+    fflush(stdout);
 
     if ((flags = mbedtls_ssl_get_verify_result(&ssl)) != 0) {
         char vrfy_buf[512];
@@ -3507,6 +3506,7 @@ handshake:
         char crt_buf[512];
 
         mbedtls_printf("  . Peer certificate information    ...\n");
+        fflush(stdout);
         mbedtls_x509_crt_info(crt_buf, sizeof(crt_buf), "      ",
                               mbedtls_ssl_get_peer_cert(&ssl));
         mbedtls_printf("%s\n", crt_buf);
@@ -3959,6 +3959,7 @@ data_exchange:
         size_t buf_len;
 
         mbedtls_printf("  . Serializing live connection...");
+        fflush(stdout);
 
         ret = mbedtls_ssl_context_save(&ssl, NULL, 0, &buf_len);
         if (ret != MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL) {
@@ -3993,6 +3994,7 @@ data_exchange:
             size_t b64_len;
 
             mbedtls_printf("  . Save serialized context to a file... ");
+            fflush(stdout);
 
             mbedtls_base64_encode(NULL, 0, &b64_len, context_buf, buf_len);
 
@@ -4041,6 +4043,7 @@ data_exchange:
         if (opt.serialize == 1) {
             /* nothing to do here, done by context_save() already */
             mbedtls_printf("  . Context has been reset... ok\n");
+            fflush(stdout);
         }
 
         /*
@@ -4053,6 +4056,7 @@ data_exchange:
          */
         if (opt.serialize == 2) {
             mbedtls_printf("  . Freeing and reinitializing context...");
+            fflush(stdout);
 
             mbedtls_ssl_free(&ssl);
 
@@ -4089,6 +4093,7 @@ data_exchange:
         }
 
         mbedtls_printf("  . Deserializing connection...");
+        fflush(stdout);
 
         if ((ret = mbedtls_ssl_context_load(&ssl, context_buf,
                                             buf_len)) != 0) {
@@ -4118,6 +4123,7 @@ data_exchange:
      */
 close_notify:
     mbedtls_printf("  . Closing the connection...");
+    fflush(stdout);
 
     /* No error checking, the connection might be closed already */
     do {

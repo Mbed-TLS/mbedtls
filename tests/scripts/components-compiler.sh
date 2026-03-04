@@ -172,3 +172,45 @@ component_test_zeroize () {
         done
     done
 }
+
+# This originated from an issue (https://github.com/Mbed-TLS/TF-PSA-Crypto/issues/665) found
+# in GCM when the library is built with GCC "10.0 <= version <= 14.2" on platforms other than
+# x86 and ARM64.
+component_test_tf_psa_crypto_optimized_alignment() {
+    msg "build: verify alignment with O3 optimizations in GCC"
+
+    # Disable optimizations for x86 (and ARM64) so that alignment related problems in
+    # "alignment.h" can be tested also on standard PC.
+    scripts/config.py unset MBEDTLS_AESNI_C
+    scripts/config.py unset MBEDTLS_AESCE_C
+
+    # "-O3" is the optimization level that causes issues: the compiler tries to
+    # optimize operations order and if memory dependencies are not respected
+    # (as it happens in issue tf-psa-crypto#665) this completely messes up results.
+    EXTRA_C_FLAGS="-O3"
+    # Forcedly ignore "MBEDTLS_EFFICIENT_UNALIGNED_ACCESS" on x86 so that we
+    # can test the problematic case, i.e. the case where uint64 integers are
+    # accessed through "mbedtls_uint64_unaligned_t" structs.
+    EXTRA_C_FLAGS="$EXTRA_C_FLAGS -DMBEDTLS_ALIGNMENT_DISABLE_EFFICENT_UNALIGNED_ACCESS"
+    # Adding '-g3' flag doesn't affect testing, BUT it allows to dump the generated
+    # assembly code for "gcm.o" module for inspection. To do this use the
+    # following command:
+    # > objdump -S --disassemble out_of_source_build/drivers/builtin/CMakeFiles/builtin.dir/src/gcm.c.o > gcm.s
+    # A file named "gcm.s" will be generated containing a mix of C and corresponding
+    # assembly code.
+    EXTRA_C_FLAGS="$EXTRA_C_FLAGS -g3"
+
+    make CC=gcc CFLAGS="$EXTRA_C_FLAGS"
+
+    msg "test: verify alignment with O3 optimizations in GCC"
+    make test
+}
+
+support_test_tf_psa_crypto_optimized_alignment() {
+    case $(gcc -dumpfullversion 2>/dev/null) in
+        ""|?.*) false;; # too old
+        10.*|11.*|12.*|13.*) true;;
+        14.[012].*) true;;
+        *) false;; # too recent
+    esac
+}

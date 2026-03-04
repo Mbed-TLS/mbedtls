@@ -126,6 +126,7 @@ check framework/scripts/generate_bignum_tests.py $(framework/scripts/generate_bi
 check framework/scripts/generate_config_tests.py $(framework/scripts/generate_config_tests.py --list)
 check framework/scripts/generate_ecp_tests.py $(framework/scripts/generate_ecp_tests.py --list)
 check framework/scripts/generate_psa_tests.py $(framework/scripts/generate_psa_tests.py --list)
+check framework/scripts/generate_psa_wrappers.py tests/include/test/psa_test_wrappers.h tests/src/psa_test_wrappers.c
 check framework/scripts/generate_test_keys.py tests/include/test/test_keys.h
 check scripts/generate_driver_wrappers.py $library_dir/psa_crypto_driver_wrappers.h $library_dir/psa_crypto_driver_wrappers_no_static.c
 
@@ -135,7 +136,7 @@ if in_mbedtls_repo; then
     check scripts/generate_query_config.pl programs/test/query_config.c
     check scripts/generate_features.pl library/version_features.c
     check framework/scripts/generate_ssl_debug_helpers.py library/ssl_debug_helpers_generated.c
-    check framework/scripts/generate_tls_handshake_tests.py tests/opt-testcases/handshake-generated.sh
+    check scripts/generate_tls_handshake_tests.py tests/opt-testcases/handshake-generated.sh
     check framework/scripts/generate_tls13_compat_tests.py tests/opt-testcases/tls13-compat.sh
     check framework/scripts/generate_test_cert_macros.py tests/include/test/test_certs.h
     # generate_visualc_files enumerates source files (library/*.c). It doesn't
@@ -143,8 +144,3 @@ if in_mbedtls_repo; then
     # the step that creates or updates these files.
     check scripts/generate_visualc_files.pl visualc/VS2017
 fi
-
-# Generated files that are present in the repository even in the development
-# branch. (This is intended to be temporary, until the generator scripts are
-# fully reviewed and the build scripts support a generated header file.)
-check framework/scripts/generate_psa_wrappers.py tests/include/test/psa_test_wrappers.h tests/src/psa_test_wrappers.c

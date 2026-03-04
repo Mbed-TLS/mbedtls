@@ -1,0 +1,6 @@
+Bugfix:
+    * Fix `pk_group_from_specified` self-referencing group generator G while loading G.
+    * Fix `pk_group_from_specified` not accounting for the a = p-3 internal representation.
+    * Fix `pk_parse_public_key` failing to load keys with explicit curve parameters.
+      Fixes #4314
+

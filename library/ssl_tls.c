@@ -685,7 +685,7 @@ const char *mbedtls_ssl_get_extension_name(unsigned int extension_type)
         mbedtls_ssl_get_extension_id(extension_type)];
 }
 
-static const char *ssl_tls13_get_hs_msg_name(int hs_msg_type)
+const char *mbedtls_ssl_get_hs_msg_name(int hs_msg_type)
 {
     switch (hs_msg_type) {
         case MBEDTLS_SSL_HS_CLIENT_HELLO:
@@ -700,8 +700,16 @@ static const char *ssl_tls13_get_hs_msg_name(int hs_msg_type)
             return "EncryptedExtensions";
         case MBEDTLS_SSL_HS_CERTIFICATE:
             return "Certificate";
+        case MBEDTLS_SSL_HS_SERVER_KEY_EXCHANGE:
+            return "ServerKeyExchange";
         case MBEDTLS_SSL_HS_CERTIFICATE_REQUEST:
             return "CertificateRequest";
+        case MBEDTLS_SSL_HS_CERTIFICATE_VERIFY:
+            return "CertificateVerify";
+        case MBEDTLS_SSL_HS_CLIENT_KEY_EXCHANGE:
+            return "ClientKeyExchange";
+        case MBEDTLS_SSL_HS_FINISHED:
+            return "Finished";
     }
     return "Unknown";
 }
@@ -716,7 +724,7 @@ void mbedtls_ssl_print_extension(const mbedtls_ssl_context *ssl,
         mbedtls_debug_print_msg(
             ssl, level, file, line,
             "%s: %s(%u) extension %s %s.",
-            ssl_tls13_get_hs_msg_name(hs_msg_type),
+            mbedtls_ssl_get_hs_msg_name(hs_msg_type),
             mbedtls_ssl_get_extension_name(extension_type),
             extension_type,
             extra_msg0, extra_msg1);
@@ -727,7 +735,7 @@ void mbedtls_ssl_print_extension(const mbedtls_ssl_context *ssl,
     if (extra_msg) {
         mbedtls_debug_print_msg(
             ssl, level, file, line,
-            "%s: %s(%u) extension %s.", ssl_tls13_get_hs_msg_name(hs_msg_type),
+            "%s: %s(%u) extension %s.", mbedtls_ssl_get_hs_msg_name(hs_msg_type),
             mbedtls_ssl_get_extension_name(extension_type), extension_type,
             extra_msg);
         return;
@@ -735,7 +743,7 @@ void mbedtls_ssl_print_extension(const mbedtls_ssl_context *ssl,
 
     mbedtls_debug_print_msg(
         ssl, level, file, line,
-        "%s: %s(%u) extension.", ssl_tls13_get_hs_msg_name(hs_msg_type),
+        "%s: %s(%u) extension.", mbedtls_ssl_get_hs_msg_name(hs_msg_type),
         mbedtls_ssl_get_extension_name(extension_type), extension_type);
 }
 
@@ -10121,7 +10129,7 @@ static int mbedtls_ssl_tls13_export_keying_material(mbedtls_ssl_context *ssl,
                                                     const size_t context_len)
 {
     const psa_algorithm_t psa_hash_alg = mbedtls_md_psa_alg_from_type(hash_alg);
-    const size_t hash_len = PSA_HASH_LENGTH(hash_alg);
+    const size_t hash_len = PSA_HASH_LENGTH(psa_hash_alg);
     const unsigned char *secret = ssl->session->app_secrets.exporter_master_secret;
 
     /* The length of the label must be at most 249 bytes to fit into the HkdfLabel

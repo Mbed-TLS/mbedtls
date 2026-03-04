@@ -10925,6 +10925,7 @@ run_test    "DTLS reassembly: some fragmentation (gnutls server)" \
             "$P_CLI dtls=1 debug_level=2" \
             0 \
             -c "found fragmented DTLS handshake message" \
+            -c "Certificate handshake message has been buffered and reassembled" \
             -C "error"
 
 requires_gnutls
@@ -10934,6 +10935,8 @@ run_test    "DTLS reassembly: more fragmentation (gnutls server)" \
             "$P_CLI dtls=1 debug_level=2" \
             0 \
             -c "found fragmented DTLS handshake message" \
+            -c "Certificate handshake message has been buffered and reassembled" \
+            -c "ServerKeyExchange handshake message has been buffered and reassembled" \
             -C "error"
 
 requires_gnutls
@@ -10943,6 +10946,8 @@ run_test    "DTLS reassembly: more fragmentation, nbio (gnutls server)" \
             "$P_CLI dtls=1 nbio=2 debug_level=2" \
             0 \
             -c "found fragmented DTLS handshake message" \
+            -c "Certificate handshake message has been buffered and reassembled" \
+            -c "ServerKeyExchange handshake message has been buffered and reassembled" \
             -C "error"
 
 requires_gnutls
@@ -10953,6 +10958,7 @@ run_test    "DTLS reassembly: fragmentation, renego (gnutls server)" \
             "$P_CLI debug_level=3 dtls=1 renegotiation=1 renegotiate=1" \
             0 \
             -c "found fragmented DTLS handshake message" \
+            -c "Certificate handshake message has been buffered and reassembled" \
             -c "client hello, adding renegotiation extension" \
             -c "found renegotiation extension" \
             -c "=> renegotiate" \
@@ -10968,6 +10974,7 @@ run_test    "DTLS reassembly: fragmentation, nbio, renego (gnutls server)" \
             "$P_CLI debug_level=3 nbio=2 dtls=1 renegotiation=1 renegotiate=1" \
             0 \
             -c "found fragmented DTLS handshake message" \
+            -c "Certificate handshake message has been buffered and reassembled" \
             -c "client hello, adding renegotiation extension" \
             -c "found renegotiation extension" \
             -c "=> renegotiate" \
@@ -10983,20 +10990,17 @@ run_test    "DTLS reassembly: no fragmentation (openssl server)" \
             -C "found fragmented DTLS handshake message" \
             -C "error"
 
+# Minimum possible MTU for OpenSSL server: 256 bytes.
+# We expect the server Certificate handshake to be fragmented and verify that
+# this is the case. Depending on the configuration, other handshake messages may
+# also be fragmented.
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-run_test    "DTLS reassembly: some fragmentation (openssl server)" \
+run_test    "DTLS reassembly: fragmentation (openssl server)" \
             "$O_SRV -dtls -mtu 256" \
             "$P_CLI dtls=1 debug_level=2" \
             0 \
             -c "found fragmented DTLS handshake message" \
-            -C "error"
-
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-run_test    "DTLS reassembly: more fragmentation (openssl server)" \
-            "$O_SRV -dtls -mtu 256" \
-            "$P_CLI dtls=1 debug_level=2" \
-            0 \
-            -c "found fragmented DTLS handshake message" \
+            -c "Certificate handshake message has been buffered and reassembled" \
             -C "error"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
@@ -11005,6 +11009,7 @@ run_test    "DTLS reassembly: fragmentation, nbio (openssl server)" \
             "$P_CLI dtls=1 nbio=2 debug_level=2" \
             0 \
             -c "found fragmented DTLS handshake message" \
+            -c "Certificate handshake message has been buffered and reassembled" \
             -C "error"
 
 # Tests for sending fragmented handshake messages with DTLS
@@ -11673,7 +11678,7 @@ run_test    "DTLS fragmenting: gnutls server, DTLS 1.2" \
              key_file=$DATA_FILES_PATH/server8.key \
              mtu=512 force_version=dtls12" \
             0 \
-            -c "fragmenting handshake message" \
+            -c "fragmenting Certificate handshake message" \
             -C "error"
 
 # We use --insecure for the GnuTLS client because it expects
@@ -11695,7 +11700,7 @@ run_test    "DTLS fragmenting: gnutls client, DTLS 1.2" \
              mtu=512 force_version=dtls12" \
             "$G_CLI -u --insecure 127.0.0.1" \
             0 \
-            -s "fragmenting handshake message"
+            -s "fragmenting Certificate handshake message"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
@@ -11707,7 +11712,7 @@ run_test    "DTLS fragmenting: openssl server, DTLS 1.2" \
              key_file=$DATA_FILES_PATH/server8.key \
              mtu=512 force_version=dtls12" \
             0 \
-            -c "fragmenting handshake message" \
+            -c "fragmenting Certificate handshake message" \
             -C "error"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
@@ -11720,7 +11725,7 @@ run_test    "DTLS fragmenting: openssl client, DTLS 1.2" \
              mtu=512 force_version=dtls12" \
             "$O_CLI -dtls1_2" \
             0 \
-            -s "fragmenting handshake message"
+            -s "fragmenting Certificate handshake message"
 
 # interop tests for DTLS fragmentating with unreliable connection
 #
@@ -11739,7 +11744,7 @@ run_test    "DTLS fragmenting: 3d, gnutls server, DTLS 1.2" \
              key_file=$DATA_FILES_PATH/server8.key \
              hs_timeout=250-60000 mtu=512 force_version=dtls12" \
             0 \
-            -c "fragmenting handshake message" \
+            -c "fragmenting Certificate handshake message" \
             -C "error"
 
 requires_gnutls_next
@@ -11755,7 +11760,7 @@ run_test    "DTLS fragmenting: 3d, gnutls client, DTLS 1.2" \
              hs_timeout=250-60000 mtu=512 force_version=dtls12" \
            "$G_NEXT_CLI -u --insecure 127.0.0.1" \
             0 \
-            -s "fragmenting handshake message"
+            -s "fragmenting Certificate handshake message"
 
 ## The test below requires 1.1.1a or higher version of openssl, otherwise
 ## it might trigger a bug due to openssl server (https://github.com/openssl/openssl/issues/6902)
@@ -11772,7 +11777,7 @@ run_test    "DTLS fragmenting: 3d, openssl server, DTLS 1.2" \
              key_file=$DATA_FILES_PATH/server8.key \
              hs_timeout=250-60000 mtu=512 force_version=dtls12" \
             0 \
-            -c "fragmenting handshake message" \
+            -c "fragmenting Certificate handshake message" \
             -C "error"
 
 ## the test below will time out with certain seed.
@@ -11790,7 +11795,7 @@ run_test    "DTLS fragmenting: 3d, openssl client, DTLS 1.2" \
              hs_timeout=250-60000 mtu=512 force_version=dtls12" \
             "$O_CLI -dtls1_2" \
             0 \
-            -s "fragmenting handshake message"
+            -s "fragmenting Certificate handshake message"
 
 # Tests for DTLS-SRTP (RFC 5764)
 requires_config_enabled MBEDTLS_SSL_DTLS_SRTP
@@ -12507,9 +12512,9 @@ run_test    "DTLS reordering: Buffer out-of-order handshake message on client" \
             hs_timeout=2500-60000" \
             0 \
             -c "Buffering HS message" \
-            -c "Next handshake message has been buffered - load"\
+            -c "Certificate handshake message has been buffered$"\
             -S "Buffering HS message" \
-            -S "Next handshake message has been buffered - load"\
+            -S "handshake message has been buffered"\
             -C "Injecting buffered CCS message" \
             -C "Remember CCS message" \
             -S "Injecting buffered CCS message" \
@@ -12527,9 +12532,9 @@ run_test    "DTLS reordering: Buffer out-of-order handshake message fragment on 
             -c "Buffering HS message" \
             -c "found fragmented DTLS handshake message"\
             -c "Next handshake message 1 not or only partially buffered" \
-            -c "Next handshake message has been buffered - load"\
+            -c "Certificate handshake message has been buffered and reassembled"\
             -S "Buffering HS message" \
-            -S "Next handshake message has been buffered - load"\
+            -S "handshake message has been buffered" \
             -C "Injecting buffered CCS message" \
             -C "Remember CCS message" \
             -S "Injecting buffered CCS message" \
@@ -12550,10 +12555,11 @@ run_test    "DTLS reordering: Buffer out-of-order hs msg before reassembling nex
             hs_timeout=2500-60000" \
             0 \
             -c "Buffering HS message" \
-            -c "Next handshake message has been buffered - load"\
+            -c "Certificate handshake message has been buffered and reassembled"\
+            -c "ServerKeyExchange handshake message has been buffered$"\
             -C "attempt to make space by freeing buffered messages" \
             -S "Buffering HS message" \
-            -S "Next handshake message has been buffered - load"\
+            -S "handshake message has been buffered" \
             -C "Injecting buffered CCS message" \
             -C "Remember CCS message" \
             -S "Injecting buffered CCS message" \
@@ -12577,7 +12583,7 @@ run_test    "DTLS reordering: Buffer out-of-order hs msg before reassembling nex
             -c "attempt to make space by freeing buffered future messages" \
             -c "Enough space available after freeing buffered HS messages" \
             -S "Buffering HS message" \
-            -S "Next handshake message has been buffered - load"\
+            -S "handshake message has been buffered" \
             -C "Injecting buffered CCS message" \
             -C "Remember CCS message" \
             -S "Injecting buffered CCS message" \
@@ -12593,9 +12599,9 @@ run_test    "DTLS reordering: Buffer out-of-order handshake message on server" \
             hs_timeout=2500-60000" \
             0 \
             -C "Buffering HS message" \
-            -C "Next handshake message has been buffered - load"\
+            -C "handshake message has been buffered" \
             -s "Buffering HS message" \
-            -s "Next handshake message has been buffered - load" \
+            -s "ClientKeyExchange handshake message has been buffered$" \
             -C "Injecting buffered CCS message" \
             -C "Remember CCS message" \
             -S "Injecting buffered CCS message" \
@@ -12612,9 +12618,9 @@ run_test    "DTLS reordering: Buffer out-of-order CCS message on client"\
             hs_timeout=2500-60000" \
             0 \
             -C "Buffering HS message" \
-            -C "Next handshake message has been buffered - load"\
+            -C "handshake message has been buffered" \
             -S "Buffering HS message" \
-            -S "Next handshake message has been buffered - load" \
+            -S "handshake message has been buffered" \
             -c "Injecting buffered CCS message" \
             -c "Remember CCS message" \
             -S "Injecting buffered CCS message" \
@@ -12630,9 +12636,9 @@ run_test    "DTLS reordering: Buffer out-of-order CCS message on server"\
             hs_timeout=2500-60000" \
             0 \
             -C "Buffering HS message" \
-            -C "Next handshake message has been buffered - load"\
+            -C "handshake message has been buffered" \
             -S "Buffering HS message" \
-            -S "Next handshake message has been buffered - load" \
+            -S "handshake message has been buffered" \
             -C "Injecting buffered CCS message" \
             -C "Remember CCS message" \
             -s "Injecting buffered CCS message" \
@@ -12868,10 +12874,11 @@ not_with_valgrind # risk of non-mbedtls peer timing out
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "DTLS proxy: 3d, openssl server, fragmentation" \
             -p "$P_PXY drop=5 delay=5 duplicate=5 protect_hvr=1" \
-            "$O_NEXT_SRV -dtls1_2 -mtu 768" \
-            "$P_CLI dgram_packing=0 dtls=1 hs_timeout=500-60000 tickets=0" \
+            "$O_NEXT_SRV -dtls1_2 -mtu 256" \
+            "$P_CLI dgram_packing=0 dtls=1 debug_level=2 hs_timeout=500-60000 tickets=0" \
             0 \
-            -c "HTTP/1.0 200 OK"
+            -c "HTTP/1.0 200 OK" \
+            -c "Certificate handshake message has been buffered and reassembled"
 
 requires_openssl_next
 client_needs_more_time 8
@@ -12879,10 +12886,11 @@ not_with_valgrind # risk of non-mbedtls peer timing out
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "DTLS proxy: 3d, openssl server, fragmentation, nbio" \
             -p "$P_PXY drop=5 delay=5 duplicate=5 protect_hvr=1" \
-            "$O_NEXT_SRV -dtls1_2 -mtu 768" \
-            "$P_CLI dgram_packing=0 dtls=1 hs_timeout=500-60000 nbio=2 tickets=0" \
+            "$O_NEXT_SRV -dtls1_2 -mtu 256" \
+            "$P_CLI dgram_packing=0 dtls=1 debug_level=2 hs_timeout=500-60000 nbio=2 tickets=0" \
             0 \
-            -c "HTTP/1.0 200 OK"
+            -c "HTTP/1.0 200 OK" \
+            -c "Certificate handshake message has been buffered and reassembled"
 
 requires_gnutls
 client_needs_more_time 6
@@ -12903,10 +12911,11 @@ requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "DTLS proxy: 3d, gnutls server, fragmentation" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \
             "$G_NEXT_SRV -u --mtu 512" \
-            "$P_CLI dgram_packing=0 dtls=1 hs_timeout=500-60000" \
+            "$P_CLI dgram_packing=0 dtls=1 debug_level=2 hs_timeout=500-60000" \
             0 \
             -s "Extra-header:" \
-            -c "Extra-header:"
+            -c "Extra-header:" \
+            -c "Certificate handshake message has been buffered and reassembled"
 
 requires_gnutls_next
 client_needs_more_time 8
@@ -12915,10 +12924,11 @@ requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "DTLS proxy: 3d, gnutls server, fragmentation, nbio" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \
             "$G_NEXT_SRV -u --mtu 512" \
-            "$P_CLI dgram_packing=0 dtls=1 hs_timeout=500-60000 nbio=2" \
+            "$P_CLI dgram_packing=0 dtls=1 debug_level=2 hs_timeout=500-60000 nbio=2" \
             0 \
             -s "Extra-header:" \
-            -c "Extra-header:"
+            -c "Extra-header:" \
+            -c "Certificate handshake message has been buffered and reassembled"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "export keys functionality" \
@@ -14792,16 +14802,6 @@ run_test    "TLS 1.2 ClientHello indicating support for deflate compression meth
 # Handshake defragmentation testing
 
 # Most test cases are in opt-testcases/handshake-generated.sh
-
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_certificate_authentication
-run_test    "Handshake defragmentation on server: len=32, TLS 1.2 ClientHello (unsupported)" \
-            "$P_SRV debug_level=4 force_version=tls12 auth_mode=required" \
-            "$O_NEXT_CLI -tls1_2 -split_send_frag 32 -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key" \
-            1 \
-            -s "The SSL configuration is tls12 only" \
-            -s "bad client hello message" \
-            -s "SSL - A message could not be parsed due to a syntactic error"
 
 # Test server-side buffer resizing with fragmented handshake on TLS1.2
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2

@@ -54,14 +54,15 @@ GENERATED_DATA_FILES += $(GENERATED_PSA_DATA_FILES)
 
 GENERATED_FILES = $(GENERATED_DATA_FILES)
 GENERATED_FILES += include/test/test_keys.h include/test/test_certs.h
+GENERATED_FILES += include/test/psa_test_wrappers.h src/psa_test_wrappers.c
 
 # Generated files needed to (fully) run ssl-opt.sh
 .PHONY: ssl-opt
 
 opt-testcases/handshake-generated.sh: ../framework/scripts/mbedtls_framework/tls_test_case.py
-opt-testcases/handshake-generated.sh: ../framework/scripts/generate_tls_handshake_tests.py
+opt-testcases/handshake-generated.sh: ../scripts/generate_tls_handshake_tests.py
 	echo "  Gen   $@"
-	$(PYTHON) ../framework/scripts/generate_tls_handshake_tests.py -o $@
+	$(PYTHON) ../scripts/generate_tls_handshake_tests.py -o $@
 GENERATED_FILES += opt-testcases/handshake-generated.sh
 ssl-opt: opt-testcases/handshake-generated.sh
 
@@ -164,6 +165,10 @@ all: $(BINARIES)
 
 mbedtls_test: $(MBEDTLS_TEST_OBJS)
 
+include/test/psa_test_wrappers.h src/psa_test_wrappers.c: ../framework/scripts/generate_psa_wrappers.py
+	echo "  Gen   $@"
+	cd .. && $(PYTHON) framework/scripts/generate_psa_wrappers.py
+
 include/test/test_certs.h: ../framework/scripts/generate_test_cert_macros.py \
 				  $($(PYTHON) ../framework/scripts/generate_test_cert_macros.py --list-dependencies)
 	echo "  Gen   $@"
@@ -180,6 +185,7 @@ ifdef RECORD_PSA_STATUS_COVERAGE_LOG
 # therefore the wildcard enumeration above doesn't include it.
 TEST_OBJS_DEPS += ../framework/tests/include/test/instrument_record_status.h
 endif
+TEST_OBJS_DEPS += include/test/psa_test_wrappers.h
 TEST_OBJS_DEPS += include/test/test_certs.h include/test/test_keys.h
 
 # Rule to compile common test C files in framework

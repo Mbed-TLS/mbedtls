@@ -203,6 +203,32 @@ support_test_cmake_as_package_install () {
     support_test_cmake_out_of_source
 }
 
+component_test_cmake_install_with_destdir () {
+    # Remove existing generated files so that we use the ones CMake
+    # generates
+    $MAKE_COMMAND neat
+
+    msg "install: cmake with DESTDIR staging"
+    MBEDTLS_ROOT_DIR="$PWD"
+    mkdir "$OUT_OF_SOURCE_DIR"
+    cd "$OUT_OF_SOURCE_DIR"
+    cmake -DGEN_FILES=ON -DENABLE_PROGRAMS=OFF -DENABLE_TESTING=OFF -DUSE_SHARED_MBEDTLS_LIBRARY=ON -DCMAKE_INSTALL_PREFIX:PATH=/usr "$MBEDTLS_ROOT_DIR"
+    make
+
+    DESTDIR="$OUT_OF_SOURCE_DIR/stage" make install
+
+    install_libdir="$(sed -n 's/^CMAKE_INSTALL_LIBDIR:PATH=//p' CMakeCache.txt)"
+    test -n "$install_libdir"
+    test -L "$OUT_OF_SOURCE_DIR/stage/usr/${install_libdir}/libmbedcrypto.so"
+
+    cd "$MBEDTLS_ROOT_DIR"
+    rm -rf "$OUT_OF_SOURCE_DIR"
+}
+
+support_test_cmake_install_with_destdir () {
+    support_test_cmake_out_of_source
+}
+
 component_build_cmake_custom_config_file () {
     # Make a copy of config file to use for the in-tree test
     cp "$CONFIG_H" include/mbedtls_config_in_tree_copy.h

@@ -9840,11 +9840,11 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void raw_key_agreement(int alg_arg,
-                       int our_key_type_arg, data_t *our_key_data,
-                       data_t *peer_key_data,
-                       data_t *expected_output,
-                       int expected_status)
+void key_agreement(int alg_arg,
+                   int our_key_type_arg, data_t *our_key_data,
+                   data_t *peer_key_data,
+                   data_t *expected_output,
+                   int expected_status)
 {
     mbedtls_svc_key_id_t our_key = MBEDTLS_SVC_KEY_ID_INIT;
     psa_algorithm_t alg = alg_arg;

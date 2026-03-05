@@ -9843,12 +9843,14 @@ exit:
 void raw_key_agreement(int alg_arg,
                        int our_key_type_arg, data_t *our_key_data,
                        data_t *peer_key_data,
-                       data_t *expected_output)
+                       data_t *expected_output,
+                       int expected_status)
 {
     mbedtls_svc_key_id_t our_key = MBEDTLS_SVC_KEY_ID_INIT;
     psa_algorithm_t alg = alg_arg;
     psa_key_type_t our_key_type = our_key_type_arg;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    unsigned char *bad_peer_key = NULL;
     unsigned char *output = NULL;
     size_t output_length = ~0;
     size_t key_bits;
@@ -9866,36 +9868,69 @@ void raw_key_agreement(int alg_arg,
     key_bits = psa_get_key_bits(&attributes);
 
     /* Validate size macros */
-    TEST_LE_U(expected_output->len,
-              PSA_RAW_KEY_AGREEMENT_OUTPUT_SIZE(our_key_type, key_bits));
+    if (expected_status == PSA_SUCCESS) {
+        TEST_LE_U(expected_output->len,
+                  PSA_RAW_KEY_AGREEMENT_OUTPUT_SIZE(our_key_type, key_bits));
+    }
     TEST_LE_U(PSA_RAW_KEY_AGREEMENT_OUTPUT_SIZE(our_key_type, key_bits),
               PSA_RAW_KEY_AGREEMENT_OUTPUT_MAX_SIZE);
 
+    const size_t output_alloc_size = expected_status == PSA_SUCCESS ?
+                                     expected_output->len :
+                                     PSA_RAW_KEY_AGREEMENT_OUTPUT_SIZE(our_key_type, key_bits);
+
     /* Good case with exact output size */
-    TEST_CALLOC(output, expected_output->len);
-    PSA_ASSERT(psa_raw_key_agreement(alg, our_key,
+    TEST_CALLOC(output, output_alloc_size);
+    TEST_EQUAL(psa_raw_key_agreement(alg, our_key,
                                      peer_key_data->x, peer_key_data->len,
+                                     output, output_alloc_size,
+                                     &output_length),
+               expected_status);
+    if (expected_status == PSA_SUCCESS) {
+        TEST_MEMORY_COMPARE(output, output_length,
+                            expected_output->x, expected_output->len);
+    }
+    mbedtls_free(output);
+    output = NULL;
+    output_length = ~0;
+
+    /* Larger output buffer */
+    TEST_CALLOC(output, output_alloc_size + 1);
+    TEST_EQUAL(psa_raw_key_agreement(alg, our_key,
+                                     peer_key_data->x, peer_key_data->len,
+                                     output, output_alloc_size + 1,
+                                     &output_length),
+               expected_status);
+    if (expected_status == PSA_SUCCESS) {
+        TEST_MEMORY_COMPARE(output, output_length,
+                            expected_output->x, expected_output->len);
+    }
+    mbedtls_free(output);
+    output = NULL;
+    output_length = ~0;
+
+    /* The tests for wrong buffer sizes only make sense with good data. */
+    if (expected_status != PSA_SUCCESS) {
+        goto exit;
+    }
+
+    /* Input buffer (peer key) too small */
+    size_t bad_peer_key_len = peer_key_data->len - 1;
+    TEST_CALLOC(bad_peer_key, bad_peer_key_len);
+    memcpy(bad_peer_key, peer_key_data->x, bad_peer_key_len);
+    TEST_CALLOC(output, expected_output->len);
+    TEST_EQUAL(PSA_ERROR_INVALID_ARGUMENT,
+               psa_raw_key_agreement(alg, our_key,
+                                     bad_peer_key, bad_peer_key_len,
                                      output, expected_output->len,
                                      &output_length));
-    TEST_MEMORY_COMPARE(output, output_length,
-                        expected_output->x, expected_output->len);
+    mbedtls_free(bad_peer_key);
+    bad_peer_key = NULL;
     mbedtls_free(output);
     output = NULL;
     output_length = ~0;
 
-    /* Larger buffer */
-    TEST_CALLOC(output, expected_output->len + 1);
-    PSA_ASSERT(psa_raw_key_agreement(alg, our_key,
-                                     peer_key_data->x, peer_key_data->len,
-                                     output, expected_output->len + 1,
-                                     &output_length));
-    TEST_MEMORY_COMPARE(output, output_length,
-                        expected_output->x, expected_output->len);
-    mbedtls_free(output);
-    output = NULL;
-    output_length = ~0;
-
-    /* Buffer too small */
+    /* Output buffer too small */
     TEST_CALLOC(output, expected_output->len - 1);
     TEST_EQUAL(psa_raw_key_agreement(alg, our_key,
                                      peer_key_data->x, peer_key_data->len,
@@ -9908,6 +9943,7 @@ void raw_key_agreement(int alg_arg,
     output = NULL;
 
 exit:
+    mbedtls_free(bad_peer_key);
     mbedtls_free(output);
     psa_destroy_key(our_key);
     PSA_DONE();

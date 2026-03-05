@@ -1,0 +1,4 @@
+Bugfix:
+    * Fix mbedtls_pk_parse_public_key failing to load keys with explicit curve parameters.
+      Fixes #4314
+

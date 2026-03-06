@@ -23,6 +23,17 @@
 #endif
 #endif
 
+#if defined(__FreeBSD__)
+/* On FreeBSD as of 14.3, no value of _POSIX_C_SOURCE is enough for
+ * gettimeofday(), you need _XOPEN_SOURCE (any value).
+ * Furthermore, setting _XOPEN_SOURCE to 500 removes support for long long
+ * in libc, so you need at least 600 for e.g. strtoull().
+ */
+#if !defined(_XOPEN_SOURCE)
+#define _XOPEN_SOURCE 600
+#endif
+#endif
+
 #include "mbedtls/build_info.h"
 
 /* Test code may use deprecated identifiers only if the preprocessor symbol

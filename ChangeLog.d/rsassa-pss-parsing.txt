@@ -1,0 +1,2 @@
+Changes
+    * Certificates and CSRs containing rsassaPss keys can now be parsed

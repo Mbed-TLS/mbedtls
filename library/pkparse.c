@@ -553,11 +553,14 @@ int mbedtls_pk_parse_subpubkey(unsigned char **p, const unsigned char *end,
     }
 
 #if defined(MBEDTLS_RSA_C)
-    if (pk_alg == MBEDTLS_PK_RSA) {
+    if (pk_alg == MBEDTLS_PK_RSA || pk_alg == MBEDTLS_PK_RSASSA_PSS) {
         ret = mbedtls_rsa_parse_pubkey(mbedtls_pk_rsa(*pk), *p, (size_t) (end - *p));
         if (ret == 0) {
             /* On success all the input has been consumed by the parsing function. */
             *p += end - *p;
+            if (pk_alg == MBEDTLS_PK_RSASSA_PSS) {
+                ret = mbedtls_rsa_set_padding(mbedtls_pk_rsa(*pk), MBEDTLS_RSA_PKCS_V21, MBEDTLS_MD_NONE);
+            }
         } else if ((ret <= MBEDTLS_ERR_ASN1_OUT_OF_DATA) &&
                    (ret >= MBEDTLS_ERR_ASN1_BUF_TOO_SMALL)) {
             /* In case of ASN1 error codes add MBEDTLS_ERR_PK_INVALID_PUBKEY. */

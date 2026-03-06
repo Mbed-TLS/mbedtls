@@ -510,6 +510,10 @@ static const oid_pk_alg_t oid_pk_alg[] =
         MBEDTLS_PK_RSA,
     },
     {
+        OID_DESCRIPTOR(MBEDTLS_OID_RSASSA_PSS,          "rsassaPss",        "RSA"),
+        MBEDTLS_PK_RSASSA_PSS,
+    },
+    {
         OID_DESCRIPTOR(MBEDTLS_OID_EC_ALG_UNRESTRICTED, "id-ecPublicKey",   "Generic EC key"),
         MBEDTLS_PK_ECKEY,
     },

@@ -112,6 +112,7 @@ const mbedtls_pk_info_t *mbedtls_pk_info_from_type(mbedtls_pk_type_t pk_type)
     switch (pk_type) {
 #if defined(MBEDTLS_RSA_C)
         case MBEDTLS_PK_RSA:
+        case MBEDTLS_PK_RSASSA_PSS:
             return &mbedtls_rsa_info;
 #endif /* MBEDTLS_RSA_C */
 #if defined(MBEDTLS_PK_HAVE_ECC_KEYS)

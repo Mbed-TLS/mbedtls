@@ -33,6 +33,14 @@
  */
 #include "mbedtls_platform_requirements.h"
 
+/* Mbed TLS is tightly coupled with TF-PSA-Crypto, and inherits all of
+ * its platform requirements because we don't have a clear separation of
+ * public vs private platform interfaces. So make sure we declare the
+ * TF-PSA-Crypto platform requirements. We need to do that before including
+ * any system headers, thus before including the user config file since it
+ * may include platform headers. */
+#include "tf_psa_crypto_platform_requirements.h"
+
 /* From this point onwards, ensure we have the library configuration and
  * the configuration-derived macros. */
 #include <mbedtls/build_info.h>

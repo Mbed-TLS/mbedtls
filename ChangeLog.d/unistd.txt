@@ -1,0 +1,3 @@
+Changes
+   * Tweak the detection of Unix-like platforms, which makes more system
+     interfaces (timing, threading) available on Haiku, QNX and Midipix.

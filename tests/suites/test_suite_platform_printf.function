@@ -15,6 +15,34 @@
 #include <stdlib.h>
 #include <string.h>
 
+#if SIZE_MAX >= 0xffffffffffffffff
+#define SIZE_T_AT_LEAST_64_BIT
+#endif
+
+/* Older Windows runtimes have a non-compliant printf family, e.g.
+ * it doesn't understand `%zu` to print a `size_t`. MSVC provides a
+ * C99-compliant printf family (at least enough for our purposes),
+ * since Visual Studio 2015. With MinGW, you get the non-compliant legacy
+ * printf by default, but can select the standard-compliant version
+ * at compile time. In the Mbed TLS 3.6 LTS, we use the default, so
+ * we can't rely on %z being understood. The debug module defines
+ * `MBEDTLS_PRINTF_SIZET` for that, and this is tested in test_suite_debug.
+ * Here we just skip the test cases that break the legacy Windows printf.
+ */
+#if !(defined(__MINGW32__))
+#define HAVE_C99_PRINTF
+#endif
+
+typedef enum {
+    PRINTF_CAST_INT,
+    PRINTF_CAST_UNSIGNED,
+    PRINTF_CAST_SIZE_T,
+    PRINTF_CAST_LONG,
+    PRINTF_CAST_UNSIGNED_LONG,
+    PRINTF_CAST_LONG_LONG,
+    PRINTF_CAST_UNSIGNED_LONG_LONG,
+} printf_cast_type_t;
+
 #define NEWLINE_CHAR '\n'
 #define SPACE_CHAR ' '
 #define DOUBLE_QUOTE_CHAR '"'
@@ -22,18 +50,41 @@
 #define QUESTION_CHAR '?'
 #define BACKSLASH_CHAR '\\'
 #define LOWERCASE_N_CHAR 'n'
+
 /* END_HEADER */
 
 /* BEGIN_CASE */
-void printf_int(char *format, /* any format expecting one int argument, e.g. "%d" */
-                int x, char *result)
+void printf_integer(char *format, /* format expecting one foo_t argument */
+                    int type,     /* enum value from printf_cast_type_t */
+                    intmax_t value,
+                    char *result)
 {
     char *output = NULL;
     const size_t n = strlen(result);
+    int ret = 0;
 
     /* Nominal case: buffer just large enough */
     TEST_CALLOC(output, n + 1);
-    TEST_EQUAL(n, mbedtls_snprintf(output, n + 1, format, x));
+    switch (type) {
+        case PRINTF_CAST_INT:
+            ret = mbedtls_snprintf(output, n + 1, format, (int) value);
+            break;
+        case PRINTF_CAST_UNSIGNED:
+            ret = mbedtls_snprintf(output, n + 1, format, (unsigned) value);
+            break;
+        case PRINTF_CAST_SIZE_T:
+            ret = mbedtls_snprintf(output, n + 1, format, (size_t) value);
+            break;
+        case PRINTF_CAST_LONG_LONG:
+            ret = mbedtls_snprintf(output, n + 1, format, (long long) value);
+            break;
+        case PRINTF_CAST_UNSIGNED_LONG_LONG:
+            ret = mbedtls_snprintf(output, n + 1, format, (unsigned long long) value);
+            break;
+        default:
+            TEST_FAIL("Unsupported type");
+    }
+    TEST_EQUAL(n, ret);
     TEST_MEMORY_COMPARE(result, n + 1, output, n + 1);
     mbedtls_free(output);
     output = NULL;

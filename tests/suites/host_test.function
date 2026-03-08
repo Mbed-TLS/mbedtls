@@ -275,7 +275,12 @@ static int convert_params(size_t cnt, char **params,
  * \return      0 for success else 1
  */
 #if defined(__GNUC__)
+#  if defined(__dietlibc__)
+/* __noinline__ is a macro in dietlibc... */
+__attribute__((noinline))
+#  else
 __attribute__((__noinline__))
+#  endif
 #endif
 static int test_snprintf(size_t n, const char *ref_buf, int ref_ret)
 {

@@ -127,7 +127,7 @@ void check_mbedtls_calloc_overallocation(intmax_t num, intmax_t size)
     unsigned char *buf;
     buf = mbedtls_calloc((size_t) num, (size_t) size);
     /* Dummy usage of the pointer to prevent optimizing it */
-    mbedtls_printf("calloc pointer : %p\n", buf);
+    mbedtls_printf("calloc pointer : %p\n", (void *) buf);
     TEST_ASSERT(buf == NULL);
 
 exit:

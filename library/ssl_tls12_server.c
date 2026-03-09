@@ -871,10 +871,11 @@ static int ssl_parse_client_hello(mbedtls_ssl_context *ssl)
 
     /*
      * Fetch the expected ClientHello handshake message. Do not ask
-     * mbedtls_ssl_read_record() to update the handshake digest, to align
-     * with cases where the ClientHello may already have been fetched in
-     * ssl_tls13_process_client_hello() or as a post-handshake message
-     * (renegotiation).
+     * mbedtls_ssl_read_record() to update the handshake digest, because the
+     * ClientHello may already have been read in ssl_tls13_process_client_hello()
+     * or as a post-handshake message (renegotiation). In those cases we need
+     * to update the digest ourselves, and it is simpler to do so
+     * unconditionally than to track whether it is needed.
      */
     if ((ret = mbedtls_ssl_read_record(ssl, 0)) != 0) {
         MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_read_record ", ret);

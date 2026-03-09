@@ -468,16 +468,16 @@ component_build_arm_linux_gnueabi_gcc_arm5vte () {
     ${ARM_LINUX_GNUEABI_GCC_PREFIX}size -t ${PSA_CORE_PATH}/*.o
     ${ARM_LINUX_GNUEABI_GCC_PREFIX}size -t ${BUILTIN_SRC_PATH}/*.o
     if compgen -G "${TF_PSA_CRYPTO_ROOT_DIR}/dispatch/*.o" > /dev/null; then
-        ${ARM_NONE_EABI_GCC_PREFIX}size -t ${TF_PSA_CRYPTO_ROOT_DIR}/dispatch/*.o
+        ${ARM_LINUX_GNUEABI_GCC_PREFIX}size -t ${TF_PSA_CRYPTO_ROOT_DIR}/dispatch/*.o
     fi
     if compgen -G "${TF_PSA_CRYPTO_ROOT_DIR}/extras/*.o" > /dev/null; then
-        ${ARM_NONE_EABI_GCC_PREFIX}size -t ${TF_PSA_CRYPTO_ROOT_DIR}/extras/*.o
+        ${ARM_LINUX_GNUEABI_GCC_PREFIX}size -t ${TF_PSA_CRYPTO_ROOT_DIR}/extras/*.o
     fi
     if compgen -G "${TF_PSA_CRYPTO_ROOT_DIR}/platform/*.o" > /dev/null; then
-        ${ARM_NONE_EABI_GCC_PREFIX}size -t ${TF_PSA_CRYPTO_ROOT_DIR}/platform/*.o
+        ${ARM_LINUX_GNUEABI_GCC_PREFIX}size -t ${TF_PSA_CRYPTO_ROOT_DIR}/platform/*.o
     fi
     if compgen -G "${TF_PSA_CRYPTO_ROOT_DIR}/utilities/*.o" > /dev/null; then
-        ${ARM_NONE_EABI_GCC_PREFIX}size -t ${TF_PSA_CRYPTO_ROOT_DIR}/utilities/*.o
+        ${ARM_LINUX_GNUEABI_GCC_PREFIX}size -t ${TF_PSA_CRYPTO_ROOT_DIR}/utilities/*.o
     fi
 }
 

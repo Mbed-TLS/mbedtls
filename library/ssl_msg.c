@@ -3264,8 +3264,8 @@ int mbedtls_ssl_prepare_handshake_record(mbedtls_ssl_context *ssl)
         /*
          * When establishing the connection, the client may go through a series
          * of ClientHello and HelloVerifyRequest requests and responses. The
-         * server does not keep any trace of these initial round trips as
-         * intended: minimum allocated ressources as long as the reachability
+         * server intentionally does not keep trace of these initial round
+         * trips: minimum allocated ressources as long as the reachability
          * of the client has not been confirmed. When receiving the "first
          * ClientHello" from server perspective, we may thus need to adapt
          * the next expected `message_seq` for the incoming and outgoing

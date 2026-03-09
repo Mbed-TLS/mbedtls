@@ -10,6 +10,7 @@
 ################################################################
 
 CMAKE_BUILTIN_BUILD_DIR="tf-psa-crypto/drivers/builtin/CMakeFiles/builtin.dir/src"
+CMAKE_EXTRAS_BUILD_DIR="tf-psa-crypto/extras/CMakeFiles/extras.dir"
 
 component_test_psa_crypto_key_id_encodes_owner () {
     msg "build: full config + PSA_CRYPTO_KEY_ID_ENCODES_OWNER, cmake, gcc, ASan"
@@ -280,8 +281,13 @@ component_full_no_pkparse_pkwrite () {
     cmake --build .
 
     # Ensure that PK_[PARSE|WRITE]_C were not re-enabled accidentally (additive config).
-    not grep mbedtls_pk_parse_key ${CMAKE_BUILTIN_BUILD_DIR}/pkparse.c.o
-    not grep mbedtls_pk_write_key_der ${CMAKE_BUILTIN_BUILD_DIR}/pkwrite.c.o
+    if [ -f ${TF_PSA_CRYPTO_ROOT_DIR}/extras/pkparse.c ]; then
+        not grep mbedtls_pk_parse_key ${CMAKE_EXTRAS_BUILD_DIR}/pkparse.c.o
+        not grep mbedtls_pk_write_key_der ${CMAKE_EXTRAS_BUILD_DIR}/pkwrite.c.o
+    else
+        not grep mbedtls_pk_parse_key ${CMAKE_BUILTIN_BUILD_DIR}/pkparse.c.o
+        not grep mbedtls_pk_write_key_der ${CMAKE_BUILTIN_BUILD_DIR}/pkwrite.c.o
+    fi
 
     msg "test: full without pkparse and pkwrite"
     ctest
@@ -302,7 +308,11 @@ component_full_no_pkwrite () {
     make
 
     # Ensure that PK_WRITE_C was not re-enabled accidentally (additive config).
-    not grep mbedtls_pk_write_key_der ${CMAKE_BUILTIN_BUILD_DIR}/pkwrite.c.o
+    if [ -f ${TF_PSA_CRYPTO_ROOT_DIR}/extras/pkwrite.c ]; then
+        not grep mbedtls_pk_write_key_der ${CMAKE_EXTRAS_BUILD_DIR}/pkwrite.c.o
+    else
+        not grep mbedtls_pk_write_key_der ${CMAKE_BUILTIN_BUILD_DIR}/pkwrite.c.o
+    fi
 
     msg "test: full without pkwrite"
     make test
@@ -329,8 +339,13 @@ component_test_crypto_full_md_light_only () {
     cmake --build .
 
     # Make sure we don't have the HMAC functions, but the hashing functions
-    not grep mbedtls_md_hmac ${CMAKE_BUILTIN_BUILD_DIR}/md.c.o
-    grep mbedtls_md ${CMAKE_BUILTIN_BUILD_DIR}/md.c.o
+    if [ -f ${TF_PSA_CRYPTO_ROOT_DIR}/extras/md.c ]; then
+        not grep mbedtls_md_hmac ${CMAKE_EXTRAS_BUILD_DIR}/md.c.o
+        grep mbedtls_md ${CMAKE_EXTRAS_BUILD_DIR}/md.c.o
+    else
+        not grep mbedtls_md_hmac ${CMAKE_BUILTIN_BUILD_DIR}/md.c.o
+        grep mbedtls_md ${CMAKE_BUILTIN_BUILD_DIR}/md.c.o
+    fi
 
     msg "test: crypto_full with only the light subset of MD"
     ctest
@@ -1668,7 +1683,11 @@ component_test_psa_crypto_config_accel_hmac () {
     helper_libtestdriver1_make_main "$loc_accel_list"
 
     # Ensure that built-in support for HMAC is disabled.
-    not grep mbedtls_md_hmac ${BUILTIN_SRC_PATH}/md.o
+    if [ -f ${TF_PSA_CRYPTO_ROOT_DIR}/extras/md.c ]; then
+        not grep mbedtls_md_hmac ${TF_PSA_CRYPTO_ROOT_DIR}/extras/md.o
+    else
+        not grep mbedtls_md_hmac ${BUILTIN_SRC_PATH}/md.o
+    fi
 
     # Run the tests
     # -------------

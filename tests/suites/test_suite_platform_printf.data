@@ -3,58 +3,86 @@
 # and strings through the test framework.
 
 printf "%d", 0
-printf_int:"%d":0:"0"
+printf_integer:"%d":PRINTF_CAST_INT:0:"0"
 
 printf "%d", -0
-printf_int:"%d":-0:"0"
+printf_integer:"%d":PRINTF_CAST_INT:-0:"0"
 
 printf "%d", 0x0
-printf_int:"%d":0x0:"0"
+printf_integer:"%d":PRINTF_CAST_INT:0x0:"0"
 
 printf "%d", 0x00
-printf_int:"%d":0x00:"0"
+printf_integer:"%d":PRINTF_CAST_INT:0x00:"0"
 
 printf "%d", 0x000000000000000000000000000000000000000000
-printf_int:"%d":0x000000000000000000000000000000000000000000:"0"
+printf_integer:"%d":PRINTF_CAST_INT:0x000000000000000000000000000000000000000000:"0"
 
 printf "%d", -0x0
-printf_int:"%d":-0x0:"0"
+printf_integer:"%d":PRINTF_CAST_INT:-0x0:"0"
 
 printf "%d", 1
-printf_int:"%d":1:"1"
+printf_integer:"%d":PRINTF_CAST_INT:1:"1"
 
 printf "%d", 0x1
-printf_int:"%d":0x1:"1"
+printf_integer:"%d":PRINTF_CAST_INT:0x1:"1"
 
 printf "%d", 0x0000000000000000000000000000000000000000001
-printf_int:"%d":0x0000000000000000000000000000000000000000001:"1"
+printf_integer:"%d":PRINTF_CAST_INT:0x0000000000000000000000000000000000000000001:"1"
 
 printf "%d", -1
-printf_int:"%d":-1:"-1"
+printf_integer:"%d":PRINTF_CAST_INT:-1:"-1"
 
 printf "%d", -0x1
-printf_int:"%d":-0x1:"-1"
+printf_integer:"%d":PRINTF_CAST_INT:-0x1:"-1"
 
 printf "%d", -0x0000000000000000000000000000000000000000001
-printf_int:"%d":-0x0000000000000000000000000000000000000000001:"-1"
+printf_integer:"%d":PRINTF_CAST_INT:-0x0000000000000000000000000000000000000000001:"-1"
 
 printf "%d", 2147483647
-printf_int:"%d":2147483647:"2147483647"
+printf_integer:"%d":PRINTF_CAST_INT:2147483647:"2147483647"
 
 printf "%d", 0x7fffffff
-printf_int:"%d":0x7fffffff:"2147483647"
+printf_integer:"%d":PRINTF_CAST_INT:0x7fffffff:"2147483647"
 
 printf "%d", -2147483647
-printf_int:"%d":-2147483647:"-2147483647"
+printf_integer:"%d":PRINTF_CAST_INT:-2147483647:"-2147483647"
 
 printf "%d", -0x7fffffff
-printf_int:"%d":-0x7fffffff:"-2147483647"
+printf_integer:"%d":PRINTF_CAST_INT:-0x7fffffff:"-2147483647"
 
 printf "%d", -2147483648
-printf_int:"%d":-2147483648:"-2147483648"
+printf_integer:"%d":PRINTF_CAST_INT:-2147483648:"-2147483648"
 
 printf "%d", -0x80000000
-printf_int:"%d":-0x80000000:"-2147483648"
+printf_integer:"%d":PRINTF_CAST_INT:-0x80000000:"-2147483648"
+
+printf "%u", 0x80000000
+printf_integer:"%u":PRINTF_CAST_INT:-0x80000000:"2147483648"
+
+printf "%zx", 0x12345678
+depends_on:HAVE_C99_PRINTF
+printf_integer:"%zx":PRINTF_CAST_SIZE_T:0x12345678:"12345678"
+
+printf "%zu", 0x80000000
+depends_on:HAVE_C99_PRINTF
+printf_integer:"%zu":PRINTF_CAST_SIZE_T:0x80000000:"2147483648"
+
+printf "%zx", 0xffffffff
+depends_on:HAVE_C99_PRINTF
+printf_integer:"%zx":PRINTF_CAST_SIZE_T:0xffffffff:"ffffffff"
+
+printf "%zx", 0xffffffffffffffff
+depends_on:HAVE_C99_PRINTF:SIZE_T_AT_LEAST_64_BIT
+printf_integer:"%zx":PRINTF_CAST_SIZE_T:0xffffffffffffffff:"ffffffffffffffff"
+
+printf "%lld", 0x7fffffffffffffff
+printf_integer:"%lld":PRINTF_CAST_LONG_LONG:0x7fffffffffffffff:"9223372036854775807"
+
+printf "%lld", -0x8000000000000000
+printf_integer:"%lld":PRINTF_CAST_LONG_LONG:-0x8000000000000000:"-9223372036854775808"
+
+printf "%llx", 0x102030405060708
+printf_integer:"%llx":PRINTF_CAST_UNSIGNED_LONG_LONG:0x0102030405060708:"102030405060708"
 
 # Test that LONG_MAX is coming out untruncated through the test framework.
 printf "%lx", LONG_MAX

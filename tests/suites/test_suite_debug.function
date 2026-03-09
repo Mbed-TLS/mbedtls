@@ -113,11 +113,11 @@ void printf_int_expr(int format_indicator, intmax_t sizeof_x, intmax_t x, char *
     /* Nominal case: buffer just large enough */
     TEST_CALLOC(output, n + 1);
     if ((size_t) sizeof_x <= sizeof(int)) { // Any smaller integers would be promoted to an int due to calling a vararg function
-        TEST_EQUAL(n, mbedtls_snprintf(output, n + 1, format, (int) x));
+        TEST_EQUAL(n, mbedtls_debug_snprintf(output, n + 1, format, (int) x));
     } else if (sizeof_x == sizeof(long)) {
-        TEST_EQUAL(n, mbedtls_snprintf(output, n + 1, format, (long) x));
+        TEST_EQUAL(n, mbedtls_debug_snprintf(output, n + 1, format, (long) x));
     } else if (sizeof_x == sizeof(long long)) {
-        TEST_EQUAL(n, mbedtls_snprintf(output, n + 1, format, (long long) x));
+        TEST_EQUAL(n, mbedtls_debug_snprintf(output, n + 1, format, (long long) x));
     } else {
         TEST_FAIL(
             "sizeof_x <= sizeof(int) || sizeof_x == sizeof(long) || sizeof_x == sizeof(long long)");

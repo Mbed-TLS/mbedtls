@@ -6496,7 +6496,7 @@ void aead_multipart_state_test(int key_type_arg, data_t *key_data,
                                    &output_part_length,
                                    tag_buffer, tag_length,
                                    &tag_size),
-                   PSA_ERROR_INVALID_ARGUMENT);
+                   PSA_ERROR_BAD_STATE);
         psa_aead_abort(&operation);
 
         PSA_ASSERT(psa_aead_encrypt_setup(&operation, key, alg));
@@ -6617,7 +6617,7 @@ void aead_multipart_state_test(int key_type_arg, data_t *key_data,
                                    &output_part_length,
                                    tag_buffer, tag_length,
                                    &tag_size),
-                   PSA_ERROR_INVALID_ARGUMENT);
+                   PSA_ERROR_BAD_STATE);
         psa_aead_abort(&operation);
 
         PSA_ASSERT(psa_aead_encrypt_setup(&operation, key, alg));

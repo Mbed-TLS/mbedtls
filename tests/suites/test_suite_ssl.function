@@ -6027,7 +6027,8 @@ void tls13_hrr_then_tls12_second_client_hello()
      * Prepare for handshake with the ticket.
      */
     /* Remove the group SECP256R1 from the list of groups supported by the
-     * server such that it sends an HRR in response to the ClientHello.
+     * server. Since it is the client's preferred group, the client will
+     * send a key share only for SECP256R1, forcing the server to send a HRR.
      */
     server_options.group_list = group_list + 1;
 
@@ -6078,10 +6079,12 @@ void tls13_hrr_then_tls12_second_client_hello()
     #endif
 
     /*
-     * Reset the client and force it to TLS 1.2 so that it sends a TLS 1.2
-     * ClientHello.
+     * The client has just received the server's HRR and is expected to send a
+     * second ClientHello. Instead of sending a compliant second TLS 1.3
+     * ClientHello, we want it to send a TLS 1.2-only ClientHello. To achieve
+     * this, we reset the client with a TLS 1.2-only configuration before
+     * resuming the handshake with the server.
      */
-
     client_ep.ssl.tls_version = MBEDTLS_SSL_VERSION_TLS1_2;
     mbedtls_ssl_conf_min_tls_version(&client_ep.conf, MBEDTLS_SSL_VERSION_TLS1_2);
     mbedtls_ssl_conf_max_tls_version(&client_ep.conf, MBEDTLS_SSL_VERSION_TLS1_2);

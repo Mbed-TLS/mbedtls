@@ -5770,14 +5770,17 @@ void send_invalid_sig_alg(int sig, int hash, int expected_ret)
     options.client_max_version = MBEDTLS_SSL_VERSION_TLS1_2;
     options.server_max_version = MBEDTLS_SSL_VERSION_TLS1_2;
 
-    // Add loggers for easier debugging - we are not looking for any patterns.
-    // To turn on debug output, uncomment the threshold line and set the macro in
-    // the definition of mbedtls_test_ssl_log_analyzer().
+    mbedtls_test_ssl_log_pattern cli_pattern;
+    cli_pattern.pattern = "that was not offered";
+    cli_pattern.counter = 0;
+    options.cli_log_obj = &cli_pattern;
+    options.cli_log_fun = mbedtls_test_ssl_log_analyzer;
 #if defined(MBEDTLS_DEBUG_C)
+    // Add loggers for easier debugging - we are not looking for any patterns in the server logs.
+    // To turn on debug output, uncomment the threshold line and set the macro in the definition
+    // of mbedtls_test_ssl_log_analyzer().
     options.srv_log_obj = NULL;
     options.srv_log_fun = mbedtls_test_ssl_log_analyzer;
-    options.cli_log_obj = NULL;
-    options.cli_log_fun = mbedtls_test_ssl_log_analyzer;
     mbedtls_debug_set_threshold(3);
 #endif
 
@@ -5829,8 +5832,12 @@ void send_invalid_sig_alg(int sig, int hash, int expected_ret)
     ret = mbedtls_test_move_handshake_to_state(&client.ssl, &server.ssl,
                                                MBEDTLS_SSL_CERTIFICATE_REQUEST);
     TEST_EQUAL(ret, expected_ret);
+    TEST_EQUAL(cli_pattern.counter, 1);
 
 exit:
+#if defined(MBEDTLS_DEBUG_C)
+    mbedtls_debug_set_threshold(0);
+#endif
     mbedtls_test_free_handshake_options(&options);
     mbedtls_test_ssl_endpoint_free(&server, NULL);
     mbedtls_test_ssl_endpoint_free(&client, NULL);

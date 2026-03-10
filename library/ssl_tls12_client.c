@@ -1732,6 +1732,71 @@ static int ssl_parse_server_psk_hint(mbedtls_ssl_context *ssl,
 }
 #endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */
 
+#if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED) ||                     \
+    defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)
+MBEDTLS_CHECK_RETURN_CRITICAL
+static int ssl_parse_signature_algorithm(mbedtls_ssl_context *ssl,
+                                         unsigned char **p,
+                                         unsigned char *end,
+                                         mbedtls_md_type_t *md_alg,
+                                         mbedtls_pk_sigalg_t *pk_alg)
+{
+    *md_alg = MBEDTLS_MD_NONE;
+    *pk_alg = MBEDTLS_PK_SIGALG_NONE;
+
+    MBEDTLS_SSL_CHK_BUF_READ_PTR(*p, end, 2);
+    uint16_t sig_alg = MBEDTLS_GET_UINT16_BE(*p, 0);
+
+    if (mbedtls_ssl_get_pk_sigalg_and_md_alg_from_sig_alg(sig_alg, pk_alg, md_alg) != 0) {
+        /*
+         * Check hash algorithm
+         */
+        if (*md_alg == MBEDTLS_MD_NONE) {
+            MBEDTLS_SSL_DEBUG_MSG(1, ("Server used unsupported HashAlgorithm %d", (*p)[0]));
+            return MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE;
+        }
+
+        /*
+         * Check signature algorithm
+         */
+        if (*pk_alg == MBEDTLS_PK_SIGALG_NONE) {
+            MBEDTLS_SSL_DEBUG_MSG(1, ("Server used unsupported SignatureAlgorithm %d", (*p)[1]));
+            return MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE;
+        }
+
+        /*
+         * This shouldn't happen, but be robust.
+         */
+        MBEDTLS_SSL_DEBUG_MSG(1, ("Server used unsupported value in SigAlg extension %d", sig_alg));
+        return MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE;
+    }
+
+    /*
+     * mbedtls_ssl_get_pk_sigalg_and_md_alg_from_sig_alg() understands sig_alg code points across
+     * TLS versions. Make sure that the received sig_alg extension is valid in TLS 1.2.
+     */
+    if (!mbedtls_ssl_sig_alg_is_supported(ssl, sig_alg)) {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ("Server used unsupported value in SigAlg extension %d", sig_alg));
+        return MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE;
+    }
+
+    /*
+     * Check if the signature algorithm is acceptable
+     */
+    if(!mbedtls_ssl_sig_alg_is_offered(ssl, sig_alg)) {
+        MBEDTLS_SSL_DEBUG_MSG(1, ("Server used SigAlg value %d that was not offered", sig_alg));
+        return MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE;
+    }
+
+    MBEDTLS_SSL_DEBUG_MSG(2, ("Server used SignatureAlgorithm %d", (*p)[1]));
+    MBEDTLS_SSL_DEBUG_MSG(2, ("Server used HashAlgorithm %d", (*p)[0]));
+    *p += 2;
+
+    return 0;
+}
+#endif /* MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED ||
+          MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED */
+
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_parse_server_key_exchange(mbedtls_ssl_context *ssl)
 {
@@ -1889,7 +1954,6 @@ start_processing:
         unsigned char *params = ssl->in_msg + mbedtls_ssl_hs_hdr_len(ssl);
         size_t params_len = (size_t) (p - params);
         void *rs_ctx = NULL;
-        uint16_t sig_alg;
 
         mbedtls_pk_context *peer_pk;
 
@@ -1907,12 +1971,7 @@ start_processing:
         /*
          * Handle the digitally-signed structure
          */
-        MBEDTLS_SSL_CHK_BUF_READ_PTR(p, end, 2);
-        sig_alg = MBEDTLS_GET_UINT16_BE(p, 0);
-        if (mbedtls_ssl_get_pk_sigalg_and_md_alg_from_sig_alg(
-                sig_alg, &pk_alg, &md_alg) != 0 ||
-            !mbedtls_ssl_sig_alg_is_offered(ssl, sig_alg) ||
-            !mbedtls_ssl_sig_alg_is_supported(ssl, sig_alg)) {
+        if (ssl_parse_signature_algorithm(ssl, &p, end, &md_alg, &pk_alg) != 0) {
             MBEDTLS_SSL_DEBUG_MSG(1,
                                   ("bad server key exchange message"));
             mbedtls_ssl_send_alert_message(
@@ -1921,7 +1980,6 @@ start_processing:
                 MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER);
             return MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER;
         }
-        p += 2;
 
         psa_hash_alg = mbedtls_md_psa_alg_from_type(md_alg);
         if (!mbedtls_pk_can_do_psa(peer_pk,

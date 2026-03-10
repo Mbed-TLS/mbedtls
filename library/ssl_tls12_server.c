@@ -882,6 +882,20 @@ static int ssl_parse_client_hello(mbedtls_ssl_context *ssl)
         return ret;
     }
 
+    /*
+     * Update the handshake checksum.
+     *
+     * Note that the checksum must be updated before parsing the extensions
+     * because ssl_parse_session_ticket_ext() may decrypt the ticket in place
+     * and therefore modify the ClientHello message. This occurs when using
+     * the Mbed TLS ssl_ticket.c implementation.
+     */
+    ret = mbedtls_ssl_update_handshake_status(ssl);
+    if (0 != ret) {
+        MBEDTLS_SSL_DEBUG_RET(1, ("mbedtls_ssl_update_handshake_status"), ret);
+        return ret;
+    }
+
     buf = ssl->in_msg;
     msg_len = ssl->in_hslen;
 
@@ -1085,21 +1099,6 @@ static int ssl_parse_client_hello(mbedtls_ssl_context *ssl)
         }
     } else {
         ext_len = 0;
-    }
-
-    /*
-     * Update the handshake checksum after performing preliminary
-     * validation of the ClientHello and before parsing its extensions.
-     *
-     * The checksum must be updated before parsing the extensions because
-     * ssl_parse_session_ticket_ext() may decrypt the ticket in place and
-     * therefore modify the ClientHello message. This occurs when using
-     * the Mbed TLS ssl_ticket.c implementation.
-     */
-    ret = mbedtls_ssl_update_handshake_status(ssl);
-    if (0 != ret) {
-        MBEDTLS_SSL_DEBUG_RET(1, ("mbedtls_ssl_update_handshake_status"), ret);
-        return ret;
     }
 
     ext = buf + ext_offset + 2;

@@ -5749,7 +5749,7 @@ void send_invalid_sig_alg(int sig, int hash, int expected_ret)
 
     mbedtls_test_init_handshake_options(&options);
 
-    // Make sure the server has credentals for target_sig_alg
+    // Make sure the server has credentials for target_sig_alg
     if (sig == MBEDTLS_SSL_SIG_ECDSA) {
         options.pk_alg = MBEDTLS_PK_ECDSA;
     } else {
@@ -5823,7 +5823,7 @@ void send_invalid_sig_alg(int sig, int hash, int expected_ret)
                                                MBEDTLS_SSL_SERVER_KEY_EXCHANGE);
     TEST_EQUAL(ret, 0);
 
-    // Make the server beleive that the only sig_alg the client accepts is target_sig_alg
+    // Make the server believe that the only sig_alg the client accepts is target_sig_alg
     server.ssl.handshake->received_sig_algs[0] = target_sig_alg;
     server.ssl.handshake->received_sig_algs[1] = MBEDTLS_TLS1_3_SIG_NONE;
 

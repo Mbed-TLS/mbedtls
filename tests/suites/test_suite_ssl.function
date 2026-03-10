@@ -5802,7 +5802,7 @@ void send_invalid_sig_alg(int sig, int hash, int expected_ret)
     }
     TEST_ASSERT(j < client_sig_algs_len);
     client_sig_algs[j] = MBEDTLS_TLS1_3_SIG_NONE;
-    client.conf.sig_algs = client_sig_algs;
+    mbedtls_ssl_conf_sig_algs(&client.conf, client_sig_algs);
 
     ret = mbedtls_test_ssl_endpoint_init_ssl(&client, &options);
     TEST_EQUAL(ret, 0);

@@ -6081,11 +6081,13 @@ void tls13_hrr_then_tls12_second_client_hello()
         &(server_ep.ssl), &(client_ep.ssl),
         MBEDTLS_SSL_HELLO_RETRY_REQUEST);
     TEST_EQUAL(ret, 0);
+    TEST_EQUAL(client_ep.ssl.state, MBEDTLS_SSL_SERVER_HELLO);
 
     ret = mbedtls_test_move_handshake_to_state(
         &(client_ep.ssl), &(server_ep.ssl),
         MBEDTLS_SSL_CLIENT_HELLO);
     TEST_EQUAL(ret, 0);
+    TEST_EQUAL(server_ep.ssl.state, MBEDTLS_SSL_CLIENT_HELLO);
 
     #if defined(MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE)
     /* If the compatibility mode is enabled, filter the dummy change_cipher_spec

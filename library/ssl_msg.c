@@ -2967,34 +2967,47 @@ int mbedtls_ssl_prepare_handshake_record(mbedtls_ssl_context *ssl)
             return MBEDTLS_ERR_SSL_INVALID_RECORD;
         }
 
-        /*
-         * When establishing the connection, the client may go through a series
-         * of ClientHello and HelloVerifyRequest requests and responses. The
-         * server intentionally does not keep trace of these initial round
-         * trips: minimum allocated ressources as long as the reachability
-         * of the client has not been confirmed. When receiving the "first
-         * ClientHello" from server perspective, we may thus need to adapt
-         * the next expected `message_seq` for the incoming and outgoing
-         * handshake messages.
-         */
         if (ssl->in_msg[0] == MBEDTLS_SSL_HS_CLIENT_HELLO &&
-            ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER &&
-            ssl->state == MBEDTLS_SSL_CLIENT_HELLO
+            ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER) {
+            if (ssl->state == MBEDTLS_SSL_CLIENT_HELLO
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
-            && ssl->renego_status == MBEDTLS_SSL_INITIAL_HANDSHAKE
+                && ssl->renego_status == MBEDTLS_SSL_INITIAL_HANDSHAKE
 #endif
-            ) {
-            ssl->handshake->in_msg_seq = recv_msg_seq;
-            ssl->handshake->out_msg_seq = recv_msg_seq;
+                ) {
+                /*
+                 * When establishing the connection, the client may go through
+                 * a series of ClientHello and HelloVerifyRequest requests and
+                 * responses. The server intentionally does not keep trace of
+                 * these initial round trips: minimum allocated ressources as
+                 * long as the reachability of the client has not been
+                 * confirmed. When receiving the "first ClientHello" from
+                 * server perspective, we may thus need to adapt the next
+                 * expected `message_seq` for the incoming and outgoing
+                 * handshake messages.
+                 */
+                ssl->handshake->in_msg_seq = recv_msg_seq;
+                ssl->handshake->out_msg_seq = recv_msg_seq;
 
-            /* Epoch should be 0 for initial handshakes */
-            if (ssl->in_ctr[0] != 0 || ssl->in_ctr[1] != 0) {
-                MBEDTLS_SSL_DEBUG_MSG(1, ("bad client hello message"));
-                return MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER;
+                /* Epoch should be 0 for initial handshakes */
+                if (ssl->in_ctr[0] != 0 || ssl->in_ctr[1] != 0) {
+                    MBEDTLS_SSL_DEBUG_MSG(1, ("bad client hello message"));
+                    return MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER;
+                }
+
+                memcpy(&ssl->cur_out_ctr[2], ssl->in_ctr + 2,
+                       sizeof(ssl->cur_out_ctr) - 2);
+            } else if (mbedtls_ssl_is_handshake_over(ssl) == 1) {
+                /* In case of a post-handshake ClientHello that initiates a
+                 * renegotiation check that the handshake message sequence
+                 * number is zero.
+                 */
+                if (recv_msg_seq != 0) {
+                    MBEDTLS_SSL_DEBUG_MSG(1, ("bad client hello message_seq: "
+                                              "%u (expected 0)",
+                                              recv_msg_seq));
+                    return MBEDTLS_ERR_SSL_DECODE_ERROR;
+                }
             }
-
-            memcpy(&ssl->cur_out_ctr[2], ssl->in_ctr + 2,
-                   sizeof(ssl->cur_out_ctr) - 2);
         }
 
         if (ssl->handshake != NULL &&

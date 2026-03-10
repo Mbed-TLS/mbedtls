@@ -6044,7 +6044,7 @@ void tls13_hrr_then_tls12_second_client_hello()
     /*
      * Prepare for handshake with the ticket.
      */
-    /* Remove the group SECP256R1 fron the list of groups supported by the
+    /* Remove the group SECP256R1 from the list of groups supported by the
      * server such that it sends an HRR in response to the ClientHello.
      */
     server_options.group_list = group_list + 1;
@@ -6073,7 +6073,7 @@ void tls13_hrr_then_tls12_second_client_hello()
 
     /*
      * Progress the handshake up to the point where the server has sent the
-     * HRR and the client as received and processed the server HRR but not
+     * HRR and the client has received and processed the server HRR but not
      * written the second ClientHello in response to the HRR.
      */
     ret = mbedtls_test_move_handshake_to_state(
@@ -6101,14 +6101,12 @@ void tls13_hrr_then_tls12_second_client_hello()
      */
 
     client_ep.ssl.tls_version = MBEDTLS_SSL_VERSION_TLS1_2;
-    mbedtls_ssl_conf_min_tls_version((mbedtls_ssl_config *) client_ep.ssl.conf,
-                                     MBEDTLS_SSL_VERSION_TLS1_2);
-    mbedtls_ssl_conf_max_tls_version((mbedtls_ssl_config *) client_ep.ssl.conf,
-                                     MBEDTLS_SSL_VERSION_TLS1_2);
-    mbedtls_ssl_conf_ciphersuites((mbedtls_ssl_config *) client_ep.ssl.conf,
-                                  tls12_ciphersuite_list);
+    mbedtls_ssl_conf_min_tls_version(&client_ep.conf, MBEDTLS_SSL_VERSION_TLS1_2);
+    mbedtls_ssl_conf_max_tls_version(&client_ep.conf, MBEDTLS_SSL_VERSION_TLS1_2);
+    mbedtls_ssl_conf_ciphersuites(&client_ep.conf, tls12_ciphersuite_list);
 
     ret = mbedtls_ssl_session_reset(&(client_ep.ssl));
+    TEST_EQUAL(ret, 0);
 
     /*
      * Restart and try to complete the handshake on server side which is
@@ -6131,6 +6129,7 @@ exit:
     mbedtls_test_free_handshake_options(&client_options);
     mbedtls_test_free_handshake_options(&server_options);
     mbedtls_ssl_session_free(&saved_session);
+    mbedtls_debug_set_threshold(0);
     PSA_DONE();
 }
 /* END_CASE */

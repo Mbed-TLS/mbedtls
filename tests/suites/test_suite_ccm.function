@@ -923,7 +923,7 @@ void mbedtls_ccm_finish_boundary(int cipher_id, int mode,
     TEST_EQUAL(0, mbedtls_ccm_starts(&ctx, mode, iv->x, iv->len));
 
     /* Use the caller-provided tag length during setup, then finish with a
-     * different tag length to exercise boundary handling/API complianece */
+     * different tag length to exercise boundary handling/API compliance */
     TEST_EQUAL(0, mbedtls_ccm_set_lengths(&ctx, 0, 0, (size_t) start_tag_len));
 
     TEST_CALLOC(tag, finish_tag_len);

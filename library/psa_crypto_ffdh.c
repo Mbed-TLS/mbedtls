@@ -277,7 +277,7 @@ psa_status_t mbedtls_psa_ffdh_key_agreement(
         return PSA_ERROR_INVALID_ARGUMENT;
     }
 
-    /* This has been checked by the library, but keep a local check too. */
+    /* This has been checked by the core, but keep a local check too. */
     if (calculated_shared_secret_size > shared_secret_size) {
         return PSA_ERROR_BUFFER_TOO_SMALL;
     }

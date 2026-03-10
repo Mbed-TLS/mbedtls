@@ -93,12 +93,10 @@
 
 /*
  * To use the test keys we need PSA_WANT_ALG_SHA_256. Some test cases need an additional hash that
- * can be used in modern TLS, but it doesn't matter which one.
+ * is configured by default (see mbedtls_ssl_config_defaults()), but it doesn't matter which one.
  */
 #if defined(PSA_WANT_ALG_SHA_512) || \
-    defined(PSA_WANT_ALG_SHA_384) || \
-    defined(PSA_WANT_ALG_SHA_224) || \
-    defined(PSA_WANT_ALG_SHA_1)
+    defined(PSA_WANT_ALG_SHA_384)
 #define MBEDTLS_TEST_HAS_ADDITIONAL_HASH
 #endif
 

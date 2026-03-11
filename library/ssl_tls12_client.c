@@ -2095,7 +2095,7 @@ static int ssl_parse_signature_algorithm(mbedtls_ssl_context *ssl,
          */
         if (*md_alg == MBEDTLS_MD_NONE) {
             MBEDTLS_SSL_DEBUG_MSG(1, ("Server used unsupported HashAlgorithm %d", sig_alg >> 8));
-            return MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE;
+            return MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER;
         }
 
         /*
@@ -2104,14 +2104,14 @@ static int ssl_parse_signature_algorithm(mbedtls_ssl_context *ssl,
         if (*pk_alg == MBEDTLS_PK_SIGALG_NONE) {
             MBEDTLS_SSL_DEBUG_MSG(1,
                     ("Server used unsupported SignatureAlgorithm %d", sig_alg & 0x00FF));
-            return MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE;
+            return MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER;
         }
 
         /*
          * This shouldn't happen, but be robust.
          */
         MBEDTLS_SSL_DEBUG_MSG(1, ("Server used unsupported value in SigAlg extension %d", sig_alg));
-        return MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE;
+        return MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER;
     }
 
     /*
@@ -2120,7 +2120,7 @@ static int ssl_parse_signature_algorithm(mbedtls_ssl_context *ssl,
      */
     if (!mbedtls_ssl_sig_alg_is_supported(ssl, sig_alg)) {
         MBEDTLS_SSL_DEBUG_MSG(1, ("Server used unsupported value in SigAlg extension %d", sig_alg));
-        return MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE;
+        return MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER;
     }
 
     /*
@@ -2128,7 +2128,7 @@ static int ssl_parse_signature_algorithm(mbedtls_ssl_context *ssl,
      */
     if (!mbedtls_ssl_sig_alg_is_offered(ssl, sig_alg)) {
         MBEDTLS_SSL_DEBUG_MSG(1, ("Server used SigAlg value %d that was not offered", sig_alg));
-        return MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE;
+        return MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER;
     }
 
     MBEDTLS_SSL_DEBUG_MSG(2, ("Server used SignatureAlgorithm %d", sig_alg & 0x00FF));

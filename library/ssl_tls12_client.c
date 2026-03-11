@@ -1736,23 +1736,19 @@ static int ssl_parse_server_psk_hint(mbedtls_ssl_context *ssl,
     defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_parse_signature_algorithm(mbedtls_ssl_context *ssl,
-                                         unsigned char **p,
-                                         unsigned char *end,
+                                         uint16_t sig_alg,
                                          mbedtls_md_type_t *md_alg,
                                          mbedtls_pk_sigalg_t *pk_alg)
 {
     *md_alg = MBEDTLS_MD_NONE;
     *pk_alg = MBEDTLS_PK_SIGALG_NONE;
 
-    MBEDTLS_SSL_CHK_BUF_READ_PTR(*p, end, 2);
-    uint16_t sig_alg = MBEDTLS_GET_UINT16_BE(*p, 0);
-
     if (mbedtls_ssl_get_pk_sigalg_and_md_alg_from_sig_alg(sig_alg, pk_alg, md_alg) != 0) {
         /*
          * Check hash algorithm
          */
         if (*md_alg == MBEDTLS_MD_NONE) {
-            MBEDTLS_SSL_DEBUG_MSG(1, ("Server used unsupported HashAlgorithm %d", (*p)[0]));
+            MBEDTLS_SSL_DEBUG_MSG(1, ("Server used unsupported HashAlgorithm %d", sig_alg >> 8));
             return MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE;
         }
 
@@ -1760,7 +1756,8 @@ static int ssl_parse_signature_algorithm(mbedtls_ssl_context *ssl,
          * Check signature algorithm
          */
         if (*pk_alg == MBEDTLS_PK_SIGALG_NONE) {
-            MBEDTLS_SSL_DEBUG_MSG(1, ("Server used unsupported SignatureAlgorithm %d", (*p)[1]));
+            MBEDTLS_SSL_DEBUG_MSG(1,
+                    ("Server used unsupported SignatureAlgorithm %d", sig_alg & 0x00FF));
             return MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE;
         }
 
@@ -1788,9 +1785,8 @@ static int ssl_parse_signature_algorithm(mbedtls_ssl_context *ssl,
         return MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE;
     }
 
-    MBEDTLS_SSL_DEBUG_MSG(2, ("Server used SignatureAlgorithm %d", (*p)[1]));
-    MBEDTLS_SSL_DEBUG_MSG(2, ("Server used HashAlgorithm %d", (*p)[0]));
-    *p += 2;
+    MBEDTLS_SSL_DEBUG_MSG(2, ("Server used SignatureAlgorithm %d", sig_alg & 0x00FF));
+    MBEDTLS_SSL_DEBUG_MSG(2, ("Server used HashAlgorithm %d", sig_alg >> 8));
 
     return 0;
 }
@@ -1971,7 +1967,9 @@ start_processing:
         /*
          * Handle the digitally-signed structure
          */
-        if (ssl_parse_signature_algorithm(ssl, &p, end, &md_alg, &pk_alg) != 0) {
+        MBEDTLS_SSL_CHK_BUF_READ_PTR(p, end, 2);
+        uint16_t sig_alg = MBEDTLS_GET_UINT16_BE(p, 0);
+        if (ssl_parse_signature_algorithm(ssl, sig_alg, &md_alg, &pk_alg) != 0) {
             MBEDTLS_SSL_DEBUG_MSG(1,
                                   ("bad server key exchange message"));
             mbedtls_ssl_send_alert_message(
@@ -1980,6 +1978,7 @@ start_processing:
                 MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER);
             return MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER;
         }
+        p += 2;
 
         psa_hash_alg = mbedtls_md_psa_alg_from_type(md_alg);
         if (!mbedtls_pk_can_do_psa(peer_pk,

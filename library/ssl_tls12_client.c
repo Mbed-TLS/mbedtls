@@ -1776,14 +1776,14 @@ static int ssl_parse_signature_algorithm(mbedtls_ssl_context *ssl,
      * TLS versions. Make sure that the received sig_alg extension is valid in TLS 1.2.
      */
     if (!mbedtls_ssl_sig_alg_is_supported(ssl, sig_alg)) {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ("Server used unsupported value in SigAlg extension %d", sig_alg));
+        MBEDTLS_SSL_DEBUG_MSG(1, ("Server used unsupported value in SigAlg extension %d", sig_alg));
         return MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE;
     }
 
     /*
      * Check if the signature algorithm is acceptable
      */
-    if(!mbedtls_ssl_sig_alg_is_offered(ssl, sig_alg)) {
+    if (!mbedtls_ssl_sig_alg_is_offered(ssl, sig_alg)) {
         MBEDTLS_SSL_DEBUG_MSG(1, ("Server used SigAlg value %d that was not offered", sig_alg));
         return MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE;
     }

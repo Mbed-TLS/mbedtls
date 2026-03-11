@@ -398,10 +398,17 @@ int mbedtls_platform_set_exit(void (*exit_func)(int status));
 #define MBEDTLS_PLATFORM_DEV_RANDOM "/dev/random"
 #endif
 
-#if defined(MBEDTLS_PLATFORM_HAVE_DEV_RANDOM)
+/* Arrange for mbedtls_platform_dev_random to always be visible to
+ * Doxygen, because it's linked from the documentation of
+ * MBEDTLS_PLATFORM_DEV_RANDOM and that documentation can be visible
+ * even in configurations where it isn't used. */
+#if defined(MBEDTLS_PLATFORM_HAVE_DEV_RANDOM) || defined(__DOXYGEN__)
 /**
  * Path to a special file that returns cryptographic-quality random bytes
  * when read.
+ *
+ * This variable is only declared on platforms where it is used.
+ * It is available when the macro `MBEDTLS_PLATFORM_HAVE_DEV_RANDOM` is defined.
  *
  * The default value is #MBEDTLS_PLATFORM_DEV_RANDOM.
  * See the documentation of this option for guidance.

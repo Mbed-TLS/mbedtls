@@ -576,8 +576,8 @@ psa_status_t psa_random_reseed(const uint8_t *perso, size_t perso_size);
  *
  * This function has a similar purpose as psa_random_reseed(),
  * but the reseed will happen the next time the random generator is used.
- * This advantage of this function is that it does not fail unless the
- * system is an unintended state, so it can be used in contexts where
+ * The advantage of this function is that it does not fail unless the
+ * system is in an unintended state, so it can be used in contexts where
  * propagating errors is difficult.
  *
  * \note This function has no effect when #MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG

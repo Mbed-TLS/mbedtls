@@ -74,6 +74,12 @@
 #define MBEDTLS_CAN_HANDLE_ECDSA_TEST_KEY
 #endif
 
+#if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED) && \
+    defined(PSA_WANT_ECC_SECP_R1_256) && \
+    defined(PSA_WANT_ALG_SHA_256)
+#define MBEDTLS_CAN_HANDLE_ECDSA_CLIENT_TEST_KEY
+#endif
+
 #if defined(PSA_WANT_ECC_MONTGOMERY_255)        || \
     defined(PSA_WANT_ECC_SECP_R1_256)           || \
     defined(PSA_WANT_ECC_SECP_R1_384)           || \

@@ -4154,7 +4154,7 @@
 //#define MBEDTLS_PLATFORM_MS_TIME_TYPE_MACRO   int64_t //#define MBEDTLS_PLATFORM_MS_TIME_TYPE_MACRO   int64_t /**< Default milliseconds time macro to use, can be undefined. MBEDTLS_HAVE_TIME must be enabled. It must be signed, and at least 64 bits. If it is changed from the default, MBEDTLS_PRINTF_MS_TIME must be updated to match.*/
 //#define MBEDTLS_PRINTF_MS_TIME    PRId64 /**< Default fmt for printf. That's avoid compiler warning if mbedtls_ms_time_t is redefined */
 
-/*** \def MBEDTLS_PLATFORM_DEV_RANDOM
+/** \def MBEDTLS_PLATFORM_DEV_RANDOM
  *
  * Path to a special file that returns cryptographic-quality random bytes
  * when read. This is used by the default platform entropy source on

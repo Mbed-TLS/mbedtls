@@ -5725,7 +5725,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:PSA_WANT_ALG_CHACHA20_POLY1305:PSA_WANT_ALG_SHA_256:MBEDTLS_TEST_HAS_ADDITIONAL_HASH:MBEDTLS_TEST_HAS_DEFAULT_EC_GROUP*/
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:PSA_WANT_ALG_CHACHA20_POLY1305:PSA_WANT_ALG_SHA_256:MBEDTLS_TEST_HAS_ADDITIONAL_HASH:MBEDTLS_TEST_HAS_DEFAULT_EC_GROUP:MBEDTLS_DEBUG_C*/
 void send_invalid_sig_alg(int sig, int hash, int expected_ret)
 {
     // This is a test about the client behaviour in case it receives a key exchange signed with a
@@ -5773,14 +5773,12 @@ void send_invalid_sig_alg(int sig, int hash, int expected_ret)
     cli_pattern.counter = 0;
     options.cli_log_obj = &cli_pattern;
     options.cli_log_fun = mbedtls_test_ssl_log_analyzer;
-#if defined(MBEDTLS_DEBUG_C)
     // Add loggers for easier debugging - we are not looking for any patterns in the server logs.
     // To turn on debug output, uncomment the threshold line and set the macro in the definition
     // of mbedtls_test_ssl_log_analyzer().
     options.srv_log_obj = NULL;
     options.srv_log_fun = mbedtls_test_ssl_log_analyzer;
     mbedtls_debug_set_threshold(3);
-#endif
 
     int ret = -1;
 
@@ -5835,9 +5833,7 @@ void send_invalid_sig_alg(int sig, int hash, int expected_ret)
     TEST_EQUAL(cli_pattern.counter, 1);
 
 exit:
-#if defined(MBEDTLS_DEBUG_C)
     mbedtls_debug_set_threshold(0);
-#endif
     mbedtls_test_free_handshake_options(&options);
     mbedtls_test_ssl_endpoint_free(&server);
     mbedtls_test_ssl_endpoint_free(&client);

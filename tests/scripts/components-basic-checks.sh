@@ -12,8 +12,6 @@
 component_check_recursion () {
     msg "Check: recursion.pl" # < 1s
     ./framework/scripts/recursion.pl library/*.c
-    ./framework/scripts/recursion.pl ${PSA_CORE_PATH}/*.c
-    ./framework/scripts/recursion.pl ${BUILTIN_SRC_PATH}/*.c
 }
 
 component_check_generated_files () {

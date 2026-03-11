@@ -557,6 +557,7 @@ setup_arguments()
     # with OpenSSL 1.0.1h, -www, -WWW and -HTTP break DTLS handshakes
     if is_dtls "$MODE"; then
         O_SERVER_ARGS="$O_SERVER_ARGS"
+        M_SERVER_ARGS="$M_SERVER_ARGS read_timeout=1000"
     else
         O_SERVER_ARGS="$O_SERVER_ARGS -www"
     fi

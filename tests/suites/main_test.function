@@ -70,6 +70,15 @@ __MBEDTLS_TEST_TEMPLATE__TEST_COMMON_HELPERS
  * be invalid C if jumping into a block from outside that block.)
  */
 #pragma diag_suppress=Pe546 // transfer of control bypasses initialization
+
+/* Temporarily suppress a perfectly reasonable warning from IAR that
+ * comes up very often in our unit tests: silent conversion of int to
+ * an enum type.
+ *
+ * Remove this when https://github.com/Mbed-TLS/TF-PSA-Crypto/issues/707
+ * is fixed.
+ */
+#pragma diag_suppress=Pe188 // enumerated type mixed with another type
 #endif
 
 #define TEST_SUITE_ACTIVE

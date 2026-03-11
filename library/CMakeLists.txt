@@ -236,15 +236,14 @@ foreach(target IN LISTS target_libraries)
     add_library(MbedTLS::${target} ALIAS ${target})  # add_subdirectory support
     # Include public header files from /include, /tf-psa-crypto/include/ and
     # tf-psa-crypto/drivers/builtin/include/. Include private header files
-    # from /library, tf-psa-crypto/core/ and tf-psa-crypto/drivers/builtin/src/.
+    # from /library and ${TF_PSA_CRYPTO_PRIVATE_INCLUDE_DIRS}.
     target_include_directories(${target}
         PUBLIC $<BUILD_INTERFACE:${MBEDTLS_DIR}/include/>
                $<BUILD_INTERFACE:${MBEDTLS_DIR}/tf-psa-crypto/include/>
                $<BUILD_INTERFACE:${MBEDTLS_DIR}/tf-psa-crypto/drivers/builtin/include/>
                $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
         PRIVATE ${MBEDTLS_DIR}/library/
-                ${MBEDTLS_DIR}/tf-psa-crypto/core
-                ${MBEDTLS_DIR}/tf-psa-crypto/drivers/builtin/src
+                ${TF_PSA_CRYPTO_PRIVATE_INCLUDE_DIRS}
                 # needed for generated headers
                 ${CMAKE_CURRENT_BINARY_DIR})
     set_config_files_compile_definitions(${target})

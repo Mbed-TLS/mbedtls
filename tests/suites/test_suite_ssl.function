@@ -5821,16 +5821,21 @@ void send_invalid_sig_alg(int sig, int hash, int expected_ret)
                                                MBEDTLS_SSL_SERVER_KEY_EXCHANGE);
     TEST_EQUAL(ret, 0);
 
-    // Make the server believe that the only sig_alg the client accepts is target_sig_alg
-    server.ssl.handshake->received_sig_algs[0] = target_sig_alg;
-    server.ssl.handshake->received_sig_algs[1] = MBEDTLS_TLS1_3_SIG_NONE;
+    if (expected_ret != 0) {
+        // Make the server believe that the only sig_alg the client accepts is target_sig_alg
+        server.ssl.handshake->received_sig_algs[0] = target_sig_alg;
+        server.ssl.handshake->received_sig_algs[1] = MBEDTLS_TLS1_3_SIG_NONE;
+    }
 
     // Move the connection to a state where it is certain that the client has parsed the server key
     // exchange
     ret = mbedtls_test_move_handshake_to_state(&client.ssl, &server.ssl,
                                                MBEDTLS_SSL_CERTIFICATE_REQUEST);
     TEST_EQUAL(ret, expected_ret);
-    TEST_EQUAL(cli_pattern.counter, 1);
+
+    if (expected_ret != 0) {
+        TEST_EQUAL(cli_pattern.counter, 1);
+    }
 
 exit:
     mbedtls_debug_set_threshold(0);

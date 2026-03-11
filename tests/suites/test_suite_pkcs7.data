@@ -1,9 +1,9 @@
 PKCS7 Signed Data Parse Pass SHA256 #1
-depends_on:PSA_WANT_ALG_SHA_256:PSA_HAVE_ALG_SOME_RSA_VERIFY
+depends_on:PSA_WANT_ALG_SHA_256:PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY
 pkcs7_parse:"../framework/data_files/pkcs7_data_cert_signed_sha256.der":MBEDTLS_PKCS7_SIGNED_DATA
 
 PKCS7 Signed Data Parse Pass SHA1 #2
-depends_on:PSA_WANT_ALG_SHA_1:PSA_WANT_ALG_SHA_256:PSA_HAVE_ALG_SOME_RSA_VERIFY
+depends_on:PSA_WANT_ALG_SHA_1:PSA_WANT_ALG_SHA_256:PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY
 pkcs7_parse:"../framework/data_files/pkcs7_data_cert_signed_sha1.der":MBEDTLS_PKCS7_SIGNED_DATA
 
 PKCS7 Signed Data Parse Pass Without CERT #3
@@ -15,51 +15,51 @@ depends_on:PSA_WANT_ALG_SHA_256
 pkcs7_parse:"../framework/data_files/pkcs7_data_no_signers.der":MBEDTLS_PKCS7_SIGNED_DATA
 
 PKCS7 Signed Data Parse Fail with multiple certs #4
-depends_on:PSA_WANT_ALG_SHA_256:PSA_HAVE_ALG_SOME_RSA_VERIFY
+depends_on:PSA_WANT_ALG_SHA_256:PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY
 pkcs7_parse:"../framework/data_files/pkcs7_data_multiple_certs_signed.der":MBEDTLS_ERR_PKCS7_FEATURE_UNAVAILABLE
 
 PKCS7 Signed Data Parse Fail with corrupted cert #5.0
-depends_on:PSA_WANT_ALG_SHA_256:PSA_HAVE_ALG_SOME_RSA_VERIFY
+depends_on:PSA_WANT_ALG_SHA_256:PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY
 pkcs7_parse:"../framework/data_files/pkcs7_data_signed_badcert.der":MBEDTLS_ERR_PKCS7_INVALID_CERT
 
 PKCS7 Signed Data Parse Fail with disabled alg #5.1
-depends_on:PSA_HAVE_ALG_SOME_RSA_VERIFY:!PSA_WANT_ALG_SHA_512
+depends_on:PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY:!PSA_WANT_ALG_SHA_512
 pkcs7_parse:"../framework/data_files/pkcs7_data_cert_signed_sha512.der":MBEDTLS_ERR_PKCS7_INVALID_ALG
 
 PKCS7 Parse Fail with Inlined Content Info #5.2
-depends_on:PSA_WANT_ALG_SHA_256:PSA_HAVE_ALG_SOME_RSA_VERIFY
+depends_on:PSA_WANT_ALG_SHA_256:PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY
 pkcs7_parse:"../framework/data_files/pkcs7_data_with_signature.der":MBEDTLS_ERR_PKCS7_FEATURE_UNAVAILABLE
 
 PKCS7 Signed Data Parse Fail with no RSA #5.3
-depends_on:PSA_WANT_ALG_SHA_256:!PSA_HAVE_ALG_SOME_RSA_VERIFY
+depends_on:PSA_WANT_ALG_SHA_256:!PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY
 pkcs7_parse:"../framework/data_files/pkcs7_data_cert_signed_sha256.der":MBEDTLS_ERR_PKCS7_INVALID_CERT
 
 PKCS7 Signed Data Parse Fail with corrupted signer info #6
-depends_on:PSA_WANT_ALG_SHA_256:PSA_HAVE_ALG_SOME_RSA_VERIFY
+depends_on:PSA_WANT_ALG_SHA_256:PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY
 pkcs7_parse:"../framework/data_files/pkcs7_data_signed_badsigner.der":MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PKCS7_INVALID_SIGNER_INFO,MBEDTLS_ERR_ASN1_UNEXPECTED_TAG)
 
 PKCS7 Signed Data Parse Fail with corrupted signer info[1] invalid size #6.1
-depends_on:PSA_WANT_ALG_SHA_256:PSA_HAVE_ALG_SOME_RSA_VERIFY
+depends_on:PSA_WANT_ALG_SHA_256:PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY
 pkcs7_parse:"../framework/data_files/pkcs7_data_signed_badsigner1_badsize.der":MBEDTLS_ERR_PKCS7_INVALID_SIGNER_INFO
 
 PKCS7 Signed Data Parse Fail with corrupted signer info[2] invalid size #6.2
-depends_on:PSA_WANT_ALG_SHA_256:PSA_HAVE_ALG_SOME_RSA_VERIFY
+depends_on:PSA_WANT_ALG_SHA_256:PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY
 pkcs7_parse:"../framework/data_files/pkcs7_data_signed_badsigner2_badsize.der":MBEDTLS_ERR_PKCS7_INVALID_SIGNER_INFO
 
 PKCS7 Signed Data Parse Fail with corrupted signer info[1] unexpected tag #6.3
-depends_on:PSA_WANT_ALG_SHA_256:PSA_HAVE_ALG_SOME_RSA_VERIFY
+depends_on:PSA_WANT_ALG_SHA_256:PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY
 pkcs7_parse:"../framework/data_files/pkcs7_data_signed_badsigner1_badtag.der":MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PKCS7_INVALID_SIGNER_INFO,MBEDTLS_ERR_ASN1_UNEXPECTED_TAG)
 
 PKCS7 Signed Data Parse Fail with corrupted signer info[2] unexpected tag #6.4
-depends_on:PSA_WANT_ALG_SHA_256:PSA_HAVE_ALG_SOME_RSA_VERIFY
+depends_on:PSA_WANT_ALG_SHA_256:PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY
 pkcs7_parse:"../framework/data_files/pkcs7_data_signed_badsigner2_badtag.der":MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PKCS7_INVALID_SIGNER_INFO,MBEDTLS_ERR_ASN1_UNEXPECTED_TAG)
 
 PKCS7 Signed Data Parse Fail with corrupted signer info[1] fuzz bad #6.5
-depends_on:PSA_WANT_ALG_SHA_256:PSA_HAVE_ALG_SOME_RSA_VERIFY
+depends_on:PSA_WANT_ALG_SHA_256:PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY
 pkcs7_parse:"../framework/data_files/pkcs7_data_signed_badsigner1_fuzzbad.der":MBEDTLS_ERR_PKCS7_INVALID_SIGNER_INFO
 
 PKCS7 Signed Data Parse Fail with corrupted signer info[2] fuzz bad #6.6
-depends_on:PSA_WANT_ALG_SHA_256:PSA_HAVE_ALG_SOME_RSA_VERIFY
+depends_on:PSA_WANT_ALG_SHA_256:PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY
 pkcs7_parse:"../framework/data_files/pkcs7_data_signed_badsigner2_fuzzbad.der":MBEDTLS_ERR_PKCS7_INVALID_SIGNER_INFO
 
 PKCS7 Signed Data Parse Fail Version other than 1 #7
@@ -103,11 +103,11 @@ depends_on:PSA_WANT_ALG_SHA_256:PSA_HAVE_ALG_RSA_PKCS1V15_VERIFY
 pkcs7_verify:"../framework/data_files/pkcs7_data_cert_signed_sha256.der":"../framework/data_files/pkcs7-rsa-sha256-1.der":"../framework/data_files/pkcs7_data_1.bin":0:MBEDTLS_ERR_RSA_VERIFY_FAILED
 
 PKCS7 Signed Data Parse Failure Corrupt signerInfo.issuer #15.1
-depends_on:PSA_WANT_ALG_SHA_256:PSA_HAVE_ALG_SOME_RSA_VERIFY
+depends_on:PSA_WANT_ALG_SHA_256:PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY
 pkcs7_parse:"../framework/data_files/pkcs7_signerInfo_issuer_invalid_size.der":MBEDTLS_ERR_PKCS7_INVALID_SIGNER_INFO
 
 PKCS7 Signed Data Parse Failure Corrupt signerInfo.serial #15.2
-depends_on:PSA_WANT_ALG_SHA_256:PSA_HAVE_ALG_SOME_RSA_VERIFY
+depends_on:PSA_WANT_ALG_SHA_256:PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY
 pkcs7_parse:"../framework/data_files/pkcs7_signerInfo_serial_invalid_size.der":MBEDTLS_ERR_PKCS7_INVALID_SIGNER_INFO
 
 PKCS7 Signed Data Parse Fail Corrupt signerInfos[2] (6213931373035520)
@@ -119,7 +119,7 @@ depends_on:PSA_WANT_ALG_SHA_256
 pkcs7_parse:"../framework/data_files/pkcs7_signerInfo_1_serial_invalid_tag_after_long_name.der":MBEDTLS_ERR_PKCS7_INVALID_SIGNER_INFO
 
 PKCS7 Only Signed Data Parse Pass #15
-depends_on:PSA_WANT_ALG_SHA_256:PSA_HAVE_ALG_SOME_RSA_VERIFY
+depends_on:PSA_WANT_ALG_SHA_256:PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY
 pkcs7_parse:"../framework/data_files/pkcs7_data_cert_signeddata_sha256.der":MBEDTLS_PKCS7_SIGNED_DATA
 
 PKCS7 Signed Data Verify with multiple(2) signers #16.0
@@ -147,11 +147,11 @@ depends_on:PSA_WANT_ALG_SHA_256:MBEDTLS_HAVE_TIME_DATE
 pkcs7_verify:"../framework/data_files/pkcs7_data_cert_signed_sha256.der":"../framework/data_files/pkcs7-rsa-expired.crt":"../framework/data_files/pkcs7_data.bin":0:MBEDTLS_ERR_PKCS7_CERT_DATE_INVALID
 
 PKCS7 Signed Data Verify Fail Expired Cert #19 no DATE_TIME 1
-depends_on:PSA_WANT_ALG_SHA_256:!MBEDTLS_HAVE_TIME_DATE:PSA_HAVE_ALG_SOME_RSA_VERIFY
+depends_on:PSA_WANT_ALG_SHA_256:!MBEDTLS_HAVE_TIME_DATE:PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY
 pkcs7_verify:"../framework/data_files/pkcs7_data_cert_signed_sha256.der":"../framework/data_files/pkcs7-rsa-expired.crt":"../framework/data_files/pkcs7_data.bin":0:MBEDTLS_ERR_RSA_VERIFY_FAILED
 
 PKCS7 Signed Data Verify Fail Expired Cert #19 no TIME_DATE 2
-depends_on:PSA_WANT_ALG_SHA_256:!MBEDTLS_HAVE_TIME_DATE:PSA_HAVE_ALG_SOME_RSA_VERIFY
+depends_on:PSA_WANT_ALG_SHA_256:!MBEDTLS_HAVE_TIME_DATE:PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY
 pkcs7_verify:"../framework/data_files/pkcs7_data_rsa_expired.der":"../framework/data_files/pkcs7-rsa-expired.crt":"../framework/data_files/pkcs7_data_1.bin":0:MBEDTLS_ERR_RSA_VERIFY_FAILED
 
 PKCS7 Parse Failure Invalid ASN1: Add null byte to start #20.0

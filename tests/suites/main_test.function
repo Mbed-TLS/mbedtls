@@ -34,6 +34,12 @@
 #endif
 #endif
 
+#if defined(__IAR_SYSTEMS_ICC__)
+/* With IAR, enable support for ::FILE functions in stdio.h.
+ */
+#define _DLIB_FILE_DESCRIPTOR 1
+#endif
+
 #include "mbedtls/build_info.h"
 
 /* Test code may use deprecated identifiers only if the preprocessor symbol

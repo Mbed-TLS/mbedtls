@@ -5768,6 +5768,7 @@ void send_invalid_sig_alg(int sig, int hash, int expected_ret)
     options.client_max_version = MBEDTLS_SSL_VERSION_TLS1_2;
     options.server_max_version = MBEDTLS_SSL_VERSION_TLS1_2;
 
+#if defined(MBEDTLS_DEBUG_C)
     mbedtls_test_ssl_log_pattern cli_pattern;
     cli_pattern.pattern = "that was not offered";
     cli_pattern.counter = 0;
@@ -5779,6 +5780,7 @@ void send_invalid_sig_alg(int sig, int hash, int expected_ret)
     options.srv_log_obj = NULL;
     options.srv_log_fun = mbedtls_test_ssl_log_analyzer;
     mbedtls_debug_set_threshold(3);
+#endif
 
     int ret = -1;
 
@@ -5833,12 +5835,16 @@ void send_invalid_sig_alg(int sig, int hash, int expected_ret)
                                                MBEDTLS_SSL_CERTIFICATE_REQUEST);
     TEST_EQUAL(ret, expected_ret);
 
+#if defined(MBEDTLS_DEBUG_C)
     if (expected_ret != 0) {
         TEST_EQUAL(cli_pattern.counter, 1);
     }
+#endif
 
 exit:
+#if defined(MBEDTLS_DEBUG_C)
     mbedtls_debug_set_threshold(0);
+#endif
     mbedtls_test_free_handshake_options(&options);
     mbedtls_test_ssl_endpoint_free(&server);
     mbedtls_test_ssl_endpoint_free(&client);

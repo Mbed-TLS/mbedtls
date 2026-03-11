@@ -514,8 +514,9 @@ psa_status_t mbedtls_psa_external_get_random(
  * state is cloned (i.e. duplicated) while the random generator is active.
  * In such scenarios, you must call this function in every clone of
  * the original process before performing any cryptographic operation
- * other than ones that do not use randomness (e.g. hash calculation,
- * signature verification). For example:
+ * that uses randomness. (Note that any operation that uses a private or
+ * secret key may use randomness internally even if the result is not
+ * randomized, but hashing and signature verification are ok.) For example:
  *
  * - If the process is part of a live virtual machine that is cloned,
  *   call this function after cloning so that the new instance has a
@@ -582,6 +583,10 @@ psa_status_t psa_random_reseed(const uint8_t *perso, size_t perso_size);
  *
  * \note This function has no effect when #MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG
  *       is enabled.
+ *
+ * \note If prediction resistance is enabled (either explicitly, or because
+ *       the reseed interval is set to 1), calling this function is
+ *       unnecessary since the random generator will always reseed anyway.
  *
  * \retval #PSA_SUCCESS
  *         The reseed succeeded.

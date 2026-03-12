@@ -2103,7 +2103,8 @@ static int ssl_parse_signature_algorithm(mbedtls_ssl_context *ssl,
          */
         if (*pk_alg == MBEDTLS_PK_SIGALG_NONE) {
             MBEDTLS_SSL_DEBUG_MSG(1,
-                    ("Server used unsupported SignatureAlgorithm %d", sig_alg & 0x00FF));
+                                  ("Server used unsupported SignatureAlgorithm %d",
+                                   sig_alg & 0x00FF));
             return MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER;
         }
 

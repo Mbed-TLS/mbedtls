@@ -177,6 +177,7 @@ static int ccm_calculate_first_block_if_ready(mbedtls_ccm_context *ctx)
             ctx->plaintext_len = 0;
             return 0;
         } else {
+            ctx->state |= CCM_STATE__ERROR;
             return MBEDTLS_ERR_CCM_BAD_INPUT;
         }
     }

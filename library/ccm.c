@@ -484,15 +484,15 @@ int mbedtls_ccm_finish(mbedtls_ccm_context *ctx,
         return MBEDTLS_ERR_CCM_BAD_INPUT;
     }
 
+    if (!(ctx->state & CCM_STATE__LENGTHS_SET)) {
+        return MBEDTLS_ERR_CCM_BAD_INPUT;
+    }
+
     if (ctx->add_len > 0 && !(ctx->state & CCM_STATE__AUTH_DATA_FINISHED)) {
         return MBEDTLS_ERR_CCM_BAD_INPUT;
     }
 
     if (ctx->plaintext_len > 0 && ctx->processed != ctx->plaintext_len) {
-        return MBEDTLS_ERR_CCM_BAD_INPUT;
-    }
-
-    if (!(ctx->state & CCM_STATE__LENGTHS_SET)) {
         return MBEDTLS_ERR_CCM_BAD_INPUT;
     }
 

@@ -6516,15 +6516,18 @@ void aead_multipart_state_test(int key_type_arg, data_t *key_data,
                                    tag_buffer, tag_length,
                                    &tag_size),
                    PSA_SUCCESS);
-
         psa_aead_abort(&operation);
-        /* For CCM, verifing without setting lengths must fail. */
+
+        /* For CCM, verifying without setting lengths must fail. */
+        PSA_ASSERT(psa_aead_decrypt_setup(&operation, key, alg));
+        PSA_ASSERT(psa_aead_set_nonce(&operation, nonce->x, nonce->len));
         TEST_EQUAL(psa_aead_verify(&operation, final_data,
                                    finish_output_size,
                                    &output_part_length,
                                    tag_buffer,
                                    tag_length),
                    PSA_ERROR_BAD_STATE);
+        psa_aead_abort(&operation);
 
         PSA_ASSERT(psa_aead_decrypt_setup(&operation, key, alg));
         PSA_ASSERT(psa_aead_set_nonce(&operation, nonce->x, nonce->len));
@@ -6537,7 +6540,8 @@ void aead_multipart_state_test(int key_type_arg, data_t *key_data,
                                    input_data->len, output_data,
                                    output_size, &output_length));
 
-        /* Signature verification is expected fail, but after the checks for lengths */
+        /* psa_driver_wrapper_aead_verify, which is called after psa_aead_final_checks
+           will return PSA_ERROR_INVALID_SIGNATURE */
         TEST_EQUAL(psa_aead_verify(&operation, final_data,
                                    finish_output_size,
                                    &output_part_length,
@@ -6641,13 +6645,16 @@ void aead_multipart_state_test(int key_type_arg, data_t *key_data,
                    PSA_SUCCESS);
 
         psa_aead_abort(&operation);
-        /* For CCM, verifing without setting lengths must fail. */
+        /* For CCM, verifying without setting lengths must fail. */
+        PSA_ASSERT(psa_aead_decrypt_setup(&operation, key, alg));
+        PSA_ASSERT(psa_aead_set_nonce(&operation, nonce->x, nonce->len));
         TEST_EQUAL(psa_aead_verify(&operation, final_data,
                                    finish_output_size,
                                    &output_part_length,
                                    tag_buffer,
                                    tag_length),
                    PSA_ERROR_BAD_STATE);
+        psa_aead_abort(&operation);
 
         PSA_ASSERT(psa_aead_decrypt_setup(&operation, key, alg));
         PSA_ASSERT(psa_aead_set_nonce(&operation, nonce->x, nonce->len));
@@ -6660,7 +6667,8 @@ void aead_multipart_state_test(int key_type_arg, data_t *key_data,
                                    input_data->len, output_data,
                                    output_size, &output_length));
 
-        /* Signature verification is expected fail, but after the checks for lengths */
+        /* psa_driver_wrapper_aead_verify, which is called after psa_aead_final_checks
+           will return PSA_ERROR_INVALID_SIGNATURE */
         TEST_EQUAL(psa_aead_verify(&operation, final_data,
                                    finish_output_size,
                                    &output_part_length,

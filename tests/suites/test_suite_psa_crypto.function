@@ -6499,6 +6499,21 @@ void aead_multipart_state_test(int key_type_arg, data_t *key_data,
                    PSA_ERROR_BAD_STATE);
         psa_aead_abort(&operation);
 
+        /* For CCM, finishing after setting length with aead_update/ad must fail. */
+        PSA_ASSERT(psa_aead_encrypt_setup(&operation, key, alg));
+        PSA_ASSERT(psa_aead_set_nonce(&operation, nonce->x, nonce->len));
+
+        PSA_ASSERT(psa_aead_set_lengths(&operation, additional_data->len,
+                                        input_data->len));
+        TEST_EQUAL(psa_aead_finish(&operation, final_data,
+                                   finish_output_size,
+                                   &output_part_length,
+                                   tag_buffer, tag_length,
+                                   &tag_size),
+                   PSA_ERROR_INVALID_ARGUMENT);
+        psa_aead_abort(&operation);
+
+        /* Valid path */
         PSA_ASSERT(psa_aead_encrypt_setup(&operation, key, alg));
         PSA_ASSERT(psa_aead_set_nonce(&operation, nonce->x, nonce->len));
 
@@ -6529,6 +6544,21 @@ void aead_multipart_state_test(int key_type_arg, data_t *key_data,
                    PSA_ERROR_BAD_STATE);
         psa_aead_abort(&operation);
 
+        /* For CCM, verifying after setting length with aead_update/ad must fail. */
+        PSA_ASSERT(psa_aead_decrypt_setup(&operation, key, alg));
+        PSA_ASSERT(psa_aead_set_nonce(&operation, nonce->x, nonce->len));
+
+        PSA_ASSERT(psa_aead_set_lengths(&operation, additional_data->len,
+                                        input_data->len));
+        TEST_EQUAL(psa_aead_verify(&operation, final_data,
+                                   finish_output_size,
+                                   &output_part_length,
+                                   tag_buffer,
+                                   tag_length),
+                   PSA_ERROR_INVALID_ARGUMENT);
+        psa_aead_abort(&operation);
+
+        /* Valid path */
         PSA_ASSERT(psa_aead_decrypt_setup(&operation, key, alg));
         PSA_ASSERT(psa_aead_set_nonce(&operation, nonce->x, nonce->len));
 
@@ -6624,6 +6654,23 @@ void aead_multipart_state_test(int key_type_arg, data_t *key_data,
                    PSA_ERROR_BAD_STATE);
         psa_aead_abort(&operation);
 
+        /* For CCM, finishing after setting length with aead_update/ad must fail. */
+        PSA_ASSERT(psa_aead_encrypt_setup(&operation, key, alg));
+        PSA_ASSERT(psa_aead_generate_nonce(&operation, nonce_buffer,
+                                           PSA_AEAD_NONCE_MAX_SIZE,
+                                           &nonce_length));
+
+        PSA_ASSERT(psa_aead_set_lengths(&operation, additional_data->len,
+                                        input_data->len));
+        TEST_EQUAL(psa_aead_finish(&operation, final_data,
+                                   finish_output_size,
+                                   &output_part_length,
+                                   tag_buffer, tag_length,
+                                   &tag_size),
+                   PSA_ERROR_INVALID_ARGUMENT);
+        psa_aead_abort(&operation);
+
+        /* Valid path */
         PSA_ASSERT(psa_aead_encrypt_setup(&operation, key, alg));
         PSA_ASSERT(psa_aead_generate_nonce(&operation, nonce_buffer,
                                            PSA_AEAD_NONCE_MAX_SIZE,
@@ -6643,8 +6690,8 @@ void aead_multipart_state_test(int key_type_arg, data_t *key_data,
                                    tag_buffer, tag_length,
                                    &tag_size),
                    PSA_SUCCESS);
-
         psa_aead_abort(&operation);
+
         /* For CCM, verifying without setting lengths must fail. */
         PSA_ASSERT(psa_aead_decrypt_setup(&operation, key, alg));
         PSA_ASSERT(psa_aead_set_nonce(&operation, nonce->x, nonce->len));
@@ -6656,9 +6703,23 @@ void aead_multipart_state_test(int key_type_arg, data_t *key_data,
                    PSA_ERROR_BAD_STATE);
         psa_aead_abort(&operation);
 
+        /* For CCM, verifying after setting length with aead_update/ad must fail. */
         PSA_ASSERT(psa_aead_decrypt_setup(&operation, key, alg));
         PSA_ASSERT(psa_aead_set_nonce(&operation, nonce->x, nonce->len));
 
+        PSA_ASSERT(psa_aead_set_lengths(&operation, additional_data->len,
+                                        input_data->len));
+        TEST_EQUAL(psa_aead_verify(&operation, final_data,
+                                   finish_output_size,
+                                   &output_part_length,
+                                   tag_buffer,
+                                   tag_length),
+                   PSA_ERROR_INVALID_ARGUMENT);
+        psa_aead_abort(&operation);
+
+        /* Valid path */
+        PSA_ASSERT(psa_aead_decrypt_setup(&operation, key, alg));
+        PSA_ASSERT(psa_aead_set_nonce(&operation, nonce->x, nonce->len));
         PSA_ASSERT(psa_aead_set_lengths(&operation, additional_data->len,
                                         input_data->len));
         PSA_ASSERT(psa_aead_update_ad(&operation, additional_data->x,

@@ -1762,6 +1762,14 @@ CCM finish check-boundary decrypt tag_len=8, finish_tag_len=8
 depends_on:MBEDTLS_CCM_GCM_CAN_AES
 mbedtls_ccm_finish_boundary:MBEDTLS_CIPHER_ID_AES:MBEDTLS_CCM_DECRYPT:8:8:0
 
+CCM finish check-boundary encrypt tag_len=0, finish_tag_len=0
+depends_on:MBEDTLS_CCM_GCM_CAN_AES
+mbedtls_ccm_finish_boundary:MBEDTLS_CIPHER_ID_AES:MBEDTLS_CCM_ENCRYPT:0:0:MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED
+
+CCM finish check-boundary decrypt tag_len=0, finish_tag_len=0
+depends_on:MBEDTLS_CCM_GCM_CAN_AES
+mbedtls_ccm_finish_boundary:MBEDTLS_CIPHER_ID_AES:MBEDTLS_CCM_DECRYPT:0:0:MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED
+
 # CCM finish boundary matrix (encrypt)
 CCM finish check-boundary encrypt tag_len=16, finish_tag_len=16
 depends_on:MBEDTLS_CCM_GCM_CAN_AES

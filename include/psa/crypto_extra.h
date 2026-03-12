@@ -502,7 +502,7 @@ psa_status_t mbedtls_psa_external_get_random(
     uint8_t *output, size_t output_size, size_t *output_length);
 #endif /* MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
 
-/** Force a reseed of the PSA random generator.
+/** Force an immediate reseed of the PSA random generator.
  *
  * The entropy source(s) are the ones configured at compile time.
  *
@@ -543,6 +543,13 @@ psa_status_t mbedtls_psa_external_get_random(
  * \note  In client-server builds, this function may not be available
  *        from clients, since the decision to reseed is generally based
  *        on the server state.
+ *
+ * \note  If the entropy source fails, the random generator remains usable:
+ *        and subsequent calls to generate random data will succeed until
+ *        the random generator itself decides to reseed. If you want to
+ *        force a reseed, either treat the failure as a fatal error,
+ *        or call psa_random_deplete() instead of this function (or in
+ *        addition).
  *
  * \param[in] perso     A personalization string, i.e. a byte string to
  *                      inject into the random generator state in addition

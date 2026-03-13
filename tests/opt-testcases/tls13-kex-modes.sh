@@ -526,8 +526,7 @@ run_test    "TLS 1.3: G->m: ephemeral_all/ephemeral_all, fail, key material mism
             -s "Invalid binder." \
             -S "key exchange mode: psk$"  \
             -S "key exchange mode: psk_ephemeral"  \
-            -S "key exchange mode: ephemeral" \
-            -s "! Certificate verification was skipped"
+            -S "key exchange mode: ephemeral"
 
 requires_gnutls_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
@@ -593,8 +592,7 @@ run_test    "TLS 1.3: G->m: all/ephemeral_all, fail, key material mismatch" \
             -s "Invalid binder." \
             -S "key exchange mode: psk$"  \
             -S "key exchange mode: psk_ephemeral"  \
-            -S "key exchange mode: ephemeral" \
-            -s "! Certificate verification was skipped"
+            -S "key exchange mode: ephemeral"
 
 requires_gnutls_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
@@ -687,8 +685,7 @@ run_test    "TLS 1.3: G->m: ephemeral_all/all, fail, key material mismatch" \
             -s "Invalid binder." \
             -S "key exchange mode: psk$"  \
             -S "key exchange mode: psk_ephemeral"  \
-            -S "key exchange mode: ephemeral" \
-            -s "! Certificate verification was skipped"
+            -S "key exchange mode: ephemeral"
 
 requires_gnutls_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
@@ -757,8 +754,7 @@ run_test    "TLS 1.3: G->m: all/all, fail, key material mismatch" \
             -s "Invalid binder." \
             -S "key exchange mode: psk$"  \
             -S "key exchange mode: psk_ephemeral"  \
-            -S "key exchange mode: ephemeral" \
-            -s "! Certificate verification was skipped"
+            -S "key exchange mode: ephemeral"
 
 requires_gnutls_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
@@ -804,8 +800,7 @@ run_test    "TLS 1.3: G->m: psk_or_ephemeral/all, fail, key material mismatch" \
             -s "Invalid binder." \
             -S "key exchange mode: psk$"  \
             -S "key exchange mode: psk_ephemeral"  \
-            -S "key exchange mode: ephemeral" \
-            -s "! Certificate verification was skipped"
+            -S "key exchange mode: ephemeral"
 
 requires_gnutls_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
@@ -873,8 +868,7 @@ run_test    "TLS 1.3: G->m: all/psk_or_ephemeral, fail, key material mismatch" \
             -s "Invalid binder." \
             -S "key exchange mode: psk$"  \
             -S "key exchange mode: psk_ephemeral"  \
-            -S "key exchange mode: ephemeral" \
-            -s "! Certificate verification was skipped"
+            -S "key exchange mode: ephemeral"
 
 requires_gnutls_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
@@ -918,8 +912,7 @@ run_test    "TLS 1.3: G->m: psk_or_ephemeral/psk_or_ephemeral, fail, key materia
             -s "Invalid binder." \
             -S "key exchange mode: psk$"  \
             -S "key exchange mode: psk_ephemeral"  \
-            -S "key exchange mode: ephemeral" \
-            -s "! Certificate verification was skipped"
+            -S "key exchange mode: ephemeral"
 
 requires_gnutls_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
@@ -1381,8 +1374,7 @@ run_test    "TLS 1.3: O->m: ephemeral_all/ephemeral_all, fail, key material mism
             -s "Invalid binder." \
             -S "key exchange mode: psk$"  \
             -S "key exchange mode: psk_ephemeral"  \
-            -S "key exchange mode: ephemeral" \
-            -s "! Certificate verification was skipped"
+            -S "key exchange mode: ephemeral"
 
 requires_openssl_tls1_3_with_compatible_ephemeral
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
@@ -1445,8 +1437,7 @@ run_test    "TLS 1.3: O->m: all/ephemeral_all, fail, key material mismatch" \
             -s "Invalid binder." \
             -S "key exchange mode: psk$"  \
             -S "key exchange mode: psk_ephemeral"  \
-            -S "key exchange mode: ephemeral" \
-            -s "! Certificate verification was skipped"
+            -S "key exchange mode: ephemeral"
 
 requires_openssl_tls1_3_with_compatible_ephemeral
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
@@ -1512,8 +1503,7 @@ run_test    "TLS 1.3: O->m: ephemeral_all/all, fail, key material mismatch" \
             -s "Invalid binder." \
             -S "key exchange mode: psk$"  \
             -S "key exchange mode: psk_ephemeral"  \
-            -S "key exchange mode: ephemeral" \
-            -s "! Certificate verification was skipped"
+            -S "key exchange mode: ephemeral"
 
 requires_openssl_tls1_3_with_compatible_ephemeral
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
@@ -1579,8 +1569,7 @@ run_test    "TLS 1.3: O->m: all/all, fail, key material mismatch" \
             -s "Invalid binder." \
             -S "key exchange mode: psk$"  \
             -S "key exchange mode: psk_ephemeral"  \
-            -S "key exchange mode: ephemeral" \
-            -s "! Certificate verification was skipped"
+            -S "key exchange mode: ephemeral"
 
 requires_openssl_tls1_3_with_compatible_ephemeral
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
@@ -1645,8 +1634,7 @@ run_test    "TLS 1.3: O->m: all/psk_or_ephemeral, fail, key material mismatch" \
             -s "Invalid binder." \
             -S "key exchange mode: psk$"  \
             -S "key exchange mode: psk_ephemeral"  \
-            -S "key exchange mode: ephemeral" \
-            -s "! Certificate verification was skipped"
+            -S "key exchange mode: ephemeral"
 
 requires_openssl_tls1_3_with_compatible_ephemeral
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3

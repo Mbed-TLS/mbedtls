@@ -60,7 +60,7 @@
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED) &&                 \
     ( !defined(MBEDTLS_CAN_ECDH) || !defined(PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC) || \
-      !defined(MBEDTLS_X509_CRT_PARSE_C) || !defined(PSA_WANT_ALG_RSA_PKCS1V15_CRYPT) || !defined(PSA_WANT_ALG_RSA_PKCS1V15_SIGN) )
+      !defined(MBEDTLS_X509_CRT_PARSE_C) || !defined(PSA_WANT_ALG_RSA_PKCS1V15_SIGN) )
 #error "MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED defined, but not all prerequisites"
 #endif
 

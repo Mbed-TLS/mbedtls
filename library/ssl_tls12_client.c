@@ -2086,32 +2086,10 @@ static int ssl_parse_signature_algorithm(mbedtls_ssl_context *ssl,
                                          mbedtls_md_type_t *md_alg,
                                          mbedtls_pk_type_t *pk_alg)
 {
-    *md_alg = MBEDTLS_MD_NONE;
-    *pk_alg = MBEDTLS_PK_SIGALG_NONE;
-
     if (mbedtls_ssl_get_pk_type_and_md_alg_from_sig_alg(sig_alg, pk_alg, md_alg) != 0) {
-        /*
-         * Check hash algorithm
-         */
-        if (*md_alg == MBEDTLS_MD_NONE) {
-            MBEDTLS_SSL_DEBUG_MSG(1, ("Server used unsupported HashAlgorithm %d", sig_alg >> 8));
-            return MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER;
-        }
-
-        /*
-         * Check signature algorithm
-         */
-        if (*pk_alg == MBEDTLS_PK_SIGALG_NONE) {
-            MBEDTLS_SSL_DEBUG_MSG(1,
-                                  ("Server used unsupported SignatureAlgorithm %d",
-                                   sig_alg & 0x00FF));
-            return MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER;
-        }
-
-        /*
-         * This shouldn't happen, but be robust.
-         */
-        MBEDTLS_SSL_DEBUG_MSG(1, ("Server used unsupported value in SigAlg extension %d", sig_alg));
+        MBEDTLS_SSL_DEBUG_MSG(1,
+                              ("Server used unsupported value in SigAlg extension 0x%04x",
+                               sig_alg));
         return MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER;
     }
 
@@ -2120,7 +2098,9 @@ static int ssl_parse_signature_algorithm(mbedtls_ssl_context *ssl,
      * TLS versions. Make sure that the received sig_alg extension is valid in TLS 1.2.
      */
     if (!mbedtls_ssl_sig_alg_is_supported(ssl, sig_alg)) {
-        MBEDTLS_SSL_DEBUG_MSG(1, ("Server used unsupported value in SigAlg extension %d", sig_alg));
+        MBEDTLS_SSL_DEBUG_MSG(1,
+                              ("Server used unsupported value in SigAlg extension 0x%04x",
+                               sig_alg));
         return MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER;
     }
 
@@ -2128,7 +2108,7 @@ static int ssl_parse_signature_algorithm(mbedtls_ssl_context *ssl,
      * Check if the signature algorithm is acceptable
      */
     if (!mbedtls_ssl_sig_alg_is_offered(ssl, sig_alg)) {
-        MBEDTLS_SSL_DEBUG_MSG(1, ("Server used SigAlg value %d that was not offered", sig_alg));
+        MBEDTLS_SSL_DEBUG_MSG(1, ("Server used SigAlg value 0x%04x that was not offered", sig_alg));
         return MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER;
     }
 

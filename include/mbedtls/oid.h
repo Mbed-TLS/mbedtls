@@ -301,8 +301,6 @@ int mbedtls_oid_get_numeric_string(char *buf, size_t size, const mbedtls_asn1_bu
 int mbedtls_oid_from_numeric_string(mbedtls_asn1_buf *oid, const char *oid_str, size_t size);
 #endif /* MBEDTLS_X509_CREATE_C */
 
-#if defined(MBEDTLS_X509_CRT_PARSE_C) || defined(MBEDTLS_X509_CSR_PARSE_C)
-
 #if defined(MBEDTLS_X509_USE_C)
 /**
  * \brief          Translate an X.509 attribute type OID into the short name
@@ -315,8 +313,6 @@ int mbedtls_oid_from_numeric_string(mbedtls_asn1_buf *oid, const char *oid_str, 
  */
 int mbedtls_x509_oid_get_attr_short_name(const mbedtls_asn1_buf *oid, const char **short_name);
 #endif /* MBEDTLS_X509_USE_C */
-
-#endif /* MBEDTLS_X509_CRT_PARSE_C || MBEDTLS_X509_CSR_PARSE_C */
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C) && !defined(MBEDTLS_X509_REMOVE_INFO)
 /**

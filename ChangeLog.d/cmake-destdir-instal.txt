@@ -1,3 +1,3 @@
 Changes
-   * CMake installs now honor `DESTDIR` for the compatibility
-     `libmbedcrypto.so` symlink during staged installs.
+   * Restore DESTDIR support for CMake installs of compatibility
+   `libmbedcrypto` symlinks.

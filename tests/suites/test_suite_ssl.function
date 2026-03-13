@@ -5746,6 +5746,7 @@ void send_invalid_sig_alg(int sig, int hash, int expected_ret)
     memset(&client, 0, sizeof(client));
     mbedtls_test_handshake_test_options options;
     memset(&options, 0, sizeof(options));
+    int forced_ciphersuite[2] = { 0, 0 };
 
     uint16_t target_sig_alg = ((hash << 8) | sig);
 
@@ -5760,10 +5761,13 @@ void send_invalid_sig_alg(int sig, int hash, int expected_ret)
 
     // Force a ciphersuite where target_sig_alg is relevant
     if (sig == MBEDTLS_SSL_SIG_ECDSA) {
-        options.cipher = "TLS-ECDHE-ECDSA-WITH-CHACHA20-POLY1305-SHA256";
+        forced_ciphersuite[0] =
+            mbedtls_ssl_get_ciphersuite_id("TLS-ECDHE-ECDSA-WITH-CHACHA20-POLY1305-SHA256");
     } else {
-        options.cipher = "TLS-ECDHE-RSA-WITH-CHACHA20-POLY1305-SHA256";
+        forced_ciphersuite[0] =
+            mbedtls_ssl_get_ciphersuite_id("TLS-ECDHE-RSA-WITH-CHACHA20-POLY1305-SHA256");
     }
+    TEST_ASSERT(forced_ciphersuite[0] != 0);
 
     // Force TLS 1.2 as this test is a non-regression test for a bug in TLS 1.2 client and TLS 1.3
     // behaviour in this regard is substantially different.
@@ -5792,6 +5796,8 @@ void send_invalid_sig_alg(int sig, int hash, int expected_ret)
                                          &options, NULL, NULL, NULL);
     TEST_EQUAL(ret, 0);
 
+    mbedtls_ssl_conf_ciphersuites(&client.conf, forced_ciphersuite);
+
     // Remove the target signature algorithm from the client's list
     size_t client_sig_algs_len = 0;
     while (client.conf.sig_algs[client_sig_algs_len++] != MBEDTLS_TLS1_3_SIG_NONE) {
@@ -5813,6 +5819,8 @@ void send_invalid_sig_alg(int sig, int hash, int expected_ret)
     ret = mbedtls_test_ssl_endpoint_init(&server, MBEDTLS_SSL_IS_SERVER,
                                          &options, NULL, NULL, NULL);
     TEST_EQUAL(ret, 0);
+
+    mbedtls_ssl_conf_ciphersuites(&server.conf, forced_ciphersuite);
 
     ret = mbedtls_test_mock_socket_connect(&server.socket, &client.socket,
                                            BUFFSIZE);

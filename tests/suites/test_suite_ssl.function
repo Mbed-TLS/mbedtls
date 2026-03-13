@@ -5725,12 +5725,12 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:PSA_WANT_ALG_CHACHA20_POLY1305:PSA_WANT_ALG_SHA_256:MBEDTLS_TEST_HAS_ADDITIONAL_HASH:MBEDTLS_TEST_HAS_DEFAULT_EC_GROUP:MBEDTLS_DEBUG_C*/
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:PSA_WANT_ALG_CHACHA20_POLY1305:PSA_WANT_ALG_SHA_256:MBEDTLS_TEST_HAS_ADDITIONAL_HASH:MBEDTLS_TEST_HAS_DEFAULT_EC_GROUP*/
 void send_invalid_sig_alg(int sig, int hash, int expected_ret)
 {
     // This is a test about the client behaviour in case it receives a key exchange signed with a
     // sig_alg it didn't specify in the client hello. The input specifies a target_sig_alg, which we
-    // make sure that the client does not offer but the server does. Then we make the server beleive
+    // make sure that the client does not offer but the server does. Then we make the server believe
     // that target_sig_alg is the only one the client offered.
 
     // Remark: We need an additional hash algorithm offered, because if we don't have it, the server

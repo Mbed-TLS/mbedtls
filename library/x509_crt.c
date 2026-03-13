@@ -118,7 +118,7 @@ const mbedtls_x509_crt_profile mbedtls_x509_crt_profile_next =
     MBEDTLS_X509_ID_FLAG(MBEDTLS_MD_SHA384) |
     MBEDTLS_X509_ID_FLAG(MBEDTLS_MD_SHA512),
     0xFFFFFFF, /* Any PK alg    */
-#if defined(MBEDTLS_ECP_C)
+#if defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
     /* Curves at or above 128-bit security level. */
     MBEDTLS_X509_ID_FLAG(MBEDTLS_ECP_DP_SECP256R1) |
     MBEDTLS_X509_ID_FLAG(MBEDTLS_ECP_DP_SECP384R1) |

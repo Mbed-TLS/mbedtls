@@ -545,7 +545,7 @@ psa_status_t mbedtls_psa_external_get_random(
  *        on the server state.
  *
  * \note  If the entropy source fails, the random generator remains usable:
- *        and subsequent calls to generate random data will succeed until
+ *        subsequent calls to generate random data will succeed until
  *        the random generator itself decides to reseed. If you want to
  *        force a reseed, either treat the failure as a fatal error,
  *        or call psa_random_deplete() instead of this function (or in

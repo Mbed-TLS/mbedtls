@@ -53,15 +53,15 @@
  */
 /* Define auxiliary macros, because in standard C, defined(xxx) is only
  * allowed directly on an #if or #elif line, not in recursive expansion. */
-#if defined(MBEDTLS_ENTROPY_HARDWARE_ALT)
-#define MBEDTLS_ENTROPY_HARDWARE_ALT_DEFINED 1
-#else
-#define MBEDTLS_ENTROPY_HARDWARE_ALT_DEFINED 0
-#endif
 #if defined(MBEDTLS_NO_PLATFORM_ENTROPY)
 #define MBEDTLS_PLATFORM_ENTROPY_ENABLED 0
 #else
 #define MBEDTLS_PLATFORM_ENTROPY_ENABLED 1
+#endif
+#if defined(MBEDTLS_ENTROPY_HARDWARE_ALT)
+#define MBEDTLS_ENTROPY_HARDWARE_ALT_DEFINED 1
+#else
+#define MBEDTLS_ENTROPY_HARDWARE_ALT_DEFINED 0
 #endif
 
 #define MBEDTLS_ENTROPY_TRUE_SOURCES ( \

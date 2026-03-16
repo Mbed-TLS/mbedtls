@@ -2288,9 +2288,6 @@ int mbedtls_ssl_set_hs_psk(mbedtls_ssl_context *ssl,
         return MBEDTLS_ERR_SSL_HW_ACCEL_FAILED;
     }
 
-    /* Since we're not using a certificate, set verify_result to success */
-    ssl->session_negotiate->verify_result = 0;
-
     /* Allow calling psa_destroy_key() on psk remove */
     ssl->handshake->psk_opaque_is_internal = 1;
     return mbedtls_ssl_set_hs_psk_opaque(ssl, key);

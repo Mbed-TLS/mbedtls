@@ -5271,17 +5271,17 @@ static const uint16_t ssl_preset_default_sig_algs[] = {
     MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA256,
 #endif
 
-#if defined(MBEDTLS_RSA_C) && defined(PSA_WANT_ALG_SHA_512)
+#if defined(PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC) && defined(PSA_WANT_ALG_SHA_512)
     MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA512,
-#endif /* MBEDTLS_RSA_C && PSA_WANT_ALG_SHA_512 */
+#endif /* PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC && PSA_WANT_ALG_SHA_512 */
 
-#if defined(MBEDTLS_RSA_C) && defined(PSA_WANT_ALG_SHA_384)
+#if defined(PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC) && defined(PSA_WANT_ALG_SHA_384)
     MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA384,
-#endif /* MBEDTLS_RSA_C && PSA_WANT_ALG_SHA_384 */
+#endif /* PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC && PSA_WANT_ALG_SHA_384 */
 
-#if defined(MBEDTLS_RSA_C) && defined(PSA_WANT_ALG_SHA_256)
+#if defined(PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC) && defined(PSA_WANT_ALG_SHA_256)
     MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA256,
-#endif /* MBEDTLS_RSA_C && PSA_WANT_ALG_SHA_256 */
+#endif /* PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC && PSA_WANT_ALG_SHA_256 */
 
     MBEDTLS_TLS_SIG_NONE
 };
@@ -5297,7 +5297,7 @@ static const uint16_t ssl_tls12_preset_default_sig_algs[] = {
 #if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT)
     MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA512,
 #endif
-#if defined(MBEDTLS_RSA_C)
+#if defined(PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC)
     MBEDTLS_SSL_TLS12_SIG_AND_HASH_ALG(MBEDTLS_SSL_SIG_RSA, MBEDTLS_SSL_HASH_SHA512),
 #endif
 #endif /* PSA_WANT_ALG_SHA_512 */
@@ -5309,7 +5309,7 @@ static const uint16_t ssl_tls12_preset_default_sig_algs[] = {
 #if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT)
     MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA384,
 #endif
-#if defined(MBEDTLS_RSA_C)
+#if defined(PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC)
     MBEDTLS_SSL_TLS12_SIG_AND_HASH_ALG(MBEDTLS_SSL_SIG_RSA, MBEDTLS_SSL_HASH_SHA384),
 #endif
 #endif /* PSA_WANT_ALG_SHA_384 */
@@ -5321,7 +5321,7 @@ static const uint16_t ssl_tls12_preset_default_sig_algs[] = {
 #if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT)
     MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA256,
 #endif
-#if defined(MBEDTLS_RSA_C)
+#if defined(PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC)
     MBEDTLS_SSL_TLS12_SIG_AND_HASH_ALG(MBEDTLS_SSL_SIG_RSA, MBEDTLS_SSL_HASH_SHA256),
 #endif
 #endif /* PSA_WANT_ALG_SHA_256 */
@@ -5615,7 +5615,8 @@ void mbedtls_ssl_config_free(mbedtls_ssl_config *conf)
 }
 
 #if defined(MBEDTLS_PK_C) && \
-    (defined(MBEDTLS_RSA_C) || defined(MBEDTLS_KEY_EXCHANGE_ECDSA_CERT_REQ_ANY_ALLOWED_ENABLED))
+    (defined(PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC) || \
+    defined(MBEDTLS_KEY_EXCHANGE_ECDSA_CERT_REQ_ANY_ALLOWED_ENABLED))
 /*
  * Convert between MBEDTLS_PK_XXX and SSL_SIG_XXX
  */
@@ -5623,7 +5624,7 @@ unsigned char mbedtls_ssl_sig_from_pk(mbedtls_pk_context *pk)
 {
     psa_key_type_t key_type = mbedtls_pk_get_key_type(pk);
 
-#if defined(MBEDTLS_RSA_C)
+#if defined(PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC)
     if (PSA_KEY_TYPE_IS_RSA(key_type)) {
         return MBEDTLS_SSL_SIG_RSA;
     }
@@ -5651,7 +5652,7 @@ unsigned char mbedtls_ssl_sig_from_pk_alg(mbedtls_pk_sigalg_t type)
 mbedtls_pk_sigalg_t mbedtls_ssl_pk_sig_alg_from_sig(unsigned char sig)
 {
     switch (sig) {
-#if defined(MBEDTLS_RSA_C)
+#if defined(PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC)
         case MBEDTLS_SSL_SIG_RSA:
             return MBEDTLS_PK_SIGALG_RSA_PKCS1V15;
 #endif
@@ -5664,7 +5665,7 @@ mbedtls_pk_sigalg_t mbedtls_ssl_pk_sig_alg_from_sig(unsigned char sig)
     }
 }
 #endif /* MBEDTLS_PK_C &&
-          ( MBEDTLS_RSA_C || MBEDTLS_KEY_EXCHANGE_ECDSA_CERT_REQ_ANY_ALLOWED_ENABLED ) */
+          ( PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC || MBEDTLS_KEY_EXCHANGE_ECDSA_CERT_REQ_ANY_ALLOWED_ENABLED ) */
 
 /*
  * Convert from MBEDTLS_SSL_HASH_XXX to MBEDTLS_MD_XXX

@@ -47,9 +47,6 @@ class CoverageTask(outcome_analysis.CoverageTask):
             # We don't run ssl-opt.sh with Valgrind on the CI because
             # it's extremely slow. We don't intend to change this.
             'DTLS fragmenting: proxy MTU: auto-reduction (with valgrind)',
-            # TLS doesn't use restartable ECDH yet.
-            # https://github.com/Mbed-TLS/mbedtls/issues/7294
-            re.compile(r'EC restart:.*no USE_PSA.*'),
         ],
         'test_suite_config.mbedtls_boolean': [
             # Missing coverage of test configurations.

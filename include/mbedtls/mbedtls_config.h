@@ -4161,7 +4161,7 @@
  * non-Windows platforms unless a dedicated system call is available
  * (see #MBEDTLS_NO_PLATFORM_ENTROPY).
  *
- * The default value is `/dev/urandom`, which is suitable on most platforms
+ * The default value is `/dev/random`, which is suitable on most platforms
  * other than Linux. On Linux, either `/dev/random` or `/dev/urandom`
  * may be the right choice, depending on the circumstances:
  *

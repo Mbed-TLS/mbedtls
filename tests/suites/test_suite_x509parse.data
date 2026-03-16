@@ -656,7 +656,7 @@ depends_on:MBEDTLS_PEM_PARSE_C:PSA_WANT_ALG_SHA_256:PSA_HAVE_ALG_ECDSA_VERIFY:PS
 x509_verify:"../framework/data_files/server7-future.crt":"../framework/data_files/test-ca2.crt":"../framework/data_files/crl-ec-sha1.pem":"NULL":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_FUTURE:"compat":"NULL"
 
 X509 CRT verification #9 (Not trusted Cert)
-depends_on:MBEDTLS_PEM_PARSE_C:PSA_WANT_ALG_SHA_1:PSA_HAVE_ALG_SOME_RSA_VERIFY
+depends_on:MBEDTLS_PEM_PARSE_C:PSA_WANT_ALG_SHA_1:PSA_HAVE_ALG_RSA_PKCS1V15_VERIFY
 x509_verify:"../framework/data_files/server2.crt":"../framework/data_files/server1.crt":"../framework/data_files/crl.pem":"NULL":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_NOT_TRUSTED:"compat":"NULL"
 
 X509 CRT verification #10 (Not trusted Cert, Expired CRL)
@@ -1247,7 +1247,7 @@ depends_on:MBEDTLS_PEM_PARSE_C:PSA_HAVE_ALG_ECDSA_VERIFY:PSA_HAVE_ALG_SOME_RSA_V
 x509_verify_callback:"../framework/data_files/server10_int3_int-ca2.crt":"../framework/data_files/test-int-ca2.crt":"NULL":0:"depth 2 - serial 0F - subject C=NL, O=PolarSSL, CN=PolarSSL Test Intermediate EC CA - flags 0x00000000\ndepth 1 - serial 4D - subject C=UK, O=mbed TLS, CN=mbed TLS Test intermediate CA 3 - flags 0x00000000\ndepth 0 - serial 4B - subject CN=localhost - flags 0x00000000\n"
 
 X509 CRT verification callback: two intermediates, low int trusted
-depends_on:MBEDTLS_PEM_PARSE_C:PSA_HAVE_ALG_ECDSA_VERIFY:PSA_HAVE_ALG_SOME_RSA_VERIFY:PSA_WANT_ECC_SECP_R1_256:PSA_WANT_ECC_SECP_R1_384:PSA_HAVE_ALG_SOME_RSA_VERIFY:PSA_WANT_ALG_SHA_256:PSA_WANT_ALG_SHA_1
+depends_on:MBEDTLS_PEM_PARSE_C:PSA_HAVE_ALG_ECDSA_VERIFY:PSA_WANT_ECC_SECP_R1_256:PSA_WANT_ECC_SECP_R1_384:PSA_HAVE_ALG_RSA_PKCS1V15_VERIFY:PSA_WANT_ALG_SHA_256:PSA_WANT_ALG_SHA_1
 x509_verify_callback:"../framework/data_files/server10_int3_int-ca2_ca.crt":"../framework/data_files/test-int-ca3.crt":"NULL":0:"depth 1 - serial 4D - subject C=UK, O=mbed TLS, CN=mbed TLS Test intermediate CA 3 - flags 0x00000000\ndepth 0 - serial 4B - subject CN=localhost - flags 0x00000000\n"
 
 X509 CRT verification callback: no intermediate, bad signature

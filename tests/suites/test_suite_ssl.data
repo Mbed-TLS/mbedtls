@@ -3527,3 +3527,6 @@ ssl_tls_exporter_too_early:MBEDTLS_SSL_VERSION_TLS1_3:1:MBEDTLS_SSL_SERVER_CERTI
 
 TLS fatal alert getter
 ssl_get_alert_after_fatal
+
+TLS 1.3 - HRR then TLS 1.2 second ClientHello
+tls13_hrr_then_tls12_second_client_hello

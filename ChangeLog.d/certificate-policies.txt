@@ -1,0 +1,7 @@
+Changes
+   * Parse and store all certificate policy OIDs, not only anyPolicy.
+     Per RFC 5280 section 4.2.1.4, policy enforcement is left to the
+     application. Certificates with non-anyPolicy OIDs are no longer
+     rejected with MBEDTLS_ERR_X509_FEATURE_UNAVAILABLE. Unknown
+     policy OIDs are displayed as numeric dotted strings in
+     certificate info output. Fixes #8123.

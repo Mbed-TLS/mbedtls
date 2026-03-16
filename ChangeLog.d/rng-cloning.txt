@@ -1,0 +1,14 @@
+Features
+   * Applications can use the new functions psa_random_reseed() to
+     request an immediate reseed of the PSA random generator, or
+     psa_random_deplete() to force a reseed on the next random generator call.
+   * Applications can call psa_random_set_prediction_resistance() to toggle
+     prediction resistance in the PSA random generator.
+
+Security
+   * Applications running in environments where the application state is
+     cloned (for example due to resuming a frozen system state multiple
+     times, or due to cloning a virtual machine image) should arrange to
+     reseed the random generator using one of the new functions
+     psa_random_reseed() or psa_random_deplete(). CVE-2026-25835
+

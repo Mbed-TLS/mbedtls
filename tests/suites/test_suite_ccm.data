@@ -1746,6 +1746,72 @@ CCM* decrypt, instant finish AES-128 (P=0, N=13, A=0, T=16)
 depends_on:MBEDTLS_CCM_GCM_CAN_AES
 mbedtls_ccm_instant_finish:MBEDTLS_CIPHER_ID_AES:MBEDTLS_CCM_STAR_DECRYPT:"54caf96ef6d448734700aadab50faf7a":"a3803e752ae849c910d8da36af"
 
+CCM finish check-boundary encrypt tag_len=8, finish_tag_len=32
+depends_on:MBEDTLS_CCM_GCM_CAN_AES
+mbedtls_ccm_finish_boundary:MBEDTLS_CIPHER_ID_AES:MBEDTLS_CCM_ENCRYPT:8:32:MBEDTLS_ERR_CCM_BAD_INPUT
+
+CCM finish check-boundary encrypt tag_len=8, finish_tag_len=8
+depends_on:MBEDTLS_CCM_GCM_CAN_AES
+mbedtls_ccm_finish_boundary:MBEDTLS_CIPHER_ID_AES:MBEDTLS_CCM_ENCRYPT:8:8:0
+
+CCM finish check-boundary decrypt tag_len=8, finish_tag_len=32
+depends_on:MBEDTLS_CCM_GCM_CAN_AES
+mbedtls_ccm_finish_boundary:MBEDTLS_CIPHER_ID_AES:MBEDTLS_CCM_DECRYPT:8:32:MBEDTLS_ERR_CCM_BAD_INPUT
+
+CCM finish check-boundary decrypt tag_len=8, finish_tag_len=8
+depends_on:MBEDTLS_CCM_GCM_CAN_AES
+mbedtls_ccm_finish_boundary:MBEDTLS_CIPHER_ID_AES:MBEDTLS_CCM_DECRYPT:8:8:0
+
+CCM finish check-boundary encrypt tag_len=0, finish_tag_len=0
+depends_on:MBEDTLS_CCM_GCM_CAN_AES
+mbedtls_ccm_finish_boundary:MBEDTLS_CIPHER_ID_AES:MBEDTLS_CCM_ENCRYPT:0:0:MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED
+
+CCM finish check-boundary decrypt tag_len=0, finish_tag_len=0
+depends_on:MBEDTLS_CCM_GCM_CAN_AES
+mbedtls_ccm_finish_boundary:MBEDTLS_CIPHER_ID_AES:MBEDTLS_CCM_DECRYPT:0:0:MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED
+
+# CCM finish boundary matrix (encrypt)
+CCM finish check-boundary encrypt tag_len=16, finish_tag_len=16
+depends_on:MBEDTLS_CCM_GCM_CAN_AES
+mbedtls_ccm_finish_boundary:MBEDTLS_CIPHER_ID_AES:MBEDTLS_CCM_ENCRYPT:16:16:0
+
+CCM finish check-boundary encrypt tag_len=8, finish_tag_len=16
+depends_on:MBEDTLS_CCM_GCM_CAN_AES
+mbedtls_ccm_finish_boundary:MBEDTLS_CIPHER_ID_AES:MBEDTLS_CCM_ENCRYPT:8:16:MBEDTLS_ERR_CCM_BAD_INPUT
+
+CCM finish check-boundary encrypt tag_len=16, finish_tag_len=17
+depends_on:MBEDTLS_CCM_GCM_CAN_AES
+mbedtls_ccm_finish_boundary:MBEDTLS_CIPHER_ID_AES:MBEDTLS_CCM_ENCRYPT:16:17:MBEDTLS_ERR_CCM_BAD_INPUT
+
+CCM finish check-boundary encrypt tag_len=16, finish_tag_len=4000
+depends_on:MBEDTLS_CCM_GCM_CAN_AES
+mbedtls_ccm_finish_boundary:MBEDTLS_CIPHER_ID_AES:MBEDTLS_CCM_ENCRYPT:16:4000:MBEDTLS_ERR_CCM_BAD_INPUT
+
+CCM finish check-boundary encrypt tag_len=16, finish_tag_len=8
+depends_on:MBEDTLS_CCM_GCM_CAN_AES
+mbedtls_ccm_finish_boundary:MBEDTLS_CIPHER_ID_AES:MBEDTLS_CCM_ENCRYPT:16:8:MBEDTLS_ERR_CCM_BAD_INPUT
+
+# CCM finish boundary matrix (decrypt)
+CCM finish check-boundary decrypt tag_len=16, finish_tag_len=16
+depends_on:MBEDTLS_CCM_GCM_CAN_AES
+mbedtls_ccm_finish_boundary:MBEDTLS_CIPHER_ID_AES:MBEDTLS_CCM_DECRYPT:16:16:0
+
+CCM finish check-boundary decrypt tag_len=8, finish_tag_len=16
+depends_on:MBEDTLS_CCM_GCM_CAN_AES
+mbedtls_ccm_finish_boundary:MBEDTLS_CIPHER_ID_AES:MBEDTLS_CCM_DECRYPT:8:16:MBEDTLS_ERR_CCM_BAD_INPUT
+
+CCM finish check-boundary decrypt tag_len=16, finish_tag_len=17
+depends_on:MBEDTLS_CCM_GCM_CAN_AES
+mbedtls_ccm_finish_boundary:MBEDTLS_CIPHER_ID_AES:MBEDTLS_CCM_DECRYPT:16:17:MBEDTLS_ERR_CCM_BAD_INPUT
+
+CCM finish check-boundary decrypt tag_len=16, finish_tag_len=4000
+depends_on:MBEDTLS_CCM_GCM_CAN_AES
+mbedtls_ccm_finish_boundary:MBEDTLS_CIPHER_ID_AES:MBEDTLS_CCM_DECRYPT:16:4000:MBEDTLS_ERR_CCM_BAD_INPUT
+
+CCM finish check-boundary decrypt tag_len=16, finish_tag_len=8
+depends_on:MBEDTLS_CCM_GCM_CAN_AES
+mbedtls_ccm_finish_boundary:MBEDTLS_CIPHER_ID_AES:MBEDTLS_CCM_DECRYPT:16:8:MBEDTLS_ERR_CCM_BAD_INPUT
+
 CCM pass unexpected auth data, NIST VPT AES-128 #14 (P=13, N=13, A=32, T=16)
 depends_on:MBEDTLS_CCM_GCM_CAN_AES
 mbedtls_ccm_unexpected_ad::MBEDTLS_CIPHER_ID_AES:MBEDTLS_CCM_ENCRYPT:"d32088d50df9aba14d9022c870a0cb85":"e16c69861efc206e85aab1255e":"0eff7d7bcceb873c3203a8df74f4e91b04bd607ec11202f96cfeb99f5bcdb7aa"

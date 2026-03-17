@@ -5507,6 +5507,10 @@ exit:
 
 static psa_status_t psa_aead_final_checks(const psa_aead_operation_t *operation)
 {
+    if (operation->alg == PSA_ALG_CCM && !operation->lengths_set) {
+        return PSA_ERROR_BAD_STATE;
+    }
+
     if (operation->id == 0 || !operation->nonce_set) {
         return PSA_ERROR_BAD_STATE;
     }

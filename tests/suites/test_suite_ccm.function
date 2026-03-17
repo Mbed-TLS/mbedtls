@@ -1,5 +1,6 @@
 /* BEGIN_HEADER */
 #include "mbedtls/ccm.h"
+#include "mbedtls/error.h"
 
 /* Use the multipart interface to process the encrypted data in two parts
  * and check that the output matches the expected output.

@@ -495,6 +495,7 @@ class DomainData:
                                            'PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_BASIC',
                                            'PSA_WANT_ALG_RSA_OAEP',
                                            'PSA_WANT_ALG_RSA_PKCS1V15_CRYPT',
+                                           'PSA_WANT_ALG_RSA_PKCS1V15_SIGN',
                                            'PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC',
                                            'MBEDTLS_X509_RSASSA_PSS_SUPPORT'],
                                           build_and_test),

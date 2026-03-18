@@ -275,6 +275,7 @@ exit:
 /* Forward declarations for functions related to message buffering. */
 static void ssl_buffering_free_slot(mbedtls_ssl_context *ssl,
                                     uint8_t slot);
+static void ssl_buffering_shift_slots(mbedtls_ssl_context *ssl, unsigned shift);
 static void ssl_free_buffered_record(mbedtls_ssl_context *ssl);
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_load_buffered_message(mbedtls_ssl_context *ssl);
@@ -3180,28 +3181,10 @@ int mbedtls_ssl_update_handshake_status(mbedtls_ssl_context *ssl)
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     if (ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM &&
         ssl->handshake != NULL) {
-        unsigned offset;
-        mbedtls_ssl_hs_buffer *hs_buf;
 
         /* Increment handshake sequence number */
         hs->in_msg_seq++;
-
-        /*
-         * Clear up handshake buffering and reassembly structure.
-         */
-
-        /* Free first entry */
-        ssl_buffering_free_slot(ssl, 0);
-
-        /* Shift all other entries */
-        for (offset = 0, hs_buf = &hs->buffering.hs[0];
-             offset + 1 < MBEDTLS_SSL_MAX_BUFFERED_HS;
-             offset++, hs_buf++) {
-            *hs_buf = *(hs_buf + 1);
-        }
-
-        /* Create a fresh last entry */
-        memset(hs_buf, 0, sizeof(mbedtls_ssl_hs_buffer));
+        ssl_buffering_shift_slots(ssl, 1);
     }
 #endif
     return 0;
@@ -6158,6 +6141,42 @@ static void ssl_buffering_free_slot(mbedtls_ssl_context *ssl,
     }
 }
 
+/*
+ * Shift the buffering slots to the left by `shift` positions.
+ * After the operation, slot i contains the previous slot i + shift.
+ */
+static void ssl_buffering_shift_slots(mbedtls_ssl_context *ssl,
+                                      unsigned shift)
+{
+    mbedtls_ssl_handshake_params * const hs = ssl->handshake;
+    unsigned offset;
+
+    if (shift == 0) {
+        return;
+    }
+
+    if (shift >= MBEDTLS_SSL_MAX_BUFFERED_HS) {
+        shift = MBEDTLS_SSL_MAX_BUFFERED_HS;
+    }
+
+    /* Free discarded entries */
+    for (offset = 0; offset < shift; offset++) {
+        ssl_buffering_free_slot(ssl, offset);
+    }
+
+    /* Shift remaining entries left */
+    for (offset = 0; offset + shift < MBEDTLS_SSL_MAX_BUFFERED_HS; offset++) {
+        hs->buffering.hs[offset] = hs->buffering.hs[offset + shift];
+    }
+
+    /* Reset the remaining entries at the end. It may have been already
+     * partially done by the loop freing the discarded entries but that is
+     * simpler and safer.
+     */
+    for (; offset < MBEDTLS_SSL_MAX_BUFFERED_HS; offset++) {
+        memset(&hs->buffering.hs[offset], 0, sizeof(hs->buffering.hs[offset]));
+    }
+}
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
 
 /*

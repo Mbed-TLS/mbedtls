@@ -11,6 +11,7 @@ At any point in time, we have a number of maintained branches, currently consist
 - One or more long-time support (LTS) branches: these only get bug fixes and
   security fixes. Currently, the supported LTS branches are:
 - [`mbedtls-3.6`](https://github.com/Mbed-TLS/mbedtls/tree/mbedtls-3.6).
+- [`mbedtls-4.1`](https://github.com/Mbed-TLS/mbedtls/tree/mbedtls-4.1).
 
 We retain a number of historical branches, whose names are prefixed by `archive/`,
 such as [`archive/mbedtls-2.7`](https://github.com/Mbed-TLS/mbedtls/tree/archive/mbedtls-2.7).
@@ -22,11 +23,11 @@ the API of 4.(x+1) is backward compatible with 4.x). We only break API
 compatibility on major version changes (e.g. from 3.x to 4.0). We also maintain
 ABI compatibility within LTS branches; see the next section for details.
 
-We will make regular LTS releases on an 18-month cycle, each of which will have
-a 3 year support lifetime. On this basis, 3.6 LTS (released March 2024) will be
-supported until March 2027. The next LTS release will be a 4.x release. Due to
-the size and scope of the 4.0 release, the release date of the first 4.x LTS is
-yet to be determined.
+We plan to make regular LTS releases on an 18-month cycle, each with a support
+lifetime of three years.On this basis, Mbed TLS 3.6 LTS (released in March 2024)
+will be supported until March 2027. Due to the size and scope of the 4.0 release,
+the first 4.x LTS, version 4.1, was released two years after 3.6, in March 2026,
+and will be supported until March 2029.
 
 ## Backwards Compatibility for application code
 
@@ -87,6 +88,9 @@ The following branches are currently maintained:
 - [`development`](https://github.com/Mbed-TLS/mbedtls/)
 - [`mbedtls-3.6`](https://github.com/Mbed-TLS/mbedtls/tree/mbedtls-3.6)
  maintained until March 2027, see
-  <https://github.com/Mbed-TLS/mbedtls/releases/tag/v3.6.4>.
+  <https://github.com/Mbed-TLS/mbedtls/releases/tag/v3.6.6>.
+- [`mbedtls-4.1`](https://github.com/Mbed-TLS/mbedtls/tree/mbedtls-4.1)
+ maintained until March 2029, see
+  <https://github.com/Mbed-TLS/mbedtls/releases/tag/v4.1.0>.
 
 Users are urged to always use the latest version of a maintained branch.

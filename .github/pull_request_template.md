@@ -11,10 +11,11 @@ If the provided content is part of the present PR remove the # symbol.
 
 - [ ] **changelog** provided | not required because: 
 - [ ] **development PR** provided # | not required because: 
-- [ ] **TF-PSA-Crypto PR** provided # | not required because: 
-- [ ] **framework PR** provided Mbed-TLS/mbedtls-framework# | not required
-- [ ] **4.1 PR** provided # | not required because: 
-- [ ] **3.6 PR** provided # | not required because: 
+- [ ] **prerequisite TF-PSA-Crypto PR** provided # | not required because: 
+- [ ] **prerequisite framework PR** provided Mbed-TLS/mbedtls-framework# | not required
+- [ ] **backport 4.1 PR** provided # | not required because: 
+- [ ] **prerequisite backport 1.1 PR** provided # | not required because: 
+- [ ] **backport 3.6 PR** provided # | not required because: 
 - **tests**  provided | not required because: 
 
 

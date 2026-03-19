@@ -130,7 +130,7 @@ def run_one(options, args, stem_prefix='', input_file=None):
 ### config.py stops handling that case correctly.
 TEST_SYMBOLS = [
     'CUSTOM_SYMBOL', # does not exist
-    'MBEDTLS_AES_C', # set, no value
+    'PSA_WANT_KEY_TYPE_AES', # set, no value
     'MBEDTLS_MPI_MAX_SIZE', # unset, has a value
     'MBEDTLS_NO_UDBL_DIVISION', # unset, in "System support"
     'MBEDTLS_PLATFORM_ZEROIZE_ALT', # unset, in "Customisation configuration options"

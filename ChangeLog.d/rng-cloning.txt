@@ -6,6 +6,10 @@ Features
      prediction resistance in the PSA random generator.
 
 Security
+   * If an application called psa_crypto_init() then fork() and continued to
+     use cryptography APIs (possibly indirectly, e.g. for TLS), the random
+     generator states were duplicated. Fix this by forcing a RNG reseed in
+     the child process. CVE-2026-25835
    * Applications running in environments where the application state is
      cloned (for example due to resuming a frozen system state multiple
      times, or due to cloning a virtual machine image) should arrange to

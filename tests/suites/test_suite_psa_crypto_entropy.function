@@ -2,6 +2,10 @@
 #include <stdint.h>
 #include <string.h>
 
+#if defined(MBEDTLS_PLATFORM_IS_UNIXLIKE)
+#include <test/fork_helpers.h>
+#endif
+
 #include <psa/crypto.h>
 
 /* Some tests in this module configure entropy sources. */
@@ -148,6 +152,20 @@ exit:
     return 0;
 }
 #endif /* !defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG) */
+
+#if defined(MBEDTLS_PLATFORM_IS_UNIXLIKE) && \
+    !defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG)
+static void child_psa_get_random(void *param,
+                                 uint8_t *output, size_t output_size,
+                                 size_t *output_length)
+{
+    (void) param;
+    PSA_ASSERT(psa_generate_random(output, output_size));
+    *output_length = output_size;
+exit:
+    ;
+}
+#endif  /* MBEDTLS_PLATFORM_IS_UNIXLIKE && !MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
 
 /* Calculating the minimum allowed entropy size in bytes */
 #define MBEDTLS_PSA_INJECT_ENTROPY_MIN_SIZE MAX(MBEDTLS_ENTROPY_MIN_PLATFORM, \
@@ -659,6 +677,81 @@ exit:
     PSA_DONE();
     mbedtls_free(input);
     mbedtls_free(signature);
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:!MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG:MBEDTLS_PLATFORM_IS_UNIXLIKE */
+/* Test that if a program calls fork(), the PSA RNG returns different byte
+ * sequences in each child process, and that they're different from the
+ * parent process.
+ *
+ * The argument parent_when controls when the parent calls
+ * psa_generate_random(): -1 = never, 0 = before forking, >0 = after forking
+ * that many children.
+ *
+ * Note that passing tests don't mean that everything is fine, they only
+ * mean that things are not too obviously broken. It's possible to badly
+ * design the RNG so that, for example, different child processes will
+ * have the same RNG output sequence but at an offset, or so that a child
+ * process's RNG is seeded from RNG output of the parent (making it
+ * predictable if an adversary happens to be able to get the right chunk
+ * of RNG output from th parent), or different sequencing of forking
+ * grand^n-children ends up with them having identical RNG output sequences.
+ * These bad designs are practically impossible to detect through testing,
+ * and must be excluded by human reasoning on the RNG design.
+ */
+void psa_rng_fork(int parent_when)
+{
+    struct {
+        /* We read 16 bytes from the RNG. This is large enough so that the
+         * probability of a coincidence is negligible, and small enough that
+         * the RNG won't spontaneously decide reseed to unless it has
+         * prediction resistance. */
+        unsigned char rng_output[16];
+    } child[2], parent;
+    memset(child, 0, sizeof(child));
+    memset(&parent, 0, sizeof(parent));
+
+    PSA_INIT();
+
+    /* Create some child processes, have them generate random data
+     * and report that data back to the original process. */
+    for (size_t i = 0; i < ARRAY_LENGTH(child); i++) {
+        mbedtls_test_set_step(i);
+        if ((size_t) parent_when == i) {
+            PSA_ASSERT(psa_generate_random(parent.rng_output,
+                                           sizeof(parent.rng_output)));
+        }
+        size_t length;
+        TEST_EQUAL(mbedtls_test_fork_run_child(
+                       child_psa_get_random, NULL,
+                       child[i].rng_output, sizeof(child[i].rng_output),
+                       &length), 0);
+        TEST_EQUAL(length, sizeof(child[i].rng_output));
+    }
+
+    if (parent_when == ARRAY_LENGTH(child)) {
+        PSA_ASSERT(psa_generate_random(parent.rng_output,
+                                       sizeof(parent.rng_output)));
+    }
+
+    /* Did the children have different RNG states? */
+    TEST_ASSERT(memcmp(child[0].rng_output,
+                       child[1].rng_output,
+                       sizeof(parent.rng_output)) != 0);
+    /* If parent_when >= 0: did the children have different RNG states
+     * from the parent?
+     * If parent_when < 0: did the children get nonzero RNG output?
+     */
+    for (size_t i = 0; i < ARRAY_LENGTH(child); i++) {
+        mbedtls_test_set_step(i);
+        TEST_ASSERT(memcmp(parent.rng_output,
+                           child[i].rng_output,
+                           sizeof(parent.rng_output)) != 0);
+    }
+
+exit:
+    PSA_DONE();
 }
 /* END_CASE */
 

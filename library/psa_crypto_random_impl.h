@@ -70,6 +70,23 @@ typedef struct {
     void (* entropy_free)(mbedtls_entropy_context *ctx);
     mbedtls_entropy_context entropy;
     mbedtls_psa_drbg_context_t drbg;
+#if defined(MBEDTLS_PLATFORM_IS_UNIXLIKE)
+    /* Fork protection: normally pid = getpid(). If the value changes,
+     * we are in a (grand)*child of the original process, so reseed
+     * the RNG to ensure that the child and the original process have
+     * distinct RNG states. See psa_random_internal_generate().
+     *
+     * The type is intmax_t, not pid_t, for portability reasons:
+     * pid_t is defined in `unistd.h`, but on some platforms, it may
+     * only be defined if a certain compatibility level is requested
+     * by defining a macro such as _POSIX_C_SOURCE or _XOPEN_SOURCE.
+     * The macro needs to be defined before any system header, which
+     * may be hard to do in some C files that include this header
+     * (e.g. test suites). So we sidestep this complication, at the
+     * cost of possibly a few more instructions to compare pid values.
+     */
+    intmax_t pid;
+#endif
 } mbedtls_psa_random_context_t;
 
 /** Initialize the PSA DRBG.

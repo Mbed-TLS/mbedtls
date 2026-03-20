@@ -1,5 +1,5 @@
 /* BEGIN_HEADER */
-
+#include "pk_internal.h"
 /* END_HEADER */
 
 /* BEGIN_CASE */

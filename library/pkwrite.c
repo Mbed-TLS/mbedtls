@@ -45,10 +45,10 @@
 /* Helpers for properly sizing buffers aimed at holding public keys or
  * key-pairs based on build symbols. */
 #if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
-#define PK_MAX_EC_PUBLIC_KEY_SIZE       PSA_EXPORT_PUBLIC_KEY_MAX_SIZE
+#define PK_MAX_EC_PUBLIC_KEY_SIZE       MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH
 #define PK_MAX_EC_KEY_PAIR_SIZE         MBEDTLS_PSA_MAX_EC_KEY_PAIR_LENGTH
 #elif defined(MBEDTLS_USE_PSA_CRYPTO)
-#define PK_MAX_EC_PUBLIC_KEY_SIZE       PSA_EXPORT_PUBLIC_KEY_MAX_SIZE
+#define PK_MAX_EC_PUBLIC_KEY_SIZE       MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH
 #define PK_MAX_EC_KEY_PAIR_SIZE         MBEDTLS_PSA_MAX_EC_KEY_PAIR_LENGTH
 #else
 #define PK_MAX_EC_PUBLIC_KEY_SIZE       MBEDTLS_ECP_MAX_PT_LEN

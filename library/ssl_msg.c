@@ -3618,7 +3618,7 @@ static int ssl_parse_record_header(mbedtls_ssl_context const *ssl,
                               (
                                   "datagram of length %u too small to hold DTLS record header of length %u",
                                   (unsigned) len,
-                                  (unsigned) (rec_hdr_len_len + rec_hdr_len_len)));
+                                  (unsigned) (rec_hdr_len_offset + rec_hdr_len_len)));
         return MBEDTLS_ERR_SSL_INVALID_RECORD;
     }
 

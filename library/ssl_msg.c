@@ -5042,6 +5042,30 @@ static int ssl_get_next_record(mbedtls_ssl_context *ssl)
                 ret = MBEDTLS_ERR_SSL_UNEXPECTED_RECORD;
             }
 
+#if defined(MBEDTLS_SSL_SRV_C)
+            /*
+             * When retrieving the DTLS ClientHello on server side, error out
+             * when detecting an invalid or unexpected record.
+             */
+            if ((ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER) &&
+                (ssl->state == MBEDTLS_SSL_CLIENT_HELLO)
+#if defined(MBEDTLS_SSL_RENEGOTIATION)
+                && (ssl->renego_status == MBEDTLS_SSL_INITIAL_HANDSHAKE)
+#endif
+                ) {
+                /*
+                 * For backward compatibility, return
+                 * MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE rather than
+                 * MBEDTLS_ERR_SSL_UNEXPECTED_RECORD.
+                 */
+                if (ret == MBEDTLS_ERR_SSL_UNEXPECTED_RECORD) {
+                    return MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE;
+                } else {
+                    return ret;
+                }
+            }
+#endif /* MBEDTLS_SSL_SRV_C */
+
             if (ret == MBEDTLS_ERR_SSL_UNEXPECTED_RECORD) {
 #if defined(MBEDTLS_SSL_DTLS_CLIENT_PORT_REUSE) && defined(MBEDTLS_SSL_SRV_C)
                 /* Reset in pointers to default state for TLS/DTLS records,

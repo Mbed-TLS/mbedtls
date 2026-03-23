@@ -43,7 +43,7 @@ class CoverageTask(outcome_analysis.CoverageTask):
             'DTLS cookie: enabled, IPv6',
             # Disabled due to OpenSSL bug.
             # https://github.com/openssl/openssl/issues/18887
-            'DTLS fragmenting: 3d, openssl client, DTLS 1.2',
+            'DTLS fragmenting: 3d, MTU=512, openssl client, DTLS 1.2',
             # We don't run ssl-opt.sh with Valgrind on the CI because
             # it's extremely slow. We don't intend to change this.
             'DTLS fragmenting: proxy MTU: auto-reduction (with valgrind)',

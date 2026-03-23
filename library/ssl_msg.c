@@ -3261,6 +3261,49 @@ int mbedtls_ssl_prepare_handshake_record(mbedtls_ssl_context *ssl)
             return MBEDTLS_ERR_SSL_INVALID_RECORD;
         }
 
+        if (ssl->in_msg[0] == MBEDTLS_SSL_HS_CLIENT_HELLO &&
+            ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER) {
+            if (ssl->state == MBEDTLS_SSL_CLIENT_HELLO
+#if defined(MBEDTLS_SSL_RENEGOTIATION)
+                && ssl->renego_status == MBEDTLS_SSL_INITIAL_HANDSHAKE
+#endif
+                ) {
+                /*
+                 * When establishing the connection, the client may go through
+                 * a series of ClientHello and HelloVerifyRequest requests and
+                 * responses. The server intentionally does not keep trace of
+                 * these initial round trips: minimum allocated ressources as
+                 * long as the reachability of the client has not been
+                 * confirmed. When receiving the "first ClientHello" from
+                 * server perspective, we may thus need to adapt the next
+                 * expected `message_seq` for the incoming and outgoing
+                 * handshake messages.
+                 */
+                ssl->handshake->in_msg_seq = recv_msg_seq;
+                ssl->handshake->out_msg_seq = recv_msg_seq;
+
+                /* Epoch should be 0 for initial handshakes */
+                if (ssl->in_ctr[0] != 0 || ssl->in_ctr[1] != 0) {
+                    MBEDTLS_SSL_DEBUG_MSG(1, ("bad client hello message"));
+                    return MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER;
+                }
+
+                memcpy(&ssl->cur_out_ctr[2], ssl->in_ctr + 2,
+                       sizeof(ssl->cur_out_ctr) - 2);
+            } else if (mbedtls_ssl_is_handshake_over(ssl) == 1) {
+                /* In case of a post-handshake ClientHello that initiates a
+                 * renegotiation check that the handshake message sequence
+                 * number is zero.
+                 */
+                if (recv_msg_seq != 0) {
+                    MBEDTLS_SSL_DEBUG_MSG(1, ("bad client hello message_seq: "
+                                              "%u (expected 0)",
+                                              recv_msg_seq));
+                    return MBEDTLS_ERR_SSL_DECODE_ERROR;
+                }
+            }
+        }
+
         if (ssl->handshake != NULL &&
             ((mbedtls_ssl_is_handshake_over(ssl) == 0 &&
               recv_msg_seq != ssl->handshake->in_msg_seq) ||
@@ -5137,14 +5180,9 @@ static int ssl_get_next_record(mbedtls_ssl_context *ssl)
     /* The record content type may change during decryption,
      * so re-read it. */
     ssl->in_msgtype = rec.type;
-    /* Also update the input buffer, because unfortunately
-     * the server-side ssl_parse_client_hello() reparses the
-     * record header when receiving a ClientHello initiating
-     * a renegotiation. */
-    ssl->in_hdr[0] = rec.type;
+
     ssl->in_msg    = rec.buf + rec.data_offset;
     ssl->in_msglen = rec.data_len;
-    MBEDTLS_PUT_UINT16_BE(rec.data_len, ssl->in_len, 0);
 
     return 0;
 }
@@ -5830,6 +5868,11 @@ static int ssl_tls12_handle_hs_message_post_handshake(mbedtls_ssl_context *ssl)
             ssl->renego_status = MBEDTLS_SSL_RENEGOTIATION_PENDING;
         }
 #endif
+
+        /* Keep the ClientHello message for ssl_parse_client_hello() */
+        if (ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER) {
+            ssl->keep_current_message = 1;
+        }
         ret = mbedtls_ssl_start_renegotiation(ssl);
         if (ret != MBEDTLS_ERR_SSL_WAITING_SERVER_HELLO_RENEGO &&
             ret != 0) {

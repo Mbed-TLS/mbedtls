@@ -6174,8 +6174,8 @@ static void ssl_buffering_shift_slots(mbedtls_ssl_context *ssl,
     }
 
     /* Reset the remaining entries at the end. It may have been already
-     * partially done by the loop freing the discarded entries but that is
-     * simpler and safer.
+     * done for the first ones by the loop freing the discarded entries but
+     * that is simpler and safer.
      */
     for (; offset < MBEDTLS_SSL_MAX_BUFFERED_HS; offset++) {
         memset(&hs->buffering.hs[offset], 0, sizeof(hs->buffering.hs[offset]));

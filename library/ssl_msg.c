@@ -2987,7 +2987,7 @@ int mbedtls_ssl_prepare_handshake_record(mbedtls_ssl_context *ssl)
                  * handshake messages.
                  */
                 if ((ssl->handshake->in_msg_seq == 0) && (recv_msg_seq > 0)) {
-                    MBEDTLS_SSL_DEBUG_MSG(1, ("shift slots by %u", recv_msg_seq));
+                    MBEDTLS_SSL_DEBUG_MSG(3, ("shift slots by %u", recv_msg_seq));
                     ssl_buffering_shift_slots(ssl, recv_msg_seq);
                     ssl->handshake->in_msg_seq = recv_msg_seq;
                     ssl->handshake->out_msg_seq = recv_msg_seq;

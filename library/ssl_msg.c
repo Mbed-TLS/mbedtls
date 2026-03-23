@@ -5040,16 +5040,7 @@ static int ssl_get_next_record(mbedtls_ssl_context *ssl)
                 && (ssl->renego_status == MBEDTLS_SSL_INITIAL_HANDSHAKE)
 #endif
                 ) {
-                /*
-                 * For backward compatibility, return
-                 * MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE rather than
-                 * MBEDTLS_ERR_SSL_UNEXPECTED_RECORD.
-                 */
-                if (ret == MBEDTLS_ERR_SSL_UNEXPECTED_RECORD) {
-                    return MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE;
-                } else {
-                    return ret;
-                }
+                return ret;
             }
 #endif /* MBEDTLS_SSL_SRV_C */
 

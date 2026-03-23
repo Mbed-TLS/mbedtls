@@ -982,6 +982,7 @@ static int ssl_tls13_parse_key_shares_ext(mbedtls_ssl_context *ssl,
 }
 #endif /* MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED */
 
+#if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_ENABLED)
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_tls13_client_hello_has_exts(mbedtls_ssl_context *ssl,
                                            int exts_mask)
@@ -989,6 +990,7 @@ static int ssl_tls13_client_hello_has_exts(mbedtls_ssl_context *ssl,
     int masked = ssl->handshake->received_extensions & exts_mask;
     return masked == exts_mask;
 }
+#endif /* MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_ENABLED */
 
 #if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED)
 MBEDTLS_CHECK_RETURN_CRITICAL

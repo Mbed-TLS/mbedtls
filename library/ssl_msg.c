@@ -2991,16 +2991,17 @@ int mbedtls_ssl_prepare_handshake_record(mbedtls_ssl_context *ssl)
                     ssl_buffering_shift_slots(ssl, recv_msg_seq);
                     ssl->handshake->in_msg_seq = recv_msg_seq;
                     ssl->handshake->out_msg_seq = recv_msg_seq;
-
-                    /* Epoch should be 0 for initial handshakes */
-                    if (ssl->in_ctr[0] != 0 || ssl->in_ctr[1] != 0) {
-                        MBEDTLS_SSL_DEBUG_MSG(1, ("bad client hello message"));
-                        return MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER;
-                    }
-
-                    memcpy(&ssl->cur_out_ctr[2], ssl->in_ctr + 2,
-                           sizeof(ssl->cur_out_ctr) - 2);
                 }
+
+                /* Epoch should be 0 for initial handshakes */
+                if (ssl->in_ctr[0] != 0 || ssl->in_ctr[1] != 0) {
+                    MBEDTLS_SSL_DEBUG_MSG(1, ("bad client hello message"));
+                    return MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER;
+                }
+
+                memcpy(&ssl->cur_out_ctr[2], ssl->in_ctr + 2,
+                       sizeof(ssl->cur_out_ctr) - 2);
+
             } else if (mbedtls_ssl_is_handshake_over(ssl) == 1) {
                 /* In case of a post-handshake ClientHello that initiates a
                  * renegotiation check that the handshake message sequence

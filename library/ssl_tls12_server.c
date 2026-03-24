@@ -880,6 +880,7 @@ static int ssl_parse_client_hello(mbedtls_ssl_context *ssl)
     if ((ret = mbedtls_ssl_read_record(ssl, 0)) != 0) {
         MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_read_record ", ret);
 
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
         /*
          * In the case of an alert message corresponding to the termination of
          * a previous connection, `ssl_parse_record_header()` and then
@@ -900,9 +901,16 @@ static int ssl_parse_client_hello(mbedtls_ssl_context *ssl)
          * used to detect a specific error condition, so this mapping
          * should not remove any meaningful distinction.
          */
-        if (ret == MBEDTLS_ERR_SSL_UNEXPECTED_RECORD) {
-            ret = MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE;
+        if ((ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM)
+#if defined(MBEDTLS_SSL_RENEGOTIATION)
+            && (ssl->renego_status == MBEDTLS_SSL_INITIAL_HANDSHAKE)
+#endif
+            ) {
+            if (ret == MBEDTLS_ERR_SSL_UNEXPECTED_RECORD) {
+                ret = MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE;
+            }
         }
+#endif /* MBEDTLS_SSL_PROTO_DTLS */
 
         return ret;
     }

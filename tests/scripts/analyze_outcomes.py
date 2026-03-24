@@ -50,6 +50,15 @@ class CoverageTask(outcome_analysis.CoverageTask):
             # TLS doesn't use restartable ECDH yet.
             # https://github.com/Mbed-TLS/mbedtls/issues/7294
             re.compile(r'EC restart:.*no USE_PSA.*'),
+            # The following test fails intermittently on the CI with a frequency
+            # that significantly impacts CI throughput. They are thus disabled
+            # for the time being. See
+            # https://github.com/Mbed-TLS/mbedtls/issues/10652 for more
+            # information.
+            'DTLS proxy: 3d, openssl client, fragmentation',
+            'DTLS proxy: 3d, openssl client, fragmentation, nbio',
+            'DTLS proxy: 3d, gnutls client, fragmentation',
+            'DTLS proxy: 3d, gnutls client, fragmentation, nbio=2',
         ],
         'test_suite_config.mbedtls_boolean': [
             # Missing coverage of test configurations.

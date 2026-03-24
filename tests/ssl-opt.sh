@@ -13179,6 +13179,7 @@ run_test    "DTLS proxy: 3d, openssl client" \
 
 # The following test fails intermittently on the CI with a frequency that
 # significantly impacts CI throughput. Disable it for the time being.
+# See https://github.com/Mbed-TLS/mbedtls/issues/10652 for more information.
 skip_next_test
 requires_openssl_next
 client_needs_more_time 8
@@ -13195,6 +13196,7 @@ run_test    "DTLS proxy: 3d, openssl client, fragmentation" \
 
 # The following test fails intermittently on the CI with a frequency that
 # significantly impacts CI throughput. Disable it for the time being.
+# See https://github.com/Mbed-TLS/mbedtls/issues/10652 for more information.
 skip_next_test
 requires_openssl_next
 client_needs_more_time 8
@@ -13267,6 +13269,7 @@ run_test    "DTLS proxy: 3d, gnutls client" \
 
 # The following test fails intermittently on the CI with a frequency that
 # significantly impacts CI throughput. Disable it for the time being.
+# See https://github.com/Mbed-TLS/mbedtls/issues/10652 for more information.
 skip_next_test
 requires_gnutls
 client_needs_more_time 8
@@ -13282,6 +13285,7 @@ run_test    "DTLS proxy: 3d, gnutls client, fragmentation" \
 
 # The following test fails intermittently on the CI with a frequency that
 # significantly impacts CI throughput. Disable it for the time being.
+# See https://github.com/Mbed-TLS/mbedtls/issues/10652 for more information.
 skip_next_test
 requires_gnutls
 client_needs_more_time 8

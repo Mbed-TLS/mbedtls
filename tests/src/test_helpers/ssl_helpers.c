@@ -13,6 +13,15 @@
 
 #include <limits.h>
 
+#if defined(__IAR_SYSTEMS_ICC__)
+/* Suppress a very overeager warning from IAR: it dislikes a forward goto
+ * that bypasses the initialization of a variable, even if that variable
+ * is not used after the jump. (This is perfectly valid C; it would only
+ * be invalid C if jumping into a block from outside that block.)
+ */
+#pragma diag_suppress=Pe546 // transfer of control bypasses initialization
+#endif
+
 #if defined(MBEDTLS_SSL_TLS_C)
 int mbedtls_test_random(void *p_rng, unsigned char *output, size_t output_len)
 {
@@ -1358,16 +1367,18 @@ static void mbedtls_test_ssl_cipher_info_from_type(mbedtls_cipher_type_t cipher_
 
 int mbedtls_test_ssl_build_transforms(mbedtls_ssl_transform *t_in,
                                       mbedtls_ssl_transform *t_out,
-                                      int cipher_type, int hash_id,
+                                      int cipher_type_arg, int md_type_arg,
                                       int etm, int tag_mode,
                                       mbedtls_ssl_protocol_version tls_version,
                                       size_t cid0_len,
                                       size_t cid1_len)
 {
+    mbedtls_md_type_t md_type = (mbedtls_md_type_t) md_type_arg;
+    mbedtls_cipher_type_t cipher_type = (mbedtls_cipher_type_t) cipher_type_arg;
+
     mbedtls_cipher_mode_t cipher_mode = MBEDTLS_MODE_NONE;
     size_t key_bits = 0;
     int ret = 0;
-
     psa_key_type_t key_type;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_algorithm_t alg;
@@ -1390,7 +1401,7 @@ int mbedtls_test_ssl_build_transforms(mbedtls_ssl_transform *t_in,
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 
     maclen = 0;
-    mbedtls_test_ssl_cipher_info_from_type((mbedtls_cipher_type_t) cipher_type,
+    mbedtls_test_ssl_cipher_info_from_type(cipher_type,
                                            &cipher_mode, &key_bits, &ivlen);
 
     /* Pick keys */
@@ -1407,7 +1418,7 @@ int mbedtls_test_ssl_build_transforms(mbedtls_ssl_transform *t_in,
 #if defined(MBEDTLS_SSL_SOME_SUITES_USE_MAC)
     if (cipher_mode == MBEDTLS_MODE_CBC ||
         cipher_mode == MBEDTLS_MODE_STREAM) {
-        maclen = mbedtls_md_get_size_from_type((mbedtls_md_type_t) hash_id);
+        maclen = mbedtls_md_get_size_from_type(md_type);
         CHK(maclen != 0);
         /* Pick hash keys */
         CHK((md0 = mbedtls_calloc(1, maclen)) != NULL);
@@ -1415,7 +1426,7 @@ int mbedtls_test_ssl_build_transforms(mbedtls_ssl_transform *t_in,
         memset(md0, 0x5, maclen);
         memset(md1, 0x6, maclen);
 
-        alg = mbedtls_md_psa_alg_from_type(hash_id);
+        alg = mbedtls_md_psa_alg_from_type(md_type);
 
         CHK(alg != 0);
 
@@ -1457,7 +1468,7 @@ int mbedtls_test_ssl_build_transforms(mbedtls_ssl_transform *t_in,
                            &t_out->psa_mac_dec) == PSA_SUCCESS);
     }
 #else
-    ((void) hash_id);
+    (void) md_type;
 #endif /* MBEDTLS_SSL_SOME_SUITES_USE_MAC */
 
 

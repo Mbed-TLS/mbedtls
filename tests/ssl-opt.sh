@@ -2168,7 +2168,7 @@ run_test    "Default, TLS 1.2" \
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_ciphersuite_enabled TLS-ECDHE-RSA-WITH-CHACHA20-POLY1305-SHA256
 run_test    "Default, DTLS" \
-            "$P_SRV debug_level=5 dtls=1" \
+            "$P_SRV dtls=1" \
             "$P_CLI dtls=1" \
             0 \
             -s "Protocol is DTLSv1.2" \

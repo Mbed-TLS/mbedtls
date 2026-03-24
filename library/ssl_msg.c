@@ -4739,8 +4739,18 @@ static int ssl_get_next_record(mbedtls_ssl_context *ssl)
 
 #if defined(MBEDTLS_SSL_SRV_C)
             /*
-             * When retrieving the DTLS ClientHello on server side, error out
-             * when detecting an invalid or unexpected record.
+             * In DTLS, invalid records are usually ignored because it is easy
+             * for an attacker to inject UDP datagrams, and we do not want such
+             * packets to disrupt the entire connection.
+             *
+             * However, when expecting the ClientHello, we reject invalid or
+             * unexpected records. This avoids waiting for further records
+             * before receiving at least one valid message. Such records could
+             * be leftover messages from a previous connection, accidental
+             * input, or part of a DoS attempt.
+             *
+             * Since no valid message has been received yet, immediately
+             * closing the connection does not result in any loss.
              */
             if ((ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER) &&
                 (ssl->state == MBEDTLS_SSL_CLIENT_HELLO)
@@ -6164,9 +6174,9 @@ static void ssl_buffering_shift_slots(mbedtls_ssl_context *ssl,
         hs->buffering.hs[offset] = hs->buffering.hs[offset + shift];
     }
 
-    /* Reset the remaining entries at the end. It may have been already
-     * done for the first ones by the loop freing the discarded entries but
-     * that is simpler and safer.
+    /* Reset the remaining entries at the end. Some may already have been
+     * cleared by the loop freeing the discarded entries, but resetting all
+     * of them is simpler and avoids tracking which ones were already handled.
      */
     for (; offset < MBEDTLS_SSL_MAX_BUFFERED_HS; offset++) {
         memset(&hs->buffering.hs[offset], 0, sizeof(hs->buffering.hs[offset]));

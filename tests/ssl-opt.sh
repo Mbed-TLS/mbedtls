@@ -13177,6 +13177,9 @@ run_test    "DTLS proxy: 3d, openssl client" \
             0 \
             -s "HTTP/1.0 200 OK"
 
+# The following test fails intermittently on the CI with a frequency that
+# significantly impacts CI throughput. Disable it for the time being.
+skip_next_test
 requires_openssl_next
 client_needs_more_time 8
 not_with_valgrind # risk of non-mbedtls peer timing out
@@ -13190,6 +13193,9 @@ run_test    "DTLS proxy: 3d, openssl client, fragmentation" \
             -s "found fragmented DTLS handshake message" \
             -s "Certificate handshake message has been buffered and reassembled"
 
+# The following test fails intermittently on the CI with a frequency that
+# significantly impacts CI throughput. Disable it for the time being.
+skip_next_test
 requires_openssl_next
 client_needs_more_time 8
 not_with_valgrind # risk of non-mbedtls peer timing out
@@ -13258,6 +13264,10 @@ run_test    "DTLS proxy: 3d, gnutls client" \
 # fragmentation to remain the case across GnuTLS version updates. Avoid using a
 # smaller MTU, as the smaller the MTU, the more likely the handshake is to fail
 # in this very unreliable connection emulation.
+
+# The following test fails intermittently on the CI with a frequency that
+# significantly impacts CI throughput. Disable it for the time being.
+skip_next_test
 requires_gnutls
 client_needs_more_time 8
 not_with_valgrind # risk of non-mbedtls peer timing out
@@ -13270,6 +13280,9 @@ run_test    "DTLS proxy: 3d, gnutls client, fragmentation" \
             -s "HTTP/1.0 200 OK" \
             -s "ClientHello handshake message has been buffered and reassembled"
 
+# The following test fails intermittently on the CI with a frequency that
+# significantly impacts CI throughput. Disable it for the time being.
+skip_next_test
 requires_gnutls
 client_needs_more_time 8
 not_with_valgrind # risk of non-mbedtls peer timing out

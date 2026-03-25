@@ -879,6 +879,39 @@ static int ssl_parse_client_hello(mbedtls_ssl_context *ssl)
      */
     if ((ret = mbedtls_ssl_read_record(ssl, 0)) != 0) {
         MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_read_record ", ret);
+
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+        /*
+         * In the case of an alert message corresponding to the termination of
+         * a previous connection, `ssl_parse_record_header()` and then
+         * `mbedtls_ssl_read_record()` may return
+         * MBEDTLS_ERR_SSL_UNEXPECTED_RECORD because of a non zero epoch.
+         *
+         * Historically, the library has returned
+         * MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE in this situation.
+         * The sample program dtls_server.c relies on this behavior
+         * (see
+         * https://github.com/Mbed-TLS/mbedtls/blob/d5e35a376bee23fad0b17f2e3e94a32ce4017c64/programs/ssl/dtls_server.c#L295),
+         * and user applications may rely on it as well.
+         *
+         * For compatibility, map MBEDTLS_ERR_SSL_UNEXPECTED_RECORD
+         * to MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE here.
+         *
+         * MBEDTLS_ERR_SSL_UNEXPECTED_RECORD does not appear to be
+         * used to detect a specific error condition, so this mapping
+         * should not remove any meaningful distinction.
+         */
+        if ((ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM)
+#if defined(MBEDTLS_SSL_RENEGOTIATION)
+            && (ssl->renego_status == MBEDTLS_SSL_INITIAL_HANDSHAKE)
+#endif
+            ) {
+            if (ret == MBEDTLS_ERR_SSL_UNEXPECTED_RECORD) {
+                ret = MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE;
+            }
+        }
+#endif /* MBEDTLS_SSL_PROTO_DTLS */
+
         return ret;
     }
 

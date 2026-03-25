@@ -4131,55 +4131,7 @@ close_notify:
     } while (ret == MBEDTLS_ERR_SSL_WANT_WRITE);
     ret = 0;
 
-    /*
-     * In the DTLS case, attempt to read a possible response to the close
-     * notification. This avoids reconnecting to the same client when we
-     * reset and later receive its close-notification response during
-     * step 3 (waiting for a client to connect).
-     *
-     * Stop waiting for the response if the connection has already ended.
-     *
-     * The waiting loop below relies on mbedtls_ssl_read() returning regularly
-     * in order to keep the total waiting time approximately bounded to 1s. If
-     * no read timeout is configured (see the read_timeout option), or if the
-     * configured timeout is close to or larger than 1s, the total waiting time
-     * may exceed 1s by a significant margin.
-     */
-#if defined(MBEDTLS_SSL_PROTO_DTLS) && defined(MBEDTLS_HAVE_TIME)
-    if (opt.transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM) {
-        mbedtls_ms_time_t start = mbedtls_ms_time();
-        for (;;) {
-            ret = mbedtls_ssl_read(&ssl, buf, opt.buffer_size);
-            /*
-             * mbedtls_ssl_read() returned some data or timed out, loop if we
-             * have not spent already too much time, quite arbitrarily 1s.
-             */
-            if ((ret > 0) || (ret == MBEDTLS_ERR_SSL_TIMEOUT)) {
-                if ((mbedtls_ms_time() - start) < 1000) {
-                    continue;
-                }
-            }
-
-            if (ret == MBEDTLS_ERR_SSL_PEER_CLOSE_NOTIFY) {
-                mbedtls_printf(" done, received client close notification.\n");
-            } else {
-                /* ret = 0, silent transport EOF or ret < 0 except
-                 * MBEDTLS_ERR_SSL_PEER_CLOSE_NOTIFY. Note that we do not
-                 * handle specifically the non-fatal error codes like
-                 * MBEDTLS_ERR_SSL_WANT_READ as we do not really expect them
-                 * here.
-                 */
-                mbedtls_printf(" done\n");
-            }
-            break;
-        }
-        ret = 0;
-    } else
-#endif /* MBEDTLS_SSL_PROTO_DTLS && MBEDTLS_HAVE_TIME */
-    {
-        mbedtls_printf(" done\n");
-    }
-    fflush(stdout);
+    mbedtls_printf(" done\n");
 
 #if defined(MBEDTLS_SSL_CACHE_C)
     if (opt.cache_remove > 0) {

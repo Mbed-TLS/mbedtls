@@ -165,7 +165,6 @@ component_test_tls1_2_ccm_psk_dtls () {
     msg "build: configs/config-ccm-psk-dtls1_2.h"
     MBEDTLS_CONFIG="configs/config-ccm-psk-dtls1_2.h"
     CRYPTO_CONFIG="configs/crypto-config-ccm-psk-tls1_2.h"
-    tf-psa-crypto/scripts/config.py -f "$CRYPTO_CONFIG" set MBEDTLS_HAVE_TIME
     CC=$ASAN_CC cmake -DMBEDTLS_CONFIG_FILE="$MBEDTLS_CONFIG" -DTF_PSA_CRYPTO_CONFIG_FILE="$CRYPTO_CONFIG" -D CMAKE_BUILD_TYPE:String=Asan .
     make
 

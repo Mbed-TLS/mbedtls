@@ -950,6 +950,7 @@ static int ssl_parse_client_hello(mbedtls_ssl_context *ssl)
 #endif
             ) {
             if (ret == MBEDTLS_ERR_SSL_UNEXPECTED_RECORD) {
+                MBEDTLS_SSL_DEBUG_MSG(1, ("mapping UNEXPECTED_RECORD to UNEXPECTED_MESSAGE"));
                 ret = MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE;
             }
         }

@@ -3,4 +3,4 @@ Security
      out-of-bounds reads and mitigate potential application buffer
      overflows where applications relied on the library to enforce
      tag length constraints.
-
+     Reported by Eva Crystal (0xiviel).

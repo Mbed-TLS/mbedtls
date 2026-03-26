@@ -169,9 +169,37 @@ component_test_cmake_install_with_destdir () {
 
     DESTDIR="$OUT_OF_SOURCE_DIR/stage" make install
 
-    install_libdir="$(sed -n 's/^CMAKE_INSTALL_LIBDIR:PATH=//p' CMakeCache.txt)"
-    test -n "$install_libdir"
-    test -L "$OUT_OF_SOURCE_DIR/stage/usr/${install_libdir}/libmbedcrypto.so"
+    install_lib_subdir="$(sed -n 's/^CMAKE_INSTALL_LIBDIR:PATH=//p' CMakeCache.txt)"
+    if [ -z "$install_lib_subdir" ]; then
+        echo "Error: Failed to read CMAKE_INSTALL_LIBDIR from CMakeCache.txt" >&2
+        exit 1
+    fi
+
+    install_lib_path="$OUT_OF_SOURCE_DIR/stage/usr/${install_lib_subdir}"
+
+    if [ ! -L "$install_lib_path/libmbedcrypto.so" ]; then
+        echo "Error: Expected symlink missing: $install_lib_path/libmbedcrypto.so" >&2
+        ls -l "$install_lib_path" >&2 || true
+        exit 1
+    fi
+
+    # Match the install(CODE) logic in library/CMakeLists.txt:
+    # libmbedcrypto.so.${MBEDTLS_CRYPTO_SOVERSION} -> libmbedcrypto.so.${MBEDTLS_VERSION}
+    # libmbedcrypto.so -> libmbedcrypto.so.${MBEDTLS_CRYPTO_SOVERSION}
+    symlink_count="$(find "$install_lib_path" -maxdepth 1 -type l -name 'libmbedcrypto.so*' | wc -l)"
+    if [ "$symlink_count" -lt 2 ]; then
+        echo "Error: Expected at least 2 libmbedcrypto.so* symlinks, got $symlink_count" >&2
+        ls -l "$install_lib_path"/libmbedcrypto.so* >&2 || true
+        exit 1
+    fi
+
+    for symlink in "$install_lib_path"/libmbedcrypto.so*; do
+        if [ -L "$symlink" ] && [ ! -e "$symlink" ]; then
+            echo "Error: Dangling symlink found: $symlink -> $(readlink "$symlink")" >&2
+            ls -l "$install_lib_path"/libmbedcrypto.so* >&2 || true
+            exit 1
+        fi
+    done
 
     cd "$MBEDTLS_ROOT_DIR"
     rm -rf "$OUT_OF_SOURCE_DIR"

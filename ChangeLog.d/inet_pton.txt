@@ -3,3 +3,4 @@ Security
      (e.g. on platforms with memory protection when the overread crosses page
      boundary) this could lead to DoS. Found and reported by Haruto Kimura
      (Stella).
+     CVE-2026-25833

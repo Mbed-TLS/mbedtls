@@ -4,5 +4,5 @@ Security
      mbedtls_ssl_context_load() has been updated to clarify the responsibility
      of the application to preserve the confidentiality and integrity of
      serialized data, mitigating the risk of misuse of these APIs.
-     Credit to Haruto Kimura (Stella) for highlighting risks associated with
-     tampered serialized data.
+     Credit to Haruto Kimura (Stella) and Eva Crystal (0xiviel) for
+     highlighting risks associated with tampered serialized data.

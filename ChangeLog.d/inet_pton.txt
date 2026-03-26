@@ -1,0 +1,5 @@
+Security
+   * Fix a limited buffer underflow in x509_inet_pton_ipv6(). In rare cases
+     (e.g. on platforms with memory protection when the overread crosses page
+     boundary) this could lead to DoS. Found and reported by Haruto Kimura
+     (Stella). CVE-2026-25833

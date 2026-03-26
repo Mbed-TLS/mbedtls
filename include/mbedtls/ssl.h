@@ -3174,6 +3174,27 @@ int mbedtls_ssl_set_session(mbedtls_ssl_context *ssl, const mbedtls_ssl_session 
  *                 On server, this can be used for alternative implementations
  *                 of session cache or session tickets.
  *
+ * \warning        The serialized data contains highly sensitive material,
+ *                 including a resumption key (TLS 1.3) or the master secret
+ *                 (TLS 1.2) from which the session's traffic keys are derived.
+ *
+ *                 The serialized data is not cryptographically protected.
+ *                 It is the responsibility of the user of the
+ *                 mbedtls_ssl_session_save() and
+ *                 mbedtls_ssl_session_load() APIs to ensure both its
+ *                 confidentiality and integrity while stored or transported.
+ *
+ *                 A breach of confidentiality could result in full compromise
+ *                 of the associated TLS session, including loss of
+ *                 confidentiality and integrity of past and future
+ *                 application data protected under that session.
+ *
+ *                 A breach of integrity may allow modification of the
+ *                 serialized data prior to restoration. As it represents
+ *                 trusted internal context, tampering could potentially result
+ *                 in arbitrary code execution or other severe compromise of
+ *                 the hosting process.
+ *
  * \warning        If a peer certificate chain is associated with the session,
  *                 the serialized state will only contain the peer's
  *                 end-entity certificate and the result of the chain
@@ -3211,6 +3232,19 @@ int mbedtls_ssl_session_load(mbedtls_ssl_session *session,
  *                 of session cache or session tickets.
  *
  * \see            mbedtls_ssl_session_load()
+ *
+ * \warning        The serialized data contains highly sensitive material,
+ *                 including a resumption key (TLS 1.3) or the master secret
+ *                 (TLS 1.2) from which the session's traffic keys are derived.
+ *
+ *                 The serialized data is not cryptographically protected.
+ *                 It is the responsibility of the user of the
+ *                 mbedtls_ssl_session_save() and
+ *                 mbedtls_ssl_session_load() APIs to ensure both its
+ *                 confidentiality and integrity while stored or transported.
+ *
+ *                 See the mbedtls_ssl_session_load() documentation for
+ *                 additional information.
  *
  * \param session  The session structure to be saved.
  * \param buf      The buffer to write the serialized data to. It must be a
@@ -5293,6 +5327,19 @@ void mbedtls_ssl_free(mbedtls_ssl_context *ssl);
  *
  * \see            mbedtls_ssl_context_load()
  *
+ * \warning        The serialized data contains highly sensitive material,
+ *                 including the master secret from which the session's traffic
+ *                 keys are derived.
+ *
+ *                 The serialized data is not cryptographically protected.
+ *                 It is the responsibility of the user of the
+ *                 mbedtls_ssl_context_save() and
+ *                 mbedtls_ssl_context_load() APIs to ensure both its
+ *                 confidentiality and integrity while stored or transported.
+ *
+ *                 See the mbedtls_ssl_context_load() documentation for
+ *                 additional information.
+ *
  * \note           The serialized data only contains the data that is
  *                 necessary to resume the connection: negotiated protocol
  *                 options, session identifier, keys, etc.
@@ -5358,6 +5405,27 @@ int mbedtls_ssl_context_save(mbedtls_ssl_context *ssl,
  *                 serialized data that was loaded. Loading the same data in
  *                 more than one context would cause severe security failures
  *                 including but not limited to loss of confidentiality.
+ *
+ * \warning        The serialized data contains highly sensitive material,
+ *                 including the master secret from which the session's traffic
+ *                 keys are derived.
+ *
+ *                 The serialized data is not cryptographically protected.
+ *                 It is the responsibility of the user of the
+ *                 mbedtls_ssl_context_save() and
+ *                 mbedtls_ssl_context_load() APIs to ensure both its
+ *                 confidentiality and integrity while stored or transported.
+ *
+ *                 A breach of confidentiality could result in full compromise
+ *                 of the associated TLS session, including loss of
+ *                 confidentiality and integrity of past and future
+ *                 application data protected under that session.
+ *
+ *                 A breach of integrity may allow modification of the
+ *                 serialized data prior to restoration. As it represents
+ *                 trusted internal context, tampering could potentially result
+ *                 in arbitrary code execution or other severe compromise of
+ *                 the hosting process.
  *
  * \note           Before calling this function, the SSL context must be
  *                 prepared in one of the two following ways. The first way is

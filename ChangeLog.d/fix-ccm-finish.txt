@@ -1,0 +1,6 @@
+Security
+   * Add tag length validation in mbedtls_ccm_finish() to prevent
+     out-of-bounds reads and mitigate potential application buffer
+     overflows where applications relied on the library to enforce
+     tag length constraints.
+     Reported by Eva Crystal (0xiviel).

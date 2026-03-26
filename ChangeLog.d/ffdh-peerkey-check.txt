@@ -1,0 +1,7 @@
+Security
+   * Fix missing validation of the peer's key in key agreement operations using
+     PSA_ALG_FFDH: low-order elements were not rejected as they should be. This
+     is a problem for protocols using FFDH that expect contributory behaviour,
+     that is, where neither party should be able to force the shared secret
+     into a small set. Reported independently by Eva Crystal (0xiviel) and
++    another reporter.

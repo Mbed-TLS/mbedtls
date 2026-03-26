@@ -71,6 +71,39 @@
     defined(MBEDTLS_KEY_EXCHANGE_RSA_ENABLED)
 #define MBEDTLS_CAN_HANDLE_RSA_TEST_KEY
 #endif
+
+#if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED) && \
+    defined(MBEDTLS_ECP_HAVE_SECP384R1) && \
+    defined(MBEDTLS_MD_CAN_SHA384)
+#define MBEDTLS_CAN_HANDLE_ECDSA_TEST_KEY
+#endif
+
+#if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED) && \
+    defined(MBEDTLS_ECP_HAVE_SECP256R1) && \
+    defined(MBEDTLS_MD_CAN_SHA256)
+#define MBEDTLS_CAN_HANDLE_ECDSA_CLIENT_TEST_KEY
+#endif
+
+#if defined(MBEDTLS_ECP_HAVE_CURVE25519)  || \
+    defined(MBEDTLS_ECP_HAVE_SECP256R1)   || \
+    defined(MBEDTLS_ECP_HAVE_SECP384R1)   || \
+    defined(MBEDTLS_ECP_HAVE_CURVE448)    || \
+    defined(MBEDTLS_ECP_HAVE_SECP521R1)   || \
+    defined(MBEDTLS_ECP_HAVE_BP256R1)     || \
+    defined(MBEDTLS_ECP_HAVE_BP384R1)     || \
+    defined(MBEDTLS_ECP_HAVE_BP512R1)
+#define MBEDTLS_TEST_HAS_DEFAULT_EC_GROUP
+#endif
+
+/*
+ * To use the test keys we need PSA_WANT_ALG_SHA_256. Some test cases need an additional hash that
+ * is configured by default (see mbedtls_ssl_config_defaults()), but it doesn't matter which one.
+ */
+#if defined(MBEDTLS_MD_CAN_SHA512)   || \
+    defined(MBEDTLS_MD_CAN_SHA384)
+#define MBEDTLS_TEST_HAS_ADDITIONAL_HASH
+#endif
+
 enum {
 #define MBEDTLS_SSL_TLS1_3_LABEL(name, string)          \
     tls13_label_ ## name,

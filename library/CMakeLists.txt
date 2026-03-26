@@ -76,6 +76,7 @@ set(src_crypto
     psa_crypto_mac.c
     psa_crypto_pake.c
     psa_crypto_rsa.c
+    psa_crypto_random.c
     psa_crypto_se.c
     psa_crypto_slot_management.c
     psa_crypto_storage.c

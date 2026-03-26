@@ -171,6 +171,29 @@ void entropy_init_free(int reinit)
 }
 /* END_CASE */
 
+/* BEGIN_CASE */
+void entropy_count_sources()
+{
+    mbedtls_entropy_context ctx;
+    mbedtls_entropy_init(&ctx);
+
+#if defined(MBEDTLS_ENTROPY_HAVE_SOURCES)
+    TEST_EQUAL(MBEDTLS_ENTROPY_HAVE_SOURCES, ctx.source_count);
+#else
+    TEST_EQUAL(0, ctx.source_count);
+#endif
+
+#if defined(MBEDTLS_ENTROPY_NV_SEED)
+    TEST_EQUAL(MBEDTLS_ENTROPY_TRUE_SOURCES + 1, ctx.source_count);
+#else
+    TEST_EQUAL(MBEDTLS_ENTROPY_TRUE_SOURCES, ctx.source_count);
+#endif
+
+exit:
+    mbedtls_entropy_free(&ctx);
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:MBEDTLS_ENTROPY_NV_SEED:MBEDTLS_FS_IO */
 void entropy_seed_file(char *path, int ret)
 {

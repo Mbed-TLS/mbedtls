@@ -5,4 +5,3 @@ Security
      that is, where neither party should be able to force the shared secret
      into a small set. Reported independently by Eva Crystal (0xiviel) and
 +    another reporter.
-

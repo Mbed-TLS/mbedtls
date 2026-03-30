@@ -2910,7 +2910,7 @@ ecdh_calc_secret:
         if ((ret = mbedtls_ecdh_calc_secret(&ssl->handshake->ecdh_ctx,
                                             &ssl->handshake->pmslen,
                                             ssl->handshake->premaster,
-                                            MBEDTLS_MPI_MAX_SIZE,
+                                            MBEDTLS_PREMASTER_SIZE,
                                             ssl->conf->f_rng, ssl->conf->p_rng)) != 0) {
             MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ecdh_calc_secret", ret);
 #if defined(MBEDTLS_SSL_ECP_RESTARTABLE_ENABLED)

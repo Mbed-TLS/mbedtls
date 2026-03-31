@@ -1,8 +1,0 @@
-Features
-   * Function mbedtls_ssl_get_supported_group_list() is added to return the list
-     of supported groups IDs (curves and finite fields).
-   * MBEDTLS_SSL_IANA_TLS_GROUPS_INFO is added to allow defining the list of
-     mbedtls_ssl_iana_tls_group_info_t items which represent known TLS groups
-     with corresponding informations.
-     If MBEDTLS_DEBUG_C is also enabled then mbedtls_ssl_iana_tls_group_info is
-     also available as implementation of such list.

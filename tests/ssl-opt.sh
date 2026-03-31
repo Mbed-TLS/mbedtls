@@ -9992,7 +9992,7 @@ run_test    "DTLS reassembly: no fragmentation (gnutls client)" \
             "$G_NEXT_CLI -u --mtu 2048 --insecure 127.0.0.1" \
             0 \
             -S "found fragmented DTLS handshake message" \
-            -S "error"
+            -s "HTTP/1.0 200 OK"
 
 requires_gnutls
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
@@ -10002,7 +10002,7 @@ run_test    "DTLS reassembly: some fragmentation (gnutls client)" \
             0 \
             -s "found fragmented DTLS handshake message" \
             -s "Certificate handshake message has been buffered and reassembled" \
-            -S "error"
+            -s "HTTP/1.0 200 OK"
 
 # Set the MTU to 128 bytes. The minimum size of a DTLS 1.2 record
 # containing a ClientHello handshake message is 69 bytes, without any cookie,
@@ -10017,7 +10017,7 @@ run_test    "DTLS reassembly: more fragmentation (gnutls client)" \
             "$G_NEXT_CLI -u --mtu 103 --insecure 127.0.0.1" \
             0 \
             -s "ClientHello handshake message has been buffered and reassembled" \
-            -S "error"
+            -s "HTTP/1.0 200 OK"
 
 requires_gnutls
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
@@ -10026,7 +10026,7 @@ run_test    "DTLS reassembly: more fragmentation, nbio (gnutls client)" \
             "$G_NEXT_CLI -u --mtu 103 --insecure 127.0.0.1" \
             0 \
             -s "ClientHello handshake message has been buffered and reassembled" \
-            -S "error"
+            -s "HTTP/1.0 200 OK"
 
 # No fragmentation and renegotiation tests with GnuTLS client as the feature
 # does not work properly.
@@ -10067,7 +10067,7 @@ run_test    "DTLS reassembly: no fragmentation (openssl client)" \
             "$O_NEXT_CLI -dtls -mtu 2048 -cert $DATA_FILES_PATH/server5.crt -key $DATA_FILES_PATH/server5.key" \
             0 \
             -S "found fragmented DTLS handshake message" \
-            -S "error"
+            -s "HTTP/1.0 200 OK"
 
 # Minimum possible MTU for OpenSSL server: 256 bytes.
 # We expect the client Certificate handshake message to be fragmented and
@@ -10082,7 +10082,7 @@ run_test    "DTLS reassembly: some fragmentation (openssl client)" \
             0 \
             -s "found fragmented DTLS handshake message" \
             -s "Certificate handshake message has been buffered and reassembled" \
-            -S "error"
+            -s "HTTP/1.0 200 OK"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "DTLS reassembly: fragmentation, nbio (openssl client)" \
@@ -10091,7 +10091,7 @@ run_test    "DTLS reassembly: fragmentation, nbio (openssl client)" \
             0 \
             -s "found fragmented DTLS handshake message" \
             -s "Certificate handshake message has been buffered and reassembled" \
-            -S "error"
+            -s "HTTP/1.0 200 OK"
 
 # Tests for sending fragmented handshake messages with DTLS
 #
@@ -12183,6 +12183,10 @@ run_test    "DTLS proxy: 3d, openssl client" \
             0 \
             -s "HTTP/1.0 200 OK"
 
+# The following test fails intermittently on the CI with a frequency that
+# significantly impacts CI throughput. Disable it for the time being.
+# See https://github.com/Mbed-TLS/mbedtls/issues/10652 for more information.
+skip_next_test
 requires_openssl_next
 client_needs_more_time 8
 not_with_valgrind # risk of non-mbedtls peer timing out
@@ -12196,6 +12200,10 @@ run_test    "DTLS proxy: 3d, openssl client, fragmentation" \
             -s "found fragmented DTLS handshake message" \
             -s "Certificate handshake message has been buffered and reassembled"
 
+# The following test fails intermittently on the CI with a frequency that
+# significantly impacts CI throughput. Disable it for the time being.
+# See https://github.com/Mbed-TLS/mbedtls/issues/10652 for more information.
+skip_next_test
 requires_openssl_next
 client_needs_more_time 8
 not_with_valgrind # risk of non-mbedtls peer timing out
@@ -12264,6 +12272,11 @@ run_test    "DTLS proxy: 3d, gnutls client" \
 # fragmentation to remain the case across GnuTLS version updates. Avoid using a
 # smaller MTU, as the smaller the MTU, the more likely the handshake is to fail
 # in this very unreliable connection emulation.
+
+# The following test fails intermittently on the CI with a frequency that
+# significantly impacts CI throughput. Disable it for the time being.
+# See https://github.com/Mbed-TLS/mbedtls/issues/10652 for more information.
+skip_next_test
 requires_gnutls
 client_needs_more_time 8
 not_with_valgrind # risk of non-mbedtls peer timing out
@@ -12276,6 +12289,10 @@ run_test    "DTLS proxy: 3d, gnutls client, fragmentation" \
             -s "HTTP/1.0 200 OK" \
             -s "ClientHello handshake message has been buffered and reassembled"
 
+# The following test fails intermittently on the CI with a frequency that
+# significantly impacts CI throughput. Disable it for the time being.
+# See https://github.com/Mbed-TLS/mbedtls/issues/10652 for more information.
+skip_next_test
 requires_gnutls
 client_needs_more_time 8
 not_with_valgrind # risk of non-mbedtls peer timing out

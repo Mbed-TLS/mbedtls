@@ -129,7 +129,7 @@ int mbedtls_x25519_calc_secret( mbedtls_x25519_context *ctx, size_t *olen,
     *olen = MBEDTLS_X25519_KEY_SIZE_BYTES;
 
     if( blen < *olen )
-        return( MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL );
+        return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 
     /* scalarmult modifies this input, let's make a copy... */
     unsigned char secret[MBEDTLS_X25519_KEY_SIZE_BYTES];

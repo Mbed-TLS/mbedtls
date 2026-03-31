@@ -3525,5 +3525,24 @@ TLS 1.3 Keying Material Exporter: Handshake not done
 depends_on:MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_TEST_AT_LEAST_ONE_TLS1_3_CIPHERSUITE:MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED:PSA_WANT_ALG_RSA_PKCS1V15_SIGN:MBEDTLS_X509_RSASSA_PSS_SUPPORT
 ssl_tls_exporter_too_early:MBEDTLS_SSL_VERSION_TLS1_3:1:MBEDTLS_SSL_SERVER_CERTIFICATE
 
+TLS 1.3 - HRR then TLS 1.2 second ClientHello
+tls13_hrr_then_tls12_second_client_hello
+
+Baseline for: Server using sig_alg not offered by the client - RSA with SHA256
+depends_on:MBEDTLS_CAN_HANDLE_RSA_TEST_KEY:MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED:MBEDTLS_MD_CAN_SHA256
+send_invalid_sig_alg:MBEDTLS_SSL_SIG_RSA:MBEDTLS_SSL_HASH_SHA256:0
+
+Negative Test: Server using sig_alg not offered by the client - RSA with SHA256
+depends_on:MBEDTLS_CAN_HANDLE_RSA_TEST_KEY:MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED:MBEDTLS_MD_CAN_SHA256
+send_invalid_sig_alg:MBEDTLS_SSL_SIG_RSA:MBEDTLS_SSL_HASH_SHA256:MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER
+
+Baseline for: Server using sig_alg not offered by the client - ECDSA with SHA512
+depends_on:MBEDTLS_CAN_HANDLE_ECDSA_TEST_KEY:MBEDTLS_CAN_HANDLE_ECDSA_CLIENT_TEST_KEY:MBEDTLS_MD_CAN_SHA512
+send_invalid_sig_alg:MBEDTLS_SSL_SIG_ECDSA:MBEDTLS_SSL_HASH_SHA512:0
+
+Negative Test: Server using sig_alg not offered by the client - ECDSA with SHA512
+depends_on:MBEDTLS_CAN_HANDLE_ECDSA_TEST_KEY:MBEDTLS_CAN_HANDLE_ECDSA_CLIENT_TEST_KEY:MBEDTLS_MD_CAN_SHA512
+send_invalid_sig_alg:MBEDTLS_SSL_SIG_ECDSA:MBEDTLS_SSL_HASH_SHA512:MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER
+
 Default verify_result before doing a handshake
 verify_result_without_handshake

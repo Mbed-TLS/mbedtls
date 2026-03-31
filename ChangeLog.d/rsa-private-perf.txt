@@ -1,4 +1,0 @@
-Bugfix
-   * Partially fix a performance regression in RSA operations introduced by a
-     security fix in 3.6.5, by improving the performance of RSA private key
-     operations when MBEDTLS_RSA_NO_CRT is disabled, which is the default.

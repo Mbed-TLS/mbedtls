@@ -1,3 +1,0 @@
-Bugfix
-   * Prevent loading of peristent keys whose key ID belong to the volatile
-     range.

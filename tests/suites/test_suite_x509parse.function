@@ -482,12 +482,22 @@ exit:
 void x509_crt_parse_cn_inet_pton(const char *cn, data_t *exp, int ref_ret)
 {
     uint32_t addr[4];
-    size_t addrlen = mbedtls_x509_crt_parse_cn_inet_pton(cn, addr);
+
+    char *cn_local = NULL;
+    size_t cn_local_len = strlen(cn) + 1;
+    TEST_CALLOC(cn_local, cn_local_len);
+    memcpy(cn_local, cn, cn_local_len);
+
+    size_t addrlen = mbedtls_x509_crt_parse_cn_inet_pton(cn_local, addr);
     TEST_EQUAL(addrlen, (size_t) ref_ret);
 
     if (addrlen) {
         TEST_MEMORY_COMPARE(exp->x, exp->len, addr, addrlen);
     }
+
+exit:
+    mbedtls_free(cn_local);
+
 }
 /* END_CASE */
 

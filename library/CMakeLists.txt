@@ -76,6 +76,7 @@ set(src_crypto
     psa_crypto_mac.c
     psa_crypto_pake.c
     psa_crypto_rsa.c
+    psa_crypto_random.c
     psa_crypto_se.c
     psa_crypto_slot_management.c
     psa_crypto_storage.c
@@ -313,7 +314,7 @@ endif(USE_STATIC_MBEDTLS_LIBRARY)
 if(USE_SHARED_MBEDTLS_LIBRARY)
     set(CMAKE_LIBRARY_PATH ${CMAKE_CURRENT_BINARY_DIR})
     add_library(${mbedcrypto_target} SHARED ${src_crypto})
-    set_target_properties(${mbedcrypto_target} PROPERTIES VERSION 3.6.5 SOVERSION 16)
+    set_target_properties(${mbedcrypto_target} PROPERTIES VERSION 3.6.6 SOVERSION 16)
     target_link_libraries(${mbedcrypto_target} PUBLIC ${libs})
 
     if(TARGET ${everest_target})
@@ -325,11 +326,11 @@ if(USE_SHARED_MBEDTLS_LIBRARY)
     endif()
 
     add_library(${mbedx509_target} SHARED ${src_x509})
-    set_target_properties(${mbedx509_target} PROPERTIES VERSION 3.6.5 SOVERSION 7)
+    set_target_properties(${mbedx509_target} PROPERTIES VERSION 3.6.6 SOVERSION 7)
     target_link_libraries(${mbedx509_target} PUBLIC ${libs} ${mbedcrypto_target})
 
     add_library(${mbedtls_target} SHARED ${src_tls})
-    set_target_properties(${mbedtls_target} PROPERTIES VERSION 3.6.5 SOVERSION 21)
+    set_target_properties(${mbedtls_target} PROPERTIES VERSION 3.6.6 SOVERSION 21)
     target_link_libraries(${mbedtls_target} PUBLIC ${libs} ${mbedx509_target})
 
     if(GEN_FILES)

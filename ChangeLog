@@ -1,5 +1,119 @@
 Mbed TLS ChangeLog (Sorted per branch, date)
 
+= Mbed TLS 3.6.6 branch released 2026-03-31
+
+Features
+   * The automatic computation of MBEDTLS_PSA_STATIC_KEY_SLOT_BUFFER_SIZE has
+     been improved to take into account the following key types:
+     asymmetric keys, ciphers, AEADs, CMAC and HMAC.
+   * The device for reading entropy on platforms without a dedicated system
+     call can now be configured with MBEDTLS_PLATFORM_DEV_RANDOM or
+     mbedtls_platform_dev_random.
+   * Applications can use the new functions psa_random_reseed() to
+     request an immediate reseed of the PSA random generator, or
+     psa_random_deplete() to force a reseed on the next random generator call.
+   * Applications can call psa_random_set_prediction_resistance() to toggle
+     prediction resistance in the PSA random generator.
+
+Security
+   * The documentation of mbedtls_ssl_session_save(),
+     mbedtls_ssl_session_load(), mbedtls_ssl_context_save(), and
+     mbedtls_ssl_context_load() has been updated to clarify the responsibility
+     of the application to preserve the confidentiality and integrity of
+     serialized data, mitigating the risk of misuse of these APIs.
+     Credit to Haruto Kimura (Stella) and Eva Crystal (0xiviel) for
+     highlighting risks associated with tampered serialized data.
+   * The default device for reading entropy on platforms without a dedicated
+     system call is now /dev/random instead of /dev/urandom. This is safer
+     on Linux in case the application runs early after the kernel boots,
+     but may block needlessly on Linux <= 5.6. Reported by supers1ngular
+     (BayLibre).
+   * Fix missing validation of the peer's key in key agreement operations using
+     PSA_ALG_FFDH: low-order elements were not rejected as they should be. This
+     is a problem for protocols using FFDH that expect contributory behaviour,
+     that is, where neither party should be able to force the shared secret
+     into a small set. Reported independently by Eva Crystal (0xiviel) and
++    another reporter.
+   * Add tag length validation in mbedtls_ccm_finish() to prevent
+     out-of-bounds reads and mitigate potential application buffer
+     overflows where applications relied on the library to enforce
+     tag length constraints.
+     Reported by Eva Crystal (0xiviel).
+   * Fix a NULL pointer dereference in mbedtls_x509_string_to_names() when
+     mbedtls_calloc() fails to allocate memory. This was caused by failing to
+     check whether mbedtls_calloc() returned NULL. Found and reported by
+     Haruto Kimura (Stella).
+   * Fix a buffer overflow in psa_export_public_key() for FFDH keys when the
+     output buffer is too small. Found by Haruto Kimura (Stella).
+   * Fix a limited buffer underflow in x509_inet_pton_ipv6(). In rare cases
+     (e.g. on platforms with memory protection when the overread crosses page
+     boundary) this could lead to DoS. Found and reported by Haruto Kimura
+     (Stella). CVE-2026-25833
+   * If an application called psa_crypto_init() then fork() and continued to
+     use cryptography APIs (possibly indirectly, e.g. for TLS), the random
+     generator states were duplicated. Fix this by forcing a RNG reseed in
+     the child process. CVE-2026-25835
+   * Applications running in environments where the application state is
+     cloned (for example due to resuming a frozen system state multiple
+     times, or due to cloning a virtual machine image) should arrange to
+     reseed the random generator using one of the new functions
+     psa_random_reseed() or psa_random_deplete(). CVE-2026-25835
+   * Fix a bug in the TLS 1.2 client's signature algorithm check, which caused
+     the client to accept server key exchange messages signed with a signature
+     algorithm explicitly disallowed by the client. Found and reported by
+     EFR-GmbH and M. Heuft of Security-Research-Consulting GmbH. CVE-2026-25834
+   * Fixed an issue in TLS 1.3 server handling of the second ClientHello, after
+     sending a HelloRetryRequest message. A man-in-the-middle attacker could
+     force a TLS 1.3 session resumption using a ticket to fall back to an
+     unintended TLS 1.2 session resumption with an all-zero master secret.
+     This could result in client authentication being bypassed and allow client
+     impersonation.
+     Found and reported by Jaehun Lee, Pohang University of Science and
+     Technology (POSTECH).
+
+Bugfix
+   * Appease GCC 14.3's array bounds checker by inserting checks in mbedtls_xor
+     that bail before the byte-at-a-time loop when the array size is a constant
+     (using MBEDTLS_HAS_BUILTIN) and an exact multiple of the larger loop size.
+   * CMake now installs headers to `CMAKE_INSTALL_INCLUDEDIR` instead of the
+     hard-coded `include` directory.
+   * Prevent loading of peristent keys whose key ID belong to the volatile
+     range.
+   * Partially fix a performance regression in RSA operations introduced by a
+     security fix in 3.6.5, by improving the performance of RSA private key
+     operations when MBEDTLS_RSA_NO_CRT is disabled, which is the default.
+   * Fix compilation errors in `aesce.c` in some Visual Studio builds.
+     Fixes Mbed-TLS/TF-PSA-Crypto#548.
+   * Fix a build failure with MinGW when the __USE_MINGW_ANSI_STDIO option
+     is set. This was caused by the wrong format specifier being used to
+     print long long values (MBEDTLS_PRINTF_LONGLONG).
+   * Fix a bug that caused GCM tag calculations to fail, so that data was
+     correctly encrypted but could not be authenticated. The bug was only
+     observed with GCC 10.0 to 14.2 inclusive, when compiling with -O3, and
+     running without AESNI or AESCE.
+     Fixes #665.
+   * Fix a build failure with dietlibc.
+   * Support re-assembly of fragmented DTLS 1.2 ClientHello in Mbed TLS server.
+   * Support re-assembly of fragmented TLS 1.2 ClientHello in Mbed TLS server
+     even if TLS 1.3 support is disabled. This removes the main limitation on
+     support for re-assembly of fragmented handshake messages in TLS 1.2.
+   * Some functions in PK were using large buffers (around 2KB in the default
+     configuration) on the stack, which was a problem in environments with a
+     small stack. Those buffers are now allocated on the heap, except in
+     configurations where ECC is the only supported key type in PK, making PK
+     still independent of the heap in such configurations (if the ECC driver
+     itself is not using the heap). Fixes #476.
+
+Changes
+   * Add casts to some Enums to remove compiler errors thrown by IAR 6.5.
+     Removes Warning "mixed ENUM with other type".
+   * Tweak the detection of Unix-like platforms, which makes more system
+     interfaces (timing, threading) available on Haiku, QNX and Midipix.
+   * Harden mbedtls_ssl_get_verify_result() against misuse.
+     If the handshake has not yet been attempted, return -1u to indicate
+     that the result is not available. Previously the result of verification
+     was zero-initialized so the function would return 0 (indicating success).
+
 = Mbed TLS 3.6.5 branch released 2025-10-15
 
 API changes

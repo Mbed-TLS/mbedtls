@@ -385,7 +385,6 @@ component_test_tls1_2_ccm_psk_psa () {
 component_test_tls1_2_ccm_psk_dtls_legacy () {
     msg "build: configs/config-ccm-psk-dtls1_2.h"
     cp configs/config-ccm-psk-dtls1_2.h "$CONFIG_H"
-    scripts/config.py set MBEDTLS_HAVE_TIME
     # test-ref-configs works by overwriting mbedtls_config.h; this makes cmake
     # want to re-generate generated files that depend on it, quite correctly.
     # However this doesn't work as the generation script expects a specific

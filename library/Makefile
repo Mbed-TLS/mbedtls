@@ -167,6 +167,7 @@ OBJS_CRYPTO= \
 	     psa_crypto_hash.o \
 	     psa_crypto_mac.o \
 	     psa_crypto_pake.o \
+	     psa_crypto_random.o \
 	     psa_crypto_rsa.o \
 	     psa_crypto_se.o \
 	     psa_crypto_slot_management.o \
@@ -345,7 +346,7 @@ libmbedcrypto.dll: $(OBJS_CRYPTO)
 generated_files: $(GENERATED_FILES)
 
 # See root Makefile
-GEN_FILES ?= yes
+GEN_FILES ?=
 ifdef GEN_FILES
 gen_file_dep =
 else

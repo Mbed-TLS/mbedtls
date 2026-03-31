@@ -1,5 +1,6 @@
 /* BEGIN_HEADER */
 #include "mbedtls/ccm.h"
+#include "mbedtls/error.h"
 
 /* Use the multipart interface to process the encrypted data in two parts
  * and check that the output matches the expected output.
@@ -902,6 +903,50 @@ void mbedtls_ccm_instant_finish(int cipher_id, int mode,
 
 exit:
     mbedtls_free(output);
+    mbedtls_ccm_free(&ctx);
+    BLOCK_CIPHER_PSA_DONE();
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void mbedtls_ccm_finish_boundary(int cipher_id, int mode,
+                                 int start_tag_len, int finish_tag_len,
+                                 int expected_finish_ret)
+{
+    unsigned char key[16];
+    unsigned char iv[13];
+    /* Test does not rely on data/iv.Using Arbitrary values */
+    memset(key, 42, sizeof(key));
+    memset(iv, 11, sizeof(iv));
+
+    mbedtls_ccm_context ctx;
+    unsigned char *tag = NULL;
+
+    mbedtls_ccm_init(&ctx);
+
+    BLOCK_CIPHER_PSA_INIT();
+    TEST_EQUAL(mbedtls_ccm_setkey(&ctx, cipher_id, key, sizeof(key) * 8), 0);
+
+
+    /* For non-CCM* with tag_len=0, validate the mbedtls_ccm_set_lengths path
+     * when ccm_calculate_first_block_if_ready() fails. */
+    if (start_tag_len == 0) {
+        TEST_EQUAL(0, mbedtls_ccm_set_lengths(&ctx, 0, 0, (size_t) start_tag_len));
+        TEST_EQUAL(MBEDTLS_ERR_CCM_BAD_INPUT,
+                   mbedtls_ccm_starts(&ctx, mode, iv, sizeof(iv)));
+
+        /* Use the caller-provided tag length during setup, then finish with a
+         * different tag length to exercise boundary handling/API compliance */
+    } else {
+        TEST_EQUAL(0, mbedtls_ccm_starts(&ctx, mode, iv, sizeof(iv)));
+        TEST_EQUAL(0, mbedtls_ccm_set_lengths(&ctx, 0, 0, (size_t) start_tag_len));
+    }
+
+    TEST_CALLOC(tag, finish_tag_len);
+    TEST_EQUAL(expected_finish_ret,
+               mbedtls_ccm_finish(&ctx, tag, finish_tag_len));
+exit:
+    mbedtls_free(tag);
     mbedtls_ccm_free(&ctx);
     BLOCK_CIPHER_PSA_DONE();
 }

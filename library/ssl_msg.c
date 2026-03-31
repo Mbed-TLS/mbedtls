@@ -376,6 +376,7 @@ exit:
 /* Forward declarations for functions related to message buffering. */
 static void ssl_buffering_free_slot(mbedtls_ssl_context *ssl,
                                     uint8_t slot);
+static void ssl_buffering_shift_slots(mbedtls_ssl_context *ssl, unsigned shift);
 static void ssl_free_buffered_record(mbedtls_ssl_context *ssl);
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_load_buffered_message(mbedtls_ssl_context *ssl);
@@ -3279,8 +3280,12 @@ int mbedtls_ssl_prepare_handshake_record(mbedtls_ssl_context *ssl)
                  * expected `message_seq` for the incoming and outgoing
                  * handshake messages.
                  */
-                ssl->handshake->in_msg_seq = recv_msg_seq;
-                ssl->handshake->out_msg_seq = recv_msg_seq;
+                if ((ssl->handshake->in_msg_seq == 0) && (recv_msg_seq > 0)) {
+                    MBEDTLS_SSL_DEBUG_MSG(3, ("shift slots by %u", recv_msg_seq));
+                    ssl_buffering_shift_slots(ssl, recv_msg_seq);
+                    ssl->handshake->in_msg_seq = recv_msg_seq;
+                    ssl->handshake->out_msg_seq = recv_msg_seq;
+                }
 
                 /* Epoch should be 0 for initial handshakes */
                 if (ssl->in_ctr[0] != 0 || ssl->in_ctr[1] != 0) {
@@ -3290,6 +3295,7 @@ int mbedtls_ssl_prepare_handshake_record(mbedtls_ssl_context *ssl)
 
                 memcpy(&ssl->cur_out_ctr[2], ssl->in_ctr + 2,
                        sizeof(ssl->cur_out_ctr) - 2);
+
             } else if (mbedtls_ssl_is_handshake_over(ssl) == 1) {
                 /* In case of a post-handshake ClientHello that initiates a
                  * renegotiation check that the handshake message sequence
@@ -3472,28 +3478,10 @@ int mbedtls_ssl_update_handshake_status(mbedtls_ssl_context *ssl)
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     if (ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM &&
         ssl->handshake != NULL) {
-        unsigned offset;
-        mbedtls_ssl_hs_buffer *hs_buf;
 
         /* Increment handshake sequence number */
         hs->in_msg_seq++;
-
-        /*
-         * Clear up handshake buffering and reassembly structure.
-         */
-
-        /* Free first entry */
-        ssl_buffering_free_slot(ssl, 0);
-
-        /* Shift all other entries */
-        for (offset = 0, hs_buf = &hs->buffering.hs[0];
-             offset + 1 < MBEDTLS_SSL_MAX_BUFFERED_HS;
-             offset++, hs_buf++) {
-            *hs_buf = *(hs_buf + 1);
-        }
-
-        /* Create a fresh last entry */
-        memset(hs_buf, 0, sizeof(mbedtls_ssl_hs_buffer));
+        ssl_buffering_shift_slots(ssl, 1);
     }
 #endif
     return 0;
@@ -3910,7 +3898,7 @@ static int ssl_parse_record_header(mbedtls_ssl_context const *ssl,
                               (
                                   "datagram of length %u too small to hold DTLS record header of length %u",
                                   (unsigned) len,
-                                  (unsigned) (rec_hdr_len_len + rec_hdr_len_len)));
+                                  (unsigned) (rec_hdr_len_offset + rec_hdr_len_len)));
         return MBEDTLS_ERR_SSL_INVALID_RECORD;
     }
 
@@ -5041,6 +5029,31 @@ static int ssl_get_next_record(mbedtls_ssl_context *ssl)
                 /* Fall through to handling of unexpected records */
                 ret = MBEDTLS_ERR_SSL_UNEXPECTED_RECORD;
             }
+
+#if defined(MBEDTLS_SSL_SRV_C)
+            /*
+             * In DTLS, invalid records are usually ignored because it is easy
+             * for an attacker to inject UDP datagrams, and we do not want such
+             * packets to disrupt the entire connection.
+             *
+             * However, when expecting the ClientHello, we reject invalid or
+             * unexpected records. This avoids waiting for further records
+             * before receiving at least one valid message. Such records could
+             * be leftover messages from a previous connection, accidental
+             * input, or part of a DoS attempt.
+             *
+             * Since no valid message has been received yet, immediately
+             * closing the connection does not result in any loss.
+             */
+            if ((ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER) &&
+                (ssl->state == MBEDTLS_SSL_CLIENT_HELLO)
+#if defined(MBEDTLS_SSL_RENEGOTIATION)
+                && (ssl->renego_status == MBEDTLS_SSL_INITIAL_HANDSHAKE)
+#endif
+                ) {
+                return ret;
+            }
+#endif /* MBEDTLS_SSL_SRV_C */
 
             if (ret == MBEDTLS_ERR_SSL_UNEXPECTED_RECORD) {
 #if defined(MBEDTLS_SSL_DTLS_CLIENT_PORT_REUSE) && defined(MBEDTLS_SSL_SRV_C)
@@ -6470,6 +6483,42 @@ static void ssl_buffering_free_slot(mbedtls_ssl_context *ssl,
     }
 }
 
+/*
+ * Shift the buffering slots to the left by `shift` positions.
+ * After the operation, slot i contains the previous slot i + shift.
+ */
+static void ssl_buffering_shift_slots(mbedtls_ssl_context *ssl,
+                                      unsigned shift)
+{
+    mbedtls_ssl_handshake_params * const hs = ssl->handshake;
+    unsigned offset;
+
+    if (shift == 0) {
+        return;
+    }
+
+    if (shift >= MBEDTLS_SSL_MAX_BUFFERED_HS) {
+        shift = MBEDTLS_SSL_MAX_BUFFERED_HS;
+    }
+
+    /* Free discarded entries */
+    for (offset = 0; offset < shift; offset++) {
+        ssl_buffering_free_slot(ssl, offset);
+    }
+
+    /* Shift remaining entries left */
+    for (offset = 0; offset + shift < MBEDTLS_SSL_MAX_BUFFERED_HS; offset++) {
+        hs->buffering.hs[offset] = hs->buffering.hs[offset + shift];
+    }
+
+    /* Reset the remaining entries at the end. Some may already have been
+     * cleared by the loop freeing the discarded entries, but resetting all
+     * of them is simpler and avoids tracking which ones were already handled.
+     */
+    for (; offset < MBEDTLS_SSL_MAX_BUFFERED_HS; offset++) {
+        memset(&hs->buffering.hs[offset], 0, sizeof(hs->buffering.hs[offset]));
+    }
+}
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
 
 /*

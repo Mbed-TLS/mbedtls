@@ -4,6 +4,9 @@ entropy_init_free:0
 Entropy init-free-init-free
 entropy_init_free:1
 
+Entropy: count default sources
+entropy_count_sources:
+
 Create NV seed_file
 nv_seed_file_create:
 

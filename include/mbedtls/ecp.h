@@ -70,10 +70,6 @@
 #define MBEDTLS_ECP_MONTGOMERY_ENABLED
 #endif
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /**
  * Domain-parameter identifiers: curve, subgroup, and generator.
  *
@@ -312,6 +308,10 @@ mbedtls_ecp_group;
 #else  /* MBEDTLS_ECP_ALT */
 #include "ecp_alt.h"
 #endif /* MBEDTLS_ECP_ALT */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * The maximum size of the groups, that is, of \c N and \c P.

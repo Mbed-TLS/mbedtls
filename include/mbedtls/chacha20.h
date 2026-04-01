@@ -29,10 +29,6 @@
 /** Invalid input parameter(s). */
 #define MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA         -0x0051
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #if !defined(MBEDTLS_CHACHA20_ALT)
 
 typedef struct mbedtls_chacha20_context {
@@ -45,6 +41,10 @@ mbedtls_chacha20_context;
 #else  /* MBEDTLS_CHACHA20_ALT */
 #include "chacha20_alt.h"
 #endif /* MBEDTLS_CHACHA20_ALT */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * \brief           This function initializes the specified ChaCha20 context.

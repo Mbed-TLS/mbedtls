@@ -89,10 +89,6 @@ typedef enum {
     MBEDTLS_DHM_PARAM_K,  /*!<  The shared secret = \c G^(XY) mod \c P. */
 } mbedtls_dhm_parameter;
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #if !defined(MBEDTLS_DHM_ALT)
 
 /**
@@ -115,6 +111,10 @@ mbedtls_dhm_context;
 #else /* MBEDTLS_DHM_ALT */
 #include "dhm_alt.h"
 #endif /* MBEDTLS_DHM_ALT */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * \brief          This function initializes the DHM context.

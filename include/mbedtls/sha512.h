@@ -21,10 +21,6 @@
 /** SHA-512 input data was malformed. */
 #define MBEDTLS_ERR_SHA512_BAD_INPUT_DATA                 -0x0075
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #if !defined(MBEDTLS_SHA512_ALT)
 // Regular implementation
 //
@@ -50,6 +46,10 @@ mbedtls_sha512_context;
 #else  /* MBEDTLS_SHA512_ALT */
 #include "sha512_alt.h"
 #endif /* MBEDTLS_SHA512_ALT */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * \brief          This function initializes a SHA-512 context.

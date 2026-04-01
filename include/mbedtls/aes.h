@@ -49,10 +49,6 @@
 /** Invalid input data. */
 #define MBEDTLS_ERR_AES_BAD_INPUT_DATA                    -0x0021
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #if !defined(MBEDTLS_AES_ALT)
 // Regular implementation
 //
@@ -95,6 +91,10 @@ typedef struct mbedtls_aes_xts_context {
 #else  /* MBEDTLS_AES_ALT */
 #include "aes_alt.h"
 #endif /* MBEDTLS_AES_ALT */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * \brief          This function initializes the specified AES context.

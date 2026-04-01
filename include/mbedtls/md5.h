@@ -20,10 +20,6 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #if !defined(MBEDTLS_MD5_ALT)
 // Regular implementation
 //
@@ -46,6 +42,10 @@ mbedtls_md5_context;
 #else  /* MBEDTLS_MD5_ALT */
 #include "md5_alt.h"
 #endif /* MBEDTLS_MD5_ALT */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * \brief          Initialize MD5 context

@@ -12,10 +12,6 @@
 
 #include "mbedtls/build_info.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /*
  * The time_t datatype
  */
@@ -34,6 +30,10 @@ typedef MBEDTLS_PLATFORM_MS_TIME_TYPE_MACRO mbedtls_ms_time_t;
 #include <inttypes.h>
 typedef int64_t mbedtls_ms_time_t;
 #endif /* MBEDTLS_PLATFORM_MS_TIME_TYPE_MACRO */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * \brief   Get time in milliseconds.

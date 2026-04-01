@@ -15,6 +15,15 @@
 
 #include <stdlib.h>
 
+#if defined(MBEDTLS_THREADING_PTHREAD)
+#include <pthread.h>
+#endif
+
+#if defined(MBEDTLS_THREADING_ALT)
+/* You should define the mbedtls_threading_mutex_t type in your header */
+#include "threading_alt.h"
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -25,7 +34,6 @@ extern "C" {
 #define MBEDTLS_ERR_THREADING_MUTEX_ERROR                 -0x001E
 
 #if defined(MBEDTLS_THREADING_PTHREAD)
-#include <pthread.h>
 typedef struct mbedtls_threading_mutex_t {
     pthread_mutex_t MBEDTLS_PRIVATE(mutex);
 
@@ -40,9 +48,6 @@ typedef struct mbedtls_threading_mutex_t {
 #endif
 
 #if defined(MBEDTLS_THREADING_ALT)
-/* You should define the mbedtls_threading_mutex_t type in your header */
-#include "threading_alt.h"
-
 /**
  * \brief           Set your alternate threading implementation function
  *                  pointers and initialize global mutexes. If used, this

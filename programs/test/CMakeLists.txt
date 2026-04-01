@@ -30,6 +30,7 @@ if(TEST_CPP)
     )
     add_executable(cpp_dummy_build "${cpp_dummy_build_cpp}")
     target_include_directories(cpp_dummy_build PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../include)
+    target_compile_options(cpp_dummy_build PRIVATE -fmodules)
     target_link_libraries(cpp_dummy_build ${mbedcrypto_target} ${CMAKE_THREAD_LIBS_INIT})
 endif()
 

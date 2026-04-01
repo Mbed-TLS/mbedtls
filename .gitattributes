@@ -1,2 +1,11 @@
 # Classify all '.function' files as C for syntax highlighting purposes
 *.function linguist-language=C
+
+# Ignore listed files when creating an archive
+.github/**         export-ignore
+.git*              export-ignore
+.pylintrc          export-ignore
+.mypy.ini.         export-ignore
+.globalrc	       export-ignore
+.travis.yml        export-ignore
+.readthedocs.yaml  export-ignore

@@ -227,7 +227,7 @@ support_build_baremetal () {
     # Older Glibc versions include time.h from other headers such as stdlib.h,
     # which makes the no-time.h-in-baremetal check fail. Ubuntu 16.04 has this
     # problem, Ubuntu 18.04 is ok.
-    ! grep -q -F time.h /usr/include/x86_64-linux-gnu/sys/types.h
+    ! grep -s -q -F time.h /usr/include/x86_64-linux-gnu/sys/types.h
 }
 
 component_build_tfm () {

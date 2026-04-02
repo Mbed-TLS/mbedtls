@@ -4035,7 +4035,15 @@ static int ssl_tls13_session_load(mbedtls_ssl_session *session,
         }
 
         if (alpn_len > 0) {
-            int ret = mbedtls_ssl_session_set_ticket_alpn(session, (char *) p);
+            /* Before using the data as a null-terminated string, check that is
+             * actually the case.
+             */
+            if (p[alpn_len - 1] != 0) {
+                return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
+            }
+
+            int ret = mbedtls_ssl_session_set_ticket_alpn(session,
+                                                          (const char *) p);
             if (ret != 0) {
                 return ret;
             }
@@ -4060,6 +4068,12 @@ static int ssl_tls13_session_load(mbedtls_ssl_session *session,
             return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
         }
         if (hostname_len > 0) {
+            /* Before using the data as a null-terminated string, check that it
+             * is actually the case.
+             */
+            if (p[hostname_len - 1] != 0) {
+                return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
+            }
             session->hostname = mbedtls_calloc(1, hostname_len);
             if (session->hostname == NULL) {
                 return MBEDTLS_ERR_SSL_ALLOC_FAILED;

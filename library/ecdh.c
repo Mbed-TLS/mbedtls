@@ -649,7 +649,7 @@ static int ecdh_calc_secret_internal(mbedtls_ecdh_context_mbed *ctx,
     size_t p_bytes = ctx->grp.pbits / 8 + ((ctx->grp.pbits % 8) != 0);
 
     if (p_bytes > blen) {
-        return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
+        return MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL;
     }
 
     *olen = p_bytes;

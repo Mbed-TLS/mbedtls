@@ -277,6 +277,20 @@ static int x509_check_wildcard(const char *cn, const mbedtls_x509_buf *name)
     size_t i;
     size_t cn_idx = 0, cn_len = strlen(cn);
 
+    /* Wildcard common name */
+    if (cn_len > 2 && cn[0] == '*' && cn[1] == '.') {
+        /* Wildcard CN: match domain part only */
+        const char *domain_start = strchr((const char *)name->p, '.');
+        if (domain_start != NULL) {
+            size_t domain_len = name->len - (domain_start - (const char *)name->p);
+            if (domain_len == cn_len - 1 &&
+            x509_memcasecmp(cn + 1, domain_start, domain_len) == 0) {
+            return 0;
+            }
+        }
+        return -1;
+    }
+
     /* We can't have a match if there is no wildcard to match */
     if (name->len < 3 || name->p[0] != '*' || name->p[1] != '.') {
         return -1;

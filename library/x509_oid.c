@@ -386,7 +386,7 @@ typedef struct {
 
 static const oid_sig_alg_t oid_sig_alg[] =
 {
-#if defined(MBEDTLS_RSA_C)
+#if defined(PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC)
 #if defined(PSA_WANT_ALG_MD5)
     {
         OID_DESCRIPTOR(MBEDTLS_OID_PKCS1_MD5,        "md5WithRSAEncryption",     "RSA with MD5"),
@@ -433,7 +433,7 @@ static const oid_sig_alg_t oid_sig_alg[] =
         MBEDTLS_MD_SHA1,     MBEDTLS_PK_SIGALG_RSA_PKCS1V15,
     },
 #endif /* PSA_WANT_ALG_SHA_1 */
-#endif /* MBEDTLS_RSA_C */
+#endif /* PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC */
 #if defined(PSA_HAVE_ALG_SOME_ECDSA)
 #if defined(PSA_WANT_ALG_SHA_1)
     {
@@ -466,12 +466,12 @@ static const oid_sig_alg_t oid_sig_alg[] =
     },
 #endif /* PSA_WANT_ALG_SHA_512 */
 #endif /* PSA_HAVE_ALG_SOME_ECDSA */
-#if defined(MBEDTLS_RSA_C)
+#if defined(PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC)
     {
         OID_DESCRIPTOR(MBEDTLS_OID_RSASSA_PSS,        "RSASSA-PSS",           "RSASSA-PSS"),
         MBEDTLS_MD_NONE,     MBEDTLS_PK_SIGALG_RSA_PSS,
     },
-#endif /* MBEDTLS_RSA_C */
+#endif /* PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC */
     {
         NULL_OID_DESCRIPTOR,
         MBEDTLS_MD_NONE, MBEDTLS_PK_SIGALG_NONE,

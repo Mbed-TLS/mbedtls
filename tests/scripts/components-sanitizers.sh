@@ -132,10 +132,10 @@ component_test_memsan () {
     make test
 
     msg "test: metatests (MSan)"
-    tests/scripts/run-metatests.sh any msan
+    framework/scripts/run-metatests.sh any msan
 
     msg "program demos (MSan)" # ~20s
-    tests/scripts/run_demos.py
+    framework/scripts/run_demos.py
 
     msg "test: ssl-opt.sh (MSan)" # ~ 1 min
     tests/ssl-opt.sh

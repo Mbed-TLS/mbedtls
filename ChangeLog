@@ -1,5 +1,82 @@
 Mbed TLS ChangeLog (Sorted per branch, date)
 
+= Mbed TLS 4.1.0 branch released 2026-03-31
+
+API changes
+   * MBEDTLS_TIMING_C now requires MBEDTLS_HAVE_TIME to be enabled in the
+     TF-PSA-Crypto configuration, unless MBEDTLS_TIMING_ALT is enabled.
+     As a benefit, platforms where the default implementation is not
+     supported now only need to implement MBEDTLS_PLATFORM_MS_TIME_ALT.
+   * When MBEDTLS_TIMING_ALT is enabled, the function
+     mbedtls_timing_get_timer() now returns unsigned long long instead
+     of unsigned long.
+
+Features
+   * Add the function mbedtls_ssl_get_fatal_alert(), which returns the type of
+     the last received fatal alert. This allows callers to retrieve more
+     detailed information when mbedtls_ssl_handshake(),
+     mbedtls_ssl_handshake_step(), or mbedtls_ssl_read() returns the generic
+     MBEDTLS_ERR_SSL_FATAL_ALERT_MESSAGE error code.
+   * Function mbedtls_ssl_get_supported_group_list() is added to return the list
+     of supported groups IDs (curves and finite fields).
+   * MBEDTLS_SSL_IANA_TLS_GROUPS_INFO is added to allow defining the list of
+     mbedtls_ssl_iana_tls_group_info_t items which represent known TLS groups
+     with corresponding informations.
+     If MBEDTLS_DEBUG_C is also enabled then mbedtls_ssl_iana_tls_group_info is
+     also available as implementation of such list.
+
+Security
+   * The documentation of mbedtls_ssl_session_save(),
+     mbedtls_ssl_session_load(), mbedtls_ssl_context_save(), and
+     mbedtls_ssl_context_load() has been updated to clarify the responsibility
+     of the application to preserve the confidentiality and integrity of
+     serialized data, mitigating the risk of misuse of these APIs.
+     Credit to Haruto Kimura (Stella) and Eva Crystal (0xiviel) for
+     highlighting risks associated with tampered serialized data.
+   * Fix a NULL pointer dereference in mbedtls_x509_string_to_names() when
+     mbedtls_calloc() fails to allocate memory. This was caused by failing to
+     check whether mbedtls_calloc() returned NULL. Found and reported by
+     Haruto Kimura (Stella).
+   * Fix a limited buffer underflow in x509_inet_pton_ipv6(). In rare cases
+     (e.g. on platforms with memory protection when the overread crosses page
+     boundary) this could lead to DoS. Found and reported by Haruto Kimura
+     (Stella). CVE-2026-25833
+   * Fix a bug in the TLS 1.2 client's signature algorithm check, which caused
+     the client to accept server key exchange messages signed with a signature
+     algorithm explicitly disallowed by the client. Found and reported by
+     EFR-GmbH and M. Heuft of Security-Research-Consulting GmbH. CVE-2026-25834
+   * Fixed an issue in TLS 1.3 server handling of the second ClientHello, after
+     sending a HelloRetryRequest message. A man-in-the-middle attacker could
+     force a TLS 1.3 session resumption using a ticket to fall back to an
+     unintended TLS 1.2 session resumption with an all-zero master secret.
+     This could result in client authentication being bypassed and allow client
+     impersonation.
+     Found and reported by Jaehun Lee, Pohang University of Science and
+     Technology (POSTECH).
+
+Bugfix
+   * CMake now installs headers to `CMAKE_INSTALL_INCLUDEDIR` instead of the
+     hard-coded `include` directory.
+   * Fix CMake failure on Windows because of a native directory separator.
+     Fixes #10502.
+   * mbedtls_timing_get_delay() now correctly treats a timer as expired
+     after more than 2^32 ms (about 49 days) on platforms where long is
+     a 32-bit type. Fixes #10613.
+   * Support re-assembly of fragmented DTLS 1.2 ClientHello in Mbed TLS server.
+   * Support re-assembly of fragmented TLS 1.2 ClientHello in Mbed TLS server
+     even if TLS 1.3 support is disabled. This removes the main limitation on
+     support for re-assembly of fragmented handshake messages in TLS 1.2.
+
+Changes
+   * Add casts to some Enums to remove compiler errors thrown by IAR 6.5.
+     Removes Warning "mixed ENUM with other type".
+   * Tweak the detection of Unix-like platforms, which makes more system
+     interfaces (timing, threading) available on Haiku, QNX and Midipix.
+   * Harden mbedtls_ssl_get_verify_result() against misuse.
+     If the handshake has not yet been attempted, return -1u to indicate
+     that the result is not available. Previously the result of verification
+     was zero-initialized so the function would return 0 (indicating success).
+
 = Mbed TLS 4.0.0 branch released 2025-10-15
 
 API changes

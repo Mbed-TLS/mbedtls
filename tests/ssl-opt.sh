@@ -5772,6 +5772,7 @@ run_test    "Authentication: server badcert, client none" \
              key_file=$DATA_FILES_PATH/server5.key" \
             "$P_CLI debug_level=3 auth_mode=none" \
             0 \
+            -c "! Certificate verification was skipped" \
             -C "x509_verify_cert() returned" \
             -C "! The certificate is not correctly signed by the trusted CA" \
             -C "! mbedtls_ssl_handshake returned" \
@@ -5783,11 +5784,13 @@ run_test    "Authentication: server badcert, client none (1.2)" \
              key_file=$DATA_FILES_PATH/server5.key" \
             "$P_CLI force_version=tls12 debug_level=3 auth_mode=none" \
             0 \
+            -c "! Certificate verification was skipped" \
             -C "x509_verify_cert() returned" \
             -C "! The certificate is not correctly signed by the trusted CA" \
             -C "! mbedtls_ssl_handshake returned" \
             -C "send alert level=2 message=48" \
             -C "X509 - Certificate verification failed"
+
 
 run_test    "Authentication: server goodcert, client required, no trusted CA" \
             "$P_SRV" \
@@ -5837,6 +5840,7 @@ run_test    "Authentication: server goodcert, client none, no trusted CA" \
             "$P_SRV" \
             "$P_CLI debug_level=3 auth_mode=none ca_file=none ca_path=none" \
             0 \
+            -c "! Certificate verification was skipped" \
             -C "x509_verify_cert() returned" \
             -C "! The certificate is not correctly signed by the trusted CA" \
             -C "! Certificate verification flags"\
@@ -5844,17 +5848,20 @@ run_test    "Authentication: server goodcert, client none, no trusted CA" \
             -C "X509 - Certificate verification failed" \
             -C "SSL - No CA Chain is set, but required to operate"
 
+
 requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
 run_test    "Authentication: server goodcert, client none, no trusted CA (1.2)" \
             "$P_SRV" \
             "$P_CLI force_version=tls12 debug_level=3 auth_mode=none ca_file=none ca_path=none" \
             0 \
+            -c "! Certificate verification was skipped" \
             -C "x509_verify_cert() returned" \
             -C "! The certificate is not correctly signed by the trusted CA" \
             -C "! Certificate verification flags"\
             -C "! mbedtls_ssl_handshake returned" \
             -C "X509 - Certificate verification failed" \
             -C "SSL - No CA Chain is set, but required to operate"
+
 
 # The next few tests check what happens if the server has a valid certificate
 # that does not match its name (impersonation).
@@ -5939,11 +5946,13 @@ run_test "Authentication: hostname mismatch, client none" \
          "$P_SRV" \
          "$P_CLI auth_mode=none server_name=wrong-name debug_level=2" \
          0 \
+         -c "! Certificate verification was skipped" \
          -C "does not match with the expected CN" \
          -C "Certificate verification without having set hostname" \
          -C "Certificate verification without CN verification" \
          -C "x509_verify_cert() returned -" \
          -C "X509 - Certificate verification failed"
+
 
 run_test "Authentication: hostname null, client required" \
          "$P_SRV" \
@@ -5970,11 +5979,13 @@ run_test "Authentication: hostname null, client none" \
          "$P_SRV" \
          "$P_CLI auth_mode=none set_hostname=NULL debug_level=2" \
          0 \
+         -c "! Certificate verification was skipped" \
          -C "does not match with the expected CN" \
          -C "Certificate verification without having set hostname" \
          -C "Certificate verification without CN verification" \
          -C "x509_verify_cert() returned -" \
          -C "X509 - Certificate verification failed"
+
 
 run_test "Authentication: hostname unset, client required" \
          "$P_SRV" \
@@ -6015,6 +6026,7 @@ run_test "Authentication: hostname unset, client none" \
          "$P_SRV" \
          "$P_CLI auth_mode=none set_hostname=no debug_level=2" \
          0 \
+         -c "! Certificate verification was skipped" \
          -C "does not match with the expected CN" \
          -C "Certificate verification without having set hostname" \
          -C "Certificate verification without CN verification" \
@@ -6173,6 +6185,7 @@ run_test    "Authentication: client badcert, server none" \
             "$P_CLI debug_level=3 crt_file=$DATA_FILES_PATH/server5-badsign.crt \
              key_file=$DATA_FILES_PATH/server5.key" \
             0 \
+            -s "! Certificate verification was skipped" \
             -s "skip write certificate request" \
             -C "skip parse certificate request" \
             -c "got no certificate request" \
@@ -6280,6 +6293,7 @@ run_test    "Authentication: server max_int+1 chain, client none" \
             "$P_CLI force_version=tls12 server_name=CA10 ca_file=$DATA_FILES_PATH/dir-maxpath/00.crt \
                     auth_mode=none" \
             0 \
+            -c "! Certificate verification was skipped" \
             -C "X509 - A fatal error occurred"
 
 requires_config_value_equals "MBEDTLS_X509_MAX_INTERMEDIATE_CA" $MAX_IM_CA

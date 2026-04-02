@@ -1239,6 +1239,12 @@ struct mbedtls_ssl_session {
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
     mbedtls_ssl_tls13_application_secrets MBEDTLS_PRIVATE(app_secrets);
 #endif
+
+    /* Unused field reserved for future use */
+    union {
+        size_t number;
+        void *ptr;
+    } MBEDTLS_PRIVATE(unused);
 };
 
 /*
@@ -1565,6 +1571,12 @@ struct mbedtls_ssl_config {
 #if defined(MBEDTLS_KEY_EXCHANGE_CERT_REQ_ALLOWED_ENABLED)
     const mbedtls_x509_crt *MBEDTLS_PRIVATE(dn_hints);/*!< acceptable client cert issuers    */
 #endif
+
+    /* Unused field reserved for future use */
+    union {
+        size_t number;
+        void *ptr;
+    } MBEDTLS_PRIVATE(unused);
 };
 
 struct mbedtls_ssl_context {
@@ -1848,6 +1860,12 @@ struct mbedtls_ssl_context {
      *          does not currently restore the user data.
      */
     mbedtls_ssl_user_data_t MBEDTLS_PRIVATE(user_data);
+
+    /* Unused field reserved for future use */
+    union {
+        size_t number;
+        void *ptr;
+    } MBEDTLS_PRIVATE(unused);
 };
 
 /**

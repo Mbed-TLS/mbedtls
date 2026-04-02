@@ -1,5 +1,0 @@
-Security
-   * Fix a bug in the TLS 1.2 client's signature algorithm check, which caused
-     the client to accept server key exchange messages signed with a signature
-     algorithm explicitly disallowed by the client. Found and reported by
-     EFR-GmbH and M. Heuft of Security-Research-Consulting GmbH. CVE-2026-25834

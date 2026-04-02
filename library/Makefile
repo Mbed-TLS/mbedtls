@@ -72,9 +72,9 @@ LOCAL_CFLAGS += -fPIC -fpic
 endif
 endif
 
-SOEXT_TLS?=so.21
-SOEXT_X509?=so.8
-SOEXT_CRYPTO?=so.16
+SOEXT_TLS?=so.23
+SOEXT_X509?=so.9
+SOEXT_CRYPTO?=so.18
 
 ARFLAGS = $(AR_DASH)src
 ifdef APPLE_BUILD

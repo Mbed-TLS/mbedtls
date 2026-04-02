@@ -462,7 +462,7 @@ component_test_everest () {
     make test
 
     msg "test: metatests (clang, ASan)"
-    tests/scripts/run-metatests.sh any asan poison
+    framework/scripts/run-metatests.sh any asan poison
 
     msg "test: Everest ECDH context - ECDH-related part of ssl-opt.sh (ASan build)" # ~ 5s
     tests/ssl-opt.sh -f ECDH
@@ -491,15 +491,6 @@ component_test_everest_curve25519_only () {
 
     msg "test: Everest ECDH context, only Curve25519" # ~ 50s
     ctest
-}
-
-component_test_psa_collect_statuses () {
-  msg "build+test: psa_collect_statuses" # ~30s
-  scripts/config.py full
-  tests/scripts/psa_collect_statuses.py
-  # Check that psa_crypto_init() succeeded at least once
-  grep -q '^0:psa_crypto_init:' tests/statuses.log
-  rm -f tests/statuses.log
 }
 
 # Check that the specified libraries exist and are empty.

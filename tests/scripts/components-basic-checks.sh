@@ -12,21 +12,19 @@
 component_check_recursion () {
     msg "Check: recursion.pl" # < 1s
     ./framework/scripts/recursion.pl library/*.c
-    ./framework/scripts/recursion.pl ${PSA_CORE_PATH}/*.c
-    ./framework/scripts/recursion.pl ${BUILTIN_SRC_PATH}/*.c
 }
 
 component_check_generated_files () {
     msg "Check make_generated_files.py consistency"
     $MAKE_COMMAND neat
-    $FRAMEWORK/scripts/make_generated_files.py
-    $FRAMEWORK/scripts/make_generated_files.py --check
+    scripts/make_generated_files.py
+    scripts/make_generated_files.py --check
     $MAKE_COMMAND neat
 
     msg "Check files generated with make"
     MBEDTLS_ROOT_DIR="$PWD"
     $MAKE_COMMAND generated_files
-    $FRAMEWORK/scripts/make_generated_files.py --check
+    scripts/make_generated_files.py --check
 
     cd $TF_PSA_CRYPTO_ROOT_DIR
     ./framework/scripts/make_generated_files.py --check
@@ -39,13 +37,29 @@ component_check_generated_files () {
     make
     cd "$MBEDTLS_ROOT_DIR"
 
-    $FRAMEWORK/scripts/make_generated_files.py --root "$OUT_OF_SOURCE_DIR" --check
+    scripts/make_generated_files.py --root "$OUT_OF_SOURCE_DIR" --check
 
     cd $TF_PSA_CRYPTO_ROOT_DIR
     ./framework/scripts/make_generated_files.py --root "$OUT_OF_SOURCE_DIR/tf-psa-crypto" --check
+    cd "$MBEDTLS_ROOT_DIR"
 
     # This component ends with the generated files present in the source tree.
     # This is necessary for subsequent components!
+}
+
+support_check_committed_generated_files () {
+    # Add requirements on the Python installation here for
+    # the sake of check_committed_generated_files.py in mbedtls.
+    #
+    # Check the Python version, not the presence of the package,
+    # because the CI runs `all.sh --list-components` outside of the
+    # venv that has our desired packages.
+    :
+}
+
+component_check_committed_generated_files () {
+    msg "Check committed generated files"
+    tests/scripts/check_committed_generated_files.py
 }
 
 component_check_doxy_blocks () {

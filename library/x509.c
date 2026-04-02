@@ -123,6 +123,23 @@ int mbedtls_x509_get_alg(unsigned char **p, const unsigned char *end,
 }
 
 /*
+ * Convert the key type to a string
+ */
+const char *mbedtls_x509_pk_type_as_string(const mbedtls_pk_context *pk)
+{
+    psa_key_type_t key_type;
+
+    key_type = mbedtls_pk_get_key_type(pk);
+    if (PSA_KEY_TYPE_IS_RSA(key_type)) {
+        return "RSA";
+    } else if (PSA_KEY_TYPE_IS_ECC(key_type)) {
+        return "EC";
+    } else {
+        return "NONE";
+    }
+}
+
+/*
  * Convert md type to string
  */
 #if !defined(MBEDTLS_X509_REMOVE_INFO) && defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT)

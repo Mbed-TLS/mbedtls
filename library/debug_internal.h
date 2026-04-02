@@ -12,6 +12,19 @@
 
 #include "mbedtls/debug.h"
 
+/* This should be equivalent to mbedtls_snprintf(). But it might not be due
+ * to platform shenanigans. For example, Mbed TLS and TF-PSA-Crypto could
+ * have inconsistent platform definitions. On Mingw, some code might
+ * be built with a different setting of __USE_MINGW_ANSI_STDIO, resulting
+ * in an old non-C99 printf being used somewhere.
+ *
+ * Our library assumes that mbedtls_snprintf() and other printf functions
+ * are consistent throughout. This function is not an official API and
+ * is not meant to be used inside the library. It is provided to help
+ * debugging printf inconsistencies issues. If you need it, good luck!
+ */
+int mbedtls_debug_snprintf(char *dest, size_t maxlen,
+                           const char *format, ...) MBEDTLS_PRINTF_ATTRIBUTE(3, 4);
 /**
  * \brief    Print a message to the debug output. This function is always used
  *          through the MBEDTLS_SSL_DEBUG_MSG() macro, which supplies the ssl
@@ -70,26 +83,6 @@ void mbedtls_debug_print_ret(const mbedtls_ssl_context *ssl, int level,
 void mbedtls_debug_print_buf(const mbedtls_ssl_context *ssl, int level,
                              const char *file, int line, const char *text,
                              const unsigned char *buf, size_t len);
-
-#if defined(MBEDTLS_BIGNUM_C)
-/**
- * \brief   Print a MPI variable to the debug output.
- *
- * \param ssl       SSL context
- * \param level     error level of the debug message
- * \param file      file the error has occurred in
- * \param line      line number the error has occurred in
- * \param text      a name or label for the MPI being output. Normally the
- *                  variable name
- * \param X         the MPI variable
- *
- * \attention       This function is intended for INTERNAL usage within the
- *                  library only.
- */
-void mbedtls_debug_print_mpi(const mbedtls_ssl_context *ssl, int level,
-                             const char *file, int line,
-                             const char *text, const mbedtls_mpi *X);
-#endif
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C) && !defined(MBEDTLS_X509_REMOVE_INFO)
 /**

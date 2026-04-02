@@ -19,6 +19,16 @@ Only the maintained branches, as listed in [`BRANCHES.md`](BRANCHES.md),
 get security fixes.
 Users are urged to always use the latest version of a maintained branch.
 
+## Use of TF-PSA-Crypto
+
+Note that Mbed TLS uses the cryptography API provided by TF-PSA-Crypto.
+Its
+[threat model](https://github.com/Mbed-TLS/TF-PSA-Crypto/blob/development/SECURITY.md#threat-model)
+applies to all cryptographic operations performed by Mbed TLS. In particular,
+users of Mbed TLS should note the considerations around
+[block ciphers](https://github.com/Mbed-TLS/TF-PSA-Crypto/blob/development/SECURITY.md#block-ciphers)
+since they apply to the block ciphers used in TLS.
+
 ## Threat model
 
 We classify attacks based on the capabilities of the attacker.
@@ -97,6 +107,12 @@ model, they need to be mitigated by physical countermeasures.
 
 ### Caveats
 
+#### Compiler-induced side channels
+
+Mbed TLS is mostly written in C. We use standard C except with known compilers, so we do not expect compilers to introduce direct vulnerabilities. However, compilers can introduce [timing side channels](#timing-attacks) in code that was intended to be constant-time. Mbed TLS includes countermeasures to try to prevent this. But given the diversity of compilers, compiler options and target platforms, this prevention may not be complete.
+
+We recommend compiling Mbed TLS with commonly used levels of optimizations, such as `-O2` or `-Os`. We will generally treat exploitable timing side channels as a vulnerability if they appear with a common compiler at a common level of optimization. Higher levels of optimization such as `-O3` or `-Oz` are still likely to be safe but are less scrutinized. We do not recommend using individual options that might introduce data-dependent timing, and we will not try to work around such optimizations if they are not part of a commonly used level.
+
 #### Out-of-scope countermeasures
 
 Mbed TLS has evolved organically and a well defined threat model hasn't always
@@ -108,21 +124,25 @@ protection against a class of attacks outside of the above described threat
 model. Neither does it mean that the failure of such a countermeasure is
 considered a vulnerability.
 
-#### Formatting of X.509 certificates and certificate signing requests
+#### Formatting of X509 data
 
-When parsing X.509 certificates and certificate signing requests (CSRs),
+This section discusses limitations in how X.509 objects are processed. This
+applies to certificates, certificate signing requests (CSRs) and certificate
+revocation lists (CRLs).
+
 Mbed TLS does not check that they are strictly compliant with X.509 and other
-relevant standards. In the case of signed certificates, the signing party is
-assumed to have performed this validation (and the certificate is trusted to
-be correctly formatted as long as the signature is correct).
-Similarly, CSRs are implicitly trusted by Mbed TLS to be standards-compliant.
+relevant standards. In the case of signed certificates and signed CRLs, the
+signing party is assumed to have performed this validation (and the certificate
+or CRL is trusted to be correctly formatted as long as the signature is
+correct).  Similarly, CSRs are implicitly trusted by Mbed TLS to be
+standards-compliant.
 
-**Warning!** Mbed TLS must not be used to sign untrusted CSRs unless extra
-validation is performed separately to ensure that they are compliant to the
-relevant specifications. This makes Mbed TLS on its own unsuitable for use in
-a Certificate Authority (CA).
+**Warning!** Mbed TLS must not be used to sign untrusted CSRs or CRLs unless
+extra validation is performed separately to ensure that they are compliant to
+the relevant specifications. This makes Mbed TLS on its own unsuitable for use
+in a Certificate Authority (CA).
 
 However, Mbed TLS aims to protect against memory corruption and other
-undefined behavior when parsing certificates and CSRs. If a CSR or signed
+undefined behavior when parsing certificates, CSRs and CRLs. If a CSR or signed
 certificate causes undefined behavior when it is parsed by Mbed TLS, that
 is considered a security vulnerability.

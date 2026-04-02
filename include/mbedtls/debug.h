@@ -28,14 +28,12 @@
 #define MBEDTLS_SSL_DEBUG_BUF(level, text, buf, len)           \
     mbedtls_debug_print_buf(ssl, level, __FILE__, __LINE__, text, buf, len)
 
-#if defined(MBEDTLS_X509_CRT_PARSE_C)
-#if !defined(MBEDTLS_X509_REMOVE_INFO)
+#if defined(MBEDTLS_X509_CRT_PARSE_C) && !defined(MBEDTLS_X509_REMOVE_INFO)
 #define MBEDTLS_SSL_DEBUG_CRT(level, text, crt)                \
     mbedtls_debug_print_crt(ssl, level, __FILE__, __LINE__, text, crt)
 #else
 #define MBEDTLS_SSL_DEBUG_CRT(level, text, crt)       do { } while (0)
-#endif /* MBEDTLS_X509_REMOVE_INFO */
-#endif /* MBEDTLS_X509_CRT_PARSE_C */
+#endif /* MBEDTLS_X509_CRT_PARSE_C && !MBEDTLS_X509_REMOVE_INFO */
 
 #else /* MBEDTLS_DEBUG_C */
 
@@ -61,10 +59,10 @@
  */
 #if defined(__has_attribute)
 #if __has_attribute(format)
-#if defined(__MINGW32__) && __USE_MINGW_ANSI_STDIO == 1
+#if defined(__MINGW32__)
 #define MBEDTLS_PRINTF_ATTRIBUTE(string_index, first_to_check)    \
     __attribute__((__format__(gnu_printf, string_index, first_to_check)))
-#else /* defined(__MINGW32__) && __USE_MINGW_ANSI_STDIO == 1 */
+#else /* defined(__MINGW32__) */
 #define MBEDTLS_PRINTF_ATTRIBUTE(string_index, first_to_check)    \
     __attribute__((format(printf, string_index, first_to_check)))
 #endif
@@ -75,28 +73,15 @@
 #define MBEDTLS_PRINTF_ATTRIBUTE(string_index, first_to_check)
 #endif
 
-/**
- * \def MBEDTLS_PRINTF_SIZET
- *
- * MBEDTLS_PRINTF_xxx: Due to issues with older window compilers
- * and MinGW we need to define the printf specifier for size_t
- * and long long per platform.
- *
- * Module:  library/debug.c
- * Caller:
- *
- * This module provides debugging functions.
+/* Legacy definitions, kept for backward compatibility.
+ * Since Mbed TLS 4.1, the standard specifiers are always valid.
+ * We still define the macros because they're part of the Mbed TLS 4.0 API.
+ * In the library and test code, keep using them for code that's backported
+ * to 3.6.
  */
-#if defined(__MINGW32__) || (defined(_MSC_VER) && _MSC_VER < 1900)
-   #include <inttypes.h>
-   #define MBEDTLS_PRINTF_SIZET     PRIuPTR
-   #define MBEDTLS_PRINTF_LONGLONG  "I64d"
-#else \
-    /* defined(__MINGW32__) || (defined(_MSC_VER) && _MSC_VER < 1900) */
-   #define MBEDTLS_PRINTF_SIZET     "zu"
-   #define MBEDTLS_PRINTF_LONGLONG  "lld"
-#endif \
-    /* defined(__MINGW32__) || (defined(_MSC_VER) && _MSC_VER < 1900) */
+#define MBEDTLS_PRINTF_SIZET     "zu"
+#define MBEDTLS_PRINTF_SIZET_HEX "zx"
+#define MBEDTLS_PRINTF_LONGLONG  "lld"
 
 #if !defined(MBEDTLS_PRINTF_MS_TIME)
 #include <inttypes.h>

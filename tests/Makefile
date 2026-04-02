@@ -4,26 +4,20 @@ include ../scripts/common.make
 # Set this to -v to see the details of failing test cases
 TEST_FLAGS ?= $(if $(filter-out 0 OFF Off off NO No no FALSE False false N n,$(CTEST_OUTPUT_ON_FAILURE)),-v,)
 
+# Declare the default rule early, since it must come first, in particular
+# before including crypto-programs.make.
+default: all
+
+include $(TF_PSA_CRYPTO_PATH)/tests/crypto-tests.make
+
 # Also include private headers, for the sake of invasive tests.
-LOCAL_CFLAGS += -I$(MBEDTLS_PATH)/library -I$(MBEDTLS_PATH)/tf-psa-crypto/core -I$(MBEDTLS_PATH)/tf-psa-crypto/drivers/builtin/src
+LOCAL_CFLAGS += -I$(MBEDTLS_PATH)/library
+LOCAL_CFLAGS += $(TF_PSA_CRYPTO_LIBRARY_PRIVATE_INCLUDE)
 
 # Enable definition of various functions used throughout the testsuite
 # (gethostname, strdup, fileno...) even when compiling with -std=c99. Harmless
 # on non-POSIX platforms.
 LOCAL_CFLAGS += -D_POSIX_C_SOURCE=200809L
-
-ifdef RECORD_PSA_STATUS_COVERAGE_LOG
-LOCAL_CFLAGS += -Werror -DRECORD_PSA_STATUS_COVERAGE_LOG
-endif
-
-GENERATED_BIGNUM_DATA_FILES := $(addprefix ../tf-psa-crypto/,$(shell \
-	$(PYTHON) ../framework/scripts/generate_bignum_tests.py --list || \
-	echo FAILED \
-))
-ifeq ($(GENERATED_BIGNUM_DATA_FILES),FAILED)
-$(error "$(PYTHON) ../framework/scripts/generate_bignum_tests.py --list" failed)
-endif
-GENERATED_CRYPTO_DATA_FILES += $(GENERATED_BIGNUM_DATA_FILES)
 
 GENERATED_MBEDTLS_CONFIG_DATA_FILES := $(patsubst tests/%,%,$(shell \
 	$(PYTHON) ../framework/scripts/generate_config_tests.py --list || \
@@ -32,49 +26,24 @@ GENERATED_MBEDTLS_CONFIG_DATA_FILES := $(patsubst tests/%,%,$(shell \
 ifeq ($(GENERATED_MBEDTLS_CONFIG_DATA_FILES),FAILED)
 $(error "$(PYTHON) ../framework/scripts/generate_config_tests.py --list" failed)
 endif
-
-GENERATED_PSA_CONFIG_DATA_FILES := $(addprefix ../tf-psa-crypto/,$(shell \
-	$(PYTHON) ../tf-psa-crypto/framework/scripts/generate_config_tests.py --list || \
-	echo FAILED \
-))
-ifeq ($(GENERATED_PSA_CONFIG_DATA_FILES),FAILED)
-$(error "$(PYTHON) ../tf-psa-crypto/framework/scripts/generate_config_tests.py --list" failed)
-endif
-
-GENERATED_CONFIG_DATA_FILES := $(GENERATED_MBEDTLS_CONFIG_DATA_FILES) $(GENERATED_PSA_CONFIG_DATA_FILES)
 GENERATED_DATA_FILES += $(GENERATED_MBEDTLS_CONFIG_DATA_FILES)
-GENERATED_CRYPTO_DATA_FILES += $(GENERATED_PSA_CONFIG_DATA_FILES)
 
-GENERATED_ECP_DATA_FILES := $(addprefix ../tf-psa-crypto/,$(shell \
-	$(PYTHON) ../framework/scripts/generate_ecp_tests.py --list || \
-	echo FAILED \
-))
-ifeq ($(GENERATED_ECP_DATA_FILES),FAILED)
-$(error "$(PYTHON) ../framework/scripts/generate_ecp_tests.py --list" failed)
-endif
-GENERATED_CRYPTO_DATA_FILES += $(GENERATED_ECP_DATA_FILES)
+GENERATED_C_FILES = \
+	include/test/test_keys.h include/test/test_certs.h
 
-GENERATED_PSA_DATA_FILES := $(addprefix ../tf-psa-crypto/,$(shell \
-	$(PYTHON) ../framework/scripts/generate_psa_tests.py --list || \
-	echo FAILED \
-))
-ifeq ($(GENERATED_PSA_DATA_FILES),FAILED)
-$(error "$(PYTHON) ../framework/scripts/generate_psa_tests.py --list" failed)
-endif
-GENERATED_CRYPTO_DATA_FILES += $(GENERATED_PSA_DATA_FILES)
-
-GENERATED_FILES = $(GENERATED_DATA_FILES) $(GENERATED_CRYPTO_DATA_FILES)
-GENERATED_FILES += include/test/test_keys.h \
-                   ../tf-psa-crypto/tests/include/test/test_keys.h \
-                   include/test/test_certs.h
+GENERATED_FILES = \
+	$(GENERATED_DATA_FILES) \
+	$(TF_PSA_CRYPTO_TESTS_GENERATED_DATA_FILES) \
+	$(GENERATED_C_FILES) \
+	$(TF_PSA_CRYPTO_TESTS_GENERATED_C_FILES)
 
 # Generated files needed to (fully) run ssl-opt.sh
 .PHONY: ssl-opt
 
 opt-testcases/handshake-generated.sh: ../framework/scripts/mbedtls_framework/tls_test_case.py
-opt-testcases/handshake-generated.sh: ../framework/scripts/generate_tls_handshake_tests.py
+opt-testcases/handshake-generated.sh: ../scripts/generate_tls_handshake_tests.py
 	echo "  Gen   $@"
-	$(PYTHON) ../framework/scripts/generate_tls_handshake_tests.py -o $@
+	$(PYTHON) ../scripts/generate_tls_handshake_tests.py -o $@
 GENERATED_FILES += opt-testcases/handshake-generated.sh
 ssl-opt: opt-testcases/handshake-generated.sh
 
@@ -87,90 +56,33 @@ ssl-opt: opt-testcases/tls13-compat.sh
 .PHONY: generated_files
 generated_files: $(GENERATED_FILES)
 
-# generate_bignum_tests.py and generate_psa_tests.py spend more time analyzing
-# inputs than generating outputs. Its inputs are the same no matter which files
-# are being generated.
-# It's rare not to want all the outputs. So always generate all of its outputs.
-# Use an intermediate phony dependency so that parallel builds don't run
-# a separate instance of the recipe for each output file.
-$(GENERATED_BIGNUM_DATA_FILES): $(gen_file_dep) generated_bignum_test_data
-generated_bignum_test_data: ../framework/scripts/generate_bignum_tests.py
-generated_bignum_test_data: ../framework/scripts/mbedtls_framework/bignum_common.py
-generated_bignum_test_data: ../framework/scripts/mbedtls_framework/bignum_core.py
-generated_bignum_test_data: ../framework/scripts/mbedtls_framework/bignum_mod_raw.py
-generated_bignum_test_data: ../framework/scripts/mbedtls_framework/bignum_mod.py
-generated_bignum_test_data: ../framework/scripts/mbedtls_framework/test_case.py
-generated_bignum_test_data: ../framework/scripts/mbedtls_framework/test_data_generation.py
-generated_bignum_test_data:
-	echo "  Gen   $(GENERATED_BIGNUM_DATA_FILES)"
-	$(PYTHON) ../framework/scripts/generate_bignum_tests.py --directory ../tf-psa-crypto/tests/suites
-.SECONDARY: generated_bignum_test_data
-
 # We deliberately omit the configuration files (mbedtls_config.h,
 # crypto_config.h) from the depenency list because during development
 # and on the CI, we often edit those in a way that doesn't change the
 # output, to comment out certain options, or even to remove certain
 # lines which do affect the output negatively (it will miss the
 # corresponding test cases).
-$(GENERATED_CONFIG_DATA_FILES): $(gen_file_dep) generated_config_test_data
+$(GENERATED_MBEDTLS_CONFIG_DATA_FILES): $(gen_file_dep) generated_config_test_data
 generated_config_test_data: ../framework/scripts/generate_config_tests.py
 generated_config_test_data: ../scripts/config.py
 generated_config_test_data: ../framework/scripts/mbedtls_framework/test_case.py
 generated_config_test_data: ../framework/scripts/mbedtls_framework/test_data_generation.py
 generated_config_test_data:
-	echo "  Gen   $(GENERATED_CONFIG_DATA_FILES)"
+	echo "  Gen   $(GENERATED_MBEDTLS_CONFIG_DATA_FILES)"
 	$(PYTHON) ../framework/scripts/generate_config_tests.py
-	cd ../tf-psa-crypto && $(PYTHON) ./framework/scripts/generate_config_tests.py
 .SECONDARY: generated_config_test_data
-
-$(GENERATED_ECP_DATA_FILES): $(gen_file_dep) generated_ecp_test_data
-generated_ecp_test_data: ../framework/scripts/generate_ecp_tests.py
-generated_ecp_test_data: ../framework/scripts/mbedtls_framework/bignum_common.py
-generated_ecp_test_data: ../framework/scripts/mbedtls_framework/ecp.py
-generated_ecp_test_data: ../framework/scripts/mbedtls_framework/test_case.py
-generated_ecp_test_data: ../framework/scripts/mbedtls_framework/test_data_generation.py
-generated_ecp_test_data:
-	echo "  Gen   $(GENERATED_ECP_DATA_FILES)"
-	$(PYTHON) ../framework/scripts/generate_ecp_tests.py --directory ../tf-psa-crypto/tests/suites
-.SECONDARY: generated_ecp_test_data
-
-$(GENERATED_PSA_DATA_FILES): $(gen_file_dep) generated_psa_test_data
-generated_psa_test_data: ../framework/scripts/generate_psa_tests.py
-generated_psa_test_data: ../framework/scripts/mbedtls_framework/crypto_data_tests.py
-generated_psa_test_data: ../framework/scripts/mbedtls_framework/crypto_knowledge.py
-generated_psa_test_data: ../framework/scripts/mbedtls_framework/macro_collector.py
-generated_psa_test_data: ../framework/scripts/mbedtls_framework/psa_information.py
-generated_psa_test_data: ../framework/scripts/mbedtls_framework/psa_storage.py
-generated_psa_test_data: ../framework/scripts/mbedtls_framework/psa_test_case.py
-generated_psa_test_data: ../framework/scripts/mbedtls_framework/test_case.py
-generated_psa_test_data: ../framework/scripts/mbedtls_framework/test_data_generation.py
-## The generated file only depends on the options that are present in
-## crypto_config.h, not on which options are set. To avoid regenerating this
-## file all the time when switching between configurations, don't declare
-## crypto_config.h as a dependency. Remove this file from your working tree
-## if you've just added or removed an option in crypto_config.h.
-#generated_psa_test_data: ../tf-psa-crypto/include/psa/crypto_config.h
-generated_psa_test_data: ../tf-psa-crypto/include/psa/crypto_values.h
-generated_psa_test_data: ../tf-psa-crypto/include/psa/crypto_extra.h
-generated_psa_test_data: ../tf-psa-crypto/tests/suites/test_suite_psa_crypto_metadata.data
-generated_psa_test_data:
-	echo "  Gen   $(GENERATED_PSA_DATA_FILES) ..."
-	$(PYTHON) ../framework/scripts/generate_psa_tests.py --directory ../tf-psa-crypto/tests/suites
-.SECONDARY: generated_psa_test_data
 
 # A test application is built for each suites/test_suite_*.data file.
 # Application name is same as .data file's base name and can be
 # constructed by stripping path 'suites/' and extension .data.
 DATA_FILES = $(filter-out $(GENERATED_DATA_FILES), $(wildcard suites/test_suite_*.data))
-CRYPTO_DATA_FILES = $(filter-out $(GENERATED_CRYPTO_DATA_FILES), $(wildcard ../tf-psa-crypto/tests/suites/test_suite_*.data))
 
 # Make sure that generated data files are included even if they don't
 # exist yet when the makefile is parsed.
 DATA_FILES += $(GENERATED_DATA_FILES)
-CRYPTO_DATA_FILES += $(GENERATED_CRYPTO_DATA_FILES)
 
 APPS = $(basename $(subst suites/,,$(DATA_FILES)))
-CRYPTO_APPS = $(basename $(subst suites/,,$(CRYPTO_DATA_FILES)))
+CRYPTO_APPS = $(basename $(subst suites/,,$(TF_PSA_CRYPTO_TESTS_DATA_FILES)))
 
 # Construct executable name by adding OS specific suffix $(EXEXT).
 BINARIES := $(addsuffix $(EXEXT),$(APPS))
@@ -185,7 +97,7 @@ all: $(BINARIES) $(CRYPTO_BINARIES)
 mbedtls_test: $(MBEDTLS_TEST_OBJS)
 
 include/test/test_certs.h: ../framework/scripts/generate_test_cert_macros.py \
-				  $($(PYTHON) ../framework/scripts/generate_test_cert_macros.py --list-dependencies)
+				  $(shell $(PYTHON) ../framework/scripts/generate_test_cert_macros.py --list-dependencies)
 	echo "  Gen   $@"
 	$(PYTHON) ../framework/scripts/generate_test_cert_macros.py --output $@
 
@@ -193,17 +105,7 @@ include/test/test_keys.h: ../framework/scripts/generate_test_keys.py
 	echo "  Gen   $@"
 	$(PYTHON) ../framework/scripts/generate_test_keys.py --output $@
 
-../tf-psa-crypto/tests/include/test/test_keys.h: ../tf-psa-crypto/framework/scripts/generate_test_keys.py
-	echo "  Gen   $@"
-	$(PYTHON) ../tf-psa-crypto/framework/scripts/generate_test_keys.py --output $@
-
 TEST_OBJS_DEPS = $(wildcard include/test/*.h include/test/*/*.h)
-ifdef RECORD_PSA_STATUS_COVERAGE_LOG
-# Explicitly depend on this header because on a clean copy of the source tree,
-# it doesn't exist yet and must be generated as part of the build, and
-# therefore the wildcard enumeration above doesn't include it.
-TEST_OBJS_DEPS += ../framework/tests/include/test/instrument_record_status.h
-endif
 TEST_OBJS_DEPS += include/test/test_certs.h include/test/test_keys.h \
                   ../tf-psa-crypto/tests/include/test/test_keys.h
 
@@ -284,7 +186,7 @@ $(CRYPTO_BINARIES): %$(EXEXT): %.c $(MBEDLIBS) $(TEST_OBJS_DEPS) $(MBEDTLS_TEST_
 
 clean:
 ifndef WINDOWS
-	$(MAKE) -C psa-client-server/psasim clean
+	$(MAKE) -C $(PSASIM_PATH) clean
 	rm -rf $(BINARIES) *.c *.datax
 	rm -rf $(CRYPTO_BINARIES) ../tf-psa-crypto/tests/*.c ../tf-psa-crypto/tests/*.datax
 	rm -f src/*.o src/test_helpers/*.o src/libmbed*
@@ -334,13 +236,25 @@ libtestdriver1.a:
 	mkdir ./libtestdriver1/tf-psa-crypto/drivers/p256-m
 	touch ./libtestdriver1/tf-psa-crypto/drivers/everest/Makefile.inc
 	touch ./libtestdriver1/tf-psa-crypto/drivers/p256-m/Makefile.inc
-	cp -Rf ../framework/scripts ./libtestdriver1/framework
+	cp -Rf ../framework/scripts ../framework/exported.make ./libtestdriver1/framework
 	cp -Rf ../library ./libtestdriver1
 	cp -Rf ../include ./libtestdriver1
 	cp -Rf ../scripts ./libtestdriver1
 	cp -Rf ../tf-psa-crypto/core ./libtestdriver1/tf-psa-crypto
 	cp -Rf ../tf-psa-crypto/include ./libtestdriver1/tf-psa-crypto
-	cp -Rf ../tf-psa-crypto/drivers/builtin ./libtestdriver1/tf-psa-crypto/drivers
+	cp -Rf ../tf-psa-crypto/drivers/builtin ./libtestdriver1/tf-psa-crypto/drivers/builtin
+	if [ -d ../tf-psa-crypto/dispatch ]; then \
+	    cp -Rf ../tf-psa-crypto/dispatch ./libtestdriver1/tf-psa-crypto/dispatch; \
+	fi
+	if [ -d ../tf-psa-crypto/extras ]; then \
+	    cp -Rf ../tf-psa-crypto/extras ./libtestdriver1/tf-psa-crypto/extras; \
+	fi
+	if [ -d ../tf-psa-crypto/platform ]; then \
+	    cp -Rf ../tf-psa-crypto/platform ./libtestdriver1/tf-psa-crypto/platform; \
+	fi
+	if [ -d ../tf-psa-crypto/utilities ]; then \
+	    cp -Rf ../tf-psa-crypto/utilities ./libtestdriver1/tf-psa-crypto/utilities; \
+	fi
 	cp -Rf ../tf-psa-crypto/scripts ./libtestdriver1/tf-psa-crypto
 
 	# Set the test driver base (minimal) configuration.
@@ -373,12 +287,17 @@ libtestdriver1.a:
 	perl -i ./scripts/libtestdriver1_rewrite.pl ./libtestdriver1/tf-psa-crypto/drivers/builtin/include/*/*.h
 	perl -i ./scripts/libtestdriver1_rewrite.pl ./libtestdriver1/tf-psa-crypto/drivers/builtin/include/*/*/*.h
 	perl -i ./scripts/libtestdriver1_rewrite.pl ./libtestdriver1/tf-psa-crypto/drivers/builtin/src/*.[ch]
-
+	if [ -d ../tf-psa-crypto/dispatch ]; then \
+	    perl -i ./scripts/libtestdriver1_rewrite.pl ./libtestdriver1/tf-psa-crypto/dispatch/*.[ch]; \
+	fi
+	if [ -d ../tf-psa-crypto/extras ]; then \
+	    perl -i ./scripts/libtestdriver1_rewrite.pl ./libtestdriver1/tf-psa-crypto/extras/*.[ch]; \
+	fi
+	if [ -d ../tf-psa-crypto/platform ]; then \
+	    perl -i ./scripts/libtestdriver1_rewrite.pl ./libtestdriver1/tf-psa-crypto/platform/*.[ch]; \
+	fi
+	if [ -d ../tf-psa-crypto/utilities ]; then \
+	    perl -i ./scripts/libtestdriver1_rewrite.pl ./libtestdriver1/tf-psa-crypto/utilities/*.[ch]; \
+	fi
 	$(MAKE) -C ./libtestdriver1/library CFLAGS="-I../../ $(CFLAGS)" LDFLAGS="$(LDFLAGS)" libmbedcrypto.a
 	cp ./libtestdriver1/library/libmbedcrypto.a ../library/libtestdriver1.a
-
-ifdef RECORD_PSA_STATUS_COVERAGE_LOG
-../framework/tests/include/test/instrument_record_status.h: ../tf-psa-crypto/include/psa/crypto.h Makefile
-	echo "  Gen  $@"
-	sed <../tf-psa-crypto/include/psa/crypto.h >$@ -n 's/^psa_status_t \([A-Za-z0-9_]*\)(.*/#define \1(...) RECORD_STATUS("\1", \1(__VA_ARGS__))/p'
-endif

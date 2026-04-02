@@ -5,6 +5,15 @@
  *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
+/* Tell MSVC that we're ok with using classic C functions even
+ * when an `_s` variant exist. For most functions, the improvements
+ * of the `_s` variants are of limited usefulness and not worth
+ * the portability headaches.
+ */
+#if defined(_MSC_VER) && !defined(_CRT_SECURE_NO_DEPRECATE)
+#define _CRT_SECURE_NO_DEPRECATE 1
+#endif
+
 #define MBEDTLS_DECLARE_PRIVATE_IDENTIFIERS
 
 #include "mbedtls/build_info.h"
@@ -15,22 +24,18 @@
 
 #if !defined(MBEDTLS_X509_CSR_WRITE_C) || !defined(MBEDTLS_X509_CRT_PARSE_C) || \
     !defined(MBEDTLS_PK_PARSE_C) || !defined(PSA_WANT_ALG_SHA_256) || \
-    !defined(MBEDTLS_ENTROPY_C) || !defined(MBEDTLS_CTR_DRBG_C) || \
     !defined(MBEDTLS_PEM_WRITE_C) || !defined(MBEDTLS_FS_IO) || \
     !defined(MBEDTLS_MD_C)
 int main(void)
 {
     mbedtls_printf("MBEDTLS_X509_CSR_WRITE_C and/or MBEDTLS_FS_IO and/or "
-                   "MBEDTLS_PK_PARSE_C and/or PSA_WANT_ALG_SHA_256 and/or "
-                   "MBEDTLS_ENTROPY_C and/or MBEDTLS_CTR_DRBG_C "
+                   "MBEDTLS_PK_PARSE_C and/or PSA_WANT_ALG_SHA_256 "
                    "not defined.\n");
     mbedtls_exit(0);
 }
 #else
 
 #include "mbedtls/x509_csr.h"
-#include "mbedtls/private/entropy.h"
-#include "mbedtls/private/ctr_drbg.h"
 #include "mbedtls/error.h"
 
 #include <stdio.h>
@@ -146,9 +151,6 @@ int main(int argc, char *argv[])
     int i;
     char *p, *q, *r;
     mbedtls_x509write_csr req;
-    mbedtls_entropy_context entropy;
-    mbedtls_ctr_drbg_context ctr_drbg;
-    const char *pers = "csr example app";
     mbedtls_x509_san_list *cur, *prev;
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
     uint8_t ip[4] = { 0 };
@@ -158,9 +160,7 @@ int main(int argc, char *argv[])
      */
     mbedtls_x509write_csr_init(&req);
     mbedtls_pk_init(&key);
-    mbedtls_ctr_drbg_init(&ctr_drbg);
     memset(buf, 0, sizeof(buf));
-    mbedtls_entropy_init(&entropy);
 
     psa_status_t status = psa_crypto_init();
     if (status != PSA_SUCCESS) {
@@ -431,13 +431,6 @@ usage:
     mbedtls_printf("  . Seeding the random number generator...");
     fflush(stdout);
 
-    if ((ret = mbedtls_ctr_drbg_seed(&ctr_drbg, mbedtls_entropy_func, &entropy,
-                                     (const unsigned char *) pers,
-                                     strlen(pers))) != 0) {
-        mbedtls_printf(" failed\n  !  mbedtls_ctr_drbg_seed returned %d", ret);
-        goto exit;
-    }
-
     mbedtls_printf(" ok\n");
 
     /*
@@ -498,8 +491,6 @@ exit:
 
     mbedtls_x509write_csr_free(&req);
     mbedtls_pk_free(&key);
-    mbedtls_ctr_drbg_free(&ctr_drbg);
-    mbedtls_entropy_free(&entropy);
     mbedtls_psa_crypto_free();
 
     cur = opt.san_list;
@@ -522,4 +513,4 @@ exit:
     mbedtls_exit(exit_code);
 }
 #endif /* MBEDTLS_X509_CSR_WRITE_C && MBEDTLS_PK_PARSE_C && MBEDTLS_FS_IO &&
-          MBEDTLS_ENTROPY_C && MBEDTLS_CTR_DRBG_C && MBEDTLS_PEM_WRITE_C */
+          MBEDTLS_PEM_WRITE_C */

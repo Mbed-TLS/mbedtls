@@ -116,11 +116,11 @@ void printf_int_expr(int format_indicator, intmax_t sizeof_x, intmax_t x, char *
     /* Nominal case: buffer just large enough */
     TEST_CALLOC(output, n + 1);
     if ((size_t) sizeof_x <= sizeof(int)) { // Any smaller integers would be promoted to an int due to calling a vararg function
-        TEST_EQUAL(n, mbedtls_snprintf(output, n + 1, format, (int) x));
+        TEST_EQUAL(n, mbedtls_debug_snprintf(output, n + 1, format, (int) x));
     } else if (sizeof_x == sizeof(long)) {
-        TEST_EQUAL(n, mbedtls_snprintf(output, n + 1, format, (long) x));
+        TEST_EQUAL(n, mbedtls_debug_snprintf(output, n + 1, format, (long) x));
     } else if (sizeof_x == sizeof(long long)) {
-        TEST_EQUAL(n, mbedtls_snprintf(output, n + 1, format, (long long) x));
+        TEST_EQUAL(n, mbedtls_debug_snprintf(output, n + 1, format, (long long) x));
     } else {
         TEST_FAIL(
             "sizeof_x <= sizeof(int) || sizeof_x == sizeof(long) || sizeof_x == sizeof(long long)");
@@ -278,45 +278,6 @@ void mbedtls_debug_print_crt(char *crt_file, char *file, int line,
 
 exit:
     mbedtls_x509_crt_free(&crt);
-    mbedtls_ssl_free(&ssl);
-    mbedtls_ssl_config_free(&conf);
-    MD_OR_USE_PSA_DONE();
-}
-/* END_CASE */
-
-/* BEGIN_CASE depends_on:MBEDTLS_SSL_TLS_C:MBEDTLS_BIGNUM_C */
-void mbedtls_debug_print_mpi(char *value, char *file, int line,
-                             char *prefix, char *result_str)
-{
-    mbedtls_ssl_context ssl;
-    mbedtls_ssl_config conf;
-    struct buffer_data buffer;
-    mbedtls_mpi val;
-
-    mbedtls_ssl_init(&ssl);
-    mbedtls_ssl_config_init(&conf);
-    mbedtls_mpi_init(&val);
-    MD_OR_USE_PSA_INIT();
-    memset(buffer.buf, 0, 2000);
-    buffer.ptr = buffer.buf;
-
-    TEST_EQUAL(mbedtls_ssl_config_defaults(&conf,
-                                           MBEDTLS_SSL_IS_CLIENT,
-                                           MBEDTLS_SSL_TRANSPORT_STREAM,
-                                           MBEDTLS_SSL_PRESET_DEFAULT),
-               0);
-    mbedtls_ssl_conf_dbg(&conf, string_debug, &buffer);
-
-    TEST_ASSERT(mbedtls_ssl_setup(&ssl, &conf) == 0);
-
-    TEST_ASSERT(mbedtls_test_read_mpi(&val, value) == 0);
-
-    mbedtls_debug_print_mpi(&ssl, 0, file, line, prefix, &val);
-
-    TEST_ASSERT(strcmp(buffer.buf, result_str) == 0);
-
-exit:
-    mbedtls_mpi_free(&val);
     mbedtls_ssl_free(&ssl);
     mbedtls_ssl_config_free(&conf);
     MD_OR_USE_PSA_DONE();

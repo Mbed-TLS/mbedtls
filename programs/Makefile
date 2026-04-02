@@ -8,9 +8,6 @@ else
 DLOPEN_LDFLAGS ?=
 endif
 
-ifdef RECORD_PSA_STATUS_COVERAGE_LOG
-LOCAL_CFLAGS += -Werror -DRECORD_PSA_STATUS_COVERAGE_LOG
-endif
 DEP=${MBEDLIBS} ${MBEDTLS_TEST_OBJS}
 
 # Only build the dlopen test in shared library builds, and not when building
@@ -25,6 +22,12 @@ else
 BUILD_DLOPEN =
 endif
 
+# Declare the default rule early, since it must come first, in particular
+# before including crypto-programs.make.
+default: all
+
+include $(TF_PSA_CRYPTO_PATH)/programs/crypto-programs.make
+
 LOCAL_CFLAGS += -I$(FRAMEWORK)/tests/programs
 
 ## The following assignment is the list of base names of applications that
@@ -36,13 +39,7 @@ LOCAL_CFLAGS += -I$(FRAMEWORK)/tests/programs
 ## Note: Variables cannot be used to define an apps path. This cannot be
 ## substituted by the script generate_visualc_files.pl.
 APPS = \
-	../tf-psa-crypto/programs/psa/aead_demo \
-	../tf-psa-crypto/programs/psa/crypto_examples \
-	../tf-psa-crypto/programs/psa/hmac_demo \
-	../tf-psa-crypto/programs/psa/key_ladder_demo \
-	../tf-psa-crypto/programs/psa/psa_constant_names \
-	../tf-psa-crypto/programs/psa/psa_hash \
-	../tf-psa-crypto/programs/test/which_aes \
+	$(TF_PSA_CRYPTO_APPS) \
 	ssl/dtls_client \
 	ssl/dtls_server \
 	ssl/mini_client \
@@ -108,16 +105,10 @@ ${MBEDTLS_TEST_OBJS}:
 	$(MAKE) -C ../tests mbedtls_test
 
 .PHONY: generated_files
-GENERATED_FILES = ../tf-psa-crypto/programs/psa/psa_constant_names_generated.c test/query_config.c
+GENERATED_FILES := \
+	test/query_config.c \
+	$(TF_PSA_CRYPTO_PROGRAMS_GENERATED_FILES)
 generated_files: $(GENERATED_FILES)
-
-../tf-psa-crypto/programs/psa/psa_constant_names_generated.c: $(gen_file_dep) ../tf-psa-crypto/scripts/generate_psa_constants.py
-../tf-psa-crypto/programs/psa/psa_constant_names_generated.c: $(gen_file_dep) ../tf-psa-crypto/include/psa/crypto_values.h
-../tf-psa-crypto/programs/psa/psa_constant_names_generated.c: $(gen_file_dep) ../tf-psa-crypto/include/psa/crypto_extra.h
-../tf-psa-crypto/programs/psa/psa_constant_names_generated.c: $(gen_file_dep) ../tf-psa-crypto/tests/suites/test_suite_psa_crypto_metadata.data
-../tf-psa-crypto/programs/psa/psa_constant_names_generated.c:
-	echo "  Gen   $@"
-	cd ../tf-psa-crypto; $(PYTHON) ./scripts/generate_psa_constants.py
 
 test/query_config.c: $(gen_file_dep) ../scripts/generate_query_config.pl
 ## The generated file only depends on the options that are present in mbedtls_config.h,
@@ -130,34 +121,6 @@ test/query_config.c: $(gen_file_dep) ../scripts/data_files/query_config.fmt
 test/query_config.c:
 	echo "  Gen   $@"
 	$(PERL) ../scripts/generate_query_config.pl
-
-../tf-psa-crypto/programs/psa/aead_demo$(EXEXT): ../tf-psa-crypto/programs/psa/aead_demo.c $(DEP)
-	echo "  CC    psa/aead_demo.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) ../tf-psa-crypto/programs/psa/aead_demo.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-../tf-psa-crypto/programs/psa/crypto_examples$(EXEXT): ../tf-psa-crypto/programs/psa/crypto_examples.c $(DEP)
-	echo "  CC    psa/crypto_examples.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) ../tf-psa-crypto/programs/psa/crypto_examples.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-../tf-psa-crypto/programs/psa/hmac_demo$(EXEXT): ../tf-psa-crypto/programs/psa/hmac_demo.c $(DEP)
-	echo "  CC    psa/hmac_demo.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) ../tf-psa-crypto/programs/psa/hmac_demo.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-../tf-psa-crypto/programs/psa/key_ladder_demo$(EXEXT): ../tf-psa-crypto/programs/psa/key_ladder_demo.c $(DEP)
-	echo "  CC    psa/key_ladder_demo.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) ../tf-psa-crypto/programs/psa/key_ladder_demo.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-../tf-psa-crypto/programs/psa/psa_constant_names$(EXEXT): ../tf-psa-crypto/programs/psa/psa_constant_names.c ../tf-psa-crypto/programs/psa/psa_constant_names_generated.c $(DEP)
-	echo "  CC    psa/psa_constant_names.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) ../tf-psa-crypto/programs/psa/psa_constant_names.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-../tf-psa-crypto/programs/psa/psa_hash$(EXEXT): ../tf-psa-crypto/programs/psa/psa_hash.c $(DEP)
-	echo "  CC    psa/psa_hash.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) ../tf-psa-crypto/programs/psa/psa_hash.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-../tf-psa-crypto/programs/test/which_aes$(EXEXT): ../tf-psa-crypto/programs/test/which_aes.c $(DEP)
-	echo "  CC    test/which_aes.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) ../tf-psa-crypto/programs/test/which_aes.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 ssl/dtls_client$(EXEXT): ssl/dtls_client.c $(DEP)
 	echo "  CC    ssl/dtls_client.c"
@@ -233,7 +196,7 @@ endif
 
 test/metatest$(EXEXT): $(FRAMEWORK)/tests/programs/metatest.c $(DEP)
 	echo "  CC    $(FRAMEWORK)/tests/programs/metatest.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) -I../library -I../tf-psa-crypto/core -I../tf-psa-crypto/drivers/builtin/include -I../tf-psa-crypto/drivers/builtin/src $(FRAMEWORK)/tests/programs/metatest.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) -I../library -I../tf-psa-crypto/core -I../tf-psa-crypto/drivers/builtin/src -I../tf-psa-crypto/platform $(FRAMEWORK)/tests/programs/metatest.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 test/query_config.o: test/query_config.c $(FRAMEWORK)/tests/programs/query_config.h $(DEP)
 	echo "  CC    test/query_config.c"

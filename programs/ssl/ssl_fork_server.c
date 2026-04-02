@@ -5,19 +5,15 @@
  *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
-#define MBEDTLS_DECLARE_PRIVATE_IDENTIFIERS
-
 #include "mbedtls/build_info.h"
 
 #include "mbedtls/platform.h"
 
-#if !defined(MBEDTLS_ENTROPY_C) || !defined(MBEDTLS_CTR_DRBG_C) ||      \
-    !defined(MBEDTLS_NET_C) || !defined(MBEDTLS_SSL_SRV_C) ||           \
+#if !defined(MBEDTLS_NET_C) || !defined(MBEDTLS_SSL_SRV_C) ||           \
     !defined(MBEDTLS_PEM_PARSE_C) || !defined(MBEDTLS_X509_CRT_PARSE_C)
 int main(void)
 {
-    mbedtls_printf("MBEDTLS_ENTROPY_C and/or MBEDTLS_CTR_DRBG_C and/or "
-                   "MBEDTLS_NET_C and/or MBEDTLS_SSL_SRV_C and/or "
+    mbedtls_printf("MBEDTLS_NET_C and/or MBEDTLS_SSL_SRV_C and/or "
                    "MBEDTLS_PEM_PARSE_C and/or MBEDTLS_X509_CRT_PARSE_C "
                    "not defined.\n");
     mbedtls_exit(0);
@@ -31,8 +27,6 @@ int main(void)
 }
 #else
 
-#include "mbedtls/private/entropy.h"
-#include "mbedtls/private/ctr_drbg.h"
 #include "test/certs.h"
 #include "mbedtls/x509.h"
 #include "mbedtls/ssl.h"
@@ -70,10 +64,7 @@ int main(void)
     int exit_code = MBEDTLS_EXIT_FAILURE;
     mbedtls_net_context listen_fd, client_fd;
     unsigned char buf[1024];
-    const char *pers = "ssl_fork_server";
 
-    mbedtls_entropy_context entropy;
-    mbedtls_ctr_drbg_context ctr_drbg;
     mbedtls_ssl_context ssl;
     mbedtls_ssl_config conf;
     mbedtls_x509_crt srvcert;
@@ -83,10 +74,8 @@ int main(void)
     mbedtls_net_init(&client_fd);
     mbedtls_ssl_init(&ssl);
     mbedtls_ssl_config_init(&conf);
-    mbedtls_entropy_init(&entropy);
     mbedtls_pk_init(&pkey);
     mbedtls_x509_crt_init(&srvcert);
-    mbedtls_ctr_drbg_init(&ctr_drbg);
 
     psa_status_t status = psa_crypto_init();
     if (status != PSA_SUCCESS) {
@@ -102,13 +91,6 @@ int main(void)
      */
     mbedtls_printf("\n  . Initial seeding of the random generator...");
     fflush(stdout);
-
-    if ((ret = mbedtls_ctr_drbg_seed(&ctr_drbg, mbedtls_entropy_func, &entropy,
-                                     (const unsigned char *) pers,
-                                     strlen(pers))) != 0) {
-        mbedtls_printf(" failed!  mbedtls_ctr_drbg_seed returned %d\n\n", ret);
-        goto exit;
-    }
 
     mbedtls_printf(" ok\n");
 
@@ -218,13 +200,6 @@ int main(void)
             mbedtls_net_close(&client_fd);
             fflush(stdout);
 
-            if ((ret = mbedtls_ctr_drbg_reseed(&ctr_drbg,
-                                               (const unsigned char *) "parent",
-                                               6)) != 0) {
-                mbedtls_printf(" failed!  mbedtls_ctr_drbg_reseed returned %d\n\n", ret);
-                goto exit;
-            }
-
             continue;
         }
 
@@ -237,15 +212,6 @@ int main(void)
          */
         mbedtls_printf("pid %d: Setting up the SSL data.\n", pid);
         fflush(stdout);
-
-        if ((ret = mbedtls_ctr_drbg_reseed(&ctr_drbg,
-                                           (const unsigned char *) "child",
-                                           5)) != 0) {
-            mbedtls_printf(
-                "pid %d: SSL setup failed!  mbedtls_ctr_drbg_reseed returned %d\n\n",
-                pid, ret);
-            goto exit;
-        }
 
         if ((ret = mbedtls_ssl_setup(&ssl, &conf)) != 0) {
             mbedtls_printf(
@@ -364,13 +330,11 @@ exit:
     mbedtls_pk_free(&pkey);
     mbedtls_ssl_free(&ssl);
     mbedtls_ssl_config_free(&conf);
-    mbedtls_ctr_drbg_free(&ctr_drbg);
-    mbedtls_entropy_free(&entropy);
     mbedtls_psa_crypto_free();
 
     mbedtls_exit(exit_code);
 }
-#endif /* MBEDTLS_BIGNUM_C && MBEDTLS_ENTROPY_C &&
+#endif /* MBEDTLS_BIGNUM_C &&
           MBEDTLS_SSL_TLS_C && MBEDTLS_SSL_SRV_C && MBEDTLS_NET_C &&
-          MBEDTLS_RSA_C && MBEDTLS_CTR_DRBG_C && MBEDTLS_PEM_PARSE_C &&
+          MBEDTLS_RSA_C && MBEDTLS_PEM_PARSE_C &&
           ! _WIN32 */

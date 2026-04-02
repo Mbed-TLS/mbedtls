@@ -330,7 +330,7 @@ component_test_arm_linux_gnueabi_gcc_arm5vte () {
     programs/test/selftest
 
     msg "program demos: make, default config (out-of-box)" # ~0s
-    tests/scripts/run_demos.py
+    framework/scripts/run_demos.py
 }
 
 support_test_arm_linux_gnueabi_gcc_arm5vte () {
@@ -350,7 +350,7 @@ component_test_arm_linux_gnueabi_gcc_thumb_1_opt_0 () {
     programs/test/selftest
 
     msg "program demos: make, default config (out-of-box)" # ~0s
-    tests/scripts/run_demos.py
+    framework/scripts/run_demos.py
 }
 
 support_test_arm_linux_gnueabi_gcc_thumb_1_opt_0 () {
@@ -368,7 +368,7 @@ component_test_arm_linux_gnueabi_gcc_thumb_1_opt_s () {
     programs/test/selftest
 
     msg "program demos: make, default config (out-of-box)" # ~0s
-    tests/scripts/run_demos.py
+    framework/scripts/run_demos.py
 }
 
 support_test_arm_linux_gnueabi_gcc_thumb_1_opt_s () {
@@ -386,7 +386,7 @@ component_test_arm_linux_gnueabihf_gcc_armv7 () {
     programs/test/selftest
 
     msg "program demos: make, default config (out-of-box)" # ~0s
-    tests/scripts/run_demos.py
+    framework/scripts/run_demos.py
 }
 
 support_test_arm_linux_gnueabihf_gcc_armv7 () {
@@ -404,7 +404,7 @@ component_test_arm_linux_gnueabihf_gcc_thumb_2 () {
     programs/test/selftest
 
     msg "program demos: make, default config (out-of-box)" # ~0s
-    tests/scripts/run_demos.py
+    framework/scripts/run_demos.py
 }
 
 support_test_arm_linux_gnueabihf_gcc_thumb_2 () {
@@ -422,7 +422,7 @@ component_test_aarch64_linux_gnu_gcc () {
     programs/test/selftest
 
     msg "program demos: make, default config (out-of-box)" # ~0s
-    tests/scripts/run_demos.py
+    framework/scripts/run_demos.py
 }
 
 support_test_aarch64_linux_gnu_gcc () {
@@ -439,6 +439,18 @@ component_build_arm_none_eabi_gcc () {
     ${ARM_NONE_EABI_GCC_PREFIX}size -t library/*.o
     ${ARM_NONE_EABI_GCC_PREFIX}size -t ${PSA_CORE_PATH}/*.o
     ${ARM_NONE_EABI_GCC_PREFIX}size -t ${BUILTIN_SRC_PATH}/*.o
+    if compgen -G "${TF_PSA_CRYPTO_ROOT_DIR}/dispatch/*.o" > /dev/null; then
+        ${ARM_NONE_EABI_GCC_PREFIX}size -t ${TF_PSA_CRYPTO_ROOT_DIR}/dispatch/*.o
+    fi
+    if compgen -G "${TF_PSA_CRYPTO_ROOT_DIR}/extras/*.o" > /dev/null; then
+        ${ARM_NONE_EABI_GCC_PREFIX}size -t ${TF_PSA_CRYPTO_ROOT_DIR}/extras/*.o
+    fi
+    if compgen -G "${TF_PSA_CRYPTO_ROOT_DIR}/platform/*.o" > /dev/null; then
+        ${ARM_NONE_EABI_GCC_PREFIX}size -t ${TF_PSA_CRYPTO_ROOT_DIR}/platform/*.o
+    fi
+    if compgen -G "${TF_PSA_CRYPTO_ROOT_DIR}/utilities/*.o" > /dev/null; then
+        ${ARM_NONE_EABI_GCC_PREFIX}size -t ${TF_PSA_CRYPTO_ROOT_DIR}/utilities/*.o
+    fi
 }
 
 component_build_arm_linux_gnueabi_gcc_arm5vte () {
@@ -455,6 +467,18 @@ component_build_arm_linux_gnueabi_gcc_arm5vte () {
     ${ARM_LINUX_GNUEABI_GCC_PREFIX}size -t library/*.o
     ${ARM_LINUX_GNUEABI_GCC_PREFIX}size -t ${PSA_CORE_PATH}/*.o
     ${ARM_LINUX_GNUEABI_GCC_PREFIX}size -t ${BUILTIN_SRC_PATH}/*.o
+    if compgen -G "${TF_PSA_CRYPTO_ROOT_DIR}/dispatch/*.o" > /dev/null; then
+        ${ARM_LINUX_GNUEABI_GCC_PREFIX}size -t ${TF_PSA_CRYPTO_ROOT_DIR}/dispatch/*.o
+    fi
+    if compgen -G "${TF_PSA_CRYPTO_ROOT_DIR}/extras/*.o" > /dev/null; then
+        ${ARM_LINUX_GNUEABI_GCC_PREFIX}size -t ${TF_PSA_CRYPTO_ROOT_DIR}/extras/*.o
+    fi
+    if compgen -G "${TF_PSA_CRYPTO_ROOT_DIR}/platform/*.o" > /dev/null; then
+        ${ARM_LINUX_GNUEABI_GCC_PREFIX}size -t ${TF_PSA_CRYPTO_ROOT_DIR}/platform/*.o
+    fi
+    if compgen -G "${TF_PSA_CRYPTO_ROOT_DIR}/utilities/*.o" > /dev/null; then
+        ${ARM_LINUX_GNUEABI_GCC_PREFIX}size -t ${TF_PSA_CRYPTO_ROOT_DIR}/utilities/*.o
+    fi
 }
 
 support_build_arm_linux_gnueabi_gcc_arm5vte () {
@@ -473,6 +497,18 @@ component_build_arm_none_eabi_gcc_arm5vte () {
     ${ARM_NONE_EABI_GCC_PREFIX}size -t library/*.o
     ${ARM_NONE_EABI_GCC_PREFIX}size -t ${PSA_CORE_PATH}/*.o
     ${ARM_NONE_EABI_GCC_PREFIX}size -t ${BUILTIN_SRC_PATH}/*.o
+    if compgen -G "${TF_PSA_CRYPTO_ROOT_DIR}/dispatch/*.o" > /dev/null; then
+        ${ARM_NONE_EABI_GCC_PREFIX}size -t ${TF_PSA_CRYPTO_ROOT_DIR}/dispatch/*.o
+    fi
+    if compgen -G "${TF_PSA_CRYPTO_ROOT_DIR}/extras/*.o" > /dev/null; then
+        ${ARM_NONE_EABI_GCC_PREFIX}size -t ${TF_PSA_CRYPTO_ROOT_DIR}/extras/*.o
+    fi
+    if compgen -G "${TF_PSA_CRYPTO_ROOT_DIR}/platform/*.o" > /dev/null; then
+        ${ARM_NONE_EABI_GCC_PREFIX}size -t ${TF_PSA_CRYPTO_ROOT_DIR}/platform/*.o
+    fi
+    if compgen -G "${TF_PSA_CRYPTO_ROOT_DIR}/utilities/*.o" > /dev/null; then
+        ${ARM_NONE_EABI_GCC_PREFIX}size -t ${TF_PSA_CRYPTO_ROOT_DIR}/utilities/*.o
+    fi
 }
 
 component_build_arm_none_eabi_gcc_m0plus () {
@@ -484,6 +520,18 @@ component_build_arm_none_eabi_gcc_m0plus () {
     ${ARM_NONE_EABI_GCC_PREFIX}size -t library/*.o
     ${ARM_NONE_EABI_GCC_PREFIX}size -t ${PSA_CORE_PATH}/*.o
     ${ARM_NONE_EABI_GCC_PREFIX}size -t ${BUILTIN_SRC_PATH}/*.o
+    if compgen -G "${TF_PSA_CRYPTO_ROOT_DIR}/dispatch/*.o" > /dev/null; then
+        ${ARM_NONE_EABI_GCC_PREFIX}size -t ${TF_PSA_CRYPTO_ROOT_DIR}/dispatch/*.o
+    fi
+    if compgen -G "${TF_PSA_CRYPTO_ROOT_DIR}/extras/*.o" > /dev/null; then
+        ${ARM_NONE_EABI_GCC_PREFIX}size -t ${TF_PSA_CRYPTO_ROOT_DIR}/extras/*.o
+    fi
+    if compgen -G "${TF_PSA_CRYPTO_ROOT_DIR}/platform/*.o" > /dev/null; then
+        ${ARM_NONE_EABI_GCC_PREFIX}size -t ${TF_PSA_CRYPTO_ROOT_DIR}/platform/*.o
+    fi
+    if compgen -G "${TF_PSA_CRYPTO_ROOT_DIR}/utilities/*.o" > /dev/null; then
+        ${ARM_NONE_EABI_GCC_PREFIX}size -t ${TF_PSA_CRYPTO_ROOT_DIR}/utilities/*.o
+    fi
     for lib in library/*.a; do
         echo "$lib:"
         ${ARM_NONE_EABI_GCC_PREFIX}size -t $lib | grep TOTALS
@@ -499,6 +547,18 @@ component_build_arm_none_eabi_gcc_no_udbl_division () {
     not grep __aeabi_uldiv library/*.o
     not grep __aeabi_uldiv ${PSA_CORE_PATH}/*.o
     not grep __aeabi_uldiv ${BUILTIN_SRC_PATH}/*.o
+    if compgen -G "${TF_PSA_CRYPTO_ROOT_DIR}/dispatch/*.o" > /dev/null; then
+        not grep __aeabi_uldiv ${TF_PSA_CRYPTO_ROOT_DIR}/dispatch/*.o
+    fi
+    if compgen -G "${TF_PSA_CRYPTO_ROOT_DIR}/extras/*.o" > /dev/null; then
+        not grep __aeabi_uldiv ${TF_PSA_CRYPTO_ROOT_DIR}/extras/*.o
+    fi
+    if compgen -G "${TF_PSA_CRYPTO_ROOT_DIR}/platform/*.o" > /dev/null; then
+        not grep __aeabi_uldiv ${TF_PSA_CRYPTO_ROOT_DIR}/platform/*.o
+    fi
+    if compgen -G "${TF_PSA_CRYPTO_ROOT_DIR}/utilities/*.o" > /dev/null; then
+        not grep __aeabi_uldiv ${TF_PSA_CRYPTO_ROOT_DIR}/utilities/*.o
+    fi
 }
 
 component_build_arm_none_eabi_gcc_no_64bit_multiplication () {
@@ -510,6 +570,18 @@ component_build_arm_none_eabi_gcc_no_64bit_multiplication () {
     not grep __aeabi_lmul library/*.o
     not grep __aeabi_lmul ${PSA_CORE_PATH}/*.o
     not grep __aeabi_lmul ${BUILTIN_SRC_PATH}/*.o
+    if compgen -G "${TF_PSA_CRYPTO_ROOT_DIR}/dispatch/*.o" > /dev/null; then
+        not grep __aeabi_lmul ${TF_PSA_CRYPTO_ROOT_DIR}/dispatch/*.o
+    fi
+    if compgen -G "${TF_PSA_CRYPTO_ROOT_DIR}/extras/*.o" > /dev/null; then
+        not grep __aeabi_lmul ${TF_PSA_CRYPTO_ROOT_DIR}/extras/*.o
+    fi
+    if compgen -G "${TF_PSA_CRYPTO_ROOT_DIR}/platform/*.o" > /dev/null; then
+        not grep __aeabi_lmul ${TF_PSA_CRYPTO_ROOT_DIR}/platform/*.o
+    fi
+    if compgen -G "${TF_PSA_CRYPTO_ROOT_DIR}/utilities/*.o" > /dev/null; then
+        not grep __aeabi_lmul ${TF_PSA_CRYPTO_ROOT_DIR}/utilities/*.o
+    fi
 }
 
 component_build_arm_clang_thumb () {

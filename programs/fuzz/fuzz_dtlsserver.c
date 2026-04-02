@@ -1,5 +1,3 @@
-#define MBEDTLS_DECLARE_PRIVATE_IDENTIFIERS
-
 #include <string.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -7,14 +5,10 @@
 #include "mbedtls/ssl.h"
 #include "test/certs.h"
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
-#include "mbedtls/private/entropy.h"
-#include "mbedtls/private/ctr_drbg.h"
 #include "mbedtls/timing.h"
 #include "mbedtls/ssl_cookie.h"
 
 #if defined(MBEDTLS_SSL_SRV_C) && \
-    defined(MBEDTLS_ENTROPY_C) && \
-    defined(MBEDTLS_CTR_DRBG_C) && \
     defined(MBEDTLS_TIMING_C) && \
     (defined(PSA_WANT_ALG_SHA_384) || \
     defined(PSA_WANT_ALG_SHA_256))
@@ -32,8 +26,6 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size)
 {
 #if defined(MBEDTLS_SSL_PROTO_DTLS) && \
     defined(MBEDTLS_SSL_SRV_C) && \
-    defined(MBEDTLS_ENTROPY_C) && \
-    defined(MBEDTLS_CTR_DRBG_C) && \
     defined(MBEDTLS_TIMING_C) && \
     (defined(PSA_WANT_ALG_SHA_384) || \
     defined(PSA_WANT_ALG_SHA_256))
@@ -41,15 +33,11 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size)
     size_t len;
     mbedtls_ssl_context ssl;
     mbedtls_ssl_config conf;
-    mbedtls_ctr_drbg_context ctr_drbg;
-    mbedtls_entropy_context entropy;
     mbedtls_timing_delay_context timer;
     mbedtls_ssl_cookie_ctx cookie_ctx;
     unsigned char buf[4096];
     fuzzBufferOffset_t biomemfuzz;
 
-    mbedtls_ctr_drbg_init(&ctr_drbg);
-    mbedtls_entropy_init(&entropy);
 #if defined(MBEDTLS_X509_CRT_PARSE_C) && defined(MBEDTLS_PEM_PARSE_C)
     mbedtls_x509_crt_init(&srvcert);
     mbedtls_pk_init(&pkey);
@@ -60,11 +48,6 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size)
 
     psa_status_t status = psa_crypto_init();
     if (status != PSA_SUCCESS) {
-        goto exit;
-    }
-
-    if (mbedtls_ctr_drbg_seed(&ctr_drbg, dummy_entropy, &entropy,
-                              (const unsigned char *) pers, strlen(pers)) != 0) {
         goto exit;
     }
 
@@ -156,12 +139,10 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size)
 
 exit:
     mbedtls_ssl_cookie_free(&cookie_ctx);
-    mbedtls_entropy_free(&entropy);
 #if defined(MBEDTLS_X509_CRT_PARSE_C) && defined(MBEDTLS_PEM_PARSE_C)
     mbedtls_pk_free(&pkey);
     mbedtls_x509_crt_free(&srvcert);
 #endif
-    mbedtls_ctr_drbg_free(&ctr_drbg);
     mbedtls_ssl_config_free(&conf);
     mbedtls_ssl_free(&ssl);
     mbedtls_psa_crypto_free();

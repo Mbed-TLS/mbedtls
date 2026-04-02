@@ -118,7 +118,7 @@ const mbedtls_x509_crt_profile mbedtls_x509_crt_profile_next =
     MBEDTLS_X509_ID_FLAG(MBEDTLS_MD_SHA384) |
     MBEDTLS_X509_ID_FLAG(MBEDTLS_MD_SHA512),
     0xFFFFFFF, /* Any PK alg    */
-#if defined(MBEDTLS_ECP_C)
+#if defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
     /* Curves at or above 128-bit security level. */
     MBEDTLS_X509_ID_FLAG(MBEDTLS_ECP_DP_SECP256R1) |
     MBEDTLS_X509_ID_FLAG(MBEDTLS_ECP_DP_SECP384R1) |
@@ -210,7 +210,7 @@ static int x509_profile_check_key(const mbedtls_x509_crt_profile *profile,
 {
     const mbedtls_pk_type_t pk_alg = mbedtls_pk_get_type(pk);
 
-#if defined(MBEDTLS_RSA_C)
+#if defined(PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC)
     if (pk_alg == MBEDTLS_PK_RSA || pk_alg == MBEDTLS_PK_RSASSA_PSS) {
         if (mbedtls_pk_get_bitlen(pk) >= profile->rsa_min_bitlen) {
             return 0;
@@ -218,7 +218,7 @@ static int x509_profile_check_key(const mbedtls_x509_crt_profile *profile,
 
         return -1;
     }
-#endif /* MBEDTLS_RSA_C */
+#endif /* PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC */
 
 #if defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
     if (pk_alg == MBEDTLS_PK_ECDSA ||
@@ -1806,7 +1806,7 @@ int mbedtls_x509_crt_info(char *buf, size_t size, const char *prefix,
 
     /* Key size */
     if ((ret = mbedtls_x509_key_size_helper(key_size_str, MBEDTLS_BEFORE_COLON,
-                                            mbedtls_pk_get_name(&crt->pk))) != 0) {
+                                            mbedtls_x509_pk_type_as_string(&crt->pk))) != 0) {
         return ret;
     }
 
@@ -2719,22 +2719,25 @@ static int x509_inet_pton_ipv6(const char *src, void *dst)
             if (*p == '\0') {
                 break;
             } else if (*p == '.') {
-                /* Don't accept IPv4 too early or late */
-                if ((nonzero_groups == 0 && zero_group_start == -1) ||
+                /* Don't accept IPv4 too early or late:
+                 * - The first 6 nonzero groups must be 16 bit pieces of address delimited by ':'
+                 * - This might be fully or partially represented with compressed syntax (a zero
+                 *   group "::")
+                 */
+                if ((nonzero_groups < 6 && zero_group_start == -1) ||
                     nonzero_groups >= 7) {
                     break;
                 }
 
-                /* Walk back to prior ':', then parse as IPv4-mapped */
-                int steps = 4;
+                /* Walk back to prior ':', then parse as IPv4-mapped.
+                 * At this point nonzero_groups == 6 or zero_group_start >= 0. Either way we have a
+                 * ':' before the current position and still inside the buffer. Thus it is safe to
+                 * search back for that ':' without any further checks.
+                 */
                 do {
                     p--;
-                    steps--;
-                } while (*p != ':' && steps > 0);
+                } while (*p != ':');
 
-                if (*p != ':') {
-                    break;
-                }
                 p++;
                 nonzero_groups--;
                 if (x509_inet_pton_ipv4((const char *) p,

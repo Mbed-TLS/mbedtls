@@ -1250,6 +1250,12 @@ struct mbedtls_ssl_session {
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
     mbedtls_ssl_tls13_application_secrets MBEDTLS_PRIVATE(app_secrets);
 #endif
+
+    /* Unused field reserved for future use */
+    union {
+        size_t number;
+        void *ptr;
+    } MBEDTLS_PRIVATE(unused);
 };
 
 /*
@@ -1576,6 +1582,12 @@ struct mbedtls_ssl_config {
 #if defined(MBEDTLS_KEY_EXCHANGE_CERT_REQ_ALLOWED_ENABLED)
     const mbedtls_x509_crt *MBEDTLS_PRIVATE(dn_hints);/*!< acceptable client cert issuers    */
 #endif
+
+    /* Unused field reserved for future use */
+    union {
+        size_t number;
+        void *ptr;
+    } MBEDTLS_PRIVATE(unused);
 };
 
 struct mbedtls_ssl_context {
@@ -1726,6 +1738,13 @@ struct mbedtls_ssl_context {
     int MBEDTLS_PRIVATE(keep_current_message);   /*!< drop or reuse current message
                                                     on next call to record layer? */
 
+    unsigned char MBEDTLS_PRIVATE(in_fatal_alert_recv);   /*!< Determines if a fatal alert has
+                                                             been received. Values:
+                                                             - \c 0 , no fatal alert received.
+                                                             - \c 1 , a fatal alert has been received */
+    unsigned char MBEDTLS_PRIVATE(in_fatal_alert_type); /*!< Type of fatal alert if in_alert_recv
+                                                           != 0 */
+
     /* The following three variables indicate if and, if yes,
      * what kind of alert is pending to be sent.
      */
@@ -1852,6 +1871,12 @@ struct mbedtls_ssl_context {
      *          does not currently restore the user data.
      */
     mbedtls_ssl_user_data_t MBEDTLS_PRIVATE(user_data);
+
+    /* Unused field reserved for future use */
+    union {
+        size_t number;
+        void *ptr;
+    } MBEDTLS_PRIVATE(unused);
 };
 
 /**
@@ -3160,6 +3185,27 @@ int mbedtls_ssl_set_session(mbedtls_ssl_context *ssl, const mbedtls_ssl_session 
  *                 On server, this can be used for alternative implementations
  *                 of session cache or session tickets.
  *
+ * \warning        The serialized data contains highly sensitive material,
+ *                 including a resumption key (TLS 1.3) or the master secret
+ *                 (TLS 1.2) from which the session's traffic keys are derived.
+ *
+ *                 The serialized data is not cryptographically protected.
+ *                 It is the responsibility of the user of the
+ *                 mbedtls_ssl_session_save() and
+ *                 mbedtls_ssl_session_load() APIs to ensure both its
+ *                 confidentiality and integrity while stored or transported.
+ *
+ *                 A breach of confidentiality could result in full compromise
+ *                 of the associated TLS session, including loss of
+ *                 confidentiality and integrity of past and future
+ *                 application data protected under that session.
+ *
+ *                 A breach of integrity may allow modification of the
+ *                 serialized data prior to restoration. As it represents
+ *                 trusted internal context, tampering could potentially result
+ *                 in arbitrary code execution or other severe compromise of
+ *                 the hosting process.
+ *
  * \warning        If a peer certificate chain is associated with the session,
  *                 the serialized state will only contain the peer's
  *                 end-entity certificate and the result of the chain
@@ -3197,6 +3243,19 @@ int mbedtls_ssl_session_load(mbedtls_ssl_session *session,
  *                 of session cache or session tickets.
  *
  * \see            mbedtls_ssl_session_load()
+ *
+ * \warning        The serialized data contains highly sensitive material,
+ *                 including a resumption key (TLS 1.3) or the master secret
+ *                 (TLS 1.2) from which the session's traffic keys are derived.
+ *
+ *                 The serialized data is not cryptographically protected.
+ *                 It is the responsibility of the user of the
+ *                 mbedtls_ssl_session_save() and
+ *                 mbedtls_ssl_session_load() APIs to ensure both its
+ *                 confidentiality and integrity while stored or transported.
+ *
+ *                 See the mbedtls_ssl_session_load() documentation for
+ *                 additional information.
  *
  * \param session  The session structure to be saved.
  * \param buf      The buffer to write the serialized data to. It must be a
@@ -3672,6 +3731,146 @@ void mbedtls_ssl_conf_psk_cb(mbedtls_ssl_config *conf,
 #endif /* MBEDTLS_SSL_HANDSHAKE_WITH_PSK_ENABLED */
 
 /**
+ * This structure defines each entry of the macro #MBEDTLS_SSL_IANA_TLS_GROUPS_INFO.
+ *
+ * \note Future versions of the library might add new fields to this structure.
+ */
+typedef struct {
+    /** TLS-ID */
+    uint16_t tls_id;
+
+    /** Group name */
+    const char *group_name;
+
+    /** 1 if the group is supported; 0 otherwise */
+    uint8_t is_supported;
+} mbedtls_ssl_iana_tls_group_info_t;
+
+/* Helpers to check which PSA_WANT_xxx symbols are defined for groups. */
+#if defined(PSA_WANT_ECC_MONTGOMERY_255)
+#define MBEDTLS_SSL_HAVE_GROUP_X25519 1
+#else
+#define MBEDTLS_SSL_HAVE_GROUP_X25519 0
+#endif
+#if defined(PSA_WANT_ECC_SECP_R1_256)
+#define MBEDTLS_SSL_HAVE_GROUP_SECP256R1 1
+#else
+#define MBEDTLS_SSL_HAVE_GROUP_SECP256R1 0
+#endif
+#if defined(PSA_WANT_ECC_SECP_K1_256)
+#define MBEDTLS_SSL_HAVE_GROUP_SECP256K1 1
+#else
+#define MBEDTLS_SSL_HAVE_GROUP_SECP256K1 0
+#endif
+#if defined(PSA_WANT_ECC_SECP_R1_384)
+#define MBEDTLS_SSL_HAVE_GROUP_SECP384R1 1
+#else
+#define MBEDTLS_SSL_HAVE_GROUP_SECP384R1 0
+#endif
+#if defined(PSA_WANT_ECC_MONTGOMERY_448)
+#define MBEDTLS_SSL_HAVE_GROUP_X448 1
+#else
+#define MBEDTLS_SSL_HAVE_GROUP_X448 0
+#endif
+#if defined(PSA_WANT_ECC_SECP_R1_521)
+#define MBEDTLS_SSL_HAVE_GROUP_SECP521R1 1
+#else
+#define MBEDTLS_SSL_HAVE_GROUP_SECP521R1 0
+#endif
+#if defined(PSA_WANT_ECC_BRAINPOOL_P_R1_256)
+#define MBEDTLS_SSL_HAVE_GROUP_BP256R1 1
+#else
+#define MBEDTLS_SSL_HAVE_GROUP_BP256R1 0
+#endif
+#if defined(PSA_WANT_ECC_BRAINPOOL_P_R1_384)
+#define MBEDTLS_SSL_HAVE_GROUP_BP384R1 1
+#else
+#define MBEDTLS_SSL_HAVE_GROUP_BP384R1 0
+#endif
+#if defined(PSA_WANT_ECC_BRAINPOOL_P_R1_512)
+#define MBEDTLS_SSL_HAVE_GROUP_BP512R1 1
+#else
+#define MBEDTLS_SSL_HAVE_GROUP_BP512R1 0
+#endif
+#if defined(PSA_WANT_DH_RFC7919_2048)
+#define MBEDTLS_SSL_HAVE_GROUP_FFDHE2048 1
+#else
+#define MBEDTLS_SSL_HAVE_GROUP_FFDHE2048 0
+#endif
+#if defined(PSA_WANT_DH_RFC7919_3072)
+#define MBEDTLS_SSL_HAVE_GROUP_FFDHE3072 1
+#else
+#define MBEDTLS_SSL_HAVE_GROUP_FFDHE3072 0
+#endif
+#if defined(PSA_WANT_DH_RFC7919_4096)
+#define MBEDTLS_SSL_HAVE_GROUP_FFDHE4096 1
+#else
+#define MBEDTLS_SSL_HAVE_GROUP_FFDHE4096 0
+#endif
+#if defined(PSA_WANT_DH_RFC7919_6144)
+#define MBEDTLS_SSL_HAVE_GROUP_FFDHE6144 1
+#else
+#define MBEDTLS_SSL_HAVE_GROUP_FFDHE6144 0
+#endif
+#if defined(PSA_WANT_DH_RFC7919_8192)
+#define MBEDTLS_SSL_HAVE_GROUP_FFDHE8192 1
+#else
+#define MBEDTLS_SSL_HAVE_GROUP_FFDHE8192 0
+#endif
+
+/**
+ * Initializer for a list of known TLS 1.2 named elliptic curves and
+ * TLS 1.3 groups, with their names.
+ *
+ * Each entry is a structure of type #mbedtls_ssl_iana_tls_group_info_t.
+ * The last entry has `tls_id = 0` and `group_name = NULL`.
+ */
+#define MBEDTLS_SSL_IANA_TLS_GROUPS_INFO                                                           \
+    {                                                                                              \
+        { MBEDTLS_SSL_IANA_TLS_GROUP_X25519, "x25519", MBEDTLS_SSL_HAVE_GROUP_X25519 },            \
+        { MBEDTLS_SSL_IANA_TLS_GROUP_SECP256R1, "secp256r1", MBEDTLS_SSL_HAVE_GROUP_SECP256R1 },   \
+        { MBEDTLS_SSL_IANA_TLS_GROUP_SECP256K1, "secp256k1", MBEDTLS_SSL_HAVE_GROUP_SECP256K1 },   \
+        { MBEDTLS_SSL_IANA_TLS_GROUP_SECP384R1, "secp384r1", MBEDTLS_SSL_HAVE_GROUP_SECP384R1 },   \
+        { MBEDTLS_SSL_IANA_TLS_GROUP_X448, "x448", MBEDTLS_SSL_HAVE_GROUP_X448 },                  \
+        { MBEDTLS_SSL_IANA_TLS_GROUP_SECP521R1, "secp521r1", MBEDTLS_SSL_HAVE_GROUP_SECP521R1 },   \
+        { MBEDTLS_SSL_IANA_TLS_GROUP_BP256R1, "brainpoolP256r1", MBEDTLS_SSL_HAVE_GROUP_BP256R1 }, \
+        { MBEDTLS_SSL_IANA_TLS_GROUP_BP384R1, "brainpoolP384r1", MBEDTLS_SSL_HAVE_GROUP_BP384R1 }, \
+        { MBEDTLS_SSL_IANA_TLS_GROUP_BP512R1, "brainpoolP512r1", MBEDTLS_SSL_HAVE_GROUP_BP512R1 }, \
+        { MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE2048, "ffdhe2048", MBEDTLS_SSL_HAVE_GROUP_FFDHE2048 },   \
+        { MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE3072, "ffdhe3072", MBEDTLS_SSL_HAVE_GROUP_FFDHE3072 },   \
+        { MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE4096, "ffdhe4096", MBEDTLS_SSL_HAVE_GROUP_FFDHE4096 },   \
+        { MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE6144, "ffdhe6144", MBEDTLS_SSL_HAVE_GROUP_FFDHE6144 },   \
+        { MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE8192, "ffdhe8192", MBEDTLS_SSL_HAVE_GROUP_FFDHE8192 },   \
+        { MBEDTLS_SSL_IANA_TLS_GROUP_NONE, NULL, 1 }                                               \
+    }
+
+#if defined(MBEDTLS_DEBUG_C)
+/**
+ * List of known "TLS ID" <-> "group name".
+ * #MBEDTLS_SSL_IANA_TLS_GROUPS_INFO is used to initialized the list.
+ */
+extern mbedtls_ssl_iana_tls_group_info_t mbedtls_ssl_iana_tls_group_info[];
+#endif /* MBEDTLS_DEBUG_C */
+
+/**
+ * \brief       Return the list of supported groups (curves and finite fields).
+ *
+ * \note        The returned list is ordered in ascending order of resource
+ *              usage. This follows the same pattern of the default list being
+ *              used when mbedtls_ssl_conf_groups() is not called.
+ *
+ * \note        The returned list represents supported groups in the current build
+ *              configuration, not the one set by mbedtls_ssl_conf_groups().
+ *
+ * \note        The returned list is static so the user doesn't need to worry
+ *              about it being freed.
+ *
+ * \return      The list made of IANA NamedGroups IDs (MBEDTLS_SSL_IANA_TLS_GROUP_xxx)
+ *              and is terminated by #MBEDTLS_SSL_IANA_TLS_GROUP_NONE.
+ */
+const uint16_t *mbedtls_ssl_get_supported_group_list(void);
+
+/**
  * \brief          Set the allowed groups in order of preference.
  *
  *                 On server: This only affects the choice of key agreement mechanism
@@ -3695,6 +3894,10 @@ void mbedtls_ssl_conf_psk_cb(mbedtls_ssl_config *conf,
  *                 New minor versions of Mbed TLS may change the order in
  *                 keeping with the general principle of favoring the lowest
  *                 resource usage.
+ *
+ * \note           The list is not copied internally, only the reference to it
+ *                 is saved in \p conf. Do not free \p groups memory for the time
+ *                 in which \p conf is being used.
  *
  * \param conf     SSL configuration
  * \param groups   List of allowed groups ordered by preference, terminated by 0.
@@ -4668,13 +4871,6 @@ int mbedtls_ssl_get_session(const mbedtls_ssl_context *ssl,
  *                 supported with some limitations (those limitations do
  *                 not apply to DTLS, where defragmentation is fully
  *                 supported):
- *                 - On an Mbed TLS server that only accepts TLS 1.2,
- *                   the initial ClientHello message must not be fragmented.
- *                   A TLS 1.2 ClientHello may be fragmented if the server
- *                   also accepts TLS 1.3 connections (meaning
- *                   that #MBEDTLS_SSL_PROTO_TLS1_3 enabled, and the
- *                   accepted versions have not been restricted with
- *                   mbedtls_ssl_conf_max_tls_version() or the like).
  *                 - The first fragment of a handshake message must be
  *                   at least 4 bytes long.
  *                 - Non-handshake records must not be interleaved between
@@ -4942,6 +5138,22 @@ int mbedtls_ssl_write(mbedtls_ssl_context *ssl, const unsigned char *buf, size_t
 int mbedtls_ssl_send_alert_message(mbedtls_ssl_context *ssl,
                                    unsigned char level,
                                    unsigned char message);
+
+/**
+ * \brief           Get the last received fatal alert
+ *
+ * \param ssl       SSL context
+ *
+ * \return         The alert description type (MBEDTLS_SSL_ALERT_MSG_*) if a fatal
+ *                 alert has been received, MBEDTLS_ERR_SSL_BAD_INPUT_DATA otherwise.
+ *
+ * \note           This function can be used in case mbedtls_ssl_handshake(),
+ *                 mbedtls_ssl_handshake_step() or mbedtls_ssl_read() returned
+ *                 MBEDTLS_ERR_SSL_FATAL_ALERT_MESSAGE to get the actual alert
+ *                 description type.
+ */
+int mbedtls_ssl_get_fatal_alert(const mbedtls_ssl_context *ssl);
+
 /**
  * \brief          Notify the peer that the connection is being closed
  *
@@ -5146,6 +5358,19 @@ void mbedtls_ssl_free(mbedtls_ssl_context *ssl);
  *
  * \see            mbedtls_ssl_context_load()
  *
+ * \warning        The serialized data contains highly sensitive material,
+ *                 including the master secret from which the session's traffic
+ *                 keys are derived.
+ *
+ *                 The serialized data is not cryptographically protected.
+ *                 It is the responsibility of the user of the
+ *                 mbedtls_ssl_context_save() and
+ *                 mbedtls_ssl_context_load() APIs to ensure both its
+ *                 confidentiality and integrity while stored or transported.
+ *
+ *                 See the mbedtls_ssl_context_load() documentation for
+ *                 additional information.
+ *
  * \note           The serialized data only contains the data that is
  *                 necessary to resume the connection: negotiated protocol
  *                 options, session identifier, keys, etc.
@@ -5211,6 +5436,27 @@ int mbedtls_ssl_context_save(mbedtls_ssl_context *ssl,
  *                 serialized data that was loaded. Loading the same data in
  *                 more than one context would cause severe security failures
  *                 including but not limited to loss of confidentiality.
+ *
+ * \warning        The serialized data contains highly sensitive material,
+ *                 including the master secret from which the session's traffic
+ *                 keys are derived.
+ *
+ *                 The serialized data is not cryptographically protected.
+ *                 It is the responsibility of the user of the
+ *                 mbedtls_ssl_context_save() and
+ *                 mbedtls_ssl_context_load() APIs to ensure both its
+ *                 confidentiality and integrity while stored or transported.
+ *
+ *                 A breach of confidentiality could result in full compromise
+ *                 of the associated TLS session, including loss of
+ *                 confidentiality and integrity of past and future
+ *                 application data protected under that session.
+ *
+ *                 A breach of integrity may allow modification of the
+ *                 serialized data prior to restoration. As it represents
+ *                 trusted internal context, tampering could potentially result
+ *                 in arbitrary code execution or other severe compromise of
+ *                 the hosting process.
  *
  * \note           Before calling this function, the SSL context must be
  *                 prepared in one of the two following ways. The first way is

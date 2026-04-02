@@ -1,62 +1,6 @@
-ifndef MBEDTLS_PATH
-MBEDTLS_PATH := ..
-endif
-
-TF_PSA_CRYPTO_CORE_PATH = $(MBEDTLS_PATH)/tf-psa-crypto/core
-TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH = $(MBEDTLS_PATH)/tf-psa-crypto/drivers/builtin/src
-
-# List the generated files without running a script, so that this
-# works with no tooling dependencies when GEN_FILES is disabled.
-GENERATED_FILES := \
-	mbedtls_config_check_before.h \
-	mbedtls_config_check_final.h \
-	mbedtls_config_check_user.h \
-	error.c \
-	version_features.c \
-	ssl_debug_helpers_generated.c
-
-# Also list the generated files from crypto that are needed in the build,
-# because we don't have the list in a consumable form.
-GENERATED_FILES += \
-	$(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto_driver_wrappers.h \
-	$(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto_driver_wrappers_no_static.c \
-	$(TF_PSA_CRYPTO_CORE_PATH)/tf_psa_crypto_config_check_before.h \
-	$(TF_PSA_CRYPTO_CORE_PATH)/tf_psa_crypto_config_check_final.h \
-	$(TF_PSA_CRYPTO_CORE_PATH)/tf_psa_crypto_config_check_user.h
-
-ifneq ($(GENERATED_FILES),$(wildcard $(GENERATED_FILES)))
-    ifeq (,$(wildcard $(MBEDTLS_PATH)/framework/exported.make))
-        # Use the define keyword to get a multi-line message.
-        # GNU make appends ".  Stop.", so tweak the ending of our message accordingly.
-        define error_message
-$(MBEDTLS_PATH)/framework/exported.make not found.
-Run `git submodule update --init` to fetch the submodule contents.
-This is a fatal error
-        endef
-        $(error $(error_message))
-    endif
-    include $(MBEDTLS_PATH)/framework/exported.make
-endif
-
-# Also see "include/mbedtls/mbedtls_config.h"
-
 CFLAGS	?= -O2
 WARNING_CFLAGS ?=  -Wall -Wextra -Wformat=2 -Wno-format-nonliteral
 LDFLAGS ?=
-
-# Include ../include, ../tf-psa-crypto/include and
-# ../tf-psa-crypto/drivers/builtin/include for public headers and .,
-# ../tf-psa-crypto/core and ../tf-psa-crypto/drivers/builtin/src for
-# private headers.
-LOCAL_CFLAGS = $(WARNING_CFLAGS) -I. -I../tf-psa-crypto/core \
-               -I../tf-psa-crypto/drivers/builtin/src \
-               -I../include -I../tf-psa-crypto/include \
-               -I../tf-psa-crypto/drivers/builtin/include -D_FILE_OFFSET_BITS=64
-LOCAL_LDFLAGS =
-
-ifdef DEBUG
-LOCAL_CFLAGS += -g3
-endif
 
 # MicroBlaze specific options:
 # CFLAGS += -mno-xl-soft-mul -mxl-barrel-shift
@@ -70,6 +14,41 @@ ifdef WINDOWS
 PYTHON ?= python
 else
 PYTHON ?= $(shell if type python3 >/dev/null 2>/dev/null; then echo python3; else echo python; fi)
+endif
+
+# Set AR_DASH= (empty string) to use an ar implementation that does not accept
+# the - prefix for command line options (e.g. llvm-ar)
+AR_DASH ?= -
+
+ifndef MBEDTLS_PATH
+MBEDTLS_PATH := ..
+endif
+
+ifeq (,$(wildcard $(MBEDTLS_PATH)/framework/exported.make))
+    # Use the define keyword to get a multi-line message.
+    # GNU make appends ".  Stop.", so tweak the ending of our message accordingly.
+    define error_message
+$(MBEDTLS_PATH)/framework/exported.make not found.
+Run `git submodule update --init` to fetch the submodule contents.
+This is a fatal error
+    endef
+    $(error $(error_message))
+endif
+include $(MBEDTLS_PATH)/framework/exported.make
+
+include $(MBEDTLS_PATH)/tf-psa-crypto/scripts/crypto-common.make
+
+# For the time being, Mbed TLS uses non-public interfaces of TF-PSA-Crypto,
+# so we include both public and internal headers.
+LOCAL_CFLAGS = $(WARNING_CFLAGS) -I. \
+	       $(TF_PSA_CRYPTO_LIBRARY_PRIVATE_INCLUDE) \
+               -I../include \
+	       $(TF_PSA_CRYPTO_LIBRARY_PUBLIC_INCLUDE) \
+	       -D_FILE_OFFSET_BITS=64
+LOCAL_LDFLAGS =
+
+ifdef DEBUG
+LOCAL_CFLAGS += -g3
 endif
 
 # if were running on Windows build for Windows
@@ -93,13 +72,9 @@ LOCAL_CFLAGS += -fPIC -fpic
 endif
 endif
 
-SOEXT_TLS?=so.21
-SOEXT_X509?=so.8
-SOEXT_CRYPTO?=so.16
-
-# Set AR_DASH= (empty string) to use an ar implementation that does not accept
-# the - prefix for command line options (e.g. llvm-ar)
-AR_DASH ?= -
+SOEXT_TLS?=so.23
+SOEXT_X509?=so.9
+SOEXT_CRYPTO?=so.18
 
 ARFLAGS = $(AR_DASH)src
 ifdef APPLE_BUILD
@@ -121,16 +96,15 @@ DLEXT = dylib
 endif
 endif
 
-OBJS_CRYPTO = $(patsubst %.c, %.o,$(wildcard $(TF_PSA_CRYPTO_CORE_PATH)/*.c $(TF_PSA_CRYPTO_DRIVERS_BUILTIN_SRC_PATH)/*.c))
-GENERATED_OBJS_CRYPTO = $(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto_driver_wrappers_no_static.o
-OBJS_CRYPTO := $(filter-out $(GENERATED_OBJS_CRYPTO),$(OBJS_CRYPTO))
-OBJS_CRYPTO += $(GENERATED_OBJS_CRYPTO)
+# See root Makefile
+GEN_FILES ?= yes
+ifdef GEN_FILES
+gen_file_dep =
+else
+gen_file_dep = |
+endif
 
-THIRDPARTY_DIR := $(MBEDTLS_PATH)/tf-psa-crypto/drivers
-include $(MBEDTLS_PATH)/tf-psa-crypto/drivers/everest/Makefile.inc
-include $(MBEDTLS_PATH)/tf-psa-crypto/drivers/p256-m/Makefile.inc
-LOCAL_CFLAGS+=$(THIRDPARTY_INCLUDES)
-OBJS_CRYPTO+=$(THIRDPARTY_CRYPTO_OBJECTS)
+OBJS_CRYPTO = $(TF_PSA_CRYPTO_LIBRARY_OBJS)
 
 OBJS_X509= \
 	   mbedtls_config.o \
@@ -180,6 +154,8 @@ all: static
 else
 all: shared static
 endif
+
+include $(TF_PSA_CRYPTO_CORE_PATH)/crypto-library.make
 
 static: libmbedcrypto.a libmbedx509.a libmbedtls.a
 	cd ../tests && echo "This is a seedfile that contains 64 bytes (65 on Windows)......" > seedfile
@@ -290,16 +266,19 @@ libmbedcrypto.dll: $(OBJS_CRYPTO)
 	echo "  CC    $<"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) -S -o $@ -c $<
 
+# List the generated files without running a script, so that this
+# works with no tooling dependencies when GEN_FILES is disabled.
+GENERATED_FILES := \
+	mbedtls_config_check_before.h \
+	mbedtls_config_check_final.h \
+	mbedtls_config_check_user.h \
+	error.c \
+	version_features.c \
+	ssl_debug_helpers_generated.c \
+	$(TF_PSA_CRYPTO_LIBRARY_GENERATED_FILES)
+
 .PHONY: generated_files
 generated_files: $(GENERATED_FILES)
-
-# See root Makefile
-GEN_FILES ?= yes
-ifdef GEN_FILES
-gen_file_dep =
-else
-gen_file_dep = |
-endif
 
 error.c: $(gen_file_dep) ../scripts/generate_errors.pl
 error.c: $(gen_file_dep) ../scripts/data_files/error.fmt
@@ -326,39 +305,15 @@ version_features.c:
 	echo "  Gen   $@"
 	$(PERL) ../scripts/generate_features.pl
 
-GENERATED_WRAPPER_FILES = \
-                    $(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto_driver_wrappers.h \
-                    $(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto_driver_wrappers_no_static.c
-$(GENERATED_WRAPPER_FILES): ../tf-psa-crypto/scripts/generate_driver_wrappers.py
-$(GENERATED_WRAPPER_FILES): ../tf-psa-crypto/scripts/data_files/driver_templates/psa_crypto_driver_wrappers.h.jinja
-$(GENERATED_WRAPPER_FILES): ../tf-psa-crypto/scripts/data_files/driver_templates/psa_crypto_driver_wrappers_no_static.c.jinja
-$(GENERATED_WRAPPER_FILES):
-	echo "  Gen   $(GENERATED_WRAPPER_FILES)"
-	$(PYTHON) ../tf-psa-crypto/scripts/generate_driver_wrappers.py $(TF_PSA_CRYPTO_CORE_PATH)
-
-$(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto.o:$(TF_PSA_CRYPTO_CORE_PATH)/psa_crypto_driver_wrappers.h
-
 GENERATED_CONFIG_CHECK_FILES = $(shell $(PYTHON) ../scripts/generate_config_checks.py --list .)
 $(GENERATED_CONFIG_CHECK_FILES): $(gen_file_dep) \
-	$(TF_PSA_CRYPTO_CORE_PATH)/../scripts/generate_config_checks.py \
+	../scripts/generate_config_checks.py \
 	../framework/scripts/mbedtls_framework/config_checks_generator.py
 $(GENERATED_CONFIG_CHECK_FILES):
 	echo "  Gen   $(GENERATED_CONFIG_CHECK_FILES)"
 	$(PYTHON) ../scripts/generate_config_checks.py
 
 mbedtls_config.o: $(GENERATED_CONFIG_CHECK_FILES)
-
-TF_PSA_CRYPTO_GENERATED_CONFIG_CHECK_FILES = $(shell $(PYTHON) \
-	$(TF_PSA_CRYPTO_CORE_PATH)/../scripts/generate_config_checks.py \
-	--list $(TF_PSA_CRYPTO_CORE_PATH))
-$(TF_PSA_CRYPTO_GENERATED_CONFIG_CHECK_FILES): $(gen_file_dep) \
-	../scripts/generate_config_checks.py \
-	../framework/scripts/mbedtls_framework/config_checks_generator.py
-$(TF_PSA_CRYPTO_GENERATED_CONFIG_CHECK_FILES):
-	echo "  Gen   $(TF_PSA_CRYPTO_GENERATED_CONFIG_CHECK_FILES)"
-	$(PYTHON) $(TF_PSA_CRYPTO_CORE_PATH)/../scripts/generate_config_checks.py
-
-$(TF_PSA_CRYPTO_CORE_PATH)/tf_psa_crypto_config.o: $(TF_PSA_CRYPTO_GENERATED_CONFIG_CHECK_FILES)
 
 clean:
 ifndef WINDOWS

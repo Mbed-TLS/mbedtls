@@ -5,11 +5,19 @@
  *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
+/* On Mingw-w64, force the use of a C99-compliant printf() and friends.
+ * This is necessary on older versions of Mingw and/or Windows runtimes
+ * where snprintf does not always zero-terminate the buffer, and does
+ * not support formats such as "%zu" for size_t and "%lld" for long long.
+ */
+#if !defined(__USE_MINGW_ANSI_STDIO)
+#define __USE_MINGW_ANSI_STDIO 1
+#endif
+
 #define MBEDTLS_DECLARE_PRIVATE_IDENTIFIERS
 
 #include "mbedtls/build_info.h"
 
-#include "mbedtls/private/entropy.h"
 #include "mbedtls/private/hmac_drbg.h"
 #include "mbedtls/private/ctr_drbg.h"
 #include "mbedtls/private/gcm.h"
@@ -235,18 +243,19 @@ static void create_entropy_seed_file(void)
     dummy_entropy(seed_value, MBEDTLS_ENTROPY_BLOCK_SIZE);
     mbedtls_platform_std_nv_seed_write(seed_value, MBEDTLS_ENTROPY_BLOCK_SIZE);
 }
-#endif
+#endif /* defined(MBEDTLS_SELF_TEST) && defined(MBEDTLS_ENTROPY_C) */
 
 static int mbedtls_entropy_self_test_wrapper(int verbose)
 {
 #if defined(MBEDTLS_ENTROPY_NV_SEED) && !defined(MBEDTLS_PSA_DRIVER_GET_ENTROPY)
     create_entropy_seed_file();
-#endif
+#endif /* defined(MBEDTLS_ENTROPY_NV_SEED) && !defined(MBEDTLS_PSA_DRIVER_GET_ENTROPY) */
     return mbedtls_entropy_self_test(verbose);
 }
 #endif
 
 #if defined(MBEDTLS_SELF_TEST)
+
 #if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
 static int mbedtls_memory_buffer_alloc_free_and_self_test(int verbose)
 {
@@ -289,10 +298,7 @@ const selftest_t selftests[] =
 #if defined(MBEDTLS_SHA512_C)
     { "sha512", mbedtls_sha512_self_test },
 #endif
-#if defined(PSA_WANT_ALG_SHA3_224) || \
-    defined(PSA_WANT_ALG_SHA3_256) || \
-    defined(PSA_WANT_ALG_SHA3_384) || \
-    defined(PSA_WANT_ALG_SHA3_512)
+#if defined(MBEDTLS_SHA3_C)
     { "sha3", mbedtls_sha3_self_test },
 #endif
 #if defined(MBEDTLS_AES_C)
@@ -444,8 +450,7 @@ int main(int argc, char *argv[])
             }                                                           \
         } else {                                                        \
             mbedtls_printf("Padding checks only implemented for types of size 2, 4 or 8" \
-                           " - cannot check type '" #TYPE "' of size %" MBEDTLS_PRINTF_SIZET \
-                           "\n",       \
+                           " - cannot check type '" #TYPE "' of size %zu\n", \
                            sizeof(TYPE));                                       \
             mbedtls_exit(MBEDTLS_EXIT_FAILURE);                       \
         }                                                               \

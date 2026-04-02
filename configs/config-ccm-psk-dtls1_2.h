@@ -29,7 +29,7 @@
 #define MBEDTLS_SSL_COOKIE_C
 #define MBEDTLS_SSL_SRV_C
 #define MBEDTLS_SSL_TLS_C
-#define MBEDTLS_TIMING_C
+#define MBEDTLS_TIMING_C //Only used by test programs
 
 /* TLS protocol feature support */
 #define MBEDTLS_KEY_EXCHANGE_PSK_ENABLED

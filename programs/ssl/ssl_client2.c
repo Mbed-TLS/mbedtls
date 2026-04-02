@@ -5,13 +5,7 @@
  *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
-#define MBEDTLS_ALLOW_PRIVATE_ACCESS
-
-#include "mbedtls/private/pk_private.h"
-
 #include "ssl_test_lib.h"
-
-#include "test/psa_crypto_helpers.h"
 
 #if defined(MBEDTLS_SSL_TEST_IMPOSSIBLE)
 int main(void)
@@ -26,6 +20,8 @@ int main(void)
     mbedtls_exit(0);
 }
 #else /* !MBEDTLS_SSL_TEST_IMPOSSIBLE && MBEDTLS_SSL_CLI_C */
+
+#include "test/psa_crypto_helpers.h"
 
 /* Size of memory to be allocated for the heap, when using the library's memory
  * management and MBEDTLS_MEMORY_BUFFER_ALLOC_C is enabled. */
@@ -828,7 +824,6 @@ int main(int argc, char *argv[])
 #endif
     psa_status_t status;
 
-    rng_context_t rng;
     mbedtls_ssl_context ssl;
     mbedtls_ssl_config conf;
     mbedtls_ssl_session saved_session;
@@ -889,7 +884,6 @@ int main(int argc, char *argv[])
     mbedtls_ssl_init(&ssl);
     mbedtls_ssl_config_init(&conf);
     mbedtls_ssl_session_init(&saved_session);
-    rng_init(&rng);
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
     mbedtls_x509_crt_init(&cacert);
     mbedtls_x509_crt_init(&clicert);
@@ -1665,7 +1659,7 @@ usage:
     mbedtls_printf("\n  . Seeding the random number generator...");
     fflush(stdout);
 
-    ret = rng_seed(&rng, opt.reproducible, pers);
+    ret = rng_seed(opt.reproducible, pers);
     if (ret != 0) {
         goto exit;
     }
@@ -1782,7 +1776,7 @@ usage:
 
     mbedtls_printf(" ok (key type: %s)\n",
                    strlen(opt.key_file) || strlen(opt.key_opaque_alg1) ?
-                   mbedtls_pk_get_name(&pkey) : "none");
+                   mbedtls_x509_pk_type_as_string(&pkey) : "none");
 #endif /* MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED */
 
     /*
@@ -3225,13 +3219,7 @@ exit:
         mbedtls_printf("PSA memory leak detected: %s\n",  message);
     }
 
-    /* For builds with MBEDTLS_TEST_USE_PSA_CRYPTO_RNG psa crypto
-     * resources are freed by rng_free(). */
-#if !defined(MBEDTLS_TEST_USE_PSA_CRYPTO_RNG)
     mbedtls_psa_crypto_free();
-#endif
-
-    rng_free(&rng);
 
 #if defined(MBEDTLS_TEST_HOOKS)
     if (test_hooks_failure_detected()) {

@@ -22,7 +22,7 @@ component_test_default_out_of_box () {
     programs/test/selftest
 
     msg "program demos: make, default config (out-of-box)" # ~10s
-    tests/scripts/run_demos.py
+    framework/scripts/run_demos.py
 }
 
 component_test_default_cmake_gcc_asan () {
@@ -34,13 +34,13 @@ component_test_default_cmake_gcc_asan () {
     make test
 
     msg "program demos (ASan build)" # ~10s
-    tests/scripts/run_demos.py
+    framework/scripts/run_demos.py
 
     msg "test: selftest (ASan build)" # ~ 10s
     programs/test/selftest
 
     msg "test: metatests (GCC, ASan build)"
-    tests/scripts/run-metatests.sh any asan poison
+    framework/scripts/run-metatests.sh any asan poison
 
     msg "test: ssl-opt.sh (ASan build)" # ~ 1 min
     tests/ssl-opt.sh
@@ -143,10 +143,10 @@ component_test_full_cmake_clang () {
     programs/test/cpp_dummy_build
 
     msg "test: metatests (clang)"
-    tests/scripts/run-metatests.sh any pthread
+    framework/scripts/run-metatests.sh any pthread
 
     msg "program demos (full config, clang)" # ~10s
-    tests/scripts/run_demos.py
+    framework/scripts/run_demos.py
 
     msg "test: psa_constant_names (full config, clang)" # ~ 1s
     $FRAMEWORK/scripts/test_psa_constant_names.py
@@ -214,13 +214,13 @@ component_test_full_deprecated_warning () {
     $MAKE_COMMAND test
 
     msg "program demos: full config + MBEDTLS_TEST_DEPRECATED" # ~10s
-    tests/scripts/run_demos.py
+    framework/scripts/run_demos.py
 }
 
 component_build_baremetal () {
   msg "build: make, baremetal config"
   scripts/config.py baremetal
-  $MAKE_COMMAND CFLAGS="-O1 -Werror -I$PWD/framework/tests/include/baremetal-override/"
+  $MAKE_COMMAND CFLAGS="-O1 -Werror -I$PWD/framework/tests/include/baremetal-override/ -DMBEDTLS_TEST_PLATFORM_IS_NOT_UNIXLIKE"
 }
 
 support_build_baremetal () {

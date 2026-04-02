@@ -5,8 +5,6 @@
  *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
-#define MBEDTLS_ALLOW_PRIVATE_ACCESS
-
 #include "ssl_test_lib.h"
 
 #if defined(MBEDTLS_SSL_TEST_IMPOSSIBLE)
@@ -609,9 +607,6 @@ int main(void)
         (out_be)[(i) + 6] = (unsigned char) (((in_le) >> 8) & 0xFF);    \
         (out_be)[(i) + 7] = (unsigned char) (((in_le) >> 0) & 0xFF);    \
     }
-
-/* This is global so it can be easily accessed by callback functions */
-rng_context_t rng;
 
 /*
  * global options
@@ -1643,7 +1638,6 @@ int main(int argc, char *argv[])
     mbedtls_net_init(&listen_fd);
     mbedtls_ssl_init(&ssl);
     mbedtls_ssl_config_init(&conf);
-    rng_init(&rng);
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
     mbedtls_x509_crt_init(&cacert);
     mbedtls_x509_crt_init(&srvcert);
@@ -2551,7 +2545,7 @@ usage:
     mbedtls_printf("\n  . Seeding the random number generator...");
     fflush(stdout);
 
-    ret = rng_seed(&rng, opt.reproducible, pers);
+    ret = rng_seed(opt.reproducible, pers);
     if (ret != 0) {
         goto exit;
     }
@@ -2735,8 +2729,8 @@ usage:
     }
 
     mbedtls_printf(" ok (key types: %s, %s)\n",
-                   key_cert_init ? mbedtls_pk_get_name(&pkey) : "none",
-                   key_cert_init2 ? mbedtls_pk_get_name(&pkey2) : "none");
+                   key_cert_init ? mbedtls_x509_pk_type_as_string(&pkey) : "none",
+                   key_cert_init2 ? mbedtls_x509_pk_type_as_string(&pkey2) : "none");
 #endif /* MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED */
 
 #if defined(SNI_OPTION)
@@ -2961,8 +2955,8 @@ usage:
         if (opt.ticket_rotate) {
             unsigned char kbuf[MBEDTLS_SSL_TICKET_MAX_KEY_BYTES];
             unsigned char name[MBEDTLS_SSL_TICKET_KEY_NAME_BYTES];
-            if ((ret = rng_get(&rng, name, sizeof(name))) != 0 ||
-                (ret = rng_get(&rng, kbuf, sizeof(kbuf))) != 0 ||
+            if ((ret = psa_generate_random(name, sizeof(name))) != 0 ||
+                (ret = psa_generate_random(kbuf, sizeof(kbuf))) != 0 ||
                 (ret = mbedtls_ssl_ticket_rotate(&ticket_ctx,
                                                  name, sizeof(name), kbuf, sizeof(kbuf),
                                                  opt.ticket_timeout)) != 0) {
@@ -3094,8 +3088,6 @@ usage:
         ssl_async_keys.inject_error = (opt.async_private_error < 0 ?
                                        -opt.async_private_error :
                                        opt.async_private_error);
-        ssl_async_keys.f_rng = rng_get;
-        ssl_async_keys.p_rng = &rng;
         mbedtls_ssl_conf_async_private_cb(&conf,
                                           sign,
                                           ssl_async_resume,
@@ -3508,6 +3500,7 @@ handshake:
      * 5. Verify the client certificate
      */
     mbedtls_printf("  . Verifying peer X.509 certificate...");
+    fflush(stdout);
 
     if ((flags = mbedtls_ssl_get_verify_result(&ssl)) != 0) {
         char vrfy_buf[512];
@@ -3525,6 +3518,7 @@ handshake:
         char crt_buf[512];
 
         mbedtls_printf("  . Peer certificate information    ...\n");
+        fflush(stdout);
         mbedtls_x509_crt_info(crt_buf, sizeof(crt_buf), "      ",
                               mbedtls_ssl_get_peer_cert(&ssl));
         mbedtls_printf("%s\n", crt_buf);
@@ -3977,6 +3971,7 @@ data_exchange:
         size_t buf_len;
 
         mbedtls_printf("  . Serializing live connection...");
+        fflush(stdout);
 
         ret = mbedtls_ssl_context_save(&ssl, NULL, 0, &buf_len);
         if (ret != MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL) {
@@ -4011,6 +4006,7 @@ data_exchange:
             size_t b64_len;
 
             mbedtls_printf("  . Save serialized context to a file... ");
+            fflush(stdout);
 
             mbedtls_base64_encode(NULL, 0, &b64_len, context_buf, buf_len);
 
@@ -4059,6 +4055,7 @@ data_exchange:
         if (opt.serialize == 1) {
             /* nothing to do here, done by context_save() already */
             mbedtls_printf("  . Context has been reset... ok\n");
+            fflush(stdout);
         }
 
         /*
@@ -4071,6 +4068,7 @@ data_exchange:
          */
         if (opt.serialize == 2) {
             mbedtls_printf("  . Freeing and reinitializing context...");
+            fflush(stdout);
 
             mbedtls_ssl_free(&ssl);
 
@@ -4107,6 +4105,7 @@ data_exchange:
         }
 
         mbedtls_printf("  . Deserializing connection...");
+        fflush(stdout);
 
         if ((ret = mbedtls_ssl_context_load(&ssl, context_buf,
                                             buf_len)) != 0) {
@@ -4136,6 +4135,7 @@ data_exchange:
      */
 close_notify:
     mbedtls_printf("  . Closing the connection...");
+    fflush(stdout);
 
     /* No error checking, the connection might be closed already */
     do {
@@ -4269,14 +4269,7 @@ exit:
         mbedtls_printf("PSA memory leak detected: %s\n",  message);
     }
 
-    /* For builds with MBEDTLS_TEST_USE_PSA_CRYPTO_RNG psa crypto
-     * resources are freed by rng_free(). */
-#if !defined(MBEDTLS_TEST_USE_PSA_CRYPTO_RNG)
     mbedtls_psa_crypto_free();
-#endif
-
-    rng_free(&rng);
-
     mbedtls_free(buf);
 
 #if defined(MBEDTLS_TEST_HOOKS)

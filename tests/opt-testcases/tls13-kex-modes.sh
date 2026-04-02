@@ -482,7 +482,8 @@ run_test    "TLS 1.3: G->m: ephemeral_all/ephemeral_all, good" \
             -S "No usable PSK or ticket" \
             -S "key exchange mode: psk$"  \
             -s "key exchange mode: psk_ephemeral"  \
-            -S "key exchange mode: ephemeral"
+            -S "key exchange mode: ephemeral" \
+            -s "! Certificate verification was skipped"
 
 requires_gnutls_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
@@ -503,7 +504,8 @@ run_test    "TLS 1.3: G->m: ephemeral_all/ephemeral_all, good, key id mismatch, 
             -s "No usable PSK or ticket" \
             -S "key exchange mode: psk$"  \
             -S "key exchange mode: psk_ephemeral"  \
-            -s "key exchange mode: ephemeral"
+            -s "key exchange mode: ephemeral" \
+            -s "! Certificate verification was skipped"
 
 requires_gnutls_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
@@ -546,7 +548,8 @@ run_test    "TLS 1.3: G->m: all/ephemeral_all, good" \
             -S "No usable PSK or ticket" \
             -S "key exchange mode: psk$"  \
             -s "key exchange mode: psk_ephemeral"  \
-            -S "key exchange mode: ephemeral"
+            -S "key exchange mode: ephemeral" \
+            -s "! Certificate verification was skipped"
 
 requires_gnutls_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
@@ -567,7 +570,8 @@ run_test    "TLS 1.3: G->m: all/ephemeral_all, good, key id mismatch, dhe." \
             -s "No usable PSK or ticket" \
             -S "key exchange mode: psk$"  \
             -S "key exchange mode: psk_ephemeral"  \
-            -s "key exchange mode: ephemeral"
+            -s "key exchange mode: ephemeral" \
+            -s "! Certificate verification was skipped"
 
 requires_gnutls_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
@@ -611,7 +615,8 @@ run_test    "TLS 1.3: G->m: psk_or_ephemeral/ephemeral_all, good" \
             -s "No usable PSK or ticket" \
             -S "key exchange mode: psk$"  \
             -S "key exchange mode: psk_ephemeral"  \
-            -s "key exchange mode: ephemeral"
+            -s "key exchange mode: ephemeral" \
+            -s "! Certificate verification was skipped"
 
 requires_gnutls_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
@@ -634,7 +639,8 @@ run_test    "TLS 1.3: G->m: ephemeral_all/all, good" \
             -S "No usable PSK or ticket" \
             -S "key exchange mode: psk$"  \
             -s "key exchange mode: psk_ephemeral"  \
-            -S "key exchange mode: ephemeral"
+            -S "key exchange mode: ephemeral" \
+            -s "! Certificate verification was skipped"
 
 requires_gnutls_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
@@ -656,7 +662,8 @@ run_test    "TLS 1.3: G->m: ephemeral_all/all, good, key id mismatch, dhe." \
             -s "No usable PSK or ticket" \
             -S "key exchange mode: psk$"  \
             -S "key exchange mode: psk_ephemeral"  \
-            -s "key exchange mode: ephemeral"
+            -s "key exchange mode: ephemeral" \
+            -s "! Certificate verification was skipped"
 
 requires_gnutls_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
@@ -701,7 +708,8 @@ run_test    "TLS 1.3: G->m: all/all, good" \
             -S "No usable PSK or ticket" \
             -S "key exchange mode: psk$"  \
             -s "key exchange mode: psk_ephemeral"  \
-            -S "key exchange mode: ephemeral"
+            -S "key exchange mode: ephemeral" \
+            -s "! Certificate verification was skipped"
 
 requires_gnutls_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
@@ -723,7 +731,8 @@ run_test    "TLS 1.3: G->m: all/all, good, key id mismatch, dhe." \
             -s "No usable PSK or ticket" \
             -S "key exchange mode: psk$"  \
             -S "key exchange mode: psk_ephemeral"  \
-            -s "key exchange mode: ephemeral"
+            -s "key exchange mode: ephemeral" \
+            -s "! Certificate verification was skipped"
 
 requires_gnutls_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
@@ -768,7 +777,8 @@ run_test    "TLS 1.3: G->m: psk_or_ephemeral/all, good" \
             -S "No usable PSK or ticket" \
             -S "key exchange mode: psk$"  \
             -S "key exchange mode: psk_ephemeral"  \
-            -s "key exchange mode: ephemeral"
+            -s "key exchange mode: ephemeral" \
+            -s "! Certificate verification was skipped"
 
 requires_gnutls_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
@@ -813,7 +823,8 @@ run_test    "TLS 1.3: G->m: ephemeral_all/psk_or_ephemeral, good" \
             -s "No usable PSK or ticket" \
             -S "key exchange mode: psk$"  \
             -S "key exchange mode: psk_ephemeral"  \
-            -s "key exchange mode: ephemeral"
+            -s "key exchange mode: ephemeral" \
+            -s "! Certificate verification was skipped"
 
 requires_gnutls_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
@@ -835,7 +846,8 @@ run_test    "TLS 1.3: G->m: all/psk_or_ephemeral, good" \
             -S "No usable PSK or ticket" \
             -S "key exchange mode: psk$"  \
             -S "key exchange mode: psk_ephemeral"  \
-            -s "key exchange mode: ephemeral"
+            -s "key exchange mode: ephemeral" \
+            -s "! Certificate verification was skipped"
 
 requires_gnutls_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
@@ -878,7 +890,8 @@ run_test    "TLS 1.3: G->m: psk_or_ephemeral/psk_or_ephemeral, good" \
             -S "No usable PSK or ticket" \
             -S "key exchange mode: psk$"  \
             -S "key exchange mode: psk_ephemeral"  \
-            -s "key exchange mode: ephemeral"
+            -s "key exchange mode: ephemeral" \
+            -s "! Certificate verification was skipped"
 
 requires_gnutls_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
@@ -1319,7 +1332,8 @@ run_test    "TLS 1.3: O->m: ephemeral_all/ephemeral_all, good" \
             -S "No usable PSK or ticket" \
             -S "key exchange mode: psk$"  \
             -s "key exchange mode: psk_ephemeral"  \
-            -S "key exchange mode: ephemeral"
+            -S "key exchange mode: ephemeral" \
+            -s "! Certificate verification was skipped"
 
 requires_openssl_tls1_3_with_compatible_ephemeral
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
@@ -1339,7 +1353,8 @@ run_test    "TLS 1.3: O->m: ephemeral_all/ephemeral_all, good, key id mismatch, 
             -s "No usable PSK or ticket" \
             -S "key exchange mode: psk$"  \
             -S "key exchange mode: psk_ephemeral"  \
-            -s "key exchange mode: ephemeral"
+            -s "key exchange mode: ephemeral" \
+            -s "! Certificate verification was skipped"
 
 requires_openssl_tls1_3_with_compatible_ephemeral
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
@@ -1380,7 +1395,8 @@ run_test    "TLS 1.3: O->m: all/ephemeral_all, good" \
             -S "No usable PSK or ticket" \
             -S "key exchange mode: psk$"  \
             -s "key exchange mode: psk_ephemeral"  \
-            -S "key exchange mode: ephemeral"
+            -S "key exchange mode: ephemeral" \
+            -s "! Certificate verification was skipped"
 
 requires_openssl_tls1_3_with_compatible_ephemeral
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
@@ -1400,7 +1416,8 @@ run_test    "TLS 1.3: O->m: all/ephemeral_all, good, key id mismatch, dhe." \
             -s "No usable PSK or ticket" \
             -S "key exchange mode: psk$"  \
             -S "key exchange mode: psk_ephemeral"  \
-            -s "key exchange mode: ephemeral"
+            -s "key exchange mode: ephemeral" \
+            -s "! Certificate verification was skipped"
 
 requires_openssl_tls1_3_with_compatible_ephemeral
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
@@ -1442,7 +1459,8 @@ run_test    "TLS 1.3: O->m: ephemeral_all/all, good" \
             -S "No usable PSK or ticket" \
             -S "key exchange mode: psk$"  \
             -s "key exchange mode: psk_ephemeral"  \
-            -S "key exchange mode: ephemeral"
+            -S "key exchange mode: ephemeral" \
+            -s "! Certificate verification was skipped"
 
 requires_openssl_tls1_3_with_compatible_ephemeral
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
@@ -1463,7 +1481,8 @@ run_test    "TLS 1.3: O->m: ephemeral_all/all, good, key id mismatch, dhe." \
             -s "No usable PSK or ticket" \
             -S "key exchange mode: psk$"  \
             -S "key exchange mode: psk_ephemeral"  \
-            -s "key exchange mode: ephemeral"
+            -s "key exchange mode: ephemeral" \
+            -s "! Certificate verification was skipped"
 
 requires_openssl_tls1_3_with_compatible_ephemeral
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
@@ -1506,7 +1525,8 @@ run_test    "TLS 1.3: O->m: all/all, good" \
             -S "No usable PSK or ticket" \
             -S "key exchange mode: psk$"  \
             -s "key exchange mode: psk_ephemeral"  \
-            -S "key exchange mode: ephemeral"
+            -S "key exchange mode: ephemeral" \
+            -s "! Certificate verification was skipped"
 
 requires_openssl_tls1_3_with_compatible_ephemeral
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
@@ -1527,7 +1547,8 @@ run_test    "TLS 1.3: O->m: all/all, good, key id mismatch, dhe." \
             -s "No usable PSK or ticket" \
             -S "key exchange mode: psk$"  \
             -S "key exchange mode: psk_ephemeral"  \
-            -s "key exchange mode: ephemeral"
+            -s "key exchange mode: ephemeral" \
+            -s "! Certificate verification was skipped"
 
 requires_openssl_tls1_3_with_compatible_ephemeral
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
@@ -1570,7 +1591,8 @@ run_test    "TLS 1.3: O->m: ephemeral_all/psk_or_ephemeral, good" \
             -s "No usable PSK or ticket" \
             -S "key exchange mode: psk$"  \
             -S "key exchange mode: psk_ephemeral"  \
-            -s "key exchange mode: ephemeral"
+            -s "key exchange mode: ephemeral" \
+            -s "! Certificate verification was skipped"
 
 requires_openssl_tls1_3_with_compatible_ephemeral
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
@@ -1591,7 +1613,8 @@ run_test    "TLS 1.3: O->m: all/psk_or_ephemeral, good" \
             -S "No usable PSK or ticket" \
             -S "key exchange mode: psk$"  \
             -S "key exchange mode: psk_ephemeral"  \
-            -s "key exchange mode: ephemeral"
+            -s "key exchange mode: ephemeral" \
+            -s "! Certificate verification was skipped"
 
 requires_openssl_tls1_3_with_compatible_ephemeral
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
@@ -1880,7 +1903,9 @@ run_test    "TLS 1.3: m->m: psk/all, good" \
             -c "client hello, adding psk_key_exchange_modes extension" \
             -c "client hello, adding PSK binder list" \
             -c "Selected key exchange mode: psk$" \
-            -c "HTTP/1.0 200 OK"
+            -c "HTTP/1.0 200 OK" \
+            -c "! Certificate verification was skipped" \
+            -s "! Certificate verification was skipped"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_SRV_C
@@ -1995,7 +2020,9 @@ run_test    "TLS 1.3: m->m: psk_ephemeral/ephemeral_all, good" \
             -c "client hello, adding psk_key_exchange_modes extension" \
             -c "client hello, adding PSK binder list" \
             -c "Selected key exchange mode: psk_ephemeral" \
-            -c "HTTP/1.0 200 OK"
+            -c "HTTP/1.0 200 OK" \
+            -c "! Certificate verification was skipped" \
+            -s "! Certificate verification was skipped"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_SRV_C
@@ -2083,7 +2110,9 @@ run_test    "TLS 1.3: m->m: psk_ephemeral/all, good" \
             -c "client hello, adding psk_key_exchange_modes extension" \
             -c "client hello, adding PSK binder list" \
             -c "Selected key exchange mode: psk_ephemeral" \
-            -c "HTTP/1.0 200 OK"
+            -c "HTTP/1.0 200 OK" \
+            -c "! Certificate verification was skipped" \
+            -s "! Certificate verification was skipped"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_SRV_C
@@ -2215,7 +2244,9 @@ run_test    "TLS 1.3: m->m: ephemeral_all/psk_ephemeral, good" \
             -c "client hello, adding psk_key_exchange_modes extension" \
             -c "client hello, adding PSK binder list" \
             -c "Selected key exchange mode: psk_ephemeral" \
-            -c "HTTP/1.0 200 OK"
+            -c "HTTP/1.0 200 OK" \
+            -c "! Certificate verification was skipped" \
+            -s "! Certificate verification was skipped"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_SRV_C
@@ -2274,7 +2305,9 @@ run_test    "TLS 1.3: m->m: ephemeral_all/ephemeral_all, good" \
             -c "client hello, adding psk_key_exchange_modes extension" \
             -c "client hello, adding PSK binder list" \
             -c "Selected key exchange mode: psk_ephemeral" \
-            -c "HTTP/1.0 200 OK"
+            -c "HTTP/1.0 200 OK" \
+            -c "! Certificate verification was skipped" \
+            -s "! Certificate verification was skipped"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_SRV_C
@@ -2319,7 +2352,9 @@ run_test    "TLS 1.3: m->m: ephemeral_all/psk_all, good" \
             -c "client hello, adding psk_key_exchange_modes extension" \
             -c "client hello, adding PSK binder list" \
             -c "Selected key exchange mode: psk_ephemeral" \
-            -c "HTTP/1.0 200 OK"
+            -c "HTTP/1.0 200 OK" \
+            -c "! Certificate verification was skipped" \
+            -s "! Certificate verification was skipped"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_SRV_C
@@ -2366,7 +2401,9 @@ run_test    "TLS 1.3: m->m: ephemeral_all/all, good" \
             -c "client hello, adding psk_key_exchange_modes extension" \
             -c "client hello, adding PSK binder list" \
             -c "Selected key exchange mode: psk_ephemeral" \
-            -c "HTTP/1.0 200 OK"
+            -c "HTTP/1.0 200 OK" \
+            -c "! Certificate verification was skipped" \
+            -s "! Certificate verification was skipped"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_SRV_C
@@ -2515,7 +2552,9 @@ run_test    "TLS 1.3: m->m: psk_all/ephemeral_all, good" \
             -c "client hello, adding psk_key_exchange_modes extension" \
             -c "client hello, adding PSK binder list" \
             -c "Selected key exchange mode: psk_ephemeral" \
-            -c "HTTP/1.0 200 OK"
+            -c "HTTP/1.0 200 OK" \
+            -c "! Certificate verification was skipped" \
+            -s "! Certificate verification was skipped"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_SRV_C
@@ -2605,7 +2644,9 @@ run_test    "TLS 1.3: m->m: psk_all/all, good" \
             -c "client hello, adding psk_key_exchange_modes extension" \
             -c "client hello, adding PSK binder list" \
             -c "Selected key exchange mode: psk_ephemeral" \
-            -c "HTTP/1.0 200 OK"
+            -c "HTTP/1.0 200 OK" \
+            -c "! Certificate verification was skipped" \
+            -s "! Certificate verification was skipped"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_SRV_C
@@ -2652,7 +2693,9 @@ run_test    "TLS 1.3: m->m: all/psk, good" \
             -c "client hello, adding psk_key_exchange_modes extension" \
             -c "client hello, adding PSK binder list" \
             -c "Selected key exchange mode: psk$" \
-            -c "HTTP/1.0 200 OK"
+            -c "HTTP/1.0 200 OK" \
+            -c "! Certificate verification was skipped" \
+            -s "! Certificate verification was skipped"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_SRV_C
@@ -2699,7 +2742,9 @@ run_test    "TLS 1.3: m->m: all/psk_ephemeral, good" \
             -c "client hello, adding psk_key_exchange_modes extension" \
             -c "client hello, adding PSK binder list" \
             -c "Selected key exchange mode: psk_ephemeral" \
-            -c "HTTP/1.0 200 OK"
+            -c "HTTP/1.0 200 OK" \
+            -c "! Certificate verification was skipped" \
+            -s "! Certificate verification was skipped"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_SRV_C
@@ -2762,7 +2807,9 @@ run_test    "TLS 1.3: m->m: all/ephemeral_all, good" \
             -c "client hello, adding psk_key_exchange_modes extension" \
             -c "client hello, adding PSK binder list" \
             -c "Selected key exchange mode: psk_ephemeral" \
-            -c "HTTP/1.0 200 OK"
+            -c "HTTP/1.0 200 OK" \
+            -c "! Certificate verification was skipped" \
+            -s "! Certificate verification was skipped"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_SRV_C
@@ -2810,7 +2857,9 @@ run_test    "TLS 1.3: m->m: all/psk_all, good" \
             -c "client hello, adding psk_key_exchange_modes extension" \
             -c "client hello, adding PSK binder list" \
             -c "Selected key exchange mode: psk_ephemeral" \
-            -c "HTTP/1.0 200 OK"
+            -c "HTTP/1.0 200 OK" \
+            -c "! Certificate verification was skipped" \
+            -s "! Certificate verification was skipped"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_SRV_C
@@ -2857,7 +2906,9 @@ run_test    "TLS 1.3: m->m: all/all, good" \
             -c "client hello, adding psk_key_exchange_modes extension" \
             -c "client hello, adding PSK binder list" \
             -c "Selected key exchange mode: psk_ephemeral" \
-            -c "HTTP/1.0 200 OK"
+            -c "HTTP/1.0 200 OK" \
+            -c "! Certificate verification was skipped" \
+            -s "! Certificate verification was skipped"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_SRV_C
@@ -3038,7 +3089,8 @@ run_test    "TLS 1.3: m->O: ephemeral_all/all, good" \
             -c "client hello, adding PSK binder list" \
             -c "Selected key exchange mode: psk_ephemeral" \
             -c "<= write client hello" \
-            -c "HTTP/1.0 200 ok"
+            -c "HTTP/1.0 200 ok" \
+            -c "! Certificate verification was skipped"
 
 requires_openssl_tls1_3_with_compatible_ephemeral
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
@@ -3056,7 +3108,8 @@ run_test    "TLS 1.3: m->O: ephemeral_all/ephemeral_all, good" \
             -c "client hello, adding PSK binder list" \
             -c "Selected key exchange mode: psk_ephemeral" \
             -c "<= write client hello" \
-            -c "HTTP/1.0 200 ok"
+            -c "HTTP/1.0 200 ok" \
+            -c "! Certificate verification was skipped"
 
 #OPENSSL-SERVER all mode
 requires_openssl_tls1_3_with_compatible_ephemeral
@@ -3076,7 +3129,8 @@ run_test    "TLS 1.3: m->O: all/all, good" \
             -c "client hello, adding PSK binder list" \
             -c "Selected key exchange mode: psk_ephemeral" \
             -c "<= write client hello" \
-            -c "HTTP/1.0 200 ok"
+            -c "HTTP/1.0 200 ok" \
+            -c "! Certificate verification was skipped"
 
 requires_openssl_tls1_3_with_compatible_ephemeral
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
@@ -3095,7 +3149,8 @@ run_test    "TLS 1.3: m->O: all/ephemeral_all, good" \
             -c "client hello, adding PSK binder list" \
             -c "Selected key exchange mode: psk_ephemeral" \
             -c "<= write client hello" \
-            -c "HTTP/1.0 200 ok"
+            -c "HTTP/1.0 200 ok" \
+            -c "! Certificate verification was skipped"
 
 #GNUTLS-SERVER psk mode
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
@@ -3259,7 +3314,8 @@ run_test    "TLS 1.3: m->G: ephemeral_all/all, good" \
             -s "Parsing extension 'Pre Shared Key/41'" \
             -c "<= write client hello" \
             -c "Selected key exchange mode: psk_ephemeral" \
-            -c "HTTP/1.0 200 OK"
+            -c "HTTP/1.0 200 OK" \
+            -c "! Certificate verification was skipped"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_gnutls_tls1_3
@@ -3279,7 +3335,8 @@ run_test    "TLS 1.3: m->G: ephemeral_all/ephemeral_all, good" \
             -s "Parsing extension 'Pre Shared Key/41'" \
             -c "<= write client hello" \
             -c "Selected key exchange mode: psk_ephemeral" \
-            -c "HTTP/1.0 200 OK"
+            -c "HTTP/1.0 200 OK" \
+            -c "! Certificate verification was skipped"
 
 #GNUTLS-SERVER all mode
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
@@ -3301,7 +3358,8 @@ run_test    "TLS 1.3: m->G: all/all, good" \
             -s "Parsing extension 'Pre Shared Key/41'" \
             -c "<= write client hello" \
             -c "Selected key exchange mode: psk_ephemeral" \
-            -c "HTTP/1.0 200 OK"
+            -c "HTTP/1.0 200 OK" \
+            -c "! Certificate verification was skipped"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_gnutls_tls1_3
@@ -3322,4 +3380,5 @@ run_test    "TLS 1.3: m->G: all/ephemeral_all, good" \
             -s "Parsing extension 'Pre Shared Key/41'" \
             -c "<= write client hello" \
             -c "Selected key exchange mode: psk_ephemeral" \
-            -c "HTTP/1.0 200 OK"
+            -c "HTTP/1.0 200 OK" \
+            -c "! Certificate verification was skipped"

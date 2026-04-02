@@ -11,9 +11,6 @@
  * example of good general usage.
  */
 
-
-#define MBEDTLS_DECLARE_PRIVATE_IDENTIFIERS
-
 #include "mbedtls/build_info.h"
 
 #include <limits.h>
@@ -363,7 +360,9 @@ static unsigned elapsed_time(void)
         return 0;
     }
 
-    return mbedtls_timing_get_timer(&hires, 0);
+    /* Wraps after ~49.7 days (assuming 32-bit int).
+     * Don't run udp_proxy that long! */
+    return (unsigned) mbedtls_timing_get_timer(&hires, 0);
 }
 
 typedef struct {

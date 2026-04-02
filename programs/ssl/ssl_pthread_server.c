@@ -6,19 +6,15 @@
  *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
-#define MBEDTLS_DECLARE_PRIVATE_IDENTIFIERS
-
 #include "mbedtls/build_info.h"
 
 #include "mbedtls/platform.h"
 
-#if !defined(MBEDTLS_ENTROPY_C) || !defined(MBEDTLS_CTR_DRBG_C) ||      \
-    !defined(MBEDTLS_NET_C) || !defined(MBEDTLS_SSL_SRV_C) ||           \
+#if !defined(MBEDTLS_NET_C) || !defined(MBEDTLS_SSL_SRV_C) ||           \
     !defined(MBEDTLS_PEM_PARSE_C) || !defined(MBEDTLS_X509_CRT_PARSE_C)
 int main(void)
 {
-    mbedtls_printf("MBEDTLS_ENTROPY_C and/or MBEDTLS_CTR_DRBG_C and/or "
-                   "MBEDTLS_NET_C and/or MBEDTLS_SSL_SRV_C and/or "
+    mbedtls_printf("MBEDTLS_NET_C and/or MBEDTLS_SSL_SRV_C and/or "
                    "MBEDTLS_PEM_PARSE_C and/or MBEDTLS_X509_CRT_PARSE_C "
                    "not defined.\n");
     mbedtls_exit(0);
@@ -38,8 +34,6 @@ int main(void)
 #include <windows.h>
 #endif
 
-#include "mbedtls/private/entropy.h"
-#include "mbedtls/private/ctr_drbg.h"
 #include "mbedtls/x509.h"
 #include "mbedtls/ssl.h"
 #include "mbedtls/net_sockets.h"
@@ -288,10 +282,7 @@ int main(void)
 {
     int ret;
     mbedtls_net_context listen_fd, client_fd;
-    const char pers[] = "ssl_pthread_server";
 
-    mbedtls_entropy_context entropy;
-    mbedtls_ctr_drbg_context ctr_drbg;
     mbedtls_ssl_config conf;
     mbedtls_x509_crt srvcert;
     mbedtls_x509_crt cachain;
@@ -315,7 +306,6 @@ int main(void)
     mbedtls_x509_crt_init(&cachain);
 
     mbedtls_ssl_config_init(&conf);
-    mbedtls_ctr_drbg_init(&ctr_drbg);
     memset(threads, 0, sizeof(threads));
     mbedtls_net_init(&listen_fd);
     mbedtls_net_init(&client_fd);
@@ -323,11 +313,6 @@ int main(void)
     mbedtls_mutex_init(&debug_mutex);
 
     base_info.config = &conf;
-
-    /*
-     * We use only a single entropy source that is used in all the threads.
-     */
-    mbedtls_entropy_init(&entropy);
 
     psa_status_t status = psa_crypto_init();
     if (status != PSA_SUCCESS) {
@@ -341,14 +326,6 @@ int main(void)
      * 1a. Seed the random number generator
      */
     mbedtls_printf("  . Seeding the random number generator...");
-
-    if ((ret = mbedtls_ctr_drbg_seed(&ctr_drbg, mbedtls_entropy_func, &entropy,
-                                     (const unsigned char *) pers,
-                                     strlen(pers))) != 0) {
-        mbedtls_printf(" failed: mbedtls_ctr_drbg_seed returned -0x%04x\n",
-                       (unsigned int) -ret);
-        goto exit;
-    }
 
     mbedtls_printf(" ok\n");
 
@@ -474,8 +451,6 @@ exit:
 #if defined(MBEDTLS_SSL_CACHE_C)
     mbedtls_ssl_cache_free(&cache);
 #endif
-    mbedtls_ctr_drbg_free(&ctr_drbg);
-    mbedtls_entropy_free(&entropy);
     mbedtls_ssl_config_free(&conf);
     mbedtls_net_free(&listen_fd);
     mbedtls_mutex_free(&debug_mutex);

@@ -68,10 +68,42 @@
 #define MBEDTLS_CAN_HANDLE_RSA_TEST_KEY
 #endif
 
+#if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED) && \
+    defined(PSA_WANT_ECC_SECP_R1_384) && \
+    defined(PSA_WANT_ALG_SHA_384)
+#define MBEDTLS_CAN_HANDLE_ECDSA_TEST_KEY
+#endif
+
+#if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED) && \
+    defined(PSA_WANT_ECC_SECP_R1_256) && \
+    defined(PSA_WANT_ALG_SHA_256)
+#define MBEDTLS_CAN_HANDLE_ECDSA_CLIENT_TEST_KEY
+#endif
+
+#if defined(PSA_WANT_ECC_MONTGOMERY_255)        || \
+    defined(PSA_WANT_ECC_SECP_R1_256)           || \
+    defined(PSA_WANT_ECC_SECP_R1_384)           || \
+    defined(PSA_WANT_ECC_MONTGOMERY_448)        || \
+    defined(PSA_WANT_ECC_SECP_R1_521)           || \
+    defined(PSA_WANT_ECC_BRAINPOOL_P_R1_256)    || \
+    defined(PSA_WANT_ECC_BRAINPOOL_P_R1_384)    || \
+    defined(PSA_WANT_ECC_BRAINPOOL_P_R1_512)
+#define MBEDTLS_TEST_HAS_DEFAULT_EC_GROUP
+#endif
+
 #if defined(PSA_WANT_ALG_GCM) || \
     defined(PSA_WANT_ALG_CCM) || \
     defined(PSA_WANT_ALG_CHACHA20_POLY1305)
 #define MBEDTLS_TEST_HAS_AEAD_ALG
+#endif
+
+/*
+ * To use the test keys we need PSA_WANT_ALG_SHA_256. Some test cases need an additional hash that
+ * is configured by default (see mbedtls_ssl_config_defaults()), but it doesn't matter which one.
+ */
+#if defined(PSA_WANT_ALG_SHA_512) || \
+    defined(PSA_WANT_ALG_SHA_384)
+#define MBEDTLS_TEST_HAS_ADDITIONAL_HASH
 #endif
 
 enum {

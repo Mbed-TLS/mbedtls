@@ -155,6 +155,60 @@ support_test_cmake_as_package_install () {
     support_test_cmake_out_of_source
 }
 
+component_test_cmake_install_with_destdir () {
+    # Remove existing generated files so that we use the ones CMake
+    # generates
+    $MAKE_COMMAND neat
+
+    msg "install: cmake with DESTDIR staging"
+    MBEDTLS_ROOT_DIR="$PWD"
+    mkdir "$OUT_OF_SOURCE_DIR"
+    cd "$OUT_OF_SOURCE_DIR"
+    cmake -DGEN_FILES=ON -DENABLE_PROGRAMS=OFF -DENABLE_TESTING=OFF -DUSE_SHARED_MBEDTLS_LIBRARY=ON -DCMAKE_INSTALL_PREFIX:PATH=/usr "$MBEDTLS_ROOT_DIR"
+    make
+
+    DESTDIR="$OUT_OF_SOURCE_DIR/stage" make install
+
+    install_lib_subdir="$(sed -n 's/^CMAKE_INSTALL_LIBDIR:PATH=//p' CMakeCache.txt)"
+    if [ -z "$install_lib_subdir" ]; then
+        echo "Error: Failed to read CMAKE_INSTALL_LIBDIR from CMakeCache.txt" >&2
+        exit 1
+    fi
+
+    install_lib_path="$OUT_OF_SOURCE_DIR/stage/usr/${install_lib_subdir}"
+
+    if [ ! -L "$install_lib_path/libmbedcrypto.so" ]; then
+        echo "Error: Expected symlink missing: $install_lib_path/libmbedcrypto.so" >&2
+        ls -l "$install_lib_path" >&2 || true
+        exit 1
+    fi
+
+    # Match the install(CODE) logic in library/CMakeLists.txt:
+    # libmbedcrypto.so.${MBEDTLS_CRYPTO_SOVERSION} -> libmbedcrypto.so.${MBEDTLS_VERSION}
+    # libmbedcrypto.so -> libmbedcrypto.so.${MBEDTLS_CRYPTO_SOVERSION}
+    symlink_count="$(find "$install_lib_path" -maxdepth 1 -type l -name 'libmbedcrypto.so*' | wc -l)"
+    if [ "$symlink_count" -lt 2 ]; then
+        echo "Error: Expected at least 2 libmbedcrypto.so* symlinks, got $symlink_count" >&2
+        ls -l "$install_lib_path"/libmbedcrypto.so* >&2 || true
+        exit 1
+    fi
+
+    for symlink in "$install_lib_path"/libmbedcrypto.so*; do
+        if [ -L "$symlink" ] && [ ! -e "$symlink" ]; then
+            echo "Error: Dangling symlink found: $symlink -> $(readlink "$symlink")" >&2
+            ls -l "$install_lib_path"/libmbedcrypto.so* >&2 || true
+            exit 1
+        fi
+    done
+
+    cd "$MBEDTLS_ROOT_DIR"
+    rm -rf "$OUT_OF_SOURCE_DIR"
+}
+
+support_test_cmake_install_with_destdir () {
+    support_test_cmake_out_of_source
+}
+
 component_build_cmake_custom_config_file () {
     # Make a copy of config file to use for the in-tree test
     cp "$CONFIG_H" include/mbedtls_config_in_tree_copy.h

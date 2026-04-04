@@ -2428,6 +2428,25 @@ static inline int mbedtls_ssl_get_pk_sigalg_and_md_alg_from_sig_alg(
 static inline int mbedtls_ssl_tls12_sig_alg_is_supported(
     const uint16_t sig_alg)
 {
+#if defined(PSA_WANT_ALG_RSA_PSS)
+    switch (sig_alg) {
+#if defined(PSA_WANT_ALG_SHA_256)
+        case MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA256:
+            return 1;
+#endif
+#if defined(PSA_WANT_ALG_SHA_384)
+        case MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA384:
+            return 1;
+#endif
+#if defined(PSA_WANT_ALG_SHA_512)
+        case MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA512:
+            return 1;
+#endif
+        default:
+            break;
+    }
+#endif /* PSA_WANT_ALG_RSA_PSS */
+
     /* High byte is hash */
     unsigned char hash = MBEDTLS_BYTE_1(sig_alg);
     unsigned char sig = MBEDTLS_BYTE_0(sig_alg);

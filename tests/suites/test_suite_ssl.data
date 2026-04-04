@@ -3549,3 +3549,15 @@ send_invalid_sig_alg:MBEDTLS_SSL_SIG_ECDSA:MBEDTLS_SSL_HASH_SHA512:0
 Negative Test: Server using sig_alg not offered by the client - ECDSA with SHA512
 depends_on:MBEDTLS_CAN_HANDLE_ECDSA_TEST_KEY:MBEDTLS_CAN_HANDLE_ECDSA_CLIENT_TEST_KEY:PSA_WANT_ALG_SHA_512
 send_invalid_sig_alg:MBEDTLS_SSL_SIG_ECDSA:MBEDTLS_SSL_HASH_SHA512:MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER
+
+TLS 1.2 accepts rsa_pss_rsae_sha256 in signature_algorithm
+depends_on:PSA_WANT_ALG_RSA_PSS:PSA_WANT_ALG_SHA_256
+ssl_tls12_sig_alg_supported:MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA256:1
+
+TLS 1.2 accepts rsa_pss_rsae_sha384 in signature_algorithm
+depends_on:PSA_WANT_ALG_RSA_PSS:PSA_WANT_ALG_SHA_384
+ssl_tls12_sig_alg_supported:MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA384:1
+
+TLS 1.2 accepts rsa_pss_rsae_sha512 in signature_algorithm
+depends_on:PSA_WANT_ALG_RSA_PSS:PSA_WANT_ALG_SHA_512
+ssl_tls12_sig_alg_supported:MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA512:1

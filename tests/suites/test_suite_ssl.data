@@ -3546,3 +3546,15 @@ send_invalid_sig_alg:MBEDTLS_SSL_SIG_ECDSA:MBEDTLS_SSL_HASH_SHA512:MBEDTLS_ERR_S
 
 Default verify_result before doing a handshake
 verify_result_without_handshake
+
+TLS 1.2 accepts rsa_pss_rsae_sha256 in signature_algorithm
+depends_on:PSA_WANT_ALG_RSA_PSS:PSA_WANT_ALG_SHA_256
+ssl_tls12_sig_alg_supported:MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA256:1
+
+TLS 1.2 accepts rsa_pss_rsae_sha384 in signature_algorithm
+depends_on:PSA_WANT_ALG_RSA_PSS:PSA_WANT_ALG_SHA_384
+ssl_tls12_sig_alg_supported:MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA384:1
+
+TLS 1.2 accepts rsa_pss_rsae_sha512 in signature_algorithm
+depends_on:PSA_WANT_ALG_RSA_PSS:PSA_WANT_ALG_SHA_512
+ssl_tls12_sig_alg_supported:MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA512:1

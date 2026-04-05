@@ -16,23 +16,6 @@ from mbedtls_framework import outcome_analysis
 class CoverageTask(outcome_analysis.CoverageTask):
     """Justify test cases that are never executed."""
 
-    @staticmethod
-    def _has_word_re(words: typing.Iterable[str],
-                     exclude: typing.Optional[str] = None) -> typing.Pattern:
-        """Construct a regex that matches if any of the words appears.
-
-        The occurrence must start and end at a word boundary.
-
-        If exclude is specified, strings containing a match for that
-        regular expression will not match the returned pattern.
-        """
-        exclude_clause = r''
-        if exclude:
-            exclude_clause = r'(?!.*' + exclude + ')'
-        return re.compile(exclude_clause +
-                          r'.*\b(?:' + r'|'.join(words) + r')\b.*',
-                          re.DOTALL)
-
     UNCOVERED_TESTS = {
         'ssl-opt': [
             # We don't run ssl-opt.sh with Valgrind on the CI because

@@ -33,7 +33,7 @@ class CoverageTask(outcome_analysis.CoverageTask):
                           r'.*\b(?:' + r'|'.join(words) + r')\b.*',
                           re.DOTALL)
 
-    IGNORED_TESTS = {
+    UNCOVERED_TESTS = {
         'ssl-opt': [
             # We don't run ssl-opt.sh with Valgrind on the CI because
             # it's extremely slow. We don't intend to change this.

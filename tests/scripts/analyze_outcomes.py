@@ -6,11 +6,28 @@ This script can also run on outcomes from a partial run, but the results are
 less likely to be useful.
 """
 
+import importlib
+import importlib.machinery
+import importlib.util
+import os
 import re
 import typing
 
 import scripts_path # pylint: disable=unused-import
 from mbedtls_framework import outcome_analysis
+from mbedtls_framework import typing_util
+
+
+class CryptoAnalyzeOutcomesType(typing_util.Protocol):
+    """Our expectations on tf-psa-crypto/tests/scripts/analyze_outcomes.py.
+
+    See CoverageTask_load_crypto_module().
+    """
+    #pylint: disable=too-few-public-methods
+
+    # Test cases that are about internal aspects of TF-PSA-Crypto,
+    # which Mbed TLS is therefore not required to cover.
+    INTERNAL_TEST_CASES: outcome_analysis.TestCaseSetDescription
 
 
 class CoverageTask(outcome_analysis.CoverageTask):
@@ -209,6 +226,39 @@ class CoverageTask(outcome_analysis.CoverageTask):
             'TLS 1.3 m->O: resumption with early data',
         ],
     }
+
+    def _load_crypto_module(self) -> None:
+        """Try to load the tf-psa-crypto submodule's outcome analysis Python module."""
+        if self.crypto_module is not None:
+            return
+        crypto_script_path = 'tf-psa-crypto/tests/scripts/analyze_outcomes.py'
+        if not os.path.exists(crypto_script_path):
+            # During a transition period, while the crypto script is not
+            # yet present in all branches we care about, allow it not to
+            # exist.
+            return
+        crypto_spec = importlib.util.spec_from_file_location(
+            'tf_psa_crypto.analyze_outcomes',
+            crypto_script_path)
+        # Assertions to help mypy.
+        assert crypto_spec is not None
+        assert crypto_spec.loader is not None
+        self.crypto_module: typing.Optional[CryptoAnalyzeOutcomesType] = \
+            importlib.util.module_from_spec(crypto_spec)
+        crypto_spec.loader.exec_module(self.crypto_module)
+
+    def _load_crypto_instructions(self) -> None:
+        """Try to load instructions from the tf-psa-crypto submodule's outcome analysis."""
+        self._load_crypto_module()
+        if self.crypto_module is not None:
+            crypto_internal_test_cases = self.crypto_module.INTERNAL_TEST_CASES
+            self.ignored_tests.extend(crypto_internal_test_cases)
+
+    def __init__(self, options) -> None:
+        super().__init__(options)
+        self.crypto_module = None # declared with a type in _load_crypto_module above
+        self._load_crypto_instructions()
+
 
 # List of tasks with a function that can handle this task and additional arguments if required
 KNOWN_TASKS: typing.Dict[str, typing.Type[outcome_analysis.Task]] = {

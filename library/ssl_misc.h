@@ -2429,6 +2429,9 @@ static inline int mbedtls_ssl_tls12_sig_alg_is_supported(
     const uint16_t sig_alg)
 {
 #if defined(PSA_WANT_ALG_RSA_PSS)
+    /* RFC 8446 Section 4.2.3 requires implementations that support RSA-PSS in
+     * TLS 1.3 to also accept rsa_pss_rsae_* in TLS 1.2.
+     */
     switch (sig_alg) {
 #if defined(PSA_WANT_ALG_SHA_256)
         case MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA256:

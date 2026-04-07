@@ -3554,10 +3554,22 @@ TLS 1.2 accepts rsa_pss_rsae_sha256 in signature_algorithm
 depends_on:PSA_WANT_ALG_RSA_PSS:PSA_WANT_ALG_SHA_256
 ssl_tls12_sig_alg_supported:MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA256:1
 
+TLS 1.2 rejects rsa_pss_rsae_sha256 in signature_algorithm when RSA-PSS is disabled
+depends_on:!PSA_WANT_ALG_RSA_PSS:PSA_WANT_ALG_SHA_256
+ssl_tls12_sig_alg_supported:MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA256:0
+
 TLS 1.2 accepts rsa_pss_rsae_sha384 in signature_algorithm
 depends_on:PSA_WANT_ALG_RSA_PSS:PSA_WANT_ALG_SHA_384
 ssl_tls12_sig_alg_supported:MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA384:1
 
+TLS 1.2 rejects rsa_pss_rsae_sha384 in signature_algorithm when RSA-PSS is disabled
+depends_on:!PSA_WANT_ALG_RSA_PSS:PSA_WANT_ALG_SHA_384
+ssl_tls12_sig_alg_supported:MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA384:0
+
 TLS 1.2 accepts rsa_pss_rsae_sha512 in signature_algorithm
 depends_on:PSA_WANT_ALG_RSA_PSS:PSA_WANT_ALG_SHA_512
 ssl_tls12_sig_alg_supported:MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA512:1
+
+TLS 1.2 rejects rsa_pss_rsae_sha512 in signature_algorithm when RSA-PSS is disabled
+depends_on:!PSA_WANT_ALG_RSA_PSS:PSA_WANT_ALG_SHA_512
+ssl_tls12_sig_alg_supported:MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA512:0

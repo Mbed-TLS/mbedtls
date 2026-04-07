@@ -2835,6 +2835,55 @@ exit:
 }
 /* END_CASE */
 
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_3 */
+void ssl_tls13_session_load_string_check(int endpoint_type, const char *input_string)
+{
+    unsigned char serialized_session[2048];
+    size_t serialized_session_len;
+    unsigned char *p, *end;
+    mbedtls_ssl_session session;
+    size_t input_string_len = strlen(input_string);
+
+    mbedtls_ssl_session_init(&session);
+    USE_PSA_INIT();
+
+    TEST_EQUAL(mbedtls_test_ssl_tls13_populate_session(
+                   &session, 0, endpoint_type), 0);
+
+    /* Serialize session */
+    TEST_EQUAL(mbedtls_ssl_session_save(&session,
+                                        serialized_session,
+                                        sizeof(serialized_session),
+                                        &serialized_session_len), 0);
+
+    /* Check session deserialization */
+    TEST_EQUAL(mbedtls_ssl_session_load(&session,
+                                        serialized_session,
+                                        serialized_session_len), 0);
+    TEST_ASSERT(serialized_session_len > input_string_len);
+    end = serialized_session + serialized_session_len - input_string_len;
+
+    /* Basic search of input_string */
+    for (p = serialized_session; p < end; p++) {
+        if (memcmp(p, input_string, input_string_len) == 0) {
+            break;
+        }
+    }
+    TEST_ASSERT(p < end);
+    TEST_EQUAL(p[input_string_len], 0);
+
+    p[input_string_len] = 1;
+    TEST_EQUAL(mbedtls_ssl_session_load(&session,
+                                        serialized_session,
+                                        serialized_session_len),
+               MBEDTLS_ERR_SSL_BAD_INPUT_DATA);
+
+exit:
+    mbedtls_ssl_session_free(&session);
+    USE_PSA_DONE();
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:MBEDTLS_RSA_C:MBEDTLS_ECP_HAVE_SECP384R1:!MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_PKCS1_V15:MBEDTLS_MD_CAN_SHA256 */
 void mbedtls_endpoint_sanity(int endpoint_type)
 {

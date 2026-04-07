@@ -1033,6 +1033,14 @@ Test Session id & Ciphersuite accessors TLS 1.3
 depends_on:MBEDTLS_SSL_PROTO_TLS1_3
 ssl_session_id_accessors_check:MBEDTLS_SSL_VERSION_TLS1_3
 
+TLS 1.3: SRV: session load: ticket alpn, no null terminator
+depends_on:MBEDTLS_SSL_SRV_C:MBEDTLS_SSL_SESSION_TICKETS:MBEDTLS_SSL_EARLY_DATA:MBEDTLS_SSL_ALPN
+ssl_tls13_session_load_string_check:MBEDTLS_SSL_IS_SERVER:"ALPNExample"
+
+TLS 1.3: CLI: session load: hostname, no null terminator
+depends_on:MBEDTLS_SSL_CLI_C:MBEDTLS_SSL_SESSION_TICKETS:MBEDTLS_SSL_SERVER_NAME_INDICATION
+ssl_tls13_session_load_string_check:MBEDTLS_SSL_IS_CLIENT:"hostname example"
+
 Record crypt, AES-128-CBC, 1.2, SHA-384
 depends_on:MBEDTLS_SSL_HAVE_AES:MBEDTLS_SSL_HAVE_CBC:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_MD_CAN_SHA384
 ssl_crypt_record:MBEDTLS_CIPHER_AES_128_CBC:MBEDTLS_MD_SHA384:0:0:MBEDTLS_SSL_VERSION_TLS1_2:0:0

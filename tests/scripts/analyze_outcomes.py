@@ -71,12 +71,6 @@ class CoverageTask(outcome_analysis.CoverageTask):
             # https://github.com/Mbed-TLS/mbedtls/issues/9586
             'Config: !MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED',
         ],
-        'test_suite_config.crypto_combinations': [
-            # New thing in crypto. Not intended to be tested separately
-            # in mbedtls.
-            # https://github.com/Mbed-TLS/mbedtls/issues/10300
-            'Config: entropy: NV seed only',
-        ],
         'test_suite_config.psa_boolean': [
             # We don't test with HMAC disabled.
             # https://github.com/Mbed-TLS/mbedtls/issues/9591
@@ -252,7 +246,17 @@ class CoverageTask(outcome_analysis.CoverageTask):
         self._load_crypto_module()
         if self.crypto_module is not None:
             crypto_internal_test_cases = self.crypto_module.INTERNAL_TEST_CASES
-            self.ignored_tests.extend(crypto_internal_test_cases)
+        else:
+            # Legacy set of tests covered by TF-PSA-Crypto only,
+            # from before Mbed TLS's outcome analysis read that information
+            # from TF-PSA-Crypto. This branch can be removed once
+            # the presence of the crypto module becomes mandatory.
+            crypto_internal_test_cases = {
+                'test_suite_config.crypto_combinations': [
+                    'Config: entropy: NV seed only',
+                ],
+            }
+        self.ignored_tests.extend(crypto_internal_test_cases)
 
     def __init__(self, options) -> None:
         super().__init__(options)

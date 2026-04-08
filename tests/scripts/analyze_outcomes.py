@@ -24,7 +24,7 @@ from mbedtls_framework import typing_util
 class CryptoAnalyzeOutcomesType(typing_util.Protocol):
     """Our expectations on tf-psa-crypto/tests/scripts/tf_psa_crypto_test_case_info.py.
 
-    See CoverageTask_load_crypto_module().
+    See CoverageTask._load_crypto_module().
     """
     #pylint: disable=too-few-public-methods
 
@@ -239,7 +239,7 @@ class CoverageTask(outcome_analysis.CoverageTask):
         crypto_spec = importlib.util.spec_from_file_location(
             'tf_psa_crypto_test_case_info',
             crypto_script_path)
-        # Assertions to help mypy.
+        # Assertions and type annotation to help mypy.
         assert crypto_spec is not None
         assert crypto_spec.loader is not None
         self.crypto_module: typing.Optional[CryptoAnalyzeOutcomesType] = \

@@ -7,8 +7,6 @@
 
 #include "common.h"
 
-#if defined(MBEDTLS_ECP_WITH_MPI_UINT)
-
 #if defined(MBEDTLS_ECP_LIGHT)
 
 #include "mbedtls/ecp.h"
@@ -5811,7 +5809,8 @@ int mbedtls_ecp_mod_p256k1_raw(mbedtls_mpi_uint *X, size_t X_limbs)
 
 #endif /* MBEDTLS_ECP_DP_SECP256K1_ENABLED */
 
-#if defined(MBEDTLS_TEST_HOOKS)
+#if defined(MBEDTLS_TEST_HOOKS) && defined(MBEDTLS_ECP_WITH_MPI_UINT)
+
 MBEDTLS_STATIC_TESTABLE
 int mbedtls_ecp_modulus_setup(mbedtls_mpi_mod_modulus *N,
                               const mbedtls_ecp_group_id id,
@@ -6019,8 +6018,7 @@ int mbedtls_ecp_modulus_setup(mbedtls_mpi_mod_modulus *N,
     }
     return 0;
 }
-#endif /* MBEDTLS_TEST_HOOKS */
+#endif /* MBEDTLS_TEST_HOOKS && MBEDTLS_ECP_WITH_MPI_UINT */
 
 #endif /* !MBEDTLS_ECP_ALT */
 #endif /* MBEDTLS_ECP_LIGHT */
-#endif /* MBEDTLS_ECP_WITH_MPI_UINT */

@@ -7,7 +7,7 @@
 
 #include "common.h"
 
-#if !defined(MBEDTLS_ECP_WITH_MPI_UINT)
+#if 0 && !defined(MBEDTLS_ECP_WITH_MPI_UINT)
 
 #if defined(MBEDTLS_ECP_LIGHT)
 
@@ -5446,4 +5446,4 @@ static int ecp_mod_p256k1(mbedtls_mpi *N)
 
 #endif /* !MBEDTLS_ECP_ALT */
 #endif /* MBEDTLS_ECP_LIGHT */
-#endif /* MBEDTLS_ECP_WITH_MPI_UINT */
+#endif /* 0 && !MBEDTLS_ECP_WITH_MPI_UINT */

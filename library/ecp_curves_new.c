@@ -6021,16 +6021,6 @@ int mbedtls_ecp_modulus_setup(mbedtls_mpi_mod_modulus *N,
 }
 #endif /* MBEDTLS_TEST_HOOKS */
 
-#if defined(MBEDTLS_TEST_HOOKS)
-
-MBEDTLS_STATIC_TESTABLE
-mbedtls_ecp_variant mbedtls_ecp_get_variant(void)
-{
-    return MBEDTLS_ECP_VARIANT_WITH_MPI_UINT;
-}
-
-#endif /* MBEDTLS_TEST_HOOKS */
-
 #endif /* !MBEDTLS_ECP_ALT */
 #endif /* MBEDTLS_ECP_LIGHT */
 #endif /* MBEDTLS_ECP_WITH_MPI_UINT */

@@ -22,7 +22,7 @@ from mbedtls_framework import typing_util
 
 
 class CryptoAnalyzeOutcomesType(typing_util.Protocol):
-    """Our expectations on tf-psa-crypto/tests/scripts/analyze_outcomes.py.
+    """Our expectations on tf-psa-crypto/tests/scripts/tf_psa_crypto_test_case_info.py.
 
     See CoverageTask_load_crypto_module().
     """
@@ -225,17 +225,19 @@ class CoverageTask(outcome_analysis.CoverageTask):
     }
 
     def _load_crypto_module(self) -> None:
-        """Try to load the tf-psa-crypto submodule's outcome analysis Python module."""
+        """Try to load the information about test cases from the tf-psa-crypto submodule.."""
+        # All this complexity is because we don't want to add the directory
+        # to the import path.
         if self.crypto_module is not None:
             return
-        crypto_script_path = 'tf-psa-crypto/tests/scripts/analyze_outcomes.py'
+        crypto_script_path = 'tf-psa-crypto/tests/scripts/tf_psa_crypto_test_case_info.py'
         if not os.path.exists(crypto_script_path):
             # During a transition period, while the crypto script is not
             # yet present in all branches we care about, allow it not to
             # exist.
             return
         crypto_spec = importlib.util.spec_from_file_location(
-            'tf_psa_crypto.analyze_outcomes',
+            'tf_psa_crypto_test_case_info',
             crypto_script_path)
         # Assertions to help mypy.
         assert crypto_spec is not None

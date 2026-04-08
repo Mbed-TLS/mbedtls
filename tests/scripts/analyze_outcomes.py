@@ -6,6 +6,9 @@ This script can also run on outcomes from a partial run, but the results are
 less likely to be useful.
 """
 
+# Copyright The Mbed TLS Contributors
+# SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
+
 import importlib
 import importlib.machinery
 import importlib.util

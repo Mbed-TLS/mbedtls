@@ -5455,12 +5455,20 @@ static int ssl_context_load(mbedtls_ssl_context *ssl,
         return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
     }
 
+    if (ssl->transform->in_cid_len > sizeof(ssl->transform->in_cid)) {
+        return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
+    }
+
     memcpy(ssl->transform->in_cid, p, ssl->transform->in_cid_len);
     p += ssl->transform->in_cid_len;
 
     ssl->transform->out_cid_len = *p++;
 
     if ((size_t) (end - p) < ssl->transform->out_cid_len) {
+        return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
+    }
+
+    if (ssl->transform->out_cid_len > sizeof(ssl->transform->out_cid)) {
         return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
     }
 

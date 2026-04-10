@@ -5533,32 +5533,15 @@ static void ecp_shift_l_224(mbedtls_mpi_uint *X)
 MBEDTLS_STATIC_TESTABLE
 int mbedtls_ecp_mod_p448_raw(mbedtls_mpi_uint *X, size_t X_limbs)
 {
-    size_t round;
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-
     if (X_limbs != BITS_TO_LIMBS(448) * 2) {
         return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
     }
 
     /* Both M and Q require an extra limb to catch carries. */
-    size_t M_limbs = BITS_TO_LIMBS(448) + 1;
-
-    const size_t Q_limbs = M_limbs;
-    mbedtls_mpi_uint *M = NULL;
-    mbedtls_mpi_uint *Q = NULL;
-
-    M = mbedtls_calloc(M_limbs, ciL);
-
-    if (M == NULL) {
-        return MBEDTLS_ERR_ECP_ALLOC_FAILED;
-    }
-
-    Q = mbedtls_calloc(Q_limbs, ciL);
-
-    if (Q == NULL) {
-        ret =  MBEDTLS_ERR_ECP_ALLOC_FAILED;
-        goto cleanup;
-    }
+    mbedtls_mpi_uint M[P448_WIDTH + 1];
+    mbedtls_mpi_uint Q[P448_WIDTH + 1];
+    const size_t M_limbs = P448_WIDTH + 1;
+    const size_t Q_limbs = P448_WIDTH + 1;
 
     /* M = A1 */
     memset(M, 0, (M_limbs * ciL));
@@ -5602,7 +5585,7 @@ int mbedtls_ecp_mod_p448_raw(mbedtls_mpi_uint *X, size_t X_limbs)
      * B1=0.
      * Using this we need to calculate:
      * A0 + A1 + B1 + (B0 + B1) * 2^224 = A0 + A1 + B0 * 2^224. */
-    for (round = 0; round < 2; ++round) {
+    for (size_t round = 0; round < 2; ++round) {
 
         /* M = A1 */
         memset(M, 0, (M_limbs * ciL));
@@ -5626,13 +5609,7 @@ int mbedtls_ecp_mod_p448_raw(mbedtls_mpi_uint *X, size_t X_limbs)
         (void) mbedtls_mpi_core_add(X, X, M, M_limbs);
     }
 
-    ret = 0;
-
-cleanup:
-    mbedtls_free(M);
-    mbedtls_free(Q);
-
-    return ret;
+    return 0;
 }
 #endif /* MBEDTLS_ECP_DP_CURVE448_ENABLED */
 

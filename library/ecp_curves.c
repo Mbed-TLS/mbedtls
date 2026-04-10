@@ -5426,10 +5426,7 @@ int mbedtls_ecp_mod_p255_raw(mbedtls_mpi_uint *X, size_t X_Limbs)
         return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
     }
 
-    mbedtls_mpi_uint *carry = mbedtls_calloc(P255_WIDTH, ciL);
-    if (carry == NULL) {
-        return MBEDTLS_ERR_ECP_ALLOC_FAILED;
-    }
+    mbedtls_mpi_uint carry[P255_WIDTH] = { 0 };
 
     /* Step 1: Reduction to P255_WIDTH limbs */
     if (X_Limbs > P255_WIDTH) {
@@ -5460,7 +5457,6 @@ int mbedtls_ecp_mod_p255_raw(mbedtls_mpi_uint *X, size_t X_Limbs)
      *   - If X > 2^255 ==> X < 2^256 - 2^255 < 2p  */
     (void) mbedtls_mpi_core_add(X, X, carry, P255_WIDTH);
 
-    mbedtls_free(carry);
     return 0;
 }
 #endif /* MBEDTLS_ECP_DP_CURVE25519_ENABLED */

@@ -252,7 +252,6 @@ int mbedtls_ecp_mod_p256k1_raw(mbedtls_mpi_uint *X, size_t X_limbs);
  * \return          \c 0 on success.
  * \return          #MBEDTLS_ERR_ECP_BAD_INPUT_DATA if \p X does not have
  *                  twice as many limbs as the modulus.
- * \return          #MBEDTLS_ERR_ECP_ALLOC_FAILED if memory allocation failed.
  */
 MBEDTLS_STATIC_TESTABLE
 int mbedtls_ecp_mod_p255_raw(mbedtls_mpi_uint *X, size_t X_limbs);

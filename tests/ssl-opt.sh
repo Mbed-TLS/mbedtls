@@ -14604,6 +14604,8 @@ EOF
     fi
 fi
 
+cleanup
+
 if [ $FAILS -gt 255 ]; then
     # Clamp at 255 as caller gets exit code & 0xFF
     # (so 256 would be 0, or success, etc)

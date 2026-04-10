@@ -4542,7 +4542,7 @@ static int ecp_group_load(mbedtls_ecp_group *grp,
     grp->pbits = mbedtls_mpi_bitlen(&grp->P);
     grp->nbits = mbedtls_mpi_bitlen(&grp->N);
 
-    grp->h = 1;
+    grp->h = 1; /* All constants static */
 
     grp->T = (mbedtls_ecp_point *) T;
     /*
@@ -4663,23 +4663,23 @@ static int ecp_use_curve25519(mbedtls_ecp_group *grp)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
-    /* Actually ( A + 2 ) / 4 */
-    MBEDTLS_MPI_CHK(mbedtls_mpi_lset(&grp->A, curve25519_a24));
+    /* Set this before anything that can fail and call ecp_group_free(). */
+    grp->h = 2; /* N and P static, but not A, B or G */
 
     ecp_mpi_load(&grp->P, curve25519_p, sizeof(curve25519_p));
-
     grp->pbits = mbedtls_mpi_bitlen(&grp->P);
 
     ecp_mpi_load(&grp->N, curve25519_n, sizeof(curve25519_n));
+    grp->nbits = 254; /* Actually, the required msb for private keys */
+
+    /* Actually ( A + 2 ) / 4 */
+    MBEDTLS_MPI_CHK(mbedtls_mpi_lset(&grp->A, curve25519_a24));
 
     /* Y intentionally not set, since we use x/z coordinates.
      * This is used as a marker to identify Montgomery curves! */
     MBEDTLS_MPI_CHK(mbedtls_mpi_lset(&grp->G.X, 9));
     MBEDTLS_MPI_CHK(mbedtls_mpi_lset(&grp->G.Z, 1));
     mbedtls_mpi_free(&grp->G.Y);
-
-    /* Actually, the required msb for private keys */
-    grp->nbits = 254;
 
 cleanup:
     if (ret != 0) {
@@ -4725,22 +4725,23 @@ static int ecp_use_curve448(mbedtls_ecp_group *grp)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
-    /* Actually ( A + 2 ) / 4 */
-    MBEDTLS_MPI_CHK(mbedtls_mpi_lset(&grp->A, curve448_a24));
+    /* Set this before anything that can fail and call ecp_group_free(). */
+    grp->h = 2; /* N and P static, but not A, B or G */
 
     ecp_mpi_load(&grp->P, curve448_p, sizeof(curve448_p));
     grp->pbits = mbedtls_mpi_bitlen(&grp->P);
+
+    ecp_mpi_load(&grp->N, curve448_n, sizeof(curve448_n));
+    grp->nbits = 447; /* Actually, the required msb for private keys */
+
+    /* Actually ( A + 2 ) / 4 */
+    MBEDTLS_MPI_CHK(mbedtls_mpi_lset(&grp->A, curve448_a24));
 
     /* Y intentionally not set, since we use x/z coordinates.
      * This is used as a marker to identify Montgomery curves! */
     MBEDTLS_MPI_CHK(mbedtls_mpi_lset(&grp->G.X, 5));
     MBEDTLS_MPI_CHK(mbedtls_mpi_lset(&grp->G.Z, 1));
     mbedtls_mpi_free(&grp->G.Y);
-
-    ecp_mpi_load(&grp->N, curve448_n, sizeof(curve448_n));
-
-    /* Actually, the required msb for private keys */
-    grp->nbits = 447;
 
 cleanup:
     if (ret != 0) {

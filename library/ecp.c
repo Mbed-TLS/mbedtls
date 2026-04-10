@@ -582,7 +582,11 @@ void mbedtls_ecp_group_free(mbedtls_ecp_group *grp)
         mbedtls_mpi_free(&grp->A);
         mbedtls_mpi_free(&grp->B);
         mbedtls_ecp_point_free(&grp->G);
-        /* Don't free N and P, those are static */
+
+        if (grp->h != 2) {
+            mbedtls_mpi_free(&grp->N);
+            mbedtls_mpi_free(&grp->P);
+        }
     }
 
     if (!ecp_group_is_static_comb_table(grp) && grp->T != NULL) {

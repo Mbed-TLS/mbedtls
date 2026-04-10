@@ -220,6 +220,33 @@ run_test    "Sample: ssl_fork_server, 2 successive clients, TLS 1.3: unique rand
             -C "error" \
             -v 'distinct_server_random'
 
+two_clients_same_seed () (
+    cp seedfile seedfile1 &&
+    "$PROGRAMS_DIR/ssl_client2" "$@" &&
+    mv seedfile1 seedfile &&
+    "$PROGRAMS_DIR/ssl_client2" "$@"
+)
+
+requires_config_enabled MBEDTLS_NO_PLATFORM_ENTROPY
+requires_config_disabled MBEDTLS_ENTROPY_HARDWARE_ALT
+run_test    "Sample: ssl_fork_server, 2 successive clients with same seed, TLS 1.2: unique random" \
+            -P 4433 \
+            "server_with_own_seedfile $PROGRAMS_DIR/ssl_fork_server" \
+            "two_clients_same_seed force_version=tls12 debug_level=3" \
+            0 \
+            -S "error" \
+            -C "error" \
+            -v 'distinct_server_random'
+
+run_test    "Sample: ssl_fork_server, 2 successive clients with same seed, TLS 1.3: unique random" \
+            -P 4433 \
+            "server_with_own_seedfile $PROGRAMS_DIR/ssl_fork_server" \
+            "two_clients_same_seed force_version=tls13 debug_level=3" \
+            0 \
+            -S "error" \
+            -C "error" \
+            -v 'distinct_server_random'
+
 # Pick ECDHE-RSA, not ECDHE-ECDSA, because ssl_fork_server only loads one key,
 # and it uses an RSA key if both RSA and ECDSA are available.
 run_test    "Sample: ssl_fork_server, 2 successive clients, TLS 1.2: unique ephemeral ECDHE" \

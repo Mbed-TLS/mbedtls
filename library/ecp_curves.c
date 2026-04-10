@@ -5476,14 +5476,8 @@ static int ecp_mod_p448(mbedtls_mpi *N)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t expected_width = BITS_TO_LIMBS(448) * 2;
-
-    /* This is required as some tests and use cases do not pass in a Bignum of
-     * the correct size, and expect the growth to be done automatically, which
-     * will no longer happen. */
     MBEDTLS_MPI_CHK(mbedtls_mpi_grow(N, expected_width));
-
-    ret = mbedtls_ecp_mod_p448_raw(N->p, N->n);
-
+    ret = mbedtls_ecp_mod_p448_raw(N->p, expected_width);
 cleanup:
     return ret;
 }
@@ -5506,18 +5500,11 @@ int mbedtls_ecp_mod_p448_raw(mbedtls_mpi_uint *X, size_t X_limbs)
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
     if (X_limbs != BITS_TO_LIMBS(448) * 2) {
-        return 0;
-    }
-
-    size_t M_limbs = X_limbs - (P448_WIDTH);
-
-    if (M_limbs > P448_WIDTH) {
-        /* Shouldn't be called with X larger than 2^896! */
         return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
     }
 
     /* Both M and Q require an extra limb to catch carries. */
-    M_limbs++;
+    size_t M_limbs = BITS_TO_LIMBS(448) + 1;
 
     const size_t Q_limbs = M_limbs;
     mbedtls_mpi_uint *M = NULL;

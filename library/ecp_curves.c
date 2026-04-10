@@ -14,8 +14,6 @@
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
 
-#include "mbedtls/platform.h"
-
 #include "constant_time_internal.h"
 
 #include "bn_mul.h"

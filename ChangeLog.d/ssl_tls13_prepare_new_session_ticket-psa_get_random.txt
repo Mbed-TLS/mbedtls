@@ -1,0 +1,5 @@
+Security
+   * Fix a bug where mbedtls_ssl_read() and mbedtls_ssl_write() could return
+     1 instead of an error code if the random generator fails if a server
+     calls these functions before the end of a TLS 1.3 handshake.
+     Reported by Mohammad Seet (mhdsait101). CVE-2026-40294

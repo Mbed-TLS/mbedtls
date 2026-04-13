@@ -2084,7 +2084,6 @@ cleanup() {
     test -n "${PXY_PID:-}" && kill $PXY_PID >/dev/null 2>&1
     test -n "${CLI_PID:-}" && kill $CLI_PID >/dev/null 2>&1
     test -n "${DOG_PID:-}" && kill $DOG_PID >/dev/null 2>&1
-    exit 1
 }
 
 #
@@ -2270,7 +2269,9 @@ SESSION="session.$$"
 
 SKIP_NEXT="NO"
 
-trap cleanup INT TERM HUP
+trap 'cleanup; trap - HUP; kill -HUP $$' HUP
+trap 'cleanup; trap - HUP; kill -INT $$' INT
+trap 'cleanup; trap - HUP; kill -TERM $$' TERM
 
 # Basic test
 
@@ -15616,9 +15617,10 @@ fi
 
 cleanup
 
-if [ $FAILS -gt 255 ]; then
-    # Clamp at 255 as caller gets exit code & 0xFF
-    # (so 256 would be 0, or success, etc)
-    FAILS=255
+if [ $FAILS -gt 125 ]; then
+    # Clamp at 125 as caller gets exit code & 0xFF
+    # (so 256 would be 0, or success, etc), and 126 and above have
+    # conventional meanings (fork/exec failure, signal).
+    FAILS=125
 fi
 exit $FAILS

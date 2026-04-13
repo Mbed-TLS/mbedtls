@@ -5018,7 +5018,16 @@ int mbedtls_ecp_mod_p192_raw(mbedtls_mpi_uint *Np, size_t Nn)
 
 static inline int8_t extract_carry(int64_t cur)
 {
-    return (int8_t) (cur >> 32);
+    /*
+     * Extract the signed carry without relying on `cur >> 32` for negative `cur`,
+     * since signed right shift is implementation-defined. Shift as uint64_t, then
+     * sign-extend explicitly.
+     *
+     * Modern optimizing compilers will likely generate the same code
+     * as the less portable (int8_t) (cur >> 32) anyway.
+     */
+    uint32_t hi = (uint32_t) (((uint64_t) cur) >> 32);
+    return (int8_t) ((int64_t) hi - ((int64_t) (hi >> 31) << 32));
 }
 
 #define ADD(j)    cur += A(j)

@@ -218,39 +218,31 @@ component_test_cmake_install_with_destdir () {
     DESTDIR="$OUT_OF_SOURCE_DIR/stage" make install
 
     install_lib_subdir="$(sed -n 's/^CMAKE_INSTALL_LIBDIR:PATH=//p' CMakeCache.txt)"
-    if [ -z "$install_lib_subdir" ]; then
-        echo "Error: Failed to read CMAKE_INSTALL_LIBDIR from CMakeCache.txt" >&2
-        exit 1
-    fi
+    [ -n "$install_lib_subdir" ] # Failed to read CMAKE_INSTALL_LIBDIR from CMakeCache.txt
 
     install_lib_path="$OUT_OF_SOURCE_DIR/stage/usr/${install_lib_subdir}"
 
-    if [ ! -L "$install_lib_path/libmbedcrypto.so" ]; then
-        echo "Error: Expected symlink missing: $install_lib_path/libmbedcrypto.so" >&2
-        ls -l "$install_lib_path" >&2 || true
-        exit 1
+    if [[ "$OSTYPE" == linux* ]]; then
+        # library/CMakeLists.txt installs libmbedcrypto.so with a versioned
+        # symlink chain on Linux.
+        for lib in tfpsacrypto mbedcrypto mbedx509 mbedtls; do
+            [ -f "$install_lib_path/lib${lib}.a" ]
+            [ -L "$install_lib_path/lib${lib}.so" ]
+            [ -e "$install_lib_path/lib${lib}.so" ]
+            versioned=( "$install_lib_path/lib${lib}.so".* )
+            [ -L "${versioned[0]}" ]
+            [ -e "${versioned[0]}" ]
+        done
+    elif [[ "$OSTYPE" == darwin* ]]; then
+        # On macOS the custom install logic installs libmbedcrypto.dylib
+        # directly without a versioned symlink chain.
+        for lib in tfpsacrypto mbedcrypto mbedx509 mbedtls; do
+            [ -f "$install_lib_path/lib${lib}.a" ]
+            [ -e "$install_lib_path/lib${lib}.dylib" ]
+        done
+    else
+        echo "Unsupported platform for DESTDIR shared library checks"
     fi
-
-    # Match the install(CODE) logic in library/CMakeLists.txt:
-    # libmbedcrypto.so.${MBEDTLS_CRYPTO_SOVERSION} -> libmbedcrypto.so.${MBEDTLS_VERSION}
-    # libmbedcrypto.so -> libmbedcrypto.so.${MBEDTLS_CRYPTO_SOVERSION}
-    symlink_count="$(find "$install_lib_path" -maxdepth 1 -type l -name 'libmbedcrypto.so*' | wc -l)"
-    if [ "$symlink_count" -lt 2 ]; then
-        echo "Error: Expected at least 2 libmbedcrypto.so* symlinks, got $symlink_count" >&2
-        ls -l "$install_lib_path"/libmbedcrypto.so* >&2 || true
-        exit 1
-    fi
-
-    for symlink in "$install_lib_path"/libmbedcrypto.so*; do
-        if [ -L "$symlink" ] && [ ! -e "$symlink" ]; then
-            echo "Error: Dangling symlink found: $symlink -> $(readlink "$symlink")" >&2
-            ls -l "$install_lib_path"/libmbedcrypto.so* >&2 || true
-            exit 1
-        fi
-    done
-
-    cd "$MBEDTLS_ROOT_DIR"
-    rm -rf "$OUT_OF_SOURCE_DIR"
 }
 
 support_test_cmake_install_with_destdir () {

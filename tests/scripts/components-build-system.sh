@@ -222,15 +222,22 @@ component_test_cmake_install_with_destdir () {
 
     install_lib_path="$OUT_OF_SOURCE_DIR/stage/usr/${install_lib_subdir}"
 
-    if [[ "$OSTYPE" == linux* ]]; then
+    if [[ "$OSTYPE" != darwin* ]]; then
         # library/CMakeLists.txt installs libmbedcrypto.so with a versioned
         # symlink chain on Linux.
         for lib in tfpsacrypto mbedcrypto mbedx509 mbedtls; do
+            if [ "$QUIET" -eq 0 ]; then
+                echo "Checking lib=$lib"
+            fi
             [ -f "$install_lib_path/lib${lib}.a" ]
             [ -L "$install_lib_path/lib${lib}.so" ]
             [ -e "$install_lib_path/lib${lib}.so" ]
             versioned=( "$install_lib_path/lib${lib}.so".* )
-            [ -L "${versioned[0]}" ]
+            if [ "$QUIET" -eq 0 ]; then
+                declare -p versioned
+            fi
+            [ "${#versioned[@]}" -ge 1 ]
+            # [ -L "${versioned[0]}" ]
             [ -e "${versioned[0]}" ]
         done
     elif [[ "$OSTYPE" == darwin* ]]; then

@@ -3,4 +3,4 @@ Security
      provided output buffer is too small, sometimes (depending on the value of
      the computed shared secret), the function would not return an error as it
      should, but instead write past the end of the buffer. Reported by Eva
-     Crystal (0xiviel) from XSource Security. CVE-2026-35336
+     Crystal (0xiviel) from XSource Security. CVE-2026-35336.

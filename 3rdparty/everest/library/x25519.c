@@ -137,7 +137,7 @@ int mbedtls_x25519_calc_secret( mbedtls_x25519_context *ctx, size_t *olen,
 
     Hacl_Curve25519_crypto_scalarmult( buf, secret, ctx->peer_point);
 
-    /* Wipe the copy and don't let the peer chose a small subgroup point */
+    /* Wipe the copy and don't let the peer choose a small subgroup point */
     mbedtls_platform_zeroize( secret, MBEDTLS_X25519_KEY_SIZE_BYTES );
 
     if( memcmp( buf, secret, MBEDTLS_X25519_KEY_SIZE_BYTES) == 0 )

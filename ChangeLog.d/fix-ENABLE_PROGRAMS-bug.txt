@@ -1,0 +1,2 @@
+Bugfix
+   * Add fix for -DENABLE_PROGRAMS=OFF build error reported in issue 10587.

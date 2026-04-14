@@ -174,7 +174,14 @@ component_test_cmake_install_with_destdir () {
 
     install_lib_path="$OUT_OF_SOURCE_DIR/stage/usr/${install_lib_subdir}"
 
-    if [[ "$OSTYPE" != darwin* ]]; then
+    if [[ "$OSTYPE" == darwin* ]]; then
+        # On macOS the custom install logic installs libmbedcrypto.dylib
+        # directly without a versioned symlink chain.
+        for lib in tfpsacrypto mbedcrypto mbedx509 mbedtls; do
+            [ -f "$install_lib_path/lib${lib}.a" ]
+            [ -e "$install_lib_path/lib${lib}.dylib" ]
+        done
+    else
         # library/CMakeLists.txt installs libmbedcrypto.so with a versioned
         # symlink chain on Linux.
         for lib in tfpsacrypto mbedcrypto mbedx509 mbedtls; do
@@ -188,19 +195,10 @@ component_test_cmake_install_with_destdir () {
             if [ "$QUIET" -eq 0 ]; then
                 declare -p versioned
             fi
-            [ "${#versioned[@]}" -ge 1 ]
-            # [ -L "${versioned[0]}" ]
+            # [ "${#versioned[@]}" -ge 1 ]
+            [ -L "${versioned[0]}" ]
             [ -e "${versioned[0]}" ]
         done
-    elif [[ "$OSTYPE" == darwin* ]]; then
-        # On macOS the custom install logic installs libmbedcrypto.dylib
-        # directly without a versioned symlink chain.
-        for lib in tfpsacrypto mbedcrypto mbedx509 mbedtls; do
-            [ -f "$install_lib_path/lib${lib}.a" ]
-            [ -e "$install_lib_path/lib${lib}.dylib" ]
-        done
-    else
-        echo "Unsupported platform for DESTDIR shared library checks"
     fi
 }
 

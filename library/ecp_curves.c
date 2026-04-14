@@ -5482,6 +5482,36 @@ cleanup:
     return ret;
 }
 
+/* Copy and shift right: X = A >> 224
+ * Both X and A must be P448_WIDTH + 1 limbs */
+static void ecp_copy_shift_r_224(mbedtls_mpi_uint *X,
+                                 const mbedtls_mpi_uint *A)
+{
+#if defined(MBEDTLS_HAVE_INT64) && defined(MBEDTLS_IS_BIG_ENDIAN)
+    /* No need to copy lower limbs, they'll be shifted away.
+     * P448_WIDTH + 1 = P224_WIDTH_MIN + (P224_WIDTH_MAX + 1) */
+    memcpy(X + P224_WIDTH_MIN, A + P224_WIDTH_MIN, (P224_WIDTH_MAX + 1) * ciL);
+    mbedtls_mpi_core_shift_r(X, P448_WIDTH + 1, 224);
+#else
+    /* Shortcut for 32-bit and little-endian 64-bit. */
+    memcpy(X, (char *) A + P224_SIZE, P224_SIZE);
+    memset((char *) X + P224_SIZE, 0, P224_SIZE + ciL);
+#endif
+}
+
+/* Shift left: X <<= 224
+ * X must be P448_WIDTH + 1 limbs */
+static void ecp_shift_l_224(mbedtls_mpi_uint *X)
+{
+#if defined(MBEDTLS_HAVE_INT64) && defined(MBEDTLS_IS_BIG_ENDIAN)
+    mbedtls_mpi_core_shift_l(X, P448_WIDTH + 1, 224);
+#else
+    /* Shortcut for 32-bit and little-endian 64-bit. */
+    memmove((char *) X + P224_SIZE, X, P224_SIZE + ciL);
+    memset(X, 0, P224_SIZE);
+#endif
+}
+
 /*
  * Fast quasi-reduction modulo p448 = 2^448 - 2^224 - 1
  * Write X as A0 + 2^448 A1 and A1 as B0 + 2^224 B1, and return A0 + A1 + B1 +
@@ -5538,8 +5568,7 @@ int mbedtls_ecp_mod_p448_raw(mbedtls_mpi_uint *X, size_t X_limbs)
     (void) mbedtls_mpi_core_add(X, X, M, M_limbs);
 
     /* Q = B1 = M >> 224 */
-    memcpy(Q, (char *) M + P224_SIZE, P224_SIZE);
-    memset((char *) Q + P224_SIZE, 0, P224_SIZE);
+    ecp_copy_shift_r_224(Q, M);
 
     /* X = X + Q = (A0 + A1) + B1
      * Oversize Q catches potential carry here when X is already max 448 bits.
@@ -5557,8 +5586,7 @@ int mbedtls_ecp_mod_p448_raw(mbedtls_mpi_uint *X, size_t X_limbs)
 
     /* M = (B0 + B1) * 2^224 */
     /* Shifted carry bit from the addition fits in oversize M. */
-    memmove((char *) M + P224_SIZE, M, P224_SIZE + ciL);
-    memset(M, 0, P224_SIZE);
+    ecp_shift_l_224(M);
 
     /* X = X + M = (A0 + A1 + B1) + (B0 + B1) * 2^224 */
     (void) mbedtls_mpi_core_add(X, X, M, M_limbs);

@@ -47,7 +47,7 @@
     defined(MBEDTLS_ECP_DP_SECP256K1_ENABLED)
 /* For these curves, we build the group parameters dynamically. */
 #define ECP_LOAD_GROUP
-static mbedtls_mpi_uint mpi_one[] = { 1 };
+static const mbedtls_mpi_uint mpi_one[] = { 1 };
 #endif
 
 /*
@@ -4509,9 +4509,7 @@ static inline void ecp_mpi_load(mbedtls_mpi *X, const mbedtls_mpi_uint *p, size_
  */
 static inline void ecp_mpi_set1(mbedtls_mpi *X)
 {
-    X->s = 1;
-    X->n = 1;
-    X->p = mpi_one;
+    ecp_mpi_load(X, mpi_one, sizeof(mbedtls_mpi_uint));
 }
 
 /*

@@ -239,13 +239,21 @@ component_test_cmake_install_with_destdir () {
             [ -f "$install_lib_path/lib${lib}.a" ]
             [ -L "$install_lib_path/lib${lib}.so" ]
             [ -e "$install_lib_path/lib${lib}.so" ]
+
+            # do not assume a fixed match ordering.
             versioned=( "$install_lib_path/lib${lib}.so".* )
             if [ "$QUIET" -eq 0 ]; then
                 declare -p versioned
             fi
-            # [ "${#versioned[@]}" -ge 1 ]
-            [ -L "${versioned[0]}" ]
-            [ -e "${versioned[0]}" ]
+            versioned_symlink=
+            for candidate in "${versioned[@]}"; do
+                if [ -L "$candidate" ]; then
+                    versioned_symlink="$candidate"
+                    break
+                fi
+            done
+            [ -n "$versioned_symlink" ]
+            [ -e "$versioned_symlink" ]
         done
     fi
 }

@@ -1,4 +1,4 @@
 Bugfix
    * Fix a TLS 1.2 regression that caused clients to reject valid
-     ServerKeyExchange signatures using RSA-PSS signature scheme values.
+     ServerKeyExchange signatures using RSA-PSS signature algorithms.
      Fixes #10668.

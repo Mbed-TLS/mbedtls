@@ -13938,27 +13938,6 @@ run_test    "TLS 1.2: Check rsa_pss_rsae compatibility issue, m->O" \
             -c "Protocol is TLSv1.2" \
             -c "HTTP/1.0 200 [Oo][Kk]"
 
-requires_openssl_tls1_3_with_compatible_ephemeral
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_config_enabled MBEDTLS_DEBUG_C
-requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled PSA_WANT_ALG_RSA_PSS
-requires_config_enabled PSA_WANT_ALG_SHA_256
-run_test    "TLS 1.2: OpenSSL chooses rsa_pss_rsae_sha256 for SKE, m->O" \
-            "$O_NEXT_SRV_NO_CERT -cert $DATA_FILES_PATH/server2-sha256.crt -key $DATA_FILES_PATH/server2.key
-                                 -msg -tls1_2
-                                 -sigalgs rsa_pss_rsae_sha256 " \
-            "$P_CLI debug_level=4 auth_mode=none ca_file=none ca_path=none crt_file=none key_file=none
-                    sig_algs=rsa_pss_rsae_sha256
-                    min_version=tls12 max_version=tls12 " \
-            0 \
-            -c "Perform .* computation of digest of ServerKeyExchange" \
-            -c "got signature scheme \\[804\\] rsa_pss_rsae_sha256" \
-            -c "Ciphersuite is TLS-ECDHE-RSA" \
-            -c "Protocol is TLSv1.2" \
-            -c "HTTP/1.0 200 [Oo][Kk]"
-
-
 requires_gnutls_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_DEBUG_C
@@ -13971,6 +13950,43 @@ run_test    "TLS 1.2: Check rsa_pss_rsae compatibility issue, m->G" \
                     sig_algs=rsa_pss_rsae_sha512,rsa_pkcs1_sha512
                     min_version=tls12 max_version=tls13 " \
             0 \
+            -c "Protocol is TLSv1.2" \
+            -c "HTTP/1.0 200 [Oo][Kk]"
+
+requires_openssl_tls1_3_with_compatible_ephemeral
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_enabled PSA_WANT_ALG_RSA_PSS
+requires_config_enabled PSA_WANT_ALG_SHA_256
+run_test    "TLS 1.2: Server forces TLS 1.2 and rsa_pss_rsae_sha256, m->O" \
+            "$O_NEXT_SRV_NO_CERT -cert $DATA_FILES_PATH/server2-sha256.crt -key $DATA_FILES_PATH/server2.key
+                                 -tls1_2 -sigalgs rsa_pss_rsae_sha256 " \
+            "$P_CLI debug_level=3" \
+            0 \
+            -c "sent signature scheme \\[804\\] rsa_pss_rsae_sha256" \
+            -c "Perform .* computation of digest of ServerKeyExchange" \
+            -c "Server used the signature algorithm rsa_pss_rsae_sha256" \
+            -c "Protocol is TLSv1.2" \
+            -c "HTTP/1.0 200 [Oo][Kk]"
+
+requires_gnutls_tls1_3
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_enabled PSA_WANT_ALG_RSA_PSS
+requires_config_enabled PSA_WANT_ALG_SHA_256
+run_test    "TLS 1.2: Server forces TLS 1.2 and rsa_pss_rsae_sha256, m->G" \
+            "$G_NEXT_SRV_NO_CERT --x509certfile $DATA_FILES_PATH/server2-sha256.crt --x509keyfile $DATA_FILES_PATH/server2.key
+                    --disable-client-cert
+                    --priority=NORMAL:-VERS-ALL:+VERS-TLS1.2:-SIGN-ALL:+SIGN-RSA-PSS-RSAE-SHA256" \
+            "$P_CLI debug_level=3" \
+            0 \
+            -c "sent signature scheme \\[804\\] rsa_pss_rsae_sha256" \
+            -c "Perform .* computation of digest of ServerKeyExchange" \
+            -c "Server used the signature algorithm rsa_pss_rsae_sha256" \
             -c "Protocol is TLSv1.2" \
             -c "HTTP/1.0 200 [Oo][Kk]"
 

@@ -5853,14 +5853,6 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED */
-void ssl_tls12_sig_alg_supported(int sig_alg, int expected)
-{
-    TEST_EQUAL(mbedtls_ssl_tls12_sig_alg_is_supported((uint16_t) sig_alg),
-               expected);
-}
-/* END_CASE */
-
 /* BEGIN_CASE depends_on:MBEDTLS_SSL_KEYING_MATERIAL_EXPORT:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:PSA_WANT_ECC_SECP_R1_384:PSA_WANT_ALG_SHA_256 */
 void ssl_tls_exporter_consistent_result(int proto, int exported_key_length, int use_context)
 {

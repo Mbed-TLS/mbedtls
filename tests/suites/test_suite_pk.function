@@ -781,7 +781,7 @@ void pk_can_do_ext(int opaque_key, int key_type, int key_usage, int key_alg,
 
 exit:
     psa_reset_key_attributes(&attributes);
-    PSA_ASSERT(psa_destroy_key(key));
+    psa_destroy_key(key);
     mbedtls_pk_free(&pk);
     USE_PSA_DONE();
 }

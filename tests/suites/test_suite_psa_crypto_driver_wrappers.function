@@ -2899,7 +2899,7 @@ void aead_encrypt_setup(int key_type_arg, data_t *key_data,
 
 exit:
     /* Cleanup */
-    PSA_ASSERT(psa_destroy_key(key));
+    psa_destroy_key(key);
     mbedtls_free(output_data);
     PSA_DONE();
     mbedtls_test_driver_aead_hooks = mbedtls_test_driver_aead_hooks_init();
@@ -3001,7 +3001,7 @@ void aead_decrypt_setup(int key_type_arg, data_t *key_data,
     }
 
 exit:
-    PSA_ASSERT(psa_destroy_key(key));
+    psa_destroy_key(key);
     mbedtls_free(output_data);
     PSA_DONE();
 }

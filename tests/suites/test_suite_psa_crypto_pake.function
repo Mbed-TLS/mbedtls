@@ -593,7 +593,7 @@ void ecjpake_setup(int alg_arg, int key_type_pw_arg, int key_usage_pw_arg,
                    int expected_error_arg)
 {
     psa_pake_cipher_suite_t cipher_suite = psa_pake_cipher_suite_init();
-    psa_pake_operation_t operation = psa_pake_operation_init();
+    psa_pake_operation_t operation = psa_pake_operation_init_short();
     psa_algorithm_t alg = alg_arg;
     psa_pake_primitive_t primitive = primitive_arg;
     psa_key_type_t key_type_pw = key_type_pw_arg;
@@ -763,8 +763,8 @@ void ecjpake_setup(int alg_arg, int key_type_pw_arg, int key_usage_pw_arg,
     }
 
 exit:
-    PSA_ASSERT(psa_destroy_key(key));
-    PSA_ASSERT(psa_pake_abort(&operation));
+    psa_destroy_key(key);
+    psa_pake_abort(&operation);
     mbedtls_free(output_buffer);
     PSA_DONE();
 }
@@ -779,8 +779,8 @@ void ecjpake_rounds_inject(int alg_arg, int primitive_arg, int hash_arg,
                            int inject_in_second_round)
 {
     psa_pake_cipher_suite_t cipher_suite = psa_pake_cipher_suite_init();
-    psa_pake_operation_t server = psa_pake_operation_init();
-    psa_pake_operation_t client = psa_pake_operation_init();
+    psa_pake_operation_t server = psa_pake_operation_init_short();
+    psa_pake_operation_t client = psa_pake_operation_init_short();
     psa_algorithm_t alg = alg_arg;
     psa_algorithm_t hash_alg = hash_arg;
     mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
@@ -839,8 +839,8 @@ void ecjpake_rounds(int alg_arg, int primitive_arg, int hash_arg,
                     int err_stage_arg)
 {
     psa_pake_cipher_suite_t cipher_suite = psa_pake_cipher_suite_init();
-    psa_pake_operation_t server = psa_pake_operation_init();
-    psa_pake_operation_t client = psa_pake_operation_init();
+    psa_pake_operation_t server = psa_pake_operation_init_short();
+    psa_pake_operation_t client = psa_pake_operation_init_short();
     psa_algorithm_t alg = alg_arg;
     psa_algorithm_t hash_alg = hash_arg;
     psa_algorithm_t derive_alg = derive_alg_arg;
@@ -980,7 +980,7 @@ void ecjpake_size_macros()
 void pake_input_getters_password()
 {
     psa_pake_cipher_suite_t cipher_suite = psa_pake_cipher_suite_init();
-    psa_pake_operation_t operation = psa_pake_operation_init();
+    psa_pake_operation_t operation = psa_pake_operation_init_short();
     mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     const char *password = "password";
@@ -1035,8 +1035,8 @@ void pake_input_getters_password()
 
     TEST_MEMORY_COMPARE(password_ret, buffer_len_ret, password, strlen(password));
 exit:
-    PSA_ASSERT(psa_destroy_key(key));
-    PSA_ASSERT(psa_pake_abort(&operation));
+    psa_destroy_key(key);
+    psa_pake_abort(&operation);
     PSA_DONE();
 }
 /* END_CASE */
@@ -1045,7 +1045,7 @@ exit:
 void pake_input_getters_cipher_suite()
 {
     psa_pake_cipher_suite_t cipher_suite = psa_pake_cipher_suite_init();
-    psa_pake_operation_t operation = psa_pake_operation_init();
+    psa_pake_operation_t operation = psa_pake_operation_init_short();
     psa_pake_cipher_suite_t cipher_suite_ret = psa_pake_cipher_suite_init();
 
     psa_pake_primitive_t primitive = PSA_PAKE_PRIMITIVE(
@@ -1058,9 +1058,6 @@ void pake_input_getters_cipher_suite()
     psa_pake_cs_set_primitive(&cipher_suite, primitive);
     psa_pake_cs_set_hash(&cipher_suite, PSA_ALG_SHA_256);
 
-    TEST_EQUAL(psa_crypto_driver_pake_get_cipher_suite(&operation.data.inputs, &cipher_suite_ret),
-               PSA_ERROR_BAD_STATE);
-
     PSA_ASSERT(psa_pake_setup(&operation, &cipher_suite));
 
     TEST_EQUAL(psa_crypto_driver_pake_get_cipher_suite(&operation.data.inputs, &cipher_suite_ret),
@@ -1069,8 +1066,12 @@ void pake_input_getters_cipher_suite()
     TEST_MEMORY_COMPARE(&cipher_suite_ret, sizeof(cipher_suite_ret),
                         &cipher_suite, sizeof(cipher_suite));
 
-exit:
     PSA_ASSERT(psa_pake_abort(&operation));
+    TEST_EQUAL(psa_crypto_driver_pake_get_cipher_suite(&operation.data.inputs, &cipher_suite_ret),
+               PSA_ERROR_BAD_STATE);
+
+exit:
+    psa_pake_abort(&operation);
     PSA_DONE();
 }
 /* END_CASE */
@@ -1079,7 +1080,7 @@ exit:
 void pake_input_getters_user()
 {
     psa_pake_cipher_suite_t cipher_suite = psa_pake_cipher_suite_init();
-    psa_pake_operation_t operation = psa_pake_operation_init();
+    psa_pake_operation_t operation = psa_pake_operation_init_short();
     const char *users[] = { "client", "server", "other" };
     uint8_t user_ret[20] = { 0 }; // max user length is 20 bytes
     size_t user_len_ret = 0;
@@ -1132,8 +1133,9 @@ void pake_input_getters_user()
 
         TEST_MEMORY_COMPARE(user_ret, buffer_len_ret, user, user_len);
     }
+
 exit:
-    PSA_ASSERT(psa_pake_abort(&operation));
+    psa_pake_abort(&operation);
     PSA_DONE();
 }
 /* END_CASE */
@@ -1142,7 +1144,7 @@ exit:
 void pake_input_getters_peer()
 {
     psa_pake_cipher_suite_t cipher_suite = psa_pake_cipher_suite_init();
-    psa_pake_operation_t operation = psa_pake_operation_init();
+    psa_pake_operation_t operation = psa_pake_operation_init_short();
     const char *peers[] = { "client", "server", "other" };
     uint8_t peer_ret[20] = { 0 }; // max peer length is 20 bytes
     size_t peer_len_ret = 0;
@@ -1195,8 +1197,9 @@ void pake_input_getters_peer()
 
         TEST_MEMORY_COMPARE(peer_ret, buffer_len_ret, peer, peer_len);
     }
+
 exit:
-    PSA_ASSERT(psa_pake_abort(&operation));
+    psa_pake_abort(&operation);
     PSA_DONE();
 }
 /* END_CASE */

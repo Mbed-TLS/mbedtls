@@ -5500,6 +5500,9 @@ int mbedtls_ecp_mod_p255_raw(mbedtls_mpi_uint *X, size_t X_Limbs)
 #define P224_WIDTH_MAX   DIV_ROUND_UP(P224_SIZE, sizeof(mbedtls_mpi_uint))
 #define P224_UNUSED_BITS ((P224_WIDTH_MAX * sizeof(mbedtls_mpi_uint) * 8) - 224)
 
+/*
+ * Fast quasi-reduction module p448
+ */
 static int ecp_mod_p448(mbedtls_mpi *N)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
@@ -5543,11 +5546,18 @@ static void ecp_shift_l_224(mbedtls_mpi_uint *X)
 }
 
 /*
- * Fast quasi-reduction modulo p448 = 2^448 - 2^224 - 1
- * Write X as A0 + 2^448 A1 and A1 as B0 + 2^224 B1, and return A0 + A1 + B1 +
- * (B0 + B1) * 2^224.  This is different to the reference implementation of
+ * Raw fast quasi-reduction modulo p448 = 2^448 - 2^224 - 1
+ *
+ * See ecp_invasive.h and FAST_QUASI_REDUCTION above.
+ *
+ * Write X as A0 + 2^448 A1 and A1 as B0 + 2^224 B1, and
+ * compute A0 + A1 + B1 + (B0 + B1) * 2^224.
+ *
+ * This is different to the reference implementation of
  * Curve448, which uses its own special 56-bit limbs rather than a generic
- * bignum library.  We could squeeze some extra speed out on 32-bit machines by
+ * bignum library.
+ *
+ * We could squeeze some extra speed out on 32-bit machines by
  * splitting N up into 32-bit limbs and doing the arithmetic using the limbs
  * directly as we do for the NIST primes above, but for 64-bit targets it should
  * use half the number of operations if we do the reduction with 224-bit limbs,
@@ -5604,29 +5614,32 @@ int mbedtls_ecp_mod_p448_raw(mbedtls_mpi_uint *X, size_t X_limbs)
     /* X = X + M = (A0 + A1 + B1) + (B0 + B1) * 2^224 */
     (void) mbedtls_mpi_core_add(X, X, M, M_limbs);
 
-    /* In the second and third rounds A1 and B0 have at most 1 non-zero limb and
-     * B1=0.
-     * Using this we need to calculate:
-     * A0 + A1 + B1 + (B0 + B1) * 2^224 = A0 + A1 + B0 * 2^224. */
+    /* Clear M once before the loop */
+    memset(M, 0, (M_limbs * ciL));
+
+    /* Now X < 2^448 + 2^448 + 2^224 + (2^224 + 2^224) * 2^224,
+     * so X is at most 451 bits. So, in subsequent rounds,
+     * A1 has at most 1 non-zero limb, so B0 = A1 and B1 = 0.
+     * So the update formula simplifies as follows:
+     * A0 + A1 + B1 + (B0 + B1) * 2^224 = A0 + A1 + A1 * 2^224.
+     *
+     * Two rounds are enough because:
+     * 1st round: A0 < 2^448, A1 <= 2^3 - 1
+     *            so X < 2^448 + 2^227 (at most 449 bits).
+     * 2nd round: Either A1 is 0 and we're done already,
+     *            or A1 is 1 and A0 = X - A1 * 2^448 < 2^227,
+     *            so X < 2^227 + 1 + 1 * 2^224 is less than 448 bits.
+     */
     for (size_t round = 0; round < 2; ++round) {
+        /* M = A1 + A1 * 2^224
+         * Since A1 has only one non-zero limb, we can directly write
+         * A1 << 224 to the right place, shifted up if needed.
+         * (Note: other limbs of M were cleared before the loop.) */
+        M[0] = X[P448_WIDTH];
+        M[P224_WIDTH_MIN] = X[P448_WIDTH] << (224 & (biL - 1));
 
-        /* M = A1 */
-        memset(M, 0, (M_limbs * ciL));
-        memcpy(M, X + P448_WIDTH, ((M_limbs - 1) * ciL));
-
-        /* X = A0 */
-        memset(X + P448_WIDTH, 0, ((M_limbs - 1) * ciL));
-
-        /* M = A1 + B0 * 2^224
-         * We know that only one limb of A1 will be non-zero and that it will be
-         * limb 0. We also know that B0 is the bottom 224 bits of A1 (which is
-         * then shifted up 224 bits), so, given M is currently A1 this turns
-         * into:
-         * M = M + (M << 224)
-         * As the single non-zero limb in B0 will be A1 limb 0 shifted up by 224
-         * bits, we can just move that into the right place, shifted up
-         * accordingly.*/
-        M[P224_WIDTH_MIN] = M[0] << (224 & (biL - 1));
+        /* X = A0 (only 1 limb to clear) */
+        X[P448_WIDTH] = 0;
 
         /* X = A0 + (A1 + B0 * 2^224) */
         (void) mbedtls_mpi_core_add(X, X, M, M_limbs);

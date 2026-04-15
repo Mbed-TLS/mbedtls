@@ -258,16 +258,14 @@ int mbedtls_ecp_mod_p255_raw(mbedtls_mpi_uint *X, size_t X_limbs);
 #if defined(MBEDTLS_ECP_DP_CURVE448_ENABLED)
 
 /** Fast quasi-reduction modulo p448 = 2^448 - 2^224 - 1
- * Write X as A0 + 2^448 A1 and A1 as B0 + 2^224 B1, and return A0 + A1 + B1 +
- * (B0 + B1) * 2^224.
  *
  * \param[in,out]   X       The address of the MPI to be converted.
  *                          Must have exact limb size that stores a 896-bit MPI
- *                          (double the bitlength of the modulus). Upon return
- *                          holds the reduced value which is in range `0 <= X <
- *                          N` (where N is the modulus). The bitlength of the
- *                          reduced value is the same as that of the modulus
- *                          (448 bits).
+ *                          (double the bitlength of the modulus).
+ *                          Upon return holds the reduced value which is in
+ *                          range `0 <= X < 2 * N` (where N is the modulus).
+ *                          The bitlength of the reduced value is the same as
+ *                          that of the modulus (448 bits).
  * \param[in]       X_limbs The length of \p X in limbs.
  *
  * \return          \c 0 on Success.

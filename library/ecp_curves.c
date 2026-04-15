@@ -5433,7 +5433,6 @@ int mbedtls_ecp_mod_p521_raw(mbedtls_mpi_uint *X, size_t X_limbs)
 
 /*
  * Fast quasi-reduction modulo p255 = 2^255 - 19
- * Write N as A0 + 2^256 A1, return A0 + 38 * A1
  */
 static int ecp_mod_p255(mbedtls_mpi *N)
 {
@@ -5445,6 +5444,14 @@ cleanup:
     return ret;
 }
 
+/*
+ * Raw fast quasi-reduction modulo p255 = 2^255 - 19
+ *
+ * See ecp_invasive.h and FAST_QUASI_REDUCTION above.
+ *
+ * First write N as A0 + 2^256 A1, compute A0 + 38 * A1.
+ * Then handle the carry and remaining bit.
+ */
 MBEDTLS_STATIC_TESTABLE
 int mbedtls_ecp_mod_p255_raw(mbedtls_mpi_uint *X, size_t X_Limbs)
 {
@@ -5456,16 +5463,15 @@ int mbedtls_ecp_mod_p255_raw(mbedtls_mpi_uint *X, size_t X_Limbs)
     mbedtls_mpi_uint carry[P255_WIDTH] = { 0 };
 
     /* Step 1: Reduction to P255_WIDTH limbs */
-    if (X_Limbs > P255_WIDTH) {
-        /* Helper references for top part of X */
-        mbedtls_mpi_uint * const A1 = X + P255_WIDTH;
-        const size_t A1_limbs = X_Limbs - P255_WIDTH;
+    mbedtls_mpi_uint * const A1 = X + P255_WIDTH;
+    const size_t A1_limbs = X_Limbs - P255_WIDTH;
 
-        /* X = A0 + 38 * A1, capture carry out */
-        *carry = mbedtls_mpi_core_mla(X, P255_WIDTH, A1, A1_limbs, 38);
-        /* Clear top part */
-        memset(A1, 0, sizeof(mbedtls_mpi_uint) * A1_limbs);
-    }
+    /* X = A0 + 38 * A1, capture carry out
+     * Note: X truncated to P255_WIDTH does not overlap with A1
+     * (mbedtls_mpi_core_mla() doesn't support overlap other than aliasing) */
+    *carry = mbedtls_mpi_core_mla(X, P255_WIDTH, A1, A1_limbs, 38);
+    /* Clear top part */
+    memset(A1, 0, sizeof(mbedtls_mpi_uint) * A1_limbs);
 
     /* Step 2: Reduce to <2p
      * Split as A0 + 2^255*c, with c a scalar, and compute A0 + 19*c */

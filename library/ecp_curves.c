@@ -5347,7 +5347,7 @@ int mbedtls_ecp_mod_p384_raw(mbedtls_mpi_uint *X, size_t X_limbs)
 #define P521_MASK       0x01FF
 
 /*
- * Fast quasi-reduction modulo p521 = 2^521 - 1 (FIPS 186-3 D.2.5)
+ * Fast quasi-reduction modulo p521
  */
 static int ecp_mod_p521(mbedtls_mpi *N)
 {
@@ -5359,6 +5359,14 @@ cleanup:
     return ret;
 }
 
+/*
+ * Raw fast quasi-reduction modulo p521 = 2^521 - 1
+ *
+ * See ecp_invasive.h and FAST_QUASI_REDUCTION above.
+ *
+ * First handle whole limbs above 521 bits,
+ * then handle the carry as well as remaining bits in the top limb.
+ */
 MBEDTLS_STATIC_TESTABLE
 int mbedtls_ecp_mod_p521_raw(mbedtls_mpi_uint *X, size_t X_limbs)
 {
@@ -5369,21 +5377,21 @@ int mbedtls_ecp_mod_p521_raw(mbedtls_mpi_uint *X, size_t X_limbs)
     }
 
     /* Step 1: Reduction to P521_WIDTH limbs */
-    /* Helper references for bottom part of X */
+    /* Pointers to bottom/top part of X - note that they don't overlap,
+     * as required for the call to mbedtls_mpi_core_mla() below. */
     mbedtls_mpi_uint *X0 = X;
     size_t X0_limbs = P521_WIDTH;
-    /* Helper references for top part of X */
     mbedtls_mpi_uint *X1 = X + X0_limbs;
     size_t X1_limbs = X_limbs - X0_limbs;
-    /* Split X as X0 + 2^P521_WIDTH X1 and compute X0 + 2^(biL - 9) X1.
-     * (We are using that 2^P521_WIDTH = 2^(512 + biL) and that
+    /* Split X as X0 + 2^(P521_WIDTH * biL) X1 and compute X0 + 2^(biL - 9) X1.
+     * (We are using that 2^(P521_WIDTH * biL) = 2^(512 + biL) and that
      * 2^(512 + biL) X1 = 2^(biL - 9) X1 mod P521.)
      * The high order limb of the result will be held in carry and the rest
      * in X0 (that is the result will be represented as
-     * 2^P521_WIDTH carry + X0).
+     * 2^(P521_WIDTH * biL) * carry + X0).
      *
      * Also, note that the resulting carry is either 0 or 1:
-     * X0 < 2^P521_WIDTH = 2^(512 + biL) and X1 < 2^(P521_WIDTH-biL) = 2^512
+     * X0 < 2^(512 + biL) and X1 < 2^512
      * therefore
      * X0 + 2^(biL - 9) X1 < 2^(512 + biL) + 2^(512 + biL - 9)
      * which in turn is less than 2 * 2^(512 + biL).
@@ -5398,7 +5406,7 @@ int mbedtls_ecp_mod_p521_raw(mbedtls_mpi_uint *X, size_t X_limbs)
      * At this point X is reduced to P521_WIDTH limbs. What remains is to add
      * the carry (that is 2^P521_WIDTH carry) and to reduce mod P521. */
 
-    /* 2^P521_WIDTH carry = 2^(512 + biL) carry = 2^(biL - 9) carry mod P521.
+    /* 2^(P521_WIDTH * biL) * carry = 2^(512 + biL) carry = 2^(biL - 9) carry mod P521.
      * Also, recall that carry is either 0 or 1. */
     mbedtls_mpi_uint addend = carry << (biL - 9);
     /* Keep the top 9 bits and reduce the rest, using 2^521 = 1 mod P521. */

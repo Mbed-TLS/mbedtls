@@ -124,7 +124,7 @@ int mbedtls_ecp_mod_p256_raw(mbedtls_mpi_uint *X, size_t X_limbs);
 
 #if defined(MBEDTLS_ECP_DP_SECP521R1_ENABLED)
 
-/** Fast quasi-reduction modulo p521 = 2^521 - 1 (FIPS 186-3 D.2.5)
+/** Fast quasi-reduction modulo p521 = 2^521 - 1
  *
  * \param[in,out]   X       The address of the MPI to be converted.
  *                          Must have twice as many limbs as the modulus

@@ -983,7 +983,7 @@ static int ssl_tls13_parse_key_shares_ext(mbedtls_ssl_context *ssl,
 #endif /* MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED */
 
 MBEDTLS_CHECK_RETURN_CRITICAL
-static int ssl_tls13_client_hello_has_exts(mbedtls_ssl_context *ssl,
+static int __attribute__((unused)) ssl_tls13_client_hello_has_exts(mbedtls_ssl_context *ssl,
                                            int exts_mask)
 {
     int masked = ssl->handshake->received_extensions & exts_mask;

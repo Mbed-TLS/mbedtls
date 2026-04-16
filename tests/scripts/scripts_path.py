@@ -18,3 +18,6 @@ sys.path.append(os.path.join(os.path.dirname(__file__),
 sys.path.append(os.path.join(os.path.dirname(__file__),
                              os.path.pardir, os.path.pardir,
                              'framework', 'scripts'))
+sys.path.append(os.path.join(os.path.dirname(__file__),
+                             os.path.pardir, os.path.pardir,
+                             'tf-psa-crypto', 'scripts', 'project_knowledge'))

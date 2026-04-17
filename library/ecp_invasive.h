@@ -61,7 +61,7 @@ int mbedtls_ecp_gen_privkey_mx(size_t high_bit,
 
 #if defined(MBEDTLS_ECP_DP_SECP192R1_ENABLED)
 
-/** Fast quasi-reduction modulo p192 (FIPS 186-3 D.2.1)
+/** Fast quasi-reduction modulo p192
  *
  * This operation expects a 384 bit MPI and the result of the reduction
  * is a 192 bit MPI.
@@ -80,7 +80,7 @@ int mbedtls_ecp_mod_p192_raw(mbedtls_mpi_uint *Np, size_t Nn);
 
 #if defined(MBEDTLS_ECP_DP_SECP224R1_ENABLED)
 
-/** Fast quasi-reduction modulo p224 (FIPS 186-3 D.2.2)
+/** Fast quasi-reduction modulo p224
  *
  * \param[in,out]   X       The address of the MPI to be converted.
  *                          Must have exact limb size that stores a 448-bit MPI
@@ -102,7 +102,7 @@ int mbedtls_ecp_mod_p224_raw(mbedtls_mpi_uint *X, size_t X_limbs);
 
 #if defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED)
 
-/** Fast quasi-reduction modulo p256 (FIPS 186-3 D.2.3)
+/** Fast quasi-reduction modulo p256
  *
  * \param[in,out]   X       The address of the MPI to be converted.
  *                          Must have exact limb size that stores a 512-bit MPI
@@ -146,7 +146,7 @@ int mbedtls_ecp_mod_p521_raw(mbedtls_mpi_uint *X, size_t X_limbs);
 
 #if defined(MBEDTLS_ECP_DP_SECP384R1_ENABLED)
 
-/** Fast quasi-reduction modulo p384 (FIPS 186-3 D.2.4)
+/** Fast quasi-reduction modulo p384
  *
  * \param[in,out]   X       The address of the MPI to be converted.
  *                          Must have exact limb size that stores a 768-bit MPI

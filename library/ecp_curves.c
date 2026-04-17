@@ -4930,7 +4930,7 @@ static inline void carry64(mbedtls_mpi_uint *dst, mbedtls_mpi_uint *carry)
 #define ADD_LAST    add64(p, last_carry, &c)
 
 /*
- * Fast quasi-reduction modulo p192 (FIPS 186-3 D.2.1)
+ * Fast quasi-reduction modulo p192
  */
 static int ecp_mod_p192(mbedtls_mpi *N)
 {
@@ -4943,6 +4943,12 @@ cleanup:
     return ret;
 }
 
+/*
+ * Raw fast quasi-reduction modulo p192
+ *
+ * See ecp_invasive.h and FAST_QUASI_REDUCTION above,
+ * plus NIST_QUASI_REDUCTION above and FIPS 186-3 D.2.1.
+ */
 MBEDTLS_STATIC_TESTABLE
 int mbedtls_ecp_mod_p192_raw(mbedtls_mpi_uint *Np, size_t Nn)
 {
@@ -4959,9 +4965,14 @@ int mbedtls_ecp_mod_p192_raw(mbedtls_mpi_uint *Np, size_t Nn)
     ADD(3); ADD(5);         NEXT;   // A0 += A3 + A5
     ADD(3); ADD(4); ADD(5); NEXT;   // A1 += A3 + A4 + A5
     ADD(4); ADD(5);                 // A2 += A4 + A5
+    /* Similarly to mbedtls_ecp_mod_p256_raw(), we have 0 <= c <= 3. */
 
-    /* Use the reduction for the carry as well:
-     * 2^192 * last_carry = 2^64 * last_carry + last_carry mod P192 */
+    /* The reduced value is 2^192 * c + X0, with X0 the low 3 chunks of X.
+     * Set R = 2^64 + 1, and update with X_new = X0 + c * R.
+     *
+     * The rest of the reasoning is similar to mbedtls_ecp_mod_p256_raw(),
+     * and we see that two rounds are enough to bring the result in range.
+     */
     for (size_t round = 0; round < 2; ++round) {
         RESET;
 
@@ -5084,7 +5095,7 @@ static inline int8_t extract_carry(int64_t cur)
 #if defined(MBEDTLS_ECP_DP_SECP224R1_ENABLED)
 
 /*
- * Fast quasi-reduction modulo p224 (FIPS 186-3 D.2.2)
+ * Fast quasi-reduction modulo p224
  */
 static int ecp_mod_p224(mbedtls_mpi *N)
 {
@@ -5096,6 +5107,12 @@ cleanup:
     return ret;
 }
 
+/*
+ * Raw fast quasi-reduction modulo p224
+ *
+ * See ecp_invasive.h and FAST_QUASI_REDUCTION above,
+ * plus NIST_QUASI_REDUCTION above and FIPS 186-3 D.2.2.
+ */
 MBEDTLS_STATIC_TESTABLE
 int mbedtls_ecp_mod_p224_raw(mbedtls_mpi_uint *X, size_t X_limbs)
 {
@@ -5137,7 +5154,7 @@ int mbedtls_ecp_mod_p224_raw(mbedtls_mpi_uint *X, size_t X_limbs)
 #if defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED)
 
 /*
- * Fast quasi-reduction modulo p256 (FIPS 186-3 D.2.3)
+ * Fast quasi-reduction modulo p256
  */
 static int ecp_mod_p256(mbedtls_mpi *N)
 {
@@ -5149,6 +5166,12 @@ cleanup:
     return ret;
 }
 
+/*
+ * Raw fast quasi-reduction modulo p256
+ *
+ * See ecp_invasive.h and FAST_QUASI_REDUCTION above,
+ * plus NIST_QUASI_REDUCTION above and FIPS 186-3 D.2.3.
+ */
 MBEDTLS_STATIC_TESTABLE
 int mbedtls_ecp_mod_p256_raw(mbedtls_mpi_uint *X, size_t X_limbs)
 {
@@ -5181,13 +5204,39 @@ int mbedtls_ecp_mod_p256_raw(mbedtls_mpi_uint *X, size_t X_limbs)
 
     ADD(15); ADD(15); ADD(15); ADD(8);
     SUB(10); SUB(11); SUB(12); SUB(13);                         // A7
+    /* The carry is easily seen to be in the range -5 <= c <= +5,
+     * because on the top chunk we do 4 explicit add (resp. sub), plus one
+     * implicit (adding the carry from the previous limbs), and each can
+     * increment (resp. decrement) the carry.
+     * Tighter estimates can probably be obtained, but we don't need them. */
 
-
+    /* From now on, the reduced value is 2^256 * c + X0,
+     * where X0 is A0 + 2^32 * A1 + ... + 2^224 * A7 (the low 8 chunks of X).
+     * Note that c may be negative, but X0 is always in [0, 2^256).
+     *
+     * Set R = 2^224 - 2^192 - 2^96 + 1 and use 2^256 = R (mod p256),
+     * so the update formula is X_new = X0 + c * R.
+     *
+     * First round:
+     * We have 0 <= X_old < 2^256 and -8 < -5 <= last_c <= 5 < 8,
+     * so -2^227 < last_c * R < 2^227
+     * and -2^227 < X_first < 2^256 + 2^227.
+     * Again X_new is represented as 2^256 * c + X0, but now c is -1, 0 or 1.
+     *
+     * Second round: (now call X_old the X_new output of the first round)
+     * - If c is 0, then X_new = X0 + 0 * R = X0 which is in range.
+     * - If c is 1, then X_new = X0 + 1 * R is clearly non-negative.
+     *   Also, since X_old < 2^256 + 2^227, we have X0 < 2^227,
+     *   so X_new = X0 + 1 * R < 2^227 + 2^224 < 2^256.
+     * - If c is -1 then X_new = X0 - 1 * R is clearly < 2^256.
+     *   Also, since X_old > -2^227 and X_old = - 2^256 + X0,
+     *   we have X0 > 2^256 - 2^227
+     *   so X_new = X0 - 1 * R > 2^256 - 2^227 - 2^224 >= 0.
+     * In all cases, 0 <= X_new < 2^256 as desired.
+     */
     for (size_t round = 0; round < 2; ++round) {
         RESET;
 
-        /* Use 2^224 * (2^32 - 1) + 2^192 + 2^96 - 1
-         * to modulo reduce the final carry. */
         ADD_LAST; NEXT;                                         // A0
         ;         NEXT;                                         // A1
         ;         NEXT;                                         // A2
@@ -5207,7 +5256,7 @@ int mbedtls_ecp_mod_p256_raw(mbedtls_mpi_uint *X, size_t X_limbs)
 
 #if defined(MBEDTLS_ECP_DP_SECP384R1_ENABLED)
 /*
- * Fast quasi-reduction modulo p384 (FIPS 186-3 D.2.4)
+ * Fast quasi-reduction modulo p384
  */
 static int ecp_mod_p384(mbedtls_mpi *N)
 {
@@ -5219,6 +5268,12 @@ cleanup:
     return ret;
 }
 
+/*
+ * Raw fast quasi-reduction modulo p384
+ *
+ * See ecp_invasive.h and FAST_QUASI_REDUCTION above,
+ * plus NIST_QUASI_REDUCTION above and FIPS 186-3 D.2.4.
+ */
 MBEDTLS_STATIC_TESTABLE
 int mbedtls_ecp_mod_p384_raw(mbedtls_mpi_uint *X, size_t X_limbs)
 {
@@ -5263,11 +5318,17 @@ int mbedtls_ecp_mod_p384_raw(mbedtls_mpi_uint *X, size_t X_limbs)
 
     ADD(23); ADD(20); ADD(19);
     SUB(22);                                                      // A11
+    /* Similarly to mbedtls_ecp_mod_p256_raw(), we have -2 <= c <= 4. */
 
+    /* The reduced value is 2^384 * c + X0, with X0 the low 12 chunks of X.
+     * Set R = 2^128 + 2^96 - 2^32 + 1, and update with X_new = X0 + c * R.
+     *
+     * The rest of the reasoning is similar to mbedtls_ecp_mod_p256_raw(),
+     * and we see that two rounds are enough to bring the result in range.
+     */
     for (size_t round = 0; round < 2; ++round) {
         RESET;
 
-        /* Use 2^384 = P + 2^128 + 2^96 - 2^32 + 1 to modulo reduce the final carry */
         ADD_LAST; NEXT;                                           // A0
         SUB_LAST; NEXT;                                           // A1
         ;         NEXT;                                           // A2

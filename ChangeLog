@@ -143,7 +143,7 @@ Removals
      in favour of mbedtls_ssl_conf_groups() since Mbed TLS 3.1.
    * Remove support for the DHE-PSK key exchange in TLS 1.2.
    * Remove support for the DHE-RSA key exchange in TLS 1.2.
-   * Following the removal of DHM module (#9972 and TF-PSA-Crypto#175) the
+   * Following the removal of DHM module (#9972 and Mbed-TLS/TF-PSA-Crypto#175) the
      following SSL functions are removed:
      - mbedtls_ssl_conf_dh_param_bin
      - mbedtls_ssl_conf_dh_param_ctx

@@ -1779,14 +1779,17 @@ static int ssl_parse_signature_algorithm(mbedtls_ssl_context *ssl,
 #if defined(PSA_WANT_ALG_RSA_PSS)
 #if defined(PSA_WANT_ALG_SHA_256)
             case MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA256:
-                break;
 #endif
 #if defined(PSA_WANT_ALG_SHA_384)
             case MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA384:
-                break;
 #endif
 #if defined(PSA_WANT_ALG_SHA_512)
             case MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA512:
+#endif
+#if defined(PSA_WANT_ALG_SHA_256) || defined(PSA_WANT_ALG_SHA_384) || defined(PSA_WANT_ALG_SHA_512)
+                MBEDTLS_SSL_DEBUG_MSG(3,
+                                      ("Accepting TLS 1.2 RSA-PSS signature algorithm %s via compatibility exception",
+                                       mbedtls_ssl_sig_alg_to_str(sig_alg)));
                 break;
 #endif
 #endif /* PSA_WANT_ALG_RSA_PSS */

@@ -4841,15 +4841,49 @@ int mbedtls_ecp_group_load(mbedtls_ecp_group *grp, mbedtls_ecp_group_id id)
     }
 }
 
+/*
+ * FAST_QUASI_REDUCTION
+ *
+ * Fast quasi-reduction exploits the structure of the prime P to bring a number
+ * from the range [0, P^2) (the result of a multiplication) into a range such
+ * that a single constant-time conditional subtract is enough to get the result
+ * in the range [0, P) (see ecp_modp() in ecp.c).
+ *
+ * There is one function per prime, with a common contract:
+ * (a) the output is in [0, 2P) (so we need at most 1 subtraction);
+ * (b) it has no more limbs than P (required by new bignum functions).
+ *
+ * Note that for primes whose bit length is a multiple of biL (32 or 64),
+ * (b) implies (a); for other primes (p255, p521), (a) implies (b).
+ *
+ * The general strategy is that P is written as P = 2^n - R,
+ * where n is the bit length of P and R a constant (see below).
+ * Then modulo P we have 2^n = R.
+ * So, we write X = X1 * 2^n + X0, and modulo P we have X = X0 + X1 * R.
+ * This can be used repeatedly to bring X to the desired range.
+ *
+ * This is only efficient if R was well chosen. There are two cases:
+ * 1. R is a small constant:
+ *    - for secp521r1 it's actually 1: P = 2^521 - 1
+ *    - for secp256k1 it's a 33-bit number
+ *    - for curve25519 it's 19: P = 2^255 - 19 (hence the name)
+ * 2. R is a sum of +/-1 * powers of 2^32:
+ *    - for secp256r1, P = 2^256 - 2^224 + 2^192 + 2^96 - 1
+ *    - for secp384r1, P = 2^384 - 2^128 - 2^96 + 2^32 - 1
+ *    - for curve448, P = 2^448 - 2^224 - 1
+ *
+ * The details vary for each prime, see the comments in each function.
+ */
+
 #if defined(MBEDTLS_ECP_NIST_OPTIM)
 /*
- * Fast reduction modulo the primes used by the NIST curves.
+ * NIST_QUASI_REDUCTION
  *
- * These functions are critical for speed, but not needed for correct
- * operations. So, we make the choice to heavily rely on the internals of our
- * bignum library, which creates a tight coupling between these functions and
- * our MPI implementation.  However, the coupling between the ECP module and
- * MPI remains loose, since these functions can be deactivated at will.
+ * Compared to the way things are presented in FIPS 186-3 D.2,
+ * we proceed in columns, from right (least significant chunk) to left,
+ * adding chunks to N in place, and keeping a carry for the next chunk.
+ * This avoids moving things around in memory, and uselessly adding zeros,
+ * compared to the more straightforward, line-oriented approach.
  */
 
 #if defined(MBEDTLS_ECP_DP_SECP192R1_ENABLED)
@@ -4961,13 +4995,6 @@ int mbedtls_ecp_mod_p192_raw(mbedtls_mpi_uint *Np, size_t Nn)
 #if defined(MBEDTLS_ECP_DP_SECP224R1_ENABLED) ||   \
     defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED) ||   \
     defined(MBEDTLS_ECP_DP_SECP384R1_ENABLED)
-
-/*
- * The reader is advised to first understand ecp_mod_p192() since the same
- * general structure is used here, but with additional complications:
- * (1) chunks of 32 bits, and (2) subtractions.
- */
-
 /*
  * For these primes, we need to handle data in chunks of 32 bits.
  * This makes it more complicated if we use 64 bits limbs in MPI,

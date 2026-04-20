@@ -91,7 +91,7 @@ Bugfix
      correctly encrypted but could not be authenticated. The bug was only
      observed with GCC 10.0 to 14.2 inclusive, when compiling with -O3, and
      running without AESNI or AESCE.
-     Fixes #665.
+     Fixes Mbed-TLS/TF-PSA-Crypto#665.
    * Fix a build failure with dietlibc.
    * Support re-assembly of fragmented DTLS 1.2 ClientHello in Mbed TLS server.
    * Support re-assembly of fragmented TLS 1.2 ClientHello in Mbed TLS server
@@ -102,7 +102,7 @@ Bugfix
      small stack. Those buffers are now allocated on the heap, except in
      configurations where ECC is the only supported key type in PK, making PK
      still independent of the heap in such configurations (if the ECC driver
-     itself is not using the heap). Fixes #476.
+     itself is not using the heap). Fixes Mbed-TLS/TF-PSA-Crypto#476.
 
 Changes
    * Add casts to some Enums to remove compiler errors thrown by IAR 6.5.

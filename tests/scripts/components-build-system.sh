@@ -225,14 +225,14 @@ component_test_cmake_install_with_destdir () {
     if [[ "$OSTYPE" == darwin* ]]; then
         # On macOS the custom install logic installs libmbedcrypto.dylib
         # directly without a versioned symlink chain.
-        for lib in tfpsacrypto mbedcrypto mbedx509 mbedtls; do
+        for lib in mbedcrypto mbedx509 mbedtls; do
             [ -f "$install_lib_path/lib${lib}.a" ]
             [ -e "$install_lib_path/lib${lib}.dylib" ]
         done
     else
         # library/CMakeLists.txt installs libmbedcrypto.so with a versioned
         # symlink chain on Linux.
-        for lib in tfpsacrypto mbedcrypto mbedx509 mbedtls; do
+        for lib in mbedcrypto mbedx509 mbedtls; do
             if [ "$QUIET" -eq 0 ]; then
                 echo "Checking lib=$lib"
             fi

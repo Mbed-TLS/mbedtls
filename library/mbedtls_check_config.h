@@ -142,6 +142,15 @@
         "but no key exchange methods defined with MBEDTLS_KEY_EXCHANGE_xxxx"
 #endif
 
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3) &&                                    \
+    !(defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED) ||    \
+      defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED) ||          \
+      defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED) )
+#error "TLS 1.3 protocol is enabled but no key exchange method is defined" \
+        "with MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_xxxx"
+#endif
+
+
 #if defined(MBEDTLS_SSL_EARLY_DATA) && \
     ( !defined(MBEDTLS_SSL_SESSION_TICKETS) || \
       ( !defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED) && \

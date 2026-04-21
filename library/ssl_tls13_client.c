@@ -405,14 +405,18 @@ static int ssl_tls13_parse_hrr_key_share_ext(mbedtls_ssl_context *ssl,
      * then the client MUST abort the handshake with an "illegal_parameter" alert.
      */
     for (; *group_list != 0; group_list++) {
+        if (*group_list != selected_group) {
+            continue;
+        }
 #if defined(PSA_WANT_ALG_ECDH)
         if (mbedtls_ssl_tls13_named_group_is_ecdhe(*group_list)) {
-            if ((mbedtls_ssl_get_psa_curve_info_from_tls_id(
-                     *group_list, NULL, NULL) == PSA_ERROR_NOT_SUPPORTED) ||
-                *group_list != selected_group) {
-                found = 1;
-                break;
+            if (mbedtls_ssl_get_psa_curve_info_from_tls_id(
+                    *group_list, NULL, NULL) == PSA_ERROR_NOT_SUPPORTED) {
+                continue;
             }
+            /* Found only if psa_curve is supported and group_list == selected_group */
+            found = 1;
+            break;
         }
 #endif /* PSA_WANT_ALG_ECDH */
 #if defined(PSA_WANT_ALG_FFDH)

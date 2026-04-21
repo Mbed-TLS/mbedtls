@@ -138,8 +138,8 @@
       defined(MBEDTLS_KEY_EXCHANGE_PSK_ENABLED) ||                          \
       defined(MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED) ||                    \
       defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED) )
-#error "One or more versions of the TLS protocol are enabled " \
-        "but no key exchange methods defined with MBEDTLS_KEY_EXCHANGE_xxxx"
+#error "TLS 1.2 protocol is enabled but no key exchange method is defined" \
+        "with MBEDTLS_KEY_EXCHANGE_xxxx"
 #endif
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3) &&                                    \

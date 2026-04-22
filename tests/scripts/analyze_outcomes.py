@@ -225,8 +225,12 @@ class CoverageTask(outcome_analysis.CoverageTask):
     @staticmethod
     def _load_crypto_module() -> typing.Optional[types.ModuleType]:
         """Try to load the information about test cases from the tf-psa-crypto submodule.."""
-        # All this complexity is because we don't want to add the directory
-        # to the import path.
+        # All this complexity is because we didn't want to add
+        # `tf-psa-crypto/tests/scripts/` to the import path.
+        # The new location `tf-psa-crypto/scripts/project_knowledge` is
+        # on the import path. So once we can assume that all crypto
+        # branches have the new location, this whole function can go away.
+        # https://github.com/Mbed-TLS/mbedtls/issues/10699.
         if 'tf_psa_crypto_test_case_info' in sys.modules:
             return sys.modules['tf_psa_crypto_test_case_info']
         crypto_script_path = 'tf-psa-crypto/tests/scripts/tf_psa_crypto_test_case_info.py'

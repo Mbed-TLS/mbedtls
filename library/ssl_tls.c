@@ -1196,7 +1196,7 @@ int mbedtls_ssl_setup(mbedtls_ssl_context *ssl,
     /* Set to NULL in case of an error condition */
     ssl->out_buf = NULL;
 
-#if defined(MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH)
+#if defined(MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH) || defined(MBEDTLS_SSL_TLS_HS_LARGE_MSG)
     ssl->in_buf_len = in_buf_len;
 #endif
     ssl->in_buf = mbedtls_calloc(1, in_buf_len);
@@ -1238,6 +1238,8 @@ error:
 #if defined(MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH)
     ssl->in_buf_len = 0;
     ssl->out_buf_len = 0;
+#elif defined(MBEDTLS_SSL_TLS_HS_LARGE_MSG)
+    ssl->in_buf_len = 0;
 #endif
     ssl->in_buf = NULL;
     ssl->out_buf = NULL;
@@ -1270,6 +1272,9 @@ void mbedtls_ssl_session_reset_msg_layer(mbedtls_ssl_context *ssl,
 #if defined(MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH)
     size_t in_buf_len = ssl->in_buf_len;
     size_t out_buf_len = ssl->out_buf_len;
+#elif defined(MBEDTLS_SSL_TLS_HS_LARGE_MSG)
+    size_t in_buf_len = ssl->in_buf_len;
+    size_t out_buf_len = MBEDTLS_SSL_OUT_BUFFER_LEN;
 #else
     size_t in_buf_len = MBEDTLS_SSL_IN_BUFFER_LEN;
     size_t out_buf_len = MBEDTLS_SSL_OUT_BUFFER_LEN;
@@ -2652,6 +2657,19 @@ int mbedtls_ssl_conf_max_frag_len(mbedtls_ssl_config *conf, unsigned char mfl_co
     return 0;
 }
 #endif /* MBEDTLS_SSL_MAX_FRAGMENT_LENGTH */
+
+#if defined(MBEDTLS_SSL_TLS_HS_LARGE_MSG)
+int mbedtls_ssl_conf_max_handshake_msg_len(mbedtls_ssl_config *conf,
+                                           size_t max_handshake_msg_len)
+{
+    if (max_handshake_msg_len <= MBEDTLS_SSL_IN_CONTENT_LEN ||
+        max_handshake_msg_len > 0xFFFFFFu) {
+        return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
+    }
+    conf->max_handshake_msg_len = max_handshake_msg_len;
+    return 0;
+}
+#endif /* MBEDTLS_SSL_TLS_HS_LARGE_MSG */
 
 void mbedtls_ssl_conf_legacy_renegotiation(mbedtls_ssl_config *conf, int allow_legacy)
 {
@@ -5165,7 +5183,7 @@ void mbedtls_ssl_free(mbedtls_ssl_context *ssl)
     }
 
     if (ssl->in_buf != NULL) {
-#if defined(MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH)
+#if defined(MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH) || defined(MBEDTLS_SSL_TLS_HS_LARGE_MSG)
         size_t in_buf_len = ssl->in_buf_len;
 #else
         size_t in_buf_len = MBEDTLS_SSL_IN_BUFFER_LEN;

@@ -2733,6 +2733,74 @@ exit:
 }
 /* END_CASE */
 
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_SSL_SESSION_TICKETS */
+void ssl_tls13_session_load_rejects_bad_serialized_data(int endpoint_type,
+                                                        int mutation)
+{
+    mbedtls_ssl_session session, restored;
+    unsigned char *buf = NULL;
+    size_t len, bad_len, i;
+    unsigned char *field = NULL;
+    const unsigned char hostname[] = "hostname example";
+    const unsigned char alpn[] = "ALPNExample";
+    const unsigned char *string_to_corrupt = NULL;
+    size_t string_len = 0;
+
+    mbedtls_ssl_session_init(&session);
+    mbedtls_ssl_session_init(&restored);
+    USE_PSA_INIT();
+
+    TEST_EQUAL(mbedtls_test_ssl_tls13_populate_session(
+                   &session, 42, endpoint_type),  0);
+
+    TEST_EQUAL(mbedtls_ssl_session_save(&session, NULL, 0, &len),
+               MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL);
+    TEST_CALLOC(buf, len + 1);
+    TEST_EQUAL(mbedtls_ssl_session_save(&session, buf, len, &len),  0);
+
+    bad_len = len;
+    switch (mutation) {
+        case 0:
+            bad_len = len + 1;
+            buf[len] = 0;
+            break;
+
+        case 1:
+            string_to_corrupt = hostname;
+            string_len = sizeof(hostname);
+            break;
+
+        case 2:
+            string_to_corrupt = alpn;
+            string_len = sizeof(alpn);
+            break;
+
+        default:
+            TEST_ASSERT(0);
+    }
+
+    if (string_to_corrupt != NULL) {
+        for (i = 0; i + string_len <= len; i++) {
+            if (memcmp(buf + i, string_to_corrupt, string_len) == 0) {
+                field = buf + i;
+                break;
+            }
+        }
+        TEST_ASSERT(field != NULL);
+        field[string_len - 1] = 'X';
+    }
+
+    TEST_EQUAL(mbedtls_ssl_session_load(&restored, buf, bad_len),
+               MBEDTLS_ERR_SSL_BAD_INPUT_DATA);
+
+exit:
+    mbedtls_ssl_session_free(&session);
+    mbedtls_ssl_session_free(&restored);
+    mbedtls_free(buf);
+    USE_PSA_DONE();
+}
+/* END_CASE */
+
 /* BEGIN_CASE */
 void ssl_session_serialize_version_check(int corrupt_major,
                                          int corrupt_minor,

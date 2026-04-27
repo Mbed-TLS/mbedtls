@@ -5492,23 +5492,25 @@ cleanup:
 }
 
 /* Copy and shift right: X = A >> 224
- * Both X and A must be P448_WIDTH + 1 limbs */
+ * X must be P448_WIDTH + 1, and A must be P448_WIDTH limbs */
 static void ecp_copy_shift_r_224(mbedtls_mpi_uint *X,
                                  const mbedtls_mpi_uint *A)
 {
 #if defined(MBEDTLS_HAVE_INT64) && defined(MBEDTLS_IS_BIG_ENDIAN)
     /* No need to copy lower limbs, they'll be shifted away.
-     * P448_WIDTH + 1 = P224_WIDTH_MIN + (P224_WIDTH_MAX + 1) */
-    memcpy(X + P224_WIDTH_MIN, A + P224_WIDTH_MIN, (P224_WIDTH_MAX + 1) * ciL);
+     * P448_WIDTH = P224_WIDTH_MIN + P224_WIDTH_MAX */
+    memcpy(X + P224_WIDTH_MIN, A + P224_WIDTH_MIN, P224_WIDTH_MAX * ciL);
+    X[P448_WIDTH] = 0;
     mbedtls_mpi_core_shift_r(X, P448_WIDTH + 1, 224);
 #else
-    /* Shortcut for 32-bit and little-endian 64-bit. */
+    /* Shortcut for 32-bit and little-endian 64-bit.
+     * P448_WITDH * ciL = 2 * P224_SIZE */
     memcpy(X, (char *) A + P224_SIZE, P224_SIZE);
     memset((char *) X + P224_SIZE, 0, P224_SIZE + ciL);
 #endif
 }
 
-/* Shift left: X <<= 224
+/* In-place shift left: X <<= 224
  * X must be P448_WIDTH + 1 limbs */
 static void ecp_shift_l_224(mbedtls_mpi_uint *X)
 {

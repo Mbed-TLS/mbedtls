@@ -281,10 +281,10 @@ static inline void mbedtls_put_unaligned_uint64(void *p, uint64_t x)
  * Detect GCC built-in byteswap routines
  */
 #if defined(__GNUC__)
-#if MBEDTLS_GCC_VERSION >= 40800
+#if defined(MBEDTLS_COMPILER_IS_GCC) && MBEDTLS_GCC_VERSION >= 40800
 #define MBEDTLS_BSWAP16 __builtin_bswap16
 #endif
-#if MBEDTLS_GCC_VERSION >= 40300
+#if defined(MBEDTLS_COMPILER_IS_GCC) && MBEDTLS_GCC_VERSION >= 40300
 #define MBEDTLS_BSWAP32 __builtin_bswap32
 #define MBEDTLS_BSWAP64 __builtin_bswap64
 #endif

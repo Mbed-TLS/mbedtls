@@ -1,36 +1,46 @@
 ```
-# Build artifacts and compiled files
+# Compiled and build artifacts
+*.pyc
+__pycache__/
 *.o
 *.obj
-*.a
-*.lib
-*.so
-*.dll
-*.dylib
-*.exe
-*.out
-
-# Build directories
-build/
 dist/
+build/
 target/
-cmake-build-*/
 
 # Dependencies
+.venv/
+venv/
 node_modules/
-vendor/
+.mypy_cache/
+.pytest_cache/
+.gradle/
 
-# IDE and editor files
-.vscode/
-.idea/
+# Logs and temp files
+*.log
+*.tmp
 *.swp
 *.swo
-*.tmp
 
-# Logs
-*.log
+# Environment
+.env
+.env.local
+.env.*
 
-# Compression and archives
+# Editors
+.vscode/
+.idea/
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Coverage
+coverage/
+htmlcov/
+.coverage
+
+# Compressed files
 *.zip
 *.gz
 *.tar
@@ -53,12 +63,4 @@ vendor/
 *.tar.bz2
 *.tar.xz
 *.tar.zst
-
-# Mbed TLS specific build artifacts
-library/*.o
-library/*.d
-programs/*/*.o
-programs/*/*.d
-tests/*.o
-tests/*.d
 ```

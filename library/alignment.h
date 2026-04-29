@@ -47,7 +47,7 @@
 #pragma language=extended
 #define MBEDTLS_POP_IAR_LANGUAGE_PRAGMA
 /* IAR recommend this technique for accessing unaligned data in
- * https://www.iar.com/knowledge/support/technical-notes/compiler/accessing-unaligned-data
+ * https://mypages.iar.com/s/article/Accessing-Unaligned-Data
  * This results in a single load / store instruction (if unaligned access is supported).
  * According to that document, this is only supported on certain architectures.
  */

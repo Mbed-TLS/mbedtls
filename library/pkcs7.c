@@ -767,7 +767,7 @@ void mbedtls_pkcs7_free(mbedtls_pkcs7 *pkcs7)
         mbedtls_free(signer_prev);
     }
 
-    pkcs7->raw.p = NULL;
+    mbedtls_platform_zeroize(pkcs7, sizeof(*pkcs7));
 }
 
 #endif

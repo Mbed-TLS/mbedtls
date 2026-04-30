@@ -134,11 +134,6 @@ component_check_test_dependencies () {
 
     # Expected ones with justification - keep in sorted order!
     rm -f $expected
-    # Temporary, see https://github.com/Mbed-TLS/mbedtls/issues/10618
-    echo "MBEDTLS_PKCS1_V15" >> $expected
-    echo "MBEDTLS_PKCS1_V21" >> $expected
-    # Temporary, see https://github.com/Mbed-TLS/mbedtls/issues/10619
-    echo "MBEDTLS_RSA_C" >> $expected
     # Acceptable: these are light wrappers around official PSA_WANT macros,
     # to hide the fact that ECDSA could be randomized or deterministic.
     echo "PSA_HAVE_ALG_ECDSA_SIGN" >> $expected

@@ -1,0 +1,2 @@
+Bugfix
+   * Add fix for stale pointer after mbedtls_pkcs7_free.

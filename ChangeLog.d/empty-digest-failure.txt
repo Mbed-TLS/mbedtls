@@ -1,0 +1,3 @@
+Bugfix
+   * Fix PKCS7 parsing so that it is able to deal with and empty
+     digestAlgorithm.

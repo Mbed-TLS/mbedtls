@@ -2950,11 +2950,16 @@ ecdh_calc_secret:
 
         /* uint16 to store content length */
         const size_t content_len_size = 2;
+        const size_t ecpoint_len_size = 1;
+        const size_t ecpoint_max_len =
+            PSA_EXPORT_PUBLIC_KEY_OUTPUT_SIZE(handshake->xxdh_psa_type,
+                                              handshake->xxdh_psa_bits);
 
         header_len = 4;
 
-        if (header_len + content_len_size + ssl->conf->psk_identity_len
-            > MBEDTLS_SSL_OUT_CONTENT_LEN) {
+        if (ecpoint_max_len > MBEDTLS_SSL_OUT_CONTENT_LEN - ecpoint_len_size ||
+            header_len + content_len_size + ssl->conf->psk_identity_len
+            > MBEDTLS_SSL_OUT_CONTENT_LEN - ecpoint_len_size - ecpoint_max_len) {
             MBEDTLS_SSL_DEBUG_MSG(1,
                                   ("psk identity too long or SSL buffer too short"));
             return MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL;

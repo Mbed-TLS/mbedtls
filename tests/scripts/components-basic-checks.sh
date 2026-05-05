@@ -135,10 +135,14 @@ component_check_test_dependencies () {
     # Expected ones with justification - keep in sorted order!
     rm -f $expected
     # Acceptable: these are light wrappers around official PSA_WANT macros,
-    # to hide the fact that ECDSA could be randomized or deterministic.
+    # to hide the fact that ECDSA and RSA could be randomized or deterministic.
     echo "PSA_HAVE_ALG_ECDSA_SIGN" >> $expected
     echo "PSA_HAVE_ALG_ECDSA_VERIFY" >> $expected
     echo "PSA_HAVE_ALG_SOME_ECDSA" >> $expected
+    echo "PSA_HAVE_ALG_RSA_PKCS1V15_SIGN" >> $expected
+    echo "PSA_HAVE_ALG_RSA_PKCS1V15_VERIFY" >> $expected
+    echo "PSA_HAVE_ALG_SOME_RSA_SIGN" >> $expected
+    echo "PSA_HAVE_ALG_SOME_RSA_VERIFY" >> $expected
     echo "PSA_WANT_ALG_ECDSA_ANY" >> $expected
 
     # Compare reality with expectation.

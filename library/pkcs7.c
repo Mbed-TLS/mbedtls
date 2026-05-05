@@ -488,7 +488,7 @@ static int pkcs7_get_signed_data(unsigned char *buf, size_t buflen,
     if (signed_data->digest_alg_identifiers.p != NULL) {
         ret = mbedtls_x509_oid_get_md_alg(&signed_data->digest_alg_identifiers, &md_alg);
         if (ret != 0) {
-           return MBEDTLS_ERR_PKCS7_INVALID_ALG;
+            return MBEDTLS_ERR_PKCS7_INVALID_ALG;
         }
     }
 

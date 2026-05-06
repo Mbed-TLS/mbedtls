@@ -1,0 +1,7 @@
+Security
+   * Fix a bug in the X.509 certificate parser that caused some inputs
+     with a malformed basicConstraints extension to be accepted. This
+     could have dangerous results, in particular causing some certificates
+     to be parsed as CA certificates when other X.509 implementations would
+     parse them as end-entity certificates. Reported by Mohammad Seet
+     (mhdsait101). CVE-2026-TODO

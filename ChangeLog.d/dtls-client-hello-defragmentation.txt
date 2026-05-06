@@ -1,5 +1,0 @@
-Bugfix
-   * Support re-assembly of fragmented DTLS 1.2 ClientHello in Mbed TLS server.
-   * Support re-assembly of fragmented TLS 1.2 ClientHello in Mbed TLS server
-     even if TLS 1.3 support is disabled. This removes the main limitation on
-     support for re-assembly of fragmented handshake messages in TLS 1.2.

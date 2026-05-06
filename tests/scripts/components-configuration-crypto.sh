@@ -792,7 +792,7 @@ component_test_everest () {
     make test
 
     msg "test: metatests (clang, ASan)"
-    tests/scripts/run-metatests.sh any asan poison
+    framework/scripts/run-metatests.sh any asan poison
 
     msg "test: Everest ECDH context - ECDH-related part of ssl-opt.sh (ASan build)" # ~ 5s
     tests/ssl-opt.sh -f ECDH

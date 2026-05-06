@@ -1,3 +1,0 @@
-Changes
-   * Add casts to some Enums to remove compiler errors thrown by IAR 6.5.
-     Removes Warning "mixed ENUM with other type".

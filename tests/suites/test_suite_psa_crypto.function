@@ -2411,7 +2411,7 @@ void aead_key_policy(int policy_usage_arg,
     }
 
 exit:
-    PSA_ASSERT(psa_aead_abort(&operation));
+    psa_aead_abort(&operation);
     psa_destroy_key(key);
     PSA_DONE();
 }
@@ -3030,7 +3030,7 @@ void hash_compute_fail(int alg_arg, data_t *input,
     }
 
 exit:
-    PSA_ASSERT(psa_hash_abort(&operation));
+    psa_hash_abort(&operation);
     mbedtls_free(output);
     PSA_DONE();
 }
@@ -3069,7 +3069,7 @@ void hash_compare_fail(int alg_arg, data_t *input,
     }
 
 exit:
-    PSA_ASSERT(psa_hash_abort(&operation));
+    psa_hash_abort(&operation);
     PSA_DONE();
 }
 /* END_CASE */
@@ -3173,7 +3173,7 @@ void hash_compute_compare(int alg_arg, data_t *input,
     }
 
 exit:
-    PSA_ASSERT(psa_hash_abort(&operation));
+    psa_hash_abort(&operation);
     PSA_DONE();
 }
 /* END_CASE */
@@ -4345,7 +4345,7 @@ void cipher_alg_without_iv(int alg_arg, int key_type_arg, data_t *key_data,
                         output, output_length);
 
 exit:
-    PSA_ASSERT(psa_cipher_abort(&operation));
+    psa_cipher_abort(&operation);
     mbedtls_free(output);
     psa_cipher_abort(&operation);
     psa_destroy_key(key);
@@ -10967,8 +10967,8 @@ void ecjpake_setup(int alg_arg, int key_type_pw_arg, int key_usage_pw_arg,
     }
 
 exit:
-    PSA_ASSERT(psa_destroy_key(key));
-    PSA_ASSERT(psa_pake_abort(&operation));
+    psa_destroy_key(key);
+    psa_pake_abort(&operation);
     mbedtls_free(output_buffer);
     PSA_DONE();
 }

@@ -516,6 +516,13 @@ static int x509_get_basic_constraints(unsigned char **p,
         return 0;
     }
 
+    if ((size_t) (end - *p) != len) {
+        /* Reject junk after the SEQUENCE inside the extension (which is
+         * probably benign), and reject a SEQUENCE that extends beyond
+         * the extension (could be very dangerous). */
+        return MBEDTLS_ERR_X509_INVALID_EXTENSIONS;
+    }
+
     if ((ret = mbedtls_asn1_get_bool(p, end, ca_istrue)) != 0) {
         if (ret == MBEDTLS_ERR_ASN1_UNEXPECTED_TAG) {
             ret = mbedtls_asn1_get_int(p, end, ca_istrue);

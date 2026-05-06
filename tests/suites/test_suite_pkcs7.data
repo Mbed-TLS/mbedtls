@@ -3,6 +3,7 @@ depends_on:PSA_WANT_ALG_SHA_256:PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY
 pkcs7_parse:"../framework/data_files/pkcs7_empty_digest.der":MBEDTLS_PKCS7_SIGNED_DATA
 
 PKCS7 Signed Data Parse Unsupported DigestAlgorithmSet
+depends_on:PSA_WANT_ALG_SHA_256:PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY
 pkcs7_parse:"../framework/data_files/pkcs7_data_cert_signed_sha256.der":MBEDTLS_PKCS7_SIGNED_DATA
 
 PKCS7 Signed Data Parse Pass SHA256 #1

@@ -3396,6 +3396,7 @@ static int ssl_write_new_session_ticket(mbedtls_ssl_context *ssl)
                                          &tlen, &lifetime)) != 0) {
         MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_ticket_write", ret);
         tlen = 0;
+        lifetime = 0;
     }
 
     MBEDTLS_PUT_UINT32_BE(lifetime, ssl->out_msg, 4);

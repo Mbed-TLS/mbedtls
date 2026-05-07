@@ -2803,8 +2803,14 @@ static int mbedtls_ssl_has_set_hostname_been_called(
 }
 #endif
 
-/* Micro-optimization: don't export this function if it isn't needed outside
- * of this source file. */
+/*
+ * Exported for ssl_client.c when SNI is enabled.  When SNI is off the only
+ * in-file caller is get_hostname_for_verification() which is guarded by
+ * MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED, so compile the function out
+ * entirely when neither macro is defined.
+ */
+#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION) || \
+    defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
 #if !defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
 static
 #endif
@@ -2815,6 +2821,7 @@ const char *mbedtls_ssl_get_hostname_pointer(const mbedtls_ssl_context *ssl)
     }
     return ssl->hostname;
 }
+#endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION || MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED */
 
 static void mbedtls_ssl_free_hostname(mbedtls_ssl_context *ssl)
 {

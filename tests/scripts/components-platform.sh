@@ -353,7 +353,7 @@ component_test_arm_linux_gnueabi_gcc_arm5vte () {
     programs/test/selftest
 
     msg "program demos: make, default config (out-of-box)" # ~0s
-    tests/scripts/run_demos.py
+    framework/scripts/run_demos.py
 }
 
 support_test_arm_linux_gnueabi_gcc_arm5vte () {
@@ -373,7 +373,7 @@ component_test_arm_linux_gnueabi_gcc_thumb_1_opt_0 () {
     programs/test/selftest
 
     msg "program demos: make, default config (out-of-box)" # ~0s
-    tests/scripts/run_demos.py
+    framework/scripts/run_demos.py
 }
 
 support_test_arm_linux_gnueabi_gcc_thumb_1_opt_0 () {
@@ -391,7 +391,7 @@ component_test_arm_linux_gnueabi_gcc_thumb_1_opt_s () {
     programs/test/selftest
 
     msg "program demos: make, default config (out-of-box)" # ~0s
-    tests/scripts/run_demos.py
+    framework/scripts/run_demos.py
 }
 
 support_test_arm_linux_gnueabi_gcc_thumb_1_opt_s () {
@@ -409,7 +409,7 @@ component_test_arm_linux_gnueabihf_gcc_armv7 () {
     programs/test/selftest
 
     msg "program demos: make, default config (out-of-box)" # ~0s
-    tests/scripts/run_demos.py
+    framework/scripts/run_demos.py
 }
 
 support_test_arm_linux_gnueabihf_gcc_armv7 () {
@@ -427,7 +427,7 @@ component_test_arm_linux_gnueabihf_gcc_thumb_2 () {
     programs/test/selftest
 
     msg "program demos: make, default config (out-of-box)" # ~0s
-    tests/scripts/run_demos.py
+    framework/scripts/run_demos.py
 }
 
 support_test_arm_linux_gnueabihf_gcc_thumb_2 () {
@@ -445,7 +445,7 @@ component_test_aarch64_linux_gnu_gcc () {
     programs/test/selftest
 
     msg "program demos: make, default config (out-of-box)" # ~0s
-    tests/scripts/run_demos.py
+    framework/scripts/run_demos.py
 }
 
 support_test_aarch64_linux_gnu_gcc () {

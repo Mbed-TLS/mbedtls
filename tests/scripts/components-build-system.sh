@@ -203,6 +203,60 @@ support_test_cmake_as_package_install () {
     support_test_cmake_out_of_source
 }
 
+component_test_cmake_install_with_destdir () {
+    # Remove existing generated files so that we use the ones CMake
+    # generates
+    $MAKE_COMMAND neat
+
+    msg "install: cmake with DESTDIR staging"
+    MBEDTLS_ROOT_DIR="$PWD"
+    mkdir "$OUT_OF_SOURCE_DIR"
+    cd "$OUT_OF_SOURCE_DIR"
+    cmake -DGEN_FILES=ON -DENABLE_PROGRAMS=OFF -DENABLE_TESTING=OFF -DUSE_SHARED_MBEDTLS_LIBRARY=ON -DCMAKE_INSTALL_PREFIX:PATH=/usr "$MBEDTLS_ROOT_DIR"
+    make
+
+    DESTDIR="$OUT_OF_SOURCE_DIR/stage" make install
+
+    install_lib_subdir="$(sed -n 's/^CMAKE_INSTALL_LIBDIR:PATH=//p' CMakeCache.txt)"
+    [ -n "$install_lib_subdir" ] # Failed to read CMAKE_INSTALL_LIBDIR from CMakeCache.txt
+
+    install_lib_path="$OUT_OF_SOURCE_DIR/stage/usr/${install_lib_subdir}"
+
+    if [[ "$OSTYPE" == darwin* ]]; then
+        # On macOS the custom install logic installs libmbedcrypto.dylib
+        # directly without a versioned symlink chain.
+        for lib in mbedcrypto mbedx509 mbedtls; do
+            [ -f "$install_lib_path/lib${lib}.a" ]
+            [ -e "$install_lib_path/lib${lib}.dylib" ]
+        done
+    else
+        # library/CMakeLists.txt installs libmbedcrypto.so with a versioned
+        # symlink chain on Linux.
+        for lib in mbedcrypto mbedx509 mbedtls; do
+            if [ "$QUIET" -eq 0 ]; then
+                echo "Checking lib=$lib"
+            fi
+            [ -f "$install_lib_path/lib${lib}.a" ]
+            [ -L "$install_lib_path/lib${lib}.so" ]
+            [ -e "$install_lib_path/lib${lib}.so" ]
+
+            # Match ABI-version names such as libxxx.so.17
+            # and check that symlink.
+            versioned=( "$install_lib_path/lib${lib}.so".+([0-9]) )
+            if [ "$QUIET" -eq 0 ]; then
+                declare -p versioned
+            fi
+            [ "${#versioned[@]}" -eq 1 ]
+            [ -L "${versioned[0]}" ]
+            [ -e "${versioned[0]}" ]
+        done
+    fi
+}
+
+support_test_cmake_install_with_destdir () {
+    support_test_cmake_out_of_source
+}
+
 component_build_cmake_custom_config_file () {
     # Make a copy of config file to use for the in-tree test
     cp "$CONFIG_H" include/mbedtls_config_in_tree_copy.h

@@ -1,0 +1,2 @@
+Security
+   * Added advice about compiler options in SECURITY.md.

@@ -3573,7 +3573,6 @@ static int ssl_tls13_session_load(mbedtls_ssl_session *session,
 {
     const unsigned char *p = buf;
     const unsigned char *end = buf + len;
-    int ret;
 
     if (end - p < 6) {
         return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
@@ -3640,7 +3639,7 @@ static int ssl_tls13_session_load(mbedtls_ssl_session *session,
                 return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
             }
 
-            ret = mbedtls_ssl_session_set_ticket_alpn(session, (char *) p);
+            int ret = mbedtls_ssl_session_set_ticket_alpn(session, (char *) p);
             if (ret != 0) {
                 return ret;
             }
@@ -3670,7 +3669,7 @@ static int ssl_tls13_session_load(mbedtls_ssl_session *session,
                 return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
             }
 
-            ret = mbedtls_ssl_session_set_hostname(session, (const char *) p);
+            int ret = mbedtls_ssl_session_set_hostname(session, (const char *) p);
             if (ret != 0) {
                 return ret;
             }

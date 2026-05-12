@@ -1,0 +1,3 @@
+Bugfix
+   * Fix an out-of-bounds read in TLS 1.2 ECJPAKE ServerKeyExchange parsing.
+     Fixes #1590.

@@ -5501,7 +5501,7 @@ static void ecp_copy_shift_r_224(mbedtls_mpi_uint *X,
      * P448_WIDTH = P224_WIDTH_MIN + P224_WIDTH_MAX */
     memcpy(X + P224_WIDTH_MIN, A + P224_WIDTH_MIN, P224_WIDTH_MAX * ciL);
     X[P448_WIDTH] = 0;
-    mbedtls_mpi_core_shift_r(X, P448_WIDTH + 1, 224);
+    mbedtls_mpi_core_shift_r(X, P448_WIDTH, 224);
 #else
     /* Shortcut for 32-bit and little-endian 64-bit.
      * P448_WITDH * ciL = 2 * P224_SIZE */

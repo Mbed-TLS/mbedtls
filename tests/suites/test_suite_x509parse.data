@@ -2068,6 +2068,14 @@ X509 CRT ASN1: basicConstraints overflow would make CA=1 (good self signature)
 depends_on:MBEDTLS_PK_CAN_ECDSA_SOME:MBEDTLS_ECP_HAVE_SECP256R1:MBEDTLS_MD_CAN_SHA256
 mbedtls_x509_crt_parse_file:"../framework/data_files/parse_input/server5.basic-constraints-sequence-overflow.selfsigned.crt":MBEDTLS_ERR_X509_INVALID_EXTENSIONS:0
 
+X509 CRT ASN1: basicConstraints: no cA but pathLenConstraint (bad signature)
+depends_on:MBEDTLS_PK_CAN_ECDSA_SOME:MBEDTLS_ECP_HAVE_SECP256R1:MBEDTLS_MD_CAN_SHA256
+mbedtls_x509_crt_parse_file:"../framework/data_files/parse_input/server5.basic-constraints-integer-first.badsign.crt":MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS, MBEDTLS_ERR_ASN1_UNEXPECTED_TAG):0
+
+X509 CRT ASN1: basicConstraints: no cA but pathLenConstraint (good self signature)
+depends_on:MBEDTLS_PK_CAN_ECDSA_SOME:MBEDTLS_ECP_HAVE_SECP256R1:MBEDTLS_MD_CAN_SHA256
+mbedtls_x509_crt_parse_file:"../framework/data_files/parse_input/server5.basic-constraints-integer-first.selfsigned.crt":MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS, MBEDTLS_ERR_ASN1_UNEXPECTED_TAG):0
+
 X509 CRT ASN1 (TBS, inv extBasicConstraint, no pathlen length)
 depends_on:MBEDTLS_RSA_C:MBEDTLS_MD_CAN_SHA256
 x509parse_crt:"3081b030819aa0030201028204deadbeef300d06092a864886f70d01010b0500300c310a30080600130454657374301c170c303930313031303030303030170c303931323331323335393539300c310a30080600130454657374302a300d06092A864886F70D010101050003190030160210ffffffffffffffffffffffffffffffff0202ffffa100a200a314301230100603551d13010101040630040101ff02300d06092a864886f70d01010b0500030200ff":"":MBEDTLS_ERR_X509_INVALID_EXTENSIONS + MBEDTLS_ERR_ASN1_OUT_OF_DATA

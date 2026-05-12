@@ -512,6 +512,7 @@ static int x509_get_basic_constraints(unsigned char **p,
     }
 
     if (*p == end) {
+        /* Empty basicConstraints: valid, not a CA. */
         return 0;
     }
 
@@ -523,18 +524,21 @@ static int x509_get_basic_constraints(unsigned char **p,
     }
 
     if ((ret = mbedtls_asn1_get_bool(p, end, ca_istrue)) != 0) {
-        if (ret == MBEDTLS_ERR_ASN1_UNEXPECTED_TAG) {
-            ret = mbedtls_asn1_get_int(p, end, ca_istrue);
-        }
-
-        if (ret != 0) {
-            return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS, ret);
-        }
-
-        if (*ca_istrue != 0) {
-            *ca_istrue = 1;
-        }
+        /* If the SEQUENCE starts with an INTEGER and not a BOOLEAN,
+         * according to RFC 5280, it's syntactically valid, but it's
+         * something that a CA MUST NOT produce. So we reject it.
+         *
+         * Note: historically, from XySSL 0.9 to Mbed TLS 3.6.6/4.1.0,
+         * `SEQUENCE { INTEGER n }` was interpreted as cA=FALSE if n == 0
+         * and cA=TRUE if n != 0. This was dangerous since
+         * `SEQUENCE { INTEGER n }` should be parsed as cA=FALSE
+         * according to RFC 5280, so we stopped doing it.
+         */
+        return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS, ret);
     }
+    /* `SEQUENCE { BOOLEAN FALSE }` is not DER since default-value fields
+     * must be omitted in DER. But it seems harmless, and Mbed TLS has
+     * always accepted it, so we continue to accept it. */
 
     if (*p == end) {
         return 0;

@@ -14,23 +14,21 @@ import importlib.machinery
 import importlib.util
 import os
 import re
+import sys
+import types
 import typing
 
 import scripts_path # pylint: disable=unused-import
 from mbedtls_framework import outcome_analysis
-from mbedtls_framework import typing_util
 
-
-class CryptoAnalyzeOutcomesType(typing_util.Protocol):
-    """Our expectations on tf-psa-crypto/tests/scripts/tf_psa_crypto_test_case_info.py.
-
-    See CoverageTask._load_crypto_module().
-    """
-    #pylint: disable=too-few-public-methods
-
-    # Test cases that are about internal aspects of TF-PSA-Crypto,
-    # which Mbed TLS is therefore not required to cover.
-    INTERNAL_TEST_CASES: outcome_analysis.TestCaseSetDescription
+# Until all TF-PSA-Crypto branches we care about have
+# scripts/project_knowledge/tf_psa_crypto_test_case_info.py,
+# fall back to its previous location where we load it manually
+# (see the _load_crypto_module method below).
+try:
+    import tf_psa_crypto_test_case_info #type: ignore #pylint: disable=unused-import
+except ImportError:
+    pass
 
 
 class CoverageTask(outcome_analysis.CoverageTask):
@@ -224,33 +222,39 @@ class CoverageTask(outcome_analysis.CoverageTask):
         ],
     }
 
-    def _load_crypto_module(self) -> None:
+    @staticmethod
+    def _load_crypto_module() -> typing.Optional[types.ModuleType]:
         """Try to load the information about test cases from the tf-psa-crypto submodule.."""
-        # All this complexity is because we don't want to add the directory
-        # to the import path.
-        if self.crypto_module is not None:
-            return
+        # All this complexity is because we didn't want to add
+        # `tf-psa-crypto/tests/scripts/` to the import path.
+        # The new location `tf-psa-crypto/scripts/project_knowledge` is
+        # on the import path. So once we can assume that all crypto
+        # branches have the new location, this whole function can go away.
+        # https://github.com/Mbed-TLS/mbedtls/issues/10699.
+        if 'tf_psa_crypto_test_case_info' in sys.modules:
+            return sys.modules['tf_psa_crypto_test_case_info']
         crypto_script_path = 'tf-psa-crypto/tests/scripts/tf_psa_crypto_test_case_info.py'
         if not os.path.exists(crypto_script_path):
             # During a transition period, while the crypto script is not
             # yet present in all branches we care about, allow it not to
             # exist.
-            return
+            return None
         crypto_spec = importlib.util.spec_from_file_location(
             'tf_psa_crypto_test_case_info',
             crypto_script_path)
         # Assertions and type annotation to help mypy.
         assert crypto_spec is not None
         assert crypto_spec.loader is not None
-        self.crypto_module: typing.Optional[CryptoAnalyzeOutcomesType] = \
-            importlib.util.module_from_spec(crypto_spec)
-        crypto_spec.loader.exec_module(self.crypto_module)
+        crypto_module = importlib.util.module_from_spec(crypto_spec)
+        crypto_spec.loader.exec_module(crypto_module)
+        sys.modules['tf_psa_crypto_test_case_info'] = crypto_module
+        return crypto_module
 
     def _load_crypto_instructions(self) -> None:
         """Try to load instructions from the tf-psa-crypto submodule's outcome analysis."""
-        self._load_crypto_module()
-        if self.crypto_module is not None:
-            crypto_internal_test_cases = self.crypto_module.INTERNAL_TEST_CASES
+        crypto_module = self._load_crypto_module()
+        if crypto_module is not None:
+            crypto_internal_test_cases = crypto_module.INTERNAL_TEST_CASES
         else:
             # Legacy set of tests covered by TF-PSA-Crypto only,
             # from before Mbed TLS's outcome analysis read that information

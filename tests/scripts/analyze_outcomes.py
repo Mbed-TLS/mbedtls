@@ -6,34 +6,37 @@ This script can also run on outcomes from a partial run, but the results are
 less likely to be useful.
 """
 
+# Copyright The Mbed TLS Contributors
+# SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
+
+import importlib
+import importlib.machinery
+import importlib.util
+import os
 import re
 import typing
 
 import scripts_path # pylint: disable=unused-import
 from mbedtls_framework import outcome_analysis
+from mbedtls_framework import typing_util
+
+
+class CryptoAnalyzeOutcomesType(typing_util.Protocol):
+    """Our expectations on tf-psa-crypto/tests/scripts/tf_psa_crypto_test_case_info.py.
+
+    See CoverageTask._load_crypto_module().
+    """
+    #pylint: disable=too-few-public-methods
+
+    # Test cases that are about internal aspects of TF-PSA-Crypto,
+    # which Mbed TLS is therefore not required to cover.
+    INTERNAL_TEST_CASES: outcome_analysis.TestCaseSetDescription
 
 
 class CoverageTask(outcome_analysis.CoverageTask):
     """Justify test cases that are never executed."""
 
-    @staticmethod
-    def _has_word_re(words: typing.Iterable[str],
-                     exclude: typing.Optional[str] = None) -> typing.Pattern:
-        """Construct a regex that matches if any of the words appears.
-
-        The occurrence must start and end at a word boundary.
-
-        If exclude is specified, strings containing a match for that
-        regular expression will not match the returned pattern.
-        """
-        exclude_clause = r''
-        if exclude:
-            exclude_clause = r'(?!.*' + exclude + ')'
-        return re.compile(exclude_clause +
-                          r'.*\b(?:' + r'|'.join(words) + r')\b.*',
-                          re.DOTALL)
-
-    IGNORED_TESTS = {
+    UNCOVERED_TESTS = {
         'ssl-opt': [
             # We don't run ssl-opt.sh with Valgrind on the CI because
             # it's extremely slow. We don't intend to change this.
@@ -70,12 +73,6 @@ class CoverageTask(outcome_analysis.CoverageTask):
             # We don't run test_suite_config when we test this.
             # https://github.com/Mbed-TLS/mbedtls/issues/9586
             'Config: !MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED',
-        ],
-        'test_suite_config.crypto_combinations': [
-            # New thing in crypto. Not intended to be tested separately
-            # in mbedtls.
-            # https://github.com/Mbed-TLS/mbedtls/issues/10300
-            'Config: entropy: NV seed only',
         ],
         'test_suite_config.psa_boolean': [
             # We don't test with HMAC disabled.
@@ -226,6 +223,51 @@ class CoverageTask(outcome_analysis.CoverageTask):
             'TLS 1.3 m->O: resumption with early data',
         ],
     }
+
+    def _load_crypto_module(self) -> None:
+        """Try to load the information about test cases from the tf-psa-crypto submodule.."""
+        # All this complexity is because we don't want to add the directory
+        # to the import path.
+        if self.crypto_module is not None:
+            return
+        crypto_script_path = 'tf-psa-crypto/tests/scripts/tf_psa_crypto_test_case_info.py'
+        if not os.path.exists(crypto_script_path):
+            # During a transition period, while the crypto script is not
+            # yet present in all branches we care about, allow it not to
+            # exist.
+            return
+        crypto_spec = importlib.util.spec_from_file_location(
+            'tf_psa_crypto_test_case_info',
+            crypto_script_path)
+        # Assertions and type annotation to help mypy.
+        assert crypto_spec is not None
+        assert crypto_spec.loader is not None
+        self.crypto_module: typing.Optional[CryptoAnalyzeOutcomesType] = \
+            importlib.util.module_from_spec(crypto_spec)
+        crypto_spec.loader.exec_module(self.crypto_module)
+
+    def _load_crypto_instructions(self) -> None:
+        """Try to load instructions from the tf-psa-crypto submodule's outcome analysis."""
+        self._load_crypto_module()
+        if self.crypto_module is not None:
+            crypto_internal_test_cases = self.crypto_module.INTERNAL_TEST_CASES
+        else:
+            # Legacy set of tests covered by TF-PSA-Crypto only,
+            # from before Mbed TLS's outcome analysis read that information
+            # from TF-PSA-Crypto. This branch can be removed once
+            # the presence of the crypto module becomes mandatory.
+            crypto_internal_test_cases = {
+                'test_suite_config.crypto_combinations': [
+                    'Config: entropy: NV seed only',
+                ],
+            }
+        self.ignored_tests.extend(crypto_internal_test_cases)
+
+    def __init__(self, options) -> None:
+        super().__init__(options)
+        self.crypto_module = None # declared with a type in _load_crypto_module above
+        self._load_crypto_instructions()
+
 
 # List of tasks with a function that can handle this task and additional arguments if required
 KNOWN_TASKS: typing.Dict[str, typing.Type[outcome_analysis.Task]] = {

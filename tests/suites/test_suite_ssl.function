@@ -4058,7 +4058,7 @@ void hrr_reject_unadvertised_group(void)
     /* Client should reject malformed selected_group with illegal_parameter. */
     TEST_EQUAL(mbedtls_ssl_handshake_step(&(client_ep.ssl)), MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER);
 
-    /* The server send a non advertised group during HRR. Client shouldnt accept it as offered_group_id */
+    /* The server sends a non-advertised group during HRR. Client shouldn't accept it as offered_group_id */
     offered_group_after_hrr_parse = client_ep.ssl.handshake->offered_group_id;
     TEST_EQUAL(offered_group_after_hrr_parse, offered_group_before_hrr_parse);
 

@@ -2409,6 +2409,33 @@ exit:
 #endif /* MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED */
 
 #if defined(MBEDTLS_TEST_HOOKS)
+int mbedtls_test_tweak_tls13_encrypted_extensions_msg(
+    unsigned char *buf, unsigned char **end, int tweak,
+    int *expected_result)
+{
+    unsigned char *p_extensions_len = buf;
+    size_t extensions_len = MBEDTLS_GET_UINT16_BE(p_extensions_len, 0);
+
+    *expected_result = MBEDTLS_ERR_SSL_DECODE_ERROR;
+
+    switch (tweak) {
+        case 1:
+            /* Shrink the extension vector length and leave trailing bytes. */
+            if (extensions_len == 0) {
+                return -1;
+            }
+            MBEDTLS_PUT_UINT16_BE(extensions_len - 1, p_extensions_len, 0);
+            break;
+
+        default:
+            (void) end;
+            return -1;
+    }
+
+    (void) end;
+    return 0;
+}
+
 int mbedtls_test_tweak_tls13_certificate_msg_vector_len(
     unsigned char *buf, unsigned char **end, int tweak,
     int *expected_result, mbedtls_ssl_chk_buf_ptr_args *args)

@@ -3900,6 +3900,86 @@ exit:
 }
 /* END_CASE */
 /* BEGIN_CASE depends_on:MBEDTLS_TEST_HOOKS:MBEDTLS_SSL_PROTO_TLS1_3:!MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_SSL_CLI_C:MBEDTLS_SSL_SRV_C:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:PSA_WANT_ECC_SECP_R1_384 */
+void tls13_encrypted_extensions_msg_trailing_bytes()
+{
+    int ret = -1;
+    mbedtls_test_ssl_endpoint client_ep, server_ep;
+    memset(&client_ep, 0, sizeof(client_ep));
+    memset(&server_ep, 0, sizeof(server_ep));
+    unsigned char *buf, *end;
+    size_t buf_len;
+    int step = 0;
+    int expected_result;
+    mbedtls_test_handshake_test_options client_options;
+    mbedtls_test_handshake_test_options server_options;
+
+    mbedtls_test_init_handshake_options(&client_options);
+    MD_OR_USE_PSA_INIT();
+
+    client_options.pk_alg = MBEDTLS_PK_ECDSA;
+    ret = mbedtls_test_ssl_endpoint_init(&client_ep, MBEDTLS_SSL_IS_CLIENT,
+                                         &client_options);
+    TEST_EQUAL(ret, 0);
+
+    mbedtls_test_init_handshake_options(&server_options);
+    server_options.pk_alg = MBEDTLS_PK_ECDSA;
+    ret = mbedtls_test_ssl_endpoint_init(&server_ep, MBEDTLS_SSL_IS_SERVER,
+                                         &server_options);
+    TEST_EQUAL(ret, 0);
+
+    ret = mbedtls_test_mock_socket_connect(&(client_ep.socket),
+                                           &(server_ep.socket), 1024);
+    TEST_EQUAL(ret, 0);
+
+    while (1) {
+        mbedtls_test_set_step(++step);
+
+        ret = mbedtls_test_move_handshake_to_state(
+            &(server_ep.ssl), &(client_ep.ssl),
+            MBEDTLS_SSL_CERTIFICATE_VERIFY);
+        TEST_EQUAL(ret, 0);
+
+        ret = mbedtls_ssl_flush_output(&(server_ep.ssl));
+        TEST_EQUAL(ret, 0);
+
+        ret = mbedtls_test_move_handshake_to_state(
+            &(client_ep.ssl), &(server_ep.ssl),
+            MBEDTLS_SSL_ENCRYPTED_EXTENSIONS);
+        TEST_EQUAL(ret, 0);
+
+        ret = mbedtls_ssl_tls13_fetch_handshake_msg(&(client_ep.ssl),
+                                                    MBEDTLS_SSL_HS_ENCRYPTED_EXTENSIONS,
+                                                    &buf, &buf_len);
+        TEST_EQUAL(ret, 0);
+
+        end = buf + buf_len;
+
+        ret = mbedtls_test_tweak_tls13_encrypted_extensions_msg(
+            buf, &end, step, &expected_result);
+        if (ret != 0) {
+            break;
+        }
+
+        ret = mbedtls_ssl_tls13_parse_encrypted_extensions(&(client_ep.ssl),
+                                                           buf, end);
+        TEST_EQUAL(ret, expected_result);
+
+        ret = mbedtls_ssl_session_reset(&(client_ep.ssl));
+        TEST_EQUAL(ret, 0);
+
+        ret = mbedtls_ssl_session_reset(&(server_ep.ssl));
+        TEST_EQUAL(ret, 0);
+    }
+
+exit:
+    mbedtls_test_ssl_endpoint_free(&client_ep);
+    mbedtls_test_ssl_endpoint_free(&server_ep);
+    mbedtls_test_free_handshake_options(&client_options);
+    mbedtls_test_free_handshake_options(&server_options);
+    MD_OR_USE_PSA_DONE();
+}
+/* END_CASE */
+/* BEGIN_CASE depends_on:MBEDTLS_TEST_HOOKS:MBEDTLS_SSL_PROTO_TLS1_3:!MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_SSL_CLI_C:MBEDTLS_SSL_SRV_C:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:PSA_WANT_ECC_SECP_R1_384 */
 void tls13_server_certificate_msg_invalid_vector_len()
 {
     int ret = -1;

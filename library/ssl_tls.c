@@ -7092,6 +7092,7 @@ static int ssl_compute_master(mbedtls_ssl_handshake_params *handshake,
         ret = handshake->calc_verify(ssl, session_hash, &seed_len);
         if (ret != 0) {
             MBEDTLS_SSL_DEBUG_RET(1, "calc_verify", ret);
+            return ret;
         }
 
         MBEDTLS_SSL_DEBUG_BUF(3, "session hash for extended master secret",

@@ -55,6 +55,163 @@ static int failing_ticket_write_unset_lifetime(
           PSA_WANT_ALG_SHA_256 && PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY &&
           MBEDTLS_CAN_HANDLE_RSA_TEST_KEY */
 
+#if defined(MBEDTLS_SSL_CLI_C) && \
+    defined(MBEDTLS_SSL_SRV_C) && defined(MBEDTLS_DEBUG_C) && \
+    defined(PSA_HAVE_ALG_SOME_RSA_SIGN) && \
+    ((defined(MBEDTLS_SSL_PROTO_TLS1_3) && \
+    defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED) && \
+    defined(MBEDTLS_SSL_HANDSHAKE_WITH_PSK_ENABLED) && \
+    defined(MBEDTLS_TEST_AT_LEAST_ONE_TLS1_3_CIPHERSUITE) && \
+    defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED) && \
+    defined(PSA_WANT_ALG_SHA_256) && \
+    defined(PSA_WANT_ECC_SECP_R1_256) && \
+    defined(PSA_WANT_ECC_SECP_R1_384) && \
+    defined(PSA_HAVE_ALG_ECDSA_VERIFY) && \
+    defined(MBEDTLS_SSL_SESSION_TICKETS)) || \
+    (defined(MBEDTLS_SSL_PROTO_TLS1_2) && \
+    defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET) && \
+    defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED) && \
+    defined(PSA_WANT_ALG_SHA_256) && \
+    defined(PSA_WANT_ECC_SECP_R1_384) && \
+    defined(PSA_HAVE_ALG_ECDSA_VERIFY)))
+typedef struct {
+    mbedtls_ssl_context *ssl;
+    const char *trigger;
+    int triggered;
+} tls_abort_transcript_context;
+
+static void tls_abort_transcript(void *ctx, int level,
+                                 const char *file, int line,
+                                 const char *str)
+{
+    tls_abort_transcript_context *abort_ctx = ctx;
+
+    (void) level;
+    (void) file;
+    (void) line;
+
+    if (abort_ctx->triggered || abort_ctx->ssl == NULL ||
+        abort_ctx->ssl->handshake == NULL ||
+        abort_ctx->trigger == NULL ||
+        strstr(str, abort_ctx->trigger) == NULL) {
+        return;
+    }
+
+    abort_ctx->triggered = 1;
+    psa_hash_abort(&abort_ctx->ssl->handshake->fin_sha256_psa);
+#if defined(PSA_WANT_ALG_SHA_384)
+    psa_hash_abort(&abort_ctx->ssl->handshake->fin_sha384_psa);
+#endif
+}
+
+static void tls_server_error(mbedtls_ssl_protocol_version tls_version,
+                             const char *trigger,
+                             int server_state,
+                             int client_state)
+{
+    int ret = -1;
+    int max_steps = 100;
+    mbedtls_test_ssl_endpoint client_ep, server_ep;
+    mbedtls_test_handshake_test_options client_options;
+    mbedtls_test_handshake_test_options server_options;
+    tls_abort_transcript_context abort_ctx;
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
+    unsigned char psk[] = "abcdefghijklmnop";
+    data_t psk_data = { psk, sizeof(psk) - 1 };
+#endif
+
+    memset(&client_ep, 0, sizeof(client_ep));
+    memset(&server_ep, 0, sizeof(server_ep));
+    memset(&abort_ctx, 0, sizeof(abort_ctx));
+    mbedtls_test_init_handshake_options(&client_options);
+    mbedtls_test_init_handshake_options(&server_options);
+
+    PSA_INIT();
+
+    client_options.client_min_version = tls_version;
+    client_options.client_max_version = tls_version;
+    server_options.server_min_version = tls_version;
+    server_options.server_max_version = tls_version;
+
+    abort_ctx.trigger = trigger;
+    server_options.srv_log_obj = &abort_ctx;
+    server_options.srv_log_fun = tls_abort_transcript;
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
+    if (tls_version == MBEDTLS_SSL_VERSION_TLS1_3) {
+        client_options.psk_str = &psk_data;
+    }
+#endif
+
+    mbedtls_debug_set_threshold(4);
+
+    TEST_EQUAL(mbedtls_test_ssl_endpoint_init(&client_ep, MBEDTLS_SSL_IS_CLIENT,
+                                              &client_options), 0);
+    TEST_EQUAL(mbedtls_test_ssl_endpoint_init(&server_ep, MBEDTLS_SSL_IS_SERVER,
+                                              &server_options), 0);
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3) && defined(MBEDTLS_SSL_SESSION_TICKETS)
+    if (tls_version == MBEDTLS_SSL_VERSION_TLS1_3) {
+        TEST_EQUAL(mbedtls_ssl_conf_psk(&server_ep.conf, psk, sizeof(psk) - 1,
+                                        (const unsigned char *) "foo",
+                                        strlen("foo")), 0);
+        mbedtls_ssl_conf_tls13_key_exchange_modes(
+            &client_ep.conf, MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK);
+        mbedtls_ssl_conf_tls13_key_exchange_modes(
+            &server_ep.conf, MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK);
+        mbedtls_ssl_conf_session_tickets_cb(&server_ep.conf,
+                                            mbedtls_test_ticket_write,
+                                            mbedtls_test_ticket_parse,
+                                            NULL);
+    }
+#endif
+
+    TEST_EQUAL(mbedtls_test_mock_socket_connect(&(client_ep.socket),
+                                                &(server_ep.socket), 1024), 0);
+
+    abort_ctx.ssl = &server_ep.ssl;
+
+    TEST_EQUAL(mbedtls_test_move_handshake_to_state(
+                   &(server_ep.ssl), &(client_ep.ssl),
+                   server_state), 0);
+
+    TEST_EQUAL(mbedtls_ssl_flush_output(&(server_ep.ssl)), 0);
+
+    TEST_EQUAL(server_ep.ssl.state, server_state);
+
+    TEST_EQUAL(abort_ctx.triggered, 0);
+
+    while (client_ep.ssl.state != client_state &&
+           --max_steps >= 0) {
+        ret = mbedtls_ssl_handshake_step(&(client_ep.ssl));
+        TEST_ASSERT(ret == 0 || ret == MBEDTLS_ERR_SSL_WANT_READ ||
+                    ret == MBEDTLS_ERR_SSL_WANT_WRITE);
+    }
+
+    TEST_ASSERT(max_steps >= 0);
+
+    TEST_EQUAL(client_ep.ssl.state, client_state);
+    TEST_EQUAL(server_ep.ssl.state, server_state);
+
+    TEST_EQUAL(abort_ctx.triggered, 0);
+
+    ret = mbedtls_ssl_handshake_step(&(server_ep.ssl));
+    TEST_ASSERT(abort_ctx.triggered);
+    TEST_ASSERT(ret != 0);
+
+    TEST_EQUAL(server_ep.ssl.state, server_state);
+
+exit:
+    mbedtls_test_ssl_endpoint_free(&client_ep);
+    mbedtls_test_ssl_endpoint_free(&server_ep);
+    mbedtls_test_free_handshake_options(&client_options);
+    mbedtls_test_free_handshake_options(&server_options);
+    mbedtls_debug_set_threshold(0);
+    PSA_DONE();
+}
+#endif
+
 #if (!defined(MBEDTLS_SSL_PROTO_TLS1_2)) && \
     defined(MBEDTLS_SSL_EARLY_DATA) && defined(MBEDTLS_SSL_CLI_C) && \
     defined(MBEDTLS_SSL_SRV_C) && defined(MBEDTLS_DEBUG_C) && \
@@ -4355,6 +4512,34 @@ void elliptic_curve_get_properties()
     goto exit;
 exit:
     MD_OR_USE_PSA_DONE();
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_SSL_CLI_C:MBEDTLS_SSL_SRV_C:MBEDTLS_DEBUG_C:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:MBEDTLS_SSL_HANDSHAKE_WITH_PSK_ENABLED:MBEDTLS_TEST_AT_LEAST_ONE_TLS1_3_CIPHERSUITE:MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED:PSA_WANT_ALG_SHA_256:PSA_WANT_ECC_SECP_R1_256:PSA_WANT_ECC_SECP_R1_384:PSA_HAVE_ALG_ECDSA_VERIFY:PSA_HAVE_ALG_SOME_RSA_SIGN:MBEDTLS_SSL_SESSION_TICKETS */
+void tls13_server_propagates_rms_error()
+{
+    tls_server_error(MBEDTLS_SSL_VERSION_TLS1_3,
+                     "<= parse finished message",
+                     MBEDTLS_SSL_CLIENT_FINISHED,
+                     MBEDTLS_SSL_FLUSH_BUFFERS);
+    goto exit;
+
+exit:
+    ;
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_SSL_CLI_C:MBEDTLS_SSL_SRV_C:MBEDTLS_DEBUG_C:MBEDTLS_SSL_EXTENDED_MASTER_SECRET:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:PSA_WANT_ALG_SHA_256:PSA_WANT_ECC_SECP_R1_384:PSA_HAVE_ALG_ECDSA_VERIFY:PSA_HAVE_ALG_SOME_RSA_SIGN:MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED */
+void tls12_server_propagates_ems_error()
+{
+    tls_server_error(MBEDTLS_SSL_VERSION_TLS1_2,
+                     "=> derive keys",
+                     MBEDTLS_SSL_CLIENT_KEY_EXCHANGE,
+                     MBEDTLS_SSL_CERTIFICATE_VERIFY);
+    goto exit;
+
+exit:
+    ;
 }
 /* END_CASE */
 

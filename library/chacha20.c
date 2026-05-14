@@ -31,6 +31,8 @@
 
 #define CHACHA20_BLOCK_SIZE_BYTES (4U * 16U)
 
+#define CHACHA20_MAX_BLOCKS (UINT64_C(1) << 32)
+
 /**
  * \brief           ChaCha20 quarter round operation.
  *
@@ -184,6 +186,7 @@ int mbedtls_chacha20_starts(mbedtls_chacha20_context *ctx,
 {
     /* Counter */
     ctx->state[12] = counter;
+    ctx->remaining_blocks = CHACHA20_MAX_BLOCKS - counter;
 
     /* Nonce */
     ctx->state[13] = MBEDTLS_GET_UINT32_LE(nonce, 0);
@@ -198,12 +201,48 @@ int mbedtls_chacha20_starts(mbedtls_chacha20_context *ctx,
     return 0;
 }
 
+static int chacha20_check_remaining_blocks(const mbedtls_chacha20_context *ctx,
+                                           size_t size)
+{
+    size_t available_keystream = 0;
+    uint64_t needed_blocks = 0;
+
+    if (ctx->keystream_bytes_used < CHACHA20_BLOCK_SIZE_BYTES) {
+        available_keystream =
+            CHACHA20_BLOCK_SIZE_BYTES - ctx->keystream_bytes_used;
+
+        if (size <= available_keystream) {
+            return 0;
+        }
+
+        size -= available_keystream;
+    }
+
+    needed_blocks = (uint64_t) (size / CHACHA20_BLOCK_SIZE_BYTES);
+
+    if (size % CHACHA20_BLOCK_SIZE_BYTES != 0U) {
+        needed_blocks++;
+    }
+
+    if (needed_blocks > ctx->remaining_blocks) {
+        return MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA;
+    }
+
+    return 0;
+}
+
 int mbedtls_chacha20_update(mbedtls_chacha20_context *ctx,
                             size_t size,
                             const unsigned char *input,
                             unsigned char *output)
 {
     size_t offset = 0U;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+
+    ret = chacha20_check_remaining_blocks(ctx, size);
+    if (ret != 0) {
+        return ret;
+    }
 
     /* Use leftover keystream bytes, if available */
     while (size > 0U && ctx->keystream_bytes_used < CHACHA20_BLOCK_SIZE_BYTES) {
@@ -219,6 +258,7 @@ int mbedtls_chacha20_update(mbedtls_chacha20_context *ctx,
     while (size >= CHACHA20_BLOCK_SIZE_BYTES) {
         /* Generate new keystream block and increment counter */
         chacha20_block(ctx->state, ctx->keystream8);
+        ctx->remaining_blocks--;
         ctx->state[CHACHA20_CTR_INDEX]++;
 
         mbedtls_xor(output + offset, input + offset, ctx->keystream8, 64U);
@@ -231,6 +271,7 @@ int mbedtls_chacha20_update(mbedtls_chacha20_context *ctx,
     if (size > 0U) {
         /* Generate new keystream block and increment counter */
         chacha20_block(ctx->state, ctx->keystream8);
+        ctx->remaining_blocks--;
         ctx->state[CHACHA20_CTR_INDEX]++;
 
         mbedtls_xor(output + offset, input + offset, ctx->keystream8, size);

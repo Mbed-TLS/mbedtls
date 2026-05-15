@@ -3411,7 +3411,7 @@ int mbedtls_ssl_conf_cid(mbedtls_ssl_config *conf, size_t len,
  *
  * \note           The restrictions are enforced for all certificates in the
  *                 chain. However, signatures in the handshake are not covered
- *                 by this setting but by \b mbedtls_ssl_conf_sig_algs().
+ *                 by this setting but by \c mbedtls_ssl_conf_sig_algs().
  *
  * \param conf     SSL configuration
  * \param profile  Profile to use
@@ -3899,7 +3899,12 @@ void mbedtls_ssl_conf_groups(mbedtls_ssl_config *conf,
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
 
 /**
- * \brief          Configure allowed signature algorithms for use in TLS
+ * \brief          Configure allowed signature algorithms for use in TLS key
+ *                 exchange.
+ *
+ * \note           This only covers signature algorithms used in the key
+ *                 exchange. To also enforce restrictions in certificate verification
+ *                 refer to \c mbedtls_ssl_conf_cert_profile().
  *
  * \param conf     The SSL configuration to use.
  * \param sig_algs List of allowed IANA values for TLS 1.3 signature algorithms,

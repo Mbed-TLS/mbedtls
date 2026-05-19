@@ -1,3 +1,0 @@
-Bugfix
-   * Reject malformed TLS 1.3 serialized sessions instead of accepting
-     unterminated strings or extra trailing data.

@@ -5215,24 +5215,28 @@ int mbedtls_ecp_mod_p256_raw(mbedtls_mpi_uint *X, size_t X_limbs)
      * Note that c may be negative, but X0 is always in [0, 2^256).
      *
      * Set R = 2^224 - 2^192 - 2^96 + 1 and use 2^256 = R (mod p256),
-     * so the update formula is X_new = X0 + c * R.
+     * so the update formula is X = X0 + c * R.
+     *
+     * Let's call X_ori the value before the loop,
+     * X_1st the value after the first iteration,
+     * X_2nd the value after the second iteration.
      *
      * First round:
-     * We have 0 <= X_old < 2^256 and -8 < -5 <= last_c <= 5 < 8,
+     * We have 0 <= X_ori < 2^256 and -8 < -5 <= last_c <= 5 < 8,
      * so -2^227 < last_c * R < 2^227
-     * and -2^227 < X_first < 2^256 + 2^227.
-     * Again X_new is represented as 2^256 * c + X0, but now c is -1, 0 or 1.
+     * and -2^227 < X_1st < 2^256 + 2^227.
+     * Again X_1st is represented as 2^256 * c + X0, but now c is -1, 0 or 1.
      *
-     * Second round: (now call X_old the X_new output of the first round)
-     * - If c is 0, then X_new = X0 + 0 * R = X0 which is in range.
-     * - If c is 1, then X_new = X0 + 1 * R is clearly non-negative.
-     *   Also, since X_old < 2^256 + 2^227, we have X0 < 2^227,
-     *   so X_new = X0 + 1 * R < 2^227 + 2^224 < 2^256.
-     * - If c is -1 then X_new = X0 - 1 * R is clearly < 2^256.
-     *   Also, since X_old > -2^227 and X_old = - 2^256 + X0,
+     * Second round:
+     * - If c is 0, then X_2nd = X0 + 0 * R = X0 which is in range.
+     * - If c is 1, then X_2nd = X0 + 1 * R is clearly non-negative.
+     *   Also, since X_1st < 2^256 + 2^227, we have X0 < 2^227,
+     *   so X_2nd = X0 + 1 * R < 2^227 + 2^224 < 2^256.
+     * - If c is -1 then X_2nd = X0 - 1 * R is clearly < 2^256.
+     *   Also, since X_1st > -2^227 and X_1st = - 2^256 + X0,
      *   we have X0 > 2^256 - 2^227
-     *   so X_new = X0 - 1 * R > 2^256 - 2^227 - 2^224 >= 0.
-     * In all cases, 0 <= X_new < 2^256 as desired.
+     *   so X_2nd = X0 - 1 * R > 2^256 - 2^227 - 2^224 >= 0.
+     * In all cases, 0 <= X_2nd < 2^256 as desired.
      */
     for (size_t round = 0; round < 2; ++round) {
         RESET;

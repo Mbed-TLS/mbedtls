@@ -5537,12 +5537,15 @@ int mbedtls_ecp_mod_p255_raw(mbedtls_mpi_uint *X, size_t X_Limbs)
 /* Size of p448 in terms of mbedtls_mpi_uint */
 #define P448_WIDTH      (448 / 8 / sizeof(mbedtls_mpi_uint))
 
-/* Number of limbs fully occupied by 2^224 (max), and limbs used by it (min) */
-#define DIV_ROUND_UP(X, Y) (((X) + (Y) -1) / (Y))
+/* Number of bytes for a 224-bit value */
 #define P224_SIZE        (224 / 8)
+
+/* Number of limbs fully used to store a 224-bit value */
 #define P224_WIDTH_MIN   (P224_SIZE / sizeof(mbedtls_mpi_uint))
+/* Number or limbs partially used to store a 224-bit value.
+ * With 32-bit limbs we have MAX == MIN, but with 64-bit limbs MAX == MIN + 1 */
+#define DIV_ROUND_UP(X, Y) (((X) + (Y) -1) / (Y))
 #define P224_WIDTH_MAX   DIV_ROUND_UP(P224_SIZE, sizeof(mbedtls_mpi_uint))
-#define P224_UNUSED_BITS ((P224_WIDTH_MAX * sizeof(mbedtls_mpi_uint) * 8) - 224)
 
 /*
  * Fast quasi-reduction module p448
@@ -5589,6 +5592,23 @@ static void ecp_shift_l_224(mbedtls_mpi_uint *X)
 #endif
 }
 
+/* In-place truncated to 224-bits: X %= 2^224
+ * X must be P448_WIDTH + 1 limbs */
+static void ecp_trunc_224(mbedtls_mpi_uint *X)
+{
+#if defined(MBEDTLS_HAVE_INT64) && defined(MBEDTLS_IS_BIG_ENDIAN)
+    /* Since 224 is only a multiple of 32 but not of 64, the 224-bit
+     * limit falls in the middle of a limb. Clear the top 32 bits of that limb,
+     * (that is, keep only its low 32 bits). Higher limbs can be fully cleared.
+     */
+    X[P224_WIDTH_MIN] &= (mbedtls_mpi_uint) 0xffffffff;
+    memset(X + P224_WIDTH_MAX, 0, ((P448_WIDTH + 1 - P224_WIDTH_MAX) * ciL));
+#else
+    /* Shortcut for 32-bit and little-endian 64-bit. */
+    memset((char *) X + P224_SIZE, 0, P224_SIZE + ciL);
+#endif
+}
+
 /*
  * Raw fast quasi-reduction modulo p448 = 2^448 - 2^224 - 1
  *
@@ -5617,49 +5637,41 @@ int mbedtls_ecp_mod_p448_raw(mbedtls_mpi_uint *X, size_t X_limbs)
     /* Both M and Q require an extra limb to catch carries. */
     mbedtls_mpi_uint M[P448_WIDTH + 1];
     mbedtls_mpi_uint Q[P448_WIDTH + 1];
-    const size_t M_limbs = P448_WIDTH + 1;
-    const size_t Q_limbs = P448_WIDTH + 1;
 
     /* M = A1 */
-    memset(M, 0, (M_limbs * ciL));
-    /* Do not copy into the overflow limb, as this would read past the end of
-     * X. */
-    memcpy(M, X + P448_WIDTH, ((M_limbs - 1) * ciL));
+    memcpy(M, X + P448_WIDTH, P448_WIDTH * ciL);
+    M[P448_WIDTH] = 0;
 
     /* X = A0 */
-    memset(X + P448_WIDTH, 0, ((M_limbs - 1) * ciL));
+    memset(X + P448_WIDTH, 0, P448_WIDTH * ciL);
 
     /* X = X + M = A0 + A1 */
-    /* Carry here fits in oversize X. Oversize M means it will get
-     * added in, not returned as carry. */
-    (void) mbedtls_mpi_core_add(X, X, M, M_limbs);
+    /* The result is at most 449 bits, so it fits in P448_WIDTH + 1 limbs.
+     * and we know the final carry returned by the function will be 0. */
+    (void) mbedtls_mpi_core_add(X, X, M, P448_WIDTH + 1);
 
     /* Q = B1 = M >> 224 */
     ecp_copy_shift_r_224(Q, M);
 
-    /* X = X + Q = (A0 + A1) + B1
-     * Oversize Q catches potential carry here when X is already max 448 bits.
-     */
-    (void) mbedtls_mpi_core_add(X, X, Q, Q_limbs);
+    /* X = X + Q = (A0 + A1) + B1 */
+    /* Inputs are at most 449 bits and 224 bits, so the result fits. */
+    (void) mbedtls_mpi_core_add(X, X, Q, P448_WIDTH + 1);
 
     /* M = B0 */
-#ifdef MBEDTLS_HAVE_INT64
-    M[P224_WIDTH_MIN] &= ((mbedtls_mpi_uint)-1) >> (P224_UNUSED_BITS);
- #endif
-    memset(M + P224_WIDTH_MAX, 0, ((M_limbs - P224_WIDTH_MAX) * ciL));
+    ecp_trunc_224(M);
 
     /* M = M + Q = B0 + B1 */
-    (void) mbedtls_mpi_core_add(M, M, Q, Q_limbs);
+    (void) mbedtls_mpi_core_add(M, M, Q, P448_WIDTH + 1);
 
     /* M = (B0 + B1) * 2^224 */
     /* Shifted carry bit from the addition fits in oversize M. */
     ecp_shift_l_224(M);
 
     /* X = X + M = (A0 + A1 + B1) + (B0 + B1) * 2^224 */
-    (void) mbedtls_mpi_core_add(X, X, M, M_limbs);
+    (void) mbedtls_mpi_core_add(X, X, M, P448_WIDTH + 1);
 
     /* Clear M once before the loop */
-    memset(M, 0, (M_limbs * ciL));
+    memset(M, 0, ((P448_WIDTH + 1) * ciL));
 
     /* Now X < 2^448 + 2^448 + 2^224 + (2^224 + 2^224) * 2^224,
      * so X is at most 451 bits. So, in subsequent rounds,
@@ -5676,17 +5688,17 @@ int mbedtls_ecp_mod_p448_raw(mbedtls_mpi_uint *X, size_t X_limbs)
      */
     for (size_t round = 0; round < 2; ++round) {
         /* M = A1 + A1 * 2^224
-         * Since A1 has only one non-zero limb, we can directly write
-         * A1 << 224 to the right place, shifted up if needed.
+         * Since A1 is only a few bits, we can directly write A1 << 224 to the
+         * right place (which might not be on a limb boundary).
          * (Note: other limbs of M were cleared before the loop.) */
         M[0] = X[P448_WIDTH];
-        M[P224_WIDTH_MIN] = X[P448_WIDTH] << (224 & (biL - 1));
+        M[224 / biL] = X[P448_WIDTH] << (224 % biL);
 
         /* X = A0 (only 1 limb to clear) */
         X[P448_WIDTH] = 0;
 
-        /* X = A0 + (A1 + B0 * 2^224) */
-        (void) mbedtls_mpi_core_add(X, X, M, M_limbs);
+        /* X = A0 + (A1 + A1 * 2^224) */
+        (void) mbedtls_mpi_core_add(X, X, M, P448_WIDTH + 1);
     }
 
     return 0;

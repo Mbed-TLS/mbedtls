@@ -3634,8 +3634,9 @@ static int ssl_tls13_session_load(mbedtls_ssl_session *session,
         }
 
         if (alpn_len > 0) {
-            if (p[alpn_len - 1] != '\0' ||
-                memchr(p, '\0', alpn_len - 1) != NULL) {
+            /* The data is about to be used as a null-terminated string, so
+             * check that it actually is one. */
+            if (p[alpn_len - 1] != '\0') {
                 return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
             }
 
@@ -3664,8 +3665,9 @@ static int ssl_tls13_session_load(mbedtls_ssl_session *session,
             return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
         }
         if (hostname_len > 0) {
-            if (p[hostname_len - 1] != '\0' ||
-                memchr(p, '\0', hostname_len - 1) != NULL) {
+            /* The data is about to be used as a null-terminated string, so
+             * check that it actually is one. */
+            if (p[hostname_len - 1] != '\0') {
                 return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
             }
 

@@ -2758,6 +2758,12 @@ void ssl_tls13_session_load_rejects_bad_serialized_data(int endpoint_type,
     TEST_CALLOC(buf, len + 1);
     TEST_EQUAL(mbedtls_ssl_session_save(&session, buf, len, &len),  0);
 
+    /* The serialized data must load successfully before we corrupt it,
+     * otherwise the test below would not prove anything. */
+    TEST_EQUAL(mbedtls_ssl_session_load(&restored, buf, len), 0);
+    mbedtls_ssl_session_free(&restored);
+    mbedtls_ssl_session_init(&restored);
+
     bad_len = len;
     switch (mutation) {
         case 0:

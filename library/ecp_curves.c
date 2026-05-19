@@ -5371,7 +5371,7 @@ int mbedtls_ecp_mod_p384_raw(mbedtls_mpi_uint *X, size_t X_limbs)
 
 #if defined(MBEDTLS_ECP_DP_SECP521R1_ENABLED)
 /* Size of p521 in terms of mbedtls_mpi_uint */
-#define P521_WIDTH      (521 / 8 / sizeof(mbedtls_mpi_uint) + 1)
+#define P521_WIDTH      BITS_TO_LIMBS(521)
 
 /* Bits to keep in the most significant mbedtls_mpi_uint */
 #define P521_MASK       0x01FF
@@ -5467,7 +5467,7 @@ int mbedtls_ecp_mod_p521_raw(mbedtls_mpi_uint *X, size_t X_limbs)
 #if defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED)
 
 /* Size of p255 in terms of mbedtls_mpi_uint */
-#define P255_WIDTH      (255 / 8 / sizeof(mbedtls_mpi_uint) + 1)
+#define P255_WIDTH      BITS_TO_LIMBS(255)
 
 /*
  * Fast quasi-reduction modulo p255 = 2^255 - 19
@@ -5535,7 +5535,7 @@ int mbedtls_ecp_mod_p255_raw(mbedtls_mpi_uint *X, size_t X_Limbs)
 #if defined(MBEDTLS_ECP_DP_CURVE448_ENABLED)
 
 /* Size of p448 in terms of mbedtls_mpi_uint */
-#define P448_WIDTH      (448 / 8 / sizeof(mbedtls_mpi_uint))
+#define P448_WIDTH      BITS_TO_LIMBS(448)
 
 /* Number of bytes for a 224-bit value */
 #define P224_SIZE        (224 / 8)

@@ -1,0 +1,5 @@
+Security
+   * Fix a side channel in ECC computations that allows a powerful local
+     attacker (typically, untrusted OS attacking a secure enclave) to fully
+     recover long-term secret keys. Found and reported by Alejandro Cabrera
+     Aldaya from Tampere University.

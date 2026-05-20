@@ -1,0 +1,8 @@
+Bugfix
+   * Fix TLS 1.2 ECDHE handshakes failing in PSA-client-only
+     builds (MBEDTLS_PSA_CRYPTO_C disabled) where
+     MBEDTLS_ECP_MAX_BYTES collapses to 1 and the
+     premaster-secret union sized below
+     PSA_RAW_KEY_AGREEMENT_OUTPUT_MAX_SIZE caused
+     psa_raw_key_agreement() to return PSA_ERROR_BUFFER_TOO_SMALL.
+     Fixes #10757.

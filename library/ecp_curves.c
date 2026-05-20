@@ -5733,7 +5733,6 @@ int mbedtls_ecp_mod_p448_raw(mbedtls_mpi_uint *X, size_t X_limbs)
  * Write X as A0 + 2^n A1, update as A0 + R * A1.
  */
 static inline int ecp_mod_koblitz(mbedtls_mpi_uint *X,
-                                  size_t X_limbs,
                                   mbedtls_mpi_uint *R,
                                   size_t bits)
 {
@@ -5771,12 +5770,8 @@ static inline int ecp_mod_koblitz(mbedtls_mpi_uint *X,
             X[P_limbs - 1] &= mask;
         }
 
-        /* X = A0
-         * Zeroize the A1 part of X to keep only the A0 part.
-         */
-        for (size_t i = P_limbs; i < X_limbs; i++) {
-            X[i] = 0;
-        }
+        /* X = A0: Zeroize the A1 part of X to keep only the A0 part. */
+        memset(X + P_limbs, 0, P_limbs * ciL);
 
         /* X = A0 + R * A1 */
         mbedtls_mpi_core_mul(M, A1, P_limbs, R, R_limbs);
@@ -5834,7 +5829,7 @@ int mbedtls_ecp_mod_p192k1_raw(mbedtls_mpi_uint *X, size_t X_limbs)
         return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
     }
 
-    return ecp_mod_koblitz(X, X_limbs, Rp, 192);
+    return ecp_mod_koblitz(X, Rp, 192);
 }
 
 #endif /* MBEDTLS_ECP_DP_SECP192K1_ENABLED */
@@ -5870,7 +5865,7 @@ int mbedtls_ecp_mod_p224k1_raw(mbedtls_mpi_uint *X, size_t X_limbs)
         return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
     }
 
-    return ecp_mod_koblitz(X, X_limbs, Rp, 224);
+    return ecp_mod_koblitz(X, Rp, 224);
 }
 
 #endif /* MBEDTLS_ECP_DP_SECP224K1_ENABLED */
@@ -5906,7 +5901,7 @@ int mbedtls_ecp_mod_p256k1_raw(mbedtls_mpi_uint *X, size_t X_limbs)
         return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
     }
 
-    return ecp_mod_koblitz(X, X_limbs, Rp, 256);
+    return ecp_mod_koblitz(X, Rp, 256);
 }
 
 #endif /* MBEDTLS_ECP_DP_SECP256K1_ENABLED */

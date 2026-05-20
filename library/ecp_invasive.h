@@ -168,8 +168,7 @@ int  mbedtls_ecp_mod_p384_raw(mbedtls_mpi_uint *X, size_t X_limbs);
 
 #if defined(MBEDTLS_ECP_DP_SECP192K1_ENABLED)
 
-/** Fast quasi-reduction modulo p192k1 = 2^192 - R,
- * with R = 2^32 + 2^12 + 2^8 + 2^7 + 2^6 + 2^3 + 1 = 0x01000011C9
+/** Fast quasi-reduction modulo p192k1 = 2^192 - 0x01000011C9
  *
  * \param[in,out]   X       The address of the MPI to be converted.
  *                          Must have exact limb size that stores a 384-bit MPI
@@ -192,8 +191,7 @@ int mbedtls_ecp_mod_p192k1_raw(mbedtls_mpi_uint *X, size_t X_limbs);
 
 #if defined(MBEDTLS_ECP_DP_SECP224K1_ENABLED)
 
-/** Fast quasi-reduction modulo p224k1 = 2^224 - R,
- * with R = 2^32 + 2^12 + 2^11 + 2^9 + 2^7 + 2^4 + 2 + 1 = 0x0100001A93
+/** Fast quasi-reduction modulo p224k1 = 2^224 - 0x0100001A93
  *
  * \param[in,out]   X       The address of the MPI to be converted.
  *                          Must have exact limb size that stores a 448-bit MPI
@@ -216,8 +214,7 @@ int mbedtls_ecp_mod_p224k1_raw(mbedtls_mpi_uint *X, size_t X_limbs);
 
 #if defined(MBEDTLS_ECP_DP_SECP256K1_ENABLED)
 
-/** Fast quasi-reduction modulo p256k1 = 2^256 - R,
- * with R = 2^32 + 2^9 + 2^8 + 2^7 + 2^6 + 2^4 + 1 = 0x01000003D1
+/** Fast quasi-reduction modulo p256k1 = 2^256 - 0x01000003D1
  *
  * \param[in,out]   X       The address of the MPI to be converted.
  *                          Must have exact limb size that stores a 512-bit MPI

@@ -5640,14 +5640,10 @@ int mbedtls_ecp_mod_p448_raw(mbedtls_mpi_uint *X, size_t X_limbs)
     defined(MBEDTLS_ECP_DP_SECP224K1_ENABLED) ||   \
     defined(MBEDTLS_ECP_DP_SECP256K1_ENABLED)
 
-/*
- * Fast quasi-reduction modulo P = 2^s - R,
- * with R a 33-bit value, used by the Koblitz curves.
- *
- * Write X as A0 + 2^s A1, return A0 + R * A1.
- */
+/* Limb size of R for ecp_mod_koblitz() */
 #define P_KOBLITZ_R     BITS_TO_LIMBS(33)
 
+/* Maximum limb size of P for ecp_mod_koblitz() */
 #if defined(MBEDTLS_ECP_DP_SECP256K1_ENABLED)
 #define P_KOBLITZ_MAX_P BITS_TO_LIMBS(256)
 #elif defined(MBEDTLS_ECP_DP_SECP224K1_ENABLED)
@@ -5656,6 +5652,17 @@ int mbedtls_ecp_mod_p448_raw(mbedtls_mpi_uint *X, size_t X_limbs)
 #define P_KOBLITZ_MAX_P BITS_TO_LIMBS(192)
 #endif
 
+/*
+ * Fast quasi-reduction modulo P = 2^n - R,
+ * with R a curve-dependent 33-bit value.
+ *
+ * This function the core of mbedtls_ecp_mod_p192k1_raw(),
+ * mbedtls_ecp_mod_p224k1_raw(), and mbedtls_ecp_mod_p256k1_raw().
+ *
+ * See ecp_invasive.h and FAST_QUASI_REDUCTION above.
+ *
+ * Write X as A0 + 2^n A1, update as A0 + R * A1.
+ */
 static inline int ecp_mod_koblitz(mbedtls_mpi_uint *X,
                                   size_t X_limbs,
                                   mbedtls_mpi_uint *R,
@@ -5680,10 +5687,7 @@ static inline int ecp_mod_koblitz(mbedtls_mpi_uint *X,
         mask  = ((mbedtls_mpi_uint) 1 << shift) - 1;
     }
 
-    /* Two passes are needed to reduce the value of `A0 + R * A1` and then
-     * we need an additional one to reduce the possible overflow during
-     * the addition.
-     */
+    /* See end of the loop for why 3 passes */
     for (size_t pass = 0; pass < 3; pass++) {
         /* Copy A1 */
         memcpy(A1, X + P_limbs - adjust, P_limbs * ciL);
@@ -5708,12 +5712,18 @@ static inline int ecp_mod_koblitz(mbedtls_mpi_uint *X,
         /* X = A0 + R * A1 */
         mbedtls_mpi_core_mul(M, A1, P_limbs, R, R_limbs);
         (void) mbedtls_mpi_core_add(X, X, M, P_limbs + R_limbs);
-
-        /* Carry can not be generated since R is a 33-bit value and stored in
-         * 64 bits. The result value of the multiplication is at most
-         * P length + 33 bits in length and the result value of the addition
-         * is at most P length + 34 bits in length. So the result of the
-         * addition always fits in P length + 64 bits.
+        /* The above cannot generate a carry since P_limbs + R_limbs is enough.
+         *
+         * More precisely, if n is P's bit length:
+         * 1st pass: A0 is n bits, R * A1 is 33 + n, so X is n + 34 bits.
+         *           This fits in P_limbs + R_limbs which is n + 64 bits.
+         * 2nd pass: A0 is n bits, R * A1 is 33 + 34, so X is n + 1 bits.
+         *           Actually, X < 2^n + 2^67
+         * 3rd pass: Either A1 is 0, then X = A0 is at most n bits.
+         *           Or A1 is 1, but then A0 = X - A1 * 2^n < 2^67,
+         *           so X = A0 + R * A1 < 2^67 + 2^33 is less than n bits,
+         *           since n >= 68.
+         * So, after the 3rd pass, X is at most n bits.
          */
     }
 
@@ -5727,8 +5737,7 @@ static inline int ecp_mod_koblitz(mbedtls_mpi_uint *X,
 #if defined(MBEDTLS_ECP_DP_SECP192K1_ENABLED)
 
 /*
- * Fast quasi-reduction modulo p192k1 = 2^192 - R,
- * with R = 2^32 + 2^12 + 2^8 + 2^7 + 2^6 + 2^3 + 1 = 0x01000011C9
+ * Fast quasi-reduction modulo p192k1 = 2^192 - 0x01000011C9
  */
 static int ecp_mod_p192k1(mbedtls_mpi *N)
 {
@@ -5741,6 +5750,9 @@ cleanup:
     return ret;
 }
 
+/*
+ * Raw fast quasi-reduction modulo p192k1 = 2^192 - 0x01000011C9
+ */
 MBEDTLS_STATIC_TESTABLE
 int mbedtls_ecp_mod_p192k1_raw(mbedtls_mpi_uint *X, size_t X_limbs)
 {
@@ -5761,8 +5773,7 @@ int mbedtls_ecp_mod_p192k1_raw(mbedtls_mpi_uint *X, size_t X_limbs)
 #if defined(MBEDTLS_ECP_DP_SECP224K1_ENABLED)
 
 /*
- * Fast quasi-reduction modulo p224k1 = 2^224 - R,
- * with R = 2^32 + 2^12 + 2^11 + 2^9 + 2^7 + 2^4 + 2 + 1 = 0x0100001A93
+ * Fast quasi-reduction modulo p224k1 = 2^224 - 0x0100001A93
  */
 static int ecp_mod_p224k1(mbedtls_mpi *N)
 {
@@ -5775,6 +5786,9 @@ cleanup:
     return ret;
 }
 
+/*
+ * Raw fast quasi-reduction modulo p224k1 = 2^224 - 0x0100001A93
+ */
 MBEDTLS_STATIC_TESTABLE
 int mbedtls_ecp_mod_p224k1_raw(mbedtls_mpi_uint *X, size_t X_limbs)
 {
@@ -5795,8 +5809,7 @@ int mbedtls_ecp_mod_p224k1_raw(mbedtls_mpi_uint *X, size_t X_limbs)
 #if defined(MBEDTLS_ECP_DP_SECP256K1_ENABLED)
 
 /*
- * Fast quasi-reduction modulo p256k1 = 2^256 - R,
- * with R = 2^32 + 2^9 + 2^8 + 2^7 + 2^6 + 2^4 + 1 = 0x01000003D1
+ * Fast quasi-reduction modulo p256k1 = 2^256 - 0x01000003D1
  */
 static int ecp_mod_p256k1(mbedtls_mpi *N)
 {
@@ -5809,6 +5822,9 @@ cleanup:
     return ret;
 }
 
+/*
+ * Raw fast quasi-reduction modulo p256k1 = 2^256 - 0x01000003D1
+ */
 MBEDTLS_STATIC_TESTABLE
 int mbedtls_ecp_mod_p256k1_raw(mbedtls_mpi_uint *X, size_t X_limbs)
 {

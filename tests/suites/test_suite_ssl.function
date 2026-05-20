@@ -4002,7 +4002,9 @@ void reject_hrr_selecting_unoffered_group(void)
 
     mbedtls_test_ssl_endpoint client_ep, server_ep;
     mbedtls_test_handshake_test_options client_options, server_options;
+#if defined(MBEDTLS_DEBUG_C)
     mbedtls_test_ssl_log_pattern cli_pattern = { .pattern = "Invalid key share in HRR" };
+#endif /* MBEDTLS_DEBUG_C */
 
     /* Group order is intentional: client offers secp256r1 first, while server only
      * accepts secp384r1. This prevents immediate group agreement and forces HRR. */
@@ -4025,9 +4027,11 @@ void reject_hrr_selecting_unoffered_group(void)
     client_options.client_min_version = MBEDTLS_SSL_VERSION_TLS1_3;
     client_options.client_max_version = MBEDTLS_SSL_VERSION_TLS1_3;
     client_options.group_list = client_group_list;
+#if defined(MBEDTLS_DEBUG_C)
     client_options.cli_log_obj = &cli_pattern;
     client_options.cli_log_fun = mbedtls_test_ssl_log_analyzer;
     mbedtls_debug_set_threshold(1);
+#endif /* MBEDTLS_DEBUG_C */
 
     server_options.pk_alg = MBEDTLS_PK_ECDSA;
     server_options.server_min_version = MBEDTLS_SSL_VERSION_TLS1_3;
@@ -4071,7 +4075,9 @@ void reject_hrr_selecting_unoffered_group(void)
              */
             TEST_EQUAL(mbedtls_ssl_handshake_step(&(client_ep.ssl)), 0);
             TEST_ASSERT(client_ep.ssl.state != MBEDTLS_SSL_SERVER_HELLO);
+#if defined(MBEDTLS_DEBUG_C)
             TEST_EQUAL(cli_pattern.counter, 0);
+#endif /* MBEDTLS_DEBUG_C */
         } else {
             /* Invalid HRR selecting MBEDTLS_SSL_IANA_TLS_GROUP_X25519 group.
              * The client rejects it and aborts the handshake.
@@ -4079,7 +4085,9 @@ void reject_hrr_selecting_unoffered_group(void)
             TEST_EQUAL(mbedtls_ssl_handshake_step(&(client_ep.ssl)),
                        MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER);
             TEST_EQUAL(client_ep.ssl.state, MBEDTLS_SSL_SERVER_HELLO);
+#if defined(MBEDTLS_DEBUG_C)
             TEST_EQUAL(cli_pattern.counter, 1);
+#endif /* MBEDTLS_DEBUG_C */
         }
         mbedtls_test_ssl_endpoint_free(&client_ep);
         mbedtls_test_ssl_endpoint_free(&server_ep);
@@ -4090,7 +4098,9 @@ exit:
     mbedtls_test_ssl_endpoint_free(&server_ep);
     mbedtls_test_free_handshake_options(&client_options);
     mbedtls_test_free_handshake_options(&server_options);
+#if defined(MBEDTLS_DEBUG_C)
     mbedtls_debug_set_threshold(0);
+#endif /* MBEDTLS_DEBUG_C */
     MD_OR_USE_PSA_DONE();
 }
 /* END_CASE */

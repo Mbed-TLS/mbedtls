@@ -5615,19 +5615,25 @@ int mbedtls_ecp_mod_p448_raw(mbedtls_mpi_uint *X, size_t X_limbs)
 
 /*
  * Fast quasi-reduction modulo P = 2^s - R,
- * with R about 33 bits, used by the Koblitz curves.
+ * with R a 33-bit value, used by the Koblitz curves.
  *
- * Write X as A0 + 2^224 A1, return A0 + R * A1.
+ * Write X as A0 + 2^s A1, return A0 + R * A1.
  */
-#define P_KOBLITZ_R     (8 / sizeof(mbedtls_mpi_uint))            // Limbs in R
+#define P_KOBLITZ_R     BITS_TO_LIMBS(33)
+
+#if defined(MBEDTLS_ECP_DP_SECP256K1_ENABLED)
+#define P_KOBLITZ_MAX_P BITS_TO_LIMBS(256)
+#elif defined(MBEDTLS_ECP_DP_SECP224K1_ENABLED)
+#define P_KOBLITZ_MAX_P BITS_TO_LIMBS(224)
+#else
+#define P_KOBLITZ_MAX_P BITS_TO_LIMBS(192)
+#endif
 
 static inline int ecp_mod_koblitz(mbedtls_mpi_uint *X,
                                   size_t X_limbs,
                                   mbedtls_mpi_uint *R,
                                   size_t bits)
 {
-    int ret = 0;
-
     /* Determine if A1 is aligned to limb bitsize. If not then the used limbs
      * of P, A0 and A1 must be set accordingly and there is a middle limb
      * which is shared by A0 and A1 and need to handle accordingly.
@@ -5636,19 +5642,11 @@ static inline int ecp_mod_koblitz(mbedtls_mpi_uint *X,
     size_t adjust  = (shift + biL - 1) / biL;
     size_t P_limbs = bits / biL + adjust;
 
-    mbedtls_mpi_uint *A1 = mbedtls_calloc(P_limbs, ciL);
-    if (A1 == NULL) {
-        return MBEDTLS_ERR_ECP_ALLOC_FAILED;
-    }
+    mbedtls_mpi_uint A1[P_KOBLITZ_MAX_P] = { 0 };
 
     /* Create a buffer to store the value of `R * A1` */
     size_t R_limbs = P_KOBLITZ_R;
-    size_t M_limbs = P_limbs + R_limbs;
-    mbedtls_mpi_uint *M = mbedtls_calloc(M_limbs, ciL);
-    if (M == NULL) {
-        ret = MBEDTLS_ERR_ECP_ALLOC_FAILED;
-        goto cleanup;
-    }
+    mbedtls_mpi_uint M[P_KOBLITZ_MAX_P + P_KOBLITZ_R] = { 0 };
 
     mbedtls_mpi_uint mask = 0;
     if (adjust != 0) {
@@ -5692,11 +5690,7 @@ static inline int ecp_mod_koblitz(mbedtls_mpi_uint *X,
          */
     }
 
-cleanup:
-    mbedtls_free(M);
-    mbedtls_free(A1);
-
-    return ret;
+    return 0;
 }
 
 #endif /* MBEDTLS_ECP_DP_SECP192K1_ENABLED) ||

@@ -5729,7 +5729,7 @@ int mbedtls_ecp_mod_p448_raw(mbedtls_mpi_uint *X, size_t X_limbs)
  * Fast quasi-reduction modulo P = 2^n - R,
  * with R a curve-dependent 33-bit value.
  *
- * This function the core of mbedtls_ecp_mod_p192k1_raw(),
+ * This function is the core of mbedtls_ecp_mod_p192k1_raw(),
  * mbedtls_ecp_mod_p224k1_raw(), and mbedtls_ecp_mod_p256k1_raw().
  *
  * See ecp_invasive.h and FAST_QUASI_REDUCTION above.

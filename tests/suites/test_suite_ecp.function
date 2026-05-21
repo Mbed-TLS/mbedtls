@@ -1671,7 +1671,12 @@ void ecp_mod_p_generic_raw(int curve_id,
     mbedtls_mpi_uint c = mbedtls_mpi_core_sub(X, X, N, limbs_N);
     (void) mbedtls_mpi_core_add_if(X, N, limbs_N, (unsigned) c);
 #endif
+    /* Checking that the result is equal to the expected value is enough,
+     * but in case of failures, it's useful to know if the incorrect result
+     * had the correct bitlength or not / was in the correct range or not. */
     TEST_LE_U(mbedtls_mpi_core_bitlen(X, limbs_X), curve_bits);
+    /* This only works because we know from above the top limbs of X are 0. */
+    TEST_EQUAL(MBEDTLS_CT_TRUE, mbedtls_mpi_core_lt_ct(X, N, limbs_N));
     TEST_MEMORY_COMPARE(X, bytes, res, bytes);
 
 exit:

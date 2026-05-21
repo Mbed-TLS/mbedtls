@@ -25,6 +25,11 @@
 #define TEST_EARLY_DATA_NO_INITIAL_ALPN 6
 #define TEST_EARLY_DATA_NO_LATER_ALPN 7
 
+/* Mutations for ssl_tls13_session_load_rejects_bad_serialized_data */
+#define TEST_TLS13_SESSION_LOAD_TRAILING_DATA    0
+#define TEST_TLS13_SESSION_LOAD_HOSTNAME_NO_NUL  1
+#define TEST_TLS13_SESSION_LOAD_ALPN_NO_NUL      2
+
 #if (!defined(MBEDTLS_SSL_PROTO_TLS1_2)) && \
     defined(MBEDTLS_SSL_EARLY_DATA) && defined(MBEDTLS_SSL_CLI_C) && \
     defined(MBEDTLS_SSL_SRV_C) && defined(MBEDTLS_DEBUG_C) && \
@@ -2766,17 +2771,17 @@ void ssl_tls13_session_load_rejects_bad_serialized_data(int endpoint_type,
 
     bad_len = len;
     switch (mutation) {
-        case 0:
+        case TEST_TLS13_SESSION_LOAD_TRAILING_DATA:
             bad_len = len + 1;
             buf[len] = 0;
             break;
 
-        case 1:
+        case TEST_TLS13_SESSION_LOAD_HOSTNAME_NO_NUL:
             string_to_corrupt = hostname;
             string_len = sizeof(hostname);
             break;
 
-        case 2:
+        case TEST_TLS13_SESSION_LOAD_ALPN_NO_NUL:
             string_to_corrupt = alpn;
             string_len = sizeof(alpn);
             break;
@@ -2804,6 +2809,96 @@ exit:
     mbedtls_ssl_session_free(&restored);
     mbedtls_free(buf);
     USE_PSA_DONE();
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_SSL_PROTO_DTLS:MBEDTLS_SSL_DTLS_CONNECTION_ID:MBEDTLS_SSL_CONTEXT_SERIALIZATION:PSA_HAVE_ALG_SOME_RSA_SIGN:PSA_WANT_ECC_SECP_R1_384:PSA_WANT_ALG_SHA_256:MBEDTLS_CAN_HANDLE_RSA_TEST_KEY:TEST_GCM_OR_CHACHAPOLY_ENABLED */
+void ssl_context_load_rejects_oob_cid_length(void)
+{
+    /* Sentinel CID so we can find its location inside the serialized buffer. */
+    const unsigned char server_cid[] = {
+        0xAB, 0xCD, 0xEF, 0x12, 0x34, 0x56, 0x78, 0x9A
+    };
+    const unsigned char client_cid[] = {
+        0x9A, 0x78, 0x56, 0x34, 0x12, 0xEF, 0xCD, 0xAB
+    };
+
+    mbedtls_test_handshake_test_options options;
+    mbedtls_test_ssl_endpoint client_ep, server_ep;
+    unsigned char *context_buf = NULL;
+    size_t context_buf_len, i;
+    unsigned char *cid_len_p = NULL;
+
+    memset(&client_ep, 0, sizeof(client_ep));
+    memset(&server_ep, 0, sizeof(server_ep));
+
+    MD_OR_USE_PSA_INIT();
+    mbedtls_test_init_handshake_options(&options);
+
+    options.dtls = 1;
+    options.expected_negotiated_version = MBEDTLS_SSL_VERSION_TLS1_2;
+
+    TEST_EQUAL(mbedtls_test_ssl_endpoint_init(
+                   &client_ep, MBEDTLS_SSL_IS_CLIENT, &options), 0);
+    TEST_EQUAL(mbedtls_test_ssl_endpoint_init(
+                   &server_ep, MBEDTLS_SSL_IS_SERVER, &options), 0);
+
+    /* Configure CID with unique patterns so we can locate the length byte in
+     * the serialized context. Both peers must agree on the CID length via
+     * conf_cid() before set_cid() will accept the value. */
+    TEST_EQUAL(mbedtls_ssl_conf_cid(&client_ep.conf, sizeof(client_cid),
+                                    MBEDTLS_SSL_UNEXPECTED_CID_FAIL), 0);
+    TEST_EQUAL(mbedtls_ssl_conf_cid(&server_ep.conf, sizeof(server_cid),
+                                    MBEDTLS_SSL_UNEXPECTED_CID_FAIL), 0);
+    TEST_EQUAL(mbedtls_ssl_set_cid(&client_ep.ssl, MBEDTLS_SSL_CID_ENABLED,
+                                   client_cid, sizeof(client_cid)), 0);
+    TEST_EQUAL(mbedtls_ssl_set_cid(&server_ep.ssl, MBEDTLS_SSL_CID_ENABLED,
+                                   server_cid, sizeof(server_cid)), 0);
+
+    TEST_EQUAL(mbedtls_test_ssl_dtls_join_endpoints(&client_ep, &server_ep), 0);
+
+    TEST_ASSERT(mbedtls_test_ssl_perform_connection(&options, &client_ep,
+                                                    &server_ep));
+
+    /* Serialize the post-handshake server context. */
+    TEST_EQUAL(mbedtls_ssl_context_save(&server_ep.ssl, NULL, 0,
+                                        &context_buf_len),
+               MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL);
+    TEST_CALLOC(context_buf, context_buf_len);
+    TEST_EQUAL(mbedtls_ssl_context_save(&server_ep.ssl, context_buf,
+                                        context_buf_len, &context_buf_len), 0);
+
+    /* The serialized format writes [in_cid_len][in_cid bytes]; locate the
+     * length byte by searching for our sentinel CID. */
+    for (i = 1; i + sizeof(server_cid) <= context_buf_len; i++) {
+        if (context_buf[i - 1] == (unsigned char) sizeof(server_cid) &&
+            memcmp(context_buf + i, server_cid, sizeof(server_cid)) == 0) {
+            cid_len_p = context_buf + i - 1;
+            break;
+        }
+    }
+    TEST_ASSERT(cid_len_p != NULL);
+
+    /* Corrupt the length to the smallest value strictly greater than
+     * sizeof(in_cid), so we exercise the new bounds check rather than the
+     * pre-existing buffer-size check that would also trip on huge values. */
+    *cid_len_p = (unsigned char) (MBEDTLS_SSL_CID_IN_LEN_MAX + 1);
+
+    /* Reinitialise the server SSL context so we can load into a fresh one. */
+    mbedtls_ssl_free(&server_ep.ssl);
+    mbedtls_ssl_init(&server_ep.ssl);
+    TEST_EQUAL(mbedtls_ssl_setup(&server_ep.ssl, &server_ep.conf), 0);
+
+    TEST_EQUAL(mbedtls_ssl_context_load(&server_ep.ssl, context_buf,
+                                        context_buf_len),
+               MBEDTLS_ERR_SSL_BAD_INPUT_DATA);
+
+exit:
+    mbedtls_test_ssl_endpoint_free(&client_ep);
+    mbedtls_test_ssl_endpoint_free(&server_ep);
+    mbedtls_test_free_handshake_options(&options);
+    mbedtls_free(context_buf);
+    MD_OR_USE_PSA_DONE();
 }
 /* END_CASE */
 

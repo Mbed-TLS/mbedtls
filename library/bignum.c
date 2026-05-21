@@ -2092,31 +2092,6 @@ static const mbedtls_mpi small_primes_product = {
     .s = 1,
     .n = sizeof(small_primes_product_limbs) / sizeof(mbedtls_mpi_uint),
 };
-/* Gaps between primes, starting at 3. https://oeis.org/A001223 */
-static const unsigned char small_prime_gaps[] = {
-    2, 2, 4, 2, 4, 2, 4, 6,
-    2, 6, 4, 2, 4, 6, 6, 2,
-    6, 4, 2, 6, 4, 6, 8, 4,
-    2, 4, 2, 4, 14, 4, 6, 2,
-    10, 2, 6, 6, 4, 6, 6, 2,
-    10, 2, 4, 2, 12, 12, 4, 2,
-    4, 6, 2, 10, 6, 6, 6, 2,
-    6, 4, 2, 10, 14, 4, 2, 4,
-    14, 6, 10, 2, 4, 6, 8, 6,
-    6, 4, 6, 8, 4, 8, 10, 2,
-    10, 2, 6, 4, 6, 8, 4, 2,
-    4, 12, 8, 4, 8, 4, 6, 12,
-    2, 18, 6, 10, 6, 6, 2, 6,
-    10, 6, 6, 2, 6, 6, 4, 2,
-    12, 10, 2, 4, 6, 6, 2, 12,
-    4, 6, 8, 10, 8, 10, 8, 6,
-    6, 4, 8, 6, 4, 8, 4, 14,
-    10, 12, 2, 10, 2, 4, 2, 10,
-    14, 4, 2, 4, 14, 4, 2, 4,
-    20, 4, 8, 10, 8, 4, 6, 6,
-    14, 4, 6, 6, 8, 6, /*reaches 997*/
-    0 /* the last entry is effectively unused */
-};
 
 /*
  * Small divisors test (X must be positive)
@@ -2138,16 +2113,18 @@ static int mpi_check_small_factors(const mbedtls_mpi *X)
         return MBEDTLS_ERR_MPI_NOT_ACCEPTABLE;
     }
 
-    /* The GCD test below only works if X > small_primes_limit. */
+    /* The GCD test below only works if X > small_primes_limit.
+     * Below this limit, use trial division: numbers that small are of no
+     * interest for cryptography, so we don't care about performance or side
+     * channels. We're supporting them only for backwards compatibility, so
+     * let's not waste code size on those. */
     if (mbedtls_mpi_cmp_int(X, small_primes_limit) <= 0) {
-        unsigned p = 3;
-        for (size_t i = 0; i < sizeof(small_prime_gaps); i++) {
-            if (mbedtls_mpi_cmp_int(X, p) == 0) {
-                return 1;
-            }
-            p += small_prime_gaps[i];
+        mbedtls_mpi_uint x = X->p[0];
+        mbedtls_mpi_uint d = 2;
+        while (x % d != 0) {
+            ++d;
         }
-        return MBEDTLS_ERR_MPI_NOT_ACCEPTABLE;
+        return x == d ? 1 : MBEDTLS_ERR_MPI_NOT_ACCEPTABLE;
     }
 
     /* We can't directly use mbedtls_mpi_gcd_modinv_odd() because we don't know

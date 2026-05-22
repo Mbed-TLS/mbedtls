@@ -56,6 +56,7 @@ const uint8_t mbedtls_ssl_tls13_hello_retry_request_magic[
 
 int mbedtls_ssl_tls13_fetch_handshake_msg(mbedtls_ssl_context *ssl,
                                           unsigned hs_type,
+                                          unsigned record_boundary,
                                           unsigned char **buf,
                                           size_t *buf_len)
 {
@@ -67,7 +68,8 @@ int mbedtls_ssl_tls13_fetch_handshake_msg(mbedtls_ssl_context *ssl,
     }
 
     if (ssl->in_msgtype != MBEDTLS_SSL_MSG_HANDSHAKE ||
-        ssl->in_msg[0]  != hs_type) {
+        ssl->in_msg[0]  != hs_type ||
+        (record_boundary && (ssl->in_hslen != ssl->in_msglen))) {
         MBEDTLS_SSL_DEBUG_MSG(1, ("Receive unexpected handshake message."));
         MBEDTLS_SSL_PEND_FATAL_ALERT(MBEDTLS_SSL_ALERT_MSG_UNEXPECTED_MESSAGE,
                                      MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE);
@@ -359,7 +361,7 @@ int mbedtls_ssl_tls13_process_certificate_verify(mbedtls_ssl_context *ssl)
 
     MBEDTLS_SSL_PROC_CHK(
         mbedtls_ssl_tls13_fetch_handshake_msg(
-            ssl, MBEDTLS_SSL_HS_CERTIFICATE_VERIFY, &buf, &buf_len));
+            ssl, MBEDTLS_SSL_HS_CERTIFICATE_VERIFY, 0, &buf, &buf_len));
 
     /* Need to calculate the hash of the transcript first
      * before reading the message since otherwise it gets
@@ -711,7 +713,7 @@ int mbedtls_ssl_tls13_process_certificate(mbedtls_ssl_context *ssl)
     size_t buf_len;
 
     MBEDTLS_SSL_PROC_CHK(mbedtls_ssl_tls13_fetch_handshake_msg(
-                             ssl, MBEDTLS_SSL_HS_CERTIFICATE,
+                             ssl, MBEDTLS_SSL_HS_CERTIFICATE, 0,
                              &buf, &buf_len));
 
     /* Parse the certificate chain sent by the peer. */
@@ -1131,7 +1133,7 @@ int mbedtls_ssl_tls13_process_finished_message(mbedtls_ssl_context *ssl)
     MBEDTLS_SSL_DEBUG_MSG(2, ("=> parse finished message"));
 
     MBEDTLS_SSL_PROC_CHK(mbedtls_ssl_tls13_fetch_handshake_msg(
-                             ssl, MBEDTLS_SSL_HS_FINISHED, &buf, &buf_len));
+                             ssl, MBEDTLS_SSL_HS_FINISHED, 1, &buf, &buf_len));
 
     /* Preprocessing step: Compute handshake digest */
     MBEDTLS_SSL_PROC_CHK(ssl_tls13_preprocess_finished_message(ssl));

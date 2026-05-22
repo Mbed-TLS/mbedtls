@@ -4101,7 +4101,7 @@ void tls13_server_certificate_msg_invalid_vector_len()
 
         ret = mbedtls_ssl_tls13_fetch_handshake_msg(&(client_ep.ssl),
                                                     MBEDTLS_SSL_HS_CERTIFICATE,
-                                                    &buf, &buf_len);
+                                                    0, &buf, &buf_len);
         TEST_EQUAL(ret, 0);
 
         end = buf + buf_len;
@@ -6839,14 +6839,21 @@ void tls13_drop_early_data(int insert_end_of_early_data)
         TEST_EQUAL(ret, (int) sizeof(end_of_early_data));
     }
 
-    /*
-     * The server read the record containing the ClientHello and possibly the
-     * EndOfEarlyData message and parse the ClientHello.
-     */
-    TEST_EQUAL(mbedtls_test_move_handshake_to_state(
-                   &(server_ep.ssl), &(client_ep.ssl),
-                   MBEDTLS_SSL_SERVER_HELLO), 0);
+    /* The server read the record containing the ClientHello. */
+    ret = mbedtls_test_move_handshake_to_state(&(server_ep.ssl),
+                                               &(client_ep.ssl),
+                                               MBEDTLS_SSL_SERVER_HELLO);
+    if (insert_end_of_early_data) {
+        /*
+         * If an EndOfEarlyData message was appended to the record containing
+         * the ClientHello then the end of the ClientHello does not align with
+         * the record boundary and the handshake fails.
+         */
+        TEST_EQUAL(ret, MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE);
+        goto exit;
+    }
 
+    TEST_EQUAL(ret, 0);
     /* The client application writes early data */
     ret = mbedtls_ssl_write_early_data(&(client_ep.ssl),
                                        (unsigned char *) early_data,
@@ -6858,43 +6865,17 @@ void tls13_drop_early_data(int insert_end_of_early_data)
     mbedtls_test_ssl_buffer_get(client_ep.socket.output, buf, sizeof(buf));
     TEST_EQUAL(server_ep.socket.input->content_length, 0);
 
-    /*
-     * Resume the handshake, up to the point where the client is about to write
-     * the EndOfEarlyData message.
-     */
-    TEST_EQUAL(mbedtls_test_move_handshake_to_state(
-                   &(client_ep.ssl), &(server_ep.ssl),
-                   MBEDTLS_SSL_END_OF_EARLY_DATA), 0);
-    TEST_EQUAL(client_ep.ssl.state, MBEDTLS_SSL_END_OF_EARLY_DATA);
-
-    if (insert_end_of_early_data) {
-        /*
-         * Let the client write the EndOfEarlyData message and then read it
-         * from the output socket buffer, preventing it to reach the server as
-         * we have already inserted one.
-         */
-        ret = mbedtls_ssl_handshake_step(&client_ep.ssl);
-        TEST_EQUAL(ret, 0);
-        ret = mbedtls_ssl_flush_output(&client_ep.ssl);
-        TEST_EQUAL(ret, 0);
-        TEST_ASSERT(client_ep.socket.output->content_length <= sizeof(buf));
-        mbedtls_test_ssl_buffer_get(client_ep.socket.output, buf, sizeof(buf));
-    }
-
+    /* Resume the handshake */
     ret = mbedtls_test_move_handshake_to_state(&(server_ep.ssl),
                                                &(client_ep.ssl),
                                                MBEDTLS_SSL_HANDSHAKE_OVER);
-    if (insert_end_of_early_data) {
-        TEST_EQUAL(ret, 0);
-    } else {
-        /*
-         * If we have just dropped the early data then the EndOfEarlyData
-         * message is encrypted with the record number 1 while the server
-         * expects it to be encrypted with record number 0. Thus the
-         * handshake fails with MBEDTLS_ERR_SSL_INVALID_MAC.
-         */
-        TEST_EQUAL(ret, MBEDTLS_ERR_SSL_INVALID_MAC);
-    }
+    /*
+     * The early data were dropped. The EndOfEarlyData message is encrypted
+     * with the record number 1, but the server expects it to be encrypted
+     * with record number 0. Thus the handshake fails with
+     * MBEDTLS_ERR_SSL_INVALID_MAC.
+     */
+    TEST_EQUAL(ret, MBEDTLS_ERR_SSL_INVALID_MAC);
 
 exit:
     mbedtls_test_ssl_endpoint_free(&client_ep, NULL);

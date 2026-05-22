@@ -22,6 +22,11 @@
 #define TEST_EARLY_DATA_NO_INITIAL_ALPN 6
 #define TEST_EARLY_DATA_NO_LATER_ALPN 7
 
+/* Mutations for ssl_tls13_session_load_rejects_bad_serialized_data */
+#define TEST_TLS13_SESSION_LOAD_TRAILING_DATA    0
+#define TEST_TLS13_SESSION_LOAD_HOSTNAME_NO_NUL  1
+#define TEST_TLS13_SESSION_LOAD_ALPN_NO_NUL      2
+
 #if (!defined(MBEDTLS_SSL_PROTO_TLS1_2)) && \
     defined(MBEDTLS_SSL_EARLY_DATA) && defined(MBEDTLS_SSL_CLI_C) && \
     defined(MBEDTLS_SSL_SRV_C) && defined(MBEDTLS_DEBUG_C) && \
@@ -2697,6 +2702,80 @@ exit:
     mbedtls_ssl_session_free(&session);
     mbedtls_free(good_buf);
     mbedtls_free(bad_buf);
+    USE_PSA_DONE();
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_SSL_SESSION_TICKETS */
+void ssl_tls13_session_load_rejects_bad_serialized_data(int endpoint_type,
+                                                        int mutation)
+{
+    mbedtls_ssl_session session, restored;
+    unsigned char *buf = NULL;
+    size_t len, bad_len, i;
+    unsigned char *field = NULL;
+    const unsigned char hostname[] = "hostname example";
+    const unsigned char alpn[] = "ALPNExample";
+    const unsigned char *string_to_corrupt = NULL;
+    size_t string_len = 0;
+
+    mbedtls_ssl_session_init(&session);
+    mbedtls_ssl_session_init(&restored);
+    USE_PSA_INIT();
+
+    TEST_EQUAL(mbedtls_test_ssl_tls13_populate_session(
+                   &session, 42, endpoint_type),  0);
+
+    TEST_EQUAL(mbedtls_ssl_session_save(&session, NULL, 0, &len),
+               MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL);
+    TEST_CALLOC(buf, len + 1);
+    TEST_EQUAL(mbedtls_ssl_session_save(&session, buf, len, &len),  0);
+
+    /* The serialized data must load successfully before we corrupt it,
+     * otherwise the test below would not prove anything. */
+    TEST_EQUAL(mbedtls_ssl_session_load(&restored, buf, len), 0);
+    mbedtls_ssl_session_free(&restored);
+    mbedtls_ssl_session_init(&restored);
+
+    bad_len = len;
+    switch (mutation) {
+        case TEST_TLS13_SESSION_LOAD_TRAILING_DATA:
+            bad_len = len + 1;
+            buf[len] = 0;
+            break;
+
+        case TEST_TLS13_SESSION_LOAD_HOSTNAME_NO_NUL:
+            string_to_corrupt = hostname;
+            string_len = sizeof(hostname);
+            break;
+
+        case TEST_TLS13_SESSION_LOAD_ALPN_NO_NUL:
+            string_to_corrupt = alpn;
+            string_len = sizeof(alpn);
+            break;
+
+        default:
+            TEST_ASSERT(0);
+    }
+
+    if (string_to_corrupt != NULL) {
+        for (i = 0; i + string_len <= len; i++) {
+            if (memcmp(buf + i, string_to_corrupt, string_len) == 0) {
+                field = buf + i;
+                break;
+            }
+        }
+        TEST_ASSERT(field != NULL);
+        field[string_len - 1] = 'X';
+    }
+
+    TEST_EQUAL(mbedtls_ssl_session_load(&restored, buf, bad_len),
+               MBEDTLS_ERR_SSL_BAD_INPUT_DATA);
+
+exit:
+    mbedtls_ssl_session_free(&session);
+    mbedtls_ssl_session_free(&restored);
+    mbedtls_free(buf);
     USE_PSA_DONE();
 }
 /* END_CASE */

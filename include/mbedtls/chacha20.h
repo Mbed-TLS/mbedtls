@@ -37,7 +37,6 @@ extern "C" {
 
 typedef struct mbedtls_chacha20_context {
     uint32_t MBEDTLS_PRIVATE(state)[16];          /*! The state (before round operations). */
-    uint64_t MBEDTLS_PRIVATE(remaining_blocks);   /*! Number of keystream blocks that can still be generated. */
     uint8_t  MBEDTLS_PRIVATE(keystream8)[64];     /*! Leftover keystream bytes. */
     size_t MBEDTLS_PRIVATE(keystream_bytes_used); /*! Number of keystream bytes already used. */
 }

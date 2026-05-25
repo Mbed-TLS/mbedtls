@@ -488,9 +488,12 @@ if(ENABLE_PROGRAMS)
     add_subdirectory(programs)
 endif()
 
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/doxygen/mbedtls.doxyfile.in
+               ${PROJECT_BINARY_DIR}/doxygen/mbedtls.doxyfile)
+
 ADD_CUSTOM_TARGET(${MBEDTLS_TARGET_PREFIX}mbedtls-apidoc
     COMMAND doxygen mbedtls.doxyfile
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/doxygen)
+    WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/doxygen)
 
 if(ENABLE_TESTING)
     enable_testing()

@@ -15,6 +15,10 @@ ifndef MBEDTLS_PATH
 MBEDTLS_PATH := ..
 endif
 
+ifndef TF_PSA_CRYPTO_PATH
+TF_PSA_CRYPTO_PATH := $(MBEDTLS_PATH)/tf-psa-crypto
+endif
+
 PSASIM_PATH?=$(abspath $(MBEDTLS_PATH)/framework/psasim)
 
 

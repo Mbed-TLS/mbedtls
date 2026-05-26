@@ -2128,7 +2128,7 @@ static int mpi_check_small_factors(const mbedtls_mpi *X)
     }
 
     /* We can't directly use mbedtls_mpi_gcd_modinv_odd() because we don't know
-     * if X is larger than prod or not (prod is 1379 bits). So, use this generic
+     * if X is larger than prod or not (prod is 1380 bits). So, use this generic
      * wrapper - it does a bit more than what we need (handles even inputs as
      * well, while we know our inputs are both odd), but that's OK. */
     MBEDTLS_MPI_CHK(mbedtls_mpi_gcd(&g, &small_primes_product, X));

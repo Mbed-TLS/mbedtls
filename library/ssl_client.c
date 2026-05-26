@@ -211,7 +211,8 @@ static int ssl_write_alpn_ext(mbedtls_ssl_context *ssl,
  * share the same extension identifier.
  *
  * If the TLS 1.3 logic for selecting proposed groups changes, the TLS 1.3
- * group filtering in this function must be kept in sync.
+ * group filtering in the function `ssl_tls13_parse_hrr_key_share_ext()` must
+ * be updated accordingly.
  *
  */
 #define SSL_WRITE_SUPPORTED_GROUPS_EXT_TLS1_2_FLAG 1

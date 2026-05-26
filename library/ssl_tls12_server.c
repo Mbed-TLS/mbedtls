@@ -1187,6 +1187,10 @@ static int ssl_parse_client_hello(mbedtls_ssl_context *ssl)
 
     ext = buf + ext_offset + 2;
     MBEDTLS_SSL_DEBUG_BUF(3, "client hello extensions", ext, ext_len);
+#if defined(MBEDTLS_SSL_SESSION_TICKETS)
+    unsigned char *session_ticket_ext = NULL;
+    unsigned int session_ticket_ext_size = 0;
+#endif
 
     while (ext_len != 0) {
         unsigned int ext_id;
@@ -1331,14 +1335,13 @@ static int ssl_parse_client_hello(mbedtls_ssl_context *ssl)
             case MBEDTLS_TLS_EXT_SESSION_TICKET:
                 MBEDTLS_SSL_DEBUG_MSG(3, ("found session ticket extension"));
                 /*
-                 * If the Mbed TLS ssl_ticket.c implementation is used, the
-                 * ticket is decrypted in place. This modifies the ClientHello
-                 * message in the input buffer.
+                 * Postpone parsing of the session ticket extension. The
+                 * ticket context used for parsing the ticket may need to be
+                 * selected based on the target host. When required, this context
+                 * is selected while parsing the Server Name extension.
                  */
-                ret = ssl_parse_session_ticket_ext(ssl, ext + 4, ext_size);
-                if (ret != 0) {
-                    return ret;
-                }
+                session_ticket_ext = ext + 4;
+                session_ticket_ext_size = ext_size;
                 break;
 #endif /* MBEDTLS_SSL_SESSION_TICKETS */
 
@@ -1373,6 +1376,21 @@ static int ssl_parse_client_hello(mbedtls_ssl_context *ssl)
         ext_len -= 4 + ext_size;
         ext += 4 + ext_size;
     }
+
+#if defined(MBEDTLS_SSL_SESSION_TICKETS)
+    /*
+     * If the Mbed TLS ssl_ticket.c implementation is used, the
+     * ticket is decrypted in place. This modifies the ClientHello
+     * message in the input buffer.
+     */
+    if (session_ticket_ext != NULL) {
+        ret = ssl_parse_session_ticket_ext(ssl, session_ticket_ext,
+                                           session_ticket_ext_size);
+        if (ret != 0) {
+            return ret;
+        }
+    }
+#endif
 
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
 

@@ -1,0 +1,5 @@
+Bugfix
+   * Fix a bug where errors during transcript-hash computation for TLS 1.2
+     extended master secret and TLS 1.3 resumption master secret could be
+     ignored instead of causing the handshake to fail. Fixes #1583 and #1584.
+

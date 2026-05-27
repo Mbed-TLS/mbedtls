@@ -227,7 +227,7 @@ static int chacha20_check_counter_wrap(const mbedtls_chacha20_context *ctx,
         size -= available_keystream;
     }
 
-    needed_blocks = (uint64_t) (size / CHACHA20_BLOCK_SIZE_BYTES);
+    needed_blocks = (size / CHACHA20_BLOCK_SIZE_BYTES);
 
     if (size % CHACHA20_BLOCK_SIZE_BYTES != 0U) {
         needed_blocks++;

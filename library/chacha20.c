@@ -233,9 +233,7 @@ static int chacha20_check_counter_wrap(const mbedtls_chacha20_context *ctx,
         needed_blocks++;
     }
 
-    if (needed_blocks != 0U &&
-        needed_blocks - 1U >
-        (uint64_t) CHACHA20_MAX_BLOCKS - ctx->state[CHACHA20_CTR_INDEX]) {
+    if (needed_blocks >  (uint64_t) CHACHA20_MAX_BLOCKS + 1 - ctx->state[CHACHA20_CTR_INDEX]) {
         return MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA;
     }
 

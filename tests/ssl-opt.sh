@@ -11775,6 +11775,86 @@ run_test    "DTLS proxy: inject invalid AD record, badmac_limit 2, exchanges 2"\
             -s "too many records with bad MAC" \
             -s "Verification of the message MAC failed"
 
+requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
+run_test    "DTLS proxy: client: get invalid AD record then reject renego" \
+            -p "$P_PXY bad_ad_srv_once=1" \
+            "$P_SRV dtls=1 dgram_packing=0 hs_timeout=500-10000 \
+             renegotiate=1 renegotiation=1 exchanges=4 \
+             badmac_limit=99 debug_level=3" \
+            "$P_CLI dtls=1 dgram_packing=0 hs_timeout=500-10000 \
+             exchanges=4 badmac_limit=99 debug_level=3" \
+            0 \
+            -s "write hello request" \
+            -c "refusing renegotiation" \
+            -S "=> renegotiate" \
+            -C "=> renegotiate" \
+            -s "Extra-header:" \
+            -c "HTTP/1.0 200 OK" \
+            -c "discarding invalid record (mac)" \
+            -C "too many records with bad MAC" \
+            -C "Verification of the message MAC failed" \
+            -C "Consume: waiting for more handshake fragments"
+
+requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
+run_test    "DTLS proxy: client: get invalid AD record then accept renego" \
+            -p "$P_PXY bad_ad_srv_once=1" \
+            "$P_SRV dtls=1 dgram_packing=0 hs_timeout=500-10000 \
+             renegotiate=1 renegotiation=1 exchanges=4 \
+             badmac_limit=99 debug_level=3" \
+            "$P_CLI dtls=1 dgram_packing=0 hs_timeout=500-10000 \
+             renegotiation=1 exchanges=4 badmac_limit=99 debug_level=3" \
+            0 \
+            -s "=> renegotiate" \
+            -c "=> renegotiate" \
+            -s "Extra-header:" \
+            -c "HTTP/1.0 200 OK" \
+            -c "discarding invalid record (mac)" \
+            -C "too many records with bad MAC" \
+            -C "Verification of the message MAC failed" \
+            -C "Consume: waiting for more handshake fragments"
+
+requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
+run_test    "DTLS proxy: client: get invalid AD record then reject early renego" \
+            -p "$P_PXY bad_ad_srv_once=1 delay_encrypted_hs_srv=3" \
+            "$P_SRV dtls=1 dgram_packing=0 hs_timeout=500-10000 \
+             renegotiate=1 renegotiation=1 exchanges=4 \
+             debug_level=3" \
+            "$P_CLI dtls=1 dgram_packing=0 hs_timeout=500-10000 \
+             exchanges=4 badmac_limit=99 debug_level=3" \
+            0 \
+            -S "=> renegotiate" \
+            -C "=> renegotiate" \
+            -s "write hello request" \
+            -c "refusing renegotiation" \
+            -C "=> ssl_buffer_message" \
+            -C "initialize reassembly, total length = 0" \
+            -s "Extra-header:" \
+            -c "HTTP/1.0 200 OK" \
+            -c "discarding invalid record (mac)" \
+            -C "too many records with bad MAC" \
+            -C "Verification of the message MAC failed" \
+            -C "Consume: waiting for more handshake fragments"
+
+requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
+run_test    "DTLS proxy: client: get invalid AD record then accept early renego" \
+            -p "$P_PXY bad_ad_srv_once=1 delay_encrypted_hs_srv=3" \
+            "$P_SRV dtls=1 dgram_packing=0 hs_timeout=500-10000 \
+             renegotiate=1 renegotiation=1 exchanges=4 \
+             debug_level=3" \
+            "$P_CLI dtls=1 dgram_packing=0 hs_timeout=500-10000 \
+             renegotiation=1 exchanges=4 badmac_limit=99 debug_level=3" \
+            0 \
+            -s "=> renegotiate" \
+            -c "=> renegotiate" \
+            -c "=> ssl_buffer_message" \
+            -C "initialize reassembly, total length = 0" \
+            -s "Extra-header:" \
+            -c "HTTP/1.0 200 OK" \
+            -c "discarding invalid record (mac)" \
+            -C "too many records with bad MAC" \
+            -C "Verification of the message MAC failed" \
+            -C "Consume: waiting for more handshake fragments"
+
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "DTLS proxy: delay ChangeCipherSpec" \
             -p "$P_PXY delay_ccs=1" \

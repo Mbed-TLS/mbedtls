@@ -5568,6 +5568,7 @@ run_test    "Renegotiation: client-initiated, server-rejected" \
             -c "=> renegotiate" \
             -S "=> renegotiate" \
             -S "write hello request" \
+            -s "refusing renegotiation" \
             -c "SSL - Unexpected message at ServerHello in renegotiation" \
             -c "failed"
 
@@ -5584,6 +5585,7 @@ run_test    "Renegotiation: server-initiated, client-rejected, default" \
             -C "=> renegotiate" \
             -S "=> renegotiate" \
             -s "write hello request" \
+            -c "refusing renegotiation" \
             -S "SSL - An unexpected message was received from our peer" \
             -S "failed"
 
@@ -5601,6 +5603,7 @@ run_test    "Renegotiation: server-initiated, client-rejected, not enforced" \
             -C "=> renegotiate" \
             -S "=> renegotiate" \
             -s "write hello request" \
+            -c "refusing renegotiation" \
             -S "SSL - An unexpected message was received from our peer" \
             -S "failed"
 
@@ -5619,6 +5622,7 @@ run_test    "Renegotiation: server-initiated, client-rejected, delay 2" \
             -C "=> renegotiate" \
             -S "=> renegotiate" \
             -s "write hello request" \
+            -c "refusing renegotiation" \
             -S "SSL - An unexpected message was received from our peer" \
             -S "failed"
 
@@ -5636,6 +5640,7 @@ run_test    "Renegotiation: server-initiated, client-rejected, delay 0" \
             -C "=> renegotiate" \
             -S "=> renegotiate" \
             -s "write hello request" \
+            -c "refusing renegotiation" \
             -s "SSL - An unexpected message was received from our peer"
 
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
@@ -5652,6 +5657,7 @@ run_test    "Renegotiation: server-initiated, client-accepted, delay 0" \
             -c "=> renegotiate" \
             -s "=> renegotiate" \
             -s "write hello request" \
+            -C "refusing renegotiation" \
             -S "SSL - An unexpected message was received from our peer" \
             -S "failed"
 

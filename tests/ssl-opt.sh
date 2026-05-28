@@ -12790,6 +12790,25 @@ run_test    "DTLS proxy: client: get invalid AD record then reject renego" \
             -C "Consume: waiting for more handshake fragments"
 
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
+run_test    "DTLS proxy: server: get invalid AD record then reject renego (cli)" \
+            -p "$P_PXY bad_ad_cli_once=1" \
+            "$P_SRV dtls=1 dgram_packing=0 hs_timeout=500-10000 \
+             renegotiation=0 exchanges=4 \
+             badmac_limit=99 debug_level=3" \
+            "$P_CLI dtls=1 dgram_packing=0 hs_timeout=500-10000 \
+             renegotiation=1 renegotiate=2 exchanges=4 badmac_limit=99 debug_level=3" \
+            1 \
+            -s "discarding invalid record (mac)" \
+            -c "=> renegotiate" \
+            -S "=> renegotiate" \
+            -s "refusing renegotiation" \
+            -s "Extra-header:" \
+            -c "HTTP/1.0 200 OK" \
+            -S "too many records with bad MAC" \
+            -S "Verification of the message MAC failed" \
+            -S "Consume: waiting for more handshake fragments"
+
+requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "DTLS proxy: client: get invalid AD record then accept renego" \
             -p "$P_PXY bad_ad_srv_once=1" \
             "$P_SRV dtls=1 dgram_packing=0 hs_timeout=500-10000 \
@@ -12806,6 +12825,42 @@ run_test    "DTLS proxy: client: get invalid AD record then accept renego" \
             -C "too many records with bad MAC" \
             -C "Verification of the message MAC failed" \
             -C "Consume: waiting for more handshake fragments"
+
+requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
+run_test    "DTLS proxy: server: get invalid AD record then accept renego (srv)" \
+            -p "$P_PXY bad_ad_cli_once=1" \
+            "$P_SRV dtls=1 dgram_packing=0 hs_timeout=500-10000 \
+             renegotiate=1 renegotiation=1 exchanges=4 \
+             badmac_limit=99 debug_level=3" \
+            "$P_CLI dtls=1 dgram_packing=0 hs_timeout=500-10000 \
+             renegotiation=1 exchanges=4 badmac_limit=99 debug_level=3" \
+            0 \
+            -s "discarding invalid record (mac)" \
+            -s "=> renegotiate" \
+            -c "=> renegotiate" \
+            -s "Extra-header:" \
+            -c "HTTP/1.0 200 OK" \
+            -S "too many records with bad MAC" \
+            -S "Verification of the message MAC failed" \
+            -S "Consume: waiting for more handshake fragments"
+
+requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
+run_test    "DTLS proxy: server: get invalid AD record then accept renego (cli)" \
+            -p "$P_PXY bad_ad_cli_once=1" \
+            "$P_SRV dtls=1 dgram_packing=0 hs_timeout=500-10000 \
+             renegotiation=1 exchanges=4 \
+             badmac_limit=99 debug_level=3" \
+            "$P_CLI dtls=1 dgram_packing=0 hs_timeout=500-10000 \
+             renegotiation=1 renegotiate=2 exchanges=4 badmac_limit=99 debug_level=3" \
+            0 \
+            -s "discarding invalid record (mac)" \
+            -c "=> renegotiate" \
+            -s "=> renegotiate" \
+            -s "Extra-header:" \
+            -c "HTTP/1.0 200 OK" \
+            -S "too many records with bad MAC" \
+            -S "Verification of the message MAC failed" \
+            -S "Consume: waiting for more handshake fragments"
 
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "DTLS proxy: client: get invalid AD record then reject early renego" \
@@ -12848,6 +12903,43 @@ run_test    "DTLS proxy: client: get invalid AD record then accept early renego"
             -C "too many records with bad MAC" \
             -C "Verification of the message MAC failed" \
             -C "Consume: waiting for more handshake fragments"
+
+requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
+run_test    "DTLS proxy: server: get invalid AD record then reject early renego (cli)" \
+            -p "$P_PXY bad_ad_cli_once=1 delay_encrypted_hs_cli=2" \
+            "$P_SRV dtls=1 dgram_packing=0 hs_timeout=500-10000 \
+             renegotiation=0 exchanges=4 \
+             badmac_limit=99 debug_level=3" \
+            "$P_CLI dtls=1 dgram_packing=0 hs_timeout=500-10000 \
+             renegotiation=1 renegotiate=2 exchanges=4 badmac_limit=99 debug_level=3" \
+            1 \
+            -s "discarding invalid record (mac)" \
+            -c "=> renegotiate" \
+            -S "=> renegotiate" \
+            -s "refusing renegotiation" \
+            -s "Extra-header:" \
+            -c "HTTP/1.0 200 OK" \
+            -S "too many records with bad MAC" \
+            -S "Verification of the message MAC failed" \
+            -S "Consume: waiting for more handshake fragments"
+
+requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
+run_test    "DTLS proxy: server: get invalid AD record then accept early renego (cli)" \
+            -p "$P_PXY bad_ad_cli_once=1 delay_encrypted_hs_cli=2" \
+            "$P_SRV dtls=1 dgram_packing=0 hs_timeout=500-10000 \
+             renegotiation=1 exchanges=4 \
+             badmac_limit=99 debug_level=3" \
+            "$P_CLI dtls=1 dgram_packing=0 hs_timeout=500-10000 \
+             renegotiation=1 renegotiate=2 exchanges=4 badmac_limit=99 debug_level=3" \
+            0 \
+            -s "discarding invalid record (mac)" \
+            -c "=> renegotiate" \
+            -s "=> renegotiate" \
+            -s "Extra-header:" \
+            -c "HTTP/1.0 200 OK" \
+            -S "too many records with bad MAC" \
+            -S "Verification of the message MAC failed" \
+            -S "Consume: waiting for more handshake fragments"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "DTLS proxy: delay ChangeCipherSpec" \

@@ -1,5 +1,12 @@
 Security
-   * Fix a bug where errors during transcript-hash computation for TLS 1.2
-     extended master secret and TLS 1.3 resumption master secret could be
-     ignored instead of causing the handshake to fail.
-
+   * Fix a bug where transcript-hash computation errors during TLS 1.2
+     extended master secret calculation could be ignored instead of causing the
+     handshake to fail. This could allow a handshake to continue with a master
+     secret that was not correctly bound to the handshake transcript,
+     undermining the security guarantees of the extended master secret
+     extension.
+   * Fix a bug where TLS 1.3 servers could ignore errors when computing the
+     resumption master secret instead of causing the handshake to fail. This
+     could allow a server to issue resumption tickets derived from an invalid
+     resumption secret, weakening authentication of future resumptions made
+     with those tickets.

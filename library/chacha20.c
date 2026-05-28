@@ -212,6 +212,12 @@ static int chacha20_check_counter_wrap(const mbedtls_chacha20_context *ctx,
         return size == 0U ? 0 : MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA;
     }
 
+#if SIZE_MAX >= UINT64_MAX
+    if (size > UINT64_MAX / 2) {
+        return MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA;
+    }
+#endif
+
     if (ctx->keystream_bytes_used < CHACHA20_BLOCK_SIZE_BYTES) {
         available_keystream =
             CHACHA20_BLOCK_SIZE_BYTES - ctx->keystream_bytes_used;

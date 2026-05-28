@@ -296,7 +296,7 @@ int main(void)
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
 #define USAGE_RENEGO \
     "    renegotiation=%%d    default: 0 (disabled)\n"      \
-    "    renegotiate=%%d      default: 0 (disabled)\n"      \
+    "    renegotiate=%%d      default: 0 (disabled), 1 immediately, 2 after first exchange\n"      \
     "    renego_delay=%%d     default: -2 (library default)\n"
 #else
 #define USAGE_RENEGO ""
@@ -493,7 +493,7 @@ struct options {
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
     int renegotiation;          /* enable / disable renegotiation           */
     int allow_legacy;           /* allow legacy renegotiation               */
-    int renegotiate;            /* attempt renegotiation?                   */
+    int renegotiate;            /* attempt renegotiation? 1: before data, 2: after first exchange */
     int renego_delay;           /* delay before enforcing renegotiation     */
     int exchanges;              /* number of data exchanges                 */
     int min_version;            /* minimum protocol version accepted        */
@@ -1168,7 +1168,7 @@ usage:
             opt.renego_delay = (atoi(q));
         } else if (strcmp(p, "renegotiate") == 0) {
             opt.renegotiate = atoi(q);
-            if (opt.renegotiate < 0 || opt.renegotiate > 1) {
+            if (opt.renegotiate < 0 || opt.renegotiate > 2) {
                 goto usage;
             }
         } else if (strcmp(p, "exchanges") == 0) {
@@ -2455,7 +2455,7 @@ usage:
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
-    if (opt.renegotiate) {
+    if (opt.renegotiate == 1) {
         /*
          * Perform renegotiation (this must be done when the server is waiting
          * for input from our side).
@@ -2829,6 +2829,41 @@ send_request:
 
         goto send_request;
     }
+
+#if defined(MBEDTLS_SSL_RENEGOTIATION)
+    if (opt.renegotiate == 2) {
+        opt.renegotiate = 0;
+
+        /* Perform renegotiation after the first data exchange. */
+        mbedtls_printf("  . Performing renegotiation...");
+        fflush(stdout);
+        while ((ret = mbedtls_ssl_renegotiate(&ssl)) != 0) {
+            if (ret != MBEDTLS_ERR_SSL_WANT_READ &&
+                ret != MBEDTLS_ERR_SSL_WANT_WRITE &&
+                ret != MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS) {
+                mbedtls_printf(" failed\n  ! mbedtls_ssl_renegotiate returned %d\n\n",
+                               ret);
+                goto exit;
+            }
+
+#if defined(MBEDTLS_ECP_RESTARTABLE)
+            if (ret == MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS) {
+                continue;
+            }
+#endif
+
+            /* For event-driven IO, wait for socket to become available */
+            if (opt.event == 1 /* level triggered IO */) {
+#if defined(MBEDTLS_TIMING_C)
+                idle(&server_fd, &timer, ret);
+#else
+                idle(&server_fd, ret);
+#endif
+            }
+        }
+        mbedtls_printf(" ok\n");
+    }
+#endif /* MBEDTLS_SSL_RENEGOTIATION */
 
     /*
      * 7c. Simulate serialize/deserialize and go back to data exchange

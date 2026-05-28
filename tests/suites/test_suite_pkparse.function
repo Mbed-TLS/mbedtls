@@ -4,6 +4,7 @@
 #include "mbedtls/oid.h"
 #include "mbedtls/ecp.h"
 #include "mbedtls/psa_util.h"
+#include "mbedtls/rsa.h"
 #include "pk_internal.h"
 
 #if defined(MBEDTLS_PSA_CRYPTO_C)
@@ -14,7 +15,7 @@
 #define HAVE_mbedtls_pk_parse_key_pkcs8_encrypted_der
 #endif
 
-#if defined(MBEDTLS_PSA_CRYPTO_C) && defined(MBEDTLS_FS_IO)
+#if defined(MBEDTLS_PSA_CRYPTO_C)
 static int test_psa_bridge(const mbedtls_pk_context *ctx,
                            psa_key_usage_t usage_flag)
 {
@@ -101,7 +102,7 @@ static int pk_can_ecdsa(const mbedtls_pk_context *ctx)
 #endif
 }
 #endif /* MBEDTLS_PK_HAVE_ECC_KEYS */
-#endif /* MBEDTLS_PSA_CRYPTO_C &&  && MBEDTLS_FS_IO */
+#endif /* MBEDTLS_PSA_CRYPTO_C */
 
 /* END_HEADER */
 
@@ -191,6 +192,50 @@ void pk_parse_public_keyfile_rsa(char *key_file, int result)
 exit:
     mbedtls_pk_free(&ctx);
     PSA_DONE();
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY */
+void pk_parse_public_key_ec(data_t *key_data,
+                            int result_psa,
+                            int result_legacy)
+{
+    mbedtls_pk_context ctx;
+    mbedtls_pk_init(&ctx);
+    int res;
+#if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
+    int result = result_psa;
+    (void) result_legacy;
+#else
+    int result = result_legacy;
+    (void) result_psa;
+#endif
+    unsigned char *key_copy = NULL;
+
+    MD_OR_USE_PSA_INIT();
+    TEST_CALLOC(key_copy, key_data->len);
+    memcpy(key_copy, key_data->x, key_data->len);
+
+    res = mbedtls_pk_parse_public_key(&ctx, key_copy, key_data->len);
+
+    TEST_EQUAL(res, result);
+
+    if (res == 0) {
+        TEST_ASSERT(mbedtls_pk_can_do(&ctx, MBEDTLS_PK_ECKEY));
+
+#if defined(MBEDTLS_PSA_CRYPTO_C)
+        PSA_INIT();
+        if (pk_can_ecdsa(&ctx)) {
+            TEST_ASSERT(test_psa_bridge(&ctx, PSA_KEY_USAGE_VERIFY_HASH));
+            TEST_ASSERT(test_psa_bridge(&ctx, PSA_KEY_USAGE_VERIFY_MESSAGE));
+        }
+#endif
+    }
+
+exit:
+    mbedtls_pk_free(&ctx);
+    PSA_DONE();
+    mbedtls_free(key_copy);
 }
 /* END_CASE */
 

@@ -86,6 +86,7 @@ int main(void)
 #define DFL_HS_TO_MIN           0
 #define DFL_HS_TO_MAX           0
 #define DFL_DTLS_MTU            -1
+#define DFL_BADMAC_LIMIT        -1
 #define DFL_DGRAM_PACKING        1
 #define DFL_FALLBACK            -1
 #define DFL_EXTENDED_MS         -1
@@ -269,7 +270,8 @@ int main(void)
     "    mtu=%%d              default: (library default: unlimited)\n"  \
     "    dgram_packing=%%d    default: 1 (allowed)\n"                   \
     "                        allow or forbid packing of multiple\n" \
-    "                        records within a single datgram.\n"
+    "                        records within a single datagram.\n"  \
+    "    badmac_limit=%%d     default: (library default: disabled)\n"
 #else
 #define USAGE_DTLS ""
 #endif
@@ -518,6 +520,7 @@ struct options {
     int dtls_mtu;               /* UDP Maximum transport unit for DTLS       */
     int fallback;               /* is this a fallback connection?           */
     int dgram_packing;          /* allow/forbid datagram packing            */
+    int badmac_limit;           /* Limit of records with bad MAC            */
     int extended_ms;            /* negotiate extended master secret?        */
     int etm;                    /* negotiate encrypt then mac?              */
     int context_crt_cb;         /* use context-specific CRT verify callback */
@@ -959,6 +962,7 @@ int main(int argc, char *argv[])
     opt.extended_ms         = DFL_EXTENDED_MS;
     opt.etm                 = DFL_ETM;
     opt.dgram_packing       = DFL_DGRAM_PACKING;
+    opt.badmac_limit        = DFL_BADMAC_LIMIT;
     opt.serialize           = DFL_SERIALIZE;
     opt.context_file        = DFL_CONTEXT_FILE;
     opt.eap_tls             = DFL_EAP_TLS;
@@ -1370,6 +1374,11 @@ usage:
             opt.dgram_packing = atoi(q);
             if (opt.dgram_packing != 0 &&
                 opt.dgram_packing != 1) {
+                goto usage;
+            }
+        } else if (strcmp(p, "badmac_limit") == 0) {
+            opt.badmac_limit = atoi(q);
+            if (opt.badmac_limit < 0) {
                 goto usage;
             }
         } else if (strcmp(p, "recsplit") == 0) {
@@ -1834,6 +1843,10 @@ usage:
 
     if (opt.dgram_packing != DFL_DGRAM_PACKING) {
         mbedtls_ssl_set_datagram_packing(&ssl, opt.dgram_packing);
+    }
+
+    if (opt.badmac_limit != DFL_BADMAC_LIMIT) {
+        mbedtls_ssl_conf_dtls_badmac_limit(&conf, opt.badmac_limit);
     }
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
 

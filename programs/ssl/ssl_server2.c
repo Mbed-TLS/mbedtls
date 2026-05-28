@@ -367,9 +367,6 @@ int main(void)
 #define USAGE_ANTI_REPLAY ""
 #endif
 
-#define USAGE_BADMAC_LIMIT \
-    "    badmac_limit=%%d     default: (library default: disabled)\n"
-
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
 #define USAGE_DTLS \
     "    dtls=%%d             default: 0 (TLS)\n"                           \
@@ -378,7 +375,8 @@ int main(void)
     "    mtu=%%d              default: (library default: unlimited)\n"  \
     "    dgram_packing=%%d    default: 1 (allowed)\n"                   \
     "                        allow or forbid packing of multiple\n" \
-    "                        records within a single datgram.\n"
+    "                        records within a single datagram.\n" \
+    "    badmac_limit=%%d     default: (library default: disabled)\n"
 #else
 #define USAGE_DTLS ""
 #endif
@@ -524,7 +522,6 @@ int main(void)
     USAGE_SRTP                                              \
     USAGE_COOKIES                                           \
     USAGE_ANTI_REPLAY                                       \
-    USAGE_BADMAC_LIMIT                                      \
     "\n"
 #define USAGE2 \
     "    auth_mode=%%s        default: (library default: none)\n"      \

@@ -108,6 +108,12 @@ int main(void)
     "                        May be used multiple times, even for the same\n" \
     "                        message, in which case the respective message\n" \
     "                        gets delayed multiple times.\n"                 \
+    "    delay_encrypted_hs_cli=%%d default: 0 (don't delay)\n"             \
+    "                        delay the Nth encrypted handshake message from\n" \
+    "                        client to server.\n"                           \
+    "    delay_encrypted_hs_srv=%%d default: 0 (don't delay)\n"             \
+    "                        delay the Nth encrypted handshake message from\n" \
+    "                        server to client.\n"                           \
     "    delay_srv=%%s        Handshake message from server that should be\n" \
     "                        delayed. Possible values are 'HelloRequest',\n" \
     "                        'ServerHello', 'ServerHelloDone', 'Certificate'\n" \
@@ -153,6 +159,8 @@ static struct options {
     char *delay_srv[MAX_DELAYED_HS];  /* handshake types of messages from
                                        * server that should be delayed.     */
     uint8_t delay_srv_cnt;      /* Number of entries in delay_srv.          */
+    int delay_encrypted_hs_cli;  /* Delay Nth encrypted HS from client.      */
+    int delay_encrypted_hs_srv;  /* Delay Nth encrypted HS from server.      */
     int drop;                   /* drop 1 packet in N (none if 0)           */
     int mtu;                    /* drop packets larger than this            */
     int bad_ad;                 /* inject corrupted ApplicationData record  */
@@ -222,6 +230,16 @@ static void get_options(int argc, char *argv[])
         } else if (strcmp(p, "delay_ccs") == 0) {
             opt.delay_ccs = atoi(q);
             if (opt.delay_ccs < 0 || opt.delay_ccs > 1) {
+                exit_usage(p, q);
+            }
+        } else if (strcmp(p, "delay_encrypted_hs_cli") == 0) {
+            opt.delay_encrypted_hs_cli = atoi(q);
+            if (opt.delay_encrypted_hs_cli < 0) {
+                exit_usage(p, q);
+            }
+        } else if (strcmp(p, "delay_encrypted_hs_srv") == 0) {
+            opt.delay_encrypted_hs_srv = atoi(q);
+            if (opt.delay_encrypted_hs_srv < 0) {
                 exit_usage(p, q);
             }
         } else if (strcmp(p, "delay_cli") == 0 ||
@@ -667,6 +685,31 @@ static int send_delayed(void)
 static unsigned char held[2048] = { 0 };
 #define HOLD_MAX 2
 
+static unsigned encrypted_hs_cli_seen;
+static unsigned encrypted_hs_srv_seen;
+
+static int delay_encrypted_hs(const packet *p)
+{
+    unsigned *seen;
+    int delay_at;
+
+    if (strcmp(p->type, "Encrypted handshake") != 0) {
+        return 0;
+    }
+
+    if (strcmp(p->way, "S <- C") == 0) {
+        seen = &encrypted_hs_cli_seen;
+        delay_at = opt.delay_encrypted_hs_cli;
+    } else {
+        seen = &encrypted_hs_srv_seen;
+        delay_at = opt.delay_encrypted_hs_srv;
+    }
+
+    ++*seen;
+
+    return delay_at > 0 && *seen == (unsigned) delay_at;
+}
+
 static int handle_message(const char *way,
                           mbedtls_net_context *dst,
                           mbedtls_net_context *src)
@@ -718,6 +761,11 @@ static int handle_message(const char *way,
 
             return 0;
         }
+    }
+
+    if (delay_encrypted_hs(&cur)) {
+        delay_packet(&cur);
+        return 0;
     }
 
     /* do we want to drop, delay, or forward it? */
@@ -854,6 +902,8 @@ accept:
      */
     clear_pending();
     memset(held, 0, sizeof(held));
+    encrypted_hs_cli_seen = 0;
+    encrypted_hs_srv_seen = 0;
 
     nb_fds = client_fd.fd;
     if (nb_fds < server_fd.fd) {

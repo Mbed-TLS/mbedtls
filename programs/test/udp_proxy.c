@@ -122,6 +122,12 @@ int main(void)
     "    mtu=%%d              default: 0 (unlimited)\n"                     \
     "                        drop packets larger than N bytes\n"            \
     "    bad_ad=0/1          default: 0 (don't add bad ApplicationData)\n"  \
+    "    bad_ad_cli_once=%%d default: 0 (don't add bad ApplicationData)\n"  \
+    "                        add bad ApplicationData before the Nth\n"       \
+    "                        ApplicationData from client to server.\n"       \
+    "    bad_ad_srv_once=%%d default: 0 (don't add bad ApplicationData)\n"  \
+    "                        add bad ApplicationData before the Nth\n"       \
+    "                        ApplicationData from server to client.\n"       \
     "    bad_cid=%%d          default: 0 (don't corrupt Connection IDs)\n"   \
     "                        duplicate 1:N packets containing a CID,\n" \
     "                        modifying CID in first instance of the packet.\n" \
@@ -159,6 +165,8 @@ static struct options {
     int drop;                   /* drop 1 packet in N (none if 0)           */
     int mtu;                    /* drop packets larger than this            */
     int bad_ad;                 /* inject corrupted ApplicationData record  */
+    int bad_ad_cli_once;        /* Inject corrupted Nth AD from client.     */
+    int bad_ad_srv_once;        /* Inject corrupted Nth AD from server.     */
     unsigned bad_cid;           /* inject corrupted CID record              */
     int protect_hvr;            /* never drop or delay HelloVerifyRequest   */
     int protect_len;            /* never drop/delay packet of the given size*/
@@ -287,6 +295,16 @@ static void get_options(int argc, char *argv[])
         } else if (strcmp(p, "bad_ad") == 0) {
             opt.bad_ad = atoi(q);
             if (opt.bad_ad < 0 || opt.bad_ad > 1) {
+                exit_usage(p, q);
+            }
+        } else if (strcmp(p, "bad_ad_cli_once") == 0) {
+            opt.bad_ad_cli_once = atoi(q);
+            if (opt.bad_ad_cli_once < 0) {
+                exit_usage(p, q);
+            }
+        } else if (strcmp(p, "bad_ad_srv_once") == 0) {
+            opt.bad_ad_srv_once = atoi(q);
+            if (opt.bad_ad_srv_once < 0) {
                 exit_usage(p, q);
             }
         }
@@ -546,6 +564,35 @@ typedef enum {
 static inject_clihlo_state_t inject_clihlo_state;
 static packet initial_clihlo;
 
+static unsigned bad_ad_cli_seen;
+static unsigned bad_ad_srv_seen;
+
+static int bad_ad_once(const packet *p)
+{
+    unsigned *seen;
+    int bad_ad_at;
+
+    if (strcmp(p->type, "ApplicationData") != 0) {
+        return 0;
+    }
+
+    if (strcmp(p->way, "S <- C") == 0) {
+        seen = &bad_ad_cli_seen;
+        bad_ad_at = opt.bad_ad_cli_once;
+    } else {
+        seen = &bad_ad_srv_seen;
+        bad_ad_at = opt.bad_ad_srv_once;
+    }
+
+    if (bad_ad_at <= 0) {
+        return 0;
+    }
+
+    ++*seen;
+
+    return *seen == (unsigned) bad_ad_at;
+}
+
 static int send_packet(const packet *p, const char *why)
 {
     int ret;
@@ -577,7 +624,7 @@ static int send_packet(const packet *p, const char *why)
     }
 
     /* insert corrupted ApplicationData record? */
-    if (opt.bad_ad &&
+    if ((bad_ad_once(p) || opt.bad_ad) &&
         strcmp(p->type, "ApplicationData") == 0) {
         unsigned char buf[MAX_MSG_SIZE];
         memcpy(buf, p->buf, p->len);
@@ -901,6 +948,8 @@ accept:
     memset(held, 0, sizeof(held));
     encrypted_hs_cli_seen = 0;
     encrypted_hs_srv_seen = 0;
+    bad_ad_cli_seen = 0;
+    bad_ad_srv_seen = 0;
 
     nb_fds = client_fd.fd;
     if (nb_fds < server_fd.fd) {

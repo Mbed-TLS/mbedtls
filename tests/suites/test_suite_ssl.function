@@ -74,10 +74,19 @@ static void tls_abort_transcript(void *ctx, int level,
     (void) file;
     (void) line;
 
-    if (abort_ctx->triggered || abort_ctx->ssl == NULL ||
-        abort_ctx->ssl->handshake == NULL ||
-        abort_ctx->trigger == NULL ||
-        strstr(str, abort_ctx->trigger) == NULL) {
+    if (abort_ctx->triggered){
+        return;
+    }
+    if (abort_ctx->ssl == NULL) {
+        return;
+    }
+    if (abort_ctx->ssl->handshake == NULL) {
+        return;
+    }
+    if (abort_ctx->trigger == NULL) {
+        return;
+    }
+    if (strstr(str, abort_ctx->trigger) == NULL) {
         return;
     }
 

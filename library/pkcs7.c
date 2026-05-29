@@ -665,6 +665,14 @@ static int mbedtls_pkcs7_data_or_hash_verify(mbedtls_pkcs7 *pkcs7,
         return ret;
     }
 
+    /* Ensure the MD alg from the PKCS#7 context and signature algorithm from
+     * the certificate belong to the list of secure algorithms
+     * (i.e. mbedtls_x509_crt_profile_default). */
+    if (mbedtls_x509_profile_check_md_alg(&mbedtls_x509_crt_profile_default, md_alg) ||
+        mbedtls_x509_profile_check_pk_alg(&mbedtls_x509_crt_profile_default, cert->sig_pk)) {
+        return MBEDTLS_ERR_PKCS7_VERIFY_FAIL;
+    }
+
     md_info = mbedtls_md_info_from_type(md_alg);
     if (md_info == NULL) {
         return MBEDTLS_ERR_PKCS7_VERIFY_FAIL;

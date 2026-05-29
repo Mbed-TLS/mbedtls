@@ -90,7 +90,10 @@ const mbedtls_x509_crt_profile mbedtls_x509_crt_profile_default =
     /* Hashes from SHA-256 and above. */
     MBEDTLS_X509_ID_FLAG(MBEDTLS_MD_SHA256) |
     MBEDTLS_X509_ID_FLAG(MBEDTLS_MD_SHA384) |
-    MBEDTLS_X509_ID_FLAG(MBEDTLS_MD_SHA512),
+    MBEDTLS_X509_ID_FLAG(MBEDTLS_MD_SHA512) |
+    MBEDTLS_X509_ID_FLAG(MBEDTLS_MD_SHA3_256) |
+    MBEDTLS_X509_ID_FLAG(MBEDTLS_MD_SHA3_384) |
+    MBEDTLS_X509_ID_FLAG(MBEDTLS_MD_SHA3_512),
     0xFFFFFFF, /* Any PK alg    */
 #if defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
     /* Curves at or above 128-bit security level. Note that this selection

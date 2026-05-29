@@ -88,8 +88,7 @@ typedef struct {
  * concerns. */
 const mbedtls_x509_crt_profile mbedtls_x509_crt_profile_default =
 {
-    /* Hashes from SHA-256 and above. Note that this selection
-     * should be aligned with ssl_preset_default_hashes in ssl_tls.c. */
+    /* Hashes from SHA-256 and above. */
     MBEDTLS_X509_ID_FLAG(MBEDTLS_MD_SHA256) |
     MBEDTLS_X509_ID_FLAG(MBEDTLS_MD_SHA384) |
     MBEDTLS_X509_ID_FLAG(MBEDTLS_MD_SHA512),

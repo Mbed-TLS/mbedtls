@@ -91,7 +91,9 @@ static void tls_abort_transcript(void *ctx, int level,
     }
 
     abort_ctx->triggered = 1;
+#if defined(PSA_WANT_ALG_SHA_256)
     psa_hash_abort(&abort_ctx->ssl->handshake->fin_sha256_psa);
+#endif
 #if defined(PSA_WANT_ALG_SHA_384)
     psa_hash_abort(&abort_ctx->ssl->handshake->fin_sha384_psa);
 #endif

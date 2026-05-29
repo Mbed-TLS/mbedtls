@@ -202,8 +202,8 @@ int mbedtls_chacha20_starts(mbedtls_chacha20_context *ctx,
     return 0;
 }
 
-static int chacha20_check_counter_wrap(const mbedtls_chacha20_context *ctx,
-                                       size_t size)
+int mbedtls_chacha20_check_counter_wrap(const mbedtls_chacha20_context *ctx,
+                                        size_t size)
 {
     size_t available_keystream = 0;
     uint64_t needed_blocks = 0;
@@ -255,7 +255,7 @@ int mbedtls_chacha20_update(mbedtls_chacha20_context *ctx,
     size_t offset = 0U;
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
-    ret = chacha20_check_counter_wrap(ctx, size);
+    ret = mbedtls_chacha20_check_counter_wrap(ctx, size);
     if (ret != 0) {
         return ret;
     }

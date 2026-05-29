@@ -4415,11 +4415,10 @@ void tls_transcript_error_propagation(int endpoint,
     int ret = -1;
     mbedtls_test_ssl_endpoint client_ep, server_ep;
     mbedtls_test_handshake_test_options client_options;
-    mbedtls_test_handshake_test_options server_options;
-    tls_abort_transcript_context abort_ctx;
-
     mbedtls_test_init_handshake_options(&client_options);
+    mbedtls_test_handshake_test_options server_options;
     mbedtls_test_init_handshake_options(&server_options);
+    tls_abort_transcript_context abort_ctx;
     memset(&abort_ctx, 0, sizeof(abort_ctx));
 
     PSA_INIT();

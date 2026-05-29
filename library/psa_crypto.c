@@ -3568,7 +3568,12 @@ exit:
     LOCAL_INPUT_FREE(salt_external, salt);
     LOCAL_OUTPUT_FREE(output_external, output);
 
-    return (status == PSA_SUCCESS) ? unlock_status : status;
+    /* Don't branch on status as it is a sensitive value
+     * (it reveals whether padding was valid).
+     * Instead branch on unlock_status. That means when both status and
+     * unlock_status were errors, we'll return the unlock error while we would
+     * normally return the first error, but that's better than leaking info. */
+    return (unlock_status != PSA_SUCCESS) ? unlock_status : status;
 }
 
 /****************************************************************/

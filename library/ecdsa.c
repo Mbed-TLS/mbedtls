@@ -552,6 +552,7 @@ sign:
 #endif /* MBEDTLS_ECDSA_SIGN_ALT */
 
 cleanup:
+    mbedtls_platform_zeroize(data, sizeof(data));
     mbedtls_hmac_drbg_free(&rng_ctx);
     mbedtls_mpi_free(&h);
 

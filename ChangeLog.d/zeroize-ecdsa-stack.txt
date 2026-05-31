@@ -1,0 +1,5 @@
+Security
+   * Zeroize the stack buffer containing the private key in
+     mbedtls_ecdsa_sign_det_restartable() after use for HMAC-DRBG seeding.
+     Previously, up to 66 bytes of key material remained on the stack until
+     overwritten by subsequent calls.

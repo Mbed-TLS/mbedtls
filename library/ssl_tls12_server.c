@@ -1747,8 +1747,8 @@ static void ssl_write_supported_point_formats_ext(mbedtls_ssl_context *ssl,
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
 static int ssl_write_ecjpake_kkpp_ext(mbedtls_ssl_context *ssl,
-                                       unsigned char *buf,
-                                       size_t *olen)
+                                      unsigned char *buf,
+                                      size_t *olen)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned char *p = buf;

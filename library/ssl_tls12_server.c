@@ -4132,8 +4132,8 @@ MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_write_new_session_ticket(mbedtls_ssl_context *ssl)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    size_t tlen;
-    uint32_t lifetime;
+    size_t tlen = 0;
+    uint32_t lifetime = 0;
 
     MBEDTLS_SSL_DEBUG_MSG(2, ("=> write new session ticket"));
 
@@ -4160,8 +4160,6 @@ static int ssl_write_new_session_ticket(mbedtls_ssl_context *ssl)
                                          ssl->out_msg + MBEDTLS_SSL_OUT_CONTENT_LEN,
                                          &tlen, &lifetime)) != 0) {
         MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_ticket_write", ret);
-        tlen = 0;
-        lifetime = 0;
     }
 
     MBEDTLS_PUT_UINT32_BE(lifetime, ssl->out_msg, 4);

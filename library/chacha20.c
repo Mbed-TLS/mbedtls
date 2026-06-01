@@ -20,6 +20,8 @@
 #include <stddef.h>
 #include <string.h>
 
+#include "chacha20_internal.h"
+
 #include "mbedtls/platform.h"
 
 #if !defined(MBEDTLS_CHACHA20_ALT)

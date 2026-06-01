@@ -17,12 +17,11 @@
 
 #include <string.h>
 
+#include "chacha20_internal.h"
+
 #include "mbedtls/platform.h"
 
 #if !defined(MBEDTLS_CHACHAPOLY_ALT)
-
-int mbedtls_chacha20_check_counter_wrap(const mbedtls_chacha20_context *ctx,
-                                        size_t size);
 
 #define CHACHAPOLY_STATE_INIT       (0)
 #define CHACHAPOLY_STATE_AAD        (1)

@@ -61,6 +61,9 @@ static int failing_ticket_write_unset_lifetime(
     defined(MBEDTLS_TEST_HAS_DEFAULT_EC_GROUP) && \
     defined(PSA_WANT_ALG_SHA_256)
 typedef struct {
+    /* Context for tls_abort_transcript(). The debug callback watches for
+     * trigger in the SSL debug trace, then aborts this connection's transcript
+     * hash operation exactly once so the test can check error propagation. */
     mbedtls_ssl_context *ssl;
     const char *trigger;
     int triggered;

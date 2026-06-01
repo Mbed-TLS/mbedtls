@@ -7088,12 +7088,16 @@ static int ssl_compute_master(mbedtls_ssl_handshake_params *handshake,
 #if defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET)
     if (handshake->extended_ms == MBEDTLS_SSL_EXTENDED_MS_ENABLED) {
         lbl  = "extended master secret";
-        seed = session_hash;
         ret = handshake->calc_verify(ssl, session_hash, &seed_len);
         if (ret != 0) {
             MBEDTLS_SSL_DEBUG_RET(1, "calc_verify", ret);
             return ret;
         }
+        if (seed_len > sizeof(session_hash)) {
+            MBEDTLS_SSL_DEBUG_MSG(1, ("bad session hash length"));
+            return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+        }
+        seed = session_hash;
 
         MBEDTLS_SSL_DEBUG_BUF(3, "session hash for extended master secret",
                               session_hash, seed_len);

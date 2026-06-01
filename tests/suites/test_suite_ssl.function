@@ -76,7 +76,7 @@ static void tls_abort_transcript(void *ctx, int level,
     (void) file;
     (void) line;
 
-    if (abort_ctx->triggered){
+    if (abort_ctx->triggered) {
         return;
     }
     if (abort_ctx->ssl == NULL) {

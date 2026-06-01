@@ -4453,22 +4453,36 @@ void tls_transcript_error_propagation(int endpoint,
     TEST_EQUAL(mbedtls_test_ssl_endpoint_init(&server_ep, MBEDTLS_SSL_IS_SERVER,
                                               &server_options), 0);
 
+    /* Keep enough socket capacity for setup traffic so the final step below
+     * exercises the target state instead of only flushing previous messages. */
     TEST_EQUAL(mbedtls_test_mock_socket_connect(&(client_ep.socket),
-                                                &(server_ep.socket), 1024), 0);
+                                                &(server_ep.socket), 4096), 0);
 
-    abort_ctx.ssl = &server_ep.ssl;
+    if (endpoint == MBEDTLS_SSL_IS_CLIENT) {
+        /* Moving the client to its target state drives the server as needed.
+         * Moving the server afterwards can advance the client past that state. */
+        TEST_EQUAL(mbedtls_test_move_handshake_to_state(
+                       &(client_ep.ssl), &(server_ep.ssl),
+                       client_state), 0);
 
-    TEST_EQUAL(mbedtls_test_move_handshake_to_state(
-                   &(server_ep.ssl), &(client_ep.ssl),
-                   server_state), 0);
+        abort_ctx.ssl = &client_ep.ssl;
+    } else {
+        TEST_EQUAL(mbedtls_test_move_handshake_to_state(
+                       &(server_ep.ssl), &(client_ep.ssl),
+                       server_state), 0);
 
-    TEST_EQUAL(mbedtls_test_move_handshake_to_state(
-                   &(client_ep.ssl), &(server_ep.ssl),
-                   client_state), 0);
+        TEST_EQUAL(mbedtls_test_move_handshake_to_state(
+                       &(client_ep.ssl), &(server_ep.ssl),
+                       client_state), 0);
+        abort_ctx.ssl = &server_ep.ssl;
+    }
 
+    TEST_EQUAL(mbedtls_ssl_flush_output(abort_ctx.ssl), 0);
+    TEST_EQUAL(abort_ctx.ssl->state,
+               endpoint == MBEDTLS_SSL_IS_CLIENT ? client_state : server_state);
     TEST_EQUAL(abort_ctx.triggered, 0);
 
-    ret = mbedtls_ssl_handshake_step(&(server_ep.ssl));
+    ret = mbedtls_ssl_handshake_step(abort_ctx.ssl);
     TEST_ASSERT(abort_ctx.triggered);
     TEST_ASSERT(ret != 0);
 

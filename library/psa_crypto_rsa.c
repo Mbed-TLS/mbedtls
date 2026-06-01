@@ -652,14 +652,10 @@ psa_status_t mbedtls_psa_asymmetric_decrypt(const psa_key_attributes_t *attribut
 
         if (alg == PSA_ALG_RSA_PKCS1V15_CRYPT) {
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PKCS1V15_CRYPT)
-            status = mbedtls_to_psa_error(
-                mbedtls_rsa_pkcs1_decrypt(rsa,
-                                          mbedtls_psa_get_random,
-                                          MBEDTLS_PSA_RANDOM_STATE,
-                                          output_length,
-                                          input,
-                                          output,
-                                          output_size));
+            int ret = mbedtls_rsa_rsaes_pkcs1_v15_decrypt(
+                rsa, mbedtls_psa_get_random, MBEDTLS_PSA_RANDOM_STATE,
+                output_length, input, output, output_size);
+            status = mbedtls_to_psa_error(ret);
 #else
             status = PSA_ERROR_NOT_SUPPORTED;
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_RSA_PKCS1V15_CRYPT */

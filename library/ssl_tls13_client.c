@@ -2810,6 +2810,7 @@ static int ssl_tls13_parse_new_session_ticket_exts(mbedtls_ssl_context *ssl,
                     MBEDTLS_SSL_DEBUG_RET(
                         1, "ssl_tls13_parse_new_session_ticket_early_data_ext",
                         ret);
+                    return ret;
                 }
                 break;
 #endif /* MBEDTLS_SSL_EARLY_DATA */

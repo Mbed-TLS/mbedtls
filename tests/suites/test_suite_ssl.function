@@ -86,9 +86,6 @@ static void tls_abort_transcript(void *ctx, int level,
     if (abort_ctx->ssl->handshake == NULL) {
         return;
     }
-    if (abort_ctx->trigger == NULL) {
-        return;
-    }
     if (strstr(str, abort_ctx->trigger) == NULL) {
         return;
     }
@@ -4439,6 +4436,7 @@ void tls_transcript_error_propagation(int endpoint,
     server_options.server_max_version = tls_version;
 
     abort_ctx.trigger = trigger;
+    TEST_ASSERT(abort_ctx.trigger != NULL);
 
     if (endpoint == MBEDTLS_SSL_IS_CLIENT) {
         client_options.cli_log_obj = &abort_ctx;

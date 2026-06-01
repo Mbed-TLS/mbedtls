@@ -1790,7 +1790,7 @@ static void ssl_write_supported_point_formats_ext(mbedtls_ssl_context *ssl,
           MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED */
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
-static void ssl_write_ecjpake_kkpp_ext(mbedtls_ssl_context *ssl,
+static int ssl_write_ecjpake_kkpp_ext(mbedtls_ssl_context *ssl,
                                        unsigned char *buf,
                                        size_t *olen)
 {
@@ -1804,14 +1804,14 @@ static void ssl_write_ecjpake_kkpp_ext(mbedtls_ssl_context *ssl,
     /* Skip costly computation if not needed */
     if (ssl->handshake->ciphersuite_info->key_exchange !=
         MBEDTLS_KEY_EXCHANGE_ECJPAKE) {
-        return;
+        return 0;
     }
 
     MBEDTLS_SSL_DEBUG_MSG(3, ("server hello, ecjpake kkpp extension"));
 
     if (end - p < 4) {
         MBEDTLS_SSL_DEBUG_MSG(1, ("buffer too small"));
-        return;
+        return MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL;
     }
 
     MBEDTLS_PUT_UINT16_BE(MBEDTLS_TLS_EXT_ECJPAKE_KKPP, p, 0);
@@ -1825,7 +1825,7 @@ static void ssl_write_ecjpake_kkpp_ext(mbedtls_ssl_context *ssl,
         psa_destroy_key(ssl->handshake->psa_pake_password);
         psa_pake_abort(&ssl->handshake->psa_pake_ctx);
         MBEDTLS_SSL_DEBUG_RET(1, "psa_pake_output", ret);
-        return;
+        return ret;
     }
 #else
     ret = mbedtls_ecjpake_write_round_one(&ssl->handshake->ecjpake_ctx,
@@ -1841,6 +1841,7 @@ static void ssl_write_ecjpake_kkpp_ext(mbedtls_ssl_context *ssl,
     p += 2;
 
     *olen = kkpp_len + 4;
+    return 0;
 }
 #endif /* MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED */
 
@@ -2223,7 +2224,10 @@ static int ssl_write_server_hello(mbedtls_ssl_context *ssl)
 #endif
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
-    ssl_write_ecjpake_kkpp_ext(ssl, p + 2 + ext_len, &olen);
+    if ((ret = ssl_write_ecjpake_kkpp_ext(ssl, p + 2 + ext_len, &olen)) != 0) {
+        MBEDTLS_SSL_DEBUG_RET(1, "ssl_write_ecjpake_kkpp_ext", ret);
+        return ret;
+    }
     ext_len += olen;
 #endif
 

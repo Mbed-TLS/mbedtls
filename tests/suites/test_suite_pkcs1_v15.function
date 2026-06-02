@@ -1,6 +1,39 @@
 /* BEGIN_HEADER */
 #include "mbedtls/rsa.h"
 #include "mbedtls/md.h"
+#include "rsa_internal.h"
+#include <test/constant_flow.h>
+
+#if defined(MBEDTLS_TEST_HOOKS) && !defined(MBEDTLS_RSA_ALT)
+static void pkcs1_v15_decode_raw(const unsigned char *input,
+                                 size_t input_size,
+                                 size_t output_size,
+                                 int expected_result,
+                                 size_t expected_plaintext_length)
+{
+    unsigned char *input_buf = NULL;
+    unsigned char *output_buf = NULL;
+    size_t olen = 0;
+
+    TEST_CALLOC(output_buf, output_size);
+
+    TEST_CALLOC(input_buf, input_size);
+    memcpy(input_buf, input, input_size);
+
+    TEST_CF_SECRET(input_buf, input_size);
+    TEST_EQUAL(expected_result,
+               mbedtls_ct_rsaes_pkcs1_v15_unpadding(
+                   input_buf, input_size,
+                   output_buf, output_size, &olen));
+    if (expected_result == 0) {
+        TEST_EQUAL(expected_plaintext_length, olen);
+    }
+
+exit:
+    mbedtls_free(input_buf);
+    mbedtls_free(output_buf);
+}
+#endif /* MBEDTLS_TEST_HOOKS && !MBEDTLS_RSA_ALT */
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -257,12 +290,18 @@ void pkcs1_v15_decode(data_t *input,
         TEST_ASSERT(count < 16);
     }
 
+#if defined(MBEDTLS_TEST_HOOKS) && !defined(MBEDTLS_RSA_ALT)
+    pkcs1_v15_decode_raw(original, sizeof(original), output_size,
+                         expected_result, expected_plaintext_length);
+#endif
+
 exit:
     mbedtls_mpi_free(&Nmpi); mbedtls_mpi_free(&Empi);
     mbedtls_mpi_free(&Pmpi); mbedtls_mpi_free(&Qmpi);
     mbedtls_rsa_free(&ctx);
 }
 /* END_CASE */
+
 
 /* BEGIN_CASE */
 void pkcs1_rsassa_v15_sign(int mod, char *input_P,

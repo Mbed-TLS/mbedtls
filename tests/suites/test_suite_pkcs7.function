@@ -91,18 +91,18 @@ void pkcs7_parse_reuse(char *first_pkcs7_file, char *second_pkcs7_file,
     mbedtls_pkcs7_init(&pkcs7);
 
     TEST_EQUAL(mbedtls_pk_load_file(first_pkcs7_file, &first_pkcs7_buf,
-                                   &first_buflen), 0);
+                                    &first_buflen), 0);
 
     TEST_EQUAL(mbedtls_pk_load_file(second_pkcs7_file, &second_pkcs7_buf,
-                                   &second_buflen), 0);
+                                    &second_buflen), 0);
 
     TEST_EQUAL(mbedtls_pkcs7_parse_der(&pkcs7, first_pkcs7_buf,
-                                      first_buflen),
+                                       first_buflen),
                MBEDTLS_PKCS7_SIGNED_DATA);
 
     mbedtls_pkcs7_free(&pkcs7);
     TEST_EQUAL(mbedtls_pkcs7_parse_der(&pkcs7, second_pkcs7_buf,
-                                      second_buflen),
+                                       second_buflen),
                res_expect);
 
 exit:

@@ -4424,7 +4424,7 @@ exit:
 
 
 /* BEGIN_CASE depends_on:MBEDTLS_TEST_HOOKS:MBEDTLS_SSL_PROTO_TLS1_3:!MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_SSL_CLI_C:MBEDTLS_SSL_SRV_C:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED:MBEDTLS_TEST_AT_LEAST_ONE_TLS1_3_CIPHERSUITE:PSA_WANT_ECC_SECP_R1_384 */
-void tls13_client_rejects_extension_duplicate()
+void tls13_rejects_extension_duplicate(int endpoint)
 {
     int ret = -1;
     mbedtls_test_ssl_endpoint client_ep, server_ep;
@@ -4432,7 +4432,6 @@ void tls13_client_rejects_extension_duplicate()
     memset(&server_ep, 0, sizeof(server_ep));
     unsigned char *buf;
     size_t buf_len;
-    int step = 0;
     mbedtls_test_handshake_test_options client_options;
     mbedtls_test_handshake_test_options server_options;
 
@@ -4458,101 +4457,63 @@ void tls13_client_rejects_extension_duplicate()
                                            &(server_ep.socket), 1024);
     TEST_EQUAL(ret, 0);
 
-    while (1) {
-        mbedtls_test_set_step(++step);
+    switch (endpoint) {
+        case MBEDTLS_SSL_IS_CLIENT:
+            ret = mbedtls_test_move_handshake_to_state(
+                &(server_ep.ssl), &(client_ep.ssl),
+                MBEDTLS_SSL_ENCRYPTED_EXTENSIONS);
+            TEST_EQUAL(ret, 0);
 
-        ret = mbedtls_test_move_handshake_to_state(
-            &(server_ep.ssl), &(client_ep.ssl),
-            MBEDTLS_SSL_ENCRYPTED_EXTENSIONS);
-        TEST_EQUAL(ret, 0);
+            ret = mbedtls_ssl_flush_output(&(server_ep.ssl));
+            TEST_EQUAL(ret, 0);
 
-        ret = mbedtls_ssl_flush_output(&(server_ep.ssl));
-        TEST_EQUAL(ret, 0);
+            ret = mbedtls_ssl_tls13_fetch_handshake_msg(
+                &(client_ep.ssl), MBEDTLS_SSL_HS_SERVER_HELLO,
+                &buf, &buf_len);
+            TEST_EQUAL(ret, 0);
+            client_ep.ssl.keep_current_message = 1;
 
-        ret = mbedtls_ssl_tls13_fetch_handshake_msg(&(client_ep.ssl),
-                                                    MBEDTLS_SSL_HS_SERVER_HELLO,
-                                                    &buf, &buf_len);
-        TEST_EQUAL(ret, 0);
-        client_ep.ssl.keep_current_message = 1;
+            ret = tls13_duplicate_last_extension(
+                &(client_ep.ssl), MBEDTLS_SSL_HS_SERVER_HELLO, buf, buf_len);
+            TEST_EQUAL(ret, 0);
 
-        ret = tls13_duplicate_last_extension(
-            &(client_ep.ssl), MBEDTLS_SSL_HS_SERVER_HELLO, buf, buf_len);
-        TEST_EQUAL(ret, 0);
+            ret = mbedtls_ssl_handshake_step(&(client_ep.ssl));
+            TEST_EQUAL(ret, MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER);
+            break;
 
-        ret = mbedtls_ssl_handshake_step(&(client_ep.ssl));
-        TEST_EQUAL(ret, MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER);
-        break;
-    }
+        case MBEDTLS_SSL_IS_SERVER:
+            ret = mbedtls_test_move_handshake_to_state(
+                &(server_ep.ssl), &(client_ep.ssl),
+                MBEDTLS_SSL_CLIENT_HELLO);
+            TEST_EQUAL(ret, 0);
 
-exit:
-    mbedtls_ssl_reset_chk_buf_ptr_fail_args();
-    mbedtls_test_ssl_endpoint_free(&client_ep);
-    mbedtls_test_ssl_endpoint_free(&server_ep);
-    mbedtls_test_free_handshake_options(&client_options);
-    mbedtls_test_free_handshake_options(&server_options);
-    MD_OR_USE_PSA_DONE();
-}
-/* END_CASE */
+            ret = mbedtls_ssl_flush_output(&(server_ep.ssl));
+            TEST_EQUAL(ret, 0);
 
-/* BEGIN_CASE depends_on:MBEDTLS_TEST_HOOKS:MBEDTLS_SSL_PROTO_TLS1_3:!MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_SSL_CLI_C:MBEDTLS_SSL_SRV_C:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED:MBEDTLS_TEST_AT_LEAST_ONE_TLS1_3_CIPHERSUITE:PSA_WANT_ECC_SECP_R1_384 */
-void tls13_server_rejects_extension_duplicate()
-{
-    int ret = -1;
-    mbedtls_test_ssl_endpoint client_ep, server_ep;
-    memset(&client_ep, 0, sizeof(client_ep));
-    memset(&server_ep, 0, sizeof(server_ep));
-    unsigned char *buf;
-    size_t buf_len;
-    int step = 0;
-    mbedtls_test_handshake_test_options client_options;
-    mbedtls_test_handshake_test_options server_options;
+            ret = mbedtls_test_move_handshake_to_state(
+                &(client_ep.ssl), &(server_ep.ssl),
+                MBEDTLS_SSL_SERVER_HELLO);
+            TEST_EQUAL(ret, 0);
 
-    /*
-     * Test set-up
-     */
+            ret = mbedtls_ssl_flush_output(&(client_ep.ssl));
+            TEST_EQUAL(ret, 0);
 
-    mbedtls_test_init_handshake_options(&client_options);
-    MD_OR_USE_PSA_INIT();
+            ret = mbedtls_ssl_tls13_fetch_handshake_msg(
+                &(server_ep.ssl), MBEDTLS_SSL_HS_CLIENT_HELLO,
+                &buf, &buf_len);
+            TEST_EQUAL(ret, 0);
+            server_ep.ssl.keep_current_message = 1;
 
-    client_options.pk_alg = MBEDTLS_PK_ECDSA;
-    ret = mbedtls_test_ssl_endpoint_init(&client_ep, MBEDTLS_SSL_IS_CLIENT,
-                                         &client_options);
-    TEST_EQUAL(ret, 0);
+            ret = tls13_duplicate_last_extension(
+                &(server_ep.ssl), MBEDTLS_SSL_HS_CLIENT_HELLO, buf, buf_len);
+            TEST_EQUAL(ret, 0);
 
-    mbedtls_test_init_handshake_options(&server_options);
-    server_options.pk_alg = MBEDTLS_PK_ECDSA;
-    ret = mbedtls_test_ssl_endpoint_init(&server_ep, MBEDTLS_SSL_IS_SERVER,
-                                         &server_options);
-    TEST_EQUAL(ret, 0);
+            ret = mbedtls_ssl_handshake_step(&(server_ep.ssl));
+            TEST_EQUAL(ret, MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER);
+            break;
 
-    ret = mbedtls_test_mock_socket_connect(&(client_ep.socket),
-                                           &(server_ep.socket), 1024);
-    TEST_EQUAL(ret, 0);
-
-    while (1) {
-        mbedtls_test_set_step(++step);
-
-        ret = mbedtls_test_move_handshake_to_state(
-            &(server_ep.ssl), &(client_ep.ssl),
-            MBEDTLS_SSL_CLIENT_HELLO);
-        TEST_EQUAL(ret, 0);
-
-        ret = mbedtls_ssl_flush_output(&(server_ep.ssl));
-        TEST_EQUAL(ret, 0);
-
-        ret = mbedtls_ssl_tls13_fetch_handshake_msg(&(server_ep.ssl),
-                                                    MBEDTLS_SSL_HS_CLIENT_HELLO,
-                                                    &buf, &buf_len);
-        TEST_EQUAL(ret, 0);
-        server_ep.ssl.keep_current_message = 1;
-
-        ret = tls13_duplicate_last_extension(
-            &(server_ep.ssl), MBEDTLS_SSL_HS_CLIENT_HELLO, buf, buf_len);
-        TEST_EQUAL(ret, 0);
-
-        ret = mbedtls_ssl_handshake_step(&(server_ep.ssl));
-        TEST_EQUAL(ret, MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER);
-        break;
+        default:
+            TEST_FAIL("invalid endpoint");
     }
 
 exit:

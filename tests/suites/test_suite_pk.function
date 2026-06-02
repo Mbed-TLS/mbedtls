@@ -1546,6 +1546,12 @@ void pk_rsa_decrypt_test_vec(data_t *cipher, int mod, int padding, int md_alg,
     if (ret == 0) {
         TEST_ASSERT(olen == clear->len);
         TEST_ASSERT(memcmp(output, clear->x, olen) == 0);
+
+        /* Try again with an output buffer that's too small */
+        TEST_EQUAL(mbedtls_pk_decrypt(&pk, cipher->x, cipher->len,
+                                      output, &olen, clear->len - 1,
+                                      mbedtls_test_rnd_pseudo_rand, &rnd_info),
+                   MBEDTLS_ERR_RSA_OUTPUT_TOO_LARGE);
     }
 
 exit:

@@ -34,6 +34,7 @@
 #if defined(MBEDTLS_RSA_C)
 #include "pkwrite.h"
 #include "rsa_internal.h"
+#include "constant_time_internal.h"
 #endif
 
 #if defined(MBEDTLS_PK_CAN_ECDSA_SOME)
@@ -329,21 +330,35 @@ static int rsa_decrypt_wrap(mbedtls_pk_context *pk,
                                     input, ilen,
                                     NULL, 0,
                                     output, osize, olen);
-    if (status != PSA_SUCCESS) {
-        ret = PSA_PK_RSA_TO_MBEDTLS_ERR(status);
-        goto cleanup;
-    }
 
-    ret = 0;
+    /* We want to convert status into an MBEDTLS code without allowing an
+     * attacker to distinguish between 0, invalid padding, or buffer too
+     * small. (It's OK if the attacker distinguishes between one of the
+     * above three and other status such as out of memory.) Since
+     * PSA_PK_RSA_TO_MBEDTLS_ERR() is leaky, hide the difference from it. */
+    mbedtls_ct_condition_t bad_padding = mbedtls_ct_uint_eq(
+        (mbedtls_ct_uint_t) status,
+        (mbedtls_ct_uint_t) PSA_ERROR_INVALID_PADDING);
+    mbedtls_ct_condition_t large_msg = mbedtls_ct_uint_eq(
+        (mbedtls_ct_uint_t) status,
+        (mbedtls_ct_uint_t) PSA_ERROR_BUFFER_TOO_SMALL);
+    status = mbedtls_ct_error_if(bad_padding, 0, status);
+    status = mbedtls_ct_error_if(large_msg, 0, status);
+    ret = PSA_PK_RSA_TO_MBEDTLS_ERR(status);
+    ret = mbedtls_ct_error_if(bad_padding,
+                              MBEDTLS_ERR_RSA_INVALID_PADDING, ret);
+    ret = mbedtls_ct_error_if(large_msg,
+                              MBEDTLS_ERR_RSA_OUTPUT_TOO_LARGE, ret);
 
 cleanup:
     mbedtls_zeroize_and_free(buf, buf_size);
     status = psa_destroy_key(key_id);
-    if (ret == 0 && status != PSA_SUCCESS) {
-        ret = PSA_PK_TO_MBEDTLS_ERR(status);
-    }
-
-    return ret;
+    /* Don't branch on ret as it is a sensitive value
+     * (it reveals whether padding was valid).
+     * Instead branch on status. That means when both ret and
+     * status were errors, we'll return the unlock status while we would
+     * normally return the first error, but that's better than leaking info. */
+    return (status != PSA_SUCCESS) ? PSA_PK_TO_MBEDTLS_ERR(status) : ret;
 }
 #else /* MBEDTLS_USE_PSA_CRYPTO */
 static int rsa_decrypt_wrap(mbedtls_pk_context *pk,

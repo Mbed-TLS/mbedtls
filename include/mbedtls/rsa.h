@@ -696,7 +696,9 @@ int mbedtls_rsa_rsaes_oaep_encrypt(mbedtls_rsa_context *ctx,
  *
  * \warning        When \p ctx->padding is set to #MBEDTLS_RSA_PKCS_V15,
  *                 mbedtls_rsa_rsaes_pkcs1_v15_decrypt() is called, which is an
- *                 inherently dangerous function (CWE-242).
+ *                 inherently dangerous function (CWE-242). In that case, the
+ *                 return value of this function is sensitive, see the
+ *                 documentation of mbedtls_rsa_rsaes_pkcs1_v15_decrypt().
  *
  * \note           The output buffer length \c output_max_len should be
  *                 as large as the size \p ctx->len of \p ctx->N (for example,
@@ -738,6 +740,9 @@ int mbedtls_rsa_pkcs1_decrypt(mbedtls_rsa_context *ctx,
  *                 it is used in a side channel free and safe way (eg.
  *                 implementing the TLS protocol as per 7.4.7.1 of RFC 5246),
  *                 the calling code is vulnerable.
+ *                 Specifically, callers need to ensure an adversary cannot
+ *                 distinguish between success, MBEDTLS_ERR_RSA_INVALID_PADDING
+ *                 and MBEDTLS_ERR_RSA_OUTPUT_TOO_LARGE via side channels.
  *
  * \note           The output buffer length \c output_max_len should be
  *                 as large as the size \p ctx->len of \p ctx->N, for example,

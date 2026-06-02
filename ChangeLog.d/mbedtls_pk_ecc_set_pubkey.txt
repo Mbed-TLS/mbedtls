@@ -1,0 +1,3 @@
+Security
+   * Fix a 1-byte buffer overread when parsing a malformed ECC public key
+     in the PK module.

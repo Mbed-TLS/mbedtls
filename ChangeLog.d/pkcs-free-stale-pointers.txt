@@ -1,2 +1,4 @@
-Bugfix
-   * Add fix for stale pointer after mbedtls_pkcs7_free.
+Security
+   * Fix a use-after-free/double-free risk in mbedtls_pkcs7_free() when reusing an mbedtls_pkcs7 context
+     across parse -> free -> parse -> free cycles. The function now clears the signer list after freeing it,
+     ensuring stale signed_data.signers.next pointers cannot be walked by a later free operation.

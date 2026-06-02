@@ -2470,6 +2470,8 @@ psa_status_t psa_aead_set_nonce(psa_aead_operation_t *operation,
  * psa_aead_set_nonce() or psa_aead_generate_nonce().
  *
  * - For #PSA_ALG_CCM, calling this function is required.
+ * - For #PSA_ALG_CHACHA20_POLY1305, the plaintext length must not
+ *   exceed `UINT32_MAX * 64` bytes.
  * - For the other AEAD algorithms defined in this specification, calling
  *   this function is not required.
  * - For vendor-defined algorithm, refer to the vendor documentation.

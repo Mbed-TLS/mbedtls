@@ -15,7 +15,9 @@
 
 #include "mbedtls/chacha20.h"
 
+#if !defined(MBEDTLS_CHACHA20_ALT)
 int mbedtls_chacha20_check_counter_wrap(const mbedtls_chacha20_context *ctx,
                                         size_t size);
+#endif /* !MBEDTLS_CHACHA20_ALT */
 
 #endif /* MBEDTLS_CHACHA20_INTERNAL_H */

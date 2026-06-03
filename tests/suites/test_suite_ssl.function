@@ -6778,3 +6778,156 @@ exit:
     MD_OR_USE_PSA_DONE();
 }
 /* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_EARLY_DATA:MBEDTLS_SSL_CLI_C:MBEDTLS_SSL_SRV_C:MBEDTLS_TEST_AT_LEAST_ONE_TLS1_3_CIPHERSUITE:MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED:MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED:MBEDTLS_TEST_HAS_DEFAULT_EC_GROUP:PSA_WANT_ALG_SHA_256:MBEDTLS_X509_RSASSA_PSS_SUPPORT:PSA_WANT_ALG_RSA_PKCS1V15_SIGN:MBEDTLS_SSL_SESSION_TICKETS */
+void tls13_drop_early_data(int insert_end_of_early_data)
+{
+    int ret = -1;
+    mbedtls_test_ssl_endpoint client_ep, server_ep;
+    memset(&client_ep, 0, sizeof(client_ep));
+    memset(&server_ep, 0, sizeof(server_ep));
+
+    mbedtls_test_handshake_test_options client_options, server_options;
+    mbedtls_test_init_handshake_options(&client_options);
+    mbedtls_test_init_handshake_options(&server_options);
+
+    mbedtls_ssl_session saved_session;
+    mbedtls_ssl_session_init(&saved_session);
+
+    const char *early_data = "This is early data.";
+    size_t early_data_len = strlen(early_data);
+    unsigned char buf[256];
+
+    PSA_INIT();
+
+    /*
+     * Run first handshake to get a ticket from the server.
+     */
+
+    client_options.early_data = MBEDTLS_SSL_EARLY_DATA_ENABLED;
+    server_options.early_data = MBEDTLS_SSL_EARLY_DATA_ENABLED;
+    ret = mbedtls_test_get_tls13_ticket(&client_options, &server_options,
+                                        &saved_session);
+    TEST_EQUAL(ret, 0);
+
+    /*
+     * Prepare for handshake with the ticket.
+     */
+    ret = mbedtls_test_ssl_endpoint_init(&client_ep, MBEDTLS_SSL_IS_CLIENT,
+                                         &client_options);
+    TEST_EQUAL(ret, 0);
+
+    ret = mbedtls_test_ssl_endpoint_init(&server_ep, MBEDTLS_SSL_IS_SERVER,
+                                         &server_options);
+    TEST_EQUAL(ret, 0);
+
+    mbedtls_ssl_conf_session_tickets_cb(&server_ep.conf,
+                                        mbedtls_test_ticket_write,
+                                        mbedtls_test_ticket_parse,
+                                        NULL);
+
+    ret = mbedtls_test_mock_socket_connect(&(client_ep.socket),
+                                           &(server_ep.socket), 1024);
+    TEST_EQUAL(ret, 0);
+
+    ret = mbedtls_ssl_set_session(&(client_ep.ssl), &saved_session);
+    TEST_EQUAL(ret, 0);
+
+    /*
+     * Initiate handshake with ticket, up to the point where the client has
+     * written the ClientHello and only the ClientHello in its output socket
+     * buffer.
+     */
+#if defined(MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE)
+    TEST_EQUAL(mbedtls_test_move_handshake_to_state(
+                   &(client_ep.ssl), &(server_ep.ssl),
+                   MBEDTLS_SSL_CLIENT_CCS_AFTER_CLIENT_HELLO), 0);
+#else
+    TEST_EQUAL(mbedtls_test_move_handshake_to_state(
+                   &(client_ep.ssl), &(server_ep.ssl),
+                   MBEDTLS_SSL_SERVER_HELLO), 0);
+#endif
+    TEST_EQUAL(mbedtls_ssl_flush_output(&client_ep.ssl), 0);
+
+    if (insert_end_of_early_data) {
+        /*
+         * Append an EndOfEarlyData message at the end of the record, just
+         * after the ClientHello message.
+         */
+        unsigned char *client_output_buffer = client_ep.socket.output->buffer;
+        size_t record_size = MBEDTLS_GET_UINT16_BE(client_output_buffer, 3);
+
+        MBEDTLS_PUT_UINT16_BE(record_size + 4, client_output_buffer, 3);
+        unsigned char end_of_early_data[] = { 0x05, 0x00, 0x00, 0x00 };
+        ret = mbedtls_test_ssl_buffer_put(client_ep.socket.output,
+                                          end_of_early_data,
+                                          sizeof(end_of_early_data));
+        TEST_EQUAL(ret, (int) sizeof(end_of_early_data));
+    }
+
+    /*
+     * The server read the record containing the ClientHello and possibly the
+     * EndOfEarlyData message and parse the ClientHello.
+     */
+    TEST_EQUAL(mbedtls_test_move_handshake_to_state(
+                   &(server_ep.ssl), &(client_ep.ssl),
+                   MBEDTLS_SSL_SERVER_HELLO), 0);
+
+    /* The client application writes early data */
+    ret = mbedtls_ssl_write_early_data(&(client_ep.ssl),
+                                       (unsigned char *) early_data,
+                                       early_data_len);
+    TEST_EQUAL(ret, early_data_len);
+
+    /* Drop early data */
+    TEST_ASSERT(client_ep.socket.output->content_length <= sizeof(buf));
+    mbedtls_test_ssl_buffer_get(client_ep.socket.output, buf, sizeof(buf));
+    TEST_EQUAL(server_ep.socket.input->content_length, 0);
+
+    /*
+     * Resume the handshake, up to the point where the client is about to write
+     * the EndOfEarlyData message.
+     */
+    TEST_EQUAL(mbedtls_test_move_handshake_to_state(
+                   &(client_ep.ssl), &(server_ep.ssl),
+                   MBEDTLS_SSL_END_OF_EARLY_DATA), 0);
+    TEST_EQUAL(client_ep.ssl.state, MBEDTLS_SSL_END_OF_EARLY_DATA);
+
+    if (insert_end_of_early_data) {
+        /*
+         * Let the client write the EndOfEarlyData message and then read it
+         * from the output socket buffer, preventing it to reach the server as
+         * we have already inserted one.
+         */
+        ret = mbedtls_ssl_handshake_step(&client_ep.ssl);
+        TEST_EQUAL(ret, 0);
+        ret = mbedtls_ssl_flush_output(&client_ep.ssl);
+        TEST_EQUAL(ret, 0);
+        TEST_ASSERT(client_ep.socket.output->content_length <= sizeof(buf));
+        mbedtls_test_ssl_buffer_get(client_ep.socket.output, buf, sizeof(buf));
+    }
+
+    ret = mbedtls_test_move_handshake_to_state(&(server_ep.ssl),
+                                               &(client_ep.ssl),
+                                               MBEDTLS_SSL_HANDSHAKE_OVER);
+    if (insert_end_of_early_data) {
+        TEST_EQUAL(ret, 0);
+    } else {
+        /*
+         * If we have just dropped the early data then the EndOfEarlyData
+         * message is encrypted with the record number 1 while the server
+         * expects it to be encrypted with record number 0. Thus the
+         * handshake fails with MBEDTLS_ERR_SSL_INVALID_MAC.
+         */
+        TEST_EQUAL(ret, MBEDTLS_ERR_SSL_INVALID_MAC);
+    }
+
+exit:
+    mbedtls_test_ssl_endpoint_free(&client_ep);
+    mbedtls_test_ssl_endpoint_free(&server_ep);
+    mbedtls_test_free_handshake_options(&client_options);
+    mbedtls_test_free_handshake_options(&server_options);
+    mbedtls_ssl_session_free(&saved_session);
+    PSA_DONE();
+}
+/* END_CASE */

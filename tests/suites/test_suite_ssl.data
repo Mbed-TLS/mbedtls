@@ -3586,3 +3586,9 @@ send_invalid_sig_alg:MBEDTLS_SSL_SIG_ECDSA:MBEDTLS_SSL_HASH_SHA512:MBEDTLS_ERR_S
 TLS 1.2 NewSessionTicket: failing ticket callback leaves lifetime unset
 depends_on:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_SSL_SESSION_TICKETS:MBEDTLS_SSL_CLI_C:MBEDTLS_SSL_SRV_C:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:PSA_HAVE_ALG_SOME_RSA_SIGN:PSA_WANT_ECC_SECP_R1_384:PSA_WANT_ALG_SHA_256:PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY:MBEDTLS_CAN_HANDLE_RSA_TEST_KEY
 write_new_session_ticket_mem
+
+TLS 1.3 drop early data
+tls13_drop_early_data:0
+
+TLS 1.3 drop early data and insert an EndOfEarlyData
+tls13_drop_early_data:1

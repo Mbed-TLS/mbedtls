@@ -8922,6 +8922,37 @@ run_test    "DHM size: server default, client 2049, rejected" \
             1 \
             -c "DHM prime too short:"
 
+# Miscellaneous PSK-related tests
+
+psk_identity_max_minus_10=a$(printf "%$((MAX_OUT_LEN - 11))s" z | tr ' ' .)
+
+run_test    "Large PSK identity (MBEDTLS_SSL_OUT_CONTENT_LEN - 7)" \
+            "$P_SRV debug_level=3 \
+                    psk_identity=${psk_identity_max_minus_10}987 psk=73776f726466697368" \
+            "$P_CLI force_ciphersuite=TLS-ECDHE-PSK-WITH-AES-128-CBC-SHA256 debug_level=3 \
+                    psk_identity=${psk_identity_max_minus_10}987 psk=73776f726466697368" \
+            1 \
+            -s "! mbedtls_ssl_handshake returned" \
+            -c "! mbedtls_ssl_handshake returned"
+
+run_test    "Large PSK identity (MBEDTLS_SSL_OUT_CONTENT_LEN - 6)" \
+            "$P_SRV debug_level=3 \
+                    psk_identity=${psk_identity_max_minus_10}9876 psk=73776f726466697368" \
+            "$P_CLI force_ciphersuite=TLS-ECDHE-PSK-WITH-AES-128-CBC-SHA256 debug_level=3 \
+                    psk_identity=${psk_identity_max_minus_10}9876 psk=73776f726466697368" \
+            1 \
+            -s "! mbedtls_ssl_handshake returned" \
+            -c "! mbedtls_ssl_handshake returned"
+
+run_test    "Large PSK identity (MBEDTLS_SSL_OUT_CONTENT_LEN - 5)" \
+            "$P_SRV debug_level=3 \
+                    psk_identity=${psk_identity_max_minus_10}98765 psk=73776f726466697368" \
+            "$P_CLI force_ciphersuite=TLS-ECDHE-PSK-WITH-AES-128-CBC-SHA256 debug_level=3 \
+                    psk_identity=${psk_identity_max_minus_10}98765 psk=73776f726466697368" \
+            1 \
+            -s "! mbedtls_ssl_handshake returned" \
+            -c "! mbedtls_ssl_handshake returned"
+
 # Tests for PSK callback
 
 run_test    "PSK callback: psk, no callback" \

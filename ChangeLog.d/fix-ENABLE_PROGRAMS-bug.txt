@@ -1,2 +1,2 @@
 Bugfix
-   * Add fix for -DENABLE_PROGRAMS=OFF build error reported in issue 10587.
+   * Fix failure of cmake -DENABLE_PROGRAMS=OFF. Fixes #10587.

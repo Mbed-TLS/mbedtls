@@ -97,7 +97,9 @@ void chacha20_input_len_too_long(void)
     /* Consume the rest of the final counter block, then reject more input. */
     TEST_EQUAL(mbedtls_chacha20_update(&ctx, 63, input, output), 0);
     TEST_EQUAL(mbedtls_chacha20_update(&ctx, 0, NULL, NULL), 0);
-    TEST_EQUAL(mbedtls_chacha20_update(&ctx, 1, input, output),
+/*Test that zero length update does not break an exhausted context */
+TEST_EQUAL(mbedtls_chacha20_update(&ctx, 0, NULL, NULL), 0);
+TEST_EQUAL(mbedtls_chacha20_update(&ctx, 1, input, output),
                MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA);
 
     /* The final counter block is valid, but generating another block is not. */

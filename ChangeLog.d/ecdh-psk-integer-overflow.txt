@@ -1,2 +1,3 @@
 Security
-   * Fix a remote buffer overflow in (D)TLS with ECDHE-PSK cipher suites when CBC is disabled.
+   * Fix a remote buffer overflow in (D)TLS with ECDHE-PSK cipher suites when
+     CBC is disabled.

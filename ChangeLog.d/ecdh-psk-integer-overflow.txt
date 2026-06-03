@@ -1,2 +1,2 @@
-Bugfix
-   * Add fix for ecdh-psk integer overflow with large identity.
+Security
+   * Fix a remote buffer overflow in (D)TLS with ECDHE-PSK cipher suites when CBC is disabled.

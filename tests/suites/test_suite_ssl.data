@@ -669,13 +669,19 @@ Sending app data via DTLS, without MFL and with fragmentation
 app_data_dtls:MBEDTLS_SSL_MAX_FRAG_LEN_NONE:16385:100000:0:0
 
 DTLS renegotiation: no legacy renegotiation
-renegotiation:MBEDTLS_SSL_LEGACY_NO_RENEGOTIATION
+renegotiation:MBEDTLS_SSL_LEGACY_NO_RENEGOTIATION:-1
 
 DTLS renegotiation: legacy renegotiation
-renegotiation:MBEDTLS_SSL_LEGACY_ALLOW_RENEGOTIATION
+renegotiation:MBEDTLS_SSL_LEGACY_ALLOW_RENEGOTIATION:-1
 
 DTLS renegotiation: legacy break handshake
-renegotiation:MBEDTLS_SSL_LEGACY_BREAK_HANDSHAKE
+renegotiation:MBEDTLS_SSL_LEGACY_BREAK_HANDSHAKE:-1
+
+DTLS renegotiation: after bad MAC on client
+renegotiation:MBEDTLS_SSL_LEGACY_NO_RENEGOTIATION:MBEDTLS_SSL_IS_CLIENT
+
+DTLS renegotiation: after bad MAC on server
+renegotiation:MBEDTLS_SSL_LEGACY_NO_RENEGOTIATION:MBEDTLS_SSL_IS_SERVER
 
 DTLS serialization with MFL=512
 resize_buffers_serialize_mfl:MBEDTLS_SSL_MAX_FRAG_LEN_512

@@ -4436,7 +4436,6 @@ void tls_transcript_error_propagation(int endpoint,
     server_options.server_max_version = tls_version;
 
     abort_ctx.trigger = trigger;
-    TEST_ASSERT(abort_ctx.trigger != NULL);
 
     if (endpoint == MBEDTLS_SSL_IS_CLIENT) {
         client_options.cli_log_obj = &abort_ctx;

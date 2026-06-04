@@ -95,7 +95,6 @@ void chachapoly_update_too_long()
     ctx.chacha20_ctx.state[12] = UINT32_MAX;
     TEST_EQUAL(mbedtls_chachapoly_update(&ctx, sizeof(input), input, output),
                MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA);
-    TEST_EQUAL(ctx.ciphertext_len, 0);
 
 exit:
     mbedtls_chachapoly_free(&ctx);

@@ -10,3 +10,4 @@ Security
      could allow a server to issue resumption tickets derived from an invalid
      resumption secret, weakening authentication of future resumptions made
      with those tickets.
+   * Reported by jjfz123 / https://github.com/jjfz123 / https://www.linkedin.com/in/jjfdzcastro1/

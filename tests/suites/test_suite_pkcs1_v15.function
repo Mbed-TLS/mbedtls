@@ -158,6 +158,47 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
+void rsa_decrypt_decompose_ret(int input,
+                               int expected_ret, int expected_problem)
+{
+    const int sensitive_in_1 = -1;
+    const int sensitive_in_2 = -2;
+    const int problem_1 = -11;
+    const int problem_2 = -12;
+
+    int combined_ret = input;
+    TEST_CF_SECRET(&combined_ret, sizeof(combined_ret));
+    int actual_problem = 42;
+    TEST_CF_SECRET(&actual_problem, sizeof(actual_problem));
+
+    int actual_ret = mbedtls_rsa_decrypt_decompose_ret(sensitive_in_1, problem_1,
+                                                       sensitive_in_2, problem_2,
+                                                       input,
+                                                       &actual_problem);
+
+    TEST_EQUAL(actual_problem, expected_problem);
+    TEST_EQUAL(actual_ret, expected_ret);
+
+    /* Check invariant when there's no translation, only separation */
+    actual_ret = mbedtls_rsa_decrypt_decompose_ret(sensitive_in_1, sensitive_in_1,
+                                                   sensitive_in_2, sensitive_in_2,
+                                                   input,
+                                                   &actual_problem);
+    TEST_EQUAL(actual_ret, expected_ret);
+    if (expected_problem == problem_1) {
+        TEST_EQUAL(actual_problem, sensitive_in_1);
+    } else if (expected_problem == problem_2) {
+        TEST_EQUAL(actual_problem, sensitive_in_2);
+    } else {
+        TEST_EQUAL(actual_problem, 0);
+    }
+    TEST_CF_PUBLIC(&actual_problem, sizeof(actual_problem));
+    TEST_CF_PUBLIC(&combined_ret, sizeof(combined_ret));
+    TEST_EQUAL(actual_problem | actual_ret, combined_ret);
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
 void pkcs1_v15_decode(data_t *input,
                       int expected_plaintext_length_arg,
                       int output_size_arg,

@@ -155,4 +155,34 @@ MBEDTLS_STATIC_TESTABLE int mbedtls_ct_rsaes_pkcs1_v15_unpadding(
 #endif /* MBEDTLS_PKCS1_V15 && MBEDTLS_RSA_C && ! MBEDTLS_RSA_ALT */
 #endif /* MBEDTLS_TEST_HOOKS */
 
+#if defined(MBEDTLS_PKCS1_V15) && defined(MBEDTLS_RSA_C)
+/** Decompose sensitive return values out of a return code, in constant time.
+ *
+ * \param invalid_padding_in    The value of \p combined_ret that indicates
+ *                              invalid padding.
+ * \param invalid_padding_out   The value to set \p problem to in case of
+ *                              invalid padding.
+ * \param output_too_large_in   The value of \p combined_ret that indicates
+ *                              an insufficient output buffer size.
+ * \param output_too_large_out  The value to set \p problem to in case of
+ *                              an insufficient output buffer size.
+ * \param combined_ret          The value to decompose.
+ * \param[out] problem          On output:
+ *                              - \p invalid_padding_out,
+ *                                if \p combined_ret = \p invalid_padding_in;
+ *                              - \p output_too_large_out,
+ *                                if \p combined_ret = \p output_too_large_in;
+ *                              - otherwise \c 0.
+ *
+ * \return                      - \c 0 if \p combined_ret = \p invalid_padding_in
+ *                                or \p combined_ret = \p output_too_large_in;
+ *                              - otherwise \c combined_ret.
+ */
+int mbedtls_rsa_decrypt_decompose_ret(
+    int invalid_padding_in, int invalid_padding_out,
+    int output_too_large_in, int output_too_large_out,
+    int combined_ret,
+    int *problem);
+#endif
+
 #endif /* rsa_internal.h */

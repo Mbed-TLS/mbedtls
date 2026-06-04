@@ -653,28 +653,22 @@ psa_status_t mbedtls_psa_asymmetric_decrypt(const psa_key_attributes_t *attribut
 
         if (alg == PSA_ALG_RSA_PKCS1V15_CRYPT) {
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PKCS1V15_CRYPT)
-            int ret = mbedtls_rsa_rsaes_pkcs1_v15_decrypt(
+            int combined_ret = mbedtls_rsa_rsaes_pkcs1_v15_decrypt(
                 rsa, mbedtls_psa_get_random, MBEDTLS_PSA_RANDOM_STATE,
                 output_length, input, output, output_size);
 
-            /* We want to convert ret into a psa status without allowing an
-             * attacker to distinguish between 0, invalid padding, or buffer too
-             * small. (It's OK if the attacker distinguishes between one of the
-             * above three and other status such as out of memory.) Since
-             * mbedtls_to_psa_error() is leaky, hide the difference from it. */
-            mbedtls_ct_condition_t bad_padding = mbedtls_ct_uint_eq(
-                (mbedtls_ct_uint_t) ret,
-                (mbedtls_ct_uint_t) MBEDTLS_ERR_RSA_INVALID_PADDING);
-            mbedtls_ct_condition_t large_msg = mbedtls_ct_uint_eq(
-                (mbedtls_ct_uint_t) ret,
-                (mbedtls_ct_uint_t) MBEDTLS_ERR_RSA_OUTPUT_TOO_LARGE);
-            ret = mbedtls_ct_error_if(bad_padding, 0, ret);
-            ret = mbedtls_ct_error_if(large_msg, 0, ret);
-            status = mbedtls_to_psa_error(ret);
-            status = mbedtls_ct_error_if(bad_padding,
-                                         PSA_ERROR_INVALID_PADDING, status);
-            status = mbedtls_ct_error_if(large_msg,
-                                         PSA_ERROR_BUFFER_TOO_SMALL, status);
+            /* Translate error codes from legacy to PSA.
+             * Success vs INVALID_PADDING vs OUTPUT_TOO_LARGE is sensitive
+             * (padding oracle attack), so we take care to translate that
+             * part in constant time.
+             */
+            int problem;
+            int public_ret = mbedtls_rsa_decrypt_decompose_ret(
+                MBEDTLS_ERR_RSA_INVALID_PADDING, PSA_ERROR_INVALID_PADDING,
+                MBEDTLS_ERR_RSA_OUTPUT_TOO_LARGE, PSA_ERROR_BUFFER_TOO_SMALL,
+                combined_ret, &problem);
+            status = mbedtls_to_psa_error(public_ret);
+            status |= problem;
 #else
             status = PSA_ERROR_NOT_SUPPORTED;
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_RSA_PKCS1V15_CRYPT */

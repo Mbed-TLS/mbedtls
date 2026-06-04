@@ -542,6 +542,32 @@ MBEDTLS_STATIC_TESTABLE int mbedtls_ct_rsaes_pkcs1_v15_unpadding(
 
 #endif /* MBEDTLS_PKCS1_V15 && MBEDTLS_RSA_C && ! MBEDTLS_RSA_ALT */
 
+#if defined(MBEDTLS_PKCS1_V15) && defined(MBEDTLS_RSA_C)
+int mbedtls_rsa_decrypt_decompose_ret(
+    int invalid_padding_in, int invalid_padding_out,
+    int output_too_large_in, int output_too_large_out,
+    int combined_ret,
+    int *problem)
+{
+    *problem = 0;
+    int ret = combined_ret;
+
+    const mbedtls_ct_condition_t invalid_padding_cond =
+        mbedtls_ct_uint_eq((mbedtls_ct_uint_t) ret,
+                           (mbedtls_ct_uint_t) invalid_padding_in);
+    *problem = mbedtls_ct_error_if(invalid_padding_cond, invalid_padding_out, *problem);
+    ret = mbedtls_ct_error_if(invalid_padding_cond, 0, ret);
+
+    const mbedtls_ct_condition_t output_too_large_cond =
+        mbedtls_ct_uint_eq((mbedtls_ct_uint_t) ret,
+                           (mbedtls_ct_uint_t) output_too_large_in);
+    *problem = mbedtls_ct_error_if(output_too_large_cond, output_too_large_out, *problem);
+    ret = mbedtls_ct_error_if(output_too_large_cond, 0, ret);
+
+    return ret;
+}
+#endif /* MBEDTLS_PKCS1_V15 && MBEDTLS_RSA_C */
+
 #if !defined(MBEDTLS_RSA_ALT)
 
 int mbedtls_rsa_import(mbedtls_rsa_context *ctx,

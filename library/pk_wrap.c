@@ -331,24 +331,18 @@ static int rsa_decrypt_wrap(mbedtls_pk_context *pk,
                                     NULL, 0,
                                     output, osize, olen);
 
-    /* We want to convert status into an MBEDTLS code without allowing an
-     * attacker to distinguish between 0, invalid padding, or buffer too
-     * small. (It's OK if the attacker distinguishes between one of the
-     * above three and other status such as out of memory.) Since
-     * PSA_PK_RSA_TO_MBEDTLS_ERR() is leaky, hide the difference from it. */
-    mbedtls_ct_condition_t bad_padding = mbedtls_ct_uint_eq(
-        (mbedtls_ct_uint_t) status,
-        (mbedtls_ct_uint_t) PSA_ERROR_INVALID_PADDING);
-    mbedtls_ct_condition_t large_msg = mbedtls_ct_uint_eq(
-        (mbedtls_ct_uint_t) status,
-        (mbedtls_ct_uint_t) PSA_ERROR_BUFFER_TOO_SMALL);
-    status = mbedtls_ct_error_if(bad_padding, 0, status);
-    status = mbedtls_ct_error_if(large_msg, 0, status);
+    /* Translate error codes from PSA to legacy
+     * Success vs INVALID_PADDING vs BUFFER_TOO_SMALL is sensitive
+     * (padding oracle attack), so we take care to translate that
+     * part in constant time.
+     */
+    int problem;
+    status = mbedtls_rsa_decrypt_decompose_ret(
+        PSA_ERROR_INVALID_PADDING, MBEDTLS_ERR_RSA_INVALID_PADDING,
+        PSA_ERROR_BUFFER_TOO_SMALL, MBEDTLS_ERR_RSA_OUTPUT_TOO_LARGE,
+        status, &problem);
     ret = PSA_PK_RSA_TO_MBEDTLS_ERR(status);
-    ret = mbedtls_ct_error_if(bad_padding,
-                              MBEDTLS_ERR_RSA_INVALID_PADDING, ret);
-    ret = mbedtls_ct_error_if(large_msg,
-                              MBEDTLS_ERR_RSA_OUTPUT_TOO_LARGE, ret);
+    ret |= problem;
 
 cleanup:
     mbedtls_zeroize_and_free(buf, buf_size);

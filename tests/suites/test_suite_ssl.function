@@ -4015,11 +4015,13 @@ void reject_hrr_selecting_unoffered_group(void)
         int select_unoffered_group = (round != 0);
         TEST_EQUAL(mbedtls_test_ssl_endpoint_init(&client_ep,
                                                   MBEDTLS_SSL_IS_CLIENT,
-                                                  &client_options), 0);
+                                                  &client_options, NULL, NULL,
+                                                  NULL), 0);
 
         TEST_EQUAL(mbedtls_test_ssl_endpoint_init(&server_ep,
                                                   MBEDTLS_SSL_IS_SERVER,
-                                                  &server_options), 0);
+                                                  &server_options, NULL, NULL,
+                                                  NULL), 0);
 
         TEST_EQUAL(mbedtls_test_mock_socket_connect(&(client_ep.socket),
                                                     &(server_ep.socket), 4096), 0);
@@ -4062,13 +4064,13 @@ void reject_hrr_selecting_unoffered_group(void)
             TEST_EQUAL(cli_pattern.counter, 1);
 #endif /* MBEDTLS_DEBUG_C */
         }
-        mbedtls_test_ssl_endpoint_free(&client_ep);
-        mbedtls_test_ssl_endpoint_free(&server_ep);
+        mbedtls_test_ssl_endpoint_free(&client_ep, NULL);
+        mbedtls_test_ssl_endpoint_free(&server_ep, NULL);
     }
 
 exit:
-    mbedtls_test_ssl_endpoint_free(&client_ep);
-    mbedtls_test_ssl_endpoint_free(&server_ep);
+    mbedtls_test_ssl_endpoint_free(&client_ep, NULL);
+    mbedtls_test_ssl_endpoint_free(&server_ep, NULL);
     mbedtls_test_free_handshake_options(&client_options);
     mbedtls_test_free_handshake_options(&server_options);
 #if defined(MBEDTLS_DEBUG_C)

@@ -4413,85 +4413,85 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_SSL_TLS_C:MBEDTLS_DEBUG_C:MBEDTLS_SSL_CLI_C:MBEDTLS_SSL_SRV_C:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:MBEDTLS_TEST_HAS_DEFAULT_EC_GROUP:PSA_WANT_ALG_SHA_256 */
-void tls_transcript_error_propagation(int endpoint,                             
-                                      int tls_version,                          
-                                      const char *trigger,                      
-                                      int target_state,                         
-                                      int peer_target_state)                    
-{                                                                               
-    int ret = -1;                                                               
-    mbedtls_test_ssl_endpoint client_ep, server_ep;                             
-    mbedtls_test_handshake_test_options client_options;                         
-    mbedtls_test_init_handshake_options(&client_options);                       
-    mbedtls_test_handshake_test_options server_options;                         
-    mbedtls_test_init_handshake_options(&server_options);                       
-    tls_abort_transcript_context abort_ctx;                                     
-    memset(&abort_ctx, 0, sizeof(abort_ctx));                                   
-    mbedtls_ssl_context *peer_ssl_context = NULL;                               
-                                                                                
-    PSA_INIT();                                                                 
-                                                                                
-    client_options.client_min_version = tls_version;                            
-    client_options.client_max_version = tls_version;                            
-    server_options.server_min_version = tls_version;                            
-    server_options.server_max_version = tls_version;                            
-                                                                                
-    abort_ctx.trigger = trigger;                                                
-    TEST_ASSERT(abort_ctx.trigger != NULL);                                     
-                                                                                
-    if (endpoint == MBEDTLS_SSL_IS_CLIENT) {                                    
-        client_options.cli_log_obj = &abort_ctx;                                
-        client_options.cli_log_fun = tls_abort_transcript;                      
-        abort_ctx.ssl = &client_ep.ssl;                                         
-        peer_ssl_context = &server_ep.ssl;                                      
-    } else {                                                                    
-        server_options.srv_log_obj = &abort_ctx;                                
-        server_options.srv_log_fun = tls_abort_transcript;                      
-        abort_ctx.ssl = &server_ep.ssl;                                         
-        peer_ssl_context = &client_ep.ssl;                                      
-    }                                                                           
-                                                                                
-    mbedtls_debug_set_threshold(4);                                             
-                                                                                
+void tls_transcript_error_propagation(int endpoint,
+                                      int tls_version,
+                                      const char *trigger,
+                                      int target_state,
+                                      int peer_target_state)
+{
+    int ret = -1;
+    mbedtls_test_ssl_endpoint client_ep, server_ep;
+    mbedtls_test_handshake_test_options client_options;
+    mbedtls_test_init_handshake_options(&client_options);
+    mbedtls_test_handshake_test_options server_options;
+    mbedtls_test_init_handshake_options(&server_options);
+    tls_abort_transcript_context abort_ctx;
+    memset(&abort_ctx, 0, sizeof(abort_ctx));
+    mbedtls_ssl_context *peer_ssl_context = NULL;
+
+    PSA_INIT();
+
+    client_options.client_min_version = tls_version;
+    client_options.client_max_version = tls_version;
+    server_options.server_min_version = tls_version;
+    server_options.server_max_version = tls_version;
+
+    abort_ctx.trigger = trigger;
+    TEST_ASSERT(abort_ctx.trigger != NULL);
+
+    if (endpoint == MBEDTLS_SSL_IS_CLIENT) {
+        client_options.cli_log_obj = &abort_ctx;
+        client_options.cli_log_fun = tls_abort_transcript;
+        abort_ctx.ssl = &client_ep.ssl;
+        peer_ssl_context = &server_ep.ssl;
+    } else {
+        server_options.srv_log_obj = &abort_ctx;
+        server_options.srv_log_fun = tls_abort_transcript;
+        abort_ctx.ssl = &server_ep.ssl;
+        peer_ssl_context = &client_ep.ssl;
+    }
+
+    mbedtls_debug_set_threshold(4);
+
     TEST_EQUAL(mbedtls_test_ssl_endpoint_init(&client_ep, MBEDTLS_SSL_IS_CLIENT,
-                                              &client_options), 0);             
+                                              &client_options), 0);
     TEST_EQUAL(mbedtls_test_ssl_endpoint_init(&server_ep, MBEDTLS_SSL_IS_SERVER,
                                               &server_options), 0);
-                                              
-   /* Keep enough socket capacity for setup traffic so the final step below    
+
+    /* Keep enough socket capacity for setup traffic so the final step below
      * exercises the target state instead of only flushing previous messages. */
-    TEST_EQUAL(mbedtls_test_mock_socket_connect(&(client_ep.socket),            
-                                                &(server_ep.socket), 4096), 0); 
-                                                                                
-    TEST_EQUAL(mbedtls_test_move_handshake_to_state(                            
-                   abort_ctx.ssl, peer_ssl_context,                             
-                   target_state), 0);                                           
-    /*                                                                          
-     * Advance the peer further through the handshake so that it emits the      
-     * messages needed by the endpoint under test to proceed through its next   
-     * step.                                                                    
-     */                                                                         
-    if (peer_target_state != -1) {                                              
-        TEST_EQUAL(mbedtls_test_move_handshake_to_state(                        
-                       peer_ssl_context, abort_ctx.ssl,                         
-                       peer_target_state), 0);                                  
-    }                                                                           
-                                                                                
-    TEST_EQUAL(mbedtls_ssl_flush_output(abort_ctx.ssl), 0);                     
-    TEST_EQUAL(abort_ctx.ssl->state, target_state);                             
-    TEST_EQUAL(abort_ctx.triggered, 0);                                         
-                                                                                
-    ret = mbedtls_ssl_handshake_step(abort_ctx.ssl);                            
-    TEST_ASSERT(abort_ctx.triggered);                                           
-    TEST_ASSERT(ret != 0);                                                      
-                                                                                
-exit:                                                                           
-    mbedtls_test_ssl_endpoint_free(&client_ep);                                 
-    mbedtls_test_ssl_endpoint_free(&server_ep);                                 
-    mbedtls_test_free_handshake_options(&client_options);                       
-    mbedtls_test_free_handshake_options(&server_options);                       
-    mbedtls_debug_set_threshold(0);                                             
-    PSA_DONE();                                                                 
+    TEST_EQUAL(mbedtls_test_mock_socket_connect(&(client_ep.socket),
+                                                &(server_ep.socket), 4096), 0);
+
+    TEST_EQUAL(mbedtls_test_move_handshake_to_state(
+                   abort_ctx.ssl, peer_ssl_context,
+                   target_state), 0);
+    /*
+     * Advance the peer further through the handshake so that it emits the
+     * messages needed by the endpoint under test to proceed through its next
+     * step.
+     */
+    if (peer_target_state != -1) {
+        TEST_EQUAL(mbedtls_test_move_handshake_to_state(
+                       peer_ssl_context, abort_ctx.ssl,
+                       peer_target_state), 0);
+    }
+
+    TEST_EQUAL(mbedtls_ssl_flush_output(abort_ctx.ssl), 0);
+    TEST_EQUAL(abort_ctx.ssl->state, target_state);
+    TEST_EQUAL(abort_ctx.triggered, 0);
+
+    ret = mbedtls_ssl_handshake_step(abort_ctx.ssl);
+    TEST_ASSERT(abort_ctx.triggered);
+    TEST_ASSERT(ret != 0);
+
+exit:
+    mbedtls_test_ssl_endpoint_free(&client_ep);
+    mbedtls_test_ssl_endpoint_free(&server_ep);
+    mbedtls_test_free_handshake_options(&client_options);
+    mbedtls_test_free_handshake_options(&server_options);
+    mbedtls_debug_set_threshold(0);
+    PSA_DONE();
 }
 /* END_CASE */
 

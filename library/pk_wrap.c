@@ -331,6 +331,7 @@ static int rsa_decrypt_wrap(mbedtls_pk_context *pk,
                                     NULL, 0,
                                     output, osize, olen);
 
+#if defined(MBEDTLS_PKCS1_V15)
     /* Translate error codes from PSA to legacy
      * Success vs INVALID_PADDING vs BUFFER_TOO_SMALL is sensitive
      * (padding oracle attack), so we take care to translate that
@@ -343,6 +344,9 @@ static int rsa_decrypt_wrap(mbedtls_pk_context *pk,
         status, &problem);
     ret = PSA_PK_RSA_TO_MBEDTLS_ERR(status);
     ret |= problem;
+#else
+    ret = PSA_PK_RSA_TO_MBEDTLS_ERR(status);
+#endif
 
 cleanup:
     mbedtls_zeroize_and_free(buf, buf_size);
@@ -1512,6 +1516,7 @@ static int rsa_opaque_decrypt(mbedtls_pk_context *pk,
     }
 
     status = psa_asymmetric_decrypt(pk->priv_id, alg, input, ilen, NULL, 0, output, osize, olen);
+#if defined(MBEDTLS_PKCS1_V15)
     /* Translate error codes from PSA to legacy
      * Success vs INVALID_PADDING vs BUFFER_TOO_SMALL is sensitive
      * (padding oracle attack), so we take care to translate that
@@ -1523,6 +1528,9 @@ static int rsa_opaque_decrypt(mbedtls_pk_context *pk,
         PSA_ERROR_BUFFER_TOO_SMALL, MBEDTLS_ERR_RSA_OUTPUT_TOO_LARGE,
         status, &problem);
     return PSA_PK_RSA_TO_MBEDTLS_ERR(status) | problem;
+#else
+    return PSA_PK_RSA_TO_MBEDTLS_ERR(status);
+#endif
 }
 #endif /* PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC */
 

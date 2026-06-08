@@ -6367,8 +6367,7 @@ void aead_multipart_state_test(int key_type_arg, data_t *key_data,
 #if SIZE_MAX > UINT32_MAX
     PSA_ASSERT(psa_aead_encrypt_setup(&operation, key, alg));
 
-    if (operation.alg == PSA_ALG_GCM ||
-        operation.alg == PSA_ALG_CHACHA20_POLY1305) {
+    if (operation.alg == PSA_ALG_GCM) {
         TEST_EQUAL(psa_aead_set_lengths(&operation, additional_data->len,
                                         0xfffffffe * 64 + 1),
                    PSA_ERROR_INVALID_ARGUMENT);

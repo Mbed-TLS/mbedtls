@@ -6971,6 +6971,9 @@ void tls13_record_boundary_alignment(int endpoint, int handshake_message)
             if (endpoint == MBEDTLS_SSL_IS_CLIENT) {
                 target_state = MBEDTLS_SSL_SERVER_FINISHED;
                 peer_target_state = MBEDTLS_SSL_CLIENT_CERTIFICATE;
+            } else {
+                target_state = MBEDTLS_SSL_CLIENT_FINISHED;
+                peer_target_state = MBEDTLS_SSL_FLUSH_BUFFERS;
             }
             encrypted = 1;
             break;

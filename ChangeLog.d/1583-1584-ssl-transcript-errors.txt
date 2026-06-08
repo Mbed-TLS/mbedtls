@@ -14,3 +14,4 @@ Security
      occurrences could increase the frequency of full handshakes and amplify
      resource consumption during periods of resource exhaustion or other
      transient failures. Reported by jjfz123.
+     CVE-2026-50640

@@ -1512,11 +1512,17 @@ static int rsa_opaque_decrypt(mbedtls_pk_context *pk,
     }
 
     status = psa_asymmetric_decrypt(pk->priv_id, alg, input, ilen, NULL, 0, output, osize, olen);
-    if (status != PSA_SUCCESS) {
-        return PSA_PK_RSA_TO_MBEDTLS_ERR(status);
-    }
-
-    return 0;
+    /* Translate error codes from PSA to legacy
+     * Success vs INVALID_PADDING vs BUFFER_TOO_SMALL is sensitive
+     * (padding oracle attack), so we take care to translate that
+     * part in constant time.
+     */
+    int problem;
+    status = mbedtls_rsa_decrypt_decompose_ret(
+        PSA_ERROR_INVALID_PADDING, MBEDTLS_ERR_RSA_INVALID_PADDING,
+        PSA_ERROR_BUFFER_TOO_SMALL, MBEDTLS_ERR_RSA_OUTPUT_TOO_LARGE,
+        status, &problem);
+    return PSA_PK_RSA_TO_MBEDTLS_ERR(status) | problem;
 }
 #endif /* PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC */
 

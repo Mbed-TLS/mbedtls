@@ -9338,7 +9338,7 @@ run_test    "EC restart: TLS, max_ops=1000" \
             -C "mbedtls_ecdh_make_public.*\(4b00\|-248\)" \
             -c "mbedtls_pk_sign.*\(4b00\|-248\)"
 
-# Note: wen never get to ECDH: abort as soon as we determined the cert is bad.
+# Note: we never get to ECDH: abort as soon as we determined the cert is bad.
 requires_config_enabled MBEDTLS_ECP_RESTARTABLE
 requires_config_enabled PSA_WANT_ECC_SECP_R1_256
 run_test    "EC restart: TLS, max_ops=1000, badsign" \

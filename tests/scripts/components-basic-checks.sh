@@ -106,7 +106,7 @@ component_check_test_dependencies () {
     # mbedtls test on crypto internal feature macros.
     #
     # Most of the time, use of crypto internal feature macros are mistakes,
-    # which this component is maeant to catch. However a few of them are
+    # which this component is meant to catch. However a few of them are
     # justified, or known issues yet to be resolved, so this component includes
     # a list of expected exceptions.
 

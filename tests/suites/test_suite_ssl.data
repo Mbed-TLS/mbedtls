@@ -3601,3 +3601,6 @@ tls13_record_boundary_alignment:MBEDTLS_SSL_IS_CLIENT:MBEDTLS_SSL_HS_SERVER_HELL
 
 TLS 1.3 server Finished record boundary alignement enforcement
 tls13_record_boundary_alignment:MBEDTLS_SSL_IS_CLIENT:MBEDTLS_SSL_HS_FINISHED
+
+TLS 1.3 client Finished record boundary alignement enforcement
+tls13_record_boundary_alignment:MBEDTLS_SSL_IS_SERVER:MBEDTLS_SSL_HS_FINISHED

@@ -3592,3 +3592,6 @@ tls13_drop_early_data:0
 
 TLS 1.3 drop early data and insert an EndOfEarlyData
 tls13_drop_early_data:1
+
+TLS 1.3 ClientHello record boundary alignment enforcement
+tls13_record_boundary_alignment:MBEDTLS_SSL_IS_SERVER:MBEDTLS_SSL_HS_CLIENT_HELLO

@@ -6912,3 +6912,98 @@ exit:
     PSA_DONE();
 }
 /* END_CASE */
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_DEBUG_C:MBEDTLS_SSL_CLI_C:MBEDTLS_SSL_SRV_C:MBEDTLS_TEST_AT_LEAST_ONE_TLS1_3_CIPHERSUITE:MBEDTLS_TEST_HAS_DEFAULT_EC_GROUP:MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED:PSA_WANT_ALG_SHA_256:MBEDTLS_X509_RSASSA_PSS_SUPPORT:PSA_WANT_ALG_RSA_PKCS1V15_SIGN */
+void tls13_record_boundary_alignment(int endpoint, int handshake_message)
+{
+    int ret = -1;
+    int target_state, peer_target_state, encrypted;
+    mbedtls_test_ssl_endpoint client_ep, server_ep;
+
+    mbedtls_test_handshake_test_options client_options, server_options;
+    mbedtls_test_init_handshake_options(&client_options);
+    mbedtls_test_init_handshake_options(&server_options);
+
+    mbedtls_test_mock_socket *socket = NULL;
+    mbedtls_ssl_context *ssl_ctx = NULL;
+    mbedtls_ssl_context *peer_ssl_ctx = NULL;
+    unsigned char dummy_data[] = { 0x00 };
+
+    PSA_INIT();
+
+    switch (handshake_message) {
+        case MBEDTLS_SSL_HS_CLIENT_HELLO:
+            TEST_EQUAL(endpoint, MBEDTLS_SSL_IS_SERVER);
+            target_state = MBEDTLS_SSL_CLIENT_HELLO;
+            peer_target_state = MBEDTLS_SSL_SERVER_HELLO;
+            encrypted = 0;
+            break;
+
+        default:
+            TEST_ASSERT(0);
+    }
+
+    if (endpoint == MBEDTLS_SSL_IS_CLIENT) {
+        ssl_ctx = &client_ep.ssl;
+        peer_ssl_ctx = &server_ep.ssl;
+        socket = &client_ep.socket;
+    } else {
+        ssl_ctx = &server_ep.ssl;
+        peer_ssl_ctx = &client_ep.ssl;
+        socket = &server_ep.socket;
+    }
+
+    TEST_EQUAL(mbedtls_test_ssl_endpoint_init(&client_ep, MBEDTLS_SSL_IS_CLIENT,
+                                              &client_options), 0);
+    TEST_EQUAL(mbedtls_test_ssl_endpoint_init(&server_ep, MBEDTLS_SSL_IS_SERVER,
+                                              &server_options), 0);
+    TEST_EQUAL(mbedtls_test_mock_socket_connect(&(client_ep.socket),
+                                                &(server_ep.socket), 1024), 0);
+
+    TEST_EQUAL(mbedtls_test_move_handshake_to_state(
+                   ssl_ctx, peer_ssl_ctx, target_state), 0);
+    TEST_EQUAL(mbedtls_ssl_flush_output(ssl_ctx), 0);
+    /*
+     * Advance the peer further through the handshake so that it emits the
+     * messages needed by the endpoint under test to proceed through its next
+     * step.
+     */
+    if (peer_target_state != -1) {
+        TEST_EQUAL(mbedtls_test_move_handshake_to_state(
+                       peer_ssl_ctx, ssl_ctx, peer_target_state), 0);
+        TEST_EQUAL(mbedtls_ssl_flush_output(peer_ssl_ctx), 0);
+    }
+    TEST_EQUAL(ssl_ctx->state, target_state);
+
+    if (encrypted) {
+        TEST_ASSERT(0);
+    } else {
+        /*
+         * In case of the unencrypted ClientHello or ServerHello, add an
+         * additional byte to the record that contains the handshake message.
+         * The byte is added in the socket buffer, before to be fetched by
+         * `mbedtls_ssl_read_record()`, simulating a man-in-the-middle tampering
+         * with the record.
+         */
+        unsigned char *input_buffer = socket->input->buffer;
+        size_t record_size = MBEDTLS_GET_UINT16_BE(input_buffer, 3);
+        ret = mbedtls_test_ssl_buffer_put(socket->input, dummy_data,
+                                          sizeof(dummy_data));
+        TEST_EQUAL(ret, (int) sizeof(dummy_data));
+        MBEDTLS_PUT_UINT16_BE(record_size + sizeof(dummy_data), input_buffer, 3);
+    }
+
+    ret = mbedtls_ssl_handshake_step(ssl_ctx);
+    TEST_EQUAL(ret, MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE);
+    TEST_EQUAL(ssl_ctx->in_msglen,
+               ssl_ctx->in_hslen + sizeof(dummy_data));
+    TEST_EQUAL(ssl_ctx->in_msgtype, MBEDTLS_SSL_MSG_HANDSHAKE);
+    TEST_EQUAL(ssl_ctx->in_msg[0], handshake_message);
+
+exit:
+    mbedtls_test_ssl_endpoint_free(&client_ep);
+    mbedtls_test_ssl_endpoint_free(&server_ep);
+    mbedtls_test_free_handshake_options(&client_options);
+    mbedtls_test_free_handshake_options(&server_options);
+    PSA_DONE();
+}
+/* END_CASE */

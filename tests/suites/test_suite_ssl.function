@@ -6912,6 +6912,13 @@ void tls13_record_boundary_alignment(int endpoint, int handshake_message)
             encrypted = 0;
             break;
 
+        case MBEDTLS_SSL_HS_SERVER_HELLO:
+            TEST_EQUAL(endpoint, MBEDTLS_SSL_IS_CLIENT);
+            target_state = MBEDTLS_SSL_SERVER_HELLO;
+            peer_target_state = MBEDTLS_SSL_ENCRYPTED_EXTENSIONS;
+            encrypted = 0;
+            break;
+
         default:
             TEST_ASSERT(0);
     }

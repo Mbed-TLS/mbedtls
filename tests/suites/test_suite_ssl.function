@@ -6600,12 +6600,13 @@ void write_new_session_ticket_mem()
     ret = mbedtls_ssl_handshake_step(&(server_ep.ssl));
     TEST_EQUAL(ret, 0);
 
-#if defined(MBEDTLS_TEST_HAVE_MSAN)
-    {
-        volatile unsigned char lifetime_byte = server_ep.ssl.out_msg[4];
-        TEST_ASSERT(lifetime_byte != 0xff);
-    }
-#endif
+    /* Force a read of the lifetime value from the outgoing message.
+     * This is a non-regression test for a bug where the lifetime was set from
+     * uninitialized memory.
+     * The read here causes MSan and Valgrind to complain if the bug isn't fixed.
+     */
+    volatile unsigned char lifetime = MBEDTLS_GET_UINT32_BE(server_ep.ssl.out_msg + 4);
+    (void) lifetime;
 
 exit:
     mbedtls_test_ssl_endpoint_free(&client_ep, NULL);

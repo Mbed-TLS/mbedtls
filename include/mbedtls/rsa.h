@@ -737,12 +737,13 @@ int mbedtls_rsa_pkcs1_decrypt(mbedtls_rsa_context *ctx,
  *                 operation (RSAES-PKCS1-v1_5-DECRYPT).
  *
  * \warning        This is an inherently dangerous function (CWE-242). Unless
- *                 it is used in a side channel free and safe way (eg.
- *                 implementing the TLS protocol as per 7.4.7.1 of RFC 5246),
+ *                 it is used in a side channel free and safe way,
  *                 the calling code is vulnerable.
  *                 Specifically, callers need to ensure an adversary cannot
  *                 distinguish between success, MBEDTLS_ERR_RSA_INVALID_PADDING
- *                 and MBEDTLS_ERR_RSA_OUTPUT_TOO_LARGE via side channels.
+ *                 and MBEDTLS_ERR_RSA_OUTPUT_TOO_LARGE. Also, in the latter two
+ *                 cases, the values of the output bytes must be ignored, again
+ *                 without revealing whether that's the case.
  *
  * \note           The output buffer length \c output_max_len should be
  *                 as large as the size \p ctx->len of \p ctx->N, for example,

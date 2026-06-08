@@ -3127,9 +3127,13 @@ psa_status_t psa_asymmetric_encrypt(mbedtls_svc_key_id_t key,
  *
  * \warning         When \p alg is #PSA_ALG_RSA_PKCS1V15_CRYPT, this is an
  *                  inherently dangerous function (CWE-242): unless it is used
- *                  in a side channel free and safe way (eg. implementing the
- *                  TLS protocol as per 7.4.7.1 of RFC 5246), the calling code
+ *                  in a side channel free and safe way, the calling code
  *                  is vulnerable.
+ *                  Specifically, callers need to ensure an adversary cannot
+ *                  distinguish between success, #PSA_ERROR_INVALID_PADDING and
+ *                  #PSA_ERROR_BUFFER_TOO_SMALL. Also, in the latter two cases,
+ *                  the values of the output bytes must be ignored, again
+ *                  without revealing whether that's the case.
  *
  * \param key                   Identifier of the key to use for the operation.
  *                              It must be an asymmetric key pair. It must

@@ -552,6 +552,51 @@ exit:
 
 #endif /* MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED etc */
 
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3) && defined(MBEDTLS_DEBUG_C) && \
+    defined(MBEDTLS_SSL_CLI_C) && defined(MBEDTLS_SSL_SRV_C) && \
+    defined(MBEDTLS_TEST_AT_LEAST_ONE_TLS1_3_CIPHERSUITE) && \
+    defined(MBEDTLS_TEST_HAS_DEFAULT_EC_GROUP) && \
+    defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED) && \
+    defined(PSA_WANT_ALG_SHA_256) && \
+    defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT) && \
+    defined(PSA_WANT_ALG_RSA_PKCS1V15_SIGN)
+typedef struct {
+    /* Context for `tls_tweak_in_msglen()`. The debug callback
+     * watches for "<= read record" in the SSL debug trace. When the pattern is
+     * detected, it increases by `nb_bytes` the 'in_msglen' field of the
+     * associated SSL context.
+     */
+    mbedtls_ssl_context *ssl;
+    int armed;
+    int nb_bytes;
+    int triggered;
+} tls_tweak_in_msglen_context;
+
+static void tls_tweak_in_msglen(void *ctx, int level,
+                                const char *file, int line,
+                                const char *str)
+{
+    tls_tweak_in_msglen_context *tweak_in_msglen_ctx = ctx;
+
+    (void) level;
+    (void) file;
+    (void) line;
+
+    if (!tweak_in_msglen_ctx->armed) {
+        return;
+    }
+    if (strstr(str, "<= read record") == NULL) {
+        return;
+    }
+
+    tweak_in_msglen_ctx->ssl->in_msglen += tweak_in_msglen_ctx->nb_bytes;
+    tweak_in_msglen_ctx->armed = 0;
+    tweak_in_msglen_ctx->triggered++;
+}
+#endif
+
+
+
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -6923,6 +6968,9 @@ void tls13_record_boundary_alignment(int endpoint, int handshake_message)
     mbedtls_test_init_handshake_options(&client_options);
     mbedtls_test_init_handshake_options(&server_options);
 
+    tls_tweak_in_msglen_context tweak_in_msglen_ctx;
+    memset(&tweak_in_msglen_ctx, 0, sizeof(tweak_in_msglen_ctx));
+
     mbedtls_test_mock_socket *socket = NULL;
     mbedtls_ssl_context *ssl_ctx = NULL;
     mbedtls_ssl_context *peer_ssl_ctx = NULL;
@@ -6945,6 +6993,14 @@ void tls13_record_boundary_alignment(int endpoint, int handshake_message)
             encrypted = 0;
             break;
 
+        case MBEDTLS_SSL_HS_FINISHED:
+            if (endpoint == MBEDTLS_SSL_IS_CLIENT) {
+                target_state = MBEDTLS_SSL_SERVER_FINISHED;
+                peer_target_state = MBEDTLS_SSL_CLIENT_CERTIFICATE;
+            }
+            encrypted = 1;
+            break;
+
         default:
             TEST_ASSERT(0);
     }
@@ -6953,11 +7009,18 @@ void tls13_record_boundary_alignment(int endpoint, int handshake_message)
         ssl_ctx = &client_ep.ssl;
         peer_ssl_ctx = &server_ep.ssl;
         socket = &client_ep.socket;
+        client_options.cli_log_obj = &tweak_in_msglen_ctx;
+        client_options.cli_log_fun = tls_tweak_in_msglen;
     } else {
         ssl_ctx = &server_ep.ssl;
         peer_ssl_ctx = &client_ep.ssl;
         socket = &server_ep.socket;
+        server_options.srv_log_obj = &tweak_in_msglen_ctx;
+        server_options.srv_log_fun = tls_tweak_in_msglen;
     }
+
+    mbedtls_debug_set_threshold(2);
+    tweak_in_msglen_ctx.ssl = ssl_ctx;
 
     TEST_EQUAL(mbedtls_test_ssl_endpoint_init(&client_ep, MBEDTLS_SSL_IS_CLIENT,
                                               &client_options), 0);
@@ -6982,7 +7045,15 @@ void tls13_record_boundary_alignment(int endpoint, int handshake_message)
     TEST_EQUAL(ssl_ctx->state, target_state);
 
     if (encrypted) {
-        TEST_ASSERT(0);
+        /*
+         * If the message we want to test the record boundary enforcement is
+         * encrypted, we cannot manipulate easily the record that contains it.
+         * In that case, we tamper with the record size after the record has been
+         * fetched from the socket buffer and decrypted by
+         * `mbedtls_ssl_read_record()`.
+         */
+        tweak_in_msglen_ctx.armed = 1;
+        tweak_in_msglen_ctx.nb_bytes = sizeof(dummy_data);
     } else {
         /*
          * In case of the unencrypted ClientHello or ServerHello, add an
@@ -7006,11 +7077,16 @@ void tls13_record_boundary_alignment(int endpoint, int handshake_message)
     TEST_EQUAL(ssl_ctx->in_msgtype, MBEDTLS_SSL_MSG_HANDSHAKE);
     TEST_EQUAL(ssl_ctx->in_msg[0], handshake_message);
 
+    if (encrypted) {
+        TEST_EQUAL(tweak_in_msglen_ctx.triggered, 1);
+    }
+
 exit:
     mbedtls_test_ssl_endpoint_free(&client_ep);
     mbedtls_test_ssl_endpoint_free(&server_ep);
     mbedtls_test_free_handshake_options(&client_options);
     mbedtls_test_free_handshake_options(&server_options);
+    mbedtls_debug_set_threshold(0);
     PSA_DONE();
 }
 /* END_CASE */

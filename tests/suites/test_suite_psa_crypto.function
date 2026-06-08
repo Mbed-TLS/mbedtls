@@ -6369,7 +6369,13 @@ void aead_multipart_state_test(int key_type_arg, data_t *key_data,
 
     if (operation.alg == PSA_ALG_GCM) {
         TEST_EQUAL(psa_aead_set_lengths(&operation, additional_data->len,
-                                        0xfffffffe * 64 + 1),
+                                        (size_t) 0xfffffffe * 64 + 1),
+                   PSA_ERROR_INVALID_ARGUMENT);
+        TEST_EQUAL(psa_aead_set_nonce(&operation, nonce->x, nonce->len),
+                   PSA_ERROR_BAD_STATE);
+    } else if (operation.alg == PSA_ALG_CHACHA20_POLY1305) {
+        TEST_EQUAL(psa_aead_set_lengths(&operation, additional_data->len,
+                                        SIZE_MAX),
                    PSA_ERROR_INVALID_ARGUMENT);
         TEST_EQUAL(psa_aead_set_nonce(&operation, nonce->x, nonce->len),
                    PSA_ERROR_BAD_STATE);

@@ -6942,6 +6942,9 @@ void tls13_record_boundary_alignment(int endpoint, int handshake_message)
     mbedtls_test_init_handshake_options(&client_options);
     mbedtls_test_init_handshake_options(&server_options);
 
+    mbedtls_ssl_session saved_session;
+    mbedtls_ssl_session_init(&saved_session);
+
     tls_tweak_in_msglen_context tweak_in_msglen_ctx;
     memset(&tweak_in_msglen_ctx, 0, sizeof(tweak_in_msglen_ctx));
 
@@ -6978,6 +6981,21 @@ void tls13_record_boundary_alignment(int endpoint, int handshake_message)
             encrypted = 1;
             break;
 
+
+#if defined(MBEDTLS_SSL_EARLY_DATA) && defined(MBEDTLS_SSL_SESSION_TICKETS)
+        case MBEDTLS_SSL_HS_END_OF_EARLY_DATA:
+            TEST_EQUAL(endpoint, MBEDTLS_SSL_IS_SERVER);
+            target_state = MBEDTLS_SSL_END_OF_EARLY_DATA;
+            peer_target_state = MBEDTLS_SSL_CLIENT_CERTIFICATE;
+            encrypted = 1;
+            client_options.early_data = MBEDTLS_SSL_EARLY_DATA_ENABLED;
+            server_options.early_data = MBEDTLS_SSL_EARLY_DATA_ENABLED;
+            ret = mbedtls_test_get_tls13_ticket(&client_options, &server_options,
+                                                &saved_session);
+            TEST_EQUAL(ret, 0);
+            break;
+#endif
+
         default:
             TEST_ASSERT(0);
     }
@@ -7003,6 +7021,19 @@ void tls13_record_boundary_alignment(int endpoint, int handshake_message)
                                               &client_options, NULL, NULL, NULL), 0);
     TEST_EQUAL(mbedtls_test_ssl_endpoint_init(&server_ep, MBEDTLS_SSL_IS_SERVER,
                                               &server_options, NULL, NULL, NULL), 0);
+
+#if defined(MBEDTLS_SSL_EARLY_DATA) && defined(MBEDTLS_SSL_SESSION_TICKETS)
+    if (handshake_message == MBEDTLS_SSL_HS_END_OF_EARLY_DATA) {
+        mbedtls_ssl_conf_session_tickets_cb(&server_ep.conf,
+                                            mbedtls_test_ticket_write,
+                                            mbedtls_test_ticket_parse,
+                                            NULL);
+
+        ret = mbedtls_ssl_set_session(&(client_ep.ssl), &saved_session);
+        TEST_EQUAL(ret, 0);
+    }
+#endif
+
     TEST_EQUAL(mbedtls_test_mock_socket_connect(&(client_ep.socket),
                                                 &(server_ep.socket), 1024), 0);
 
@@ -7064,6 +7095,7 @@ exit:
     mbedtls_test_free_handshake_options(&client_options);
     mbedtls_test_free_handshake_options(&server_options);
     mbedtls_debug_set_threshold(0);
+    mbedtls_ssl_session_free(&saved_session);
     PSA_DONE();
 }
 /* END_CASE */

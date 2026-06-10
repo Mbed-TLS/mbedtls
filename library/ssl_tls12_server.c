@@ -2175,6 +2175,7 @@ static int ssl_write_server_hello(mbedtls_ssl_context *ssl)
         MBEDTLS_SSL_DEBUG_RET(1, "ssl_write_ecjpake_kkpp_ext", ret);
         return ret;
     }
+    ext_len += olen;
 #endif
 
 #if defined(MBEDTLS_SSL_ALPN)

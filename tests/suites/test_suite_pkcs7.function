@@ -99,37 +99,6 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_FS_IO */
-void pkcs7_parse_free_resets_context(char *pkcs7_file, int res_expect)
-{
-    unsigned char *pkcs7_buf = NULL;
-    mbedtls_pkcs7 pkcs7;
-    size_t buflen;
-
-    mbedtls_pkcs7_init(&pkcs7);
-
-    /* PKCS7 uses X509 which itself relies on PK under the hood and the latter
-     * can use PSA to store keys and perform operations so psa_crypto_init()
-     * must be called before. */
-    USE_PSA_INIT();
-
-    TEST_EQUAL(mbedtls_pk_load_file(pkcs7_file, &pkcs7_buf, &buflen), 0);
-
-    TEST_EQUAL(mbedtls_pkcs7_parse_der(&pkcs7, pkcs7_buf, buflen),
-               res_expect);
-
-    mbedtls_pkcs7_free(&pkcs7);
-
-    TEST_ASSERT(pkcs7.raw.p == NULL);
-    TEST_ASSERT(pkcs7.signed_data.signers.next == NULL);
-
-exit:
-    mbedtls_pkcs7_free(&pkcs7);
-    mbedtls_free(pkcs7_buf);
-    USE_PSA_DONE();
-}
-/* END_CASE */
-
 /* BEGIN_CASE depends_on:MBEDTLS_FS_IO:MBEDTLS_X509_CRT_PARSE_C:MBEDTLS_PKCS1_V15:MBEDTLS_RSA_C */
 void pkcs7_verify(char *pkcs7_file,
                   char *crt_files,

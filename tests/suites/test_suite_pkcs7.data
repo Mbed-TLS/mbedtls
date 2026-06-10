@@ -87,16 +87,28 @@ depends_on:MBEDTLS_MD_CAN_SHA256
 pkcs7_verify:"../framework/data_files/pkcs7_data_cert_signed_sha256.der":"../framework/data_files/pkcs7-rsa-sha256-1.der":"../framework/data_files/pkcs7_data.bin":MBEDTLS_MD_SHA256:0
 
 PKCS7 Signed Data Verification Fail SHA1 #10
-depends_on:MBEDTLS_MD_CAN_SHA1:MBEDTLS_MD_CAN_SHA256
+depends_on:MBEDTLS_MD_CAN_SHA1:MBEDTLS_MD_CAN_SHA256:!MBEDTLS_PKCS7_ALLOW_WEAK_SIGNATURES
 pkcs7_verify:"../framework/data_files/pkcs7_data_cert_signed_sha1.der":"../framework/data_files/pkcs7-rsa-sha256-1.der":"../framework/data_files/pkcs7_data.bin":0:MBEDTLS_ERR_PKCS7_INVALID_ALG
 
+PKCS7 Signed Data Verification Pass SHA1 #10
+depends_on:MBEDTLS_MD_CAN_SHA1:MBEDTLS_MD_CAN_SHA256:MBEDTLS_PKCS7_ALLOW_WEAK_SIGNATURES
+pkcs7_verify:"../framework/data_files/pkcs7_data_cert_signed_sha1.der":"../framework/data_files/pkcs7-rsa-sha256-1.der":"../framework/data_files/pkcs7_data.bin":0:0
+
 PKCS7 Signed Data Verification Fail MD5 #10.1
-depends_on:MBEDTLS_MD_CAN_MD5:MBEDTLS_MD_CAN_SHA256
+depends_on:MBEDTLS_MD_CAN_MD5:MBEDTLS_MD_CAN_SHA256:!MBEDTLS_PKCS7_ALLOW_WEAK_SIGNATURES
 pkcs7_verify:"../framework/data_files/pkcs7_data_cert_signed_md5.der":"../framework/data_files/pkcs7-rsa-sha256-1.der":"../framework/data_files/pkcs7_data.bin":0:MBEDTLS_ERR_PKCS7_INVALID_ALG
 
+PKCS7 Signed Data Verification Pass MD5 #10.1
+depends_on:MBEDTLS_MD_CAN_MD5:MBEDTLS_MD_CAN_SHA256:MBEDTLS_PKCS7_ALLOW_WEAK_SIGNATURES
+pkcs7_verify:"../framework/data_files/pkcs7_data_cert_signed_md5.der":"../framework/data_files/pkcs7-rsa-sha256-1.der":"../framework/data_files/pkcs7_data.bin":0:0
+
 PKCS7 Signed Data Verification Fail RIPEMD160 #10.2
-depends_on:MBEDTLS_MD_CAN_RIPEMD160:MBEDTLS_MD_CAN_SHA256
+depends_on:MBEDTLS_MD_CAN_RIPEMD160:MBEDTLS_MD_CAN_SHA256:!MBEDTLS_PKCS7_ALLOW_WEAK_SIGNATURES
 pkcs7_verify:"../framework/data_files/pkcs7_data_cert_signed_ripemd160.der":"../framework/data_files/pkcs7-rsa-sha256-1.der":"../framework/data_files/pkcs7_data.bin":0:MBEDTLS_ERR_PKCS7_INVALID_ALG
+
+PKCS7 Signed Data Verification Pass RIPEMD160 #10.2
+depends_on:MBEDTLS_MD_CAN_RIPEMD160:MBEDTLS_MD_CAN_SHA256:MBEDTLS_PKCS7_ALLOW_WEAK_SIGNATURES
+pkcs7_verify:"../framework/data_files/pkcs7_data_cert_signed_ripemd160.der":"../framework/data_files/pkcs7-rsa-sha256-1.der":"../framework/data_files/pkcs7_data.bin":0:0
 
 PKCS7 Signed Data Verification Pass SHA512 #11
 depends_on:MBEDTLS_MD_CAN_SHA512:MBEDTLS_MD_CAN_SHA256

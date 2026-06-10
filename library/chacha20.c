@@ -210,7 +210,7 @@ int mbedtls_chacha20_check_counter_wrap(const mbedtls_chacha20_context *ctx,
     size_t available_keystream = 0;
     uint64_t needed_blocks = 0;
 
-    if (ctx->keystream_bytes_used == CHACHA20_COUNTER_EXHAUSTED) {
+    if (ctx->keystream_bytes_used >= CHACHA20_COUNTER_EXHAUSTED) {
         return size == 0U ? 0 : MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA;
     }
 

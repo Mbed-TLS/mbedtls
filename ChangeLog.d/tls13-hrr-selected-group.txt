@@ -1,0 +1,5 @@
+Security
+   * Fix TLS 1.3 clients to reject a HelloRetryRequest whose selected group was
+     not advertised in the original ClientHello. Reported by
+     Din Asotić / Xiangdong Li, Beijing University of Posts and
+     Telecommunications (BUPT)

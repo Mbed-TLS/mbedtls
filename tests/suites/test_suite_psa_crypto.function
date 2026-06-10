@@ -8744,6 +8744,12 @@ void asymmetric_encrypt_decrypt(int key_type_arg,
     TEST_LE_U(output_size, PSA_ASYMMETRIC_ENCRYPT_OUTPUT_MAX_SIZE);
     TEST_CALLOC(output, output_size);
 
+    /* We want the function to work with an output buffer that's just the size
+     * of the actual plaintext. The PSA spec actually requires callers to pass
+     * a buffer that's the maximum possible plaintext size, given by
+     * PSA_ASYMMETRIC_DECRYPT_OUTPUT_SIZE(). But historically we've accepted
+     * smaller sizes if the actual plaintext fits. People might depend on this
+     * (our TLS code does), so let's preserve this behaviour in LTS branches. */
     output2_size = input_data->len;
     TEST_LE_U(output2_size,
               PSA_ASYMMETRIC_DECRYPT_OUTPUT_SIZE(key_type, key_bits, alg));
@@ -8813,8 +8819,15 @@ void asymmetric_decrypt(int key_type_arg,
     PSA_ASSERT(psa_get_key_attributes(key, &attributes));
     key_bits = psa_get_key_bits(&attributes);
 
-    /* Determine the maximum ciphertext length */
-    output_size = PSA_ASYMMETRIC_DECRYPT_OUTPUT_SIZE(key_type, key_bits, alg);
+    /* We want the function to work with an output buffer that's just the size
+     * of the actual plaintext. The PSA spec actually requires callers to pass
+     * a buffer that's the maximum possible plaintext size, given by
+     * PSA_ASYMMETRIC_DECRYPT_OUTPUT_SIZE(). But historically we've accepted
+     * smaller sizes if the actual plaintext fits. People might depend on this
+     * (our TLS code does), so let's preserve this behaviour in LTS branches. */
+    output_size = expected_data->len;
+    TEST_LE_U(output_size,
+              PSA_ASYMMETRIC_DECRYPT_OUTPUT_SIZE(key_type, key_bits, alg));
     TEST_LE_U(output_size, PSA_ASYMMETRIC_DECRYPT_OUTPUT_MAX_SIZE);
     TEST_CALLOC(output, output_size);
 

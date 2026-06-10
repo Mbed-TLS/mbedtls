@@ -1,0 +1,3 @@
+Security
+   * PKCS7 now rejects weak hash algorithms (RIPEMD160, MD5, SHA-1) on signature
+     verification.

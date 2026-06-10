@@ -3995,6 +3995,116 @@ exit:
 }
 /* END_CASE */
 
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_SSL_CLI_C:MBEDTLS_SSL_SRV_C:MBEDTLS_TEST_AT_LEAST_ONE_TLS1_3_CIPHERSUITE:MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED:PSA_WANT_ALG_SHA_256:PSA_WANT_ALG_ECDH:PSA_WANT_ALG_ECDSA_ANY:PSA_WANT_ECC_SECP_R1_256:PSA_WANT_ECC_SECP_R1_384 */
+void reject_hrr_selecting_unoffered_group(void)
+{
+    int ret = -1;
+
+    mbedtls_test_ssl_endpoint client_ep, server_ep;
+    mbedtls_test_handshake_test_options client_options, server_options;
+#if defined(MBEDTLS_DEBUG_C)
+    mbedtls_test_ssl_log_pattern cli_pattern = { .pattern = "Invalid key share in HRR" };
+#endif /* MBEDTLS_DEBUG_C */
+
+    /* Group order is intentional: client offers secp256r1 first, while server only
+     * accepts secp384r1. This prevents immediate group agreement and forces HRR. */
+    uint16_t client_group_list[] = {
+        MBEDTLS_SSL_IANA_TLS_GROUP_SECP256R1,
+        MBEDTLS_SSL_IANA_TLS_GROUP_SECP384R1,
+        MBEDTLS_SSL_IANA_TLS_GROUP_NONE
+    };
+    uint16_t server_group_list[] = { MBEDTLS_SSL_IANA_TLS_GROUP_SECP384R1,
+                                     MBEDTLS_SSL_IANA_TLS_GROUP_NONE };
+
+    memset(&client_ep, 0, sizeof(client_ep));
+    memset(&server_ep, 0, sizeof(server_ep));
+
+    mbedtls_test_init_handshake_options(&client_options);
+    mbedtls_test_init_handshake_options(&server_options);
+    MD_OR_USE_PSA_INIT();
+
+    client_options.pk_alg = MBEDTLS_PK_ECDSA;
+    client_options.client_min_version = MBEDTLS_SSL_VERSION_TLS1_3;
+    client_options.client_max_version = MBEDTLS_SSL_VERSION_TLS1_3;
+    client_options.group_list = client_group_list;
+#if defined(MBEDTLS_DEBUG_C)
+    client_options.cli_log_obj = &cli_pattern;
+    client_options.cli_log_fun = mbedtls_test_ssl_log_analyzer;
+    mbedtls_debug_set_threshold(1);
+#endif /* MBEDTLS_DEBUG_C */
+
+    server_options.pk_alg = MBEDTLS_PK_ECDSA;
+    server_options.server_min_version = MBEDTLS_SSL_VERSION_TLS1_3;
+    server_options.server_max_version = MBEDTLS_SSL_VERSION_TLS1_3;
+    server_options.group_list = server_group_list;
+
+    for (int round = 0; round < 2; round++) {
+        int select_unoffered_group = (round != 0);
+        TEST_EQUAL(mbedtls_test_ssl_endpoint_init(&client_ep,
+                                                  MBEDTLS_SSL_IS_CLIENT,
+                                                  &client_options), 0);
+
+        TEST_EQUAL(mbedtls_test_ssl_endpoint_init(&server_ep,
+                                                  MBEDTLS_SSL_IS_SERVER,
+                                                  &server_options), 0);
+
+        TEST_EQUAL(mbedtls_test_mock_socket_connect(&(client_ep.socket),
+                                                    &(server_ep.socket), 4096), 0);
+
+        ret = mbedtls_test_move_handshake_to_state(
+            &(server_ep.ssl), &(client_ep.ssl),
+            MBEDTLS_SSL_HELLO_RETRY_REQUEST);
+        TEST_EQUAL(ret, 0);
+        TEST_EQUAL(client_ep.ssl.handshake->offered_group_id,
+                   MBEDTLS_SSL_IANA_TLS_GROUP_SECP256R1);
+
+        if (!select_unoffered_group) {
+            TEST_EQUAL(server_ep.ssl.handshake->hrr_selected_group,
+                       MBEDTLS_SSL_IANA_TLS_GROUP_SECP384R1);
+        } else {
+            server_ep.ssl.handshake->hrr_selected_group = MBEDTLS_SSL_IANA_TLS_GROUP_X25519;
+        }
+
+        /* Write and send the HRR */
+        TEST_EQUAL(mbedtls_ssl_handshake_step(&(server_ep.ssl)), 0);
+        TEST_EQUAL(mbedtls_ssl_flush_output(&(server_ep.ssl)), 0);
+
+        if (!select_unoffered_group) {
+            /* Valid HRR, the client accepts the group MBEDTLS_SSL_IANA_TLS_GROUP_SECP384R1
+             * and goes ahead with the handshake.
+             */
+            TEST_EQUAL(mbedtls_ssl_handshake_step(&(client_ep.ssl)), 0);
+            TEST_ASSERT(client_ep.ssl.state != MBEDTLS_SSL_SERVER_HELLO);
+#if defined(MBEDTLS_DEBUG_C)
+            TEST_EQUAL(cli_pattern.counter, 0);
+#endif /* MBEDTLS_DEBUG_C */
+        } else {
+            /* Invalid HRR selecting MBEDTLS_SSL_IANA_TLS_GROUP_X25519 group.
+             * The client rejects it and aborts the handshake.
+             */
+            TEST_EQUAL(mbedtls_ssl_handshake_step(&(client_ep.ssl)),
+                       MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER);
+            TEST_EQUAL(client_ep.ssl.state, MBEDTLS_SSL_SERVER_HELLO);
+#if defined(MBEDTLS_DEBUG_C)
+            TEST_EQUAL(cli_pattern.counter, 1);
+#endif /* MBEDTLS_DEBUG_C */
+        }
+        mbedtls_test_ssl_endpoint_free(&client_ep);
+        mbedtls_test_ssl_endpoint_free(&server_ep);
+    }
+
+exit:
+    mbedtls_test_ssl_endpoint_free(&client_ep);
+    mbedtls_test_ssl_endpoint_free(&server_ep);
+    mbedtls_test_free_handshake_options(&client_options);
+    mbedtls_test_free_handshake_options(&server_options);
+#if defined(MBEDTLS_DEBUG_C)
+    mbedtls_debug_set_threshold(0);
+#endif /* MBEDTLS_DEBUG_C */
+    MD_OR_USE_PSA_DONE();
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED */
 void ssl_ecjpake_set_password(int use_opaque_arg)
 {

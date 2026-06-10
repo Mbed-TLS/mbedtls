@@ -6605,7 +6605,7 @@ void write_new_session_ticket_mem()
      * uninitialized memory.
      * The read here causes MSan and Valgrind to complain if the bug isn't fixed.
      */
-    volatile unsigned char lifetime = MBEDTLS_GET_UINT32_BE(server_ep.ssl.out_msg + 4);
+    volatile uint32_t lifetime = MBEDTLS_GET_UINT32_BE(server_ep.ssl.out_msg, 4);
     (void) lifetime;
 
 exit:

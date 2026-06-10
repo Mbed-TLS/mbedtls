@@ -86,9 +86,9 @@ PKCS7 Signed Data Verification Pass SHA256 #9.1
 depends_on:PSA_WANT_ALG_SHA_256:PSA_HAVE_ALG_RSA_PKCS1V15_VERIFY
 pkcs7_verify:"../framework/data_files/pkcs7_data_cert_signed_sha256.der":"../framework/data_files/pkcs7-rsa-sha256-1.der":"../framework/data_files/pkcs7_data.bin":MBEDTLS_MD_SHA256:0
 
-PKCS7 Signed Data Verification Pass SHA1 #10
+PKCS7 Signed Data Verification Fail SHA1 #10
 depends_on:PSA_WANT_ALG_SHA_1:PSA_WANT_ALG_SHA_256:PSA_HAVE_ALG_RSA_PKCS1V15_VERIFY
-pkcs7_verify:"../framework/data_files/pkcs7_data_cert_signed_sha1.der":"../framework/data_files/pkcs7-rsa-sha256-1.der":"../framework/data_files/pkcs7_data.bin":0:0
+pkcs7_verify:"../framework/data_files/pkcs7_data_cert_signed_sha1.der":"../framework/data_files/pkcs7-rsa-sha256-1.der":"../framework/data_files/pkcs7_data.bin":0:PSA_ERROR_INVALID_SIGNATURE
 
 PKCS7 Signed Data Verification Pass SHA512 #11
 depends_on:PSA_WANT_ALG_SHA_512:PSA_WANT_ALG_SHA_256:PSA_HAVE_ALG_RSA_PKCS1V15_VERIFY

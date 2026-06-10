@@ -1,4 +1,4 @@
 Security
-   * Fix an out-of-bounds read when parsing TLS 1.2 ECJPAKE ServerKeyExchange messages.
-     Reported-by Biniam Demissie.
+   * Fix an out-of-bounds read when parsing TLS 1.2 ECJPAKE ServerKeyExchange 
+     messages. Reported-by Biniam Demissie.
      CVE-2026-50588

@@ -173,7 +173,7 @@ void rsa_decrypt_decompose_ret(int input,
 
     int actual_ret = mbedtls_rsa_decrypt_decompose_ret(sensitive_in_1, problem_1,
                                                        sensitive_in_2, problem_2,
-                                                       input,
+                                                       combined_ret,
                                                        &actual_problem);
 
     TEST_EQUAL(actual_problem, expected_problem);
@@ -182,7 +182,7 @@ void rsa_decrypt_decompose_ret(int input,
     /* Check invariant when there's no translation, only separation */
     actual_ret = mbedtls_rsa_decrypt_decompose_ret(sensitive_in_1, sensitive_in_1,
                                                    sensitive_in_2, sensitive_in_2,
-                                                   input,
+                                                   combined_ret,
                                                    &actual_problem);
     TEST_EQUAL(actual_ret, expected_ret);
     if (expected_problem == problem_1) {

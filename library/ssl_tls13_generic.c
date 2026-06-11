@@ -56,7 +56,7 @@ const uint8_t mbedtls_ssl_tls13_hello_retry_request_magic[
 
 int mbedtls_ssl_tls13_fetch_handshake_msg(mbedtls_ssl_context *ssl,
                                           unsigned hs_type,
-                                          unsigned record_boundary,
+                                          unsigned require_record_boundary,
                                           unsigned char **buf,
                                           size_t *buf_len)
 {
@@ -69,7 +69,7 @@ int mbedtls_ssl_tls13_fetch_handshake_msg(mbedtls_ssl_context *ssl,
 
     if (ssl->in_msgtype != MBEDTLS_SSL_MSG_HANDSHAKE ||
         ssl->in_msg[0]  != hs_type ||
-        (record_boundary && (ssl->in_hslen != ssl->in_msglen))) {
+        (require_record_boundary && (ssl->in_hslen != ssl->in_msglen))) {
         MBEDTLS_SSL_DEBUG_MSG(1, ("Receive unexpected handshake message."));
         MBEDTLS_SSL_PEND_FATAL_ALERT(MBEDTLS_SSL_ALERT_MSG_UNEXPECTED_MESSAGE,
                                      MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE);

@@ -4410,7 +4410,8 @@ void tls_transcript_error_propagation(int endpoint,
                                       int tls_version,
                                       const char *trigger,
                                       int target_state,
-                                      int peer_target_state)
+                                      int peer_target_state,
+                                      int expected_ret)
 {
     int ret = -1;
     mbedtls_test_ssl_endpoint client_ep, server_ep;
@@ -4478,6 +4479,7 @@ void tls_transcript_error_propagation(int endpoint,
     ret = mbedtls_ssl_handshake_step(abort_ctx.ssl);
     TEST_ASSERT(abort_ctx.triggered);
     TEST_ASSERT(ret != 0);
+    TEST_EQUAL(ret, expected_ret);
 
 exit:
     mbedtls_test_ssl_endpoint_free(&client_ep);

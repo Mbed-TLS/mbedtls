@@ -4468,6 +4468,7 @@ void tls_transcript_error_propagation(int endpoint,
         TEST_EQUAL(mbedtls_test_move_handshake_to_state(
                        peer_ssl_context, abort_ctx.ssl,
                        peer_target_state), 0);
+        TEST_EQUAL(mbedtls_ssl_flush_output(peer_ssl_context), 0);
     }
 
     TEST_EQUAL(mbedtls_ssl_flush_output(abort_ctx.ssl), 0);

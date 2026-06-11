@@ -94,6 +94,9 @@ void chachapoly_update_too_long()
 
     /* Force the next update to be too long without processing a huge buffer. */
     ctx.chacha20_ctx.state[12] = UINT32_MAX;
+    /* Test that the failed update does not modify the output. This is a
+     * defense in depth assertion, however is not currently gauranteed by
+     * the API */
     memset(output, 0x2a, sizeof(output));
     TEST_EQUAL(mbedtls_chachapoly_update(&ctx, sizeof(input), input, output),
                MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA);

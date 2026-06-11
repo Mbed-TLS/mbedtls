@@ -1624,6 +1624,12 @@ void pk_wrap_rsa_decrypt_test_vec(data_t *cipher, int mod,
     if (ret == 0) {
         TEST_EQUAL(olen, clear->len);
         TEST_EQUAL(memcmp(output, clear->x, olen), 0);
+
+        /* Try again with an output buffer that's too small */
+        TEST_EQUAL(mbedtls_pk_decrypt(&pk, cipher->x, cipher->len,
+                                      output, &olen, clear->len - 1,
+                                      mbedtls_test_rnd_pseudo_rand, &rnd_info),
+                   MBEDTLS_ERR_RSA_OUTPUT_TOO_LARGE);
     }
 
     TEST_EQUAL(PSA_SUCCESS, psa_destroy_key(key_id));
@@ -1794,6 +1800,13 @@ void pk_rsa_alt()
                                    mbedtls_test_rnd_std_rand, NULL) == 0);
     TEST_ASSERT(test_len == sizeof(msg));
     TEST_ASSERT(memcmp(test, msg, test_len) == 0);
+
+
+    /* Try again with an output buffer that's too small */
+    TEST_EQUAL(mbedtls_pk_decrypt(&alt, ciph, ciph_len,
+                                  test, &test_len, sizeof(msg) - 1,
+                                  mbedtls_test_rnd_std_rand, NULL),
+               MBEDTLS_ERR_RSA_OUTPUT_TOO_LARGE);
 
     /* Test forbidden operations */
     TEST_ASSERT(mbedtls_pk_encrypt(&alt, msg, sizeof(msg),

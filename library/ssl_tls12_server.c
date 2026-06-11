@@ -1833,7 +1833,7 @@ static int ssl_write_ecjpake_kkpp_ext(mbedtls_ssl_context *ssl,
                                           ssl->conf->f_rng, ssl->conf->p_rng);
     if (ret != 0) {
         MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ecjpake_write_round_one", ret);
-        return;
+        return ret;
     }
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 

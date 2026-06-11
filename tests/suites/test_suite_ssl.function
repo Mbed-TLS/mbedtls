@@ -6937,6 +6937,8 @@ void tls13_record_boundary_alignment(int endpoint, int handshake_message)
     int ret = -1;
     int target_state, peer_target_state, encrypted;
     mbedtls_test_ssl_endpoint client_ep, server_ep;
+    memset(&client_ep, 0, sizeof(client_ep));
+    memset(&server_ep, 0, sizeof(server_ep));
 
     mbedtls_test_handshake_test_options client_options, server_options;
     mbedtls_test_init_handshake_options(&client_options);

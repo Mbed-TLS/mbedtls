@@ -123,7 +123,9 @@ component_check_test_dependencies () {
     ) | sort -u > $crypto
 
     (
-        grep depends_on tests/suites/test_suite_* |
+          grep depends_on \
+            tests/suites/test_suite_*.data \
+            tests/suites/test_suite_*.function |
             sed -e 's/.*depends_on:\([^ ]*\).*/\1/' -e's/!//g' |
             tr ':' '\n'
         egrep -oh '(PSA|MBEDTLS)_[A-Z0-9_]*' tests/ssl-opt.sh tests/opt-testcases/*.sh

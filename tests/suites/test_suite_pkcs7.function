@@ -87,6 +87,8 @@ void pkcs7_parse_reuse(char *first_pkcs7_file, char *second_pkcs7_file,
                MBEDTLS_PKCS7_SIGNED_DATA);
 
     mbedtls_pkcs7_free(&pkcs7);
+    TEST_ASSERT(pkcs7.raw.p == NULL);
+    TEST_ASSERT(pkcs7.signed_data.signers.next == NULL);
     TEST_EQUAL(mbedtls_pkcs7_parse_der(&pkcs7, second_pkcs7_buf,
                                        second_buflen),
                res_expect);

@@ -63,6 +63,40 @@ exit:
 }
 #endif
 
+typedef enum {
+    PRE_HANDSHAKE_BADMAC_SEEN = 1u << 0,
+} pre_handshake_tweaks_t;
+
+#if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED) && \
+    defined(MBEDTLS_PKCS1_V15) && \
+    defined(MBEDTLS_RSA_C) && \
+    defined(MBEDTLS_ECP_HAVE_SECP384R1) && \
+    defined(MBEDTLS_MD_CAN_SHA256) && \
+    defined(MBEDTLS_PK_HAVE_ECC_KEYS) && \
+    defined(MBEDTLS_CAN_HANDLE_RSA_TEST_KEY)
+typedef struct {
+    uint32_t client;
+    uint32_t server;
+} pre_handshake_tweak_spec_t;
+
+static void pre_handshake_tweak_context(mbedtls_ssl_context *ssl,
+                                        int tweaks)
+{
+    if (tweaks & PRE_HANDSHAKE_BADMAC_SEEN) {
+        ssl->badmac_seen_or_in_hsfraglen = 1;
+    }
+}
+
+static void pre_handshake_tweak_contexts(mbedtls_test_ssl_endpoint *client,
+                                         mbedtls_test_ssl_endpoint *server,
+                                         void *param)
+{
+    const pre_handshake_tweak_spec_t *tweaks = param;
+    pre_handshake_tweak_context(&client->ssl, tweaks->client);
+    pre_handshake_tweak_context(&server->ssl, tweaks->server);
+}
+#endif
+
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED) && \
     defined(MBEDTLS_PKCS1_V15) && \
     defined(MBEDTLS_SSL_PROTO_TLS1_2) && \
@@ -3046,6 +3080,40 @@ void handshake_ciphersuite_select(char *cipher, int pk_alg, data_t *psk_str,
     options.server_min_version = MBEDTLS_SSL_VERSION_TLS1_2;
     options.server_max_version = MBEDTLS_SSL_VERSION_TLS1_2;
     options.expected_negotiated_version = MBEDTLS_SSL_VERSION_TLS1_2;
+
+    mbedtls_test_ssl_perform_handshake(&options);
+
+    /* The goto below is used to avoid an "unused label" warning.*/
+    goto exit;
+
+exit:
+    mbedtls_test_free_handshake_options(&options);
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:MBEDTLS_PKCS1_V15:MBEDTLS_RSA_C:MBEDTLS_ECP_HAVE_SECP384R1:MBEDTLS_MD_CAN_SHA256:MBEDTLS_PK_HAVE_ECC_KEYS:MBEDTLS_CAN_HANDLE_RSA_TEST_KEY */
+/* Test a handshake in forced conditions.
+ *
+ * This can be used for defense in depths for scenarios that we think
+ * can't happen, but might actually happen due to a bug, or due to
+ * a new feature that is insufficiently tested.
+ *
+ * This can also be a proxy for testing aspects of renegotiation or
+ * session resumption in circumstances that are hard to arrange.
+ */
+void handshake_with_forced_context(int dtls, int version,
+                                   int client_tweaks, int server_tweaks)
+{
+    pre_handshake_tweak_spec_t tweaks = { client_tweaks, server_tweaks };
+
+    mbedtls_test_handshake_test_options options;
+    mbedtls_test_init_handshake_options(&options);
+    options.dtls = dtls;
+    options.client_min_version = version;
+    options.client_max_version = version;
+    options.expected_negotiated_version = version;
+    options.pre_handshake_fun = &pre_handshake_tweak_contexts;
+    options.pre_handshake_param = &tweaks;
 
     mbedtls_test_ssl_perform_handshake(&options);
 

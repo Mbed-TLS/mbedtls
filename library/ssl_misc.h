@@ -495,13 +495,13 @@ static inline unsigned mbedtls_ssl_get_badmac_seen(const mbedtls_ssl_context *ss
     return 0;
 }
 
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
 static inline void mbedtls_ssl_set_badmac_seen(mbedtls_ssl_context *ssl,
                                                unsigned badmac_seen)
 {
     ssl->badmac_seen_or_in_hsfraglen = badmac_seen;
 }
 
-#if defined(MBEDTLS_SSL_PROTO_DTLS)
 #define MBEDTLS_SSL_SET_BADMAC_SEEN(ssl, badmac_seen)                   \
     do {                                                                \
         if ((ssl)->conf->transport != MBEDTLS_SSL_TRANSPORT_DATAGRAM) { \
@@ -512,8 +512,11 @@ static inline void mbedtls_ssl_set_badmac_seen(mbedtls_ssl_context *ssl,
         mbedtls_ssl_set_badmac_seen(ssl, badmac_seen);                  \
     } while (0)
 #else
-#define MBEDTLS_SSL_SET_BADMAC_SEEN(ssl, badmac_seen) \
-    mbedtls_ssl_set_badmac_seen(ssl, badmac_seen)
+/* We shouldn't be trying to set badmac_seen if DTLS support is disabled
+ * at compile time. If this is called from a code block that checks for the
+ * DTLS protocol at run time, it should be guarded by
+ * defined(MBEDTLS_SSL_PROTO_DTLS). */
+#undef MBEDTLS_SSL_SET_BADMAC_SEEN
 #endif
 
 static inline unsigned mbedtls_ssl_get_in_hsfraglen(const mbedtls_ssl_context *ssl)

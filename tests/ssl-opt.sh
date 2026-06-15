@@ -11775,6 +11775,14 @@ run_test    "DTLS proxy: inject invalid AD record, badmac_limit 2, exchanges 2"\
             -s "too many records with bad MAC" \
             -s "Verification of the message MAC failed"
 
+# The next few tests exercise renegotiation in DTLS when `ssl->badmac_seen != 0`.
+#
+# This seems unrelated, but was the location of a bug in Mbed TLS 3.6.3 to
+# 3.6.6 (CVE-2026-50713) due to `ssl->badmac_seen` being unified with
+# `ssl->in_hsfraglen` (to preserve the ABI when adding support for handshake
+# defragmentation in TLS in 3.6.3), with some mistakes in using the unified
+# field that were fixed in 3.6.7.
+
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "DTLS proxy: client: get invalid AD record then reject renego" \
             -p "$P_PXY bad_ad_srv_once=1" \
@@ -11868,6 +11876,15 @@ run_test    "DTLS proxy: server: get invalid AD record then accept renego (cli)"
             -S "Verification of the message MAC failed" \
             -S "Consume: waiting for more handshake fragments"
 
+# The next few tests have "early renego". A DTLS handshake message is delayed
+# past another handshake message. From the perspective of the recipient,
+# this means that a DTLS handshake arrives early (its epoch number is still
+# in the future) and needs to be queued.
+#
+# In Mbed TLS 3.6.3 through 3.6.6, due to the fields `ssl->badmac_seen`
+# and `ssl->in_hsfraglen` being unified, the early message was parsed
+# incorrectly, leading to heap corruption.
+
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "DTLS proxy: client: get invalid AD record then reject early renego" \
             -p "$P_PXY bad_ad_srv_once=1 delay_encrypted_hs_srv=3" \
@@ -11890,6 +11907,13 @@ run_test    "DTLS proxy: client: get invalid AD record then reject early renego"
             -C "Verification of the message MAC failed" \
             -C "Consume: waiting for more handshake fragments"
 
+# Delay the third encrypted handshake message from the server:
+# 1. Finished message of the initial handshake.
+# 2. HelloRequest to request renegotiation.
+# 3. ServerHello of renegotiation, delayed.
+# 4. Subsequent handshake message, which the client receives and enqueues.
+#
+# In Mbed TLS 3.6.3 though 3.6.6, the processing of (4) caused heap corruption.
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "DTLS proxy: client: get invalid AD record then accept early renego" \
             -p "$P_PXY bad_ad_srv_once=1 delay_encrypted_hs_srv=3" \

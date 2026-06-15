@@ -2832,9 +2832,12 @@ send_request:
 
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
     if (opt.renegotiate == 2) {
+        /* Perform renegotiation after the first data exchange.
+         * This is a one-time thing, we won't renegotiate even if there are
+         * more data exchanges that cause a `goto send_request` later.
+         */
         opt.renegotiate = 0;
 
-        /* Perform renegotiation after the first data exchange. */
         mbedtls_printf("  . Performing renegotiation...");
         fflush(stdout);
         while ((ret = mbedtls_ssl_renegotiate(&ssl)) != 0) {

@@ -6980,7 +6980,7 @@ void tls13_record_boundary_alignment(int endpoint, int handshake_message)
     mbedtls_test_mock_socket *socket = NULL;
     mbedtls_ssl_context *ssl_ctx = NULL;
     mbedtls_ssl_context *peer_ssl_ctx = NULL;
-    unsigned char dummy_data[] = { 0x00 };
+    unsigned char additional_empty_hs_msg[4] = { 0, 0, 0, 0 };
 
     PSA_INIT();
 
@@ -6989,6 +6989,7 @@ void tls13_record_boundary_alignment(int endpoint, int handshake_message)
             TEST_EQUAL(endpoint, MBEDTLS_SSL_IS_SERVER);
             target_state = MBEDTLS_SSL_CLIENT_HELLO;
             peer_target_state = MBEDTLS_SSL_SERVER_HELLO;
+            additional_empty_hs_msg[0] = MBEDTLS_SSL_HS_CERTIFICATE;
             encrypted = 0;
             break;
 
@@ -6996,6 +6997,7 @@ void tls13_record_boundary_alignment(int endpoint, int handshake_message)
             TEST_EQUAL(endpoint, MBEDTLS_SSL_IS_CLIENT);
             target_state = MBEDTLS_SSL_SERVER_HELLO;
             peer_target_state = MBEDTLS_SSL_ENCRYPTED_EXTENSIONS;
+            additional_empty_hs_msg[0] = MBEDTLS_SSL_HS_ENCRYPTED_EXTENSIONS;
             encrypted = 0;
             break;
 
@@ -7007,6 +7009,10 @@ void tls13_record_boundary_alignment(int endpoint, int handshake_message)
                 target_state = MBEDTLS_SSL_CLIENT_FINISHED;
                 peer_target_state = MBEDTLS_SSL_FLUSH_BUFFERS;
             }
+            /* Finished messages are not followed by any handshake message,
+             * insert an empty Finished message at the end of the record.
+             */
+            additional_empty_hs_msg[0] = MBEDTLS_SSL_HS_FINISHED;
             encrypted = 1;
             break;
 
@@ -7016,6 +7022,7 @@ void tls13_record_boundary_alignment(int endpoint, int handshake_message)
             TEST_EQUAL(endpoint, MBEDTLS_SSL_IS_SERVER);
             target_state = MBEDTLS_SSL_END_OF_EARLY_DATA;
             peer_target_state = MBEDTLS_SSL_CLIENT_CERTIFICATE;
+            additional_empty_hs_msg[0] = MBEDTLS_SSL_HS_FINISHED;
             encrypted = 1;
             client_options.early_data = MBEDTLS_SSL_EARLY_DATA_ENABLED;
             server_options.early_data = MBEDTLS_SSL_EARLY_DATA_ENABLED;
@@ -7089,7 +7096,7 @@ void tls13_record_boundary_alignment(int endpoint, int handshake_message)
          * `mbedtls_ssl_read_record()`.
          */
         tweak_in_msglen_ctx.armed = 1;
-        tweak_in_msglen_ctx.nb_bytes = sizeof(dummy_data);
+        tweak_in_msglen_ctx.nb_bytes = sizeof(additional_empty_hs_msg);
     } else {
         /*
          * In case of the unencrypted ClientHello or ServerHello, add an
@@ -7100,16 +7107,17 @@ void tls13_record_boundary_alignment(int endpoint, int handshake_message)
          */
         unsigned char *input_buffer = socket->input->buffer;
         size_t record_size = MBEDTLS_GET_UINT16_BE(input_buffer, 3);
-        ret = mbedtls_test_ssl_buffer_put(socket->input, dummy_data,
-                                          sizeof(dummy_data));
-        TEST_EQUAL(ret, (int) sizeof(dummy_data));
-        MBEDTLS_PUT_UINT16_BE(record_size + sizeof(dummy_data), input_buffer, 3);
+        ret = mbedtls_test_ssl_buffer_put(socket->input, additional_empty_hs_msg,
+                                          sizeof(additional_empty_hs_msg));
+        TEST_EQUAL(ret, (int) sizeof(additional_empty_hs_msg));
+        MBEDTLS_PUT_UINT16_BE(record_size + sizeof(additional_empty_hs_msg),
+                              input_buffer, 3);
     }
 
     ret = mbedtls_ssl_handshake_step(ssl_ctx);
     TEST_EQUAL(ret, MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE);
     TEST_EQUAL(ssl_ctx->in_msglen,
-               ssl_ctx->in_hslen + sizeof(dummy_data));
+               ssl_ctx->in_hslen + sizeof(additional_empty_hs_msg));
     TEST_EQUAL(ssl_ctx->in_msgtype, MBEDTLS_SSL_MSG_HANDSHAKE);
     TEST_EQUAL(ssl_ctx->in_msg[0], handshake_message);
 

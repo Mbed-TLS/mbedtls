@@ -6957,6 +6957,7 @@ exit:
     PSA_DONE();
 }
 /* END_CASE */
+
 /* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_DEBUG_C:MBEDTLS_SSL_CLI_C:MBEDTLS_SSL_SRV_C:MBEDTLS_TEST_AT_LEAST_ONE_TLS1_3_CIPHERSUITE:MBEDTLS_TEST_HAS_DEFAULT_EC_GROUP:MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED:PSA_WANT_ALG_SHA_256:MBEDTLS_X509_RSASSA_PSS_SUPPORT:PSA_WANT_ALG_RSA_PKCS1V15_SIGN */
 void tls13_record_boundary_alignment(int endpoint, int handshake_message)
 {
@@ -7025,7 +7026,7 @@ void tls13_record_boundary_alignment(int endpoint, int handshake_message)
 #endif
 
         default:
-            TEST_ASSERT(0);
+            TEST_FAIL("Handshake message type not supported");
     }
 
     if (endpoint == MBEDTLS_SSL_IS_CLIENT) {
@@ -7073,11 +7074,10 @@ void tls13_record_boundary_alignment(int endpoint, int handshake_message)
      * messages needed by the endpoint under test to proceed through its next
      * step.
      */
-    if (peer_target_state != -1) {
-        TEST_EQUAL(mbedtls_test_move_handshake_to_state(
-                       peer_ssl_ctx, ssl_ctx, peer_target_state), 0);
-        TEST_EQUAL(mbedtls_ssl_flush_output(peer_ssl_ctx), 0);
-    }
+    TEST_ASSERT(peer_target_state != -1);
+    TEST_EQUAL(mbedtls_test_move_handshake_to_state(
+                   peer_ssl_ctx, ssl_ctx, peer_target_state), 0);
+    TEST_EQUAL(mbedtls_ssl_flush_output(peer_ssl_ctx), 0);
     TEST_EQUAL(ssl_ctx->state, target_state);
 
     if (encrypted) {

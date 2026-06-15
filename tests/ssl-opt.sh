@@ -11811,7 +11811,7 @@ run_test    "DTLS proxy: client: get invalid AD record then reject renego" \
             -p "$P_PXY bad_ad_srv_once=1" \
             "$P_SRV dtls=1 dgram_packing=0 hs_timeout=500-10000 \
              renegotiate=1 renegotiation=1 exchanges=4 \
-             badmac_limit=99 debug_level=3" \
+             debug_level=3" \
             "$P_CLI dtls=1 dgram_packing=0 hs_timeout=500-10000 \
              exchanges=4 badmac_limit=99 debug_level=3" \
             0 \
@@ -11833,7 +11833,7 @@ run_test    "DTLS proxy: server: get invalid AD record then reject renego (cli)"
              renegotiation=0 exchanges=4 \
              badmac_limit=99 debug_level=3" \
             "$P_CLI dtls=1 dgram_packing=0 hs_timeout=500-10000 \
-             renegotiation=1 renegotiate=2 exchanges=4 badmac_limit=99 debug_level=3" \
+             renegotiation=1 renegotiate=2 exchanges=4 debug_level=3" \
             1 \
             -s "discarding invalid record (mac)" \
             -c "=> renegotiate" \
@@ -11850,7 +11850,7 @@ run_test    "DTLS proxy: client: get invalid AD record then accept renego" \
             -p "$P_PXY bad_ad_srv_once=1" \
             "$P_SRV dtls=1 dgram_packing=0 hs_timeout=500-10000 \
              renegotiate=1 renegotiation=1 exchanges=4 \
-             badmac_limit=99 debug_level=3" \
+             debug_level=3" \
             "$P_CLI dtls=1 dgram_packing=0 hs_timeout=500-10000 \
              renegotiation=1 exchanges=4 badmac_limit=99 debug_level=3" \
             0 \
@@ -11870,7 +11870,7 @@ run_test    "DTLS proxy: server: get invalid AD record then accept renego (srv)"
              renegotiate=1 renegotiation=1 exchanges=4 \
              badmac_limit=99 debug_level=3" \
             "$P_CLI dtls=1 dgram_packing=0 hs_timeout=500-10000 \
-             renegotiation=1 exchanges=4 badmac_limit=99 debug_level=3" \
+             renegotiation=1 exchanges=4 debug_level=3" \
             0 \
             -s "discarding invalid record (mac)" \
             -s "=> renegotiate" \
@@ -11888,7 +11888,7 @@ run_test    "DTLS proxy: server: get invalid AD record then accept renego (cli)"
              renegotiation=1 exchanges=4 \
              badmac_limit=99 debug_level=3" \
             "$P_CLI dtls=1 dgram_packing=0 hs_timeout=500-10000 \
-             renegotiation=1 renegotiate=2 exchanges=4 badmac_limit=99 debug_level=3" \
+             renegotiation=1 renegotiate=2 exchanges=4 debug_level=3" \
             0 \
             -s "discarding invalid record (mac)" \
             -c "=> renegotiate" \
@@ -11948,7 +11948,7 @@ run_test    "DTLS proxy: server: get invalid AD record then reject early renego 
              renegotiation=0 exchanges=4 \
              badmac_limit=99 debug_level=3" \
             "$P_CLI dtls=1 dgram_packing=0 hs_timeout=500-10000 \
-             renegotiation=1 renegotiate=2 exchanges=4 badmac_limit=99 debug_level=3" \
+             renegotiation=1 renegotiate=2 exchanges=4 debug_level=3" \
             1 \
             -s "discarding invalid record (mac)" \
             -c "=> renegotiate" \
@@ -11967,7 +11967,7 @@ run_test    "DTLS proxy: server: get invalid AD record then accept early renego 
              renegotiation=1 exchanges=4 \
              badmac_limit=99 debug_level=3" \
             "$P_CLI dtls=1 dgram_packing=0 hs_timeout=500-10000 \
-             renegotiation=1 renegotiate=2 exchanges=4 badmac_limit=99 debug_level=3" \
+             renegotiation=1 renegotiate=2 exchanges=4 debug_level=3" \
             0 \
             -s "discarding invalid record (mac)" \
             -c "=> renegotiate" \

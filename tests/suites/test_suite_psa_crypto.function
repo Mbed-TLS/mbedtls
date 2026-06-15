@@ -8745,11 +8745,13 @@ void asymmetric_encrypt_decrypt(int key_type_arg,
     TEST_CALLOC(output, output_size);
 
     /* We want the function to work with an output buffer that's just the size
-     * of the actual plaintext. The PSA spec actually requires callers to pass
+     * of the actual plaintext. The PSA spec requires portable callers to pass
      * a buffer that's the maximum possible plaintext size, given by
-     * PSA_ASYMMETRIC_DECRYPT_OUTPUT_SIZE(). But historically we've accepted
-     * smaller sizes if the actual plaintext fits. People might depend on this
-     * (our TLS code does), so let's preserve this behaviour in LTS branches. */
+     * PSA_ASYMMETRIC_DECRYPT_OUTPUT_SIZE(). When the buffer is smaller than
+     * that but large enough for the actual plaintext, implementations may either
+     * return PSA_ERROR_BUFFER_TOO_SMALL or success. Historically we've done the
+     * latter. Even though we never promised it, people might depend on this
+     * (our TLS code does), so let's test this behaviour in LTS branches. */
     output2_size = input_data->len;
     TEST_LE_U(output2_size,
               PSA_ASYMMETRIC_DECRYPT_OUTPUT_SIZE(key_type, key_bits, alg));
@@ -8830,11 +8832,13 @@ void asymmetric_decrypt(int key_type_arg,
     key_bits = psa_get_key_bits(&attributes);
 
     /* We want the function to work with an output buffer that's just the size
-     * of the actual plaintext. The PSA spec actually requires callers to pass
+     * of the actual plaintext. The PSA spec requires portable callers to pass
      * a buffer that's the maximum possible plaintext size, given by
-     * PSA_ASYMMETRIC_DECRYPT_OUTPUT_SIZE(). But historically we've accepted
-     * smaller sizes if the actual plaintext fits. People might depend on this
-     * (our TLS code does), so let's preserve this behaviour in LTS branches. */
+     * PSA_ASYMMETRIC_DECRYPT_OUTPUT_SIZE(). When the buffer is smaller than
+     * that but large enough for the actual plaintext, implementations may either
+     * return PSA_ERROR_BUFFER_TOO_SMALL or success. Historically we've done the
+     * latter. Even though we never promised it, people might depend on this
+     * (our TLS code does), so let's test this behaviour in LTS branches. */
     output_size = expected_data->len;
     TEST_LE_U(output_size,
               PSA_ASYMMETRIC_DECRYPT_OUTPUT_SIZE(key_type, key_bits, alg));

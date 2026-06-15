@@ -2325,6 +2325,8 @@ start_processing:
          * However since we only support secp256r1 for now, we check only
          * that TLS ID here
          */
+        MBEDTLS_SSL_CHK_BUF_READ_PTR(p, end, 3);
+
         uint16_t read_tls_id = MBEDTLS_GET_UINT16_BE(p, 1);
         uint16_t exp_tls_id = mbedtls_ssl_get_tls_id_from_ecp_group_id(
             MBEDTLS_ECP_DP_SECP256R1);

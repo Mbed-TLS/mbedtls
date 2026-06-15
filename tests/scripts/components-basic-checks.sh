@@ -110,10 +110,12 @@ component_check_test_dependencies () {
     # justified, or known issues yet to be resolved, so this component includes
     # a list of expected exceptions.
 
-    crypto="check-test-deps-crypto-$$"
-    used="check-test-deps-used-$$"
-    found="check-test-deps-found-$$"
-    expected="check-test-deps-expected-$$"
+    out_of_source_dir="$OUT_OF_SOURCE_DIR/check-test-deps-$$"
+    mkdir -p "$out_of_source_dir"
+    crypto="$out_of_source_dir/crypto"
+    used="$out_of_source_dir/used"
+    found="$out_of_source_dir/found"
+    expected="$out_of_source_dir/expected"
 
     (
         cd tf-psa-crypto
@@ -123,7 +125,7 @@ component_check_test_dependencies () {
     ) | sort -u > $crypto
 
     (
-          grep depends_on \
+        grep depends_on \
             tests/suites/test_suite_*.data \
             tests/suites/test_suite_*.function |
             sed -e 's/.*depends_on:\([^ ]*\).*/\1/' -e's/!//g' |
@@ -156,9 +158,9 @@ component_check_test_dependencies () {
     # add it to the exceptions list above with a justification.
     # - Each '-' line is a macro that was expected but not found; it means the
     # exceptions list above should be updated by removing that macro.
-    diff -U0 $expected $found
+    diff -U0 "$expected" "$found"
 
-    rm $found $expected $crypto $used
+    rm -rf "$out_of_source_dir"
 }
 
 component_check_doxygen_warnings () {

@@ -670,11 +670,11 @@ static int mbedtls_pkcs7_data_or_hash_verify(mbedtls_pkcs7 *pkcs7,
      * (i.e. mbedtls_x509_crt_profile_default). */
     ret = mbedtls_x509_profile_check_md_alg(&mbedtls_x509_crt_profile_default, md_alg);
     if (ret != 0) {
-        return MBEDTLS_ERR_PKCS7_VERIFY_FAIL;
+        return MBEDTLS_ERR_PKCS7_INVALID_ALG;
     }
     ret = mbedtls_x509_profile_check_pk_alg(&mbedtls_x509_crt_profile_default, cert->sig_pk);
     if (ret != 0) {
-        return MBEDTLS_ERR_PKCS7_VERIFY_FAIL;
+        return MBEDTLS_ERR_PKCS7_INVALID_ALG;
     }
 
     md_info = mbedtls_md_info_from_type(md_alg);

@@ -62,19 +62,23 @@ int mbedtls_ssl_tls13_fetch_handshake_msg(mbedtls_ssl_context *ssl,
 {
     int ret;
 
-    if ((ret = mbedtls_ssl_read_record(ssl, 0)) != 0) {
+    ret = mbedtls_ssl_read_record(ssl, 0);
+    if (ret != 0) {
         MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_read_record", ret);
-        goto cleanup;
+        goto error;
     }
 
+    ret = MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE;
     if (ssl->in_msgtype != MBEDTLS_SSL_MSG_HANDSHAKE ||
-        ssl->in_msg[0]  != hs_type ||
-        (require_record_boundary && (ssl->in_hslen != ssl->in_msglen))) {
+        ssl->in_msg[0]  != hs_type) {
         MBEDTLS_SSL_DEBUG_MSG(1, ("Receive unexpected handshake message."));
-        MBEDTLS_SSL_PEND_FATAL_ALERT(MBEDTLS_SSL_ALERT_MSG_UNEXPECTED_MESSAGE,
-                                     MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE);
-        ret = MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE;
-        goto cleanup;
+        goto error;
+    }
+
+    if (require_record_boundary && (ssl->in_hslen != ssl->in_msglen)) {
+        MBEDTLS_SSL_DEBUG_MSG(1, ("Handshake message %s end not aligned with a record boundary",
+                                  mbedtls_ssl_get_hs_msg_name(hs_type)));
+        goto error;
     }
 
     /*
@@ -84,11 +88,15 @@ int mbedtls_ssl_tls13_fetch_handshake_msg(mbedtls_ssl_context *ssl,
      *    uint24 length;
      *    ...
      */
-    *buf = ssl->in_msg   + 4;
+    *buf = ssl->in_msg + 4;
     *buf_len = ssl->in_hslen - 4;
+    return 0;
 
-cleanup:
-
+error:
+    if (ret == MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE) {
+        MBEDTLS_SSL_PEND_FATAL_ALERT(MBEDTLS_SSL_ALERT_MSG_UNEXPECTED_MESSAGE,
+                                     MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE);
+    }
     return ret;
 }
 

@@ -4,7 +4,7 @@ Security
      could have dangerous results, in particular causing some certificates
      to be parsed as CA certificates when other X.509 implementations would
      parse them as end-entity certificates. Reported by Mohammad Seet
-     (mhdsait101) and Pablo Ruiz García. CVE-2026-49300
+     (mhdsait101), Pablo Ruiz García and NVIDIA Project Vanessa. CVE-2026-49300
 
 Changes
    * X.509 certificates with a basicConstraints extension starting with an

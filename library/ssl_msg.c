@@ -3427,12 +3427,16 @@ int mbedtls_ssl_prepare_handshake_record(mbedtls_ssl_context *ssl)
                                       in_hsfraglen, ssl->in_hslen));
             ssl->in_hdr = payload_end;
             ssl->in_msglen = 0;
-            MBEDTLS_SSL_SET_IN_HSFRAGLEN(ssl, in_hsfraglen);
+            if (mbedtls_ssl_set_in_hsfraglen(ssl, in_hsfraglen) != 0) {
+                return MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+            }
             mbedtls_ssl_update_in_pointers(ssl);
             return MBEDTLS_ERR_SSL_CONTINUE_PROCESSING;
         } else {
             ssl->in_msglen = in_hsfraglen;
-            MBEDTLS_SSL_SET_IN_HSFRAGLEN(ssl, 0);
+            if (mbedtls_ssl_set_in_hsfraglen(ssl, 0) != 0) {
+                return MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+            }
             ssl->in_hdr = reassembled_record_start;
             mbedtls_ssl_update_in_pointers(ssl);
 
@@ -5150,7 +5154,9 @@ static int ssl_get_next_record(mbedtls_ssl_context *ssl)
 
                 if (ssl->conf->badmac_limit != 0) {
                     unsigned badmac_seen = mbedtls_ssl_get_badmac_seen(ssl) + 1;
-                    MBEDTLS_SSL_SET_BADMAC_SEEN(ssl, badmac_seen);
+                    if (mbedtls_ssl_set_badmac_seen(ssl, badmac_seen) != 0) {
+                        return MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+                    }
                     if (badmac_seen >= ssl->conf->badmac_limit) {
                         MBEDTLS_SSL_DEBUG_MSG(1, ("too many records with bad MAC"));
                         return MBEDTLS_ERR_SSL_INVALID_MAC;

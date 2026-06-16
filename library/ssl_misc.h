@@ -496,27 +496,22 @@ static inline unsigned mbedtls_ssl_get_badmac_seen(const mbedtls_ssl_context *ss
 }
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
-static inline void mbedtls_ssl_set_badmac_seen(mbedtls_ssl_context *ssl,
-                                               unsigned badmac_seen)
-{
-    ssl->badmac_seen_or_in_hsfraglen = badmac_seen;
-}
-
-#define MBEDTLS_SSL_SET_BADMAC_SEEN(ssl, badmac_seen)                   \
-    do {                                                                \
-        if ((ssl)->conf->transport != MBEDTLS_SSL_TRANSPORT_DATAGRAM) { \
-            MBEDTLS_SSL_DEBUG_RET(1, ("Internal error: trying to set badmac_seen in TLS"), \
-                                  MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED); \
-            return MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;               \
-        }                                                               \
-        mbedtls_ssl_set_badmac_seen(ssl, badmac_seen);                  \
-    } while (0)
-#else
 /* We shouldn't be trying to set badmac_seen if DTLS support is disabled
  * at compile time. If this is called from a code block that checks for the
  * DTLS protocol at run time, it should be guarded by
  * defined(MBEDTLS_SSL_PROTO_DTLS). */
-#undef MBEDTLS_SSL_SET_BADMAC_SEEN
+MBEDTLS_CHECK_RETURN_CRITICAL
+static inline int mbedtls_ssl_set_badmac_seen(mbedtls_ssl_context *ssl,
+                                              unsigned badmac_seen)
+{
+    if ((ssl)->conf->transport != MBEDTLS_SSL_TRANSPORT_DATAGRAM) {
+        MBEDTLS_SSL_DEBUG_RET(1, ("Internal error: trying to set badmac_seen in TLS"),
+                              MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED);
+        return MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    }
+    ssl->badmac_seen_or_in_hsfraglen = badmac_seen;
+    return 0;
+}
 #endif
 
 static inline unsigned mbedtls_ssl_get_in_hsfraglen(const mbedtls_ssl_context *ssl)
@@ -529,26 +524,20 @@ static inline unsigned mbedtls_ssl_get_in_hsfraglen(const mbedtls_ssl_context *s
     return ssl->badmac_seen_or_in_hsfraglen;
 }
 
-static inline void mbedtls_ssl_set_in_hsfraglen(mbedtls_ssl_context *ssl,
-                                                unsigned in_hsfraglen)
+MBEDTLS_CHECK_RETURN_CRITICAL
+static inline int mbedtls_ssl_set_in_hsfraglen(mbedtls_ssl_context *ssl,
+                                               unsigned in_hsfraglen)
 {
-    ssl->badmac_seen_or_in_hsfraglen = in_hsfraglen;
-}
-
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
-#define MBEDTLS_SSL_SET_IN_HSFRAGLEN(ssl, in_hsfraglen)                 \
-    do {                                                                \
-        if ((ssl)->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM) { \
-            MBEDTLS_SSL_DEBUG_RET(1, ("Internal error: trying to set in_hsfraglen in DTLS"), \
-                                  MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED); \
-            return MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;               \
-        }                                                               \
-        mbedtls_ssl_set_in_hsfraglen(ssl, in_hsfraglen);                \
-    } while (0)
-#else
-#define MBEDTLS_SSL_SET_IN_HSFRAGLEN(ssl, in_hsfraglen) \
-    mbedtls_ssl_set_in_hsfraglen(ssl, in_hsfraglen)
+    if ((ssl)->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM) {
+        MBEDTLS_SSL_DEBUG_RET(1, ("Internal error: trying to set in_hsfraglen in DTLS"),
+                              MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED);
+        return MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    }
 #endif
+    ssl->badmac_seen_or_in_hsfraglen = in_hsfraglen;
+    return 0;
+}
 
 /*
  * TLS extension flags (for extensions with outgoing ServerHello content

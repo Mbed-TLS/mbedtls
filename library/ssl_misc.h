@@ -2028,7 +2028,6 @@ static inline int mbedtls_ssl_tls13_key_exchange_mode_with_ephemeral(
 MBEDTLS_CHECK_RETURN_CRITICAL
 int mbedtls_ssl_tls13_fetch_handshake_msg(mbedtls_ssl_context *ssl,
                                           unsigned hs_type,
-                                          unsigned require_record_boundary,
                                           unsigned char **buf,
                                           size_t *buf_len);
 

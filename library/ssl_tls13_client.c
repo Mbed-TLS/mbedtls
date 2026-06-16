@@ -2008,7 +2008,7 @@ static int ssl_tls13_process_server_hello(mbedtls_ssl_context *ssl)
     MBEDTLS_SSL_DEBUG_MSG(2, ("=> %s", __func__));
 
     MBEDTLS_SSL_PROC_CHK(mbedtls_ssl_tls13_fetch_handshake_msg(
-                             ssl, MBEDTLS_SSL_HS_SERVER_HELLO, 1, &buf, &buf_len));
+                             ssl, MBEDTLS_SSL_HS_SERVER_HELLO, &buf, &buf_len));
 
     ret = ssl_tls13_preprocess_server_hello(ssl, buf, buf + buf_len);
     if (ret < 0) {
@@ -2201,7 +2201,7 @@ static int ssl_tls13_process_encrypted_extensions(mbedtls_ssl_context *ssl)
     MBEDTLS_SSL_DEBUG_MSG(2, ("=> parse encrypted extensions"));
 
     MBEDTLS_SSL_PROC_CHK(mbedtls_ssl_tls13_fetch_handshake_msg(
-                             ssl, MBEDTLS_SSL_HS_ENCRYPTED_EXTENSIONS, 0,
+                             ssl, MBEDTLS_SSL_HS_ENCRYPTED_EXTENSIONS,
                              &buf, &buf_len));
 
     /* Process the message contents */
@@ -2536,7 +2536,7 @@ static int ssl_tls13_process_certificate_request(mbedtls_ssl_context *ssl)
         size_t buf_len;
 
         MBEDTLS_SSL_PROC_CHK(mbedtls_ssl_tls13_fetch_handshake_msg(
-                                 ssl, MBEDTLS_SSL_HS_CERTIFICATE_REQUEST, 0,
+                                 ssl, MBEDTLS_SSL_HS_CERTIFICATE_REQUEST,
                                  &buf, &buf_len));
 
         MBEDTLS_SSL_PROC_CHK(ssl_tls13_parse_certificate_request(
@@ -3031,7 +3031,7 @@ static int ssl_tls13_process_new_session_ticket(mbedtls_ssl_context *ssl)
     MBEDTLS_SSL_DEBUG_MSG(2, ("=> parse new session ticket"));
 
     MBEDTLS_SSL_PROC_CHK(mbedtls_ssl_tls13_fetch_handshake_msg(
-                             ssl, MBEDTLS_SSL_HS_NEW_SESSION_TICKET, 0,
+                             ssl, MBEDTLS_SSL_HS_NEW_SESSION_TICKET,
                              &buf, &buf_len));
 
     /*

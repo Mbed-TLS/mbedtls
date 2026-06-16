@@ -4146,7 +4146,7 @@ void tls13_server_certificate_msg_invalid_vector_len()
 
         ret = mbedtls_ssl_tls13_fetch_handshake_msg(&(client_ep.ssl),
                                                     MBEDTLS_SSL_HS_CERTIFICATE,
-                                                    0, &buf, &buf_len);
+                                                    &buf, &buf_len);
         TEST_EQUAL(ret, 0);
 
         end = buf + buf_len;

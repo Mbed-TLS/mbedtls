@@ -1957,7 +1957,7 @@ static int ssl_tls13_process_client_hello(mbedtls_ssl_context *ssl)
     MBEDTLS_SSL_DEBUG_MSG(2, ("=> parse client hello"));
 
     MBEDTLS_SSL_PROC_CHK(mbedtls_ssl_tls13_fetch_handshake_msg(
-                             ssl, MBEDTLS_SSL_HS_CLIENT_HELLO, 1,
+                             ssl, MBEDTLS_SSL_HS_CLIENT_HELLO,
                              &buf, &buflen));
 
     MBEDTLS_SSL_PROC_CHK_NEG(ssl_tls13_parse_client_hello(ssl, buf,
@@ -3048,7 +3048,7 @@ static int ssl_tls13_process_end_of_early_data(mbedtls_ssl_context *ssl)
         size_t buf_len;
 
         MBEDTLS_SSL_PROC_CHK(mbedtls_ssl_tls13_fetch_handshake_msg(
-                                 ssl, MBEDTLS_SSL_HS_END_OF_EARLY_DATA, 1,
+                                 ssl, MBEDTLS_SSL_HS_END_OF_EARLY_DATA,
                                  &buf, &buf_len));
 
         MBEDTLS_SSL_PROC_CHK(ssl_tls13_parse_end_of_early_data(

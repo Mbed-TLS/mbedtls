@@ -56,11 +56,30 @@ const uint8_t mbedtls_ssl_tls13_hello_retry_request_magic[
 
 int mbedtls_ssl_tls13_fetch_handshake_msg(mbedtls_ssl_context *ssl,
                                           unsigned hs_type,
-                                          unsigned require_record_boundary,
                                           unsigned char **buf,
                                           size_t *buf_len)
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    int require_record_boundary;
+
+    /* Require record-boundary alignment by default. The exceptions below are
+     * handshake messages that may legitimately be followed by additional
+     * handshake messages in the same record. Using the default behaviour for a
+     * message that should be exempt is an interoperability bug; exempting a
+     * message that should not be exempt may have security implications.
+     */
+    switch (hs_type) {
+        case MBEDTLS_SSL_HS_NEW_SESSION_TICKET:
+        case MBEDTLS_SSL_HS_ENCRYPTED_EXTENSIONS:
+        case MBEDTLS_SSL_HS_CERTIFICATE:
+        case MBEDTLS_SSL_HS_CERTIFICATE_REQUEST:
+        case MBEDTLS_SSL_HS_CERTIFICATE_VERIFY:
+            require_record_boundary = 0;
+            break;
+
+        default:
+            require_record_boundary = 1;
+    }
 
     ret = mbedtls_ssl_read_record(ssl, 0);
     if (ret != 0) {
@@ -369,7 +388,7 @@ int mbedtls_ssl_tls13_process_certificate_verify(mbedtls_ssl_context *ssl)
 
     MBEDTLS_SSL_PROC_CHK(
         mbedtls_ssl_tls13_fetch_handshake_msg(
-            ssl, MBEDTLS_SSL_HS_CERTIFICATE_VERIFY, 0, &buf, &buf_len));
+            ssl, MBEDTLS_SSL_HS_CERTIFICATE_VERIFY, &buf, &buf_len));
 
     /* Need to calculate the hash of the transcript first
      * before reading the message since otherwise it gets
@@ -721,7 +740,7 @@ int mbedtls_ssl_tls13_process_certificate(mbedtls_ssl_context *ssl)
     size_t buf_len;
 
     MBEDTLS_SSL_PROC_CHK(mbedtls_ssl_tls13_fetch_handshake_msg(
-                             ssl, MBEDTLS_SSL_HS_CERTIFICATE, 0,
+                             ssl, MBEDTLS_SSL_HS_CERTIFICATE,
                              &buf, &buf_len));
 
     /* Parse the certificate chain sent by the peer. */
@@ -1141,7 +1160,7 @@ int mbedtls_ssl_tls13_process_finished_message(mbedtls_ssl_context *ssl)
     MBEDTLS_SSL_DEBUG_MSG(2, ("=> parse finished message"));
 
     MBEDTLS_SSL_PROC_CHK(mbedtls_ssl_tls13_fetch_handshake_msg(
-                             ssl, MBEDTLS_SSL_HS_FINISHED, 1, &buf, &buf_len));
+                             ssl, MBEDTLS_SSL_HS_FINISHED, &buf, &buf_len));
 
     /* Preprocessing step: Compute handshake digest */
     MBEDTLS_SSL_PROC_CHK(ssl_tls13_preprocess_finished_message(ssl));

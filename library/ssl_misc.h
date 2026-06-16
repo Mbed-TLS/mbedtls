@@ -484,6 +484,16 @@ static inline size_t mbedtls_ssl_get_input_buflen(const mbedtls_ssl_context *ctx
 }
 #endif
 
+/** Get `ssl->badmac_seen`. This field is encoded as
+ * mbedtls_ssl_context::badmac_seen_or_in_hsfraglen in DTLS contexts,
+ * and doesn't exist in TLS contexts.
+ *
+ * \param[in] ssl       The SSL context to read.
+ *
+ * \return In DTLS, the value of `badmac_seen`. In TLS, 0 (there can't have
+ *         been a record with a bad MAC in TLS, since those abort the
+ *         connection immediately).
+ */
 static inline unsigned mbedtls_ssl_get_badmac_seen(const mbedtls_ssl_context *ssl)
 {
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
@@ -500,6 +510,15 @@ static inline unsigned mbedtls_ssl_get_badmac_seen(const mbedtls_ssl_context *ss
  * at compile time. If this is called from a code block that checks for the
  * DTLS protocol at run time, it should be guarded by
  * defined(MBEDTLS_SSL_PROTO_DTLS). */
+/** Set `ssl->badmac_seen`. This field is encoded as
+ * mbedtls_ssl_context::badmac_seen_or_in_hsfraglen in DTLS contexts,
+ * and doesn't exist in TLS contexts.
+ *
+ * \param[in,out] ssl   The SSL context to modify.
+ * \param badmac_seen   The new value of `badmac_seen`.
+ *
+ * \return 0 in DTLS, #MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED in TLS.
+ */
 MBEDTLS_CHECK_RETURN_CRITICAL
 static inline int mbedtls_ssl_set_badmac_seen(mbedtls_ssl_context *ssl,
                                               unsigned badmac_seen)
@@ -514,6 +533,16 @@ static inline int mbedtls_ssl_set_badmac_seen(mbedtls_ssl_context *ssl,
 }
 #endif
 
+/** Get `ssl->in_hsfraglen`. This field is encoded as
+ * mbedtls_ssl_context::badmac_seen_or_in_hsfraglen in TLS contexts,
+ * and doesn't exist in DTLS contexts.
+ *
+ * \param[in] ssl       The SSL context to read.
+ *
+ * \return In TLS, the value of `in_hsfraglen`. In DTLS, 0 (handshake
+ *         message defragmentation is handled different in DTLS, and
+ *         does not use this field).
+ */
 static inline unsigned mbedtls_ssl_get_in_hsfraglen(const mbedtls_ssl_context *ssl)
 {
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
@@ -524,6 +553,15 @@ static inline unsigned mbedtls_ssl_get_in_hsfraglen(const mbedtls_ssl_context *s
     return ssl->badmac_seen_or_in_hsfraglen;
 }
 
+/** Set `ssl->in_hsfraglen`. This field is encoded as
+ * mbedtls_ssl_context::badmac_seen_or_in_hsfraglen in TLS contexts,
+ * and doesn't exist in DTLS contexts.
+ *
+ * \param[in,out] ssl   The SSL context to modify.
+ * \param in_hsfraglen  The new value of `in_hsfraglen`.
+ *
+ * \return 0 in TLS, #MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED in DTLS.
+ */
 MBEDTLS_CHECK_RETURN_CRITICAL
 static inline int mbedtls_ssl_set_in_hsfraglen(mbedtls_ssl_context *ssl,
                                                unsigned in_hsfraglen)

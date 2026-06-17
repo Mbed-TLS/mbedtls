@@ -67,6 +67,9 @@ endif()
 # Set the project and framework root directory.
 set(MBEDTLS_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 set(MBEDTLS_FRAMEWORK_DIR ${CMAKE_CURRENT_SOURCE_DIR}/framework)
+if(NOT DEFINED TF_PSA_CRYPTO_DISPATCH_DIR)
+    set(TF_PSA_CRYPTO_DISPATCH_DIR ${CMAKE_CURRENT_SOURCE_DIR}/tf-psa-crypto/dispatch)
+endif()
 
 option(ENABLE_PROGRAMS "Build Mbed TLS programs." ON)
 
@@ -380,7 +383,7 @@ endforeach(target)
 #
 set(TF_PSA_CRYPTO_PRIVATE_INCLUDE_DIRS
         ${CMAKE_CURRENT_SOURCE_DIR}/tf-psa-crypto/core
-        ${CMAKE_CURRENT_SOURCE_DIR}/tf-psa-crypto/dispatch
+        ${TF_PSA_CRYPTO_DISPATCH_DIR}
         ${CMAKE_CURRENT_SOURCE_DIR}/tf-psa-crypto/drivers/builtin/src
         ${CMAKE_CURRENT_SOURCE_DIR}/tf-psa-crypto/extras
         ${CMAKE_CURRENT_SOURCE_DIR}/tf-psa-crypto/platform
@@ -434,6 +437,7 @@ if(ENABLE_TESTING OR ENABLE_PROGRAMS)
                 tests/include
                 include
                 tf-psa-crypto/include
+                ${TF_PSA_CRYPTO_DISPATCH_DIR}/include
                 tf-psa-crypto/drivers/builtin/include
                 tf-psa-crypto/drivers/everest/include
                 tf-psa-crypto/drivers/pqcp/include
@@ -471,6 +475,7 @@ if(ENABLE_TESTING OR ENABLE_PROGRAMS)
                 tests/include
                 include
                 tf-psa-crypto/include
+                ${TF_PSA_CRYPTO_DISPATCH_DIR}/include
                 tf-psa-crypto/drivers/builtin/include
                 library
                 tf-psa-crypto/drivers/everest/include

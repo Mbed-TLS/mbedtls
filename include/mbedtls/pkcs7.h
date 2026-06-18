@@ -34,9 +34,9 @@
  *  - The RFC doesn't put any constrain on the hash algorithm to be used, but
  *    this implementation by default rejects weak hash algorithms (i.e. RIPEMD160,
  *    MD5, SHA-1, SHA-224, SHA3-224). In general accepted hash and PK algorithms
- *    are the ones belonging to `mbedtls_x509_crt_profile_default`.
- *    MBEDTLS_PKCS7_ALLOW_WEAK_SIGNATURES can be enabled to remove the limitation
- *    on weak hash algorithms.
+ *    are the ones belonging to ::mbedtls_x509_crt_profile_default.
+ *    #MBEDTLS_PKCS7_ALLOW_WEAK_SIGNATURES can be enabled to accept all
+ *    supported hash algorithms.
  */
 
 #ifndef MBEDTLS_PKCS7_H

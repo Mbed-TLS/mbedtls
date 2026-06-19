@@ -1,0 +1,5 @@
+Bugfix
+   * Reject malformed TLS 1.3 serialized sessions instead of accepting
+     unterminated strings or extra trailing data.
+   * Reject serialized SSL contexts whose DTLS Connection ID length exceeds
+     the maximum supported size, instead of overflowing the internal buffer.

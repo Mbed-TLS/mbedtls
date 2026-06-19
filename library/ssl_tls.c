@@ -4035,6 +4035,12 @@ static int ssl_tls13_session_load(mbedtls_ssl_session *session,
         }
 
         if (alpn_len > 0) {
+            /* The data is about to be used as a null-terminated string, so
+             * check that it actually is one. */
+            if (p[alpn_len - 1] != '\0') {
+                return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
+            }
+
             int ret = mbedtls_ssl_session_set_ticket_alpn(session, (char *) p);
             if (ret != 0) {
                 return ret;
@@ -4060,11 +4066,16 @@ static int ssl_tls13_session_load(mbedtls_ssl_session *session,
             return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
         }
         if (hostname_len > 0) {
-            session->hostname = mbedtls_calloc(1, hostname_len);
-            if (session->hostname == NULL) {
-                return MBEDTLS_ERR_SSL_ALLOC_FAILED;
+            /* The data is about to be used as a null-terminated string, so
+             * check that it actually is one. */
+            if (p[hostname_len - 1] != '\0') {
+                return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
             }
-            memcpy(session->hostname, p, hostname_len);
+
+            int ret = mbedtls_ssl_session_set_hostname(session, (const char *) p);
+            if (ret != 0) {
+                return ret;
+            }
             p += hostname_len;
         }
 #endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION */
@@ -4101,6 +4112,10 @@ static int ssl_tls13_session_load(mbedtls_ssl_session *session,
         }
     }
 #endif /* MBEDTLS_SSL_CLI_C */
+
+    if (p != end) {
+        return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
+    }
 
     return 0;
 
@@ -5440,12 +5455,20 @@ static int ssl_context_load(mbedtls_ssl_context *ssl,
         return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
     }
 
+    if (ssl->transform->in_cid_len > sizeof(ssl->transform->in_cid)) {
+        return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
+    }
+
     memcpy(ssl->transform->in_cid, p, ssl->transform->in_cid_len);
     p += ssl->transform->in_cid_len;
 
     ssl->transform->out_cid_len = *p++;
 
     if ((size_t) (end - p) < ssl->transform->out_cid_len) {
+        return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
+    }
+
+    if (ssl->transform->out_cid_len > sizeof(ssl->transform->out_cid)) {
         return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
     }
 

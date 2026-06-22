@@ -5357,7 +5357,13 @@ psa_status_t psa_aead_set_lengths(psa_aead_operation_t *operation,
 #endif /* PSA_WANT_ALG_CCM */
 #if defined(PSA_WANT_ALG_CHACHA20_POLY1305)
         case PSA_ALG_CHACHA20_POLY1305:
-            /* No length restrictions for ChaChaPoly. */
+#if SIZE_MAX > UINT32_MAX
+            if (plaintext_length > (size_t) UINT32_MAX *
+                64U) {
+                status = PSA_ERROR_INVALID_ARGUMENT;
+                goto exit;
+            }
+#endif
             break;
 #endif /* PSA_WANT_ALG_CHACHA20_POLY1305 */
         default:

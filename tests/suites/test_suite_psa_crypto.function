@@ -6363,13 +6363,20 @@ void aead_multipart_state_test(int key_type_arg, data_t *key_data,
 
     psa_aead_abort(&operation);
 
-    /* Test for setting nonce after calling set lengths with plaintext length of SIZE_MAX */
+    /* Test for setting nonce after calling set lengths with plaintext length above the
+     * algorithm limit. */
 #if SIZE_MAX > UINT32_MAX
     PSA_ASSERT(psa_aead_encrypt_setup(&operation, key, alg));
 
     if (operation.alg == PSA_ALG_GCM) {
         TEST_EQUAL(psa_aead_set_lengths(&operation, additional_data->len,
-                                        SIZE_MAX),
+                                        (size_t) 0xfffffffe * 16 + 1),
+                   PSA_ERROR_INVALID_ARGUMENT);
+        TEST_EQUAL(psa_aead_set_nonce(&operation, nonce->x, nonce->len),
+                   PSA_ERROR_BAD_STATE);
+    } else if (operation.alg == PSA_ALG_CHACHA20_POLY1305) {
+        TEST_EQUAL(psa_aead_set_lengths(&operation, additional_data->len,
+                                        (size_t) UINT32_MAX * 64 + 1),
                    PSA_ERROR_INVALID_ARGUMENT);
         TEST_EQUAL(psa_aead_set_nonce(&operation, nonce->x, nonce->len),
                    PSA_ERROR_BAD_STATE);
@@ -6382,7 +6389,8 @@ void aead_multipart_state_test(int key_type_arg, data_t *key_data,
     psa_aead_abort(&operation);
 #endif
 
-    /* Test for calling set lengths with a plaintext length of SIZE_MAX, after setting nonce */
+    /* Test for calling set lengths with a plaintext length above the algorithm limit,
+     * after setting nonce. */
 #if SIZE_MAX > UINT32_MAX
     PSA_ASSERT(psa_aead_encrypt_setup(&operation, key, alg));
 
@@ -6390,7 +6398,11 @@ void aead_multipart_state_test(int key_type_arg, data_t *key_data,
 
     if (operation.alg == PSA_ALG_GCM) {
         TEST_EQUAL(psa_aead_set_lengths(&operation, additional_data->len,
-                                        SIZE_MAX),
+                                        (size_t) 0xfffffffe * 16 + 1),
+                   PSA_ERROR_INVALID_ARGUMENT);
+    } else if (operation.alg == PSA_ALG_CHACHA20_POLY1305) {
+        TEST_EQUAL(psa_aead_set_lengths(&operation, additional_data->len,
+                                        (size_t) UINT32_MAX * 64 + 1),
                    PSA_ERROR_INVALID_ARGUMENT);
     } else if (operation.alg != PSA_ALG_CCM) {
         PSA_ASSERT(psa_aead_set_lengths(&operation, additional_data->len,

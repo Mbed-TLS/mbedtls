@@ -746,6 +746,23 @@ int mbedtls_test_get_tls13_ticket(
                                                           &psa_type, &psa_bits), \
                PSA_ERROR_NOT_SUPPORTED);
 
+/**
+ * Verify that mbedtls_ssl_session_reset() properly managed fields of the
+ * mbedtls_ssl_context structure. The expected action on reset depends on the
+ * specific field.
+ *
+ * Note: the code is automatically generated from the python script
+ *       "tests/scripts/generate_ssl_session_reset_check.py".
+ *
+ * \param[in]       before    The SSL context before mbedtls_ssl_session_reset()
+ *                            is called on it. This is used for fields that
+ *                            should be kept untouched during the reset.
+ * \param[in]       after     The SSL context after mbedtls_ssl_session_reset()
+ *                            is called on it.
+ */
+int mbedtls_test_ssl_check_context_after_session_reset(const mbedtls_ssl_context *before,
+                                                       const mbedtls_ssl_context *after);
+
 #endif /* MBEDTLS_SSL_TLS_C */
 
 #endif /* SSL_HELPERS_H */

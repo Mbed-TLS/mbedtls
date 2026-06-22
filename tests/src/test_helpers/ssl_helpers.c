@@ -9,6 +9,8 @@
  */
 
 #include <test/ssl_helpers.h>
+#include <test/ssl_helpers_internal.h>
+#include <test/macros.h>
 #include "mbedtls/psa_util.h"
 
 #if defined(MBEDTLS_SSL_TLS_C)

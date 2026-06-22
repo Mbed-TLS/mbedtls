@@ -934,6 +934,16 @@ void mbedtls_test_ssl_endpoint_free(
 {
     test_ssl_endpoint_certificate_free(ep);
 
+    mbedtls_ssl_context ssl_before;
+
+    /* Dump the SSL context before resetting it */
+    memcpy(&ssl_before, &(ep->ssl), sizeof(mbedtls_ssl_context));
+
+    mbedtls_ssl_session_reset(&(ep->ssl));
+
+    /* Check that required fields were properly reset */
+    mbedtls_test_ssl_check_context_after_session_reset(&ssl_before, &(ep->ssl));
+
     mbedtls_ssl_free(&(ep->ssl));
     mbedtls_ssl_config_free(&(ep->conf));
 

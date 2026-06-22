@@ -22,6 +22,7 @@ int main(void)
 #else /* !MBEDTLS_SSL_TEST_IMPOSSIBLE && MBEDTLS_SSL_CLI_C */
 
 #include "test/psa_crypto_helpers.h"
+#include "test/ssl_helpers.h"
 
 /* Size of memory to be allocated for the heap, when using the library's memory
  * management and MBEDTLS_MEMORY_BUFFER_ALLOC_C is enabled. */
@@ -2800,9 +2801,18 @@ send_request:
         memset(peer_crt_info, 0, sizeof(peer_crt_info));
 #endif /* MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED */
 
+        /* Dump the SSL context before resetting it. This will be used below
+         * to check if the reset function worked properly. */
+        mbedtls_ssl_context ssl_before = ssl;
         if ((ret = mbedtls_ssl_session_reset(&ssl)) != 0) {
             mbedtls_printf(" failed\n  ! mbedtls_ssl_session_reset returned -0x%x\n\n",
                            (unsigned int) -ret);
+            goto exit;
+        }
+
+        if (mbedtls_test_ssl_check_context_after_session_reset(&ssl_before, &ssl) != 0) {
+            mbedtls_printf(
+                " failed\n  ! mbedtls_ssl_session_reset didn't properly reset ssl context\n\n");
             goto exit;
         }
 

@@ -1325,6 +1325,15 @@ typedef union {
 } mbedtls_ssl_user_data_t;
 
 /**
+ * Added at the end of "struct mbedtls_ssl_config" and "struct mbedtls_ssl_context"
+ * to reserve a field for future use.
+ */
+typedef union {
+    size_t number;
+    void *ptr;
+} mbedtls_ssl_unused_data_t;
+
+/**
  * SSL/TLS configuration to be shared between mbedtls_ssl_context structures.
  */
 struct mbedtls_ssl_config {
@@ -1572,13 +1581,20 @@ struct mbedtls_ssl_config {
     const mbedtls_x509_crt *MBEDTLS_PRIVATE(dn_hints);/*!< acceptable client cert issuers    */
 #endif
 
-    /* Unused field reserved for future use */
-    union {
-        size_t number;
-        void *ptr;
-    } MBEDTLS_PRIVATE(unused);
+    mbedtls_ssl_unused_data_t MBEDTLS_PRIVATE(unused);
 };
 
+/*
+ * Warning: whenever a change is applied to "mbedtls_ssl_context" please re-run
+ * the script "tests/scripts/generate_ssl_session_reset_check.py".
+ * Please note that this script has some limitation that should be considered
+ * when modifing "mbedtls_ssl_context":
+ * - Parsed structure must start with struct "mbedtls_ssl_context {"
+ *   (not "typedef struct {").
+ * - It must end with "}}" in column 0.
+ * - Must not contain "#else" or "#elif" conditionals.
+ * - Must not contain nested struct/union/enum definitions.
+ */
 struct mbedtls_ssl_context {
     const mbedtls_ssl_config *MBEDTLS_PRIVATE(conf); /*!< configuration information          */
 
@@ -1861,11 +1877,7 @@ struct mbedtls_ssl_context {
      */
     mbedtls_ssl_user_data_t MBEDTLS_PRIVATE(user_data);
 
-    /* Unused field reserved for future use */
-    union {
-        size_t number;
-        void *ptr;
-    } MBEDTLS_PRIVATE(unused);
+    mbedtls_ssl_unused_data_t MBEDTLS_PRIVATE(unused);
 };
 
 /**

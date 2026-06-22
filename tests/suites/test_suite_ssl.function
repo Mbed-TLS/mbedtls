@@ -9,6 +9,7 @@
 #include <ssl_tls13_keys.h>
 #include <ssl_tls13_invasive.h>
 #include <test/ssl_helpers.h>
+#include <test/ssl_helpers_internal.h>
 
 #include <constant_time_internal.h>
 #include <test/constant_flow.h>

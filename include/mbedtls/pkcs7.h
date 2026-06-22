@@ -122,13 +122,22 @@ typedef struct mbedtls_pkcs7_signer_info {
 mbedtls_pkcs7_signer_info;
 
 /**
+ * Structure for holding a certificate in a PKCS #7 SignedData
+ */
+typedef struct mbedtls_pkcs7_cert {
+    mbedtls_x509_crt MBEDTLS_PRIVATE(cert);
+    struct mbedtls_pkcs7_cert *MBEDTLS_PRIVATE(next);
+}
+mbedtls_pkcs7_cert;
+
+/**
  * Structure holding the signed data section
  */
 typedef struct mbedtls_pkcs7_signed_data {
     int MBEDTLS_PRIVATE(version);
     mbedtls_pkcs7_buf MBEDTLS_PRIVATE(digest_alg_identifiers);
     int MBEDTLS_PRIVATE(no_of_certs);
-    mbedtls_x509_crt MBEDTLS_PRIVATE(certs);
+    mbedtls_pkcs7_cert *MBEDTLS_PRIVATE(certs);
     int MBEDTLS_PRIVATE(no_of_crls);
     mbedtls_x509_crl MBEDTLS_PRIVATE(crl);
     int MBEDTLS_PRIVATE(no_of_signers);

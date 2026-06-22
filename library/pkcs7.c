@@ -20,6 +20,7 @@
 
 #include "mbedtls/platform.h"
 #include "mbedtls/platform_util.h"
+#include <limits.h>
 
 #if defined(MBEDTLS_HAVE_TIME)
 #include "mbedtls/platform_time.h"
@@ -158,62 +159,121 @@ static int pkcs7_get_digest_algorithm_set(unsigned char **p,
 }
 
 /**
- * certificates :: SET OF ExtendedCertificateOrCertificate,
- * ExtendedCertificateOrCertificate ::= CHOICE {
- *      certificate Certificate -- x509,
- *      extendedCertificate[0] IMPLICIT ExtendedCertificate }
- * Return number of certificates added to the signed data,
- * 0 or higher is valid.
- * Return negative error code for failure.
- **/
-static int pkcs7_get_certificates(unsigned char **p, unsigned char *end,
-                                  mbedtls_x509_crt *certs)
+ * \brief           Parse and add a certificate to the certificate list.
+ *
+ * \details         Decodes a DER-encoded certificate and adds it to the
+ *                  certificate list.
+ *
+ * \param der_cert  DER-encoded certificate.
+ * \param der_len   Length of the DER-encoded certificate.
+ * \param certs     Certificate list to which the parsed certificate
+ *                  is added.
+ *
+ * \return          0 on success, or a negative error code on failure.
+ */
+static int pkcs7_parse_cert_der(const unsigned char *der_cert, size_t der_len,
+                                mbedtls_pkcs7_cert **certs)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    size_t len1 = 0;
-    size_t len2 = 0;
-    unsigned char *end_set, *end_cert, *start;
+    mbedtls_pkcs7_cert *pcert;
 
-    ret = mbedtls_asn1_get_tag(p, end, &len1, MBEDTLS_ASN1_CONSTRUCTED
-                               | MBEDTLS_ASN1_CONTEXT_SPECIFIC);
-    if (ret == MBEDTLS_ERR_ASN1_UNEXPECTED_TAG) {
-        return 0;
+    pcert = mbedtls_calloc(1, sizeof(mbedtls_pkcs7_cert));
+    if (pcert == NULL) {
+        return MBEDTLS_ERR_PKCS7_ALLOC_FAILED;
     }
+
+    mbedtls_x509_crt_init(&pcert->cert);
+
+    ret = mbedtls_x509_crt_parse_der(&pcert->cert, der_cert, der_len);
     if (ret != 0) {
-        return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PKCS7_INVALID_FORMAT, ret);
-    }
-    start = *p;
-    end_set = *p + len1;
-
-    ret = mbedtls_asn1_get_tag(p, end_set, &len2, MBEDTLS_ASN1_CONSTRUCTED
-                               | MBEDTLS_ASN1_SEQUENCE);
-    if (ret != 0) {
-        return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PKCS7_INVALID_CERT, ret);
-    }
-
-    end_cert = *p + len2;
-
-    /*
-     * This is to verify that there is only one signer certificate. It seems it is
-     * not easy to differentiate between the chain vs different signer's certificate.
-     * So, we support only the root certificate and the single signer.
-     * The behaviour would be improved with addition of multiple signer support.
-     */
-    if (end_cert != end_set) {
-        return MBEDTLS_ERR_PKCS7_FEATURE_UNAVAILABLE;
-    }
-
-    if ((ret = mbedtls_x509_crt_parse_der(certs, start, len1)) < 0) {
+        mbedtls_free(pcert);
         return MBEDTLS_ERR_PKCS7_INVALID_CERT;
     }
 
-    *p = end_cert;
+    if (*certs == NULL) {
+        *certs = pcert;
+    } else {
+        pcert->next = *certs;
+        *certs = pcert;
+    }
 
-    /*
-     * Since in this version we strictly support single certificate, and reaching
-     * here implies we have parsed successfully, we return 1.
-     */
-    return 1;
+    return 0;
+}
+
+/**
+ * \brief           Parse certificates from PKCS#7 SignedData.
+ *
+ * \details         Parses the SET OF ExtendedCertificateOrCertificate and
+ *                  stores them in a linked list of mbedtls_pkcs7_cert nodes.
+ *
+ *                  certificates :: SET OF ExtendedCertificateOrCertificate,
+ *                  ExtendedCertificateOrCertificate ::= CHOICE {
+ *                       certificate Certificate -- x509,
+ *                       extendedCertificate[0] IMPLICIT ExtendedCertificate
+ *                  }
+ *
+ * \param p         Input pointer to ASN.1 buffer.
+ * \param end       End of input buffer.
+ * \param certs     Certificate list.
+ *
+ * \return          Number of certificates parsed (>= 0) on success,
+ *                  or a negative error code on failure.
+ */
+static int pkcs7_get_certificates(unsigned char **p, unsigned char *end,
+                                  mbedtls_pkcs7_cert **certs)
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    size_t set_len = 0;
+    int count = 0;
+    unsigned char *end_set;
+
+    ret = mbedtls_asn1_get_tag(p, end, &set_len,
+                               MBEDTLS_ASN1_CONSTRUCTED |
+                               MBEDTLS_ASN1_CONTEXT_SPECIFIC);
+    if (ret == MBEDTLS_ERR_ASN1_UNEXPECTED_TAG) {
+        return 0;
+    } else if (ret != 0) {
+        return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PKCS7_INVALID_FORMAT, ret);
+    }
+
+    end_set = *p + set_len;
+
+    while (*p < end_set && count < INT_MAX) {
+        unsigned char *elem_start = *p;
+        unsigned char *q = *p;
+        size_t cert_len = 0;
+        size_t der_len;
+
+        ret = mbedtls_asn1_get_tag(&q, end_set, &cert_len,
+                                   MBEDTLS_ASN1_CONSTRUCTED |
+                                   MBEDTLS_ASN1_SEQUENCE);
+        if (ret != 0) {
+            return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PKCS7_INVALID_CERT,
+                                     ret);
+        }
+
+        if (cert_len > (size_t) (end_set - q)) {
+            return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PKCS7_INVALID_FORMAT,
+                                     MBEDTLS_ERR_ASN1_LENGTH_MISMATCH);
+        }
+
+        der_len = (size_t) ((q + cert_len) - elem_start);
+
+        ret = pkcs7_parse_cert_der(elem_start, der_len, certs);
+        if (ret != 0) {
+            return ret;
+        }
+
+        *p = q + cert_len;
+        count++;
+    }
+
+    if (*p != end_set) {
+        return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PKCS7_INVALID_FORMAT,
+                                 MBEDTLS_ERR_ASN1_LENGTH_MISMATCH);
+    }
+
+    return count;
 }
 
 /**
@@ -514,14 +574,13 @@ static int pkcs7_get_signed_data(unsigned char *buf, size_t buflen,
     }
 
     /* Look for certificates, there may or may not be any */
-    mbedtls_x509_crt_init(&signed_data->certs);
+    signed_data->certs = NULL;
     ret = pkcs7_get_certificates(&p, end, &signed_data->certs);
     if (ret < 0) {
         return ret;
     }
 
     signed_data->no_of_certs = ret;
-
     /*
      * Currently CRLs are not supported. If CRL exist, the parsing will fail
      * at next step of getting signers info and return error as invalid
@@ -759,6 +818,8 @@ void mbedtls_pkcs7_free(mbedtls_pkcs7 *pkcs7)
 {
     mbedtls_pkcs7_signer_info *signer_cur;
     mbedtls_pkcs7_signer_info *signer_prev;
+    mbedtls_pkcs7_cert *cert_cur;
+    mbedtls_pkcs7_cert *cert_prev;
 
     if (pkcs7 == NULL || pkcs7->raw.p == NULL) {
         return;
@@ -766,7 +827,16 @@ void mbedtls_pkcs7_free(mbedtls_pkcs7 *pkcs7)
 
     mbedtls_free(pkcs7->raw.p);
 
-    mbedtls_x509_crt_free(&pkcs7->signed_data.certs);
+    cert_cur = pkcs7->signed_data.certs;
+    while (cert_cur != NULL) {
+        cert_prev = cert_cur;
+        cert_cur = cert_cur->next;
+        mbedtls_x509_crt_free(&cert_prev->cert);
+        mbedtls_free(cert_prev);
+    }
+
+    pkcs7->signed_data.certs = NULL;
+
     mbedtls_x509_crl_free(&pkcs7->signed_data.crl);
 
     signer_cur = pkcs7->signed_data.signers.next;

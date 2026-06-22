@@ -471,6 +471,14 @@ Handshake, select ECDHE-ECDSA-WITH-AES-256-CCM, opaque, bad usage
 depends_on:PSA_WANT_ALG_SHA_256:PSA_WANT_KEY_TYPE_AES:PSA_WANT_ALG_CCM:PSA_WANT_ECC_SECP_R1_256:PSA_WANT_ECC_SECP_R1_384:MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED:!MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH
 handshake_ciphersuite_select:"TLS-ECDHE-ECDSA-WITH-AES-256-CCM":MBEDTLS_PK_ECDSA:"":PSA_ALG_ECDSA(PSA_ALG_ANY_HASH):PSA_ALG_NONE:PSA_KEY_USAGE_DERIVE:MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE:0
 
+Handshake: DTLS 1.2, badmac_seen on client
+depends_on:MBEDTLS_SSL_PROTO_DTLS:MBEDTLS_SSL_PROTO_TLS1_2
+handshake_with_forced_context:1:MBEDTLS_SSL_VERSION_TLS1_2:PRE_HANDSHAKE_BADMAC_SEEN:0
+
+Handshake: DTLS 1.2, badmac_seen on server
+depends_on:MBEDTLS_SSL_PROTO_DTLS:MBEDTLS_SSL_PROTO_TLS1_2
+handshake_with_forced_context:1:MBEDTLS_SSL_VERSION_TLS1_2:0:PRE_HANDSHAKE_BADMAC_SEEN
+
 Sending app data via TLS, MFL=512 without fragmentation
 depends_on:MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
 app_data_tls:MBEDTLS_SSL_MAX_FRAG_LEN_512:400:512:1:1
@@ -548,13 +556,19 @@ Sending app data via DTLS, without MFL and with fragmentation
 app_data_dtls:MBEDTLS_SSL_MAX_FRAG_LEN_NONE:16385:100000:0:0
 
 DTLS renegotiation: no legacy renegotiation
-renegotiation:MBEDTLS_SSL_LEGACY_NO_RENEGOTIATION
+renegotiation:MBEDTLS_SSL_LEGACY_NO_RENEGOTIATION:-1
 
 DTLS renegotiation: legacy renegotiation
-renegotiation:MBEDTLS_SSL_LEGACY_ALLOW_RENEGOTIATION
+renegotiation:MBEDTLS_SSL_LEGACY_ALLOW_RENEGOTIATION:-1
 
 DTLS renegotiation: legacy break handshake
-renegotiation:MBEDTLS_SSL_LEGACY_BREAK_HANDSHAKE
+renegotiation:MBEDTLS_SSL_LEGACY_BREAK_HANDSHAKE:-1
+
+DTLS renegotiation: after bad MAC on client
+renegotiation:MBEDTLS_SSL_LEGACY_NO_RENEGOTIATION:MBEDTLS_SSL_IS_CLIENT
+
+DTLS renegotiation: after bad MAC on server
+renegotiation:MBEDTLS_SSL_LEGACY_NO_RENEGOTIATION:MBEDTLS_SSL_IS_SERVER
 
 DTLS serialization with MFL=512
 resize_buffers_serialize_mfl:MBEDTLS_SSL_MAX_FRAG_LEN_512

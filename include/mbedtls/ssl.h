@@ -1728,6 +1728,17 @@ struct mbedtls_ssl_config {
 #endif
 };
 
+/*
+ * Warning: whenever a change is applied to "mbedtls_ssl_context" please re-run
+ * the script "tests/scripts/generate_ssl_session_reset_check.py".
+ * Please note that this script has some limitation that should be considered
+ * when modifing "mbedtls_ssl_context":
+ * - Parsed structure must start with struct "mbedtls_ssl_context {"
+ *   (not "typedef struct {").
+ * - It must end with "}}" in column 0.
+ * - Must not contain "#else" or "#elif" conditionals.
+ * - Must not contain nested struct/union/enum definitions.
+ */
 struct mbedtls_ssl_context {
     const mbedtls_ssl_config *MBEDTLS_PRIVATE(conf); /*!< configuration information          */
 

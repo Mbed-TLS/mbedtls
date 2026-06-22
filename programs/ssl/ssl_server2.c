@@ -52,6 +52,7 @@ int main(void)
 #endif
 
 #include "test/psa_crypto_helpers.h"
+#include "test/ssl_helpers.h"
 
 #include "mbedtls/pk.h"
 #if defined(MBEDTLS_PK_HAVE_PRIVATE_HEADER)
@@ -3271,7 +3272,15 @@ reset:
 
     mbedtls_net_free(&client_fd);
 
+    /* Dump the SSL context before resetting it. This will be used below
+     * to check if the reset function worked properly. */
+    mbedtls_ssl_context ssl_before = ssl;
     mbedtls_ssl_session_reset(&ssl);
+    if (mbedtls_test_ssl_check_context_after_session_reset(&ssl_before, &ssl) != 0) {
+        mbedtls_printf(
+            " failed\n  ! mbedtls_ssl_session_reset didn't properly reset ssl context\n\n");
+        goto exit;
+    }
 
     /*
      * 3. Wait until a client connects

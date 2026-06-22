@@ -66,6 +66,39 @@ exit:
 }
 #endif
 
+typedef enum {
+    PRE_HANDSHAKE_BADMAC_SEEN = 1u << 0,
+} pre_handshake_tweaks_t;
+
+#if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED) && \
+    defined(PSA_HAVE_ALG_SOME_RSA_SIGN) && \
+    defined(PSA_WANT_ECC_SECP_R1_384) && \
+    defined(PSA_WANT_ALG_SHA_256) && \
+    defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY) && \
+    defined(MBEDTLS_CAN_HANDLE_RSA_TEST_KEY)
+typedef struct {
+    uint32_t client;
+    uint32_t server;
+} pre_handshake_tweak_spec_t;
+
+static void pre_handshake_tweak_context(mbedtls_ssl_context *ssl,
+                                        int tweaks)
+{
+    if (tweaks & PRE_HANDSHAKE_BADMAC_SEEN) {
+        ssl->badmac_seen = 1;
+    }
+}
+
+static void pre_handshake_tweak_contexts(mbedtls_test_ssl_endpoint *client,
+                                         mbedtls_test_ssl_endpoint *server,
+                                         void *param)
+{
+    const pre_handshake_tweak_spec_t *tweaks = param;
+    pre_handshake_tweak_context(&client->ssl, tweaks->client);
+    pre_handshake_tweak_context(&server->ssl, tweaks->server);
+}
+#endif
+
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED) && \
     defined(MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH) && \
     defined(MBEDTLS_SSL_PROTO_TLS1_2) && \
@@ -107,6 +140,30 @@ static void resize_buffers(int mfl, int renegotiation, int legacy_renegotiation,
 
 #if defined(PSA_WANT_ALG_GCM) || defined(PSA_WANT_ALG_CHACHA20_POLY1305)
 #define TEST_GCM_OR_CHACHAPOLY_ENABLED
+#endif
+
+#if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED) && \
+    defined(MBEDTLS_SSL_PROTO_TLS1_2) && \
+    defined(PSA_HAVE_ALG_SOME_RSA_SIGN) && \
+    defined(PSA_WANT_ECC_SECP_R1_384) && \
+    defined(MBEDTLS_SSL_PROTO_DTLS) && \
+    defined(MBEDTLS_SSL_RENEGOTIATION) && \
+    defined(PSA_WANT_ALG_SHA_256) && \
+    defined(MBEDTLS_CAN_HANDLE_RSA_TEST_KEY)
+static void simulate_badmac_seen_on(mbedtls_test_ssl_endpoint *client,
+                                    mbedtls_test_ssl_endpoint *server,
+                                    void *param)
+{
+    int on = *(int *) param;
+    switch (on) {
+        case MBEDTLS_SSL_IS_CLIENT:
+            client->ssl.badmac_seen = 1;
+            break;
+        case MBEDTLS_SSL_IS_SERVER:
+            server->ssl.badmac_seen = 1;
+            break;
+    }
+}
 #endif
 
 typedef enum {
@@ -2870,7 +2927,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:PSA_HAVE_ALG_SOME_RSA_SIGN:PSA_WANT_ECC_SECP_R1_384:!MBEDTLS_SSL_PROTO_TLS1_3:PSA_WANT_ALG_SHA_256 */
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:PSA_HAVE_ALG_SOME_RSA_SIGN:PSA_WANT_ECC_SECP_R1_384:PSA_WANT_ALG_SHA_256 */
 void mbedtls_endpoint_sanity(int endpoint_type)
 {
     enum { BUFFSIZE = 1024 };
@@ -3065,6 +3122,40 @@ exit:
 }
 /* END_CASE */
 
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:PSA_HAVE_ALG_SOME_RSA_SIGN:PSA_WANT_ECC_SECP_R1_384:PSA_WANT_ALG_SHA_256:PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY:MBEDTLS_CAN_HANDLE_RSA_TEST_KEY */
+/* Test a handshake in forced conditions.
+ *
+ * This can be used for defense in depths for scenarios that we think
+ * can't happen, but might actually happen due to a bug, or due to
+ * a new feature that is insufficiently tested.
+ *
+ * This can also be a proxy for testing aspects of renegotiation or
+ * session resumption in circumstances that are hard to arrange.
+ */
+void handshake_with_forced_context(int dtls, int version,
+                                   int client_tweaks, int server_tweaks)
+{
+    pre_handshake_tweak_spec_t tweaks = { client_tweaks, server_tweaks };
+
+    mbedtls_test_handshake_test_options options;
+    mbedtls_test_init_handshake_options(&options);
+    options.dtls = dtls;
+    options.client_min_version = version;
+    options.client_max_version = version;
+    options.expected_negotiated_version = version;
+    options.pre_handshake_fun = &pre_handshake_tweak_contexts;
+    options.pre_handshake_param = &tweaks;
+
+    mbedtls_test_ssl_perform_handshake(&options);
+
+    /* The goto below is used to avoid an "unused label" warning.*/
+    goto exit;
+
+exit:
+    mbedtls_test_free_handshake_options(&options);
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:PSA_HAVE_ALG_SOME_RSA_SIGN:PSA_WANT_ECC_SECP_R1_384:PSA_WANT_ALG_SHA_256 */
 void app_data(int mfl, int cli_msg_len, int srv_msg_len,
               int expected_cli_fragments,
@@ -3106,7 +3197,7 @@ void app_data_tls(int mfl, int cli_msg_len, int srv_msg_len,
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:!MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_SSL_PROTO_TLS1_2:PSA_HAVE_ALG_SOME_RSA_SIGN:PSA_WANT_ECC_SECP_R1_384:MBEDTLS_SSL_PROTO_DTLS:PSA_WANT_ALG_SHA_256:MBEDTLS_CAN_HANDLE_RSA_TEST_KEY */
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:MBEDTLS_SSL_PROTO_TLS1_2:PSA_HAVE_ALG_SOME_RSA_SIGN:PSA_WANT_ECC_SECP_R1_384:MBEDTLS_SSL_PROTO_DTLS:PSA_WANT_ALG_SHA_256:MBEDTLS_CAN_HANDLE_RSA_TEST_KEY */
 void app_data_dtls(int mfl, int cli_msg_len, int srv_msg_len,
                    int expected_cli_fragments,
                    int expected_srv_fragments)
@@ -3135,7 +3226,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:!MBEDTLS_SSL_PROTO_TLS1_3:PSA_HAVE_ALG_SOME_RSA_SIGN:PSA_WANT_KEY_TYPE_AES:PSA_WANT_ECC_SECP_R1_384:MBEDTLS_DEBUG_C:MBEDTLS_SSL_MAX_FRAGMENT_LENGTH:PSA_WANT_ALG_CBC_NO_PADDING:PSA_WANT_ALG_SHA_384:MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED */
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:PSA_HAVE_ALG_SOME_RSA_SIGN:PSA_WANT_KEY_TYPE_AES:PSA_WANT_ECC_SECP_R1_384:MBEDTLS_DEBUG_C:MBEDTLS_SSL_MAX_FRAGMENT_LENGTH:PSA_WANT_ALG_CBC_NO_PADDING:PSA_WANT_ALG_SHA_256:PSA_WANT_ALG_SHA_384:MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED */
 void handshake_fragmentation(int mfl,
                              int expected_srv_hs_fragmentation,
                              int expected_cli_hs_fragmentation)
@@ -3332,8 +3423,8 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:!MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_SSL_PROTO_TLS1_2:PSA_HAVE_ALG_SOME_RSA_SIGN:PSA_WANT_ECC_SECP_R1_384:MBEDTLS_SSL_PROTO_DTLS:MBEDTLS_SSL_RENEGOTIATION:PSA_WANT_ALG_SHA_256:MBEDTLS_CAN_HANDLE_RSA_TEST_KEY */
-void renegotiation(int legacy_renegotiation)
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:MBEDTLS_SSL_PROTO_TLS1_2:PSA_HAVE_ALG_SOME_RSA_SIGN:PSA_WANT_ECC_SECP_R1_384:MBEDTLS_SSL_PROTO_DTLS:MBEDTLS_SSL_RENEGOTIATION:PSA_WANT_ALG_SHA_256:MBEDTLS_CAN_HANDLE_RSA_TEST_KEY */
+void renegotiation(int legacy_renegotiation, int badmac_seen_on)
 {
     mbedtls_test_handshake_test_options options;
     mbedtls_test_init_handshake_options(&options);
@@ -3342,6 +3433,8 @@ void renegotiation(int legacy_renegotiation)
     options.legacy_renegotiation = legacy_renegotiation;
     options.dtls = 1;
     options.expected_negotiated_version = MBEDTLS_SSL_VERSION_TLS1_2;
+    options.post_data_fun = &simulate_badmac_seen_on;
+    options.post_data_param = &badmac_seen_on;
 
     mbedtls_test_ssl_perform_handshake(&options);
 

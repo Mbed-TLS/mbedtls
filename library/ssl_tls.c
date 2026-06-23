@@ -953,7 +953,7 @@ static int ssl_update_checksum_sha256(mbedtls_ssl_context *ssl,
                                       const unsigned char *buf, size_t len)
 {
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    return mbedtls_md_error_from_psa(psa_hash_update(
+    return PSA_TO_MBEDTLS_ERR(psa_hash_update(
                                          &ssl->handshake->fin_sha256_psa, buf, len));
 #else
     return mbedtls_md_update(&ssl->handshake->fin_sha256, buf, len);
@@ -966,7 +966,7 @@ static int ssl_update_checksum_sha384(mbedtls_ssl_context *ssl,
                                       const unsigned char *buf, size_t len)
 {
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    return mbedtls_md_error_from_psa(psa_hash_update(
+    return PSA_TO_MBEDTLS_ERR(psa_hash_update(
                                          &ssl->handshake->fin_sha384_psa, buf, len));
 #else
     return mbedtls_md_update(&ssl->handshake->fin_sha384, buf, len);
@@ -8251,7 +8251,7 @@ static int ssl_calc_finished_tls_generic(mbedtls_ssl_context *ssl, void *ctx,
 exit:
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     psa_hash_abort(&cloned_op);
-    return mbedtls_md_error_from_psa(status);
+    return PSA_TO_MBEDTLS_ERR(status);
 #else
     mbedtls_md_free(&cloned_ctx);
     return ret;

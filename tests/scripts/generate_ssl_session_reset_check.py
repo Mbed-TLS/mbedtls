@@ -107,7 +107,7 @@ RULES = {
 
 SPECIAL_BEHAVIORS = {
     'flags': ['TEST_EQUAL((after->flags & ~(MBEDTLS_SSL_CONTEXT_FLAGS_KEEP_AT_SESSION)), '
-              'initial.flags)',
+              'initial.flags);',
               'TEST_EQUAL((before->flags & MBEDTLS_SSL_CONTEXT_FLAGS_KEEP_AT_SESSION), ' +
               '(after->flags & MBEDTLS_SSL_CONTEXT_FLAGS_KEEP_AT_SESSION));'],
     'tls_version': ['TEST_ASSERT(after->tls_version == after->conf->max_tls_version);'],

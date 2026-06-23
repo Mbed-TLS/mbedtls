@@ -87,11 +87,13 @@ typedef struct {
  * concerns. */
 const mbedtls_x509_crt_profile mbedtls_x509_crt_profile_default =
 {
-    /* Hashes from SHA-256 and above. Note that this selection
-     * should be aligned with ssl_preset_default_hashes in ssl_tls.c. */
+    /* Hashes from SHA-256 and above. */
     MBEDTLS_X509_ID_FLAG(MBEDTLS_MD_SHA256) |
     MBEDTLS_X509_ID_FLAG(MBEDTLS_MD_SHA384) |
-    MBEDTLS_X509_ID_FLAG(MBEDTLS_MD_SHA512),
+    MBEDTLS_X509_ID_FLAG(MBEDTLS_MD_SHA512) |
+    MBEDTLS_X509_ID_FLAG(MBEDTLS_MD_SHA3_256) |
+    MBEDTLS_X509_ID_FLAG(MBEDTLS_MD_SHA3_384) |
+    MBEDTLS_X509_ID_FLAG(MBEDTLS_MD_SHA3_512),
     0xFFFFFFF, /* Any PK alg    */
 #if defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
     /* Curves at or above 128-bit security level. Note that this selection
@@ -165,12 +167,8 @@ const mbedtls_x509_crt_profile mbedtls_x509_crt_profile_none =
     (uint32_t) -1,
 };
 
-/*
- * Check md_alg against profile
- * Return 0 if md_alg is acceptable for this profile, -1 otherwise
- */
-static int x509_profile_check_md_alg(const mbedtls_x509_crt_profile *profile,
-                                     mbedtls_md_type_t md_alg)
+int mbedtls_x509_profile_check_md_alg(const mbedtls_x509_crt_profile *profile,
+                                      mbedtls_md_type_t md_alg)
 {
     if (md_alg == MBEDTLS_MD_NONE) {
         return -1;
@@ -183,12 +181,8 @@ static int x509_profile_check_md_alg(const mbedtls_x509_crt_profile *profile,
     return -1;
 }
 
-/*
- * Check pk_alg against profile
- * Return 0 if pk_alg is acceptable for this profile, -1 otherwise
- */
-static int x509_profile_check_pk_alg(const mbedtls_x509_crt_profile *profile,
-                                     mbedtls_pk_sigalg_t pk_alg)
+int mbedtls_x509_profile_check_pk_alg(const mbedtls_x509_crt_profile *profile,
+                                      mbedtls_pk_sigalg_t pk_alg)
 {
     if (pk_alg == MBEDTLS_PK_SIGALG_NONE) {
         return -1;
@@ -2048,11 +2042,11 @@ static int x509_crt_verifycrl(mbedtls_x509_crt *crt, mbedtls_x509_crt *ca,
         /*
          * Check if CRL is correctly signed by the trusted CA
          */
-        if (x509_profile_check_md_alg(profile, crl_list->sig_md) != 0) {
+        if (mbedtls_x509_profile_check_md_alg(profile, crl_list->sig_md) != 0) {
             flags |= MBEDTLS_X509_BADCRL_BAD_MD;
         }
 
-        if (x509_profile_check_pk_alg(profile, crl_list->sig_pk) != 0) {
+        if (mbedtls_x509_profile_check_pk_alg(profile, crl_list->sig_pk) != 0) {
             flags |= MBEDTLS_X509_BADCRL_BAD_PK;
         }
 
@@ -2561,11 +2555,11 @@ static int x509_crt_verify_chain(
         }
 
         /* Check signature algorithm: MD & PK algs */
-        if (x509_profile_check_md_alg(profile, child->sig_md) != 0) {
+        if (mbedtls_x509_profile_check_md_alg(profile, child->sig_md) != 0) {
             *flags |= MBEDTLS_X509_BADCERT_BAD_MD;
         }
 
-        if (x509_profile_check_pk_alg(profile, child->sig_pk) != 0) {
+        if (mbedtls_x509_profile_check_pk_alg(profile, child->sig_pk) != 0) {
             *flags |= MBEDTLS_X509_BADCERT_BAD_PK;
         }
 
@@ -3073,7 +3067,7 @@ static int x509_crt_verify_restartable_ca_cb(mbedtls_x509_crt *crt,
     /* Check the type and size of the key */
     pk_type = mbedtls_pk_get_type(&crt->pk);
 
-    if (x509_profile_check_pk_alg(profile, (mbedtls_pk_sigalg_t) pk_type) != 0) {
+    if (mbedtls_x509_profile_check_pk_alg(profile, (mbedtls_pk_sigalg_t) pk_type) != 0) {
         ee_flags |= MBEDTLS_X509_BADCERT_BAD_PK;
     }
 

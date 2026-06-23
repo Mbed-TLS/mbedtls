@@ -2181,7 +2181,7 @@ void mbedtls_ssl_set_bio(mbedtls_ssl_context *ssl,
 
 /**
  * \brief             Configure the use of the Connection ID (CID)
- *                    extension in the next handshake.
+ *                    extension in subsequent handshakes.
  *
  *                    Reference: RFC 9146 (or draft-ietf-tls-dtls-connection-id-05
  *                    https://tools.ietf.org/html/draft-ietf-tls-dtls-connection-id-05
@@ -2202,7 +2202,7 @@ void mbedtls_ssl_set_bio(mbedtls_ssl_context *ssl,
  *                    headers of outgoing messages.
  *
  *                    This API enables or disables the use of the CID extension
- *                    in the next handshake and sets the value of the CID to
+ *                    in subsequent handshakes and sets the value of the CID to
  *                    be used for incoming messages.
  *
  * \param ssl         The SSL context to configure. This must be initialized.
@@ -2233,11 +2233,11 @@ void mbedtls_ssl_set_bio(mbedtls_ssl_context *ssl,
  *                    successful call to this function to run the handshake.
  *
  * \note              This call cannot guarantee that the use of the CID
- *                    will be successfully negotiated in the next handshake,
+ *                    will be successfully negotiated in subsequent handshakes,
  *                    because the peer might not support it. Specifically:
  *                    - On the Client, enabling the use of the CID through
- *                      this call implies that the `ClientHello` in the next
- *                      handshake will include the CID extension, thereby
+ *                      this call implies that the `ClientHello` in subsequent
+ *                      handshakes will include the CID extension, thereby
  *                      offering the use of the CID to the server. Only if
  *                      the `ServerHello` contains the CID extension, too,
  *                      the CID extension will actually be put to use.
@@ -2260,7 +2260,7 @@ void mbedtls_ssl_set_bio(mbedtls_ssl_context *ssl,
  *                    Mbed TLS.
  *
  * \return            \c 0 on success. In this case, the CID configuration
- *                    applies to the next handshake.
+ *                    applies to subsequent handshakes.
  * \return            A negative error code on failure.
  */
 int mbedtls_ssl_set_cid(mbedtls_ssl_context *ssl,

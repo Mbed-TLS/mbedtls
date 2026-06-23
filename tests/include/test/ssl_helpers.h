@@ -663,7 +663,7 @@ int mbedtls_test_get_tls13_ticket(
  *                            is called on it. This is used for fields that
  *                            should be kept untouched during the reset.
  * \param[in]       after     The SSL context after mbedtls_ssl_session_reset()
- *                            is called on it.
+ *                            has been called on it.
  */
 int mbedtls_test_ssl_check_context_after_session_reset(const mbedtls_ssl_context *before,
                                                        const mbedtls_ssl_context *after);

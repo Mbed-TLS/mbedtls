@@ -31,7 +31,7 @@ int mbedtls_test_ssl_check_context_after_session_reset(const mbedtls_ssl_context
     /* *INDENT-OFF* */
     TEST_ASSERT(before->conf == after->conf);
     TEST_ASSERT(after->state == initial.state);
-    TEST_EQUAL((after->flags & ~(MBEDTLS_SSL_CONTEXT_FLAGS_KEEP_AT_SESSION)), initial.flags)
+    TEST_EQUAL((after->flags & ~(MBEDTLS_SSL_CONTEXT_FLAGS_KEEP_AT_SESSION)), initial.flags);
     TEST_EQUAL((before->flags & MBEDTLS_SSL_CONTEXT_FLAGS_KEEP_AT_SESSION), (after->flags & MBEDTLS_SSL_CONTEXT_FLAGS_KEEP_AT_SESSION));
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
     TEST_ASSERT(after->renego_status == initial.renego_status);

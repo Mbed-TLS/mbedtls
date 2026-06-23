@@ -74,10 +74,20 @@ int mbedtls_ssl_tls13_fetch_handshake_msg(mbedtls_ssl_context *ssl,
         case MBEDTLS_SSL_HS_CERTIFICATE:
         case MBEDTLS_SSL_HS_CERTIFICATE_REQUEST:
         case MBEDTLS_SSL_HS_CERTIFICATE_VERIFY:
+        /*
+         * For TLS 1.3, ServerHello (including HelloRetryRequest) must end at a
+         * record boundary, but not for TLS 1.2. At this point the ServerHello
+         * has not yet been processed, so we do not know whether it negotiates
+         * TLS 1.3 or TLS 1.2. Defer the boundary check until the protocol
+         * version is known to be TLS 1.3.
+         */
+        case MBEDTLS_SSL_HS_SERVER_HELLO:
             require_record_boundary = 0;
             break;
 
         default:
+            /* ClientHello, EndOfEarlyData, Finished, and KeyUpdate.
+             */
             require_record_boundary = 1;
     }
 

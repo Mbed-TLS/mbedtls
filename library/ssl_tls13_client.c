@@ -2016,6 +2016,19 @@ static int ssl_tls13_process_server_hello(mbedtls_ssl_context *ssl)
         goto cleanup;
     }
 
+    /*
+     * TLS 1.3 is negotiated. Check that ServerHello/HRR ends at a record
+     * boundary. For HRR, which does not trigger a key update, this checks
+     * that HRR terminates the server flight.
+     */
+    if (ssl->in_hslen != ssl->in_msglen) {
+        MBEDTLS_SSL_DEBUG_MSG(1, ("ServerHello end not aligned with a record boundary"));
+        ret = MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE;
+        MBEDTLS_SSL_PEND_FATAL_ALERT(MBEDTLS_SSL_ALERT_MSG_UNEXPECTED_MESSAGE,
+                                     MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE);
+        goto cleanup;
+    }
+
     MBEDTLS_SSL_PROC_CHK(ssl_tls13_parse_server_hello(ssl, buf,
                                                       buf + buf_len,
                                                       is_hrr));

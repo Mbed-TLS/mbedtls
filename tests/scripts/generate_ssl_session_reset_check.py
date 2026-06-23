@@ -96,7 +96,7 @@ RULES = {
 }
 
 SPECIAL_BEHAVIORS = {
-    'flags': ['TEST_EQUAL((after->flags & ~(MBEDTLS_SSL_CONTEXT_FLAGS_KEEP_AT_SESSION)), '
+    'flags': ['TEST_EQUAL((after->flags & ~(MBEDTLS_SSL_CONTEXT_FLAGS_KEEP_AT_SESSION)), ' +
               'initial.flags);',
               'TEST_EQUAL((before->flags & MBEDTLS_SSL_CONTEXT_FLAGS_KEEP_AT_SESSION), ' +
               '(after->flags & MBEDTLS_SSL_CONTEXT_FLAGS_KEEP_AT_SESSION));'],
@@ -106,9 +106,9 @@ SPECIAL_BEHAVIORS = {
     'out_buf_len': ['TEST_ASSERT(after->out_buf_len == MBEDTLS_SSL_OUT_BUFFER_LEN);'],
 }
 
-NAMED_STRUCTURES = [
+NAMED_STRUCTURES = frozenset([  
     'dtls_srtp_info',
-]
+])
 
 FIELDS_INFO = ssl_session_reset_check.FieldsInfo(RULES,
                                                  SPECIAL_BEHAVIORS,

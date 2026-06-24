@@ -34,6 +34,7 @@
 #if defined(MBEDTLS_RSA_C)
 #include "pkwrite.h"
 #include "rsa_internal.h"
+#include "constant_time_internal.h"
 #endif
 
 #if defined(MBEDTLS_PK_CAN_ECDSA_SOME)
@@ -329,21 +330,33 @@ static int rsa_decrypt_wrap(mbedtls_pk_context *pk,
                                     input, ilen,
                                     NULL, 0,
                                     output, osize, olen);
-    if (status != PSA_SUCCESS) {
-        ret = PSA_PK_RSA_TO_MBEDTLS_ERR(status);
-        goto cleanup;
-    }
 
-    ret = 0;
+#if defined(MBEDTLS_PKCS1_V15)
+    /* Translate error codes from PSA to legacy
+     * Success vs INVALID_PADDING vs BUFFER_TOO_SMALL is sensitive
+     * (padding oracle attack), so we take care to translate that
+     * part in constant time.
+     */
+    int problem;
+    status = mbedtls_rsa_decrypt_decompose_ret(
+        PSA_ERROR_INVALID_PADDING, MBEDTLS_ERR_RSA_INVALID_PADDING,
+        PSA_ERROR_BUFFER_TOO_SMALL, MBEDTLS_ERR_RSA_OUTPUT_TOO_LARGE,
+        status, &problem);
+    ret = PSA_PK_RSA_TO_MBEDTLS_ERR(status);
+    ret |= problem;
+#else
+    ret = PSA_PK_RSA_TO_MBEDTLS_ERR(status);
+#endif
 
 cleanup:
     mbedtls_zeroize_and_free(buf, buf_size);
     status = psa_destroy_key(key_id);
-    if (ret == 0 && status != PSA_SUCCESS) {
-        ret = PSA_PK_TO_MBEDTLS_ERR(status);
-    }
-
-    return ret;
+    /* Don't branch on ret as it is a sensitive value
+     * (it reveals whether padding was valid).
+     * Instead branch on status. That means when both ret and
+     * status were errors, we'll return the unlock status while we would
+     * normally return the first error, but that's better than leaking info. */
+    return (status != PSA_SUCCESS) ? PSA_PK_TO_MBEDTLS_ERR(status) : ret;
 }
 #else /* MBEDTLS_USE_PSA_CRYPTO */
 static int rsa_decrypt_wrap(mbedtls_pk_context *pk,
@@ -1503,11 +1516,21 @@ static int rsa_opaque_decrypt(mbedtls_pk_context *pk,
     }
 
     status = psa_asymmetric_decrypt(pk->priv_id, alg, input, ilen, NULL, 0, output, osize, olen);
-    if (status != PSA_SUCCESS) {
-        return PSA_PK_RSA_TO_MBEDTLS_ERR(status);
-    }
-
-    return 0;
+#if defined(MBEDTLS_PKCS1_V15)
+    /* Translate error codes from PSA to legacy
+     * Success vs INVALID_PADDING vs BUFFER_TOO_SMALL is sensitive
+     * (padding oracle attack), so we take care to translate that
+     * part in constant time.
+     */
+    int problem;
+    status = mbedtls_rsa_decrypt_decompose_ret(
+        PSA_ERROR_INVALID_PADDING, MBEDTLS_ERR_RSA_INVALID_PADDING,
+        PSA_ERROR_BUFFER_TOO_SMALL, MBEDTLS_ERR_RSA_OUTPUT_TOO_LARGE,
+        status, &problem);
+    return PSA_PK_RSA_TO_MBEDTLS_ERR(status) | problem;
+#else
+    return PSA_PK_RSA_TO_MBEDTLS_ERR(status);
+#endif
 }
 #endif /* PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC */
 

@@ -11,12 +11,11 @@ from mbedtls_framework import ssl_session_reset_check
 RULES = {
     'conf': ssl_session_reset_check.ResetBehavior.KEEP,
     'state': ssl_session_reset_check.ResetBehavior.RESET,
-    'flags': ssl_session_reset_check.ResetBehavior.SPECIAL,
     'renego_status': ssl_session_reset_check.ResetBehavior.RESET,
     'renego_records_seen': ssl_session_reset_check.ResetBehavior.RESET,
     'tls_version': ssl_session_reset_check.ResetBehavior.SPECIAL,
     'early_data_state': ssl_session_reset_check.ResetBehavior.RESET,
-    'badmac_seen': ssl_session_reset_check.ResetBehavior.RESET,
+    'badmac_seen_or_in_hsfraglen': ssl_session_reset_check.ResetBehavior.RESET,
     'f_vrfy': ssl_session_reset_check.ResetBehavior.KEEP,
     'p_vrfy': ssl_session_reset_check.ResetBehavior.KEEP,
     'f_send': ssl_session_reset_check.ResetBehavior.KEEP,
@@ -53,11 +52,8 @@ RULES = {
     'in_window_top': ssl_session_reset_check.ResetBehavior.RESET,
     'in_window': ssl_session_reset_check.ResetBehavior.RESET,
     'in_hslen': ssl_session_reset_check.ResetBehavior.RESET,
-    'in_hsfraglen': ssl_session_reset_check.ResetBehavior.RESET,
     'nb_zero': ssl_session_reset_check.ResetBehavior.RESET,
     'keep_current_message': ssl_session_reset_check.ResetBehavior.RESET,
-    'in_fatal_alert_recv': ssl_session_reset_check.ResetBehavior.RESET,
-    'in_fatal_alert_type': ssl_session_reset_check.ResetBehavior.RESET,
     'send_alert': ssl_session_reset_check.ResetBehavior.RESET,
     'alert_type': ssl_session_reset_check.ResetBehavior.RESET,
     'alert_reason': ssl_session_reset_check.ResetBehavior.RESET,
@@ -92,14 +88,9 @@ RULES = {
     'f_export_keys': ssl_session_reset_check.ResetBehavior.KEEP,
     'p_export_keys': ssl_session_reset_check.ResetBehavior.KEEP,
     'user_data': ssl_session_reset_check.ResetBehavior.SPECIAL,
-    'unused': ssl_session_reset_check.ResetBehavior.IGNORE,
 }
 
 SPECIAL_BEHAVIORS = {
-    'flags': ['TEST_EQUAL((after->flags & ~(MBEDTLS_SSL_CONTEXT_FLAGS_KEEP_AT_SESSION)), ' +
-              'initial.flags);',
-              'TEST_EQUAL((before->flags & MBEDTLS_SSL_CONTEXT_FLAGS_KEEP_AT_SESSION), ' +
-              '(after->flags & MBEDTLS_SSL_CONTEXT_FLAGS_KEEP_AT_SESSION));'],
     'tls_version': ['TEST_ASSERT(after->tls_version == after->conf->max_tls_version);'],
     'user_data': ['TEST_ASSERT(before->user_data.n == after->user_data.n);'],
     'in_buf_len': ['TEST_ASSERT(after->in_buf_len == MBEDTLS_SSL_IN_BUFFER_LEN);'],

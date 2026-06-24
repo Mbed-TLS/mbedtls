@@ -31,8 +31,6 @@ int mbedtls_test_ssl_check_context_after_session_reset(const mbedtls_ssl_context
     /* *INDENT-OFF* */
     TEST_ASSERT(before->conf == after->conf);
     TEST_ASSERT(after->state == initial.state);
-    TEST_EQUAL((after->flags & ~(MBEDTLS_SSL_CONTEXT_FLAGS_KEEP_AT_SESSION)), initial.flags);
-    TEST_EQUAL((before->flags & MBEDTLS_SSL_CONTEXT_FLAGS_KEEP_AT_SESSION), (after->flags & MBEDTLS_SSL_CONTEXT_FLAGS_KEEP_AT_SESSION));
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
     TEST_ASSERT(after->renego_status == initial.renego_status);
 #endif
@@ -43,7 +41,7 @@ int mbedtls_test_ssl_check_context_after_session_reset(const mbedtls_ssl_context
 #if defined(MBEDTLS_SSL_EARLY_DATA) && defined(MBEDTLS_SSL_CLI_C)
     TEST_ASSERT(after->early_data_state == initial.early_data_state);
 #endif
-    TEST_ASSERT(after->badmac_seen == initial.badmac_seen);
+    TEST_ASSERT(after->badmac_seen_or_in_hsfraglen == initial.badmac_seen_or_in_hsfraglen);
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
     TEST_ASSERT(before->f_vrfy == after->f_vrfy);
 #endif
@@ -100,11 +98,8 @@ int mbedtls_test_ssl_check_context_after_session_reset(const mbedtls_ssl_context
     TEST_ASSERT(after->in_window == initial.in_window);
 #endif
     TEST_ASSERT(after->in_hslen == initial.in_hslen);
-    TEST_ASSERT(after->in_hsfraglen == initial.in_hsfraglen);
     TEST_ASSERT(after->nb_zero == initial.nb_zero);
     TEST_ASSERT(after->keep_current_message == initial.keep_current_message);
-    TEST_ASSERT(after->in_fatal_alert_recv == initial.in_fatal_alert_recv);
-    TEST_ASSERT(after->in_fatal_alert_type == initial.in_fatal_alert_type);
     TEST_ASSERT(after->send_alert == initial.send_alert);
     TEST_ASSERT(after->alert_type == initial.alert_type);
     TEST_ASSERT(after->alert_reason == initial.alert_reason);
@@ -176,7 +171,6 @@ int mbedtls_test_ssl_check_context_after_session_reset(const mbedtls_ssl_context
     TEST_ASSERT(before->f_export_keys == after->f_export_keys);
     TEST_ASSERT(before->p_export_keys == after->p_export_keys);
     TEST_ASSERT(before->user_data.n == after->user_data.n);
-    /* unused is ignored */
     /* *INDENT-ON* */
 
     ret = 0;

@@ -114,6 +114,7 @@ my @header_files = ();
 my @header_roots = qw(
                          include
                          tf-psa-crypto/include
+                         tf-psa-crypto/dispatch/include
                          tf-psa-crypto/drivers/builtin/include
                     );
 for my $root (@header_roots) {

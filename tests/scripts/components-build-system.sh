@@ -104,6 +104,29 @@ support_test_cmake_as_subdirectory () {
     support_test_cmake_out_of_source
 }
 
+component_test_cmake_as_subdirectory_custom_dispatch () {
+    # Remove existing generated files so that we use the ones CMake
+    # generates
+    $MAKE_COMMAND neat
+
+    msg "build: custom dispatch with cmake 'as-subdirectory' build"
+    cp -r tf-psa-crypto/dispatch/include programs/test/cmake_subproject_custom_dispatch/custom
+    cp tf-psa-crypto/dispatch/psa_crypto_driver_wrappers_no_static.h programs/test/cmake_subproject_custom_dispatch/custom
+    mv tf-psa-crypto/dispatch tf-psa-crypto/dispatch.bak
+    tf-psa-crypto/scripts/generate_driver_wrappers.py programs/test/cmake_subproject_custom_dispatch/custom
+    cd programs/test/cmake_subproject_custom_dispatch
+    # Note: Explicitly generate files as these are turned off in releases
+    cmake -D GEN_FILES=ON .
+    make
+    ./cmake_subproject_custom_dispatch
+    cd ../../..
+    mv tf-psa-crypto/dispatch.bak tf-psa-crypto/dispatch
+}
+
+support_test_cmake_as_subdirectory_custom_dispatch () {
+    support_test_cmake_out_of_source
+}
+
 component_test_cmake_as_package () {
     # Remove existing generated files so that we use the ones CMake
     # generates

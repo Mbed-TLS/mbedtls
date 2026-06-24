@@ -189,6 +189,7 @@ If what is False, announce that the job has failed.'''
             header += f'#error "{option}"\n'
             header += '#endif\n'
         include_path = ['include', 'tf-psa-crypto/include',
+                        'tf-psa-crypto/dispatch/include',
                         'tf-psa-crypto/drivers/builtin/include']
 
         try:

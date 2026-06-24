@@ -19,6 +19,7 @@ class MbedtlsTestConfigChecks(unittest_config_checks.TestConfigChecks):
     PROJECT_CONFIG_C = 'library/mbedtls_config.c'
     PROJECT_SPECIFIC_INCLUDE_DIRECTORIES = [
         'tf-psa-crypto/include',
+        'tf-psa-crypto/dispatch/include',
         'tf-psa-crypto/drivers/builtin/include',
     ]
 

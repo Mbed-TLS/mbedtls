@@ -28,7 +28,8 @@ if(TEST_CPP)
     target_include_directories(cpp_dummy_build
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../include
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../tf-psa-crypto/include
-        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../tf-psa-crypto/drivers/builtin/include)
+        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../tf-psa-crypto/drivers/builtin/include
+        PRIVATE ${TF_PSA_CRYPTO_DISPATCH_DIR}/include)
     target_link_libraries(cpp_dummy_build ${tfpsacrypto_target} ${CMAKE_THREAD_LIBS_INIT})
 endif()
 
@@ -39,7 +40,8 @@ if(USE_SHARED_MBEDTLS_LIBRARY AND
     target_include_directories(dlopen
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../include
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../tf-psa-crypto/include
-        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../tf-psa-crypto/drivers/builtin/include)
+        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../tf-psa-crypto/drivers/builtin/include
+        PRIVATE ${TF_PSA_CRYPTO_DISPATCH_DIR}/include)
     target_link_libraries(dlopen ${CMAKE_DL_LIBS})
 endif()
 

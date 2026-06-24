@@ -953,7 +953,7 @@ static int ssl_update_checksum_sha256(mbedtls_ssl_context *ssl,
 {
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     return PSA_TO_MBEDTLS_ERR(psa_hash_update(
-                                         &ssl->handshake->fin_sha256_psa, buf, len));
+                                  &ssl->handshake->fin_sha256_psa, buf, len));
 #else
     return mbedtls_md_update(&ssl->handshake->fin_sha256, buf, len);
 #endif
@@ -966,7 +966,7 @@ static int ssl_update_checksum_sha384(mbedtls_ssl_context *ssl,
 {
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     return PSA_TO_MBEDTLS_ERR(psa_hash_update(
-                                         &ssl->handshake->fin_sha384_psa, buf, len));
+                                  &ssl->handshake->fin_sha384_psa, buf, len));
 #else
     return mbedtls_md_update(&ssl->handshake->fin_sha384, buf, len);
 #endif

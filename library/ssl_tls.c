@@ -3254,6 +3254,9 @@ static int ssl_tls12_session_load(mbedtls_ssl_session *session,
     }
 
     session->id_len = *p++;
+    if (session->id_len > sizeof(session->id)) {
+        return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
+    }
     memcpy(session->id, p, 32);
     p += 32;
 

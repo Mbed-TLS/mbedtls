@@ -106,7 +106,7 @@ SPECIAL_BEHAVIORS = {
     'out_buf_len': ['TEST_ASSERT(after->out_buf_len == MBEDTLS_SSL_OUT_BUFFER_LEN);'],
 }
 
-NAMED_STRUCTURES = frozenset([  
+NAMED_STRUCTURES = frozenset([
     'dtls_srtp_info',
 ])
 

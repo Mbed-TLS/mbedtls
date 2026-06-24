@@ -1,4 +1,7 @@
 Security
    * Improved documentation of mbedtls_ssl_conf_sig_algs() to emphasize that
      this function only sets signature algorithms that are enforced during
-     TLS key exchange and not on certificate verification.
+     TLS key exchange and not on certificate verification. Reported by
+     Xiangdong Li, Beijing University of Posts and Telecommunications (BUPT).
+     CVE-2026-54441
+

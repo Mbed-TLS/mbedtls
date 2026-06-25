@@ -1,4 +1,4 @@
 Security
    * Reject ChaCha20 operations that would make the 32-bit block counter wrap
      around, which could otherwise reuse keystream and compromise
-     confidentiality. CVE-2026-50584
+     confidentiality. Reported by jiliang. CVE-2026-50584

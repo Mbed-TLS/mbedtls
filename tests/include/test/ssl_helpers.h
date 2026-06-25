@@ -745,6 +745,20 @@ void mbedtls_test_ssl_perform_handshake(
 
 #if defined(MBEDTLS_TEST_HOOKS)
 /*
+ * Tweak vector lengths in a TLS 1.3 EncryptedExtensions message.
+ *
+ * \param[in]       buf    Buffer containing the EncryptedExtensions message
+ *                         to tweak.
+ * \param[in,out]   end    End of the buffer to parse.
+ * \param           tweak  Tweak identifier (from 1 to the number of tweaks).
+ * \param[out]      expected_result  Error code expected from the parsing
+ *                                   function.
+ */
+int mbedtls_test_tweak_tls13_encrypted_extensions_msg(
+    unsigned char *buf, unsigned char **end, int tweak,
+    int *expected_result);
+
+/*
  * Tweak vector lengths in a TLS 1.3 Certificate message
  *
  * \param[in]       buf    Buffer containing the Certificate message to tweak

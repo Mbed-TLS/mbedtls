@@ -2060,9 +2060,15 @@ cleanup:
  * } EncryptedExtensions;
  */
 MBEDTLS_CHECK_RETURN_CRITICAL
+#if defined(MBEDTLS_TEST_HOOKS)
+int mbedtls_ssl_tls13_parse_encrypted_extensions(mbedtls_ssl_context *ssl,
+                                                 const unsigned char *buf,
+                                                 const unsigned char *end)
+#else
 static int ssl_tls13_parse_encrypted_extensions(mbedtls_ssl_context *ssl,
                                                 const unsigned char *buf,
                                                 const unsigned char *end)
+#endif /* MBEDTLS_TEST_HOOKS */
 {
     int ret = 0;
     size_t extensions_len;
@@ -2155,6 +2161,14 @@ static int ssl_tls13_parse_encrypted_extensions(mbedtls_ssl_context *ssl,
         p += extension_data_len;
     }
 
+    /* RFC 8446 requires the extension vector to consume the full message. */
+    if (p != end) {
+        MBEDTLS_SSL_DEBUG_MSG(1, ("EncryptedExtensions lengths misaligned"));
+        MBEDTLS_SSL_PEND_FATAL_ALERT(MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR,
+                                     MBEDTLS_ERR_SSL_DECODE_ERROR);
+        return MBEDTLS_ERR_SSL_DECODE_ERROR;
+    }
+
     if ((handshake->received_extensions & MBEDTLS_SSL_EXT_MASK(RECORD_SIZE_LIMIT)) &&
         (handshake->received_extensions & MBEDTLS_SSL_EXT_MASK(MAX_FRAGMENT_LENGTH))) {
         MBEDTLS_SSL_DEBUG_MSG(3,
@@ -2168,14 +2182,6 @@ static int ssl_tls13_parse_encrypted_extensions(mbedtls_ssl_context *ssl,
 
     MBEDTLS_SSL_PRINT_EXTS(3, MBEDTLS_SSL_HS_ENCRYPTED_EXTENSIONS,
                            handshake->received_extensions);
-
-    /* Check that we consumed all the message. */
-    if (p != end) {
-        MBEDTLS_SSL_DEBUG_MSG(1, ("EncryptedExtension lengths misaligned"));
-        MBEDTLS_SSL_PEND_FATAL_ALERT(MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR,
-                                     MBEDTLS_ERR_SSL_DECODE_ERROR);
-        return MBEDTLS_ERR_SSL_DECODE_ERROR;
-    }
 
     return ret;
 }

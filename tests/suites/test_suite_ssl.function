@@ -3082,6 +3082,89 @@ exit:
 }
 /* END_CASE */
 
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_SSL_PROTO_DTLS:MBEDTLS_SSL_ALPN:MBEDTLS_SSL_CONTEXT_SERIALIZATION:PSA_HAVE_ALG_SOME_RSA_SIGN:PSA_WANT_ECC_SECP_R1_384:PSA_WANT_ALG_SHA_256:MBEDTLS_CAN_HANDLE_RSA_TEST_KEY:TEST_GCM_OR_CHACHAPOLY_ENABLED */
+void ssl_context_load_rejects_oob_alpn_length(void)
+{
+    /* The negotiated protocol (alpn[0]) is serialized; alpn[1] is longer and is
+     * what the corrupted length will match against on load, so the unbounded
+     * memcmp() reads past the end of the buffer. */
+    const char negotiated[] = "alpnsentinel";
+    const char *alpn[] = { negotiated, "alpnsentinel-padding", NULL };
+
+    mbedtls_test_handshake_test_options options;
+    mbedtls_test_ssl_endpoint client_ep, server_ep;
+    unsigned char *context_buf = NULL;
+    size_t context_buf_len, i;
+    unsigned char *alpn_len_p = NULL;
+
+    memset(&client_ep, 0, sizeof(client_ep));
+    memset(&server_ep, 0, sizeof(server_ep));
+
+    MD_OR_USE_PSA_INIT();
+    mbedtls_test_init_handshake_options(&options);
+
+    options.dtls = 1;
+    options.expected_negotiated_version = MBEDTLS_SSL_VERSION_TLS1_2;
+
+    TEST_EQUAL(mbedtls_test_ssl_endpoint_init(
+                   &client_ep, MBEDTLS_SSL_IS_CLIENT, &options), 0);
+    TEST_EQUAL(mbedtls_test_ssl_endpoint_init(
+                   &server_ep, MBEDTLS_SSL_IS_SERVER, &options), 0);
+
+    /* Offer the same protocol list on both peers so alpn[0] is negotiated and
+     * serialized into the context. */
+    TEST_EQUAL(mbedtls_ssl_conf_alpn_protocols(&client_ep.conf, alpn), 0);
+    TEST_EQUAL(mbedtls_ssl_conf_alpn_protocols(&server_ep.conf, alpn), 0);
+
+    TEST_EQUAL(mbedtls_test_ssl_dtls_join_endpoints(&client_ep, &server_ep), 0);
+
+    TEST_ASSERT(mbedtls_test_ssl_perform_connection(&options, &client_ep,
+                                                    &server_ep));
+
+    TEST_ASSERT(server_ep.ssl.alpn_chosen != NULL);
+    TEST_EQUAL(strcmp(server_ep.ssl.alpn_chosen, negotiated), 0);
+
+    /* Serialize the post-handshake server context. */
+    TEST_EQUAL(mbedtls_ssl_context_save(&server_ep.ssl, NULL, 0,
+                                        &context_buf_len),
+               MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL);
+    TEST_CALLOC(context_buf, context_buf_len);
+    TEST_EQUAL(mbedtls_ssl_context_save(&server_ep.ssl, context_buf,
+                                        context_buf_len, &context_buf_len), 0);
+
+    /* The serialized format writes [alpn_len][alpn bytes]; locate the length
+     * byte by searching for the negotiated protocol string. */
+    for (i = 1; i + strlen(negotiated) <= context_buf_len; i++) {
+        if (context_buf[i - 1] == (unsigned char) strlen(negotiated) &&
+            memcmp(context_buf + i, negotiated, strlen(negotiated)) == 0) {
+            alpn_len_p = context_buf + i - 1;
+            break;
+        }
+    }
+    TEST_ASSERT(alpn_len_p != NULL);
+
+    /* Claim the length of the longer configured protocol, which is more bytes
+     * than remain in the buffer. */
+    *alpn_len_p = (unsigned char) strlen(alpn[1]);
+
+    /* Reinitialise the server SSL context so we can load into a fresh one. */
+    mbedtls_ssl_free(&server_ep.ssl);
+    mbedtls_ssl_init(&server_ep.ssl);
+    TEST_EQUAL(mbedtls_ssl_setup(&server_ep.ssl, &server_ep.conf), 0);
+
+    TEST_EQUAL(mbedtls_ssl_context_load(&server_ep.ssl, context_buf,
+                                        context_buf_len),
+               MBEDTLS_ERR_SSL_BAD_INPUT_DATA);
+
+exit:
+    mbedtls_test_ssl_endpoint_free(&client_ep);
+    mbedtls_test_ssl_endpoint_free(&server_ep);
+    mbedtls_test_free_handshake_options(&options);
+    mbedtls_free(context_buf);
+    MD_OR_USE_PSA_DONE();
+}
+/* END_CASE */
+
 /* BEGIN_CASE */
 void ssl_session_serialize_version_check(int corrupt_major,
                                          int corrupt_minor,

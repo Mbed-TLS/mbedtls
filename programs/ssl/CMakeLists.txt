@@ -34,6 +34,7 @@ foreach(exe IN LISTS executables)
     set(extra_sources "")
     if(exe STREQUAL "ssl_client2" OR exe STREQUAL "ssl_server2")
         list(APPEND extra_sources
+            $<TARGET_OBJECTS:mbedtls_test_helpers>
             ssl_test_lib.c
             ${MBEDTLS_FRAMEWORK_DIR}/tests/programs/query_config.h
             ${CMAKE_CURRENT_BINARY_DIR}/../test/query_config.c)

@@ -9,6 +9,8 @@
  */
 
 #include <test/ssl_helpers.h>
+#include <test/ssl_helpers_internal.h>
+#include <test/macros.h>
 #include "mbedtls/psa_util.h"
 
 #include <limits.h>
@@ -1033,6 +1035,17 @@ int mbedtls_test_ssl_endpoint_init(
 void mbedtls_test_ssl_endpoint_free(
     mbedtls_test_ssl_endpoint *ep)
 {
+    // mbedtls_ssl_session_reset() requires the SSL to be setup.
+    if (ep->ssl.conf != NULL) {
+        mbedtls_ssl_context ssl_before;
+
+        /* Dump the SSL context before resetting it */
+        memcpy(&ssl_before, &(ep->ssl), sizeof(mbedtls_ssl_context));
+
+        mbedtls_ssl_session_reset(&(ep->ssl));
+        /* Check that required fields were properly reset */
+        mbedtls_test_ssl_check_context_after_session_reset(&ssl_before, &(ep->ssl));
+    }
     mbedtls_ssl_free(&(ep->ssl));
     mbedtls_ssl_config_free(&(ep->conf));
 

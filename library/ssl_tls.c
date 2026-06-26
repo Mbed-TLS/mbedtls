@@ -1308,6 +1308,8 @@ void mbedtls_ssl_session_reset_msg_layer(mbedtls_ssl_context *ssl,
     ssl->in_fatal_alert_recv = 0;
     ssl->in_fatal_alert_type = 0;
     ssl->send_alert = 0;
+    ssl->alert_reason = 0;
+    ssl->alert_type = 0;
 
     /* Reset outgoing message writing */
     ssl->out_msgtype = 0;
@@ -1357,6 +1359,8 @@ int mbedtls_ssl_session_reset_int(mbedtls_ssl_context *ssl, int partial)
     ssl->flags &= MBEDTLS_SSL_CONTEXT_FLAGS_KEEP_AT_SESSION;
     ssl->tls_version = ssl->conf->max_tls_version;
 
+    ssl->badmac_seen = 0;
+
     mbedtls_ssl_session_reset_msg_layer(ssl, partial);
 
     /* Reset renegotiation state */
@@ -1381,6 +1385,10 @@ int mbedtls_ssl_session_reset_int(mbedtls_ssl_context *ssl, int partial)
 #if defined(MBEDTLS_SSL_ALPN)
     ssl->alpn_chosen = NULL;
 #endif
+
+#if defined(MBEDTLS_SSL_DTLS_SRTP)
+    memset(&ssl->dtls_srtp_info, 0, sizeof(ssl->dtls_srtp_info));
+#endif /* MBEDTLS_SSL_DTLS_SRTP */
 
 #if defined(MBEDTLS_SSL_DTLS_HELLO_VERIFY) && defined(MBEDTLS_SSL_SRV_C)
     int free_cli_id = 1;

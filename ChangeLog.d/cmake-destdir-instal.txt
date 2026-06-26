@@ -1,3 +1,0 @@
-Features
-   * Restore DESTDIR support for CMake installs of compatibility
-     libmbedcrypto symlinks. Fixes #10627.

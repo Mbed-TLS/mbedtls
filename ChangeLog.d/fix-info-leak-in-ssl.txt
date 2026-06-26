@@ -1,6 +1,0 @@
-Security
-   * Fix a potential information disclosure in TLS 1.2 servers using session
-     tickets. If the session ticket write callback failed without setting the
-     lifetime output parameter, Mbed TLS could send 4 bytes of uninitialized
-     stack memory to the peer in the NewSessionTicket message. Fixes #1570.
-     Reported by James Love. CVE-2026-50586.

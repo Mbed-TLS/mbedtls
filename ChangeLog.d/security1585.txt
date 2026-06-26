@@ -1,6 +1,0 @@
-Security
-   * Ensure 'badmac_seen' and 'dtls_srtp_info' fields from 'mbedtls_ssl_context'
-     are properly zeroized when mbedtls_ssl_session_reset() is called. This
-     could cause premature DTLS connection failure or incorrect DTLS-SRTP
-     parameter inheritance for applications reusing an SSL context.
-     Reported by jjfz123. CVE-2026-50585.

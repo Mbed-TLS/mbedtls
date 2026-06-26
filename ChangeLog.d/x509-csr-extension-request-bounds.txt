@@ -1,3 +1,0 @@
-Bugfix
-   * Reject malformed X.509 CSRs where the extensionRequest attribute
-     wrappers do not exactly contain the requested extensions.

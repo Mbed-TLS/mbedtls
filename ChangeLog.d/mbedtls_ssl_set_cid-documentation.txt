@@ -1,3 +1,0 @@
-Bugfix
-   * Fixed documentation of mbedtls_ssl_set_cid(): the set CID configuration
-     is applied to all subsequent handshakes, not just to the next one.

@@ -1,0 +1,4 @@
+Bugfix
+   * Fix bug in configurations with MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED that
+     prevented re-use of an mbedtls_ecdh_context for static ECDH: our secret key
+     was wiped after its first use to compute a shared secret.

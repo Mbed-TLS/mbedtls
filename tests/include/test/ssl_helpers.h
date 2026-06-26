@@ -115,6 +115,9 @@ enum {
 #define MBEDTLS_TEST_MAX_ALPN_LIST_SIZE 10
 #endif
 
+/* Forward declaration. Defined below. */
+struct mbedtls_test_ssl_endpoint;
+
 typedef struct mbedtls_test_ssl_log_pattern {
     const char *pattern;
     size_t counter;
@@ -145,6 +148,35 @@ typedef struct mbedtls_test_handshake_test_options {
     int expected_srv_fragments;
     int renegotiate;
     int legacy_renegotiation;
+    /** Hook that mbedtls_test_ssl_perform_handshake() runs just before
+     * the initial handshake. */
+    void (*pre_handshake_fun)(struct mbedtls_test_ssl_endpoint *client,
+                              struct mbedtls_test_ssl_endpoint *server,
+                              void *param);
+    /** Value passed to ::pre_handshake_fun. */
+    void *pre_handshake_param;
+    /** Hook that mbedtls_test_ssl_perform_handshake() runs after
+     * the initial handshake succeeds. */
+    void (*post_handshake_fun)(struct mbedtls_test_ssl_endpoint *client,
+                               struct mbedtls_test_ssl_endpoint *server,
+                               void *param);
+    /** Value passed to ::post_handshake_fun. */
+    void *post_handshake_param;
+    /** Hook that mbedtls_test_ssl_perform_handshake() runs after
+     * exchanging some data, before testing additional features such as
+     * serialization and renegotiation. */
+    void (*post_data_fun)(struct mbedtls_test_ssl_endpoint *client,
+                          struct mbedtls_test_ssl_endpoint *server,
+                          void *param);
+    /** Value passed to ::post_data_fun. */
+    void *post_data_param;
+    /** Hook that mbedtls_test_ssl_perform_handshake() runs after a successful
+     * connection, just before closing down. */
+    void (*pre_shutdown_fun)(struct mbedtls_test_ssl_endpoint *client,
+                             struct mbedtls_test_ssl_endpoint *server,
+                             void *param);
+    /** Value passed to ::pre_shutdown_fun. */
+    void *pre_shutdown_param;
     void *srv_log_obj;
     void *cli_log_obj;
     void (*srv_log_fun)(void *, int, const char *, int, const char *);

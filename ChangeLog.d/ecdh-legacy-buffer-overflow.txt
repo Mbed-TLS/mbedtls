@@ -1,0 +1,6 @@
+Security
+   * Fix a possible buffer overflow in mbedtls_ecdh_calc_secret(): when the
+     provided output buffer is too small, sometimes (depending on the value of
+     the computed shared secret), the function would not return an error as it
+     should, but instead write past the end of the buffer. Reported by Eva
+     Crystal (0xiviel) from XSource Security. CVE-2026-35336.

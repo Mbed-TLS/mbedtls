@@ -592,6 +592,14 @@ Handshake, select ECDH-ECDSA-WITH-CAMELLIA-256-CBC-SHA384, opaque, missing usage
 depends_on:MBEDTLS_MD_CAN_SHA384:MBEDTLS_SSL_HAVE_CAMELLIA:MBEDTLS_SSL_HAVE_CBC:MBEDTLS_ECP_HAVE_SECP256R1:MBEDTLS_ECP_HAVE_SECP384R1:MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED:MBEDTLS_USE_PSA_CRYPTO
 handshake_ciphersuite_select:"TLS-ECDH-ECDSA-WITH-CAMELLIA-256-CBC-SHA384":MBEDTLS_PK_ECDSA:"":PSA_ALG_ECDSA(PSA_ALG_ANY_HASH):PSA_ALG_ECDH:PSA_KEY_USAGE_SIGN_HASH:MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE:0
 
+Handshake: DTLS 1.2, badmac_seen on client
+depends_on:MBEDTLS_SSL_PROTO_DTLS:MBEDTLS_SSL_PROTO_TLS1_2
+handshake_with_forced_context:1:MBEDTLS_SSL_VERSION_TLS1_2:PRE_HANDSHAKE_BADMAC_SEEN:0
+
+Handshake: DTLS 1.2, badmac_seen on server
+depends_on:MBEDTLS_SSL_PROTO_DTLS:MBEDTLS_SSL_PROTO_TLS1_2
+handshake_with_forced_context:1:MBEDTLS_SSL_VERSION_TLS1_2:0:PRE_HANDSHAKE_BADMAC_SEEN
+
 Sending app data via TLS, MFL=512 without fragmentation
 depends_on:MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
 app_data_tls:MBEDTLS_SSL_MAX_FRAG_LEN_512:400:512:1:1
@@ -669,13 +677,19 @@ Sending app data via DTLS, without MFL and with fragmentation
 app_data_dtls:MBEDTLS_SSL_MAX_FRAG_LEN_NONE:16385:100000:0:0
 
 DTLS renegotiation: no legacy renegotiation
-renegotiation:MBEDTLS_SSL_LEGACY_NO_RENEGOTIATION
+renegotiation:MBEDTLS_SSL_LEGACY_NO_RENEGOTIATION:-1
 
 DTLS renegotiation: legacy renegotiation
-renegotiation:MBEDTLS_SSL_LEGACY_ALLOW_RENEGOTIATION
+renegotiation:MBEDTLS_SSL_LEGACY_ALLOW_RENEGOTIATION:-1
 
 DTLS renegotiation: legacy break handshake
-renegotiation:MBEDTLS_SSL_LEGACY_BREAK_HANDSHAKE
+renegotiation:MBEDTLS_SSL_LEGACY_BREAK_HANDSHAKE:-1
+
+DTLS renegotiation: after bad MAC on client
+renegotiation:MBEDTLS_SSL_LEGACY_NO_RENEGOTIATION:MBEDTLS_SSL_IS_CLIENT
+
+DTLS renegotiation: after bad MAC on server
+renegotiation:MBEDTLS_SSL_LEGACY_NO_RENEGOTIATION:MBEDTLS_SSL_IS_SERVER
 
 DTLS serialization with MFL=512
 resize_buffers_serialize_mfl:MBEDTLS_SSL_MAX_FRAG_LEN_512
@@ -3360,6 +3374,9 @@ cookie_parsing:"16fefd0000000000000000002F010000de000000000000011efefd7b72727272
 TLS 1.3 srv Certificate msg - wrong vector lengths
 tls13_server_certificate_msg_invalid_vector_len
 
+TLS 1.3 cli rejects HRR selecting an un-offered group
+reject_hrr_selecting_unoffered_group
+
 EC-JPAKE set password
 depends_on:MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED
 ssl_ecjpake_set_password:0
@@ -3373,6 +3390,22 @@ elliptic_curve_get_properties
 
 TLS 1.3 resume session with ticket
 tls13_resume_session_with_ticket
+
+TLS 1.3 server propagates RMS computation error
+depends_on:MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_TEST_AT_LEAST_ONE_TLS1_3_CIPHERSUITE:MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED:MBEDTLS_X509_RSASSA_PSS_SUPPORT:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
+tls_transcript_error_propagation:MBEDTLS_SSL_IS_SERVER:MBEDTLS_SSL_VERSION_TLS1_3:"<= parse finished message":MBEDTLS_SSL_CLIENT_FINISHED:MBEDTLS_SSL_FLUSH_BUFFERS:MBEDTLS_ERR_SSL_INTERNAL_ERROR
+
+TLS 1.3 client propagates RMS computation error
+depends_on:MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_TEST_AT_LEAST_ONE_TLS1_3_CIPHERSUITE:MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED:MBEDTLS_X509_RSASSA_PSS_SUPPORT:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
+tls_transcript_error_propagation:MBEDTLS_SSL_IS_CLIENT:MBEDTLS_SSL_VERSION_TLS1_3:"<= write finished message":MBEDTLS_SSL_CLIENT_FINISHED:-1:MBEDTLS_ERR_SSL_INTERNAL_ERROR
+
+TLS 1.2 server propagates EMS computation error
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED
+tls_transcript_error_propagation:MBEDTLS_SSL_IS_SERVER:MBEDTLS_SSL_VERSION_TLS1_2:"=> derive keys":MBEDTLS_SSL_CLIENT_KEY_EXCHANGE:MBEDTLS_SSL_CERTIFICATE_VERIFY:MBEDTLS_ERR_SSL_INTERNAL_ERROR
+
+TLS 1.2 client propagates EMS computation error
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED
+tls_transcript_error_propagation:MBEDTLS_SSL_IS_CLIENT:MBEDTLS_SSL_VERSION_TLS1_2:"=> derive keys":MBEDTLS_SSL_CERTIFICATE_VERIFY:-1:MBEDTLS_ERR_SSL_INTERNAL_ERROR
 
 TLS 1.3 read early data, early data accepted
 tls13_read_early_data:TEST_EARLY_DATA_ACCEPTED
@@ -3559,3 +3592,29 @@ send_invalid_sig_alg:MBEDTLS_SSL_SIG_ECDSA:MBEDTLS_SSL_HASH_SHA512:MBEDTLS_ERR_S
 
 Default verify_result before doing a handshake
 verify_result_without_handshake
+
+TLS 1.2 NewSessionTicket: failing ticket callback leaves lifetime unset
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_SSL_SESSION_TICKETS:MBEDTLS_SSL_CLI_C:MBEDTLS_SSL_SRV_C:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:MBEDTLS_PKCS1_V15:MBEDTLS_RSA_C:MBEDTLS_ECP_HAVE_SECP384R1:MBEDTLS_MD_CAN_SHA256:MBEDTLS_PK_HAVE_ECC_KEYS:MBEDTLS_CAN_HANDLE_RSA_TEST_KEY
+write_new_session_ticket_mem
+
+TLS 1.3 drop early data
+tls13_drop_early_data:0
+
+TLS 1.3 drop early data and insert an EndOfEarlyData
+tls13_drop_early_data:1
+
+TLS 1.3 ClientHello record boundary alignment enforcement
+tls13_record_boundary_alignment:MBEDTLS_SSL_IS_SERVER:MBEDTLS_SSL_HS_CLIENT_HELLO
+
+TLS 1.3 ServerHello record boundary alignment enforcement
+tls13_record_boundary_alignment:MBEDTLS_SSL_IS_CLIENT:MBEDTLS_SSL_HS_SERVER_HELLO
+
+TLS 1.3 server Finished record boundary alignment enforcement
+tls13_record_boundary_alignment:MBEDTLS_SSL_IS_CLIENT:MBEDTLS_SSL_HS_FINISHED
+
+TLS 1.3 client Finished record boundary alignment enforcement
+tls13_record_boundary_alignment:MBEDTLS_SSL_IS_SERVER:MBEDTLS_SSL_HS_FINISHED
+
+TLS 1.3 EndOfEarlyData record boundary alignment enforcement
+depends_on:MBEDTLS_SSL_EARLY_DATA:MBEDTLS_SSL_SESSION_TICKETS
+tls13_record_boundary_alignment:MBEDTLS_SSL_IS_SERVER:MBEDTLS_SSL_HS_END_OF_EARLY_DATA

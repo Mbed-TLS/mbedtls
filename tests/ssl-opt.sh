@@ -5568,6 +5568,7 @@ run_test    "Renegotiation: client-initiated, server-rejected" \
             -c "=> renegotiate" \
             -S "=> renegotiate" \
             -S "write hello request" \
+            -s "refusing renegotiation" \
             -c "SSL - Unexpected message at ServerHello in renegotiation" \
             -c "failed"
 
@@ -5584,6 +5585,7 @@ run_test    "Renegotiation: server-initiated, client-rejected, default" \
             -C "=> renegotiate" \
             -S "=> renegotiate" \
             -s "write hello request" \
+            -c "refusing renegotiation" \
             -S "SSL - An unexpected message was received from our peer" \
             -S "failed"
 
@@ -5601,6 +5603,7 @@ run_test    "Renegotiation: server-initiated, client-rejected, not enforced" \
             -C "=> renegotiate" \
             -S "=> renegotiate" \
             -s "write hello request" \
+            -c "refusing renegotiation" \
             -S "SSL - An unexpected message was received from our peer" \
             -S "failed"
 
@@ -5619,6 +5622,7 @@ run_test    "Renegotiation: server-initiated, client-rejected, delay 2" \
             -C "=> renegotiate" \
             -S "=> renegotiate" \
             -s "write hello request" \
+            -c "refusing renegotiation" \
             -S "SSL - An unexpected message was received from our peer" \
             -S "failed"
 
@@ -5636,6 +5640,7 @@ run_test    "Renegotiation: server-initiated, client-rejected, delay 0" \
             -C "=> renegotiate" \
             -S "=> renegotiate" \
             -s "write hello request" \
+            -c "refusing renegotiation" \
             -s "SSL - An unexpected message was received from our peer"
 
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
@@ -5652,6 +5657,7 @@ run_test    "Renegotiation: server-initiated, client-accepted, delay 0" \
             -c "=> renegotiate" \
             -s "=> renegotiate" \
             -s "write hello request" \
+            -C "refusing renegotiation" \
             -S "SSL - An unexpected message was received from our peer" \
             -S "failed"
 
@@ -8921,6 +8927,37 @@ run_test    "DHM size: server default, client 2049, rejected" \
                     debug_level=1 dhmlen=2049" \
             1 \
             -c "DHM prime too short:"
+
+# Miscellaneous PSK-related tests
+
+psk_identity_max_minus_10=a$(printf "%$((MAX_OUT_LEN - 11))s" z | tr ' ' .)
+
+run_test    "Large PSK identity (MBEDTLS_SSL_OUT_CONTENT_LEN - 7)" \
+            "$P_SRV debug_level=3 \
+                    psk_identity=${psk_identity_max_minus_10}987 psk=73776f726466697368" \
+            "$P_CLI force_ciphersuite=TLS-ECDHE-PSK-WITH-AES-128-CBC-SHA256 debug_level=3 \
+                    psk_identity=${psk_identity_max_minus_10}987 psk=73776f726466697368" \
+            1 \
+            -s "! mbedtls_ssl_handshake returned" \
+            -c "! mbedtls_ssl_handshake returned"
+
+run_test    "Large PSK identity (MBEDTLS_SSL_OUT_CONTENT_LEN - 6)" \
+            "$P_SRV debug_level=3 \
+                    psk_identity=${psk_identity_max_minus_10}9876 psk=73776f726466697368" \
+            "$P_CLI force_ciphersuite=TLS-ECDHE-PSK-WITH-AES-128-CBC-SHA256 debug_level=3 \
+                    psk_identity=${psk_identity_max_minus_10}9876 psk=73776f726466697368" \
+            1 \
+            -s "! mbedtls_ssl_handshake returned" \
+            -c "! mbedtls_ssl_handshake returned"
+
+run_test    "Large PSK identity (MBEDTLS_SSL_OUT_CONTENT_LEN - 5)" \
+            "$P_SRV debug_level=3 \
+                    psk_identity=${psk_identity_max_minus_10}98765 psk=73776f726466697368" \
+            "$P_CLI force_ciphersuite=TLS-ECDHE-PSK-WITH-AES-128-CBC-SHA256 debug_level=3 \
+                    psk_identity=${psk_identity_max_minus_10}98765 psk=73776f726466697368" \
+            1 \
+            -s "! mbedtls_ssl_handshake returned" \
+            -c "! mbedtls_ssl_handshake returned"
 
 # Tests for PSK callback
 
@@ -12762,6 +12799,147 @@ run_test    "DTLS proxy: inject invalid AD record, badmac_limit 2, exchanges 2"\
             -c "HTTP/1.0 200 OK" \
             -s "too many records with bad MAC" \
             -s "Verification of the message MAC failed"
+
+# The next few tests exercise renegotiation in DTLS when `ssl->badmac_seen != 0`.
+#
+# This seems unrelated, but was the location of a bug in Mbed TLS 3.6.3 to
+# 3.6.6 (CVE-2026-50713) due to `ssl->badmac_seen` being unified with
+# `ssl->in_hsfraglen` (to preserve the ABI when adding support for handshake
+# defragmentation in TLS in 3.6.3), with some mistakes in using the unified
+# field that were fixed in 3.6.7.
+
+requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
+run_test    "DTLS proxy: client: get invalid AD record then reject renego" \
+            -p "$P_PXY bad_ad_srv_once=1" \
+            "$P_SRV dtls=1 dgram_packing=0 hs_timeout=500-10000 \
+             renegotiate=1 renegotiation=1 exchanges=4 \
+             debug_level=3" \
+            "$P_CLI dtls=1 dgram_packing=0 hs_timeout=500-10000 \
+             exchanges=4 badmac_limit=99 debug_level=3" \
+            0 \
+            -s "write hello request" \
+            -c "refusing renegotiation" \
+            -S "=> renegotiate" \
+            -C "=> renegotiate" \
+            -s "Extra-header:" \
+            -c "HTTP/1.0 200 OK" \
+            -c "discarding invalid record (mac)" \
+            -C "too many records with bad MAC" \
+            -C "Verification of the message MAC failed" \
+            -C "Consume: waiting for more handshake fragments"
+
+requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
+run_test    "DTLS proxy: server: get invalid AD record then reject renego" \
+            -p "$P_PXY bad_ad_cli_once=1" \
+            "$P_SRV dtls=1 dgram_packing=0 hs_timeout=500-10000 \
+             renegotiation=0 exchanges=4 \
+             badmac_limit=99 debug_level=3" \
+            "$P_CLI dtls=1 dgram_packing=0 hs_timeout=500-10000 \
+             renegotiation=1 renegotiate=2 exchanges=4 debug_level=3" \
+            1 \
+            -s "discarding invalid record (mac)" \
+            -c "=> renegotiate" \
+            -S "=> renegotiate" \
+            -s "refusing renegotiation" \
+            -s "Extra-header:" \
+            -c "HTTP/1.0 200 OK" \
+            -S "too many records with bad MAC" \
+            -S "Verification of the message MAC failed" \
+            -S "Consume: waiting for more handshake fragments"
+
+requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
+run_test    "DTLS proxy: client: get invalid AD record then accept renego" \
+            -p "$P_PXY bad_ad_srv_once=1" \
+            "$P_SRV dtls=1 dgram_packing=0 hs_timeout=500-10000 \
+             renegotiate=1 renegotiation=1 exchanges=4 \
+             debug_level=3" \
+            "$P_CLI dtls=1 dgram_packing=0 hs_timeout=500-10000 \
+             renegotiation=1 exchanges=4 badmac_limit=99 debug_level=3" \
+            0 \
+            -s "=> renegotiate" \
+            -c "=> renegotiate" \
+            -s "Extra-header:" \
+            -c "HTTP/1.0 200 OK" \
+            -c "discarding invalid record (mac)" \
+            -C "too many records with bad MAC" \
+            -C "Verification of the message MAC failed" \
+            -C "Consume: waiting for more handshake fragments"
+
+requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
+run_test    "DTLS proxy: server: get invalid AD record then accept renego" \
+            -p "$P_PXY bad_ad_cli_once=1" \
+            "$P_SRV dtls=1 dgram_packing=0 hs_timeout=500-10000 \
+             renegotiation=1 exchanges=4 \
+             badmac_limit=99 debug_level=3" \
+            "$P_CLI dtls=1 dgram_packing=0 hs_timeout=500-10000 \
+             renegotiation=1 renegotiate=2 exchanges=4 debug_level=3" \
+            0 \
+            -s "discarding invalid record (mac)" \
+            -c "=> renegotiate" \
+            -s "=> renegotiate" \
+            -s "Extra-header:" \
+            -c "HTTP/1.0 200 OK" \
+            -S "too many records with bad MAC" \
+            -S "Verification of the message MAC failed" \
+            -S "Consume: waiting for more handshake fragments"
+
+# The next few tests have "early renego". A DTLS handshake message is delayed
+# past another handshake message. From the perspective of the recipient,
+# this means that a DTLS handshake arrives early (its epoch number is still
+# in the future) and needs to be queued.
+#
+# In Mbed TLS 3.6.3 through 3.6.6, due to the fields `ssl->badmac_seen`
+# and `ssl->in_hsfraglen` being unified, the early message was parsed
+# incorrectly, leading to heap corruption.
+
+requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
+run_test    "DTLS proxy: client: get invalid AD record then reject early renego" \
+            -p "$P_PXY bad_ad_srv_once=1 delay_encrypted_hs_srv=3" \
+            "$P_SRV dtls=1 dgram_packing=0 hs_timeout=500-10000 \
+             renegotiate=1 renegotiation=1 exchanges=4 \
+             debug_level=3" \
+            "$P_CLI dtls=1 dgram_packing=0 hs_timeout=500-10000 \
+             exchanges=4 badmac_limit=99 debug_level=3" \
+            0 \
+            -S "=> renegotiate" \
+            -C "=> renegotiate" \
+            -s "write hello request" \
+            -c "refusing renegotiation" \
+            -C "=> ssl_buffer_message" \
+            -C "initialize reassembly, total length = 0" \
+            -s "Extra-header:" \
+            -c "HTTP/1.0 200 OK" \
+            -c "discarding invalid record (mac)" \
+            -C "too many records with bad MAC" \
+            -C "Verification of the message MAC failed" \
+            -C "Consume: waiting for more handshake fragments"
+
+# Delay the third encrypted handshake message from the server:
+# 1. Finished message of the initial handshake.
+# 2. HelloRequest to request renegotiation.
+# 3. ServerHello of renegotiation, delayed.
+# 4. Subsequent handshake message, which the client receives and enqueues.
+#
+# In Mbed TLS 3.6.3 though 3.6.6, the processing of (4) caused heap corruption.
+requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
+run_test    "DTLS proxy: client: get invalid AD record then accept early renego" \
+            -p "$P_PXY bad_ad_srv_once=1 delay_encrypted_hs_srv=3" \
+            "$P_SRV dtls=1 dgram_packing=0 hs_timeout=500-10000 \
+             renegotiate=1 renegotiation=1 exchanges=4 \
+             debug_level=3" \
+            "$P_CLI dtls=1 dgram_packing=0 hs_timeout=500-10000 \
+             renegotiation=1 exchanges=4 badmac_limit=99 debug_level=3" \
+            0 \
+            -s "=> renegotiate" \
+            -c "=> renegotiate" \
+            -c "=> ssl_buffer_message" \
+            -C "initialize reassembly, total length = 0" \
+            -s "Extra-header:" \
+            -c "HTTP/1.0 200 OK" \
+            -c "discarding invalid record (mac)" \
+            -C "too many records with bad MAC" \
+            -C "Verification of the message MAC failed" \
+            -C "Consume: waiting for more handshake fragments"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "DTLS proxy: delay ChangeCipherSpec" \

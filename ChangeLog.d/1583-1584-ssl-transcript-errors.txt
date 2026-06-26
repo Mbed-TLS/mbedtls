@@ -1,0 +1,17 @@
+Security
+   * Fix a bug where transcript-hash computation errors during TLS 1.2
+     extended master secret calculation could be ignored instead of causing the
+     handshake to fail. This could allow a handshake to continue with a master
+     secret that was not correctly bound to the handshake transcript,
+     undermining the security guarantees of the extended master secret
+     extension. Report by Mathew Gretton-Dann. CVE-2026-50581
+   * Fix a TLS 1.3 server-side error-handling bug affecting session ticket
+     generation. Under rare conditions, such as memory allocation failures
+     while computing the resumption master secret, the server could issue
+     invalid session tickets instead of failing the handshake. Clients
+     presented with such tickets would fail session resumption and fall back to
+     a full handshake. In deployments relying on session resumption, repeated
+     occurrences could increase the frequency of full handshakes and amplify
+     resource consumption during periods of resource exhaustion or other
+     transient failures. Reported by jjfz123.
+     CVE-2026-50640

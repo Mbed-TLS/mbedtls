@@ -31,6 +31,7 @@ my @test_source_dirs = qw(
     framework/tests/src
     framework/tests/src/drivers
     tests/src
+    tests/src/test_helpers
 );
 my $test_header_dir = 'framework/tests/include/test';
 my $test_drivers_header_dir = 'framework/tests/include/test/drivers';

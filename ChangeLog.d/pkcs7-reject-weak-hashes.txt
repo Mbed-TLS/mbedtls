@@ -1,9 +1,0 @@
-Security
-   * PKCS7 now rejects weak hash algorithms (RIPEMD160, MD5, SHA-1, SHA-224,
-     SHA3-224) on signature verification. The new configuration option
-     MBEDTLS_PKCS7_ALLOW_WEAK_SIGNATURES allows to keep using weak hash
-     algorithms in PKCS7 for backward compatibility purposes.
-
-Features
-   * SHA3-256, SHA3-384 and SHA3-512 are now accepted in the default X.509
-     certificate profile.

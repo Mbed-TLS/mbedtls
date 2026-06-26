@@ -1,6 +1,0 @@
-Security
-   * Fix a use-after-free/double-free risk in mbedtls_pkcs7_free() when reusing
-     an mbedtls_pkcs7 context across parse -> free -> parse -> free cycles. The
-     function now resets the context after freeing it, ensuring stale
-     signed_data.signers.next pointers cannot be walked by a later free
-     operation. CVE-2026-50579

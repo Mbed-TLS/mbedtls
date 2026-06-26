@@ -1,0 +1,7 @@
+Security
+   * PKCS7 now rejects weak hash algorithms (RIPEMD160, MD5, SHA-1, SHA-224,
+     SHA3-224) on signature verification.
+
+Features
+   * SHA3-256, SHA3-384 and SHA3-512 are now accepted in the default X.509
+     certificate profile.

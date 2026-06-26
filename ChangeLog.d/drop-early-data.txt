@@ -1,7 +1,0 @@
-Security
-   * Fixed a TLS 1.3 record-boundary validation issue that could allow
-     unauthenticated plaintext data to be processed across a key change. In
-     servers with MBEDTLS_SSL_EARLY_DATA enabled, this could be exploited by a
-     man-in-the-middle attacker to cause loss of 0-RTT early data.
-     Reported by Ben Smyth.
-     CVE-2026-TODO.

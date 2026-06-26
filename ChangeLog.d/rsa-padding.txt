@@ -1,8 +1,0 @@
-Security
-   * Fix a side channel in RSA PKCS#1 v1.5 decryption: error handling in the
-     library would reveal through timing the difference between success,
-     invalid padding, or output too large for buffer, giving rise to a
-     Bleichenbacher attack. Note that while the library now handles sensitive
-     errors in constant-time, RSA PKCS#1 v1.5 decryption remains inherently
-     dangerous, should be avoided when possible, and otherwise requires great
-     care in application code. Found by zhengg. CVE-2026-50587

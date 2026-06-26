@@ -1,4 +1,0 @@
-Security
-   * Fix renegotiation failing and potentially causing a buffer overflow
-     in DTLS when badmac_limit is enabled. Reported by Haruki Oyama.
-     CVE-2026-50713.

@@ -1,4 +1,0 @@
-Security
-   * Fix a 1-byte buffer overread when parsing a malformed ECC public key
-     in the PK module. CVE-2026-50583
-

@@ -1,5 +1,0 @@
-Security
-   * Fix timing side channel in RSA key generation, prime generation and
-     primality testing, on platforms where division is not constant-time. At
-     this point this side channel is not known to be exploitable. Reported by
-     Bhargava Shastry, Ethereum Foundation.

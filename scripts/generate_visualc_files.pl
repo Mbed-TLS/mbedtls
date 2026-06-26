@@ -26,12 +26,14 @@ my $framework_programs_dir = 'framework/tests/programs';
 my $mbedtls_header_dir = 'include/mbedtls';
 my $psa_header_dir = 'include/psa';
 my $source_dir = 'library';
-my $tls_test_source_dir = 'tests/src';
 my $tls_test_header_dir = 'tests/include/test';
-my $test_source_dir = 'framework/tests/src';
+my @test_source_dirs = qw(
+    framework/tests/src
+    framework/tests/src/drivers
+    tests/src
+);
 my $test_header_dir = 'framework/tests/include/test';
 my $test_drivers_header_dir = 'framework/tests/include/test/drivers';
-my $test_drivers_source_dir = 'framework/tests/src/drivers';
 
 my @thirdparty_header_dirs = qw(
     3rdparty/everest/include/everest
@@ -101,16 +103,16 @@ EOT
 exit( main() );
 
 sub check_dirs {
-    foreach my $d (@thirdparty_header_dirs, @thirdparty_source_dirs) {
+    foreach my $d (
+                   @thirdparty_header_dirs, @thirdparty_source_dirs,
+                   @test_source_dirs,
+                  ) {
         if (not (-d $d)) { return 0; }
     }
     return -d $vsx_dir
         && -d $mbedtls_header_dir
         && -d $psa_header_dir
         && -d $source_dir
-        && -d $test_source_dir
-        && -d $tls_test_source_dir
-        && -d $test_drivers_source_dir
         && -d $test_header_dir
         && -d $tls_test_header_dir
         && -d $test_drivers_header_dir
@@ -283,10 +285,8 @@ sub main {
     my @headers = (map { <$_/*.h> } @header_dirs);
     my @source_dirs = (
                        $source_dir,
-                       $test_source_dir,
-                       $tls_test_source_dir,
-                       $test_drivers_source_dir,
                        @thirdparty_source_dirs,
+                       @test_source_dirs,
                       );
     my @sources = (map { <$_/*.c> } @source_dirs);
 

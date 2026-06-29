@@ -93,6 +93,7 @@ Bugfix
      wrappers do not exactly contain the requested extensions.
 
 Changes
+   * Upgraded TF-PSA-Crypto from 1.1.0 to 1.2.0. See tf-psa-crypto/ChangeLog.
    * X.509 certificates with a basicConstraints extension starting with an
      INTEGER field are no longer accepted. According to RFC 5280, such
      certificates are syntactically valid and the first field is the

@@ -31,7 +31,6 @@ Security
      servers with MBEDTLS_SSL_EARLY_DATA enabled, this could be exploited by a
      man-in-the-middle attacker to cause loss of 0-RTT early data.
      Reported by Ben Smyth.
-     CVE-2026-TODO.
    * Fix a remote buffer overflow in (D)TLS with ECDHE-PSK cipher suites when
      CBC is disabled. Reported by Karnakar Reddy. CVE-ID-50580
    * Fix a potential information disclosure in TLS 1.2 servers using session

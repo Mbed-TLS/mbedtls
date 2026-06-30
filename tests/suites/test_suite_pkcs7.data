@@ -94,6 +94,10 @@ PKCS7 Signed Data Verification Pass SHA256 #9
 depends_on:PSA_WANT_ALG_SHA_256:PSA_HAVE_ALG_RSA_PKCS1V15_VERIFY
 pkcs7_verify:"../framework/data_files/pkcs7_data_cert_signed_sha256.der":"../framework/data_files/pkcs7-rsa-sha256-1.der":"../framework/data_files/pkcs7_data.bin":0:0
 
+PKCS7 Signed Data Verification Fail empty digestAlgorithms
+depends_on:PSA_WANT_ALG_SHA_256:PSA_HAVE_ALG_RSA_PKCS1V15_VERIFY
+pkcs7_verify:"../framework/data_files/pkcs7_empty_digest.der":"../framework/data_files/pkcs7-rsa-sha256-1.der":"../framework/data_files/pkcs7_data.bin":0:MBEDTLS_ERR_X509_UNKNOWN_OID
+
 PKCS7 Signed Data Parse Fail SHA256 empty digestAlgorithms
 depends_on:PSA_WANT_ALG_SHA_256:PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY
 pkcs7_parse:"../framework/data_files/pkcs7_data_cert_signed_sha256_empty_digest.der":MBEDTLS_ERR_PKCS7_INVALID_SIGNER_INFO
@@ -101,6 +105,10 @@ pkcs7_parse:"../framework/data_files/pkcs7_data_cert_signed_sha256_empty_digest.
 PKCS7 Signed Data Verification Pass SHA256 #9.1
 depends_on:PSA_WANT_ALG_SHA_256:PSA_HAVE_ALG_RSA_PKCS1V15_VERIFY
 pkcs7_verify:"../framework/data_files/pkcs7_data_cert_signed_sha256.der":"../framework/data_files/pkcs7-rsa-sha256-1.der":"../framework/data_files/pkcs7_data.bin":MBEDTLS_MD_SHA256:0
+
+PKCS7 Signed Hash Verification Fail empty digestAlgorithms
+depends_on:PSA_WANT_ALG_SHA_256:PSA_HAVE_ALG_RSA_PKCS1V15_VERIFY
+pkcs7_verify:"../framework/data_files/pkcs7_empty_digest.der":"../framework/data_files/pkcs7-rsa-sha256-1.der":"../framework/data_files/pkcs7_data.bin":MBEDTLS_MD_SHA256:MBEDTLS_ERR_X509_UNKNOWN_OID
 
 PKCS7 Signed Data Verification Pass SHA1 #10
 depends_on:PSA_WANT_ALG_SHA_1:PSA_WANT_ALG_SHA_256:PSA_HAVE_ALG_RSA_PKCS1V15_VERIFY

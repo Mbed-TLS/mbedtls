@@ -61,7 +61,7 @@ Security
    * Fix a bug where mbedtls_ssl_read() and mbedtls_ssl_write() could return
      1 instead of an error code if the random generator failed when a server
      called these functions before the end of a TLS 1.3 handshake.
-     Reported by Mohammad Seet (mhdsait101). CVE-2026-40294
+     Reported by Mohammad Seet (mhdsait101).
    * Fix TLS 1.3 clients to reject a HelloRetryRequest whose selected group was
      not advertised in the original ClientHello. Reported independently by
      Din Asotić / Xiangdong Li, Beijing University of Posts and

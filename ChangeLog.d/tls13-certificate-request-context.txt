@@ -1,0 +1,5 @@
+Bugfix
+   * Fix TLS 1.3 client handling of CertificateRequest messages with a
+     non-empty certificate_request_context during the initial handshake.
+     Clients now reject these malformed messages instead of continuing with
+     an inconsistent handshake state. Fixes #10468.

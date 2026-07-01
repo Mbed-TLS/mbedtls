@@ -2412,19 +2412,10 @@ static int ssl_tls13_parse_certificate_request(mbedtls_ssl_context *ssl,
     p += 1;
 
     if (certificate_request_context_len > 0) {
-        MBEDTLS_SSL_CHK_BUF_READ_PTR(p, end, certificate_request_context_len);
-        MBEDTLS_SSL_DEBUG_BUF(3, "Certificate Request Context",
-                              p, certificate_request_context_len);
-
-        handshake->certificate_request_context =
-            mbedtls_calloc(1, certificate_request_context_len);
-        if (handshake->certificate_request_context == NULL) {
-            MBEDTLS_SSL_DEBUG_MSG(1, ("buffer too small"));
-            return MBEDTLS_ERR_SSL_ALLOC_FAILED;
-        }
-        memcpy(handshake->certificate_request_context, p,
-               certificate_request_context_len);
-        p += certificate_request_context_len;
+        MBEDTLS_SSL_DEBUG_MSG(1, ("non-empty certificate_request_context"));
+        MBEDTLS_SSL_PEND_FATAL_ALERT(MBEDTLS_SSL_ALERT_MSG_UNEXPECTED_MESSAGE,
+                                     MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE);
+        return MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE;
     }
 
     /* ...

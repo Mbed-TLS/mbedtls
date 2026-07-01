@@ -337,10 +337,15 @@ static int pkcs7_get_signer_info(unsigned char **p, unsigned char *end,
         goto out;
     }
 
-    /* Check that the digest algorithm used matches the one provided earlier */
-    if (signer->alg_identifier.tag != alg->tag ||
-        signer->alg_identifier.len != alg->len ||
-        memcmp(signer->alg_identifier.p, alg->p, alg->len) != 0) {
+    /*
+     * If digestAlgorithms is present, require the signer digest algorithm to
+     * match it. If the outer set is empty, defer the failure until
+     * verification, where the missing digest algorithm is reported.
+     */
+    if (alg->p != NULL &&
+        (signer->alg_identifier.tag != alg->tag ||
+         signer->alg_identifier.len != alg->len ||
+         memcmp(signer->alg_identifier.p, alg->p, alg->len) != 0)) {
         ret = MBEDTLS_ERR_PKCS7_INVALID_SIGNER_INFO;
         goto out;
     }

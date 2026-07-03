@@ -713,8 +713,8 @@ struct mbedtls_ssl_handshake_params {
     uint8_t samd_ecdh_secret_done;
     uint8_t samd_ecdh_secret_success;
     uint8_t samd_ecdh_secret_ready;
-    unsigned char samd_ecdh_private_scalar[32];
-    unsigned char samd_ecdh_public_key[65];
+    unsigned char samd_ecdh_private_scalar[48];
+    unsigned char samd_ecdh_public_key[97];
 #endif
 
 #if defined(MBEDTLS_SSL_ECP_RESTARTABLE_ENABLED)

@@ -764,6 +764,12 @@ static int ssl_generate_random(mbedtls_ssl_context *ssl)
     unsigned char *randbytes = ssl->handshake->randbytes;
     size_t gmt_unix_time_len = 0;
 
+#if defined(MBEDTLS_ASYNC_HARDWARE_RANDOM)
+    if (ssl->handshake->samd_client_random_ready != 0) {
+        return 0;
+    }
+#endif
+
     /*
      * Generate the random bytes
      *
@@ -792,6 +798,9 @@ static int ssl_generate_random(mbedtls_ssl_context *ssl)
     ret = samd_mbedtls_ssl_random_fill(
         ssl, randbytes + gmt_unix_time_len,
         MBEDTLS_CLIENT_HELLO_RANDOM_LEN - gmt_unix_time_len);
+    if (ret == 0) {
+        ssl->handshake->samd_client_random_ready = 1;
+    }
 #else
     ret = psa_generate_random(randbytes + gmt_unix_time_len,
                               MBEDTLS_CLIENT_HELLO_RANDOM_LEN - gmt_unix_time_len);

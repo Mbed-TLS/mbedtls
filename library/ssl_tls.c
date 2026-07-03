@@ -7469,15 +7469,15 @@ int mbedtls_ssl_write_finished(mbedtls_ssl_context *ssl)
     int next_state = -1;
     unsigned int hash_len;
 #if defined(MBEDTLS_ASYNC_HARDWARE_AEAD)
-    int samd_resume_pending_finished = 0;
+    int async_hardware_resume_pending_finished = 0;
 #endif
 
     MBEDTLS_SSL_DEBUG_MSG(2, ("=> write finished"));
 
 #if defined(MBEDTLS_ASYNC_HARDWARE_AEAD)
     if (ssl->transform_negotiate != NULL &&
-        ssl->transform_negotiate->samd_aead_pending != 0) {
-        samd_resume_pending_finished = 1;
+        ssl->transform_negotiate->async_hardware_aead_pending != 0) {
+        async_hardware_resume_pending_finished = 1;
         if (ssl->handshake->resume != 0) {
 #if defined(MBEDTLS_SSL_CLI_C)
             if (ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT) {
@@ -7492,7 +7492,7 @@ int mbedtls_ssl_write_finished(mbedtls_ssl_context *ssl)
         } else {
             next_state = ssl->state + 1;
         }
-        goto samd_resume_pending_finished_write;
+        goto async_hardware_resume_pending_finished_write;
     }
 #endif
 
@@ -7547,7 +7547,7 @@ int mbedtls_ssl_write_finished(mbedtls_ssl_context *ssl)
     MBEDTLS_SSL_DEBUG_MSG(3, ("switching to new transform spec for outbound data"));
 
 #if defined(MBEDTLS_ASYNC_HARDWARE_AEAD)
-samd_resume_pending_finished_write:
+async_hardware_resume_pending_finished_write:
 #endif
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
@@ -7589,7 +7589,7 @@ samd_resume_pending_finished_write:
 #endif
 
 #if defined(MBEDTLS_ASYNC_HARDWARE_AEAD)
-    if (samd_resume_pending_finished) {
+    if (async_hardware_resume_pending_finished) {
         ret = mbedtls_ssl_write_record(ssl, 1);
     } else
 #endif
@@ -7599,7 +7599,7 @@ samd_resume_pending_finished_write:
     if (ret != 0) {
         MBEDTLS_SSL_DEBUG_RET(1,
 #if defined(MBEDTLS_ASYNC_HARDWARE_AEAD)
-                              samd_resume_pending_finished
+                              async_hardware_resume_pending_finished
                                   ? "mbedtls_ssl_write_record"
                                   :
 #endif
@@ -7759,14 +7759,14 @@ static mbedtls_tls_prf_types tls_prf_get_type(mbedtls_ssl_tls_prf_cb *tls_prf)
 
 #if defined(MBEDTLS_ASYNC_HARDWARE_AEAD)
 /**
- * @brief Map Mbed TLS/PSA record parameters to SAMD TLS AEAD capabilities.
+ * @brief Map Mbed TLS/PSA record parameters to async hardware TLS AEAD capabilities.
  *
  * @todo Wire AES-256-GCM, AES-CCM, AES-CCM-8, and ChaCha20-Poly1305 to
  * hardware-backed provider operations. They are classified here so production
  * hardware builds fail closed through the generic AEAD boundary instead of
  * silently falling back to PSA/software.
  */
-static int samd_mbedtls_tls_aead_from_transform(psa_key_type_t key_type,
+static int mbedtls_async_hardware_tls_aead_from_transform(psa_key_type_t key_type,
                                                  size_t keylen,
                                                  psa_algorithm_t alg,
                                                  size_t ivlen,
@@ -8103,17 +8103,17 @@ static int ssl_tls12_populate_transform(mbedtls_ssl_transform *transform,
     transform->psa_alg = alg;
 
 #if defined(MBEDTLS_ASYNC_HARDWARE_AEAD)
-    int samd_aead_algorithm = samd_mbedtls_tls_aead_from_transform(
+    int async_hardware_aead_algorithm = mbedtls_async_hardware_tls_aead_from_transform(
         key_type, keylen, alg, transform->ivlen, transform->fixed_ivlen,
         transform->taglen);
     if (ssl_mode == MBEDTLS_SSL_MODE_AEAD &&
-        samd_aead_algorithm != 0 &&
-        keylen <= sizeof(transform->samd_aead_key_enc)) {
-        memcpy(transform->samd_aead_key_enc, key1, keylen);
-        memcpy(transform->samd_aead_key_dec, key2, keylen);
-        transform->samd_aead_key_len = keylen;
-        transform->samd_aead_algorithm = (unsigned char) samd_aead_algorithm;
-        transform->samd_aead_keys_configured = 1;
+        async_hardware_aead_algorithm != 0 &&
+        keylen <= sizeof(transform->async_hardware_aead_key_enc)) {
+        memcpy(transform->async_hardware_aead_key_enc, key1, keylen);
+        memcpy(transform->async_hardware_aead_key_dec, key2, keylen);
+        transform->async_hardware_aead_key_len = keylen;
+        transform->async_hardware_aead_algorithm = (unsigned char) async_hardware_aead_algorithm;
+        transform->async_hardware_aead_keys_configured = 1;
     }
 #endif
 

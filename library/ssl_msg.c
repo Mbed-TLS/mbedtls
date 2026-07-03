@@ -44,58 +44,58 @@ static int local_err_translation(psa_status_t status)
 #define PSA_TO_MBEDTLS_ERR(status) local_err_translation(status)
 
 #if defined(MBEDTLS_ASYNC_HARDWARE_AEAD)
-typedef void (*samd_mbedtls_async_callback_t)(int success, void *context);
+typedef void (*mbedtls_async_hardware_callback_t)(int success, void *context);
 
-int samd_mbedtls_aes_gcm128_encrypt_start(
+int mbedtls_async_hardware_aes_gcm128_encrypt_start(
     const uint8_t key[16], const uint8_t nonce[12], const uint8_t *aad,
     size_t aadLength, const uint8_t *plaintext, uint8_t *ciphertext,
-    size_t length, uint8_t tag[16], samd_mbedtls_async_callback_t callback,
+    size_t length, uint8_t tag[16], mbedtls_async_hardware_callback_t callback,
     void *context);
-int samd_mbedtls_aes_gcm128_decrypt_start(
+int mbedtls_async_hardware_aes_gcm128_decrypt_start(
     const uint8_t key[16], const uint8_t nonce[12], const uint8_t *aad,
     size_t aadLength, const uint8_t *ciphertext, uint8_t *plaintext,
     size_t length, const uint8_t tag[16],
-    samd_mbedtls_async_callback_t callback, void *context);
-int samd_mbedtls_aead_encrypt_start(
+    mbedtls_async_hardware_callback_t callback, void *context);
+int mbedtls_async_hardware_aead_encrypt_start(
     int algorithm, const uint8_t *key, size_t keyLength,
     const uint8_t *nonce, size_t nonceLength, const uint8_t *aad,
     size_t aadLength, const uint8_t *plaintext, uint8_t *ciphertext,
     size_t length, uint8_t *tag, size_t tagLength,
-    samd_mbedtls_async_callback_t callback, void *context);
-int samd_mbedtls_aead_decrypt_start(
+    mbedtls_async_hardware_callback_t callback, void *context);
+int mbedtls_async_hardware_aead_decrypt_start(
     int algorithm, const uint8_t *key, size_t keyLength,
     const uint8_t *nonce, size_t nonceLength, const uint8_t *aad,
     size_t aadLength, const uint8_t *ciphertext, uint8_t *plaintext,
     size_t length, const uint8_t *tag, size_t tagLength,
-    samd_mbedtls_async_callback_t callback, void *context);
+    mbedtls_async_hardware_callback_t callback, void *context);
 
-static void samd_mbedtls_ssl_aead_callback(int success, void *context)
+static void mbedtls_async_hardware_ssl_aead_callback(int success, void *context)
 {
     mbedtls_ssl_transform *transform = (mbedtls_ssl_transform *) context;
     if (transform == NULL) {
         return;
     }
 
-    transform->samd_aead_success = success ? 1 : 0;
-    transform->samd_aead_done = 1;
+    transform->async_hardware_aead_success = success ? 1 : 0;
+    transform->async_hardware_aead_done = 1;
 }
 
 /**
- * @brief Return whether the transform has explicit SAMD AEAD metadata.
+ * @brief Return whether the transform has explicit async hardware AEAD metadata.
  *
  * @todo Extend the provider dispatch behind this metadata for AES-256-GCM,
  * AES-CCM, AES-CCM-8, and ChaCha20-Poly1305. Until then those algorithms are
  * intentional fail-closed stubs instead of PSA/software fallbacks.
  */
-static int samd_mbedtls_ssl_transform_has_aead(
+static int mbedtls_async_hardware_ssl_transform_has_aead(
     const mbedtls_ssl_transform *transform)
 {
     return transform != NULL &&
-           transform->samd_aead_keys_configured != 0 &&
-           transform->samd_aead_algorithm != 0 &&
-           transform->samd_aead_key_len != 0 &&
-           transform->samd_aead_key_len <=
-               sizeof(transform->samd_aead_key_enc) &&
+           transform->async_hardware_aead_keys_configured != 0 &&
+           transform->async_hardware_aead_algorithm != 0 &&
+           transform->async_hardware_aead_key_len != 0 &&
+           transform->async_hardware_aead_key_len <=
+               sizeof(transform->async_hardware_aead_key_enc) &&
            transform->ivlen == 12;
 }
 
@@ -110,7 +110,7 @@ int mbedtls_ssl_configure_async_aead_transform(
     unsigned char async_algorithm = 0;
 
     if (transform == NULL || key_enc == NULL || key_dec == NULL ||
-        key_len == 0 || key_len > sizeof(transform->samd_aead_key_enc) ||
+        key_len == 0 || key_len > sizeof(transform->async_hardware_aead_key_enc) ||
         transform->ivlen != 12 || transform->taglen != 16) {
         return 0;
     }
@@ -146,11 +146,11 @@ int mbedtls_ssl_configure_async_aead_transform(
         }
     }
 
-    memcpy(transform->samd_aead_key_enc, key_enc, key_len);
-    memcpy(transform->samd_aead_key_dec, key_dec, key_len);
-    transform->samd_aead_key_len = key_len;
-    transform->samd_aead_algorithm = async_algorithm;
-    transform->samd_aead_keys_configured = 1;
+    memcpy(transform->async_hardware_aead_key_enc, key_enc, key_len);
+    memcpy(transform->async_hardware_aead_key_dec, key_dec, key_len);
+    transform->async_hardware_aead_key_len = key_len;
+    transform->async_hardware_aead_algorithm = async_algorithm;
+    transform->async_hardware_aead_keys_configured = 1;
     return 1;
 }
 #endif
@@ -1101,8 +1101,8 @@ hmac_failed_etm_disabled:
         int dynamic_iv_is_explicit =
             ssl_transform_aead_dynamic_iv_is_explicit(transform);
 #if defined(MBEDTLS_ASYNC_HARDWARE_AEAD)
-        int use_samd_aead =
-            samd_mbedtls_ssl_transform_has_aead(transform);
+        int use_async_hardware_aead =
+            mbedtls_async_hardware_ssl_transform_has_aead(transform);
 #endif
         psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
         int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
@@ -1129,17 +1129,17 @@ hmac_failed_etm_disabled:
         dynamic_iv_len = sizeof(rec->ctr);
 
 #if defined(MBEDTLS_ASYNC_HARDWARE_AEAD)
-        if (use_samd_aead && transform->samd_aead_pending != 0) {
-            if (transform->samd_aead_done == 0) {
+        if (use_async_hardware_aead && transform->async_hardware_aead_pending != 0) {
+            if (transform->async_hardware_aead_done == 0) {
                 return MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS;
             }
-            transform->samd_aead_pending = 0;
-            transform->samd_aead_done = 0;
-            if (transform->samd_aead_success == 0) {
-                transform->samd_aead_success = 0;
+            transform->async_hardware_aead_pending = 0;
+            transform->async_hardware_aead_done = 0;
+            if (transform->async_hardware_aead_success == 0) {
+                transform->async_hardware_aead_success = 0;
                 return MBEDTLS_ERR_SSL_HW_ACCEL_FAILED;
             }
-            transform->samd_aead_success = 0;
+            transform->async_hardware_aead_success = 0;
 
             MBEDTLS_SSL_DEBUG_BUF(4, "after encrypt: tag",
                                   data + rec->data_len,
@@ -1161,7 +1161,7 @@ hmac_failed_etm_disabled:
             }
 
             auth_done++;
-            goto samd_aead_encrypt_done;
+            goto async_hardware_aead_encrypt_done;
         }
 #endif
 
@@ -1194,20 +1194,20 @@ hmac_failed_etm_disabled:
          * Encrypt and authenticate
          */
 #if defined(MBEDTLS_ASYNC_HARDWARE_AEAD)
-        if (use_samd_aead) {
-            transform->samd_aead_pending = 1;
-            transform->samd_aead_done = 0;
-            transform->samd_aead_success = 0;
-            if (samd_mbedtls_aead_encrypt_start(
-                    transform->samd_aead_algorithm,
-                    transform->samd_aead_key_enc,
-                    transform->samd_aead_key_len,
+        if (use_async_hardware_aead) {
+            transform->async_hardware_aead_pending = 1;
+            transform->async_hardware_aead_done = 0;
+            transform->async_hardware_aead_success = 0;
+            if (mbedtls_async_hardware_aead_encrypt_start(
+                    transform->async_hardware_aead_algorithm,
+                    transform->async_hardware_aead_key_enc,
+                    transform->async_hardware_aead_key_len,
                     iv, transform->ivlen, add_data, add_data_len,
                     data, data, rec->data_len,
                     data + rec->data_len, transform->taglen,
-                    samd_mbedtls_ssl_aead_callback,
+                    mbedtls_async_hardware_ssl_aead_callback,
                     transform) == 0) {
-                transform->samd_aead_pending = 0;
+                transform->async_hardware_aead_pending = 0;
                 return MBEDTLS_ERR_SSL_HW_ACCEL_FAILED;
             }
             return MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS;
@@ -1251,7 +1251,7 @@ hmac_failed_etm_disabled:
 
         auth_done++;
 #if defined(MBEDTLS_ASYNC_HARDWARE_AEAD)
-samd_aead_encrypt_done:
+async_hardware_aead_encrypt_done:
         (void) 0;
 #endif
     } else
@@ -1523,25 +1523,25 @@ int mbedtls_ssl_decrypt_buf(mbedtls_ssl_context const *ssl,
         unsigned char *dynamic_iv;
         size_t dynamic_iv_len;
 #if defined(MBEDTLS_ASYNC_HARDWARE_AEAD)
-        int use_samd_aead =
-            samd_mbedtls_ssl_transform_has_aead(transform);
+        int use_async_hardware_aead =
+            mbedtls_async_hardware_ssl_transform_has_aead(transform);
 #endif
         psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
 #if defined(MBEDTLS_ASYNC_HARDWARE_AEAD)
-        if (use_samd_aead && transform->samd_aead_pending != 0) {
-            if (transform->samd_aead_done == 0) {
+        if (use_async_hardware_aead && transform->async_hardware_aead_pending != 0) {
+            if (transform->async_hardware_aead_done == 0) {
                 return MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS;
             }
-            transform->samd_aead_pending = 0;
-            transform->samd_aead_done = 0;
-            if (transform->samd_aead_success == 0) {
-                transform->samd_aead_success = 0;
+            transform->async_hardware_aead_pending = 0;
+            transform->async_hardware_aead_done = 0;
+            if (transform->async_hardware_aead_success == 0) {
+                transform->async_hardware_aead_success = 0;
                 return MBEDTLS_ERR_SSL_INVALID_MAC;
             }
-            transform->samd_aead_success = 0;
+            transform->async_hardware_aead_success = 0;
             auth_done++;
-            goto samd_aead_decrypt_done;
+            goto async_hardware_aead_decrypt_done;
         }
 #endif
 
@@ -1614,20 +1614,20 @@ int mbedtls_ssl_decrypt_buf(mbedtls_ssl_context const *ssl,
          * Decrypt and authenticate
          */
 #if defined(MBEDTLS_ASYNC_HARDWARE_AEAD)
-        if (use_samd_aead) {
-            transform->samd_aead_pending = 1;
-            transform->samd_aead_done = 0;
-            transform->samd_aead_success = 0;
-            if (samd_mbedtls_aead_decrypt_start(
-                    transform->samd_aead_algorithm,
-                    transform->samd_aead_key_dec,
-                    transform->samd_aead_key_len,
+        if (use_async_hardware_aead) {
+            transform->async_hardware_aead_pending = 1;
+            transform->async_hardware_aead_done = 0;
+            transform->async_hardware_aead_success = 0;
+            if (mbedtls_async_hardware_aead_decrypt_start(
+                    transform->async_hardware_aead_algorithm,
+                    transform->async_hardware_aead_key_dec,
+                    transform->async_hardware_aead_key_len,
                     iv, transform->ivlen, add_data, add_data_len,
                     data, data, rec->data_len,
                     data + rec->data_len, transform->taglen,
-                    samd_mbedtls_ssl_aead_callback,
+                    mbedtls_async_hardware_ssl_aead_callback,
                     transform) == 0) {
-                transform->samd_aead_pending = 0;
+                transform->async_hardware_aead_pending = 0;
                 return MBEDTLS_ERR_SSL_HW_ACCEL_FAILED;
             }
             return MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS;
@@ -1657,7 +1657,7 @@ int mbedtls_ssl_decrypt_buf(mbedtls_ssl_context const *ssl,
             return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
         }
 #if defined(MBEDTLS_ASYNC_HARDWARE_AEAD)
-samd_aead_decrypt_done:
+async_hardware_aead_decrypt_done:
         (void) 0;
 #endif
     } else
@@ -4934,7 +4934,7 @@ static int ssl_get_next_record(mbedtls_ssl_context *ssl)
 
 #if defined(MBEDTLS_ASYNC_HARDWARE_AEAD)
     if (ssl->transform_in != NULL &&
-        ssl->transform_in->samd_aead_pending != 0) {
+        ssl->transform_in->async_hardware_aead_pending != 0) {
         const size_t header_len = mbedtls_ssl_in_hdr_len(ssl);
         const size_t explicit_iv_len =
             ssl_transform_aead_dynamic_iv_is_explicit(ssl->transform_in) ?
@@ -4958,7 +4958,7 @@ static int ssl_get_next_record(mbedtls_ssl_context *ssl)
             return ret;
         }
 
-        goto samd_aead_record_content_ready;
+        goto async_hardware_aead_record_content_ready;
     }
 #endif
 
@@ -5148,7 +5148,7 @@ static int ssl_get_next_record(mbedtls_ssl_context *ssl)
 
 
 #if defined(MBEDTLS_ASYNC_HARDWARE_AEAD)
-samd_aead_record_content_ready:
+async_hardware_aead_record_content_ready:
 #endif
 
     /* Reset in pointers to default state for TLS/DTLS records,
@@ -6149,7 +6149,7 @@ static int ssl_write_real(mbedtls_ssl_context *ssl,
 
 #if defined(MBEDTLS_ASYNC_HARDWARE_AEAD)
     if (ssl->transform_out != NULL &&
-        ssl->transform_out->samd_aead_pending != 0) {
+        ssl->transform_out->async_hardware_aead_pending != 0) {
         if ((ret = mbedtls_ssl_write_record(ssl, SSL_FORCE_FLUSH)) != 0) {
             MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_write_record", ret);
             return ret;

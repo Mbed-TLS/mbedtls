@@ -21,13 +21,13 @@
 #include "ssl_debug_helpers.h"
 
 #if defined(MBEDTLS_ASYNC_HARDWARE_RANDOM)
-typedef void (*samd_mbedtls_async_callback_t)(int success, void *context);
+typedef void (*mbedtls_async_hardware_callback_t)(int success, void *context);
 
-int samd_mbedtls_random_start(uint8_t *buffer, size_t length,
-                               samd_mbedtls_async_callback_t callback,
+int mbedtls_async_hardware_random_start(uint8_t *buffer, size_t length,
+                               mbedtls_async_hardware_callback_t callback,
                                void *context);
 
-static void samd_mbedtls_ssl_random_callback(int success, void *context)
+static void mbedtls_async_hardware_ssl_random_callback(int success, void *context)
 {
     mbedtls_ssl_handshake_params *handshake =
         (mbedtls_ssl_handshake_params *) context;
@@ -35,11 +35,11 @@ static void samd_mbedtls_ssl_random_callback(int success, void *context)
         return;
     }
 
-    handshake->samd_random_success = success ? 1 : 0;
-    handshake->samd_random_done = 1;
+    handshake->async_hardware_random_success = success ? 1 : 0;
+    handshake->async_hardware_random_done = 1;
 }
 
-static int samd_mbedtls_ssl_random_fill(
+static int mbedtls_async_hardware_ssl_random_fill(
     mbedtls_ssl_context *ssl,
     unsigned char *buffer,
     size_t length)
@@ -53,29 +53,29 @@ static int samd_mbedtls_ssl_random_fill(
 
     handshake = ssl->handshake;
 
-    if (handshake->samd_random_pending != 0) {
-        if (handshake->samd_random_done == 0) {
+    if (handshake->async_hardware_random_pending != 0) {
+        if (handshake->async_hardware_random_done == 0) {
             return MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS;
         }
 
-        handshake->samd_random_pending = 0;
-        handshake->samd_random_done = 0;
-        if (handshake->samd_random_success == 0) {
-            handshake->samd_random_success = 0;
+        handshake->async_hardware_random_pending = 0;
+        handshake->async_hardware_random_done = 0;
+        if (handshake->async_hardware_random_success == 0) {
+            handshake->async_hardware_random_success = 0;
             return MBEDTLS_ERR_SSL_HW_ACCEL_FAILED;
         }
-        handshake->samd_random_success = 0;
+        handshake->async_hardware_random_success = 0;
         return 0;
     }
 
-    handshake->samd_random_pending = 1;
-    handshake->samd_random_done = 0;
-    handshake->samd_random_success = 0;
+    handshake->async_hardware_random_pending = 1;
+    handshake->async_hardware_random_done = 0;
+    handshake->async_hardware_random_success = 0;
 
-    if (samd_mbedtls_random_start(
-            buffer, length, samd_mbedtls_ssl_random_callback,
+    if (mbedtls_async_hardware_random_start(
+            buffer, length, mbedtls_async_hardware_ssl_random_callback,
             handshake) == 0) {
-        handshake->samd_random_pending = 0;
+        handshake->async_hardware_random_pending = 0;
         return MBEDTLS_ERR_SSL_HW_ACCEL_FAILED;
     }
 
@@ -765,7 +765,7 @@ static int ssl_generate_random(mbedtls_ssl_context *ssl)
     size_t gmt_unix_time_len = 0;
 
 #if defined(MBEDTLS_ASYNC_HARDWARE_RANDOM)
-    if (ssl->handshake->samd_client_random_ready != 0) {
+    if (ssl->handshake->async_hardware_client_random_ready != 0) {
         return 0;
     }
 #endif
@@ -795,11 +795,11 @@ static int ssl_generate_random(mbedtls_ssl_context *ssl)
     }
 
 #if defined(MBEDTLS_ASYNC_HARDWARE_RANDOM)
-    ret = samd_mbedtls_ssl_random_fill(
+    ret = mbedtls_async_hardware_ssl_random_fill(
         ssl, randbytes + gmt_unix_time_len,
         MBEDTLS_CLIENT_HELLO_RANDOM_LEN - gmt_unix_time_len);
     if (ret == 0) {
-        ssl->handshake->samd_client_random_ready = 1;
+        ssl->handshake->async_hardware_client_random_ready = 1;
     }
 #else
     ret = psa_generate_random(randbytes + gmt_unix_time_len,
@@ -946,7 +946,7 @@ static int ssl_prepare_client_hello(mbedtls_ssl_context *ssl)
         if (session_id_len > 0) {
 
 #if defined(MBEDTLS_ASYNC_HARDWARE_RANDOM)
-            ret = samd_mbedtls_ssl_random_fill(
+            ret = mbedtls_async_hardware_ssl_random_fill(
                 ssl, session_negotiate->id, session_id_len);
 #else
             ret = psa_generate_random(session_negotiate->id,

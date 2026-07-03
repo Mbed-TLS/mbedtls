@@ -40,8 +40,215 @@ static int local_err_translation(psa_status_t status)
 #include "mbedtls/platform_time.h"
 #endif
 
-#if defined(MBEDTLS_SSL_SESSION_TICKETS)
+#if defined(MBEDTLS_SSL_SESSION_TICKETS) || \
+    defined(MBEDTLS_ASYNC_HARDWARE_RANDOM)
 #include "mbedtls/platform_util.h"
+#endif
+
+#if defined(MBEDTLS_ASYNC_HARDWARE_RANDOM)
+typedef void (*samd_mbedtls_async_callback_t)(int success, void *context);
+
+int samd_mbedtls_random_start(uint8_t *buffer, size_t length,
+                               samd_mbedtls_async_callback_t callback,
+                               void *context);
+int samd_mbedtls_ecdh_p256_public_key_start(
+    const uint8_t private_scalar[32],
+    uint8_t public_key[65],
+    samd_mbedtls_async_callback_t callback,
+    void *context);
+int samd_mbedtls_ecdh_p256_start(
+    const uint8_t private_scalar[32],
+    const uint8_t peer_public_key[65],
+    uint8_t shared_secret[32],
+    samd_mbedtls_async_callback_t callback,
+    void *context);
+
+static void samd_mbedtls_ssl_random_callback(int success, void *context)
+{
+    mbedtls_ssl_handshake_params *handshake =
+        (mbedtls_ssl_handshake_params *) context;
+    if (handshake == NULL) {
+        return;
+    }
+
+    handshake->samd_random_success = success ? 1 : 0;
+    handshake->samd_random_done = 1;
+}
+
+static int samd_mbedtls_ssl_random_fill(
+    mbedtls_ssl_context *ssl,
+    unsigned char *buffer,
+    size_t length)
+{
+    mbedtls_ssl_handshake_params *handshake;
+
+    if (ssl == NULL || ssl->handshake == NULL ||
+        buffer == NULL || length == 0) {
+        return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+    }
+
+    handshake = ssl->handshake;
+
+    if (handshake->samd_random_pending != 0) {
+        if (handshake->samd_random_done == 0) {
+            return MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS;
+        }
+
+        handshake->samd_random_pending = 0;
+        handshake->samd_random_done = 0;
+        if (handshake->samd_random_success == 0) {
+            handshake->samd_random_success = 0;
+            return MBEDTLS_ERR_SSL_HW_ACCEL_FAILED;
+        }
+        handshake->samd_random_success = 0;
+        return 0;
+    }
+
+    handshake->samd_random_pending = 1;
+    handshake->samd_random_done = 0;
+    handshake->samd_random_success = 0;
+
+    if (samd_mbedtls_random_start(
+            buffer, length, samd_mbedtls_ssl_random_callback,
+            handshake) == 0) {
+        handshake->samd_random_pending = 0;
+        return MBEDTLS_ERR_SSL_HW_ACCEL_FAILED;
+    }
+
+    return MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS;
+}
+
+static void samd_mbedtls_ssl_ecdh_public_key_callback(int success,
+                                                       void *context)
+{
+    mbedtls_ssl_handshake_params *handshake =
+        (mbedtls_ssl_handshake_params *) context;
+    if (handshake == NULL) {
+        return;
+    }
+
+    handshake->samd_ecdh_public_success = success ? 1 : 0;
+    handshake->samd_ecdh_public_done = 1;
+}
+
+static int samd_mbedtls_ssl_ecdh_public_key_fill(mbedtls_ssl_context *ssl)
+{
+    mbedtls_ssl_handshake_params *handshake;
+
+    if (ssl == NULL || ssl->handshake == NULL) {
+        return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+    }
+
+    handshake = ssl->handshake;
+
+    if (handshake->samd_ecdh_public_ready != 0) {
+        return 0;
+    }
+
+    if (handshake->samd_ecdh_public_pending != 0) {
+        if (handshake->samd_ecdh_public_done == 0) {
+            return MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS;
+        }
+
+        handshake->samd_ecdh_public_pending = 0;
+        handshake->samd_ecdh_public_done = 0;
+        if (handshake->samd_ecdh_public_success == 0) {
+            handshake->samd_ecdh_public_success = 0;
+            return MBEDTLS_ERR_SSL_HW_ACCEL_FAILED;
+        }
+        handshake->samd_ecdh_public_success = 0;
+        handshake->samd_ecdh_public_ready = 1;
+        return 0;
+    }
+
+    handshake->samd_ecdh_public_pending = 1;
+    handshake->samd_ecdh_public_done = 0;
+    handshake->samd_ecdh_public_success = 0;
+    handshake->samd_ecdh_public_ready = 0;
+
+    if (samd_mbedtls_ecdh_p256_public_key_start(
+            handshake->samd_ecdh_private_scalar,
+            handshake->samd_ecdh_public_key,
+            samd_mbedtls_ssl_ecdh_public_key_callback,
+            handshake) == 0) {
+        handshake->samd_ecdh_public_pending = 0;
+        return MBEDTLS_ERR_SSL_HW_ACCEL_FAILED;
+    }
+
+    return MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS;
+}
+
+static void samd_mbedtls_ssl_ecdh_secret_callback(int success, void *context)
+{
+    mbedtls_ssl_handshake_params *handshake =
+        (mbedtls_ssl_handshake_params *) context;
+    if (handshake == NULL) {
+        return;
+    }
+
+    handshake->samd_ecdh_secret_success = success ? 1 : 0;
+    handshake->samd_ecdh_secret_done = 1;
+}
+
+static int samd_mbedtls_ssl_ecdh_secret_fill(mbedtls_ssl_context *ssl)
+{
+    mbedtls_ssl_handshake_params *handshake;
+
+    if (ssl == NULL || ssl->handshake == NULL) {
+        return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+    }
+
+    handshake = ssl->handshake;
+
+    if (handshake->samd_ecdh_secret_ready != 0) {
+        return 0;
+    }
+
+    if (handshake->samd_ecdh_secret_pending != 0) {
+        if (handshake->samd_ecdh_secret_done == 0) {
+            return MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS;
+        }
+
+        handshake->samd_ecdh_secret_pending = 0;
+        handshake->samd_ecdh_secret_done = 0;
+        if (handshake->samd_ecdh_secret_success == 0) {
+            handshake->samd_ecdh_secret_success = 0;
+            return MBEDTLS_ERR_SSL_HW_ACCEL_FAILED;
+        }
+        handshake->samd_ecdh_secret_success = 0;
+        handshake->samd_ecdh_secret_ready = 1;
+        ssl->handshake->pmslen = 32;
+        return 0;
+    }
+
+    handshake->samd_ecdh_secret_pending = 1;
+    handshake->samd_ecdh_secret_done = 0;
+    handshake->samd_ecdh_secret_success = 0;
+    handshake->samd_ecdh_secret_ready = 0;
+
+    if (samd_mbedtls_ecdh_p256_start(
+            handshake->samd_ecdh_private_scalar,
+            handshake->xxdh_psa_peerkey,
+            ssl->handshake->premaster,
+            samd_mbedtls_ssl_ecdh_secret_callback,
+            handshake) == 0) {
+        handshake->samd_ecdh_secret_pending = 0;
+        return MBEDTLS_ERR_SSL_HW_ACCEL_FAILED;
+    }
+
+    return MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS;
+}
+
+static void samd_mbedtls_clear_ecdh_scalar(
+    mbedtls_ssl_handshake_params *handshake)
+{
+    if (handshake == NULL) {
+        return;
+    }
+
+    mbedtls_platform_zeroize(handshake->samd_ecdh_private_scalar,
+                             sizeof(handshake->samd_ecdh_private_scalar));
+}
 #endif
 
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
@@ -2376,15 +2583,33 @@ static int ssl_write_client_key_exchange(mbedtls_ssl_context *ssl)
     defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)
     if (ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDHE_RSA ||
         ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA) {
+#if !defined(MBEDTLS_ASYNC_HARDWARE_RANDOM)
         psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
         psa_status_t destruction_status = PSA_ERROR_CORRUPTION_DETECTED;
+#endif
         psa_key_attributes_t key_attributes;
+#if defined(MBEDTLS_SSL_ECP_RESTARTABLE_ENABLED) && \
+    !defined(MBEDTLS_ASYNC_HARDWARE_RANDOM)
+        psa_key_attributes_t secret_attributes;
+        mbedtls_svc_key_id_t shared_secret_key = MBEDTLS_SVC_KEY_ID_INIT;
+        psa_status_t shared_secret_destruction_status = PSA_SUCCESS;
+#endif
 
         mbedtls_ssl_handshake_params *handshake = ssl->handshake;
 
         header_len = 4;
 
         MBEDTLS_SSL_DEBUG_MSG(3, ("Perform PSA-based ECDH computation."));
+
+#if defined(MBEDTLS_SSL_ECP_RESTARTABLE_ENABLED) && \
+    !defined(MBEDTLS_ASYNC_HARDWARE_RANDOM)
+        secret_attributes = psa_key_attributes_init();
+        if (handshake->ecrs_enabled &&
+            handshake->ecrs_state == ssl_ecrs_cke_ecdh_calc_secret) {
+            content_len = handshake->ecrs_n;
+            goto complete_interruptible_ecdh;
+        }
+#endif
 
         /*
          * Generate EC private key for ECDHE exchange.
@@ -2403,9 +2628,61 @@ static int ssl_write_client_key_exchange(mbedtls_ssl_context *ssl)
         psa_set_key_type(&key_attributes, handshake->xxdh_psa_type);
         psa_set_key_bits(&key_attributes, handshake->xxdh_psa_bits);
 
+#if defined(MBEDTLS_ASYNC_HARDWARE_RANDOM)
+        if (handshake->xxdh_psa_bits !=
+            sizeof(handshake->samd_ecdh_private_scalar) * 8u) {
+            return MBEDTLS_ERR_SSL_HW_ACCEL_FAILED;
+        }
+
+        if (handshake->samd_ecdh_private_ready == 0) {
+            ret = samd_mbedtls_ssl_random_fill(
+                ssl, handshake->samd_ecdh_private_scalar,
+                sizeof(handshake->samd_ecdh_private_scalar));
+            if (ret != 0) {
+                return ret;
+            }
+            handshake->samd_ecdh_private_ready = 1;
+        }
+
+        ret = samd_mbedtls_ssl_ecdh_public_key_fill(ssl);
+        if (ret != 0) {
+            return ret;
+        }
+
+        unsigned char *samd_own_pubkey = ssl->out_msg + header_len + 1;
+        unsigned char *samd_end = ssl->out_msg + MBEDTLS_SSL_OUT_CONTENT_LEN;
+        size_t samd_own_pubkey_max_len =
+            (size_t) (samd_end - samd_own_pubkey);
+
+        if (samd_own_pubkey_max_len <
+            sizeof(handshake->samd_ecdh_public_key)) {
+            return MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL;
+        }
+
+        memcpy(samd_own_pubkey, handshake->samd_ecdh_public_key,
+               sizeof(handshake->samd_ecdh_public_key));
+        ssl->out_msg[header_len] =
+            (unsigned char) sizeof(handshake->samd_ecdh_public_key);
+        content_len = sizeof(handshake->samd_ecdh_public_key) + 1;
+
+        ret = samd_mbedtls_ssl_ecdh_secret_fill(ssl);
+        if (ret != 0) {
+            return ret;
+        }
+
+        samd_mbedtls_clear_ecdh_scalar(handshake);
+        handshake->samd_ecdh_private_ready = 0;
+        handshake->samd_ecdh_public_ready = 0;
+        handshake->samd_ecdh_secret_ready = 0;
+        mbedtls_platform_zeroize(handshake->samd_ecdh_public_key,
+                                 sizeof(handshake->samd_ecdh_public_key));
+        goto samd_ecdh_done;
+#else
         /* Generate ECDH private key. */
         status = psa_generate_key(&key_attributes,
                                   &handshake->xxdh_psa_privkey);
+#endif
+#if !defined(MBEDTLS_ASYNC_HARDWARE_RANDOM)
         if (status != PSA_SUCCESS) {
             return MBEDTLS_ERR_SSL_HW_ACCEL_FAILED;
         }
@@ -2432,6 +2709,63 @@ static int ssl_write_client_key_exchange(mbedtls_ssl_context *ssl)
 
         /* The ECDH secret is the premaster secret used for key derivation. */
 
+#if defined(MBEDTLS_SSL_ECP_RESTARTABLE_ENABLED)
+        if (handshake->ecrs_enabled) {
+            secret_attributes = psa_key_attributes_init();
+            psa_set_key_usage_flags(&secret_attributes, PSA_KEY_USAGE_EXPORT);
+            psa_set_key_type(&secret_attributes, PSA_KEY_TYPE_RAW_DATA);
+            psa_set_key_bits(&secret_attributes, handshake->xxdh_psa_bits);
+
+            status = psa_key_agreement_iop_setup(&handshake->xxdh_psa_iop,
+                                                 handshake->xxdh_psa_privkey,
+                                                 handshake->xxdh_psa_peerkey,
+                                                 handshake->xxdh_psa_peerkey_len,
+                                                 PSA_ALG_ECDH,
+                                                 &secret_attributes);
+            if (status != PSA_SUCCESS) {
+                (void) psa_key_agreement_iop_abort(&handshake->xxdh_psa_iop);
+                destruction_status = psa_destroy_key(handshake->xxdh_psa_privkey);
+                handshake->xxdh_psa_privkey = MBEDTLS_SVC_KEY_ID_INIT;
+                if (destruction_status != PSA_SUCCESS) {
+                    return MBEDTLS_ERR_SSL_HW_ACCEL_FAILED;
+                }
+                return MBEDTLS_ERR_SSL_HW_ACCEL_FAILED;
+            }
+
+            handshake->ecrs_state = ssl_ecrs_cke_ecdh_calc_secret;
+            handshake->ecrs_n = content_len;
+
+complete_interruptible_ecdh:
+            status = psa_key_agreement_iop_complete(&handshake->xxdh_psa_iop,
+                                                    &shared_secret_key);
+            if (status == PSA_OPERATION_INCOMPLETE) {
+                return MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS;
+            }
+            (void) psa_key_agreement_iop_abort(&handshake->xxdh_psa_iop);
+            handshake->ecrs_state = ssl_ecrs_none;
+
+            if (status == PSA_SUCCESS) {
+                status = psa_export_key(shared_secret_key,
+                                        ssl->handshake->premaster,
+                                        sizeof(ssl->handshake->premaster),
+                                        &ssl->handshake->pmslen);
+                shared_secret_destruction_status =
+                    psa_destroy_key(shared_secret_key);
+            }
+
+            psa_reset_key_attributes(&secret_attributes);
+
+            destruction_status = psa_destroy_key(handshake->xxdh_psa_privkey);
+            handshake->xxdh_psa_privkey = MBEDTLS_SVC_KEY_ID_INIT;
+
+            if (status != PSA_SUCCESS ||
+                shared_secret_destruction_status != PSA_SUCCESS ||
+                destruction_status != PSA_SUCCESS) {
+                return MBEDTLS_ERR_SSL_HW_ACCEL_FAILED;
+            }
+        } else
+#endif
+        {
         /* Compute ECDH shared secret. */
         status = psa_raw_key_agreement(PSA_ALG_ECDH,
                                        handshake->xxdh_psa_privkey,
@@ -2447,6 +2781,12 @@ static int ssl_write_client_key_exchange(mbedtls_ssl_context *ssl)
         if (status != PSA_SUCCESS || destruction_status != PSA_SUCCESS) {
             return MBEDTLS_ERR_SSL_HW_ACCEL_FAILED;
         }
+        }
+#endif
+#if defined(MBEDTLS_ASYNC_HARDWARE_RANDOM)
+samd_ecdh_done:
+        (void) 0;
+#endif
     } else
 #endif /* MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED ||
           MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED */

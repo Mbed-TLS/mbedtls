@@ -446,6 +446,10 @@ static int ssl_calc_verify_tls_sha384(const mbedtls_ssl_context *, unsigned char
 static int ssl_calc_finished_tls_sha384(mbedtls_ssl_context *, unsigned char *, int);
 #endif /* PSA_WANT_ALG_SHA_384*/
 
+#if defined(PSA_WANT_ALG_SHA_512)
+static int ssl_calc_verify_tls_sha512(const mbedtls_ssl_context *, unsigned char *, size_t *);
+#endif /* PSA_WANT_ALG_SHA_512 */
+
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_tls12_session_load(mbedtls_ssl_session *session,
                                   const unsigned char *buf,
@@ -461,6 +465,10 @@ static int ssl_update_checksum_sha256(mbedtls_ssl_context *, const unsigned char
 #if defined(PSA_WANT_ALG_SHA_384)
 static int ssl_update_checksum_sha384(mbedtls_ssl_context *, const unsigned char *, size_t);
 #endif /* PSA_WANT_ALG_SHA_384*/
+
+#if defined(PSA_WANT_ALG_SHA_512)
+static int ssl_update_checksum_sha512(mbedtls_ssl_context *, const unsigned char *, size_t);
+#endif /* PSA_WANT_ALG_SHA_512 */
 
 int  mbedtls_ssl_tls_prf(const mbedtls_tls_prf_types prf,
                          const unsigned char *secret, size_t slen,
@@ -791,6 +799,10 @@ void mbedtls_ssl_optimize_checksum(mbedtls_ssl_context *ssl,
 {
     ((void) ciphersuite_info);
 
+#if defined(PSA_WANT_ALG_SHA_512)
+    ((void) ssl);
+    return;
+#else
 #if defined(PSA_WANT_ALG_SHA_384)
     if (ciphersuite_info->mac == MBEDTLS_MD_SHA384) {
         ssl->handshake->update_checksum = ssl_update_checksum_sha384;
@@ -805,6 +817,7 @@ void mbedtls_ssl_optimize_checksum(mbedtls_ssl_context *ssl,
         MBEDTLS_SSL_DEBUG_MSG(1, ("should never happen"));
         return;
     }
+#endif
 }
 
 int mbedtls_ssl_add_hs_hdr_to_checksum(mbedtls_ssl_context *ssl,
@@ -838,11 +851,12 @@ int mbedtls_ssl_add_hs_msg_to_checksum(mbedtls_ssl_context *ssl,
 int mbedtls_ssl_reset_checksum(mbedtls_ssl_context *ssl)
 {
 #if defined(PSA_WANT_ALG_SHA_256) || \
-    defined(PSA_WANT_ALG_SHA_384)
+    defined(PSA_WANT_ALG_SHA_384) || \
+    defined(PSA_WANT_ALG_SHA_512)
     psa_status_t status;
-#else /* SHA-256 or SHA-384 */
+#else /* SHA-256, SHA-384 or SHA-512 */
     ((void) ssl);
-#endif /* SHA-256 or SHA-384 */
+#endif /* SHA-256, SHA-384 or SHA-512 */
 #if defined(PSA_WANT_ALG_SHA_256)
     status = psa_hash_abort(&ssl->handshake->fin_sha256_psa);
     if (status != PSA_SUCCESS) {
@@ -863,6 +877,16 @@ int mbedtls_ssl_reset_checksum(mbedtls_ssl_context *ssl)
         return mbedtls_md_error_from_psa(status);
     }
 #endif
+#if defined(PSA_WANT_ALG_SHA_512)
+    status = psa_hash_abort(&ssl->handshake->fin_sha512_psa);
+    if (status != PSA_SUCCESS) {
+        return mbedtls_md_error_from_psa(status);
+    }
+    status = psa_hash_setup(&ssl->handshake->fin_sha512_psa, PSA_ALG_SHA_512);
+    if (status != PSA_SUCCESS) {
+        return mbedtls_md_error_from_psa(status);
+    }
+#endif
     return 0;
 }
 
@@ -870,13 +894,14 @@ static int ssl_update_checksum_start(mbedtls_ssl_context *ssl,
                                      const unsigned char *buf, size_t len)
 {
 #if defined(PSA_WANT_ALG_SHA_256) || \
-    defined(PSA_WANT_ALG_SHA_384)
+    defined(PSA_WANT_ALG_SHA_384) || \
+    defined(PSA_WANT_ALG_SHA_512)
     psa_status_t status;
-#else /* SHA-256 or SHA-384 */
+#else /* SHA-256, SHA-384 or SHA-512 */
     ((void) ssl);
     (void) buf;
     (void) len;
-#endif /* SHA-256 or SHA-384 */
+#endif /* SHA-256, SHA-384 or SHA-512 */
 #if defined(PSA_WANT_ALG_SHA_256)
     status = psa_hash_update(&ssl->handshake->fin_sha256_psa, buf, len);
     if (status != PSA_SUCCESS) {
@@ -885,6 +910,12 @@ static int ssl_update_checksum_start(mbedtls_ssl_context *ssl,
 #endif
 #if defined(PSA_WANT_ALG_SHA_384)
     status = psa_hash_update(&ssl->handshake->fin_sha384_psa, buf, len);
+    if (status != PSA_SUCCESS) {
+        return mbedtls_md_error_from_psa(status);
+    }
+#endif
+#if defined(PSA_WANT_ALG_SHA_512)
+    status = psa_hash_update(&ssl->handshake->fin_sha512_psa, buf, len);
     if (status != PSA_SUCCESS) {
         return mbedtls_md_error_from_psa(status);
     }
@@ -910,6 +941,15 @@ static int ssl_update_checksum_sha384(mbedtls_ssl_context *ssl,
 }
 #endif
 
+#if defined(PSA_WANT_ALG_SHA_512)
+static int ssl_update_checksum_sha512(mbedtls_ssl_context *ssl,
+                                      const unsigned char *buf, size_t len)
+{
+    return mbedtls_md_error_from_psa(psa_hash_update(
+                                         &ssl->handshake->fin_sha512_psa, buf, len));
+}
+#endif
+
 static void ssl_handshake_params_init(mbedtls_ssl_handshake_params *handshake)
 {
     memset(handshake, 0, sizeof(mbedtls_ssl_handshake_params));
@@ -919,6 +959,9 @@ static void ssl_handshake_params_init(mbedtls_ssl_handshake_params *handshake)
 #endif
 #if defined(PSA_WANT_ALG_SHA_384)
     handshake->fin_sha384_psa = psa_hash_operation_init();
+#endif
+#if defined(PSA_WANT_ALG_SHA_512)
+    handshake->fin_sha512_psa = psa_hash_operation_init();
 #endif
 
     handshake->update_checksum = ssl_update_checksum_start;
@@ -4462,6 +4505,9 @@ void mbedtls_ssl_handshake_free(mbedtls_ssl_context *ssl)
 #if defined(PSA_WANT_ALG_SHA_384)
     psa_hash_abort(&handshake->fin_sha384_psa);
 #endif
+#if defined(PSA_WANT_ALG_SHA_512)
+    psa_hash_abort(&handshake->fin_sha512_psa);
+#endif
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
     psa_pake_abort(&handshake->psa_pake_ctx);
@@ -5913,6 +5959,12 @@ int mbedtls_ssl_get_handshake_transcript(mbedtls_ssl_context *ssl,
     *olen = 0;
 
     switch (md) {
+#if defined(PSA_WANT_ALG_SHA_512)
+        case MBEDTLS_MD_SHA512:
+            hash_operation_to_clone = &ssl->handshake->fin_sha512_psa;
+            break;
+#endif
+
 #if defined(PSA_WANT_ALG_SHA_384)
         case MBEDTLS_MD_SHA384:
             hash_operation_to_clone = &ssl->handshake->fin_sha384_psa;
@@ -6542,6 +6594,11 @@ int mbedtls_ssl_derive_keys(mbedtls_ssl_context *ssl)
 int mbedtls_ssl_set_calc_verify_md(mbedtls_ssl_context *ssl, int md)
 {
     switch (md) {
+#if defined(PSA_WANT_ALG_SHA_512)
+        case MBEDTLS_SSL_HASH_SHA512:
+            ssl->handshake->calc_verify = ssl_calc_verify_tls_sha512;
+            break;
+#endif
 #if defined(PSA_WANT_ALG_SHA_384)
         case MBEDTLS_SSL_HASH_SHA384:
             ssl->handshake->calc_verify = ssl_calc_verify_tls_sha384;
@@ -6612,6 +6669,16 @@ int ssl_calc_verify_tls_sha384(const mbedtls_ssl_context *ssl,
                                    hash, hlen);
 }
 #endif /* PSA_WANT_ALG_SHA_384 */
+
+#if defined(PSA_WANT_ALG_SHA_512)
+int ssl_calc_verify_tls_sha512(const mbedtls_ssl_context *ssl,
+                               unsigned char *hash,
+                               size_t *hlen)
+{
+    return ssl_calc_verify_tls_psa(ssl, &ssl->handshake->fin_sha512_psa, 64,
+                                   hash, hlen);
+}
+#endif /* PSA_WANT_ALG_SHA_512 */
 
 #if defined(MBEDTLS_SSL_SRV_C) && defined(MBEDTLS_SSL_RENEGOTIATION)
 MBEDTLS_CHECK_RETURN_CRITICAL

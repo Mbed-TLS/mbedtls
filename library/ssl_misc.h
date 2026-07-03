@@ -714,8 +714,8 @@ struct mbedtls_ssl_handshake_params {
     uint8_t samd_ecdh_secret_done;
     uint8_t samd_ecdh_secret_success;
     uint8_t samd_ecdh_secret_ready;
-    unsigned char samd_ecdh_private_scalar[48];
-    unsigned char samd_ecdh_public_key[97];
+    unsigned char samd_ecdh_private_scalar[66];
+    unsigned char samd_ecdh_public_key[133];
 #endif
 
 #if defined(MBEDTLS_SSL_ECP_RESTARTABLE_ENABLED)
@@ -924,6 +924,9 @@ struct mbedtls_ssl_handshake_params {
 #endif
 #if defined(PSA_WANT_ALG_SHA_384)
     psa_hash_operation_t fin_sha384_psa;
+#endif
+#if defined(PSA_WANT_ALG_SHA_512)
+    psa_hash_operation_t fin_sha512_psa;
 #endif
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
@@ -2336,7 +2339,6 @@ static inline const void *mbedtls_ssl_get_sig_algs(
 #endif /* MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED */
 }
 
-#if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED)
 static inline int mbedtls_ssl_sig_alg_is_received(const mbedtls_ssl_context *ssl,
                                                   uint16_t own_sig_alg)
 {
@@ -2353,6 +2355,7 @@ static inline int mbedtls_ssl_sig_alg_is_received(const mbedtls_ssl_context *ssl
     return 0;
 }
 
+#if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED)
 static inline int mbedtls_ssl_tls13_sig_alg_for_cert_verify_is_supported(
     const uint16_t sig_alg)
 {
@@ -2481,6 +2484,25 @@ static inline int mbedtls_ssl_get_pk_sigalg_and_md_alg_from_sig_alg(
 static inline int mbedtls_ssl_tls12_sig_alg_is_supported(
     const uint16_t sig_alg)
 {
+    switch (sig_alg) {
+#if defined(PSA_WANT_ALG_RSA_PSS)
+#if defined(PSA_WANT_ALG_SHA_256)
+        case MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA256:
+            return 1;
+#endif
+#if defined(PSA_WANT_ALG_SHA_384)
+        case MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA384:
+            return 1;
+#endif
+#if defined(PSA_WANT_ALG_SHA_512)
+        case MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA512:
+            return 1;
+#endif
+#endif /* PSA_WANT_ALG_RSA_PSS */
+        default:
+            break;
+    }
+
     /* High byte is hash */
     unsigned char hash = MBEDTLS_BYTE_1(sig_alg);
     unsigned char sig = MBEDTLS_BYTE_0(sig_alg);

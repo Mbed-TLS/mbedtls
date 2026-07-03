@@ -61,6 +61,11 @@ int samd_mbedtls_ecdh_p384_public_key_start(
     uint8_t public_key[97],
     samd_mbedtls_async_callback_t callback,
     void *context);
+int samd_mbedtls_ecdh_p521_public_key_start(
+    const uint8_t private_scalar[66],
+    uint8_t public_key[133],
+    samd_mbedtls_async_callback_t callback,
+    void *context);
 int samd_mbedtls_ecdh_p256_start(
     const uint8_t private_scalar[32],
     const uint8_t peer_public_key[65],
@@ -71,6 +76,12 @@ int samd_mbedtls_ecdh_p384_start(
     const uint8_t private_scalar[48],
     const uint8_t peer_public_key[97],
     uint8_t shared_secret[48],
+    samd_mbedtls_async_callback_t callback,
+    void *context);
+int samd_mbedtls_ecdh_p521_start(
+    const uint8_t private_scalar[66],
+    const uint8_t peer_public_key[133],
+    uint8_t shared_secret[66],
     samd_mbedtls_async_callback_t callback,
     void *context);
 
@@ -177,7 +188,7 @@ static int samd_mbedtls_ssl_ecdh_public_key_fill(mbedtls_ssl_context *ssl)
     handshake->samd_ecdh_public_done = 0;
     handshake->samd_ecdh_public_success = 0;
     handshake->samd_ecdh_public_ready = 0;
-    coordinate_len = handshake->xxdh_psa_bits / 8u;
+    coordinate_len = (handshake->xxdh_psa_bits + 7u) / 8u;
 
     if ((coordinate_len == 32 ?
          samd_mbedtls_ecdh_p256_public_key_start(
@@ -187,6 +198,12 @@ static int samd_mbedtls_ssl_ecdh_public_key_fill(mbedtls_ssl_context *ssl)
              handshake) :
          coordinate_len == 48 ?
          samd_mbedtls_ecdh_p384_public_key_start(
+             handshake->samd_ecdh_private_scalar,
+             handshake->samd_ecdh_public_key,
+             samd_mbedtls_ssl_ecdh_public_key_callback,
+             handshake) :
+         coordinate_len == 66 ?
+         samd_mbedtls_ecdh_p521_public_key_start(
              handshake->samd_ecdh_private_scalar,
              handshake->samd_ecdh_public_key,
              samd_mbedtls_ssl_ecdh_public_key_callback,
@@ -238,7 +255,7 @@ static int samd_mbedtls_ssl_ecdh_secret_fill(mbedtls_ssl_context *ssl)
         }
         handshake->samd_ecdh_secret_success = 0;
         handshake->samd_ecdh_secret_ready = 1;
-        ssl->handshake->pmslen = handshake->xxdh_psa_bits / 8u;
+        ssl->handshake->pmslen = (handshake->xxdh_psa_bits + 7u) / 8u;
         return 0;
     }
 
@@ -246,7 +263,7 @@ static int samd_mbedtls_ssl_ecdh_secret_fill(mbedtls_ssl_context *ssl)
     handshake->samd_ecdh_secret_done = 0;
     handshake->samd_ecdh_secret_success = 0;
     handshake->samd_ecdh_secret_ready = 0;
-    coordinate_len = handshake->xxdh_psa_bits / 8u;
+    coordinate_len = (handshake->xxdh_psa_bits + 7u) / 8u;
 
     if ((coordinate_len == 32 ?
          samd_mbedtls_ecdh_p256_start(
@@ -257,6 +274,13 @@ static int samd_mbedtls_ssl_ecdh_secret_fill(mbedtls_ssl_context *ssl)
              handshake) :
          coordinate_len == 48 ?
          samd_mbedtls_ecdh_p384_start(
+             handshake->samd_ecdh_private_scalar,
+             handshake->xxdh_psa_peerkey,
+             ssl->handshake->premaster,
+             samd_mbedtls_ssl_ecdh_secret_callback,
+             handshake) :
+         coordinate_len == 66 ?
+         samd_mbedtls_ecdh_p521_start(
              handshake->samd_ecdh_private_scalar,
              handshake->xxdh_psa_peerkey,
              ssl->handshake->premaster,
@@ -2311,13 +2335,14 @@ start_processing:
         }
 #endif
 
-#if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT)
-        if (pk_alg == MBEDTLS_PK_SIGALG_RSA_PSS) {
+#if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT) || defined(MBEDTLS_ASYNC_HARDWARE_RSA)
+        if (pk_alg == MBEDTLS_PK_SIGALG_RSA_PSS ||
+            pk_alg == MBEDTLS_PK_SIGALG_RSA_PKCS1V15) {
             ret = mbedtls_pk_verify_ext((mbedtls_pk_sigalg_t) pk_alg, peer_pk,
                                         md_alg, hash, hashlen,
                                         p, sig_len);
         } else
-#endif /* MBEDTLS_X509_RSASSA_PSS_SUPPORT */
+#endif /* MBEDTLS_X509_RSASSA_PSS_SUPPORT || MBEDTLS_ASYNC_HARDWARE_RSA */
         ret = mbedtls_pk_verify_restartable(peer_pk,
                                             md_alg, hash, hashlen, p, sig_len, rs_ctx);
 
@@ -2389,8 +2414,8 @@ static int ssl_parse_certificate_request(mbedtls_ssl_context *ssl)
     const mbedtls_ssl_ciphersuite_t *ciphersuite_info =
         ssl->handshake->ciphersuite_info;
     size_t sig_alg_len;
-#if defined(MBEDTLS_DEBUG_C)
     unsigned char *sig_alg;
+#if defined(MBEDTLS_DEBUG_C)
     unsigned char *dn;
 #endif
 
@@ -2506,14 +2531,20 @@ static int ssl_parse_certificate_request(mbedtls_ssl_context *ssl)
         return MBEDTLS_ERR_SSL_DECODE_ERROR;
     }
 
-#if defined(MBEDTLS_DEBUG_C)
     sig_alg = buf + mbedtls_ssl_hs_hdr_len(ssl) + 3 + n;
+#if defined(MBEDTLS_DEBUG_C)
     for (size_t i = 0; i < sig_alg_len; i += 2) {
         MBEDTLS_SSL_DEBUG_MSG(3,
                               ("Supported Signature Algorithm found: %02x %02x",
                                sig_alg[i], sig_alg[i + 1]));
     }
 #endif
+
+    if ((ret = mbedtls_ssl_parse_sig_alg_ext(
+             ssl, sig_alg - 2, sig_alg + sig_alg_len)) != 0) {
+        MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_parse_sig_alg_ext", ret);
+        return ret;
+    }
 
     n += 2 + sig_alg_len;
 
@@ -2665,11 +2696,12 @@ static int ssl_write_client_key_exchange(mbedtls_ssl_context *ssl)
         size_t samd_coordinate_len;
         size_t samd_public_key_len;
 
-        if (handshake->xxdh_psa_bits !=
-                256u && handshake->xxdh_psa_bits != 384u) {
+        if (handshake->xxdh_psa_bits != 256u &&
+            handshake->xxdh_psa_bits != 384u &&
+            handshake->xxdh_psa_bits != 521u) {
             return MBEDTLS_ERR_SSL_HW_ACCEL_FAILED;
         }
-        samd_coordinate_len = handshake->xxdh_psa_bits / 8u;
+        samd_coordinate_len = (handshake->xxdh_psa_bits + 7u) / 8u;
         samd_public_key_len = samd_coordinate_len * 2u + 1u;
 
         if (handshake->samd_ecdh_private_ready == 0) {
@@ -3065,9 +3097,11 @@ static int ssl_write_certificate_verify(mbedtls_ssl_context *ssl)
     const mbedtls_ssl_ciphersuite_t *ciphersuite_info =
         ssl->handshake->ciphersuite_info;
     size_t n = 0, offset = 0;
-    unsigned char hash[48];
+    unsigned char hash[64];
     unsigned char *hash_start = hash;
     mbedtls_md_type_t md_alg = MBEDTLS_MD_NONE;
+    mbedtls_pk_sigalg_t pk_alg = MBEDTLS_PK_SIGALG_NONE;
+    uint16_t selected_sig_alg = MBEDTLS_TLS_SIG_NONE;
     size_t hashlen;
     void *rs_ctx = NULL;
 #if defined(MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH)
@@ -3125,30 +3159,43 @@ sign:
         return ret;
     }
 
-    /*
-     * digitally-signed struct {
-     *     opaque handshake_messages[handshake_messages_length];
-     * };
-     *
-     * Taking shortcut here. We assume that the server always allows the
-     * PRF Hash function and has sent it in the allowed signature
-     * algorithms list received in the Certificate Request message.
-     *
-     * Until we encounter a server that does not, we will take this
-     * shortcut.
-     *
-     * Reason: Otherwise we should have running hashes for SHA512 and
-     *         SHA224 in order to satisfy 'weird' needs from the server
-     *         side.
-     */
-    if (ssl->handshake->ciphersuite_info->mac == MBEDTLS_MD_SHA384) {
-        md_alg = MBEDTLS_MD_SHA384;
-        ssl->out_msg[4] = MBEDTLS_SSL_HASH_SHA384;
-    } else {
-        md_alg = MBEDTLS_MD_SHA256;
-        ssl->out_msg[4] = MBEDTLS_SSL_HASH_SHA256;
+    const uint16_t *received_sig_alg = ssl->handshake->received_sig_algs;
+    for (; *received_sig_alg != MBEDTLS_TLS_SIG_NONE; received_sig_alg++) {
+        psa_algorithm_t psa_hash_alg = PSA_ALG_NONE;
+        psa_algorithm_t psa_sig_alg = PSA_ALG_NONE;
+        mbedtls_pk_sigalg_t candidate_pk_alg = MBEDTLS_PK_SIGALG_NONE;
+        mbedtls_md_type_t candidate_md_alg = MBEDTLS_MD_NONE;
+
+        if (mbedtls_ssl_get_pk_sigalg_and_md_alg_from_sig_alg(
+                *received_sig_alg, &candidate_pk_alg, &candidate_md_alg) != 0) {
+            continue;
+        }
+
+        psa_hash_alg = mbedtls_md_psa_alg_from_type(candidate_md_alg);
+        psa_sig_alg = mbedtls_psa_alg_from_pk_sigalg(candidate_pk_alg,
+                                                     psa_hash_alg);
+        if (!mbedtls_pk_can_do_psa(mbedtls_ssl_own_key(ssl), psa_sig_alg,
+                                   PSA_KEY_USAGE_SIGN_HASH)) {
+            continue;
+        }
+
+        if (mbedtls_ssl_set_calc_verify_md(
+                ssl, mbedtls_ssl_hash_from_md_alg(candidate_md_alg)) != 0) {
+            continue;
+        }
+
+        selected_sig_alg = *received_sig_alg;
+        pk_alg = candidate_pk_alg;
+        md_alg = candidate_md_alg;
+        break;
     }
-    ssl->out_msg[5] = mbedtls_ssl_sig_from_pk(mbedtls_ssl_own_key(ssl));
+
+    if (selected_sig_alg == MBEDTLS_TLS_SIG_NONE) {
+        MBEDTLS_SSL_DEBUG_MSG(1, ("no suitable client signature algorithm"));
+        return MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE;
+    }
+
+    MBEDTLS_PUT_UINT16_BE(selected_sig_alg, ssl->out_msg, 4);
 
     /* Info from md_alg will be used instead */
     hashlen = 0;
@@ -3160,14 +3207,24 @@ sign:
     }
 #endif
 
-    if ((ret = mbedtls_pk_sign_restartable(mbedtls_ssl_own_key(ssl),
-                                           md_alg, hash_start, hashlen,
-                                           ssl->out_msg + 6 + offset,
-                                           out_buf_len - 6 - offset,
-                                           &n,
-                                           rs_ctx)) != 0) {
-        MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_pk_sign_restartable", ret);
-#if defined(MBEDTLS_SSL_ECP_RESTARTABLE_ENABLED)
+    if (pk_alg == MBEDTLS_PK_SIGALG_RSA_PSS ||
+        pk_alg == MBEDTLS_PK_SIGALG_RSA_PKCS1V15) {
+        ret = mbedtls_pk_sign_ext(pk_alg, mbedtls_ssl_own_key(ssl),
+                                  md_alg, hash_start, hashlen,
+                                  ssl->out_msg + 6 + offset,
+                                  out_buf_len - 6 - offset, &n);
+    } else {
+        ret = mbedtls_pk_sign_restartable(mbedtls_ssl_own_key(ssl),
+                                          md_alg, hash_start, hashlen,
+                                          ssl->out_msg + 6 + offset,
+                                          out_buf_len - 6 - offset,
+                                          &n,
+                                          rs_ctx);
+    }
+    if (ret != 0) {
+        MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_pk_sign", ret);
+#if defined(MBEDTLS_SSL_ECP_RESTARTABLE_ENABLED) || \
+    defined(MBEDTLS_ASYNC_HARDWARE_ECDSA) || defined(MBEDTLS_ASYNC_HARDWARE_RSA)
         if (ret == MBEDTLS_ERR_ECP_IN_PROGRESS) {
             ret = MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS;
         }

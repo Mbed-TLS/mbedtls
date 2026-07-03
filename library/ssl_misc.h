@@ -701,21 +701,21 @@ struct mbedtls_ssl_handshake_params {
 #endif
 
 #if defined(MBEDTLS_ASYNC_HARDWARE_RANDOM)
-    uint8_t samd_random_pending;
-    uint8_t samd_random_done;
-    uint8_t samd_random_success;
-    uint8_t samd_client_random_ready;
-    uint8_t samd_ecdh_public_pending;
-    uint8_t samd_ecdh_public_done;
-    uint8_t samd_ecdh_public_success;
-    uint8_t samd_ecdh_public_ready;
-    uint8_t samd_ecdh_private_ready;
-    uint8_t samd_ecdh_secret_pending;
-    uint8_t samd_ecdh_secret_done;
-    uint8_t samd_ecdh_secret_success;
-    uint8_t samd_ecdh_secret_ready;
-    unsigned char samd_ecdh_private_scalar[66];
-    unsigned char samd_ecdh_public_key[133];
+    uint8_t async_hardware_random_pending;
+    uint8_t async_hardware_random_done;
+    uint8_t async_hardware_random_success;
+    uint8_t async_hardware_client_random_ready;
+    uint8_t async_hardware_ecdh_public_pending;
+    uint8_t async_hardware_ecdh_public_done;
+    uint8_t async_hardware_ecdh_public_success;
+    uint8_t async_hardware_ecdh_public_ready;
+    uint8_t async_hardware_ecdh_private_ready;
+    uint8_t async_hardware_ecdh_secret_pending;
+    uint8_t async_hardware_ecdh_secret_done;
+    uint8_t async_hardware_ecdh_secret_success;
+    uint8_t async_hardware_ecdh_secret_ready;
+    unsigned char async_hardware_ecdh_private_scalar[66];
+    unsigned char async_hardware_ecdh_public_key[133];
 #endif
 
 #if defined(MBEDTLS_SSL_ECP_RESTARTABLE_ENABLED)
@@ -1137,14 +1137,14 @@ struct mbedtls_ssl_transform {
     psa_algorithm_t psa_alg;                    /*!<  psa algorithm           */
 
 #if defined(MBEDTLS_ASYNC_HARDWARE_AEAD)
-    unsigned char samd_aead_key_enc[32];
-    unsigned char samd_aead_key_dec[32];
-    size_t samd_aead_key_len;
-    unsigned char samd_aead_algorithm;
-    unsigned char samd_aead_keys_configured;
-    unsigned char samd_aead_pending;
-    unsigned char samd_aead_done;
-    unsigned char samd_aead_success;
+    unsigned char async_hardware_aead_key_enc[32];
+    unsigned char async_hardware_aead_key_dec[32];
+    size_t async_hardware_aead_key_len;
+    unsigned char async_hardware_aead_algorithm;
+    unsigned char async_hardware_aead_keys_configured;
+    unsigned char async_hardware_aead_pending;
+    unsigned char async_hardware_aead_done;
+    unsigned char async_hardware_aead_success;
 #endif
 
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)

@@ -20,6 +20,69 @@
 #include "ssl_tls13_keys.h"
 #include "ssl_debug_helpers.h"
 
+#if defined(MBEDTLS_ASYNC_HARDWARE_RANDOM)
+typedef void (*samd_mbedtls_async_callback_t)(int success, void *context);
+
+int samd_mbedtls_random_start(uint8_t *buffer, size_t length,
+                               samd_mbedtls_async_callback_t callback,
+                               void *context);
+
+static void samd_mbedtls_ssl_random_callback(int success, void *context)
+{
+    mbedtls_ssl_handshake_params *handshake =
+        (mbedtls_ssl_handshake_params *) context;
+    if (handshake == NULL) {
+        return;
+    }
+
+    handshake->samd_random_success = success ? 1 : 0;
+    handshake->samd_random_done = 1;
+}
+
+static int samd_mbedtls_ssl_random_fill(
+    mbedtls_ssl_context *ssl,
+    unsigned char *buffer,
+    size_t length)
+{
+    mbedtls_ssl_handshake_params *handshake;
+
+    if (ssl == NULL || ssl->handshake == NULL ||
+        buffer == NULL || length == 0) {
+        return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+    }
+
+    handshake = ssl->handshake;
+
+    if (handshake->samd_random_pending != 0) {
+        if (handshake->samd_random_done == 0) {
+            return MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS;
+        }
+
+        handshake->samd_random_pending = 0;
+        handshake->samd_random_done = 0;
+        if (handshake->samd_random_success == 0) {
+            handshake->samd_random_success = 0;
+            return MBEDTLS_ERR_SSL_HW_ACCEL_FAILED;
+        }
+        handshake->samd_random_success = 0;
+        return 0;
+    }
+
+    handshake->samd_random_pending = 1;
+    handshake->samd_random_done = 0;
+    handshake->samd_random_success = 0;
+
+    if (samd_mbedtls_random_start(
+            buffer, length, samd_mbedtls_ssl_random_callback,
+            handshake) == 0) {
+        handshake->samd_random_pending = 0;
+        return MBEDTLS_ERR_SSL_HW_ACCEL_FAILED;
+    }
+
+    return MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS;
+}
+#endif
+
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_write_hostname_ext(mbedtls_ssl_context *ssl,
@@ -725,8 +788,14 @@ static int ssl_generate_random(mbedtls_ssl_context *ssl)
 #endif /* MBEDTLS_HAVE_TIME */
     }
 
+#if defined(MBEDTLS_ASYNC_HARDWARE_RANDOM)
+    ret = samd_mbedtls_ssl_random_fill(
+        ssl, randbytes + gmt_unix_time_len,
+        MBEDTLS_CLIENT_HELLO_RANDOM_LEN - gmt_unix_time_len);
+#else
     ret = psa_generate_random(randbytes + gmt_unix_time_len,
                               MBEDTLS_CLIENT_HELLO_RANDOM_LEN - gmt_unix_time_len);
+#endif
     return ret;
 }
 
@@ -867,8 +936,13 @@ static int ssl_prepare_client_hello(mbedtls_ssl_context *ssl)
         session_negotiate->id_len = session_id_len;
         if (session_id_len > 0) {
 
+#if defined(MBEDTLS_ASYNC_HARDWARE_RANDOM)
+            ret = samd_mbedtls_ssl_random_fill(
+                ssl, session_negotiate->id, session_id_len);
+#else
             ret = psa_generate_random(session_negotiate->id,
                                       session_id_len);
+#endif
             if (ret != 0) {
                 MBEDTLS_SSL_DEBUG_RET(1, "creating session id failed", ret);
                 return ret;

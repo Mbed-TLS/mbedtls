@@ -27,6 +27,16 @@ extern const mbedtls_error_pair_t psa_to_ssl_errors[7];
 #include "ssl_ciphersuites_internal.h"
 #include "x509_internal.h"
 
+#if defined(MBEDTLS_ASYNC_HARDWARE_AEAD)
+#define MBEDTLS_ASYNC_HARDWARE_TLS_AEAD_AES_128_GCM 1
+#define MBEDTLS_ASYNC_HARDWARE_TLS_AEAD_AES_256_GCM 2
+#define MBEDTLS_ASYNC_HARDWARE_TLS_AEAD_AES_128_CCM 3
+#define MBEDTLS_ASYNC_HARDWARE_TLS_AEAD_AES_256_CCM 4
+#define MBEDTLS_ASYNC_HARDWARE_TLS_AEAD_AES_128_CCM_8 5
+#define MBEDTLS_ASYNC_HARDWARE_TLS_AEAD_AES_256_CCM_8 6
+#define MBEDTLS_ASYNC_HARDWARE_TLS_AEAD_CHACHA20_POLY1305 7
+#endif
+
 /* Shorthand for restartable ECC */
 #if defined(MBEDTLS_ECP_RESTARTABLE) && \
     defined(MBEDTLS_SSL_CLI_C) && \
@@ -690,6 +700,23 @@ struct mbedtls_ssl_handshake_params {
     unsigned char retransmit_state;     /*!<  Retransmission state           */
 #endif
 
+#if defined(MBEDTLS_ASYNC_HARDWARE_RANDOM)
+    uint8_t samd_random_pending;
+    uint8_t samd_random_done;
+    uint8_t samd_random_success;
+    uint8_t samd_ecdh_public_pending;
+    uint8_t samd_ecdh_public_done;
+    uint8_t samd_ecdh_public_success;
+    uint8_t samd_ecdh_public_ready;
+    uint8_t samd_ecdh_private_ready;
+    uint8_t samd_ecdh_secret_pending;
+    uint8_t samd_ecdh_secret_done;
+    uint8_t samd_ecdh_secret_success;
+    uint8_t samd_ecdh_secret_ready;
+    unsigned char samd_ecdh_private_scalar[32];
+    unsigned char samd_ecdh_public_key[65];
+#endif
+
 #if defined(MBEDTLS_SSL_ECP_RESTARTABLE_ENABLED)
     uint8_t ecrs_enabled;               /*!< Handshake supports EC restart? */
     enum { /* this complements ssl->state with info on intra-state operations */
@@ -760,6 +787,9 @@ struct mbedtls_ssl_handshake_params {
     uint8_t xxdh_psa_privkey_is_external;
     unsigned char xxdh_psa_peerkey[PSA_EXPORT_PUBLIC_KEY_MAX_SIZE];
     size_t xxdh_psa_peerkey_len;
+#if defined(MBEDTLS_SSL_ECP_RESTARTABLE_ENABLED)
+    psa_key_agreement_iop_t xxdh_psa_iop;
+#endif
 #endif /* MBEDTLS_KEY_EXCHANGE_SOME_XXDH_PSA_ANY_ENABLED */
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
@@ -1100,6 +1130,17 @@ struct mbedtls_ssl_transform {
     mbedtls_svc_key_id_t psa_key_enc;           /*!<  psa encryption key      */
     mbedtls_svc_key_id_t psa_key_dec;           /*!<  psa decryption key      */
     psa_algorithm_t psa_alg;                    /*!<  psa algorithm           */
+
+#if defined(MBEDTLS_ASYNC_HARDWARE_AEAD)
+    unsigned char samd_aead_key_enc[32];
+    unsigned char samd_aead_key_dec[32];
+    size_t samd_aead_key_len;
+    unsigned char samd_aead_algorithm;
+    unsigned char samd_aead_keys_configured;
+    unsigned char samd_aead_pending;
+    unsigned char samd_aead_done;
+    unsigned char samd_aead_success;
+#endif
 
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
     uint8_t in_cid_len;

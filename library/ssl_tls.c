@@ -4534,6 +4534,9 @@ void mbedtls_ssl_handshake_free(mbedtls_ssl_context *ssl)
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
 
 #if defined(MBEDTLS_KEY_EXCHANGE_SOME_XXDH_PSA_ANY_ENABLED)
+#if defined(MBEDTLS_SSL_ECP_RESTARTABLE_ENABLED)
+    psa_key_agreement_iop_abort(&handshake->xxdh_psa_iop);
+#endif
     if (handshake->xxdh_psa_privkey_is_external == 0) {
         psa_destroy_key(handshake->xxdh_psa_privkey);
     }
@@ -7396,9 +7399,35 @@ void mbedtls_ssl_handshake_wrapup(mbedtls_ssl_context *ssl)
 int mbedtls_ssl_write_finished(mbedtls_ssl_context *ssl)
 {
     int ret;
+    int next_state = -1;
     unsigned int hash_len;
+#if defined(MBEDTLS_ASYNC_HARDWARE_AEAD)
+    int samd_resume_pending_finished = 0;
+#endif
 
     MBEDTLS_SSL_DEBUG_MSG(2, ("=> write finished"));
+
+#if defined(MBEDTLS_ASYNC_HARDWARE_AEAD)
+    if (ssl->transform_negotiate != NULL &&
+        ssl->transform_negotiate->samd_aead_pending != 0) {
+        samd_resume_pending_finished = 1;
+        if (ssl->handshake->resume != 0) {
+#if defined(MBEDTLS_SSL_CLI_C)
+            if (ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT) {
+                next_state = MBEDTLS_SSL_HANDSHAKE_WRAPUP;
+            }
+#endif
+#if defined(MBEDTLS_SSL_SRV_C)
+            if (ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER) {
+                next_state = MBEDTLS_SSL_CLIENT_CHANGE_CIPHER_SPEC;
+            }
+#endif
+        } else {
+            next_state = ssl->state + 1;
+        }
+        goto samd_resume_pending_finished_write;
+    }
+#endif
 
     mbedtls_ssl_update_out_pointers(ssl, ssl->transform_negotiate);
 
@@ -7432,16 +7461,16 @@ int mbedtls_ssl_write_finished(mbedtls_ssl_context *ssl)
     if (ssl->handshake->resume != 0) {
 #if defined(MBEDTLS_SSL_CLI_C)
         if (ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT) {
-            mbedtls_ssl_handshake_set_state(ssl, MBEDTLS_SSL_HANDSHAKE_WRAPUP);
+            next_state = MBEDTLS_SSL_HANDSHAKE_WRAPUP;
         }
 #endif
 #if defined(MBEDTLS_SSL_SRV_C)
         if (ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER) {
-            mbedtls_ssl_handshake_set_state(ssl, MBEDTLS_SSL_CLIENT_CHANGE_CIPHER_SPEC);
+            next_state = MBEDTLS_SSL_CLIENT_CHANGE_CIPHER_SPEC;
         }
 #endif
     } else {
-        mbedtls_ssl_handshake_increment_state(ssl);
+        next_state = ssl->state + 1;
     }
 
     /*
@@ -7449,6 +7478,10 @@ int mbedtls_ssl_write_finished(mbedtls_ssl_context *ssl)
      * data.
      */
     MBEDTLS_SSL_DEBUG_MSG(3, ("switching to new transform spec for outbound data"));
+
+#if defined(MBEDTLS_ASYNC_HARDWARE_AEAD)
+samd_resume_pending_finished_write:
+#endif
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     if (ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM) {
@@ -7488,8 +7521,23 @@ int mbedtls_ssl_write_finished(mbedtls_ssl_context *ssl)
     }
 #endif
 
-    if ((ret = mbedtls_ssl_write_handshake_msg_ext(ssl, 1, 1)) != 0) {
-        MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_write_handshake_msg_ext", ret);
+#if defined(MBEDTLS_ASYNC_HARDWARE_AEAD)
+    if (samd_resume_pending_finished) {
+        ret = mbedtls_ssl_write_record(ssl, 1);
+    } else
+#endif
+    {
+        ret = mbedtls_ssl_write_handshake_msg_ext(ssl, 1, 1);
+    }
+    if (ret != 0) {
+        MBEDTLS_SSL_DEBUG_RET(1,
+#if defined(MBEDTLS_ASYNC_HARDWARE_AEAD)
+                              samd_resume_pending_finished
+                                  ? "mbedtls_ssl_write_record"
+                                  :
+#endif
+                                    "mbedtls_ssl_write_handshake_msg_ext",
+                              ret);
         return ret;
     }
 
@@ -7500,6 +7548,10 @@ int mbedtls_ssl_write_finished(mbedtls_ssl_context *ssl)
         return ret;
     }
 #endif
+
+    if (next_state >= 0) {
+        mbedtls_ssl_handshake_set_state(ssl, (mbedtls_ssl_states) next_state);
+    }
 
     MBEDTLS_SSL_DEBUG_MSG(2, ("<= write finished"));
 
@@ -7637,6 +7689,64 @@ static mbedtls_tls_prf_types tls_prf_get_type(mbedtls_ssl_tls_prf_cb *tls_prf)
 #endif
     return MBEDTLS_SSL_TLS_PRF_NONE;
 }
+
+#if defined(MBEDTLS_ASYNC_HARDWARE_AEAD)
+/**
+ * @brief Map Mbed TLS/PSA record parameters to SAMD TLS AEAD capabilities.
+ *
+ * @todo Wire AES-256-GCM, AES-CCM, AES-CCM-8, and ChaCha20-Poly1305 to
+ * hardware-backed provider operations. They are classified here so production
+ * hardware builds fail closed through the generic AEAD boundary instead of
+ * silently falling back to PSA/software.
+ */
+static int samd_mbedtls_tls_aead_from_transform(psa_key_type_t key_type,
+                                                 size_t keylen,
+                                                 psa_algorithm_t alg,
+                                                 size_t ivlen,
+                                                 size_t fixed_ivlen,
+                                                 size_t taglen)
+{
+    if (ivlen != 12) {
+        return 0;
+    }
+
+    if (key_type == PSA_KEY_TYPE_AES && alg == PSA_ALG_GCM &&
+        fixed_ivlen == 4 && taglen == 16) {
+        if (keylen == 16) {
+            return MBEDTLS_ASYNC_HARDWARE_TLS_AEAD_AES_128_GCM;
+        }
+        if (keylen == 32) {
+            return MBEDTLS_ASYNC_HARDWARE_TLS_AEAD_AES_256_GCM;
+        }
+    }
+
+    if (key_type == PSA_KEY_TYPE_AES &&
+        (alg == PSA_ALG_CCM ||
+         alg == PSA_ALG_AEAD_WITH_SHORTENED_TAG(PSA_ALG_CCM, 8)) &&
+        fixed_ivlen == 4 && (taglen == 16 || taglen == 8)) {
+        if (keylen == 16 && taglen == 16) {
+            return MBEDTLS_ASYNC_HARDWARE_TLS_AEAD_AES_128_CCM;
+        }
+        if (keylen == 32 && taglen == 16) {
+            return MBEDTLS_ASYNC_HARDWARE_TLS_AEAD_AES_256_CCM;
+        }
+        if (keylen == 16 && taglen == 8) {
+            return MBEDTLS_ASYNC_HARDWARE_TLS_AEAD_AES_128_CCM_8;
+        }
+        if (keylen == 32 && taglen == 8) {
+            return MBEDTLS_ASYNC_HARDWARE_TLS_AEAD_AES_256_CCM_8;
+        }
+    }
+
+    if (key_type == PSA_KEY_TYPE_CHACHA20 &&
+        alg == PSA_ALG_CHACHA20_POLY1305 && keylen == 32 &&
+        fixed_ivlen == 12 && taglen == 16) {
+        return MBEDTLS_ASYNC_HARDWARE_TLS_AEAD_CHACHA20_POLY1305;
+    }
+
+    return 0;
+}
+#endif
 
 /*
  * Populate a transform structure with session keys and all the other
@@ -7924,6 +8034,21 @@ static int ssl_tls12_populate_transform(mbedtls_ssl_transform *transform,
     }
 
     transform->psa_alg = alg;
+
+#if defined(MBEDTLS_ASYNC_HARDWARE_AEAD)
+    int samd_aead_algorithm = samd_mbedtls_tls_aead_from_transform(
+        key_type, keylen, alg, transform->ivlen, transform->fixed_ivlen,
+        transform->taglen);
+    if (ssl_mode == MBEDTLS_SSL_MODE_AEAD &&
+        samd_aead_algorithm != 0 &&
+        keylen <= sizeof(transform->samd_aead_key_enc)) {
+        memcpy(transform->samd_aead_key_enc, key1, keylen);
+        memcpy(transform->samd_aead_key_dec, key2, keylen);
+        transform->samd_aead_key_len = keylen;
+        transform->samd_aead_algorithm = (unsigned char) samd_aead_algorithm;
+        transform->samd_aead_keys_configured = 1;
+    }
+#endif
 
     if (alg != MBEDTLS_SSL_NULL_CIPHER) {
         psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_ENCRYPT);

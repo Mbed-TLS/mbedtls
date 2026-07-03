@@ -43,6 +43,63 @@ static int local_err_translation(psa_status_t status)
 }
 #define PSA_TO_MBEDTLS_ERR(status) local_err_translation(status)
 
+#if defined(MBEDTLS_ASYNC_HARDWARE_AEAD)
+typedef void (*samd_mbedtls_async_callback_t)(int success, void *context);
+
+int samd_mbedtls_aes_gcm128_encrypt_start(
+    const uint8_t key[16], const uint8_t nonce[12], const uint8_t *aad,
+    size_t aadLength, const uint8_t *plaintext, uint8_t *ciphertext,
+    size_t length, uint8_t tag[16], samd_mbedtls_async_callback_t callback,
+    void *context);
+int samd_mbedtls_aes_gcm128_decrypt_start(
+    const uint8_t key[16], const uint8_t nonce[12], const uint8_t *aad,
+    size_t aadLength, const uint8_t *ciphertext, uint8_t *plaintext,
+    size_t length, const uint8_t tag[16],
+    samd_mbedtls_async_callback_t callback, void *context);
+int samd_mbedtls_aead_encrypt_start(
+    int algorithm, const uint8_t *key, size_t keyLength,
+    const uint8_t *nonce, size_t nonceLength, const uint8_t *aad,
+    size_t aadLength, const uint8_t *plaintext, uint8_t *ciphertext,
+    size_t length, uint8_t *tag, size_t tagLength,
+    samd_mbedtls_async_callback_t callback, void *context);
+int samd_mbedtls_aead_decrypt_start(
+    int algorithm, const uint8_t *key, size_t keyLength,
+    const uint8_t *nonce, size_t nonceLength, const uint8_t *aad,
+    size_t aadLength, const uint8_t *ciphertext, uint8_t *plaintext,
+    size_t length, const uint8_t *tag, size_t tagLength,
+    samd_mbedtls_async_callback_t callback, void *context);
+
+static void samd_mbedtls_ssl_aead_callback(int success, void *context)
+{
+    mbedtls_ssl_transform *transform = (mbedtls_ssl_transform *) context;
+    if (transform == NULL) {
+        return;
+    }
+
+    transform->samd_aead_success = success ? 1 : 0;
+    transform->samd_aead_done = 1;
+}
+
+/**
+ * @brief Return whether the transform has explicit SAMD AEAD metadata.
+ *
+ * @todo Extend the provider dispatch behind this metadata for AES-256-GCM,
+ * AES-CCM, AES-CCM-8, and ChaCha20-Poly1305. Until then those algorithms are
+ * intentional fail-closed stubs instead of PSA/software fallbacks.
+ */
+static int samd_mbedtls_ssl_transform_has_aead(
+    const mbedtls_ssl_transform *transform)
+{
+    return transform != NULL &&
+           transform->samd_aead_keys_configured != 0 &&
+           transform->samd_aead_algorithm != 0 &&
+           transform->samd_aead_key_len != 0 &&
+           transform->samd_aead_key_len <=
+               sizeof(transform->samd_aead_key_enc) &&
+           transform->ivlen == 12;
+}
+#endif
+
 #if defined(MBEDTLS_SSL_SOME_SUITES_USE_MAC)
 
 
@@ -988,6 +1045,10 @@ hmac_failed_etm_disabled:
         size_t dynamic_iv_len;
         int dynamic_iv_is_explicit =
             ssl_transform_aead_dynamic_iv_is_explicit(transform);
+#if defined(MBEDTLS_ASYNC_HARDWARE_AEAD)
+        int use_samd_aead =
+            samd_mbedtls_ssl_transform_has_aead(transform);
+#endif
         psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
         int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
@@ -1011,6 +1072,43 @@ hmac_failed_etm_disabled:
          */
         dynamic_iv     = rec->ctr;
         dynamic_iv_len = sizeof(rec->ctr);
+
+#if defined(MBEDTLS_ASYNC_HARDWARE_AEAD)
+        if (use_samd_aead && transform->samd_aead_pending != 0) {
+            if (transform->samd_aead_done == 0) {
+                return MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS;
+            }
+            transform->samd_aead_pending = 0;
+            transform->samd_aead_done = 0;
+            if (transform->samd_aead_success == 0) {
+                transform->samd_aead_success = 0;
+                return MBEDTLS_ERR_SSL_HW_ACCEL_FAILED;
+            }
+            transform->samd_aead_success = 0;
+
+            MBEDTLS_SSL_DEBUG_BUF(4, "after encrypt: tag",
+                                  data + rec->data_len,
+                                  transform->taglen);
+            post_avail -= transform->taglen;
+            rec->data_len += transform->taglen;
+
+            if (dynamic_iv_is_explicit != 0) {
+                if (rec->data_offset < dynamic_iv_len) {
+                    MBEDTLS_SSL_DEBUG_MSG(
+                        1,
+                        ("Buffer provided for encrypted record not large enough"));
+                    return MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL;
+                }
+
+                memcpy(data - dynamic_iv_len, dynamic_iv, dynamic_iv_len);
+                rec->data_offset -= dynamic_iv_len;
+                rec->data_len    += dynamic_iv_len;
+            }
+
+            auth_done++;
+            goto samd_aead_encrypt_done;
+        }
+#endif
 
         ssl_build_record_nonce(iv, sizeof(iv),
                                transform->iv_enc,
@@ -1040,6 +1138,28 @@ hmac_failed_etm_disabled:
         /*
          * Encrypt and authenticate
          */
+#if defined(MBEDTLS_ASYNC_HARDWARE_AEAD)
+        if (use_samd_aead) {
+            transform->samd_aead_pending = 1;
+            transform->samd_aead_done = 0;
+            transform->samd_aead_success = 0;
+            if (samd_mbedtls_aead_encrypt_start(
+                    transform->samd_aead_algorithm,
+                    transform->samd_aead_key_enc,
+                    transform->samd_aead_key_len,
+                    iv, transform->ivlen, add_data, add_data_len,
+                    data, data, rec->data_len,
+                    data + rec->data_len, transform->taglen,
+                    samd_mbedtls_ssl_aead_callback,
+                    transform) == 0) {
+                transform->samd_aead_pending = 0;
+                return MBEDTLS_ERR_SSL_HW_ACCEL_FAILED;
+            }
+            return MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS;
+        }
+
+        return MBEDTLS_ERR_SSL_HW_ACCEL_FAILED;
+#endif
         status = psa_aead_encrypt(transform->psa_key_enc,
                                   transform->psa_alg,
                                   iv, transform->ivlen,
@@ -1075,6 +1195,10 @@ hmac_failed_etm_disabled:
         }
 
         auth_done++;
+#if defined(MBEDTLS_ASYNC_HARDWARE_AEAD)
+samd_aead_encrypt_done:
+        (void) 0;
+#endif
     } else
 #endif /* MBEDTLS_SSL_HAVE_AEAD */
 #if defined(MBEDTLS_SSL_SOME_SUITES_USE_CBC)
@@ -1121,7 +1245,11 @@ hmac_failed_etm_disabled:
         /*
          * Generate IV
          */
+#if defined(MBEDTLS_ASYNC_HARDWARE_RANDOM)
+        ret = MBEDTLS_ERR_SSL_HW_ACCEL_FAILED;
+#else
         ret = psa_generate_random(transform->iv_enc, transform->ivlen);
+#endif
         if (ret != 0) {
             return ret;
         }
@@ -1339,7 +1467,28 @@ int mbedtls_ssl_decrypt_buf(mbedtls_ssl_context const *ssl,
         unsigned char iv[12];
         unsigned char *dynamic_iv;
         size_t dynamic_iv_len;
+#if defined(MBEDTLS_ASYNC_HARDWARE_AEAD)
+        int use_samd_aead =
+            samd_mbedtls_ssl_transform_has_aead(transform);
+#endif
         psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
+#if defined(MBEDTLS_ASYNC_HARDWARE_AEAD)
+        if (use_samd_aead && transform->samd_aead_pending != 0) {
+            if (transform->samd_aead_done == 0) {
+                return MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS;
+            }
+            transform->samd_aead_pending = 0;
+            transform->samd_aead_done = 0;
+            if (transform->samd_aead_success == 0) {
+                transform->samd_aead_success = 0;
+                return MBEDTLS_ERR_SSL_INVALID_MAC;
+            }
+            transform->samd_aead_success = 0;
+            auth_done++;
+            goto samd_aead_decrypt_done;
+        }
+#endif
 
         /*
          * Extract dynamic part of nonce for AEAD decryption.
@@ -1409,6 +1558,28 @@ int mbedtls_ssl_decrypt_buf(mbedtls_ssl_context const *ssl,
         /*
          * Decrypt and authenticate
          */
+#if defined(MBEDTLS_ASYNC_HARDWARE_AEAD)
+        if (use_samd_aead) {
+            transform->samd_aead_pending = 1;
+            transform->samd_aead_done = 0;
+            transform->samd_aead_success = 0;
+            if (samd_mbedtls_aead_decrypt_start(
+                    transform->samd_aead_algorithm,
+                    transform->samd_aead_key_dec,
+                    transform->samd_aead_key_len,
+                    iv, transform->ivlen, add_data, add_data_len,
+                    data, data, rec->data_len,
+                    data + rec->data_len, transform->taglen,
+                    samd_mbedtls_ssl_aead_callback,
+                    transform) == 0) {
+                transform->samd_aead_pending = 0;
+                return MBEDTLS_ERR_SSL_HW_ACCEL_FAILED;
+            }
+            return MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS;
+        }
+
+        return MBEDTLS_ERR_SSL_HW_ACCEL_FAILED;
+#endif
         status = psa_aead_decrypt(transform->psa_key_dec,
                                   transform->psa_alg,
                                   iv, transform->ivlen,
@@ -1430,6 +1601,10 @@ int mbedtls_ssl_decrypt_buf(mbedtls_ssl_context const *ssl,
             MBEDTLS_SSL_DEBUG_MSG(1, ("should never happen"));
             return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
         }
+#if defined(MBEDTLS_ASYNC_HARDWARE_AEAD)
+samd_aead_decrypt_done:
+        (void) 0;
+#endif
     } else
 #endif /* MBEDTLS_SSL_HAVE_AEAD */
 #if defined(MBEDTLS_SSL_SOME_SUITES_USE_CBC)
@@ -4702,6 +4877,34 @@ static int ssl_get_next_record(mbedtls_ssl_context *ssl)
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_record rec;
 
+#if defined(MBEDTLS_ASYNC_HARDWARE_AEAD)
+    if (ssl->transform_in != NULL &&
+        ssl->transform_in->samd_aead_pending != 0) {
+        const size_t header_len = mbedtls_ssl_in_hdr_len(ssl);
+        const size_t explicit_iv_len = sizeof(rec.ctr);
+        const size_t record_len = MBEDTLS_GET_UINT16_BE(ssl->in_len, 0);
+
+        if (record_len < explicit_iv_len + ssl->transform_in->taglen) {
+            return MBEDTLS_ERR_SSL_INVALID_MAC;
+        }
+
+        memset(&rec, 0, sizeof(rec));
+        rec.buf = ssl->in_hdr;
+        rec.buf_len = header_len + record_len;
+        rec.data_offset = header_len + explicit_iv_len;
+        rec.data_len = record_len - explicit_iv_len - ssl->transform_in->taglen;
+        memcpy(rec.ctr, ssl->in_ctr, sizeof(rec.ctr));
+        memcpy(rec.ver, ssl->in_hdr + 1, sizeof(rec.ver));
+        rec.type = ssl->in_hdr[0];
+
+        if ((ret = ssl_prepare_record_content(ssl, &rec)) != 0) {
+            return ret;
+        }
+
+        goto samd_aead_record_content_ready;
+    }
+#endif
+
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     /* We might have buffered a future record; if so,
      * and if the epoch matches now, load it.
@@ -4886,6 +5089,10 @@ static int ssl_get_next_record(mbedtls_ssl_context *ssl)
         }
     }
 
+
+#if defined(MBEDTLS_ASYNC_HARDWARE_AEAD)
+samd_aead_record_content_ready:
+#endif
 
     /* Reset in pointers to default state for TLS/DTLS records,
      * assuming no CID and no offset between record content and
@@ -5882,6 +6089,18 @@ static int ssl_write_real(mbedtls_ssl_context *ssl,
 #endif
         len = max_len;
     }
+
+#if defined(MBEDTLS_ASYNC_HARDWARE_AEAD)
+    if (ssl->transform_out != NULL &&
+        ssl->transform_out->samd_aead_pending != 0) {
+        if ((ret = mbedtls_ssl_write_record(ssl, SSL_FORCE_FLUSH)) != 0) {
+            MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_write_record", ret);
+            return ret;
+        }
+
+        return (int) len;
+    }
+#endif
 
     if (ssl->out_left != 0) {
         /*

@@ -56,10 +56,21 @@ int samd_mbedtls_ecdh_p256_public_key_start(
     uint8_t public_key[65],
     samd_mbedtls_async_callback_t callback,
     void *context);
+int samd_mbedtls_ecdh_p384_public_key_start(
+    const uint8_t private_scalar[48],
+    uint8_t public_key[97],
+    samd_mbedtls_async_callback_t callback,
+    void *context);
 int samd_mbedtls_ecdh_p256_start(
     const uint8_t private_scalar[32],
     const uint8_t peer_public_key[65],
     uint8_t shared_secret[32],
+    samd_mbedtls_async_callback_t callback,
+    void *context);
+int samd_mbedtls_ecdh_p384_start(
+    const uint8_t private_scalar[48],
+    const uint8_t peer_public_key[97],
+    uint8_t shared_secret[48],
     samd_mbedtls_async_callback_t callback,
     void *context);
 
@@ -134,6 +145,7 @@ static void samd_mbedtls_ssl_ecdh_public_key_callback(int success,
 static int samd_mbedtls_ssl_ecdh_public_key_fill(mbedtls_ssl_context *ssl)
 {
     mbedtls_ssl_handshake_params *handshake;
+    size_t coordinate_len;
 
     if (ssl == NULL || ssl->handshake == NULL) {
         return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
@@ -165,16 +177,24 @@ static int samd_mbedtls_ssl_ecdh_public_key_fill(mbedtls_ssl_context *ssl)
     handshake->samd_ecdh_public_done = 0;
     handshake->samd_ecdh_public_success = 0;
     handshake->samd_ecdh_public_ready = 0;
+    coordinate_len = handshake->xxdh_psa_bits / 8u;
 
-    if (samd_mbedtls_ecdh_p256_public_key_start(
-            handshake->samd_ecdh_private_scalar,
-            handshake->samd_ecdh_public_key,
-            samd_mbedtls_ssl_ecdh_public_key_callback,
-            handshake) == 0) {
+    if ((coordinate_len == 32 ?
+         samd_mbedtls_ecdh_p256_public_key_start(
+             handshake->samd_ecdh_private_scalar,
+             handshake->samd_ecdh_public_key,
+             samd_mbedtls_ssl_ecdh_public_key_callback,
+             handshake) :
+         coordinate_len == 48 ?
+         samd_mbedtls_ecdh_p384_public_key_start(
+             handshake->samd_ecdh_private_scalar,
+             handshake->samd_ecdh_public_key,
+             samd_mbedtls_ssl_ecdh_public_key_callback,
+             handshake) :
+         0) == 0) {
         handshake->samd_ecdh_public_pending = 0;
         return MBEDTLS_ERR_SSL_HW_ACCEL_FAILED;
     }
-
     return MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS;
 }
 
@@ -193,6 +213,7 @@ static void samd_mbedtls_ssl_ecdh_secret_callback(int success, void *context)
 static int samd_mbedtls_ssl_ecdh_secret_fill(mbedtls_ssl_context *ssl)
 {
     mbedtls_ssl_handshake_params *handshake;
+    size_t coordinate_len;
 
     if (ssl == NULL || ssl->handshake == NULL) {
         return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
@@ -217,7 +238,7 @@ static int samd_mbedtls_ssl_ecdh_secret_fill(mbedtls_ssl_context *ssl)
         }
         handshake->samd_ecdh_secret_success = 0;
         handshake->samd_ecdh_secret_ready = 1;
-        ssl->handshake->pmslen = 32;
+        ssl->handshake->pmslen = handshake->xxdh_psa_bits / 8u;
         return 0;
     }
 
@@ -225,13 +246,23 @@ static int samd_mbedtls_ssl_ecdh_secret_fill(mbedtls_ssl_context *ssl)
     handshake->samd_ecdh_secret_done = 0;
     handshake->samd_ecdh_secret_success = 0;
     handshake->samd_ecdh_secret_ready = 0;
+    coordinate_len = handshake->xxdh_psa_bits / 8u;
 
-    if (samd_mbedtls_ecdh_p256_start(
-            handshake->samd_ecdh_private_scalar,
-            handshake->xxdh_psa_peerkey,
-            ssl->handshake->premaster,
-            samd_mbedtls_ssl_ecdh_secret_callback,
-            handshake) == 0) {
+    if ((coordinate_len == 32 ?
+         samd_mbedtls_ecdh_p256_start(
+             handshake->samd_ecdh_private_scalar,
+             handshake->xxdh_psa_peerkey,
+             ssl->handshake->premaster,
+             samd_mbedtls_ssl_ecdh_secret_callback,
+             handshake) :
+         coordinate_len == 48 ?
+         samd_mbedtls_ecdh_p384_start(
+             handshake->samd_ecdh_private_scalar,
+             handshake->xxdh_psa_peerkey,
+             ssl->handshake->premaster,
+             samd_mbedtls_ssl_ecdh_secret_callback,
+             handshake) :
+         0) == 0) {
         handshake->samd_ecdh_secret_pending = 0;
         return MBEDTLS_ERR_SSL_HW_ACCEL_FAILED;
     }
@@ -2629,15 +2660,20 @@ static int ssl_write_client_key_exchange(mbedtls_ssl_context *ssl)
         psa_set_key_bits(&key_attributes, handshake->xxdh_psa_bits);
 
 #if defined(MBEDTLS_ASYNC_HARDWARE_RANDOM)
+        size_t samd_coordinate_len;
+        size_t samd_public_key_len;
+
         if (handshake->xxdh_psa_bits !=
-            sizeof(handshake->samd_ecdh_private_scalar) * 8u) {
+                256u && handshake->xxdh_psa_bits != 384u) {
             return MBEDTLS_ERR_SSL_HW_ACCEL_FAILED;
         }
+        samd_coordinate_len = handshake->xxdh_psa_bits / 8u;
+        samd_public_key_len = samd_coordinate_len * 2u + 1u;
 
         if (handshake->samd_ecdh_private_ready == 0) {
             ret = samd_mbedtls_ssl_random_fill(
                 ssl, handshake->samd_ecdh_private_scalar,
-                sizeof(handshake->samd_ecdh_private_scalar));
+                samd_coordinate_len);
             if (ret != 0) {
                 return ret;
             }
@@ -2655,15 +2691,15 @@ static int ssl_write_client_key_exchange(mbedtls_ssl_context *ssl)
             (size_t) (samd_end - samd_own_pubkey);
 
         if (samd_own_pubkey_max_len <
-            sizeof(handshake->samd_ecdh_public_key)) {
+            samd_public_key_len) {
             return MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL;
         }
 
         memcpy(samd_own_pubkey, handshake->samd_ecdh_public_key,
-               sizeof(handshake->samd_ecdh_public_key));
+               samd_public_key_len);
         ssl->out_msg[header_len] =
-            (unsigned char) sizeof(handshake->samd_ecdh_public_key);
-        content_len = sizeof(handshake->samd_ecdh_public_key) + 1;
+            (unsigned char) samd_public_key_len;
+        content_len = samd_public_key_len + 1;
 
         ret = samd_mbedtls_ssl_ecdh_secret_fill(ssl);
         if (ret != 0) {

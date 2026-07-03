@@ -789,6 +789,7 @@ struct mbedtls_ssl_handshake_params {
     size_t xxdh_psa_peerkey_len;
 #if defined(MBEDTLS_SSL_ECP_RESTARTABLE_ENABLED)
     psa_key_agreement_iop_t xxdh_psa_iop;
+    uint8_t xxdh_psa_iop_active;
 #endif
 #endif /* MBEDTLS_KEY_EXCHANGE_SOME_XXDH_PSA_ANY_ENABLED */
 
@@ -1763,6 +1764,16 @@ int mbedtls_ssl_get_key_exchange_md_tls1_2(mbedtls_ssl_context *ssl,
 #endif
 
 void mbedtls_ssl_transform_init(mbedtls_ssl_transform *transform);
+#if defined(MBEDTLS_ASYNC_HARDWARE_AEAD)
+MBEDTLS_CHECK_RETURN_CRITICAL
+int mbedtls_ssl_configure_async_aead_transform(
+    mbedtls_ssl_transform *transform,
+    psa_key_type_t key_type,
+    psa_algorithm_t alg,
+    const unsigned char *key_enc,
+    const unsigned char *key_dec,
+    size_t key_len);
+#endif
 MBEDTLS_CHECK_RETURN_CRITICAL
 int mbedtls_ssl_encrypt_buf(mbedtls_ssl_context *ssl,
                             mbedtls_ssl_transform *transform,

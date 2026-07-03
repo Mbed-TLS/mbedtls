@@ -98,6 +98,61 @@ static int samd_mbedtls_ssl_transform_has_aead(
                sizeof(transform->samd_aead_key_enc) &&
            transform->ivlen == 12;
 }
+
+int mbedtls_ssl_configure_async_aead_transform(
+    mbedtls_ssl_transform *transform,
+    psa_key_type_t key_type,
+    psa_algorithm_t alg,
+    const unsigned char *key_enc,
+    const unsigned char *key_dec,
+    size_t key_len)
+{
+    unsigned char async_algorithm = 0;
+
+    if (transform == NULL || key_enc == NULL || key_dec == NULL ||
+        key_len == 0 || key_len > sizeof(transform->samd_aead_key_enc) ||
+        transform->ivlen != 12 || transform->taglen != 16) {
+        return 0;
+    }
+
+    if (key_type == PSA_KEY_TYPE_AES && alg == PSA_ALG_GCM) {
+        if (key_len == 16) {
+            async_algorithm = MBEDTLS_ASYNC_HARDWARE_TLS_AEAD_AES_128_GCM;
+        } else if (key_len == 32) {
+            async_algorithm = MBEDTLS_ASYNC_HARDWARE_TLS_AEAD_AES_256_GCM;
+        }
+    } else if (key_type == PSA_KEY_TYPE_CHACHA20 &&
+               alg == PSA_ALG_CHACHA20_POLY1305 && key_len == 32) {
+        async_algorithm = MBEDTLS_ASYNC_HARDWARE_TLS_AEAD_CHACHA20_POLY1305;
+    }
+
+    if (async_algorithm == 0) {
+        return 0;
+    }
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
+    if (transform->tls_version == MBEDTLS_SSL_VERSION_TLS1_3) {
+        if (transform->fixed_ivlen != 12) {
+            return 0;
+        }
+    } else
+#endif
+    {
+        if (transform->fixed_ivlen != 4 &&
+            !(key_type == PSA_KEY_TYPE_CHACHA20 &&
+              alg == PSA_ALG_CHACHA20_POLY1305 &&
+              transform->fixed_ivlen == 12)) {
+            return 0;
+        }
+    }
+
+    memcpy(transform->samd_aead_key_enc, key_enc, key_len);
+    memcpy(transform->samd_aead_key_dec, key_dec, key_len);
+    transform->samd_aead_key_len = key_len;
+    transform->samd_aead_algorithm = async_algorithm;
+    transform->samd_aead_keys_configured = 1;
+    return 1;
+}
 #endif
 
 #if defined(MBEDTLS_SSL_SOME_SUITES_USE_MAC)
@@ -4881,7 +4936,9 @@ static int ssl_get_next_record(mbedtls_ssl_context *ssl)
     if (ssl->transform_in != NULL &&
         ssl->transform_in->samd_aead_pending != 0) {
         const size_t header_len = mbedtls_ssl_in_hdr_len(ssl);
-        const size_t explicit_iv_len = sizeof(rec.ctr);
+        const size_t explicit_iv_len =
+            ssl_transform_aead_dynamic_iv_is_explicit(ssl->transform_in) ?
+            sizeof(rec.ctr) : 0;
         const size_t record_len = MBEDTLS_GET_UINT16_BE(ssl->in_len, 0);
 
         if (record_len < explicit_iv_len + ssl->transform_in->taglen) {

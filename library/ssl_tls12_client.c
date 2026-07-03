@@ -2323,7 +2323,8 @@ start_processing:
 
         if (ret != 0) {
             int send_alert_msg = 1;
-#if defined(MBEDTLS_SSL_ECP_RESTARTABLE_ENABLED)
+#if defined(MBEDTLS_SSL_ECP_RESTARTABLE_ENABLED) || \
+    defined(MBEDTLS_ASYNC_HARDWARE_ECDSA) || defined(MBEDTLS_ASYNC_HARDWARE_RSA)
             send_alert_msg = (ret != MBEDTLS_ERR_ECP_IN_PROGRESS);
 #endif
             if (send_alert_msg) {
@@ -2333,7 +2334,8 @@ start_processing:
                     MBEDTLS_SSL_ALERT_MSG_DECRYPT_ERROR);
             }
             MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_pk_verify_restartable", ret);
-#if defined(MBEDTLS_SSL_ECP_RESTARTABLE_ENABLED)
+#if defined(MBEDTLS_SSL_ECP_RESTARTABLE_ENABLED) || \
+    defined(MBEDTLS_ASYNC_HARDWARE_ECDSA) || defined(MBEDTLS_ASYNC_HARDWARE_RSA)
             if (ret == MBEDTLS_ERR_ECP_IN_PROGRESS) {
                 ret = MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS;
             }

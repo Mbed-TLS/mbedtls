@@ -704,6 +704,7 @@ struct mbedtls_ssl_handshake_params {
     uint8_t samd_random_pending;
     uint8_t samd_random_done;
     uint8_t samd_random_success;
+    uint8_t samd_client_random_ready;
     uint8_t samd_ecdh_public_pending;
     uint8_t samd_ecdh_public_done;
     uint8_t samd_ecdh_public_success;

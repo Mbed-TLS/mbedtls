@@ -27,6 +27,16 @@ extern const mbedtls_error_pair_t psa_to_ssl_errors[7];
 #include "ssl_ciphersuites_internal.h"
 #include "x509_internal.h"
 
+#if defined(MBEDTLS_ASYNC_HARDWARE_AEAD)
+#define MBEDTLS_ASYNC_HARDWARE_TLS_AEAD_AES_128_GCM 1
+#define MBEDTLS_ASYNC_HARDWARE_TLS_AEAD_AES_256_GCM 2
+#define MBEDTLS_ASYNC_HARDWARE_TLS_AEAD_AES_128_CCM 3
+#define MBEDTLS_ASYNC_HARDWARE_TLS_AEAD_AES_256_CCM 4
+#define MBEDTLS_ASYNC_HARDWARE_TLS_AEAD_AES_128_CCM_8 5
+#define MBEDTLS_ASYNC_HARDWARE_TLS_AEAD_AES_256_CCM_8 6
+#define MBEDTLS_ASYNC_HARDWARE_TLS_AEAD_CHACHA20_POLY1305 7
+#endif
+
 /* Shorthand for restartable ECC */
 #if defined(MBEDTLS_ECP_RESTARTABLE) && \
     defined(MBEDTLS_SSL_CLI_C) && \
@@ -690,6 +700,24 @@ struct mbedtls_ssl_handshake_params {
     unsigned char retransmit_state;     /*!<  Retransmission state           */
 #endif
 
+#if defined(MBEDTLS_ASYNC_HARDWARE_RANDOM)
+    uint8_t async_hardware_random_pending;
+    uint8_t async_hardware_random_done;
+    uint8_t async_hardware_random_success;
+    uint8_t async_hardware_client_random_ready;
+    uint8_t async_hardware_ecdh_public_pending;
+    uint8_t async_hardware_ecdh_public_done;
+    uint8_t async_hardware_ecdh_public_success;
+    uint8_t async_hardware_ecdh_public_ready;
+    uint8_t async_hardware_ecdh_private_ready;
+    uint8_t async_hardware_ecdh_secret_pending;
+    uint8_t async_hardware_ecdh_secret_done;
+    uint8_t async_hardware_ecdh_secret_success;
+    uint8_t async_hardware_ecdh_secret_ready;
+    unsigned char async_hardware_ecdh_private_scalar[66];
+    unsigned char async_hardware_ecdh_public_key[133];
+#endif
+
 #if defined(MBEDTLS_SSL_ECP_RESTARTABLE_ENABLED)
     uint8_t ecrs_enabled;               /*!< Handshake supports EC restart? */
     enum { /* this complements ssl->state with info on intra-state operations */
@@ -760,6 +788,10 @@ struct mbedtls_ssl_handshake_params {
     uint8_t xxdh_psa_privkey_is_external;
     unsigned char xxdh_psa_peerkey[PSA_EXPORT_PUBLIC_KEY_MAX_SIZE];
     size_t xxdh_psa_peerkey_len;
+#if defined(MBEDTLS_SSL_ECP_RESTARTABLE_ENABLED)
+    psa_key_agreement_iop_t xxdh_psa_iop;
+    uint8_t xxdh_psa_iop_active;
+#endif
 #endif /* MBEDTLS_KEY_EXCHANGE_SOME_XXDH_PSA_ANY_ENABLED */
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
@@ -892,6 +924,9 @@ struct mbedtls_ssl_handshake_params {
 #endif
 #if defined(PSA_WANT_ALG_SHA_384)
     psa_hash_operation_t fin_sha384_psa;
+#endif
+#if defined(PSA_WANT_ALG_SHA_512)
+    psa_hash_operation_t fin_sha512_psa;
 #endif
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
@@ -1100,6 +1135,17 @@ struct mbedtls_ssl_transform {
     mbedtls_svc_key_id_t psa_key_enc;           /*!<  psa encryption key      */
     mbedtls_svc_key_id_t psa_key_dec;           /*!<  psa decryption key      */
     psa_algorithm_t psa_alg;                    /*!<  psa algorithm           */
+
+#if defined(MBEDTLS_ASYNC_HARDWARE_AEAD)
+    unsigned char async_hardware_aead_key_enc[32];
+    unsigned char async_hardware_aead_key_dec[32];
+    size_t async_hardware_aead_key_len;
+    unsigned char async_hardware_aead_algorithm;
+    unsigned char async_hardware_aead_keys_configured;
+    unsigned char async_hardware_aead_pending;
+    unsigned char async_hardware_aead_done;
+    unsigned char async_hardware_aead_success;
+#endif
 
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
     uint8_t in_cid_len;
@@ -1722,6 +1768,16 @@ int mbedtls_ssl_get_key_exchange_md_tls1_2(mbedtls_ssl_context *ssl,
 #endif
 
 void mbedtls_ssl_transform_init(mbedtls_ssl_transform *transform);
+#if defined(MBEDTLS_ASYNC_HARDWARE_AEAD)
+MBEDTLS_CHECK_RETURN_CRITICAL
+int mbedtls_ssl_configure_async_aead_transform(
+    mbedtls_ssl_transform *transform,
+    psa_key_type_t key_type,
+    psa_algorithm_t alg,
+    const unsigned char *key_enc,
+    const unsigned char *key_dec,
+    size_t key_len);
+#endif
 MBEDTLS_CHECK_RETURN_CRITICAL
 int mbedtls_ssl_encrypt_buf(mbedtls_ssl_context *ssl,
                             mbedtls_ssl_transform *transform,
@@ -2283,7 +2339,6 @@ static inline const void *mbedtls_ssl_get_sig_algs(
 #endif /* MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED */
 }
 
-#if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED)
 static inline int mbedtls_ssl_sig_alg_is_received(const mbedtls_ssl_context *ssl,
                                                   uint16_t own_sig_alg)
 {
@@ -2300,6 +2355,7 @@ static inline int mbedtls_ssl_sig_alg_is_received(const mbedtls_ssl_context *ssl
     return 0;
 }
 
+#if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED)
 static inline int mbedtls_ssl_tls13_sig_alg_for_cert_verify_is_supported(
     const uint16_t sig_alg)
 {
@@ -2428,6 +2484,25 @@ static inline int mbedtls_ssl_get_pk_sigalg_and_md_alg_from_sig_alg(
 static inline int mbedtls_ssl_tls12_sig_alg_is_supported(
     const uint16_t sig_alg)
 {
+    switch (sig_alg) {
+#if defined(PSA_WANT_ALG_RSA_PSS)
+#if defined(PSA_WANT_ALG_SHA_256)
+        case MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA256:
+            return 1;
+#endif
+#if defined(PSA_WANT_ALG_SHA_384)
+        case MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA384:
+            return 1;
+#endif
+#if defined(PSA_WANT_ALG_SHA_512)
+        case MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA512:
+            return 1;
+#endif
+#endif /* PSA_WANT_ALG_RSA_PSS */
+        default:
+            break;
+    }
+
     /* High byte is hash */
     unsigned char hash = MBEDTLS_BYTE_1(sig_alg);
     unsigned char sig = MBEDTLS_BYTE_0(sig_alg);

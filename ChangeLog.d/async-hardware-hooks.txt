@@ -1,0 +1,5 @@
+Features
+   * Add generic async hardware hook points for selected TLS handshake and
+     record-protection operations. This lets platform providers route supported
+     ECDHE, ECDSA, RSA, and TLS AEAD operations to interrupt-driven hardware
+     without blocking TLS progress.

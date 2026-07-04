@@ -40,8 +40,270 @@ static int local_err_translation(psa_status_t status)
 #include "mbedtls/platform_time.h"
 #endif
 
-#if defined(MBEDTLS_SSL_SESSION_TICKETS)
+#if defined(MBEDTLS_SSL_SESSION_TICKETS) || \
+    defined(MBEDTLS_ASYNC_HARDWARE_RANDOM)
 #include "mbedtls/platform_util.h"
+#endif
+
+#if defined(MBEDTLS_ASYNC_HARDWARE_RANDOM)
+typedef void (*mbedtls_async_hardware_callback_t)(int success, void *context);
+
+int mbedtls_async_hardware_random_start(uint8_t *buffer, size_t length,
+                               mbedtls_async_hardware_callback_t callback,
+                               void *context);
+int mbedtls_async_hardware_ecdh_p256_public_key_start(
+    const uint8_t private_scalar[32],
+    uint8_t public_key[65],
+    mbedtls_async_hardware_callback_t callback,
+    void *context);
+int mbedtls_async_hardware_ecdh_p384_public_key_start(
+    const uint8_t private_scalar[48],
+    uint8_t public_key[97],
+    mbedtls_async_hardware_callback_t callback,
+    void *context);
+int mbedtls_async_hardware_ecdh_p521_public_key_start(
+    const uint8_t private_scalar[66],
+    uint8_t public_key[133],
+    mbedtls_async_hardware_callback_t callback,
+    void *context);
+int mbedtls_async_hardware_ecdh_p256_start(
+    const uint8_t private_scalar[32],
+    const uint8_t peer_public_key[65],
+    uint8_t shared_secret[32],
+    mbedtls_async_hardware_callback_t callback,
+    void *context);
+int mbedtls_async_hardware_ecdh_p384_start(
+    const uint8_t private_scalar[48],
+    const uint8_t peer_public_key[97],
+    uint8_t shared_secret[48],
+    mbedtls_async_hardware_callback_t callback,
+    void *context);
+int mbedtls_async_hardware_ecdh_p521_start(
+    const uint8_t private_scalar[66],
+    const uint8_t peer_public_key[133],
+    uint8_t shared_secret[66],
+    mbedtls_async_hardware_callback_t callback,
+    void *context);
+
+static void mbedtls_async_hardware_ssl_random_callback(int success, void *context)
+{
+    mbedtls_ssl_handshake_params *handshake =
+        (mbedtls_ssl_handshake_params *) context;
+    if (handshake == NULL) {
+        return;
+    }
+
+    handshake->async_hardware_random_success = success ? 1 : 0;
+    handshake->async_hardware_random_done = 1;
+}
+
+static int mbedtls_async_hardware_ssl_random_fill(
+    mbedtls_ssl_context *ssl,
+    unsigned char *buffer,
+    size_t length)
+{
+    mbedtls_ssl_handshake_params *handshake;
+
+    if (ssl == NULL || ssl->handshake == NULL ||
+        buffer == NULL || length == 0) {
+        return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+    }
+
+    handshake = ssl->handshake;
+
+    if (handshake->async_hardware_random_pending != 0) {
+        if (handshake->async_hardware_random_done == 0) {
+            return MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS;
+        }
+
+        handshake->async_hardware_random_pending = 0;
+        handshake->async_hardware_random_done = 0;
+        if (handshake->async_hardware_random_success == 0) {
+            handshake->async_hardware_random_success = 0;
+            return MBEDTLS_ERR_SSL_HW_ACCEL_FAILED;
+        }
+        handshake->async_hardware_random_success = 0;
+        return 0;
+    }
+
+    handshake->async_hardware_random_pending = 1;
+    handshake->async_hardware_random_done = 0;
+    handshake->async_hardware_random_success = 0;
+
+    if (mbedtls_async_hardware_random_start(
+            buffer, length, mbedtls_async_hardware_ssl_random_callback,
+            handshake) == 0) {
+        handshake->async_hardware_random_pending = 0;
+        return MBEDTLS_ERR_SSL_HW_ACCEL_FAILED;
+    }
+
+    return MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS;
+}
+
+static void mbedtls_async_hardware_ssl_ecdh_public_key_callback(int success,
+                                                       void *context)
+{
+    mbedtls_ssl_handshake_params *handshake =
+        (mbedtls_ssl_handshake_params *) context;
+    if (handshake == NULL) {
+        return;
+    }
+
+    handshake->async_hardware_ecdh_public_success = success ? 1 : 0;
+    handshake->async_hardware_ecdh_public_done = 1;
+}
+
+static int mbedtls_async_hardware_ssl_ecdh_public_key_fill(mbedtls_ssl_context *ssl)
+{
+    mbedtls_ssl_handshake_params *handshake;
+    size_t coordinate_len;
+
+    if (ssl == NULL || ssl->handshake == NULL) {
+        return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+    }
+
+    handshake = ssl->handshake;
+
+    if (handshake->async_hardware_ecdh_public_ready != 0) {
+        return 0;
+    }
+
+    if (handshake->async_hardware_ecdh_public_pending != 0) {
+        if (handshake->async_hardware_ecdh_public_done == 0) {
+            return MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS;
+        }
+
+        handshake->async_hardware_ecdh_public_pending = 0;
+        handshake->async_hardware_ecdh_public_done = 0;
+        if (handshake->async_hardware_ecdh_public_success == 0) {
+            handshake->async_hardware_ecdh_public_success = 0;
+            return MBEDTLS_ERR_SSL_HW_ACCEL_FAILED;
+        }
+        handshake->async_hardware_ecdh_public_success = 0;
+        handshake->async_hardware_ecdh_public_ready = 1;
+        return 0;
+    }
+
+    handshake->async_hardware_ecdh_public_pending = 1;
+    handshake->async_hardware_ecdh_public_done = 0;
+    handshake->async_hardware_ecdh_public_success = 0;
+    handshake->async_hardware_ecdh_public_ready = 0;
+    coordinate_len = (handshake->xxdh_psa_bits + 7u) / 8u;
+
+    if ((coordinate_len == 32 ?
+         mbedtls_async_hardware_ecdh_p256_public_key_start(
+             handshake->async_hardware_ecdh_private_scalar,
+             handshake->async_hardware_ecdh_public_key,
+             mbedtls_async_hardware_ssl_ecdh_public_key_callback,
+             handshake) :
+         coordinate_len == 48 ?
+         mbedtls_async_hardware_ecdh_p384_public_key_start(
+             handshake->async_hardware_ecdh_private_scalar,
+             handshake->async_hardware_ecdh_public_key,
+             mbedtls_async_hardware_ssl_ecdh_public_key_callback,
+             handshake) :
+         coordinate_len == 66 ?
+         mbedtls_async_hardware_ecdh_p521_public_key_start(
+             handshake->async_hardware_ecdh_private_scalar,
+             handshake->async_hardware_ecdh_public_key,
+             mbedtls_async_hardware_ssl_ecdh_public_key_callback,
+             handshake) :
+         0) == 0) {
+        handshake->async_hardware_ecdh_public_pending = 0;
+        return MBEDTLS_ERR_SSL_HW_ACCEL_FAILED;
+    }
+    return MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS;
+}
+
+static void mbedtls_async_hardware_ssl_ecdh_secret_callback(int success, void *context)
+{
+    mbedtls_ssl_handshake_params *handshake =
+        (mbedtls_ssl_handshake_params *) context;
+    if (handshake == NULL) {
+        return;
+    }
+
+    handshake->async_hardware_ecdh_secret_success = success ? 1 : 0;
+    handshake->async_hardware_ecdh_secret_done = 1;
+}
+
+static int mbedtls_async_hardware_ssl_ecdh_secret_fill(mbedtls_ssl_context *ssl)
+{
+    mbedtls_ssl_handshake_params *handshake;
+    size_t coordinate_len;
+
+    if (ssl == NULL || ssl->handshake == NULL) {
+        return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+    }
+
+    handshake = ssl->handshake;
+
+    if (handshake->async_hardware_ecdh_secret_ready != 0) {
+        return 0;
+    }
+
+    if (handshake->async_hardware_ecdh_secret_pending != 0) {
+        if (handshake->async_hardware_ecdh_secret_done == 0) {
+            return MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS;
+        }
+
+        handshake->async_hardware_ecdh_secret_pending = 0;
+        handshake->async_hardware_ecdh_secret_done = 0;
+        if (handshake->async_hardware_ecdh_secret_success == 0) {
+            handshake->async_hardware_ecdh_secret_success = 0;
+            return MBEDTLS_ERR_SSL_HW_ACCEL_FAILED;
+        }
+        handshake->async_hardware_ecdh_secret_success = 0;
+        handshake->async_hardware_ecdh_secret_ready = 1;
+        ssl->handshake->pmslen = (handshake->xxdh_psa_bits + 7u) / 8u;
+        return 0;
+    }
+
+    handshake->async_hardware_ecdh_secret_pending = 1;
+    handshake->async_hardware_ecdh_secret_done = 0;
+    handshake->async_hardware_ecdh_secret_success = 0;
+    handshake->async_hardware_ecdh_secret_ready = 0;
+    coordinate_len = (handshake->xxdh_psa_bits + 7u) / 8u;
+
+    if ((coordinate_len == 32 ?
+         mbedtls_async_hardware_ecdh_p256_start(
+             handshake->async_hardware_ecdh_private_scalar,
+             handshake->xxdh_psa_peerkey,
+             ssl->handshake->premaster,
+             mbedtls_async_hardware_ssl_ecdh_secret_callback,
+             handshake) :
+         coordinate_len == 48 ?
+         mbedtls_async_hardware_ecdh_p384_start(
+             handshake->async_hardware_ecdh_private_scalar,
+             handshake->xxdh_psa_peerkey,
+             ssl->handshake->premaster,
+             mbedtls_async_hardware_ssl_ecdh_secret_callback,
+             handshake) :
+         coordinate_len == 66 ?
+         mbedtls_async_hardware_ecdh_p521_start(
+             handshake->async_hardware_ecdh_private_scalar,
+             handshake->xxdh_psa_peerkey,
+             ssl->handshake->premaster,
+             mbedtls_async_hardware_ssl_ecdh_secret_callback,
+             handshake) :
+         0) == 0) {
+        handshake->async_hardware_ecdh_secret_pending = 0;
+        return MBEDTLS_ERR_SSL_HW_ACCEL_FAILED;
+    }
+
+    return MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS;
+}
+
+static void mbedtls_async_hardware_clear_ecdh_scalar(
+    mbedtls_ssl_handshake_params *handshake)
+{
+    if (handshake == NULL) {
+        return;
+    }
+
+    mbedtls_platform_zeroize(handshake->async_hardware_ecdh_private_scalar,
+                             sizeof(handshake->async_hardware_ecdh_private_scalar));
+}
 #endif
 
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
@@ -2073,19 +2335,21 @@ start_processing:
         }
 #endif
 
-#if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT)
-        if (pk_alg == MBEDTLS_PK_SIGALG_RSA_PSS) {
+#if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT) || defined(MBEDTLS_ASYNC_HARDWARE_RSA)
+        if (pk_alg == MBEDTLS_PK_SIGALG_RSA_PSS ||
+            pk_alg == MBEDTLS_PK_SIGALG_RSA_PKCS1V15) {
             ret = mbedtls_pk_verify_ext((mbedtls_pk_sigalg_t) pk_alg, peer_pk,
                                         md_alg, hash, hashlen,
                                         p, sig_len);
         } else
-#endif /* MBEDTLS_X509_RSASSA_PSS_SUPPORT */
+#endif /* MBEDTLS_X509_RSASSA_PSS_SUPPORT || MBEDTLS_ASYNC_HARDWARE_RSA */
         ret = mbedtls_pk_verify_restartable(peer_pk,
                                             md_alg, hash, hashlen, p, sig_len, rs_ctx);
 
         if (ret != 0) {
             int send_alert_msg = 1;
-#if defined(MBEDTLS_SSL_ECP_RESTARTABLE_ENABLED)
+#if defined(MBEDTLS_SSL_ECP_RESTARTABLE_ENABLED) || \
+    defined(MBEDTLS_ASYNC_HARDWARE_ECDSA) || defined(MBEDTLS_ASYNC_HARDWARE_RSA)
             send_alert_msg = (ret != MBEDTLS_ERR_ECP_IN_PROGRESS);
 #endif
             if (send_alert_msg) {
@@ -2095,7 +2359,8 @@ start_processing:
                     MBEDTLS_SSL_ALERT_MSG_DECRYPT_ERROR);
             }
             MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_pk_verify_restartable", ret);
-#if defined(MBEDTLS_SSL_ECP_RESTARTABLE_ENABLED)
+#if defined(MBEDTLS_SSL_ECP_RESTARTABLE_ENABLED) || \
+    defined(MBEDTLS_ASYNC_HARDWARE_ECDSA) || defined(MBEDTLS_ASYNC_HARDWARE_RSA)
             if (ret == MBEDTLS_ERR_ECP_IN_PROGRESS) {
                 ret = MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS;
             }
@@ -2149,8 +2414,8 @@ static int ssl_parse_certificate_request(mbedtls_ssl_context *ssl)
     const mbedtls_ssl_ciphersuite_t *ciphersuite_info =
         ssl->handshake->ciphersuite_info;
     size_t sig_alg_len;
-#if defined(MBEDTLS_DEBUG_C)
     unsigned char *sig_alg;
+#if defined(MBEDTLS_DEBUG_C)
     unsigned char *dn;
 #endif
 
@@ -2266,14 +2531,20 @@ static int ssl_parse_certificate_request(mbedtls_ssl_context *ssl)
         return MBEDTLS_ERR_SSL_DECODE_ERROR;
     }
 
-#if defined(MBEDTLS_DEBUG_C)
     sig_alg = buf + mbedtls_ssl_hs_hdr_len(ssl) + 3 + n;
+#if defined(MBEDTLS_DEBUG_C)
     for (size_t i = 0; i < sig_alg_len; i += 2) {
         MBEDTLS_SSL_DEBUG_MSG(3,
                               ("Supported Signature Algorithm found: %02x %02x",
                                sig_alg[i], sig_alg[i + 1]));
     }
 #endif
+
+    if ((ret = mbedtls_ssl_parse_sig_alg_ext(
+             ssl, sig_alg - 2, sig_alg + sig_alg_len)) != 0) {
+        MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_parse_sig_alg_ext", ret);
+        return ret;
+    }
 
     n += 2 + sig_alg_len;
 
@@ -2376,15 +2647,33 @@ static int ssl_write_client_key_exchange(mbedtls_ssl_context *ssl)
     defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)
     if (ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDHE_RSA ||
         ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA) {
+#if !defined(MBEDTLS_ASYNC_HARDWARE_RANDOM)
         psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
         psa_status_t destruction_status = PSA_ERROR_CORRUPTION_DETECTED;
+#endif
         psa_key_attributes_t key_attributes;
+#if defined(MBEDTLS_SSL_ECP_RESTARTABLE_ENABLED) && \
+    !defined(MBEDTLS_ASYNC_HARDWARE_RANDOM)
+        psa_key_attributes_t secret_attributes;
+        mbedtls_svc_key_id_t shared_secret_key = MBEDTLS_SVC_KEY_ID_INIT;
+        psa_status_t shared_secret_destruction_status = PSA_SUCCESS;
+#endif
 
         mbedtls_ssl_handshake_params *handshake = ssl->handshake;
 
         header_len = 4;
 
         MBEDTLS_SSL_DEBUG_MSG(3, ("Perform PSA-based ECDH computation."));
+
+#if defined(MBEDTLS_SSL_ECP_RESTARTABLE_ENABLED) && \
+    !defined(MBEDTLS_ASYNC_HARDWARE_RANDOM)
+        secret_attributes = psa_key_attributes_init();
+        if (handshake->ecrs_enabled &&
+            handshake->ecrs_state == ssl_ecrs_cke_ecdh_calc_secret) {
+            content_len = handshake->ecrs_n;
+            goto complete_interruptible_ecdh;
+        }
+#endif
 
         /*
          * Generate EC private key for ECDHE exchange.
@@ -2403,9 +2692,67 @@ static int ssl_write_client_key_exchange(mbedtls_ssl_context *ssl)
         psa_set_key_type(&key_attributes, handshake->xxdh_psa_type);
         psa_set_key_bits(&key_attributes, handshake->xxdh_psa_bits);
 
+#if defined(MBEDTLS_ASYNC_HARDWARE_RANDOM)
+        size_t async_hardware_coordinate_len;
+        size_t async_hardware_public_key_len;
+
+        if (handshake->xxdh_psa_bits != 256u &&
+            handshake->xxdh_psa_bits != 384u &&
+            handshake->xxdh_psa_bits != 521u) {
+            return MBEDTLS_ERR_SSL_HW_ACCEL_FAILED;
+        }
+        async_hardware_coordinate_len = (handshake->xxdh_psa_bits + 7u) / 8u;
+        async_hardware_public_key_len = async_hardware_coordinate_len * 2u + 1u;
+
+        if (handshake->async_hardware_ecdh_private_ready == 0) {
+            ret = mbedtls_async_hardware_ssl_random_fill(
+                ssl, handshake->async_hardware_ecdh_private_scalar,
+                async_hardware_coordinate_len);
+            if (ret != 0) {
+                return ret;
+            }
+            handshake->async_hardware_ecdh_private_ready = 1;
+        }
+
+        ret = mbedtls_async_hardware_ssl_ecdh_public_key_fill(ssl);
+        if (ret != 0) {
+            return ret;
+        }
+
+        unsigned char *async_hardware_own_pubkey = ssl->out_msg + header_len + 1;
+        unsigned char *async_hardware_end = ssl->out_msg + MBEDTLS_SSL_OUT_CONTENT_LEN;
+        size_t async_hardware_own_pubkey_max_len =
+            (size_t) (async_hardware_end - async_hardware_own_pubkey);
+
+        if (async_hardware_own_pubkey_max_len <
+            async_hardware_public_key_len) {
+            return MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL;
+        }
+
+        memcpy(async_hardware_own_pubkey, handshake->async_hardware_ecdh_public_key,
+               async_hardware_public_key_len);
+        ssl->out_msg[header_len] =
+            (unsigned char) async_hardware_public_key_len;
+        content_len = async_hardware_public_key_len + 1;
+
+        ret = mbedtls_async_hardware_ssl_ecdh_secret_fill(ssl);
+        if (ret != 0) {
+            return ret;
+        }
+
+        mbedtls_async_hardware_clear_ecdh_scalar(handshake);
+        handshake->async_hardware_ecdh_private_ready = 0;
+        handshake->async_hardware_ecdh_public_ready = 0;
+        handshake->async_hardware_ecdh_secret_ready = 0;
+        mbedtls_platform_zeroize(handshake->async_hardware_ecdh_public_key,
+                                 sizeof(handshake->async_hardware_ecdh_public_key));
+        goto async_hardware_ecdh_done;
+#else
         /* Generate ECDH private key. */
         status = psa_generate_key(&key_attributes,
                                   &handshake->xxdh_psa_privkey);
+#endif
+#if !defined(MBEDTLS_ASYNC_HARDWARE_RANDOM)
         if (status != PSA_SUCCESS) {
             return MBEDTLS_ERR_SSL_HW_ACCEL_FAILED;
         }
@@ -2432,6 +2779,63 @@ static int ssl_write_client_key_exchange(mbedtls_ssl_context *ssl)
 
         /* The ECDH secret is the premaster secret used for key derivation. */
 
+#if defined(MBEDTLS_SSL_ECP_RESTARTABLE_ENABLED)
+        if (handshake->ecrs_enabled) {
+            secret_attributes = psa_key_attributes_init();
+            psa_set_key_usage_flags(&secret_attributes, PSA_KEY_USAGE_EXPORT);
+            psa_set_key_type(&secret_attributes, PSA_KEY_TYPE_RAW_DATA);
+            psa_set_key_bits(&secret_attributes, handshake->xxdh_psa_bits);
+
+            status = psa_key_agreement_iop_setup(&handshake->xxdh_psa_iop,
+                                                 handshake->xxdh_psa_privkey,
+                                                 handshake->xxdh_psa_peerkey,
+                                                 handshake->xxdh_psa_peerkey_len,
+                                                 PSA_ALG_ECDH,
+                                                 &secret_attributes);
+            if (status != PSA_SUCCESS) {
+                (void) psa_key_agreement_iop_abort(&handshake->xxdh_psa_iop);
+                destruction_status = psa_destroy_key(handshake->xxdh_psa_privkey);
+                handshake->xxdh_psa_privkey = MBEDTLS_SVC_KEY_ID_INIT;
+                if (destruction_status != PSA_SUCCESS) {
+                    return MBEDTLS_ERR_SSL_HW_ACCEL_FAILED;
+                }
+                return MBEDTLS_ERR_SSL_HW_ACCEL_FAILED;
+            }
+
+            handshake->ecrs_state = ssl_ecrs_cke_ecdh_calc_secret;
+            handshake->ecrs_n = content_len;
+
+complete_interruptible_ecdh:
+            status = psa_key_agreement_iop_complete(&handshake->xxdh_psa_iop,
+                                                    &shared_secret_key);
+            if (status == PSA_OPERATION_INCOMPLETE) {
+                return MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS;
+            }
+            (void) psa_key_agreement_iop_abort(&handshake->xxdh_psa_iop);
+            handshake->ecrs_state = ssl_ecrs_none;
+
+            if (status == PSA_SUCCESS) {
+                status = psa_export_key(shared_secret_key,
+                                        ssl->handshake->premaster,
+                                        sizeof(ssl->handshake->premaster),
+                                        &ssl->handshake->pmslen);
+                shared_secret_destruction_status =
+                    psa_destroy_key(shared_secret_key);
+            }
+
+            psa_reset_key_attributes(&secret_attributes);
+
+            destruction_status = psa_destroy_key(handshake->xxdh_psa_privkey);
+            handshake->xxdh_psa_privkey = MBEDTLS_SVC_KEY_ID_INIT;
+
+            if (status != PSA_SUCCESS ||
+                shared_secret_destruction_status != PSA_SUCCESS ||
+                destruction_status != PSA_SUCCESS) {
+                return MBEDTLS_ERR_SSL_HW_ACCEL_FAILED;
+            }
+        } else
+#endif
+        {
         /* Compute ECDH shared secret. */
         status = psa_raw_key_agreement(PSA_ALG_ECDH,
                                        handshake->xxdh_psa_privkey,
@@ -2447,6 +2851,12 @@ static int ssl_write_client_key_exchange(mbedtls_ssl_context *ssl)
         if (status != PSA_SUCCESS || destruction_status != PSA_SUCCESS) {
             return MBEDTLS_ERR_SSL_HW_ACCEL_FAILED;
         }
+        }
+#endif
+#if defined(MBEDTLS_ASYNC_HARDWARE_RANDOM)
+async_hardware_ecdh_done:
+        (void) 0;
+#endif
     } else
 #endif /* MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED ||
           MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED */
@@ -2687,9 +3097,11 @@ static int ssl_write_certificate_verify(mbedtls_ssl_context *ssl)
     const mbedtls_ssl_ciphersuite_t *ciphersuite_info =
         ssl->handshake->ciphersuite_info;
     size_t n = 0, offset = 0;
-    unsigned char hash[48];
+    unsigned char hash[64];
     unsigned char *hash_start = hash;
     mbedtls_md_type_t md_alg = MBEDTLS_MD_NONE;
+    mbedtls_pk_sigalg_t pk_alg = MBEDTLS_PK_SIGALG_NONE;
+    uint16_t selected_sig_alg = MBEDTLS_TLS_SIG_NONE;
     size_t hashlen;
     void *rs_ctx = NULL;
 #if defined(MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH)
@@ -2747,30 +3159,49 @@ sign:
         return ret;
     }
 
-    /*
-     * digitally-signed struct {
-     *     opaque handshake_messages[handshake_messages_length];
-     * };
-     *
-     * Taking shortcut here. We assume that the server always allows the
-     * PRF Hash function and has sent it in the allowed signature
-     * algorithms list received in the Certificate Request message.
-     *
-     * Until we encounter a server that does not, we will take this
-     * shortcut.
-     *
-     * Reason: Otherwise we should have running hashes for SHA512 and
-     *         SHA224 in order to satisfy 'weird' needs from the server
-     *         side.
-     */
-    if (ssl->handshake->ciphersuite_info->mac == MBEDTLS_MD_SHA384) {
-        md_alg = MBEDTLS_MD_SHA384;
-        ssl->out_msg[4] = MBEDTLS_SSL_HASH_SHA384;
-    } else {
-        md_alg = MBEDTLS_MD_SHA256;
-        ssl->out_msg[4] = MBEDTLS_SSL_HASH_SHA256;
+    const uint16_t *received_sig_alg = ssl->handshake->received_sig_algs;
+    for (; *received_sig_alg != MBEDTLS_TLS_SIG_NONE; received_sig_alg++) {
+        psa_algorithm_t psa_hash_alg = PSA_ALG_NONE;
+        psa_algorithm_t psa_sig_alg = PSA_ALG_NONE;
+        mbedtls_pk_sigalg_t candidate_pk_alg = MBEDTLS_PK_SIGALG_NONE;
+        mbedtls_md_type_t candidate_md_alg = MBEDTLS_MD_NONE;
+
+        if (mbedtls_ssl_get_pk_sigalg_and_md_alg_from_sig_alg(
+                *received_sig_alg, &candidate_pk_alg, &candidate_md_alg) != 0) {
+            continue;
+        }
+
+        psa_hash_alg = mbedtls_md_psa_alg_from_type(candidate_md_alg);
+        psa_sig_alg = mbedtls_psa_alg_from_pk_sigalg(candidate_pk_alg,
+                                                     psa_hash_alg);
+        if (!mbedtls_pk_can_do_psa(mbedtls_ssl_own_key(ssl), psa_sig_alg,
+                                   PSA_KEY_USAGE_SIGN_HASH)) {
+            continue;
+        }
+
+        if (mbedtls_ssl_set_calc_verify_md(
+                ssl, mbedtls_ssl_hash_from_md_alg(candidate_md_alg)) != 0) {
+            continue;
+        }
+
+        selected_sig_alg = *received_sig_alg;
+        pk_alg = candidate_pk_alg;
+        md_alg = candidate_md_alg;
+        break;
     }
-    ssl->out_msg[5] = mbedtls_ssl_sig_from_pk(mbedtls_ssl_own_key(ssl));
+
+    if (selected_sig_alg == MBEDTLS_TLS_SIG_NONE) {
+        MBEDTLS_SSL_DEBUG_MSG(1, ("no suitable client signature algorithm"));
+        return MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE;
+    }
+
+    ret = ssl->handshake->calc_verify(ssl, hash, &hashlen);
+    if (0 != ret) {
+        MBEDTLS_SSL_DEBUG_RET(1, ("calc_verify"), ret);
+        return ret;
+    }
+
+    MBEDTLS_PUT_UINT16_BE(selected_sig_alg, ssl->out_msg, 4);
 
     /* Info from md_alg will be used instead */
     hashlen = 0;
@@ -2782,14 +3213,24 @@ sign:
     }
 #endif
 
-    if ((ret = mbedtls_pk_sign_restartable(mbedtls_ssl_own_key(ssl),
-                                           md_alg, hash_start, hashlen,
-                                           ssl->out_msg + 6 + offset,
-                                           out_buf_len - 6 - offset,
-                                           &n,
-                                           rs_ctx)) != 0) {
-        MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_pk_sign_restartable", ret);
-#if defined(MBEDTLS_SSL_ECP_RESTARTABLE_ENABLED)
+    if (pk_alg == MBEDTLS_PK_SIGALG_RSA_PSS ||
+        pk_alg == MBEDTLS_PK_SIGALG_RSA_PKCS1V15) {
+        ret = mbedtls_pk_sign_ext(pk_alg, mbedtls_ssl_own_key(ssl),
+                                  md_alg, hash_start, hashlen,
+                                  ssl->out_msg + 6 + offset,
+                                  out_buf_len - 6 - offset, &n);
+    } else {
+        ret = mbedtls_pk_sign_restartable(mbedtls_ssl_own_key(ssl),
+                                          md_alg, hash_start, hashlen,
+                                          ssl->out_msg + 6 + offset,
+                                          out_buf_len - 6 - offset,
+                                          &n,
+                                          rs_ctx);
+    }
+    if (ret != 0) {
+        MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_pk_sign", ret);
+#if defined(MBEDTLS_SSL_ECP_RESTARTABLE_ENABLED) || \
+    defined(MBEDTLS_ASYNC_HARDWARE_ECDSA) || defined(MBEDTLS_ASYNC_HARDWARE_RSA)
         if (ret == MBEDTLS_ERR_ECP_IN_PROGRESS) {
             ret = MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS;
         }

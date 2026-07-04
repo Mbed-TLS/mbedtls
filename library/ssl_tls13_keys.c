@@ -1012,6 +1012,12 @@ int mbedtls_ssl_tls13_populate_transform(
 
     transform->psa_alg = alg;
 
+#if defined(MBEDTLS_ASYNC_HARDWARE_AEAD)
+    int async_aead_configured = mbedtls_ssl_configure_async_aead_transform(
+        transform, key_type, alg, key_enc, key_dec, PSA_BITS_TO_BYTES(key_bits));
+    (void) async_aead_configured;
+#endif
+
     if (alg != MBEDTLS_SSL_NULL_CIPHER) {
         psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_ENCRYPT);
         psa_set_key_algorithm(&attributes, alg);
@@ -1445,6 +1451,8 @@ static int ssl_tls13_key_schedule_stage_handshake(mbedtls_ssl_context *ssl)
                                             &key_attributes);
             if (status != PSA_SUCCESS) {
                 ret = PSA_TO_MBEDTLS_ERR(status);
+                MBEDTLS_SSL_DEBUG_RET(1, "psa_get_key_attributes", ret);
+                goto cleanup;
             }
 
             shared_secret_len = PSA_BITS_TO_BYTES(
@@ -1454,6 +1462,74 @@ static int ssl_tls13_key_schedule_stage_handshake(mbedtls_ssl_context *ssl)
                 return MBEDTLS_ERR_SSL_ALLOC_FAILED;
             }
 
+#if defined(MBEDTLS_ASYNC_HARDWARE_ECDH) && \
+    defined(MBEDTLS_SSL_ECP_RESTARTABLE_ENABLED)
+            mbedtls_svc_key_id_t shared_secret_key = MBEDTLS_SVC_KEY_ID_INIT;
+            psa_status_t shared_secret_key_destruction_status =
+                PSA_ERROR_GENERIC_ERROR;
+
+            if (handshake->xxdh_psa_iop_active == 0) {
+                psa_key_attributes_t secret_attributes =
+                    psa_key_attributes_init();
+                psa_set_key_usage_flags(&secret_attributes,
+                                        PSA_KEY_USAGE_EXPORT);
+                psa_set_key_type(&secret_attributes, PSA_KEY_TYPE_RAW_DATA);
+                psa_set_key_bits(&secret_attributes,
+                                 PSA_BYTES_TO_BITS(shared_secret_len));
+
+                status = psa_key_agreement_iop_setup(
+                    &handshake->xxdh_psa_iop,
+                    handshake->xxdh_psa_privkey,
+                    handshake->xxdh_psa_peerkey,
+                    handshake->xxdh_psa_peerkey_len,
+                    alg,
+                    &secret_attributes);
+                if (status != PSA_SUCCESS) {
+                    (void) psa_key_agreement_iop_abort(
+                        &handshake->xxdh_psa_iop);
+                    ret = PSA_TO_MBEDTLS_ERR(status);
+                    MBEDTLS_SSL_DEBUG_RET(1, "psa_key_agreement_iop_setup",
+                                          ret);
+                    goto cleanup;
+                }
+                handshake->xxdh_psa_iop_active = 1;
+            }
+
+            status = psa_key_agreement_iop_complete(
+                &handshake->xxdh_psa_iop,
+                &shared_secret_key);
+            if (status == PSA_OPERATION_INCOMPLETE) {
+                mbedtls_free(shared_secret);
+                return MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS;
+            }
+
+            (void) psa_key_agreement_iop_abort(&handshake->xxdh_psa_iop);
+            handshake->xxdh_psa_iop_active = 0;
+
+            if (status != PSA_SUCCESS) {
+                ret = PSA_TO_MBEDTLS_ERR(status);
+                MBEDTLS_SSL_DEBUG_RET(1, "psa_key_agreement_iop_complete",
+                                      ret);
+                goto cleanup;
+            }
+
+            status = psa_export_key(shared_secret_key,
+                                    shared_secret,
+                                    shared_secret_len,
+                                    &shared_secret_len);
+            shared_secret_key_destruction_status =
+                psa_destroy_key(shared_secret_key);
+            if (status != PSA_SUCCESS) {
+                ret = PSA_TO_MBEDTLS_ERR(status);
+                MBEDTLS_SSL_DEBUG_RET(1, "psa_export_key", ret);
+                goto cleanup;
+            }
+            if (shared_secret_key_destruction_status != PSA_SUCCESS) {
+                ret = PSA_TO_MBEDTLS_ERR(shared_secret_key_destruction_status);
+                MBEDTLS_SSL_DEBUG_RET(1, "psa_destroy_key", ret);
+                goto cleanup;
+            }
+#else
             status = psa_raw_key_agreement(
                 alg, handshake->xxdh_psa_privkey,
                 handshake->xxdh_psa_peerkey, handshake->xxdh_psa_peerkey_len,
@@ -1463,6 +1539,7 @@ static int ssl_tls13_key_schedule_stage_handshake(mbedtls_ssl_context *ssl)
                 MBEDTLS_SSL_DEBUG_RET(1, "psa_raw_key_agreement", ret);
                 goto cleanup;
             }
+#endif
 
             status = psa_destroy_key(handshake->xxdh_psa_privkey);
             if (status != PSA_SUCCESS) {

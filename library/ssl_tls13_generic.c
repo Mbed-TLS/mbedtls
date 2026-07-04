@@ -309,6 +309,11 @@ static int ssl_tls13_parse_certificate_verify(mbedtls_ssl_context *ssl,
     if (ret == 0) {
         return ret;
     }
+#if defined(MBEDTLS_SSL_ECP_RESTARTABLE_ENABLED)
+    if (ret == MBEDTLS_ERR_ECP_IN_PROGRESS) {
+        return MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS;
+    }
+#endif
     MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_pk_verify_ext", ret);
 
 error:
@@ -969,6 +974,12 @@ static int ssl_tls13_write_certificate_verify_body(mbedtls_ssl_context *ssl,
         if ((ret = mbedtls_pk_sign_ext((mbedtls_pk_sigalg_t) pk_type, own_key,
                                        md_alg, verify_hash, verify_hash_len,
                                        p + 4, (size_t) (end - (p + 4)), &signature_len)) != 0) {
+#if defined(MBEDTLS_SSL_ECP_RESTARTABLE_ENABLED) || \
+            defined(MBEDTLS_ASYNC_HARDWARE_ECDSA) || defined(MBEDTLS_ASYNC_HARDWARE_RSA)
+            if (ret == MBEDTLS_ERR_ECP_IN_PROGRESS) {
+                return MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS;
+            }
+#endif
             MBEDTLS_SSL_DEBUG_MSG(2, ("CertificateVerify signature failed with %s",
                                       mbedtls_ssl_sig_alg_to_str(*sig_alg)));
             MBEDTLS_SSL_DEBUG_RET(2, "mbedtls_pk_sign_ext", ret);

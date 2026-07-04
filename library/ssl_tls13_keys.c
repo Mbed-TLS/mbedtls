@@ -1446,9 +1446,6 @@ static int ssl_tls13_key_schedule_stage_handshake(mbedtls_ssl_context *ssl)
             /* Compute ECDH shared secret. */
             psa_status_t status = PSA_ERROR_GENERIC_ERROR;
             psa_key_attributes_t key_attributes = PSA_KEY_ATTRIBUTES_INIT;
-            mbedtls_svc_key_id_t shared_secret_key = MBEDTLS_SVC_KEY_ID_INIT;
-            psa_status_t shared_secret_key_destruction_status =
-                PSA_ERROR_GENERIC_ERROR;
 
             status = psa_get_key_attributes(handshake->xxdh_psa_privkey,
                                             &key_attributes);
@@ -1467,6 +1464,10 @@ static int ssl_tls13_key_schedule_stage_handshake(mbedtls_ssl_context *ssl)
 
 #if defined(MBEDTLS_ASYNC_HARDWARE_ECDH) && \
     defined(MBEDTLS_SSL_ECP_RESTARTABLE_ENABLED)
+            mbedtls_svc_key_id_t shared_secret_key = MBEDTLS_SVC_KEY_ID_INIT;
+            psa_status_t shared_secret_key_destruction_status =
+                PSA_ERROR_GENERIC_ERROR;
+
             if (handshake->xxdh_psa_iop_active == 0) {
                 psa_key_attributes_t secret_attributes =
                     psa_key_attributes_init();

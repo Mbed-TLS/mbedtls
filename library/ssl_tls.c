@@ -458,17 +458,13 @@ static int ssl_tls12_session_load(mbedtls_ssl_session *session,
 
 static int ssl_update_checksum_start(mbedtls_ssl_context *, const unsigned char *, size_t);
 
-#if defined(PSA_WANT_ALG_SHA_256)
+#if defined(PSA_WANT_ALG_SHA_256) && !defined(PSA_WANT_ALG_SHA_512)
 static int ssl_update_checksum_sha256(mbedtls_ssl_context *, const unsigned char *, size_t);
 #endif /* PSA_WANT_ALG_SHA_256*/
 
-#if defined(PSA_WANT_ALG_SHA_384)
+#if defined(PSA_WANT_ALG_SHA_384) && !defined(PSA_WANT_ALG_SHA_512)
 static int ssl_update_checksum_sha384(mbedtls_ssl_context *, const unsigned char *, size_t);
 #endif /* PSA_WANT_ALG_SHA_384*/
-
-#if defined(PSA_WANT_ALG_SHA_512)
-static int ssl_update_checksum_sha512(mbedtls_ssl_context *, const unsigned char *, size_t);
-#endif /* PSA_WANT_ALG_SHA_512 */
 
 int  mbedtls_ssl_tls_prf(const mbedtls_tls_prf_types prf,
                          const unsigned char *secret, size_t slen,
@@ -923,7 +919,7 @@ static int ssl_update_checksum_start(mbedtls_ssl_context *ssl,
     return 0;
 }
 
-#if defined(PSA_WANT_ALG_SHA_256)
+#if defined(PSA_WANT_ALG_SHA_256) && !defined(PSA_WANT_ALG_SHA_512)
 static int ssl_update_checksum_sha256(mbedtls_ssl_context *ssl,
                                       const unsigned char *buf, size_t len)
 {
@@ -932,21 +928,12 @@ static int ssl_update_checksum_sha256(mbedtls_ssl_context *ssl,
 }
 #endif
 
-#if defined(PSA_WANT_ALG_SHA_384)
+#if defined(PSA_WANT_ALG_SHA_384) && !defined(PSA_WANT_ALG_SHA_512)
 static int ssl_update_checksum_sha384(mbedtls_ssl_context *ssl,
                                       const unsigned char *buf, size_t len)
 {
     return mbedtls_md_error_from_psa(psa_hash_update(
                                          &ssl->handshake->fin_sha384_psa, buf, len));
-}
-#endif
-
-#if defined(PSA_WANT_ALG_SHA_512)
-static int ssl_update_checksum_sha512(mbedtls_ssl_context *ssl,
-                                      const unsigned char *buf, size_t len)
-{
-    return mbedtls_md_error_from_psa(psa_hash_update(
-                                         &ssl->handshake->fin_sha512_psa, buf, len));
 }
 #endif
 

@@ -3195,6 +3195,12 @@ sign:
         return MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE;
     }
 
+    ret = ssl->handshake->calc_verify(ssl, hash, &hashlen);
+    if (0 != ret) {
+        MBEDTLS_SSL_DEBUG_RET(1, ("calc_verify"), ret);
+        return ret;
+    }
+
     MBEDTLS_PUT_UINT16_BE(selected_sig_alg, ssl->out_msg, 4);
 
     /* Info from md_alg will be used instead */

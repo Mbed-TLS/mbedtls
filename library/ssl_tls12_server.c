@@ -3206,7 +3206,7 @@ static int ssl_parse_certificate_verify(mbedtls_ssl_context *ssl)
 {
     int ret = MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE;
     size_t i, sig_len;
-    unsigned char hash[48];
+    unsigned char hash[64];
     unsigned char *hash_start = hash;
     size_t hashlen;
     mbedtls_pk_sigalg_t pk_alg;

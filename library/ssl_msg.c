@@ -83,9 +83,12 @@ static void mbedtls_async_hardware_ssl_aead_callback(int success, void *context)
 /**
  * @brief Return whether the transform has explicit async hardware AEAD metadata.
  *
- * @todo Extend the provider dispatch behind this metadata for AES-256-GCM,
- * AES-CCM, AES-CCM-8, and ChaCha20-Poly1305. Until then those algorithms are
- * intentional fail-closed stubs instead of PSA/software fallbacks.
+ * AES-GCM and ChaCha20-Poly1305 transforms are represented through the
+ * generic async AEAD boundary. Providers that do not implement a classified
+ * algorithm fail closed instead of falling back to PSA/software.
+ *
+ * @todo Extend this direct transform configuration path for AES-CCM and
+ * AES-CCM-8 once those suites are wired through this helper.
  */
 static int mbedtls_async_hardware_ssl_transform_has_aead(
     const mbedtls_ssl_transform *transform)

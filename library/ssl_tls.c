@@ -7761,10 +7761,10 @@ static mbedtls_tls_prf_types tls_prf_get_type(mbedtls_ssl_tls_prf_cb *tls_prf)
 /**
  * @brief Map Mbed TLS/PSA record parameters to async hardware TLS AEAD capabilities.
  *
- * @todo Wire AES-256-GCM, AES-CCM, AES-CCM-8, and ChaCha20-Poly1305 to
- * hardware-backed provider operations. They are classified here so production
- * hardware builds fail closed through the generic AEAD boundary instead of
- * silently falling back to PSA/software.
+ * TLS 1.2 AEAD transforms are classified into the generic async hardware
+ * provider algorithm IDs. Providers that do not implement a classified
+ * algorithm fail closed through the generic AEAD boundary instead of silently
+ * falling back to PSA/software.
  */
 static int mbedtls_async_hardware_tls_aead_from_transform(psa_key_type_t key_type,
                                                  size_t keylen,

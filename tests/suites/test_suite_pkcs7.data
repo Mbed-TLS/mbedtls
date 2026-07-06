@@ -1,8 +1,7 @@
-PKCS7 PKCS11 With Empty Digest
-depends_on:PSA_WANT_ALG_SHA_256:PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY
+PKCS7 With Empty Digest
 pkcs7_parse:"../framework/data_files/pkcs7_empty_digest.der":MBEDTLS_PKCS7_SIGNED_DATA
 
-PKCS7 PKCS11 With Unsupported DigestAlgorithmnSet
+PKCS7 With Unsupported DigestAlgorithmnSet
 depends_on:!PSA_WANT_ALG_SHA_256:PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY
 pkcs7_parse:"../framework/data_files/pkcs7_empty_digest.der":MBEDTLS_PKCS7_SIGNED_DATA
 

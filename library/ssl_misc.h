@@ -1536,13 +1536,14 @@ int mbedtls_ssl_get_psa_curve_info_from_tls_id(uint16_t tls_id,
 int mbedtls_ssl_is_tls_id_supported(uint16_t tls_id);
 
 /**
- * \brief Return TLS ID for the specified \c mbedtls_ecp_group_id.
+ * \brief Return TLS ID for the specified curve.
  *
- * \param grp_id    The \c mbedtls_ecp_group_id ID to look for
- * \return          Proper TLS ID if the \c mbedtls_ecp_group_id is supported,
+ * \param family    The \c psa_ecc_family_t for the TLS ID to look for.
+ * \param bits      The bit size for the TLS ID to look for.
+ * \return          Proper TLS ID if the specified EC group is supported,
  *                  or 0 otherwise
  */
-uint16_t mbedtls_ssl_get_tls_id_from_ecp_group_id(mbedtls_ecp_group_id grp_id);
+uint16_t mbedtls_ssl_get_tls_id_from_curve_info(psa_ecc_family_t family, size_t bits);
 
 #if defined(MBEDTLS_DEBUG_C)
 /**

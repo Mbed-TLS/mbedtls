@@ -8995,40 +8995,36 @@ int mbedtls_ssl_export_keying_material(mbedtls_ssl_context *ssl,
                                        const unsigned char *context, const size_t context_len,
                                        const int use_context)
 {
-    if (!mbedtls_ssl_is_handshake_over(ssl)) {
-        /* TODO: Change this to a more appropriate error code when one is available. */
-        return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
-    }
+    if (mbedtls_ssl_is_handshake_over(ssl) && (key_len != 0) && (key_len <= MBEDTLS_SSL_EXPORT_MAX_KEY_LEN)) {
+        const int ciphersuite_id = mbedtls_ssl_get_ciphersuite_id_from_ssl(ssl);
+        const mbedtls_ssl_ciphersuite_t *ciphersuite = mbedtls_ssl_ciphersuite_from_id(ciphersuite_id);
 
-    if (key_len > MBEDTLS_SSL_EXPORT_MAX_KEY_LEN) {
-        return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
-    }
-
-    int ciphersuite_id = mbedtls_ssl_get_ciphersuite_id_from_ssl(ssl);
-    const mbedtls_ssl_ciphersuite_t *ciphersuite = mbedtls_ssl_ciphersuite_from_id(ciphersuite_id);
-    const mbedtls_md_type_t hash_alg = ciphersuite->mac;
-
-    switch (mbedtls_ssl_get_version_number(ssl)) {
+        if (ciphersuite != NULL) {
+            switch (mbedtls_ssl_get_version_number(ssl)) {
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
-        case MBEDTLS_SSL_VERSION_TLS1_2:
-            return mbedtls_ssl_tls12_export_keying_material(ssl, hash_alg, out, key_len,
-                                                            label, label_len,
-                                                            context, context_len, use_context);
+                case MBEDTLS_SSL_VERSION_TLS1_2:
+                    return mbedtls_ssl_tls12_export_keying_material(ssl, ciphersuite->mac, out, key_len,
+                                                                    label, label_len,
+                                                                    context, context_len, use_context);
 #endif
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
-        case MBEDTLS_SSL_VERSION_TLS1_3:
-            return mbedtls_ssl_tls13_export_keying_material(ssl,
-                                                            hash_alg,
-                                                            out,
-                                                            key_len,
-                                                            label,
-                                                            label_len,
-                                                            use_context ? context : NULL,
-                                                            use_context ? context_len : 0);
+                case MBEDTLS_SSL_VERSION_TLS1_3:
+                    return mbedtls_ssl_tls13_export_keying_material(ssl,
+                                                                    ciphersuite->mac,
+                                                                    out,
+                                                                    key_len,
+                                                                    label,
+                                                                    label_len,
+                                                                    use_context ? context : NULL,
+                                                                    use_context ? context_len : 0);
 #endif
-        default:
-            return MBEDTLS_ERR_SSL_BAD_PROTOCOL_VERSION;
+                default:
+                    return MBEDTLS_ERR_SSL_BAD_PROTOCOL_VERSION;
+            }
+        }
     }
+
+    return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
 }
 
 /**

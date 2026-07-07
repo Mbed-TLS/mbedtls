@@ -9198,7 +9198,7 @@ int mbedtls_ssl_export_traffic_keys(const mbedtls_ssl_context *ssl,
 /**
  * \brief Retrieve the current inbound and outbound sequence numbers.
  */
-inline void mbedtls_ssl_get_sequence_numbers(const mbedtls_ssl_context *ssl,
+void mbedtls_ssl_get_sequence_numbers(const mbedtls_ssl_context *ssl,
                                              const unsigned char **in,
                                              const unsigned char **out)
 {

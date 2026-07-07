@@ -8995,17 +8995,25 @@ int mbedtls_ssl_export_keying_material(mbedtls_ssl_context *ssl,
                                        const unsigned char *context, const size_t context_len,
                                        const int use_context)
 {
-    if (mbedtls_ssl_is_handshake_over(ssl) && (key_len != 0) && (key_len <= MBEDTLS_SSL_EXPORT_MAX_KEY_LEN)) {
+    if (mbedtls_ssl_is_handshake_over(ssl) && (key_len != 0) &&
+        (key_len <= MBEDTLS_SSL_EXPORT_MAX_KEY_LEN)) {
         const int ciphersuite_id = mbedtls_ssl_get_ciphersuite_id_from_ssl(ssl);
-        const mbedtls_ssl_ciphersuite_t *ciphersuite = mbedtls_ssl_ciphersuite_from_id(ciphersuite_id);
+        const mbedtls_ssl_ciphersuite_t *ciphersuite =
+            mbedtls_ssl_ciphersuite_from_id(ciphersuite_id);
 
         if (ciphersuite != NULL) {
             switch (mbedtls_ssl_get_version_number(ssl)) {
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
                 case MBEDTLS_SSL_VERSION_TLS1_2:
-                    return mbedtls_ssl_tls12_export_keying_material(ssl, ciphersuite->mac, out, key_len,
-                                                                    label, label_len,
-                                                                    context, context_len, use_context);
+                    return mbedtls_ssl_tls12_export_keying_material(ssl,
+                                                                    ciphersuite->mac,
+                                                                    out,
+                                                                    key_len,
+                                                                    label,
+                                                                    label_len,
+                                                                    context,
+                                                                    context_len,
+                                                                    use_context);
 #endif
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
                 case MBEDTLS_SSL_VERSION_TLS1_3:
@@ -9086,12 +9094,12 @@ int mbedtls_ssl_export_traffic_keys(const mbedtls_ssl_context *ssl,
                 /* Derive TLS 1.3 traffic keys */
 
                 status = mbedtls_ssl_tls13_make_traffic_keys(mac_alg,
-                                                            client_secret,
-                                                            server_secret,
-                                                            hash_len,
-                                                            keys->key_len,
-                                                            keys->iv_len,
-                                                            keys);
+                                                             client_secret,
+                                                             server_secret,
+                                                             hash_len,
+                                                             keys->key_len,
+                                                             keys->iv_len,
+                                                             keys);
             }
 
             return (status == PSA_SUCCESS) ? 0 : MBEDTLS_ERR_SSL_INTERNAL_ERROR;
@@ -9201,8 +9209,8 @@ int mbedtls_ssl_export_traffic_keys(const mbedtls_ssl_context *ssl,
  * \brief Retrieve the current inbound and outbound sequence numbers.
  */
 void mbedtls_ssl_get_sequence_numbers(const mbedtls_ssl_context *ssl,
-                                             const unsigned char **in,
-                                             const unsigned char **out)
+                                      const unsigned char **in,
+                                      const unsigned char **out)
 {
     *in  = ssl->in_ctr;
     *out = ssl->cur_out_ctr;

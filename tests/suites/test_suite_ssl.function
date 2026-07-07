@@ -6560,10 +6560,22 @@ void test_export_traffic_keys(int tls_version,
     TEST_EQUAL(ret, expected_ret);
     TEST_EQUAL(cipher_type, expected_cipher_type);
 
-    TEST_MEMORY_COMPARE(key_set.server_write_key, key_set.key_len, expected_server_key->x, expected_server_key->len);
-    TEST_MEMORY_COMPARE(key_set.client_write_key, key_set.key_len, expected_client_key->x, expected_client_key->len);
-    TEST_MEMORY_COMPARE(key_set.server_write_iv, key_set.iv_len, expected_server_iv->x, expected_server_iv->len);
-    TEST_MEMORY_COMPARE(key_set.client_write_iv, key_set.iv_len, expected_client_iv->x, expected_client_iv->len);
+    TEST_MEMORY_COMPARE(key_set.server_write_key,
+                        key_set.key_len,
+                        expected_server_key->x,
+                        expected_server_key->len);
+    TEST_MEMORY_COMPARE(key_set.client_write_key,
+                        key_set.key_len,
+                        expected_client_key->x,
+                        expected_client_key->len);
+    TEST_MEMORY_COMPARE(key_set.server_write_iv,
+                        key_set.iv_len,
+                        expected_server_iv->x,
+                        expected_server_iv->len);
+    TEST_MEMORY_COMPARE(key_set.client_write_iv,
+                        key_set.iv_len,
+                        expected_client_iv->x,
+                        expected_client_iv->len);
 
     USE_PSA_DONE();
 }

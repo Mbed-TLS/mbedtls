@@ -1528,13 +1528,12 @@ int mbedtls_ssl_get_psa_curve_info_from_tls_id(uint16_t tls_id,
                                                size_t *bits);
 
 /**
- * \brief Return \c mbedtls_ecp_group_id for the specified TLS ID.
+ * \brief Tell if a TLS group ID is supported or not.
  *
- * \param tls_id    The TLS ID to look for
- * \return          Proper \c mbedtls_ecp_group_id if the TLS ID is supported,
- *                  or MBEDTLS_ECP_DP_NONE otherwise
+ * \param tls_id    The TLS ID to look for.
+ * \return          1 if specified TLS ID is supported, 0 otherwise.
  */
-mbedtls_ecp_group_id mbedtls_ssl_get_ecp_group_id_from_tls_id(uint16_t tls_id);
+int mbedtls_ssl_is_tls_id_supported(uint16_t tls_id);
 
 /**
  * \brief Return TLS ID for the specified \c mbedtls_ecp_group_id.
@@ -2249,8 +2248,7 @@ static inline int mbedtls_ssl_named_group_is_supported(uint16_t named_group)
 {
 #if defined(PSA_WANT_ALG_ECDH)
     if (mbedtls_ssl_tls13_named_group_is_ecdhe(named_group)) {
-        if (mbedtls_ssl_get_ecp_group_id_from_tls_id(named_group) !=
-            MBEDTLS_ECP_DP_NONE) {
+        if (mbedtls_ssl_is_tls_id_supported(named_group)) {
             return 1;
         }
     }

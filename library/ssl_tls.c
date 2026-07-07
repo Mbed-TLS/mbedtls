@@ -5865,15 +5865,15 @@ int mbedtls_ssl_get_psa_curve_info_from_tls_id(uint16_t tls_id,
     return PSA_ERROR_NOT_SUPPORTED;
 }
 
-mbedtls_ecp_group_id mbedtls_ssl_get_ecp_group_id_from_tls_id(uint16_t tls_id)
+int mbedtls_ssl_is_tls_id_supported(uint16_t tls_id)
 {
     for (int i = 0; tls_id_match_table[i].tls_id != 0; i++) {
         if (tls_id_match_table[i].tls_id == tls_id) {
-            return tls_id_match_table[i].ecp_group_id;
+            return 1;
         }
     }
 
-    return MBEDTLS_ECP_DP_NONE;
+    return 0;
 }
 
 uint16_t mbedtls_ssl_get_tls_id_from_ecp_group_id(mbedtls_ecp_group_id grp_id)

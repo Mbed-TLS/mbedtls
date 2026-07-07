@@ -5643,7 +5643,6 @@ int mbedtls_ssl_export_keying_material(mbedtls_ssl_context *ssl,
                                        const char *label, const size_t label_len,
                                        const unsigned char *context, const size_t context_len,
                                        const int use_context);
-#endif
 
 /**
  * \brief              Derive and export traffic keys and IVs for custom
@@ -5744,6 +5743,7 @@ int mbedtls_ssl_export_traffic_keys(const mbedtls_ssl_context *ssl,
 void mbedtls_ssl_get_sequence_numbers(const mbedtls_ssl_context *ssl,
                                       const unsigned char **in_seq,
                                       const unsigned char **out_seq);
+#endif /* defined(MBEDTLS_SSL_KEYING_MATERIAL_EXPORT) */
 
 #ifdef __cplusplus
 }

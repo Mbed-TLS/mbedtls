@@ -9076,26 +9076,32 @@ int mbedtls_ssl_export_traffic_keys(const mbedtls_ssl_context *ssl,
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
     if (version_number == MBEDTLS_SSL_VERSION_TLS1_3) {
-        /* Determine key and IV lengths based on the ciphersuite */
-        status = ssl_tls13_get_cipher_key_info(ciphersuite, &keys->key_len, &keys->iv_len);
+        const size_t expected = 2 * PSA_HASH_LENGTH(mac_alg);
 
-        if (status == PSA_SUCCESS) {
-            const size_t         hash_len      = secret_len / 2;
-            const unsigned char *client_secret = secret;
-            const unsigned char *server_secret = secret + hash_len;
+        if ((secret != NULL) && (secret_len == expected)) {
+            /* Determine key and IV lengths based on the ciphersuite */
+            status = ssl_tls13_get_cipher_key_info(ciphersuite, &keys->key_len, &keys->iv_len);
 
-            /* Derive TLS 1.3 traffic keys */
+            if (status == PSA_SUCCESS) {
+                const size_t         hash_len      = secret_len / 2;
+                const unsigned char *client_secret = secret;
+                const unsigned char *server_secret = secret + hash_len;
 
-            status = mbedtls_ssl_tls13_make_traffic_keys(mac_alg,
-                                                         client_secret,
-                                                         server_secret,
-                                                         hash_len,
-                                                         keys->key_len,
-                                                         keys->iv_len,
-                                                         keys);
+                /* Derive TLS 1.3 traffic keys */
+
+                status = mbedtls_ssl_tls13_make_traffic_keys(mac_alg,
+                                                            client_secret,
+                                                            server_secret,
+                                                            hash_len,
+                                                            keys->key_len,
+                                                            keys->iv_len,
+                                                            keys);
+            }
+
+            return (status == PSA_SUCCESS) ? 0 : MBEDTLS_ERR_SSL_INTERNAL_ERROR;
         }
 
-        return (status == PSA_SUCCESS) ? 0 : MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+        return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
     }
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
 

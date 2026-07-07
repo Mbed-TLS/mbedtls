@@ -5876,11 +5876,11 @@ int mbedtls_ssl_is_tls_id_supported(uint16_t tls_id)
     return 0;
 }
 
-uint16_t mbedtls_ssl_get_tls_id_from_ecp_group_id(mbedtls_ecp_group_id grp_id)
+uint16_t mbedtls_ssl_get_tls_id_from_curve_info(psa_ecc_family_t family, size_t bits)
 {
-    for (int i = 0; tls_id_match_table[i].ecp_group_id != MBEDTLS_ECP_DP_NONE;
-         i++) {
-        if (tls_id_match_table[i].ecp_group_id == grp_id) {
+    for (int i = 0; tls_id_match_table[i].tls_id != 0; i++) {
+        if ((tls_id_match_table[i].psa_family == family) &&
+            (tls_id_match_table[i].bits == bits)) {
             return tls_id_match_table[i].tls_id;
         }
     }

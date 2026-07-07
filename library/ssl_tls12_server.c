@@ -2497,8 +2497,7 @@ static int ssl_prepare_server_key_exchange(mbedtls_ssl_context *ssl,
          * However since we only support secp256r1 for now, we hardcode its
          * TLS ID here
          */
-        uint16_t tls_id = mbedtls_ssl_get_tls_id_from_ecp_group_id(
-            MBEDTLS_ECP_DP_SECP256R1);
+        uint16_t tls_id = mbedtls_ssl_get_tls_id_from_curve_info(PSA_ECC_FAMILY_SECP_R1, 256);
         if (tls_id == 0) {
             return MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE;
         }

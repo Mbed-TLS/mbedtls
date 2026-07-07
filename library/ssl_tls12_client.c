@@ -2325,6 +2325,8 @@ start_processing:
          * However since we only support secp256r1 for now, we check only
          * that TLS ID here
          */
+        MBEDTLS_SSL_CHK_BUF_READ_PTR(p, end, 3);
+
         uint16_t read_tls_id = MBEDTLS_GET_UINT16_BE(p, 1);
         uint16_t exp_tls_id = mbedtls_ssl_get_tls_id_from_ecp_group_id(
             MBEDTLS_ECP_DP_SECP256R1);
@@ -2952,7 +2954,7 @@ ecdh_calc_secret:
         if ((ret = mbedtls_ecdh_calc_secret(&ssl->handshake->ecdh_ctx,
                                             &ssl->handshake->pmslen,
                                             ssl->handshake->premaster,
-                                            MBEDTLS_MPI_MAX_SIZE,
+                                            MBEDTLS_PREMASTER_SIZE,
                                             ssl->conf->f_rng, ssl->conf->p_rng)) != 0) {
             MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ecdh_calc_secret", ret);
 #if defined(MBEDTLS_SSL_ECP_RESTARTABLE_ENABLED)
@@ -2992,11 +2994,16 @@ ecdh_calc_secret:
 
         /* uint16 to store content length */
         const size_t content_len_size = 2;
+        const size_t ecpoint_len_size = 1;
+        const size_t ecpoint_max_len =
+            PSA_EXPORT_PUBLIC_KEY_OUTPUT_SIZE(handshake->xxdh_psa_type,
+                                              handshake->xxdh_psa_bits);
 
         header_len = 4;
 
-        if (header_len + content_len_size + ssl->conf->psk_identity_len
-            > MBEDTLS_SSL_OUT_CONTENT_LEN) {
+        if (ecpoint_max_len > MBEDTLS_SSL_OUT_CONTENT_LEN - ecpoint_len_size ||
+            header_len + content_len_size + ssl->conf->psk_identity_len
+            > MBEDTLS_SSL_OUT_CONTENT_LEN - ecpoint_len_size - ecpoint_max_len) {
             MBEDTLS_SSL_DEBUG_MSG(1,
                                   ("psk identity too long or SSL buffer too short"));
             return MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL;

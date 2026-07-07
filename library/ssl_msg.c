@@ -3224,7 +3224,10 @@ static uint32_t ssl_get_hs_total_len(mbedtls_ssl_context const *ssl)
 
 int mbedtls_ssl_prepare_handshake_record(mbedtls_ssl_context *ssl)
 {
-    if (ssl->badmac_seen_or_in_hsfraglen == 0) {
+    /* Set handshake record length if this is the first fragment.
+     * Do it unconditionally for DTLS, for which handshake fragmentation
+     * is handled completely differently. */
+    if (mbedtls_ssl_get_in_hsfraglen(ssl) == 0) {
         /* The handshake message must at least include the header.
          * We may not have the full message yet in case of fragmentation.
          * To simplify the code, we insist on having the header (and in
@@ -3364,9 +3367,10 @@ int mbedtls_ssl_prepare_handshake_record(mbedtls_ssl_context *ssl)
             ssl->in_buf + MBEDTLS_SSL_SEQUENCE_NUMBER_LEN;
         unsigned char *const payload_start =
             reassembled_record_start + mbedtls_ssl_in_hdr_len(ssl);
-        unsigned char *payload_end = payload_start + ssl->badmac_seen_or_in_hsfraglen;
+        unsigned in_hsfraglen = mbedtls_ssl_get_in_hsfraglen(ssl);
+        unsigned char *payload_end = payload_start + in_hsfraglen;
         /* How many more bytes we want to have a complete handshake message. */
-        const size_t hs_remain = ssl->in_hslen - ssl->badmac_seen_or_in_hsfraglen;
+        const size_t hs_remain = ssl->in_hslen - in_hsfraglen;
         /* How many bytes of the current record are part of the first
          * handshake message. There may be more handshake messages (possibly
          * incomplete) in the same record; if so, we leave them after the
@@ -3379,15 +3383,12 @@ int mbedtls_ssl_prepare_handshake_record(mbedtls_ssl_context *ssl)
         MBEDTLS_SSL_DEBUG_MSG(3,
                               ("%s handshake fragment: %" MBEDTLS_PRINTF_SIZET
                                ", %u..%u of %" MBEDTLS_PRINTF_SIZET,
-                               (ssl->badmac_seen_or_in_hsfraglen != 0 ?
-                                "subsequent" :
-                                hs_this_fragment_len == ssl->in_hslen ?
-                                "sole" :
+                               (in_hsfraglen != 0 ? "subsequent" :
+                                hs_this_fragment_len == ssl->in_hslen ? "sole" :
                                 "initial"),
                                ssl->in_msglen,
-                               ssl->badmac_seen_or_in_hsfraglen,
-                               ssl->badmac_seen_or_in_hsfraglen +
-                               (unsigned) hs_this_fragment_len,
+                               in_hsfraglen,
+                               in_hsfraglen + (unsigned) hs_this_fragment_len,
                                ssl->in_hslen));
 
         /* Move the received handshake fragment to have the whole message
@@ -3417,20 +3418,25 @@ int mbedtls_ssl_prepare_handshake_record(mbedtls_ssl_context *ssl)
         }
         memmove(payload_end, ssl->in_msg, ssl->in_msglen);
 
-        ssl->badmac_seen_or_in_hsfraglen += (unsigned) ssl->in_msglen;
+        in_hsfraglen += (unsigned) ssl->in_msglen;
         payload_end += ssl->in_msglen;
 
-        if (ssl->badmac_seen_or_in_hsfraglen < ssl->in_hslen) {
+        if (in_hsfraglen < ssl->in_hslen) {
             MBEDTLS_SSL_DEBUG_MSG(3, ("Prepare: waiting for more handshake fragments "
                                       "%u/%" MBEDTLS_PRINTF_SIZET,
-                                      ssl->badmac_seen_or_in_hsfraglen, ssl->in_hslen));
+                                      in_hsfraglen, ssl->in_hslen));
             ssl->in_hdr = payload_end;
             ssl->in_msglen = 0;
+            if (mbedtls_ssl_set_in_hsfraglen(ssl, in_hsfraglen) != 0) {
+                return MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+            }
             mbedtls_ssl_update_in_pointers(ssl);
             return MBEDTLS_ERR_SSL_CONTINUE_PROCESSING;
         } else {
-            ssl->in_msglen = ssl->badmac_seen_or_in_hsfraglen;
-            ssl->badmac_seen_or_in_hsfraglen = 0;
+            ssl->in_msglen = in_hsfraglen;
+            if (mbedtls_ssl_set_in_hsfraglen(ssl, 0) != 0) {
+                return MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+            }
             ssl->in_hdr = reassembled_record_start;
             mbedtls_ssl_update_in_pointers(ssl);
 
@@ -4785,11 +4791,11 @@ static int ssl_consume_current_message(mbedtls_ssl_context *ssl)
             return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
         }
 
-        if (ssl->badmac_seen_or_in_hsfraglen != 0) {
+        if (mbedtls_ssl_get_in_hsfraglen(ssl) != 0) {
             /* Not all handshake fragments have arrived, do not consume. */
             MBEDTLS_SSL_DEBUG_MSG(3, ("Consume: waiting for more handshake fragments "
                                       "%u/%" MBEDTLS_PRINTF_SIZET,
-                                      ssl->badmac_seen_or_in_hsfraglen, ssl->in_hslen));
+                                      mbedtls_ssl_get_in_hsfraglen(ssl), ssl->in_hslen));
             return 0;
         }
 
@@ -5147,8 +5153,11 @@ static int ssl_get_next_record(mbedtls_ssl_context *ssl)
                 }
 
                 if (ssl->conf->badmac_limit != 0) {
-                    ++ssl->badmac_seen_or_in_hsfraglen;
-                    if (ssl->badmac_seen_or_in_hsfraglen >= ssl->conf->badmac_limit) {
+                    unsigned badmac_seen = mbedtls_ssl_get_badmac_seen(ssl) + 1;
+                    if (mbedtls_ssl_set_badmac_seen(ssl, badmac_seen) != 0) {
+                        return MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+                    }
+                    if (badmac_seen >= ssl->conf->badmac_limit) {
                         MBEDTLS_SSL_DEBUG_MSG(1, ("too many records with bad MAC"));
                         return MBEDTLS_ERR_SSL_INVALID_MAC;
                     }
@@ -5208,8 +5217,7 @@ int mbedtls_ssl_handle_message_type(mbedtls_ssl_context *ssl)
      * we don't accept any other message type. For TLS 1.3, the spec forbids
      * interleaving other message types between handshake fragments. For TLS
      * 1.2, the spec does not forbid it but we do. */
-    if (ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_STREAM &&
-        ssl->badmac_seen_or_in_hsfraglen != 0 &&
+    if (mbedtls_ssl_get_in_hsfraglen(ssl) != 0 &&
         ssl->in_msgtype != MBEDTLS_SSL_MSG_HANDSHAKE) {
         MBEDTLS_SSL_DEBUG_MSG(1, ("non-handshake message in the middle"
                                   " of a fragmented handshake message"));

@@ -930,6 +930,15 @@ int mbedtls_pk_sign_restartable(mbedtls_pk_context *ctx,
 /**
  * \brief           Decrypt message (including padding if relevant).
  *
+ * \warning         When using PKCS#1 v1.5 (see note below), this is an
+ *                  inherently dangerous function (CWE-242) and the return value
+ *                  is sensitive, see mbedtls_rsa_rsaes_pkcs1_v15_decrypt().
+ *
+ * \note            For keys of type #MBEDTLS_PK_RSA, the encryption algorithm is
+ *                  either PKCS#1 v1.5 or OAEP, depending on the padding mode in
+ *                  the underlying RSA context. For a pk object constructed by
+ *                  parsing, this is PKCS#1 v1.5 by default.
+ *
  * \param ctx       The PK context to use. It must have been set up
  *                  with a private key.
  * \param input     Input to decrypt
@@ -939,11 +948,6 @@ int mbedtls_pk_sign_restartable(mbedtls_pk_context *ctx,
  * \param osize     Size of the output buffer
  * \param f_rng     RNG function, must not be \c NULL.
  * \param p_rng     RNG parameter
- *
- * \note            For keys of type #MBEDTLS_PK_RSA, the signature algorithm is
- *                  either PKCS#1 v1.5 or OAEP, depending on the padding mode in
- *                  the underlying RSA context. For a pk object constructed by
- *                  parsing, this is PKCS#1 v1.5 by default.
  *
  * \return          0 on success, or a specific error code.
  */

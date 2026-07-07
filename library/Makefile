@@ -131,7 +131,6 @@ OBJS_CRYPTO= \
 	     ecjpake.o \
 	     ecp.o \
 	     ecp_curves.o \
-	     ecp_curves_new.o \
 	     entropy.o \
 	     entropy_poll.o \
 	     error.o \
@@ -346,7 +345,7 @@ libmbedcrypto.dll: $(OBJS_CRYPTO)
 generated_files: $(GENERATED_FILES)
 
 # See root Makefile
-GEN_FILES ?= yes
+GEN_FILES ?=
 ifdef GEN_FILES
 gen_file_dep =
 else

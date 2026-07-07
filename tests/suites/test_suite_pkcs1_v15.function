@@ -1,6 +1,39 @@
 /* BEGIN_HEADER */
 #include "mbedtls/rsa.h"
 #include "mbedtls/md.h"
+#include "rsa_internal.h"
+#include <test/constant_flow.h>
+
+#if defined(MBEDTLS_TEST_HOOKS) && !defined(MBEDTLS_RSA_ALT)
+static void pkcs1_v15_decode_raw(const unsigned char *input,
+                                 size_t input_size,
+                                 size_t output_size,
+                                 int expected_result,
+                                 size_t expected_plaintext_length)
+{
+    unsigned char *input_buf = NULL;
+    unsigned char *output_buf = NULL;
+    size_t olen = 0;
+
+    TEST_CALLOC(output_buf, output_size);
+
+    TEST_CALLOC(input_buf, input_size);
+    memcpy(input_buf, input, input_size);
+
+    TEST_CF_SECRET(input_buf, input_size);
+    TEST_EQUAL(expected_result,
+               mbedtls_ct_rsaes_pkcs1_v15_unpadding(
+                   input_buf, input_size,
+                   output_buf, output_size, &olen));
+    if (expected_result == 0) {
+        TEST_EQUAL(expected_plaintext_length, olen);
+    }
+
+exit:
+    mbedtls_free(input_buf);
+    mbedtls_free(output_buf);
+}
+#endif /* MBEDTLS_TEST_HOOKS && !MBEDTLS_RSA_ALT */
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -121,6 +154,47 @@ exit:
     mbedtls_mpi_free(&N); mbedtls_mpi_free(&P);
     mbedtls_mpi_free(&Q); mbedtls_mpi_free(&E);
     mbedtls_rsa_free(&ctx);
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void rsa_decrypt_decompose_ret(int input,
+                               int expected_ret, int expected_problem)
+{
+    const int sensitive_in_1 = -1;
+    const int sensitive_in_2 = -2;
+    const int problem_1 = -11;
+    const int problem_2 = -12;
+
+    int combined_ret = input;
+    TEST_CF_SECRET(&combined_ret, sizeof(combined_ret));
+    int actual_problem = 42;
+    TEST_CF_SECRET(&actual_problem, sizeof(actual_problem));
+
+    int actual_ret = mbedtls_rsa_decrypt_decompose_ret(sensitive_in_1, problem_1,
+                                                       sensitive_in_2, problem_2,
+                                                       combined_ret,
+                                                       &actual_problem);
+
+    TEST_EQUAL(actual_problem, expected_problem);
+    TEST_EQUAL(actual_ret, expected_ret);
+
+    /* Check invariant when there's no translation, only separation */
+    actual_ret = mbedtls_rsa_decrypt_decompose_ret(sensitive_in_1, sensitive_in_1,
+                                                   sensitive_in_2, sensitive_in_2,
+                                                   combined_ret,
+                                                   &actual_problem);
+    TEST_EQUAL(actual_ret, expected_ret);
+    if (expected_problem == problem_1) {
+        TEST_EQUAL(actual_problem, sensitive_in_1);
+    } else if (expected_problem == problem_2) {
+        TEST_EQUAL(actual_problem, sensitive_in_2);
+    } else {
+        TEST_EQUAL(actual_problem, 0);
+    }
+    TEST_CF_PUBLIC(&actual_problem, sizeof(actual_problem));
+    TEST_CF_PUBLIC(&combined_ret, sizeof(combined_ret));
+    TEST_EQUAL(actual_problem | actual_ret, combined_ret);
 }
 /* END_CASE */
 
@@ -257,12 +331,18 @@ void pkcs1_v15_decode(data_t *input,
         TEST_ASSERT(count < 16);
     }
 
+#if defined(MBEDTLS_TEST_HOOKS) && !defined(MBEDTLS_RSA_ALT)
+    pkcs1_v15_decode_raw(original, sizeof(original), output_size,
+                         expected_result, expected_plaintext_length);
+#endif
+
 exit:
     mbedtls_mpi_free(&Nmpi); mbedtls_mpi_free(&Empi);
     mbedtls_mpi_free(&Pmpi); mbedtls_mpi_free(&Qmpi);
     mbedtls_rsa_free(&ctx);
 }
 /* END_CASE */
+
 
 /* BEGIN_CASE */
 void pkcs1_rsassa_v15_sign(int mod, char *input_P,

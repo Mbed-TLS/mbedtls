@@ -5793,22 +5793,6 @@ int mbedtls_ssl_check_curve_tls_id(const mbedtls_ssl_context *ssl, uint16_t tls_
     return -1;
 }
 
-#if defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
-/*
- * Same as mbedtls_ssl_check_curve_tls_id() but with a mbedtls_ecp_group_id.
- */
-int mbedtls_ssl_check_curve(const mbedtls_ssl_context *ssl, mbedtls_ecp_group_id grp_id)
-{
-    uint16_t tls_id = mbedtls_ssl_get_tls_id_from_ecp_group_id(grp_id);
-
-    if (tls_id == 0) {
-        return -1;
-    }
-
-    return mbedtls_ssl_check_curve_tls_id(ssl, tls_id);
-}
-#endif /* PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY */
-
 static const struct {
     uint16_t tls_id;
     mbedtls_ecp_group_id ecp_group_id;
@@ -8828,7 +8812,12 @@ int mbedtls_ssl_verify_certificate(mbedtls_ssl_context *ssl,
     defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
     if (ssl->tls_version == MBEDTLS_SSL_VERSION_TLS1_2 &&
         PSA_KEY_TYPE_IS_ECC(mbedtls_pk_get_type(&chain->pk))) {
-        if (mbedtls_ssl_check_curve(ssl, mbedtls_pk_get_ec_group_id(&chain->pk)) != 0) {
+        psa_key_type_t key_type = mbedtls_pk_get_type(&chain->pk);
+        psa_ecc_family_t ec_family = PSA_KEY_TYPE_ECC_GET_FAMILY(key_type);
+        size_t bits = mbedtls_pk_get_bitlen(&chain->pk);
+        int tls_id = mbedtls_ssl_get_tls_id_from_curve_info(ec_family, bits);
+
+        if (mbedtls_ssl_check_curve_tls_id(ssl, tls_id) != 0) {
             MBEDTLS_SSL_DEBUG_MSG(1, ("bad certificate (EC key curve)"));
             ssl->session_negotiate->verify_result |= MBEDTLS_X509_BADCERT_BAD_KEY;
             if (ret == 0) {

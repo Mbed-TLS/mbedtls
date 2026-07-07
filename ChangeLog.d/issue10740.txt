@@ -1,3 +1,0 @@
-Bugfix
-   * Fixed a bug which prevented the inclusion of standard C library header
-     files from the user provided configuration file. Fixes #10740.

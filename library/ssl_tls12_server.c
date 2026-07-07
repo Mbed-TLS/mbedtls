@@ -219,8 +219,7 @@ static int ssl_parse_supported_groups_ext(mbedtls_ssl_context *ssl,
     while (list_size > 0 && our_size > 1) {
         uint16_t curr_tls_id = MBEDTLS_GET_UINT16_BE(p, 0);
 
-        if (mbedtls_ssl_get_ecp_group_id_from_tls_id(curr_tls_id) !=
-            MBEDTLS_ECP_DP_NONE) {
+        if (mbedtls_ssl_is_tls_id_supported(curr_tls_id)) {
             *curves_tls_id++ = curr_tls_id;
             our_size--;
         }
@@ -630,12 +629,24 @@ static int ssl_check_key_curve(mbedtls_pk_context *pk,
                                uint16_t *curves_tls_id)
 {
     uint16_t *curr_tls_id = curves_tls_id;
-    mbedtls_ecp_group_id grp_id = mbedtls_pk_get_ec_group_id(pk);
-    mbedtls_ecp_group_id curr_grp_id;
+    psa_key_type_t key_type = mbedtls_pk_get_type(pk);
+    size_t key_bits = mbedtls_pk_get_bitlen(pk);
+    psa_key_type_t curr_key_type;
+    size_t curr_key_bits;
+    psa_status_t status;
 
     while (*curr_tls_id != 0) {
-        curr_grp_id = mbedtls_ssl_get_ecp_group_id_from_tls_id(*curr_tls_id);
-        if (curr_grp_id == grp_id) {
+        status = mbedtls_ssl_get_psa_curve_info_from_tls_id(*curr_tls_id,
+                                                            &curr_key_type, &curr_key_bits);
+        if (status != PSA_SUCCESS) {
+            /* This TLS group ID is not supported. Move to the next one. */
+            curr_tls_id++;
+            continue;
+        }
+        /* Check if EC family type and key bits for the current TLS group ID are the
+         * same as the ones in the provided PK context. */
+        if ((PSA_KEY_TYPE_ECC_GET_FAMILY(key_type) == PSA_KEY_TYPE_ECC_GET_FAMILY(curr_key_type)) &&
+            (key_bits == curr_key_bits)) {
             return 0;
         }
         curr_tls_id++;

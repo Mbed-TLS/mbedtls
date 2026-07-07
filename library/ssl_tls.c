@@ -9063,6 +9063,10 @@ int mbedtls_ssl_export_traffic_keys(const mbedtls_ssl_context *ssl,
 
     const mbedtls_ssl_ciphersuite_t *ciphersuite = mbedtls_ssl_ciphersuite_from_id(ciphersuite_id);
 
+    if (ciphersuite == NULL) {
+        return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
+    }
+
     /* Map MbedTLS MAC type to PSA algorithm */
     const psa_algorithm_t mac_alg =
         mbedtls_md_psa_alg_from_type((mbedtls_md_type_t) ciphersuite->mac);

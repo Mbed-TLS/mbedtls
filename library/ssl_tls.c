@@ -5871,6 +5871,11 @@ uint16_t mbedtls_ssl_get_tls_id_from_curve_info(psa_ecc_family_t family, size_t 
     return 0;
 }
 
+size_t mbedtls_ssl_get_supported_tls_id_count(void)
+{
+    return ARRAY_LENGTH(tls_id_match_table);
+}
+
 #if defined(MBEDTLS_DEBUG_C)
 mbedtls_ssl_iana_tls_group_info_t mbedtls_ssl_iana_tls_group_info[] =
     MBEDTLS_SSL_IANA_TLS_GROUPS_INFO;

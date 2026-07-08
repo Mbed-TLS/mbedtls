@@ -1,3 +1,4 @@
 Bugfix
    * Fix PKCS7 parsing so that it is able to deal with and empty
-     digestAlgorithm.
+     digestAlgorithm. The system will now alwys pass the digest algorithm,
+     though if it is not support is will fail later in verification.

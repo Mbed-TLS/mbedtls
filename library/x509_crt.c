@@ -2911,19 +2911,14 @@ static int x509_crt_check_cn(const mbedtls_x509_buf *name,
 
 /*
  * Check for SAN match, see RFC 5280 Section 4.2.1.6
+ *
+ * If cn_type is IP, then cn must contain the binary representation of the
+ * address, and cn_len the number of bytes (4 for IPv4, 16 for IPv6).
+ * Otherwise, cn is what was passed by the user.
  */
 static int x509_crt_check_san(const mbedtls_x509_sequence *san,
                               const char *cn, size_t cn_len, int cn_type)
 {
-    uint32_t ip[4];
-    size_t ip_len;
-    if (cn_type == MBEDTLS_X509_SAN_IP_ADDRESS) {
-        ip_len = mbedtls_x509_crt_parse_cn_inet_pton(cn, ip);
-        if (ip_len == 0) {
-            return -1;
-        }
-    }
-
     for (const mbedtls_x509_sequence *cur = san; cur != NULL; cur = cur->next) {
         /* Only consider SAN entries of the expected type */
         int san_type = cur->buf.tag & MBEDTLS_ASN1_TAG_VALUE_MASK;
@@ -2940,13 +2935,8 @@ static int x509_crt_check_san(const mbedtls_x509_sequence *san,
                 }
                 break;
             case MBEDTLS_X509_SAN_IP_ADDRESS:
-                /* IP: exact match according to RFC 9125 */
-                if (cur->buf.len == ip_len &&
-                    memcmp(cur->buf.p, ip, ip_len) == 0) {
-                    return 0;
-                }
-                break;
             case MBEDTLS_X509_SAN_UNIFORM_RESOURCE_IDENTIFIER:
+                /* IP: exact match according to RFC 9125 */
                 /* URL: exact match for now according to our documentation */
                 if (cur->buf.len == cn_len &&
                     memcmp(cur->buf.p, cn, cn_len) == 0) {
@@ -2968,14 +2958,16 @@ static int x509_crt_check_san(const mbedtls_x509_sequence *san,
  *
  * This takes advantage of the fact that the sets of permissible values for
  * these types are disjoint.
+ *
+ * If the type is found to be IP, also return the IP as bytes.
  */
-static int x509_crt_infer_name_type(const char *cn, size_t cn_len)
+static int x509_crt_infer_name_type(const char *cn, size_t cn_len,
+                                    void *ip, size_t *ip_len)
 {
     /* Check IP first, this avoids mistaking an IPv4 adress for a DNS name.
      * It is also the only format for which we have an actual parser */
-    uint32_t ip[4];
-    size_t ip_len = mbedtls_x509_crt_parse_cn_inet_pton(cn, ip);
-    if (ip_len != 0) {
+    *ip_len = mbedtls_x509_crt_parse_cn_inet_pton(cn, ip);
+    if (*ip_len != 0) {
         return MBEDTLS_X509_SAN_IP_ADDRESS;
     }
 
@@ -3010,8 +3002,15 @@ static void x509_crt_verify_name(const mbedtls_x509_crt *crt,
 {
     const mbedtls_x509_name *name;
     size_t cn_len = strlen(cn);
+    uint32_t ip[4]; /* 16 bytes is enough for both IPv6 and IPv4 */
+    size_t ip_len;
 
-    int name_type = x509_crt_infer_name_type(cn, cn_len);
+    int name_type = x509_crt_infer_name_type(cn, cn_len, ip, &ip_len);
+
+    if (name_type == MBEDTLS_X509_SAN_IP_ADDRESS) {
+        cn = (const char *) ip;
+        cn_len = ip_len;
+    }
 
     if (crt->ext_types & MBEDTLS_X509_EXT_SUBJECT_ALT_NAME) {
         if (x509_crt_check_san(&crt->subject_alt_names,

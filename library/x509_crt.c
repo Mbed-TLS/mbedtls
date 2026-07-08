@@ -265,8 +265,11 @@ static int x509_memcasecmp(const void *s1, const void *s2, size_t len)
 
 /*
  * Return 0 if name matches wildcard, -1 otherwise
+ *
+ * Follow RFC 9525: the wildcard can only be the entirety of the leftmost label.
+ * (Note: RFC 6125 was more lenient, but too complex for our own good.)
  */
-static int x509_check_wildcard(const char *cn, const mbedtls_x509_buf *name)
+static int x509_check_dns_wildcard(const char *cn, const mbedtls_x509_buf *name)
 {
     size_t i;
     size_t cn_idx = 0, cn_len = strlen(cn);
@@ -276,6 +279,7 @@ static int x509_check_wildcard(const char *cn, const mbedtls_x509_buf *name)
         return -1;
     }
 
+    /* Find the first dot. This ensures the wildcard only matches one label. */
     for (i = 0; i < cn_len; ++i) {
         if (cn[i] == '.') {
             cn_idx = i;
@@ -2861,19 +2865,19 @@ size_t mbedtls_x509_crt_parse_cn_inet_pton(const char *cn, void *dst)
 }
 
 /*
- * Check for CN match
+ * Check for DNS hostname match
  */
-static int x509_crt_check_cn(const mbedtls_x509_buf *name,
-                             const char *cn, size_t cn_len)
+static int x509_crt_check_dns_name(const mbedtls_x509_buf *name,
+                                   const char *cn, size_t cn_len)
 {
-    /* try exact match */
+    /* try exact match, case-insensitive (RFC 6125 or 9525) */
     if (name->len == cn_len &&
         x509_memcasecmp(cn, name->p, cn_len) == 0) {
         return 0;
     }
 
     /* try wildcard match */
-    if (x509_check_wildcard(cn, name) == 0) {
+    if (x509_check_dns_wildcard(cn, name) == 0) {
         return 0;
     }
 
@@ -2901,13 +2905,13 @@ static int x509_crt_check_san(const mbedtls_x509_sequence *san,
         switch (cn_type) {
             case MBEDTLS_X509_SAN_DNS_NAME:
                 /* DNS: special rules */
-                if (x509_crt_check_cn(&cur->buf, cn, cn_len) == 0) {
+                if (x509_crt_check_dns_name(&cur->buf, cn, cn_len) == 0) {
                     return 0;
                 }
                 break;
             case MBEDTLS_X509_SAN_IP_ADDRESS:
             case MBEDTLS_X509_SAN_UNIFORM_RESOURCE_IDENTIFIER:
-                /* IP: exact match according to RFC 9125 */
+                /* IP: exact match according to RFC 9525 */
                 /* URL: exact match for now according to our documentation */
                 if (cur->buf.len == cn_len &&
                     memcmp(cur->buf.p, cn, cn_len) == 0) {
@@ -2935,7 +2939,7 @@ static int x509_crt_check_san(const mbedtls_x509_sequence *san,
 static int x509_crt_infer_name_type(const char *cn, size_t cn_len,
                                     void *ip, size_t *ip_len)
 {
-    /* Check IP first, this avoids mistaking an IPv4 adress for a DNS name.
+    /* Check IP first, this avoids mistaking an IPv4 address for a DNS name.
      * It is also the only format for which we have an actual parser */
     *ip_len = mbedtls_x509_crt_parse_cn_inet_pton(cn, ip);
     if (*ip_len != 0) {
@@ -2991,7 +2995,7 @@ static void x509_crt_verify_name(const mbedtls_x509_crt *crt,
     } else if (name_type == MBEDTLS_X509_SAN_DNS_NAME) {
         for (name = &crt->subject; name != NULL; name = name->next) {
             if (MBEDTLS_OID_CMP(MBEDTLS_OID_AT_CN, &name->oid) == 0 &&
-                x509_crt_check_cn(&name->val, cn, cn_len) == 0) {
+                x509_crt_check_dns_name(&name->val, cn, cn_len) == 0) {
                 return;
             }
         }

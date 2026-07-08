@@ -2987,6 +2987,45 @@ static int x509_crt_check_san(const mbedtls_x509_sequence *san,
 }
 
 /*
+ * Infer the type of CN (as MBEDTLS_X509_SAN_xxx macro) based on its value.
+ * Currently supported: IP (v4 or v6), URI, DNS (default).
+ *
+ * This takes advantage of the fact that the sets of permissible values for
+ * these types are disjoint.
+ */
+static int x509_crt_infer_name_type(const char *cn, size_t cn_len)
+{
+    /* Check IP first, this avoids mistaking an IPv4 adress for a DNS name.
+     * It is also the only format for which we have an actual parser */
+    uint32_t ip[4];
+    size_t ip_len = mbedtls_x509_crt_parse_cn_inet_pton(cn, ip);
+    if (ip_len != 0) {
+        return MBEDTLS_X509_SAN_IP_ADDRESS;
+    }
+
+    /* Then try URI. Since we've already ruled out IPv6 addresses, use the
+     * presence of a colon as a heuristic (we don't want a full URI parser).
+     *
+     * RFC 5280 4.1.2.6 URIs are as specified by RFC 3986, whose App. A says:
+     * URI           = scheme ":" hier-part [ "?" query ] [ "#" fragment ]
+     * so we know a URI always contain a colon.
+     *
+     * RFC 5280 4.1.2.6 says DNS names are as specified by Section 3.5 of
+     * RFC1034 and as modified by Section 2.1 of RFC1123, in particular they
+     * consist entirely of ASCII letters, digits, hyphen, and dot,
+     * so we know a DNS name never contains a colon.
+     */
+    for (size_t i = 0; i < cn_len; i++) {
+        if (cn[i] == ':') {
+            return MBEDTLS_X509_SAN_UNIFORM_RESOURCE_IDENTIFIER;
+        }
+    }
+
+    /* Default to DNS (historically the only option) */
+    return MBEDTLS_X509_SAN_DNS_NAME;
+}
+
+/*
  * Verify the requested CN - only call this if cn is not NULL!
  */
 static void x509_crt_verify_name(const mbedtls_x509_crt *crt,
@@ -2996,18 +3035,19 @@ static void x509_crt_verify_name(const mbedtls_x509_crt *crt,
     const mbedtls_x509_name *name;
     size_t cn_len = strlen(cn);
 
+    int name_type = x509_crt_infer_name_type(cn, cn_len);
+
     if (crt->ext_types & MBEDTLS_X509_EXT_SUBJECT_ALT_NAME) {
         if (x509_crt_check_san(&crt->subject_alt_names, cn, cn_len) == 0) {
             return;
         }
-    } else {
+    } else if (name_type == MBEDTLS_X509_SAN_DNS_NAME) {
         for (name = &crt->subject; name != NULL; name = name->next) {
             if (MBEDTLS_OID_CMP(MBEDTLS_OID_AT_CN, &name->oid) == 0 &&
                 x509_crt_check_cn(&name->val, cn, cn_len) == 0) {
                 return;
             }
         }
-
     }
 
     *flags |= MBEDTLS_X509_BADCERT_CN_MISMATCH;

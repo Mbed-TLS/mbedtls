@@ -2880,77 +2880,53 @@ static int x509_crt_check_cn(const mbedtls_x509_buf *name,
     return -1;
 }
 
-static int x509_crt_check_san_ip(const mbedtls_x509_sequence *san,
-                                 const char *cn, size_t cn_len)
-{
-    uint32_t ip[4];
-    cn_len = mbedtls_x509_crt_parse_cn_inet_pton(cn, ip);
-    if (cn_len == 0) {
-        return -1;
-    }
-
-    for (const mbedtls_x509_sequence *cur = san; cur != NULL; cur = cur->next) {
-        const unsigned char san_type = (unsigned char) cur->buf.tag &
-                                       MBEDTLS_ASN1_TAG_VALUE_MASK;
-        if (san_type == MBEDTLS_X509_SAN_IP_ADDRESS &&
-            cur->buf.len == cn_len && memcmp(cur->buf.p, ip, cn_len) == 0) {
-            return 0;
-        }
-    }
-
-    return -1;
-}
-
-static int x509_crt_check_san_uri(const mbedtls_x509_sequence *san,
-                                  const char *cn, size_t cn_len)
-{
-    for (const mbedtls_x509_sequence *cur = san; cur != NULL; cur = cur->next) {
-        const unsigned char san_type = (unsigned char) cur->buf.tag &
-                                       MBEDTLS_ASN1_TAG_VALUE_MASK;
-        if (san_type == MBEDTLS_X509_SAN_UNIFORM_RESOURCE_IDENTIFIER &&
-            cur->buf.len == cn_len && memcmp(cur->buf.p, cn, cn_len) == 0) {
-            return 0;
-        }
-    }
-
-    return -1;
-}
-
 /*
  * Check for SAN match, see RFC 5280 Section 4.2.1.6
  */
 static int x509_crt_check_san(const mbedtls_x509_sequence *san,
-                              const char *cn, size_t cn_len)
+                              const char *cn, size_t cn_len, int cn_type)
 {
-    int san_ip = 0;
-    int san_uri = 0;
-    /* Prioritize DNS name over other subtypes due to popularity */
+    uint32_t ip[4];
+    size_t ip_len;
+    if (cn_type == MBEDTLS_X509_SAN_IP_ADDRESS) {
+        ip_len = mbedtls_x509_crt_parse_cn_inet_pton(cn, ip);
+        if (ip_len == 0) {
+            return -1;
+        }
+    }
+
     for (const mbedtls_x509_sequence *cur = san; cur != NULL; cur = cur->next) {
-        switch ((unsigned char) cur->buf.tag & MBEDTLS_ASN1_TAG_VALUE_MASK) {
+        /* Only consider SAN entries of the expected type */
+        int san_type = cur->buf.tag & MBEDTLS_ASN1_TAG_VALUE_MASK;
+        if (san_type != cn_type) {
+            continue;
+        }
+
+        /* Check according to type */
+        switch (cn_type) {
             case MBEDTLS_X509_SAN_DNS_NAME:
+                /* DNS: special rules */
                 if (x509_crt_check_cn(&cur->buf, cn, cn_len) == 0) {
                     return 0;
                 }
                 break;
             case MBEDTLS_X509_SAN_IP_ADDRESS:
-                san_ip = 1;
+                /* IP: exact match according to RFC 9125 */
+                if (cur->buf.len == ip_len &&
+                    memcmp(cur->buf.p, ip, ip_len) == 0) {
+                    return 0;
+                }
                 break;
             case MBEDTLS_X509_SAN_UNIFORM_RESOURCE_IDENTIFIER:
-                san_uri = 1;
+                /* URL: exact match for now according to our documentation */
+                if (cur->buf.len == cn_len &&
+                    memcmp(cur->buf.p, cn, cn_len) == 0) {
+                    return 0;
+                }
                 break;
             /* (We may handle other types here later.) */
             default: /* Unrecognized type */
                 break;
-        }
-    }
-    if (san_ip) {
-        if (x509_crt_check_san_ip(san, cn, cn_len) == 0) {
-            return 0;
-        }
-    }
-    if (san_uri) {
-        if (x509_crt_check_san_uri(san, cn, cn_len) == 0) {
-            return 0;
         }
     }
 
@@ -3009,7 +2985,8 @@ static void x509_crt_verify_name(const mbedtls_x509_crt *crt,
     int name_type = x509_crt_infer_name_type(cn, cn_len);
 
     if (crt->ext_types & MBEDTLS_X509_EXT_SUBJECT_ALT_NAME) {
-        if (x509_crt_check_san(&crt->subject_alt_names, cn, cn_len) == 0) {
+        if (x509_crt_check_san(&crt->subject_alt_names,
+                               cn, cn_len, name_type) == 0) {
             return;
         }
     } else if (name_type == MBEDTLS_X509_SAN_DNS_NAME) {

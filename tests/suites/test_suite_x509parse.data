@@ -703,15 +703,23 @@ X509 CRT verification #19 (Not trusted Cert, allowing callback)
 depends_on:MBEDTLS_PEM_PARSE_C:PSA_HAVE_ALG_SOME_RSA_VERIFY:PSA_WANT_ALG_SHA_1
 x509_verify:"../framework/data_files/server2.crt":"../framework/data_files/server1.crt":"../framework/data_files/crl_expired.pem":"NULL":0:0:"compat":"verify_all"
 
+# cert has Subject: C = NL, O = PolarSSL, CN = *.example.com and no SAN
 X509 CRT verification #21 (domain matching wildcard certificate, case insensitive)
 depends_on:MBEDTLS_PEM_PARSE_C:PSA_WANT_ALG_SHA_1:PSA_HAVE_ALG_RSA_PKCS1V15_VERIFY
 x509_verify:"../framework/data_files/cert_example_wildcard.crt":"../framework/data_files/test-ca.crt":"../framework/data_files/crl.pem":"mail.ExAmPlE.com":0:0:"compat":"NULL"
 
-X509 CRT verification #22 (domain not matching wildcard certificate)
+# cert has Subject: C = NL, O = PolarSSL, CN = *.example.com and no SAN
+X509 CRT verification #22 (domain not matching wildcard certificate: wrong TLD)
 depends_on:MBEDTLS_PEM_PARSE_C:PSA_WANT_ALG_SHA_1:PSA_HAVE_ALG_RSA_PKCS1V15_VERIFY
 x509_verify:"../framework/data_files/cert_example_wildcard.crt":"../framework/data_files/test-ca.crt":"../framework/data_files/crl.pem":"mail.example.net":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_CN_MISMATCH:"compat":"NULL"
 
-X509 CRT verification #23 (domain not matching wildcard certificate)
+# cert has Subject: C = NL, O = PolarSSL, CN = *.example.com and no SAN
+X509 CRT verification #22a (domain not matching wildcard certificate: two labels)
+depends_on:MBEDTLS_PEM_PARSE_C:PSA_WANT_ALG_SHA_1:PSA_HAVE_ALG_RSA_PKCS1V15_VERIFY
+x509_verify:"../framework/data_files/cert_example_wildcard.crt":"../framework/data_files/test-ca.crt":"../framework/data_files/crl.pem":"foo.bar.example.com":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_CN_MISMATCH:"compat":"NULL"
+
+# cert has Subject: C = NL, O = PolarSSL, CN = *.example.com and no SAN
+X509 CRT verification #23 (domain not matching wildcard certificate: no label to match)
 depends_on:MBEDTLS_PEM_PARSE_C:PSA_WANT_ALG_SHA_1:PSA_HAVE_ALG_RSA_PKCS1V15_VERIFY
 x509_verify:"../framework/data_files/cert_example_wildcard.crt":"../framework/data_files/test-ca.crt":"../framework/data_files/crl.pem":"example.com":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_CN_MISMATCH:"compat":"NULL"
 

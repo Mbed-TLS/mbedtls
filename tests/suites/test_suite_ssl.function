@@ -6520,8 +6520,8 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
-void test_export_traffic_keys(int tls_version,
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_KEYING_MATERIAL_EXPORT */
+void export_traffic_keys(int tls_version,
                               int ciphersuite,
                               int expected_cipher_type,
                               int tls_prf_type,

@@ -29,10 +29,6 @@
 /** Invalid input parameter(s). */
 #define MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA         -0x0057
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #if !defined(MBEDTLS_POLY1305_ALT)
 
 typedef struct mbedtls_poly1305_context {
@@ -47,6 +43,10 @@ mbedtls_poly1305_context;
 #else  /* MBEDTLS_POLY1305_ALT */
 #include "poly1305_alt.h"
 #endif /* MBEDTLS_POLY1305_ALT */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * \brief           This function initializes the specified Poly1305 context.

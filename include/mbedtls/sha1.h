@@ -26,10 +26,6 @@
 /** SHA-1 input data was malformed. */
 #define MBEDTLS_ERR_SHA1_BAD_INPUT_DATA                   -0x0073
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #if !defined(MBEDTLS_SHA1_ALT)
 // Regular implementation
 //
@@ -52,6 +48,10 @@ mbedtls_sha1_context;
 #else  /* MBEDTLS_SHA1_ALT */
 #include "sha1_alt.h"
 #endif /* MBEDTLS_SHA1_ALT */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * \brief          This function initializes a SHA-1 context.

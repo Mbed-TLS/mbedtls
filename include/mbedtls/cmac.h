@@ -20,10 +20,6 @@
 
 #include "mbedtls/cipher.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #define MBEDTLS_AES_BLOCK_SIZE          16
 #define MBEDTLS_DES3_BLOCK_SIZE         8
 
@@ -71,6 +67,10 @@ struct mbedtls_cmac_context_t {
 #else  /* !MBEDTLS_CMAC_ALT */
 #include "cmac_alt.h"
 #endif /* !MBEDTLS_CMAC_ALT */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * \brief               This function starts a new CMAC computation

@@ -31,10 +31,6 @@
 /**@}*/
 #endif /* __DOXYGEN_ONLY__ */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* The file "crypto_types.h" declares types that encode errors,
  * algorithms, key types, policies, etc. */
 #include "crypto_types.h"
@@ -69,6 +65,10 @@ extern "C" {
 #include MBEDTLS_PSA_CRYPTO_STRUCT_FILE
 #else
 #include "crypto_struct.h"
+#endif
+
+#ifdef __cplusplus
+extern "C" {
 #endif
 
 /** \defgroup initialization Library initialization

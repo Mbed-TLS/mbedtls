@@ -31,10 +31,6 @@
 /** Authenticated decryption failed: data was not authentic. */
 #define MBEDTLS_ERR_CHACHAPOLY_AUTH_FAILED          -0x0056
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 typedef enum {
     MBEDTLS_CHACHAPOLY_ENCRYPT,     /**< The mode value for performing encryption. */
     MBEDTLS_CHACHAPOLY_DECRYPT      /**< The mode value for performing decryption. */
@@ -58,6 +54,10 @@ mbedtls_chachapoly_context;
 #else /* !MBEDTLS_CHACHAPOLY_ALT */
 #include "chachapoly_alt.h"
 #endif /* !MBEDTLS_CHACHAPOLY_ALT */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * \brief           This function initializes the specified ChaCha20-Poly1305 context.

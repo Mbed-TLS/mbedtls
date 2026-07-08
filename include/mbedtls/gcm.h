@@ -40,10 +40,6 @@
 /** An output buffer is too small. */
 #define MBEDTLS_ERR_GCM_BUFFER_TOO_SMALL                  -0x0016
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #if !defined(MBEDTLS_GCM_ALT)
 
 #if defined(MBEDTLS_GCM_LARGE_TABLE)
@@ -77,6 +73,10 @@ mbedtls_gcm_context;
 #else  /* !MBEDTLS_GCM_ALT */
 #include "gcm_alt.h"
 #endif /* !MBEDTLS_GCM_ALT */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * \brief           This function initializes the specified GCM context,

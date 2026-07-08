@@ -65,10 +65,6 @@
  * eg for alternative (PKCS#11) RSA implementations in the PK layers.
  */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #if !defined(MBEDTLS_RSA_ALT)
 // Regular implementation
 //
@@ -125,6 +121,10 @@ mbedtls_rsa_context;
 #else  /* MBEDTLS_RSA_ALT */
 #include "rsa_alt.h"
 #endif /* MBEDTLS_RSA_ALT */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * \brief          This function initializes an RSA context.

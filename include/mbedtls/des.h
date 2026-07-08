@@ -30,10 +30,6 @@
 
 #define MBEDTLS_DES_KEY_SIZE    8
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #if !defined(MBEDTLS_DES_ALT)
 // Regular implementation
 //
@@ -65,6 +61,10 @@ mbedtls_des3_context;
 #else  /* MBEDTLS_DES_ALT */
 #include "des_alt.h"
 #endif /* MBEDTLS_DES_ALT */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * \brief          Initialize DES context

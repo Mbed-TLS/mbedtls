@@ -32,10 +32,6 @@
 #include "mbedtls/ecp.h"
 #include "mbedtls/md.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /**
  * Roles in the EC J-PAKE exchange
  */
@@ -78,6 +74,10 @@ typedef struct mbedtls_ecjpake_context {
 #else  /* MBEDTLS_ECJPAKE_ALT */
 #include "ecjpake_alt.h"
 #endif /* MBEDTLS_ECJPAKE_ALT */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * \brief           Initialize an ECJPAKE context.

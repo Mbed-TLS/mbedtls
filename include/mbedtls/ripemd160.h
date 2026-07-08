@@ -16,10 +16,6 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #if !defined(MBEDTLS_RIPEMD160_ALT)
 // Regular implementation
 //
@@ -37,6 +33,10 @@ mbedtls_ripemd160_context;
 #else  /* MBEDTLS_RIPEMD160_ALT */
 #include "ripemd160_alt.h"
 #endif /* MBEDTLS_RIPEMD160_ALT */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * \brief          Initialize RIPEMD-160 context

@@ -27,10 +27,6 @@
 /** Invalid data input length. */
 #define MBEDTLS_ERR_CAMELLIA_INVALID_INPUT_LENGTH -0x0026
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #if !defined(MBEDTLS_CAMELLIA_ALT)
 // Regular implementation
 //
@@ -47,6 +43,10 @@ mbedtls_camellia_context;
 #else  /* MBEDTLS_CAMELLIA_ALT */
 #include "camellia_alt.h"
 #endif /* MBEDTLS_CAMELLIA_ALT */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * \brief          Initialize a CAMELLIA context.

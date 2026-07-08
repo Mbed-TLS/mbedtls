@@ -1,0 +1,5 @@
+Changes
+   * Fixes a compiler error when building C++ projects that use the 'modules'
+     C++ language feature, and consume Mbed TLS. The specific error is
+     module-import-in-extern-c, which occurs when an #include occurs within
+     'extern C' blocks.

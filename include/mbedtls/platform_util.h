@@ -19,10 +19,6 @@
 #include <time.h>
 #endif /* MBEDTLS_HAVE_TIME_DATE */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* Internal helper macros for deprecating API constants. */
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
 #if defined(MBEDTLS_DEPRECATED_WARNING)
@@ -56,6 +52,10 @@ MBEDTLS_DEPRECATED typedef int mbedtls_deprecated_numeric_constant_t;
 #else
 #define MBEDTLS_CHECK_RETURN
 #endif
+#endif
+
+#ifdef __cplusplus
+extern "C" {
 #endif
 
 /** Critical-failure function

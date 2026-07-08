@@ -22,10 +22,6 @@
 /** SHA-256 input data was malformed. */
 #define MBEDTLS_ERR_SHA256_BAD_INPUT_DATA                 -0x0074
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #if !defined(MBEDTLS_SHA256_ALT)
 // Regular implementation
 //
@@ -51,6 +47,10 @@ mbedtls_sha256_context;
 #else  /* MBEDTLS_SHA256_ALT */
 #include "sha256_alt.h"
 #endif /* MBEDTLS_SHA256_ALT */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * \brief          This function initializes a SHA-256 context.

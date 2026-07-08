@@ -16,12 +16,10 @@
 #include <string.h>
 
 #include <test/helpers.h>
-#include <test/macros.h>
 #include <test/random.h>
 #include <test/psa_crypto_helpers.h>
 
 #if defined(MBEDTLS_SSL_TLS_C)
-#include <ssl_misc.h>
 #include <mbedtls/timing.h>
 #include <mbedtls/debug.h>
 
@@ -30,10 +28,6 @@
 #if defined(MBEDTLS_SSL_CACHE_C)
 #include "mbedtls/ssl_cache.h"
 #endif
-
-#define PSA_TO_MBEDTLS_ERR(status) PSA_TO_MBEDTLS_ERR_LIST(status, \
-                                                           psa_to_ssl_errors, \
-                                                           psa_generic_status_to_mbedtls)
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
 #if defined(PSA_WANT_KEY_TYPE_AES)
@@ -106,16 +100,12 @@
 #define MBEDTLS_TEST_HAS_ADDITIONAL_HASH
 #endif
 
-enum {
-#define MBEDTLS_SSL_TLS1_3_LABEL(name, string)          \
-    tls13_label_ ## name,
-    MBEDTLS_SSL_TLS1_3_LABEL_LIST
-#undef MBEDTLS_SSL_TLS1_3_LABEL
-};
-
 #if defined(MBEDTLS_SSL_ALPN)
 #define MBEDTLS_TEST_MAX_ALPN_LIST_SIZE 10
 #endif
+
+/* Forward declaration. Defined below. */
+struct mbedtls_test_ssl_endpoint;
 
 typedef struct mbedtls_test_ssl_log_pattern {
     const char *pattern;
@@ -147,6 +137,35 @@ typedef struct mbedtls_test_handshake_test_options {
     int expected_srv_fragments;
     int renegotiate;
     int legacy_renegotiation;
+    /** Hook that mbedtls_test_ssl_perform_handshake() runs just before
+     * the initial handshake. */
+    void (*pre_handshake_fun)(struct mbedtls_test_ssl_endpoint *client,
+                              struct mbedtls_test_ssl_endpoint *server,
+                              void *param);
+    /** Value passed to ::pre_handshake_fun. */
+    void *pre_handshake_param;
+    /** Hook that mbedtls_test_ssl_perform_handshake() runs after
+     * the initial handshake succeeds. */
+    void (*post_handshake_fun)(struct mbedtls_test_ssl_endpoint *client,
+                               struct mbedtls_test_ssl_endpoint *server,
+                               void *param);
+    /** Value passed to ::post_handshake_fun. */
+    void *post_handshake_param;
+    /** Hook that mbedtls_test_ssl_perform_handshake() runs after
+     * exchanging some data, before testing additional features such as
+     * serialization and renegotiation. */
+    void (*post_data_fun)(struct mbedtls_test_ssl_endpoint *client,
+                          struct mbedtls_test_ssl_endpoint *server,
+                          void *param);
+    /** Value passed to ::post_data_fun. */
+    void *post_data_param;
+    /** Hook that mbedtls_test_ssl_perform_handshake() runs after a successful
+     * connection, just before closing down. */
+    void (*pre_shutdown_fun)(struct mbedtls_test_ssl_endpoint *client,
+                             struct mbedtls_test_ssl_endpoint *server,
+                             void *param);
+    /** Value passed to ::pre_shutdown_fun. */
+    void *pre_shutdown_param;
     void *srv_log_obj;
     void *cli_log_obj;
     void (*srv_log_fun)(void *, int, const char *, int, const char *);
@@ -583,68 +602,6 @@ int mbedtls_test_move_handshake_to_state(mbedtls_ssl_context *ssl,
 #endif /* MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED */
 
 /*
- * Helper function setting up inverse record transformations
- * using given cipher, hash, EtM mode, authentication tag length,
- * and version.
- */
-#define CHK(x)                                  \
-    do                                          \
-    {                                           \
-        if (!(x))                               \
-        {                                       \
-            ret = -1;                           \
-            goto cleanup;                       \
-        }                                       \
-    } while (0)
-
-#if MBEDTLS_SSL_CID_OUT_LEN_MAX > MBEDTLS_SSL_CID_IN_LEN_MAX
-#define SSL_CID_LEN_MIN MBEDTLS_SSL_CID_IN_LEN_MAX
-#else
-#define SSL_CID_LEN_MIN MBEDTLS_SSL_CID_OUT_LEN_MAX
-#endif
-
-#if defined(MBEDTLS_SSL_PROTO_TLS1_2) && \
-    defined(PSA_WANT_ALG_CBC_NO_PADDING) && defined(PSA_WANT_KEY_TYPE_AES)
-int mbedtls_test_psa_cipher_encrypt_helper(mbedtls_ssl_transform *transform,
-                                           const unsigned char *iv,
-                                           size_t iv_len,
-                                           const unsigned char *input,
-                                           size_t ilen,
-                                           unsigned char *output,
-                                           size_t *olen);
-#endif /* MBEDTLS_SSL_PROTO_TLS1_2 && PSA_WANT_ALG_CBC_NO_PADDING &&
-          PSA_WANT_KEY_TYPE_AES */
-
-int mbedtls_test_ssl_build_transforms(mbedtls_ssl_transform *t_in,
-                                      mbedtls_ssl_transform *t_out,
-                                      int cipher_type, int hash_id,
-                                      int etm, int tag_mode,
-                                      mbedtls_ssl_protocol_version tls_version,
-                                      size_t cid0_len,
-                                      size_t cid1_len);
-
-#if defined(MBEDTLS_SSL_SOME_SUITES_USE_MAC)
-/**
- * \param[in,out] record        The record to prepare.
- *                              It must contain the data to MAC at offset
- *                              `record->data_offset`, of length
- *                              `record->data_length`.
- *                              On success, write the MAC immediately
- *                              after the data and increment
- *                              `record->data_length` accordingly.
- * \param[in,out] transform_out The out transform, typically prepared by
- *                              mbedtls_test_ssl_build_transforms().
- *                              Its HMAC context may be used. Other than that
- *                              it is treated as an input parameter.
- *
- * \return                      0 on success, an `MBEDTLS_ERR_xxx` error code
- *                              or -1 on error.
- */
-int mbedtls_test_ssl_prepare_record_mac(mbedtls_record *record,
-                                        mbedtls_ssl_transform *transform_out);
-#endif /* MBEDTLS_SSL_SOME_SUITES_USE_MAC */
-
-/*
  * Populate a session structure for serialization tests.
  * Choose dummy values, mostly non-0 to distinguish from the init default.
  */
@@ -743,23 +700,6 @@ void mbedtls_test_ssl_perform_handshake(
     const mbedtls_test_handshake_test_options *options);
 #endif /* MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED */
 
-#if defined(MBEDTLS_TEST_HOOKS)
-/*
- * Tweak vector lengths in a TLS 1.3 Certificate message
- *
- * \param[in]       buf    Buffer containing the Certificate message to tweak
- * \param[in]]out]  end    End of the buffer to parse
- * \param           tweak  Tweak identifier (from 1 to the number of tweaks).
- * \param[out]  expected_result  Error code expected from the parsing function
- * \param[out]  args  Arguments of the MBEDTLS_SSL_CHK_BUF_READ_PTR call that
- *                    is expected to fail. All zeroes if no
- *                    MBEDTLS_SSL_CHK_BUF_READ_PTR failure is expected.
- */
-int mbedtls_test_tweak_tls13_certificate_msg_vector_len(
-    unsigned char *buf, unsigned char **end, int tweak,
-    int *expected_result, mbedtls_ssl_chk_buf_ptr_args *args);
-#endif /* MBEDTLS_TEST_HOOKS */
-
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
 int mbedtls_test_ticket_write(
     void *p_ticket, const mbedtls_ssl_session *session,
@@ -805,6 +745,23 @@ int mbedtls_test_get_tls13_ticket(
     TEST_EQUAL(mbedtls_ssl_get_psa_curve_info_from_tls_id(tls_id_,       \
                                                           &psa_type, &psa_bits), \
                PSA_ERROR_NOT_SUPPORTED);
+
+/**
+ * Verify that mbedtls_ssl_session_reset() properly managed fields of the
+ * mbedtls_ssl_context structure. The expected action on reset depends on the
+ * specific field.
+ *
+ * Note: the code is automatically generated from the python script
+ *       "tests/scripts/generate_ssl_session_reset_check.py".
+ *
+ * \param[in]       before    The SSL context before mbedtls_ssl_session_reset()
+ *                            is called on it. This is used for fields that
+ *                            should be kept untouched during the reset.
+ * \param[in]       after     The SSL context after mbedtls_ssl_session_reset()
+ *                            has been called on it.
+ */
+int mbedtls_test_ssl_check_context_after_session_reset(const mbedtls_ssl_context *before,
+                                                       const mbedtls_ssl_context *after);
 
 #endif /* MBEDTLS_SSL_TLS_C */
 

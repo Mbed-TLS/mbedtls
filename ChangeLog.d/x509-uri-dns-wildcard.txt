@@ -1,0 +1,8 @@
+Security
+   * When verifying a certificate chain and passing a URI as the cn argument to
+     the verify function, the URI was incorrectly matched against DNS wildcards
+     if found in the certificate. Specifically, a certificate for a DNS name of
+     "*.example.com" would be accepted for "sip:voip.example.com" or
+     "https://legit/abc.example.com" contrary to the statement in our
+     documentation that URIs require an exact match, and to the requirements
+     from RFC 9525. Found by saikumar279. CVE-2026-xxxxx

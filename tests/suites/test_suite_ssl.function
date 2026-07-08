@@ -6517,6 +6517,8 @@ exit:
     mbedtls_ssl_session_free(&saved_session);
     mbedtls_debug_set_threshold(0);
     PSA_DONE();
+}
+/* END_CASE */
 
 /* BEGIN_CASE */
 void test_export_traffic_keys(int tls_version,

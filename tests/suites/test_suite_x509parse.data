@@ -715,6 +715,16 @@ X509 CRT verification #23 (domain not matching wildcard certificate)
 depends_on:MBEDTLS_PEM_PARSE_C:PSA_WANT_ALG_SHA_1:PSA_HAVE_ALG_RSA_PKCS1V15_VERIFY
 x509_verify:"../framework/data_files/cert_example_wildcard.crt":"../framework/data_files/test-ca.crt":"../framework/data_files/crl.pem":"example.com":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_CN_MISMATCH:"compat":"NULL"
 
+# cert has Subject: C = NL, O = PolarSSL, CN = *.example.com and no SAN
+X509 CRT verification #23a (URI would match DNS wildcard in Subject CN)
+depends_on:MBEDTLS_PEM_PARSE_C:PSA_WANT_ALG_SHA_1:PSA_HAVE_ALG_RSA_PKCS1V15_VERIFY
+x509_verify:"../framework/data_files/cert_example_wildcard.crt":"../framework/data_files/test-ca.crt":"../framework/data_files/crl.pem":"sip\:voip.example.com":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_CN_MISMATCH:"compat":"NULL"
+
+# cert has SAN with DNS:example.com, DNS:example.net, DNS:*.example.org
+X509 CRT verification #23b (URI would match DNS wildcard in SAN)
+depends_on:MBEDTLS_PEM_PARSE_C:PSA_WANT_ALG_SHA_1:PSA_WANT_ALG_SHA_256:PSA_HAVE_ALG_RSA_PKCS1V15_VERIFY
+x509_verify:"../framework/data_files/cert_example_multi.crt":"../framework/data_files/test-ca.crt":"../framework/data_files/crl.pem":"sip\:voip.example.org":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_CN_MISMATCH:"compat":"NULL"
+
 X509 CRT verification #24 (domain matching CN of multi certificate)
 depends_on:MBEDTLS_PEM_PARSE_C:PSA_WANT_ALG_SHA_1:PSA_WANT_ALG_SHA_256:PSA_HAVE_ALG_RSA_PKCS1V15_VERIFY
 x509_verify:"../framework/data_files/cert_example_multi.crt":"../framework/data_files/test-ca.crt":"../framework/data_files/crl.pem":"www.example.com":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_CN_MISMATCH:"compat":"NULL"

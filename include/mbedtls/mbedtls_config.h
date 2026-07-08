@@ -3249,6 +3249,15 @@
 #define MBEDTLS_PKCS7_C
 
 /**
+ * \def MBEDTLS_PKCS7_ALLOW_WEAK_SIGNATURES
+ *
+ * Allow weak signature algorithms (RIPEMD160, MD5, SHA-1) in PKCS#7.
+ *
+ * Requires: MBEDTLS_PKCS7_C
+ */
+// #define MBEDTLS_PKCS7_ALLOW_WEAK_SIGNATURES
+
+/**
  * \def MBEDTLS_PKCS12_C
  *
  * Enable PKCS#12 PBE functions.

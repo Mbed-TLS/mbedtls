@@ -416,6 +416,7 @@ int mbedtls_ecdh_read_public(mbedtls_ecdh_context *ctx,
  *                  Bytes written on success. This must not be \c NULL.
  * \param buf       The buffer to write the generated shared key to. This
  *                  must be a writable buffer of size \p blen Bytes.
+ *                  A sufficient size is given by #MBEDTLS_ECP_MAX_BYTES.
  * \param blen      The length of the destination buffer \p buf in Bytes.
  * \param f_rng     The RNG function to use. This must not be \c NULL.
  * \param p_rng     The RNG context. This may be \c NULL if \p f_rng

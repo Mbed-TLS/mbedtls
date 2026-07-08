@@ -2252,6 +2252,10 @@ void mbedtls_test_ssl_perform_handshake(
         expected_handshake_result = MBEDTLS_ERR_SSL_BAD_PROTOCOL_VERSION;
     }
 
+    if (options->pre_handshake_fun != NULL) {
+        options->pre_handshake_fun(&client, &server, options->pre_handshake_param);
+    }
+
     TEST_ASSERT(mbedtls_test_move_handshake_to_state(&(client.ssl),
                                                      &(server.ssl),
                                                      MBEDTLS_SSL_HANDSHAKE_OVER)
@@ -2289,6 +2293,10 @@ void mbedtls_test_ssl_perform_handshake(
                    options->expected_ciphersuite);
     }
 
+    if (options->post_handshake_fun != NULL) {
+        options->post_handshake_fun(&client, &server, options->post_handshake_param);
+    }
+
 #if defined(MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH)
     if (options->resize_buffers != 0) {
         /* A server, when using DTLS, might delay a buffer resize to happen
@@ -2315,6 +2323,11 @@ void mbedtls_test_ssl_perform_handshake(
                         options->expected_srv_fragments)
                     == 0);
     }
+
+    if (options->post_data_fun != NULL) {
+        options->post_data_fun(&client, &server, options->post_data_param);
+    }
+
 #if defined(MBEDTLS_SSL_CONTEXT_SERIALIZATION)
     if (options->serialize == 1) {
         TEST_ASSERT(options->dtls == 1);
@@ -2448,6 +2461,10 @@ void mbedtls_test_ssl_perform_handshake(
     TEST_ASSERT(mbedtls_ssl_get_user_data_p(&client.ssl) == &client);
     TEST_ASSERT(mbedtls_ssl_conf_get_user_data_p(&server.conf) == &server);
     TEST_ASSERT(mbedtls_ssl_get_user_data_p(&server.ssl) == &server);
+
+    if (options->pre_shutdown_fun != NULL) {
+        options->pre_shutdown_fun(&client, &server, options->pre_shutdown_param);
+    }
 
 exit:
     mbedtls_test_ssl_endpoint_free(&client,

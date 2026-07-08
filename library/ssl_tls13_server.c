@@ -3098,6 +3098,7 @@ static int ssl_tls13_process_client_finished(mbedtls_ssl_context *ssl)
     if (ret != 0) {
         MBEDTLS_SSL_DEBUG_RET(
             1, "mbedtls_ssl_tls13_compute_resumption_master_secret", ret);
+        return ret;
     }
 
     mbedtls_ssl_handshake_set_state(ssl, MBEDTLS_SSL_HANDSHAKE_WRAPUP);
@@ -3204,9 +3205,10 @@ static int ssl_tls13_prepare_new_session_ticket(mbedtls_ssl_context *ssl,
 #endif
 
     /* Generate ticket_age_add */
-    if ((ret = ssl->conf->f_rng(ssl->conf->p_rng,
-                                (unsigned char *) &session->ticket_age_add,
-                                sizeof(session->ticket_age_add)) != 0)) {
+    ret = ssl->conf->f_rng(ssl->conf->p_rng,
+                           (unsigned char *) &session->ticket_age_add,
+                           sizeof(session->ticket_age_add));
+    if (ret != 0) {
         MBEDTLS_SSL_DEBUG_RET(1, "generate_ticket_age_add", ret);
         return ret;
     }

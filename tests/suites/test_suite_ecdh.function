@@ -364,6 +364,79 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
+void ecdh_context_reuse(int grp_id, data_t *our_private_key,
+                        data_t *their_point1, data_t *shared1,
+                        data_t *their_point2, data_t *shared2)
+{
+    /* This test exercises re-using the context for static ECDH */
+    mbedtls_test_rnd_pseudo_info rnd_info;
+    mbedtls_ecp_keypair our_key;
+    mbedtls_ecp_keypair their_key1;
+    mbedtls_ecp_keypair their_key2;
+    mbedtls_ecdh_context ecdh;
+    unsigned char *buf = NULL;
+    size_t min_buf_size = 0;
+    size_t shared_secret_length = 0;
+
+    memset(&rnd_info, 0x00, sizeof(mbedtls_test_rnd_pseudo_info));
+    mbedtls_ecdh_init(&ecdh);
+    mbedtls_ecp_keypair_init(&our_key);
+    mbedtls_ecp_keypair_init(&their_key1);
+    mbedtls_ecp_keypair_init(&their_key2);
+
+    if (!load_private_key(grp_id, our_private_key, &our_key, &rnd_info)) {
+        goto exit;
+    }
+    if (!load_public_key(grp_id, their_point1, &their_key1)) {
+        goto exit;
+    }
+    if (!load_public_key(grp_id, their_point2, &their_key2)) {
+        goto exit;
+    }
+
+    /* Import our long-term private key */
+    TEST_ASSERT(mbedtls_ecdh_get_params(
+                    &ecdh, &our_key, MBEDTLS_ECDH_OURS) == 0);
+
+    /* Allocate output buffer of minimal size */
+    min_buf_size = (our_key.grp.pbits + 7) / 8;
+    TEST_LE_U(min_buf_size, MBEDTLS_ECP_MAX_BYTES);
+    TEST_CALLOC(buf, min_buf_size);
+
+    /* Import first peer key and perform first ECDH calculation */
+    TEST_ASSERT(mbedtls_ecdh_get_params(
+                    &ecdh, &their_key1, MBEDTLS_ECDH_THEIRS) == 0);
+    TEST_EQUAL(0,
+               mbedtls_ecdh_calc_secret(
+                   &ecdh, &shared_secret_length,
+                   buf, min_buf_size,
+                   &mbedtls_test_rnd_pseudo_rand, &rnd_info));
+    TEST_MEMORY_COMPARE(shared1->x, shared1->len,
+                        buf, shared_secret_length);
+
+    shared_secret_length = 0;
+
+    /* Import 2nd peer key and perform 2nd ECDH calculation */
+    TEST_ASSERT(mbedtls_ecdh_get_params(
+                    &ecdh, &their_key2, MBEDTLS_ECDH_THEIRS) == 0);
+    TEST_EQUAL(0,
+               mbedtls_ecdh_calc_secret(
+                   &ecdh, &shared_secret_length,
+                   buf, min_buf_size,
+                   &mbedtls_test_rnd_pseudo_rand, &rnd_info));
+    TEST_MEMORY_COMPARE(shared2->x, shared2->len,
+                        buf, shared_secret_length);
+
+exit:
+    mbedtls_free(buf);
+    mbedtls_ecdh_free(&ecdh);
+    mbedtls_ecp_keypair_free(&our_key);
+    mbedtls_ecp_keypair_free(&their_key1);
+    mbedtls_ecp_keypair_free(&their_key2);
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
 void ecdh_exchange_calc_secret(int grp_id,
                                data_t *our_private_key,
                                data_t *their_point,
@@ -374,7 +447,8 @@ void ecdh_exchange_calc_secret(int grp_id,
     mbedtls_ecp_keypair our_key;
     mbedtls_ecp_keypair their_key;
     mbedtls_ecdh_context ecdh;
-    unsigned char shared_secret[MBEDTLS_ECP_MAX_BYTES];
+    unsigned char *buf = NULL;
+    size_t min_buf_size = 0;
     size_t shared_secret_length = 0;
 
     memset(&rnd_info, 0x00, sizeof(mbedtls_test_rnd_pseudo_info));
@@ -402,17 +476,50 @@ void ecdh_exchange_calc_secret(int grp_id,
                         &ecdh, &our_key, MBEDTLS_ECDH_OURS) == 0);
     }
 
-    /* Perform the ECDH calculation. */
-    TEST_ASSERT(mbedtls_ecdh_calc_secret(
-                    &ecdh,
-                    &shared_secret_length,
-                    shared_secret, sizeof(shared_secret),
-                    &mbedtls_test_rnd_pseudo_rand, &rnd_info) == 0);
-    TEST_ASSERT(shared_secret_length == expected->len);
-    TEST_ASSERT(memcmp(expected->x, shared_secret,
-                       shared_secret_length) == 0);
+    /* Compute minimal size of output buffer */
+    min_buf_size = (our_key.grp.pbits + 7) / 8;
+    TEST_LE_U(min_buf_size, MBEDTLS_ECP_MAX_BYTES);
+
+    /* Perform the ECDH calculation with exact size output buffer */
+    TEST_CALLOC(buf, min_buf_size);
+    TEST_EQUAL(0,
+               mbedtls_ecdh_calc_secret(
+                   &ecdh, &shared_secret_length,
+                   buf, min_buf_size,
+                   &mbedtls_test_rnd_pseudo_rand, &rnd_info));
+    TEST_MEMORY_COMPARE(expected->x, expected->len,
+                        buf, shared_secret_length);
+
+    mbedtls_free(buf);
+    buf = NULL;
+    shared_secret_length = 0;
+
+    /* Try again with an output buffer that's larger. */
+    /* Note: this doubles as a weak test for re-using a context.
+     * For a proper test, see ecdh_context_reuse(). */
+    TEST_CALLOC(buf, min_buf_size + 1);
+    TEST_EQUAL(0,
+               mbedtls_ecdh_calc_secret(
+                   &ecdh, &shared_secret_length,
+                   buf, min_buf_size + 1,
+                   &mbedtls_test_rnd_pseudo_rand, &rnd_info));
+    TEST_MEMORY_COMPARE(expected->x, expected->len,
+                        buf, shared_secret_length);
+
+    mbedtls_free(buf);
+    buf = NULL;
+    shared_secret_length = 0;
+
+    /* Try again with an output buffer that's too short. */
+    TEST_CALLOC(buf, min_buf_size - 1);
+    TEST_EQUAL(MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL,
+               mbedtls_ecdh_calc_secret(
+                   &ecdh, &shared_secret_length,
+                   buf, min_buf_size - 1,
+                   &mbedtls_test_rnd_pseudo_rand, &rnd_info));
 
 exit:
+    mbedtls_free(buf);
     mbedtls_ecdh_free(&ecdh);
     mbedtls_ecp_keypair_free(&our_key);
     mbedtls_ecp_keypair_free(&their_key);

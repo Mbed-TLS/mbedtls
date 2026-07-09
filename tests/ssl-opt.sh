@@ -6369,6 +6369,7 @@ run_test    "Authentication: send CA list in CertificateRequest, client self sig
             -s "X509 - Certificate verification failed"
 
 requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
+requires_config_disabled MBEDTLS_X509_REMOVE_INFO
 run_test    "Authentication: send alt conf DN hints in CertificateRequest" \
             "$P_SRV debug_level=3 auth_mode=optional cert_req_ca_list=2 \
              crt_file2=$DATA_FILES_PATH/server1.crt \
@@ -6380,6 +6381,7 @@ run_test    "Authentication: send alt conf DN hints in CertificateRequest" \
             -c "DN hint: C=NL, O=PolarSSL, CN=PolarSSL Server 1"
 
 requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
+requires_config_disabled MBEDTLS_X509_REMOVE_INFO
 run_test    "Authentication: send alt conf DN hints in CertificateRequest (2)" \
             "$P_SRV debug_level=3 auth_mode=optional cert_req_ca_list=2 \
              crt_file2=$DATA_FILES_PATH/server2.crt \
@@ -6391,6 +6393,7 @@ run_test    "Authentication: send alt conf DN hints in CertificateRequest (2)" \
             -c "DN hint: C=NL, O=PolarSSL, CN=localhost"
 
 requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
+requires_config_disabled MBEDTLS_X509_REMOVE_INFO
 run_test    "Authentication: send alt hs DN hints in CertificateRequest" \
             "$P_SRV debug_level=3 auth_mode=optional cert_req_ca_list=3 \
              crt_file2=$DATA_FILES_PATH/server1.crt \

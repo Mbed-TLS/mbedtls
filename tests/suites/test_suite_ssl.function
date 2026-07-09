@@ -31,6 +31,10 @@
 #define TEST_TLS13_SESSION_LOAD_HOSTNAME_NO_NUL  1
 #define TEST_TLS13_SESSION_LOAD_ALPN_NO_NUL      2
 
+/* Corrupted length fields for ssl_context_load_rejects_oob_length */
+#define TEST_SSL_CONTEXT_LOAD_OOB_CID   0
+#define TEST_SSL_CONTEXT_LOAD_OOB_ALPN  1
+
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2) && \
     defined(MBEDTLS_SSL_SESSION_TICKETS) && \
     defined(MBEDTLS_SSL_CLI_C) && defined(MBEDTLS_SSL_SRV_C) && \
@@ -2992,9 +2996,10 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_SSL_PROTO_DTLS:MBEDTLS_SSL_DTLS_CONNECTION_ID:MBEDTLS_SSL_CONTEXT_SERIALIZATION:PSA_HAVE_ALG_SOME_RSA_SIGN:PSA_WANT_ECC_SECP_R1_384:PSA_WANT_ALG_SHA_256:MBEDTLS_CAN_HANDLE_RSA_TEST_KEY:TEST_GCM_OR_CHACHAPOLY_ENABLED */
-void ssl_context_load_rejects_oob_cid_length(void)
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_SSL_PROTO_DTLS:MBEDTLS_SSL_CONTEXT_SERIALIZATION:PSA_HAVE_ALG_SOME_RSA_SIGN:PSA_WANT_ECC_SECP_R1_384:PSA_WANT_ALG_SHA_256:MBEDTLS_CAN_HANDLE_RSA_TEST_KEY:TEST_GCM_OR_CHACHAPOLY_ENABLED */
+void ssl_context_load_rejects_oob_length(int field)
 {
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
     /* Sentinel CID so we can find its location inside the serialized buffer. */
     const unsigned char server_cid[] = {
         0xAB, 0xCD, 0xEF, 0x12, 0x34, 0x56, 0x78, 0x9A
@@ -3002,100 +3007,23 @@ void ssl_context_load_rejects_oob_cid_length(void)
     const unsigned char client_cid[] = {
         0x9A, 0x78, 0x56, 0x34, 0x12, 0xEF, 0xCD, 0xAB
     };
-
-    mbedtls_test_handshake_test_options options;
-    mbedtls_test_ssl_endpoint client_ep, server_ep;
-    unsigned char *context_buf = NULL;
-    size_t context_buf_len, i;
-    unsigned char *cid_len_p = NULL;
-
-    memset(&client_ep, 0, sizeof(client_ep));
-    memset(&server_ep, 0, sizeof(server_ep));
-
-    MD_OR_USE_PSA_INIT();
-    mbedtls_test_init_handshake_options(&options);
-
-    options.dtls = 1;
-    options.expected_negotiated_version = MBEDTLS_SSL_VERSION_TLS1_2;
-
-    TEST_EQUAL(mbedtls_test_ssl_endpoint_init(
-                   &client_ep, MBEDTLS_SSL_IS_CLIENT, &options), 0);
-    TEST_EQUAL(mbedtls_test_ssl_endpoint_init(
-                   &server_ep, MBEDTLS_SSL_IS_SERVER, &options), 0);
-
-    /* Configure CID with unique patterns so we can locate the length byte in
-     * the serialized context. Both peers must agree on the CID length via
-     * conf_cid() before set_cid() will accept the value. */
-    TEST_EQUAL(mbedtls_ssl_conf_cid(&client_ep.conf, sizeof(client_cid),
-                                    MBEDTLS_SSL_UNEXPECTED_CID_FAIL), 0);
-    TEST_EQUAL(mbedtls_ssl_conf_cid(&server_ep.conf, sizeof(server_cid),
-                                    MBEDTLS_SSL_UNEXPECTED_CID_FAIL), 0);
-    TEST_EQUAL(mbedtls_ssl_set_cid(&client_ep.ssl, MBEDTLS_SSL_CID_ENABLED,
-                                   client_cid, sizeof(client_cid)), 0);
-    TEST_EQUAL(mbedtls_ssl_set_cid(&server_ep.ssl, MBEDTLS_SSL_CID_ENABLED,
-                                   server_cid, sizeof(server_cid)), 0);
-
-    TEST_EQUAL(mbedtls_test_ssl_dtls_join_endpoints(&client_ep, &server_ep), 0);
-
-    TEST_ASSERT(mbedtls_test_ssl_perform_connection(&options, &client_ep,
-                                                    &server_ep));
-
-    /* Serialize the post-handshake server context. */
-    TEST_EQUAL(mbedtls_ssl_context_save(&server_ep.ssl, NULL, 0,
-                                        &context_buf_len),
-               MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL);
-    TEST_CALLOC(context_buf, context_buf_len);
-    TEST_EQUAL(mbedtls_ssl_context_save(&server_ep.ssl, context_buf,
-                                        context_buf_len, &context_buf_len), 0);
-
-    /* The serialized format writes [in_cid_len][in_cid bytes]; locate the
-     * length byte by searching for our sentinel CID. */
-    for (i = 1; i + sizeof(server_cid) <= context_buf_len; i++) {
-        if (context_buf[i - 1] == (unsigned char) sizeof(server_cid) &&
-            memcmp(context_buf + i, server_cid, sizeof(server_cid)) == 0) {
-            cid_len_p = context_buf + i - 1;
-            break;
-        }
-    }
-    TEST_ASSERT(cid_len_p != NULL);
-
-    /* Corrupt the length to the smallest value strictly greater than
-     * sizeof(in_cid), so we exercise the new bounds check rather than the
-     * pre-existing buffer-size check that would also trip on huge values. */
-    *cid_len_p = (unsigned char) (MBEDTLS_SSL_CID_IN_LEN_MAX + 1);
-
-    /* Reinitialise the server SSL context so we can load into a fresh one. */
-    mbedtls_ssl_free(&server_ep.ssl);
-    mbedtls_ssl_init(&server_ep.ssl);
-    TEST_EQUAL(mbedtls_ssl_setup(&server_ep.ssl, &server_ep.conf), 0);
-
-    TEST_EQUAL(mbedtls_ssl_context_load(&server_ep.ssl, context_buf,
-                                        context_buf_len),
-               MBEDTLS_ERR_SSL_BAD_INPUT_DATA);
-
-exit:
-    mbedtls_test_ssl_endpoint_free(&client_ep);
-    mbedtls_test_ssl_endpoint_free(&server_ep);
-    mbedtls_test_free_handshake_options(&options);
-    mbedtls_free(context_buf);
-    MD_OR_USE_PSA_DONE();
-}
-/* END_CASE */
-
-/* BEGIN_CASE depends_on:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_SSL_PROTO_DTLS:MBEDTLS_SSL_ALPN:MBEDTLS_SSL_CONTEXT_SERIALIZATION:PSA_HAVE_ALG_SOME_RSA_SIGN:PSA_WANT_ECC_SECP_R1_384:PSA_WANT_ALG_SHA_256:MBEDTLS_CAN_HANDLE_RSA_TEST_KEY:TEST_GCM_OR_CHACHAPOLY_ENABLED */
-void ssl_context_load_rejects_oob_alpn_length(void)
-{
+#endif
+#if defined(MBEDTLS_SSL_ALPN)
     /* The negotiated protocol (alpn[0]) is serialized; alpn[1] is longer and is
      * what the corrupted length will match against on load, so the unbounded
      * memcmp() reads past the end of the buffer. */
     const char negotiated[] = "alpnsentinel";
     const char *alpn[] = { negotiated, "alpnsentinel-padding", NULL };
+#endif
 
     mbedtls_test_handshake_test_options options;
     mbedtls_test_ssl_endpoint client_ep, server_ep;
     unsigned char *context_buf = NULL;
     size_t context_buf_len, i;
-    unsigned char *alpn_len_p = NULL;
+    const unsigned char *sentinel = NULL;
+    size_t sentinel_len = 0;
+    unsigned char corrupt_len = 0;
+    unsigned char *len_p = NULL;
 
     memset(&client_ep, 0, sizeof(client_ep));
     memset(&server_ep, 0, sizeof(server_ep));
@@ -3111,18 +3039,62 @@ void ssl_context_load_rejects_oob_alpn_length(void)
     TEST_EQUAL(mbedtls_test_ssl_endpoint_init(
                    &server_ep, MBEDTLS_SSL_IS_SERVER, &options), 0);
 
-    /* Offer the same protocol list on both peers so alpn[0] is negotiated and
-     * serialized into the context. */
-    TEST_EQUAL(mbedtls_ssl_conf_alpn_protocols(&client_ep.conf, alpn), 0);
-    TEST_EQUAL(mbedtls_ssl_conf_alpn_protocols(&server_ep.conf, alpn), 0);
+    switch (field) {
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
+        case TEST_SSL_CONTEXT_LOAD_OOB_CID:
+            /* Configure CID with unique patterns so we can locate the length
+             * byte in the serialized context. Both peers must agree on the CID
+             * length via conf_cid() before set_cid() will accept the value. */
+            TEST_EQUAL(mbedtls_ssl_conf_cid(
+                           &client_ep.conf, sizeof(client_cid),
+                           MBEDTLS_SSL_UNEXPECTED_CID_FAIL), 0);
+            TEST_EQUAL(mbedtls_ssl_conf_cid(
+                           &server_ep.conf, sizeof(server_cid),
+                           MBEDTLS_SSL_UNEXPECTED_CID_FAIL), 0);
+            TEST_EQUAL(mbedtls_ssl_set_cid(
+                           &client_ep.ssl, MBEDTLS_SSL_CID_ENABLED,
+                           client_cid, sizeof(client_cid)), 0);
+            TEST_EQUAL(mbedtls_ssl_set_cid(
+                           &server_ep.ssl, MBEDTLS_SSL_CID_ENABLED,
+                           server_cid, sizeof(server_cid)), 0);
+            sentinel = server_cid;
+            sentinel_len = sizeof(server_cid);
+            /* The smallest value strictly greater than sizeof(in_cid), so we
+             * exercise the bounds check rather than the pre-existing
+             * buffer-size check that would also trip on huge values. */
+            corrupt_len = (unsigned char) (MBEDTLS_SSL_CID_IN_LEN_MAX + 1);
+            break;
+#endif
+#if defined(MBEDTLS_SSL_ALPN)
+        case TEST_SSL_CONTEXT_LOAD_OOB_ALPN:
+            /* Offer the same protocol list on both peers so alpn[0] is
+             * negotiated and serialized into the context. */
+            TEST_EQUAL(mbedtls_ssl_conf_alpn_protocols(&client_ep.conf, alpn),
+                       0);
+            TEST_EQUAL(mbedtls_ssl_conf_alpn_protocols(&server_ep.conf, alpn),
+                       0);
+            sentinel = (const unsigned char *) negotiated;
+            sentinel_len = strlen(negotiated);
+            /* The length of the longer configured protocol, which is more
+             * bytes than remain in the buffer. */
+            corrupt_len = (unsigned char) strlen(alpn[1]);
+            break;
+#endif
+        default:
+            TEST_ASSERT(0);
+    }
 
     TEST_EQUAL(mbedtls_test_ssl_dtls_join_endpoints(&client_ep, &server_ep), 0);
 
     TEST_ASSERT(mbedtls_test_ssl_perform_connection(&options, &client_ep,
                                                     &server_ep));
 
-    TEST_ASSERT(server_ep.ssl.alpn_chosen != NULL);
-    TEST_EQUAL(strcmp(server_ep.ssl.alpn_chosen, negotiated), 0);
+#if defined(MBEDTLS_SSL_ALPN)
+    if (field == TEST_SSL_CONTEXT_LOAD_OOB_ALPN) {
+        TEST_ASSERT(server_ep.ssl.alpn_chosen != NULL);
+        TEST_EQUAL(strcmp(server_ep.ssl.alpn_chosen, negotiated), 0);
+    }
+#endif
 
     /* Serialize the post-handshake server context. */
     TEST_EQUAL(mbedtls_ssl_context_save(&server_ep.ssl, NULL, 0,
@@ -3132,20 +3104,18 @@ void ssl_context_load_rejects_oob_alpn_length(void)
     TEST_EQUAL(mbedtls_ssl_context_save(&server_ep.ssl, context_buf,
                                         context_buf_len, &context_buf_len), 0);
 
-    /* The serialized format writes [alpn_len][alpn bytes]; locate the length
-     * byte by searching for the negotiated protocol string. */
-    for (i = 1; i + strlen(negotiated) <= context_buf_len; i++) {
-        if (context_buf[i - 1] == (unsigned char) strlen(negotiated) &&
-            memcmp(context_buf + i, negotiated, strlen(negotiated)) == 0) {
-            alpn_len_p = context_buf + i - 1;
+    /* Both fields are serialized as [length byte][data bytes]; locate the
+     * length byte by searching for the sentinel data. */
+    for (i = 1; i + sentinel_len <= context_buf_len; i++) {
+        if (context_buf[i - 1] == (unsigned char) sentinel_len &&
+            memcmp(context_buf + i, sentinel, sentinel_len) == 0) {
+            len_p = context_buf + i - 1;
             break;
         }
     }
-    TEST_ASSERT(alpn_len_p != NULL);
+    TEST_ASSERT(len_p != NULL);
 
-    /* Claim the length of the longer configured protocol, which is more bytes
-     * than remain in the buffer. */
-    *alpn_len_p = (unsigned char) strlen(alpn[1]);
+    *len_p = corrupt_len;
 
     /* Reinitialise the server SSL context so we can load into a fresh one. */
     mbedtls_ssl_free(&server_ep.ssl);

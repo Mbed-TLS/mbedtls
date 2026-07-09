@@ -2916,8 +2916,11 @@ void ssl_session_load_rejects_bad_serialized_data(int tls_version,
         case MBEDTLS_SSL_VERSION_TLS1_2:
             TEST_EQUAL(mbedtls_test_ssl_tls12_populate_session(
                            &session, 0, endpoint_type, NULL),  0);
-            /* Sentinel session ID so we can locate the length byte later. */
+            /* Sentinel session ID so we can locate the length byte later.
+             * The detection code below relies on id_len being exactly
+             * sizeof(session.id), so force it. */
             memset(session.id, 0x5A, sizeof(session.id));
+            session.id_len = sizeof(session.id);
             break;
 #endif
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3) && defined(MBEDTLS_SSL_SESSION_TICKETS)

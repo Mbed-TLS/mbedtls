@@ -302,6 +302,7 @@ mbedtls_x509_san_list;
 /** \} name Structures for parsing X.509 certificates, CRLs and CSRs */
 /** \} addtogroup x509_module */
 
+#if !defined(MBEDTLS_X509_REMOVE_INFO)
 /**
  * \brief          Store the certificate DN in printable form into buf;
  *                 no more than size characters will be written.
@@ -314,6 +315,7 @@ mbedtls_x509_san_list;
  *                 terminated nul byte), or a negative error code.
  */
 int mbedtls_x509_dn_gets(char *buf, size_t size, const mbedtls_x509_name *dn);
+#endif /* !MBEDTLS_X509_REMOVE_INFO */
 
 
 /**
@@ -363,6 +365,7 @@ static inline mbedtls_x509_name *mbedtls_x509_dn_get_next(
     return dn->next;
 }
 
+#if !defined(MBEDTLS_X509_REMOVE_INFO)
 /**
  * \brief          Store the certificate serial in printable form into buf;
  *                 no more than size characters will be written.
@@ -375,6 +378,7 @@ static inline mbedtls_x509_name *mbedtls_x509_dn_get_next(
  *                 terminated nul byte), or a negative error code.
  */
 int mbedtls_x509_serial_gets(char *buf, size_t size, const mbedtls_x509_buf *serial);
+#endif /* !MBEDTLS_X509_REMOVE_INFO */
 
 /**
  * \brief          Compare pair of mbedtls_x509_time.

@@ -810,6 +810,8 @@ int mbedtls_x509_get_ext(unsigned char **p, const unsigned char *end,
     return 0;
 }
 
+#if !defined(MBEDTLS_X509_REMOVE_INFO)
+
 static char nibble_to_hex_digit(int i)
 {
     return (i < 10) ? (i + '0') : (i - 10 + 'A');
@@ -1051,7 +1053,6 @@ int mbedtls_x509_serial_gets(char *buf, size_t size, const mbedtls_x509_buf *ser
     return (int) (size - n);
 }
 
-#if !defined(MBEDTLS_X509_REMOVE_INFO)
 /*
  * Helper for writing signature algorithms
  */
@@ -1088,8 +1089,6 @@ int mbedtls_x509_sig_alg_gets(char *buf, size_t size, const mbedtls_x509_buf *si
 
     return (int) (size - n);
 }
-#endif /* MBEDTLS_X509_REMOVE_INFO */
-
 /*
  * Helper for writing "RSA key size", "EC key size", etc
  */
@@ -1104,6 +1103,8 @@ int mbedtls_x509_key_size_helper(char *buf, size_t buf_size, const char *name)
 
     return 0;
 }
+
+#endif /* MBEDTLS_X509_REMOVE_INFO */
 
 int mbedtls_x509_time_cmp(const mbedtls_x509_time *t1,
                           const mbedtls_x509_time *t2)

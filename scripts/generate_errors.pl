@@ -168,7 +168,7 @@ foreach my $match (@matches)
             $first = 0;
             foreach my $dep (split(/,/, ${$old_define}))
             {
-                ${$code_check} .= " || " if ($first++);
+                ${$code_check} .= " ||\n " if ($first++);
                 ${$code_check} .= "MBEDTLS_${dep}_C";
             }
             ${$code_check} .= " */\n\n";
@@ -202,7 +202,7 @@ if ($ll_old_define ne "")
     my $first = 0;
     foreach my $dep (split(/,/, $ll_old_define))
     {
-        $ll_code_check .= " || " if ($first++);
+        $ll_code_check .= " ||\n " if ($first++);
         $ll_code_check .= "MBEDTLS_${dep}_C";
     }
     $ll_code_check .= " */\n";
@@ -213,7 +213,7 @@ if ($hl_old_define ne "")
     my $first = 0;
     foreach my $dep (split(/,/, $hl_old_define))
     {
-        $hl_code_check .= " || " if ($first++);
+        $hl_code_check .= " ||\n " if ($first++);
         $hl_code_check .= "MBEDTLS_${dep}_C";
     }
     $hl_code_check .= " */\n";

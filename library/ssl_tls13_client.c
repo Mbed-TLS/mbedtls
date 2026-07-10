@@ -1859,6 +1859,13 @@ static int ssl_tls13_postprocess_server_hello(mbedtls_ssl_context *ssl)
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_ssl_handshake_params *handshake = ssl->handshake;
 
+#if defined(MBEDTLS_SSL_ECP_RESTARTABLE_ENABLED)
+    if (handshake->ecrs_state ==
+        ssl_ecrs_tls13_server_hello_postprocess) {
+        goto compute_handshake_transform;
+    }
+#endif
+
     /* Determine the key exchange mode:
      * 1) If both the pre_shared_key and key_share extensions were received
      *    then the key exchange mode is PSK with EPHEMERAL.
@@ -1932,7 +1939,16 @@ static int ssl_tls13_postprocess_server_hello(mbedtls_ssl_context *ssl)
         }
     }
 
+compute_handshake_transform:
     ret = mbedtls_ssl_tls13_compute_handshake_transform(ssl);
+#if defined(MBEDTLS_SSL_ECP_RESTARTABLE_ENABLED)
+    if (ret == MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS) {
+        ssl->handshake->ecrs_state =
+            ssl_ecrs_tls13_server_hello_postprocess;
+        goto cleanup;
+    }
+    ssl->handshake->ecrs_state = ssl_ecrs_none;
+#endif
     if (ret != 0) {
         MBEDTLS_SSL_DEBUG_RET(1,
                               "mbedtls_ssl_tls13_compute_handshake_transform",
@@ -1945,7 +1961,7 @@ static int ssl_tls13_postprocess_server_hello(mbedtls_ssl_context *ssl)
     ssl->session_in = ssl->session_negotiate;
 
 cleanup:
-    if (ret != 0) {
+    if (ret != 0 && ret != MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS) {
         MBEDTLS_SSL_PEND_FATAL_ALERT(
             MBEDTLS_SSL_ALERT_MSG_HANDSHAKE_FAILURE,
             MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE);
@@ -1996,6 +2012,18 @@ static int ssl_tls13_process_server_hello(mbedtls_ssl_context *ssl)
     int is_hrr = 0;
 
     MBEDTLS_SSL_DEBUG_MSG(2, ("=> %s", __func__));
+
+#if defined(MBEDTLS_SSL_ECP_RESTARTABLE_ENABLED)
+    if (ssl->handshake->ecrs_state ==
+        ssl_ecrs_tls13_server_hello_postprocess) {
+        ret = ssl_tls13_postprocess_server_hello(ssl);
+        if (ret == 0) {
+            mbedtls_ssl_handshake_set_state(
+                ssl, MBEDTLS_SSL_ENCRYPTED_EXTENSIONS);
+        }
+        goto cleanup;
+    }
+#endif
 
     MBEDTLS_SSL_PROC_CHK(mbedtls_ssl_tls13_fetch_handshake_msg(
                              ssl, MBEDTLS_SSL_HS_SERVER_HELLO, &buf, &buf_len));
@@ -2628,18 +2656,46 @@ static int ssl_tls13_process_server_finished(mbedtls_ssl_context *ssl)
 /*
  * Handler for MBEDTLS_SSL_CLIENT_CERTIFICATE
  */
+#if defined(MBEDTLS_ASYNC_HARDWARE_AEAD)
+static int ssl_tls13_resume_pending_record(mbedtls_ssl_context *ssl)
+{
+    if (ssl->transform_out == NULL ||
+        ssl->transform_out->async_hardware_aead_pending == 0) {
+        return 0;
+    }
+
+    int ret = mbedtls_ssl_write_record(ssl, 1);
+    return ret == 0 ? 1 : ret;
+}
+#endif
+
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_tls13_write_client_certificate(mbedtls_ssl_context *ssl)
 {
     int non_empty_certificate_msg = 0;
+#if defined(MBEDTLS_ASYNC_HARDWARE_AEAD) || \
+    defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED)
+    int ret;
+#endif
 
     MBEDTLS_SSL_DEBUG_MSG(1,
                           ("Switch to handshake traffic keys for outbound traffic"));
     mbedtls_ssl_set_outbound_transform(ssl, ssl->handshake->transform_handshake);
 
+#if defined(MBEDTLS_ASYNC_HARDWARE_AEAD)
+    ret = ssl_tls13_resume_pending_record(ssl);
+    if (ret < 0) {
+        return ret;
+    }
+    if (ret > 0) {
+        non_empty_certificate_msg = mbedtls_ssl_own_cert(ssl) != NULL;
+        goto client_certificate_written;
+    }
+#endif
+
 #if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED)
     if (ssl->handshake->client_auth) {
-        int ret = mbedtls_ssl_tls13_write_certificate(ssl);
+        ret = mbedtls_ssl_tls13_write_certificate(ssl);
         if (ret != 0) {
             return ret;
         }
@@ -2652,6 +2708,9 @@ static int ssl_tls13_write_client_certificate(mbedtls_ssl_context *ssl)
     }
 #endif
 
+#if defined(MBEDTLS_ASYNC_HARDWARE_AEAD)
+client_certificate_written:
+#endif
     if (non_empty_certificate_msg) {
         mbedtls_ssl_handshake_set_state(ssl,
                                         MBEDTLS_SSL_CLIENT_CERTIFICATE_VERIFY);
@@ -2670,8 +2729,22 @@ static int ssl_tls13_write_client_certificate(mbedtls_ssl_context *ssl)
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_tls13_write_client_certificate_verify(mbedtls_ssl_context *ssl)
 {
-    int ret = mbedtls_ssl_tls13_write_certificate_verify(ssl);
+    int ret;
+#if defined(MBEDTLS_ASYNC_HARDWARE_AEAD)
+    ret = ssl_tls13_resume_pending_record(ssl);
+    if (ret < 0) {
+        return ret;
+    }
+    if (ret > 0) {
+        ret = 0;
+        goto client_certificate_verify_written;
+    }
+#endif
+    ret = mbedtls_ssl_tls13_write_certificate_verify(ssl);
 
+#if defined(MBEDTLS_ASYNC_HARDWARE_AEAD)
+client_certificate_verify_written:
+#endif
     if (ret == 0) {
         mbedtls_ssl_handshake_set_state(ssl, MBEDTLS_SSL_CLIENT_FINISHED);
     }
@@ -2688,11 +2761,25 @@ static int ssl_tls13_write_client_finished(mbedtls_ssl_context *ssl)
 {
     int ret;
 
+#if defined(MBEDTLS_ASYNC_HARDWARE_AEAD)
+    ret = ssl_tls13_resume_pending_record(ssl);
+    if (ret < 0) {
+        return ret;
+    }
+    if (ret > 0) {
+        ret = 0;
+        goto client_finished_written;
+    }
+#endif
+
     ret = mbedtls_ssl_tls13_write_finished_message(ssl);
     if (ret != 0) {
         return ret;
     }
 
+#if defined(MBEDTLS_ASYNC_HARDWARE_AEAD)
+client_finished_written:
+#endif
     ret = mbedtls_ssl_tls13_compute_resumption_master_secret(ssl);
     if (ret != 0) {
         MBEDTLS_SSL_DEBUG_RET(

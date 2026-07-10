@@ -2410,6 +2410,12 @@ static int ssl_tls13_write_server_hello(mbedtls_ssl_context *ssl)
 
     MBEDTLS_SSL_DEBUG_MSG(2, ("=> write server hello"));
 
+#if defined(MBEDTLS_SSL_ECP_RESTARTABLE_ENABLED)
+    if (ssl->handshake->ecrs_state == ssl_ecrs_tls13_server_hello_finalize) {
+        goto finalize_server_hello;
+    }
+#endif
+
     MBEDTLS_SSL_PROC_CHK(ssl_tls13_prepare_server_hello(ssl));
 
     MBEDTLS_SSL_PROC_CHK(mbedtls_ssl_start_handshake_msg(
@@ -2426,7 +2432,20 @@ static int ssl_tls13_write_server_hello(mbedtls_ssl_context *ssl)
     MBEDTLS_SSL_PROC_CHK(mbedtls_ssl_finish_handshake_msg(
                              ssl, buf_len, msg_len));
 
-    MBEDTLS_SSL_PROC_CHK(ssl_tls13_finalize_server_hello(ssl));
+#if defined(MBEDTLS_SSL_ECP_RESTARTABLE_ENABLED)
+finalize_server_hello:
+#endif
+    ret = ssl_tls13_finalize_server_hello(ssl);
+#if defined(MBEDTLS_SSL_ECP_RESTARTABLE_ENABLED)
+    if (ret == MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS) {
+        ssl->handshake->ecrs_state = ssl_ecrs_tls13_server_hello_finalize;
+        goto cleanup;
+    }
+    ssl->handshake->ecrs_state = ssl_ecrs_none;
+#endif
+    if (ret != 0) {
+        goto cleanup;
+    }
 
 #if defined(MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE)
     /* The server sends a dummy change_cipher_spec record immediately
@@ -2522,6 +2541,19 @@ cleanup:
  * Handler for MBEDTLS_SSL_ENCRYPTED_EXTENSIONS
  */
 
+#if defined(MBEDTLS_ASYNC_HARDWARE_AEAD)
+static int ssl_tls13_resume_pending_record(mbedtls_ssl_context *ssl)
+{
+    if (ssl->transform_out == NULL ||
+        ssl->transform_out->async_hardware_aead_pending == 0) {
+        return 0;
+    }
+
+    int ret = mbedtls_ssl_write_record(ssl, 1);
+    return ret == 0 ? 1 : ret;
+}
+#endif
+
 /*
  * struct {
  *    Extension extensions<0..2 ^ 16 - 1>;
@@ -2607,6 +2639,17 @@ static int ssl_tls13_write_encrypted_extensions(mbedtls_ssl_context *ssl)
 
     MBEDTLS_SSL_DEBUG_MSG(2, ("=> write encrypted extensions"));
 
+#if defined(MBEDTLS_ASYNC_HARDWARE_AEAD)
+    ret = ssl_tls13_resume_pending_record(ssl);
+    if (ret < 0) {
+        goto cleanup;
+    }
+    if (ret > 0) {
+        ret = 0;
+        goto encrypted_extensions_written;
+    }
+#endif
+
     MBEDTLS_SSL_PROC_CHK(mbedtls_ssl_start_handshake_msg(
                              ssl, MBEDTLS_SSL_HS_ENCRYPTED_EXTENSIONS,
                              &buf, &buf_len));
@@ -2621,6 +2664,9 @@ static int ssl_tls13_write_encrypted_extensions(mbedtls_ssl_context *ssl)
     MBEDTLS_SSL_PROC_CHK(mbedtls_ssl_finish_handshake_msg(
                              ssl, buf_len, msg_len));
 
+#if defined(MBEDTLS_ASYNC_HARDWARE_AEAD)
+encrypted_extensions_written:
+#endif
 #if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED)
     if (mbedtls_ssl_tls13_key_exchange_mode_with_psk(ssl)) {
         mbedtls_ssl_handshake_set_state(ssl, MBEDTLS_SSL_SERVER_FINISHED);
@@ -2781,6 +2827,17 @@ static int ssl_tls13_write_server_certificate(mbedtls_ssl_context *ssl)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
+#if defined(MBEDTLS_ASYNC_HARDWARE_AEAD)
+    ret = ssl_tls13_resume_pending_record(ssl);
+    if (ret < 0) {
+        return ret;
+    }
+    if (ret > 0) {
+        ret = 0;
+        goto server_certificate_written;
+    }
+#endif
+
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
     if ((ssl_tls13_pick_key_cert(ssl) != 0) ||
         mbedtls_ssl_own_cert(ssl) == NULL) {
@@ -2795,6 +2852,9 @@ static int ssl_tls13_write_server_certificate(mbedtls_ssl_context *ssl)
     if (ret != 0) {
         return ret;
     }
+#if defined(MBEDTLS_ASYNC_HARDWARE_AEAD)
+server_certificate_written:
+#endif
     mbedtls_ssl_handshake_set_state(ssl, MBEDTLS_SSL_CERTIFICATE_VERIFY);
     return 0;
 }
@@ -2805,10 +2865,24 @@ static int ssl_tls13_write_server_certificate(mbedtls_ssl_context *ssl)
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_tls13_write_certificate_verify(mbedtls_ssl_context *ssl)
 {
-    int ret = mbedtls_ssl_tls13_write_certificate_verify(ssl);
+    int ret;
+#if defined(MBEDTLS_ASYNC_HARDWARE_AEAD)
+    ret = ssl_tls13_resume_pending_record(ssl);
+    if (ret < 0) {
+        return ret;
+    }
+    if (ret > 0) {
+        ret = 0;
+        goto certificate_verify_written;
+    }
+#endif
+    ret = mbedtls_ssl_tls13_write_certificate_verify(ssl);
     if (ret != 0) {
         return ret;
     }
+#if defined(MBEDTLS_ASYNC_HARDWARE_AEAD)
+certificate_verify_written:
+#endif
     mbedtls_ssl_handshake_set_state(ssl, MBEDTLS_SSL_SERVER_FINISHED);
     return 0;
 }
@@ -2875,11 +2949,25 @@ static int ssl_tls13_write_server_finished(mbedtls_ssl_context *ssl)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
+#if defined(MBEDTLS_ASYNC_HARDWARE_AEAD)
+    ret = ssl_tls13_resume_pending_record(ssl);
+    if (ret < 0) {
+        return ret;
+    }
+    if (ret > 0) {
+        ret = 0;
+        goto server_finished_written;
+    }
+#endif
+
     ret = mbedtls_ssl_tls13_write_finished_message(ssl);
     if (ret != 0) {
         return ret;
     }
 
+#if defined(MBEDTLS_ASYNC_HARDWARE_AEAD)
+server_finished_written:
+#endif
     ret = mbedtls_ssl_tls13_compute_application_transform(ssl);
     if (ret != 0) {
         MBEDTLS_SSL_PEND_FATAL_ALERT(

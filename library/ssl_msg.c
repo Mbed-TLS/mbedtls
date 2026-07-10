@@ -970,12 +970,22 @@ int mbedtls_ssl_encrypt_buf(mbedtls_ssl_context *ssl,
         size_t padding =
             ssl_compute_padding_length(rec->data_len,
                                        MBEDTLS_SSL_CID_TLS1_3_PADDING_GRANULARITY);
-        if (ssl_build_inner_plaintext(data,
-                                      &rec->data_len,
-                                      post_avail,
-                                      rec->type,
-                                      padding) != 0) {
-            return MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL;
+#if defined(MBEDTLS_ASYNC_HARDWARE_AEAD)
+        if (transform->async_hardware_aead_pending != 0) {
+            if (post_avail < padding + 1) {
+                return MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL;
+            }
+            rec->data_len += padding + 1;
+        } else
+#endif
+        {
+            if (ssl_build_inner_plaintext(data,
+                                          &rec->data_len,
+                                          post_avail,
+                                          rec->type,
+                                          padding) != 0) {
+                return MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL;
+            }
         }
 
         rec->type = MBEDTLS_SSL_MSG_APPLICATION_DATA;

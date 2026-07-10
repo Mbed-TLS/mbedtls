@@ -898,7 +898,6 @@ static int ssl_tls13_write_certificate_verify_body(mbedtls_ssl_context *ssl,
 
     uint16_t *sig_alg = ssl->handshake->received_sig_algs;
     size_t signature_len = 0;
-
     *out_len = 0;
 
     own_key = mbedtls_ssl_own_key(ssl);
@@ -971,14 +970,37 @@ static int ssl_tls13_write_certificate_verify_body(mbedtls_ssl_context *ssl,
 
         MBEDTLS_SSL_DEBUG_BUF(3, "verify hash", verify_hash, verify_hash_len);
 
-        if ((ret = mbedtls_pk_sign_ext((mbedtls_pk_sigalg_t) pk_type, own_key,
-                                       md_alg, verify_hash, verify_hash_len,
-                                       p + 4, (size_t) (end - (p + 4)), &signature_len)) != 0) {
+        if (pk_type == MBEDTLS_PK_SIGALG_ECDSA) {
+#if defined(MBEDTLS_SSL_ECP_RESTARTABLE_ENABLED)
+            ret = mbedtls_pk_sign_restartable(own_key, md_alg,
+                                               verify_hash, verify_hash_len,
+                                               p + 4, (size_t) (end - (p + 4)),
+                                               &signature_len,
+                                               &ssl->handshake->ecrs_ctx.pk);
+#else
+            ret = mbedtls_pk_sign(own_key, md_alg,
+                                  verify_hash, verify_hash_len,
+                                  p + 4, (size_t) (end - (p + 4)),
+                                  &signature_len);
+#endif
+        } else {
+            ret = mbedtls_pk_sign_ext(pk_type, own_key, md_alg,
+                                      verify_hash, verify_hash_len,
+                                      p + 4, (size_t) (end - (p + 4)),
+                                      &signature_len);
+        }
+        if (ret != 0) {
 #if defined(MBEDTLS_SSL_ECP_RESTARTABLE_ENABLED) || \
             defined(MBEDTLS_ASYNC_HARDWARE_ECDSA) || defined(MBEDTLS_ASYNC_HARDWARE_RSA)
             if (ret == MBEDTLS_ERR_ECP_IN_PROGRESS) {
+#if defined(MBEDTLS_SSL_ECP_RESTARTABLE_ENABLED)
+                ssl->handshake->ecrs_state = ssl_ecrs_crt_vrfy_sign;
+#endif
                 return MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS;
             }
+#endif
+#if defined(MBEDTLS_SSL_ECP_RESTARTABLE_ENABLED)
+            ssl->handshake->ecrs_state = ssl_ecrs_none;
 #endif
             MBEDTLS_SSL_DEBUG_MSG(2, ("CertificateVerify signature failed with %s",
                                       mbedtls_ssl_sig_alg_to_str(*sig_alg)));
@@ -991,6 +1013,10 @@ static int ssl_tls13_write_certificate_verify_body(mbedtls_ssl_context *ssl,
              */
             continue;
         }
+
+#if defined(MBEDTLS_SSL_ECP_RESTARTABLE_ENABLED)
+        ssl->handshake->ecrs_state = ssl_ecrs_none;
+#endif
 
         MBEDTLS_SSL_DEBUG_MSG(2, ("CertificateVerify signature with %s",
                                   mbedtls_ssl_sig_alg_to_str(*sig_alg)));

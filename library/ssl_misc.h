@@ -39,9 +39,8 @@ extern const mbedtls_error_pair_t psa_to_ssl_errors[7];
 
 /* Shorthand for restartable ECC */
 #if defined(MBEDTLS_ECP_RESTARTABLE) && \
-    defined(MBEDTLS_SSL_CLI_C) && \
-    defined(MBEDTLS_SSL_PROTO_TLS1_2) && \
-    defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)
+    defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED) && \
+    (defined(MBEDTLS_SSL_CLI_C) || defined(MBEDTLS_SSL_SRV_C))
 #define MBEDTLS_SSL_ECP_RESTARTABLE_ENABLED
 #endif
 
@@ -724,6 +723,7 @@ struct mbedtls_ssl_handshake_params {
         ssl_ecrs_none = 0,              /*!< nothing going on (yet)         */
         ssl_ecrs_crt_verify,            /*!< Certificate: crt_verify()      */
         ssl_ecrs_ske_start_processing,  /*!< ServerKeyExchange: pk_verify() */
+        ssl_ecrs_ske_sign,              /*!< ServerKeyExchange: pk_sign()   */
         ssl_ecrs_cke_ecdh_calc_secret,  /*!< ClientKeyExchange: ECDH step 2 */
         ssl_ecrs_crt_vrfy_sign,         /*!< CertificateVerify: pk_sign()   */
     } ecrs_state;                       /*!< current (or last) operation    */

@@ -2437,6 +2437,9 @@ static int ssl_prepare_server_key_exchange(mbedtls_ssl_context *ssl,
 #if defined(MBEDTLS_KEY_EXCHANGE_SOME_PFS_ENABLED)
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_SERVER_SIGNATURE_ENABLED)
     unsigned char *dig_signed = NULL;
+#if defined(MBEDTLS_SSL_ECP_RESTARTABLE_ENABLED)
+    int restart_sign = 0;
+#endif
 #endif /* MBEDTLS_KEY_EXCHANGE_WITH_SERVER_SIGNATURE_ENABLED */
 #endif /* MBEDTLS_KEY_EXCHANGE_SOME_PFS_ENABLED */
 
@@ -2451,6 +2454,15 @@ static int ssl_prepare_server_key_exchange(mbedtls_ssl_context *ssl,
 #else
     size_t out_buf_len = MBEDTLS_SSL_OUT_BUFFER_LEN - (size_t) (ssl->out_msg - ssl->out_buf);
 #endif
+#endif
+
+#if defined(MBEDTLS_SSL_ECP_RESTARTABLE_ENABLED) && \
+    defined(MBEDTLS_KEY_EXCHANGE_WITH_SERVER_SIGNATURE_ENABLED)
+    if (ssl->handshake->ecrs_state == ssl_ecrs_ske_sign) {
+        restart_sign = 1;
+        dig_signed = ssl->out_msg + ssl->handshake->ecrs_n;
+        goto sign_server_key_exchange;
+    }
 #endif
 
     ssl->out_msglen = 4; /* header (type:1, length:3) to be written later */
@@ -2656,12 +2668,20 @@ curve_matching_done:
      */
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_SERVER_SIGNATURE_ENABLED)
     if (mbedtls_ssl_ciphersuite_uses_server_signature(ciphersuite_info)) {
+#if defined(MBEDTLS_SSL_ECP_RESTARTABLE_ENABLED)
+sign_server_key_exchange:
+#endif
         if (dig_signed == NULL) {
             MBEDTLS_SSL_DEBUG_MSG(1, ("should never happen"));
             return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
         }
 
         size_t dig_signed_len = (size_t) (ssl->out_msg + ssl->out_msglen - dig_signed);
+#if defined(MBEDTLS_SSL_ECP_RESTARTABLE_ENABLED)
+        if (restart_sign != 0) {
+            dig_signed_len -= 2;
+        }
+#endif
         size_t hashlen = 0;
         unsigned char hash[MBEDTLS_MD_MAX_SIZE];
 
@@ -2730,8 +2750,13 @@ curve_matching_done:
          *
          */
 
-        ssl->out_msg[ssl->out_msglen++] = mbedtls_ssl_hash_from_md_alg(md_alg);
-        ssl->out_msg[ssl->out_msglen++] = mbedtls_ssl_sig_from_pk_alg(sig_alg);
+#if defined(MBEDTLS_SSL_ECP_RESTARTABLE_ENABLED)
+        if (restart_sign == 0)
+#endif
+        {
+            ssl->out_msg[ssl->out_msglen++] = mbedtls_ssl_hash_from_md_alg(md_alg);
+            ssl->out_msg[ssl->out_msglen++] = mbedtls_ssl_sig_from_pk_alg(sig_alg);
+        }
 
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
         if (ssl->conf->f_async_sign_start != NULL) {
@@ -2765,11 +2790,37 @@ curve_matching_done:
          * after the call to ssl_prepare_server_key_exchange.
          * ssl_write_server_key_exchange also takes care of incrementing
          * ssl->out_msglen. */
-        if ((ret = mbedtls_pk_sign_ext(sig_alg, mbedtls_ssl_own_key(ssl),
-                                       md_alg, hash, hashlen,
-                                       ssl->out_msg + ssl->out_msglen + 2,
-                                       out_buf_len - ssl->out_msglen - 2,
-                                       signature_len)) != 0) {
+        if (sig_alg == MBEDTLS_PK_SIGALG_ECDSA) {
+#if defined(MBEDTLS_SSL_ECP_RESTARTABLE_ENABLED)
+            ret = mbedtls_pk_sign_restartable(mbedtls_ssl_own_key(ssl),
+                                               md_alg, hash, hashlen,
+                                               ssl->out_msg + ssl->out_msglen + 2,
+                                               out_buf_len - ssl->out_msglen - 2,
+                                               signature_len,
+                                               &ssl->handshake->ecrs_ctx.pk);
+#else
+            ret = mbedtls_pk_sign(mbedtls_ssl_own_key(ssl),
+                                  md_alg, hash, hashlen,
+                                  ssl->out_msg + ssl->out_msglen + 2,
+                                  out_buf_len - ssl->out_msglen - 2,
+                                  signature_len);
+#endif
+        } else {
+            ret = mbedtls_pk_sign_ext(sig_alg, mbedtls_ssl_own_key(ssl),
+                                      md_alg, hash, hashlen,
+                                      ssl->out_msg + ssl->out_msglen + 2,
+                                      out_buf_len - ssl->out_msglen - 2,
+                                      signature_len);
+        }
+#if defined(MBEDTLS_SSL_ECP_RESTARTABLE_ENABLED)
+        if (ret == MBEDTLS_ERR_ECP_IN_PROGRESS) {
+            ssl->handshake->ecrs_state = ssl_ecrs_ske_sign;
+            ssl->handshake->ecrs_n = (size_t) (dig_signed - ssl->out_msg);
+            return MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS;
+        }
+        ssl->handshake->ecrs_state = ssl_ecrs_none;
+#endif
+        if (ret != 0) {
             MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_pk_sign_ext", ret);
             return ret;
         }
@@ -2825,7 +2876,8 @@ static int ssl_write_server_key_exchange(mbedtls_ssl_context *ssl)
          * to 0. But if we're resuming after an asynchronous message,
          * out_msglen is the amount of data written so far and mst be
          * preserved. */
-        if (ret == MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS) {
+        if (ret == MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS ||
+            ret == MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS) {
             MBEDTLS_SSL_DEBUG_MSG(2, ("<= write server key exchange (pending)"));
         } else {
             ssl->out_msglen = 0;

@@ -7455,16 +7455,16 @@ int mbedtls_ssl_write_finished(mbedtls_ssl_context *ssl)
     int ret;
     int next_state = -1;
     unsigned int hash_len;
-#if defined(MBEDTLS_ASYNC_HARDWARE_AEAD)
-    int async_hardware_resume_pending_finished = 0;
+#if defined(MBEDTLS_PSA_CRYPTO_ASYNC_TLS_AEAD)
+    int async_psa_resume_pending_finished = 0;
 #endif
 
     MBEDTLS_SSL_DEBUG_MSG(2, ("=> write finished"));
 
-#if defined(MBEDTLS_ASYNC_HARDWARE_AEAD)
+#if defined(MBEDTLS_PSA_CRYPTO_ASYNC_TLS_AEAD)
     if (ssl->transform_negotiate != NULL &&
-        ssl->transform_negotiate->async_hardware_aead_pending != 0) {
-        async_hardware_resume_pending_finished = 1;
+        ssl->transform_negotiate->async_psa_aead_pending != 0) {
+        async_psa_resume_pending_finished = 1;
         if (ssl->handshake->resume != 0) {
 #if defined(MBEDTLS_SSL_CLI_C)
             if (ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT) {
@@ -7479,7 +7479,7 @@ int mbedtls_ssl_write_finished(mbedtls_ssl_context *ssl)
         } else {
             next_state = ssl->state + 1;
         }
-        goto async_hardware_resume_pending_finished_write;
+        goto async_psa_resume_pending_finished_write;
     }
 #endif
 
@@ -7533,8 +7533,8 @@ int mbedtls_ssl_write_finished(mbedtls_ssl_context *ssl)
      */
     MBEDTLS_SSL_DEBUG_MSG(3, ("switching to new transform spec for outbound data"));
 
-#if defined(MBEDTLS_ASYNC_HARDWARE_AEAD)
-async_hardware_resume_pending_finished_write:
+#if defined(MBEDTLS_PSA_CRYPTO_ASYNC_TLS_AEAD)
+async_psa_resume_pending_finished_write:
 #endif
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
@@ -7575,8 +7575,8 @@ async_hardware_resume_pending_finished_write:
     }
 #endif
 
-#if defined(MBEDTLS_ASYNC_HARDWARE_AEAD)
-    if (async_hardware_resume_pending_finished) {
+#if defined(MBEDTLS_PSA_CRYPTO_ASYNC_TLS_AEAD)
+    if (async_psa_resume_pending_finished) {
         ret = mbedtls_ssl_write_record(ssl, 1);
     } else
 #endif
@@ -7585,8 +7585,8 @@ async_hardware_resume_pending_finished_write:
     }
     if (ret != 0) {
         MBEDTLS_SSL_DEBUG_RET(1,
-#if defined(MBEDTLS_ASYNC_HARDWARE_AEAD)
-                              async_hardware_resume_pending_finished
+#if defined(MBEDTLS_PSA_CRYPTO_ASYNC_TLS_AEAD)
+                              async_psa_resume_pending_finished
                                   ? "mbedtls_ssl_write_record"
                                   :
 #endif
@@ -7744,7 +7744,7 @@ static mbedtls_tls_prf_types tls_prf_get_type(mbedtls_ssl_tls_prf_cb *tls_prf)
     return MBEDTLS_SSL_TLS_PRF_NONE;
 }
 
-#if defined(MBEDTLS_ASYNC_HARDWARE_AEAD)
+#if defined(MBEDTLS_PSA_CRYPTO_ASYNC_TLS_AEAD)
 /**
  * @brief Map Mbed TLS/PSA record parameters to async hardware TLS AEAD capabilities.
  *
@@ -7753,7 +7753,7 @@ static mbedtls_tls_prf_types tls_prf_get_type(mbedtls_ssl_tls_prf_cb *tls_prf)
  * algorithm fail closed through the generic AEAD boundary instead of silently
  * falling back to PSA/software.
  */
-static int mbedtls_async_hardware_tls_aead_from_transform(psa_key_type_t key_type,
+static int mbedtls_psa_async_tls_aead_from_transform(psa_key_type_t key_type,
                                                  size_t keylen,
                                                  psa_algorithm_t alg,
                                                  size_t ivlen,
@@ -7767,10 +7767,10 @@ static int mbedtls_async_hardware_tls_aead_from_transform(psa_key_type_t key_typ
     if (key_type == PSA_KEY_TYPE_AES && alg == PSA_ALG_GCM &&
         fixed_ivlen == 4 && taglen == 16) {
         if (keylen == 16) {
-            return MBEDTLS_ASYNC_HARDWARE_TLS_AEAD_AES_128_GCM;
+            return MBEDTLS_PSA_CRYPTO_ASYNC_TLS_AEAD_AES_128_GCM;
         }
         if (keylen == 32) {
-            return MBEDTLS_ASYNC_HARDWARE_TLS_AEAD_AES_256_GCM;
+            return MBEDTLS_PSA_CRYPTO_ASYNC_TLS_AEAD_AES_256_GCM;
         }
     }
 
@@ -7779,23 +7779,23 @@ static int mbedtls_async_hardware_tls_aead_from_transform(psa_key_type_t key_typ
          alg == PSA_ALG_AEAD_WITH_SHORTENED_TAG(PSA_ALG_CCM, 8)) &&
         fixed_ivlen == 4 && (taglen == 16 || taglen == 8)) {
         if (keylen == 16 && taglen == 16) {
-            return MBEDTLS_ASYNC_HARDWARE_TLS_AEAD_AES_128_CCM;
+            return MBEDTLS_PSA_CRYPTO_ASYNC_TLS_AEAD_AES_128_CCM;
         }
         if (keylen == 32 && taglen == 16) {
-            return MBEDTLS_ASYNC_HARDWARE_TLS_AEAD_AES_256_CCM;
+            return MBEDTLS_PSA_CRYPTO_ASYNC_TLS_AEAD_AES_256_CCM;
         }
         if (keylen == 16 && taglen == 8) {
-            return MBEDTLS_ASYNC_HARDWARE_TLS_AEAD_AES_128_CCM_8;
+            return MBEDTLS_PSA_CRYPTO_ASYNC_TLS_AEAD_AES_128_CCM_8;
         }
         if (keylen == 32 && taglen == 8) {
-            return MBEDTLS_ASYNC_HARDWARE_TLS_AEAD_AES_256_CCM_8;
+            return MBEDTLS_PSA_CRYPTO_ASYNC_TLS_AEAD_AES_256_CCM_8;
         }
     }
 
     if (key_type == PSA_KEY_TYPE_CHACHA20 &&
         alg == PSA_ALG_CHACHA20_POLY1305 && keylen == 32 &&
         fixed_ivlen == 12 && taglen == 16) {
-        return MBEDTLS_ASYNC_HARDWARE_TLS_AEAD_CHACHA20_POLY1305;
+        return MBEDTLS_PSA_CRYPTO_ASYNC_TLS_AEAD_CHACHA20_POLY1305;
     }
 
     return 0;
@@ -8089,18 +8089,18 @@ static int ssl_tls12_populate_transform(mbedtls_ssl_transform *transform,
 
     transform->psa_alg = alg;
 
-#if defined(MBEDTLS_ASYNC_HARDWARE_AEAD)
-    int async_hardware_aead_algorithm = mbedtls_async_hardware_tls_aead_from_transform(
+#if defined(MBEDTLS_PSA_CRYPTO_ASYNC_TLS_AEAD)
+    int async_psa_aead_algorithm = mbedtls_psa_async_tls_aead_from_transform(
         key_type, keylen, alg, transform->ivlen, transform->fixed_ivlen,
         transform->taglen);
     if (ssl_mode == MBEDTLS_SSL_MODE_AEAD &&
-        async_hardware_aead_algorithm != 0 &&
-        keylen <= sizeof(transform->async_hardware_aead_key_enc)) {
-        memcpy(transform->async_hardware_aead_key_enc, key1, keylen);
-        memcpy(transform->async_hardware_aead_key_dec, key2, keylen);
-        transform->async_hardware_aead_key_len = keylen;
-        transform->async_hardware_aead_algorithm = (unsigned char) async_hardware_aead_algorithm;
-        transform->async_hardware_aead_keys_configured = 1;
+        async_psa_aead_algorithm != 0 &&
+        keylen <= sizeof(transform->async_psa_aead_key_enc)) {
+        memcpy(transform->async_psa_aead_key_enc, key1, keylen);
+        memcpy(transform->async_psa_aead_key_dec, key2, keylen);
+        transform->async_psa_aead_key_len = keylen;
+        transform->async_psa_aead_algorithm = (unsigned char) async_psa_aead_algorithm;
+        transform->async_psa_aead_keys_configured = 1;
     }
 #endif
 

@@ -1,0 +1,26 @@
+Async TLS bind, unbind and busy state
+bind_unbind_and_busy:
+
+Async TLS owner and abort control
+owner_and_abort_control:
+
+Async TLS trusted time surface
+trusted_time_surface:
+
+Async TLS random and effective capacity
+random_and_capacity:
+
+Async TLS ECDH public key and shared secret requests
+ecdh_public_and_shared:
+
+Async TLS ECDSA sign and verify requests
+ecdsa_sign_and_verify:
+
+Async TLS AEAD generic and AES-GCM wrapper requests
+aead_generic_and_gcm_wrappers:
+
+Async TLS RSA sign and verify requests
+rsa_sign_and_verify_requests:
+
+Async TLS invalid argument rejection
+api_rejects_invalid_arguments:

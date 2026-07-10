@@ -27,14 +27,14 @@ extern const mbedtls_error_pair_t psa_to_ssl_errors[7];
 #include "ssl_ciphersuites_internal.h"
 #include "x509_internal.h"
 
-#if defined(MBEDTLS_ASYNC_HARDWARE_AEAD)
-#define MBEDTLS_ASYNC_HARDWARE_TLS_AEAD_AES_128_GCM 1
-#define MBEDTLS_ASYNC_HARDWARE_TLS_AEAD_AES_256_GCM 2
-#define MBEDTLS_ASYNC_HARDWARE_TLS_AEAD_AES_128_CCM 3
-#define MBEDTLS_ASYNC_HARDWARE_TLS_AEAD_AES_256_CCM 4
-#define MBEDTLS_ASYNC_HARDWARE_TLS_AEAD_AES_128_CCM_8 5
-#define MBEDTLS_ASYNC_HARDWARE_TLS_AEAD_AES_256_CCM_8 6
-#define MBEDTLS_ASYNC_HARDWARE_TLS_AEAD_CHACHA20_POLY1305 7
+#if defined(MBEDTLS_PSA_CRYPTO_ASYNC_TLS_AEAD)
+#define MBEDTLS_PSA_CRYPTO_ASYNC_TLS_AEAD_AES_128_GCM 1
+#define MBEDTLS_PSA_CRYPTO_ASYNC_TLS_AEAD_AES_256_GCM 2
+#define MBEDTLS_PSA_CRYPTO_ASYNC_TLS_AEAD_AES_128_CCM 3
+#define MBEDTLS_PSA_CRYPTO_ASYNC_TLS_AEAD_AES_256_CCM 4
+#define MBEDTLS_PSA_CRYPTO_ASYNC_TLS_AEAD_AES_128_CCM_8 5
+#define MBEDTLS_PSA_CRYPTO_ASYNC_TLS_AEAD_AES_256_CCM_8 6
+#define MBEDTLS_PSA_CRYPTO_ASYNC_TLS_AEAD_CHACHA20_POLY1305 7
 #endif
 
 /* Shorthand for restartable ECC */
@@ -699,22 +699,22 @@ struct mbedtls_ssl_handshake_params {
     unsigned char retransmit_state;     /*!<  Retransmission state           */
 #endif
 
-#if defined(MBEDTLS_ASYNC_HARDWARE_RANDOM)
-    uint8_t async_hardware_random_pending;
-    uint8_t async_hardware_random_done;
-    uint8_t async_hardware_random_success;
-    uint8_t async_hardware_client_random_ready;
-    uint8_t async_hardware_ecdh_public_pending;
-    uint8_t async_hardware_ecdh_public_done;
-    uint8_t async_hardware_ecdh_public_success;
-    uint8_t async_hardware_ecdh_public_ready;
-    uint8_t async_hardware_ecdh_private_ready;
-    uint8_t async_hardware_ecdh_secret_pending;
-    uint8_t async_hardware_ecdh_secret_done;
-    uint8_t async_hardware_ecdh_secret_success;
-    uint8_t async_hardware_ecdh_secret_ready;
-    unsigned char async_hardware_ecdh_private_scalar[66];
-    unsigned char async_hardware_ecdh_public_key[133];
+#if defined(MBEDTLS_PSA_CRYPTO_ASYNC_TLS_RANDOM)
+    uint8_t async_psa_random_pending;
+    uint8_t async_psa_random_done;
+    uint8_t async_psa_random_success;
+    uint8_t async_psa_client_random_ready;
+    uint8_t async_psa_ecdh_public_pending;
+    uint8_t async_psa_ecdh_public_done;
+    uint8_t async_psa_ecdh_public_success;
+    uint8_t async_psa_ecdh_public_ready;
+    uint8_t async_psa_ecdh_private_ready;
+    uint8_t async_psa_ecdh_secret_pending;
+    uint8_t async_psa_ecdh_secret_done;
+    uint8_t async_psa_ecdh_secret_success;
+    uint8_t async_psa_ecdh_secret_ready;
+    unsigned char async_psa_ecdh_private_scalar[66];
+    unsigned char async_psa_ecdh_public_key[133];
 #endif
 
 #if defined(MBEDTLS_SSL_ECP_RESTARTABLE_ENABLED)
@@ -1138,15 +1138,15 @@ struct mbedtls_ssl_transform {
     mbedtls_svc_key_id_t psa_key_dec;           /*!<  psa decryption key      */
     psa_algorithm_t psa_alg;                    /*!<  psa algorithm           */
 
-#if defined(MBEDTLS_ASYNC_HARDWARE_AEAD)
-    unsigned char async_hardware_aead_key_enc[32];
-    unsigned char async_hardware_aead_key_dec[32];
-    size_t async_hardware_aead_key_len;
-    unsigned char async_hardware_aead_algorithm;
-    unsigned char async_hardware_aead_keys_configured;
-    unsigned char async_hardware_aead_pending;
-    unsigned char async_hardware_aead_done;
-    unsigned char async_hardware_aead_success;
+#if defined(MBEDTLS_PSA_CRYPTO_ASYNC_TLS_AEAD)
+    unsigned char async_psa_aead_key_enc[32];
+    unsigned char async_psa_aead_key_dec[32];
+    size_t async_psa_aead_key_len;
+    unsigned char async_psa_aead_algorithm;
+    unsigned char async_psa_aead_keys_configured;
+    unsigned char async_psa_aead_pending;
+    unsigned char async_psa_aead_done;
+    unsigned char async_psa_aead_success;
 #endif
 
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
@@ -1770,7 +1770,7 @@ int mbedtls_ssl_get_key_exchange_md_tls1_2(mbedtls_ssl_context *ssl,
 #endif
 
 void mbedtls_ssl_transform_init(mbedtls_ssl_transform *transform);
-#if defined(MBEDTLS_ASYNC_HARDWARE_AEAD)
+#if defined(MBEDTLS_PSA_CRYPTO_ASYNC_TLS_AEAD)
 MBEDTLS_CHECK_RETURN_CRITICAL
 int mbedtls_ssl_configure_async_aead_transform(
     mbedtls_ssl_transform *transform,

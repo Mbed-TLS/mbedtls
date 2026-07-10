@@ -991,7 +991,7 @@ static int ssl_tls13_write_certificate_verify_body(mbedtls_ssl_context *ssl,
         }
         if (ret != 0) {
 #if defined(MBEDTLS_SSL_ECP_RESTARTABLE_ENABLED) || \
-            defined(MBEDTLS_ASYNC_HARDWARE_ECDSA) || defined(MBEDTLS_ASYNC_HARDWARE_RSA)
+            defined(MBEDTLS_PSA_CRYPTO_ASYNC_TLS_ECDSA) || defined(MBEDTLS_PSA_CRYPTO_ASYNC_TLS_RSA)
             if (ret == MBEDTLS_ERR_ECP_IN_PROGRESS) {
 #if defined(MBEDTLS_SSL_ECP_RESTARTABLE_ENABLED)
                 ssl->handshake->ecrs_state = ssl_ecrs_crt_vrfy_sign;

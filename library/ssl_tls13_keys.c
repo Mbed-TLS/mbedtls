@@ -1012,7 +1012,7 @@ int mbedtls_ssl_tls13_populate_transform(
 
     transform->psa_alg = alg;
 
-#if defined(MBEDTLS_ASYNC_HARDWARE_AEAD)
+#if defined(MBEDTLS_PSA_CRYPTO_ASYNC_TLS_AEAD)
     int async_aead_configured = mbedtls_ssl_configure_async_aead_transform(
         transform, key_type, alg, key_enc, key_dec, PSA_BITS_TO_BYTES(key_bits));
     (void) async_aead_configured;
@@ -1462,7 +1462,7 @@ static int ssl_tls13_key_schedule_stage_handshake(mbedtls_ssl_context *ssl)
                 return MBEDTLS_ERR_SSL_ALLOC_FAILED;
             }
 
-#if defined(MBEDTLS_ASYNC_HARDWARE_ECDH) && \
+#if defined(MBEDTLS_PSA_CRYPTO_ASYNC_TLS_ECDH) && \
     defined(MBEDTLS_SSL_ECP_RESTARTABLE_ENABLED)
             mbedtls_svc_key_id_t shared_secret_key = MBEDTLS_SVC_KEY_ID_INIT;
             psa_status_t shared_secret_key_destruction_status =

@@ -2541,11 +2541,11 @@ cleanup:
  * Handler for MBEDTLS_SSL_ENCRYPTED_EXTENSIONS
  */
 
-#if defined(MBEDTLS_ASYNC_HARDWARE_AEAD)
+#if defined(MBEDTLS_PSA_CRYPTO_ASYNC_TLS_AEAD)
 static int ssl_tls13_resume_pending_record(mbedtls_ssl_context *ssl)
 {
     if (ssl->transform_out == NULL ||
-        ssl->transform_out->async_hardware_aead_pending == 0) {
+        ssl->transform_out->async_psa_aead_pending == 0) {
         return 0;
     }
 
@@ -2639,7 +2639,7 @@ static int ssl_tls13_write_encrypted_extensions(mbedtls_ssl_context *ssl)
 
     MBEDTLS_SSL_DEBUG_MSG(2, ("=> write encrypted extensions"));
 
-#if defined(MBEDTLS_ASYNC_HARDWARE_AEAD)
+#if defined(MBEDTLS_PSA_CRYPTO_ASYNC_TLS_AEAD)
     ret = ssl_tls13_resume_pending_record(ssl);
     if (ret < 0) {
         goto cleanup;
@@ -2664,7 +2664,7 @@ static int ssl_tls13_write_encrypted_extensions(mbedtls_ssl_context *ssl)
     MBEDTLS_SSL_PROC_CHK(mbedtls_ssl_finish_handshake_msg(
                              ssl, buf_len, msg_len));
 
-#if defined(MBEDTLS_ASYNC_HARDWARE_AEAD)
+#if defined(MBEDTLS_PSA_CRYPTO_ASYNC_TLS_AEAD)
 encrypted_extensions_written:
 #endif
 #if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED)
@@ -2827,7 +2827,7 @@ static int ssl_tls13_write_server_certificate(mbedtls_ssl_context *ssl)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
-#if defined(MBEDTLS_ASYNC_HARDWARE_AEAD)
+#if defined(MBEDTLS_PSA_CRYPTO_ASYNC_TLS_AEAD)
     ret = ssl_tls13_resume_pending_record(ssl);
     if (ret < 0) {
         return ret;
@@ -2852,7 +2852,7 @@ static int ssl_tls13_write_server_certificate(mbedtls_ssl_context *ssl)
     if (ret != 0) {
         return ret;
     }
-#if defined(MBEDTLS_ASYNC_HARDWARE_AEAD)
+#if defined(MBEDTLS_PSA_CRYPTO_ASYNC_TLS_AEAD)
 server_certificate_written:
 #endif
     mbedtls_ssl_handshake_set_state(ssl, MBEDTLS_SSL_CERTIFICATE_VERIFY);
@@ -2866,7 +2866,7 @@ MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_tls13_write_certificate_verify(mbedtls_ssl_context *ssl)
 {
     int ret;
-#if defined(MBEDTLS_ASYNC_HARDWARE_AEAD)
+#if defined(MBEDTLS_PSA_CRYPTO_ASYNC_TLS_AEAD)
     ret = ssl_tls13_resume_pending_record(ssl);
     if (ret < 0) {
         return ret;
@@ -2880,7 +2880,7 @@ static int ssl_tls13_write_certificate_verify(mbedtls_ssl_context *ssl)
     if (ret != 0) {
         return ret;
     }
-#if defined(MBEDTLS_ASYNC_HARDWARE_AEAD)
+#if defined(MBEDTLS_PSA_CRYPTO_ASYNC_TLS_AEAD)
 certificate_verify_written:
 #endif
     mbedtls_ssl_handshake_set_state(ssl, MBEDTLS_SSL_SERVER_FINISHED);
@@ -2949,7 +2949,7 @@ static int ssl_tls13_write_server_finished(mbedtls_ssl_context *ssl)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
-#if defined(MBEDTLS_ASYNC_HARDWARE_AEAD)
+#if defined(MBEDTLS_PSA_CRYPTO_ASYNC_TLS_AEAD)
     ret = ssl_tls13_resume_pending_record(ssl);
     if (ret < 0) {
         return ret;
@@ -2965,7 +2965,7 @@ static int ssl_tls13_write_server_finished(mbedtls_ssl_context *ssl)
         return ret;
     }
 
-#if defined(MBEDTLS_ASYNC_HARDWARE_AEAD)
+#if defined(MBEDTLS_PSA_CRYPTO_ASYNC_TLS_AEAD)
 server_finished_written:
 #endif
     ret = mbedtls_ssl_tls13_compute_application_transform(ssl);

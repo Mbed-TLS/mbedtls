@@ -24,6 +24,7 @@ set(src_tls
     ssl_cookie.c
     ssl_debug_helpers_generated.c
     ssl_msg.c
+    psa_crypto_async_tls.c
     ssl_ticket.c
     ssl_tls.c
     ssl_tls12_client.c

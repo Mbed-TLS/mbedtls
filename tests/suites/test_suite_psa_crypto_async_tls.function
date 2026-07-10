@@ -1,0 +1,645 @@
+/* BEGIN_HEADER */
+
+#include "mbedtls/psa_crypto_async_tls.h"
+
+#include "test/certs.h"
+
+#include <mbedtls/psa_crypto_async_curves.h>
+#include <mbedtls/psa_crypto_async_provider.h>
+#include <psa/crypto.h>
+#include <psa/crypto_extra.h>
+#include <string.h>
+
+typedef struct {
+    int calls;
+    int callback_calls;
+    psa_status_t start_status;
+    mbedtls_psa_async_crypto_capability_t capabilities;
+    mbedtls_psa_async_crypto_request_t last_request;
+    mbedtls_psa_async_crypto_hardware_completion_t completion;
+    mbedtls_psa_async_crypto_hardware_completion_t completions[
+        MBEDTLS_PSA_ASYNC_CRYPTO_MAX_CONCURRENT_OPERATIONS];
+} async_tls_test_context_t;
+
+typedef struct {
+    int called;
+    int success;
+} async_tls_test_completion_t;
+
+static mbedtls_psa_async_crypto_capability_t
+async_tls_test_get_capabilities(void *context)
+{
+    async_tls_test_context_t *test_context = context;
+    return test_context->capabilities;
+}
+
+static psa_status_t async_tls_test_operation(
+    void *context,
+    const mbedtls_psa_async_crypto_request_t *request,
+    mbedtls_psa_async_crypto_hardware_completion_t *completion)
+{
+    async_tls_test_context_t *test_context = context;
+
+    test_context->calls++;
+    test_context->last_request = *request;
+    test_context->completion = *completion;
+    if (test_context->calls <=
+        MBEDTLS_PSA_ASYNC_CRYPTO_MAX_CONCURRENT_OPERATIONS) {
+        test_context->completions[test_context->calls - 1] = *completion;
+    }
+
+    if (request->output.data != NULL) {
+        memset(request->output.data, 0x5a, request->output.length);
+    }
+    if (request->output_tag.data != NULL) {
+        memset(request->output_tag.data, 0xa5, request->output_tag.length);
+    }
+    if (request->signature.data != NULL) {
+        memset(request->signature.data, 0x3c, request->signature.length);
+    }
+    if (request->shared_secret.data != NULL) {
+        memset(request->shared_secret.data, 0xc3,
+               request->shared_secret.length);
+    }
+    if (request->public_key_output.data != NULL) {
+        memset(request->public_key_output.data, 0x42,
+               request->public_key_output.length);
+        request->public_key_output.data[0] = 0x04;
+    }
+
+    return test_context->start_status;
+}
+
+static const mbedtls_psa_async_crypto_hardware_functions_t
+    async_tls_test_functions = {
+    async_tls_test_get_capabilities,
+    async_tls_test_operation,
+    async_tls_test_operation,
+    async_tls_test_operation,
+    async_tls_test_operation,
+    async_tls_test_operation,
+    async_tls_test_operation,
+    async_tls_test_operation,
+    async_tls_test_operation,
+    async_tls_test_operation,
+    async_tls_test_operation,
+    async_tls_test_operation,
+    async_tls_test_operation,
+};
+
+static void async_tls_test_callback(int success, void *context)
+{
+    async_tls_test_completion_t *completion = context;
+    completion->called++;
+    completion->success = success;
+}
+
+static void async_tls_test_complete(async_tls_test_context_t *context,
+                                    psa_status_t status)
+{
+    if (context->completion.callback == NULL) {
+        return;
+    }
+    context->callback_calls++;
+    context->completion.callback(status, context->completion.context);
+    mbedtls_psa_async_tls_service();
+}
+
+static void async_tls_test_init(async_tls_test_context_t *context,
+                                mbedtls_psa_async_crypto_provider_t *provider,
+                                mbedtls_psa_async_crypto_hardware_t *hardware)
+{
+    memset(context, 0, sizeof(*context));
+    context->start_status = PSA_OPERATION_INCOMPLETE;
+    context->capabilities =
+        MBEDTLS_PSA_ASYNC_CRYPTO_CAPABILITY_RANDOM |
+        MBEDTLS_PSA_ASYNC_CRYPTO_CAPABILITY_AES_GCM |
+        MBEDTLS_PSA_ASYNC_CRYPTO_CAPABILITY_AES_CCM |
+        MBEDTLS_PSA_ASYNC_CRYPTO_CAPABILITY_ECDH |
+        MBEDTLS_PSA_ASYNC_CRYPTO_CAPABILITY_ECDSA |
+        MBEDTLS_PSA_ASYNC_CRYPTO_CAPABILITY_EXPORT_PUBLIC_KEY |
+        MBEDTLS_PSA_ASYNC_CRYPTO_CAPABILITY_RSA;
+    hardware->functions = &async_tls_test_functions;
+    hardware->context = context;
+    mbedtls_psa_async_crypto_provider_init(provider, hardware);
+}
+
+static void async_tls_test_cleanup(mbedtls_psa_async_crypto_provider_t *provider)
+{
+    mbedtls_psa_async_tls_abort();
+    while (mbedtls_psa_async_tls_unbind(provider)) {
+    }
+    mbedtls_psa_async_tls_clear_trusted_time();
+}
+
+static void async_tls_test_expect_bound(
+    async_tls_test_context_t *context,
+    mbedtls_psa_async_crypto_provider_t *provider,
+    mbedtls_psa_async_crypto_hardware_t *hardware)
+{
+    async_tls_test_init(context, provider, hardware);
+    (void) mbedtls_psa_async_tls_bind(provider);
+}
+
+static size_t async_tls_test_make_rsa_public_key(uint8_t output[269])
+{
+    output[0] = 0x30;
+    output[1] = 0x82;
+    output[2] = 0x01;
+    output[3] = 0x09;
+    output[4] = 0x02;
+    output[5] = 0x82;
+    output[6] = 0x01;
+    output[7] = 0x00;
+    memset(output + 8, 0x11, 256);
+    output[8] = 0x7f;
+    output[264] = 0x02;
+    output[265] = 0x03;
+    output[266] = 0x01;
+    output[267] = 0x00;
+    output[268] = 0x01;
+    return 269;
+}
+
+/* END_HEADER */
+
+/* BEGIN_DEPENDENCIES
+ * depends_on:MBEDTLS_PSA_CRYPTO_C
+ * END_DEPENDENCIES */
+
+/* BEGIN_CASE */
+void bind_unbind_and_busy(void)
+{
+    async_tls_test_context_t context;
+    mbedtls_psa_async_crypto_provider_t provider;
+    mbedtls_psa_async_crypto_provider_t other_provider;
+    mbedtls_psa_async_crypto_hardware_t hardware;
+    uint8_t output[16] = { 0 };
+    async_tls_test_completion_t completion = { 0, 0 };
+
+    TEST_ASSUME(MBEDTLS_PSA_ASYNC_CRYPTO_HARDWARE_ENABLED);
+    async_tls_test_init(&context, &provider, &hardware);
+    mbedtls_psa_async_crypto_provider_init(&other_provider, NULL);
+
+    TEST_EQUAL(mbedtls_psa_async_tls_bind(NULL), 0);
+    TEST_ASSERT(mbedtls_psa_async_tls_bind(&provider));
+    TEST_ASSERT(mbedtls_psa_async_tls_bind(&provider));
+    TEST_EQUAL(mbedtls_psa_async_tls_bind(&other_provider), 0);
+
+    TEST_ASSERT(mbedtls_psa_async_tls_random_start(
+                    output, sizeof(output), async_tls_test_callback, &completion));
+    TEST_EQUAL(mbedtls_psa_async_tls_busy(), 1);
+    TEST_EQUAL(mbedtls_psa_async_tls_unbind(&provider), 1);
+    TEST_EQUAL(mbedtls_psa_async_tls_unbind(&provider), 0);
+
+    async_tls_test_complete(&context, PSA_SUCCESS);
+    TEST_EQUAL(completion.called, 1);
+    TEST_EQUAL(completion.success, 1);
+    TEST_EQUAL(mbedtls_psa_async_tls_busy(), 0);
+    TEST_ASSERT(mbedtls_psa_async_tls_unbind(&provider));
+    TEST_EQUAL(mbedtls_psa_async_tls_unbind(&provider), 0);
+
+exit:
+    async_tls_test_cleanup(&provider);
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void owner_and_abort_control(void)
+{
+    async_tls_test_context_t context;
+    mbedtls_psa_async_crypto_provider_t provider;
+    mbedtls_psa_async_crypto_hardware_t hardware;
+    uint8_t first_output[16] = { 0 };
+    uint8_t second_output[16] = { 0 };
+    async_tls_test_completion_t first = { 0, 0 };
+    async_tls_test_completion_t second = { 0, 0 };
+    int first_owner;
+    int second_owner;
+
+    TEST_ASSUME(MBEDTLS_PSA_ASYNC_CRYPTO_HARDWARE_ENABLED);
+    PSA_ASSERT(psa_crypto_init());
+    async_tls_test_expect_bound(&context, &provider, &hardware);
+
+    TEST_EQUAL(mbedtls_psa_async_tls_begin_call(NULL), 0);
+    TEST_ASSERT(mbedtls_psa_async_tls_begin_call(&first_owner));
+    TEST_EQUAL(mbedtls_psa_async_tls_begin_call(&second_owner), 0);
+    TEST_ASSERT(mbedtls_psa_async_tls_random_start(
+                    first_output, sizeof(first_output), async_tls_test_callback, &first));
+    mbedtls_psa_async_tls_end_call(&first_owner);
+
+    TEST_ASSERT(mbedtls_psa_async_tls_begin_call(&second_owner));
+    TEST_ASSERT(mbedtls_psa_async_tls_random_start(
+                    second_output, sizeof(second_output), async_tls_test_callback,
+                    &second));
+    mbedtls_psa_async_tls_end_call(&second_owner);
+
+    mbedtls_psa_async_tls_abort_owner(&first_owner);
+    TEST_EQUAL(first.called, 0);
+    TEST_EQUAL(mbedtls_psa_async_tls_busy(), 1);
+
+    async_tls_test_complete(&context, PSA_SUCCESS);
+    TEST_EQUAL(second.called, 1);
+    TEST_EQUAL(second.success, 1);
+    TEST_EQUAL(mbedtls_psa_async_tls_busy(), 0);
+
+exit:
+    async_tls_test_cleanup(&provider);
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void trusted_time_surface(void)
+{
+    time_t now = 0;
+
+    mbedtls_psa_async_tls_clear_trusted_time();
+    TEST_EQUAL(mbedtls_psa_async_tls_get_trusted_time(), 0);
+    TEST_EQUAL(mbedtls_platform_time(NULL), 0);
+
+    mbedtls_psa_async_tls_set_trusted_time(1700000000u);
+    TEST_EQUAL(mbedtls_psa_async_tls_get_trusted_time(), 1700000000u);
+    TEST_EQUAL(mbedtls_platform_time(&now), 1700000000u);
+    TEST_EQUAL(now, 1700000000u);
+
+    mbedtls_psa_async_tls_clear_trusted_time();
+    TEST_EQUAL(mbedtls_platform_time(NULL), 0);
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void random_and_capacity(void)
+{
+    async_tls_test_context_t context;
+    mbedtls_psa_async_crypto_provider_t provider;
+    mbedtls_psa_async_crypto_hardware_t hardware;
+    uint8_t output[MBEDTLS_PSA_ASYNC_CRYPTO_MAX_CONCURRENT_OPERATIONS + 1][8];
+    async_tls_test_completion_t completion[
+        MBEDTLS_PSA_ASYNC_CRYPTO_MAX_CONCURRENT_OPERATIONS + 1];
+    size_t index;
+
+    memset(output, 0, sizeof(output));
+    memset(completion, 0, sizeof(completion));
+    TEST_ASSUME(MBEDTLS_PSA_ASYNC_CRYPTO_HARDWARE_ENABLED);
+    async_tls_test_expect_bound(&context, &provider, &hardware);
+
+    for (index = 0; index < MBEDTLS_PSA_ASYNC_CRYPTO_MAX_CONCURRENT_OPERATIONS;
+         index++) {
+        TEST_ASSERT(mbedtls_psa_async_tls_random_start(
+                        output[index], sizeof(output[index]), async_tls_test_callback,
+                        &completion[index]));
+        TEST_EQUAL(context.last_request.operation,
+                   MBEDTLS_PSA_ASYNC_CRYPTO_OPERATION_RANDOM);
+        TEST_EQUAL(context.last_request.output.data, output[index]);
+        TEST_EQUAL(context.last_request.output.length, sizeof(output[index]));
+    }
+
+    TEST_EQUAL(mbedtls_psa_async_tls_random_start(
+                   output[index], sizeof(output[index]),
+                   async_tls_test_callback, &completion[index]),
+               0);
+
+    for (index = 0; index < MBEDTLS_PSA_ASYNC_CRYPTO_MAX_CONCURRENT_OPERATIONS;
+         index++) {
+        TEST_ASSERT(context.completions[index].callback != NULL);
+        context.completions[index].callback(
+            PSA_SUCCESS, context.completions[index].context);
+        mbedtls_psa_async_tls_service();
+    }
+
+    TEST_EQUAL(mbedtls_psa_async_tls_busy(), 0);
+
+exit:
+    async_tls_test_cleanup(&provider);
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void ecdh_public_and_shared(void)
+{
+    async_tls_test_context_t context;
+    mbedtls_psa_async_crypto_provider_t provider;
+    mbedtls_psa_async_crypto_hardware_t hardware;
+    uint8_t private_key[66] = { 1 };
+    uint8_t public_key[133] = { 0x04 };
+    uint8_t shared_secret[66] = { 0 };
+    async_tls_test_completion_t completion = { 0, 0 };
+
+    TEST_ASSUME(MBEDTLS_PSA_ASYNC_CRYPTO_HARDWARE_ENABLED);
+    async_tls_test_expect_bound(&context, &provider, &hardware);
+
+    TEST_ASSERT(mbedtls_psa_async_tls_ecdh_p256_public_key_start(
+                    private_key, public_key, async_tls_test_callback, &completion));
+    TEST_EQUAL(context.last_request.operation,
+               MBEDTLS_PSA_ASYNC_CRYPTO_OPERATION_EXPORT_PUBLIC_KEY);
+    TEST_EQUAL(context.last_request.key_bits, 256);
+    TEST_EQUAL(context.last_request.private_key.length, 32);
+    TEST_EQUAL(context.last_request.public_key_output.length, 65);
+    async_tls_test_complete(&context, PSA_SUCCESS);
+
+    TEST_ASSERT(mbedtls_psa_async_tls_ecdh_p384_public_key_start(
+                    private_key, public_key, async_tls_test_callback, &completion));
+    TEST_EQUAL(context.last_request.key_bits, 384);
+    TEST_EQUAL(context.last_request.private_key.length, 48);
+    TEST_EQUAL(context.last_request.public_key_output.length, 97);
+    async_tls_test_complete(&context, PSA_SUCCESS);
+
+    TEST_ASSERT(mbedtls_psa_async_tls_ecdh_p521_public_key_start(
+                    private_key, public_key, async_tls_test_callback, &completion));
+    TEST_EQUAL(context.last_request.key_bits, 521);
+    TEST_EQUAL(context.last_request.private_key.length, 66);
+    TEST_EQUAL(context.last_request.public_key_output.length, 133);
+    async_tls_test_complete(&context, PSA_SUCCESS);
+
+    TEST_ASSERT(mbedtls_psa_async_tls_ecdh_p256_start(
+                    private_key, public_key, shared_secret, async_tls_test_callback,
+                    &completion));
+    TEST_EQUAL(context.last_request.operation,
+               MBEDTLS_PSA_ASYNC_CRYPTO_OPERATION_KEY_AGREEMENT);
+    TEST_EQUAL(context.last_request.key_bits, 256);
+    TEST_EQUAL(context.last_request.peer_key.length, 65);
+    TEST_EQUAL(context.last_request.shared_secret.length, 32);
+    async_tls_test_complete(&context, PSA_SUCCESS);
+
+    TEST_ASSERT(mbedtls_psa_async_tls_ecdh_p384_start(
+                    private_key, public_key, shared_secret, async_tls_test_callback,
+                    &completion));
+    TEST_EQUAL(context.last_request.key_bits, 384);
+    TEST_EQUAL(context.last_request.peer_key.length, 97);
+    TEST_EQUAL(context.last_request.shared_secret.length, 48);
+    async_tls_test_complete(&context, PSA_SUCCESS);
+
+    TEST_ASSERT(mbedtls_psa_async_tls_ecdh_p521_start(
+                    private_key, public_key, shared_secret, async_tls_test_callback,
+                    &completion));
+    TEST_EQUAL(context.last_request.key_bits, 521);
+    TEST_EQUAL(context.last_request.peer_key.length, 133);
+    TEST_EQUAL(context.last_request.shared_secret.length, 66);
+    async_tls_test_complete(&context, PSA_SUCCESS);
+
+exit:
+    async_tls_test_cleanup(&provider);
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void ecdsa_sign_and_verify(void)
+{
+    async_tls_test_context_t context;
+    mbedtls_psa_async_crypto_provider_t provider;
+    mbedtls_psa_async_crypto_hardware_t hardware;
+    uint8_t private_key[66] = { 1 };
+    uint8_t public_key[133] = { 0x04 };
+    uint8_t hash[64] = { 2 };
+    uint8_t signature[132] = { 0 };
+    async_tls_test_completion_t completion = { 0, 0 };
+
+    TEST_ASSUME(MBEDTLS_PSA_ASYNC_CRYPTO_HARDWARE_ENABLED);
+    async_tls_test_expect_bound(&context, &provider, &hardware);
+
+    TEST_ASSERT(mbedtls_psa_async_tls_ecdsa_p256_sign_start(
+                    private_key, hash, signature, async_tls_test_callback, &completion));
+    TEST_EQUAL(context.last_request.operation,
+               MBEDTLS_PSA_ASYNC_CRYPTO_OPERATION_RANDOM);
+    TEST_EQUAL(context.last_request.output.length, 32);
+    async_tls_test_complete(&context, PSA_SUCCESS);
+    TEST_EQUAL(context.last_request.operation,
+               MBEDTLS_PSA_ASYNC_CRYPTO_OPERATION_SIGN_HASH);
+    TEST_EQUAL(context.last_request.key_bits, 256);
+    TEST_EQUAL(context.last_request.hash.length, 32);
+    TEST_EQUAL(context.last_request.signature.length, 64);
+    async_tls_test_complete(&context, PSA_SUCCESS);
+
+    TEST_ASSERT(mbedtls_psa_async_tls_ecdsa_p384_sign_start(
+                    private_key, hash, signature, async_tls_test_callback, &completion));
+    TEST_EQUAL(context.last_request.output.length, 48);
+    async_tls_test_complete(&context, PSA_SUCCESS);
+    TEST_EQUAL(context.last_request.key_bits, 384);
+    TEST_EQUAL(context.last_request.hash.length, 48);
+    TEST_EQUAL(context.last_request.signature.length, 96);
+    async_tls_test_complete(&context, PSA_SUCCESS);
+
+    TEST_ASSERT(mbedtls_psa_async_tls_ecdsa_p521_sign_start(
+                    private_key, hash, signature, async_tls_test_callback, &completion));
+    TEST_EQUAL(context.last_request.output.length, 66);
+    async_tls_test_complete(&context, PSA_SUCCESS);
+    TEST_EQUAL(context.last_request.key_bits, 521);
+    TEST_EQUAL(context.last_request.hash.length, 64);
+    TEST_EQUAL(context.last_request.signature.length, 132);
+    async_tls_test_complete(&context, PSA_SUCCESS);
+
+    TEST_ASSERT(mbedtls_psa_async_tls_ecdsa_p256_verify_start(
+                    public_key, hash, signature, async_tls_test_callback, &completion));
+    TEST_EQUAL(context.last_request.operation,
+               MBEDTLS_PSA_ASYNC_CRYPTO_OPERATION_VERIFY_HASH);
+    TEST_EQUAL(context.last_request.key_bits, 256);
+    TEST_EQUAL(context.last_request.public_key.length, 65);
+    TEST_EQUAL(context.last_request.signature.length, 64);
+    async_tls_test_complete(&context, PSA_SUCCESS);
+
+    TEST_ASSERT(mbedtls_psa_async_tls_ecdsa_p384_verify_start(
+                    public_key, hash, signature, async_tls_test_callback, &completion));
+    TEST_EQUAL(context.last_request.key_bits, 384);
+    TEST_EQUAL(context.last_request.public_key.length, 97);
+    TEST_EQUAL(context.last_request.signature.length, 96);
+    async_tls_test_complete(&context, PSA_SUCCESS);
+
+    TEST_ASSERT(mbedtls_psa_async_tls_ecdsa_p521_verify_start(
+                    public_key, hash, signature, async_tls_test_callback, &completion));
+    TEST_EQUAL(context.last_request.key_bits, 521);
+    TEST_EQUAL(context.last_request.public_key.length, 133);
+    TEST_EQUAL(context.last_request.signature.length, 132);
+    async_tls_test_complete(&context, PSA_SUCCESS);
+
+exit:
+    async_tls_test_cleanup(&provider);
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void aead_generic_and_gcm_wrappers(void)
+{
+    async_tls_test_context_t context;
+    mbedtls_psa_async_crypto_provider_t provider;
+    mbedtls_psa_async_crypto_hardware_t hardware;
+    uint8_t key[32] = { 1 };
+    uint8_t nonce[13] = { 2 };
+    uint8_t aad[8] = { 3 };
+    uint8_t input[32] = { 4 };
+    uint8_t output[32] = { 0 };
+    uint8_t tag[16] = { 0 };
+    async_tls_test_completion_t completion = { 0, 0 };
+
+    TEST_ASSUME(MBEDTLS_PSA_ASYNC_CRYPTO_HARDWARE_ENABLED);
+    async_tls_test_expect_bound(&context, &provider, &hardware);
+
+    TEST_ASSERT(mbedtls_psa_async_tls_aead_encrypt_start(
+                    1, key, 16, nonce, 12, aad, sizeof(aad), input, output,
+                    sizeof(input), tag, sizeof(tag), async_tls_test_callback,
+                    &completion));
+    TEST_EQUAL(context.last_request.operation,
+               MBEDTLS_PSA_ASYNC_CRYPTO_OPERATION_AEAD);
+    TEST_EQUAL(context.last_request.alg, PSA_ALG_GCM);
+    TEST_EQUAL(context.last_request.direction,
+               MBEDTLS_PSA_ASYNC_CRYPTO_ENCRYPT);
+    TEST_EQUAL(context.last_request.key_bits, 128);
+    TEST_EQUAL(context.last_request.output_tag.length, sizeof(tag));
+    async_tls_test_complete(&context, PSA_SUCCESS);
+
+    TEST_ASSERT(mbedtls_psa_async_tls_aead_decrypt_start(
+                    3, key, 32, nonce, 13, aad, sizeof(aad), input, output,
+                    sizeof(input), tag, 8, async_tls_test_callback, &completion));
+    TEST_EQUAL(context.last_request.alg, PSA_ALG_CCM);
+    TEST_EQUAL(context.last_request.direction,
+               MBEDTLS_PSA_ASYNC_CRYPTO_DECRYPT);
+    TEST_EQUAL(context.last_request.key_bits, 256);
+    TEST_EQUAL(context.last_request.input_tag.length, 8);
+    async_tls_test_complete(&context, PSA_SUCCESS);
+
+    TEST_ASSERT(mbedtls_psa_async_tls_aes_gcm128_encrypt_start(
+                    key, nonce, aad, sizeof(aad), input, output, sizeof(input), tag,
+                    async_tls_test_callback, &completion));
+    TEST_EQUAL(context.last_request.alg, PSA_ALG_GCM);
+    TEST_EQUAL(context.last_request.key.length, 16);
+    TEST_EQUAL(context.last_request.nonce.length, 12);
+    TEST_EQUAL(context.last_request.output_tag.length, 16);
+    async_tls_test_complete(&context, PSA_SUCCESS);
+
+    TEST_ASSERT(mbedtls_psa_async_tls_aes_gcm128_decrypt_start(
+                    key, nonce, aad, sizeof(aad), input, output, sizeof(input), tag,
+                    async_tls_test_callback, &completion));
+    TEST_EQUAL(context.last_request.alg, PSA_ALG_GCM);
+    TEST_EQUAL(context.last_request.key.length, 16);
+    TEST_EQUAL(context.last_request.nonce.length, 12);
+    TEST_EQUAL(context.last_request.input_tag.length, 16);
+    async_tls_test_complete(&context, PSA_SUCCESS);
+
+exit:
+    async_tls_test_cleanup(&provider);
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void rsa_sign_and_verify_requests(void)
+{
+    async_tls_test_context_t context;
+    mbedtls_psa_async_crypto_provider_t provider;
+    mbedtls_psa_async_crypto_hardware_t hardware;
+    uint8_t public_key[269] = { 0 };
+    uint8_t hash[32] = { 1 };
+    uint8_t signature[256] = { 0 };
+    size_t public_key_length;
+    async_tls_test_completion_t completion = { 0, 0 };
+
+    TEST_ASSUME(MBEDTLS_PSA_ASYNC_CRYPTO_HARDWARE_ENABLED);
+    async_tls_test_expect_bound(&context, &provider, &hardware);
+    public_key_length = async_tls_test_make_rsa_public_key(public_key);
+
+    TEST_ASSERT(mbedtls_psa_async_tls_rsa_pkcs1_sign_start(
+                    256, mbedtls_test_srv_key_rsa_der, mbedtls_test_srv_key_rsa_der_len,
+                    hash, sizeof(hash), signature,
+                    sizeof(signature), async_tls_test_callback, &completion));
+    TEST_EQUAL(context.last_request.operation,
+               MBEDTLS_PSA_ASYNC_CRYPTO_OPERATION_RAW_RSA);
+    TEST_EQUAL(context.last_request.modulus.length, sizeof(signature));
+    TEST_EQUAL(context.last_request.output.data, signature);
+    async_tls_test_complete(&context, PSA_SUCCESS);
+    TEST_EQUAL(completion.called, 1);
+    TEST_EQUAL(completion.success, 1);
+
+    TEST_ASSERT(mbedtls_psa_async_tls_rsa_pss_sign_start(
+                    256, mbedtls_test_srv_key_rsa_der, mbedtls_test_srv_key_rsa_der_len,
+                    hash, sizeof(hash), signature,
+                    sizeof(signature), async_tls_test_callback, &completion));
+    TEST_EQUAL(context.last_request.operation,
+               MBEDTLS_PSA_ASYNC_CRYPTO_OPERATION_RANDOM);
+    TEST_EQUAL(context.last_request.output.length, sizeof(hash));
+    async_tls_test_complete(&context, PSA_SUCCESS);
+    TEST_EQUAL(context.last_request.operation,
+               MBEDTLS_PSA_ASYNC_CRYPTO_OPERATION_RAW_RSA);
+    TEST_EQUAL(context.last_request.modulus.length, sizeof(signature));
+    async_tls_test_complete(&context, PSA_SUCCESS);
+
+    TEST_ASSERT(mbedtls_psa_async_tls_rsa_pkcs1_verify_start(
+                    256, public_key, (size_t) public_key_length, hash, sizeof(hash),
+                    signature, sizeof(signature), async_tls_test_callback, &completion));
+    TEST_EQUAL(context.last_request.operation,
+               MBEDTLS_PSA_ASYNC_CRYPTO_OPERATION_RAW_RSA);
+    TEST_EQUAL(context.last_request.modulus.length, sizeof(signature));
+    async_tls_test_complete(&context, PSA_SUCCESS);
+
+    TEST_ASSERT(mbedtls_psa_async_tls_rsa_pss_verify_start(
+                    256, public_key, (size_t) public_key_length, hash, sizeof(hash),
+                    signature, sizeof(signature), async_tls_test_callback, &completion));
+    TEST_EQUAL(context.last_request.operation,
+               MBEDTLS_PSA_ASYNC_CRYPTO_OPERATION_RAW_RSA);
+    TEST_EQUAL(context.last_request.modulus.length, sizeof(signature));
+    async_tls_test_complete(&context, PSA_SUCCESS);
+
+exit:
+    mbedtls_psa_crypto_free();
+    async_tls_test_cleanup(&provider);
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void api_rejects_invalid_arguments(void)
+{
+    async_tls_test_context_t context;
+    mbedtls_psa_async_crypto_provider_t provider;
+    mbedtls_psa_async_crypto_hardware_t hardware;
+    uint8_t key[32] = { 1 };
+    uint8_t nonce[12] = { 2 };
+    uint8_t input[16] = { 3 };
+    uint8_t output[16] = { 0 };
+    uint8_t tag[16] = { 0 };
+    async_tls_test_completion_t completion = { 0, 0 };
+
+    TEST_EQUAL(mbedtls_psa_async_tls_random_start(
+                   output, sizeof(output), async_tls_test_callback,
+                   &completion),
+               0);
+
+    async_tls_test_expect_bound(&context, &provider, &hardware);
+
+    TEST_EQUAL(mbedtls_psa_async_tls_random_start(
+                   NULL, sizeof(output), async_tls_test_callback,
+                   &completion),
+               0);
+    TEST_EQUAL(mbedtls_psa_async_tls_random_start(
+                   output, 0, async_tls_test_callback, &completion),
+               0);
+    TEST_EQUAL(mbedtls_psa_async_tls_random_start(
+                   output, sizeof(output), NULL, &completion),
+               0);
+    TEST_EQUAL(mbedtls_psa_async_tls_ecdh_p256_start(
+                   NULL, input, output, async_tls_test_callback,
+                   &completion),
+               0);
+    TEST_EQUAL(mbedtls_psa_async_tls_ecdsa_p256_verify_start(
+                   NULL, input, tag, async_tls_test_callback, &completion),
+               0);
+    TEST_EQUAL(mbedtls_psa_async_tls_aead_encrypt_start(
+                   0, key, 16, nonce, sizeof(nonce), NULL, 0, input, output,
+                   sizeof(input), tag, sizeof(tag), async_tls_test_callback,
+                   &completion),
+               0);
+    TEST_EQUAL(mbedtls_psa_async_tls_aead_encrypt_start(
+                   1, key, 24, nonce, sizeof(nonce), NULL, 0, input, output,
+                   sizeof(input), tag, sizeof(tag), async_tls_test_callback,
+                   &completion),
+               0);
+    TEST_EQUAL(mbedtls_psa_async_tls_rsa_pkcs1_sign_start(
+                   256, NULL, 0, input, 32, output, sizeof(output),
+                   async_tls_test_callback, &completion),
+               0);
+    TEST_EQUAL(mbedtls_psa_async_tls_rsa_pss_verify_start(
+                   256, NULL, 0, input, 32, tag, sizeof(tag),
+                   async_tls_test_callback, &completion),
+               0);
+    TEST_EQUAL(mbedtls_psa_async_tls_busy(), 0);
+
+exit:
+    async_tls_test_cleanup(&provider);
+}
+/* END_CASE */

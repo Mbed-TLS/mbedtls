@@ -3009,11 +3009,17 @@ void ssl_context_load_rejects_oob_length(int field)
     };
 #endif
 #if defined(MBEDTLS_SSL_ALPN)
-    /* The negotiated protocol (alpn[0]) is serialized; alpn[1] is longer and is
-     * what the corrupted length will match against on load, so the unbounded
-     * memcmp() reads past the end of the buffer. */
+    /* The negotiated protocol (alpn[0]) is the last field in the serialized
+     * context, so exactly strlen(alpn[0]) bytes remain after its length byte.
+     * On load, ssl_context_load() only memcmp()s configured protocols whose
+     * strlen() equals the length byte, so the corrupted length has to match a
+     * configured protocol to reach the memcmp(): alpn[1] is one character
+     * longer than alpn[0], which makes the corrupted length point exactly one
+     * byte past the end of the serialized data. It shares alpn[0]'s prefix so
+     * that all in-bounds bytes match and the memcmp() cannot stop before
+     * reading past the end of the buffer. */
     const char negotiated[] = "alpnsentinel";
-    const char *alpn[] = { negotiated, "alpnsentinel-padding", NULL };
+    const char *alpn[] = { negotiated, "alpnsentinel2", NULL };
 #endif
 
     mbedtls_test_handshake_test_options options;
@@ -3075,8 +3081,8 @@ void ssl_context_load_rejects_oob_length(int field)
                        0);
             sentinel = (const unsigned char *) negotiated;
             sentinel_len = strlen(negotiated);
-            /* The length of the longer configured protocol, which is more
-             * bytes than remain in the buffer. */
+            /* One byte past the end of the serialized data; see the
+             * declaration of alpn[] above. */
             corrupt_len = (unsigned char) strlen(alpn[1]);
             break;
 #endif
@@ -3104,6 +3110,14 @@ void ssl_context_load_rejects_oob_length(int field)
     TEST_EQUAL(mbedtls_ssl_context_save(&server_ep.ssl, context_buf,
                                         context_buf_len, &context_buf_len), 0);
 
+    /* Double-check that the serialized data loads cleanly before it gets
+     * corrupted. */
+    mbedtls_ssl_free(&server_ep.ssl);
+    mbedtls_ssl_init(&server_ep.ssl);
+    TEST_EQUAL(mbedtls_ssl_setup(&server_ep.ssl, &server_ep.conf), 0);
+    TEST_EQUAL(mbedtls_ssl_context_load(&server_ep.ssl, context_buf,
+                                        context_buf_len), 0);
+
     /* Both fields are serialized as [length byte][data bytes]; locate the
      * length byte by searching for the sentinel data. */
     for (i = 1; i + sentinel_len <= context_buf_len; i++) {
@@ -3115,6 +3129,15 @@ void ssl_context_load_rejects_oob_length(int field)
     }
     TEST_ASSERT(len_p != NULL);
 
+#if defined(MBEDTLS_SSL_ALPN)
+    if (field == TEST_SSL_CONTEXT_LOAD_OOB_ALPN) {
+        /* Double-check that the corrupted length overruns the serialized data
+         * by exactly one byte, as the ALPN field is the last one saved. */
+        TEST_EQUAL((size_t) corrupt_len,
+                   (size_t) (context_buf + context_buf_len - (len_p + 1)) + 1);
+    }
+#endif
+
     *len_p = corrupt_len;
 
     /* Reinitialise the server SSL context so we can load into a fresh one. */
@@ -3122,6 +3145,13 @@ void ssl_context_load_rejects_oob_length(int field)
     mbedtls_ssl_init(&server_ep.ssl);
     TEST_EQUAL(mbedtls_ssl_setup(&server_ep.ssl, &server_ep.conf), 0);
 
+    /* Note that this rejection alone does not prove the bounds check works:
+     * without it the ALPN case usually still fails with
+     * MBEDTLS_ERR_SSL_BAD_INPUT_DATA, because the out-of-bounds bytes are
+     * unlikely to match a configured protocol so the alpn_chosen lookup
+     * fails afterwards. What the missing check leaks is the out-of-bounds
+     * read in memcmp() itself, so this test case only catches a regression
+     * when the test suite runs under ASan or Valgrind. */
     TEST_EQUAL(mbedtls_ssl_context_load(&server_ep.ssl, context_buf,
                                         context_buf_len),
                MBEDTLS_ERR_SSL_BAD_INPUT_DATA);

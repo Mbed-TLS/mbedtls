@@ -882,8 +882,8 @@ static void print_deserialized_ssl_context(const uint8_t *ssl, size_t len)
         printf("\tALPN negotiation                   : ");
         CHECK_SSL_END(alpn_len);
         if (alpn_len > 0) {
-            if (strlen((const char *) ssl) == alpn_len) {
-                printf("%s\n", ssl);
+            if (memchr(ssl, '\0', alpn_len) == NULL) {
+                printf("%.*s\n", alpn_len, ssl);
             } else {
                 printf("\n");
                 printf_err("\tALPN negotiation is incorrect\n");

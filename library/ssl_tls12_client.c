@@ -2698,6 +2698,16 @@ static int ssl_parse_certificate_request(mbedtls_ssl_context *ssl)
 
     n += 2 + sig_alg_len;
 
+    /* The signature-algorithms check above leaves room for only one of the two
+     * distinguished-name length bytes, so make sure both are in the message
+     * before reading them. */
+    if (ssl->in_hslen < mbedtls_ssl_hs_hdr_len(ssl) + 3 + n) {
+        MBEDTLS_SSL_DEBUG_MSG(1, ("bad certificate request message"));
+        mbedtls_ssl_send_alert_message(ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
+                                       MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR);
+        return MBEDTLS_ERR_SSL_DECODE_ERROR;
+    }
+
     /* certificate_authorities */
     dn_len = MBEDTLS_GET_UINT16_BE(buf, mbedtls_ssl_hs_hdr_len(ssl) + 1 + n);
 

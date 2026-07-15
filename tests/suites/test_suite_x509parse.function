@@ -1136,12 +1136,15 @@ void x509parse_crt(data_t *buf, char *result_str, int result)
 #else
     ((void) result_str);
 #endif
-    /* Tests whose result is MBEDTLS_ERR_PK_INVALID_PUBKEY might return
-     * MBEDTLS_ERR_ASN1_UNEXPECTED_TAG until psa#308 is merged. This variable
-     * is therefore used for backward compatiblity and will be removed in
-     * mbedtls#10229. */
-    int result_back_comp = result;
     int res;
+    /* After psa#827 some failing tests that were returning MBEDTLS_ERR_PK_INVALID_PUBKEY
+     * will return MBEDTLS_ERR_PK_INVALID_ALG instead. We need a temporary
+     * backward compatibility fix until psa#827 is merged.
+     */
+    int result_back_comp = result;
+    if (result == MBEDTLS_ERR_PK_INVALID_ALG) {
+        result_back_comp = MBEDTLS_ERR_PK_INVALID_PUBKEY;
+    }
 
     mbedtls_x509_crt_init(&crt);
     USE_PSA_INIT();

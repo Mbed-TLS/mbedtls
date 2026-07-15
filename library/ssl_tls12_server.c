@@ -1085,6 +1085,16 @@ static int ssl_parse_client_hello(mbedtls_ssl_context *ssl)
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
     ciph_offset = 35 + sess_len;
 
+    /* The two-byte ciphersuite list length field must be within the message.
+     * The DTLS branch above reserves it via the cookie length check; the
+     * session id length check does not, so guard the read here. */
+    if (ciph_offset + 2 > msg_len) {
+        MBEDTLS_SSL_DEBUG_MSG(1, ("bad client hello message"));
+        mbedtls_ssl_send_alert_message(ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
+                                       MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR);
+        return MBEDTLS_ERR_SSL_DECODE_ERROR;
+    }
+
     ciph_len = MBEDTLS_GET_UINT16_BE(buf, ciph_offset);
 
     if (ciph_len < 2 ||

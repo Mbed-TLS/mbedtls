@@ -736,7 +736,7 @@ static int ssl_tls13_ticket_get_psk(mbedtls_ssl_context *ssl,
     }
 
     *hash_alg = ssl_tls13_get_ciphersuite_hash_alg(session->ciphersuite);
-    *psk = session->resumption_key;
+    *psk = session->secret;
     *psk_len = session->resumption_key_len;
 
     return 0;
@@ -2978,7 +2978,7 @@ static int ssl_tls13_postprocess_new_session_ticket(mbedtls_ssl_context *ssl,
     psa_hash_alg = mbedtls_md_psa_alg_from_type((mbedtls_md_type_t) ciphersuite_info->mac);
     hash_length = PSA_HASH_LENGTH(psa_hash_alg);
     if (hash_length == -1 ||
-        (size_t) hash_length > sizeof(session->resumption_key)) {
+        (size_t) hash_length > MBEDTLS_SSL_TLS1_3_TICKET_RESUMPTION_KEY_LEN) {
         return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
     }
 
@@ -2999,7 +2999,7 @@ static int ssl_tls13_postprocess_new_session_ticket(mbedtls_ssl_context *ssl,
         MBEDTLS_SSL_TLS1_3_LBL_WITH_LEN(resumption),
         ticket_nonce,
         ticket_nonce_len,
-        session->resumption_key,
+        session->secret,
         hash_length);
 
     if (ret != 0) {
@@ -3012,7 +3012,7 @@ static int ssl_tls13_postprocess_new_session_ticket(mbedtls_ssl_context *ssl,
     session->resumption_key_len = hash_length;
 
     MBEDTLS_SSL_DEBUG_BUF(3, "Ticket-resumed PSK",
-                          session->resumption_key,
+                          session->secret,
                           session->resumption_key_len);
 
     /* Set ticket_flags depends on the selected key exchange modes */

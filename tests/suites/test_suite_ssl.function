@@ -2657,10 +2657,8 @@ void ssl_serialize_session_save_load(int ticket_len, char *crt_file,
         TEST_EQUAL(original.ticket_flags,  restored.ticket_flags);
         TEST_EQUAL(original.resumption_key_len,  restored.resumption_key_len);
         if (original.resumption_key_len != 0) {
-            TEST_ASSERT(original.resumption_key != NULL);
-            TEST_ASSERT(restored.resumption_key != NULL);
-            TEST_EQUAL(memcmp(original.resumption_key,
-                              restored.resumption_key,
+            TEST_EQUAL(memcmp(original.secret,
+                              restored.secret,
                               original.resumption_key_len),  0);
         }
 #endif /* MBEDTLS_SSL_SESSION_TICKETS */

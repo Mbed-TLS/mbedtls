@@ -1832,7 +1832,7 @@ int mbedtls_test_ssl_tls13_populate_session(mbedtls_ssl_session *session,
     session->ticket_age_add = 0x87654321;
     session->ticket_flags = 0x7;
     session->resumption_key_len = 32;
-    memset(session->resumption_key, 0x99, sizeof(session->resumption_key));
+    memset(session->secret, 0x99, session->resumption_key_len);
 #endif
 
 #if defined(MBEDTLS_SSL_SRV_C)

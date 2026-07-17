@@ -3909,7 +3909,7 @@ static int ssl_tls13_session_save(const mbedtls_ssl_session *session,
     /* save resumption_key */
     p[5] = session->resumption_key_len;
     p += 6;
-    memcpy(p, session->resumption_key, session->resumption_key_len);
+    memcpy(p, session->secret, session->resumption_key_len);
     p += session->resumption_key_len;
 
 #if defined(MBEDTLS_SSL_EARLY_DATA)
@@ -3994,10 +3994,11 @@ static int ssl_tls13_session_load(mbedtls_ssl_session *session,
         return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
     }
 
-    if (sizeof(session->resumption_key) < session->resumption_key_len) {
+    if (MBEDTLS_SSL_TLS1_3_TICKET_RESUMPTION_KEY_LEN <
+        session->resumption_key_len) {
         return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
     }
-    memcpy(session->resumption_key, p, session->resumption_key_len);
+    memcpy(session->secret, p, session->resumption_key_len);
     p += session->resumption_key_len;
 
 #if defined(MBEDTLS_SSL_EARLY_DATA)

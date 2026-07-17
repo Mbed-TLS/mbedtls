@@ -689,6 +689,14 @@
 
 #define MBEDTLS_SSL_TLS1_2_MASTER_SECRET_LEN 48
 
+#define MBEDTLS_SSL_SESSION_SECRET_LEN MBEDTLS_SSL_TLS1_2_MASTER_SECRET_LEN
+
+#if defined(MBEDTLS_SSL_TLS1_3_TICKET_RESUMPTION_KEY_LEN) &&       \
+    MBEDTLS_SSL_SESSION_SECRET_LEN <                               \
+    MBEDTLS_SSL_TLS1_3_TICKET_RESUMPTION_KEY_LEN
+#error "MBEDTLS_SSL_SESSION_SECRET_LEN is too small for the TLS 1.3 ticket resumption key"
+#endif
+
 /* Dummy type used only for its size */
 union mbedtls_ssl_premaster_secret {
     unsigned char dummy; /* Make the union non-empty even with SSL disabled */
@@ -1298,8 +1306,10 @@ struct mbedtls_ssl_session {
     int MBEDTLS_PRIVATE(ciphersuite);            /*!< chosen ciphersuite */
     size_t MBEDTLS_PRIVATE(id_len);              /*!< session id length  */
     unsigned char MBEDTLS_PRIVATE(id)[32];       /*!< session identifier */
-                                                 /*!< the session secret */
-    unsigned char MBEDTLS_PRIVATE(secret)[MBEDTLS_SSL_TLS1_2_MASTER_SECRET_LEN];
+    /*! The session secret:
+     *  - TLS 1.2: the master secret (MBEDTLS_SSL_SESSION_SECRET_LEN bytes)
+     *  - TLS 1.3: the resumption key (resumption_key_len bytes) */
+    unsigned char MBEDTLS_PRIVATE(secret)[MBEDTLS_SSL_SESSION_SECRET_LEN];
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
 #if defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
@@ -1344,8 +1354,9 @@ struct mbedtls_ssl_session {
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3) && defined(MBEDTLS_SSL_SESSION_TICKETS)
     uint32_t MBEDTLS_PRIVATE(ticket_age_add);     /*!< Randomly generated value used to obscure the age of the ticket */
     uint8_t MBEDTLS_PRIVATE(ticket_flags);        /*!< Ticket flags */
-    uint8_t MBEDTLS_PRIVATE(resumption_key_len);  /*!< resumption_key length */
-    unsigned char MBEDTLS_PRIVATE(resumption_key)[MBEDTLS_SSL_TLS1_3_TICKET_RESUMPTION_KEY_LEN];
+    uint8_t MBEDTLS_PRIVATE(resumption_key_len);  /*!< resumption key length */
+    unsigned char MBEDTLS_PRIVATE(resumption_key_unused)[
+        MBEDTLS_SSL_TLS1_3_TICKET_RESUMPTION_KEY_LEN]; /*!< Unused, kept for ABI compatibility */
 
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION) && defined(MBEDTLS_SSL_CLI_C)
     char *MBEDTLS_PRIVATE(hostname);             /*!< host name binded with tickets */

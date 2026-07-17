@@ -349,7 +349,7 @@ static int ssl_tls13_offered_psks_check_identity_match(
     if (ret == SSL_TLS1_3_PSK_IDENTITY_MATCH) {
         *psk_type = MBEDTLS_SSL_TLS1_3_PSK_RESUMPTION;
         ret = mbedtls_ssl_set_hs_psk(ssl,
-                                     session->resumption_key,
+                                     session->secret,
                                      session->resumption_key_len);
         if (ret != 0) {
             MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_set_hs_psk", ret);
@@ -357,7 +357,7 @@ static int ssl_tls13_offered_psks_check_identity_match(
         }
 
         MBEDTLS_SSL_DEBUG_BUF(4, "Ticket-resumed PSK:",
-                              session->resumption_key,
+                              session->secret,
                               session->resumption_key_len);
         MBEDTLS_SSL_DEBUG_MSG(4, ("ticket: obfuscated_ticket_age: %u",
                                   (unsigned) obfuscated_ticket_age));
@@ -470,7 +470,7 @@ static int ssl_tls13_session_copy_ticket(mbedtls_ssl_session *dst,
     if (src->resumption_key_len == 0) {
         return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
     }
-    memcpy(dst->resumption_key, src->resumption_key, src->resumption_key_len);
+    memcpy(dst->secret, src->secret, src->resumption_key_len);
 
 #if defined(MBEDTLS_SSL_EARLY_DATA)
     dst->max_early_data_size = src->max_early_data_size;
@@ -3229,7 +3229,7 @@ static int ssl_tls13_prepare_new_session_ticket(mbedtls_ssl_context *ssl,
     psa_hash_alg = mbedtls_md_psa_alg_from_type((mbedtls_md_type_t) ciphersuite_info->mac);
     hash_length = PSA_HASH_LENGTH(psa_hash_alg);
     if (hash_length == -1 ||
-        (size_t) hash_length > sizeof(session->resumption_key)) {
+        (size_t) hash_length > MBEDTLS_SSL_TLS1_3_TICKET_RESUMPTION_KEY_LEN) {
         return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
     }
 
@@ -3249,7 +3249,7 @@ static int ssl_tls13_prepare_new_session_ticket(mbedtls_ssl_context *ssl,
         MBEDTLS_SSL_TLS1_3_LBL_WITH_LEN(resumption),
         ticket_nonce,
         ticket_nonce_size,
-        session->resumption_key,
+        session->secret,
         hash_length);
 
     if (ret != 0) {
@@ -3259,7 +3259,7 @@ static int ssl_tls13_prepare_new_session_ticket(mbedtls_ssl_context *ssl,
         return ret;
     }
     MBEDTLS_SSL_DEBUG_BUF(3, "Ticket-resumed PSK",
-                          session->resumption_key,
+                          session->secret,
                           session->resumption_key_len);
 
     MBEDTLS_SSL_DEBUG_BUF(3, "resumption_master_secret",

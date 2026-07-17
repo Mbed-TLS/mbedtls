@@ -418,7 +418,8 @@ typedef int ssl_tls_prf_t(const unsigned char *, size_t, const char *,
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_tls12_populate_transform(mbedtls_ssl_transform *transform,
                                         int ciphersuite,
-                                        const unsigned char master[48],
+                                        const unsigned char master[
+                                            MBEDTLS_SSL_TLS1_2_MASTER_SECRET_LEN],
 #if defined(MBEDTLS_SSL_SOME_SUITES_USE_CBC_ETM)
                                         int encrypt_then_mac,
 #endif /* MBEDTLS_SSL_SOME_SUITES_USE_CBC_ETM */
@@ -3498,7 +3499,7 @@ static size_t ssl_tls12_session_save(const mbedtls_ssl_session *session,
      */
     used += 1 /* id_len */
             + sizeof(session->id)
-            + sizeof(session->master)
+            + MBEDTLS_SSL_TLS1_2_MASTER_SECRET_LEN
             + 4; /* verify_result */
 
     if (used <= buf_len) {
@@ -3506,8 +3507,8 @@ static size_t ssl_tls12_session_save(const mbedtls_ssl_session *session,
         memcpy(p, session->id, 32);
         p += 32;
 
-        memcpy(p, session->master, 48);
-        p += 48;
+        memcpy(p, session->secret, MBEDTLS_SSL_TLS1_2_MASTER_SECRET_LEN);
+        p += MBEDTLS_SSL_TLS1_2_MASTER_SECRET_LEN;
 
         MBEDTLS_PUT_UINT32_BE(session->verify_result, p, 0);
         p += 4;
@@ -3647,7 +3648,7 @@ static int ssl_tls12_session_load(mbedtls_ssl_session *session,
     /*
      * Basic mandatory fields
      */
-    if (1 + 32 + 48 + 4 > (size_t) (end - p)) {
+    if (1 + 32 + MBEDTLS_SSL_TLS1_2_MASTER_SECRET_LEN + 4 > (size_t) (end - p)) {
         return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
     }
 
@@ -3655,8 +3656,8 @@ static int ssl_tls12_session_load(mbedtls_ssl_session *session,
     memcpy(session->id, p, 32);
     p += 32;
 
-    memcpy(session->master, p, 48);
-    p += 48;
+    memcpy(session->secret, p, MBEDTLS_SSL_TLS1_2_MASTER_SECRET_LEN);
+    p += MBEDTLS_SSL_TLS1_2_MASTER_SECRET_LEN;
 
     session->verify_result = MBEDTLS_GET_UINT32_BE(p, 0);
     p += 4;
@@ -5432,7 +5433,7 @@ static int ssl_context_load(mbedtls_ssl_context *ssl,
 
     ret = ssl_tls12_populate_transform(ssl->transform,
                                        ssl->session->ciphersuite,
-                                       ssl->session->master,
+                                       ssl->session->secret,
 #if defined(MBEDTLS_SSL_SOME_SUITES_USE_CBC_ETM)
                                        ssl->session->encrypt_then_mac,
 #endif /* MBEDTLS_SSL_SOME_SUITES_USE_CBC_ETM */
@@ -7077,7 +7078,7 @@ static int ssl_compute_master(mbedtls_ssl_handshake_params *handshake,
 
     /* cf. RFC 5246, Section 8.1:
      * "The master secret is always exactly 48 bytes in length." */
-    size_t const master_secret_len = 48;
+    size_t const master_secret_len = MBEDTLS_SSL_TLS1_2_MASTER_SECRET_LEN;
 
 #if defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET)
     unsigned char session_hash[48];
@@ -7284,7 +7285,7 @@ int mbedtls_ssl_derive_keys(mbedtls_ssl_context *ssl)
 
     /* Compute master secret if needed */
     ret = ssl_compute_master(ssl->handshake,
-                             ssl->session_negotiate->master,
+                             ssl->session_negotiate->secret,
                              ssl);
     if (ret != 0) {
         MBEDTLS_SSL_DEBUG_RET(1, "ssl_compute_master", ret);
@@ -7305,7 +7306,7 @@ int mbedtls_ssl_derive_keys(mbedtls_ssl_context *ssl)
     /* Populate transform structure */
     ret = ssl_tls12_populate_transform(ssl->transform_negotiate,
                                        ssl->session_negotiate->ciphersuite,
-                                       ssl->session_negotiate->master,
+                                       ssl->session_negotiate->secret,
 #if defined(MBEDTLS_SSL_SOME_SUITES_USE_CBC_ETM)
                                        ssl->session_negotiate->encrypt_then_mac,
 #endif /* MBEDTLS_SSL_SOME_SUITES_USE_CBC_ETM */
@@ -8267,7 +8268,8 @@ static int ssl_calc_finished_tls_generic(mbedtls_ssl_context *ssl, void *ctx,
      *   hash = PRF( master, finished_label,
      *               Hash( handshake ) )[0.11]
      */
-    ssl->handshake->tls_prf(session->master, 48, sender,
+    ssl->handshake->tls_prf(session->secret,
+                            MBEDTLS_SSL_TLS1_2_MASTER_SECRET_LEN, sender,
                             padbuf, hlen, buf, len);
 
     MBEDTLS_SSL_DEBUG_BUF(3, "calc finished result", buf, len);
@@ -8672,7 +8674,8 @@ static mbedtls_tls_prf_types tls_prf_get_type(mbedtls_ssl_tls_prf_cb *tls_prf)
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_tls12_populate_transform(mbedtls_ssl_transform *transform,
                                         int ciphersuite,
-                                        const unsigned char master[48],
+                                        const unsigned char master[
+                                            MBEDTLS_SSL_TLS1_2_MASTER_SECRET_LEN],
 #if defined(MBEDTLS_SSL_SOME_SUITES_USE_CBC_ETM)
                                         int encrypt_then_mac,
 #endif /* MBEDTLS_SSL_SOME_SUITES_USE_CBC_ETM */
@@ -8805,7 +8808,8 @@ static int ssl_tls12_populate_transform(mbedtls_ssl_transform *transform,
     /*
      * Compute key block using the PRF
      */
-    ret = tls_prf(master, 48, "key expansion", randbytes, 64, keyblk, 256);
+    ret = tls_prf(master, MBEDTLS_SSL_TLS1_2_MASTER_SECRET_LEN, "key expansion",
+                  randbytes, 64, keyblk, 256);
     if (ret != 0) {
         MBEDTLS_SSL_DEBUG_RET(1, "prf", ret);
         return ret;
@@ -8813,7 +8817,8 @@ static int ssl_tls12_populate_transform(mbedtls_ssl_transform *transform,
 
     MBEDTLS_SSL_DEBUG_MSG(3, ("ciphersuite = %s",
                               mbedtls_ssl_get_ciphersuite_name(ciphersuite)));
-    MBEDTLS_SSL_DEBUG_BUF(3, "master secret", master, 48);
+    MBEDTLS_SSL_DEBUG_BUF(3, "master secret", master,
+                          MBEDTLS_SSL_TLS1_2_MASTER_SECRET_LEN);
     MBEDTLS_SSL_DEBUG_BUF(4, "random bytes", randbytes, 64);
     MBEDTLS_SSL_DEBUG_BUF(4, "key block", keyblk, 256);
 
@@ -8981,7 +8986,7 @@ static int ssl_tls12_populate_transform(mbedtls_ssl_transform *transform,
     if (ssl->f_export_keys != NULL) {
         ssl->f_export_keys(ssl->p_export_keys,
                            MBEDTLS_SSL_KEY_EXPORT_TLS12_MASTER_SECRET,
-                           master, 48,
+                           master, MBEDTLS_SSL_TLS1_2_MASTER_SECRET_LEN,
                            randbytes + 32,
                            randbytes,
                            tls_prf_get_type(tls_prf));
@@ -10148,7 +10153,8 @@ static int mbedtls_ssl_tls12_export_keying_material(const mbedtls_ssl_context *s
         MBEDTLS_PUT_UINT16_BE(context_len, prf_input, randbytes_len);
         memcpy(prf_input + randbytes_len + sizeof(uint16_t), context, context_len);
     }
-    ret = tls_prf_generic(hash_alg, ssl->session->master, sizeof(ssl->session->master),
+    ret = tls_prf_generic(hash_alg, ssl->session->secret,
+                          MBEDTLS_SSL_TLS1_2_MASTER_SECRET_LEN,
                           label, label_len,
                           prf_input, prf_input_len,
                           out, key_len);

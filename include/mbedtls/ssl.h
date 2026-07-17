@@ -687,6 +687,8 @@
 #endif
 #endif /* !MBEDTLS_PSK_MAX_LEN */
 
+#define MBEDTLS_SSL_TLS1_2_MASTER_SECRET_LEN 48
+
 /* Dummy type used only for its size */
 union mbedtls_ssl_premaster_secret {
     unsigned char dummy; /* Make the union non-empty even with SSL disabled */
@@ -1296,7 +1298,8 @@ struct mbedtls_ssl_session {
     int MBEDTLS_PRIVATE(ciphersuite);            /*!< chosen ciphersuite */
     size_t MBEDTLS_PRIVATE(id_len);              /*!< session id length  */
     unsigned char MBEDTLS_PRIVATE(id)[32];       /*!< session identifier */
-    unsigned char MBEDTLS_PRIVATE(master)[48];   /*!< the master secret  */
+                                                 /*!< the session secret */
+    unsigned char MBEDTLS_PRIVATE(secret)[MBEDTLS_SSL_TLS1_2_MASTER_SECRET_LEN];
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
 #if defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
@@ -3272,8 +3275,8 @@ void mbedtls_ssl_conf_handshake_timeout(mbedtls_ssl_config *conf, uint32_t min, 
  *                 The get callback is called once during the initial handshake
  *                 to enable session resuming. The get function has the
  *                 following parameters: (void *parameter, mbedtls_ssl_session *session)
- *                 If a valid entry is found, it should fill the master of
- *                 the session object with the cached values and return 0,
+ *                 If a valid entry is found, it should fill the session
+ *                 object with the cached values and return 0,
  *                 return 1 otherwise. Optionally peer_cert can be set as well
  *                 if it is properly present in cache entry.
  *

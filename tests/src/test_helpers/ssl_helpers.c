@@ -1723,7 +1723,7 @@ int mbedtls_test_ssl_tls12_populate_session(mbedtls_ssl_session *session,
     session->ciphersuite = 0xabcd;
     session->id_len = sizeof(session->id);
     memset(session->id, 66, session->id_len);
-    memset(session->master, 17, sizeof(session->master));
+    memset(session->secret, 17, MBEDTLS_SSL_TLS1_2_MASTER_SECRET_LEN);
 
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED) && defined(MBEDTLS_FS_IO)
     if (crt_file != NULL && strlen(crt_file) != 0) {

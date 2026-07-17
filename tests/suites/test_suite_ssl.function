@@ -2569,8 +2569,9 @@ void ssl_serialize_session_save_load(int ticket_len, char *crt_file,
         TEST_ASSERT(original.id_len == restored.id_len);
         TEST_ASSERT(memcmp(original.id,
                            restored.id, sizeof(original.id)) == 0);
-        TEST_ASSERT(memcmp(original.master,
-                           restored.master, sizeof(original.master)) == 0);
+        TEST_ASSERT(memcmp(original.secret,
+                           restored.secret,
+                           MBEDTLS_SSL_TLS1_2_MASTER_SECRET_LEN) == 0);
 
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
 #if defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)

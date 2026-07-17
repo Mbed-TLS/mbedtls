@@ -3025,7 +3025,8 @@ void ssl_context_load_rejects_oob_length(int field)
     mbedtls_test_handshake_test_options options;
     mbedtls_test_ssl_endpoint client_ep, server_ep;
     unsigned char *context_buf = NULL;
-    size_t context_buf_len, i;
+    unsigned char *load_buf = NULL;
+    size_t context_buf_len, load_len, i;
     const unsigned char *sentinel = NULL;
     size_t sentinel_len = 0;
     unsigned char corrupt_len = 0;
@@ -3065,10 +3066,16 @@ void ssl_context_load_rejects_oob_length(int field)
                            server_cid, sizeof(server_cid)), 0);
             sentinel = server_cid;
             sentinel_len = sizeof(server_cid);
-            /* The smallest value strictly greater than sizeof(in_cid), so we
-             * exercise the bounds check rather than the pre-existing
-             * buffer-size check that would also trip on huge values. */
-            corrupt_len = (unsigned char) (MBEDTLS_SSL_CID_IN_LEN_MAX + 1);
+            /* The in_cid field sits in the middle of the serialized data and
+             * its length is capped at MBEDTLS_SSL_CID_IN_LEN_MAX by a
+             * separate check, which is less than the size of the fields that
+             * follow it, so no corrupted length can reach past the end of
+             * the full buffer. Instead the loaded data is truncated right
+             * after the in_cid bytes (see the computation of load_len below)
+             * and the length is corrupted to reach one byte past that end.
+             * Staying under the cap ensures the bounds check, not the cap,
+             * is what must reject the corrupted length. */
+            corrupt_len = (unsigned char) (sizeof(server_cid) + 1);
             break;
 #endif
 #if defined(MBEDTLS_SSL_ALPN)
@@ -3129,31 +3136,43 @@ void ssl_context_load_rejects_oob_length(int field)
     }
     TEST_ASSERT(len_p != NULL);
 
-#if defined(MBEDTLS_SSL_ALPN)
-    if (field == TEST_SSL_CONTEXT_LOAD_OOB_ALPN) {
-        /* Double-check that the corrupted length overruns the serialized data
-         * by exactly one byte, as the ALPN field is the last one saved. */
-        TEST_EQUAL((size_t) corrupt_len,
-                   (size_t) (context_buf + context_buf_len - (len_p + 1)) + 1);
+    /* The ALPN field is the last one saved, so the buffer already ends right
+     * after it. The in_cid field is not last, so the loaded data is truncated
+     * right after the in_cid bytes to bring the end of the buffer within
+     * reach of the corrupted length. */
+    if (field == TEST_SSL_CONTEXT_LOAD_OOB_CID) {
+        load_len = (size_t) (len_p + 1 - context_buf) + sentinel_len;
+    } else {
+        load_len = context_buf_len;
     }
-#endif
+
+    /* Double-check that the corrupted length overruns the loaded data by
+     * exactly one byte. */
+    TEST_EQUAL((size_t) corrupt_len,
+               load_len - (size_t) (len_p + 1 - context_buf) + 1);
 
     *len_p = corrupt_len;
+
+    /* Load from a tightly allocated copy, so that reading even one byte past
+     * the end of the data overruns the allocation and gets caught by ASan or
+     * Valgrind. */
+    TEST_CALLOC(load_buf, load_len);
+    memcpy(load_buf, context_buf, load_len);
 
     /* Reinitialise the server SSL context so we can load into a fresh one. */
     mbedtls_ssl_free(&server_ep.ssl);
     mbedtls_ssl_init(&server_ep.ssl);
     TEST_EQUAL(mbedtls_ssl_setup(&server_ep.ssl, &server_ep.conf), 0);
 
-    /* Note that this rejection alone does not prove the bounds check works:
-     * without it the ALPN case usually still fails with
+    /* Note that this rejection alone does not prove the bounds checks work:
+     * without them the load usually still fails with
      * MBEDTLS_ERR_SSL_BAD_INPUT_DATA, because the out-of-bounds bytes are
-     * unlikely to match a configured protocol so the alpn_chosen lookup
-     * fails afterwards. What the missing check leaks is the out-of-bounds
-     * read in memcmp() itself, so this test case only catches a regression
-     * when the test suite runs under ASan or Valgrind. */
-    TEST_EQUAL(mbedtls_ssl_context_load(&server_ep.ssl, context_buf,
-                                        context_buf_len),
+     * unlikely to match a configured ALPN protocol, and the fields parsed
+     * after the overrun in_cid fail their own checks. What the missing
+     * checks leak is the out-of-bounds read itself, so this test case only
+     * catches a regression when the test suite runs under ASan or
+     * Valgrind. */
+    TEST_EQUAL(mbedtls_ssl_context_load(&server_ep.ssl, load_buf, load_len),
                MBEDTLS_ERR_SSL_BAD_INPUT_DATA);
 
 exit:
@@ -3161,6 +3180,7 @@ exit:
     mbedtls_test_ssl_endpoint_free(&server_ep);
     mbedtls_test_free_handshake_options(&options);
     mbedtls_free(context_buf);
+    mbedtls_free(load_buf);
     MD_OR_USE_PSA_DONE();
 }
 /* END_CASE */

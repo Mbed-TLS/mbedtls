@@ -188,7 +188,7 @@ foreach my $match (@matches)
             $first = 0;
             foreach my $dep (split(/,/, ${$old_define_name}))
             {
-                ${$code_check} .= " || \n          " if ($first++);
+                ${$code_check} .= " ||\n          " if ($first++);
                 ${$code_check} .= "${$old_define_prefix}${dep}${$old_define_suffix}";
             }
             ${$code_check} .= " */\n\n";
@@ -229,7 +229,7 @@ if ($ll_old_define[0] ne "")
     my $first = 0;
     foreach my $dep (split(/,/, $ll_old_define[0]))
     {
-        $ll_code_check .= " || \n          " if ($first++);
+        $ll_code_check .= " ||\n          " if ($first++);
         $ll_code_check .= "${ll_old_define[1]}${dep}${ll_old_define[2]}";
     }
     $ll_code_check .= " */\n";
@@ -240,7 +240,7 @@ if ($hl_old_define[0] ne "")
     my $first = 0;
     foreach my $dep (split(/,/, $hl_old_define[0]))
     {
-        $hl_code_check .= " || \n          " if ($first++);
+        $hl_code_check .= " ||\n          " if ($first++);
         $hl_code_check .= "${hl_old_define[1]}${dep}${hl_old_define[2]}";
     }
     $hl_code_check .= " */\n";

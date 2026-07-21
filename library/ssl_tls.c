@@ -1544,6 +1544,25 @@ void mbedtls_ssl_conf_session_cache(mbedtls_ssl_config *conf,
     conf->f_get_cache = f_get_cache;
     conf->f_set_cache = f_set_cache;
 }
+
+#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
+void mbedtls_ssl_set_hs_session_cache_context(mbedtls_ssl_context *ssl,
+                                              void *p_cache)
+{
+    ssl->handshake->sni_p_cache = p_cache;
+}
+#endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION */
+
+void *mbedtls_ssl_get_session_cache_context(const mbedtls_ssl_context *ssl)
+{
+#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
+    if (ssl->handshake != NULL && ssl->handshake->sni_p_cache != NULL) {
+        return ssl->handshake->sni_p_cache;
+    }
+#endif
+
+    return ssl->conf->p_cache;
+}
 #endif /* MBEDTLS_SSL_SRV_C */
 
 #if defined(MBEDTLS_SSL_CLI_C)
@@ -2724,6 +2743,25 @@ void mbedtls_ssl_conf_session_tickets_cb(mbedtls_ssl_config *conf,
     conf->f_ticket_write = f_ticket_write;
     conf->f_ticket_parse = f_ticket_parse;
     conf->p_ticket       = p_ticket;
+}
+
+#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
+void mbedtls_ssl_set_hs_session_ticket_context(mbedtls_ssl_context *ssl,
+                                               void *p_ticket)
+{
+    ssl->handshake->sni_p_ticket = p_ticket;
+}
+#endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION */
+
+void *mbedtls_ssl_get_session_ticket_context(const mbedtls_ssl_context *ssl)
+{
+#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
+    if (ssl->handshake != NULL && ssl->handshake->sni_p_ticket != NULL) {
+        return ssl->handshake->sni_p_ticket;
+    }
+#endif
+
+    return ssl->conf->p_ticket;
 }
 #endif
 #endif /* MBEDTLS_SSL_SESSION_TICKETS */
@@ -7366,8 +7404,6 @@ void mbedtls_ssl_handshake_wrapup_free_hs_transform(mbedtls_ssl_context *ssl)
 
 void mbedtls_ssl_handshake_wrapup(mbedtls_ssl_context *ssl)
 {
-    int resume = ssl->handshake->resume;
-
     MBEDTLS_SSL_DEBUG_MSG(3, ("=> handshake wrapup"));
 
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
@@ -7396,16 +7432,16 @@ void mbedtls_ssl_handshake_wrapup(mbedtls_ssl_context *ssl)
     /*
      * Add cache entry
      */
+#if defined(MBEDTLS_SSL_SRV_C)
     if (ssl->conf->f_set_cache != NULL &&
         ssl->session->id_len != 0 &&
-        resume == 0) {
-        if (ssl->conf->f_set_cache(ssl->conf->p_cache,
-                                   ssl->session->id,
-                                   ssl->session->id_len,
-                                   ssl->session) != 0) {
-            MBEDTLS_SSL_DEBUG_MSG(1, ("cache did not store session"));
-        }
+        ssl->handshake->resume == 0 &&
+        ssl->conf->f_set_cache(mbedtls_ssl_get_session_cache_context(ssl),
+                               ssl->session->id, ssl->session->id_len,
+                               ssl->session) != 0) {
+        MBEDTLS_SSL_DEBUG_MSG(1, ("cache did not store session"));
     }
+#endif /* MBEDTLS_SSL_SRV_C */
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     if (ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM &&

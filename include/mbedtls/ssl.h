@@ -2824,6 +2824,26 @@ void mbedtls_ssl_conf_session_tickets_cb(mbedtls_ssl_config *conf,
                                          mbedtls_ssl_ticket_parse_t *f_ticket_parse,
                                          void *p_ticket);
 
+#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
+/**
+ * \brief           Set the SSL session ticket context for the current
+ *                  handshake (server only).
+ *
+ * \note            Same as the \p p_ticket parameter of
+ *                  \c mbedtls_ssl_conf_session_tickets_cb(), but for use
+ *                  within the SNI callback.
+ *                  The configured ticket callbacks are unchanged.
+ *                  Passing \c NULL clears the session ticket context for the
+ *                  current handshake, so the configured ticket context is used.
+ *
+ * \param ssl       SSL context
+ * \param p_ticket  Context shared by the ticket callbacks for the current
+ *                  handshake.
+ */
+void mbedtls_ssl_set_hs_session_ticket_context(mbedtls_ssl_context *ssl,
+                                               void *p_ticket);
+#endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION */
+
 #if defined(MBEDTLS_HAVE_TIME)
 /**
  * \brief Get the creation time of a session ticket.
@@ -3378,6 +3398,26 @@ void mbedtls_ssl_conf_session_cache(mbedtls_ssl_config *conf,
                                     void *p_cache,
                                     mbedtls_ssl_cache_get_t *f_get_cache,
                                     mbedtls_ssl_cache_set_t *f_set_cache);
+
+#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
+/**
+ * \brief          Set the session cache context for the current handshake
+ *                 (server-side only).
+ *
+ * \note           Same as the \p p_cache parameter of
+ *                 \c mbedtls_ssl_conf_session_cache(), but for use within the
+ *                 SNI callback.
+ *                 The configured session cache callbacks are unchanged.
+ *                 Passing \c NULL clears the session cache context for the
+ *                 current handshake, so the configured cache context is used.
+ *
+ * \param ssl      SSL context
+ * \param p_cache  Parameter (context) for the session cache callbacks for the
+ *                 current handshake.
+ */
+void mbedtls_ssl_set_hs_session_cache_context(mbedtls_ssl_context *ssl,
+                                              void *p_cache);
+#endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION */
 #endif /* MBEDTLS_SSL_SRV_C */
 
 #if defined(MBEDTLS_SSL_CLI_C)
@@ -4382,7 +4422,11 @@ void mbedtls_ssl_set_hs_authmode(mbedtls_ssl_context *ssl,
  *                 certificate-authentication context for the current handshake,
  *                 for example by calling \c mbedtls_ssl_set_hs_ca_chain() or
  *                 \c mbedtls_ssl_set_hs_authmode(). When session resumption is
- *                 enabled, see the documentation of
+ *                 enabled, the callback may also use
+ *                 \c mbedtls_ssl_set_hs_session_cache_context() and
+ *                 \c mbedtls_ssl_set_hs_session_ticket_context() to select the
+ *                 session cache and session-ticket contexts for the current
+ *                 handshake. See the documentation of
  *                 \c mbedtls_ssl_conf_session_cache() and
  *                 \c mbedtls_ssl_conf_session_tickets_cb().
  *

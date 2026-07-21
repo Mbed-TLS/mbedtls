@@ -466,9 +466,9 @@ static int ssl_parse_session_ticket_ext(mbedtls_ssl_context *ssl,
     /*
      * Failures are ok: just ignore the ticket and proceed.
      */
-    ret = ssl->conf->f_ticket_parse(ssl->conf->p_ticket, &session, buf, len);
+    ret = ssl->conf->f_ticket_parse(mbedtls_ssl_get_session_ticket_context(ssl),
+                                    &session, buf, len);
     if (ret != 0) {
-
         if (ret == MBEDTLS_ERR_SSL_INVALID_MAC) {
             MBEDTLS_SSL_DEBUG_MSG(3, ("ticket is not authentic"));
         } else if (ret == MBEDTLS_ERR_SSL_SESSION_TICKET_EXPIRED) {
@@ -2003,10 +2003,8 @@ static void ssl_handle_id_based_session_resumption(mbedtls_ssl_context *ssl)
 
     mbedtls_ssl_session_init(&session_tmp);
 
-    ret = ssl->conf->f_get_cache(ssl->conf->p_cache,
-                                 session->id,
-                                 session->id_len,
-                                 &session_tmp);
+    ret = ssl->conf->f_get_cache(mbedtls_ssl_get_session_cache_context(ssl),
+                                 session->id, session->id_len, &session_tmp);
     if (ret != 0) {
         goto exit;
     }
@@ -3479,11 +3477,11 @@ static int ssl_write_new_session_ticket(mbedtls_ssl_context *ssl)
 #if defined(MBEDTLS_HAVE_TIME)
     ssl->session_negotiate->ticket_creation_time = mbedtls_ms_time();
 #endif
-    if ((ret = ssl->conf->f_ticket_write(ssl->conf->p_ticket,
-                                         ssl->session_negotiate,
-                                         ssl->out_msg + 10,
-                                         ssl->out_msg + MBEDTLS_SSL_OUT_CONTENT_LEN,
-                                         &tlen, &lifetime)) != 0) {
+    ret = ssl->conf->f_ticket_write(mbedtls_ssl_get_session_ticket_context(ssl),
+                                    ssl->session_negotiate, ssl->out_msg + 10,
+                                    ssl->out_msg + MBEDTLS_SSL_OUT_CONTENT_LEN,
+                                    &tlen, &lifetime);
+    if (ret != 0) {
         MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_ticket_write", ret);
     }
 

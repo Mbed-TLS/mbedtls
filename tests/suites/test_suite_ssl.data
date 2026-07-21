@@ -3267,6 +3267,11 @@ test_mbedtls_tls_id_group_name_table:MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE6144:"ffdhe
 TLS ID <-> group name: ffdhe8192
 depends_on:PSA_WANT_DH_RFC7919_8192
 test_mbedtls_tls_id_group_name_table:MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE8192:"ffdhe8192"
+Handshake session cache context override
+hs_session_cache_context:
+
+Handshake session ticket context override
+hs_session_ticket_context:
 
 Version config: valid client TLS 1.2 only
 depends_on:MBEDTLS_SSL_PROTO_TLS1_2

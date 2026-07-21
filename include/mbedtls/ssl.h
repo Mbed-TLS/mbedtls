@@ -2192,6 +2192,12 @@ void mbedtls_ssl_conf_transport(mbedtls_ssl_config *conf, int transport);
  * the right time(s), which may not be obvious, while REQUIRED always perform
  * the verification as soon as possible. For example, REQUIRED was protecting
  * against the "triple handshake" attack even before it was found.
+ *
+ * \note           On a server, this setting is part of the client
+ *                 certificate-authentication context. When session resumption
+ *                 is enabled, see the documentation of
+ *                 \c mbedtls_ssl_conf_session_cache() and
+ *                 \c mbedtls_ssl_conf_session_tickets_cb().
  */
 void mbedtls_ssl_conf_authmode(mbedtls_ssl_config *conf, int authmode);
 
@@ -2267,6 +2273,12 @@ void mbedtls_ssl_conf_max_early_data_size(
  *
  * \note           For per context callbacks and contexts, please use
  *                 mbedtls_ssl_set_verify() instead.
+ *
+ * \note           On a server, this callback is part of the client
+ *                 certificate-authentication context. When session resumption
+ *                 is enabled, see the documentation of
+ *                 \c mbedtls_ssl_conf_session_cache() and
+ *                 \c mbedtls_ssl_conf_session_tickets_cb().
  *
  * \param conf     The SSL configuration to use.
  * \param f_vrfy   The verification callback to use during CRT verification.
@@ -2591,6 +2603,12 @@ void mbedtls_ssl_set_mtu(mbedtls_ssl_context *ssl, uint16_t mtu);
  *                 If mbedtls_ssl_conf_verify() and mbedtls_ssl_set_verify()
  *                 are both used, mbedtls_ssl_set_verify() takes precedence.
  *
+ * \note           On a server, this callback is part of the client
+ *                 certificate-authentication context. When session resumption
+ *                 is enabled, see the documentation of
+ *                 \c mbedtls_ssl_conf_session_cache() and
+ *                 \c mbedtls_ssl_conf_session_tickets_cb().
+ *
  * \param ssl      The SSL context to use.
  * \param f_vrfy   The verification callback to use during CRT verification.
  * \param p_vrfy   The opaque context to be passed to the callback.
@@ -2698,6 +2716,15 @@ void mbedtls_ssl_set_timer_cb(mbedtls_ssl_context *ssl,
  *                  If set, the callback is always called for each handshake,
  *                  after `ClientHello` processing has finished.
  *
+ * \note            On a server, this callback may select or modify the client
+ *                  certificate-authentication context for the current
+ *                  handshake, for example by calling
+ *                  \c mbedtls_ssl_set_hs_ca_chain() or
+ *                  \c mbedtls_ssl_set_hs_authmode(). When session resumption is
+ *                  enabled, see the documentation of
+ *                  \c mbedtls_ssl_conf_session_cache() and
+ *                  \c mbedtls_ssl_conf_session_tickets_cb().
+ *
  * \param conf      The SSL configuration to register the callback with.
  * \param f_cert_cb The callback for selecting server certificate after
  *                  `ClientHello` processing has finished.
@@ -2772,6 +2799,18 @@ typedef int mbedtls_ssl_ticket_parse_t(void *p_ticket,
  *                  non-NULL callbacks.
  *
  * \note            On client, use \c mbedtls_ssl_conf_session_tickets().
+ *
+ * \warning         If a server uses session tickets with client
+ *                  authentication, tickets must only be accepted for resumption
+ *                  under the same client authentication context under which
+ *                  they were issued. If the client authentication context is
+ *                  modified, the application must invalidate tickets issued
+ *                  under the previous context, for example by rotating the
+ *                  ticket keys. Otherwise, a session established under one
+ *                  authentication context could be resumed under a different
+ *                  one. For the definition of the client authentication
+ *                  context, see
+ *                  docs/architecture/authentication-and-resumption.md.
  *
  * \param conf      SSL configuration context
  * \param f_ticket_write    Callback for writing a ticket
@@ -3314,6 +3353,20 @@ void mbedtls_ssl_conf_handshake_timeout(mbedtls_ssl_config *conf, uint32_t min, 
  *                 an entry is still valid in the future. Return 0 if
  *                 successfully cached, return 1 otherwise.
  *
+ * \warning        If a server uses a session cache with client authentication,
+ *                 the cache must only be used to resume sessions under the same
+ *                 client authentication context under which the sessions were
+ *                 established. If the client authentication context is modified,
+ *                 the application must reset the session cache. Otherwise, a
+ *                 session established under one authentication context could be
+ *                 resumed under a different one. If the cache is an
+ *                 \c mbedtls_ssl_cache_context, it can be reset by calling
+ *                 \c mbedtls_ssl_cache_free() followed by
+ *                 \c mbedtls_ssl_cache_init(), then reapplying any cache
+ *                 options such as the timeout and maximum number of entries.
+ *                 For the definition of the client authentication context, see
+ *                 docs/architecture/authentication-and-resumption.md.
+ *
  * \param conf           SSL configuration
  * \param p_cache        parameter (context) for both callbacks
  * \param f_get_cache    session get callback
@@ -3621,6 +3674,12 @@ int mbedtls_ssl_conf_cid(mbedtls_ssl_config *conf, size_t len,
  *                 chain. However, signatures in the handshake are not covered
  *                 by this setting but by \c mbedtls_ssl_conf_sig_hashes().
  *
+ * \note           On a server, this profile is part of the client
+ *                 certificate-authentication context. When session resumption
+ *                 is enabled, see the documentation of
+ *                 \c mbedtls_ssl_conf_session_cache() and
+ *                 \c mbedtls_ssl_conf_session_tickets_cb().
+ *
  * \param conf     SSL configuration
  * \param profile  Profile to use
  */
@@ -3633,6 +3692,12 @@ void mbedtls_ssl_conf_cert_profile(mbedtls_ssl_config *conf,
  * \note           See \c mbedtls_x509_crt_verify() for notes regarding the
  *                 parameters ca_chain (maps to trust_ca for that function)
  *                 and ca_crl.
+ *
+ * \note           On a server, the trusted CA chain and CRLs are part of the
+ *                 client certificate-authentication context. When session
+ *                 resumption is enabled, see the documentation of
+ *                 \c mbedtls_ssl_conf_session_cache() and
+ *                 \c mbedtls_ssl_conf_session_tickets_cb().
  *
  * \param conf     SSL configuration
  * \param ca_chain trusted CA chain (meaning all fully trusted top-level CAs)
@@ -3704,6 +3769,12 @@ void mbedtls_ssl_conf_dn_hints(mbedtls_ssl_config *conf,
  * \note           The use of this API disables the use of restartable ECC
  *                 during X.509 CRT signature verification (but doesn't affect
  *                 other uses).
+ *
+ * \note           On a server, this callback is part of the client
+ *                 certificate-authentication context. When session resumption
+ *                 is enabled, see the documentation of
+ *                 \c mbedtls_ssl_conf_session_cache() and
+ *                 \c mbedtls_ssl_conf_session_tickets_cb().
  *
  * \warning        This API is incompatible with the use of CRLs. Any call to
  *                 mbedtls_ssl_conf_ca_cb() unsets CRLs configured through
@@ -3777,6 +3848,11 @@ int mbedtls_ssl_conf_own_cert(mbedtls_ssl_config *conf,
  * \note           A PSK set by \c mbedtls_ssl_set_hs_psk() in the PSK callback
  *                 takes precedence over a PSK configured by this function.
  *
+ * \note           On a server, this PSK is part of the PSK-authentication
+ *                 context. When session resumption is enabled, see the
+ *                 documentation of \c mbedtls_ssl_conf_session_cache() and
+ *                 \c mbedtls_ssl_conf_session_tickets_cb().
+ *
  * \param conf     The SSL configuration to register the PSK with.
  * \param psk      The pointer to the pre-shared key to use.
  * \param psk_len  The length of the pre-shared key in bytes.
@@ -3814,6 +3890,11 @@ int mbedtls_ssl_conf_psk(mbedtls_ssl_config *conf,
  * \note           An opaque PSK set by \c mbedtls_ssl_set_hs_psk_opaque() in
  *                 the PSK callback takes precedence over an opaque PSK
  *                 configured by this function.
+ *
+ * \note           On a server, this PSK is part of the PSK-authentication
+ *                 context. When session resumption is enabled, see the
+ *                 documentation of \c mbedtls_ssl_conf_session_cache() and
+ *                 \c mbedtls_ssl_conf_session_tickets_cb().
  *
  * \param conf     The SSL configuration to register the PSK with.
  * \param psk      The identifier of the key slot holding the PSK.
@@ -3917,6 +3998,11 @@ int mbedtls_ssl_set_hs_psk_opaque(mbedtls_ssl_context *ssl,
  *                 function, you don't need to set a PSK using
  *                 \c mbedtls_ssl_conf_psk() or
  *                 \c mbedtls_ssl_conf_psk_opaque()).
+ *
+ * \note           On a server, this callback is part of the PSK-authentication
+ *                 context. When session resumption is enabled, see the
+ *                 documentation of \c mbedtls_ssl_conf_session_cache() and
+ *                 \c mbedtls_ssl_conf_session_tickets_cb().
  *
  * \param conf     The SSL configuration to register the callback with.
  * \param f_psk    The callback for selecting and setting the PSK based
@@ -4278,6 +4364,14 @@ void mbedtls_ssl_set_hs_authmode(mbedtls_ssl_context *ssl,
  *                 twice with the same hostname. If the ServerName in the
  *                 second ClientHello is inconsistent with the first ClientHello,
  *                 the callback is not invoked again and the handshake is aborted.
+ *
+ * \note           On a server, this callback may select or modify the client
+ *                 certificate-authentication context for the current handshake,
+ *                 for example by calling \c mbedtls_ssl_set_hs_ca_chain() or
+ *                 \c mbedtls_ssl_set_hs_authmode(). When session resumption is
+ *                 enabled, see the documentation of
+ *                 \c mbedtls_ssl_conf_session_cache() and
+ *                 \c mbedtls_ssl_conf_session_tickets_cb().
  *
  * \param conf     SSL configuration
  * \param f_sni    verification function

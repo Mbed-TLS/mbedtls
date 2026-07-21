@@ -56,11 +56,22 @@ session tickets whenever it modifies the certificate-authentication context.
 Consequently, when resumption is enabled, the session cache and session-ticket
 context are part of the certificate-authentication context.
 
+#### Client identification by the server application
+
 If the client certificate is not retained as part of the cached session or
 session-ticket data, the identity derived by the application from the
 certificate must be retained instead. This is necessary to ensure that, after
 session resumption, the application can identify the client in the same way as
 it could in the original session.
+
+#### About certificate expiration
+
+When resuming a session, one or more certificates in the certificate chain used
+to establish the original session may have expired, meaning that a full
+authentication would no longer succeed. However, in practice, session caches
+and tickets are often configured with relatively short lifetimes (typically
+from minutes to a few days), so requiring that none of the certificates in the
+original chain have expired is unlikely to provide significant practical benefit.
 
 ### Resuming a session established through a PSK-based handshake
 
@@ -178,9 +189,9 @@ on a per-handshake basis, the session cache and session-ticket context inherited
 from the configuration context.
 
 Additionally, the following improvements could be considered:
-* Fail session resumption in the scenario described in #1591 if the application
-does not explicitly select the session cache and session-ticket context for the
-current handshake.
+* If a client provides a server name indication in its ClientHello, fail
+session resumption unless the application explicitly selects the session cache
+and session-ticket context for the current handshake.
 * Detect some obvious changes to a certificate-authentication context, such as
 changes to the client authentication mode, and reject attempts to resume sessions
 established under an obviously incompatible certificate-authentication context.

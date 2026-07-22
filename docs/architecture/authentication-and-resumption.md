@@ -109,6 +109,40 @@ Likewise, there does not appear to be any mechanism for a server to identify a
 client that was originally authenticated through a PSK-based handshake after
 session resumption.
 
+## Server authentication
+
+Much of the discussion above also applies to server authentication. The main
+difference is that the server is identified upfront by the client application.
+
+In a PSK-based handshake, the corresponding context is simpler than for client
+authentication: it is the single PSK selected by the application for the server.
+The server authenticates itself by proving knowledge of that PSK.
+
+For certificate-based server authentication, the TLS client verifies the server
+certificate chain against a server certificate-authentication context. This
+context consists of the same elements as the certificate-authentication context
+used for client authentication, plus the expected server name checked during
+certificate verification.
+
+### Server authentication and session resumption
+
+The reasoning for certificate-based client authentication and session
+resumption applies similarly to server authentication: a resumed client session
+should provide the same server-authentication guarantees as the original
+session. This means that verifying the original server certificate chain under
+the current server-authentication context would yield the same result as in the
+original session.
+
+The main server-specific consideration is that the expected server name is part
+of the server-authentication context. In practice, a client application should
+only attempt to resume a session under the same server-authentication context
+under which the session was established. If the trusted CA set,
+certificate verification profile, authentication mode, verification callback, or
+expected server name changes, the application should stop using sessions
+established under the previous context. This means that a client application
+must associate stored sessions and tickets with the server-authentication
+context under which they were established.
+
 ## Client authentication and virtual servers
 
 An application operating an Mbed TLS server can host several virtual servers

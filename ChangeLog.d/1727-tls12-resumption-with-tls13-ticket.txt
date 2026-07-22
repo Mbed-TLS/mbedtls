@@ -1,0 +1,8 @@
+Security
+  * Fixed a security issue in TLS 1.2 session resumption by rejecting session
+    tickets issued for a different TLS version. A TLS 1.3 session ticket could
+    previously be accepted during TLS 1.2 session resumption, causing the
+    server to use an all-zero master secret. This could result in client
+    authentication being bypassed and allow client impersonation. Found and
+    reported by k01n; Ada Logics in collaboration with Anthropic;
+    Mohammad Seet and Rayan Al Garni; Seungheon Oh. CVE-2026-93831.

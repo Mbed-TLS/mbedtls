@@ -2032,11 +2032,12 @@ void mbedtls_ssl_conf_transport(mbedtls_ssl_config *conf, int transport);
  * the verification as soon as possible. For example, REQUIRED was protecting
  * against the "triple handshake" attack even before it was found.
  *
- * \note           On a server, this setting is part of the client
- *                 certificate-authentication context. When session resumption
- *                 is enabled, see the documentation of
+ * \note           This setting is part of the peer
+ *                 certificate-authentication context. For more information, see
+ *                 the documentation of \c mbedtls_ssl_set_session()
+ *                 (client-side) or
  *                 \c mbedtls_ssl_conf_session_cache() and
- *                 \c mbedtls_ssl_conf_session_tickets_cb().
+ *                 \c mbedtls_ssl_conf_session_tickets_cb() (server-side).
  */
 void mbedtls_ssl_conf_authmode(mbedtls_ssl_config *conf, int authmode);
 
@@ -2113,11 +2114,12 @@ void mbedtls_ssl_conf_max_early_data_size(
  * \note           For per context callbacks and contexts, please use
  *                 mbedtls_ssl_set_verify() instead.
  *
- * \note           On a server, this callback is part of the client
- *                 certificate-authentication context. When session resumption
- *                 is enabled, see the documentation of
+ * \note           This callback is part of the peer
+ *                 certificate-authentication context. For more information, see
+ *                 the documentation of \c mbedtls_ssl_set_session()
+ *                 (client-side) or
  *                 \c mbedtls_ssl_conf_session_cache() and
- *                 \c mbedtls_ssl_conf_session_tickets_cb().
+ *                 \c mbedtls_ssl_conf_session_tickets_cb() (server-side).
  *
  * \param conf     The SSL configuration to use.
  * \param f_vrfy   The verification callback to use during CRT verification.
@@ -3219,6 +3221,14 @@ void mbedtls_ssl_conf_session_cache(mbedtls_ssl_config *conf,
  *                 with a TLS 1.3 session, will not have any effect on the next
  *                 handshake for the SSL context \p ssl.
  *
+ * \warning        When using session resumption on a client, an application
+ *                 must only load a session under the same server-authentication
+ *                 context under which the session was established. If the
+ *                 server-authentication context changes, the application must
+ *                 stop using sessions established under the previous context.
+ *                 For the definition of the server-authentication context, see
+ *                 docs/architecture/authentication-and-resumption.md.
+ *
  * \param ssl      The SSL context representing the connection which should
  *                 be attempted to be setup using session resumption. This
  *                 must be initialized via mbedtls_ssl_init() and bound to
@@ -3490,11 +3500,12 @@ int mbedtls_ssl_conf_cid(mbedtls_ssl_config *conf, size_t len,
  *                 chain. However, signatures in the handshake are not covered
  *                 by this setting but by \c mbedtls_ssl_conf_sig_algs().
  *
- * \note           On a server, this profile is part of the client
- *                 certificate-authentication context. When session resumption
- *                 is enabled, see the documentation of
+ * \note           This profile is part of the peer
+ *                 certificate-authentication context. For more information, see
+ *                 the documentation of \c mbedtls_ssl_set_session()
+ *                 (client-side) or
  *                 \c mbedtls_ssl_conf_session_cache() and
- *                 \c mbedtls_ssl_conf_session_tickets_cb().
+ *                 \c mbedtls_ssl_conf_session_tickets_cb() (server-side).
  *
  * \param conf     SSL configuration
  * \param profile  Profile to use
@@ -3509,11 +3520,12 @@ void mbedtls_ssl_conf_cert_profile(mbedtls_ssl_config *conf,
  *                 parameters ca_chain (maps to trust_ca for that function)
  *                 and ca_crl.
  *
- * \note           On a server, the trusted CA chain and CRLs are part of the
- *                 client certificate-authentication context. When session
- *                 resumption is enabled, see the documentation of
+ * \note           The trusted CA chain and CRLs are part of the peer
+ *                 certificate-authentication context. For more information, see
+ *                 the documentation of \c mbedtls_ssl_set_session()
+ *                 (client-side) or
  *                 \c mbedtls_ssl_conf_session_cache() and
- *                 \c mbedtls_ssl_conf_session_tickets_cb().
+ *                 \c mbedtls_ssl_conf_session_tickets_cb() (server-side).
  *
  * \param conf     SSL configuration
  * \param ca_chain trusted CA chain (meaning all fully trusted top-level CAs)
@@ -3586,11 +3598,12 @@ void mbedtls_ssl_conf_dn_hints(mbedtls_ssl_config *conf,
  *                 during X.509 CRT signature verification (but doesn't affect
  *                 other uses).
  *
- * \note           On a server, this callback is part of the client
- *                 certificate-authentication context. When session resumption
- *                 is enabled, see the documentation of
+ * \note           This callback is part of the peer
+ *                 certificate-authentication context. For more information, see
+ *                 the documentation of \c mbedtls_ssl_set_session()
+ *                 (client-side) or
  *                 \c mbedtls_ssl_conf_session_cache() and
- *                 \c mbedtls_ssl_conf_session_tickets_cb().
+ *                 \c mbedtls_ssl_conf_session_tickets_cb() (server-side).
  *
  * \warning        This API is incompatible with the use of CRLs. Any call to
  *                 mbedtls_ssl_conf_ca_cb() unsets CRLs configured through
@@ -4895,6 +4908,12 @@ const mbedtls_x509_crt *mbedtls_ssl_get_peer_cert(const mbedtls_ssl_context *ssl
  *                 the exported session may be used to resume the TLS 1.3
  *                 session. If session tickets are disabled, exported sessions
  *                 cannot be used to resume a TLS 1.3 session.
+ *
+ * \note           When using session resumption on a client, the application
+ *                 must store each exported session together with the
+ *                 server-authentication context under which it was established,
+ *                 and only resume the session under the same context. See
+ *                 docs/architecture/authentication-and-resumption.md.
  *
  * \return         \c 0 if successful. In this case, \p session can be used for
  *                 session resumption by passing it to mbedtls_ssl_set_session(),

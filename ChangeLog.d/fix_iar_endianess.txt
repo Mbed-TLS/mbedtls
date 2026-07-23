@@ -1,0 +1,2 @@
+Bugfix
+ * Fix incorrect big-endian detection for the IAR compiler in library/alignment.h which caused big-endian targets to be misidentified.

@@ -405,14 +405,6 @@ static int ssl_tls13_offered_psks_check_identity_match(
     return SSL_TLS1_3_PSK_IDENTITY_DOES_NOT_MATCH;
 }
 
-/*
- * Non-error return values of ssl_tls13_offered_psks_check_binder_match().
- * They are positive to not collide with error codes that are negative. Zero
- * (SSL_TLS1_3_BINDER_MATCH) in case of success as it may be propagated up
- * by the callers of this function as a generic success condition.
- */
-#define SSL_TLS1_3_BINDER_DOES_NOT_MATCH 1
-#define SSL_TLS1_3_BINDER_MATCH 0
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_tls13_offered_psks_check_binder_match(
     mbedtls_ssl_context *ssl,
@@ -428,7 +420,7 @@ static int ssl_tls13_offered_psks_check_binder_match(
     unsigned char server_computed_binder[PSA_HASH_MAX_SIZE];
 
     if (binder_len != PSA_HASH_LENGTH(psk_hash_alg)) {
-        return SSL_TLS1_3_BINDER_DOES_NOT_MATCH;
+        return MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE;
     }
 
     /* Get current state of handshake transcript. */
@@ -463,12 +455,12 @@ static int ssl_tls13_offered_psks_check_binder_match(
     if (mbedtls_ct_memcmp(server_computed_binder,
                           binder,
                           PSA_HASH_LENGTH(psk_hash_alg)) == 0) {
-        return SSL_TLS1_3_BINDER_MATCH;
+        return 0;
     }
 
     mbedtls_platform_zeroize(server_computed_binder,
                              sizeof(server_computed_binder));
-    return SSL_TLS1_3_BINDER_DOES_NOT_MATCH;
+    return MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE;
 }
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
@@ -678,7 +670,7 @@ static int ssl_tls13_parse_pre_shared_key_ext(
         ret = ssl_tls13_offered_psks_check_binder_match(
             ssl, binder, binder_len, psk->type,
             mbedtls_md_psa_alg_from_type((mbedtls_md_type_t) psk->ciphersuite_info->mac));
-        if (ret != SSL_TLS1_3_BINDER_MATCH) {
+        if (ret != 0) {
             /* For security reasons, the handshake should be aborted when we
              * fail to validate a binder value. See RFC 8446 section 4.2.11.2
              * and appendix E.6. */

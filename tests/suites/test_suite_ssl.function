@@ -3066,16 +3066,21 @@ void ssl_context_load_rejects_oob_length(int field)
                            server_cid, sizeof(server_cid)), 0);
             sentinel = server_cid;
             sentinel_len = sizeof(server_cid);
-            /* The in_cid field sits in the middle of the serialized data and
-             * its length is capped at MBEDTLS_SSL_CID_IN_LEN_MAX by a
-             * separate check, which is less than the size of the fields that
-             * follow it, so no corrupted length can reach past the end of
-             * the full buffer. Instead the loaded data is truncated right
-             * after the in_cid bytes (see the computation of load_len below)
-             * and the length is corrupted to reach one byte past that end.
-             * Staying under the cap ensures the bounds check, not the cap,
-             * is what must reject the corrupted length. */
-            corrupt_len = (unsigned char) (sizeof(server_cid) + 1);
+            /* Corrupting the in_cid length can only exercise the
+             * (end - p) < in_cid_len + 1u bounds check in
+             * ssl_context_load(). The in_cid_len > sizeof(in_cid) cap that
+             * guards the memcpy() destination cannot be regression-tested:
+             * without it the overflowing bytes land in the adjacent out_cid
+             * field of the transform structure, out of sight of ASan, while
+             * the source read stays inside the buffer, since more than
+             * sizeof(in_cid) bytes are always serialized after in_cid. So
+             * the loaded data is truncated right after the out_cid length
+             * byte (see the computation of load_len below) and the in_cid
+             * length is corrupted to reach one byte past that end. Keeping
+             * the out_cid length byte in the loaded data ensures the
+             * pristine in_cid length still passes the bounds check: the
+             * corrupted length, not the truncation, is what it rejects. */
+            corrupt_len = (unsigned char) (sizeof(server_cid) + 2);
             break;
 #endif
 #if defined(MBEDTLS_SSL_ALPN)
@@ -3138,10 +3143,10 @@ void ssl_context_load_rejects_oob_length(int field)
 
     /* The ALPN field is the last one saved, so the buffer already ends right
      * after it. The in_cid field is not last, so the loaded data is truncated
-     * right after the in_cid bytes to bring the end of the buffer within
-     * reach of the corrupted length. */
+     * right after the out_cid length byte that follows the in_cid bytes, to
+     * bring the end of the buffer within reach of the corrupted length. */
     if (field == TEST_SSL_CONTEXT_LOAD_OOB_CID) {
-        load_len = (size_t) (len_p + 1 - context_buf) + sentinel_len;
+        load_len = (size_t) (len_p + 1 - context_buf) + sentinel_len + 1;
     } else {
         load_len = context_buf_len;
     }

@@ -3026,7 +3026,7 @@ void ssl_context_load_rejects_oob_length(int field)
     mbedtls_test_ssl_endpoint client_ep, server_ep;
     unsigned char *context_buf = NULL;
     unsigned char *load_buf = NULL;
-    size_t context_buf_len, load_len, i;
+    size_t context_buf_len, load_len, field_off, i;
     const unsigned char *sentinel = NULL;
     size_t sentinel_len = 0;
     unsigned char corrupt_len = 0;
@@ -3066,21 +3066,13 @@ void ssl_context_load_rejects_oob_length(int field)
                            server_cid, sizeof(server_cid)), 0);
             sentinel = server_cid;
             sentinel_len = sizeof(server_cid);
-            /* Corrupting the in_cid length can only exercise the
-             * (end - p) < in_cid_len + 1u bounds check in
-             * ssl_context_load(). The in_cid_len > sizeof(in_cid) cap that
-             * guards the memcpy() destination cannot be regression-tested:
-             * without it the overflowing bytes land in the adjacent out_cid
-             * field of the transform structure, out of sight of ASan, while
-             * the source read stays inside the buffer, since more than
-             * sizeof(in_cid) bytes are always serialized after in_cid. So
-             * the loaded data is truncated right after the out_cid length
-             * byte (see the computation of load_len below) and the in_cid
-             * length is corrupted to reach one byte past that end. Keeping
-             * the out_cid length byte in the loaded data ensures the
-             * pristine in_cid length still passes the bounds check: the
-             * corrupted length, not the truncation, is what it rejects. */
-            corrupt_len = (unsigned char) (sizeof(server_cid) + 2);
+            /* The smallest length that overflows the in_cid array in the SSL
+             * transform, so the size check on that array, not the in-buffer
+             * bounds check before it, is what must reject the corrupted
+             * length. The loaded data gets the in_cid field grown to this
+             * many bytes (see the construction of load_buf below) so that
+             * the in-buffer bounds check indeed passes. */
+            corrupt_len = (unsigned char) (MBEDTLS_SSL_CID_IN_LEN_MAX + 1);
             break;
 #endif
 #if defined(MBEDTLS_SSL_ALPN)
@@ -3141,42 +3133,56 @@ void ssl_context_load_rejects_oob_length(int field)
     }
     TEST_ASSERT(len_p != NULL);
 
-    /* The ALPN field is the last one saved, so the buffer already ends right
-     * after it. The in_cid field is not last, so the loaded data is truncated
-     * right after the out_cid length byte that follows the in_cid bytes, to
-     * bring the end of the buffer within reach of the corrupted length. */
+    field_off = (size_t) (len_p + 1 - context_buf);
+
     if (field == TEST_SSL_CONTEXT_LOAD_OOB_CID) {
-        load_len = (size_t) (len_p + 1 - context_buf) + sentinel_len + 1;
+        /* The in_cid field sits in the middle of the serialized data, so a
+         * corrupted length cannot reach past the end of the buffer. Instead
+         * grow the field itself: keep its bytes, pad it to corrupt_len bytes
+         * and append the untouched rest of the serialized data, so that the
+         * in-buffer bounds check passes and the size check on the in_cid
+         * array is reached. */
+        load_len = context_buf_len + corrupt_len - sentinel_len;
+        TEST_CALLOC(load_buf, load_len);
+        memcpy(load_buf, context_buf, field_off + sentinel_len);
+        memset(load_buf + field_off + sentinel_len, 0xA5,
+               (size_t) corrupt_len - sentinel_len);
+        memcpy(load_buf + field_off + corrupt_len,
+               context_buf + field_off + sentinel_len,
+               context_buf_len - field_off - sentinel_len);
+        /* Double-check that corrupt_len bytes of field data plus the next
+         * length byte are present, which is what the in-buffer bounds check
+         * requires. */
+        TEST_ASSERT(load_len - field_off >= (size_t) corrupt_len + 1);
     } else {
+        /* The ALPN field is the last one saved, so the buffer already ends
+         * right after it and the corrupted length reaches exactly one byte
+         * past the end. Load from a tightly allocated copy, so that reading
+         * even one byte past the end of the data overruns the allocation and
+         * gets caught by ASan or Valgrind. */
+        TEST_EQUAL((size_t) corrupt_len, context_buf_len - field_off + 1);
         load_len = context_buf_len;
+        TEST_CALLOC(load_buf, load_len);
+        memcpy(load_buf, context_buf, load_len);
     }
 
-    /* Double-check that the corrupted length overruns the loaded data by
-     * exactly one byte. */
-    TEST_EQUAL((size_t) corrupt_len,
-               load_len - (size_t) (len_p + 1 - context_buf) + 1);
-
-    *len_p = corrupt_len;
-
-    /* Load from a tightly allocated copy, so that reading even one byte past
-     * the end of the data overruns the allocation and gets caught by ASan or
-     * Valgrind. */
-    TEST_CALLOC(load_buf, load_len);
-    memcpy(load_buf, context_buf, load_len);
+    load_buf[field_off - 1] = corrupt_len;
 
     /* Reinitialise the server SSL context so we can load into a fresh one. */
     mbedtls_ssl_free(&server_ep.ssl);
     mbedtls_ssl_init(&server_ep.ssl);
     TEST_EQUAL(mbedtls_ssl_setup(&server_ep.ssl, &server_ep.conf), 0);
 
-    /* Note that this rejection alone does not prove the bounds checks work:
-     * without them the load usually still fails with
-     * MBEDTLS_ERR_SSL_BAD_INPUT_DATA, because the out-of-bounds bytes are
-     * unlikely to match a configured ALPN protocol, and the fields parsed
-     * after the overrun in_cid fail their own checks. What the missing
-     * checks leak is the out-of-bounds read itself, so this test case only
-     * catches a regression when the test suite runs under ASan or
-     * Valgrind. */
+    /* How a regression is caught differs between the two cases. In the ALPN
+     * case, without the bounds check the load still fails, because the
+     * out-of-bounds bytes are unlikely to match a configured protocol; what
+     * the missing check leaks is the out-of-bounds read in memcmp() itself,
+     * so that case catches a regression only when the test suite runs under
+     * ASan or Valgrind. In the CID case, without the size check the
+     * memcpy() overflows the in_cid array inside the SSL transform (which
+     * stays within the enclosing struct, invisible to ASan), the rest of
+     * the data then parses correctly aligned and the load succeeds, so the
+     * check below catches a regression on its own. */
     TEST_EQUAL(mbedtls_ssl_context_load(&server_ep.ssl, load_buf, load_len),
                MBEDTLS_ERR_SSL_BAD_INPUT_DATA);
 

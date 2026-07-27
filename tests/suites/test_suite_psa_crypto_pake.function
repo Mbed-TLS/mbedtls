@@ -937,6 +937,7 @@ void ecjpake_size_macros()
 {
     const psa_algorithm_t alg = PSA_ALG_JPAKE;
     const size_t bits = 256;
+    const psa_pake_primitive_t invalid_primitive = 1;
     const psa_pake_primitive_t prim = PSA_PAKE_PRIMITIVE(
         PSA_PAKE_PRIMITIVE_TYPE_ECC, PSA_ECC_FAMILY_SECP_R1, bits);
     const psa_key_type_t key_type = PSA_KEY_TYPE_ECC_KEY_PAIR(
@@ -973,6 +974,12 @@ void ecjpake_size_macros()
               PSA_PAKE_INPUT_MAX_SIZE);
     TEST_LE_U(PSA_PAKE_INPUT_SIZE(alg, prim, PSA_PAKE_STEP_ZK_PROOF),
               PSA_PAKE_INPUT_MAX_SIZE);
+
+    /* Invalid primitives must not match the supported J-PAKE suite. */
+    TEST_EQUAL(PSA_PAKE_OUTPUT_SIZE(alg, invalid_primitive,
+                                    PSA_PAKE_STEP_KEY_SHARE), 0);
+    TEST_EQUAL(PSA_PAKE_INPUT_SIZE(alg, invalid_primitive,
+                                   PSA_PAKE_STEP_KEY_SHARE), 0);
 }
 /* END_CASE */
 

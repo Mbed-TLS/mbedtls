@@ -1,0 +1,3 @@
+Bugfix
+   * Preserve the existing CRL chain when appending a CRL fails because memory
+     allocation fails.

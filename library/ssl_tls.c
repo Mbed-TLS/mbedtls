@@ -9158,6 +9158,10 @@ int mbedtls_psa_ecjpake_write_round(
              * For each step, prepend 1 byte with the length of the data as
              * given by psa_pake_output().
              */
+            if (output_offset + 1 > len) {
+                return MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL;
+            }
+
             status = psa_pake_output(pake_ctx, step,
                                      buf + output_offset + 1,
                                      len - output_offset - 1,

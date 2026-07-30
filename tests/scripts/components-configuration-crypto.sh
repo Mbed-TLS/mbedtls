@@ -699,21 +699,6 @@ component_test_psa_crypto_config_accel_ffdh () {
     tests/ssl-opt.sh -f "ffdh"
 }
 
-component_test_psa_crypto_config_reference_ffdh () {
-    msg "build: full with non-accelerated FFDH"
-
-    # Start with full (USE_PSA and TLS 1.3)
-    helper_libtestdriver1_adjust_config "full"
-
-    $MAKE_COMMAND
-
-    msg "test suites: full with non-accelerated FFDH alg"
-    $MAKE_COMMAND test
-
-    msg "ssl-opt: full with non-accelerated FFDH alg"
-    tests/ssl-opt.sh -f "ffdh"
-}
-
 component_test_psa_crypto_config_accel_pake () {
     msg "build: full with accelerated PAKE"
 
@@ -915,19 +900,12 @@ component_test_psa_crypto_config_accel_ecc_non_weierstrass_curves () {
     common_test_psa_crypto_config_accel_ecc_some_curves 0
 }
 
-# Auxiliary function to build config for all EC based algorithms (EC-JPAKE,
-# ECDH, ECDSA) with and without drivers.
-# The input parameter is a boolean value which indicates:
-# - 0 keep built-in EC algs,
-# - 1 exclude built-in EC algs (driver only).
-#
-# This is used by the two following components to ensure they always use the
-# same config, except for the use of driver or built-in EC algorithms:
-# - component_test_psa_crypto_config_accel_ecc_ecp_light_only;
-# - component_test_psa_crypto_config_reference_ecc_ecp_light_only.
-# This supports comparing their test coverage with analyze_outcomes.py.
-config_psa_crypto_config_ecp_light_only () {
-    driver_only="$1"
+component_test_psa_crypto_config_accel_ecc_ecp_light_only () {
+    msg "build: full with accelerated EC algs"
+
+    # Configure
+    # ---------
+
     # start with config full for maximum coverage (also enables USE_PSA)
     helper_libtestdriver1_adjust_config "full"
 
@@ -935,17 +913,6 @@ config_psa_crypto_config_ecp_light_only () {
     # the future, the following line could be removed (see issues
     # 6061, 6332 and following ones)
     scripts/config.py unset MBEDTLS_ECP_RESTARTABLE
-}
-
-# Keep in sync with component_test_psa_crypto_config_reference_ecc_ecp_light_only
-component_test_psa_crypto_config_accel_ecc_ecp_light_only () {
-    msg "build: full with accelerated EC algs"
-
-    # Configure
-    # ---------
-
-    # Use the same config as reference, only without built-in EC algs
-    config_psa_crypto_config_ecp_light_only 1
 
     # Algorithms and key types to accelerate
     loc_accel_list="ALG_ECDSA ALG_DETERMINISTIC_ECDSA \
@@ -984,37 +951,15 @@ component_test_psa_crypto_config_accel_ecc_ecp_light_only () {
     tests/ssl-opt.sh
 }
 
-# Keep in sync with component_test_psa_crypto_config_accel_ecc_ecp_light_only
-component_test_psa_crypto_config_reference_ecc_ecp_light_only () {
-    msg "build: non-accelerated EC algs"
+# Build and test a configuration where driver accelerates all EC algs while
+# all support and dependencies from ECP and ECP_LIGHT are removed on the library
+# side.
+component_test_psa_crypto_config_accel_ecc_no_ecp_at_all () {
+    msg "build: full + accelerated EC algs - ECP"
 
-    config_psa_crypto_config_ecp_light_only 0
+    # Configure
+    # ---------
 
-    cmake -D CMAKE_BUILD_TYPE:String=Release .
-    cmake --build .
-
-    msg "test suites: full with non-accelerated EC algs"
-    ctest
-
-    msg "ssl-opt: full with non-accelerated EC algs"
-    tests/ssl-opt.sh
-}
-
-# This helper function is used by:
-# - component_test_psa_crypto_config_accel_ecc_no_ecp_at_all()
-# - component_test_psa_crypto_config_reference_ecc_no_ecp_at_all()
-# to ensure that both tests use the same underlying configuration when testing
-# driver's coverage with analyze_outcomes.py.
-#
-# This functions accepts 1 boolean parameter as follows:
-# - 1: building with accelerated EC algorithms (ECDSA, ECDH, ECJPAKE), therefore
-#      excluding their built-in implementation as well as ECP_C & ECP_LIGHT
-# - 0: include built-in implementation of EC algorithms.
-#
-# PK_C and RSA_C are always disabled to ensure there is no remaining dependency
-# on the ECP module.
-config_psa_crypto_no_ecp_at_all () {
-    driver_only="$1"
     # start with full config for maximum coverage (also enables USE_PSA)
     helper_libtestdriver1_adjust_config "full"
 
@@ -1027,21 +972,7 @@ config_psa_crypto_no_ecp_at_all () {
     # the future, the following line could be removed (see issues
     # 6061, 6332 and following ones)
     scripts/config.py unset MBEDTLS_ECP_RESTARTABLE
-}
 
-# Build and test a configuration where driver accelerates all EC algs while
-# all support and dependencies from ECP and ECP_LIGHT are removed on the library
-# side.
-#
-# Keep in sync with component_test_psa_crypto_config_reference_ecc_no_ecp_at_all()
-component_test_psa_crypto_config_accel_ecc_no_ecp_at_all () {
-    msg "build: full + accelerated EC algs - ECP"
-
-    # Configure
-    # ---------
-
-    # Set common configurations between library's and driver's builds
-    config_psa_crypto_no_ecp_at_all 1
     # Disable all the builtin curves. All the required algs are accelerated.
     helper_disable_builtin_curves
 
@@ -1081,47 +1012,30 @@ component_test_psa_crypto_config_accel_ecc_no_ecp_at_all () {
     tests/ssl-opt.sh
 }
 
-# Reference function used for driver's coverage analysis in analyze_outcomes.py
-# in conjunction with component_test_psa_crypto_config_accel_ecc_no_ecp_at_all().
-# Keep in sync with its accelerated counterpart.
-component_test_psa_crypto_config_reference_ecc_no_ecp_at_all () {
-    msg "build: full + non accelerated EC algs"
-
-    config_psa_crypto_no_ecp_at_all 0
-
-    cmake -D CMAKE_BUILD_TYPE:String=Release .
-    cmake --build .
-
-    msg "test: full + non accelerated EC algs"
-    ctest
-
-    msg "ssl-opt: full + non accelerated EC algs"
-    tests/ssl-opt.sh
-}
-
-# This is a common configuration helper used directly from:
-# - common_test_psa_crypto_config_accel_ecc_ffdh_no_bignum
-# - common_test_psa_crypto_config_reference_ecc_ffdh_no_bignum
-# and indirectly from:
+# Common helper used by:
 # - component_test_psa_crypto_config_accel_ecc_no_bignum
-#       - accelerate all EC algs, disable RSA and FFDH
-# - component_test_psa_crypto_config_reference_ecc_no_bignum
-#       - this is the reference component of the above
-#       - it still disables RSA and FFDH, but it uses builtin EC algs
 # - component_test_psa_crypto_config_accel_ecc_ffdh_no_bignum
-#       - accelerate all EC and FFDH algs, disable only RSA
-# - component_test_psa_crypto_config_reference_ecc_ffdh_no_bignum
-#       - this is the reference component of the above
-#       - it still disables RSA, but it uses builtin EC and FFDH algs
 #
-# This function accepts 2 parameters:
-# $1: a boolean value which states if we are testing an accelerated scenario
-#     or not.
-# $2: a string value which states which components are tested. Allowed values
-#     are "ECC" or "ECC_DH".
-config_psa_crypto_config_accel_ecc_ffdh_no_bignum () {
-    driver_only="$1"
-    test_target="$2"
+# The goal is to build and test accelerating either:
+# - ECC only or
+# - both ECC and FFDH
+common_test_psa_crypto_config_accel_ecc_ffdh_no_bignum () {
+    test_target="$1"
+
+    # This is an internal helper to simplify text message handling
+    if [ "$test_target" = "ECC_DH" ]; then
+        accel_text="ECC/FFDH"
+        removed_text="ECP - DH"
+    else
+        accel_text="ECC"
+        removed_text="ECP"
+    fi
+
+    msg "build: full + accelerated $accel_text algs + USE_PSA - $removed_text - BIGNUM"
+
+    # Configure
+    # ---------
+
     # start with full config for maximum coverage (also enables USE_PSA)
     helper_libtestdriver1_adjust_config "full"
 
@@ -1150,38 +1064,7 @@ config_psa_crypto_config_accel_ecc_ffdh_no_bignum () {
     # the future, the following line could be removed (see issues
     # 6061, 6332 and following ones)
     scripts/config.py unset MBEDTLS_ECP_RESTARTABLE
-}
 
-# Common helper used by:
-# - component_test_psa_crypto_config_accel_ecc_no_bignum
-# - component_test_psa_crypto_config_accel_ecc_ffdh_no_bignum
-#
-# The goal is to build and test accelerating either:
-# - ECC only or
-# - both ECC and FFDH
-#
-# It is meant to be used in conjunction with
-# common_test_psa_crypto_config_reference_ecc_ffdh_no_bignum() for drivers
-# coverage analysis in the "analyze_outcomes.py" script.
-common_test_psa_crypto_config_accel_ecc_ffdh_no_bignum () {
-    test_target="$1"
-
-    # This is an internal helper to simplify text message handling
-    if [ "$test_target" = "ECC_DH" ]; then
-        accel_text="ECC/FFDH"
-        removed_text="ECP - DH"
-    else
-        accel_text="ECC"
-        removed_text="ECP"
-    fi
-
-    msg "build: full + accelerated $accel_text algs + USE_PSA - $removed_text - BIGNUM"
-
-    # Configure
-    # ---------
-
-    # Set common configurations between library's and driver's builds
-    config_psa_crypto_config_accel_ecc_ffdh_no_bignum 1 "$test_target"
     # Disable all the builtin curves. All the required algs are accelerated.
     helper_disable_builtin_curves
 
@@ -1231,55 +1114,12 @@ common_test_psa_crypto_config_accel_ecc_ffdh_no_bignum () {
     tests/ssl-opt.sh
 }
 
-# Common helper used by:
-# - component_test_psa_crypto_config_reference_ecc_no_bignum
-# - component_test_psa_crypto_config_reference_ecc_ffdh_no_bignum
-#
-# The goal is to build and test a reference scenario (i.e. with builtin
-# components) compared to the ones used in
-# common_test_psa_crypto_config_accel_ecc_ffdh_no_bignum() above.
-#
-# It is meant to be used in conjunction with
-# common_test_psa_crypto_config_accel_ecc_ffdh_no_bignum() for drivers'
-# coverage analysis in "analyze_outcomes.py" script.
-common_test_psa_crypto_config_reference_ecc_ffdh_no_bignum () {
-    test_target="$1"
-
-    # This is an internal helper to simplify text message handling
-    if [ "$test_target" = "ECC_DH" ]; then
-        accel_text="ECC/FFDH"
-    else
-        accel_text="ECC"
-    fi
-
-    msg "build: full + non accelerated $accel_text algs + USE_PSA"
-
-    config_psa_crypto_config_accel_ecc_ffdh_no_bignum 0 "$test_target"
-
-    cmake -D CMAKE_BUILD_TYPE:String=Release .
-    cmake --build .
-
-    msg "test suites: full + non accelerated EC algs + USE_PSA"
-    ctest
-
-    msg "ssl-opt: full + non accelerated $accel_text algs + USE_PSA"
-    tests/ssl-opt.sh
-}
-
 component_test_psa_crypto_config_accel_ecc_no_bignum () {
     common_test_psa_crypto_config_accel_ecc_ffdh_no_bignum "ECC"
 }
 
-component_test_psa_crypto_config_reference_ecc_no_bignum () {
-    common_test_psa_crypto_config_reference_ecc_ffdh_no_bignum "ECC"
-}
-
 component_test_psa_crypto_config_accel_ecc_ffdh_no_bignum () {
     common_test_psa_crypto_config_accel_ecc_ffdh_no_bignum "ECC_DH"
-}
-
-component_test_psa_crypto_config_reference_ecc_ffdh_no_bignum () {
-    common_test_psa_crypto_config_reference_ecc_ffdh_no_bignum "ECC_DH"
 }
 
 component_test_tfm_config_as_is () {
@@ -1453,24 +1293,6 @@ component_test_psa_crypto_config_accel_rsa_crypto () {
     $MAKE_COMMAND test
 }
 
-component_test_psa_crypto_config_reference_rsa_crypto () {
-    msg "build: crypto_full with non-accelerated RSA"
-
-    # Configure
-    # ---------
-    config_psa_crypto_accel_rsa 0
-
-    # Build
-    # -----
-    cmake -D CMAKE_BUILD_TYPE:String=Release .
-    cmake --build .
-
-    # Run the tests
-    # -------------
-    msg "test: crypto_full with non-accelerated RSA"
-    ctest
-}
-
 # This is a temporary test to verify that full RSA support is present even when
 # only one single new symbols (PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC) is defined.
 component_test_new_psa_want_key_pair_symbol () {
@@ -1561,9 +1383,6 @@ config_psa_crypto_hash_use_psa () {
     fi
 }
 
-# Note that component_test_psa_crypto_config_reference_hash_use_psa
-# is related to this component and both components need to be kept in sync.
-# For details please see comments for component_test_psa_crypto_config_reference_hash_use_psa.
 component_test_psa_crypto_config_accel_hash_use_psa () {
     msg "test: full with accelerated hashes"
 
@@ -1607,25 +1426,6 @@ component_test_psa_crypto_config_accel_hash_use_psa () {
     # interop testing (besides, we already got some from ssl-opt.sh).
     msg "test: compat.sh, full with accelerated hashes"
     tests/compat.sh -p mbedTLS -V YES
-}
-
-# This component provides reference configuration for test_psa_crypto_config_accel_hash_use_psa
-# without accelerated hash. The outcome from both components are used by the analyze_outcomes.py
-# script to find regression in test coverage when accelerated hash is used (tests and ssl-opt).
-# Both components need to be kept in sync.
-component_test_psa_crypto_config_reference_hash_use_psa () {
-    msg "test: full without accelerated hashes"
-
-    config_psa_crypto_hash_use_psa 0
-
-    cmake -D CMAKE_BUILD_TYPE:String=Release .
-    cmake --build .
-
-    msg "test: full without accelerated hashes"
-    ctest
-
-    msg "test: ssl-opt.sh, full without accelerated hashes"
-    tests/ssl-opt.sh
 }
 
 # Auxiliary function to build config for hashes with and without drivers
@@ -1687,18 +1487,6 @@ component_test_psa_crypto_config_accel_hmac () {
     $MAKE_COMMAND test
 }
 
-component_test_psa_crypto_config_reference_hmac () {
-    msg "test: full without accelerated hmac"
-
-    config_psa_crypto_hmac_use_psa 0
-
-    cmake -D CMAKE_BUILD_TYPE:String=Release .
-    cmake --build .
-
-    msg "test: full without accelerated hmac"
-    ctest
-}
-
 component_test_psa_crypto_config_accel_aead () {
     msg "test: accelerated AEAD"
 
@@ -1733,21 +1521,6 @@ component_test_psa_crypto_config_accel_aead () {
     $MAKE_COMMAND test
 }
 
-# This is a common configuration function used in:
-# - component_test_psa_crypto_config_accel_cipher_aead_cmac
-# - component_test_psa_crypto_config_reference_cipher_aead_cmac
-common_psa_crypto_config_accel_cipher_aead_cmac () {
-    # Start from the full config
-    helper_libtestdriver1_adjust_config "full"
-
-    scripts/config.py unset MBEDTLS_NIST_KW_C
-}
-
-# The 2 following test components, i.e.
-# - component_test_psa_crypto_config_accel_cipher_aead_cmac
-# - component_test_psa_crypto_config_reference_cipher_aead_cmac
-# are meant to be used together in analyze_outcomes.py script in order to test
-# driver's coverage for ciphers and AEADs.
 component_test_psa_crypto_config_accel_cipher_aead_cmac () {
     msg "build: full config with accelerated cipher inc. AEAD and CMAC"
 
@@ -1759,7 +1532,10 @@ component_test_psa_crypto_config_accel_cipher_aead_cmac () {
     # Configure
     # ---------
 
-    common_psa_crypto_config_accel_cipher_aead_cmac
+    # Start from the full config
+    helper_libtestdriver1_adjust_config "full"
+
+    scripts/config.py unset MBEDTLS_NIST_KW_C
 
     # Build
     # -----
@@ -1790,24 +1566,6 @@ component_test_psa_crypto_config_accel_cipher_aead_cmac () {
     tests/ssl-opt.sh -e "TLS: password protected"
 
     msg "compat.sh: full config with accelerated cipher inc. AEAD and CMAC"
-    tests/compat.sh -V NO -p mbedTLS
-}
-
-component_test_psa_crypto_config_reference_cipher_aead_cmac () {
-    msg "build: full config with non-accelerated cipher inc. AEAD and CMAC"
-    common_psa_crypto_config_accel_cipher_aead_cmac
-
-    cmake -D CMAKE_BUILD_TYPE:String=Release .
-    cmake --build .
-
-    msg "test: full config with non-accelerated cipher inc. AEAD and CMAC"
-    ctest
-
-    msg "ssl-opt: full config with non-accelerated cipher inc. AEAD and CMAC"
-    # Exclude password-protected key tests as in test_psa_crypto_config_accel_cipher_aead_cmac.
-    tests/ssl-opt.sh -e "TLS: password protected"
-
-    msg "compat.sh: full config with non-accelerated cipher inc. AEAD and CMAC"
     tests/compat.sh -V NO -p mbedTLS
 }
 

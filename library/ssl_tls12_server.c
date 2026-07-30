@@ -629,7 +629,7 @@ static int ssl_check_key_curve(mbedtls_pk_context *pk,
                                uint16_t *curves_tls_id)
 {
     uint16_t *curr_tls_id = curves_tls_id;
-    psa_key_type_t key_type = mbedtls_pk_get_type(pk);
+    psa_key_type_t key_type = mbedtls_pk_get_key_type(pk);
     size_t key_bits = mbedtls_pk_get_bitlen(pk);
     psa_key_type_t curr_key_type;
     size_t curr_key_bits;

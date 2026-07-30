@@ -8815,8 +8815,8 @@ int mbedtls_ssl_verify_certificate(mbedtls_ssl_context *ssl,
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2) && \
     defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
     if (ssl->tls_version == MBEDTLS_SSL_VERSION_TLS1_2 &&
-        PSA_KEY_TYPE_IS_ECC(mbedtls_pk_get_type(&chain->pk))) {
-        psa_key_type_t key_type = mbedtls_pk_get_type(&chain->pk);
+        PSA_KEY_TYPE_IS_ECC(mbedtls_pk_get_key_type(&chain->pk))) {
+        psa_key_type_t key_type = mbedtls_pk_get_key_type(&chain->pk);
         psa_ecc_family_t ec_family = PSA_KEY_TYPE_ECC_GET_FAMILY(key_type);
         size_t bits = mbedtls_pk_get_bitlen(&chain->pk);
         int tls_id = mbedtls_ssl_get_tls_id_from_curve_info(ec_family, bits);

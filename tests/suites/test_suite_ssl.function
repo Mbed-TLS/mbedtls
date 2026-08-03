@@ -26,10 +26,11 @@
 #define TEST_EARLY_DATA_NO_INITIAL_ALPN 6
 #define TEST_EARLY_DATA_NO_LATER_ALPN 7
 
-/* Mutations for ssl_tls13_session_load_rejects_bad_serialized_data */
-#define TEST_TLS13_SESSION_LOAD_TRAILING_DATA    0
+/* Mutations for ssl_session_load_rejects_bad_serialized_data */
+#define TEST_SESSION_LOAD_TRAILING_DATA          0
 #define TEST_TLS13_SESSION_LOAD_HOSTNAME_NO_NUL  1
 #define TEST_TLS13_SESSION_LOAD_ALPN_NO_NUL      2
+#define TEST_TLS12_SESSION_LOAD_OOB_ID_LEN       3
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2) && \
     defined(MBEDTLS_SSL_SESSION_TICKETS) && \
@@ -2918,9 +2919,10 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_SSL_SESSION_TICKETS */
-void ssl_tls13_session_load_rejects_bad_serialized_data(int endpoint_type,
-                                                        int mutation)
+/* BEGIN_CASE */
+void ssl_session_load_rejects_bad_serialized_data(int tls_version,
+                                                  int endpoint_type,
+                                                  int mutation)
 {
     mbedtls_ssl_session session, restored;
     unsigned char *buf = NULL;
@@ -2931,12 +2933,34 @@ void ssl_tls13_session_load_rejects_bad_serialized_data(int endpoint_type,
     const unsigned char *string_to_corrupt = NULL;
     size_t string_len = 0;
 
+    (void) hostname;
+    (void) alpn;
+
     mbedtls_ssl_session_init(&session);
     mbedtls_ssl_session_init(&restored);
     USE_PSA_INIT();
 
-    TEST_EQUAL(mbedtls_test_ssl_tls13_populate_session(
-                   &session, 42, endpoint_type),  0);
+    switch (tls_version) {
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
+        case MBEDTLS_SSL_VERSION_TLS1_2:
+            TEST_EQUAL(mbedtls_test_ssl_tls12_populate_session(
+                           &session, 0, endpoint_type, NULL),  0);
+            /* Sentinel session ID so we can locate the length byte later.
+             * The detection code below relies on id_len being exactly
+             * sizeof(session.id), so force it. */
+            memset(session.id, 0x5A, sizeof(session.id));
+            session.id_len = sizeof(session.id);
+            break;
+#endif
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3) && defined(MBEDTLS_SSL_SESSION_TICKETS)
+        case MBEDTLS_SSL_VERSION_TLS1_3:
+            TEST_EQUAL(mbedtls_test_ssl_tls13_populate_session(
+                           &session, 42, endpoint_type),  0);
+            break;
+#endif
+        default:
+            TEST_FAIL("unsupported TLS version");
+    }
 
     TEST_EQUAL(mbedtls_ssl_session_save(&session, NULL, 0, &len),
                MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL);
@@ -2951,7 +2975,7 @@ void ssl_tls13_session_load_rejects_bad_serialized_data(int endpoint_type,
 
     bad_len = len;
     switch (mutation) {
-        case TEST_TLS13_SESSION_LOAD_TRAILING_DATA:
+        case TEST_SESSION_LOAD_TRAILING_DATA:
             bad_len = len + 1;
             buf[len] = 0;
             break;
@@ -2964,6 +2988,28 @@ void ssl_tls13_session_load_rejects_bad_serialized_data(int endpoint_type,
         case TEST_TLS13_SESSION_LOAD_ALPN_NO_NUL:
             string_to_corrupt = alpn;
             string_len = sizeof(alpn);
+            break;
+
+        case TEST_TLS12_SESSION_LOAD_OOB_ID_LEN:
+            /* The format writes [id_len][32 id bytes]; find the length byte
+             * that precedes the sentinel run and push it out of range. */
+            for (i = 1; i + sizeof(session.id) <= len; i++) {
+                size_t k = 0;
+                if (buf[i - 1] != (unsigned char) sizeof(session.id)) {
+                    continue;
+                }
+                while (k < sizeof(session.id) && buf[i + k] == 0x5A) {
+                    k++;
+                }
+                if (k == sizeof(session.id)) {
+                    field = buf + i - 1;
+                    break;
+                }
+            }
+            TEST_ASSERT(field != NULL);
+            /* Smallest value strictly greater than sizeof(id). */
+            *field = (unsigned char) (sizeof(session.id) + 1);
+            field = NULL;
             break;
 
         default:

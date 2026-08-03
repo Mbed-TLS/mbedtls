@@ -3367,3 +3367,17 @@ component_test_min_mpi_window_size () {
     msg "test: MBEDTLS_MPI_WINDOW_SIZE=1 - main suites (inc. selftests) (ASan build)" # ~ 10s
     make test
 }
+
+component_tests_pkcs5_with_limited_pbkdf2_iteration_count() {
+    msg "build: crypto with MBEDTLS_PK_DECRYPT_MAX_ITERATIONS = 15k"
+
+    # The default configuration is already fine to test PKCS5. We just need
+    # to tweak the max iteration count.
+    scripts/config.py set MBEDTLS_PK_DECRYPT_MAX_ITERATIONS 15000
+
+    CC=$ASAN_CC cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    make
+
+    msg "test: crypto with MBEDTLS_PK_DECRYPT_MAX_ITERATIONS = 15k"
+    make test
+}

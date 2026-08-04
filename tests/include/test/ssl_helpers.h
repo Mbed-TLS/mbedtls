@@ -727,23 +727,19 @@ int mbedtls_test_get_tls13_ticket(
           mbedtls_ssl_set_hs_ecjpake_password(&ssl, pwd_string, pwd_len); \
     TEST_EQUAL(ret, exp_ret_val)
 
-#define TEST_AVAILABLE_ECC(tls_id_, group_id_, psa_family_, psa_bits_)   \
-    TEST_EQUAL(mbedtls_ssl_get_ecp_group_id_from_tls_id(tls_id_),        \
-               group_id_);                                               \
-    TEST_EQUAL(mbedtls_ssl_get_tls_id_from_ecp_group_id(group_id_),      \
-               tls_id_);                                                 \
-    TEST_EQUAL(mbedtls_ssl_get_psa_curve_info_from_tls_id(tls_id_,       \
-                                                          &psa_type, &psa_bits), PSA_SUCCESS);                \
-    TEST_EQUAL(psa_family_, PSA_KEY_TYPE_ECC_GET_FAMILY(psa_type));    \
+#define TEST_AVAILABLE_ECC(tls_id_, psa_family_, psa_bits_)                                     \
+    TEST_EQUAL(mbedtls_ssl_is_tls_id_supported(tls_id_), 1);                                    \
+    TEST_EQUAL(mbedtls_ssl_get_tls_id_from_curve_info(psa_family_, psa_bits_), tls_id_);        \
+    TEST_EQUAL(mbedtls_ssl_get_psa_curve_info_from_tls_id(tls_id_,                              \
+                                                          &psa_type, &psa_bits), PSA_SUCCESS);  \
+    TEST_EQUAL(psa_family_, PSA_KEY_TYPE_ECC_GET_FAMILY(psa_type));                             \
     TEST_EQUAL(psa_bits_, psa_bits);
 
-#define TEST_UNAVAILABLE_ECC(tls_id_, group_id_, psa_family_, psa_bits_) \
-    TEST_EQUAL(mbedtls_ssl_get_ecp_group_id_from_tls_id(tls_id_),        \
-               MBEDTLS_ECP_DP_NONE);                                     \
-    TEST_EQUAL(mbedtls_ssl_get_tls_id_from_ecp_group_id(group_id_),      \
-               0);                                                       \
-    TEST_EQUAL(mbedtls_ssl_get_psa_curve_info_from_tls_id(tls_id_,       \
-                                                          &psa_type, &psa_bits), \
+#define TEST_UNAVAILABLE_ECC(tls_id_, psa_family_, psa_bits_)                        \
+    TEST_EQUAL(mbedtls_ssl_is_tls_id_supported(tls_id_), 0);                                    \
+    TEST_EQUAL(mbedtls_ssl_get_tls_id_from_curve_info(psa_family_, psa_bits_), 0);              \
+    TEST_EQUAL(mbedtls_ssl_get_psa_curve_info_from_tls_id(tls_id_,                              \
+                                                          &psa_type, &psa_bits),                \
                PSA_ERROR_NOT_SUPPORTED);
 
 /**

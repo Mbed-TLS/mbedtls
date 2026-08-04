@@ -5796,57 +5796,40 @@ int mbedtls_ssl_check_curve_tls_id(const mbedtls_ssl_context *ssl, uint16_t tls_
     return -1;
 }
 
-#if defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
-/*
- * Same as mbedtls_ssl_check_curve_tls_id() but with a mbedtls_ecp_group_id.
- */
-int mbedtls_ssl_check_curve(const mbedtls_ssl_context *ssl, mbedtls_ecp_group_id grp_id)
-{
-    uint16_t tls_id = mbedtls_ssl_get_tls_id_from_ecp_group_id(grp_id);
-
-    if (tls_id == 0) {
-        return -1;
-    }
-
-    return mbedtls_ssl_check_curve_tls_id(ssl, tls_id);
-}
-#endif /* PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY */
-
 static const struct {
     uint16_t tls_id;
-    mbedtls_ecp_group_id ecp_group_id;
     psa_ecc_family_t psa_family;
     uint16_t bits;
 } tls_id_match_table[] =
 {
 #if defined(PSA_WANT_ECC_SECP_R1_521)
-    { 25, MBEDTLS_ECP_DP_SECP521R1, PSA_ECC_FAMILY_SECP_R1, 521 },
+    { 25, PSA_ECC_FAMILY_SECP_R1, 521 },
 #endif
 #if defined(PSA_WANT_ECC_BRAINPOOL_P_R1_512)
-    { 28, MBEDTLS_ECP_DP_BP512R1, PSA_ECC_FAMILY_BRAINPOOL_P_R1, 512 },
+    { 28, PSA_ECC_FAMILY_BRAINPOOL_P_R1, 512 },
 #endif
 #if defined(PSA_WANT_ECC_SECP_R1_384)
-    { 24, MBEDTLS_ECP_DP_SECP384R1, PSA_ECC_FAMILY_SECP_R1, 384 },
+    { 24, PSA_ECC_FAMILY_SECP_R1, 384 },
 #endif
 #if defined(PSA_WANT_ECC_BRAINPOOL_P_R1_384)
-    { 27, MBEDTLS_ECP_DP_BP384R1, PSA_ECC_FAMILY_BRAINPOOL_P_R1, 384 },
+    { 27, PSA_ECC_FAMILY_BRAINPOOL_P_R1, 384 },
 #endif
 #if defined(PSA_WANT_ECC_SECP_R1_256)
-    { 23, MBEDTLS_ECP_DP_SECP256R1, PSA_ECC_FAMILY_SECP_R1, 256 },
+    { 23, PSA_ECC_FAMILY_SECP_R1, 256 },
 #endif
 #if defined(PSA_WANT_ECC_SECP_K1_256)
-    { 22, MBEDTLS_ECP_DP_SECP256K1, PSA_ECC_FAMILY_SECP_K1, 256 },
+    { 22, PSA_ECC_FAMILY_SECP_K1, 256 },
 #endif
 #if defined(PSA_WANT_ECC_BRAINPOOL_P_R1_256)
-    { 26, MBEDTLS_ECP_DP_BP256R1, PSA_ECC_FAMILY_BRAINPOOL_P_R1, 256 },
+    { 26, PSA_ECC_FAMILY_BRAINPOOL_P_R1, 256 },
 #endif
 #if defined(PSA_WANT_ECC_MONTGOMERY_255)
-    { 29, MBEDTLS_ECP_DP_CURVE25519, PSA_ECC_FAMILY_MONTGOMERY, 255 },
+    { 29, PSA_ECC_FAMILY_MONTGOMERY, 255 },
 #endif
 #if defined(PSA_WANT_ECC_MONTGOMERY_448)
-    { 30, MBEDTLS_ECP_DP_CURVE448, PSA_ECC_FAMILY_MONTGOMERY, 448 },
+    { 30, PSA_ECC_FAMILY_MONTGOMERY, 448 },
 #endif
-    { 0, MBEDTLS_ECP_DP_NONE, 0, 0 },
+    { 0, 0, 0 },
 };
 
 int mbedtls_ssl_get_psa_curve_info_from_tls_id(uint16_t tls_id,
@@ -5868,27 +5851,32 @@ int mbedtls_ssl_get_psa_curve_info_from_tls_id(uint16_t tls_id,
     return PSA_ERROR_NOT_SUPPORTED;
 }
 
-mbedtls_ecp_group_id mbedtls_ssl_get_ecp_group_id_from_tls_id(uint16_t tls_id)
+int mbedtls_ssl_is_tls_id_supported(uint16_t tls_id)
 {
     for (int i = 0; tls_id_match_table[i].tls_id != 0; i++) {
         if (tls_id_match_table[i].tls_id == tls_id) {
-            return tls_id_match_table[i].ecp_group_id;
+            return 1;
         }
     }
 
-    return MBEDTLS_ECP_DP_NONE;
+    return 0;
 }
 
-uint16_t mbedtls_ssl_get_tls_id_from_ecp_group_id(mbedtls_ecp_group_id grp_id)
+uint16_t mbedtls_ssl_get_tls_id_from_curve_info(psa_ecc_family_t family, size_t bits)
 {
-    for (int i = 0; tls_id_match_table[i].ecp_group_id != MBEDTLS_ECP_DP_NONE;
-         i++) {
-        if (tls_id_match_table[i].ecp_group_id == grp_id) {
+    for (int i = 0; tls_id_match_table[i].tls_id != 0; i++) {
+        if ((tls_id_match_table[i].psa_family == family) &&
+            (tls_id_match_table[i].bits == bits)) {
             return tls_id_match_table[i].tls_id;
         }
     }
 
     return 0;
+}
+
+size_t mbedtls_ssl_get_supported_tls_id_count(void)
+{
+    return ARRAY_LENGTH(tls_id_match_table);
 }
 
 #if defined(MBEDTLS_DEBUG_C)
@@ -8830,8 +8818,13 @@ int mbedtls_ssl_verify_certificate(mbedtls_ssl_context *ssl,
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2) && \
     defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
     if (ssl->tls_version == MBEDTLS_SSL_VERSION_TLS1_2 &&
-        PSA_KEY_TYPE_IS_ECC(mbedtls_pk_get_type(&chain->pk))) {
-        if (mbedtls_ssl_check_curve(ssl, mbedtls_pk_get_ec_group_id(&chain->pk)) != 0) {
+        PSA_KEY_TYPE_IS_ECC(mbedtls_pk_get_key_type(&chain->pk))) {
+        psa_key_type_t key_type = mbedtls_pk_get_key_type(&chain->pk);
+        psa_ecc_family_t ec_family = PSA_KEY_TYPE_ECC_GET_FAMILY(key_type);
+        size_t bits = mbedtls_pk_get_bitlen(&chain->pk);
+        int tls_id = mbedtls_ssl_get_tls_id_from_curve_info(ec_family, bits);
+
+        if (mbedtls_ssl_check_curve_tls_id(ssl, tls_id) != 0) {
             MBEDTLS_SSL_DEBUG_MSG(1, ("bad certificate (EC key curve)"));
             ssl->session_negotiate->verify_result |= MBEDTLS_X509_BADCERT_BAD_KEY;
             if (ret == 0) {

@@ -37,24 +37,6 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size)
     fuzzBufferOffset_t biomemfuzz;
     uint16_t options;
 
-    if (initialized == 0) {
-#if defined(MBEDTLS_X509_CRT_PARSE_C) && defined(MBEDTLS_PEM_PARSE_C)
-        mbedtls_x509_crt_init(&cacert);
-        if (mbedtls_x509_crt_parse(&cacert, (const unsigned char *) mbedtls_test_cas_pem,
-                                   mbedtls_test_cas_pem_len) != 0) {
-            return 1;
-        }
-#endif
-
-        alpn_list[0] = "HTTP";
-        alpn_list[1] = "fuzzalpn";
-        alpn_list[2] = NULL;
-
-        dummy_init();
-
-        initialized = 1;
-    }
-
     //we take 1 byte as options input
     if (Size < 2) {
         return 0;
@@ -69,6 +51,24 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size)
     psa_status_t status = psa_crypto_init();
     if (status != PSA_SUCCESS) {
         goto exit;
+    }
+
+    if (initialized == 0) {
+#if defined(MBEDTLS_X509_CRT_PARSE_C) && defined(MBEDTLS_PEM_PARSE_C)
+        mbedtls_x509_crt_init(&cacert);
+        if (mbedtls_x509_crt_parse(&cacert, (const unsigned char *) mbedtls_test_cas_pem,
+                                   mbedtls_test_cas_pem_len) != 0) {
+            goto exit;
+        }
+#endif
+
+        alpn_list[0] = "HTTP";
+        alpn_list[1] = "fuzzalpn";
+        alpn_list[2] = NULL;
+
+        dummy_init();
+
+        initialized = 1;
     }
 
     if (mbedtls_ssl_config_defaults(&conf,
@@ -141,6 +141,31 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size)
 
     ret = mbedtls_ssl_handshake(&ssl);
     if (ret == 0) {
+        mbedtls_ssl_session session;
+        mbedtls_ssl_session_init(&session);
+        if (mbedtls_ssl_get_session(&ssl, &session) == 0) {
+            size_t olen1 = 0, olen2 = 0;
+            unsigned char *b1, *b2;
+            mbedtls_ssl_session_save(&session, NULL, 0, &olen1);
+            b1 = malloc(olen1 != 0 ? olen1 : 1);
+            b2 = malloc(olen1 != 0 ? olen1 : 1);
+            if (b1 != NULL && b2 != NULL &&
+                mbedtls_ssl_session_save(&session, b1, olen1, &olen1) == 0) {
+                mbedtls_ssl_session session2;
+                mbedtls_ssl_session_init(&session2);
+                if (mbedtls_ssl_session_load(&session2, b1, olen1) == 0 &&
+                    mbedtls_ssl_session_save(&session2, b2, olen1, &olen2) == 0) {
+                    if (olen1 != olen2 || memcmp(b1, b2, olen1) != 0) {
+                        abort();
+                    }
+                }
+                mbedtls_ssl_session_free(&session2);
+            }
+            free(b1);
+            free(b2);
+        }
+        mbedtls_ssl_session_free(&session);
+
         //keep reading data from server until the end
         do {
             len = sizeof(buf) - 1;

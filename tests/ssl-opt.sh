@@ -2183,8 +2183,8 @@ SESSION="session.$$"
 SKIP_NEXT="NO"
 
 trap 'cleanup; trap - HUP; kill -HUP $$' HUP
-trap 'cleanup; trap - HUP; kill -INT $$' INT
-trap 'cleanup; trap - HUP; kill -TERM $$' TERM
+trap 'cleanup; trap - INT; kill -INT $$' INT
+trap 'cleanup; trap - TERM; kill -TERM $$' TERM
 
 # Basic test
 

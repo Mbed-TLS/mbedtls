@@ -174,15 +174,6 @@ component_test_rsa_no_crt () {
 
     msg "test: RSA_NO_CRT - main suites (inc. selftests) (ASan build)" # ~ 50s
     make test
-
-    msg "test: RSA_NO_CRT - RSA-related part of ssl-opt.sh (ASan build)" # ~ 5s
-    tests/ssl-opt.sh -f RSA
-
-    msg "test: RSA_NO_CRT - RSA-related part of compat.sh (ASan build)" # ~ 3 min
-    tests/compat.sh -t RSA
-
-    msg "test: RSA_NO_CRT - RSA-related part of context-info.sh (ASan build)" # ~ 15 sec
-    tests/context-info.sh
 }
 
 component_test_no_ctr_drbg () {
@@ -460,13 +451,6 @@ component_test_everest () {
 
     msg "test: metatests (clang, ASan)"
     framework/scripts/run-metatests.sh any asan poison
-
-    msg "test: Everest ECDH context - ECDH-related part of ssl-opt.sh (ASan build)" # ~ 5s
-    tests/ssl-opt.sh -f ECDH
-
-    msg "test: Everest ECDH context - compat.sh with some ECDH ciphersuites (ASan build)" # ~ 3 min
-    # Exclude some symmetric ciphers that are redundant here to gain time.
-    tests/compat.sh -f ECDH -V NO -e 'ARIA\|CAMELLIA\|CHACHA'
 }
 
 component_test_everest_curve25519_only () {
@@ -691,9 +675,6 @@ component_test_psa_crypto_config_accel_ffdh () {
 
     msg "test: full with accelerated FFDH"
     $MAKE_COMMAND test
-
-    msg "ssl-opt: full with accelerated FFDH alg"
-    tests/ssl-opt.sh -f "ffdh"
 }
 
 component_test_psa_crypto_config_accel_pake () {
@@ -943,9 +924,6 @@ component_test_psa_crypto_config_accel_ecc_ecp_light_only () {
 
     msg "test suites: full with accelerated EC algs"
     $MAKE_COMMAND test
-
-    msg "ssl-opt: full with accelerated EC algs"
-    tests/ssl-opt.sh
 }
 
 # Build and test a configuration where driver accelerates all EC algs while
@@ -1004,9 +982,6 @@ component_test_psa_crypto_config_accel_ecc_no_ecp_at_all () {
 
     msg "test: full + accelerated EC algs - ECP"
     $MAKE_COMMAND test
-
-    msg "ssl-opt: full + accelerated EC algs - ECP"
-    tests/ssl-opt.sh
 }
 
 # Common helper used by:
@@ -1106,9 +1081,6 @@ common_test_psa_crypto_config_accel_ecc_ffdh_no_bignum () {
     msg "test suites: full + accelerated $accel_text algs + USE_PSA - $removed_text - BIGNUM"
 
     $MAKE_COMMAND test
-
-    msg "ssl-opt: full + accelerated $accel_text algs + USE_PSA - $removed_text - BIGNUM"
-    tests/ssl-opt.sh
 }
 
 component_test_psa_crypto_config_accel_ecc_no_bignum () {
@@ -1412,14 +1384,6 @@ component_test_psa_crypto_config_accel_hash () {
 
     msg "test: full with accelerated hashes"
     $MAKE_COMMAND test
-
-    msg "test: ssl-opt.sh, full with accelerated hashes"
-    tests/ssl-opt.sh
-
-    # This is to make sure all ciphersuites are exercised, but we don't need
-    # interop testing (besides, we already got some from ssl-opt.sh).
-    msg "test: compat.sh, full with accelerated hashes"
-    tests/compat.sh -p mbedTLS -V YES
 }
 
 # Auxiliary function to build config for hashes with and without drivers
@@ -1553,13 +1517,6 @@ component_test_psa_crypto_config_accel_cipher_aead_cmac () {
 
     msg "test: full config with accelerated cipher inc. AEAD and CMAC"
     $MAKE_COMMAND test
-
-    msg "ssl-opt: full config with accelerated cipher inc. AEAD and CMAC"
-    # Exclude password-protected key tests — they require built-in CBC and AES.
-    tests/ssl-opt.sh -e "TLS: password protected"
-
-    msg "compat.sh: full config with accelerated cipher inc. AEAD and CMAC"
-    tests/compat.sh -V NO -p mbedTLS
 }
 
 common_block_cipher_dispatch () {

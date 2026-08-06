@@ -299,15 +299,18 @@ component_build_cmake_config_options () {
     mkdir "$OUT_OF_SOURCE_DIR"
     cd "$OUT_OF_SOURCE_DIR"
 
-    msg "build: cmake with MBEDTLS_CONFIG_SET and MBEDTLS_CONFIG_UNSET"
-    cmake '-DMBEDTLS_CONFIG_UNSET=MBEDTLS_SSL_ALL_ALERT_MESSAGES;MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE' \
-          '-DMBEDTLS_CONFIG_SET=MBEDTLS_SSL_PROTO_TLS1_3;MBEDTLS_SSL_ALL_ALERT_MESSAGES;MBEDTLS_SSL_IN_CONTENT_LEN=12000' \
+    msg "build: cmake with a base config, MBEDTLS_CONFIG_SET and MBEDTLS_CONFIG_UNSET"
+    cmake -DMBEDTLS_CONFIG_FILE=configs/config-ccm-psk-tls1_2.h \
+          -DMBEDTLS_CONFIG_UNSET=MBEDTLS_SSL_SRV_C \
+          '-DMBEDTLS_CONFIG_SET=MBEDTLS_SSL_RENEGOTIATION;MBEDTLS_DEBUG_C;MBEDTLS_ERROR_C;MBEDTLS_SSL_IN_CONTENT_LEN=12000' \
           "$MBEDTLS_ROOT_DIR"
     make query_compile_time_config
 
-    programs/test/query_compile_time_config MBEDTLS_SSL_PROTO_TLS1_3
-    programs/test/query_compile_time_config MBEDTLS_SSL_ALL_ALERT_MESSAGES
-    not programs/test/query_compile_time_config MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+    programs/test/query_compile_time_config MBEDTLS_SSL_PROTO_TLS1_2
+    programs/test/query_compile_time_config MBEDTLS_SSL_RENEGOTIATION
+    programs/test/query_compile_time_config MBEDTLS_DEBUG_C
+    programs/test/query_compile_time_config MBEDTLS_ERROR_C
+    not programs/test/query_compile_time_config MBEDTLS_SSL_SRV_C
     [ "$(programs/test/query_compile_time_config MBEDTLS_SSL_IN_CONTENT_LEN)" = \
       "12000" ]
 

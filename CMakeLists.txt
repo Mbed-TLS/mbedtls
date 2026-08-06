@@ -139,13 +139,24 @@ set(MBEDTLS_CONFIG_SET "" CACHE STRING "Options to set, separated by semicolons 
 set(MBEDTLS_CONFIG_UNSET "" CACHE STRING "Options to unset, separated by semicolons.")
 
 if(MBEDTLS_CONFIG_NAME OR MBEDTLS_CONFIG_SET OR MBEDTLS_CONFIG_UNSET)
-    if(MBEDTLS_CONFIG_FILE)
-        message(FATAL_ERROR
-            "MBEDTLS_CONFIG_FILE cannot be combined with MBEDTLS_CONFIG_NAME, "
-            "MBEDTLS_CONFIG_SET or MBEDTLS_CONFIG_UNSET.")
-    endif()
     if(NOT MBEDTLS_PYTHON_EXECUTABLE)
         message(FATAL_ERROR "Python 3 is required to generate an Mbed TLS configuration file.")
+    endif()
+
+    if(MBEDTLS_CONFIG_FILE)
+        set(MBEDTLS_BASE_CONFIG_FILE "${MBEDTLS_CONFIG_FILE}")
+        if(NOT EXISTS "${MBEDTLS_BASE_CONFIG_FILE}")
+            file(RELATIVE_PATH MBEDTLS_CONFIG_FILE_RELATIVE
+                 "${CMAKE_CURRENT_BINARY_DIR}" "${MBEDTLS_CONFIG_FILE}")
+            set(MBEDTLS_BASE_CONFIG_FILE
+                "${CMAKE_CURRENT_SOURCE_DIR}/${MBEDTLS_CONFIG_FILE_RELATIVE}")
+        endif()
+    else()
+        set(MBEDTLS_BASE_CONFIG_FILE
+            "${CMAKE_CURRENT_SOURCE_DIR}/include/mbedtls/mbedtls_config.h")
+    endif()
+    if(NOT EXISTS "${MBEDTLS_BASE_CONFIG_FILE}")
+        message(FATAL_ERROR "Mbed TLS configuration file not found: ${MBEDTLS_BASE_CONFIG_FILE}")
     endif()
 
     set(MBEDTLS_GENERATED_CONFIG_DIR "${CMAKE_CURRENT_BINARY_DIR}/generated/include")
@@ -153,8 +164,8 @@ if(MBEDTLS_CONFIG_NAME OR MBEDTLS_CONFIG_SET OR MBEDTLS_CONFIG_UNSET)
     set(MBEDTLS_GENERATED_CRYPTO_CONFIG_FILE "${MBEDTLS_GENERATED_CONFIG_DIR}/psa/crypto_config.h")
     file(MAKE_DIRECTORY "${MBEDTLS_GENERATED_CONFIG_DIR}/mbedtls")
     file(MAKE_DIRECTORY "${MBEDTLS_GENERATED_CONFIG_DIR}/psa")
-    file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/include/mbedtls/mbedtls_config.h"
-         DESTINATION "${MBEDTLS_GENERATED_CONFIG_DIR}/mbedtls")
+    configure_file("${MBEDTLS_BASE_CONFIG_FILE}"
+                   "${MBEDTLS_GENERATED_CONFIG_FILE}" COPYONLY)
     # config.py handles the Mbed TLS and PSA configurations together. Give it
     # a build-tree PSA configuration so that it never modifies the source tree.
     file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/tf-psa-crypto/include/psa/crypto_config.h"

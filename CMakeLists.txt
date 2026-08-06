@@ -134,6 +134,71 @@ endif()
 # Make MBEDTLS_CONFIG_FILE and MBEDTLS_USER_CONFIG_FILE into PATHs
 set(MBEDTLS_CONFIG_FILE "" CACHE FILEPATH "Mbed TLS config file (overrides default).")
 set(MBEDTLS_USER_CONFIG_FILE "" CACHE FILEPATH "Mbed TLS user config file (appended to default).")
+set(MBEDTLS_CONFIG_NAME "" CACHE STRING "Named Mbed TLS configuration (see config.py).")
+set(MBEDTLS_CONFIG_SET "" CACHE STRING "Options to set, separated by semicolons (OPTION or OPTION=VALUE).")
+set(MBEDTLS_CONFIG_UNSET "" CACHE STRING "Options to unset, separated by semicolons.")
+
+if(MBEDTLS_CONFIG_NAME OR MBEDTLS_CONFIG_SET OR MBEDTLS_CONFIG_UNSET)
+    if(MBEDTLS_CONFIG_FILE)
+        message(FATAL_ERROR
+            "MBEDTLS_CONFIG_FILE cannot be combined with MBEDTLS_CONFIG_NAME, "
+            "MBEDTLS_CONFIG_SET or MBEDTLS_CONFIG_UNSET.")
+    endif()
+    if(NOT MBEDTLS_PYTHON_EXECUTABLE)
+        message(FATAL_ERROR "Python 3 is required to generate an Mbed TLS configuration file.")
+    endif()
+
+    set(MBEDTLS_GENERATED_CONFIG_DIR "${CMAKE_CURRENT_BINARY_DIR}/generated/include")
+    set(MBEDTLS_GENERATED_CONFIG_FILE "${MBEDTLS_GENERATED_CONFIG_DIR}/mbedtls/mbedtls_config.h")
+    set(MBEDTLS_GENERATED_CRYPTO_CONFIG_FILE "${MBEDTLS_GENERATED_CONFIG_DIR}/psa/crypto_config.h")
+    file(MAKE_DIRECTORY "${MBEDTLS_GENERATED_CONFIG_DIR}/mbedtls")
+    file(MAKE_DIRECTORY "${MBEDTLS_GENERATED_CONFIG_DIR}/psa")
+    file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/include/mbedtls/mbedtls_config.h"
+         DESTINATION "${MBEDTLS_GENERATED_CONFIG_DIR}/mbedtls")
+    # config.py handles the Mbed TLS and PSA configurations together. Give it
+    # a build-tree PSA configuration so that it never modifies the source tree.
+    file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/tf-psa-crypto/include/psa/crypto_config.h"
+         DESTINATION "${MBEDTLS_GENERATED_CONFIG_DIR}/psa")
+
+    function(mbedtls_configure_generated_file)
+        execute_process(
+            COMMAND
+                ${MBEDTLS_PYTHON_EXECUTABLE}
+                "${CMAKE_CURRENT_SOURCE_DIR}/scripts/config.py"
+                --file "${MBEDTLS_GENERATED_CONFIG_FILE}"
+                --cryptofile "${MBEDTLS_GENERATED_CRYPTO_CONFIG_FILE}"
+                ${ARGN}
+            RESULT_VARIABLE result
+        )
+        if(result)
+            message(FATAL_ERROR "Failed to configure the generated Mbed TLS configuration file")
+        endif()
+    endfunction(mbedtls_configure_generated_file)
+
+    if(MBEDTLS_CONFIG_NAME)
+        mbedtls_configure_generated_file("${MBEDTLS_CONFIG_NAME}")
+    endif()
+    foreach(option IN LISTS MBEDTLS_CONFIG_UNSET)
+        mbedtls_configure_generated_file(unset "${option}")
+    endforeach(option)
+    foreach(option IN LISTS MBEDTLS_CONFIG_SET)
+        string(FIND "${option}" "=" separator)
+        if(separator EQUAL -1)
+            mbedtls_configure_generated_file(--force set "${option}")
+        else()
+            string(SUBSTRING "${option}" 0 ${separator} name)
+            math(EXPR value_start "${separator} + 1")
+            string(SUBSTRING "${option}" ${value_start} -1 value)
+            mbedtls_configure_generated_file(--force set "${name}" "${value}")
+        endif()
+    endforeach(option)
+
+    set(MBEDTLS_CONFIG_FILE "${MBEDTLS_GENERATED_CONFIG_FILE}")
+    if(NOT TF_PSA_CRYPTO_CONFIG_FILE AND NOT TF_PSA_CRYPTO_CONFIG_NAME)
+        # Named configurations can adjust both configuration files.
+        set(TF_PSA_CRYPTO_CONFIG_FILE "${MBEDTLS_GENERATED_CRYPTO_CONFIG_FILE}")
+    endif()
+endif()
 
 # Create a symbolic link from ${base_name} in the binary directory
 # to the corresponding path in the source directory.

@@ -1,0 +1,4 @@
+Features
+   * Add the `MBEDTLS_CONFIG_NAME`, `MBEDTLS_CONFIG_SET` and
+     `MBEDTLS_CONFIG_UNSET` CMake options for selecting and customizing
+     compile-time configurations. Fixes #10838.

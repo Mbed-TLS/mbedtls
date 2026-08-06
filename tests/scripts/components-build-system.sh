@@ -284,6 +284,41 @@ support_build_cmake_custom_config_file () {
     support_test_cmake_out_of_source
 }
 
+component_build_cmake_config_options () {
+    MBEDTLS_ROOT_DIR="$PWD"
+    mkdir "$OUT_OF_SOURCE_DIR"
+    cd "$OUT_OF_SOURCE_DIR"
+
+    msg "configure: cmake with MBEDTLS_CONFIG_NAME"
+    cmake -DMBEDTLS_CONFIG_NAME=full "$MBEDTLS_ROOT_DIR"
+    grep '^#define MBEDTLS_SSL_PROTO_TLS1_3$' \
+         generated/include/mbedtls/mbedtls_config.h
+
+    cd "$MBEDTLS_ROOT_DIR"
+    rm -rf "$OUT_OF_SOURCE_DIR"
+    mkdir "$OUT_OF_SOURCE_DIR"
+    cd "$OUT_OF_SOURCE_DIR"
+
+    msg "build: cmake with MBEDTLS_CONFIG_SET and MBEDTLS_CONFIG_UNSET"
+    cmake '-DMBEDTLS_CONFIG_UNSET=MBEDTLS_SSL_ALL_ALERT_MESSAGES;MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE' \
+          '-DMBEDTLS_CONFIG_SET=MBEDTLS_SSL_PROTO_TLS1_3;MBEDTLS_SSL_ALL_ALERT_MESSAGES;MBEDTLS_SSL_IN_CONTENT_LEN=12000' \
+          "$MBEDTLS_ROOT_DIR"
+    make query_compile_time_config
+
+    programs/test/query_compile_time_config MBEDTLS_SSL_PROTO_TLS1_3
+    programs/test/query_compile_time_config MBEDTLS_SSL_ALL_ALERT_MESSAGES
+    not programs/test/query_compile_time_config MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+    [ "$(programs/test/query_compile_time_config MBEDTLS_SSL_IN_CONTENT_LEN)" = \
+      "12000" ]
+
+    cd "$MBEDTLS_ROOT_DIR"
+    rm -rf "$OUT_OF_SOURCE_DIR"
+}
+
+support_build_cmake_config_options () {
+    support_test_cmake_out_of_source
+}
+
 component_build_cmake_programs_no_testing () {
     # Verify that the type of builds performed by oss-fuzz don't get accidentally broken
     msg "build: cmake with -DENABLE_PROGRAMS=ON and -DENABLE_TESTING=OFF"

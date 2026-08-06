@@ -19,7 +19,7 @@ component_test_psa_crypto_key_id_encodes_owner () {
     CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
     make
 
-    msg "test: full config - USE_PSA_CRYPTO + PSA_CRYPTO_KEY_ID_ENCODES_OWNER, cmake, gcc, ASan"
+    msg "test: full config + PSA_CRYPTO_KEY_ID_ENCODES_OWNER, cmake, gcc, ASan"
     make test
 }
 
@@ -185,29 +185,29 @@ component_test_rsa_no_crt () {
     tests/context-info.sh
 }
 
-component_test_no_ctr_drbg_use_psa () {
-    msg "build: Full minus CTR_DRBG, PSA crypto in TLS"
+component_test_no_ctr_drbg () {
+    msg "build: Full minus CTR_DRBG"
     scripts/config.py full
     scripts/config.py unset MBEDTLS_CTR_DRBG_C
 
     CC=$ASAN_CC cmake -D CMAKE_BUILD_TYPE:String=Asan .
     make
 
-    msg "test: Full minus CTR_DRBG, USE_PSA_CRYPTO - main suites"
+    msg "test: Full minus CTR_DRBG - main suites"
     make test
 
     # In this configuration, the TLS test programs use HMAC_DRBG.
     # The SSL tests are slow, so run a small subset, just enough to get
     # confidence that the SSL code copes with HMAC_DRBG.
-    msg "test: Full minus CTR_DRBG, USE_PSA_CRYPTO - ssl-opt.sh (subset)"
+    msg "test: Full minus CTR_DRBG - ssl-opt.sh (subset)"
     tests/ssl-opt.sh -f 'Default\|SSL async private.*delay=\|tickets enabled on server'
 
-    msg "test: Full minus CTR_DRBG, USE_PSA_CRYPTO - compat.sh (subset)"
+    msg "test: Full minus CTR_DRBG - compat.sh (subset)"
     tests/compat.sh -m tls12 -t 'ECDSA PSK' -V NO -p OpenSSL
 }
 
-component_test_no_hmac_drbg_use_psa () {
-    msg "build: Full minus HMAC_DRBG, PSA crypto in TLS"
+component_test_no_hmac_drbg () {
+    msg "build: Full minus HMAC_DRBG"
     scripts/config.py full
     scripts/config.py unset MBEDTLS_HMAC_DRBG_C
     scripts/config.py unset PSA_WANT_ALG_DETERMINISTIC_ECDSA # requires HMAC_DRBG
@@ -215,7 +215,7 @@ component_test_no_hmac_drbg_use_psa () {
     CC=$ASAN_CC cmake -D CMAKE_BUILD_TYPE:String=Asan .
     make
 
-    msg "test: Full minus HMAC_DRBG, USE_PSA_CRYPTO - main suites"
+    msg "test: Full minus HMAC_DRBG - main suites"
     make test
 
     # Normally our ECDSA implementation uses deterministic ECDSA. But since
@@ -223,17 +223,17 @@ component_test_no_hmac_drbg_use_psa () {
     # instead.
     # Test SSL with non-deterministic ECDSA. Only test features that
     # might be affected by how ECDSA signature is performed.
-    msg "test: Full minus HMAC_DRBG, USE_PSA_CRYPTO - ssl-opt.sh (subset)"
+    msg "test: Full minus HMAC_DRBG - ssl-opt.sh (subset)"
     tests/ssl-opt.sh -f 'Default\|SSL async private: sign'
 
     # To save time, only test one protocol version, since this part of
     # the protocol is identical in (D)TLS up to 1.2.
-    msg "test: Full minus HMAC_DRBG, USE_PSA_CRYPTO - compat.sh (ECDSA)"
+    msg "test: Full minus HMAC_DRBG - compat.sh (ECDSA)"
     tests/compat.sh -m tls12 -t 'ECDSA'
 }
 
-component_test_psa_external_rng_no_drbg_use_psa () {
-    msg "build: PSA_CRYPTO_EXTERNAL_RNG minus *_DRBG, PSA crypto in TLS"
+component_test_psa_external_rng_no_drbg () {
+    msg "build: PSA_CRYPTO_EXTERNAL_RNG minus *_DRBG"
     scripts/config.py full
     scripts/config.py set MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG
     scripts/config.py unset MBEDTLS_ENTROPY_NV_SEED
@@ -245,15 +245,15 @@ component_test_psa_external_rng_no_drbg_use_psa () {
     CC=$ASAN_CC cmake -D CMAKE_BUILD_TYPE:String=Asan .
     cmake --build .
 
-    msg "test: PSA_CRYPTO_EXTERNAL_RNG minus *_DRBG, PSA crypto - main suites"
+    msg "test: PSA_CRYPTO_EXTERNAL_RNG minus *_DRBG - main suites"
     ctest
 
-    msg "test: PSA_CRYPTO_EXTERNAL_RNG minus *_DRBG, PSA crypto - ssl-opt.sh (subset)"
+    msg "test: PSA_CRYPTO_EXTERNAL_RNG minus *_DRBG - ssl-opt.sh (subset)"
     tests/ssl-opt.sh -f 'Default\|opaque'
 }
 
-component_test_psa_external_rng_use_psa_crypto () {
-    msg "build: full + PSA_CRYPTO_EXTERNAL_RNG + USE_PSA_CRYPTO minus CTR_DRBG/NV_SEED"
+component_test_psa_external_rng () {
+    msg "build: full + PSA_CRYPTO_EXTERNAL_RNG minus CTR_DRBG/NV_SEED"
     scripts/config.py full
     scripts/config.py set MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG
     scripts/config.py unset MBEDTLS_CTR_DRBG_C
@@ -263,10 +263,10 @@ component_test_psa_external_rng_use_psa_crypto () {
     CC=$ASAN_CC cmake -D CMAKE_BUILD_TYPE:String=Asan .
     cmake --build .
 
-    msg "test: full + PSA_CRYPTO_EXTERNAL_RNG + USE_PSA_CRYPTO minus CTR_DRBG/NV_SEED"
+    msg "test: full + PSA_CRYPTO_EXTERNAL_RNG minus CTR_DRBG/NV_SEED"
     ctest
 
-    msg "test: full + PSA_CRYPTO_EXTERNAL_RNG + USE_PSA_CRYPTO minus CTR_DRBG/NV_SEED"
+    msg "test: full + PSA_CRYPTO_EXTERNAL_RNG minus CTR_DRBG/NV_SEED"
     tests/ssl-opt.sh -f 'Default\|opaque'
 }
 
@@ -386,9 +386,6 @@ component_test_full_no_cipher () {
 component_test_full_no_ccm () {
     msg "build: full no PSA_WANT_ALG_CCM"
 
-    # Full config enables:
-    # - USE_PSA_CRYPTO so that TLS code dispatches cipher/AEAD to PSA
-    # - CRYPTO_CONFIG so that PSA_WANT config symbols are evaluated
     scripts/config.py full
 
     # Disable PSA_WANT_ALG_CCM so that CCM is not supported in PSA. CCM_C is still
@@ -1372,7 +1369,7 @@ component_test_psa_crypto_config_accel_hash () {
 }
 
 # Auxiliary function to build config for hashes with and without drivers
-config_psa_crypto_hash_use_psa () {
+config_psa_crypto_hash () {
     driver_only="$1"
     # start with config full for maximum coverage (also enables USE_PSA)
     helper_libtestdriver1_adjust_config "full"
@@ -1383,7 +1380,7 @@ config_psa_crypto_hash_use_psa () {
     fi
 }
 
-component_test_psa_crypto_config_accel_hash_use_psa () {
+component_test_psa_crypto_config_accel_hash () {
     msg "test: full with accelerated hashes"
 
     loc_accel_list="ALG_MD5 ALG_RIPEMD160 ALG_SHA_1 \
@@ -1393,7 +1390,7 @@ component_test_psa_crypto_config_accel_hash_use_psa () {
     # Configure
     # ---------
 
-    config_psa_crypto_hash_use_psa 1
+    config_psa_crypto_hash 1
 
     # Build
     # -----
@@ -1426,7 +1423,7 @@ component_test_psa_crypto_config_accel_hash_use_psa () {
 }
 
 # Auxiliary function to build config for hashes with and without drivers
-config_psa_crypto_hmac_use_psa () {
+config_psa_crypto_hmac () {
     driver_only="$1"
     # start with config full for maximum coverage (also enables USE_PSA)
     helper_libtestdriver1_adjust_config "full"
@@ -1460,7 +1457,7 @@ component_test_psa_crypto_config_accel_hmac () {
     # Configure
     # ---------
 
-    config_psa_crypto_hmac_use_psa 1
+    config_psa_crypto_hmac 1
 
     # Build
     # -----

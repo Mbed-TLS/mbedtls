@@ -1416,9 +1416,6 @@ component_test_psa_crypto_config_accel_hash_use_psa () {
     msg "test: full with accelerated hashes"
     $MAKE_COMMAND test
 
-    # This is mostly useful so that we can later compare outcome files with
-    # the reference config in analyze_outcomes.py, to check that the
-    # dependency declarations in ssl-opt.sh and in TLS code are correct.
     msg "test: ssl-opt.sh, full with accelerated hashes"
     tests/ssl-opt.sh
 
@@ -1443,8 +1440,7 @@ config_psa_crypto_hmac_use_psa () {
         scripts/config.py unset-all MBEDTLS_SHA
     fi
 
-    # Direct dependencies of MD_C. We disable them also in the reference
-    # component to work with the same set of features.
+    # Direct dependencies of MD_C.
     scripts/config.py unset MBEDTLS_PKCS7_C
     scripts/config.py unset MBEDTLS_PKCS5_C
     scripts/config.py unset MBEDTLS_HMAC_DRBG_C

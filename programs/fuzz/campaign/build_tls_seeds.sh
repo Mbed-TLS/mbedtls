@@ -7,10 +7,13 @@
 # The generator MUST be built with the same deterministic-RNG configuration as
 # the campaign binaries (see the "Deterministic RNG" section of README.md), or
 # the client it drives will pick different random values than the harness does
-# and the recorded server flight will not replay. That means undefining
-# MBEDTLS_PSA_BUILTIN_GET_ENTROPY through TF_PSA_CRYPTO_USER_CONFIG_FILE - the
-# PSA config does not consult MBEDTLS_USER_CONFIG_FILE, so an #undef placed
-# there is silently ignored.
+# and the recorded server flight will not replay. That configuration hangs off
+# FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION, which crypto_config.h turns into
+# MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG + MBEDTLS_PLATFORM_TIME_ALT. afl-clang-fast
+# predefines it, so build_targets.sh gets it for free; a plain compiler does
+# not, so this script has to define it explicitly. Without it the entropy
+# module stays enabled and the build fails outright ("Entropy module enabled,
+# but no sources").
 #
 # Seeds are validated by replaying them through the generator's own build; use
 # validate_tls_seeds.sh against a coverage build to confirm they reach depth.
@@ -29,15 +32,14 @@ mkdir -p "$BUILD" "$OUT"
 
 UCFG="$BUILD/user_config.h"
 printf '#define MBEDTLS_PLATFORM_TIME_ALT\n' > "$UCFG"
-PCFG="$BUILD/psa_user_config.h"
-printf '#undef MBEDTLS_PSA_BUILTIN_GET_ENTROPY\n' > "$PCFG"
+FUZZDEF="-DFUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION"
 
 echo "[*] configuring generator build in $BUILD"
 if ! cmake -S "$SRC" -B "$BUILD" \
         -DCMAKE_BUILD_TYPE=Release \
         -DBUILD_SHARED_LIBS=OFF \
+        -DCMAKE_C_FLAGS="$FUZZDEF" \
         -DMBEDTLS_USER_CONFIG_FILE="$UCFG" \
-        -DTF_PSA_CRYPTO_USER_CONFIG_FILE="$PCFG" \
         -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
         > "$BUILD/configure.log" 2>&1; then
     echo "[!] configure failed:"; tail -25 "$BUILD/configure.log"; exit 1

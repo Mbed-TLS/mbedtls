@@ -110,22 +110,16 @@ fi
 FE="$BUILD/fe"; mkdir -p "$FE"; cp -f "$DRV" "$FE/libFuzzingEngine.a"
 UCFG="$BUILD/user_config.h"; printf '#define MBEDTLS_PLATFORM_TIME_ALT\n' > "$UCFG"
 
-# Drop the platform entropy source so the constant NV seed installed by
-# fuzz_common.c is the ONLY one, making the RNG reproducible run to run.
-# Without this, every execution draws fresh randomness, so a client's
-# ClientHello random and 32-byte legacy_session_id differ each time and no
-# recorded server response can ever echo them back - the client handshake
-# harnesses can then never get past ServerHello (verified: TLS 1.3
-# parse_key_share/encrypted_extensions/Finished stay at 0 coverage). It also
+# The RNG is reproducible run to run because afl-clang-fast predefines
+# FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION, which crypto_config.h turns into
+# MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG, and fuzz_common.c's dummy_init() points that
+# at the test RNG (libc rand()). Without a fixed RNG every execution draws fresh
+# randomness, so a client's ClientHello random and 32-byte legacy_session_id
+# differ each time and no recorded server response can ever echo them back - the
+# client handshake harnesses can then never get past ServerHello (verified: TLS
+# 1.3 parse_key_share/encrypted_extensions/Finished stay at 0 coverage). It also
 # stabilises AFL++'s edge feedback, which random values otherwise perturb.
-# This knob lives in the PSA config, which honours its own user-config macro,
-# not MBEDTLS_USER_CONFIG_FILE. Fuzzing only - never ship this.
-PCFG="$BUILD/psa_user_config.h"
-if [ "${AFL_DETERMINISTIC_RNG:-1}" = 1 ]; then
-    printf '#undef MBEDTLS_PSA_BUILTIN_GET_ENTROPY\n' > "$PCFG"
-else
-    : > "$PCFG"
-fi
+# Fuzzing only - never ship this.
 mkdir -p "$BIN"
 
 echo "[i] source:   $SRC"
@@ -134,7 +128,6 @@ echo "[i] output:   $BIN"
 echo "[i] variants: $VARIANTS"
 echo "[i] harness:  $HARNESSES"
 echo "[i] jobs:     -j $JOBS   heartbeat: ${HEARTBEAT}s   verbose: ${AFL_VERBOSE:-0}   clean: $CLEAN"
-echo "[i] deterministic RNG: ${AFL_DETERMINISTIC_RNG:-1}  (0 disables; see comment above)"
 echo "[i] binaries are installed by rename, so rebuilding during a live campaign is"
 echo "    safe, but running instances keep the old code until you restart them."
 echo "[i] full compile output streams below; laf/cmplog are the slow ones."
@@ -160,7 +153,6 @@ build_variant() {
         cmake -S "$SRC" -B "$dir" \
             -DCMAKE_C_COMPILER=afl-clang-fast -DCMAKE_CXX_COMPILER=afl-clang-fast++ \
             -DBUILD_SHARED_LIBS=OFF -DMBEDTLS_USER_CONFIG_FILE="$UCFG" \
-            -DTF_PSA_CRYPTO_USER_CONFIG_FILE="$PCFG" \
             -DFUZZINGENGINE_LIB="$FE/libFuzzingEngine.a" 2>&1 | tee -a "$log"; then
         echo "[!] configure FAILED for $variant (full log: $log) - skipping"; return 1
     fi

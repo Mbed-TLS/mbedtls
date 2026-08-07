@@ -12,9 +12,15 @@
  * client derives its handshake keys from an ephemeral key it generated itself.
  * Both come from the PSA RNG. If the RNG draws real entropy the client picks new
  * values on every execution, so no recorded server flight can ever match and the
- * client cannot get past ServerHello. build_targets.sh therefore builds with
- * AFL_DETERMINISTIC_RNG=1, leaving the constant NV seed as the only entropy
- * source; this generator must be built the same way (build_tls_seeds.sh does).
+ * client cannot get past ServerHello. The harnesses get their determinism from
+ * MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG, which crypto_config.h turns on whenever
+ * FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION is defined; dummy_init() then points
+ * it at the test external RNG, which is libc rand(). This generator must be
+ * built the same way (build_tls_seeds.sh does).
+ *
+ * That RNG has one global stream for the whole process, so it has to be rewound
+ * to its process-start state (srand(1)) before each seed - otherwise only the
+ * first seed emitted would replay in a freshly started harness.
  *
  * The client here is configured exactly as fuzz_client configures it for the
  * options value being emitted, so it produces the same ClientHello - and the
@@ -387,8 +393,10 @@ int main(int argc, char **argv)
     };
 
     for (size_t i = 0; i < sizeof(specs) / sizeof(specs[0]); i++) {
-        /* Fresh PSA per seed, matching the harness's per-iteration
-         * init/free cycle - that is what re-seeds the DRBG identically. */
+        /* Rewind the external RNG to the state a freshly started harness sees,
+         * and give each seed a fresh PSA context, matching the harness's
+         * per-iteration init/free cycle. */
+        srand(1);
         if (psa_crypto_init() != PSA_SUCCESS) {
             fprintf(stderr, "psa_crypto_init failed\n");
             return 1;

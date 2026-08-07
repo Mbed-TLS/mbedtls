@@ -74,11 +74,13 @@ dictionaries in this campaign directory).
 
 ## Deterministic RNG
 
-The build undefines `MBEDTLS_PSA_BUILTIN_GET_ENTROPY` (via the PSA config's own
-`TF_PSA_CRYPTO_USER_CONFIG_FILE`, which `MBEDTLS_USER_CONFIG_FILE` cannot reach),
-leaving the constant NV seed installed by `fuzz_common.c` as the only entropy
-source. Both sources are registered by default, so real entropy would otherwise
-be mixed in and every execution would draw fresh randomness.
+Determinism comes from `MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG`, which `crypto_config.h`
+enables (together with `MBEDTLS_PLATFORM_TIME_ALT`) whenever
+`FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION` is defined. `afl-clang-fast`
+predefines that macro, so the campaign binaries get it automatically;
+`dummy_init()` then calls `mbedtls_test_enable_insecure_external_rng()`, which
+routes every PSA draw to libc `rand()`. Real entropy would otherwise be mixed in
+and every execution would draw fresh randomness.
 
 That matters because a TLS client picks a random 32-byte `ClientHello.random` and
 a random 32-byte `legacy_session_id`, and TLS 1.3 requires the server to echo the
@@ -90,7 +92,14 @@ everything behind a completed handshake (`mbedtls_ssl_read`, application data,
 renegotiation) stayed at zero coverage. Fixing the RNG also stops random values
 from perturbing AFL++'s edge feedback, which helps stability.
 
-Set `AFL_DETERMINISTIC_RNG=0` to build with the platform entropy source back in.
+Two consequences. Anything built with a plain compiler — `build_tls_seeds.sh`,
+coverage builds — must define `FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION` itself,
+or it gets a different RNG than the harness and no recorded flight will replay
+(and the entropy module stays on with no sources, so the build fails outright).
+And `rand()` is one process-global stream that nothing resets, so a program
+emitting more than one seed has to rewind it (`srand(1)`) before each, otherwise
+only the first seed matches what a freshly started harness produces.
+
 This is a fuzzing-only configuration; never ship it.
 
 Harnesses: `fuzz_client fuzz_server fuzz_dtlsclient fuzz_dtlsserver fuzz_x509crt

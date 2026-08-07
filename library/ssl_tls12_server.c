@@ -1049,7 +1049,7 @@ static int ssl_parse_client_hello(mbedtls_ssl_context *ssl)
     sess_len = buf[34];
 
     if (sess_len > sizeof(ssl->session_negotiate->id) ||
-        sess_len + 34 + 2 > msg_len) { /* 2 for cipherlist length field */
+        sess_len + 35 > msg_len) {
         MBEDTLS_SSL_DEBUG_MSG(1, ("bad client hello message"));
         mbedtls_ssl_send_alert_message(ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
                                        MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR);
@@ -1070,9 +1070,16 @@ static int ssl_parse_client_hello(mbedtls_ssl_context *ssl)
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     if (ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM) {
         cookie_offset = 35 + sess_len;
+
+        if (cookie_offset + 1 > msg_len) {
+            MBEDTLS_SSL_DEBUG_MSG(1, ("bad client hello message"));
+            mbedtls_ssl_send_alert_message(ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
+                                           MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR);
+            return MBEDTLS_ERR_SSL_DECODE_ERROR;
+        }
         cookie_len = buf[cookie_offset];
 
-        if (cookie_offset + 1 + cookie_len + 2 > msg_len) {
+        if (cookie_offset + 1 + cookie_len > msg_len) {
             MBEDTLS_SSL_DEBUG_MSG(1, ("bad client hello message"));
             mbedtls_ssl_send_alert_message(ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
                                            MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR);
@@ -1118,9 +1125,9 @@ static int ssl_parse_client_hello(mbedtls_ssl_context *ssl)
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
     ciph_offset = 35 + sess_len;
 
-    /* The two-byte ciphersuite list length field must be within the message.
-     * The DTLS branch above reserves it via the cookie length check; the
-     * session id length check does not, so guard the read here. */
+    /* The two-byte ciphersuite list length field must be within the
+     * message: the checks above only guarantee that the fields before it
+     * (session id, and for DTLS the cookie) are. */
     if (ciph_offset + 2 > msg_len) {
         MBEDTLS_SSL_DEBUG_MSG(1, ("bad client hello message"));
         mbedtls_ssl_send_alert_message(ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,

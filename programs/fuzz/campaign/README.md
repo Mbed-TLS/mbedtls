@@ -96,9 +96,18 @@ Two consequences. Anything built with a plain compiler — `build_tls_seeds.sh`,
 coverage builds — must define `FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION` itself,
 or it gets a different RNG than the harness and no recorded flight will replay
 (and the entropy module stays on with no sources, so the build fails outright).
-And `rand()` is one process-global stream that nothing resets, so a program
-emitting more than one seed has to rewind it (`srand(1)`) before each, otherwise
-only the first seed matches what a freshly started harness produces.
+And `rand()` is one process-global stream, so anything that needs a recorded
+flight to replay has to rewind it (`srand(1)`) first. That applies in both
+directions: a generator emitting more than one seed rewinds before each,
+otherwise only the first matches what a freshly started harness produces; and
+the four TLS/DTLS harnesses rewind at the top of `LLVMFuzzerTestOneInput`,
+because the libFuzzer driver runs persistently and never recycles the process.
+Without that, iteration 2 onwards starts from wherever iteration 1 left the
+stream and draws a different `legacy_session_id`, so the recorded flight fails
+the TLS 1.3 echo check and every iteration after the first is wasted. Measured
+on `seeds/fuzz_client/tls13_no_tickets`, instructions retired per iteration:
+24.3M with the rewind, 9.6M without — the latter being exactly what a two-byte
+junk input costs.
 
 This is a fuzzing-only configuration; never ship it.
 

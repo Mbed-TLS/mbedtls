@@ -24,6 +24,7 @@ static mbedtls_pk_context pkey;
 
 int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size)
 {
+    srand(1);
 #if defined(MBEDTLS_SSL_PROTO_DTLS) && \
     defined(MBEDTLS_SSL_SRV_C) && \
     defined(MBEDTLS_TIMING_C) && \

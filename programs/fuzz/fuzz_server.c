@@ -29,6 +29,7 @@ const char psk_id[] = "Client_identity";
 
 int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size)
 {
+    srand(1);
 #if defined(MBEDTLS_SSL_SRV_C)
     int ret;
     size_t len;

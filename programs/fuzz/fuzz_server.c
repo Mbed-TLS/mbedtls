@@ -30,6 +30,7 @@ const char psk_id[] = "Client_identity";
 int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size)
 {
     srand(1);
+    fuzz_watchdog_arm();
 #if defined(MBEDTLS_SSL_SRV_C)
     int ret;
     size_t len;
@@ -184,6 +185,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size)
     mbedtls_ssl_set_bio(&ssl, &biomemfuzz, dummy_send, fuzz_recv, NULL);
 
     mbedtls_ssl_session_reset(&ssl);
+    fuzz_watch_input(&ssl);
     ret = mbedtls_ssl_handshake(&ssl);
 #if defined(MBEDTLS_SSL_EARLY_DATA)
     while (ret == MBEDTLS_ERR_SSL_RECEIVED_EARLY_DATA) {
@@ -207,6 +209,8 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size)
     }
 
 exit:
+    fuzz_watchdog_disarm();
+    fuzz_release_input();
 #if defined(MBEDTLS_SSL_SESSION_TICKETS) && defined(MBEDTLS_SSL_TICKET_C)
     mbedtls_ssl_ticket_free(&ticket_ctx);
 #endif /* MBEDTLS_SSL_SESSION_TICKETS && MBEDTLS_SSL_TICKET_C */

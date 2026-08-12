@@ -113,7 +113,38 @@ This is a fuzzing-only configuration; never ship it.
 
 Harnesses: `fuzz_client fuzz_server fuzz_dtlsclient fuzz_dtlsserver fuzz_x509crt
 fuzz_x509crl fuzz_x509csr fuzz_pkcs7 fuzz_ssl_session fuzz_ssl_context
-fuzz_dtls_record fuzz_x509_verify fuzz_privkey fuzz_pubkey`.
+fuzz_dtls_record fuzz_x509_verify fuzz_psa_aead fuzz_dtls_loopback fuzz_privkey
+fuzz_pubkey`.
+
+## Detecting what a plain ASan run cannot see
+
+Three mechanisms in `fuzz_common.c` widen what counts as an observable failure.
+Each exists because a real defect class was otherwise silent.
+
+**Undelivered-input poisoning.** Between `fuzz_watch_input()` and
+`fuzz_release_input()`, the part of `ssl->in_buf` the transport has not handed
+over is marked unaddressable, and `fuzz_recv()` moves that boundary as records
+arrive. Handshake parsers that read past the end of the current message but stay
+inside the 16 KB input buffer are invisible to ASan otherwise — the read is
+in-bounds for the allocation. With poisoning they are reported at the offending
+line, and, more importantly, at *any* message size: reproducing one such defect
+by natural means needs a message sized so that it ends flush with the end of
+`in_buf`, which mutation will not construct. ASan builds only.
+
+**Per-iteration watchdog.** `fuzz_watchdog_arm()` sets a `SIGALRM` for eight
+seconds and aborts if it fires, so a no-progress loop is saved as a crash with a
+reproducer. `afl-fuzz` enforces `-t` from the parent and so cannot act while the
+parent is itself blocked; a harness that can loop forever must carry its own
+bound. `__asan_on_error`/`__ubsan_on_report` re-arm it with a much longer budget,
+because symbolizing a report forks `llvm-symbolizer` and routinely outlives the
+normal one — without that, a genuine finding gets replaced by a livelock verdict.
+
+**Allocation-failure injection.** `fuzz_fail_alloc_after(n)` lets `n`
+`mbedtls_calloc()` calls through and fails the next, through the
+`mbedtls_platform_set_calloc_free()` hook. This reaches the `goto exit` arms
+inside a translation unit, which no input can drive and a linker `--wrap`
+cannot see. Allocation ordinals move with unrelated changes, so sweep a band of
+countdowns rather than trusting a single value.
 
 `fuzz_privkey` and `fuzz_pubkey` live in `tf-psa-crypto/programs/fuzz/`, so they
 build into a different subdirectory; `harness_build_path()` handles that. They
@@ -200,6 +231,32 @@ DRBG.
   `certificatePolicies` (with CPS and userNotice qualifiers) and iPAddress SANs
   (IPv4 and IPv6), which reach the policy-printing and IP-matching paths that
   DNS-only certificates never touch.
+- **`dtls_loopback`**: a 4-byte configuration header, no recorded traffic. The
+  library drives both endpoints, so the seeds only have to select a
+  configuration.
+- **`psa_aead`**: selector bytes for the algorithm, key shape, operation order,
+  allocation countdown and nonce length. One seed per algorithm runs clean
+  (countdown `0xffff`) so an injected run has something to be compared against.
+
+## Two harnesses that do not take recorded traffic
+
+`fuzz_dtls_loopback` runs **both** DTLS endpoints in one process and lets the
+library generate the traffic, with the input choosing only the configuration.
+Every other SSL harness replays bytes at one endpoint and therefore cannot
+complete a handshake — the Finished MAC covers both peers' randoms — which is
+why `mbedtls_ssl_handshake_wrapup` is at zero across the whole corpus. Anything
+that needs an established connection lives behind that: the keying-material
+exporter, the session-cache and ticket **write** paths noted above,
+renegotiation, post-handshake reads.
+
+`fuzz_psa_aead` drives the multipart PSA AEAD state machine (setup, set_nonce,
+set_lengths, update_ad, update, finish) under allocation failure. The record
+layer only calls the one-shot `psa_aead_encrypt`/`decrypt`, so the multipart
+API and its cleanup paths have no other harness. It allocates the tag buffer at
+exactly the declared size, so a write past the contract lands outside the
+allocation; and one operation-order bit passes a zero-size ciphertext buffer so
+the tag is the only allocation `psa_aead_finish()` attempts, which pins down
+which failure an injected countdown produced.
 
 See `corpus-manifest.json` for exact per-harness counts and provenance.
 

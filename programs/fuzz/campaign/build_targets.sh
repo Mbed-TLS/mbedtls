@@ -21,8 +21,15 @@
 # The harnesses expose LLVMFuzzerTestOneInput(); AFL++'s persistent libFuzzer
 # driver (libAFLDriver.a) is presented to CMake as libFuzzingEngine so the
 # targets get persistent mode automatically (instead of the single-shot
-# fuzz_onefile.c driver). MBEDTLS_PLATFORM_TIME_ALT is enabled so dummy_init()
-# pins a constant clock, matching programs/fuzz/README.md.
+# fuzz_onefile.c driver). Two options are forced on: MBEDTLS_PLATFORM_TIME_ALT,
+# so dummy_init() pins a constant clock (see programs/fuzz/README.md), and
+# MBEDTLS_PLATFORM_MEMORY, so a harness can install a failing allocator and
+# reach allocation-failure paths.
+#
+# The ASan variant also enables the undelivered-input poisoning in
+# fuzz_common.c. Run it with symbolize=0 unless triaging: llvm-symbolizer can
+# take minutes on these binaries, and the in-harness watchdog then has to grant
+# the report a much longer budget than an ordinary iteration.
 #
 # The full configure+compile output is streamed live to the terminal (and to
 # $BUILD/<variant>.log) and a heartbeat fires every HEARTBEAT seconds even while
@@ -45,7 +52,7 @@ HEARTBEAT="${AFL_HEARTBEAT:-15}"
 ALL_HARNESSES="fuzz_client fuzz_server fuzz_dtlsclient fuzz_dtlsserver \
 fuzz_x509crt fuzz_x509crl fuzz_x509csr fuzz_pkcs7 \
 fuzz_ssl_session fuzz_ssl_context fuzz_dtls_record fuzz_x509_verify \
-fuzz_privkey fuzz_pubkey"
+fuzz_psa_aead fuzz_dtls_loopback fuzz_privkey fuzz_pubkey"
 
 # fuzz_privkey/fuzz_pubkey live in the tf-psa-crypto submodule, so their
 # executables land under a different build subdirectory than the mbedtls ones.
@@ -108,7 +115,17 @@ if [ -n "$missing" ]; then
 fi
 
 FE="$BUILD/fe"; mkdir -p "$FE"; cp -f "$DRV" "$FE/libFuzzingEngine.a"
-UCFG="$BUILD/user_config.h"; printf '#define MBEDTLS_PLATFORM_TIME_ALT\n' > "$UCFG"
+# MBEDTLS_PLATFORM_MEMORY turns mbedtls_calloc/mbedtls_free into function
+# pointers, which is what lets a harness install a counting allocator that fails
+# the n-th allocation (fuzz_common.c). Allocation-failure paths are otherwise
+# unreachable: they are the "goto cleanup" arms inside a translation unit, which
+# no input and no linker --wrap can drive.
+UCFG="$BUILD/user_config.h"
+printf '#define MBEDTLS_PLATFORM_TIME_ALT\n' > "$UCFG"
+# MBEDTLS_PLATFORM_MEMORY belongs to the crypto config, not the TLS one; the
+# TLS-side config check rejects it outright if it is set in the wrong file.
+PCFG="$BUILD/crypto_user_config.h"
+printf '#define MBEDTLS_PLATFORM_MEMORY\n' > "$PCFG"
 
 # The RNG is reproducible run to run because afl-clang-fast predefines
 # FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION, which crypto_config.h turns into
@@ -153,6 +170,7 @@ build_variant() {
         cmake -S "$SRC" -B "$dir" \
             -DCMAKE_C_COMPILER=afl-clang-fast -DCMAKE_CXX_COMPILER=afl-clang-fast++ \
             -DBUILD_SHARED_LIBS=OFF -DMBEDTLS_USER_CONFIG_FILE="$UCFG" \
+            -DTF_PSA_CRYPTO_USER_CONFIG_FILE="$PCFG" \
             -DFUZZINGENGINE_LIB="$FE/libFuzzingEngine.a" 2>&1 | tee -a "$log"; then
         echo "[!] configure FAILED for $variant (full log: $log) - skipping"; return 1
     fi

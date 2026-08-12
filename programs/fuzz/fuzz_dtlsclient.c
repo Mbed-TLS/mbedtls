@@ -23,6 +23,7 @@ const char *pers = "fuzz_dtlsclient";
 int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size)
 {
     srand(1);
+    fuzz_watchdog_arm();
 #if defined(MBEDTLS_SSL_PROTO_DTLS) && \
     defined(MBEDTLS_SSL_CLI_C) && \
     defined(MBEDTLS_TIMING_C)
@@ -33,6 +34,13 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size)
     mbedtls_timing_delay_context timer;
     unsigned char buf[4096];
     fuzzBufferOffset_t biomemfuzz;
+    uint8_t options;
+
+    //we take 1 byte as options input
+    if (Size < 1) {
+        return 0;
+    }
+    options = Data[Size - 1];
 
     mbedtls_ssl_init(&ssl);
     mbedtls_ssl_config_init(&conf);
@@ -80,10 +88,17 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size)
     }
 #endif
 
+    /* The MTU is the one connection parameter an application is free to choose
+     * that the record layer then has to satisfy. mbedtls_ssl_set_mtu()
+     * documents an error for values below the record expansion, so every value
+     * here is one the library states it handles. 0 means "no limit". */
+    mbedtls_ssl_set_mtu(&ssl, options);
+
     biomemfuzz.Data = Data;
-    biomemfuzz.Size = Size;
+    biomemfuzz.Size = Size-1;
     biomemfuzz.Offset = 0;
     mbedtls_ssl_set_bio(&ssl, &biomemfuzz, dummy_send, fuzz_recv, fuzz_recv_timeout);
+    fuzz_watch_input(&ssl);
 
     ret = mbedtls_ssl_handshake(&ssl);
     if (ret == 0) {
@@ -127,6 +142,8 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size)
     }
 
 exit:
+    fuzz_watchdog_disarm();
+    fuzz_release_input();
     mbedtls_ssl_config_free(&conf);
     mbedtls_ssl_free(&ssl);
     mbedtls_psa_crypto_free();

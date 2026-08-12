@@ -25,6 +25,7 @@ static mbedtls_pk_context pkey;
 int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size)
 {
     srand(1);
+    fuzz_watchdog_arm();
 #if defined(MBEDTLS_SSL_PROTO_DTLS) && \
     defined(MBEDTLS_SSL_SRV_C) && \
     defined(MBEDTLS_TIMING_C) && \
@@ -110,16 +111,19 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size)
     if (mbedtls_ssl_set_client_transport_id(&ssl, client_ip, sizeof(client_ip)) != 0) {
         goto exit;
     }
+    fuzz_watch_input(&ssl);
 
     ret = mbedtls_ssl_handshake(&ssl);
 
     if (ret == MBEDTLS_ERR_SSL_HELLO_VERIFY_REQUIRED) {
         biomemfuzz.Offset = ssl.MBEDTLS_PRIVATE(next_record_offset);
+        fuzz_release_input();
         mbedtls_ssl_session_reset(&ssl);
         mbedtls_ssl_set_bio(&ssl, &biomemfuzz, dummy_send, fuzz_recv, fuzz_recv_timeout);
         if (mbedtls_ssl_set_client_transport_id(&ssl, client_ip, sizeof(client_ip)) != 0) {
             goto exit;
         }
+        fuzz_watch_input(&ssl);
 
         ret = mbedtls_ssl_handshake(&ssl);
 
@@ -139,6 +143,8 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size)
     }
 
 exit:
+    fuzz_watchdog_disarm();
+    fuzz_release_input();
     mbedtls_ssl_cookie_free(&cookie_ctx);
 #if defined(MBEDTLS_X509_CRT_PARSE_C) && defined(MBEDTLS_PEM_PARSE_C)
     mbedtls_pk_free(&pkey);

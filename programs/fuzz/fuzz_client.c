@@ -29,6 +29,7 @@ const char *pers = "fuzz_client";
 int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size)
 {
     srand(1);
+    fuzz_watchdog_arm();
 #if defined(MBEDTLS_SSL_CLI_C)
     int ret;
     size_t len;
@@ -139,6 +140,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size)
     biomemfuzz.Size = Size-2;
     biomemfuzz.Offset = 0;
     mbedtls_ssl_set_bio(&ssl, &biomemfuzz, dummy_send, fuzz_recv, NULL);
+    fuzz_watch_input(&ssl);
 
     ret = mbedtls_ssl_handshake(&ssl);
     if (ret == 0) {
@@ -182,6 +184,8 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size)
     }
 
 exit:
+    fuzz_watchdog_disarm();
+    fuzz_release_input();
     mbedtls_ssl_config_free(&conf);
     mbedtls_ssl_free(&ssl);
     mbedtls_psa_crypto_free();

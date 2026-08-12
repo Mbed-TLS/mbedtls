@@ -21,6 +21,8 @@ set(executables
     fuzz_ssl_context
     fuzz_dtls_record
     fuzz_x509_verify
+    fuzz_psa_aead
+    fuzz_dtls_loopback
 )
 add_dependencies(${programs_target} ${executables})
 

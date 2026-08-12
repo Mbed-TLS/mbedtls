@@ -35,6 +35,21 @@ make
 Finally, you can run the targets like `./test/fuzz/fuzz_client`.
 
 
+Detection helpers in fuzz_common
+------
+
+`fuzz_common.c` provides three facilities the targets use. All are optional and
+compile out where they do not apply, and `programs/fuzz/campaign/README.md`
+explains what each is for:
+
+* `fuzz_watch_input()` / `fuzz_release_input()` mark the not-yet-delivered part
+  of the SSL input buffer unaddressable, so an over-read that stays inside the
+  buffer is still reported. AddressSanitizer builds only.
+* `fuzz_watchdog_arm()` / `fuzz_watchdog_disarm()` bound one iteration and abort
+  if it is exceeded, turning a no-progress loop into a saved crash.
+* `fuzz_fail_alloc_after()` / `fuzz_fail_alloc_off()` fail a chosen
+  `mbedtls_calloc()` call, which requires `MBEDTLS_PLATFORM_MEMORY`.
+
 Corpus generation for network traffic targets
 ------
 

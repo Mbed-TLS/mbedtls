@@ -1654,6 +1654,9 @@ do_run_test_once() {
 # programs that don't use external files (it would be harder for those that
 # are called with arguments referencing files under data_files/).
 server_with_own_seedfile () {
+    if ! [ -e seedfile ]; then
+        exec "$@"
+    fi
     set -eu
     test -d "$subdirectory_for_server_seedfile" || mkdir "$subdirectory_for_server_seedfile"
     test -s "$subdirectory_for_server_seedfile/seedfile" || cp seedfile "$subdirectory_for_server_seedfile"

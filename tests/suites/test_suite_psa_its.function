@@ -307,14 +307,14 @@ void invalid_uid0()
 {
     struct psa_storage_info_t info;
 
-    TEST_ASSERT(psa_its_set_wrap(0, 0, NULL, 0) ==
-                PSA_ERROR_INVALID_ARGUMENT);
-    TEST_ASSERT(psa_its_get(0, 0, 0, NULL, NULL) ==
-                PSA_ERROR_INVALID_ARGUMENT);
-    TEST_ASSERT(psa_its_get_info(0, &info) ==
-                PSA_ERROR_INVALID_ARGUMENT);
-    TEST_ASSERT(psa_its_remove(0) ==
-                PSA_ERROR_INVALID_ARGUMENT);
+    TEST_EQUAL(psa_its_set_wrap(0, 0, NULL, 0),
+               PSA_ERROR_INVALID_ARGUMENT);
+    TEST_EQUAL(psa_its_get(0, 0, 0, NULL, NULL),
+               PSA_ERROR_INVALID_ARGUMENT);
+    TEST_EQUAL(psa_its_get_info(0, &info),
+               PSA_ERROR_INVALID_ARGUMENT);
+    TEST_EQUAL(psa_its_remove(0),
+               PSA_ERROR_INVALID_ARGUMENT);
 
 exit:
     cleanup();

@@ -248,6 +248,9 @@ run_test    "Sample: ssl_fork_server, 2 successive clients with same seed, TLS 1
             -C "error" \
             -v 'distinct_server_random'
 
+requires_config_enabled MBEDTLS_ENTROPY_NO_SOURCES_OK
+requires_config_disabled MBEDTLS_PSA_BUILTIN_GET_ENTROPY
+requires_config_disabled MBEDTLS_PSA_DRIVER_GET_ENTROPY
 run_test    "Sample: ssl_fork_server, 2 successive clients with same seed, TLS 1.3: unique random" \
             -P 4433 \
             "server_with_own_seedfile $PROGRAMS_DIR/ssl_fork_server" \

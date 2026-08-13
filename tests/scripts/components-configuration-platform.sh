@@ -47,10 +47,10 @@ component_test_entropy_nv_seed_only () {
     # Check that the library seems to refer to the seedfile, but not to
     # platform entropy sources.
     grep seedfile tf-psa-crypto/platform/CMakeFiles/platform.dir/platform.c.o
-    not grep getrandom tf-psa-crypto/drivers/builtin/CMakeFiles/builtin.dir/src/entropy*.o platform/CMakeFiles/platform.dir/platform*.o
-    not grep /dev/random tf-psa-crypto/drivers/builtin/CMakeFiles/builtin.dir/src/entropy*.o platform/CMakeFiles/platform.dir/platform*.o
-    not grep /dev/.random tf-psa-crypto/drivers/builtin/CMakeFiles/builtin.dir/src/entropy*.o platform/CMakeFiles/platform.dir/platform*.o
-    not grep mbedtls_platform_get_entropy tf-psa-crypto/drivers/builtin/CMakeFiles/builtin.dir/src/entropy*.o platform/CMakeFiles/platform.dir/platform*.o
+    not grep getrandom tf-psa-crypto/drivers/builtin/CMakeFiles/builtin.dir/src/entropy*.o tf-psa-crypto/platform/CMakeFiles/platform.dir/platform*.o
+    not grep /dev/random tf-psa-crypto/drivers/builtin/CMakeFiles/builtin.dir/src/entropy*.o tf-psa-crypto/platform/CMakeFiles/platform.dir/platform*.o
+    not grep /dev/.random tf-psa-crypto/drivers/builtin/CMakeFiles/builtin.dir/src/entropy*.o tf-psa-crypto/platform/CMakeFiles/platform.dir/platform*.o
+    not grep mbedtls_platform_get_entropy tf-psa-crypto/drivers/builtin/CMakeFiles/builtin.dir/src/entropy*.o tf-psa-crypto/platform/CMakeFiles/platform.dir/platform*.o
 
     msg "test: NV seed only"
     make test

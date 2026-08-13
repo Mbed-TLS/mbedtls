@@ -100,6 +100,69 @@ component_check_test_cases () {
     unset opt
 }
 
+component_check_test_dependencies () {
+    msg "Check: test cases dependencies: no crypto internals"
+    # The purpose of this component is to catch unjustified dependencies from
+    # mbedtls test on crypto internal feature macros.
+    #
+    # Most of the time, use of crypto internal feature macros are mistakes,
+    # which this component is meant to catch. However a few of them are
+    # justified, or known issues yet to be resolved, so this component includes
+    # a list of expected exceptions.
+
+    out_of_source_dir="$OUT_OF_SOURCE_DIR/check-test-deps-$$"
+    mkdir -p "$out_of_source_dir"
+    crypto="$out_of_source_dir/crypto"
+    used="$out_of_source_dir/used"
+    found="$out_of_source_dir/found"
+    expected="$out_of_source_dir/expected"
+
+    (
+        cd tf-psa-crypto
+        PYTHONPATH=framework/scripts python \
+            -c 'from mbedtls_framework import config_macros; \
+                print("\n".join(config_macros.Current().internal()))'
+    ) | sort -u > $crypto
+
+    (
+        grep depends_on \
+            tests/suites/test_suite_*.data \
+            tests/suites/test_suite_*.function |
+            sed -e 's/.*depends_on:\([^ ]*\).*/\1/' -e's/!//g' |
+            tr ':' '\n'
+        egrep -oh '(PSA|MBEDTLS)_[A-Z0-9_]*' tests/ssl-opt.sh tests/opt-testcases/*.sh
+    ) | sort -u > $used
+
+    # Find macros that are both used in mbedtls tests and crypto-internal.
+    comm -12 $crypto $used > $found
+
+    # Expected ones with justification - keep in sorted order!
+    rm -f $expected
+    # Acceptable: these are light wrappers around official PSA_WANT macros,
+    # to hide the fact that ECDSA and RSA could be randomized or deterministic.
+    echo "PSA_HAVE_ALG_ECDSA_SIGN" >> $expected
+    echo "PSA_HAVE_ALG_ECDSA_VERIFY" >> $expected
+    echo "PSA_HAVE_ALG_RSA_PKCS1V15_SIGN" >> $expected
+    echo "PSA_HAVE_ALG_RSA_PKCS1V15_VERIFY" >> $expected
+    echo "PSA_HAVE_ALG_SOME_ECDSA" >> $expected
+    echo "PSA_HAVE_ALG_SOME_RSA_SIGN" >> $expected
+    echo "PSA_HAVE_ALG_SOME_RSA_VERIFY" >> $expected
+    echo "PSA_WANT_ALG_ECDSA_ANY" >> $expected
+
+    # Compare reality with expectation.
+    # We want an exact match, to ensure the above list remains up-to-date.
+    #
+    # The output should be empty. When it's not:
+    # - Each '+' line is a macro that was found but not expected. You want to
+    # find where that macro occurs, and either replace it with PSA macros, or
+    # add it to the exceptions list above with a justification.
+    # - Each '-' line is a macro that was expected but not found; it means the
+    # exceptions list above should be updated by removing that macro.
+    diff -U0 "$expected" "$found"
+
+    rm -rf "$out_of_source_dir"
+}
+
 component_check_doxygen_warnings () {
     msg "Check: doxygen warnings (builds the documentation)" # ~ 3s
     ./framework/scripts/doxygen.sh

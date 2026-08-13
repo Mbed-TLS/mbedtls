@@ -327,28 +327,48 @@ usage:
             } else
 #endif
 #if defined(PSA_WANT_ALG_SHA_1)
-            if (strcmp(q, "SHA1") == 0) {
+            if (strcmp(q, "SHA1") == 0 || strcmp(q, "SHA") == 0) {
                 md_info = mbedtls_md_info_from_type(MBEDTLS_MD_SHA1);
             } else
 #endif
-#if defined(PSA_WANT_ALG_SHA_224) || defined(MBEDTLS_PSA_ACCEL_ALG_SHA3_224)
+#if defined(PSA_WANT_ALG_SHA_224)
             if (strcmp(q, "SHA224") == 0) {
                 md_info = mbedtls_md_info_from_type(MBEDTLS_MD_SHA224);
             } else
 #endif
-#if defined(PSA_WANT_ALG_SHA_256) || defined(MBEDTLS_PSA_ACCEL_ALG_SHA3_256)
+#if defined(PSA_WANT_ALG_SHA_256)
             if (strcmp(q, "SHA256") == 0) {
                 md_info = mbedtls_md_info_from_type(MBEDTLS_MD_SHA256);
             } else
 #endif
-#if defined(PSA_WANT_ALG_SHA_384) || defined(MBEDTLS_PSA_ACCEL_ALG_SHA3_384)
+#if defined(PSA_WANT_ALG_SHA_384)
             if (strcmp(q, "SHA384") == 0) {
                 md_info = mbedtls_md_info_from_type(MBEDTLS_MD_SHA384);
             } else
 #endif
-#if defined(PSA_WANT_ALG_SHA_512) || defined(MBEDTLS_PSA_ACCEL_ALG_SHA3_512)
+#if defined(PSA_WANT_ALG_SHA_512)
             if (strcmp(q, "SHA512") == 0) {
                 md_info = mbedtls_md_info_from_type(MBEDTLS_MD_SHA512);
+            } else
+#endif
+#if defined(PSA_WANT_ALG_SHA3_224)
+            if (strcmp(q, "SHA3-224") == 0) {
+                md_info = mbedtls_md_info_from_type(MBEDTLS_MD_SHA3_224);
+            } else
+#endif
+#if defined(PSA_WANT_ALG_SHA3_256)
+            if (strcmp(q, "SHA3-256") == 0) {
+                md_info = mbedtls_md_info_from_type(MBEDTLS_MD_SHA3_256);
+            } else
+#endif
+#if defined(PSA_WANT_ALG_SHA3_384)
+            if (strcmp(q, "SHA3-384") == 0) {
+                md_info = mbedtls_md_info_from_type(MBEDTLS_MD_SHA3_384);
+            } else
+#endif
+#if defined(PSA_WANT_ALG_SHA3_512)
+            if (strcmp(q, "SHA3-512") == 0) {
+                md_info = mbedtls_md_info_from_type(MBEDTLS_MD_SHA3_512);
             } else
 #endif
             {

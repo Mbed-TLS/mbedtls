@@ -290,9 +290,48 @@ component_build_cmake_config_options () {
     cd "$OUT_OF_SOURCE_DIR"
 
     msg "configure: cmake with MBEDTLS_CONFIG_NAME"
-    cmake -DMBEDTLS_CONFIG_NAME=full "$MBEDTLS_ROOT_DIR"
-    grep '^#define MBEDTLS_SSL_PROTO_TLS1_3$' \
-         generated/include/mbedtls/mbedtls_config.h
+    cmake -DMBEDTLS_CONFIG_NAME=crypto "$MBEDTLS_ROOT_DIR"
+    make query_compile_time_config
+    not programs/test/query_compile_time_config MBEDTLS_SSL_TLS_C
+    programs/test/query_compile_time_config PSA_WANT_ALG_CMAC
+
+    cd "$MBEDTLS_ROOT_DIR"
+    rm -rf "$OUT_OF_SOURCE_DIR"
+    mkdir "$OUT_OF_SOURCE_DIR"
+    cd "$OUT_OF_SOURCE_DIR"
+
+    msg "configure: cmake with a false-like option name"
+    cmake -DMBEDTLS_CONFIG_SET=NO "$MBEDTLS_ROOT_DIR"
+    grep '^#define NO$' generated/include/mbedtls/mbedtls_config.h
+
+    cd "$MBEDTLS_ROOT_DIR"
+    rm -rf "$OUT_OF_SOURCE_DIR"
+    mkdir "$OUT_OF_SOURCE_DIR"
+    cd "$OUT_OF_SOURCE_DIR"
+
+    msg "configure: cmake with MBEDTLS_CONFIG_BASE_FILE only"
+    cmake -DMBEDTLS_CONFIG_BASE_FILE=configs/config-ccm-psk-tls1_2.h \
+          "$MBEDTLS_ROOT_DIR"
+    cmp "$MBEDTLS_ROOT_DIR/configs/config-ccm-psk-tls1_2.h" \
+        generated/include/mbedtls/mbedtls_config.h
+
+    cd "$MBEDTLS_ROOT_DIR"
+    rm -rf "$OUT_OF_SOURCE_DIR"
+    mkdir "$OUT_OF_SOURCE_DIR"
+    cd "$OUT_OF_SOURCE_DIR"
+
+    msg "configure: reject MBEDTLS_CONFIG_FILE with transformations"
+    not cmake -DMBEDTLS_CONFIG_FILE=configs/config-ccm-psk-tls1_2.h \
+              -DMBEDTLS_CONFIG_SET=MBEDTLS_DEBUG_C "$MBEDTLS_ROOT_DIR"
+
+    cd "$MBEDTLS_ROOT_DIR"
+    rm -rf "$OUT_OF_SOURCE_DIR"
+    mkdir "$OUT_OF_SOURCE_DIR"
+    cd "$OUT_OF_SOURCE_DIR"
+
+    msg "configure: reject a missing base configuration"
+    not cmake -DMBEDTLS_CONFIG_BASE_FILE=configs/does-not-exist.h \
+              "$MBEDTLS_ROOT_DIR"
 
     cd "$MBEDTLS_ROOT_DIR"
     rm -rf "$OUT_OF_SOURCE_DIR"
@@ -300,8 +339,9 @@ component_build_cmake_config_options () {
     cd "$OUT_OF_SOURCE_DIR"
 
     msg "build: cmake with a base config, MBEDTLS_CONFIG_SET and MBEDTLS_CONFIG_UNSET"
-    cmake -DMBEDTLS_CONFIG_FILE=configs/config-ccm-psk-tls1_2.h \
-          -DMBEDTLS_CONFIG_UNSET=MBEDTLS_SSL_SRV_C \
+    cp "$MBEDTLS_ROOT_DIR/configs/config-ccm-psk-tls1_2.h" base_config.before
+    cmake -DMBEDTLS_CONFIG_BASE_FILE=configs/config-ccm-psk-tls1_2.h \
+          '-DMBEDTLS_CONFIG_UNSET=MBEDTLS_SSL_SRV_C;PSA_WANT_ALG_CMAC;PSA_WANT_ALG_PBKDF2_AES_CMAC_PRF_128' \
           '-DMBEDTLS_CONFIG_SET=MBEDTLS_SSL_RENEGOTIATION;MBEDTLS_DEBUG_C;MBEDTLS_ERROR_C;MBEDTLS_SSL_IN_CONTENT_LEN=12000' \
           "$MBEDTLS_ROOT_DIR"
     make query_compile_time_config
@@ -311,11 +351,18 @@ component_build_cmake_config_options () {
     programs/test/query_compile_time_config MBEDTLS_DEBUG_C
     programs/test/query_compile_time_config MBEDTLS_ERROR_C
     not programs/test/query_compile_time_config MBEDTLS_SSL_SRV_C
+    not programs/test/query_compile_time_config PSA_WANT_ALG_CMAC
     [ "$(programs/test/query_compile_time_config MBEDTLS_SSL_IN_CONTENT_LEN)" = \
       "12000" ]
+    cmp base_config.before \
+        "$MBEDTLS_ROOT_DIR/configs/config-ccm-psk-tls1_2.h"
 
     cd "$MBEDTLS_ROOT_DIR"
     rm -rf "$OUT_OF_SOURCE_DIR"
+
+    msg "configure: reject transformations in an in-tree build"
+    not cmake -DMBEDTLS_CONFIG_SET=NO .
+    rm -rf CMakeCache.txt CMakeFiles
 }
 
 support_build_cmake_config_options () {

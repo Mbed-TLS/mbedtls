@@ -229,12 +229,14 @@ if(NOT "${MBEDTLS_CONFIG_BASE_FILE}" STREQUAL "" OR
         endif()
     endforeach(option)
 
-    set(MBEDTLS_CONFIG_FILE "${MBEDTLS_GENERATED_CONFIG_FILE}")
+    set(MBEDTLS_CONFIG_FILE
+        "$<BUILD_INTERFACE:${MBEDTLS_GENERATED_CONFIG_FILE}>$<INSTALL_INTERFACE:mbedtls/mbedtls_config.h>")
     if("${TF_PSA_CRYPTO_CONFIG_FILE}" STREQUAL "" AND
        "${TF_PSA_CRYPTO_CONFIG_NAME}" STREQUAL "")
         # Named configurations can adjust both configuration files.
-        set(TF_PSA_CRYPTO_CONFIG_FILE "${MBEDTLS_GENERATED_CRYPTO_CONFIG_FILE}"
-            CACHE FILEPATH "TF-PSA-Crypto config file (overrides default)." FORCE)
+        set(TF_PSA_CRYPTO_CONFIG_FILE
+            "$<BUILD_INTERFACE:${MBEDTLS_GENERATED_CRYPTO_CONFIG_FILE}>$<INSTALL_INTERFACE:psa/crypto_config_mbedtls.h>"
+            CACHE STRING "TF-PSA-Crypto config file (overrides default)." FORCE)
     endif()
 endif()
 
@@ -453,6 +455,15 @@ set(TF_PSA_CRYPTO_FATAL_WARNINGS ${MBEDTLS_FATAL_WARNINGS} CACHE BOOL "")
 set(USE_STATIC_TF_PSA_CRYPTO_LIBRARY ${USE_STATIC_MBEDTLS_LIBRARY} CACHE BOOL "")
 set(USE_SHARED_TF_PSA_CRYPTO_LIBRARY ${USE_SHARED_MBEDTLS_LIBRARY} CACHE BOOL "")
 add_subdirectory(tf-psa-crypto)
+
+# Keep the generated configuration distinct from TF-PSA-Crypto's default
+# configuration header, which is installed by the subproject.
+if(NOT "${MBEDTLS_GENERATED_CRYPTO_CONFIG_FILE}" STREQUAL "" AND
+   INSTALL_TF_PSA_CRYPTO_HEADERS)
+    install(FILES "${MBEDTLS_GENERATED_CRYPTO_CONFIG_FILE}"
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/psa
+        RENAME crypto_config_mbedtls.h)
+endif()
 
 set(tfpsacrypto_target "${TF_PSA_CRYPTO_TARGET_PREFIX}tfpsacrypto")
 if (USE_STATIC_MBEDTLS_LIBRARY)

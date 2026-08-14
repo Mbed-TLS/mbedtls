@@ -379,9 +379,11 @@ add_executable(consumer
 target_link_libraries(consumer PRIVATE
     MbedTLS::mbedtls MbedTLS::mbedx509 MbedTLS::tfpsacrypto)
 EOF
-    cmake -S consumer -B consumer-build \
-          -DCMAKE_PREFIX_PATH="$install_dir"
-    cmake --build consumer-build
+    mkdir consumer-build
+    cd consumer-build
+    cmake -DCMAKE_PREFIX_PATH="$install_dir" ../consumer
+    cmake --build .
+    cd ..
 
     cd "$MBEDTLS_ROOT_DIR"
     rm -rf "$OUT_OF_SOURCE_DIR"

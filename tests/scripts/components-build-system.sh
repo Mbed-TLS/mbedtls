@@ -357,6 +357,32 @@ component_build_cmake_config_options () {
     cmp base_config.before \
         "$MBEDTLS_ROOT_DIR/configs/config-ccm-psk-tls1_2.h"
 
+    msg "install: generated configurations are relocatable"
+    install_dir="$OUT_OF_SOURCE_DIR/install"
+    cmake -DCMAKE_INSTALL_PREFIX="$install_dir" .
+    cmake --build . --target install
+    cmp generated/include/mbedtls/mbedtls_config.h \
+        "$install_dir/include/mbedtls/mbedtls_config.h"
+    cmp generated/include/psa/crypto_config.h \
+        "$install_dir/include/psa/crypto_config_mbedtls.h"
+
+    # The installed targets must not refer to configuration headers in the
+    # build tree.
+    mv generated generated.moved
+    mkdir consumer
+    cat >consumer/CMakeLists.txt <<EOF
+cmake_minimum_required(VERSION 3.10)
+project(consumer C)
+find_package(MbedTLS REQUIRED CONFIG)
+add_executable(consumer
+    "$MBEDTLS_ROOT_DIR/programs/test/cmake_package_install/cmake_package_config.c")
+target_link_libraries(consumer PRIVATE
+    MbedTLS::mbedtls MbedTLS::mbedx509 MbedTLS::tfpsacrypto)
+EOF
+    cmake -S consumer -B consumer-build \
+          -DCMAKE_PREFIX_PATH="$install_dir"
+    cmake --build consumer-build
+
     cd "$MBEDTLS_ROOT_DIR"
     rm -rf "$OUT_OF_SOURCE_DIR"
 

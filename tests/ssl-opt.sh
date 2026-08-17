@@ -2589,6 +2589,42 @@ run_test    "Single supported algorithm sending: openssl client" \
                     -key $DATA_FILES_PATH/server6.key" \
             0
 
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_enabled MBEDTLS_SSL_SRV_C
+requires_config_enabled PSA_WANT_ECC_SECP_R1_256
+requires_config_enabled PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC
+requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
+requires_pk_alg ECDSA
+requires_hash_alg SHA_256
+run_test    "Certificate verify message with disallowed signature algorithm" \
+            "$P_SRV sig_algs=ecdsa_secp256r1_sha256 auth_mode=required debug_level=3" \
+            "$P_CLI force_version=tls12 sig_algs=ecdsa_secp256r1_sha256 \
+                    key_file=$DATA_FILES_PATH/cli-rsa.key crt_file=$DATA_FILES_PATH/cli-rsa-sha256.crt" \
+            1 \
+            -s "requested sig_alg \[403\] ecdsa_secp256r1_sha256" \
+            -s "received sig_alg \[401\] rsa_pkcs1_sha256" \
+            -s "peer not adhering to requested sig_alg for verify message"
+
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_enabled MBEDTLS_SSL_SRV_C
+requires_config_enabled PSA_WANT_ECC_SECP_R1_256
+requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
+requires_pk_alg ECDSA
+requires_hash_alg SHA_1
+requires_hash_alg SHA_256
+run_test    "Certificate verify message with disallowed hash algorithm" \
+            "$P_SRV sig_algs=ecdsa_sha1 auth_mode=required debug_level=3" \
+            "$P_CLI force_version=tls12 sig_algs=ecdsa_sha1 \
+                    key_file=$DATA_FILES_PATH/ecdsa_secp256r1.key crt_file=$DATA_FILES_PATH/ecdsa_secp256r1.crt" \
+            1 \
+            -s "requested sig_alg \[203\] ecdsa_sha1" \
+            -s "received sig_alg \[403\] ecdsa_secp256r1_sha256" \
+            -s "peer not adhering to requested sig_alg for verify message"
+
 # Tests for certificate verification callback
 run_test    "Configuration-specific CRT verification callback" \
             "$P_SRV debug_level=3" \

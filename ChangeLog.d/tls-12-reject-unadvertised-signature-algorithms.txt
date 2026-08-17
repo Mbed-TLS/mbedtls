@@ -1,0 +1,5 @@
+Security
+   * Reject handshakes with signature algorithms disabled via
+     mbedtls_ssl_conf_algs() in the TLS 1.2 server.
+     Reported by Ramesh Adhikari and Saikumar Andure (saikumar279).
+     CVE-ID-TODO

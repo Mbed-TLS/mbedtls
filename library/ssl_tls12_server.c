@@ -14,6 +14,7 @@
 #include "mbedtls/ssl.h"
 #include "ssl_misc.h"
 #include "debug_internal.h"
+#include "ssl_debug_helpers.h"
 #include "mbedtls/error.h"
 #include "mbedtls/platform_util.h"
 #include "constant_time_internal.h"
@@ -4046,6 +4047,34 @@ static int ssl_parse_certificate_verify(mbedtls_ssl_context *ssl)
     if (i + 2 > ssl->in_hslen) {
         MBEDTLS_SSL_DEBUG_MSG(1, ("bad certificate verify message"));
         return MBEDTLS_ERR_SSL_DECODE_ERROR;
+    }
+
+    /*
+     * Check if SignatureAndHashAlgorithm is one of the requested algorithms
+     */
+    const uint16_t sig_alg = MBEDTLS_GET_UINT16_BE(ssl->in_msg, i);
+    const uint16_t *req_sig_alg = mbedtls_ssl_get_sig_algs(ssl);
+    if (req_sig_alg == NULL) {
+        return MBEDTLS_ERR_SSL_BAD_CONFIG;
+    }
+
+    for (; *req_sig_alg != MBEDTLS_TLS_SIG_NONE; req_sig_alg++) {
+        MBEDTLS_SSL_DEBUG_MSG(3, ("requested sig_alg [%x] %s",
+                                  *req_sig_alg,
+                                  mbedtls_ssl_sig_alg_to_str(*req_sig_alg)));
+        if (*req_sig_alg == sig_alg) {
+            break;
+        }
+    }
+
+    MBEDTLS_SSL_DEBUG_MSG(3, ("received sig_alg [%x] %s",
+                              sig_alg,
+                              mbedtls_ssl_sig_alg_to_str(sig_alg)));
+
+    if (*req_sig_alg == MBEDTLS_TLS_SIG_NONE) {
+        MBEDTLS_SSL_DEBUG_MSG(1, ("peer not adhering to requested sig_alg"
+                                  " for verify message"));
+        return MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER;
     }
 
     /*

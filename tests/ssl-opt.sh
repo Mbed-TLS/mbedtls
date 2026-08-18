@@ -2872,8 +2872,9 @@ requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
 requires_pk_alg "ECDSA"
 requires_hash_alg SHA_256
 run_test    "Single supported algorithm sending: mbedtls client" \
-            "$P_SRV sig_algs=ecdsa_secp256r1_sha256 auth_mode=required" \
-            "$P_CLI force_version=tls12 sig_algs=ecdsa_secp256r1_sha256 debug_level=3" \
+            "$P_SRV sig_algs=ecdsa_secp256r1_sha256 auth_mode=required debug_level=3" \
+            "$P_CLI force_version=tls12 sig_algs=ecdsa_secp256r1_sha256 debug_level=3 \
+                    key_file=$DATA_FILES_PATH/ecdsa_secp256r1.key crt_file=$DATA_FILES_PATH/ecdsa_secp256r1.crt" \
             0 \
             -c "Supported Signature Algorithm found: 04 03"
 

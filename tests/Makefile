@@ -243,6 +243,8 @@ libtestdriver1.a:
 	cp -Rf ../tf-psa-crypto/core ./libtestdriver1/tf-psa-crypto
 	cp -Rf ../tf-psa-crypto/include ./libtestdriver1/tf-psa-crypto
 	cp -Rf ../tf-psa-crypto/drivers/builtin ./libtestdriver1/tf-psa-crypto/drivers/builtin
+	# Make installable pqcp headers available to the libtestdriver1 build
+	cp -Rf ../tf-psa-crypto/drivers/pqcp/include ./libtestdriver1/tf-psa-crypto/
 	if [ -d ../tf-psa-crypto/dispatch ]; then \
 	    cp -Rf ../tf-psa-crypto/dispatch ./libtestdriver1/tf-psa-crypto/dispatch; \
 	fi

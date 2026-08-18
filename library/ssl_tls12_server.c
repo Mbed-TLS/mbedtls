@@ -3616,25 +3616,23 @@ static int ssl_parse_client_key_exchange(mbedtls_ssl_context *ssl)
         ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDH_RSA ||
         ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA) {
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-        size_t data_len = (size_t) (*p++);
-        size_t buf_len = (size_t) (end - p);
         psa_status_t status = PSA_ERROR_GENERIC_ERROR;
         mbedtls_ssl_handshake_params *handshake = ssl->handshake;
 
         MBEDTLS_SSL_DEBUG_MSG(3, ("Read the peer's public key."));
 
-        /*
-         * We must have at least two bytes (1 for length, at least 1 for data)
-         */
-        if (buf_len < 2) {
+        if (end - p < 1) {
             MBEDTLS_SSL_DEBUG_MSG(1, ("Invalid buffer length: %" MBEDTLS_PRINTF_SIZET,
-                                      buf_len));
+                                      (size_t) (end - p)));
             return MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE;
         }
 
-        if (data_len < 1 || data_len > buf_len) {
+        size_t data_len = (size_t) (*p++);
+        size_t buf_len = (size_t) (end - p);
+
+        if (data_len < 1 || data_len != buf_len) {
             MBEDTLS_SSL_DEBUG_MSG(1, ("Invalid data length: %" MBEDTLS_PRINTF_SIZET
-                                      " > %" MBEDTLS_PRINTF_SIZET,
+                                      " != %" MBEDTLS_PRINTF_SIZET,
                                       data_len, buf_len));
             return MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE;
         }

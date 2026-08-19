@@ -303,6 +303,8 @@ component_build_cmake_config_options () {
     msg "configure: cmake with a false-like option name"
     cmake -DMBEDTLS_CONFIG_SET=NO "$MBEDTLS_ROOT_DIR"
     grep '^#define NO$' generated/include/mbedtls/mbedtls_config.h
+    cmake -DMBEDTLS_CONFIG_SET= .
+    grep '^TF_PSA_CRYPTO_CONFIG_FILE:FILEPATH=$' CMakeCache.txt
 
     cd "$MBEDTLS_ROOT_DIR"
     rm -rf "$OUT_OF_SOURCE_DIR"
@@ -314,6 +316,7 @@ component_build_cmake_config_options () {
           "$MBEDTLS_ROOT_DIR"
     cmp "$MBEDTLS_ROOT_DIR/configs/config-ccm-psk-tls1_2.h" \
         generated/include/mbedtls/mbedtls_config.h
+    not test -e generated/include/psa/crypto_config.h
 
     cd "$MBEDTLS_ROOT_DIR"
     rm -rf "$OUT_OF_SOURCE_DIR"
@@ -325,6 +328,24 @@ component_build_cmake_config_options () {
               -DMBEDTLS_CONFIG_SET=MBEDTLS_DEBUG_C "$MBEDTLS_ROOT_DIR"
 
     cd "$MBEDTLS_ROOT_DIR"
+    for option in \
+        "TF_PSA_CRYPTO_CONFIG_FILE=$MBEDTLS_ROOT_DIR/tf-psa-crypto/include/psa/crypto_config.h" \
+        "TF_PSA_CRYPTO_CONFIG_BASE_FILE=$MBEDTLS_ROOT_DIR/tf-psa-crypto/include/psa/crypto_config.h" \
+        "TF_PSA_CRYPTO_CONFIG_NAME=full" \
+        "TF_PSA_CRYPTO_CONFIG_SET=PSA_WANT_ALG_SHA_256" \
+        "TF_PSA_CRYPTO_CONFIG_UNSET=PSA_WANT_ALG_CMAC"
+    do
+        rm -rf "$OUT_OF_SOURCE_DIR"
+        mkdir "$OUT_OF_SOURCE_DIR"
+        cd "$OUT_OF_SOURCE_DIR"
+
+        msg "configure: reject $option with Mbed TLS transformations"
+        not cmake "-D$option" -DMBEDTLS_CONFIG_SET=MBEDTLS_DEBUG_C \
+                  "$MBEDTLS_ROOT_DIR"
+
+        cd "$MBEDTLS_ROOT_DIR"
+    done
+
     rm -rf "$OUT_OF_SOURCE_DIR"
     mkdir "$OUT_OF_SOURCE_DIR"
     cd "$OUT_OF_SOURCE_DIR"
@@ -358,7 +379,7 @@ component_build_cmake_config_options () {
         "$MBEDTLS_ROOT_DIR/configs/config-ccm-psk-tls1_2.h"
 
     msg "install: generated configurations are relocatable"
-    install_dir="$OUT_OF_SOURCE_DIR/install"
+    install_dir="$OUT_OF_SOURCE_DIR.install"
     cmake -DCMAKE_INSTALL_PREFIX="$install_dir" .
     cmake --build . --target install
     cmp generated/include/mbedtls/mbedtls_config.h \
@@ -366,9 +387,11 @@ component_build_cmake_config_options () {
     cmp generated/include/psa/crypto_config.h \
         "$install_dir/include/psa/crypto_config_mbedtls.h"
 
-    # The installed targets must not refer to configuration headers in the
-    # build tree.
-    mv generated generated.moved
+    # The installed targets must not refer to the build tree.
+    cd "$MBEDTLS_ROOT_DIR"
+    mv "$OUT_OF_SOURCE_DIR" "$OUT_OF_SOURCE_DIR.moved"
+    mkdir "$OUT_OF_SOURCE_DIR"
+    cd "$OUT_OF_SOURCE_DIR"
     mkdir consumer
     cat >consumer/CMakeLists.txt <<EOF
 cmake_minimum_required(VERSION 3.10)
@@ -386,7 +409,7 @@ EOF
     cd ..
 
     cd "$MBEDTLS_ROOT_DIR"
-    rm -rf "$OUT_OF_SOURCE_DIR"
+    rm -rf "$OUT_OF_SOURCE_DIR" "$OUT_OF_SOURCE_DIR.moved" "$install_dir"
 
     msg "configure: reject transformations in an in-tree build"
     not cmake -DMBEDTLS_CONFIG_SET=NO .

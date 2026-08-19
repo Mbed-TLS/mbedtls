@@ -323,19 +323,63 @@ support_build_cmake_custom_config_file () {
 component_build_cmake_config_options () {
     MBEDTLS_ROOT_DIR="$PWD"
     mkdir "$OUT_OF_SOURCE_DIR"
+    cd "$OUT_OF_SOURCE_DIR"
 
-    mkdir "$OUT_OF_SOURCE_DIR/config-name"
-    cd "$OUT_OF_SOURCE_DIR/config-name"
     msg "configure: cmake with MBEDTLS_CONFIG_NAME"
     cmake -DMBEDTLS_CONFIG_NAME=full "$MBEDTLS_ROOT_DIR"
-    grep '^#define MBEDTLS_SSL_PROTO_TLS1_3$' \
-         generated/include/mbedtls/mbedtls_config.h
+    make query_compile_time_config
+    programs/test/query_compile_time_config MBEDTLS_TEST_HOOKS
 
-    mkdir "$OUT_OF_SOURCE_DIR/config-options"
-    cd "$OUT_OF_SOURCE_DIR/config-options"
+    cd "$MBEDTLS_ROOT_DIR"
+    rm -rf "$OUT_OF_SOURCE_DIR"
+    mkdir "$OUT_OF_SOURCE_DIR"
+    cd "$OUT_OF_SOURCE_DIR"
+
+    msg "configure: cmake with a false-like option name"
+    cmake -DMBEDTLS_CONFIG_SET=NO "$MBEDTLS_ROOT_DIR"
+    grep '^#define NO$' generated/include/mbedtls/mbedtls_config.h
+    cmake -DMBEDTLS_CONFIG_SET= .
+    grep '^MBEDTLS_CONFIG_FILE:FILEPATH=$' CMakeCache.txt
+
+    cd "$MBEDTLS_ROOT_DIR"
+    rm -rf "$OUT_OF_SOURCE_DIR"
+    mkdir "$OUT_OF_SOURCE_DIR"
+    cd "$OUT_OF_SOURCE_DIR"
+
+    msg "configure: cmake with MBEDTLS_CONFIG_BASE_FILE only"
+    cmake -DMBEDTLS_CONFIG_BASE_FILE=configs/config-ccm-psk-tls1_2.h \
+          "$MBEDTLS_ROOT_DIR"
+    cmp "$MBEDTLS_ROOT_DIR/configs/config-ccm-psk-tls1_2.h" \
+        generated/include/mbedtls/mbedtls_config.h
+    not test -e generated/include/psa/crypto_config.h
+
+    cd "$MBEDTLS_ROOT_DIR"
+    rm -rf "$OUT_OF_SOURCE_DIR"
+    mkdir "$OUT_OF_SOURCE_DIR"
+    cd "$OUT_OF_SOURCE_DIR"
+
+    msg "configure: reject MBEDTLS_CONFIG_FILE with transformations"
+    not cmake -DMBEDTLS_CONFIG_FILE=configs/config-ccm-psk-tls1_2.h \
+              -DMBEDTLS_CONFIG_SET=MBEDTLS_DEBUG_C "$MBEDTLS_ROOT_DIR"
+
+    cd "$MBEDTLS_ROOT_DIR"
+    rm -rf "$OUT_OF_SOURCE_DIR"
+    mkdir "$OUT_OF_SOURCE_DIR"
+    cd "$OUT_OF_SOURCE_DIR"
+
+    msg "configure: reject a missing base configuration"
+    not cmake -DMBEDTLS_CONFIG_BASE_FILE=configs/does-not-exist.h \
+              "$MBEDTLS_ROOT_DIR"
+
+    cd "$MBEDTLS_ROOT_DIR"
+    rm -rf "$OUT_OF_SOURCE_DIR"
+    mkdir "$OUT_OF_SOURCE_DIR"
+    cd "$OUT_OF_SOURCE_DIR"
+
     msg "build: cmake with a base config, MBEDTLS_CONFIG_SET and MBEDTLS_CONFIG_UNSET"
-    cmake -DMBEDTLS_CONFIG_FILE=configs/config-ccm-psk-tls1_2.h \
-          -DMBEDTLS_CONFIG_UNSET=MBEDTLS_SSL_SRV_C \
+    cp "$MBEDTLS_ROOT_DIR/configs/config-ccm-psk-tls1_2.h" base_config.before
+    cmake -DMBEDTLS_CONFIG_BASE_FILE=configs/config-ccm-psk-tls1_2.h \
+          '-DMBEDTLS_CONFIG_UNSET=MBEDTLS_SSL_SRV_C;PSA_WANT_ALG_CMAC;PSA_WANT_ALG_PBKDF2_AES_CMAC_PRF_128' \
           '-DMBEDTLS_CONFIG_SET=MBEDTLS_SSL_RENEGOTIATION;MBEDTLS_DEBUG_C;MBEDTLS_ERROR_C;MBEDTLS_SSL_IN_CONTENT_LEN=12000' \
           "$MBEDTLS_ROOT_DIR"
     make query_compile_time_config
@@ -345,11 +389,48 @@ component_build_cmake_config_options () {
     programs/test/query_compile_time_config MBEDTLS_DEBUG_C
     programs/test/query_compile_time_config MBEDTLS_ERROR_C
     not programs/test/query_compile_time_config MBEDTLS_SSL_SRV_C
+    not programs/test/query_compile_time_config PSA_WANT_ALG_CMAC
     [ "$(programs/test/query_compile_time_config MBEDTLS_SSL_IN_CONTENT_LEN)" = \
       "12000" ]
+    cmp base_config.before \
+        "$MBEDTLS_ROOT_DIR/configs/config-ccm-psk-tls1_2.h"
+
+    msg "install: generated configurations are relocatable"
+    install_dir="$OUT_OF_SOURCE_DIR.install"
+    cmake -DCMAKE_INSTALL_PREFIX="$install_dir" .
+    cmake --build . --target install
+    cmp generated/include/mbedtls/mbedtls_config.h \
+        "$install_dir/include/mbedtls/mbedtls_config.h"
+    cmp generated/include/psa/crypto_config.h \
+        "$install_dir/include/psa/crypto_config.h"
+
+    # The installed targets must not refer to the build tree.
+    cd "$MBEDTLS_ROOT_DIR"
+    mv "$OUT_OF_SOURCE_DIR" "$OUT_OF_SOURCE_DIR.moved"
+    mkdir "$OUT_OF_SOURCE_DIR"
+    cd "$OUT_OF_SOURCE_DIR"
+    mkdir consumer
+    cat >consumer/CMakeLists.txt <<EOF
+cmake_minimum_required(VERSION 3.10)
+project(consumer C)
+find_package(MbedTLS REQUIRED CONFIG)
+add_executable(consumer
+    "$MBEDTLS_ROOT_DIR/programs/test/cmake_package_install/cmake_package_config.c")
+target_link_libraries(consumer PRIVATE
+    MbedTLS::mbedtls MbedTLS::mbedx509 MbedTLS::mbedcrypto)
+EOF
+    mkdir consumer-build
+    cd consumer-build
+    cmake -DCMAKE_PREFIX_PATH="$install_dir" ../consumer
+    cmake --build .
+    cd ..
 
     cd "$MBEDTLS_ROOT_DIR"
-    rm -rf "$OUT_OF_SOURCE_DIR"
+    rm -rf "$OUT_OF_SOURCE_DIR" "$OUT_OF_SOURCE_DIR.moved" "$install_dir"
+
+    msg "configure: reject transformations in an in-tree build"
+    not cmake -DMBEDTLS_CONFIG_SET=NO .
+    rm -rf CMakeCache.txt CMakeFiles
 }
 
 support_build_cmake_config_options () {

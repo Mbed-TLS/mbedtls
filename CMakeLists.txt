@@ -143,25 +143,54 @@ if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
         FORCE)
 endif()
 
-# Make MBEDTLS_CONFIG_FILE and MBEDTLS_USER_CONFIG_FILE into PATHs
+# Make configuration file options into PATHs
 set(MBEDTLS_CONFIG_FILE "" CACHE FILEPATH "Mbed TLS config file (overrides default).")
 set(MBEDTLS_USER_CONFIG_FILE "" CACHE FILEPATH "Mbed TLS user config file (appended to default).")
+set(MBEDTLS_CONFIG_BASE_FILE "" CACHE FILEPATH "Mbed TLS config to copy and optionally transform.")
 set(MBEDTLS_CONFIG_NAME "" CACHE STRING "Named Mbed TLS configuration (see config.py).")
 set(MBEDTLS_CONFIG_SET "" CACHE STRING "Options to set, separated by semicolons (OPTION or OPTION=VALUE).")
 set(MBEDTLS_CONFIG_UNSET "" CACHE STRING "Options to unset, separated by semicolons.")
 
-if(MBEDTLS_CONFIG_NAME OR MBEDTLS_CONFIG_SET OR MBEDTLS_CONFIG_UNSET)
-    if(NOT MBEDTLS_PYTHON_EXECUTABLE)
+set(MBEDTLS_CONFIG_TRANSFORMED FALSE)
+if(NOT "${MBEDTLS_CONFIG_NAME}" STREQUAL "" OR
+   NOT "${MBEDTLS_CONFIG_SET}" STREQUAL "" OR
+   NOT "${MBEDTLS_CONFIG_UNSET}" STREQUAL "")
+    set(MBEDTLS_CONFIG_TRANSFORMED TRUE)
+endif()
+
+if(NOT "${MBEDTLS_CONFIG_FILE}" STREQUAL "" AND
+   (NOT "${MBEDTLS_CONFIG_BASE_FILE}" STREQUAL "" OR
+    NOT "${MBEDTLS_CONFIG_NAME}" STREQUAL "" OR
+    NOT "${MBEDTLS_CONFIG_SET}" STREQUAL "" OR
+    NOT "${MBEDTLS_CONFIG_UNSET}" STREQUAL ""))
+    message(FATAL_ERROR
+        "MBEDTLS_CONFIG_FILE cannot be combined with MBEDTLS_CONFIG_BASE_FILE, "
+        "MBEDTLS_CONFIG_NAME, MBEDTLS_CONFIG_SET or MBEDTLS_CONFIG_UNSET.")
+endif()
+
+if(NOT "${MBEDTLS_CONFIG_BASE_FILE}" STREQUAL "" OR
+   NOT "${MBEDTLS_CONFIG_NAME}" STREQUAL "" OR
+   NOT "${MBEDTLS_CONFIG_SET}" STREQUAL "" OR
+   NOT "${MBEDTLS_CONFIG_UNSET}" STREQUAL "")
+    if("${CMAKE_CURRENT_SOURCE_DIR}" STREQUAL "${CMAKE_CURRENT_BINARY_DIR}")
+        message(FATAL_ERROR
+            "MBEDTLS_CONFIG_BASE_FILE, MBEDTLS_CONFIG_NAME, "
+            "MBEDTLS_CONFIG_SET and MBEDTLS_CONFIG_UNSET are not supported "
+            "in an in-tree build.")
+    endif()
+
+    if(MBEDTLS_CONFIG_TRANSFORMED AND
+       "${MBEDTLS_PYTHON_EXECUTABLE}" STREQUAL "")
         message(FATAL_ERROR "Python 3 is required to generate an Mbed TLS configuration file.")
     endif()
 
-    if(MBEDTLS_CONFIG_FILE)
-        set(MBEDTLS_BASE_CONFIG_FILE "${MBEDTLS_CONFIG_FILE}")
+    if(NOT "${MBEDTLS_CONFIG_BASE_FILE}" STREQUAL "")
+        set(MBEDTLS_BASE_CONFIG_FILE "${MBEDTLS_CONFIG_BASE_FILE}")
         if(NOT EXISTS "${MBEDTLS_BASE_CONFIG_FILE}")
-            file(RELATIVE_PATH MBEDTLS_CONFIG_FILE_RELATIVE
-                 "${CMAKE_CURRENT_BINARY_DIR}" "${MBEDTLS_CONFIG_FILE}")
+            file(RELATIVE_PATH MBEDTLS_CONFIG_BASE_FILE_RELATIVE
+                 "${CMAKE_CURRENT_BINARY_DIR}" "${MBEDTLS_CONFIG_BASE_FILE}")
             set(MBEDTLS_BASE_CONFIG_FILE
-                "${CMAKE_CURRENT_SOURCE_DIR}/${MBEDTLS_CONFIG_FILE_RELATIVE}")
+                "${CMAKE_CURRENT_SOURCE_DIR}/${MBEDTLS_CONFIG_BASE_FILE_RELATIVE}")
         endif()
     else()
         set(MBEDTLS_BASE_CONFIG_FILE
@@ -171,11 +200,20 @@ if(MBEDTLS_CONFIG_NAME OR MBEDTLS_CONFIG_SET OR MBEDTLS_CONFIG_UNSET)
         message(FATAL_ERROR "Mbed TLS configuration file not found: ${MBEDTLS_BASE_CONFIG_FILE}")
     endif()
 
-    set(MBEDTLS_GENERATED_CONFIG_DIR "${CMAKE_CURRENT_BINARY_DIR}/generated/include/mbedtls")
-    set(MBEDTLS_GENERATED_CONFIG_FILE "${MBEDTLS_GENERATED_CONFIG_DIR}/mbedtls_config.h")
-    file(MAKE_DIRECTORY "${MBEDTLS_GENERATED_CONFIG_DIR}")
+    set(MBEDTLS_GENERATED_CONFIG_DIR "${CMAKE_CURRENT_BINARY_DIR}/generated/include")
+    set(MBEDTLS_GENERATED_CONFIG_FILE "${MBEDTLS_GENERATED_CONFIG_DIR}/mbedtls/mbedtls_config.h")
+    file(MAKE_DIRECTORY "${MBEDTLS_GENERATED_CONFIG_DIR}/mbedtls")
     configure_file("${MBEDTLS_BASE_CONFIG_FILE}"
                    "${MBEDTLS_GENERATED_CONFIG_FILE}" COPYONLY)
+
+    if(MBEDTLS_CONFIG_TRANSFORMED)
+        set(MBEDTLS_GENERATED_CRYPTO_CONFIG_FILE
+            "${MBEDTLS_GENERATED_CONFIG_DIR}/psa/crypto_config.h")
+        file(MAKE_DIRECTORY "${MBEDTLS_GENERATED_CONFIG_DIR}/psa")
+        configure_file(
+            "${CMAKE_CURRENT_SOURCE_DIR}/include/psa/crypto_config.h"
+            "${MBEDTLS_GENERATED_CRYPTO_CONFIG_FILE}" COPYONLY)
+    endif()
 
     function(mbedtls_configure_generated_file)
         execute_process(
@@ -183,6 +221,7 @@ if(MBEDTLS_CONFIG_NAME OR MBEDTLS_CONFIG_SET OR MBEDTLS_CONFIG_UNSET)
                 ${MBEDTLS_PYTHON_EXECUTABLE}
                 "${CMAKE_CURRENT_SOURCE_DIR}/scripts/config.py"
                 --file "${MBEDTLS_GENERATED_CONFIG_FILE}"
+                --cryptofile "${MBEDTLS_GENERATED_CRYPTO_CONFIG_FILE}"
                 ${ARGN}
             RESULT_VARIABLE result
         )
@@ -191,7 +230,7 @@ if(MBEDTLS_CONFIG_NAME OR MBEDTLS_CONFIG_SET OR MBEDTLS_CONFIG_UNSET)
         endif()
     endfunction(mbedtls_configure_generated_file)
 
-    if(MBEDTLS_CONFIG_NAME)
+    if(NOT "${MBEDTLS_CONFIG_NAME}" STREQUAL "")
         mbedtls_configure_generated_file("${MBEDTLS_CONFIG_NAME}")
     endif()
     foreach(option IN LISTS MBEDTLS_CONFIG_UNSET)
@@ -209,7 +248,8 @@ if(MBEDTLS_CONFIG_NAME OR MBEDTLS_CONFIG_SET OR MBEDTLS_CONFIG_UNSET)
         endif()
     endforeach(option)
 
-    set(MBEDTLS_CONFIG_FILE "${MBEDTLS_GENERATED_CONFIG_FILE}")
+    set(MBEDTLS_CONFIG_FILE
+        "$<BUILD_INTERFACE:${MBEDTLS_GENERATED_CONFIG_FILE}>$<INSTALL_INTERFACE:mbedtls/mbedtls_config.h>")
 endif()
 
 # Create a symbolic link from ${base_name} in the binary directory

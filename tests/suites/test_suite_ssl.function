@@ -8,6 +8,7 @@
 #endif /* MBEDTLS_PK_HAVE_PRIVATE_HEADER */
 #include <ssl_tls13_keys.h>
 #include <ssl_tls13_invasive.h>
+#include <psa_crypto_slot_management.h>
 #include <test/ssl_helpers.h>
 #include <test/ssl_helpers_internal.h>
 
@@ -31,6 +32,28 @@
 #define TEST_TLS13_SESSION_LOAD_HOSTNAME_NO_NUL  1
 #define TEST_TLS13_SESSION_LOAD_ALPN_NO_NUL      2
 #define TEST_TLS12_SESSION_LOAD_OOB_ID_LEN       3
+
+#if defined(MBEDTLS_PSA_KEY_STORE_DYNAMIC)
+#if defined(MBEDTLS_TEST_HOOKS) && defined(MBEDTLS_SSL_CLI_C) && \
+    defined(MBEDTLS_PSA_CRYPTO_C)
+#define SSL_TEST_KEY_SLICE_1_LENGTH 4
+#define SSL_TEST_KEY_SLICE_2_LENGTH 10
+static size_t ssl_test_tiny_key_slice_length(size_t slice_idx)
+{
+    switch (slice_idx) {
+        case 1: return SSL_TEST_KEY_SLICE_1_LENGTH;
+        case 2: return SSL_TEST_KEY_SLICE_2_LENGTH;
+        default: return 1;
+    }
+}
+#define SSL_TEST_MAX_VOLATILE_KEYS                         \
+    (SSL_TEST_KEY_SLICE_1_LENGTH +                         \
+     SSL_TEST_KEY_SLICE_2_LENGTH +                         \
+     psa_key_slot_volatile_slice_count() - 2)
+#endif /* MBEDTLS_TEST_HOOKS && MBEDTLS_SSL_CLI_C */
+#else /* MBEDTLS_PSA_KEY_STORE_DYNAMIC */
+#define SSL_TEST_MAX_VOLATILE_KEYS MBEDTLS_PSA_KEY_SLOT_COUNT
+#endif /* MBEDTLS_PSA_KEY_STORE_DYNAMIC */
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2) && \
     defined(MBEDTLS_SSL_SESSION_TICKETS) && \
@@ -2481,6 +2504,66 @@ exit:
     mbedtls_ssl_transform_free(&transform_send);
     mbedtls_ssl_transform_free(&transform_recv);
     MD_OR_USE_PSA_DONE();
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_SSL_CLI_C:SSL_TEST_MAX_VOLATILE_KEYS:MBEDTLS_PSA_CRYPTO_C */
+void ssl_tls13_populate_transform_second_key_import_failure(void)
+{
+    mbedtls_ssl_key_set traffic_keys;
+    mbedtls_ssl_transform transform;
+    mbedtls_svc_key_id_t *keys = NULL;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    mbedtls_psa_stats_t stats;
+    size_t max_keys = SSL_TEST_MAX_VOLATILE_KEYS;
+    size_t i;
+
+    memset(&traffic_keys, 0, sizeof(traffic_keys));
+    mbedtls_ssl_transform_init(&transform);
+
+#if defined(MBEDTLS_PSA_KEY_STORE_DYNAMIC) && defined(MBEDTLS_TEST_HOOKS)
+    mbedtls_test_hook_psa_volatile_key_slice_length =
+        ssl_test_tiny_key_slice_length;
+#endif
+
+    PSA_ASSERT(psa_crypto_init());
+    mbedtls_psa_get_stats(&stats);
+    max_keys -= stats.volatile_slots;
+    TEST_CALLOC(keys, max_keys);
+
+    psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_EXPORT);
+    psa_set_key_type(&attributes, PSA_KEY_TYPE_RAW_DATA);
+
+    /* Leave exactly one slot free: the encryption key import consumes it,
+     * then the decryption key import fails. */
+    for (i = 0; i + 1 < max_keys; i++) {
+        PSA_ASSERT(psa_import_key(&attributes,
+                                  (const uint8_t *) &i, sizeof(i),
+                                  &keys[i]));
+    }
+
+    traffic_keys.key_len = 16;
+    traffic_keys.iv_len = 12;
+    TEST_ASSERT(mbedtls_ssl_tls13_populate_transform(
+                    &transform, MBEDTLS_SSL_IS_CLIENT,
+                    MBEDTLS_TLS1_3_AES_128_GCM_SHA256,
+                    &traffic_keys, NULL) != 0);
+
+    /* The first import must be rolled back when the second one fails. */
+    TEST_ASSERT(mbedtls_svc_key_id_is_null(transform.psa_key_enc));
+
+exit:
+    mbedtls_ssl_transform_free(&transform);
+    if (keys != NULL) {
+        for (i = 0; i < max_keys; i++) {
+            psa_destroy_key(keys[i]);
+        }
+    }
+    mbedtls_free(keys);
+    PSA_DONE();
+#if defined(MBEDTLS_PSA_KEY_STORE_DYNAMIC) && defined(MBEDTLS_TEST_HOOKS)
+    mbedtls_test_hook_psa_volatile_key_slice_length = NULL;
+#endif
 }
 /* END_CASE */
 

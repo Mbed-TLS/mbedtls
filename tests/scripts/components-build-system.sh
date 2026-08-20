@@ -320,6 +320,19 @@ component_build_cmake_config_options () {
 
     cd "$MBEDTLS_ROOT_DIR"
     rm -rf "$OUT_OF_SOURCE_DIR"
+    launch_dir="$OUT_OF_SOURCE_DIR.launch"
+    mkdir "$launch_dir"
+    cd "$launch_dir"
+
+    msg "configure: resolve a relative base config from the source tree"
+    cmake -H"$MBEDTLS_ROOT_DIR" -B"$OUT_OF_SOURCE_DIR" \
+        -DMBEDTLS_CONFIG_BASE_FILE=configs/config-ccm-psk-tls1_2.h \
+        -DMBEDTLS_CONFIG_SET=MBEDTLS_DEBUG_C
+    grep '^#define MBEDTLS_DEBUG_C' \
+        "$OUT_OF_SOURCE_DIR/generated/include/mbedtls/mbedtls_config.h"
+
+    cd "$MBEDTLS_ROOT_DIR"
+    rm -rf "$OUT_OF_SOURCE_DIR" "$launch_dir"
     mkdir "$OUT_OF_SOURCE_DIR"
     cd "$OUT_OF_SOURCE_DIR"
 
@@ -328,24 +341,36 @@ component_build_cmake_config_options () {
               -DMBEDTLS_CONFIG_SET=MBEDTLS_DEBUG_C "$MBEDTLS_ROOT_DIR"
 
     cd "$MBEDTLS_ROOT_DIR"
-    for option in \
-        "TF_PSA_CRYPTO_CONFIG_FILE=$MBEDTLS_ROOT_DIR/tf-psa-crypto/include/psa/crypto_config.h" \
-        "TF_PSA_CRYPTO_CONFIG_BASE_FILE=$MBEDTLS_ROOT_DIR/tf-psa-crypto/include/psa/crypto_config.h" \
-        "TF_PSA_CRYPTO_CONFIG_NAME=full" \
-        "TF_PSA_CRYPTO_CONFIG_SET=PSA_WANT_ALG_SHA_256" \
-        "TF_PSA_CRYPTO_CONFIG_UNSET=PSA_WANT_ALG_CMAC"
-    do
-        rm -rf "$OUT_OF_SOURCE_DIR"
-        mkdir "$OUT_OF_SOURCE_DIR"
-        cd "$OUT_OF_SOURCE_DIR"
+    rm -rf "$OUT_OF_SOURCE_DIR"
+    mkdir "$OUT_OF_SOURCE_DIR"
+    cd "$OUT_OF_SOURCE_DIR"
 
-        msg "configure: reject $option with Mbed TLS transformations"
-        not cmake "-D$option" -DMBEDTLS_CONFIG_SET=MBEDTLS_DEBUG_C \
-                  "$MBEDTLS_ROOT_DIR"
+    msg "configure: reject TF_PSA_CRYPTO_CONFIG_FILE with Mbed TLS transformations"
+    not cmake \
+        -DTF_PSA_CRYPTO_CONFIG_FILE="$MBEDTLS_ROOT_DIR/tf-psa-crypto/include/psa/crypto_config.h" \
+        -DMBEDTLS_CONFIG_SET=MBEDTLS_DEBUG_C "$MBEDTLS_ROOT_DIR"
 
-        cd "$MBEDTLS_ROOT_DIR"
-    done
+    cd "$MBEDTLS_ROOT_DIR"
+    rm -rf "$OUT_OF_SOURCE_DIR"
+    mkdir "$OUT_OF_SOURCE_DIR"
+    cd "$OUT_OF_SOURCE_DIR"
 
+    msg "build: combine Mbed TLS and TF-PSA-Crypto transformations"
+    cmake \
+        -DMBEDTLS_CONFIG_BASE_FILE=configs/config-ccm-psk-tls1_2.h \
+        '-DMBEDTLS_CONFIG_SET=MBEDTLS_DEBUG_C;PSA_WANT_ALG_RIPEMD160' \
+        -DTF_PSA_CRYPTO_CONFIG_BASE_FILE="$MBEDTLS_ROOT_DIR/tf-psa-crypto/configs/crypto-config-symmetric-only.h" \
+        -DTF_PSA_CRYPTO_CONFIG_UNSET=PSA_WANT_ALG_RIPEMD160 \
+        "$MBEDTLS_ROOT_DIR"
+    make query_compile_time_config
+    programs/test/query_compile_time_config MBEDTLS_DEBUG_C
+    grep '^#define PSA_WANT_ALG_RIPEMD160' \
+        generated/include/psa/crypto_config.h
+    not programs/test/query_compile_time_config PSA_WANT_ALG_RIPEMD160
+    not programs/test/query_compile_time_config \
+        PSA_WANT_KEY_TYPE_DH_KEY_PAIR_BASIC
+
+    cd "$MBEDTLS_ROOT_DIR"
     rm -rf "$OUT_OF_SOURCE_DIR"
     mkdir "$OUT_OF_SOURCE_DIR"
     cd "$OUT_OF_SOURCE_DIR"
@@ -384,8 +409,8 @@ component_build_cmake_config_options () {
     cmake --build . --target install
     cmp generated/include/mbedtls/mbedtls_config.h \
         "$install_dir/include/mbedtls/mbedtls_config.h"
-    cmp generated/include/psa/crypto_config.h \
-        "$install_dir/include/psa/crypto_config_mbedtls.h"
+    cmp tf-psa-crypto/include/psa/crypto_config.h \
+        "$install_dir/include/psa/crypto_config.h"
 
     # The installed targets must not refer to the build tree.
     cd "$MBEDTLS_ROOT_DIR"

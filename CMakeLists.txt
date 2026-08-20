@@ -134,7 +134,7 @@ endif()
 # Make configuration file options into PATHs
 set(MBEDTLS_CONFIG_FILE "" CACHE FILEPATH "Mbed TLS config file (overrides default).")
 set(MBEDTLS_USER_CONFIG_FILE "" CACHE FILEPATH "Mbed TLS user config file (appended to default).")
-set(MBEDTLS_CONFIG_BASE_FILE "" CACHE FILEPATH "Mbed TLS config to copy and optionally transform.")
+set(MBEDTLS_CONFIG_BASE_FILE "" CACHE STRING "Mbed TLS config to copy and optionally transform.")
 set(MBEDTLS_CONFIG_NAME "" CACHE STRING "Named Mbed TLS configuration (see config.py).")
 set(MBEDTLS_CONFIG_SET "" CACHE STRING "Options to set, separated by semicolons (OPTION or OPTION=VALUE).")
 set(MBEDTLS_CONFIG_UNSET "" CACHE STRING "Options to unset, separated by semicolons.")
@@ -157,15 +157,9 @@ if(NOT "${MBEDTLS_CONFIG_FILE}" STREQUAL "" AND
 endif()
 
 if(MBEDTLS_CONFIG_TRANSFORMED AND
-   (NOT "${TF_PSA_CRYPTO_CONFIG_FILE}" STREQUAL "" OR
-    NOT "${TF_PSA_CRYPTO_CONFIG_BASE_FILE}" STREQUAL "" OR
-    NOT "${TF_PSA_CRYPTO_CONFIG_NAME}" STREQUAL "" OR
-    NOT "${TF_PSA_CRYPTO_CONFIG_SET}" STREQUAL "" OR
-    NOT "${TF_PSA_CRYPTO_CONFIG_UNSET}" STREQUAL ""))
+   NOT "${TF_PSA_CRYPTO_CONFIG_FILE}" STREQUAL "")
     message(FATAL_ERROR
-        "TF_PSA_CRYPTO_CONFIG_FILE, TF_PSA_CRYPTO_CONFIG_BASE_FILE, "
-        "TF_PSA_CRYPTO_CONFIG_NAME, TF_PSA_CRYPTO_CONFIG_SET and "
-        "TF_PSA_CRYPTO_CONFIG_UNSET cannot be combined with "
+        "TF_PSA_CRYPTO_CONFIG_FILE cannot be combined with "
         "MBEDTLS_CONFIG_NAME, MBEDTLS_CONFIG_SET or MBEDTLS_CONFIG_UNSET.")
 endif()
 
@@ -188,13 +182,9 @@ if(NOT "${MBEDTLS_CONFIG_BASE_FILE}" STREQUAL "" OR
     endif()
 
     if(NOT "${MBEDTLS_CONFIG_BASE_FILE}" STREQUAL "")
-        set(MBEDTLS_BASE_CONFIG_FILE "${MBEDTLS_CONFIG_BASE_FILE}")
-        if(NOT EXISTS "${MBEDTLS_BASE_CONFIG_FILE}")
-            file(RELATIVE_PATH MBEDTLS_CONFIG_BASE_FILE_RELATIVE
-                 "${CMAKE_CURRENT_BINARY_DIR}" "${MBEDTLS_CONFIG_BASE_FILE}")
-            set(MBEDTLS_BASE_CONFIG_FILE
-                "${CMAKE_CURRENT_SOURCE_DIR}/${MBEDTLS_CONFIG_BASE_FILE_RELATIVE}")
-        endif()
+        get_filename_component(MBEDTLS_BASE_CONFIG_FILE
+            "${MBEDTLS_CONFIG_BASE_FILE}" ABSOLUTE
+            BASE_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
     else()
         set(MBEDTLS_BASE_CONFIG_FILE
             "${CMAKE_CURRENT_SOURCE_DIR}/include/mbedtls/mbedtls_config.h")
@@ -210,15 +200,25 @@ if(NOT "${MBEDTLS_CONFIG_BASE_FILE}" STREQUAL "" OR
                    "${MBEDTLS_GENERATED_CONFIG_FILE}" COPYONLY)
 
     if(MBEDTLS_CONFIG_TRANSFORMED)
+        if(NOT "${TF_PSA_CRYPTO_CONFIG_BASE_FILE}" STREQUAL "")
+            get_filename_component(MBEDTLS_BASE_CRYPTO_CONFIG_FILE
+                "${TF_PSA_CRYPTO_CONFIG_BASE_FILE}" ABSOLUTE
+                BASE_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
+        else()
+            set(MBEDTLS_BASE_CRYPTO_CONFIG_FILE
+                "${CMAKE_CURRENT_SOURCE_DIR}/tf-psa-crypto/include/psa/crypto_config.h")
+        endif()
+        if(NOT EXISTS "${MBEDTLS_BASE_CRYPTO_CONFIG_FILE}")
+            message(FATAL_ERROR
+                "TF-PSA-Crypto configuration file not found: "
+                "${MBEDTLS_BASE_CRYPTO_CONFIG_FILE}")
+        endif()
+
         set(MBEDTLS_GENERATED_CRYPTO_CONFIG_FILE
             "${MBEDTLS_GENERATED_CONFIG_DIR}/psa/crypto_config.h")
         file(MAKE_DIRECTORY "${MBEDTLS_GENERATED_CONFIG_DIR}/psa")
-        # config.py handles the Mbed TLS and PSA configurations together. Give
-        # it a build-tree PSA configuration so that it never modifies the
-        # source tree.
-        configure_file(
-            "${CMAKE_CURRENT_SOURCE_DIR}/tf-psa-crypto/include/psa/crypto_config.h"
-            "${MBEDTLS_GENERATED_CRYPTO_CONFIG_FILE}" COPYONLY)
+        configure_file("${MBEDTLS_BASE_CRYPTO_CONFIG_FILE}"
+                       "${MBEDTLS_GENERATED_CRYPTO_CONFIG_FILE}" COPYONLY)
     endif()
 
     function(mbedtls_configure_generated_file)
@@ -257,8 +257,10 @@ if(NOT "${MBEDTLS_CONFIG_BASE_FILE}" STREQUAL "" OR
     set(MBEDTLS_CONFIG_FILE
         "$<BUILD_INTERFACE:${MBEDTLS_GENERATED_CONFIG_FILE}>$<INSTALL_INTERFACE:mbedtls/mbedtls_config.h>")
     if(MBEDTLS_CONFIG_TRANSFORMED)
-        set(TF_PSA_CRYPTO_CONFIG_FILE
-            "$<BUILD_INTERFACE:${MBEDTLS_GENERATED_CRYPTO_CONFIG_FILE}>$<INSTALL_INTERFACE:psa/crypto_config_mbedtls.h>")
+        # TF-PSA-Crypto applies its own transformations after the PSA changes
+        # made by the Mbed TLS configuration tool.
+        set(TF_PSA_CRYPTO_CONFIG_BASE_FILE_OVERRIDE
+            "${MBEDTLS_GENERATED_CRYPTO_CONFIG_FILE}")
     endif()
 endif()
 
@@ -477,15 +479,6 @@ set(TF_PSA_CRYPTO_FATAL_WARNINGS ${MBEDTLS_FATAL_WARNINGS} CACHE BOOL "")
 set(USE_STATIC_TF_PSA_CRYPTO_LIBRARY ${USE_STATIC_MBEDTLS_LIBRARY} CACHE BOOL "")
 set(USE_SHARED_TF_PSA_CRYPTO_LIBRARY ${USE_SHARED_MBEDTLS_LIBRARY} CACHE BOOL "")
 add_subdirectory(tf-psa-crypto)
-
-# Keep the generated configuration distinct from TF-PSA-Crypto's default
-# configuration header, which is installed by the subproject.
-if(NOT "${MBEDTLS_GENERATED_CRYPTO_CONFIG_FILE}" STREQUAL "" AND
-   INSTALL_TF_PSA_CRYPTO_HEADERS)
-    install(FILES "${MBEDTLS_GENERATED_CRYPTO_CONFIG_FILE}"
-        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/psa
-        RENAME crypto_config_mbedtls.h)
-endif()
 
 set(tfpsacrypto_target "${TF_PSA_CRYPTO_TARGET_PREFIX}tfpsacrypto")
 if (USE_STATIC_MBEDTLS_LIBRARY)

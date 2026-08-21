@@ -384,6 +384,8 @@ component_build_cmake_config_options () {
 
     msg "build: cmake with a base config, MBEDTLS_CONFIG_SET and MBEDTLS_CONFIG_UNSET"
     cp "$MBEDTLS_ROOT_DIR/configs/config-ccm-psk-tls1_2.h" base_config.before
+    cp "$MBEDTLS_ROOT_DIR/tf-psa-crypto/include/psa/crypto_config.h" \
+       crypto_config.before
     cmake -DMBEDTLS_CONFIG_BASE_FILE=configs/config-ccm-psk-tls1_2.h \
           '-DMBEDTLS_CONFIG_UNSET=MBEDTLS_SSL_SRV_C;PSA_WANT_ALG_CMAC;PSA_WANT_ALG_PBKDF2_AES_CMAC_PRF_128' \
           '-DMBEDTLS_CONFIG_SET=MBEDTLS_SSL_RENEGOTIATION;MBEDTLS_DEBUG_C;MBEDTLS_ERROR_C;MBEDTLS_SSL_IN_CONTENT_LEN=12000' \
@@ -400,6 +402,8 @@ component_build_cmake_config_options () {
       "12000" ]
     cmp base_config.before \
         "$MBEDTLS_ROOT_DIR/configs/config-ccm-psk-tls1_2.h"
+    cmp crypto_config.before \
+        "$MBEDTLS_ROOT_DIR/tf-psa-crypto/include/psa/crypto_config.h"
 
     msg "install: generated configurations are relocatable"
     install_dir="$OUT_OF_SOURCE_DIR.install"

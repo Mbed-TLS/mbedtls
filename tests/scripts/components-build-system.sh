@@ -355,6 +355,19 @@ component_build_cmake_config_options () {
 
     cd "$MBEDTLS_ROOT_DIR"
     rm -rf "$OUT_OF_SOURCE_DIR"
+    launch_dir="$MBEDTLS_ROOT_DIR/cmake-config-launch"
+    mkdir "$launch_dir"
+    cd "$launch_dir"
+
+    msg "configure: resolve a base config relative to the launch directory"
+    cmake -H"$MBEDTLS_ROOT_DIR" -B"$OUT_OF_SOURCE_DIR" \
+        -DMBEDTLS_CONFIG_BASE_FILE=../configs/config-ccm-psk-tls1_2.h \
+        -DMBEDTLS_CONFIG_SET=MBEDTLS_DEBUG_C
+    grep '^#define MBEDTLS_DEBUG_C' \
+        "$OUT_OF_SOURCE_DIR/generated/include/mbedtls/mbedtls_config.h"
+
+    cd "$MBEDTLS_ROOT_DIR"
+    rm -rf "$OUT_OF_SOURCE_DIR" "$launch_dir"
     mkdir "$OUT_OF_SOURCE_DIR"
     cd "$OUT_OF_SOURCE_DIR"
 
@@ -378,6 +391,7 @@ component_build_cmake_config_options () {
 
     msg "build: cmake with a base config, MBEDTLS_CONFIG_SET and MBEDTLS_CONFIG_UNSET"
     cp "$MBEDTLS_ROOT_DIR/configs/config-ccm-psk-tls1_2.h" base_config.before
+    cp "$MBEDTLS_ROOT_DIR/include/psa/crypto_config.h" crypto_config.before
     cmake -DMBEDTLS_CONFIG_BASE_FILE=configs/config-ccm-psk-tls1_2.h \
           '-DMBEDTLS_CONFIG_UNSET=MBEDTLS_SSL_SRV_C;PSA_WANT_ALG_CMAC;PSA_WANT_ALG_PBKDF2_AES_CMAC_PRF_128' \
           '-DMBEDTLS_CONFIG_SET=MBEDTLS_SSL_RENEGOTIATION;MBEDTLS_DEBUG_C;MBEDTLS_ERROR_C;MBEDTLS_SSL_IN_CONTENT_LEN=12000' \
@@ -394,6 +408,8 @@ component_build_cmake_config_options () {
       "12000" ]
     cmp base_config.before \
         "$MBEDTLS_ROOT_DIR/configs/config-ccm-psk-tls1_2.h"
+    cmp crypto_config.before \
+        "$MBEDTLS_ROOT_DIR/include/psa/crypto_config.h"
 
     msg "install: generated configurations are relocatable"
     install_dir="$OUT_OF_SOURCE_DIR.install"

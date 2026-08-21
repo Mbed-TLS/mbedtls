@@ -134,10 +134,11 @@ endif()
 # Make configuration file options into PATHs
 set(MBEDTLS_CONFIG_FILE "" CACHE FILEPATH "Mbed TLS config file (overrides default).")
 set(MBEDTLS_USER_CONFIG_FILE "" CACHE FILEPATH "Mbed TLS user config file (appended to default).")
-set(MBEDTLS_CONFIG_BASE_FILE "" CACHE STRING "Mbed TLS config to copy and optionally transform.")
+set(MBEDTLS_CONFIG_BASE_FILE "" CACHE FILEPATH "Mbed TLS config to copy and optionally transform.")
 set(MBEDTLS_CONFIG_NAME "" CACHE STRING "Named Mbed TLS configuration (see config.py).")
 set(MBEDTLS_CONFIG_SET "" CACHE STRING "Options to set, separated by semicolons (OPTION or OPTION=VALUE).")
 set(MBEDTLS_CONFIG_UNSET "" CACHE STRING "Options to unset, separated by semicolons.")
+set(TF_PSA_CRYPTO_CONFIG_BASE_FILE "" CACHE FILEPATH "TF-PSA-Crypto config to copy and optionally transform.")
 
 set(MBEDTLS_CONFIG_TRANSFORMED FALSE)
 if(NOT "${MBEDTLS_CONFIG_NAME}" STREQUAL "" OR
@@ -182,9 +183,13 @@ if(NOT "${MBEDTLS_CONFIG_BASE_FILE}" STREQUAL "" OR
     endif()
 
     if(NOT "${MBEDTLS_CONFIG_BASE_FILE}" STREQUAL "")
-        get_filename_component(MBEDTLS_BASE_CONFIG_FILE
-            "${MBEDTLS_CONFIG_BASE_FILE}" ABSOLUTE
-            BASE_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
+        set(MBEDTLS_BASE_CONFIG_FILE "${MBEDTLS_CONFIG_BASE_FILE}")
+        if(NOT EXISTS "${MBEDTLS_BASE_CONFIG_FILE}")
+            file(RELATIVE_PATH MBEDTLS_CONFIG_BASE_FILE_RELATIVE
+                 "${CMAKE_CURRENT_BINARY_DIR}" "${MBEDTLS_CONFIG_BASE_FILE}")
+            set(MBEDTLS_BASE_CONFIG_FILE
+                "${CMAKE_CURRENT_SOURCE_DIR}/${MBEDTLS_CONFIG_BASE_FILE_RELATIVE}")
+        endif()
     else()
         set(MBEDTLS_BASE_CONFIG_FILE
             "${CMAKE_CURRENT_SOURCE_DIR}/include/mbedtls/mbedtls_config.h")
@@ -201,9 +206,15 @@ if(NOT "${MBEDTLS_CONFIG_BASE_FILE}" STREQUAL "" OR
 
     if(MBEDTLS_CONFIG_TRANSFORMED)
         if(NOT "${TF_PSA_CRYPTO_CONFIG_BASE_FILE}" STREQUAL "")
-            get_filename_component(MBEDTLS_BASE_CRYPTO_CONFIG_FILE
-                "${TF_PSA_CRYPTO_CONFIG_BASE_FILE}" ABSOLUTE
-                BASE_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
+            set(MBEDTLS_BASE_CRYPTO_CONFIG_FILE
+                "${TF_PSA_CRYPTO_CONFIG_BASE_FILE}")
+            if(NOT EXISTS "${MBEDTLS_BASE_CRYPTO_CONFIG_FILE}")
+                file(RELATIVE_PATH TF_PSA_CRYPTO_CONFIG_BASE_FILE_RELATIVE
+                     "${CMAKE_CURRENT_BINARY_DIR}"
+                     "${TF_PSA_CRYPTO_CONFIG_BASE_FILE}")
+                set(MBEDTLS_BASE_CRYPTO_CONFIG_FILE
+                    "${CMAKE_CURRENT_SOURCE_DIR}/${TF_PSA_CRYPTO_CONFIG_BASE_FILE_RELATIVE}")
+            endif()
         else()
             set(MBEDTLS_BASE_CRYPTO_CONFIG_FILE
                 "${CMAKE_CURRENT_SOURCE_DIR}/tf-psa-crypto/include/psa/crypto_config.h")

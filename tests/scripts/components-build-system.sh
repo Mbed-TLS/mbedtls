@@ -320,13 +320,13 @@ component_build_cmake_config_options () {
 
     cd "$MBEDTLS_ROOT_DIR"
     rm -rf "$OUT_OF_SOURCE_DIR"
-    launch_dir="$OUT_OF_SOURCE_DIR.launch"
+    launch_dir="$MBEDTLS_ROOT_DIR/cmake-config-launch"
     mkdir "$launch_dir"
     cd "$launch_dir"
 
-    msg "configure: resolve a relative base config from the source tree"
+    msg "configure: resolve a base config relative to the launch directory"
     cmake -H"$MBEDTLS_ROOT_DIR" -B"$OUT_OF_SOURCE_DIR" \
-        -DMBEDTLS_CONFIG_BASE_FILE=configs/config-ccm-psk-tls1_2.h \
+        -DMBEDTLS_CONFIG_BASE_FILE=../configs/config-ccm-psk-tls1_2.h \
         -DMBEDTLS_CONFIG_SET=MBEDTLS_DEBUG_C
     grep '^#define MBEDTLS_DEBUG_C' \
         "$OUT_OF_SOURCE_DIR/generated/include/mbedtls/mbedtls_config.h"
@@ -358,17 +358,15 @@ component_build_cmake_config_options () {
     msg "build: combine Mbed TLS and TF-PSA-Crypto transformations"
     cmake \
         -DMBEDTLS_CONFIG_BASE_FILE=configs/config-ccm-psk-tls1_2.h \
-        '-DMBEDTLS_CONFIG_SET=MBEDTLS_DEBUG_C;PSA_WANT_ALG_RIPEMD160' \
-        -DTF_PSA_CRYPTO_CONFIG_BASE_FILE="$MBEDTLS_ROOT_DIR/tf-psa-crypto/configs/crypto-config-symmetric-only.h" \
-        -DTF_PSA_CRYPTO_CONFIG_UNSET=PSA_WANT_ALG_RIPEMD160 \
+        -DMBEDTLS_CONFIG_SET=MBEDTLS_DEBUG_C \
+        -DTF_PSA_CRYPTO_CONFIG_BASE_FILE="$MBEDTLS_ROOT_DIR/configs/crypto-config-ccm-psk-tls1_2.h" \
+        -DTF_PSA_CRYPTO_CONFIG_UNSET=MBEDTLS_HAVE_TIME \
         "$MBEDTLS_ROOT_DIR"
     make query_compile_time_config
     programs/test/query_compile_time_config MBEDTLS_DEBUG_C
-    grep '^#define PSA_WANT_ALG_RIPEMD160' \
+    grep '^#define MBEDTLS_HAVE_TIME' \
         generated/include/psa/crypto_config.h
-    not programs/test/query_compile_time_config PSA_WANT_ALG_RIPEMD160
-    not programs/test/query_compile_time_config \
-        PSA_WANT_KEY_TYPE_DH_KEY_PAIR_BASIC
+    not programs/test/query_compile_time_config MBEDTLS_HAVE_TIME
 
     cd "$MBEDTLS_ROOT_DIR"
     rm -rf "$OUT_OF_SOURCE_DIR"

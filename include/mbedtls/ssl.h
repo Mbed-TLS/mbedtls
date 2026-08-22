@@ -73,8 +73,15 @@
 #define MBEDTLS_ERR_SSL_BAD_CERTIFICATE                   -0x7A00
 /* Error space gap */
 /**
- * Received NewSessionTicket Post Handshake Message.
- * This error code is experimental and may be changed or removed without notice.
+ * Received a NewSessionTicket post-handshake message during a TLS 1.3
+ * handshake. This is not a fatal error; the connection is still usable.
+ *
+ * When this error is returned, a new session ticket has been received and
+ * can be saved for future reuse via the session serialization APIs. After
+ * handling the ticket, you may continue calling the same function (for
+ * example mbedtls_ssl_read()) to resume normal operation.
+ *
+ * \note This error code may be changed or removed in a future version.
  */
 #define MBEDTLS_ERR_SSL_RECEIVED_NEW_SESSION_TICKET       -0x7B00
 /** Not possible to read early data */
@@ -4824,6 +4831,10 @@ int mbedtls_ssl_get_session(const mbedtls_ssl_context *ssl,
  *                 enabled on server (see mbedtls_ssl_conf_early_data()
  *                 documentation). You must call mbedtls_ssl_read_early_data()
  *                 to read the early data before resuming the handshake.
+ * \return         #MBEDTLS_ERR_SSL_RECEIVED_NEW_SESSION_TICKET if a TLS 1.3
+ *                 NewSessionTicket message has been received. This is not an
+ *                 error; the connection is still usable. You may save the
+ *                 new ticket and continue calling this function.
  * \return         Another SSL error code - in this case you must stop using
  *                 the context (see below).
  *
@@ -4831,9 +4842,10 @@ int mbedtls_ssl_get_session(const mbedtls_ssl_context *ssl,
  *                 \c 0,
  *                 #MBEDTLS_ERR_SSL_WANT_READ,
  *                 #MBEDTLS_ERR_SSL_WANT_WRITE,
- *                 #MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS or
- *                 #MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS or
- *                 #MBEDTLS_ERR_SSL_RECEIVED_EARLY_DATA,
+ *                 #MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS,
+ *                 #MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS,
+ *                 #MBEDTLS_ERR_SSL_RECEIVED_EARLY_DATA or
+ *                 #MBEDTLS_ERR_SSL_RECEIVED_NEW_SESSION_TICKET,
  *                 you must stop using the SSL context for reading or writing,
  *                 and either free it or call \c mbedtls_ssl_session_reset()
  *                 on it before re-using it for a new connection; the current
@@ -4912,8 +4924,9 @@ static inline int mbedtls_ssl_is_handshake_over(mbedtls_ssl_context *ssl)
  * \warning        If this function returns something other than \c 0,
  *                 #MBEDTLS_ERR_SSL_WANT_READ, #MBEDTLS_ERR_SSL_WANT_WRITE,
  *                 #MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS,
- *                 #MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS or
- *                 #MBEDTLS_ERR_SSL_RECEIVED_EARLY_DATA, you must stop using
+ *                 #MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS,
+ *                 #MBEDTLS_ERR_SSL_RECEIVED_EARLY_DATA or
+ *                 #MBEDTLS_ERR_SSL_RECEIVED_NEW_SESSION_TICKET, you must stop using
  *                 the SSL context for reading or writing, and either free it
  *                 or call \c mbedtls_ssl_session_reset() on it before
  *                 re-using it for a new connection; the current connection
@@ -4988,6 +5001,10 @@ int mbedtls_ssl_renegotiate(mbedtls_ssl_context *ssl);
  *                 enabled on server (see mbedtls_ssl_conf_early_data()
  *                 documentation). You must call mbedtls_ssl_read_early_data()
  *                 to read the early data before resuming the handshake.
+ * \return         #MBEDTLS_ERR_SSL_RECEIVED_NEW_SESSION_TICKET if a TLS 1.3
+ *                 NewSessionTicket message has been received. This is not an
+ *                 error; the connection is still usable. You may save the
+ *                 new ticket and continue calling this function.
  * \return         Another SSL error code - in this case you must stop using
  *                 the context (see below).
  *
@@ -4997,8 +5014,9 @@ int mbedtls_ssl_renegotiate(mbedtls_ssl_context *ssl);
  *                 #MBEDTLS_ERR_SSL_WANT_WRITE,
  *                 #MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS,
  *                 #MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS,
- *                 #MBEDTLS_ERR_SSL_CLIENT_RECONNECT or
- *                 #MBEDTLS_ERR_SSL_RECEIVED_EARLY_DATA,
+ *                 #MBEDTLS_ERR_SSL_CLIENT_RECONNECT,
+ *                 #MBEDTLS_ERR_SSL_RECEIVED_EARLY_DATA or
+ *                 #MBEDTLS_ERR_SSL_RECEIVED_NEW_SESSION_TICKET,
  *                 you must stop using the SSL context for reading or writing,
  *                 and either free it or call \c mbedtls_ssl_session_reset()
  *                 on it before re-using it for a new connection; the current
@@ -5070,6 +5088,10 @@ int mbedtls_ssl_read(mbedtls_ssl_context *ssl, unsigned char *buf, size_t len);
  *                 enabled on server (see mbedtls_ssl_conf_early_data()
  *                 documentation). You must call mbedtls_ssl_read_early_data()
  *                 to read the early data before resuming the handshake.
+ * \return         #MBEDTLS_ERR_SSL_RECEIVED_NEW_SESSION_TICKET if a TLS 1.3
+ *                 NewSessionTicket message has been received. This is not an
+ *                 error; the connection is still usable. You may save the
+ *                 new ticket and continue calling this function.
  * \return         Another SSL error code - in this case you must stop using
  *                 the context (see below).
  *
@@ -5078,8 +5100,9 @@ int mbedtls_ssl_read(mbedtls_ssl_context *ssl, unsigned char *buf, size_t len);
  *                 #MBEDTLS_ERR_SSL_WANT_READ,
  *                 #MBEDTLS_ERR_SSL_WANT_WRITE,
  *                 #MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS,
- *                 #MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS or
- *                 #MBEDTLS_ERR_SSL_RECEIVED_EARLY_DATA,
+ *                 #MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS,
+ *                 #MBEDTLS_ERR_SSL_RECEIVED_EARLY_DATA or
+ *                 #MBEDTLS_ERR_SSL_RECEIVED_NEW_SESSION_TICKET,
  *                 you must stop using the SSL context for reading or writing,
  *                 and either free it or call \c mbedtls_ssl_session_reset()
  *                 on it before re-using it for a new connection; the current

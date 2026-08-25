@@ -1,0 +1,4 @@
+Bugfix
+   * Fix a resource leak in TLS 1.3 transform setup when importing the
+     decryption traffic key fails after the encryption traffic key has already
+     been imported. Fixes #10917.

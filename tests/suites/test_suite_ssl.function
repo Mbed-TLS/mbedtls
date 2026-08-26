@@ -2512,7 +2512,7 @@ void ssl_tls13_populate_transform_second_key_import_failure(void)
 {
     mbedtls_ssl_key_set traffic_keys;
     mbedtls_ssl_transform transform;
-    mbedtls_svc_key_id_t *keys = NULL;
+    mbedtls_svc_key_id_t keys[SSL_TEST_MAX_VOLATILE_KEYS];
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     mbedtls_psa_stats_t stats;
     size_t max_keys = SSL_TEST_MAX_VOLATILE_KEYS;

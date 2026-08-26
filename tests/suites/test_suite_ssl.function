@@ -4537,6 +4537,83 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED */
+void ssl_ecjpake_read_round(int input_len_arg, int expected_ret)
+{
+    const unsigned char password[] = "password";
+    const unsigned char client_id[] = "client";
+    const unsigned char server_id[] = "server";
+    unsigned char *input = NULL;
+    unsigned char buf[512];
+    size_t input_len;
+    size_t olen = 0;
+    mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_pake_cipher_suite_t cipher_suite = PSA_PAKE_CIPHER_SUITE_INIT;
+    psa_pake_operation_t client = PSA_PAKE_OPERATION_INIT;
+    psa_pake_operation_t server = PSA_PAKE_OPERATION_INIT;
+
+    PSA_INIT();
+
+    psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_DERIVE);
+    psa_set_key_algorithm(&attributes, PSA_ALG_JPAKE(PSA_ALG_SHA_256));
+    psa_set_key_type(&attributes, PSA_KEY_TYPE_PASSWORD);
+    PSA_ASSERT(psa_import_key(&attributes, password, sizeof(password) - 1,
+                              &key));
+
+    psa_pake_cs_set_algorithm(&cipher_suite,
+                              PSA_ALG_JPAKE(PSA_ALG_SHA_256));
+    psa_pake_cs_set_primitive(
+        &cipher_suite,
+        PSA_PAKE_PRIMITIVE(PSA_PAKE_PRIMITIVE_TYPE_ECC,
+                           PSA_ECC_FAMILY_SECP_R1, 256));
+
+    PSA_ASSERT(psa_pake_setup(&client, key, &cipher_suite));
+    PSA_ASSERT(psa_pake_setup(&server, key, &cipher_suite));
+    PSA_ASSERT(psa_pake_set_user(&client, client_id, sizeof(client_id) - 1));
+    PSA_ASSERT(psa_pake_set_peer(&client, server_id, sizeof(server_id) - 1));
+    PSA_ASSERT(psa_pake_set_user(&server, server_id, sizeof(server_id) - 1));
+    PSA_ASSERT(psa_pake_set_peer(&server, client_id, sizeof(client_id) - 1));
+
+    TEST_EQUAL(mbedtls_psa_ecjpake_write_round(
+                   &client, buf, sizeof(buf), &olen,
+                   MBEDTLS_ECJPAKE_ROUND_ONE), 0);
+    TEST_EQUAL(mbedtls_psa_ecjpake_read_round(
+                   &server, buf, olen, MBEDTLS_ECJPAKE_ROUND_ONE), 0);
+    TEST_EQUAL(mbedtls_psa_ecjpake_write_round(
+                   &server, buf, sizeof(buf), &olen,
+                   MBEDTLS_ECJPAKE_ROUND_ONE), 0);
+    TEST_EQUAL(mbedtls_psa_ecjpake_read_round(
+                   &client, buf, olen, MBEDTLS_ECJPAKE_ROUND_ONE), 0);
+
+    TEST_EQUAL(mbedtls_psa_ecjpake_write_round(
+                   &client, buf, sizeof(buf), &olen,
+                   MBEDTLS_ECJPAKE_ROUND_TWO), 0);
+
+    if (input_len_arg == -1) {
+        input_len = olen;
+    } else {
+        TEST_ASSERT(input_len_arg >= 0);
+        input_len = (size_t) input_len_arg;
+        TEST_LE_U(input_len, olen);
+    }
+    if (input_len != 0) {
+        TEST_CALLOC(input, input_len);
+        memcpy(input, buf, input_len);
+    }
+    TEST_EQUAL(mbedtls_psa_ecjpake_read_round(
+                   &server, input, input_len, MBEDTLS_ECJPAKE_ROUND_TWO),
+               expected_ret);
+
+exit:
+    mbedtls_free(input);
+    psa_destroy_key(key);
+    psa_pake_abort(&client);
+    psa_pake_abort(&server);
+    PSA_DONE();
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED */
 void ssl_ecjpake_set_password(int use_opaque_arg)
 {
     mbedtls_ssl_context ssl;

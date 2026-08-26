@@ -2526,7 +2526,7 @@ void ssl_tls13_populate_transform_second_key_import_failure(void)
         ssl_test_tiny_key_slice_length;
 #endif
 
-    PSA_ASSERT(psa_crypto_init());
+    PSA_INIT();
     mbedtls_psa_get_stats(&stats);
     max_keys -= stats.volatile_slots;
     TEST_CALLOC(keys, max_keys);

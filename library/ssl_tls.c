@@ -8023,6 +8023,9 @@ int mbedtls_psa_ecjpake_read_round(
              step <= PSA_PAKE_STEP_ZK_PROOF;
              ++step) {
             /* Length is stored at the first byte */
+            if (input_offset + 1 > len) {
+                return MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE;
+            }
             size_t length = buf[input_offset];
             input_offset += 1;
 

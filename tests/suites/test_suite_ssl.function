@@ -2526,12 +2526,14 @@ void ssl_tls13_populate_transform_second_key_import_failure(void)
 #endif
 
     PSA_INIT();
-    TEST_CALLOC(keys, SSL_TEST_MAX_VOLATILE_KEYS);
+    TEST_CALLOC(keys, SSL_TEST_MAX_VOLATILE_KEYS + 1);
 
     psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_EXPORT);
     psa_set_key_type(&attributes, PSA_KEY_TYPE_RAW_DATA);
 
-    while (i < SSL_TEST_MAX_VOLATILE_KEYS) {
+    /* Allow one more attempt than the maximum number of volatile keys so
+     * that the loop ends because the key store is full. */
+    while (i <= SSL_TEST_MAX_VOLATILE_KEYS) {
         status = psa_import_key(&attributes,
                                 (const uint8_t *) &i, sizeof(i),
                                 &keys[i]);

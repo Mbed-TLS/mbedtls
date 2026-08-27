@@ -318,3 +318,85 @@ exit:
     USE_PSA_DONE();
 }
 /* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_FS_IO:MBEDTLS_X509_CRT_PARSE_C */
+void pkcs7_get_certs(char *pkcs7_file, int expected_ret)
+{
+    unsigned char *pkcs7_buf = NULL;
+    size_t buflen;
+    int ret;
+    char info[512];
+
+    mbedtls_pkcs7 pkcs7;
+    mbedtls_x509_crt *certs = NULL;
+
+    USE_PSA_INIT();
+
+    mbedtls_pkcs7_init(&pkcs7);
+
+    ret = mbedtls_pk_load_file(pkcs7_file, &pkcs7_buf, &buflen);
+    TEST_EQUAL(ret, 0);
+
+    ret = mbedtls_pkcs7_parse_der(&pkcs7, pkcs7_buf, buflen);
+    TEST_EQUAL(ret, MBEDTLS_PKCS7_SIGNED_DATA);
+
+    ret = mbedtls_pkcs7_get_certs(&pkcs7, &certs);
+    TEST_EQUAL(ret, expected_ret);
+
+    if (expected_ret == 0) {
+        TEST_ASSERT(certs != NULL);
+
+        /* deep copy check */
+        mbedtls_pkcs7_free(&pkcs7);
+        mbedtls_x509_crt_info(info, sizeof(info), "  ", certs);
+        TEST_ASSERT(strlen(info) > 0);
+
+        mbedtls_x509_crt_free(certs);
+        mbedtls_free(certs);
+        certs = NULL;
+    } else {
+        TEST_EQUAL(certs, NULL);
+    }
+
+exit:
+    if (certs != NULL) {
+        mbedtls_x509_crt_free(certs);
+        mbedtls_free(certs);
+    }
+    mbedtls_free(pkcs7_buf);
+    mbedtls_pkcs7_free(&pkcs7);
+    USE_PSA_DONE();
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_FS_IO:MBEDTLS_PKCS7_C */
+void pkcs7_get_cert_count(char *pkcs7_file, int expected)
+{
+    int ret;
+    mbedtls_pkcs7 pkcs7;
+    unsigned char *buf = NULL;
+    size_t len = 0;
+
+    USE_PSA_INIT();
+
+    mbedtls_pkcs7_init(&pkcs7);
+
+    if (strcmp(pkcs7_file, "NULL") != 0) {
+        ret = mbedtls_pk_load_file(pkcs7_file, &buf, &len);
+        TEST_EQUAL(ret, 0);
+
+        ret = mbedtls_pkcs7_parse_der(&pkcs7, buf, len);
+        TEST_EQUAL(ret, MBEDTLS_PKCS7_SIGNED_DATA);
+    }
+
+    ret = mbedtls_pkcs7_get_cert_count(
+        (strcmp(pkcs7_file, "NULL") != 0) ? &pkcs7 : NULL);
+
+    TEST_EQUAL(ret, expected);
+
+exit:
+    mbedtls_pkcs7_free(&pkcs7);
+    mbedtls_free(buf);
+    USE_PSA_DONE();
+}
+/* END_CASE */

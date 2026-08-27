@@ -3363,3 +3363,31 @@ pkcs7_verify_ext:"../framework/data_files/pkcs7_signed_data_invalid_KU_cert.der"
 PKCS7 Signed Data Verify Pass: Root-Signed Leaf Certificate, chain check #804
 depends_on:PSA_WANT_ALG_SHA_256:PSA_HAVE_ALG_RSA_PKCS1V15_VERIFY
 pkcs7_verify_ext:"../framework/data_files/pkcs7_signed_cert_sha256-4.der":"../framework/data_files/pkcs7-rsa-sha256-root-ca-1.pem":"../framework/data_files/pkcs7_data.bin":0:1:0
+
+PKCS7 get embedded certs: SignedData with cert #805.0
+depends_on:MBEDTLS_FS_IO:MBEDTLS_X509_CRT_PARSE_C
+pkcs7_get_certs:"../framework/data_files/pkcs7_signed_cert_sha256.der":0
+
+PKCS7 get embedded certs: SignedData with multiple certs #805.1
+depends_on:MBEDTLS_FS_IO:MBEDTLS_X509_CRT_PARSE_C
+pkcs7_get_certs:"../framework/data_files/pkcs7_signed_multi_cert_sha256.der":0
+
+PKCS7 get embedded certs: SignedData without certs #805.2
+depends_on:MBEDTLS_FS_IO:MBEDTLS_X509_CRT_PARSE_C
+pkcs7_get_certs:"../framework/data_files/pkcs7_signed_without_cert.der":MBEDTLS_ERR_PKCS7_BAD_INPUT_DATA
+
+PKCS7 embedded cert count: SignedData with certificates #806.0
+depends_on:MBEDTLS_FS_IO
+pkcs7_get_cert_count:"../framework/data_files/pkcs7_signed_cert_sha256.der":1
+
+PKCS7 embedded cert count: SignedData without certificates #806.1
+depends_on:MBEDTLS_FS_IO
+pkcs7_get_cert_count:"../framework/data_files/pkcs7_signed_without_cert.der":0
+
+PKCS7 embedded cert count: SignedData with multiple certs #806.2
+depends_on:MBEDTLS_FS_IO
+pkcs7_get_cert_count:"../framework/data_files/pkcs7_signed_multi_cert_sha256.der":4
+
+PKCS7 embedded cert count: NULL pkcs7 returns error #806.3
+depends_on:MBEDTLS_FS_IO
+pkcs7_get_cert_count:"NULL":MBEDTLS_ERR_PKCS7_BAD_INPUT_DATA

@@ -1,0 +1,3 @@
+Security
+   * Fix an out-of-bounds read when parsing truncated TLS 1.2 ECJPAKE peer
+     messages. Reported by Brandon Arrendondo, found using aurora-lint.

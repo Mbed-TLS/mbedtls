@@ -2514,6 +2514,7 @@ void ssl_tls13_populate_transform_second_key_import_failure(void)
     mbedtls_ssl_transform transform;
     mbedtls_svc_key_id_t *keys = NULL;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    mbedtls_psa_stats_t stats_before, stats_after;
     psa_status_t status = PSA_SUCCESS;
     size_t i = 0;
 
@@ -2549,6 +2550,8 @@ void ssl_tls13_populate_transform_second_key_import_failure(void)
     /* Leave exactly one slot free: the encryption key import consumes it,
      * then the decryption key import fails. */
     PSA_ASSERT(psa_destroy_key(keys[--i]));
+    keys[i] = MBEDTLS_SVC_KEY_ID_INIT;
+    mbedtls_psa_get_stats(&stats_before);
 
     traffic_keys.key_len = 16;
     traffic_keys.iv_len = 12;
@@ -2559,6 +2562,16 @@ void ssl_tls13_populate_transform_second_key_import_failure(void)
 
     /* The first import must be rolled back when the second one fails. */
     TEST_ASSERT(mbedtls_svc_key_id_is_null(transform.psa_key_enc));
+
+    /* Also check the key store itself: the failed operation must neither
+     * consume a slot nor leave the only free slot unusable. */
+    mbedtls_psa_get_stats(&stats_after);
+    TEST_EQUAL(stats_after.volatile_slots, stats_before.volatile_slots);
+    TEST_EQUAL(stats_after.empty_slots, stats_before.empty_slots);
+    PSA_ASSERT(psa_import_key(&attributes,
+                              (const uint8_t *) &i, sizeof(i),
+                              &keys[i]));
+    i++;
 
 exit:
     mbedtls_ssl_transform_free(&transform);

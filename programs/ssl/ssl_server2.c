@@ -1385,6 +1385,10 @@ static int dummy_ticket_parse(void *p_ticket, mbedtls_ssl_session *session,
     int ret;
     ((void) p_ticket);
 
+    if (len < 4) {
+        return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
+    }
+
     if ((ret = mbedtls_ssl_session_load(session, buf + 4, len - 4)) != 0) {
         return ret;
     }

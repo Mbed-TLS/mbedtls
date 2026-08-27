@@ -317,6 +317,36 @@ int mbedtls_pkcs7_signed_hash_verify_ext(const mbedtls_pkcs7 *pkcs7,
                                          const int use_pkcs7_leaf);
 
 /**
+ * \brief        Return the number of certificates embedded in a PKCS #7 SignedData
+ *               structure.
+ *
+ * \param pkcs7  PKCS #7 structure containing signature and certificates.
+ *
+ * \return       Number of embedded certificates (>= 0), or
+ *               #MBEDTLS_ERR_PKCS7_BAD_INPUT_DATA if \p pkcs7 is NULL.
+ */
+int mbedtls_pkcs7_get_cert_count(const mbedtls_pkcs7 *pkcs7);
+
+/**
+ * \brief           Extract embedded certificates from PKCS#7 SignedData.
+ *
+ * \details         Creates a new certificate chain by parsing the DER-encoded
+ *                  certificates embedded in the PKCS#7 structure. The caller
+ *                  is responsible for freeing the returned certificate chain.
+ *
+ * \param pkcs7     PKCS#7 structure containing embedded certificates.
+ * \param out_certs On success, pointer to newly allocated certificate chain.
+ *                  Caller must free with mbedtls_x509_crt_free() and mbedtls_free().
+ *
+ * \return          0 on success,
+ *                  #MBEDTLS_ERR_PKCS7_BAD_INPUT_DATA if \p pkcs7 is NULL,
+ *                  \p out_certs is NULL, or no certificates are embedded,
+ *                  or a negative error code on failure.
+ */
+int mbedtls_pkcs7_get_certs(const mbedtls_pkcs7 *pkcs7,
+			    mbedtls_x509_crt **out_certs);
+
+/**
  * \brief          Unallocate all PKCS #7 data and zeroize the memory.
  *                 It doesn't free \p pkcs7 itself. This should be done by the caller.
  *

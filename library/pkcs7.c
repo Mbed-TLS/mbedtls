@@ -1176,6 +1176,54 @@ int mbedtls_pkcs7_signed_hash_verify_ext(const mbedtls_pkcs7 *pkcs7,
                                              1, use_pkcs7_leaf);
 }
 
+int mbedtls_pkcs7_get_cert_count(const mbedtls_pkcs7 *pkcs7)
+{
+    if (pkcs7 == NULL) {
+        return MBEDTLS_ERR_PKCS7_BAD_INPUT_DATA;
+    }
+
+    return pkcs7->signed_data.no_of_certs;
+}
+
+int mbedtls_pkcs7_get_certs(const mbedtls_pkcs7 *pkcs7,
+                            mbedtls_x509_crt **out_certs)
+{
+    const mbedtls_pkcs7_cert *embedded_cert;
+    mbedtls_x509_crt *cert_chain = NULL;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+
+    if (pkcs7 == NULL || out_certs == NULL) {
+        return MBEDTLS_ERR_PKCS7_BAD_INPUT_DATA;
+    }
+
+    *out_certs = NULL;
+    if (pkcs7->signed_data.no_of_certs == 0) {
+        return MBEDTLS_ERR_PKCS7_BAD_INPUT_DATA;
+    }
+
+    cert_chain = (mbedtls_x509_crt *) mbedtls_calloc(1, sizeof(mbedtls_x509_crt));
+    if (cert_chain == NULL) {
+        return MBEDTLS_ERR_PKCS7_ALLOC_FAILED;
+    }
+
+    mbedtls_x509_crt_init(cert_chain);
+
+    for (embedded_cert = pkcs7->signed_data.certs; embedded_cert != NULL;
+         embedded_cert = embedded_cert->next) {
+        ret = mbedtls_x509_crt_parse_der(cert_chain, embedded_cert->cert.raw.p,
+                                         embedded_cert->cert.raw.len);
+        if (ret != 0) {
+            mbedtls_x509_crt_free(cert_chain);
+            mbedtls_free(cert_chain);
+            return ret;
+        }
+    }
+
+    *out_certs = cert_chain;
+
+    return 0;
+}
+
 /*
  * Unallocate all pkcs7 data
  */

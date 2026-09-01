@@ -71,15 +71,16 @@ set(MBEDTLS_FRAMEWORK_DIR ${CMAKE_CURRENT_SOURCE_DIR}/framework)
 option(ENABLE_PROGRAMS "Build Mbed TLS programs." ON)
 
 option(MBEDTLS_FATAL_WARNINGS "Compiler warnings treated as errors" ON)
-if(CMAKE_HOST_WIN32)
-    # N.B. The comment on the next line is significant! If you change it,
-    # edit the sed command in prepare_release.sh that modifies
-    # CMakeLists.txt.
-    option(GEN_FILES "Generate the auto-generated files as needed" OFF) # off in development
-else()
-    option(GEN_FILES "Generate the auto-generated files as needed" ON)
+
+set(mbedtls_default_gen_files ON)
+if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/.git")
+    set(mbedtls_default_gen_files OFF)
+    message(STATUS "Mbed TLS Git metadata not found; GEN_FILES defaults to OFF.")
+elseif(CMAKE_HOST_WIN32)
+     set(mbedtls_default_gen_files OFF)
 endif()
 
+option(GEN_FILES "Generate the auto-generated files as needed" ${mbedtls_default_gen_files})
 option(DISABLE_PACKAGE_CONFIG_AND_INSTALL "Disable package configuration, target export and installation" ${MBEDTLS_AS_SUBPROJECT})
 
 if (CMAKE_C_SIMULATE_ID)

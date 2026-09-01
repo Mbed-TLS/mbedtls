@@ -63,6 +63,8 @@
 #define MBEDTLS_ERR_PKCS7_ALLOC_FAILED                     PSA_ERROR_INSUFFICIENT_MEMORY  /**< Allocation of memory failed. */
 #define MBEDTLS_ERR_PKCS7_VERIFY_FAIL                      PSA_ERROR_INVALID_SIGNATURE  /**< Verification Failed */
 #define MBEDTLS_ERR_PKCS7_CERT_DATE_INVALID                -0x5880  /**< The PKCS #7 date issued/expired dates are invalid */
+#define MBEDTLS_ERR_PKCS7_CERT_VERIFY_FAILED               -0x5900  /**< The PKCS #7 signer certificate verification failed. */
+#define MBEDTLS_ERR_PKCS7_SIGNER_CERT_NOT_FOUND            -0x5980  /**< No certificate matching the PKCS#7 signer information was found. */
 /* \} name */
 
 /**
@@ -208,7 +210,7 @@ int mbedtls_pkcs7_parse_der(mbedtls_pkcs7 *pkcs7, const unsigned char *buf,
  *
  * \return         0 if the signature verifies, or a negative error code on failure.
  */
-int mbedtls_pkcs7_signed_data_verify(mbedtls_pkcs7 *pkcs7,
+int mbedtls_pkcs7_signed_data_verify(const mbedtls_pkcs7 *pkcs7,
                                      const mbedtls_x509_crt *cert,
                                      const unsigned char *data,
                                      size_t datalen);
@@ -240,9 +242,79 @@ int mbedtls_pkcs7_signed_data_verify(mbedtls_pkcs7 *pkcs7,
  *
  * \return         0 if the signature verifies, or a negative error code on failure.
  */
-int mbedtls_pkcs7_signed_hash_verify(mbedtls_pkcs7 *pkcs7,
+int mbedtls_pkcs7_signed_hash_verify(const mbedtls_pkcs7 *pkcs7,
                                      const mbedtls_x509_crt *cert,
                                      const unsigned char *hash, size_t hashlen);
+
+/**
+ * \brief                 Verify a PKCS #7 SignedData signature over plain data.
+ *
+ *                        For each signer in the PKCS#7 structure, this function verifies
+ *                        the signature over the supplied data using the digest algorithm
+ *                        specified by the signer and a matching leaf certificate.
+ *                        Verification succeeds if at least one signer signature is valid.
+ *
+ *                        The verification uses certificates provided by the caller and,
+ *                        optionally, certificates embedded within the PKCS#7 SignedData
+ *                        structure. When certificates from the PKCS#7 structure are used,
+ *                        the signer certificate chain is validated against the supplied
+ *                        trusted certificates.
+ *
+ * \param pkcs7           PKCS#7 SignedData structure containing signatures.
+ * \param trust_certs     Certificate list containing trusted leaf and CA certificates.
+ *                        CA certificates are used for certificate chain verification and
+ *                        leaf certificates are used for signature verification.
+ * \param data            Plain data on which signature has to be verified.
+ * \param datalen         Length of the \p data.
+ * \param use_pkcs7_leaf  Flag indicating whether to use the leaf certificate embedded
+ *                        in the PKCS#7 structure: set to \c 1 to enforce use of the PKCS#7
+ *                        leaf certificate, or \c 0 to use only caller-supplied certificates.
+ *
+ * \note                  This function internally calculates the hash on the supplied
+ *                        plain data for signature verification.
+ *
+ * \return                0 on success, or a negative error code on failure.
+ */
+int mbedtls_pkcs7_signed_data_verify_ext(const mbedtls_pkcs7 *pkcs7,
+                                         const mbedtls_x509_crt *trust_certs,
+                                         const unsigned char *data,
+                                         const size_t datalen,
+                                         const int use_pkcs7_leaf);
+
+/**
+ * \brief                 Verify PKCS #7 SignedData signature over a supplied hash.
+ *
+ *                        For each signer in the PKCS#7 structure, this function verifies
+ *                        the signature over the supplied message hash using the digest
+ *                        algorithm specified by the signer and a matching leaf certificate.
+ *                        Verification succeeds if at least one signer signature is valid.
+ *
+ *                        The verification uses certificates provided by the caller and,
+ *                        optionally, certificates embedded within the PKCS#7 SignedData
+ *                        structure. When certificates from the PKCS#7 structure are used,
+ *                        the signer certificate chain is validated against the supplied
+ *                        trusted certificates.
+ *
+ * \param pkcs7           PKCS #7 SignedData structure containing signatures.
+ * \param trust_certs     Certificate list containing trusted leaf and CA certificates.
+ *                        CA certificates are used for certificate chain verification and
+ *                        leaf certificates are used for signature verification.
+ * \param hash            Hash of the plain data on which signature has to be verified.
+ * \param hashlen         Length of the \p hash.
+ * \param use_pkcs7_leaf  Flag indicating whether to use the leaf certificate embedded in
+ *                        the PKCS#7 structure: set to \c 1 to enforce use of the PKCS#7
+ *                        leaf certificate, or \c 0 to use only caller-supplied certificates.
+ *
+ * \note                  This function differs from mbedtls_pkcs7_signed_data_verify_ext()
+ *                        in that the hash of the input data is provided directly by caller.
+ *
+ * \return                0 on success, or a negative error code on failure.
+ */
+int mbedtls_pkcs7_signed_hash_verify_ext(const mbedtls_pkcs7 *pkcs7,
+                                         const mbedtls_x509_crt *trust_certs,
+                                         const unsigned char *hash,
+                                         const size_t hashlen,
+                                         const int use_pkcs7_leaf);
 
 /**
  * \brief          Unallocate all PKCS #7 data and zeroize the memory.
